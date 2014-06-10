@@ -1,0 +1,106 @@
+//-*-C++-*-
+
+#ifndef BASIS_TRANSFORMATION_ED_TO_ED_H
+#define BASIS_TRANSFORMATION_ED_TO_ED_H
+
+namespace TRAFOR
+{
+  /*! 
+   *  \ingroup 
+   *
+   *  \brief  
+   *  \author Peter Staar
+   *
+   *  \version 1.0
+   *  \date    2013
+   */
+  template<typename input_type, typename output_type>
+  class basis_transformation<input_type, EXPANSION, output_type, EXPANSION>
+  {
+  public:
+
+    typedef input_type  rh_dmn_type;
+    typedef output_type lh_dmn_type;
+
+    typedef typename lh_dmn_type::dmn_specifications_type lh_spec_dmn_type;
+    typedef typename rh_dmn_type::dmn_specifications_type rh_spec_dmn_type;
+
+    typedef typename lh_spec_dmn_type::scalar_type lh_scalar_type;
+    typedef typename rh_spec_dmn_type::scalar_type rh_scalar_type;
+
+    typedef typename lh_spec_dmn_type::element_type lh_element_type;
+    typedef typename rh_spec_dmn_type::element_type rh_element_type;
+
+    typedef basis_function<lh_dmn_type, rh_dmn_type, rh_spec_dmn_type::basis_expansion> basis_function_type;
+
+    typedef typename basis_function_type::f_scalar_type f_scalar_type;
+
+    typedef LIN_ALG::matrix<f_scalar_type, LIN_ALG::CPU> matrix_type;
+
+  public:
+
+    static bool& transformation_matrix_is_initialized()
+    {
+      static bool initialized = false;
+      return initialized;
+    }
+    
+    static std::string& get_name()
+    {
+      static std::string name = "basis-transformation";
+      return name;
+    }
+
+    static LIN_ALG::matrix<f_scalar_type, LIN_ALG::CPU>& get_transformation_matrix()
+    {
+      static bool initialized = false;
+
+      static LIN_ALG::matrix<f_scalar_type, LIN_ALG::CPU> T;
+
+      if(not initialized)
+	{
+	  initialized = true;
+
+	  initialize_transformation_matrix();
+	}
+
+      return T;
+    }
+
+    static void initialize_transformation_matrix()
+    {
+      int M = lh_dmn_type::get_size();
+      int N = rh_dmn_type::get_size();
+
+      assert(M>0 and N>0);
+ 
+      LIN_ALG::matrix<f_scalar_type, LIN_ALG::CPU>& T = get_transformation_matrix();
+      
+      T.reserve(std::pair<int, int>(M, N));
+
+      if(lh_spec_dmn_type::basis_expansion == lh_spec_dmn_type::basis_expansion)
+	{
+	  for(int j=0; j<N; j++){
+	    for(int i=0; i<M; i++){
+
+	      lh_element_type& lh_element = lh_dmn_type::get_elements()[i];
+	      rh_element_type& rh_element = rh_dmn_type::get_elements()[j];
+
+	      if(abs(lh_element-rh_element)<1.e-6)
+		T(i,j) = 1;
+	      else
+		T(i,j) = 0;
+	    }
+	  }
+	}
+      else
+	{
+	  throw std::logic_error(__FUNCTION__);
+	}	  
+    }
+    
+  };
+
+}
+
+#endif

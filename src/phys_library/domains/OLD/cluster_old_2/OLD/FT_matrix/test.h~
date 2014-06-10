@@ -1,0 +1,10 @@
+
+
+template<class cluster_type>
+bool check_injectiveness()
+{
+
+
+
+
+}

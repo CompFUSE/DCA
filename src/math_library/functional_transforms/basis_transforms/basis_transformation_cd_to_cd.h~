@@ -1,0 +1,192 @@
+//-*-C++-*-
+
+#ifndef BASIS_TRANSFORMATION_CD_TO_CD_H
+#define BASIS_TRANSFORMATION_CD_TO_CD_H
+
+namespace TRAFOR
+{
+  /*! 
+   *  \ingroup 
+   *
+   *  \brief  
+   *  \author Peter Staar
+   *
+   *  \version 1.0
+   *  \date    2013
+   */
+  template<typename input_type, typename output_type>
+  class basis_transformation<input_type, CONTINUOUS, output_type, CONTINUOUS>
+  {
+  public:
+
+    typedef input_type  rh_dmn_type;
+    typedef output_type lh_dmn_type;
+
+    typedef typename lh_dmn_type::dmn_specifications_type lh_spec_dmn_type;
+    typedef typename rh_dmn_type::dmn_specifications_type rh_spec_dmn_type;
+
+    typedef typename lh_spec_dmn_type::scalar_type lh_scalar_type;
+    typedef typename rh_spec_dmn_type::scalar_type rh_scalar_type;
+
+    typedef typename lh_spec_dmn_type::element_type lh_element_type;
+    typedef typename rh_spec_dmn_type::element_type rh_element_type;
+
+    typedef basis_function<lh_dmn_type, rh_dmn_type, rh_spec_dmn_type::basis_expansion> basis_function_type;
+
+    typedef typename basis_function_type::f_scalar_type f_scalar_type;
+
+    typedef LIN_ALG::matrix<f_scalar_type, LIN_ALG::CPU> matrix_type;
+
+    typedef inner_product_domain<output_type> inner_product_dmn;
+    
+    typedef basis_transformation<input_type , CONTINUOUS, inner_product_dmn, CONTINUOUS> input_transform_type;
+    typedef basis_transformation<output_type, CONTINUOUS, inner_product_dmn, CONTINUOUS> output_transform_type;
+
+  public:
+    
+    static std::string& get_name()
+    {
+      static std::string name = "basis-transformation";
+      return name;
+    }
+
+    static bool& transformation_matrix_is_initialized()
+    {
+      static bool initialized = false;
+      return initialized;
+    }
+
+    static matrix_type& get_transformation_matrix()
+    {
+      static matrix_type T;
+
+      if(not transformation_matrix_is_initialized())
+	initialize_transformation_matrix();
+
+      return T;
+    }
+
+    static void initialize_transformation_matrix()
+    {
+//       GENERIC_ASSERT<CONTINUOUS == rh_spec_dmn_type::domain_representation>::execute();
+//       GENERIC_ASSERT<CONTINUOUS == lh_spec_dmn_type::domain_representation>::execute();
+
+      transformation_matrix_is_initialized() = true;
+
+      int M = lh_dmn_type::get_size();
+      int N = rh_dmn_type::get_size();
+
+      assert(M>0 and N>0);
+ 
+      matrix_type& T = get_transformation_matrix();
+      
+      T.reserve(std::pair<int, int>(M, N));
+      
+      for(int j=0; j<N; j++)
+	for(int i=0; i<M; i++)
+	  T(i,j) = basis_function_type::execute(i,j);
+    }
+
+    static bool& contraction_matrix_is_initialized()
+    {
+      static bool initialized = false;
+      return initialized;
+    }
+
+    static double& get_contraction_matrix_accuracy()
+    {
+      static double accuracy = 1.e-6;
+      return accuracy;
+    }
+
+    static int get_contraction_matrix_iterations()
+    {
+      static int itr = 10;
+      return itr;
+    }
+
+    static matrix_type& get_contraction_matrix()
+    {
+      static matrix_type T;
+
+      if(not contraction_matrix_is_initialized())
+	initialize_contraction_matrix();
+
+      return T;
+    }
+
+    static void initialize_contraction_matrix()
+    {
+      //cout << __FUNCTION__ << endl;
+	  
+      GENERIC_ASSERT<CONTINUOUS == rh_spec_dmn_type::domain_representation>::execute();
+      GENERIC_ASSERT<CONTINUOUS == lh_spec_dmn_type::domain_representation>::execute();
+            
+      contraction_matrix_is_initialized() = true;
+
+      int M = lh_dmn_type::get_size();
+      int N = rh_dmn_type::get_size();
+      
+      assert(M>0 and N>0);
+      
+      matrix_type& C = get_contraction_matrix();
+      C.reserve(std::pair<int, int>(M, N));
+
+      matrix_type C_cpy("C", std::pair<int, int>(M, N));
+
+      for(int l=1; l<get_contraction_matrix_iterations(); l++)
+	{
+	  C_cpy.copy_from(C);
+
+	  inner_product_dmn::initialize(l);
+	  	  
+	  output_transform_type::transformation_matrix_is_initialized() = false;
+	  input_transform_type ::transformation_matrix_is_initialized() = false;
+
+	  matrix_type& A = output_transform_type::get_transformation_matrix();
+	  matrix_type& B = input_transform_type ::get_transformation_matrix();
+	  
+	  LIN_ALG::GEMM<LIN_ALG::CPU>::execute('T', 'N', A, B, C);
+
+	  //double renorm = inner_product_dmn::get_volume()/inner_product_dmn::get_size();
+	  //cout << inner_product_dmn::get_volume() << "\t" << inner_product_dmn::get_size() << endl;
+	
+	  double renorm = inner_product_dmn::get_volume()/inner_product_dmn::get_size();
+	  for(int j=0; j<N; j++)
+	    for(int i=0; i<M; i++)
+	      C(i,j) *= renorm;
+
+	  double max=0;
+	  for(int j=0; j<N; j++)
+	    for(int i=0; i<M; i++)
+	      max = max<abs(C(i,j))? abs(C(i,j)) : max;
+
+	  double diff=0;
+	  for(int j=0; j<N; j++)
+	    for(int i=0; i<M; i++)
+	      diff = diff<abs(C(i,j)-C_cpy(i,j))? abs(C(i,j)-C_cpy(i,j)) : diff;
+
+	  if(diff<get_contraction_matrix_accuracy()*max)
+	    break;
+	}
+
+      double result=0;
+      for(int j=0; j<N; j++)
+	for(int i=0; i<M; i++)
+	  result += C(i,j);
+      
+      //cout << "\n\n\t integral : " << result << endl;
+      //cout << "\n\n\t delta    : " << input_type::get_elements()[1]-input_type::get_elements()[0] << endl;
+
+//       for(int j=0; j<N; j++)
+// 	if(abs(C(M/2, j))>1.e-6)
+// 	  cout << C(M/2, j) << "\t";
+//       cout << "\n\n";
+    }
+
+  private:
+
+  };
+}
+
+#endif

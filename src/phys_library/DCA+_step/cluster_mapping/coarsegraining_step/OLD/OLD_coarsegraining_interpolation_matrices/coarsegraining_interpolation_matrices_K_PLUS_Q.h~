@@ -1,0 +1,84 @@
+//-*-C++-*-
+
+#ifndef DCA_COARSEGRAIN_INTERPOLATION_MATRICES_K_PLUS_Q_H
+#define DCA_COARSEGRAIN_INTERPOLATION_MATRICES_K_PLUS_Q_H
+
+namespace DCA
+{
+  /*
+  template<typename k_dmn, typename K_dmn>
+  class interpolation_matrices<k_dmn, dmn_0<coarsegraining_domain<K_dmn, K_PLUS_Q> > >
+  {  
+    typedef LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> matrix_type;
+
+    typedef dmn_0<coarsegraining_domain<K_dmn, K_PLUS_Q> >   q_dmn;
+    typedef typename k_dmn::parameter_type::dual_type        r_dmn;
+
+    typedef MATH_ALGORITHMS::basis_transform<typename k_dmn::parameter_type, r_dmn> trafo_k_to_r_type;
+    typedef MATH_ALGORITHMS::basis_transform<r_dmn, typename q_dmn::parameter_type> trafo_r_to_q_type;
+
+  public:
+    
+    static function<matrix_type, K_dmn>& get()
+    {
+      static function<matrix_type, K_dmn> k_to_q("k_to_q ("+q_dmn::parameter_type::get_name()+")");
+      assert(is_initialized()==true);
+
+      return k_to_q;
+    }
+
+    static matrix_type& get(int k_ind)
+    {      
+      static function<matrix_type, K_dmn>& k_to_q = get();
+      assert(is_initialized()==true);
+
+      return k_to_q(k_ind);
+    }
+
+    static bool& is_initialized()
+    {
+      static bool initialized = false;
+      return initialized;
+    }
+
+    template<typename parameters_type>
+    static void initialize(parameters_type& parameters);
+  };
+
+  template<typename k_dmn, typename K_dmn>
+  template<typename parameters_type>
+  void interpolation_matrices<k_dmn, dmn_0<coarsegraining_domain<K_dmn, K_PLUS_Q> > >::initialize(parameters_type& parameters)
+  {
+    is_initialized() = true;
+
+    typedef typename parameters_type::Concurrency_Type concurrency_type;
+
+    concurrency_type& concurrency = parameters.get_concurrency();
+
+    K_dmn K_dmn_obj;
+    std::pair<int, int> bounds = concurrency.get_bounds(K_dmn_obj);
+      
+    for(int K_ind=bounds.first; K_ind<bounds.second; K_ind++)
+      {
+	q_dmn::parameter_type::set_elements(K_ind, parameters.get_Q_index());
+
+	matrix_type& T_k_to_q = get(K_ind);
+
+	T_k_to_q.resize(std::pair<int, int>(q_dmn::dmn_size(), k_dmn::dmn_size()));
+
+	trafo_k_to_r_type::is_initialized() = false;
+	trafo_r_to_q_type::is_initialized() = false;
+
+	matrix_type& T_k_to_r = trafo_k_to_r_type::get_transformation_matrix();  
+	matrix_type& T_r_to_q = trafo_r_to_q_type::get_transformation_matrix();  
+
+	LIN_ALG::GEMM<LIN_ALG::CPU>::execute(T_r_to_q, T_k_to_r, T_k_to_q);
+      }
+    
+    for(int K_ind=0; K_ind<K_dmn::dmn_size(); K_ind++)
+      concurrency.sum(get(K_ind));
+  }
+  */
+}
+
+#endif

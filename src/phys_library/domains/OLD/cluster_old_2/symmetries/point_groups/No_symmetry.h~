@@ -1,0 +1,27 @@
+//-*-C++-*-
+
+/*
+ *      Author: peterstaar
+ */
+
+
+#ifndef Null_symmetry_H_
+#define Null_symmetry_H_
+
+#include "point_group.h"
+#include "type_list_definitions.h"
+
+class Null_symmetry_2D : public point_group<2>
+{
+public:
+  typedef NullType symmetry_list;
+};
+
+class Null_symmetry_3D : public point_group<3>
+{
+public:
+  typedef NullType symmetry_list;
+};
+
+
+#endif

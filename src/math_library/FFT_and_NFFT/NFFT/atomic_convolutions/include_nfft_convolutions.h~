@@ -1,0 +1,7 @@
+//-*-C++-*-
+
+// #include "nfft_atomic_convolutions_single_operation.h"
+
+// #include "nfft_atomic_convolutions_template.h"
+
+// #include "nfft_atomic_convolutions_sse.h"

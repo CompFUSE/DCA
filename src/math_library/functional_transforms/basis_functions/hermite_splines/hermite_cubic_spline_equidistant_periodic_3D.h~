@@ -1,0 +1,73 @@
+//-*-C++-*-
+
+#ifndef BASIS_FUNCTION_HERMITE_CUBIC_SPLINE_EQUIDISTANT_PERIODIC_3D_H
+#define BASIS_FUNCTION_HERMITE_CUBIC_SPLINE_EQUIDISTANT_PERIODIC_3D_H
+
+namespace MATH_ALGORITHMS
+{
+  template<typename lh_dmn_type, typename rh_dmn_type>
+  class hermite_cubic_spline<lh_dmn_type, rh_dmn_type, EQUIDISTANT, PERIODIC, 3>
+  {
+  private:
+
+    typedef typename lh_dmn_type::dmn_specifications_type lh_spec_dmn_type;
+    typedef typename rh_dmn_type::dmn_specifications_type rh_spec_dmn_type;
+    
+    typedef typename lh_spec_dmn_type::scalar_type lh_scalar_type;
+    typedef typename rh_spec_dmn_type::scalar_type rh_scalar_type;
+    
+    typedef typename lh_spec_dmn_type::element_type lh_element_type;
+    typedef typename rh_spec_dmn_type::element_type rh_element_type;
+    
+    typedef lh_scalar_type f_scalar_type;
+
+  public:
+
+    static f_scalar_type execute(int i, int j)
+    {
+      const static rh_scalar_type a = -0.5;
+
+      lh_scalar_type x = lh_dmn_type::get_elements()[i];
+      rh_scalar_type y = rh_dmn_type::get_elements()[j];
+      
+      int*            dim = rh_dmn_type::get_dimensions();
+      rh_scalar_type* min = rh_dmn_type::get_min();
+      rh_scalar_type* max = rh_dmn_type::get_max();
+      
+      rh_scalar_type D_0 = (max[0]-min[0]);
+      rh_scalar_type D_1 = (max[1]-min[1]);
+      rh_scalar_type D_2 = (max[2]-min[2]);
+      
+      rh_scalar_type d_0 = (max[0]-min[0])/dim[0];
+      rh_scalar_type d_1 = (max[1]-min[1])/dim[1];
+      rh_scalar_type d_2 = (max[2]-min[2])/dim[2];
+      
+      f_scalar_type result = 0;
+      for(int l0=-2; l0<=2; l0++){
+	
+	rh_scalar_type delta_0 = std::abs((y-l0*D_0-x)/d_0);
+	
+	for(int l1=-2; l1<=2; l1++){
+	  
+	  rh_scalar_type delta_1 = std::abs((y-l1*D_1-x)/d_1);
+	  
+	  for(int l2=-2; l2<=2; l2++){
+	    
+	    rh_scalar_type delta_2 = std::abs((y-l2*D_2-x)/d_2);
+	    
+	    if(delta_0<2 and delta_1<2 and delta_2<2)
+	      result += 
+		hermite_spline::cubic(x[0], y[0]-l0*D_0, d_0, a)
+		*hermite_spline::cubic(x[1], y[1]-l1*D_1, d_1, a)
+		*hermite_spline::cubic(x[2], y[2]-l2*D_2, d_2, a);
+	  }
+	}
+      }
+      
+      return result;
+    }
+  };
+  
+}
+
+#endif

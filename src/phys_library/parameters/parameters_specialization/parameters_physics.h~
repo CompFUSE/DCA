@@ -1,0 +1,13 @@
+//-*-C++-*-
+
+/*
+ *      Author: peter staar
+ */
+
+
+#ifndef PARAMETERS_PHYSICS_H
+#define PARAMETERS_PHYSICS_H
+
+template<class concurrency_type> 
+class Parameters 
+{

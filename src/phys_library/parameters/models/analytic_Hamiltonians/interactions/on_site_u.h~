@@ -1,0 +1,110 @@
+//-*-C++-*-
+
+/*
+ *      Author: peter staar
+ */
+
+
+#ifndef on_site_U_H_
+#define on_site_U_H_
+
+class on_site_u
+{
+public:
+
+  template<class vertex_pair_type, class parameters_type, class concurrency_type, class MOMS_type>
+  static void set_vertex(vertex_pair_type& vertex, 
+			 parameters_type&  parameters, 
+			 concurrency_type& concurrency,
+			 MOMS_type&        MOMS);
+
+  /*static double interaction_Hamiltonian(int nu_i, int nu_j, double delta_r=0);
+
+  template<class parameters_type>
+  static void initialize(parameters_type& parameters);
+
+public:
+
+  static int     BANDS;
+  static double* U;*/
+};
+
+//int     on_site_u::BANDS = -1;
+//double* on_site_u::U     = new double[1];
+
+template<class vertex_pair_type, class parameters_type, class concurrency_type, class MOMS_type>
+void on_site_u::set_vertex(vertex_pair_type& vertex, 
+			   parameters_type&  parameters, 
+			   concurrency_type& concurrency,
+			   MOMS_type&        MOMS)
+{
+  typedef typename parameters_type::electron_spin_domain_type electron_spin_domain_type;
+  typedef typename parameters_type::DCA_cluster_type          DCA_cluster_type;
+  typedef typename parameters_type::nu                        nu;
+  typedef typename parameters_type::nu_nu_r_DCA               nu_nu_r_DCA;
+
+  static int BANDS                                     = parameters.get_interacting_bands().size();
+  //cout << __FUNCTION__ << "\t" << BANDS << endl;
+  static function<double, nu_nu_r_DCA>& H_interactions = MOMS.H_interactions;
+
+  do
+    {
+      int band_ind_1 = concurrency.get_random_number()*BANDS;
+      int band_ind_2 = concurrency.get_random_number()*BANDS;
+      
+      vertex.get_bands().first  = parameters.get_interacting_bands()[band_ind_1];
+      vertex.get_bands().second = parameters.get_interacting_bands()[band_ind_2];
+      
+      vertex.get_e_spins().first = electron_spin_domain_type::get_elements()[int(concurrency.get_random_number()*2.)];
+      
+      if(vertex.get_bands().first == vertex.get_bands().second)
+	{
+	  if(vertex.get_e_spins().first == e_UP)
+	    vertex.get_e_spins().second = e_DN;
+	  else
+	    vertex.get_e_spins().second = e_UP;
+	}
+      else
+	vertex.get_e_spins().second = electron_spin_domain_type::get_elements()[int(concurrency.get_random_number()*2.)];
+      
+      vertex.get_spin_orbitals().first  = convert<int, nu>::spin_orbital(vertex.get_bands().first , vertex.get_e_spins().first); 
+      vertex.get_spin_orbitals().second = convert<int, nu>::spin_orbital(vertex.get_bands().second, vertex.get_e_spins().second); 
+    }
+  while(fabs(H_interactions(vertex.get_spin_orbitals().first, vertex.get_spin_orbitals().second, 0)) < 1.e-3 );
+
+  int r_site = int(DCA_cluster_type::get_cluster_size()*concurrency.get_random_number());
+
+  vertex.get_r_sites().first  = r_site;
+  vertex.get_r_sites().second = r_site;
+}
+
+
+/*double on_site_u::interaction_Hamiltonian(int nu_i, int nu_j, double delta_r)
+{
+  assert(nu_i >= 0 && nu_i<2*BANDS);
+  assert(nu_j >= 0 && nu_j<2*BANDS);
+
+  //cout << nu_i << "\t" << nu_j << "\t" << delta_r << "\t" << U[nu_i + nu_j*2*BANDS] << endl;
+
+  if( delta_r==0 )
+    return U[nu_i + nu_j*2*BANDS];
+  else
+    return 0.;
+
+  //if( (nu_i==nu_j) && (delta_r==0) )
+    //return 0.;
+  //else
+  //return U;//U[delta_r];
+}
+
+template<class parameters_type>
+void on_site_u::initialize(parameters_type& parameters)
+{
+  for(int i=0; i<2*BANDS; i++){
+    for(int j=0; j<2*BANDS; j++){
+      U[i+j*2*BANDS] *= parameters.get_U_hubbard();
+    }
+  }
+}*/
+
+#endif

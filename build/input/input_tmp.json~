@@ -1,0 +1,133 @@
+{
+    "filename-parameters" : 
+    {
+	"output-format"         : "HDF5",
+
+        "output-file"           : "data.hdf5",
+	"profiling-file"        : "profiling_classical3.hdf5",
+
+        "spectrum-file"         : "data_CPE.hdf5",
+	"susceptibilities-file" : "data_susceptibilities.hdf5"
+    },
+
+    "physics-parameters" :
+    { 
+        "beta"                      :  10,
+
+	"adjust-chemical-potential" : "false", 
+        "density"                   :  1.0,
+        "chemical-potential"        :  0.0
+    },
+
+    "2D-Hubbard-model" : 
+    {
+	"t"       : 1,
+	"t-prime" : 0,
+
+	"U"       : 4,
+	"U-prime" : 0
+    },
+
+    "DCA" : 
+    {
+    	"do-DCA+" : "true",
+
+	"interacting-bands" : [0],
+	"DCA-iterations"    : 1,
+	"DCA-mixing-factor" : 1.,
+	
+	"cluster" : [[ 2, 4],
+		     [ 4, 0]],
+
+	"cluster-mapping" : 
+	{
+	   "k-mesh-refinement" : 3,
+	   "quadrature-rule"   : 1,
+	   "number-of-periods" : 2,
+
+	   "precompute-Hamiltonian"      : "true",
+	   "phi(k) integration accuracy" : 0.01,
+
+	   "print-phi"                   : "true"
+	},
+
+	"lattice-mapping" : 
+	{
+	   "interpolation-method" : "wannier-interpolation",
+	   "HTS-approximation"    : "false",
+
+	   "deconvolution-tolerance"      : 0.01,
+	   "max-deconvolution-iterations" : 32
+	}
+    },
+
+    "Monte-Carlo-Integration" : 
+    {
+	"Sigma-file" : "zero",
+
+	"warm-up-sweeps"         : 20,
+	"sweeps-per-measurement" : 1,
+	"measurements"           : 1000,
+
+	"adaptive-double-counting" : "false",
+	
+	"RNG-seed" : 985456376,
+
+	"MC-posix-parameters" : 
+	{
+	    "nr-walkers"       : 4,
+	    "nr-accumulators"  : 4,
+	    "additional-steps" : 1,
+
+	    "HTS-threads" : 8
+	}
+    },
+
+    "CT-AUX-solver" : 
+    {
+	"submatrix-size"      : 128,
+	"initial-matrix-size" : 256,
+
+	"K-parameter"         : 1
+    },
+
+    "function-parameters" : 
+    {
+	"single-particle-functions" : 
+	{
+	    "H(k) grid-size"        : [32, 32],	
+
+	    "time-intervals"        : 64,
+	    "fermionic-frequencies" : 128,
+	    "bosonic-frequencies"   : 32,
+	    
+	    "sp-cluster" : [[10, 10],
+		      	    [10,-10]]
+	},
+
+	"two-particle-functions" : 
+	{
+	    "time-intervals"        : 16,
+
+	    "fermionic-frequencies" : 16,
+	    "bosonic-frequencies"   : 16,
+	
+	    "tp-cluster" : [[8, 8],
+		      	    [8,-8]]
+	},
+
+	"real-axis-functions" :
+	{
+	    "lower-bound" : -10,
+	    "upper-bound" :  10,
+
+	    "nr-intervals" : 128,
+	    "real-axis-off-set" : 0.01
+	}
+     },
+
+    "equal-time-observables" : 
+    {
+        "do-equal-time-measurements" : "false"
+    }
+}

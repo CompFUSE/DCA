@@ -1,0 +1,62 @@
+//-*-C++-*-
+
+#ifndef COVARIANCE_FUNCTION_SQUARED_EXPONENTIAL_H
+#define COVARIANCE_FUNCTION_SQUARED_EXPONENTIAL_H
+
+namespace MATH_LIBRARY
+{
+  /*!
+   *
+   *    page 19, eqn 2.31, Rasmussen and Williams
+   */
+  template<typename k_dmn_t>
+  class covariance_function<SQUARED_EXPONENTIAL, k_dmn_t>
+  {
+    const static int DIMENSION = k_dmn_t::parameter_type::DIMENSION;
+
+  public:
+
+    covariance_function();
+    ~covariance_function();
+
+    double execute(std::vector<double>& x_i);
+
+  public:
+
+    double sigma_f;
+
+    LIN_ALG::matrix<double, LIN_ALG::CPU> A;
+  };
+
+  template<typename k_dmn_t>
+  covariance_function<SQUARED_EXPONENTIAL, k_dmn_t>::covariance_function():
+    sigma_f(1.),
+
+    A("A", std::pair<int,int>(DIMENSION,DIMENSION))
+  {}
+
+  template<typename k_dmn_t>
+  covariance_function<SQUARED_EXPONENTIAL, k_dmn_t>::~covariance_function()
+  {}
+
+  template<typename k_dmn_t>
+  double covariance_function<SQUARED_EXPONENTIAL, k_dmn_t>::execute(std::vector<double>& x_i)
+  {
+    std::vector<double> y_i(DIMENSION, 0.);
+
+    for(int li=0; li<DIMENSION; li++)
+      for(int lj=0; lj<DIMENSION; lj++)
+        y_i[li] += k_dmn_t::get_inverse_basis[li+lj*DIMENSION]*x_i[lj];
+
+    double result=0;
+
+    for(int li=0; li<DIMENSION; li++)
+      for(int lj=0; lj<DIMENSION; lj++)
+        result += y_i[li]*A(li,lj)*y_i[lj];
+
+    return sigma_f*std::exp(-result);
+  }
+
+}
+
+#endif

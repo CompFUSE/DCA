@@ -1,0 +1,42 @@
+import commands
+import os
+import sys
+import time
+
+import matplotlib
+matplotlib.use('Agg')
+
+import shutil
+import os
+
+import h5py
+
+from pylab import *
+
+import numpy as np
+import scipy
+from scipy.interpolate import Rbf
+import matplotlib.pyplot as plt
+from matplotlib import cm
+
+import json
+import pylab
+import numpy
+
+from pylab import *
+from scipy import *
+
+from scipy          import optimize
+from scipy.optimize import curve_fit
+
+figext = '1'
+
+if(figext == '1'):
+    FIGURE_EXTENSION = ".png"
+
+if(figext == '2'):
+    FIGURE_EXTENSION = ".eps"
+
+if(figext == '3'):
+    FIGURE_EXTENSION = ".pdf"
+

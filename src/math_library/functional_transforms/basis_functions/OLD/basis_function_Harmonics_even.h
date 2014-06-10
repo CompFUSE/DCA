@@ -1,0 +1,12 @@
+//-*-C++-*-
+
+#ifndef EVALUATE_BASIS_FUNCTION_HARMONICS_EVEN_H
+#define EVALUATE_BASIS_FUNCTION_HARMONICS_EVEN_H
+
+namespace TRAFOR
+{
+
+
+}
+
+#endif

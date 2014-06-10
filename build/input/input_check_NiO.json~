@@ -1,0 +1,172 @@
+{
+    "filename-parameters" : 
+    {
+	"output-format"         : "HDF5",
+
+        "output-file"           : "data_NiO.hdf5",
+	"profiling-file"        : "profiling_NiO.hdf5",
+
+        "spectrum-file"         : "data_CPE_NiO.hdf5",
+	"susceptibilities-file" : "data_susceptibilities_NiO.hdf5"
+    },
+
+    "physics-parameters" :
+    { 
+        "beta"                      :  5,
+
+	"adjust-chemical-potential" : "true", 
+        "density"                   :  14.0,
+        "chemical-potential"        :  0.06438077
+    },
+
+    "material-model" : 
+    {
+	"t_ij-filename" : "../../src/phys_library/parameters/models/material_Hamiltonians/NiO/t_ij_NiO.txt",
+	"U_ij-filename" : "../../src/phys_library/parameters/models/material_Hamiltonians/NiO/U_ij_NiO.txt"
+    },
+
+    "double-counting-parameters" : 
+    {
+	"double-counting-correction" : 25.0
+    },
+
+    "DCA" : 
+    {
+    	"do-DCA+" : "false",
+
+	"interacting-bands" : [0, 1, 2, 3, 4],
+	"DCA-iterations"    : 5,
+	"DCA-mixing-factor" : 1.0,
+	
+	"cluster" : [[ 1, 0, 0],
+		     [ 0, 1, 0],
+		     [ 0, 0, 1]],
+
+	"cluster-mapping" : 
+	{
+	   "k-mesh-refinement" : 2,
+	   "quadrature-rule"   : 0,
+	   "number-of-periods" : 0,
+
+	   "number-of-threads" : 8,
+
+	   "precompute-Hamiltonian"      : "true",
+	   "phi(k) integration accuracy" : 0.01,
+
+	   "print-phi"                   : "false"
+	},
+
+	"lattice-mapping" : 
+	{
+	   "interpolation-method"         : "wannier-interpolation",
+
+	   "deconvolution-tolerance"      : 0.01,
+	   "max-deconvolution-iterations" : 16
+	}
+    },
+
+    "Monte-Carlo-Integration" : 
+    {
+	"Sigma-file" : "zero",
+
+	"warm-up-sweeps"         : 20,
+	"sweeps-per-measurement" : 4,
+	"measurements"           : 500000,
+
+	"adaptive-double-counting" : "false",
+	
+	"RNG-seed" : 985456376,
+
+	"MC-posix-parameters" : 
+	{
+	    "nr-walkers"       : 4,
+	    "nr-accumulators"  : 4,
+	    "additional-steps" : 0
+	}
+    },
+
+    "CT-AUX-solver" : 
+    {
+	"submatrix-size"      : 16,
+	"initial-matrix-size" : 256,
+
+	"K-parameter"         : 100
+    },
+
+    "SS-CT-HYB-solver" : 
+    {
+	"steps-per-sweep"  : 20,
+	"swaps-per-sweep"  : 4,
+	"shifts-per-sweep" : 20,
+
+	"Sigma-tail-cutoff" : 0
+    },
+
+    "ED-solver-parameters" : 
+    {   
+    	"eigenvalue-cut-off" : 1e-6
+    },
+
+    "function-parameters" : 
+    {
+	"single-particle-functions" : 
+	{
+	    "H(k) grid-size"        : [6, 6, 6],	
+
+	    "time-intervals"        : 32,
+
+	    "fermionic-frequencies" : 128,
+	    "bosonic-frequencies"   : 32,
+	    
+	    "sp-cluster" : [[ 4, 0, 0],
+	    		    [ 0, 4, 0],
+			    [ 0, 0, 4]]
+	},
+
+	"two-particle-functions" : 
+	{
+	    "time-intervals"        : 32,
+
+	    "fermionic-frequencies" : 16,
+	    "bosonic-frequencies"   : 16,
+	
+	    "tp-cluster" : [[ 4, 0, 0],
+	    		    [ 0, 4, 0],
+			    [ 0, 0, 4]]
+	},
+
+	"real-axis-functions" :
+	{
+	    "lower-bound" : -10,
+	    "upper-bound" :  10,
+
+	    "nr-intervals" : 256,
+	    "real-axis-off-set" : 0.01
+	}
+     },
+
+    "equal-time-observables" : 
+    {
+        "do-equal-time-measurements" : "false"
+    },
+
+    "CPE-parameters" : 
+    {
+	"do-CPE" : "false",
+
+	"max-CPE-iterations" : 1000,
+	"max-CPE-error"      : 0.01,
+
+	"number-of-matsubara-freqencies" : 32,
+
+	"smoothing-factor" : 1,	
+	
+	"simulate-Gaussian-noise" : "true",
+	"nr-of-samples"           : 100,
+	"simulated-stddev"        : 0.01,
+
+	"compute-free-spectrum"    : "false",
+	"compute-lattice-spectrum" : "false",
+	"compute-cluster-spectrum" : "true"
+    }
+}

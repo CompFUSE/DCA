@@ -1,0 +1,34 @@
+//-*-C++-*-
+
+/*
+ *      Author: peterstaar
+ */
+
+#ifndef FT_MATRIX_H_
+#define FT_MATRIX_H_
+
+
+template<class cluster_type, 
+	 cluster_representation_type source_representation,
+	 cluster_representation_type target_representation>
+class FT_matrix
+{
+public:
+
+  static void initialize();
+  
+  static double* get_matrix();
+  static double* get_matrix_inverse();
+
+};
+
+template<class cluster_type, 
+	 cluster_representation_type source_representation,
+	 cluster_representation_type target_representation>
+double* FT_matrix<cluster_type, source_representation, target_representation>::get_matrix()
+{
+  static double matrix[0];
+  return matrix;
+}
+
+#endif

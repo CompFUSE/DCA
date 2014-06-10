@@ -1,0 +1,213 @@
+//-*-C++-*-
+
+/** \ingroup DCA */
+
+/*@{*/
+
+/*! \file   
+ *
+ *  Contains a class to represent resizeable rectangular matrices
+ */
+
+#ifndef QMC_RESIZEABLE_RECTANGULAR_MATRICES_H
+#define QMC_RESIZEABLE_RECTANGULAR_MATRICES_H
+
+namespace QMC {
+  
+  template<typename scalartype>
+  class resizeable_rectangular_matrix
+  {
+    //#include "type_definitions.h" 
+
+  public:
+
+    typedef scalartype                                matrix_scalartype;
+    typedef resizeable_rectangular_matrix<scalartype> this_type;
+
+    resizeable_rectangular_matrix(std::pair<int,int> current_size,
+				  std::pair<int,int> global_size);
+
+    ~resizeable_rectangular_matrix();
+
+    scalartype& operator()(int i, int j);
+
+    std::pair<int,int>& get_current_size();
+    std::pair<int,int> get_global_size();
+
+    void resize(std::pair<int,int> new_global_size);
+
+    void resize_rows         (std::pair<int,int> new_global_size);
+    void resize_cols         (std::pair<int,int> new_global_size);
+    void resize_rows_and_cols(std::pair<int,int> new_global_size);
+
+
+    void resize_no_copy(std::pair<int,int> new_current_size);
+    void resize_no_copy(std::pair<int,int> new_current_size, std::pair<int,int> new_global_size);
+
+    void copy_from(this_type& other_matrix);
+
+  private:
+
+    std::pair<int,int> current_size;
+    std::pair<int,int> global_size;
+
+    scalartype*         data;
+  };
+
+
+  template<typename scalartype>
+  resizeable_rectangular_matrix<scalartype>::resizeable_rectangular_matrix(std::pair<int,int> crrnt_size,
+									   std::pair<int,int> glbl_size):
+    current_size(crrnt_size),
+    global_size(glbl_size)
+  {
+    if( current_size.first > 0.8*double(global_size.first) )
+      global_size.first = int(1.2*double(current_size.first));
+
+    if( current_size.second > 0.8*double(global_size.second) )
+      global_size.second = int(1.2*double(current_size.second));
+
+
+    data = new scalartype[global_size.first*global_size.second];
+
+    for(int l=0; l<global_size.first*global_size.second; l++)
+      data[l] = scalartype(0);
+  }
+
+
+
+  template<  typename scalartype>
+  resizeable_rectangular_matrix<scalartype>::~resizeable_rectangular_matrix()
+  {
+    delete [] data;
+  }
+
+  template<  typename scalartype>
+  std::pair<int,int>& resizeable_rectangular_matrix<scalartype>::get_current_size()
+  {
+    return current_size;
+  }
+
+  template<  typename scalartype>
+  std::pair<int,int> resizeable_rectangular_matrix<scalartype>::get_global_size()
+  {
+    return global_size;
+  }
+
+  template<  typename scalartype>
+  scalartype& resizeable_rectangular_matrix<scalartype>::operator()(int i, int j)
+  {
+    assert(i >= 0 && j >= 0 && i < current_size.first && j < current_size.second);
+    return data[i + j * global_size.first];
+  }
+
+  template<  typename scalartype>
+  void resizeable_rectangular_matrix<scalartype>::resize(std::pair<int,int> new_current_size)
+  {
+    if(new_current_size.first > global_size.first || new_current_size.second > global_size.second)
+      {
+	if(new_current_size.first > global_size.first && new_current_size.second <= global_size.second)
+	  resize_rows(new_current_size);
+
+	if(new_current_size.first <= global_size.first && new_current_size.second > global_size.second)
+      resize_cols(new_current_size);
+	
+      if(new_current_size.first > global_size.first && new_current_size.second > global_size.second)
+  resize_rows_and_cols(new_current_size);
+}
+ else      
+   {
+     current_size = new_current_size;
+   }
+}
+  
+template<  typename scalartype>
+void resizeable_rectangular_matrix<scalartype>::resize_rows(std::pair<int,int> new_current_size)
+{
+  assert(new_current_size.first > global_size.first && new_current_size.second <= global_size.second);
+    
+  std::pair<int,int> new_global_size(int(1.2*double(new_current_size.first)), current_size.second);
+    
+    
+    
+  global_size  = new_global_size;
+  current_size = new_current_size;
+}
+  
+template<  typename scalartype>
+void resizeable_rectangular_matrix<scalartype>::resize_cols(std::pair<int,int> new_current_size)
+{
+  assert(new_current_size.first <= global_size.first && new_current_size.second > global_size.second);
+  
+std::pair<int,int> new_global_size(current_size.first, int(1.2*double(new_current_size.second)));
+  
+  
+  
+global_size  = new_global_size;
+current_size = new_current_size;
+}
+
+template<  typename scalartype>
+void resizeable_rectangular_matrix<scalartype>::resize_rows_and_cols(std::pair<int,int> new_current_size)
+{
+  assert(new_current_size.first > global_size.first && new_current_size.second > global_size.second);
+
+std::pair<int,int> new_global_size(int(1.2*double(new_current_size.first)), int(1.2*double(new_current_size.second)));
+				   
+global_size  = new_global_size;
+current_size = new_current_size;
+}
+
+
+  template<  typename scalartype>
+  void resizeable_rectangular_matrix<scalartype>::resize_no_copy(std::pair<int,int> new_current_size)
+  {
+    if(new_current_size.first > global_size.first || new_current_size.second > global_size.second)
+      {
+	current_size = new_current_size;
+	global_size = int(1.2*double(current_size));
+
+	delete [] data;
+	data = new scalartype[global_size.first*global_size.second];
+      }
+    else
+      {
+	current_size = new_current_size;
+      }
+
+    for(int l=0; l<global_size.first*global_size.second; l++)
+      data[l] = scalartype(0);
+  }
+
+  template<  typename scalartype>
+  void resizeable_rectangular_matrix<scalartype>::resize_no_copy(std::pair<int,int> new_current_size,
+								 std::pair<int,int> new_global_size)
+  {
+    current_size = new_current_size;
+    global_size  = new_global_size;
+
+    delete [] data;
+    data = new scalartype[global_size.first*global_size.second];
+    
+    for(int l=0; l<global_size.first*global_size.second; l++)
+      data[l] = scalartype(0);
+  }
+
+ 
+  template<  typename scalartype>
+  void resizeable_rectangular_matrix<scalartype>::copy_from(this_type& other_matrix)
+  {
+    assert(global_size.first == other_matrix.get_global_size().first);
+    assert(global_size.second == other_matrix.get_global_size().second);
+
+    current_size = other_matrix.get_current_size();
+
+    if(current_size.first > 0 && current_size.second > 0)
+      memcpy(data, &(other_matrix(0,0)), sizeof(scalartype)*global_size.first*global_size.second);
+  }
+
+
+
+}
+
+#endif

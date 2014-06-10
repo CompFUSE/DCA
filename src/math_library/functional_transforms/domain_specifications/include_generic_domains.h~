@@ -1,0 +1,14 @@
+//-*-C++-*-
+
+
+#include "domain_specifications.h"
+
+#include "generic_domain.h"
+
+// #include "quadrature_algorithm.h"
+// #include "quadrature_domain.h"
+
+#include "domain_initializer.h"
+#include "domain_initializer_dmn_0.h"
+
+#include "Y_lm_domain.h"

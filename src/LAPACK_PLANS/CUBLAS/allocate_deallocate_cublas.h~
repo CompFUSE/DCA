@@ -1,0 +1,34 @@
+//-*-C++-*-
+
+#ifndef CUBLAS_MALLOC_H
+#define CUBLAS_MALLOC_H
+
+namespace CUBLAS
+{
+  /*!
+   *   \author R. Solca, P. Staar
+   */
+ 
+  template<typename cuda_scalartype>
+  void allocate_gpu(cuda_scalartype* A, int LD, int D)
+  {
+    cudaError_t ret[3];
+    
+    ret[0] = cudaMalloc( (void**)&A, D*LD*sizeof(cuda_scalartype) );
+    
+    if( ret[0] != cudaSuccess || ret[1] != cudaSuccess || ret[2] != cudaSuccess){
+      std::cout << "NOT ENOUGH GPU MEMORY " << (K*LDA+N*LDB+N*LDC)*sizeof(cuda_scalartype::type) 
+		<< " ret code: " << (ret[0] != cudaSuccess) << (ret[1] != cudaSuccess) << (ret[2] != cudaSuccess)
+		<< std::endl;
+      abort();
+    }
+  }
+
+  template<typename cuda_scalartype>
+  void deallocate_gpu(cuda_scalartype* A)
+  {
+    cudaFree(A);
+  }
+}
+
+#endif

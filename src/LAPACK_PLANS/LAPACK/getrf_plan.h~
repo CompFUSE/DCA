@@ -1,0 +1,19 @@
+//-*-C++-*-
+
+#ifndef LU_DECOMPOSITION_PLAN_H
+#define LU_DECOMPOSITION_PLAN_H
+
+/*!
+ *  \class   singular_value_decomposition_plan
+ *  \author  Peter Staar
+ *  \version 1.0
+ */
+template<typename scalartype, matrix_form_type matrix>
+class LU_decomposition_plan
+{
+
+
+};
+
+
+#endif

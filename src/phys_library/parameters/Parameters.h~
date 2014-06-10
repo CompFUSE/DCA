@@ -1,0 +1,547 @@
+//-*-C++-*-
+
+#ifndef PARAMETERS_H
+#define PARAMETERS_H
+
+/*!
+ *   \ingroup  PARAMETERS
+ *
+ *   \author   Peter Staar, Raffaele Solca.
+ *   \brief    ...
+ */
+template<class concurrency_t, class model_t, MC_integration_method_type Monte_Carlo_solver_t>
+class Parameters : public file_names_parameters,
+                   public profiling_parameters<concurrency_t>,
+                   public physics_parameters,
+                   public model_parameters     <model_t>,
+                   public DCA_Parameters,
+
+                   public function_parameters,
+                   public MCI_parameters,
+
+                   public MC_solver_parameters<Monte_Carlo_solver_t>,
+                   public vertex_parameters,
+                   public CPE_parameters,
+
+//public random_number_seed_parameters,
+                   public brillouin_zone_parameters//,
+  //public MC_pthreads_solver
+{
+public:
+
+#include "type_definitions.h"
+
+  typedef random_number_generator rng_type;
+
+  typedef concurrency_t concurrency_type;
+
+#ifdef SINGLE_PRECISION_MEASUREMENTS
+  typedef float  MC_measurement_scalar_type;
+#else
+  typedef double MC_measurement_scalar_type;
+#endif
+
+#ifdef USE_REDUCED_VERTEX_FUNCTION
+  typedef w_VERTEX_EXTENDED_POS G4_w1_dmn_t;
+  typedef w_VERTEX_EXTENDED     G4_w2_dmn_t;
+#else
+  typedef w_VERTEX_EXTENDED     G4_w1_dmn_t;
+  typedef w_VERTEX_EXTENDED     G4_w2_dmn_t;
+#endif
+
+public:
+
+  Parameters(std::string       version_stamp,
+             concurrency_type& concurrency_obj);
+  ~Parameters();
+
+  template<IO::FORMAT DATA_FORMAT>
+  void read(IO::reader<DATA_FORMAT>& reader);
+
+  template<IO::FORMAT DATA_FORMAT>
+  void write(IO::writer<DATA_FORMAT>& writer);
+
+  void read_input_and_broadcast(string file_name);
+
+  template<class stream_type>
+  void to_JSON(stream_type& ss);
+
+  void from_JSON(string file_name);
+
+  template<typename read_write_t>
+  void read_write(read_write_t& read_write_obj);
+
+  void update_model();
+  void update_domains();
+
+  int  get_buffer_size(concurrency_type& concurrency);
+  void pack           (concurrency_type& concurrency, int* buffer, int buffer_size, int& position);
+  void unpack         (concurrency_type& concurrency, int* buffer, int buffer_size, int& position);
+
+  // get_functions
+  concurrency_type& get_concurrency();
+
+private:
+
+  static std::string make_python_readable(std::string tmp);
+
+private:
+
+  std::string       version_stamp;
+
+  std::string       date_str;
+  std::string       time_str;
+  std::string       compiler_str;
+
+  concurrency_type& concurrency_obj;
+};
+
+template<class concurrency_t, class model_t, MC_integration_method_type Monte_Carlo_solver_t>
+Parameters<concurrency_t, model_t, Monte_Carlo_solver_t>::Parameters(std::string       version_stamp_str,
+                                                                        concurrency_t& concurrency_object):
+  file_names_parameters(),
+  physics_parameters(),
+  model_parameters<model_t>(),
+  DCA_Parameters(),
+
+  function_parameters(),
+  MCI_parameters(),
+
+  MC_solver_parameters<Monte_Carlo_solver_t>(),
+  vertex_parameters(),
+  CPE_parameters(),
+
+  //random_number_seed_parameters(),
+
+  brillouin_zone_parameters(),
+
+  //MC_pthreads_solver(),
+
+  version_stamp(make_python_readable(version_stamp_str)),
+
+  date_str(__DATE__),
+  time_str(__TIME__),
+
+  compiler_str("????"),
+
+  concurrency_obj(concurrency_object)
+{
+#ifdef _CRAYC
+  compiler_str = _RELEASE_STRING;
+#endif
+
+#ifdef __GNUC__
+  compiler_str = __VERSION__;
+#endif
+}
+
+template<class concurrency_t, class model_t, MC_integration_method_type Monte_Carlo_solver_t>
+Parameters<concurrency_t, model_t, Monte_Carlo_solver_t>::~Parameters()
+{}
+
+template<class concurrency_t, class model_t, MC_integration_method_type Monte_Carlo_solver_t>
+template<IO::FORMAT DATA_FORMAT>
+void Parameters<concurrency_t, model_t, Monte_Carlo_solver_t>::write(IO::writer<DATA_FORMAT>& writer)
+{
+  {
+    writer.open_group("parameters");
+
+    this->read_write(writer);
+
+    writer.close_group();
+  }
+
+  {
+    writer.open_group("domains");
+
+    DCA_cluster_family_type    ::write(writer);
+    HOST_sp_cluster_family_type::write(writer);
+    HOST_tp_cluster_family_type::write(writer);
+
+    t::parameter_type::write(writer);
+    w::parameter_type::write(writer);
+
+    vertex_frequency_domain<EXTENDED_BOSONIC>::write(writer);
+
+    DCA_iteration_domain::write(writer);
+
+    if(get_vertex_measurement_type() != NONE)
+      {
+        vertex_frequency_domain<COMPACT> ::write(writer);
+        vertex_frequency_domain<EXTENDED>::write(writer);
+
+        vertex_frequency_domain<COMPACT_POSITIVE >::write(writer);
+        vertex_frequency_domain<EXTENDED_POSITIVE>::write(writer);
+      }
+
+    writer.close_group();
+  }
+}
+
+template<class concurrency_t, class model_t, MC_integration_method_type Monte_Carlo_solver_t>
+void Parameters<concurrency_t, model_t, Monte_Carlo_solver_t>::read_input_and_broadcast(std::string filename)
+{
+  for(bool flag=false; !flag ;)
+    {
+
+      if(concurrency_obj.id() == concurrency_obj.first())
+        {
+          file_names_parameters::get_input_file_name() = filename;
+
+          {
+            IO::reader<IO::JSON> read_obj;
+
+            read_obj.open_file(filename);
+
+            this->read_write(read_obj);
+
+            read_obj.close_file();
+          }
+
+          //    {
+          //      cout << endl << "starts reading " << filename << endl;
+          //      this->from_JSON(filename);
+          //    }
+        }
+
+      flag = concurrency_obj.broadcast_object(*this);
+    }
+
+  concurrency_obj.set_seed(get_seed());
+}
+
+template<class concurrency_t, class model_t, MC_integration_method_type Monte_Carlo_solver_t>
+void Parameters<concurrency_t, model_t, Monte_Carlo_solver_t>::update_model()
+{
+  model::initialize(*this);
+}
+
+template<class concurrency_t, class model_t, MC_integration_method_type Monte_Carlo_solver_t>
+void Parameters<concurrency_t, model_t, Monte_Carlo_solver_t>::update_domains()
+{
+  DCA_iteration_domain::initialize(*this);
+  electron_band_domain::initialize(*this, model::BANDS, model::get_flavors(), model::get_a_vectors());
+
+  // time && frequency-domains
+  time_domain                      ::initialize(*this);
+  time_domain_left_oriented        ::initialize(*this);
+  frequency_domain                 ::initialize(*this);
+  frequency_domain_real_axis       ::initialize(*this);
+  frequency_domain_imag_axis       ::initialize(*this);
+  vertex_frequency_domain<COMPACT> ::initialize(*this);
+  vertex_frequency_domain<EXTENDED>::initialize(*this);
+
+  vertex_frequency_domain<COMPACT_POSITIVE >::initialize(*this);
+  vertex_frequency_domain<EXTENDED_POSITIVE>::initialize(*this);
+
+  //   vertex_frequency_domain<COMPACT_SORTED>  ::initialize(*this);
+  //   vertex_frequency_domain<EXTENDED_SORTED> ::initialize(*this);
+  vertex_frequency_domain<EXTENDED_BOSONIC>::initialize(*this);
+
+  //   vertex_frequency_domain<CORE_SORTED>          ::initialize(*this);
+  //   vertex_frequency_domain<HIGH_FREQUENCY_SORTED>::initialize(*this);
+
+  //   legendre_basis_functions  <time_domain     >::initialize(*this);
+  //   legendre_basis_functions_w<frequency_domain>::initialize(*this);
+  //   legendre_domain           <time_domain>     ::initialize(*this);
+
+  // DCA
+  /*
+    { // make DCA-cluster
+    DCA_cluster_type_tmp::initializer::initialize(DCA_Parameters::get_DCA_Bett_matrix(),
+    DCA_lattice_parameters_type::lattice_vectors(),
+    DCA_lattice_parameters_type::reciprocal_lattice_vectors());
+
+    if(concurrency_obj.id() == concurrency_obj.last())
+    DCA_cluster_type_tmp::print();
+
+    vertex_parameters::find_q_channel();
+    }
+  */
+  {
+    cluster_domain_initializer<r_DCA>::execute(model::get_r_DCA_basis(),//DCA_lattice_parameters_type::lattice_vectors(),
+                                               DCA_Parameters::get_DCA_cluster());
+    //DCA_Parameters::get_DCA_Bett_matrix());
+
+    cluster_domain_symmetry_initializer<r_DCA, DCA_point_group_type>::execute();
+
+    if(concurrency_obj.id() == concurrency_obj.last())
+      k_DCA::parameter_type::print(std::cout);
+  }
+
+  // host
+  /*
+    { // make host-cluster
+    host_cluster_type::initializer::initialize(DCA_Parameters::get_host_Bett_matrix(),
+    DCA_lattice_parameters_type::lattice_vectors(),
+    DCA_lattice_parameters_type::reciprocal_lattice_vectors());
+
+    }
+  */
+
+  {
+    cluster_domain_initializer<r_HOST>::execute(model::get_r_DCA_basis(),//DCA_lattice_parameters_type::lattice_vectors(),
+                                                function_parameters::get_sp_cluster());
+    //DCA_Parameters::get_host_Bett_matrix());
+
+    cluster_domain_symmetry_initializer<r_HOST, DCA_point_group_type>::execute();
+
+    if(concurrency_obj.id() == concurrency_obj.last())
+      k_HOST::parameter_type::print(std::cout);
+  }
+
+
+  // host
+  /*
+    { // make host-cluster
+    host_vertex_cluster_type::initializer::initialize(vertex_parameters::get_host_vertex_Bett_matrix(),
+    DCA_lattice_parameters_type::lattice_vectors(),
+    DCA_lattice_parameters_type::reciprocal_lattice_vectors());
+    }
+  */
+
+  {
+    cluster_domain_initializer<r_HOST_VERTEX>::execute(model::get_r_DCA_basis(),//DCA_lattice_parameters_type::lattice_vectors(),
+                                                       function_parameters::get_tp_cluster());
+    //vertex_parameters::get_host_vertex_Bett_matrix());
+
+    cluster_domain_symmetry_initializer<r_HOST_VERTEX, DCA_point_group_type>::execute();
+
+    if(concurrency_obj.id() == concurrency_obj.last())
+      k_HOST_VERTEX::parameter_type::print(std::cout);
+  }
+
+
+  // LDA
+  /*
+    { // make LDA-cluster
+    LDA_cluster_type::grid_size() = model_parameters<model_t>::get_H_k_grid_size();
+
+    LDA_cluster_type::initializer::initialize(LDA_lattice_parameters_type::lattice_vectors(),
+    LDA_lattice_parameters_type::reciprocal_lattice_vectors(),
+    model_parameters<model_t>::get_H_k_grid_size());
+    }
+  */
+
+  {
+    cluster_domain_initializer<r_LDA>::execute(model::get_r_DCA_basis(),//DCA_lattice_parameters_type::lattice_vectors(),
+                                               function_parameters::get_H_k_grid_size());
+
+    //     cluster_domain_initializer<r_LDA>::execute(DCA_lattice_parameters_type::lattice_vectors(),
+    //                                         model_parameters<model_t>::get_H_k_grid_size());
+
+    //cluster_domain_symmetry_initializer<r_LDA, DCA_point_group_type>::execute();
+
+    if(concurrency_obj.id() == concurrency_obj.last())
+      k_LDA::parameter_type::print(std::cout);
+  }
+
+}
+
+template<class concurrency_t, class model_t, MC_integration_method_type Monte_Carlo_solver_t>
+void Parameters<concurrency_t, model_t, Monte_Carlo_solver_t>::from_JSON(std::string filename)
+{
+  //   file_names_parameters::get_input_file_name() = filename;
+
+  //   dca::JsonReader reader(filename);
+
+  //   file_names_parameters                     ::from_JSON(reader);
+  //   physics_parameters                        ::from_JSON(reader);
+  //   model_parameters    <model_t>             ::from_JSON(reader);
+  //   DCA_Parameters                            ::from_JSON(reader);
+  //   MCI_parameters                            ::from_JSON(reader);
+  //   function_parameters                       ::from_JSON(reader);
+  //   MC_solver_parameters<Monte_Carlo_solver_t>::from_JSON(reader);
+  //   vertex_parameters                         ::from_JSON(reader);
+  //   CPE_parameters                            ::from_JSON(reader);
+  //   random_number_seed_parameters             ::from_JSON(reader);
+  //   brillouin_zone_parameters                 ::from_JSON(reader);
+  //   MC_pthreads_solver                        ::from_JSON(reader);
+}
+
+template<class concurrency_t, class model_t, MC_integration_method_type Monte_Carlo_solver_t>
+template<class stream_type>
+void Parameters<concurrency_t, model_t, Monte_Carlo_solver_t>::to_JSON(stream_type& ss)
+{
+  //   ss << "{\n";
+  //   ss << "\"version-stamp\" : \"" << version_stamp <<"\",\n";
+  //   ss << "\"date\"          : \""  << __DATE__ << "\",\n";
+  //   ss << "\"time\"          : \""  << __TIME__ << "\",\n";
+
+  //   {
+  //     std::string compiler_string(" ???? ");
+  // #ifdef _CRAYC
+  //     compiler_string = _RELEASE_STRING;
+  // #endif
+
+  // #ifdef __GNUC__
+  //     compiler_string = __VERSION__;
+  // #endif
+
+  //     ss << "\"compiler\"      : \"" << compiler_string << "\",\n\n";
+  //   }
+
+  //   file_names_parameters                     ::to_JSON(ss);
+  //   physics_parameters                        ::to_JSON(ss);
+  //   model_parameters    <model_t>             ::to_JSON(ss);
+  //   DCA_Parameters                            ::to_JSON(ss);
+  //   MCI_parameters                            ::to_JSON(ss);
+  //   function_parameters                       ::to_JSON(ss);
+  //   MC_solver_parameters<Monte_Carlo_solver_t>::to_JSON(ss);
+  //   vertex_parameters                         ::to_JSON(ss);
+  //   //CPE_parameters                            ::to_JSON(ss);
+  //   brillouin_zone_parameters                 ::to_JSON(ss);
+  //   random_number_seed_parameters             ::to_JSON(ss);
+  //   MC_pthreads_solver                        ::to_JSON(ss,true);
+
+  //   ss << "}\n";
+}
+
+template<class concurrency_t, class model_t, MC_integration_method_type Monte_Carlo_solver_t>
+template<typename read_write_t>
+void Parameters<concurrency_t, model_t, Monte_Carlo_solver_t>::read_write(read_write_t& read_write_obj)
+{
+  if(read_write_obj.is_writer()){
+    read_write_obj.execute("date"    , date_str);
+    read_write_obj.execute("time"    , time_str);
+    read_write_obj.execute("compiler", compiler_str);
+  }
+
+  file_names_parameters                     ::read_write(read_write_obj);
+
+  physics_parameters                        ::read_write(read_write_obj);
+  model_parameters    <model_t>             ::read_write(read_write_obj);
+  DCA_Parameters                            ::read_write(read_write_obj);
+
+  MCI_parameters                            ::read_write(read_write_obj);
+  MC_solver_parameters<Monte_Carlo_solver_t>::read_write(read_write_obj);
+
+  function_parameters                       ::read_write(read_write_obj);
+  vertex_parameters                         ::read_write(read_write_obj);
+}
+
+template<class concurrency_t, class model_t, MC_integration_method_type Monte_Carlo_solver_t>
+int Parameters<concurrency_t, model_t, Monte_Carlo_solver_t>::get_buffer_size( concurrency_t& concurrency)
+{
+  int buffer_size = 0;
+
+  buffer_size += file_names_parameters                     ::get_buffer_size(concurrency);
+
+  buffer_size += physics_parameters                        ::get_buffer_size(concurrency);
+  buffer_size += model_parameters    <model_t>             ::get_buffer_size(concurrency);
+  buffer_size += DCA_Parameters                            ::get_buffer_size(concurrency);
+
+  buffer_size += MCI_parameters                            ::get_buffer_size(concurrency);
+  buffer_size += MC_solver_parameters<Monte_Carlo_solver_t>::get_buffer_size(concurrency);
+
+  buffer_size += function_parameters                       ::get_buffer_size(concurrency);
+  buffer_size += vertex_parameters                         ::get_buffer_size(concurrency);
+  buffer_size += CPE_parameters                            ::get_buffer_size(concurrency);
+
+  //buffer_size += random_number_seed_parameters             ::get_buffer_size(concurrency);
+
+  buffer_size += brillouin_zone_parameters                 ::get_buffer_size(concurrency);
+
+  //buffer_size += MC_pthreads_solver                        ::get_buffer_size(concurrency);
+
+  //   if(IS_EQUAL_TYPE<Koshevnikov_model, model>::check)
+  //     buffer_size += Koshevnikov_model::get_buffer_size(concurrency);
+
+  return buffer_size;
+}
+
+template<class concurrency_t, class model_t, MC_integration_method_type Monte_Carlo_solver_t>
+void Parameters<concurrency_t, model_t, Monte_Carlo_solver_t>::pack( concurrency_t& concurrency, int* buffer, int buffer_size, int& position)
+{
+  file_names_parameters                     ::pack(concurrency, buffer, buffer_size, position);
+
+  physics_parameters                        ::pack(concurrency, buffer, buffer_size, position);
+  model_parameters    <model_t>             ::pack(concurrency, buffer, buffer_size, position);
+  DCA_Parameters                            ::pack(concurrency, buffer, buffer_size, position);
+
+  MCI_parameters                            ::pack(concurrency, buffer, buffer_size, position);
+  MC_solver_parameters<Monte_Carlo_solver_t>::pack(concurrency, buffer, buffer_size, position);
+
+  function_parameters                       ::pack(concurrency, buffer, buffer_size, position);
+  vertex_parameters                         ::pack(concurrency, buffer, buffer_size, position);
+  CPE_parameters                            ::pack(concurrency, buffer, buffer_size, position);
+
+  //random_number_seed_parameters             ::pack(concurrency, buffer, buffer_size, position);
+
+  brillouin_zone_parameters                 ::pack(concurrency, buffer, buffer_size, position);
+
+  //MC_pthreads_solver                        ::pack(concurrency, buffer, buffer_size, position);
+
+  //   if(IS_EQUAL_TYPE<Koshevnikov_model, model>::check)
+  //     Koshevnikov_model::pack(concurrency, buffer, buffer_size, position);
+}
+
+template<class concurrency_t, class model_t, MC_integration_method_type Monte_Carlo_solver_t>
+void Parameters<concurrency_t, model_t, Monte_Carlo_solver_t>::unpack( concurrency_t& concurrency, int* buffer, int buffer_size, int& position)
+{
+  file_names_parameters                     ::unpack(concurrency, buffer, buffer_size, position);
+
+  physics_parameters                        ::unpack(concurrency, buffer, buffer_size, position);
+  model_parameters     <model_t>            ::unpack(concurrency, buffer, buffer_size, position);
+  DCA_Parameters                            ::unpack(concurrency, buffer, buffer_size, position);
+
+  MCI_parameters                            ::unpack(concurrency, buffer, buffer_size, position);
+  MC_solver_parameters<Monte_Carlo_solver_t>::unpack(concurrency, buffer, buffer_size, position);
+
+  function_parameters                       ::unpack(concurrency, buffer, buffer_size, position);
+  vertex_parameters                         ::unpack(concurrency, buffer, buffer_size, position);
+  CPE_parameters                            ::unpack(concurrency, buffer, buffer_size, position);
+
+  //random_number_seed_parameters             ::unpack(concurrency, buffer, buffer_size, position);
+
+  brillouin_zone_parameters                 ::unpack(concurrency, buffer, buffer_size, position);
+
+  //MC_pthreads_solver                        ::unpack(concurrency, buffer, buffer_size, position);
+
+  //   if(IS_EQUAL_TYPE<Koshevnikov_model, model>::check)
+  //     Koshevnikov_model::unpack(concurrency,buffer, buffer_size, position);
+}
+
+template<class concurrency_t, class model_t, MC_integration_method_type Monte_Carlo_solver_t>
+concurrency_t& Parameters<concurrency_t, model_t, Monte_Carlo_solver_t>::get_concurrency()
+{
+  return concurrency_obj;
+}
+
+template<class concurrency_t, class model_t, MC_integration_method_type Monte_Carlo_solver_t>
+std::string Parameters<concurrency_t, model_t, Monte_Carlo_solver_t>::make_python_readable(std::string str)
+{
+  {
+    std::string tmp("\n\n");
+    while(true){
+      int pos = str.find(tmp);
+      if (pos==-1)
+        break;
+      str.replace(pos,tmp.size(), std::string(", "));
+    }
+  }
+
+  {
+    std::string tmp("\n");
+    while(true){
+      int pos = str.find(tmp);
+      if (pos==-1)
+        break;
+      str.replace(pos,tmp.size(), std::string(", "));
+    }
+  }
+
+  {
+    std::string tmp("\t");
+    while(true){
+      int pos = str.find(tmp);
+      if (pos==-1)
+        break;
+      str.replace(pos,tmp.size(), std::string(" "));
+    }
+  }
+
+  return str;
+}
+
+#endif

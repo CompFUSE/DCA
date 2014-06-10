@@ -1,0 +1,281 @@
+//-*-C++-*-
+
+#include <cmath>
+#include <cstdlib> 
+#include <iostream>
+#include <iomanip>
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
+#include <vector>
+#include <map>
+#include <complex>
+#include <stdexcept>
+#include <assert.h>
+#include <limits>
+#include <algorithm>
+#include <typeinfo>
+#include <pthread.h>
+#include <omp.h>
+#include <sys/time.h>
+#include <time.h>
+#include <sys/resource.h>
+#include <unistd.h>
+#include <dirent.h>
+#include <sstream>
+#include <fstream>
+#include <iomanip>
+#include <queue>
+
+using namespace std;
+
+// typelist-operations
+
+#include "type_list.h"   
+#include "type_list_definitions.h" 
+using namespace TL;
+
+// libraries
+
+#include "fftw3.h"
+#include "nfft3.h"
+
+// Psimag-stuff
+
+// #include "Matrix.h"
+// #include "PsimagGeometry.h"
+// #include "Geometry.h"
+// #include "DcaCrystal.h"
+
+// typedef dca::PsimagGeometry<double,psimag::Matrix> geometry_source_type;
+// typedef dca::Geometry<double,geometry_source_type> geometry_type;
+// typedef geometry_type::CrystalType                 crystal_type;
+
+// enumerations
+
+enum cluster_shape {BETT_CLUSTER, PARALLELEPIPED};
+typedef cluster_shape cluster_shape_type;
+
+enum representation {IRREDUCIBLE, FULL, VERTEX};
+typedef representation representation_type;
+
+enum    legendre_representation {SINGLE_PARTICLE_QUANTITY, TWO_PARTICLE_QUANTITY};
+typedef legendre_representation legendre_representation_type;
+
+enum vertex_frequency_representation {COMPACT, EXTENDED, COMPACT_POSITIVE, EXTENDED_POSITIVE, COMPACT_SORTED, EXTENDED_SORTED, 
+				      EXTENDED_BOSONIC, EXTENDED_FERMIONIC, CORE_SORTED, HIGH_FREQUENCY_SORTED};
+typedef vertex_frequency_representation vertex_frequency_representation_type;
+
+enum vertex_measurement {NONE, PARTICLE_HOLE_TRANSVERSE, PARTICLE_HOLE_MAGNETIC, PARTICLE_HOLE_CHARGE, PARTICLE_PARTICLE_SUPERCONDUCTING};
+typedef vertex_measurement vertex_measurement_type;
+
+enum mesh_shape {PARALLELLOGRAM, FIRST_BRILLOUIN_ZONE};
+// PARALLELLOGRAM --> might break the symmetry, be carefull !!!!
+const static mesh_shape MESH_SHAPE = FIRST_BRILLOUIN_ZONE;//PARALLELLOGRAM; 
+
+enum    e_spin_states {e_DN=-1, e_UP=1};
+typedef e_spin_states e_spin_states_type;
+
+enum    HS_spin_states {HS_DN=-1, HS_ZERO=0, HS_UP=1};
+typedef HS_spin_states HS_spin_states_type;
+
+enum    HS_field_sign {HS_FIELD_DN=-1, HS_FIELD_UP=1};
+typedef HS_field_sign HS_field_sign_type;
+
+enum    HS_vertex_move {ANNIHILATION=-1, STATIC=0, CREATION=1};
+typedef HS_vertex_move HS_vertex_move_type;
+
+enum    stop_watch {DEFAULT=-1, START=0, STOP=1, SET=2, CONTINUE=3};
+typedef stop_watch stop_watch_type;
+
+enum eigenvalue_degeneracy {NO_DEGENERACY, TWOFOLD_DEGENERACY, THREEFOLD_DEGENERACY, FOURFOLD_DEGENERACY};
+typedef eigenvalue_degeneracy eigenvalue_degeneracy_t;
+
+enum integration_method {DELTA_FUNCTION_INTEGRATION, ISOLATED_CLUSTER_INTEGRATION, TRAPEZIUM_INTEGRATION, QUADRATURE_INTEGRATION, TETRAHEDRON_INTEGRATION};
+typedef integration_method integration_method_type;
+
+enum minimization_method {GRADIENT_METHOD, CONJUGATE_GRADIENT_METHOD, LEVMAR_LIBRARY};
+typedef minimization_method minimization_method_type;
+
+enum MPI_library {SERIAL_LIBRARY, MPI_LIBRARY, MPI_FT_LIBRARY, OPENMPI_FT_LIBRARY};
+typedef MPI_library MPI_library_type;
+
+enum MC_integration_method {CT_AUX, HYBRIDIZATION, HYBRIDIZATION_FULL, PCM, ANALYSIS, ANALYSIS_INTERPOLATION, ANALYSIS_COMPUTE_REDUCIBLE_VERTEX, HIGH_TEMPERATURE_SERIES_SOLVER, ED_CLUSTER_SOLVER};
+typedef MC_integration_method MC_integration_method_type;
+
+enum BRILLOUIN_ZONE {BRILLOUIN_ZONE_CUT_TEMPLATE,
+		     FERMI_SURFACE_SQUARE_2D_LATTICE, SQUARE_2D_LATTICE,BODY_CENTERED_TETRAGONAL_A, BODY_CENTERED_TETRAGONAL_B, SIMPLE_TETRAGONAL, 
+		     TRICLINIC, FACE_CENTERED_CUBIC, BODY_CENTERED_CUBIC, SIMPLE_CUBIC, HEXAGONAL, RHOMBOHEDRAL_A,
+		     RHOMBOHEDRAL_B, SIMPLE_MONOCLINIC, ONE_FACE_CENTERED_MONOCLINIC_A, ONE_FACE_CENTERED_MONOCLINIC_B,
+		     SIMPLE_ORTHOROMBIC, BASE_CENTERED_ORTHORHOMBIC, BODY_CENTERED_ORTHOROMBIC, ALL_FACE_CENTERED_ORTHORHOMBIC_A, ALL_FACE_CENTERED_ORTHORHOMBIC_B};
+typedef BRILLOUIN_ZONE BRILLOUIN_ZONE_CUT_TYPE;
+
+enum c_star_algebra_type {ANNIHILATION_OPERATOR, IDENTITY_OPERATOR, CREATION_OPERATOR, NONE_OPERATOR};
+typedef c_star_algebra_type c_star_algebra_t;
+
+enum MC_accumulator_method {MATSUBARA, LEGENDRE, SERIES};
+typedef MC_accumulator_method MC_accumulator_method_type;
+
+enum symmetry_operation {PARTICLE_NUMBER, Sz, TOTAL_MOMENTUM}; 
+typedef symmetry_operation symmetry_operation_type; 
+
+// BIT
+
+const static bool QMC_INTEGRATOR_BIT = false;
+
+// NFFT <--> DFT
+
+const static bool DO_NFFT = true;
+
+
+// provenance
+
+#include "provenance.h"
+
+// blas/lapack
+#include "include_blas_lapack_plans.h"
+#include "include_linalg.h"
+
+// various
+#include "static_functions.h"
+#include "include_IO_operations.h"
+#include "JsonWriter.h"
+#include "JsonReader.h"
+#include "include_symmetry_library.h"
+#include "Statistical_methods.h"
+
+// include generic-algorithms
+#include "Is_Same.h"
+#include "generic_assert.h"
+#include "do_cast.h"
+
+// include function-library
+#include "include_function_library.h"
+
+// random number generator
+#include "include_random_number_generator.h"
+
+// include block-matrix operations
+#include "include_blocked_blas_calls.h"
+
+// parallelization
+
+//#include "include_concurrency_serial.h"
+//#include "include_concurrency_mpi.h"
+//#include "include_concurrency_mpi_ft.h"
+//#include "include_concurrency_ompi_ft.h"
+
+// profiling
+#include "profiling.h"
+
+// simple algorithms
+#include "dot_product.h"
+#include "vector_operations.h"
+
+// include domains
+#include "numerical_error_domain.h"
+#include "DCA_iteration_domain.h"
+#include "Feynman_expansion_order_domain.h"
+#include "electron_band_domain.h"
+#include "electron_spin_domain.h"
+#include "HS_spin_domain.h"
+#include "HS_field_sign_domain.h"
+#include "particle_number_domain.h"
+#include "brillouin_zone_cut_domain.h"
+#include "Brillouin_zone_cut.h"
+#include "legendre_domain.h"
+#include "point_group_operation_dmn.h"
+
+#include "include_cluster.h"
+
+#include "time_domain.h"
+#include "time_domain_left_oriented.h"
+#include "frequency_domain.h"
+#include "frequency_domain_real_axis.h"
+#include "frequency_domain_imag_axis.h"
+#include "frequency_domain_compact.h"
+
+
+
+// type-dependent-conversions
+#include "convert.h"
+
+// include models
+#include "include_tight_binding_model.h"
+#include "dft_model.h"
+#include "Koshevnikov_model.h"
+
+// information-structures
+#include "QMC_information_structure.h"
+#include "DCA_information_structure.h"
+
+// include algorithms
+#include "include_Bsplines.h"
+#include "include_symmetries.h"
+#include "mesh.h"
+#include "include_tetrahedron_mesh.h"
+#include "include_interpolation.h"
+#include "include_DCA_transformations.h"
+#include "include_legendre_transform.h"
+#include "FT.h"
+#include "include_smooth_algorithms.h"
+#include "include_integration.h"
+#include "include_coarsegrain.h"
+#include "include_coarsegrain_inversion.h"
+#include "include_symmetries.h"
+#include "compute_moments.h"
+#include "compute_band_structure.h"
+#include "compute_Fermi_surface.h"
+//#include "adjust_chemical_potential.h"
+
+// include parameters
+#include "include_Parameters.h"
+
+// include DCA-loop
+#include "MOMS_w_real.h"
+#include "MultiOrbitalMultiSiteStructure.h"
+#include "DCA_Calculation.h"
+
+// include QMCI templates
+#include "include_MC_templates.h"
+
+// include QMC matrices
+#include "include_QMC_matrices.h"
+
+// include QMC FT-plans
+#include "include_FT_plans.h"
+
+// include QMCI-CT-AUX
+//#include "include_CT_AUX.h"
+
+// include QMCI-hybridization
+//#include "include_single_site_Hybridization.h"
+
+// include QMCI cluster-hybridization
+//#include "include_hybridization_full.h"
+
+// include PMC
+//#include "include_PCM.h"
+
+// include CPE
+#include "include_CPE.h"
+
+// include ED
+#include "include_ED.h"
+
+// include DOS
+#include "compute_DOS.h"
+
+// p-threading
+#include "include_posix_MC_integration.h"
+
+// include SE
+//#include "include_series_expansion.h"
+
+// analysis
+#include "include_analysis.h"
+
+// printing
+
+#include "print_data.h"

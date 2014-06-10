@@ -1,0 +1,134 @@
+//-*-C++-*-
+
+/*
+________  _________     _____                                             
+\______ \ \_   ___ \   /  _  \      .__                                   
+ |    |  \/    \  \/  /  /_\  \   __|  |___                               
+ |    `   \     \____/    |    \ /__    __/                               
+/_______  /\______  /\____|__  /    |__|                                  
+        \/        \/         \/                                           
+
+__________        __                   _________ __                       
+\______   \ _____/  |_  ___________   /   _____//  |______  _____ _______ 
+ |     ___// __ \   __\/ __ \_  __ \  \_____  \\   __\__  \ \__  \\_  __ \
+ |    |   \  ___/|  | \  ___/|  | \/  /        \|  |  / __ \_/ __ \|  | \/
+ |____|    \___  >__|  \___  >__|    /_______  /|__| (____  (____  /__|   
+               \/          \/                \/           \/     \/       
+_________________________ ___   __________            .__       .__       
+\_   _____/\__    ___/   |   \  \____    /__ _________|__| ____ |  |__    
+ |    __)_   |    | /    ~    \   /     /|  |  \_  __ \  |/ ___\|  |  \   
+ |        \  |    | \    Y    /  /     /_|  |  /|  | \/  \  \___|   Y  \  
+/_______  /  |____|  \___|_  /  /_______ \____/ |__|  |__|\___  >___|  /  
+        \/                 \/           \/                    \/     \/   
+ */
+
+#include "compiler_directives.h"
+
+#include "include_files.h"
+
+CUDA_FUNCTION
+
+//void print_device_info(){}
+
+std::string get_version()
+{
+  string str("DEFAULT");
+  return str;
+}
+
+void print_version()
+{
+  string str = get_version();
+ 
+  cout << "\n\n\n";
+  cout << "*************************************************************************************\n";
+  cout << "***                                  VERSION                                      ***\n";
+  cout << "*************************************************************************************\n";
+  cout << "\n\n\n";
+ 
+  cout << str << endl;
+}
+
+INITIALIZE_MAGMA_0;
+
+int main(int argc,char *argv[])
+{
+  if(argc < 2) 
+    {
+      std::cout << "Usage: "<<argv[0]<<" inputFileName\n";
+      return -1;
+    }
+
+  std::string file_name(argv[1]);
+
+  //============================================================ Configure the calculation by selecting type definitions.
+
+#include "type_definitions.h"
+
+  static const LIN_ALG::device_type       DEVICE            = LIN_ALG::CPU;
+  static const MPI_library_type           MPI_LIBRARY_TYPE  = MPI_LIB_TYPE;
+  static const MC_integration_method_type MC_ALGORITHM_TYPE = MC_ALG_TYPE;
+
+  typedef concurrency<MPI_LIBRARY_TYPE>    concurrency_type;
+
+  typedef Parameters<concurrency_type, model, MC_ALGORITHM_TYPE> parameters_type;
+  
+  typedef MultiOrbitalMultiSiteStructure<parameters_type, DCA_cluster_type> MOMS_type;
+  
+  typedef QMC::MC_integrator<MC_ALGORITHM_TYPE, DEVICE, parameters_type, MOMS_type> Monte_Carlo_Integrator_type;
+  
+  typedef dca::DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type> DCA_calculation_type;  
+
+  //====================================================================== Create the algorithms and parameters object from the input file
+
+  concurrency_type& concurrency(concurrency_type::get(argc,argv,"logFile"));
+
+  parameters_type::profiler_type::start();
+
+  if (concurrency.id() == concurrency.first())
+    {
+      cout << "DCA main: starting (MPI-world set up).\n\n";
+      print_device_info();
+    }
+  
+  INITIALIZE_MAGMA_1;
+
+  std::string stamp = get_version();
+  if(concurrency.id() == concurrency.first()){
+    print_version();
+    provenance<interaction_type, model, MC_ALGORITHM_TYPE, MPI_LIBRARY_TYPE>::print_on_shell(QMC_INTEGRATOR_BIT);
+  }
+
+  parameters_type parameters(stamp, concurrency);
+
+  parameters.read_input_and_broadcast(file_name);
+
+  parameters.update_model();
+  parameters.update_domains();
+
+  //====================================================================== Build the initial self energies
+  
+  MOMS_type MOMS(parameters);
+  MOMS.initialize_functions();
+
+  // ====================================================================== Build a DCA Calculation Object, 
+  // interate to consistency.
+
+  DCA_calculation_type dca_object(parameters, MOMS, concurrency);
+  {
+    parameters_type::profiler_type profiler(__FUNCTION__, __FILE__, __LINE__);
+    dca_object.iterate_to_consistency();
+  }
+
+  parameters_type::profiler_type::stop(concurrency, parameters.get_profiling_file_name());
+  
+  if (concurrency.id() == concurrency.last()){
+    cout << "\n\n\t\t --> processor " << concurrency.id() << " is writing data " << endl;
+    print_data::to_JSON(parameters, MOMS, dca_object, MC_ALGORITHM_TYPE);
+  }
+    
+  if (concurrency.id() == concurrency.last())
+    cout << "\n\nDCA main: ending. \n\n";
+
+  return 0;
+}

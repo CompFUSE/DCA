@@ -1,0 +1,97 @@
+//-*-C++-*-
+
+#ifndef INNER_PRODUCT_DOMAIN_H
+#define INNER_PRODUCT_DOMAIN_H
+
+namespace MATH_ALGORITHMS
+{
+  template<typename dmn_type>
+  class inner_product_domain
+  {
+    typedef typename dmn_type::dmn_specifications_type dmn_specs_type;
+    
+  public:
+
+    typedef typename dmn_specs_type::scalar_type  scalar_type;
+    typedef typename dmn_specs_type::element_type element_type;
+    
+    const static BOUNDARY_CONDITIONS BOUNDARY_CONDITION = dmn_specs_type::BOUNDARY_CONDITION;
+
+    typedef domain_specifications<scalar_type       , element_type, 
+				  DISCRETE          , KRONECKER_DELTA, 
+				  BOUNDARY_CONDITION, NONEQUIDISTANT > dmn_specifications_type;
+      
+    typedef inner_product_domain<dmn_type> this_type;
+
+  public:
+      
+    static bool& is_initialized()
+    {
+      static bool initialized = false;
+      return initialized;
+    }
+      
+    static int& get_size()
+    {
+      static int size = 0;
+      return size;
+    }
+
+    static scalar_type*& get_weights()
+    {
+      static scalar_type* weights = NULL;
+      return weights;
+    }
+            
+    static std::string& get_name()
+    {
+      static std::string name = "inner-product-domain (" + dmn_specifications_type::get_name() + ")";
+      return name;
+    }
+      
+    static std::vector<element_type>& get_elements()
+    {
+      static std::vector<element_type> elements(get_size());
+      return elements;
+    }
+
+    static void reset()
+    {
+      get_size()   = 0;
+
+      if(get_weights() != NULL)
+	delete [] get_weights();
+    
+      get_elements().resize(0);
+    
+      is_initialized() = false;
+    }
+
+    static void initialize(int level)
+    {
+      /*
+      std::vector<int>         N  (dmn_specifications_type::DIMENSION, 0);
+      std::vector<scalar_type> min(dmn_specifications_type::DIMENSION, 0);
+      std::vector<scalar_type> max(dmn_specifications_type::DIMENSION, 0);
+
+      get_volume() = 1;
+      for(int l=0; l<dmn_specifications_type::DIMENSION; l++){
+	N[l]   = dmn_type::get_dimensions()[l];
+
+	min[l] = dmn_type::get_min()[l];
+	max[l] = dmn_type::get_max()[l];
+
+	get_volume() *= (max[l]-min[l]);
+      }
+
+      for(int l=0; l<dmn_specifications_type::DIMENSION; l++)
+	N[l] = N[l]*std::pow(2., level);
+	
+      domain_initializer<this_type>::execute(N, min, max);
+      */
+    }
+  };
+
+}
+
+#endif

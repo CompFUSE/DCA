@@ -1,0 +1,183 @@
+//-*-C++-*-
+
+namespace TRAFOR
+{
+  std::string get_name(int DIM)
+  {
+    std::stringstream ss;
+    ss << DIM;
+    return ss.str();
+  }
+
+  enum    DOMAIN_REPRESENTATION {DISCRETE, CONTINUOUS, EXPANSION};
+  typedef DOMAIN_REPRESENTATION DOMAIN_REPRESENTATION_type;
+    
+  std::string get_name(DOMAIN_REPRESENTATION_type DR)
+  {
+    switch(DR)
+      {
+      case DISCRETE:
+	return "DISCRETE";
+	
+      case CONTINUOUS:
+	return "CONTINUOUS";
+
+      case EXPANSION:
+	return "EXPANSION";
+		
+      default :
+	return "NOT DEFINED";
+      }     
+  }
+
+  enum BASIS_EXPANSION_SET {KRONECKER_DELTA,
+
+			    HARMONICS, 
+			    COSINE, 
+			    SINE, 
+			    
+			    HARMONICS_FERMIONIC,
+			    HARMONICS_BOSONIC,
+
+			    HARMONICS_FERMIONIC_POSITIVE,
+			    HARMONICS_BOSONIC_POSITIVE,
+			    
+			    HERMITE_LINEAR_SPLINE,
+			    HERMITE_CUBIC_SPLINE,
+			    
+			    LEGENDRE_P,
+			    LEGENDRE_Q,
+			    LEGENDRE_LM};
+  
+  typedef BASIS_EXPANSION_SET BASIS_EXPANSION_SET_type;
+  
+  std::string get_name(BASIS_EXPANSION_SET BS)
+  {
+    switch(BS)
+      {
+      case KRONECKER_DELTA:
+	return "KRONECKER_DELTA";
+
+      case HARMONICS:
+	return "HARMONICS";
+	
+      case SINE:
+	return "SINE";
+	
+      case COSINE:
+	return "COSINE";
+
+      case HARMONICS_FERMIONIC:
+	return "HARMONICS_MATSUBARA";
+
+      case HARMONICS_BOSONIC:
+	return "HARMONICS_BOSONIC";
+
+      case HARMONICS_FERMIONIC_POSITIVE:
+	return "HARMONICS_MATSUBARA_POSITIVE";
+
+      case HARMONICS_BOSONIC_POSITIVE:
+	return "HARMONICS_BOSONIC_POSITIVE";
+	
+      case HERMITE_LINEAR_SPLINE:
+	return "HERMITE_LINEAR_SPLINE";
+
+      case HERMITE_CUBIC_SPLINE:
+	return "HERMITE_CUBIC_SPLINE";
+
+      case LEGENDRE_P:
+	return "LEGENDRE_P";
+
+      case LEGENDRE_Q:
+	return "LEGENDRE_Q";
+
+      case LEGENDRE_LM:
+	return "LEGENDRE_LM";
+	
+      default :
+	return "NOT DEFINED";
+      }
+  }
+
+  enum    BOUNDARY_CONDITIONS {INTERVAL, PERIODIC, ANTIPERIODIC};
+  typedef BOUNDARY_CONDITIONS BOUNDARY_CONDITIONS_type;
+
+  std::string get_name(BOUNDARY_CONDITIONS_type BC)
+  {
+    switch(BC)
+      {
+      case INTERVAL:
+	return "INTERVAL";
+	
+      case PERIODIC:
+	return "PERIODIC";
+	
+      case ANTIPERIODIC:
+	return "ANTIPERIODIC";
+	
+      default :
+	return "NOT DEFINED";
+      }     
+  }
+
+  enum    ELEMENT_SPACING {EQUIDISTANT, NONEQUIDISTANT, GAUSSIAN_QUADRATURE};
+  typedef ELEMENT_SPACING ELEMENT_SPACING_type;
+
+  std::string get_name(ELEMENT_SPACING_type IS)
+  {
+    switch(IS)
+      {
+      case EQUIDISTANT:
+	return "EQUIDISTANT";
+	
+      case NONEQUIDISTANT:
+	return "NONEQUIDISTANT";
+	
+      case GAUSSIAN_QUADRATURE:
+	return "GAUSSIAN_QUADRATURE";
+	
+      default :
+	return "NOT DEFINED";
+      }         
+  }
+
+  /*!
+   *  \defgroup TRANSFORM
+   *  \ingroup  ALGORITHMS
+   */
+  template<typename type_lhs, typename type_rhs>
+  struct IS_EQUAL
+  {
+    const static bool CHECK = false;    
+  };
+  
+  template<typename type_lhs>
+  struct IS_EQUAL<type_lhs, type_lhs>
+  {
+    const static bool CHECK = true;
+  };
+  
+  template<bool QUESTION>
+  struct GENERIC_ASSERT
+  {};
+  
+  template<>
+  struct GENERIC_ASSERT<false>
+  {};
+  
+  template<>
+  struct GENERIC_ASSERT<true>
+  {
+    static void execute() {};
+  };
+  
+}
+
+
+
+#include "include_generic_domains.h"
+
+#include "include_basis_functions.h"
+#include "include_basis_transformations.h"
+
+#include "include_functional_transformations.h"

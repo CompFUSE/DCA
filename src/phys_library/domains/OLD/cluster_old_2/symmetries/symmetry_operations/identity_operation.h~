@@ -1,0 +1,40 @@
+//-*-C++-*-
+
+#ifndef Sn_H_
+#define Sn_H_
+
+#include <cmath>
+#include "group_action.h"
+
+/*
+ *      Author: Peter Staar
+ *
+ *  \brief Reflection over an axis which has an angle 2*pi*n/m with the x-axis.
+ */
+
+template<int n, int m>
+class Sn_2D : public group_action<2>
+{
+public: 
+
+  typedef group_action<2> base_type;
+  typedef Sn_2D<n,m>      this_type;
+
+  Sn_2D(){};
+  ~Sn_2D(){};
+
+  const static double* matrix()
+  {
+
+    const static double theta = double(n)/double(m);
+    const static double c( std::cos(2*M_PI*theta) );
+    const static double s( std::sin(2*M_PI*theta) );
+
+    const static double matrix[2*2] = { c*c - s*s, 2*s*c,
+					2*s*c    , -(c*c - s*s)};
+    return matrix;
+  }
+};
+
+
+#endif

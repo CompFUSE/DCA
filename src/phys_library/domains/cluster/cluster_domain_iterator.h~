@@ -1,0 +1,41 @@
+//-*-C++-*-
+
+#ifndef CENTERED_CLUSTER_DOMAIN_H
+#define CENTERED_CLUSTER_DOMAIN_H
+
+/*!
+ *  \author Peter Staar
+ */
+template<typename cluster_type>
+class centered_cluster_domain
+{};
+
+/*!
+ *  \author Peter Staar
+ */
+template<typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_REPRESENTATION R, CLUSTER_SHAPE S>
+class centered_cluster_domain<cluster_domain<scalar_type, D, N, R, S> >
+{
+public:
+
+  const static int DIMENSION = D;
+
+  const static CLUSTER_NAMES          NAME           = N;
+  const static CLUSTER_REPRESENTATION REPRESENTATION = R;
+  const static CLUSTER_SHAPE          SHAPE          = S;
+
+  const static CLUSTER_REPRESENTATION DUAL_REPRESENTATION = dual_cluster<REPRESENTATION>::REPRESENTATION;
+
+  typedef cluster_domain<scalar_type, D, N,      REPRESENTATION, S> cluster_type;
+
+  typedef centered_cluster_domain<cluster_domain<scalar_type, D, N,      REPRESENTATION, S> > this_type;
+  typedef centered_cluster_domain<cluster_domain<scalar_type, D, N, DUAL_REPRESENTATION, S> > dual_type;
+
+  typedef typename cluster_specifications<scalar_type,    N, R, S>::dmn_specifications_type dmn_specifications_type;
+
+  typedef std::vector<scalar_type> element_type;
+
+public:
+};
+
+}

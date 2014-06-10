@@ -1,0 +1,66 @@
+//-*-C++-*-                                                                                                                                                                                                                                                                                                                                                        
+
+#ifndef LINALG_GEINV_H
+#define LINALG_GEINV_H
+
+namespace LIN_ALG {
+
+  template<device_type device_t>
+  class GEINV
+  {
+  public:
+    
+    template<typename scalartype>
+    static void execute(matrix<scalartype, device_t>& A)
+    {      
+      assert(A.get_current_size().first  == A.get_current_size().second);
+      
+      LIN_ALG::vector<int, CPU> IPIV(A.get_current_size().first);
+      for(int i=0; i<A.get_current_size().first; i++)
+	IPIV[i] = i+1;
+      
+      GETRF<device_t>::execute(A, IPIV.get_ptr());
+      GETRI<device_t>::execute(A, IPIV.get_ptr());    
+    }
+
+    template<typename scalartype>
+    static void execute_on_small_matrix(matrix<scalartype, device_t>& A)
+    {      
+      assert(A.get_current_size().first == A.get_current_size().second);
+
+      switch(A.get_current_size().first)
+	{
+	case 1:
+	  {
+	    A(0,0) = 1./A(0,0);
+	  }
+	  break;
+	  
+	default:
+	  execute(A);
+	}
+    }
+
+    template<typename scalartype>
+    static void execute_on_Green_function_matrix(matrix<scalartype, device_t>& A)
+    {      
+      assert(A.get_current_size().first % 2 == 0);
+      assert(A.get_current_size().first  == A.get_current_size().second);
+
+      switch(A.get_current_size().first)
+	{
+	case 2:
+	  {
+	    A(0,0) = scalartype(1.)/A(0,0);
+	    A(1,1) = scalartype(1.)/A(1,1);
+	  }
+	  break;
+
+	default:
+	  execute(A);
+	}
+    }
+  };
+}
+
+#endif

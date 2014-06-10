@@ -1,0 +1,236 @@
+//-*-C++-*-
+
+#ifndef BSE_LATTICE_SOLVER_H
+#define BSE_LATTICE_SOLVER_H
+
+namespace DCA
+{
+  /*!
+   *  \author Peter Staar
+   */
+  template<class parameters_type, class MOMS_type>
+  class BSE_lattice_solver
+  {
+#include "type_definitions.h"
+
+    typedef double scalartype;
+
+    typedef typename parameters_type::profiler_type    profiler_type;
+    typedef typename parameters_type::concurrency_type concurrency_type;
+
+    const static int N_LAMBDAS = 10;
+    typedef dmn_0<dmn<N_LAMBDAS, int> > lambda_dmn_type;
+
+    typedef centered_cluster_domain<r_HOST_VERTEX::parameter_type> crystal_harmonics_expansion;
+    typedef dmn_0<crystal_harmonics_expansion>                     crystal_harmonics_expansion_dmn_t; 
+
+    typedef dmn_4<b,b,k_DCA                            , w_VERTEX> cluster_eigenvector_dmn_t;
+    typedef dmn_4<b,b,k_HOST_VERTEX                    , w_VERTEX> lattice_eigenvector_dmn_t;
+    typedef dmn_4<b,b,crystal_harmonics_expansion_dmn_t, w_VERTEX> crystal_eigenvector_dmn_t;
+
+    typedef dmn_2<cluster_eigenvector_dmn_t, cluster_eigenvector_dmn_t> DCA_matrix_dmn_t;
+    typedef dmn_2<lattice_eigenvector_dmn_t, lattice_eigenvector_dmn_t> HOST_matrix_dmn_t;
+    typedef dmn_2<crystal_eigenvector_dmn_t, crystal_eigenvector_dmn_t> crystal_matrix_dmn_t;
+
+  public:
+
+    BSE_lattice_solver(parameters_type& parameters, MOMS_type& MOMS);
+    ~BSE_lattice_solver();
+
+    function<std::complex<scalartype>, HOST_matrix_dmn_t>& get_Gamma_lattice() { return Gamma_lattice; }
+
+    void compute_chi_0_lattice(function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0);
+
+    void compute_Gamma_lattice_1(function<std::complex<scalartype>, DCA_matrix_dmn_t>& Gamma_cluster);
+    void compute_Gamma_lattice_2(function<std::complex<scalartype>, DCA_matrix_dmn_t>& Gamma_cluster);
+    void compute_Gamma_lattice_3(function<std::complex<scalartype>, DCA_matrix_dmn_t>& Gamma_cluster);
+
+  private:
+
+    void initialize();
+
+  private:
+
+    struct tmp_cluster_domain
+    {
+      typedef typename k_HOST_VERTEX::parameter_type::element_type            element_type;
+      typedef typename k_HOST_VERTEX::parameter_type::dmn_specifications_type dmn_specifications_type;
+      
+      static int get_size()                            { return k_HOST_VERTEX::dmn_size();     }
+      static std::vector<element_type>& get_elements() { return k_HOST_VERTEX::get_elements(); }
+    };
+
+    typedef dmn_0<tmp_cluster_domain> tmp_cluster_dmn_t;
+
+  private:
+
+    parameters_type&  parameters;
+    concurrency_type& concurrency;
+
+    MOMS_type&       MOMS;
+
+    function<std::complex<scalartype>, HOST_matrix_dmn_t>                         Gamma_lattice;
+    function<std::complex<scalartype>, dmn_4<b_b, b_b, k_HOST_VERTEX, w_VERTEX> > chi_0_function;
+
+    function<std::complex<scalartype>, dmn_2<lambda_dmn_type, cluster_eigenvector_dmn_t> > leading_U_K;
+    function<std::complex<scalartype>, dmn_2<lambda_dmn_type, cluster_eigenvector_dmn_t> > leading_Vt_K;
+
+    function<std::complex<scalartype>, dmn_2<lambda_dmn_type, lattice_eigenvector_dmn_t> > leading_U_k;
+    function<std::complex<scalartype>, dmn_2<lambda_dmn_type, lattice_eigenvector_dmn_t> > leading_Vt_k;
+  };
+
+  template<class parameters_type, class MOMS_type>
+  BSE_lattice_solver<parameters_type, MOMS_type>::BSE_lattice_solver(parameters_type& parameters_ref, MOMS_type& MOMS_ref):
+    parameters(parameters_ref),
+    concurrency(parameters.get_concurrency()),
+
+    MOMS(MOMS_ref),
+
+    Gamma_lattice("Gamma_lattice"),
+
+    chi_0_function("chi_0_function"),
+
+    leading_U_K("leading_U_K"),
+    leading_Vt_K("leading_Vt_K"),
+
+    leading_U_k("leading_U_k_interpolated"),
+    leading_Vt_k("leading_Vt_k_interpolated")
+  {
+    initialize();
+  }
+
+  template<class parameters_type, class MOMS_type>
+  BSE_lattice_solver<parameters_type, MOMS_type>::~BSE_lattice_solver()
+  {}
+
+  template<class parameters_type, class MOMS_type>
+  void BSE_lattice_solver<parameters_type, MOMS_type>::initialize()
+  {
+    double r_cut_off = 1.1;
+
+    crystal_harmonics_expansion::initialize();
+
+    std::vector<std::vector<double> > r_vecs(0);
+
+    for(int l=0; l<crystal_harmonics_expansion::get_size(); l++)
+      if(VECTOR_OPERATIONS::NORM(crystal_harmonics_expansion::get_elements()[l])<r_cut_off)
+	r_vecs.push_back(crystal_harmonics_expansion::get_elements()[l]);
+
+    crystal_harmonics_expansion::get_size()     = r_vecs.size();
+    crystal_harmonics_expansion::get_elements() = r_vecs;
+
+    for(int l=0; l<crystal_harmonics_expansion::get_size(); l++){
+      VECTOR_OPERATIONS::PRINT(crystal_harmonics_expansion::get_elements()[l]);
+      cout << endl;
+    }
+  }
+  
+  template<class parameters_type, class MOMS_type>
+  void BSE_lattice_solver<parameters_type, MOMS_type>::compute_chi_0_lattice(function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0)
+  {
+    if(concurrency.id()==concurrency.last())
+      cout << "\t" << __FUNCTION__ << endl << endl;
+
+    //profiler_t prof(__FUNCTION__, __FILE__, __LINE__);
+
+    typedef DCA::cluster_solver<DCA::HIGH_TEMPERATURE_SERIES, LIN_ALG::CPU, parameters_type, MOMS_type> HTS_solver_type;
+
+    typedef DCA::lattice_map_sp   <parameters_type, k_DCA, k_HOST> lattice_map_sp_type;
+
+    typedef DCA::coarsegraining_sp<parameters_type, k_DCA        > coarsegraining_sp_type;
+    typedef DCA::coarsegraining_tp<parameters_type, k_HOST_VERTEX> coarsegraining_tp_type;
+
+    lattice_map_sp_type lattice_mapping_obj(parameters);
+
+    MOMS.Sigma_lattice_interpolated  = 0.;
+    MOMS.Sigma_lattice_coarsegrained = 0.;
+
+    MOMS.Sigma_lattice = 0.;
+
+    if(parameters.use_HTS_approximation())
+      {
+        coarsegraining_sp_type coarsegraining_sp_obj(parameters);
+
+        MOMS_type MOMS_HTS(parameters);
+
+        MOMS_HTS.H_HOST         = MOMS.H_HOST;
+        MOMS_HTS.H_interactions = MOMS.H_interactions;
+
+        HTS_solver_type HTS_solver(parameters, MOMS_HTS);
+
+        lattice_mapping_obj.execute_with_HTS_approximation(MOMS_HTS, HTS_solver, coarsegraining_sp_obj,
+                                                           MOMS.Sigma,
+                                                           MOMS.Sigma_lattice_interpolated,
+                                                           MOMS.Sigma_lattice_coarsegrained,
+                                                           MOMS.Sigma_lattice);
+      }
+    else
+      {
+        lattice_mapping_obj.execute(MOMS.Sigma, MOMS.Sigma_lattice_interpolated, MOMS.Sigma_lattice_coarsegrained, MOMS.Sigma_lattice);
+      }
+
+    {
+      coarsegraining_tp_type coarsegraining_tp_obj(parameters);
+
+      coarsegraining_tp_obj.execute(MOMS.H_HOST, MOMS.Sigma_lattice, chi_0_function);
+
+      scalartype renorm = 1./(parameters.get_beta()*k_HOST_VERTEX::dmn_size());
+
+      for(int w_ind=0; w_ind<w_VERTEX::dmn_size(); w_ind++)
+        for(int K_ind=0; K_ind<k_HOST_VERTEX::dmn_size(); K_ind++)
+
+          for(int m2=0; m2<b::dmn_size(); m2++)
+            for(int n2=0; n2<b::dmn_size(); n2++)
+
+              for(int m1=0; m1<b::dmn_size(); m1++)
+                for(int n1=0; n1<b::dmn_size(); n1++)
+                  chi_0(n1,m1,K_ind,w_ind, n2,m2,K_ind,w_ind) = renorm*chi_0_function(n1,m1, n2,m2, K_ind,w_ind);
+    }
+  }
+
+  template<class parameters_type, class MOMS_type>
+  void BSE_lattice_solver<parameters_type, MOMS_type>::compute_Gamma_lattice_1(function<std::complex<scalartype>, DCA_matrix_dmn_t>& Gamma_cluster)
+  {
+    coarsegrain_inversion<parameters_type, k_DCA, k_HOST_VERTEX, QUADRATURE_INTEGRATION> coarsegrain_inversion_obj(parameters);
+
+    coarsegrain_inversion_obj.execute(Gamma_cluster, Gamma_lattice, leading_U_K, leading_Vt_K, leading_U_k, leading_Vt_k);
+  }
+
+  template<class parameters_type, class MOMS_type>
+  void BSE_lattice_solver<parameters_type, MOMS_type>::compute_Gamma_lattice_2(function<std::complex<scalartype>, DCA_matrix_dmn_t>& Gamma_cluster)
+  {
+    {
+      if(concurrency.id()==0)
+	cout << "\n\n start tp-interpolation of Gamma \n\n";
+
+      interpolation_tp<parameters_type, k_DCA, k_HOST_VERTEX> interpolation_tp_obj(parameters);
+      
+      interpolation_tp_obj.execute(Gamma_cluster, Gamma_lattice);
+    }
+    
+    {
+      if(concurrency.id()==0)
+	cout << "\n\n start tp-deconvolution of Gamma \n\n";
+
+      function<std::complex<scalartype>, dmn_2<dmn_4<b,b,tmp_cluster_dmn_t,w_VERTEX>, dmn_4<b,b,tmp_cluster_dmn_t,w_VERTEX> > > Gamma_lattice_interp("Gamma_lattice_interp");
+
+      for(int i=0; i<Gamma_lattice_interp.size(); i++)
+	Gamma_lattice_interp(i) = Gamma_lattice(i);
+
+      deconvolution_tp<parameters_type, k_DCA, k_HOST_VERTEX> deconvolution_tp_obj(parameters);
+
+      deconvolution_tp_obj.execute(Gamma_lattice_interp, Gamma_lattice);
+    }
+  }
+
+  template<class parameters_type, class MOMS_type>
+  void BSE_lattice_solver<parameters_type, MOMS_type>::compute_Gamma_lattice_3(function<std::complex<scalartype>, DCA_matrix_dmn_t>& Gamma_cluster)
+  {
+    lattice_map_tp<parameters_type, k_DCA, k_HOST_VERTEX> lattice_map_tp_obj(parameters);
+
+    lattice_map_tp_obj.execute(Gamma_cluster, Gamma_lattice);
+  }
+
+}
+
+#endif

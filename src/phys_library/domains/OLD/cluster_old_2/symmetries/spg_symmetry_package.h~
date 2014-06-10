@@ -1,0 +1,15 @@
+//-*-C++-*-
+
+#ifndef SPG_SYMMETRY_WRAPPER
+#define SPG_SYMMETRY_WRAPPER
+
+/*
+ *  \author Peter Staar
+ */
+
+class spg_symmetry_package
+{
+
+};
+
+#endif

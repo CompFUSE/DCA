@@ -1,0 +1,207 @@
+//-*-C++-*-
+
+#ifndef DCA_TIME_HEADER_H
+#define DCA_TIME_HEADER_H
+
+namespace PROFILER
+{
+  //======================================================================
+
+  /*! 
+   *  \ingroup PROFILING
+   *
+   */
+  class TimeBase {
+  public:
+
+    long sec;
+    long usec;
+    TimeBase(long s, long u): sec(s), usec(u) {}
+
+    static long oneMillion() {
+      static long value(1000000);
+      return value;
+    }
+  };
+  
+  //======================================================================
+
+  /*! 
+   *  \ingroup PROFILING
+   *
+   */
+  class Time: public TimeBase {
+  public:
+
+    typedef struct timeval TimeValueType;
+
+    Time(long s, long u): TimeBase(s,u) {}
+    Time(TimeValueType& tim): TimeBase(tim.tv_sec,tim.tv_usec) {}
+    
+    Time& operator = (const TimeValueType& tim) {
+      sec  = tim.tv_sec;
+      usec = tim.tv_usec;
+      return *this;
+    }
+  };
+  
+  //======================================================================
+
+  /*! 
+   *  \ingroup PROFILING
+   *
+   */
+  class WallTime: public Time {
+  public: 
+
+    typedef struct timeval TimeValueType;
+
+    WallTime(): Time(0,0) {
+      TimeValueType tim;
+      gettimeofday(&tim,NULL);
+      this->sec  = tim.tv_sec;
+      this->usec = tim.tv_usec;
+    }
+  };
+  
+  //======================================================================
+
+  /*! 
+   *  \ingroup PROFILING
+   *
+   */
+  class ResourceTime: public Time {
+  public:
+    
+    typedef struct rusage UsageType;
+
+    UsageType      usage;
+    int            status;
+    
+    int getResourceUsage() {
+      return getrusage(RUSAGE_SELF,&usage);
+    }
+
+    ResourceTime(long s, long u): Time(s,u) {}
+    
+    ResourceTime(): 
+      Time(0,0),
+      status(this->getResourceUsage())
+    {
+      if(status != 0) {
+	std::ostringstream msg;
+	msg << "ResourceTime could not retreive the time status = " << status << "\n";
+	throw std::logic_error(msg.str());
+      }
+    }
+    
+    ResourceTime(const UsageType& usg): 
+      Time(0,0),
+      usage(usg),
+      status(1)
+    {}
+  }; 
+  
+  //======================================================================
+
+  /*! 
+   *  \ingroup PROFILING
+   *
+   */
+  class UserTime: public ResourceTime {
+  public: 
+    typedef struct rusage UsageType;
+    UserTime(long s, long u): ResourceTime(s,u) {}
+    UserTime(): ResourceTime() {
+      Time& tim(*this);
+      tim = this->usage.ru_utime;
+    }
+    UserTime(const UsageType&  usge): ResourceTime(usge) {
+      Time& tim(*this);
+      tim = this->usage.ru_utime;
+    }
+  };
+  
+  //======================================================================
+  
+  /*! 
+   *  \ingroup PROFILING
+   *
+   */
+  class SystemTime: public ResourceTime {
+  public: 
+    typedef struct rusage UsageType;
+    SystemTime(long s, long u): ResourceTime(s,u) {}
+    SystemTime(): ResourceTime() {
+      Time& tim(*this);
+      tim = this->usage.ru_stime;
+    }
+    SystemTime(const UsageType&  usge): ResourceTime(usge) {
+      Time& tim(*this);
+      tim = this->usage.ru_stime;
+    }
+  };
+  
+  //======================================================================
+
+  /*! 
+   *  \ingroup PROFILING
+   *
+   */
+  class Duration: public TimeBase  {
+  public:
+    
+    Duration(long s, long u): TimeBase(s,u) 
+    {
+      normalize();
+    }
+    
+    Duration(const Time& time1, const Time& time2): TimeBase(0,0) {
+      this->setFrom(time1,time2);
+    }
+    
+    Duration(const Duration& duration1, const Duration& duration2): TimeBase(0,0) {
+      this->setFrom(duration1,duration2);
+    }
+    
+    void setFrom(const Time& time, const Time& earlierTime) {
+      
+      this->sec  = time.sec  - earlierTime.sec;
+      this->usec = time.usec - earlierTime.usec;
+      if (this->usec < 0) {
+	this->sec  = this->sec-1;
+	this->usec = oneMillion() + this->usec;
+      }
+    }
+
+    void normalize() {
+      this->sec += this->usec/oneMillion();
+      this->usec = this->usec%oneMillion();
+    }
+    
+    void setFrom(const Duration& duration1, const Duration& duration2) {
+      this->sec  = duration1.sec  + duration2.sec;
+      this->usec = duration1.usec + duration2.usec;
+      normalize();
+    }
+    
+    Duration operator + (const Duration& other) {
+      return Duration(*this,other);
+    }
+  };
+  
+  Duration operator - (const Time& time, const Time& earlierTime) {
+    return Duration(time,earlierTime);
+  }
+  
+  //======================================================================
+
+} // end namespace DCA
+
+
+
+/*@}*/
+#endif
+
+
+

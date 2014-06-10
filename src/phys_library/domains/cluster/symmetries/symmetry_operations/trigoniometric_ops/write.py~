@@ -1,0 +1,41 @@
+#! /usr/bin/env python3.1
+
+import os
+import shutil
+
+print("\n******************************************************** \n")
+
+
+N        = 128
+filename = "trig_ops.h"
+
+struct = 
+"
+template<>
+struct COSINE_VALUE<I_TEMPLATE, N_TEMPLATE>
+{
+\tstatic double value(){
+\t\treturn VALUE;
+\t}
+};\n\n
+"
+
+file = open(file_name_new, 'w')
+
+file.write("//-*-C++-*-\n\n")
+	
+file.write("#ifndef COSISNUS_VALUE_H\n")
+file.write("#define COSISNUS_VALUE_H\n")
+file.write("\n\n")
+
+for i in range(0, n+1):
+    new_struct = struct
+    new_struct = new_struct.replace("I_TEMPLATE", str(i))
+    new_struct = new_struct.replace("N_TEMPLATE", str(n))
+    new_struct = new_struct.replace("VALUE"     , str(cos(2.*pi*(i+0.)/(n+i0.))))
+    
+    file.write(new_struct)
+
+file.write("#endif")
+
+file.close()
