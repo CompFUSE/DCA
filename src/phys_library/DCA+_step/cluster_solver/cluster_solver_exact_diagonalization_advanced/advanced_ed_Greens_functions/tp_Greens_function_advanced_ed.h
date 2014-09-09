@@ -41,9 +41,9 @@ namespace DCA
 	  }
 	}
 
-	for(int l0=0; l0<8; l++){
+	for(int l0=0; l0<8; l0++){
 	  
-	  integration_volume_3D<scalar_type>& volume = vols[l];
+	  integration_volume_3D<scalar_type>& volume = vols[l0];
 	  
 	  volume.x0_m = (x0_l+x0_u)/2.;
 	  volume.x1_m = (x1_l+x1_u)/2.;

@@ -8,7 +8,7 @@
 
 // ED
 #include "include_ed.h"
-#include "include_advanced_ed_solver.h"
+//#include "include_advanced_ed_solver.h"
 
 // QMCI-template
 #include "include_qmci_templates.h"
