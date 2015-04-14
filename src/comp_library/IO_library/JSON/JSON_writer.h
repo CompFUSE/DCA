@@ -58,16 +58,16 @@ namespace IO
     void execute(std::string name,  dmn_0<domain_type>& dmn);
 
     template<typename scalar_type, typename domain_type>
-    void execute(function<scalar_type, domain_type>& f);
+    void execute(FUNC_LIB::function<scalar_type, domain_type>& f);
 
     template<typename scalar_type, typename domain_type>
-    void execute(std::string name, function<scalar_type, domain_type>& f);
+    void execute(std::string name, FUNC_LIB::function<scalar_type, domain_type>& f);
 
     template<typename scalar_type, typename domain_type>
-    void execute(function<std::complex<scalar_type>, domain_type>& f);
+    void execute(FUNC_LIB::function<std::complex<scalar_type>, domain_type>& f);
 
     template<typename scalar_type, typename domain_type>
-    void execute(std::string name, function<std::complex<scalar_type>, domain_type>& f);
+    void execute(std::string name, FUNC_LIB::function<std::complex<scalar_type>, domain_type>& f);
 
     template<typename scalar_type>
     void execute(std::string name, LIN_ALG::vector<             scalar_type , LIN_ALG::CPU>& A);
@@ -294,7 +294,7 @@ namespace IO
   }
 
   template<typename scalar_type, typename domain_type>
-  void writer<IO::JSON>::execute(function<scalar_type, domain_type>& f)
+  void writer<IO::JSON>::execute(FUNC_LIB::function<scalar_type, domain_type>& f)
   {
     cout << "\t starts writing function : " << f.get_name() << "\n";
 
@@ -302,7 +302,7 @@ namespace IO
   }
 
   template<typename scalar_type, typename domain_type>
-  void writer<IO::JSON>::execute(std::string name, function<scalar_type, domain_type>& f)
+  void writer<IO::JSON>::execute(std::string name, FUNC_LIB::function<scalar_type, domain_type>& f)
   {
     open_group(name);
 
@@ -352,7 +352,7 @@ namespace IO
   }
 
   template<typename scalar_type, typename domain_type>
-  void writer<IO::JSON>::execute(function<std::complex<scalar_type>, domain_type>& f)
+  void writer<IO::JSON>::execute(FUNC_LIB::function<std::complex<scalar_type>, domain_type>& f)
   {
     cout << "\t starts writing function : " << f.get_name() << "\n";
 
@@ -360,7 +360,7 @@ namespace IO
   }
 
   template<typename scalar_type, typename domain_type>
-  void writer<IO::JSON>::execute(std::string name, function<std::complex<scalar_type>, domain_type>& f)
+  void writer<IO::JSON>::execute(std::string name, FUNC_LIB::function<std::complex<scalar_type>, domain_type>& f)
   {
     open_group(name);
 

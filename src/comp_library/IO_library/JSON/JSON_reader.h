@@ -47,10 +47,10 @@ namespace IO
     void execute(std::string name, dmn_0<domain_type>& dmn);
 
     template<typename scalartype, typename domain_type>
-    void execute(function<scalartype, domain_type>& f);
+    void execute(FUNC_LIB::function<scalartype, domain_type>& f);
 
     template<typename scalartype, typename domain_type>
-    void execute(std::string name, function<scalartype, domain_type>& f);
+    void execute(std::string name, FUNC_LIB::function<scalartype, domain_type>& f);
 
     template<typename scalar_type>
     void execute(std::string name, LIN_ALG::vector<scalar_type , LIN_ALG::CPU>& A);
@@ -64,10 +64,10 @@ namespace IO
     void execute(std::string name, scalartype& value, const JsonAccessor& current_result, size_t index);
 
     template<typename scalartype, typename domain_type>
-    void execute(std::string name, function<scalartype, domain_type>& f, const JsonAccessor& current_result, size_t index);
+    void execute(std::string name, FUNC_LIB::function<scalartype, domain_type>& f, const JsonAccessor& current_result, size_t index);
 
     template<typename scalartype, typename domain_type>
-    void execute(std::string name, function<std::complex<scalartype>, domain_type>& f, const JsonAccessor& current_result, size_t index);
+    void execute(std::string name, FUNC_LIB::function<std::complex<scalartype>, domain_type>& f, const JsonAccessor& current_result, size_t index);
 
     template<typename scalar_type>
     void execute(std::string name, LIN_ALG::vector<             scalar_type , LIN_ALG::CPU>& A, 
@@ -209,7 +209,7 @@ namespace IO
   }
 
   template<typename scalartype, typename domain_type>
-  void reader<IO::JSON>::execute(function<scalartype, domain_type>& f)
+  void reader<IO::JSON>::execute(FUNC_LIB::function<scalartype, domain_type>& f)
   {
     cout << "\t starts reading function : " << f.get_name() << "\n";
 
@@ -217,13 +217,13 @@ namespace IO
   }
 
   template<typename scalartype, typename domain_type>
-  void reader<IO::JSON>::execute(std::string name, function<scalartype, domain_type>& f)
+  void reader<IO::JSON>::execute(std::string name, FUNC_LIB::function<scalartype, domain_type>& f)
   {
     execute(name, f, parse_result, 0);
   }
 
   template<typename scalartype, typename domain_type>
-  void reader<IO::JSON>::execute(std::string name, function<scalartype, domain_type>& f, const JsonAccessor& current_result, size_t index)
+  void reader<IO::JSON>::execute(std::string name, FUNC_LIB::function<scalartype, domain_type>& f, const JsonAccessor& current_result, size_t index)
   {
     //cout << get_path() << "/" << name << "\t" << index << "\n";
 
@@ -246,7 +246,7 @@ namespace IO
   }
 
   template<typename scalartype, typename domain_type>
-  void reader<IO::JSON>::execute(std::string name, function<std::complex<scalartype>, domain_type>& f, const JsonAccessor& current_result, size_t index)
+  void reader<IO::JSON>::execute(std::string name, FUNC_LIB::function<std::complex<scalartype>, domain_type>& f, const JsonAccessor& current_result, size_t index)
   {
     const std::complex<scalartype> I(0,1);
 
