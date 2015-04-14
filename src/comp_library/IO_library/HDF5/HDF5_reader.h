@@ -41,6 +41,9 @@ namespace IO
     template<typename scalar_type>
     void execute(std::string name, std::vector<scalar_type>& value);
 
+    template<typename scalar_type>
+    void execute(std::string name, std::vector< std::complex<scalar_type> >& value);
+
     void execute(std::string name, std::string& value);
 
     void execute(std::string name, std::vector<std::string>& value);
@@ -49,13 +52,16 @@ namespace IO
     void execute(std::string name, dmn_0<domain_type>& dmn);
 
     template<typename scalartype, typename domain_type>
-    void execute(function<scalartype, domain_type>& f);
+    void execute(FUNC_LIB::function<scalartype, domain_type>& f);
 
     template<typename scalartype, typename domain_type>
-    void execute(std::string name, function<scalartype, domain_type>& f);
+    void execute(std::string name, FUNC_LIB::function<scalartype, domain_type>& f);
    
     template<typename scalar_type>
     void execute(std::string name, LIN_ALG::vector<scalar_type , LIN_ALG::CPU>& A);
+
+    template<typename scalar_type>
+    void execute(std::string name, LIN_ALG::vector< std::complex<scalar_type> , LIN_ALG::CPU >& A);
     
     template<typename scalar_type>
     void execute(std::string name, LIN_ALG::matrix<scalar_type , LIN_ALG::CPU>& A);
@@ -172,7 +178,30 @@ namespace IO
       {
 	H5::DataSet  dataset   = my_file->openDataSet(full_name.c_str());
     
-	value.resize(dataset.getInMemDataSize());
+	value.resize(dataset.getInMemDataSize()/sizeof(scalar_type));
+	// value.resize(dataset.getInMemDataSize());
+	
+	H5::DataSpace dataspace = dataset.getSpace();
+	
+	H5Dread(dataset.getId(), IO::HDF5_TYPE<scalar_type>::get(), dataspace.getId(), H5S_ALL, H5P_DEFAULT, &value[0]);
+      }
+    catch(...)
+      {
+	cout << "\n\n\t the variable (" + name + ") does not exist in path : " + get_path() + "\n\n";
+	//throw std::logic_error(__FUNCTION__);
+      }
+  }
+
+  template<typename scalar_type>
+  void reader<IO::HDF5>::execute(std::string name, std::vector< std::complex<scalar_type> >& value)
+  {
+    std::string full_name = get_path()+"/"+name;
+    
+    try
+      {
+	H5::DataSet  dataset   = my_file->openDataSet(full_name.c_str());
+    
+	value.resize(dataset.getInMemDataSize()/sizeof(std::complex<scalar_type>));
 	
 	H5::DataSpace dataspace = dataset.getSpace();
 	
@@ -251,13 +280,13 @@ namespace IO
   }
 
   template<typename scalartype, typename domain_type>
-  void reader<IO::HDF5>::execute(function<scalartype, domain_type>& f)
+  void reader<IO::HDF5>::execute(FUNC_LIB::function<scalartype, domain_type>& f)
   {
     execute(f.get_name(), f);
   }
 
   template<typename scalartype, typename domain_type>
-  void reader<IO::HDF5>::execute(std::string name, function<scalartype, domain_type>& f)
+  void reader<IO::HDF5>::execute(std::string name, FUNC_LIB::function<scalartype, domain_type>& f)
   {
     cout << "\n\tstart reading function : " << name;
 
@@ -293,6 +322,34 @@ namespace IO
 
 	H5::DataSet  dataset    = my_file->openDataSet(full_name.c_str());
 	
+	V.resize(dataset.getInMemDataSize()/sizeof(scalar_type));
+	
+	H5::DataSpace dataspace = dataset.getSpace();
+	
+	H5Dread(dataset.getId(), IO::HDF5_TYPE<scalar_type>::get(), dataspace.getId(), H5S_ALL, H5P_DEFAULT, &V[0]);
+
+	close_group();
+      }
+    catch(...)
+      {
+	cout << "\n\n\t the vector (" + name + ") does not exist in path : " + get_path() + "\n\n";
+	//throw std::logic_error(__FUNCTION__);
+      }
+  }
+
+  template<typename scalar_type>
+  void reader<IO::HDF5>::execute(std::string name, LIN_ALG::vector< std::complex<scalar_type> , LIN_ALG::CPU >& V)
+  {
+    try
+      {
+	open_group(name);
+
+	std::string full_name = get_path()+"/data";
+
+	H5::DataSet  dataset    = my_file->openDataSet(full_name.c_str());
+
+	V.resize(dataset.getInMemDataSize()/sizeof(std::complex<scalar_type>));
+	
 	H5::DataSpace dataspace = dataset.getSpace();
 	
 	H5Dread(dataset.getId(), IO::HDF5_TYPE<scalar_type>::get(), dataspace.getId(), H5S_ALL, H5P_DEFAULT, &V[0]);
@@ -318,6 +375,11 @@ namespace IO
 	H5::DataSet  dataset    = my_file->openDataSet(full_name.c_str());
 	
 	H5::DataSpace dataspace = dataset.getSpace();
+
+	// These 2 lines fix the bug of reading into a matrix which has been resized to a smaller size
+	// hsize_t global_size[2] = {A.get_number_of_cols(), A.get_number_of_rows()}; // HDF5 use row major data distribution
+	// hsize_t global_size[2] = {A.get_global_size().second, A.get_global_size().first}; // HDF5 use row major data distribution
+	// dataspace.setExtentSimple(2, &global_size[0], NULL);
 	
 	H5Dread(dataset.getId(), IO::HDF5_TYPE<scalar_type>::get(), dataspace.getId(), H5S_ALL, H5P_DEFAULT, &A(0,0));
 
