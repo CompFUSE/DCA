@@ -347,7 +347,7 @@ namespace DCA
 
       std::vector< element_type >& Hilbert_spaces = get_elements();
 
-      function<std::pair<int,int>, r_symmetry_matrix_dmn_t>& r_symmetry_matrix = r_symmetry_type::get_symmetry_matrix();
+      FUNC_LIB::function<std::pair<int,int>, r_symmetry_matrix_dmn_t>& r_symmetry_matrix = r_symmetry_type::get_symmetry_matrix();
 
       int num_states = b_dmn::dmn_size()*s_dmn::dmn_size()*r_dmn::dmn_size();
 
@@ -468,8 +468,9 @@ namespace DCA
               complex_type eval_factor = exp(complex_type(0,2.*M_PI/order));
               complex_type eval        = 1.;
 
-              for(int i=0; i<order; ++i)
-                {
+              // for(int i=0; i<order; ++i)
+	      for(int i=0; i<Op.get_order(); i+= Op.get_order()/order)
+	        {
                   psi_state<parameter_type, ed_options> psi_prime(eval, order, Op, psi0, k);
 
                   if(psi_prime.size() != 0)
