@@ -20,8 +20,8 @@ public:
     
   template<typename matrix_type, class domain>
   void execute_plan(FUNC_LIB::function<matrix_type ,dmn_2<domain, domain> >& Matrix,
-		    scalartype*                                              vector_source,
-		    scalartype*                                              vector_target);
+		    scalartype* vector_source,
+		    scalartype* vector_target);
     
 private:
   int* sizes;
@@ -41,8 +41,8 @@ block_gemv_plan<scalartype>::~block_gemv_plan()
 template<typename scalartype>
 template<typename matrix_type, class domain>
 void block_gemv_plan<scalartype>::execute_plan(FUNC_LIB::function<matrix_type, dmn_2<domain, domain> >& Matrix,
-					       scalartype*                                              vector_source,
-					       scalartype*                                              vector_target)
+					       scalartype*                                    vector_source,
+					       scalartype*                                    vector_target)
 {
   for(int j = 0 ; j< domain::dmn_size();j++){
     for(int i = 0 ; i< domain::dmn_size();i++){
