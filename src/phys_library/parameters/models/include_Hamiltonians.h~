@@ -1,4 +1,0 @@
-
-#include "analytical_Hamiltonians.h"
-
-#include "material_Hamiltonians.h"

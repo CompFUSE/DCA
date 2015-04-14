@@ -1,5 +1,0 @@
-//-*-C++-*-
-
-#include "gaussian_quadrature_algorithm.h"
-
-//#include "quadrature_domain.h"

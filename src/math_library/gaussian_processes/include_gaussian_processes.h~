@@ -1,6 +1,0 @@
-//-*-C++-*-
-
-#include "gaussian_fit.h"
-
-#include "gaussian_regression.h"
-

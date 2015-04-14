@@ -1,9 +1,0 @@
-import sys
-sys.path.append("./python_files/")
-
-import configure
-
-machines = ["TODI"]
-
-configuration = configure.configure()
-

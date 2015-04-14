@@ -1,5 +1,0 @@
-//-*-C++-*-
-
-#include "gnuplot_interface.hpp"
-
-#include "show_function.h"

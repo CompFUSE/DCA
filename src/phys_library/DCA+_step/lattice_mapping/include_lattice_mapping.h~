@@ -1,7 +1,0 @@
-//-*-C++-*-
-
-//#include "include_DCA_deconvolution.h"
-
-#include "deconvolution_sp.h"
-
-#include "lattice_mapping_sp.h"
