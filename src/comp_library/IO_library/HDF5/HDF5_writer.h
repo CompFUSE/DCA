@@ -44,6 +44,9 @@ namespace IO
     template<typename scalar_type>
     void execute(std::string name, std::vector<scalar_type>& value);
 
+    template<typename scalar_type>
+    void execute(std::string name, std::vector< std::complex<scalar_type> >& value);
+
     void execute(std::string name,             std::string   value);
 
     void execute(std::string name, std::vector<std::string>& value);
@@ -55,16 +58,16 @@ namespace IO
     void execute(std::string name, dmn_0<domain_type>& dmn);
 
     template<typename scalar_type, typename domain_type>
-    void execute(function<             scalar_type , domain_type>& f);
+    void execute(FUNC_LIB::function<             scalar_type , domain_type>& f);
 
     template<typename scalar_type, typename domain_type>
-    void execute(function<std::complex<scalar_type>, domain_type>& f);
+    void execute(FUNC_LIB::function<std::complex<scalar_type>, domain_type>& f);
 
     template<typename scalar_type, typename domain_type>
-    void execute(std::string name, function<             scalar_type , domain_type>& f);
+    void execute(std::string name, FUNC_LIB::function<             scalar_type , domain_type>& f);
 
     template<typename scalar_type, typename domain_type>
-    void execute(std::string name, function<std::complex<scalar_type>, domain_type>& f);
+    void execute(std::string name, FUNC_LIB::function<std::complex<scalar_type>, domain_type>& f);
 
     template<typename scalar_type>
     void execute(std::string name, LIN_ALG::vector<             scalar_type , LIN_ALG::CPU>& A);
@@ -86,6 +89,8 @@ namespace IO
 
     H5::H5File* my_file;
 
+    hid_t       file_id;
+
     std::vector<H5::Group* >  my_group;
     std::vector<std::string>  my_paths;
   };
@@ -105,7 +110,7 @@ namespace IO
   bool writer<IO::HDF5>::fexists(const char *filename)
   {
     ifstream ifile(filename);
-    return ifile;
+    return bool(ifile);
   }
 
   H5::H5File& writer<IO::HDF5>::open_file(std::string file_name, bool overwrite)
@@ -115,14 +120,14 @@ namespace IO
 
     if(overwrite)
       {
-        H5Fcreate(file_name.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+	file_id = H5Fcreate(file_name.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
       }
     else
       {
-        if(fexists(file_name.c_str()))
-          H5Fopen(file_name.c_str(), H5F_ACC_RDWR, H5P_DEFAULT);
-        else
-          H5Fcreate(file_name.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, H5P_DEFAULT);
+	if(fexists(file_name.c_str()))
+	  file_id = H5Fopen(file_name.c_str(), H5F_ACC_RDWR, H5P_DEFAULT);
+	else
+	  file_id = H5Fcreate(file_name.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, H5P_DEFAULT);
       }
 
     my_file = new H5File(file_name.c_str(), H5F_ACC_RDWR);
@@ -134,6 +139,8 @@ namespace IO
   {
     delete my_file;
     my_file = NULL;
+
+    H5Fclose(file_id);
   }
 
   void writer<IO::HDF5>::open_group(std::string name)
@@ -256,6 +263,32 @@ namespace IO
         delete dataset;
         delete dataspace;
       }
+  }
+
+  template<typename scalar_type>
+  void writer<IO::HDF5>::execute(std::string name, std::vector< std::complex<scalar_type> >& value)
+  {
+    H5File& file     = (*my_file);
+    std::string path = get_path();
+
+    hsize_t  dims[2];
+
+    DataSet*   dataset   = NULL;
+    DataSpace* dataspace = NULL;
+
+    {
+      dims[0] = 2;
+      dims[1] = value.size();
+      dataspace = new DataSpace(2, dims);
+
+      std::string full_name = path+"/"+name;
+      dataset   = new DataSet(file.createDataSet(full_name.c_str(), IO::HDF5_TYPE<scalar_type>::get_PredType(), *dataspace));
+
+      H5Dwrite(dataset->getId(), IO::HDF5_TYPE<scalar_type>::get(), dataspace->getId(), H5S_ALL, H5P_DEFAULT, &value[0]);
+    }
+
+    delete dataset;
+    delete dataspace;
   }
 
   void writer<IO::HDF5>::execute(std::string name, std::string value)//, H5File& file, std::string path)
@@ -431,7 +464,7 @@ namespace IO
   }
 
   template<typename scalar_type, typename domain_type>
-  void writer<IO::HDF5>::execute(function<scalar_type, domain_type>& f)
+  void writer<IO::HDF5>::execute(FUNC_LIB::function<scalar_type, domain_type>& f)
   {
     if(f.size()==0)
       return;
@@ -442,7 +475,7 @@ namespace IO
   }
 
   template<typename scalar_type, typename domain_type>
-  void writer<IO::HDF5>::execute(function<std::complex<scalar_type>, domain_type>& f)
+  void writer<IO::HDF5>::execute(FUNC_LIB::function<std::complex<scalar_type>, domain_type>& f)
   {
     if(f.size()==0)
       return;
@@ -453,7 +486,7 @@ namespace IO
   }
 
   template<typename scalar_type, typename domain_type>
-  void writer<IO::HDF5>::execute(std::string name, function<scalar_type, domain_type>& f)
+  void writer<IO::HDF5>::execute(std::string name, FUNC_LIB::function<scalar_type, domain_type>& f)
   {
     if(f.size()==0)
       return;
@@ -509,7 +542,7 @@ namespace IO
   }
 
   template<typename scalar_type, typename domain_type>
-  void writer<IO::HDF5>::execute(std::string name, function<std::complex<scalar_type>, domain_type>& f)
+  void writer<IO::HDF5>::execute(std::string name, FUNC_LIB::function<std::complex<scalar_type>, domain_type>& f)
   {
     if(f.size()==0)
       return;
