@@ -50,15 +50,15 @@ public:
   static std::vector<std::pair<std::pair<int,int>, std::pair<int,int> > > get_orbital_permutations();
 
   template<class domain, class parameters_type>
-  static void                 initialize_H_LDA(function<std::complex<double> , domain >& H_LDA,
+  static void                 initialize_H_LDA(FUNC_LIB::function<std::complex<double> , domain >& H_LDA,
 					       parameters_type&                          parameters);
 
   template<class domain, class parameters_type>
-  static void                 initialize_H_interaction(function<double , domain >& H_interactions,
+  static void                 initialize_H_interaction(FUNC_LIB::function<double , domain >& H_interactions,
 						       parameters_type&            parameters);
 
   template<class domain>
-  static void                 initialize_H_symmetries(function<int , domain >& H_symmetries);
+  static void                 initialize_H_symmetries(FUNC_LIB::function<int , domain >& H_symmetries);
 
   static void                 symmetrize_Hamiltonian(std::complex<double>* H_matrix);
 
@@ -268,21 +268,21 @@ void Koshevnikov_model::unpack(concurrency_type& concurrency, int* buffer, int b
 }
 
 template<class domain, class parameters_type>
-void Koshevnikov_model::initialize_H_LDA(function<std::complex<double> , domain >& H_LDA,
+void Koshevnikov_model::initialize_H_LDA(FUNC_LIB::function<std::complex<double> , domain >& H_LDA,
 					 parameters_type&                          parameters)
 {
   Koshevnikov_parser::read_LDA_Hamiltonians(filename, H_LDA, Fermi_energy);
 }
 
 template<class domain, class parameters_type>
-void Koshevnikov_model::initialize_H_interaction(function<double , domain >& H_interaction,
+void Koshevnikov_model::initialize_H_interaction(FUNC_LIB::function<double , domain >& H_interaction,
 						 parameters_type&            parameters)
 {
   Koshevnikov_parser::read_interaction_Hamiltonian(filename, H_interaction, BANDS);
 }
 
 template<class domain>
-void Koshevnikov_model::initialize_H_symmetries(function<int , domain >& H_symmetries)
+void Koshevnikov_model::initialize_H_symmetries(FUNC_LIB::function<int , domain >& H_symmetries)
 {
   Koshevnikov_parser::read_symmetries(filename, H_symmetries, BANDS);
 }

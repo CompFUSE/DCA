@@ -80,7 +80,7 @@ namespace DCA
   template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
   void cluster_solver<ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::initialize(int dca_iteration)
   {
-    function<std::complex<double>, dmn_3<nu,nu,r_DCA> > H_DCA;
+    FUNC_LIB::function<std::complex<double>, dmn_3<nu,nu,r_DCA> > H_DCA;
     //FT<k_DCA, r_DCA>::execute(MOMS_imag.H_DCA, H_DCA);
     MATH_ALGORITHMS::TRANSFORM<k_DCA, r_DCA>::execute(MOMS_imag.H_DCA, H_DCA);
 

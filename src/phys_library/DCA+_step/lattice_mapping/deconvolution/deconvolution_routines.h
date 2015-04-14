@@ -52,10 +52,10 @@ namespace DCA
 
   protected:
 
-    function<double, target_r_dmn_t> phi_r;
-    function<double, target_r_dmn_t> phi_r_symmetrized;
+    FUNC_LIB::function<double, target_r_dmn_t> phi_r;
+    FUNC_LIB::function<double, target_r_dmn_t> phi_r_symmetrized;
 
-    function<double, target_r_dmn_t> phi_r_inv;
+    FUNC_LIB::function<double, target_r_dmn_t> phi_r_inv;
 
     LIN_ALG::matrix<double, LIN_ALG::CPU> T;
     LIN_ALG::matrix<double, LIN_ALG::CPU> T_symmetrized;
@@ -176,7 +176,7 @@ namespace DCA
   {
     if(false)
       {
-//     function<double, target_r_dmn_t> phi_r_inv;
+//     FUNC_LIB::function<double, target_r_dmn_t> phi_r_inv;
 //     for(int i=0; i<target_k_dmn_t::dmn_size(); i++)
 //       phi_r_inv(i) = phi_r(i) > epsilon ? 1./phi_r(i) : 0;//1./epsilon;
       }
@@ -224,7 +224,7 @@ namespace DCA
   {
     compute_phi_inv(epsilon);
 
-//     function<double, target_r_dmn_t> phi_r_inv;
+//     FUNC_LIB::function<double, target_r_dmn_t> phi_r_inv;
 //     for(int i=0; i<target_k_dmn_t::dmn_size(); i++)
 //       phi_r_inv(i) = phi_r(i) > epsilon ? 1./phi_r(i) : 0;//1./epsilon;
 

@@ -27,7 +27,7 @@ public:
   static double* initialize_k_LDA_basis();
 
   template<class domain, class parameters_type>
-  static void initialize_H_interaction(function<double , domain >& H_interaction,
+  static void initialize_H_interaction(FUNC_LIB::function<double , domain >& H_interaction,
 				       parameters_type&            parameters);
 
   static std::complex<double> get_LDA_Hamiltonians(double t, std::vector<double> k, int b1, int s1, int b2, int s2);
@@ -81,7 +81,7 @@ double* square_A_2D::initialize_k_LDA_basis()
 }
 
 template<class domain, class parameters_type>
-void square_A_2D::initialize_H_interaction(function<double , domain >& H_interaction,
+void square_A_2D::initialize_H_interaction(FUNC_LIB::function<double , domain >& H_interaction,
 					   parameters_type&            parameters)
 {
   double U = parameters.get_U_hubbard();

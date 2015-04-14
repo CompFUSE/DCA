@@ -44,8 +44,8 @@ template<typename type_input, typename type_output, int dmn_number>
 struct wannier_interpolation_any_2_any
 {
   template<typename scalartype_1, typename dmn_type_1, typename scalartype_2, typename dmn_type_2>
-  static void execute(function<scalartype_1, dmn_type_1>& f_source, 
-		      function<scalartype_2, dmn_type_2>& f_target)
+  static void execute(FUNC_LIB::function<scalartype_1, dmn_type_1>& f_source, 
+		      FUNC_LIB::function<scalartype_2, dmn_type_2>& f_target)
   {
     int Nb_sbdms    = f_source.signature();
     int Nb_elements = f_source.size();
@@ -101,8 +101,8 @@ template<typename type_list1, typename type_list2,
 struct wannier_interpolation_generic
 {
   template<typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-  static void execute(function<scalartype_input , domain_input>& f_input, 
-		      function<scalartype_output, domain_output>& f_output)
+  static void execute(FUNC_LIB::function<scalartype_input , domain_input>& f_input, 
+		      FUNC_LIB::function<scalartype_output, domain_output>& f_output)
   {
     //typedef typename TypeListAt<type_list1,IndexOf<type_list1, type_input>::value>::Result new_typelist1;
     //typedef typename TypeListAt<type_list2,IndexOf<type_list1, type_input>::value>::Result new_typelist2;
@@ -116,7 +116,7 @@ template<typename type_list1, typename type_list2, typename type_input, typename
 struct wannier_interpolation_generic<type_list1, type_list2, type_input, type_output, dmn_shift, -1>
 {
   template<typename scalartype_1, typename dmn_type_1, typename scalartype_2, typename dmn_type_2>
-  static void execute(function<scalartype_1, dmn_type_1>& f_source, function<scalartype_2, dmn_type_2>& F_target)
+  static void execute(FUNC_LIB::function<scalartype_1, dmn_type_1>& f_source, FUNC_LIB::function<scalartype_2, dmn_type_2>& F_target)
   {
     cout << "STOP" << endl;
   }
@@ -137,15 +137,15 @@ public:
   
   template<typename scalartype_input, class domain_input, 
 	   typename scalartype_output, class domain_output>
-  static void execute(function<scalartype_input , domain_input> & f_input,
-		      function<scalartype_output, domain_output>& f_output);
+  static void execute(FUNC_LIB::function<scalartype_input , domain_input> & f_input,
+		      FUNC_LIB::function<scalartype_output, domain_output>& f_output);
 };
 
 template<typename source_dmn_type, typename target_dmn_type>
 template<typename scalartype_input, class domain_input, 
 	 typename scalartype_output, class domain_output>
-void wannier_interpolation<source_dmn_type, target_dmn_type>::execute(function<scalartype_input , domain_input> & f_input,
-								      function<scalartype_output, domain_output>& f_output)
+void wannier_interpolation<source_dmn_type, target_dmn_type>::execute(FUNC_LIB::function<scalartype_input , domain_input> & f_input,
+								      FUNC_LIB::function<scalartype_output, domain_output>& f_output)
 {    
   typedef typename wannier_interpolation_domain_type<domain_input, source_dmn_type, target_dmn_type>::Result wannier_interpolation_domain;
 
@@ -175,8 +175,8 @@ public:
 
   template<typename scalartype_input, class domain_input, 
 	   typename scalartype_output, class domain_output>
-  static void execute(function<scalartype_input , domain_input> & f_input,
-		      function<scalartype_output, domain_output>& f_output)
+  static void execute(FUNC_LIB::function<scalartype_input , domain_input> & f_input,
+		      FUNC_LIB::function<scalartype_output, domain_output>& f_output)
   {
     wannier_interpolation<source_dmn_type, target_dmn_type>::execute(f_input,f_output);
   }

@@ -56,7 +56,7 @@ namespace DCA
       template<typename parameter_type>
       void initialize(parameter_type& parameters);
 
-      void sum_to(function<complex_type, dmn_4<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, nu_nu_nu_nu_r_r_r_dmn_type> >& G_tp_ref);
+      void sum_to(FUNC_LIB::function<complex_type, dmn_4<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, nu_nu_nu_nu_r_r_r_dmn_type> >& G_tp_ref);
 
     public:
 
@@ -92,7 +92,7 @@ namespace DCA
       matrix_type overlap_2;
       matrix_type overlap_3;
 
-      function<complex_type, dmn_4<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, nu_nu_nu_nu_r_r_r_dmn_type> > G_tp;
+      FUNC_LIB::function<complex_type, dmn_4<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, nu_nu_nu_nu_r_r_r_dmn_type> > G_tp;
     };
 
     template<typename ed_options>
@@ -115,7 +115,7 @@ namespace DCA
     }
 
     template<typename ed_options>
-    void tp_Greens_function_data<ed_options>::sum_to(function<complex_type, dmn_4<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, nu_nu_nu_nu_r_r_r_dmn_type> >& G_tp_ref)
+    void tp_Greens_function_data<ed_options>::sum_to(FUNC_LIB::function<complex_type, dmn_4<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, nu_nu_nu_nu_r_r_r_dmn_type> >& G_tp_ref)
     {
       G_tp_ref += G_tp;
     }

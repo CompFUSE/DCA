@@ -36,7 +36,7 @@ void test_construction_and_printing()
 
   typedef dmn_2<r,t> r_t;
 
-  function<std::vector<int>, r_t> f;
+  FUNC_LIB::function<std::vector<int>, r_t> f;
 
   f.print_fingerprint();
 
@@ -64,7 +64,7 @@ void test_slize_and_distribute()
 
   typedef dmn_3<r,r,t> r_r_t;
 
-  function<double, r_r_t> f;
+  FUNC_LIB::function<double, r_r_t> f;
 
   f.print_fingerprint();
 

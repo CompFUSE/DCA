@@ -41,8 +41,8 @@ namespace DCA
     void initialize_T_K_to_k(LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& T_K_to_k);
 
     template<typename scalartype>
-    void execute(function<std::complex<scalartype>, dmn_2<dmn_4<b,b,k_DCA        ,w_VERTEX>, dmn_4<b,b,k_DCA        ,w_VERTEX> > >& Gamma_cluster,
-		 function<std::complex<scalartype>, dmn_2<dmn_4<b,b,k_HOST_VERTEX,w_VERTEX>, dmn_4<b,b,k_HOST_VERTEX,w_VERTEX> > >& Gamma_lattice);
+    void execute(FUNC_LIB::function<std::complex<scalartype>, dmn_2<dmn_4<b,b,k_DCA        ,w_VERTEX>, dmn_4<b,b,k_DCA        ,w_VERTEX> > >& Gamma_cluster,
+		 FUNC_LIB::function<std::complex<scalartype>, dmn_2<dmn_4<b,b,k_HOST_VERTEX,w_VERTEX>, dmn_4<b,b,k_HOST_VERTEX,w_VERTEX> > >& Gamma_lattice);
 
   private:
 
@@ -93,8 +93,8 @@ namespace DCA
 
   template<typename parameters_type, typename source_k_dmn, typename target_k_dmn>
   template<typename scalartype>
-  void interpolation_tp<parameters_type, source_k_dmn, target_k_dmn>::execute(function<std::complex<scalartype>, dmn_2<dmn_4<b,b,k_DCA        ,w_VERTEX>, dmn_4<b,b,k_DCA        ,w_VERTEX> > >& Gamma_cluster,
-									      function<std::complex<scalartype>, dmn_2<dmn_4<b,b,k_HOST_VERTEX,w_VERTEX>, dmn_4<b,b,k_HOST_VERTEX,w_VERTEX> > >& Gamma_lattice)
+  void interpolation_tp<parameters_type, source_k_dmn, target_k_dmn>::execute(FUNC_LIB::function<std::complex<scalartype>, dmn_2<dmn_4<b,b,k_DCA        ,w_VERTEX>, dmn_4<b,b,k_DCA        ,w_VERTEX> > >& Gamma_cluster,
+									      FUNC_LIB::function<std::complex<scalartype>, dmn_2<dmn_4<b,b,k_HOST_VERTEX,w_VERTEX>, dmn_4<b,b,k_HOST_VERTEX,w_VERTEX> > >& Gamma_lattice)
   {
     LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU> T_K_to_k("T_K_to_k");
 

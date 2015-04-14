@@ -45,14 +45,14 @@ public:
   static std::vector<std::pair<std::pair<int,int>, std::pair<int,int> > > get_orbital_permutations();
 
   template<class domain, class parameters_type>
-  static void initialize_H_interaction(function<double , domain >& H_interaction,
+  static void initialize_H_interaction(FUNC_LIB::function<double , domain >& H_interaction,
 				       parameters_type&            parameters);
 
   template<class domain>
-  static void initialize_H_symmetries(function<int, domain>& H_symmetry);
+  static void initialize_H_symmetries(FUNC_LIB::function<int, domain>& H_symmetry);
 
   template<class domain, class parameters_type>
-  static void initialize_H_LDA(function<std::complex<double> , domain >& H_LDA,
+  static void initialize_H_LDA(FUNC_LIB::function<std::complex<double> , domain >& H_LDA,
 			       parameters_type&                          parameters);
 
   template<class parameters_type>
@@ -214,7 +214,7 @@ std::vector<std::pair<std::pair<int,int>, std::pair<int,int> > > cuprate_three_b
 
 template<typename DCA_point_group_type>
 template<class domain, class parameters_type>
-void cuprate_three_band_model<DCA_point_group_type>::initialize_H_interaction(function<double , domain >& H_interaction,
+void cuprate_three_band_model<DCA_point_group_type>::initialize_H_interaction(FUNC_LIB::function<double , domain >& H_interaction,
 									      parameters_type&            parameters)
 {
   H_interaction = 0.;
@@ -231,7 +231,7 @@ void cuprate_three_band_model<DCA_point_group_type>::initialize_H_interaction(fu
 
 template<typename DCA_point_group_type>
 template<class domain>
-void cuprate_three_band_model<DCA_point_group_type>::initialize_H_symmetries(function<int, domain>& H_symmetries)
+void cuprate_three_band_model<DCA_point_group_type>::initialize_H_symmetries(FUNC_LIB::function<int, domain>& H_symmetries)
 {
   H_symmetries = -1;
 
@@ -247,7 +247,7 @@ void cuprate_three_band_model<DCA_point_group_type>::initialize_H_symmetries(fun
 
 template<typename DCA_point_group_type>
 template<class domain, class parameters_type>
-void cuprate_three_band_model<DCA_point_group_type>::initialize_H_LDA(function<std::complex<double>, domain>& H_LDA,
+void cuprate_three_band_model<DCA_point_group_type>::initialize_H_LDA(FUNC_LIB::function<std::complex<double>, domain>& H_LDA,
 								    parameters_type&                        parameters)
 {
   typedef typename parameters_type::b b;

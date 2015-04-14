@@ -32,7 +32,7 @@ namespace DCA
       typedef typename ph_bubble_t::function_type chi_type;
       typedef typename pp_bubble_t::function_type phi_type;
 
-      typedef function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > function_type;
+      typedef FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > function_type;
 
     public:
 
@@ -48,28 +48,28 @@ namespace DCA
       template<class stream_type>
       void to_JSON(stream_type& ss);
 
-      void execute_on_cluster(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G,
-                              function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& Sigma_2);
+      void execute_on_cluster(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G,
+                              FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& Sigma_2);
 
       template<IO::FORMAT DATA_FORMAT>
       void write(IO::writer<DATA_FORMAT>& writer);
 
     private:
 
-      void execute_4A(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G);
-      void execute_4C(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G);
-      void execute_4D(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G,
-                      function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& Sigma_2);
-      void execute_4E(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G,
-                      function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& Sigma_2);
-      void execute_4F(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G,
-                      function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& Sigma_2);
-      void execute_4G(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G);
-      void execute_4H(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G);
-      void execute_4J_old(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G);
-      void execute_4J(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G);
-      void execute_4K(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G);
-      void execute_4L(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G);
+      void execute_4A(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G);
+      void execute_4C(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G);
+      void execute_4D(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G,
+                      FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& Sigma_2);
+      void execute_4E(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G,
+                      FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& Sigma_2);
+      void execute_4F(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G,
+                      FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& Sigma_2);
+      void execute_4G(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G);
+      void execute_4H(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G);
+      void execute_4J_old(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G);
+      void execute_4J(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G);
+      void execute_4K(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G);
+      void execute_4L(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G);
 
 
       int subtract_freq_fb(int, int); // boson-fermion
@@ -88,17 +88,17 @@ namespace DCA
       chi_type& chi;
       phi_type& phi;
 
-      function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > Sigma;
-      function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > Sigma_4A;
-      function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > Sigma_4C;
-      function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > Sigma_4D;
-      function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > Sigma_4E;
-      function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > Sigma_4F;
-      function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > Sigma_4G;
-      function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > Sigma_4H;
-      function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > Sigma_4J;
-      function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > Sigma_4K;
-      function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > Sigma_4L;
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > Sigma;
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > Sigma_4A;
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > Sigma_4C;
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > Sigma_4D;
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > Sigma_4E;
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > Sigma_4F;
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > Sigma_4G;
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > Sigma_4H;
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > Sigma_4J;
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > Sigma_4K;
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > Sigma_4L;
     };
 
     template<class parameter_type, class k_dmn_t>
@@ -180,8 +180,8 @@ namespace DCA
 //     }
 
     template<class parameter_type, class k_dmn_t>
-    void sigma_perturbation<4, parameter_type, k_dmn_t>::execute_on_cluster(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G,
-                                                                            function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& Sigma_2)
+    void sigma_perturbation<4, parameter_type, k_dmn_t>::execute_on_cluster(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G,
+                                                                            FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& Sigma_2)
     {
       cout << __FUNCTION__ << endl;
 
@@ -214,7 +214,7 @@ namespace DCA
     }
 
     template<class parameter_type, class k_dmn_t>
-    void sigma_perturbation<4, parameter_type, k_dmn_t>::execute_4A(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
+    void sigma_perturbation<4, parameter_type, k_dmn_t>::execute_4A(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
     {
       profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
       cout << __FUNCTION__ << endl;
@@ -251,7 +251,7 @@ namespace DCA
     }
 
     template<class parameter_type, class k_dmn_t>
-    void sigma_perturbation<4, parameter_type, k_dmn_t>::execute_4C(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
+    void sigma_perturbation<4, parameter_type, k_dmn_t>::execute_4C(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
     {
       profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
       cout << __FUNCTION__ << endl;
@@ -286,8 +286,8 @@ namespace DCA
     }
 
     template<class parameter_type, class k_dmn_t>
-    void sigma_perturbation<4, parameter_type, k_dmn_t>::execute_4D(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G,
-                                                                    function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& Sigma_2)
+    void sigma_perturbation<4, parameter_type, k_dmn_t>::execute_4D(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G,
+                                                                    FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& Sigma_2)
     {
       profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
       cout << __FUNCTION__ << endl;
@@ -323,8 +323,8 @@ namespace DCA
     }
 
     template<class parameter_type, class k_dmn_t>
-    void sigma_perturbation<4, parameter_type, k_dmn_t>::execute_4E(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G,
-                                                                    function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& Sigma_2)
+    void sigma_perturbation<4, parameter_type, k_dmn_t>::execute_4E(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G,
+                                                                    FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& Sigma_2)
     {
       profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
       cout << __FUNCTION__ << endl;
@@ -360,8 +360,8 @@ namespace DCA
     }
 
     template<class parameter_type, class k_dmn_t>
-    void sigma_perturbation<4, parameter_type, k_dmn_t>::execute_4F(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G,
-                                                                    function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& Sigma_2)
+    void sigma_perturbation<4, parameter_type, k_dmn_t>::execute_4F(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G,
+                                                                    FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& Sigma_2)
     {
       profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
       cout << __FUNCTION__ << endl;
@@ -397,7 +397,7 @@ namespace DCA
     }
 
     template<class parameter_type, class k_dmn_t>
-    void sigma_perturbation<4, parameter_type, k_dmn_t>::execute_4G(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
+    void sigma_perturbation<4, parameter_type, k_dmn_t>::execute_4G(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
     {
       profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
       cout << __FUNCTION__ << endl;
@@ -465,7 +465,7 @@ namespace DCA
     }
 
     template<class parameter_type, class k_dmn_t>
-    void sigma_perturbation<4, parameter_type, k_dmn_t>::execute_4H(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
+    void sigma_perturbation<4, parameter_type, k_dmn_t>::execute_4H(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
     {
       profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
       cout << __FUNCTION__ << endl;
@@ -533,7 +533,7 @@ namespace DCA
 
     /*
       template<class parameter_type, class k_dmn_t>
-      void sigma_perturbation<4, parameter_type, k_dmn_t>::execute_4J_old(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
+      void sigma_perturbation<4, parameter_type, k_dmn_t>::execute_4J_old(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
       {
       cout << __FUNCTION__ << endl;
 
@@ -591,7 +591,7 @@ namespace DCA
     */
 
     template<class parameter_type, class k_dmn_t>
-    void sigma_perturbation<4, parameter_type, k_dmn_t>::execute_4J(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
+    void sigma_perturbation<4, parameter_type, k_dmn_t>::execute_4J(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
     {
       profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
       cout << __FUNCTION__ << endl;
@@ -600,7 +600,7 @@ namespace DCA
 
       Sigma_4J = 0.;
 
-      function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w_VERTEX_BOSONIC> > F; // Calculating part independent of k
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w_VERTEX_BOSONIC> > F; // Calculating part independent of k
 
       dmn_2<w_VERTEX_BOSONIC, k_dmn_t> dmn;
       thread_manager_sum<concurrency_t> sum_manager(concurrency);
@@ -678,7 +678,7 @@ namespace DCA
     }
 
     template<class parameter_type, class k_dmn_t>
-    void sigma_perturbation<4, parameter_type, k_dmn_t>::execute_4K(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
+    void sigma_perturbation<4, parameter_type, k_dmn_t>::execute_4K(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
     {
       profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
       cout << __FUNCTION__ << endl;
@@ -687,7 +687,7 @@ namespace DCA
 
       Sigma_4K = 0.;
 
-      function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w_VERTEX_BOSONIC> > F; // Calculating part independent of k
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w_VERTEX_BOSONIC> > F; // Calculating part independent of k
 
       dmn_2<w_VERTEX_BOSONIC, k_dmn_t> dmn;
       thread_manager_sum<concurrency_t> sum_manager(concurrency);
@@ -764,7 +764,7 @@ namespace DCA
     }
 
     template<class parameter_type, class k_dmn_t>
-    void sigma_perturbation<4, parameter_type, k_dmn_t>::execute_4L(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
+    void sigma_perturbation<4, parameter_type, k_dmn_t>::execute_4L(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
     {
       profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
       cout << __FUNCTION__ << endl;
@@ -773,7 +773,7 @@ namespace DCA
 
       Sigma_4L = 0.;
 
-      function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w_VERTEX_BOSONIC> > F; // Calculating part independent of k
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w_VERTEX_BOSONIC> > F; // Calculating part independent of k
 
       dmn_2<w_VERTEX_BOSONIC, k_dmn_t> dmn;
       thread_manager_sum<concurrency_t> sum_manager(concurrency);

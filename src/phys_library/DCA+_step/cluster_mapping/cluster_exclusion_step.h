@@ -145,7 +145,7 @@ namespace DCA
   void cluster_exclusion<parameters_type, MOMS_type>::plot_G0_R_t_cluster_excluded()
   {
     {
-      function<float, t> tmp("G0_k_t");
+      FUNC_LIB::function<float, t> tmp("G0_k_t");
     
       Gnuplot plot_obj("lines");
       for(int R_ind=0; R_ind<r_DCA::dmn_size(); R_ind++)  
@@ -160,7 +160,7 @@ namespace DCA
     }
 
     {
-      function<float, t> tmp("G0_k_t_cluster_excluded");
+      FUNC_LIB::function<float, t> tmp("G0_k_t_cluster_excluded");
     
       Gnuplot plot_obj("lines");
       for(int R_ind=0; R_ind<r_DCA::dmn_size(); R_ind++)  
@@ -175,7 +175,7 @@ namespace DCA
     }
 
     {
-      function<float, t> tmp("G0_r_t");
+      FUNC_LIB::function<float, t> tmp("G0_r_t");
     
       Gnuplot plot_obj("lines");
       for(int R_ind=0; R_ind<r_DCA::dmn_size(); R_ind++)  

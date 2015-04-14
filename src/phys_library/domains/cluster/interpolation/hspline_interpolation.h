@@ -37,8 +37,8 @@ template<typename type_input, typename type_output, int dmn_number>
 struct hspline_interpolation_any_2_any
 {
   template<typename scalartype, typename dmn_type_1, typename dmn_type_2>
-  static void execute(function<scalartype, dmn_type_1>& f_source, 
-		      function<scalartype, dmn_type_2>& f_target,
+  static void execute(FUNC_LIB::function<scalartype, dmn_type_1>& f_source, 
+		      FUNC_LIB::function<scalartype, dmn_type_2>& f_target,
 		      double a)
   {
     int Nb_sbdms    = f_source.signature();
@@ -94,8 +94,8 @@ template<typename type_list1, typename type_list2,
 struct hspline_interpolation_generic
 {
   template<typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-  static void execute(function<scalartype_input , domain_input>& f_input, 
-		      function<scalartype_output, domain_output>& f_output,
+  static void execute(FUNC_LIB::function<scalartype_input , domain_input>& f_input, 
+		      FUNC_LIB::function<scalartype_output, domain_output>& f_output,
 		      double a)
   {
     //typedef typename TypeListAt<type_list1,IndexOf<type_list1, type_input>::value>::Result new_typelist1;
@@ -109,7 +109,7 @@ template<typename type_list1, typename type_list2, typename type_input, typename
 struct hspline_interpolation_generic<type_list1, type_list2, type_input, type_output, dmn_shift, -1>
 {
   template<typename scalartype_1, typename dmn_type_1, typename scalartype_2, typename dmn_type_2>
-  static void execute(function<scalartype_1, dmn_type_1>& f_source, function<scalartype_2, dmn_type_2>& F_target, double a)
+  static void execute(FUNC_LIB::function<scalartype_1, dmn_type_1>& f_source, FUNC_LIB::function<scalartype_2, dmn_type_2>& F_target, double a)
   {}
 };
 
@@ -130,8 +130,8 @@ public:
   
   template<typename scalartype_input, class domain_input, 
 	   typename scalartype_output, class domain_output>
-  static void execute(function<scalartype_input , domain_input> & f_input,
-		      function<scalartype_output, domain_output>& f_output,
+  static void execute(FUNC_LIB::function<scalartype_input , domain_input> & f_input,
+		      FUNC_LIB::function<scalartype_output, domain_output>& f_output,
 		      double a)
   {    
 //     GENERIC_ASSERT<IS_EQUAL_TYPE<scalartype_input , float>::check or IS_EQUAL_TYPE<scalartype_input , double>::check>::execute();
@@ -158,8 +158,8 @@ public:
   /*
   template<typename scalartype_input, class domain_input, 
 	   typename scalartype_output, class domain_output>
-  static void execute(function<std::complex<scalartype_input>, domain_input> & f_input,
-		      function<std::complex<scalartype_output>, domain_output>& f_output,
+  static void execute(FUNC_LIB::function<std::complex<scalartype_input>, domain_input> & f_input,
+		      FUNC_LIB::function<std::complex<scalartype_output>, domain_output>& f_output,
 		      double a);
   */
 };
@@ -181,8 +181,8 @@ public:
 
   template<typename scalartype_input, class domain_input, 
 	   typename scalartype_output, class domain_output>
-  static void execute(function<scalartype_input , domain_input> & f_input,
-		      function<scalartype_output, domain_output>& f_output,
+  static void execute(FUNC_LIB::function<scalartype_input , domain_input> & f_input,
+		      FUNC_LIB::function<scalartype_output, domain_output>& f_output,
 		      double a)
   {
     hspline_interpolation<source_dmn_type, target_dmn_type>::execute(f_input,f_output,a);

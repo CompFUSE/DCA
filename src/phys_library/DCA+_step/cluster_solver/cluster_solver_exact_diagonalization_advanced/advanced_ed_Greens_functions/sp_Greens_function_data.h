@@ -62,12 +62,12 @@ namespace DCA
       template<typename parameter_type>
       void initialize(parameter_type& parameters);
 
-      void sum_to(function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w     > >& G_r_w,
-                  function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL> >& G_r_w_real,
-                  function<             double , dmn_4<nu_dmn, nu_dmn, r_dmn, t     > >& G_r_t);
+      void sum_to(FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w     > >& G_r_w,
+                  FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL> >& G_r_w_real,
+                  FUNC_LIB::function<             double , dmn_4<nu_dmn, nu_dmn, r_dmn, t     > >& G_r_t);
 
-      void sum_to(function<complex_type, dmn_6<nu_dmn, nu_dmn, r_dmn, r_dmn, w_VERTEX, w_VERTEX> >& G2_nonlocal_nu_nu_r_r_w_w,
-                  function<complex_type, dmn_6<nu_dmn, nu_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX> >& G2_nonlocal_nu_nu_k_k_w_w);
+      void sum_to(FUNC_LIB::function<complex_type, dmn_6<nu_dmn, nu_dmn, r_dmn, r_dmn, w_VERTEX, w_VERTEX> >& G2_nonlocal_nu_nu_r_r_w_w,
+                  FUNC_LIB::function<complex_type, dmn_6<nu_dmn, nu_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX> >& G2_nonlocal_nu_nu_k_k_w_w);
 
     public:
 
@@ -102,20 +102,20 @@ namespace DCA
       matrix_type overlap_0;
       matrix_type overlap_1;
 
-      function<scalar_type , t>      tau;
-      function<complex_type, w     > w_im;
-      function<complex_type, w_REAL> w_re;
+      FUNC_LIB::function<scalar_type , t>      tau;
+      FUNC_LIB::function<complex_type, w     > w_im;
+      FUNC_LIB::function<complex_type, w_REAL> w_re;
 
-      function<scalar_type , t>      G_tau;
-      function<complex_type, w     > G_w_im;
-      function<complex_type, w_REAL> G_w_re;
+      FUNC_LIB::function<scalar_type , t>      G_tau;
+      FUNC_LIB::function<complex_type, w     > G_w_im;
+      FUNC_LIB::function<complex_type, w_REAL> G_w_re;
 
-      function<complex_type, dmn_2<w     , dmn_3<nu_dmn, nu_dmn, r_dmn> > > G_w_im__nu_nu_r;
-      function<complex_type, dmn_2<w_REAL, dmn_3<nu_dmn, nu_dmn, r_dmn> > > G_w_re__nu_nu_r;
-      function< scalar_type, dmn_2<t     , dmn_3<nu_dmn, nu_dmn, r_dmn> > > G_tau__nu_nu_r;
+      FUNC_LIB::function<complex_type, dmn_2<w     , dmn_3<nu_dmn, nu_dmn, r_dmn> > > G_w_im__nu_nu_r;
+      FUNC_LIB::function<complex_type, dmn_2<w_REAL, dmn_3<nu_dmn, nu_dmn, r_dmn> > > G_w_re__nu_nu_r;
+      FUNC_LIB::function< scalar_type, dmn_2<t     , dmn_3<nu_dmn, nu_dmn, r_dmn> > > G_tau__nu_nu_r;
 
-      function<complex_type, dmn_6<nu_dmn, nu_dmn, r_dmn, r_dmn, w_VERTEX, w_VERTEX> > G2_nonlocal_nu_nu_r_r_w_w;
-      function<complex_type, dmn_6<nu_dmn, nu_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX> > G2_nonlocal_nu_nu_k_k_w_w;
+      FUNC_LIB::function<complex_type, dmn_6<nu_dmn, nu_dmn, r_dmn, r_dmn, w_VERTEX, w_VERTEX> > G2_nonlocal_nu_nu_r_r_w_w;
+      FUNC_LIB::function<complex_type, dmn_6<nu_dmn, nu_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX> > G2_nonlocal_nu_nu_k_k_w_w;
     };
 
     template<typename ed_options>
@@ -190,9 +190,9 @@ namespace DCA
     }
 
     template<typename ed_options>
-    void sp_Greens_function_data<ed_options>::sum_to(function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w     > >& G_r_w_im,
-                                                     function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL> >& G_r_w_re,
-                                                     function<             double , dmn_4<nu_dmn, nu_dmn, r_dmn, t     > >& G_r_t)
+    void sp_Greens_function_data<ed_options>::sum_to(FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w     > >& G_r_w_im,
+                                                     FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL> >& G_r_w_re,
+                                                     FUNC_LIB::function<             double , dmn_4<nu_dmn, nu_dmn, r_dmn, t     > >& G_r_t)
     {
       for(int ind=0; ind<nu_nu_r_dmn_type::dmn_size(); ind++)
         {
@@ -213,8 +213,8 @@ namespace DCA
     }
 
      template<typename ed_options>
-    void sp_Greens_function_data<ed_options>::sum_to(function<complex_type, dmn_6<nu_dmn, nu_dmn, r_dmn, r_dmn, w_VERTEX, w_VERTEX> >& G_nu_nu_r_r_w_w,
-                                                     function<complex_type, dmn_6<nu_dmn, nu_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX> >& G_nu_nu_k_k_w_w)
+    void sp_Greens_function_data<ed_options>::sum_to(FUNC_LIB::function<complex_type, dmn_6<nu_dmn, nu_dmn, r_dmn, r_dmn, w_VERTEX, w_VERTEX> >& G_nu_nu_r_r_w_w,
+                                                     FUNC_LIB::function<complex_type, dmn_6<nu_dmn, nu_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX> >& G_nu_nu_k_k_w_w)
      {
        G_nu_nu_r_r_w_w += G2_nonlocal_nu_nu_r_r_w_w;
        G_nu_nu_k_k_w_w += G2_nonlocal_nu_nu_k_k_w_w;

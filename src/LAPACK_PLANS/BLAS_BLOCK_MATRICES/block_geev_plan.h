@@ -23,9 +23,9 @@ public:
   ~block_eigensystem_plan();
   
   template<typename matrix_type, typename scalartype_2, class domain>
-  void execute_plan(function<matrix_type              , dmn_2<domain, domain> >& Matrix,
-		    function<matrix_type              , dmn_2<domain, domain> >& V,
-		    function<std::vector<scalartype_2>, dmn_2<domain, domain> >& lambda);
+  void execute_plan(FUNC_LIB::function<matrix_type              , dmn_2<domain, domain> >& Matrix,
+		    FUNC_LIB::function<matrix_type              , dmn_2<domain, domain> >& V,
+		    FUNC_LIB::function<std::vector<scalartype_2>, dmn_2<domain, domain> >& lambda);
   
 private:
   int* sizes;
@@ -44,9 +44,9 @@ block_eigensystem_plan<scalartype, GENERAL>::~block_eigensystem_plan()
 
 template< typename scalartype>
 template<typename matrix_type, typename scalartype_2, class domain>
-void block_eigensystem_plan<scalartype, GENERAL>::execute_plan(function<matrix_type              , dmn_2<domain, domain> >& Matrix,
-							       function<matrix_type              , dmn_2<domain, domain> >& V,
-							       function<std::vector<scalartype_2>, dmn_2<domain, domain> >& lambda)  
+void block_eigensystem_plan<scalartype, GENERAL>::execute_plan(FUNC_LIB::function<matrix_type              , dmn_2<domain, domain> >& Matrix,
+							       FUNC_LIB::function<matrix_type              , dmn_2<domain, domain> >& V,
+							       FUNC_LIB::function<std::vector<scalartype_2>, dmn_2<domain, domain> >& lambda)  
 {
   std::pair<int,int> Matrix_current_size;
   std::pair<int,int> Matrix_global_size;
@@ -91,9 +91,9 @@ public:
   ~block_eigensystem_plan();
   
   template<typename matrix_type, typename scalartype_2, class domain>
-  void execute_plan(function<matrix_type              , dmn_2<domain, domain> >& Matrix,
-		    function<matrix_type              , dmn_2<domain, domain> >& V,
-		    function<std::vector<scalartype_2>, dmn_2<domain, domain> >& lambda);
+  void execute_plan(FUNC_LIB::function<matrix_type              , dmn_2<domain, domain> >& Matrix,
+		    FUNC_LIB::function<matrix_type              , dmn_2<domain, domain> >& V,
+		    FUNC_LIB::function<std::vector<scalartype_2>, dmn_2<domain, domain> >& lambda);
 
 private:
   int* sizes;
@@ -113,9 +113,9 @@ block_eigensystem_plan<scalartype, HERMITIAN>::~block_eigensystem_plan()
 
 template< typename scalartype>
 template<typename matrix_type, typename scalartype_2, class domain>
-void block_eigensystem_plan< scalartype, HERMITIAN>::execute_plan(function<matrix_type              , dmn_2<domain, domain> >& Matrix,
-								  function<matrix_type              , dmn_2<domain, domain> >& V,
-								  function<std::vector<scalartype_2>, dmn_2<domain, domain> >& lambda)
+void block_eigensystem_plan< scalartype, HERMITIAN>::execute_plan(FUNC_LIB::function<matrix_type              , dmn_2<domain, domain> >& Matrix,
+								  FUNC_LIB::function<matrix_type              , dmn_2<domain, domain> >& V,
+								  FUNC_LIB::function<std::vector<scalartype_2>, dmn_2<domain, domain> >& lambda)
 {
   std::pair<int,int> Matrix_current_size;
   std::pair<int,int> Matrix_global_size;
@@ -160,9 +160,9 @@ public:
   ~block_eigensystem_plan();
   
   template<typename matrix_type, class domain>
-  void execute_plan(function<matrix_type            , dmn_2<domain, domain> >& Matrix,
-		    function<matrix_type            , dmn_2<domain, domain> >& V,
-		    function<std::vector<scalartype>, dmn_2<domain, domain> >& lambda);
+  void execute_plan(FUNC_LIB::function<matrix_type            , dmn_2<domain, domain> >& Matrix,
+		    FUNC_LIB::function<matrix_type            , dmn_2<domain, domain> >& V,
+		    FUNC_LIB::function<std::vector<scalartype>, dmn_2<domain, domain> >& lambda);
 
 private:
   int* sizes;
@@ -182,9 +182,9 @@ block_eigensystem_plan<std::complex<scalartype>, HERMITIAN>::~block_eigensystem_
 
 template<typename scalartype>
 template<typename matrix_type, class domain>
-void block_eigensystem_plan<std::complex<scalartype>, HERMITIAN>::execute_plan(function<matrix_type            , dmn_2<domain, domain> >& Matrix,
-									       function<matrix_type            , dmn_2<domain, domain> >& V,
-									       function<std::vector<scalartype>, dmn_2<domain, domain> >& lambda)
+void block_eigensystem_plan<std::complex<scalartype>, HERMITIAN>::execute_plan(FUNC_LIB::function<matrix_type            , dmn_2<domain, domain> >& Matrix,
+									       FUNC_LIB::function<matrix_type            , dmn_2<domain, domain> >& V,
+									       FUNC_LIB::function<std::vector<scalartype>, dmn_2<domain, domain> >& lambda)
 {
   std::pair<int,int> Matrix_current_size;
   std::pair<int,int> Matrix_global_size;

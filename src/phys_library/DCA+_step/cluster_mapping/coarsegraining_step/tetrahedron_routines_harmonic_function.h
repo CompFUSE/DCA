@@ -114,13 +114,13 @@ namespace DCA
 
     if(abs(r)<1.e-6)
       {
-        real(result) = a1-a0;
-        imag(result) = 0;
+	result.real(a1-a0);
+        result.imag(0);
       }
     else
       {
-        real(result) = -Sin(a0*r)/r + Sin(a1*r)/r;
-        imag(result) =  Cos(a0*r)/r - Cos(a1*r)/r;
+	result.real( -Sin(a0*r)/r + Sin(a1*r)/r );
+	result.imag(  Cos(a0*r)/r - Cos(a1*r)/r );
       }
 
     return result;
@@ -170,8 +170,8 @@ namespace DCA
 
     if(abs(VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, r_vec))<EPSILON)
       {
-        real(result) = tetrahedron.volume;
-        imag(result) = 0;
+	 result.real(tetrahedron.volume );
+	 result.imag( 0 );
       }
     else
       {
@@ -241,8 +241,8 @@ namespace DCA
 
     std::complex<double> result(0., 0.);
 
-    real(result) = -(1/(dotRD1*dotRD2minD1)) + 1/(dotRD2*dotRD2minD1) + Cos(dotRD1)/(dotRD1*dotRD2minD1) - Cos(dotRD2)/(dotRD2*dotRD2minD1);
-    imag(result) = Sin(dotRD1)/(dotRD1*dotRD2minD1) - Sin(dotRD2)/(dotRD2*dotRD2minD1);
+    result.real( -(1/(dotRD1*dotRD2minD1)) + 1/(dotRD2*dotRD2minD1) + Cos(dotRD1)/(dotRD1*dotRD2minD1) - Cos(dotRD2)/(dotRD2*dotRD2minD1) );
+    result.imag( Sin(dotRD1)/(dotRD1*dotRD2minD1) - Sin(dotRD2)/(dotRD2*dotRD2minD1) );
 
     assert(real(result)==real(result));
     assert(imag(result)==imag(result));
@@ -260,8 +260,8 @@ namespace DCA
 
     std::complex<double> result(0., 0.);
 
-    real(result) = 1/(dotRD2*dotRD2minD1) - Cos(dotRD2)/(dotRD2*dotRD2minD1);
-    imag(result) = 1/dotRD2minD1 - Sin(dotRD2)/(dotRD2*dotRD2minD1);
+    result.real( 1/(dotRD2*dotRD2minD1) - Cos(dotRD2)/(dotRD2*dotRD2minD1) );
+    result.imag( 1/dotRD2minD1 - Sin(dotRD2)/(dotRD2*dotRD2minD1) );
 
     assert(real(result)==real(result));
     assert(imag(result)==imag(result));
@@ -279,8 +279,8 @@ namespace DCA
 
     std::complex<double> result(0., 0.);
 
-    real(result) = -(1/(dotRD1*dotRD2minD1)) + Cos(dotRD1)/(dotRD1*dotRD2minD1);
-    imag(result) = -(1/dotRD2minD1) + Sin(dotRD1)/(dotRD1*dotRD2minD1);
+    result.real( -(1/(dotRD1*dotRD2minD1)) + Cos(dotRD1)/(dotRD1*dotRD2minD1) );
+    result.imag( -(1/dotRD2minD1) + Sin(dotRD1)/(dotRD1*dotRD2minD1) );
 
     assert(real(result)==real(result));
     assert(imag(result)==imag(result));
@@ -334,16 +334,16 @@ namespace DCA
 
     std::complex<double> result(0., 0.);
 
-    real(result) =
+    result.real(
       -((dotRD2*Sin(dotRD1))/(dotRD1*dotRD1minD3*dotRD2minD1*dotRD3minD2)) +
       (dotRD3*Sin(dotRD1))/(dotRD1*dotRD1minD3*dotRD2minD1*dotRD3minD2) + Sin(dotRD2)/(dotRD2*dotRD2minD1*dotRD3minD2) +
-      Sin(dotRD3)/(dotRD1minD3*dotRD3*dotRD3minD2);
+      Sin(dotRD3)/(dotRD1minD3*dotRD3*dotRD3minD2) );
 
-    imag(result) =
+    result.imag(
       -(1/(dotRD1*dotRD2*dotRD3minD2)) + 1/(dotRD1*dotRD3*dotRD3minD2) +
       (dotRD2*Cos(dotRD1))/(dotRD1*dotRD1minD3*dotRD2minD1*dotRD3minD2) -
       (dotRD3*Cos(dotRD1))/(dotRD1*dotRD1minD3*dotRD2minD1*dotRD3minD2) - Cos(dotRD2)/(dotRD2*dotRD2minD1*dotRD3minD2) -
-      Cos(dotRD3)/(dotRD1minD3*dotRD3*dotRD3minD2);
+      Cos(dotRD3)/(dotRD1minD3*dotRD3*dotRD3minD2) );
 
     assert(real(result)==real(result));
     assert(imag(result)==imag(result));
@@ -366,23 +366,23 @@ namespace DCA
 
     if(abs(dotRD3minD2) > 1.e-6)
       {
-        real(result) =
+	result.real(
           -(1/(dotRD2*dotRD3minD2)) + 1/(dotRD3*dotRD3minD2) + Sin(dotRD2)/(Power(dotRD2,2)*dotRD3minD2) -
-          Sin(dotRD3)/(Power(dotRD3,2)*dotRD3minD2);
+          Sin(dotRD3)/(Power(dotRD3,2)*dotRD3minD2) );
 
-        imag(result) =
+        result.imag(
           1/(Power(dotRD2,2)*dotRD3minD2) - 1/(Power(dotRD3,2)*dotRD3minD2) - Cos(dotRD2)/(Power(dotRD2,2)*dotRD3minD2) +
-          Cos(dotRD3)/(Power(dotRD3,2)*dotRD3minD2);
+          Cos(dotRD3)/(Power(dotRD3,2)*dotRD3minD2) );
       }
     else
       {
 	//cout << __FUNCTION__ << " needs implementation\n";
 
-	real(result) =
-	  -Power(dotRD2,-2) - Cos(dotRD2)/Power(dotRD2,2) + (2*Sin(dotRD2))/Power(dotRD2,3);
+	result.real(
+	    -Power(dotRD2,-2) - Cos(dotRD2)/Power(dotRD2,2) + (2*Sin(dotRD2))/Power(dotRD2,3) );
 
-	imag(result) =
-	  2/Power(dotRD2,3) - (2*Cos(dotRD2))/Power(dotRD2,3) - Sin(dotRD2)/Power(dotRD2,2);
+	result.imag(
+	    2/Power(dotRD2,3) - (2*Cos(dotRD2))/Power(dotRD2,3) - Sin(dotRD2)/Power(dotRD2,2) );
       }
 
     assert(real(result)==real(result));
@@ -406,23 +406,23 @@ namespace DCA
 
     if(abs(dotRD1minD3) > 1.e-6)
       {
-        real(result) =
+	result.real(
           1/(dotRD1*dotRD1minD3) - 1/(dotRD1minD3*dotRD3) - Sin(dotRD1)/(Power(dotRD1,2)*dotRD1minD3) +
-          Sin(dotRD3)/(dotRD1minD3*Power(dotRD3,2));
+          Sin(dotRD3)/(dotRD1minD3*Power(dotRD3,2)) );
 
-        imag(result) =
-          -(1/(Power(dotRD1,2)*dotRD1minD3)) + 1/(dotRD1minD3*Power(dotRD3,2)) + Cos(dotRD1)/(Power(dotRD1,2)*dotRD1minD3) -
-          Cos(dotRD3)/(dotRD1minD3*Power(dotRD3,2));
+        result.imag(
+	  -(1/(Power(dotRD1,2)*dotRD1minD3)) + 1/(dotRD1minD3*Power(dotRD3,2)) + Cos(dotRD1)/(Power(dotRD1,2)*dotRD1minD3) -
+	  Cos(dotRD3)/(dotRD1minD3*Power(dotRD3,2)) );
       }
     else
       {
 	//cout << __FUNCTION__ << " needs implementation\n";
 
-	real(result) =
-	  -Power(dotRD3,-2) - Cos(dotRD3)/Power(dotRD3,2) + (2*Sin(dotRD3))/Power(dotRD3,3);
+	result.real(
+	    -Power(dotRD3,-2) - Cos(dotRD3)/Power(dotRD3,2) + (2*Sin(dotRD3))/Power(dotRD3,3) );
 
-	imag(result) =
-	  2/Power(dotRD3,3) - (2*Cos(dotRD3))/Power(dotRD3,3) - Sin(dotRD3)/Power(dotRD3,2);
+	result.imag(
+	    2/Power(dotRD3,3) - (2*Cos(dotRD3))/Power(dotRD3,3) - Sin(dotRD3)/Power(dotRD3,2) );
       }
 
     assert(real(result)==real(result));
@@ -446,23 +446,23 @@ namespace DCA
 
     if(abs(dotRD2minD1) > 1.e-6)
       {
-        real(result) =
+	result.real(
           -(1/(dotRD1*dotRD2minD1)) + 1/(dotRD2*dotRD2minD1) + Sin(dotRD1)/(Power(dotRD1,2)*dotRD2minD1) -
-          Sin(dotRD2)/(Power(dotRD2,2)*dotRD2minD1);
+          Sin(dotRD2)/(Power(dotRD2,2)*dotRD2minD1) );
 
-        imag(result) =
+        result.imag(
           1/(Power(dotRD1,2)*dotRD2minD1) - 1/(Power(dotRD2,2)*dotRD2minD1) - Cos(dotRD1)/(Power(dotRD1,2)*dotRD2minD1) +
-          Cos(dotRD2)/(Power(dotRD2,2)*dotRD2minD1);
+          Cos(dotRD2)/(Power(dotRD2,2)*dotRD2minD1) );
       }
     else
       {
 	//cout << __FUNCTION__ << " needs implementation\n";
 
-	real(result) = 
-	  -Power(dotRD1,-2) - Cos(dotRD1)/Power(dotRD1,2) + (2*Sin(dotRD1))/Power(dotRD1,3);
+	result.real( 
+	    -Power(dotRD1,-2) - Cos(dotRD1)/Power(dotRD1,2) + (2*Sin(dotRD1))/Power(dotRD1,3) );
 
-	imag(result) = 
-	  2/Power(dotRD1,3) - (2*Cos(dotRD1))/Power(dotRD1,3) - Sin(dotRD1)/Power(dotRD1,2);
+	result.imag(
+	    2/Power(dotRD1,3) - (2*Cos(dotRD1))/Power(dotRD1,3) - Sin(dotRD1)/Power(dotRD1,2) );
       }
 
     assert(real(result)==real(result));
@@ -484,11 +484,11 @@ namespace DCA
 
     std::complex<double> result(0., 0.);
 
-    real(result) =
-      Power(dotRD3,-2) - Sin(dotRD3)/Power(dotRD3,3);
+    result.real(
+	Power(dotRD3,-2) - Sin(dotRD3)/Power(dotRD3,3) );
 
-    imag(result) =
-      -Power(dotRD3,-3) + 1/(2.*dotRD3) + Cos(dotRD3)/Power(dotRD3,3);
+    result.imag(
+	-Power(dotRD3,-3) + 1/(2.*dotRD3) + Cos(dotRD3)/Power(dotRD3,3) );
 
     assert(real(result)==real(result));
     assert(imag(result)==imag(result));
@@ -509,11 +509,11 @@ namespace DCA
 
     std::complex<double> result(0., 0.);
 
-    real(result) =
-      Power(dotRD1,-2) - Sin(dotRD1)/Power(dotRD1,3);
+    result.real(
+	Power(dotRD1,-2) - Sin(dotRD1)/Power(dotRD1,3) );
 
-    imag(result) =
-      -Power(dotRD1,-3) + 1/(2.*dotRD1) + Cos(dotRD1)/Power(dotRD1,3);
+    result.imag(
+	-Power(dotRD1,-3) + 1/(2.*dotRD1) + Cos(dotRD1)/Power(dotRD1,3) );
 
     assert(real(result)==real(result));
     assert(imag(result)==imag(result));
@@ -534,11 +534,11 @@ namespace DCA
 
     std::complex<double> result(0., 0.);
 
-    real(result) =
-      Power(dotRD2,-2) - Sin(dotRD2)/Power(dotRD2,3);
+    result.real(
+	Power(dotRD2,-2) - Sin(dotRD2)/Power(dotRD2,3) );
 
-    imag(result) =
-      -Power(dotRD2,-3) + 1/(2.*dotRD2) + Cos(dotRD2)/Power(dotRD2,3);
+    result.imag(
+	-Power(dotRD2,-3) + 1/(2.*dotRD2) + Cos(dotRD2)/Power(dotRD2,3) );
 
     assert(real(result)==real(result));
     assert(imag(result)==imag(result));
@@ -558,8 +558,8 @@ namespace DCA
 
     if(abs(VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, r_vec))<EPSILON)
       {
-        real(result) = tetrahedron.volume;
-        imag(result) = 0;
+	result.real( tetrahedron.volume );
+        result.imag( 0 );
       }
     else
       {

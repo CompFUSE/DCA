@@ -77,7 +77,7 @@ namespace DCA
         accumulator_nonlocal_chi(parameters_type& parameters_ref,
                                  MOMS_type&       MOMS_ref,
                                  int              id,
-                                 function<std::complex<double>, dmn_8<b,b,b,b,k_dmn_t,k_dmn_t,w_VERTEX,w_VERTEX> >& G4_ref);
+                                 FUNC_LIB::function<std::complex<double>, dmn_8<b,b,b,b,k_dmn_t,k_dmn_t,w_VERTEX,w_VERTEX> >& G4_ref);
 
         ~accumulator_nonlocal_chi();
 
@@ -95,39 +95,39 @@ namespace DCA
       private:
 
         void F(int n1, int m1, int k1, int k2, int w1, int w2,
-               function<std::complex<scalar_type>, dmn_6<b,b,k_dmn_t,k_dmn_t,w_VERTEX_EXTENDED    ,w_VERTEX_EXTENDED> >& G2, std::complex<scalar_type>& G2_result);
+               FUNC_LIB::function<std::complex<scalar_type>, dmn_6<b,b,k_dmn_t,k_dmn_t,w_VERTEX_EXTENDED    ,w_VERTEX_EXTENDED> >& G2, std::complex<scalar_type>& G2_result);
 
         void F(int n1, int m1, int k1, int k2, int w1, int w2,
-               function<std::complex<scalar_type>, dmn_6<b,b,k_dmn_t,k_dmn_t,w_VERTEX_EXTENDED_POS,w_VERTEX_EXTENDED> >& G2, std::complex<scalar_type>& G2_result);
+               FUNC_LIB::function<std::complex<scalar_type>, dmn_6<b,b,k_dmn_t,k_dmn_t,w_VERTEX_EXTENDED_POS,w_VERTEX_EXTENDED> >& G2, std::complex<scalar_type>& G2_result);
 
         void F(int n1, int m1, int k1, int k2, int w1, int w2,
-               function<std::complex<scalar_type>, dmn_6<b,b,k_dmn_t,k_dmn_t,w_VERTEX_EXTENDED,w_VERTEX_EXTENDED> >& G2_dn, std::complex<scalar_type>& G2_dn_result,
-               function<std::complex<scalar_type>, dmn_6<b,b,k_dmn_t,k_dmn_t,w_VERTEX_EXTENDED,w_VERTEX_EXTENDED> >& G2_up, std::complex<scalar_type>& G2_up_result);
+               FUNC_LIB::function<std::complex<scalar_type>, dmn_6<b,b,k_dmn_t,k_dmn_t,w_VERTEX_EXTENDED,w_VERTEX_EXTENDED> >& G2_dn, std::complex<scalar_type>& G2_dn_result,
+               FUNC_LIB::function<std::complex<scalar_type>, dmn_6<b,b,k_dmn_t,k_dmn_t,w_VERTEX_EXTENDED,w_VERTEX_EXTENDED> >& G2_up, std::complex<scalar_type>& G2_up_result);
 
         void F(int n1, int m1, int k1, int k2, int w1, int w2,
-               function<std::complex<scalar_type>, dmn_6<b,b,k_dmn_t,k_dmn_t,w_VERTEX_EXTENDED_POS,w_VERTEX_EXTENDED> >& G2_dn, std::complex<scalar_type>& G2_dn_result,
-               function<std::complex<scalar_type>, dmn_6<b,b,k_dmn_t,k_dmn_t,w_VERTEX_EXTENDED_POS,w_VERTEX_EXTENDED> >& G2_up, std::complex<scalar_type>& G2_up_result);
+               FUNC_LIB::function<std::complex<scalar_type>, dmn_6<b,b,k_dmn_t,k_dmn_t,w_VERTEX_EXTENDED_POS,w_VERTEX_EXTENDED> >& G2_dn, std::complex<scalar_type>& G2_dn_result,
+               FUNC_LIB::function<std::complex<scalar_type>, dmn_6<b,b,k_dmn_t,k_dmn_t,w_VERTEX_EXTENDED_POS,w_VERTEX_EXTENDED> >& G2_up, std::complex<scalar_type>& G2_up_result);
 
-        void accumulate_particle_hole_transverse(function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_DN,
-                                                 function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_UP,
+        void accumulate_particle_hole_transverse(FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_DN,
+                                                 FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_UP,
                                                  scalar_type sign);
 
-        void accumulate_particle_hole_longitudinal(function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_DN,
-                                                   function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_UP,
+        void accumulate_particle_hole_longitudinal(FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_DN,
+                                                   FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_UP,
                                                    scalar_type sign);
 
 
-        void accumulate_particle_hole_magnetic(function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_DN,
-                                               function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_UP,
+        void accumulate_particle_hole_magnetic(FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_DN,
+                                               FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_UP,
                                                scalar_type sign);
 
-        void accumulate_particle_hole_charge(function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_DN,
-                                             function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_UP,
+        void accumulate_particle_hole_charge(FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_DN,
+                                             FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_UP,
                                              scalar_type sign);
 
 
-        void accumulate_particle_particle_superconducting(function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_DN,
-                                                          function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_UP,
+        void accumulate_particle_particle_superconducting(FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_DN,
+                                                          FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_UP,
                                                           scalar_type sign);
 
       private:
@@ -138,30 +138,30 @@ namespace DCA
 
         int                       thread_id;
 
-        function<std::complex<double>, dmn_8<b,b,b,b,k_dmn_t,k_dmn_t,w_VERTEX,w_VERTEX> >& G4;
+        FUNC_LIB::function<std::complex<double>, dmn_8<b,b,b,b,k_dmn_t,k_dmn_t,w_VERTEX,w_VERTEX> >& G4;
 
         int w_VERTEX_EXTENDED_POS_dmn_size;
 
         dmn_6<b,b,k_dmn_t,k_dmn_t,w_VERTEX_EXTENDED    ,w_VERTEX_EXTENDED> b_b_k_k_w_full_w_full_dmn;
         dmn_6<b,b,k_dmn_t,k_dmn_t,w_VERTEX_EXTENDED_POS,w_VERTEX_EXTENDED> b_b_k_k_w_pos_w_full_dmn;
 
-        function<int, k_dmn_t> min_k_dmn_t;
-        function<int, k_dmn_t> q_plus_;
-        function<int, k_dmn_t> q_min_;
+        FUNC_LIB::function<int, k_dmn_t> min_k_dmn_t;
+        FUNC_LIB::function<int, k_dmn_t> q_plus_;
+        FUNC_LIB::function<int, k_dmn_t> q_min_;
 
-        function<int, w_VERTEX>          min_w_vertex;
-        function<int, w_VERTEX_EXTENDED> min_w_vertex_ext;
+        FUNC_LIB::function<int, w_VERTEX>          min_w_vertex;
+        FUNC_LIB::function<int, w_VERTEX_EXTENDED> min_w_vertex_ext;
 
-        function<int, w_VERTEX>          w_vertex_2_w_vertex_ext;
+        FUNC_LIB::function<int, w_VERTEX>          w_vertex_2_w_vertex_ext;
 
-        function<int, w_VERTEX_EXTENDED> w_vertex_ext_2_w_vertex_ext_pos;
+        FUNC_LIB::function<int, w_VERTEX_EXTENDED> w_vertex_ext_2_w_vertex_ext_pos;
       };
 
       template<class parameters_type, class MOMS_type>
       accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulator_nonlocal_chi(parameters_type&          parameters_ref,
                                                                                      MOMS_type&                MOMS_ref,
                                                                                      int                       id,
-                                                                                     function<std::complex<double>, dmn_8<b,b,b,b,k_dmn_t,k_dmn_t,w_VERTEX,w_VERTEX> >& G4_ref):
+                                                                                     FUNC_LIB::function<std::complex<double>, dmn_8<b,b,b,b,k_dmn_t,k_dmn_t,w_VERTEX,w_VERTEX> >& G4_ref):
         parameters(parameters_ref),
         MOMS(MOMS_ref),
         concurrency(parameters.get_concurrency()),
@@ -273,7 +273,7 @@ namespace DCA
 
       template<class parameters_type, class MOMS_type>
       inline void accumulator_nonlocal_chi<parameters_type, MOMS_type>::F(int n1, int m1, int k1, int k2, int w1, int w2,
-                                                                          function<std::complex<scalar_type>, dmn_6<b,b,k_dmn_t,k_dmn_t,w_VERTEX_EXTENDED,w_VERTEX_EXTENDED> >& G2,
+                                                                          FUNC_LIB::function<std::complex<scalar_type>, dmn_6<b,b,k_dmn_t,k_dmn_t,w_VERTEX_EXTENDED,w_VERTEX_EXTENDED> >& G2,
                                                                           std::complex<scalar_type>& G2_result)
       {
         G2_result = G2(n1, m1, k1, k2, w1, w2);
@@ -281,7 +281,7 @@ namespace DCA
 
       template<class parameters_type, class MOMS_type>
       inline void accumulator_nonlocal_chi<parameters_type, MOMS_type>::F(int n1, int m1, int k1, int k2, int w1, int w2,
-                                                                          function<std::complex<scalar_type>, dmn_6<b,b,k_dmn_t,k_dmn_t,w_VERTEX_EXTENDED_POS,w_VERTEX_EXTENDED> >& G2,
+                                                                          FUNC_LIB::function<std::complex<scalar_type>, dmn_6<b,b,k_dmn_t,k_dmn_t,w_VERTEX_EXTENDED_POS,w_VERTEX_EXTENDED> >& G2,
                                                                           std::complex<scalar_type>& G2_result)
       {
         if(w1<w_VERTEX_EXTENDED_POS_dmn_size){
@@ -294,9 +294,9 @@ namespace DCA
 
       template<class parameters_type, class MOMS_type>
       inline void accumulator_nonlocal_chi<parameters_type, MOMS_type>::F(int n1, int m1, int k1, int k2, int w1, int w2,
-                                                                          function<std::complex<scalar_type>, dmn_6<b,b,k_dmn_t,k_dmn_t,w_VERTEX_EXTENDED,w_VERTEX_EXTENDED> >& G2_dn,
+                                                                          FUNC_LIB::function<std::complex<scalar_type>, dmn_6<b,b,k_dmn_t,k_dmn_t,w_VERTEX_EXTENDED,w_VERTEX_EXTENDED> >& G2_dn,
                                                                           std::complex<scalar_type>& G2_dn_result,
-                                                                          function<std::complex<scalar_type>, dmn_6<b,b,k_dmn_t,k_dmn_t,w_VERTEX_EXTENDED,w_VERTEX_EXTENDED> >& G2_up,
+                                                                          FUNC_LIB::function<std::complex<scalar_type>, dmn_6<b,b,k_dmn_t,k_dmn_t,w_VERTEX_EXTENDED,w_VERTEX_EXTENDED> >& G2_up,
                                                                           std::complex<scalar_type>& G2_up_result)
       {
         int lin_ind = b_b_k_k_w_full_w_full_dmn(n1, m1, k1, k2, w1, w2);
@@ -307,9 +307,9 @@ namespace DCA
 
       template<class parameters_type, class MOMS_type>
       inline void accumulator_nonlocal_chi<parameters_type, MOMS_type>::F(int n1, int m1, int k1, int k2, int w1, int w2,
-                                                                          function<std::complex<scalar_type>, dmn_6<b,b,k_dmn_t,k_dmn_t,w_VERTEX_EXTENDED_POS,w_VERTEX_EXTENDED> >& G2_dn,
+                                                                          FUNC_LIB::function<std::complex<scalar_type>, dmn_6<b,b,k_dmn_t,k_dmn_t,w_VERTEX_EXTENDED_POS,w_VERTEX_EXTENDED> >& G2_dn,
                                                                           std::complex<scalar_type>& G2_dn_result,
-                                                                          function<std::complex<scalar_type>, dmn_6<b,b,k_dmn_t,k_dmn_t,w_VERTEX_EXTENDED_POS,w_VERTEX_EXTENDED> >& G2_up,
+                                                                          FUNC_LIB::function<std::complex<scalar_type>, dmn_6<b,b,k_dmn_t,k_dmn_t,w_VERTEX_EXTENDED_POS,w_VERTEX_EXTENDED> >& G2_up,
                                                                           std::complex<scalar_type>& G2_up_result)
       {
         if(w1<w_VERTEX_EXTENDED_POS_dmn_size){
@@ -327,8 +327,8 @@ namespace DCA
       }
 
       template<class parameters_type, class MOMS_type>
-      void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_hole_magnetic(function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_DN,
-                                                                                                   function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_UP,
+      void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_hole_magnetic(FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_DN,
+                                                                                                   FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_UP,
                                                                                                    scalar_type sign)
       {
         // n1 ------------------------ m1
@@ -418,8 +418,8 @@ namespace DCA
       }
 
       template<class parameters_type, class MOMS_type>
-      void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_hole_transverse(function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_DN,
-                                                                                                     function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_UP,
+      void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_hole_transverse(FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_DN,
+                                                                                                     FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_UP,
                                                                                                      scalar_type sign)
       {
         // n1 ------------------------ m1
@@ -494,8 +494,8 @@ namespace DCA
 
       /*
         template<class parameters_type, class MOMS_type>
-        void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_hole_magnetic_fast(function<std::complex<scalar_type>, dmn_6<b,b,k_dmn_t,k_dmn_t,w_VERTEX,w_VERTEX> >& G2_k_k_w_w_e_DN,
-        function<std::complex<scalar_type>, dmn_6<b,b,k_dmn_t,k_dmn_t,w_VERTEX,w_VERTEX> >& G2_k_k_w_w_e_UP,
+        void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_hole_magnetic_fast(FUNC_LIB::function<std::complex<scalar_type>, dmn_6<b,b,k_dmn_t,k_dmn_t,w_VERTEX,w_VERTEX> >& G2_k_k_w_w_e_DN,
+        FUNC_LIB::function<std::complex<scalar_type>, dmn_6<b,b,k_dmn_t,k_dmn_t,w_VERTEX,w_VERTEX> >& G2_k_k_w_w_e_UP,
         scalar_type sign)
         {
         std::complex<scalar_type> *G2_DN_n1_m2_k1_k2_w1_w2, *G2_UP_n1_m2_k1_k2_w1_w2,
@@ -549,8 +549,8 @@ namespace DCA
       */
 
       template<class parameters_type, class MOMS_type>
-      void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_hole_charge(function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_DN,
-                                                                                                 function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_UP,
+      void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_hole_charge(FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_DN,
+                                                                                                 FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_UP,
                                                                                                  scalar_type sign)
       {
         // n1 ------------------------ m1
@@ -640,8 +640,8 @@ namespace DCA
       }
 
       template<class parameters_type, class MOMS_type>
-      void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_particle_superconducting(function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_DN,
-                                                                                                              function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_UP,
+      void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_particle_superconducting(FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_DN,
+                                                                                                              FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_UP,
                                                                                                               scalar_type sign)
       {
         std::complex<scalar_type> G2_UP_n1_m1_k1_k2_w1_w2, G2_DN_n1_m1_k1_k2_w1_w2,

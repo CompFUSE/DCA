@@ -66,13 +66,13 @@ namespace EXACT_DIAGONALIZATION_SOLVER
     LIN_ALG::vector<int, LIN_ALG::CPU> magnetization;
     LIN_ALG::vector<int, LIN_ALG::CPU> fermionic_state;
 
-    function<int        , occ_mag_dmn > n_occupation_states;
+    FUNC_LIB::function<int        , occ_mag_dmn > n_occupation_states;
     
-    //function<int*     , occ_mag_dmn > occupation_states;
-    function<matrix_type, occ_mag_dmn > occupation_states;
+    //FUNC_LIB::function<int*     , occ_mag_dmn > occupation_states;
+    FUNC_LIB::function<matrix_type, occ_mag_dmn > occupation_states;
     
-    function<std::vector<overlap_indices>, dmn_2<occ_mag_dmn, occ_mag_dmn> > creation_overlap_of_states;
-    function<std::vector<overlap_indices>, dmn_2<occ_mag_dmn, occ_mag_dmn> > annihilation_overlap_of_states;
+    FUNC_LIB::function<std::vector<overlap_indices>, dmn_2<occ_mag_dmn, occ_mag_dmn> > creation_overlap_of_states;
+    FUNC_LIB::function<std::vector<overlap_indices>, dmn_2<occ_mag_dmn, occ_mag_dmn> > annihilation_overlap_of_states;
   };
   
   template<typename parameters_type, typename b_dmn, typename s_dmn, typename r_dmn>
@@ -186,7 +186,7 @@ namespace EXACT_DIAGONALIZATION_SOLVER
       }
     }
     
-    function<int , dmn_2<occ_dmn, mag_dmn> > tmp;
+    FUNC_LIB::function<int , dmn_2<occ_dmn, mag_dmn> > tmp;
     
     tmp = 0;
     

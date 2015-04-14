@@ -44,7 +44,7 @@ namespace DCA
       template<class stream_type>
       void to_JSON(stream_type& ss);
 
-      static function<double, nu_nu_r_dmn_t>& get_H_interaction();
+      static FUNC_LIB::function<double, nu_nu_r_dmn_t>& get_H_interaction();
 
       int    nu_nu_HS_s_HS_f_r_DCA_dmn_index(int spin_orbital_1,
                                              int spin_orbital_2,
@@ -137,14 +137,14 @@ namespace DCA
 
       nu_nu_HS_s_HS_f_r_dmn_t                        nu_nu_HS_s_HS_f_r_dmn;
 
-      function<double, nu_nu_r_dmn_t>                H_interaction;
+      FUNC_LIB::function<double, nu_nu_r_dmn_t>                H_interaction;
 
-      function<double, nu_nu_r_dmn_t>                gamma_function;
-      function<double, nu_nu_HS_s_HS_f_r_dmn_t>      exp_V_function;
+      FUNC_LIB::function<double, nu_nu_r_dmn_t>                gamma_function;
+      FUNC_LIB::function<double, nu_nu_HS_s_HS_f_r_dmn_t>      exp_V_function;
 
-      //function<double, nu_nu_HS_s_HS_f_r_dmn_t>      one__div__exp_V_function_min_one_function;
+      //FUNC_LIB::function<double, nu_nu_HS_s_HS_f_r_dmn_t>      one__div__exp_V_function_min_one_function;
 
-      function<double, nu_nu_HS_s_HS_s_HS_f_r_dmn_t> exp_delta_V_function;
+      FUNC_LIB::function<double, nu_nu_HS_s_HS_s_HS_f_r_dmn_t> exp_delta_V_function;
     };
 
     template<typename parameters_type>
@@ -182,9 +182,9 @@ namespace DCA
     }
 
     template<typename parameters_type>
-    function<double, typename CV<parameters_type>::nu_nu_r_dmn_t>& CV<parameters_type>::get_H_interaction()
+    FUNC_LIB::function<double, typename CV<parameters_type>::nu_nu_r_dmn_t>& CV<parameters_type>::get_H_interaction()
     {
-      static function<double, nu_nu_r_dmn_t> H;
+      static FUNC_LIB::function<double, nu_nu_r_dmn_t> H;
       return H;
     }
 

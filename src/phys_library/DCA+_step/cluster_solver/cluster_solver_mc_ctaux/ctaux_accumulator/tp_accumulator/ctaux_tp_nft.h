@@ -62,12 +62,12 @@ namespace DCA
         template<typename configuration_t, typename matrix_t>
         double execute(configuration_t&                                                          configuration,
                        matrix_t&                                                                 M,
-                       function<std::complex<scalar_type>, b_b_r_dmn_r_dmn_w_vertex_dmn_t_w_vertex_dmn_t>& M_r_r_w_w);
+                       FUNC_LIB::function<std::complex<scalar_type>, b_b_r_dmn_r_dmn_w_vertex_dmn_t_w_vertex_dmn_t>& M_r_r_w_w);
 
         template<typename configuration_t, typename matrix_t>
         double execute(configuration_t&                                                              configuration,
                        matrix_t&                                                                     M,
-                       function<std::complex<scalar_type>, b_b_r_dmn_r_dmn_w_vertex_pos_dmn_t_w_vertex_dmn_t>& M_r_r_w_w);
+                       FUNC_LIB::function<std::complex<scalar_type>, b_b_r_dmn_r_dmn_w_vertex_pos_dmn_t_w_vertex_dmn_t>& M_r_r_w_w);
 
       private:
 
@@ -100,8 +100,8 @@ namespace DCA
 
         std::vector<triple> p;
 
-        function<int, b_r_dmn_t>  start_index;
-        function<int, b_r_dmn_t>  end_index  ;
+        FUNC_LIB::function<int, b_r_dmn_t>  start_index;
+        FUNC_LIB::function<int, b_r_dmn_t>  end_index  ;
 
         LIN_ALG::matrix<std::complex<scalar_type>, LIN_ALG::CPU> T_l_times_M_ij_times_T_r;
         LIN_ALG::matrix<std::complex<scalar_type>, LIN_ALG::CPU> M_ij;
@@ -138,7 +138,7 @@ namespace DCA
       template<typename configuration_t, typename matrix_t>
       double cached_nft<dimension, scalar_type, r_dmn_t, w_vertex_dmn_t, w_vertex_pos_dmn_t>::execute(configuration_t& configuration,
                                                                                                       matrix_t&        M,
-                                                                                                      function<std::complex<scalar_type>, b_b_r_dmn_r_dmn_w_vertex_dmn_t_w_vertex_dmn_t>& M_r_r_w_w)
+                                                                                                      FUNC_LIB::function<std::complex<scalar_type>, b_b_r_dmn_r_dmn_w_vertex_dmn_t_w_vertex_dmn_t>& M_r_r_w_w)
       {
         double FLOPS=0;
 
@@ -195,7 +195,7 @@ namespace DCA
       template<typename configuration_t, typename matrix_t>
       double cached_nft<dimension, scalar_type, r_dmn_t, w_vertex_dmn_t, w_vertex_pos_dmn_t>::execute(configuration_t& configuration,
                                                                                                       matrix_t&        M,
-                                                                                                      function<std::complex<scalar_type>, b_b_r_dmn_r_dmn_w_vertex_pos_dmn_t_w_vertex_dmn_t>& M_r_r_w_w)
+                                                                                                      FUNC_LIB::function<std::complex<scalar_type>, b_b_r_dmn_r_dmn_w_vertex_pos_dmn_t_w_vertex_dmn_t>& M_r_r_w_w)
       {
         double FLOPS=0.;
 

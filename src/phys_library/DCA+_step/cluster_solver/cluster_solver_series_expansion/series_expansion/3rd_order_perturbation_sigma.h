@@ -28,7 +28,7 @@ namespace DCA
       typedef typename ph_bubble_t::function_type chi_type;
       typedef typename pp_bubble_t::function_type phi_type;
 
-      typedef function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > function_type;
+      typedef FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > function_type;
 
     public:
 
@@ -41,15 +41,15 @@ namespace DCA
 
       function_type& get_function() { return Sigma; }
 
-      void execute_on_cluster(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G);
+      void execute_on_cluster(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G);
 
       template<IO::FORMAT DATA_FORMAT>
       void write(IO::writer<DATA_FORMAT>& writer);
 
     private:
 
-      void execute_RPA(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G);
-      void execute_VC(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G);
+      void execute_RPA(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G);
+      void execute_VC(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G);
 
       int subtract_freq_fb(int, int);
 
@@ -62,9 +62,9 @@ namespace DCA
       chi_type& chi;
       phi_type& phi;
 
-      function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > Sigma;
-      function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > Sigma_RPA;
-      function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > Sigma_VC;
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > Sigma;
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > Sigma_RPA;
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > Sigma_VC;
     };
 
     template<class parameter_type, class k_dmn_t>
@@ -109,7 +109,7 @@ namespace DCA
 //     }
 
     template<class parameter_type, class k_dmn_t>
-    void sigma_perturbation<3, parameter_type, k_dmn_t>::execute_on_cluster(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
+    void sigma_perturbation<3, parameter_type, k_dmn_t>::execute_on_cluster(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
     {
       cout << __FUNCTION__ << endl;
 
@@ -124,7 +124,7 @@ namespace DCA
     }
 
     template<class parameter_type, class k_dmn_t>
-    void sigma_perturbation<3, parameter_type, k_dmn_t>::execute_RPA(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
+    void sigma_perturbation<3, parameter_type, k_dmn_t>::execute_RPA(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
     {
       cout << __FUNCTION__ << endl;
 
@@ -165,7 +165,7 @@ namespace DCA
     }
 
     template<class parameter_type, class k_dmn_t>
-    void sigma_perturbation<3, parameter_type, k_dmn_t>::execute_VC(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
+    void sigma_perturbation<3, parameter_type, k_dmn_t>::execute_VC(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
     {
       cout << __FUNCTION__ << endl;
 

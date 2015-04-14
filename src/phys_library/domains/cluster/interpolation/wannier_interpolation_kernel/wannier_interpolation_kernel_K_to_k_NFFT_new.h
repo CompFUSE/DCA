@@ -98,21 +98,21 @@ private:
 
   static bool INITIALIZED;
 
-  static function<int, centered_r_cluster_dmn_t> lies_within_cutoff; 
+  static FUNC_LIB::function<int, centered_r_cluster_dmn_t> lies_within_cutoff; 
 
   std::vector<int> grid_size;
 
   nfft_plan nfft_K_2_R;
   nfft_plan nfft_R_2_k;
   
-  function<std::complex<double>, centered_r_cluster_dmn_t> F_R;
+  FUNC_LIB::function<std::complex<double>, centered_r_cluster_dmn_t> F_R;
 };
 
 template<typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S, typename target_dmn_type>
 bool wannier_interpolation_kernel<cluster_domain<scalar_type, D, N, MOMENTUM_SPACE, S>, target_dmn_type>::INITIALIZED = false;
 
 template<typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S, typename target_dmn_type>
-function<int, typename wannier_interpolation_kernel<cluster_domain<scalar_type, D, N, MOMENTUM_SPACE, S>, target_dmn_type>::centered_r_cluster_dmn_t> 
+FUNC_LIB::function<int, typename wannier_interpolation_kernel<cluster_domain<scalar_type, D, N, MOMENTUM_SPACE, S>, target_dmn_type>::centered_r_cluster_dmn_t> 
 wannier_interpolation_kernel<cluster_domain<scalar_type, D, N, MOMENTUM_SPACE, S>, target_dmn_type>::lies_within_cutoff("cutoff");
 
 template<typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S, typename target_dmn_type>
@@ -316,8 +316,8 @@ void wannier_interpolation_kernel<cluster_domain<scalar_type, D, N, MOMENTUM_SPA
   for(int R_ind=0; R_ind<centered_r_cluster_dmn_t::dmn_size(); R_ind++){
 
     if(lies_within_cutoff(R_ind)>0){
-      real(F_R(R_ind)) = nfft_K_2_R.f_hat[R_ind][0]/double(source_k_dmn_t::dmn_size()*lies_within_cutoff(R_ind));
-      imag(F_R(R_ind)) = nfft_K_2_R.f_hat[R_ind][1]/double(source_k_dmn_t::dmn_size()*lies_within_cutoff(R_ind)); 
+	F_R(R_ind).real( nfft_K_2_R.f_hat[R_ind][0]/double(source_k_dmn_t::dmn_size()*lies_within_cutoff(R_ind)) );
+	F_R(R_ind).imag( nfft_K_2_R.f_hat[R_ind][1]/double(source_k_dmn_t::dmn_size()*lies_within_cutoff(R_ind)) ); 
     }
     else 
       F_R(R_ind) = 0.;
@@ -339,8 +339,8 @@ void wannier_interpolation_kernel<cluster_domain<scalar_type, D, N, MOMENTUM_SPA
   nfft_trafo(&nfft_R_2_k);
   
   for(int k_ind=0; k_ind<target_k_dmn_t::dmn_size(); k_ind++){
-    real(output_ptr[k_ind]) = nfft_R_2_k.f[k_ind][0]; 
-    imag(output_ptr[k_ind]) = nfft_R_2_k.f[k_ind][1]; 
+      output_ptr[k_ind].real( nfft_R_2_k.f[k_ind][0] ); 
+      output_ptr[k_ind].imag( nfft_R_2_k.f[k_ind][1] ); 
 
 //     VECTOR_OPERATIONS::PRINT(target_k_dmn_t::get_elements()[k_ind]);
 //     cout << real(output_ptr[k_ind]) << "\t" << imag(output_ptr[k_ind]) << endl;

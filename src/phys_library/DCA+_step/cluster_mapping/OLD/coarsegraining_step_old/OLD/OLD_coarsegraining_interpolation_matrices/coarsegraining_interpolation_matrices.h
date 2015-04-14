@@ -22,7 +22,7 @@ namespace DCA
 
   public:
     
-    static function<matrix_type, K_dmn>& get();
+    static FUNC_LIB::function<matrix_type, K_dmn>& get();
 
     static matrix_type& get(int k_ind);
 

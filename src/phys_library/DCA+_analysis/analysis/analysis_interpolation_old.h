@@ -86,26 +86,26 @@ namespace dca {
 
     diagrammatic_symmetries<parameter_type> diagrammatic_symmetries_obj;
 
-    function<std::string             ,               harmonics_dmn_type>   wave_functions_names;
-    function<std::complex<scalartype>, dmn_2<k_HOST, harmonics_dmn_type> > harmonics;
+    FUNC_LIB::function<std::string             ,               harmonics_dmn_type>   wave_functions_names;
+    FUNC_LIB::function<std::complex<scalartype>, dmn_2<k_HOST, harmonics_dmn_type> > harmonics;
 
-    function<std::complex<double>, DCA_matrix_dmn_t> G4;
-    function<std::complex<double>, DCA_matrix_dmn_t> G4_0;
+    FUNC_LIB::function<std::complex<double>, DCA_matrix_dmn_t> G4;
+    FUNC_LIB::function<std::complex<double>, DCA_matrix_dmn_t> G4_0;
 
-    function<std::complex<scalartype>, DCA_matrix_dmn_t > Gamma_cluster;
-    function<std::complex<scalartype>, HOST_matrix_dmn_t> Gamma_lattice;
+    FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t > Gamma_cluster;
+    FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t> Gamma_lattice;
     
-    function<std::complex<scalartype>, HOST_matrix_dmn_t> chi;
-    function<std::complex<scalartype>, HOST_matrix_dmn_t> chi_0;
+    FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t> chi;
+    FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t> chi_0;
 
-    function<std::complex<scalartype>, dmn_0<dmn<1, int> > > chi_q;
+    FUNC_LIB::function<std::complex<scalartype>, dmn_0<dmn<1, int> > > chi_q;
 
-    function<std::complex<scalartype>,       lambda_dmn_type>                              leading_eigenvalues;
-    function<std::complex<scalartype>, dmn_2<lambda_dmn_type, harmonics_dmn_type> >        leading_symmetries;
-    function<std::complex<scalartype>, dmn_2<lambda_dmn_type, lattice_eigenvector_dmn_t> > leading_eigenvectors;
+    FUNC_LIB::function<std::complex<scalartype>,       lambda_dmn_type>                              leading_eigenvalues;
+    FUNC_LIB::function<std::complex<scalartype>, dmn_2<lambda_dmn_type, harmonics_dmn_type> >        leading_symmetries;
+    FUNC_LIB::function<std::complex<scalartype>, dmn_2<lambda_dmn_type, lattice_eigenvector_dmn_t> > leading_eigenvectors;
 
-    function<std::complex<scalartype>, k_dmn_cut_type> S_k_cut;
-    function<std::complex<scalartype>, k_dmn_cut_type> a_k_cut;
+    FUNC_LIB::function<std::complex<scalartype>, k_dmn_cut_type> S_k_cut;
+    FUNC_LIB::function<std::complex<scalartype>, k_dmn_cut_type> a_k_cut;
   };
 
   template<class parameter_type, class MOMS_type>
@@ -201,7 +201,7 @@ namespace dca {
 
     if(true)
       {
-	function<std::complex<scalartype>, cluster_eigenvector_dmn_t> tmp("chi_0_function");
+	FUNC_LIB::function<std::complex<scalartype>, cluster_eigenvector_dmn_t> tmp("chi_0_function");
 	
 	for(int i=0; i<tmp.size(); ++i)
 	  tmp(i) = G4_0(i,i);
@@ -212,7 +212,7 @@ namespace dca {
 
     if(true)
       {
-	function<std::complex<scalartype>, lattice_eigenvector_dmn_t> tmp("full_chi_0_function");
+	FUNC_LIB::function<std::complex<scalartype>, lattice_eigenvector_dmn_t> tmp("full_chi_0_function");
 	
 	for(int i=0; i<tmp.size(); ++i)
 	  tmp(i) = chi_0(i,i);
@@ -415,7 +415,7 @@ namespace dca {
 //       {// works apparently well, but need to test with interpolation first ...
 // 	profiler_t prof(concurrency, "compute_Gamma_lattice CG-inv Gamma", __FILE__, __LINE__);
 	
-// 	function<std::complex<scalartype>, HOST_matrix_dmn_t> tmp2;
+// 	FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t> tmp2;
 // 	MOMS.coarsegrain_inversion_obj.execute(Gamma_lattice, tmp2);
 	
 // 	Gamma_lattice = tmp2;
@@ -541,7 +541,7 @@ namespace dca {
     eigensystem_plan<std::complex<scalartype>, GENERAL> eigensystem_pln(N);
     
     {
-      function<std::complex<scalartype>, HOST_matrix_dmn_t> Gamma_times_chi_0("Gamma_times_chi_0");
+      FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t> Gamma_times_chi_0("Gamma_times_chi_0");
 
       gemm_plan<std::complex<scalartype> > gemm_pln(N);
       
@@ -714,8 +714,8 @@ namespace dca {
 
     int N = lattice_eigenvector_dmn.get_size();
 
-    function<std::complex<scalartype>, HOST_HOST_matrix_dmn_t> chi("chi");
-    function<std::complex<scalartype>, HOST_HOST_matrix_dmn_t> denominator("temporary");
+    FUNC_LIB::function<std::complex<scalartype>, HOST_HOST_matrix_dmn_t> chi("chi");
+    FUNC_LIB::function<std::complex<scalartype>, HOST_HOST_matrix_dmn_t> denominator("temporary");
 
 //     {// \Chi_0 * \Gamma --> Gamma_times_full_chi_0(0);
 //       gemm_plan<std::complex<scalartype> > gemm_pln(N);

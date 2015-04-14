@@ -66,8 +66,8 @@ public:
 
   //static std::vector<double> back_inside_cluster(std::vector<double>& k);
 
-//   static function<std::pair<int,int>, dmn_2< dmn_2<k_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& get_symmetry_matrix(){
-//     //static function<std::pair<int,int>, dmn_2< dmn_2<k_dmn_t,b_dmn_t>, sym_super_cell_dmn_t> > symmetry_matrix("k_symmetry_matrix_super_cell");
+//   static FUNC_LIB::function<std::pair<int,int>, dmn_2< dmn_2<k_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& get_symmetry_matrix(){
+//     //static FUNC_LIB::function<std::pair<int,int>, dmn_2< dmn_2<k_dmn_t,b_dmn_t>, sym_super_cell_dmn_t> > symmetry_matrix("k_symmetry_matrix_super_cell");
 //     //return symmetry_matrix;
 
 //     return cluster_symmetry<this_type>::get_symmetry_matrix();

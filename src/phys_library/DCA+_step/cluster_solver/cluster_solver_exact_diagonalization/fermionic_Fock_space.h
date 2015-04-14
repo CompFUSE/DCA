@@ -74,16 +74,16 @@ namespace DCA
       LIN_ALG::vector<int, LIN_ALG::CPU> magnetization;
       LIN_ALG::vector<int, LIN_ALG::CPU> fermionic_state;
 
-      function<int        , occ_mag_dmn > n_occupation_states;
+      FUNC_LIB::function<int        , occ_mag_dmn > n_occupation_states;
 
-      //function<int*     , occ_mag_dmn > occupation_states;
-      function<matrix_type, occ_mag_dmn > occupation_states;
+      //FUNC_LIB::function<int*     , occ_mag_dmn > occupation_states;
+      FUNC_LIB::function<matrix_type, occ_mag_dmn > occupation_states;
 
-      function<std::vector<overlap_indices>, dmn_2<occ_mag_dmn, occ_mag_dmn> > creation_overlap_of_states;
-      function<std::vector<overlap_indices>, dmn_2<occ_mag_dmn, occ_mag_dmn> > annihilation_overlap_of_states;
+      FUNC_LIB::function<std::vector<overlap_indices>, dmn_2<occ_mag_dmn, occ_mag_dmn> > creation_overlap_of_states;
+      FUNC_LIB::function<std::vector<overlap_indices>, dmn_2<occ_mag_dmn, occ_mag_dmn> > annihilation_overlap_of_states;
 
-      function<std::vector<int>, dmn_2<occ_mag_dmn, occ_mag_dmn> > creation_overlap_break_points;
-      function<std::vector<int>, dmn_2<occ_mag_dmn, occ_mag_dmn> > annihilation_overlap_break_points;
+      FUNC_LIB::function<std::vector<int>, dmn_2<occ_mag_dmn, occ_mag_dmn> > creation_overlap_break_points;
+      FUNC_LIB::function<std::vector<int>, dmn_2<occ_mag_dmn, occ_mag_dmn> > annihilation_overlap_break_points;
     };
 
     template<typename parameters_type, typename b_dmn, typename s_dmn, typename r_dmn>
@@ -198,7 +198,7 @@ namespace DCA
         }
       }
 
-      function<int , dmn_2<occ_dmn, mag_dmn> > tmp;
+      FUNC_LIB::function<int , dmn_2<occ_dmn, mag_dmn> > tmp;
 
       tmp = 0;
 
@@ -232,7 +232,7 @@ namespace DCA
       //     typedef typename r_dmn::parameter_type                r_cluster_type;
       //     typedef typename r_cluster_type::sym_super_cell_dmn_t sym_super_cell_dmn_t;
 
-      //     static function<std::pair<int,int>, dmn_2< dmn_2<r_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& r_symmetry_matrix = r_cluster_type::get_symmetry_matrix();
+      //     static FUNC_LIB::function<std::pair<int,int>, dmn_2< dmn_2<r_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& r_symmetry_matrix = r_cluster_type::get_symmetry_matrix();
 
       //     for(int S_ind=0; S_ind<sym_super_cell_dmn_t::dmn_size(); S_ind++)
       //       {

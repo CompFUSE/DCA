@@ -68,8 +68,8 @@ namespace DCA
 
     std::complex<float> K_z = (-x0 + x1 + (x0 - Z_fl)*( std::log((x0 - Z_fl)/(x1 - Z_fl)) ))/(x0 - x1) + (x1 - x2 - (x2 - Z_fl)*( std::log((-x1 + Z_fl)/(-x2 + Z_fl)) ))/(x1 - x2);
 
-    real(A_mn) = real(K_z);
-    imag(A_mn) = imag(K_z);
+    A_mn.real( real(K_z) );
+    A_mn.imag( imag(K_z) );
 
     //   real(A_mn) = real((-x0 + x1 + (x0 - z)*(std::log(x0 - z) - std::log(x1 - z)))/(x0 - x1) + (x1 - x2 - (x2 - z)*(std::log(-x1 + z) - std::log(-x2 + z)))/(x1 - x2));
     //   imag(A_mn) = imag((-x0 + x1 + (x0 - z)*(std::log(x0 - z) - std::log(x1 - z)))/(x0 - x1) + (x1 - x2 - (x2 - z)*(std::log(-x1 + z) - std::log(-x2 + z)))/(x1 - x2));

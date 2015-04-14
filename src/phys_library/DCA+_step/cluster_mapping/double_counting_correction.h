@@ -33,8 +33,8 @@ namespace DCA
 
     MOMS_type&           MOMS;
 
-    function<double, nu> mu_HALF;
-    function<double, nu> DC;
+    FUNC_LIB::function<double, nu> mu_HALF;
+    FUNC_LIB::function<double, nu> DC;
   };
 
   template<typename parameters_type, typename MOMS_type>

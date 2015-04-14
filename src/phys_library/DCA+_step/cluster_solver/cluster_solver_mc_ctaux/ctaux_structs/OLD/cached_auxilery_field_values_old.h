@@ -41,12 +41,12 @@ namespace QMC {
     static double FULL_CLUSTER_SIZE;
     static double CORRELATED_ORBITALS;
 
-    static function<double, nu_nu_r_DCA>                 H_interaction;
+    static FUNC_LIB::function<double, nu_nu_r_DCA>                 H_interaction;
 
-    static function<int,    nu>&                         intitialize_spin_orbital();
-    static function<double, nu_nu_r_DCA>&                initialize_gamma(); 
-    static function<double, nu_nu_HS_s_HS_f_r_DCA>&      initialize_exp_V(); 
-    static function<double, nu_nu_HS_s_HS_s_HS_f_r_DCA>& initialize_exp_delta_V();
+    static FUNC_LIB::function<int,    nu>&                         intitialize_spin_orbital();
+    static FUNC_LIB::function<double, nu_nu_r_DCA>&                initialize_gamma(); 
+    static FUNC_LIB::function<double, nu_nu_HS_s_HS_f_r_DCA>&      initialize_exp_V(); 
+    static FUNC_LIB::function<double, nu_nu_HS_s_HS_s_HS_f_r_DCA>& initialize_exp_delta_V();
   };
 
   double CV::BETA                = 0;
@@ -55,11 +55,11 @@ namespace QMC {
   double CV::FULL_CLUSTER_SIZE   = 1;
   double CV::CORRELATED_ORBITALS = 0;
 
-  function<double, CV::nu_nu_r_DCA> CV::H_interaction;
+  FUNC_LIB::function<double, CV::nu_nu_r_DCA> CV::H_interaction;
  
   double CV::gamma(int spin_orbital_1, int spin_orbital_2, int site)
   {
-    static function<double, nu_nu_r_DCA>& gamma_function = initialize_gamma();
+    static FUNC_LIB::function<double, nu_nu_r_DCA>& gamma_function = initialize_gamma();
     return gamma_function(spin_orbital_1, spin_orbital_2, site);
   }
  
@@ -69,7 +69,7 @@ namespace QMC {
 		   HS_field_sign_type HS_field_sign, 
 		   int site)
   {
-    static function<double, nu_nu_HS_s_HS_f_r_DCA>& exp_V_function = initialize_exp_V();
+    static FUNC_LIB::function<double, nu_nu_HS_s_HS_f_r_DCA>& exp_V_function = initialize_exp_V();
     int HS_spin_ind  = do_cast<int>::execute(HS_spin);
     int HS_field_ind = do_cast<int>::execute(HS_field_sign);
     return exp_V_function(spin_orbital_1, spin_orbital_2, HS_spin_ind, HS_field_ind, site);
@@ -82,7 +82,7 @@ namespace QMC {
 			 HS_field_sign_type HS_field_sign, 
 			 int site)
   {
-    static function<double, nu_nu_HS_s_HS_s_HS_f_r_DCA>& exp_V_function = initialize_exp_delta_V();
+    static FUNC_LIB::function<double, nu_nu_HS_s_HS_s_HS_f_r_DCA>& exp_V_function = initialize_exp_delta_V();
 
     int HS_spin_1_ind = do_cast<int>::execute(HS_spin_1);
     int HS_spin_2_ind = do_cast<int>::execute(HS_spin_2);
@@ -112,11 +112,11 @@ namespace QMC {
     CORRELATED_ORBITALS = CORRELATED_ORBITALS/2.; 
   }
 
-  function<double, CV::nu_nu_r_DCA>&      CV::initialize_gamma()
+  FUNC_LIB::function<double, CV::nu_nu_r_DCA>&      CV::initialize_gamma()
   {
     //cout << __FUNCTION__ << endl;
 
-    static function<double, nu_nu_r_DCA> gamma_function;
+    static FUNC_LIB::function<double, nu_nu_r_DCA> gamma_function;
     
     for(int nu_ind_i=0; nu_ind_i<2*BANDS; nu_ind_i++)
       {
@@ -138,11 +138,11 @@ namespace QMC {
     return gamma_function;
   }
 
-  function<double, CV::nu_nu_HS_s_HS_f_r_DCA>& CV::initialize_exp_V()
+  FUNC_LIB::function<double, CV::nu_nu_HS_s_HS_f_r_DCA>& CV::initialize_exp_V()
   {
     //cout << __FUNCTION__ << endl;
 
-    static function<double, nu_nu_HS_s_HS_f_r_DCA> exp_V_function;
+    static FUNC_LIB::function<double, nu_nu_HS_s_HS_f_r_DCA> exp_V_function;
 
     for(int nu_ind_i=0; nu_ind_i<2*BANDS; nu_ind_i++)
       {
@@ -173,9 +173,9 @@ namespace QMC {
     return exp_V_function;
   }
 
-  function<double, CV::nu_nu_HS_s_HS_s_HS_f_r_DCA>& CV::initialize_exp_delta_V()
+  FUNC_LIB::function<double, CV::nu_nu_HS_s_HS_s_HS_f_r_DCA>& CV::initialize_exp_delta_V()
   {
-    static function<double, nu_nu_HS_s_HS_s_HS_f_r_DCA> exp_delta_V_function;
+    static FUNC_LIB::function<double, nu_nu_HS_s_HS_s_HS_f_r_DCA> exp_delta_V_function;
 
     for(int nu_ind_i=0; nu_ind_i<2*BANDS; nu_ind_i++)
       {

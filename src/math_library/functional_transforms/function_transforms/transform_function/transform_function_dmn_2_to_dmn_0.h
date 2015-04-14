@@ -32,13 +32,13 @@ namespace TRAFOR
     
     template<typename scalartype_input , class domain_input, 
 	     typename scalartype_output, class domain_output>
-    static void execute(function<scalartype_input , domain_input> & f_input,
-			function<scalartype_output, domain_output>& f_output,
+    static void execute(FUNC_LIB::function<scalartype_input , domain_input> & f_input,
+			FUNC_LIB::function<scalartype_output, domain_output>& f_output,
 			bool do_all_domains=false);
     
     template<typename scalartype, class domain_input, class domain_output>
-    static void execute(function<scalartype, domain_input> & f_input,
-			function<scalartype, domain_output>& f_output)
+    static void execute(FUNC_LIB::function<scalartype, domain_input> & f_input,
+			FUNC_LIB::function<scalartype, domain_output>& f_output)
     {    
       typedef typename domain_input ::this_type type_list_input;
       typedef typename domain_output::this_type type_list_output;
@@ -57,8 +57,8 @@ namespace TRAFOR
     /*    
     template<typename scalartype_input , class domain_input, 
 	     typename scalartype_output, class domain_output>
-    static void print_types(function<scalartype_input , domain_input> & f_input,
-			    function<scalartype_output, domain_output>& f_output,
+    static void print_types(FUNC_LIB::function<scalartype_input , domain_input> & f_input,
+			    FUNC_LIB::function<scalartype_output, domain_output>& f_output,
 			    bool do_all_domains=false)
     {
       typedef typename domain_input ::this_type type_list_input;
@@ -82,7 +82,7 @@ namespace TRAFOR
 	  printTL<type_list_output>::to_JSON(std::cout);
 	  std::cout << "\n\n";
 	  
-	  function<scalartype_output, TRANSFORMED_DOMAIN> T;
+	  FUNC_LIB::function<scalartype_output, TRANSFORMED_DOMAIN> T;
 	  T       .print_fingerprint();
 	  f_output.print_fingerprint();
 	}
@@ -99,7 +99,7 @@ namespace TRAFOR
 	  printTL<type_list_output>::to_JSON(std::cout);
 	  std::cout << "\n\n";
 	  
-	  function<scalartype_output, TRANSFORMED_DOMAIN> T;
+	  FUNC_LIB::function<scalartype_output, TRANSFORMED_DOMAIN> T;
 	  T       .print_fingerprint();
 	  f_output.print_fingerprint();
 	}

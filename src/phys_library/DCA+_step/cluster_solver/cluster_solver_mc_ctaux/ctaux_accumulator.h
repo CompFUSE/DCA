@@ -62,28 +62,28 @@ namespace DCA
 
       std::vector<vertex_singleton_type>& get_configuration(e_spin_states_type e_spin=e_UP);
 
-      function<double, dmn_0<numerical_error_domain> >& get_error_distribution() { return error; }
+      FUNC_LIB::function<double, dmn_0<numerical_error_domain> >& get_error_distribution() { return error; }
 
-      function<double, dmn_0<Feynman_expansion_order_domain> >& get_visited_expansion_order_k() { return visited_expansion_order_k; }
+      FUNC_LIB::function<double, dmn_0<Feynman_expansion_order_domain> >& get_visited_expansion_order_k() { return visited_expansion_order_k; }
 
       // equal time-measurements
-      function<double, dmn_4<nu, nu, r_dmn_t, t> >& get_G_r_t()        { return G_r_t; }
-      function<double, dmn_4<nu, nu, r_dmn_t, t> >& get_G_r_t_stddev() { return G_r_t_stddev; }
+      FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t> >& get_G_r_t()        { return G_r_t; }
+      FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t> >& get_G_r_t_stddev() { return G_r_t_stddev; }
 
-      function<double, dmn_2<b, r_dmn_t> >& get_charge_cluster_moment()   {return charge_cluster_moment; }
-      function<double, dmn_2<b, r_dmn_t> >& get_magnetic_cluster_moment() {return magnetic_cluster_moment; }
-      function<double, dmn_2<b, r_dmn_t> >& get_dwave_pp_correlator()     { return dwave_pp_correlator; }
+      FUNC_LIB::function<double, dmn_2<b, r_dmn_t> >& get_charge_cluster_moment()   {return charge_cluster_moment; }
+      FUNC_LIB::function<double, dmn_2<b, r_dmn_t> >& get_magnetic_cluster_moment() {return magnetic_cluster_moment; }
+      FUNC_LIB::function<double, dmn_2<b, r_dmn_t> >& get_dwave_pp_correlator()     { return dwave_pp_correlator; }
 
       // sp-measurements
-      function<double, dmn_4<nu, nu, r_dmn_t, t> >& get_K_r_t() { return K_r_t; }
+      FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t> >& get_K_r_t() { return K_r_t; }
 
-      function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& get_M_r_w()         { return M_r_w; }
-      function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& get_M_r_w_squared() { return M_r_w_squared; }
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& get_M_r_w()         { return M_r_w; }
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& get_M_r_w_squared() { return M_r_w_squared; }
 
-      function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w> >& get_M_k_w()         { return M_k_w; }
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w> >& get_M_k_w()         { return M_k_w; }
 
       // tp-measurements
-      function<std::complex<double>, dmn_8<b,b,b,b,k_dmn_t,k_dmn_t,w_VERTEX,w_VERTEX> >& get_G4() { return G4; }
+      FUNC_LIB::function<std::complex<double>, dmn_8<b,b,b,b,k_dmn_t,k_dmn_t,w_VERTEX,w_VERTEX> >& get_G4() { return G4; }
 
       template<class stream_type>
       void to_JSON(stream_type& ss);
@@ -141,30 +141,30 @@ namespace DCA
       LIN_ALG::matrix<double, LIN_ALG::CPU> M_e_UP;
       LIN_ALG::matrix<double, LIN_ALG::CPU> M_e_DN;
 
-      function<double, dmn_0<numerical_error_domain        > > error;
-      function<double, dmn_0<Feynman_expansion_order_domain> > visited_expansion_order_k;
+      FUNC_LIB::function<double, dmn_0<numerical_error_domain        > > error;
+      FUNC_LIB::function<double, dmn_0<Feynman_expansion_order_domain> > visited_expansion_order_k;
 
-      function<             double , dmn_4<nu, nu, r_dmn_t, t> > K_r_t;
+      FUNC_LIB::function<             double , dmn_4<nu, nu, r_dmn_t, t> > K_r_t;
 
-      function<double, dmn_4<nu, nu, r_dmn_t, t> > G_r_t;
-      function<double, dmn_4<nu, nu, r_dmn_t, t> > G_r_t_stddev;
+      FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t> > G_r_t;
+      FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t> > G_r_t_stddev;
 
-      function<double, dmn_2<b, r_dmn_t> > charge_cluster_moment;
-      function<double, dmn_2<b, r_dmn_t> > magnetic_cluster_moment;
-      function<double, dmn_2<b, r_dmn_t> > dwave_pp_correlator;
+      FUNC_LIB::function<double, dmn_2<b, r_dmn_t> > charge_cluster_moment;
+      FUNC_LIB::function<double, dmn_2<b, r_dmn_t> > magnetic_cluster_moment;
+      FUNC_LIB::function<double, dmn_2<b, r_dmn_t> > dwave_pp_correlator;
 
-      function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> > M_r_w;
-      function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> > M_r_w_squared;
-      function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> > M_r_w_stddev;
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> > M_r_w;
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> > M_r_w_squared;
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> > M_r_w_stddev;
 
-      function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w> > M_k_w;
-      function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w> > M_k_w_stddev;
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w> > M_k_w;
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w> > M_k_w_stddev;
 
       MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type> single_particle_accumulator_obj;
 
       MC_two_particle_equal_time_accumulator<parameters_type, MOMS_type> MC_two_particle_equal_time_accumulator_obj;
 
-      function<std::complex<double>, dmn_8<b,b,b,b,k_dmn_t,k_dmn_t,w_VERTEX,w_VERTEX> > G4;
+      FUNC_LIB::function<std::complex<double>, dmn_8<b,b,b,b,k_dmn_t,k_dmn_t,w_VERTEX,w_VERTEX> > G4;
 
       CT_AUX_ACCUMULATION::accumulator_nonlocal_G  <parameters_type, MOMS_type> accumulator_nonlocal_G_obj;
       CT_AUX_ACCUMULATION::accumulator_nonlocal_chi<parameters_type, MOMS_type> accumulator_nonlocal_chi_obj;

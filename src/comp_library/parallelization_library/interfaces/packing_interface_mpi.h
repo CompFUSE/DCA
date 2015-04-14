@@ -36,7 +36,7 @@ namespace COMP_LIB
     int get_buffer_size(std::vector<std::vector<scalar_type> >& v);
 
     template<typename scalar_type, class dmn_type>
-    int get_buffer_size(function<scalar_type, dmn_type>& f);
+    int get_buffer_size(FUNC_LIB::function<scalar_type, dmn_type>& f);
 
     /************************************
      ***  pack_unpack
@@ -67,7 +67,7 @@ namespace COMP_LIB
     void pack(int* buffer, int size, int& off_set, std::vector<std::vector<scalar_type> >& v);
 
     template<typename scalar_type, class dmn_type>
-    void pack(int* buffer, int size, int& off_set, function<scalar_type, dmn_type>& f);
+    void pack(int* buffer, int size, int& off_set, FUNC_LIB::function<scalar_type, dmn_type>& f);
 
     /************************************
      ***  unpack
@@ -89,7 +89,7 @@ namespace COMP_LIB
     void unpack(int* buffer, int size, int& off_set, std::vector<std::vector<scalar_type> >& v);
 
     template<typename scalar_type, class dmn_type>
-    void unpack(int* buffer, int size, int& off_set, function<scalar_type, dmn_type>& f);
+    void unpack(int* buffer, int size, int& off_set, FUNC_LIB::function<scalar_type, dmn_type>& f);
 
   private:
 
@@ -200,7 +200,7 @@ namespace COMP_LIB
   }
 
   template<typename scalar_type, class dmn_type>
-  int packing_interface<MPI_LIBRARY>::get_buffer_size(function<scalar_type, dmn_type>& f)
+  int packing_interface<MPI_LIBRARY>::get_buffer_size(FUNC_LIB::function<scalar_type, dmn_type>& f)
   {
     int result = get_buffer_size(f.size());
 
@@ -329,7 +329,7 @@ namespace COMP_LIB
   }
 
   template<typename scalar_type, class dmn_type>
-  void packing_interface<MPI_LIBRARY>::pack(int* buffer, int size, int& off_set, function<scalar_type, dmn_type>& f)
+  void packing_interface<MPI_LIBRARY>::pack(int* buffer, int size, int& off_set, FUNC_LIB::function<scalar_type, dmn_type>& f)
   {
     // Pack the vector length
     int function_size(f.size());

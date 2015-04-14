@@ -117,8 +117,8 @@ namespace EXACT_DIAGONALIZATION_SOLVER
     template<typename MOMS_type>
     void set_functions(MOMS_type& MOMS);
 
-    void initialize(function<std::complex<double>, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_0,
-		    function<double              , dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_i);
+    void initialize(FUNC_LIB::function<std::complex<double>, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_0,
+		    FUNC_LIB::function<double              , dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_i);
 
     void construct_Hamiltonians(bool interacting);
 
@@ -135,9 +135,9 @@ namespace EXACT_DIAGONALIZATION_SOLVER
 
     void print_G_k_w();
 
-    function<vector_type, dmn_2<occ_dmn, mag_dmn> >& get_eigen_energies() { return eigen_energies; }
+    FUNC_LIB::function<vector_type, dmn_2<occ_dmn, mag_dmn> >& get_eigen_energies() { return eigen_energies; }
 	  
-    function<matrix_type, dmn_2<occ_dmn, mag_dmn> >& get_eigen_states  () { return eigen_states; }
+    FUNC_LIB::function<matrix_type, dmn_2<occ_dmn, mag_dmn> >& get_eigen_states  () { return eigen_states; }
 
   public:
 
@@ -147,8 +147,8 @@ namespace EXACT_DIAGONALIZATION_SOLVER
     template<typename scalar_t>
     void conjugate(std::complex<scalar_t>& z);
     
-    void initialize_t_ij_and_U_ij(function<std::complex<double>, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_0,
-				  function<double              , dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_i);
+    void initialize_t_ij_and_U_ij(FUNC_LIB::function<std::complex<double>, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_0,
+				  FUNC_LIB::function<double              , dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_i);
 
     void shift_the_energies();
 
@@ -161,13 +161,13 @@ namespace EXACT_DIAGONALIZATION_SOLVER
 
     void compute_ca_G_k_w_and_G_k_t(int n_0, int Sz_0,
 				    int n_1, int Sz_1,
-				    function<std::complex<double>, nu_nu_r_DCA_w >& tmp_w,
-				    function<std::complex<double>, nu_nu_r_DCA_t >& tmp_t);
+				    FUNC_LIB::function<std::complex<double>, nu_nu_r_DCA_w >& tmp_w,
+				    FUNC_LIB::function<std::complex<double>, nu_nu_r_DCA_t >& tmp_t);
 
     void compute_ac_G_k_w_and_G_k_t(int n_0, int Sz_0,
 				    int n_1, int Sz_1,
-				    function<std::complex<double>, nu_nu_r_DCA_w >& tmp_w,
-				    function<std::complex<double>, nu_nu_r_DCA_t >& tmp_t);
+				    FUNC_LIB::function<std::complex<double>, nu_nu_r_DCA_w >& tmp_w,
+				    FUNC_LIB::function<std::complex<double>, nu_nu_r_DCA_t >& tmp_t);
 
     void compute_overlap(int n_0, int Sz_0,
 			 int n_1, int Sz_1,
@@ -198,7 +198,7 @@ namespace EXACT_DIAGONALIZATION_SOLVER
     bool check_overlap_ac(int n_0, int Sz_0, int n_1, int Sz_1, overlap_indices& overlap_i, overlap_indices& overlap_j);
     bool check_overlap_ca(int n_0, int Sz_0, int n_1, int Sz_1, overlap_indices& overlap_i, overlap_indices& overlap_j);
 
-    void check_overlap_r_r(function<std::complex<double>, dmn_2<dmn_3<b_dmn, s_dmn, r_dmn>, dmn_3<b_dmn, s_dmn, r_dmn> > >& overlap_r_r_ref);
+    void check_overlap_r_r(FUNC_LIB::function<std::complex<double>, dmn_2<dmn_3<b_dmn, s_dmn, r_dmn>, dmn_3<b_dmn, s_dmn, r_dmn> > >& overlap_r_r_ref);
 
   private:
 
@@ -207,14 +207,14 @@ namespace EXACT_DIAGONALIZATION_SOLVER
 
     fermionic_Fock_space_type& Fock_space;
 
-    function<int            , dmn_2<occ_dmn, mag_dmn> >& n_occupation_states;
-    function<int_matrix_type, dmn_2<occ_dmn, mag_dmn> >&   occupation_states;
+    FUNC_LIB::function<int            , dmn_2<occ_dmn, mag_dmn> >& n_occupation_states;
+    FUNC_LIB::function<int_matrix_type, dmn_2<occ_dmn, mag_dmn> >&   occupation_states;
 
-    function<std::vector<overlap_indices>, dmn_2<occ_mag_dmn, occ_mag_dmn> >& creation_overlap_of_states;
-    function<std::vector<overlap_indices>, dmn_2<occ_mag_dmn, occ_mag_dmn> >& annihilation_overlap_of_states;
+    FUNC_LIB::function<std::vector<overlap_indices>, dmn_2<occ_mag_dmn, occ_mag_dmn> >& creation_overlap_of_states;
+    FUNC_LIB::function<std::vector<overlap_indices>, dmn_2<occ_mag_dmn, occ_mag_dmn> >& annihilation_overlap_of_states;
 
-    function<std::vector<int>, dmn_2<occ_mag_dmn, occ_mag_dmn> >& creation_overlap_break_points;
-    function<std::vector<int>, dmn_2<occ_mag_dmn, occ_mag_dmn> >& annihilation_overlap_break_points;
+    FUNC_LIB::function<std::vector<int>, dmn_2<occ_mag_dmn, occ_mag_dmn> >& creation_overlap_break_points;
+    FUNC_LIB::function<std::vector<int>, dmn_2<occ_mag_dmn, occ_mag_dmn> >& annihilation_overlap_break_points;
 
     double CUT_OFF;
 
@@ -225,12 +225,12 @@ namespace EXACT_DIAGONALIZATION_SOLVER
 //     std::vector<t_struct<scalar_type> > t_ij;
 //     std::vector<U_struct<scalar_type> > U_ij;
 		  
-    function<int, dmn_2<r_dmn, r_dmn> > rj_minus_ri;
+    FUNC_LIB::function<int, dmn_2<r_dmn, r_dmn> > rj_minus_ri;
 
-    function<matrix_type, dmn_2<occ_dmn, mag_dmn> > Hamiltonians;	  
+    FUNC_LIB::function<matrix_type, dmn_2<occ_dmn, mag_dmn> > Hamiltonians;	  
 
-    function<vector_type, dmn_2<occ_dmn, mag_dmn> > eigen_energies;	  
-    function<matrix_type, dmn_2<occ_dmn, mag_dmn> > eigen_states;
+    FUNC_LIB::function<vector_type, dmn_2<occ_dmn, mag_dmn> > eigen_energies;	  
+    FUNC_LIB::function<matrix_type, dmn_2<occ_dmn, mag_dmn> > eigen_states;
 
     LIN_ALG::vector<int         , LIN_ALG::CPU> V_lhs_index;
     LIN_ALG::vector<int         , LIN_ALG::CPU> V_rhs_index;
@@ -238,20 +238,20 @@ namespace EXACT_DIAGONALIZATION_SOLVER
     LIN_ALG::vector<complex_type, LIN_ALG::CPU> V_lhs_value;
     LIN_ALG::vector<complex_type, LIN_ALG::CPU> V_rhs_value;
 
-    function<std::complex<double>, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >         overlap;
-    function<std::complex<double>, dmn_2<dmn_3<b_dmn, s_dmn, r_dmn>, dmn_3<b_dmn, s_dmn, r_dmn> > > overlap_r_r;
+    FUNC_LIB::function<std::complex<double>, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >         overlap;
+    FUNC_LIB::function<std::complex<double>, dmn_2<dmn_3<b_dmn, s_dmn, r_dmn>, dmn_3<b_dmn, s_dmn, r_dmn> > > overlap_r_r;
     
-    function<std::complex<double>, dmn_4<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, k_DCA, w> > G_k_w;
-    function<std::complex<double>, dmn_4<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_DCA, w> > G_r_w;
-    function<std::complex<double>, dmn_4<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, k_DCA, t> > G_k_t;
-    function<std::complex<double>, dmn_4<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_DCA, t> > G_r_t;
+    FUNC_LIB::function<std::complex<double>, dmn_4<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, k_DCA, w> > G_k_w;
+    FUNC_LIB::function<std::complex<double>, dmn_4<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_DCA, w> > G_r_w;
+    FUNC_LIB::function<std::complex<double>, dmn_4<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, k_DCA, t> > G_k_t;
+    FUNC_LIB::function<std::complex<double>, dmn_4<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_DCA, t> > G_r_t;
 
-    function<std::complex<double>, dmn_4<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, k_DCA, w> > G0_k_w;
-    function<std::complex<double>, dmn_4<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_DCA, w> > G0_r_w;
-    function<std::complex<double>, dmn_4<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, k_DCA, t> > G0_k_t;
-    function<std::complex<double>, dmn_4<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_DCA, t> > G0_r_t;
+    FUNC_LIB::function<std::complex<double>, dmn_4<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, k_DCA, w> > G0_k_w;
+    FUNC_LIB::function<std::complex<double>, dmn_4<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_DCA, w> > G0_r_w;
+    FUNC_LIB::function<std::complex<double>, dmn_4<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, k_DCA, t> > G0_k_t;
+    FUNC_LIB::function<std::complex<double>, dmn_4<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_DCA, t> > G0_r_t;
 
-    function<std::complex<double>, dmn_4<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, k_DCA, w> > S_k_w;
+    FUNC_LIB::function<std::complex<double>, dmn_4<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, k_DCA, w> > S_k_w;
   };
 
   template<typename parameter_type, typename b_dmn, typename s_dmn, typename r_dmn>
@@ -355,15 +355,15 @@ namespace EXACT_DIAGONALIZATION_SOLVER
   }
 
   template<typename parameter_type, typename b_dmn, typename s_dmn, typename r_dmn>
-  void fermionic_Hamiltonian<parameter_type, b_dmn, s_dmn, r_dmn>::initialize(function<std::complex<double>, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_0,
-									      function<double              , dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_i)
+  void fermionic_Hamiltonian<parameter_type, b_dmn, s_dmn, r_dmn>::initialize(FUNC_LIB::function<std::complex<double>, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_0,
+									      FUNC_LIB::function<double              , dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_i)
   {
     initialize_t_ij_and_U_ij(H_0, H_i);
   }
 
   template<typename parameter_type, typename b_dmn, typename s_dmn, typename r_dmn>
-  void fermionic_Hamiltonian<parameter_type, b_dmn, s_dmn, r_dmn>::initialize_t_ij_and_U_ij(function<std::complex<double>, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_0,
-											    function<double              , dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_i)
+  void fermionic_Hamiltonian<parameter_type, b_dmn, s_dmn, r_dmn>::initialize_t_ij_and_U_ij(FUNC_LIB::function<std::complex<double>, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_0,
+											    FUNC_LIB::function<double              , dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_i)
   {
     {
       for(int r_j=0; r_j<r_dmn::dmn_size(); r_j++){
@@ -885,8 +885,8 @@ namespace EXACT_DIAGONALIZATION_SOLVER
 
     int start = clock();
 
-    function<std::complex<double>, nu_nu_r_DCA_w > tmp_w;
-    function<std::complex<double>, nu_nu_r_DCA_t > tmp_t;
+    FUNC_LIB::function<std::complex<double>, nu_nu_r_DCA_w > tmp_w;
+    FUNC_LIB::function<std::complex<double>, nu_nu_r_DCA_t > tmp_t;
 
     for(int n_0=0; n_0<occ_dmn::dmn_size(); n_0++){
       for(int Sz_0=0; Sz_0<mag_dmn::dmn_size(); Sz_0++){
@@ -957,8 +957,8 @@ namespace EXACT_DIAGONALIZATION_SOLVER
   template<typename parameter_type, typename b_dmn, typename s_dmn, typename r_dmn>
   void fermionic_Hamiltonian<parameter_type, b_dmn, s_dmn, r_dmn>::compute_ac_G_k_w_and_G_k_t(int n_0, int Sz_0,
 											      int n_1, int Sz_1,
-											      function<std::complex<double>, nu_nu_r_DCA_w >& tmp_w,
-											      function<std::complex<double>, nu_nu_r_DCA_t >& tmp_t)
+											      FUNC_LIB::function<std::complex<double>, nu_nu_r_DCA_w >& tmp_w,
+											      FUNC_LIB::function<std::complex<double>, nu_nu_r_DCA_t >& tmp_t)
   {
     size_t start = clock();
 
@@ -1068,8 +1068,8 @@ namespace EXACT_DIAGONALIZATION_SOLVER
   template<typename parameter_type, typename b_dmn, typename s_dmn, typename r_dmn>
   void fermionic_Hamiltonian<parameter_type, b_dmn, s_dmn, r_dmn>::compute_ac_G_k_w_and_G_k_t(int n_0, int Sz_0,
 											      int n_1, int Sz_1,
-											      function<std::complex<double>, nu_nu_r_DCA_w >& tmp_w,
-											      function<std::complex<double>, nu_nu_r_DCA_t >& tmp_t)
+											      FUNC_LIB::function<std::complex<double>, nu_nu_r_DCA_w >& tmp_w,
+											      FUNC_LIB::function<std::complex<double>, nu_nu_r_DCA_t >& tmp_t)
   {
 //     size_t start = clock();
 
@@ -1142,8 +1142,8 @@ namespace EXACT_DIAGONALIZATION_SOLVER
   template<typename parameter_type, typename b_dmn, typename s_dmn, typename r_dmn>
   void fermionic_Hamiltonian<parameter_type, b_dmn, s_dmn, r_dmn>::compute_ca_G_k_w_and_G_k_t(int n_0, int Sz_0,
 											      int n_1, int Sz_1,
-											      function<std::complex<double>, nu_nu_r_DCA_w >& tmp_w,
-											      function<std::complex<double>, nu_nu_r_DCA_t >& tmp_t)
+											      FUNC_LIB::function<std::complex<double>, nu_nu_r_DCA_w >& tmp_w,
+											      FUNC_LIB::function<std::complex<double>, nu_nu_r_DCA_t >& tmp_t)
   {
     std::complex<double> I(0,1);
 
@@ -1240,8 +1240,8 @@ namespace EXACT_DIAGONALIZATION_SOLVER
   template<typename parameter_type, typename b_dmn, typename s_dmn, typename r_dmn>
   void fermionic_Hamiltonian<parameter_type, b_dmn, s_dmn, r_dmn>::compute_ca_G_k_w_and_G_k_t(int n_0, int Sz_0,
 											      int n_1, int Sz_1,
-											      function<std::complex<double>, nu_nu_r_DCA_w >& tmp_w,
-											      function<std::complex<double>, nu_nu_r_DCA_t >& tmp_t)
+											      FUNC_LIB::function<std::complex<double>, nu_nu_r_DCA_w >& tmp_w,
+											      FUNC_LIB::function<std::complex<double>, nu_nu_r_DCA_t >& tmp_t)
   {    
     size_t start = clock();
 
@@ -1610,7 +1610,7 @@ namespace EXACT_DIAGONALIZATION_SOLVER
 	for(int n=0; n<n_occupation_states(i,j); n++)
 	  eigen_energies(i,j)[n] -= E_0;
 
-    function<std::complex<double>, dmn_4<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn, w> > tmp;
+    FUNC_LIB::function<std::complex<double>, dmn_4<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn, w> > tmp;
 
     double Z = 0;
     for(int i=0; i<occ_dmn::dmn_size(); i++)
@@ -1620,7 +1620,7 @@ namespace EXACT_DIAGONALIZATION_SOLVER
 
     std::complex<double> I(0,1);
 
-    //function<std::complex<double>, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> > overlap;
+    //FUNC_LIB::function<std::complex<double>, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> > overlap;
 
     for(int n_0=0; n_0<occ_dmn::dmn_size(); n_0++){
       for(int Sz_0=0; Sz_0<mag_dmn::dmn_size(); Sz_0++){
@@ -1798,7 +1798,7 @@ namespace EXACT_DIAGONALIZATION_SOLVER
 	for(int n=0; n<n_occupation_states(i,j); n++)
 	  eigen_energies(i,j)[n] -= E_0;
 
-    function<std::complex<double>, dmn_4<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn, t> > tmp;
+    FUNC_LIB::function<std::complex<double>, dmn_4<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn, t> > tmp;
 
     double Z = 0;
     for(int i=0; i<occ_dmn::dmn_size(); i++)
@@ -2162,7 +2162,7 @@ namespace EXACT_DIAGONALIZATION_SOLVER
   }
 
   template<typename parameter_type, typename b_dmn, typename s_dmn, typename r_dmn>
-  void fermionic_Hamiltonian<parameter_type, b_dmn, s_dmn, r_dmn>::check_overlap_r_r(function<std::complex<double>, dmn_2<dmn_3<b_dmn, s_dmn, r_dmn>, dmn_3<b_dmn, s_dmn, r_dmn> > >& overlap_r_r_ref)
+  void fermionic_Hamiltonian<parameter_type, b_dmn, s_dmn, r_dmn>::check_overlap_r_r(FUNC_LIB::function<std::complex<double>, dmn_2<dmn_3<b_dmn, s_dmn, r_dmn>, dmn_3<b_dmn, s_dmn, r_dmn> > >& overlap_r_r_ref)
   {    
     for(size_t l=0; l<overlap_r_r.size(); l++)
       if(abs_value(overlap_r_r(l)-overlap_r_r_ref(l))>1.e-6)

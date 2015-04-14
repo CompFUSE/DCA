@@ -19,8 +19,8 @@ namespace COMP_LIB
 		    pthread_mutex_t& mutex);
 
     template<typename scalar_type, class domain>
-    static void sum(function<scalar_type, domain>& f,
-		    function<scalar_type, domain>& f_result,
+    static void sum(FUNC_LIB::function<scalar_type, domain>& f,
+		    FUNC_LIB::function<scalar_type, domain>& f_result,
 		    pthread_mutex_t&               mutex);
 
   private:
@@ -40,8 +40,8 @@ namespace COMP_LIB
   }
 
   template<typename scalar_type, class domain>
-  void collective_sum_interface<POSIX_LIBRARY>::sum(function<scalar_type, domain>& f,
-						    function<scalar_type, domain>& f_result,
+  void collective_sum_interface<POSIX_LIBRARY>::sum(FUNC_LIB::function<scalar_type, domain>& f,
+						    FUNC_LIB::function<scalar_type, domain>& f_result,
 						    pthread_mutex_t&               mutex)
   {
     pthread_mutex_lock( &mutex);

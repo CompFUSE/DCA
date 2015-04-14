@@ -84,8 +84,8 @@ namespace DCA
 
 	void   measure_Sigma();
 
-	void   compute_Sigma_new(function<std::complex<double>, dmn_4<nu, nu, r_DCA, w> >& G_r_w,
-				 function<std::complex<double>, dmn_4<nu, nu, r_DCA, w> >& GS_r_w);
+	void   compute_Sigma_new(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w> >& G_r_w,
+				 FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w> >& GS_r_w);
 
 	int    find_w_cutoff();
       
@@ -107,12 +107,12 @@ namespace DCA
 	rng_type         rng;
 	accumulator_type accumulator;
 
-	function<std::complex<double>, nu_nu_k_DCA_w> Sigma_old;
-	function<std::complex<double>, nu_nu_k_DCA_w> Sigma_new;
+	FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w> Sigma_old;
+	FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w> Sigma_new;
 
 	int DCA_iteration;
 
-	function<double, nu>  mu_DC;
+	FUNC_LIB::function<double, nu>  mu_DC;
     };
 
     template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
@@ -192,11 +192,11 @@ namespace DCA
 	    ss.precision(6);
 	    ss<<scientific;
 
-	    function<double, nu>& mu      = this->get_mu();
-	    function<double, nu>& mu_half = this->get_mu_HALF();
+	    FUNC_LIB::function<double, nu>& mu      = this->get_mu();
+	    FUNC_LIB::function<double, nu>& mu_half = this->get_mu_HALF();
 
-	    function<double, nu>& a0 = this->get_a0();
-	    function<double, nu>& a1 = this->get_a1();
+	    FUNC_LIB::function<double, nu>& a0 = this->get_a0();
+	    FUNC_LIB::function<double, nu>& a1 = this->get_a1();
 
 	    ss << "\n\n mu, mu_half, a0, a1\n\n";
 	    for(int s_ind=0; s_ind<s::dmn_size(); s_ind++)
@@ -337,7 +337,7 @@ namespace DCA
 	{// here we need to do a correction a la Andrey
 
 	    /*
-	      function<double, nu> correction_to_GS;
+	      FUNC_LIB::function<double, nu> correction_to_GS;
 
 	      for(int s_ind=0; s_ind<s::dmn_size(); s_ind++)
 	      for(int b_ind=0; b_ind<b::dmn_size(); b_ind++)
@@ -379,8 +379,8 @@ namespace DCA
 
 	    double sign = accumulator.get_sign()/double(Nb_measurements_per_node);
 
-	    function<std::complex<double>, dmn_4<nu, nu, r_DCA, w> > G_r_w ("G_r_w_tmp");
-	    function<std::complex<double>, dmn_4<nu, nu, r_DCA, w> > GS_r_w("GS_r_w_tmp");
+	    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w> > G_r_w ("G_r_w_tmp");
+	    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w> > GS_r_w("GS_r_w_tmp");
 
 	    for(int l=0; l<G_r_w.size(); l++)
 		G_r_w(l) = accumulator.get_G_r_w()(l)/double(Nb_measurements_per_node*sign);
@@ -429,8 +429,8 @@ namespace DCA
 	    std::vector<int> flavors = model::get_flavors();
 	    assert(flavors.size()==b::dmn_size());
 
-	    function<std::complex<double>, b> f_val;
-	    function<std::complex<double>, b> f_tot;
+	    FUNC_LIB::function<std::complex<double>, b> f_val;
+	    FUNC_LIB::function<std::complex<double>, b> f_tot;
 
 	    for(int w_ind=0; w_ind<w::dmn_size(); w_ind++){
 		for(int s_ind=0; s_ind<s::dmn_size(); s_ind++){
@@ -535,11 +535,11 @@ namespace DCA
       template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
       void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::measure_Sigma()
       {
-      //function<double, nu>& mu_HALF = ss_hybridization_solver_routines_type::get_mu_HALF();
+      //FUNC_LIB::function<double, nu>& mu_HALF = ss_hybridization_solver_routines_type::get_mu_HALF();
 
       if(true)
       {
-      function<double, nu>& mu_HALF = ss_hybridization_solver_routines_type::get_mu_HALF();
+      FUNC_LIB::function<double, nu>& mu_HALF = ss_hybridization_solver_routines_type::get_mu_HALF();
 
       if(parameters.get_double_counting_method() == "constant-correction")
       {
@@ -585,14 +585,14 @@ namespace DCA
     */
 
     template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
-    void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_Sigma_new(function<std::complex<double>, dmn_4<nu, nu, r_DCA, w> >& G_r_w,
-											    function<std::complex<double>, dmn_4<nu, nu, r_DCA, w> >& GS_r_w)
+    void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_Sigma_new(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w> >& G_r_w,
+											    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w> >& GS_r_w)
     {
 	Sigma_new = 0;
 
 	//     if(parameters.get_double_counting_method() != "none")
 	{
-	    function<double, nu>& mu_HALF = ss_hybridization_solver_routines_type::get_mu_HALF();
+	    FUNC_LIB::function<double, nu>& mu_HALF = ss_hybridization_solver_routines_type::get_mu_HALF();
 
 	    for(int w_ind=0; w_ind<w::dmn_size(); w_ind++)
 		for(int s_ind=0; s_ind<s::dmn_size(); s_ind++)
@@ -627,7 +627,7 @@ namespace DCA
 	/*
 	//         SHOW::execute_on_bands(Sigma_new);
 
-	function<double, nu>& mu_HALF = ss_hybridization_solver_routines_type::get_mu_HALF();
+	FUNC_LIB::function<double, nu>& mu_HALF = ss_hybridization_solver_routines_type::get_mu_HALF();
 
 	if(parameters.get_double_counting_method() == "constant-correction")
 	{

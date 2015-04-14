@@ -49,18 +49,18 @@ namespace DCA
 
     ~continuous_pole_expansion();
 
-    function<             scalartype , nu_nu_k_dmn>&        get_error_function() {return error_function;}
+    FUNC_LIB::function<             scalartype , nu_nu_k_dmn>&        get_error_function() {return error_function;}
 
-    function<std::complex<scalartype>, nu_nu_k_dmn_w_IMAG>& get_f_approx()   { return f_approx;   }
-    function<std::complex<scalartype>, nu_nu_k_dmn_w_IMAG>& get_f_measured() { return f_measured; }
+    FUNC_LIB::function<std::complex<scalartype>, nu_nu_k_dmn_w_IMAG>& get_f_approx()   { return f_approx;   }
+    FUNC_LIB::function<std::complex<scalartype>, nu_nu_k_dmn_w_IMAG>& get_f_measured() { return f_measured; }
 
-    function<std::complex<scalartype>, nu_nu_k_dmn_w>& get_S_approx()   { return S_approx;   }
+    FUNC_LIB::function<std::complex<scalartype>, nu_nu_k_dmn_w>& get_S_approx()   { return S_approx;   }
 
-    void execute_st(function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w      > >& f_source,
-                    function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w_dmn_t> >& f_target);
+    void execute_st(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w      > >& f_source,
+                    FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w_dmn_t> >& f_target);
 
-    void execute_mt(function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w      > >& f_source,
-                    function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w_dmn_t> >& f_target);
+    void execute_mt(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w      > >& f_source,
+                    FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w_dmn_t> >& f_target);
 
     static void* threaded_analytical_continuation(void* void_ptr);
 
@@ -115,14 +115,14 @@ namespace DCA
 
   public:
 
-    function<scalartype, nu_nu_k_dmn>           Sigma_0_moment;
-    function<scalartype, nu_nu_k_dmn_alpha_dmn> alpha_function;
-    function<scalartype, nu_nu_k_dmn>           error_function;
+    FUNC_LIB::function<scalartype, nu_nu_k_dmn>           Sigma_0_moment;
+    FUNC_LIB::function<scalartype, nu_nu_k_dmn_alpha_dmn> alpha_function;
+    FUNC_LIB::function<scalartype, nu_nu_k_dmn>           error_function;
 
-    function<std::complex<scalartype>, nu_nu_k_dmn_w>      S_approx;
+    FUNC_LIB::function<std::complex<scalartype>, nu_nu_k_dmn_w>      S_approx;
 
-    function<std::complex<scalartype>, nu_nu_k_dmn_w_IMAG> f_approx;
-    function<std::complex<scalartype>, nu_nu_k_dmn_w_IMAG> f_measured;
+    FUNC_LIB::function<std::complex<scalartype>, nu_nu_k_dmn_w_IMAG> f_approx;
+    FUNC_LIB::function<std::complex<scalartype>, nu_nu_k_dmn_w_IMAG> f_measured;
 
     LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU> A_matrix;
 
@@ -249,8 +249,8 @@ namespace DCA
   }
 
   template<class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
-  void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t, WEIGHTED_GRADIENT_METHOD>::execute_st(function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w      > >& f_source,
-                                                                                                                            function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w_dmn_t> >& f_target)
+  void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t, WEIGHTED_GRADIENT_METHOD>::execute_st(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w      > >& f_source,
+                                                                                                                            FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w_dmn_t> >& f_target)
   {
     //cout << __FUNCTION__ << "\t" << __LINE__ << "\n";
 
@@ -296,8 +296,8 @@ namespace DCA
 
   /*
     template<class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
-    void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t, WEIGHTED_GRADIENT_METHOD>::execute_mt(function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w      > >& f_source,
-    function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w_dmn_t> >& f_target)
+    void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t, WEIGHTED_GRADIENT_METHOD>::execute_mt(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w      > >& f_source,
+    FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w_dmn_t> >& f_target)
     {
     profiler_type profiler(__FUNCTION__, __FILE__, __LINE__);
 
@@ -376,8 +376,8 @@ namespace DCA
   */
 
   template<class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
-  void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t, WEIGHTED_GRADIENT_METHOD>::execute_mt(function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w      > >& f_source,
-                                                                                                                            function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w_dmn_t> >& f_target)
+  void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t, WEIGHTED_GRADIENT_METHOD>::execute_mt(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w      > >& f_source,
+                                                                                                                            FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w_dmn_t> >& f_target)
   {
     profiler_type profiler(__FUNCTION__, __FILE__, __LINE__);
 
@@ -543,7 +543,7 @@ namespace DCA
                                                                                                                                       int k_ind,
                                                                                                                                       CPE_data_type& CPE_data_obj)
   {
-    function<std::complex<scalartype>, dmn_4<nu,nu,k_dmn_t,w_IMAG> >& f_measured_func = *(CPE_data_obj.f_measured_ptr);
+    FUNC_LIB::function<std::complex<scalartype>, dmn_4<nu,nu,k_dmn_t,w_IMAG> >& f_measured_func = *(CPE_data_obj.f_measured_ptr);
 
     {// read in the values on the imaginary axis.
       for(int w_ind=0; w_ind<w_IMAG::dmn_size(); w_ind++){
@@ -564,9 +564,9 @@ namespace DCA
                                                                                                                                        CPE_data_type& CPE_data_obj)
   {
     {
-      function<scalartype, dmn_3<nu,nu,k_dmn_t>             >& Sigma_0_func = *(CPE_data_obj.Sigma_0_moment_ptr);
-      function<scalartype, dmn_4<nu,nu,k_dmn_t,alpha_dmn_t> >& alpha_func   = *(CPE_data_obj.alpha_function_ptr);
-      function<scalartype, dmn_3<nu,nu,k_dmn_t>             >& error_func   = *(CPE_data_obj.error_function_ptr);
+      FUNC_LIB::function<scalartype, dmn_3<nu,nu,k_dmn_t>             >& Sigma_0_func = *(CPE_data_obj.Sigma_0_moment_ptr);
+      FUNC_LIB::function<scalartype, dmn_4<nu,nu,k_dmn_t,alpha_dmn_t> >& alpha_func   = *(CPE_data_obj.alpha_function_ptr);
+      FUNC_LIB::function<scalartype, dmn_3<nu,nu,k_dmn_t>             >& error_func   = *(CPE_data_obj.error_function_ptr);
 
       Sigma_0_func(nu_ind, nu_ind, k_ind) = CPE_data_obj.Sigma_0;
 
@@ -579,7 +579,7 @@ namespace DCA
     {// write in the values on the imaginary axis.
       LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& A_matrix = *(CPE_data_obj.A_matrix_ptr);
 
-      function<std::complex<scalartype>, nu_nu_k_DCA_w_IMAG>& f_approx_func = *(CPE_data_obj.f_approx_ptr);
+      FUNC_LIB::function<std::complex<scalartype>, nu_nu_k_DCA_w_IMAG>& f_approx_func = *(CPE_data_obj.f_approx_ptr);
 
       for(int m_ind=0; m_ind<w_IMAG::dmn_size(); m_ind++){
 
@@ -593,7 +593,7 @@ namespace DCA
     }
 
     {
-      function<std::complex<scalartype>, dmn_4<nu,nu,k_dmn_t,w> >& S_approx_func = *(CPE_data_obj.S_approx_ptr);
+      FUNC_LIB::function<std::complex<scalartype>, dmn_4<nu,nu,k_dmn_t,w> >& S_approx_func = *(CPE_data_obj.S_approx_ptr);
 
       for(int w_ind=w::dmn_size()/2; w_ind<w::dmn_size(); w_ind++)
         {
@@ -612,7 +612,7 @@ namespace DCA
     }
 
     {
-      function<std::complex<scalartype>, dmn_4<nu,nu,k_dmn_t,w_dmn_t> >& f_target_func = *(CPE_data_obj.f_target_ptr);
+      FUNC_LIB::function<std::complex<scalartype>, dmn_4<nu,nu,k_dmn_t,w_dmn_t> >& f_target_func = *(CPE_data_obj.f_target_ptr);
 
       for(int w_ind=0; w_ind<w_dmn_t::dmn_size(); w_ind++)
         {

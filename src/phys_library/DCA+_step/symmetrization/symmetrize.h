@@ -24,78 +24,78 @@ class symmetrize : public symmetrize_single_particle_function,
 public:
 
   template<typename scalartype, typename f_dmn_0>
-  static void execute(function<scalartype, f_dmn_0>& f, bool do_diff=false); 
+  static void execute(FUNC_LIB::function<scalartype, f_dmn_0>& f, bool do_diff=false); 
 
   template<typename scalartype, typename nu_dmn_t, typename f_dmn_0>
-  static void execute(function<scalartype, dmn_3<nu_dmn_t, nu_dmn_t, f_dmn_0> >& f, bool do_diff=false); 
+  static void execute(FUNC_LIB::function<scalartype, dmn_3<nu_dmn_t, nu_dmn_t, f_dmn_0> >& f, bool do_diff=false); 
 
   template<typename scalartype, typename nu_dmn_t, typename f_dmn_0, typename f_dmn_1>
-  static void execute(function<scalartype, dmn_4<nu_dmn_t, nu_dmn_t, f_dmn_0, f_dmn_1> >& f, bool do_diff=false); 
+  static void execute(FUNC_LIB::function<scalartype, dmn_4<nu_dmn_t, nu_dmn_t, f_dmn_0, f_dmn_1> >& f, bool do_diff=false); 
 
   template<typename scalartype, typename f_dmn_0, typename f_dmn_1>
-  static void execute(function<scalartype, dmn_4<nu, nu, f_dmn_0, f_dmn_1> >& f, 
-		      function<int       , nu_nu>&                            H_symmetry,
+  static void execute(FUNC_LIB::function<scalartype, dmn_4<nu, nu, f_dmn_0, f_dmn_1> >& f, 
+		      FUNC_LIB::function<int       , nu_nu>&                            H_symmetry,
 		      bool                                                    do_diff=false);
 
 
 
   
   template<typename scalartype, typename k_dmn_t, typename w_dmn_t>
-  static void execute(function<scalartype, dmn_2< dmn_4<b, b, k_dmn_t, w_dmn_t>,  dmn_4<b, b, k_dmn_t, w_dmn_t> > >& f, 
+  static void execute(FUNC_LIB::function<scalartype, dmn_2< dmn_4<b, b, k_dmn_t, w_dmn_t>,  dmn_4<b, b, k_dmn_t, w_dmn_t> > >& f, 
 		      std::vector<double>                                                                            Q,
 		      bool do_diff=false);
 
   template<typename scalartype, typename k_dmn_t, typename w_dmn_t>
-  static void execute(function<scalartype, dmn_2< dmn_4<b, b, k_dmn_t, w_dmn_t>,  dmn_4<b, b, k_dmn_t, w_dmn_t> > >& f, 
-		      function<int       , nu_nu>&  H_symmetry,
+  static void execute(FUNC_LIB::function<scalartype, dmn_2< dmn_4<b, b, k_dmn_t, w_dmn_t>,  dmn_4<b, b, k_dmn_t, w_dmn_t> > >& f, 
+		      FUNC_LIB::function<int       , nu_nu>&  H_symmetry,
 		      std::vector<double>                                                                            Q,
 		      bool do_diff=false);
 
   template<typename scalartype, typename k_dmn_t, typename w_dmn_t>
-  static void execute(function<scalartype, dmn_8<b, b, b, b, k_dmn_t, k_dmn_t, w_dmn_t, w_dmn_t> >& f, 
+  static void execute(FUNC_LIB::function<scalartype, dmn_8<b, b, b, b, k_dmn_t, k_dmn_t, w_dmn_t, w_dmn_t> >& f, 
 		      std::vector<double>                                                           Q,
 		      bool do_diff=false);
 
   template<typename scalartype, typename k_dmn_t, typename w_dmn_t>
-  static void execute(function<scalartype, dmn_8<b, b, b, b, k_dmn_t, k_dmn_t, w_dmn_t, w_dmn_t> >& f, 
-		      function<int       , nu_nu>&  H_symmetry,
+  static void execute(FUNC_LIB::function<scalartype, dmn_8<b, b, b, b, k_dmn_t, k_dmn_t, w_dmn_t, w_dmn_t> >& f, 
+		      FUNC_LIB::function<int       , nu_nu>&  H_symmetry,
 		      std::vector<double>                                                           Q,
 		      bool do_diff=false);
   
   template<typename scalartype, typename k_dmn_t, typename w_dmn_t>
-  static void execute(function<scalartype, dmn_3< dmn_4<b, b, k_dmn_t, w_dmn_t>,  dmn_4<b, b, k_dmn_t, w_dmn_t>, k_dmn_t> >& f, bool do_diff=false);
+  static void execute(FUNC_LIB::function<scalartype, dmn_3< dmn_4<b, b, k_dmn_t, w_dmn_t>,  dmn_4<b, b, k_dmn_t, w_dmn_t>, k_dmn_t> >& f, bool do_diff=false);
 
 };
 
 template<typename scalartype, typename f_dmn_0>
-void symmetrize::execute(function<scalartype, f_dmn_0>& f, bool do_diff)
+void symmetrize::execute(FUNC_LIB::function<scalartype, f_dmn_0>& f, bool do_diff)
 {
   symmetrize_single_particle_function::execute(f, do_diff);
 }
 
 template<typename scalartype, typename f_dmn_0, typename f_dmn_1>
-void symmetrize::execute(function<scalartype, dmn_4<nu, nu, f_dmn_0, f_dmn_1> >& f, 
-			 function<int       , nu_nu>&                            H_symmetry,
+void symmetrize::execute(FUNC_LIB::function<scalartype, dmn_4<nu, nu, f_dmn_0, f_dmn_1> >& f, 
+			 FUNC_LIB::function<int       , nu_nu>&                            H_symmetry,
 			 bool                                                    do_diff)
 {
   symmetrize_single_particle_function::execute(f, H_symmetry, do_diff);
 }
 
 template<typename scalartype, typename nu_dmn_t, typename f_dmn_0>
-void symmetrize::execute(function<scalartype, dmn_3<nu_dmn_t, nu_dmn_t, f_dmn_0> >& f, bool do_diff)
+void symmetrize::execute(FUNC_LIB::function<scalartype, dmn_3<nu_dmn_t, nu_dmn_t, f_dmn_0> >& f, bool do_diff)
 {
   symmetrize_single_particle_function::execute(f, do_diff);
 }
 
 template<typename scalartype, typename nu_dmn_t, typename f_dmn_0, typename f_dmn_1>
-void symmetrize::execute(function<scalartype, dmn_4<nu_dmn_t, nu_dmn_t, f_dmn_0, f_dmn_1> >& f, bool do_diff)
+void symmetrize::execute(FUNC_LIB::function<scalartype, dmn_4<nu_dmn_t, nu_dmn_t, f_dmn_0, f_dmn_1> >& f, bool do_diff)
 {
   symmetrize_single_particle_function::execute(f, do_diff);
 }
 
 template<typename scalartype, typename k_dmn_t, typename w_dmn_t>
-void symmetrize::execute(function<scalartype, dmn_8<b, b, b, b, k_dmn_t, k_dmn_t, w_dmn_t, w_dmn_t> >& f, 
-			 function<int       , nu_nu>&                                                  H_symmetry,
+void symmetrize::execute(FUNC_LIB::function<scalartype, dmn_8<b, b, b, b, k_dmn_t, k_dmn_t, w_dmn_t, w_dmn_t> >& f, 
+			 FUNC_LIB::function<int       , nu_nu>&                                                  H_symmetry,
 			 std::vector<double>                                                           Q,
 			 bool                                                                          do_diff)
 {
@@ -103,8 +103,8 @@ void symmetrize::execute(function<scalartype, dmn_8<b, b, b, b, k_dmn_t, k_dmn_t
 }
 
 template<typename scalartype, typename k_dmn_t, typename w_dmn_t>
-void symmetrize::execute(function<scalartype, dmn_2< dmn_4<b, b, k_dmn_t, w_dmn_t>,  dmn_4<b, b, k_dmn_t, w_dmn_t> > >& f, 
-			 function<int       , nu_nu>&                                                                   H_symmetry,
+void symmetrize::execute(FUNC_LIB::function<scalartype, dmn_2< dmn_4<b, b, k_dmn_t, w_dmn_t>,  dmn_4<b, b, k_dmn_t, w_dmn_t> > >& f, 
+			 FUNC_LIB::function<int       , nu_nu>&                                                                   H_symmetry,
 			 std::vector<double>                                                                            Q,
 			 bool do_diff)
 {
@@ -112,7 +112,7 @@ void symmetrize::execute(function<scalartype, dmn_2< dmn_4<b, b, k_dmn_t, w_dmn_
 }
 
 template<typename scalartype, typename k_dmn_t, typename w_dmn_t>
-void symmetrize::execute(function<scalartype, dmn_8<b, b, b, b, k_dmn_t, k_dmn_t, w_dmn_t, w_dmn_t> >& f, 
+void symmetrize::execute(FUNC_LIB::function<scalartype, dmn_8<b, b, b, b, k_dmn_t, k_dmn_t, w_dmn_t, w_dmn_t> >& f, 
 			 std::vector<double>                                                           Q,
 			 bool do_diff)
 {
@@ -120,7 +120,7 @@ void symmetrize::execute(function<scalartype, dmn_8<b, b, b, b, k_dmn_t, k_dmn_t
 }
 
 template<typename scalartype, typename k_dmn_t, typename w_dmn_t>
-void symmetrize::execute(function<scalartype, dmn_2< dmn_4<b, b, k_dmn_t, w_dmn_t>,  dmn_4<b, b, k_dmn_t, w_dmn_t> > >& f, 
+void symmetrize::execute(FUNC_LIB::function<scalartype, dmn_2< dmn_4<b, b, k_dmn_t, w_dmn_t>,  dmn_4<b, b, k_dmn_t, w_dmn_t> > >& f, 
 			 std::vector<double>                                                                            Q,			                  
 			 bool do_diff)
 {
@@ -128,7 +128,7 @@ void symmetrize::execute(function<scalartype, dmn_2< dmn_4<b, b, k_dmn_t, w_dmn_
 }
 
 template<typename scalartype, typename k_dmn_t, typename w_dmn_t>
-void symmetrize::execute(function<scalartype, dmn_3< dmn_4<b, b, k_dmn_t, w_dmn_t>,  dmn_4<b, b, k_dmn_t, w_dmn_t>, k_dmn_t> >& f, bool do_diff)
+void symmetrize::execute(FUNC_LIB::function<scalartype, dmn_3< dmn_4<b, b, k_dmn_t, w_dmn_t>,  dmn_4<b, b, k_dmn_t, w_dmn_t>, k_dmn_t> >& f, bool do_diff)
 {
   symmetrize_two_particle_function::execute(f, do_diff);
 }
@@ -211,7 +211,7 @@ void symmetrize::execute(function<scalartype, dmn_3< dmn_4<b, b, k_dmn_t, w_dmn_
 
 
 // template<typename scalartype, typename f_dmn_0, typename f_dmn_1>
-// void symmetrize::execute(function<scalartype, dmn_4<nu, nu, f_dmn_0, f_dmn_1> >& f, function<int, nu_nu>& H_symmetry,
+// void symmetrize::execute(FUNC_LIB::function<scalartype, dmn_4<nu, nu, f_dmn_0, f_dmn_1> >& f, FUNC_LIB::function<int, nu_nu>& H_symmetry,
 // 			 bool                                                                             do_diff)
 // {
 //   //   cout << __PRETTY_FUNCTION__ << endl;
@@ -305,8 +305,8 @@ void symmetrize::permute_band_indices(int l,
 }
 
 template<typename scalartype>
-void symmetrize::symmetrize_over_Hamiltonians(function<scalartype, symmetrize::b_b__b_b__k_DCA_VERTEX_k_DCA_w_VERTEX_w_VERTEX>& f, 
-					      function<int       , nu_nu>&                            H_symmetry,
+void symmetrize::symmetrize_over_Hamiltonians(FUNC_LIB::function<scalartype, symmetrize::b_b__b_b__k_DCA_VERTEX_k_DCA_w_VERTEX_w_VERTEX>& f, 
+					      FUNC_LIB::function<int       , nu_nu>&                            H_symmetry,
 					      bool do_diff)
 {
   cout << scientific;
@@ -352,8 +352,8 @@ void symmetrize::symmetrize_over_Hamiltonians(function<scalartype, symmetrize::b
 }
 
 template<typename scalartype>
-void symmetrize::symmetrize_over_Hamiltonians(function<scalartype, symmetrize::b_b_k_DCA_w_VERTEX_EXTENDED__b_b_k_DCA_w_VERTEX_EXTENDED>& f, 
-					      function<int       , nu_nu>&                            H_symmetry,
+void symmetrize::symmetrize_over_Hamiltonians(FUNC_LIB::function<scalartype, symmetrize::b_b_k_DCA_w_VERTEX_EXTENDED__b_b_k_DCA_w_VERTEX_EXTENDED>& f, 
+					      FUNC_LIB::function<int       , nu_nu>&                            H_symmetry,
 					      bool do_diff)
 {
   cout << scientific;
@@ -400,8 +400,8 @@ void symmetrize::symmetrize_over_Hamiltonians(function<scalartype, symmetrize::b
  }
 
 template<typename scalartype>
-void symmetrize::execute(function<scalartype, symmetrize::b_b__b_b__k_DCA_VERTEX_k_DCA_w_VERTEX_w_VERTEX>& f, 
-			 function<int       , nu_nu                                                     >& H_symmetry,
+void symmetrize::execute(FUNC_LIB::function<scalartype, symmetrize::b_b__b_b__k_DCA_VERTEX_k_DCA_w_VERTEX_w_VERTEX>& f, 
+			 FUNC_LIB::function<int       , nu_nu                                                     >& H_symmetry,
 			 bool do_diff)
 {
   //cout << __PRETTY_FUNCTION__ << endl;
@@ -409,7 +409,7 @@ void symmetrize::execute(function<scalartype, symmetrize::b_b__b_b__k_DCA_VERTEX
   if(true)
     {// cluster-symmetries G4_k_k_w_w for first k
       int* coor = new int[f.signature()];
-      function<std::complex<double>, b_b__b_b__k_DCA_VERTEX_k_DCA_w_VERTEX_w_VERTEX> G4_k_k_w_w;
+      FUNC_LIB::function<std::complex<double>, b_b__b_b__k_DCA_VERTEX_k_DCA_w_VERTEX_w_VERTEX> G4_k_k_w_w;
 	
       for(int i=0; i<f.size(); i++)
 	{
@@ -445,7 +445,7 @@ void symmetrize::execute(function<scalartype, symmetrize::b_b__b_b__k_DCA_VERTEX
   if(true)
     {// for second k
       int* coor = new int[f.signature()];
-      function<std::complex<double>, b_b__b_b__k_DCA_VERTEX_k_DCA_w_VERTEX_w_VERTEX> G4_k_k_w_w;
+      FUNC_LIB::function<std::complex<double>, b_b__b_b__k_DCA_VERTEX_k_DCA_w_VERTEX_w_VERTEX> G4_k_k_w_w;
 	
       for(int i=0; i<f.size(); i++)
 	{
@@ -513,8 +513,8 @@ void symmetrize::execute(function<scalartype, symmetrize::b_b__b_b__k_DCA_VERTEX
     symmetrize_over_Hamiltonians(f, H_symmetry, do_diff);
 }
 
-void symmetrize::execute(function<std::complex<double>, b_b_k_DCA_w_VERTEX_EXTENDED__b_b_k_DCA_w_VERTEX_EXTENDED>& f, 
-			 function<int       , nu_nu                                                             >& H_symmetry,
+void symmetrize::execute(FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX_EXTENDED__b_b_k_DCA_w_VERTEX_EXTENDED>& f, 
+			 FUNC_LIB::function<int       , nu_nu                                                             >& H_symmetry,
 			 bool do_diff)
 {
   //cout << __PRETTY_FUNCTION__ << endl;
@@ -522,7 +522,7 @@ void symmetrize::execute(function<std::complex<double>, b_b_k_DCA_w_VERTEX_EXTEN
   if(true)
     {// cluster-symmetries G4_k_k_w_w for first k
       int* coor = new int[f.signature()];
-      function<std::complex<double>, b_b_k_DCA_w_VERTEX_EXTENDED__b_b_k_DCA_w_VERTEX_EXTENDED> G4_k_k_w_w;
+      FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX_EXTENDED__b_b_k_DCA_w_VERTEX_EXTENDED> G4_k_k_w_w;
 	
       for(int i=0; i<f.size(); i++)
 	{
@@ -558,7 +558,7 @@ void symmetrize::execute(function<std::complex<double>, b_b_k_DCA_w_VERTEX_EXTEN
   if(true)
     {// cluster-symmetries G4_k_k_w_w for first k
       int* coor = new int[f.signature()];
-      function<std::complex<double>, b_b_k_DCA_w_VERTEX_EXTENDED__b_b_k_DCA_w_VERTEX_EXTENDED> G4_k_k_w_w;
+      FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX_EXTENDED__b_b_k_DCA_w_VERTEX_EXTENDED> G4_k_k_w_w;
 	
       for(int i=0; i<f.size(); i++)
 	{
@@ -636,8 +636,8 @@ void symmetrize::execute(function<std::complex<double>, b_b_k_DCA_w_VERTEX_EXTEN
 
 
 
-void symmetrize::execute(function<std::complex<double>, b_b_k_PCM_w_VERTEX_EXTENDED__b_b_k_PCM_w_VERTEX_EXTENDED>& f, 
-			 function<int       , nu_nu                                                             >& H_symmetry,
+void symmetrize::execute(FUNC_LIB::function<std::complex<double>, b_b_k_PCM_w_VERTEX_EXTENDED__b_b_k_PCM_w_VERTEX_EXTENDED>& f, 
+			 FUNC_LIB::function<int       , nu_nu                                                             >& H_symmetry,
 			 bool do_diff)
 {
   //cout << __PRETTY_FUNCTION__ << endl;
@@ -645,7 +645,7 @@ void symmetrize::execute(function<std::complex<double>, b_b_k_PCM_w_VERTEX_EXTEN
   if(true)
     {// cluster-symmetries G4_k_k_w_w for first k
       int* coor = new int[f.signature()];
-      function<std::complex<double>, b_b_k_PCM_w_VERTEX_EXTENDED__b_b_k_PCM_w_VERTEX_EXTENDED> G4_k_k_w_w;
+      FUNC_LIB::function<std::complex<double>, b_b_k_PCM_w_VERTEX_EXTENDED__b_b_k_PCM_w_VERTEX_EXTENDED> G4_k_k_w_w;
 	
       for(int i=0; i<f.size(); i++)
 	{
@@ -681,7 +681,7 @@ void symmetrize::execute(function<std::complex<double>, b_b_k_PCM_w_VERTEX_EXTEN
   if(true)
     {// cluster-symmetries G4_k_k_w_w for first k
       int* coor = new int[f.signature()];
-      function<std::complex<double>, b_b_k_PCM_w_VERTEX_EXTENDED__b_b_k_PCM_w_VERTEX_EXTENDED> G4_k_k_w_w;
+      FUNC_LIB::function<std::complex<double>, b_b_k_PCM_w_VERTEX_EXTENDED__b_b_k_PCM_w_VERTEX_EXTENDED> G4_k_k_w_w;
 	
       for(int i=0; i<f.size(); i++)
 	{
@@ -769,8 +769,8 @@ void symmetrize::execute(function<std::complex<double>, b_b_k_PCM_w_VERTEX_EXTEN
 
 
 
-void symmetrize::execute(function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX>& f, 
-			 function<int       , nu_nu                                           >& H_symmetry,
+void symmetrize::execute(FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX>& f, 
+			 FUNC_LIB::function<int       , nu_nu                                           >& H_symmetry,
 			 bool do_diff)
 {
   //cout << __PRETTY_FUNCTION__ << endl;
@@ -778,7 +778,7 @@ void symmetrize::execute(function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_
   if(true)
     {// cluster-symmetries G4_k_k_w_w for first k
       int* coor = new int[f.signature()];
-      function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> G4_k_k_w_w;
+      FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> G4_k_k_w_w;
 	
       for(int i=0; i<f.size(); i++)
 	{
@@ -814,7 +814,7 @@ void symmetrize::execute(function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_
   if(true)
     {// cluster-symmetries G4_k_k_w_w for first k
       int* coor = new int[f.signature()];
-      function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> G4_k_k_w_w;
+      FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> G4_k_k_w_w;
 	
       for(int i=0; i<f.size(); i++)
 	{
@@ -884,8 +884,8 @@ void symmetrize::execute(function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_
 //     symmetrize_over_Hamiltonians(f, H_symmetry, do_diff);
 }
 
-void symmetrize::execute(function<std::complex<double>, b_b_k_PCM_w_VERTEX__b_b_k_PCM_w_VERTEX>& f, 
-			 function<int       , nu_nu                                           >& H_symmetry,
+void symmetrize::execute(FUNC_LIB::function<std::complex<double>, b_b_k_PCM_w_VERTEX__b_b_k_PCM_w_VERTEX>& f, 
+			 FUNC_LIB::function<int       , nu_nu                                           >& H_symmetry,
 			 bool do_diff)
 {
   //cout << __PRETTY_FUNCTION__ << endl;
@@ -893,7 +893,7 @@ void symmetrize::execute(function<std::complex<double>, b_b_k_PCM_w_VERTEX__b_b_
   if(true)
     {// cluster-symmetries G4_k_k_w_w for first k
       int* coor = new int[f.signature()];
-      function<std::complex<double>, b_b_k_PCM_w_VERTEX__b_b_k_PCM_w_VERTEX> G4_k_k_w_w;
+      FUNC_LIB::function<std::complex<double>, b_b_k_PCM_w_VERTEX__b_b_k_PCM_w_VERTEX> G4_k_k_w_w;
 	
       for(int i=0; i<f.size(); i++)
 	{
@@ -929,7 +929,7 @@ void symmetrize::execute(function<std::complex<double>, b_b_k_PCM_w_VERTEX__b_b_
   if(true)
     {// cluster-symmetries G4_k_k_w_w for second k
       int* coor = new int[f.signature()];
-      function<std::complex<double>, b_b_k_PCM_w_VERTEX__b_b_k_PCM_w_VERTEX> G4_k_k_w_w;
+      FUNC_LIB::function<std::complex<double>, b_b_k_PCM_w_VERTEX__b_b_k_PCM_w_VERTEX> G4_k_k_w_w;
 	
       for(int i=0; i<f.size(); i++)
 	{
@@ -1007,7 +1007,7 @@ void symmetrize::execute(function<std::complex<double>, b_b_k_PCM_w_VERTEX__b_b_
 
 
 // template<typename scalartype, typename f_dmn>
-// void symmetrize::symmetrize_over_time_domain(function<scalartype, f_dmn>& f, bool do_diff)
+// void symmetrize::symmetrize_over_time_domain(FUNC_LIB::function<scalartype, f_dmn>& f, bool do_diff)
 // {
 //   //   cout << __FUNCTION__ << endl;
 
@@ -1046,7 +1046,7 @@ void symmetrize::execute(function<std::complex<double>, b_b_k_PCM_w_VERTEX__b_b_
 // }
 	
 // template<typename scalartype, typename f_dmn_0, typename f_dmn_1>
-// void symmetrize::symmetrize_over_frequency_domain(function<scalartype, dmn_4<nu, nu, f_dmn_0, f_dmn_1> >& f, bool do_diff)
+// void symmetrize::symmetrize_over_frequency_domain(FUNC_LIB::function<scalartype, dmn_4<nu, nu, f_dmn_0, f_dmn_1> >& f, bool do_diff)
 // {
 //   // H(i w) = conj(transpose(H(-i w)))
   
@@ -1077,7 +1077,7 @@ void symmetrize::execute(function<std::complex<double>, b_b_k_PCM_w_VERTEX__b_b_
 // }
 						  
 // template<typename scalartype, typename f_dmn>
-// void symmetrize::symmetrize_over_r_DCA(function<scalartype, f_dmn>& f, bool do_diff)
+// void symmetrize::symmetrize_over_r_DCA(FUNC_LIB::function<scalartype, f_dmn>& f, bool do_diff)
 // {
 //   //   cout << __FUNCTION__ << endl;
   
@@ -1086,7 +1086,7 @@ void symmetrize::execute(function<std::complex<double>, b_b_k_PCM_w_VERTEX__b_b_
 //   assert(r_index>=0 && r_index<f.signature());
 
 //   int* coor = new int[f.signature()];
-//   function<scalartype, f_dmn> f_new;
+//   FUNC_LIB::function<scalartype, f_dmn> f_new;
       
 //   for(int i=0; i<f.size(); i++)
 //     f_new(i) = scalartype(0.);
@@ -1124,7 +1124,7 @@ void symmetrize::execute(function<std::complex<double>, b_b_k_PCM_w_VERTEX__b_b_
 // }
 
 // template<typename scalartype, typename f_dmn>
-// void symmetrize::symmetrize_over_k_DCA(function<scalartype, f_dmn>& f, bool do_diff)
+// void symmetrize::symmetrize_over_k_DCA(FUNC_LIB::function<scalartype, f_dmn>& f, bool do_diff)
 // {
 //   //   cout << __FUNCTION__ << endl;
 
@@ -1133,7 +1133,7 @@ void symmetrize::execute(function<std::complex<double>, b_b_k_PCM_w_VERTEX__b_b_
 //   assert(k_index>=0 && k_index<f.signature());
 
 //   int* coor = new int[f.signature()];
-//   function<scalartype, f_dmn> f_new;
+//   FUNC_LIB::function<scalartype, f_dmn> f_new;
       
 //   for(int i=0; i<f.size(); i++)
 //     f_new(i) = scalartype(0.);
@@ -1170,7 +1170,7 @@ void symmetrize::execute(function<std::complex<double>, b_b_k_PCM_w_VERTEX__b_b_
 //   delete [] coor;
 // }
 
-// int symmetrize::get_number_of_symmetries(function<int, nu_nu>&  H_symmetry)
+// int symmetrize::get_number_of_symmetries(FUNC_LIB::function<int, nu_nu>&  H_symmetry)
 // {
 //   int Nb_symmetries=-1;
   
@@ -1184,8 +1184,8 @@ void symmetrize::execute(function<std::complex<double>, b_b_k_PCM_w_VERTEX__b_b_
 // }
 
 // template<typename scalartype, typename f_dmn_0, typename f_dmn_1 >
-// void symmetrize::symmetrize_over_Hamiltonians(function<scalartype, dmn_4<nu, nu, f_dmn_0, f_dmn_1> >& f, 
-// 					      function<int       , nu_nu>&                            H_symmetry, 
+// void symmetrize::symmetrize_over_Hamiltonians(FUNC_LIB::function<scalartype, dmn_4<nu, nu, f_dmn_0, f_dmn_1> >& f, 
+// 					      FUNC_LIB::function<int       , nu_nu>&                            H_symmetry, 
 // 					      bool                                                    do_diff)
 // {
 //   //   cout << __FUNCTION__ << endl;
@@ -1232,8 +1232,8 @@ void symmetrize::execute(function<std::complex<double>, b_b_k_PCM_w_VERTEX__b_b_
 // }
 
 // template<typename scalartype>
-// void symmetrize::symmetrize_over_Hamiltonians(function<scalartype, nu >&   f, 
-// 					      function<int       , nu_nu>& H_symmetry, 
+// void symmetrize::symmetrize_over_Hamiltonians(FUNC_LIB::function<scalartype, nu >&   f, 
+// 					      FUNC_LIB::function<int       , nu_nu>& H_symmetry, 
 // 					      bool                         do_diff)
 // {
 //   //   cout << __FUNCTION__ << endl;

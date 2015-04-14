@@ -22,16 +22,16 @@ namespace MATH_ALGORITHMS
     
     template<typename scalartype_input, class domain_input, 
 	     typename scalartype_output, class domain_output>
-    static void execute(function<scalartype_input , domain_input >& f_input, 
-			function<scalartype_output, domain_output>& f_output);
+    static void execute(FUNC_LIB::function<scalartype_input , domain_input >& f_input, 
+			FUNC_LIB::function<scalartype_output, domain_output>& f_output);
 
     template<typename scalartype, class domain_input, class domain_output>
-    static void execute(function<scalartype , domain_input >& f_input, 
-			function<scalartype, domain_output>& f_output);
+    static void execute(FUNC_LIB::function<scalartype , domain_input >& f_input, 
+			FUNC_LIB::function<scalartype, domain_output>& f_output);
 
     template<typename scalartype, class domain_input, class domain_output>
-    static void execute(function<std::complex<scalartype>, domain_input >& f_input, 
-			function<std::complex<scalartype>, domain_output>& f_output);
+    static void execute(FUNC_LIB::function<std::complex<scalartype>, domain_input >& f_input, 
+			FUNC_LIB::function<std::complex<scalartype>, domain_output>& f_output);
 
   private:
  
@@ -42,8 +42,8 @@ namespace MATH_ALGORITHMS
 
   template<typename type_input, typename type_output,int DMN_INDEX>
   template<typename scalartype, class domain_input, class domain_output>
-  void TRANSFORM_DOMAIN<type_input, CONTINUOUS, type_output, CONTINUOUS, DMN_INDEX>::execute(function<scalartype, domain_input >& f_input, 
-											     function<scalartype, domain_output>& f_output)
+  void TRANSFORM_DOMAIN<type_input, CONTINUOUS, type_output, CONTINUOUS, DMN_INDEX>::execute(FUNC_LIB::function<scalartype, domain_input >& f_input, 
+											     FUNC_LIB::function<scalartype, domain_output>& f_output)
   {
     
     if(VERBOSE)
@@ -81,8 +81,8 @@ namespace MATH_ALGORITHMS
 
   template<typename type_input, typename type_output,int DMN_INDEX>
   template<typename scalartype, class domain_input, class domain_output>
-  void TRANSFORM_DOMAIN<type_input, CONTINUOUS, type_output, CONTINUOUS, DMN_INDEX>::execute(function<std::complex<scalartype>, domain_input >& f_input, 
-											     function<std::complex<scalartype>, domain_output>& f_output)
+  void TRANSFORM_DOMAIN<type_input, CONTINUOUS, type_output, CONTINUOUS, DMN_INDEX>::execute(FUNC_LIB::function<std::complex<scalartype>, domain_input >& f_input, 
+											     FUNC_LIB::function<std::complex<scalartype>, domain_output>& f_output)
   {    
     if(VERBOSE)
       cout << "\n\t transform (continuous -> continuous) " << DMN_INDEX << "  " << type_input::get_name() << " --> " << type_output::get_name() << "\n\n";

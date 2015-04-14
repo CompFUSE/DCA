@@ -31,7 +31,7 @@ public:
 
 private:
 
-  static function<std::vector<std::vector<double> >, source_r_dmn_t >& initialize();
+  static FUNC_LIB::function<std::vector<std::vector<double> >, source_r_dmn_t >& initialize();
 };
 
 template<class basis_cluster_type>
@@ -76,15 +76,15 @@ std::complex<double> cluster_harmonics<basis_cluster_type>::evaluate_at_k(int n,
 template<class basis_cluster_type>
 std::vector<std::vector<double> > cluster_harmonics<basis_cluster_type>::get_basis_function_in_real_space(int n)
 {
-  static function<std::vector<std::vector<double> >, source_r_dmn_t >& centered_r_cluster = initialize();
+  static FUNC_LIB::function<std::vector<std::vector<double> >, source_r_dmn_t >& centered_r_cluster = initialize();
   return centered_r_cluster(n);
 }
 
 template<class basis_cluster_type>
-function<std::vector<std::vector<double> >, typename cluster_harmonics<basis_cluster_type>::source_r_dmn_t >&
+FUNC_LIB::function<std::vector<std::vector<double> >, typename cluster_harmonics<basis_cluster_type>::source_r_dmn_t >&
 cluster_harmonics<basis_cluster_type>::initialize()
 {
-  static function<std::vector<std::vector<double> >, source_r_dmn_t > centered_r_cluster("centered_r_cluster");
+  static FUNC_LIB::function<std::vector<std::vector<double> >, source_r_dmn_t > centered_r_cluster("centered_r_cluster");
 
   for(int R_ind=0; R_ind<source_r_dmn_t::dmn_size(); R_ind++){
     

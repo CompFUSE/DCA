@@ -17,7 +17,7 @@ namespace QMC {
   public :
 
     template<typename configuration_t, typename vertex_vertex_matrix_type, typename function_type_2>
-    static void FULL_CHECK(configuration_t& configuration, function<vertex_vertex_matrix_type, nu>& M, function_type_2& F);
+    static void FULL_CHECK(configuration_t& configuration, FUNC_LIB::function<vertex_vertex_matrix_type, nu>& M, function_type_2& F);
 
     template<typename configuration_t, typename hamiltonian_type>
     static double TRACE_CHECK(configuration_t& configuration, hamiltonian_type& Hamiltonian);
@@ -25,7 +25,7 @@ namespace QMC {
   };
 
   template<typename configuration_t, typename vertex_vertex_matrix_type, typename function_type_2>
-  void BIT_TOOLS::FULL_CHECK(configuration_t& configuration, function<vertex_vertex_matrix_type, nu>& M, function_type_2& F)
+  void BIT_TOOLS::FULL_CHECK(configuration_t& configuration, FUNC_LIB::function<vertex_vertex_matrix_type, nu>& M, function_type_2& F)
   {
     typedef vertex_vertex_matrix_type                         v_v_matrix_t;
     typedef typename configuration_t::orbital_configuration_t orbital_configuration_t;

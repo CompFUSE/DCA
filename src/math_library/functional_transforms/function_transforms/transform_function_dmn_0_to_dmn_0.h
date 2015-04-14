@@ -21,8 +21,8 @@ namespace MATH_ALGORITHMS
 
     template<typename scalartype_input , class domain_input, 
 	     typename scalartype_output, class domain_output>
-    static void execute(function<scalartype_input , domain_input> & f_input,
-			function<scalartype_output, domain_output>& f_output)
+    static void execute(FUNC_LIB::function<scalartype_input , domain_input> & f_input,
+			FUNC_LIB::function<scalartype_output, domain_output>& f_output)
     {
       typedef typename domain_input ::this_type type_list_input;
       typedef typename domain_output::this_type type_list_output;
@@ -39,8 +39,8 @@ namespace MATH_ALGORITHMS
     template<typename scalartype_input , class domain_input, 
 	     typename scalartype_output, class domain_output,
 	     typename scalartype_T>
-    static void execute(function<scalartype_input , domain_input> & f_input,
-			function<scalartype_output, domain_output>& f_output,
+    static void execute(FUNC_LIB::function<scalartype_input , domain_input> & f_input,
+			FUNC_LIB::function<scalartype_output, domain_output>& f_output,
 			LIN_ALG::matrix<scalartype_T, LIN_ALG::CPU>& T)
     {
       typedef typename domain_input ::this_type type_list_input;
@@ -57,8 +57,8 @@ namespace MATH_ALGORITHMS
 
     template<typename scalartype_input , class domain_input, 
 	     typename scalartype_output, class domain_output>
-    static void execute_on_all(function<scalartype_input, domain_input> & f_input,
-			       function<scalartype_output, domain_output>& f_output)
+    static void execute_on_all(FUNC_LIB::function<scalartype_input, domain_input> & f_input,
+			       FUNC_LIB::function<scalartype_output, domain_output>& f_output)
     {    
       typedef typename domain_input ::this_type type_list_input;
       typedef typename domain_output::this_type type_list_output;
@@ -76,8 +76,8 @@ namespace MATH_ALGORITHMS
     template<typename scalartype_input , class domain_input, 
 	     typename scalartype_output, class domain_output,
 	     typename scalartype_T>
-    static void execute_on_all(function<scalartype_input, domain_input> & f_input,
-			       function<scalartype_output, domain_output>& f_output,
+    static void execute_on_all(FUNC_LIB::function<scalartype_input, domain_input> & f_input,
+			       FUNC_LIB::function<scalartype_output, domain_output>& f_output,
 			       LIN_ALG::matrix<scalartype_T, LIN_ALG::CPU>& T)
     {    
       typedef typename domain_input ::this_type type_list_input;
@@ -97,8 +97,8 @@ namespace MATH_ALGORITHMS
     
     template<typename scalartype_input , class domain_input, 
 	     typename scalartype_output, class domain_output>
-    static void print_types(function<scalartype_input , domain_input> & f_input,
-			    function<scalartype_output, domain_output>& f_output,
+    static void print_types(FUNC_LIB::function<scalartype_input , domain_input> & f_input,
+			    FUNC_LIB::function<scalartype_output, domain_output>& f_output,
 			    bool do_all_domains=false)
     {
       typedef typename domain_input ::this_type type_list_input;
@@ -122,7 +122,7 @@ namespace MATH_ALGORITHMS
 	  printTL<type_list_output>::to_JSON(std::cout);
 	  std::cout << "\n\n";
 	  
-	  function<scalartype_output, TRANSFORMED_DOMAIN> T;
+	  FUNC_LIB::function<scalartype_output, TRANSFORMED_DOMAIN> T;
 	  T       .print_fingerprint();
 	  f_output.print_fingerprint();
 	}
@@ -139,7 +139,7 @@ namespace MATH_ALGORITHMS
 	  printTL<type_list_output>::to_JSON(std::cout);
 	  std::cout << "\n\n";
 	  
-	  function<scalartype_output, TRANSFORMED_DOMAIN> T("function<scalartype_output, TRANSFORMED_DOMAIN>");
+	  FUNC_LIB::function<scalartype_output, TRANSFORMED_DOMAIN> T("FUNC_LIB::function<scalartype_output, TRANSFORMED_DOMAIN>");
 
 	  f_input .print_fingerprint();
 	  T       .print_fingerprint();

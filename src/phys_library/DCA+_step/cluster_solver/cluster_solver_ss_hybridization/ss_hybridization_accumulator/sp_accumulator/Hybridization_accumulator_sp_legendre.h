@@ -74,18 +74,18 @@ namespace QMC {
 
     ~MC_single_particle_accumulator();
 
-    void initialize(function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& G_r_w,
-		    function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& GS_r_w);
+    void initialize(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& G_r_w,
+		    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& GS_r_w);
 
     template<class orbital_configuration_type, class vertex_vertex_matrix_type, class H_type>
-    void accumulate(function<orbital_configuration_type, nu>&  vertices,
-		    function<bool, nu>&                has_full_line,
-		    function<vertex_vertex_matrix_type,nu>& M,
+    void accumulate(FUNC_LIB::function<orbital_configuration_type, nu>&  vertices,
+		    FUNC_LIB::function<bool, nu>&                has_full_line,
+		    FUNC_LIB::function<vertex_vertex_matrix_type,nu>& M,
 		    double                     sign,
 		    H_type&                    H_interactions);
 
-    void compute(function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& G_r_w,
-		 function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& GS_r_w);
+    void compute(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& G_r_w,
+		 FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& GS_r_w);
 
     void finalize();
 
@@ -95,8 +95,8 @@ namespace QMC {
   private:
 
     template<class orbital_configuration_type, class H_type>
-    int  compute_U_times_n (function<orbital_configuration_type, nu>&  vertices,
-			    function<bool, nu>&                has_full_line,
+    int  compute_U_times_n (FUNC_LIB::function<orbital_configuration_type, nu>&  vertices,
+			    FUNC_LIB::function<bool, nu>&                has_full_line,
 			    H_type&              H_interactions,
 			    double               t_start,
 			    int                  flavor);
@@ -110,11 +110,11 @@ namespace QMC {
 
     std::vector<double> P;
 
-    function<double, dmn_4<legendre_dmn_t,nu,nu,r_dmn_t> > G_l_r;
-    function<double, dmn_4<nu,nu,r_dmn_t,legendre_dmn_t> > G_r_l;
+    FUNC_LIB::function<double, dmn_4<legendre_dmn_t,nu,nu,r_dmn_t> > G_l_r;
+    FUNC_LIB::function<double, dmn_4<nu,nu,r_dmn_t,legendre_dmn_t> > G_r_l;
 
-    function<double, dmn_4<legendre_dmn_t,nu,nu,r_dmn_t> > GS_l_r;
-    function<double, dmn_4<nu,nu,r_dmn_t,legendre_dmn_t> > GS_r_l;
+    FUNC_LIB::function<double, dmn_4<legendre_dmn_t,nu,nu,r_dmn_t> > GS_l_r;
+    FUNC_LIB::function<double, dmn_4<nu,nu,r_dmn_t,legendre_dmn_t> > GS_r_l;
   };
 
   template<class parameters_type, class base_cluster_type>
@@ -138,8 +138,8 @@ namespace QMC {
   {}
 
   template<class parameters_type, class base_cluster_type>
-  void MC_single_particle_accumulator<SS_CT_HYB, LEGENDRE, parameters_type, base_cluster_type>::initialize(function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& G_r_w,
-													       function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& GS_r_w)
+  void MC_single_particle_accumulator<SS_CT_HYB, LEGENDRE, parameters_type, base_cluster_type>::initialize(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& G_r_w,
+													       FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& GS_r_w)
   {
     for(int i=0; i<G_l_r.size(); i++)
       G_l_r(i) = 0;
@@ -189,9 +189,9 @@ namespace QMC {
 
   template<class parameters_type, class base_cluster_type>
   template<class orbital_configuration_type, class vertex_vertex_matrix_type, class H_type>
-  void MC_single_particle_accumulator<SS_CT_HYB, LEGENDRE, parameters_type, base_cluster_type>::accumulate(function<orbital_configuration_type,nu >& vertices,
-													       function<bool, nu>&        has_full_line,
-													       function<vertex_vertex_matrix_type, nu>& M,
+  void MC_single_particle_accumulator<SS_CT_HYB, LEGENDRE, parameters_type, base_cluster_type>::accumulate(FUNC_LIB::function<orbital_configuration_type,nu >& vertices,
+													       FUNC_LIB::function<bool, nu>&        has_full_line,
+													       FUNC_LIB::function<vertex_vertex_matrix_type, nu>& M,
 													       double                     sign,
 													       H_type&          H_interactions)
   {
@@ -261,8 +261,8 @@ namespace QMC {
   
   template<class parameters_type, class base_cluster_type>
   template<class orbital_configuration_type, class H_type>
-  int MC_single_particle_accumulator<SS_CT_HYB, LEGENDRE, parameters_type, base_cluster_type>::compute_U_times_n(function<orbital_configuration_type,nu >& vertices,
-														     function<bool, nu>&        has_full_line,
+  int MC_single_particle_accumulator<SS_CT_HYB, LEGENDRE, parameters_type, base_cluster_type>::compute_U_times_n(FUNC_LIB::function<orbital_configuration_type,nu >& vertices,
+														     FUNC_LIB::function<bool, nu>&        has_full_line,
 														     H_type&              H_interactions,
 														     double               t_start,
 														     int                  flavor)
@@ -296,8 +296,8 @@ namespace QMC {
 
 
   template<class parameters_type, class base_cluster_type>
-  void MC_single_particle_accumulator<SS_CT_HYB, LEGENDRE, parameters_type, base_cluster_type>::compute(function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& G_r_w,
-													    function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& GS_r_w)
+  void MC_single_particle_accumulator<SS_CT_HYB, LEGENDRE, parameters_type, base_cluster_type>::compute(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& G_r_w,
+													    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& GS_r_w)
   {
     for(int l=0; l<legendre_dmn_t::dmn_size(); l++){
 

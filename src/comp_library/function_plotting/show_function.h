@@ -30,101 +30,101 @@ public:
   static void plot_line_3D(Gnuplot& plot_obj, std::vector<scalar_type> x, std::vector<scalar_type> y);
 
   template<typename scalar_type, typename dmn_type>
-  static void execute(function<scalar_type, dmn_type>& f, bool save_figure=false);
+  static void execute(FUNC_LIB::function<scalar_type, dmn_type>& f, bool save_figure=false);
 
   template<typename scalar_type, typename dmn_0_type, typename dmn_1_type, typename dmn_2_type>
-  static void plot_bandstructure(function<scalar_type, dmn_2<dmn_2<dmn_0_type, dmn_1_type>, dmn_2_type> >& f, bool save_figure=false);
+  static void plot_bandstructure(FUNC_LIB::function<scalar_type, dmn_2<dmn_2<dmn_0_type, dmn_1_type>, dmn_2_type> >& f, bool save_figure=false);
 
   template<typename scalar_type, typename dmn_type>
-  static void plot_data(function<scalar_type, dmn_0<dmn_type> >& f, bool save_figure=false);
+  static void plot_data(FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& f, bool save_figure=false);
 
   template<typename scalar_type, typename dmn_type>
-  static void plot_data(function<std::complex<scalar_type>, dmn_0<dmn_type> >& f, bool save_figure=false);
+  static void plot_data(FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type> >& f, bool save_figure=false);
 
   template<typename scalar_type, typename dmn_type>
-  static void plot_data(Gnuplot& plot_obj, function<scalar_type, dmn_0<dmn_type> >& f);
+  static void plot_data(Gnuplot& plot_obj, FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& f);
 
   template<typename scalar_type, typename dmn_type>
-  static void plot_data(Gnuplot& plot_obj, function<std::complex<scalar_type>, dmn_0<dmn_type> >& f);
+  static void plot_data(Gnuplot& plot_obj, FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type> >& f);
 
   template<typename scalar_type, typename dmn_type>
-  static void plot_data(function<std::complex<scalar_type>, dmn_0<dmn_type> >& f,
-                        function<std::complex<scalar_type>, dmn_0<dmn_type> >& g,
+  static void plot_data(FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type> >& f,
+                        FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type> >& g,
                         bool save_figure=false);
 
   template<typename scalar_type, typename dmn_type>
-  static void plot_error_bars(function<scalar_type, dmn_0<dmn_type> >& f,
-                              function<scalar_type, dmn_0<dmn_type> >& g);
+  static void plot_error_bars(FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& f,
+                              FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& g);
 
   template<typename scalar_type, typename dmn_type_0, typename dmn_type_1, typename dmn_type_2>
-  static void plot_error_bars(function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f,
-                              function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& g);
+  static void plot_error_bars(FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f,
+                              FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& g);
 
   template<typename scalar_type, typename dmn_type>
-  static void execute(function<scalar_type, dmn_0<dmn_type> >& f, bool save_figure=false);
+  static void execute(FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& f, bool save_figure=false);
 
   template<typename scalar_type, typename dmn_type>
-  static void execute(Gnuplot& plot_obj, function<scalar_type, dmn_0<dmn_type> >& f);
+  static void execute(Gnuplot& plot_obj, FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& f);
 
   template<typename scalar_type, typename dmn_type>
-  static void execute(Gnuplot& plot_obj, function<std::complex<scalar_type>, dmn_0<dmn_type> >& f);
+  static void execute(Gnuplot& plot_obj, FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type> >& f);
 
   template<typename scalar_type, typename dmn_type>
-  static void execute(function<std::complex<scalar_type>, dmn_0<dmn_type> >& f, bool save_figure=false);
+  static void execute(FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type> >& f, bool save_figure=false);
 
   template<typename scalar_type, typename dmn_type_0, typename dmn_type_1>
-  static void execute(function<scalar_type, dmn_2<dmn_type_0, dmn_type_1> >& f, int n, bool save_figure=false);
+  static void execute(FUNC_LIB::function<scalar_type, dmn_2<dmn_type_0, dmn_type_1> >& f, int n, bool save_figure=false);
 
   template<typename scalar_type, typename dmn_type_0, typename dmn_type_1>
-  static void execute(function<std::complex<scalar_type>, dmn_2<dmn_type_0, dmn_type_1> >& f, int n, bool save_figure=false);
+  static void execute(FUNC_LIB::function<std::complex<scalar_type>, dmn_2<dmn_type_0, dmn_type_1> >& f, int n, bool save_figure=false);
 
   template<typename scalar_type, typename dmn_type_0, typename dmn_type_1, typename dmn_type_2>
-  static void execute(function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f);
+  static void execute(FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f);
 
   template<typename scalar_type, typename dmn_type_0, typename dmn_type_1, typename dmn_type_2>
-  static void execute_on_bands(function<scalar_type, dmn_3<dmn_type_0, dmn_type_1, dmn_type_2> >& f);
+  static void execute_on_bands(FUNC_LIB::function<scalar_type, dmn_3<dmn_type_0, dmn_type_1, dmn_type_2> >& f);
 
   template<typename scalar_type, typename dmn_type_0, typename dmn_type_1, typename dmn_type_2>
-  static void execute_on_bands(function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f);
+  static void execute_on_bands(FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f);
 
   template<typename scalar_type, typename dmn_type_0, typename dmn_type_1, typename dmn_type_2>
-  static void execute(function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f,
-                      function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& g);
+  static void execute(FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f,
+                      FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& g);
 
   template<typename scalar_type, typename dmn_type_0, typename dmn_type_1, typename dmn_type_2>
-  static void execute(function<std::complex<scalar_type>, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f,
-                      function<std::complex<scalar_type>, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& g);
+  static void execute(FUNC_LIB::function<std::complex<scalar_type>, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f,
+                      FUNC_LIB::function<std::complex<scalar_type>, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& g);
 
   template<typename scalar_type, typename dmn_type_0, typename dmn_type_1, typename dmn_type_2>
-  static void execute(function<std::complex<scalar_type>, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f);
+  static void execute(FUNC_LIB::function<std::complex<scalar_type>, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f);
 
   template<typename scalar_type, typename dmn_type_0, typename dmn_type_1, typename dmn_type_2>
-  static void execute_on_bands(function<std::complex<scalar_type>, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f);
+  static void execute_on_bands(FUNC_LIB::function<std::complex<scalar_type>, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f);
 
   template<typename scalar_type, typename dmn_type_0, typename dmn_type_1>
-  static void execute(function<scalar_type, dmn_0<dmn_type_0> >& f,
-                      function<scalar_type, dmn_0<dmn_type_1> >& g,
+  static void execute(FUNC_LIB::function<scalar_type, dmn_0<dmn_type_0> >& f,
+                      FUNC_LIB::function<scalar_type, dmn_0<dmn_type_1> >& g,
                       bool save_figure=false);
 
   template<typename scalar_type, typename dmn_type_0, typename dmn_type_1>
-  static void execute(function<std::complex<scalar_type>, dmn_0<dmn_type_0> >& f,
-                      function<std::complex<scalar_type>, dmn_0<dmn_type_1> >& g,
+  static void execute(FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type_0> >& f,
+                      FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type_1> >& g,
                       bool save_figure=false);
 
   //   template<typename scalar_type, typename dmn_type>
-  //   static void contour(function<scalar_type, dmn_type>& f, bool save_figure=false);
+  //   static void contour(FUNC_LIB::function<scalar_type, dmn_type>& f, bool save_figure=false);
 
   template<typename scalar_type, typename dmn_type>
-  static void contour(function<scalar_type, dmn_0<dmn_type> >& f, bool save_figure=false);
+  static void contour(FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& f, bool save_figure=false);
 
   template<typename scalar_type, typename dmn_type>
-  static void contour(function<std::complex<scalar_type>, dmn_0<dmn_type> >& f, bool save_figure=false);
+  static void contour(FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type> >& f, bool save_figure=false);
 
   template<typename scalar_type, typename dmn_type>
-  static void heatmap(function<scalar_type, dmn_0<dmn_type> >& f, bool save_figure=false);
+  static void heatmap(FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& f, bool save_figure=false);
 
   template<typename scalar_type, typename dmn_type>
-  static void heatmap(function<std::complex<scalar_type>, dmn_0<dmn_type> >& f, bool save_figure=false);
+  static void heatmap(FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type> >& f, bool save_figure=false);
 
   template<typename scalar_type>
   static void heatmap(std::vector<scalar_type> x, std::vector<scalar_type> y, std::vector<scalar_type> z, std::string name="no-name");
@@ -259,7 +259,7 @@ void SHOW::plot_points(Gnuplot& plot_obj, std::vector<std::vector<scalar_type> >
 }
 
 template<typename scalar_type, typename dmn_0_type, typename dmn_1_type, typename dmn_2_type>
-void SHOW::plot_bandstructure(function<scalar_type, dmn_2<dmn_2<dmn_0_type, dmn_1_type>, dmn_2_type> >& f, bool save_figure)
+void SHOW::plot_bandstructure(FUNC_LIB::function<scalar_type, dmn_2<dmn_2<dmn_0_type, dmn_1_type>, dmn_2_type> >& f, bool save_figure)
 {
 #ifdef ALLOW_GNUPLOT
 
@@ -290,7 +290,7 @@ void SHOW::plot_bandstructure(function<scalar_type, dmn_2<dmn_2<dmn_0_type, dmn_
 }
 
 template<typename scalar_type, typename dmn_type>
-void SHOW::plot_data(function<scalar_type, dmn_0<dmn_type> >& f, bool save_figure)
+void SHOW::plot_data(FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& f, bool save_figure)
 {
 #ifdef ALLOW_GNUPLOT
 
@@ -319,7 +319,7 @@ void SHOW::plot_data(function<scalar_type, dmn_0<dmn_type> >& f, bool save_figur
 
 
 template<typename scalar_type, typename dmn_type>
-void SHOW::plot_data(function<std::complex<scalar_type>, dmn_0<dmn_type> >& f, bool save_figure)
+void SHOW::plot_data(FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type> >& f, bool save_figure)
 {
 #ifdef ALLOW_GNUPLOT
 
@@ -350,7 +350,7 @@ void SHOW::plot_data(function<std::complex<scalar_type>, dmn_0<dmn_type> >& f, b
 }
 
 template<typename scalar_type, typename dmn_type>
-void SHOW::plot_data(Gnuplot& plot_obj, function<scalar_type, dmn_0<dmn_type> >& f)
+void SHOW::plot_data(Gnuplot& plot_obj, FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& f)
 {
 #ifdef ALLOW_GNUPLOT
 
@@ -371,7 +371,7 @@ void SHOW::plot_data(Gnuplot& plot_obj, function<scalar_type, dmn_0<dmn_type> >&
 }
 
 template<typename scalar_type, typename dmn_type>
-void SHOW::plot_data(Gnuplot& plot_obj, function<std::complex<scalar_type>, dmn_0<dmn_type> >& f)
+void SHOW::plot_data(Gnuplot& plot_obj, FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type> >& f)
 {
 #ifdef ALLOW_GNUPLOT
 
@@ -395,8 +395,8 @@ void SHOW::plot_data(Gnuplot& plot_obj, function<std::complex<scalar_type>, dmn_
 }
 
 template<typename scalar_type, typename dmn_type>
-void SHOW::plot_data(function<std::complex<scalar_type>, dmn_0<dmn_type> >& f,
-                     function<std::complex<scalar_type>, dmn_0<dmn_type> >& g,
+void SHOW::plot_data(FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type> >& f,
+                     FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type> >& g,
                      bool save_figure)
 {
 #ifdef ALLOW_GNUPLOT
@@ -434,8 +434,8 @@ void SHOW::plot_data(function<std::complex<scalar_type>, dmn_0<dmn_type> >& f,
 }
 
 template<typename scalar_type, typename dmn_type>
-void SHOW::plot_error_bars(function<scalar_type, dmn_0<dmn_type> >& f,
-                           function<scalar_type, dmn_0<dmn_type> >& g)
+void SHOW::plot_error_bars(FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& f,
+                           FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& g)
 {
 #ifdef ALLOW_GNUPLOT
 
@@ -471,8 +471,8 @@ void SHOW::plot_error_bars(function<scalar_type, dmn_0<dmn_type> >& f,
 }
 
 template<typename scalar_type, typename dmn_type_0, typename dmn_type_1, typename dmn_type_2>
-void SHOW::plot_error_bars(function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f,
-                           function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& g)
+void SHOW::plot_error_bars(FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f,
+                           FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& g)
 {
 #ifdef ALLOW_GNUPLOT
 
@@ -509,7 +509,7 @@ void SHOW::plot_error_bars(function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, d
 }
 
 template<typename scalar_type, typename dmn_type>
-void SHOW::execute(function<scalar_type, dmn_0<dmn_type> >& f, bool save_figure)
+void SHOW::execute(FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& f, bool save_figure)
 {
 #ifdef ALLOW_GNUPLOT
 
@@ -536,7 +536,7 @@ void SHOW::execute(function<scalar_type, dmn_0<dmn_type> >& f, bool save_figure)
 }
 
 template<typename scalar_type, typename dmn_type>
-void SHOW::execute(Gnuplot& plot_obj, function<scalar_type, dmn_0<dmn_type> >& f)
+void SHOW::execute(Gnuplot& plot_obj, FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& f)
 {
 #ifdef ALLOW_GNUPLOT
 
@@ -557,7 +557,7 @@ void SHOW::execute(Gnuplot& plot_obj, function<scalar_type, dmn_0<dmn_type> >& f
 }
 
 template<typename scalar_type, typename dmn_type>
-void SHOW::execute(Gnuplot& plot_obj, function<std::complex<scalar_type>, dmn_0<dmn_type> >& f)
+void SHOW::execute(Gnuplot& plot_obj, FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type> >& f)
 {
 #ifdef ALLOW_GNUPLOT
 
@@ -584,7 +584,7 @@ void SHOW::execute(Gnuplot& plot_obj, function<std::complex<scalar_type>, dmn_0<
 
 
 template<typename scalar_type, typename dmn_type>
-void SHOW::execute(function<std::complex<scalar_type>, dmn_0<dmn_type> >& f,
+void SHOW::execute(FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type> >& f,
                    bool save_figure)
 {
 #ifdef ALLOW_GNUPLOT
@@ -616,7 +616,7 @@ void SHOW::execute(function<std::complex<scalar_type>, dmn_0<dmn_type> >& f,
 }
 
 template<typename scalar_type, typename dmn_type_0, typename dmn_type_1>
-void SHOW::execute(function<scalar_type, dmn_2<dmn_type_0, dmn_type_1> >& f, int n, bool save_figure)
+void SHOW::execute(FUNC_LIB::function<scalar_type, dmn_2<dmn_type_0, dmn_type_1> >& f, int n, bool save_figure)
 {
 #ifdef ALLOW_GNUPLOT
 
@@ -678,7 +678,7 @@ void SHOW::execute(function<scalar_type, dmn_2<dmn_type_0, dmn_type_1> >& f, int
 }
 
 template<typename scalar_type, typename dmn_type_0, typename dmn_type_1>
-void SHOW::execute(function<std::complex<scalar_type>, dmn_2<dmn_type_0, dmn_type_1> >& f, int n, bool save_figure)
+void SHOW::execute(FUNC_LIB::function<std::complex<scalar_type>, dmn_2<dmn_type_0, dmn_type_1> >& f, int n, bool save_figure)
 {
 #ifdef ALLOW_GNUPLOT
 
@@ -740,7 +740,7 @@ void SHOW::execute(function<std::complex<scalar_type>, dmn_2<dmn_type_0, dmn_typ
 }
 
 template<typename scalar_type, typename dmn_type_0, typename dmn_type_1, typename dmn_type_2>
-void SHOW::execute(function<std::complex<scalar_type>, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f)
+void SHOW::execute(FUNC_LIB::function<std::complex<scalar_type>, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f)
 {
 #ifdef ALLOW_GNUPLOT
 
@@ -776,7 +776,7 @@ void SHOW::execute(function<std::complex<scalar_type>, dmn_4<dmn_type_0, dmn_typ
 }
 
 template<typename scalar_type, typename dmn_type_0, typename dmn_type_1, typename dmn_type_2>
-void SHOW::execute_on_bands(function<scalar_type, dmn_3<dmn_type_0, dmn_type_1, dmn_type_2> >& f)
+void SHOW::execute_on_bands(FUNC_LIB::function<scalar_type, dmn_3<dmn_type_0, dmn_type_1, dmn_type_2> >& f)
 {
 #ifdef ALLOW_GNUPLOT
 
@@ -809,7 +809,7 @@ void SHOW::execute_on_bands(function<scalar_type, dmn_3<dmn_type_0, dmn_type_1, 
 }
 
 template<typename scalar_type, typename dmn_type_0, typename dmn_type_1, typename dmn_type_2>
-void SHOW::execute_on_bands(function<std::complex<scalar_type>, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f)
+void SHOW::execute_on_bands(FUNC_LIB::function<std::complex<scalar_type>, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f)
 {
 #ifdef ALLOW_GNUPLOT
 
@@ -847,7 +847,7 @@ void SHOW::execute_on_bands(function<std::complex<scalar_type>, dmn_4<dmn_type_0
 }
 
 template<typename scalar_type, typename dmn_type_0, typename dmn_type_1, typename dmn_type_2>
-void SHOW::execute(function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f)
+void SHOW::execute(FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f)
 {
 #ifdef ALLOW_GNUPLOT
   cout << __FUNCTION__ << endl;
@@ -882,7 +882,7 @@ void SHOW::execute(function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_
 }
 
 template<typename scalar_type, typename dmn_type_0, typename dmn_type_1, typename dmn_type_2>
-void SHOW::execute_on_bands(function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f)
+void SHOW::execute_on_bands(FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f)
 {
 #ifdef ALLOW_GNUPLOT
 
@@ -918,8 +918,8 @@ void SHOW::execute_on_bands(function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, 
 }
 
 template<typename scalar_type, typename dmn_type_0, typename dmn_type_1, typename dmn_type_2>
-void SHOW::execute(function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f,
-                   function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& g)
+void SHOW::execute(FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f,
+                   FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& g)
 {
 #ifdef ALLOW_GNUPLOT
 
@@ -958,8 +958,8 @@ void SHOW::execute(function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_
 }
 
 template<typename scalar_type, typename dmn_type_0, typename dmn_type_1, typename dmn_type_2>
-void SHOW::execute(function<std::complex<scalar_type>, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f,
-                   function<std::complex<scalar_type>, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& g)
+void SHOW::execute(FUNC_LIB::function<std::complex<scalar_type>, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f,
+                   FUNC_LIB::function<std::complex<scalar_type>, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& g)
 {
 #ifdef ALLOW_GNUPLOT
 
@@ -1005,8 +1005,8 @@ void SHOW::execute(function<std::complex<scalar_type>, dmn_4<dmn_type_0, dmn_typ
 }
 
 template<typename scalar_type, typename dmn_type_0, typename dmn_type_1>
-void SHOW::execute(function<scalar_type, dmn_0<dmn_type_0> >& f,
-                   function<scalar_type, dmn_0<dmn_type_1> >& g,
+void SHOW::execute(FUNC_LIB::function<scalar_type, dmn_0<dmn_type_0> >& f,
+                   FUNC_LIB::function<scalar_type, dmn_0<dmn_type_1> >& g,
                    bool save_figure)
 {
 #ifdef ALLOW_GNUPLOT
@@ -1043,8 +1043,8 @@ void SHOW::execute(function<scalar_type, dmn_0<dmn_type_0> >& f,
 }
 
 template<typename scalar_type, typename dmn_type_0, typename dmn_type_1>
-void SHOW::execute(function<std::complex<scalar_type>, dmn_0<dmn_type_0> >& f,
-                   function<std::complex<scalar_type>, dmn_0<dmn_type_1> >& g,
+void SHOW::execute(FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type_0> >& f,
+                   FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type_1> >& g,
                    bool save_figure)
 {
 #ifdef ALLOW_GNUPLOT
@@ -1092,7 +1092,7 @@ void SHOW::execute(function<std::complex<scalar_type>, dmn_0<dmn_type_0> >& f,
 
 
 template<typename scalar_type, typename dmn_type>
-void SHOW::contour(function<scalar_type, dmn_0<dmn_type> >& f, bool save_figure)
+void SHOW::contour(FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& f, bool save_figure)
 {
 #ifdef ALLOW_GNUPLOT
 
@@ -1132,7 +1132,7 @@ void SHOW::contour(function<scalar_type, dmn_0<dmn_type> >& f, bool save_figure)
 }
 
 template<typename scalar_type, typename dmn_type>
-void SHOW::heatmap(function<scalar_type, dmn_0<dmn_type> >& f, bool save_figure)
+void SHOW::heatmap(FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& f, bool save_figure)
 {
 #ifdef ALLOW_GNUPLOT
 
@@ -1173,7 +1173,7 @@ void SHOW::heatmap(function<scalar_type, dmn_0<dmn_type> >& f, bool save_figure)
 
 /*
   template<typename scalar_type, typename dmn_type>
-  void SHOW::heatmap(Gnuplot& plot_obj, function<scalar_type, dmn_0<dmn_type> >& f)
+  void SHOW::heatmap(Gnuplot& plot_obj, FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& f)
   {
   #ifdef ALLOW_GNUPLOT
 
@@ -1214,12 +1214,12 @@ void SHOW::heatmap(function<scalar_type, dmn_0<dmn_type> >& f, bool save_figure)
 */
 
 template<typename scalar_type, typename dmn_type>
-void SHOW::heatmap(function<std::complex<scalar_type>, dmn_0<dmn_type> >& f, bool save_figure)
+void SHOW::heatmap(FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type> >& f, bool save_figure)
 {
 #ifdef ALLOW_GNUPLOT
 
-  function<scalar_type, dmn_0<dmn_type> > f_re("Re["+f.get_name()+"]");
-  function<scalar_type, dmn_0<dmn_type> > f_im("Im["+f.get_name()+"]");
+  FUNC_LIB::function<scalar_type, dmn_0<dmn_type> > f_re("Re["+f.get_name()+"]");
+  FUNC_LIB::function<scalar_type, dmn_0<dmn_type> > f_im("Im["+f.get_name()+"]");
 
   for(int i=0; i<f.size(); i++)
     {

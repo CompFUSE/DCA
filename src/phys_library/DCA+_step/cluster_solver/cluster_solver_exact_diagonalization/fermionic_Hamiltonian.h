@@ -77,25 +77,25 @@ namespace DCA
 
       ~fermionic_Hamiltonian();
 
-      void initialize(function<std::complex<double>, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_0,
-                      function<double              , dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_i);
+      void initialize(FUNC_LIB::function<std::complex<double>, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_0,
+                      FUNC_LIB::function<double              , dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_i);
 
       void construct_Hamiltonians(bool interacting);
 
       void diagonolize_Hamiltonians_st();
       void diagonolize_Hamiltonians_mt();
 
-      void set_spectrum(function<double, w_REAL>& A_w);
+      void set_spectrum(FUNC_LIB::function<double, w_REAL>& A_w);
       void print_spectrum();
 
-      function<vector_type, dmn_2<occ_dmn, mag_dmn> >& get_eigen_energies() { return eigen_energies; }
+      FUNC_LIB::function<vector_type, dmn_2<occ_dmn, mag_dmn> >& get_eigen_energies() { return eigen_energies; }
 
-      function<matrix_type, dmn_2<occ_dmn, mag_dmn> >& get_eigen_states  () { return eigen_states; }
+      FUNC_LIB::function<matrix_type, dmn_2<occ_dmn, mag_dmn> >& get_eigen_states  () { return eigen_states; }
 
     private:
 
-      void initialize_t_ij_and_U_ij(function<std::complex<double>, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_0,
-                                    function<double              , dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_i);
+      void initialize_t_ij_and_U_ij(FUNC_LIB::function<std::complex<double>, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_0,
+                                    FUNC_LIB::function<double              , dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_i);
 
       void shift_the_energies();
 
@@ -112,14 +112,14 @@ namespace DCA
 
       fermionic_Fock_space_type& Fock_space;
 
-      function<int            , dmn_2<occ_dmn, mag_dmn> >& n_occupation_states;
-      function<int_matrix_type, dmn_2<occ_dmn, mag_dmn> >&   occupation_states;
+      FUNC_LIB::function<int            , dmn_2<occ_dmn, mag_dmn> >& n_occupation_states;
+      FUNC_LIB::function<int_matrix_type, dmn_2<occ_dmn, mag_dmn> >&   occupation_states;
 
-      function<std::vector<overlap_indices>, dmn_2<occ_mag_dmn, occ_mag_dmn> >& creation_overlap_of_states;
-      function<std::vector<overlap_indices>, dmn_2<occ_mag_dmn, occ_mag_dmn> >& annihilation_overlap_of_states;
+      FUNC_LIB::function<std::vector<overlap_indices>, dmn_2<occ_mag_dmn, occ_mag_dmn> >& creation_overlap_of_states;
+      FUNC_LIB::function<std::vector<overlap_indices>, dmn_2<occ_mag_dmn, occ_mag_dmn> >& annihilation_overlap_of_states;
 
-      function<std::vector<int>, dmn_2<occ_mag_dmn, occ_mag_dmn> >& creation_overlap_break_points;
-      function<std::vector<int>, dmn_2<occ_mag_dmn, occ_mag_dmn> >& annihilation_overlap_break_points;
+      FUNC_LIB::function<std::vector<int>, dmn_2<occ_mag_dmn, occ_mag_dmn> >& creation_overlap_break_points;
+      FUNC_LIB::function<std::vector<int>, dmn_2<occ_mag_dmn, occ_mag_dmn> >& annihilation_overlap_break_points;
 
       double CUT_OFF;
 
@@ -127,10 +127,10 @@ namespace DCA
       std::vector<t_struct<complex_type> > t_ij;
       std::vector<U_struct<complex_type> > U_ij;
 
-      function<matrix_type, dmn_2<occ_dmn, mag_dmn> > Hamiltonians;
+      FUNC_LIB::function<matrix_type, dmn_2<occ_dmn, mag_dmn> > Hamiltonians;
 
-      function<vector_type, dmn_2<occ_dmn, mag_dmn> > eigen_energies;
-      function<matrix_type, dmn_2<occ_dmn, mag_dmn> > eigen_states;
+      FUNC_LIB::function<vector_type, dmn_2<occ_dmn, mag_dmn> > eigen_energies;
+      FUNC_LIB::function<matrix_type, dmn_2<occ_dmn, mag_dmn> > eigen_states;
     };
 
     template<typename parameter_type, typename b_dmn, typename s_dmn, typename r_dmn>
@@ -167,15 +167,15 @@ namespace DCA
     {}
 
     template<typename parameter_type, typename b_dmn, typename s_dmn, typename r_dmn>
-    void fermionic_Hamiltonian<parameter_type, b_dmn, s_dmn, r_dmn>::initialize(function<std::complex<double>, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_0,
-                                                                                function<double              , dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_i)
+    void fermionic_Hamiltonian<parameter_type, b_dmn, s_dmn, r_dmn>::initialize(FUNC_LIB::function<std::complex<double>, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_0,
+                                                                                FUNC_LIB::function<double              , dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_i)
     {
       initialize_t_ij_and_U_ij(H_0, H_i);
     }
 
     template<typename parameter_type, typename b_dmn, typename s_dmn, typename r_dmn>
-    void fermionic_Hamiltonian<parameter_type, b_dmn, s_dmn, r_dmn>::initialize_t_ij_and_U_ij(function<std::complex<double>, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_0,
-                                                                                              function<double              , dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_i)
+    void fermionic_Hamiltonian<parameter_type, b_dmn, s_dmn, r_dmn>::initialize_t_ij_and_U_ij(FUNC_LIB::function<std::complex<double>, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_0,
+                                                                                              FUNC_LIB::function<double              , dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_i)
     {
       {
         for(int r_j=0; r_j<r_dmn::dmn_size(); r_j++){
@@ -650,7 +650,7 @@ namespace DCA
     }
 
     template<typename parameter_type, typename b_dmn, typename s_dmn, typename r_dmn>
-    void fermionic_Hamiltonian<parameter_type, b_dmn, s_dmn, r_dmn>::set_spectrum(function<double, w_REAL>& A_w)
+    void fermionic_Hamiltonian<parameter_type, b_dmn, s_dmn, r_dmn>::set_spectrum(FUNC_LIB::function<double, w_REAL>& A_w)
     {
       A_w = 0;
 

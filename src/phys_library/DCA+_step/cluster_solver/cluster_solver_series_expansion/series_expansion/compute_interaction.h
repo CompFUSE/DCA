@@ -20,7 +20,7 @@ namespace DCA
 
     public:
 
-      typedef function<double, dmn_2<nu,nu> > function_type;
+      typedef FUNC_LIB::function<double, dmn_2<nu,nu> > function_type;
 
     public:
 
@@ -31,7 +31,7 @@ namespace DCA
       {}
 
       template<class r_dmn_t>
-      void execute(function<double, dmn_3<nu,nu,r_dmn_t> >& H_interation)
+      void execute(FUNC_LIB::function<double, dmn_3<nu,nu,r_dmn_t> >& H_interation)
       {
 	for(int nu0=0; nu0<2*b::dmn_size(); ++nu0)
 	  for(int nu1=0; nu1<2*b::dmn_size(); ++nu1)
@@ -52,7 +52,7 @@ namespace DCA
 
     protected:
 
-      function<double, dmn_2<nu,nu> > U;  
+      FUNC_LIB::function<double, dmn_2<nu,nu> > U;  
     };
 
   }

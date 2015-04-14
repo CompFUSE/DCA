@@ -14,8 +14,8 @@ namespace MATH_ALGORITHMS
     
     template<typename scalartype_input, class domain_input, 
 	     typename scalartype_output, class domain_output>
-    static void execute(function<scalartype_input , domain_input >& f_input, 
-			function<scalartype_output, domain_output>& f_output);
+    static void execute(FUNC_LIB::function<scalartype_input , domain_input >& f_input, 
+			FUNC_LIB::function<scalartype_output, domain_output>& f_output);
   };
 
 }

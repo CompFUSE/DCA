@@ -17,7 +17,7 @@ namespace DCA
 
     public:
 
-      typedef function<std::complex<double>, dmn_4<nu,nu, k_HOST, w> > function_type;
+      typedef FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_HOST, w> > function_type;
 
     public:
 
@@ -37,8 +37,8 @@ namespace DCA
       concurrency_type& concurrency;
       MOMS_type&        MOMS;
 
-      function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w_dmn_t> > G_k_w;
-      function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w_dmn_t> > G0_k_w;
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w_dmn_t> > G_k_w;
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w_dmn_t> > G0_k_w;
     };
 
     template<class parameters_type, class MOMS_type, class k_dmn_t, class w_dmn_t>
@@ -68,8 +68,8 @@ namespace DCA
 	{
 	  std::complex<double> i_wm_plus_mu;
 	  
-	  real(i_wm_plus_mu) = parameters.get_chemical_potential();
-	  imag(i_wm_plus_mu) = w::get_elements()[w_ind];
+	  i_wm_plus_mu.real( parameters.get_chemical_potential() );
+	  i_wm_plus_mu.imag( w::get_elements()[w_ind] );
 	  
 	  for(int i=0; i<nu::dmn_size(); i++)
 	    I_k(i,i) = i_wm_plus_mu;

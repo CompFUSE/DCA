@@ -56,15 +56,15 @@ public:
   static std::vector<std::pair<std::pair<int,int>, std::pair<int,int> > > get_orbital_permutations();
 
   template<class domain, class parameters_type>
-  static void                 initialize_H_LDA(function<std::complex<double> , domain >& H_LDA,
+  static void                 initialize_H_LDA(FUNC_LIB::function<std::complex<double> , domain >& H_LDA,
 					       parameters_type&                          parameters);
 
   template<class domain, class parameters_type>
-  static void                 initialize_H_interaction(function<double , domain >& H_interactions,
+  static void                 initialize_H_interaction(FUNC_LIB::function<double , domain >& H_interactions,
 						       parameters_type&            parameters);
 
   template<class domain>
-  static void                 initialize_H_symmetries(function<int , domain >& H_symmetries);
+  static void                 initialize_H_symmetries(FUNC_LIB::function<int , domain >& H_symmetries);
 
   static void                 symmetrize_Hamiltonian(std::complex<double>* H_matrix);
 
@@ -267,7 +267,7 @@ double* dft_model<DIMENSION, point_group_type>::get_k_LDA_basis()
 
 template<int DIMENSION, typename point_group_type>
 template<class domain>
-void dft_model<DIMENSION, point_group_type>::initialize_H_symmetries(function<int, domain >& H_symmetries)
+void dft_model<DIMENSION, point_group_type>::initialize_H_symmetries(FUNC_LIB::function<int, domain >& H_symmetries)
 {
 //   std::fstream input_file(&(parameters.get_H_LDA_file())[0], ios::in);
 
@@ -278,7 +278,7 @@ void dft_model<DIMENSION, point_group_type>::initialize_H_symmetries(function<in
 
 template<int DIMENSION, typename point_group_type>
 template<class domain, class parameters_type>
-void dft_model<DIMENSION, point_group_type>::initialize_H_interaction(function<double, domain >& H_interaction,
+void dft_model<DIMENSION, point_group_type>::initialize_H_interaction(FUNC_LIB::function<double, domain >& H_interaction,
 								      parameters_type&           parameters)
 {
   std::fstream input_file(&(parameters.get_H_LDA_file())[0], ios::in);  
@@ -297,7 +297,7 @@ void dft_model<DIMENSION, point_group_type>::initialize_H_interaction(function<d
 
 template<int DIMENSION, typename point_group_type>
 template<class domain, class parameters_type>
-void dft_model<DIMENSION, point_group_type>::initialize_H_LDA(function<std::complex<double>, domain >& H_LDA,
+void dft_model<DIMENSION, point_group_type>::initialize_H_LDA(FUNC_LIB::function<std::complex<double>, domain >& H_LDA,
 							      parameters_type&                          parameters)
 {
   std::fstream input_file(&(parameters.get_H_LDA_file())[0], ios::in);  

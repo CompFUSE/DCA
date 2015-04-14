@@ -55,7 +55,7 @@ namespace DCA
 
       typedef typename MC_type_definitions<SS_CT_HYB, parameters_type, MOMS_type>::configuration_type configuration_type;
 
-      typedef function<vertex_vertex_matrix_type, nu> M_matrix_type;
+      typedef FUNC_LIB::function<vertex_vertex_matrix_type, nu> M_matrix_type;
 
     public:
 
@@ -67,28 +67,28 @@ namespace DCA
 
       void initialize(int dca_iteration);
 
-      void finalize();//function<double, nu> mu_DC);
+      void finalize();//FUNC_LIB::function<double, nu> mu_DC);
 
       void measure(walker_type& walker);
 
       void update_from(walker_type& walker);
       void measure();
 
-      void compute_G_r_w(function<double, nu> mu_DC);
+      void compute_G_r_w(FUNC_LIB::function<double, nu> mu_DC);
 
       configuration_type& get_configuration() { return configuration; }
 
-      function<double, dmn_0<Feynman_expansion_order_domain> >& get_visited_expansion_order_k() {return visited_expansion_order_k; }
+      FUNC_LIB::function<double, dmn_0<Feynman_expansion_order_domain> >& get_visited_expansion_order_k() {return visited_expansion_order_k; }
 
-      function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& get_G_r_w()  { return G_r_w; }
-      function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& get_GS_r_w() { return GS_r_w; }
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& get_G_r_w()  { return G_r_w; }
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& get_GS_r_w() { return GS_r_w; }
 
       void accumulate_length (walker_type&  walker);
       void accumulate_overlap(walker_type&  walker);
 
-      function<double, nu>& get_length() { return length; }
+      FUNC_LIB::function<double, nu>& get_length() { return length; }
 
-      function<double, nu_nu>& get_overlap() { return overlap; }
+      FUNC_LIB::function<double, nu_nu>& get_overlap() { return overlap; }
 
       /*!
        *  \brief Print the functions G_r_w and G_k_w.
@@ -111,15 +111,15 @@ namespace DCA
       int               thread_id;
 
       configuration_type                      configuration;
-      function<vertex_vertex_matrix_type, nu> M_matrices;
+      FUNC_LIB::function<vertex_vertex_matrix_type, nu> M_matrices;
 
-      function<double, dmn_0<Feynman_expansion_order_domain> > visited_expansion_order_k;
+      FUNC_LIB::function<double, dmn_0<Feynman_expansion_order_domain> > visited_expansion_order_k;
 
-      function<double ,       nu     > length;
-      function<double , dmn_2<nu,nu> > overlap;
+      FUNC_LIB::function<double ,       nu     > length;
+      FUNC_LIB::function<double , dmn_2<nu,nu> > overlap;
 
-      function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> > G_r_w;
-      function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> > GS_r_w;
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> > G_r_w;
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> > GS_r_w;
 
       MC_single_particle_accumulator<SS_CT_HYB, NFFT, parameters_type, MOMS_type> single_particle_accumulator_obj;
     };
@@ -184,7 +184,7 @@ namespace DCA
     }
 
     template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
-    void MC_accumulator<SS_CT_HYB, device_t, parameters_type, MOMS_type>::finalize()//function<double, nu> mu_DC)
+    void MC_accumulator<SS_CT_HYB, device_t, parameters_type, MOMS_type>::finalize()//FUNC_LIB::function<double, nu> mu_DC)
     {
       single_particle_accumulator_obj.finalize(G_r_w, GS_r_w);
 

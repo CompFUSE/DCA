@@ -24,26 +24,26 @@ namespace DCA
     lattice_map_sp(parameters_type& parameters_ref);
     ~lattice_map_sp();
 
-    void execute(function<std::complex<double>, dmn_4<nu, nu, source_k_dmn_t, w> >& f_source,
-                 function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& Sigma_interp,
-                 function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& Sigma_deconv,
-                 function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& f_target);
+    void execute(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, source_k_dmn_t, w> >& f_source,
+                 FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& Sigma_interp,
+                 FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& Sigma_deconv,
+                 FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& f_target);
 
     template<typename MOMS_type, typename HTS_solver_type, typename coarsegraining_sp_type>
     void execute_with_HTS_approximation(MOMS_type&              HTS_MOMS, 
 					HTS_solver_type&        HTS_solver,
 					coarsegraining_sp_type& cluster_mapping_obj,
-					function<std::complex<double>, dmn_4<nu, nu, source_k_dmn_t, w> >& f_source,
-					function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& Sigma_interp,
-					function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& Sigma_deconv,
-					function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& f_target);
+					FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, source_k_dmn_t, w> >& f_source,
+					FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& Sigma_interp,
+					FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& Sigma_deconv,
+					FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& f_target);
 
   private:
 
     void initialize();
 
     template<typename k_dmn_t>
-    void plot_function(function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w> >& f);
+    void plot_function(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w> >& f);
 
   private:
 
@@ -53,10 +53,10 @@ namespace DCA
     interpolation_sp<parameters_type, source_k_dmn_t, target_k_dmn_t> interpolation_obj;
     deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t> deconvolution_obj;
 
-    function<             double , nu>                     Sigma_shift;
+    FUNC_LIB::function<             double , nu>                     Sigma_shift;
 
-    function<std::complex<double>, dmn_4<nu,nu,k_DCA ,w> > Sigma_cluster;
-    function<std::complex<double>, dmn_4<nu,nu,k_HOST,w> > Sigma_lattice;
+    FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_DCA ,w> > Sigma_cluster;
+    FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_HOST,w> > Sigma_lattice;
   };
 
   template<typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
@@ -81,10 +81,10 @@ namespace DCA
   {}
 
   template<typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
-  void lattice_map_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(function<std::complex<double>, dmn_4<nu, nu, source_k_dmn_t, w> >& f_source,
-                                                                                function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& f_interp,
-                                                                                function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& f_approx,
-                                                                                function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& f_target)
+  void lattice_map_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, source_k_dmn_t, w> >& f_source,
+                                                                                FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& f_interp,
+                                                                                FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& f_approx,
+                                                                                FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& f_target)
   {
     symmetrize::execute(f_source);
 
@@ -108,10 +108,10 @@ namespace DCA
   void lattice_map_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute_with_HTS_approximation(MOMS_type&              HTS_MOMS, 
 												       HTS_solver_type&        HTS_solver,
 												       coarsegraining_sp_type& cluster_mapping_obj,
-												       function<std::complex<double>, dmn_4<nu, nu, source_k_dmn_t, w> >& f_source,
-												       function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& f_interp,
-												       function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& f_approx,
-												       function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& f_target)
+												       FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, source_k_dmn_t, w> >& f_source,
+												       FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& f_interp,
+												       FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& f_approx,
+												       FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& f_target)
   {
 //     {
 //       Sigma_shift = 0;
@@ -156,7 +156,7 @@ namespace DCA
 
   template<typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
   template<typename k_dmn_t>
-  void lattice_map_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::plot_function(function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w> >& f)
+  void lattice_map_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::plot_function(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w> >& f)
   {
     std::vector<double> x(0);
     std::vector<double> y(0);

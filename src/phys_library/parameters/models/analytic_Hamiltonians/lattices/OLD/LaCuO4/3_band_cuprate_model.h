@@ -29,11 +29,11 @@ public:
   static double* initialize_k_LDA_basis();
 
   template<class domain, class parameters_type>
-  static void initialize_H_interaction(function<double , domain >& H_interaction,
+  static void initialize_H_interaction(FUNC_LIB::function<double , domain >& H_interaction,
 				       parameters_type&            parameters);
 
   template<class domain>
-  static void initialize_H_symmetry(function<int , domain>& H_symmetry);
+  static void initialize_H_symmetry(FUNC_LIB::function<int , domain>& H_symmetry);
 
   template<class parameters_type>
   static std::complex<double> get_LDA_Hamiltonians(parameters_type& parameters, 
@@ -87,7 +87,7 @@ double* cuprate_model_3_bands<DCA_point_group_type>::initialize_k_LDA_basis()
 
 template<typename DCA_point_group_type>
 template<class domain, class parameters_type>
-void cuprate_model_3_bands<DCA_point_group_type>::initialize_H_interaction(function<double , domain >& H_interaction,
+void cuprate_model_3_bands<DCA_point_group_type>::initialize_H_interaction(FUNC_LIB::function<double , domain >& H_interaction,
 									   parameters_type&            parameters)
 {
   double U = parameters.get_U_hubbard();
@@ -98,7 +98,7 @@ void cuprate_model_3_bands<DCA_point_group_type>::initialize_H_interaction(funct
 
 template<typename DCA_point_group_type>
 template<class domain>
-void cuprate_model_3_bands<DCA_point_group_type>::initialize_H_symmetry(function<int , domain>& H_symmetries)
+void cuprate_model_3_bands<DCA_point_group_type>::initialize_H_symmetry(FUNC_LIB::function<int , domain>& H_symmetries)
 {
   // e_up <==> e_dn symmetry
   for(int i=0; i<BANDS; i++){

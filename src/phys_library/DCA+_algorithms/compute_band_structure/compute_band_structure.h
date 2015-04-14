@@ -17,8 +17,8 @@ public:
 
   template<typename K_dmn_t, typename parameter_type>
   static void execute(parameter_type&                                        parameters,
-                      function<std::complex<double>, dmn_3<nu,nu,K_dmn_t> >& H_LDA,
-                      function<double, nu_k_cut>&                            bands);
+		      FUNC_LIB::function<std::complex<double>, dmn_3<nu,nu,K_dmn_t> >& H_LDA,
+		      FUNC_LIB::function<double, nu_k_cut>&                            bands);
 
 private:
 
@@ -39,8 +39,8 @@ private:
 
 template<typename K_dmn_t, typename parameter_type>
 void compute_band_structure::execute(parameter_type&                                        parameters,
-                                     function<std::complex<double>, dmn_3<nu,nu,K_dmn_t> >& H_LDA,
-                                     function<double, nu_k_cut>&                            band_structure)
+				     FUNC_LIB::function<std::complex<double>, dmn_3<nu,nu,K_dmn_t> >& H_LDA,
+				     FUNC_LIB::function<double, nu_k_cut>&                            band_structure)
 {
   //int matrix_dim = s::dmn_size()*b::dmn_size();
 
@@ -72,7 +72,7 @@ void compute_band_structure::execute(parameter_type&                            
     band_structure.reset();
   }
 
-  function<std::complex<double>, dmn_3<nu, nu, k_domain_cut_dmn_type> > H_k("H_k_interpolated");
+  FUNC_LIB::function<std::complex<double>, dmn_3<nu, nu, k_domain_cut_dmn_type> > H_k("H_k_interpolated");
 
   { // get H(k)
     wannier_interpolation<K_dmn_t, k_domain_cut_dmn_type>::execute(H_LDA, H_k);

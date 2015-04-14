@@ -21,24 +21,24 @@ namespace INFERENCE
     ~Richardson_Lucy_deconvolution();
 
     void execute(LIN_ALG::matrix<double, LIN_ALG::CPU>& matrix,
-                 function<double, dmn_2<k_dmn_t, p_dmn_t> >& f_source,
-                 function<double, dmn_2<k_dmn_t, p_dmn_t> >& f_target);
+                 FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t> >& f_source,
+                 FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t> >& f_target);
 
     void execute(LIN_ALG::matrix<double, LIN_ALG::CPU>&      A,
-                 function<double, dmn_2<k_dmn_t, p_dmn_t> >& f_source,
-                 function<double, dmn_2<k_dmn_t, p_dmn_t> >& f_approx,
-                 function<double, dmn_2<k_dmn_t, p_dmn_t> >& f_target);
+                 FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t> >& f_source,
+                 FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t> >& f_approx,
+                 FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t> >& f_target);
 
   private:
 
-    void initialize_matrices(function<double, dmn_2<k_dmn_t, p_dmn_t> >& f_source);
+    void initialize_matrices(FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t> >& f_source);
 
-    void initialize_errors(function<bool  , p_dmn_t>& is_finished,
-                           function<double, p_dmn_t>& error_function);
+    void initialize_errors(FUNC_LIB::function<bool  , p_dmn_t>& is_finished,
+                           FUNC_LIB::function<double, p_dmn_t>& error_function);
 
-    bool update_f_target(function<bool  , p_dmn_t>& is_finished,
-                         function<double, p_dmn_t>& error_function,
-                         function<double, dmn_2<k_dmn_t, p_dmn_t> >& f_target);
+    bool update_f_target(FUNC_LIB::function<bool  , p_dmn_t>& is_finished,
+                         FUNC_LIB::function<double, p_dmn_t>& error_function,
+                         FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t> >& f_target);
 
   private:
 
@@ -72,16 +72,16 @@ namespace INFERENCE
 
   template<typename parameters_type, typename k_dmn_t, typename p_dmn_t>
   void Richardson_Lucy_deconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(LIN_ALG::matrix<double, LIN_ALG::CPU>&      A,
-                                                                                 function<double, dmn_2<k_dmn_t, p_dmn_t> >& f_source,
-                                                                                 function<double, dmn_2<k_dmn_t, p_dmn_t> >& f_target)
+                                                                                 FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t> >& f_source,
+                                                                                 FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t> >& f_target)
   {
     //cout << __FUNCTION__ << endl;
 
     assert(A.get_current_size().first==k_dmn_t::dmn_size());
     assert(A.get_current_size().first==A.get_current_size().second);
 
-    function<bool  , p_dmn_t> is_finished("is_finished");
-    function<double, p_dmn_t> error_function("error_function");
+    FUNC_LIB::function<bool  , p_dmn_t> is_finished("is_finished");
+    FUNC_LIB::function<double, p_dmn_t> error_function("error_function");
 
     initialize_matrices(f_source);
 
@@ -122,9 +122,9 @@ namespace INFERENCE
 
   template<typename parameters_type, typename k_dmn_t, typename p_dmn_t>
   void Richardson_Lucy_deconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(LIN_ALG::matrix<double, LIN_ALG::CPU>&      A,
-                                                                                 function<double, dmn_2<k_dmn_t, p_dmn_t> >& f_source,
-                                                                                 function<double, dmn_2<k_dmn_t, p_dmn_t> >& f_approx,
-                                                                                 function<double, dmn_2<k_dmn_t, p_dmn_t> >& f_target)
+                                                                                 FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t> >& f_source,
+                                                                                 FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t> >& f_approx,
+                                                                                 FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t> >& f_target)
   {
     //cout << __FUNCTION__ << endl;
 
@@ -142,7 +142,7 @@ namespace INFERENCE
   }
 
   template<typename parameters_type, typename k_dmn_t, typename p_dmn_t>
-  void Richardson_Lucy_deconvolution<parameters_type, k_dmn_t, p_dmn_t>::initialize_matrices(function<double, dmn_2<k_dmn_t, p_dmn_t> >& f_source)
+  void Richardson_Lucy_deconvolution<parameters_type, k_dmn_t, p_dmn_t>::initialize_matrices(FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t> >& f_source)
   {
     int nr_rows = k_dmn_t::dmn_size();
     int nr_cols = p_dmn_t::dmn_size();
@@ -172,8 +172,8 @@ namespace INFERENCE
   }
 
   template<typename parameters_type, typename k_dmn_t, typename p_dmn_t>
-  void Richardson_Lucy_deconvolution<parameters_type, k_dmn_t, p_dmn_t>::initialize_errors(function<bool  , p_dmn_t>& is_finished,
-                                                                                           function<double, p_dmn_t>& error_function)
+  void Richardson_Lucy_deconvolution<parameters_type, k_dmn_t, p_dmn_t>::initialize_errors(FUNC_LIB::function<bool  , p_dmn_t>& is_finished,
+                                                                                           FUNC_LIB::function<double, p_dmn_t>& error_function)
   {
     for(int j=0; j<p_dmn_t::dmn_size(); j++)
       {
@@ -187,9 +187,9 @@ namespace INFERENCE
   }
 
   template<typename parameters_type, typename k_dmn_t, typename p_dmn_t>
-  bool Richardson_Lucy_deconvolution<parameters_type, k_dmn_t, p_dmn_t>::update_f_target(function<bool  , p_dmn_t>& is_finished,
-                                                                                         function<double, p_dmn_t>& error_function,
-                                                                                         function<double, dmn_2<k_dmn_t, p_dmn_t> >& f_target)
+  bool Richardson_Lucy_deconvolution<parameters_type, k_dmn_t, p_dmn_t>::update_f_target(FUNC_LIB::function<bool  , p_dmn_t>& is_finished,
+                                                                                         FUNC_LIB::function<double, p_dmn_t>& error_function,
+                                                                                         FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t> >& f_target)
   {
     bool all_are_finished = true;
 

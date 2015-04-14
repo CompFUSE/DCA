@@ -21,7 +21,7 @@ class cluster_harmonics_k_basis_functions
 
 public:
 
-  typedef function<std::complex<double>, source_k_dmn_t>          element_type;
+  typedef FUNC_LIB::function<std::complex<double>, source_k_dmn_t>          element_type;
   typedef cluster_harmonics_k_basis_functions<basis_cluster_type> this_type;
   
 public:
@@ -54,7 +54,7 @@ cluster_harmonics_k_basis_functions<basis_cluster_type>::initialize()
 {
   cout << __FUNCTION__ << endl;
 
-  static std::vector<element_type> Phi_k(source_k_dmn_t::dmn_size(), function<std::complex<double>, source_k_dmn_t>("cluster_harmonics_k_basis_function"));
+  static std::vector<element_type> Phi_k(source_k_dmn_t::dmn_size(), FUNC_LIB::function<std::complex<double>, source_k_dmn_t>("cluster_harmonics_k_basis_function"));
   
   for(int phi_ind=0; phi_ind<source_k_dmn_t::dmn_size(); phi_ind++){
 

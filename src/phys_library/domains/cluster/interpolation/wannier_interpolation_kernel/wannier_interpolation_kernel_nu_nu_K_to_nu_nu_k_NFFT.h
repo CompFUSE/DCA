@@ -39,8 +39,8 @@ public:
 
   void reset_functions();
 
-  void set(function<std::complex<double>, input_dmn_t >& H_K);
-  void get(function<std::complex<double>, output_dmn_t>& H_k);
+  void set(FUNC_LIB::function<std::complex<double>, input_dmn_t >& H_K);
+  void get(FUNC_LIB::function<std::complex<double>, output_dmn_t>& H_k);
 
 private:
   
@@ -48,11 +48,11 @@ private:
 
   wannier_interpolation_kernel_type wannier_kernel_object;
 
-  //function<std::complex<double>, centered_r_dmn_t>  in;
-  function<std::complex<double>, source_k_dmn_type> in;
-  function<std::complex<double>, target_k_dmn_type> out;
+  //FUNC_LIB::function<std::complex<double>, centered_r_dmn_t>  in;
+  FUNC_LIB::function<std::complex<double>, source_k_dmn_type> in;
+  FUNC_LIB::function<std::complex<double>, target_k_dmn_type> out;
 
-  function<std::complex<double>, dmn_3<b_dmn_t, b_dmn_t, centered_r_dmn_t> > F_R;
+  FUNC_LIB::function<std::complex<double>, dmn_3<b_dmn_t, b_dmn_t, centered_r_dmn_t> > F_R;
 };
 
 template<typename b_dmn_t, typename source_k_dmn_type, typename target_k_dmn_type>
@@ -87,7 +87,7 @@ void wannier_interpolation_kernel<dmn_3<b_dmn_t, b_dmn_t, source_k_dmn_type>,
 
 template<typename b_dmn_t, typename source_k_dmn_type, typename target_k_dmn_type>
 void wannier_interpolation_kernel<dmn_3<b_dmn_t, b_dmn_t, source_k_dmn_type>,
-				  dmn_3<b_dmn_t, b_dmn_t, target_k_dmn_type> >::set(function<std::complex<double>, input_dmn_t>& H_K)
+				  dmn_3<b_dmn_t, b_dmn_t, target_k_dmn_type> >::set(FUNC_LIB::function<std::complex<double>, input_dmn_t>& H_K)
 {
   for(int i=0; i<dmn.get_size(); ++i){
     for(int j=0; j<dmn.get_size(); ++j){
@@ -105,7 +105,7 @@ void wannier_interpolation_kernel<dmn_3<b_dmn_t, b_dmn_t, source_k_dmn_type>,
 
 template<typename b_dmn_t, typename source_k_dmn_type, typename target_k_dmn_type>
 void wannier_interpolation_kernel<dmn_3<b_dmn_t, b_dmn_t, source_k_dmn_type>, 
-				  dmn_3<b_dmn_t, b_dmn_t, target_k_dmn_type> >::get(function<std::complex<double>, output_dmn_t>& H_k)
+				  dmn_3<b_dmn_t, b_dmn_t, target_k_dmn_type> >::get(FUNC_LIB::function<std::complex<double>, output_dmn_t>& H_k)
 {
   for(int i=0; i<dmn.get_size(); ++i){
     for(int j=0; j<dmn.get_size(); ++j){

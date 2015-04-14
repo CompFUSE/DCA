@@ -39,7 +39,7 @@ namespace DCA
       typedef typename MC_type_definitions<SS_CT_HYB, parameters_type, MOMS_type>::vertex_vertex_matrix_type vertex_vertex_matrix_type;
       typedef typename MC_type_definitions<SS_CT_HYB, parameters_type, MOMS_type>::configuration_type configuration_type;
 
-      typedef function<vertex_vertex_matrix_type, nu> M_matrix_type;
+      typedef FUNC_LIB::function<vertex_vertex_matrix_type, nu> M_matrix_type;
 
       typedef ss_hybridization_solver_routines<parameters_type, MOMS_type>                               ss_hybridization_solver_routines_type;
       typedef ss_hybridization_walker_routines<parameters_type, MOMS_type, configuration_type, rng_type> ss_hybridization_walker_routines_type;
@@ -62,7 +62,7 @@ namespace DCA
       /*!
        *  \brief Initializes the configuration and sets \f$\mu_i = \frac12 \sum_j \frac{U_{ij}+U_{ji}}{2}\f$.
        */
-      void  initialize();//function<double, nu> mu_DC);
+      void  initialize();//FUNC_LIB::function<double, nu> mu_DC);
 
       /*!
        *  \brief Returns if the configuration has gone through a warm-up sweep.
@@ -123,10 +123,10 @@ namespace DCA
       void swap_random_orbitals         ();
 
       //       // high-frquency FT ...
-      //       void compute_moments (function<std::complex<double>, nu_nu_k_DCA_w>& f_source);
-      //       void add_moments     (function<std::complex<double>, nu_nu_k_DCA_w>& f_source);
-      //       void subtract_moments(function<std::complex<double>, nu_nu_k_DCA_w>& f_source);
-      //       void compensate_for_moments(function<std::complex<double>, nu_nu_k_DCA_t>& f_source);
+      //       void compute_moments (FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& f_source);
+      //       void add_moments     (FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& f_source);
+      //       void subtract_moments(FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& f_source);
+      //       void compensate_for_moments(FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_t>& f_source);
 
     private:
 
@@ -143,8 +143,8 @@ namespace DCA
       ss_hybridization_solver_routines_type ss_hybridization_solver_routines_obj;
       ss_hybridization_walker_routines_type ss_hybridization_walker_routines_obj;
 
-      function<double, nu>&            mu;
-      function<double, nu_nu_r_DCA_t>& F_r_t;
+      FUNC_LIB::function<double, nu>&            mu;
+      FUNC_LIB::function<double, nu_nu_r_DCA_t>& F_r_t;
 
       full_line_tools_t     full_line_tools_obj;
       anti_segment_tools_t  anti_segment_tools_obj;
@@ -155,21 +155,21 @@ namespace DCA
       //std::vector<bool> is_interacting_band;
 
       /*
-        function<std::complex<double>, nu_nu_k_DCA_w> F_k_w;
-        function<std::complex<double>, nu_nu_k_DCA_t> F_k_t;
-        function<double              , nu_nu_r_DCA_t> F_r_t;
+        FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w> F_k_w;
+        FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_t> F_k_t;
+        FUNC_LIB::function<double              , nu_nu_r_DCA_t> F_r_t;
 
-        function<double                   , nu> mu;
+        FUNC_LIB::function<double                   , nu> mu;
       */
 
-      function<vertex_vertex_matrix_type, nu> M;
+      FUNC_LIB::function<vertex_vertex_matrix_type, nu> M;
 
       //    public:
       /*
-        function<double, nu> mu_HALF;
+        FUNC_LIB::function<double, nu> mu_HALF;
 
-        function<double, nu> a0;
-        function<double, nu> a1;
+        FUNC_LIB::function<double, nu> a0;
+        FUNC_LIB::function<double, nu> a1;
       */
 
       bool    thermalized;
@@ -660,7 +660,7 @@ namespace DCA
       }
 
       template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
-      void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_moments(function<std::complex<double>, nu_nu_k_DCA_w>& f_source)
+      void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_moments(FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& f_source)
       {
       int    w_ind = 0;
       double w_val = w::get_elements()[w_ind];
@@ -673,7 +673,7 @@ namespace DCA
       }
 
       template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
-      void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::subtract_moments(function<std::complex<double>, nu_nu_k_DCA_w>& f_source)
+      void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::subtract_moments(FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& f_source)
       {
 
       for(int w_ind=0; w_ind<w::dmn_size(); w_ind++){
@@ -689,7 +689,7 @@ namespace DCA
       }
 
       template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
-      void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::add_moments(function<std::complex<double>, nu_nu_k_DCA_w>& f_source)
+      void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::add_moments(FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& f_source)
       {
       for(int w_ind=0; w_ind<w::dmn_size(); w_ind++){
 
@@ -704,7 +704,7 @@ namespace DCA
       }
 
       template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
-      void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compensate_for_moments(function<std::complex<double>, nu_nu_k_DCA_t>& f_source)
+      void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compensate_for_moments(FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_t>& f_source)
       {
       for(int t_ind=0; t_ind<t::dmn_size(); t_ind++){
 

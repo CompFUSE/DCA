@@ -307,7 +307,7 @@ void cluster_reduction<base_cluster_type, symmetry_package_spg_lib>::set_symmetr
 template<class base_cluster_type>
 void cluster_reduction<base_cluster_type, symmetry_package_spg_lib>::set_r_symmetry_matrix()
 {
-  function<std::pair<int,int>, dmn_2< dmn_2<r_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& symmetry_matrix = r_cluster_type::get_symmetry_matrix();
+  FUNC_LIB::function<std::pair<int,int>, dmn_2< dmn_2<r_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& symmetry_matrix = r_cluster_type::get_symmetry_matrix();
 
   for(int r_i=0; r_i<r_dmn_t::dmn_size(); ++r_i){
     for(int b_i=0; b_i<b_dmn_t::dmn_size(); ++b_i){
@@ -348,8 +348,8 @@ void cluster_reduction<base_cluster_type, symmetry_package_spg_lib>::set_r_symme
 template<class base_cluster_type>
 void cluster_reduction<base_cluster_type, symmetry_package_spg_lib>::set_k_symmetry_matrix()
 {
-  function<std::pair<int,int>, dmn_2< dmn_2<r_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& r_symmetry_matrix = r_cluster_type::get_symmetry_matrix();
-  function<std::pair<int,int>, dmn_2< dmn_2<k_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& k_symmetry_matrix = k_cluster_type::get_symmetry_matrix();
+  FUNC_LIB::function<std::pair<int,int>, dmn_2< dmn_2<r_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& r_symmetry_matrix = r_cluster_type::get_symmetry_matrix();
+  FUNC_LIB::function<std::pair<int,int>, dmn_2< dmn_2<k_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& k_symmetry_matrix = k_cluster_type::get_symmetry_matrix();
 
   for(int i=0; i<k_dmn_t::dmn_size(); ++i){
     for(int j=0; j<b_dmn_t::dmn_size(); ++j){
@@ -393,7 +393,7 @@ void cluster_reduction<cluster_type, symmetry_package_spg_lib>::print_on_shell()
 {
   if(true)
     {
-      function<std::pair<int,int>, dmn_2< dmn_2<k_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& symmetry_matrix = k_cluster_type::get_symmetry_matrix();
+      FUNC_LIB::function<std::pair<int,int>, dmn_2< dmn_2<k_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& symmetry_matrix = k_cluster_type::get_symmetry_matrix();
       
       cout << "\n\t k-space symmetries : \n";
       for(int i=0; i<k_dmn_t::dmn_size(); ++i){
@@ -412,7 +412,7 @@ void cluster_reduction<cluster_type, symmetry_package_spg_lib>::print_on_shell()
 
   if(true)
     {
-      function<std::pair<int,int>, dmn_2< dmn_2<r_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& symmetry_matrix = r_cluster_type::get_symmetry_matrix();
+      FUNC_LIB::function<std::pair<int,int>, dmn_2< dmn_2<r_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& symmetry_matrix = r_cluster_type::get_symmetry_matrix();
      
       cout << "\n\t r-space symmetries : \n";
       for(int i=0; i<r_dmn_t::dmn_size(); ++i){

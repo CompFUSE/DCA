@@ -26,11 +26,11 @@ public:
   static std::vector<std::pair<std::pair<int,int>, std::pair<int,int> > > get_orbital_permutations();
 
   template<class domain, class parameters_type>
-  static void initialize_H_interaction(function<double , domain >& H_interaction,
+  static void initialize_H_interaction(FUNC_LIB::function<double , domain >& H_interaction,
                                        parameters_type&            parameters);
 
   template<class domain>
-  static void initialize_H_symmetry(function<int, domain>& H_symmetry);
+  static void initialize_H_symmetry(FUNC_LIB::function<int, domain>& H_symmetry);
 
   template<class parameters_type>
   static std::complex<double> get_LDA_Hamiltonians(parameters_type& parameters,
@@ -105,7 +105,7 @@ std::vector<std::pair<std::pair<int,int>, std::pair<int,int> > > material_lattic
 
 template<typename point_group_type>
 template<class domain, class parameters_type>
-void material_lattice<NiO, point_group_type>::initialize_H_interaction(function<double , domain >& H_i,
+void material_lattice<NiO, point_group_type>::initialize_H_interaction(FUNC_LIB::function<double , domain >& H_i,
                                                                        parameters_type&            parameters)
 {
   std::vector<std::vector<double> > U;
@@ -138,7 +138,7 @@ void material_lattice<NiO, point_group_type>::initialize_H_interaction(function<
 
 template<typename point_group_type>
 template<class domain>
-void material_lattice<NiO, point_group_type>::initialize_H_symmetry(function<int , domain>& H_symmetries)
+void material_lattice<NiO, point_group_type>::initialize_H_symmetry(FUNC_LIB::function<int , domain>& H_symmetries)
 {
   H_symmetries = -1;
 
@@ -209,8 +209,8 @@ std::complex<double> material_lattice<NiO, point_group_type>::get_LDA_Hamiltonia
 	      double r_y = t[2]*r_LDA[1] + t[3]*r_LDA[4] + t[4]*r_LDA[7];
 	      double r_z = t[2]*r_LDA[2] + t[3]*r_LDA[5] + t[4]*r_LDA[8];
 
-	      real(val) = t[5];
-	      imag(val) = t[6];
+	      val.real(t[5]);
+	      val.imag(t[6]);
 
 	      double multiplicity = t[7];
 

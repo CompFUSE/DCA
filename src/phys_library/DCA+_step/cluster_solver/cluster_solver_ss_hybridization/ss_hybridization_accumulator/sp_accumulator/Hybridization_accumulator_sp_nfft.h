@@ -58,8 +58,8 @@ namespace DCA
 
       ~MC_single_particle_accumulator();
 
-      void initialize(function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& G_r_w,
-                      function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& GS_r_w);
+      void initialize(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& G_r_w,
+                      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& GS_r_w);
 
       template<class walker_type,class H_type>
       void accumulate(walker_type&  walker,
@@ -71,11 +71,11 @@ namespace DCA
 		      M_matrices_type&    M_matrices,
 		      H_type&             H_interactions);
 
-//       void compute(function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& G_r_w,
-//                    function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& GS_r_w);
+//       void compute(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& G_r_w,
+//                    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& GS_r_w);
 
-      void finalize(function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& G_r_w,
-                   function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& GS_r_w);
+      void finalize(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& G_r_w,
+                   FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& GS_r_w);
 
     private:
 
@@ -121,8 +121,8 @@ namespace DCA
     {}
 
     template<class parameters_type, class base_cluster_type>
-    void MC_single_particle_accumulator<SS_CT_HYB, NFFT, parameters_type, base_cluster_type>::initialize(function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& G_r_w,
-                                                                                                         function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& GS_r_w)
+    void MC_single_particle_accumulator<SS_CT_HYB, NFFT, parameters_type, base_cluster_type>::initialize(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& G_r_w,
+                                                                                                         FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& GS_r_w)
     {
       {
         cached_nfft_1D_G_obj .initialize();
@@ -134,13 +134,13 @@ namespace DCA
     }
 
     template<class parameters_type, class base_cluster_type>
-    void MC_single_particle_accumulator<SS_CT_HYB, NFFT, parameters_type, base_cluster_type>::finalize(function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& G_r_w,
-												       function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& GS_r_w)
+    void MC_single_particle_accumulator<SS_CT_HYB, NFFT, parameters_type, base_cluster_type>::finalize(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& G_r_w,
+												       FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& GS_r_w)
     {
       double beta = parameters.get_beta();
 
       {
-        function<std::complex<double>, dmn_2<w_dmn_t, p_dmn_t> > tmp("tmp G");
+        FUNC_LIB::function<std::complex<double>, dmn_2<w_dmn_t, p_dmn_t> > tmp("tmp G");
 
         cached_nfft_1D_G_obj.finalize(tmp);
 
@@ -158,7 +158,7 @@ namespace DCA
       }
 
       {
-        function<std::complex<double>, dmn_2<w_dmn_t, p_dmn_t> > tmp("tmp GS");
+        FUNC_LIB::function<std::complex<double>, dmn_2<w_dmn_t, p_dmn_t> > tmp("tmp GS");
 
         cached_nfft_1D_GS_obj.finalize(tmp);
 
@@ -369,11 +369,11 @@ namespace DCA
 
     /*
     template<class parameters_type, class base_cluster_type>
-    void MC_single_particle_accumulator<SS_CT_HYB, NFFT, parameters_type, base_cluster_type>::compute(function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& G_r_w,
-                                                                                                      function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& GS_r_w)
+    void MC_single_particle_accumulator<SS_CT_HYB, NFFT, parameters_type, base_cluster_type>::compute(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& G_r_w,
+                                                                                                      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& GS_r_w)
     {
       {
-        function<std::complex<double>, dmn_2<w_dmn_t, p_dmn_t> > tmp("tmp G");
+        FUNC_LIB::function<std::complex<double>, dmn_2<w_dmn_t, p_dmn_t> > tmp("tmp G");
 
         cached_nfft_1D_G_obj.finalize(tmp);
 
@@ -391,7 +391,7 @@ namespace DCA
       }
 
       {
-        function<std::complex<double>, dmn_2<w_dmn_t, p_dmn_t> > tmp("tmp GS");
+        FUNC_LIB::function<std::complex<double>, dmn_2<w_dmn_t, p_dmn_t> > tmp("tmp GS");
 
         cached_nfft_1D_GS_obj.finalize(tmp);
 

@@ -29,7 +29,7 @@ namespace COMP_LIB
     size_t get_buffer_size(std::vector<T>& v);
 
     template<typename T, class dmn_type>
-    size_t get_buffer_size(function<T, dmn_type>& f);
+    size_t get_buffer_size(FUNC_LIB::function<T, dmn_type>& f);
 
     /************************************
      ***  pack_unpack
@@ -53,7 +53,7 @@ namespace COMP_LIB
     void pack(int* buffer, int size, int& off_set, std::vector<T>& v);
 
     template<typename T, class dmn_type>
-    void pack(int* buffer, int size, int& off_set, function<T, dmn_type>& f);
+    void pack(int* buffer, int size, int& off_set, FUNC_LIB::function<T, dmn_type>& f);
 
     /************************************
      ***  unpack
@@ -68,7 +68,7 @@ namespace COMP_LIB
     void unpack(int* buffer, int size, int& off_set, std::vector<T>& v);
 
     template<typename T, class dmn_type>
-    void unpack(int* buffer, int size, int& off_set, function<T, dmn_type>& f);
+    void unpack(int* buffer, int size, int& off_set, FUNC_LIB::function<T, dmn_type>& f);
 
   private:
 
@@ -106,7 +106,7 @@ namespace COMP_LIB
 
   template<PARALLELIZATION_LIBRARY_NAMES LIBRARY>
   template<typename T, class dmn_type>
-  size_t packing_interface<LIBRARY>::get_buffer_size(function<T, dmn_type>& f)
+  size_t packing_interface<LIBRARY>::get_buffer_size(FUNC_LIB::function<T, dmn_type>& f)
   {
     return f.size()*size(f(0));
   }
@@ -156,7 +156,7 @@ namespace COMP_LIB
 
   template<PARALLELIZATION_LIBRARY_NAMES LIBRARY>
   template<typename T, class dmn_type>
-  void packing_interface<LIBRARY>::pack(int* buffer, int size, int& off_set, function<T, dmn_type>& f)
+  void packing_interface<LIBRARY>::pack(int* buffer, int size, int& off_set, FUNC_LIB::function<T, dmn_type>& f)
   {
     //   for(int l=0; l<f.size(); l++)
     //     pack(buffer, size, off_set, f(l));
@@ -193,7 +193,7 @@ namespace COMP_LIB
 
   template<PARALLELIZATION_LIBRARY_NAMES LIBRARY>
   template<typename T, class dmn_type>
-  void packing_interface<LIBRARY>::unpack(int* buffer, int size, int& off_set, function<T, dmn_type>& f)
+  void packing_interface<LIBRARY>::unpack(int* buffer, int size, int& off_set, FUNC_LIB::function<T, dmn_type>& f)
   {
     //   for(int l=0; l<f.size(); l++)
     //     unpack(buffer, size, off_set, f(l));

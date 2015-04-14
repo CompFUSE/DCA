@@ -72,56 +72,56 @@ namespace DCA
 
   public:
 
-    function<int                 , nu_nu>                 H_symmetry;
-    function<double              , dmn_3<nu,nu,r_dmn_t> > H_interactions;
+    FUNC_LIB::function<int                 , nu_nu>                 H_symmetry;
+    FUNC_LIB::function<double              , dmn_3<nu,nu,r_dmn_t> > H_interactions;
 
-    function<std::complex<double>, dmn_3<nu,nu,k_dmn_t> > H_DCA;
-    function<std::complex<double>, dmn_3<nu,nu,k_HOST> >  H_HOST;
-    function<std::complex<double>, dmn_3<nu,nu,k_LDA> >   H_LDA;
+    FUNC_LIB::function<std::complex<double>, dmn_3<nu,nu,k_dmn_t> > H_DCA;
+    FUNC_LIB::function<std::complex<double>, dmn_3<nu,nu,k_HOST> >  H_HOST;
+    FUNC_LIB::function<std::complex<double>, dmn_3<nu,nu,k_LDA> >   H_LDA;
 
-    function<double              , nu_k_cut> band_structure;
+    FUNC_LIB::function<double              , nu_k_cut> band_structure;
 
-    function<std::complex<double>, nu_k_cut> Sigma_band_structure;
+    FUNC_LIB::function<std::complex<double>, nu_k_cut> Sigma_band_structure;
 
-    function<std::complex<double>, nu_k_cut> Sigma_cluster_band_structure;
-    function<std::complex<double>, nu_k_cut> Sigma_lattice_band_structure;
+    FUNC_LIB::function<std::complex<double>, nu_k_cut> Sigma_cluster_band_structure;
+    FUNC_LIB::function<std::complex<double>, nu_k_cut> Sigma_lattice_band_structure;
 
-    function<std::complex<double>, nu_k_cut> Sigma_band_structure_interpolated;
-    function<std::complex<double>, nu_k_cut> Sigma_band_structure_coarsegrained;
+    FUNC_LIB::function<std::complex<double>, nu_k_cut> Sigma_band_structure_interpolated;
+    FUNC_LIB::function<std::complex<double>, nu_k_cut> Sigma_band_structure_coarsegrained;
 
-    function<std::complex<double>, dmn_3<nu,nu,k_HOST> > G_k;//("Greens-k-lattice");
-    function<std::complex<double>, dmn_3<nu,nu,k_HOST> > S_k;//("Sigma-k-lattice");
-    function<std::complex<double>, dmn_3<nu,nu,r_HOST> > S_r;//("Sigma-r-lattice");
+    FUNC_LIB::function<std::complex<double>, dmn_3<nu,nu,k_HOST> > G_k;//("Greens-k-lattice");
+    FUNC_LIB::function<std::complex<double>, dmn_3<nu,nu,k_HOST> > S_k;//("Sigma-k-lattice");
+    FUNC_LIB::function<std::complex<double>, dmn_3<nu,nu,r_HOST> > S_r;//("Sigma-r-lattice");
 
-    function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w> > Sigma;
-    function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w> > Sigma_stddev;
+    FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w> > Sigma;
+    FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w> > Sigma_stddev;
 
-    function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w> > Sigma_cluster;
-    function<std::complex<double>, dmn_4<nu,nu,k_HOST ,w> > Sigma_lattice;
-    function<std::complex<double>, dmn_4<nu,nu,k_HOST ,w> > Sigma_lattice_interpolated;
-    function<std::complex<double>, dmn_4<nu,nu,k_HOST ,w> > Sigma_lattice_coarsegrained;
+    FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w> > Sigma_cluster;
+    FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_HOST ,w> > Sigma_lattice;
+    FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_HOST ,w> > Sigma_lattice_interpolated;
+    FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_HOST ,w> > Sigma_lattice_coarsegrained;
 
-    function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w> > G_k_w;
-    function<double              , dmn_4<nu,nu,k_dmn_t,t> > G_k_t;
-    function<std::complex<double>, dmn_4<nu,nu,r_dmn_t,w> > G_r_w;
-    function<double              , dmn_4<nu,nu,r_dmn_t,t> > G_r_t;
+    FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w> > G_k_w;
+    FUNC_LIB::function<double              , dmn_4<nu,nu,k_dmn_t,t> > G_k_t;
+    FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,r_dmn_t,w> > G_r_w;
+    FUNC_LIB::function<double              , dmn_4<nu,nu,r_dmn_t,t> > G_r_t;
 
-    function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w> > G0_k_w;
-    function<double              , dmn_4<nu,nu,k_dmn_t,t> > G0_k_t;
-    function<std::complex<double>, dmn_4<nu,nu,r_dmn_t,w> > G0_r_w;
-    function<double              , dmn_4<nu,nu,r_dmn_t,t> > G0_r_t;
+    FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w> > G0_k_w;
+    FUNC_LIB::function<double              , dmn_4<nu,nu,k_dmn_t,t> > G0_k_t;
+    FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,r_dmn_t,w> > G0_r_w;
+    FUNC_LIB::function<double              , dmn_4<nu,nu,r_dmn_t,t> > G0_r_t;
 
-    function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w> > G0_k_w_cluster_excluded;
-    function<double              , dmn_4<nu,nu,k_dmn_t,t> > G0_k_t_cluster_excluded;
-    function<std::complex<double>, dmn_4<nu,nu,r_dmn_t,w> > G0_r_w_cluster_excluded;
-    function<double              , dmn_4<nu,nu,r_dmn_t,t> > G0_r_t_cluster_excluded;
+    FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w> > G0_k_w_cluster_excluded;
+    FUNC_LIB::function<double              , dmn_4<nu,nu,k_dmn_t,t> > G0_k_t_cluster_excluded;
+    FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,r_dmn_t,w> > G0_r_w_cluster_excluded;
+    FUNC_LIB::function<double              , dmn_4<nu,nu,r_dmn_t,t> > G0_r_t_cluster_excluded;
 
-    function<std::complex<double>, dmn_8<b,b,b,b,k_dmn_t,k_dmn_t,w_VERTEX,w_VERTEX> > G4_k_k_w_w;
-    function<std::complex<double>, dmn_8<b,b,b,b,k_dmn_t,k_dmn_t,w_VERTEX,w_VERTEX> > G4_k_k_w_w_stddev;
+    FUNC_LIB::function<std::complex<double>, dmn_8<b,b,b,b,k_dmn_t,k_dmn_t,w_VERTEX,w_VERTEX> > G4_k_k_w_w;
+    FUNC_LIB::function<std::complex<double>, dmn_8<b,b,b,b,k_dmn_t,k_dmn_t,w_VERTEX,w_VERTEX> > G4_k_k_w_w_stddev;
 
-    function<double              , dmn_4<nu,nu,r_dmn_t,t> > K_r_t;
+    FUNC_LIB::function<double              , dmn_4<nu,nu,r_dmn_t,t> > K_r_t;
 
-    function<double, nu>                        orbital_occupancy;
+    FUNC_LIB::function<double, nu>                        orbital_occupancy;
   };
 
   template<class parameters_type>
@@ -468,10 +468,10 @@ namespace DCA
       cout << "\t\t start coarsegraining G0_k_w " << print_time() << "\n";
 
     {
-      //       function<std::complex<double>, nu_nu_k_HOST_w> Sigma_zero;
+      //       FUNC_LIB::function<std::complex<double>, nu_nu_k_HOST_w> Sigma_zero;
       //       Sigma_zero = 0.;
 
-      function<std::complex<double>, nu_nu_k_DCA_w> Sigma_zero;
+      FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w> Sigma_zero;
       Sigma_zero = 0.;
 
       coarsegrain_obj.compute_G_K_w(H_HOST, Sigma_zero, G0_k_w);
@@ -529,16 +529,16 @@ namespace DCA
       {
       cout << "\n\n\t start testing MATH-ALGORTHMS\n\n";
 
-      function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w> > G0_k_w_test("G_k_w_test");
-      function<             double , dmn_4<nu,nu,k_dmn_t,t> > G0_k_t_test("G_k_t_test");
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w> > G0_k_w_test("G_k_w_test");
+      FUNC_LIB::function<             double , dmn_4<nu,nu,k_dmn_t,t> > G0_k_t_test("G_k_t_test");
 
       {
       G0_k_w_test = G0_k_w;
 
       MATH_ALGORITHMS::TRANSFORM<w, t>::execute(G0_k_w_test, G0_k_t_test);
 
-      function<double, t> tmp_1("G0_k_t");
-      function<double, t> tmp_2("FT[G0_k_w]");
+      FUNC_LIB::function<double, t> tmp_1("G0_k_t");
+      FUNC_LIB::function<double, t> tmp_2("FT[G0_k_w]");
 
       for(int b_ind=0; b_ind<b_dmn_t::dmn_size(); b_ind++){
       for(int k_ind=0; k_ind<k_dmn_t::dmn_size(); k_ind++){
@@ -598,8 +598,8 @@ namespace DCA
 
       std::complex<double> i_wm_plus_mu;
 
-      real(i_wm_plus_mu) = parameters.get_chemical_potential();
-      imag(i_wm_plus_mu) = w::get_elements()[w_ind];
+      i_wm_plus_mu.real( parameters.get_chemical_potential() );
+      i_wm_plus_mu.imag( w::get_elements()[w_ind] );
 
       for(int i=0; i<nu::dmn_size(); i++)
         I_k(i,i) = i_wm_plus_mu;
@@ -655,7 +655,7 @@ namespace DCA
     Sigma_lattice_band_structure.reset();
     if(parameters.use_interpolated_Self_energy())
       {
-        function<std::complex<double>, dmn_2<nu,k_HOST> > S_k_dmn("S_k_dmn_s");
+        FUNC_LIB::function<std::complex<double>, dmn_2<nu,k_HOST> > S_k_dmn("S_k_dmn_s");
 
         for(int b_ind=0; b_ind<b::dmn_size(); ++b_ind)
           for(int s_ind=0; s_ind<s::dmn_size(); ++s_ind)
@@ -668,7 +668,7 @@ namespace DCA
     Sigma_band_structure_interpolated.reset();
     if(true)
       {
-        function<std::complex<double>, dmn_2<nu,k_HOST> > S_k_dmn("S_k_dmn_s");
+        FUNC_LIB::function<std::complex<double>, dmn_2<nu,k_HOST> > S_k_dmn("S_k_dmn_s");
 
         for(int b_ind=0; b_ind<b::dmn_size(); ++b_ind)
           for(int s_ind=0; s_ind<s::dmn_size(); ++s_ind)
@@ -681,7 +681,7 @@ namespace DCA
     Sigma_band_structure_coarsegrained.reset();
     if(parameters.use_interpolated_Self_energy())
       {
-        function<std::complex<double>, dmn_2<nu,k_HOST> > S_k_dmn("S_k_dmn_s");
+        FUNC_LIB::function<std::complex<double>, dmn_2<nu,k_HOST> > S_k_dmn("S_k_dmn_s");
 
         for(int b_ind=0; b_ind<b::dmn_size(); ++b_ind)
           for(int s_ind=0; s_ind<s::dmn_size(); ++s_ind)

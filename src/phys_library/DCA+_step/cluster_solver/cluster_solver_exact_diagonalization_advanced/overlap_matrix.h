@@ -73,9 +73,9 @@ namespace DCA
 
       //void compute_all_creation_matrices();
 
-      function<int, dmn_3<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type, b_s_r_dmn_type> >& get_creation_set_all()
+      FUNC_LIB::function<int, dmn_3<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type, b_s_r_dmn_type> >& get_creation_set_all()
       { return creation_set_all; }
-      function<int, dmn_3<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type, b_s_r_dmn_type> >& get_annihilation_set_all()
+      FUNC_LIB::function<int, dmn_3<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type, b_s_r_dmn_type> >& get_annihilation_set_all()
       { return annihilation_set_all; }
 
 
@@ -97,12 +97,12 @@ namespace DCA
 
       // creation_set(i,j,l)
       // creation_set(i,j,b_i,s_i,r_i)
-      function<int, dmn_3<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type, b_s_r_dmn_type> > creation_set_all;
-      function< std::vector< sparse_element_type >,
+      FUNC_LIB::function<int, dmn_3<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type, b_s_r_dmn_type> > creation_set_all;
+      FUNC_LIB::function< std::vector< sparse_element_type >,
                 dmn_3<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type, b_s_r_dmn_type> > creation_set_nonzero_sparse;
 
-    function<int, dmn_3<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type, b_s_r_dmn_type> > annihilation_set_all;
-    function< std::vector< sparse_element_type >,
+    FUNC_LIB::function<int, dmn_3<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type, b_s_r_dmn_type> > annihilation_set_all;
+    FUNC_LIB::function< std::vector< sparse_element_type >,
               dmn_3<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type, b_s_r_dmn_type> > annihilation_set_nonzero_sparse;
 
   matrix_type sparse_creation; // <psi_i | c^\dagger| psi>
@@ -111,7 +111,7 @@ namespace DCA
   // matrix_type dense_creation;  // < V_i^\dagger  | c^\dagger| V_j  >
   matrix_type helper;
 
-  function<complex_type, dmn_2<b_s_r_dmn_type, b_s_r_dmn_type> > overlap;
+  FUNC_LIB::function<complex_type, dmn_2<b_s_r_dmn_type, b_s_r_dmn_type> > overlap;
 
 };
 

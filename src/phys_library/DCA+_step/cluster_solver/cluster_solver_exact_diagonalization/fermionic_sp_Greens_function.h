@@ -82,9 +82,9 @@ namespace DCA
       void compute_all_sp_functions(MOMS_w_imag_type& MOMS_imag, MOMS_w_real_type& MOMS_real, bool interacting);
 
       template<typename k_dmn, typename w_dmn>
-      void compute_S_k_w(function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, k_dmn, w_dmn> >& G_k_w,
-                         function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, k_dmn, w_dmn> >& G0_k_w,
-                         function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, k_dmn, w_dmn> >& S_k_w);
+      void compute_S_k_w(FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, k_dmn, w_dmn> >& G_k_w,
+                         FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, k_dmn, w_dmn> >& G0_k_w,
+                         FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, k_dmn, w_dmn> >& S_k_w);
 
       template<typename MOMS_type>
       void print_G_k_w(MOMS_type& MOMS, bool interacting);
@@ -92,36 +92,36 @@ namespace DCA
     private:
 
       template<typename k_dmn>
-      void compute_Greens_functions(function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w     > >& G_r_w,
-                                    function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL> >& G_r_w_real,
-                                    function<             double , dmn_4<nu_dmn, nu_dmn, r_dmn, t     > >& G_r_t,
-                                    function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, k_dmn, w     > >& G_k_w,
-                                    function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, k_dmn, w_REAL> >& G_k_w_real,
-                                    function<             double , dmn_4<nu_dmn, nu_dmn, k_dmn, t     > >& G_k_t);
+      void compute_Greens_functions(FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w     > >& G_r_w,
+                                    FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL> >& G_r_w_real,
+                                    FUNC_LIB::function<             double , dmn_4<nu_dmn, nu_dmn, r_dmn, t     > >& G_r_t,
+                                    FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, k_dmn, w     > >& G_k_w,
+                                    FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, k_dmn, w_REAL> >& G_k_w_real,
+                                    FUNC_LIB::function<             double , dmn_4<nu_dmn, nu_dmn, k_dmn, t     > >& G_k_t);
 
       void compute_ca_Greens_function_st(int n_0, int Sz_0,
                                          int n_1, int Sz_1,
-                                         function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w     > >& G_r_w,
-                                         function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL> >& G_r_w_real,
-                                         function<             double , dmn_4<nu_dmn, nu_dmn, r_dmn, t     > >& G_r_t);
+                                         FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w     > >& G_r_w,
+                                         FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL> >& G_r_w_real,
+                                         FUNC_LIB::function<             double , dmn_4<nu_dmn, nu_dmn, r_dmn, t     > >& G_r_t);
 
       void compute_ca_Greens_function_mt(int n_0, int Sz_0,
                                          int n_1, int Sz_1,
-                                         function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w     > >& G_r_w,
-                                         function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL> >& G_r_w_real,
-                                         function<             double , dmn_4<nu_dmn, nu_dmn, r_dmn, t     > >& G_r_t);
+                                         FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w     > >& G_r_w,
+                                         FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL> >& G_r_w_real,
+                                         FUNC_LIB::function<             double , dmn_4<nu_dmn, nu_dmn, r_dmn, t     > >& G_r_t);
 
       void compute_ac_Greens_function_st(int n_0, int Sz_0,
                                          int n_1, int Sz_1,
-                                         function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w     > >& G_r_w,
-                                         function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL> >& G_r_w_real,
-                                         function<             double , dmn_4<nu_dmn, nu_dmn, r_dmn, t     > >& G_r_t);
+                                         FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w     > >& G_r_w,
+                                         FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL> >& G_r_w_real,
+                                         FUNC_LIB::function<             double , dmn_4<nu_dmn, nu_dmn, r_dmn, t     > >& G_r_t);
 
       void compute_ac_Greens_function_mt(int n_0, int Sz_0,
                                          int n_1, int Sz_1,
-                                         function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w     > >& G_r_w,
-                                         function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL> >& G_r_w_real,
-                                         function<             double , dmn_4<nu_dmn, nu_dmn, r_dmn, t     > >& G_r_t);
+                                         FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w     > >& G_r_w,
+                                         FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL> >& G_r_w_real,
+                                         FUNC_LIB::function<             double , dmn_4<nu_dmn, nu_dmn, r_dmn, t     > >& G_r_t);
 
       void compute_overlap_serial_slow(int n_0, int Sz_0,
                                        int n_1, int Sz_1,
@@ -154,22 +154,22 @@ namespace DCA
       fermionic_Hamiltonian_type& Hamiltonian;
 
 
-      function<int            , dmn_2<occ_dmn, mag_dmn> >& n_occupation_states;
-      function<int_matrix_type, dmn_2<occ_dmn, mag_dmn> >&   occupation_states;
+      FUNC_LIB::function<int            , dmn_2<occ_dmn, mag_dmn> >& n_occupation_states;
+      FUNC_LIB::function<int_matrix_type, dmn_2<occ_dmn, mag_dmn> >&   occupation_states;
 
-      function<std::vector<overlap_indices>, dmn_2<occ_mag_dmn, occ_mag_dmn> >& creation_overlap_of_states;
-      function<std::vector<overlap_indices>, dmn_2<occ_mag_dmn, occ_mag_dmn> >& annihilation_overlap_of_states;
+      FUNC_LIB::function<std::vector<overlap_indices>, dmn_2<occ_mag_dmn, occ_mag_dmn> >& creation_overlap_of_states;
+      FUNC_LIB::function<std::vector<overlap_indices>, dmn_2<occ_mag_dmn, occ_mag_dmn> >& annihilation_overlap_of_states;
 
-      function<std::vector<int>, dmn_2<occ_mag_dmn, occ_mag_dmn> >& creation_overlap_break_points;
-      function<std::vector<int>, dmn_2<occ_mag_dmn, occ_mag_dmn> >& annihilation_overlap_break_points;
+      FUNC_LIB::function<std::vector<int>, dmn_2<occ_mag_dmn, occ_mag_dmn> >& creation_overlap_break_points;
+      FUNC_LIB::function<std::vector<int>, dmn_2<occ_mag_dmn, occ_mag_dmn> >& annihilation_overlap_break_points;
 
-      function<vector_type, dmn_2<occ_dmn, mag_dmn> >& eigen_energies;
-      function<matrix_type, dmn_2<occ_dmn, mag_dmn> >& eigen_states;
+      FUNC_LIB::function<vector_type, dmn_2<occ_dmn, mag_dmn> >& eigen_energies;
+      FUNC_LIB::function<matrix_type, dmn_2<occ_dmn, mag_dmn> >& eigen_states;
 
-      function<int, dmn_2<r_dmn, r_dmn> > rj_minus_ri;
+      FUNC_LIB::function<int, dmn_2<r_dmn, r_dmn> > rj_minus_ri;
 
-      function<std::complex<double>, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >         overlap;
-      function<std::complex<double>, dmn_2<dmn_3<b_dmn, s_dmn, r_dmn>, dmn_3<b_dmn, s_dmn, r_dmn> > > overlap_r_r;
+      FUNC_LIB::function<std::complex<double>, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >         overlap;
+      FUNC_LIB::function<std::complex<double>, dmn_2<dmn_3<b_dmn, s_dmn, r_dmn>, dmn_3<b_dmn, s_dmn, r_dmn> > > overlap_r_r;
 
       LIN_ALG::vector<int         , LIN_ALG::CPU> V_lhs_index;
       LIN_ALG::vector<int         , LIN_ALG::CPU> V_rhs_index;
@@ -230,9 +230,9 @@ namespace DCA
 
     template<typename parameter_type, typename b_dmn, typename s_dmn, typename r_dmn>
     template<typename k_dmn, typename w_dmn>
-    void fermionic_sp_Greens_function<parameter_type, b_dmn, s_dmn, r_dmn>::compute_S_k_w(function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, k_dmn, w_dmn> >& G_k_w,
-                                                                                          function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, k_dmn, w_dmn> >& G0_k_w,
-                                                                                          function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, k_dmn, w_dmn> >& S_k_w)
+    void fermionic_sp_Greens_function<parameter_type, b_dmn, s_dmn, r_dmn>::compute_S_k_w(FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, k_dmn, w_dmn> >& G_k_w,
+                                                                                          FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, k_dmn, w_dmn> >& G0_k_w,
+                                                                                          FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, k_dmn, w_dmn> >& S_k_w)
     {
       if(concurrency.id()==0)
         cout << "\n\t" << __FUNCTION__ << endl;
@@ -348,12 +348,12 @@ namespace DCA
      */
     template<typename parameter_type, typename b_dmn, typename s_dmn, typename r_dmn>
     template<typename k_dmn>
-    void fermionic_sp_Greens_function<parameter_type, b_dmn, s_dmn, r_dmn>::compute_Greens_functions(function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w     > >& G_r_w,
-                                                                                                     function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL> >& G_r_w_real,
-                                                                                                     function<             double , dmn_4<nu_dmn, nu_dmn, r_dmn, t     > >& G_r_t,
-                                                                                                     function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, k_dmn, w     > >& G_k_w,
-                                                                                                     function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, k_dmn, w_REAL> >& G_k_w_real,
-                                                                                                     function<             double , dmn_4<nu_dmn, nu_dmn, k_dmn, t     > >& G_k_t)
+    void fermionic_sp_Greens_function<parameter_type, b_dmn, s_dmn, r_dmn>::compute_Greens_functions(FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w     > >& G_r_w,
+                                                                                                     FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL> >& G_r_w_real,
+                                                                                                     FUNC_LIB::function<             double , dmn_4<nu_dmn, nu_dmn, r_dmn, t     > >& G_r_t,
+                                                                                                     FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, k_dmn, w     > >& G_k_w,
+                                                                                                     FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, k_dmn, w_REAL> >& G_k_w_real,
+                                                                                                     FUNC_LIB::function<             double , dmn_4<nu_dmn, nu_dmn, k_dmn, t     > >& G_k_t)
     {
       if(concurrency.id()==0)
         cout << "\n\t" << __FUNCTION__ << endl;
@@ -438,9 +438,9 @@ namespace DCA
     template<typename parameter_type, typename b_dmn, typename s_dmn, typename r_dmn>
     void fermionic_sp_Greens_function<parameter_type, b_dmn, s_dmn, r_dmn>::compute_ac_Greens_function_st(int n_0, int Sz_0,
                                                                                                           int n_1, int Sz_1,
-                                                                                                          function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w     > >& G_r_w,
-                                                                                                          function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL> >& G_r_w_real,
-                                                                                                          function<             double , dmn_4<nu_dmn, nu_dmn, r_dmn, t     > >& G_r_t)
+                                                                                                          FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w     > >& G_r_w,
+                                                                                                          FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL> >& G_r_w_real,
+                                                                                                          FUNC_LIB::function<             double , dmn_4<nu_dmn, nu_dmn, r_dmn, t     > >& G_r_t)
     {
       std::complex<double> I(0,1);
 
@@ -514,9 +514,9 @@ namespace DCA
     template<typename parameter_type, typename b_dmn, typename s_dmn, typename r_dmn>
     void fermionic_sp_Greens_function<parameter_type, b_dmn, s_dmn, r_dmn>::compute_ac_Greens_function_mt(int n_0, int Sz_0,
                                                                                                           int n_1, int Sz_1,
-                                                                                                          function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w     > >& G_r_w,
-                                                                                                          function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL> >& G_r_w_real,
-                                                                                                          function<             double , dmn_4<nu_dmn, nu_dmn, r_dmn, t     > >& G_r_t)
+                                                                                                          FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w     > >& G_r_w,
+                                                                                                          FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL> >& G_r_w_real,
+                                                                                                          FUNC_LIB::function<             double , dmn_4<nu_dmn, nu_dmn, r_dmn, t     > >& G_r_t)
     {
       std::complex<double> I(0,1);
 
@@ -603,9 +603,9 @@ namespace DCA
     template<typename parameter_type, typename b_dmn, typename s_dmn, typename r_dmn>
     void fermionic_sp_Greens_function<parameter_type, b_dmn, s_dmn, r_dmn>::compute_ca_Greens_function_st(int n_0, int Sz_0,
                                                                                                           int n_1, int Sz_1,
-                                                                                                          function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w     > >& G_r_w,
-                                                                                                          function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL> >& G_r_w_real,
-                                                                                                          function<             double , dmn_4<nu_dmn, nu_dmn, r_dmn, t     > >& G_r_t)
+                                                                                                          FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w     > >& G_r_w,
+                                                                                                          FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL> >& G_r_w_real,
+                                                                                                          FUNC_LIB::function<             double , dmn_4<nu_dmn, nu_dmn, r_dmn, t     > >& G_r_t)
     {
       double beta    = parameters.get_beta();
       double off_set = parameters.get_real_frequencies_off_set();
@@ -679,9 +679,9 @@ namespace DCA
     template<typename parameter_type, typename b_dmn, typename s_dmn, typename r_dmn>
     void fermionic_sp_Greens_function<parameter_type, b_dmn, s_dmn, r_dmn>::compute_ca_Greens_function_mt(int n_0, int Sz_0,
                                                                                                           int n_1, int Sz_1,
-                                                                                                          function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w     > >& G_r_w,
-                                                                                                          function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL> >& G_r_w_real,
-                                                                                                          function<             double , dmn_4<nu_dmn, nu_dmn, r_dmn, t     > >& G_r_t)
+                                                                                                          FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w     > >& G_r_w,
+                                                                                                          FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL> >& G_r_w_real,
+                                                                                                          FUNC_LIB::function<             double , dmn_4<nu_dmn, nu_dmn, r_dmn, t     > >& G_r_t)
     {
       std::complex<double> I(0,1);
 

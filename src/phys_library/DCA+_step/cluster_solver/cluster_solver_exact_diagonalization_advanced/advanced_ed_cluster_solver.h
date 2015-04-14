@@ -131,7 +131,7 @@ namespace DCA
   {
     //     std::cout << __FUNCTION__ << "\n";
 
-    function<std::complex<double>, dmn_3<nu,nu,r_DCA> > H_DCA;
+    FUNC_LIB::function<std::complex<double>, dmn_3<nu,nu,r_DCA> > H_DCA;
 
     //     for(int l=0; l<r_DCA::dmn_size(); l++)
     //       cout << l << "\t" << MOMS_imag.H_DCA(0,0,l) << "\n";

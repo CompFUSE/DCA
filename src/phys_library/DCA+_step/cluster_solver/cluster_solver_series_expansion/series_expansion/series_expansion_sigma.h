@@ -28,7 +28,7 @@ namespace DCA
       typedef r_HOST r_dmn_t;
       typedef k_HOST k_dmn_t;
 
-      typedef function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > sigma_function_t;
+      typedef FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > sigma_function_t;
 
     public:
 
@@ -52,7 +52,7 @@ namespace DCA
       concurrency_type& concurrency;
       MOMS_type&        MOMS;
 
-      function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > Sigma;
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > Sigma;
 
       compute_interaction interaction_obj;
 
@@ -97,15 +97,15 @@ namespace DCA
 //       if(do_not_adjust_mu)
 //         MOMS.adjust_chemical_potential();
 
-      //function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G_k_w = MOMS.G_k_w;
-      //function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G_k_w = MOMS.G0_k_w_cluster_excluded;
+      //FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G_k_w = MOMS.G_k_w;
+      //FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G_k_w = MOMS.G0_k_w_cluster_excluded;
 
       compute_lattice_Greens_function<parameters_type, MOMS_type, k_dmn_t, w> compute_lattice_Greens_function_obj(parameters, MOMS);
 
       compute_lattice_Greens_function_obj.execute();
 
-      //function<std::complex<double>, dmn_4<nu,nu, k_HOST, w> >& G_k_w = compute_lattice_Greens_function_obj.get_G0_k_w();
-      function<std::complex<double>, dmn_4<nu,nu, k_HOST, w> >& G_k_w = compute_lattice_Greens_function_obj.get_G_k_w();
+      //FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_HOST, w> >& G_k_w = compute_lattice_Greens_function_obj.get_G0_k_w();
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_HOST, w> >& G_k_w = compute_lattice_Greens_function_obj.get_G_k_w();
 
       //ph_bubble.execute_on_cluster(G_k_w);
       //pp_bubble.execute_on_cluster(G_k_w);

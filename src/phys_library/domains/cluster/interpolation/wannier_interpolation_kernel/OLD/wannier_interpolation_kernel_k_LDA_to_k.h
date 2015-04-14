@@ -38,7 +38,7 @@ public:
   void execute(std::complex<double>* input_ptr,
 	       std::complex<double>* output_ptr);
 
-  function<std::complex<double>, dmn_2<target_k_dmn_t, source_k_dmn_t> >& get_kernel() {return kernel;}
+  FUNC_LIB::function<std::complex<double>, dmn_2<target_k_dmn_t, source_k_dmn_t> >& get_kernel() {return kernel;}
 
   void reset_kernel();
 
@@ -99,7 +99,7 @@ template<typename source_dmn_type, typename target_dmn_type>
 void wannier_interpolation_kernel<source_dmn_type, target_dmn_type>::find_phase_factors(bool REDO_INITIALIZE)
 {
   {
-    function<std::complex<double>, dmn_2<source_r_dmn_t, source_k_dmn_t> > exp_iKR;
+    FUNC_LIB::function<std::complex<double>, dmn_2<source_r_dmn_t, source_k_dmn_t> > exp_iKR;
     {
       for(int R_ind=0; R_ind<source_r_dmn_t::dmn_size(); R_ind++){
 	
@@ -118,9 +118,9 @@ void wannier_interpolation_kernel<source_dmn_type, target_dmn_type>::find_phase_
       }
     }
 
-    function<std::complex<double>, dmn_2<target_k_dmn_t, source_r_dmn_t> > exp_min_ikR;
+    FUNC_LIB::function<std::complex<double>, dmn_2<target_k_dmn_t, source_r_dmn_t> > exp_min_ikR;
     {
-      function<std::vector<std::vector<double> >, source_r_dmn_t> centered_source_r;
+      FUNC_LIB::function<std::vector<std::vector<double> >, source_r_dmn_t> centered_source_r;
 
       for(int R_ind=0; R_ind<source_r_dmn_t::dmn_size(); R_ind++)
 	centered_source_r(R_ind) = source_r_cluster_cluster_type::find_equivalent_vectors_with_minimal_distance_to_origin(source_r_dmn_t::get_elements()[R_ind]).second;

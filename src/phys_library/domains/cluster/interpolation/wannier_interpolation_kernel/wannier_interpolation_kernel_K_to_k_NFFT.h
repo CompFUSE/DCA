@@ -107,21 +107,21 @@ private:
 
   static bool INITIALIZED;
 
-  static function<int, centered_r_cluster_dmn_t> lies_within_cutoff; 
+  static FUNC_LIB::function<int, centered_r_cluster_dmn_t> lies_within_cutoff; 
 
   std::vector<int> grid_size;
 
   nfft_plan nfft_K_2_R;
   nfft_plan nfft_R_2_k;
   
-  function<std::complex<double>, centered_r_cluster_dmn_t> F_R;
+  FUNC_LIB::function<std::complex<double>, centered_r_cluster_dmn_t> F_R;
 };
 
 template<typename source_base_cluster_type, typename target_dmn_type>
 bool wannier_interpolation_kernel<k_cluster<FULL, source_base_cluster_type>, target_dmn_type>::INITIALIZED = false;
 
 template<typename source_base_cluster_type, typename target_dmn_type>
-function<int, typename wannier_interpolation_kernel<k_cluster<FULL, source_base_cluster_type>, target_dmn_type>::centered_r_cluster_dmn_t> 
+FUNC_LIB::function<int, typename wannier_interpolation_kernel<k_cluster<FULL, source_base_cluster_type>, target_dmn_type>::centered_r_cluster_dmn_t> 
 wannier_interpolation_kernel<k_cluster<FULL, source_base_cluster_type>, target_dmn_type>::lies_within_cutoff("cutoff");
 
 template<typename source_base_cluster_type, typename target_dmn_type>

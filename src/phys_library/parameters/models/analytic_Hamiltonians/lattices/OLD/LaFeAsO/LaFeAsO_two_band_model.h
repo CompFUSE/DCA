@@ -32,11 +32,11 @@ public:
   static std::vector<std::pair<std::pair<int,int>, std::pair<int,int> > > get_orbital_permutations();
 
   template<class domain, class parameters_type>
-  static void initialize_H_interaction(function<double , domain >& H_interaction,
+  static void initialize_H_interaction(FUNC_LIB::function<double , domain >& H_interaction,
 				       parameters_type&            parameters);
 
   template<class domain>
-  static void initialize_H_symmetry(function<int , domain>& H_symmetry);
+  static void initialize_H_symmetry(FUNC_LIB::function<int , domain>& H_symmetry);
 
   template<class parameters_type>
   static std::complex<double> get_LDA_Hamiltonians(parameters_type& parameters, 
@@ -90,7 +90,7 @@ double* LaFeAsO_2_band_model<DCA_point_group_type>::initialize_k_LDA_basis()
 
 template<typename DCA_point_group_type>
 template<class domain, class parameters_type>
-void LaFeAsO_2_band_model<DCA_point_group_type>::initialize_H_interaction(function<double , domain >& H_interaction,
+void LaFeAsO_2_band_model<DCA_point_group_type>::initialize_H_interaction(FUNC_LIB::function<double , domain >& H_interaction,
 						      	  parameters_type&            parameters)
 {
   std::vector<std::vector<double> >& U_ij = parameters.get_U_ij();
@@ -117,7 +117,7 @@ std::vector<std::pair<std::pair<int,int>, std::pair<int,int> > > LaFeAsO_2_band_
 
 template<typename DCA_point_group_type>
 template<class domain>
-void LaFeAsO_2_band_model<DCA_point_group_type>::initialize_H_symmetry(function<int , domain>& H_symmetries)
+void LaFeAsO_2_band_model<DCA_point_group_type>::initialize_H_symmetry(FUNC_LIB::function<int , domain>& H_symmetries)
 {
   H_symmetries = -1.;
 

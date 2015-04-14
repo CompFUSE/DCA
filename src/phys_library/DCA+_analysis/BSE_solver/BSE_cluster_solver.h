@@ -32,22 +32,22 @@ namespace DCA
 
     void compute_Gamma_cluster();
 
-    function<std::complex<scalartype>, DCA_matrix_dmn_t             >& get_Gamma_matrix()    { return Gamma_matrix; }
-    function<std::complex<double>, dmn_4<b_b, b_b, k_DCA, w_VERTEX> >& get_G_II_0_function() { return G_II_0_function; }
+    FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t             >& get_Gamma_matrix()    { return Gamma_matrix; }
+    FUNC_LIB::function<std::complex<double>, dmn_4<b_b, b_b, k_DCA, w_VERTEX> >& get_G_II_0_function() { return G_II_0_function; }
 
   private:
 
     void apply_symmetries_sp();
-    void apply_symmetries_tp(function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II,
-                             function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II_0);
+    void apply_symmetries_tp(FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II,
+                             FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II_0);
 
-    void load_G_II  (function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II);
-    void load_G_II_0(function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II_0);
+    void load_G_II  (FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II);
+    void load_G_II_0(FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II_0);
 
-    void load_G_II_0_function(function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II_0);
+    void load_G_II_0_function(FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II_0);
 
-    void solve_BSE_on_cluster(function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II,
-			      function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II_0);
+    void solve_BSE_on_cluster(FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II,
+			      FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II_0);
 
   private:
 
@@ -60,8 +60,8 @@ namespace DCA
 
     diagrammatic_symmetries<parameters_type> diagrammatic_symmetries_obj;
 
-    function<std::complex<scalartype>, DCA_matrix_dmn_t >             Gamma_matrix;
-    function<std::complex<double>, dmn_4<b_b, b_b, k_DCA, w_VERTEX> > G_II_0_function;
+    FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t >             Gamma_matrix;
+    FUNC_LIB::function<std::complex<double>, dmn_4<b_b, b_b, k_DCA, w_VERTEX> > G_II_0_function;
   };
 
   template<class parameters_type, class MOMS_type>
@@ -93,8 +93,8 @@ namespace DCA
   template<class parameters_type, class MOMS_type>
   void BSE_cluster_solver<parameters_type, MOMS_type>::compute_Gamma_cluster()
   {
-    function<std::complex<scalartype>, DCA_matrix_dmn_t> G_II  ("G_II");
-    function<std::complex<scalartype>, DCA_matrix_dmn_t> G_II_0("G_II_0");
+    FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t> G_II  ("G_II");
+    FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t> G_II_0("G_II_0");
 
     apply_symmetries_sp();
 
@@ -122,8 +122,8 @@ namespace DCA
   }
 
   template<class parameters_type, class MOMS_type>
-  void BSE_cluster_solver<parameters_type, MOMS_type>::apply_symmetries_tp(function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II,
-                                                                           function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II_0)
+  void BSE_cluster_solver<parameters_type, MOMS_type>::apply_symmetries_tp(FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II,
+                                                                           FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II_0)
   {
     if(concurrency.id()==concurrency.last())
       cout << "\t" << __FUNCTION__ << "\n\n";
@@ -151,7 +151,7 @@ namespace DCA
   }
 
   template<class parameters_type, class MOMS_type>
-  void BSE_cluster_solver<parameters_type, MOMS_type>::load_G_II(function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II)
+  void BSE_cluster_solver<parameters_type, MOMS_type>::load_G_II(FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II)
   {
     if(concurrency.id()==concurrency.last())
       cout << "\t" << __FUNCTION__ << "\n\n";
@@ -181,7 +181,7 @@ namespace DCA
   }
 
   template<class parameters_type, class MOMS_type>
-  void BSE_cluster_solver<parameters_type, MOMS_type>::load_G_II_0(function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II_0)
+  void BSE_cluster_solver<parameters_type, MOMS_type>::load_G_II_0(FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II_0)
   {
     if(concurrency.id()==concurrency.last())
       cout << "\t" << __FUNCTION__ << "\n\n";
@@ -262,7 +262,7 @@ namespace DCA
   }
 
   template<class parameters_type, class MOMS_type>
-  void BSE_cluster_solver<parameters_type, MOMS_type>::load_G_II_0_function(function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II_0)
+  void BSE_cluster_solver<parameters_type, MOMS_type>::load_G_II_0_function(FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II_0)
   {
     if(concurrency.id()==concurrency.last())
       cout << "\t" << __FUNCTION__ << "\n\n";
@@ -279,8 +279,8 @@ namespace DCA
   }
 
   template<class parameters_type, class MOMS_type>
-  void BSE_cluster_solver<parameters_type, MOMS_type>::solve_BSE_on_cluster(function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II,
-                                                                            function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II_0)
+  void BSE_cluster_solver<parameters_type, MOMS_type>::solve_BSE_on_cluster(FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II,
+                                                                            FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II_0)
   {
     if(concurrency.id()==concurrency.last())
       cout << "\t" << __FUNCTION__ << "\n\n";

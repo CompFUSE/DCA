@@ -146,7 +146,7 @@ namespace DCA
 
   public:
     
-    static function<matrix_type, K_dmn>& get();
+    static FUNC_LIB::function<matrix_type, K_dmn>& get();
 
     static matrix_type& get(int k_ind);
 
@@ -169,9 +169,9 @@ namespace DCA
 
   public:
     
-    static function<matrix_type, K_dmn>& get()
+    static FUNC_LIB::function<matrix_type, K_dmn>& get()
     {
-      static function<matrix_type, K_dmn> k_to_q("k_to_q ("+q_dmn::parameter_type::get_name()+")");
+      static FUNC_LIB::function<matrix_type, K_dmn> k_to_q("k_to_q ("+q_dmn::parameter_type::get_name()+")");
       assert(is_initialized()==true);
 
       return k_to_q;
@@ -179,7 +179,7 @@ namespace DCA
 
     static matrix_type& get(int k_ind)
     {      
-      static function<matrix_type, K_dmn>& k_to_q = get();
+      static FUNC_LIB::function<matrix_type, K_dmn>& k_to_q = get();
       assert(is_initialized()==true);
 
       return k_to_q(k_ind);
@@ -266,22 +266,22 @@ namespace DCA
     void initialize();
 
     template<typename k_dmn>
-    void plot_H_q(function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn> >& H_0);
+    void plot_H_q(FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn> >& H_0);
 
     template<typename k_dmn>
-    void plot_S_q(function<std::complex<scalar_type>, dmn_4<nu, nu, k_dmn, w> >& S_k_w);
+    void plot_S_q(FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, k_dmn, w> >& S_k_w);
 		
     template<typename k_dmn>
-    void compute_S_K_w(function<std::complex<scalar_type>, dmn_4<nu, nu, k_dmn, w> >& S_k_w,
-		       function<std::complex<scalar_type>, dmn_4<nu, nu, K_dmn, w> >& S_K_w);
+    void compute_S_K_w(FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, k_dmn, w> >& S_k_w,
+		       FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, K_dmn, w> >& S_K_w);
 
-    void compute_G0_K_t(function<std::complex<scalar_type>, dmn_3<nu, nu, k_LDA   > >& H_0,
-			function<std::complex<scalar_type>, dmn_4<nu, nu, K_dmn, t> >& G0_k_w);
+    void compute_G0_K_t(FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_LDA   > >& H_0,
+			FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, K_dmn, t> >& G0_k_w);
 
     template<typename k_dmn>
-    void compute_G_K_w(function<std::complex<scalar_type>, dmn_3<nu, nu, k_LDA> >&    H_0,
-		       function<std::complex<scalar_type>, dmn_4<nu, nu, k_dmn, w> >& S_k_w,
-		       function<std::complex<scalar_type>, dmn_4<nu, nu, K_dmn, w> >& G_K_w);
+    void compute_G_K_w(FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_LDA> >&    H_0,
+		       FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, k_dmn, w> >& S_k_w,
+		       FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, K_dmn, w> >& G_K_w);
 		      
   private:
   
@@ -291,21 +291,21 @@ namespace DCA
     void compute_I_q(tmp_scalar_type value);
     
     template<typename k_dmn>
-    void compute_H_q  (int K_ind,            function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn> >& H_0);
+    void compute_H_q  (int K_ind,            FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn> >& H_0);
     
     template<typename k_dmn>
-    void compute_S_q_w(int K_ind, int w_ind, function<std::complex<scalar_type>, dmn_4<nu, nu, k_dmn, w> >& S_k_w);
+    void compute_S_q_w(int K_ind, int w_ind, FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, k_dmn, w> >& S_k_w);
     
-    void compute_S_q_w(int K_ind, int w_ind, function<std::complex<scalar_type>, dmn_4<nu, nu, K_dmn, w> >& S_k_w);
+    void compute_S_q_w(int K_ind, int w_ind, FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, K_dmn, w> >& S_k_w);
     
     template<typename k_dmn>
     void compute_G_q_t(int K_ind, int t_ind, 
-		       function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn> >& H_0);
+		       FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn> >& H_0);
 
     template<typename k_dmn>
     void compute_G_q_w(int K_ind, int w_ind, 
-		       function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn   > >& H_0,
-		       function<std::complex<scalar_type>, dmn_4<nu, nu, k_dmn, w> >& S_k_w);
+		       FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn   > >& H_0,
+		       FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, k_dmn, w> >& S_k_w);
     
   private:
 
@@ -314,19 +314,19 @@ namespace DCA
   
     //   matrix_type k_to_K;
 
-    //   function<matrix_type, K_dmn> k_to_q;
+    //   FUNC_LIB::function<matrix_type, K_dmn> k_to_q;
 
-    //   function<std::complex<scalar_type>, nu_nu_k> S_K;
-    //   function<std::complex<scalar_type>, nu_nu_k> G_K;
+    //   FUNC_LIB::function<std::complex<scalar_type>, nu_nu_k> S_K;
+    //   FUNC_LIB::function<std::complex<scalar_type>, nu_nu_k> G_K;
 
-    //   function<std::complex<scalar_type>, nu_nu_k> H_k;
-    //   function<std::complex<scalar_type>, nu_nu_k> S_k;
-    //   function<std::complex<scalar_type>, nu_nu_k> G_k;
+    //   FUNC_LIB::function<std::complex<scalar_type>, nu_nu_k> H_k;
+    //   FUNC_LIB::function<std::complex<scalar_type>, nu_nu_k> S_k;
+    //   FUNC_LIB::function<std::complex<scalar_type>, nu_nu_k> G_k;
 
-    function<std::complex<scalar_type>, nu_nu_q> I_q;
-    function<std::complex<scalar_type>, nu_nu_q> H_q;
-    function<std::complex<scalar_type>, nu_nu_q> S_q;
-    function<std::complex<scalar_type>, nu_nu_q> G_q;
+    FUNC_LIB::function<std::complex<scalar_type>, nu_nu_q> I_q;
+    FUNC_LIB::function<std::complex<scalar_type>, nu_nu_q> H_q;
+    FUNC_LIB::function<std::complex<scalar_type>, nu_nu_q> S_q;
+    FUNC_LIB::function<std::complex<scalar_type>, nu_nu_q> G_q;
   };
 
   template<typename parameters_type, typename K_dmn>
@@ -422,10 +422,10 @@ namespace DCA
 
   /*
     template<typename parameters_type, typename K_dmn>
-    void cluster_map<parameters_type, K_dmn>::plot_H_q(function<std::complex<scalar_type>, nu_nu_k>& H_0)
+    void cluster_map<parameters_type, K_dmn>::plot_H_q(FUNC_LIB::function<std::complex<scalar_type>, nu_nu_k>& H_0)
     {
-    function<double, k_dmn> tmp_0;
-    function<double, q_dmn> tmp_1;
+    FUNC_LIB::function<double, k_dmn> tmp_0;
+    FUNC_LIB::function<double, q_dmn> tmp_1;
 
     std::vector<double> x(q_dmn::dmn_size()*K_dmn::dmn_size());
     std::vector<double> y(q_dmn::dmn_size()*K_dmn::dmn_size());
@@ -475,7 +475,7 @@ namespace DCA
 
   template<typename parameters_type, typename K_dmn>
   template<typename k_dmn>
-  void cluster_map<parameters_type, K_dmn>::compute_H_q(int K_ind, function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn> >& H_0)
+  void cluster_map<parameters_type, K_dmn>::compute_H_q(int K_ind, FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn> >& H_0)
   {
     //   LIN_ALG::matrix<double, LIN_ALG::CPU>& T = k_to_q(K_ind);
     
@@ -496,7 +496,7 @@ namespace DCA
 
   template<typename parameters_type, typename K_dmn>
   template<typename k_dmn>
-  void cluster_map<parameters_type, K_dmn>::compute_S_q_w(int K_ind, int w_ind, function<std::complex<scalar_type>, dmn_4<nu, nu, k_dmn, w> >& S_k_w)
+  void cluster_map<parameters_type, K_dmn>::compute_S_q_w(int K_ind, int w_ind, FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, k_dmn, w> >& S_k_w)
   {
     //   LIN_ALG::matrix<double, LIN_ALG::CPU>& T = k_to_q(K_ind);
     
@@ -516,7 +516,7 @@ namespace DCA
   }
 
   template<typename parameters_type, typename K_dmn>
-  void cluster_map<parameters_type, K_dmn>::compute_S_q_w(int K_ind, int w_ind, function<std::complex<scalar_type>, dmn_4<nu, nu, K_dmn, w> >& S_K_w)
+  void cluster_map<parameters_type, K_dmn>::compute_S_q_w(int K_ind, int w_ind, FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, K_dmn, w> >& S_K_w)
   {
     for(int q_ind=0; q_ind<q_dmn::dmn_size(); q_ind++)
       memcpy(&S_q(0,0,q_ind), &S_K_w(0, 0, K_ind, w_ind), sizeof(std::complex<scalar_type>)*nu_nu::dmn_size());
@@ -525,8 +525,8 @@ namespace DCA
   template<typename parameters_type, typename K_dmn>
   template<typename k_dmn>
   void cluster_map<parameters_type, K_dmn>::compute_G_q_w(int K_ind, int w_ind, 
-							  function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn   > >&    H_0,
-							  function<std::complex<scalar_type>, dmn_4<nu, nu, k_dmn, w> >& S_k_w)
+							  FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn   > >&    H_0,
+							  FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, k_dmn, w> >& S_k_w)
   {
     {
       std::complex<double> I(0, 1); 
@@ -557,9 +557,9 @@ namespace DCA
 
   template<typename parameters_type, typename K_dmn>
   template<typename k_dmn>
-  void cluster_map<parameters_type, K_dmn>::compute_G_K_w(function<std::complex<scalar_type>, dmn_3<nu, nu, k_LDA> >&    H_0,
-							  function<std::complex<scalar_type>, dmn_4<nu, nu, k_dmn, w> >& S_k_w,
-							  function<std::complex<scalar_type>, dmn_4<nu, nu, K_dmn, w> >& G_K_w)
+  void cluster_map<parameters_type, K_dmn>::compute_G_K_w(FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_LDA> >&    H_0,
+							  FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, k_dmn, w> >& S_k_w,
+							  FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, K_dmn, w> >& G_K_w)
   {
     cout << __FUNCTION__ << endl;
 
@@ -597,7 +597,7 @@ namespace DCA
   template<typename parameters_type, typename K_dmn>
   template<typename k_dmn>
   void cluster_map<parameters_type, K_dmn>::compute_G_q_t(int K_ind, int t_ind, 
-							  function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn> >& H_0)
+							  FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn> >& H_0)
   {
     double t_val = t::get_elements()[t_ind]; 
     double beta  = parameters.get_beta();
@@ -634,8 +634,8 @@ namespace DCA
   }
 
   template<typename parameters_type, typename K_dmn>
-  void cluster_map<parameters_type, K_dmn>::compute_G0_K_t(function<std::complex<scalar_type>, dmn_3<nu, nu, k_LDA   > >&   H_0,
-							   function<std::complex<scalar_type>, dmn_4<nu, nu, K_dmn, t> >& G_K_t)
+  void cluster_map<parameters_type, K_dmn>::compute_G0_K_t(FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_LDA   > >&   H_0,
+							   FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, K_dmn, t> >& G_K_t)
 							   {
 							     cout << __FUNCTION__ << endl;
 

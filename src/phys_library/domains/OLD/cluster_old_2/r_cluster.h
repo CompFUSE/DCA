@@ -66,8 +66,8 @@ public:
 //   static std::vector<double> get_cluster_affine_coordinate(std::vector<double>& r);
 //   static std::vector<double> get_lattice_affine_coordinate(std::vector<double>& r);
 
-//   static function<std::pair<int,int>, dmn_2< dmn_2<r_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& get_symmetry_matrix(){
-//     //     static function<std::pair<int,int>, dmn_2< dmn_2<r_dmn_t,b_dmn_t>, sym_super_cell_dmn_t> > symmetry_matrix("r_symmetry_matrix_super_cell");
+//   static FUNC_LIB::function<std::pair<int,int>, dmn_2< dmn_2<r_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& get_symmetry_matrix(){
+//     //     static FUNC_LIB::function<std::pair<int,int>, dmn_2< dmn_2<r_dmn_t,b_dmn_t>, sym_super_cell_dmn_t> > symmetry_matrix("r_symmetry_matrix_super_cell");
 //     //     return symmetry_matrix;
     
 //     return cluster_symmetry<this_type>::get_symmetry_matrix();

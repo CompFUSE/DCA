@@ -26,16 +26,16 @@ public:
 
   template<class domain>
   static void read_interaction_Hamiltonian(std::string filename,
-					   function<double, domain>& H,
+					   FUNC_LIB::function<double, domain>& H,
 					   int BANDS);
   template<class domain>
   static void read_symmetries(std::string            filename,
-			      function<int, domain>& H_symmetries,
+			      FUNC_LIB::function<int, domain>& H_symmetries,
 			      int                    BANDS);
 
   template<class domain>
   static void   read_LDA_Hamiltonians(std::string filename,
-				      function<std::complex<double>, domain>& H,
+				      FUNC_LIB::function<std::complex<double>, domain>& H,
 				      double Fermi_energy);
 
 
@@ -323,7 +323,7 @@ void Koshevnikov_parser::read_DCA_r_basis(std::string filename, double* ptr)
 
 template<class domain>
 void Koshevnikov_parser::read_interaction_Hamiltonian(std::string filename,
-						      function<double, domain>& H_interaction,
+						      FUNC_LIB::function<double, domain>& H_interaction,
 						      int BANDS)
 {
 //   cout << endl <<__FUNCTION__ << endl;
@@ -368,7 +368,7 @@ void Koshevnikov_parser::read_interaction_Hamiltonian(std::string filename,
 
 template<class domain>
 void Koshevnikov_parser::read_symmetries(std::string            filename,
-					 function<int, domain>& H_symmetries,
+					 FUNC_LIB::function<int, domain>& H_symmetries,
 					 int                    BANDS)
 {
 //   cout << endl <<__FUNCTION__ << endl;
@@ -415,7 +415,7 @@ void Koshevnikov_parser::read_symmetries(std::string            filename,
 
 template<class domain>
 void Koshevnikov_parser::read_LDA_Hamiltonians(std::string filename,
-					       function<std::complex<double>, domain>& H,
+					       FUNC_LIB::function<std::complex<double>, domain>& H,
 					       double Fermi_energy)
 {
   cout.precision(5);

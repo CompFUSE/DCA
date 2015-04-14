@@ -73,11 +73,11 @@ namespace DCA
 
     double compute_S_k_w_from_G_k_w();
 
-    void compute_G_k_w_new(function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> >& M_k_w_new,
-                           function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> >& G_k_w_new);
+    void compute_G_k_w_new(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> >& M_k_w_new,
+                           FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> >& G_k_w_new);
 
-    void compute_S_k_w_new(function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> >& G_k_w_new,
-                           function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> >& S_k_w_new);
+    void compute_S_k_w_new(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> >& G_k_w_new,
+                           FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> >& S_k_w_new);
 
     void set_non_interacting_bands_to_zero();
 
@@ -100,8 +100,8 @@ namespace DCA
 
     accumulator_type accumulator;
 
-    function<std::complex<double>, nu_nu_k_DCA_w> Sigma_old;
-    function<std::complex<double>, nu_nu_k_DCA_w> Sigma_new;
+    FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w> Sigma_old;
+    FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w> Sigma_new;
 
     int DCA_iteration;
   };
@@ -352,10 +352,10 @@ namespace DCA
           if(concurrency.id()==0)
             cout << "\n\t\t compute-error-bars on Self-energy\t" << print_time() << "\n\n";
 
-          function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> > G_k_w_new("G_k_w_new");
+          FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> > G_k_w_new("G_k_w_new");
 
-          function<std::complex<double>, dmn_4<nu, nu, r_DCA, w> > M_r_w_new("M_r_w_new");
-          function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> > M_k_w_new("M_k_w_new");
+          FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w> > M_r_w_new("M_r_w_new");
+          FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> > M_k_w_new("M_k_w_new");
 
           double sign = accumulator.get_sign()/double(Nb_measurements_per_node);
 
@@ -609,8 +609,8 @@ namespace DCA
   }
 
   template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
-  void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::compute_G_k_w_new(function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> >& M_k_w_new,
-                                                                                                      function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> >& G_k_w_new)
+  void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::compute_G_k_w_new(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> >& M_k_w_new,
+                                                                                                      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> >& G_k_w_new)
   {
 //     if(concurrency.id()==0)
 //       cout << "\n\t\t compute-G_k_w_new\t" << print_time() << "\n\n";
@@ -644,8 +644,8 @@ namespace DCA
   }
 
   template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
-  void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::compute_S_k_w_new(function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> >& G_k_w_new,
-                                                                                                      function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> >& S_k_w_new)
+  void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::compute_S_k_w_new(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> >& G_k_w_new,
+                                                                                                      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> >& S_k_w_new)
   {
 //     if(concurrency.id()==0)
 //       cout << "\n\t\t start compute-S_k_w\t" << print_time() << "\n\n";
@@ -725,7 +725,7 @@ namespace DCA
     set_non_interacting_bands_to_zero();
 
     /*
-    function<double, nu> d_0;
+    FUNC_LIB::function<double, nu> d_0;
     for(int l1=0; l1<b::dmn_size()*s::dmn_size(); l1++)
       for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++)
         for(int w_ind=0; w_ind<32; w_ind++)

@@ -37,9 +37,9 @@ namespace DCA
 
     double compute_density_correction();
 
-    void compute_density_coefficients(function<             double , dmn_2<nu, k_DCA> >& A,
-                                      function<             double , dmn_2<nu, k_DCA> >& B,
-                                      function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> >& G);
+    void compute_density_coefficients(FUNC_LIB::function<             double , dmn_2<nu, k_DCA> >& A,
+                                      FUNC_LIB::function<             double , dmn_2<nu, k_DCA> >& B,
+                                      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> >& G);
 
     void search_bounds(double dens);
 
@@ -259,11 +259,11 @@ namespace DCA
     double N_k  = k_DCA::dmn_size();
     double beta = parameters.get_beta();
 
-    function<double, dmn_2<nu, k_DCA> > A;
-    function<double, dmn_2<nu, k_DCA> > B;
+    FUNC_LIB::function<double, dmn_2<nu, k_DCA> > A;
+    FUNC_LIB::function<double, dmn_2<nu, k_DCA> > B;
 
-    function<double, dmn_2<nu, k_DCA> > A0;
-    function<double, dmn_2<nu, k_DCA> > B0;
+    FUNC_LIB::function<double, dmn_2<nu, k_DCA> > A0;
+    FUNC_LIB::function<double, dmn_2<nu, k_DCA> > B0;
 
     compute_density_coefficients(A , B , MOMS.G_k_w );
     compute_density_coefficients(A0, B0, MOMS.G0_k_w);
@@ -308,8 +308,8 @@ namespace DCA
     double N_k  = k_DCA::dmn_size();
     double beta = parameters.get_beta();
 
-    function<std::complex<double>, dmn_2<nu, k_DCA> > G_diag ("G_diag");
-    function<std::complex<double>, dmn_2<nu, k_DCA> > G0_diag("G0_diag");
+    FUNC_LIB::function<std::complex<double>, dmn_2<nu, k_DCA> > G_diag ("G_diag");
+    FUNC_LIB::function<std::complex<double>, dmn_2<nu, k_DCA> > G0_diag("G0_diag");
 
     for(int k_i=0; k_i<k_DCA::dmn_size(); k_i++)
     for(int nu_i=0; nu_i<nu::dmn_size(); nu_i++)
@@ -364,9 +364,9 @@ namespace DCA
   */
 
   template<typename parameters_type, typename MOMS_type, typename coarsegraining_type>
-  void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>::compute_density_coefficients(function<             double , dmn_2<nu, k_DCA> >& A,
-                                                                                                                function<             double , dmn_2<nu, k_DCA> >& B,
-                                                                                                                function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> >& G)
+  void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>::compute_density_coefficients(FUNC_LIB::function<             double , dmn_2<nu, k_DCA> >& A,
+                                                                                                                FUNC_LIB::function<             double , dmn_2<nu, k_DCA> >& B,
+                                                                                                                FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> >& G)
   {
     A = 0;
     B = 0;
@@ -410,7 +410,7 @@ namespace DCA
     /*
       if(true)
       {
-      function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> > G_diff("G_diff");
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> > G_diff("G_diff");
 
       for(int k_i=0; k_i<k_DCA::dmn_size(); k_i++){
       for(int nu_i=0; nu_i<nu::dmn_size(); nu_i++){

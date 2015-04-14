@@ -31,31 +31,31 @@ namespace DCA
 
   public:
 
-    function<double, DCA_iteration_domain_type> Gflop_per_mpi_task;
-    function<double, DCA_iteration_domain_type> times_per_mpi_task;
+    FUNC_LIB::function<double, DCA_iteration_domain_type> Gflop_per_mpi_task;
+    FUNC_LIB::function<double, DCA_iteration_domain_type> times_per_mpi_task;
 
-    function<double, DCA_iteration_domain_type> thermalization_per_mpi_task;
-    function<double, DCA_iteration_domain_type> MC_integration_per_mpi_task;
+    FUNC_LIB::function<double, DCA_iteration_domain_type> thermalization_per_mpi_task;
+    FUNC_LIB::function<double, DCA_iteration_domain_type> MC_integration_per_mpi_task;
 
-    function<double, DCA_iteration_domain_type>     Gflops_per_mpi_task;
-    function<double, DCA_iteration_domain_type> max_Gflops_per_mpi_task;
+    FUNC_LIB::function<double, DCA_iteration_domain_type>     Gflops_per_mpi_task;
+    FUNC_LIB::function<double, DCA_iteration_domain_type> max_Gflops_per_mpi_task;
 
-    function<double, DCA_iteration_domain_type> sign;
+    FUNC_LIB::function<double, DCA_iteration_domain_type> sign;
 
-    function<double, DCA_iteration_domain_type> L2_Sigma_difference;
+    FUNC_LIB::function<double, DCA_iteration_domain_type> L2_Sigma_difference;
 
-    function<double, dmn_3<nu, k_DCA, DCA_iteration_domain_type> > Sigma_zero_moment;
-    function<double, dmn_3<nu, k_DCA, DCA_iteration_domain_type> > standard_deviation;
+    FUNC_LIB::function<double, dmn_3<nu, k_DCA, DCA_iteration_domain_type> > Sigma_zero_moment;
+    FUNC_LIB::function<double, dmn_3<nu, k_DCA, DCA_iteration_domain_type> > standard_deviation;
 
-    function<std::complex<double>, dmn_4<nu, nu, expansion_dmn_t, DCA_iteration_domain_type> > sigma_lambda;
+    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, expansion_dmn_t, DCA_iteration_domain_type> > sigma_lambda;
     
-    function<double, dmn_3<nu, k_DCA, DCA_iteration_domain_type> > n_k;
-    function<double, dmn_3<nu, k_DCA, DCA_iteration_domain_type> > A_k;
-    function<double, dmn_2<nu,        DCA_iteration_domain_type> > orbital_occupancies;
+    FUNC_LIB::function<double, dmn_3<nu, k_DCA, DCA_iteration_domain_type> > n_k;
+    FUNC_LIB::function<double, dmn_3<nu, k_DCA, DCA_iteration_domain_type> > A_k;
+    FUNC_LIB::function<double, dmn_2<nu,        DCA_iteration_domain_type> > orbital_occupancies;
 
-    function<double, DCA_iteration_domain_type> density;
-    function<double, DCA_iteration_domain_type> chemical_potential;
-    function<double, DCA_iteration_domain_type> average_expansion_order;
+    FUNC_LIB::function<double, DCA_iteration_domain_type> density;
+    FUNC_LIB::function<double, DCA_iteration_domain_type> chemical_potential;
+    FUNC_LIB::function<double, DCA_iteration_domain_type> average_expansion_order;
   };
 
   DCA_calculation_data::DCA_calculation_data():

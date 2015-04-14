@@ -25,13 +25,13 @@ namespace MATH_LIBRARY
     void compute_S(scalartype s_f, scalartype l, scalartype sigma);
     void compute_A(double eps);
 
-    void execute(function<scalartype, lhs_dmn_t>& y,
-                 function<scalartype, rhs_dmn_t>& w);
+    void execute(FUNC_LIB::function<scalartype, lhs_dmn_t>& y,
+                 FUNC_LIB::function<scalartype, rhs_dmn_t>& w);
 
-    void execute(function<scalartype, lhs_dmn_t>& y,
-                 function<scalartype, rhs_dmn_t>& w,
-                 function<scalartype, rhs_dmn_t>& wm,
-                 function<scalartype, rhs_dmn_t>& wp);
+    void execute(FUNC_LIB::function<scalartype, lhs_dmn_t>& y,
+                 FUNC_LIB::function<scalartype, rhs_dmn_t>& w,
+                 FUNC_LIB::function<scalartype, rhs_dmn_t>& wm,
+                 FUNC_LIB::function<scalartype, rhs_dmn_t>& wp);
 
   private:
 
@@ -69,8 +69,8 @@ namespace MATH_LIBRARY
   {}
 
   template<typename scalartype, typename lhs_dmn_t, typename rhs_dmn_t>
-  void gaussian_regression<scalartype, lhs_dmn_t, rhs_dmn_t>::execute(function<scalartype, lhs_dmn_t>& y,
-                                                                      function<scalartype, rhs_dmn_t>& w)
+  void gaussian_regression<scalartype, lhs_dmn_t, rhs_dmn_t>::execute(FUNC_LIB::function<scalartype, lhs_dmn_t>& y,
+                                                                      FUNC_LIB::function<scalartype, rhs_dmn_t>& w)
   {
     w = 0;
     for(int j=0; j<Nr; j++)
@@ -79,10 +79,10 @@ namespace MATH_LIBRARY
   }
 
   template<typename scalartype, typename lhs_dmn_t, typename rhs_dmn_t>
-  void gaussian_regression<scalartype, lhs_dmn_t, rhs_dmn_t>::execute(function<scalartype, lhs_dmn_t>& y,
-                                                                      function<scalartype, rhs_dmn_t>& w,
-                                                                      function<scalartype, rhs_dmn_t>& wm,
-                                                                      function<scalartype, rhs_dmn_t>& wp)
+  void gaussian_regression<scalartype, lhs_dmn_t, rhs_dmn_t>::execute(FUNC_LIB::function<scalartype, lhs_dmn_t>& y,
+                                                                      FUNC_LIB::function<scalartype, rhs_dmn_t>& w,
+                                                                      FUNC_LIB::function<scalartype, rhs_dmn_t>& wm,
+                                                                      FUNC_LIB::function<scalartype, rhs_dmn_t>& wp)
   {
     w = 0;
     for(int j=0; j<Nr; j++)

@@ -42,28 +42,28 @@ private:
 
 public:
 
-  function<double, w_REAL> A_w;
-  function<double, w_REAL> A_w_stddev;
+  FUNC_LIB::function<double, w_REAL> A_w;
+  FUNC_LIB::function<double, w_REAL> A_w_stddev;
 
-  function<double, dmn_3<b, s, w_REAL> > A_nu_w;
-  function<double, dmn_3<b, s, w_REAL> > A_nu_w_stddev;
+  FUNC_LIB::function<double, dmn_3<b, s, w_REAL> > A_nu_w;
+  FUNC_LIB::function<double, dmn_3<b, s, w_REAL> > A_nu_w_stddev;
 
-  function<double,             w_REAL  > A0_w;
-  function<double, dmn_3<b, s, w_REAL> > A0_nu_w;
+  FUNC_LIB::function<double,             w_REAL  > A0_w;
+  FUNC_LIB::function<double, dmn_3<b, s, w_REAL> > A0_nu_w;
 
-  function<double, w_REAL> E_w;
-  function<double, w_REAL> E0_w;
+  FUNC_LIB::function<double, w_REAL> E_w;
+  FUNC_LIB::function<double, w_REAL> E0_w;
 
-  function<std::complex<double>, dmn_4<nu, nu, k_DCA, w_REAL> > Sigma;
-  function<std::complex<double>, dmn_4<nu, nu, k_DCA, w_REAL> > Sigma_stddev;
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w_REAL> > Sigma;
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w_REAL> > Sigma_stddev;
 
-  function<std::complex<double>, dmn_4<nu, nu, k_DCA, w_REAL> > G0_k_w;
-  function<std::complex<double>, dmn_4<nu, nu, r_DCA, w_REAL> > G0_r_w;
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w_REAL> > G0_k_w;
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w_REAL> > G0_r_w;
 
-  function<std::complex<double>, dmn_4<nu, nu, k_DCA, w_REAL> > G_k_w;
-  function<std::complex<double>, dmn_4<nu, nu, k_DCA, w_REAL> > G_k_w_stddev;
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w_REAL> > G_k_w;
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w_REAL> > G_k_w_stddev;
 
-  function<std::complex<double>, dmn_4<nu, nu, r_DCA, w_REAL> > G_r_w;
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w_REAL> > G_r_w;
 };
 
 template<class parameters_type>

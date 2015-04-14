@@ -40,41 +40,41 @@ namespace DCA
     BSE_lattice_solver(parameters_type& parameters, MOMS_type& MOMS);
     ~BSE_lattice_solver();
 
-    function<std::complex<scalartype>, HOST_matrix_dmn_t>& get_Gamma_lattice() { return Gamma_lattice; }
+    FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& get_Gamma_lattice() { return Gamma_lattice; }
 
     template<IO::FORMAT DATA_FORMAT>
     void write(IO::writer<DATA_FORMAT>& writer);
 
-    void compute_chi_0_lattice(function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0);
+    void compute_chi_0_lattice(FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0);
 
-    void compute_Gamma_lattice_1(function<std::complex<scalartype>, DCA_matrix_dmn_t>& Gamma_cluster);
-    //void compute_Gamma_lattice_2(function<std::complex<scalartype>, DCA_matrix_dmn_t>& Gamma_cluster);
-    void compute_Gamma_lattice_3(function<std::complex<scalartype>, DCA_matrix_dmn_t>& Gamma_cluster);
+    void compute_Gamma_lattice_1(FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t>& Gamma_cluster);
+    //void compute_Gamma_lattice_2(FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t>& Gamma_cluster);
+    void compute_Gamma_lattice_3(FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t>& Gamma_cluster);
 
-    void diagonolize_Gamma_chi_0(function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
-                                 function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice);
+    void diagonolize_Gamma_chi_0(FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
+                                 FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice);
 
   private:
 
     void initialize();
 
-    void set_chi_0_matrix(function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0);
+    void set_chi_0_matrix(FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0);
 
-    void diagonolize_full_Gamma_chi_0(function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
-                                      function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice);
+    void diagonolize_full_Gamma_chi_0(FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
+                                      FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice);
 
     void record_eigenvalues_and_eigenvectors(LIN_ALG::vector<std::complex<scalartype>, LIN_ALG::CPU>& L,
                                              LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& VL,
                                              LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& VR);
 
-    void diagonolize_folded_Gamma_chi_0(function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
-                                        function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice);
+    void diagonolize_folded_Gamma_chi_0(FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
+                                        FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice);
 
     void record_eigenvalues_and_folded_eigenvectors(LIN_ALG::vector<std::complex<scalartype>, LIN_ALG::CPU>& L,
                                                     LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& VL,
                                                     LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& VR);
 
-    void compute_folded_susceptibility(function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice,
+    void compute_folded_susceptibility(FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice,
                                        LIN_ALG::vector<std::complex<scalartype>, LIN_ALG::CPU>& L,
                                        LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& VL,
                                        LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& VR);
@@ -94,19 +94,19 @@ namespace DCA
 
     MOMS_type&       MOMS;
 
-    function<std::complex<scalartype>, HOST_matrix_dmn_t>                         Gamma_lattice;
-    function<std::complex<scalartype>, dmn_4<b_b, b_b, k_HOST_VERTEX, w_VERTEX> > chi_0_function;
+    FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>                         Gamma_lattice;
+    FUNC_LIB::function<std::complex<scalartype>, dmn_4<b_b, b_b, k_HOST_VERTEX, w_VERTEX> > chi_0_function;
 
-    function<std::complex<scalartype>,       lambda_dmn_type                             > leading_eigenvalues;
-    function<std::complex<scalartype>, dmn_2<lambda_dmn_type,   cubic_eigenvector_dmn_t> > leading_symmetry_decomposition;
-    function<std::complex<scalartype>, dmn_2<lambda_dmn_type, lattice_eigenvector_dmn_t> > leading_eigenvectors;
+    FUNC_LIB::function<std::complex<scalartype>,       lambda_dmn_type                             > leading_eigenvalues;
+    FUNC_LIB::function<std::complex<scalartype>, dmn_2<lambda_dmn_type,   cubic_eigenvector_dmn_t> > leading_symmetry_decomposition;
+    FUNC_LIB::function<std::complex<scalartype>, dmn_2<lambda_dmn_type, lattice_eigenvector_dmn_t> > leading_eigenvectors;
 
-    function<std::complex<scalartype>, dmn_2<chi_vector_dmn_t, chi_vector_dmn_t> >         chi_q;
+    FUNC_LIB::function<std::complex<scalartype>, dmn_2<chi_vector_dmn_t, chi_vector_dmn_t> >         chi_q;
 
-    function<std::complex<scalartype>, dmn_2<k_HOST_VERTEX            , crystal_harmonics_expansion_dmn_t> > psi_k;
-    function<std::complex<scalartype>, dmn_2<lattice_eigenvector_dmn_t, crystal_eigenvector_dmn_t        > > crystal_harmonics;
+    FUNC_LIB::function<std::complex<scalartype>, dmn_2<k_HOST_VERTEX            , crystal_harmonics_expansion_dmn_t> > psi_k;
+    FUNC_LIB::function<std::complex<scalartype>, dmn_2<lattice_eigenvector_dmn_t, crystal_eigenvector_dmn_t        > > crystal_harmonics;
 
-    function<std::complex<scalartype>, dmn_2<k_HOST_VERTEX            , cubic_harmonics_dmn_type> > leading_symmetry_functions;
+    FUNC_LIB::function<std::complex<scalartype>, dmn_2<k_HOST_VERTEX            , cubic_harmonics_dmn_type> > leading_symmetry_functions;
   };
 
   template<class parameters_type, class MOMS_type>
@@ -251,7 +251,7 @@ namespace DCA
   }
 
   template<class parameters_type, class MOMS_type>
-  void BSE_lattice_solver<parameters_type, MOMS_type>::compute_chi_0_lattice(function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0)
+  void BSE_lattice_solver<parameters_type, MOMS_type>::compute_chi_0_lattice(FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0)
   {
     profiler_type prof(__FUNCTION__, "BSE_lattice_solver", __LINE__);
 
@@ -316,7 +316,7 @@ namespace DCA
   }
 
   template<class parameters_type, class MOMS_type>
-  void BSE_lattice_solver<parameters_type, MOMS_type>::set_chi_0_matrix(function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0)
+  void BSE_lattice_solver<parameters_type, MOMS_type>::set_chi_0_matrix(FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0)
   {
     scalartype renorm = 1./(parameters.get_beta()*k_HOST_VERTEX::dmn_size());
 
@@ -332,7 +332,7 @@ namespace DCA
   }
 
   //   template<class parameters_type, class MOMS_type>
-  //   void BSE_lattice_solver<parameters_type, MOMS_type>::compute_Gamma_lattice_1(function<std::complex<scalartype>, DCA_matrix_dmn_t>& Gamma_cluster)
+  //   void BSE_lattice_solver<parameters_type, MOMS_type>::compute_Gamma_lattice_1(FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t>& Gamma_cluster)
   //   {
   //     coarsegrain_inversion<parameters_type, k_DCA, k_HOST_VERTEX, QUADRATURE_INTEGRATION> coarsegrain_inversion_obj(parameters);
 
@@ -340,7 +340,7 @@ namespace DCA
   //   }
 
   //   template<class parameters_type, class MOMS_type>
-  //   void BSE_lattice_solver<parameters_type, MOMS_type>::compute_Gamma_lattice_2(function<std::complex<scalartype>, DCA_matrix_dmn_t>& Gamma_cluster)
+  //   void BSE_lattice_solver<parameters_type, MOMS_type>::compute_Gamma_lattice_2(FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t>& Gamma_cluster)
   //   {
   //     {
   //       if(concurrency.id()==0)
@@ -355,7 +355,7 @@ namespace DCA
   //       if(concurrency.id()==0)
   //         cout << "\n\n start tp-deconvolution of Gamma \n\n";
 
-  //       function<std::complex<scalartype>, dmn_2<dmn_4<b,b,tmp_cluster_dmn_t,w_VERTEX>, dmn_4<b,b,tmp_cluster_dmn_t,w_VERTEX> > > Gamma_lattice_interp("Gamma_lattice_interp");
+  //       FUNC_LIB::function<std::complex<scalartype>, dmn_2<dmn_4<b,b,tmp_cluster_dmn_t,w_VERTEX>, dmn_4<b,b,tmp_cluster_dmn_t,w_VERTEX> > > Gamma_lattice_interp("Gamma_lattice_interp");
 
   //       for(int i=0; i<Gamma_lattice_interp.size(); i++)
   //         Gamma_lattice_interp(i) = Gamma_lattice(i);
@@ -367,7 +367,7 @@ namespace DCA
   //   }
 
   template<class parameters_type, class MOMS_type>
-  void BSE_lattice_solver<parameters_type, MOMS_type>::compute_Gamma_lattice_3(function<std::complex<scalartype>, DCA_matrix_dmn_t>& Gamma_cluster)
+  void BSE_lattice_solver<parameters_type, MOMS_type>::compute_Gamma_lattice_3(FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t>& Gamma_cluster)
   {
     profiler_type prof(__FUNCTION__, "BSE_lattice_solver", __LINE__);
 
@@ -377,8 +377,8 @@ namespace DCA
   }
 
   template<class parameters_type, class MOMS_type>
-  void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_Gamma_chi_0(function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
-                                                                               function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice)
+  void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_Gamma_chi_0(FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
+                                                                               FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice)
   {
     if(parameters.do_diagonolization_on_folded_Gamma_chi_0())
       diagonolize_folded_Gamma_chi_0(Gamma_lattice, chi_0_lattice);
@@ -389,8 +389,8 @@ namespace DCA
   }
 
   template<class parameters_type, class MOMS_type>
-  void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_full_Gamma_chi_0(function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
-                                                                                    function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice)
+  void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_full_Gamma_chi_0(FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
+                                                                                    FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice)
   {
     profiler_type prof(__FUNCTION__, "BSE_lattice_solver", __LINE__);
 
@@ -494,8 +494,8 @@ namespace DCA
   }
 
   template<class parameters_type, class MOMS_type>
-  void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_folded_Gamma_chi_0(function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
-                                                                                      function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice)
+  void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_folded_Gamma_chi_0(FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
+                                                                                      FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice)
   {
     if(concurrency.id()==concurrency.last())
       cout << __FUNCTION__ << endl;
@@ -606,7 +606,7 @@ namespace DCA
   }
 
   template<class parameters_type, class MOMS_type>
-  void BSE_lattice_solver<parameters_type, MOMS_type>::compute_folded_susceptibility(function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice,
+  void BSE_lattice_solver<parameters_type, MOMS_type>::compute_folded_susceptibility(FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice,
                                                                                      LIN_ALG::vector<std::complex<scalartype>, LIN_ALG::CPU>& L,
                                                                                      LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& VL,
                                                                                      LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& VR)
@@ -661,7 +661,7 @@ namespace DCA
     }
 
     {
-      function<std::complex<scalartype>, dmn_2<crystal_eigenvector_dmn_t, crystal_eigenvector_dmn_t> > chi_q_tmp("chi_q_tmp");
+      FUNC_LIB::function<std::complex<scalartype>, dmn_2<crystal_eigenvector_dmn_t, crystal_eigenvector_dmn_t> > chi_q_tmp("chi_q_tmp");
 
       {
         LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU> chi_matrix("chi", M);

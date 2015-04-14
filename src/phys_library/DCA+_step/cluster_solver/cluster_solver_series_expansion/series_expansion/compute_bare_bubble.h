@@ -29,8 +29,8 @@ namespace DCA
 
     public:
 
-      typedef function<std::complex<double>, dmn_4<nu , nu, k_dmn_t, w_dmn_t         > > G_function_type;
-      typedef function<std::complex<double>, dmn_4<b_b,b_b, k_dmn_t, w_VERTEX_BOSONIC> >   function_type;
+      typedef FUNC_LIB::function<std::complex<double>, dmn_4<nu , nu, k_dmn_t, w_dmn_t         > > G_function_type;
+      typedef FUNC_LIB::function<std::complex<double>, dmn_4<b_b,b_b, k_dmn_t, w_VERTEX_BOSONIC> >   function_type;
 
     public:
 
@@ -66,7 +66,7 @@ namespace DCA
 
     protected:
 
-      function<std::complex<double>, dmn_4<b_b,b_b, k_dmn_t, w_VERTEX_BOSONIC> > chi;
+      FUNC_LIB::function<std::complex<double>, dmn_4<b_b,b_b, k_dmn_t, w_VERTEX_BOSONIC> > chi;
 
     private:
 

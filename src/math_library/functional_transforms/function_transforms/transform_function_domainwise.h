@@ -31,8 +31,8 @@ namespace MATH_ALGORITHMS
     const static DOMAIN_REPRESENTATIONS DMN_REP_RHS = output_specs_type::DOMAIN_REPRESENTATION;
     
     template<typename scalartype_input, typename scalartype_output>
-    static void execute_on_first(function<scalartype_input , domain_input >& f_input, 
-				 function<scalartype_output, domain_output>& f_output)
+    static void execute_on_first(FUNC_LIB::function<scalartype_input , domain_input >& f_input, 
+				 FUNC_LIB::function<scalartype_output, domain_output>& f_output)
     {
 //       GENERIC_ASSERT<IS_EQUAL<TRANSFORMED_DOMAIN, domain_output>::CHECK>::execute();
 
@@ -45,8 +45,8 @@ namespace MATH_ALGORITHMS
     }
 
     template<typename scalartype_input, typename scalartype_output, typename scalartype_T>
-    static void execute_on_first(function<scalartype_input , domain_input >&  f_input, 
-				 function<scalartype_output, domain_output>&  f_output,
+    static void execute_on_first(FUNC_LIB::function<scalartype_input , domain_input >&  f_input, 
+				 FUNC_LIB::function<scalartype_output, domain_output>&  f_output,
 				 LIN_ALG::matrix<scalartype_T, LIN_ALG::CPU>& T)
     {
 //       GENERIC_ASSERT<IS_EQUAL<TRANSFORMED_DOMAIN, domain_output>::CHECK>::execute();
@@ -60,8 +60,8 @@ namespace MATH_ALGORITHMS
     }
     
     template<typename scalartype_input, typename scalartype_output>
-    static void execute_on_all(function<scalartype_input , domain_input >& f_input, 
-			       function<scalartype_output, domain_output>& f_output)
+    static void execute_on_all(FUNC_LIB::function<scalartype_input , domain_input >& f_input, 
+			       FUNC_LIB::function<scalartype_output, domain_output>& f_output)
     {
       if(VERBOSE){
 	cout << "\n\n\t" << __FUNCTION__ << "\t" << f_input.get_name() << " --> " << f_output.get_name() << "\n\n";
@@ -69,7 +69,7 @@ namespace MATH_ALGORITHMS
 	f_input.print_fingerprint();
       }
 
-      function<scalartype_output, TRANSFORMED_DOMAIN> f_output_new("f_output_new");
+      FUNC_LIB::function<scalartype_output, TRANSFORMED_DOMAIN> f_output_new("f_output_new");
       
       TRANSFORM_DOMAIN<type_input, DMN_REP_LHS, type_output, DMN_REP_RHS, CURR_DMN_INDEX>::execute(f_input, f_output_new);
 
@@ -102,8 +102,8 @@ namespace MATH_ALGORITHMS
     }
 
     template<typename scalartype_input, typename scalartype_output, typename scalartype_T>
-    static void execute_on_all(function<scalartype_input , domain_input >&  f_input, 
-			       function<scalartype_output, domain_output>&  f_output,
+    static void execute_on_all(FUNC_LIB::function<scalartype_input , domain_input >&  f_input, 
+			       FUNC_LIB::function<scalartype_output, domain_output>&  f_output,
 			       LIN_ALG::matrix<scalartype_T, LIN_ALG::CPU>& T)
     {
       if(VERBOSE){
@@ -112,7 +112,7 @@ namespace MATH_ALGORITHMS
 	f_input.print_fingerprint();
       }
 
-      function<scalartype_output, TRANSFORMED_DOMAIN> f_output_new("f_output_new");
+      FUNC_LIB::function<scalartype_output, TRANSFORMED_DOMAIN> f_output_new("f_output_new");
 
       TRANSFORM_DOMAIN_PROCEDURE<CURR_DMN_INDEX>::transform(f_input, f_output_new, T);
 

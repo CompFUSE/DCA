@@ -36,15 +36,15 @@ namespace DCA
     deconvolution_sp(parameters_type& parameters_ref);
     ~deconvolution_sp();
 
-    void execute(function<std::complex<double>, dmn_4<nu, nu, source_k_dmn_t, w> >& f_source,
-                 function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& Sigma_interp,
-                 function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& Sigma_deconv,
-                 function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& f_target);
+    void execute(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, source_k_dmn_t, w> >& f_source,
+                 FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& Sigma_interp,
+                 FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& Sigma_deconv,
+                 FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& f_target);
 
   private:
 
-    void find_shift(function<std::complex<double>, dmn_2<b, b> >& shift,
-                    function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& Sigma_interp);
+    void find_shift(FUNC_LIB::function<std::complex<double>, dmn_2<b, b> >& shift,
+                    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& Sigma_interp);
 
   private:
 
@@ -65,12 +65,12 @@ namespace DCA
   {}
 
   template<typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
-  void deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(function<std::complex<double>, dmn_4<nu, nu, source_k_dmn_t, w> >& f_source,
-                                                                                  function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& f_interp,
-                                                                                  function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& f_approx,
-                                                                                  function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& f_target)
+  void deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, source_k_dmn_t, w> >& f_source,
+                                                                                  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& f_interp,
+                                                                                  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& f_approx,
+                                                                                  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& f_target)
   {
-    function<std::complex<double>, dmn_2<b, b> > shift;
+    FUNC_LIB::function<std::complex<double>, dmn_2<b, b> > shift;
 
     find_shift(shift, f_interp);
 
@@ -79,9 +79,9 @@ namespace DCA
 
     INFERENCE::Richardson_Lucy_deconvolution<parameters_type, target_k_dmn_t, p_dmn_t> RL_obj(parameters);
 
-    function<double, dmn_2<target_k_dmn_t, p_dmn_t> > S_source("S_source");
-    function<double, dmn_2<target_k_dmn_t, p_dmn_t> > S_approx("S_approx");
-    function<double, dmn_2<target_k_dmn_t, p_dmn_t> > S_target("S_target");
+    FUNC_LIB::function<double, dmn_2<target_k_dmn_t, p_dmn_t> > S_source("S_source");
+    FUNC_LIB::function<double, dmn_2<target_k_dmn_t, p_dmn_t> > S_approx("S_approx");
+    FUNC_LIB::function<double, dmn_2<target_k_dmn_t, p_dmn_t> > S_target("S_target");
 
     for(int w_ind=0; w_ind<w::dmn_size(); w_ind++){
 
@@ -136,13 +136,13 @@ namespace DCA
   }
 
   template<typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
-  void deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::find_shift(function<std::complex<double>, dmn_2<b, b> >&                      shift,
-                                                                                     function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& Sigma_interp)
+  void deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::find_shift(FUNC_LIB::function<std::complex<double>, dmn_2<b, b> >&                      shift,
+                                                                                     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& Sigma_interp)
   {
     for(int j=0; j<b::dmn_size(); j++){
       for(int i=0; i<b::dmn_size(); i++){
-        real(shift(i,j)) = 0;
-        imag(shift(i,j)) = 0;
+		shift(i,j).real(0);
+		shift(i,j).imag(0);
       }
     }
 
@@ -159,8 +159,8 @@ namespace DCA
 
     for(int j=0; j<b::dmn_size(); j++){
       for(int i=0; i<b::dmn_size(); i++){
-        real(shift(i,j)) = 2.*real(shift(i,j))+1;
-        imag(shift(i,j)) = 2.*imag(shift(i,j))+1;
+		shift(i,j).real(2.*real(shift(i,j))+1);
+        shift(i,j).imag(2.*imag(shift(i,j))+1);
       }
     }
   }

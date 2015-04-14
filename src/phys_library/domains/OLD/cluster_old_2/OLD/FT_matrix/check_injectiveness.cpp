@@ -148,9 +148,9 @@ void do_cluster_tests()
   //typedef dmn_3<r,r,t> r_r_t;
   //typedef dmn_3<k,k,t> k_k_t;
 
-  //function<double              , r_r_t> f;
-  //function<std::complex<double>, k_k_t> F;
-  //function<std::complex<double>, r_r_t> f2;
+  //FUNC_LIB::function<double              , r_r_t> f;
+  //FUNC_LIB::function<std::complex<double>, k_k_t> F;
+  //FUNC_LIB::function<std::complex<double>, r_r_t> f2;
 
   //f.print_fingerprint();
   //F.print_fingerprint();

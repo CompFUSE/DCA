@@ -66,13 +66,13 @@ namespace DCA
         /*!
          * \brief Get a reference to \f$G^{I}_{\uparrow}(k_1, k_2)\f$.
          */
-        function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& get_G_k_k_w_w_e_UP()
+        FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& get_G_k_k_w_w_e_UP()
         { return G2_k_k_w_w_e_UP; }
 
         /*!
          * \brief Get a reference to \f$G^{I}_{\downarrow}(k_1, k_2)\f$.
          */
-        function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& get_G_k_k_w_w_e_DN()
+        FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& get_G_k_k_w_w_e_DN()
         { return G2_k_k_w_w_e_DN; }
 
         /*!
@@ -84,13 +84,13 @@ namespace DCA
       private:
 
         void FT_M_v_v_2_M_k_k_w_w(std::vector<vertex_singleton_type>& HS_configuration_e_spin,
-                                  function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& M_k_k_w_w,
+                                  FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& M_k_k_w_w,
                                   vertex_vertex_matrix_type& M_e_spin);
 
         void FT_M_v_v_2_M_k_k_w_w_test();
 
-        void compute_G2_k_k_w_w(function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& M_k_k_w_w,
-                                function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w,
+        void compute_G2_k_k_w_w(FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& M_k_k_w_w,
+                                FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w,
                                 e_spin_states_type e_spin);
 
         void compute_G2_k_k_w_w_atomic(std::complex<double>* G0_k_w_l,
@@ -130,12 +130,12 @@ namespace DCA
         //QMC::cached_nft<2, scalar_type, r_dmn_t, w_VERTEX_EXTENDED, w_VERTEX_EXTENDED_POS> nft_obj;
 	cached_nft<2, scalar_type, r_dmn_t, w_VERTEX_EXTENDED, w_VERTEX_EXTENDED_POS> nft_obj;
 
-        function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t> G2_k_k_w_w_e_UP;
-        function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t> G2_k_k_w_w_e_DN;
+        FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t> G2_k_k_w_w_e_UP;
+        FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t> G2_k_k_w_w_e_DN;
 
-        function<std::complex<scalar_type>, b_b_r_r_w_w_dmn_t> M_r_r_w_w;
-        function<std::complex<scalar_type>, b_b_k_r_w_w_dmn_t> M_k_r_w_w;
-        function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t> M_k_k_w_w;
+        FUNC_LIB::function<std::complex<scalar_type>, b_b_r_r_w_w_dmn_t> M_r_r_w_w;
+        FUNC_LIB::function<std::complex<scalar_type>, b_b_k_r_w_w_dmn_t> M_k_r_w_w;
+        FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t> M_k_k_w_w;
       };
 
       template<class parameters_type, class MOMS_type>
@@ -227,7 +227,7 @@ namespace DCA
 
       template<class parameters_type, class MOMS_type>
       void accumulator_nonlocal_G<parameters_type, MOMS_type>::FT_M_v_v_2_M_k_k_w_w(std::vector<vertex_singleton_type>&                     configuration_e_spin,
-                                                                                    function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& M_k_k_w_w_e_spin,
+                                                                                    FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& M_k_k_w_w_e_spin,
                                                                                     vertex_vertex_matrix_type&                              M_e_spin)
       {
         {
@@ -268,13 +268,13 @@ namespace DCA
           typedef dmn_6<b,b,k_DCA,k_DCA,w1_dmn_t,w2_dmn_t> b_b_k_DCA_k_DCA_w_w_dmn_t;
           typedef dmn_6<b,b,k_PCM,k_PCM,w1_dmn_t,w2_dmn_t> b_b_k_PCM_k_PCM_w_w_dmn_t;
 
-          function<std::complex<scalar_type>, b_b_r_DCA_r_DCA_w_w_dmn_t> tmp_RR_1("tmp_RR_1");
-          function<std::complex<scalar_type>, b_b_r_PCM_r_PCM_w_w_dmn_t> tmp_RR_2("tmp_RR_2");
+          FUNC_LIB::function<std::complex<scalar_type>, b_b_r_DCA_r_DCA_w_w_dmn_t> tmp_RR_1("tmp_RR_1");
+          FUNC_LIB::function<std::complex<scalar_type>, b_b_r_PCM_r_PCM_w_w_dmn_t> tmp_RR_2("tmp_RR_2");
 
-          function<std::complex<scalar_type>, b_b_k_PCM_r_PCM_w_w_dmn_t> tmp_KR_2("tmp_KR_2");
+          FUNC_LIB::function<std::complex<scalar_type>, b_b_k_PCM_r_PCM_w_w_dmn_t> tmp_KR_2("tmp_KR_2");
 
-          function<std::complex<scalar_type>, b_b_k_DCA_k_DCA_w_w_dmn_t> tmp_KK_1("tmp_KK_1");
-          function<std::complex<scalar_type>, b_b_k_PCM_k_PCM_w_w_dmn_t> tmp_KK_2("tmp_KK_2");
+          FUNC_LIB::function<std::complex<scalar_type>, b_b_k_DCA_k_DCA_w_w_dmn_t> tmp_KK_1("tmp_KK_1");
+          FUNC_LIB::function<std::complex<scalar_type>, b_b_k_PCM_k_PCM_w_w_dmn_t> tmp_KK_2("tmp_KK_2");
 
           for(int l=0; l<M_r_r_w_w.size(); l++)
             tmp_RR_1(l) = M_r_r_w_w(l);
@@ -360,8 +360,8 @@ namespace DCA
       */
 
       template<class parameters_type, class MOMS_type>
-      void accumulator_nonlocal_G<parameters_type, MOMS_type>::compute_G2_k_k_w_w(function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& M_k_k_w_w,
-                                                                                  function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w,
+      void accumulator_nonlocal_G<parameters_type, MOMS_type>::compute_G2_k_k_w_w(FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& M_k_k_w_w,
+                                                                                  FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w,
                                                                                   e_spin_states_type e_spin)
       {
         std::complex<double>      *G0_k_w_l_ptr , *G0_k_w_r_ptr;

@@ -19,8 +19,8 @@ namespace MATH_ALGORITHMS
     
     template<typename scalartype_input, class domain_input, 
 	     typename scalartype_output, class domain_output>
-    static void execute(function<scalartype_input , domain_input >& f_input, 
-			function<scalartype_output, domain_output>& f_output)
+    static void execute(FUNC_LIB::function<scalartype_input , domain_input >& f_input, 
+			FUNC_LIB::function<scalartype_output, domain_output>& f_output)
     {
       default_execute(f_input, f_output);
     }
@@ -29,8 +29,8 @@ namespace MATH_ALGORITHMS
  
     template<typename scalartype_input, class domain_input, 
 	     typename scalartype_output, class domain_output>
-    static void default_execute(function<scalartype_input , domain_input >& f_input, 
-				function<scalartype_output, domain_output>& f_output)
+    static void default_execute(FUNC_LIB::function<scalartype_input , domain_input >& f_input, 
+				FUNC_LIB::function<scalartype_output, domain_output>& f_output)
     {
       if(VERBOSE)
 	cout << "\n\t default-transform (continuous -> expansion) " << DMN_INDEX << "  " << type_input::get_name() << " --> " << type_output::get_name() << "\n\n";

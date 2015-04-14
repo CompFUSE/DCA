@@ -80,10 +80,10 @@ private:
 
 private:
 
-  function<int   , dmn_2<k_dmn_t, neighbours_dmn_t> > neighbours_index;
+  FUNC_LIB::function<int   , dmn_2<k_dmn_t, neighbours_dmn_t> > neighbours_index;
 
-  function<scalartype, dmn_2<k_dmn_t, neighbours_dmn_t> > strain;
-  function<scalartype, dmn_2<k_dmn_t, neighbours_dmn_t> > alphas;
+  FUNC_LIB::function<scalartype, dmn_2<k_dmn_t, neighbours_dmn_t> > strain;
+  FUNC_LIB::function<scalartype, dmn_2<k_dmn_t, neighbours_dmn_t> > alphas;
 
   double k_basis    [DIMENSION*DIMENSION];
   double k_basis_inv[DIMENSION*DIMENSION];

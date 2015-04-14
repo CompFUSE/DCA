@@ -112,29 +112,29 @@ namespace DCA
 
       ~fermionic_Hamiltonian();
 
-      void initialize(function<std::complex<double>, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_0,
-                      function<double              , dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_i);
+      void initialize(FUNC_LIB::function<std::complex<double>, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_0,
+                      FUNC_LIB::function<double              , dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_i);
 
       void construct_Hamiltonians(bool interacting);
       void diagonalize_Hamiltonians_st();
       //void diagonalize_Hamiltonians_mt();
 
-      void set_spectrum(function<double, w_REAL>& A_w);
+      void set_spectrum(FUNC_LIB::function<double, w_REAL>& A_w);
       void print_spectrum();
 
       void print_Hamiltonian   (const char* filename);
       void print_eigen_energies(const char* filename);
       void print_eigen_states  (const char* filename);
 
-      function<vector_type, fermionic_Fock_dmn_type >& get_eigen_energies() { return eigen_energies; }
-      function<matrix_type, fermionic_Fock_dmn_type >& get_eigen_states  () { return eigen_states; }
+      FUNC_LIB::function<vector_type, fermionic_Fock_dmn_type >& get_eigen_energies() { return eigen_energies; }
+      FUNC_LIB::function<matrix_type, fermionic_Fock_dmn_type >& get_eigen_states  () { return eigen_states; }
 
       double get_Z();
       
     private:
 
-      void initialize_t_ij_and_U_ij(function<std::complex<double>, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_0,
-                                    function<double              , dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_i);
+      void initialize_t_ij_and_U_ij(FUNC_LIB::function<std::complex<double>, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_0,
+                                    FUNC_LIB::function<double              , dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_i);
 
       void shift_the_energies();
 
@@ -159,10 +159,10 @@ namespace DCA
       std::vector<t_struct<complex_type> > t_ij;
       std::vector<U_struct<complex_type> > U_ij;
 
-      function<matrix_type, fermionic_Fock_dmn_type> Hamiltonians;
+      FUNC_LIB::function<matrix_type, fermionic_Fock_dmn_type> Hamiltonians;
 
-      function<vector_type, fermionic_Fock_dmn_type> eigen_energies;
-      function<matrix_type, fermionic_Fock_dmn_type> eigen_states;
+      FUNC_LIB::function<vector_type, fermionic_Fock_dmn_type> eigen_energies;
+      FUNC_LIB::function<matrix_type, fermionic_Fock_dmn_type> eigen_states;
     };
 
 
@@ -204,15 +204,15 @@ namespace DCA
     }
 
     template<typename parameter_type, typename ed_options>
-    void fermionic_Hamiltonian<parameter_type, ed_options>::initialize(function<std::complex<double>, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_0,
-                                                                       function<double, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_i)
+    void fermionic_Hamiltonian<parameter_type, ed_options>::initialize(FUNC_LIB::function<std::complex<double>, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_0,
+                                                                       FUNC_LIB::function<double, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_i)
     {
       initialize_t_ij_and_U_ij(H_0, H_i);
     }
 
     template<typename parameter_type, typename ed_options>
-    void fermionic_Hamiltonian<parameter_type, ed_options>::initialize_t_ij_and_U_ij(function<std::complex<double>, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_0,
-                                                                                     function<double              , dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_i)
+    void fermionic_Hamiltonian<parameter_type, ed_options>::initialize_t_ij_and_U_ij(FUNC_LIB::function<std::complex<double>, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_0,
+                                                                                     FUNC_LIB::function<double              , dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn> >& H_i)
     {
       {
         for(int r_j=0; r_j<r_dmn::dmn_size(); r_j++){
@@ -893,7 +893,7 @@ namespace DCA
     }
 
     template<typename parameter_type, typename ed_options>
-    void fermionic_Hamiltonian<parameter_type, ed_options>::set_spectrum(function<double, w_REAL>& A_w)
+    void fermionic_Hamiltonian<parameter_type, ed_options>::set_spectrum(FUNC_LIB::function<double, w_REAL>& A_w)
     {
       A_w = 0;
 

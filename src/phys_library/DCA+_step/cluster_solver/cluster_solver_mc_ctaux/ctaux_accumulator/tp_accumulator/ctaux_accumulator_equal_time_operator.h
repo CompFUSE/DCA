@@ -56,12 +56,12 @@ namespace DCA
 
       void finalize();
 
-      function<double, dmn_4<nu, nu, r_dmn_t, t> >& get_G_r_t()        { return G_r_t; }
-      function<double, dmn_4<nu, nu, r_dmn_t, t> >& get_G_r_t_stddev() { return G_r_t_stddev; }
+      FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t> >& get_G_r_t()        { return G_r_t; }
+      FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t> >& get_G_r_t_stddev() { return G_r_t_stddev; }
 
-      function<double, dmn_2<b, r_dmn_t> >& get_charge_cluster_moment()   { return charge_cluster_moment; }
-      function<double, dmn_2<b, r_dmn_t> >& get_magnetic_cluster_moment() { return magnetic_cluster_moment; }
-      function<double, dmn_2<b, r_dmn_t> >& get_dwave_pp_correlator()     { return dwave_pp_correlator; }
+      FUNC_LIB::function<double, dmn_2<b, r_dmn_t> >& get_charge_cluster_moment()   { return charge_cluster_moment; }
+      FUNC_LIB::function<double, dmn_2<b, r_dmn_t> >& get_magnetic_cluster_moment() { return magnetic_cluster_moment; }
+      FUNC_LIB::function<double, dmn_2<b, r_dmn_t> >& get_dwave_pp_correlator()     { return dwave_pp_correlator; }
 
 
       template<class configuration_type>
@@ -87,8 +87,8 @@ namespace DCA
       void initialize_G0_original();
       void test_G0_original();
 
-      void interpolate(function<double, dmn_4<nu, nu, r_dmn_t, t> >& G_r_t,
-                       function<double, dmn_4<nu, nu, r_dmn_t, t> >& G_r_t_stddev);
+      void interpolate(FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t> >& G_r_t,
+                       FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t> >& G_r_t_stddev);
 
       void plot_G_r_t();
 
@@ -135,19 +135,19 @@ namespace DCA
       b_r_t_VERTEX_dmn_t      b_r_t_dmn;
       nu_nu_r_dmn_t_shifted_t nu_nu_r_dmn_t_t_shifted_dmn;
 
-      function<double, akima_nu_nu_r_dmn_t_shifted_t> akima_coefficients;
+      FUNC_LIB::function<double, akima_nu_nu_r_dmn_t_shifted_t> akima_coefficients;
 
       std::vector<singleton_operator> fixed_configuration;
       std::vector<singleton_operator> ctaux_configuration;
 
-      function<float, dmn_2<dmn_3<b_dmn_t, r_dmn_t, t_VERTEX>, dmn_3<b_dmn_t, r_dmn_t, t_VERTEX> > > G0_sign_up;
-      function<float, dmn_2<dmn_3<b_dmn_t, r_dmn_t, t_VERTEX>, dmn_3<b_dmn_t, r_dmn_t, t_VERTEX> > > G0_sign_dn;
+      FUNC_LIB::function<float, dmn_2<dmn_3<b_dmn_t, r_dmn_t, t_VERTEX>, dmn_3<b_dmn_t, r_dmn_t, t_VERTEX> > > G0_sign_up;
+      FUNC_LIB::function<float, dmn_2<dmn_3<b_dmn_t, r_dmn_t, t_VERTEX>, dmn_3<b_dmn_t, r_dmn_t, t_VERTEX> > > G0_sign_dn;
 
-      function<int, dmn_2<dmn_3<b_dmn_t, r_dmn_t, t_VERTEX>, dmn_3<b_dmn_t, r_dmn_t, t_VERTEX> > > G0_indices_up;
-      function<int, dmn_2<dmn_3<b_dmn_t, r_dmn_t, t_VERTEX>, dmn_3<b_dmn_t, r_dmn_t, t_VERTEX> > > G0_indices_dn;
+      FUNC_LIB::function<int, dmn_2<dmn_3<b_dmn_t, r_dmn_t, t_VERTEX>, dmn_3<b_dmn_t, r_dmn_t, t_VERTEX> > > G0_indices_up;
+      FUNC_LIB::function<int, dmn_2<dmn_3<b_dmn_t, r_dmn_t, t_VERTEX>, dmn_3<b_dmn_t, r_dmn_t, t_VERTEX> > > G0_indices_dn;
 
-      function<float, dmn_2<dmn_3<b_dmn_t, r_dmn_t, t_VERTEX>, dmn_3<b_dmn_t, r_dmn_t, t_VERTEX> > > G0_integration_factor_up;
-      function<float, dmn_2<dmn_3<b_dmn_t, r_dmn_t, t_VERTEX>, dmn_3<b_dmn_t, r_dmn_t, t_VERTEX> > > G0_integration_factor_dn;
+      FUNC_LIB::function<float, dmn_2<dmn_3<b_dmn_t, r_dmn_t, t_VERTEX>, dmn_3<b_dmn_t, r_dmn_t, t_VERTEX> > > G0_integration_factor_up;
+      FUNC_LIB::function<float, dmn_2<dmn_3<b_dmn_t, r_dmn_t, t_VERTEX>, dmn_3<b_dmn_t, r_dmn_t, t_VERTEX> > > G0_integration_factor_dn;
 
       LIN_ALG::matrix<float, LIN_ALG::CPU> G0_original_up;
       LIN_ALG::matrix<float, LIN_ALG::CPU> G0_original_dn;
@@ -170,22 +170,22 @@ namespace DCA
       LIN_ALG::matrix<float, LIN_ALG::CPU> G0_M_G0_matrix_up;
       LIN_ALG::matrix<float, LIN_ALG::CPU> G0_M_G0_matrix_dn;
 
-      function<float, dmn_2<dmn_3<b_dmn_t, r_dmn_t, t_VERTEX>, dmn_3<b_dmn_t, r_dmn_t, t_VERTEX> > > G_r_t_dn;
-      function<float, dmn_2<dmn_3<b_dmn_t, r_dmn_t, t_VERTEX>, dmn_3<b_dmn_t, r_dmn_t, t_VERTEX> > > G_r_t_up;
+      FUNC_LIB::function<float, dmn_2<dmn_3<b_dmn_t, r_dmn_t, t_VERTEX>, dmn_3<b_dmn_t, r_dmn_t, t_VERTEX> > > G_r_t_dn;
+      FUNC_LIB::function<float, dmn_2<dmn_3<b_dmn_t, r_dmn_t, t_VERTEX>, dmn_3<b_dmn_t, r_dmn_t, t_VERTEX> > > G_r_t_up;
 
-      function<double, dmn_4<nu, nu, r_dmn_t, t> > G_r_t;
-      function<double, dmn_4<nu, nu, r_dmn_t, t> > G_r_t_stddev;
+      FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t> > G_r_t;
+      FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t> > G_r_t_stddev;
 
-      function<double, dmn_4<nu, nu, r_dmn_t, t_VERTEX> > G_r_t_accumulated;
-      function<double, dmn_4<nu, nu, r_dmn_t, t_VERTEX> > G_r_t_accumulated_squared;
+      FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t_VERTEX> > G_r_t_accumulated;
+      FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t_VERTEX> > G_r_t_accumulated_squared;
 
-      function<double, dmn_2<b, r_dmn_t> > charge_cluster_moment;
-      function<double, dmn_2<b, r_dmn_t> > magnetic_cluster_moment;
+      FUNC_LIB::function<double, dmn_2<b, r_dmn_t> > charge_cluster_moment;
+      FUNC_LIB::function<double, dmn_2<b, r_dmn_t> > magnetic_cluster_moment;
 
-      function<double,          k_dmn_t  > dwave_k_factor;
-      function<double,          r_dmn_t  > dwave_r_factor;
+      FUNC_LIB::function<double,          k_dmn_t  > dwave_k_factor;
+      FUNC_LIB::function<double,          r_dmn_t  > dwave_r_factor;
 
-      function<double, dmn_2<b, r_dmn_t> > dwave_pp_correlator;
+      FUNC_LIB::function<double, dmn_2<b, r_dmn_t> > dwave_pp_correlator;
     };
 
     template<class parameters_type, class MOMS_type>
@@ -503,8 +503,8 @@ namespace DCA
     }
 
     template<class parameters_type, class MOMS_type>
-    void MC_two_particle_equal_time_accumulator<parameters_type, MOMS_type>::interpolate(function<double, dmn_4<nu, nu, r_dmn_t, t> >& G_r_t,
-                                                                                         function<double, dmn_4<nu, nu, r_dmn_t, t> >& G_r_t_stddev)
+    void MC_two_particle_equal_time_accumulator<parameters_type, MOMS_type>::interpolate(FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t> >& G_r_t,
+                                                                                         FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t> >& G_r_t_stddev)
     {
       int size = t_VERTEX::dmn_size();
 

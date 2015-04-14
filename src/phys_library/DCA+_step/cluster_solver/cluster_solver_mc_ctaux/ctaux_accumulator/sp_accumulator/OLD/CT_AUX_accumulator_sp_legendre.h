@@ -42,7 +42,7 @@ namespace QMC {
 
     ~MC_single_particle_accumulator();
 
-    void initialize(function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w);
+    void initialize(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w);
     
     void finalize();
 
@@ -58,7 +58,7 @@ namespace QMC {
 			  double                     sign,
 			  e_spin_states              e_spin);
 
-    void compute_M_r_w(function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w);
+    void compute_M_r_w(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w);
 
   private:
 
@@ -67,10 +67,10 @@ namespace QMC {
 
     std::vector<double> P;
 
-    function<double, dmn_4<legendre_sp_dmn_t,nu,nu,r_dmn_t> > M_l_r;
-    function<double, dmn_4<nu,nu,r_dmn_t,legendre_sp_dmn_t> > M_r_l;
+    FUNC_LIB::function<double, dmn_4<legendre_sp_dmn_t,nu,nu,r_dmn_t> > M_l_r;
+    FUNC_LIB::function<double, dmn_4<nu,nu,r_dmn_t,legendre_sp_dmn_t> > M_r_l;
 
-    function<double, dmn_4<nu,nu,r_dmn_t,t> > M_r_t;
+    FUNC_LIB::function<double, dmn_4<nu,nu,r_dmn_t,t> > M_r_t;
   };
 
   template<class parameters_type>
@@ -91,7 +91,7 @@ namespace QMC {
   {}
 
   template<class parameters_type>
-  void MC_single_particle_accumulator<CT_AUX, LEGENDRE, parameters_type>::initialize(function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w>  >& M_r_w)
+  void MC_single_particle_accumulator<CT_AUX, LEGENDRE, parameters_type>::initialize(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w>  >& M_r_w)
   {
     for(int i=0; i<M_l_r.size(); i++)
       M_l_r(i) = 0;
@@ -196,7 +196,7 @@ namespace QMC {
   }      
   
   template<class parameters_type>
-  void MC_single_particle_accumulator<CT_AUX, LEGENDRE, parameters_type>::compute_M_r_w(function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w)
+  void MC_single_particle_accumulator<CT_AUX, LEGENDRE, parameters_type>::compute_M_r_w(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w)
   {
     cout << scientific;
     cout.precision(6);

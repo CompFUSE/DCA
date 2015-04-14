@@ -103,40 +103,40 @@ namespace DCA
 
     diagrammatic_symmetries<parameters_type> diagrammatic_symmetries_obj;
 
-    function<std::string             ,                      harmonics_dmn_type>   wave_functions_names;
-    function<std::complex<scalartype>, dmn_2<k_HOST_VERTEX, harmonics_dmn_type> > harmonics;
+    FUNC_LIB::function<std::string             ,                      harmonics_dmn_type>   wave_functions_names;
+    FUNC_LIB::function<std::complex<scalartype>, dmn_2<k_HOST_VERTEX, harmonics_dmn_type> > harmonics;
 
-    function<std::complex<double>, DCA_matrix_dmn_t> G4;
-    function<std::complex<double>, DCA_matrix_dmn_t> G4_0;
+    FUNC_LIB::function<std::complex<double>, DCA_matrix_dmn_t> G4;
+    FUNC_LIB::function<std::complex<double>, DCA_matrix_dmn_t> G4_0;
 
-    function<std::complex<scalartype>, DCA_matrix_dmn_t > Gamma_cluster;
-    function<std::complex<scalartype>, HOST_matrix_dmn_t> Gamma_lattice;
+    FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t > Gamma_cluster;
+    FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t> Gamma_lattice;
 
-    function<std::complex<double>, dmn_4<b_b, b_b, k_HOST_VERTEX, w_VERTEX> > chi_0_function;//("phi");
+    FUNC_LIB::function<std::complex<double>, dmn_4<b_b, b_b, k_HOST_VERTEX, w_VERTEX> > chi_0_function;//("phi");
 
-    function<std::complex<scalartype>, HOST_matrix_dmn_t> chi;
-    function<std::complex<scalartype>, HOST_matrix_dmn_t> chi_0;
+    FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t> chi;
+    FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t> chi_0;
 
-    function<std::complex<scalartype>, dmn_0<dmn<1, int> > > chi_q;
+    FUNC_LIB::function<std::complex<scalartype>, dmn_0<dmn<1, int> > > chi_q;
 
-    function<std::complex<scalartype>, harmonics_dmn_type  > P_q_cluster;
-    function<std::complex<scalartype>, harmonics_dmn_type  > P_q_lattice;
+    FUNC_LIB::function<std::complex<scalartype>, harmonics_dmn_type  > P_q_cluster;
+    FUNC_LIB::function<std::complex<scalartype>, harmonics_dmn_type  > P_q_lattice;
 
-    function<std::complex<scalartype>,       lambda_dmn_type>                              leading_eigenvalues;
-    function<std::complex<scalartype>,       lambda_dmn_type>                              leading_phi_t_chi_0_phi;
-    function<std::complex<scalartype>,       lambda_dmn_type>                              leading_phi_t_Gamma_phi;
+    FUNC_LIB::function<std::complex<scalartype>,       lambda_dmn_type>                              leading_eigenvalues;
+    FUNC_LIB::function<std::complex<scalartype>,       lambda_dmn_type>                              leading_phi_t_chi_0_phi;
+    FUNC_LIB::function<std::complex<scalartype>,       lambda_dmn_type>                              leading_phi_t_Gamma_phi;
 
-    function<std::complex<scalartype>, dmn_2<lambda_dmn_type, harmonics_dmn_type> >        leading_symmetries;
-    function<std::complex<scalartype>, dmn_2<lambda_dmn_type, lattice_eigenvector_dmn_t> > leading_eigenvectors;
+    FUNC_LIB::function<std::complex<scalartype>, dmn_2<lambda_dmn_type, harmonics_dmn_type> >        leading_symmetries;
+    FUNC_LIB::function<std::complex<scalartype>, dmn_2<lambda_dmn_type, lattice_eigenvector_dmn_t> > leading_eigenvectors;
 
-    function<std::complex<scalartype>, k_dmn_cut_type> S_k_cut;
-    function<std::complex<scalartype>, k_dmn_cut_type> a_k_cut;
+    FUNC_LIB::function<std::complex<scalartype>, k_dmn_cut_type> S_k_cut;
+    FUNC_LIB::function<std::complex<scalartype>, k_dmn_cut_type> a_k_cut;
 
-    function<std::complex<scalartype>, dmn_2<lambda_dmn_type, cluster_eigenvector_dmn_t> > leading_U_K;
-    function<std::complex<scalartype>, dmn_2<lambda_dmn_type, cluster_eigenvector_dmn_t> > leading_Vt_K;
+    FUNC_LIB::function<std::complex<scalartype>, dmn_2<lambda_dmn_type, cluster_eigenvector_dmn_t> > leading_U_K;
+    FUNC_LIB::function<std::complex<scalartype>, dmn_2<lambda_dmn_type, cluster_eigenvector_dmn_t> > leading_Vt_K;
 
-    function<std::complex<scalartype>, dmn_2<lambda_dmn_type, lattice_eigenvector_dmn_t> > leading_U_k;
-    function<std::complex<scalartype>, dmn_2<lambda_dmn_type, lattice_eigenvector_dmn_t> > leading_Vt_k;
+    FUNC_LIB::function<std::complex<scalartype>, dmn_2<lambda_dmn_type, lattice_eigenvector_dmn_t> > leading_U_k;
+    FUNC_LIB::function<std::complex<scalartype>, dmn_2<lambda_dmn_type, lattice_eigenvector_dmn_t> > leading_Vt_k;
   };
 
   template<class parameters_type, class MOMS_type>
@@ -297,7 +297,7 @@ namespace DCA
         writer.execute(P_q_lattice);
 
       {
-        function<std::complex<scalartype>, cluster_eigenvector_dmn_t> tmp("chi_0_function");
+        FUNC_LIB::function<std::complex<scalartype>, cluster_eigenvector_dmn_t> tmp("chi_0_function");
 
         for(int i=0; i<tmp.size(); ++i)
           tmp(i) = G4_0(i,i)*(parameters.get_beta()*k_DCA::dmn_size());
@@ -308,7 +308,7 @@ namespace DCA
       writer.execute(chi_0_function);
 
       //       {
-      //         function<std::complex<scalartype>, lattice_eigenvector_dmn_t> tmp("full_chi_0_function");
+      //         FUNC_LIB::function<std::complex<scalartype>, lattice_eigenvector_dmn_t> tmp("full_chi_0_function");
 
       //         for(int i=0; i<tmp.size(); ++i)
       //           tmp(i) = chi_0(i,i)*(parameters.get_beta()*k_HOST_VERTEX::dmn_size());
@@ -596,7 +596,7 @@ namespace DCA
     //       {// works apparently well, but need to test with interpolation first ...
     //  profiler_t prof(concurrency, "compute_Gamma_lattice CG-inv Gamma", __FILE__, __LINE__);
 
-    //  function<std::complex<scalartype>, HOST_matrix_dmn_t> tmp2;
+    //  FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t> tmp2;
     //  MOMS.coarsegrain_inversion_obj.execute(Gamma_lattice, tmp2);
 
     //  Gamma_lattice = tmp2;
@@ -880,7 +880,7 @@ namespace DCA
     eigensystem_plan<std::complex<scalartype>, GENERAL> eigensystem_pln(N);
 
     {
-      function<std::complex<scalartype>, HOST_matrix_dmn_t> Gamma_times_chi_0("Gamma_times_chi_0");
+      FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t> Gamma_times_chi_0("Gamma_times_chi_0");
 
       gemm_plan<std::complex<scalartype> > gemm_pln(N);
 
@@ -1059,8 +1059,8 @@ namespace DCA
 
     int N = lattice_eigenvector_dmn.get_size();
 
-    function<std::complex<scalartype>, HOST_HOST_matrix_dmn_t> chi("chi");
-    function<std::complex<scalartype>, HOST_HOST_matrix_dmn_t> denominator("temporary");
+    FUNC_LIB::function<std::complex<scalartype>, HOST_HOST_matrix_dmn_t> chi("chi");
+    FUNC_LIB::function<std::complex<scalartype>, HOST_HOST_matrix_dmn_t> denominator("temporary");
 
     //     {// \Chi_0 * \Gamma --> Gamma_times_full_chi_0(0);
     //       gemm_plan<std::complex<scalartype> > gemm_pln(N);
@@ -1201,9 +1201,9 @@ namespace DCA
 
     int N = lattice_eigenvector_dmn.get_size();
 
-    function<std::complex<scalartype>, HOST_matrix_dmn_t> T("T");
+    FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t> T("T");
     {
-      function<std::complex<scalartype>, HOST_matrix_dmn_t> one_minus_Gamma_times_chi_0("one_minus_Gamma_times_chi_0");
+      FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t> one_minus_Gamma_times_chi_0("one_minus_Gamma_times_chi_0");
 
       {
         int start = clock();
@@ -1226,7 +1226,7 @@ namespace DCA
       for(int i=0; i<N; i++)
         one_minus_Gamma_times_chi_0(i,i) += ONE;
 
-      function<std::complex<scalartype>, HOST_matrix_dmn_t> one_minus_Gamma_times_chi_0_inverse("one_minus_Gamma_times_chi_0_inverse");
+      FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t> one_minus_Gamma_times_chi_0_inverse("one_minus_Gamma_times_chi_0_inverse");
 
       {
         int start = clock();
@@ -1252,9 +1252,9 @@ namespace DCA
       }
     }
 
-    function<std::complex<scalartype>, HOST_matrix_dmn_t> chi_0_times_T_times_chi_0("T");
+    FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t> chi_0_times_T_times_chi_0("T");
     {
-      function<std::complex<scalartype>, HOST_matrix_dmn_t> T_times_chi_0("T");
+      FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t> T_times_chi_0("T");
 
       {
         gemm_plan<std::complex<scalartype> > gemm_pln(N);
@@ -1280,7 +1280,7 @@ namespace DCA
     {
       int start = clock();
 
-      function<std::complex<scalartype>, HOST_matrix_dmn_t> chi_lattice("T");
+      FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t> chi_lattice("T");
 
       chi  = chi_0_times_T_times_chi_0;
       chi += chi_0;

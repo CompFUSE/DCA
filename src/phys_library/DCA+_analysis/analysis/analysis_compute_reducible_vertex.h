@@ -34,11 +34,11 @@ namespace dca {
 
     void apply_symmetries();
 
-    void read_this_G4(int q_ind, function<std::complex<double>, dmn_8<b,b,b,b,k_DCA,k_DCA,w_VERTEX,w_VERTEX> >& G4_q);
+    void read_this_G4(int q_ind, FUNC_LIB::function<std::complex<double>, dmn_8<b,b,b,b,k_DCA,k_DCA,w_VERTEX,w_VERTEX> >& G4_q);
 
     void set_into_full_G4(int q_ind, 
-			  function<std::complex<double>, dmn_8<b,b,b,b,k_DCA,k_DCA,w_VERTEX,w_VERTEX> >&         G4_q,
-			  function<std::complex<double>, dmn_3<b_b_k_DCA_w_VERTEX, b_b_k_DCA_w_VERTEX, k_DCA> >& G4_full);
+			  FUNC_LIB::function<std::complex<double>, dmn_8<b,b,b,b,k_DCA,k_DCA,w_VERTEX,w_VERTEX> >&         G4_q,
+			  FUNC_LIB::function<std::complex<double>, dmn_3<b_b_k_DCA_w_VERTEX, b_b_k_DCA_w_VERTEX, k_DCA> >& G4_full);
 
 
     void load_G4_b_k_w__b_k_w();
@@ -50,7 +50,7 @@ namespace dca {
 
     void compute_reducible_vertex();
 
-    void test(function<std::complex<double>, dmn_3<b_b_k_DCA_w_VERTEX, b_b_k_DCA_w_VERTEX, k_DCA> >& G4_full);
+    void test(FUNC_LIB::function<std::complex<double>, dmn_3<b_b_k_DCA_w_VERTEX, b_b_k_DCA_w_VERTEX, k_DCA> >& G4_full);
 
   private:    
 
@@ -63,17 +63,17 @@ namespace dca {
 
   public:
 
-    function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> G4;
+    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> G4;
 
-    function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> G4_0_b_k_w__b_k_w;
+    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> G4_0_b_k_w__b_k_w;
 
-    function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> full_chi_0;
-    function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> inverted_full_chi_0;
+    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> full_chi_0;
+    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> inverted_full_chi_0;
 
-    function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> reducible_vertex;
+    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> reducible_vertex;
 
-    //function<std::complex<double>, dmn_3<b_b_k_DCA, b_b_k_DCA, k_DCA> >                      full_reducible_vertex;
-    function<std::complex<double>, dmn_3<b_b_k_DCA_w_VERTEX, b_b_k_DCA_w_VERTEX, k_DCA> >    full_reducible_vertex;
+    //FUNC_LIB::function<std::complex<double>, dmn_3<b_b_k_DCA, b_b_k_DCA, k_DCA> >                      full_reducible_vertex;
+    FUNC_LIB::function<std::complex<double>, dmn_3<b_b_k_DCA_w_VERTEX, b_b_k_DCA_w_VERTEX, k_DCA> >    full_reducible_vertex;
     
 //     make_G4_matrix                <parameter_type, MOMS_type> make_G4_obj;
     make_G4_0_matrix              <parameter_type, MOMS_type> make_G4_0_obj;
@@ -143,7 +143,7 @@ namespace dca {
 
     if(parameters.get_output_file_name() == parameters.get_directory()+"/full_reducible_vertex.json")
       {
-	function<std::complex<double>, dmn_7<b,b,k_DCA,  b,b,k_DCA, k_DCA> > reducible_vertex_small("full_reducible_vertex");
+	FUNC_LIB::function<std::complex<double>, dmn_7<b,b,k_DCA,  b,b,k_DCA, k_DCA> > reducible_vertex_small("full_reducible_vertex");
 	
 	for(int b1=0; b1<b::dmn_size(); b1++)
 	  for(int b2=0; b2<b::dmn_size(); b2++)
@@ -160,7 +160,7 @@ namespace dca {
       }
     else
       {
-	function<std::complex<double>, dmn_6<b,b,k_DCA,  b,b,k_DCA> > reducible_vertex_small("reducible_vertex");
+	FUNC_LIB::function<std::complex<double>, dmn_6<b,b,k_DCA,  b,b,k_DCA> > reducible_vertex_small("reducible_vertex");
 	
 	for(int b1=0; b1<b::dmn_size(); b1++){
 	  for(int b2=0; b2<b::dmn_size(); b2++){
@@ -242,9 +242,9 @@ namespace dca {
 
     apply_symmetries();
 
-    function<std::complex<double>, dmn_8<b,b,b,b,k_DCA,k_DCA,w_VERTEX,w_VERTEX>         > G4_k_k_w_w("G4_k_k_w_w");
-    function<std::complex<double>, dmn_3<b_b_k_DCA_w_VERTEX, b_b_k_DCA_w_VERTEX, k_DCA> > G4_full   ("G4_k_w_k_w");
-    //function<std::complex<double>, dmn_3<b_b_k_DCA_w_VERTEX, b_b_k_DCA_w_VERTEX, k_DCA> > G4_0_full ("G4_0_k_w_k_w");
+    FUNC_LIB::function<std::complex<double>, dmn_8<b,b,b,b,k_DCA,k_DCA,w_VERTEX,w_VERTEX>         > G4_k_k_w_w("G4_k_k_w_w");
+    FUNC_LIB::function<std::complex<double>, dmn_3<b_b_k_DCA_w_VERTEX, b_b_k_DCA_w_VERTEX, k_DCA> > G4_full   ("G4_k_w_k_w");
+    //FUNC_LIB::function<std::complex<double>, dmn_3<b_b_k_DCA_w_VERTEX, b_b_k_DCA_w_VERTEX, k_DCA> > G4_0_full ("G4_0_k_w_k_w");
 
     for(int q_ind=0; q_ind<k_DCA::dmn_size(); q_ind++)
       {
@@ -314,7 +314,7 @@ namespace dca {
 
   template<class parameter_type, class MOMS_type>
   void analysis<parameter_type, MOMS_type, ANALYSIS_COMPUTE_REDUCIBLE_VERTEX>::read_this_G4(int q_ind, 
-											    function<std::complex<double>, dmn_8<b,b,b,b,k_DCA,k_DCA,w_VERTEX,w_VERTEX> >& G4_q)
+											    FUNC_LIB::function<std::complex<double>, dmn_8<b,b,b,b,k_DCA,k_DCA,w_VERTEX,w_VERTEX> >& G4_q)
   {
     std::string filename = data_filename;
 
@@ -353,8 +353,8 @@ namespace dca {
     
   template<class parameter_type, class MOMS_type>
   void analysis<parameter_type, MOMS_type, ANALYSIS_COMPUTE_REDUCIBLE_VERTEX>::set_into_full_G4(int q_ind, 
-												function<std::complex<double>, dmn_8<b,b,b,b,k_DCA,k_DCA,w_VERTEX,w_VERTEX> >&                          G4_q,
-												function<std::complex<double>, dmn_3<b_b_k_DCA_w_VERTEX,b_b_k_DCA_w_VERTEX, k_DCA> >& G4_full)
+												FUNC_LIB::function<std::complex<double>, dmn_8<b,b,b,b,k_DCA,k_DCA,w_VERTEX,w_VERTEX> >&                          G4_q,
+												FUNC_LIB::function<std::complex<double>, dmn_3<b_b_k_DCA_w_VERTEX,b_b_k_DCA_w_VERTEX, k_DCA> >& G4_full)
   {
     int* coor_1 = new int[G4_full.signature()];
     int* coor_2 = new int[G4_q   .signature()];
@@ -403,7 +403,7 @@ namespace dca {
     for(int l=0; l<G4.size(); l++)
       G4(l) -= full_chi_0(l);
 
-    function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> G4_min_full_chi_0__times_inverted_full_chi_0("tmp");
+    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> G4_min_full_chi_0__times_inverted_full_chi_0("tmp");
 
     {
       gemm_plan<std::complex<double> > gemm_pln(N);
@@ -428,7 +428,7 @@ namespace dca {
   }
 
   template<class parameter_type, class MOMS_type>
-  void analysis<parameter_type, MOMS_type, ANALYSIS_COMPUTE_REDUCIBLE_VERTEX>::test(function<std::complex<double>, dmn_3<b_b_k_DCA_w_VERTEX, b_b_k_DCA_w_VERTEX, k_DCA> >& G4_full)
+  void analysis<parameter_type, MOMS_type, ANALYSIS_COMPUTE_REDUCIBLE_VERTEX>::test(FUNC_LIB::function<std::complex<double>, dmn_3<b_b_k_DCA_w_VERTEX, b_b_k_DCA_w_VERTEX, k_DCA> >& G4_full)
   {
     cout << scientific;
     cout.precision(6);

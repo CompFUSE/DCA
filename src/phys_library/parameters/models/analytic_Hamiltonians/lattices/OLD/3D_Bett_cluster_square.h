@@ -34,11 +34,11 @@ public:
   static std::vector<std::vector<double> > get_a_vectors();
 
   template<class domain, class parameters_type>
-  static void initialize_H_interaction(function<double , domain >& H_interaction,
+  static void initialize_H_interaction(FUNC_LIB::function<double , domain >& H_interaction,
 				       parameters_type&            parameters);
 
   template<class domain>
-  static void initialize_H_symmetry(function<int , domain>& H_symmetry);
+  static void initialize_H_symmetry(FUNC_LIB::function<int , domain>& H_symmetry);
 
   template<typename parameters_type>
   static std::complex<double> get_LDA_Hamiltonians(parameters_type& parameters, std::vector<double> k, int b1, int s1, int b2, int s2);
@@ -118,7 +118,7 @@ std::vector<std::vector<double> > Bett_cluster_square_3D<DCA_point_group_type>::
 
 template<typename DCA_point_group_type>
 template<class domain, class parameters_type>
-void Bett_cluster_square_3D<DCA_point_group_type>::initialize_H_interaction(function<double , domain >& H_interaction,
+void Bett_cluster_square_3D<DCA_point_group_type>::initialize_H_interaction(FUNC_LIB::function<double , domain >& H_interaction,
 					   parameters_type&            parameters)
 {
   std::vector<std::vector<double> >& U_ij = parameters.get_U_ij();
@@ -134,7 +134,7 @@ void Bett_cluster_square_3D<DCA_point_group_type>::initialize_H_interaction(func
 
 template<typename DCA_point_group_type>
 template<class domain>
-void Bett_cluster_square_3D<DCA_point_group_type>::initialize_H_symmetry(function<int , domain>& H_symmetries)
+void Bett_cluster_square_3D<DCA_point_group_type>::initialize_H_symmetry(FUNC_LIB::function<int , domain>& H_symmetries)
 {
   H_symmetries(0,0)= 0; H_symmetries(0,1)=-1;
   H_symmetries(1,0)=-1; H_symmetries(1,1)= 0;

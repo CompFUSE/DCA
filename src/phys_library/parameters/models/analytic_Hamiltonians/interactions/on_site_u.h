@@ -103,7 +103,7 @@ private:
     typedef typename parameters_type::nu_nu_r_DCA               nu_nu_r_DCA;
 
     static int BANDS                                     = parameters.get_interacting_bands().size();
-//     static function<double, nu_nu_r_DCA>& H_interactions = MOMS.H_interactions;
+//     static FUNC_LIB::function<double, nu_nu_r_DCA>& H_interactions = MOMS.H_interactions;
 
     do
       {
@@ -150,7 +150,7 @@ private:
     typedef typename parameters_type::nu_nu_r_PCM               nu_nu_r_PCM;
 
     int BANDS = parameters.get_interacting_bands().size();
-//     static function<double, nu_nu_r_PCM>& H_interactions = MOMS.H_interactions;
+//     static FUNC_LIB::function<double, nu_nu_r_PCM>& H_interactions = MOMS.H_interactions;
 
     do
       {

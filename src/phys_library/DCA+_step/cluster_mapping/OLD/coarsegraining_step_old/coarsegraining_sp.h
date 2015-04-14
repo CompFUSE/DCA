@@ -48,13 +48,13 @@ namespace DCA
     void reset_fine_q_mesh(int recursion, int rule, int period);
 
     template<typename other_scalar_type, typename k_dmn>
-    void plot_H_q(function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn> >& H_0);
+    void plot_H_q(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn> >& H_0);
 
     template<typename other_scalar_type, typename k_dmn>
-    void plot_S_q(function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w> >& S_k_w);
+    void plot_S_q(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w> >& S_k_w);
 
     template<typename other_scalar_type, typename r_dmn>
-    void compute_phi_r(function<other_scalar_type, r_dmn>& phi_r);
+    void compute_phi_r(FUNC_LIB::function<other_scalar_type, r_dmn>& phi_r);
 
     /*****************************************
      ***                                   ***
@@ -63,18 +63,18 @@ namespace DCA
      *****************************************/
 
     template<typename other_scalar_type>
-    void compute_S_K_w(function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& S_k_w,
-                       function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& S_K_w);
+    void compute_S_K_w(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& S_k_w,
+                       FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& S_K_w);
 
     template<typename other_scalar_type, typename k_dmn>
-    void compute_G_K_w(function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn> >&    H_0,
-                       function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& S_K_w,
-                       function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& G_K_w);
+    void compute_G_K_w(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn> >&    H_0,
+                       FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& S_K_w,
+                       FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& G_K_w);
 
     template<typename other_scalar_type, typename k_dmn, typename w_dmn>
-    void compute_G_K_w_with_TIM(function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn> >&        H_0,
-                                function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn> >& S_K_w,
-                                function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn> >& G_K_w);
+    void compute_G_K_w_with_TIM(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn> >&        H_0,
+                                FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn> >& S_K_w,
+                                FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn> >& G_K_w);
 
     /*****************************************
      ***                                   ***
@@ -83,31 +83,31 @@ namespace DCA
      *****************************************/
 
     template<typename other_scalar_type, typename k_dmn>
-    void compute_S_K_w(function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w> >& S_k_w,
-                       function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& S_K_w);
+    void compute_S_K_w(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w> >& S_k_w,
+                       FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& S_K_w);
 
 
     template<typename other_scalar_type, typename k_dmn>
-    void compute_G_K_w(function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn> >&    H_0,
-                       function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w> >& S_k_w,
-                       function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& G_K_w);
+    void compute_G_K_w(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn> >&    H_0,
+                       FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w> >& S_k_w,
+                       FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& G_K_w);
 
     template<typename other_scalar_type, typename k_dmn, typename w_dmn>
-    void compute_G_K_w_with_TIM(function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn> >&        H_0,
-                                function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w_dmn> >& S_K_w,
-                                function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn> >& G_K_w);
+    void compute_G_K_w_with_TIM(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn> >&        H_0,
+                                FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w_dmn> >& S_K_w,
+                                FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn> >& G_K_w);
 
 
     template<typename other_scalar_type, typename k_dmn>
-    void compute_G0_K_t(function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn   > >& H_0,
-                        function<             other_scalar_type , dmn_4<nu, nu, K_dmn, t> >& G0_k_w);
+    void compute_G0_K_t(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn   > >& H_0,
+                        FUNC_LIB::function<             other_scalar_type , dmn_4<nu, nu, K_dmn, t> >& G0_k_w);
 
   private:
 
     /*
       template<typename k_dmn>
       void compute_G_q_t(int K_ind, int t_ind,
-      function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn> >& H_0);
+      FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn> >& H_0);
     */
 
   private:
@@ -118,22 +118,22 @@ namespace DCA
     bool              initialized;
 
     // tetrahedron q-points
-    function<             scalar_type,  tet_dmn  > w_tet;
+    FUNC_LIB::function<             scalar_type,  tet_dmn  > w_tet;
 
-    function<std::complex<scalar_type>, nu_nu_tet> I_tet;
-    function<std::complex<scalar_type>, nu_nu_tet> H_tet;
-    function<std::complex<scalar_type>, nu_nu_tet> S_tet;
-    function<std::complex<scalar_type>, nu_nu_tet> A_tet;
-    function<std::complex<scalar_type>, nu_nu_tet> G_tet;
+    FUNC_LIB::function<std::complex<scalar_type>, nu_nu_tet> I_tet;
+    FUNC_LIB::function<std::complex<scalar_type>, nu_nu_tet> H_tet;
+    FUNC_LIB::function<std::complex<scalar_type>, nu_nu_tet> S_tet;
+    FUNC_LIB::function<std::complex<scalar_type>, nu_nu_tet> A_tet;
+    FUNC_LIB::function<std::complex<scalar_type>, nu_nu_tet> G_tet;
 
     // gaussian q-points
-    function<             scalar_type,  q_dmn  > w_q;
+    FUNC_LIB::function<             scalar_type,  q_dmn  > w_q;
 
-    function<std::complex<scalar_type>, nu_nu_q> I_q;
-    function<std::complex<scalar_type>, nu_nu_q> H_q;
-    function<std::complex<scalar_type>, nu_nu_q> S_q;
-    function<std::complex<scalar_type>, nu_nu_q> A_q;
-    function<std::complex<scalar_type>, nu_nu_q> G_q;
+    FUNC_LIB::function<std::complex<scalar_type>, nu_nu_q> I_q;
+    FUNC_LIB::function<std::complex<scalar_type>, nu_nu_q> H_q;
+    FUNC_LIB::function<std::complex<scalar_type>, nu_nu_q> S_q;
+    FUNC_LIB::function<std::complex<scalar_type>, nu_nu_q> A_q;
+    FUNC_LIB::function<std::complex<scalar_type>, nu_nu_q> G_q;
   };
 
   template<typename parameters_type, typename K_dmn>
@@ -223,10 +223,10 @@ namespace DCA
 
   template<typename parameters_type, typename K_dmn>
   template<typename other_scalar_type, typename k_dmn>
-  void coarsegraining_sp<parameters_type, K_dmn>::plot_H_q(function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn> >& H_0)
+  void coarsegraining_sp<parameters_type, K_dmn>::plot_H_q(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn> >& H_0)
   {
     /*
-      function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn> > H_k("H_k");
+      FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn> > H_k("H_k");
 
       for(int k_ind=0; k_ind<k_dmn::dmn_size(); k_ind++)
       for(int j=0; j<nu::dmn_size(); j++)
@@ -255,15 +255,15 @@ namespace DCA
 
   template<typename parameters_type, typename K_dmn>
   template<typename other_scalar_type, typename k_dmn>
-  void coarsegraining_sp<parameters_type, K_dmn>::plot_S_q(function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w> >& S_k_w)
+  void coarsegraining_sp<parameters_type, K_dmn>::plot_S_q(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w> >& S_k_w)
   {
     /*
       std::vector<scalar_type> x(q_dmn::dmn_size()*K_dmn::dmn_size());
       std::vector<scalar_type> y(q_dmn::dmn_size()*K_dmn::dmn_size());
       std::vector<scalar_type> z(q_dmn::dmn_size()*K_dmn::dmn_size());
 
-      function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn> > S_k;
-      function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn> > A_k;
+      FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn> > S_k;
+      FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn> > A_k;
 
       for(int k_ind=0; k_ind<k_dmn::dmn_size(); k_ind++)
       for(int j=0; j<nu::dmn_size(); j++)
@@ -290,7 +290,7 @@ namespace DCA
 
   template<typename parameters_type, typename K_dmn>
   template<typename other_scalar_type, typename r_dmn>
-  void coarsegraining_sp<parameters_type, K_dmn>::compute_phi_r(function<other_scalar_type, r_dmn>& phi_r)
+  void coarsegraining_sp<parameters_type, K_dmn>::compute_phi_r(FUNC_LIB::function<other_scalar_type, r_dmn>& phi_r)
   {
     MATH_ALGORITHMS::tetrahedron_mesh<k_cluster_type> mesh(parameters.get_k_mesh_refinement());
 
@@ -336,8 +336,8 @@ namespace DCA
 
   template<typename parameters_type, typename K_dmn>
   template<typename other_scalar_type>
-  void coarsegraining_sp<parameters_type, K_dmn>::compute_S_K_w(function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& S_k_w,
-                                                                function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& S_K_w)
+  void coarsegraining_sp<parameters_type, K_dmn>::compute_S_K_w(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& S_k_w,
+                                                                FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& S_K_w)
   {
     for(int l=0; l<S_k_w.size(); l++)
       S_K_w(l) = S_k_w(l);
@@ -345,12 +345,12 @@ namespace DCA
 
   template<typename parameters_type, typename K_dmn>
   template<typename other_scalar_type, typename k_dmn>
-  void coarsegraining_sp<parameters_type, K_dmn>::compute_G_K_w(function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn> >&    H_0,
-                                                                function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& S_K_w,
-                                                                function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& G_K_w)
+  void coarsegraining_sp<parameters_type, K_dmn>::compute_G_K_w(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn> >&    H_0,
+                                                                FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& S_K_w,
+                                                                FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& G_K_w)
   {
-    function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn> >    H_k("H_k");
-    function<std::complex<scalar_type>, dmn_4<nu, nu, K_dmn, w> > S_K("S_K");
+    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn> >    H_k("H_k");
+    FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, K_dmn, w> > S_K("S_K");
 
     for(int l=0; l<S_K_w.size(); l++)
       S_K(l) = S_K_w(l);
@@ -391,14 +391,14 @@ namespace DCA
 
   template<typename parameters_type, typename K_dmn>
   template<typename other_scalar_type, typename k_dmn, typename w_dmn>
-  void coarsegraining_sp<parameters_type, K_dmn>::compute_G_K_w_with_TIM(function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn> >&        H_0,
-                                                                         function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn> >& S_K_w,
-                                                                         function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn> >& G_K_w)
+  void coarsegraining_sp<parameters_type, K_dmn>::compute_G_K_w_with_TIM(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn> >&        H_0,
+                                                                         FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn> >& S_K_w,
+                                                                         FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn> >& G_K_w)
   {
     cout << __FUNCTION__ << endl;
 
-    function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn       > > H_k("H_k");
-    function<std::complex<scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn> > S_K("S_K");
+    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn       > > H_k("H_k");
+    FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn> > S_K("S_K");
 
     for(int l=0; l<S_K_w.size(); l++)
       S_K(l) = S_K_w(l);
@@ -429,7 +429,7 @@ namespace DCA
 //           }
 //         else
           {
-            function<std::complex<scalar_type>, dmn_2<nu, nu> > G_int;
+            FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu> > G_int;
 
             if(true)
               {
@@ -486,13 +486,13 @@ namespace DCA
 
   template<typename parameters_type, typename K_dmn>
   template<typename other_scalar_type, typename k_dmn>
-  void coarsegraining_sp<parameters_type, K_dmn>::compute_S_K_w(function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w> >& S_k_w,
-                                                                function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& S_K_w)
+  void coarsegraining_sp<parameters_type, K_dmn>::compute_S_K_w(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w> >& S_k_w,
+                                                                FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& S_K_w)
   {
     S_K_w = 0.;
 
-    function<std::complex<      scalar_type>, dmn_3<nu, nu, k_dmn   > > A_k("A_k");
-    function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w> > A_k_w("A_k_w");
+    FUNC_LIB::function<std::complex<      scalar_type>, dmn_3<nu, nu, k_dmn   > > A_k("A_k");
+    FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w> > A_k_w("A_k_w");
 
     transform_to_alpha::forward (1., S_k_w, A_k_w);
 
@@ -530,16 +530,16 @@ namespace DCA
 
   template<typename parameters_type, typename K_dmn>
   template<typename other_scalar_type, typename k_dmn>
-  void coarsegraining_sp<parameters_type, K_dmn>::compute_G_K_w(function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn> >&    H_0,
-                                                                function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w> >& S_k_w,
-                                                                function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& G_K_w)
+  void coarsegraining_sp<parameters_type, K_dmn>::compute_G_K_w(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn> >&    H_0,
+                                                                FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w> >& S_k_w,
+                                                                FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& G_K_w)
   {
     G_K_w = 0.;
 
-    function<std::complex<      scalar_type>, dmn_3<nu, nu, k_dmn> > H_k("H_k");
-    function<std::complex<      scalar_type>, dmn_3<nu, nu, k_dmn> > A_k("A_k");
+    FUNC_LIB::function<std::complex<      scalar_type>, dmn_3<nu, nu, k_dmn> > H_k("H_k");
+    FUNC_LIB::function<std::complex<      scalar_type>, dmn_3<nu, nu, k_dmn> > A_k("A_k");
 
-    function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w> > A_k_w("A_k_w");
+    FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w> > A_k_w("A_k_w");
 
     transform_to_alpha::forward(1., S_k_w, A_k_w);
 
@@ -584,7 +584,7 @@ namespace DCA
     template<typename parameters_type, typename K_dmn>
     template<typename k_dmn>
     void coarsegraining_sp<parameters_type, K_dmn>::compute_G_q_t(int K_ind, int t_ind,
-    function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn> >& H_k)
+    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn> >& H_k)
     {
     scalar_type f_val = 1;
     scalar_type t_val = t::get_elements()[t_ind];
@@ -629,10 +629,10 @@ namespace DCA
 
   template<typename parameters_type, typename K_dmn>
   template<typename other_scalar_type, typename k_dmn>
-  void coarsegraining_sp<parameters_type, K_dmn>::compute_G0_K_t(function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn   > >& H_0,
-                                                                 function<             other_scalar_type , dmn_4<nu, nu, K_dmn, t> >& G_K_t)
+  void coarsegraining_sp<parameters_type, K_dmn>::compute_G0_K_t(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn   > >& H_0,
+                                                                 FUNC_LIB::function<             other_scalar_type , dmn_4<nu, nu, K_dmn, t> >& G_K_t)
   {
-    function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn> > H_k("H_k");
+    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn> > H_k("H_k");
 
     for(int k_ind=0; k_ind<k_dmn::dmn_size(); k_ind++)
       for(int j=0; j<nu::dmn_size(); j++)

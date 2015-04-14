@@ -34,8 +34,8 @@ public:
 
 public:
 
-  static function<std::pair<int,int>, symmetry_matrix_dmn_t>& get_symmetry_matrix(){
-    static function<std::pair<int,int>, symmetry_matrix_dmn_t> symmetry_matrix("symmetry_matrix_super_cell");
+  static FUNC_LIB::function<std::pair<int,int>, symmetry_matrix_dmn_t>& get_symmetry_matrix(){
+    static FUNC_LIB::function<std::pair<int,int>, symmetry_matrix_dmn_t> symmetry_matrix("symmetry_matrix_super_cell");
     return symmetry_matrix;
   }
 

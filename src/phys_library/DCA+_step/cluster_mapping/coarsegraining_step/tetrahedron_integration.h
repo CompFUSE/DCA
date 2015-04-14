@@ -25,44 +25,44 @@ namespace DCA
   protected:
 
     template<typename scalar_type>
-    void tetrahedron_integration_st(function<             scalar_type , tet_dmn_type>&                 w_tet,
-                                    function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type> >& G_tet,
-                                    function<std::complex<scalar_type>, dmn_2<nu, nu> >&               G_int);
+    void tetrahedron_integration_st(FUNC_LIB::function<             scalar_type , tet_dmn_type>&                 w_tet,
+                                    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type> >& G_tet,
+                                    FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu> >&               G_int);
 
     template<typename scalar_type>
-    void tetrahedron_integration_mt(function<             scalar_type , tet_dmn_type>&                 w_tet,
-                                    function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type> >& G_tet,
-                                    function<std::complex<scalar_type>, dmn_2<nu, nu> >&               G_int);
+    void tetrahedron_integration_mt(FUNC_LIB::function<             scalar_type , tet_dmn_type>&                 w_tet,
+                                    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type> >& G_tet,
+                                    FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu> >&               G_int);
 
     template<typename scalar_type>
-    void tetrahedron_integration_st_1D(function<             scalar_type , tet_dmn_type>&                 w_tet,
-                                       function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type> >& G_tet,
-                                       function<std::complex<scalar_type>, dmn_2<nu, nu> >&               G_int);
+    void tetrahedron_integration_st_1D(FUNC_LIB::function<             scalar_type , tet_dmn_type>&                 w_tet,
+                                       FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type> >& G_tet,
+                                       FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu> >&               G_int);
 
 //     template<typename scalar_type>
-//     void tetrahedron_integration_mt_1D(function<             scalar_type , tet_dmn_type>&                 w_tet,
-//                                        function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type> >& G_tet,
-//                                        function<std::complex<scalar_type>, dmn_2<nu, nu> >&               G_int);
+//     void tetrahedron_integration_mt_1D(FUNC_LIB::function<             scalar_type , tet_dmn_type>&                 w_tet,
+//                                        FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type> >& G_tet,
+//                                        FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu> >&               G_int);
 
     template<typename scalar_type>
-    void tetrahedron_integration_st_2D(function<             scalar_type , tet_dmn_type>&                 w_tet,
-                                       function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type> >& G_tet,
-                                       function<std::complex<scalar_type>, dmn_2<nu, nu> >&               G_int);
+    void tetrahedron_integration_st_2D(FUNC_LIB::function<             scalar_type , tet_dmn_type>&                 w_tet,
+                                       FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type> >& G_tet,
+                                       FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu> >&               G_int);
 
 //     template<typename scalar_type>
-//     void tetrahedron_integration_mt_2D(function<             scalar_type , tet_dmn_type>&                 w_tet,
-//                                        function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type> >& G_tet,
-//                                        function<std::complex<scalar_type>, dmn_2<nu, nu> >&              G_int);
+//     void tetrahedron_integration_mt_2D(FUNC_LIB::function<             scalar_type , tet_dmn_type>&                 w_tet,
+//                                        FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type> >& G_tet,
+//                                        FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu> >&              G_int);
 
     template<typename scalar_type>
-    void tetrahedron_integration_st_3D(function<             scalar_type , tet_dmn_type>&                 w_tet,
-                                       function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type> >& G_tet,
-                                       function<std::complex<scalar_type>, dmn_2<nu, nu> >&               G_int);
+    void tetrahedron_integration_st_3D(FUNC_LIB::function<             scalar_type , tet_dmn_type>&                 w_tet,
+                                       FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type> >& G_tet,
+                                       FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu> >&               G_int);
 
 //     template<typename scalar_type>
-//     void tetrahedron_integration_mt_3D(function<             scalar_type , tet_dmn_type>&                 w_tet,
-//                                        function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type> >& G_tet,
-//                                        function<std::complex<scalar_type>, dmn_2<nu, nu> >&               G_int);
+//     void tetrahedron_integration_mt_3D(FUNC_LIB::function<             scalar_type , tet_dmn_type>&                 w_tet,
+//                                        FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type> >& G_tet,
+//                                        FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu> >&               G_int);
 
     //private:
 
@@ -87,10 +87,10 @@ namespace DCA
       ~tetrahedron_integration_functions()
       {}
 
-      function<             scalar_type , tet_dmn_type>*                 w_tet_ptr;
-      function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type> >* G_tet_ptr;
+      FUNC_LIB::function<             scalar_type , tet_dmn_type>*                 w_tet_ptr;
+      FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type> >* G_tet_ptr;
 
-      std::vector<function<std::complex<scalar_type>, dmn_2<nu, nu> > >  G_int_vec;
+      std::vector<FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu> > >  G_int_vec;
     };
 
 
@@ -110,9 +110,9 @@ namespace DCA
 
   template<typename parameters_type, typename K_dmn>
   template<typename scalar_type>
-  void tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_st(function<             scalar_type , tet_dmn_type>&                 w_tet,
-                                                                                   function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type> >& G_tet,
-                                                                                   function<std::complex<scalar_type>, dmn_2<nu, nu> >&               G_int)
+  void tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_st(FUNC_LIB::function<             scalar_type , tet_dmn_type>&                 w_tet,
+                                                                                   FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type> >& G_tet,
+                                                                                   FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu> >&               G_int)
   {
     switch(DIMENSION)
       {
@@ -135,9 +135,9 @@ namespace DCA
 
   template<typename parameters_type, typename K_dmn>
   template<typename scalar_type>
-  void tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_mt(function<             scalar_type , tet_dmn_type>&                 w_tet,
-                                                                                   function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type> >& G_tet,
-                                                                                   function<std::complex<scalar_type>, dmn_2<nu, nu> >&               G_int)
+  void tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_mt(FUNC_LIB::function<             scalar_type , tet_dmn_type>&                 w_tet,
+                                                                                   FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type> >& G_tet,
+                                                                                   FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu> >&               G_int)
   {
     int nr_threads = parameters.get_nr_coarsegraining_threads();
 
@@ -181,15 +181,15 @@ namespace DCA
 
   template<typename parameters_type, typename K_dmn>
   template<typename scalar_type>
-  void tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_st_1D(function<             scalar_type , tet_dmn_type>&                 w_tet,
-                                                                                      function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type> >& G_tet,
-                                                                                      function<std::complex<scalar_type>, dmn_2<nu, nu> >&               G_int)
+  void tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_st_1D(FUNC_LIB::function<             scalar_type , tet_dmn_type>&                 w_tet,
+                                                                                      FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type> >& G_tet,
+                                                                                      FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu> >&               G_int)
   {
     for(int j=0; j<nu::dmn_size(); j++)
       for(int i=0; i<nu::dmn_size(); i++)
         G_int(i,j)=0;
 
-    function<std::complex<scalar_type>, dmn_2<nu, nu> > G_tmp("G_tmp");
+    FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu> > G_tmp("G_tmp");
 
     tetrahedron_integration_data<scalar_type> data_obj(nu::dmn_size());
 
@@ -217,15 +217,15 @@ namespace DCA
 
   template<typename parameters_type, typename K_dmn>
   template<typename scalar_type>
-  void tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_st_2D(function<             scalar_type , tet_dmn_type>&                 w_tet,
-                                                                                      function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type> >& G_tet,
-                                                                                      function<std::complex<scalar_type>, dmn_2<nu, nu> >&               G_int)
+  void tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_st_2D(FUNC_LIB::function<             scalar_type , tet_dmn_type>&                 w_tet,
+                                                                                      FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type> >& G_tet,
+                                                                                      FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu> >&               G_int)
   {
     for(int j=0; j<nu::dmn_size(); j++)
       for(int i=0; i<nu::dmn_size(); i++)
         G_int(i,j)=0;
 
-    function<std::complex<scalar_type>, dmn_2<nu, nu> > G_tmp("G_tmp");
+    FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu> > G_tmp("G_tmp");
 
     for(int tet_ind=0; tet_ind<tet_dmn_type::dmn_size(); tet_ind += 3)
       {
@@ -255,9 +255,9 @@ namespace DCA
     int id         = data_ptr->id;
     int nr_threads = data_ptr->nr_threads;
 
-    function<             scalar_type , tet_dmn_type>&                 w_tet = *(functions_ptr->w_tet_ptr);
-    function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type> >& G_tet = *(functions_ptr->G_tet_ptr);
-    function<std::complex<scalar_type>, dmn_2<nu, nu> >&               G_int =  (functions_ptr->G_int_vec[id]);
+    FUNC_LIB::function<             scalar_type , tet_dmn_type>&                 w_tet = *(functions_ptr->w_tet_ptr);
+    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type> >& G_tet = *(functions_ptr->G_tet_ptr);
+    FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu> >&               G_int =  (functions_ptr->G_int_vec[id]);
 
     tet_dmn_type        tet_dmn;
     std::pair<int, int> tet_bounds = COMP_LIB::parallelization<COMP_LIB::POSIX_LIBRARY>::get_bounds(id, nr_threads, tet_dmn);
@@ -266,7 +266,7 @@ namespace DCA
       for(int i=0; i<nu::dmn_size(); i++)
         G_int(i,j)=0;
 
-    function<std::complex<scalar_type>, dmn_2<nu, nu> > G_tmp("G_tmp");
+    FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu> > G_tmp("G_tmp");
 
     tetrahedron_integration_data<scalar_type> data_obj(nu::dmn_size());
 
@@ -290,15 +290,15 @@ namespace DCA
 
   template<typename parameters_type, typename K_dmn>
   template<typename scalar_type>
-  void tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_st_3D(function<             scalar_type ,               tet_dmn_type  >& w_tet,
-                                                                                      function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type> >& G_tet,
-                                                                                      function<std::complex<scalar_type>, dmn_2<nu, nu> >&               G_int)
+  void tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_st_3D(FUNC_LIB::function<             scalar_type ,               tet_dmn_type  >& w_tet,
+                                                                                      FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type> >& G_tet,
+                                                                                      FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu> >&               G_int)
   {
     for(int j=0; j<nu::dmn_size(); j++)
       for(int i=0; i<nu::dmn_size(); i++)
         G_int(i,j)=0;
 
-    function<std::complex<scalar_type>, dmn_2<nu, nu> > G_tmp("G_tmp");
+    FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu> > G_tmp("G_tmp");
 
     for(int tet_ind=0; tet_ind<tet_dmn_type::dmn_size(); tet_ind += 4)
       {
@@ -369,9 +369,9 @@ namespace DCA
     int id         = data_ptr->id;
     int nr_threads = data_ptr->nr_threads;
 
-    function<             scalar_type , tet_dmn_type>&                 w_tet = *(functions_ptr->w_tet_ptr);
-    function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type> >& G_tet = *(functions_ptr->G_tet_ptr);
-    function<std::complex<scalar_type>, dmn_2<nu, nu> >&               G_int =  (functions_ptr->G_int_vec[id]);
+    FUNC_LIB::function<             scalar_type , tet_dmn_type>&                 w_tet = *(functions_ptr->w_tet_ptr);
+    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type> >& G_tet = *(functions_ptr->G_tet_ptr);
+    FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu> >&               G_int =  (functions_ptr->G_int_vec[id]);
 
     tet_dmn_type        tet_dmn;
     std::pair<int, int> tet_bounds = COMP_LIB::parallelization<COMP_LIB::POSIX_LIBRARY>::get_bounds(id, nr_threads, tet_dmn);
@@ -380,7 +380,7 @@ namespace DCA
       for(int i=0; i<nu::dmn_size(); i++)
         G_int(i,j)=0;
 
-    function<std::complex<scalar_type>, dmn_2<nu, nu> > G_tmp("G_tmp");
+    FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu> > G_tmp("G_tmp");
 
     tetrahedron_integration_data<scalar_type> data_obj(nu::dmn_size());
 

@@ -40,8 +40,8 @@ namespace DCA
     ~continuous_pole_expansion();
 
     template<typename target_dmn_t>
-    void execute(function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> >&            f_source,
-                 function<std::complex<double>, dmn_4<nu, nu, k_DCA, target_dmn_t> >& f_target,
+    void execute(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> >&            f_source,
+                 FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, target_dmn_t> >& f_target,
                  bool                                                                 use_previous_result=false);
 
     void write(std::string filename);
@@ -75,7 +75,7 @@ namespace DCA
     int  find_new_alpha  (double LAMBDA_MAX=1.);
     int  find_new_alpha_2(double LAMBDA_MAX=1.);
 
-    double evaluate_Lambda_norm(function<scalartype, alpha_dmn_t>& alpha_real);
+    double evaluate_Lambda_norm(FUNC_LIB::function<scalartype, alpha_dmn_t>& alpha_real);
 
     void smooth_alpha();
 
@@ -99,31 +99,31 @@ namespace DCA
     scalartype      Sigma_0;
     scalartype grad_Sigma_0;
 
-    function<std::complex<scalartype>, nu_nu_k_DCA>        Sigma_0_moment;
+    FUNC_LIB::function<std::complex<scalartype>, nu_nu_k_DCA>        Sigma_0_moment;
 
-    function<scalartype              , nu_nu_k_DCA_alpha_dmn> alpha;
+    FUNC_LIB::function<scalartype              , nu_nu_k_DCA_alpha_dmn> alpha;
 
-    function<std::complex<scalartype>, nu_nu_k_DCA_w_IMAG> f_approx;
-    function<std::complex<scalartype>, nu_nu_k_DCA_w_IMAG> f_measured;
+    FUNC_LIB::function<std::complex<scalartype>, nu_nu_k_DCA_w_IMAG> f_approx;
+    FUNC_LIB::function<std::complex<scalartype>, nu_nu_k_DCA_w_IMAG> f_measured;
 
-    function<scalartype, alpha_dmn_t> alpha_ptr;
+    FUNC_LIB::function<scalartype, alpha_dmn_t> alpha_ptr;
 
-    function<std::complex<scalartype>, w_IMAG> f_wn;
-    function<std::complex<scalartype>, w_IMAG> F_wn;
+    FUNC_LIB::function<std::complex<scalartype>, w_IMAG> f_wn;
+    FUNC_LIB::function<std::complex<scalartype>, w_IMAG> F_wn;
 
-    function<scalartype, w_IMAG> f_wn_re_ptr;
-    function<scalartype, w_IMAG> f_wn_im_ptr;
-    function<scalartype, w_IMAG> F_wn_re_ptr;
-    function<scalartype, w_IMAG> F_wn_im_ptr;
+    FUNC_LIB::function<scalartype, w_IMAG> f_wn_re_ptr;
+    FUNC_LIB::function<scalartype, w_IMAG> f_wn_im_ptr;
+    FUNC_LIB::function<scalartype, w_IMAG> F_wn_re_ptr;
+    FUNC_LIB::function<scalartype, w_IMAG> F_wn_im_ptr;
 
-    function<scalartype, alpha_dmn_t> gradient;
-    function<scalartype, alpha_dmn_t> gradient_1;
-    function<scalartype, alpha_dmn_t> gradient_2;
+    FUNC_LIB::function<scalartype, alpha_dmn_t> gradient;
+    FUNC_LIB::function<scalartype, alpha_dmn_t> gradient_1;
+    FUNC_LIB::function<scalartype, alpha_dmn_t> gradient_2;
 
-    function<scalartype, alpha_dmn_t> a_new    ;
-    function<scalartype, alpha_dmn_t> a_new_cpy;
+    FUNC_LIB::function<scalartype, alpha_dmn_t> a_new    ;
+    FUNC_LIB::function<scalartype, alpha_dmn_t> a_new_cpy;
 
-    function<std::complex<scalartype>, dmn_2<w_IMAG, alpha_dmn_t> > A_mat;
+    FUNC_LIB::function<std::complex<scalartype>, dmn_2<w_IMAG, alpha_dmn_t> > A_mat;
 
     scalartype* A1;
     scalartype* A2;
@@ -334,8 +334,8 @@ namespace DCA
 
   template<class parameters_type, class basis_function_t>
   template<typename target_dmn_t>
-  void continuous_pole_expansion<parameters_type, basis_function_t, GRADIENT_METHOD>::execute(function<std::complex<double>,       nu_nu_k_DCA_w             >& f_source,
-                                                                                              function<std::complex<double>, dmn_4<nu,nu,k_DCA,target_dmn_t> >& f_target,
+  void continuous_pole_expansion<parameters_type, basis_function_t, GRADIENT_METHOD>::execute(FUNC_LIB::function<std::complex<double>,       nu_nu_k_DCA_w             >& f_source,
+                                                                                              FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_DCA,target_dmn_t> >& f_target,
                                                                                               bool                                                              use_previous_result)
   {
     profiler_type profiler(__FUNCTION__, __FILE__, __LINE__);
@@ -768,11 +768,11 @@ namespace DCA
 
 
   template<class parameters_type, class basis_function_t>
-  double continuous_pole_expansion<parameters_type, basis_function_t, GRADIENT_METHOD>::evaluate_Lambda_norm(function<scalartype, alpha_dmn_t>& alpha_real)
+  double continuous_pole_expansion<parameters_type, basis_function_t, GRADIENT_METHOD>::evaluate_Lambda_norm(FUNC_LIB::function<scalartype, alpha_dmn_t>& alpha_real)
   {
     profiler_type profiler(__FUNCTION__, __FILE__, __LINE__);
 
-    static function<std::complex<scalartype>, alpha_dmn_t> alpha_complex("alpha_complex");
+    static FUNC_LIB::function<std::complex<scalartype>, alpha_dmn_t> alpha_complex("alpha_complex");
     for(int n=0; n<alpha_dmn_t::dmn_size(); n++)
       alpha_complex(n) = alpha_real(n);
 
@@ -1023,8 +1023,8 @@ namespace DCA
 
 
 // template<class parameters_type, class basis_function_t>
-// void continuous_pole_expansion<parameters_type, basis_function_t, GRADIENT_METHOD>::execute(function<std::complex<double>, nu_nu_k_DCA_w>& f_source,
-//                                                                                                            function<std::complex<double>, nu_nu_k_DCA_w>& f_target,
+// void continuous_pole_expansion<parameters_type, basis_function_t, GRADIENT_METHOD>::execute(FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& f_source,
+//                                                                                                            FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& f_target,
 //                                                                                                            bool                                           use_previous_result)
 // {
 //   concurrency << "\n\n\t --> condition_Greens_function \n\n";
@@ -1041,8 +1041,8 @@ namespace DCA
 // }
 
 // template<class parameters_type, class basis_function_t>
-// void continuous_pole_expansion<parameters_type, basis_function_t, GRADIENT_METHOD>::execute(function<std::complex<double>, nu_nu_k_DCA_w>& f_source,
-//                                                                                                            function<std::complex<double>, nu_nu_k_DCA_w>& f_target,
+// void continuous_pole_expansion<parameters_type, basis_function_t, GRADIENT_METHOD>::execute(FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& f_source,
+//                                                                                                            FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& f_target,
 //                                                                                                            bool                                           use_previous_result)
 // {
 //   const static int dmn_number = 5;
@@ -1110,8 +1110,8 @@ namespace DCA
 // }
 
 // template<class parameters_type, class basis_function_t>
-// void continuous_pole_expansion<parameters_type, basis_function_t, GRADIENT_METHOD>::condition_Greens_function(function<std::complex<double>, nu_nu_k_DCA_w>& f_source,
-//                                                                                                                              function<std::complex<double>, nu_nu_k_DCA_w>& f_target)
+// void continuous_pole_expansion<parameters_type, basis_function_t, GRADIENT_METHOD>::condition_Greens_function(FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& f_source,
+//                                                                                                                              FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& f_target)
 // {
 //   concurrency << "\n\n\t --> condition_Greens_function \n\n";
 
@@ -1127,8 +1127,8 @@ namespace DCA
 // }
 
 // template<class parameters_type, class basis_function_t>
-// void continuous_pole_expansion<parameters_type, basis_function_t, GRADIENT_METHOD>::perform_continuous_pole_expansion(function<std::complex<double>, nu_nu_k_DCA_w>& f_source,
-//                                                                                                                                      function<std::complex<double>, nu_nu_k_DCA_w>& f_target)
+// void continuous_pole_expansion<parameters_type, basis_function_t, GRADIENT_METHOD>::perform_continuous_pole_expansion(FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& f_source,
+//                                                                                                                                      FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& f_target)
 // {
 //   const static int dmn_number = 5;
 
@@ -1197,7 +1197,7 @@ namespace DCA
 
 //   concurrency << "\n\n\t start coarsegraining G0 \n\n";
 
-//   function<std::complex<double>, nu_nu_k_DCA_w_REAL> Sigma_zero;
+//   FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w_REAL> Sigma_zero;
 //   coarsegrain_obj.compute_G_from_H_and_Sigma(MOMS.H_LDA, Sigma_zero, G0_k_w);
 
 //   concurrency << "\n\n\t start coarsegraining G \n\n";
@@ -1230,8 +1230,8 @@ namespace DCA
 // }
 
 // template<class parameters_type, class basis_function_t>
-// void continuous_pole_expansion<parameters_type, basis_function_t, GRADIENT_METHOD>::perform_continuous_pole_expansion(function<std::complex<double>, nu_nu_k_DCA_w     >& f_source,
-//                                                                                                                                      function<std::complex<double>, nu_nu_k_DCA_w_REAL>& f_target)
+// void continuous_pole_expansion<parameters_type, basis_function_t, GRADIENT_METHOD>::perform_continuous_pole_expansion(FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w     >& f_source,
+//                                                                                                                                      FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w_REAL>& f_target)
 // {
 //   const static int dmn_number = 5;
 

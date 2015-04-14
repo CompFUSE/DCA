@@ -31,7 +31,7 @@ namespace DCA
       typedef typename ph_bubble_t::function_type chi_function_type;
       typedef typename pp_bubble_t::function_type phi_function_type;
 
-      typedef function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > sp_function_type;
+      typedef FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > sp_function_type;
 
     public:
 
@@ -44,18 +44,18 @@ namespace DCA
 
       sp_function_type& get_function() { return Sigma; }
 
-      void execute_on_cluster         (function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G);
-      void threaded_execute_on_cluster(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G);
+      void execute_on_cluster         (FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G);
+      void threaded_execute_on_cluster(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G);
 
-      //void execute_on_cluster_2(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G);
+      //void execute_on_cluster_2(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G);
 
       template<IO::FORMAT DATA_FORMAT>
       void write(IO::writer<DATA_FORMAT>& writer);
 
     private:
 
-      void execute_2A(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G);
-      void execute_2B(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G);
+      void execute_2A(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G);
+      void execute_2B(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G);
 
       static void* threaded_execute_2B(void* data);
 
@@ -71,7 +71,7 @@ namespace DCA
       chi_function_type& chi;
       phi_function_type& phi;
 
-      function<std::complex<double>, dmn_4<b,b, k_dmn_t, w_VERTEX_BOSONIC> > U_chi_U;
+      FUNC_LIB::function<std::complex<double>, dmn_4<b,b, k_dmn_t, w_VERTEX_BOSONIC> > U_chi_U;
 
       sp_function_type Sigma;
 
@@ -125,7 +125,7 @@ namespace DCA
     {}
 
     template<class parameters_type, class k_dmn_t>
-    void sigma_perturbation<2, parameters_type, k_dmn_t>::execute_on_cluster(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
+    void sigma_perturbation<2, parameters_type, k_dmn_t>::execute_on_cluster(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
     {
       if(concurrency.id()==0)
 	cout << __FUNCTION__ << endl;
@@ -167,7 +167,7 @@ namespace DCA
     }
 
     template<class parameters_type, class k_dmn_t>
-    void sigma_perturbation<2, parameters_type, k_dmn_t>::execute_2A(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
+    void sigma_perturbation<2, parameters_type, k_dmn_t>::execute_2A(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
     {
       if(concurrency.id()==0)
 	cout << __FUNCTION__ << endl;
@@ -216,7 +216,7 @@ namespace DCA
     }
 
     template<class parameters_type, class k_dmn_t>
-    void sigma_perturbation<2, parameters_type, k_dmn_t>::execute_2B(function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w> >& G)
+    void sigma_perturbation<2, parameters_type, k_dmn_t>::execute_2B(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w> >& G)
     {
       if(concurrency.id()==0)
 	cout << __FUNCTION__ << endl;
@@ -253,7 +253,7 @@ namespace DCA
     }
 
     template<class parameters_type, class k_dmn_t>
-    void sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_on_cluster(function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
+    void sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_on_cluster(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
     {
       if(concurrency.id()==0)
 	cout << "\n\n\t\t second-order Self-energy \n\n" << endl;

@@ -39,7 +39,7 @@ namespace MATH_ALGORITHMS
 
     static int get_K_index(int K_ind, int n_ind)
     {
-      static function<int, dmn_2<cluster_dmn_t, dmn_0<this_type> > >& f = initialize_function();
+      static FUNC_LIB::function<int, dmn_2<cluster_dmn_t, dmn_0<this_type> > >& f = initialize_function();
       return f(K_ind, n_ind);
     }
 
@@ -83,12 +83,12 @@ namespace MATH_ALGORITHMS
       return elements;
     }
 
-    static function<int, dmn_2<cluster_dmn_t, dmn_0<this_type> > >& initialize_function()
+    static FUNC_LIB::function<int, dmn_2<cluster_dmn_t, dmn_0<this_type> > >& initialize_function()
     {
       std::vector<element_type>& k_vecs = cluster_dmn_t::get_elements();
       std::vector<element_type>& n_vecs = this_type::get_elements();
     
-      static function<int, dmn_2<cluster_dmn_t, dmn_0<this_type> > > f;
+      static FUNC_LIB::function<int, dmn_2<cluster_dmn_t, dmn_0<this_type> > > f;
 
       for(int K_ind=0; K_ind<cluster_dmn_t::dmn_size(); ++K_ind){
 	for(int n_ind=0; n_ind<this_type::get_size(); ++n_ind){

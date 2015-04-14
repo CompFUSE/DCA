@@ -12,7 +12,7 @@ class material_interaction
 public:
 
   template<class domain, class parameters_type>
-  static void initialize_H_interaction(function<double , domain >& H_interaction,
+  static void initialize_H_interaction(FUNC_LIB::function<double , domain >& H_interaction,
                                        parameters_type&            parameters);
 };
 

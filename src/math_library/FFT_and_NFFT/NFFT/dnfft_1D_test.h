@@ -33,9 +33,9 @@ namespace MATH_ALGORITHMS
 	    //cout << t[l] << "\t" << f[l] << "\n";
           }
 
-        function<std::complex<scalartype>, w_dmn_t> f_w_1("f_w_1");
-        function<std::complex<scalartype>, w_dmn_t> f_w_2("f_w_2");
-	function<std::complex<scalartype>, w_dmn_t> error("error");
+        FUNC_LIB::function<std::complex<scalartype>, w_dmn_t> f_w_1("f_w_1");
+        FUNC_LIB::function<std::complex<scalartype>, w_dmn_t> f_w_2("f_w_2");
+	FUNC_LIB::function<std::complex<scalartype>, w_dmn_t> error("error");
 
 	compute_f_w      (t, f, f_w_1);
         compute_f_w_dnfft(t, f, f_w_2);
@@ -59,7 +59,7 @@ namespace MATH_ALGORITHMS
 
       static void compute_f_w(std::vector<scalartype>& t,
                               std::vector<scalartype>& f,
-                              function<std::complex<scalartype>, w_dmn_t>& f_w)
+                              FUNC_LIB::function<std::complex<scalartype>, w_dmn_t>& f_w)
       {
 	cout << __FUNCTION__ << endl;
 
@@ -86,11 +86,11 @@ namespace MATH_ALGORITHMS
 
       static void compute_f_w_dnfft(std::vector<scalartype>& t,
                                     std::vector<scalartype>& f,
-                                    function<std::complex<scalartype>, w_dmn_t>& f_w)
+                                    FUNC_LIB::function<std::complex<scalartype>, w_dmn_t>& f_w)
       {
 	cout << __FUNCTION__ << endl;
 
-        function<std::complex<scalartype>, dmn_2<w_dmn_t, p_dmn_t> > f_w_tmp;
+        FUNC_LIB::function<std::complex<scalartype>, dmn_2<w_dmn_t, p_dmn_t> > f_w_tmp;
 
         dnfft_1D<scalartype, w_dmn_t, p_dmn_t> nfft_obj;
 

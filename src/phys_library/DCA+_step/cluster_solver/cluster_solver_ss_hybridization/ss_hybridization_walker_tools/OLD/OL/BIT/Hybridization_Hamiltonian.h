@@ -22,8 +22,8 @@ namespace QMC
 
     typedef dmn_0<Hybridization_Hilbert_domain> Hilbert_domain;
     
-    typedef function<resizeable_rectangular_matrix<std::complex<double> >, dmn_2<Hilbert_domain,Hilbert_domain> > creation_annihilation_type;
-    typedef function<                              std::vector <double>  , dmn_2<Hilbert_domain,Hilbert_domain> > lambda_type;
+    typedef FUNC_LIB::function<resizeable_rectangular_matrix<std::complex<double> >, dmn_2<Hilbert_domain,Hilbert_domain> > creation_annihilation_type;
+    typedef FUNC_LIB::function<                              std::vector <double>  , dmn_2<Hilbert_domain,Hilbert_domain> > lambda_type;
 
   public:
 
@@ -57,7 +57,7 @@ namespace QMC
 
   public:
 
-    void print_matrix(function<resizeable_rectangular_matrix<std::complex<double> >,dmn_2<Hilbert_domain,Hilbert_domain> >& matrix);
+    void print_matrix(FUNC_LIB::function<resizeable_rectangular_matrix<std::complex<double> >,dmn_2<Hilbert_domain,Hilbert_domain> >& matrix);
     
   private:
 
@@ -75,19 +75,19 @@ namespace QMC
 
     int* sizes;
   
-    function<std::complex<double>, dmn_2<nu,nu> > U; 
-    function<std::complex<double>, nu           > mu; 
+    FUNC_LIB::function<std::complex<double>, dmn_2<nu,nu> > U; 
+    FUNC_LIB::function<std::complex<double>, nu           > mu; 
 
-    function<sparse_block_matrix<resizeable_rectangular_matrix<std::complex<double> >, Hilbert_domain >, nu> c_min;
-    function<sparse_block_matrix<resizeable_rectangular_matrix<std::complex<double> >, Hilbert_domain >, nu> c_dag;
+    FUNC_LIB::function<sparse_block_matrix<resizeable_rectangular_matrix<std::complex<double> >, Hilbert_domain >, nu> c_min;
+    FUNC_LIB::function<sparse_block_matrix<resizeable_rectangular_matrix<std::complex<double> >, Hilbert_domain >, nu> c_dag;
 
-    function<function<resizeable_rectangular_matrix<std::complex<double> >, dmn_2<Hilbert_domain,Hilbert_domain> >, nu> c_minus;
-    function<function<resizeable_rectangular_matrix<std::complex<double> >, dmn_2<Hilbert_domain,Hilbert_domain> >, nu> c_dagger;
+    FUNC_LIB::function<FUNC_LIB::function<resizeable_rectangular_matrix<std::complex<double> >, dmn_2<Hilbert_domain,Hilbert_domain> >, nu> c_minus;
+    FUNC_LIB::function<FUNC_LIB::function<resizeable_rectangular_matrix<std::complex<double> >, dmn_2<Hilbert_domain,Hilbert_domain> >, nu> c_dagger;
    
-    function<resizeable_rectangular_matrix<std::complex<double> >,dmn_2<Hilbert_domain,Hilbert_domain> > H;
+    FUNC_LIB::function<resizeable_rectangular_matrix<std::complex<double> >,dmn_2<Hilbert_domain,Hilbert_domain> > H;
 
-    function<resizeable_rectangular_matrix<std::complex<double> >,dmn_2<Hilbert_domain,Hilbert_domain> > V;
-    function<                              std::vector <double>  ,dmn_2<Hilbert_domain,Hilbert_domain> > lambda;
+    FUNC_LIB::function<resizeable_rectangular_matrix<std::complex<double> >,dmn_2<Hilbert_domain,Hilbert_domain> > V;
+    FUNC_LIB::function<                              std::vector <double>  ,dmn_2<Hilbert_domain,Hilbert_domain> > lambda;
 
     Hybridization_Hilbert_space& Hilbert_space;
   };
@@ -238,8 +238,8 @@ namespace QMC
   template<class parameters_type, class MOMS_type>  
   void Hybridization_Hamiltonian<parameters_type, MOMS_type>::initialize_density_H()
   {
-    function<resizeable_rectangular_matrix<std::complex<double> >, dmn_2<Hilbert_domain,Hilbert_domain> > tmp1;
-    function<resizeable_rectangular_matrix<std::complex<double> >, dmn_2<Hilbert_domain,Hilbert_domain> > tmp2;
+    FUNC_LIB::function<resizeable_rectangular_matrix<std::complex<double> >, dmn_2<Hilbert_domain,Hilbert_domain> > tmp1;
+    FUNC_LIB::function<resizeable_rectangular_matrix<std::complex<double> >, dmn_2<Hilbert_domain,Hilbert_domain> > tmp2;
     block_gemm_plan<std::complex<double> > block;
 
     // --> CHEMICAL POTENTIAL
@@ -261,7 +261,7 @@ namespace QMC
   template<class parameters_type, class MOMS_type>  
   void Hybridization_Hamiltonian<parameters_type, MOMS_type>::diagonolize_H_C()
   {
-    function<resizeable_rectangular_matrix<std::complex<double> >, dmn_2<Hilbert_domain, Hilbert_domain> > TMP;
+    FUNC_LIB::function<resizeable_rectangular_matrix<std::complex<double> >, dmn_2<Hilbert_domain, Hilbert_domain> > TMP;
 
     block_eigensystem_plan<std::complex<double>, HERMITIAN> block_eigen(sizes);
     block_gemm_plan       <std::complex<double>           > block;
@@ -315,7 +315,7 @@ namespace QMC
   }
 
   template<class parameters_type, class MOMS_type>  
-  void Hybridization_Hamiltonian<parameters_type, MOMS_type>::print_matrix(function<resizeable_rectangular_matrix<std::complex<double> >,dmn_2<Hilbert_domain,Hilbert_domain> >& matrix)
+  void Hybridization_Hamiltonian<parameters_type, MOMS_type>::print_matrix(FUNC_LIB::function<resizeable_rectangular_matrix<std::complex<double> >,dmn_2<Hilbert_domain,Hilbert_domain> >& matrix)
   {
 
     // for(int i = 0; i<Hilbert_domain::dmn_size(); i++)

@@ -22,7 +22,7 @@ namespace DCA
 
       typedef typename compute_interaction::function_type U_type;
 
-      typedef function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > function_type;
+      typedef FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > function_type;
 
     public:
 
@@ -33,7 +33,7 @@ namespace DCA
 
       function_type& get_function() { return Sigma; }
 
-      void execute_on_cluster(function<double, nu>& occupancy);
+      void execute_on_cluster(FUNC_LIB::function<double, nu>& occupancy);
 
       template<IO::FORMAT DATA_FORMAT>
       void write(IO::writer<DATA_FORMAT>& writer);
@@ -44,8 +44,8 @@ namespace DCA
 
       U_type& U;
 
-      function<std::complex<double>, dmn_2<nu,nu> > d_matrix;
-      function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > Sigma;
+      FUNC_LIB::function<std::complex<double>, dmn_2<nu,nu> > d_matrix;
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> > Sigma;
     };
 
     template<class parameter_type, class k_dmn_t>
@@ -71,7 +71,7 @@ namespace DCA
     }
 
     template<class parameter_type, class k_dmn_t>
-    void sigma_perturbation<1, parameter_type, k_dmn_t>::execute_on_cluster(function<double, nu>& occupancy)
+    void sigma_perturbation<1, parameter_type, k_dmn_t>::execute_on_cluster(FUNC_LIB::function<double, nu>& occupancy)
     {
       Sigma = 0.;
 

@@ -114,42 +114,42 @@ public:
   ~diagrammatic_symmetries();
 
   template<typename scalartype, typename k_dmn, typename w_dmn>
-  void execute(function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G);
+  void execute(FUNC_LIB::function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G);
 
   template<typename scalartype, typename k_dmn, typename w_dmn>
-  void execute(function<scalartype, dmn_3<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn>, k_dmn > >& G);
+  void execute(FUNC_LIB::function<scalartype, dmn_3<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn>, k_dmn > >& G);
 
 private:
 
   template<typename scalartype, typename k_dmn, typename w_dmn>
-  void symmetrize_over_matsubara_frequencies(function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G);
+  void symmetrize_over_matsubara_frequencies(FUNC_LIB::function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G);
 
   template<typename scalartype, typename k_dmn, typename w_dmn>
-  void symmetrize_over_matsubara_frequencies(function<scalartype, dmn_3<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn>, k_dmn> >& G);
-
-
-
-  template<typename scalartype, typename k_dmn, typename w_dmn>
-  void symmetrize_over_pi_rotations_ph(function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G);
-
-  template<typename scalartype, typename k_dmn, typename w_dmn>
-  void symmetrize_over_pi_rotations_ph(function<scalartype, dmn_3<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn>, k_dmn> >& G);
+  void symmetrize_over_matsubara_frequencies(FUNC_LIB::function<scalartype, dmn_3<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn>, k_dmn> >& G);
 
 
 
   template<typename scalartype, typename k_dmn, typename w_dmn>
-  void symmetrize_over_pi_rotations_pp(function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G);
+  void symmetrize_over_pi_rotations_ph(FUNC_LIB::function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G);
+
+  template<typename scalartype, typename k_dmn, typename w_dmn>
+  void symmetrize_over_pi_rotations_ph(FUNC_LIB::function<scalartype, dmn_3<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn>, k_dmn> >& G);
+
+
+
+  template<typename scalartype, typename k_dmn, typename w_dmn>
+  void symmetrize_over_pi_rotations_pp(FUNC_LIB::function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G);
   
   template<typename scalartype, typename k_dmn, typename w_dmn>
-  void symmetrize_over_pi_rotations_pp(function<scalartype, dmn_3<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn>, k_dmn> >& G);
+  void symmetrize_over_pi_rotations_pp(FUNC_LIB::function<scalartype, dmn_3<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn>, k_dmn> >& G);
   
 
 
   template<typename scalartype, typename k_dmn, typename w_dmn>
-  void set_real(function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G);
+  void set_real(FUNC_LIB::function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G);
 
   template<typename scalartype, typename k_dmn, typename w_dmn>
-  void set_real(function<scalartype, dmn_3<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn>, k_dmn> >& G);
+  void set_real(FUNC_LIB::function<scalartype, dmn_3<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn>, k_dmn> >& G);
 
 private:
 
@@ -180,7 +180,7 @@ diagrammatic_symmetries<parameters_type>::~diagrammatic_symmetries()
 
 template<class parameters_type>
 template<typename scalartype, typename k_dmn, typename w_dmn>
-void diagrammatic_symmetries<parameters_type>::execute(function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G)
+void diagrammatic_symmetries<parameters_type>::execute(FUNC_LIB::function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G)
 {  
   /*
    *  if you have more bands, make sure that the inversion does not interfere with a permutation of the bands !!!
@@ -253,7 +253,7 @@ void diagrammatic_symmetries<parameters_type>::execute(function<scalartype, dmn_
 
 template<class parameters_type>
 template<typename scalartype, typename k_dmn, typename w_dmn>
-void diagrammatic_symmetries<parameters_type>::execute(function<scalartype, dmn_3<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn>, k_dmn> >& G)
+void diagrammatic_symmetries<parameters_type>::execute(FUNC_LIB::function<scalartype, dmn_3<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn>, k_dmn> >& G)
 {  
   //cout << __PRETTY_FUNCTION__ << endl;
 
@@ -285,7 +285,7 @@ void diagrammatic_symmetries<parameters_type>::execute(function<scalartype, dmn_
 
 template<class parameters_type>
 template<typename scalartype, typename k_dmn, typename w_dmn>
-void diagrammatic_symmetries<parameters_type>::symmetrize_over_matsubara_frequencies(function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G)
+void diagrammatic_symmetries<parameters_type>::symmetrize_over_matsubara_frequencies(FUNC_LIB::function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G)
 {
   //cout << __PRETTY_FUNCTION__ << endl;
 
@@ -325,7 +325,7 @@ void diagrammatic_symmetries<parameters_type>::symmetrize_over_matsubara_frequen
 
 template<class parameters_type>
 template<typename scalartype, typename k_dmn, typename w_dmn>
-void diagrammatic_symmetries<parameters_type>::symmetrize_over_matsubara_frequencies(function<scalartype, dmn_3<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn>, k_dmn> >& G)
+void diagrammatic_symmetries<parameters_type>::symmetrize_over_matsubara_frequencies(FUNC_LIB::function<scalartype, dmn_3<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn>, k_dmn> >& G)
 {
   if(b::dmn_size()>1)
     throw std::logic_error(__FUNCTION__);
@@ -365,7 +365,7 @@ void diagrammatic_symmetries<parameters_type>::symmetrize_over_matsubara_frequen
 
 template<class parameters_type>
 template<typename scalartype, typename k_dmn, typename w_dmn>
-void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_ph(function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G)
+void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_ph(FUNC_LIB::function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G)
 {
   //cout << __PRETTY_FUNCTION__ << endl;
 
@@ -426,7 +426,7 @@ void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_ph(f
 
 template<class parameters_type>
 template<typename scalartype, typename k_dmn, typename w_dmn>
-void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_ph(function<scalartype, dmn_3<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn>, k_dmn> >& G)
+void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_ph(FUNC_LIB::function<scalartype, dmn_3<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn>, k_dmn> >& G)
 {
   if(b::dmn_size()>1)
     throw std::logic_error(__FUNCTION__);
@@ -473,7 +473,7 @@ void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_ph(f
 
 template<class parameters_type>
 template<typename scalartype, typename k_dmn, typename w_dmn>
-void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_pp(function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G)
+void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_pp(FUNC_LIB::function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G)
 {
   //cout << __PRETTY_FUNCTION__ << endl;
 
@@ -519,7 +519,7 @@ void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_pp(f
 
 template<class parameters_type>
 template<typename scalartype, typename k_dmn, typename w_dmn>
-void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_pp(function<scalartype, dmn_3<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn>, k_dmn> >& G)
+void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_pp(FUNC_LIB::function<scalartype, dmn_3<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn>, k_dmn> >& G)
 {
   if(b::dmn_size()>1)
     throw std::logic_error(__FUNCTION__);
@@ -566,7 +566,7 @@ void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_pp(f
 
 template<class parameters_type>
 template<typename scalartype, typename k_dmn, typename w_dmn>
-void diagrammatic_symmetries<parameters_type>::set_real(function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G)
+void diagrammatic_symmetries<parameters_type>::set_real(FUNC_LIB::function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G)
 {
   if(b::dmn_size()>1)
     throw std::logic_error(__FUNCTION__);
@@ -596,7 +596,7 @@ void diagrammatic_symmetries<parameters_type>::set_real(function<scalartype, dmn
 
 template<class parameters_type>
 template<typename scalartype, typename k_dmn, typename w_dmn>
-void diagrammatic_symmetries<parameters_type>::set_real(function<scalartype, dmn_3<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn>, k_dmn> >& G)
+void diagrammatic_symmetries<parameters_type>::set_real(FUNC_LIB::function<scalartype, dmn_3<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn>, k_dmn> >& G)
 {
   if(b::dmn_size()>1)
     throw std::logic_error(__FUNCTION__);

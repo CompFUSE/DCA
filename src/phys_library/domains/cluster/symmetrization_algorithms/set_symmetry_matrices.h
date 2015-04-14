@@ -55,8 +55,8 @@ void set_symmetry_matrices<base_cluster_type>::execute()
 template<class base_cluster_type>
 void set_symmetry_matrices<base_cluster_type>::set_r_symmetry_matrix()
 {
-  //function<std::pair<int,int>, dmn_2< dmn_2<r_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& symmetry_matrix = r_cluster_type::get_symmetry_matrix();
-  function<std::pair<int,int>, dmn_2< dmn_2<r_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& symmetry_matrix = cluster_symmetry<r_cluster_type>::get_symmetry_matrix();
+  //FUNC_LIB::function<std::pair<int,int>, dmn_2< dmn_2<r_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& symmetry_matrix = r_cluster_type::get_symmetry_matrix();
+  FUNC_LIB::function<std::pair<int,int>, dmn_2< dmn_2<r_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& symmetry_matrix = cluster_symmetry<r_cluster_type>::get_symmetry_matrix();
 
 
   for(int i=0; i<r_dmn_t::dmn_size(); ++i){
@@ -122,8 +122,8 @@ void set_symmetry_matrices<base_cluster_type>::set_r_symmetry_matrix()
 template<class base_cluster_type>
 void set_symmetry_matrices<base_cluster_type>::set_k_symmetry_matrix()
 {
-  function<std::pair<int,int>, dmn_2< dmn_2<r_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& r_symmetry_matrix = cluster_symmetry<r_cluster_type>::get_symmetry_matrix();//r_cluster_type::get_symmetry_matrix();
-  function<std::pair<int,int>, dmn_2< dmn_2<k_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& k_symmetry_matrix = cluster_symmetry<k_cluster_type>::get_symmetry_matrix();//k_cluster_type::get_symmetry_matrix();
+  FUNC_LIB::function<std::pair<int,int>, dmn_2< dmn_2<r_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& r_symmetry_matrix = cluster_symmetry<r_cluster_type>::get_symmetry_matrix();//r_cluster_type::get_symmetry_matrix();
+  FUNC_LIB::function<std::pair<int,int>, dmn_2< dmn_2<k_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& k_symmetry_matrix = cluster_symmetry<k_cluster_type>::get_symmetry_matrix();//k_cluster_type::get_symmetry_matrix();
 
 //   r_symmetry_matrix.print_fingerprint();
 //   k_symmetry_matrix.print_fingerprint();
@@ -182,7 +182,7 @@ void set_symmetry_matrices<base_cluster_type>::print_on_shell()
 {
   if(true)
     {
-      function<std::pair<int,int>, dmn_2< dmn_2<k_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& symmetry_matrix = k_cluster_type::get_symmetry_matrix();
+      FUNC_LIB::function<std::pair<int,int>, dmn_2< dmn_2<k_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& symmetry_matrix = k_cluster_type::get_symmetry_matrix();
 
       for(int i=0; i<k_dmn_t::dmn_size(); ++i){
         for(int j=0; j<b_dmn_t::dmn_size(); ++j){
@@ -200,7 +200,7 @@ void set_symmetry_matrices<base_cluster_type>::print_on_shell()
 
   if(true)
     {
-      function<std::pair<int,int>, dmn_2< dmn_2<r_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& symmetry_matrix = r_cluster_type::get_symmetry_matrix();
+      FUNC_LIB::function<std::pair<int,int>, dmn_2< dmn_2<r_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& symmetry_matrix = r_cluster_type::get_symmetry_matrix();
 
       for(int i=0; i<r_dmn_t::dmn_size(); ++i){
         for(int j=0; j<b_dmn_t::dmn_size(); ++j){
@@ -218,8 +218,8 @@ void set_symmetry_matrices<base_cluster_type>::print_on_shell()
 
   if(true)
     {
-      function<std::pair<int,int>, dmn_2< dmn_2<k_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& k_symmetry_matrix = k_cluster_type::get_symmetry_matrix();
-      function<std::pair<int,int>, dmn_2< dmn_2<r_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& r_symmetry_matrix = r_cluster_type::get_symmetry_matrix();
+      FUNC_LIB::function<std::pair<int,int>, dmn_2< dmn_2<k_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& k_symmetry_matrix = k_cluster_type::get_symmetry_matrix();
+      FUNC_LIB::function<std::pair<int,int>, dmn_2< dmn_2<r_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& r_symmetry_matrix = r_cluster_type::get_symmetry_matrix();
 
       for(int i=0; i<r_dmn_t::dmn_size(); ++i){
         for(int j=0; j<b_dmn_t::dmn_size(); ++j){

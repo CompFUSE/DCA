@@ -41,7 +41,7 @@ namespace QMC {
 
     ~MC_single_particle_accumulator();
 
-    void initialize(function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w);
+    void initialize(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w);
     
     void finalize();
 
@@ -56,15 +56,15 @@ namespace QMC {
 
     template<class configuration_type>
     void accumulate_K_r_t(configuration_type&                           configuration,
-			  function<double, dmn_4<nu, nu, r_dmn_t, t> >& K_r_t,
+			  FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t> >& K_r_t,
 			  double                                        sign);
 
 
     int find_first_non_interacting_spin(std::vector<vertex_singleton_type>& configuration_e_spin);
 
-    void compute_M_r_w(function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w);
+    void compute_M_r_w(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w);
 
-    //void compute_V_r_t(function<double, dmn_4<nu, nu, r_dmn_t, t> >& V_r_t);
+    //void compute_V_r_t(FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t> >& V_r_t);
 
 #ifdef MEASURE_ERROR_BARS
     void store_standard_deviation(int nr_measurements, std::ofstream& points_file, std::ofstream& norm_file);
@@ -76,7 +76,7 @@ namespace QMC {
     parameters_type&  parameters;
     concurrency_type& concurrency;
 
-//     function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> > V_r_w;
+//     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> > V_r_w;
 
     cached_delayed_nfft_1D<scalar_type, dmn_3<nu, nu, r_dmn_t> > cached_nfft_1D_M_r_w_obj;
 
@@ -99,7 +99,7 @@ namespace QMC {
   {}
 
   template<class parameters_type>
-  void MC_single_particle_accumulator<CT_AUX, MATSUBARA, parameters_type>::initialize(function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w)
+  void MC_single_particle_accumulator<CT_AUX, MATSUBARA, parameters_type>::initialize(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w)
   {
     cached_nfft_1D_M_r_w_obj.initialize();
 
@@ -181,7 +181,7 @@ namespace QMC {
   template<class parameters_type>
   template<class configuration_type>
   void MC_single_particle_accumulator<CT_AUX, MATSUBARA, parameters_type>::accumulate_K_r_t(configuration_type&                           configuration,
-													       function<double, dmn_4<nu, nu, r_dmn_t, t> >& K_r_t,
+													       FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t> >& K_r_t,
 													       double                                        sign)
   {
     // for next generation solver !!
@@ -232,7 +232,7 @@ namespace QMC {
   }
 
   template<class parameters_type>
-  void MC_single_particle_accumulator<CT_AUX, MATSUBARA, parameters_type>::compute_M_r_w(function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w)
+  void MC_single_particle_accumulator<CT_AUX, MATSUBARA, parameters_type>::compute_M_r_w(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w)
   {
     cached_nfft_1D_M_r_w_obj.finalize(M_r_w);
 

@@ -17,43 +17,43 @@ namespace MATH_ALGORITHMS
     template<typename scalartype_1, class domain_input, 
 	     typename scalartype_2, class domain_output,
 	     typename scalartype_3>
-    static void transform(function<scalartype_1, domain_input >&       f_input, 
-			  function<scalartype_2, domain_output>&       f_output,
+    static void transform(FUNC_LIB::function<scalartype_1, domain_input >&       f_input, 
+			  FUNC_LIB::function<scalartype_2, domain_output>&       f_output,
 			  LIN_ALG::matrix<scalartype_3, LIN_ALG::CPU>& T);
 
     template<typename scalartype, class domain_input, class domain_output>
-    static void transform(function<scalartype, domain_input >&       f_input, 
-			  function<scalartype, domain_output>&       f_output,
+    static void transform(FUNC_LIB::function<scalartype, domain_input >&       f_input, 
+			  FUNC_LIB::function<scalartype, domain_output>&       f_output,
 			  LIN_ALG::matrix<scalartype, LIN_ALG::CPU>& T);
 
     template<typename scalartype, class domain_input, class domain_output>
-    static void transform(function<std::complex<scalartype>, domain_input >& f_input, 
-			  function<std::complex<scalartype>, domain_output>& f_output,
+    static void transform(FUNC_LIB::function<std::complex<scalartype>, domain_input >& f_input, 
+			  FUNC_LIB::function<std::complex<scalartype>, domain_output>& f_output,
 			  LIN_ALG::matrix<scalartype, LIN_ALG::CPU>&         T);
 
     template<typename scalartype, class domain_input, class domain_output>
-    static void transform(function<scalartype, domain_input >&                     f_input, 
-			  function<scalartype, domain_output>&                     f_output,
+    static void transform(FUNC_LIB::function<scalartype, domain_input >&                     f_input, 
+			  FUNC_LIB::function<scalartype, domain_output>&                     f_output,
 			  LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& T);
 
     template<class domain_input, class domain_output>
-    static void transform(function<float, domain_input >&       f_input, 
-			  function<float, domain_output>&       f_output,
+    static void transform(FUNC_LIB::function<float, domain_input >&       f_input, 
+			  FUNC_LIB::function<float, domain_output>&       f_output,
 			  LIN_ALG::matrix<double, LIN_ALG::CPU>& T);
 
     template<class domain_input, class domain_output>
-    static void transform(function<std::complex<float>, domain_input >&       f_input, 
-			  function<std::complex<float>, domain_output>&       f_output,
+    static void transform(FUNC_LIB::function<std::complex<float>, domain_input >&       f_input, 
+			  FUNC_LIB::function<std::complex<float>, domain_output>&       f_output,
 			  LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU>& T);
 
     template<typename scalartype, class domain_input, class domain_output>
-    static void transform(function<                    scalartype , domain_output>& f_input, 
-			  function<       std::complex<scalartype>, domain_input >& f_output,
+    static void transform(FUNC_LIB::function<                    scalartype , domain_output>& f_input, 
+			  FUNC_LIB::function<       std::complex<scalartype>, domain_input >& f_output,
 			  LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU >& T);
 
     template<typename scalartype, class domain_input, class domain_output>
-    static void transform(function<       std::complex<scalartype>, domain_input >& f_input, 
-			  function<                    scalartype , domain_output>& f_output,
+    static void transform(FUNC_LIB::function<       std::complex<scalartype>, domain_input >& f_input, 
+			  FUNC_LIB::function<                    scalartype , domain_output>& f_output,
 			  LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU >& T);
     
   };
@@ -76,8 +76,8 @@ namespace MATH_ALGORITHMS
 
   template<int DMN_INDEX>
   template<typename scalartype, class domain_input, class domain_output>
-  void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(function<scalartype, domain_input >&       f_input, 
-							function<scalartype, domain_output>&       f_output,
+  void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(FUNC_LIB::function<scalartype, domain_input >&       f_input, 
+							FUNC_LIB::function<scalartype, domain_output>&       f_output,
 							LIN_ALG::matrix<scalartype, LIN_ALG::CPU>& T)
   {
     int M, K, N, P;
@@ -114,8 +114,8 @@ namespace MATH_ALGORITHMS
 
   template<int DMN_INDEX>
   template<typename scalartype, class domain_input, class domain_output>
-  void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(function<std::complex<scalartype>, domain_input >& f_input, 
-							function<std::complex<scalartype>, domain_output>& f_output,
+  void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(FUNC_LIB::function<std::complex<scalartype>, domain_input >& f_input, 
+							FUNC_LIB::function<std::complex<scalartype>, domain_output>& f_output,
 							LIN_ALG::matrix<scalartype, LIN_ALG::CPU>&         T)
   {
     int M, K, N, P;
@@ -140,8 +140,8 @@ namespace MATH_ALGORITHMS
 
   template<int DMN_INDEX>
   template<typename scalartype, class domain_input, class domain_output>
-  void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(function<scalartype, domain_input >&                     f_input, 
-							function<scalartype, domain_output>&                     f_output,
+  void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(FUNC_LIB::function<scalartype, domain_input >&                     f_input, 
+							FUNC_LIB::function<scalartype, domain_output>&                     f_output,
 							LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& T)
   {
     LIN_ALG::matrix<scalartype, LIN_ALG::CPU> T_re("T_re", T.get_current_size());
@@ -155,8 +155,8 @@ namespace MATH_ALGORITHMS
 
   template<int DMN_INDEX>
   template<class domain_input, class domain_output>
-  void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(function<       float , domain_input >&       f_input, 
-							function<       float , domain_output>&       f_output,
+  void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(FUNC_LIB::function<       float , domain_input >&       f_input, 
+							FUNC_LIB::function<       float , domain_output>&       f_output,
 							LIN_ALG::matrix<double, LIN_ALG::CPU>& T)
   {
     LIN_ALG::matrix<float, LIN_ALG::CPU> T_float("T_re", T.get_current_size());
@@ -170,8 +170,8 @@ namespace MATH_ALGORITHMS
 
   template<int DMN_INDEX>
   template<class domain_input, class domain_output>
-  void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(function<       std::complex<float> , domain_input >&       f_input, 
-							function<       std::complex<float> , domain_output>&       f_output,
+  void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(FUNC_LIB::function<       std::complex<float> , domain_input >&       f_input, 
+							FUNC_LIB::function<       std::complex<float> , domain_output>&       f_output,
 							LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU>& T)
   {
     LIN_ALG::matrix<std::complex<float>, LIN_ALG::CPU> T_float("T_re", T.get_current_size());
@@ -185,11 +185,11 @@ namespace MATH_ALGORITHMS
 
   template<int DMN_INDEX>
   template<typename scalartype, class domain_input, class domain_output>
-  void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(function<                    scalartype , domain_output>& f_input, 
-							function<       std::complex<scalartype>, domain_input >& f_output,
+  void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(FUNC_LIB::function<                    scalartype , domain_output>& f_input, 
+							FUNC_LIB::function<       std::complex<scalartype>, domain_input >& f_output,
 							LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU >& T)
   {
-    function<std::complex<scalartype>, domain_output> f_in("f_in"); 
+    FUNC_LIB::function<std::complex<scalartype>, domain_output> f_in("f_in"); 
 
     for(int i=0; i<f_input.size(); i++)
       real(f_in(i)) = f_input(i);
@@ -199,14 +199,14 @@ namespace MATH_ALGORITHMS
 
   template<int DMN_INDEX>
   template<typename scalartype, class domain_input, class domain_output>
-  void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(function<       std::complex<scalartype>, domain_input >& f_input, 
-							function<                    scalartype , domain_output>& f_output,
+  void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(FUNC_LIB::function<       std::complex<scalartype>, domain_input >& f_input, 
+							FUNC_LIB::function<                    scalartype , domain_output>& f_output,
 							LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU >& T)
   {
     f_output = 0.;
 
-    function<scalartype, domain_input > f_in ("f_in");
-    function<scalartype, domain_output> f_out("f_out");
+    FUNC_LIB::function<scalartype, domain_input > f_in ("f_in");
+    FUNC_LIB::function<scalartype, domain_output> f_out("f_out");
 
     LIN_ALG::matrix<scalartype, LIN_ALG::CPU> T_tmp("T_tmp", T.get_current_size());
 

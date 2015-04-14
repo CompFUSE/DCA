@@ -37,8 +37,8 @@ namespace DCA
     ~deconvolution_tp();
 
     template<typename k_dmn_t, typename scalartype>
-    void execute(function<std::complex<scalartype>, dmn_2<dmn_4<b,b,k_dmn_t       ,w_VERTEX>, dmn_4<b,b,k_dmn_t       ,w_VERTEX> > >& Gamma_lattice_interp,
-		 function<std::complex<scalartype>, dmn_2<dmn_4<b,b,target_k_dmn_t,w_VERTEX>, dmn_4<b,b,target_k_dmn_t,w_VERTEX> > >& Gamma_lattice_deconv);
+    void execute(FUNC_LIB::function<std::complex<scalartype>, dmn_2<dmn_4<b,b,k_dmn_t       ,w_VERTEX>, dmn_4<b,b,k_dmn_t       ,w_VERTEX> > >& Gamma_lattice_interp,
+		 FUNC_LIB::function<std::complex<scalartype>, dmn_2<dmn_4<b,b,target_k_dmn_t,w_VERTEX>, dmn_4<b,b,target_k_dmn_t,w_VERTEX> > >& Gamma_lattice_deconv);
 
   private:
 
@@ -60,8 +60,8 @@ namespace DCA
 
   template<typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
   template<typename k_dmn_t, typename scalartype>
-  void deconvolution_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(function<std::complex<scalartype>, dmn_2<dmn_4<b,b,k_dmn_t       ,w_VERTEX>, dmn_4<b,b,k_dmn_t       ,w_VERTEX> > >& Gamma_lattice_interp,
-										  function<std::complex<scalartype>, dmn_2<dmn_4<b,b,target_k_dmn_t,w_VERTEX>, dmn_4<b,b,target_k_dmn_t,w_VERTEX> > >& Gamma_lattice_deconv)
+  void deconvolution_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(FUNC_LIB::function<std::complex<scalartype>, dmn_2<dmn_4<b,b,k_dmn_t       ,w_VERTEX>, dmn_4<b,b,k_dmn_t       ,w_VERTEX> > >& Gamma_lattice_interp,
+										  FUNC_LIB::function<std::complex<scalartype>, dmn_2<dmn_4<b,b,target_k_dmn_t,w_VERTEX>, dmn_4<b,b,target_k_dmn_t,w_VERTEX> > >& Gamma_lattice_deconv)
   {
     int N = k_HOST_VERTEX::dmn_size();
     

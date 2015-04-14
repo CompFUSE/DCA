@@ -258,7 +258,7 @@ namespace DCA
 	    ~ss_hybridization_walker_routines();
 
 	    void initialize();
-	    void initialize_akima_coefficients(function<double, nu_nu_r_DCA_t>& F_r_t);
+	    void initialize_akima_coefficients(FUNC_LIB::function<double, nu_nu_r_DCA_t>& F_r_t);
 
 	    parameters_t&    get_parameters()    { return parameters; }
 	    MOMS_t&          get_MOMS()          { return MOMS; }
@@ -404,7 +404,7 @@ namespace DCA
 	    rng_t&           rng;
 
 	    nu_nu_r_dmn_t_shifted_t nu_nu_r_dmn_t_t_shifted_dmn;
-	    function<double, akima_nu_nu_r_dmn_t_shifted_t> akima_coefficients;
+	    FUNC_LIB::function<double, akima_nu_nu_r_dmn_t_shifted_t> akima_coefficients;
 	};
 
 	template<typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
@@ -436,7 +436,7 @@ namespace DCA
 	}
 
 	template<class parameters_t, class MOMS_t, typename configuration_t, typename rng_t>
-	void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::initialize_akima_coefficients(function<double, nu_nu_r_DCA_t>& F_r_t)
+	void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::initialize_akima_coefficients(FUNC_LIB::function<double, nu_nu_r_DCA_t>& F_r_t)
 	{
 	    int size = t_dmn_t::dmn_size()/2;
 

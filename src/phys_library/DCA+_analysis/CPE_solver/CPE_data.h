@@ -49,16 +49,16 @@ namespace DCA
     double real_axis_off_set;
     
 
-    function<std::complex<scalartype>, dmn_4<nu,nu,k_dmn_t,w_dmn_t> >* f_target_ptr;
+    FUNC_LIB::function<std::complex<scalartype>, dmn_4<nu,nu,k_dmn_t,w_dmn_t> >* f_target_ptr;
 
-    function<scalartype, dmn_3<nu,nu,k_dmn_t>             >* Sigma_0_moment_ptr;
-    function<scalartype, dmn_4<nu,nu,k_dmn_t,alpha_dmn_t> >* alpha_function_ptr;
-    function<scalartype, dmn_3<nu,nu,k_dmn_t>             >* error_function_ptr;
+    FUNC_LIB::function<scalartype, dmn_3<nu,nu,k_dmn_t>             >* Sigma_0_moment_ptr;
+    FUNC_LIB::function<scalartype, dmn_4<nu,nu,k_dmn_t,alpha_dmn_t> >* alpha_function_ptr;
+    FUNC_LIB::function<scalartype, dmn_3<nu,nu,k_dmn_t>             >* error_function_ptr;
 
-    function<std::complex<scalartype>, dmn_4<nu,nu,k_dmn_t,w> >*      S_approx_ptr;
+    FUNC_LIB::function<std::complex<scalartype>, dmn_4<nu,nu,k_dmn_t,w> >*      S_approx_ptr;
 
-    function<std::complex<scalartype>, dmn_4<nu,nu,k_dmn_t,w_IMAG> >* f_approx_ptr;
-    function<std::complex<scalartype>, dmn_4<nu,nu,k_dmn_t,w_IMAG> >* f_measured_ptr;
+    FUNC_LIB::function<std::complex<scalartype>, dmn_4<nu,nu,k_dmn_t,w_IMAG> >* f_approx_ptr;
+    FUNC_LIB::function<std::complex<scalartype>, dmn_4<nu,nu,k_dmn_t,w_IMAG> >* f_measured_ptr;
 
     LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>* A_matrix_ptr;
 

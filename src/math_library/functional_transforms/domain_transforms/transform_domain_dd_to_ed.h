@@ -24,8 +24,8 @@ namespace MATH_ALGORITHMS
 
     template<typename scalartype_input, class domain_input, 
 	     typename scalartype_output, class domain_output>
-    static void execute(function<scalartype_input , domain_input >& f_input, 
-			function<scalartype_output, domain_output>& f_output)
+    static void execute(FUNC_LIB::function<scalartype_input , domain_input >& f_input, 
+			FUNC_LIB::function<scalartype_output, domain_output>& f_output)
     {  
       default_execute(f_input, f_output);
     }
@@ -63,13 +63,13 @@ namespace MATH_ALGORITHMS
     }
 
     template<typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-    static void fftw_harmonics_execute(function<scalartype_input , domain_input >& f_input, 
-				       function<scalartype_output, domain_output>& f_output,
+    static void fftw_harmonics_execute(FUNC_LIB::function<scalartype_input , domain_input >& f_input, 
+				       FUNC_LIB::function<scalartype_output, domain_output>& f_output,
 				       bool renorm);
 
     template<typename scalartype, class domain_input, class domain_output>
-    static void fftw_harmonics_execute(function<std::complex<scalartype>, domain_input >& f_input, 
-				       function<std::complex<scalartype>, domain_output>& f_output,
+    static void fftw_harmonics_execute(FUNC_LIB::function<std::complex<scalartype>, domain_input >& f_input, 
+				       FUNC_LIB::function<std::complex<scalartype>, domain_output>& f_output,
 				       bool renorm)
     {
       assert(type_input::dmn_specifications_type::DIMENSION == type_output::dmn_specifications_type::DIMENSION);
@@ -149,8 +149,8 @@ namespace MATH_ALGORITHMS
   
     template<typename scalartype_input, class domain_input, 
 	     typename scalartype_output, class domain_output>
-    static void default_execute(function<scalartype_input , domain_input >& f_input, 
-				function<scalartype_output, domain_output>& f_output)
+    static void default_execute(FUNC_LIB::function<scalartype_input , domain_input >& f_input, 
+				FUNC_LIB::function<scalartype_output, domain_output>& f_output)
     {
       if(VERBOSE)
 	cout << "\n default-transform (discrete -> expansion) " << DMN_INDEX << "  " << type_input::get_name() << " --> " << type_output::get_name() << "\n\n";

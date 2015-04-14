@@ -23,34 +23,34 @@ namespace DCA
     //     ~quadrature_integration();
 
     template<typename scalar_type>
-    static void quadrature_integration_G_q_w_st(function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& I_q,
-                                                function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& H_q,
-                                                function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& S_q,
-                                                function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& G_q);
+    static void quadrature_integration_G_q_w_st(FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& I_q,
+                                                FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& H_q,
+                                                FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& S_q,
+                                                FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& G_q);
 
     template<typename scalar_type>
     static void quadrature_integration_G_q_w_mt(int nr_threads,
-                                                function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& I_q,
-                                                function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& H_q,
-                                                function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& S_q,
-                                                function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& G_q);
+                                                FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& I_q,
+                                                FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& H_q,
+                                                FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& S_q,
+                                                FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& G_q);
 
     template<typename scalar_type>
     static void quadrature_integration_G_q_t_st(scalar_type beta,
 						scalar_type f_val,
 						scalar_type t_val,
-						function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& I_q,
-                                                function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& H_q,
-						function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& G_q);
+						FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& I_q,
+                                                FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& H_q,
+						FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& G_q);
 
     template<typename scalar_type>
     static void quadrature_integration_G_q_t_mt(int nr_threads,
 						scalar_type beta,
 						scalar_type f_val,
 						scalar_type t_val,                                                                                         
-                                                function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& I_q,
-                                                function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& H_q,
-						function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& G_q);
+                                                FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& I_q,
+                                                FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& H_q,
+						FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& G_q);
 
   private:
 
@@ -78,20 +78,20 @@ namespace DCA
       scalar_type f_val;
       scalar_type t_val;
 
-      function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >* I_q_ptr;
-      function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >* H_q_ptr;
-      function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >* S_q_ptr;
-      function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >* G_q_ptr;
+      FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >* I_q_ptr;
+      FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >* H_q_ptr;
+      FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >* S_q_ptr;
+      FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >* G_q_ptr;
     };
 
   };
 
   template<typename parameters_type, typename q_dmn_t>
   template<typename scalar_type>
-  void quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G_q_w_st(function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& I_q,
-                                                                                         function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& H_q,
-                                                                                         function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& S_q,
-                                                                                         function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& G_q)
+  void quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G_q_w_st(FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& I_q,
+                                                                                         FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& H_q,
+                                                                                         FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& S_q,
+                                                                                         FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& G_q)
   {
     //cout << __FUNCTION__ << "\t" << q_dmn_t::dmn_size() << "\t" << print_time() << "\n";
     
@@ -121,10 +121,10 @@ namespace DCA
   template<typename parameters_type, typename q_dmn_t>
   template<typename scalar_type>
   void quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G_q_w_mt(int nr_threads,
-                                                                                         function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& I_q,
-                                                                                         function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& H_q,
-                                                                                         function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& S_q,
-                                                                                         function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& G_q)
+                                                                                         FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& I_q,
+                                                                                         FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& H_q,
+                                                                                         FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& S_q,
+                                                                                         FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& G_q)
   {
     //cout << __FUNCTION__ << "\t" << q_dmn_t::dmn_size() << "\t" << print_time() << "\n";
 
@@ -154,10 +154,10 @@ namespace DCA
     int id         = data_ptr->id;
     int nr_threads = data_ptr->nr_threads;
 
-    function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& I_q = *(functions_ptr->I_q_ptr);
-    function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& H_q = *(functions_ptr->H_q_ptr);
-    function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& S_q = *(functions_ptr->S_q_ptr);
-    function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& G_q = *(functions_ptr->G_q_ptr);
+    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& I_q = *(functions_ptr->I_q_ptr);
+    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& H_q = *(functions_ptr->H_q_ptr);
+    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& S_q = *(functions_ptr->S_q_ptr);
+    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& G_q = *(functions_ptr->G_q_ptr);
 
     q_dmn_t             q_dmn;
     std::pair<int, int> q_bounds = COMP_LIB::parallelization<COMP_LIB::POSIX_LIBRARY>::get_bounds(id, nr_threads, q_dmn);
@@ -193,9 +193,9 @@ namespace DCA
   void quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G_q_t_st(scalar_type beta,
 											 scalar_type f_val,
 											 scalar_type t_val,											 
-                                                                                         function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& I_q,
-                                                                                         function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& H_q,
-                                                                                         function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& G_q)
+                                                                                         FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& I_q,
+                                                                                         FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& H_q,
+                                                                                         FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& G_q)
   {
     //cout << __FUNCTION__ << endl;
 
@@ -316,9 +316,9 @@ namespace DCA
 											 scalar_type beta,
                                                                                          scalar_type f_val, 
 											 scalar_type t_val,
-                                                                                         function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& I_q,
-                                                                                         function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& H_q,
-                                                                                         function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& G_q)
+                                                                                         FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& I_q,
+                                                                                         FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& H_q,
+                                                                                         FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& G_q)
   {
     G_q = 0.;
 
@@ -355,9 +355,9 @@ namespace DCA
     double t_val = functions_ptr->t_val;
     double f_val = functions_ptr->f_val;
 
-    function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& I_q = *(functions_ptr->I_q_ptr);
-    function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& H_q = *(functions_ptr->H_q_ptr);
-    function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& G_q = *(functions_ptr->G_q_ptr);
+    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& I_q = *(functions_ptr->I_q_ptr);
+    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& H_q = *(functions_ptr->H_q_ptr);
+    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& G_q = *(functions_ptr->G_q_ptr);
 
     q_dmn_t             q_dmn;
     std::pair<int, int> q_bounds = COMP_LIB::parallelization<COMP_LIB::POSIX_LIBRARY>::get_bounds(id, nr_threads, q_dmn);

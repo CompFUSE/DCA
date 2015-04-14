@@ -94,8 +94,8 @@ namespace QMC {
 
     std::vector<double> W;
 
-    function<double, dmn_0<trigoniometric_dmn> > SIN;
-    function<double, dmn_0<trigoniometric_dmn> > COS;
+    FUNC_LIB::function<double, dmn_0<trigoniometric_dmn> > SIN;
+    FUNC_LIB::function<double, dmn_0<trigoniometric_dmn> > COS;
 
     std::complex<double>* T;
 

@@ -19,7 +19,7 @@ namespace DCA
 
       template<typename configuration_t, typename vertex_vertex_matrix_type, typename function_type_2, typename walker_routines_type>
       static void FULL_CHECK(configuration_t&                         configuration, 
-			     function<vertex_vertex_matrix_type, nu>& M, 
+			     FUNC_LIB::function<vertex_vertex_matrix_type, nu>& M, 
 			     function_type_2&                         F,
 			     walker_routines_type&                    walker_routines_obj);
 
@@ -29,7 +29,7 @@ namespace DCA
 
     template<typename configuration_t, typename vertex_vertex_matrix_type, typename function_type_2, typename walker_routines_type>
     void ss_ct_hybridization_walker_bit::FULL_CHECK(configuration_t&                         configuration, 
-						    function<vertex_vertex_matrix_type, nu>& M, 
+						    FUNC_LIB::function<vertex_vertex_matrix_type, nu>& M, 
 						    function_type_2&                         F,
 						    walker_routines_type&                    walker_routines_obj)
     {

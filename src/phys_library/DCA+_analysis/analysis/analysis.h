@@ -74,25 +74,25 @@ namespace dca {
 
   public:
 
-    function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> G4_b_k_w__b_k_w;
-    function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> G4_0_b_k_w__b_k_w;
+    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> G4_b_k_w__b_k_w;
+    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> G4_0_b_k_w__b_k_w;
 
-    function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> chi_b_k_w__b_k_w;
-    function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> chi_0_b_k_w__b_k_w;
+    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> chi_b_k_w__b_k_w;
+    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> chi_0_b_k_w__b_k_w;
 
-    function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> Gamma_b_k_w__b_k_w;
+    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> Gamma_b_k_w__b_k_w;
 
-    function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> reducible_Gamma;
+    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> reducible_Gamma;
     
-    function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> full_chi_0_b_k_w__b_k_w;
+    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> full_chi_0_b_k_w__b_k_w;
 
-    function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> Gamma_times_full_chi_0;
+    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> Gamma_times_full_chi_0;
 
-//     function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> chi;
+//     FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> chi;
 
-    function<std::complex<double>, dmn_0<dmn<1, int> > > chi_q;
+    FUNC_LIB::function<std::complex<double>, dmn_0<dmn<1, int> > > chi_q;
 
-    //function<std::complex<double>, b_b__b_b> chi_q_ 0;
+    //FUNC_LIB::function<std::complex<double>, b_b__b_b> chi_q_ 0;
 
     //make_G4_matrix                <parameter_type, MOMS_type> make_G4_obj;
     make_G4_0_matrix              <parameter_type, MOMS_type> make_G4_0_obj;
@@ -102,19 +102,19 @@ namespace dca {
 
     b_b_k_DCA_w_VERTEX b_b_k_DCA_w_VERTEX_domain;
 
-    function<std::complex<double>, dmn_4<b,b,k_DCA,w_VERTEX> >      chi_0_function;
-    function<std::complex<double>, dmn_4<b,b,k_DCA,w_VERTEX> > full_chi_0_function;
+    FUNC_LIB::function<std::complex<double>, dmn_4<b,b,k_DCA,w_VERTEX> >      chi_0_function;
+    FUNC_LIB::function<std::complex<double>, dmn_4<b,b,k_DCA,w_VERTEX> > full_chi_0_function;
 
-//     function<std::complex<double>, dmn_0<dmn<N_LAMBDA, int> > >                              leading_eigenvalues;
-//     function<std::complex<double>, dmn_2<dmn_0<dmn<N_LAMBDA, int> >, dmn_0<dmn<3, int> > > > leading_symmetries;
-//     function<std::complex<double>, dmn_2<b_b_k_DCA_w_VERTEX, dmn_0<dmn<N_LAMBDA, int> > >  > leading_eigenvectors;
+//     FUNC_LIB::function<std::complex<double>, dmn_0<dmn<N_LAMBDA, int> > >                              leading_eigenvalues;
+//     FUNC_LIB::function<std::complex<double>, dmn_2<dmn_0<dmn<N_LAMBDA, int> >, dmn_0<dmn<3, int> > > > leading_symmetries;
+//     FUNC_LIB::function<std::complex<double>, dmn_2<b_b_k_DCA_w_VERTEX, dmn_0<dmn<N_LAMBDA, int> > >  > leading_eigenvectors;
 
-    function<std::complex<double>,       lambda_dmn_type>                        leading_eigenvalues;
-    function<std::complex<double>, dmn_2<lambda_dmn_type, harmonics_dmn_type> >  leading_symmetries;
-    function<std::complex<double>, dmn_2<lambda_dmn_type, eigenvector_dmn_t> >   leading_eigenvectors;
+    FUNC_LIB::function<std::complex<double>,       lambda_dmn_type>                        leading_eigenvalues;
+    FUNC_LIB::function<std::complex<double>, dmn_2<lambda_dmn_type, harmonics_dmn_type> >  leading_symmetries;
+    FUNC_LIB::function<std::complex<double>, dmn_2<lambda_dmn_type, eigenvector_dmn_t> >   leading_eigenvectors;
 
-    function<std::complex<double>, dmn_0<dmn<N_LAMBDA, int> > >                                       leading_V;
-    function<std::complex<double>, dmn_0<dmn<N_LAMBDA, int> > >                                       leading_P0;
+    FUNC_LIB::function<std::complex<double>, dmn_0<dmn<N_LAMBDA, int> > >                                       leading_V;
+    FUNC_LIB::function<std::complex<double>, dmn_0<dmn<N_LAMBDA, int> > >                                       leading_P0;
 
     eigensystem_plan<std::complex<double>, GENERAL> eigensystem_pln;
   };
@@ -404,7 +404,7 @@ namespace dca {
   {
     int MATRIX_DIM = square(b::dmn_size())*k_DCA::dmn_size()*w_VERTEX::dmn_size();
       
-    function<std::complex<double>, b_b_k_DCA_w_VERTEX > eigenvector;
+    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX > eigenvector;
     for(int l=0; l<MATRIX_DIM; l++)
       eigenvector(l) = eigensystem_pln.VR[l + leading_lambda_index*MATRIX_DIM];
     
@@ -555,8 +555,8 @@ namespace dca {
 
     int N = b_b_k_DCA_w_VERTEX_domain.get_size();
 
-    function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> chi("chi");
-    function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> denominator("temporary");
+    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> chi("chi");
+    FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> denominator("temporary");
 
     {// \Chi_0 * \Gamma --> Gamma_times_full_chi_0(0);
       gemm_plan<std::complex<double> > gemm_pln(N);
@@ -715,7 +715,7 @@ namespace dca {
 
 //     int N = b_b_k_DCA_w_VERTEX_domain.get_size();
 
-//     function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> denominator("temporary");
+//     FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> denominator("temporary");
 
 //     {// \Chi_0 * \Gamma --> Gamma_times_full_chi_0(0);
 //       gemm_plan<std::complex<double> > gemm_pln(N);
@@ -873,7 +873,7 @@ namespace dca {
 
 //     G4_b_k_w__b_k_w -= G4_0_b_k_w__b_k_w;
 
-//     function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> inverted_G4_0_b_k_w__b_k_w("inverted_G4_0_b_k_w__b_k_w");
+//     FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> inverted_G4_0_b_k_w__b_k_w("inverted_G4_0_b_k_w__b_k_w");
 //     {
 //       invert_plan<std::complex<double> > invert_pln(N);
       
@@ -883,7 +883,7 @@ namespace dca {
 //       symmetrize::execute(inverted_G4_0_b_k_w__b_k_w, MOMS.H_symmetry, true);
 //     }
 
-//     function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> G4_min_full_chi_0__times_inverted_full_chi_0("tmp");
+//     FUNC_LIB::function<std::complex<double>, b_b_k_DCA_w_VERTEX__b_b_k_DCA_w_VERTEX> G4_min_full_chi_0__times_inverted_full_chi_0("tmp");
 
 //     {
 //       gemm_plan<std::complex<double> > gemm_pln(N);

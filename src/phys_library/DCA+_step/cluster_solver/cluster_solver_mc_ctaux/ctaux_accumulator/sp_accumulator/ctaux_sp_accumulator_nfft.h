@@ -43,15 +43,15 @@ namespace DCA
 
       ~MC_single_particle_accumulator();
 
-      void initialize(function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w);
+      void initialize(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w);
 
-      void initialize(function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w,
-		      function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w_squared);
+      void initialize(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w,
+		      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w_squared);
 
       void finalize();
 
-      void finalize(function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w,
-		    function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w_squared);
+      void finalize(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w,
+		    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w_squared);
 
       template<class configuration_type, class vertex_vertex_matrix_type>
       void accumulate_M_r_w(configuration_type&        configuration_e_spin,
@@ -61,14 +61,14 @@ namespace DCA
 
       template<class configuration_type>
       void accumulate_K_r_t(configuration_type&                           configuration,
-                            function<double, dmn_4<nu, nu, r_dmn_t, t> >& K_r_t,
+                            FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t> >& K_r_t,
                             double                                        sign);
 
 
       int find_first_non_interacting_spin(std::vector<vertex_singleton_type>& configuration_e_spin);
 
-      void compute_M_r_w       (function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w);
-      void compute_M_r_w_square(function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w_square);
+      void compute_M_r_w       (FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w);
+      void compute_M_r_w_square(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w_square);
 
     private:
 
@@ -93,7 +93,7 @@ namespace DCA
     {}
 
     template<class parameters_type, class MOMS_type>
-    void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::initialize(function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w)
+    void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::initialize(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w)
     {
       cached_nfft_1D_M_r_w_obj.initialize();
 
@@ -102,8 +102,8 @@ namespace DCA
     }
 
     template<class parameters_type, class MOMS_type>
-    void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::initialize(function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w,
-                                                                                                     function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w_squared)
+    void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::initialize(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w,
+                                                                                                     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w_squared)
     {
       cached_nfft_1D_M_r_w_obj        .initialize();
       cached_nfft_1D_M_r_w_squared_obj.initialize();
@@ -183,7 +183,7 @@ namespace DCA
     template<class parameters_type, class MOMS_type>
     template<class configuration_type>
     void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::accumulate_K_r_t(configuration_type&                           configuration,
-                                                                                                           function<double, dmn_4<nu, nu, r_dmn_t, t> >& K_r_t,
+                                                                                                           FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t> >& K_r_t,
                                                                                                            double                                        sign)
     {
       // for next generation solver !!
@@ -234,9 +234,9 @@ namespace DCA
     }
 
     template<class parameters_type, class MOMS_type>
-    void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::compute_M_r_w(function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w)
+    void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::compute_M_r_w(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w)
     {
-      function<std::complex<double>, dmn_2<w_dmn_t, p_dmn_t> > tmp("tmp M_r_w");
+      FUNC_LIB::function<std::complex<double>, dmn_2<w_dmn_t, p_dmn_t> > tmp("tmp M_r_w");
       cached_nfft_1D_M_r_w_obj.finalize(tmp);
 
       for(int w_ind=0; w_ind<w_dmn_t::dmn_size(); w_ind++)
@@ -254,11 +254,11 @@ namespace DCA
     }
 
     template<class parameters_type, class MOMS_type>
-    void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::finalize(function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w,
-                                                                                                   function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w_squared)
+    void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::finalize(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w,
+                                                                                                   FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w_squared)
     {
       {
-        function<std::complex<double>, dmn_2<w_dmn_t, p_dmn_t> > tmp("tmp M_r_w");
+        FUNC_LIB::function<std::complex<double>, dmn_2<w_dmn_t, p_dmn_t> > tmp("tmp M_r_w");
         cached_nfft_1D_M_r_w_obj.finalize(tmp);
 
         for(int w_ind=0; w_ind<w_dmn_t::dmn_size(); w_ind++)
@@ -276,7 +276,7 @@ namespace DCA
       }
 
       {
-        function<std::complex<double>, dmn_2<w_dmn_t, p_dmn_t> > tmp("tmp M_r_w");
+        FUNC_LIB::function<std::complex<double>, dmn_2<w_dmn_t, p_dmn_t> > tmp("tmp M_r_w");
         cached_nfft_1D_M_r_w_squared_obj.finalize(tmp);
 
         for(int w_ind=0; w_ind<w_dmn_t::dmn_size(); w_ind++)

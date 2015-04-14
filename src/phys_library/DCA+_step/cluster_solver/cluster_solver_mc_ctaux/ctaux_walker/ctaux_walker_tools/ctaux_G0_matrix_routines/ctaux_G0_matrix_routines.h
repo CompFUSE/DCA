@@ -69,10 +69,10 @@ namespace DCA
 
       LIN_ALG::matrix<double, LIN_ALG::CPU> r1_minus_r0;
 
-      function<double, nu_nu_r_dmn_t_shifted_t>      G0_r_t_shifted;
-      function<double, nu_nu_r_dmn_t_shifted_t> grad_G0_r_t_shifted;
+      FUNC_LIB::function<double, nu_nu_r_dmn_t_shifted_t>      G0_r_t_shifted;
+      FUNC_LIB::function<double, nu_nu_r_dmn_t_shifted_t> grad_G0_r_t_shifted;
 
-      function<double, akima_nu_nu_r_dmn_t_shifted_t> akima_coefficients;
+      FUNC_LIB::function<double, akima_nu_nu_r_dmn_t_shifted_t> akima_coefficients;
 
       int    N_t, linind, t_ind;
       double beta, N_div_beta, new_tau, scaled_tau, delta_tau, f_0, grad;

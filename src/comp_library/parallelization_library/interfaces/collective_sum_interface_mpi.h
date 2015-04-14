@@ -26,13 +26,13 @@ namespace COMP_LIB
     void sum(std::map<std::string, std::vector<scalartype> >& m);
 
     template<typename scalar_type, class domain>
-    void sum(function<scalar_type, domain>& f);
+    void sum(FUNC_LIB::function<scalar_type, domain>& f);
 
     template<typename scalar_type, class domain>
-    void sum(function<scalar_type, domain>& f, function<scalar_type, domain>& f_target);
+    void sum(FUNC_LIB::function<scalar_type, domain>& f, FUNC_LIB::function<scalar_type, domain>& f_target);
 
     template<typename scalar_type, class domain>
-    void sum(function<std::vector<scalar_type>, domain>& f);
+    void sum(FUNC_LIB::function<std::vector<scalar_type>, domain>& f);
 
     template<typename scalar_type>
     void sum(LIN_ALG::vector<scalar_type, LIN_ALG::CPU>& f);
@@ -44,13 +44,13 @@ namespace COMP_LIB
     void sum_and_average(some_type& obj, int size);
 
     template<typename scalar_type, class domain>
-    void average_and_compute_stddev(function<scalar_type, domain>& f_mean, 
-				    function<scalar_type, domain>& f_stddev, 
+    void average_and_compute_stddev(FUNC_LIB::function<scalar_type, domain>& f_mean, 
+				    FUNC_LIB::function<scalar_type, domain>& f_stddev, 
 				    size_t size);
 
     template<typename scalar_type, class domain>
-    void average_and_compute_stddev(function<std::complex<scalar_type>, domain>& f_mean, 
-				    function<std::complex<scalar_type>, domain>& f_stddev, 
+    void average_and_compute_stddev(FUNC_LIB::function<std::complex<scalar_type>, domain>& f_mean, 
+				    FUNC_LIB::function<std::complex<scalar_type>, domain>& f_stddev, 
 				    size_t size);
 
   private:
@@ -128,11 +128,11 @@ namespace COMP_LIB
   }
 
   template<typename scalar_type, class domain>
-  void collective_sum_interface<MPI_LIBRARY>::sum(function<scalar_type, domain>& f)
+  void collective_sum_interface<MPI_LIBRARY>::sum(FUNC_LIB::function<scalar_type, domain>& f)
   {
     //cout << __PRETTY_FUNCTION__ << "\t" << f.get_name() << endl;
 
-    function<scalar_type, domain> F;
+    FUNC_LIB::function<scalar_type, domain> F;
 
     MPI_Allreduce(&f(0),
                   &F(0),
@@ -158,7 +158,7 @@ namespace COMP_LIB
   }
 
   template<typename scalar_type, class domain>
-  void collective_sum_interface<MPI_LIBRARY>::sum(function<std::vector<scalar_type>, domain>& f)
+  void collective_sum_interface<MPI_LIBRARY>::sum(FUNC_LIB::function<std::vector<scalar_type>, domain>& f)
   {
     //cout << __PRETTY_FUNCTION__ << endl;
 
@@ -179,8 +179,8 @@ namespace COMP_LIB
   }
 
   template<typename scalar_type, class domain>
-  void collective_sum_interface<MPI_LIBRARY>::sum(function<scalar_type, domain>& f,
-                                                  function<scalar_type, domain>& f_target)
+  void collective_sum_interface<MPI_LIBRARY>::sum(FUNC_LIB::function<scalar_type, domain>& f,
+                                                  FUNC_LIB::function<scalar_type, domain>& f_target)
   {
     //cout << __PRETTY_FUNCTION__ << endl;
 
@@ -250,8 +250,8 @@ namespace COMP_LIB
   }
 
   template<typename scalar_type, class domain>
-  void collective_sum_interface<MPI_LIBRARY>::average_and_compute_stddev(function<scalar_type, domain>& f_mean, 
-									 function<scalar_type, domain>& f_stddev, 
+  void collective_sum_interface<MPI_LIBRARY>::average_and_compute_stddev(FUNC_LIB::function<scalar_type, domain>& f_mean, 
+									 FUNC_LIB::function<scalar_type, domain>& f_stddev, 
 									 size_t size)
   {
 //     if(grouping.get_id()==0)
@@ -259,8 +259,8 @@ namespace COMP_LIB
 
     scalar_type factor = 1./(size*grouping.get_Nr_threads());
 
-    function<scalar_type, domain> f_sum ("f-sum");
-    function<scalar_type, domain> f_diff("f-diff");
+    FUNC_LIB::function<scalar_type, domain> f_sum ("f-sum");
+    FUNC_LIB::function<scalar_type, domain> f_diff("f-diff");
 
     {
       sum(f_mean, f_sum);
@@ -291,8 +291,8 @@ namespace COMP_LIB
   }
 
   template<typename scalar_type, class domain>
-  void collective_sum_interface<MPI_LIBRARY>::average_and_compute_stddev(function<std::complex<scalar_type>, domain>& f_mean, 
-									 function<std::complex<scalar_type>, domain>& f_stddev, 
+  void collective_sum_interface<MPI_LIBRARY>::average_and_compute_stddev(FUNC_LIB::function<std::complex<scalar_type>, domain>& f_mean, 
+									 FUNC_LIB::function<std::complex<scalar_type>, domain>& f_stddev, 
 									 size_t size)
   {
 //     if(grouping.get_id()==0)
@@ -300,8 +300,8 @@ namespace COMP_LIB
 
     scalar_type factor = 1./(size*grouping.get_Nr_threads());
 
-    function<std::complex<scalar_type>, domain> f_sum ("f-sum");
-    function<std::complex<scalar_type>, domain> f_diff("f-diff");
+    FUNC_LIB::function<std::complex<scalar_type>, domain> f_sum ("f-sum");
+    FUNC_LIB::function<std::complex<scalar_type>, domain> f_diff("f-diff");
 
     {
       sum(f_mean, f_sum);

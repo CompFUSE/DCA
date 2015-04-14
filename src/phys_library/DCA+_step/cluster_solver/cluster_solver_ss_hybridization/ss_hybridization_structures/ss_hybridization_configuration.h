@@ -41,8 +41,8 @@ namespace DCA
 
   private:
 
-    function<orbital_configuration_type, nu> vertices;
-    function<bool                      , nu> has_full_line;
+    FUNC_LIB::function<orbital_configuration_type, nu> vertices;
+    FUNC_LIB::function<bool                      , nu> has_full_line;
 
     int N_spin_orbitals;
   };

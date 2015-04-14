@@ -26,13 +26,13 @@ namespace COMP_LIB
     void sum(std::map<std::string, std::vector<scalartype> >& m);
 
     template<typename scalar_type, class domain>
-    void sum(function<scalar_type, domain>& f);
+    void sum(FUNC_LIB::function<scalar_type, domain>& f);
 
     template<typename scalar_type, class domain>
-    void sum(function<scalar_type, domain>& f, function<scalar_type, domain>& f_target);
+    void sum(FUNC_LIB::function<scalar_type, domain>& f, FUNC_LIB::function<scalar_type, domain>& f_target);
 
     template<typename scalar_type, class domain>
-    void sum(function<std::vector<scalar_type>, domain>& f);
+    void sum(FUNC_LIB::function<std::vector<scalar_type>, domain>& f);
 
     template<typename scalar_type>
     void sum(LIN_ALG::vector<scalar_type, LIN_ALG::CPU>& f);
@@ -74,17 +74,17 @@ namespace COMP_LIB
 
   template<PARALLELIZATION_LIBRARY_NAMES LIBRARY>
   template<typename scalar_type, class domain>
-  void collective_sum_interface<LIBRARY>::sum(function<scalar_type, domain>& f)
+  void collective_sum_interface<LIBRARY>::sum(FUNC_LIB::function<scalar_type, domain>& f)
   {}
 
   template<PARALLELIZATION_LIBRARY_NAMES LIBRARY>
   template<typename scalar_type, class domain>
-  void collective_sum_interface<LIBRARY>::sum(function<scalar_type, domain>& f, function<scalar_type, domain>& f_target)
+  void collective_sum_interface<LIBRARY>::sum(FUNC_LIB::function<scalar_type, domain>& f, FUNC_LIB::function<scalar_type, domain>& f_target)
   {}
 
   template<PARALLELIZATION_LIBRARY_NAMES LIBRARY>
   template<typename scalar_type, class domain>
-  void collective_sum_interface<LIBRARY>::sum(function<std::vector<scalar_type>, domain>& f)
+  void collective_sum_interface<LIBRARY>::sum(FUNC_LIB::function<std::vector<scalar_type>, domain>& f)
   {}
 
   template<PARALLELIZATION_LIBRARY_NAMES LIBRARY>

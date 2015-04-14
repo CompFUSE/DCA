@@ -25,9 +25,9 @@ namespace DCA
     
   public:
     
-    static function<matrix_type, K_dmn>& get()
+    static FUNC_LIB::function<matrix_type, K_dmn>& get()
     {
-      static function<matrix_type, K_dmn> k_to_q("k_to_q ("+q_dmn::parameter_type::get_name()+")");
+      static FUNC_LIB::function<matrix_type, K_dmn> k_to_q("k_to_q ("+q_dmn::parameter_type::get_name()+")");
       assert(is_initialized()==true);
 
       return k_to_q;
@@ -35,7 +35,7 @@ namespace DCA
 
     static matrix_type& get(int k_ind)
     {      
-      static function<matrix_type, K_dmn>& k_to_q = get();
+      static FUNC_LIB::function<matrix_type, K_dmn>& k_to_q = get();
       assert(is_initialized()==true);
 
       return k_to_q(k_ind);

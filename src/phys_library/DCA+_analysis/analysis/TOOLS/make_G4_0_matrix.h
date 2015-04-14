@@ -24,8 +24,8 @@ namespace dca {
 
     template<typename scalartype_1, typename scalartype_2, typename k_dmn_t>
     static void execute(parameter_type&                                                                                     parameters,  
-			function<scalartype_1, dmn_4<nu,nu,k_dmn_t,w> >&                                            G,
-			function<scalartype_2, dmn_2< dmn_4<b,b,k_dmn_t,w_VERTEX>, dmn_4<b,b,k_dmn_t,w_VERTEX> > >& P0);
+			FUNC_LIB::function<scalartype_1, dmn_4<nu,nu,k_dmn_t,w> >&                                            G,
+			FUNC_LIB::function<scalartype_2, dmn_2< dmn_4<b,b,k_dmn_t,w_VERTEX>, dmn_4<b,b,k_dmn_t,w_VERTEX> > >& P0);
     
 
   private:    
@@ -132,8 +132,8 @@ namespace dca {
   template<class parameter_type, class MOMS_type>
   template<typename scalartype_1, typename scalartype_2, typename k_dmn_t>
   void make_G4_0_matrix<parameter_type, MOMS_type>::execute(parameter_type&                                                                                    parameters,  
-							    function<scalartype_1, dmn_4<nu,nu,k_dmn_t,w> >&                                           G,
-							    function<scalartype_2, dmn_2< dmn_4<b,b,k_dmn_t,w_VERTEX>,dmn_4<b,b,k_dmn_t,w_VERTEX> > >& P0)
+							    FUNC_LIB::function<scalartype_1, dmn_4<nu,nu,k_dmn_t,w> >&                                           G,
+							    FUNC_LIB::function<scalartype_2, dmn_2< dmn_4<b,b,k_dmn_t,w_VERTEX>,dmn_4<b,b,k_dmn_t,w_VERTEX> > >& P0)
   {
     P0 = 0.;
 

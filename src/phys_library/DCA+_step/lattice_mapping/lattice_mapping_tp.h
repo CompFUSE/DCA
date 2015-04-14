@@ -42,15 +42,15 @@ namespace DCA
     ~lattice_map_tp();
 
     template<typename scalartype>
-    void execute(function<std::complex<scalartype>, dmn_2<source_vector_dmn_t, source_vector_dmn_t> >& f_source,
-                 function<std::complex<scalartype>, dmn_2<target_vector_dmn_t, target_vector_dmn_t> >& f_target);
+    void execute(FUNC_LIB::function<std::complex<scalartype>, dmn_2<source_vector_dmn_t, source_vector_dmn_t> >& f_source,
+                 FUNC_LIB::function<std::complex<scalartype>, dmn_2<target_vector_dmn_t, target_vector_dmn_t> >& f_target);
 
   private:
 
     void initialize();
 
     template<typename k_dmn_t>
-    void plot_function(function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w> >& f);
+    void plot_function(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w> >& f);
 
   private:
 
@@ -76,10 +76,10 @@ namespace DCA
 
   template<typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
   template<typename scalartype>
-  void lattice_map_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(function<std::complex<scalartype>, dmn_2<source_vector_dmn_t, source_vector_dmn_t> >& f_source,
-										function<std::complex<scalartype>, dmn_2<target_vector_dmn_t, target_vector_dmn_t> >& f_target)
+  void lattice_map_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(FUNC_LIB::function<std::complex<scalartype>, dmn_2<source_vector_dmn_t, source_vector_dmn_t> >& f_source,
+										FUNC_LIB::function<std::complex<scalartype>, dmn_2<target_vector_dmn_t, target_vector_dmn_t> >& f_target)
   {
-    function<std::complex<scalartype>, dmn_2<tmp_vector_dmn_t, tmp_vector_dmn_t> > f_interp("f_interp");
+    FUNC_LIB::function<std::complex<scalartype>, dmn_2<tmp_vector_dmn_t, tmp_vector_dmn_t> > f_interp("f_interp");
 
     {
       if(concurrency.id()==0)
@@ -101,7 +101,7 @@ namespace DCA
 
   template<typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
   template<typename k_dmn_t>
-  void lattice_map_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::plot_function(function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w> >& f)
+  void lattice_map_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::plot_function(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w> >& f)
   {
     std::vector<double> x(0);
     std::vector<double> y(0);

@@ -47,7 +47,7 @@ namespace DCA
 
       void  initialize();
 
-      function<double, dmn_0<numerical_error_domain> >& get_error_distribution();
+      FUNC_LIB::function<double, dmn_0<numerical_error_domain> >& get_error_distribution();
 
       template<LIN_ALG::device_type device_t>
       void check_G0_matrices(configuration_type& configuration,
@@ -93,7 +93,7 @@ namespace DCA
       LIN_ALG::matrix<double, LIN_ALG::CPU> G_up_CPU;
       LIN_ALG::matrix<double, LIN_ALG::CPU> G_dn_CPU;
 
-      function<double, dmn_0<numerical_error_domain> > error;
+      FUNC_LIB::function<double, dmn_0<numerical_error_domain> > error;
     };
 
     template<class parameters_type, class MOMS_type>
@@ -132,7 +132,7 @@ namespace DCA
     }
 
     template<class parameters_type, class MOMS_type>
-    function<double, dmn_0<numerical_error_domain> >& MC_walker_BIT<CT_AUX_SOLVER, parameters_type, MOMS_type>::get_error_distribution()
+    FUNC_LIB::function<double, dmn_0<numerical_error_domain> >& MC_walker_BIT<CT_AUX_SOLVER, parameters_type, MOMS_type>::get_error_distribution()
     {
       return error;
     }

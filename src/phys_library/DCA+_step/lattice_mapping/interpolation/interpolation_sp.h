@@ -29,15 +29,15 @@ namespace DCA
     interpolation_sp(parameters_type& parameters_ref);
     ~interpolation_sp();
 
-    void execute_with_alpha_transformation(function<std::complex<double>, dmn_4<nu,nu,source_k_dmn,w> >& cluster_self_energy,
-                                           function<std::complex<double>, dmn_4<nu,nu,target_k_dmn,w> >& interp_self_energy);
+    void execute_with_alpha_transformation(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,source_k_dmn,w> >& cluster_self_energy,
+                                           FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,target_k_dmn,w> >& interp_self_energy);
   private:
 
-    void execute(function<std::complex<double>, dmn_3<nu,nu,source_k_dmn> >& cluster_self_energy,
-                 function<std::complex<double>, dmn_3<nu,nu,target_k_dmn> >& interp_self_energy);
+    void execute(FUNC_LIB::function<std::complex<double>, dmn_3<nu,nu,source_k_dmn> >& cluster_self_energy,
+                 FUNC_LIB::function<std::complex<double>, dmn_3<nu,nu,target_k_dmn> >& interp_self_energy);
 
-    void execute(function<std::complex<double>, dmn_4<nu,nu,source_k_dmn,w> >& cluster_self_energy,
-                 function<std::complex<double>, dmn_4<nu,nu,target_k_dmn,w> >& interp_self_energy);
+    void execute(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,source_k_dmn,w> >& cluster_self_energy,
+                 FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,target_k_dmn,w> >& interp_self_energy);
 
   private:
 
@@ -61,13 +61,13 @@ namespace DCA
   {}
 
   template<typename parameters_type, typename source_k_dmn, typename target_k_dmn>
-  void interpolation_sp<parameters_type, source_k_dmn, target_k_dmn>::execute_with_alpha_transformation(function<std::complex<double>, dmn_4<nu,nu,source_k_dmn,w> >& cluster_self_energy,
-                                                                                                        function<std::complex<double>, dmn_4<nu,nu,target_k_dmn,w> >& interp_self_energy)
+  void interpolation_sp<parameters_type, source_k_dmn, target_k_dmn>::execute_with_alpha_transformation(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,source_k_dmn,w> >& cluster_self_energy,
+                                                                                                        FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,target_k_dmn,w> >& interp_self_energy)
   {
     r_centered_dmn::parameter_type::initialize();
 
-    function<std::complex<double>, nu_nu_k_DCA_w>  cluster_alpha_k     ("cluster_alpha_k");
-    function<std::complex<double>, nu_nu_k_HOST_w> interpolated_alpha_k("interpolated_alpha");
+    FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>  cluster_alpha_k     ("cluster_alpha_k");
+    FUNC_LIB::function<std::complex<double>, nu_nu_k_HOST_w> interpolated_alpha_k("interpolated_alpha");
 
     transform_to_alpha::forward(1., cluster_self_energy, cluster_alpha_k);
 
@@ -77,12 +77,12 @@ namespace DCA
   }
 
   template<typename parameters_type, typename source_k_dmn, typename target_k_dmn>
-  void interpolation_sp<parameters_type, source_k_dmn, target_k_dmn>::execute(function<std::complex<double>, dmn_4<nu,nu,source_k_dmn,w> >& cluster_function,
-                                                                              function<std::complex<double>, dmn_4<nu,nu,target_k_dmn,w> >& interp_function)
+  void interpolation_sp<parameters_type, source_k_dmn, target_k_dmn>::execute(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,source_k_dmn,w> >& cluster_function,
+                                                                              FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,target_k_dmn,w> >& interp_function)
   {
     r_centered_dmn::parameter_type::initialize();
 
-    function<std::complex<double>, nu_nu_r_centered_w> cluster_centered_function("cluster_centered_function");
+    FUNC_LIB::function<std::complex<double>, nu_nu_r_centered_w> cluster_centered_function("cluster_centered_function");
 
     MATH_ALGORITHMS::TRANSFORM<source_k_dmn, r_centered_dmn>::execute(cluster_function, cluster_centered_function);
 
@@ -96,12 +96,12 @@ namespace DCA
   }
 
   template<typename parameters_type, typename source_k_dmn, typename target_k_dmn>
-  void interpolation_sp<parameters_type, source_k_dmn, target_k_dmn>::execute(function<std::complex<double>, dmn_3<nu,nu,source_k_dmn> >& cluster_function,
-                                                                              function<std::complex<double>, dmn_3<nu,nu,target_k_dmn> >& interp_function)
+  void interpolation_sp<parameters_type, source_k_dmn, target_k_dmn>::execute(FUNC_LIB::function<std::complex<double>, dmn_3<nu,nu,source_k_dmn> >& cluster_function,
+                                                                              FUNC_LIB::function<std::complex<double>, dmn_3<nu,nu,target_k_dmn> >& interp_function)
   {
     r_centered_dmn::parameter_type::initialize();
 
-    function<std::complex<double>, nu_nu_r_centered> cluster_centered_function("cluster_centered_function");
+    FUNC_LIB::function<std::complex<double>, nu_nu_r_centered> cluster_centered_function("cluster_centered_function");
 
     MATH_ALGORITHMS::TRANSFORM<source_k_dmn, r_centered_dmn>::execute(cluster_function, cluster_centered_function);
 

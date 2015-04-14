@@ -45,14 +45,14 @@ public:
   static std::vector<std::pair<std::pair<int,int>, std::pair<int,int> > > get_orbital_permutations();
 
   template<class domain, class parameters_type>
-  static void initialize_H_interaction(function<double , domain >& H_interaction,
+  static void initialize_H_interaction(FUNC_LIB::function<double , domain >& H_interaction,
                                        parameters_type&            parameters);
 
   template<class domain>
-  static void initialize_H_symmetry(function<int, domain>& H_symmetry);
+  static void initialize_H_symmetry(FUNC_LIB::function<int, domain>& H_symmetry);
 
   template<class domain, class parameters_type>
-  static void initialize_H_LDA(function<std::complex<double> , domain >& H_LDA,
+  static void initialize_H_LDA(FUNC_LIB::function<std::complex<double> , domain >& H_LDA,
                                parameters_type&                          parameters);
 
   template<class parameters_type>
@@ -168,7 +168,7 @@ std::vector<std::pair<std::pair<int,int>, std::pair<int,int> > > fourband_lattic
 
 template<typename point_group_type>
 template<class domain, class parameters_type>
-void fourband_lattice<point_group_type>::initialize_H_interaction(function<double , domain >& H_interaction,
+void fourband_lattice<point_group_type>::initialize_H_interaction(FUNC_LIB::function<double , domain >& H_interaction,
                                                                  parameters_type&            parameters)
 {
   H_interaction = 0.;
@@ -197,7 +197,7 @@ void fourband_lattice<point_group_type>::initialize_H_interaction(function<doubl
 
 template<typename point_group_type>
 template<class domain>
-void fourband_lattice<point_group_type>::initialize_H_symmetry(function<int, domain>& H_symmetries)
+void fourband_lattice<point_group_type>::initialize_H_symmetry(FUNC_LIB::function<int, domain>& H_symmetries)
 {
   H_symmetries = -1;
 
@@ -216,7 +216,7 @@ void fourband_lattice<point_group_type>::initialize_H_symmetry(function<int, dom
 
 template<typename point_group_type>
 template<class domain, class parameters_type>
-void fourband_lattice<point_group_type>::initialize_H_LDA(function<std::complex<double>, domain>& H_LDA,
+void fourband_lattice<point_group_type>::initialize_H_LDA(FUNC_LIB::function<std::complex<double>, domain>& H_LDA,
                                                          parameters_type&                        parameters)
 {
   typedef typename parameters_type::b b;

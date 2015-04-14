@@ -1,7 +1,5 @@
 //-*-C++-*-
 
-sbdbda
-
 // include generic-methods
 #include "include_generic_methods.h"
 
