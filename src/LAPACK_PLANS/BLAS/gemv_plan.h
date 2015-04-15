@@ -54,7 +54,7 @@ gemv_plan<scalartype>::~gemv_plan()
 template<typename scalartype>
 void gemv_plan<scalartype>::execute_plan()
 {
-  cout << __PRETTY_FUNCTION__ << endl;
+  std::cout << __PRETTY_FUNCTION__ << std::endl;
   assert(false);
 }
 

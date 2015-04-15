@@ -680,25 +680,25 @@ namespace LIN_ALG {
       for(int j=0; j<current_size.second; ++j){
 	/*
 	  if( fabs(cp_this(i,j)-cp_other(i,j)) < 1.e-6)
-	  cout << "\t" << 0.;
+	  std::cout << "\t" << 0.;
 	  else
-	  cout << "\t" << cp_this(i,j)-cp_other(i,j);
+	  std::cout << "\t" << cp_this(i,j)-cp_other(i,j);
 	*/
 
 	if( fabs(cp_this(i,j)-cp_other(i,j)) > max_dif)
 	  max_dif = fabs(cp_this(i,j)-cp_other(i,j));
       }
-      //cout << "\n";
+      //std::cout << "\n";
     }
-    //cout << "\n";
+    //std::cout << "\n";
 
     if(fabs(max_dif)<1.e-8)
       {
-	//cout << "\t\t Max Diff : OK " << endl;
+	//std::cout << "\t\t Max Diff : OK " << endl;
       }
     else
       {
-	//cout << "\t\t Max Diff : " <<  max_dif << endl;
+	//std::cout << "\t\t Max Diff : " <<  max_dif << endl;
     
 	//throw std::logic_error(__FUNCTION__);
 	
@@ -707,19 +707,19 @@ namespace LIN_ALG {
 	
 	other_matrix.print();
 	
-     	cout << "\n\n";
+     	std::cout << "\n\n";
 
 	for(int i=0; i<current_size.first; ++i){
 	    for(int j=0; j<current_size.second; ++j){
 		
 		if( fabs(cp_this(i,j)-cp_other(i,j)) < 1.e-6)
-		    cout << "\t" << 0.;
+		    std::cout << "\t" << 0.;
 		else
-		    cout << "\t" << cp_this(i,j)-cp_other(i,j);
+		    std::cout << "\t" << cp_this(i,j)-cp_other(i,j);
 	    }
-	    cout << "\n";
+	    std::cout << "\n";
 	}
-	cout << "\n";
+	std::cout << "\n";
 	*/
 	
 	if(fabs(max_dif)>1.e-3)
@@ -758,23 +758,23 @@ namespace LIN_ALG {
 
     if(fabs(max_dif)<1.e-8)
       {
-	cout << "\t\t Max Diff : OK " << endl;
+	  std::cout << "\t\t Max Diff : OK " << std::endl;
       }
     else
       {
-     	cout << "\n\n";
+     	std::cout << "\n\n";
 
 	for(int i=0; i<N; ++i){
 	    for(int j=0; j<N; ++j){
 		
 		if( fabs(cp_this(i,j)-cp_other(i,j)) < 1.e-6)
-		    cout << "\t" << 0.;
+		    std::cout << "\t" << 0.;
 		else
-		    cout << "\t" << cp_this(i,j)-cp_other(i,j);
+		    std::cout << "\t" << cp_this(i,j)-cp_other(i,j);
 	    }
-	    cout << "\n";
+	    std::cout << "\n";
 	}
-	cout << "\n";
+	std::cout << "\n";
 
 	/*
 	if(fabs(max_dif)>1.e-12)
@@ -803,7 +803,7 @@ namespace LIN_ALG {
     ss << "\t  memory-size  : " << global_size.first*global_size.second*sizeof(scalartype)*1.e-6 << "(Mbytes)\n"; 
     ss << "\n\n";    
 
-    cout << ss.str();
+    std::cout << ss.str();
   }
     
 }

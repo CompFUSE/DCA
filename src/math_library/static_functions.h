@@ -107,7 +107,7 @@ bool complex_pairs_abs(std::pair<std::complex<double>, int> const& x,
   return abs(x.first) < abs(y.first);
 }
 
-bool complex_less(complex<double> const& x, complex<double> const& y)
+bool complex_less(std::complex<double> const& x, std::complex<double> const& y)
 {
 return x.real() > y.real();
 }
@@ -120,14 +120,14 @@ return x.first.real() < y.first.real();
 
 
 
-bool pair_less(std::pair<complex<double>, complex<double> > const& x, std::pair<complex<double>, complex<double> > const& y)
+bool pair_less(std::pair<std::complex<double>, std::complex<double> > const& x, std::pair<std::complex<double>, std::complex<double> > const& y)
 {
   return abs(x.first) > abs(y.first);
 }
 
 
 
-bool susceptibility_less(complex<double> const& x, complex<double> const& y)
+bool susceptibility_less(std::complex<double> const& x, std::complex<double> const& y)
 {
   return sqrt(square(real(x)-1.) + square(imag(x))) > sqrt(square(real(y)-1.) + square(imag(y)));
 }

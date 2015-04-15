@@ -101,19 +101,19 @@ namespace LIN_ALG {
       //MEMORY_MANAGEMENT_ON_GPU::memcopy_d_to_h(new_data, ptr, SIZE);
       COPY_FROM<GPU, CPU>::execute(ptr, new_data, SIZE);
       
-      cout.precision(6);
-      cout<<scientific;
+      std::cout.precision(6);
+      std::cout<<std::scientific;
 	  
-      cout << "\n\n";
-      cout << "\t current-size : " << c_s << "\n";
-      cout << "\t global -size : " << g_s << "\n";
-      cout << "\n\n";
+      std::cout << "\n\n";
+      std::cout << "\t current-size : " << c_s << "\n";
+      std::cout << "\t global -size : " << g_s << "\n";
+      std::cout << "\n\n";
       
       for(int i=0; i<c_s; i++)  
-	  cout << "\t" << new_data[i];
-      cout << "\n";
+	  std::cout << "\t" << new_data[i];
+      std::cout << "\n";
       
-      cout << "\n\n\n";
+      std::cout << "\n\n\n";
       
       delete [] new_data;
     }
@@ -127,21 +127,21 @@ namespace LIN_ALG {
       //MEMORY_MANAGEMENT_ON_GPU::memcopy_d_to_h(new_data, ptr, SIZE);
       COPY_FROM<GPU, CPU>::execute(ptr, new_data, SIZE);
       
-      cout.precision(6);
-      cout<<scientific;
+      std::cout.precision(6);
+      std::cout<<std::scientific;
 	  
-      cout << "\n\n";
-      cout << "\t current-size : " << c_s.first << "\t" << c_s.second << "\n";
-      cout << "\t global -size : " << g_s.first << "\t" << g_s.second << "\n";
-      cout << "\n\n";
+      std::cout << "\n\n";
+      std::cout << "\t current-size : " << c_s.first << "\t" << c_s.second << "\n";
+      std::cout << "\t global -size : " << g_s.first << "\t" << g_s.second << "\n";
+      std::cout << "\n\n";
       
       for(int i=0; i<c_s.first; i++){  
 	for(int j=0; j<c_s.second; j++)  
-	  cout << "\t" << new_data[i + g_s.first*j];
-	cout << "\n";
+	  std::cout << "\t" << new_data[i + g_s.first*j];
+	std::cout << "\n";
       }	  
       
-      cout << "\n\n\n";
+      std::cout << "\n\n\n";
       
       delete [] new_data;
     }

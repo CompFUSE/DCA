@@ -27,7 +27,7 @@ namespace LIN_ALG
     template<typename scalartype>
     static inline void execute(int N, scalartype* A)
     {
-      int LWORK = 16*max(1,N);
+      int LWORK = 16*std::max(1,N);
 
       int*        IPIV = new int[N];
       scalartype* WORK = new scalartype[LWORK];

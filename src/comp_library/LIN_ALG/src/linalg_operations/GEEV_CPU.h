@@ -296,8 +296,8 @@ namespace LIN_ALG {
 
     static void execute(char JOBZ,  char RANGE, char UPLO,  int N, std::complex<double>* A, int LDA,
                         double VL, double VU, int IL, int UL, int M,
-                        double* W, complex<double>* Z, int LDZ, int* ISUPPZ,
-                        complex<double>* WORK, int LWORK, double* RWORK, int LRWORK, int* IWORK, int LIWORK, int INFO );
+                        double* W, std::complex<double>* Z, int LDZ, int* ISUPPZ,
+                        std::complex<double>* WORK, int LWORK, double* RWORK, int LRWORK, int* IWORK, int LIWORK, int INFO );
   };
 
   /**************************
@@ -1066,8 +1066,8 @@ namespace LIN_ALG {
 
   void GEEV<CPU>::execute(char JOBZ,  char RANGE, char UPLO,  int N, std::complex<double>* A, int LDA,
                           double VL, double VU, int IL, int UL, int M,
-                          double* W, complex<double>* Z, int LDZ, int* ISUPPZ,
-                          complex<double>* WORK, int LWORK, double* RWORK, int LRWORK, int* IWORK, int LIWORK, int INFO)
+                          double* W, std::complex<double>* Z, int LDZ, int* ISUPPZ,
+                          std::complex<double>* WORK, int LWORK, double* RWORK, int LRWORK, int* IWORK, int LIWORK, int INFO)
   {
     char  tmp    = 'S';
     double ABSTOL = 2*LAPACK::dlamch_(&tmp);

@@ -100,38 +100,38 @@ namespace LIN_ALG {
 	template<typename scalartype>
 	static void print(scalartype* ptr, int c_s, int g_s){
 	
-	    cout.precision(6);
-	    cout<<scientific;
+	    std::cout.precision(6);
+	    std::cout<<std::scientific;
 	    
-	    cout << "\n\n";
-	    cout << "\t current-size : " << c_s << "\n";
-	    cout << "\t global -size : " << g_s << "\n";
-	    cout << "\n\n";
+	    std::cout << "\n\n";
+	    std::cout << "\t current-size : " << c_s << "\n";
+	    std::cout << "\t global -size : " << g_s << "\n";
+	    std::cout << "\n\n";
 	    
 	    for(int i=0; i<c_s; i++)  
-		cout << "\t" << ptr[i];
-	    cout << "\n";
+		std::cout << "\t" << ptr[i];
+	    std::cout << "\n";
 	    	    
-	    cout << "\n\n\n";
+	    std::cout << "\n\n\n";
 	}
 
 	template<typename scalartype>
 	static void print(scalartype*& ptr, std::pair<int, int>& c_s, std::pair<int, int>& g_s){
-	    cout.precision(6);
-	    cout<<scientific;
+	    std::cout.precision(6);
+	    std::cout<<std::scientific;
 	    
-	    cout << "\n\n";
-	    cout << "\t current-size : " << c_s.first << "\t" << c_s.second << "\n";
-	    cout << "\t global -size : " << g_s.first << "\t" << g_s.second << "\n";
-	    cout << "\n\n";
+	    std::cout << "\n\n";
+	    std::cout << "\t current-size : " << c_s.first << "\t" << c_s.second << "\n";
+	    std::cout << "\t global -size : " << g_s.first << "\t" << g_s.second << "\n";
+	    std::cout << "\n\n";
 	    
 	    for(int i=0; i<c_s.first; i++){  
 		for(int j=0; j<c_s.second; j++)  
-		    cout << "\t" << ptr[i + g_s.first*j];
-		cout << "\n";
+		    std::cout << "\t" << ptr[i + g_s.first*j];
+		std::cout << "\n";
 	    }
 	    
-	    cout << "\n\n\n";
+	    std::cout << "\n\n\n";
 	}
     };
 }

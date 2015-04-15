@@ -13,7 +13,7 @@ void blas_gemm_t(char& TRANSA, char& TRANSB, int& M, int& N, int& K, scalartype&
 		 scalartype* A, int& LDA, scalartype* B, int& LDB, scalartype& beta,
 		 scalartype* C, int& LDC)
 {
-  cout << __PRETTY_FUNCTION__ << endl;
+  std::cout << __PRETTY_FUNCTION__ << std::endl;
   throw std::logic_error(__FUNCTION__);
 }
 
