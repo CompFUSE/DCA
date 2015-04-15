@@ -526,8 +526,8 @@ namespace LIN_ALG {
       {
       case 2:
         {
-	  assert(abs(imag(A(0,0)))<1.e-6);
-	  assert(abs(imag(A(1,1)))<1.e-6);
+	    assert(std::fabs(imag(A(0,0)))<1.e-6);
+	    assert(std::fabs(imag(A(1,1)))<1.e-6);
 
           lambda[0] = real(A(0,0));
           lambda[1] = real(A(1,1));

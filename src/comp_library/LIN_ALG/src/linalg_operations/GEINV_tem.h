@@ -164,7 +164,7 @@ namespace LIN_ALG
 	
 	N = A.get_current_size().first;
 
-	LWORK = 16*max(1,N);
+	LWORK = 16*std::max(1,N);
 
 	if(not (IPIV==NULL)) delete [] IPIV;
 	if(not (WORK==NULL)) delete [] WORK;
