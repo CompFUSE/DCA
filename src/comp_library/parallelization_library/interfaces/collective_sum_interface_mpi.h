@@ -311,8 +311,8 @@ namespace COMP_LIB
       f_sum *= factor;
       
       for(int i=0; i<f_sum.size(); i++){
-	real(f_diff(i)) = real(f_mean(i) - f_sum(i))*real(f_mean(i) - f_sum(i));
-	imag(f_diff(i)) = imag(f_mean(i) - f_sum(i))*imag(f_mean(i) - f_sum(i));
+	f_diff(i).real(real(f_mean(i) - f_sum(i))*real(f_mean(i) - f_sum(i)));
+	f_diff(i).imag(imag(f_mean(i) - f_sum(i))*imag(f_mean(i) - f_sum(i)));
       }
 
       for(int i=0; i<f_sum.size(); i++)
@@ -327,8 +327,8 @@ namespace COMP_LIB
       f_stddev *= factor;
 
       for(int i=0; i<f_sum.size(); i++){
-	real(f_stddev(i)) = std::sqrt(real(f_stddev(i)));
-	imag(f_stddev(i)) = std::sqrt(imag(f_stddev(i)));
+	f_stddev(i).real(std::sqrt(real(f_stddev(i))));
+	f_stddev(i).imag(std::sqrt(imag(f_stddev(i))));
       }
 
       f_stddev /= std::sqrt(grouping.get_Nr_threads());

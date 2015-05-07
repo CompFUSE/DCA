@@ -108,10 +108,10 @@ namespace DCA
       for(int k_ind=0; k_ind<target_k_dmn_t::dmn_size(); k_ind++){
         for(int j=0; j<b::dmn_size(); j++){
           for(int i=0; i<b::dmn_size(); i++){
-            real(f_approx(i,0,j,0,k_ind,w_ind)) = S_approx(k_ind, 0, i, j, 0, w_ind) + factor*real(shift(i,j));
-            imag(f_approx(i,0,j,0,k_ind,w_ind)) = S_approx(k_ind, 1, i, j, 0, w_ind) + factor*imag(shift(i,j));
-            real(f_approx(i,1,j,1,k_ind,w_ind)) = S_approx(k_ind, 0, i, j, 1, w_ind) + factor*real(shift(i,j));
-            imag(f_approx(i,1,j,1,k_ind,w_ind)) = S_approx(k_ind, 1, i, j, 1, w_ind) + factor*imag(shift(i,j));
+	    f_approx(i,0,j,0,k_ind,w_ind).real(S_approx(k_ind, 0, i, j, 0, w_ind) + factor*real(shift(i,j)));
+            f_approx(i,0,j,0,k_ind,w_ind).imag(S_approx(k_ind, 1, i, j, 0, w_ind) + factor*imag(shift(i,j)));
+            f_approx(i,1,j,1,k_ind,w_ind).real(S_approx(k_ind, 0, i, j, 1, w_ind) + factor*real(shift(i,j)));
+            f_approx(i,1,j,1,k_ind,w_ind).imag(S_approx(k_ind, 1, i, j, 1, w_ind) + factor*imag(shift(i,j)));
           }
         }
       }
@@ -124,10 +124,10 @@ namespace DCA
       for(int k_ind=0; k_ind<target_k_dmn_t::dmn_size(); k_ind++){
         for(int j=0; j<b::dmn_size(); j++){
           for(int i=0; i<b::dmn_size(); i++){
-            real(f_target(i,0,j,0,k_ind,w_ind)) = S_target(k_ind, 0, i, j, 0, w_ind) + factor*real(shift(i,j));
-            imag(f_target(i,0,j,0,k_ind,w_ind)) = S_target(k_ind, 1, i, j, 0, w_ind) + factor*imag(shift(i,j));
-            real(f_target(i,1,j,1,k_ind,w_ind)) = S_target(k_ind, 0, i, j, 1, w_ind) + factor*real(shift(i,j));
-            imag(f_target(i,1,j,1,k_ind,w_ind)) = S_target(k_ind, 1, i, j, 1, w_ind) + factor*imag(shift(i,j));
+	    f_target(i,0,j,0,k_ind,w_ind).real(S_target(k_ind, 0, i, j, 0, w_ind) + factor*real(shift(i,j)));
+	    f_target(i,0,j,0,k_ind,w_ind).imag(S_target(k_ind, 1, i, j, 0, w_ind) + factor*imag(shift(i,j)));
+	    f_target(i,1,j,1,k_ind,w_ind).real(S_target(k_ind, 0, i, j, 1, w_ind) + factor*real(shift(i,j)));
+	    f_target(i,1,j,1,k_ind,w_ind).imag(S_target(k_ind, 1, i, j, 1, w_ind) + factor*imag(shift(i,j)));
           }
         }
       }
@@ -150,8 +150,8 @@ namespace DCA
       for(int k_ind=0; k_ind<target_k_dmn_t::dmn_size(); k_ind++){
         for(int j=0; j<b::dmn_size(); j++){
           for(int i=0; i<b::dmn_size(); i++){
-            real(shift(i,j)) = std::max(real(shift(i,j)), real(Sigma_interp(i,j,k_ind,w_ind)) );
-            imag(shift(i,j)) = std::max(imag(shift(i,j)), imag(Sigma_interp(i,j,k_ind,w_ind)) );
+	    shift(i,j).real(std::max(real(shift(i,j)), real(Sigma_interp(i,j,k_ind,w_ind)) ));
+            shift(i,j).imag(std::max(imag(shift(i,j)), imag(Sigma_interp(i,j,k_ind,w_ind)) ));
           }
         }
       }

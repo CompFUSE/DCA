@@ -676,13 +676,13 @@ namespace MATH_ALGORITHMS
           fftw_execute(plan);
 
           for(int t_ind=0; t_ind<N/2; t_ind++){
-            real(f_omega(t_ind, p_ind)) = -f_out[t_ind][0];
-            imag(f_omega(t_ind, p_ind)) =  f_out[t_ind][1];
+	    f_omega(t_ind, p_ind).real(-f_out[t_ind][0]);
+            f_omega(t_ind, p_ind).imag( f_out[t_ind][1]);
           }
 
           for(int t_ind=N/2; t_ind<N; t_ind++){
-            real(f_omega(t_ind, p_ind)) = -f_out[N-t_ind][0];
-            imag(f_omega(t_ind, p_ind)) = -f_out[N-t_ind][1];
+	    f_omega(t_ind, p_ind).real(-f_out[N-t_ind][0]);
+	    f_omega(t_ind, p_ind).imag(-f_out[N-t_ind][1]);
           }
         }
 

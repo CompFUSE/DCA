@@ -102,7 +102,7 @@ bool ASSERT_NON_ZERO(std::complex<scalartype> z)
 } 
 
 bool complex_pairs_abs(std::pair<std::complex<double>, int> const& x, 
-			std::pair<std::complex<double>, int> const& y)
+		       std::pair<std::complex<double>, int> const& y)
 {
   return abs(x.first) < abs(y.first);
 }
@@ -136,6 +136,12 @@ bool susceptibility_less_pairs(std::pair<std::complex<double>, int> const& x,
 			       std::pair<std::complex<double>, int> const& y)
 {
   return sqrt(square(real(x.first)-1.) + square(imag(x.first))) > sqrt(square(real(y.first)-1.) + square(imag(y.first)));
+}
+
+bool real_pair_less(std::pair<double, int> const& x,
+		    std::pair<double, int> const& y)
+{
+  return x.first < y.first;
 }
 
 /*

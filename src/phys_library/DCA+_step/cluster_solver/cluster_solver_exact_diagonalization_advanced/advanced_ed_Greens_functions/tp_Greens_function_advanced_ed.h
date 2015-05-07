@@ -983,33 +983,33 @@ namespace DCA
       }
     }
 
-    template<typename parameter_type, typename ed_options>
-    typename
-    fermionic_tp_Greens_function<parameter_type, ed_options>::complex_type
-    fermionic_tp_Greens_function<parameter_type, ed_options>::compute_phi_num(scalar_type E_i,
-                                                                              scalar_type E_j,
-                                                                              scalar_type E_k,
-                                                                              scalar_type E_l,
-                                                                              scalar_type w1,
-                                                                              scalar_type w2,
-                                                                              scalar_type w3)
-    {
-      complex_type ONE(1,0);
-      complex_type I  (0,1);
+    // template<typename parameter_type, typename ed_options>
+    // typename
+    // fermionic_tp_Greens_function<parameter_type, ed_options>::complex_type
+    // fermionic_tp_Greens_function<parameter_type, ed_options>::compute_phi_num(scalar_type E_i,
+    //                                                                           scalar_type E_j,
+    //                                                                           scalar_type E_k,
+    //                                                                           scalar_type E_l,
+    //                                                                           scalar_type w1,
+    //                                                                           scalar_type w2,
+    //                                                                           scalar_type w3)
+    // {
+    //   complex_type ONE(1,0);
+    //   complex_type I  (0,1);
 
-      scalar_type beta = parameters.get_beta();
+    //   scalar_type beta = parameters.get_beta();
 
-      complex_type a1 = (E_i-E_j) + w1*I;
-      complex_type a2 = (E_j-E_k) + w2*I;
-      complex_type a3 = (E_k-E_l) + w3*I;
+    //   complex_type a1 = (E_i-E_j) + w1*I;
+    //   complex_type a2 = (E_j-E_k) + w2*I;
+    //   complex_type a3 = (E_k-E_l) + w3*I;
 
-      complex_type result=0;
+    //   complex_type result=0;
 
-      std::vector<integration_volume> vec;
+    //   std::vector<integration_volume> vec;
 
       
 
-    }
+    // }
 
     // H. Hafermann et al 2009 EPL 85 27007
     template<typename parameter_type, typename ed_options>

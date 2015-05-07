@@ -451,8 +451,8 @@ namespace DCA
                   {
                     std::complex<double> val = MOMS_imag.Sigma(l);
 
-                    real(MOMS_imag.Sigma_stddev(l)) = magnitude*(real(val)*real(val))/(real(val)*real(val)+1.e-6);
-                    imag(MOMS_imag.Sigma_stddev(l)) = magnitude*(imag(val)*imag(val))/(imag(val)*imag(val)+1.e-6);
+                    MOMS_imag.Sigma_stddev(l).real(magnitude*(real(val)*real(val))/(real(val)*real(val)+1.e-6));
+                    MOMS_imag.Sigma_stddev(l).imag(magnitude*(imag(val)*imag(val))/(imag(val)*imag(val)+1.e-6));
                   }
 
                 generate_new_sample(MOMS_imag.Sigma, MOMS_imag.Sigma_stddev, S_K_wi);
@@ -892,8 +892,8 @@ namespace DCA
       {
         f_K_w_mean(i) += f_K_w_sample(i);
 
-        real(f_K_w_square(i)) += real(f_K_w_sample(i))*real(f_K_w_sample(i));
-        imag(f_K_w_square(i)) += imag(f_K_w_sample(i))*imag(f_K_w_sample(i));
+        f_K_w_square(i).real(real(f_K_w_square(i)) + real(f_K_w_sample(i))*real(f_K_w_sample(i)));
+        f_K_w_square(i).imag(imag(f_K_w_square(i)) + imag(f_K_w_sample(i))*imag(f_K_w_sample(i)));
       }
   }
 
@@ -964,8 +964,8 @@ namespace DCA
 
     for(int i=0; i<f_K_w.size(); i++)
       {
-        real(f_K_w_stddev(i)) = sqrt(abs(real(f_K_w_stddev(i))-real(f_K_w(i))*real(f_K_w(i))));
-        imag(f_K_w_stddev(i)) = sqrt(abs(imag(f_K_w_stddev(i))-imag(f_K_w(i))*imag(f_K_w(i))));
+	f_K_w_stddev(i).real(std::sqrt(abs(real(f_K_w_stddev(i))-real(f_K_w(i))*real(f_K_w(i)))));
+	f_K_w_stddev(i).imag(std::sqrt(abs(imag(f_K_w_stddev(i))-imag(f_K_w(i))*imag(f_K_w(i)))));
       }
   }
 

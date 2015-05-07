@@ -805,8 +805,8 @@ namespace DCA
           {
             scalartype value = CPE_data_obj.alpha_vec_d[n] + CPE_data_obj.x[index]*CPE_data_obj.gradient[n];
 
-            real(CPE_data_obj.alpha_vec_z[n]) = value<0.? 0. : value;
-            imag(CPE_data_obj.alpha_vec_z[n]) = 0.;
+            CPE_data_obj.alpha_vec_z[n].real(value<0.? 0. : value);
+            CPE_data_obj.alpha_vec_z[n].imag(0.);
           }
 
         CPE_data_obj.y[index] = evaluate_Lambda_norm(CPE_data_obj);
@@ -923,8 +923,8 @@ namespace DCA
       for(int n=0; n<alpha_dmn_t::dmn_size(); n++){
         scalartype value            = CPE_data_obj.alpha_vec_d[n] + lambda*CPE_data_obj.gradient[n];
 
-        real(CPE_data_obj.alpha_vec_z[n]) = value<0.? 0. : value;
-        imag(CPE_data_obj.alpha_vec_z[n]) = 0.;
+        CPE_data_obj.alpha_vec_z[n].real(value<0.? 0. : value);
+        CPE_data_obj.alpha_vec_z[n].imag(0.);
       }
     }
 

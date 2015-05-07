@@ -87,12 +87,12 @@ namespace DCA
     int b_s_r = parameters.get_nu();
 
     for(int i = 0; i < Hilbert_spaces.size(); ++i){
-      if(Hilbert_spaces[i].get_occupation()    == parameters.get_n_0() &&
-         Hilbert_spaces[i].get_magnetization() == parameters.get_Sz_0())
+      if(Hilbert_spaces[i].get_occupation()    == parameters.get_evals_0()[0] &&
+         Hilbert_spaces[i].get_magnetization() == parameters.get_evals_0()[1])
         HS_0 = i;
 
-      if(Hilbert_spaces[i].get_occupation()    == parameters.get_n_1() &&
-         Hilbert_spaces[i].get_magnetization() == parameters.get_Sz_1())
+      if(Hilbert_spaces[i].get_occupation()    == parameters.get_evals_1()[0] &&
+         Hilbert_spaces[i].get_magnetization() == parameters.get_evals_1()[1])
         HS_1 = i;
     }
 

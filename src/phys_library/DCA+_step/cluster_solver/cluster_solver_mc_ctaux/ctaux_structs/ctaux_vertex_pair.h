@@ -14,6 +14,12 @@ namespace DCA
      *  \author  Peter Staar
      *  \version 1.0
      *  \brief   This class represents a vertex-pair, that constitutes 2 vertex-singlets.
+     *
+     * TODO: Make this class fulfill the rule of 3 (5): add
+     *       - copy constructor
+     *       - (move constructor)
+     *       - (move assignment operator)
+     *       - clean up (copy) assignment operator
      */
     template<class parameters_type>
     class vertex_pair
@@ -50,7 +56,7 @@ namespace DCA
 
       ~vertex_pair();
 
-      this_type& operator=(this_type& other_vertex_pair);
+      this_type& operator=(const this_type& other_vertex_pair);
 
       vertex_singleton_type first();
       vertex_singleton_type second();
@@ -150,25 +156,43 @@ namespace DCA
 
     template<class parameters_type>
     vertex_pair<parameters_type>&
-    vertex_pair<parameters_type>::operator=(vertex_pair<parameters_type>& other_vertex_pair) // --> necessary for push_back
+    vertex_pair<parameters_type>::operator=(const vertex_pair<parameters_type>& other_vertex_pair) // --> necessary for push_back
     {
-      bands         = other_vertex_pair.get_bands();
-      e_spins       = other_vertex_pair.get_e_spins();
-      spin_orbitals = other_vertex_pair.get_spin_orbitals();
-      r_sites       = other_vertex_pair.get_r_sites();
+      // bands         = other_vertex_pair.get_bands();
+      // e_spins       = other_vertex_pair.get_e_spins();
+      // spin_orbitals = other_vertex_pair.get_spin_orbitals();
+      // r_sites       = other_vertex_pair.get_r_sites();
 
-      HS_spin       = other_vertex_pair.get_HS_spin();
-      delta_r       = other_vertex_pair.get_delta_r();
-      tau           = other_vertex_pair.get_tau();
+      // HS_spin       = other_vertex_pair.get_HS_spin();
+      // delta_r       = other_vertex_pair.get_delta_r();
+      // tau           = other_vertex_pair.get_tau();
 
-      configuration_index          = other_vertex_pair.get_configuration_index();
-      configuration_e_spin_indices = other_vertex_pair.get_configuration_e_spin_indices();
+      // configuration_index          = other_vertex_pair.get_configuration_index();
+      // configuration_e_spin_indices = other_vertex_pair.get_configuration_e_spin_indices();
 
-      creatable                    = other_vertex_pair.is_creatable();
-      annihilatable                = other_vertex_pair.is_annihilatable();
-      successfully_flipped         = other_vertex_pair.is_successfully_flipped();
-      Bennett                      = other_vertex_pair.is_Bennett();
-      shuffled                     = other_vertex_pair.is_shuffled();
+      // creatable                    = other_vertex_pair.is_creatable();
+      // annihilatable                = other_vertex_pair.is_annihilatable();
+      // successfully_flipped         = other_vertex_pair.is_successfully_flipped();
+      // Bennett                      = other_vertex_pair.is_Bennett();
+      // shuffled                     = other_vertex_pair.is_shuffled();
+
+      bands         = other_vertex_pair.bands;
+      e_spins       = other_vertex_pair.e_spins;
+      spin_orbitals = other_vertex_pair.spin_orbitals;
+      r_sites       = other_vertex_pair.r_sites;
+
+      HS_spin       = other_vertex_pair.HS_spin;
+      delta_r       = other_vertex_pair.delta_r;
+      tau           = other_vertex_pair.tau;
+
+      configuration_index          = other_vertex_pair.configuration_index;
+      configuration_e_spin_indices = other_vertex_pair.configuration_e_spin_indices;
+
+      creatable                    = other_vertex_pair.creatable;
+      annihilatable                = other_vertex_pair.annihilatable;
+      successfully_flipped         = other_vertex_pair.successfully_flipped;
+      Bennett                      = other_vertex_pair.Bennett;
+      shuffled                     = other_vertex_pair.shuffled;
 
       return *this;
     }

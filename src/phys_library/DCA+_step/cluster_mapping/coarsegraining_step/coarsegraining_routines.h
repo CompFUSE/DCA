@@ -79,13 +79,13 @@ namespace DCA
 
     template<typename scalar_type, typename q_dmn_t>
     void compute_S_q(int K_ind, int w_ind,
-                     FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, K_dmn  , w> >& S_K_w,
+                     FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, k_DCA  , w> >& S_K_w,
                      FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t   > >& S_q);
 
     template<typename scalar_type, typename k_dmn_t, typename q_dmn_t>
     void compute_G_q_w(int K_ind, int w_ind,
                        FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn_t   > >& H_k,
-                       FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, K_dmn  , w> >& S_K,
+                       FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, k_DCA  , w> >& S_K,
                        FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t   > >& I_q,
                        FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t   > >& H_q,
                        FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t   > >& S_q,
@@ -93,13 +93,13 @@ namespace DCA
 
     template<typename scalar_type, typename q_dmn_t>
     void compute_S_q(int K_ind, int w_ind,
-                     FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, K_dmn  , w_REAL> >& S_K_w,
-                     FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t   > >& S_q);
+                     FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, k_DCA  , w_REAL> >& S_K_w,
+                     FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t        > >& S_q);
 
     template<typename scalar_type, typename k_dmn_t, typename q_dmn_t>
     void compute_G_q_w(int K_ind, int w_ind,
                        FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn_t        > >& H_k,
-                       FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, K_dmn  , w_REAL> >& S_K,
+                       FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, k_DCA  , w_REAL> >& S_K,
                        FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t        > >& I_q,
                        FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t        > >& H_q,
                        FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t        > >& S_q,
@@ -184,7 +184,7 @@ namespace DCA
     }
 
     // cout << mesh.size() << endl;
-    
+
     // #ifdef ALLOW_GNUPLOT
     //     if(false)
     //       {
@@ -199,7 +199,7 @@ namespace DCA
     //         plot_obj.showonscreen();
     //       }
     // #endif
-      }
+  }
 
   template<typename parameters_type, typename K_dmn>
   void coarsegraining_routines<parameters_type, K_dmn>::compute_gaussian_mesh(int k_mesh_refinement,
@@ -260,9 +260,9 @@ namespace DCA
     scalar_type alpha(1.);
     scalar_type beta (0.);
 
-    scalar_type* A_ptr = &(reinterpret_cast<scalar_type(&)[2]>(f_k(0))[0]);  //&real(f_k(0));
+    scalar_type* A_ptr = &(reinterpret_cast<scalar_type(&)[2]>(f_k(0))[0]);  // &real(f_k(0));
     scalar_type* B_ptr = &T(0,0);
-    scalar_type* C_ptr = &(reinterpret_cast<scalar_type(&)[2]>(f_q(0))[0]);  //&real(f_q(0));
+    scalar_type* C_ptr = &(reinterpret_cast<scalar_type(&)[2]>(f_q(0))[0]);  // &real(f_q(0));
 
     int M = 2*nu_nu::dmn_size();
     int K = k_dmn_t::dmn_size();
@@ -285,19 +285,19 @@ namespace DCA
         for(int i=0; i<nu::dmn_size(); i++)
           I_q(i,j,q_ind) = i==j? value : 0.;
 
-//     if(parameters.get_double_counting_method() == "coarsegraining")
-//       {
-// 	std::vector<int> interacting_bands = parameters.get_interacting_bands();
-	
-// 	double           Delta             = parameters.get_double_counting_correction_for_this_iteration();
-	
-// 	for(int q_ind=0; q_ind<q_dmn_t::dmn_size(); q_ind++)
-// 	  for(int s_ind=0; s_ind<s::dmn_size(); s_ind++)
-// 	    for(int b_ind=0; b_ind<interacting_bands.size(); b_ind++)
-// 	      I_q(interacting_bands[b_ind], s_ind,
-// 		  interacting_bands[b_ind], s_ind,
-// 		  q_ind) += Delta; 
-//       }
+    //     if(parameters.get_double_counting_method() == "coarsegraining")
+    //       {
+    //  std::vector<int> interacting_bands = parameters.get_interacting_bands();
+
+    //  double           Delta             = parameters.get_double_counting_correction_for_this_iteration();
+
+    //  for(int q_ind=0; q_ind<q_dmn_t::dmn_size(); q_ind++)
+    //    for(int s_ind=0; s_ind<s::dmn_size(); s_ind++)
+    //      for(int b_ind=0; b_ind<interacting_bands.size(); b_ind++)
+    //        I_q(interacting_bands[b_ind], s_ind,
+    //            interacting_bands[b_ind], s_ind,
+    //            q_ind) += Delta;
+    //       }
   }
 
   template<typename parameters_type, typename K_dmn>
@@ -318,7 +318,7 @@ namespace DCA
   template<typename parameters_type, typename K_dmn>
   template<typename scalar_type, typename q_dmn_t>
   void coarsegraining_routines<parameters_type, K_dmn>::compute_S_q(int K_ind, int w_ind,
-                                                                    FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, K_dmn  , w> >& S_K_w,
+                                                                    FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, k_DCA  , w> >& S_K_w,
                                                                     FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t   > >& S_q)
   {
     for(int q_ind=0; q_ind<q_dmn_t::dmn_size(); q_ind++)
@@ -331,7 +331,7 @@ namespace DCA
   template<typename scalar_type, typename k_dmn_t, typename q_dmn_t>
   void coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_w(int K_ind, int w_ind,
                                                                       FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn_t   > >& H_k,
-                                                                      FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, K_dmn  , w> >& S_K,
+                                                                      FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, k_DCA  , w> >& S_K,
                                                                       FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t   > >& I_q,
                                                                       FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t   > >& H_q,
                                                                       FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t   > >& S_q,
@@ -340,8 +340,8 @@ namespace DCA
     {
       std::complex<scalar_type> i_wm_min_mu;
 
-      i_wm_min_mu.real( parameters.get_chemical_potential() );
-      i_wm_min_mu.imag( w::get_elements()[w_ind] );
+      i_wm_min_mu.real(parameters.get_chemical_potential());
+      i_wm_min_mu.imag(w::get_elements()[w_ind]);
 
       compute_I_q(i_wm_min_mu, I_q);
     }
@@ -381,7 +381,7 @@ namespace DCA
   template<typename parameters_type, typename K_dmn>
   template<typename scalar_type, typename q_dmn_t>
   void coarsegraining_routines<parameters_type, K_dmn>::compute_S_q(int K_ind, int w_ind,
-                                                                    FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, K_dmn  , w_REAL> >& S_K_w,
+                                                                    FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, k_DCA  , w_REAL> >& S_K_w,
                                                                     FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t        > >& S_q)
   {
     for(int q_ind=0; q_ind<q_dmn_t::dmn_size(); q_ind++)
@@ -394,7 +394,7 @@ namespace DCA
   template<typename scalar_type, typename k_dmn_t, typename q_dmn_t>
   void coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_w(int K_ind, int w_ind,
                                                                       FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn_t        > >& H_k,
-                                                                      FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, K_dmn  , w_REAL> >& S_K,
+                                                                      FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, k_DCA  , w_REAL> >& S_K,
                                                                       FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t        > >& I_q,
                                                                       FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t        > >& H_q,
                                                                       FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t        > >& S_q,
@@ -403,8 +403,8 @@ namespace DCA
     {
       std::complex<scalar_type> i_wm_min_mu;
 
-      real(i_wm_min_mu) = w_REAL::get_elements()[w_ind]+parameters.get_chemical_potential();
-      imag(i_wm_min_mu) = parameters.get_real_frequencies_off_set();
+      i_wm_min_mu.real(w_REAL::get_elements()[w_ind]+parameters.get_chemical_potential());
+      i_wm_min_mu.imag(parameters.get_real_frequencies_off_set());
 
       compute_I_q(i_wm_min_mu, I_q);
     }
@@ -414,29 +414,29 @@ namespace DCA
     compute_S_q(K_ind, w_ind, S_K, S_q);
 
     /*
-    {
+      {
       for(int q_ind=0; q_ind<q_dmn_t::dmn_size(); q_ind++)
-        {
-          if(abs(q_dmn_t::get_elements()[q_ind][0])<1.e-6)
-	    {
-	      double kx = q_dmn_t::get_elements()[q_ind][0];
-	      double ky = q_dmn_t::get_elements()[q_ind][1];
-	      double kz = q_dmn_t::get_elements()[q_ind][2];
-	      
-// 	      cout << kx << "\t"
-// 		   << ky << "\t"
-// 		   << kz << "\t"
-// 		   << real(H_q(0,0,q_ind)) << "\t" << -2.*(cos(kx)+cos(ky)+cos(kz)) << "\n";
+      {
+      if(abs(q_dmn_t::get_elements()[q_ind][0])<1.e-6)
+      {
+      double kx = q_dmn_t::get_elements()[q_ind][0];
+      double ky = q_dmn_t::get_elements()[q_ind][1];
+      double kz = q_dmn_t::get_elements()[q_ind][2];
 
-	      if(abs(real(H_q(0,0,q_ind))+2.*(cos(kx)+cos(ky)+cos(kz)))>1.e-6)
-		throw std::logic_error(__FUNCTION__);
+      //              cout << kx << "\t"
+      //                   << ky << "\t"
+      //                   << kz << "\t"
+      //                   << real(H_q(0,0,q_ind)) << "\t" << -2.*(cos(kx)+cos(ky)+cos(kz)) << "\n";
 
-	      if(abs(real(H_q(1,1,q_ind))+2.*(cos(kx)+cos(ky)+cos(kz)))>1.e-6)
-		throw std::logic_error(__FUNCTION__);
+      if(abs(real(H_q(0,0,q_ind))+2.*(cos(kx)+cos(ky)+cos(kz)))>1.e-6)
+      throw std::logic_error(__FUNCTION__);
 
-	    }
-        }
-    }
+      if(abs(real(H_q(1,1,q_ind))+2.*(cos(kx)+cos(ky)+cos(kz)))>1.e-6)
+      throw std::logic_error(__FUNCTION__);
+
+      }
+      }
+      }
     */
 
     /*
@@ -589,8 +589,8 @@ namespace DCA
     {
       std::complex<scalar_type> i_wm_min_mu;
 
-      real(i_wm_min_mu) = parameters.get_chemical_potential();
-      imag(i_wm_min_mu) = w::get_elements()[w_ind];
+      i_wm_min_mu.real(parameters.get_chemical_potential());
+      i_wm_min_mu.imag(w::get_elements()[w_ind]);
 
       compute_I_q(i_wm_min_mu, I_q);
     }

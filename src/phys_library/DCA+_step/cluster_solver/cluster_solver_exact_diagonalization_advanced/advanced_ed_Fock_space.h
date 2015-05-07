@@ -481,10 +481,10 @@ namespace DCA
                   eval *= eval_factor;
 
                   if(abs(real(eval))<ed_options::get_epsilon())
-                    real(eval) = 0.;
+		    eval.real(0.);
 
                   if(abs(imag(eval))<ed_options::get_epsilon())
-                    imag(eval) = 0.;
+		    eval.imag(0.);
                 }
             }
         }

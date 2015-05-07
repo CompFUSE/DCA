@@ -43,21 +43,41 @@ namespace DCA
 
     void initialize();
 
+    // DCA coarsegraining
     template<typename w_dmn_t>
-    void execute(FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu , nu , k_HOST         > >& H_k,
-                 FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu , nu , k_HOST, w      > >& Sigma,
+    void execute(FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu , nu , k_HOST        > >& H_k,
+                 FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu , nu , k_DCA, w      > >& Sigma,
+                 FUNC_LIB::function<std::complex<scalar_type>, dmn_4<b_b, b_b, K_dmn, w_dmn_t> >& chi);
+
+    // DCA+ coarsegraining
+    template<typename w_dmn_t>
+    void execute(FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu , nu , k_HOST        > >& H_k,
+                 FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu , nu , k_HOST, w     > >& Sigma,
                  FUNC_LIB::function<std::complex<scalar_type>, dmn_4<b_b, b_b, K_dmn, w_dmn_t> >& chi);
 
     template<typename w_dmn_t>
     void plot(FUNC_LIB::function<std::complex<scalar_type>, dmn_4<b_b, b_b, K_dmn, w_dmn_t> >& chi);
 
   private:
+    // DCA coarsegraining
+    template<typename w_dmn_t>
+    void compute_tp(FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu , nu , k_HOST         > >& H_k,
+                    FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu , nu , k_DCA, w       > >& Sigma,
+                    FUNC_LIB::function<std::complex<scalar_type>, dmn_4<b_b, b_b, K_dmn , w_dmn_t> >& chi);
 
+    // DCA+ coarsegraining
     template<typename w_dmn_t>
     void compute_tp(FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu , nu , k_HOST         > >& H_k,
                     FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu , nu , k_HOST, w      > >& Sigma,
                     FUNC_LIB::function<std::complex<scalar_type>, dmn_4<b_b, b_b, K_dmn , w_dmn_t> >& chi);
 
+    // DCA coarsegraining
+    template<typename w_dmn_t>
+    void compute_phi(FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu , nu , k_HOST         > >& H_k,
+                     FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu , nu , k_DCA, w       > >& S_k_w,
+                     FUNC_LIB::function<std::complex<scalar_type>, dmn_4<b_b, b_b, K_dmn , w_dmn_t> >& phi);
+
+    // DCA+ coarsegraining
     template<typename w_dmn_t>
     void compute_phi(FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu , nu , k_HOST         > >& H_k,
                      FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu , nu , k_HOST, w      > >& S_k_w,
@@ -182,6 +202,43 @@ namespace DCA
     bubble_q.reset();
   }
 
+  // DCA-coarsegraining
+  template<typename parameters_type, typename K_dmn>
+  template<typename w_dmn_t>
+  void coarsegraining_tp<parameters_type, K_dmn>::execute(FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu , nu , k_HOST         > >& H_k,
+                                                          FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu , nu , k_DCA , w      > >& Sigma,
+                                                          FUNC_LIB::function<std::complex<scalar_type>, dmn_4<b_b, b_b, K_dmn , w_dmn_t> >& chi)
+  {
+    int Q_ind = cluster_operations::index(parameters.get_q_vector(), K_dmn::get_elements(), K_dmn::parameter_type::SHAPE);
+
+    switch(parameters.get_vertex_measurement_type())
+      {
+      case PARTICLE_HOLE_CHARGE:
+      case PARTICLE_HOLE_MAGNETIC:
+      case PARTICLE_HOLE_TRANSVERSE:
+        {
+          interpolation_matrices<scalar_type, k_HOST, q_dmn       >::initialize(concurrency);
+          interpolation_matrices<scalar_type, k_HOST, q_plus_Q_dmn>::initialize(concurrency, Q_ind);
+
+          compute_tp(H_k, Sigma, chi);
+        }
+        break;
+
+      case PARTICLE_PARTICLE_SUPERCONDUCTING:
+        {
+          interpolation_matrices<scalar_type, k_HOST, q_dmn      >::initialize(concurrency);
+          interpolation_matrices<scalar_type, k_HOST, Q_min_q_dmn>::initialize(concurrency, Q_ind);
+
+          compute_phi(H_k, Sigma, chi);
+        }
+        break;
+
+      default:
+        throw std::logic_error(__FUNCTION__);
+      }
+  }
+
+  // DCA+-coarsegraining
   template<typename parameters_type, typename K_dmn>
   template<typename w_dmn_t>
   void coarsegraining_tp<parameters_type, K_dmn>::execute(FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu , nu , k_HOST         > >& H_k,
@@ -284,11 +341,86 @@ namespace DCA
     }
   }
 
+  // DCA coarsegaining where K-dmn is the cluster-domain
+  template<typename parameters_type, typename K_dmn>
+  template<typename w_dmn_t>
+  void coarsegraining_tp<parameters_type, K_dmn>::compute_tp(FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu , nu , k_HOST         > >& H_k,
+                                                             FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu , nu , k_DCA , w      > >& S_K_w,
+                                                             FUNC_LIB::function<std::complex<scalar_type>, dmn_4<b_b, b_b, K_dmn , w_dmn_t> >& chi)
+  {
+    assert(k_DCA::get_elements() == K_dmn::get_elements());
+
+    chi = 0.;
+
+    K_dmn               k_domain;
+    std::pair<int, int> bounds = concurrency.get_bounds(k_domain);
+
+    // S_K_plus_Q_w(K) = S_K_w(K+Q)
+    FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu , nu , k_DCA , w > > S_K_plus_Q_w;
+
+    int Q_ind = cluster_operations::index(parameters.get_q_vector(), k_DCA::get_elements(), k_DCA::parameter_type::SHAPE);
+
+    for (int w_ind=0; w_ind<w::dmn_size(); ++w_ind) {
+      for (int k_ind=0; k_ind<k_DCA::dmn_size(); ++k_ind) {
+
+        int K_plus_Q_ind = k_DCA::parameter_type::add(k_ind, Q_ind);
+
+        for (int nu_2=0; nu_2<nu::dmn_size(); ++nu_2) {
+          for (int nu_1=0; nu_1<nu::dmn_size(); ++nu_1) {
+            S_K_plus_Q_w(nu_1, nu_2, k_ind, w_ind) = S_K_w(nu_1, nu_2, K_plus_Q_ind, w_ind);
+          }
+        }
+      }
+    }
+
+    for(int k_ind=bounds.first; k_ind<bounds.second; k_ind++)
+      {
+        for(int w_ind=0; w_ind<w_dmn_t::dmn_size(); w_ind++)
+          {
+            int w_1, w_2;
+
+            find_w1_and_w2(w_dmn_t::get_elements(), w_ind, w_1, w_2);
+
+            {
+              coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_w(k_ind, w_1, H_k, S_K_w, I_q, H_q, S_q, G_q);
+            }
+
+            {
+              coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_w(k_ind, w_2, H_k, S_K_plus_Q_w, I_q_plus_Q, H_q_plus_Q, S_q_plus_Q, G_q_plus_Q);
+            }
+
+            compute_bubble(bubble_q);
+
+            {
+              double factor = get_integration_factor();
+
+              for(int q_ind=0; q_ind<q_dmn::dmn_size(); q_ind++)
+                for(int n1=0; n1<b::dmn_size(); n1++)
+                  for(int n2=0; n2<b::dmn_size(); n2++)
+                    for(int m1=0; m1<b::dmn_size(); m1++)
+                      for(int m2=0; m2<b::dmn_size(); m2++)
+                        chi(n1,n2,m1,m2,k_ind,w_ind) += factor*w_q(q_ind)*bubble_q(n1,n2,m1,m2,q_ind);
+            }
+          }
+      }
+
+    concurrency.sum(chi);
+
+    {
+      scalar_type V_K=0;
+      for(int q_ind=0; q_ind<q_dmn::dmn_size(); q_ind++)
+        V_K += w_q(q_ind);
+
+      chi /= V_K;
+    }
+  }
+
+  // DCA+ coarsegaining where K-dmn is the host
   template<typename parameters_type, typename K_dmn>
   template<typename w_dmn_t>
   void coarsegraining_tp<parameters_type, K_dmn>::compute_tp(FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu , nu , k_HOST         > >& H_k,
                                                              FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu , nu , k_HOST, w      > >& S_k_w,
-                                                             FUNC_LIB::function<std::complex<scalar_type>, dmn_4<b_b, b_b, K_dmn, w_dmn_t> >& chi)
+                                                             FUNC_LIB::function<std::complex<scalar_type>, dmn_4<b_b, b_b, K_dmn , w_dmn_t> >& chi)
   {
     chi = 0.;
 
@@ -352,6 +484,84 @@ namespace DCA
     }
   }
 
+  // DCA coarsegaining where K-dmn is the cluster-domain
+  template<typename parameters_type, typename K_dmn>
+  template<typename w_dmn_t>
+  void coarsegraining_tp<parameters_type, K_dmn>::compute_phi(FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu , nu , k_HOST         > >& H_k,
+                                                              FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu , nu , k_DCA , w      > >& S_K_w,
+                                                              FUNC_LIB::function<std::complex<scalar_type>, dmn_4<b_b, b_b, K_dmn , w_dmn_t> >& phi)
+  {
+    if(concurrency.id()==concurrency.last())
+      cout << "\n\n\t start " << __FUNCTION__ << " ... " << print_time();
+
+    assert(k_DCA::get_elements() == K_dmn::get_elements());
+
+    phi = 0.;
+
+    K_dmn               k_domain;
+    std::pair<int, int> bounds = concurrency.get_bounds(k_domain);
+
+    // S_Q_min_K_w(K) = S_K_w(Q-K)
+    FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu , nu , k_DCA , w > > S_Q_min_K_w;
+
+    int Q_ind = cluster_operations::index(parameters.get_q_vector(), k_DCA::get_elements(), k_DCA::parameter_type::SHAPE);
+
+    for (int w_ind=0; w_ind<w::dmn_size(); ++w_ind) {
+      for (int k_ind=0; k_ind<k_DCA::dmn_size(); ++k_ind) {
+
+        int Q_min_K_ind = k_DCA::parameter_type::subtract(Q_ind, k_ind);
+
+        for (int nu_2=0; nu_2<nu::dmn_size(); ++nu_2) {
+          for (int nu_1=0; nu_1<nu::dmn_size(); ++nu_1) {
+            S_Q_min_K_w(nu_1, nu_2, k_ind, w_ind) = S_K_w(nu_1, nu_2, Q_min_K_ind, w_ind);
+          }
+        }
+      }
+    }
+
+    for(int k_ind=bounds.first; k_ind<bounds.second; k_ind++)
+      {
+        for(int w_ind=0; w_ind<w_dmn_t::dmn_size(); w_ind++)
+          {
+            int w_1, w_2;
+
+            find_w1_and_w2(w_dmn_t::get_elements(), w_ind, w_1, w_2);
+
+            {
+              coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_w(k_ind, w_1, H_k, S_K_w, I_q, H_q, S_q, G_q);
+            }
+
+            {
+              coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_w(k_ind, w_2, H_k, S_Q_min_K_w, I_Q_min_q, H_Q_min_q, S_Q_min_q, G_Q_min_q);
+            }
+
+            compute_bubble(bubble_q);
+
+            {
+              double factor = get_integration_factor();
+
+              for(int q_ind=0; q_ind<q_dmn::dmn_size(); q_ind++)
+                for(int m2=0; m2<b::dmn_size(); m2++)
+                  for(int m1=0; m1<b::dmn_size(); m1++)
+                    for(int n2=0; n2<b::dmn_size(); n2++)
+                      for(int n1=0; n1<b::dmn_size(); n1++)
+                        phi(n1,n2,m1,m2,k_ind,w_ind) += factor*w_q(q_ind)*bubble_q(n1,n2,m1,m2,q_ind);
+            }
+          }
+      }
+
+    concurrency.sum(phi);
+
+    {
+      scalar_type V_K=0;
+      for(int q_ind=0; q_ind<q_dmn::dmn_size(); q_ind++)
+        V_K += w_q(q_ind);
+
+      phi /= V_K;
+    }
+  }
+
+  // DCA+ coarsegaining where K-dmn is the host
   template<typename parameters_type, typename K_dmn>
   template<typename w_dmn_t>
   void coarsegraining_tp<parameters_type, K_dmn>::compute_phi(FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu , nu , k_HOST         > >& H_k,

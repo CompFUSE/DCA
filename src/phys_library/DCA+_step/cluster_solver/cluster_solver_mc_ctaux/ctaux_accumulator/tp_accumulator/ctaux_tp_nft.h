@@ -310,8 +310,8 @@ namespace DCA
 
             x = (configuration[j].get_tau()*W[i]);
 
-            real(T(i, j)) = cos(x);
-            imag(T(i, j)) = sin(x);
+            T(i, j).real(cos(x));
+            T(i, j).imag(sin(x));
           }
         }
       }

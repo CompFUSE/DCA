@@ -478,7 +478,7 @@ namespace COMP_LIB
   }
 
   template<typename scalar_type, class dmn_type>
-  void packing_interface<MPI_LIBRARY>::unpack(int* buffer, int size, int& off_set, function<scalar_type, dmn_type>& f)
+  void packing_interface<MPI_LIBRARY>::unpack(int* buffer, int size, int& off_set, FUNC_LIB::function<scalar_type, dmn_type>& f)
   {
     // UnPack the vector length
     int function_size(0);
