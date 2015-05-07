@@ -27,6 +27,7 @@
 #include <fstream>
 #include <iomanip>
 #include <queue>
+#include <bitset>
 
 #define NDEBUG
 //#define DEBUG_CUDA
