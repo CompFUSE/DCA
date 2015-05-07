@@ -7,8 +7,8 @@
 #include "include_high_temperature_series_expansion_solver.h"
 
 // ED
-#include "include_ed.h"
-//#include "include_advanced_ed_solver.h"
+//#include "include_ed.h"
+#include "include_advanced_ed_solver.h"
 
 // QMCI-template
 #include "include_qmci_templates.h"
