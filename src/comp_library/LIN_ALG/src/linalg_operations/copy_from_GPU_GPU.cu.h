@@ -25,7 +25,7 @@ namespace LIN_ALG {
 	ss << "\n cudaMemcpyDeviceToDevice error :: ret code: " << cudaGetErrorString(ret) 
 	   << " src-ptr : " << source_ptr 
 	   << " tgt-ptr : " << target_ptr 
-	   << endl;
+	   << std::endl;
 	std::cout << ss.str();
 	throw std::logic_error(__FUNCTION__);
       }
@@ -58,7 +58,7 @@ namespace LIN_ALG {
 	ss << "\n cudaMemcpyDeviceToDeviceAsync error :: ret code: " << cudaGetErrorString(ret) 
 	   << " src-ptr : " << source_ptr 
 	   << " tgt-ptr : " << target_ptr 
-	   << endl;
+	   << std::endl;
 	std::cout << ss.str();
 	throw std::logic_error(__FUNCTION__);
       }
@@ -94,7 +94,7 @@ namespace LIN_ALG {
 	ss << "\n cudaMemcpy2DDeviceToDevice error :: ret code: " << cudaGetErrorString(ret) 
 	   << " src-ptr : " << source_ptr << "\t [" << source_c_s.first << ", " << source_c_s.second << "]\t [" << source_g_s.first << ", " << source_g_s.second << "]\n" 
 	   << " tgt-ptr : " << target_ptr << "\t [" << target_c_s.first << ", " << target_c_s.second << "]\t [" << target_g_s.first << ", " << target_g_s.second << "]\n"
-	   << endl;
+	   << std::endl;
 	std::cout << ss.str();
 	throw std::logic_error(__FUNCTION__);
       }
@@ -134,7 +134,7 @@ namespace LIN_ALG {
 	ss << "\n cudaMemcpy2DDeviceToDevice error :: ret code: " << cudaGetErrorString(ret) 
 	   << " src-ptr : " << source_ptr << "\t [" << source_c_s.first << ", " << source_c_s.second << "]\t [" << source_g_s.first << ", " << source_g_s.second << "]\n" 
 	   << " tgt-ptr : " << target_ptr << "\t [" << target_c_s.first << ", " << target_c_s.second << "]\t [" << target_g_s.first << ", " << target_g_s.second << "]\n"
-	   << endl;
+	   << std::endl;
 	std::cout << ss.str();
 	throw std::logic_error(__FUNCTION__);
       }

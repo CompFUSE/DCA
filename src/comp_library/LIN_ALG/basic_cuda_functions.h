@@ -36,39 +36,39 @@ void print_device_info()
   int devCount;
   cudaGetDeviceCount(&devCount);
   
-  cout << "\n\tCUDA Device Query..."<< "\n";
-  cout << "\tThere are " << devCount << " CUDA devices.\n";
+  std::cout << "\n\tCUDA Device Query..."<< "\n";
+  std::cout << "\tThere are " << devCount << " CUDA devices.\n";
  
   // Iterate through devices
   for(int i=0; i<devCount; ++i)
     {
-      cout << "\n\tCUDA Device " << i << "\n";
+      std::cout << "\n\tCUDA Device " << i << "\n";
       
       cudaDeviceProp devProp;
       cudaGetDeviceProperties(&devProp, i);
       
-      cout << "\tMajor revision number:         " <<   devProp.major<< "\n";
-      cout << "\tMinor revision number:         " <<   devProp.minor<< "\n";
-      cout << "\tName:                          " <<   devProp.name<< "\n";
-      cout << "\tTotal global memory:           " <<  devProp.totalGlobalMem << "\n";
-      cout << "\tTotal shared memory per block: " <<  devProp.sharedMemPerBlock<< "\n";
-      cout << "\tTotal registers per block:     " <<   devProp.regsPerBlock<< "\n";
-      cout << "\tWarp size:                     " <<   devProp.warpSize<< "\n";
-      cout << "\tMaximum memory pitch:          " <<   devProp.memPitch<< "\n";
-      cout << "\tMaximum threads per block:     " <<   devProp.maxThreadsPerBlock<< "\n";
+      std::cout << "\tMajor revision number:         " <<   devProp.major<< "\n";
+      std::cout << "\tMinor revision number:         " <<   devProp.minor<< "\n";
+      std::cout << "\tName:                          " <<   devProp.name<< "\n";
+      std::cout << "\tTotal global memory:           " <<  devProp.totalGlobalMem << "\n";
+      std::cout << "\tTotal shared memory per block: " <<  devProp.sharedMemPerBlock<< "\n";
+      std::cout << "\tTotal registers per block:     " <<   devProp.regsPerBlock<< "\n";
+      std::cout << "\tWarp size:                     " <<   devProp.warpSize<< "\n";
+      std::cout << "\tMaximum memory pitch:          " <<   devProp.memPitch<< "\n";
+      std::cout << "\tMaximum threads per block:     " <<   devProp.maxThreadsPerBlock<< "\n";
       
       for(int i = 0; i < 3; ++i)
-	cout << "\tMaximum dimension " << i << " of block:  " << devProp.maxThreadsDim[i]<< "\n";
+	std::cout << "\tMaximum dimension " << i << " of block:  " << devProp.maxThreadsDim[i]<< "\n";
       
       for(int i = 0; i < 3; ++i)
-	cout << "\tMaximum dimension " << i << " of grid:   " << devProp.maxGridSize[i]<< "\n";
+	std::cout << "\tMaximum dimension " << i << " of grid:   " << devProp.maxGridSize[i]<< "\n";
       
-      cout << "\tClock rate:                    " <<   devProp.clockRate<< "\n";
-      cout << "\tTotal constant memory:         " <<  devProp.totalConstMem<< "\n";
-      cout << "\tTexture alignment:             " <<  devProp.textureAlignment<< "\n";
-      cout << "\tConcurrent copy and execution: " <<  (devProp.deviceOverlap ? "Yes" : "No")<< "\n";
-      cout << "\tNumber of multiprocessors:     " <<   devProp.multiProcessorCount<< "\n";
-      cout << "\tKernel execution timeout:      " <<  (devProp.kernelExecTimeoutEnabled ? "Yes" : "No")<< "\n";
+      std::cout << "\tClock rate:                    " <<   devProp.clockRate<< "\n";
+      std::cout << "\tTotal constant memory:         " <<  devProp.totalConstMem<< "\n";
+      std::cout << "\tTexture alignment:             " <<  devProp.textureAlignment<< "\n";
+      std::cout << "\tConcurrent copy and execution: " <<  (devProp.deviceOverlap ? "Yes" : "No")<< "\n";
+      std::cout << "\tNumber of multiprocessors:     " <<   devProp.multiProcessorCount<< "\n";
+      std::cout << "\tKernel execution timeout:      " <<  (devProp.kernelExecTimeoutEnabled ? "Yes" : "No")<< "\n";
     }
 };
 
@@ -120,7 +120,7 @@ bool cuda_check_for_errors()
     {
       std::string error_msg(cudaGetErrorString(ret));
 
-      cout << error_msg << endl;
+      std::cout << error_msg << std::endl;
 
       throw std::logic_error(__FUNCTION__);
     }
@@ -133,7 +133,7 @@ bool cuda_check_for_errors()
 
 bool cuda_check_for_errors(std::string function_name, std::string file_name, int line)
 {
-  //cout << __FUNCTION__ << endl;
+  //std::cout << __FUNCTION__ << std::endl;
 
   //cudaDeviceSynchronize();
 
@@ -148,7 +148,7 @@ bool cuda_check_for_errors(std::string function_name, std::string file_name, int
 	 << "\t at line : "               << line 
 	 << "\t error : " << cudaGetErrorString(ret) << "\n\n";
 
-      cout << ss.str();
+      std::cout << ss.str();
 
       throw std::logic_error(ss.str());
     }
@@ -158,7 +158,7 @@ bool cuda_check_for_errors(std::string function_name, std::string file_name, int
 
 bool cuda_check_for_errors_bgn(std::string function_name, std::string file_name, int line)
 {
-  //cout << __FUNCTION__ << endl;
+  //std::cout << __FUNCTION__ << std::endl;
 
   //cudaDeviceSynchronize();
 
@@ -173,7 +173,7 @@ bool cuda_check_for_errors_bgn(std::string function_name, std::string file_name,
 	 << "\t at line : "               << line 
 	 << "\t error : " << cudaGetErrorString(ret) << "\n\n";
 
-      cout << ss.str();
+      std::cout << ss.str();
 
       throw std::logic_error(ss.str());
     }
@@ -183,7 +183,7 @@ bool cuda_check_for_errors_bgn(std::string function_name, std::string file_name,
 
 bool cuda_check_for_errors_end(std::string function_name, std::string file_name, int line)
 {
-  //cout << __FUNCTION__ << endl;
+  //std::cout << __FUNCTION__ << std::endl;
 
   cudaDeviceSynchronize();
 
@@ -198,7 +198,7 @@ bool cuda_check_for_errors_end(std::string function_name, std::string file_name,
 	 << "\t at line : "               << line 
 	 << "\t error : " << cudaGetErrorString(ret) << "\n\n";
 
-      cout << ss.str();
+      std::cout << ss.str();
 
       throw std::logic_error(ss.str());
     }
@@ -226,7 +226,7 @@ cublasHandle_t* cublas_organizer(int thread_id, int N)
 	  fprintf(stderr, "CUBLAS-verssion: Not initialized\n"); exit(-1);               
 	}    
 	else
-	  cout << "\n\n\t\t CUBLAS-VERSION : " << *version << endl;
+	  std::cout << "\n\n\t\t CUBLAS-VERSION : " << *version << std::endl;
       }
       break;
 

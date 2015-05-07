@@ -22,7 +22,7 @@ namespace LIN_ALG
 
       if(ret != cudaSuccess){
 	std::stringstream ss;
-	ss << "\n cudaMemcpyHostToDevice error :: ret code: " << cudaGetErrorString(ret) << endl;
+	ss << "\n cudaMemcpyHostToDevice error :: ret code: " << cudaGetErrorString(ret) << std::endl;
 	std::cout << ss.str();
 	  
 	throw std::logic_error(__FUNCTION__);
@@ -55,7 +55,7 @@ namespace LIN_ALG
 
       if(ret != cudaSuccess){
 	std::stringstream ss;
-	ss << "\n\t cudaMemcpyHostToDevice Async error :: ret code: " << cudaGetErrorString(ret) << endl;
+	ss << "\n\t cudaMemcpyHostToDevice Async error :: ret code: " << cudaGetErrorString(ret) << std::endl;
 	std::cout << ss.str();
 
 	throw std::logic_error(__FUNCTION__);
@@ -89,7 +89,7 @@ namespace LIN_ALG
 
       if(ret != cudaSuccess){
 	std::stringstream ss;
-	ss << "\n\t cudaMemcpy2DHostToDevice error :: ret code: " << cudaGetErrorString(ret) << endl;
+	ss << "\n\t cudaMemcpy2DHostToDevice error :: ret code: " << cudaGetErrorString(ret) << std::endl;
 	std::cout << ss.str();
 
 	throw std::logic_error(__FUNCTION__);
@@ -130,7 +130,7 @@ namespace LIN_ALG
 
       if(ret != cudaSuccess){
 	std::stringstream ss;
-	ss << "\n\t cudaMemcpy2DHostToDevice (Async) error :: ret code: " << cudaGetErrorString(ret) << endl;
+	ss << "\n\t cudaMemcpy2DHostToDevice (Async) error :: ret code: " << cudaGetErrorString(ret) << std::endl;
 	std::cout << ss.str();
 
 	throw std::logic_error(__FUNCTION__);

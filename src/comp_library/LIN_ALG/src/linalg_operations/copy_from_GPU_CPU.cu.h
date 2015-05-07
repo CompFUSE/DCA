@@ -24,7 +24,7 @@ namespace LIN_ALG
 	std::stringstream ss;
 	ss << "\n cudaMemcpyDeviceToHOST error :: ret code: " << cudaGetErrorString(ret) 
 	   << " src-ptr : " << source_ptr 
-	   << " tgt-ptr : " << target_ptr << endl;
+	   << " tgt-ptr : " << target_ptr << std::endl;
 	std::cout << ss.str();
 
 	throw std::logic_error(__FUNCTION__);
@@ -58,7 +58,7 @@ namespace LIN_ALG
 	ss << "\n cudaMemcpyDeviceToHost error (Async) : " << cudaGetErrorString(ret) 
 		  << " src-ptr : " << source_ptr 
 		  << " tgt-ptr : " << target_ptr 
-		  << endl;
+		  << std::endl;
 	std::cout << ss.str();
 
 	throw std::logic_error(__FUNCTION__);

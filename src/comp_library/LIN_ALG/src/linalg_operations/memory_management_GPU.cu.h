@@ -21,7 +21,7 @@ namespace LIN_ALG {
       if(ret != cudaSuccess){
 	std::cout << "\n get error :: ret code: " << ret 
 		  << " ptr : " << ptr 
-		  << endl;
+		  << std::endl;
 	
 	throw std::logic_error(__FUNCTION__);
       }
@@ -43,7 +43,7 @@ namespace LIN_ALG {
       if(ret != cudaSuccess){
 	std::cout << "\n get error :: ret code: " << ret 
 		  << " ptr : " << ptr 
-		  << endl;
+		  << std::endl;
 	
 	throw std::logic_error(__FUNCTION__);
       }
@@ -68,7 +68,7 @@ namespace LIN_ALG {
       if(ret != cudaSuccess){
 	std::cout << "\n set error :: ret code: " << ret 
 		  << " ptr : " << ptr 
-		  << endl;
+		  << std::endl;
 	
 	throw std::logic_error(__FUNCTION__);
       }
@@ -224,7 +224,7 @@ namespace LIN_ALG {
 
       if(ret != cudaSuccess){
 	std::stringstream ss;
-	ss << "\n cudaFree error :: ret code: " << cudaGetErrorString(ret) << endl;
+	ss << "\n cudaFree error :: ret code: " << cudaGetErrorString(ret) << std::endl;
 	std::cout << ss.str();
 
 	throw std::logic_error(__FUNCTION__);
@@ -250,7 +250,7 @@ namespace LIN_ALG {
 
       if(ret != cudaSuccess){
 	std::stringstream ss;
-	ss << "\n cudaFreeHost error :: ret code: " << cudaGetErrorString(ret) << endl;
+	ss << "\n cudaFreeHost error :: ret code: " << cudaGetErrorString(ret) << std::endl;
 	std::cout << ss.str();
 
 	throw std::logic_error(__FUNCTION__);
