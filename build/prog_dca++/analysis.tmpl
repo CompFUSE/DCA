@@ -45,6 +45,20 @@ void print_version()
   cout << str << endl;
 }
 
+bool file_exists(std::string file_name)
+{
+  std::wifstream tmp(file_name.c_str());
+
+  if(!tmp or !tmp.good() or tmp.bad())
+    {
+      return false;
+    }
+  else
+    {
+      return true;
+    }
+}
+
 //void synchronize_devices(){}
 
 int main(int argc,char *argv[])
