@@ -509,7 +509,7 @@ namespace DCA
     for (int w_ind=0; w_ind<w::dmn_size(); ++w_ind) {
       for (int k_ind=0; k_ind<k_DCA::dmn_size(); ++k_ind) {
 
-        int Q_min_K_ind = k_DCA::parameter_type::subtract(Q_ind, k_ind);
+        int Q_min_K_ind = k_DCA::parameter_type::subtract(k_ind, Q_ind);
 
         for (int nu_2=0; nu_2<nu::dmn_size(); ++nu_2) {
           for (int nu_1=0; nu_1<nu::dmn_size(); ++nu_1) {
