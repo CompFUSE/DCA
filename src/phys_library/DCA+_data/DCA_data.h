@@ -339,7 +339,7 @@ namespace DCA
   template<class parameters_type>
   template<IO::FORMAT DATA_FORMAT>
   void DCA_data<parameters_type>::write(IO::writer<DATA_FORMAT>& writer)
-  {
+  { 
     writer.open_group("functions");
 
     writer.execute(band_structure);
@@ -358,6 +358,17 @@ namespace DCA
         writer.execute(G_k);
       }
 
+    if(!parameters.use_interpolated_Self_energy())
+      { // Compute Sigma-r-DCA for the lowest frequency via Fourier transformation of DCA cluster Sigma.
+	FUNC_LIB::function<std::complex<double>, dmn_3<nu,nu,r_dmn_t> > S_r_DCA("Sigma-r-DCA");
+
+	FUNC_LIB::function<std::complex<double>, dmn_3<nu,nu,k_dmn_t> > S_k_DCA("Sigma-k-DCA");
+	memcpy(&S_k_DCA(0), &Sigma(0,0,0,w::dmn_size()/2), sizeof(std::complex<double>)*std::pow(2*b::dmn_size(),2.)*k_dmn_t::dmn_size());
+	MATH_ALGORITHMS::TRANSFORM<k_dmn_t, r_dmn_t>::execute(S_k_DCA, S_r_DCA);
+	
+	writer.execute(S_r_DCA);
+      }
+    
     writer.execute(Sigma);
     writer.execute(Sigma_stddev);
 
