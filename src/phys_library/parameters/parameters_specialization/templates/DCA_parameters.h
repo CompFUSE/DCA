@@ -53,6 +53,7 @@ public:
   std::vector<int>&  get_interacting_bands();
 
   int    get_DCA_iterations();
+  double get_DCA_accuracy();
   double get_DCA_convergence_factor();
 
   std::vector<std::vector<int> > get_DCA_cluster();
@@ -92,6 +93,7 @@ private:
 
   std::vector<int>                interacting_bands;
   int                             DCA_iterations;
+  double                          DCA_accuracy;
   double                          DCA_mixing_factor;
 
   std::vector<std::vector<int> >  DCA_cluster;
@@ -122,6 +124,7 @@ DCA_Parameters::DCA_Parameters():
 
   interacting_bands(0),
   DCA_iterations(1),
+  DCA_accuracy(0.01),
   DCA_mixing_factor(1.),
 
   DCA_cluster(model::DIMENSION, std::vector<int>(model::DIMENSION,0)),
@@ -163,6 +166,7 @@ int DCA_Parameters::get_buffer_size( concurrency_type& concurrency)
 
   buffer_size += concurrency.get_buffer_size(interacting_bands);
   buffer_size += concurrency.get_buffer_size(DCA_iterations);
+  buffer_size += concurrency.get_buffer_size(DCA_accuracy);
   buffer_size += concurrency.get_buffer_size(DCA_mixing_factor);
 
   buffer_size += concurrency.get_buffer_size(DCA_cluster);
@@ -196,6 +200,7 @@ void DCA_Parameters::pack( concurrency_type& concurrency, int* buffer, int buffe
 
   concurrency.pack(buffer, buffer_size, position, interacting_bands);
   concurrency.pack(buffer, buffer_size, position, DCA_iterations);
+  concurrency.pack(buffer, buffer_size, position, DCA_accuracy);
   concurrency.pack(buffer, buffer_size, position, DCA_mixing_factor);
 
   concurrency.pack(buffer, buffer_size, position, DCA_cluster);
@@ -227,6 +232,7 @@ void DCA_Parameters::unpack( concurrency_type& concurrency, int* buffer, int buf
 
   concurrency.unpack(buffer, buffer_size, position, interacting_bands);
   concurrency.unpack(buffer, buffer_size, position, DCA_iterations);
+  concurrency.unpack(buffer, buffer_size, position, DCA_accuracy);
   concurrency.unpack(buffer, buffer_size, position, DCA_mixing_factor);
 
   concurrency.unpack(buffer, buffer_size, position, DCA_cluster);
@@ -267,6 +273,7 @@ void DCA_Parameters::read_write(read_write_type& read_write_obj)
       try { read_write_obj.execute("interacting-bands", interacting_bands); } catch(const std::exception& r_e) {}
 
       try { read_write_obj.execute("DCA-iterations"   , DCA_iterations);    } catch(const std::exception& r_e) {}
+      try { read_write_obj.execute("DCA-accuracy"     , DCA_accuracy);      } catch(const std::exception& r_e) {}
       try { read_write_obj.execute("DCA-mixing-factor", DCA_mixing_factor); } catch(const std::exception& r_e) {}
 
       try { read_write_obj.execute("cluster"          , DCA_cluster);       } catch(const std::exception& r_e) {}
@@ -340,6 +347,11 @@ int DCA_Parameters::get_DCA_iterations()
 {
   return DCA_iterations;
 }
+
+double DCA_Parameters::get_DCA_accuracy()
++{
++  return DCA_accuracy;
++}
 
 double DCA_Parameters::get_DCA_convergence_factor()
 {
