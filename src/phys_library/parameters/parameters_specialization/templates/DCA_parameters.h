@@ -349,9 +349,9 @@ int DCA_Parameters::get_DCA_iterations()
 }
 
 double DCA_Parameters::get_DCA_accuracy()
-+{
-+  return DCA_accuracy;
-+}
+{
+  return DCA_accuracy;
+}
 
 double DCA_Parameters::get_DCA_convergence_factor()
 {

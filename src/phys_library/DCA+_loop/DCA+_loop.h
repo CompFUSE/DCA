@@ -262,7 +262,7 @@ namespace DCA
         update_DCA_calculation_data_functions(i);
         
         if (L2_Sigma_difference < parameters.get_DCA_accuracy())  // set the acquired accuracy on |Sigma_QMC - Sigma_cg|
-+          break;
+          break;
       }
   }
 
