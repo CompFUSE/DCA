@@ -64,7 +64,7 @@ namespace DCA
 
     void perform_cluster_exclusion_step();
 
-    void solve_cluster_problem(int DCA_iteration);
+    double solve_cluster_problem(int DCA_iteration);
 
     void adjust_impurity_self_energy();
 
@@ -253,13 +253,16 @@ namespace DCA
 
         perform_cluster_exclusion_step();
 
-        solve_cluster_problem(i);
+        double L2_Sigma_difference = solve_cluster_problem(i);  // returned from cluster_solver::finalize
 
         adjust_impurity_self_energy(); // double-counting-correction
 
         perform_lattice_mapping();
 
         update_DCA_calculation_data_functions(i);
+        
+        if (L2_Sigma_difference < parameters.get_DCA_accuracy())  // set the acquired accuracy on |Sigma_QMC - Sigma_cg|
++          break;
       }
   }
 
@@ -342,7 +345,7 @@ namespace DCA
   }
 
   template<class parameters_type,class MOMS_type, class Monte_Carlo_Integrator_type>
-  void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::solve_cluster_problem(int DCA_iteration)
+  double DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::solve_cluster_problem(int DCA_iteration)
   {
     {
       profiler_t profiler("initialize cluster-solver", "DCA", __LINE__);
@@ -356,7 +359,9 @@ namespace DCA
 
     {
       profiler_t profiler("finalize cluster-solver", "DCA", __LINE__);
-      MonteCarloIntegrator.finalize(DCA_info_struct);
+      double L2_Sigma_difference = MonteCarloIntegrator.finalize(DCA_info_struct);
+      
+      return L2_Sigma_difference;
     }
   }
 
