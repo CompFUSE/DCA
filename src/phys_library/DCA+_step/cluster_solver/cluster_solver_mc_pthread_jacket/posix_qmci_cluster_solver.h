@@ -47,7 +47,7 @@ namespace DCA
     void integrate();
 
     template<typename dca_info_struct_t>
-    void finalize(dca_info_struct_t& dca_info_struct);
+    double finalize(dca_info_struct_t& dca_info_struct);
 
   private:
 
@@ -263,11 +263,11 @@ namespace DCA
 
   template<class qmci_integrator_type>
   template<typename dca_info_struct_t>
-  void posix_qmci_integrator<qmci_integrator_type>::finalize(dca_info_struct_t& dca_info_struct)
+  double posix_qmci_integrator<qmci_integrator_type>::finalize(dca_info_struct_t& dca_info_struct)
   {
     profiler_type profiler(__FUNCTION__, "posix-MC-Integration", __LINE__);
 
-    qmci_integrator_type::finalize(dca_info_struct);
+    double L2_Sigma_difference = qmci_integrator_type::finalize(dca_info_struct);
 
     pthread_mutex_destroy(&mutex_print);
     pthread_mutex_destroy(&mutex_merge);
@@ -275,6 +275,8 @@ namespace DCA
 
     pthread_mutex_destroy(&mutex_acc_finished);
     pthread_mutex_destroy(&mutex_numerical_error);
+    
+    return L2_Sigma_difference;
   }
 
   template<class qmci_integrator_type>
