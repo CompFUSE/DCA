@@ -15,7 +15,7 @@ namespace LIN_ALG
      {
        int INFO = -1;
        
-       magma_sgeev(JOBVL, JOBVR, N, A, LDA, WR, WI, VL, LDVL, VR, LDVR, WORK, LWORK, &INFO);
+       magma_sgeev(magma_vec_const(JOBVL), magma_vec_const(JOBVR), N, A, LDA, WR, WI, VL, LDVL, VR, LDVR, WORK, LWORK, &INFO);
 
        if(INFO != 0)
 	 throw std::logic_error(__FUNCTION__);
@@ -29,7 +29,7 @@ namespace LIN_ALG
      {
        int INFO = -1;
        
-       magma_dgeev(JOBVL, JOBVR, N, A, LDA, WR, WI, VL, LDVL, VR, LDVR, WORK, LWORK, &INFO);
+       magma_dgeev(magma_vec_const(JOBVL), magma_vec_const(JOBVR), N, A, LDA, WR, WI, VL, LDVL, VR, LDVR, WORK, LWORK, &INFO);
 
        if(INFO != 0)
 	 throw std::logic_error(__FUNCTION__);
@@ -43,7 +43,7 @@ namespace LIN_ALG
      {
        int INFO = -1;
        
-       magma_cgeev(JOBVL, JOBVR, N, (magmaFloatComplex*) A, LDA, (magmaFloatComplex*) W, (magmaFloatComplex*) VL, LDVL, (magmaFloatComplex*) VR, LDVR, (magmaFloatComplex*) WORK, LWORK, RWORK, &INFO);
+       magma_cgeev(magma_vec_const(JOBVL), magma_vec_const(JOBVR), N, (magmaFloatComplex*) A, LDA, (magmaFloatComplex*) W, (magmaFloatComplex*) VL, LDVL, (magmaFloatComplex*) VR, LDVR, (magmaFloatComplex*) WORK, LWORK, RWORK, &INFO);
 
        if(INFO != 0)
 	 throw std::logic_error(__FUNCTION__);
@@ -57,7 +57,7 @@ namespace LIN_ALG
      {
        int INFO = -1;
        
-       magma_zgeev(JOBVL, JOBVR, N, (magmaDoubleComplex*) A, LDA, (magmaDoubleComplex*) W, (magmaDoubleComplex*) VL, LDVL, (magmaDoubleComplex*) VR, LDVR, (magmaDoubleComplex*) WORK, LWORK, RWORK, &INFO);
+       magma_zgeev(magma_vec_const(JOBVL), magma_vec_const(JOBVR), N, (magmaDoubleComplex*) A, LDA, (magmaDoubleComplex*) W, (magmaDoubleComplex*) VL, LDVL, (magmaDoubleComplex*) VR, LDVR, (magmaDoubleComplex*) WORK, LWORK, RWORK, &INFO);
 
        if(INFO != 0)
 	 throw std::logic_error(__FUNCTION__);
@@ -75,7 +75,7 @@ namespace LIN_ALG
      {
        int INFO = -1;
        
-       magma_ssyevd(JOBZ, UPLO, N, A, LDA, W, WORK, LWORK, IWORK, LIWORK, &INFO);
+       magma_ssyevd(magma_vec_const(JOBZ), magma_uplo_const(UPLO), N, A, LDA, W, WORK, LWORK, IWORK, LIWORK, &INFO);
 
        if(INFO != 0)
 	 throw std::logic_error(__FUNCTION__);
@@ -89,7 +89,7 @@ namespace LIN_ALG
      {
        int INFO = -1;
        
-       magma_dsyevd(JOBZ, UPLO, N, A, LDA, W, WORK, LWORK, IWORK, LIWORK, &INFO);
+       magma_dsyevd(magma_vec_const(JOBZ), magma_uplo_const(UPLO), N, A, LDA, W, WORK, LWORK, IWORK, LIWORK, &INFO);
 
        if(INFO != 0)
 	 throw std::logic_error(__FUNCTION__);
@@ -103,7 +103,7 @@ namespace LIN_ALG
     {
       int INFO = -1;
       
-      magma_cheevd(JOBZ, UPLO, N, (magmaFloatComplex*) A, LDA, W, (magmaFloatComplex*) WORK, LWORK, RWORK, LRWORK, IWORK, LIWORK, &INFO);
+      magma_cheevd(magma_vec_const(JOBZ), magma_uplo_const(UPLO), N, (magmaFloatComplex*) A, LDA, W, (magmaFloatComplex*) WORK, LWORK, RWORK, LRWORK, IWORK, LIWORK, &INFO);
       
       if(INFO != 0)
 	throw std::logic_error(__FUNCTION__);
@@ -117,7 +117,7 @@ namespace LIN_ALG
     {
       int INFO = -1;
       
-      magma_zheevd(JOBZ, UPLO, N, (magmaDoubleComplex*) A, LDA, W, (magmaDoubleComplex*) WORK, LWORK, RWORK, LRWORK, IWORK, LIWORK, &INFO);
+      magma_zheevd(magma_vec_const(JOBZ), magma_uplo_const(UPLO), N, (magmaDoubleComplex*) A, LDA, W, (magmaDoubleComplex*) WORK, LWORK, RWORK, LRWORK, IWORK, LIWORK, &INFO);
       
       if(INFO != 0)
 	throw std::logic_error(__FUNCTION__);
@@ -138,7 +138,7 @@ namespace LIN_ALG
        int M        =  0;
        int INFO     = -1;
 
-       magma_ssyevdx(JOBZ, RANGE, UPLO, N, A, LDA, VL, VU, IL, UL, &M, W, WORK, LWORK, IWORK, LIWORK, &INFO);
+       magma_ssyevdx(magma_vec_const(JOBZ), magma_range_const(RANGE), magma_uplo_const(UPLO), N, A, LDA, VL, VU, IL, UL, &M, W, WORK, LWORK, IWORK, LIWORK, &INFO);
 
        if(INFO != 0)
 	 throw std::logic_error(__FUNCTION__);
@@ -157,7 +157,7 @@ namespace LIN_ALG
        int M         =  0;
        int INFO      = -1;
        
-       magma_dsyevdx(JOBZ, RANGE, UPLO, N, A, LDA, VL, VU, IL, UL, &M, W, WORK, LWORK, IWORK, LIWORK, &INFO);
+       magma_dsyevdx(magma_vec_const(JOBZ), magma_range_const(RANGE), magma_uplo_const(UPLO), N, A, LDA, VL, VU, IL, UL, &M, W, WORK, LWORK, IWORK, LIWORK, &INFO);
 
        if(INFO != 0)
 	 throw std::logic_error(__FUNCTION__);
@@ -176,7 +176,7 @@ namespace LIN_ALG
        int M      =  0;
        int INFO = -1;
 
-       magma_cheevdx(JOBZ, RANGE, UPLO, N, (magmaFloatComplex*) A, LDA, VL, VU, IL, UL, &M, W, (magmaFloatComplex*) WORK, LWORK, RWORK, LRWORK, IWORK, LIWORK, &INFO);
+       magma_cheevdx(magma_vec_const(JOBZ), magma_range_const(RANGE), magma_uplo_const(UPLO), N, (magmaFloatComplex*) A, LDA, VL, VU, IL, UL, &M, W, (magmaFloatComplex*) WORK, LWORK, RWORK, LRWORK, IWORK, LIWORK, &INFO);
 
        if(INFO != 0)
 	 throw std::logic_error(__FUNCTION__);
@@ -195,7 +195,7 @@ namespace LIN_ALG
        int M    = 0;
        int INFO = -1;
 
-       magma_zheevdx(JOBZ, RANGE, UPLO, N, (magmaDoubleComplex*) A, LDA, VL, VU, IL, UL, &M, W, (magmaDoubleComplex*) WORK, LWORK, RWORK, LRWORK, IWORK, LIWORK, &INFO);
+       magma_zheevdx(magma_vec_const(JOBZ), magma_range_const(RANGE), magma_uplo_const(UPLO), N, (magmaDoubleComplex*) A, LDA, VL, VU, IL, UL, &M, W, (magmaDoubleComplex*) WORK, LWORK, RWORK, LRWORK, IWORK, LIWORK, &INFO);
 
        if(INFO != 0)
 	 throw std::logic_error(__FUNCTION__);

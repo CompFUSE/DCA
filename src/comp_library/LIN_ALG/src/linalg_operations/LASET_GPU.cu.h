@@ -9,7 +9,8 @@ namespace LIN_ALG {
 
     void set_zero(char UPLO, int M, int N, double* A, int LDA)
     {
-      magmablas_dlaset(UPLO, M, N, A, LDA);
+      // magmablas_dlaset(UPLO, M, N, A, LDA);
+      magmablas_dlaset(magma_uplo_const(UPLO), M, N, 0, 0, A, LDA);
 
 #ifdef DEBUG_CUDA
        cuda_check_for_errors(__FUNCTION__, __FILE__, __LINE__);
@@ -18,7 +19,8 @@ namespace LIN_ALG {
 
     void set_unity(int M, int N, double* A, int LDA)
     {
-      magmablas_dlaset_identity(M, N, A, LDA);
+      // magmablas_dlaset_identity(M, N, A, LDA);
+      magmablas_dlaset(magma_uplo_const('A'), M, N, 0, 1, A, LDA);
 
 #ifdef DEBUG_CUDA
        cuda_check_for_errors(__FUNCTION__, __FILE__, __LINE__);

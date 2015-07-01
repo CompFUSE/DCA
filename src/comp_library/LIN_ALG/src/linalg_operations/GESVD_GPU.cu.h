@@ -15,7 +15,7 @@ namespace LIN_ALG {
     {
       int INFO = -1;
 
-      magma_sgesvd(JOBU, JOBVT, M, N, A, LDA, S, U, LDU, VT, LDVT, WORK, LWORK, &INFO);
+      magma_sgesvd(magma_vec_const(JOBU), magma_vec_const(JOBVT), M, N, A, LDA, S, U, LDU, VT, LDVT, WORK, LWORK, &INFO);
 
       if(INFO != 0)
 	throw std::logic_error(__FUNCTION__);
@@ -25,7 +25,7 @@ namespace LIN_ALG {
     {
       int INFO = -1;
 
-      magma_dgesvd(JOBU, JOBVT, M, N, A, LDA, S, U, LDU, VT, LDVT, WORK, LWORK, &INFO);
+      magma_dgesvd(magma_vec_const(JOBU), magma_vec_const(JOBVT), M, N, A, LDA, S, U, LDU, VT, LDVT, WORK, LWORK, &INFO);
 
       if(INFO != 0)
 	throw std::logic_error(__FUNCTION__);      
@@ -35,7 +35,7 @@ namespace LIN_ALG {
     {
       int INFO = -1;
 
-      magma_cgesvd(JOBU, JOBVT, M, N, (magmaFloatComplex*) A, LDA, S, (magmaFloatComplex*) U, LDU, (magmaFloatComplex*) VT, LDVT, (magmaFloatComplex*) WORK, LWORK, RWORK, &INFO);
+      magma_cgesvd(magma_vec_const(JOBU), magma_vec_const(JOBVT), M, N, (magmaFloatComplex*) A, LDA, S, (magmaFloatComplex*) U, LDU, (magmaFloatComplex*) VT, LDVT, (magmaFloatComplex*) WORK, LWORK, RWORK, &INFO);
       
       if(INFO != 0)
 	throw std::logic_error(__FUNCTION__);            
@@ -45,7 +45,7 @@ namespace LIN_ALG {
     {
       int INFO = -1;
 
-      magma_zgesvd(JOBU, JOBVT, M, N, (magmaDoubleComplex*) A, LDA, S, (magmaDoubleComplex*) U, LDU, (magmaDoubleComplex*) VT, LDVT, (magmaDoubleComplex*) WORK, LWORK, RWORK, &INFO);
+      magma_zgesvd(magma_vec_const(JOBU), magma_vec_const(JOBVT), M, N, (magmaDoubleComplex*) A, LDA, S, (magmaDoubleComplex*) U, LDU, (magmaDoubleComplex*) VT, LDVT, (magmaDoubleComplex*) WORK, LWORK, RWORK, &INFO);
 
       if(INFO != 0)
 	throw std::logic_error(__FUNCTION__);                  

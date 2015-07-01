@@ -1,7 +1,6 @@
 
 SHELL          = /bin/bash
 SRC_DIR        = ../../src
-MAGMA_ROOT_DIR = MACHINE_MAGMA_ROOT_DIR
 
 LIBS___DIR = ../../libs
 FFTW___DIR = ../../libs/fftw-3.3.3
@@ -9,6 +8,8 @@ NFFT___DIR = ../../libs/nfft-3.1.3
 HDF5___DIR = ../../libs/hdf5-1.8.11
 SPGLIB_DIR = ../../libs/spglib-1.4.1
 MPICH__DIR = ../../libs/mpich-3.0.4
+CBLAS__DIR = ../../libs/cblas
+MAGMA__DIR = ../../libs/magma-1.6.2
 
 COMP_DIR = ../../src/comp_libraries
 MATH_DIR = ../../src/math_algorithms
@@ -279,10 +280,10 @@ INCLUDE_GPU_CODE =  -I. \
 	-I$(SRC_DIR)/phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_N_matrix_routines/ \
 	-I$(SRC_DIR)/phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_G_matrix_routines/ \
 	-I$(SRC_DIR)/phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_G0_matrix_routines/ \
-        -I$(MAGMA_ROOT_DIR) \
-        -I$(MAGMA_ROOT_DIR)/include \
-        -L$(MAGMA_ROOT_DIR)/lib \
-	-L$(MAGMA_ROOT_DIR)/../cblas/lib
+        -I$(MAGMA__DIR) \
+        -I$(MAGMA__DIR)/include \
+        -L$(MAGMA__DIR)/lib \
+	-L$(CBLAS__DIR)/lib
 
 # INCLUDE_GPU_CODE =  -I. \
 #         -I$(SRC_DIR)/LIN_ALG \
@@ -456,6 +457,18 @@ MPICH:
 	cd `pwd`/$(MPICH__DIR); ./configure OPTIONS_MPICH 
 	cd `pwd`/$(MPICH__DIR); make -j 8
 	cd `pwd`/$(MPICH__DIR); make install
+
+CBLAS:
+	rm -rf `pwd`/$(CBLAS__DIR)
+	tar -xvf $(LIBS___DIR)/cblas.tar
+	mv `pwd`/cblas `pwd`/$(CBLAS__DIR)
+	cd `pwd`/$(CBLAS__DIR); make
+
+MAGMA:
+	rm -rf `pwd`/$(MAGMA__DIR)
+	tar -xvf $(LIBS___DIR)/magma-1.6.2.tar
+	mv `pwd`/magma-1.6.2 `pwd`/$(MAGMA__DIR)
+	cd `pwd`/$(MAGMA__DIR); make -j 8
 
 clean:
 	rm -f dca_cpu dca_gpu main.o

@@ -26,6 +26,8 @@ libs/spglib-1.4.1
 libs/sprng5
 libs/hdf5-1.8.11
 libs/fftw-3.3.3
+libs/cblas
+libs/magma-1.6.2
 
 # bin directory
 build/bin
