@@ -1037,11 +1037,11 @@ namespace DCA
             {
               double kx = k_HOST_VERTEX::get_elements()[k_ind][0];
               double ky = k_HOST_VERTEX::get_elements()[k_ind][1];
-              if (kx==0 && abs(ky-3.141592)<1.e-3)
+              if (abs(kx)<1.e-3 && abs(ky-3.141592)<1.e-3)
                 {
                   ind0pi = k_ind;
                 }
-              if (ky==0 && abs(kx-3.141592)<1.e-3)
+              if (abs(ky)<1.e-3 && abs(kx-3.141592)<1.e-3)
                 {
                   indpi0 = k_ind;
                 }
