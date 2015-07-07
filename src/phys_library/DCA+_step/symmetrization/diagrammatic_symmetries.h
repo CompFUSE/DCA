@@ -283,6 +283,11 @@ void diagrammatic_symmetries<parameters_type>::execute(FUNC_LIB::function<scalar
     }
 }
 
+// Symmetrizes G_2 over Matsubara frequencies for G_2 only given for one q-vector.
+// Exploits
+//     G_2(k_1, w_1, k_2, w_2, q, nu) = conj(G_2(k_1, -w_1, k_2, -w_2, q, -nu)),
+// which for nu=0 reduces to
+//     G_2(k_1, w_1, k_2, w_2, q) = conj(G_2(k_1, -w_1, k_2, -w_2, q)).
 template<class parameters_type>
 template<typename scalartype, typename k_dmn, typename w_dmn>
 void diagrammatic_symmetries<parameters_type>::symmetrize_over_matsubara_frequencies(FUNC_LIB::function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G)
@@ -323,6 +328,8 @@ void diagrammatic_symmetries<parameters_type>::symmetrize_over_matsubara_frequen
     }
 }
 
+// Symmetrizes G_2 over Matsubara frequencies for G_2 given for all q-vectors (in the cluster).
+// See comment to previous function for details.
 template<class parameters_type>
 template<typename scalartype, typename k_dmn, typename w_dmn>
 void diagrammatic_symmetries<parameters_type>::symmetrize_over_matsubara_frequencies(FUNC_LIB::function<scalartype, dmn_3<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn>, k_dmn> >& G)
@@ -363,6 +370,14 @@ void diagrammatic_symmetries<parameters_type>::symmetrize_over_matsubara_frequen
     }
 }
 
+// Symmetrizes G_2^ph over horizontal and vertical rotations by pi for G_2^ph only given for one q-vector.
+//
+// Horizontal + vertical rotation:
+//     G_2^ph(k_1, w_1, k_2, w_2, q, nu) = G_2^ph(k_2+q, w_2+nu, k_1+q, w_1+nu, -q, -nu),
+// which for nu=0 reduces to
+//     G_2^ph(k_1, w_1, k_2, w_2, q) = G_2^ph(k_2+q, w_2, k_1+q, w_1, -q).
+// If q = -q one gets
+//     G_2^ph(k_1, w_1, k_2, w_2) = G_2^ph(k_2+q, w_2, k_1+q, w_1).
 template<class parameters_type>
 template<typename scalartype, typename k_dmn, typename w_dmn>
 void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_ph(FUNC_LIB::function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G)
@@ -406,13 +421,13 @@ void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_ph(F
 
 		  if(min_q_ind == q_ind)
 		    {
-		      scalartype tmp1 =      G(nu_1,nu_2,k1       ,w1, mu_1,mu_2,k2       ,w2);
-		      scalartype tmp2 = conj(G(nu_1,nu_2,k2_plus_q,w2, mu_1,mu_2,k1_plus_q,w1));
+		      scalartype tmp1 = G(nu_1,nu_2,k1       ,w1, mu_1,mu_2,k2       ,w2);
+		      scalartype tmp2 = G(nu_1,nu_2,k2_plus_q,w2, mu_1,mu_2,k1_plus_q,w1);
 
 		      scalartype tmp = (tmp1+tmp2)/2.;
 
-		       G(nu_1,nu_2,k1       ,w1, mu_1,mu_2,k2       ,w2) =      tmp;
-		       G(nu_1,nu_2,k2_plus_q,w2, mu_1,mu_2,k1_plus_q,w1) = conj(tmp);
+		       G(nu_1,nu_2,k1       ,w1, mu_1,mu_2,k2       ,w2) = tmp;
+		       G(nu_1,nu_2,k2_plus_q,w2, mu_1,mu_2,k1_plus_q,w1) = tmp;
 		    }
 		}
 	      }
@@ -424,6 +439,22 @@ void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_ph(F
   }
 }
 
+// Symmetrizes G_2^ph over horizontal and vertical rotations by pi for G_2^ph given for all q-vectors (in the cluster).
+//
+// Vertical rotation:
+//     G_2^ph(k_1, w_1, k_2, w_2, q, nu) = conj(G_2^ph(k_2, w_2, k_1, w_1, q, nu)),
+// which for nu=0 reduces to
+//     G_2^ph(k_1, w_1, k_2, w_2, q) = conj(G_2^ph(k_2, w_2, k_1, w_1, q)).
+//
+// Horizontal rotation:
+//     G_2^ph(k_1, w_1, k_2, w_2, q, nu) = conj(G_2^ph(k_1+q, w_1+nu, k_2+q, w_2+nu, -q, -nu)),
+// which for nu=0 reduces to
+//     G_2^ph(k_1, w_1, k_2, w_2, q) = conj(G_2^ph(k_1+q, w_1, k_2+q, w_2, -q)).
+//
+// Horizontal + vertical rotation:
+//     G_2^ph(k_1, w_1, k_2, w_2, q, nu) = G_2^ph(k_2+q, w_2+nu, k_1+q, w_1+nu, -q, -nu),
+// which for nu=0 reduces to
+//     G_2^ph(k_1, w_1, k_2, w_2, q) = G_2^ph(k_2+q, w_2, k_1+q, w_1, -q).
 template<class parameters_type>
 template<typename scalartype, typename k_dmn, typename w_dmn>
 void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_ph(FUNC_LIB::function<scalartype, dmn_3<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn>, k_dmn> >& G)
@@ -456,10 +487,10 @@ void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_ph(F
 			
 		    scalartype tmp = (tmp1+conj(tmp2)+conj(tmp3)+tmp4)/4.;
 			
-		    G(nu_1,nu_2,k1       ,w1, mu_1,mu_2,k2       ,w2) = tmp;
-		    G(nu_1,nu_2,k2       ,w2, mu_1,mu_2,k1       ,w1) = conj(tmp);
-		    G(nu_1,nu_2,k1_plus_q,w1, mu_1,mu_2,k2_plus_q,w2) = conj(tmp);
-		    G(nu_1,nu_2,k2_plus_q,w2, mu_1,mu_2,k1_plus_q,w1) = tmp;
+		    G(nu_1,nu_2,k1       ,w1, mu_1,mu_2,k2       ,w2,     q) = tmp;
+		    G(nu_1,nu_2,k2       ,w2, mu_1,mu_2,k1       ,w1,     q) = conj(tmp);
+		    G(nu_1,nu_2,k1_plus_q,w1, mu_1,mu_2,k2_plus_q,w2, min_q) = conj(tmp);
+		    G(nu_1,nu_2,k2_plus_q,w2, mu_1,mu_2,k1_plus_q,w1, min_q) = tmp;
 		  }
 		}
 	      }
@@ -471,6 +502,24 @@ void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_ph(F
   }
 }
 
+// Symmetrizes G_2^pp over horizontal and vertical rotations by pi for G_2^ph only given for one q-vector.
+//
+// Horizontal rotation:
+//     G_2^pp(k_1, w_1, k_2, w_2, q, nu) = G_2^ph(q-k_1, nu-w_1, q-k_2, nu-w_2, q, nu),
+// which for nu=0 reduces to
+//     G_2^pp(k_1, w_1, k_2, w_2, q) = G_2^ph(q-k_1, -w_1, q-k_2, -w_2, q).
+//
+// Vertical rotation:
+//     G_2^pp(k_1, w_1, k_2, w_2, q, nu) = conj(G_2^ph(k_2, w_2, k_1, w_1, q, nu),
+// which for nu=0 reduces to
+//     G_2^pp(k_1, w_1, k_2, w_2, q) = conj(G_2^ph(k_2, w_2, k_1, w_1, q).
+//
+// Horizontal + vertical rotation:
+//     G_2^pp(k_1, w_1, k_2, w_2, q, nu) = conj(G_2^ph(q-k_2, nu-w_2, q-k_1, nu-w_1, q, nu),
+// which for nu=0 reduces to
+//     G_2^pp(k_1, w_1, k_2, w_2, q) = conj(G_2^ph(q-k_2, -w_2, q-k_1, -w_1, q).
+//
+// In addition G_2^pp is real.
 template<class parameters_type>
 template<typename scalartype, typename k_dmn, typename w_dmn>
 void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_pp(FUNC_LIB::function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G)
@@ -501,7 +550,7 @@ void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_pp(F
 		  scalartype tmp3 = G(nu_1,nu_2,      k2,    w2, mu_1,mu_2,      k1,     w1);
 		  scalartype tmp4 = G(nu_1,nu_2,q_min_k2,min_w2, mu_1,mu_2,q_min_k1, min_w1);
 		      
-		  scalartype tmp = (tmp1+tmp2+conj(tmp3)+conj(tmp4))/4.;
+		  scalartype tmp = (tmp1+tmp2+conj(tmp3)+conj(tmp4))/4.;  // NOTE: Complex conj. effectless since G is real.
 		  
 		  G(nu_1,nu_2,      k1,    w1, mu_1,mu_2,      k2,     w2) = tmp;
 		  G(nu_1,nu_2,q_min_k1,min_w1, mu_1,mu_2,q_min_k2, min_w2) = tmp;
@@ -517,6 +566,8 @@ void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_pp(F
   }
 }
 
+// Symmetrizes G_2^pp over horizontal and vertical rotations by pi for G_2^ph only given for all q-vectors (in the cluster).
+// See comment to previous function for details.
 template<class parameters_type>
 template<typename scalartype, typename k_dmn, typename w_dmn>
 void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_pp(FUNC_LIB::function<scalartype, dmn_3<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn>, k_dmn> >& G)
