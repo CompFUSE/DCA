@@ -923,7 +923,7 @@ void symmetrize_single_particle_function::execute(FUNC_LIB::function<scalartype,
 
 	for(int k_ind=0; k_ind<k_dmn_t::dmn_size(); ++k_ind){
       
-	  int K_new_ind = k_symmetry_matrix(k_ind, b0, S_ind).first;
+	  int K_new_ind = k_symmetry_matrix(k_ind, b0, S_ind).first;  // FIXME: b0 -> b1
 
 	  int b0_new = k_symmetry_matrix(0    , b0, S_ind).second;
 	  int b1_new = k_symmetry_matrix(k_ind, b1, S_ind).second;

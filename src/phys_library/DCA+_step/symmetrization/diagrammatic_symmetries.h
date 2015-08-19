@@ -502,7 +502,7 @@ void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_ph(F
   }
 }
 
-// Symmetrizes G_2^pp over horizontal and vertical rotations by pi for G_2^ph only given for one q-vector.
+// Symmetrizes G_2^pp over horizontal and vertical rotations by pi for G_2^pp only given for one q-vector.
 //
 // Horizontal rotation:
 //     G_2^pp(k_1, w_1, k_2, w_2, q, nu) = G_2^ph(q-k_1, nu-w_1, q-k_2, nu-w_2, q, nu),
@@ -566,7 +566,7 @@ void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_pp(F
   }
 }
 
-// Symmetrizes G_2^pp over horizontal and vertical rotations by pi for G_2^ph only given for all q-vectors (in the cluster).
+// Symmetrizes G_2^pp over horizontal and vertical rotations by pi for G_2^pp given for all q-vectors (in the cluster).
 // See comment to previous function for details.
 template<class parameters_type>
 template<typename scalartype, typename k_dmn, typename w_dmn>

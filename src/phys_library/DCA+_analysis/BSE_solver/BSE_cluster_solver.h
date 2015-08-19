@@ -163,6 +163,10 @@ namespace DCA
       {
         MOMS.G4_k_k_w_w.linind_2_subind(i, coor_2);
 
+	// coordinate  0 1 2 3 4 5 6 7
+	// G4_k_k_w_w: b b b b k k w w
+	// G_II      : b b k w b b k w
+
         coor_1[0] = coor_2[0];
         coor_1[1] = coor_2[1];
         coor_1[2] = coor_2[4];//k_1
