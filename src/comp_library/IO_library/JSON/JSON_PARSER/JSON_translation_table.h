@@ -153,6 +153,7 @@ namespace IO
 	case C_LOW_T: return state_and_action_pair(T,Consume);
 	case C_LOW_F: return state_and_action_pair(F,Consume);
 	case C_LOW_N: return state_and_action_pair(N,Consume);
+	case C_RSQRB: return state_and_action_pair(EV,EndArray);
 	default:      return state_and_action_pair(END,Abort);
 	}
     }
@@ -217,6 +218,7 @@ namespace IO
 	case C_DIGIT: return state_and_action_pair(FR,RecordChar);
 	case C_POINT: return state_and_action_pair(END,Abort);
 	case C_E:     return state_and_action_pair(EX,RecordChar);
+	case C_LOW_E: return state_and_action_pair(EX,RecordChar);
 	case C_RCURB: return state_and_action_pair(EV,RecordFloat,EndObject);
 	case C_RSQRB: return state_and_action_pair(EV,RecordFloat,EndArray);
 	case C_COMMA: return state_and_action_pair(VA,RecordFloat,DoNext);
