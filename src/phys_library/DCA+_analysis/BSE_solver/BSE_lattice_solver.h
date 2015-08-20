@@ -186,8 +186,8 @@ namespace DCA
   template<IO::FORMAT DATA_FORMAT>
   void BSE_lattice_solver<parameters_type, MOMS_type>::write(IO::writer<DATA_FORMAT>& writer)
   {
-    // writer.execute(leading_eigenvalues);
-    // writer.execute(leading_eigenvectors);
+    writer.execute(leading_eigenvalues);
+    writer.execute(leading_eigenvectors);
 
     writer.execute(chi_0_function);
     // writer.execute(Gamma_lattice);
@@ -397,6 +397,10 @@ namespace DCA
       //                   chi_0(n1,m1,K_ind,w_ind, n2,m2,K_ind,w_ind) = renorm*chi_0_function(n1,m1, n2,m2, K_ind,w_ind);
       }
     */
+
+    // if(concurrency.id()==concurrency.last())
+    //   std::cout << "\n\nsymmetrize chi_0_lattice according to the symmetry-group\n" << std::endl;
+    // symmetrize::execute(chi_0, parameters.get_q_vector());
   }
 
 
@@ -578,6 +582,9 @@ namespace DCA
     //     cout << "\n";
     // }
 
+    // if(concurrency.id()==concurrency.last())
+    //   std::cout << "\n\nsymmetrize Gamma_sym according to the symmetry-group\n" << std::endl;
+    // symmetrize::execute(Gamma_sym, parameters.get_q_vector());
   }
 
   template<class parameters_type, class MOMS_type>
