@@ -175,8 +175,8 @@ void physics_parameters::read_write(read_write_type& read_write_obj)
       try { read_write_obj.execute("beta-index"               , beta_index);                   } catch(const std::exception& r_e) {}
       try { read_write_obj.execute("beta-vector"              , beta_vector);                  } catch(const std::exception& r_e) {}
       try { read_write_obj.execute("density"                  , density);                      } catch(const std::exception& r_e) {}
-      try { read_write_obj.execute("chemical-potential"       , chemical_potential);           } catch(const std::exception& r_e) {}
-      try { read_write_obj.execute("adjust-chemical-potential", adjusting_chemical_potential); } catch(const std::exception& r_e) {}
+      try { read_write_obj.execute("chemical_potential"       , chemical_potential);           } catch(const std::exception& r_e) {}
+      try { read_write_obj.execute("adjust_chemical_potential", adjusting_chemical_potential); } catch(const std::exception& r_e) {}
 
       read_write_obj.close_group();
     }
