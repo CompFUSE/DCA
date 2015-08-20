@@ -42,6 +42,10 @@ namespace DCA
 
     void read(std::string filename);
 
+    // Same as read, only output format is hardcoded to JSON.
+    // Used to process Peter's data files, which are in JSON format.
+    void read_JSON(std::string filename);
+
     void write(std::string filename);
 
     template<IO::FORMAT DATA_FORMAT>
@@ -247,6 +251,38 @@ namespace DCA
       }
   }
 
+  
+  template<class parameters_type>
+  void DCA_data<parameters_type>::read_JSON(std::string filename)
+  {
+    if(concurrency.id()==0)
+      cout << "\n\n\t starts reading \n\n";
+
+    if(concurrency.id()==concurrency.first())
+      {
+        IO::reader<IO::JSON> reader;
+
+        reader.open_file(filename);
+
+        this->read(reader);
+
+        reader.close_file();
+      }
+
+    concurrency.broadcast(parameters.get_chemical_potential());
+
+    concurrency.broadcast_object(Sigma);
+
+    if(parameters.do_CPE())
+      concurrency.broadcast_object(G_k_t);
+
+    if(parameters.get_vertex_measurement_type() != NONE)
+      {
+        concurrency.broadcast_object(G_k_w);
+        concurrency.broadcast_object(G4_k_k_w_w);
+      }
+  }
+
   template<class parameters_type>
   template<IO::FORMAT DATA_FORMAT>
   void DCA_data<parameters_type>::read(IO::reader<DATA_FORMAT>& reader)
@@ -259,7 +295,7 @@ namespace DCA
       {
         reader.open_group("physics-parameters");
 
-        reader.execute("chemical-potential", parameters.get_chemical_potential());
+        reader.execute("chemical_potential", parameters.get_chemical_potential());
 
         reader.close_group();
       }
