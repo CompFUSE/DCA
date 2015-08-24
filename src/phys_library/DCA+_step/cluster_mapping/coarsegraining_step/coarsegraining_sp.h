@@ -57,6 +57,9 @@ namespace DCA
     template<typename other_scalar_type, typename r_dmn>
     void compute_phi_r(FUNC_LIB::function<other_scalar_type, r_dmn>& phi_r);
 
+    template<typename other_scalar_type, typename r_dmn>
+    void print_phi_r_to_shell(FUNC_LIB::function<other_scalar_type, r_dmn>& phi_r);
+
     /*****************************************
      ***                                   ***
      ***         Routines for DCA          ***
@@ -185,7 +188,7 @@ namespace DCA
 
         ss << "\t\t\t"<< double(i)/double(N)*100. << " % completed \t ";
         ss << print_time();
-	ss << "\n";
+        ss << "\n";
 
         cout << ss.str();
       }
@@ -393,6 +396,54 @@ namespace DCA
     }
   }
 
+  template<typename parameters_type, typename K_dmn>
+  template<typename other_scalar_type, typename r_dmn>
+  void coarsegraining_sp<parameters_type, K_dmn>::print_phi_r_to_shell(FUNC_LIB::function<other_scalar_type, r_dmn>& phi_r)
+  {
+    std::cout << "\n" << __FUNCTION__ << std::endl;
+
+    MATH_ALGORITHMS::tetrahedron_mesh<k_cluster_type> mesh(parameters.get_k_mesh_refinement());
+
+    quadrature_dmn::translate_according_to_period(parameters.get_number_of_periods(), mesh);
+
+    std::vector<MATH_ALGORITHMS::tetrahedron<DIMENSION> >& tetrahedra = mesh.get_tetrahedra();
+
+    phi_r = 0.;
+
+    r_dmn r_domain;
+    std::pair<int, int> bounds = concurrency.get_bounds(r_domain);
+
+    for(int l=bounds.first; l<bounds.second; l++)
+      {
+        std::vector<double> r_vec = r_dmn::get_elements()[l];
+
+        for(int tet_ind=0; tet_ind<tetrahedra.size(); tet_ind++)
+          phi_r(l) += real(tetrahedron_routines_harmonic_function::execute(r_vec,
+                                                                           tetrahedra[tet_ind]));
+      }
+
+    concurrency.sum(phi_r);
+
+    {
+      scalar_type V_K=0;
+      for(int q_ind=0; q_ind<q_dmn::dmn_size(); q_ind++)
+        V_K += w_q(q_ind);
+
+      phi_r /= V_K;
+    }
+
+    std::cout << "r_ind\tx\t\ty\t\tr\t\tphi(r)" << std::endl;
+
+    for(int r_ind=0; r_ind<r_dmn::dmn_size(); r_ind++){
+
+      std::vector<double> r_vec = r_dmn::get_elements()[r_ind];
+
+      cout << r_ind << "\t" << r_vec[0] << "\t" << r_vec[1] << "\t" << std::sqrt(r_vec[0]*r_vec[0]+r_vec[1]*r_vec[1]) << "\t" << phi_r(r_ind) << std::endl;
+    }
+
+  }
+
+
   /*****************************************
    ***                                   ***
    ***         Routines for DCA          ***
@@ -465,8 +516,8 @@ namespace DCA
                                                                          FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn> >& S_K_w,
                                                                          FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn> >& G_K_w)
   {
-//     if(concurrency.id()==0)
-//       cout << "\n\t start " << __FUNCTION__ << " : " << print_time() << endl;
+    // if(concurrency.id()==0)
+    //   cout << "\n\t start " << __FUNCTION__ << " : " << print_time() << endl;
 
     FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn       > > H_k("H_k");
     FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn> > S_K("S_K");
@@ -482,22 +533,22 @@ namespace DCA
     G_K_w = 0.;
 
     /*
-    {
+      {
       for(int tet_ind=0; tet_ind<tet_dmn::dmn_size(); tet_ind += 4)
-	{
-	  VECTOR_OPERATIONS::PRINT(tet_dmn::get_elements()[tet_ind+0]); cout << "\n";
-	  VECTOR_OPERATIONS::PRINT(tet_dmn::get_elements()[tet_ind+1]); cout << "\n";
-	  VECTOR_OPERATIONS::PRINT(tet_dmn::get_elements()[tet_ind+2]); cout << "\n";
-	  VECTOR_OPERATIONS::PRINT(tet_dmn::get_elements()[tet_ind+3]); cout << "\n";
-	}
+      {
+      VECTOR_OPERATIONS::PRINT(tet_dmn::get_elements()[tet_ind+0]); cout << "\n";
+      VECTOR_OPERATIONS::PRINT(tet_dmn::get_elements()[tet_ind+1]); cout << "\n";
+      VECTOR_OPERATIONS::PRINT(tet_dmn::get_elements()[tet_ind+2]); cout << "\n";
+      VECTOR_OPERATIONS::PRINT(tet_dmn::get_elements()[tet_ind+3]); cout << "\n";
+      }
       cout << "\n";
 
       for(int tet_ind=0; tet_ind<tet_dmn::dmn_size(); tet_ind += 4)
-	cout << tet_ind+0 << "\t" << tet_ind+1 << "\t" << tet_ind+2 << "\t" << tet_ind+3 << "\n";
+      cout << tet_ind+0 << "\t" << tet_ind+1 << "\t" << tet_ind+2 << "\t" << tet_ind+3 << "\n";
       cout << "\n";
 
       assert(false);
-    }
+      }
     */
 
     dmn_2<K_dmn, w_dmn> K_wm_dmn;
@@ -506,16 +557,16 @@ namespace DCA
     int coor[2];
     for(int l=bounds.first; l<bounds.second; l++)
       {
-//         update_shell(l-bounds.first, bounds.second-bounds.first+1);
+        // update_shell(l-bounds.first, bounds.second-bounds.first+1);
 
         K_wm_dmn.linind_2_subind(l, coor);
 
         this->compute_G_q_w(coor[0], coor[1], H_k, S_K, I_tet, H_tet, S_tet, G_tet);
 
-//         if(l==w_dmn::dmn_size()/2-10 or l==w_dmn::dmn_size()/2+10)
-//           {
-//             //cout << w_dmn::get_elements()[l] << "\t";
-//           }
+        // if(l==w_dmn::dmn_size()/2-10 or l==w_dmn::dmn_size()/2+10)
+        //   {
+        //     //cout << w_dmn::get_elements()[l] << "\t";
+        //   }
 
         {
           FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu> > G_int;
@@ -539,8 +590,8 @@ namespace DCA
       G_K_w /= V_K;
     }
 
-//     if(concurrency.id()==0)
-//       cout << "\n\t end   " << __FUNCTION__ << " : " << print_time() << endl;
+    // if(concurrency.id()==0)
+    //   cout << "\n\t end   " << __FUNCTION__ << " : " << print_time() << endl;
   }
 
   /*****************************************
