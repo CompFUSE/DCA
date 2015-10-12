@@ -160,13 +160,15 @@ namespace DCA
     }
 
     const double factor = 10.;
-
-    for(int j=0; j<b::dmn_size(); j++){
-      for(int i=0; i<b::dmn_size(); i++){
-        shift(i,j) *= factor;
+    
+    for(int w_ind=w::dmn_size()/2; w_ind<w::dmn_size(); w_ind++){
+      for(int j=0; j<b::dmn_size(); j++){
+	for(int i=0; i<b::dmn_size(); i++){
+	  shift(i,j,w_ind) *= factor;
+	}
       }
     }
-
+    
   }
 
 
