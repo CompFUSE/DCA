@@ -43,6 +43,8 @@ namespace INFERENCE
   private:
 
     parameters_type&  parameters;
+    typename parameters_type::concurrency_type& concurrency;
+
 
     LIN_ALG::matrix<double, LIN_ALG::CPU> c;
     LIN_ALG::matrix<double, LIN_ALG::CPU> d;
@@ -56,6 +58,7 @@ namespace INFERENCE
   template<typename parameters_type, typename k_dmn_t, typename p_dmn_t>
   Richardson_Lucy_deconvolution<parameters_type, k_dmn_t, p_dmn_t>::Richardson_Lucy_deconvolution(parameters_type& parameters_ref):
     parameters(parameters_ref),
+    concurrency(parameters.get_concurrency()),
 
     c("c (Richardson_Lucy_deconvolution)"),
     d("d (Richardson_Lucy_deconvolution)"),
@@ -75,7 +78,11 @@ namespace INFERENCE
                                                                                  FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t> >& f_source,
                                                                                  FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t> >& f_target)
   {
-    //cout << __FUNCTION__ << endl;
+    if (concurrency.id() == 0)
+      {
+        std::cout << "\n\nRichardson_Lucy_deconvolution: " << __FUNCTION__ << std::endl;
+        std::cout << "It\tw_ind\tError_Re\tError_Im" << std::endl;
+      }
 
     assert(A.get_current_size().first==k_dmn_t::dmn_size());
     assert(A.get_current_size().first==A.get_current_size().second);
@@ -109,6 +116,18 @@ namespace INFERENCE
         LIN_ALG::GEMM<LIN_ALG::CPU>::execute(A, u_t, c);
 
         bool finished = update_f_target(is_finished, error_function, f_target);
+
+        // FIXME: This is hardcoded for 256 fermionic frequencies.
+        if (concurrency.id() == 0)
+          {
+            std::cout << l << "\t" << "253" << "\t" << error_function(0, 0, 0, 0, 253) << "\t" << error_function(1, 0, 0, 0, 253) << std::endl;
+            std::cout << l << "\t" << "254" << "\t" << error_function(0, 0, 0, 0, 254) << "\t" << error_function(1, 0, 0, 0, 254) << std::endl;
+            std::cout << l << "\t" << "255" << "\t" << error_function(0, 0, 0, 0, 255) << "\t" << error_function(1, 0, 0, 0, 255) << std::endl;
+            std::cout << l << "\t" << "256" << "\t" << error_function(0, 0, 0, 0, 256) << "\t" << error_function(1, 0, 0, 0, 256) << std::endl;
+            std::cout << l << "\t" << "257" << "\t" << error_function(0, 0, 0, 0, 257) << "\t" << error_function(1, 0, 0, 0, 257) << std::endl;
+            std::cout << l << "\t" << "258" << "\t" << error_function(0, 0, 0, 0, 258) << "\t" << error_function(1, 0, 0, 0, 258) << std::endl;
+            std::cout << std::endl;
+          }
 
         if(finished)
           break;
@@ -199,27 +218,27 @@ namespace INFERENCE
       {
         if(not is_finished(j))
           {
-            double error=0;
-            for(int i=0; i<k_dmn_t::dmn_size(); i++)
-              error += std::pow(c(i,j)-d(i,j), 2);
-            error = sqrt(error)/k_dmn_t::dmn_size();
+            double diff = 0;
+            double tot  = 1.e-6;
 
-//             if(j==p_dmn_t::dmn_size()/2+1){
-//               cout << error << "\t" << error_function(j) << "\t" << (error-error_function(j))/(error+1.e-12) << "\n";
-//             }
+            for(int i=0; i<k_dmn_t::dmn_size(); i++){
+              diff += std::pow(c(i,j)-d(i,j), 2);
+              tot  += std::pow(d(i,j), 2);
+            }
 
-            if( abs((error-error_function(j))/(error+1.e-12)) < epsilon)
+            error_function(j) = std::sqrt(diff/tot);
+
+            if(error_function(j) < epsilon)
               {
                 for(int i=0; i<k_dmn_t::dmn_size(); i++)
                   f_target(i,j) = u_t(i,j);
 
                 is_finished(j) = true;
               }
+
             else
               {
                 all_are_finished = false;
-
-                error_function(j) = error;
               }
           }
       }

@@ -43,7 +43,7 @@ namespace DCA
 
   private:
 
-    void find_shift(FUNC_LIB::function<std::complex<double>, dmn_2<b, b> >& shift,
+    void find_shift(FUNC_LIB::function<std::complex<double>, dmn_3<b, b, w> >& shift,
                     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& Sigma_interp);
 
   private:
@@ -70,7 +70,7 @@ namespace DCA
                                                                                   FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& f_approx,
                                                                                   FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& f_target)
   {
-    FUNC_LIB::function<std::complex<double>, dmn_2<b, b> > shift;
+    FUNC_LIB::function<std::complex<double>, dmn_3<b, b, w> > shift;
 
     find_shift(shift, f_interp);
 
@@ -84,16 +84,13 @@ namespace DCA
     FUNC_LIB::function<double, dmn_2<target_k_dmn_t, p_dmn_t> > S_target("S_target");
 
     for(int w_ind=0; w_ind<w::dmn_size(); w_ind++){
-
-      double factor = w_ind<w::dmn_size()/2 ? -1 : 1;
-
       for(int k_ind=0; k_ind<target_k_dmn_t::dmn_size(); k_ind++){
         for(int j=0; j<b::dmn_size(); j++){
           for(int i=0; i<b::dmn_size(); i++){
-            S_source(k_ind, 0, i, j, 0, w_ind) = real(f_interp(i,0,j,0,k_ind,w_ind)) - factor*real(shift(i,j));
-            S_source(k_ind, 1, i, j, 0, w_ind) = imag(f_interp(i,0,j,0,k_ind,w_ind)) - factor*imag(shift(i,j));
-            S_source(k_ind, 0, i, j, 1, w_ind) = real(f_interp(i,1,j,1,k_ind,w_ind)) - factor*real(shift(i,j));
-            S_source(k_ind, 1, i, j, 1, w_ind) = imag(f_interp(i,1,j,1,k_ind,w_ind)) - factor*imag(shift(i,j));
+            S_source(k_ind, 0, i, j, 0, w_ind) = real(f_interp(i,0,j,0,k_ind,w_ind)) - real(shift(i,j,w_ind));
+            S_source(k_ind, 1, i, j, 0, w_ind) = imag(f_interp(i,0,j,0,k_ind,w_ind)) - imag(shift(i,j,w_ind));
+            S_source(k_ind, 0, i, j, 1, w_ind) = real(f_interp(i,1,j,1,k_ind,w_ind)) - real(shift(i,j,w_ind));
+            S_source(k_ind, 1, i, j, 1, w_ind) = imag(f_interp(i,1,j,1,k_ind,w_ind)) - imag(shift(i,j,w_ind));
           }
         }
       }
@@ -102,32 +99,26 @@ namespace DCA
     RL_obj.execute(this->T_symmetrized, S_source, S_approx, S_target);
 
     for(int w_ind=0; w_ind<w::dmn_size(); w_ind++){
-
-      double factor = w_ind<w::dmn_size()/2 ? -1 : 1;
-
       for(int k_ind=0; k_ind<target_k_dmn_t::dmn_size(); k_ind++){
         for(int j=0; j<b::dmn_size(); j++){
           for(int i=0; i<b::dmn_size(); i++){
-	    f_approx(i,0,j,0,k_ind,w_ind).real(S_approx(k_ind, 0, i, j, 0, w_ind) + factor*real(shift(i,j)));
-            f_approx(i,0,j,0,k_ind,w_ind).imag(S_approx(k_ind, 1, i, j, 0, w_ind) + factor*imag(shift(i,j)));
-            f_approx(i,1,j,1,k_ind,w_ind).real(S_approx(k_ind, 0, i, j, 1, w_ind) + factor*real(shift(i,j)));
-            f_approx(i,1,j,1,k_ind,w_ind).imag(S_approx(k_ind, 1, i, j, 1, w_ind) + factor*imag(shift(i,j)));
+            f_approx(i,0,j,0,k_ind,w_ind).real(S_approx(k_ind, 0, i, j, 0, w_ind) + real(shift(i,j,w_ind)));
+            f_approx(i,0,j,0,k_ind,w_ind).imag(S_approx(k_ind, 1, i, j, 0, w_ind) + imag(shift(i,j,w_ind)));
+            f_approx(i,1,j,1,k_ind,w_ind).real(S_approx(k_ind, 0, i, j, 1, w_ind) + real(shift(i,j,w_ind)));
+            f_approx(i,1,j,1,k_ind,w_ind).imag(S_approx(k_ind, 1, i, j, 1, w_ind) + imag(shift(i,j,w_ind)));
           }
         }
       }
     }
 
     for(int w_ind=0; w_ind<w::dmn_size(); w_ind++){
-
-      double factor = w_ind<w::dmn_size()/2 ? -1 : 1;
-
       for(int k_ind=0; k_ind<target_k_dmn_t::dmn_size(); k_ind++){
         for(int j=0; j<b::dmn_size(); j++){
           for(int i=0; i<b::dmn_size(); i++){
-	    f_target(i,0,j,0,k_ind,w_ind).real(S_target(k_ind, 0, i, j, 0, w_ind) + factor*real(shift(i,j)));
-	    f_target(i,0,j,0,k_ind,w_ind).imag(S_target(k_ind, 1, i, j, 0, w_ind) + factor*imag(shift(i,j)));
-	    f_target(i,1,j,1,k_ind,w_ind).real(S_target(k_ind, 0, i, j, 1, w_ind) + factor*real(shift(i,j)));
-	    f_target(i,1,j,1,k_ind,w_ind).imag(S_target(k_ind, 1, i, j, 1, w_ind) + factor*imag(shift(i,j)));
+            f_target(i,0,j,0,k_ind,w_ind).real(S_target(k_ind, 0, i, j, 0, w_ind) + real(shift(i,j,w_ind)));
+            f_target(i,0,j,0,k_ind,w_ind).imag(S_target(k_ind, 1, i, j, 0, w_ind) + imag(shift(i,j,w_ind)));
+            f_target(i,1,j,1,k_ind,w_ind).real(S_target(k_ind, 0, i, j, 1, w_ind) + real(shift(i,j,w_ind)));
+            f_target(i,1,j,1,k_ind,w_ind).imag(S_target(k_ind, 1, i, j, 1, w_ind) + imag(shift(i,j,w_ind)));
           }
         }
       }
@@ -136,13 +127,15 @@ namespace DCA
   }
 
   template<typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
-  void deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::find_shift(FUNC_LIB::function<std::complex<double>, dmn_2<b, b> >&                      shift,
+  void deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::find_shift(FUNC_LIB::function<std::complex<double>, dmn_3<b, b, w> >&                      shift,
                                                                                      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w> >& Sigma_interp)
   {
-    for(int j=0; j<b::dmn_size(); j++){
-      for(int i=0; i<b::dmn_size(); i++){
-		shift(i,j).real(0);
-		shift(i,j).imag(0);
+    for(int w_ind=0; w_ind<w::dmn_size(); w_ind++){
+      for(int j=0; j<b::dmn_size(); j++){
+        for(int i=0; i<b::dmn_size(); i++){
+          shift(i,j,w_ind).real(0);
+          shift(i,j,w_ind).imag(0);
+        }
       }
     }
 
@@ -150,20 +143,32 @@ namespace DCA
       for(int k_ind=0; k_ind<target_k_dmn_t::dmn_size(); k_ind++){
         for(int j=0; j<b::dmn_size(); j++){
           for(int i=0; i<b::dmn_size(); i++){
-	    shift(i,j).real(std::max(real(shift(i,j)), real(Sigma_interp(i,j,k_ind,w_ind)) ));
-            shift(i,j).imag(std::max(imag(shift(i,j)), imag(Sigma_interp(i,j,k_ind,w_ind)) ));
+
+            if(w_ind<w::dmn_size()/2)
+              {
+                shift(i,j,w_ind).real(std::min(real(shift(i,j,w_ind)), real(Sigma_interp(i,j,k_ind,w_ind)) ));
+                shift(i,j,w_ind).imag(std::min(imag(shift(i,j,w_ind)), imag(Sigma_interp(i,j,k_ind,w_ind)) ));
+              }
+            else
+              {
+                shift(i,j,w_ind).real(std::max(real(shift(i,j,w_ind)), real(Sigma_interp(i,j,k_ind,w_ind)) ));
+                shift(i,j,w_ind).imag(std::max(imag(shift(i,j,w_ind)), imag(Sigma_interp(i,j,k_ind,w_ind)) ));
+              }
           }
         }
       }
     }
 
+    const double factor = 10.;
+
     for(int j=0; j<b::dmn_size(); j++){
       for(int i=0; i<b::dmn_size(); i++){
-		shift(i,j).real(2.*real(shift(i,j))+1);
-        shift(i,j).imag(2.*imag(shift(i,j))+1);
+        shift(i,j) *= factor;
       }
     }
+
   }
+
 
 }
 

@@ -582,9 +582,9 @@ namespace DCA
     //     cout << "\n";
     // }
 
-    // if(concurrency.id()==concurrency.last())
-    //   std::cout << "\n\nsymmetrize Gamma_sym according to the symmetry-group\n" << std::endl;
-    // symmetrize::execute(Gamma_sym, parameters.get_q_vector());
+    if(concurrency.id()==concurrency.last())
+      std::cout << "\n\nsymmetrize Gamma_sym according to the symmetry-group\n" << std::endl;
+    symmetrize::execute(Gamma_sym, parameters.get_q_vector());
   }
 
   template<class parameters_type, class MOMS_type>
