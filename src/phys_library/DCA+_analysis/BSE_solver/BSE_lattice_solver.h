@@ -136,9 +136,12 @@ namespace DCA
     FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>                         Gamma_sym;
     FUNC_LIB::function<std::complex<scalartype>, dmn_4<b_b, b_b, k_HOST_VERTEX, w_VERTEX> > chi_0_function;
 
-    FUNC_LIB::function<scalartype,               lambda_dmn_type                                   > leading_eigenvalues;
+    FUNC_LIB::function<std::complex<scalartype>, lambda_dmn_type                                   > leading_eigenvalues;
     FUNC_LIB::function<std::complex<scalartype>, dmn_2<lambda_dmn_type, cubic_eigenvector_dmn_t  > > leading_symmetry_decomposition;
-    FUNC_LIB::function<scalartype,               dmn_2<lambda_dmn_type, lattice_eigenvector_dmn_t> > leading_eigenvectors;
+    FUNC_LIB::function<std::complex<scalartype>, dmn_2<lambda_dmn_type, lattice_eigenvector_dmn_t> > leading_eigenvectors;
+
+    FUNC_LIB::function<scalartype, lambda_dmn_type                                   > leading_eigenvalues_real;
+    FUNC_LIB::function<scalartype, dmn_2<lambda_dmn_type, lattice_eigenvector_dmn_t> > leading_eigenvectors_real;
 
     FUNC_LIB::function<std::complex<scalartype>, dmn_2<chi_vector_dmn_t, chi_vector_dmn_t> >         chi_q;
 
@@ -163,6 +166,9 @@ namespace DCA
     leading_symmetry_decomposition("leading-symmetry-decomposition"),
     leading_eigenvectors("leading-eigenvectors"),
 
+    leading_eigenvalues_real("leading-eigenvalues-real"),
+    leading_eigenvectors_real("leading-eigenvectors-real"),
+
     chi_q("chi(q)"),
 
     psi_k("psi_k"),
@@ -186,13 +192,26 @@ namespace DCA
   template<IO::FORMAT DATA_FORMAT>
   void BSE_lattice_solver<parameters_type, MOMS_type>::write(IO::writer<DATA_FORMAT>& writer)
   {
-    writer.execute(leading_eigenvalues);
-    writer.execute(leading_eigenvectors);
+    if (parameters.do_diagonolization_on_folded_Gamma_chi_0())
+      {
+        writer.execute(leading_eigenvalues);
+        writer.execute(leading_eigenvectors);
 
-    writer.execute(chi_0_function);
-    // writer.execute(Gamma_lattice);
-    writer.execute(Gamma_sym);
-    writer.execute(MOMS.Sigma_lattice);
+        writer.execute(leading_symmetry_decomposition);
+        writer.execute(leading_symmetry_functions);
+
+        writer.execute(Gamma_lattice);
+        writer.execute(chi_0_function);
+      }
+
+    else
+      {
+        writer.execute(leading_eigenvalues_real);
+        writer.execute(leading_eigenvectors_real);
+
+        writer.execute(Gamma_sym);
+        writer.execute(chi_0_function);
+      }
   }
 
   template<class parameters_type, class MOMS_type>
@@ -539,17 +558,19 @@ namespace DCA
     profiler_type prof(__FUNCTION__, "BSE_lattice_solver", __LINE__);
 
     // Need following condition lines for regular DCA; otherwise execute(Gamma_cluster, Gamma_lattice) still do SVD etc.
-    if (!parameters.use_interpolated_Self_energy()) {
-      int N = lattice_eigenvector_dmn_t::dmn_size();
-      for (int i=0; i<N; i++)
-        for (int j=0; j<N; j++)
-          Gamma_lattice(i,j) = Gamma_cluster(i,j);
-    } else {
+    if (!parameters.use_interpolated_Self_energy())
+      {
+        int N = lattice_eigenvector_dmn_t::dmn_size();
+        for (int i=0; i<N; i++)
+          for (int j=0; j<N; j++)
+            Gamma_lattice(i,j) = Gamma_cluster(i,j);
+      }
+    else
+      {
+        lattice_map_tp<parameters_type, k_DCA, k_HOST_VERTEX> lattice_map_tp_obj(parameters);
 
-      lattice_map_tp<parameters_type, k_DCA, k_HOST_VERTEX> lattice_map_tp_obj(parameters);
-
-      lattice_map_tp_obj.execute(Gamma_cluster, Gamma_lattice);
-    }
+        lattice_map_tp_obj.execute(Gamma_cluster, Gamma_lattice);
+      }
 
     if(concurrency.id()==concurrency.last())
       cout << "\n\n\t symmetrize Gamma_lattice for even-frequency part (only need to symmetrize w2 argument in Gamma(k1,w1,k2,w2)), then compute Gamma_chi_0_lattice " << print_time() << " ...";
@@ -582,21 +603,27 @@ namespace DCA
     //     cout << "\n";
     // }
 
-    if(concurrency.id()==concurrency.last())
-      std::cout << "\n\nsymmetrize Gamma_sym according to the symmetry-group\n" << std::endl;
-    symmetrize::execute(Gamma_sym, parameters.get_q_vector());
+    if(not parameters.do_diagonolization_on_folded_Gamma_chi_0()) // if(parameters.do_symmetrization_of_Gamma())
+      {
+        if(concurrency.id()==concurrency.last())
+          std::cout << "\n\nsymmetrize Gamma_sym according to the symmetry-group\n" << std::endl;
+        symmetrize::execute(Gamma_sym, parameters.get_q_vector());
+      }
   }
 
   template<class parameters_type, class MOMS_type>
   void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_Gamma_chi_0(FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
                                                                                FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice)
   {
-    // if(parameters.do_diagonolization_on_folded_Gamma_chi_0())
-    //  diagonolize_folded_Gamma_chi_0(Gamma_lattice, chi_0_lattice);
-    //else
-    diagonolize_full_Gamma_chi_0(Gamma_lattice, chi_0_lattice);
-
-    //characterize_leading_eigenvectors();
+    if(parameters.do_diagonolization_on_folded_Gamma_chi_0())
+      {
+        diagonolize_folded_Gamma_chi_0(Gamma_lattice, chi_0_lattice);
+        characterize_leading_eigenvectors();
+      }
+    else
+      {
+        diagonolize_full_Gamma_chi_0(Gamma_lattice, chi_0_lattice);
+      }
   }
 
   template<class parameters_type, class MOMS_type>
@@ -634,15 +661,6 @@ namespace DCA
 
       if(concurrency.id()==concurrency.last())
         cout << " finished " << print_time() << "\n";
-      /*   cout << "\n\n\t debug: check whether chi_0_Gamma_chi_0 is hermitian " << "\n";
-           cout << "\n\n\t chi_0_Gamma_chi_0_temp(2,10) = "   << chi_0_Gamma_chi_0_temp(2,10) << "\n";
-           cout << "\n\n\t chi_0_Gamma_chi_0_temp(10,2) = "   << chi_0_Gamma_chi_0_temp(10,2) << "\n";
-           cout << "\n\n\t chi_0_Gamma_chi_0_temp(34,100) = " << chi_0_Gamma_chi_0_temp(34,100) << "\n";
-           cout << "\n\n\t chi_0_Gamma_chi_0_temp(100,34) = " << chi_0_Gamma_chi_0_temp(100,34) << "\n";
-           cout << "\n\n\t chi_0_Gamma_chi_0_temp(27,80) = "   << chi_0_Gamma_chi_0_temp(27,80) << "\n";
-           cout << "\n\n\t chi_0_Gamma_chi_0_temp(80,27) = "   << chi_0_Gamma_chi_0_temp(80,27) << "\n";
-           cout << "\n\n\t chi_0_Gamma_chi_0_temp(36,50) = " << chi_0_Gamma_chi_0_temp(36,50) << "\n";
-           cout << "\n\n\t chi_0_Gamma_chi_0_temp(50,36) = " << chi_0_Gamma_chi_0_temp(50,36) << "\n";*/
     }
 
     {
@@ -689,7 +707,8 @@ namespace DCA
   }
 
   template<class parameters_type, class MOMS_type>
-  void BSE_lattice_solver<parameters_type, MOMS_type>::record_eigenvalues_and_eigenvectors(LIN_ALG::vector<scalartype, LIN_ALG::CPU>& L, LIN_ALG::matrix<scalartype, LIN_ALG::CPU>& VR)
+  void BSE_lattice_solver<parameters_type, MOMS_type>::record_eigenvalues_and_eigenvectors(LIN_ALG::vector<scalartype, LIN_ALG::CPU>& L,
+                                                                                           LIN_ALG::matrix<scalartype, LIN_ALG::CPU>& VR)
   {
     int N = lattice_eigenvector_dmn_t::dmn_size();
     //   int M = crystal_eigenvector_dmn_t::dmn_size();
@@ -710,10 +729,10 @@ namespace DCA
       {
         int index = eigenvals_mod[i].second;
 
-        leading_eigenvalues(i) = L[index];
+        leading_eigenvalues_real(i) = L[index];
 
         for(int j=0; j<N; j++)
-          leading_eigenvectors(i, j) = VR(j, index);
+          leading_eigenvectors_real(i, j) = VR(j, index);
       }
 
     if(concurrency.id()==concurrency.last())
@@ -795,7 +814,7 @@ namespace DCA
 
       record_eigenvalues_and_folded_eigenvectors(L, VL, VR);
 
-      print_on_shell_ppSC();
+      print_on_shell();
 
       if(parameters.compute_P_q_lattice()){
 
@@ -962,7 +981,7 @@ namespace DCA
 
           {
             cout << "\t" << -1 << "\t[ " << 0. << ", "   << 0. << "]";
-            for(int i=0; i<20; i++)
+            for(int i=0; i<N_LAMBDAS; i++)
               cout << "\t[ " << real(leading_eigenvalues(i))
                    << ", "   << imag(leading_eigenvalues(i)) << "]";
             cout << "\n\t========================================\n";
@@ -974,7 +993,7 @@ namespace DCA
                    << "\t[ " << crystal_harmonics_expansion::get_elements()[l][0]
                    << ", "   << crystal_harmonics_expansion::get_elements()[l][1] << "]";
 
-              for(int i=0; i<20; i++)
+              for(int i=0; i<N_LAMBDAS; i++)
                 {
                   std::complex<scalartype> result = 0;
                   std::complex<scalartype> norm   = 0;
@@ -1033,7 +1052,7 @@ namespace DCA
         {
           cout << "\n\n\t\t 10 leading eigenvalues : ( T=" << 1./parameters.get_beta() << " )\n\n";
           for(int i=0; i<N_LAMBDAS; i++)
-            cout << "\t" << i << "\t[" << leading_eigenvalues(i) << "]\n";
+            cout << "\t" << i << "\t[" << leading_eigenvalues_real(i) << "]\n";
         }
 
         {
@@ -1060,7 +1079,7 @@ namespace DCA
             {
               for(int w=0; w<w_VERTEX::dmn_size(); w++)
                 {
-                  cout << i << "   " << w_VERTEX::get_elements()[w] << "   " << leading_eigenvectors(i,0,0,ind0pi,w) << "   " << leading_eigenvectors(i,0,0,indpi0,w) << "\n";
+                  cout << i << "   " << w_VERTEX::get_elements()[w] << "   " << leading_eigenvectors_real(i,0,0,ind0pi,w) << "   " << leading_eigenvectors_real(i,0,0,indpi0,w) << "\n";
                 }
               cout << "----------------------------------------------------------------------" << "\n";
             }
@@ -1095,16 +1114,13 @@ namespace DCA
   {
     profiler_type prof(__FUNCTION__, "BSE_lattice_solver", __LINE__);
 
-    int N = lattice_eigenvector_dmn_t::dmn_size();
+    if(concurrency.id() == concurrency.first())
+      std::cout << "\n\n\t" << __FUNCTION__ << " " << print_time() << std::endl;
 
-    if(concurrency.id()==concurrency.last())
-      cout << "\n\n\t symmetrize_leading_eigenvectors() " << print_time() << "...";
+    int N = lattice_eigenvector_dmn_t::dmn_size();;
 
-    //   int idx = 0;
-    for(int i=0; i<5; i++)
+    for(int i=0; i<N_LAMBDAS; i++)
       {
-        //      idx += 1;
-        //     cout << "\n\n\t Index_lambda = " << idx << "\n";
         scalartype N_phases=1.e4;
 
         std::complex<scalartype> alpha_min=0;
@@ -1132,8 +1148,9 @@ namespace DCA
         for(int l=0; l<N; l++)
           leading_eigenvectors(i, l) *= alpha_min;
       }
-    if(concurrency.id()==concurrency.last())
-      cout << "symmetrize_leading_eigenvectors finished " << print_time() << "\n";
+
+    if(concurrency.id() == concurrency.last())
+      std::cout << "\t" << __FUNCTION__ << " finished " << print_time() << std::endl;
   }
 
   template<class parameters_type, class MOMS_type>
