@@ -174,11 +174,10 @@ namespace DCA
   template<typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
   void deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::compute_phi_inv(double epsilon)
   {
-    if(false)
+    if(true)
       {
-//     FUNC_LIB::function<double, target_r_dmn_t> phi_r_inv;
-//     for(int i=0; i<target_k_dmn_t::dmn_size(); i++)
-//       phi_r_inv(i) = phi_r(i) > epsilon ? 1./phi_r(i) : 0;//1./epsilon;
+        for(int i=0; i<target_k_dmn_t::dmn_size(); i++)
+          phi_r_inv(i) = std::abs(phi_r(i)) > epsilon ? 1./phi_r(i) : 0.;//1./epsilon;
       }
     else
       {
