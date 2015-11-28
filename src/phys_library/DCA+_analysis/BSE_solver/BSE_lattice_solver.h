@@ -109,6 +109,10 @@ namespace DCA
     void record_eigenvalues_and_eigenvectors(LIN_ALG::vector<scalartype, LIN_ALG::CPU>& L,
                                              LIN_ALG::matrix<scalartype, LIN_ALG::CPU>& VR);
 
+    void record_eigenvalues_and_eigenvectors(LIN_ALG::vector<std::complex<scalartype>, LIN_ALG::CPU>& L,
+                                             LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& VL,
+                                             LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& VR);
+
     void diagonolize_folded_Gamma_chi_0(FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
                                         FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice);
 
@@ -610,10 +614,23 @@ namespace DCA
 
     if(parameters.do_symmetrization_of_Gamma())
       {
-        if(concurrency.id()==concurrency.last())
-          std::cout << "\n\nsymmetrize Gamma according to the symmetry-group\n" << std::endl;
+        if(true)
+          {
+            concurrency << "symmetrize Gamma_lattice according to the symmetry-group \n\n";
+
+            symmetrize::execute(Gamma_lattice  , parameters.get_q_vector());
         // symmetrize::execute(Gamma_sym, parameters.get_q_vector());
-        symmetrize::execute(Gamma_lattice, parameters.get_q_vector());
+          }
+
+        if(true)
+          {
+            concurrency << "symmetrize Gamma_lattice according to diagrammatic symmetries \n\n";
+
+            diagrammatic_symmetries<parameters_type> diagrammatic_symmetries_obj(parameters);
+
+            diagrammatic_symmetries_obj.execute(Gamma_lattice);
+            // diagrammatic_symmetries_obj.execute(Gamma_symm);
+          }
       }
   }
 
@@ -714,8 +731,8 @@ namespace DCA
   }
 
   template<class parameters_type, class MOMS_type>
-  void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_full_Gamma_chi_0(function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
-                                                                                    function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice)
+  void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_full_Gamma_chi_0(FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
+                                                                                    FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice)
   {
     profiler_type prof(__FUNCTION__, "BSE_lattice_solver", __LINE__);
 
@@ -821,6 +838,36 @@ namespace DCA
       cout << "\n\n\t recording eigenvalues and eigenvectors finished! " << print_time() << "\n";
 
     //  symmetrize_leading_eigenvectors();
+  }
+
+  template<class parameters_type, class MOMS_type>
+  void BSE_lattice_solver<parameters_type, MOMS_type>::record_eigenvalues_and_eigenvectors(LIN_ALG::vector<std::complex<scalartype>, LIN_ALG::CPU>& L,
+                                                                                           LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& VL,
+                                                                                           LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& VR)
+  {
+    int N = lattice_eigenvector_dmn_t::dmn_size();
+    int M = crystal_eigenvector_dmn_t::dmn_size();
+
+    std::vector<std::pair<std::complex<scalartype>, int> > eigenvals(M);
+
+    for(int i=0; i<M; i++){
+      eigenvals[i].first  = L[i];
+      eigenvals[i].second = i;
+    }
+
+    stable_sort(eigenvals.begin(), eigenvals.end(), &susceptibility_less_pairs);
+
+    for(int i=0; i<N_LAMBDAS; i++)
+    {
+      int index = eigenvals[eigenvals.size()-1-i].second;
+
+      leading_eigenvalues(i) = L[index];
+
+      for(int j=0; j<N; j++)
+        leading_eigenvectors(i, j) = VR(j, index);
+    }
+
+    symmetrize_leading_eigenvectors();
   }
 
   template<class parameters_type, class MOMS_type>
