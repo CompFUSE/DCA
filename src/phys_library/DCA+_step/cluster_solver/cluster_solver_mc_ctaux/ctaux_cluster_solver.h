@@ -370,6 +370,7 @@ namespace DCA
           compute_S_k_w_new(G_k_w_new, Sigma_new);
 
           concurrency.average_and_compute_stddev(Sigma_new, MOMS.Sigma_stddev, 1);
+          concurrency.average_and_compute_stddev(G_k_w_new, MOMS.G_k_w_stddev, 1);
         }
 
         {// sum G4

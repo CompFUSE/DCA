@@ -106,6 +106,7 @@ namespace DCA
     FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_HOST ,w> > Sigma_lattice_coarsegrained;
 
     FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w> > G_k_w;
+    FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w> > G_k_w_stddev;
     FUNC_LIB::function<double              , dmn_4<nu,nu,k_dmn_t,t> > G_k_t;
     FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,r_dmn_t,w> > G_r_w;
     FUNC_LIB::function<double              , dmn_4<nu,nu,r_dmn_t,t> > G_r_t;
@@ -165,6 +166,7 @@ namespace DCA
     Sigma_lattice_coarsegrained("Sigma_lattice_coarsegrained"),
 
     G_k_w("cluster_greens_function_G_k_w"),
+    G_k_w_stddev("cluster_greens_function_G_k_w-stddev"),
     G_k_t("cluster_greens_function_G_k_t"),
     G_r_w("cluster_greens_function_G_r_w"),
     G_r_t("cluster_greens_function_G_r_t"),
@@ -180,6 +182,7 @@ namespace DCA
     G0_r_t_cluster_excluded("cluster_excluded_greens_function_G0_r_t"),
 
     G4_k_k_w_w("G4_k_k_w_w"),
+    G4_k_k_w_w_stddev("G4_k_k_w_w-stddev"),
 
     K_r_t("K_r_t"),
 
@@ -421,6 +424,7 @@ namespace DCA
         //      MATH_ALGORITHMS::TRANSFORM<r_DCA, k_DCA>::execute(G0_r_t_cluster_excluded, G0_k_t_cluster_excluded);
 
         writer.execute(G_k_w);
+        writer.execute(G_k_w_stddev);
         writer.execute(G_r_w);
         writer.execute(G_k_t);
         writer.execute(G_r_t);
@@ -459,8 +463,10 @@ namespace DCA
                 parameters.do_equal_time_measurements() or
                 parameters.dump_cluster_Greens_functions()))
           writer.execute(G_k_w);
+          writer.execute(G_k_w_stddev);
 
         writer.execute(G4_k_k_w_w);
+        writer.execute(G4_k_k_w_w_stddev);
       }
 
     writer.close_group();
