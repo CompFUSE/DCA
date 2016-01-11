@@ -29,7 +29,7 @@ public:
 
 
 template<int DIMENSION>
-void group_action<DIMENSION>::action(double* vec, const double* matrix)
+void group_action<DIMENSION>::action(double* /*vec*/, const double* /*matrix*/)
 {}
 
 template<>
@@ -90,7 +90,7 @@ void group_action<3>::action(std::vector<double>& vec, const double* matrix)
 
 
 template<int DIMENSION>
-bool group_action<DIMENSION>::is_equivalent(double* vec1, double* vec2, const double* matrix)
+bool group_action<DIMENSION>::is_equivalent(double* /*vec1*/, double* /*vec2*/, const double* /*matrix*/)
 {
   return false;
 }

@@ -21,7 +21,7 @@ namespace LIN_ALG {
 
     template<typename scalartype>
     inline static void row(matrix<scalartype, GPU>& M, scalartype val, int i,
-			   int thread_id, int stream_id)
+                           int /*thread_id*/, int stream_id)
     {
       assert(stream_id==0);
       execute(M.get_current_size().second, val, M.get_ptr(i,0), M.get_global_size().first);
@@ -29,7 +29,7 @@ namespace LIN_ALG {
 
     template<typename scalartype>
     inline static void col(matrix<scalartype, GPU>& M, scalartype val, int i,
-			   int thread_id, int stream_id)
+                           int /*thread_id*/, int stream_id)
     {
       assert(stream_id==0);
       execute(M.get_current_size().first, val, M.get_ptr(0,i), val, M.get_global_size().second);
@@ -37,7 +37,7 @@ namespace LIN_ALG {
 
     template<typename scalartype>
     inline static void row_and_col(matrix<scalartype, GPU>& M, scalartype val, int i,
-				   int thread_id, int stream_id)
+                                   int /*thread_id*/, int stream_id)
     {
       assert(stream_id==0);
       SCALE<GPU>::row(M, val, i);

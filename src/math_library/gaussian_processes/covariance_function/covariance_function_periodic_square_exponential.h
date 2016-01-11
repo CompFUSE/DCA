@@ -142,7 +142,7 @@ namespace MATH_LIBRARY
         break;
 
       default:
-        cout << __FUNCTION__ << endl;
+        std::cout << __FUNCTION__ << std::endl;
       }
 
 

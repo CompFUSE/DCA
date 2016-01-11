@@ -126,12 +126,12 @@ namespace dca {
 //   {
 // //     for(int i=0; i<w_VERTEX::dmn_size(); i++)
 // //       for(int j=0; j<w_VERTEX::dmn_size(); j++)
-// // 	if(fabs(w_VERTEX::parameter_type::get_elements()[i]-w_VERTEX::parameter_type::get_elements()[j])<1.e-6)
+// // 	if(std::fabs(w_VERTEX::parameter_type::get_elements()[i]-w_VERTEX::parameter_type::get_elements()[j])<1.e-6)
 // // 	  corresponding_extended_index[i] = j;
 
 // //     for(int j=0; j<w_VERTEX::dmn_size(); j++)
 // //       for(int i=0; i<w_VERTEX::dmn_size(); i++)
-// //       	if(fabs(w_VERTEX::parameter_type::get_elements()[i]-w_VERTEX::parameter_type::get_elements()[j])<1.e-6)
+// //       	if(std::fabs(w_VERTEX::parameter_type::get_elements()[i]-w_VERTEX::parameter_type::get_elements()[j])<1.e-6)
 // // 	  is_compact_frequency[j] = true;
 //   }
 

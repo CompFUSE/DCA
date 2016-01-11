@@ -512,7 +512,7 @@ inline void hspline_interpolation_kernel<scalartype, cluster_domain<scalar_type,
 template<typename scalartype, typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S, typename target_k_dmn_t>
 inline double hspline_interpolation_kernel<scalartype, cluster_domain<scalar_type, D, N, MOMENTUM_SPACE, S>, target_k_dmn_t>::evaluate_hermite_kernel(double x)
 {
-  double absX = fabs(x);
+  double absX = std::fabs(x);
 
   if(absX>2)
     return 0.;
@@ -548,7 +548,7 @@ inline double hspline_interpolation_kernel<scalartype, cluster_domain<scalar_typ
 	double Hx;
 	for(size_t n0=0; n0<neighbours.size(); ++n0){
 	    
-	  x[0] = k_vec[0]/fabs(neighbours[n0][0]);
+	  x[0] = k_vec[0]/std::fabs(neighbours[n0][0]);
   
 	  Hx = evaluate_hermite_kernel(x[0]);
 	  
@@ -564,7 +564,7 @@ inline double hspline_interpolation_kernel<scalartype, cluster_domain<scalar_typ
 	for(size_t n0=0; n0<neighbours.size(); ++n0){
 	  for(size_t n1=0; n1<neighbours.size(); ++n1){
 	    
-	    if(fabs(volume(&neighbours[n0][0], &neighbours[n1][0])) > 1.e-6){
+	    if(std::fabs(volume(&neighbours[n0][0], &neighbours[n1][0])) > 1.e-6){
 
 	      coordinates(&neighbours[n0][0], &neighbours[n1][0], &k_vec[0], &x[0]);
 	      
@@ -586,7 +586,7 @@ inline double hspline_interpolation_kernel<scalartype, cluster_domain<scalar_typ
 	  for(size_t n1=0; n1<neighbours.size(); ++n1){
 	    for(size_t n2=0; n2<neighbours.size(); ++n2){
 	    
-	      if(fabs(volume(&neighbours[n0][0], &neighbours[n1][0], &neighbours[n2][0])) > 1.e-6){
+	      if(std::fabs(volume(&neighbours[n0][0], &neighbours[n1][0], &neighbours[n2][0])) > 1.e-6){
 
 		coordinates(&neighbours[n0][0], &neighbours[n1][0], &neighbours[n2][0], &k_vec[0], &x[0]);
 		
@@ -616,7 +616,7 @@ inline double hspline_interpolation_kernel<scalartype, cluster_domain<scalar_typ
 template<typename scalartype, typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S, typename target_k_dmn_t>
 void hspline_interpolation_kernel<scalartype, cluster_domain<scalar_type, D, N, MOMENTUM_SPACE, S>, target_k_dmn_t>::construct_interpolation_matrix()
 {
-  cout << __FUNCTION__ << endl;
+  std::cout << __FUNCTION__ << std::endl;
 
   int N_k_ext = extended_k_domain<source_k_dmn_t>::get_size();
 

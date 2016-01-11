@@ -109,7 +109,7 @@ namespace DCA
     W_3 = new std::complex<scalar_type>[N];
 
     {// GEINV
-      GEINV_LWORK = 128*max(1,N);
+      GEINV_LWORK = 128*std::max(1,N);
 
       GEINV_IPIV = new int[N];
       GEINV_WORK = new std::complex<scalar_type>[GEINV_LWORK];

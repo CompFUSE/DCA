@@ -37,7 +37,7 @@ namespace MATH_ALGORITHMS
 //       GENERIC_ASSERT<IS_EQUAL<TRANSFORMED_DOMAIN, domain_output>::CHECK>::execute();
 
       if(VERBOSE)
-	cout << "\n\n\t" << __FUNCTION__ << "\t" << f_input.get_name() << " --> " << f_output.get_name() << "\n\n";
+	std::cout << "\n\n\t" << __FUNCTION__ << "\t" << f_input.get_name() << " --> " << f_output.get_name() << "\n\n";
       
       assert(CURR_DMN_INDEX>-1 and CURR_DMN_INDEX<f_input.signature());
       
@@ -52,7 +52,7 @@ namespace MATH_ALGORITHMS
 //       GENERIC_ASSERT<IS_EQUAL<TRANSFORMED_DOMAIN, domain_output>::CHECK>::execute();
 
       if(VERBOSE)
-	cout << "\n\n\t" << __FUNCTION__ << "\t" << f_input.get_name() << " --> " << f_output.get_name() << "\n\n";
+	std::cout << "\n\n\t" << __FUNCTION__ << "\t" << f_input.get_name() << " --> " << f_output.get_name() << "\n\n";
       
       assert(CURR_DMN_INDEX>-1 and CURR_DMN_INDEX<f_input.signature());
       
@@ -64,7 +64,7 @@ namespace MATH_ALGORITHMS
 			       FUNC_LIB::function<scalartype_output, domain_output>& f_output)
     {
       if(VERBOSE){
-	cout << "\n\n\t" << __FUNCTION__ << "\t" << f_input.get_name() << " --> " << f_output.get_name() << "\n\n";
+	std::cout << "\n\n\t" << __FUNCTION__ << "\t" << f_input.get_name() << " --> " << f_output.get_name() << "\n\n";
 
 	f_input.print_fingerprint();
       }
@@ -76,7 +76,7 @@ namespace MATH_ALGORITHMS
       if(NEXT_DMN_INDEX == -1)
 	{
 	  if(VERBOSE)
-	    cout << "\n\n\tSTOP\t  start the copy "<< endl;
+	    std::cout << "\n\n\tSTOP\t  start the copy "<< std::endl;
 	  
 	  assert(f_output_new.size()==f_output.size());
 	  
@@ -86,13 +86,13 @@ namespace MATH_ALGORITHMS
 	  if(VERBOSE){
 	    f_output.print_fingerprint();
 
-	    cout << "\n\n\tSTOP\t finished the copy\n\n\n" << endl;
+	    std::cout << "\n\n\tSTOP\t finished the copy\n\n\n" << std::endl;
 	  }
 	}
       else
 	{
 	  if(VERBOSE){
-	    cout << "\n\n\tSTART\t" << __FUNCTION__ << endl;
+	    std::cout << "\n\n\tSTART\t" << __FUNCTION__ << std::endl;
 	  
 	    f_output_new.print_fingerprint();
 	  }
@@ -107,7 +107,7 @@ namespace MATH_ALGORITHMS
 			       LIN_ALG::matrix<scalartype_T, LIN_ALG::CPU>& T)
     {
       if(VERBOSE){
-	cout << "\n\n\t" << __FUNCTION__ << "\t" << f_input.get_name() << " --> " << f_output.get_name() << "\n\n";
+	std::cout << "\n\n\t" << __FUNCTION__ << "\t" << f_input.get_name() << " --> " << f_output.get_name() << "\n\n";
 
 	f_input.print_fingerprint();
       }
@@ -119,7 +119,7 @@ namespace MATH_ALGORITHMS
       if(NEXT_DMN_INDEX == -1)
 	{
 	  if(VERBOSE)
-	    cout << "\n\n\tSTOP\t  start the copy "<< endl;
+	    std::cout << "\n\n\tSTOP\t  start the copy "<< std::endl;
 	  
 	  assert(f_output_new.size()==f_output.size());
 	  
@@ -129,13 +129,13 @@ namespace MATH_ALGORITHMS
 	  if(VERBOSE){
 	    f_output.print_fingerprint();
 
-	    cout << "\n\n\tSTOP\t finished the copy\n\n\n" << endl;
+	    std::cout << "\n\n\tSTOP\t finished the copy\n\n\n" << std::endl;
 	  }
 	}
       else
 	{
 	  if(VERBOSE){
-	    cout << "\n\n\tSTART\t" << __FUNCTION__ << endl;
+	    std::cout << "\n\n\tSTART\t" << __FUNCTION__ << std::endl;
 	  
 	    f_output_new.print_fingerprint();
 	  }

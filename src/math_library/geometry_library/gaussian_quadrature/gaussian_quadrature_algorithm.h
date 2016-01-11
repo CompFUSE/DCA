@@ -219,7 +219,7 @@ namespace MATH_ALGORITHMS
 
     Output, double X[DIM_NUM*POINT_NUM], the abscissas.
   */
-  void GAUSSIAN_QUADRATURE::get_points(int rule, int dim_num, int point_num, double w[], double x[] )
+  void GAUSSIAN_QUADRATURE::get_points(int rule, int dim_num, int /*point_num*/, double w[], double x[] )
   {
     int *beta;
     int beta_sum;
@@ -550,9 +550,9 @@ namespace MATH_ALGORITHMS
 	  }
 	else if ( i == 0 )
 	  {
-	    cout << "\n";
-	    cout << "I4_POWER - Fatal error!\n";
-	    cout << "  I^J requested, with I = 0 and J negative.\n";
+	    std::cout << "\n";
+	    std::cout << "I4_POWER - Fatal error!\n";
+	    std::cout << "  I^J requested, with I = 0 and J negative.\n";
 	    exit ( 1 );
 	  }
 	else
@@ -564,9 +564,9 @@ namespace MATH_ALGORITHMS
       {
 	if ( i == 0 )
 	  {
-	    cout << "\n";
-	    cout << "I4_POWER - Fatal error!\n";
-	    cout << "  I^J requested, with I = 0 and J = 0.\n";
+	    std::cout << "\n";
+	    std::cout << "I4_POWER - Fatal error!\n";
+	    std::cout << "  I^J requested, with I = 0 and J = 0.\n";
 	    exit ( 1 );
 	  }
 	else
@@ -781,10 +781,10 @@ namespace MATH_ALGORITHMS
 
     if ( *seed == 0 )
       {
-	cerr << "\n";
-	cerr << "R8VEC_UNIFORM_01 - Fatal error//\n";
-	cerr << "  Input value of SEED = 0.\n";
-	exit ( 1 );
+        std::cerr << "\n";
+        std::cerr << "R8VEC_UNIFORM_01 - Fatal error//\n";
+        std::cerr << "  Input value of SEED = 0.\n";
+        exit ( 1 );
       }
 
     r = new double[n];

@@ -158,7 +158,7 @@ namespace MATH_ALGORITHMS
       for(int l=0; l<1.e16; l++){
         term = y/gamma;
 
-        if(fabs(term)<1.e-16)
+        if(std::fabs(term)<1.e-16)
           break;
 
         result += term;
@@ -182,7 +182,7 @@ namespace MATH_ALGORITHMS
     {
       for(int l=-m*b_val(); l<=m*b_val(); l++){
         double x = l;
-        cout << x << "\t" << besselI0(x) << "\n";
+        std::cout << x << "\t" << besselI0(x) << "\n";
       }
     }
 

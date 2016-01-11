@@ -100,7 +100,7 @@ namespace DCA
     {}
 
     template<typename ed_options>
-    tp_Greens_function_data<ed_options>::tp_Greens_function_data(const this_type& other)
+    tp_Greens_function_data<ed_options>::tp_Greens_function_data(const this_type& /*other*/)
     {}
     
     template<typename ed_options>
@@ -109,7 +109,7 @@ namespace DCA
 
     template<typename ed_options>
     template<typename parameter_type>
-    void tp_Greens_function_data<ed_options>::initialize(parameter_type& parameters)
+    void tp_Greens_function_data<ed_options>::initialize(parameter_type& /*parameters*/)
     {
       G_tp = 0;
     }

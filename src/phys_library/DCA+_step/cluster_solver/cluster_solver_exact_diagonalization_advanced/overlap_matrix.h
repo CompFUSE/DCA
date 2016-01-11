@@ -137,14 +137,14 @@ template<typename parameter_type, typename ed_options>
 void fermionic_overlap_matrices<parameter_type, ed_options>::construct_creation_set_all()
 {
   if(concurrency.id()==0)
-    cout << "\n\t" << __FUNCTION__ << endl;
+    std::cout << "\n\t" << __FUNCTION__ << std::endl;
 
   std::vector< Hilbert_space_type >& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
   creation_set_all.reset();
   creation_set_all = -1;
 
-  vector<int> Sz(2);
+  std::vector<int> Sz(2);
   Sz[0] = 1;
   Sz[1] = -1;
 
@@ -176,9 +176,9 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::construct_creation_
 
   memory_estimate *= sizeof(complex_type) * 1.e-9;
 
-  cout << "number of creation matrices : " << index << endl;
+  std::cout << "number of creation matrices : " << index << std::endl;
 
-  cout << "memory estimate : " << memory_estimate << " (giga-bytes)" << endl;
+  std::cout << "memory estimate : " << memory_estimate << " (giga-bytes)" << std::endl;
 
 }
 
@@ -186,14 +186,14 @@ template<typename parameter_type, typename ed_options>
 void fermionic_overlap_matrices<parameter_type, ed_options>::construct_annihilation_set_all()
 {
   if(concurrency.id()==0)
-    cout << "\n\t" << __FUNCTION__ << endl;
+    std::cout << "\n\t" << __FUNCTION__ << std::endl;
 
   std::vector< Hilbert_space_type >& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
   annihilation_set_all.reset();
   annihilation_set_all = -1;
 
-  vector<int> Sz(2);
+  std::vector<int> Sz(2);
   Sz[0] = 1;
   Sz[1] = -1;
 
@@ -225,9 +225,9 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::construct_annihilat
 
   memory_estimate *= sizeof(complex_type) * 1.e-9;
 
-  cout << "number of creation matrices : " << index << endl;
+  std::cout << "number of creation matrices : " << index << std::endl;
 
-  cout << "memory estimate : " << memory_estimate << " (giga-bytes)" << endl;
+  std::cout << "memory estimate : " << memory_estimate << " (giga-bytes)" << std::endl;
 
 }
 
@@ -235,7 +235,7 @@ template<typename parameter_type, typename ed_options>
 void fermionic_overlap_matrices<parameter_type, ed_options>::construct_creation_set_nonzero_sparse()
 {
   if(concurrency.id()==0)
-    cout << "\n\t" << __FUNCTION__ << endl;
+    std::cout << "\n\t" << __FUNCTION__ << std::endl;
 
   std::vector< Hilbert_space_type >& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
@@ -299,14 +299,14 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::construct_creation_
     }
   }
 
-  cout << "\n\tnumber of non-zero matrices : " << non_zero << endl;
+  std::cout << "\n\tnumber of non-zero matrices : " << non_zero << std::endl;
 }
 
 template<typename parameter_type, typename ed_options>
 void fermionic_overlap_matrices<parameter_type, ed_options>::construct_annihilation_set_nonzero_sparse()
 {
   if(concurrency.id()==0)
-    cout << "\n\t" << __FUNCTION__ << endl;
+    std::cout << "\n\t" << __FUNCTION__ << std::endl;
 
   std::vector< Hilbert_space_type >& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
@@ -383,7 +383,7 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::construct_annihilat
     }
   }
 
-  cout << "\n\tnumber of non-zero matrices : " << non_zero << endl;
+  std::cout << "\n\tnumber of non-zero matrices : " << non_zero << std::endl;
 }
 
 template<typename parameter_type, typename ed_options>
@@ -443,7 +443,7 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::compute_creation_ma
                                                                                           matrix_type& dense_creation,
                                                                                           matrix_type& tmp)
 {
-  //  cout << "\n\n\t" << __FUNCTION__ << "\n\n";
+  //  std::cout << "\n\n\t" << __FUNCTION__ << "\n\n";
 
   std::vector< Hilbert_space_type >& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
@@ -498,7 +498,7 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::compute_annihilatio
                                                                                               matrix_type& dense_annihilation,
                                                                                               matrix_type& tmp)
 {
-//   cout << "\n\n\t" << __FUNCTION__ << "\n\n";
+//   std::cout << "\n\n\t" << __FUNCTION__ << "\n\n";
 
   std::vector<Hilbert_space_type >& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
@@ -595,7 +595,7 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::compute_overlap(int
 template<typename parameter_type, typename ed_options>
 void fermionic_overlap_matrices<parameter_type, ed_options>::print_overlap(const char* filename, int HS_n, int HS_m)
 {
-  cout << "Print overlap of Hilbert-spaces #" << HS_n << " and #" << HS_m << endl;
+  std::cout << "Print overlap of Hilbert-spaces #" << HS_n << " and #" << HS_m << std::endl;
 
   std::ofstream data;
   data.open(filename);
@@ -631,7 +631,7 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::print_creation_matr
       HS_1 = i;
   }
 
-  cout << "Print creation matrix for HS_0 = " << HS_0 << ", HS_1 = " << HS_1 << ", nu = " << b_s_r << endl;
+  std::cout << "Print creation matrix for HS_0 = " << HS_0 << ", HS_1 = " << HS_1 << ", nu = " << b_s_r << std::endl;
 
   assert(creation_set_all(HS_0, HS_1, b_s_r) != -1);
 
@@ -659,7 +659,7 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::print_creation_matr
 // void fermionic_overlap_matrices<parameter_type, ed_options>::compute_all_creation_matrices()
 // {
 //   if(concurrency.id()==0)
-//     cout << "\n\t" << __FUNCTION__ << endl;
+//     std::cout << "\n\t" << __FUNCTION__ << std::endl;
 
 //   std::vector< Hilbert_space_type >& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
@@ -672,7 +672,7 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::print_creation_matr
 //         if(creation_set_all(HS_i,HS_j,k) != -1){
 
 //           ++counter;
-//           cout << counter << endl;
+//           std::cout << counter << std::endl;
 
 //           compute_sparse_creation(HS_i, HS_j, k);
 //           compute_dense_creation(HS_i, HS_j, k);

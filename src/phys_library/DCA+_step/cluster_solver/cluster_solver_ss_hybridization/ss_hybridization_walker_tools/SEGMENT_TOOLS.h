@@ -168,7 +168,7 @@ namespace DCA
                                                                     double mu,
                                                                     double& sign,
                                                                     function_type_1& M,
-                                                                    function_type_2& F)
+                                                                  function_type_2& /*F*/)
   {
     assert(this_flavor >=0 && this_flavor < spin_orbitals);
 

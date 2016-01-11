@@ -57,7 +57,7 @@ namespace MATH_ALGORITHMS
 	if(vector_norm(type_output::get_elements()[l])<1.e-6)
 	  index = l;
       
-      cout << index << "\n";
+      std::cout << index << "\n";
 
       return index;
     }
@@ -75,7 +75,7 @@ namespace MATH_ALGORITHMS
       assert(type_input::dmn_specifications_type::DIMENSION == type_output::dmn_specifications_type::DIMENSION);
 
       if(VERBOSE)
-	cout << "\n\t ifftw-harmonics-transform (discrete -> expansion) " << DMN_INDEX << "  " << type_input::get_name() << " --> " << type_output::get_name() << "\n\n";
+        std::cout << "\n\t ifftw-harmonics-transform (discrete -> expansion) " << DMN_INDEX << "  " << type_input::get_name() << " --> " << type_output::get_name() << "\n\n";
       
       int M, K, N, P;
       characterize_transformation(f_input, f_output, M, K, N, P);
@@ -99,12 +99,12 @@ namespace MATH_ALGORITHMS
       const int* onembed = type_output::get_dimensions();
 
       if(false and VERBOSE){
-	cout << M << "\t" << K << "\t" << N << "\t" << P << "\n";
+        std::cout << M << "\t" << K << "\t" << N << "\t" << P << "\n";
 
-	cout << rank << "\n";
+        std::cout << rank << "\n";
 	for(int i=0; i<rank; i++)
-	  cout << dims[i] << "\t";
-	cout << "\n";
+    std::cout << dims[i] << "\t";
+  std::cout << "\n";
 
 	f_input .print_fingerprint();
 	f_output.print_fingerprint();
@@ -153,7 +153,7 @@ namespace MATH_ALGORITHMS
 				FUNC_LIB::function<scalartype_output, domain_output>& f_output)
     {
       if(VERBOSE)
-	cout << "\n default-transform (discrete -> expansion) " << DMN_INDEX << "  " << type_input::get_name() << " --> " << type_output::get_name() << "\n\n";
+        std::cout << "\n default-transform (discrete -> expansion) " << DMN_INDEX << "  " << type_input::get_name() << " --> " << type_output::get_name() << "\n\n";
 
       matrix_type& T = basis_transformation_type::get_transformation_matrix();
 

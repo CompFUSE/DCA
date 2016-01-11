@@ -47,7 +47,7 @@ namespace MATH_ALGORITHMS
   {
     
     if(VERBOSE)
-      cout << "\n\t transform (continuous -> continuous) " << DMN_INDEX << "  " 
+      std::cout << "\n\t transform (continuous -> continuous) " << DMN_INDEX << "  " 
 	   << type_input::get_name() << " --> " << type_output::get_name() << "\n\n";
     
     int M, K, N, P;
@@ -57,7 +57,7 @@ namespace MATH_ALGORITHMS
     
     if(VERBOSE)
       {
-	cout << "\n\t M : " << M << ", K : " << K << ", N : " << N << ", P : " << P << "\n\n"; 
+        std::cout << "\n\t M : " << M << ", K : " << K << ", N : " << N << ", P : " << P << "\n\n"; 
 	
 	T.print();
 	
@@ -85,7 +85,7 @@ namespace MATH_ALGORITHMS
 											     FUNC_LIB::function<std::complex<scalartype>, domain_output>& f_output)
   {    
     if(VERBOSE)
-      cout << "\n\t transform (continuous -> continuous) " << DMN_INDEX << "  " << type_input::get_name() << " --> " << type_output::get_name() << "\n\n";
+      std::cout << "\n\t transform (continuous -> continuous) " << DMN_INDEX << "  " << type_input::get_name() << " --> " << type_output::get_name() << "\n\n";
     
     int M, K, N, P;
     characterize_transformation(f_input, f_output, M, K, N, P);
@@ -94,7 +94,7 @@ namespace MATH_ALGORITHMS
     
     if(VERBOSE)
       {
-	cout << "\n\t M : " << M << ", K : " << K << ", N : " << N << ", P : " << P << "\n\n"; 
+        std::cout << "\n\t M : " << M << ", K : " << K << ", N : " << N << ", P : " << P << "\n\n"; 
 	
 	T.print_fingerprint();
 	

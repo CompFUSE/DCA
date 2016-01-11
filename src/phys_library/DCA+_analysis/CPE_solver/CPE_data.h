@@ -140,7 +140,7 @@ namespace DCA
   }
 
   template<typename scalartype, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
-  CPE_data<scalartype, basis_function_t, k_dmn_t, w_dmn_t>::CPE_data(const CPE_data<scalartype, basis_function_t, k_dmn_t, w_dmn_t>& CPE_data_ref):
+  CPE_data<scalartype, basis_function_t, k_dmn_t, w_dmn_t>::CPE_data(const CPE_data<scalartype, basis_function_t, k_dmn_t, w_dmn_t>& /*CPE_data_ref*/):
     id(0),
 
     is_interacting_band(0),

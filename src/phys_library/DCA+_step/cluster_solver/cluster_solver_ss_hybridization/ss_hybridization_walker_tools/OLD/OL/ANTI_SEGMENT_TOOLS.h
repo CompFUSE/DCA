@@ -328,7 +328,7 @@ namespace QMC {
     assert(vertices.size()==1);
     typename orbital_configuration_t::iterator s_down = vertices.begin();
     
-    double det_rat = fabs(M(this_flavor)(0,0));
+    double det_rat = std::fabs(M(this_flavor)(0,0));
     double length = s_down->t_start()-s_down->t_end(); 
     if (length<0) length += BETA;
     Hybridization_vertex anti_segment(s_down->t_end(),s_down->t_start());

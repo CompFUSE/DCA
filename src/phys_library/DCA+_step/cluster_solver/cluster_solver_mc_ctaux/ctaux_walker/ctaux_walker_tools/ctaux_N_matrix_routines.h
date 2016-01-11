@@ -163,7 +163,7 @@ namespace DCA
       GFLOP         = 0.;
 
       if(result<0)
-        cout << __FUNCTION__ << "\t" << result << "\n";
+        std::cout << __FUNCTION__ << "\t" << result << "\n";
 
       return result;
     }
@@ -495,7 +495,7 @@ namespace DCA
 
     template<LIN_ALG::device_type device_t, typename parameters_type>
     inline void N_TOOLS<device_t, parameters_type>::compute_d_vector(std::vector<int>&                      permutation,
-                                                                     LIN_ALG::matrix<double, device_t>&     N,
+                                                                     LIN_ALG::matrix<double, device_t>&     /*N*/,
                                                                      std::vector<HS_spin_states_type>&      spin_values,
                                                                      std::vector<vertex_singleton_type>&    configuration_e_spin,
                                                                      LIN_ALG::vector<double, LIN_ALG::CPU>& d_inv)
@@ -597,12 +597,12 @@ namespace DCA
     void N_TOOLS<device_t, parameters_type>::check_N_matrix(configuration_type&                configuration,
                                                             LIN_ALG::matrix<double, device_t>& N,
                                                             LIN_ALG::matrix<double, device_t>& G0,
-                                                            LIN_ALG::matrix<double, device_t>& Gamma,
+                                                            LIN_ALG::matrix<double, device_t>& /*Gamma*/,
                                                             e_spin_states_type                 e_spin)
     {
       LIN_ALG::matrix<double, device_t> N_correct(N.get_current_size(), N.get_global_size());
 
-      cout.precision(4);
+      std::cout.precision(4);
 
       build_N_matrix(configuration, N_correct, G0, e_spin);
 
@@ -616,12 +616,12 @@ namespace DCA
       //        N_correct.print();
       //        N.print();
 
-      //        cout << "\t\t e_spin : " << e_spin << endl;
+      //        std::cout << "\t\t e_spin : " << e_spin << std::endl;
       //        Gamma.print();
 
       //        for(int i=0; i<N.get_current_size(); i++)
-      //          cout << "\t\t" << configuration[i].get_HS_spin();
-      //        cout << "\n";
+      //          std::cout << "\t\t" << configuration[i].get_HS_spin();
+      //        std::cout << "\n";
 
       //        //throw std::logic_error(__FUNCTION__);
 

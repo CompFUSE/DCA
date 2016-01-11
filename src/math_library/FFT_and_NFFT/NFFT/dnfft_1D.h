@@ -285,7 +285,7 @@ namespace MATH_ALGORITHMS
           {
             for(int j=0; j<window_sampling_dmn_t::dmn_size(); j++)
               {
-                assert(abs(convolution_time_values(i,j)-fine_tau(index))<1.e-6);
+                assert(std::abs(convolution_time_values(i,j)-fine_tau(index))<1.e-6);
 
                 scalar_type tau = convolution_time_values(i,j);
 
@@ -475,7 +475,7 @@ namespace MATH_ALGORITHMS
       scalartype t0_val_lb = T_0 + tau_0*Delta;
 
       assert(tau(tau_0)-1.e-6 < t_val && t_val < tau(tau_0+1)+1.e-6);
-      assert(abs(tau(tau_0)-t0_val_lb)<1.e-6);
+      assert(std::abs(tau(tau_0)-t0_val_lb)<1.e-6);
 
       //int tau_1 = (tau(tau_0)-t_val-t_0)*one_div_delta;
       int        tau_1     = (t0_val_lb-t_val-t_0)*one_div_delta;

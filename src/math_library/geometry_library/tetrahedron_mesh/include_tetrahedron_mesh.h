@@ -12,13 +12,13 @@ typedef eigenvalue_degeneracy eigenvalue_degeneracy_t;
 #include "facet.h"
 
 #include "tetrahedron.h"
-#include "tetrahedron_1D.h"
-#include "tetrahedron_2D.h"
-#include "tetrahedron_3D.h"
+#include "tetrahedron_implementation/tetrahedron_1D.h"
+#include "tetrahedron_implementation/tetrahedron_2D.h"
+#include "tetrahedron_implementation/tetrahedron_3D.h"
 
-#include "tetrahedron_mesh_initializer.h"
-#include "tetrahedron_mesh_initializer_2D.h"
-#include "tetrahedron_mesh_initializer_3D.h"
+#include "tetrahedron_mesh_implementation/tetrahedron_mesh_initializer.h"
+#include "tetrahedron_mesh_implementation/tetrahedron_mesh_initializer_2D.h"
+#include "tetrahedron_mesh_implementation/tetrahedron_mesh_initializer_3D.h"
 
 #include "tetrahedron_mesh.h"
 

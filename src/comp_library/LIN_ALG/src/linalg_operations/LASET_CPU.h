@@ -10,7 +10,7 @@ namespace LIN_ALG
   {
   public:
     
-    static void set_zero(int M, int N, double* A, int LDA, int thread_id, int stream_id)
+    static void set_zero(int M, int N, double* A, int LDA, int /*thread_id*/, int /*stream_id*/)
     {
       char   UPLO = 'A';
       double ALPHA = 0;
@@ -19,7 +19,7 @@ namespace LIN_ALG
       LAPACK::dlaset_(&UPLO, &M, &N, &ALPHA, &BETA, A, &LDA);
     }
 
-    static void set_unity(int M, int N, double* A, int LDA, int thread_id, int stream_id)
+    static void set_unity(int M, int N, double* A, int LDA, int /*thread_id*/, int /*stream_id*/)
     {
       char   UPLO  = 'A';
       double ALPHA = 0;

@@ -429,8 +429,8 @@ namespace DCA
     void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::compute_M_v_v(std::vector<vertex_singleton_type>&     configuration_e_spin,
                                                                                             LIN_ALG::matrix<double, LIN_ALG::CPU>& N,
                                                                                             LIN_ALG::matrix<double, LIN_ALG::CPU>& M,
-                                                                                            int walker_thread_id,
-                                                                                            int walker_stream_id)
+                                                                                            int /*walker_thread_id*/,
+                                                                                            int /*walker_stream_id*/)
     {
       assert(int(configuration_e_spin.size()) == N.get_number_of_rows() && N.is_square());
 

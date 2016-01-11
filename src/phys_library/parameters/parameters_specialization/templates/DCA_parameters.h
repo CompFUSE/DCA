@@ -310,7 +310,7 @@ void DCA_Parameters::read_write(read_write_type& read_write_obj)
     }
   catch(const std::exception& r_e)
     {
-      cout << "\n\t no DCA-parameters defined !!  \n\n";
+      std::cout << "\n\t no DCA-parameters defined !!  \n\n";
       throw std::logic_error(__PRETTY_FUNCTION__);
     }
 }

@@ -59,7 +59,7 @@ namespace MATH_ALGORITHMS
 					      std::vector<scalartype*> Vl,
 					      mesh_t&                  mesh, 
 					      scalartype*              f_result){
-      cout << __FUNCTION__ << endl;
+      std::cout << __FUNCTION__ << std::endl;
       integrate_inverse_function( size, e, Vr, Vl, mesh, f_result);
     }
 
@@ -77,7 +77,7 @@ namespace MATH_ALGORITHMS
     template<typename scalartype>
     eigenvalue_degeneracy_t find_degeneracy(scalartype* f, scalartype* e);
 
-    static bool pair_same(std::pair<complex<double>, complex<double> > const& x, std::pair<complex<double>, complex<double> > const& y);
+    static bool pair_same(std::pair<std::complex<double>, std::complex<double> > const& x, std::pair<std::complex<double>, std::complex<double> > const& y);
 
   public:
 
@@ -125,7 +125,7 @@ namespace MATH_ALGORITHMS
     SHOW::plot_line_3D(plot_obj, vec_1, vec_3);
   }
 
-  void tetrahedron<3>::plot_q_vecs(Gnuplot& plot_obj)
+  void tetrahedron<3>::plot_q_vecs(Gnuplot& /*plot_obj*/)
   {
     
   }
@@ -358,7 +358,7 @@ namespace MATH_ALGORITHMS
   }
 
   template<typename scalartype, typename mesh_t>
-  void tetrahedron<3>::integrate_function(int size, std::vector<scalartype*> f, mesh_t& mesh, scalartype* f_result)
+  void tetrahedron<3>::integrate_function(int size, std::vector<scalartype*> f, mesh_t& /*mesh*/, scalartype* f_result)
   {
     assert(f.size()==4);
 
@@ -500,11 +500,11 @@ namespace MATH_ALGORITHMS
 
   template<typename scalartype, typename mesh_t>
   void tetrahedron<3>::integrate_inverse_function(int size, 
-						  std::vector<scalartype*> e,
-						  std::vector<scalartype*> Vr,
-						  std::vector<scalartype*> Vl,
-						  mesh_t&                  mesh, 
-						  scalartype*              f_result)
+                                                  std::vector<scalartype*> e,
+                                                  std::vector<scalartype*> Vr,
+                                                  std::vector<scalartype*> Vl,
+                                                  mesh_t&                  /*mesh*/, 
+                                                  scalartype*              f_result)
   {
     for(int j=0; j<size; j++)
       for(int i=0; i<size; i++)
@@ -622,8 +622,8 @@ namespace MATH_ALGORITHMS
     throw std::logic_error(__FUNCTION__);
   }
 
-  bool tetrahedron<3>::pair_same(std::pair<complex<double>, complex<double> > const& x, 
-				 std::pair<complex<double>, complex<double> > const& y)
+  bool tetrahedron<3>::pair_same(std::pair<std::complex<double>, std::complex<double> > const& x, 
+                                 std::pair<std::complex<double>, std::complex<double> > const& y)
   {
     double abs_x = norm(x.first);
     double abs_y = norm(y.first);
@@ -640,7 +640,7 @@ namespace MATH_ALGORITHMS
   template<typename scalartype>
   scalartype tetrahedron<3>::compute_volume(scalartype* k0, scalartype* k1, scalartype* k2, scalartype* k3)
   {
-    return fabs(-(k0[2]*k1[1]*k2[0]) + k0[1]*k1[2]*k2[0] + k0[2]*k1[0]*k2[1] - k0[0]*k1[2]*k2[1] - k0[1]*k1[0]*k2[2] + k0[0]*k1[1]*k2[2] + k0[2]*k1[1]*k3[0] - k0[1]*k1[2]*k3[0] - k0[2]*k2[1]*k3[0] + k1[2]*k2[1]*k3[0] + k0[1]*k2[2]*k3[0] - k1[1]*k2[2]*k3[0] - k0[2]*k1[0]*k3[1] + k0[0]*k1[2]*k3[1] + k0[2]*k2[0]*k3[1] - k1[2]*k2[0]*k3[1] - k0[0]*k2[2]*k3[1] + k1[0]*k2[2]*k3[1] + k0[1]*k1[0]*k3[2] - k0[0]*k1[1]*k3[2] - k0[1]*k2[0]*k3[2] + k1[1]*k2[0]*k3[2] + k0[0]*k2[1]*k3[2] - k1[0]*k2[1]*k3[2])/6.;
+    return std::fabs(-(k0[2]*k1[1]*k2[0]) + k0[1]*k1[2]*k2[0] + k0[2]*k1[0]*k2[1] - k0[0]*k1[2]*k2[1] - k0[1]*k1[0]*k2[2] + k0[0]*k1[1]*k2[2] + k0[2]*k1[1]*k3[0] - k0[1]*k1[2]*k3[0] - k0[2]*k2[1]*k3[0] + k1[2]*k2[1]*k3[0] + k0[1]*k2[2]*k3[0] - k1[1]*k2[2]*k3[0] - k0[2]*k1[0]*k3[1] + k0[0]*k1[2]*k3[1] + k0[2]*k2[0]*k3[1] - k1[2]*k2[0]*k3[1] - k0[0]*k2[2]*k3[1] + k1[0]*k2[2]*k3[1] + k0[1]*k1[0]*k3[2] - k0[0]*k1[1]*k3[2] - k0[1]*k2[0]*k3[2] + k1[1]*k2[0]*k3[2] + k0[0]*k2[1]*k3[2] - k1[0]*k2[1]*k3[2])/6.;
   }
 
   template<typename mesh_t>
@@ -660,7 +660,7 @@ namespace MATH_ALGORITHMS
     if(VECTOR_OPERATIONS::L2_NORM(mesh[index[3]], vec_3)>1.e-6)
       OK = false;
 
-    if(fabs(volume-compute_volume(&vec_0[0], &vec_1[0], &vec_2[0], &vec_3[0]))>1.e-6)
+    if(std::fabs(volume-compute_volume(&vec_0[0], &vec_1[0], &vec_2[0], &vec_3[0]))>1.e-6)
       OK = false;
 
     if(!OK)

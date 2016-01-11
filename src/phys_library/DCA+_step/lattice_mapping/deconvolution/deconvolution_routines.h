@@ -182,7 +182,7 @@ namespace DCA
     else
       {
 	for(int i=0; i<target_k_dmn_t::dmn_size(); i++)
-	  if(abs(phi_r(i)) > epsilon)
+	  if(std::abs(phi_r(i)) > epsilon)
 	    phi_r_inv(i) = 1./phi_r(i);
 	  else
 	    phi_r_inv(i) = phi_r(i)>0 ? 1./epsilon : -1./epsilon;

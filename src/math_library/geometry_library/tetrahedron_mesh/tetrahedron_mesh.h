@@ -167,71 +167,71 @@ namespace MATH_ALGORITHMS
   template<typename cluster_type>
   void tetrahedron_mesh<cluster_type>::plot_simplices()
   {
-    cout << scientific;
-    cout.precision(6);
+    std::cout << std::scientific;
+    std::cout.precision(6);
 
     for(size_t l=0; l<simplices.size(); l++)
       {
-	cout << l << "\t";
+	std::cout << l << "\t";
 
 	for(size_t i=0; i<simplices[l].k_vec.size(); i++)
-	  cout << simplices[l].k_vec[i] << "\t";
+	  std::cout << simplices[l].k_vec[i] << "\t";
 
-	cout << "\n";
+	std::cout << "\n";
       }
 
-    cout << "\n";
+    std::cout << "\n";
   }
 
   template<typename cluster_type>
   void tetrahedron_mesh<cluster_type>::plot_facets()
   {
-    cout << scientific;
-    cout.precision(6);
+    std::cout << std::scientific;
+    std::cout.precision(6);
 
     for(size_t l=0; l<facets.size(); l++)
       {
-	cout << l << "\t";
+	std::cout << l << "\t";
 
 	for(size_t i=0; i<facets[l].index.size(); i++)
-	  cout << facets[l].index[i] << "\t";
-	cout << "\n";
+	  std::cout << facets[l].index[i] << "\t";
+	std::cout << "\n";
       }
 
-    cout << "\n";
+    std::cout << "\n";
   }
 
   template<typename cluster_type>
   void tetrahedron_mesh<cluster_type>::plot_mesh_points()
   {
-    cout.precision(6);
+    std::cout.precision(6);
 
     for(size_t l=0; l<mesh.size(); l++)
       {
-	cout << l << "\t";
+	std::cout << l << "\t";
 
 	for(size_t i=0; i<mesh[l].size(); i++)
-	  cout << mesh[l][i] << "\t";
+	  std::cout << mesh[l][i] << "\t";
 
-	cout << "\n";
+	std::cout << "\n";
       }
 
-    cout << "\n";
+    std::cout << "\n";
   }
 
   template<typename cluster_type>
   void tetrahedron_mesh<cluster_type>::plot_tetrahedra()
   {
-    cout.precision(6);
+    std::cout.precision(6);
 
     for(size_t l=0; l<tetrahedra.size(); l++)
       {
 	for(size_t i=0; i<DIMENSION+1; i++)
-	  cout << tetrahedra[l].index[i] << "\t";
-	cout << "\n";
+	  std::cout << tetrahedra[l].index[i] << "\t";
+	std::cout << "\n";
       }
 
-    cout << "\n";
+    std::cout << "\n";
   }
 
 }

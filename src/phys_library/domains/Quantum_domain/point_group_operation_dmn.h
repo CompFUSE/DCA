@@ -276,7 +276,7 @@ std::vector<double> point_group_symmetry_domain<symmetry_group_level, base_clust
 
 template<symmetry_group_level_type symmetry_group_level, typename base_cluster_type>
 template<IO::FORMAT DATA_FORMAT>
-void point_group_symmetry_domain<symmetry_group_level, base_cluster_type>::write(IO::writer<DATA_FORMAT>& writer)
+void point_group_symmetry_domain<symmetry_group_level, base_cluster_type>::write(IO::writer<DATA_FORMAT>& /*writer*/)
 {
 //   std::vector<double>               T(DIMENSION);
 //   std::vector<std::vector<double> > O(DIMENSION, std::vector<double>(DIMENSION));

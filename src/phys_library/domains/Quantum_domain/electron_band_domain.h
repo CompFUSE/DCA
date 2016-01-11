@@ -110,7 +110,7 @@ void electron_band_domain::write(IO::writer<DATA_FORMAT>& writer)
 }
 
 template<typename parameters_type>
-void electron_band_domain::initialize(parameters_type& parameters, int NB_BANDS, std::vector<int> flavors, std::vector<std::vector<double> > a_vecs)
+void electron_band_domain::initialize(parameters_type& /*parameters*/, int NB_BANDS, std::vector<int> flavors, std::vector<std::vector<double> > a_vecs)
 {
   get_size() = NB_BANDS;
 

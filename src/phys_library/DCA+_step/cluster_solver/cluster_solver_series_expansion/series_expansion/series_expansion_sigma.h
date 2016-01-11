@@ -92,7 +92,7 @@ namespace DCA
     {}
 
     template<class parameters_type, class MOMS_type>
-    void series_expansion<parameters_type, MOMS_type>::execute(bool do_not_adjust_mu)
+    void series_expansion<parameters_type, MOMS_type>::execute(bool /*do_not_adjust_mu*/)
     {
 //       if(do_not_adjust_mu)
 //         MOMS.adjust_chemical_potential();

@@ -71,7 +71,7 @@ std::complex<double> delta_function::phi(int n, std::complex<double> z)
     imag(A_mn) = imag(1./(z-x));
   }
   else{
-    real(A_mn) = fabs(real(z)-x)<1.e-6?  0. : 1/(real(z)-x);
+    real(A_mn) = std::fabs(real(z)-x)<1.e-6?  0. : 1/(real(z)-x);
     imag(A_mn) = 0.;
   }
 

@@ -4,32 +4,32 @@
 #define LIN_ALG_MATRICES_H
 
 namespace LIN_ALG {
- 
+
   template<typename scalartype, device_type device_name>
   class matrix
   {
   public:
-	
+
     const static int BLOCK_SIZE = 32;
 
     typedef matrix<scalartype, device_name> this_type;
 
     typedef typename MATRIX_SCALARTYPE<scalartype, device_name>::new_scalartype matrix_scalartype;
-	
+
   public:
-    
+
     matrix();
     matrix(std::string name);
-	
+
     matrix(                  int currrent_size);
     matrix(std::string name, int currrent_size);
-	
+
     matrix(                  int currrent_size, int global_size);
     matrix(std::string name, int currrent_size, int global_size);
-	
+
     matrix(                  std::pair<int, int> currrent_size);
     matrix(std::string name, std::pair<int, int> currrent_size);
-	
+
     matrix(                  std::pair<int, int> currrent_size, std::pair<int, int> global_size);
     matrix(std::string name, std::pair<int, int> currrent_size, std::pair<int, int> global_size);
 
@@ -37,11 +37,11 @@ namespace LIN_ALG {
     matrix(matrix<other_scalartype, other_device_name>& other_matrix);
 
     ~matrix();
-	
+
     scalartype& operator()(int i, int j);
 
     std::string& get_name();
-    	
+
     int& get_thread_id();
     int& get_stream_id();
 
@@ -57,18 +57,18 @@ namespace LIN_ALG {
     int get_leading_dimension();
 
     std::pair<int, int>& get_current_size();
-	
+
     std::pair<int, int>& get_global_size();
-      
+
     void resize(int                 current_size);
     void resize(std::pair<int, int> currrent_size);
-      
+
     void resize_no_copy(int                 current_size);
     void resize_no_copy(std::pair<int, int> currrent_size);
-      
+
     void add_row_and_col();
     void remove_last_row_and_col();
-      
+
     template<device_type other_device_name>
     void swap(matrix<scalartype, other_device_name>& other_matrix);
 
@@ -80,36 +80,36 @@ namespace LIN_ALG {
 
     void print();
     void print_fingerprint();
-      
+
     template<device_type other_device_name>
     scalartype difference(matrix<scalartype, other_device_name>& other_matrix);
 
     template<device_type other_device_name>
     scalartype difference(matrix<scalartype, other_device_name>& other_matrix, int N);
-	
+
   private:
-	
+
     int                 comply_to_block_size(int size);
     std::pair<int, int> comply_to_block_size(std::pair<int, int> size);
 
     void resize_rows(std::pair<int,int> new_current_size);
     void resize_cols(std::pair<int,int> new_current_size);
-	
+
     void resize_rows_and_cols(std::pair<int,int> new_current_size);
-	
+
   private:
 
     std::string         name;
-	
+
     int                 thread_id;
     int                 stream_id;
 
     std::pair<int, int> current_size;
     std::pair<int, int> global_size;
-	
+
     matrix_scalartype*  data;
   };
-    
+
   template<typename scalartype, device_type device_name>
   matrix<scalartype, device_name>::matrix():
     name("unnamed matrix"),
@@ -120,7 +120,7 @@ namespace LIN_ALG {
     data(NULL)
   {
     global_size = comply_to_block_size(global_size);
-    
+
     MEMORY_MANAGEMENT<device_name>::allocate(data, global_size);
     MEMORY_MANAGEMENT<device_name>::set_to_zero(data, global_size.first*global_size.second);
   }
@@ -135,7 +135,7 @@ namespace LIN_ALG {
     data(NULL)
   {
     global_size = comply_to_block_size(global_size);
-    
+
     MEMORY_MANAGEMENT<device_name>::allocate(data, global_size);
     MEMORY_MANAGEMENT<device_name>::set_to_zero(data, global_size.first*global_size.second);
   }
@@ -183,7 +183,7 @@ namespace LIN_ALG {
 
     assert(c_s>-1 && g_s>-1);
     assert(c_s<=g_s);
-	
+
     MEMORY_MANAGEMENT<device_name>::allocate(data, global_size);
     MEMORY_MANAGEMENT<device_name>::set_to_zero(data, global_size.first*global_size.second);
   }
@@ -201,7 +201,7 @@ namespace LIN_ALG {
 
     assert(c_s>-1 && g_s>-1);
     assert(c_s<=g_s);
-	
+
     MEMORY_MANAGEMENT<device_name>::allocate(data, global_size);
     MEMORY_MANAGEMENT<device_name>::set_to_zero(data, global_size.first*global_size.second);
   }
@@ -218,7 +218,7 @@ namespace LIN_ALG {
     global_size = comply_to_block_size(global_size);
 
     assert(c_s.first>-1 && c_s.second>-1);
-	
+
     MEMORY_MANAGEMENT<device_name>::allocate(data, global_size);
     MEMORY_MANAGEMENT<device_name>::set_to_zero(data, global_size.first*global_size.second);
   }
@@ -235,14 +235,14 @@ namespace LIN_ALG {
     global_size = comply_to_block_size(global_size);
 
     assert(c_s.first>-1 && c_s.second>-1);
-	
+
     MEMORY_MANAGEMENT<device_name>::allocate(data, global_size);
     MEMORY_MANAGEMENT<device_name>::set_to_zero(data, global_size.first*global_size.second);
   }
-    
+
   template<typename scalartype, device_type device_name>
   matrix<scalartype, device_name>::matrix(std::pair<int, int> c_s,
-					  std::pair<int, int> g_s):
+                                          std::pair<int, int> g_s):
     name("unnamed matrix"),
     thread_id(-1),
     stream_id(-1),
@@ -255,15 +255,15 @@ namespace LIN_ALG {
     assert(c_s.first>-1 && c_s.second>-1);
     assert(g_s.first>-1 && g_s.second>-1);
     assert(c_s.first<=g_s.first && c_s.second<=g_s.second);
-	
+
     MEMORY_MANAGEMENT<device_name>::allocate(data, global_size);
     MEMORY_MANAGEMENT<device_name>::set_to_zero(data, global_size.first*global_size.second);
   }
 
   template<typename scalartype, device_type device_name>
-  matrix<scalartype, device_name>::matrix(std::string         str, 
-					  std::pair<int, int> c_s,
-					  std::pair<int, int> g_s):
+  matrix<scalartype, device_name>::matrix(std::string         str,
+                                          std::pair<int, int> c_s,
+                                          std::pair<int, int> g_s):
     name(str),
     thread_id(-1),
     stream_id(-1),
@@ -276,14 +276,14 @@ namespace LIN_ALG {
     assert(c_s.first>-1 && c_s.second>-1);
     assert(g_s.first>-1 && g_s.second>-1);
     assert(c_s.first<=g_s.first && c_s.second<=g_s.second);
-	
+
     MEMORY_MANAGEMENT<device_name>::allocate(data, global_size);
     MEMORY_MANAGEMENT<device_name>::set_to_zero(data, global_size.first*global_size.second);
   }
-    
+
   template<typename scalartype, device_type device_name>
   template<typename other_scalartype, device_type other_device_name>
-  matrix<scalartype, device_name>::matrix(matrix<other_scalartype, other_device_name>& other_matrix):	
+  matrix<scalartype, device_name>::matrix(matrix<other_scalartype, other_device_name>& other_matrix):
     name(other_matrix.get_name()),
     thread_id(-1),
     stream_id(-1),
@@ -296,7 +296,7 @@ namespace LIN_ALG {
     MEMORY_MANAGEMENT<device_name>::allocate(data, global_size);
 
     COPY_FROM<other_device_name, device_name>::execute(other_matrix.get_ptr(), other_matrix.get_current_size(), other_matrix.get_global_size(),
-						       data                  , current_size                   , global_size                   );
+                                                       data                  , current_size                   , global_size                   );
   }
 
   template<typename scalartype, device_type device_name>
@@ -323,7 +323,7 @@ namespace LIN_ALG {
     thread_id = t_id;
     stream_id = s_id;
   }
-    
+
   template<typename scalartype, device_type device_name>
   scalartype& matrix<scalartype, device_name>::operator()(int i, int j)
   {
@@ -333,18 +333,18 @@ namespace LIN_ALG {
 
     return data[i+j*global_size.first];
   }
-   
+
   template<typename scalartype, device_type device_name>
   std::string& matrix<scalartype, device_name>::get_name()
   {
     return name;
   }
- 
+
   template<typename scalartype, device_type device_name>
   inline typename matrix<scalartype, device_name>::matrix_scalartype*& matrix<scalartype, device_name>::get_ptr()
   {
     return data;
-  } 
+  }
 
   template<typename scalartype, device_type device_name>
   inline typename matrix<scalartype, device_name>::matrix_scalartype* matrix<scalartype, device_name>::get_ptr(int i, int j)
@@ -353,7 +353,7 @@ namespace LIN_ALG {
     assert(j>-1 && j<current_size.second);
 
     return data+(i+j*global_size.first);
-  } 
+  }
 
   template<typename scalartype, device_type device_name>
   bool matrix<scalartype, device_name>::is_square()
@@ -372,7 +372,7 @@ namespace LIN_ALG {
   {
     return current_size.second;
   }
-   
+
   template<typename scalartype, device_type device_name>
   int matrix<scalartype, device_name>::get_leading_dimension()
   {
@@ -384,7 +384,7 @@ namespace LIN_ALG {
   {
     return current_size;
   }
-    
+
   template<typename scalartype, device_type device_name>
   std::pair<int,int>& matrix<scalartype, device_name>::get_global_size()
   {
@@ -414,53 +414,53 @@ namespace LIN_ALG {
 
     return p;
   }
-    
+
   template<typename scalartype, device_type device_name>
   void matrix<scalartype, device_name>::resize(int current_size)
   {
     std::pair<int, int> c_s(current_size, current_size);
     resize(c_s);
   }
-    
+
   template<typename scalartype, device_type device_name>
   void matrix<scalartype, device_name>::resize(std::pair<int, int> new_current_size)
   {
     if(new_current_size.first > global_size.first || new_current_size.second > global_size.second)
-      {
-	//CUBLAS_THREAD_MANAGER<device_name>::synchronize_streams(thread_id, stream_id);
+    {
+      //CUBLAS_THREAD_MANAGER<device_name>::synchronize_streams(thread_id, stream_id);
 
-	if(new_current_size.first > global_size.first && new_current_size.second <= global_size.second)
-	  resize_rows(new_current_size);
-	    
-	if(new_current_size.first <= global_size.first && new_current_size.second > global_size.second)
-	  resize_cols(new_current_size);
-	    
-	if(new_current_size.first > global_size.first && new_current_size.second > global_size.second)
-	  resize_rows_and_cols(new_current_size);
+      if(new_current_size.first > global_size.first && new_current_size.second <= global_size.second)
+        resize_rows(new_current_size);
 
-	//CUBLAS_THREAD_MANAGER<device_name>::synchronize_streams(thread_id, stream_id);
-      }
+      if(new_current_size.first <= global_size.first && new_current_size.second > global_size.second)
+        resize_cols(new_current_size);
+
+      if(new_current_size.first > global_size.first && new_current_size.second > global_size.second)
+        resize_rows_and_cols(new_current_size);
+
+      //CUBLAS_THREAD_MANAGER<device_name>::synchronize_streams(thread_id, stream_id);
+    }
     else
-      {
-	current_size = new_current_size;
-      }	
+    {
+      current_size = new_current_size;
+    }
   }
-    
+
   template<typename scalartype, device_type device_name>
   void matrix<scalartype, device_name>::resize_rows(std::pair<int,int> new_current_size)
   {
     assert(new_current_size.first > global_size.first && new_current_size.second <= global_size.second);
-	
+
     std::pair<int,int> new_global_size;
     new_global_size.first  = comply_to_block_size(new_current_size.first);
     new_global_size.second = global_size.second;
-	
+
     matrix_scalartype* new_data = NULL;
     MEMORY_MANAGEMENT<device_name>::allocate(new_data, new_global_size);
-	
+
     {
       COPY_FROM<device_name, device_name>::execute(data    , current_size, global_size,
-						   new_data, current_size, new_global_size);
+                                                   new_data, current_size, new_global_size);
     }
 
     {
@@ -468,28 +468,28 @@ namespace LIN_ALG {
       data                       = new_data;
       new_data                   = tmp_ptr;
     }
-	
+
     MEMORY_MANAGEMENT<device_name>::deallocate(new_data);
-	
+
     global_size  = new_global_size;
     current_size = new_current_size;
   }
-    
+
   template<typename scalartype, device_type device_name>
   void matrix<scalartype, device_name>::resize_cols(std::pair<int,int> new_current_size)
   {
     assert(new_current_size.first <= global_size.first && new_current_size.second > global_size.second);
-	
+
     std::pair<int,int> new_global_size;
     new_global_size.first  = global_size.first;
     new_global_size.second = comply_to_block_size(new_current_size.second);
 
     matrix_scalartype* new_data = NULL;
     MEMORY_MANAGEMENT<device_name>::allocate(new_data, new_global_size);
-	
+
     {
       COPY_FROM<device_name, device_name>::execute(data    , current_size,     global_size,
-						   new_data, current_size, new_global_size);
+                                                   new_data, current_size, new_global_size);
     }
 
     {
@@ -497,28 +497,28 @@ namespace LIN_ALG {
       data                       = new_data;
       new_data                   = tmp_ptr;
     }
-    
-    MEMORY_MANAGEMENT<device_name>::deallocate(new_data);    
-	
+
+    MEMORY_MANAGEMENT<device_name>::deallocate(new_data);
+
     global_size  = new_global_size;
     current_size = new_current_size;
   }
-    
+
   template<typename scalartype, device_type device_name>
   void matrix<scalartype, device_name>::resize_rows_and_cols(std::pair<int,int> new_current_size)
   {
     assert(new_current_size.first > global_size.first && new_current_size.second > global_size.second);
-	
+
     std::pair<int,int> new_global_size;
     new_global_size.first  = comply_to_block_size(new_current_size.first);
     new_global_size.second = comply_to_block_size(new_current_size.second);
-	
+
     matrix_scalartype* new_data = NULL;
     MEMORY_MANAGEMENT<device_name>::allocate(new_data, new_global_size);
-	
+
     {
       COPY_FROM<device_name, device_name>::execute(data    , current_size,     global_size,
-						   new_data, current_size, new_global_size);
+                                                   new_data, current_size, new_global_size);
     }
 
     {
@@ -526,9 +526,9 @@ namespace LIN_ALG {
       data                       = new_data;
       new_data                   = tmp_ptr;
     }
-	
+
     MEMORY_MANAGEMENT<device_name>::deallocate(new_data);
-	
+
     global_size  = new_global_size;
     current_size = new_current_size;
   }
@@ -539,41 +539,41 @@ namespace LIN_ALG {
     std::pair<int, int> tmp_current_size(new_current_size, new_current_size);
     resize_no_copy(tmp_current_size);
   }
-  
+
   template<typename scalartype, device_type device_name>
   void matrix<scalartype, device_name>::resize_no_copy(std::pair<int,int> new_current_size)
   {
     if(new_current_size.first > global_size.first || new_current_size.second > global_size.second)
-      {
-	//CUBLAS_THREAD_MANAGER<device_name>::synchronize_streams(thread_id, stream_id);
-	
-	current_size = new_current_size;
-	global_size  = comply_to_block_size(new_current_size);
+    {
+      //CUBLAS_THREAD_MANAGER<device_name>::synchronize_streams(thread_id, stream_id);
 
-	MEMORY_MANAGEMENT<device_name>::deallocate(data);  
-	MEMORY_MANAGEMENT<device_name>::  allocate(data, global_size);
+      current_size = new_current_size;
+      global_size  = comply_to_block_size(new_current_size);
 
-	//CUBLAS_THREAD_MANAGER<device_name>::synchronize_streams(thread_id, stream_id);
-      }
+      MEMORY_MANAGEMENT<device_name>::deallocate(data);
+      MEMORY_MANAGEMENT<device_name>::  allocate(data, global_size);
+
+      //CUBLAS_THREAD_MANAGER<device_name>::synchronize_streams(thread_id, stream_id);
+    }
     else
-      {
-	current_size = new_current_size;
-      }
+    {
+      current_size = new_current_size;
+    }
   }
 
   template<typename scalartype, device_type device_name>
   void matrix<scalartype, device_name>::add_row_and_col()
   {
     if(current_size.first<global_size.first && current_size.second<global_size.second)
-      {
-	current_size.first++;
-	current_size.second++;
-      }
+    {
+      current_size.first++;
+      current_size.second++;
+    }
     else
-      {
-	std::pair<int, int> new_current_size(current_size.first+1, current_size.second+1);
-	this->resize(new_current_size);
-      }
+    {
+      std::pair<int, int> new_current_size(current_size.first+1, current_size.second+1);
+      this->resize(new_current_size);
+    }
 
     assert(current_size.first >-1 && current_size.first <=global_size.first);
     assert(current_size.second>-1 && current_size.second<=global_size.second);
@@ -604,12 +604,12 @@ namespace LIN_ALG {
 
     scalartype* this_ptr  = this->       get_ptr();
     scalartype* other_ptr = other_matrix.get_ptr();
-    
+
     this->get_ptr()          = other_ptr;
     this->get_global_size()  = other_g_s;
     this->get_current_size() = other_c_s;
 
-    other_matrix.get_ptr()          = this_ptr; 
+    other_matrix.get_ptr()          = this_ptr;
     other_matrix.get_global_size()  = this_g_s;
     other_matrix.get_current_size() = this_c_s;
   }
@@ -619,9 +619,9 @@ namespace LIN_ALG {
   void matrix<scalartype, device_name>::copy_from(matrix<scalartype, other_device_name>& other_matrix)
   {
     this->resize(other_matrix.get_current_size());
-    
+
     COPY_FROM<other_device_name, device_name>::execute(other_matrix.get_ptr(), other_matrix.get_current_size(), other_matrix.get_global_size(),
-						       this->get_ptr(),        this->get_current_size(),        this->get_global_size());
+                                                       this->get_ptr(),        this->get_current_size(),        this->get_global_size());
   }
 
   template<typename scalartype, device_type device_name>
@@ -635,96 +635,96 @@ namespace LIN_ALG {
     this->resize(other_matrix.get_current_size());
 
     switch(copy_t)
-      {
-      case SYNCHRONOUS:
-	COPY_FROM<other_device_name, device_name>::execute(other_matrix.get_ptr(), other_matrix.get_current_size(), other_matrix.get_global_size(),
-							   this->get_ptr(),        this->get_current_size(),        this->get_global_size());
-	break;
+    {
+    case SYNCHRONOUS:
+      COPY_FROM<other_device_name, device_name>::execute(other_matrix.get_ptr(), other_matrix.get_current_size(), other_matrix.get_global_size(),
+                                                         this->get_ptr(),        this->get_current_size(),        this->get_global_size());
+      break;
 
-      case ASYNCHRONOUS:
-	CUBLAS_THREAD_MANAGER<device_t>::synchronize_streams(thread_id, stream_id);
+    case ASYNCHRONOUS:
+      CUBLAS_THREAD_MANAGER<device_t>::synchronize_streams(thread_id, stream_id);
 
-	COPY_FROM<other_device_name, device_name>::execute(other_matrix.get_ptr(), other_matrix.get_current_size(), other_matrix.get_global_size(),
-							   this->get_ptr(),        this->get_current_size(),        this->get_global_size(),
-							   thread_id, stream_id);
-	
-	CUBLAS_THREAD_MANAGER<device_t>::synchronize_streams(thread_id, stream_id);
-	break;
+      COPY_FROM<other_device_name, device_name>::execute(other_matrix.get_ptr(), other_matrix.get_current_size(), other_matrix.get_global_size(),
+                                                         this->get_ptr(),        this->get_current_size(),        this->get_global_size(),
+                                                         thread_id, stream_id);
 
-      default:
-	throw std::logic_error(__FUNCTION__);
-      }
+      CUBLAS_THREAD_MANAGER<device_t>::synchronize_streams(thread_id, stream_id);
+      break;
+
+    default:
+      throw std::logic_error(__FUNCTION__);
+    }
   }
 
 
   template<typename scalartype, device_type device_name>
   template<device_type other_device_name>
   scalartype matrix<scalartype, device_name>::difference(matrix<scalartype, other_device_name>& other_matrix)
-  {	
+  {
     if(this->get_current_size() != other_matrix.get_current_size())
-      {
-	throw std::logic_error("different matrix size");
-      }
+    {
+      throw std::logic_error("different matrix size");
+    }
 
     matrix<scalartype, CPU> cp_this (current_size);
     matrix<scalartype, CPU> cp_other(current_size);
 
     COPY_FROM<device_name,       CPU>::execute(this  ->get_ptr(), this  ->get_current_size(), this  ->get_global_size(),
-					       cp_this.get_ptr(), cp_this.get_current_size(), cp_this.get_global_size());
-    
+                                               cp_this.get_ptr(), cp_this.get_current_size(), cp_this.get_global_size());
+
     COPY_FROM<other_device_name, CPU>::execute(other_matrix.get_ptr(), other_matrix.get_current_size(), other_matrix.get_global_size(),
-					       cp_other    .get_ptr(), cp_other    .get_current_size(), cp_other    .get_global_size()); 
+                                               cp_other    .get_ptr(), cp_other    .get_current_size(), cp_other    .get_global_size());
 
     scalartype max_dif=0;
     for(int i=0; i<current_size.first; ++i){
       for(int j=0; j<current_size.second; ++j){
-	/*
-	  if( fabs(cp_this(i,j)-cp_other(i,j)) < 1.e-6)
-	  std::cout << "\t" << 0.;
-	  else
-	  std::cout << "\t" << cp_this(i,j)-cp_other(i,j);
-	*/
+        /*
+          if(std::fabs(cp_this(i,j)-cp_other(i,j)) < 1.e-6)
+          std::cout << "\t" << 0.;
+          else
+          std::cout << "\t" << cp_this(i,j)-cp_other(i,j);
+        */
 
-	if( fabs(cp_this(i,j)-cp_other(i,j)) > max_dif)
-	  max_dif = fabs(cp_this(i,j)-cp_other(i,j));
+        if(std::fabs(cp_this(i,j)-cp_other(i,j)) > max_dif)
+          max_dif = std::fabs(cp_this(i,j)-cp_other(i,j));
       }
       //std::cout << "\n";
     }
     //std::cout << "\n";
 
-    if(fabs(max_dif)<1.e-8)
-      {
-	//std::cout << "\t\t Max Diff : OK " << endl;
-      }
+    if(std::fabs(max_dif)<1.e-8)
+    {
+      //std::cout << "\t\t Max Diff : OK " << endl;
+    }
     else
-      {
-	//std::cout << "\t\t Max Diff : " <<  max_dif << endl;
-    
-	//throw std::logic_error(__FUNCTION__);
-	
-	/*
-	this->print();
-	
-	other_matrix.print();
-	
-     	std::cout << "\n\n";
+    {
+      //std::cout << "\t\t Max Diff : " <<  max_dif << endl;
 
-	for(int i=0; i<current_size.first; ++i){
-	    for(int j=0; j<current_size.second; ++j){
-		
-		if( fabs(cp_this(i,j)-cp_other(i,j)) < 1.e-6)
-		    std::cout << "\t" << 0.;
-		else
-		    std::cout << "\t" << cp_this(i,j)-cp_other(i,j);
-	    }
-	    std::cout << "\n";
-	}
-	std::cout << "\n";
-	*/
-	
-	if(fabs(max_dif)>1.e-3)
-	    throw std::logic_error(__FUNCTION__);
-	
+      //throw std::logic_error(__FUNCTION__);
+
+      /*
+        this->print();
+
+        other_matrix.print();
+
+        std::cout << "\n\n";
+
+        for(int i=0; i<current_size.first; ++i){
+        for(int j=0; j<current_size.second; ++j){
+
+        if(std::fabs(cp_this(i,j)-cp_other(i,j)) < 1.e-6)
+        std::cout << "\t" << 0.;
+        else
+        std::cout << "\t" << cp_this(i,j)-cp_other(i,j);
+        }
+        std::cout << "\n";
+        }
+        std::cout << "\n";
+      */
+
+      if(std::fabs(max_dif)>1.e-3)
+        throw std::logic_error(__FUNCTION__);
+
     }
 
     return max_dif;
@@ -733,64 +733,64 @@ namespace LIN_ALG {
   template<typename scalartype, device_type device_name>
   template<device_type other_device_name>
   scalartype matrix<scalartype, device_name>::difference(matrix<scalartype, other_device_name>& other_matrix, int N)
-  {	
+  {
     if(this->get_current_size() != other_matrix.get_current_size())
-      {
-	throw std::logic_error("different matrix size");
-      }
+    {
+      throw std::logic_error("different matrix size");
+    }
 
     matrix<scalartype, CPU> cp_this (current_size);
     matrix<scalartype, CPU> cp_other(current_size);
 
     COPY_FROM<device_name,       CPU>::execute(this  ->get_ptr(), this  ->get_current_size(), this  ->get_global_size(),
-					       cp_this.get_ptr(), cp_this.get_current_size(), cp_this.get_global_size());
-    
+                                               cp_this.get_ptr(), cp_this.get_current_size(), cp_this.get_global_size());
+
     COPY_FROM<other_device_name, CPU>::execute(other_matrix.get_ptr(), other_matrix.get_current_size(), other_matrix.get_global_size(),
-					       cp_other    .get_ptr(), cp_other    .get_current_size(), cp_other    .get_global_size()); 
+                                               cp_other    .get_ptr(), cp_other    .get_current_size(), cp_other    .get_global_size());
 
     scalartype max_dif=0;
     for(int i=0; i<N; ++i){
       for(int j=0; j<N; ++j){
-	if( fabs(cp_this(i,j)-cp_other(i,j)) > max_dif)
-	  max_dif = fabs(cp_this(i,j)-cp_other(i,j));
+        if(std::fabs(cp_this(i,j)-cp_other(i,j)) > max_dif)
+          max_dif = std::fabs(cp_this(i,j)-cp_other(i,j));
       }
     }
 
-    if(fabs(max_dif)<1.e-8)
-      {
-	  std::cout << "\t\t Max Diff : OK " << std::endl;
-      }
+    if(std::fabs(max_dif)<1.e-8)
+    {
+      std::cout << "\t\t Max Diff : OK " << std::endl;
+    }
     else
-      {
-     	std::cout << "\n\n";
+    {
+      std::cout << "\n\n";
 
-	for(int i=0; i<N; ++i){
-	    for(int j=0; j<N; ++j){
-		
-		if( fabs(cp_this(i,j)-cp_other(i,j)) < 1.e-6)
-		    std::cout << "\t" << 0.;
-		else
-		    std::cout << "\t" << cp_this(i,j)-cp_other(i,j);
-	    }
-	    std::cout << "\n";
-	}
-	std::cout << "\n";
+      for(int i=0; i<N; ++i){
+        for(int j=0; j<N; ++j){
 
-	/*
-	if(fabs(max_dif)>1.e-12)
-	    throw std::logic_error(__FUNCTION__);
-	*/
+          if(std::fabs(cp_this(i,j)-cp_other(i,j)) < 1.e-6)
+            std::cout << "\t" << 0.;
+          else
+            std::cout << "\t" << cp_this(i,j)-cp_other(i,j);
+        }
+        std::cout << "\n";
+      }
+      std::cout << "\n";
+
+      /*
+        if(std::fabs(max_dif)>1.e-12)
+        throw std::logic_error(__FUNCTION__);
+      */
     }
 
     return max_dif;
   }
-    
+
   template<typename scalartype, device_type device_name>
   void matrix<scalartype, device_name>::print()
   {
     MEMORY_MANAGEMENT<device_name>::print(data, current_size, global_size);
   }
-    
+
   template<typename scalartype, device_type device_name>
   void matrix<scalartype, device_name>::print_fingerprint()
   {
@@ -800,12 +800,12 @@ namespace LIN_ALG {
     ss << "\t  name : " << name << "\n";
     ss << "\t  current-size : " << current_size.first << ", " << current_size.second << "\n";
     ss << "\t  global-size  : " << global_size.first  << ", " << global_size.second << "\n";
-    ss << "\t  memory-size  : " << global_size.first*global_size.second*sizeof(scalartype)*1.e-6 << "(Mbytes)\n"; 
-    ss << "\n\n";    
+    ss << "\t  memory-size  : " << global_size.first*global_size.second*sizeof(scalartype)*1.e-6 << "(Mbytes)\n";
+    ss << "\n\n";
 
     std::cout << ss.str();
   }
-    
+
 }
 
 #endif

@@ -381,7 +381,7 @@ namespace DCA
 
       if(spin_value == HS_ZERO)
         {
-          //cout << "\t--> annihilate spin : " << configuration_index << endl;
+          //cout << "\t--> annihilate spin : " << configuration_index << std::endl;
 
           current_Nb_of_annihilatable_spins -= 1;
 
@@ -389,7 +389,7 @@ namespace DCA
         }
       else
         {
-          //cout << "\t--> create spin : " << configuration_index << endl;
+          //cout << "\t--> create spin : " << configuration_index << std::endl;
 
           current_Nb_of_annihilatable_spins += 1;
 
@@ -529,7 +529,7 @@ namespace DCA
         vertex_index++;
 
       if(vertex_index != configuration_size){
-        cout << vertex_index << " --> " << configuration_size << endl;
+        std::cout << vertex_index << " --> " << configuration_size << std::endl;
         print();
         print(e_spin);
       }
@@ -565,7 +565,7 @@ namespace DCA
     template<class parameters_type>
     bool CT_AUX_HS_configuration< parameters_type>::assert_consistency()
     {
-      //cout << __FUNCTION__ <<endl;
+      //std::cout << __FUNCTION__ <<std::endl;
 
       assert(2*configuration.size() == (configuration_e_UP.size() + configuration_e_DN.size()));
       assert_counters();
@@ -631,7 +631,7 @@ namespace DCA
     void  CT_AUX_HS_configuration< parameters_type>::print()
     {
       std::stringstream ss;
-      ss << scientific;
+      ss << std::scientific;
       ss.precision(6);
       ss.width(6);
 
@@ -639,9 +639,9 @@ namespace DCA
       for(size_t i=0; i<configuration.size(); i++)
         ss << "\t" << "==============" ;
 
-      cout << "current_Nb_of_creatable_spins     \t" << current_Nb_of_creatable_spins  << endl;
-      cout << "current_Nb_of_annihilatable_spins \t" << current_Nb_of_annihilatable_spins << endl;
-      cout << endl;
+      std::cout << "current_Nb_of_creatable_spins     \t" << current_Nb_of_creatable_spins  << std::endl;
+      std::cout << "current_Nb_of_annihilatable_spins \t" << current_Nb_of_annihilatable_spins << std::endl;
+      std::cout << std::endl;
 
 
       ss << "\n tau     ";
@@ -749,16 +749,16 @@ namespace DCA
         ss << "\t" << "==============";
       */
 
-      ss << endl<<endl;
+      ss << std::endl<<std::endl;
 
-      cout << ss.str();
+      std::cout << ss.str();
     }
 
     template<class parameters_type>
     void  CT_AUX_HS_configuration< parameters_type>::print(e_spin_states_type e_spin)
     {
       std::stringstream ss;
-      ss << scientific;
+      ss << std::scientific;
       ss.precision(6);
       ss.width(6);
 
@@ -813,9 +813,9 @@ namespace DCA
       for(size_t i=0; i< get(e_spin).size(); i++)
         ss << "\t" << "==============" ;
 
-      ss << endl<<endl;
+      ss << std::endl<<std::endl;
 
-      cout << ss.str();
+      std::cout << ss.str();
     }
 
   }

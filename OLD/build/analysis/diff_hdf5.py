@@ -71,7 +71,7 @@ def plot_imag_w_function(function_name, domains, function_ED, function_QMC):
         x1 = len(freq_dmn)/2+32
                 
         tmp_re = function_QMC["data"][x0:x1,k_ind, 0,0, 0,0, 0]-function_ED ["data"][x0:x1,k_ind, 0,0, 0,0, 0]
-        tmp_im = function_QMC["data"][x0:x1,k_ind, 0,0, 0,0, 0]-function_ED ["data"][x0:x1,k_ind, 0,0, 0,0, 0]
+        tmp_im = function_QMC["data"][x0:x1,k_ind, 0,0, 0,0, 1]-function_ED ["data"][x0:x1,k_ind, 0,0, 0,0, 1]
 
         diff_re.append(tmp_re)
         diff_im.append(tmp_im)

@@ -104,7 +104,7 @@ namespace COMP_LIB
   {}
 
   template<typename scalar_type>
-  int packing_interface<MPI_LIBRARY>::get_buffer_size(scalar_type item)
+  int packing_interface<MPI_LIBRARY>::get_buffer_size(scalar_type /*item*/)
   {
     int size(0);
 

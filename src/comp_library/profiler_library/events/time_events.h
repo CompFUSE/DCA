@@ -161,11 +161,11 @@ namespace PROFILER
   {}
 
   template<typename scalartype>
-  void time_event<scalartype>::start_pthreading(int id)
+  void time_event<scalartype>::start_pthreading(int /*id*/)
   {}
 
   template<typename scalartype>
-  void time_event<scalartype>::stop_pthreading(int id)
+  void time_event<scalartype>::stop_pthreading(int /*id*/)
   {}
 
 }

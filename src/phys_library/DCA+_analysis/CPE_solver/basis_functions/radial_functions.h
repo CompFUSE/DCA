@@ -46,7 +46,7 @@ void radial_function::initialize(parameters_type& parameters)
   std::vector<double> elements = w_REAL::get_elements();
 
   for(size_t l=0; l<elements.size(); l++){
-    elements[l] = sgn(elements[l])*square(fabs(elements[l])/fabs(elements[0]))*fabs(elements[0]);
+    elements[l] = sgn(elements[l])*square(std::fabs(elements[l])/std::fabs(elements[0]))*fabs(elements[0]);
     //cout << elements[l] << endl;
   }
 

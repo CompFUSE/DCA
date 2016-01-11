@@ -1,0 +1,26 @@
+#include "gitVersion.hpp"
+
+#include <iostream>
+#include <string>
+
+const std::string GitVersion::GIT_LOG = "@GIT_LOG@";
+const std::string GitVersion::GIT_STATUS = "@GIT_STATUS@";
+
+void GitVersion::print() {
+  std::cout << "\n\n"
+            << "********************************************************************************\n"
+            << "**********                        Git Version                         **********\n"
+            << "********************************************************************************\n"
+            << "\n"
+            << "Last commit:\n"
+            << GitVersion::GIT_LOG
+            << "\n"
+            << "Working tree:\n"
+            << GitVersion::GIT_STATUS
+            << "\n"
+            << std::endl;
+}
+
+std::string GitVersion::string() {
+  return std::string("Last commit:\n"+GitVersion::GIT_LOG+"\nWorking tree:\n"+GitVersion::GIT_STATUS);
+}

@@ -161,7 +161,7 @@ void  model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t>, i
     }
   catch(const std::exception& r_e) 
     { 
-      cout << "\n\t bilayer-model parameters defined !!\n\n";
+      std::cout << "\n\t bilayer-model parameters defined !!\n\n";
       throw std::logic_error(__PRETTY_FUNCTION__);
     }
 
@@ -183,7 +183,7 @@ void  model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t>, i
 
     ss << "\n\n";
 
-    cout << ss.str();
+    std::cout << ss.str();
   }
 }
 

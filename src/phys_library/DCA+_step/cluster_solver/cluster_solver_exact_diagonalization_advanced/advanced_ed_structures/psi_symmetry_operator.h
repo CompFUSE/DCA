@@ -52,7 +52,7 @@ namespace DCA
     template<typename parameter_type, typename ed_options>
     void symmetry_operation<parameter_type, ed_options>::print()
     {
-      stringstream ss;
+      std::stringstream ss;
 
       ss << "\n\n\t symmetry \n\n";
       ss << "\t\t order : " << order << "\n";
@@ -60,7 +60,7 @@ namespace DCA
         ss << "\t" << j << "\t" << permutation[j] << "\n";
       ss << "\n\n";
 
-      cout << ss.str();
+      std::cout << ss.str();
     }
 
     template<typename parameter_type, typename ed_options>

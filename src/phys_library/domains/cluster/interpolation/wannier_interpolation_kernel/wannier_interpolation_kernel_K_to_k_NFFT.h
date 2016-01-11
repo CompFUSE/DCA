@@ -256,7 +256,7 @@ void wannier_interpolation_kernel<k_cluster<FULL, source_base_cluster_type>, tar
     }
   }
 
-  if(nfft_K_2_R.nfft_flags & PRE_ONE_PSI) 
+  if(nfft_K_2_R.flags & PRE_ONE_PSI) 
     nfft_precompute_one_psi(&nfft_K_2_R);
 }
 
@@ -298,7 +298,7 @@ void wannier_interpolation_kernel<k_cluster<FULL, source_base_cluster_type>, tar
     }
   }
 
-  if(nfft_R_2_k.nfft_flags & PRE_ONE_PSI) 
+  if(nfft_R_2_k.flags & PRE_ONE_PSI) 
     nfft_precompute_one_psi(&nfft_R_2_k);
 }
 

@@ -125,7 +125,7 @@ namespace MATH_ALGORITHMS
           for(int i=0; i<M; i++)
             diff = diff<abs(T(i,j)-T_cpy(i,j))? abs(T(i,j)-T_cpy(i,j)) : diff;
 
-        cout << diff << "\t" << max << endl;
+        std::cout << diff << "\t" << max << std::endl;
 
         if(diff<get_matrix_accuracy()*max)
           break;

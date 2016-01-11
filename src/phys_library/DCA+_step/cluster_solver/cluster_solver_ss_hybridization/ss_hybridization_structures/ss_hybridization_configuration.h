@@ -111,15 +111,15 @@ namespace DCA
   {
     for(int i=0; i<N_spin_orbitals; i++)
       {
-	cout << i;
+        std::cout << i;
 	if(vertices(i).size() >0)
 	  for(size_t j=0; j<vertices(i).size(); j++)
-	    cout << "\t {" << vertices(i)[j].t_start() << " , " << vertices(i)[j].t_end() << " }"; 
+	    std::cout << "\t {" << vertices(i)[j].t_start() << " , " << vertices(i)[j].t_end() << " }"; 
 	else if(has_full_line(i))
-	  cout << "\t full line";
-	cout << "\n";
+	  std::cout << "\t full line";
+	std::cout << "\n";
       }
-    cout << "\n";
+    std::cout << "\n";
   } 
 
 

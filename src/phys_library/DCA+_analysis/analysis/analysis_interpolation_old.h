@@ -671,7 +671,7 @@ namespace dca {
     
       ss << "    ---> (leading) j = " /*<< 0*/ 
 	 << "    sval = "             /*<< sqrt(square(1.0 - real(lambda)) + square(imag(lambda)))*/
-	 << "    eigenval = "         /*<< real(lambda)*/ << " ; " /*<< fabs(imag(lambda))*/
+	 << "    eigenval = "         /*<< real(lambda)*/ << " ; " /*<< std::fabs(imag(lambda))*/
 	 << "    |    ";
       
       size_begin = ss.str().size() + 1 + 3*size_value;
@@ -691,7 +691,7 @@ namespace dca {
 
 	cout << "    ---> (leading) j = " << i 
 	     << "    sval = "             << sqrt(square(1.0 - real(lambda)) + square(imag(lambda)))
-	     << "    eigenval = "         << real(lambda) << " ; " << fabs(imag(lambda)) 
+	     << "    eigenval = "         << real(lambda) << " ; " << std::fabs(imag(lambda)) 
 	     << "    |    ";
 	
 	for(int H_ind=0; H_ind<N_HARMONICS; H_ind++)

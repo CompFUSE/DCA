@@ -9,9 +9,9 @@ namespace LIN_ALG {
     struct REMOVE<GPU>
     {
       template<typename scalartype>
-      static void execute(vector<scalartype, GPU>& v, int index)
+      static void execute(vector<scalartype, GPU>& /*v*/, int /*index*/)
       {
-	throw std::logic_error(__FUNCTION__);
+        throw std::logic_error(__FUNCTION__);
       }
 
       template<typename scalartype>

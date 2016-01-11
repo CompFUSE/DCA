@@ -105,7 +105,7 @@ namespace DCA
                                                      const int order,
                                                      symmetry_operation& Op,
                                                      const psi_state<parameter_type, ed_options>& phi0, 
-						     int k):
+                                                     int /*k*/):
       marker(false),
       eigenvalues(phi0.get_eigenvalues())
     {
@@ -147,7 +147,7 @@ namespace DCA
         std::cout << " | " << phi_obj[i].alpha << "\n";
       }
 
-      cout << "\n";
+      std::cout << "\n";
     }
 
     template<typename parameter_type, typename ed_options>

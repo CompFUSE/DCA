@@ -53,7 +53,7 @@ namespace DCA
     concurrency(parameters.get_concurrency())
   {
     if(concurrency.id() == concurrency.first())
-      cout << "\n\n\t" << __FUNCTION__ << " is created " << print_time();
+      std::cout << "\n\n\t" << __FUNCTION__ << " is created " << print_time();
   }
 
   template<typename parameters_type, typename source_k_dmn, typename target_k_dmn>

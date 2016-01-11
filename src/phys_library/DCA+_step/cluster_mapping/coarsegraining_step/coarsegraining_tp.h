@@ -492,7 +492,7 @@ namespace DCA
                                                               FUNC_LIB::function<std::complex<scalar_type>, dmn_4<b_b, b_b, K_dmn , w_dmn_t> >& phi)
   {
     if(concurrency.id()==concurrency.last())
-      cout << "\n\n\t start " << __FUNCTION__ << " ... " << print_time();
+      std::cout << "\n\n\t start " << __FUNCTION__ << " ... " << print_time();
 
     assert(k_DCA::get_elements() == K_dmn::get_elements());
 
@@ -569,7 +569,7 @@ namespace DCA
                                                               FUNC_LIB::function<std::complex<scalar_type>, dmn_4<b_b, b_b, K_dmn , w_dmn_t> >& phi)
   {
     if(concurrency.id()==concurrency.last())
-      cout << "\n\n\t start " << __FUNCTION__ << " ... " << print_time();
+      std::cout << "\n\n\t start " << __FUNCTION__ << " ... " << print_time();
 
     phi = 0.;
 
@@ -633,7 +633,7 @@ namespace DCA
     }
 
     if(concurrency.id()==concurrency.last())
-      cout << "\n\n\t end  ... " << print_time();
+      std::cout << "\n\n\t end  ... " << print_time();
   }
 
   template<typename parameters_type, typename K_dmn>
@@ -643,10 +643,10 @@ namespace DCA
     int W_ind = parameters.get_w_channel();
 
     for(int l=0; l<w::dmn_size(); l++)
-      if(abs(elements[w_ind]-w::get_elements()[l])<1.e-6)
+      if(std::abs(elements[w_ind]-w::get_elements()[l])<1.e-6)
         w1 = l;
 
-    assert(abs(w::get_elements()[w1]-elements[w_ind]) < 1.e-6);
+    assert(std::abs(w::get_elements()[w1]-elements[w_ind]) < 1.e-6);
 
     switch(parameters.get_vertex_measurement_type())
       {
@@ -662,7 +662,7 @@ namespace DCA
       case PARTICLE_PARTICLE_SUPERCONDUCTING:
         {
           w2 = W_ind + (w::dmn_size()-1-w1);
-          assert(abs(w::get_elements()[w1]+w::get_elements()[w::dmn_size()-1-w1]) < 1.e-6);
+          assert(std::abs(w::get_elements()[w1]+w::get_elements()[w::dmn_size()-1-w1]) < 1.e-6);
           //assert(abs(w::get_elements()[w2] - (elements[N_w/2+W]-elements[w_ind]+)) < 1.e-6);
         }
         break;

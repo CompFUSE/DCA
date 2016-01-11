@@ -11,7 +11,7 @@ double sgn(double a)
 template<typename scalartype>
 inline scalartype abs_value(scalartype a)
 { 
-  return fabs(a); 
+  return std::fabs(a); 
 }
 
 template<typename scalartype>
@@ -92,7 +92,7 @@ double gaussian_distribution(double p, double mu, double sigma)
 template<typename scalartype>
 bool ASSERT_NON_ZERO(scalartype z) 
 { 
-  return bool(fabs(z)>1.e-16);
+  return bool(std::fabs(z)>1.e-16);
 }
 
 template<typename scalartype>
@@ -176,21 +176,21 @@ bool SAME_VECTOR(std::vector<double> v1, std::vector<double> v2)
 */
 
 template<int DIMENSION>
-int column_major_index_2_row_major_index(int column_index, int* grid)
+int column_major_index_2_row_major_index(int /*column_index*/, int* /*grid*/)
 {
   throw std::logic_error(__FUNCTION__);
   return -1;
 }
 
 template<int DIMENSION>
-int row_major_index_2_column_major_index(int column_index, int* grid)
+int row_major_index_2_column_major_index(int /*column_index*/, int* /*grid*/)
 {
   throw std::logic_error(__FUNCTION__);
   return -1;
 }
 
 template<>
-int column_major_index_2_row_major_index<1>(int column_index, int* grid)
+int column_major_index_2_row_major_index<1>(int column_index, int* /*grid*/)
 {
   return column_index;
 }
@@ -219,7 +219,7 @@ int column_major_index_2_row_major_index<3>(int column_index, int* grid)
 }
 
 template<>
-int row_major_index_2_column_major_index<1>(int row_index, int* grid)
+int row_major_index_2_column_major_index<1>(int row_index, int* /*grid*/)
 {
   return row_index;
 }

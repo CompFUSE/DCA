@@ -118,7 +118,7 @@ namespace DCA
     void ss_hybridization_solver_routines<parameters_t, MOMS_t>::initialize()
     {
       if(SHOW_FUNCTIONS)
-        cout << "\n\t " << __FUNCTION__ << " \n";
+        std::cout << "\n\t " << __FUNCTION__ << " \n";
 
       initialize_interacting_band_vector();
     }
@@ -134,7 +134,7 @@ namespace DCA
     void ss_hybridization_solver_routines<parameters_t, MOMS_t>::initialize_interacting_band_vector()
     {
       if(SHOW_FUNCTIONS)
-        cout << "\n\t " << __FUNCTION__ << " \n";
+        std::cout << "\n\t " << __FUNCTION__ << " \n";
 
       for(int b_i=0; b_i<b::dmn_size(); b_i++){
         is_interacting_band_vector[b_i] = false;
@@ -192,7 +192,7 @@ namespace DCA
     void ss_hybridization_solver_routines<parameters_t, MOMS_t>::initialize_hybridization_function()
     {
       if(SHOW_FUNCTIONS)
-        cout << "\n\t " << __FUNCTION__ << " \n";
+        std::cout << "\n\t " << __FUNCTION__ << " \n";
 
       construct_F_k_w();
 
@@ -200,7 +200,7 @@ namespace DCA
         SHOW::execute_on_bands(F_k_w);
 
       if(SHOW_FUNCTIONS)
-        cout << "\n\t construct_F_r_t \n";
+        std::cout << "\n\t construct_F_r_t \n";
 
       construct_F_r_t();
 
@@ -214,7 +214,7 @@ namespace DCA
     void ss_hybridization_solver_routines<parameters_t, MOMS_t>::construct_F_k_w()
     {
       if(SHOW_FUNCTIONS)
-        cout << "\n\t " << __FUNCTION__ << " \n";
+        std::cout << "\n\t " << __FUNCTION__ << " \n";
 
       if(SHOW_FUNCTIONS)
         {
@@ -269,7 +269,7 @@ namespace DCA
     }
 
     template<typename parameters_t, typename MOMS_t>
-    void ss_hybridization_solver_routines<parameters_t, MOMS_t>::compute_moments(FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& f_source)
+    void ss_hybridization_solver_routines<parameters_t, MOMS_t>::compute_moments(FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& /*f_source*/)
     {
       int    w_ind = 0;
       double w_val = w::get_elements()[w_ind];

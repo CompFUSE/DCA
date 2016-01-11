@@ -75,7 +75,7 @@ namespace DCA
                                                           LIN_ALG::vector<int   , LIN_ALG::CPU>& random_vertex_vector,
                                                           LIN_ALG::vector<double, LIN_ALG::CPU>& exp_V,
                                                           LIN_ALG::vector<double, LIN_ALG::CPU>& exp_delta_V,
-                                                          int thread_id, int stream_id)
+                                                          int /*thread_id*/, int /*stream_id*/)
     {
       Gamma.resize(random_vertex_vector.size());
 
@@ -137,29 +137,29 @@ namespace DCA
 
     bool CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::test_max_min(int n, LIN_ALG::matrix<double, LIN_ALG::CPU>& Gamma_LU, double max_ref, double min_ref)
     {
-      double Gamma_val = fabs(Gamma_LU(0,0));
+      double Gamma_val = std::fabs(Gamma_LU(0,0));
 
       double max = Gamma_val;
       double min = Gamma_val;
 
       for(int i=1; i<n+1; i++){
-        Gamma_val = fabs(Gamma_LU(i,i));
+        Gamma_val = std::fabs(Gamma_LU(i,i));
 
         max = Gamma_val>max? Gamma_val : max;
         min = Gamma_val<min? Gamma_val : min;
       }
 
-      if(fabs(max_ref-max)<1.e-12 and fabs(min_ref-min)<1.e-12)
+      if(std::fabs(max_ref-max)<1.e-12 and std::fabs(min_ref-min)<1.e-12)
         return true;
       else
         {
-          cout << __FUNCTION__ << endl;
-          cout.precision(16);
-	  cout << "\n\t n : " << n << "\n";
-          cout<<scientific;
-          cout << max << "\t" << max_ref << "\t" <<fabs(max_ref-max) << endl;
-          cout << min << "\t" << min_ref << "\t" <<fabs(min_ref-min) << endl;
-          cout << endl;
+          std::cout << __FUNCTION__ << std::endl;
+          std::cout.precision(16);
+          std::cout << "\n\t n : " << n << "\n";
+          std::cout<<std::scientific;
+          std::cout << max << "\t" << max_ref << "\t" <<std::fabs(max_ref-max) << std::endl;
+          std::cout << min << "\t" << min_ref << "\t" <<std::fabs(min_ref-min) << std::endl;
+          std::cout << std::endl;
 
 	  Gamma_LU.print();
 
@@ -178,7 +178,7 @@ namespace DCA
       //solve_Gamma_BLAS(n, Gamma_LU);
 
       double Gamma_LU_n_n = Gamma_LU(n,n);
-      double Gamma_val    = fabs(Gamma_LU_n_n);
+      double Gamma_val    = std::fabs(Gamma_LU_n_n);
 
       if(n>0)
         {
@@ -390,15 +390,15 @@ namespace DCA
                                                                   double& max,
                                                                   double& min)
     {
-      //cout << "\t(" << min << ", " << max << " ) ";
+      //std::cout << "\t(" << min << ", " << max << " ) ";
 
       solve_Gamma_blocked(n, Gamma_LU);
 
       double Gamma_LU_n_n = Gamma_LU(n,n);
 
-      double Gamma_val = fabs(Gamma_LU_n_n);
+      double Gamma_val = std::fabs(Gamma_LU_n_n);
 
-      //cout << " --> " << Gamma_val << " --> (";
+      //std::cout << " --> " << Gamma_val << " --> (";
 
       if(n>0)
         {
@@ -419,7 +419,7 @@ namespace DCA
           min = Gamma_val;
         }
 
-      //cout << min << ", " << max << ")\t";
+      //std::cout << min << ", " << max << ")\t";
       assert(test_max_min(n, Gamma_LU, max, min));
 
       double phani_gamma       = exp_delta_V-1.;
@@ -609,13 +609,13 @@ namespace DCA
         ratio *= (Gamma_LU(i,i)/d_ptr[i]);
 
       {
-        double Gamma_val = fabs(Gamma_LU(0,0));
+        double Gamma_val = std::fabs(Gamma_LU(0,0));
 
         max = Gamma_val;
         min = Gamma_val;
 
         for(int i=1; i<n; i++){
-          Gamma_val = fabs(Gamma_LU(i,i));
+          Gamma_val = std::fabs(Gamma_LU(i,i));
 
           max = Gamma_val>max? Gamma_val : max;
           min = Gamma_val<min? Gamma_val : min;

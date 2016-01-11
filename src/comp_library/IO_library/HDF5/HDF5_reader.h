@@ -95,12 +95,12 @@ namespace IO
     
       if(!tmp or !tmp.good() or tmp.bad()) 
 	{
-	  cout << "\n\n\tcannot open file : " << file_name << "\n";
+    std::cout << "\n\n\tcannot open file : " << file_name << "\n";
 	  throw std::runtime_error(__FUNCTION__);
 	}
       else
 	{
-	  cout << "\n\n\topening file : " << file_name << "\n";
+    std::cout << "\n\n\topening file : " << file_name << "\n";
 	}
     }
 
@@ -164,7 +164,7 @@ namespace IO
       }
     catch(...)
       {
-	cout << "\n\n\t the variable (" + name + ") does not exist in path : " + get_path() + "\n\n";
+        std::cout << "\n\n\t the variable (" + name + ") does not exist in path : " + get_path() + "\n\n";
 	//throw std::logic_error(__FUNCTION__);
       }
   }
@@ -187,7 +187,7 @@ namespace IO
       }
     catch(...)
       {
-	cout << "\n\n\t the variable (" + name + ") does not exist in path : " + get_path() + "\n\n";
+        std::cout << "\n\n\t the variable (" + name + ") does not exist in path : " + get_path() + "\n\n";
 	//throw std::logic_error(__FUNCTION__);
       }
   }
@@ -209,7 +209,7 @@ namespace IO
       }
     catch(...)
       {
-	cout << "\n\n\t the variable (" + name + ") does not exist in path : " + get_path() + "\n\n";
+        std::cout << "\n\n\t the variable (" + name + ") does not exist in path : " + get_path() + "\n\n";
 	//throw std::logic_error(__FUNCTION__);
       }
   }
@@ -230,7 +230,7 @@ namespace IO
       }
     catch(...)
       {
-	cout << "\n\n\t the variable (" + name + ") does not exist in path : " + get_path() + "\n\n";
+        std::cout << "\n\n\t the variable (" + name + ") does not exist in path : " + get_path() + "\n\n";
 	//throw std::logic_error(__FUNCTION__);
       }
   }
@@ -268,13 +268,13 @@ namespace IO
       }
     catch(...)
       {
-	cout << "\n\n\t the variable (" + name + ") does not exist in path : " + get_path() + "\n\n";
+        std::cout << "\n\n\t the variable (" + name + ") does not exist in path : " + get_path() + "\n\n";
 	//throw std::logic_error(__FUNCTION__);
       }
   }
 
   template<typename domain_type>
-  void reader<IO::HDF5>::execute(std::string name, dmn_0<domain_type>& dmn)
+  void reader<IO::HDF5>::execute(std::string /*name*/, dmn_0<domain_type>& /*dmn*/)
   {
 
   }
@@ -288,7 +288,7 @@ namespace IO
   template<typename scalartype, typename domain_type>
   void reader<IO::HDF5>::execute(std::string name, FUNC_LIB::function<scalartype, domain_type>& f)
   {
-    cout << "\n\tstart reading function : " << name;
+    std::cout << "\n\tstart reading function : " << name;
 
     try
       {
@@ -306,7 +306,7 @@ namespace IO
       }
     catch(...)
       {
-	cout << "\n\n\t the function (" + name + ") does not exist in path : " + get_path() + "\n\n";
+        std::cout << "\n\n\t the function (" + name + ") does not exist in path : " + get_path() + "\n\n";
 	//throw std::logic_error(__FUNCTION__);
       }
   }
@@ -332,7 +332,7 @@ namespace IO
       }
     catch(...)
       {
-	cout << "\n\n\t the vector (" + name + ") does not exist in path : " + get_path() + "\n\n";
+        std::cout << "\n\n\t the vector (" + name + ") does not exist in path : " + get_path() + "\n\n";
 	//throw std::logic_error(__FUNCTION__);
       }
   }
@@ -358,7 +358,7 @@ namespace IO
       }
     catch(...)
       {
-	cout << "\n\n\t the vector (" + name + ") does not exist in path : " + get_path() + "\n\n";
+        std::cout << "\n\n\t the vector (" + name + ") does not exist in path : " + get_path() + "\n\n";
 	//throw std::logic_error(__FUNCTION__);
       }
   }
@@ -387,7 +387,7 @@ namespace IO
       }
     catch(...)
       {
-	cout << "\n\n\t the function (" + name + ") does not exist in path : " + get_path() + "\n\n";
+        std::cout << "\n\n\t the function (" + name + ") does not exist in path : " + get_path() + "\n\n";
 	//throw std::logic_error(__FUNCTION__);
       }
   }

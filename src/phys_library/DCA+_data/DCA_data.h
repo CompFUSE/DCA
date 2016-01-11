@@ -203,7 +203,7 @@ namespace DCA
   void DCA_data<parameters_type>::read(std::string filename)
   {
     if(concurrency.id()==0)
-      cout << "\n\n\t starts reading \n\n";
+      std::cout << "\n\n\t starts reading \n\n";
 
     if(concurrency.id()==concurrency.first())
       {
@@ -259,7 +259,7 @@ namespace DCA
   void DCA_data<parameters_type>::read_JSON(std::string filename)
   {
     if(concurrency.id()==0)
-      cout << "\n\n\t starts reading \n\n";
+      std::cout << "\n\n\t starts reading \n\n";
 
     if(concurrency.id()==concurrency.first())
       {
@@ -338,7 +338,7 @@ namespace DCA
   {
     IO::FORMAT FORMAT = parameters.get_output_format();
 
-    cout << "\n\n\t\t start writing " << file_name << "\n\n";
+    std::cout << "\n\n\t\t start writing " << file_name << "\n\n";
 
     switch(FORMAT)
       {
@@ -484,7 +484,7 @@ namespace DCA
   void DCA_data<parameters_type>::initialize_H_0_and_H_i()
   {
     if(concurrency.id()==concurrency.first())
-      cout << "\n\n\t initialize H_0(k) and H_i " << print_time() << "\n";
+      std::cout << "\n\n\t initialize H_0(k) and H_i " << print_time() << "\n";
 
     model::initialize_H_LDA(H_LDA, parameters);
 
@@ -504,7 +504,7 @@ namespace DCA
     }
 
     if(concurrency.id()==concurrency.first())
-      cout << "\t finished H_0(k) and H_i " << print_time() << "\n";
+      std::cout << "\t finished H_0(k) and H_i " << print_time() << "\n";
   }
 
   template<class parameters_type>
@@ -513,12 +513,12 @@ namespace DCA
     profiler_t prof("initialize-G0", "input", __LINE__);
 
     if(concurrency.id()==0)
-      cout << "\n\n\t initialize G0 " << print_time() << "\n";
+      std::cout << "\n\n\t initialize G0 " << print_time() << "\n";
 
     DCA::coarsegraining_sp<parameters_type, k_DCA> coarsegrain_obj(parameters);
 
     if(concurrency.id()==0)
-      cout << "\t\t start coarsegraining G0_k_w " << print_time() << "\n";
+      std::cout << "\t\t start coarsegraining G0_k_w " << print_time() << "\n";
 
     {
       //       FUNC_LIB::function<std::complex<double>, nu_nu_k_HOST_w> Sigma_zero;
@@ -537,7 +537,7 @@ namespace DCA
     }
 
     if(concurrency.id()==0)
-      cout << "\t\t start coarsegraining G0_k_t " << print_time() << "\n";
+      std::cout << "\t\t start coarsegraining G0_k_t " << print_time() << "\n";
 
     {
       coarsegrain_obj.compute_G0_K_t(H_HOST, G0_k_t);
@@ -553,7 +553,7 @@ namespace DCA
     test_initialize_G0();
 
     if(concurrency.id()==0)
-      cout << "\n\t\t FT G0_k_w, G0_k_t --> G0_r_w, G0_r_t " << print_time() << "\n";
+      std::cout << "\n\t\t FT G0_k_w, G0_k_t --> G0_r_w, G0_r_t " << print_time() << "\n";
 
     {
       MATH_ALGORITHMS::TRANSFORM<k_dmn_t, r_dmn_t>::execute(G0_k_w, G0_r_w);
@@ -569,7 +569,7 @@ namespace DCA
     }
 
     if(concurrency.id()==0)
-      cout << "\t finished G0 " << print_time();
+      std::cout << "\t finished G0 " << print_time();
 
     //assert(false);
   }
@@ -580,7 +580,7 @@ namespace DCA
     /*
       if(concurrency.id()==0)
       {
-      cout << "\n\n\t start testing MATH-ALGORTHMS\n\n";
+      std::cout << "\n\n\t start testing MATH-ALGORTHMS\n\n";
 
       FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w> > G0_k_w_test("G_k_w_test");
       FUNC_LIB::function<             double , dmn_4<nu,nu,k_dmn_t,t> > G0_k_t_test("G_k_t_test");
@@ -616,7 +616,7 @@ namespace DCA
       //SHOW::execute(G0_k_w, G0_k_w_test);
       }
 
-      cout << "\n\n\t stop testing MATH-ALGORTHMS\n\n";
+      std::cout << "\n\n\t stop testing MATH-ALGORTHMS\n\n";
       }
     */
 
@@ -751,23 +751,23 @@ namespace DCA
     if(concurrency.id()==0 /*and parameters.use_interpolated_Self_energy()*/)
       {
         if(DIMENSION==2){
-          cout << "\n\n";
-          cout << "        K-vectors             || Re[Sigma_QMC]   Im[Sigma_QMC]   Re[Sigma_cg]    Im[Sigma_cg] \n";
-          cout << "----------------------------------------------------------------------------------------------\n";
+          std::cout << "\n\n";
+          std::cout << "        K-vectors             || Re[Sigma_QMC]   Im[Sigma_QMC]   Re[Sigma_cg]    Im[Sigma_cg] \n";
+          std::cout << "----------------------------------------------------------------------------------------------\n";
         }
 
         if(DIMENSION==3){
-          cout << "\n\n";
-          cout << "                K-vectors                       || Re[Sigma_QMC]   Im[Sigma_QMC]   Re[Sigma_cg]    Im[Sigma_cg] \n";
-          cout << "----------------------------------------------------------------------------------------------------------------\n";
+          std::cout << "\n\n";
+          std::cout << "                K-vectors                       || Re[Sigma_QMC]   Im[Sigma_QMC]   Re[Sigma_cg]    Im[Sigma_cg] \n";
+          std::cout << "----------------------------------------------------------------------------------------------------------------\n";
         }
 
         for(int k_ind=0; k_ind<k_dmn_t::dmn_size(); ++k_ind){
           VECTOR_OPERATIONS::PRINT(k_dmn_t::get_elements()[k_ind]);
-          cout << real(Sigma        (0,0,k_ind,w::dmn_size()/2)) << "\t" << imag(Sigma        (0,0,k_ind,w::dmn_size()/2)) << "\t";
-          cout << real(Sigma_cluster(0,0,k_ind,w::dmn_size()/2)) << "\t" << imag(Sigma_cluster(0,0,k_ind,w::dmn_size()/2)) << "\n";
+          std::cout << real(Sigma        (0,0,k_ind,w::dmn_size()/2)) << "\t" << imag(Sigma        (0,0,k_ind,w::dmn_size()/2)) << "\t";
+          std::cout << real(Sigma_cluster(0,0,k_ind,w::dmn_size()/2)) << "\t" << imag(Sigma_cluster(0,0,k_ind,w::dmn_size()/2)) << "\n";
         }
-        cout << "\n\n";
+        std::cout << "\n\n";
       }
   }
 

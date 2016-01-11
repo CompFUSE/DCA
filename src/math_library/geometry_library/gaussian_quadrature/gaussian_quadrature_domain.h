@@ -161,7 +161,7 @@ void gaussian_quadrature_domain<dmn_0<tetrahedron_mesh<dmn_0<cluster_type> > > >
 template<typename cluster_type>
 void gaussian_quadrature_domain<dmn_0<tetrahedron_mesh<dmn_0<cluster_type> > > >::initialize_flat_mesh(tetrahedron_mesh<cluster_type>& mesh)
 {
-  cout << __FUNCTION__ << endl;
+  std::cout << __FUNCTION__ << std::endl;
 
   std::vector<tetrahedron<DIMENSION> >& tets = mesh.get_tetrahedra();
 

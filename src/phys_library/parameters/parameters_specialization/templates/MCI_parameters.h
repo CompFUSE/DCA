@@ -46,7 +46,7 @@ public:
  ***        DATA                        ***
  ******************************************/
 
-  string get_Sigma_file();
+  std::string get_Sigma_file();
 
   int    get_warm_up_sweeps();
   double get_number_of_sweeps_per_measurement();
@@ -64,13 +64,13 @@ public:
 
 private:
 
-  string  Sigma_file;
+  std::string  Sigma_file;
 
   int     warm_up_sweeps;
   double  number_of_sweeps_per_measurement;
   int     measurements;
 
-  string do_adaptive_double_counting;
+  std::string do_adaptive_double_counting;
 
   int    RNG_seed;
 
@@ -179,7 +179,7 @@ void MCI_parameters::unpack( concurrency_type& concurrency, int* buffer, int buf
  ******************************************/
 
 template<class stream_type>
-void MCI_parameters::to_JSON(stream_type& ss, bool is_end)
+void MCI_parameters::to_JSON(stream_type& /*ss*/, bool /*is_end*/)
 {
 //   ss << "\"QMCI\" :";
 //   ss << "\n{ \n";
@@ -198,7 +198,7 @@ void MCI_parameters::to_JSON(stream_type& ss, bool is_end)
 }
 
 template<class JSON_reader_type>
-void MCI_parameters::from_JSON(JSON_reader_type& reader)
+void MCI_parameters::from_JSON(JSON_reader_type& /*reader*/)
 {
 //   typedef typename JSON_reader_type::JsonAccessor JsonAccessor;
 //   const JsonAccessor control(reader["QMCI"]);
@@ -256,7 +256,7 @@ void MCI_parameters::read_write(read_write_type& read_write_obj)
     }
   catch(const std::exception& r_e) 
     { 
-      cout << "\n\t MCI-parameters defined !!  \n\n";
+      std::cout << "\n\t MCI-parameters defined !!  \n\n";
       throw std::logic_error(__PRETTY_FUNCTION__);
     }
 }
@@ -265,7 +265,7 @@ void MCI_parameters::read_write(read_write_type& read_write_obj)
  ***        DATA                        ***
  ******************************************/
 
-string MCI_parameters::get_Sigma_file()
+std::string MCI_parameters::get_Sigma_file()
 {
   return Sigma_file;
 }

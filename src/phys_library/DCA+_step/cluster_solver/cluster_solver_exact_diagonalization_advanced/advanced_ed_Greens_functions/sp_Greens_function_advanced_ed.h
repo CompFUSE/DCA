@@ -254,7 +254,7 @@ namespace DCA
                                                                                  FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, k_dmn, w_dmn> >& S_k_w)
     {
       if(concurrency.id()==0)
-        cout << "\n\t" << __FUNCTION__ << endl;
+        std::cout << "\n\t" << __FUNCTION__ << std::endl;
 
       int matrix_size = b::dmn_size()*s::dmn_size()*b::dmn_size()*s::dmn_size();
       int matrix_dim  = b::dmn_size()*s::dmn_size();
@@ -299,32 +299,32 @@ namespace DCA
         {
           int N = 8;
 
-//           cout << "\n\t G0_k_w\n\n";
+//           std::cout << "\n\t G0_k_w\n\n";
 //           for(int w_i=w_dmn::dmn_size()/2-N; w_i<w_dmn::dmn_size()/2+N; w_i++){
-//             cout << w_dmn::get_elements()[w_i] << "\t";
+//             std::cout << w_dmn::get_elements()[w_i] << "\t";
 //             for(int k_i=0; k_i<k_dmn::dmn_size(); k_i++)
-//               cout << real(G0_k_w(0,0,0,0,k_i,w_i)) << "\t" << imag(G0_k_w(0,0,0,0,k_i,w_i)) << "\t";
-//             cout << "\n";
+//               std::cout << real(G0_k_w(0,0,0,0,k_i,w_i)) << "\t" << imag(G0_k_w(0,0,0,0,k_i,w_i)) << "\t";
+//             std::cout << "\n";
 //           }
-//           cout << "\n";
+//           std::cout << "\n";
 
-//           cout << "\n\t G_k_w\n\n";
+//           std::cout << "\n\t G_k_w\n\n";
 //           for(int w_i=w_dmn::dmn_size()/2-N; w_i<w_dmn::dmn_size()/2+N; w_i++){
-//             cout << w_dmn::get_elements()[w_i] << "\t";
+//             std::cout << w_dmn::get_elements()[w_i] << "\t";
 //             for(int k_i=0; k_i<k_dmn::dmn_size(); k_i++)
-//               cout << real(G_k_w(0,0,0,0,k_i,w_i)) << "\t" << imag(G_k_w(0,0,0,0,k_i,w_i)) << "\t";
-//             cout << "\n";
+//               std::cout << real(G_k_w(0,0,0,0,k_i,w_i)) << "\t" << imag(G_k_w(0,0,0,0,k_i,w_i)) << "\t";
+//             std::cout << "\n";
 //           }
-//           cout << "\n";
+//           std::cout << "\n";
 
-          cout << "\n\t Sigma\n\n";
+          std::cout << "\n\t Sigma\n\n";
           for(int w_i=w_dmn::dmn_size()/2-N; w_i<w_dmn::dmn_size()/2+N; w_i++){
-            cout << w_dmn::get_elements()[w_i] << "\t";
+            std::cout << w_dmn::get_elements()[w_i] << "\t";
             for(int k_i=0; k_i<k_dmn::dmn_size(); k_i++)
-              cout << real(S_k_w(0,0,0,0,k_i,w_i)) << "\t" << imag(S_k_w(0,0,0,0,k_i,w_i)) << "\t";
-            cout << "\n";
+              std::cout << real(S_k_w(0,0,0,0,k_i,w_i)) << "\t" << imag(S_k_w(0,0,0,0,k_i,w_i)) << "\t";
+            std::cout << "\n";
           }
-          cout << "\n";
+          std::cout << "\n";
         }
 
       //assert(false);
@@ -372,11 +372,11 @@ namespace DCA
     void fermionic_sp_Greens_function<parameter_type, ed_options>::compute_real_space_Greens_functions(FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w     > >& G_r_w_im,
                                                                                                        FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL> >& G_r_w_re,
                                                                                                        FUNC_LIB::function<             double , dmn_4<nu_dmn, nu_dmn, r_dmn, t     > >& G_r_t,
-                                                                                                       FUNC_LIB::function<complex_type, dmn_6<nu_dmn, nu_dmn, r_dmn, r_dmn, w_VERTEX, w_VERTEX> >& G_nu_nu_r_r_w_w,
-                                                                                                       FUNC_LIB::function<complex_type, dmn_6<nu_dmn, nu_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX> >& G_nu_nu_k_k_w_w)
+                                                                                                       FUNC_LIB::function<complex_type, dmn_6<nu_dmn, nu_dmn, r_dmn, r_dmn, w_VERTEX, w_VERTEX> >& /*G_nu_nu_r_r_w_w*/,
+                                                                                                       FUNC_LIB::function<complex_type, dmn_6<nu_dmn, nu_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX> >& /*G_nu_nu_k_k_w_w*/)
     {
       if(concurrency.id()==0)
-        cout << "\n\t" << __FUNCTION__ << endl;
+        std::cout << "\n\t" << __FUNCTION__ << std::endl;
 
       G_r_w_im = 0;
       G_r_w_re = 0;
@@ -414,7 +414,7 @@ namespace DCA
       int end = clock();
 
       if(concurrency.id()==0)
-        cout << "\t " << __FUNCTION__ << "total time : " << double(end-start)/double(CLOCKS_PER_SEC) << "\n\n";
+        std::cout << "\t " << __FUNCTION__ << "total time : " << double(end-start)/double(CLOCKS_PER_SEC) << "\n\n";
     }
 
     template<typename parameter_type, typename ed_options>
@@ -424,7 +424,7 @@ namespace DCA
                                                                                                            FUNC_LIB::function<complex_type, dmn_6<nu_dmn, nu_dmn, r_dmn, r_dmn, w_VERTEX, w_VERTEX> >& G_nu_nu_r_r_w_w,
                                                                                                            FUNC_LIB::function<complex_type, dmn_6<nu_dmn, nu_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX> >& G_nu_nu_k_k_w_w)
     {
-      cout << __FUNCTION__ << endl;
+      std::cout << __FUNCTION__ << std::endl;
 
       std::vector< Hilbert_space_type >& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
@@ -437,7 +437,7 @@ namespace DCA
 
       double factor = 1./Z;
 
-      cout << factor << endl;
+      std::cout << factor << std::endl;
 
       G_r_w_im *= factor;
       G_r_w_re *= factor;
@@ -475,7 +475,7 @@ namespace DCA
       FUNC_LIB::function<             double , dmn_4<nu_dmn, nu_dmn, k_dmn, t     > >& G_k_t)
       {
       if(concurrency.id()==0)
-      cout << "\n\t" << __FUNCTION__ << endl;
+      std::cout << "\n\t" << __FUNCTION__ << std::endl;
 
       G_r_w = 0;
       G_k_w = 0;
@@ -510,7 +510,7 @@ namespace DCA
       int end = clock();
 
       if(concurrency.id()==0)
-      cout << "\t total time : " << double(end-start)/double(CLOCKS_PER_SEC) << "\n\n";
+      std::cout << "\t total time : " << double(end-start)/double(CLOCKS_PER_SEC) << "\n\n";
 
       {
       for(int t_i=t::dmn_size()/2; t_i<t::dmn_size(); t_i++)
@@ -533,7 +533,7 @@ namespace DCA
       //double factor = 1./(Z*r_dmn::dmn_size());
       double factor = 1./Z;
 
-      cout << factor << endl;
+      std::cout << factor << std::endl;
 
       G_r_w      *= factor;
       G_r_w_real *= factor;
@@ -563,7 +563,7 @@ namespace DCA
       FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL> >& G_r_w_real,
       FUNC_LIB::function<             double , dmn_4<nu_dmn, nu_dmn, r_dmn, t     > >& G_r_t)
       {
-      cout << "\n\n\t" << __FUNCTION__ << "\n\n";
+      std::cout << "\n\n\t" << __FUNCTION__ << "\n\n";
 
       std::vector< Hilbert_space_type >& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
@@ -587,7 +587,7 @@ namespace DCA
       << "\t bsr_j : " << sp_Greens_function_data.bsr_j
       << "\t" << print_time()
       << "\n";
-      cout << ss.str();
+      std::cout << ss.str();
       }
 
       for(int HS_0 = 0; HS_0 < Hilbert_spaces.size(); ++HS_0)
@@ -640,7 +640,7 @@ namespace DCA
       }
       }
 
-      cout << "\n\t nonzero/total : " << nonzero/(zero+nonzero) << "\n";
+      std::cout << "\n\t nonzero/total : " << nonzero/(zero+nonzero) << "\n";
       }
     */
 
@@ -650,7 +650,7 @@ namespace DCA
     //                                                                                                     FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL> >& G_r_w_real,
     //                                                                                                     FUNC_LIB::function<             double , dmn_4<nu_dmn, nu_dmn, r_dmn, t     > >& G_r_t)
     {
-      cout << "\n\n\t" << __FUNCTION__ << "\n\n";
+      std::cout << "\n\n\t" << __FUNCTION__ << "\n\n";
 
       std::vector< Hilbert_space_type >& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
@@ -716,7 +716,7 @@ namespace DCA
             }
         }
 
-      cout << "\n\t nonzero/total : " << nonzero/(zero+nonzero) << "\n";
+      std::cout << "\n\t nonzero/total : " << nonzero/(zero+nonzero) << "\n";
     }
 
     /*
@@ -725,7 +725,7 @@ namespace DCA
       FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL> >& G_r_w_real,
       FUNC_LIB::function<             double , dmn_4<nu_dmn, nu_dmn, r_dmn, t     > >& G_r_t)
       {
-      cout << "\n\n\t" << __FUNCTION__ << "\n\n";
+      std::cout << "\n\n\t" << __FUNCTION__ << "\n\n";
 
       std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
@@ -749,7 +749,7 @@ namespace DCA
       << "\t bsr_j : " << sp_Greens_function_data.bsr_j
       << "\t" << print_time()
       << "\n";
-      cout << ss.str();
+      std::cout << ss.str();
       }
 
       for(int HS_0 = 0; HS_0 < Hilbert_spaces.size(); ++HS_0)
@@ -802,7 +802,7 @@ namespace DCA
       }
       }
 
-      cout << "\n\t nonzero/total : " << nonzero/(zero+nonzero) << "\n";
+      std::cout << "\n\t nonzero/total : " << nonzero/(zero+nonzero) << "\n";
       }
     */
 
@@ -813,7 +813,7 @@ namespace DCA
     //                                                                                                     FUNC_LIB::function<             double , dmn_4<nu_dmn, nu_dmn, r_dmn, t     > >& G_r_t)
     {
       if(concurrency.id()==0)
-        cout << "\n\n\t" << __FUNCTION__ << "\n\n";
+        std::cout << "\n\n\t" << __FUNCTION__ << "\n\n";
 
       std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
@@ -880,7 +880,7 @@ namespace DCA
             }
         }
 
-      cout << "\n\t nonzero/total : " << nonzero/(zero+nonzero) << "\n";
+      std::cout << "\n\t nonzero/total : " << nonzero/(zero+nonzero) << "\n";
     }
 
     /*
@@ -1103,7 +1103,7 @@ namespace DCA
     void fermionic_sp_Greens_function<parameter_type, ed_options>::compute_Greens_functions_slow(std::vector<sp_Greens_function_data_type>& data_vec)
     {
       if(concurrency.id()==0)
-        cout << "\n\n\t" << __FUNCTION__ << "\n\n";
+        std::cout << "\n\n\t" << __FUNCTION__ << "\n\n";
 
       int origin = k_dmn::parameter_type::origin_index();
 
@@ -1223,41 +1223,41 @@ namespace DCA
 
         //         int N = 8;
 
-        //         cout << "\n\t G0_nonlocal_r_w\n\n";
+        //         std::cout << "\n\t G0_nonlocal_r_w\n\n";
         //         for(int w_i=0; w_i<w_VERTEX::dmn_size(); w_i++){
-        //           cout << w_VERTEX::get_elements()[w_i] << "\t";
+        //           std::cout << w_VERTEX::get_elements()[w_i] << "\t";
         //           for(int k_i=0; k_i<k_dmn::dmn_size(); k_i++)
-        //             cout << real(data.G2_nonlocal_nu_nu_r_r_w_w(0,0,k_i,0,w_i,w_i)) << "\t" << imag(data.G2_nonlocal_nu_nu_r_r_w_w(0,0,k_i,0,w_i,w_i)) << "\t";
-        //           cout << "\n";
+        //             std::cout << real(data.G2_nonlocal_nu_nu_r_r_w_w(0,0,k_i,0,w_i,w_i)) << "\t" << imag(data.G2_nonlocal_nu_nu_r_r_w_w(0,0,k_i,0,w_i,w_i)) << "\t";
+        //           std::cout << "\n";
         //         }
-        //         cout << "\n";
+        //         std::cout << "\n";
 
-        //         cout << "\n\t G0_r_w\n\n";
+        //         std::cout << "\n\t G0_r_w\n\n";
         //         for(int w_i=w::dmn_size()/2-N; w_i<w::dmn_size()/2+N; w_i++){
-        //           cout << w::get_elements()[w_i] << "\t";
+        //           std::cout << w::get_elements()[w_i] << "\t";
         //           for(int k_i=0; k_i<k_dmn::dmn_size(); k_i++)
-        //             cout << real(data.G_w_im__nu_nu_r(w_i, 0,0, 0,0, k_i)) << "\t" << imag(data.G_w_im__nu_nu_r(w_i, 0,0, 0,0, k_i)) << "\t";
-        //           cout << "\n";
+        //             std::cout << real(data.G_w_im__nu_nu_r(w_i, 0,0, 0,0, k_i)) << "\t" << imag(data.G_w_im__nu_nu_r(w_i, 0,0, 0,0, k_i)) << "\t";
+        //           std::cout << "\n";
         //         }
-        //         cout << "\n";
+        //         std::cout << "\n";
 
-        //         cout << "\n\t G0_nonlocal_k_w\n\n";
+        //         std::cout << "\n\t G0_nonlocal_k_w\n\n";
         //         for(int w_i=0; w_i<w_VERTEX::dmn_size(); w_i++){
-        //           cout << w_VERTEX::get_elements()[w_i] << "\t";
+        //           std::cout << w_VERTEX::get_elements()[w_i] << "\t";
         //           for(int k_i=0; k_i<k_dmn::dmn_size(); k_i++)
-        //             cout << real(data.G2_nonlocal_nu_nu_k_k_w_w(0,0,k_i,k_i,w_i,w_i)) << "\t" << imag(data.G2_nonlocal_nu_nu_k_k_w_w(0,0,k_i,k_i,w_i,w_i)) << "\t";
-        //           cout << "\n";
+        //             std::cout << real(data.G2_nonlocal_nu_nu_k_k_w_w(0,0,k_i,k_i,w_i,w_i)) << "\t" << imag(data.G2_nonlocal_nu_nu_k_k_w_w(0,0,k_i,k_i,w_i,w_i)) << "\t";
+        //           std::cout << "\n";
         //         }
-        //         cout << "\n";
+        //         std::cout << "\n";
 
-        //         cout << "\n\t G0_k_w\n\n";
+        //         std::cout << "\n\t G0_k_w\n\n";
         //         for(int w_i=w::dmn_size()/2-N; w_i<w::dmn_size()/2+N; w_i++){
-        //           cout << w::get_elements()[w_i] << "\t";
+        //           std::cout << w::get_elements()[w_i] << "\t";
         //           for(int k_i=0; k_i<k_dmn::dmn_size(); k_i++)
-        //             cout << real(data.G_w_im__nu_nu_k(w_i, 0, 0, k_i)) << "\t" << imag(data.G_w_im__nu_nu_k(w_i, 0, 0, k_i)) << "\t";
-        //           cout << "\n";
+        //             std::cout << real(data.G_w_im__nu_nu_k(w_i, 0, 0, k_i)) << "\t" << imag(data.G_w_im__nu_nu_k(w_i, 0, 0, k_i)) << "\t";
+        //           std::cout << "\n";
         //         }
-        //         cout << "\n";
+        //         std::cout << "\n";
       }
 
       //       assert(false);

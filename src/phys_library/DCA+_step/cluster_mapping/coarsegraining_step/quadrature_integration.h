@@ -286,12 +286,12 @@ namespace DCA
             G_t[i] = f_val*std::exp(-L[i]*t_val)/(std::exp(-L[i]*beta)+1.);
 
           if(G_t[i]!=G_t[i]){
-            cout << "\n\t warning in compute_G_q_t --> G_t[i] : " << G_t[i] << "\n";
-            cout << "\n\tL[i] : " << L[i] << "\n";
-            cout << "\n\tbeta : " << beta << "\n";
-            cout << "\n\ttau  : " << t_val << "\n";
-            cout << "\n\tstd::exp(L[i]*beta)  : "        << std::exp(L[i]*beta)         << "\n";
-            cout << "\n\tstd::exp(L[i]*(beta-t_val)) : " << std::exp(L[i]*(beta-t_val)) << "\n";
+            std::cout << "\n\t warning in compute_G_q_t --> G_t[i] : " << G_t[i] << "\n";
+            std::cout << "\n\tL[i] : " << L[i] << "\n";
+            std::cout << "\n\tbeta : " << beta << "\n";
+            std::cout << "\n\ttau  : " << t_val << "\n";
+            std::cout << "\n\tstd::exp(L[i]*beta)  : "        << std::exp(L[i]*beta)         << "\n";
+            std::cout << "\n\tstd::exp(L[i]*(beta-t_val)) : " << std::exp(L[i]*(beta-t_val)) << "\n";
 
             throw std::logic_error(__FUNCTION__);
           }
@@ -389,12 +389,12 @@ namespace DCA
               G_t[i] = f_val*std::exp(-L[i]*t_val)/(std::exp(-L[i]*beta)+1.);
 
             if(G_t[i]!=G_t[i]){
-              cout << "\n\t warning in compute_G_q_t --> G_t[i] : " << G_t[i] << "\n";
-              cout << "\n\tL[i] : " << L[i] << "\n";
-              cout << "\n\tbeta : " << beta << "\n";
-              cout << "\n\ttau  : " << t_val << "\n";
-              cout << "\n\tstd::exp(L[i]*beta)  : "        << std::exp(L[i]*beta)         << "\n";
-              cout << "\n\tstd::exp(L[i]*(beta-t_val)) : " << std::exp(L[i]*(beta-t_val)) << "\n";
+              std::cout << "\n\t warning in compute_G_q_t --> G_t[i] : " << G_t[i] << "\n";
+              std::cout << "\n\tL[i] : " << L[i] << "\n";
+              std::cout << "\n\tbeta : " << beta << "\n";
+              std::cout << "\n\ttau  : " << t_val << "\n";
+              std::cout << "\n\tstd::exp(L[i]*beta)  : "        << std::exp(L[i]*beta)         << "\n";
+              std::cout << "\n\tstd::exp(L[i]*(beta-t_val)) : " << std::exp(L[i]*(beta-t_val)) << "\n";
 
               throw std::logic_error(__FUNCTION__);
             }

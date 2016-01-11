@@ -7,7 +7,7 @@
 //#include "levmar.h"
 
 // basis-functions
-#include "piece_wise_linear_function.h"
+#include "basis_functions/piece_wise_linear_function.h"
 //#include "delta_functions.h"
 //#include "radial_functions.h"
 //#include "union_piece_wise_linear_and_delta_function.h"

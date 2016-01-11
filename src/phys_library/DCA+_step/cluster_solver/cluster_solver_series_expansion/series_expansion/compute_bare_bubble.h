@@ -125,7 +125,7 @@ namespace DCA
     void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded_execute_on_cluster(G_function_type& G)
     {
       if(concurrency.id()==0)
-	cout << "\n\n\t\t" << "threaded_execute_on_cluster compute-bubble" << "\n\n";
+        std::cout << "\n\n\t\t" << "threaded_execute_on_cluster compute-bubble" << "\n\n";
 
       profiler_type profiler("threaded_execute_on_cluster compute-bubble", "HTS", __LINE__);
 
@@ -170,13 +170,13 @@ namespace DCA
     {
       //cout << __FUNCTION__ << endl;
       if(concurrency.id()==0)
-	cout << "\n\n\t\t ph-buble \n\n" << endl;
+        std::cout << "\n\n\t\t ph-buble \n\n" << std::endl;
 
       chi.get_name() = "ph-bubble";
 
       chi = 0.;
 
-      assert(fabs(w_VERTEX_BOSONIC::get_elements()[w_VERTEX_BOSONIC::dmn_size()/2])<1.e-6);
+      assert(std::fabs(w_VERTEX_BOSONIC::get_elements()[w_VERTEX_BOSONIC::dmn_size()/2])<1.e-6);
 
       for(int q_ind=0; q_ind<k_dmn_t::dmn_size(); ++q_ind){
         for(int k_ind=0; k_ind<k_dmn_t::dmn_size(); ++k_ind){
@@ -187,7 +187,7 @@ namespace DCA
 
             int nu_c = (nu_ind-w_VERTEX_BOSONIC::dmn_size()/2);
 
-            for(int w_ind=fabs(nu_c); w_ind<w_dmn_t::dmn_size()-fabs(nu_c); ++w_ind){
+            for(int w_ind=std::fabs(nu_c); w_ind<w_dmn_t::dmn_size()-std::fabs(nu_c); ++w_ind){
 
               int w_plus_nu = w_ind+nu_c;
 
@@ -230,7 +230,7 @@ namespace DCA
 	  double percentage = double(q_ind-q_bounds.first)/double(q_bounds.second-q_bounds.first);
 
           if(concurrency.id()==0 and id==0 and ( int(100*percentage) % 10==0 ) )
-            cout << "\t" << int(100*percentage) << " % finished\t" << print_time() << "\n";
+            std::cout << "\t" << int(100*percentage) << " % finished\t" << print_time() << "\n";
 
           for(int k_ind=k_bounds.first; k_ind<k_bounds.second; ++k_ind)
             {
@@ -240,7 +240,7 @@ namespace DCA
 
                 int nu_c = (nu_ind-w_VERTEX_BOSONIC::dmn_size()/2);
 
-                for(int w_ind=fabs(nu_c); w_ind<w_dmn_t::dmn_size()-fabs(nu_c); ++w_ind){
+                for(int w_ind=std::fabs(nu_c); w_ind<w_dmn_t::dmn_size()-std::fabs(nu_c); ++w_ind){
 
                   int w_plus_nu = w_ind+nu_c;
 
@@ -262,13 +262,13 @@ namespace DCA
     {
       //cout << __FUNCTION__ << endl;
       if(concurrency.id()==0)
-	cout << "\n\n\t\t pp-buble \n\n" << endl;
+        std::cout << "\n\n\t\t pp-buble \n\n" << std::endl;
 
       chi.get_name() = "pp-bubble";
 
       chi = 0.;
 
-      assert(fabs(w_VERTEX_BOSONIC::get_elements()[w_VERTEX_BOSONIC::dmn_size()/2])<1.e-6);
+      assert(std::fabs(w_VERTEX_BOSONIC::get_elements()[w_VERTEX_BOSONIC::dmn_size()/2])<1.e-6);
 
       for(int q_ind=0; q_ind<k_dmn_t::dmn_size(); ++q_ind){
         for(int k_ind=0; k_ind<k_dmn_t::dmn_size(); ++k_ind){
@@ -279,7 +279,7 @@ namespace DCA
 
             int nu_c = (nu_ind-w_VERTEX_BOSONIC::dmn_size()/2);
 
-            for(int w_ind=fabs(nu_c); w_ind<w_dmn_t::dmn_size()-fabs(nu_c); ++w_ind){
+            for(int w_ind=std::fabs(nu_c); w_ind<w_dmn_t::dmn_size()-std::fabs(nu_c); ++w_ind){
 
               int nu_minus_w = nu_c+(w::dmn_size()-1-w_ind);
 
@@ -322,7 +322,7 @@ namespace DCA
 	  double percentage = double(q_ind-q_bounds.first)/double(q_bounds.second-q_bounds.first);
 
           if(concurrency.id()==0 and id==0 and ( int(100*percentage) % 10==0 ) )
-            cout << "\t" << int(100*percentage) << " % finished\t" << print_time() << "\n";
+            std::cout << "\t" << int(100*percentage) << " % finished\t" << print_time() << "\n";
 
           for(int k_ind=k_bounds.first; k_ind<k_bounds.second; ++k_ind)
             {
@@ -332,7 +332,7 @@ namespace DCA
 
                 int nu_c = (nu_ind-w_VERTEX_BOSONIC::dmn_size()/2);
 
-                for(int w_ind=fabs(nu_c); w_ind<w_dmn_t::dmn_size()-fabs(nu_c); ++w_ind){
+                for(int w_ind=std::fabs(nu_c); w_ind<w_dmn_t::dmn_size()-std::fabs(nu_c); ++w_ind){
 
                   int nu_minus_w = nu_c+(w::dmn_size()-1-w_ind);
 

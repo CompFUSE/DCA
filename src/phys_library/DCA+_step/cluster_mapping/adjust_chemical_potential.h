@@ -79,13 +79,13 @@ namespace DCA
 
     if(concurrency.id()==0)
       {
-        cout.precision(6);
-        cout<<scientific;
+        std::cout.precision(6);
+        std::cout<<std::scientific;
 
-        cout << "\n\t\t initial chemical potential : " << parameters.get_chemical_potential() << " (" << dens << ")\n\n";
+        std::cout << "\n\t\t initial chemical potential : " << parameters.get_chemical_potential() << " (" << dens << ")\n\n";
       }
 
-    if(abs(dens-parameters.get_density())<1.e-3)
+    if(std::abs(dens-parameters.get_density())<1.e-3)
       return;
 
     search_bounds(dens);
@@ -110,14 +110,14 @@ namespace DCA
 
         dens = compute_density();
 
-        if(abs(dens-parameters.get_density())<1.e-3)
+        if(std::abs(dens-parameters.get_density())<1.e-3)
           {
             if(concurrency.id()==0)
               {
-                cout.precision(6);
-                cout<<scientific;
+                std::cout.precision(6);
+                std::cout<<std::scientific;
 
-                cout << "\n\t\t final chemical potential : " << parameters.get_chemical_potential() << " (" << dens << ")\n";
+                std::cout << "\n\t\t final chemical potential : " << parameters.get_chemical_potential() << " (" << dens << ")\n";
               }
 
             break;
@@ -290,7 +290,7 @@ namespace DCA
 
             l += 1;
           }
-        while( abs(tmp/sum) > 1.e-6 and l<1.e6);
+        while( std::abs(tmp/sum) > 1.e-6 and l<1.e6);
 
         result += sum;
       }
@@ -434,13 +434,13 @@ namespace DCA
   {
     if(concurrency.id()==0)
       {
-        cout.precision(6);
-        cout<<scientific;
+        std::cout.precision(6);
+        std::cout<<std::scientific;
 
-        cout << "\t";
-        cout << "\t mu : " << lower_bound.first << " (n = " << lower_bound.second << ")";
-        cout << "\t mu : " << upper_bound.first << " (n = " << upper_bound.second << ")\t";
-        cout << print_time() << "\n";
+        std::cout << "\t";
+        std::cout << "\t mu : " << lower_bound.first << " (n = " << lower_bound.second << ")";
+        std::cout << "\t mu : " << upper_bound.first << " (n = " << upper_bound.second << ")\t";
+        std::cout << print_time() << "\n";
       }
   }
 

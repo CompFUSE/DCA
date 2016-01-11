@@ -3,7 +3,7 @@
 #ifndef Cn_2D_H_
 #define Cn_2D_H_
 
-#include "group_action.h"
+#include "../group_action.h"
 
 /*!
  *  \author Peter Staar

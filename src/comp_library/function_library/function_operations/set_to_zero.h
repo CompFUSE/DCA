@@ -19,7 +19,7 @@ public:
 };
 
 template<class whatever_t>
-void set_to_zero::execute(whatever_t& whatever)
+void set_to_zero::execute(whatever_t& /*whatever*/)
 {}
 
 template<>

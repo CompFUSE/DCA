@@ -151,12 +151,12 @@ namespace DCA
 
     for(int i=0; i<get_size(); i++)
       for(size_t j=0; j<wn.size(); j++)
-        if(fabs(wn[j]-get_elements()[i])<1.e-6)
+        if(std::fabs(wn[j]-get_elements()[i])<1.e-6)
           get_corresponding_frequency_domain_index()[i] = j;
 
     for(int i=0; i<get_size(); i++)
       if(get_corresponding_frequency_domain_index()[i] == -1 ||
-         fabs(wn[get_corresponding_frequency_domain_index()[i]]-get_elements()[i])>1.e-6)
+         std::fabs(wn[get_corresponding_frequency_domain_index()[i]]-get_elements()[i])>1.e-6)
         throw std::logic_error(__FUNCTION__);
   }
 
@@ -180,12 +180,12 @@ namespace DCA
 
     for(int i=0; i<get_size(); i++)
       for(size_t j=0; j<wn.size(); j++)
-        if(fabs(wn[j]-get_elements()[i])<1.e-6)
+        if(std::fabs(wn[j]-get_elements()[i])<1.e-6)
           get_corresponding_frequency_domain_index()[i] = j;
 
     for(int i=0; i<get_size(); i++)
       if(get_corresponding_frequency_domain_index()[i] == -1||
-         fabs(wn[get_corresponding_frequency_domain_index()[i]]-get_elements()[i])>1.e-6)
+         std::fabs(wn[get_corresponding_frequency_domain_index()[i]]-get_elements()[i])>1.e-6)
         throw std::logic_error(__FUNCTION__);
 
     assert(get_elements().back() == vertex_frequency_domain<COMPACT>::get_elements().back());
@@ -214,12 +214,12 @@ namespace DCA
 
     for(int i=0; i<get_size(); i++)
       for(size_t j=0; j<wn.size(); j++)
-        if(fabs(wn[j]-get_elements()[i])<1.e-6)
+        if(std::fabs(wn[j]-get_elements()[i])<1.e-6)
           get_corresponding_frequency_domain_index()[i] = j;
 
     for(int i=0; i<get_size(); i++)
       if(get_corresponding_frequency_domain_index()[i] == -1 ||
-         fabs(wn[get_corresponding_frequency_domain_index()[i]]-get_elements()[i])>1.e-6)
+         std::fabs(wn[get_corresponding_frequency_domain_index()[i]]-get_elements()[i])>1.e-6)
         throw std::logic_error(__FUNCTION__);
   }
 
@@ -243,12 +243,12 @@ namespace DCA
 
     for(int i=0; i<get_size(); i++)
       for(size_t j=0; j<wn.size(); j++)
-        if(fabs(wn[j]-get_elements()[i])<1.e-6)
+        if(std::fabs(wn[j]-get_elements()[i])<1.e-6)
           get_corresponding_frequency_domain_index()[i] = j;
 
     for(int i=0; i<get_size(); i++)
       if(get_corresponding_frequency_domain_index()[i] == -1 ||
-         fabs(wn[get_corresponding_frequency_domain_index()[i]]-get_elements()[i])>1.e-6)
+         std::fabs(wn[get_corresponding_frequency_domain_index()[i]]-get_elements()[i])>1.e-6)
         throw std::logic_error(__FUNCTION__);
 
     assert(get_elements().back() == vertex_frequency_domain<EXTENDED>::get_elements().back());

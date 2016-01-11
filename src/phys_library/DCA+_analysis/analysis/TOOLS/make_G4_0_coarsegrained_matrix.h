@@ -101,12 +101,12 @@
 
 //     for(int i=0; i<w_VERTEX::dmn_size(); i++)
 //       for(int j=0; j<w_VERTEX_EXTENDED::dmn_size(); j++)
-// 	if(fabs(w_VERTEX::parameter_type::get_elements()[i]-w_VERTEX_EXTENDED::parameter_type::get_elements()[j])<1.e-6)
+// 	if(std::fabs(w_VERTEX::parameter_type::get_elements()[i]-w_VERTEX_EXTENDED::parameter_type::get_elements()[j])<1.e-6)
 // 	  corresponding_extended_index[i] = j;
 
 //     for(int j=0; j<w_VERTEX_EXTENDED::dmn_size(); j++)
 //       for(int i=0; i<w_VERTEX::dmn_size(); i++)
-//       	if(fabs(w_VERTEX::parameter_type::get_elements()[i]-w_VERTEX_EXTENDED::parameter_type::get_elements()[j])<1.e-6)
+//       	if(std::fabs(w_VERTEX::parameter_type::get_elements()[i]-w_VERTEX_EXTENDED::parameter_type::get_elements()[j])<1.e-6)
 // 	  is_compact_frequency[j] = true;	  
 //   }
 
@@ -148,7 +148,7 @@
 // 	    for(int w_vertex_index=0; w_vertex_index<w_VERTEX_EXTENDED::dmn_size(); w_vertex_index++)
 // 	      {
 // // 		double w  = w_VERTEX_EXTENDED::parameter_type::get_elements()[w_vertex_index];
-// // 		assert( fabs(w -  w::parameter_type::get_elements()[w_ind]) < 1.e-6);
+// // 		assert( std::fabs(w -  w::parameter_type::get_elements()[w_ind]) < 1.e-6);
 
 // 		int w_ind = w_vertex_index - w_VERTEX_EXTENDED::dmn_size()/2 + w::dmn_size()/2;
 

@@ -78,12 +78,6 @@ namespace INFERENCE
                                                                                  FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t> >& f_source,
                                                                                  FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t> >& f_target)
   {
-    if (concurrency.id() == 0)
-      {
-        std::cout << "\n\nRichardson_Lucy_deconvolution: " << __FUNCTION__ << std::endl;
-        std::cout << "It\tw_ind\tError_Re\tError_Im" << std::endl;
-      }
-
     assert(A.get_current_size().first==k_dmn_t::dmn_size());
     assert(A.get_current_size().first==A.get_current_size().second);
 
@@ -97,10 +91,9 @@ namespace INFERENCE
 
     initialize_errors(is_finished, error_function);
 
-    for(int l=0; l<parameters.get_deconvolution_iterations(); l++)
+    int l = 0;
+    for(l=0; l<parameters.get_deconvolution_iterations(); l++)
       {
-        //cout << l << endl;
-
         for(int j=0; j<p_dmn_t::dmn_size(); j++)
           for(int i=0; i<k_dmn_t::dmn_size(); i++)
             d_over_c(i,j) = d(i,j)/c(i,j);
@@ -117,18 +110,6 @@ namespace INFERENCE
 
         bool finished = update_f_target(is_finished, error_function, f_target);
 
-        // FIXME: This is hardcoded for 256 fermionic frequencies.
-        if (concurrency.id() == 0)
-          {
-            std::cout << l << "\t" << "253" << "\t" << error_function(0, 0, 0, 0, 253) << "\t" << error_function(1, 0, 0, 0, 253) << std::endl;
-            std::cout << l << "\t" << "254" << "\t" << error_function(0, 0, 0, 0, 254) << "\t" << error_function(1, 0, 0, 0, 254) << std::endl;
-            std::cout << l << "\t" << "255" << "\t" << error_function(0, 0, 0, 0, 255) << "\t" << error_function(1, 0, 0, 0, 255) << std::endl;
-            std::cout << l << "\t" << "256" << "\t" << error_function(0, 0, 0, 0, 256) << "\t" << error_function(1, 0, 0, 0, 256) << std::endl;
-            std::cout << l << "\t" << "257" << "\t" << error_function(0, 0, 0, 0, 257) << "\t" << error_function(1, 0, 0, 0, 257) << std::endl;
-            std::cout << l << "\t" << "258" << "\t" << error_function(0, 0, 0, 0, 258) << "\t" << error_function(1, 0, 0, 0, 258) << std::endl;
-            std::cout << std::endl;
-          }
-
         if(finished)
           break;
       }
@@ -137,6 +118,11 @@ namespace INFERENCE
       if(not is_finished(j))
         for(int i=0; i<k_dmn_t::dmn_size(); i++)
           f_target(i,j) = u_t(i,j);
+
+    if (concurrency.id() == 0)
+      {
+        std::cout << "\n\n\t\t Richardson-Lucy deconvolution: " << l << " iterations" << std::endl;
+      }
   }
 
   template<typename parameters_type, typename k_dmn_t, typename p_dmn_t>
@@ -186,7 +172,8 @@ namespace INFERENCE
       mean /= nr_rows;
 
       for(int i=0; i<nr_rows; i++)
-        u_t(i,j) = mean;
+        u_t(i,j) = mean/std::abs(mean);  // u_t(i,j) = mean;
+
     }
   }
 

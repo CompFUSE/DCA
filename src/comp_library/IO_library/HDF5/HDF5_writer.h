@@ -3,6 +3,8 @@
 #ifndef HDF5_WRITER_HEADER_H
 #define HDF5_WRITER_HEADER_H
 
+#include <vector>
+
 namespace IO
 {
 
@@ -109,7 +111,7 @@ namespace IO
 
   bool writer<IO::HDF5>::fexists(const char *filename)
   {
-    ifstream ifile(filename);
+    std::ifstream ifile(filename);
     return bool(ifile);
   }
 
@@ -469,7 +471,7 @@ namespace IO
     if(f.size()==0)
       return;
 
-    cout << "\t starts writing function : " << f.get_name() << "\n";
+    std::cout << "\t starts writing function : " << f.get_name() << "\n";
 
     execute(f.get_name(), f);
   }
@@ -480,7 +482,7 @@ namespace IO
     if(f.size()==0)
       return;
 
-    cout << "\t starts writing function : " << f.get_name() << "\n";
+    std::cout << "\t starts writing function : " << f.get_name() << "\n";
 
     execute(f.get_name(), f);
   }
@@ -512,7 +514,7 @@ namespace IO
       {
         int N_dmns = f.signature();
 
-        hsize_t dims[N_dmns];
+        std::vector<hsize_t> dims(N_dmns);  // hsize_t dims[N_dmns];
 
         //      for(int l=0; l<N_dmns; l++)
         //        dims[l] = f[l];
@@ -525,7 +527,7 @@ namespace IO
         DataSpace* dataspace = NULL;
 
         {
-          dataspace = new DataSpace(N_dmns, dims);
+          dataspace = new DataSpace(N_dmns, &dims[0]);
 
           std::string full_name = new_path+"/data";
           dataset   = new DataSet(file.createDataSet(full_name.c_str(), IO::HDF5_TYPE<scalar_type>::get_PredType(), *dataspace));
@@ -566,7 +568,7 @@ namespace IO
       {
         int N_dmns = f.signature();
 
-        hsize_t dims[N_dmns+1];
+        std::vector<hsize_t> dims(N_dmns+1);  // hsize_t dims[N_dmns+1];
 
         //      dims[0] = 2;
         //      for(int l=0; l<N_dmns; l++)
@@ -581,7 +583,7 @@ namespace IO
         DataSpace* dataspace = NULL;
 
         {
-          dataspace = new DataSpace(N_dmns+1, dims);
+          dataspace = new DataSpace(N_dmns+1, &dims[0]);
 
           std::string full_name = get_path()+"/data";
           dataset   = new DataSet(file.createDataSet(full_name.c_str(), IO::HDF5_TYPE<scalar_type>::get_PredType(), *dataspace));

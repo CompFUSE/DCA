@@ -150,7 +150,7 @@ namespace DCA
 
   template<VERTEX_TIME_NAME NAME>
   template<typename parameters_t>
-  void vertex_time_domain<NAME>::initialize(parameters_t& parameters)
+  void vertex_time_domain<NAME>::initialize(parameters_t& /*parameters*/)
   {}
 
   template<>

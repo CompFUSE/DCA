@@ -247,14 +247,14 @@ namespace DCA
 	/*
 	if(thread_id==0)
 	  {
-	    cout << "\n\n";
+	    std::cout << "\n\n";
 	    for(int r_ind=0; r_ind<r_dmn_t::dmn_size(); r_ind++)
-	      cout << "\t" << r_ind 
+	      std::cout << "\t" << r_ind 
 		   << "\t" << r_dmn_t::get_elements()[r_ind][0]
 		   << "\t" << r_dmn_t::get_elements()[r_ind][1]
 		   << "\t" << dwave_r_factor(r_ind) << "\n";
 
-	    cout << "\n\n";
+	    std::cout << "\n\n";
 	  }
 	*/
       }
@@ -356,13 +356,13 @@ namespace DCA
 
             int t_ind = i-j;
 
-            if(abs(t_VERTEX::get_elements().back()-parameters.get_beta())<1.e-6)
+            if(std::abs(t_VERTEX::get_elements().back()-parameters.get_beta())<1.e-6)
               t_ind = t_ind<0 ? t_ind+t_VERTEX::dmn_size()-1 : t_ind;
             else
               t_ind = t_ind<0 ? t_ind+t_VERTEX::dmn_size()-0 : t_ind;
 
             for(int l=0; l<t_VERTEX::dmn_size(); l++)
-              if(abs(t_VERTEX::get_elements()[l]-t_VERTEX::get_elements()[t_ind])<1.e-6)
+              if(std::abs(t_VERTEX::get_elements()[l]-t_VERTEX::get_elements()[t_ind])<1.e-6)
                 multiplicities[l] += 1;
           }
         }
@@ -395,7 +395,7 @@ namespace DCA
               G0_sign_dn(i,j) = delta_tau<0 ? -1 : 1;
               G0_sign_up(i,j) = delta_tau<0 ? -1 : 1;
 
-              if(abs(t_VERTEX::get_elements().back()-parameters.get_beta())<1.e-6)
+              if(std::abs(t_VERTEX::get_elements().back()-parameters.get_beta())<1.e-6)
                 delta_tau = delta_tau<0 ? delta_tau+t_VERTEX::dmn_size()-1 : delta_tau;
               else
                 delta_tau = delta_tau<0 ? delta_tau+t_VERTEX::dmn_size()-0 : delta_tau;
@@ -456,11 +456,11 @@ namespace DCA
 
           double t_val = t_VERTEX::get_elements()[i]-t_VERTEX::get_elements()[j];
 
-          cout << "\t" << t_val;
+          std::cout << "\t" << t_val;
         }
-        cout << "\n";
+        std::cout << "\n";
       }
-      cout << "\n";
+      std::cout << "\n";
 
       G_r_t_accumulated = 0;
 
@@ -473,8 +473,8 @@ namespace DCA
           G_r_t_accumulated(G0_indices_up(i,j)) += G0_sign_up(i,j)*G0_integration_factor_up(i,j)*G0_original_up(i,j);
 
       for(int i=0; i<t_VERTEX::dmn_size(); i++)
-        cout << "\t" << t_VERTEX::get_elements()[i] << "\t" << G_r_t_accumulated(0,0,0,i) << "\n";
-      cout << endl;
+        std::cout << "\t" << t_VERTEX::get_elements()[i] << "\t" << G_r_t_accumulated(0,0,0,i) << "\n";
+      std::cout << std::endl;
 
       SHOW::execute(MOMS.G0_r_t_cluster_excluded);
 
@@ -495,7 +495,7 @@ namespace DCA
       //SHOW::execute(G_r_t_accumulated);
 
       for(int l=0; l<G_r_t_accumulated_squared.size(); l++)
-        G_r_t_accumulated_squared(l) = std::sqrt(abs(G_r_t_accumulated_squared(l)-std::pow(G_r_t_accumulated(l),2)));
+        G_r_t_accumulated_squared(l) = std::sqrt(std::abs(G_r_t_accumulated_squared(l)-std::pow(G_r_t_accumulated(l),2)));
 
       interpolate(G_r_t, G_r_t_stddev);
 
@@ -688,7 +688,7 @@ namespace DCA
 
             double struct_factor = dwave_r_factor(l_minus_i)*dwave_r_factor(l_minus_j);
 
-            if(abs(struct_factor)>1.e-6)
+            if(std::abs(struct_factor)>1.e-6)
               {
                 for(int b_i=0; b_i<b::dmn_size(); b_i++){
                   for(int b_j=0; b_j<b::dmn_size(); b_j++){

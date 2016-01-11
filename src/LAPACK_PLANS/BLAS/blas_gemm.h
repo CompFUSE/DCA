@@ -9,9 +9,9 @@
  *      Author: peter staar
  */
 template<typename scalartype>
-void blas_gemm_t(char& TRANSA, char& TRANSB, int& M, int& N, int& K, scalartype& alpha,
-		 scalartype* A, int& LDA, scalartype* B, int& LDB, scalartype& beta,
-		 scalartype* C, int& LDC)
+void blas_gemm_t(char& /*TRANSA*/, char& /*TRANSB*/, int& /*M*/, int& /*N*/, int& /*K*/, scalartype& /*alpha*/,
+                 scalartype* /*A*/, int& /*LDA*/, scalartype* /*B*/, int& /*LDB*/, scalartype& /*beta*/,
+                 scalartype* /*C*/, int& /*LDC*/)
 {
   std::cout << __PRETTY_FUNCTION__ << std::endl;
   throw std::logic_error(__FUNCTION__);

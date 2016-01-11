@@ -23,7 +23,7 @@ namespace DCA
     public:
 
       void print(){
-	cout << "\t" << index << "\t" << value << "\n";
+        std::cout << "\t" << index << "\t" << value << "\n";
       }
     };
 
@@ -44,7 +44,7 @@ namespace DCA
     public:
 
       void print(){
-	cout << "\t" << lhs << "\t" << rhs << "\t" << value << "\n";
+        std::cout << "\t" << lhs << "\t" << rhs << "\t" << value << "\n";
       }
     };
 
@@ -65,7 +65,7 @@ namespace DCA
     public:
 
       void print(){
-	cout << "\t" << lhs << "\t" << rhs << "\t" << value << "\n";
+        std::cout << "\t" << lhs << "\t" << rhs << "\t" << value << "\n";
       }
     };
 
@@ -280,7 +280,7 @@ namespace DCA
     void fermionic_Hamiltonian<parameter_type, ed_options>::construct_Hamiltonians(bool interacting)
     {
       if(concurrency.id()==0)
-        cout << "\n\t" << __FUNCTION__ << endl;
+        std::cout << "\n\t" << __FUNCTION__ << std::endl;
 
       std::vector< Hilbert_space_type >& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
@@ -296,7 +296,7 @@ namespace DCA
         if ( !parameters.do_sector_check() || (Hilbert_spaces[i].get_eigenvalues()[0] == parameters.get_occupation() &&
                                                Hilbert_spaces[i].get_eigenvalues()[1] == parameters.get_magnetization()) ){
 
-          //cout << "Subspace #" << i  << ", interacting: " << interacting << endl;
+          //std::cout << "Subspace #" << i  << ", interacting: " << interacting << std::endl;
 
           int N = Hilbert_spaces[i].size();
           Hamiltonians(i).resize_no_copy(N);
@@ -315,14 +315,14 @@ namespace DCA
             add_U_to_Hamiltonian(N, H, subspace);
 
 
-          //cout << "Subspace #" << i  << ", interacting: " << interacting
-          //   << ", block-diagonal: " << check_block_structure(N, H, subspace) << endl;
+          //std::cout << "Subspace #" << i  << ", interacting: " << interacting
+          //   << ", block-diagonal: " << check_block_structure(N, H, subspace) << std::endl;
 
           /*
             if(parameters.do_sector_check())
             {
             int subspace_to_print = i;
-            cout << "Print Hamiltonian of subspace: " << subspace_to_print << endl;
+            std::cout << "Print Hamiltonian of subspace: " << subspace_to_print << std::endl;
             {
             char filename[160];
             if (interacting)
@@ -368,28 +368,28 @@ namespace DCA
       /*
       for (int l = 0; l < V_i.size(); ++l)
 	V_i[l].print();
-      cout << "\n";
+      std::cout << "\n";
 
       for (int l = 0; l < t_ij.size(); ++l)
 	t_ij[l].print();
-      cout << "\n";
+      std::cout << "\n";
 
       for (int l = 0; l < U_ij.size(); ++l)
 	U_ij[l].print();
-      cout << "\n";
+      std::cout << "\n";
 
       for (int HS_i = 0; HS_i < Hilbert_spaces.size(); ++HS_i)
         {
-          cout << "\n \t" << HS_i << "\n\n";
+          std::cout << "\n \t" << HS_i << "\n\n";
 
           for(int m = 0; m < Hilbert_spaces[HS_i].size(); ++m){
             for(int n = 0; n < Hilbert_spaces[HS_i].size(); ++n){
               //assert(abs(imag(Hamiltonians(HS_i)(m,n))) < ed_options::get_epsilon());
-              cout << (Hamiltonians(HS_i)(m,n)) << "\t";
+              std::cout << (Hamiltonians(HS_i)(m,n)) << "\t";
             }
-            cout << "\n";
+            std::cout << "\n";
           }
-          cout << "\n";
+          std::cout << "\n";
         }
 
       assert(false);
@@ -421,7 +421,7 @@ namespace DCA
     }
 
     template<typename parameter_type, typename ed_options>
-    void fermionic_Hamiltonian<parameter_type, ed_options>::add_V_to_Hamiltonian(int N, matrix_type& H, Hilbert_space_type& subspace)
+    void fermionic_Hamiltonian<parameter_type, ed_options>::add_V_to_Hamiltonian(int /*N*/, matrix_type& H, Hilbert_space_type& subspace)
     {
       Hilbert_space_phi_representation_type& rep = subspace.get_rep();
 
@@ -496,7 +496,7 @@ namespace DCA
     }
 
     template<typename parameter_type, typename ed_options>
-    void fermionic_Hamiltonian<parameter_type, ed_options>::add_T_to_Hamiltonian(int N, matrix_type& H, Hilbert_space_type& subspace)
+    void fermionic_Hamiltonian<parameter_type, ed_options>::add_T_to_Hamiltonian(int /*N*/, matrix_type& H, Hilbert_space_type& subspace)
     {
       Hilbert_space_phi_representation_type& rep = subspace.get_rep();
 
@@ -686,7 +686,7 @@ namespace DCA
     void fermionic_Hamiltonian<parameter_type, ed_options>::diagonalize_Hamiltonians_st()
     {
       if(concurrency.id()==0)
-        cout << "\n\t" << __FUNCTION__ << "\n\n";
+        std::cout << "\n\t" << __FUNCTION__ << "\n\n";
 
       int start = clock();
 
@@ -706,7 +706,7 @@ namespace DCA
 
         {
           if(concurrency.id()==0)
-            cout << "\t N_occ : " << Hilbert_space_evals[0] << ", Sz : " << Hilbert_space_evals[1]
+            std::cout << "\t N_occ : " << Hilbert_space_evals[0] << ", Sz : " << Hilbert_space_evals[1]
                  << ", \t size : " << N << ", \t time : ";
 
           int start = clock();
@@ -714,7 +714,7 @@ namespace DCA
           int end = clock();
 
           if(concurrency.id()==0)
-            cout << double(end-start)/double(CLOCKS_PER_SEC) << "\n";
+            std::cout << double(end-start)/double(CLOCKS_PER_SEC) << "\n";
         }
       }
 
@@ -722,7 +722,7 @@ namespace DCA
 
       if(concurrency.id()==0)
         {
-          cout << "\n\t" << __FUNCTION__ << "\t total time : " << double(end-start)/double(CLOCKS_PER_SEC) << "\n\n";
+          std::cout << "\n\t" << __FUNCTION__ << "\t total time : " << double(end-start)/double(CLOCKS_PER_SEC) << "\n\n";
 
           print_spectrum();
         }
@@ -734,7 +734,7 @@ namespace DCA
     //   void fermionic_Hamiltonian<parameter_type, ed_options>::diagonolize_Hamiltonians_mt()
     //   {
     //     if(concurrency.id()==0)
-    //       cout << "\n\t" << __FUNCTION__ << "\n\n";
+    //       std::cout << "\n\t" << __FUNCTION__ << "\n\n";
 
     //     int start = clock();
 
@@ -800,7 +800,7 @@ namespace DCA
 
     //     if(concurrency.id()==0)
     //       {
-    //         cout << "\n\t" << __FUNCTION__ << "\t total time : " << double(end-start)/double(CLOCKS_PER_SEC) << "\n\n";
+    //         std::cout << "\n\t" << __FUNCTION__ << "\t total time : " << double(end-start)/double(CLOCKS_PER_SEC) << "\n\n";
 
     //         print_spectrum();
     //       }
@@ -816,32 +816,32 @@ namespace DCA
     //         int index  = 0;
     //         int N_proc = concurrency.number_of_processors();
 
-    //         cout << "\n\n\tN \\ Sz\t";
+    //         std::cout << "\n\n\tN \\ Sz\t";
     //         for(int j=0; j<mag_dmn::dmn_size(); j++)
-    //           cout << mag_dmn::parameter_type::Sz(j) << "\t";
+    //           std::cout << mag_dmn::parameter_type::Sz(j) << "\t";
 
-    //         cout << "\n";
+    //         std::cout << "\n";
     //         for(int i=0; i<occ_dmn::dmn_size(); i++){
 
-    //           cout << "\tN = "<< i << "\t";
+    //           std::cout << "\tN = "<< i << "\t";
 
     //           for(int j=0; j<mag_dmn::dmn_size(); j++)
     //             {
-    //               //cout << n_occupation_states(i,j) << "\t";
+    //               //std::cout << n_occupation_states(i,j) << "\t";
 
     //               int N = n_occupation_states(i,j);
     //               if(N!=0)
     //                 {
-    //                   cout << (index % N_proc) << "\t";
+    //                   std::cout << (index % N_proc) << "\t";
     //                   index += 1;
     //                 }
     //               else
-    //                 cout << " "               << "\t";
+    //                 std::cout << " "               << "\t";
 
     //             }
-    //           cout << "\n";
+    //           std::cout << "\n";
     //         }
-    //         cout << "\n";
+    //         std::cout << "\n";
     //       }
     //   }
 
@@ -865,7 +865,7 @@ namespace DCA
           E_MAX = E_MAX < eigen_energies(i)[n]? eigen_energies(i)[n] : E_MAX;
 
       if(concurrency.id()==0)
-        cout << "\n\t E_min : " << E_MIN << "\t E_max : " << E_MAX << "\n\n";
+        std::cout << "\n\t E_min : " << E_MIN << "\t E_max : " << E_MAX << "\n\n";
 
       if(E_MAX-E_MIN>1.e-2)
         {
@@ -884,10 +884,10 @@ namespace DCA
 
           if(concurrency.id()==0)
             {
-              cout << "\n\t distribution of the energies : \n\n";
+              std::cout << "\n\t distribution of the energies : \n\n";
               for(int l=0; l<N_BINS; l++)
-                cout << "\t" << E_MIN+delta/2. + l*delta << "\t" << std::string(int(double(y[l])/double(NUMBER_OF_LAMBDAS)*400.),'*') << endl;
-              cout << "\n\n";
+                std::cout << "\t" << E_MIN+delta/2. + l*delta << "\t" << std::string(int(double(y[l])/double(NUMBER_OF_LAMBDAS)*400.),'*') << std::endl;
+              std::cout << "\n\n";
             }
         }
     }
@@ -944,7 +944,7 @@ namespace DCA
             total_of_eigenvalues += 1;
 
         if(concurrency.id()==0)
-          cout << "\n\n\t number of eigenvalues exp(-beta*lambda) > CUT_OFF: " << number_of_eigenvalues << ", " << total_of_eigenvalues << "\n\n";
+          std::cout << "\n\n\t number of eigenvalues exp(-beta*lambda) > CUT_OFF: " << number_of_eigenvalues << ", " << total_of_eigenvalues << "\n\n";
       }
     }
 
@@ -961,7 +961,7 @@ namespace DCA
           HS_i = i;
       }
 
-      cout << "Print Hamiltonian of Hilbert-space #" << HS_i << endl;
+      std::cout << "Print Hamiltonian of Hilbert-space #" << HS_i << std::endl;
 
       std::ofstream data;
       data.open(filename);
@@ -981,7 +981,7 @@ namespace DCA
     {
       std::vector< Hilbert_space_type >& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
-      cout << "Print eigen-energies: " << endl;
+      std::cout << "Print eigen-energies: " << std::endl;
 
       std::ofstream data;
       data.open(filename);
@@ -1006,7 +1006,7 @@ namespace DCA
           HS_i = i;
       }
 
-      cout << "Print real eigen-states of Hilbert-space #" << HS_i << endl;
+      std::cout << "Print real eigen-states of Hilbert-space #" << HS_i << std::endl;
 
       std::ofstream data;
       data.open(filename);

@@ -210,7 +210,7 @@ namespace DCA
 
   template<typename parameters_type, typename K_dmn>
   template<typename scalar_type>
-  void* tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_mt_1D(void* void_ptr)
+  void* tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_mt_1D(void* /*void_ptr*/)
   {
     return 0;
   }
@@ -320,18 +320,18 @@ namespace DCA
 
 	  if(abs(volume-VECTOR_OPERATIONS::VOLUME(x,y,z))>1.e-6)
 	    {
-	      cout << tet_ind << "\t" << volume << "\t" << VECTOR_OPERATIONS::VOLUME(x,y,z) << "\n";
+        std:: cout << tet_ind << "\t" << volume << "\t" << VECTOR_OPERATIONS::VOLUME(x,y,z) << "\n";
 
-	      VECTOR_OPERATIONS::PRINT(x); cout << "\n";
-	      VECTOR_OPERATIONS::PRINT(y); cout << "\n";
-	      VECTOR_OPERATIONS::PRINT(z); cout << "\n";
-	      cout << "\n\n";
+	      VECTOR_OPERATIONS::PRINT(x); std::cout << "\n";
+	      VECTOR_OPERATIONS::PRINT(y); std::cout << "\n";
+	      VECTOR_OPERATIONS::PRINT(z); std::cout << "\n";
+	      std::cout << "\n\n";
 
-	      VECTOR_OPERATIONS::PRINT(tet_dmn_type::get_elements()[tet_ind+0]); cout << "\t" << G_tet(0,0,tet_ind+0) << "\n";
-	      VECTOR_OPERATIONS::PRINT(tet_dmn_type::get_elements()[tet_ind+1]); cout << "\t" << G_tet(0,0,tet_ind+1) << "\n";
-	      VECTOR_OPERATIONS::PRINT(tet_dmn_type::get_elements()[tet_ind+2]); cout << "\t" << G_tet(0,0,tet_ind+2) << "\n";
-	      VECTOR_OPERATIONS::PRINT(tet_dmn_type::get_elements()[tet_ind+3]); cout << "\t" << G_tet(0,0,tet_ind+3) << "\n";
-	      cout << "\n\n";
+	      VECTOR_OPERATIONS::PRINT(tet_dmn_type::get_elements()[tet_ind+0]); std::cout << "\t" << G_tet(0,0,tet_ind+0) << "\n";
+	      VECTOR_OPERATIONS::PRINT(tet_dmn_type::get_elements()[tet_ind+1]); std::cout << "\t" << G_tet(0,0,tet_ind+1) << "\n";
+	      VECTOR_OPERATIONS::PRINT(tet_dmn_type::get_elements()[tet_ind+2]); std::cout << "\t" << G_tet(0,0,tet_ind+2) << "\n";
+	      VECTOR_OPERATIONS::PRINT(tet_dmn_type::get_elements()[tet_ind+3]); std::cout << "\t" << G_tet(0,0,tet_ind+3) << "\n";
+	      std::cout << "\n\n";
 
 	      assert(false);
 	    }
@@ -402,18 +402,18 @@ namespace DCA
 
 	  if(abs(volume-VECTOR_OPERATIONS::VOLUME(x,y,z)/6)>1.e-6)
 	    {
-	      cout << tet_ind << "\t" << volume << "\t" << VECTOR_OPERATIONS::VOLUME(x,y,z) << "\n";
+	      std::cout << tet_ind << "\t" << volume << "\t" << VECTOR_OPERATIONS::VOLUME(x,y,z) << "\n";
 
-	      VECTOR_OPERATIONS::PRINT(x); cout << "\n";
-	      VECTOR_OPERATIONS::PRINT(y); cout << "\n";
-	      VECTOR_OPERATIONS::PRINT(z); cout << "\n";
-	      cout << "\n\n";
+	      VECTOR_OPERATIONS::PRINT(x); std::cout << "\n";
+	      VECTOR_OPERATIONS::PRINT(y); std::cout << "\n";
+	      VECTOR_OPERATIONS::PRINT(z); std::cout << "\n";
+	      std::cout << "\n\n";
 
-	      VECTOR_OPERATIONS::PRINT(tet_dmn_type::get_elements()[tet_ind+0]); cout << "\t" << G_tet(0,0,tet_ind+0) << "\n";
-	      VECTOR_OPERATIONS::PRINT(tet_dmn_type::get_elements()[tet_ind+1]); cout << "\t" << G_tet(0,0,tet_ind+1) << "\n";
-	      VECTOR_OPERATIONS::PRINT(tet_dmn_type::get_elements()[tet_ind+2]); cout << "\t" << G_tet(0,0,tet_ind+2) << "\n";
-	      VECTOR_OPERATIONS::PRINT(tet_dmn_type::get_elements()[tet_ind+3]); cout << "\t" << G_tet(0,0,tet_ind+3) << "\n";
-	      cout << "\n\n";
+	      VECTOR_OPERATIONS::PRINT(tet_dmn_type::get_elements()[tet_ind+0]); std::cout << "\t" << G_tet(0,0,tet_ind+0) << "\n";
+	      VECTOR_OPERATIONS::PRINT(tet_dmn_type::get_elements()[tet_ind+1]); std::cout << "\t" << G_tet(0,0,tet_ind+1) << "\n";
+	      VECTOR_OPERATIONS::PRINT(tet_dmn_type::get_elements()[tet_ind+2]); std::cout << "\t" << G_tet(0,0,tet_ind+2) << "\n";
+	      VECTOR_OPERATIONS::PRINT(tet_dmn_type::get_elements()[tet_ind+3]); std::cout << "\t" << G_tet(0,0,tet_ind+3) << "\n";
+	      std::cout << "\n\n";
 
 	      assert(false);
 	    }

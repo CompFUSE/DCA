@@ -3,6 +3,8 @@
 #ifndef ADVANCED_FERMIONIC_ED_TYPE_DEFINITIONS_H
 #define ADVANCED_FERMIONIC_ED_TYPE_DEFINITIONS_H
 
+#include <bitset>
+
 namespace DCA
 {
   namespace ADVANCED_EXACT_DIAGONALIZATION
@@ -17,7 +19,6 @@ namespace DCA
     struct advanced_ed_options
     {
 #include "type_definitions.h"
-
     public:
 
       const static size_t N=8*sizeof(size_t);

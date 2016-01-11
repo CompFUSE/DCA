@@ -120,8 +120,8 @@ namespace DCA
     vertex_pair<parameters_type>::vertex_pair(parameters_type&   parameters_ref,
                                               rng_type&          rng_ref,
                                               int                configuration_index_in,
-                                              int                configuration_e_DN_index_in,
-                                              int                configuration_e_UP_index_in):
+                                              int                /*configuration_e_DN_index_in*/,
+                                              int                /*configuration_e_UP_index_in*/):
       parameters(parameters_ref),
       rng       (rng_ref),
       //     concurrency(parameters.get_concurrency()),

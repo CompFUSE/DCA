@@ -190,11 +190,11 @@ namespace DCA
         result = false;
 
       if(!result){
-        cout << band   << "\t" << other_vertex_couple.get_band() << endl;
-        cout << e_spin << "\t" << other_vertex_couple.get_e_spin() << endl;
-        cout << spin_orbital << "\t" << other_vertex_couple.get_spin_orbital() << endl;
+        std::cout << band   << "\t" << other_vertex_couple.get_band() << std::endl;
+        std::cout << e_spin << "\t" << other_vertex_couple.get_e_spin() << std::endl;
+        std::cout << spin_orbital << "\t" << other_vertex_couple.get_spin_orbital() << std::endl;
 
-        cout << HS_field << "\t" << other_vertex_couple.get_HS_field() << endl;
+        std::cout << HS_field << "\t" << other_vertex_couple.get_HS_field() << std::endl;
 
       }
 

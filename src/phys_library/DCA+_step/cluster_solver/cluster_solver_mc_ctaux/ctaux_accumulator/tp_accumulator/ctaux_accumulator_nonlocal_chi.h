@@ -208,7 +208,7 @@ namespace DCA
         {
           for(int i=0; i<w_VERTEX::dmn_size(); i++)
             for(int j=0; j<w_VERTEX_EXTENDED::dmn_size(); j++)
-              if(fabs(w_VERTEX::get_elements()[i]-w_VERTEX_EXTENDED::get_elements()[j])<1.e-6)
+              if(std::fabs(w_VERTEX::get_elements()[i]-w_VERTEX_EXTENDED::get_elements()[j])<1.e-6)
                 w_vertex_2_w_vertex_ext(i) = j;
         }
 
@@ -353,7 +353,7 @@ namespace DCA
 
           int w2_ext           = w_vertex_2_w_vertex_ext(w2);
           int w2_ext_plus_w_nu = w2_ext+w_nu;
-          assert(fabs(w_VERTEX::get_elements()[w2]-w_VERTEX_EXTENDED::get_elements()[w2_ext])<1.e-6);
+          assert(std::fabs(w_VERTEX::get_elements()[w2]-w_VERTEX_EXTENDED::get_elements()[w2_ext])<1.e-6);
 
           for(int w1=0; w1<w_VERTEX::dmn_size(); w1++){
 
@@ -442,7 +442,7 @@ namespace DCA
 
           int w2_ext           = w_vertex_2_w_vertex_ext(w2);
           int w2_ext_plus_w_nu = w2_ext+w_nu;
-          assert(fabs(w_VERTEX::get_elements()[w2]-w_VERTEX_EXTENDED::get_elements()[w2_ext])<1.e-6);
+          assert(std::fabs(w_VERTEX::get_elements()[w2]-w_VERTEX_EXTENDED::get_elements()[w2_ext])<1.e-6);
 
           for(int w1=0; w1<w_VERTEX::dmn_size(); w1++){
 
@@ -575,7 +575,7 @@ namespace DCA
 
           int w2_ext           = w_vertex_2_w_vertex_ext(w2);
           int w2_ext_plus_w_nu = w2_ext+w_nu;
-          assert(fabs(w_VERTEX::get_elements()[w2]-w_VERTEX_EXTENDED::get_elements()[w2_ext])<1.e-6);
+          assert(std::fabs(w_VERTEX::get_elements()[w2]-w_VERTEX_EXTENDED::get_elements()[w2_ext])<1.e-6);
 
           for(int w1=0; w1<w_VERTEX::dmn_size(); w1++){
 

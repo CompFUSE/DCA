@@ -22,18 +22,18 @@ std::string print_time()
   return str;
 }
 
-#include "time_file_name_changed.h"
-#include "time_events.h"
+#include "events/time_file_name_changed.h"
+#include "events/time_events.h"
 
 #ifdef NO_PROFILING
 
-#include "null_profiler.h"	
+#include "profilers/null_profiler.h"	
 
 #endif
 
 #ifdef COUNTING_PROFILING
 
-#include "counting_profiler.h"
+#include "profilers/counting_profiler.h"
 
 #endif
 
@@ -45,7 +45,7 @@ std::string print_time()
 
 #ifdef DCA_PAPI_PROFILING
 
-#include "papi_events.h"
-#include "counting_profiler.h"
+#include "events/papi_events.h"
+#include "profilers/counting_profiler.h"
 
 #endif

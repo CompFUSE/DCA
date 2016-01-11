@@ -1,0 +1,19 @@
+#!/bin/bash
+#
+#PBS -A cph102
+#PBS -N DCA++_U=HUBBARDU_d=DENS_Nc=SIZE_analysis
+#PBS -o out.U=HUBBARDU_d=DENS_Nc=SIZE.analysis_ALGORITHM.txt
+#PBS -e err.U=HUBBARDU_d=DENS_Nc=SIZE.analysis_ALGORITHM.txt
+#PBS -l walltime=00:15:00
+#PBS -l nodes=NODES
+#PBS -l gres=atlas1%atlas2
+
+export CRAY_CUDA_PROXY=1
+
+cd $PBS_O_WORKDIR
+
+date
+
+JOBS
+
+date

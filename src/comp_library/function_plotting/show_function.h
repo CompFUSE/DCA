@@ -1,4 +1,5 @@
 //-*-C++-*-
+// TODO: Merge empty else functions to fewer variadic template functions.
 
 #ifndef SHOW_FUNCTION_H
 #define SHOW_FUNCTION_H
@@ -131,46 +132,51 @@ public:
 
 };
 
+#ifdef ALLOW_GNUPLOT
 template<typename scalar_type>
 void SHOW::plot_points(std::vector<scalar_type> x, std::vector<scalar_type> y)
 {
-#ifdef ALLOW_GNUPLOT
-
   Gnuplot plot_obj("points");
 
   plot_obj.plot_xy(x, y, "no-name");
 
   plot_obj.showonscreen();
-
-#endif
 }
+#else
+template<typename scalar_type>
+void SHOW::plot_points(std::vector<scalar_type> /*x*/, std::vector<scalar_type> /*y*/)
+{}
+#endif
 
+#ifdef ALLOW_GNUPLOT
 template<typename scalar_type>
 void SHOW::plot_points(Gnuplot& plot_obj, std::vector<scalar_type> x, std::vector<scalar_type> y)
 {
-#ifdef ALLOW_GNUPLOT
-
   plot_obj.plot_xy(x, y, "no-name");
-
-#endif
 }
+#else
+template<typename scalar_type>
+void SHOW::plot_points(Gnuplot& /*plot_obj*/, std::vector<scalar_type> /*x*/, std::vector<scalar_type> /*y*/)
+{}
+#endif
 
+#ifdef ALLOW_GNUPLOT
 template<typename scalar_type>
 void SHOW::plot_points(Gnuplot& plot_obj, std::vector<scalar_type> x, std::vector<scalar_type> y, std::string name, std::string style)
 {
-#ifdef ALLOW_GNUPLOT
-
   plot_obj.set_style(style);
   plot_obj.plot_xy(x, y, name);
-
-#endif
 }
+#else
+template<typename scalar_type>
+void SHOW::plot_points(Gnuplot& /*plot_obj*/, std::vector<scalar_type> /*x*/, std::vector<scalar_type> /*y*/, std::string /*name*/, std::string /*style*/)
+{}
+#endif
 
+#ifdef ALLOW_GNUPLOT
 template<typename scalar_type>
 void SHOW::plot_line_2D(Gnuplot& plot_obj, std::vector<scalar_type> x, std::vector<scalar_type> y)
 {
-#ifdef ALLOW_GNUPLOT
-
   assert(x.size()==2);
   assert(y.size()==2);
 
@@ -181,15 +187,17 @@ void SHOW::plot_line_2D(Gnuplot& plot_obj, std::vector<scalar_type> x, std::vect
   x_list[1] = y[0]; y_list[1] = y[1];
 
   plot_obj.plot_xy(x_list, y_list);
-
-#endif
 }
+#else
+template<typename scalar_type>
+void SHOW::plot_line_2D(Gnuplot& /*plot_obj*/, std::vector<scalar_type> /*x*/, std::vector<scalar_type> /*y*/)
+{}
+#endif
 
+#ifdef ALLOW_GNUPLOT
 template<typename scalar_type>
 void SHOW::plot_line_3D(Gnuplot& plot_obj, std::vector<scalar_type> x, std::vector<scalar_type> y)
 {
-#ifdef ALLOW_GNUPLOT
-
   assert(x.size()==3);
   assert(y.size()==3);
 
@@ -201,15 +209,17 @@ void SHOW::plot_line_3D(Gnuplot& plot_obj, std::vector<scalar_type> x, std::vect
   x_list[1] = y[0]; y_list[1] = y[1]; z_list[1] = y[2];
 
   plot_obj.plot_xyz(x_list, y_list, z_list);
-
-#endif
 }
-
+#else
 template<typename scalar_type>
-void SHOW::plot_points(std::vector<std::vector<scalar_type> >& elements, bool save_figure)
-{
-#ifdef ALLOW_GNUPLOT
+void SHOW::plot_line_3D(Gnuplot& /*plot_obj*/, std::vector<scalar_type> /*x*/, std::vector<scalar_type> /*y*/)
+{}
+#endif
 
+#ifdef ALLOW_GNUPLOT
+template<typename scalar_type>
+void SHOW::plot_points(std::vector<std::vector<scalar_type> >& elements, bool /*save_figure*/)
+{
   assert(elements[0].size()==2);
 
   std::vector<double> x(0);
@@ -229,14 +239,17 @@ void SHOW::plot_points(std::vector<std::vector<scalar_type> >& elements, bool sa
   plot_obj.showonscreen();
 
   //assert(false);
-#endif
 }
+#else
+template<typename scalar_type>
+void SHOW::plot_points(std::vector<std::vector<scalar_type> >& /*elements*/, bool /*save_figure*/)
+{}
+#endif
 
+#ifdef ALLOW_GNUPLOT
 template<typename scalar_type>
 void SHOW::plot_points(Gnuplot& plot_obj, std::vector<std::vector<scalar_type> >& elements)
 {
-#ifdef ALLOW_GNUPLOT
-
   assert(elements[0].size()==2);
 
   std::vector<double> x(0);
@@ -254,29 +267,31 @@ void SHOW::plot_points(Gnuplot& plot_obj, std::vector<std::vector<scalar_type> >
   plot_obj.showonscreen();
 
   //assert(false);
-
-#endif
 }
+#else
+template<typename scalar_type>
+void SHOW::plot_points(Gnuplot& /*plot_obj*/, std::vector<std::vector<scalar_type> >& /*elements*/)
+{}
+#endif
 
+#ifdef ALLOW_GNUPLOT
 template<typename scalar_type, typename dmn_0_type, typename dmn_1_type, typename dmn_2_type>
 void SHOW::plot_bandstructure(FUNC_LIB::function<scalar_type, dmn_2<dmn_2<dmn_0_type, dmn_1_type>, dmn_2_type> >& f, bool save_figure)
 {
-#ifdef ALLOW_GNUPLOT
-
   Gnuplot plot_obj("lines");
 
   for(int i=0; i<dmn_0_type::dmn_size(); i++)
-    {
-      std::vector<double> x(0);
-      std::vector<double> y(0);
+  {
+    std::vector<double> x(0);
+    std::vector<double> y(0);
 
-      for(int j=0; j<dmn_2_type::dmn_size(); j++){
-        x.push_back(j);
-        y.push_back(f(i,j));
-      }
-
-      plot_obj.plot_xy(x, y, f.get_name());
+    for(int j=0; j<dmn_2_type::dmn_size(); j++){
+      x.push_back(j);
+      y.push_back(f(i,j));
     }
+
+    plot_obj.plot_xy(x, y, f.get_name());
+  }
 
   //plot_obj.set_xlabel(dmn_type::get_name());
   plot_obj.set_ylabel(f.get_name());
@@ -285,15 +300,17 @@ void SHOW::plot_bandstructure(FUNC_LIB::function<scalar_type, dmn_2<dmn_2<dmn_0_
 
   if(save_figure)
     plot_obj.savetops(f.get_name());
-
-#endif
 }
+#else
+template<typename scalar_type, typename dmn_0_type, typename dmn_1_type, typename dmn_2_type>
+void SHOW::plot_bandstructure(FUNC_LIB::function<scalar_type, dmn_2<dmn_2<dmn_0_type, dmn_1_type>, dmn_2_type> >& /*f*/, bool /*save_figure*/)
+{}
+#endif
 
+#ifdef ALLOW_GNUPLOT
 template<typename scalar_type, typename dmn_type>
 void SHOW::plot_data(FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& f, bool save_figure)
 {
-#ifdef ALLOW_GNUPLOT
-
   std::vector<double> x(0);
   std::vector<double> y(0);
 
@@ -313,16 +330,17 @@ void SHOW::plot_data(FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& f, bool 
 
   if(save_figure)
     plot_obj.savetops(f.get_name());
-
-#endif
 }
+#else
+template<typename scalar_type, typename dmn_type>
+void SHOW::plot_data(FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& /*f*/, bool /*save_figure*/)
+{}
+#endif
 
-
+#ifdef ALLOW_GNUPLOT
 template<typename scalar_type, typename dmn_type>
 void SHOW::plot_data(FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type> >& f, bool save_figure)
 {
-#ifdef ALLOW_GNUPLOT
-
   std::vector<double> x(0);
   std::vector<double> y(0);
   std::vector<double> z(0);
@@ -345,15 +363,17 @@ void SHOW::plot_data(FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_typ
 
   if(save_figure)
     plot_obj.savetops(f.get_name());
-
-#endif
 }
+#else
+template<typename scalar_type, typename dmn_type>
+void SHOW::plot_data(FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type> >& /*f*/, bool /*save_figure*/)
+{}
+#endif
 
+#ifdef ALLOW_GNUPLOT
 template<typename scalar_type, typename dmn_type>
 void SHOW::plot_data(Gnuplot& plot_obj, FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& f)
 {
-#ifdef ALLOW_GNUPLOT
-
   std::vector<double> x(0);
   std::vector<double> y(0);
 
@@ -366,15 +386,17 @@ void SHOW::plot_data(Gnuplot& plot_obj, FUNC_LIB::function<scalar_type, dmn_0<dm
   plot_obj.set_ylabel(f.get_name());
 
   plot_obj.plot_xy(x, y, f.get_name());
-
-#endif
 }
+#else
+template<typename scalar_type, typename dmn_type>
+void SHOW::plot_data(Gnuplot& /*plot_obj*/, FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& /*f*/)
+{}
+#endif
 
+#ifdef ALLOW_GNUPLOT
 template<typename scalar_type, typename dmn_type>
 void SHOW::plot_data(Gnuplot& plot_obj, FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type> >& f)
 {
-#ifdef ALLOW_GNUPLOT
-
   std::vector<double> x(0);
   std::vector<double> y(0);
   std::vector<double> z(0);
@@ -390,17 +412,19 @@ void SHOW::plot_data(Gnuplot& plot_obj, FUNC_LIB::function<std::complex<scalar_t
 
   plot_obj.plot_xy(x, y, f.get_name());
   plot_obj.plot_xy(x, z, f.get_name());
-
-#endif
 }
+#else
+template<typename scalar_type, typename dmn_type>
+void SHOW::plot_data(Gnuplot& /*plot_obj*/, FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type> >& /*f*/)
+{}
+#endif
 
+#ifdef ALLOW_GNUPLOT
 template<typename scalar_type, typename dmn_type>
 void SHOW::plot_data(FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type> >& f,
                      FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type> >& g,
                      bool save_figure)
 {
-#ifdef ALLOW_GNUPLOT
-
   std::vector<double> x(0);
   std::vector<double> f_re(0);
   std::vector<double> f_im(0);
@@ -429,16 +453,20 @@ void SHOW::plot_data(FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_typ
 
   if(save_figure)
     plot_obj.savetops(f.get_name());
-
-#endif
 }
+#else
+template<typename scalar_type, typename dmn_type>
+void SHOW::plot_data(FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type> >& /*f*/,
+                     FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type> >& /*g*/,
+                     bool /*save_figure*/)
+{}
+#endif
 
+#ifdef ALLOW_GNUPLOT
 template<typename scalar_type, typename dmn_type>
 void SHOW::plot_error_bars(FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& f,
                            FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& g)
 {
-#ifdef ALLOW_GNUPLOT
-
   //cout << __FUNCTION__ << endl;
 
   std::vector<double>& x_points = dmn_type::get_elements();
@@ -466,16 +494,19 @@ void SHOW::plot_error_bars(FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& f,
   }
 
   plot_obj.showonscreen();
-
-#endif
 }
+#else
+template<typename scalar_type, typename dmn_type>
+void SHOW::plot_error_bars(FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& /*f*/,
+                           FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& /*g*/)
+{}
+#endif
 
+#ifdef ALLOW_GNUPLOT
 template<typename scalar_type, typename dmn_type_0, typename dmn_type_1, typename dmn_type_2>
 void SHOW::plot_error_bars(FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f,
                            FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& g)
 {
-#ifdef ALLOW_GNUPLOT
-
   //cout << __FUNCTION__ << endl;
 
   std::vector<double>& x_points = dmn_type_2::get_elements();
@@ -504,15 +535,18 @@ void SHOW::plot_error_bars(FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dmn
   }
 
   plot_obj.showonscreen();
-
-#endif
 }
+#else
+template<typename scalar_type, typename dmn_type_0, typename dmn_type_1, typename dmn_type_2>
+void SHOW::plot_error_bars(FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& /*f*/,
+                           FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& /*g*/)
+{}
+#endif
 
+#ifdef ALLOW_GNUPLOT
 template<typename scalar_type, typename dmn_type>
 void SHOW::execute(FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& f, bool save_figure)
 {
-#ifdef ALLOW_GNUPLOT
-
   std::vector<double>& x = dmn_type::get_elements();
 
   std::vector<double> y(0);
@@ -531,15 +565,17 @@ void SHOW::execute(FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& f, bool sa
 
   if(save_figure)
     plot_obj.savetops(f.get_name());
-
-#endif
 }
+#else
+template<typename scalar_type, typename dmn_type>
+void SHOW::execute(FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& /*f*/, bool /*save_figure*/)
+{}
+#endif
 
+#ifdef ALLOW_GNUPLOT
 template<typename scalar_type, typename dmn_type>
 void SHOW::execute(Gnuplot& plot_obj, FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& f)
 {
-#ifdef ALLOW_GNUPLOT
-
   std::vector<double>& x = dmn_type::get_elements();
 
   std::vector<double> y(0);
@@ -552,15 +588,17 @@ void SHOW::execute(Gnuplot& plot_obj, FUNC_LIB::function<scalar_type, dmn_0<dmn_
   plot_obj.plot_xy(x, y, f.get_name());
 
   plot_obj.showonscreen();
-
-#endif
 }
+#else
+template<typename scalar_type, typename dmn_type>
+void SHOW::execute(Gnuplot& /*plot_obj*/, FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& /*f*/)
+{}
+#endif
 
+#ifdef ALLOW_GNUPLOT
 template<typename scalar_type, typename dmn_type>
 void SHOW::execute(Gnuplot& plot_obj, FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type> >& f)
 {
-#ifdef ALLOW_GNUPLOT
-
   std::vector<double>& x = dmn_type::get_elements();
 
   std::vector<double> y_re(0);
@@ -578,26 +616,27 @@ void SHOW::execute(Gnuplot& plot_obj, FUNC_LIB::function<std::complex<scalar_typ
   plot_obj.plot_xy(x, y_im, "Im["+f.get_name()+"]");
 
   plot_obj.showonscreen();
-
-#endif
 }
+#else
+template<typename scalar_type, typename dmn_type>
+void SHOW::execute(Gnuplot& /*plot_obj*/, FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type> >& /*f*/)
+{}
+#endif
 
-
+#ifdef ALLOW_GNUPLOT
 template<typename scalar_type, typename dmn_type>
 void SHOW::execute(FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type> >& f,
                    bool save_figure)
 {
-#ifdef ALLOW_GNUPLOT
-
   std::vector<double>& x = dmn_type::get_elements();
 
   std::vector<double> y_re(0);
   std::vector<double> y_im(0);
   for(int i=0; i<f.size(); i++)
-    {
-      y_re.push_back(real(f(i)));
-      y_im.push_back(imag(f(i)));
-    }
+  {
+    y_re.push_back(real(f(i)));
+    y_im.push_back(imag(f(i)));
+  }
 
   Gnuplot plot_obj("lines");
 
@@ -611,139 +650,146 @@ void SHOW::execute(FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type>
 
   if(save_figure)
     plot_obj.savetops(f.get_name());
-
-#endif
 }
+#else
+template<typename scalar_type, typename dmn_type>
+void SHOW::execute(FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type> >& /*f*/,
+                   bool /*save_figure*/)
+{}
+#endif
 
+#ifdef ALLOW_GNUPLOT
 template<typename scalar_type, typename dmn_type_0, typename dmn_type_1>
 void SHOW::execute(FUNC_LIB::function<scalar_type, dmn_2<dmn_type_0, dmn_type_1> >& f, int n, bool save_figure)
 {
-#ifdef ALLOW_GNUPLOT
-
   Gnuplot plot_obj("lines");
 
   std::vector<double> x;
   if(n==0)
-    {
-      //x = dmn_type_0::get_elements();
-      plot_obj.set_xlabel(dmn_type_0::get_name());
-    }
+  {
+    //x = dmn_type_0::get_elements();
+    plot_obj.set_xlabel(dmn_type_0::get_name());
+  }
   else
-    {
-      x = dmn_type_1::get_elements();
-      plot_obj.set_xlabel(dmn_type_1::get_name());
-    }
+  {
+    x = dmn_type_1::get_elements();
+    plot_obj.set_xlabel(dmn_type_1::get_name());
+  }
 
   plot_obj.set_ylabel(f.get_name());
 
   if(n==0)
+  {
+    for(int j=0; j<f[1]; j++)
     {
-      for(int j=0; j<f[1]; j++)
-        {
-          std::vector<double> y_re(0);
-          //std::vector<double> y_im(0);
-          for(int i=0; i<f[0]; i++)
-            {
-              y_re.push_back((f(i,j)));
-              //y_im.push_back(imag(f(i,j)));
-            }
+      std::vector<double> y_re(0);
+      //std::vector<double> y_im(0);
+      for(int i=0; i<f[0]; i++)
+      {
+        y_re.push_back((f(i,j)));
+        //y_im.push_back(imag(f(i,j)));
+      }
 
-          plot_obj.plot_xy(x, y_re, "");
-          //plot_obj.plot_xy(x, y_im, "");
-        }
+      plot_obj.plot_xy(x, y_re, "");
+      //plot_obj.plot_xy(x, y_im, "");
     }
+  }
   else
+  {
+    for(int j=0; j<f[0]; j++)
     {
-      for(int j=0; j<f[0]; j++)
-        {
-          std::vector<double> y_re(0);
-          //std::vector<double> y_im(0);
-          for(int i=0; i<f[1]; i++)
-            {
-              y_re.push_back((f(j,i)));
-              //y_im.push_back(imag(f(j,i)));
-            }
+      std::vector<double> y_re(0);
+      //std::vector<double> y_im(0);
+      for(int i=0; i<f[1]; i++)
+      {
+        y_re.push_back((f(j,i)));
+        //y_im.push_back(imag(f(j,i)));
+      }
 
-          plot_obj.plot_xy(x, y_re, "");
-          //plot_obj.plot_xy(x, y_im, "");
-        }
+      plot_obj.plot_xy(x, y_re, "");
+      //plot_obj.plot_xy(x, y_im, "");
     }
+  }
 
   plot_obj.showonscreen();
 
   if(save_figure)
     plot_obj.savetops(f.get_name());
-
-#endif
 }
+#else
+template<typename scalar_type, typename dmn_type_0, typename dmn_type_1>
+void SHOW::execute(FUNC_LIB::function<scalar_type, dmn_2<dmn_type_0, dmn_type_1> >& /*f*/, int /*n*/, bool /*save_figure*/)
+{}
+#endif
 
+#ifdef ALLOW_GNUPLOT
 template<typename scalar_type, typename dmn_type_0, typename dmn_type_1>
 void SHOW::execute(FUNC_LIB::function<std::complex<scalar_type>, dmn_2<dmn_type_0, dmn_type_1> >& f, int n, bool save_figure)
 {
-#ifdef ALLOW_GNUPLOT
-
   Gnuplot plot_obj("lines");
 
   std::vector<double> x;
   if(n==0)
-    {
-      //x = dmn_type_0::get_elements();
-      plot_obj.set_xlabel(dmn_type_0::get_name());
-    }
+  {
+    //x = dmn_type_0::get_elements();
+    plot_obj.set_xlabel(dmn_type_0::get_name());
+  }
   else
-    {
-      x = dmn_type_1::get_elements();
-      plot_obj.set_xlabel(dmn_type_1::get_name());
-    }
+  {
+    x = dmn_type_1::get_elements();
+    plot_obj.set_xlabel(dmn_type_1::get_name());
+  }
 
   plot_obj.set_ylabel(f.get_name());
 
   if(n==0)
+  {
+    for(int j=0; j<f[1]; j++)
     {
-      for(int j=0; j<f[1]; j++)
-        {
-          std::vector<double> y_re(0);
-          std::vector<double> y_im(0);
-          for(int i=0; i<f[0]; i++)
-            {
-              y_re.push_back(real(f(i,j)));
-              y_im.push_back(imag(f(i,j)));
-            }
+      std::vector<double> y_re(0);
+      std::vector<double> y_im(0);
+      for(int i=0; i<f[0]; i++)
+      {
+        y_re.push_back(real(f(i,j)));
+        y_im.push_back(imag(f(i,j)));
+      }
 
-          plot_obj.plot_xy(x, y_re, "");
-          plot_obj.plot_xy(x, y_im, "");
-        }
+      plot_obj.plot_xy(x, y_re, "");
+      plot_obj.plot_xy(x, y_im, "");
     }
+  }
   else
+  {
+    for(int j=0; j<f[0]; j++)
     {
-      for(int j=0; j<f[0]; j++)
-        {
-          std::vector<double> y_re(0);
-          std::vector<double> y_im(0);
-          for(int i=0; i<f[1]; i++)
-            {
-              y_re.push_back(real(f(j,i)));
-              y_im.push_back(imag(f(j,i)));
-            }
+      std::vector<double> y_re(0);
+      std::vector<double> y_im(0);
+      for(int i=0; i<f[1]; i++)
+      {
+        y_re.push_back(real(f(j,i)));
+        y_im.push_back(imag(f(j,i)));
+      }
 
-          plot_obj.plot_xy(x, y_re, "");
-          plot_obj.plot_xy(x, y_im, "");
-        }
+      plot_obj.plot_xy(x, y_re, "");
+      plot_obj.plot_xy(x, y_im, "");
     }
+  }
 
   plot_obj.showonscreen();
 
   if(save_figure)
     plot_obj.savetops(f.get_name());
-
-#endif
 }
+#else
+template<typename scalar_type, typename dmn_type_0, typename dmn_type_1>
+void SHOW::execute(FUNC_LIB::function<std::complex<scalar_type>, dmn_2<dmn_type_0, dmn_type_1> >& /*f*/, int /*n*/, bool /*save_figure*/)
+{}
+#endif
 
+#ifdef ALLOW_GNUPLOT
 template<typename scalar_type, typename dmn_type_0, typename dmn_type_1, typename dmn_type_2>
 void SHOW::execute(FUNC_LIB::function<std::complex<scalar_type>, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f)
 {
-#ifdef ALLOW_GNUPLOT
-
   std::vector<double>& x_points = dmn_type_2::get_elements();
 
   Gnuplot plot_obj("linespoints");
@@ -771,15 +817,17 @@ void SHOW::execute(FUNC_LIB::function<std::complex<scalar_type>, dmn_4<dmn_type_
   }
 
   plot_obj.showonscreen();
-
-#endif
 }
+#else
+template<typename scalar_type, typename dmn_type_0, typename dmn_type_1, typename dmn_type_2>
+void SHOW::execute(FUNC_LIB::function<std::complex<scalar_type>, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& /*f*/)
+{}
+#endif
 
+#ifdef ALLOW_GNUPLOT
 template<typename scalar_type, typename dmn_type_0, typename dmn_type_1, typename dmn_type_2>
 void SHOW::execute_on_bands(FUNC_LIB::function<scalar_type, dmn_3<dmn_type_0, dmn_type_1, dmn_type_2> >& f)
 {
-#ifdef ALLOW_GNUPLOT
-
   Gnuplot plot_obj("linespoints");
 
   std::vector<double>& x_points = dmn_type_2::get_elements();
@@ -794,9 +842,9 @@ void SHOW::execute_on_bands(FUNC_LIB::function<scalar_type, dmn_3<dmn_type_0, dm
 
     //for(int i=std::max(dmn_type_2::dmn_size()/2-32,0); i<std::min(dmn_type_2::dmn_size()/2+32, dmn_type_2::dmn_size()); i++){
     for(int i=0; i<dmn_type_2::dmn_size(); i++){
-      
+
       x.push_back(x_points[i]);
-      
+
       y_re.push_back(f(j,0,i));
     }
 
@@ -804,15 +852,17 @@ void SHOW::execute_on_bands(FUNC_LIB::function<scalar_type, dmn_3<dmn_type_0, dm
   }
 
   plot_obj.showonscreen();
-
-#endif
 }
+#else
+template<typename scalar_type, typename dmn_type_0, typename dmn_type_1, typename dmn_type_2>
+void SHOW::execute_on_bands(FUNC_LIB::function<scalar_type, dmn_3<dmn_type_0, dmn_type_1, dmn_type_2> >& /*f*/)
+{}
+#endif
 
+#ifdef ALLOW_GNUPLOT
 template<typename scalar_type, typename dmn_type_0, typename dmn_type_1, typename dmn_type_2>
 void SHOW::execute_on_bands(FUNC_LIB::function<std::complex<scalar_type>, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f)
 {
-#ifdef ALLOW_GNUPLOT
-
   int shift = dmn_type_2::dmn_size()/2;
 
   Gnuplot plot_obj("linespoints");
@@ -830,9 +880,9 @@ void SHOW::execute_on_bands(FUNC_LIB::function<std::complex<scalar_type>, dmn_4<
 
     //for(int i=std::max(dmn_type_2::dmn_size()/2-32,0); i<std::min(dmn_type_2::dmn_size()/2+32, dmn_type_2::dmn_size()); i++){
     for(int i=std::max(0,dmn_type_2::dmn_size()/2-shift); i<std::min(dmn_type_2::dmn_size(), dmn_type_2::dmn_size()/2+shift); i++){
-      
+
       x.push_back(x_points[i]);
-      
+
       y_re.push_back(real(f(j,j,0,i)));
       y_im.push_back(imag(f(j,j,0,i)));
     }
@@ -842,15 +892,18 @@ void SHOW::execute_on_bands(FUNC_LIB::function<std::complex<scalar_type>, dmn_4<
   }
 
   plot_obj.showonscreen();
-
-#endif
 }
+#else
+template<typename scalar_type, typename dmn_type_0, typename dmn_type_1, typename dmn_type_2>
+void SHOW::execute_on_bands(FUNC_LIB::function<std::complex<scalar_type>, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& /*f*/)
+{}
+#endif
 
+#ifdef ALLOW_GNUPLOT
 template<typename scalar_type, typename dmn_type_0, typename dmn_type_1, typename dmn_type_2>
 void SHOW::execute(FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f)
 {
-#ifdef ALLOW_GNUPLOT
-  cout << __FUNCTION__ << endl;
+  std::cout << __FUNCTION__ << std::endl;
 
   std::vector<double>& x_points = dmn_type_2::get_elements();
 
@@ -877,15 +930,17 @@ void SHOW::execute(FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dmn_type_0,
   }
 
   plot_obj.showonscreen();
-
-#endif
 }
+#else
+template<typename scalar_type, typename dmn_type_0, typename dmn_type_1, typename dmn_type_2>
+void SHOW::execute(FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& /*f*/)
+{}
+#endif
 
+#ifdef ALLOW_GNUPLOT
 template<typename scalar_type, typename dmn_type_0, typename dmn_type_1, typename dmn_type_2>
 void SHOW::execute_on_bands(FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f)
 {
-#ifdef ALLOW_GNUPLOT
-
   Gnuplot plot_obj("linespoints");
 
   std::vector<double>& x_points = dmn_type_2::get_elements();
@@ -913,16 +968,18 @@ void SHOW::execute_on_bands(FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dm
   }
 
   plot_obj.showonscreen();
-
-#endif
 }
+#else
+template<typename scalar_type, typename dmn_type_0, typename dmn_type_1, typename dmn_type_2>
+void SHOW::execute_on_bands(FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& /*f*/)
+{}
+#endif
 
+#ifdef ALLOW_GNUPLOT
 template<typename scalar_type, typename dmn_type_0, typename dmn_type_1, typename dmn_type_2>
 void SHOW::execute(FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f,
                    FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& g)
 {
-#ifdef ALLOW_GNUPLOT
-
   //cout << __FUNCTION__ << endl;
 
   std::vector<double>& x_points = dmn_type_2::get_elements();
@@ -953,17 +1010,20 @@ void SHOW::execute(FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dmn_type_0,
   }
 
   plot_obj.showonscreen();
-
-#endif
 }
+#else
+template<typename scalar_type, typename dmn_type_0, typename dmn_type_1, typename dmn_type_2>
+void SHOW::execute(FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& /*f*/,
+                   FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& /*g*/)
+{}
+#endif
 
+#ifdef ALLOW_GNUPLOT
 template<typename scalar_type, typename dmn_type_0, typename dmn_type_1, typename dmn_type_2>
 void SHOW::execute(FUNC_LIB::function<std::complex<scalar_type>, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f,
                    FUNC_LIB::function<std::complex<scalar_type>, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& g)
 {
-#ifdef ALLOW_GNUPLOT
-
-  cout << __FUNCTION__ << endl;
+  std::cout << __FUNCTION__ << std::endl;
 
   std::vector<double>& x_points = dmn_type_2::get_elements();
 
@@ -1000,17 +1060,20 @@ void SHOW::execute(FUNC_LIB::function<std::complex<scalar_type>, dmn_4<dmn_type_
   }
 
   plot_obj.showonscreen();
-
-#endif
 }
+#else
+template<typename scalar_type, typename dmn_type_0, typename dmn_type_1, typename dmn_type_2>
+void SHOW::execute(FUNC_LIB::function<std::complex<scalar_type>, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& /*f*/,
+                   FUNC_LIB::function<std::complex<scalar_type>, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& /*g*/)
+{}
+#endif
 
+#ifdef ALLOW_GNUPLOT
 template<typename scalar_type, typename dmn_type_0, typename dmn_type_1>
 void SHOW::execute(FUNC_LIB::function<scalar_type, dmn_0<dmn_type_0> >& f,
                    FUNC_LIB::function<scalar_type, dmn_0<dmn_type_1> >& g,
                    bool save_figure)
 {
-#ifdef ALLOW_GNUPLOT
-
   std::vector<double>& x_0 = dmn_type_0::get_elements();
   std::vector<double>& x_1 = dmn_type_1::get_elements();
 
@@ -1038,17 +1101,21 @@ void SHOW::execute(FUNC_LIB::function<scalar_type, dmn_0<dmn_type_0> >& f,
 
   if(save_figure)
     plot_obj.savetops(f.get_name());
-
-#endif
 }
+#else
+template<typename scalar_type, typename dmn_type_0, typename dmn_type_1>
+void SHOW::execute(FUNC_LIB::function<scalar_type, dmn_0<dmn_type_0> >& /*f*/,
+                   FUNC_LIB::function<scalar_type, dmn_0<dmn_type_1> >& /*g*/,
+                   bool /*save_figure*/)
+{}
+#endif
 
+#ifdef ALLOW_GNUPLOT
 template<typename scalar_type, typename dmn_type_0, typename dmn_type_1>
 void SHOW::execute(FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type_0> >& f,
                    FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type_1> >& g,
                    bool save_figure)
 {
-#ifdef ALLOW_GNUPLOT
-
   std::vector<double>& x_0 = dmn_type_0::get_elements();
   std::vector<double>& x_1 = dmn_type_1::get_elements();
 
@@ -1056,19 +1123,19 @@ void SHOW::execute(FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type_
   std::vector<double> f_im(0);
 
   for(int i=0; i<f.size(); i++)
-    {
-      f_re.push_back(real(f(i)));
-      f_im.push_back(imag(f(i)));
-    }
+  {
+    f_re.push_back(real(f(i)));
+    f_im.push_back(imag(f(i)));
+  }
 
   std::vector<double> g_re(0);
   std::vector<double> g_im(0);
 
   for(int i=0; i<g.size(); i++)
-    {
-      g_re.push_back(real(g(i)));
-      g_im.push_back(imag(g(i)));
-    }
+  {
+    g_re.push_back(real(g(i)));
+    g_im.push_back(imag(g(i)));
+  }
 
   Gnuplot plot_obj("lines");
   //Gnuplot plot_obj("points");
@@ -1086,16 +1153,19 @@ void SHOW::execute(FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type_
 
   if(save_figure)
     plot_obj.savetops(f.get_name());
-
-#endif
 }
+#else
+template<typename scalar_type, typename dmn_type_0, typename dmn_type_1>
+void SHOW::execute(FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type_0> >& /*f*/,
+                   FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type_1> >& /*g*/,
+                   bool /*save_figure*/)
+{}
+#endif
 
-
+#ifdef ALLOW_GNUPLOT
 template<typename scalar_type, typename dmn_type>
 void SHOW::contour(FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& f, bool save_figure)
 {
-#ifdef ALLOW_GNUPLOT
-
   std::vector<std::vector<double> >& vecs = dmn_type::get_elements();
 
   std::vector<double> x(0);
@@ -1103,11 +1173,11 @@ void SHOW::contour(FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& f, bool sa
   std::vector<double> z(0);
 
   for(int i=0; i<f.size(); i++)
-    {
-      x.push_back(vecs[i][0]);
-      y.push_back(vecs[i][1]);
-      z.push_back(f(i));
-    }
+  {
+    x.push_back(vecs[i][0]);
+    y.push_back(vecs[i][1]);
+    z.push_back(f(i));
+  }
 
   Gnuplot plot_obj("lines");
 
@@ -1127,15 +1197,17 @@ void SHOW::contour(FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& f, bool sa
 
   if(save_figure)
     plot_obj.savetops(f.get_name());
-
-#endif
 }
+#else
+template<typename scalar_type, typename dmn_type>
+void SHOW::contour(FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& /*f*/, bool /*save_figure*/)
+{}
+#endif
 
+#ifdef ALLOW_GNUPLOT
 template<typename scalar_type, typename dmn_type>
 void SHOW::heatmap(FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& f, bool save_figure)
 {
-#ifdef ALLOW_GNUPLOT
-
   std::vector<std::vector<double> >& vecs = dmn_type::get_elements();
 
   std::vector<double> x(0);
@@ -1143,11 +1215,11 @@ void SHOW::heatmap(FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& f, bool sa
   std::vector<double> z(0);
 
   for(int i=0; i<f.size(); i++)
-    {
-      x.push_back(vecs[i][0]);
-      y.push_back(vecs[i][1]);
-      z.push_back(f(i));
-    }
+  {
+    x.push_back(vecs[i][0]);
+    y.push_back(vecs[i][1]);
+    z.push_back(f(i));
+  }
 
   Gnuplot plot_obj("lines");
 
@@ -1167,9 +1239,12 @@ void SHOW::heatmap(FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& f, bool sa
 
   if(save_figure)
     plot_obj.savetops(f.get_name());
-
-#endif
 }
+#else
+template<typename scalar_type, typename dmn_type>
+void SHOW::heatmap(FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& /*f*/, bool /*save_figure*/)
+{}
+#endif
 
 /*
   template<typename scalar_type, typename dmn_type>
@@ -1213,31 +1288,32 @@ void SHOW::heatmap(FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& f, bool sa
   }
 */
 
-template<typename scalar_type, typename dmn_type>
-void SHOW::heatmap(FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type> >& f, bool save_figure)
-{
 #ifdef ALLOW_GNUPLOT
-
+template<typename scalar_type, typename dmn_type>
+void SHOW::heatmap(FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type> >& f, bool /*save_figure*/)
+{
   FUNC_LIB::function<scalar_type, dmn_0<dmn_type> > f_re("Re["+f.get_name()+"]");
   FUNC_LIB::function<scalar_type, dmn_0<dmn_type> > f_im("Im["+f.get_name()+"]");
 
   for(int i=0; i<f.size(); i++)
-    {
-      f_re(i) = real(f(i));
-      f_im(i) = imag(f(i));
-    }
+  {
+    f_re(i) = real(f(i));
+    f_im(i) = imag(f(i));
+  }
 
   heatmap(f_re);
   heatmap(f_im);
-
-#endif
 }
+#else
+template<typename scalar_type, typename dmn_type>
+void SHOW::heatmap(FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type> >& /*f*/, bool /*save_figure*/)
+{}
+#endif
 
+#ifdef ALLOW_GNUPLOT
 template<typename scalar_type>
 void SHOW::heatmap(std::vector<scalar_type> x, std::vector<scalar_type> y, std::vector<scalar_type> z, std::string name)
 {
-#ifdef ALLOW_GNUPLOT
-
   Gnuplot plot_obj("lines");
 
   plot_obj << "set dgrid3d  100,100,16";
@@ -1253,8 +1329,11 @@ void SHOW::heatmap(std::vector<scalar_type> x, std::vector<scalar_type> y, std::
   plot_obj.replot();
 
   plot_obj.showonscreen();
-
-#endif
 }
+#else
+template<typename scalar_type>
+void SHOW::heatmap(std::vector<scalar_type> /*x*/, std::vector<scalar_type> /*y*/, std::vector<scalar_type> /*z*/, std::string /*name*/)
+{}
+#endif
 
 #endif

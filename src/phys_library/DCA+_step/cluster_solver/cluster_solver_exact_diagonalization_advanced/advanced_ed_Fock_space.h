@@ -286,7 +286,7 @@ namespace DCA
 
         if(find(applied_symmetries.begin(), applied_symmetries.end(), permutation_vector) == applied_symmetries.end())
           {
-            cout << "apply translation symmetry #" << k+1 << endl;
+            std::cout << "apply translation symmetry #" << k+1 << std::endl;
 
             applied_symmetries.push_back(permutation_vector);
 
@@ -337,7 +337,7 @@ namespace DCA
     }
 
     template<typename parameter_type, typename ed_options>
-    void Fock_space<parameter_type, ed_options>::apply_rotation_symmetry(std::string symmetries, std::string ED_method)
+    void Fock_space<parameter_type, ed_options>::apply_rotation_symmetry(std::string /*symmetries*/, std::string ED_method)
     {
       //cout << __FUNCTION__ << endl;
 
@@ -377,7 +377,7 @@ namespace DCA
 
         if (find(applied_symmetries.begin(), applied_symmetries.end(), permutation_vector) == applied_symmetries.end())
           {
-            cout << "apply rotation symmetry #" << l << endl;
+            std::cout << "apply rotation symmetry #" << l << std::endl;
 
             applied_symmetries.push_back(permutation_vector);
 
@@ -446,13 +446,13 @@ namespace DCA
 
                   if(not state_found)
                     {		      
-                      cout << "\n\n\t psi0 \n\n";
+                      std::cout << "\n\n\t psi0 \n\n";
                       psi0   .print();
 
                       //cout << "\n\n\t psi-tmp \n\n";
                       //psi_tmp.print();
 
-		      cout << "\n\n\tstate not found !!!\n\n";
+                      std::cout << "\n\n\tstate not found !!!\n\n";
 
 		      for(int l=0; l<subspace.size(); l++)
 			subspace.get_element(l).print();

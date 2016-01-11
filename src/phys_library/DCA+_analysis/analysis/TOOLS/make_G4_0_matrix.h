@@ -86,8 +86,8 @@ namespace dca {
 		      double wn           = w::get_elements()[w];
 		      double w_nu_plus_wn = w::get_elements()[w+w_nu];
 		      double beta         = parameters.get_beta();
-		      if(fabs( (w_nu*2*M_PI/beta+wn) - w_nu_plus_wn)>1.e-6){
-			cout << (w_nu*2*M_PI/beta+wn) << "\t" <<  w_nu_plus_wn << endl;
+		      if(std::fabs( (w_nu*2*M_PI/beta+wn) - w_nu_plus_wn)>1.e-6){
+            std::cout << (w_nu*2*M_PI/beta+wn) << "\t" <<  w_nu_plus_wn << std::endl;
 			throw std::logic_error(__FUNCTION__);
 		      }
 
@@ -109,7 +109,7 @@ namespace dca {
 		    break;
 		
 		  case PARTICLE_PARTICLE_SUPERCONDUCTING:
-		    assert( fabs(w::get_elements()[w]+w::get_elements()[2*W-1-w]) < 1.e-6);
+		    assert(std::fabs(w::get_elements()[w]+w::get_elements()[2*W-1-w]) < 1.e-6);
 
 		    analysis_ref.G4_0_b_k_w__b_k_w(n1,n2,k,w_vertex,
 						   m1,m2,k,w_vertex) = MOMS.G_k_w(n1, e_UP, m1, e_UP, k, w)*MOMS.G_k_w(n2, e_UP, m2, e_UP, q_minus_k, w_nu+(2*W-1-w));
@@ -191,8 +191,8 @@ namespace dca {
 		      double w_nu_min_wn = w::get_elements()[w_nu+(2*W-1-w)];
 		      double beta        = parameters.get_beta();
 
-		      if(fabs( (w_nu*M_PI/beta-wn) - w_nu_min_wn)>1.e-6)
-			throw std::logic_error(__FUNCTION__);
+		      if(std::fabs( (w_nu*M_PI/beta-wn) - w_nu_min_wn)>1.e-6)
+            throw std::logic_error(__FUNCTION__);
 
 
 		      P0(n1,n2,k,w_vertex,

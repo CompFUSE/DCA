@@ -355,7 +355,7 @@ namespace DCA
       for(int nu_ind_i=0; nu_ind_i<2*BANDS; nu_ind_i++)
         for(int nu_ind_j=0; nu_ind_j<2*BANDS; nu_ind_j++)
           for(int r=0; r<FULL_CLUSTER_SIZE; r++)
-            fabs(H_interaction(nu_ind_i, nu_ind_j, r)) > 1.e-3 ? CORRELATED_ORBITALS++ : CORRELATED_ORBITALS ;
+            std::fabs(H_interaction(nu_ind_i, nu_ind_j, r)) > 1.e-3 ? CORRELATED_ORBITALS++ : CORRELATED_ORBITALS ;
 
       CORRELATED_ORBITALS = CORRELATED_ORBITALS/2.;
 
@@ -375,7 +375,7 @@ namespace DCA
             {
               for(int r=0; r<FULL_CLUSTER_SIZE; r++)
                 {
-                  double U_i_j_r = fabs(H_interaction(nu_ind_i, nu_ind_j, r));
+                  double U_i_j_r = std::fabs(H_interaction(nu_ind_i, nu_ind_j, r));
 
                   double coshgamma=1.+U_i_j_r*BETA*FULL_CLUSTER_SIZE*CORRELATED_ORBITALS/(2.*K_CT_AUX);
 
@@ -408,7 +408,7 @@ namespace DCA
                             exp_V_function(nu_ind_i, nu_ind_j, HS_spin_ind, HS_field_ind, r)
                               = std::exp(-gamma_function(nu_ind_i, nu_ind_j, r)*HS_spin*HS_field);
 
-                            //                    if(fabs(exp_V_function(nu_ind_i, nu_ind_j, HS_spin_ind, HS_field_ind, r)-1.) > 1.e-16)
+                            //                    if(std::fabs(exp_V_function(nu_ind_i, nu_ind_j, HS_spin_ind, HS_field_ind, r)-1.) > 1.e-16)
                             //                      one__div__exp_V_function_min_one_function(nu_ind_i, nu_ind_j, HS_spin_ind, HS_field_ind, r)
                             //                        = 1./(exp_V_function(nu_ind_i, nu_ind_j, HS_spin_ind, HS_field_ind, r)-1.);
                           }
@@ -424,7 +424,7 @@ namespace DCA
                               exp_V_function(nu_ind_i, nu_ind_j, HS_spin_ind, HS_field_ind, r)
                                 = std::exp(-gamma_function(nu_ind_i, nu_ind_j, r)*HS_spin*HS_field);
 
-                              //                            if(fabs(exp_V_function(nu_ind_i, nu_ind_j, HS_spin_ind, HS_field_ind, r)-1.) > 1.e-16)
+                              //                            if(std::fabs(exp_V_function(nu_ind_i, nu_ind_j, HS_spin_ind, HS_field_ind, r)-1.) > 1.e-16)
                               //                              one__div__exp_V_function_min_one_function(nu_ind_i, nu_ind_j, HS_spin_ind, HS_field_ind, r)
                               //                                = 1./(exp_V_function(nu_ind_i, nu_ind_j, HS_spin_ind, 1, r)-1.);
                             }

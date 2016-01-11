@@ -10,7 +10,7 @@
 #define Sn_3D_H_
 
 #include <cmath>
-#include "group_action.h"
+#include "../group_action.h"
 
 template<int axis, int n, int m>
 class Sn_3D : public group_action<3>

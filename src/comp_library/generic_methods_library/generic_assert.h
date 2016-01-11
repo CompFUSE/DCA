@@ -3,7 +3,6 @@
 #ifndef GENERIC_ASSERT_H
 #define GENERIC_ASSERT_H
 
-using namespace std; 
 using namespace TL;  
 
 /*!

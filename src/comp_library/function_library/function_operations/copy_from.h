@@ -3,6 +3,8 @@
 #ifndef COPY_SCALARTYPES_IN_FUNCTIONS_H
 #define COPY_SCALARTYPES_IN_FUNCTIONS_H
 
+#include <fftw3.h>
+
 /*! \class  
  *  \author Peter Staar
  *  \date 2011

@@ -83,14 +83,14 @@ namespace DCA
 
     {
       if(concurrency.id()==0)
-	cout << "\n\n start tp-interpolation of Gamma \n\n";
+	std::cout << "\n\n start tp-interpolation of Gamma \n\n";
       
       interpolation_obj.execute(f_source, f_target);
     }
     
     {
       if(concurrency.id()==0)
-	cout << "\n\n start tp-deconvolution of Gamma \n\n";
+	std::cout << "\n\n start tp-deconvolution of Gamma \n\n";
 
       for(int i=0; i<f_target.size(); i++)
 	f_interp(i) = f_target(i);

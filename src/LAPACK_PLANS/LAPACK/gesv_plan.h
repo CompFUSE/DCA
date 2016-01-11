@@ -52,7 +52,7 @@ solve_plan<real_scalartype>::solve_plan(int n, int nrhs):
 }
 
 template<typename real_scalartype>
-solve_plan<real_scalartype>::solve_plan(int n, int lda, int nrhs):
+solve_plan<real_scalartype>::solve_plan(int n, int lda, int /*nrhs*/):
   N(n),
   LDA(lda)
 {

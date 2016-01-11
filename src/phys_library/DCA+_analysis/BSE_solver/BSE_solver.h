@@ -57,6 +57,8 @@ namespace DCA
     void calculate_susceptibilities_1();
     void calculate_susceptibilities_2();
 
+    FUNC_LIB::function<std::complex<scalartype>, lambda_dmn_type>& get_leading_eigenvalues() { return BSE_lattice_solver_obj.get_leading_eigenvalues(); };
+
   private:
 
     void initialize_wave_functions();
@@ -221,7 +223,7 @@ namespace DCA
     IO::FORMAT  FORMAT    = parameters.get_output_format();
     std::string file_name = parameters.get_directory() + parameters.get_susceptibilities_file_name();
 
-    cout << "\n\n\t\t start writing " << file_name << "\n\n";
+    std::cout << "\n\n\t\t start writing " << file_name << "\n\n";
 
     switch(FORMAT)
       {
@@ -386,7 +388,7 @@ namespace DCA
   void BSE_solver<parameters_type, MOMS_type>::calculate_susceptibilities_1()
   {
     if(concurrency.id()==concurrency.last())
-      cout << "\t" << __FUNCTION__ << endl;
+      std::cout << "\t" << __FUNCTION__ << std::endl;
 
     apply_symmetries();
 
@@ -396,7 +398,7 @@ namespace DCA
       {
         compute_P_q_cluster();
 
-        cout << std::fixed << std::setprecision(6)
+        std::cout << std::fixed << std::setprecision(6)
              << "\n\n\t T = " << 1./parameters.get_beta() << " P_q_cluster = [ "
              << "(" << real(P_q_cluster(0)) << ", " << imag(P_q_cluster(0)) << "), "
              << "(" << real(P_q_cluster(1)) << ", " << imag(P_q_cluster(1)) << "), "
@@ -422,7 +424,7 @@ namespace DCA
           {
             compute_P_q_lattice();
 
-            cout << std::fixed << std::setprecision(6)
+            std::cout << std::fixed << std::setprecision(6)
                  << "\n\n\t T = " << 1./parameters.get_beta() << " P_q_lattice = [ "
                  << "(" << real(P_q_lattice(0)) << ", " << imag(P_q_lattice(0)) << "), "
                  << "(" << real(P_q_lattice(1)) << ", " << imag(P_q_lattice(1)) << "), "
@@ -436,7 +438,7 @@ namespace DCA
   void BSE_solver<parameters_type, MOMS_type>::calculate_susceptibilities_2()
   {
     if(concurrency.id()==concurrency.last())
-      cout << "\t" << __FUNCTION__ << endl;
+      std::cout << "\t" << __FUNCTION__ << std::endl;
 
     if(true)
       {
@@ -474,7 +476,7 @@ namespace DCA
     profiler_t prof(__FUNCTION__, __FILE__, __LINE__);
 
     if(concurrency.id()==concurrency.last())
-      cout << "\t" << __FUNCTION__ << endl << endl;
+      std::cout << "\t" << __FUNCTION__ << std::endl << std::endl;
 
     symmetrize::execute(MOMS.Sigma, MOMS.H_symmetry);
 
@@ -488,7 +490,7 @@ namespace DCA
     profiler_t prof(__FUNCTION__, __FILE__, __LINE__);
 
     if(concurrency.id()==concurrency.last())
-      cout << "\t" << __FUNCTION__ << endl << endl;
+      std::cout << "\t" << __FUNCTION__ << std::endl << std::endl;
 
     dca::make_G4_matrix  <parameters_type, MOMS_type>::execute(MOMS.G4_k_k_w_w, G4);
 
@@ -524,7 +526,7 @@ namespace DCA
     profiler_t prof(__FUNCTION__, __FILE__, __LINE__);
 
     if(concurrency.id()==concurrency.last())
-      cout << "\t" << __FUNCTION__ << endl << endl;
+      std::cout << "\t" << __FUNCTION__ << std::endl << std::endl;
 
     scalartype renorm = 1./(parameters.get_beta()*k_DCA::dmn_size());
 
@@ -553,7 +555,7 @@ namespace DCA
                                -invert_G4 .inverted_matrix[i+j*N]);
 
     //     if(concurrency.id()==concurrency.last())
-    //       cout << "symmetrize Gamma_cluster" << endl;
+    //       std::cout << "symmetrize Gamma_cluster" << std::endl;
 
     //     symmetrize::execute(Gamma_cluster, MOMS.H_symmetry, parameters.get_q_vector(), false);
     //     diagrammatic_symmetries_obj.execute(Gamma_cluster);
@@ -567,14 +569,14 @@ namespace DCA
     profiler_t prof(__FUNCTION__, __FILE__, __LINE__);
 
     if(concurrency.id()==concurrency.last())
-      cout << "\t" << __FUNCTION__ << endl << endl;
+      std::cout << "\t" << __FUNCTION__ << std::endl << std::endl;
 
     //     if(false)
     //       MOMS.coarsegrain_inversion_obj.execute(Gamma_cluster, Gamma_lattice);
     //     else
     {
       if(concurrency.id()==concurrency.last())
-        cout << "\n\n \t making a new coarsegrain_inversion object ... \n\n";
+        std::cout << "\n\n \t making a new coarsegrain_inversion object ... \n\n";
 
       coarsegrain_inversion<parameters_type, k_DCA, k_HOST_VERTEX, QUADRATURE_INTEGRATION> coarsegrain_inversion_obj(parameters);
       //coarsegrain_inversion_obj.execute(Gamma_cluster, Gamma_lattice);
@@ -616,7 +618,7 @@ namespace DCA
     profiler_t prof(__FUNCTION__, __FILE__, __LINE__);
 
     if(concurrency.id()==concurrency.last())
-      cout << "\t" << __FUNCTION__ << endl << endl;
+      std::cout << "\t" << __FUNCTION__ << std::endl << std::endl;
 
     {
       profiler_t prof("compute_chi_0 CG-inv Sigma", __FILE__, __LINE__);
@@ -646,7 +648,7 @@ namespace DCA
   void BSE_solver<parameters_type, MOMS_type>::compute_chi_0_2()
   {
     if(concurrency.id()==concurrency.last())
-      cout << "\t" << __FUNCTION__ << endl << endl;
+      std::cout << "\t" << __FUNCTION__ << std::endl << std::endl;
 
     profiler_t prof(__FUNCTION__, __FILE__, __LINE__);
 
@@ -721,7 +723,7 @@ namespace DCA
       {
         int start = clock();
         diagonolize_Gamma_times_chi_0_symmetric_1();
-        cout << "\n\n time to diagonolize : " << scalartype(clock()-start)/scalartype(CLOCKS_PER_SEC) << "\n\n";
+        std::cout << "\n\n time to diagonolize : " << scalartype(clock()-start)/scalartype(CLOCKS_PER_SEC) << "\n\n";
 
         find_harmonic_expansion();
         write_on_shell();
@@ -730,7 +732,7 @@ namespace DCA
       {
         int start = clock();
         diagonolize_Gamma_times_chi_0_general();
-        cout << "\n\n time to diagonolize : " << scalartype(clock()-start)/scalartype(CLOCKS_PER_SEC) << "\n\n";
+        std::cout << "\n\n time to diagonolize : " << scalartype(clock()-start)/scalartype(CLOCKS_PER_SEC) << "\n\n";
 
         find_harmonic_expansion();
         write_on_shell();
@@ -743,7 +745,7 @@ namespace DCA
   void BSE_solver<parameters_type, MOMS_type>::diagonolize_Gamma_times_chi_0_symmetric_0()
   {
     profiler_t prof(__FUNCTION__, __FILE__, __LINE__);
-    cout << "\t" << __FUNCTION__ << endl << endl;
+    std::cout << "\t" << __FUNCTION__ << std::endl << std::endl;
 
     int N = lattice_eigenvector_dmn.get_size();
 
@@ -770,7 +772,7 @@ namespace DCA
 
       number_eigenvals = eigensystem_pln.execute_plan(0.1, 2.);
 
-      cout << "\n\n time to diagonolize : "
+      std::cout << "\n\n time to diagonolize : "
            << scalartype(clock()-start)/scalartype(CLOCKS_PER_SEC)
            << "\n\n number of eigenvalues in [0.1, 2] : "
            << number_eigenvals << "\n\n";
@@ -781,7 +783,7 @@ namespace DCA
 
     stable_sort(eigenvals.begin(), eigenvals.end(), &susceptibility_less_pairs);
 
-    cout << "\twrite down leading eigenvalues ..." << endl << endl;
+    std::cout << "\twrite down leading eigenvalues ..." << std::endl << std::endl;
     { // write down leading eigenvalues ...
       number_eigenvals = N_LAMBDAS<number_eigenvals? N_LAMBDAS : number_eigenvals;
 
@@ -802,7 +804,7 @@ namespace DCA
   void BSE_solver<parameters_type, MOMS_type>::diagonolize_Gamma_times_chi_0_symmetric_1()
   {
     profiler_t prof(__FUNCTION__, __FILE__, __LINE__);
-    cout << "\n\n\t" << __FUNCTION__ << endl << endl;
+    std::cout << "\n\n\t" << __FUNCTION__ << std::endl << std::endl;
 
     int N = lattice_eigenvector_dmn.get_size();
 
@@ -827,7 +829,7 @@ namespace DCA
         }
       }
 
-      cout << "\n\n generate symmetric matrix : "
+      std::cout << "\n\n generate symmetric matrix : "
            << scalartype(clock()-start)/scalartype(CLOCKS_PER_SEC)
            << "\n\n";
     }
@@ -840,7 +842,7 @@ namespace DCA
 
       number_eigenvals = LIN_ALG::GEEV<LIN_ALG::CPU>::execute('V', 'U', 0.05, 2., A, L, VR);
 
-      cout << "\n\n time to diagonolize : "
+      std::cout << "\n\n time to diagonolize : "
            << scalartype(clock()-start)/scalartype(CLOCKS_PER_SEC)
            << "\n\n number of eigenvalues in [0.05, 2] : "
            << number_eigenvals << "\n\n";
@@ -851,7 +853,7 @@ namespace DCA
 
     stable_sort(eigenvals.begin(), eigenvals.end(), &susceptibility_less_pairs);
 
-    cout << "\twrite down leading eigenvalues ..." << endl << endl;
+    std::cout << "\twrite down leading eigenvalues ..." << std::endl << std::endl;
     { // write down leading eigenvalues ...
       number_eigenvals = N_LAMBDAS<number_eigenvals? N_LAMBDAS : number_eigenvals;
 
@@ -873,7 +875,7 @@ namespace DCA
   {
     profiler_t prof(__FUNCTION__, __FILE__, __LINE__);
 
-    cout << "\t" << __FUNCTION__ << endl << endl;
+    std::cout << "\t" << __FUNCTION__ << std::endl << std::endl;
 
     int N = lattice_eigenvector_dmn.get_size();
 
@@ -1005,7 +1007,7 @@ namespace DCA
     profiler_t prof(__FUNCTION__, __FILE__, __LINE__);
 
     int size_value = 6;
-    cout.precision(size_value);
+    std::cout.precision(size_value);
 
     int size_begin = 0;
     size_value    += (2+4);
@@ -1016,34 +1018,34 @@ namespace DCA
       size_begin = ss.str().size();
     }
 
-    cout << string(size_begin, ' ');
+    std::cout << string(size_begin, ' ');
     for(int H_ind=0; H_ind<N_HARMONICS; H_ind++){
       std::string tmp = wave_functions_names(H_ind);
       tmp.resize(size_value, ' ');
-      cout << "    " << tmp;
+      std::cout << "    " << tmp;
     }
-    cout << endl;
+    std::cout << std::endl;
 
     for(int i=0; i<N_LAMBDAS; i++)
       {
         std::complex<scalartype> lambda = leading_eigenvalues(i);
 
 
-//           cout << "    ---> (leading) j = " << i
+//           std::cout << "    ---> (leading) j = " << i
 //           << "    sval = "             << sqrt(square(1.0 - real(lambda)) + square(imag(lambda)))
-//           << "    eigenval = "         << real(lambda) << " ; " << fabs(imag(lambda))
+//           << "    eigenval = "         << real(lambda) << " ; " << std::fabs(imag(lambda))
 //           << "    |    ";
 
-        cout << "    ---> lambda_" << i << " = "
-             << real(lambda)                    << " ; " << fabs(imag(lambda))              << "    |    "
-             << abs(leading_phi_t_chi_0_phi(i)) << " , " << abs(leading_phi_t_Gamma_phi(i)) << "    |    ";
+        std::cout << "    ---> lambda_" << i << " = "
+             << real(lambda)                    << " ; " << std::fabs(imag(lambda))              << "    |    "
+             << std::abs(leading_phi_t_chi_0_phi(i)) << " , " << std::abs(leading_phi_t_Gamma_phi(i)) << "    |    ";
 
         for(int H_ind=0; H_ind<N_HARMONICS; H_ind++)
-          cout << "    " << abs(leading_symmetries(i, H_ind));
+          std::cout << "    " << std::abs(leading_symmetries(i, H_ind));
 
-        cout << "\n";
+        std::cout << "\n";
       }
-    cout << "\n\n";
+    std::cout << "\n\n";
   }
 */
 
@@ -1051,7 +1053,7 @@ namespace DCA
   template<class parameters_type, class MOMS_type>
   void BSE_solver<parameters_type, MOMS_type>::compute_chi(eigensystem_plan<std::complex<scalartype>, GENERAL>& eigensystem_pln)
   {
-    cout << __FUNCTION__ << endl;
+    std::cout << __FUNCTION__ << std::endl;
 
     // eqn 20-21 in PRB 64 195130
     // \chi(Q,T) = \frac{1}{(\beta*N_c)^2} \sum_{K1,K2} \chi[Q,K1,K2]
@@ -1072,7 +1074,7 @@ namespace DCA
     //       gemm_pln.execute_plan();
     //     }
 
-    cout << "\t compute denominator \n";
+    std::cout << "\t compute denominator \n";
 
     //eigensystem_plan<std::complex<scalartype>, GENERAL> eigensystem_pln(N,'V','V');
     {
@@ -1100,7 +1102,7 @@ namespace DCA
         gemm_pln.execute_plan();
       }
 
-      cout << "\t compute chi_k_k' \n";
+      std::cout << "\t compute chi_k_k' \n";
 
       {
         gemm_plan<std::complex<scalartype> > gemm_pln(N);
@@ -1126,7 +1128,7 @@ namespace DCA
   {
     profiler_t prof(__FUNCTION__, __FILE__, __LINE__);
 
-    //cout << __FUNCTION__ << endl;
+    //std::cout << __FUNCTION__ << std::endl;
     {
       //int start = clock();
 
@@ -1182,7 +1184,7 @@ namespace DCA
         }
       }
 
-      //       cout << "\n\n time to compute_P_q_cluster : "
+      //       std::cout << "\n\n time to compute_P_q_cluster : "
       //           << scalartype(clock()-start)/scalartype(CLOCKS_PER_SEC) << "\n\n";
     }
   }
@@ -1197,7 +1199,7 @@ namespace DCA
   {
     profiler_t prof(__FUNCTION__, __FILE__, __LINE__);
 
-    cout << __FUNCTION__ << endl;
+    std::cout << __FUNCTION__ << std::endl;
 
     int N = lattice_eigenvector_dmn.get_size();
 
@@ -1216,7 +1218,7 @@ namespace DCA
 
         gemm_pln.execute_plan();
 
-        cout << "\n\n time to GEMM : "
+        std::cout << "\n\n time to GEMM : "
              << scalartype(clock()-start)/scalartype(CLOCKS_PER_SEC) << "\n\n";
       }
 
@@ -1237,7 +1239,7 @@ namespace DCA
         invert_pln.execute_plan();
         memcpy(&one_minus_Gamma_times_chi_0_inverse(0), invert_pln.inverted_matrix, sizeof(std::complex<scalartype>)*N*N);
 
-        cout << "\n\n time to invert : "
+        std::cout << "\n\n time to invert : "
              << scalartype(clock()-start)/scalartype(CLOCKS_PER_SEC) << "\n\n";
       }
 
@@ -1298,7 +1300,7 @@ namespace DCA
                       for(int n1=0; n1<b::dmn_size(); n1++)
                         P_q_lattice(H_ind) += harmonics(K1, H_ind) * chi(n1,m1,K1,w1, n2,m2,K2,w2) * harmonics(K2, H_ind);
 
-      cout << "\n\n time to compute_P_q : "
+      std::cout << "\n\n time to compute_P_q : "
            << scalartype(clock()-start)/scalartype(CLOCKS_PER_SEC) << "\n\n";
     }
   }

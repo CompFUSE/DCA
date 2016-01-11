@@ -129,7 +129,7 @@ void  model_parameters<tight_binding_model<lattice_type, interaction_type> >::re
     }
   catch(const std::exception& r_e) 
     { 
-      cout << "\n\t 2D-Hubbard-model parameters defined !!\n\n";
+      std::cout << "\n\t 2D-Hubbard-model parameters defined !!\n\n";
       throw std::logic_error(__PRETTY_FUNCTION__);
     }
 }

@@ -105,7 +105,7 @@ int qr_plan<double>::execute_plan()
 }
 
 template<typename scalartype>
-void qr_plan<scalartype>::compute_Q_and_R(scalartype* Q, scalartype* R)
+void qr_plan<scalartype>::compute_Q_and_R(scalartype* /*Q*/, scalartype* /*R*/)
 {
   throw std::logic_error(__FUNCTION__);
 }

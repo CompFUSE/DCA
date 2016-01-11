@@ -123,7 +123,7 @@ void  model_parameters<tight_binding_model<material_lattice<name, dca_point_grou
     }
   catch(const std::exception& r_e) 
     { 
-      cout << "\n\t material-model parameters defined !!\n\n";
+      std::cout << "\n\t material-model parameters defined !!\n\n";
       throw std::logic_error(__PRETTY_FUNCTION__);
     }
 
@@ -137,7 +137,7 @@ void  model_parameters<tight_binding_model<material_lattice<name, dca_point_grou
     ss << "\t\tU_ij-filename   : " << U_ij_file_name << "\n\n";
     //ss << "\t\tdouble counting : " << double_counting_correction << "\n\n";
     
-    cout << ss.str();
+    std::cout << ss.str();
   }
 }
 

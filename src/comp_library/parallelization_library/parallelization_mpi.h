@@ -224,12 +224,12 @@ namespace COMP_LIB
 
     if(!( (bounds.first==-1 && bounds.second==-1) || (bounds.first>=0 && bounds.second<=dmn.get_size() && bounds.first<bounds.second) ) )
       {
-        cout << "error in " << __PRETTY_FUNCTION__ << "\n\n";
-        cout << "CPU-id :: " << CPU_id << "\n";
-        cout << "np     :: " << np     << "\n";
+        std::cout << "error in " << __PRETTY_FUNCTION__ << "\n\n";
+        std::cout << "CPU-id :: " << CPU_id << "\n";
+        std::cout << "np     :: " << np     << "\n";
 
-        cout << "bounds.first  :: " << bounds.first  << "\n";
-        cout << "bounds.second :: " << bounds.second << "\n";
+        std::cout << "bounds.first  :: " << bounds.first  << "\n";
+        std::cout << "bounds.second :: " << bounds.second << "\n";
 
         throw std::logic_error(__FUNCTION__);
       }

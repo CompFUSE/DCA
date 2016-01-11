@@ -137,7 +137,7 @@ namespace MATH_ALGORITHMS
       tet_l.vec_1 = km;
       
       tet_l.normal = this->normal;      
-      tet_l.volume = abs(km[0]-k0[0]);
+      tet_l.volume = std::abs(km[0]-k0[0]);
     }
 
     static tetrahedron<1> tet_r;
@@ -148,7 +148,7 @@ namespace MATH_ALGORITHMS
       tet_r.vec_0 = km;
       tet_r.vec_1 = k1;
       
-      tet_r.volume = abs(k1[0]-km[0]);
+      tet_r.volume = std::abs(k1[0]-km[0]);
       tet_r.normal = normal;
     }
 

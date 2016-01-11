@@ -139,7 +139,7 @@ namespace DCA
       }
     }
 
-    for(int w_ind=w::dmn_size()/2; w_ind<w::dmn_size(); w_ind++){
+    for(int w_ind=0; w_ind<w::dmn_size(); w_ind++){
       for(int k_ind=0; k_ind<target_k_dmn_t::dmn_size(); k_ind++){
         for(int j=0; j<b::dmn_size(); j++){
           for(int i=0; i<b::dmn_size(); i++){
@@ -161,10 +161,28 @@ namespace DCA
 
     const double factor = 10.;
     
-    for(int w_ind=w::dmn_size()/2; w_ind<w::dmn_size(); w_ind++){
+    for(int w_ind=0; w_ind<w::dmn_size(); w_ind++){
       for(int j=0; j<b::dmn_size(); j++){
 	for(int i=0; i<b::dmn_size(); i++){
-	  shift(i,j,w_ind) *= factor;
+
+          if ((w_ind < w::dmn_size()/2 && real(shift(i, j, w_ind)) < 0.) || (w_ind >= w::dmn_size()/2 && real(shift(i, j, w_ind)) > 0.))
+            {
+              shift(i, j, w_ind).real(factor * real(shift(i, j, w_ind)));
+            }
+          else
+            {
+              shift(i, j, w_ind).real(0.);
+            }
+
+          if ((w_ind < w::dmn_size()/2 && imag(shift(i, j, w_ind)) < 0.) || (w_ind >= w::dmn_size()/2 && imag(shift(i, j, w_ind)) > 0.))
+            {
+              shift(i, j, w_ind).imag(factor * imag(shift(i, j, w_ind)));
+            }
+          else
+            {
+              shift(i, j, w_ind).imag(0.);
+            }
+
 	}
       }
     }

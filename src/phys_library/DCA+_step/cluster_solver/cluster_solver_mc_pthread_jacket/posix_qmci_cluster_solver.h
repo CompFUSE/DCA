@@ -110,7 +110,7 @@ namespace DCA
     accumulators_queue()
   {
     if(nr_walkers<1 || nr_accumulators<1){
-      cout <<"\n\n\n"
+      std::cout <<"\n\n\n"
            << "\t nr_walkers      --> " << nr_walkers
            << "\t nr_accumulators --> " << nr_accumulators
            <<"\n\n\n"
@@ -149,19 +149,19 @@ namespace DCA
                                concurrency.number_of_processors()*step,
                                rng_seed[i]);
 
-    //     cout<<scientific;
-    //     cout.precision(6);
+    //     std::cout<<scientific;
+    //     std::cout.precision(6);
 
     //     for(int i=0; i<nr_walkers; ++i)
-    //       cout << "\t" << rng_seed[i];
-    //     cout << "\n\n";
+    //       std::cout << "\t" << rng_seed[i];
+    //     std::cout << "\n\n";
 
     //     for(int j=0; j<20; j++){
     //       for(int i=0; i<nr_walkers; ++i)
-    //        cout << "\t" << rng_vector[i].get_random_number();
-    //       cout << "\n";
+    //        std::cout << "\t" << rng_vector[i].get_random_number();
+    //       std::cout << "\n";
     //     }
-    //     cout << "\n\n";
+    //     std::cout << "\n\n";
   }
 
   template<class qmci_integrator_type>
@@ -188,8 +188,8 @@ namespace DCA
 
     concurrency << "\n\t\t threaded QMC integration starts\n\n";
 
-    vector<pthread_t>                   threads(nr_accumulators + nr_walkers);
-    vector<std::pair<this_type*, int> > data   (nr_accumulators + nr_walkers);
+    std::vector<pthread_t>                   threads(nr_accumulators + nr_walkers);
+    std::vector<std::pair<this_type*, int> > data   (nr_accumulators + nr_walkers);
 
     {
       print_thread_distribution();
@@ -246,17 +246,17 @@ namespace DCA
         for(int i=0; i<2*min_nr_walkers_nr_accumulators; ++i)
           {
             if(i%2==0)
-              cout << "\t pthread-id : " << i << "  -->   (walker)\n";
+              std::cout << "\t pthread-id : " << i << "  -->   (walker)\n";
             else
-              cout << "\t pthread-id : " << i << "  -->   (accumulator)\n";
+              std::cout << "\t pthread-id : " << i << "  -->   (accumulator)\n";
           }
 
         for(int i=2*min_nr_walkers_nr_accumulators; i<nr_walkers+nr_accumulators; ++i)
           {
             if(min_nr_walkers_nr_accumulators != nr_walkers)
-              cout << "\t pthread-id : " << i << "  -->   (walker)\n";
+              std::cout << "\t pthread-id : " << i << "  -->   (walker)\n";
             else
-              cout << "\t pthread-id : " << i << "  -->   (accumulator)\n";
+              std::cout << "\t pthread-id : " << i << "  -->   (accumulator)\n";
           }
       }
   }
@@ -357,7 +357,7 @@ namespace DCA
                 }
 
               for(int i=0; i<parameters.get_additional_steps(); ++i){
-                //cout << "\twalker " << id << " is doing some additional steps !!\n";
+                //std::cout << "\twalker " << id << " is doing some additional steps !!\n";
                 profiler_type profiler("additional steps", "posix-MC-walker", __LINE__, id);
                 walker.do_step();
               }

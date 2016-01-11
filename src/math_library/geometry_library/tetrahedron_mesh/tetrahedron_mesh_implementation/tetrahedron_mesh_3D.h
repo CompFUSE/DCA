@@ -57,7 +57,7 @@ void tetrahedron_mesh<k_cluster<representation , cluster<parameters > > >::make_
 
 	  double det_A = slv_pln.matrix[0]*slv_pln.matrix[4]*slv_pln.matrix[8];
 
-	  if(fabs(det_A)>1.e-6)
+	  if(std::fabs(det_A)>1.e-6)
 	    {
 	      simplex<DIMENSION> s;
 	      s.k_vec.resize(3,0);

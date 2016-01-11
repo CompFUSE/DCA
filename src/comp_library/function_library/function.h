@@ -4,11 +4,11 @@
 #define FUNCTION_H
 
 #include "scalar_cast_methods.h"
-#include "set_to_zero.h"
-#include "copy_from.h"
+#include "function_operations/set_to_zero.h"
+#include "function_operations/copy_from.h"
 #include "print_type.h"
-#include "function_operators_collection.h"
-#include "subind_2_linind_collection.h"
+#include "function_operations/function_operators_collection.h"
+#include "function_operations/subind_2_linind_collection.h"
 
 
 namespace FUNC_LIB
@@ -71,7 +71,7 @@ namespace FUNC_LIB
 
         int  subind_2_linind(int i);
 
-#include "subind_2_linind.h"
+#include "function_operations/subind_2_linind.h"
 /**@}*/
 
 /**
@@ -81,7 +81,7 @@ namespace FUNC_LIB
         scalartype& operator()(int i);
         scalartype& operator()(int* subind);
 
-#include "function_operators.h"
+#include "function_operations/function_operators.h"
 /**@}*/
 
         function<scalartype, domain>& operator =(function<scalartype, domain>& f_other);
@@ -961,10 +961,10 @@ std::string std::string_c_imag = line.substr(c_value_comma+1, c_value_index_last
 std::complex<double> c(atof(&std::string_c_real[0]), atof(&std::string_c_imag[0]));
 //std::cout << std::endl << "\t values : "  << std::string_c_real << "\t"  << std::string_c_imag << "--> \t" << c << std::endl;;
 
-if(fabs(real(c)) < 1.e-12)
+if(std::fabs(real(c)) < 1.e-12)
 real(c) = 0;
 
-if(fabs(imag(c)) < 1.e-12)
+if(std::fabs(imag(c)) < 1.e-12)
 imag(c) = 0;
 
 int linind;

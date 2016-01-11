@@ -4,27 +4,27 @@
 #define LIN_ALG_VECTORS_H
 
 namespace LIN_ALG {
-    
+
   template<typename scalartype, device_type device_name>
   class vector
   {
   public:
-	
+
     typedef vector<scalartype, device_name> this_type;
 
     typedef typename MATRIX_SCALARTYPE<scalartype, device_name>::new_scalartype vector_scalartype;
-	
+
   public:
-	
+
     vector();
     vector(std::string name);
-	
+
     vector(                  int currrent_size);
     vector(std::string name, int currrent_size);
-	
+
     vector(                  int currrent_size, int global_size);
     vector(std::string name, int currrent_size, int global_size);
-    
+
     template<typename other_scalartype, device_type other_device_name>
     vector(vector<other_scalartype, other_device_name>& other_vector);
 
@@ -41,7 +41,7 @@ namespace LIN_ALG {
 
     void erase    (int i);
     void push_back(scalartype val);
-	
+
     void set(std::vector<scalartype>& other_vector);
     void set(std::vector<scalartype>& other_vector, copy_concurrency_type copy_t);
 
@@ -69,7 +69,7 @@ namespace LIN_ALG {
     void print();
 
   private:
-	
+
     std::string        name;
 
     int                thread_id;
@@ -77,7 +77,7 @@ namespace LIN_ALG {
 
     int                current_size;
     int                global_size;
-	
+
     vector_scalartype* data;
   };
 
@@ -144,7 +144,7 @@ namespace LIN_ALG {
   {
     assert(c_s>-1 && g_s>-1);
     assert(c_s<=g_s);
-	
+
     MEMORY_MANAGEMENT<device_name>::allocate(data, global_size);
     MEMORY_MANAGEMENT<device_name>::set_to_zero(data, global_size);
   }
@@ -160,14 +160,14 @@ namespace LIN_ALG {
   {
     assert(c_s>-1 && g_s>-1);
     assert(c_s<=g_s);
-	
+
     MEMORY_MANAGEMENT<device_name>::allocate(data, global_size);
     MEMORY_MANAGEMENT<device_name>::set_to_zero(data, global_size);
   }
 
   template<typename scalartype, device_type device_name>
   template<typename other_scalartype, device_type other_device_name>
-  vector<scalartype, device_name>::vector(vector<other_scalartype, other_device_name>& other_vector):	
+  vector<scalartype, device_name>::vector(vector<other_scalartype, other_device_name>& other_vector):
     name(other_vector.get_name()),
 
     thread_id(-1),
@@ -221,7 +221,7 @@ namespace LIN_ALG {
     thread_id = t_id;
     stream_id = s_id;
   }
-    
+
   template<typename scalartype, device_type device_name>
   void vector<scalartype, device_name>::set(std::vector<scalartype>& other_vector)
   {
@@ -240,22 +240,22 @@ namespace LIN_ALG {
     reserve(other_vector.size());
 
     switch(copy_t)
-      {
-      case SYNCHRONOUS:
-	COPY_FROM<LIN_ALG::CPU, device_name>::execute(&other_vector[0], this->get_ptr(), current_size);
-	break;
+    {
+    case SYNCHRONOUS:
+      COPY_FROM<LIN_ALG::CPU, device_name>::execute(&other_vector[0], this->get_ptr(), current_size);
+      break;
 
-      case ASYNCHRONOUS:
-	CUBLAS_THREAD_MANAGER<device_t>::synchronize_streams(thread_id, stream_id);
+    case ASYNCHRONOUS:
+      CUBLAS_THREAD_MANAGER<device_t>::synchronize_streams(thread_id, stream_id);
 
-	COPY_FROM<LIN_ALG::CPU, device_name>::execute(&other_vector[0], this->get_ptr(), current_size, thread_id, stream_id);
-	
-	CUBLAS_THREAD_MANAGER<device_t>::synchronize_streams(thread_id, stream_id);
-	break;
+      COPY_FROM<LIN_ALG::CPU, device_name>::execute(&other_vector[0], this->get_ptr(), current_size, thread_id, stream_id);
 
-      default:
-	throw std::logic_error(__FUNCTION__);
-      }
+      CUBLAS_THREAD_MANAGER<device_t>::synchronize_streams(thread_id, stream_id);
+      break;
+
+    default:
+      throw std::logic_error(__FUNCTION__);
+    }
   }
 
   template<typename scalartype, device_type device_name>
@@ -276,24 +276,24 @@ namespace LIN_ALG {
     assert(thread_id>-1 and stream_id>-1);
 
     reserve(other_vector.size());
-    
+
     switch(copy_t)
-      {
-      case SYNCHRONOUS:
-	COPY_FROM<other_device_name, device_name>::execute(other_vector.get_ptr(), this->get_ptr(), current_size);
-	break;
+    {
+    case SYNCHRONOUS:
+      COPY_FROM<other_device_name, device_name>::execute(other_vector.get_ptr(), this->get_ptr(), current_size);
+      break;
 
-      case ASYNCHRONOUS:
-	CUBLAS_THREAD_MANAGER<device_t>::synchronize_streams(thread_id, stream_id);
+    case ASYNCHRONOUS:
+      CUBLAS_THREAD_MANAGER<device_t>::synchronize_streams(thread_id, stream_id);
 
-	COPY_FROM<other_device_name, device_name>::execute(other_vector.get_ptr(), this->get_ptr(), current_size, thread_id, stream_id);
+      COPY_FROM<other_device_name, device_name>::execute(other_vector.get_ptr(), this->get_ptr(), current_size, thread_id, stream_id);
 
-	CUBLAS_THREAD_MANAGER<device_t>::synchronize_streams(thread_id, stream_id);
-	break;
+      CUBLAS_THREAD_MANAGER<device_t>::synchronize_streams(thread_id, stream_id);
+      break;
 
-      default:
-	throw std::logic_error(__FUNCTION__);
-      }
+    default:
+      throw std::logic_error(__FUNCTION__);
+    }
   }
 
 
@@ -301,14 +301,14 @@ namespace LIN_ALG {
   inline typename vector<scalartype, device_name>::vector_scalartype* vector<scalartype, device_name>::get_ptr()
   {
     return data;
-  } 
+  }
 
   template<typename scalartype, device_type device_name>
   inline typename vector<scalartype, device_name>::vector_scalartype* vector<scalartype, device_name>::get_ptr(int i)
   {
     assert(i>-1 && i<current_size);
     return data+i;
-  } 
+  }
 
   template<typename scalartype, device_type device_name>
   int& vector<scalartype, device_name>::size(){
@@ -331,29 +331,29 @@ namespace LIN_ALG {
     assert(new_current_size>-1);
 
     if(new_current_size > global_size)
+    {
+      //CUBLAS_THREAD_MANAGER<device_name>::synchronize_streams(thread_id, stream_id);
+
+      int new_global_size = (new_current_size/64)*64+64;
+      assert(new_global_size >= new_current_size);
+
+      vector_scalartype* new_data = NULL;
+
+      MEMORY_MANAGEMENT<device_name>::allocate(new_data, new_global_size);
+
       {
-	//CUBLAS_THREAD_MANAGER<device_name>::synchronize_streams(thread_id, stream_id);
-
-	int new_global_size = (new_current_size/64)*64+64;
-	assert(new_global_size >= new_current_size);
-
-	vector_scalartype* new_data = NULL;
-
-	MEMORY_MANAGEMENT<device_name>::allocate(new_data, new_global_size);
-	
-	{
-	  vector_scalartype* tmp_ptr = data;
-	  data                       = new_data;
-	  new_data                   = tmp_ptr;
-	}
-	
-	MEMORY_MANAGEMENT<device_name>::deallocate(new_data);    
-	
-	global_size  = new_global_size;
-	current_size = new_current_size;
-
-	//CUBLAS_THREAD_MANAGER<device_name>::synchronize_streams(thread_id, stream_id);
+        vector_scalartype* tmp_ptr = data;
+        data                       = new_data;
+        new_data                   = tmp_ptr;
       }
+
+      MEMORY_MANAGEMENT<device_name>::deallocate(new_data);
+
+      global_size  = new_global_size;
+      current_size = new_current_size;
+
+      //CUBLAS_THREAD_MANAGER<device_name>::synchronize_streams(thread_id, stream_id);
+    }
     else
       current_size = new_current_size;
   }
@@ -364,31 +364,31 @@ namespace LIN_ALG {
     assert(new_current_size>-1);
 
     if(new_current_size > global_size)
+    {
+      //CUBLAS_THREAD_MANAGER<device_name>::synchronize_streams(thread_id, stream_id);
+
+      int new_global_size = (new_current_size/64)*64+64;
+      assert(new_global_size >= new_current_size);
+
+      vector_scalartype* new_data = NULL;
+
+      MEMORY_MANAGEMENT<device_name>::allocate(new_data, new_global_size);
+
+      COPY_FROM<device_name, device_name>::execute(&data[0], &new_data[0], current_size);
+
       {
-	//CUBLAS_THREAD_MANAGER<device_name>::synchronize_streams(thread_id, stream_id);
-
-	int new_global_size = (new_current_size/64)*64+64;
-	assert(new_global_size >= new_current_size);
-
-	vector_scalartype* new_data = NULL;
-
-	MEMORY_MANAGEMENT<device_name>::allocate(new_data, new_global_size);
-
-	COPY_FROM<device_name, device_name>::execute(&data[0], &new_data[0], current_size);
-
-	{
-	  vector_scalartype* tmp_ptr = data;
-	  data                       = new_data;
-	  new_data                   = tmp_ptr;
-	}
-	
-	MEMORY_MANAGEMENT<device_name>::deallocate(new_data);    
-	
-	global_size  = new_global_size;
-	current_size = new_current_size;
-
-	//CUBLAS_THREAD_MANAGER<device_name>::synchronize_streams(thread_id, stream_id);
+        vector_scalartype* tmp_ptr = data;
+        data                       = new_data;
+        new_data                   = tmp_ptr;
       }
+
+      MEMORY_MANAGEMENT<device_name>::deallocate(new_data);
+
+      global_size  = new_global_size;
+      current_size = new_current_size;
+
+      //CUBLAS_THREAD_MANAGER<device_name>::synchronize_streams(thread_id, stream_id);
+    }
     else
       current_size = new_current_size;
   }
@@ -396,23 +396,23 @@ namespace LIN_ALG {
   template<typename scalartype, device_type device_name>
   template<device_type other_device_name>
   scalartype vector<scalartype, device_name>::difference(vector<scalartype, other_device_name>& other_vector)
-  {	
+  {
     if(current_size!=other_vector.size())
       throw std::logic_error(__FUNCTION__);
 
     vector<scalartype, CPU> cp_this (current_size);
     vector<scalartype, CPU> cp_other(current_size);
-	
+
     COPY_FROM<      device_name, CPU>::execute(data                  , cp_this .get_ptr(), current_size);
-    COPY_FROM<other_device_name, CPU>::execute(other_vector.get_ptr(), cp_other.get_ptr(), current_size); 
+    COPY_FROM<other_device_name, CPU>::execute(other_vector.get_ptr(), cp_other.get_ptr(), current_size);
 
     scalartype max_dif=0;
 
     for(int i=0; i<current_size; ++i)
-      if( fabs(cp_this[i]-cp_other[i]) > max_dif)
-	max_dif = fabs(cp_this[i]-cp_other[i]);
+      if(std::fabs(cp_this[i]-cp_other[i]) > max_dif)
+        max_dif = std::fabs(cp_this[i]-cp_other[i]);
 
-    if(fabs(max_dif)>1.e-6)
+    if(std::fabs(max_dif)>1.e-6)
       throw std::logic_error(__FUNCTION__);
 
     return max_dif;
@@ -420,26 +420,26 @@ namespace LIN_ALG {
 
   template<typename scalartype, device_type device_name>
   scalartype vector<scalartype, device_name>::difference(std::vector<scalartype>& other_vector)
-  {	
+  {
     if(current_size!=int(other_vector.size()))
       throw std::logic_error(__FUNCTION__);
 
     vector<scalartype, CPU> cp_this(current_size);
-	
+
     COPY_FROM<device_name, CPU>::execute(data, cp_this.get_ptr(), current_size);
 
     scalartype max_dif=0;
 
     for(int i=0; i<current_size; ++i)
-      if( fabs(cp_this[i]-other_vector[i]) > max_dif)
-	max_dif = fabs(cp_this[i]-other_vector[i]);
+      if(std::fabs(cp_this[i]-other_vector[i]) > max_dif)
+        max_dif = std::fabs(cp_this[i]-other_vector[i]);
 
-    if(fabs(max_dif)>1.e-6)
+    if(std::fabs(max_dif)>1.e-6)
       throw std::logic_error(__FUNCTION__);
 
     return max_dif;
   }
-    
+
   template<typename scalartype, device_type device_name>
   void vector<scalartype, device_name>::print()
   {

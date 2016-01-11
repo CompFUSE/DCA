@@ -140,10 +140,10 @@ namespace MATH_ALGORITHMS
   
 }
 
-#include "include_generic_domains.h"
+#include "domain_specifications/include_generic_domains.h"
 
-#include "include_basis_functions.h"
-#include "include_basis_transformations.h"
+#include "basis_functions/include_basis_functions.h"
+#include "basis_transforms/include_basis_transformations.h"
 
-#include "include_domain_transformations.h"
-#include "include_function_transformations.h"
+#include "domain_transforms/include_domain_transformations.h"
+#include "function_transforms/include_function_transformations.h"

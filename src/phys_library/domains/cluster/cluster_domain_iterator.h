@@ -159,10 +159,10 @@ void cluster_domain_iterator<cluster_domain<scalar_type, D, N, R, S> >::execute_
 	      double l0 = std::sqrt(b_0[0]*b_0[0]+b_0[1]*b_0[1])+1.e-6;
 	      double l1 = std::sqrt(b_1[0]*b_1[0]+b_1[1]*b_1[1])+1.e-6;
 	      
-	      double theta = std::acos(abs(b_0[0]*b_1[0]+b_0[1]*b_1[1])/(l0*l1))* 180.0 / M_PI;
+	      double theta = std::acos(std::abs(b_0[0]*b_1[0]+b_0[1]*b_1[1])/(l0*l1))* 180.0 / M_PI;
 	      
 	      if(find_anti_nodal_points() and
-		 abs(l0/l1) > 1.-l_min and abs(l0/l1) < 1.+l_min and 
+           std:: abs(l0/l1) > 1.-l_min and std::abs(l0/l1) < 1.+l_min and 
 		 theta > 90-theta_min  and theta < 90+theta_min and
 		 find_pi_zero() and 
 		 (tmp_r_dmn::get_size()==20 or tmp_r_dmn::get_size()==24 or tmp_r_dmn::get_size()==28 or tmp_r_dmn::get_size()==32 or
@@ -194,13 +194,13 @@ void cluster_domain_iterator<cluster_domain<scalar_type, D, N, R, S> >::execute_
   std::sort(list_of_clusters.begin(), list_of_clusters.end(), cluster_info_struct::comparison);
   
   for(size_t l=0; l<list_of_clusters.size(); l++){
-    cout << "[" << list_of_clusters[l].size << ",\t"; //<< list_of_clusters[l].l0 << "\t" << list_of_clusters[l].l1 << "\t" << list_of_clusters[l].theta << "\t";
-    cout << list_of_clusters[l].pi_zero << ",\t" << list_of_clusters[l].zero_pi << ",\t";
-    cout << "[" << list_of_clusters[l].vec_0[0] << ", " << list_of_clusters[l].vec_0[1] << "],  ";
-    cout << "[" << list_of_clusters[l].vec_1[0] << ", " << list_of_clusters[l].vec_1[1] << "] ";    
-    cout << "],\n";
+    std::cout << "[" << list_of_clusters[l].size << ",\t"; //<< list_of_clusters[l].l0 << "\t" << list_of_clusters[l].l1 << "\t" << list_of_clusters[l].theta << "\t";
+    std::cout << list_of_clusters[l].pi_zero << ",\t" << list_of_clusters[l].zero_pi << ",\t";
+    std::cout << "[" << list_of_clusters[l].vec_0[0] << ", " << list_of_clusters[l].vec_0[1] << "],  ";
+    std::cout << "[" << list_of_clusters[l].vec_1[0] << ", " << list_of_clusters[l].vec_1[1] << "] ";    
+    std::cout << "],\n";
   }
-  cout << "\n";
+  std::cout << "\n";
 }
 
 template<typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_REPRESENTATION R, CLUSTER_SHAPE S>

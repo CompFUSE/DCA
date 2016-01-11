@@ -176,7 +176,7 @@ namespace DCA
     void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::initialize(int dca_iteration)
     {
 	if(concurrency.id()==0)
-	    cout << "\n\n\t SS CT-HYB Integrator has started ( DCA-iteration : " << dca_iteration << ")\n\n";
+	    std::cout << "\n\n\t SS CT-HYB Integrator has started ( DCA-iteration : " << dca_iteration << ")\n\n";
 
 	DCA_iteration = dca_iteration;
 
@@ -190,7 +190,7 @@ namespace DCA
 	{
 	    std::stringstream ss;
 	    ss.precision(6);
-	    ss<<scientific;
+	    ss<<std::scientific;
 
 	    FUNC_LIB::function<double, nu>& mu      = this->get_mu();
 	    FUNC_LIB::function<double, nu>& mu_half = this->get_mu_HALF();
@@ -209,7 +209,7 @@ namespace DCA
 
 	    ss << "\n\n";
 
-	    cout << ss.str();
+	    std::cout << ss.str();
 	}
     }
 
@@ -255,7 +255,7 @@ namespace DCA
 	{
 	    std::stringstream ss;
 	    ss.precision(6);
-	    ss<<scientific;
+	    ss<<std::scientific;
 
 	    ss << "\n\n Sigma \n\n";
 	    for(int s_ind=0; s_ind<s::dmn_size(); s_ind++){
@@ -270,7 +270,7 @@ namespace DCA
 	    }
 	    ss << "\n\n";
 
-	    cout << ss.str();
+	    std::cout << ss.str();
 	}
 
 	for(int i=0; i<b::dmn_size()*s::dmn_size(); i++)
@@ -359,14 +359,14 @@ namespace DCA
 	if( concurrency.id() == concurrency.first() && N > 10 && (i % (N/10)) == 0 )
 	{
 	    {
-		cout << scientific;
-		cout.precision(6);
-
-		cout << "\t\t\t"   << double(i)/double(N)*100. << " % completed \t ";
+        std::cout << std::scientific;
+        std::cout.precision(6);
+        
+        std::cout << "\t\t\t"   << double(i)/double(N)*100. << " % completed \t ";
 	    }
-
-	    cout << "\t <k> :" << k << " \t";
-	    cout << print_time() << "\n";
+      
+	    std::cout << "\t <k> :" << k << " \t";
+	    std::cout << print_time() << "\n";
 	}
     }
 
@@ -526,7 +526,7 @@ namespace DCA
 	symmetrize::execute(MOMS.Sigma, MOMS.H_symmetry);
 
 	if(concurrency.id() == concurrency.first())
-	    cout << "\n\t |Sigma_old-Sigma_new| : " << L2_difference_norm/L2_Sigma_norm << endl;
+	    std::cout << "\n\t |Sigma_old-Sigma_new| : " << L2_difference_norm/L2_Sigma_norm << std::endl;
 
 	return L2_difference_norm/L2_Sigma_norm;
     }

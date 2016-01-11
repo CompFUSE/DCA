@@ -150,7 +150,7 @@ namespace COMP_LIB
 	  {
 	    std::stringstream ss;
 	    ss << i << "\t" << f.get_name() << "\n";
-	    cout << ss.str();
+      std::cout << ss.str();
 
 	    throw std::logic_error(__FUNCTION__);
 	  }

@@ -66,7 +66,7 @@ public:
 
 private:
 
-  string do_CPE_str;
+  std::string do_CPE_str;
 
   int    N_wn;
   int    smoothing_factor;
@@ -74,7 +74,7 @@ private:
   int    max_iterations;
   double max_error;
 
-  string simulate_gaussian_noise_str;
+  std::string simulate_gaussian_noise_str;
   int    nr_of_samples;
   double simulated_stddev;
 

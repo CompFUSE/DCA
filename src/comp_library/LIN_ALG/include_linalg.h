@@ -8,118 +8,118 @@
 
 #include "linalg_device_types.h"
 
-#include "matrix_scalartype.h"
+#include "src/matrix_scalartype.h"
 
-#include "cublas_thread_manager_tem.h"
-#include "cublas_thread_manager_CPU.h"
-#include "cublas_thread_manager_GPU.h"
+#include "src/linalg_structures/cublas_thread_manager_tem.h"
+#include "src/linalg_structures/cublas_thread_manager_CPU.h"
+#include "src/linalg_structures/cublas_thread_manager_GPU.h"
 
-#include "copy_from_tem.h"
-#include "copy_from_CPU_CPU.h"
-#include "copy_from_CPU_GPU.h"
-#include "copy_from_GPU_CPU.h"
-#include "copy_from_GPU_GPU.h"
+#include "src/linalg_operations/copy_from_tem.h"
+#include "src/linalg_operations/copy_from_CPU_CPU.h"
+#include "src/linalg_operations/copy_from_CPU_GPU.h"
+#include "src/linalg_operations/copy_from_GPU_CPU.h"
+#include "src/linalg_operations/copy_from_GPU_GPU.h"
 
-#include "memory_management_tem.h"
-#include "memory_management_CPU.h"
-#include "memory_management_GPU.h"
+#include "src/linalg_operations/memory_management_tem.h"
+#include "src/linalg_operations/memory_management_CPU.h"
+#include "src/linalg_operations/memory_management_GPU.h"
 
-#include "vector.h"
-#include "matrix.h"
+#include "src/vector.h"
+#include "src/matrix.h"
 
-#include "LU_MATRIX_OPERATIONS.h"
-#include "LU_MATRIX_OPERATIONS_CPU.h"
-#include "LU_MATRIX_OPERATIONS_GPU.h"
+#include "src/linalg_operations/LU_MATRIX_OPERATIONS.h"
+#include "src/linalg_operations/LU_MATRIX_OPERATIONS_CPU.h"
+#include "src/linalg_operations/LU_MATRIX_OPERATIONS_GPU.h"
 
-#include "REMOVE_tem.h"
-#include "REMOVE_CPU.h"
-#include "REMOVE_GPU.h"
+#include "src/linalg_operations/REMOVE_tem.h"
+#include "src/linalg_operations/REMOVE_CPU.h"
+#include "src/linalg_operations/REMOVE_GPU.h"
 
 // BLAS 1
 
-#include "BLAS_1_AXPY_tem.h"
-#include "BLAS_1_AXPY_CPU.h"
-#include "BLAS_1_AXPY_GPU.h"
+#include "src/linalg_operations/BLAS_1_AXPY_tem.h"
+#include "src/linalg_operations/BLAS_1_AXPY_CPU.h"
+#include "src/linalg_operations/BLAS_1_AXPY_GPU.h"
 
-#include "BLAS_1_COPY_tem.h"
-#include "BLAS_1_COPY_CPU.h"
-#include "BLAS_1_COPY_GPU.h"
+#include "src/linalg_operations/BLAS_1_COPY_tem.h"
+#include "src/linalg_operations/BLAS_1_COPY_CPU.h"
+#include "src/linalg_operations/BLAS_1_COPY_GPU.h"
 
-#include "BLAS_1_SCALE_tem.h"
-#include "BLAS_1_SCALE_CPU.h"
-#include "BLAS_1_SCALE_GPU.h"
+#include "src/linalg_operations/BLAS_1_SCALE_tem.h"
+#include "src/linalg_operations/BLAS_1_SCALE_CPU.h"
+#include "src/linalg_operations/BLAS_1_SCALE_GPU.h"
 
-#include "BLAS_1_SWAP_tem.h"
-#include "BLAS_1_SWAP_CPU.h"
-#include "BLAS_1_SWAP_GPU.h"
+#include "src/linalg_operations/BLAS_1_SWAP_tem.h"
+#include "src/linalg_operations/BLAS_1_SWAP_CPU.h"
+#include "src/linalg_operations/BLAS_1_SWAP_GPU.h"
 
 // BLAS 2
 
-#include "BLAS_2_GEMV_tem.h"
-#include "BLAS_2_GEMV_CPU.h"
+#include "src/linalg_operations/BLAS_2_GEMV_tem.h"
+#include "src/linalg_operations/BLAS_2_GEMV_CPU.h"
 
 // BLAS 3
 
-#include "BLAS_3_TRSM_tem.h"
-#include "BLAS_3_TRSM_CPU.h"
-#include "BLAS_3_TRSM_GPU.h"
+#include "src/linalg_operations/BLAS_3_TRSM_tem.h"
+#include "src/linalg_operations/BLAS_3_TRSM_CPU.h"
+#include "src/linalg_operations/BLAS_3_TRSM_GPU.h"
 
-#include "BLAS_3_GEMM_tem.h"
-#include "BLAS_3_GEMM_CPU.h"
-#include "BLAS_3_GEMM_GPU.h"
-
-
-#include "LASET_tem.h"
-#include "LASET_CPU.h"
-#include "LASET_GPU.h"
-
-#include "DOT_tem.h"
-#include "DOT_CPU.h"
-#include "DOT_GPU.h"
-
-#include "GEMD_tem.h"
-#include "GEMD_CPU.h"
-#include "GEMD_GPU.h"
-
-#include "TRSV_tem.h"
-#include "TRSV_CPU.h"
-#include "TRSV_GPU.h"
+#include "src/linalg_operations/BLAS_3_GEMM_tem.h"
+#include "src/linalg_operations/BLAS_3_GEMM_CPU.h"
+#include "src/linalg_operations/BLAS_3_GEMM_GPU.h"
 
 
-#include "BENNET_tem.h"
-#include "BENNET_CPU.h"
-#include "BENNET_GPU.h"
+#include "src/linalg_operations/LASET_tem.h"
+#include "src/linalg_operations/LASET_CPU.h"
+#include "src/linalg_operations/LASET_GPU.h"
 
-#include "GETRS_tem.h"
-#include "GETRS_CPU.h"
-#include "GETRS_GPU.h"
+#include "src/linalg_operations/DOT_tem.h"
+#include "src/linalg_operations/DOT_CPU.h"
+#include "src/linalg_operations/DOT_GPU.h"
 
-#include "GETRF_tem.h"
-#include "GETRF_CPU.h"
-#include "GETRF_GPU.h"
+#include "src/linalg_operations/GEMD_tem.h"
+#include "src/linalg_operations/GEMD_CPU.h"
+#include "src/linalg_operations/GEMD_GPU.h"
 
-#include "GETRI_tem.h"
-#include "GETRI_CPU.h"
-#include "GETRI_GPU.h"
+#include "src/linalg_operations/TRSV_tem.h"
+#include "src/linalg_operations/TRSV_CPU.h"
+#include "src/linalg_operations/TRSV_GPU.h"
 
-#include "GEINV_tem.h"
 
-#include "GEEV_tem.h"
-#include "GEEV_CPU.h"
-#include "GEEV_GPU.h"
+#include "src/linalg_operations/BENNET_tem.h"
+#include "src/linalg_operations/BENNET_CPU.h"
+#include "src/linalg_operations/BENNET_GPU.h"
 
-#include "GESV_tem.h"
-#include "GESV_CPU.h"
+#include "src/linalg_operations/GETRS_tem.h"
+#include "src/linalg_operations/GETRS_CPU.h"
+#include "src/linalg_operations/GETRS_GPU.h"
 
-#include "GESVD_tem.h"
-#include "GESVD_CPU.h"
-#include "GESVD_GPU.h"
+#include "src/linalg_operations/GETRF_tem.h"
+#include "src/linalg_operations/GETRF_CPU.h"
+#include "src/linalg_operations/GETRF_GPU.h"
 
-#include "PSEUDO_INVERSE_tem.h"
-#include "PSEUDO_INVERSE_CPU.h"
+#include "src/linalg_operations/GETRI_tem.h"
+#include "src/linalg_operations/GETRI_CPU.h"
+#include "src/linalg_operations/GETRI_GPU.h"
+
+#include "src/linalg_operations/GEINV_tem.h"
+
+#include "src/linalg_operations/GEEV_tem.h"
+#include "src/linalg_operations/GEEV_CPU.h"
+#include "src/linalg_operations/GEEV_GPU.h"
+
+#include "src/linalg_operations/GESV_tem.h"
+#include "src/linalg_operations/GESV_CPU.h"
+
+#include "src/linalg_operations/GESVD_tem.h"
+#include "src/linalg_operations/GESVD_CPU.h"
+#include "src/linalg_operations/GESVD_GPU.h"
+
+#include "src/linalg_operations/PSEUDO_INVERSE_tem.h"
+#include "src/linalg_operations/PSEUDO_INVERSE_CPU.h"
 
 // performance_inspector
 
-#include "performance_inspector_tem.h"
-#include "performance_inspector_CPU.h"
-#include "performance_inspector_GPU.h"
+#include "src/linalg_structures/performance_inspector_tem.h"
+#include "src/linalg_structures/performance_inspector_CPU.h"
+#include "src/linalg_structures/performance_inspector_GPU.h"

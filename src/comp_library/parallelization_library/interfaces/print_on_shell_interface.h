@@ -47,7 +47,7 @@ namespace COMP_LIB
   void print_on_shell_interface<LIBRARY>::operator<<(whatever& whtvr)
   {
     if(grouping.get_id() == grouping.first())
-      cout << whtvr;
+      std::cout << whtvr;
   }
 
   template<PARALLELIZATION_LIBRARY_NAMES LIBRARY>
@@ -55,7 +55,7 @@ namespace COMP_LIB
   void print_on_shell_interface<LIBRARY>::operator<<(const whatever& whtvr)
   {
     if(grouping.get_id() == grouping.first())
-      cout << whtvr;
+      std::cout << whtvr;
   }
 
   template<PARALLELIZATION_LIBRARY_NAMES LIBRARY>
@@ -63,7 +63,7 @@ namespace COMP_LIB
   void print_on_shell_interface<LIBRARY>::operator<<(whatever* whtvr)
   {
     if(grouping.get_id() == grouping.first())
-      cout << whtvr;
+      std::cout << whtvr;
   }
 
   template<PARALLELIZATION_LIBRARY_NAMES LIBRARY>
@@ -71,7 +71,7 @@ namespace COMP_LIB
   void print_on_shell_interface<LIBRARY>::operator<<(const whatever* whtvr)
   {
     if(grouping.get_id() == grouping.first())
-      cout << whtvr;
+      std::cout << whtvr;
   }
 
 }

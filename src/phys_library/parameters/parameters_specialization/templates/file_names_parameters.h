@@ -231,7 +231,7 @@ void file_names_parameters::read_write(read_write_type& read_write_obj)
     }
   catch(const std::exception& r_e)
     {
-      cout << "\n\t NO filename-parameters with output-file defined !!  \n\n";
+      std::cout << "\n\t NO filename-parameters with output-file defined !!  \n\n";
       throw std::logic_error(__PRETTY_FUNCTION__);
     }
 }

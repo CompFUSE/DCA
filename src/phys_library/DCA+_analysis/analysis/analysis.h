@@ -173,12 +173,12 @@ namespace dca {
 //   {
 // //     for(int i=0; i<w_VERTEX::dmn_size(); i++)
 // //       for(int j=0; j<w_VERTEX_EXTENDED::dmn_size(); j++)
-// // 	if(fabs(w_VERTEX::parameter_type::get_elements()[i]-w_VERTEX_EXTENDED::parameter_type::get_elements()[j])<1.e-6)
+// // 	if(std::fabs(w_VERTEX::parameter_type::get_elements()[i]-w_VERTEX_EXTENDED::parameter_type::get_elements()[j])<1.e-6)
 // // 	  corresponding_extended_index[i] = j;
 
 // //     for(int j=0; j<w_VERTEX_EXTENDED::dmn_size(); j++)
 // //       for(int i=0; i<w_VERTEX::dmn_size(); i++)
-// //       	if(fabs(w_VERTEX::parameter_type::get_elements()[i]-w_VERTEX_EXTENDED::parameter_type::get_elements()[j])<1.e-6)
+// //       	if(std::fabs(w_VERTEX::parameter_type::get_elements()[i]-w_VERTEX_EXTENDED::parameter_type::get_elements()[j])<1.e-6)
 // // 	  is_compact_frequency[j] = true;
 //   }
 
@@ -388,7 +388,7 @@ namespace dca {
 	  cout.precision(6);
 	  cout << "\t ---> (leading) j=" << i 
 	       << "\t sval = "           << sqrt(square(1.0 - real(eigenvals[eigenvals.size()-1-i].first)) + square(imag(eigenvals[eigenvals.size()-1-i].first)))
-	       << "\t eigenval = "       << real(eigenvals[eigenvals.size()-1-i].first) << " ; " << fabs(imag(eigenvals[eigenvals.size()-1-i].first));
+	       << "\t eigenval = "       << real(eigenvals[eigenvals.size()-1-i].first) << " ; " << std::fabs(imag(eigenvals[eigenvals.size()-1-i].first));
 
 	  cout << "\t|\t";
 	  for(int psi=0; psi<3; psi++)
@@ -979,7 +979,7 @@ namespace dca {
 // 		double w  = w_VERTEX_EXTENDED::parameter_type::get_elements()[w_vertex_index];
 // 		int w_ind = w_vertex_index - w_VERTEX_EXTENDED::dmn_size()/2 + w::dmn_size()/2;
 		
-// 		assert( fabs(w -  w::parameter_type::get_elements()[w_ind]) < 1.e-6);
+// 		assert( std::fabs(w -  w::parameter_type::get_elements()[w_ind]) < 1.e-6);
 
 // 		{// G(k)
 // 		  memcpy(Sigma_matrix, &MOMS.Sigma(0,0,K_ind, w_ind), sizeof(std::complex<double>)*matrix_size);
@@ -1803,7 +1803,7 @@ namespace dca {
 	double w = w_VERTEX::parameter_type::get_elements()[i];
 	coor[5] = i - w_VERTEX::dmn_size()/2 + w::dmn_size()/2;
 
-	assert( fabs(w -  w::parameter_type::get_elements()[coor[5]]) < 1.e-6);
+	assert( std::fabs(w -  w::parameter_type::get_elements()[coor[5]]) < 1.e-6);
 
 	for(int j=0; j<DCA_k_cluster_type::get_size(); j++)
 	  {

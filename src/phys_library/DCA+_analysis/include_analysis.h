@@ -6,8 +6,8 @@
  *  \ingroup  ANALYSIS
  */
 
-#include "make_G4_matrix.h"
-#include "make_G4_0_matrix.h"
+#include "analysis/TOOLS/make_G4_matrix.h"
+#include "analysis/TOOLS/make_G4_0_matrix.h"
 
 /*
 #include "analysis.h"
@@ -17,10 +17,10 @@
 #include "analysis_compute_reducible_vertex.h"
 */
 
-#include "BSE_cluster_solver.h"
-#include "BSE_lattice_solver.h"
+#include "BSE_solver/BSE_cluster_solver.h"
+#include "BSE_solver/BSE_lattice_solver.h"
 
-#include "BSE_solver.h"
+#include "BSE_solver/BSE_solver.h"
 
 /*!
  *  Continuous pole expansion solver
@@ -29,7 +29,7 @@
  *  \ingroup  ANALYSIS
  */
 
-#include "include_CPE.h"
+#include "CPE_solver/include_CPE.h"
 
 // include library
 //#include "levmar.h"

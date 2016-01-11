@@ -61,7 +61,7 @@ double union_radial_and_delta_function::volume(int n)
 
   for(size_t l1=0; l1<poles.size(); l1++)
     for(size_t l2=0; l2<get_elements().size(); l2++)
-      if(fabs(poles[l1]-get_elements()[l2])<1.e-6)
+      if(std::fabs(poles[l1]-get_elements()[l2])<1.e-6)
 	return M_PI;
 
   if(n==0){

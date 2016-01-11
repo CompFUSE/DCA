@@ -255,7 +255,7 @@ void cluster_domain_initializer<dmn_0<cluster_domain<scalar_type, DIMENSION, NAM
             if(d0==d1)
               result -= 1;
 
-            if(abs(result)>1.e-6)
+            if(std::abs(result)>1.e-6)
               throw std::logic_error(__FUNCTION__);
           }
         }
@@ -303,7 +303,7 @@ void cluster_domain_initializer<dmn_0<cluster_domain<scalar_type, DIMENSION, NAM
             if(d0==d1)
               result -= 1;
 
-            if(abs(result)>1.e-6)
+            if(std::abs(result)>1.e-6)
               throw std::logic_error(__FUNCTION__);
           }
         }

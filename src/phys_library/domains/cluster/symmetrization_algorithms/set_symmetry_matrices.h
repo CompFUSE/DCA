@@ -97,16 +97,16 @@ void set_symmetry_matrices<base_cluster_type>::set_r_symmetry_matrix()
 
 	  sym_super_cell_dmn_t::get_elements()[l].transform(&r_plus_a[0], &trafo_r_plus_a[0]);
 
-          VECTOR_OPERATIONS::PRINT(r_plus_a);                  cout << "\t-->\t";
-          VECTOR_OPERATIONS::PRINT(trafo_r_plus_a);            cout << "\t-->\t";
+          VECTOR_OPERATIONS::PRINT(r_plus_a);                  std::cout << "\t-->\t";
+          VECTOR_OPERATIONS::PRINT(trafo_r_plus_a);            std::cout << "\t-->\t";
 
 	  std::vector<double> r_affine = VECTOR_OPERATIONS::COORDINATES(trafo_r_plus_a, r_cluster_type::get_super_basis_vectors());
 
-	  VECTOR_OPERATIONS::PRINT(r_affine);                  cout << "\t-->\t";
+	  VECTOR_OPERATIONS::PRINT(r_affine);                  std::cout << "\t-->\t";
 
 	  trafo_r_plus_a_in_cluster = cluster_operations::translate_inside_cluster(trafo_r_plus_a, r_cluster_type::get_super_basis_vectors());
 
-	  VECTOR_OPERATIONS::PRINT(trafo_r_plus_a_in_cluster); cout << "\n\n";
+	  VECTOR_OPERATIONS::PRINT(trafo_r_plus_a_in_cluster); std::cout << "\n\n";
 
           sym_super_cell_dmn_t::get_elements()[l].to_JSON(std::cout);
 
@@ -187,15 +187,15 @@ void set_symmetry_matrices<base_cluster_type>::print_on_shell()
       for(int i=0; i<k_dmn_t::dmn_size(); ++i){
         for(int j=0; j<b_dmn_t::dmn_size(); ++j){
 
-          cout << "\t" << i << ", " << j << "\t|\t";
+          std::cout << "\t" << i << ", " << j << "\t|\t";
 
           for(int l=0; l<sym_super_cell_dmn_t::dmn_size(); ++l)
-            cout << "\t" << symmetry_matrix(i,j, l).first << ", " << symmetry_matrix(i,j, l).second;
+            std::cout << "\t" << symmetry_matrix(i,j, l).first << ", " << symmetry_matrix(i,j, l).second;
 
-          cout << "\n";
+          std::cout << "\n";
         }
       }
-      cout << "\n";
+      std::cout << "\n";
     }
 
   if(true)
@@ -205,15 +205,15 @@ void set_symmetry_matrices<base_cluster_type>::print_on_shell()
       for(int i=0; i<r_dmn_t::dmn_size(); ++i){
         for(int j=0; j<b_dmn_t::dmn_size(); ++j){
 
-          cout << "\t" << i << ", " << j << "\t|\t";
+          std::cout << "\t" << i << ", " << j << "\t|\t";
 
           for(int l=0; l<sym_super_cell_dmn_t::dmn_size(); ++l)
-            cout << "\t" << symmetry_matrix(i,j, l).first << ", " << symmetry_matrix(i,j, l).second;
+            std::cout << "\t" << symmetry_matrix(i,j, l).first << ", " << symmetry_matrix(i,j, l).second;
 
-          cout << "\n";
+          std::cout << "\n";
         }
       }
-      cout << "\n";
+      std::cout << "\n";
     }
 
   if(true)
@@ -225,7 +225,7 @@ void set_symmetry_matrices<base_cluster_type>::print_on_shell()
         for(int j=0; j<b_dmn_t::dmn_size(); ++j){
           for(int l=0; l<sym_super_cell_dmn_t::dmn_size(); ++l){
             if(r_symmetry_matrix(i,j, l).first==-1 or r_symmetry_matrix(i,j, l).second==-1){
-              cout << "\t r_ind : " << i << "\t" << j << "\n\n";
+              std::cout << "\t r_ind : " << i << "\t" << j << "\n\n";
 
               sym_super_cell_dmn_t::get_elements()[l].to_JSON(std::cout);
 
@@ -240,7 +240,7 @@ void set_symmetry_matrices<base_cluster_type>::print_on_shell()
           for(int l=0; l<sym_super_cell_dmn_t::dmn_size(); ++l){
             if(k_symmetry_matrix(i,j, l).first==-1 or k_symmetry_matrix(i,j, l).second==-1){
 
-              cout << "\t k_ind : " << i << "\t" << j << "\n\n";
+              std::cout << "\t k_ind : " << i << "\t" << j << "\n\n";
 
               sym_super_cell_dmn_t::get_elements()[l].to_JSON(std::cout);
 

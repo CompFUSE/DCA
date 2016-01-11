@@ -3,7 +3,6 @@
 #ifndef IS_EQUAL_TYPE_H
 #define IS_EQUAL_TYPE_H
 
-using namespace std; 
 using namespace TL;  
 
 /*!

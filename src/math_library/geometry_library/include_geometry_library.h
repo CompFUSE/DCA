@@ -1,7 +1,7 @@
 //-*-C++-*-
 
-#include "include_vector_operations.h"
+#include "vector_operations/include_vector_operations.h"
 
-#include "include_tetrahedron_mesh.h"
+#include "tetrahedron_mesh/include_tetrahedron_mesh.h"
 
-#include "include_gaussian_quadrature.h"
+#include "gaussian_quadrature/include_gaussian_quadrature.h"

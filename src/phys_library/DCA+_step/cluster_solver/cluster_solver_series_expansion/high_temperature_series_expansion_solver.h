@@ -97,7 +97,7 @@ namespace DCA
 
   template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
   template<typename dca_info_struct_t>
-  void cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_type>::finalize(dca_info_struct_t& dca_info_struct)
+  void cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_type>::finalize(dca_info_struct_t& /*dca_info_struct*/)
   {
     finalize();
   }
@@ -107,7 +107,7 @@ namespace DCA
   {
     IO::FORMAT  FORMAT    = parameters.get_output_format();
     
-    cout << "\n\n\t\t start writing " << file_name << "\n\n";
+    std::cout << "\n\n\t\t start writing " << file_name << "\n\n";
     
     switch(FORMAT)
       {
@@ -148,7 +148,7 @@ namespace DCA
 
   template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
   template<IO::FORMAT DATA_FORMAT>
-  void cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_type>::write(IO::writer<DATA_FORMAT>& writer)
+  void cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_type>::write(IO::writer<DATA_FORMAT>& /*writer*/)
   {
     //writer.open_group("functions");
     

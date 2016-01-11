@@ -316,7 +316,7 @@ namespace DCA
     for(int j=0; j<w_IMAG::dmn_size(); j++){
     std::complex<double> z(0., w_IMAG::get_elements()[j]);
     for(int i=0; i<alpha_dmn_t::dmn_size(); i++)
-    A_mat(i,j) = (0.01+l*fabs(w_REAL::get_elements()[i]))*basis_function_t::phi(i, z);
+    A_mat(i,j) = (0.01+l*std::fabs(w_REAL::get_elements()[i]))*basis_function_t::phi(i, z);
     }
 
     singular_value_decomposition_plan<std::complex<double>, GENERAL> svd_obj(alpha_dmn_t::dmn_size(), w_IMAG::dmn_size(), 'N', 'N');

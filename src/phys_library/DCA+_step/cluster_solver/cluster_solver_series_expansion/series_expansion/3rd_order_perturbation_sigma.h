@@ -90,7 +90,7 @@ namespace DCA
 
     template<class parameter_type, class k_dmn_t>
     template<IO::FORMAT DATA_FORMAT>
-    void sigma_perturbation<3, parameter_type, k_dmn_t>::write(IO::writer<DATA_FORMAT>& writer)
+    void sigma_perturbation<3, parameter_type, k_dmn_t>::write(IO::writer<DATA_FORMAT>& /*writer*/)
     {
 
     }
@@ -111,9 +111,9 @@ namespace DCA
     template<class parameter_type, class k_dmn_t>
     void sigma_perturbation<3, parameter_type, k_dmn_t>::execute_on_cluster(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
     {
-      cout << __FUNCTION__ << endl;
+      std::cout << __FUNCTION__ << std::endl;
 
-      cout << "\t U : " << U(0,0,0,1) << endl;
+      std::cout << "\t U : " << U(0,0,0,1) << std::endl;
 
       sigma_perturbation<3, parameter_type, k_dmn_t>::execute_RPA(G);
       sigma_perturbation<3, parameter_type, k_dmn_t>::execute_VC(G);
@@ -126,7 +126,7 @@ namespace DCA
     template<class parameter_type, class k_dmn_t>
     void sigma_perturbation<3, parameter_type, k_dmn_t>::execute_RPA(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
     {
-      cout << __FUNCTION__ << endl;
+      std::cout << __FUNCTION__ << std::endl;
 
       double U_value = U(0,0,0,1);
 
@@ -139,7 +139,7 @@ namespace DCA
 
           //double w_b = w_VERTEX_BOSONIC::get_elements()[nu_ind];
 
-          for(int w_ind=fabs(nu_c); w_ind<w::dmn_size()-fabs(nu_c); ++w_ind){
+          for(int w_ind=std::fabs(nu_c); w_ind<w::dmn_size()-std::fabs(nu_c); ++w_ind){
             for (int k_ind=0; k_ind<k_dmn_t::dmn_size(); ++k_ind){
 
               //double w_m = w::get_elements()[w_ind];
@@ -147,9 +147,9 @@ namespace DCA
               int k_minus_q  = k_dmn_t::parameter_type::subtract(q_ind, k_ind);
               int w_minus_nu = w_ind-nu_c;
 
-              // cout << w::get_elements()[w_minus_nu] << "  " << w_m-w_b << endl;
+              // std::cout << w::get_elements()[w_minus_nu] << "  " << w_m-w_b << std::endl;
 
-              //assert(fabs(w::get_elements()[w_minus_nu]-(w_m-w_b))<1.e-6);
+              //assert(std::fabs(w::get_elements()[w_minus_nu]-(w_m-w_b))<1.e-6);
 
               Sigma_RPA(0,0, 0,0, k_ind, w_ind) += G(0,0, 0,0, k_minus_q, w_minus_nu) * chi(0,0, 0,0, q_ind, nu_ind) * chi(0,0, 0,0, q_ind, nu_ind);
             }
@@ -167,7 +167,7 @@ namespace DCA
     template<class parameter_type, class k_dmn_t>
     void sigma_perturbation<3, parameter_type, k_dmn_t>::execute_VC(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
     {
-      cout << __FUNCTION__ << endl;
+      std::cout << __FUNCTION__ << std::endl;
 
       double U_value = U(0,0,0,1);
 

@@ -121,7 +121,7 @@ namespace MATH_ALGORITHMS
 
 	  double det_A = slv_pln.matrix[0]*slv_pln.matrix[3];
 
-	  if(fabs(det_A)>1.e-6)
+	  if(std::fabs(det_A)>1.e-6)
 	    {
 	      simplex<DIMENSION> s;
 	      s.k_vec.resize(2,0);

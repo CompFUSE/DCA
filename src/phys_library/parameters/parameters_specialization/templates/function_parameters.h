@@ -320,7 +320,7 @@ void function_parameters::unpack( concurrency_type& concurrency, int* buffer, in
  ******************************************/
 
 template<class stream_type>
-void function_parameters::to_JSON(stream_type& ss, bool is_end)
+void function_parameters::to_JSON(stream_type& /*ss*/, bool /*is_end*/)
 {
 //   ss << "\"function-parameters\" :";
 //   ss << "\n{ \n";
@@ -354,7 +354,7 @@ void function_parameters::to_JSON(stream_type& ss, bool is_end)
 }
   
 template<class JSON_reader_type>
-void function_parameters::from_JSON(JSON_reader_type& reader)
+void function_parameters::from_JSON(JSON_reader_type& /*reader*/)
 {
 //   typedef typename JSON_reader_type::JsonAccessor JsonAccessor;
 
@@ -402,7 +402,7 @@ void function_parameters::read_write(read_write_type& read_write_obj)
       {
 	read_write_obj.open_group("single-particle-functions");
 	
-	try { read_write_obj.execute("H(k) grid-size"       , H_k_grid_size);           } catch(const std::exception& r_e) { cout << "\n not read : H(k) grid-size \n";}
+	try { read_write_obj.execute("H(k) grid-size"       , H_k_grid_size);           } catch(const std::exception& r_e) { std::cout << "\n not read : H(k) grid-size \n";}
 
 	try { read_write_obj.execute("time-intervals"       , sp_time_intervals);        } catch(const std::exception& r_e) {}
 
@@ -444,7 +444,7 @@ void function_parameters::read_write(read_write_type& read_write_obj)
     }
   catch(const std::exception& r_e) 
     { 
-      cout << "\n\t MCI-parameters defined !!  \n\n";
+      std::cout << "\n\t MCI-parameters defined !!  \n\n";
       throw std::logic_error(__PRETTY_FUNCTION__);
     }
 

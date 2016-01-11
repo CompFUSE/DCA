@@ -183,14 +183,14 @@ namespace DCA
       {
         std::stringstream ss;
 
-        ss << scientific;
+        ss << std::scientific;
         ss.precision(6);
 
         ss << "\t\t\t"<< double(i)/double(N)*100. << " % completed \t ";
         ss << print_time();
         ss << "\n";
 
-        cout << ss.str();
+        std::cout << ss.str();
       }
   }
 
@@ -247,7 +247,7 @@ namespace DCA
 
   template<typename parameters_type, typename K_dmn>
   template<typename other_scalar_type, typename k_dmn>
-  void coarsegraining_sp<parameters_type, K_dmn>::plot_H_q(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn> >& H_0)
+  void coarsegraining_sp<parameters_type, K_dmn>::plot_H_q(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn> >& /*H_0*/)
   {
     /*
       FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn> > H_k("H_k");
@@ -279,7 +279,7 @@ namespace DCA
 
   template<typename parameters_type, typename K_dmn>
   template<typename other_scalar_type, typename k_dmn>
-  void coarsegraining_sp<parameters_type, K_dmn>::plot_S_q(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w> >& S_k_w)
+  void coarsegraining_sp<parameters_type, K_dmn>::plot_S_q(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w> >& /*S_k_w*/)
   {
     /*
       std::vector<scalar_type> x(q_dmn::dmn_size()*K_dmn::dmn_size());
@@ -438,7 +438,7 @@ namespace DCA
 
       std::vector<double> r_vec = r_dmn::get_elements()[r_ind];
 
-      cout << r_ind << "\t" << r_vec[0] << "\t" << r_vec[1] << "\t" << std::sqrt(r_vec[0]*r_vec[0]+r_vec[1]*r_vec[1]) << "\t" << phi_r(r_ind) << std::endl;
+      std::cout << r_ind << "\t" << r_vec[0] << "\t" << r_vec[1] << "\t" << std::sqrt(r_vec[0]*r_vec[0]+r_vec[1]*r_vec[1]) << "\t" << phi_r(r_ind) << std::endl;
     }
 
   }

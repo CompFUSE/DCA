@@ -46,11 +46,11 @@ namespace COMP_LIB
   };
 
   template<PARALLELIZATION_LIBRARY_NAMES LIBRARY>
-  parallelization<LIBRARY>::parallelization(int argc, char *argv[]):
+  parallelization<LIBRARY>::parallelization(int /*argc*/, char */*argv*/[]):
     print_on_shell_interface<LIBRARY>(group),
     packing_interface       <LIBRARY>(group),
     collective_sum_interface<LIBRARY>(group),
-
+    
     SEED(0)
   {}
 
@@ -99,14 +99,14 @@ namespace COMP_LIB
 
   template<PARALLELIZATION_LIBRARY_NAMES LIBRARY>
   template<typename object_type>
-  bool parallelization<LIBRARY>::broadcast(object_type& object, int root_id)
+  bool parallelization<LIBRARY>::broadcast(object_type& /*object*/, int /*root_id*/)
   {
     return true;
   }
 
   template<PARALLELIZATION_LIBRARY_NAMES LIBRARY>
   template<typename object_type>
-  bool parallelization<LIBRARY>::broadcast_object(object_type& object, int root_id)
+  bool parallelization<LIBRARY>::broadcast_object(object_type& /*object*/, int /*root_id*/)
   {
     return true;
   }

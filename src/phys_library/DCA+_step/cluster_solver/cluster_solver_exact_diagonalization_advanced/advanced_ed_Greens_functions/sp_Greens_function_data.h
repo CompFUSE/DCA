@@ -123,7 +123,7 @@ namespace DCA
     {}
 
     template<typename ed_options>
-    sp_Greens_function_data<ed_options>::sp_Greens_function_data(const this_type& other)
+    sp_Greens_function_data<ed_options>::sp_Greens_function_data(const this_type& /*other*/)
     {}
 
     template<typename ed_options>
@@ -198,7 +198,7 @@ namespace DCA
         {
           set_indices(ind);
 
-          cout << ind << "\t" << nu_i << ", " << nu_j << ", " << delta_r << endl;
+          std::cout << ind << "\t" << nu_i << ", " << nu_j << ", " << delta_r << std::endl;
 
           for(int t_i = t::dmn_size()/2; t_i<t::dmn_size(); ++t_i)
             G_r_t(nu_i, nu_j, delta_r, t_i) += G_tau__nu_nu_r(t_i, ind);

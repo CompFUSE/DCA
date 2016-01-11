@@ -3,7 +3,7 @@
 #ifndef POINT_GROUP_H
 #define POINT_GROUP_H
 
-#include "group_action.h"
+#include "symmetry_operations/group_action.h"
 
 /*!
  *      Author: Peter Staar

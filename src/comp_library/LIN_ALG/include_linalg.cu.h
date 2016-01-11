@@ -1,5 +1,10 @@
 //-*-C++-*-
 
+#include <complex>
+#include <iostream>
+#include <stdexcept>
+#include <cstdio>
+
 #include "linalg_device_types.h"
 
 #include "cuda.h"
@@ -20,36 +25,35 @@
 
 #include <utility>
 
-#include "memory_management_GPU.cu.h"
+#include "src/linalg_operations/memory_management_GPU.cu.h"
 
-#include "copy_from_CPU_GPU.cu.h"
-#include "copy_from_GPU_CPU.cu.h"
-#include "copy_from_GPU_GPU.cu.h"
+#include "src/linalg_operations/copy_from_CPU_GPU.cu.h"
+#include "src/linalg_operations/copy_from_GPU_CPU.cu.h"
+#include "src/linalg_operations/copy_from_GPU_GPU.cu.h"
 
 // cublas
-#include "DOT_GPU.cu.h"
+#include "src/linalg_operations/DOT_GPU.cu.h"
 
 // CUBLAS 1
-#include "BLAS_1_SCALE_GPU.cu.h"
-#include "BLAS_1_AXPY_GPU.cu.h"
-#include "BLAS_1_COPY_GPU.cu.h"
-#include "BLAS_1_SWAP_GPU.cu.h"
+#include "src/linalg_operations/BLAS_1_SCALE_GPU.cu.h"
+#include "src/linalg_operations/BLAS_1_AXPY_GPU.cu.h"
+#include "src/linalg_operations/BLAS_1_COPY_GPU.cu.h"
+#include "src/linalg_operations/BLAS_1_SWAP_GPU.cu.h"
 
 // CUBLAS 3
-#include "BLAS_3_TRSM_GPU.cu.h"
-#include "BLAS_3_GEMM_GPU.cu.h"
+#include "src/linalg_operations/BLAS_3_TRSM_GPU.cu.h"
+#include "src/linalg_operations/BLAS_3_GEMM_GPU.cu.h"
 
 // own kernels
-#include "GEMD_GPU.cu.h"
-#include "BENNET_GPU.cu.h"
-#include "LU_MATRIX_OPERATIONS_GPU.cu.h"
+#include "src/linalg_operations/GEMD_GPU.cu.h"
+#include "src/linalg_operations/BENNET_GPU.cu.h"
+#include "src/linalg_operations/LU_MATRIX_OPERATIONS_GPU.cu.h"
 
 // magma
-#include "LASET_GPU.cu.h"
-#include "TRSV_GPU.cu.h"
-#include "GETRF_GPU.cu.h"
-#include "GETRI_GPU.cu.h"
-#include "GETRS_GPU.cu.h"
-#include "GESVD_GPU.cu.h"
-#include "GEEV_GPU.cu.h"
-
+#include "src/linalg_operations/LASET_GPU.cu.h"
+#include "src/linalg_operations/TRSV_GPU.cu.h"
+#include "src/linalg_operations/GETRF_GPU.cu.h"
+#include "src/linalg_operations/GETRI_GPU.cu.h"
+#include "src/linalg_operations/GETRS_GPU.cu.h"
+#include "src/linalg_operations/GESVD_GPU.cu.h"
+#include "src/linalg_operations/GEEV_GPU.cu.h"

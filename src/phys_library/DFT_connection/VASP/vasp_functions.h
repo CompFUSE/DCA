@@ -295,10 +295,10 @@ namespace DFT
                           projector(ik,ib-corrband_min,io) = std::complex<double>(z_re, z_im);
                         }
 
-                      if ( fabs(projection_re(ik,ib-corrband_min,io)) < parameters.get_epsilon() )
+                      if ( std::fabs(projection_re(ik,ib-corrband_min,io)) < parameters.get_epsilon() )
                         projection_re(ik,ib-corrband_min,io) = 0.0;
 
-                      if ( fabs(projection_im(ik,ib-corrband_min,io)) < parameters.get_epsilon() )
+                      if ( std::fabs(projection_im(ik,ib-corrband_min,io)) < parameters.get_epsilon() )
                         projection_im(ik,ib-corrband_min,io) = 0.0;
 
                     } // chosen orbitals
@@ -620,7 +620,7 @@ namespace DFT
         double scale[o_dmft::dmn_size()];
         for(int io=0; io<o_dmft::dmn_size(); io++ )
           {
-            scale[io] = sqrt( fabs( oo_re(io,io) ) );
+            scale[io] = std::sqrt( std::fabs( oo_re(io,io) ) );
 
             if (scale[io]<1.0e-8)
               scale[io]=1.0;

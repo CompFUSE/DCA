@@ -962,13 +962,13 @@ namespace dca {
 	/*
 	cout << "    ---> (leading) j = " << i 
 	     << "    sval = "             << sqrt(square(1.0 - real(lambda)) + square(imag(lambda)))
-	     << "    eigenval = "         << real(lambda) << " ; " << fabs(imag(lambda)) 
+	     << "    eigenval = "         << real(lambda) << " ; " << std::fabs(imag(lambda)) 
 	     << "    |    ";
 	*/
 
 	cout << "    ---> lambda_" << i << " = " 
-	     << real(lambda)                    << " ; " << fabs(imag(lambda))              << "    |    " 
-	     << abs(leading_phi_t_chi_0_phi(i)) << " , " << abs(leading_phi_t_Gamma_phi(i)) << "    |    ";
+	     << real(lambda)                    << " ; " << std::fabs(imag(lambda))              << "    |    " 
+	     << abs(leading_phi_t_chi_0_phi(i)) << " , " << std::abs(leading_phi_t_Gamma_phi(i)) << "    |    ";
 
 	for(int H_ind=0; H_ind<N_HARMONICS; H_ind++)
 	  cout << "    " << abs(leading_symmetries(i, H_ind));

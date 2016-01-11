@@ -133,7 +133,7 @@ namespace DCA
     
     template<class parameter_type, class k_dmn_t>
     template<IO::FORMAT DATA_FORMAT>
-    void sigma_perturbation<4, parameter_type, k_dmn_t>::write(IO::writer<DATA_FORMAT>& writer)
+    void sigma_perturbation<4, parameter_type, k_dmn_t>::write(IO::writer<DATA_FORMAT>& /*writer*/)
     {
 
     }
@@ -183,9 +183,9 @@ namespace DCA
     void sigma_perturbation<4, parameter_type, k_dmn_t>::execute_on_cluster(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G,
                                                                             FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& Sigma_2)
     {
-      cout << __FUNCTION__ << endl;
+      std::cout << __FUNCTION__ << std::endl;
 
-      cout << "\t U : " << U(0,0,0,1) << endl;
+      std::cout << "\t U : " << U(0,0,0,1) << std::endl;
 
       sigma_perturbation<4, parameter_type, k_dmn_t>::execute_4A(G);
       sigma_perturbation<4, parameter_type, k_dmn_t>::execute_4C(G);
@@ -217,7 +217,7 @@ namespace DCA
     void sigma_perturbation<4, parameter_type, k_dmn_t>::execute_4A(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
     {
       profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
-      cout << __FUNCTION__ << endl;
+      std::cout << __FUNCTION__ << std::endl;
 
       double U_value = U(0,0,0,1);
 
@@ -228,7 +228,7 @@ namespace DCA
 
           int nu_c = (nu_ind-w_VERTEX_BOSONIC::dmn_size()/2);
 
-          for(int w_ind=fabs(nu_c); w_ind<w::dmn_size()-fabs(nu_c); ++w_ind){
+          for(int w_ind=std::fabs(nu_c); w_ind<w::dmn_size()-std::fabs(nu_c); ++w_ind){
             for(int k_ind=0; k_ind<k_dmn_t::dmn_size(); ++k_ind){
 
               int k_minus_q = k_dmn_t::parameter_type::subtract(q_ind, k_ind);
@@ -254,7 +254,7 @@ namespace DCA
     void sigma_perturbation<4, parameter_type, k_dmn_t>::execute_4C(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
     {
       profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
-      cout << __FUNCTION__ << endl;
+      std::cout << __FUNCTION__ << std::endl;
 
       double U_value = U(0,0,0,1);
 
@@ -290,7 +290,7 @@ namespace DCA
                                                                     FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& Sigma_2)
     {
       profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
-      cout << __FUNCTION__ << endl;
+      std::cout << __FUNCTION__ << std::endl;
 
       double U_value = U(0,0,0,1);
 
@@ -327,7 +327,7 @@ namespace DCA
                                                                     FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& Sigma_2)
     {
       profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
-      cout << __FUNCTION__ << endl;
+      std::cout << __FUNCTION__ << std::endl;
 
       double U_value = U(0,0,0,1);
 
@@ -364,7 +364,7 @@ namespace DCA
                                                                     FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& Sigma_2)
     {
       profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
-      cout << __FUNCTION__ << endl;
+      std::cout << __FUNCTION__ << std::endl;
 
       double U_value = U(0,0,0,1);
 
@@ -400,7 +400,7 @@ namespace DCA
     void sigma_perturbation<4, parameter_type, k_dmn_t>::execute_4G(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
     {
       profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
-      cout << __FUNCTION__ << endl;
+      std::cout << __FUNCTION__ << std::endl;
 
       double U_value = U(0,0,0,1);
 
@@ -468,7 +468,7 @@ namespace DCA
     void sigma_perturbation<4, parameter_type, k_dmn_t>::execute_4H(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
     {
       profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
-      cout << __FUNCTION__ << endl;
+      std::cout << __FUNCTION__ << std::endl;
 
       double U_value = U(0,0,0,1);
 
@@ -535,7 +535,7 @@ namespace DCA
       template<class parameter_type, class k_dmn_t>
       void sigma_perturbation<4, parameter_type, k_dmn_t>::execute_4J_old(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
       {
-      cout << __FUNCTION__ << endl;
+      std::cout << __FUNCTION__ << std::endl;
 
       double U_value = U(0,0,0,1);
 
@@ -594,7 +594,7 @@ namespace DCA
     void sigma_perturbation<4, parameter_type, k_dmn_t>::execute_4J(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
     {
       profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
-      cout << __FUNCTION__ << endl;
+      std::cout << __FUNCTION__ << std::endl;
 
       double U_value = U(0,0,0,1);
 
@@ -681,7 +681,7 @@ namespace DCA
     void sigma_perturbation<4, parameter_type, k_dmn_t>::execute_4K(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
     {
       profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
-      cout << __FUNCTION__ << endl;
+      std::cout << __FUNCTION__ << std::endl;
 
       double U_value = U(0,0,0,1);
 
@@ -767,7 +767,7 @@ namespace DCA
     void sigma_perturbation<4, parameter_type, k_dmn_t>::execute_4L(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
     {
       profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
-      cout << __FUNCTION__ << endl;
+      std::cout << __FUNCTION__ << std::endl;
 
       double U_value = U(0,0,0,1);
 

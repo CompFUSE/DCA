@@ -133,10 +133,10 @@ namespace DCA
   template<class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
   continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t, WEIGHTED_GRADIENT_METHOD>::continuous_pole_expansion(parameters_type&  parameters_ref,
                                                                                                                                       concurrency_type& concurrency_ref,
-                                                                                                                                      bool              fixed_zeroth_moment,
-                                                                                                                                      double            zeroth_moment_val,
-                                                                                                                                      bool              fixed_first_moment,
-                                                                                                                                      double            first_moment_val):
+                                                                                                                                      bool              /*fixed_zeroth_moment*/,
+                                                                                                                                      double            /*zeroth_moment_val*/,
+                                                                                                                                      bool              /*fixed_first_moment*/,
+                                                                                                                                      double            /*first_moment_val*/):
     parameters(parameters_ref),
     concurrency(concurrency_ref),
 
@@ -167,7 +167,7 @@ namespace DCA
   {
     IO::FORMAT FORMAT = parameters.get_output_format();
 
-    cout << "\n\n\t\t start writing " << file_name << "\n\n";
+    std::cout << "\n\n\t\t start writing " << file_name << "\n\n";
 
     switch(FORMAT)
       {
@@ -206,7 +206,7 @@ namespace DCA
 
   template<class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
   template<IO::FORMAT DATA_FORMAT>
-  void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t, WEIGHTED_GRADIENT_METHOD>::write(IO::writer<DATA_FORMAT>& writer)
+  void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t, WEIGHTED_GRADIENT_METHOD>::write(IO::writer<DATA_FORMAT>& /*writer*/)
   {
     /*
       writer.open_group("CPE-functions");
@@ -224,8 +224,8 @@ namespace DCA
   template<class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
   void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t, WEIGHTED_GRADIENT_METHOD>::initialize()
   {
-    //     cout << "\n\t w_IMAG     ::dmn_size() : " << w_IMAG     ::dmn_size();
-    //     cout << "\n\t alpha_dmn_t::dmn_size() : " << alpha_dmn_t::dmn_size();
+    //     std::cout << "\n\t w_IMAG     ::dmn_size() : " << w_IMAG     ::dmn_size();
+    //     std::cout << "\n\t alpha_dmn_t::dmn_size() : " << alpha_dmn_t::dmn_size();
 
     {
       A_matrix   .resize_no_copy(std::pair<int,int>(w_IMAG::dmn_size(), alpha_dmn_t::dmn_size()));
@@ -252,7 +252,7 @@ namespace DCA
   void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t, WEIGHTED_GRADIENT_METHOD>::execute_st(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w      > >& f_source,
                                                                                                                             FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w_dmn_t> >& f_target)
   {
-    //cout << __FUNCTION__ << "\t" << __LINE__ << "\n";
+    //std::cout << __FUNCTION__ << "\t" << __LINE__ << "\n";
 
     profiler_type profiler(__FUNCTION__, __FILE__, __LINE__);
 
@@ -268,21 +268,21 @@ namespace DCA
 
     CPE_data_obj.initialize(parameters, f_target, *this);
 
-    //cout << "\n\n";
+    //std::cout << "\n\n";
     for(int k_ind=0; k_ind<k_dmn_t::dmn_size(); k_ind++){
       for(int nu_ind=0; nu_ind<nu::dmn_size(); nu_ind++){
 
-        //cout << k_ind << "\t" << nu_ind << "\t start reading measured function\n";
+        //std::cout << k_ind << "\t" << nu_ind << "\t start reading measured function\n";
         {
           read_function_values(nu_ind, k_ind, CPE_data_obj);
         }
 
-        //cout << k_ind << "\t" << nu_ind << "\t start analytic continuation\n";
+        //std::cout << k_ind << "\t" << nu_ind << "\t start analytic continuation\n";
         {// find the alpha
           perform_continuous_pole_expansion_threaded(CPE_data_obj);
         }
 
-        //cout << k_ind << "\t" << nu_ind << "\t start writing approx function\n";
+        //std::cout << k_ind << "\t" << nu_ind << "\t start writing approx function\n";
         {
           write_function_values(nu_ind, k_ind, CPE_data_obj);
         }
@@ -344,7 +344,7 @@ namespace DCA
     //     std::stringstream ss;
     //     {
     //       ss << id << "\t" << nr_threads << "\t" << k_bounds.first << "\t" << k_bounds.second << "\t" << CPE_data_vec.size() << "\n";
-    //       cout << ss.str();
+    //       std::cout << ss.str();
     //     }
 
     for(int k_ind=k_bounds.first; k_ind<k_bounds.second; k_ind++)
@@ -352,19 +352,19 @@ namespace DCA
     for(int nu_ind=0; nu_ind<nu::dmn_size(); nu_ind++)
     {
     //             ss << k_ind << "\t" << nu_ind << "\t start reading measured function\n";
-    //             cout << ss.str();
+    //             std::cout << ss.str();
     {
     read_function_values(nu_ind, k_ind, CPE_data_vec[id]);
     }
 
     //             ss << k_ind << "\t" << nu_ind << "\t start analytic continuation\n";
-    //             cout << ss.str();
+    //             std::cout << ss.str();
     {// find the alpha
     perform_continuous_pole_expansion_threaded_1(CPE_data_vec[id]);
     }
 
     //             ss << k_ind << "\t" << nu_ind << "\t start writing approx function\n";
-    //             cout << ss.str();
+    //             std::cout << ss.str();
     {
     write_function_values(nu_ind, k_ind, CPE_data_vec[id]);
     }
@@ -476,7 +476,7 @@ namespace DCA
     //  ss << "\t\t MPI-bounds   : " << MPI_bounds.first << "\t" << MPI_bounds.second << "\n";
     //  ss << "\t\t POSIX-bounds : " << id << "\t" << nr_threads << "\t" << bounds.first << "\t" << bounds.second << "\n";
     //  ss << "\n\n\n";
-    //         cout << ss.str();
+    //         std::cout << ss.str();
     //       }
 
     int coor[3];
@@ -492,7 +492,7 @@ namespace DCA
           //           {
           //             std::stringstream ss;
           //             ss << nu_ind << "\t" << k_ind << "\t start reading measured function\n";
-          //             cout << ss.str();
+          //             std::cout << ss.str();
           //           }
           {
             read_function_values(nu_ind, k_ind, CPE_data_vec[id]);
@@ -502,7 +502,7 @@ namespace DCA
           //           {
           //             std::stringstream ss;
           //             ss << nu_ind << "\t" << k_ind << "\t start analytic continuation\n";
-          //             cout << ss.str();
+          //             std::cout << ss.str();
           //           }
 
           if(CPE_data_vec[id].is_interacting_band[nu_ind])
@@ -519,7 +519,7 @@ namespace DCA
           //           {
           //             std::stringstream ss;
           //             ss << nu_ind << "\t" << k_ind << "\t start writing approx function\n";
-          //             cout << ss.str();
+          //             std::cout << ss.str();
           //           }
 
           {
@@ -530,7 +530,7 @@ namespace DCA
           //           {
           //             std::stringstream ss;
           //             ss << "\n";
-          //             cout << ss.str();
+          //             std::cout << ss.str();
           //           }
         }
       }
@@ -661,7 +661,7 @@ namespace DCA
       }
 
     //     if(concurrency.id()==0 and CPE_data_obj.id==0)
-    //       cout << CPE_iteration << "\t" << MAX_ITERATIONS << "\t" << evaluate_Lambda_norm(CPE_data_obj) << "\t" << result << "\n";
+    //       std::cout << CPE_iteration << "\t" << MAX_ITERATIONS << "\t" << evaluate_Lambda_norm(CPE_data_obj) << "\t" << result << "\n";
   }
 
   template<class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
@@ -691,7 +691,7 @@ namespace DCA
       }
 
     //     if(concurrency.id()==0 and CPE_data_obj.id==0)
-    //       cout << CPE_iteration << "\t" << MAX_ITERATIONS << "\t" << evaluate_Lambda_norm(CPE_data_obj) << "\n";
+    //       std::cout << CPE_iteration << "\t" << MAX_ITERATIONS << "\t" << evaluate_Lambda_norm(CPE_data_obj) << "\n";
   }
 
   template<class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
@@ -725,7 +725,7 @@ namespace DCA
   template<class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
   void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t, WEIGHTED_GRADIENT_METHOD>::compute_gradient_alphas(CPE_data_type& CPE_data_obj)
   {
-    //cout << __FUNCTION__ << "\t" << __LINE__ << "\n";
+    //std::cout << __FUNCTION__ << "\t" << __LINE__ << "\n";
 
     profiler_type profiler(__FUNCTION__, __FILE__, __LINE__);
 
@@ -1113,7 +1113,7 @@ namespace DCA
   template<class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
   double continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t, WEIGHTED_GRADIENT_METHOD>::evaluate_Lambda_norm(CPE_data_type& CPE_data_obj)
   {
-    //cout << __FUNCTION__ << "\t" << __LINE__ << "\n";
+    //std::cout << __FUNCTION__ << "\t" << __LINE__ << "\n";
 
     profiler_type profiler(__FUNCTION__, __FILE__, __LINE__);
 

@@ -116,9 +116,9 @@ template<typename type_list1, typename type_list2, typename type_input, typename
 struct wannier_interpolation_generic<type_list1, type_list2, type_input, type_output, dmn_shift, -1>
 {
   template<typename scalartype_1, typename dmn_type_1, typename scalartype_2, typename dmn_type_2>
-  static void execute(FUNC_LIB::function<scalartype_1, dmn_type_1>& f_source, FUNC_LIB::function<scalartype_2, dmn_type_2>& F_target)
+    static void execute(FUNC_LIB::function<scalartype_1, dmn_type_1>& /*f_source*/, FUNC_LIB::function<scalartype_2, dmn_type_2>& /*F_target*/)
   {
-    cout << "STOP" << endl;
+    std::cout << "STOP" << std::endl;
   }
 };
 

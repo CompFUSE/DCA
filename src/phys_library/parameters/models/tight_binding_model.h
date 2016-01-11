@@ -186,7 +186,7 @@ void tight_binding_model<lattice_type, interaction_type>::initialize_H_LDA(FUNC_
 
 template<typename lattice_type, typename interaction_type>
 template<class parameters_type>
-void tight_binding_model<lattice_type, interaction_type>::initialize(parameters_type& parameters)
+void tight_binding_model<lattice_type, interaction_type>::initialize(parameters_type& /*parameters*/)
 {
 /*
   // compile-time switch

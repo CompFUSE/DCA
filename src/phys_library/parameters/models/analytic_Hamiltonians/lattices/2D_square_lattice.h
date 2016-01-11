@@ -119,10 +119,10 @@ void square_lattice<point_group_type>::initialize_H_interaction(FUNC_LIB::functi
 {
   double U = parameters.get_U();
 
-  int origin = domain::domain_typelist_2::Head::origin_index();
+  // int origin = domain::domain_typelist_2::Head::origin_index();
   
-  H_interaction(0,0,origin) = 0;  H_interaction(0,1,origin) = U;
-  H_interaction(1,0,origin) = U;  H_interaction(1,1,origin) = 0;
+  H_interaction(0,0,0) = 0;  H_interaction(0,1,0) = U;
+  H_interaction(1,0,0) = U;  H_interaction(1,1,0) = 0;
 }
 
 template<typename point_group_type>

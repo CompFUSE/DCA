@@ -18,7 +18,7 @@ namespace IO
   template<typename scalartype>
   void writer<IO::CSV>::execute(std::string file_name,  std::vector<std::vector<scalartype> >& data)
   {
-    ofstream myfile;
+    std::ofstream myfile;
     myfile.open(file_name.c_str());
 
     for(size_t j=0; j<data.size(); ++j)

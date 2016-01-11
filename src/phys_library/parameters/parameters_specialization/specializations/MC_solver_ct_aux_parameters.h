@@ -119,7 +119,7 @@ void MC_solver_parameters<DCA::CT_AUX_CLUSTER_SOLVER>::read_write(read_write_typ
     }
   catch(const std::exception& r_e) 
     { 
-      cout << "\n\t CT-AUX-solver-parameters defined !!  \n\n";
+      std::cout << "\n\t CT-AUX-solver-parameters defined !!  \n\n";
       throw std::logic_error(__PRETTY_FUNCTION__);
     }
 }

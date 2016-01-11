@@ -107,7 +107,7 @@ namespace QMC {
     for(int nu_ind_i=0; nu_ind_i<2*BANDS; nu_ind_i++)
       for(int nu_ind_j=0; nu_ind_j<2*BANDS; nu_ind_j++)
 	for(int r=0; r<FULL_CLUSTER_SIZE; r++)
-	  fabs(H_interaction(nu_ind_i, nu_ind_j, r)) > 1.e-3 ? CORRELATED_ORBITALS++ : CORRELATED_ORBITALS ;
+    std::fabs(H_interaction(nu_ind_i, nu_ind_j, r)) > 1.e-3 ? CORRELATED_ORBITALS++ : CORRELATED_ORBITALS ;
 
     CORRELATED_ORBITALS = CORRELATED_ORBITALS/2.; 
   }

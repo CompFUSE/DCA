@@ -124,7 +124,7 @@ void MC_solver_parameters<DCA::SS_CT_HYB>::read_write(read_write_type& read_writ
     }
   catch(const std::exception& r_e) 
     { 
-      cout << "\n\t SS-CT-HYB-solver-parameters defined !!  \n\n";
+      std::cout << "\n\t SS-CT-HYB-solver-parameters defined !!  \n\n";
       throw std::logic_error(__PRETTY_FUNCTION__);
     }
 }

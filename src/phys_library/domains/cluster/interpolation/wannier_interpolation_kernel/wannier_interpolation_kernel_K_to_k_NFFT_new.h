@@ -3,6 +3,8 @@
 #ifndef WANNIER_INTERPOLATION_KERNEL_K_TO_k_NFFT_NEW_H
 #define WANNIER_INTERPOLATION_KERNEL_K_TO_k_NFFT_NEW_H
 
+#include <nfft3.h>
+
 /*! \class   wannier_interpolation_kernel
  *  \ingroup INTERPOLATION
  *
@@ -163,7 +165,7 @@ void wannier_interpolation_kernel<cluster_domain<scalar_type, D, N, MOMENTUM_SPA
     size *= grid_size[i];
 
   if(size < source_k_dmn_t::dmn_size()){
-    cout << "\n\n\t INCREASE LDA-grid FOR WANNIER-INTERPOLATION!!! \n\n\n";
+    std::cout << "\n\n\t INCREASE LDA-grid FOR WANNIER-INTERPOLATION!!! \n\n\n";
     throw std::logic_error(__FUNCTION__);
   }
 }
@@ -247,7 +249,7 @@ void wannier_interpolation_kernel<cluster_domain<scalar_type, D, N, MOMENTUM_SPA
     }
   }
 
-  if(nfft_K_2_R.nfft_flags & PRE_ONE_PSI) 
+  if(nfft_K_2_R.flags & PRE_ONE_PSI) 
     nfft_precompute_one_psi(&nfft_K_2_R);
 }
 
@@ -289,7 +291,7 @@ void wannier_interpolation_kernel<cluster_domain<scalar_type, D, N, MOMENTUM_SPA
     }
   }
 
-  if(nfft_R_2_k.nfft_flags & PRE_ONE_PSI) 
+  if(nfft_R_2_k.flags & PRE_ONE_PSI) 
     nfft_precompute_one_psi(&nfft_R_2_k);
 }
 

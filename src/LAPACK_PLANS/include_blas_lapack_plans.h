@@ -11,32 +11,32 @@ enum    LINEAR_ALGEBRA_LIBRARY {BLAS_LIBRARY, CUBLAS_LIBRARY, LAPACK_LIBRARY, MA
 typedef LINEAR_ALGEBRA_LIBRARY LINEAR_ALGEBRA_LIBRARY_TYPE;
 
 // BLAS
-#include "BLAS_C_wrappers.h" 
+#include "BLAS/BLAS_C_wrappers.h" 
 
 //#include "swap_plan.h"
 //#include "copy_plan.h"
 //#include "scale_plan.h"
 
-#include "blas_gemm.h"
+#include "BLAS/blas_gemm.h"
 
-#include "gemv_plan.h"
+#include "BLAS/gemv_plan.h"
 //#include "gbmv_plan.h"
 //#include "trsv_plan.h"
 
 //LAPACK
-#include "LAPACK_C_wrappers.h" 
+#include "LAPACK/LAPACK_C_wrappers.h" 
 
 //#include "geev_plan.h"
 //#include "include_eigensystem_plans.h"
 //#include "include_gelss_plan.h"
-#include "geinv_plan.h"
+#include "LAPACK/geinv_plan.h"
 //#include "gelss_plan.h"
-#include "gesv_plan.h"
+#include "LAPACK/gesv_plan.h"
 //#include "gesvd_plan.h"
 //#include "getrf_plan.h"
 //#include "lapack_getrs.h"
-#include "geqr_plans_real.h"
+#include "LAPACK/geqr_plans/geqr_plans_real.h"
 
 // LINEAR_ALGEBRA_PLANS
-#include "gemm_plan.h"
+#include "LINEAR_ALGEBRA_PLANS/gemm_plan.h"
 //#include "getrs_plan.h"

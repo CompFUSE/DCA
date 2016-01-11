@@ -65,7 +65,7 @@ namespace DCA
 
     template<class parameter_type, class k_dmn_t>
     template<IO::FORMAT DATA_FORMAT>
-    void sigma_perturbation<1, parameter_type, k_dmn_t>::write(IO::writer<DATA_FORMAT>& writer)
+    void sigma_perturbation<1, parameter_type, k_dmn_t>::write(IO::writer<DATA_FORMAT>& /*writer*/)
     {
 
     }

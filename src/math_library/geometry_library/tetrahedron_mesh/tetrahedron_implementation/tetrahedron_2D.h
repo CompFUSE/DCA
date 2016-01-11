@@ -74,8 +74,8 @@ namespace MATH_ALGORITHMS
     template<typename scalartype>
     eigenvalue_degeneracy_t find_degeneracy(scalartype* f, scalartype* e);
 
-    static bool pair_same(std::pair<complex<double>, complex<double> > const& x,
-                          std::pair<complex<double>, complex<double> > const& y);
+    static bool pair_same(std::pair<std::complex<double>, std::complex<double> > const& x,
+                          std::pair<std::complex<double>, std::complex<double> > const& y);
 
 
 
@@ -88,8 +88,8 @@ namespace MATH_ALGORITHMS
     template<typename scalartype>
     eigenvalue_degeneracy_t find_degeneracy(int* f, scalartype* e);
 
-    static bool pair_same_index(std::pair<complex<double>, int> const& x,
-                                std::pair<complex<double>, int> const& y);
+    static bool pair_same_index(std::pair<std::complex<double>, int> const& x,
+                                std::pair<std::complex<double>, int> const& y);
 
   public:
 
@@ -383,7 +383,7 @@ namespace MATH_ALGORITHMS
   }
 
   template<typename scalartype, typename mesh_t>
-  void tetrahedron<2>::integrate_function(int size, std::vector<scalartype*> f, mesh_t& mesh, scalartype* f_result)
+  void tetrahedron<2>::integrate_function(int size, std::vector<scalartype*> f, mesh_t& /*mesh*/, scalartype* f_result)
   {
     assert(f.size()==3);
 
@@ -458,7 +458,7 @@ namespace MATH_ALGORITHMS
                                                   std::vector<scalartype*> e,
                                                   std::vector<scalartype*> Vr,
                                                   std::vector<scalartype*> Vl,
-                                                  mesh_t&                  mesh,
+                                                  mesh_t&                  /*mesh*/,
                                                   scalartype*              f_result)
   {
     static scalartype matrix_elements[3];
@@ -561,8 +561,8 @@ namespace MATH_ALGORITHMS
     throw std::logic_error(__FUNCTION__);
   }
 
-  bool tetrahedron<2>::pair_same(std::pair<complex<double>, complex<double> > const& x,
-                                 std::pair<complex<double>, complex<double> > const& y)
+  bool tetrahedron<2>::pair_same(std::pair<std::complex<double>, std::complex<double> > const& x,
+                                 std::pair<std::complex<double>, std::complex<double> > const& y)
   {
     double abs_x = abs(x.first);
     double abs_y = abs(y.first);
@@ -581,7 +581,7 @@ namespace MATH_ALGORITHMS
                                                                    std::vector<scalartype*> e,
                                                                    std::vector<scalartype*> Vr,
                                                                    std::vector<scalartype*> Vl,
-                                                                   mesh_t&                  mesh,
+                                                                   mesh_t&                  /*mesh*/,
                                                                    scalartype*              f_result)
   {
     static int index[3];
@@ -722,8 +722,8 @@ namespace MATH_ALGORITHMS
     throw std::logic_error(__FUNCTION__);
   }
 
-  bool tetrahedron<2>::pair_same_index(std::pair<complex<double>, int> const& x,
-                                       std::pair<complex<double>, int> const& y)
+  bool tetrahedron<2>::pair_same_index(std::pair<std::complex<double>, int> const& x,
+                                       std::pair<std::complex<double>, int> const& y)
   {
     double abs_x = abs(x.first);
     double abs_y = abs(y.first);
@@ -740,7 +740,7 @@ namespace MATH_ALGORITHMS
   template<typename scalartype>
   scalartype tetrahedron<2>::compute_volume(scalartype* k0, scalartype* k1, scalartype* k2)
   {
-    return abs((k2[1]-k0[1])*(k1[0]-k0[0])-(k2[0]-k0[0])*(k1[1]-k0[1]))/2.;
+    return std::abs((k2[1]-k0[1])*(k1[0]-k0[0])-(k2[0]-k0[0])*(k1[1]-k0[1]))/2.;
   }
 
   template<typename mesh_t>
@@ -757,7 +757,7 @@ namespace MATH_ALGORITHMS
     if(VECTOR_OPERATIONS::L2_NORM(mesh[index[2]], vec_2)>1.e-6)
       OK = false;
 
-    if(fabs(volume-compute_volume(&vec_0[0], &vec_1[0], &vec_2[0]))>1.e-6)
+    if(std::fabs(volume-compute_volume(&vec_0[0], &vec_1[0], &vec_2[0]))>1.e-6)
       OK = false;
 
     if(!OK)

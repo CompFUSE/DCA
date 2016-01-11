@@ -160,7 +160,7 @@ namespace DCA
     accumulator.initialize(DCA_iteration);
 
     if(concurrency.id()==0)
-      cout << "\n\n\t CT-AUX Integrator has initialized (DCA-iteration : " << dca_iteration << ")\n\n";
+      std::cout << "\n\n\t CT-AUX Integrator has initialized (DCA-iteration : " << dca_iteration << ")\n\n";
   }
 
   template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
@@ -318,13 +318,13 @@ namespace DCA
 
     if( concurrency.id() == concurrency.first() && N > 10 && (tmp % (N/10)) == 0 )
       {
-        cout << scientific;
-        cout.precision(6);
+        std::cout << std::scientific;
+        std::cout.precision(6);
 
-        cout << "\t\t\t"   << double(i)/double(N)*100. << " % completed \t ";
+        std::cout << "\t\t\t"   << double(i)/double(N)*100. << " % completed \t ";
 
-        cout << "\t <k> :" << N_k << "      ";
-        cout << print_time() << "\n";
+        std::cout << "\t <k> :" << N_k << "      ";
+        std::cout << print_time() << "\n";
       }
   }
 
@@ -335,13 +335,13 @@ namespace DCA
 
     if( concurrency.id() == concurrency.first() && N > 10 && (tmp % (N/10)) == 0 )
       {
-        cout << scientific;
-        cout.precision(6);
+        std::cout << std::scientific;
+        std::cout.precision(6);
 
-        cout << "\t\t\t"   << double(i)/double(N)*100. << " % completed \t ";
+        std::cout << "\t\t\t"   << double(i)/double(N)*100. << " % completed \t ";
 
-        cout << "\t <k> :" << N_k << "    N : " << N_s << "      ";
-        cout << print_time() << "\n";
+        std::cout << "\t <k> :" << N_k << "    N : " << N_s << "      ";
+        std::cout << print_time() << "\n";
       }
   }
 
@@ -352,7 +352,7 @@ namespace DCA
       {
         {
           if(concurrency.id()==0)
-            cout << "\n\t\t compute-error-bars on Self-energy\t" << print_time() << "\n\n";
+            std::cout << "\n\t\t compute-error-bars on Self-energy\t" << print_time() << "\n\n";
 
           FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> > G_k_w_new("G_k_w_new");
 
@@ -377,7 +377,7 @@ namespace DCA
           if(parameters.get_vertex_measurement_type() != NONE)
             {
               if(concurrency.id()==0)
-                cout << "\n\t\t compute-error-bars on G4\t" << print_time() << "\n\n";
+                std::cout << "\n\t\t compute-error-bars on G4\t" << print_time() << "\n\n";
 
               double sign = accumulator.get_sign()/double(Nb_measurements_per_node);
 
@@ -396,7 +396,7 @@ namespace DCA
   void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::sum_measurements(int Nb_measurements)
   {
     if(concurrency.id()==0)
-      cout << "\n\t\t sum measurements \t" << print_time() << "\n"
+      std::cout << "\n\t\t sum measurements \t" << print_time() << "\n"
            << "\n\t\t\t QMC-time : " << total_time                                     << " [sec]"
            << "\n\t\t\t Gflops   : " << accumulator.get_Gflop()/total_time             << " [Gf]"
            << "\n\t\t\t sign     : " << accumulator.get_sign()/double(Nb_measurements) << " \n";
@@ -484,7 +484,7 @@ namespace DCA
   void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::symmetrize_measurements()
   {
     if(concurrency.id()==0)
-      cout << "\n\t\t symmetrize measurements has started \t" << print_time() << "\n";
+      std::cout << "\n\t\t symmetrize measurements has started \t" << print_time() << "\n";
 
     symmetrize::execute(accumulator.get_M_r_w()        , MOMS.H_symmetry);
     symmetrize::execute(accumulator.get_M_r_w_squared(), MOMS.H_symmetry);
@@ -616,7 +616,7 @@ namespace DCA
                                                                                                       FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> >& G_k_w_new)
   {
 //     if(concurrency.id()==0)
-//       cout << "\n\t\t compute-G_k_w_new\t" << print_time() << "\n\n";
+//       std::cout << "\n\t\t compute-G_k_w_new\t" << print_time() << "\n\n";
 
     LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> G_matrix   ("G_matrix", nu::dmn_size());
     LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> G0_matrix  ("G0_matrix", nu::dmn_size());
@@ -651,7 +651,7 @@ namespace DCA
                                                                                                       FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> >& S_k_w_new)
   {
 //     if(concurrency.id()==0)
-//       cout << "\n\t\t start compute-S_k_w\t" << print_time() << "\n\n";
+//       std::cout << "\n\t\t start compute-S_k_w\t" << print_time() << "\n\n";
 
     //     LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> G_matrix ("G_matrix" , nu::dmn_size());
     //     LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> G0_matrix("G0_matrix", nu::dmn_size());
@@ -688,7 +688,7 @@ namespace DCA
       adjust_self_energy_for_double_counting();
 
 //     if(concurrency.id()==0)
-//       cout << "\n\t\t end compute-S_k_w\t" << print_time() << "\n\n";
+//       std::cout << "\n\t\t end compute-S_k_w\t" << print_time() << "\n\n";
 
     symmetrize::execute(S_k_w_new, MOMS.H_symmetry);
   }
@@ -807,7 +807,7 @@ namespace DCA
 
     double L2_error = std::sqrt(diff_L2_norm)/double(k_DCA::dmn_size());
     if(concurrency.id() == concurrency.first())
-      cout << "\n\n\t\t |Sigma_QMC - Sigma_cg|_2 ~ " << L2_error << "\n\n";
+      std::cout << "\n\n\t\t |Sigma_QMC - Sigma_cg|_2 ~ " << L2_error << "\n\n";
 
     return L2_error;
   }

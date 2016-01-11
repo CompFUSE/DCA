@@ -156,7 +156,7 @@ void akima_interpolation<scalartype>::compute_coefficients(scalartype* x_array, 
     {
       a[i] = y_array[i];
 
-      const scalartype NE = fabs (m[i + 1] - m[i]) + fabs (m[i - 1] - m[i - 2]);
+      const scalartype NE = std::fabs(m[i + 1] - m[i]) + fabs (m[i - 1] - m[i - 2]);
 
       if (NE == 0.0)
         {
@@ -167,8 +167,8 @@ void akima_interpolation<scalartype>::compute_coefficients(scalartype* x_array, 
       else
         {
           const scalartype h_i = x_array[i + 1] - x_array[i];
-          const scalartype NE_next = fabs (m[i + 2] - m[i + 1]) + fabs (m[i] - m[i - 1]);
-          const scalartype alpha_i = fabs (m[i - 1] - m[i - 2]) / NE;
+          const scalartype NE_next = std::fabs(m[i + 2] - m[i + 1]) + fabs (m[i] - m[i - 1]);
+          const scalartype alpha_i = std::fabs(m[i - 1] - m[i - 2]) / NE;
 
           scalartype alpha_ip1;
           scalartype tL_ip1;
@@ -179,7 +179,7 @@ void akima_interpolation<scalartype>::compute_coefficients(scalartype* x_array, 
             }
           else
             {
-              alpha_ip1 = fabs (m[i] - m[i - 1]) / NE_next;
+              alpha_ip1 = std::fabs(m[i] - m[i - 1]) / NE_next;
               tL_ip1 = (1.0 - alpha_ip1) * m[i] + alpha_ip1 * m[i + 1];
             }
 

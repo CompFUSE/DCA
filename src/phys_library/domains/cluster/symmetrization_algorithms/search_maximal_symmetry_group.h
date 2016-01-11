@@ -23,7 +23,7 @@ class search_symmetry_group
 private:
 
   typedef typename TypeAt<point_group, INDEX>::Result symmetry_type;
-  typedef typename symmetry_type::base_type           group_action_type; 
+  typedef typename symmetry_type::base_type           group_action_type;
 
   const static int DIMENSION = base_cluster_type::DIMENSION;
 
@@ -47,29 +47,29 @@ private:
     static void execute(double* T, double* T_inv)
     {
       switch(my_symmetry_group_level)
-	{
-	case UNIT_CELL:
-	  for(int i=0; i<DIMENSION; ++i)
-	    for(int j=0; j<DIMENSION; ++j)
-	      T[j+DIMENSION*i] = r_cluster_type::get_basis_vectors()[i][j];
-	  break;
-	  
-	case SUPER_CELL:
-	  for(int i=0; i<DIMENSION; ++i)
-	    for(int j=0; j<DIMENSION; ++j)
-	      T[j+DIMENSION*i] = r_cluster_type::get_super_basis_vectors()[i][j];
-	  break;
-	  
-	default:
-	  throw std::logic_error(__FUNCTION__);
-	}
-      
       {
-	invert_plan<double> invert_pln(DIMENSION);
-	
-	memcpy(invert_pln.Matrix, &T[0]                     , sizeof(double)*square(DIMENSION));
-	invert_pln.execute_plan();
-	memcpy(&T_inv[0]        , invert_pln.inverted_matrix, sizeof(double)*square(DIMENSION));
+      case UNIT_CELL:
+        for(int i=0; i<DIMENSION; ++i)
+          for(int j=0; j<DIMENSION; ++j)
+            T[j+DIMENSION*i] = r_cluster_type::get_basis_vectors()[i][j];
+        break;
+
+      case SUPER_CELL:
+        for(int i=0; i<DIMENSION; ++i)
+          for(int j=0; j<DIMENSION; ++j)
+            T[j+DIMENSION*i] = r_cluster_type::get_super_basis_vectors()[i][j];
+        break;
+
+      default:
+        throw std::logic_error(__FUNCTION__);
+      }
+
+      {
+        invert_plan<double> invert_pln(DIMENSION);
+
+        memcpy(invert_pln.Matrix, &T[0]                     , sizeof(double)*square(DIMENSION));
+        invert_pln.execute_plan();
+        memcpy(&T_inv[0]        , invert_pln.inverted_matrix, sizeof(double)*square(DIMENSION));
       }
     }
   };
@@ -81,16 +81,16 @@ private:
 
     for(int i=0; i<DIMENSION; i++)
       for(int j=0; j<DIMENSION; j++)
-	w[i] += T_inv[i+DIMENSION*j]*v[j];
-    
-    for(int i=0; i<DIMENSION; ++i)
-      {
-	while(w[i]<-1.e-6)
-	  w[i] += 1.;
+        w[i] += T_inv[i+DIMENSION*j]*v[j];
 
-	while(w[i]>1-1.e-6)
-	  w[i] -= 1.;
-      }
+    for(int i=0; i<DIMENSION; ++i)
+    {
+      while(w[i]<-1.e-6)
+        w[i] += 1.;
+
+      while(w[i]>1-1.e-6)
+        w[i] -= 1.;
+    }
   }
 
   static bool is_duplicate()
@@ -98,38 +98,38 @@ private:
     if(sym_dmn_t::get_size() == 0)
       return false;
     else
-      {
-	bool is_a_duplicate = false;
+    {
+      bool is_a_duplicate = false;
 
-	for(int l=0; l<sym_dmn_t::get_size(); l++){
+      for(int l=0; l<sym_dmn_t::get_size(); l++){
 
-	  bool is_this_a_duplicate = true;
+        bool is_this_a_duplicate = true;
 
-	  for(int i=0; i<DIMENSION; i++)
-	    for(int j=0; j<DIMENSION; j++)
-	      if(fabs(sym_dmn_t::get_elements()[l].O[i+j*DIMENSION] - symmetry_type::matrix()[i+j*DIMENSION]) > 1.e-6)
-		is_this_a_duplicate = false;
+        for(int i=0; i<DIMENSION; i++)
+          for(int j=0; j<DIMENSION; j++)
+            if(std::fabs(sym_dmn_t::get_elements()[l].O[i+j*DIMENSION] - symmetry_type::matrix()[i+j*DIMENSION]) > 1.e-6)
+              is_this_a_duplicate = false;
 
-	  if(is_this_a_duplicate)
-	    is_a_duplicate = true;
-	}
-
-	return is_a_duplicate;
+        if(is_this_a_duplicate)
+          is_a_duplicate = true;
       }
+
+      return is_a_duplicate;
+    }
   }
 
   static bool is_lattice_compatible(double* T, double* T_inv)
   {
     double* permutation = new double[DIMENSION*DIMENSION];
-    
-    for(int i=0; i<DIMENSION; i++)
-      for(int j=0; j<DIMENSION; j++)
-	permutation[i+DIMENSION*j] = 0.;
 
     for(int i=0; i<DIMENSION; i++)
       for(int j=0; j<DIMENSION; j++)
-	for(int l=0; l<DIMENSION; l++)
-	  permutation[i+DIMENSION*j] += symmetry_type::matrix()[i+DIMENSION*l]*T[l+DIMENSION*j];
+        permutation[i+DIMENSION*j] = 0.;
+
+    for(int i=0; i<DIMENSION; i++)
+      for(int j=0; j<DIMENSION; j++)
+        for(int l=0; l<DIMENSION; l++)
+          permutation[i+DIMENSION*j] += symmetry_type::matrix()[i+DIMENSION*l]*T[l+DIMENSION*j];
 
     bool is_compatible = true;
 
@@ -139,12 +139,12 @@ private:
     for(int i=0; i<DIMENSION; i++){
 
       for(int j=0; j<DIMENSION; j++)
-	v[j] = permutation[j+DIMENSION*i];
-      
+        v[j] = permutation[j+DIMENSION*i];
+
       back_inside_cluster(&T_inv[0], &v[0], &v_c[0]);
 
       if(VECTOR_OPERATIONS::L2_NORM(v_c) > 1.e-6)
-	is_compatible = false;
+        is_compatible = false;
     }
 
     delete [] permutation;
@@ -152,7 +152,7 @@ private:
     return is_compatible;
   }
 
-  static bool is_unit_cell_compatible(double* T, double* T_inv)
+  static bool is_unit_cell_compatible(double* /*T*/, double* T_inv)
   {
     int Na = b_dmn_t::get_size();
 
@@ -160,37 +160,37 @@ private:
 
     for(int j=0; j<Na; j++)
       for(int i=0; i<DIMENSION; i++)
-	permutation[i+DIMENSION*j] = 0;//b_dmn_t::get_elements()[i].a_vec[j];
+        permutation[i+DIMENSION*j] = 0;//b_dmn_t::get_elements()[i].a_vec[j];
 
     for(int j=0; j<Na; j++)
       for(int i=0; i<DIMENSION; i++)
-	for(int l=0; l<DIMENSION; l++)
-	  permutation[i+DIMENSION*j] += symmetry_type::matrix()[i+DIMENSION*l]*b_dmn_t::get_elements()[j].a_vec[l];//T[l+DIMENSION*j];
-    
+        for(int l=0; l<DIMENSION; l++)
+          permutation[i+DIMENSION*j] += symmetry_type::matrix()[i+DIMENSION*l]*b_dmn_t::get_elements()[j].a_vec[l];//T[l+DIMENSION*j];
+
     bool is_compatible = false;
-    
+
     std::vector<double> v  (DIMENSION, 0);
     std::vector<double> v_c(DIMENSION, 0);
-    
+
     for(int l=0; l<Na; l++){
-      
+
       for(int j=0; j<DIMENSION; j++)
-	v[j] = permutation[j+DIMENSION*l];
-      
+        v[j] = permutation[j+DIMENSION*l];
+
       // v_c is affine coordinates
       back_inside_cluster(&T_inv[0], &v[0], &v_c[0]);
 
       for(int j=0; j<DIMENSION; j++)
-	v[j] = 0;//permutation[j+DIMENSION*i];
+        v[j] = 0;//permutation[j+DIMENSION*i];
 
       for(int i=0; i<DIMENSION; i++)
-	for(int j=0; j<DIMENSION; j++)
-	  v[i] += symmetry_type::matrix()[i+DIMENSION*j]*v_c[j];
+        for(int j=0; j<DIMENSION; j++)
+          v[i] += symmetry_type::matrix()[i+DIMENSION*j]*v_c[j];
 
       for(int j=0; j<Na; j++)
-	if(VECTOR_OPERATIONS::L2_NORM(v, b_dmn_t::get_elements()[j].a_vec) < 1.e-6
-	   and b_dmn_t::get_elements()[l].flavor == b_dmn_t::get_elements()[j].flavor)
-	  is_compatible = true;
+        if(VECTOR_OPERATIONS::L2_NORM(v, b_dmn_t::get_elements()[j].a_vec) < 1.e-6
+           and b_dmn_t::get_elements()[l].flavor == b_dmn_t::get_elements()[j].flavor)
+          is_compatible = true;
     }
 
     delete [] permutation;
@@ -214,9 +214,9 @@ public:
 //     {
 //       cout << INDEX << endl;
 //       for(int i=0; i<DIMENSION; i++){
-// 	for(int j=0; j<DIMENSION; j++)
-// 	  cout << symmetry_type::matrix()[i+j*DIMENSION] << "\t";
-// 	cout << endl;
+//  for(int j=0; j<DIMENSION; j++)
+//    cout << symmetry_type::matrix()[i+j*DIMENSION] << "\t";
+//  cout << endl;
 //       }
 //       cout << endl;
 //     }
@@ -231,11 +231,11 @@ public:
       symmetry_element_type symmetry_element(DIMENSION);
 
       for(int i=0; i<DIMENSION; i++)
-	for(int j=0; j<DIMENSION; j++)
-	  symmetry_element.O[i+j*DIMENSION] = symmetry_type::matrix()[i+j*DIMENSION];
+        for(int j=0; j<DIMENSION; j++)
+          symmetry_element.O[i+j*DIMENSION] = symmetry_type::matrix()[i+j*DIMENSION];
 
       for(int i=0; i<DIMENSION; i++)
-	symmetry_element.t[i] = 0.;
+        symmetry_element.t[i] = 0.;
 
       sym_dmn_t::get_elements().push_back(symmetry_element);
 
@@ -244,7 +244,7 @@ public:
 
     delete [] T;
     delete [] T_inv;
-    
+
     delete [] T_cell;
     delete [] T_cell_inv;
 
@@ -289,9 +289,9 @@ public:
   {
     sym_dmn_t::DIMENSION  = DIMENSION;
     sym_dmn_t::get_size() = 0;
-    
+
     search_symmetry_group<base_cluster_type, point_group_type_list, symmetry_group_level, MAX_SIZE-1>::execute();
-   
+
 //     sym_dmn_t::to_JSON(std::cout);
 //     throw std::logic_error(__FUNCTION__);
   }

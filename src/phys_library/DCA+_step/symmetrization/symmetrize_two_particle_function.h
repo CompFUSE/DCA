@@ -229,9 +229,9 @@ void symmetrize_two_particle_function::execute(FUNC_LIB::function<scalartype, dm
 }
 
 template<typename scalartype, typename k_dmn_t, typename w_dmn_t>
- void symmetrize_two_particle_function::execute(FUNC_LIB::function<scalartype, dmn_3< dmn_4<b, b, k_dmn_t, w_dmn_t>,  dmn_4<b, b, k_dmn_t, w_dmn_t>, k_dmn_t> >& f, bool do_diff)
+void symmetrize_two_particle_function::execute(FUNC_LIB::function<scalartype, dmn_3< dmn_4<b, b, k_dmn_t, w_dmn_t>,  dmn_4<b, b, k_dmn_t, w_dmn_t>, k_dmn_t> >& f, bool /*do_diff*/)
 {
-  cout << __FUNCTION__ << endl;
+  std::cout << __FUNCTION__ << std::endl;
 
   FUNC_LIB::function<scalartype, dmn_3<dmn_3<b, b, k_dmn_t>, dmn_3<b, b, k_dmn_t>, k_dmn_t> > G2;
     

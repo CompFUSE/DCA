@@ -12,43 +12,43 @@ namespace DCA
     {
       bool is_converged;
 
-      scalar_type x0_l, x0_m, x0_u, 
-	x1_l, x1_m, x1_u,
-	x2_l, x2_m, x2_u;
-	
-      void do_recursion(std::vector<integration_volume_3D<scalar_type> >& vec)
+      scalar_type x0_l, x0_m, x0_u,
+        x1_l, x1_m, x1_u,
+        x2_l, x2_m, x2_u;
+
+      void do_recursion(std::vector<integration_volume_3D<scalar_type> >& /*vec*/)
       {
-	std::vector<integration_volume_3D<scalar_type> > vols(8);
+        std::vector<integration_volume_3D<scalar_type> > vols(8);
 
-	int index=0;
-	for(int l0=0; l0<2; l0++){
-	  for(int l1=0; l1<2; l1++){
-	    for(int l2=0; l2<2; l2++){
-	      
-	      integration_volume_3D<scalar_type>& volume = vols[index];
-	    
-	      volume.x0_l = l0==0? x0_l : x0_m; 
-	      volume.x0_u = l0==0? x0_m : x0_u; 
+        int index=0;
+        for(int l0=0; l0<2; l0++){
+          for(int l1=0; l1<2; l1++){
+            for(int l2=0; l2<2; l2++){
 
-	      volume.x1_l = l1==0? x1_l : x1_m; 
-	      volume.x1_u = l1==0? x1_m : x1_u; 
+              integration_volume_3D<scalar_type>& volume = vols[index];
 
-	      volume.x2_l = l2==0? x2_l : x2_m; 
-	      volume.x2_u = l2==0? x2_m : x2_u; 
+              volume.x0_l = l0==0? x0_l : x0_m;
+              volume.x0_u = l0==0? x0_m : x0_u;
 
-	      index += 1;
-	    }
-	  }
-	}
+              volume.x1_l = l1==0? x1_l : x1_m;
+              volume.x1_u = l1==0? x1_m : x1_u;
 
-	for(int l0=0; l0<8; l0++){
-	  
-	  integration_volume_3D<scalar_type>& volume = vols[l0];
-	  
-	  volume.x0_m = (x0_l+x0_u)/2.;
-	  volume.x1_m = (x1_l+x1_u)/2.;
-	  volume.x2_m = (x2_l+x2_u)/2.;
-	}
+              volume.x2_l = l2==0? x2_l : x2_m;
+              volume.x2_u = l2==0? x2_m : x2_u;
+
+              index += 1;
+            }
+          }
+        }
+
+        for(int l0=0; l0<8; l0++){
+
+          integration_volume_3D<scalar_type>& volume = vols[l0];
+
+          volume.x0_m = (x0_l+x0_u)/2.;
+          volume.x1_m = (x1_l+x1_u)/2.;
+          volume.x2_m = (x2_l+x2_u)/2.;
+        }
       }
     };
 
@@ -57,12 +57,12 @@ namespace DCA
     {
       bool is_converged;
 
-      scalar_type x0_l, x0_m, x0_u, 
-	x1_l, x1_m, x1_u,
-	x2_l, x2_m, x2_u,
-	x3_l, x3_m, x3_u;
-	
-      void do_recursion(std::vector<integration_volume_4D<scalar_type> >& vec)
+      scalar_type x0_l, x0_m, x0_u,
+        x1_l, x1_m, x1_u,
+        x2_l, x2_m, x2_u,
+        x3_l, x3_m, x3_u;
+
+      void do_recursion(std::vector<integration_volume_4D<scalar_type> >& /*vec*/)
       {
 
       }
@@ -300,7 +300,7 @@ namespace DCA
       {
         for(int i=0; i<w_VERTEX::dmn_size(); i++)
           for(int j=0; j<w_VERTEX_EXTENDED::dmn_size(); j++)
-            if(fabs(w_VERTEX::get_elements()[i]-w_VERTEX_EXTENDED::get_elements()[j])<1.e-6)
+            if(std::fabs(w_VERTEX::get_elements()[i]-w_VERTEX_EXTENDED::get_elements()[j])<1.e-6)
               w_vertex_2_w_vertex_ext(i) = j;
       }
     }
@@ -340,13 +340,13 @@ namespace DCA
     void fermionic_tp_Greens_function<parameter_type, ed_options>::compute_particle_particle_superconducting_A(FUNC_LIB::function<complex_type, dmn_8<b,b,b,b,k_dmn,k_dmn,w_VERTEX,w_VERTEX> >& G4)
     {
       if(concurrency.id()==0)
-        cout << "\n\n\t" << __FUNCTION__ << "\n\n";
+        std::cout << "\n\n\t" << __FUNCTION__ << "\n\n";
 
       G4 = 0;
 
       int w_nu = parameters.get_w_channel();
 
-      cout << "\n\n\t w_nu : " << w_nu << "\n";
+      std::cout << "\n\n\t w_nu : " << w_nu << "\n";
 
       for(int b_0=0; b_0<b::dmn_size(); b_0++){
         for(int b_1=0; b_1<b::dmn_size(); b_1++){
@@ -360,12 +360,12 @@ namespace DCA
                     for(int wn=0; wn<w_VERTEX::dmn_size(); wn++){
 
                       int wn_ext = w_vertex_2_w_vertex_ext(wn);
-                      assert(abs(w_VERTEX::get_elements()[wn]-w_VERTEX_EXTENDED::get_elements()[wn_ext])<1.e-6);
+                      assert(std::abs(w_VERTEX::get_elements()[wn]-w_VERTEX_EXTENDED::get_elements()[wn_ext])<1.e-6);
 
                       for(int wm=0; wm<w_VERTEX::dmn_size(); wm++){
 
                         int wm_ext = w_vertex_2_w_vertex_ext(wm);
-                        assert(abs(w_VERTEX::get_elements()[wm]-w_VERTEX_EXTENDED::get_elements()[wm_ext])<1.e-6);
+                        assert(std::abs(w_VERTEX::get_elements()[wm]-w_VERTEX_EXTENDED::get_elements()[wm_ext])<1.e-6);
 
                         int w1 = w_nu+min_w_vertex_ext(wn_ext);
                         int w2 = wn_ext;
@@ -392,39 +392,39 @@ namespace DCA
       }
 
       {
-        cout << "\n";
-        cout << 0.0 << "\t\t";
+        std::cout << "\n";
+        std::cout << 0.0 << "\t\t";
         for(int wn=0; wn<w_VERTEX::dmn_size(); wn++)
-          cout << w_VERTEX::get_elements()[wn] << "\t";
-        cout << "\n\n";
+          std::cout << w_VERTEX::get_elements()[wn] << "\t";
+        std::cout << "\n\n";
 
         for(int wn=0; wn<w_VERTEX::dmn_size(); wn++){
-          cout << w_VERTEX::get_elements()[wn] << "\t\t";
+          std::cout << w_VERTEX::get_elements()[wn] << "\t\t";
           for(int wm=0; wm<w_VERTEX::dmn_size(); wm++)
             if(abs(real(G4(0,0, 0,0, 0, 0, wn, wm)))<1.e-10)
-              cout << 0.0 << "\t";
+              std::cout << 0.0 << "\t";
             else
-              cout << real(G4(0,0, 0,0, 0, 0, wn, wm)) << "\t";
-          cout << "\n";
+              std::cout << real(G4(0,0, 0,0, 0, 0, wn, wm)) << "\t";
+          std::cout << "\n";
         }
-        cout << "\n";
+        std::cout << "\n";
 
-        cout << "\n";
-        cout << 0.0 << "\t\t";
+        std::cout << "\n";
+        std::cout << 0.0 << "\t\t";
         for(int wn=0; wn<w_VERTEX::dmn_size(); wn++)
-          cout << w_VERTEX::get_elements()[wn] << "\t";
-        cout << "\n\n";
+          std::cout << w_VERTEX::get_elements()[wn] << "\t";
+        std::cout << "\n\n";
 
         for(int wn=0; wn<w_VERTEX::dmn_size(); wn++){
-          cout << w_VERTEX::get_elements()[wn] << "\t\t";
+          std::cout << w_VERTEX::get_elements()[wn] << "\t\t";
           for(int wm=0; wm<w_VERTEX::dmn_size(); wm++)
             if(abs(imag(G4(0,0, 0,0, 0, 0, wn, wm)))<1.e-10)
-              cout << 0.0 << "\t";
+              std::cout << 0.0 << "\t";
             else
-              cout << imag(G4(0,0, 0,0, 0, 0, wn, wm)) << "\t";
-          cout << "\n";
+              std::cout << imag(G4(0,0, 0,0, 0, 0, wn, wm)) << "\t";
+          std::cout << "\n";
         }
-        cout << "\n";
+        std::cout << "\n";
       }
 
       {
@@ -449,7 +449,7 @@ namespace DCA
         }
       }
 
-      assert(false);
+      // assert(false);
     }
 
     /*!
@@ -471,13 +471,13 @@ namespace DCA
     void fermionic_tp_Greens_function<parameter_type, ed_options>::compute_particle_particle_superconducting_B(FUNC_LIB::function<complex_type, dmn_8<b,b,b,b,k_dmn,k_dmn,w_VERTEX,w_VERTEX> >& G4)
     {
       if(concurrency.id()==0)
-        cout << "\n\n\t" << __FUNCTION__ << "\n\n";
+        std::cout << "\n\n\t" << __FUNCTION__ << "\n\n";
 
       G4 = 0;
 
       int w_nu = parameters.get_w_channel();
 
-      cout << "\n\n\t w_nu : " << w_nu << "\n";
+      std::cout << "\n\n\t w_nu : " << w_nu << "\n";
 
       for(int b_0=0; b_0<b::dmn_size(); b_0++){
         for(int b_1=0; b_1<b::dmn_size(); b_1++){
@@ -491,12 +491,12 @@ namespace DCA
                     for(int wn=0; wn<w_VERTEX::dmn_size(); wn++){
 
                       int wn_ext = w_vertex_2_w_vertex_ext(wn);
-                      assert(abs(w_VERTEX::get_elements()[wn]-w_VERTEX_EXTENDED::get_elements()[wn_ext])<1.e-6);
+                      assert(std::abs(w_VERTEX::get_elements()[wn]-w_VERTEX_EXTENDED::get_elements()[wn_ext])<1.e-6);
 
                       for(int wm=0; wm<w_VERTEX::dmn_size(); wm++){
 
                         int wm_ext = w_vertex_2_w_vertex_ext(wm);
-                        assert(abs(w_VERTEX::get_elements()[wm]-w_VERTEX_EXTENDED::get_elements()[wm_ext])<1.e-6);
+                        assert(std::abs(w_VERTEX::get_elements()[wm]-w_VERTEX_EXTENDED::get_elements()[wm_ext])<1.e-6);
 
                         int w1 = wn_ext-w_nu;
                         int w2 = min_w_vertex_ext(wn_ext);
@@ -523,39 +523,39 @@ namespace DCA
       }
 
       {
-        cout << "\n";
-        cout << 0.0 << "\t\t";
+        std::cout << "\n";
+        std::cout << 0.0 << "\t\t";
         for(int wn=0; wn<w_VERTEX::dmn_size(); wn++)
-          cout << w_VERTEX::get_elements()[wn] << "\t";
-        cout << "\n\n";
+          std::cout << w_VERTEX::get_elements()[wn] << "\t";
+        std::cout << "\n\n";
 
         for(int wn=0; wn<w_VERTEX::dmn_size(); wn++){
-          cout << w_VERTEX::get_elements()[wn] << "\t\t";
+          std::cout << w_VERTEX::get_elements()[wn] << "\t\t";
           for(int wm=0; wm<w_VERTEX::dmn_size(); wm++)
             if(abs(real(G4(0,0, 0,0, 0, 0, wn, wm)))<1.e-10)
-              cout << 0.0 << "\t";
+              std::cout << 0.0 << "\t";
             else
-              cout << real(G4(0,0, 0,0, 0, 0, wn, wm)) << "\t";
-          cout << "\n";
+              std::cout << real(G4(0,0, 0,0, 0, 0, wn, wm)) << "\t";
+          std::cout << "\n";
         }
-        cout << "\n";
+        std::cout << "\n";
 
-        cout << "\n";
-        cout << 0.0 << "\t\t";
+        std::cout << "\n";
+        std::cout << 0.0 << "\t\t";
         for(int wn=0; wn<w_VERTEX::dmn_size(); wn++)
-          cout << w_VERTEX::get_elements()[wn] << "\t";
-        cout << "\n\n";
+          std::cout << w_VERTEX::get_elements()[wn] << "\t";
+        std::cout << "\n\n";
 
         for(int wn=0; wn<w_VERTEX::dmn_size(); wn++){
-          cout << w_VERTEX::get_elements()[wn] << "\t\t";
+          std::cout << w_VERTEX::get_elements()[wn] << "\t\t";
           for(int wm=0; wm<w_VERTEX::dmn_size(); wm++)
             if(abs(imag(G4(0,0, 0,0, 0, 0, wn, wm)))<1.e-10)
-              cout << 0.0 << "\t";
+              std::cout << 0.0 << "\t";
             else
-              cout << imag(G4(0,0, 0,0, 0, 0, wn, wm)) << "\t";
-          cout << "\n";
+              std::cout << imag(G4(0,0, 0,0, 0, 0, wn, wm)) << "\t";
+          std::cout << "\n";
         }
-        cout << "\n";
+        std::cout << "\n";
       }
 
       {
@@ -584,10 +584,10 @@ namespace DCA
     }
 
     template<typename parameter_type, typename ed_options>
-    void fermionic_tp_Greens_function<parameter_type, ed_options>::compute_two_particle_Greens_function(bool interacting)
+    void fermionic_tp_Greens_function<parameter_type, ed_options>::compute_two_particle_Greens_function(bool /*interacting*/)
     {
       if(concurrency.id()==0)
-        cout << "\n\n\t" << __FUNCTION__ << "\n\n";
+        std::cout << "\n\n\t" << __FUNCTION__ << "\n\n";
 
       G_tp_int = 0;
 
@@ -603,7 +603,7 @@ namespace DCA
     void fermionic_tp_Greens_function<parameter_type, ed_options>::compute_two_particle_Greens_function(FUNC_LIB::function<complex_type, dmn_4<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, nu_nu_nu_nu_r_r_r_dmn_type> >& G_tp_ref)
     {
       if(concurrency.id()==0)
-        cout << "\n\n\t" << __FUNCTION__ << "\n\n";
+        std::cout << "\n\n\t" << __FUNCTION__ << "\n\n";
 
       G_tp_ref = 0;
 
@@ -639,27 +639,27 @@ namespace DCA
     value_type  fermionic_tp_Greens_function<parameter_type, ed_options>::Power(value_type x, int n)
     {
       switch(n)
-        {
-        case 1:
-          return x;
-          break;
+      {
+      case 1:
+        return x;
+        break;
 
-        case 2:
-          return x*x;
-          break;
+      case 2:
+        return x*x;
+        break;
 
-        case 3:
-          return x*x*x;
-          break;
+      case 3:
+        return x*x*x;
+        break;
 
-        case 4:
-          return x*x*x*x;
-          break;
+      case 4:
+        return x*x*x*x;
+        break;
 
-        default:
-          assert(false);
-          return std::pow(x, n);
-        }
+      default:
+        assert(false);
+        return std::pow(x, n);
+      }
     }
 
 
@@ -716,18 +716,18 @@ namespace DCA
           indices[l] = l;
 
         do
+        {
+          std::vector<c_operator> tmp;
+
           {
-            std::vector<c_operator> tmp;
+            for(int l=0; l<3; l++)
+              tmp.push_back(c_operators[indices[l]]);
 
-            {
-              for(int l=0; l<3; l++)
-                tmp.push_back(c_operators[indices[l]]);
-
-              tmp.push_back(c_operators[3]);
-            }
-
-            tp_perms.push_back(tmp);
+            tmp.push_back(c_operators[3]);
           }
+
+          tp_perms.push_back(tmp);
+        }
         while(std::next_permutation(indices.begin(), indices.end()));
       }
     }
@@ -763,18 +763,18 @@ namespace DCA
           indices[l] = l;
 
         do
+        {
+          std::vector<c_operator> tmp;
+
           {
-            std::vector<c_operator> tmp;
+            for(int l=0; l<3; l++)
+              tmp.push_back(c_operators[indices[l]]);
 
-            {
-              for(int l=0; l<3; l++)
-                tmp.push_back(c_operators[indices[l]]);
-
-              tmp.push_back(c_operators[3]);
-            }
-
-            tp_perms.push_back(tmp);
+            tmp.push_back(c_operators[3]);
           }
+
+          tp_perms.push_back(tmp);
+        }
         while(std::next_permutation(indices.begin(), indices.end()));
       }
     }
@@ -813,134 +813,134 @@ namespace DCA
          abs(a1+a2   )>ed_options::get_epsilon() and
          abs(   a2+a3)>ed_options::get_epsilon() and
          abs(a1+a2+a3)>ed_options::get_epsilon())
-        {
-          index++;
+      {
+        index++;
 
-          result = (-(a1*a3*(a1 + a3)*std::exp(a1*beta)*
-                      (-1. + std::exp(a2*beta))) +
-                    Power(a2,2)*(a3*
-                                 (-1. + std::exp(a1*beta)) +
-                                 a1*std::exp((a1 + a2)*beta)*
-                                 (-1. + std::exp(a3*beta))) +
-                    a2*(Power(a3,2)*
-                        (-1. + std::exp(a1*beta)) -
-                        2.*a1*a3*std::exp(a1*beta)*
-                        (-1. + std::exp(a2*beta)) +
-                        Power(a1,2)*std::exp((a1 + a2)*beta)*
-                        (-1. + std::exp(a3*beta)))
-                    )/(a1*a2*(a1 + a2)*a3*(a2 + a3)*(a1 + a2 + a3));
+        result = (-(a1*a3*(a1 + a3)*std::exp(a1*beta)*
+                    (-1. + std::exp(a2*beta))) +
+                  Power(a2,2)*(a3*
+                               (-1. + std::exp(a1*beta)) +
+                               a1*std::exp((a1 + a2)*beta)*
+                               (-1. + std::exp(a3*beta))) +
+                  a2*(Power(a3,2)*
+                      (-1. + std::exp(a1*beta)) -
+                      2.*a1*a3*std::exp(a1*beta)*
+                      (-1. + std::exp(a2*beta)) +
+                      Power(a1,2)*std::exp((a1 + a2)*beta)*
+                      (-1. + std::exp(a3*beta)))
+          )/(a1*a2*(a1 + a2)*a3*(a2 + a3)*(a1 + a2 + a3));
 
 
-          //           complex_type result2 = (1./(I*w3+E_k-E_l))
-          //             *(
-          //               (1./(I*(w2+w3)+E_j-E_l))*( (std::exp(-beta*E_i)+std::exp(-beta*E_j))/(I*w1+E_i-E_j)
-          //                                          -(std::exp(-beta*E_i)+std::exp(-beta*E_l))/(I*(w1+w2+w3)+E_i-E_l)
-          //                                          )
-          //               -(1./(I*w2+E_j-E_k))*( (std::exp(-beta*E_i)+std::exp(-beta*E_j))/(I*w1+E_i-E_j)
-          //                                 -(std::exp(-beta*E_i)-std::exp(-beta*E_k))/(I*(w1+w2)+E_i-E_k)
-          //                                     )
-          //               );
+        //           complex_type result2 = (1./(I*w3+E_k-E_l))
+        //             *(
+        //               (1./(I*(w2+w3)+E_j-E_l))*( (std::exp(-beta*E_i)+std::exp(-beta*E_j))/(I*w1+E_i-E_j)
+        //                                          -(std::exp(-beta*E_i)+std::exp(-beta*E_l))/(I*(w1+w2+w3)+E_i-E_l)
+        //                                          )
+        //               -(1./(I*w2+E_j-E_k))*( (std::exp(-beta*E_i)+std::exp(-beta*E_j))/(I*w1+E_i-E_j)
+        //                                 -(std::exp(-beta*E_i)-std::exp(-beta*E_k))/(I*(w1+w2)+E_i-E_k)
+        //                                     )
+        //               );
 
-          //      if(abs(result*std::exp(-beta*E_i)-result2)>1.e-6){
-          //        cout << result << "\t" << result2 << "\n";
-          //      }
-          //      else
-          //        cout << "OK\n";
+        //      if(abs(result*std::exp(-beta*E_i)-result2)>1.e-6){
+        //        std::cout << result << "\t" << result2 << "\n";
+        //      }
+        //      else
+        //        std::cout << "OK\n";
 
-        }
+      }
 
       // a1 + a2 = 0
       if(do_special and abs(a1+a2)<ed_options::get_epsilon())
+      {
+        if(abs(a2+a3)>ed_options::get_epsilon())
         {
-          if(abs(a2+a3)>ed_options::get_epsilon())
-            {
-              index++;
+          index++;
 
-              result = -((a2*Power(a3,2)*beta +
-                          Power(a3,2)*
-                          (-1. + std::exp(-(a2*beta))) +
-                          Power(a2,2)*
-                          (1. + a3*beta -
-                           std::exp(a3*beta))
-                          )/(Power(a2,2)*Power(a3,2)*(a2 + a3)));
-            }
-          //else
-
-          if(abs(a2+a3)<ed_options::get_epsilon())
-            {
-              index++;
-
-              result = (2. - 2.*std::exp(a3*beta) + a3*beta*(1. + std::exp(a3*beta)))/Power(a3,3);
-            }
-
-          //return result;
+          result = -((a2*Power(a3,2)*beta +
+                      Power(a3,2)*
+                      (-1. + std::exp(-(a2*beta))) +
+                      Power(a2,2)*
+                      (1. + a3*beta -
+                       std::exp(a3*beta))
+                       )/(Power(a2,2)*Power(a3,2)*(a2 + a3)));
         }
+        //else
+
+        if(abs(a2+a3)<ed_options::get_epsilon())
+        {
+          index++;
+
+          result = (2. - 2.*std::exp(a3*beta) + a3*beta*(1. + std::exp(a3*beta)))/Power(a3,3);
+        }
+
+        //return result;
+      }
 
       // a2 + a3 = 0
       if(do_special and abs(a2+a3)<ed_options::get_epsilon())
+      {
+        if(abs(a1-a3)>ed_options::get_epsilon())
         {
-          if(abs(a1-a3)>ed_options::get_epsilon())
-            {
-              index++;
+          index++;
 
-              result = (-(a1*Power(a3,2)*beta*
-                          std::exp((a1 + a3)*beta)) +
-                        Power(a3,2)*std::exp(a3*beta)*
-                        (-1. + std::exp(a1*beta)) +
-                        Power(a1,2)*std::exp(a1*beta)*
-                        (1. + (-1. + a3*beta)*
-                         std::exp(a3*beta)))/
-                (Power(a1,2)*(a1 - a3)*Power(a3,2)*std::exp(a3*beta));
-            }
-          //else
-
-          //      if(abs(a1-a3)<ed_options::get_epsilon())
-          //             {
-          //          index++;
-
-          //               result = (2. - 2.*std::exp(a3*beta) + a3*beta*(1. + std::exp(a3*beta)))/Power(a3,3);
-          //             }
-
-          //return result;
+          result = (-(a1*Power(a3,2)*beta*
+                      std::exp((a1 + a3)*beta)) +
+                    Power(a3,2)*std::exp(a3*beta)*
+                    (-1. + std::exp(a1*beta)) +
+                    Power(a1,2)*std::exp(a1*beta)*
+                    (1. + (-1. + a3*beta)*
+                     std::exp(a3*beta)))/
+            (Power(a1,2)*(a1 - a3)*Power(a3,2)*std::exp(a3*beta));
         }
+        //else
+
+        //      if(abs(a1-a3)<ed_options::get_epsilon())
+        //             {
+        //          index++;
+
+        //               result = (2. - 2.*std::exp(a3*beta) + a3*beta*(1. + std::exp(a3*beta)))/Power(a3,3);
+        //             }
+
+        //return result;
+      }
 
       // a1 + a2 + a3 = 0
       if(do_special and abs(a1+a2+a3)<ed_options::get_epsilon())
+      {
+        if(abs(a2+a3)>ed_options::get_epsilon())
         {
-          if(abs(a2+a3)>ed_options::get_epsilon())
-            {
-              index++;
+          index++;
 
-              result = (-(Power(a2,2)*std::exp(a2*beta)*
-                          (-1. + std::exp(a3*beta))) +
-                        a2*a3*std::exp(a2*beta)*
-                        (2. + (-2. + a2*beta)*
-                         std::exp(a3*beta)) +
-                        Power(a3,2)*
-                        (-1. + std::exp(a2*beta) +
-                         a2*beta*std::exp((a2 + a3)*beta)
-                         ))/
-                (a2*Power(a3,2)*Power(a2 + a3,2)*std::exp((a2 + a3)*beta));
-            }
-          //else
-
-          if(abs(a2+a3)<ed_options::get_epsilon())
-            {
-              index++;
-
-              result = (2. - 2.*a3*beta + Power(a3,2)*Power(beta,2) - 2./std::exp(a3*beta))/(2.*Power(a3,3));
-            }
-
-          //return result;
+          result = (-(Power(a2,2)*std::exp(a2*beta)*
+                      (-1. + std::exp(a3*beta))) +
+                    a2*a3*std::exp(a2*beta)*
+                    (2. + (-2. + a2*beta)*
+                     std::exp(a3*beta)) +
+                    Power(a3,2)*
+                    (-1. + std::exp(a2*beta) +
+                     a2*beta*std::exp((a2 + a3)*beta)
+                      ))/
+            (a2*Power(a3,2)*Power(a2 + a3,2)*std::exp((a2 + a3)*beta));
         }
+        //else
+
+        if(abs(a2+a3)<ed_options::get_epsilon())
+        {
+          index++;
+
+          result = (2. - 2.*a3*beta + Power(a3,2)*Power(beta,2) - 2./std::exp(a3*beta))/(2.*Power(a3,3));
+        }
+
+        //return result;
+      }
 
       //       if(index>1)
       //         {
-      //           cout << "\n\t" << index << "\n";
-      //           cout << a1 << "\n";
-      //           cout << a2 << "\n";
-      //           cout << a3 << "\n";
-      //           cout << "\n";
+      //           std::cout << "\n\t" << index << "\n";
+      //           std::cout << a1 << "\n";
+      //           std::cout << a2 << "\n";
+      //           std::cout << a3 << "\n";
+      //           std::cout << "\n";
       //         }
       //       assert(index==1);
       assert(result==result); // check for NAN
@@ -1007,7 +1007,7 @@ namespace DCA
 
     //   std::vector<integration_volume> vec;
 
-      
+
 
     // }
 
@@ -1031,7 +1031,7 @@ namespace DCA
 
               int thread_id = 0;//omp_get_thread_num();
               //               if(thread_id==0)
-              //                 cout << "\t" << HS_0 << "\t" << HS_1 << "\t" << HS_2 << "\t" << HS_3 << "\t" << print_time() << "\n";
+              //                 std::cout << "\t" << HS_0 << "\t" << HS_1 << "\t" << HS_2 << "\t" << HS_3 << "\t" << print_time() << "\n";
 
               for(int nu_0=0; nu_0<nu::dmn_size(); nu_0++){
                 for(int nu_1=0; nu_1<nu::dmn_size(); nu_1++){
@@ -1056,7 +1056,7 @@ namespace DCA
 
                             compute_tp_permutations_pp_channel(bsr_0, bsr_1, bsr_2, bsr_3, tp_perms);
 
-                            //                               cout << "\n";
+                            //                               std::cout << "\n";
                             for(int prm_ind=0; prm_ind<tp_perms.size(); prm_ind++){
 
                               scalar_type sign = -((prm_ind%2)-0.5)*2.0;
@@ -1087,14 +1087,14 @@ namespace DCA
                                         scalar_type E_3 = eigen_energies(HS_3)[l_3];
 
                                         if(not done)
-                                          {
-                                            get_nonzero_overlap(HS_0, HS_1, operators[0].creation, operators[0].bsr_ind, data.overlap_0, data.tmp);
-                                            get_nonzero_overlap(HS_1, HS_2, operators[1].creation, operators[1].bsr_ind, data.overlap_1, data.tmp);
-                                            get_nonzero_overlap(HS_2, HS_3, operators[2].creation, operators[2].bsr_ind, data.overlap_2, data.tmp);
-                                            get_nonzero_overlap(HS_3, HS_0, operators[3].creation, operators[3].bsr_ind, data.overlap_3, data.tmp);
+                                        {
+                                          get_nonzero_overlap(HS_0, HS_1, operators[0].creation, operators[0].bsr_ind, data.overlap_0, data.tmp);
+                                          get_nonzero_overlap(HS_1, HS_2, operators[1].creation, operators[1].bsr_ind, data.overlap_1, data.tmp);
+                                          get_nonzero_overlap(HS_2, HS_3, operators[2].creation, operators[2].bsr_ind, data.overlap_2, data.tmp);
+                                          get_nonzero_overlap(HS_3, HS_0, operators[3].creation, operators[3].bsr_ind, data.overlap_3, data.tmp);
 
-                                            done = true;
-                                          }
+                                          done = true;
+                                        }
 
                                         complex_type factor = sign;
 
@@ -1105,7 +1105,7 @@ namespace DCA
 
                                         if(abs(factor)>CUT_OFF){
 
-                                          //cout << factor << endl;
+                                          //std::cout << factor << std::endl;
 
                                           int index = data.nu_nu_nu_nu_r_r_r_dmn(nu_0, nu_1, nu_2, nu_3, r_0 , r_1 , r_2);
 

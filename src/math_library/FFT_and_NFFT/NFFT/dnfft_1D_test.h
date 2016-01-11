@@ -50,7 +50,7 @@ namespace MATH_ALGORITHMS
 
 	SHOW::execute(error);
 
-	cout << "\n\n\n\t STOP !!!!  \n\n\n" << endl;
+  std::cout << "\n\n\n\t STOP !!!!  \n\n\n" << std::endl;
 	
 	throw std::logic_error(__FUNCTION__);
       }
@@ -61,7 +61,7 @@ namespace MATH_ALGORITHMS
                               std::vector<scalartype>& f,
                               FUNC_LIB::function<std::complex<scalartype>, w_dmn_t>& f_w)
       {
-	cout << __FUNCTION__ << endl;
+	std::cout << __FUNCTION__ << std::endl;
 
 	std::complex<scalartype> I(0,1);
 
@@ -78,7 +78,7 @@ namespace MATH_ALGORITHMS
 	  }
 	  clock_t t1 = clock();
 
-	  cout << "\n\n\t time : " << double(t1-t0)/double(CLOCKS_PER_SEC) << "\n";
+	  std::cout << "\n\n\t time : " << double(t1-t0)/double(CLOCKS_PER_SEC) << "\n";
 	}
 
         SHOW::execute(f_w);
@@ -88,7 +88,7 @@ namespace MATH_ALGORITHMS
                                     std::vector<scalartype>& f,
                                     FUNC_LIB::function<std::complex<scalartype>, w_dmn_t>& f_w)
       {
-	cout << __FUNCTION__ << endl;
+	std::cout << __FUNCTION__ << std::endl;
 
         FUNC_LIB::function<std::complex<scalartype>, dmn_2<w_dmn_t, p_dmn_t> > f_w_tmp;
 
@@ -110,7 +110,7 @@ namespace MATH_ALGORITHMS
 	  
 	  clock_t t1 = clock();
 
-	  cout << "\n\n\t time : " << double(t1-t0)/double(CLOCKS_PER_SEC) << "\n";
+	  std::cout << "\n\n\t time : " << double(t1-t0)/double(CLOCKS_PER_SEC) << "\n";
 	}
 
         nfft_obj.finalize(f_w_tmp);

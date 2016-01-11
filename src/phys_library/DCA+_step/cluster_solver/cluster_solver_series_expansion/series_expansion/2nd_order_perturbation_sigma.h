@@ -121,14 +121,14 @@ namespace DCA
 
     template<class parameters_type, class k_dmn_t>
     template<IO::FORMAT DATA_FORMAT>
-    void sigma_perturbation<2, parameters_type, k_dmn_t>::write(IO::writer<DATA_FORMAT>& writer)
+    void sigma_perturbation<2, parameters_type, k_dmn_t>::write(IO::writer<DATA_FORMAT>& /*writer*/)
     {}
 
     template<class parameters_type, class k_dmn_t>
     void sigma_perturbation<2, parameters_type, k_dmn_t>::execute_on_cluster(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
     {
       if(concurrency.id()==0)
-	cout << __FUNCTION__ << endl;
+        std::cout << __FUNCTION__ << std::endl;
 
       //cout << "\t U : " << U(0,0,0,1) << endl;
 
@@ -170,7 +170,7 @@ namespace DCA
     void sigma_perturbation<2, parameters_type, k_dmn_t>::execute_2A(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
     {
       if(concurrency.id()==0)
-	cout << __FUNCTION__ << endl;
+        std::cout << __FUNCTION__ << std::endl;
 
       double U_value = U(0,0,0,1);
 
@@ -219,7 +219,7 @@ namespace DCA
     void sigma_perturbation<2, parameters_type, k_dmn_t>::execute_2B(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w> >& G)
     {
       if(concurrency.id()==0)
-	cout << __FUNCTION__ << endl;
+	std::cout << __FUNCTION__ << std::endl;
 
       double U_value = U(0,0,0,1);
 
@@ -234,7 +234,7 @@ namespace DCA
 
             int nu_c = (nu_ind-w_VERTEX_BOSONIC::dmn_size()/2);
 
-            for(int w_ind=fabs(nu_c); w_ind<w::dmn_size()-fabs(nu_c); ++w_ind){
+            for(int w_ind=std::fabs(nu_c); w_ind<w::dmn_size()-std::fabs(nu_c); ++w_ind){
 
               int w_minus_nu = w_ind-nu_c;
 
@@ -256,9 +256,9 @@ namespace DCA
     void sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_on_cluster(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
     {
       if(concurrency.id()==0)
-	cout << "\n\n\t\t second-order Self-energy \n\n" << endl;
+	std::cout << "\n\n\t\t second-order Self-energy \n\n" << std::endl;
 
-//       cout << "\t U : " << U(0,0,0,1) << endl;
+//       std::cout << "\t U : " << U(0,0,0,1) << std::endl;
 
       int nr_threads = parameters.get_nr_HTS_threads();
 
@@ -345,7 +345,7 @@ namespace DCA
 	  double percentage = double(k_ind-k_bounds.first)/double(k_bounds.second-k_bounds.first);
 
           if(concurrency.id()==0 and id==0 and ( int(100*percentage) % 10==0 ) )
-            cout << "\t" << int(100*percentage) << " % finished\t" << print_time() << "\n";
+            std::cout << "\t" << int(100*percentage) << " % finished\t" << print_time() << "\n";
 	  
 	  for(int q_ind=q_bounds.first; q_ind<q_bounds.second; q_ind++){
 	    
@@ -355,7 +355,7 @@ namespace DCA
 	      
 	      int nu_c = (nu_ind-w_VERTEX_BOSONIC::dmn_size()/2);
 	      
-	      for(int w_ind=fabs(nu_c); w_ind<w::dmn_size()-fabs(nu_c); ++w_ind){
+	      for(int w_ind=std::fabs(nu_c); w_ind<w::dmn_size()-std::fabs(nu_c); ++w_ind){
 		
 		int w_minus_nu = w_ind-nu_c;
 		

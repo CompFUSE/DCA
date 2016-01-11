@@ -11,7 +11,7 @@ namespace LIN_ALG {
   public:
     
     template<typename scalartype>
-    static void execute(char uplo, matrix<scalartype, CPU>& A, matrix<scalartype, CPU>& X){
+    static void execute(char /*uplo*/, matrix<scalartype, CPU>& /*A*/, matrix<scalartype, CPU>& /*X*/){
       throw std::logic_error(__FUNCTION__);
     }
     

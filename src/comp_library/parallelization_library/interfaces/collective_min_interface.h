@@ -35,7 +35,7 @@ namespace COMP_LIB
 
   template<PARALLELIZATION_LIBRARY_NAMES LIBRARY>
   template<typename scalar_type>
-  void collective_min_interface<LIBRARY>::min(scalar_type& value)
+  void collective_min_interface<LIBRARY>::min(scalar_type& /*value*/)
   {}
 
 }

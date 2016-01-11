@@ -58,19 +58,19 @@ MC_solver_parameters<CLUSTER_SOLVER_NAME>::~MC_solver_parameters()
 
 template<DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
 template<class concurrency_type>
-int MC_solver_parameters<CLUSTER_SOLVER_NAME>::get_buffer_size(const concurrency_type& concurrency) const
+int MC_solver_parameters<CLUSTER_SOLVER_NAME>::get_buffer_size(const concurrency_type& /*concurrency*/) const
 {
   return 0;
 }
 
 template<DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
 template<class concurrency_type>
-void MC_solver_parameters<CLUSTER_SOLVER_NAME>::pack(const concurrency_type& concurrency, int* buffer, int buffer_size, int& position)
+void MC_solver_parameters<CLUSTER_SOLVER_NAME>::pack(const concurrency_type& /*concurrency*/, int* /*buffer*/, int /*buffer_size*/, int& /*position*/)
 {}
 
 template<DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
 template<class concurrency_type>
-void MC_solver_parameters<CLUSTER_SOLVER_NAME>::unpack(const concurrency_type& concurrency, int* buffer, int buffer_size, int& position)
+void MC_solver_parameters<CLUSTER_SOLVER_NAME>::unpack(const concurrency_type& /*concurrency*/, int* /*buffer*/, int /*buffer_size*/, int& /*position*/)
 {}
 
 /******************************************
@@ -79,12 +79,12 @@ void MC_solver_parameters<CLUSTER_SOLVER_NAME>::unpack(const concurrency_type& c
 
 template<DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
 template<class stream_type>
-void MC_solver_parameters<CLUSTER_SOLVER_NAME>::to_JSON(stream_type& ss)
+void MC_solver_parameters<CLUSTER_SOLVER_NAME>::to_JSON(stream_type& /*ss*/)
 {}
   
 template<DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
 template<class JSON_reader_type>
-void MC_solver_parameters<CLUSTER_SOLVER_NAME>::from_JSON(JSON_reader_type& reader)
+void MC_solver_parameters<CLUSTER_SOLVER_NAME>::from_JSON(JSON_reader_type& /*reader*/)
 {}
 
 #endif

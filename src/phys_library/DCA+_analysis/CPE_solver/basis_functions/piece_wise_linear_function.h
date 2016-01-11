@@ -42,10 +42,10 @@ namespace DCA
   }
 
   template<typename parameters_type>
-  void piece_wise_linear_function::initialize(parameters_type& parameters)
+  void piece_wise_linear_function::initialize(parameters_type& /*parameters*/)
   {}
 
-  double piece_wise_linear_function::volume(int n)
+  double piece_wise_linear_function::volume(int /*n*/)
   {
     // triangle with 2*delta_x/2.
     static double volume = 2.*(get_elements()[1]-get_elements()[0])/2.;

@@ -49,8 +49,8 @@ void facet<2>::find_linear_parameters(int* coor, double* parameters, std::vector
   double b = -(r1[0]-r0[0]);
   double c = -r0[0]*(r1[1]-r0[1])+r0[1]*(r1[0]-r0[0]);
 
-  assert(abs(a*r0[0]+b*r0[1]+c) < 1.e-6);
-  assert(abs(a*r1[0]+b*r1[1]+c) < 1.e-6);
+  assert(std::abs(a*r0[0]+b*r0[1]+c) < 1.e-6);
+  assert(std::abs(a*r1[0]+b*r1[1]+c) < 1.e-6);
 
   std::vector<double> cm(2, 0.);
 
@@ -84,8 +84,8 @@ bool facet<2>::is_facet(int* coor, std::vector<simplex<2> >& simplex_vector)
   double b = -(r1[0]-r0[0]);
   double c = -r0[0]*(r1[1]-r0[1])+r0[1]*(r1[0]-r0[0]);
 
-  assert(abs(a*r0[0]+b*r0[1]+c) < 1.e-6);
-  assert(abs(a*r1[0]+b*r1[1]+c) < 1.e-6);
+  assert(std::abs(a*r0[0]+b*r0[1]+c) < 1.e-6);
+  assert(std::abs(a*r1[0]+b*r1[1]+c) < 1.e-6);
 
   if(c < -1.e-6){
     a *= -1.;
@@ -119,8 +119,8 @@ bool facet<2>::is_facet(int* coor, std::vector<std::vector<double> >& simplex_ve
   double b = -(r1[0]-r0[0]);
   double c = -r0[0]*(r1[1]-r0[1])+r0[1]*(r1[0]-r0[0]);
 
-  assert(abs(a*r0[0]+b*r0[1]+c) < 1.e-6);
-  assert(abs(a*r1[0]+b*r1[1]+c) < 1.e-6);
+  assert(std::abs(a*r0[0]+b*r0[1]+c) < 1.e-6);
+  assert(std::abs(a*r1[0]+b*r1[1]+c) < 1.e-6);
 
   if(c < -1.e-6){
     a *= -1.;
@@ -141,7 +141,7 @@ bool facet<2>::is_facet(int* coor, std::vector<std::vector<double> >& simplex_ve
   return is_facet;
 }
 
-bool facet<2>::equal(facet& f1, facet& f2, std::vector<simplex<2> >& simplex_vector)
+  bool facet<2>::equal(facet& f1, facet& f2, std::vector<simplex<2> >& /*simplex_vector*/)
 {
   assert(f1.index[0] < f1.index[1]);
   assert(f2.index[0] < f2.index[1]);
@@ -198,9 +198,9 @@ void facet<3>::find_linear_parameters(int* coor, double* parameters, std::vector
 
   double d = -(a*r0[0]+b*r0[1]+c*r0[2]);
 
-  assert(abs(a*r0[0]+b*r0[1]+c*r0[2]+d) < 1.e-6);
-  assert(abs(a*r1[0]+b*r1[1]+c*r1[2]+d) < 1.e-6);
-  assert(abs(a*r2[0]+b*r2[1]+c*r2[2]+d) < 1.e-6);
+  assert(std::abs(a*r0[0]+b*r0[1]+c*r0[2]+d) < 1.e-6);
+  assert(std::abs(a*r1[0]+b*r1[1]+c*r1[2]+d) < 1.e-6);
+  assert(std::abs(a*r2[0]+b*r2[1]+c*r2[2]+d) < 1.e-6);
 
   std::vector<double> cm(3, 0.);
 
@@ -249,9 +249,9 @@ bool facet<3>::is_facet(int* coor, std::vector<simplex<3> >& simplex_vector)
 
   double d = -(a*r0[0]+b*r0[1]+c*r0[2]);
 
-  assert(abs(a*r0[0]+b*r0[1]+c*r0[2]+d) < 1.e-6);
-  assert(abs(a*r1[0]+b*r1[1]+c*r1[2]+d) < 1.e-6);
-  assert(abs(a*r2[0]+b*r2[1]+c*r2[2]+d) < 1.e-6);
+  assert(std::abs(a*r0[0]+b*r0[1]+c*r0[2]+d) < 1.e-6);
+  assert(std::abs(a*r1[0]+b*r1[1]+c*r1[2]+d) < 1.e-6);
+  assert(std::abs(a*r2[0]+b*r2[1]+c*r2[2]+d) < 1.e-6);
 
   if(d < -1.e-6){
     a *= -1.;
@@ -299,9 +299,9 @@ bool facet<3>::is_facet(int* coor, std::vector<std::vector<double> >& simplex_ve
 
   double d = -(a*r0[0]+b*r0[1]+c*r0[2]);
 
-  assert(abs(a*r0[0]+b*r0[1]+c*r0[2]+d) < 1.e-6);
-  assert(abs(a*r1[0]+b*r1[1]+c*r1[2]+d) < 1.e-6);
-  assert(abs(a*r2[0]+b*r2[1]+c*r2[2]+d) < 1.e-6);
+  assert(std::abs(a*r0[0]+b*r0[1]+c*r0[2]+d) < 1.e-6);
+  assert(std::abs(a*r1[0]+b*r1[1]+c*r1[2]+d) < 1.e-6);
+  assert(std::abs(a*r2[0]+b*r2[1]+c*r2[2]+d) < 1.e-6);
 
   if(d < -1.e-6){
     a *= -1.;
@@ -346,9 +346,9 @@ bool facet<3>::equal(facet& f1, facet& f2, std::vector<simplex<3> >& simplex_vec
 
   double d = -(a*r0[0]+b*r0[1]+c*r0[2]);
 
-  assert(abs(a*r0[0]+b*r0[1]+c*r0[2]+d) < 1.e-6);
-  assert(abs(a*r1[0]+b*r1[1]+c*r1[2]+d) < 1.e-6);
-  assert(abs(a*r2[0]+b*r2[1]+c*r2[2]+d) < 1.e-6);
+  assert(std::abs(a*r0[0]+b*r0[1]+c*r0[2]+d) < 1.e-6);
+  assert(std::abs(a*r1[0]+b*r1[1]+c*r1[2]+d) < 1.e-6);
+  assert(std::abs(a*r2[0]+b*r2[1]+c*r2[2]+d) < 1.e-6);
 
   bool are_equal = true;
 
@@ -357,7 +357,7 @@ bool facet<3>::equal(facet& f1, facet& f2, std::vector<simplex<3> >& simplex_vec
     {
       r = simplex_vector[f2.index[l]].k_vec;
 
-      if(fabs(a*r[0]+b*r[1]+c*r[2]+d) > 1.e-6)
+      if(std::fabs(a*r[0]+b*r[1]+c*r[2]+d) > 1.e-6)
 	are_equal = false;
     }
 

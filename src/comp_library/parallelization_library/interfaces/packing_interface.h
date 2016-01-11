@@ -86,7 +86,7 @@ namespace COMP_LIB
 
   template<PARALLELIZATION_LIBRARY_NAMES LIBRARY>
   template<typename T>
-  size_t packing_interface<LIBRARY>::get_buffer_size(T& item)
+  size_t packing_interface<LIBRARY>::get_buffer_size(T& /*item*/)
   {
     return sizeof(T);
   }
@@ -131,7 +131,7 @@ namespace COMP_LIB
 
   template<PARALLELIZATION_LIBRARY_NAMES LIBRARY>
   template<typename T>
-  void packing_interface<LIBRARY>::pack(int* buffer, int size, int& off_set, T& item)
+  void packing_interface<LIBRARY>::pack(int* /*buffer*/, int /*size*/, int& /*off_set*/, T& /*item*/)
   {
     //   size_t object_size = size(item);
     //   int* ptr = static_cast<int*>(&(item));
@@ -140,7 +140,7 @@ namespace COMP_LIB
   }
 
   template<PARALLELIZATION_LIBRARY_NAMES LIBRARY>
-  void packing_interface<LIBRARY>::pack(int* buffer, int size, int& off_set, std::string& str)
+  void packing_interface<LIBRARY>::pack(int* /*buffer*/, int /*size*/, int& /*off_set*/, std::string& /*str*/)
   {
     //   for(size_t l=0; l<str.size(); l++)
     //     pack(buffer, size, off_set, str[l])
@@ -148,7 +148,7 @@ namespace COMP_LIB
 
   template<PARALLELIZATION_LIBRARY_NAMES LIBRARY>
   template<typename T>
-  void packing_interface<LIBRARY>::pack(int* buffer, int size, int& off_set, std::vector<T>& v)
+  void packing_interface<LIBRARY>::pack(int* /*buffer*/, int /*size*/, int& /*off_set*/, std::vector<T>& /*v*/)
   {
     //   for(size_t l=0; l<v.size(); l++)
     //     pack(buffer, size, off_set, v[l])
@@ -156,7 +156,7 @@ namespace COMP_LIB
 
   template<PARALLELIZATION_LIBRARY_NAMES LIBRARY>
   template<typename T, class dmn_type>
-  void packing_interface<LIBRARY>::pack(int* buffer, int size, int& off_set, FUNC_LIB::function<T, dmn_type>& f)
+  void packing_interface<LIBRARY>::pack(int* /*buffer*/, int /*size*/, int& /*off_set*/, FUNC_LIB::function<T, dmn_type>& /*f*/)
   {
     //   for(int l=0; l<f.size(); l++)
     //     pack(buffer, size, off_set, f(l));
@@ -168,7 +168,7 @@ namespace COMP_LIB
 
   template<PARALLELIZATION_LIBRARY_NAMES LIBRARY>
   template<typename T>
-  void packing_interface<LIBRARY>::unpack(int* buffer, int size, int& off_set, T& item)
+  void packing_interface<LIBRARY>::unpack(int* /*buffer*/, int /*size*/, int& /*off_set*/, T& /*item*/)
   {
     //   size_t object_size = size(item);
     //   int* ptr = static_cast<int*>(&(item));
@@ -177,7 +177,7 @@ namespace COMP_LIB
   }
 
   template<PARALLELIZATION_LIBRARY_NAMES LIBRARY>
-  void packing_interface<LIBRARY>::unpack(int* buffer, int size, int& off_set, std::string& str)
+  void packing_interface<LIBRARY>::unpack(int* /*buffer*/, int /*size*/, int& /*off_set*/, std::string& /*str*/)
   {
     //   for(size_t l=0; l<str.size(); l++)
     //     unpack(buffer, size, off_set, str[l])
@@ -185,7 +185,7 @@ namespace COMP_LIB
 
   template<PARALLELIZATION_LIBRARY_NAMES LIBRARY>
   template<typename T>
-  void packing_interface<LIBRARY>::unpack(int* buffer, int size, int& off_set, std::vector<T>& v)
+  void packing_interface<LIBRARY>::unpack(int* /*buffer*/, int /*size*/, int& /*off_set*/, std::vector<T>& /*v*/)
   {
     //   for(size_t l=0; l<v.size(); l++)
     //     unpack(buffer, size, off_set, v[l])
@@ -193,7 +193,7 @@ namespace COMP_LIB
 
   template<PARALLELIZATION_LIBRARY_NAMES LIBRARY>
   template<typename T, class dmn_type>
-  void packing_interface<LIBRARY>::unpack(int* buffer, int size, int& off_set, FUNC_LIB::function<T, dmn_type>& f)
+  void packing_interface<LIBRARY>::unpack(int* /*buffer*/, int /*size*/, int& /*off_set*/, FUNC_LIB::function<T, dmn_type>& /*f*/)
   {
     //   for(int l=0; l<f.size(); l++)
     //     unpack(buffer, size, off_set, f(l));

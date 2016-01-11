@@ -326,7 +326,7 @@ template<typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_REPRESENTATION R,
 template<typename ss_type>
 void cluster_domain<scalar_type, D, N, R, S>::print(ss_type& ss)
 {
-  ss << scientific;
+  ss << std::scientific;
   ss.precision(6);
 
   ss << "\t name        : " << get_name() << "\n";

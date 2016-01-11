@@ -135,7 +135,7 @@ void physics_parameters::unpack( concurrency_type& concurrency, int* buffer, int
  ******************************************/
 
 template<class stream_type>
-void physics_parameters::to_JSON(stream_type& ss, bool is_end)
+void physics_parameters::to_JSON(stream_type& /*ss*/, bool /*is_end*/)
 {
 //   ss << "\"physics-parameters\" :";
 //   ss << "\n{ \n";
@@ -152,7 +152,7 @@ void physics_parameters::to_JSON(stream_type& ss, bool is_end)
 }
   
 template<class JSON_reader_type>
-void physics_parameters::from_JSON(JSON_reader_type& reader)
+void physics_parameters::from_JSON(JSON_reader_type& /*reader*/)
 {
 //   typedef typename JSON_reader_type::JsonAccessor JsonAccessor;
 //   const JsonAccessor control(reader["physics-parameters"]);
@@ -182,7 +182,7 @@ void physics_parameters::read_write(read_write_type& read_write_obj)
     }
   catch(const std::exception& r_e) 
     { 
-      cout << "\n\t physics-parameters defined !!  \n\n";
+      std::cout << "\n\t physics-parameters defined !!  \n\n";
       throw std::logic_error(__PRETTY_FUNCTION__);
     }
 

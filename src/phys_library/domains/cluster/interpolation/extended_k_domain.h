@@ -63,11 +63,11 @@ public:
       throw std::logic_error(__FUNCTION__); 
     
     if(VECTOR_OPERATIONS::L2_NORM(k, get_elements()[index])>1.e-6){
-      cout << "\n\n";
+      std::cout << "\n\n";
       VECTOR_OPERATIONS::PRINT(k); 
-      cout << "\t<-->\t"; 
+      std::cout << "\t<-->\t"; 
       VECTOR_OPERATIONS::PRINT(get_elements()[index]);
-      cout << "\n\n";
+      std::cout << "\n\n";
       throw std::logic_error(__FUNCTION__); 
     }
   

@@ -1,3 +1,5 @@
+# .gitignore
+
 # Compiled Object files
 *.slo
 *.lo
@@ -21,16 +23,18 @@
 *.app
 
 # Compiled library directories
-libs/nfft-3.1.3
-libs/spglib-1.4.1
-libs/sprng5
-libs/hdf5-1.8.11
-libs/fftw-3.3.3
-libs/cblas
-libs/magma-1.6.2
+libs/nfft-3.3.0
+libs/spglib-1.7.3
+libs/include
+libs/lib
+libs/share
 
-# bin directory
-build/bin
+# Old bin directories
+OLD/old_build/bin*
+
+# (New) build directories
+build
+build_*
 
 # OS generated files
 */.DS_Store

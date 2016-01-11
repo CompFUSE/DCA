@@ -1,0 +1,6 @@
+add_gtest(NAME simple_test)
+add_gtest(NAME simple_test_gtest_main GTEST_MAIN)
+add_gtest(NAME simple_test_mpi MPI MPI_NUMPROC 3)
+add_gtest(NAME simple_test_mpi_no_numproc MPI)
+add_gtest(NAME advanced_test ADVANCED)
+add_gtest(NAME advanced_test_mpi ADVANCED MPI MPI_NUMPROC 8)

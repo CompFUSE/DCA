@@ -1,10 +1,10 @@
 //-*-C++-*-
 
-#include "include_nfft_domains.h"
+#include "domains/include_nfft_domains.h"
 
-#include "include_nfft_window_functions.h"
+#include "basis_functions/include_nfft_window_functions.h"
 
-#include "include_nfft_convolutions.h"
+#include "atomic_convolutions/include_nfft_convolutions.h"
 
 #include "dnfft_1D.h"
 #include "dnfft_1D_test.h"

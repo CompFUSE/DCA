@@ -112,7 +112,7 @@ namespace DCA
   void BSE_cluster_solver<parameters_type, MOMS_type>::apply_symmetries_sp()
   {
     if(concurrency.id()==concurrency.last())
-      cout << "\t" << __FUNCTION__ << "\n\n";
+      std::cout << "\t" << __FUNCTION__ << "\n\n";
 
     profiler_t prof(__FUNCTION__, __FILE__, __LINE__);
 
@@ -126,7 +126,7 @@ namespace DCA
                                                                            FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II_0)
   {
     if(concurrency.id()==concurrency.last())
-      cout << "\t" << __FUNCTION__ << "\n\n";
+      std::cout << "\t" << __FUNCTION__ << "\n\n";
 
     if(parameters.do_symmetrization_of_Gamma())
       {
@@ -154,7 +154,7 @@ namespace DCA
   void BSE_cluster_solver<parameters_type, MOMS_type>::load_G_II(FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II)
   {
     if(concurrency.id()==concurrency.last())
-      cout << "\t" << __FUNCTION__ << "\n\n";
+      std::cout << "\t" << __FUNCTION__ << "\n\n";
 
     int* coor_1 = new int[G_II.signature()];
     int* coor_2 = new int[G_II.signature()];
@@ -188,7 +188,7 @@ namespace DCA
   void BSE_cluster_solver<parameters_type, MOMS_type>::load_G_II_0(FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II_0)
   {
     if(concurrency.id()==concurrency.last())
-      cout << "\t" << __FUNCTION__ << "\n\n";
+      std::cout << "\t" << __FUNCTION__ << "\n\n";
 
     G_II_0 = 0.;
 
@@ -246,7 +246,7 @@ namespace DCA
                       double w_nu_min_wn = w::get_elements()[w_nu+(2*W-1-w)];
                       double beta        = parameters.get_beta();
 
-                      if(fabs( (w_nu*M_PI/beta-wn) - w_nu_min_wn)>1.e-6)
+                      if(std::fabs( (w_nu*M_PI/beta-wn) - w_nu_min_wn)>1.e-6)
                         throw std::logic_error(__FUNCTION__);
 
 
@@ -269,7 +269,7 @@ namespace DCA
   void BSE_cluster_solver<parameters_type, MOMS_type>::load_G_II_0_function(FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II_0)
   {
     if(concurrency.id()==concurrency.last())
-      cout << "\t" << __FUNCTION__ << "\n\n";
+      std::cout << "\t" << __FUNCTION__ << "\n\n";
 
     for(int w_ind=0; w_ind<w_VERTEX::dmn_size(); w_ind++)
       for(int K_ind=0; K_ind<k_DCA::dmn_size(); K_ind++)
@@ -287,12 +287,12 @@ namespace DCA
                                                                             FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II_0)
   {
     if(concurrency.id()==concurrency.last())
-      cout << "\t" << __FUNCTION__ << "\n\n";
+      std::cout << "\t" << __FUNCTION__ << "\n\n";
 
     profiler_t prof(__FUNCTION__, __FILE__, __LINE__);
 
     if(concurrency.id()==concurrency.last())
-      cout << "\t" << __FUNCTION__ << endl << endl;
+      std::cout << "\t" << __FUNCTION__ << std::endl << std::endl;
 
     scalartype renorm = 1./(parameters.get_beta()*k_DCA::dmn_size());
 
@@ -321,7 +321,7 @@ namespace DCA
                               -invert_G4 .inverted_matrix[i+j*N]);
 
     //     if(concurrency.id()==concurrency.last())
-    //       cout << "symmetrize Gamma_cluster" << endl;
+    //       std::cout << "symmetrize Gamma_cluster" << std::endl;
 
     //     symmetrize::execute(Gamma_cluster, MOMS.H_symmetry, parameters.get_q_vector(), false);
     //     diagrammatic_symmetries_obj.execute(Gamma_cluster);

@@ -72,10 +72,10 @@ int cluster_operations::index(std::vector<scalar_type>&               element,
 
   if(VECTOR_OPERATIONS::L2_NORM(element, sorted_elements[index])>1.e-6)
     {
-      cout << "\n\t " << __FUNCTION__ << "\t" << index << "\n"; 
-      VECTOR_OPERATIONS::PRINT(element); cout << "\n";  
-      VECTOR_OPERATIONS::PRINT(sorted_elements[index]); cout << "\n";
-      cout << "\n\n";
+      std::cout << "\n\t " << __FUNCTION__ << "\t" << index << "\n"; 
+      VECTOR_OPERATIONS::PRINT(element); std::cout << "\n";  
+      VECTOR_OPERATIONS::PRINT(sorted_elements[index]); std::cout << "\n";
+      std::cout << "\n\n";
     }
 
   assert(VECTOR_OPERATIONS::L2_NORM(element, sorted_elements[index])<1.e-6);

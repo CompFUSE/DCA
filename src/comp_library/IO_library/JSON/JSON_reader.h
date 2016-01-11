@@ -203,7 +203,7 @@ namespace IO
   }
 
   template<typename domain_type>
-  void reader<IO::JSON>::execute(std::string name, dmn_0<domain_type>& dmn)
+  void reader<IO::JSON>::execute(std::string /*name*/, dmn_0<domain_type>& /*dmn*/)
   {
 
   }
@@ -211,7 +211,7 @@ namespace IO
   template<typename scalartype, typename domain_type>
   void reader<IO::JSON>::execute(FUNC_LIB::function<scalartype, domain_type>& f)
   {
-    cout << "\t starts reading function : " << f.get_name() << "\n";
+    std::cout << "\t starts reading function : " << f.get_name() << "\n";
 
     execute(f.get_name(), f, parse_result, 0);
   }
@@ -387,12 +387,12 @@ namespace IO
     
     if(!file or !file.good() or file.bad()) 
       {
-	cout << "\n\n\tcannot open file : " << file_name << "\n";
-	throw std::runtime_error(__FUNCTION__);
+        std::cout << "\n\n\tcannot open file : " << file_name << "\n";
+        throw std::runtime_error(__FUNCTION__);
       }
     else
       {
-	cout << "\n\n\topening file : " << file_name << "\n";
+        std::cout << "\n\n\topening file : " << file_name << "\n";
       }
     
     while(parser.execute(file));

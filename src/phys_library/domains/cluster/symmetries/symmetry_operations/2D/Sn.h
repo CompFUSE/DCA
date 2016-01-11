@@ -4,7 +4,7 @@
 #define Sn_H_
 
 #include <cmath>
-#include "group_action.h"
+#include "../group_action.h"
 
 /*!
  *  \author Peter Staar

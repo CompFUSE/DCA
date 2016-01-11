@@ -115,14 +115,14 @@ namespace DCA
     MonteCarloIntegrator(parameters_ref, MOMS_ref)
   {
     if(concurrency.id() == concurrency.first())
-      cout << "\n\n\t" << __FUNCTION__ << " has started \t" << print_time() << "\n\n";
+      std::cout << "\n\n\t" << __FUNCTION__ << " has started \t" << print_time() << "\n\n";
   }
 
   template<class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
   DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::~DCA_calculation()
   {
     if(concurrency.id() == concurrency.first())
-      cout << "\n\n\t" << __FUNCTION__ << " has finished \t" << print_time() << "\n\n";
+      std::cout << "\n\n\t" << __FUNCTION__ << " has finished \t" << print_time() << "\n\n";
   }
 
   template<class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
@@ -138,7 +138,7 @@ namespace DCA
     IO::FORMAT  FORMAT    = parameters.get_output_format();
     std::string file_name = parameters.get_directory() + parameters.get_output_file_name();
 
-    cout << "\n\n\t\t start writing " << file_name << "\t" << print_time() << "\n\n";
+    std::cout << "\n\n\t\t start writing " << file_name << "\t" << print_time() << "\n\n";
 
     switch(FORMAT)
       {
@@ -186,7 +186,7 @@ namespace DCA
     for(int i=0; i<parameters.get_DCA_iterations(); i++)
     {
     if(concurrency.id() == concurrency.first())
-    cout << "\n\n\t" << __FUNCTION__ << " has started with DCA-iteration --> " << i << " \n\n";
+    std::cout << "\n\n\t" << __FUNCTION__ << " has started with DCA-iteration --> " << i << " \n\n";
 
     {
     profiler_t profiler("cluster-mapping", "DCA", __LINE__);
@@ -297,7 +297,7 @@ namespace DCA
   void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::perform_cluster_mapping_self_energy()
   {
     if(concurrency.id()==0)
-      cout << "\n\t\t coarsegrain-Selfenergy " << print_time();
+      std::cout << "\n\t\t coarsegrain-Selfenergy " << print_time();
 
     profiler_t profiler("coarsegrain-Selfenergy", "DCA", __LINE__);
 
@@ -315,7 +315,7 @@ namespace DCA
   void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::perform_cluster_mapping_Greens_function()
   {
     if(concurrency.id()==0)
-      cout << "\n\t\t coarsegrain-Greens-function " << print_time();
+      std::cout << "\n\t\t coarsegrain-Greens-function " << print_time();
 
     profiler_t profiler("coarsegrain-Greens-function", "DCA", __LINE__);
 
@@ -337,7 +337,7 @@ namespace DCA
   void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::perform_cluster_exclusion_step()
   {
     if(concurrency.id()==0)
-      cout << "\n\t\t cluster-exclusion-step " << print_time();
+      std::cout << "\n\t\t cluster-exclusion-step " << print_time();
 
     profiler_t profiler("cluster-exclusion-step", "DCA", __LINE__);
 
@@ -377,7 +377,7 @@ namespace DCA
     profiler_t profiler("lattice-mapping", "DCA", __LINE__);
 
     if(concurrency.id()==0)
-      cout << "\n\t\t lattice-mapping " << print_time();
+      std::cout << "\n\t\t lattice-mapping " << print_time();
 
     if(parameters.use_interpolated_Self_energy())
       {
@@ -408,7 +408,7 @@ namespace DCA
 
     if(concurrency.id()==0)
       {
-        cout << "\n\n\t\t\t total-density : " << DCA_info_struct.density(i) << "\t (time : " << print_time() << ")\n\n";
+        std::cout << "\n\n\t\t\t total-density : " << DCA_info_struct.density(i) << "\t (time : " << print_time() << ")\n\n";
       }
 
     for(int l1=0; l1<b::dmn_size()*s::dmn_size(); l1++)

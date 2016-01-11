@@ -74,19 +74,19 @@ namespace MATH_ALGORITHMS
     struct nfft_atomic_convolution<max_count, max_count>
     {
       template<typename scalar_type>
-      inline static void execute_linear(scalar_type* f, scalar_type* y, scalar_type* M)
+      inline static void execute_linear(scalar_type* /*f*/, scalar_type* /*y*/, scalar_type* /*M*/)
       {}
 
       template<typename scalar_type>
-      inline static void execute_cubic(scalar_type* f, scalar_type* y, scalar_type* M)
+      inline static void execute_cubic(scalar_type* /*f*/, scalar_type* /*y*/, scalar_type* /*M*/)
       {}
 
       template<typename scalar_type>
-      inline static void execute_Mt_y_2(scalar_type* f, scalar_type* M, scalar_type* y)
+      inline static void execute_Mt_y_2(scalar_type* /*f*/, scalar_type* /*M*/, scalar_type* /*y*/)
       {}
 
       template<typename scalar_type>
-      inline static void execute_Mt_y_4(scalar_type* f, scalar_type* M, scalar_type* y)
+      inline static void execute_Mt_y_4(scalar_type* /*f*/, scalar_type* /*M*/, scalar_type* /*y*/)
       {}
     };
 

@@ -35,7 +35,7 @@ namespace COMP_LIB
 
   template<PARALLELIZATION_LIBRARY_NAMES LIBRARY>
   template<typename scalar_type>
-  void collective_max_interface<LIBRARY>::max(scalar_type& value)
+  void collective_max_interface<LIBRARY>::max(scalar_type& /*value*/)
   {}
 
 }

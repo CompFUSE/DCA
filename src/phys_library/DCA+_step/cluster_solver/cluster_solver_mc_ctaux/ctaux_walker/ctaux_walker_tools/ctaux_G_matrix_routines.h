@@ -123,7 +123,7 @@ namespace DCA
       GFLOP         = 0;
 
       if(result<0)
-        cout << __FUNCTION__ << "\t" << result << "\n";
+        std::cout << __FUNCTION__ << "\t" << result << "\n";
 
       return result;
     }

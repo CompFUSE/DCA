@@ -32,10 +32,10 @@ namespace IO
 	data.resize(0);
 	while(getline(myfile, row))
 	  {
-	    data.push_back(vector<scalartype>());
+	    data.push_back(std::vector<scalartype>());
 	    
-	    istringstream tokenS(row);
-	    string token;
+      std::istringstream tokenS(row);
+      std::string token;
 	    
 	    while(getline(tokenS, token, ','))
 	      {

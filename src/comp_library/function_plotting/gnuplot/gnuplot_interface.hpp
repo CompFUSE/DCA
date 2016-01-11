@@ -1978,13 +1978,13 @@ std::string Gnuplot::create_tmpfile(std::ofstream &tmp)
 
 void Gnuplot::remove_tmpfiles()
 {
-  cout << __FUNCTION__ << endl;
+  std::cout << __FUNCTION__ << std::endl;
 
   if ((tmpfile_list).size() > 0)
     {
       for(unsigned int i = 0; i < tmpfile_list.size(); i++){
-	cout << tmpfile_list[i].c_str() << endl;
-	remove( tmpfile_list[i].c_str() );
+        std::cout << tmpfile_list[i].c_str() << std::endl;
+        remove( tmpfile_list[i].c_str() );
       }
 
       Gnuplot::tmpfile_num -= tmpfile_list.size();

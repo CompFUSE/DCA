@@ -15,12 +15,12 @@ namespace DCA
     {
       int i;
 
-      complex<scalartype> e;
-      complex<scalartype> f;
+      std::complex<scalartype> e;
+      std::complex<scalartype> f;
 
-      complex<scalartype> log_min_e;
+      std::complex<scalartype> log_min_e;
 
-      complex<scalartype> r;
+      std::complex<scalartype> r;
     };
 
   private:
@@ -54,8 +54,8 @@ namespace DCA
                                  matrix_element_struct<scalartype> const& y);
 
     template<typename scalartype>
-    static bool pair_less(std::pair<complex<scalartype>, complex<scalartype> > const& x,
-                          std::pair<complex<scalartype>, complex<scalartype> > const& y);
+    static bool pair_less(std::pair<std::complex<scalartype>, std::complex<scalartype> > const& x,
+                          std::pair<std::complex<scalartype>, std::complex<scalartype> > const& y);
 
     //     template<typename scalartype>
     //     static bool pair_same(std::pair<complex<scalartype>, complex<scalartype> > const& x,
@@ -275,8 +275,8 @@ namespace DCA
   //   }
 
   template<typename scalartype>
-  bool tetrahedron_routines_inverse_matrix_function::pair_less(std::pair<complex<scalartype>, complex<scalartype> > const& x,
-                                                               std::pair<complex<scalartype>, complex<scalartype> > const& y)
+  bool tetrahedron_routines_inverse_matrix_function::pair_less(std::pair<std::complex<scalartype>, std::complex<scalartype> > const& x,
+                                                               std::pair<std::complex<scalartype>, std::complex<scalartype> > const& y)
   {
     return std::abs(x.first) > std::abs(y.first);
   }

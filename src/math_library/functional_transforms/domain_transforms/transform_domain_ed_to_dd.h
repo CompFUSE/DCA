@@ -21,12 +21,12 @@ namespace MATH_ALGORITHMS
     typedef typename basis_transformation_type::matrix_type                    matrix_type;
 
   public:
-    
-    template<typename scalartype_input, class domain_input, 
-	     typename scalartype_output, class domain_output>
-    static void execute(FUNC_LIB::function<scalartype_input , domain_input >& f_input, 
-			FUNC_LIB::function<scalartype_output, domain_output>& f_output)
-    {      
+
+    template<typename scalartype_input, class domain_input,
+             typename scalartype_output, class domain_output>
+    static void execute(FUNC_LIB::function<scalartype_input , domain_input >& f_input,
+                        FUNC_LIB::function<scalartype_output, domain_output>& f_output)
+    {
       default_execute(f_input, f_output);
     }
 
@@ -42,43 +42,43 @@ namespace MATH_ALGORITHMS
     static scalartype vector_norm(std::vector<scalartype>& x)
     {
       scalartype result = 0;
-      
+
       for(int l=0; l<x.size(); l++)
-	result += x[l]*x[l];
+        result += x[l]*x[l];
 
       return result;
     }
-    
+
     static int find_origin()
     {
       int index=0;
-      
+
       for(int l=0; l<type_input::get_size(); l++)
-	if(vector_norm(type_input::get_elements()[l])<1.e-6)
-	  index = l;
-      
+        if(vector_norm(type_input::get_elements()[l])<1.e-6)
+          index = l;
+
       return index;
     }
 
     template<typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-    static void fftw_harmonics_execute(FUNC_LIB::function<scalartype_input , domain_input >& f_input, 
-				       FUNC_LIB::function<scalartype_output, domain_output>& f_output);
+    static void fftw_harmonics_execute(FUNC_LIB::function<scalartype_input , domain_input >& f_input,
+                                       FUNC_LIB::function<scalartype_output, domain_output>& f_output);
 
     template<typename scalartype, class domain_input, class domain_output>
-    static void fftw_harmonics_execute(FUNC_LIB::function<std::complex<scalartype>, domain_input >& f_input, 
-				       FUNC_LIB::function<std::complex<scalartype>, domain_output>& f_output)
+    static void fftw_harmonics_execute(FUNC_LIB::function<std::complex<scalartype>, domain_input >& f_input,
+                                       FUNC_LIB::function<std::complex<scalartype>, domain_output>& f_output)
     {
       assert(type_input::dmn_specifications_type::DIMENSION == type_output::dmn_specifications_type::DIMENSION);
 
       if(VERBOSE)
-	cout << "\n\t fftw-harmonics-transform (expansion -> discrete) " << DMN_INDEX << "  " << type_input::get_name() << " --> " << type_output::get_name() << "\n\n";
-      
+        std::cout << "\n\t fftw-harmonics-transform (expansion -> discrete) " << DMN_INDEX << "  " << type_input::get_name() << " --> " << type_output::get_name() << "\n\n";
+
       int M, K, N, P;
       characterize_transformation(f_input, f_output, M, K, N, P);
 
       int  rank = type_input::dmn_specifications_type::DIMENSION;
       int* dims = type_input::get_dimensions();
-      
+
       int how_many = M;
 
       fftw_complex* in  = new fftw_complex[M*K];
@@ -89,45 +89,45 @@ namespace MATH_ALGORITHMS
 
       // K=N !
       int idist = K;
-      int odist = N; 
+      int odist = N;
 
       const int* inembed = type_input ::get_dimensions();
       const int* onembed = type_output::get_dimensions();
 
       if(VERBOSE){
-	cout << M << "\t" << K << "\t" << N << "\t" << P << "\n";
+        std::cout << M << "\t" << K << "\t" << N << "\t" << P << "\n";
 
-	f_input .print_fingerprint();
-	f_output.print_fingerprint();
+        f_input .print_fingerprint();
+        f_output.print_fingerprint();
       }
 
       fftw_plan plan = fftw_plan_many_dft(rank, dims, how_many,
-					  in , inembed, istride, idist,
-					  out, onembed, ostride, odist,
-					  FFTW_FORWARD, FFTW_ESTIMATE);
+                                          in , inembed, istride, idist,
+                                          out, onembed, ostride, odist,
+                                          FFTW_FORWARD, FFTW_ESTIMATE);
 
       int index = find_origin();
-      for(int l=0; l<P; l++)      
-	{
-	  for(int i=0; i<M; i++){     
-	    for(int j=0; j<K; j++){ 
+      for(int l=0; l<P; l++)
+      {
+        for(int i=0; i<M; i++){
+          for(int j=0; j<K; j++){
 
-	      int j_0 = (j-index)<0? (j-index+K) : (j-index);
+            int j_0 = (j-index)<0? (j-index+K) : (j-index);
 
-	      in[j_0+K*i][0] = real(f_input(M*K*l+i+j*M));
-	      in[j_0+K*i][1] = imag(f_input(M*K*l+i+j*M));
-	    }
-	  }
+            in[j_0+K*i][0] = real(f_input(M*K*l+i+j*M));
+            in[j_0+K*i][1] = imag(f_input(M*K*l+i+j*M));
+          }
+        }
 
-	  fftw_execute(plan); 
+        fftw_execute(plan);
 
-	  for(int i=0; i<M; i++){     
-	    for(int j=0; j<N; j++){     
-	      real(f_output(M*N*l+i+j*M)) = out[j+N*i][0];
-	      imag(f_output(M*N*l+i+j*M)) = out[j+N*i][1];
-	    }
-	  }
-	}
+        for(int i=0; i<M; i++){
+          for(int j=0; j<N; j++){
+            real(f_output(M*N*l+i+j*M)) = out[j+N*i][0];
+            imag(f_output(M*N*l+i+j*M)) = out[j+N*i][1];
+          }
+        }
+      }
 
       fftw_destroy_plan(plan);
 
@@ -135,46 +135,46 @@ namespace MATH_ALGORITHMS
       delete [] out;
     }
 
-    template<typename scalartype_input, class domain_input, 
-	     typename scalartype_output, class domain_output>
-    static void fftw_cosine_execute(FUNC_LIB::function<scalartype_input , domain_input >& f_input, 
-				    FUNC_LIB::function<scalartype_output, domain_output>& f_output)
+    template<typename scalartype_input, class domain_input,
+             typename scalartype_output, class domain_output>
+    static void fftw_cosine_execute(FUNC_LIB::function<scalartype_input , domain_input >& /*f_input*/,
+                                    FUNC_LIB::function<scalartype_output, domain_output>& /*f_output*/)
     {
       if(VERBOSE)
-	cout << "\n\t fftw-cosine-transform (expansion -> discrete) " << DMN_INDEX << "  " << type_input::get_name() << " --> " << type_output::get_name() << "\n\n";
-      
-      
+        std::cout << "\n\t fftw-cosine-transform (expansion -> discrete) " << DMN_INDEX << "  " << type_input::get_name() << " --> " << type_output::get_name() << "\n\n";
+
+
 
     }
 
-    template<typename scalartype_input, class domain_input, 
-	     typename scalartype_output, class domain_output>
-    static void fftw_sine_execute(FUNC_LIB::function<scalartype_input , domain_input >& f_input, 
-				  FUNC_LIB::function<scalartype_output, domain_output>& f_output)
+    template<typename scalartype_input, class domain_input,
+             typename scalartype_output, class domain_output>
+    static void fftw_sine_execute(FUNC_LIB::function<scalartype_input , domain_input >& /*f_input*/,
+                                  FUNC_LIB::function<scalartype_output, domain_output>& /*f_output*/)
     {
       if(VERBOSE)
-	cout << "\n\t fftw-sine-transform (expansion -> discrete) " << DMN_INDEX << "  " << type_input::get_name() << " --> " << type_output::get_name() << "\n\n";
-      
-      
+        std::cout << "\n\t fftw-sine-transform (expansion -> discrete) " << DMN_INDEX << "  " << type_input::get_name() << " --> " << type_output::get_name() << "\n\n";
+
+
 
     }
 
-  
-    template<typename scalartype_input, class domain_input, 
-	     typename scalartype_output, class domain_output>
-    static void default_execute(FUNC_LIB::function<scalartype_input , domain_input >& f_input, 
-				FUNC_LIB::function<scalartype_output, domain_output>& f_output)
+
+    template<typename scalartype_input, class domain_input,
+             typename scalartype_output, class domain_output>
+    static void default_execute(FUNC_LIB::function<scalartype_input , domain_input >& f_input,
+                                FUNC_LIB::function<scalartype_output, domain_output>& f_output)
     {
       if(VERBOSE)
-	cout << "\n\t default-transform (expansion -> discrete) " << DMN_INDEX << "  " << type_input::get_name() << " --> " << type_output::get_name() << "\n\n";
+        std::cout << "\n\t default-transform (expansion -> discrete) " << DMN_INDEX << "  " << type_input::get_name() << " --> " << type_output::get_name() << "\n\n";
 
       matrix_type& T = basis_transformation_type::get_transformation_matrix();
 
       TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(f_input, f_output, T);
     }
-    
+
   };
-  
+
 }
 
 #endif

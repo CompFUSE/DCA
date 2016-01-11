@@ -76,14 +76,14 @@ std::string to_str(CLUSTER_SHAPE NAME)
 
 #include "cluster_domain_initializer.h"
 
-#include "set_symmetry_matrices.h"
-#include "search_maximal_symmetry_group.h"
+#include "symmetrization_algorithms/set_symmetry_matrices.h"
+#include "symmetrization_algorithms/search_maximal_symmetry_group.h"
 
-#include "cluster_reduction.h"
+#include "symmetrization_algorithms/cluster_reduction.h"
 
 #include "cluster_domain_symmetry.h"
 #include "cluster_domain_symmetry_initializer.h"
 
 #include "cluster_domain_iterator.h"
 
-#include "include_cluster_interpolation_routines.h"
+#include "interpolation/include_cluster_interpolation_routines.h"

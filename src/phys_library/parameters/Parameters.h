@@ -63,7 +63,7 @@ public:
   template<IO::FORMAT DATA_FORMAT>
   void write(IO::writer<DATA_FORMAT>& writer);
 
-  void read_input_and_broadcast(string file_name);
+  void read_input_and_broadcast(std::string file_name);
 
   template<typename read_write_t>
   void read_write(read_write_t& read_write_obj);

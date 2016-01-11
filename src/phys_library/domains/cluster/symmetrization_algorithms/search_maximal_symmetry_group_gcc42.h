@@ -95,7 +95,7 @@ private:
 
 	  for(int i=0; i<DIMENSION; i++)
 	    for(int j=0; j<DIMENSION; j++)
-	      if(fabs(sym_dmn_t::get_elements()[l].O[i+j*DIMENSION] - symmetry_type::matrix()[i+j*DIMENSION]) > 1.e-6)
+	      if(std::fabs(sym_dmn_t::get_elements()[l].O[i+j*DIMENSION] - symmetry_type::matrix()[i+j*DIMENSION]) > 1.e-6)
 		is_this_a_duplicate = false;
 
 	  if(is_this_a_duplicate)

@@ -21,8 +21,8 @@ public:
 		      std::vector<std::vector<double> > elements);
 };
 
-#include "BZC_SQUARE_2D_LATTICE.h"
-#include "BZC_FERMI_SURFACE_SQUARE_2D_LATTICE.h"
+#include "Brillouin_zone_cut/BZC_SQUARE_2D_LATTICE.h"
+#include "Brillouin_zone_cut/BZC_FERMI_SURFACE_SQUARE_2D_LATTICE.h"
 
 template<BRILLOUIN_ZONE_CUT_TYPE brillouin_zone_cut_t>
 template<class stream_type>

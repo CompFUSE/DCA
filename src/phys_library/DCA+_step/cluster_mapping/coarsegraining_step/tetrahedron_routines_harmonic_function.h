@@ -112,16 +112,16 @@ namespace DCA
 
     std::complex<double> result(0., 0.);
 
-    if(abs(r)<1.e-6)
-      {
-	result.real(a1-a0);
-        result.imag(0);
-      }
+    if(std::abs(r)<1.e-6)
+    {
+      result.real(a1-a0);
+      result.imag(0);
+    }
     else
-      {
-	result.real( -Sin(a0*r)/r + Sin(a1*r)/r );
-	result.imag(  Cos(a0*r)/r - Cos(a1*r)/r );
-      }
+    {
+      result.real( -Sin(a0*r)/r + Sin(a1*r)/r );
+      result.imag(  Cos(a0*r)/r - Cos(a1*r)/r );
+    }
 
     return result;
   }
@@ -168,57 +168,57 @@ namespace DCA
 
     std::complex<double> result(0., 0.);
 
-    if(abs(VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, r_vec))<EPSILON)
-      {
-	 result.real(tetrahedron.volume );
-	 result.imag( 0 );
-      }
+    if(std::abs(VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, r_vec))<EPSILON)
+    {
+      result.real(tetrahedron.volume );
+      result.imag( 0 );
+    }
     else
-      {
-        std::vector<double> K0 = tetrahedron.vec_0;
+    {
+      std::vector<double> K0 = tetrahedron.vec_0;
 
-        std::vector<double> D1        = K0;
-        std::vector<double> D2        = K0;
-        std::vector<double> D2_min_D1 = K0;
+      std::vector<double> D1        = K0;
+      std::vector<double> D2        = K0;
+      std::vector<double> D2_min_D1 = K0;
 
-        for(int d=0; d<2; d++){
-          D1[d] = tetrahedron.vec_1[d] - tetrahedron.vec_0[d];
-          D2[d] = tetrahedron.vec_2[d] - tetrahedron.vec_0[d];
+      for(int d=0; d<2; d++){
+        D1[d] = tetrahedron.vec_1[d] - tetrahedron.vec_0[d];
+        D2[d] = tetrahedron.vec_2[d] - tetrahedron.vec_0[d];
 
-          D2_min_D1[d] = D2[d]-D1[d];
-        }
-
-        double dot_R_K0 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, K0);
-        double dot_R_D1 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D1);
-        double dot_R_D2 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D2);
-
-        double dot_R_D2_min_D1 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D2_min_D1);
-
-        double               det   = VECTOR_OPERATIONS::VOLUME(D1, D2);
-        std::complex<double> phase = Cos(dot_R_K0) + I*Sin(dot_R_K0);
-
-        if(abs(dot_R_D2_min_D1)>EPSILON)
-          {
-            if(abs(dot_R_D1)>EPSILON and abs(dot_R_D2)>EPSILON)
-              result = case_2D(dot_R_D1, dot_R_D2, dot_R_D2_min_D1)*phase*det;
-
-            if(abs(dot_R_D1)<EPSILON)
-              result = case_d1_2D(dot_R_D1, dot_R_D2, dot_R_D2_min_D1)*phase*det;
-
-            if(abs(dot_R_D2)<EPSILON)
-              result = case_d2_2D(dot_R_D1, dot_R_D2, dot_R_D2_min_D1)*phase*det;
-          }
-        else
-          //        if(abs(dot_R_D2_min_D1)<EPSILON)
-          {
-            MATH_ALGORITHMS::tetrahedron<2> tetrahedron_new;
-
-            permute(tetrahedron_new, tetrahedron);
-
-            result = execute(r_vec, tetrahedron_new);
-            //result = case_3_2D(dot_R_D1, dot_R_D2, dot_R_D3)*phase*det;
-          }
+        D2_min_D1[d] = D2[d]-D1[d];
       }
+
+      double dot_R_K0 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, K0);
+      double dot_R_D1 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D1);
+      double dot_R_D2 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D2);
+
+      double dot_R_D2_min_D1 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D2_min_D1);
+
+      double               det   = VECTOR_OPERATIONS::VOLUME(D1, D2);
+      std::complex<double> phase = Cos(dot_R_K0) + I*Sin(dot_R_K0);
+
+      if(std::abs(dot_R_D2_min_D1)>EPSILON)
+      {
+        if(std::abs(dot_R_D1)>EPSILON and std::abs(dot_R_D2)>EPSILON)
+          result = case_2D(dot_R_D1, dot_R_D2, dot_R_D2_min_D1)*phase*det;
+
+        if(std::abs(dot_R_D1)<EPSILON)
+          result = case_d1_2D(dot_R_D1, dot_R_D2, dot_R_D2_min_D1)*phase*det;
+
+        if(std::abs(dot_R_D2)<EPSILON)
+          result = case_d2_2D(dot_R_D1, dot_R_D2, dot_R_D2_min_D1)*phase*det;
+      }
+      else
+        //        if(abs(dot_R_D2_min_D1)<EPSILON)
+      {
+        MATH_ALGORITHMS::tetrahedron<2> tetrahedron_new;
+
+        permute(tetrahedron_new, tetrahedron);
+
+        result = execute(r_vec, tetrahedron_new);
+        //result = case_3_2D(dot_R_D1, dot_R_D2, dot_R_D3)*phase*det;
+      }
+    }
 
     return result;
   }
@@ -235,9 +235,9 @@ namespace DCA
                                                                        double dotRD2,
                                                                        double dotRD2minD1)
   {
-    assert(abs(dotRD1) > 1.e-6);
-    assert(abs(dotRD2) > 1.e-6);
-    assert(abs(dotRD2minD1) > 1.e-6);
+    assert(std::abs(dotRD1) > 1.e-6);
+    assert(std::abs(dotRD2) > 1.e-6);
+    assert(std::abs(dotRD2minD1) > 1.e-6);
 
     std::complex<double> result(0., 0.);
 
@@ -254,9 +254,9 @@ namespace DCA
                                                                           double dotRD2,
                                                                           double dotRD2minD1)
   {
-    assert(abs(dotRD1) < 1.e-6);
-    assert(abs(dotRD2) > 1.e-6);
-    assert(abs(dotRD2minD1) > 1.e-6);
+    assert(std::abs(dotRD1) < 1.e-6);
+    assert(std::abs(dotRD2) > 1.e-6);
+    assert(std::abs(dotRD2minD1) > 1.e-6);
 
     std::complex<double> result(0., 0.);
 
@@ -273,9 +273,9 @@ namespace DCA
                                                                           double dotRD2,
                                                                           double dotRD2minD1)
   {
-    assert(abs(dotRD1) > 1.e-6);
-    assert(abs(dotRD2) < 1.e-6);
-    assert(abs(dotRD2minD1) > 1.e-6);
+    assert(std::abs(dotRD1) > 1.e-6);
+    assert(std::abs(dotRD2) < 1.e-6);
+    assert(std::abs(dotRD2minD1) > 1.e-6);
 
     std::complex<double> result(0., 0.);
 
@@ -293,9 +293,9 @@ namespace DCA
     double dotRD2,
     double dotRD3)
     {
-    assert(abs(dotRD1) > 1.e-6);
-    assert(abs(dotRD2) > 1.e-6);
-    assert(abs(dotRD3) < 1.e-6);
+    assert(std::abs(dotRD1) > 1.e-6);
+    assert(std::abs(dotRD2) > 1.e-6);
+    assert(std::abs(dotRD3) < 1.e-6);
 
     std::complex<double> result(0., 0.);
 
@@ -324,13 +324,13 @@ namespace DCA
   std::complex<double> tetrahedron_routines_harmonic_function::case_3D(double dotRD1     , double dotRD2     , double dotRD3,
                                                                        double dotRD2minD1, double dotRD3minD2, double dotRD1minD3)
   {
-    assert(abs(dotRD1) > 1.e-6);
-    assert(abs(dotRD2) > 1.e-6);
-    assert(abs(dotRD3) > 1.e-6);
+    assert(std::abs(dotRD1) > 1.e-6);
+    assert(std::abs(dotRD2) > 1.e-6);
+    assert(std::abs(dotRD3) > 1.e-6);
 
-    assert(abs(dotRD2minD1) > 1.e-6);
-    assert(abs(dotRD3minD2) > 1.e-6);
-    assert(abs(dotRD1minD3) > 1.e-6);
+    assert(std::abs(dotRD2minD1) > 1.e-6);
+    assert(std::abs(dotRD3minD2) > 1.e-6);
+    assert(std::abs(dotRD1minD3) > 1.e-6);
 
     std::complex<double> result(0., 0.);
 
@@ -352,38 +352,38 @@ namespace DCA
   }
 
   std::complex<double> tetrahedron_routines_harmonic_function::case_d1_3D(double dotRD1     , double dotRD2     , double dotRD3,
-                                                                          double dotRD2minD1, double dotRD3minD2, double dotRD1minD3)
+                                                                          double /*dotRD2minD1*/, double dotRD3minD2, double /*dotRD1minD3*/)
   {
-    assert(abs(dotRD1) < 1.e-6);
-    assert(abs(dotRD2) > 1.e-6);
-    assert(abs(dotRD3) > 1.e-6);
+    assert(std::abs(dotRD1) < 1.e-6);
+    assert(std::abs(dotRD2) > 1.e-6);
+    assert(std::abs(dotRD3) > 1.e-6);
 
-    //     assert(abs(dotRD2minD1) > 1.e-6);
-    //     assert(abs(dotRD3minD2) > 1.e-6);
-    //     assert(abs(dotRD1minD3) > 1.e-6);
+    //     assert(std::abs(dotRD2minD1) > 1.e-6);
+    //     assert(std::abs(dotRD3minD2) > 1.e-6);
+    //     assert(std::abs(dotRD1minD3) > 1.e-6);
 
     std::complex<double> result(0., 0.);
 
-    if(abs(dotRD3minD2) > 1.e-6)
-      {
-	result.real(
-          -(1/(dotRD2*dotRD3minD2)) + 1/(dotRD3*dotRD3minD2) + Sin(dotRD2)/(Power(dotRD2,2)*dotRD3minD2) -
-          Sin(dotRD3)/(Power(dotRD3,2)*dotRD3minD2) );
+    if(std::abs(dotRD3minD2) > 1.e-6)
+    {
+      result.real(
+        -(1/(dotRD2*dotRD3minD2)) + 1/(dotRD3*dotRD3minD2) + Sin(dotRD2)/(Power(dotRD2,2)*dotRD3minD2) -
+        Sin(dotRD3)/(Power(dotRD3,2)*dotRD3minD2) );
 
-        result.imag(
-          1/(Power(dotRD2,2)*dotRD3minD2) - 1/(Power(dotRD3,2)*dotRD3minD2) - Cos(dotRD2)/(Power(dotRD2,2)*dotRD3minD2) +
-          Cos(dotRD3)/(Power(dotRD3,2)*dotRD3minD2) );
-      }
+      result.imag(
+        1/(Power(dotRD2,2)*dotRD3minD2) - 1/(Power(dotRD3,2)*dotRD3minD2) - Cos(dotRD2)/(Power(dotRD2,2)*dotRD3minD2) +
+        Cos(dotRD3)/(Power(dotRD3,2)*dotRD3minD2) );
+    }
     else
-      {
-	//cout << __FUNCTION__ << " needs implementation\n";
+    {
+      //cout << __FUNCTION__ << " needs implementation\n";
 
-	result.real(
-	    -Power(dotRD2,-2) - Cos(dotRD2)/Power(dotRD2,2) + (2*Sin(dotRD2))/Power(dotRD2,3) );
+      result.real(
+        -Power(dotRD2,-2) - Cos(dotRD2)/Power(dotRD2,2) + (2*Sin(dotRD2))/Power(dotRD2,3) );
 
-	result.imag(
-	    2/Power(dotRD2,3) - (2*Cos(dotRD2))/Power(dotRD2,3) - Sin(dotRD2)/Power(dotRD2,2) );
-      }
+      result.imag(
+        2/Power(dotRD2,3) - (2*Cos(dotRD2))/Power(dotRD2,3) - Sin(dotRD2)/Power(dotRD2,2) );
+    }
 
     assert(real(result)==real(result));
     assert(imag(result)==imag(result));
@@ -392,38 +392,38 @@ namespace DCA
   }
 
   std::complex<double> tetrahedron_routines_harmonic_function::case_d2_3D(double dotRD1     , double dotRD2     , double dotRD3,
-                                                                          double dotRD2minD1, double dotRD3minD2, double dotRD1minD3)
+                                                                          double /*dotRD2minD1*/, double /*dotRD3minD2*/, double dotRD1minD3)
   {
-    assert(abs(dotRD1) > 1.e-6);
-    assert(abs(dotRD2) < 1.e-6);
-    assert(abs(dotRD3) > 1.e-6);
+    assert(std::abs(dotRD1) > 1.e-6);
+    assert(std::abs(dotRD2) < 1.e-6);
+    assert(std::abs(dotRD3) > 1.e-6);
 
-    //     assert(abs(dotRD2minD1) > 1.e-6);
-    //     assert(abs(dotRD3minD2) > 1.e-6);
-    //     assert(abs(dotRD1minD3) > 1.e-6);
+    //     assert(std::abs(dotRD2minD1) > 1.e-6);
+    //     assert(std::abs(dotRD3minD2) > 1.e-6);
+    //     assert(std::abs(dotRD1minD3) > 1.e-6);
 
     std::complex<double> result(0., 0.);
 
-    if(abs(dotRD1minD3) > 1.e-6)
-      {
-	result.real(
-          1/(dotRD1*dotRD1minD3) - 1/(dotRD1minD3*dotRD3) - Sin(dotRD1)/(Power(dotRD1,2)*dotRD1minD3) +
-          Sin(dotRD3)/(dotRD1minD3*Power(dotRD3,2)) );
+    if(std::abs(dotRD1minD3) > 1.e-6)
+    {
+      result.real(
+        1/(dotRD1*dotRD1minD3) - 1/(dotRD1minD3*dotRD3) - Sin(dotRD1)/(Power(dotRD1,2)*dotRD1minD3) +
+        Sin(dotRD3)/(dotRD1minD3*Power(dotRD3,2)) );
 
-        result.imag(
-	  -(1/(Power(dotRD1,2)*dotRD1minD3)) + 1/(dotRD1minD3*Power(dotRD3,2)) + Cos(dotRD1)/(Power(dotRD1,2)*dotRD1minD3) -
-	  Cos(dotRD3)/(dotRD1minD3*Power(dotRD3,2)) );
-      }
+      result.imag(
+        -(1/(Power(dotRD1,2)*dotRD1minD3)) + 1/(dotRD1minD3*Power(dotRD3,2)) + Cos(dotRD1)/(Power(dotRD1,2)*dotRD1minD3) -
+        Cos(dotRD3)/(dotRD1minD3*Power(dotRD3,2)) );
+    }
     else
-      {
-	//cout << __FUNCTION__ << " needs implementation\n";
+    {
+      //cout << __FUNCTION__ << " needs implementation\n";
 
-	result.real(
-	    -Power(dotRD3,-2) - Cos(dotRD3)/Power(dotRD3,2) + (2*Sin(dotRD3))/Power(dotRD3,3) );
+      result.real(
+        -Power(dotRD3,-2) - Cos(dotRD3)/Power(dotRD3,2) + (2*Sin(dotRD3))/Power(dotRD3,3) );
 
-	result.imag(
-	    2/Power(dotRD3,3) - (2*Cos(dotRD3))/Power(dotRD3,3) - Sin(dotRD3)/Power(dotRD3,2) );
-      }
+      result.imag(
+        2/Power(dotRD3,3) - (2*Cos(dotRD3))/Power(dotRD3,3) - Sin(dotRD3)/Power(dotRD3,2) );
+    }
 
     assert(real(result)==real(result));
     assert(imag(result)==imag(result));
@@ -432,38 +432,38 @@ namespace DCA
   }
 
   std::complex<double> tetrahedron_routines_harmonic_function::case_d3_3D(double dotRD1     , double dotRD2     , double dotRD3,
-                                                                          double dotRD2minD1, double dotRD3minD2, double dotRD1minD3)
+                                                                          double dotRD2minD1, double /*dotRD3minD2*/, double /*dotRD1minD3*/)
   {
-    assert(abs(dotRD1) > 1.e-6);
-    assert(abs(dotRD2) > 1.e-6);
-    assert(abs(dotRD3) < 1.e-6);
+    assert(std::abs(dotRD1) > 1.e-6);
+    assert(std::abs(dotRD2) > 1.e-6);
+    assert(std::abs(dotRD3) < 1.e-6);
 
-    //     assert(abs(dotRD2minD1) > 1.e-6);
-    //     assert(abs(dotRD3minD2) > 1.e-6);
-    //     assert(abs(dotRD1minD3) > 1.e-6);
+    //     assert(std::abs(dotRD2minD1) > 1.e-6);
+    //     assert(std::abs(dotRD3minD2) > 1.e-6);
+    //     assert(std::abs(dotRD1minD3) > 1.e-6);
 
     std::complex<double> result(0., 0.);
 
-    if(abs(dotRD2minD1) > 1.e-6)
-      {
-	result.real(
-          -(1/(dotRD1*dotRD2minD1)) + 1/(dotRD2*dotRD2minD1) + Sin(dotRD1)/(Power(dotRD1,2)*dotRD2minD1) -
-          Sin(dotRD2)/(Power(dotRD2,2)*dotRD2minD1) );
+    if(std::abs(dotRD2minD1) > 1.e-6)
+    {
+      result.real(
+        -(1/(dotRD1*dotRD2minD1)) + 1/(dotRD2*dotRD2minD1) + Sin(dotRD1)/(Power(dotRD1,2)*dotRD2minD1) -
+        Sin(dotRD2)/(Power(dotRD2,2)*dotRD2minD1) );
 
-        result.imag(
-          1/(Power(dotRD1,2)*dotRD2minD1) - 1/(Power(dotRD2,2)*dotRD2minD1) - Cos(dotRD1)/(Power(dotRD1,2)*dotRD2minD1) +
-          Cos(dotRD2)/(Power(dotRD2,2)*dotRD2minD1) );
-      }
+      result.imag(
+        1/(Power(dotRD1,2)*dotRD2minD1) - 1/(Power(dotRD2,2)*dotRD2minD1) - Cos(dotRD1)/(Power(dotRD1,2)*dotRD2minD1) +
+        Cos(dotRD2)/(Power(dotRD2,2)*dotRD2minD1) );
+    }
     else
-      {
-	//cout << __FUNCTION__ << " needs implementation\n";
+    {
+      //cout << __FUNCTION__ << " needs implementation\n";
 
-	result.real( 
-	    -Power(dotRD1,-2) - Cos(dotRD1)/Power(dotRD1,2) + (2*Sin(dotRD1))/Power(dotRD1,3) );
+      result.real(
+        -Power(dotRD1,-2) - Cos(dotRD1)/Power(dotRD1,2) + (2*Sin(dotRD1))/Power(dotRD1,3) );
 
-	result.imag(
-	    2/Power(dotRD1,3) - (2*Cos(dotRD1))/Power(dotRD1,3) - Sin(dotRD1)/Power(dotRD1,2) );
-      }
+      result.imag(
+        2/Power(dotRD1,3) - (2*Cos(dotRD1))/Power(dotRD1,3) - Sin(dotRD1)/Power(dotRD1,2) );
+    }
 
     assert(real(result)==real(result));
     assert(imag(result)==imag(result));
@@ -472,23 +472,23 @@ namespace DCA
   }
 
   std::complex<double> tetrahedron_routines_harmonic_function::case_d1_d2_3D(double dotRD1     , double dotRD2     , double dotRD3,
-                                                                             double dotRD2minD1, double dotRD3minD2, double dotRD1minD3)
+                                                                             double /*dotRD2minD1*/, double /*dotRD3minD2*/, double /*dotRD1minD3*/)
   {
-    assert(abs(dotRD1) < 1.e-6);
-    assert(abs(dotRD2) < 1.e-6);
-    assert(abs(dotRD3) > 1.e-6);
+    assert(std::abs(dotRD1) < 1.e-6);
+    assert(std::abs(dotRD2) < 1.e-6);
+    assert(std::abs(dotRD3) > 1.e-6);
 
-    //     assert(abs(dotRD2minD1) > 1.e-6);
-    //     assert(abs(dotRD3minD2) > 1.e-6);
-    //     assert(abs(dotRD1minD3) > 1.e-6);
+    //     assert(std::abs(dotRD2minD1) > 1.e-6);
+    //     assert(std::abs(dotRD3minD2) > 1.e-6);
+    //     assert(std::abs(dotRD1minD3) > 1.e-6);
 
     std::complex<double> result(0., 0.);
 
     result.real(
-	Power(dotRD3,-2) - Sin(dotRD3)/Power(dotRD3,3) );
+      Power(dotRD3,-2) - Sin(dotRD3)/Power(dotRD3,3) );
 
     result.imag(
-	-Power(dotRD3,-3) + 1/(2.*dotRD3) + Cos(dotRD3)/Power(dotRD3,3) );
+      -Power(dotRD3,-3) + 1/(2.*dotRD3) + Cos(dotRD3)/Power(dotRD3,3) );
 
     assert(real(result)==real(result));
     assert(imag(result)==imag(result));
@@ -497,23 +497,23 @@ namespace DCA
   }
 
   std::complex<double> tetrahedron_routines_harmonic_function::case_d2_d3_3D(double dotRD1     , double dotRD2     , double dotRD3,
-                                                                             double dotRD2minD1, double dotRD3minD2, double dotRD1minD3)
+                                                                             double /*dotRD2minD1*/, double /*dotRD3minD2*/, double /*dotRD1minD3*/)
   {
-    assert(abs(dotRD1) > 1.e-6);
-    assert(abs(dotRD2) < 1.e-6);
-    assert(abs(dotRD3) < 1.e-6);
+    assert(std::abs(dotRD1) > 1.e-6);
+    assert(std::abs(dotRD2) < 1.e-6);
+    assert(std::abs(dotRD3) < 1.e-6);
 
-    //     assert(abs(dotRD2minD1) > 1.e-6);
-    //     assert(abs(dotRD3minD2) > 1.e-6);
-    //     assert(abs(dotRD1minD3) > 1.e-6);
+    //     assert(std::abs(dotRD2minD1) > 1.e-6);
+    //     assert(std::abs(dotRD3minD2) > 1.e-6);
+    //     assert(std::abs(dotRD1minD3) > 1.e-6);
 
     std::complex<double> result(0., 0.);
 
     result.real(
-	Power(dotRD1,-2) - Sin(dotRD1)/Power(dotRD1,3) );
+      Power(dotRD1,-2) - Sin(dotRD1)/Power(dotRD1,3) );
 
     result.imag(
-	-Power(dotRD1,-3) + 1/(2.*dotRD1) + Cos(dotRD1)/Power(dotRD1,3) );
+      -Power(dotRD1,-3) + 1/(2.*dotRD1) + Cos(dotRD1)/Power(dotRD1,3) );
 
     assert(real(result)==real(result));
     assert(imag(result)==imag(result));
@@ -522,23 +522,23 @@ namespace DCA
   }
 
   std::complex<double> tetrahedron_routines_harmonic_function::case_d3_d1_3D(double dotRD1     , double dotRD2     , double dotRD3,
-                                                                             double dotRD2minD1, double dotRD3minD2, double dotRD1minD3)
+                                                                             double /*dotRD2minD1*/, double /*dotRD3minD2*/, double /*dotRD1minD3*/)
   {
-    assert(abs(dotRD1) < 1.e-6);
-    assert(abs(dotRD2) > 1.e-6);
-    assert(abs(dotRD3) < 1.e-6);
+    assert(std::abs(dotRD1) < 1.e-6);
+    assert(std::abs(dotRD2) > 1.e-6);
+    assert(std::abs(dotRD3) < 1.e-6);
 
-    //     assert(abs(dotRD2minD1) > 1.e-6);
-    //     assert(abs(dotRD3minD2) > 1.e-6);
-    //     assert(abs(dotRD1minD3) > 1.e-6);
+    //     assert(std::abs(dotRD2minD1) > 1.e-6);
+    //     assert(std::abs(dotRD3minD2) > 1.e-6);
+    //     assert(std::abs(dotRD1minD3) > 1.e-6);
 
     std::complex<double> result(0., 0.);
 
     result.real(
-	Power(dotRD2,-2) - Sin(dotRD2)/Power(dotRD2,3) );
+      Power(dotRD2,-2) - Sin(dotRD2)/Power(dotRD2,3) );
 
     result.imag(
-	-Power(dotRD2,-3) + 1/(2.*dotRD2) + Cos(dotRD2)/Power(dotRD2,3) );
+      -Power(dotRD2,-3) + 1/(2.*dotRD2) + Cos(dotRD2)/Power(dotRD2,3) );
 
     assert(real(result)==real(result));
     assert(imag(result)==imag(result));
@@ -556,93 +556,93 @@ namespace DCA
 
     std::complex<double> result(0., 0.);
 
-    if(abs(VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, r_vec))<EPSILON)
-      {
-	result.real( tetrahedron.volume );
-        result.imag( 0 );
-      }
+    if(std::abs(VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, r_vec))<EPSILON)
+    {
+      result.real( tetrahedron.volume );
+      result.imag( 0 );
+    }
     else
+    {
+      std::vector<double> K_0 = tetrahedron.vec_0;
+
+      std::vector<double> D1 = K_0;
+      std::vector<double> D2 = K_0;
+      std::vector<double> D3 = K_0;
+
+      std::vector<double> D2_min_D1 = K_0;
+      std::vector<double> D3_min_D2 = K_0;
+      std::vector<double> D1_min_D3 = K_0;
+
+      for(int d=0; d<3; d++){
+        D1[d] = tetrahedron.vec_1[d] - tetrahedron.vec_0[d];
+        D2[d] = tetrahedron.vec_2[d] - tetrahedron.vec_0[d];
+        D3[d] = tetrahedron.vec_3[d] - tetrahedron.vec_0[d];
+
+        D2_min_D1[d] = D2[d]-D1[d];
+        D3_min_D2[d] = D3[d]-D2[d];
+        D1_min_D3[d] = D1[d]-D3[d];
+      }
+
+      double dot_R_K0 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, K_0);
+
+      double dot_R_D1 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D1);
+      double dot_R_D2 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D2);
+      double dot_R_D3 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D3);
+
+      double dot_R_D2_min_D1 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D2_min_D1);
+      double dot_R_D3_min_D2 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D3_min_D2);
+      double dot_R_D1_min_D3 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D1_min_D3);
+
+      double               det   = VECTOR_OPERATIONS::VOLUME(D1, D2, D3);
+      std::complex<double> phase = Cos(dot_R_K0) + I*Sin(dot_R_K0);
+
+      if(std::abs(dot_R_D1)>EPSILON and
+         std::abs(dot_R_D2)>EPSILON and
+         std::abs(dot_R_D3)>EPSILON and
+         std::abs(dot_R_D2_min_D1)>EPSILON and
+         std::abs(dot_R_D3_min_D2)>EPSILON and
+         std::abs(dot_R_D1_min_D3)>EPSILON) // general case
       {
-        std::vector<double> K_0 = tetrahedron.vec_0;
+        result = case_3D(dot_R_D1, dot_R_D2, dot_R_D3, dot_R_D2_min_D1, dot_R_D3_min_D2, dot_R_D1_min_D3)*det*phase;
+      }
+      else
+      {
+        if(std::abs(dot_R_D1)<EPSILON or
+           std::abs(dot_R_D2)<EPSILON or
+           std::abs(dot_R_D3)<EPSILON) // special cases where one or two dot-products are zero
+        {
+          if(std::abs(dot_R_D1)<EPSILON and
+             std::abs(dot_R_D2)>EPSILON and
+             std::abs(dot_R_D3)>EPSILON)
+            result = case_d1_3D(dot_R_D1, dot_R_D2, dot_R_D3, dot_R_D2_min_D1, dot_R_D3_min_D2, dot_R_D1_min_D3)*det*phase;
 
-        std::vector<double> D1 = K_0;
-        std::vector<double> D2 = K_0;
-        std::vector<double> D3 = K_0;
+          if(std::abs(dot_R_D1)>EPSILON and
+             std::abs(dot_R_D2)<EPSILON and
+             std::abs(dot_R_D3)>EPSILON)
+            result = case_d2_3D(dot_R_D1, dot_R_D2, dot_R_D3, dot_R_D2_min_D1, dot_R_D3_min_D2, dot_R_D1_min_D3)*det*phase;
 
-        std::vector<double> D2_min_D1 = K_0;
-        std::vector<double> D3_min_D2 = K_0;
-        std::vector<double> D1_min_D3 = K_0;
+          if(std::abs(dot_R_D1)>EPSILON and
+             std::abs(dot_R_D2)>EPSILON and
+             std::abs(dot_R_D3)<EPSILON)
+            result = case_d3_3D(dot_R_D1, dot_R_D2, dot_R_D3, dot_R_D2_min_D1, dot_R_D3_min_D2, dot_R_D1_min_D3)*det*phase;
 
-        for(int d=0; d<3; d++){
-          D1[d] = tetrahedron.vec_1[d] - tetrahedron.vec_0[d];
-          D2[d] = tetrahedron.vec_2[d] - tetrahedron.vec_0[d];
-          D3[d] = tetrahedron.vec_3[d] - tetrahedron.vec_0[d];
+          if(std::abs(dot_R_D1)<EPSILON and
+             std::abs(dot_R_D2)<EPSILON and
+             std::abs(dot_R_D3)>EPSILON)
+            result = case_d1_d2_3D(dot_R_D1, dot_R_D2, dot_R_D3, dot_R_D2_min_D1, dot_R_D3_min_D2, dot_R_D1_min_D3)*det*phase;
 
-          D2_min_D1[d] = D2[d]-D1[d];
-          D3_min_D2[d] = D3[d]-D2[d];
-          D1_min_D3[d] = D1[d]-D3[d];
+          if(std::abs(dot_R_D1)>EPSILON and
+             std::abs(dot_R_D2)<EPSILON and
+             std::abs(dot_R_D3)<EPSILON)
+            result = case_d2_d3_3D(dot_R_D1, dot_R_D2, dot_R_D3, dot_R_D2_min_D1, dot_R_D3_min_D2, dot_R_D1_min_D3)*det*phase;
+
+          if(std::abs(dot_R_D1)<EPSILON and
+             std::abs(dot_R_D2)>EPSILON and
+             std::abs(dot_R_D3)<EPSILON)
+            result = case_d3_d1_3D(dot_R_D1, dot_R_D2, dot_R_D3, dot_R_D2_min_D1, dot_R_D3_min_D2, dot_R_D1_min_D3)*det*phase;
         }
-
-        double dot_R_K0 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, K_0);
-
-        double dot_R_D1 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D1);
-        double dot_R_D2 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D2);
-        double dot_R_D3 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D3);
-
-        double dot_R_D2_min_D1 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D2_min_D1);
-        double dot_R_D3_min_D2 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D3_min_D2);
-        double dot_R_D1_min_D3 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D1_min_D3);
-
-        double               det   = VECTOR_OPERATIONS::VOLUME(D1, D2, D3);
-        std::complex<double> phase = Cos(dot_R_K0) + I*Sin(dot_R_K0);
-
-        if(abs(dot_R_D1)>EPSILON and
-           abs(dot_R_D2)>EPSILON and
-           abs(dot_R_D3)>EPSILON and
-           abs(dot_R_D2_min_D1)>EPSILON and
-           abs(dot_R_D3_min_D2)>EPSILON and
-           abs(dot_R_D1_min_D3)>EPSILON) // general case
-          {
-            result = case_3D(dot_R_D1, dot_R_D2, dot_R_D3, dot_R_D2_min_D1, dot_R_D3_min_D2, dot_R_D1_min_D3)*det*phase;
-          }
         else
-          {
-            if(abs(dot_R_D1)<EPSILON or
-               abs(dot_R_D2)<EPSILON or
-               abs(dot_R_D3)<EPSILON) // special cases where one or two dot-products are zero
-              {
-                if(abs(dot_R_D1)<EPSILON and
-                   abs(dot_R_D2)>EPSILON and
-                   abs(dot_R_D3)>EPSILON)
-                  result = case_d1_3D(dot_R_D1, dot_R_D2, dot_R_D3, dot_R_D2_min_D1, dot_R_D3_min_D2, dot_R_D1_min_D3)*det*phase;
-
-                if(abs(dot_R_D1)>EPSILON and
-                   abs(dot_R_D2)<EPSILON and
-                   abs(dot_R_D3)>EPSILON)
-                  result = case_d2_3D(dot_R_D1, dot_R_D2, dot_R_D3, dot_R_D2_min_D1, dot_R_D3_min_D2, dot_R_D1_min_D3)*det*phase;
-
-                if(abs(dot_R_D1)>EPSILON and
-                   abs(dot_R_D2)>EPSILON and
-                   abs(dot_R_D3)<EPSILON)
-                  result = case_d3_3D(dot_R_D1, dot_R_D2, dot_R_D3, dot_R_D2_min_D1, dot_R_D3_min_D2, dot_R_D1_min_D3)*det*phase;
-
-                if(abs(dot_R_D1)<EPSILON and
-                   abs(dot_R_D2)<EPSILON and
-                   abs(dot_R_D3)>EPSILON)
-                  result = case_d1_d2_3D(dot_R_D1, dot_R_D2, dot_R_D3, dot_R_D2_min_D1, dot_R_D3_min_D2, dot_R_D1_min_D3)*det*phase;
-
-                if(abs(dot_R_D1)>EPSILON and
-                   abs(dot_R_D2)<EPSILON and
-                   abs(dot_R_D3)<EPSILON)
-                  result = case_d2_d3_3D(dot_R_D1, dot_R_D2, dot_R_D3, dot_R_D2_min_D1, dot_R_D3_min_D2, dot_R_D1_min_D3)*det*phase;
-
-                if(abs(dot_R_D1)<EPSILON and
-                   abs(dot_R_D2)>EPSILON and
-                   abs(dot_R_D3)<EPSILON)
-                  result = case_d3_d1_3D(dot_R_D1, dot_R_D2, dot_R_D3, dot_R_D2_min_D1, dot_R_D3_min_D2, dot_R_D1_min_D3)*det*phase;
-              }
-            else
-              {
+        {
 //                 cout << "\n\t start permuting\t";
 //                 VECTOR_OPERATIONS::PRINT(r_vec);
 //                 cout << "\n";
@@ -651,14 +651,14 @@ namespace DCA
 //                 VECTOR_OPERATIONS::PRINT(tetrahedron.vec_2);cout << "\n";
 //                 VECTOR_OPERATIONS::PRINT(tetrahedron.vec_3);cout << "\n";
 
-                MATH_ALGORITHMS::tetrahedron<3> tetrahedron_new;
+          MATH_ALGORITHMS::tetrahedron<3> tetrahedron_new;
 
-                permute(tetrahedron_new, tetrahedron);
+          permute(tetrahedron_new, tetrahedron);
 
-                result = execute(r_vec, tetrahedron_new);
-              }
-          }
+          result = execute(r_vec, tetrahedron_new);
+        }
       }
+    }
 
     assert(real(result)==real(result));
     assert(imag(result)==imag(result));

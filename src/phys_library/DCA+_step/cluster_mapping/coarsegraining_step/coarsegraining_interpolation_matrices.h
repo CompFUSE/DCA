@@ -72,7 +72,7 @@ namespace DCA
   void interpolation_matrices<scalar_type, k_dmn, dmn_0<coarsegraining_domain<K_dmn, NAME> > >::resize_matrices(concurrency_type& concurrency)
   {
     if(concurrency.id()==0)
-      cout << "\n\n\t interpolation-matrices " << to_str(NAME) << " initialization started ... ";
+      std::cout << "\n\n\t interpolation-matrices " << to_str(NAME) << " initialization started ... ";
 
     is_initialized() = true;
 
@@ -97,7 +97,7 @@ namespace DCA
     if(concurrency.id()==0)
       {
         std::pair<int, int> global_size = get(0).get_global_size();
-        cout << " stopped ( "
+        std::cout << " stopped ( "
              << sizeof(scalar_type)*global_size.first*global_size.second*1.e-6*K_dmn::dmn_size()
              << " Mbytes) \n\n";
       }
@@ -218,7 +218,7 @@ namespace DCA
   template<typename scalar_type_1, typename scalar_type_2>
   void interpolation_matrices<scalar_type, k_dmn, dmn_0<coarsegraining_domain<K_dmn, NAME> > >::cast(scalar_type_1& x, std::complex<scalar_type_2>& y)
   {
-    assert(abs(imag(y))<1.e-6);
+    assert(std::abs(imag(y))<1.e-6);
     x = real(y);
   }
 

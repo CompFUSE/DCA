@@ -92,7 +92,7 @@ namespace DCA
   bool swap_segment_tools<hybridization_routines_type>::swap_orbitals(int i,
                                                                         int j,
                                                                         function_type_0& mu,
-                                                                        double& sign,
+                                                                      double& /*sign*/,
                                                                         function_type_1& M,
                                                                         function_type_2& F)
   {
@@ -146,7 +146,7 @@ namespace DCA
       }
     }
 
-    double log_prob = log(fabs(det_rat)) + (-overlap_u-e_site);
+    double log_prob = log(std::fabs(det_rat)) + (-overlap_u-e_site);
     if (log(rng.get_random_number()) < log_prob) {
 
     if(nonsymmetric_orbitals)

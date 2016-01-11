@@ -1,6 +1,6 @@
 //-*-C++-*-
 
-#include "include_coarsegraining_step.h"
+#include "coarsegraining_step/include_coarsegraining_step.h"
 
 #include "adjust_chemical_potential.h"
 

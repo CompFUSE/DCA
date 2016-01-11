@@ -219,12 +219,12 @@ namespace DCA
   template<class parameters_type, class basis_function_t>
   template<typename MOMS_imag_type, typename MOMS_real_type>
   void compute_spectrum<parameters_type, basis_function_t>::write(std::string     file_name,
-                                                                  MOMS_imag_type& MOMS_imag,
+                                                                  MOMS_imag_type& /*MOMS_imag*/,
                                                                   MOMS_real_type& MOMS_real)
   {
     IO::FORMAT FORMAT = parameters.get_output_format();
 
-    cout << "\n\n\t\t start writing " << file_name << "\n\n";
+    std::cout << "\n\n\t\t start writing " << file_name << "\n\n";
 
     switch(FORMAT)
       {
@@ -315,7 +315,7 @@ namespace DCA
                                                                                        MOMS_real_type& MOMS_real)
   {
     if(concurrency.id()==0)
-      cout << "\n\n\t start analytic-continuation without error-bars (time = " << print_time() << ")\n";
+      std::cout << "\n\n\t start analytic-continuation without error-bars (time = " << print_time() << ")\n";
 
     if(parameters.compute_free_spectrum())
       {
@@ -382,14 +382,14 @@ namespace DCA
 
         if(concurrency.id()==concurrency.last())
           {
-            cout.precision(6);
-            cout<<scientific;
+            std::cout.precision(6);
+            std::cout<<std::scientific;
 
-            cout << "\n\n\t beta/2*G(beta/2) versus 1./(2*T)\\int_{-inf}^{inf} dw A(w)/cosh(w/(2*T)) \n\n";
+            std::cout << "\n\n\t beta/2*G(beta/2) versus 1./(2*T)\\int_{-inf}^{inf} dw A(w)/cosh(w/(2*T)) \n\n";
 
             for(int b_ind=0; b_ind<b::dmn_size(); b_ind++)
               for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++)
-                cout << "\t" << G_k_beta_over_2               (0,0,k_ind)
+                std::cout << "\t" << G_k_beta_over_2               (0,0,k_ind)
                      << "\t" << integrated_A_k_div_cosh       (0,0,k_ind)
                      << "\t" << integrated_A_k_div_cosh_stddev(0,0,k_ind)
                      << "\n";
@@ -433,12 +433,12 @@ namespace DCA
       FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_DCA,w_REAL> > G_K_wr;
 
       if(concurrency.id()==0)
-        cout << "\n\n";
+        std::cout << "\n\n";
 
       for(int l=0; l<nb_samples; l++)
         {
           if(concurrency.id()==0)
-            cout << "\t start analytic-continuation on sample = " << l << " (time = " << print_time() << ")\n";
+            std::cout << "\t start analytic-continuation on sample = " << l << " (time = " << print_time() << ")\n";
 
           {// generate a new sample that is equal for each MPI-task!
 
@@ -490,7 +490,7 @@ namespace DCA
           }
 
           if(concurrency.id()==0)
-            cout << "\n";
+            std::cout << "\n";
         }
     }
 
@@ -516,14 +516,14 @@ namespace DCA
 
       if(concurrency.id()==concurrency.last())
         {
-          cout.precision(6);
-          cout<<scientific;
+          std::cout.precision(6);
+          std::cout<<std::scientific;
 
-          cout << "\n\n\t beta/2*G(beta/2) versus 1./(2*T)\\int_{-inf}^{inf} dw A(w)/cosh(w/(2*T)) \n\n";
+          std::cout << "\n\n\t beta/2*G(beta/2) versus 1./(2*T)\\int_{-inf}^{inf} dw A(w)/cosh(w/(2*T)) \n\n";
 
           for(int b_ind=0; b_ind<b::dmn_size(); b_ind++)
             for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++)
-              cout << "\t" << G_k_beta_over_2               (0,0,k_ind)
+              std::cout << "\t" << G_k_beta_over_2               (0,0,k_ind)
                    << "\t" << integrated_A_k_div_cosh       (0,0,k_ind)
                    << "\t" << integrated_A_k_div_cosh_stddev(0,0,k_ind)
                    << "\n";
@@ -539,7 +539,7 @@ namespace DCA
     for(int w_0=0; w_0<w::dmn_size(); w_0++){
       for(int w_1=0; w_1<w_IMAG::dmn_size(); w_1++){
 
-        if(abs(w::get_elements()[w_0]-w_IMAG::get_elements()[w_1])<1.e-6)
+        if(std::abs(w::get_elements()[w_0]-w_IMAG::get_elements()[w_1])<1.e-6)
           {
             for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++)
               for(int nu_j=0; nu_j<nu::dmn_size(); nu_j++)
@@ -601,7 +601,7 @@ namespace DCA
                                                                                           FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w_real_dmn_t> >& S_k_w_real)
   {
     if(concurrency.id()==0)
-      cout << "\t\t start CPE (time = " << print_time() << ") --> ";
+      std::cout << "\t\t start CPE (time = " << print_time() << ") --> ";
 
     //cpe_obj.execute_st(S_k_w_imag, S_k_w_real);
     {
@@ -616,7 +616,7 @@ namespace DCA
     }
 
     if(concurrency.id()==0)
-      cout << " (time = " << print_time() << ")\n";
+      std::cout << " (time = " << print_time() << ")\n";
   }
 
   template<class parameters_type, class basis_function_t>
@@ -626,7 +626,7 @@ namespace DCA
                                                                                      FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w_dmn_t> >& G_k_w)
   {
     if(concurrency.id()==0)
-      cout << "\t\t start AC on G_K_w (time = " << print_time() << ") --> ";
+      std::cout << "\t\t start AC on G_K_w (time = " << print_time() << ") --> ";
 
     LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> G_matrix ("G-matrix" , nu::dmn_size());
     LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> S_matrix ("S-matrix" , nu::dmn_size());
@@ -667,7 +667,7 @@ namespace DCA
     }
 
     if(concurrency.id()==0)
-      cout << " (time = " << print_time() << ")\n";
+      std::cout << " (time = " << print_time() << ")\n";
   }
 
   template<class parameters_type, class basis_function_t>
@@ -677,14 +677,14 @@ namespace DCA
                                                                                      FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_cluster_dmn_t,w_dmn_t> >& G_k_w)
   {
     if(concurrency.id()==0)
-      cout << "\t\t start TIM (time = " << print_time() << ") --> ";
+      std::cout << "\t\t start TIM (time = " << print_time() << ") --> ";
 
     DCA::coarsegraining_sp<parameters_type, k_DCA> coarsegraining_sp_obj(parameters);
 
     coarsegraining_sp_obj.compute_G_K_w_with_TIM(H_k, Sigma, G_k_w);
 
     if(concurrency.id()==0)
-      cout << " (time = " << print_time() << ")\n";
+      std::cout << " (time = " << print_time() << ")\n";
   }
 
   /*
@@ -781,7 +781,7 @@ namespace DCA
                                                                                     FUNC_LIB::function<double, dmn_4<nu,nu, k_dmn_t, t> >& G_k_t)
   {
     int t_ind = 3.*t::dmn_size()/4.;
-    assert(abs(t::get_elements()[t_ind]-parameters.get_beta()/2.)<1.e-6);
+    assert(std::abs(t::get_elements()[t_ind]-parameters.get_beta()/2.)<1.e-6);
 
     for(int b_ind=0; b_ind<b::dmn_size(); b_ind++)
       for(int s_ind=0; s_ind<s::dmn_size(); s_ind++)
@@ -937,7 +937,7 @@ namespace DCA
     A_w_stddev /= double(nb_samples);
 
     for(int i=0; i<A_w.size(); i++)
-      A_w_stddev(i) = sqrt(abs(A_w_stddev(i)-A_w(i)*A_w(i)));
+      A_w_stddev(i) = sqrt(std::abs(A_w_stddev(i)-A_w(i)*A_w(i)));
   }
 
   template<class parameters_type, class basis_function_t>
@@ -950,7 +950,7 @@ namespace DCA
     A_nu_w_stddev /= double(nb_samples);
 
     for(int i=0; i<A_nu_w.size(); i++)
-      A_nu_w_stddev(i) = sqrt(abs(A_nu_w_stddev(i)-A_nu_w(i)*A_nu_w(i)));
+      A_nu_w_stddev(i) = sqrt(std::abs(A_nu_w_stddev(i)-A_nu_w(i)*A_nu_w(i)));
   }
 
   template<class parameters_type, class basis_function_t>
@@ -964,8 +964,8 @@ namespace DCA
 
     for(int i=0; i<f_K_w.size(); i++)
       {
-	f_K_w_stddev(i).real(std::sqrt(abs(real(f_K_w_stddev(i))-real(f_K_w(i))*real(f_K_w(i)))));
-	f_K_w_stddev(i).imag(std::sqrt(abs(imag(f_K_w_stddev(i))-imag(f_K_w(i))*imag(f_K_w(i)))));
+        f_K_w_stddev(i).real(std::sqrt(std::abs(real(f_K_w_stddev(i))-real(f_K_w(i))*real(f_K_w(i)))));
+        f_K_w_stddev(i).imag(std::sqrt(std::abs(imag(f_K_w_stddev(i))-imag(f_K_w(i))*imag(f_K_w(i)))));
       }
   }
 
@@ -978,7 +978,7 @@ namespace DCA
         double result=0;
 
         {
-          cout << "\n\n\t integrated G0 and G : \n\n" ;
+          std::cout << "\n\n\t integrated G0 and G : \n\n" ;
           for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++)
             {
               VECTOR_OPERATIONS::PRINT(k_DCA::get_elements()[k_ind]);
@@ -990,7 +990,7 @@ namespace DCA
 
                 result += -1./M_PI*delta_w*f_w/2;
               }
-              cout << result << "\t";
+              std::cout << result << "\t";
 
               result=0;
               for(int w_ind=0; w_ind<w_REAL::dmn_size()-1; w_ind++){
@@ -999,26 +999,26 @@ namespace DCA
 
                 result += -1./M_PI*delta_w*f_w/2;
               }
-              cout << result << "\n";
+              std::cout << result << "\n";
             }
         }
 
-        cout << "\n\n";
+        std::cout << "\n\n";
 
         {
-          cout << "integrated A0 and A: \n\n\t" ;
+          std::cout << "integrated A0 and A: \n\n\t" ;
 
           result=0;
           for(int w_ind=0; w_ind<w_REAL::dmn_size()-1; w_ind++)
             result += (w_REAL::get_elements()[w_ind+1]-w_REAL::get_elements()[w_ind])*(MOMS_real.A0_w(w_ind)+MOMS_real.A0_w(w_ind+1))/2;
 
-          cout << result << "\t";
+          std::cout << result << "\t";
 
           result=0;
           for(int w_ind=0; w_ind<w_REAL::dmn_size()-1; w_ind++)
             result += (w_REAL::get_elements()[w_ind+1]-w_REAL::get_elements()[w_ind])*(MOMS_real.A_w(w_ind)+MOMS_real.A_w(w_ind+1))/2;
 
-          cout << result << "\n";
+          std::cout << result << "\n";
 
         }
       }
@@ -1054,24 +1054,24 @@ namespace DCA
 
     if(concurrency.id()==concurrency.last())
       {
-        cout.precision(6);
-        cout<<scientific;
+        std::cout.precision(6);
+        std::cout<<std::scientific;
 
-        cout << "\n\n\t G0(beta/2) versus \\int_{-inf}^{inf} dw A0(w)/cosh(w) \n\n";
+        std::cout << "\n\n\t G0(beta/2) versus \\int_{-inf}^{inf} dw A0(w)/cosh(w) \n\n";
 
         for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++)
-          cout << "\t" << G0_k_beta_over_2(k_ind)
+          std::cout << "\t" << G0_k_beta_over_2(k_ind)
                << "\t" << integrated_A0_k_div_cosh(k_ind)
                << "\n";
 
-        cout << "\n\n\t G(beta/2) versus \\int_{-inf}^{inf} dw A(w)/cosh(w) \n\n";
+        std::cout << "\n\n\t G(beta/2) versus \\int_{-inf}^{inf} dw A(w)/cosh(w) \n\n";
 
         for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++)
-          cout << "\t" << G_k_beta_over_2(k_ind)
+          std::cout << "\t" << G_k_beta_over_2(k_ind)
                << "\t" << integrated_A_k_div_cosh(k_ind)
                << "\n";
 
-        cout << "\n";
+        std::cout << "\n";
       }
   }
 
@@ -1185,13 +1185,13 @@ namespace DCA
   }
   }
 
-  //   cout<<scientific;
-  //   cout.precision(6);
+  //   std::cout<<scientific;
+  //   std::cout.precision(6);
   //   for(int k_ind=0; k_ind<k_dmn_cut_type::dmn_size(); k_ind++){
   //     for(int w_ind=0; w_ind<w_REAL::dmn_size(); w_ind++){
-  //       cout << -imag(G_k_dmn_t_w(0,0,k_ind,w_ind)) << "\t";
+  //       std::cout << -imag(G_k_dmn_t_w(0,0,k_ind,w_ind)) << "\t";
   //     }
-  //     cout << endl;
+  //     std::cout << std::endl;
   //   }
   }
 */
@@ -1261,7 +1261,7 @@ namespace DCA
   concurrency << "\n\n\t start computing G on the cluster \n\n";
 
   if(concurrency.id()==0)
-  cout << "\n\t start reading : " << parameters.get_output_file_name() << endl;
+  std::cout << "\n\t start reading : " << parameters.get_output_file_name() << std::endl;
 
   std::fstream input_file(&(parameters.get_output_file_name())[0], ios::in);
   G0_k_w.from_JSON(input_file, concurrency);

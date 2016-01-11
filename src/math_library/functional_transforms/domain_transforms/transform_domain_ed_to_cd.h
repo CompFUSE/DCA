@@ -33,7 +33,7 @@ namespace MATH_ALGORITHMS
     {
 
       if(VERBOSE)
-	cout << "\n\t default-transform (expansion -> continuous) " << DMN_INDEX << "  " << type_input::get_name() << " --> " << type_output::get_name() << "\n\n";
+        std::cout << "\n\t default-transform (expansion -> continuous) " << DMN_INDEX << "  " << type_input::get_name() << " --> " << type_output::get_name() << "\n\n";
 
       matrix_type& T = basis_transformation_type::get_transformation_matrix();
 

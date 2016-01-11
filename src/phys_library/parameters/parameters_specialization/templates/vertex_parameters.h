@@ -94,19 +94,19 @@ private:
   double              singular_value_cut_off;
   int                 singular_value_index_cut_off;
   
-  string              diagonolize_folded_Gamma_chi_0;
+  std::string         diagonolize_folded_Gamma_chi_0;
   double              BSE_cut_off_radius;
 
-  string              do_deconvolution_of_Gamma_str;
+  std::string         do_deconvolution_of_Gamma_str;
 
-  string              do_symmetrization_of_Gamma_str;
+  std::string         do_symmetrization_of_Gamma_str;
 
-  string              compute_chi_0_str;
-  string              compute_chi_str;
+  std::string         compute_chi_0_str;
+  std::string         compute_chi_str;
 
-  string              compute_eigenvalues_str;
-  string              compute_P_q_cluster_str;
-  string              compute_P_q_lattice_str;
+  std::string         compute_eigenvalues_str;
+  std::string         compute_P_q_cluster_str;
+  std::string         compute_P_q_lattice_str;
 };
 
 vertex_parameters::vertex_parameters():
@@ -300,7 +300,7 @@ void vertex_parameters::unpack( concurrency_type& concurrency, int* buffer, int 
  ******************************************/
 
 template<class stream_type>
-void vertex_parameters::to_JSON(stream_type& ss, bool is_end)
+void vertex_parameters::to_JSON(stream_type& /*ss*/, bool /*is_end*/)
 {
 //   ss << "\"vertex-measurement\" :";
 //   ss << "\n{ \n";
@@ -332,7 +332,7 @@ void vertex_parameters::to_JSON(stream_type& ss, bool is_end)
 }
   
 template<class JSON_reader_type>
-void vertex_parameters::from_JSON(JSON_reader_type& reader)
+void vertex_parameters::from_JSON(JSON_reader_type& /*reader*/)
 {
   //cout << __FUNCTION__ << endl;
 
@@ -453,7 +453,7 @@ void vertex_parameters::read_write(read_write_type& read_write_obj)
     }
   catch(const std::exception& r_e) 
     { 
-      cout << "\n\t vertex-parameters defined !!  \n\n";
+      std::cout << "\n\t vertex-parameters defined !!  \n\n";
       throw std::logic_error(__PRETTY_FUNCTION__);
     }
 }
@@ -479,7 +479,7 @@ vertex_measurement_type vertex_parameters::get_vertex_measurement_type()
   if(vertex_measurement_type_str == "NONE")
     return NONE;
   
-  cout << vertex_measurement_type_str << " is not of the type : " 
+  std::cout << vertex_measurement_type_str << " is not of the type : " 
        << "PARTICLE_HOLE_TRANSVERSE" << ", "
        << "PARTICLE_HOLE__MAGNETIC" << ", "
        << "PARTICLE_HOLE_CHARGE" << ", "

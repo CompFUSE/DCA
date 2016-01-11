@@ -107,7 +107,7 @@ namespace IO
   writer<IO::JSON>::~writer()
   {}
 
-  std::stringstream& writer<IO::JSON>::open_file(std::string my_file_name, bool overwrite)
+  std::stringstream& writer<IO::JSON>::open_file(std::string my_file_name, bool /*overwrite*/)
   {
     file_name = my_file_name;
 
@@ -296,7 +296,7 @@ namespace IO
   template<typename scalar_type, typename domain_type>
   void writer<IO::JSON>::execute(FUNC_LIB::function<scalar_type, domain_type>& f)
   {
-    cout << "\t starts writing function : " << f.get_name() << "\n";
+    std::cout << "\t starts writing function : " << f.get_name() << "\n";
 
     execute(f.get_name(), f);
   }
@@ -354,7 +354,7 @@ namespace IO
   template<typename scalar_type, typename domain_type>
   void writer<IO::JSON>::execute(FUNC_LIB::function<std::complex<scalar_type>, domain_type>& f)
   {
-    cout << "\t starts writing function : " << f.get_name() << "\n";
+    std::cout << "\t starts writing function : " << f.get_name() << "\n";
 
     execute(f.get_name(), f);
   }

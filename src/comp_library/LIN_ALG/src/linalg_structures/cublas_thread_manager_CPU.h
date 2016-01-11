@@ -10,10 +10,10 @@ namespace LIN_ALG {
   {
   public:
 
-    static void initialize(int id) {}; 
-    static void finalize  (int id) {}; 
+    static void initialize(int /*id*/) {};
+    static void finalize  (int /*id*/) {};
 
-    static void synchronize_streams(int thread_id, int stream_id) {};
+    static void synchronize_streams(int /*thread_id*/, int /*stream_id*/) {};
   };
   
 }

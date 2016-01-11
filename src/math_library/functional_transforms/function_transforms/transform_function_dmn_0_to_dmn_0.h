@@ -24,8 +24,8 @@ namespace MATH_ALGORITHMS
     static void execute(FUNC_LIB::function<scalartype_input , domain_input> & f_input,
 			FUNC_LIB::function<scalartype_output, domain_output>& f_output)
     {
-      typedef typename domain_input ::this_type type_list_input;
-      typedef typename domain_output::this_type type_list_output;
+      // typedef typename domain_input ::this_type type_list_input;
+      // typedef typename domain_output::this_type type_list_output;
       
       if(VERBOSE)
 	print_types(f_input, f_output);
@@ -43,8 +43,8 @@ namespace MATH_ALGORITHMS
 			FUNC_LIB::function<scalartype_output, domain_output>& f_output,
 			LIN_ALG::matrix<scalartype_T, LIN_ALG::CPU>& T)
     {
-      typedef typename domain_input ::this_type type_list_input;
-      typedef typename domain_output::this_type type_list_output;
+      // typedef typename domain_input ::this_type type_list_input;
+      // typedef typename domain_output::this_type type_list_output;
       
       if(VERBOSE)
 	print_types(f_input, f_output);
@@ -60,8 +60,8 @@ namespace MATH_ALGORITHMS
     static void execute_on_all(FUNC_LIB::function<scalartype_input, domain_input> & f_input,
 			       FUNC_LIB::function<scalartype_output, domain_output>& f_output)
     {    
-      typedef typename domain_input ::this_type type_list_input;
-      typedef typename domain_output::this_type type_list_output;
+      // typedef typename domain_input ::this_type type_list_input;
+      // typedef typename domain_output::this_type type_list_output;
       
       if(VERBOSE)
 	print_types(f_input, f_output);
@@ -80,8 +80,8 @@ namespace MATH_ALGORITHMS
 			       FUNC_LIB::function<scalartype_output, domain_output>& f_output,
 			       LIN_ALG::matrix<scalartype_T, LIN_ALG::CPU>& T)
     {    
-      typedef typename domain_input ::this_type type_list_input;
-      typedef typename domain_output::this_type type_list_output;
+      // typedef typename domain_input ::this_type type_list_input;
+      // typedef typename domain_output::this_type type_list_output;
       
       if(VERBOSE)
 	print_types(f_input, f_output);

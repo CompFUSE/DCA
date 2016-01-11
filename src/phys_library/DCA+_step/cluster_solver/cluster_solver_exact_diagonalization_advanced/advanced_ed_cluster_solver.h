@@ -76,7 +76,7 @@ namespace DCA
     sp_Greens_function_obj(parameters, Ham_obj, overlap_obj),
     tp_Greens_function_obj(parameters, Ham_obj, overlap_obj)
   {
-    cout << "Fock-space without symmetries:" << endl;
+    std::cout << "Fock-space without symmetries:" << std::endl;
     Fock_obj.print_subspaces();
 
     std::vector<ADVANCED_EXACT_DIAGONALIZATION::Hilbert_space<parameters_type, ed_options_type> >&
@@ -98,28 +98,28 @@ namespace DCA
 
     if(false)
       {
-        cout << "Print Hilbert-space #" << HS_0 << endl;
+        std::cout << "Print Hilbert-space #" << HS_0 << std::endl;
         Hilbert_spaces[HS_0].print(true);
-        cout << "Print Hilbert-space #" << HS_1 << endl;
+        std::cout << "Print Hilbert-space #" << HS_1 << std::endl;
         Hilbert_spaces[HS_1].print(true);
-        cout << "bsr = " << b_s_r << endl;
+        std::cout << "bsr = " << b_s_r << std::endl;
       }
 
     //Fock_obj.apply_rotation_symmetry(parameters.get_symmetries(), parameters.get_ED_method());
 
-    cout << print_time() << endl;
+    std::cout << print_time() << std::endl;
     Fock_obj.apply_translation_symmetry(parameters.get_ED_method());
 
-    cout << print_time() << endl;
-    cout << "Create representation" << endl;
+    std::cout << print_time() << std::endl;
+    std::cout << "Create representation" << std::endl;
     Fock_obj.initialize_rep();
-    cout << print_time() << endl;
+    std::cout << print_time() << std::endl;
 
-    cout << "Fock-space with symmetries:" << endl;
+    std::cout << "Fock-space with symmetries:" << std::endl;
     Fock_obj.print_subspaces();
 
     if(parameters.do_orthogonality_check())
-      cout << "subspaces orthogonal: " << Fock_obj.check_orthogonality() << endl;
+      std::cout << "subspaces orthogonal: " << Fock_obj.check_orthogonality() << std::endl;
   }
 
   template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
@@ -127,21 +127,21 @@ namespace DCA
   {}
 
   template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
-  void cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::initialize(int dca_iteration)
+  void cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::initialize(int /*dca_iteration*/)
   {
     //     std::cout << __FUNCTION__ << "\n";
 
     FUNC_LIB::function<std::complex<double>, dmn_3<nu,nu,r_DCA> > H_DCA;
 
     //     for(int l=0; l<r_DCA::dmn_size(); l++)
-    //       cout << l << "\t" << MOMS_imag.H_DCA(0,0,l) << "\n";
-    //     cout << "\n";
+    //       std::cout << l << "\t" << MOMS_imag.H_DCA(0,0,l) << "\n";
+    //     std::cout << "\n";
 
     MATH_ALGORITHMS::TRANSFORM<k_DCA, r_DCA>::execute(MOMS_imag.H_DCA, H_DCA);
 
     //     for(int l=0; l<r_DCA::dmn_size(); l++)
-    //       cout << l << "\t" << H_DCA(0,0,l) << "\n";
-    //     cout << "\n";
+    //       std::cout << l << "\t" << H_DCA(0,0,l) << "\n";
+    //     std::cout << "\n";
 
     //assert(false);
 
@@ -154,77 +154,77 @@ namespace DCA
     std::cout << __FUNCTION__ << "\n";
 
     {// creation and annihilation matrices
-      cout << print_time() << endl;
+      std::cout << print_time() << std::endl;
       overlap_obj.construct_creation_set_all();
       overlap_obj.construct_annihilation_set_all();
-      cout << print_time() << endl;
+      std::cout << print_time() << std::endl;
       overlap_obj.construct_creation_set_nonzero_sparse();
       overlap_obj.construct_annihilation_set_nonzero_sparse();
-      cout << print_time() << endl;
+      std::cout << print_time() << std::endl;
     }
 
     {// non-interacting Greensfunction
-      cout << print_time() << endl;
+      std::cout << print_time() << std::endl;
       Ham_obj.construct_Hamiltonians(false);
 
-      cout << print_time() << endl;
+      std::cout << print_time() << std::endl;
       Ham_obj.diagonalize_Hamiltonians_st();
 
-      cout << print_time() << endl;
+      std::cout << print_time() << std::endl;
       Ham_obj.set_spectrum(MOMS_real.E0_w);
 
       // Ham_obj.print_Hamiltonian("data/hamiltonian_nonint.dat");
       // Ham_obj.print_eigen_energies("data/energies_nonint.dat");
       // Ham_obj.print_eigen_states("data/eigenstates_nonint.dat");
 
-      //cout << "Check hermitianess: " << overlap_obj.check_hermitianess() << endl;
+      //std::cout << "Check hermitianess: " << overlap_obj.check_hermitianess() << std::endl;
 
       //overlap_obj.print_creation_matrix("data/creation_nonint.dat");
 
-      cout << print_time() << endl;
+      std::cout << print_time() << std::endl;
       //Greens_function_obj.compute_all_sp_functions(MOMS_imag, MOMS_real, false);
       sp_Greens_function_obj.compute_all_sp_functions_slow(MOMS_imag, MOMS_real, false);
-      cout << print_time() << endl;
+      std::cout << print_time() << std::endl;
 
-      cout << print_time() << endl;
+      std::cout << print_time() << std::endl;
       tp_Greens_function_obj.compute_two_particle_Greens_function(false);
-      cout << print_time() << endl;
+      std::cout << print_time() << std::endl;
 
       tp_Greens_function_obj.compute_particle_particle_superconducting_A(MOMS_imag.G4_k_k_w_w);
     }
 
     {// interacting Greensfunction
-      cout << print_time() << endl;
+      std::cout << print_time() << std::endl;
       Ham_obj.construct_Hamiltonians(true);
 
-      cout << print_time() << endl;
+      std::cout << print_time() << std::endl;
       Ham_obj.diagonalize_Hamiltonians_st();
 
-      cout << print_time() << endl;
+      std::cout << print_time() << std::endl;
       Ham_obj.set_spectrum(MOMS_real.E_w);
 
       // Ham_obj.print_Hamiltonian("data/hamiltonian_int.dat");
       // Ham_obj.print_eigen_energies("data/energies_int.dat");
       // Ham_obj.print_eigen_states("data/eigenstates_int.dat");
 
-      //cout << "Check hermitianess: " << overlap_obj.check_hermitianess() << endl;
+      //std::cout << "Check hermitianess: " << overlap_obj.check_hermitianess() << std::endl;
 
       //overlap_obj.print_creation_matrix("data/creation_int.dat");
 
-      cout << print_time() << endl;
+      std::cout << print_time() << std::endl;
       //Greens_function_obj.compute_all_sp_functions(MOMS_imag, MOMS_real, true);
       sp_Greens_function_obj.compute_all_sp_functions_slow(MOMS_imag, MOMS_real, true);
-      cout << print_time() << endl;
+      std::cout << print_time() << std::endl;
 
-      cout << print_time() << endl;
+      std::cout << print_time() << std::endl;
       tp_Greens_function_obj.compute_two_particle_Greens_function(true);
-      cout << print_time() << endl;
+      std::cout << print_time() << std::endl;
 
       tp_Greens_function_obj.compute_particle_particle_superconducting_A(MOMS_imag.G4_k_k_w_w);
 
     }
 
-    cout << print_time() << endl;
+    std::cout << print_time() << std::endl;
     {
       MOMS_real.A_w = 0;
       for(int l=0; l<w_REAL::dmn_size(); l++)
@@ -242,28 +242,28 @@ namespace DCA
       MOMS_real.A0_w *= 1./double(M_PI*k_DCA::dmn_size()*2*b::dmn_size());
     }
 
-    cout << print_time() << endl;
+    std::cout << print_time() << std::endl;
 
     sp_Greens_function_obj.compute_S_k_w(MOMS_imag.G_k_w, MOMS_imag.G0_k_w, MOMS_imag.Sigma);
     sp_Greens_function_obj.compute_S_k_w(MOMS_real.G_k_w, MOMS_real.G0_k_w, MOMS_real.Sigma);
 
 //     {
 
-//       cout << print_time() << endl;
+//       std::cout << print_time() << std::endl;
 //       tp_Greens_function_obj.compute_two_particle_Greens_function(true);
-//       cout << print_time() << endl;
+//       std::cout << print_time() << std::endl;
 
 //       tp_Greens_function_obj.compute_particle_particle_superconducting(MOMS_imag.G4_k_k_w_w);
 //     }
 
-    cout << print_time() << endl;
+    std::cout << print_time() << std::endl;
 
     //assert(false);
   }
 
   template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
   template<typename dca_info_struct_t>
-  void cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::finalize(dca_info_struct_t& dca_info_struct)
+  void cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::finalize(dca_info_struct_t& /*dca_info_struct*/)
   {
     for(int l=0; l<MOMS_imag.G_r_w.size(); l++)
       MOMS_imag.Sigma_cluster(l) = MOMS_imag.Sigma(l);
@@ -286,7 +286,7 @@ namespace DCA
   {
     IO::FORMAT FORMAT = parameters.get_output_format();
 
-    cout << "\n\n\t\t start writing " << file_name << "\n\n";
+    std::cout << "\n\n\t\t start writing " << file_name << "\n\n";
 
     switch(FORMAT)
       {
@@ -301,7 +301,7 @@ namespace DCA
             MOMS_imag .write(writer);
             MOMS_real .write(writer);
 
-	    cout << "\n\n\t\t start writing tp-Greens-function\n\n";
+	    std::cout << "\n\n\t\t start writing tp-Greens-function\n\n";
 	    tp_Greens_function_obj.write(writer);
 
             writer.close_file();
@@ -315,16 +315,16 @@ namespace DCA
           {
             writer.open_file(file_name);
 
-            cout << "\n\n\t\t start writing parameters\n\n";
+            std::cout << "\n\n\t\t start writing parameters\n\n";
             parameters.write(writer);
 
-            cout << "\n\n\t\t start writing MOMS_imag\n\n";
+            std::cout << "\n\n\t\t start writing MOMS_imag\n\n";
             MOMS_imag .write(writer);
 
-            cout << "\n\n\t\t start writing MOMS_real\n\n";
+            std::cout << "\n\n\t\t start writing MOMS_real\n\n";
             MOMS_real .write(writer);
 
-	    cout << "\n\n\t\t start writing tp-Greens-function\n\n";
+	    std::cout << "\n\n\t\t start writing tp-Greens-function\n\n";
 	    tp_Greens_function_obj.write(writer);
 
             writer.close_file();

@@ -182,9 +182,9 @@ namespace DCA
 
     template<class parameters_type, class MOMS_type>
     template<class configuration_type>
-    void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::accumulate_K_r_t(configuration_type&                           configuration,
-                                                                                                           FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t> >& K_r_t,
-                                                                                                           double                                        sign)
+    void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::accumulate_K_r_t(configuration_type&                           /*configuration*/,
+                                                                                                           FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t> >& /*K_r_t*/,
+                                                                                                           double                                        /*sign*/)
     {
       // for next generation solver !!
 

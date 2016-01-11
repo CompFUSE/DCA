@@ -23,7 +23,7 @@ namespace LIN_ALG {
 	}
 
 	template<typename scalartype>
-	static void execute_on_row(matrix<scalartype, CPU>& M, int c_ind, scalartype* r){
+	static void execute_on_row(matrix<scalartype, CPU>& M, int /*c_ind*/, scalartype* /*r*/){
 	    
 	    assert(M.get_current_size().first == M.get_current_size().second);
             /*
@@ -35,7 +35,7 @@ namespace LIN_ALG {
 	}
 
 	template<typename scalartype>
-	static void execute_on_col(matrix<scalartype, CPU>& M, scalartype* c, int r_ind){
+	static void execute_on_col(matrix<scalartype, CPU>& M, scalartype* /*c*/, int /*r_ind*/){
 	    
 	    assert(M.get_current_size().first == M.get_current_size().second);
 	    /*

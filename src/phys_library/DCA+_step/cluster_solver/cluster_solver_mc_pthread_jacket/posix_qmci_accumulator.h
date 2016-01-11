@@ -149,8 +149,8 @@ namespace DCA
     }
 
     template<class qmci_accumulator_type>
-    void posix_qmci_accumulator<qmci_accumulator_type>::measure(pthread_mutex_t&        mutex_queue,
-                                                                std::queue<this_type*>& accumulators_queue)
+    void posix_qmci_accumulator<qmci_accumulator_type>::measure(pthread_mutex_t&        /*mutex_queue*/,
+                                                                std::queue<this_type*>& /*accumulators_queue*/)
     {
       pthread_mutex_lock(&mutex_accumulator);
 

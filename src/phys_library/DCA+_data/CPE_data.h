@@ -105,7 +105,7 @@ void MOMS_w_real<parameters_type>::read(std::string filename)
 {
   if(concurrency.id()==concurrency.first())
     {
-      cout << "\n\n\t starts reading \n\n";
+      std::cout << "\n\n\t starts reading \n\n";
 
       IO::FORMAT FORMAT = parameters.get_output_format();
 
@@ -183,7 +183,7 @@ void MOMS_w_real<parameters_type>::write(std::string filename)
 {
   if(concurrency.id()==concurrency.first())
     {
-      cout << "\n\n\t starts writing \n\n";
+      std::cout << "\n\n\t starts writing \n\n";
 
       IO::FORMAT FORMAT = parameters.get_output_format();
 

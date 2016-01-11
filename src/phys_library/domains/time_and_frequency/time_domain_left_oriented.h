@@ -26,7 +26,7 @@ struct time_domain_left_oriented
   }
 
   template<class parameters_t>
-  static void initialize(parameters_t& parameters){
+  static void initialize(parameters_t& /*parameters*/){
 
     for(int t_ind=0; t_ind<time_domain::get_size()/2-1; t_ind++)      
       time_domain_left_oriented::get_elements()[t_ind] = time_domain::get_elements()[t_ind];

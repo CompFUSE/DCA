@@ -11,7 +11,7 @@ namespace LIN_ALG {
   public:
     
     template<typename scalartype>
-    inline static void execute(char uplo, char diag, matrix<scalartype, CPU>& A, matrix<scalartype, CPU>& X, int thread_id, int stream_id)
+    inline static void execute(char uplo, char diag, matrix<scalartype, CPU>& A, matrix<scalartype, CPU>& X,  int /*thread_id*/, int /*stream_id*/)
     {      
       assert(uplo=='U' or uplo=='L');
       assert(diag=='U' or diag=='N');

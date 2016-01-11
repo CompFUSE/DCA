@@ -238,9 +238,9 @@ namespace DCA
     {
       if(concurrency.id()==0 and thread_id==0)
 	{
-	  stringstream ss;
+    std::stringstream ss;
 	  ss << "\n\n\t\t walker died --> nb_successfull_updates/nb_updates : " << double(nb_successfull_updates)/double(nb_updates) << "\n\n";
-	  cout << ss.str();
+    std::cout << ss.str();
 	}
     }
 
@@ -286,7 +286,7 @@ namespace DCA
     template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
     void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::test_interpolation()
     {
-      cout << __FUNCTION__ << endl;
+      std::cout << __FUNCTION__ << std::endl;
 
       SHOW::execute_on_bands(F_r_t);
 
@@ -475,7 +475,7 @@ namespace DCA
 // 	{
 // 	  stringstream ss;
 // 	  ss << "\t" << nb_successfull_updates << ", " << nb_updates << ", " << nb_successfull_updates/nb_updates << "\n\n";
-// 	  cout << ss.str();
+// 	  std::cout << ss.str();
 // 	}
     }
 
@@ -638,7 +638,7 @@ namespace DCA
       template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
       void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::construct_F_r_t()
       {
-      //cout << "\n\t\t implement " << __FUNCTION__ << " properly !!\n\n";
+      //std::cout << "\n\t\t implement " << __FUNCTION__ << " properly !!\n\n";
       //throw std::logic_error(__FUNCTION__);
 
       compute_moments(F_k_w);

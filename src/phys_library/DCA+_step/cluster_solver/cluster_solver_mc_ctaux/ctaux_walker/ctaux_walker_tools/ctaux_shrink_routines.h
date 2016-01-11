@@ -429,7 +429,7 @@ namespace DCA
               //            LIN_ALG::SWAP<device_t>::row_and_column(N , dead_spin, living_spin);
               //            LIN_ALG::SWAP<device_t>::row_and_column(G0, dead_spin, living_spin);
 
-              swap(configuration_e_spin[dead_spin], configuration_e_spin[living_spin]);
+              std::swap(configuration_e_spin[dead_spin], configuration_e_spin[living_spin]);
 
               if(HS_field_dead_spin == HS_FIELD_DN)
                 pair_dead_spin.first = living_spin;
@@ -583,7 +583,7 @@ namespace DCA
               //            LIN_ALG::SWAP<device_t>::row_and_column(N , dead_spin, living_spin);
               //            LIN_ALG::SWAP<device_t>::row_and_column(G0, dead_spin, living_spin);
 
-              swap(configuration_e_spin[dead_spin], configuration_e_spin[living_spin]);
+              std::swap(configuration_e_spin[dead_spin], configuration_e_spin[living_spin]);
 
               if(HS_field_dead_spin == HS_FIELD_DN)
                 pair_dead_spin.first = living_spin;
@@ -690,8 +690,8 @@ namespace DCA
           if(source_index[i] == target_index[j])
             {
               for(size_t i=0; i<source_index.size(); ++i)
-                cout << i << "\t" << source_index[i] << "\t" << target_index[i] << endl;
-              cout << endl;
+                std::cout << i << "\t" << source_index[i] << "\t" << target_index[i] << std::endl;
+              std::cout << std::endl;
 
               throw std::logic_error("source_index[i] == target_index[j]");
             }

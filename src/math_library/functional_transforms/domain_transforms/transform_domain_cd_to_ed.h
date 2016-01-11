@@ -33,7 +33,7 @@ namespace MATH_ALGORITHMS
 				FUNC_LIB::function<scalartype_output, domain_output>& f_output)
     {
       if(VERBOSE)
-	cout << "\n\t default-transform (continuous -> expansion) " << DMN_INDEX << "  " << type_input::get_name() << " --> " << type_output::get_name() << "\n\n";
+        std::cout << "\n\t default-transform (continuous -> expansion) " << DMN_INDEX << "  " << type_input::get_name() << " --> " << type_output::get_name() << "\n\n";
 
       matrix_type& T = basis_transformation_type::get_transformation_matrix();
 

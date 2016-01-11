@@ -19,7 +19,7 @@ namespace MATH_ALGORITHMS
     
     typedef lh_scalar_type f_scalar_type;
     
-    static f_scalar_type execute(int i, int j)
+    static f_scalar_type execute(int /*i*/, int /*j*/)
     {
       throw std::logic_error(__FUNCTION__);      
     }

@@ -1,9 +1,11 @@
-//-*-C++-*-                                                                                                                                                                                                                                                                         
+//-*-C++-*-
 
 #ifndef LIN_ALG_PERFORMANCE_INSPECTOR_GPU_H
 #define LIN_ALG_PERFORMANCE_INSPECTOR_GPU_H
 
-namespace LIN_ALG 
+#include <sys/time.h>
+
+namespace LIN_ALG
 {
   template<typename scalartype>
   class PERFORMANCE_INSPECTOR<GPU, scalartype>
@@ -31,25 +33,25 @@ namespace LIN_ALG
     };
 
     static void* execute_gemm(void* ptr);
-  };  
+  };
 
   template<typename scalartype>
   double PERFORMANCE_INSPECTOR<GPU, scalartype>::execute(size_t M, size_t K, size_t N, scalartype a, scalartype b)
-  {    
+  {
     matrix_data data;
 
     {
       data.thread_id = 0;
-      
+
       data.M = M;
       data.K = K;
       data.N = N;
-    
+
       data.a = a;
       data.b = b;
-	
+
       data.GFLOPS = 0.;
-      
+
       execute_gemm(&data);
     }
 
@@ -63,20 +65,20 @@ namespace LIN_ALG
     std::vector<matrix_data> data   (N_th);
 
     for(int l=0; l<N_th; ++l)
-      {
-	data[l].thread_id = l;
-	
-	data[l].M = M;
-	data[l].K = K;
-	data[l].N = N;
+    {
+      data[l].thread_id = l;
 
-	data[l].a = a;
-	data[l].b = b;
-	
-	data[l].GFLOPS = 0.;
+      data[l].M = M;
+      data[l].K = K;
+      data[l].N = N;
 
-	pthread_create(&threads[l], NULL, execute_gemm, &data[l]);
-      }
+      data[l].a = a;
+      data[l].b = b;
+
+      data[l].GFLOPS = 0.;
+
+      pthread_create(&threads[l], NULL, execute_gemm, &data[l]);
+    }
 
     for(int l=0; l<N_th; ++l)
       pthread_join(threads[l], NULL);
@@ -102,15 +104,15 @@ namespace LIN_ALG
 
     matrix<scalartype, CPU> AC(std::pair<int, int>(data_ptr->M, data_ptr->K));
     matrix<scalartype, CPU> BC(std::pair<int, int>(data_ptr->K, data_ptr->N));
-    
+
     for(int j=0; j<data_ptr->K; ++j)
       for(int i=0; i<data_ptr->M; ++i)
-	AC(i,j) = drand48();
-    
+        AC(i,j) = drand48();
+
     for(int j=0; j<data_ptr->N; ++j)
       for(int i=0; i<data_ptr->K; ++i)
-	BC(i,j) = drand48();
-    
+        BC(i,j) = drand48();
+
     matrix<scalartype, GPU> A(std::pair<int, int>(data_ptr->M, data_ptr->K));
     matrix<scalartype, GPU> B(std::pair<int, int>(data_ptr->K, data_ptr->N));
     matrix<scalartype, GPU> C(std::pair<int, int>(data_ptr->M, data_ptr->N));
@@ -123,17 +125,17 @@ namespace LIN_ALG
 
     for(double i=0; i<N_ITERATIONS; ++i)
       GEMM<GPU>::execute(data_ptr->a, A, B, data_ptr->b, C, thread_id, stream_id);
-  
+
     LIN_ALG::CUBLAS_THREAD_MANAGER<GPU>::synchronize_streams(thread_id, stream_id);
 
     timeval end;
     gettimeofday(&end,NULL);
 
-    double time_start = double(start.tv_sec)+(1.e-6)*double(start.tv_usec);      
+    double time_start = double(start.tv_sec)+(1.e-6)*double(start.tv_usec);
     double time_end   = double(end.tv_sec)  +(1.e-6)*double(end.tv_usec);
 
     double time = time_end-time_start;
-    
+
     data_ptr->GFLOPS = double(2*(data_ptr->M)*(data_ptr->K)*(data_ptr->N)*N_ITERATIONS)/time*(1.e-9);
 
     //cout << "\n\t" << data_ptr->thread_id << "\t" << 2*(data_ptr->M)*(data_ptr->K)*(data_ptr->N)*100 << "\t" << time << "\t" <<  data_ptr->GFLOPS;
