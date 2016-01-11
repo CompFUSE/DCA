@@ -1,18 +1,18 @@
 //-*-C++-*-
 
-#ifndef MATERIAL_LATTICE_NIO_H
-#define MATERIAL_LATTICE_NIO_H
+#ifndef MATERIAL_LATTICE_CUO2_1BAND_H
+#define MATERIAL_LATTICE_CUO2_1BAND_H
 
 /*!
  *  \author Peter Staar
  */
 template<typename point_group_type>
-class material_lattice<NiO, point_group_type>
+class material_lattice<CuO2_1band, point_group_type>
 {
 public:
 
-  const static int DIMENSION = 3;
-  const static int BANDS     = 8;
+  const static int DIMENSION = 2;
+  const static int BANDS     = 1;
 
   typedef no_symmetry<DIMENSION> LDA_point_group;
   typedef point_group_type       DCA_point_group;
@@ -30,7 +30,7 @@ public:
                                        parameters_type&            parameters);
 
   template<class domain>
-  static void initialize_H_symmetry(FUNC_LIB::function<int, domain>& H_symmetry);
+  static void initialize_H_symmetry(FUNC_LIB::function<int , domain>& H_symmetry);
 
   template<class parameters_type>
   static std::complex<double> get_LDA_Hamiltonians(parameters_type& parameters,
@@ -43,68 +43,51 @@ private:
 };
 
 template<typename point_group_type>
-double* material_lattice<NiO, point_group_type>::initialize_r_DCA_basis()
+double* material_lattice<CuO2_1band, point_group_type>::initialize_r_DCA_basis()
 {
-  const static double a = 7.89358;//3.946789070;
+  const static double a = 1.0;
 
-  static double* r_DCA = new double[9];
+  static double* r_DCA = new double[DIMENSION*DIMENSION];
 
-  r_DCA[0] = 0   ;  r_DCA[3] = a/2.; r_DCA[6] = a/2.;
-  r_DCA[1] = a/2.;  r_DCA[4] = 0   ; r_DCA[7] = a/2.;
-  r_DCA[2] = a/2.;  r_DCA[5] = a/2.; r_DCA[8] = 0;
+  r_DCA[0] = a;  r_DCA[2] = 0;
+  r_DCA[1] = 0;  r_DCA[3] = a;
 
   return r_DCA;
 }
 
 template<typename point_group_type>
-double* material_lattice<NiO, point_group_type>::initialize_r_LDA_basis()
+double* material_lattice<CuO2_1band, point_group_type>::initialize_r_LDA_basis()
 {
-  const static double a = 7.89358;//3.946789070;
+  const static double a = 1.0;
 
-  static double* r_LDA = new double[9];
+  static double* r_LDA = new double[DIMENSION*DIMENSION];
 
-  r_LDA[0] = 0   ;  r_LDA[3] = a/2.; r_LDA[6] = a/2.;
-  r_LDA[1] = a/2.;  r_LDA[4] = 0   ; r_LDA[7] = a/2.;
-  r_LDA[2] = a/2.;  r_LDA[5] = a/2.; r_LDA[8] = 0;
+  r_LDA[0] = a;  r_LDA[2] = 0;
+  r_LDA[1] = 0;  r_LDA[3] = a;
 
   return r_LDA;
 }
 
-
 template<typename point_group_type>
-std::vector<int> material_lattice<NiO, point_group_type>::get_flavors()
+std::vector<int> material_lattice<CuO2_1band, point_group_type>::get_flavors()
 {
   static std::vector<int> flavors(BANDS);
-  bool sym=true;
-  if(sym)
-  {
-      flavors[0] = 0;
-      flavors[1] = 0;
-      flavors[2] = 1;
-      flavors[3] = 0;
-      flavors[4] = 1;
-      flavors[5] = 2;
-      flavors[6] = 2;
-      flavors[7] = 2;
-  }
-  else
-  {                                                                                                                                       
-      for(int i=0;i<8;i++)                                                                                                                       
-	  flavors[i]=i;                                                                                                                            
-  }
+
+  flavors[0] = 0;
+
   return flavors;
 }
 
-
 template<typename point_group_type>
-std::vector<std::vector<double> > material_lattice<NiO, point_group_type>::get_a_vectors()
+std::vector<std::vector<double> > material_lattice<CuO2_1band, point_group_type>::get_a_vectors()
 {
   static std::vector<std::vector<double> > a_vecs(BANDS, std::vector<double>(DIMENSION, 0.));
   return a_vecs;
 }
 
+
 template<typename point_group_type>
-std::vector<std::pair<std::pair<int,int>, std::pair<int,int> > > material_lattice<NiO, point_group_type>::get_orbital_permutations()
+std::vector<std::pair<std::pair<int,int>, std::pair<int,int> > > material_lattice<CuO2_1band, point_group_type>::get_orbital_permutations()
 {
   static std::vector<std::pair<std::pair<int,int>, std::pair<int,int> > > permutations(0);
   return permutations;
@@ -112,7 +95,7 @@ std::vector<std::pair<std::pair<int,int>, std::pair<int,int> > > material_lattic
 
 template<typename point_group_type>
 template<class domain, class parameters_type>
-void material_lattice<NiO, point_group_type>::initialize_H_interaction(FUNC_LIB::function<double , domain >& H_i,
+void material_lattice<CuO2_1band, point_group_type>::initialize_H_interaction(FUNC_LIB::function<double , domain >& H_i,
                                                                        parameters_type&            parameters)
 {
   std::vector<std::vector<double> > U;
@@ -145,7 +128,7 @@ void material_lattice<NiO, point_group_type>::initialize_H_interaction(FUNC_LIB:
 
 template<typename point_group_type>
 template<class domain>
-void material_lattice<NiO, point_group_type>::initialize_H_symmetry(FUNC_LIB::function<int , domain>& H_symmetries)
+void material_lattice<CuO2_1band, point_group_type>::initialize_H_symmetry(FUNC_LIB::function<int , domain>& H_symmetries)
 {
   H_symmetries = -1;
 
@@ -156,7 +139,7 @@ void material_lattice<NiO, point_group_type>::initialize_H_symmetry(FUNC_LIB::fu
 
 template<typename point_group_type>
 template<class parameters_type>
-std::vector<std::vector<double> >& material_lattice<NiO, point_group_type>::get_t_ij(parameters_type& parameters)
+std::vector<std::vector<double> >& material_lattice<CuO2_1band, point_group_type>::get_t_ij(parameters_type& parameters)
 {
   static std::vector<std::vector<double> > t_ij(0, std::vector<double>(0));
 
@@ -183,7 +166,7 @@ std::vector<std::vector<double> >& material_lattice<NiO, point_group_type>::get_
 
 template<typename point_group_type>
 template<class parameters_type>
-std::complex<double> material_lattice<NiO, point_group_type>::get_LDA_Hamiltonians(parameters_type& parameters,
+std::complex<double> material_lattice<CuO2_1band, point_group_type>::get_LDA_Hamiltonians(parameters_type& parameters,
                                                                                    std::vector<double> k,
                                                                                    int b1, int s1, int b2, int s2)
 {
@@ -203,23 +186,20 @@ std::complex<double> material_lattice<NiO, point_group_type>::get_LDA_Hamiltonia
 	{
 	  std::vector<double>& t = t_ij[i];
 	  
-	  assert(t.size()==8);
+	  assert(t.size()==6);
 
 	  int b_i = t[0];
 	  int b_j = t[1];
 	  
 	  if(b_i==b1 and b_j==b2)
 	    {
-	      double r_x = t[2]*r_LDA[0] + t[3]*r_LDA[3] + t[4]*r_LDA[6];
-	      double r_y = t[2]*r_LDA[1] + t[3]*r_LDA[4] + t[4]*r_LDA[7];
-	      double r_z = t[2]*r_LDA[2] + t[3]*r_LDA[5] + t[4]*r_LDA[8];
+	      double r_x = t[2]*r_LDA[0] + t[3]*r_LDA[2];
+	      double r_y = t[2]*r_LDA[1] + t[3]*r_LDA[3];
 
-	      val.real(t[5]);
-	      val.imag(t[6]);
+              val.real(t[4]);
+	      val.imag(t[5]);
 
-	      double multiplicity = t[7];
-
-	      H_LDA += val*std::exp(I*(k[0]*r_x+k[1]*r_y+k[2]*r_z))/multiplicity;
+	      H_LDA += val*std::exp(I*(k[0]*r_x+k[1]*r_y));
 	    }
 	}
     }

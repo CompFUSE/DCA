@@ -1,5 +1,5 @@
 
-enum    material_name {NiO, CuO2};
+enum    material_name {NiO, CuO2, CuO2_1band, SrVO3};
 typedef material_name material_name_type;
 
 #include "material_lattice_template.h"
@@ -7,5 +7,7 @@ typedef material_name material_name_type;
 
 #include "template_specialization_NiO/material_lattice_NiO.h"
 #include "template_specialization_CuO2/material_lattice_CuO2.h"
+#include "template_specialization_CuO2_1band/material_lattice_CuO2_1band.h"
+#include "template_specialization_SrVO3/material_lattice_SrVO3.h"
 
 

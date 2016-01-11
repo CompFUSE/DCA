@@ -7,13 +7,15 @@
 ################################################################################
 
 # Choose the Monte-Carlo algorithm.
-set(DCA_QMC_TYPE "CT-AUX" CACHE STRING "Choose the Monte-Carlo algorithm, options are: CT-AUX|HTS.")
+set(DCA_QMC_TYPE "CT-AUX" CACHE STRING "Choose the Monte-Carlo algorithm, options are: CT-AUX|SS-CT-HYB|HTS.")
 if (${DCA_QMC_TYPE} STREQUAL "CT-AUX")
   set(DCA_CLUSTER_SOLVER_TYPE "DCA::CT_AUX_CLUSTER_SOLVER")
+elseif (${QMC_TYPE} STREQUAL "SS-CT-HYB")
+  set(DCA_CLUSTER_SOLVER_TYPE "DCA::SS_CT_HYB")
 elseif (${QMC_TYPE} STREQUAL "HTS")
   set(DCA_CLUSTER_SOLVER_TYPE "DCA::HIGH_TEMPERATURE_SERIES")
 else()
-  message(FATAL_ERROR "Please set QMC_TYPE to a valid option: CT-AUX|HTS.")
+  message(FATAL_ERROR "Please set QMC_TYPE to a valid option: CT-AUX|SS-CT-HYB|HTS.")
 endif()
 
 # Enable SSE acceleration.

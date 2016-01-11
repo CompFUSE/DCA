@@ -1,18 +1,18 @@
 //-*-C++-*-
 
-#ifndef MATERIAL_LATTICE_NIO_H
-#define MATERIAL_LATTICE_NIO_H
+#ifndef MATERIAL_LATTICE_SRVO3_H
+#define MATERIAL_LATTICE_SRVO3_H
 
 /*!
  *  \author Peter Staar
  */
 template<typename point_group_type>
-class material_lattice<NiO, point_group_type>
+class material_lattice<SrVO3, point_group_type>
 {
 public:
 
   const static int DIMENSION = 3;
-  const static int BANDS     = 8;
+  const static int BANDS     = 12;
 
   typedef no_symmetry<DIMENSION> LDA_point_group;
   typedef point_group_type       DCA_point_group;
@@ -43,36 +43,36 @@ private:
 };
 
 template<typename point_group_type>
-double* material_lattice<NiO, point_group_type>::initialize_r_DCA_basis()
+double* material_lattice<SrVO3, point_group_type>::initialize_r_DCA_basis()
 {
-  const static double a = 7.89358;//3.946789070;
+  const static double a = 7.260327248;
 
   static double* r_DCA = new double[9];
 
-  r_DCA[0] = 0   ;  r_DCA[3] = a/2.; r_DCA[6] = a/2.;
-  r_DCA[1] = a/2.;  r_DCA[4] = 0   ; r_DCA[7] = a/2.;
-  r_DCA[2] = a/2.;  r_DCA[5] = a/2.; r_DCA[8] = 0;
+  r_DCA[0] = a;  r_DCA[3] = 0; r_DCA[6] = 0;
+  r_DCA[1] = 0;  r_DCA[4] = a; r_DCA[7] = 0;
+  r_DCA[2] = 0;  r_DCA[5] = 0; r_DCA[8] = a;
 
   return r_DCA;
 }
 
 template<typename point_group_type>
-double* material_lattice<NiO, point_group_type>::initialize_r_LDA_basis()
+double* material_lattice<SrVO3, point_group_type>::initialize_r_LDA_basis()
 {
-  const static double a = 7.89358;//3.946789070;
+  const static double a = 7.260327248;
 
   static double* r_LDA = new double[9];
 
-  r_LDA[0] = 0   ;  r_LDA[3] = a/2.; r_LDA[6] = a/2.;
-  r_LDA[1] = a/2.;  r_LDA[4] = 0   ; r_LDA[7] = a/2.;
-  r_LDA[2] = a/2.;  r_LDA[5] = a/2.; r_LDA[8] = 0;
+  r_LDA[0] = a;  r_LDA[3] = 0; r_LDA[6] = 0;
+  r_LDA[1] = 0;  r_LDA[4] = a; r_LDA[7] = 0;
+  r_LDA[2] = 0;  r_LDA[5] = 0; r_LDA[8] = a;
 
   return r_LDA;
 }
 
 
 template<typename point_group_type>
-std::vector<int> material_lattice<NiO, point_group_type>::get_flavors()
+std::vector<int> material_lattice<SrVO3, point_group_type>::get_flavors()
 {
   static std::vector<int> flavors(BANDS);
   bool sym=true;
@@ -80,16 +80,20 @@ std::vector<int> material_lattice<NiO, point_group_type>::get_flavors()
   {
       flavors[0] = 0;
       flavors[1] = 0;
-      flavors[2] = 1;
-      flavors[3] = 0;
+      flavors[2] = 0;
+      flavors[3] = 1;
       flavors[4] = 1;
       flavors[5] = 2;
       flavors[6] = 2;
-      flavors[7] = 2;
+      flavors[7] = 1;
+      flavors[8] = 1;
+      flavors[9] = 1;
+      flavors[10] = 2;
+      flavors[11] = 1;
   }
   else
   {                                                                                                                                       
-      for(int i=0;i<8;i++)                                                                                                                       
+      for(int i=0;i<12;i++)                                                                                                                       
 	  flavors[i]=i;                                                                                                                            
   }
   return flavors;
@@ -97,14 +101,14 @@ std::vector<int> material_lattice<NiO, point_group_type>::get_flavors()
 
 
 template<typename point_group_type>
-std::vector<std::vector<double> > material_lattice<NiO, point_group_type>::get_a_vectors()
+std::vector<std::vector<double> > material_lattice<SrVO3, point_group_type>::get_a_vectors()
 {
   static std::vector<std::vector<double> > a_vecs(BANDS, std::vector<double>(DIMENSION, 0.));
   return a_vecs;
 }
 
 template<typename point_group_type>
-std::vector<std::pair<std::pair<int,int>, std::pair<int,int> > > material_lattice<NiO, point_group_type>::get_orbital_permutations()
+std::vector<std::pair<std::pair<int,int>, std::pair<int,int> > > material_lattice<SrVO3, point_group_type>::get_orbital_permutations()
 {
   static std::vector<std::pair<std::pair<int,int>, std::pair<int,int> > > permutations(0);
   return permutations;
@@ -112,7 +116,7 @@ std::vector<std::pair<std::pair<int,int>, std::pair<int,int> > > material_lattic
 
 template<typename point_group_type>
 template<class domain, class parameters_type>
-void material_lattice<NiO, point_group_type>::initialize_H_interaction(FUNC_LIB::function<double , domain >& H_i,
+void material_lattice<SrVO3, point_group_type>::initialize_H_interaction(FUNC_LIB::function<double , domain >& H_i,
                                                                        parameters_type&            parameters)
 {
   std::vector<std::vector<double> > U;
@@ -145,7 +149,7 @@ void material_lattice<NiO, point_group_type>::initialize_H_interaction(FUNC_LIB:
 
 template<typename point_group_type>
 template<class domain>
-void material_lattice<NiO, point_group_type>::initialize_H_symmetry(FUNC_LIB::function<int , domain>& H_symmetries)
+void material_lattice<SrVO3, point_group_type>::initialize_H_symmetry(FUNC_LIB::function<int , domain>& H_symmetries)
 {
   H_symmetries = -1;
 
@@ -156,7 +160,7 @@ void material_lattice<NiO, point_group_type>::initialize_H_symmetry(FUNC_LIB::fu
 
 template<typename point_group_type>
 template<class parameters_type>
-std::vector<std::vector<double> >& material_lattice<NiO, point_group_type>::get_t_ij(parameters_type& parameters)
+std::vector<std::vector<double> >& material_lattice<SrVO3, point_group_type>::get_t_ij(parameters_type& parameters)
 {
   static std::vector<std::vector<double> > t_ij(0, std::vector<double>(0));
 
@@ -183,7 +187,7 @@ std::vector<std::vector<double> >& material_lattice<NiO, point_group_type>::get_
 
 template<typename point_group_type>
 template<class parameters_type>
-std::complex<double> material_lattice<NiO, point_group_type>::get_LDA_Hamiltonians(parameters_type& parameters,
+std::complex<double> material_lattice<SrVO3, point_group_type>::get_LDA_Hamiltonians(parameters_type& parameters,
                                                                                    std::vector<double> k,
                                                                                    int b1, int s1, int b2, int s2)
 {

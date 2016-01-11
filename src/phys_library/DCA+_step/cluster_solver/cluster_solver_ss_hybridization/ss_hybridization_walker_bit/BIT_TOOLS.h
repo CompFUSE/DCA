@@ -74,7 +74,7 @@ namespace DCA
 	      bool diff=false;
               for(size_t i=0; i<N_v; i++)
                 for(size_t j=0; j<N_v; j++)
-		  if( abs(F_new(i,j)-M(l)(i,j)) > 1.e-6)
+		  if(std::abs(F_new(i,j)-M(l)(i,j)) > 1.e-6)
 		    diff=true;
 
 	      if(diff)

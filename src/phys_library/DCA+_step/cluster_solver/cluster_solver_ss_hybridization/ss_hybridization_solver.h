@@ -53,7 +53,7 @@ namespace DCA
 	void integrate();
 
 	template<typename dca_info_struct_t>
-	void finalize(dca_info_struct_t& dca_info_struct);
+	double finalize(dca_info_struct_t& dca_info_struct);
 
 	void read(std::string filename);
 
@@ -235,7 +235,7 @@ namespace DCA
 
     template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
     template<typename dca_info_struct_t>
-    void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::finalize(dca_info_struct_t& dca_info_struct)
+    double cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::finalize(dca_info_struct_t& dca_info_struct)
     {
 	compute_G_k_w();
 
@@ -288,6 +288,8 @@ namespace DCA
 	dca_info_struct.sign(DCA_iteration) = accumulator.get_sign();
 
 	concurrency << "\n\n\t SS CT-HYB Integrator has finalized \n\n";
+
+        return dca_info_struct.L2_Sigma_difference(DCA_iteration);
     }
 
     template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>

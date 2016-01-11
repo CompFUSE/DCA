@@ -35,7 +35,7 @@ namespace DCA
                                       double n_lb,
                                       double n_ub);
 
-    double compute_density_correction();
+    void compute_density_correction(FUNC_LIB::function<double, nu> &result);
 
     void compute_density_coefficients(FUNC_LIB::function<             double , dmn_2<nu, k_DCA> >& A,
                                       FUNC_LIB::function<             double , dmn_2<nu, k_DCA> >& B,
@@ -240,19 +240,25 @@ namespace DCA
 
     MOMS.G_k_w += MOMS.G0_k_w;
 
-    double result = compute_density_correction();
-
+    FUNC_LIB::function<double, nu> result;
+    result=0.0;
+    compute_density_correction(result);
+    double result_total=0.0;
     for(int i=0; i<nu::dmn_size(); i++)
-      result += 1.-MOMS.G_r_t(i,i,r_DCA::parameter_type::origin_index(),0);
-
-    return result;
+    {
+	result(i) += 1.-MOMS.G_r_t(i,i,r_DCA::parameter_type::origin_index(),0);
+	MOMS.orbital_occupancy(i)=result(i);
+	result_total +=result(i);
+    }
+    return result_total;
   }
+
 
   /*!
    *  We assume that G_ii(w>>0) ~ 1/(i w_m + A + B/(i w_m))
    */
   template<typename parameters_type, typename MOMS_type, typename coarsegraining_type>
-  double update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>::compute_density_correction()
+  void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>::compute_density_correction(FUNC_LIB::function<double, nu> &result)
   {
     std::complex<double> I(0,1);
 
@@ -267,8 +273,6 @@ namespace DCA
 
     compute_density_coefficients(A , B , MOMS.G_k_w );
     compute_density_coefficients(A0, B0, MOMS.G0_k_w);
-
-    double result = 0;
 
     for(int k_i=0; k_i<k_DCA::dmn_size(); k_i++){
       for(int nu_i=0; nu_i<nu::dmn_size(); nu_i++){
@@ -290,15 +294,13 @@ namespace DCA
 
             l += 1;
           }
-        while( std::abs(tmp/sum) > 1.e-6 and l<1.e6);
+        while(std::abs(tmp/sum) > 1.e-6 and l<1.e6);
 
-        result += sum;
+        result(nu_i) += sum;
       }
     }
-
-    result *= (2./(beta*N_k));
-
-    return result;
+    for(int nu_i=0; nu_i<nu::dmn_size(); nu_i++)
+      result(nu_i) *= (2./(beta*N_k));
   }
 
   /*
