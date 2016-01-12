@@ -235,7 +235,7 @@ namespace DCA
     {
       complex_type tmp = scalar_product(*this, *this);
 
-      assert( abs(tmp.imag()) < ed_options::get_epsilon() && tmp.real() >= 0 );
+      assert( std::abs(tmp.imag()) < ed_options::get_epsilon() && tmp.real() >= 0 );
 
       scalar_type norm = sqrt(tmp.real());
 

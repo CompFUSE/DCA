@@ -480,10 +480,10 @@ namespace DCA
 
                   eval *= eval_factor;
 
-                  if(abs(real(eval))<ed_options::get_epsilon())
+                  if(std::abs(real(eval))<ed_options::get_epsilon())
 		    eval.real(0.);
 
-                  if(abs(imag(eval))<ed_options::get_epsilon())
+                  if(std::abs(imag(eval))<ed_options::get_epsilon())
 		    eval.imag(0.);
                 }
             }

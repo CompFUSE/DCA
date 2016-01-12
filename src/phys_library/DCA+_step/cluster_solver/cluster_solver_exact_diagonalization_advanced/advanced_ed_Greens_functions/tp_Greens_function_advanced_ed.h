@@ -401,7 +401,7 @@ namespace DCA
         for(int wn=0; wn<w_VERTEX::dmn_size(); wn++){
           std::cout << w_VERTEX::get_elements()[wn] << "\t\t";
           for(int wm=0; wm<w_VERTEX::dmn_size(); wm++)
-            if(abs(real(G4(0,0, 0,0, 0, 0, wn, wm)))<1.e-10)
+            if(std::abs(real(G4(0,0, 0,0, 0, 0, wn, wm)))<1.e-10)
               std::cout << 0.0 << "\t";
             else
               std::cout << real(G4(0,0, 0,0, 0, 0, wn, wm)) << "\t";
@@ -418,7 +418,7 @@ namespace DCA
         for(int wn=0; wn<w_VERTEX::dmn_size(); wn++){
           std::cout << w_VERTEX::get_elements()[wn] << "\t\t";
           for(int wm=0; wm<w_VERTEX::dmn_size(); wm++)
-            if(abs(imag(G4(0,0, 0,0, 0, 0, wn, wm)))<1.e-10)
+            if(std::abs(imag(G4(0,0, 0,0, 0, 0, wn, wm)))<1.e-10)
               std::cout << 0.0 << "\t";
             else
               std::cout << imag(G4(0,0, 0,0, 0, 0, wn, wm)) << "\t";

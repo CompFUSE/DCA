@@ -84,6 +84,13 @@ if (DCA_BUILD_ANALYSIS)
   add_subdirectory(examples/analysis)
 endif()
 
+# Build check_solver.cpp
+option(DCA_BUILD_CHECK_SOLVER "Build check_solver.cpp." ON)
+if (DCA_BUILD_CHECK_SOLVER)
+  add_subdirectory(examples/check_solver)
+endif()
+
+
 # Testing
 option(DCA_TESTS                  "Build DCA++'s tests."                        ON)
 option(DCA_TESTS_INCLUDE_ADVANCED "Include time- and resource-consuming tests." ON)

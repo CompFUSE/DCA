@@ -257,7 +257,7 @@ namespace DCA
                       t_ij.push_back(t_obj);
                     }
 
-                  if(abs(H_i(b_i,s_i, b_j,s_j, delta_r))>1.e-3)
+                  if(std::abs(H_i(b_i,s_i, b_j,s_j, delta_r))>1.e-3)
                     {
                       U_struct<complex_type> U_obj;
 

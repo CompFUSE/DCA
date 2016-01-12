@@ -157,7 +157,7 @@ namespace DCA
 
       while (it != psi_states.end() && !(operator< <parameter_type, ed_options>(psi,*it)))
 	{
-	  if(abs(abs(scalar_product<parameter_type, ed_options>(*it, psi))-scalar_type(1.)) < ed_options::get_epsilon())//1.e-10)
+	  if(std::abs(abs(scalar_product<parameter_type, ed_options>(*it, psi))-scalar_type(1.)) < ed_options::get_epsilon())//1.e-10)
 	    return it;
 	  ++it;
 	}
