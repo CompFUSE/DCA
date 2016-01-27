@@ -8,7 +8,7 @@ namespace DCA
   /*!
    *  \class DCA_Calculation
    *
-   *  \author Peter Staar
+   *  \author Peter Staar, Andrei Plamada
    *  \brief  This class encapsulates the DCA-loop, using the template programming style.
    */
   template<class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>

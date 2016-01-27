@@ -5,6 +5,7 @@
 
 /*!
  *  \author Peter Staar
+ *  \author Andrei Plamada
  */
 template<typename point_group_type>
 class material_lattice<CuO2, point_group_type>

@@ -4,7 +4,7 @@
 #define MATERIAL_LATTICE_CUO2_1BAND_H
 
 /*!
- *  \author Peter Staar
+ *  \author Andrei Plamada
  */
 template<typename point_group_type>
 class material_lattice<CuO2_1band, point_group_type>
