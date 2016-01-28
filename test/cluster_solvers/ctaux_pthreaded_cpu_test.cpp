@@ -3,7 +3,8 @@
 //
 // First solves the cluster problem by exact diagonalization and then
 // using phtreaded CT-AUX.
-// Usage: ./ctaux_pthreaded_test inputFileName
+// CPU version.
+// Usage: ./ctaux_pthreaded_cpu_test inputFileName
 //
 // Authors: Peter Staar (taa@zurich.ibm.com), IBM Research - Zurich
 //          Urs Haehner (haehneru@itp.phys.ethz.ch), ETH Zurich
