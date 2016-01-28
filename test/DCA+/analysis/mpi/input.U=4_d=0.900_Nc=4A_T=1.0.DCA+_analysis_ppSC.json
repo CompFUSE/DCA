@@ -16,9 +16,9 @@
     {
         "beta"                      :  1,
 
-        "adjust_chemical_potential" : "true",
+        "adjust-chemical-potential" : "true",
         "density"                   :  0.900,
-        "chemical_potential"        :  0.0
+        "chemical-potential"        :  0.0
     },
 
     "2D-Hubbard-model" :

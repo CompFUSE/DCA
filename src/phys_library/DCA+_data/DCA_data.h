@@ -262,7 +262,7 @@ namespace DCA
       {
         reader.open_group("physics-parameters");
 
-        reader.execute("chemical_potential", parameters.get_chemical_potential());
+        reader.execute("chemical-potential", parameters.get_chemical_potential());
 
         reader.close_group();
       }
