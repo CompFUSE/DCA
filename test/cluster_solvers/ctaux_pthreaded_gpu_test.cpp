@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
     Modules::print();
   }
 
-  print_device_info();
+  initialize_magma();
   
   parameters_type parameters(GitVersion::string(), concurrency);
   parameters.read_input_and_broadcast(file_name);
