@@ -176,10 +176,10 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::construct_creation_
 
   memory_estimate *= sizeof(complex_type) * 1.e-9;
 
-  std::cout << "number of creation matrices : " << index << std::endl;
-
-  std::cout << "memory estimate : " << memory_estimate << " (giga-bytes)" << std::endl;
-
+  if (concurrency.id() == concurrency.first()) {
+      std::cout << "\tnumber of creation matrices : " << index << std::endl;
+      std::cout << "\tmemory estimate : " << memory_estimate << " (giga-bytes)" << std::endl;
+    }
 }
 
 template<typename parameter_type, typename ed_options>
@@ -225,10 +225,10 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::construct_annihilat
 
   memory_estimate *= sizeof(complex_type) * 1.e-9;
 
-  std::cout << "number of creation matrices : " << index << std::endl;
-
-  std::cout << "memory estimate : " << memory_estimate << " (giga-bytes)" << std::endl;
-
+  if (concurrency.id() == concurrency.first()) {
+      std::cout << "\tnumber of creation matrices : " << index << std::endl;
+      std::cout << "\tmemory estimate : " << memory_estimate << " (giga-bytes)" << std::endl;
+    }
 }
 
 template<typename parameter_type, typename ed_options>
@@ -299,7 +299,9 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::construct_creation_
     }
   }
 
-  std::cout << "\n\tnumber of non-zero matrices : " << non_zero << std::endl;
+  if (concurrency.id() == concurrency.first()) {
+      std::cout << "\tnumber of non-zero matrices : " << non_zero << std::endl;
+    }
 }
 
 template<typename parameter_type, typename ed_options>
@@ -382,8 +384,9 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::construct_annihilat
       }
     }
   }
-
-  std::cout << "\n\tnumber of non-zero matrices : " << non_zero << std::endl;
+  if (concurrency.id() == concurrency.first()) {
+      std::cout << "\tnumber of non-zero matrices : " << non_zero << std::endl;
+    }
 }
 
 template<typename parameter_type, typename ed_options>

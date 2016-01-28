@@ -1,8 +1,9 @@
 //====================================================================
-// Copyright 2013-2015 ETH Zurich.
+// Copyright 2013-2016 ETH Zurich.
 //
-// Checks the cluster solvers.
-// Usage: ./check_solver inputFileName
+// First solves the cluster problem by exact diagonalization and then
+// using phtreaded CT-AUX.
+// Usage: ./ctaux_pthreaded_test inputFileName
 //
 // Authors: Peter Staar (taa@zurich.ibm.com), IBM Research - Zurich
 //          Urs Haehner (haehneru@itp.phys.ethz.ch), ETH Zurich
@@ -23,27 +24,25 @@ int main(int argc, char *argv[]) {
     std::cerr << "Usage: " << argv[0] << " inputFileName" << std::endl;
     return -1;
   }
-  
+
   std::string file_name(argv[1]);
-  
-  // Configure the calculation by selecting type definitions
-  static const LIN_ALG::device_type LIN_ALG_DEVICE = LIN_ALG::CPU;
 
-  static const CLUSTER_SOLVER_NAMES ED_CLUSTER_SOLVER_NAME = ADVANCED_ED_CLUSTER_SOLVER;
-  static const CLUSTER_SOLVER_NAMES QMC_CLUSTER_SOLVER_NAME = CT_AUX_CLUSTER_SOLVER;
+  // Use MPI
+  using concurrency_type = COMP_LIB::parallelization<COMP_LIB::MPI_LIBRARY>;
 
-  static const COMP_LIB::PARALLELIZATION_LIBRARY_NAMES
-    PARALLELIZATION_LIBRARY_NAME = COMP_LIB::MPI_LIBRARY;
-  using concurrency_type = COMP_LIB::parallelization<PARALLELIZATION_LIBRARY_NAME>;
-
-  using parameters_type = Parameters<concurrency_type, model, QMC_CLUSTER_SOLVER_NAME>;
+  // Parameters and data types
+  using parameters_type =
+      Parameters<concurrency_type, model, CT_AUX_CLUSTER_SOLVER>;
   using MOMS_type = DCA_data<parameters_type>;
 
-  using ED_solver_type = cluster_solver<ED_CLUSTER_SOLVER_NAME, LIN_ALG_DEVICE, parameters_type, MOMS_type>;
-  // using QMC_solver_type = cluster_solver<QMC_CLUSTER_SOLVER_NAME, LIN_ALG_DEVICE, parameters_type, MOMS_type>;
-  using posix_QMC_solver_type = posix_qmci_integrator< cluster_solver<QMC_CLUSTER_SOLVER_NAME, LIN_ALG_DEVICE, parameters_type, MOMS_type> >;
+  // Cluster solvers
+  using ED_solver_type =
+      cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, LIN_ALG::CPU, parameters_type,
+                     MOMS_type>;
+  using posix_QMC_solver_type =
+      posix_qmci_integrator<cluster_solver<CT_AUX_CLUSTER_SOLVER, LIN_ALG::CPU,
+                                           parameters_type, MOMS_type> >;
 
-  // Create the algorithms and parameters object from the input file
   concurrency_type concurrency(argc, argv);
 
   parameters_type::profiler_type::start();
@@ -63,15 +62,17 @@ int main(int argc, char *argv[]) {
   parameters.update_domains();
 
   // Build the initial self energies
-  DCA_calculation_data  DCA_info_struct;
+  DCA_calculation_data DCA_info_struct;
 
   MOMS_type MOMS_imag(parameters);
   MOMS_imag.initialize();
 
   MOMS_w_real<parameters_type> MOMS_real(parameters);
 
-  std::string data_file_ED  = parameters.get_directory()+parameters.get_ED_output_file_name();
-  std::string data_file_QMC = parameters.get_directory()+parameters.get_QMC_output_file_name();
+  std::string data_file_ED =
+      parameters.get_directory() + parameters.get_ED_output_file_name();
+  std::string data_file_QMC =
+      parameters.get_directory() + parameters.get_QMC_output_file_name();
 
   // ED solver
   ED_solver_type ED_obj(parameters, MOMS_imag, MOMS_real);
@@ -79,21 +80,22 @@ int main(int argc, char *argv[]) {
   ED_obj.execute();
   ED_obj.finalize(DCA_info_struct);
 
-  if(concurrency.id() == concurrency.first()) {
+  if (concurrency.id() == concurrency.first()) {
     ED_obj.write(data_file_ED);
   }
 
-  // QMC solver
+  // pthreaded CT-AUX
   posix_QMC_solver_type QMC_obj(parameters, MOMS_imag);
   QMC_obj.initialize(1);
   QMC_obj.integrate();
   QMC_obj.finalize(DCA_info_struct);
 
-  if(concurrency.id() == concurrency.first()) {
+  if (concurrency.id() == concurrency.first()) {
     MOMS_imag.write(data_file_QMC);
   }
 
-  parameters_type::profiler_type::stop(concurrency, parameters.get_profiling_file_name());
+  parameters_type::profiler_type::stop(concurrency,
+                                       parameters.get_profiling_file_name());
 
   if (concurrency.id() == concurrency.last())
     std::cout << "\nCheck ending.\n" << std::endl;

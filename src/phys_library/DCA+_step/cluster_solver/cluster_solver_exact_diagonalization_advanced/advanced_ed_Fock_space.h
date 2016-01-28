@@ -286,14 +286,14 @@ namespace DCA
 
         if(find(applied_symmetries.begin(), applied_symmetries.end(), permutation_vector) == applied_symmetries.end())
           {
-            std::cout << "apply translation symmetry #" << k+1 << std::endl;
+            // std::cout << "apply translation symmetry #" << k+1 << std::endl;
 
             applied_symmetries.push_back(permutation_vector);
 
             symmetry_operation<parameter_type, ed_options> Op;
             Op.initialize(permutation_vector);
 
-	    Op.print();
+	    // Op.print();
 
             std::vector<element_type> new_Hilbert_spaces;
 

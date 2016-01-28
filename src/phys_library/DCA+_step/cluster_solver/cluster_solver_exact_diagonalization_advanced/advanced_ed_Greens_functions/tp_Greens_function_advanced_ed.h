@@ -339,14 +339,15 @@ namespace DCA
     template<typename parameter_type, typename ed_options>
     void fermionic_tp_Greens_function<parameter_type, ed_options>::compute_particle_particle_superconducting_A(FUNC_LIB::function<complex_type, dmn_8<b,b,b,b,k_dmn,k_dmn,w_VERTEX,w_VERTEX> >& G4)
     {
-      if(concurrency.id()==0)
-        std::cout << "\n\n\t" << __FUNCTION__ << "\n\n";
+      if (concurrency.id() == 0)
+        std::cout << "\t" << __FUNCTION__ << std::endl;
 
       G4 = 0;
 
       int w_nu = parameters.get_w_channel();
 
-      std::cout << "\n\n\t w_nu : " << w_nu << "\n";
+      if (concurrency.id() == 0)
+        std::cout << "\tw_nu : " << w_nu << std::endl;
 
       for(int b_0=0; b_0<b::dmn_size(); b_0++){
         for(int b_1=0; b_1<b::dmn_size(); b_1++){
@@ -391,6 +392,7 @@ namespace DCA
         }
       }
 
+      if (concurrency.id() == 0)
       {
         std::cout << "\n";
         std::cout << 0.0 << "\t\t";
@@ -587,7 +589,7 @@ namespace DCA
     void fermionic_tp_Greens_function<parameter_type, ed_options>::compute_two_particle_Greens_function(bool /*interacting*/)
     {
       if(concurrency.id()==0)
-        std::cout << "\n\n\t" << __FUNCTION__ << "\n\n";
+        std::cout << "\t" << __FUNCTION__ << std::endl;
 
       G_tp_int = 0;
 
@@ -603,7 +605,7 @@ namespace DCA
     void fermionic_tp_Greens_function<parameter_type, ed_options>::compute_two_particle_Greens_function(FUNC_LIB::function<complex_type, dmn_4<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, nu_nu_nu_nu_r_r_r_dmn_type> >& G_tp_ref)
     {
       if(concurrency.id()==0)
-        std::cout << "\n\n\t" << __FUNCTION__ << "\n\n";
+        std::cout << "\t" << __FUNCTION__ << std::endl;
 
       G_tp_ref = 0;
 
