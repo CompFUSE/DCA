@@ -194,7 +194,7 @@ std::complex<double> material_lattice<CuO2, point_group_type>::get_LDA_Hamiltoni
 	  int b_i = t[0];
 	  int b_j = t[1];
 	  
-	  if(b_i==b1 and b_j==b2)
+	  if(b_i==b1 and b_j==b2 and t[4]==0) //keep only the in-plane hopping
 	    {
 	      double r_x = t[2]*r_LDA[0] + t[3]*r_LDA[2];
 	      double r_y = t[2]*r_LDA[1] + t[3]*r_LDA[3];
