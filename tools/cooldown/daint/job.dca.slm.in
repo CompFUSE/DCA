@@ -7,8 +7,8 @@
 #SBATCH --cpus-per-task=16
 #SBATCH --ntasks-per-core=2
 #SBATCH --time=04:00:00
-#SBATCH --output=out.U=HUBBARDU_d=DENS_Nc=SIZE.dca_ALGORITHM.txt
-#SBATCH --error=err.U=HUBBARDU_d=DENS_Nc=SIZE.dca_ALGORITHM.txt
+#SBATCH --output=out.U=HUBBARDU_d=DENS_Nc=SIZE.dca_ALGORITHM.%j.txt
+#SBATCH --error=err.U=HUBBARDU_d=DENS_Nc=SIZE.dca_ALGORITHM.%j.txt
 
 export CRAY_CUDA_PROXY=1
 

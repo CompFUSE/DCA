@@ -2,8 +2,8 @@
 #
 #PBS -A cph102
 #PBS -N DCA++_U=HUBBARDU_d=DENS_Nc=SIZE_dca
-#PBS -o out.U=HUBBARDU_d=DENS_Nc=SIZE.dca_ALGORITHM.txt
-#PBS -e err.U=HUBBARDU_d=DENS_Nc=SIZE.dca_ALGORITHM.txt
+#PBS -o out.U=HUBBARDU_d=DENS_Nc=SIZE.dca_ALGORITHM.$PBS_JOBID.txt
+#PBS -e err.U=HUBBARDU_d=DENS_Nc=SIZE.dca_ALGORITHM.$PBS_JOBID.txt
 #PBS -l walltime=04:00:00
 #PBS -l nodes=NODES
 #PBS -l gres=atlas1%atlas2
