@@ -148,14 +148,14 @@ void  model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t>, i
       read_write_obj.open_group("bilayer-model");
 
       try { read_write_obj.execute("t" , t);       } catch(const std::exception& r_e) {}
-      try { read_write_obj.execute("t'", t_prime); } catch(const std::exception& r_e) {}	
+      try { read_write_obj.execute("t-prime", t_prime); } catch(const std::exception& r_e) {}
       try { read_write_obj.execute("tz", t_perp); } catch(const std::exception& r_e) {}	
 
       try { read_write_obj.execute("U" , U);       } catch(const std::exception& r_e) {}
-      try { read_write_obj.execute("U'", U_prime); } catch(const std::exception& r_e) {}
+      try { read_write_obj.execute("U-prime", U_prime); } catch(const std::exception& r_e) {}
 
       try { read_write_obj.execute("V" , V);       } catch(const std::exception& r_e) {}
-      try { read_write_obj.execute("V'", V_prime); } catch(const std::exception& r_e) {}
+      try { read_write_obj.execute("V-prime", V_prime); } catch(const std::exception& r_e) {}
 
       read_write_obj.close_group();
     }
