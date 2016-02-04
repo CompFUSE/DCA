@@ -112,17 +112,45 @@ std::vector<std::pair<std::pair<int,int>, std::pair<int,int> > > square_lattice<
   return permutations;
 }
 
+// TODO: Add non-local interaction of same spins.
+//       Use V instead of U_prime?
 template<typename point_group_type>
 template<class domain, class parameters_type>
 void square_lattice<point_group_type>::initialize_H_interaction(FUNC_LIB::function<double , domain >& H_interaction,
                                                                 parameters_type&            parameters)
 {
-  double U = parameters.get_U();
+  H_interaction = 0.;
 
-  // int origin = domain::domain_typelist_2::Head::origin_index();
+  double U = parameters.get_U();
+  double U_prime = parameters.get_U_prime();
+
+  typedef typename domain::domain_typelist_2::Head DCA_r_cluster_t;  // actually the same as DCA_r_cluster_type (see typedifinitions.h).
+
+  int DIMENSION = DCA_r_cluster_t::DIMENSION;
+  assert(DIMENSION == 2);
   
-  H_interaction(0,0,0) = 0;  H_interaction(0,1,0) = U;
-  H_interaction(1,0,0) = U;  H_interaction(1,1,0) = 0;
+  int origin = DCA_r_cluster_t::origin_index();
+
+  std::vector<typename DCA_r_cluster_t::element_type>& basis = DCA_r_cluster_t::get_basis_vectors();
+  std::vector<typename DCA_r_cluster_t::element_type>& super_basis = DCA_r_cluster_t::get_super_basis_vectors();
+  std::vector<typename DCA_r_cluster_t::element_type>& elements = DCA_r_cluster_t::get_elements();
+
+  std::vector<int> nn_index(DIMENSION);
+  for(int d = 0; d < DIMENSION; ++d) {
+    std::vector<double> basis_vec = cluster_operations::translate_inside_cluster(basis[d], super_basis);
+    nn_index[d] = cluster_operations::index(basis_vec, elements, BRILLOUIN_ZONE);
+  }
+
+  // non-local interaction
+  H_interaction(0, 1, nn_index[0]) = U_prime;
+  H_interaction(1, 0, nn_index[0]) = U_prime;
+
+  H_interaction(0, 1, nn_index[1]) = U_prime;
+  H_interaction(1, 0, nn_index[1]) = U_prime;
+
+  // local interaction
+  H_interaction(0, 1, origin) = U;
+  H_interaction(1, 0, origin) = U;
 }
 
 template<typename point_group_type>

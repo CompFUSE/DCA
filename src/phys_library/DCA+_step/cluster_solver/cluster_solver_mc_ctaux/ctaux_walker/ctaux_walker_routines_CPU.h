@@ -309,6 +309,7 @@ namespace DCA
 
         double* x = &r[0];
 
+        assert(r.size() >= n);
         {
           for(int j=0; j<n; j++)
             x[j] = A[n+j*LD];

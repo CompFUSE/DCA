@@ -185,6 +185,11 @@ namespace DCA
       std::vector<vertex_singleton_type>&  configuration_e_spin = configuration.get(e_spin);
       int configuration_size(configuration_e_spin.size());
 
+      // All interaction pairs are of the opposite spin type.
+      if (configuration_size == 0) {
+        return;
+      }
+
       exp_gamma_s        .resize(configuration_size);
       one_min_exp_gamma_s.resize(configuration_size);
 
@@ -232,6 +237,11 @@ namespace DCA
 
       std::vector<vertex_singleton_type>& configuration_e_spin = configuration.get(e_spin);
       int                                 configuration_size   = configuration_e_spin.size();
+
+      // All interaction pairs are of the opposite spin type.
+      if (configuration_size == 0) {
+        return;
+      }
 
       int first_non_interacting_vertex_index = configuration.get_first_non_interacting_spin_index(e_spin);
       int first_shuffled_vertex_index        = configuration.get_first_shuffled_spin_index       (e_spin);

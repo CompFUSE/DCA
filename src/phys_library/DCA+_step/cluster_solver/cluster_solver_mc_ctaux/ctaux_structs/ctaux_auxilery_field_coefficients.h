@@ -352,12 +352,20 @@ namespace DCA
 
       CORRELATED_ORBITALS = 0;
 
-      for(int nu_ind_i=0; nu_ind_i<2*BANDS; nu_ind_i++)
-        for(int nu_ind_j=0; nu_ind_j<2*BANDS; nu_ind_j++)
-          for(int r=0; r<FULL_CLUSTER_SIZE; r++)
-            std::fabs(H_interaction(nu_ind_i, nu_ind_j, r)) > 1.e-3 ? CORRELATED_ORBITALS++ : CORRELATED_ORBITALS ;
+      for(int r_j=0; r_j<FULL_CLUSTER_SIZE; r_j++) {
+        for(int r_i=0; r_i<FULL_CLUSTER_SIZE; r_i++) {
+          for(int nu_j=0; nu_j<2*BANDS; nu_j++) {
+            for(int nu_i=0; nu_i<2*BANDS; nu_i++) {
+              int delta_r = r_dmn_t::parameter_type::subtract(r_j, r_i);
+              std::fabs(H_interaction(nu_i, nu_j, delta_r)) > 1.e-3 ? CORRELATED_ORBITALS++ : CORRELATED_ORBITALS;  // Use of H_interaction is fine.
+            }
+          }
+        }
+      }
 
       CORRELATED_ORBITALS = CORRELATED_ORBITALS/2.;
+
+      std::cout << __FUNCTION__ << "\nCORRELATED_ORBITALS = " << CORRELATED_ORBITALS << std::endl;
 
       initialize_gamma();
       initialize_exp_V();
@@ -377,7 +385,7 @@ namespace DCA
                 {
                   double U_i_j_r = std::fabs(H_interaction(nu_ind_i, nu_ind_j, r));
 
-                  double coshgamma=1.+U_i_j_r*BETA*FULL_CLUSTER_SIZE*CORRELATED_ORBITALS/(2.*K_CT_AUX);
+                  double coshgamma=1.+U_i_j_r*BETA*CORRELATED_ORBITALS/(2.*K_CT_AUX);
 
                   gamma_function(nu_ind_i, nu_ind_j, r) = acosh(coshgamma);
                 }
@@ -422,7 +430,7 @@ namespace DCA
                               HS_field = HS_FIELD_UP;
 
                               exp_V_function(nu_ind_i, nu_ind_j, HS_spin_ind, HS_field_ind, r)
-                                = std::exp(-gamma_function(nu_ind_i, nu_ind_j, r)*HS_spin*HS_field);
+                                = std::exp(-gamma_function(nu_ind_i, nu_ind_j, r)*HS_spin*HS_field);  // gamma=1? --> exp_V=1 ?!
 
                               //                            if(std::fabs(exp_V_function(nu_ind_i, nu_ind_j, HS_spin_ind, HS_field_ind, r)-1.) > 1.e-16)
                               //                              one__div__exp_V_function_min_one_function(nu_ind_i, nu_ind_j, HS_spin_ind, HS_field_ind, r)
