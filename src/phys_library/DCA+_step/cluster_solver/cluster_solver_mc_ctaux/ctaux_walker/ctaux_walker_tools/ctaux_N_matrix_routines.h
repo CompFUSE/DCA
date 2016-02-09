@@ -341,7 +341,7 @@ namespace DCA
         return;
 
       std::vector<vertex_singleton_type>& configuration_e_spin = full_configuration.get(e_spin);
-      int                                 configuration_size   = configuration_e_spin.size();
+      int                                 configuration_size   = configuration_e_spin.size();  // What happens if configuration_size = 0?
 
       std::vector<HS_spin_states_type>& spin_values = full_configuration.get_changed_spin_values_e_spin(e_spin);
       std::vector<int>&                 permutation = full_configuration.get_changed_spin_indices_e_spin(e_spin);

@@ -434,6 +434,7 @@ namespace DCA
     {
       assert(int(configuration_e_spin.size()) == N.get_number_of_rows() && N.is_square());
 
+      // What happens if configuration_size = 0?
       int configuration_size = configuration_e_spin.size();
 
       M.resize_no_copy(N.get_current_size());
@@ -468,6 +469,7 @@ namespace DCA
         LIN_ALG::CUBLAS_THREAD_MANAGER<LIN_ALG::GPU>::synchronize_streams(walker_thread_id, walker_stream_id);
       }
 
+      // What happens if configuration_size = 0?
       int configuration_size = configuration_e_spin.size();
       exp_V_minus_one.resize(configuration_size);
 

@@ -365,7 +365,7 @@ namespace DCA
 
       CORRELATED_ORBITALS = CORRELATED_ORBITALS/2.;
 
-      std::cout << __FUNCTION__ << "\nCORRELATED_ORBITALS = " << CORRELATED_ORBITALS << std::endl;
+      // std::cout << __FUNCTION__ << "\nCORRELATED_ORBITALS = " << CORRELATED_ORBITALS << std::endl;
 
       initialize_gamma();
       initialize_exp_V();
