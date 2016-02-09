@@ -9,16 +9,18 @@
 ################################################################################
 
 # NFFT
+set(EBROOTNFFT  "/usr/local")
 find_library(NFFT_LIBRARY
   NAMES libnfft3.a nfft3
-  PATHS $ENV{EBROOTNFFT}/lib
+  PATHS ${EBROOTNFFT}/lib
   NO_DEFAULT_PATH
   )
 
 # SPGLIB
+set(EBROOTSPGLIB  "/usr/local")
 find_library(SPGLIB_LIBRARY
   NAMES libsymspg.a symspg
-  PATHS $ENV{EBROOTSPGLIB}/lib
+  PATHS ${EBROOTSPGLIB}/lib
   NO_DEFAULT_PATH
   )
 
@@ -60,8 +62,8 @@ set(DCA_EXTERNAL_LIBS
 # message("DCA_EXTERNAL_LIBS: ${DCA_EXTERNAL_LIBS}")
 
 set(DCA_EXTERNAL_INCLUDES
-  $ENV{EBROOTNFFT}/include
-  $ENV{EBROOTSPGLIB}/include
+  ${EBROOTNFFT}/include
+  ${EBROOTSPGLIB}/include
   ${FFTW_INCLUDE_DIR}
   ${HDF5_INCLUDE_DIRS}
   )
