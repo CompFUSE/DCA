@@ -185,7 +185,7 @@ namespace DCA
       std::vector<vertex_singleton_type>&  configuration_e_spin = configuration.get(e_spin);
       int configuration_size(configuration_e_spin.size());
 
-      // All interaction pairs are of the opposite spin type.
+      // All interaction pairs are of the same spin type, which leads to a zero configuration size for one of the spin types.
       if (configuration_size == 0) {
         return;
       }
@@ -238,7 +238,7 @@ namespace DCA
       std::vector<vertex_singleton_type>& configuration_e_spin = configuration.get(e_spin);
       int                                 configuration_size   = configuration_e_spin.size();
 
-      // All interaction pairs are of the opposite spin type.
+      // All interaction pairs are of the same spin type, which leads to a zero configuration size for one of the spin types.
       if (configuration_size == 0) {
         return;
       }
@@ -252,10 +252,18 @@ namespace DCA
       assert(configuration.assert_block_form(e_spin));
       assert(first_shuffled_vertex_index >= first_non_interacting_vertex_index);
 
-      {
-        N.resize(configuration_size);
+      if (first_non_interacting_vertex_index == configuration_size) {
+        assert(configuration_size == N.get_current_size().first);
+        // std::cout << __FUNCTION__
+        //           << "\tconfiguration_size = " << configuration_size
+        //           << "\tN.get_current_size().first = " << N.get_current_size().first << std::endl;
+        return;
       }
 
+      {
+        N.resize(configuration_size);  // Move after the next if block?
+      }
+      
       { // set columns to unity ...
         //profiler_t profiler(concurrency, "(a) set columns to unity", __FUNCTION__, __LINE__, true);
 
