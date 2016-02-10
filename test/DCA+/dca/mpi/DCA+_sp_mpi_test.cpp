@@ -63,39 +63,39 @@ TEST(DCA_loop_sp, Self_Energy) {
               << " is checking data " << std::endl;
 
     // Final QMC self energy
-    ASSERT_NEAR(-0.19763191899502217,
+    EXPECT_NEAR(-0.19763191899502217,
                      std::real(MOMS.Sigma(0, 0, 0, w::dmn_size()/2)), 1.e-14);
-    ASSERT_NEAR(-0.39543084934934963,
+    EXPECT_NEAR(-0.39543084934934963,
                      std::imag(MOMS.Sigma(0, 0, 0, w::dmn_size()/2)), 1.e-14);
-    ASSERT_NEAR(-0.1838397635149297,
+    EXPECT_NEAR(-0.1838397635149297,
                      std::real(MOMS.Sigma(0, 0, 1, w::dmn_size()/2)), 1.e-14);
-    ASSERT_NEAR(-0.39980886467162741,
+    EXPECT_NEAR(-0.39980886467162741,
                      std::imag(MOMS.Sigma(0, 0, 1, w::dmn_size()/2)), 1.e-14);
-    ASSERT_NEAR(-0.1838397635149297,
+    EXPECT_NEAR(-0.1838397635149297,
                      std::real(MOMS.Sigma(0, 0, 2, w::dmn_size()/2)), 1.e-14);
-    ASSERT_NEAR(-0.39980886467162741,
+    EXPECT_NEAR(-0.39980886467162741,
                      std::imag(MOMS.Sigma(0, 0, 2, w::dmn_size()/2)), 1.e-14);
-    ASSERT_NEAR(-0.16942929468603241,
+    EXPECT_NEAR(-0.16942929468603241,
                      std::real(MOMS.Sigma(0, 0, 3, w::dmn_size()/2)), 1.e-14);
-    ASSERT_NEAR(-0.39971634937441847,
+    EXPECT_NEAR(-0.39971634937441847,
                      std::imag(MOMS.Sigma(0, 0, 3, w::dmn_size()/2)), 1.e-14);
 
     // Final coarsegrained self energy
-    ASSERT_NEAR(-0.18606344993297538,
+    EXPECT_NEAR(-0.18606344993297538,
                      std::real(MOMS.Sigma_cluster(0, 0, 0, w::dmn_size()/2)), 1.e-14);
-    ASSERT_NEAR(-0.39857826244853495,
+    EXPECT_NEAR(-0.39857826244853495,
                      std::imag(MOMS.Sigma_cluster(0, 0, 0, w::dmn_size()/2)), 1.e-14);
-    ASSERT_NEAR(-0.18369581993172768,
+    EXPECT_NEAR(-0.18369581993172768,
                      std::real(MOMS.Sigma_cluster(0, 0, 1, w::dmn_size()/2)), 1.e-14);
-    ASSERT_NEAR(-0.39875266456335279,
+    EXPECT_NEAR(-0.39875266456335279,
                      std::imag(MOMS.Sigma_cluster(0, 0, 1, w::dmn_size()/2)), 1.e-14);
-    ASSERT_NEAR(-0.18369581993172768,
+    EXPECT_NEAR(-0.18369581993172768,
                      std::real(MOMS.Sigma_cluster(0, 0, 2, w::dmn_size()/2)), 1.e-14);
-    ASSERT_NEAR(-0.39875266456335279,
+    EXPECT_NEAR(-0.39875266456335279,
                      std::imag(MOMS.Sigma_cluster(0, 0, 2, w::dmn_size()/2)), 1.e-14);
-    ASSERT_NEAR(-0.1813281899304795,
+    EXPECT_NEAR(-0.1813281899304795,
                      std::real(MOMS.Sigma_cluster(0, 0, 3, w::dmn_size()/2)), 1.e-14);
-    ASSERT_NEAR(-0.39892706667816974,
+    EXPECT_NEAR(-0.39892706667816974,
                      std::imag(MOMS.Sigma_cluster(0, 0, 3, w::dmn_size()/2)), 1.e-14);
   }
 
