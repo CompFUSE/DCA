@@ -138,7 +138,7 @@ namespace DCA
   void posix_qmci_integrator<qmci_integrator_type>::set_the_rngs()
   {
     int step = nr_walkers;
-
+///does it use std::rand() ???
     srand(concurrency.get_seed());
 
     for(int i=0; i<nr_walkers+nr_accumulators; ++i)
@@ -185,9 +185,9 @@ namespace DCA
   void posix_qmci_integrator<qmci_integrator_type>::integrate()
   {
     profiler_type profiler(__FUNCTION__, "posix-MC-Integration", __LINE__);
-
+//? what is concurrency?
     concurrency << "\n\t\t threaded QMC integration starts\n\n";
-
+//?? where is nr_walker defined? input file
     std::vector<pthread_t>                   threads(nr_accumulators + nr_walkers);
     std::vector<std::pair<this_type*, int> > data   (nr_accumulators + nr_walkers);
 
@@ -245,6 +245,7 @@ namespace DCA
         int min_nr_walkers_nr_accumulators = std::min(nr_walkers, nr_accumulators);
         for(int i=0; i<2*min_nr_walkers_nr_accumulators; ++i)
           {
+            //?? is it faster then "natural" walker 1..n_walk accu: n_walk+1..
             if(i%2==0)
               std::cout << "\t pthread-id : " << i << "  -->   (walker)\n";
             else
@@ -330,7 +331,7 @@ namespace DCA
           profiler_type profiler("posix-MC-walker updating", "posix-MC-walker", __LINE__, id);
           walker.do_sweep();
         }
-
+        //? why the blocking?
         {
           profiler_type profiler("posix-MC-walker waiting", "posix-MC-walker", __LINE__, id);
 
@@ -389,34 +390,14 @@ namespace DCA
         if(id==0)
           this->update_shell(i, parameters.get_warm_up_sweeps(), walker.get_configuration().size());
       }
-
-    walker.is_thermalized() = true;
-
-    if(id==0)
-      concurrency << "\n\t\t warm-up ends\n\n";
-  }
-
-  template<class qmci_integrator_type>
-  void posix_qmci_integrator<qmci_integrator_type>::start_accumulator(int id)
-  {
-    posix_accumulator_type accumulator_obj(parameters, MOMS, id);
-
-    accumulator_obj.initialize(DCA_iteration);
-
-    for(int i=0; i<parameters.get_number_of_measurements(); ++i)
-      {
-        pthread_mutex_lock(&mutex_queue);
-        accumulators_queue.push(&accumulator_obj);
-        pthread_mutex_unlock(&mutex_queue);
-
-        {
-          profiler_type profiler("posix-accumulator waiting", "posix-MC-accumulator", __LINE__, id);
+_fromwaiting", "posix-MC-accumulator", __LINE__, id);
           accumulator_obj.wait_for_qmci_walker();
         }
 
         {
           profiler_type profiler("posix-accumulator accumulating", "posix-MC-accumulator", __LINE__, id);
           if(id==1)
+            //?? where is update shell defined?
             this->update_shell(i, parameters.get_number_of_measurements(), accumulator_obj.get_configuration().size());
 
           accumulator_obj.measure(mutex_queue, accumulators_queue);
