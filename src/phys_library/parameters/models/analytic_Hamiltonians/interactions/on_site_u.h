@@ -46,6 +46,7 @@ public:
 
         // Efficient version for 2 bands.
         // FIXME: Change to general version later !!!
+        assert(BANDS == 2);
         double p = 2./3;
         if (concurrency.get_random_number() < p) {
           band_ind_2 = 1 - band_ind_1;
