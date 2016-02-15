@@ -1,6 +1,7 @@
-#!/bin/sh
+#!/bin/bash
 ################################################################################
-# Environment setup for UNIX
+# Environment setup for UNIX.
+# Remember to run as "source <this script>" before invoking cmake
 ################################################################################
 
 # Mock EasyBuild.
@@ -10,5 +11,5 @@ export EBROOTSPGLIB=/usr/local
 export EBROOTGTEST=$LOCAL_DIR/../libs/gmock-1.7.0/gtest/
 
 # Compilers
-export CXX=/usr/lib/mpic++
+export CXX="/usr/lib/mpic++"
 export CC=/usr/lib/mpic
