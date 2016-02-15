@@ -243,7 +243,7 @@ namespace DCA
     concurrency.broadcast(parameters.get_chemical_potential());
 
     concurrency.broadcast_object(Sigma);
-
+// to do: Interpolate Sigma if \beta from file != \beta ?
     if(parameters.do_CPE())
       concurrency.broadcast_object(G_k_t);
 
