@@ -141,9 +141,9 @@ void physics_parameters::to_JSON(stream_type& /*ss*/, bool /*is_end*/)
 //   ss << "\n{ \n";
 
 //   JSON_writer::write(ss, "beta"                     , beta);
-//   JSON_writer::write(ss, "adjust_chemical_potential", adjusting_chemical_potential);
+//   JSON_writer::write(ss, "adjust-chemical-potential", adjusting_chemical_potential);
 //   JSON_writer::write(ss, "density"                  , density);
-//   JSON_writer::write(ss, "chemical_potential"       , chemical_potential, true);
+//   JSON_writer::write(ss, "chemical-potential"       , chemical_potential, true);
 
 //   if(is_end)
 //     ss << "}\n";
@@ -159,9 +159,9 @@ void physics_parameters::from_JSON(JSON_reader_type& /*reader*/)
     
 //   beta               <= control["beta"];
 
-//   adjusting_chemical_potential <= control["adjust_chemical_potential"];
+//   adjusting_chemical_potential <= control["adjust-chemical-potential"];
 //   density                      <= control["density"];
-//   chemical_potential           <= control["chemical_potential"];
+//   chemical_potential           <= control["chemical-potential"];
 }
 
 template<class read_write_type>
@@ -175,8 +175,8 @@ void physics_parameters::read_write(read_write_type& read_write_obj)
       try { read_write_obj.execute("beta-index"               , beta_index);                   } catch(const std::exception& r_e) {}
       try { read_write_obj.execute("beta-vector"              , beta_vector);                  } catch(const std::exception& r_e) {}
       try { read_write_obj.execute("density"                  , density);                      } catch(const std::exception& r_e) {}
-      try { read_write_obj.execute("chemical_potential"       , chemical_potential);           } catch(const std::exception& r_e) {}
-      try { read_write_obj.execute("adjust_chemical_potential", adjusting_chemical_potential); } catch(const std::exception& r_e) {}
+      try { read_write_obj.execute("chemical-potential"       , chemical_potential);           } catch(const std::exception& r_e) {}
+      try { read_write_obj.execute("adjust-chemical-potential", adjusting_chemical_potential); } catch(const std::exception& r_e) {}
 
       read_write_obj.close_group();
     }

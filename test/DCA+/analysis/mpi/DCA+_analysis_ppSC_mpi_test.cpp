@@ -59,16 +59,16 @@ TEST(DCA_analysis_ppSC, leading_eigenvalues) {
     std::cout << "\nProcessor " << dca_test_env->concurrency.id()
               << " is checking data " << std::endl;
 
-    ASSERT_NEAR(0.13607121357030313, std::real(leading_eigenvalues(0)), 1.e-14);
-    ASSERT_NEAR(0.034431977492612967, std::real(leading_eigenvalues(1)), 1.e-14);
-    ASSERT_NEAR(0.012266372581790334, std::real(leading_eigenvalues(2)), 1.e-14);
-    ASSERT_NEAR(0.0054573275829339421, std::real(leading_eigenvalues(3)), 1.e-14);
-    ASSERT_NEAR(0.0034328623407512224, std::real(leading_eigenvalues(4)), 1.e-14);
-    ASSERT_NEAR(0.0020805637006257741, std::real(leading_eigenvalues(5)), 1.e-14);
-    ASSERT_NEAR(0.0014371558441993106, std::real(leading_eigenvalues(6)), 1.e-14);
-    ASSERT_NEAR(0.00090401084880077046, std::real(leading_eigenvalues(7)), 1.e-14);
-    ASSERT_NEAR(0.0004745991433807814, std::real(leading_eigenvalues(8)), 1.e-14);
-    ASSERT_NEAR(0.00041011935715527505, std::real(leading_eigenvalues(9)), 1.e-14);
+    EXPECT_NEAR(0.141255829483559, std::real(leading_eigenvalues(0)), 1.e-14);
+    EXPECT_NEAR(0.035403739947658497, std::real(leading_eigenvalues(1)), 1.e-14);
+    EXPECT_NEAR(0.012831910693094153, std::real(leading_eigenvalues(2)), 1.e-14);
+    EXPECT_NEAR(0.0061806878835006596, std::real(leading_eigenvalues(3)), 1.e-14);
+    EXPECT_NEAR(0.0040807760979054003, std::real(leading_eigenvalues(4)), 1.e-14);
+    EXPECT_NEAR(0.0026041534848890288, std::real(leading_eigenvalues(5)), 1.e-14);
+    EXPECT_NEAR(0.0014096932095358674, std::real(leading_eigenvalues(6)), 1.e-14);
+    EXPECT_NEAR(0.0012189162371243748, std::real(leading_eigenvalues(7)), 1.e-14);
+    EXPECT_NEAR(0.00068728922478279676, std::real(leading_eigenvalues(8)), 1.e-14);
+    EXPECT_NEAR(0.00065456873236435971, std::real(leading_eigenvalues(9)), 1.e-14);
   }
 
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.last())

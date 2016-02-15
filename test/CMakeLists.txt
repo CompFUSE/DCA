@@ -1,3 +1,3 @@
-#add_subdirectory(examples)
 add_subdirectory(DCA+)
-#add_subdirectory(cluster_solver)
+#add_subdirectory(cluster_solvers)
+#add_subdirectory(examples)

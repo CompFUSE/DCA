@@ -414,7 +414,7 @@ namespace DCA
       int end = clock();
 
       if(concurrency.id()==0)
-        std::cout << "\t " << __FUNCTION__ << "total time : " << double(end-start)/double(CLOCKS_PER_SEC) << "\n\n";
+        std::cout << "\t" << __FUNCTION__ << " total time : " << double(end-start)/double(CLOCKS_PER_SEC) << std::endl;
     }
 
     template<typename parameter_type, typename ed_options>
@@ -424,7 +424,9 @@ namespace DCA
                                                                                                            FUNC_LIB::function<complex_type, dmn_6<nu_dmn, nu_dmn, r_dmn, r_dmn, w_VERTEX, w_VERTEX> >& G_nu_nu_r_r_w_w,
                                                                                                            FUNC_LIB::function<complex_type, dmn_6<nu_dmn, nu_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX> >& G_nu_nu_k_k_w_w)
     {
-      std::cout << __FUNCTION__ << std::endl;
+      if (concurrency.id() == concurrency.first()) {
+        std::cout << "\n\t" << __FUNCTION__ << std::endl;
+      }
 
       std::vector< Hilbert_space_type >& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
@@ -437,7 +439,9 @@ namespace DCA
 
       double factor = 1./Z;
 
-      std::cout << factor << std::endl;
+      if (concurrency.id() == concurrency.first()) {
+        std::cout << "\tfactor = " << factor << std::endl;
+      }
 
       G_r_w_im *= factor;
       G_r_w_re *= factor;
@@ -1103,7 +1107,7 @@ namespace DCA
     void fermionic_sp_Greens_function<parameter_type, ed_options>::compute_Greens_functions_slow(std::vector<sp_Greens_function_data_type>& data_vec)
     {
       if(concurrency.id()==0)
-        std::cout << "\n\n\t" << __FUNCTION__ << "\n\n";
+        std::cout << "\t" << __FUNCTION__ << std::endl;;
 
       int origin = k_dmn::parameter_type::origin_index();
 
