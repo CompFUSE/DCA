@@ -3,19 +3,20 @@
 # Usage: cmake -C path/to/UNIX_clang.cmake ..
 ################################################################################
 
-set(EBROOTNFFT "/usr/local" CACHE FILEPATH "NFFT location (no /lib)")
-set(EBROOTSPGLIB "/usr/local" CACHE FILEPATH "idem as before")
-set(EBROOTGTEST "${CMAKE_SOURCE_DIR}/libs/gmock-1.7.0/gtest/" CACHE FILEPATH "folder with gtest")
-# Compilers for MPI
-set(MPI_CXX_COMPILER /usr/bin/mpic++)
-set(MPI_C_COMPILER /usr/bin/mpicc)
-
-option(DCA_GPU_SUPPORT "Disable GPU support." OFF)
-
-
 # MPIEXEC stuff for executing parallel tests.
 # Note: CXX and CC must be set as environment variables to the corresponding MPI
-#       C++ and C compiler wrappers. //Giovanni: not really a good practice
+#       C++ and C compiler wrappers.
+
+# Compile for Maxwell compute architecture.
+set(CUDA_GPU_ARCH "compute_50" CACHE STRING "gpu architecture" FORCE)
+# Change dafault cache entries.
+option(DCA_GPU_SUPPORT "Enable GPU support." ON)
+option(DCA_PTHREADS    "Enable pthreads"     ON)
+option( MAGMA_LIBRARY "Locate magma lib" "/usr/local/lib/libmagma.so")
+set(CUDA_HOST_COMPILER "/usr/bin/gcc-4.9"
+  CACHE STRING "Host side compiler used by NVCC")
+mark_as_advanced(CUDA_GPU_ARCH CUDA_HOST_COMPILER)
+
 set(MPIEXEC "/usr/bin/mpirun"
   CACHE FILEPATH "Executable for running MPI programs.")
 set(MPIEXEC_NUMPROC_FLAG "-np"

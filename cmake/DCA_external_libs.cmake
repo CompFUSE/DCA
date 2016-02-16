@@ -9,7 +9,6 @@
 ################################################################################
 
 # NFFT
-set(EBROOTNFFT  "/usr/local")
 find_library(NFFT_LIBRARY
   NAMES libnfft3.a nfft3
   PATHS ${EBROOTNFFT}/lib
@@ -17,7 +16,6 @@ find_library(NFFT_LIBRARY
   )
 
 # SPGLIB
-set(EBROOTSPGLIB  "/usr/local")
 find_library(SPGLIB_LIBRARY
   NAMES libsymspg.a symspg
   PATHS ${EBROOTSPGLIB}/lib

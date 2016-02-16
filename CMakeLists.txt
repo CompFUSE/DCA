@@ -3,8 +3,10 @@
 ################################################################################
 
 cmake_minimum_required(VERSION 3.0)
-
 project(DCA++ C CXX)
+
+MESSAGE("project dir ${CMAKE_SOURCE_DIR}")
+
 
 # Disable in-source builds.
 if (${CMAKE_BINARY_DIR} STREQUAL ${CMAKE_SOURCE_DIR})
@@ -14,7 +16,6 @@ if (${CMAKE_BINARY_DIR} STREQUAL ${CMAKE_SOURCE_DIR})
                       Before that, remove the files already created:\n
                       rm -rf CMakeCache.txt CMakeFiles")
 endif()
-
 
 # Include CMake scripts from cmake directory.
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
