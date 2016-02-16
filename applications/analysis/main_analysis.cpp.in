@@ -1,0 +1,76 @@
+//====================================================================
+// Copyright 2013-2015 ETH Zurich.
+//
+// Executes the DCA(+) analysis.
+// Usage: ./main_analysis inputFileName
+//
+// Authors: Peter Staar (taa@zurich.ibm.com), IBM Research - Zurich
+//          Urs Haehner (haehneru@itp.phys.ethz.ch), ETH Zurich
+//====================================================================
+
+#include <string>
+#include <iostream>
+
+#include "gitVersion.hpp"
+#include "modules.hpp"
+#include "include_files.h"
+#include "type_definitions.h"
+
+using namespace DCA;
+
+int main(int argc, char** argv) {
+  if (argc < 2) {
+    std::cout << "Usage: " << argv[0] << " inputFileName" << std::endl;
+    return -1;
+  }
+
+  std::string file_name(argv[1]);
+
+  // Configure the DCA(+) calculation by selecting type definitions.
+  using concurrency_type = COMP_LIB::parallelization<@DCA_PARALLELIZATION_LIBRARY_TYPE@>;
+  // CT_AUX_CLUSTER_SOLVER is just a dummy variable when running the analysis.
+  using parameters_type = Parameters<concurrency_type, model, CT_AUX_CLUSTER_SOLVER>;
+  using MOMS_type = DCA_data<parameters_type>;
+
+  // Setup the parallelization.
+  concurrency_type concurrency(argc, argv);
+
+  // Print some info.
+  if (concurrency.id() == concurrency.first()) {
+    std::cout << "\nAnalysis starting.\n"
+              << "MPI-world set up: " << concurrency.number_of_processors()
+              << " processes.\n" << std::endl;
+
+    GitVersion::print();
+    Modules::print();
+  }
+
+  // Create the parameters object from the input file.
+  parameters_type parameters(GitVersion::string(), concurrency);
+  parameters.read_input_and_broadcast(file_name);
+  parameters.update_model();
+  parameters.update_domains();
+
+  // Create and initialize the DCA_data object and read the dca output.
+  MOMS_type MOMS(parameters);
+  MOMS.initialize();
+  MOMS.read(parameters.get_directory() + parameters.get_output_file_name());
+
+  // Compute the susceptibility.
+  if (parameters.get_vertex_measurement_type() != NONE) {
+    BSE_solver<parameters_type, MOMS_type> analysis_obj(parameters, MOMS);
+
+    analysis_obj.calculate_susceptibilities_2();
+
+    if (concurrency.id() == concurrency.last()) {
+      std::cout << "\nProcessor " << concurrency.id() << " is writing data "
+                << std::endl;
+      analysis_obj.write();
+    }
+  }
+
+  if (concurrency.id() == concurrency.last())
+    std::cout << "\nAnalysis ending.\n" << std::endl;
+
+  return 0;
+}
