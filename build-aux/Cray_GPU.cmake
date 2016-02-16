@@ -1,6 +1,6 @@
 ################################################################################
-# Initial cache list for Cray systems (Piz Daint, Titan)
-# Usage: cmake -C path/to/Cray.cmake ...
+# Initial cache list for Cray systems with GPU (Piz Daint, Titan)
+# Usage: cmake -C path/to/Cray_GPU.cmake ...
 ################################################################################
 
 # The C++ compile wrapper CC already includes and links to these libraries.

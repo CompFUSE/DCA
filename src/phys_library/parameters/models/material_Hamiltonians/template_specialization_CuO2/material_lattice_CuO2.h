@@ -5,6 +5,7 @@
 
 /*!
  *  \author Peter Staar
+ *  \author Andrei Plamada
  */
 template<typename point_group_type>
 class material_lattice<CuO2, point_group_type>
@@ -188,18 +189,18 @@ std::complex<double> material_lattice<CuO2, point_group_type>::get_LDA_Hamiltoni
 	{
 	  std::vector<double>& t = t_ij[i];
 	  
-	  assert(t.size()==6);
+	  assert(t.size()==8);
 
 	  int b_i = t[0];
 	  int b_j = t[1];
 	  
-	  if(b_i==b1 and b_j==b2)
+	  if(b_i==b1 and b_j==b2 and t[4]==0) //keep only the in-plane hopping
 	    {
 	      double r_x = t[2]*r_LDA[0] + t[3]*r_LDA[2];
 	      double r_y = t[2]*r_LDA[1] + t[3]*r_LDA[3];
 
-	      val.real(t[4]);
-	      val.imag(t[5]);
+	      val.real(t[5]);
+	      val.imag(t[6]);
 
 	      H_LDA += val*std::exp(I*(k[0]*r_x+k[1]*r_y));
 	    }
