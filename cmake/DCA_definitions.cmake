@@ -9,6 +9,7 @@ set(DCA_LIBRARIES "${DCA_EXTERNAL_LIBS};${CMAKE_BINARY_DIR}/gitVersion/libgitVer
 
 # Includes
 set(DCA_INCLUDES
+  ${CMAKE_SOURCE_DIR}/src/  # Directory of enumerations.hpp
   ${CMAKE_SOURCE_DIR}/src/LAPACK_PLANS
   ${CMAKE_SOURCE_DIR}/src/comp_library/LIN_ALG
   ${CMAKE_SOURCE_DIR}/src/comp_library/IO_library
@@ -33,7 +34,6 @@ set(DCA_INCLUDES
   ${CMAKE_SOURCE_DIR}/src/phys_library/parameters
   ${CMAKE_SOURCE_DIR}/src/phys_library/parameters/models
   )
-list(APPEND DCA_INCLUDES "${CMAKE_BINARY_DIR}/include")  # Directory of include_files.h and type_definitions.h.
 list(APPEND DCA_INCLUDES "${CMAKE_SOURCE_DIR}/gitVersion")  # Directory of gitVersion.hpp.
 list(APPEND DCA_INCLUDES "${CMAKE_SOURCE_DIR}/modules")  # Directory of modules.hpp.
 list(APPEND DCA_INCLUDES "${DCA_EXTERNAL_INCLUDES}")

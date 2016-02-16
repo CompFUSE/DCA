@@ -1,0 +1,94 @@
+//====================================================================
+// Copyright 2013-2015 ETH Zurich.
+//
+// Executes the DCA(+) loop.
+// Usage: ./main inputFileName
+//
+// Authors: Peter Staar (taa@zurich.ibm.com), IBM Research - Zurich
+//          Urs Haehner (haehneru@itp.phys.ethz.ch), ETH Zurich
+//====================================================================
+
+#include <string>
+#include <iostream>
+
+#include "gitVersion.hpp"
+#include "modules.hpp"
+#include "include_files.h"
+#include "type_definitions.h"
+
+@DCA_CUDA_FUNCTION@
+
+@DCA_INITIALIZE_MAGMA_0@
+
+using namespace DCA;
+
+int main(int argc, char *argv[]) {
+  if (argc < 2) {
+    std::cerr << "Usage: " << argv[0] << " inputFileName" << std::endl;
+    return -1;
+  }
+  
+  std::string file_name(argv[1]);
+  
+  // Configure the DCA(+) calculation by selecting type definitions.
+  using concurrency_type = COMP_LIB::parallelization<@DCA_PARALLELIZATION_LIBRARY_TYPE@>;
+  using parameters_type = Parameters<concurrency_type, model, @DCA_CLUSTER_SOLVER_TYPE@>;
+  using MOMS_type = DCA_data<parameters_type>;
+  using quantum_cluster_solver_type =
+    cluster_solver<@DCA_CLUSTER_SOLVER_TYPE@, @DCA_LIN_ALG_DEVICE_TYPE@,
+                   parameters_type, MOMS_type>;
+  using Monte_Carlo_Integrator_type = @DCA_MC_INTEGRATOR_TYPE@;
+  using DCA_calculation_type =
+    DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>;
+
+  // Setup the parallelization.
+  concurrency_type concurrency(argc, argv);
+
+  parameters_type::profiler_type::start();
+
+  // Print some info.
+  if (concurrency.id() == concurrency.first()) {
+    std::cout << "\nDCA main starting.\n"
+              << "MPI-world set up: " << concurrency.number_of_processors()
+              << " processes.\n" << std::endl;
+
+    print_device_info();
+
+    GitVersion::print();
+    Modules::print();
+  }
+
+  @DCA_INITIALIZE_MAGMA_1@
+
+  // Create the parameters object from the input file.
+  parameters_type parameters(GitVersion::string(), concurrency);
+  parameters.read_input_and_broadcast(file_name);
+  parameters.update_model();
+  parameters.update_domains();
+
+  // Create and initialize the DCA_data object.
+  MOMS_type MOMS(parameters);
+  MOMS.initialize();
+
+  DCA_calculation_type dca_object(parameters, MOMS, concurrency);
+
+  {
+    parameters_type::profiler_type profiler(__FUNCTION__, __FILE__, __LINE__);
+
+    dca_object.initialize();
+    dca_object.execute();
+    dca_object.finalize();
+  }
+
+  parameters_type::profiler_type::stop(concurrency, parameters.get_profiling_file_name());
+
+  if (concurrency.id() == concurrency.last()) {
+    std::cout << "\nProcessor " << concurrency.id()
+              << " is writing data " << std::endl;
+    dca_object.write();
+    
+    std::cout << "\nDCA main ending.\n" << std::endl;
+  }
+  
+  return 0;
+}
