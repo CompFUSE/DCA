@@ -2,6 +2,10 @@
 
 #ifndef DCA_DOUBLE_COUNTING_CORRECTION_STEP_H
 #define DCA_DOUBLE_COUNTING_CORRECTION_STEP_H
+/*!
+ *  \author Peter Staar
+ *  \author Andrei Plamada
+ */
 
 namespace DCA
 {

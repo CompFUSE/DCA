@@ -805,10 +805,22 @@ namespace DCA
       }
     }
 
+    double error_infty_norm = 0;
+    offset = std::min(10, w::dmn_size()/2);
+    for(int w_ind=w::dmn_size()/2; w_ind<w::dmn_size()/2+offset; w_ind++){
+	for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++){
+	    for(int l1=0; l1<b::dmn_size()*s::dmn_size(); l1++){
+		error_infty_norm = std::max(error_infty_norm,abs(MOMS.Sigma(l1,l1,k_ind,w_ind) - MOMS.Sigma_cluster(l1,l1,k_ind,w_ind)));
+	    }
+	}
+    }
+
     double L2_error = std::sqrt(diff_L2_norm)/double(k_DCA::dmn_size());
     if(concurrency.id() == concurrency.first())
-      std::cout << "\n\n\t\t |Sigma_QMC - Sigma_cg|_2 ~ " << L2_error << "\n\n";
-
+    {
+      std::cout << "\n\n\t\t |Sigma_QMC - Sigma_cg|_infty ~ " << error_infty_norm;
+      std::cout << "\n\t\t |Sigma_QMC - Sigma_cg|_2 ~ " << L2_error << "\n\n";
+    }
     return L2_error;
   }
 

@@ -1,6 +1,10 @@
+/*!
+ *  \author Peter Staar
+ *  \author Andrei Plamada
+ */
 
-enum    material_name {NiO, CuO2, CuO2_1band, SrVO3};
-typedef material_name material_name_type;
+enum    material_name {NiO_symmetric,NiO_unsymmetric, CuO2, CuO2_1band, SrVO3};
+using material_name_type=material_name ;
 
 #include "material_lattice_template.h"
 #include "material_interaction_template.h"

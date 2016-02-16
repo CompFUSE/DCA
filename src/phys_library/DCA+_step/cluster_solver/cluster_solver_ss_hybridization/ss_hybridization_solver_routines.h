@@ -11,7 +11,7 @@ namespace DCA
      *  \class   hybridization_routines
      *  \ingroup SS_HYBRIDIZATION
      *
-     *  \author  Bart Ydens, Peter Staar
+     *  \author  Bart Ydens, Peter Staar, Andrei Plamada
      *  \brief   This class implements the help functions for the insertion and removal of (anti-)segments. The help functions
      *  include the calculation of the deteminant ratio and the computation of the new hybridization matrix, using sherman-morrison equations.
      *
@@ -327,7 +327,6 @@ namespace DCA
         }
       }
     }
-
   }
 }
 

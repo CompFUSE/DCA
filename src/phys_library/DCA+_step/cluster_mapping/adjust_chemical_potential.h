@@ -2,6 +2,10 @@
 
 #ifndef DCA_UPDATE_CHEMICAL_POTENTIAL_STEP_H
 #define DCA_UPDATE_CHEMICAL_POTENTIAL_STEP_H
+/*!
+ *  \author Peter Staar
+ *  \author Andrei Plamada
+ */
 
 namespace DCA
 {
