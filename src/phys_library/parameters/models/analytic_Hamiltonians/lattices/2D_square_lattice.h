@@ -124,7 +124,8 @@ void square_lattice<point_group_type>::initialize_H_interaction(FUNC_LIB::functi
   double U = parameters.get_U();
   double U_prime = parameters.get_U_prime();
 
-  typedef typename domain::domain_typelist_2::Head DCA_r_cluster_t;  // actually the same as DCA_r_cluster_type (see typedifinitions.h).
+  // actually the same as DCA_r_cluster_type (see typedifinitions.h).
+  typedef typename TypeAt<typename domain::domain_typelist_2, 0>::Result DCA_r_cluster_t;
 
   int DIMENSION = DCA_r_cluster_t::DIMENSION;
   assert(DIMENSION == 2);
@@ -135,7 +136,7 @@ void square_lattice<point_group_type>::initialize_H_interaction(FUNC_LIB::functi
   std::vector<typename DCA_r_cluster_t::element_type>& super_basis = DCA_r_cluster_t::get_super_basis_vectors();
   std::vector<typename DCA_r_cluster_t::element_type>& elements = DCA_r_cluster_t::get_elements();
 
-  std::vector<int> nn_index(DIMENSION);
+  std::vector<int> nn_index(DIMENSION);  // Indices of nearest neighbours w.r.t. origin.
   for(int d = 0; d < DIMENSION; ++d) {
     std::vector<double> basis_vec = cluster_operations::translate_inside_cluster(basis[d], super_basis);
     nn_index[d] = cluster_operations::index(basis_vec, elements, BRILLOUIN_ZONE);

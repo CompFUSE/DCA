@@ -32,7 +32,8 @@ public:
     typedef typename parameters_type::nu nu;
 
     int BANDS = parameters.get_interacting_bands().size();
-
+    int origin = r_dmn_type::origin_index();
+    
     do
       {
 	int band_ind_1 = concurrency.get_random_number()*BANDS;
@@ -77,7 +78,7 @@ public:
 	vertex.get_spin_orbitals().first  = QMC::convert<int, nu>::spin_orbital(vertex.get_bands().first , vertex.get_e_spins().first); 
 	vertex.get_spin_orbitals().second = QMC::convert<int, nu>::spin_orbital(vertex.get_bands().second, vertex.get_e_spins().second); 
       }
-    while(std::fabs(H_interactions(vertex.get_spin_orbitals().first, vertex.get_spin_orbitals().second, 0)) < 1.e-3 );
+    while(std::fabs(H_interactions(vertex.get_spin_orbitals().first, vertex.get_spin_orbitals().second, origin)) < 1.e-3 );
 
     int r_site = int(r_dmn_type::get_size()*concurrency.get_random_number());
 

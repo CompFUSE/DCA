@@ -216,12 +216,12 @@ namespace DCA
     {
       std::pair<int,int>& spin_orbitals = v.get_spin_orbitals();
 
-      if(H_interaction(spin_orbitals.first, spin_orbitals.second, 0) > 1.e-3)
+      if(H_interaction(spin_orbitals.first, spin_orbitals.second, v.get_delta_r()) > 1.e-3)
         {
           return 1.;
         }
 
-      if(H_interaction(spin_orbitals.first, spin_orbitals.second, 0) < -1.e-3)
+      if(H_interaction(spin_orbitals.first, spin_orbitals.second, v.get_delta_r()) < -1.e-3)
         {
           HS_spin_states_type old_HS_spin  = v.get_HS_spin();
           HS_field_sign_type  HS_field = HS_FIELD_UP;
