@@ -9,7 +9,7 @@ set(EBROOTGTEST "${CMAKE_CURRENT_SOURCE_DIR}/../libs/gmock-1.7.0/gtest/" CACHE F
 # Compilers for MPI
 set(MPI_CXX_COMPILER /usr/bin/mpic++)
 set(MPI_C_COMPILER /usr/bin/mpicc)
-#options and flafs
+#options and flags
 option(DCA_GPU_SUPPORT "Disable GPU support." OFF)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS};-std=c++11;-fopenmp")
 
