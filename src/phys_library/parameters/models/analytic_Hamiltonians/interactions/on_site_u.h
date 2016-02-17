@@ -36,7 +36,7 @@ public:
     do
       {
 	int band_ind_1 = concurrency.get_random_number()*BANDS;
-	//int band_ind_2 = concurrency.get_random_number()*BANDS;
+	// int band_ind_2 = concurrency.get_random_number()*BANDS;  // old version: gives the wrong probabilities
 
         // In order to not double-count the intra-band interaction we need different probabilities
         // for chosing the second band to be the same/different to the first band. Each band
@@ -44,21 +44,20 @@ public:
         // band.
         int band_ind_2 = band_ind_1;
 
-        // Efficient version for 2 bands.
-        // FIXME: Change to general version later !!!
-        assert(BANDS == 2);
-        double p = 2./3;
-        if (concurrency.get_random_number() < p) {
-          band_ind_2 = 1 - band_ind_1;
-        }
-
-        // General version.
-        // double p = 1. - 1./(2.*BANDS - 1.);  // probablity to choose any different band
+        // Hardcoded (efficient) version for 2 bands
+        // assert(BANDS == 2);
+        // double p = 2./3;
         // if (concurrency.get_random_number() < p) {
-        //   while (band_ind_2 == band_ind_1) {
-        //     band_ind_2 = concurrency.get_random_number()*BANDS;
-        //   }
+        //   band_ind_2 = 1 - band_ind_1;
         // }
+
+        // General version
+        double p = 1. - 1./(2.*BANDS - 1.);  // probablity to choose any different band
+        if (concurrency.get_random_number() < p) {
+          while (band_ind_2 == band_ind_1) {
+            band_ind_2 = concurrency.get_random_number()*BANDS;
+          }
+        }
       
 	vertex.get_bands().first  = parameters.get_interacting_bands()[band_ind_1];
 	vertex.get_bands().second = parameters.get_interacting_bands()[band_ind_2];

@@ -28,7 +28,7 @@ endif()
 # Enable pthreads.
 option(DCA_PTHREADS "Enable pthreads" OFF)
 if (DCA_PTHREADS)
-  set(DCA_MC_INTEGRATOR_TYPE "DCA::posix_qmci_integrator<quantum_cluster_solver_type>")
+  set(DCA_MC_INTEGRATOR_TYPE "posix_qmci_integrator<quantum_cluster_solver_type>")
 else()
   set(DCA_MC_INTEGRATOR_TYPE "quantum_cluster_solver_type")
 endif()
