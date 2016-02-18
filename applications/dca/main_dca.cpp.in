@@ -10,8 +10,6 @@
 
 #include <string>
 #include <iostream>
-
-#include "gitVersion.hpp"
 #include "modules.hpp"
 #include "include_files.h"
 #include "type_definitions.h"
@@ -53,15 +51,13 @@ int main(int argc, char *argv[]) {
               << " processes.\n" << std::endl;
 
     print_device_info();
-
-    GitVersion::print();
     Modules::print();
   }
 
   @DCA_INITIALIZE_MAGMA_1@
 
   // Create the parameters object from the input file.
-  parameters_type parameters(GitVersion::string(), concurrency);
+  parameters_type parameters(/*GitVersion::string()*/"No git Version", concurrency);
   parameters.read_input_and_broadcast(file_name);
   parameters.update_model();
   parameters.update_domains();

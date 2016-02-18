@@ -27,16 +27,6 @@ get_module_list(MODULE_LIST)
 configure_file("${CMAKE_SOURCE_DIR}/modules/modules.cpp.in"
   "${CMAKE_BINARY_DIR}/modules/modules.cpp" @ONLY)
 
-# Git Version
-add_subdirectory(gitVersion)
-include(gitVersion_init)
-get_git_log(GIT_LOG)  # Executes 'git log -1'.
-get_git_status(GIT_STATUS)  # Executes 'git status --porcelain'.
-if(GIT_STATUS)
-  message(WARNING "Working tree is dirty. Run 'git status' for details.")  
-endif()
-configure_file("${CMAKE_SOURCE_DIR}/gitVersion/gitVersion.cpp.in"
-  "${CMAKE_BINARY_DIR}/gitVersion/gitVersion.cpp" @ONLY)
 
 # DCA++ options
 include(DCA_build_options)
