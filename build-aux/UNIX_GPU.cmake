@@ -4,7 +4,7 @@
 ################################################################################
 
 # call common option
-include(${CMAKE_CURRENT_SOURCE_DIR}/../build-aux/OSX_clang.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/OSX_clang.cmake)
 
 set(CUDA_GPU_ARCH "compute_30" CACHE STRING "gpu architecture" FORCE)
 # Change dafault cache entries.

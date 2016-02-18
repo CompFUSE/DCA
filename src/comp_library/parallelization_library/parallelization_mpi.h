@@ -88,7 +88,6 @@ namespace COMP_LIB
 
   int parallelization<MPI_LIBRARY>::id()
   {
-    assert(group.get_id()>-1);
     return group.get_id();
   }
 
