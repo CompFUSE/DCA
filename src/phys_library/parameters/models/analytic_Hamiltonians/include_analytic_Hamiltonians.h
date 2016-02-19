@@ -9,4 +9,5 @@
 #include "lattices/3D_cubic_lattice.h"
 
 // interactions
-#include "interactions/on_site_u.h"
+// #include "interactions/on_site_u.h"
+#include "interactions/general_interaction.hpp"
