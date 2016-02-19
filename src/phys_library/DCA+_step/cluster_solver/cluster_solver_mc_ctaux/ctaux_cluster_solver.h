@@ -118,8 +118,6 @@ namespace DCA
 
     total_time(0),
 
-    rng((long)concurrency.id(), concurrency.number_of_processors(), concurrency.get_seed()),
-
     accumulator(parameters, MOMS, 0),
 
     Sigma_old("Self-Energy-n-1-iteration"),
@@ -154,6 +152,7 @@ namespace DCA
   void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::initialize(int dca_iteration)
   {
     DCA_iteration = dca_iteration;
+    rng.set_seed((long)(concurrency.id()+concurrency.number_of_processors()*dca_iteration)), //assure each markov chain gets a different seed
 
     Sigma_old = MOMS.Sigma;
 
