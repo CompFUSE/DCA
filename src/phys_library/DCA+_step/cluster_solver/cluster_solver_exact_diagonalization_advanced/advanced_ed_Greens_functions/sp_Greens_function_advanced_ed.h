@@ -1109,7 +1109,7 @@ namespace DCA
       if(concurrency.id()==0)
         std::cout << "\t" << __FUNCTION__ << std::endl;;
 
-      int origin = k_dmn::parameter_type::origin_index();
+      int origin = r_dmn::parameter_type::origin_index();
 
       //scalar_type beta = parameters.get_beta();
 
