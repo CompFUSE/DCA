@@ -123,7 +123,7 @@ void  model_parameters<tight_binding_model<lattice_type, interaction_type> >::re
       try { read_write_obj.execute("t"      , t);       } catch(const std::exception& r_e) {}
       try { read_write_obj.execute("t-prime", t_prime); } catch(const std::exception& r_e) {}	
       try { read_write_obj.execute("U"      , U);       } catch(const std::exception& r_e) {}
-      try { read_write_obj.execute("U_prime", U_prime); } catch(const std::exception& r_e) {}
+      try { read_write_obj.execute("U-prime", U_prime); } catch(const std::exception& r_e) {}
 
       read_write_obj.close_group();
     }
