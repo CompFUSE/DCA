@@ -15,7 +15,7 @@ namespace QMC
   template<MC_integration_method_type MC_integration_method_t, LIN_ALG::device_type device_t, class parameters_type, class base_cluster_type>
   class MC_walker
   {
-    typedef typename parameters_type::rng_type                                 rng_type;
+    typedef typename parameters_type::random_number_generator                                 rng_type;
     typedef MultiOrbitalMultiSiteStructure<parameters_type, base_cluster_type> MOMS_type;
 
   public:

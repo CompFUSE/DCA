@@ -29,7 +29,7 @@ namespace DCA
     {
 #include "type_definitions.h"
 
-      typedef typename parameters_type::rng_type rng_type;
+      typedef typename parameters_type::random_number_generator rng_type;
 
       typedef typename MC_type_definitions<SS_CT_HYB, parameters_type, MOMS_type>::profiler_type    profiler_type;
       typedef typename MC_type_definitions<SS_CT_HYB, parameters_type, MOMS_type>::concurrency_type concurrency_type;
