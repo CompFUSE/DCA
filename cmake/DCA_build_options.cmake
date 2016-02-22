@@ -51,14 +51,19 @@ else()
 endif()
 
 # Choose the random number generator.
-set(DCA_RNG "NR" CACHE STRING "Choose the random number generator, options are: NR|SPRNG.")
-if (${DCA_RNG} STREQUAL "NR")
-  add_definitions(-DRNG_NUMERICAL_RECIPES)
-elseif (${DCA_RNG} STREQUAL "SPRNG")  # TODO: Support SPRNG.
-  message(FATAL_ERROR "SPRNG is not yet supported. Please choose NR.")
+set(DCA_RNG "RANQ2" CACHE STRING "Choose the random number generator, options are: RAN | RANQ2 | MT. The first two are from Numerical Recipes, the last from the standard Mersenne Twistor.")
+if (${DCA_RNG} STREQUAL "RANQ2")
+  set(CMAKE_RNG_TYPE "rng::ranq2")
+  #elseif (${DCA_RNG} STREQUAL "SPRNG")  # TODO: Support SPRNG.
+  #message(FATAL_ERROR "SPRNG is not yet supported. Please choose NR.")
   #add_definitions(-DRNG_SPRNG)
+elseif(${DCA_RNG} STREQUAL "RAN")
+  set(CMAKE_RNG_TYPE "rng::ran")
+elseif(${DCA_RNG} STREQUAL "MT")
+  set(CMAKE_RNG_TYPE "rng::rng_mt")
+  set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS};-std=c++11)
 else()
-  message(FATAL_ERROR "Please set RNG to a valid value: NR|SPRNG.")
+  message(FATAL_ERROR "Please set RNG to a valid value: RAN | RANQ2 | MT.")
 endif()
 
 # Enable BIT.

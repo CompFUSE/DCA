@@ -11,7 +11,7 @@ MESSAGE("project dir ${CMAKE_SOURCE_DIR}")
 # Disable in-source builds.
 if (${CMAKE_BINARY_DIR} STREQUAL ${CMAKE_SOURCE_DIR})
   message(FATAL_ERROR "In-source builds are not permitted.
-                      Make a separate folder for building:\n
+                        Make a separate folder for building:\n
                       mkdir build; cd build; cmake ..\n
                       Before that, remove the files already created:\n
                       rm -rf CMakeCache.txt CMakeFiles")
@@ -27,6 +27,16 @@ get_module_list(MODULE_LIST)
 configure_file("${CMAKE_SOURCE_DIR}/modules/modules.cpp.in"
   "${CMAKE_BINARY_DIR}/modules/modules.cpp" @ONLY)
 
+# Git Version
+add_subdirectory(gitVersion)
+include(gitVersion_init)
+get_git_log(GIT_LOG)  # Executes 'git log -1'.
+get_git_status(GIT_STATUS)  # Executes 'git status --porcelain'.
+if(GIT_STATUS)
+  message(WARNING "Working tree is dirty. Run 'git status' for details.")  
+endif()
+configure_file("${CMAKE_SOURCE_DIR}/gitVersion/gitVersion.cpp.in"
+  "${CMAKE_BINARY_DIR}/gitVersion/gitVersion.cpp" @ONLY)
 
 # DCA++ options
 include(DCA_build_options)
