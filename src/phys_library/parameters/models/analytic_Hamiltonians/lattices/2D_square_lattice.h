@@ -121,9 +121,6 @@ void square_lattice<point_group_type>::initialize_H_interaction(FUNC_LIB::functi
 {
   H_interaction = 0.;
 
-  double U = parameters.get_U();
-  double U_prime = parameters.get_U_prime();
-
   // actually the same as DCA_r_cluster_type (see typedifinitions.h).
   typedef typename TypeAt<typename domain::domain_typelist_2, 0>::Result DCA_r_cluster_t;
 
@@ -142,14 +139,24 @@ void square_lattice<point_group_type>::initialize_H_interaction(FUNC_LIB::functi
     nn_index[d] = cluster_operations::index(basis_vec, elements, BRILLOUIN_ZONE);
   }
 
-  // non-local interaction
-  H_interaction(0, 1, nn_index[0]) = U_prime;
-  H_interaction(1, 0, nn_index[0]) = U_prime;
+  // Nearest-neighbor opposite spin interaction
+  double V = parameters.get_V();
+  H_interaction(0, 1, nn_index[0]) = V;
+  H_interaction(1, 0, nn_index[0]) = V;
+  H_interaction(0, 1, nn_index[1]) = V;
+  H_interaction(1, 0, nn_index[1]) = V;
 
-  H_interaction(0, 1, nn_index[1]) = U_prime;
-  H_interaction(1, 0, nn_index[1]) = U_prime;
+  // Nearest-neighbor same spin interaction
+  double V_prime = parameters.get_V_prime();
+  H_interaction(0, 0, nn_index[0]) = V_prime;
+  H_interaction(1, 1, nn_index[0]) = V_prime;
+  H_interaction(0, 0, nn_index[1]) = V_prime;
+  H_interaction(1, 1, nn_index[1]) = V_prime;
 
-  // local interaction
+  // On-site interaction
+  // This has to be set last since for small clusters a nearest neighbor might
+  // be the same site and therefore V would overwrite U.
+  double U = parameters.get_U();
   H_interaction(0, 1, origin) = U;
   H_interaction(1, 0, origin) = U;
 }

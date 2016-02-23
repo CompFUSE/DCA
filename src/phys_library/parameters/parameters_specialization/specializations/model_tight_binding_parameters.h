@@ -39,11 +39,13 @@ public:
  ***        DATA                        ***
  ******************************************/
 
-  double  get_U();
-  double  get_U_prime();
+  double get_t();
+  double get_t_prime();
 
-  double  get_t();
-  double  get_t_prime();
+  double get_U();
+
+  double get_V();
+  double get_V_prime();
   
 private:
  
@@ -51,16 +53,20 @@ private:
   double t_prime;
  
   double U;
-  double U_prime;
+
+  double V;
+  double V_prime;
 };
 
 template<typename lattice_type, typename interaction_type>
 model_parameters<tight_binding_model<lattice_type, interaction_type> >::model_parameters():
-  t(1),
-  t_prime(0),
+  t(1.),
+  t_prime(0.),
 
-  U(4),
-  U_prime(0)
+  U(4.),
+
+  V(0.),
+  V_prime(0.)
 {}
 
 template<typename lattice_type, typename interaction_type>
@@ -81,7 +87,9 @@ int model_parameters<tight_binding_model<lattice_type, interaction_type> >::get_
   buffer_size += concurrency.get_buffer_size(t_prime);
 
   buffer_size += concurrency.get_buffer_size(U);
-  buffer_size += concurrency.get_buffer_size(U_prime);
+
+  buffer_size += concurrency.get_buffer_size(V);
+  buffer_size += concurrency.get_buffer_size(V_prime);
 
   return buffer_size;
 }
@@ -94,7 +102,9 @@ void model_parameters<tight_binding_model<lattice_type, interaction_type> >::pac
   concurrency.pack(buffer, buffer_size, position, t_prime);
 
   concurrency.pack(buffer, buffer_size, position, U);
-  concurrency.pack(buffer, buffer_size, position, U_prime);
+
+  concurrency.pack(buffer, buffer_size, position, V);
+  concurrency.pack(buffer, buffer_size, position, V_prime);
 }
 
 template<typename lattice_type, typename interaction_type>
@@ -105,7 +115,9 @@ void model_parameters<tight_binding_model<lattice_type, interaction_type> >::unp
   concurrency.unpack(buffer, buffer_size, position, t_prime);
 
   concurrency.unpack(buffer, buffer_size, position, U);
-  concurrency.unpack(buffer, buffer_size, position, U_prime);
+
+  concurrency.unpack(buffer, buffer_size, position, V);
+  concurrency.unpack(buffer, buffer_size, position, V_prime);
 }
 
 /******************************************
@@ -123,7 +135,8 @@ void  model_parameters<tight_binding_model<lattice_type, interaction_type> >::re
       try { read_write_obj.execute("t"      , t);       } catch(const std::exception& r_e) {}
       try { read_write_obj.execute("t-prime", t_prime); } catch(const std::exception& r_e) {}	
       try { read_write_obj.execute("U"      , U);       } catch(const std::exception& r_e) {}
-      try { read_write_obj.execute("U-prime", U_prime); } catch(const std::exception& r_e) {}
+      try { read_write_obj.execute("V"      , V);       } catch(const std::exception& r_e) {}
+      try { read_write_obj.execute("V-prime", V_prime); } catch(const std::exception& r_e) {}
 
       read_write_obj.close_group();
     }
@@ -155,11 +168,17 @@ double model_parameters<tight_binding_model<lattice_type, interaction_type> >::g
 {
   return U;
 }
- 
+
 template<typename lattice_type, typename interaction_type>
-double model_parameters<tight_binding_model<lattice_type, interaction_type> >::get_U_prime()
+double model_parameters<tight_binding_model<lattice_type, interaction_type> >::get_V()
 {
-  return U_prime;
+  return V;
+}
+
+template<typename lattice_type, typename interaction_type>
+double model_parameters<tight_binding_model<lattice_type, interaction_type> >::get_V_prime()
+{
+  return V_prime;
 }
 
 #endif
