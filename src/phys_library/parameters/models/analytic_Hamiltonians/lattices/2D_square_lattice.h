@@ -142,12 +142,19 @@ void square_lattice<point_group_type>::initialize_H_interaction(FUNC_LIB::functi
     nn_index[d] = cluster_operations::index(basis_vec, elements, BRILLOUIN_ZONE);
   }
 
-  // non-local interaction
+  // non-local opposite-spin interaction
   H_interaction(0, 1, nn_index[0]) = U_prime;
   H_interaction(1, 0, nn_index[0]) = U_prime;
 
   H_interaction(0, 1, nn_index[1]) = U_prime;
   H_interaction(1, 0, nn_index[1]) = U_prime;
+
+  // non-local same-spin interaction
+  H_interaction(0, 0, nn_index[0]) = U_prime;
+  H_interaction(1, 1, nn_index[0]) = U_prime;
+
+  H_interaction(0, 0, nn_index[1]) = U_prime;
+  H_interaction(1, 1, nn_index[1]) = U_prime;
 
   // local interaction
   H_interaction(0, 1, origin) = U;
