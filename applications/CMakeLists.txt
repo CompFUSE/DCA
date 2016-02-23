@@ -4,6 +4,7 @@
 
 # Copy type_definitions.h only during the initial configuration, otherwise
 # changes to the 'build copy' might be overwritten when reconfiguring.
+<<<<<<< 03b20f4141d8d2ccba1de25a7f16f0966a44c6ee
 
 if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/model_type.hpp")
   file(COPY model_type.hpp DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
@@ -12,6 +13,7 @@ endif()
 if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/lattice_types.hpp")
     file(COPY lattice_types.hpp DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 endif()
+#TODO add rng definition
 
 set(DCA_APPLICATION_FOLDER ${CMAKE_CURRENT_BINARY_DIR}) #dir of model_type.hpp
 

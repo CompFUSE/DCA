@@ -21,7 +21,7 @@ namespace DCA
     class CT_AUX_HS_configuration
     {
 
-      typedef typename parameters_type::rng_type rng_type;
+      typedef typename parameters_type::random_number_generator rng_type;
 
     public:
 

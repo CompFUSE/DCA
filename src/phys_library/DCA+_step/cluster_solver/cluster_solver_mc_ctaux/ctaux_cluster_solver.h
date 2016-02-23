@@ -97,7 +97,7 @@ namespace DCA
 
     double total_time;
 
-    rng_type         rng;
+    random_number_generator         rng;
 
     accumulator_type accumulator;
 

@@ -28,7 +28,8 @@ namespace DCA
     class vertex_pair
     {
 
-      typedef typename parameters_type::rng_type rng_type;
+      typedef typename parameters_type::random_number_generator rng_type;
+
       typedef r_DCA r_dmn_t;
       typedef k_DCA k_dmn_t;
 

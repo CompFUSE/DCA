@@ -34,8 +34,6 @@ class Parameters : public file_names_parameters,
 public:
 
 
-  typedef random_number_generator rng_type;
-
   typedef concurrency_t concurrency_type;
 
 #ifdef SINGLE_PRECISION_MEASUREMENTS

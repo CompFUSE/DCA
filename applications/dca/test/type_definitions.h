@@ -169,6 +169,9 @@ typedef dmn_2<nu, k_domain_cut_dmn_type>      nu_k_cut;
 
 typedef dmn_0<DCA_iteration_domain> DCA_iteration_domain_type;
 
+// random number generator
+
+typedef rng::ranq2 random_number_generator; //use old rng
 
 // analysis
 
