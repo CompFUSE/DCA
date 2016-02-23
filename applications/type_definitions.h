@@ -315,7 +315,7 @@ typedef dmn_0<DCA_iteration_domain> DCA_iteration_domain_type;
 
 // random number generator
 
-typedef @CMAKE_RNG_TYPE@ random_number_generator;
+typedef typename RNG_TYPE random_number_generator;
 
 
 // analysis

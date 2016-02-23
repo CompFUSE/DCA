@@ -57,7 +57,6 @@ option(DCA_TESTS_INCLUDE_ADVANCED "Include time- and resource-consuming tests." 
 
 if (DCA_TESTS)
   enable_testing()
-
   #add_subdirectory(${CMAKE_SOURCE_DIR}/libs/gmock-1.7.0)
   add_subdirectory(${EBROOTGTEST} ${CMAKE_BINARY_DIR}/gtest)
   

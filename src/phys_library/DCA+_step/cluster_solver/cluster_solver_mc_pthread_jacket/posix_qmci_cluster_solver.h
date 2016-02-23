@@ -24,7 +24,7 @@ namespace DCA
     typedef typename parameters_type::profiler_type    profiler_type;
     typedef typename parameters_type::concurrency_type concurrency_type;
 
-    typedef typename parameters_type::random_number_generator                 rng_type;
+    typedef typename RNG_TYPE                 rng_type;
 
     typedef typename qmci_integrator_type::walker_type           walker_type;
     typedef typename qmci_integrator_type::accumulator_type      accumulator_type;

@@ -26,7 +26,7 @@ namespace DCA
     {
 #include "type_definitions.h"
 
-      typedef typename parameters_type::random_number_generator rng_type;
+      typedef typename RNG_TYPE rng_type;
 
       //     typedef r_cluster<FULL, base_cluster_type> r_cluster_type;
       //     typedef k_cluster<FULL, base_cluster_type> k_cluster_type;
