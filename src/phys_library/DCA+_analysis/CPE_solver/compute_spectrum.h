@@ -150,7 +150,7 @@ namespace DCA
     parameters_type&  parameters;
     concurrency_type& concurrency;
 
-    random_number_generator rng; //from type_definitions.h
+    RNG_TYPE rng; //from type_definitions.h
 
     //continuous_pole_expansion<parameters_type, basis_function_t, GRADIENT_METHOD> cpe_obj;
     continuous_pole_expansion<parameters_type, basis_function_t, k_DCA, w_REAL, WEIGHTED_GRADIENT_METHOD> cpe_obj;

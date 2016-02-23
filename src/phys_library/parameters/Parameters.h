@@ -33,6 +33,8 @@ public:
 
 #include "type_definitions.h"
 
+  //typedef RNG_TYPE random_number_generator;
+
   typedef concurrency_t concurrency_type;
 
 #ifdef SINGLE_PRECISION_MEASUREMENTS

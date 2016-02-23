@@ -4,7 +4,7 @@
 
 # Copy type_definitions.h only during the initial configuration, otherwise
 # changes to the 'build copy' might be overwritten when reconfiguring.
-configure_file(type_definitions.h.in "${CMAKE_BINARY_DIR}/applications/type_definitions.h")
+configure_file(type_definitions.h "${CMAKE_BINARY_DIR}/applications/type_definitions.h" @ONLY)
 #if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/type_definitions.h")
 #  file(COPY type_definitions.h DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 #endif()

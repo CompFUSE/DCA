@@ -33,7 +33,7 @@ namespace DCA
       typedef vertex_singleton                         vertex_singleton_type;
       typedef CT_AUX_HS_configuration<parameters_type> configuration_type;
 
-      typedef typename parameters_type::random_number_generator rng_type;
+      typedef typename RNG_TYPE rng_type;
 
       typedef typename MC_type_definitions<CT_AUX_SOLVER, parameters_type, MOMS_type>::profiler_type    profiler_type;
       typedef typename MC_type_definitions<CT_AUX_SOLVER, parameters_type, MOMS_type>::concurrency_type concurrency_type;
