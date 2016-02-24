@@ -251,7 +251,8 @@ namespace DCA
       Bennett              = false;
       shuffled             = true;
 
-      assert(spin_orbitals.first != spin_orbitals.second);
+      // For on-site interaction the spin-orbitals must be different.
+      assert(delta_r != 0 || spin_orbitals.first != spin_orbitals.second);
     }
 
     template<class parameters_type>
@@ -272,7 +273,7 @@ namespace DCA
       Bennett              = false;
       shuffled             = true;
 
-      assert(spin_orbitals.first != spin_orbitals.second);
+      assert(delta_r != 0 || spin_orbitals.first != spin_orbitals.second);
     }
 
     template<class parameters_type>
