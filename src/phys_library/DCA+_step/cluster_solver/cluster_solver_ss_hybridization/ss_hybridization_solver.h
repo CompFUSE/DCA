@@ -27,7 +27,7 @@ namespace DCA
 	typedef MOMS_type       this_MOMS_type;
 	typedef parameters_type this_parameters_type;
 
-	typedef typename RNG_TYPE         rng_type;
+	typedef typename parameters_type::rng_type         rng_type;
 
 	typedef typename parameters_type::profiler_type    profiler_type;
 	typedef typename parameters_type::concurrency_type concurrency_type;

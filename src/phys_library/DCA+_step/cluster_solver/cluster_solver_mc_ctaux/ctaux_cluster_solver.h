@@ -27,7 +27,7 @@ namespace DCA
     typedef MOMS_type       this_MOMS_type;
     typedef parameters_type this_parameters_type;
 
-    typedef typename RNG_TYPE  rng_type; //defined in cmake
+    typedef typename parameters_type::rng_type         rng_type;
 
     typedef typename parameters_type::profiler_type    profiler_type;
     typedef typename parameters_type::concurrency_type concurrency_type;
@@ -118,6 +118,8 @@ namespace DCA
 
     total_time(0),
 
+    rng((long)concurrency.id(), concurrency.number_of_processors(), concurrency.get_seed()),
+
     accumulator(parameters, MOMS, 0),
 
     Sigma_old("Self-Energy-n-1-iteration"),
@@ -152,7 +154,6 @@ namespace DCA
   void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::initialize(int dca_iteration)
   {
     DCA_iteration = dca_iteration;
-    rng.set_seed((long)(concurrency.id()+concurrency.number_of_processors()*dca_iteration)), //assure each markov chain gets a different seed
 
     Sigma_old = MOMS.Sigma;
 

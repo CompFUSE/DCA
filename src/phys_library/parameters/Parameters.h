@@ -33,7 +33,7 @@ public:
 
 #include "type_definitions.h"
 
-  //typedef RNG_TYPE random_number_generator;
+  typedef random_number_generator rng_type;
 
   typedef concurrency_t concurrency_type;
 

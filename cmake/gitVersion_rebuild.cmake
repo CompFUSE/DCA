@@ -5,7 +5,7 @@
 # It checks the last git log (git log -1) and git status (git status --porcelain).
 # If either of them changes, gitVersion.cpp will be reconfigured which triggers the
 # recompilation of libgitVersion.
-set(DCA_DIR "/home/giovanni/Programs/DCA")
+
 # Check git log
 execute_process(
   COMMAND
@@ -71,5 +71,5 @@ endif()
 
 # Reconfigure gitVersion.cpp if something has changed.
 if (LOG_CHANGED OR STATUS_CHANGED)
- configure_file("${DCA_DIR}/gitVersion/gitVersion.cpp.in" "${CMAKE_BINARY_DIR}/gitVersion/gitVersion.cpp" @ONLY)
+  configure_file("${CMAKE_BINARY_DIR}/../gitVersion/gitVersion.cpp.in" "${CMAKE_BINARY_DIR}/gitVersion/gitVersion.cpp" @ONLY)
 endif()

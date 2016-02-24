@@ -20,7 +20,7 @@ namespace DCA
     {
 #include "type_definitions.h"
 
-      typedef typename RNG_TYPE rng_type;
+      typedef typename parameters_type::rng_type rng_type;
 
     public:
 

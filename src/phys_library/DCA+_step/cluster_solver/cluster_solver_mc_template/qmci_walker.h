@@ -17,7 +17,7 @@ namespace DCA
     template<QMCI_NAMES NAME, LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
     class MC_walker
     {
-      typedef typename RNG_TYPE              rng_type;
+      typedef typename parameters_type::rng_type              rng_type;
 
       //typedef MultiOrbitalMultiSiteStructure<parameters_type> MOMS_type;
       

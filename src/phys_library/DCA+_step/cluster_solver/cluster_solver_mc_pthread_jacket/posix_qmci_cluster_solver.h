@@ -24,7 +24,7 @@ namespace DCA
     typedef typename parameters_type::profiler_type    profiler_type;
     typedef typename parameters_type::concurrency_type concurrency_type;
 
-    typedef typename RNG_TYPE                 rng_type;
+    typedef typename parameters_type::rng_type                 rng_type;
 
     typedef typename qmci_integrator_type::walker_type           walker_type;
     typedef typename qmci_integrator_type::accumulator_type      accumulator_type;
@@ -42,7 +42,7 @@ namespace DCA
     template<IO::FORMAT DATA_FORMAT>
     void write(IO::writer<DATA_FORMAT>& reader);
 
-    void initialize(int dca_iteration0);
+    void initialize(int dca_iteration);
 
     void integrate();
 
@@ -75,11 +75,9 @@ namespace DCA
 
     using qmci_integrator_type::total_time;
 
-    using qmci_integrator_type::DCA_iteration; //Question: is this the same as dca_iteration from initialize?
+    using qmci_integrator_type::DCA_iteration;
 
     using qmci_integrator_type::accumulator;
-
-    int dca_iteration;
 
     int acc_finished;
 
@@ -107,8 +105,8 @@ namespace DCA
     nr_walkers     (parameters.get_nr_walkers()),
     nr_accumulators(parameters.get_nr_accumulators()),
 
-    rng_seed  (nr_walkers, 0),
-    rng_vector(nr_walkers, rng_type(0)),
+    rng_seed  (nr_walkers+nr_accumulators, 0),
+    rng_vector(nr_walkers+nr_accumulators, rng_type(0,0,0)),
     accumulators_queue()
   {
     if(nr_walkers<1 || nr_accumulators<1){
@@ -141,16 +139,34 @@ namespace DCA
   {
     int step = nr_walkers;
 
-    long common_seed=nr_walkers * concurrency.id() + nr_walkers*concurrency.number_of_processors() * dca_iteration;
-    for(int i=0; i<nr_walkers; ++i)  rng_vector[i].set_seed((long)common_seed+i);
+    srand(concurrency.get_seed());
 
-    }
+    for(int i=0; i<nr_walkers+nr_accumulators; ++i)
+      rng_seed[i] = rand();
+
+    for(int i=0; i<nr_walkers+nr_accumulators; ++i)
+      rng_vector[i] = rng_type(i+concurrency.id()*step,
+                               concurrency.number_of_processors()*step,
+                               rng_seed[i]);
+
+    //     std::cout<<scientific;
+    //     std::cout.precision(6);
+
+    //     for(int i=0; i<nr_walkers; ++i)
+    //       std::cout << "\t" << rng_seed[i];
+    //     std::cout << "\n\n";
+
+    //     for(int j=0; j<20; j++){
+    //       for(int i=0; i<nr_walkers; ++i)
+    //        std::cout << "\t" << rng_vector[i].get_random_number();
+    //       std::cout << "\n";
+    //     }
+    //     std::cout << "\n\n";
+  }
 
   template<class qmci_integrator_type>
-  void posix_qmci_integrator<qmci_integrator_type>::initialize(int dca_iteration0)
+  void posix_qmci_integrator<qmci_integrator_type>::initialize(int dca_iteration)
   {
-    dca_iteration=dca_iteration0;
-
     profiler_type profiler(__FUNCTION__, "posix-MC-Integration", __LINE__);
 
     qmci_integrator_type::initialize(dca_iteration);
