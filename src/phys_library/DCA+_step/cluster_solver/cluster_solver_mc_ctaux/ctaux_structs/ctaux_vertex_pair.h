@@ -2,8 +2,9 @@
 
 #ifndef DCA_QMCI_VERTEX_PAIR_H
 #define DCA_QMCI_VERTEX_PAIR_H
-#include"phys_library/domain_types.hpp"
+#include "phys_library/domain_types.hpp"
 #include "phys_library/parameters/models/analytic_Hamiltonians/interactions/general_interaction.hpp"
+#include "math_library/random_number_library/random_number_generator.hpp"
 using namespace types;
 
 namespace DCA
@@ -28,7 +29,7 @@ namespace DCA
     class vertex_pair
     {
 
-      typedef typename parameters_type::random_number_generator rng_type;
+      typedef random_number_generator rng_type;
 
       typedef r_DCA r_dmn_t;
       typedef k_DCA k_dmn_t;

@@ -209,8 +209,6 @@ void Parameters<concurrency_t, model_t, CLUSTER_SOLVER_NAME>::read_input_and_bro
 
       flag = concurrency_obj.broadcast_object(*this);
     }
-
-  concurrency_obj.set_seed(get_seed());
 }
 
 template<class concurrency_t, class model_t, DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>

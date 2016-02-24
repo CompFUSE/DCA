@@ -11,7 +11,6 @@ namespace COMP_LIB
   template<>
   class parallelization<MPI_LIBRARY> : public print_on_shell_interface<MPI_LIBRARY>,
                                        public packing_interface       <MPI_LIBRARY>,
-                                       public RNG_interface           <MPI_LIBRARY>,
                                        public collective_min_interface<MPI_LIBRARY>,
                                        public collective_max_interface<MPI_LIBRARY>,
                                        public collective_sum_interface<MPI_LIBRARY>
@@ -28,10 +27,6 @@ namespace COMP_LIB
     int first();
     int last ();
 
-    void set_seed(long seed);
-
-    long get_seed();
-
     template<typename object_type>
     bool broadcast(object_type& object, int root_id=0);
     
@@ -44,25 +39,17 @@ namespace COMP_LIB
   private:
 
     processor_grouping<MPI_LIBRARY> group;
-
-    long SEED;
   };
 
   parallelization<MPI_LIBRARY>::parallelization(int argc, char *argv[]):
     print_on_shell_interface<MPI_LIBRARY>(group),
     packing_interface       <MPI_LIBRARY>(group),
-    RNG_interface           <MPI_LIBRARY>(group),
     collective_min_interface<MPI_LIBRARY>(group),
     collective_max_interface<MPI_LIBRARY>(group),
-    collective_sum_interface<MPI_LIBRARY>(group),
-
-    SEED(0)
+    collective_sum_interface<MPI_LIBRARY>(group)
   {
     MPI_Init(&argc, &argv);
-
     group.set();
-    
-    RNG_interface<MPI_LIBRARY>::initialize();
   }
 
   parallelization<MPI_LIBRARY>::~parallelization()
@@ -92,18 +79,7 @@ namespace COMP_LIB
     return group.get_Nr_threads();
   }
 
-  long parallelization<MPI_LIBRARY>::get_seed()
-  {
-    return SEED;
-  }
 
-  void parallelization<MPI_LIBRARY>::set_seed(long seed)
-  {
-    srand(seed);
-    
-    for(int l=0; l<=id(); l++)
-      SEED = rand();
-  }
 
 
   template<typename object_type>

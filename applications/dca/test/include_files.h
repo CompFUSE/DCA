@@ -90,7 +90,8 @@ const static bool DO_NFFT = true;
 #include "comp_library/function_plotting/include_plotting.h"
 
 // random number generator
-#include "math_library/random_number_library/include_random_number_generator.h"
+#include "math_library/random_number_library/ranq2.h"
+using random_number_generator=rng::ranq2;
 
 // include block-matrix operations
 //#include "include_blocked_blas_calls.h"

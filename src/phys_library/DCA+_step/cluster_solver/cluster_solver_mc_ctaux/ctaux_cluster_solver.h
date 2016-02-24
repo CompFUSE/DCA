@@ -3,6 +3,7 @@
 #ifndef DCA_QMCI_CTAUX_CLUSTER_SOLVER_H
 #define DCA_QMCI_CTAUX_CLUSTER_SOLVER_H
 #include"phys_library/domain_types.hpp"
+#include "math_library/random_number_library/random_number_generator.hpp"
 using namespace types;
 
 namespace DCA
@@ -28,13 +29,8 @@ namespace DCA
     typedef MOMS_type       this_MOMS_type;
     typedef parameters_type this_parameters_type;
 
-    typedef typename parameters_type::rng_type         rng_type;
-
     typedef typename parameters_type::profiler_type    profiler_type;
     typedef typename parameters_type::concurrency_type concurrency_type;
-
-    //     typedef MC_walker     <CT_AUX_SOLVER, device_t,     parameters_type, DCA_cluster_type> walker_type;
-    //     typedef MC_accumulator<CT_AUX_SOLVER, LIN_ALG::CPU, parameters_type, DCA_cluster_type> accumulator_type;
 
     typedef QMCI::MC_walker     <QMCI::CT_AUX_SOLVER, device_t,     parameters_type, MOMS_type> walker_type;
     typedef QMCI::MC_accumulator<QMCI::CT_AUX_SOLVER, LIN_ALG::CPU, parameters_type, MOMS_type> accumulator_type;
@@ -119,8 +115,6 @@ namespace DCA
 
     total_time(0),
 
-    rng((long)concurrency.id(), concurrency.number_of_processors(), concurrency.get_seed()),
-
     accumulator(parameters, MOMS, 0),
 
     Sigma_old("Self-Energy-n-1-iteration"),
@@ -128,6 +122,7 @@ namespace DCA
 
     DCA_iteration(-1)
   {
+    rng.set_seed((long)(concurrency.id())), //assure each markov chain gets a different seed
     concurrency << "\n\n\t CT-AUX Integrator is born \n\n";
   }
 
@@ -685,7 +680,31 @@ namespace DCA
   template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
   void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::set_non_interacting_bands_to_zero()
 //WARNING this function is not implemented
-  { }
+  {
+    /*
+    for(int w_ind=0; w_ind<w::dmn_size(); w_ind++){
+      for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++){
+	for(int l2=0; l2<b::dmn_size(); l2++){
+	  for(int l1=0; l1<b::dmn_size(); l1++){
+	    
+	    if( !(parameters.is_interacting_band()[l1] and 
+		  parameters.is_interacting_band()[l2]))
+	      {
+		MOMS.Sigma(l1,0,l2,0,k_ind, w_ind) = 0.;
+		MOMS.Sigma(l1,1,l2,1,k_ind, w_ind) = 0.;
+	      }
+	  }
+	}
+      }
+    }
+    for(int w_ind=0; w_ind<w::dmn_size(); w_ind++)
+      for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++)
+	for(int l2=0; l2<2*b::dmn_size(); l2++)
+	  for(int l1=0; l1<2*b::dmn_size(); l1++)
+	    if( !(l1==l2 and parameters.is_interacting_band()[l1]) )
+	      MOMS.Sigma(l1,l2,k_ind, w_ind) = 0.;
+    */
+  }
 
   template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
   void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::adjust_self_energy_for_double_counting()
@@ -739,4 +758,3 @@ namespace DCA
 }
 
 #endif
-

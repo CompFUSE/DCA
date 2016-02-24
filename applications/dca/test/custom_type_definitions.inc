@@ -1,4 +1,4 @@
-//-*-C++-*-
+// File: type_definitions.h
 
 //typedef no_symmetry<2> DCA_point_group_type;
 //typedef no_symmetry<3> DCA_point_group_type;
@@ -315,7 +315,7 @@ typedef dmn_0<DCA_iteration_domain> DCA_iteration_domain_type;
 
 // random number generator
 
-typedef random_number_generator random_number_generator_type; 
+typedef rng::ranq2 random_number_generator; //use old rng
 
 // analysis
 

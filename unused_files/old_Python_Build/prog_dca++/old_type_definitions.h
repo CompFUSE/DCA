@@ -281,7 +281,7 @@ typedef dca::DCA_information_structure DCA_information_structure_type;
 
 // random number generator
 
-typedef random_number_generator random_number_generator; 
+typedef random_number_generator random_number_generator_type; 
 
 // analysis
 

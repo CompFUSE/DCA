@@ -3,6 +3,7 @@
 #ifndef DCA_QMCI_POSIX_MC_INTEGRATOR_FOR_MC_H
 #define DCA_QMCI_POSIX_MC_INTEGRATOR_FOR_MC_H
 
+#include "math_library/random_number_library/random_number_generator.hpp"
 namespace DCA
 {
   /*!
@@ -24,7 +25,7 @@ namespace DCA
     typedef typename parameters_type::profiler_type    profiler_type;
     typedef typename parameters_type::concurrency_type concurrency_type;
 
-    typedef typename parameters_type::random_number_generator   rng_type;
+    using rng_type = random_number_generator;
 
     typedef typename qmci_integrator_type::walker_type           walker_type;
     typedef typename qmci_integrator_type::accumulator_type      accumulator_type;
@@ -107,7 +108,6 @@ namespace DCA
     nr_walkers     (parameters.get_nr_walkers()),
     nr_accumulators(parameters.get_nr_accumulators()),
 
-    rng_seed  (nr_walkers, 0),
     rng_vector(nr_walkers, rng_type(0)),
     accumulators_queue()
   {
@@ -138,7 +138,7 @@ namespace DCA
   template<class qmci_integrator_type>
   void posix_qmci_integrator<qmci_integrator_type>::set_the_rngs()
   {
-    long common_seed=nr_walkers * concurrency.id() + nr_walkers*concurrency.number_of_processors() * dca_iteration;
+    int common_seed=nr_walkers * concurrency.id();
     for(int i=0; i<nr_walkers; ++i)  rng_vector[i].set_seed((long)common_seed+i);
   }
 

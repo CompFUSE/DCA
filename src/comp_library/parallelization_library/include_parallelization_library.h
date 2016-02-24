@@ -11,8 +11,6 @@ namespace COMP_LIB
 
 #include "interfaces/packing_interface.h"
 
-#include "interfaces/RNG_interface.h"
-
 #include "interfaces/collective_min_interface.h"
 #include "interfaces/collective_max_interface.h"
 #include "interfaces/collective_sum_interface.h"
