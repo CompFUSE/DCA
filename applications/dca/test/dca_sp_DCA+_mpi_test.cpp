@@ -73,9 +73,9 @@ TEST(DCA_loop_sp, Self_Energy) {
         for (int nu_ind_2 = 0; nu_ind_2 < nu::dmn_size(); ++nu_ind_2) {
           for (int nu_ind_1 = 0; nu_ind_1 < nu::dmn_size(); ++nu_ind_1) {
             EXPECT_NEAR(Sigma_check(nu_ind_1, nu_ind_2, k_ind, w_ind).real(),
-                        MOMS.Sigma(nu_ind_1, nu_ind_2, k_ind, w_ind).real(), 1.e-14);
+                        MOMS.Sigma(nu_ind_1, nu_ind_2, k_ind, w_ind).real(), 1.e-12);
             EXPECT_NEAR(Sigma_check(nu_ind_1, nu_ind_2, k_ind, w_ind).imag(),
-                        MOMS.Sigma(nu_ind_1, nu_ind_2, k_ind, w_ind).imag(), 1.e-14);
+                        MOMS.Sigma(nu_ind_1, nu_ind_2, k_ind, w_ind).imag(), 1.e-12);
           }
         }
       }
