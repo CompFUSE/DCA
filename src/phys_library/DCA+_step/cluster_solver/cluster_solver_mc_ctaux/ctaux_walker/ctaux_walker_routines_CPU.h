@@ -406,8 +406,15 @@ namespace DCA
           double new_max = (Gamma_val>max)? Gamma_val : max;
           double new_min = (Gamma_val<min)? Gamma_val : min;
 
+          // The Gamma matrix is too ill-conditioned, don't accept this move.
           if( (new_max/new_min) > 1.e6)
-            return 1.e-16;
+            {
+              // For interactions between the same spin type we might do another update with the same Gamma matrix.
+              // Since the current diagonal element should not be considered for max/min, we need to already update the Gamma matrix (which will set it to 1).
+              CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::set_to_identity(Gamma_LU, n);
+
+              return 1.e-16;
+            }
           else
             {
               max = new_max;
