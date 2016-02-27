@@ -6,8 +6,8 @@
 /*!
  *  \author Peter Staar, Andrei Plamada
  */
-template<typename dca_point_group_t, typename interaction_t>
-class model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t>, interaction_t> >
+template<typename dca_point_group_t>
+class model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t> > >
 {
 
 public:
@@ -67,8 +67,8 @@ private:
 
 };
 
-template<typename dca_point_group_t, typename interaction_t>
-model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t>, interaction_t> >::model_parameters():
+template<typename dca_point_group_t>
+model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t> > >::model_parameters():
   ei0(0),
   eb0(0),
   t0(0),
@@ -81,17 +81,17 @@ model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t>, intera
   V_prime(0)
 {}
 
-template<typename dca_point_group_t, typename interaction_t>
-model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t>, interaction_t> >::~model_parameters()
+template<typename dca_point_group_t>
+model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t> > >::~model_parameters()
 {}
 
 /******************************************
  ***        CONCURRENCY                 ***
  ******************************************/
 
-template<typename dca_point_group_t, typename interaction_t>
+template<typename dca_point_group_t>
 template<class concurrency_type>
-int model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t>, interaction_t> >::get_buffer_size( concurrency_type& concurrency)
+int model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t> > >::get_buffer_size( concurrency_type& concurrency)
 {
   int buffer_size = 0;
 
@@ -111,9 +111,9 @@ int model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t>, in
   return buffer_size;
 }
 
-template<typename dca_point_group_t, typename interaction_t>
+template<typename dca_point_group_t>
 template<class concurrency_type>
-void model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t>, interaction_t> >::pack( concurrency_type& concurrency, int* buffer, int buffer_size, int& position)
+void model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t> > >::pack( concurrency_type& concurrency, int* buffer, int buffer_size, int& position)
 {
   concurrency.pack(buffer, buffer_size, position, ei0);
   concurrency.pack(buffer, buffer_size, position, eb0);
@@ -128,9 +128,9 @@ void model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t>, i
   concurrency.pack(buffer, buffer_size, position, V_prime);
 }
 
-template<typename dca_point_group_t, typename interaction_t>
+template<typename dca_point_group_t>
 template<class concurrency_type>
-void model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t>, interaction_t> >::unpack( concurrency_type& concurrency, int* buffer, int buffer_size, int& position)
+void model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t> > >::unpack( concurrency_type& concurrency, int* buffer, int buffer_size, int& position)
 {
   concurrency.unpack(buffer, buffer_size, position, ei0);
   concurrency.unpack(buffer, buffer_size, position, eb0);
@@ -149,9 +149,9 @@ void model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t>, i
  ***        READ/WRITE                  ***
  ******************************************/
 
-template<typename dca_point_group_t, typename interaction_t>
+template<typename dca_point_group_t>
 template<class read_write_type>
-void  model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t>, interaction_t> >::read_write(read_write_type& read_write_obj)
+void  model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t> > >::read_write(read_write_type& read_write_obj)
 {
   try
     {
@@ -203,63 +203,63 @@ void  model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t>, 
  ***        DATA                        ***
  ******************************************/
 
-template<typename dca_point_group_t, typename interaction_t>
-double model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t>, interaction_t> >::get_ei0()
+template<typename dca_point_group_t>
+double model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t> > >::get_ei0()
 {
   return ei0;
 }
 
-template<typename dca_point_group_t, typename interaction_t>
-double model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t>, interaction_t> >::get_eb0()
+template<typename dca_point_group_t>
+double model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t> > >::get_eb0()
 {
   return eb0;
 }
 
-template<typename dca_point_group_t, typename interaction_t>
-double model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t>, interaction_t> >::get_t0()
+template<typename dca_point_group_t>
+double model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t> > >::get_t0()
 {
   return t0;
 }
 
 
-template<typename dca_point_group_t, typename interaction_t>
-double model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t>, interaction_t> >::get_ei1()
+template<typename dca_point_group_t>
+double model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t> > >::get_ei1()
 {
   return ei1;
 }
 
-template<typename dca_point_group_t, typename interaction_t>
-double model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t>, interaction_t> >::get_eb1()
+template<typename dca_point_group_t>
+double model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t> > >::get_eb1()
 {
   return eb1;
 }
 
-template<typename dca_point_group_t, typename interaction_t>
-double model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t>, interaction_t> >::get_t1()
+template<typename dca_point_group_t>
+double model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t> > >::get_t1()
 {
   return t1;
 }
 
-template<typename dca_point_group_t, typename interaction_t>
-double model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t>, interaction_t> >::get_U0()
+template<typename dca_point_group_t>
+double model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t> > >::get_U0()
 {
   return U0;
 }
 
-template<typename dca_point_group_t, typename interaction_t>
-double model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t>, interaction_t> >::get_U1()
+template<typename dca_point_group_t>
+double model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t> > >::get_U1()
 {
   return U1;
 }
 
-template<typename dca_point_group_t, typename interaction_t>
-double model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t>, interaction_t> >::get_V()
+template<typename dca_point_group_t>
+double model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t> > >::get_V()
 {
   return V;
 }
 
-template<typename dca_point_group_t, typename interaction_t>
-double model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t>, interaction_t> >::get_V_prime()
+template<typename dca_point_group_t>
+double model_parameters<tight_binding_model<fourband_lattice<dca_point_group_t> > >::get_V_prime()
 {
   return V_prime;
 }

@@ -47,8 +47,8 @@ typedef square_lattice<DCA_point_group_type> lattice_type;
 //typedef cuprate_3_band_model_kent<DCA_point_group_type> lattice_type;
 //typedef non_interacting_cluster_square_2D<DCA_point_group_type> lattice_type;
 
-typedef on_site_u   interaction_type;
-typedef tight_binding_model<lattice_type, interaction_type> model;
+typedef general_interaction interaction_type;
+typedef tight_binding_model<lattice_type> model;
 
 //typedef dft_model<3, DCA_point_group_type>                    model;
 //typedef Koshevnikov_model                                     model;

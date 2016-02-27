@@ -6,13 +6,12 @@
 /*!
  *   \author Peter Staar
  */
-template<typename lattice_type, typename interaction_type>
+template<typename lattice_type>
 class tight_binding_model
 {
  public:
 
-  typedef lattice_type     lattice;
-  typedef interaction_type interaction;
+  typedef lattice_type lattice;
 
 public:
 
@@ -67,101 +66,101 @@ private:
   static void initialize_default(parameters_type& parameters);
 };
 
-template<typename lattice_type, typename interaction_type>
-int& tight_binding_model<lattice_type, interaction_type>::get_DCA_size()
+template<typename lattice_type>
+int& tight_binding_model<lattice_type>::get_DCA_size()
 {
   static int DCA_size = -1;
   return DCA_size;
 }
 
-template<typename lattice_type, typename interaction_type>
-int& tight_binding_model<lattice_type, interaction_type>::get_LDA_size()
+template<typename lattice_type>
+int& tight_binding_model<lattice_type>::get_LDA_size()
 {
   static int LDA_size = -1;
   return LDA_size;
 }
 
-template<typename lattice_type, typename interaction_type>
-std::vector<int>& tight_binding_model<lattice_type, interaction_type>::DCA_grid_size()
+template<typename lattice_type>
+std::vector<int>& tight_binding_model<lattice_type>::DCA_grid_size()
 {
   static std::vector<int> v(0);
   return v;
 }
 
-template<typename lattice_type, typename interaction_type>
-std::vector<int>& tight_binding_model<lattice_type, interaction_type>::LDA_grid_size()
+template<typename lattice_type>
+std::vector<int>& tight_binding_model<lattice_type>::LDA_grid_size()
 {
   static std::vector<int> v(0);
   return v;
 }
 
-template<typename lattice_type, typename interaction_type>
-double* tight_binding_model<lattice_type, interaction_type>::get_r_DCA_basis()
+template<typename lattice_type>
+double* tight_binding_model<lattice_type>::get_r_DCA_basis()
 {
   static double* r_DCA = lattice_type::initialize_r_DCA_basis();
   return r_DCA;
 }
 
-// template<typename lattice_type, typename interaction_type>
-// double* tight_binding_model<lattice_type, interaction_type>::get_k_DCA_basis()
+// template<typename lattice_type>
+// double* tight_binding_model<lattice_type>::get_k_DCA_basis()
 // {
 //   static double* k_DCA = lattice_type::initialize_k_DCA_basis(); 
 //   return k_DCA;
 // }
 
-template<typename lattice_type, typename interaction_type>
-double* tight_binding_model<lattice_type, interaction_type>::get_r_LDA_basis()
+template<typename lattice_type>
+double* tight_binding_model<lattice_type>::get_r_LDA_basis()
 {
   static double* r_LDA = lattice_type::initialize_r_LDA_basis();
   return r_LDA;
 }
 
-// template<typename lattice_type, typename interaction_type>
-// double* tight_binding_model<lattice_type, interaction_type>::get_k_LDA_basis()
+// template<typename lattice_type>
+// double* tight_binding_model<lattice_type>::get_k_LDA_basis()
 // {
 //   static double* k_LDA = lattice_type::initialize_k_LDA_basis();
 //   return k_LDA;
 // }
 
-template<typename lattice_type, typename interaction_type>
-std::vector<int> tight_binding_model<lattice_type, interaction_type>::get_flavors()
+template<typename lattice_type>
+std::vector<int> tight_binding_model<lattice_type>::get_flavors()
 {
   return lattice_type::get_flavors();
 }
 
-template<typename lattice_type, typename interaction_type>
-std::vector<std::vector<double> > tight_binding_model<lattice_type, interaction_type>::get_a_vectors()
+template<typename lattice_type>
+std::vector<std::vector<double> > tight_binding_model<lattice_type>::get_a_vectors()
 {
   return lattice_type::get_a_vectors();
 }
 
 /*
-template<typename lattice_type, typename interaction_type>
-std::vector<std::pair<std::pair<int,int>, std::pair<int,int> > > tight_binding_model<lattice_type, interaction_type>::get_orbital_permutations()
+template<typename lattice_type>
+std::vector<std::pair<std::pair<int,int>, std::pair<int,int> > > tight_binding_model<lattice_type>::get_orbital_permutations()
 {
   static std::vector<std::pair<std::pair<int,int>, std::pair<int,int> > > permutations = lattice_type::get_orbital_permutations();
   return permutations;
 }
 */
 
-template<typename lattice_type, typename interaction_type>
+template<typename lattice_type>
 template<class domain, class parameters_type>
-void tight_binding_model<lattice_type, interaction_type>::initialize_H_interaction(FUNC_LIB::function<double , domain >& H_interaction,
+void tight_binding_model<lattice_type>::initialize_H_interaction(FUNC_LIB::function<double , domain >& H_interaction,
 										   parameters_type&            parameters)
 {
   lattice_type::initialize_H_interaction(H_interaction, parameters);
 }
 
-template<typename lattice_type, typename interaction_type>
+template<typename lattice_type>
 template<class domain>
-void tight_binding_model<lattice_type, interaction_type>::initialize_H_symmetries(FUNC_LIB::function<int, domain>& H_symmetry)
+void tight_binding_model<lattice_type>::initialize_H_symmetries(FUNC_LIB::function<int, domain>& H_symmetry)
 {
   lattice_type::initialize_H_symmetry(H_symmetry);
 }
 
-template<typename lattice_type, typename interaction_type>
+template<typename lattice_type>
 template<class domain, class parameters_type>
-void tight_binding_model<lattice_type, interaction_type>::initialize_H_LDA(FUNC_LIB::function<std::complex<double> , domain >& H_LDA,
+void tight_binding_model<lattice_type>::initialize_H_LDA(FUNC_LIB::function<std::complex<double> , domain >& H_LDA,
 									   parameters_type&                          parameters)
 {
   typedef typename parameters_type::k_LDA k_LDA; 
@@ -184,9 +183,9 @@ void tight_binding_model<lattice_type, interaction_type>::initialize_H_LDA(FUNC_
 }
 
 
-template<typename lattice_type, typename interaction_type>
+template<typename lattice_type>
 template<class parameters_type>
-void tight_binding_model<lattice_type, interaction_type>::initialize(parameters_type& /*parameters*/)
+void tight_binding_model<lattice_type>::initialize(parameters_type& /*parameters*/)
 {
 /*
   // compile-time switch
@@ -208,9 +207,9 @@ void tight_binding_model<lattice_type, interaction_type>::initialize(parameters_
 }
 
 /*
-template<typename lattice_type, typename interaction_type>
+template<typename lattice_type>
 template<class parameters_type>
-void tight_binding_model<lattice_type, interaction_type>::initialize_Bett_cluster(parameters_type& parameters)
+void tight_binding_model<lattice_type>::initialize_Bett_cluster(parameters_type& parameters)
 {
   LDA_grid_size() = parameters.get_H_k_grid_size();//parameters.get_LDA_grid_size();
 
@@ -222,9 +221,9 @@ void tight_binding_model<lattice_type, interaction_type>::initialize_Bett_cluste
     get_LDA_size() *= LDA_grid_size()[l];
 }
 
-template<typename lattice_type, typename interaction_type>
+template<typename lattice_type>
 template<class parameters_type>
-void tight_binding_model<lattice_type, interaction_type>::initialize_default(parameters_type& parameters)
+void tight_binding_model<lattice_type>::initialize_default(parameters_type& parameters)
 {
   throw std::logic_error(__FUNCTION__);
 

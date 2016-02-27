@@ -8,8 +8,7 @@
 #include <array>
 #include <vector>
 
-// change the class name later!!
-class on_site_u {
+class general_interaction {
  public:
   template <class vertex_pair_type, class parameters_type, class rng_type,
             class H_interaction_type>
@@ -24,7 +23,7 @@ class on_site_u {
     b_s_b_s_r_r_dmn_t b_s_b_s_r_r_dmn;
 
     static std::vector<int> correlated_orbitals =
-        on_site_u::make_correlated_orbitals(parameters, H_interaction);
+        general_interaction::make_correlated_orbitals(parameters, H_interaction);
 
     // Get a random pair of correlated orbitals
     const int pos = rng.get_random_number() * correlated_orbitals.size();
