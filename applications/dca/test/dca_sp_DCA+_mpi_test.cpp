@@ -20,7 +20,7 @@
 
 dca_mpi_test_environment* dca_test_env;
 
-TEST(DCA_loop_sp, Self_Energy) {
+TEST(dca_sp_DCAplus_mpi, Self_energy) {
   using namespace DCA;
 
   using parameters_type = Parameters<dca_mpi_test_environment::concurrency_type,

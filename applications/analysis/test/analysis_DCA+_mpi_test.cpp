@@ -20,7 +20,7 @@
 
 dca_mpi_test_environment* dca_test_env;
 
-TEST(DCA_analysis_ppSC, leading_eigenvalues) {
+TEST(analysis_DCAplus_mpi, leading_eigenvalues) {
   using namespace DCA;
 
   using parameters_type = Parameters<dca_mpi_test_environment::concurrency_type,
