@@ -25,22 +25,9 @@ if (NOT DCA_LAPACK_IMPLICIT)
   find_package(LAPACK REQUIRED)
 endif()
 
-# # Scalapack
-# find_library(VECLIBFORT NAMES veclibFort)
-# find_library(SCALAPACK  NAMES scalapack)
-
 # HDF5
 if (NOT DCA_HDF5_IMPLICIT)
   find_package(HDF5 REQUIRED COMPONENTS CXX)
-#  if(NOT HDF5_FOUND)
-#   set(HDF5_DIR "${CMAKE_SOURCE_DIR}/libs/hdf5-1.8.11")
-#   find_library(HDF5_LIBRARIES 
-#     NAMES hdf5
-#     PATHS ${HDF5_DIR}/build/lib NO_DEFAULT_PATH)
-#   find_library(HDF5_CXX_LIBRARIES 
-#     NAMES hdf5_cpp 
-#     PATHS ${HDF5_DIR}/build/lib NO_DEFAULT_PATH)
-# endif()
 endif()
   
 # FFTW
