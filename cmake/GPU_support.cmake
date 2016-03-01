@@ -35,7 +35,7 @@ if (DCA_GPU_SUPPORT)
 
   find_library(MAGMA_LIBRARY
     NAMES libmagma.a magma
-    PATHS $ENV{EBROOTMAGMA}/lib
+    PATHS ${DCA_LIBDIR_MAGMA}/lib
     NO_DEFAULT_PATH
     )
 
@@ -51,7 +51,7 @@ if (DCA_GPU_SUPPORT)
     "${CMAKE_SOURCE_DIR}/src/phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_N_matrix_routines"
     "${CMAKE_SOURCE_DIR}/src/phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_G_matrix_routines"
     "${CMAKE_SOURCE_DIR}/src/phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_G0_matrix_routines"
-    "$ENV{EBROOTMAGMA}/include"
+    "${DCA_LIBDIR_MAGMA}/include"
     )
 
 else()

@@ -3,6 +3,12 @@
 # Usage: cmake -C path/to/Cray_CPU.cmake ...
 ################################################################################
 
+# Read cmake variables from enviroenment
+set(DCA_LIBDIR_NFFT $ENV{EBROOTNFFT})
+set(DCA_LIBDIR_SPGLIB $ENV{EBROOTSPGLIB})
+set(DCA_LIBDIR_MAGMA $ENV{EBROOTMAGMA})
+set(GTEST_DIR $ENV{EBROOTGTEST})
+
 # The C++ compile wrapper CC already includes and links to these libraries.
 # No need to look for them.
 set(DCA_HDF5_IMPLICIT   TRUE CACHE INTERNAL "")
