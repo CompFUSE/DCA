@@ -144,9 +144,7 @@ namespace LIN_ALG {
 
 	{// optimal work-space query
 	  execute(JOBU, JOBVT, M, N, &X(0,0), LDX, &S[0], &U(0,0), LDU, &VT(0,0), LDVT, &WORK[0], LWORK, &RWORK[0]);
-
-	  //cout << "\n\t optimal work-space for SVD : " << real(WORK[0]) << "\n";
-
+	  
 	  LWORK = real(WORK[0]);
 	  WORK.resize(LWORK);
 	}

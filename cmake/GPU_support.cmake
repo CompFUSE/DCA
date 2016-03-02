@@ -43,6 +43,7 @@ if (DCA_GPU_SUPPORT)
   set(DCA_GPU_LIBRARIES
     ${MAGMA_LIBRARY}
     ${CUDA_CUDA_LIBRARY}
+    ${CUDA_cusparse_LIBRARY}
     )
   # message("DCA_GPU_LIBRARIES: ${DCA_GPU_LIBRARIES}")
   

@@ -7,11 +7,6 @@ namespace IO
 {
   namespace JSONPARSER
   {
-    /*!
-     *
-     *  
-     *
-     */
     class Whatever 
     {
     public:
@@ -243,8 +238,6 @@ namespace IO
     const Whatever& Whatever::operator[] (const std::string key) const 
     {
       std::wstring wKey(key.begin(),key.end());
-
-      //assert(type == WHATEVER_MAP and whateverMap.count(wKey) == 1);
 
       WhateverMap& wm = const_cast<WhateverMap&>(whateverMap);
 

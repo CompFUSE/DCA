@@ -29,8 +29,6 @@ namespace PROFILER
     
     const static int NB_COUNTERS = NB_TIME_COUNTERS + NB_PAPI_COUNTERS;
     
-    //const static int PAPI_COUNTER_SET[NB_PAPI_COUNTERS] = {PAPI_TOT_INS, PAPI_FP_OPS};
-
   public:
     
     typedef papi_and_time_event<scalartype> this_type;
@@ -62,8 +60,6 @@ namespace PROFILER
 
     static pthread_mutex_t&         get_mutex();
 
-    //static int*&                    papi_event_codes();
-    
     static std::vector<std::string> papi_event_names();
 
   private:
@@ -122,8 +118,6 @@ namespace PROFILER
   {
     time_event<scalartype>::end();
     
-    //pthread_mutex_lock(&get_mutex());
-    
     {
       if(PAPI_accum(papi_event_set(thread_id), get_static_counters(thread_id)) != PAPI_OK) 
 	throw std::logic_error(__FUNCTION__);
@@ -145,7 +139,6 @@ namespace PROFILER
 	counter[NB_TIME_COUNTERS+i] += (end_counters[i] - start_counters[i]);
     }
 
-    //pthread_mutex_unlock(&get_mutex());
   }
 
   template<typename scalartype>
@@ -161,15 +154,6 @@ namespace PROFILER
     static pthread_mutex_t lock;
     return lock;
   }
-  
-/*
-  template<typename scalartype>
-  int*& papi_and_time_event<scalartype>::papi_event_codes()
-  {
-    static int* papi_event_codes = new int[NB_PAPI_COUNTERS];
-    return papi_event_codes;
-  }
-*/
 
   template<typename scalartype>
   std::vector<std::string> papi_and_time_event<scalartype>::papi_event_names()
@@ -190,15 +174,7 @@ namespace PROFILER
     static int* event_set = new int[MAX_THREADS];//PAPI_NULL;
     return event_set[id];
   }
-  
-  /*
-  template<typename scalartype>
-  int*& papi_and_time_event<scalartype>::threaded_papi_event_set()
-  {
-    static int* event_set = new int[MAX_THREADS];
-    return event_set;
-  }
-  */
+
 
   template<typename scalartype>
   void papi_and_time_event<scalartype>::start()
@@ -349,131 +325,3 @@ namespace PROFILER
 }
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//   template<typename scalartype>
-//   const std::vector<int>& papi_and_time_event<scalartype>::codes()
-//   {
-//     static bool ready = false;
-
-//     static std::vector<int> theCodes(0);
-    
-//     if(ready) 
-//       return theCodes;
-    
-//     const std::map<std::string, int>& theCodeTable(papiCodeTable());
-    
-//     for(map_iterator_type itr = theCodeTable.begin(); itr != theCodeTable.end(); itr++) 
-//       theCodes.push_back((*itr).second);
-    
-//     PAPI_start_counters(&theCodes[0], theCodes.size());
-    
-//     ready = true;
-
-//     return theCodes;
-//   }
-
-//   template<typename scalartype>
-//   const papi_and_time_event<scalartype>::std::map<std::string, int>& papi_and_time_event<scalartype>::papiCodeTable()
-//   {
-//     static bool ready = false;
-//     static std::map<std::string, int> theCodeTable;
-    
-//     if(ready) 
-//       return theCodeTable;
-    
-//     //int numCounters = PAPI_num_counters();
-    
-//     const std::vector<std::string>& names = candidatePapiEventNames();
-    
-//     for(size_t i=0; i<names.size(); i++) 
-//       {
-// 	int theCode(0);
-	
-// 	if(PAPI_event_name_to_code(const_cast<char *>(names[i].c_str()),&theCode) != PAPI_OK)
-// 	  throw std::logic_error(names[0] + " is not supported by PAPI!!");
-      
-// 	theCodeTable[names[i]] = theCode;
-//       }
-    
-//     assert(NB_PAPI_COUNTERS != codes.size());
-      
-//     ready = true;
-//     return theCodeTable;
-//   }
-
-//   template<typename scalartype>
-//   const std::vector<std::string>& papi_and_time_event<scalartype>::candidatePapiEventNames() 
-//   {
-//     static bool ready(false);
-    
-//     static std::vector<std::string> names(0);
-    
-//     if (ready)
-//       return names;
-    
-//     names.push_back("PAPI_TOT_INS");
-//     names.push_back("PAPI_FP_OPS");
-//     //names.push_back("RETIRED_SSE_OPERATIONS:DOUBLE_ADD_SUB_OPS:DOUBLE_MUL_OPS:DOUBLE_DIV_OPS:OP_TYPE");
-//     //names.push_back("RETIRED_SSE_OPERATIONS:SINGLE_ADD_SUB_OPS:SINGLE_MUL_OPS:SINGLE_DIV_OPS:OP_TYPE");
-      
-//     ready = true;
-    
-//     assert(NB_PAPI_COUNTERS != names.size());
-
-//     return names;
-//   }
-
-//   template<typename scalartype>
-//   const std::vector<std::string> papi_and_time_event<scalartype>::papi_names()
-//   {
-//     std::vector<std::string> names(0);
-    
-//     names.push_back("PAPI_TOT_INS");
-//     names.push_back("PAPI_FP_OPS");
-//     //names.push_back("RETIRED_SSE_OPERATIONS:DOUBLE_ADD_SUB_OPS:DOUBLE_MUL_OPS:DOUBLE_DIV_OPS:OP_TYPE");
-//     //names.push_back("RETIRED_SSE_OPERATIONS:SINGLE_ADD_SUB_OPS:SINGLE_MUL_OPS:SINGLE_DIV_OPS:OP_TYPE");
-
-//     assert(NB_PAPI_COUNTERS != names.size());
-
-//     return names;
-//   }
-
-  

@@ -9,11 +9,10 @@
 #ifndef INVERT_PLAN_H_
 #define INVERT_PLAN_H_
 
-/* 
-*******************************************
-***       REAL MATRICES                 ***             
-*******************************************
-*/
+
+//*******************************************
+//***       REAL MATRICES                 ***             
+//*******************************************
 
 template<typename real_scalartype>
 class invert_plan
@@ -165,7 +164,6 @@ private:
 
   int*                            IPIV;
 
-//   const static bool check = true;
 };
 
 template<typename real_scalartype>

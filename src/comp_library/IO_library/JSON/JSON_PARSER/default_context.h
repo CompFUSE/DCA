@@ -34,12 +34,6 @@ namespace IO
       void String(ParseBuffer& s);
 
       void Key(const std::wstring& s);
-    
-      //     void Max(std::string s);
-
-      //     void Comment(std::wstring s);
-    
-      //     void None();
 
     private:
 
@@ -252,18 +246,8 @@ namespace IO
       if (trace) std::wcout << L"   key = '" <<  key << L"'\n";
     }
     
-    //======================================================================
+  } //namespace JSONPARSER
 
-    /*
-      std::ostream& operator << (std::ostream& os, const JSON_context& ctx) 
-      {
-      os << ctx.result;
-      return os;
-      }
-    */
-
-  }
-
-}
+} //namespace IO
 
 #endif

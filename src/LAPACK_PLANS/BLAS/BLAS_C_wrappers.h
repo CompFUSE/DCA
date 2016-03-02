@@ -19,8 +19,6 @@ namespace BLAS {
 
   extern "C"              float   sdot_(const int *size,const float * v1,const int *inc,const float *v2,const int *inc2);
   extern "C"              double  ddot_(const int *size,const double * v1,const int *inc,const double *v2,const int *inc2);
-//   extern "C" std::complex<float>  cdot_(const int *size,const std::complex<float> * v1,const int *inc,const std::complex<float> *v2,const int *inc2);
-//   extern "C" std::complex<double> zdot_(const int *size,const std::complex<double> * v1,const int *inc,const std::complex<double> *v2,const int *inc2);
 
 // ============================================================================
 // = Level 3 BLAS             GEMM
@@ -427,20 +425,7 @@ inline void SYMM(char c1,char c2,int sX,int sY,const std::complex<double> &a,
 		 const std::complex<double> &b,std::complex<double>* z,int sz){
   zsymm_(&c1,&c2,&sX,&sY,&a,x,&sx,y,&sy,&b,z,&sz);
 }
-// ---------------------------------------------------------------------------
-// inline void HEMM(char c1,char c2,int sX,int sY, const std::complex<float> &a,
-// 		 const std::complex<float>* x,int sx,
-// 		 const std::complex<float>* y,int sy,
-// 		 const std::complex<float> &b, std::complex<float>* z, int sz){
-//   chemm_(&c1,&c2,&sX,&sY,&a,x,&sx,y,&sx,&b,z,&sz);
-// }
-// inline void HEMM(char c1,char c2,int sX,int sY,const std::complex<double> &a,
-// 		 const std::complex<double>* x,int sx,
-// 		 const std::complex<double>* y,int sy,
-// 		 const std::complex<double> &b,std::complex<double>* z,int sz){
-//   zhemm_(&c1,&c2,&sX,&sY,&a,x,&sx,y,&sx,&b,z,&sz);
-// }
-// **************************************************************************
+
 inline void SYRK(char UPLO,char TRANS,int N,int K,const float &ALPHA,
 		 const float* A,int LDA,const float &BETA,float* C,int LDC){
   ssyrk_(&UPLO,&TRANS,&N,&K,&ALPHA,A,&LDA,&BETA,C,&LDC);
