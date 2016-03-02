@@ -4,6 +4,8 @@
 # References: - https://github.com/ALPSCore/ALPSCore
 ################################################################################
 
+include(CMakeParseArguments)
+
 function(add_gtest)
   set(options ADVANCED MPI GTEST_MAIN)
   set(oneValueArgs NAME MPI_NUMPROC)
@@ -58,11 +60,8 @@ option(DCA_TESTS_INCLUDE_ADVANCED "Include time- and resource-consuming tests." 
 if (DCA_TESTS)
   enable_testing()
 
-  #add_subdirectory(${CMAKE_SOURCE_DIR}/libs/gmock-1.7.0)
-  add_subdirectory(${GTEST_DIR} ${CMAKE_BINARY_DIR}/gtest)
+  add_subdirectory(${gtest_DIR} ${CMAKE_BINARY_DIR}/gtest)
   
-  #target_compile_options(gmock      PRIVATE "-w")
-  #target_compile_options(gmock_main PRIVATE "-w")
   target_compile_options(gtest      PRIVATE "-w")
   target_compile_options(gtest_main PRIVATE "-w")
   

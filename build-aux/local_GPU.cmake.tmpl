@@ -1,0 +1,28 @@
+################################################################################
+# Template for initial cache list.
+# GPU version.
+# Modify for your local machine.
+# Usage: cmake -C path/to/this/file/local_GPU.cmake ..
+################################################################################
+
+# Include CPU cache list.
+# Note: CMAKE_CURRENT_LIST_DIR gives the full directory of the listfile
+#       currently being processed. So usually you can do
+#       include(${CMAKE_CURRENT_LIST_DIR}/local_CPU.cmake)
+include(/path/to/your-local_CPU.cmake/local_CPU.cmake)
+
+# For GPU support we also need MAGMA.
+set(MAGMA_DIR "/path/to/MAGMA-installation"
+  CACHE FILEPATH "Path to MAGMA installation directory.")
+mark_as_advanced(MAGMA_DIR)
+
+# Workaround for CMake 3, otherwise FindCUDA sets CUDA_HOST_COMPILER
+# incorrectly.
+set(CUDA_HOST_COMPILER "${CMAKE_C_COMPILER}"
+  CACHE FILEPATH "Host side compiler used by NVCC")  
+
+# GPU compute architecture.
+set(CUDA_GPU_ARCH "your_gpu_arch" CACHE STRING "" FORCE)
+
+# Change dafault cache entries.
+set(DCA_GPU_SUPPORT ON FORCE)

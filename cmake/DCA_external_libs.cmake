@@ -11,16 +11,14 @@
 # NFFT
 find_library(NFFT_LIBRARY
   NAMES libnfft3.a nfft3
-  PATHS ${DCA_LIBDIR_NFFT}/lib
-  NO_DEFAULT_PATH
-  )
+  PATHS ${NFFT_DIR}/lib
+  NO_DEFAULT_PATH)
 
 # SPGLIB
 find_library(SPGLIB_LIBRARY
   NAMES libsymspg.a symspg
-  PATHS ${DCA_LIBDIR_SPGLIB}/lib
-  NO_DEFAULT_PATH
-  )
+  PATHS ${SPGLIB_DIR}/lib
+  NO_DEFAULT_PATH)
 
 # Lapack
 if (NOT DCA_LAPACK_IMPLICIT)
@@ -34,11 +32,15 @@ endif()
 # HDF5
 if (NOT DCA_HDF5_IMPLICIT)
   find_package(HDF5 REQUIRED COMPONENTS CXX)
-  # if(NOT HDF5_FOUND)
-  #    set(HDF5_DIR "${CMAKE_SOURCE_DIR}/libs/hdf5-1.8.11")
-  #    find_library(HDF5_LIBRARIES      NAMES hdf5      PATHS ${HDF5_DIR}/build/lib NO_DEFAULT_PATH)
-  #    find_library(HDF5_CXX_LIBRARIES  NAMES hdf5_cpp  PATHS ${HDF5_DIR}/build/lib NO_DEFAULT_PATH)
-  # endif()
+#  if(NOT HDF5_FOUND)
+#   set(HDF5_DIR "${CMAKE_SOURCE_DIR}/libs/hdf5-1.8.11")
+#   find_library(HDF5_LIBRARIES 
+#     NAMES hdf5
+#     PATHS ${HDF5_DIR}/build/lib NO_DEFAULT_PATH)
+#   find_library(HDF5_CXX_LIBRARIES 
+#     NAMES hdf5_cpp 
+#     PATHS ${HDF5_DIR}/build/lib NO_DEFAULT_PATH)
+# endif()
 endif()
   
 # FFTW
@@ -56,15 +58,17 @@ set(DCA_EXTERNAL_LIBS
   ${HDF5_CXX_LIBRARIES}
   ${NFFT_LIBRARY}
   ${FFTW_LIBRARY}
-  ${SPGLIB_LIBRARY}
-  )
-
+  ${SPGLIB_LIBRARY})
 
 set(DCA_EXTERNAL_INCLUDES
   ${DCA_LIBDIR_NFFT}/include
   ${DCA_LIBDIR_SPGLIB}/include
   ${FFTW_INCLUDE_DIR}
-  ${HDF5_INCLUDE_DIRS}
-  )
+  ${HDF5_INCLUDE_DIRS})
 
-mark_as_advanced(MPI_LIBRARY NFFT_LIBRARY MPI_EXTRA_LIBRARY SPGLIB_LIBRARY FFTW_INCLUDE_DIR FFTW_LIBRARY HDF5_DIR)
+mark_as_advanced(
+  MPI_LIBRARY MPI_EXTRA_LIBRARY
+  NFFT_LIBRARY
+  SPGLIB_LIBRARY
+  FFTW_INCLUDE_DIR FFTW_LIBRARY
+  HDF5_DIR)
