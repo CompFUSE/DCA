@@ -236,10 +236,8 @@ namespace DCA
 
       template<class parameters_type, class MOMS_type>
       void accumulator_nonlocal_chi<parameters_type, MOMS_type>::finalize()
-      {
-        //       for(int i=0; i<G4.size(); i++)
-        //      MOMS.G4_k_k_w_w(i) = G4(i);
-      }
+      //WARNING empty function
+      {}
 
       template<class parameters_type, class MOMS_type>
       template<class nonlocal_G_t>
@@ -362,13 +360,11 @@ namespace DCA
 
             for(int k2=0; k2<k_dmn_t::dmn_size(); k2++){
 
-              //          int k2_plus_q = k_cluster_type::add(k2,q_channel);
-              k2_plus_q = q_plus_(k2);
+	      k2_plus_q = q_plus_(k2);
 
               for(int k1=0; k1<k_dmn_t::dmn_size(); k1++){
 
-                //          int k1_plus_q = k_cluster_type::add(k1,q_channel);
-                k1_plus_q = q_plus_(k1);
+		k1_plus_q = q_plus_(k1);
 
                 for(int m1=0; m1<b::dmn_size(); m1++){
                   for(int m2=0; m2<b::dmn_size(); m2++){
@@ -397,16 +393,7 @@ namespace DCA
                           + (G2_UP_n1_m1_k1_k1_plus_q_w1_w1 - G2_DN_n1_m1_k1_k1_plus_q_w1_w1)
                           * (G2_UP_n2_m2_k2_plus_q_k2_w2_w2 - G2_DN_n2_m2_k2_plus_q_k2_w2_w2);
 
-                        /*
-                          G4 = - (G2_k_k_w_w_e_DN(n1, m2, k1, k2, w1, w2) * G2_k_k_w_w_e_DN(n2, m1, k2_plus_q, k1_plus_q, w2+w_channel, w1+w_channel)
-                          + G2_k_k_w_w_e_UP(n1, m2, k1, k2, w1, w2) * G2_k_k_w_w_e_UP(n2, m1, k2_plus_q, k1_plus_q, w2+w_channel, w1+w_channel))
-
-                          + (G2_k_k_w_w_e_UP(n1, m1, k1, k1_plus_q, w1, w1+w_channel) - G2_k_k_w_w_e_DN(n1, m1, k1, k1_plus_q, w1, w1+w_channel))
-                          * (G2_k_k_w_w_e_UP(n2, m2, k2_plus_q, k2, w2+w_channel, w2) - G2_k_k_w_w_e_DN(n2, m2, k2_plus_q, k2, w2+w_channel, w2));
-                          */
-
                         G4(n1, n2, m1, m2, k1, k2, w1, w2) +=  std::complex<double>(sign_div_2 * G4_val);
-                        //MOMS.G4_k_k_w_w(n1, n2, m1, m2, k1, k2, w1, w2) +=  std::complex<double>(sign_div_2 * G4);
                       }
                     }
                   }
@@ -462,14 +449,6 @@ namespace DCA
                     for(int n1=0; n1<b::dmn_size(); n1++){
                       for(int n2=0; n2<b::dmn_size(); n2++){
 
-                        //                    F(n1, m2, k1, k2, w1, w2,
-                        //                      G2_k_k_w_w_e_DN, G2_DN_n1_m2_k1_k2_w1_w2,
-                        //                      G2_k_k_w_w_e_UP, G2_UP_n1_m2_k1_k2_w1_w2);
-
-                        //                    F(n2, m1, k2_plus_q, k1_plus_q, w2+w_nu, w1+w_nu,
-                        //                      G2_k_k_w_w_e_DN, G2_DN_n2_m1_k2_plus_q_k1_plus_q_w2_w1,
-                        //                      G2_k_k_w_w_e_UP, G2_UP_n2_m1_k2_plus_q_k1_plus_q_w2_w1);
-
                         F(n1, m2, k1, k2, w1_ext, w2_ext,
                           G2_k_k_w_w_e_DN, G2_DN_n1_m2_k1_k2_w1_w2,
                           G2_k_k_w_w_e_UP, G2_UP_n1_m2_k1_k2_w1_w2);
@@ -492,63 +471,7 @@ namespace DCA
         }
       }
 
-      /*
-        template<class parameters_type, class MOMS_type>
-        void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_hole_magnetic_fast(FUNC_LIB::function<std::complex<scalar_type>, dmn_6<b,b,k_dmn_t,k_dmn_t,w_VERTEX,w_VERTEX> >& G2_k_k_w_w_e_DN,
-        FUNC_LIB::function<std::complex<scalar_type>, dmn_6<b,b,k_dmn_t,k_dmn_t,w_VERTEX,w_VERTEX> >& G2_k_k_w_w_e_UP,
-        scalar_type sign)
-        {
-        std::complex<scalar_type> *G2_DN_n1_m2_k1_k2_w1_w2, *G2_UP_n1_m2_k1_k2_w1_w2,
-        *G2_DN_n2_m1_k2_plus_q_k1_plus_q_w2_w1, *G2_UP_n2_m1_k2_plus_q_k1_plus_q_w2_w1,
-        *G2_DN_n1_m1_k1_k1_plus_q_w1_w1, *G2_UP_n1_m1_k1_k1_plus_q_w1_w1,
-        *G2_DN_n2_m2_k2_plus_q_k2_w2_w2, *G2_UP_n2_m2_k2_plus_q_k2_w2_w2;
-
-        std::complex<double>* G4;
-
-        int k2_plus_q, k1_plus_q;
-
-        scalar_type sign_div_2 =scalar_type(sign)/2.;
-
-        for(int w2=0; w2<w_VERTEX::dmn_size(); w2++){
-        for(int w1=0; w1<w_VERTEX::dmn_size(); w1++){
-
-        for(int k2=0; k2<k_dmn_t::dmn_size(); k2++){
-
-        //        int k2_plus_q = k_cluster_type::add(k2,q_channel);
-        k2_plus_q = q_plus_(k2);
-
-        for(int k1=0; k1<k_dmn_t::dmn_size(); k1++){
-
-        //          int k1_plus_q = k_cluster_type::add(k1,q_channel);
-        k1_plus_q = q_plus_(k1);
-
-        G2_DN_n1_m2_k1_k2_w1_w2 = &G2_k_k_w_w_e_DN(0, 0, k1, k2, w1, w2);
-        G2_UP_n1_m2_k1_k2_w1_w2 = &G2_k_k_w_w_e_UP(0, 0, k1, k2, w1, w2);
-
-        G2_DN_n2_m1_k2_plus_q_k1_plus_q_w2_w1 = &G2_k_k_w_w_e_DN(0, 0, k2_plus_q, k1_plus_q, w2, w1);
-        G2_UP_n2_m1_k2_plus_q_k1_plus_q_w2_w1 = &G2_k_k_w_w_e_UP(0, 0, k2_plus_q, k1_plus_q, w2, w1);
-
-        G2_DN_n1_m1_k1_k1_plus_q_w1_w1 = &G2_k_k_w_w_e_DN(0, 0, k1, k1_plus_q, w1, w1);
-        G2_UP_n1_m1_k1_k1_plus_q_w1_w1 = &G2_k_k_w_w_e_UP(0, 0, k1, k1_plus_q, w1, w1);
-
-        G2_DN_n2_m2_k2_plus_q_k2_w2_w2 = &G2_k_k_w_w_e_DN(0, 0, k2_plus_q, k2, w2, w2);
-        G2_UP_n2_m2_k2_plus_q_k2_w2_w2 = &G2_k_k_w_w_e_UP(0, 0, k2_plus_q, k2, w2, w2);
-
-        G4 = &MOMS.G4_k_k_w_w(0,0,0,0, k1, k2, w1, w2);
-
-        accumulator_nonlocal_chi_atomic<model, PARTICLE_HOLE_MAGNETIC>::execute(G2_DN_n1_m2_k1_k2_w1_w2              , G2_UP_n1_m2_k1_k2_w1_w2,
-        G2_DN_n2_m1_k2_plus_q_k1_plus_q_w2_w1, G2_DN_n2_m1_k2_plus_q_k1_plus_q_w2_w1,
-        G2_DN_n1_m1_k1_k1_plus_q_w1_w1       , G2_UP_n1_m1_k1_k1_plus_q_w1_w1,
-        G2_DN_n2_m2_k2_plus_q_k2_w2_w2       , G2_UP_n2_m2_k2_plus_q_k2_w2_w2,
-        G4, sign_div_2);
-        }
-        }
-        }
-        }
-        }
-      */
-
-      template<class parameters_type, class MOMS_type>
+     template<class parameters_type, class MOMS_type>
       void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_hole_charge(FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_DN,
                                                                                                  FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w_e_UP,
                                                                                                  scalar_type sign)
@@ -619,17 +542,8 @@ namespace DCA
                           + (G2_UP_n1_m1_k1_k1_plus_q_w1_w1 + G2_DN_n1_m1_k1_k1_plus_q_w1_w1)
                           * (G2_UP_n2_m2_k2_plus_q_k2_w2_w2 + G2_DN_n2_m2_k2_plus_q_k2_w2_w2);
 
-                        /*
-                          G4 = - (G2_k_k_w_w_e_DN(n1, m2, k1, k2, w1, w2) * G2_k_k_w_w_e_DN(n2, m1, k2_plus_q, k1_plus_q, w2+w_channel, w1+w_channel)
-                          + G2_k_k_w_w_e_UP(n1, m2, k1, k2, w1, w2) * G2_k_k_w_w_e_UP(n2, m1, k2_plus_q, k1_plus_q, w2+w_channel, w1+w_channel))
-
-                          + (G2_k_k_w_w_e_UP(n1, m1, k1, k1_plus_q, w1, w1+w_channel) + G2_k_k_w_w_e_DN(n1, m1, k1, k1_plus_q, w1, w1+w_channel))
-                          * (G2_k_k_w_w_e_UP(n2, m2, k2_plus_q, k2, w2+w_channel, w2) + G2_k_k_w_w_e_DN(n2, m2, k2_plus_q, k2, w2+w_channel, w2));
-                          */
-
-                        G4(n1, n2, m1, m2, k1, k2, w1, w2) += std::complex<double>(sign_div_2 * G4_val);
-                        //MOMS.G4_k_k_w_w(n1, n2, m1, m2, k1, k2, w1, w2) += std::complex<double>(sign_div_2 * G4);
-                      }
+			G4(n1, n2, m1, m2, k1, k2, w1, w2) += std::complex<double>(sign_div_2 * G4_val);
+		      }
                     }
                   }
                 }

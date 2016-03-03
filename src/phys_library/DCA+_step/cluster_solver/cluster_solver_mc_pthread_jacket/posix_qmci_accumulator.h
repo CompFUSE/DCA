@@ -62,26 +62,6 @@ namespace DCA
       using qmci_accumulator_type::parameters;
       using qmci_accumulator_type::MOMS;
 
-      /*
-      using qmci_accumulator_type::HS_configuration_e_UP;
-      using qmci_accumulator_type::HS_configuration_e_DN;
-
-      using qmci_accumulator_type::visited_expansion_order_k;
-
-      using qmci_accumulator_type::K_r_t;
-
-      using qmci_accumulator_type::G_r_t;
-      using qmci_accumulator_type::G_r_t_stddev;
-
-      using qmci_accumulator_type::charge_cluster_moment;
-      using qmci_accumulator_type::magnetic_cluster_moment;
-      using qmci_accumulator_type::dwave_pp_correlator;
-
-      using qmci_accumulator_type::M_r_w;
-      using qmci_accumulator_type::M_r_w_squared;
-
-      using qmci_accumulator_type::G4;
-      */
 
       int             thread_id;
 
@@ -112,11 +92,6 @@ namespace DCA
       pthread_mutex_destroy(&mutex_accumulator);
     }
 
-//     template<class qmci_accumulator_type>
-//     int posix_qmci_accumulator<qmci_accumulator_type>::get_expansion_order()
-//     {
-//       return HS_configuration_e_UP.size();
-//     }
 
     template<class qmci_accumulator_type>
     template<typename walker_type>
@@ -247,61 +222,9 @@ namespace DCA
       pthread_mutex_unlock(&mutex_accumulator);
     }
 
-    /*
-    template<class qmci_accumulator_type>
-    void posix_qmci_accumulator<qmci_accumulator_type>::sum_to(qmci_accumulator_type& accumulator_obj)
-    {
-      pthread_mutex_lock(&mutex_accumulator);
 
-      finalize();
+  }//namespace QMCI
 
-      accumulator_obj.get_Gflop()                  += get_Gflop();
-
-      accumulator_obj.get_sign()                   += get_sign();
-      accumulator_obj.get_number_of_measurements() += get_number_of_measurements();
-
-      for(int i=0; i<visited_expansion_order_k.size(); i++)
-        accumulator_obj.get_visited_expansion_order_k()(i) += visited_expansion_order_k(i);
-
-      {// equal time measurements
-	for(int i=0; i<G_r_t.size(); i++)
-	  accumulator_obj.get_G_r_t()(i) += G_r_t(i);
-	
-	for(int i=0; i<G_r_t_stddev.size(); i++)
-	  accumulator_obj.get_G_r_t_stddev()(i) += G_r_t_stddev(i);
-	
-	for(int i=0; i<charge_cluster_moment.size(); i++)
-	  accumulator_obj.get_charge_cluster_moment()(i) += charge_cluster_moment(i);
-	
-	for(int i=0; i<magnetic_cluster_moment.size(); i++)
-	  accumulator_obj.get_magnetic_cluster_moment()(i) += magnetic_cluster_moment(i);
-	
-	for(int i=0; i<dwave_pp_correlator.size(); i++)
-	  accumulator_obj.get_dwave_pp_correlator()(i) += dwave_pp_correlator(i);
-      }
-
-      {// sp-measurements
-	for(int i=0; i<K_r_t.size(); i++)
-	  accumulator_obj.get_K_r_t()(i) += K_r_t(i);
-
-	for(int i=0; i<M_r_w.size(); i++)
-	  accumulator_obj.get_M_r_w()(i) += M_r_w(i);
-	
-	for(int i=0; i<M_r_w_squared.size(); i++)
-	  accumulator_obj.get_M_r_w_squared()(i) += M_r_w_squared(i);
-      }
-
-      {// tp-measurements
-	for(int i=0; i<G4.size(); i++)
-	  accumulator_obj.get_G4()(i) += G4(i);
-      }
-
-      pthread_mutex_unlock(&mutex_accumulator);
-    }
-    */
-
-  }
-
-}
+}//namespace DCA
 
 #endif

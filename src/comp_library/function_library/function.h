@@ -216,7 +216,6 @@ namespace FUNC_LIB
         size_sbdm(dmn.get_leaf_domain_sizes()),
         step_sbdm(Nb_sbdms,1)
     {
-        //std::cout << __PRETTY_FUNCTION__ << std::endl;
 
         for(int i=0; i<Nb_sbdms; i++)
             for(int j=0; j<i; j++)
@@ -248,9 +247,6 @@ namespace FUNC_LIB
         fnc_values = new scalartype[Nb_elements];
 
         copy_from<scalartype>::execute(Nb_elements, fnc_values, other_one.values());
-
-//   for(int linind=0; linind<Nb_elements; linind++)
-//     fnc_values[linind] = other_one(linind);
     }
 
 

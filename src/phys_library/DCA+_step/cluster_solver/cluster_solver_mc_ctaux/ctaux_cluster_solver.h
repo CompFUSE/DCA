@@ -209,7 +209,6 @@ namespace DCA
     {// Compute new Sigma
       compute_G_k_w_from_M_r_w();
 
-      //FT<k_DCA,r_DCA>::execute(MOMS.G_k_w, MOMS.G_r_w);
       MATH_ALGORITHMS::TRANSFORM<k_DCA,r_DCA>::execute(MOMS.G_k_w, MOMS.G_r_w);
 
       dca_info_struct.L2_Sigma_difference(DCA_iteration) = compute_S_k_w_from_G_k_w();
@@ -227,8 +226,6 @@ namespace DCA
       }
     }
 
-    //     if(DCA_iteration == parameters.get_DCA_iterations()-1 && parameters.do_equal_time_measurements())
-    //       MOMS.G_r_t =
 
     if(DCA_iteration == parameters.get_DCA_iterations()-1 && parameters.get_vertex_measurement_type() != NONE)
       MOMS.G4_k_k_w_w /= square(parameters.get_beta());
@@ -557,8 +554,6 @@ namespace DCA
   double cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::compute_S_k_w_from_G_k_w()
   {
     static double alpha = parameters.get_DCA_convergence_factor();
-    //     double L2_difference_norm = 0;
-    //     double L2_Sigma_norm      = 0;
 
     int matrix_size = b::dmn_size()*s::dmn_size()*b::dmn_size()*s::dmn_size();
     int matrix_dim  = b::dmn_size()*s::dmn_size();
@@ -615,8 +610,6 @@ namespace DCA
   void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::compute_G_k_w_new(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> >& M_k_w_new,
                                                                                                       FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> >& G_k_w_new)
   {
-//     if(concurrency.id()==0)
-//       std::cout << "\n\t\t compute-G_k_w_new\t" << print_time() << "\n\n";
 
     LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> G_matrix   ("G_matrix", nu::dmn_size());
     LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> G0_matrix  ("G0_matrix", nu::dmn_size());
@@ -650,11 +643,6 @@ namespace DCA
   void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::compute_S_k_w_new(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> >& G_k_w_new,
                                                                                                       FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> >& S_k_w_new)
   {
-//     if(concurrency.id()==0)
-//       std::cout << "\n\t\t start compute-S_k_w\t" << print_time() << "\n\n";
-
-    //     LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> G_matrix ("G_matrix" , nu::dmn_size());
-    //     LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> G0_matrix("G0_matrix", nu::dmn_size());
 
     int N = nu::dmn_size();
 
@@ -687,98 +675,19 @@ namespace DCA
     if(parameters.adjust_self_energy_for_double_counting())
       adjust_self_energy_for_double_counting();
 
-//     if(concurrency.id()==0)
-//       std::cout << "\n\t\t end compute-S_k_w\t" << print_time() << "\n\n";
 
     symmetrize::execute(S_k_w_new, MOMS.H_symmetry);
   }
 
   template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
   void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::set_non_interacting_bands_to_zero()
-  {
-    /*
-    for(int w_ind=0; w_ind<w::dmn_size(); w_ind++){
-      for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++){
-	for(int l2=0; l2<b::dmn_size(); l2++){
-	  for(int l1=0; l1<b::dmn_size(); l1++){
-	    
-	    if( !(parameters.is_interacting_band()[l1] and 
-		  parameters.is_interacting_band()[l2]))
-	      {
-		MOMS.Sigma(l1,0,l2,0,k_ind, w_ind) = 0.;
-		MOMS.Sigma(l1,1,l2,1,k_ind, w_ind) = 0.;
-	      }
-	  }
-	}
-      }
-    }
-
-    for(int w_ind=0; w_ind<w::dmn_size(); w_ind++)
-      for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++)
-	for(int l2=0; l2<2*b::dmn_size(); l2++)
-	  for(int l1=0; l1<2*b::dmn_size(); l1++)
-	    if( !(l1==l2 and parameters.is_interacting_band()[l1]) )
-	      MOMS.Sigma(l1,l2,k_ind, w_ind) = 0.;
-    */
-  }
+//WARNING this function is not implemented
+  { }
 
   template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
   void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::adjust_self_energy_for_double_counting()
   {
-    set_non_interacting_bands_to_zero();
-
-    /*
-    FUNC_LIB::function<double, nu> d_0;
-    for(int l1=0; l1<b::dmn_size()*s::dmn_size(); l1++)
-      for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++)
-        for(int w_ind=0; w_ind<32; w_ind++)
-          d_0(l1) += real(MOMS.Sigma(l1,l1,k_ind,w_ind));
-
-    d_0 /= double(32.*k_DCA::dmn_size());
-
-    for(int l1=0; l1<b::dmn_size()*s::dmn_size(); l1++)
-      for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++)
-        for(int w_ind=0; w_ind<w::dmn_size(); w_ind++)
-          MOMS.Sigma(l1,l1,k_ind,w_ind) -= d_0(l1);
-    */
-
-    /*
-    if(parameters.get_double_counting_method()=="constant")
-      {
-	std::vector<int>& interacting_bands = parameters.get_interacting_bands();
-
-	for(int w_ind=0; w_ind<w::dmn_size(); w_ind++)
-	  for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++)
-	    for(int s_ind=0; s_ind<s::dmn_size(); s_ind++)
-	      for(int b_ind=0; b_ind<interacting_bands.size(); b_ind++)
-		MOMS.Sigma(interacting_bands[b_ind], s_ind, 
-			   interacting_bands[b_ind], s_ind, 
-			   k_ind                   , w_ind) -= parameters.get_double_counting_correction();
-      }
-
-    if(parameters.get_double_counting_method()=="adaptive")
-      {
-	std::vector<int>& interacting_bands = parameters.get_interacting_bands();
-
-	for(int b_ind=0; b_ind<interacting_bands.size(); b_ind++)
-	  for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++){
-	    for(int s_ind=0; s_ind<s::dmn_size(); s_ind++){
-		
-	      double value = real(MOMS.Sigma(interacting_bands[b_ind], s_ind, 
-					     interacting_bands[b_ind], s_ind, 
-					     k_ind                   , 0));
-
-	      for(int w_ind=0; w_ind<w::dmn_size(); w_ind++){
-
-		MOMS.Sigma(interacting_bands[b_ind], s_ind, 
-			   interacting_bands[b_ind], s_ind, 
-			   k_ind                   , w_ind) -= value;
-	      }
-	    }
-	  }	
-      }
-    */
-
+    //set_non_interacting_bands_to_zero();
     symmetrize::execute(MOMS.Sigma, MOMS.H_symmetry);
   }
 

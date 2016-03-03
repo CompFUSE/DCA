@@ -93,20 +93,12 @@ namespace DCA
         {
           initialize_with_occupation_symmetry();
 
-          if (magnetization_symmetry)
-            {
-              // std::for_each(Hilbert_spaces.begin(), Hilbert_spaces.end(),
-              //                    std::mem_fun_ref(&Hilbert_space<parameter_type, ed_options>::sort_wrt_magnetization));
-              apply_magnetization_symmetry();
-            }
-          //sort_wrt_size();
+          if (magnetization_symmetry)  apply_magnetization_symmetry();
         }
 
       else
         initialize_without_symmetry();
 
-
-      //get_size()     = Hilbert_spaces.size();
       get_elements() = Hilbert_spaces;
 
     }
@@ -114,9 +106,6 @@ namespace DCA
     template<typename parameter_type, typename ed_options>
     int Fock_space<parameter_type, ed_options>::get_size()
     {
-      //static int size=0;
-      //return size;
-
       return get_elements().size();
     }
 
@@ -286,19 +275,16 @@ namespace DCA
 
         if(find(applied_symmetries.begin(), applied_symmetries.end(), permutation_vector) == applied_symmetries.end())
           {
-            // std::cout << "apply translation symmetry #" << k+1 << std::endl;
 
             applied_symmetries.push_back(permutation_vector);
 
             symmetry_operation<parameter_type, ed_options> Op;
             Op.initialize(permutation_vector);
 
-	    // Op.print();
-
+      
             std::vector<element_type> new_Hilbert_spaces;
 
             for (int i = 0; i < get_size(); ++i){
-              //cout << "subspace: " << i << endl;
 
               element_type old_subspace(*(Hilbert_spaces.begin()+i));
 
@@ -308,8 +294,6 @@ namespace DCA
             Hilbert_spaces.swap(new_Hilbert_spaces);
           }
       }
-      
-      //assert(false);
     }
 
     template<typename parameter_type, typename ed_options>
@@ -339,8 +323,6 @@ namespace DCA
     template<typename parameter_type, typename ed_options>
     void Fock_space<parameter_type, ed_options>::apply_rotation_symmetry(std::string /*symmetries*/, std::string ED_method)
     {
-      //cout << __FUNCTION__ << endl;
-
       bool create_subspaces = true;
       if (ED_method == "block-diagonal")
         create_subspaces = false;
@@ -360,7 +342,6 @@ namespace DCA
       applied_symmetries.push_back(identity);
 
       for (int l = 1; l<2; ++l){
-        //for (int l = 0; l<sym_super_cell_dmn_t::dmn_size(); ++l){
 
         std::vector<int> permutation_vector(num_states);
 
@@ -387,7 +368,6 @@ namespace DCA
             std::vector< element_type > new_Hilbert_spaces;
 
             for (int i = 0; i < get_size(); ++i){
-              //cout << "subspace: " << i << endl;
               element_type old_subspace(*(Hilbert_spaces.begin()+i));
               factorize(Op, old_subspace, new_Hilbert_spaces, create_subspaces, i);
             }
@@ -422,8 +402,6 @@ namespace DCA
           eigenvalues.pop_back();
         }
 
-      //cout << "new empty subspaces created" << endl;
-
       subspace.sort();
 
       for(int l=0; l<subspace.size(); ++l)
@@ -449,9 +427,6 @@ namespace DCA
                       std::cout << "\n\n\t psi0 \n\n";
                       psi0   .print();
 
-                      //cout << "\n\n\t psi-tmp \n\n";
-                      //psi_tmp.print();
-
                       std::cout << "\n\n\tstate not found !!!\n\n";
 
 		      for(int l=0; l<subspace.size(); l++)
@@ -468,7 +443,6 @@ namespace DCA
               complex_type eval_factor = exp(complex_type(0,2.*M_PI/order));
               complex_type eval        = 1.;
 
-              // for(int i=0; i<order; ++i)
 	      for(int i=0; i<Op.get_order(); i+= Op.get_order()/order)
 	        {
                   psi_state<parameter_type, ed_options> psi_prime(eval, order, Op, psi0, k);
@@ -529,14 +503,8 @@ namespace DCA
               psi_state<parameter_type, ed_options>& psi_2 = subspace_2.get_element(l);
 
               res = scalar_product(psi_1, psi_2);
-              if ( res != complex_type(0.) ){
-                // psi_1.print();
-                // cout << endl;
-                // psi_2.print();
-                // cout << i << "\t" << j << "\t" << k << "\t" << l << "\t" << res << endl;
-                return false;
-              }
-            }
+              if ( res != complex_type(0.) )   return false;
+	    }
           }
         }
       }

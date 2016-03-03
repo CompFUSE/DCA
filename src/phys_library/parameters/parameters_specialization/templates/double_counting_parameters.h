@@ -43,8 +43,6 @@ public:
    ***        DATA                        ***
    ******************************************/
 
-//   bool adjust_self_energy_for_double_counting();
-
   std::string get_double_counting_method();
   double      get_double_counting_correction();
 
@@ -118,11 +116,6 @@ void double_counting_parameters::read_write(read_write_type& read_write_obj)
 /******************************************
  ***        DATA                        ***
  ******************************************/
-
-// bool double_counting_parameters::adjust_self_energy_for_double_counting()
-// {
-//   return (double_counting_method=="none");
-// }
 
 std::string double_counting_parameters::get_double_counting_method()
 {

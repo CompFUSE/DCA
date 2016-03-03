@@ -11,9 +11,7 @@ namespace DCA
     class fermionic_tp_Greens_function
     {
 #include "type_definitions.h"
-
-      //typedef ED_type_definitions<parameter_type, b_dmn, s_dmn, r_dmn> ED_type_def;
-
+      
       typedef typename ed_options::b_dmn b_dmn;
       typedef typename ed_options::s_dmn s_dmn;
       typedef typename ed_options::r_dmn r_dmn;
@@ -109,27 +107,6 @@ namespace DCA
                                            complex_type factor,
                                            std::vector<c_operator>& operators,
                                            tp_Greens_function_data_type& data);
-
-
-      /*!
-       *  new functions ...
-       */
-      //       void compute_real_space_Greens_functions(bool interacting);
-
-      //       void renormalize_real_space_Greens_functions(bool interacting);
-
-      //       void compute_Greens_functions_ac_slow(std::vector<tp_Greens_function_data_type>& data_vec);
-
-      //       void compute_Greens_functions_ca_slow(std::vector<tp_Greens_function_data_type>& data_vec);
-
-      //       void compute_tp_nonlocal_Greens_function(int bsr_i, int bsr_j,
-      //                                                scalar_type  E_0,
-      //                                                scalar_type  E_1,
-      //                                                complex_type factor,
-      //                                                tp_Greens_function_data_type& data);
-
-      //       void compute_particle_particle_superconducting(FUNC_LIB::function<complex_type, dmn_4<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, bsk_dmn_type, bsk_dmn_type> >& G_nonlocal,
-      //                                                      FUNC_LIB::function<complex_type, dmn_8<b,b,b,b,k_dmn,k_dmn,w_VERTEX,w_VERTEX> >&                            G4);
 
     private:
 
@@ -565,9 +542,6 @@ namespace DCA
         scalar_type Z = Hamiltonian.get_Z();
 
         G_tp_ref *= (1./Z);
-
-//         scalar_type beta = parameters.get_beta();
-//         G_tp_ref *= (1./(beta*beta));
       }
 
     }
@@ -751,7 +725,7 @@ namespace DCA
          abs(a1+a2   )>ed_options::get_epsilon() and
          abs(   a2+a3)>ed_options::get_epsilon() and
          abs(a1+a2+a3)>ed_options::get_epsilon())
-        {
+        
           index++;
 
           result = (-(a1*a3*(a1 + a3)*std::exp(a1*beta)*
@@ -769,24 +743,6 @@ namespace DCA
                     )/(a1*a2*(a1 + a2)*a3*(a2 + a3)*(a1 + a2 + a3));
 
 
-//           complex_type result2 = (1./(I*w3+E_k-E_l))
-//             *(
-//               (1./(I*(w2+w3)+E_j-E_l))*( (std::exp(-beta*E_i)+std::exp(-beta*E_j))/(I*w1+E_i-E_j)
-//                                          -(std::exp(-beta*E_i)+std::exp(-beta*E_l))/(I*(w1+w2+w3)+E_i-E_l)
-//                                          )
-//               -(1./(I*w2+E_j-E_k))*( (std::exp(-beta*E_i)+std::exp(-beta*E_j))/(I*w1+E_i-E_j)
-// 				     -(std::exp(-beta*E_i)-std::exp(-beta*E_k))/(I*(w1+w2)+E_i-E_k)
-//                                     )
-//               );
-
-// 	  if(abs(result*std::exp(-beta*E_i)-result2)>1.e-6){
-// 	    cout << result << "\t" << result2 << "\n"; 
-// 	  }
-// 	  else
-// 	    cout << "OK\n";
-
-        }
-
       // a1 + a2 = 0
       if(do_special and abs(a1+a2)<ed_options::get_epsilon())
         {
@@ -802,7 +758,7 @@ namespace DCA
                            std::exp(a3*beta))
                           )/(Power(a2,2)*Power(a3,2)*(a2 + a3)));
             }
-          //else
+    
 
           if(abs(a2+a3)<ed_options::get_epsilon())
             {
@@ -811,7 +767,6 @@ namespace DCA
               result = (2. - 2.*std::exp(a3*beta) + a3*beta*(1. + std::exp(a3*beta)))/Power(a3,3);
             }
 
-          //return result;
         }
 
       // a2 + a3 = 0
@@ -830,16 +785,7 @@ namespace DCA
                          std::exp(a3*beta)))/
                 (Power(a1,2)*(a1 - a3)*Power(a3,2)*std::exp(a3*beta));
             }
-          //else
 
-          //      if(abs(a1-a3)<ed_options::get_epsilon())
-          //             {
-          //          index++;
-
-          //               result = (2. - 2.*std::exp(a3*beta) + a3*beta*(1. + std::exp(a3*beta)))/Power(a3,3);
-          //             }
-
-          //return result;
         }
 
       // a1 + a2 + a3 = 0
@@ -860,7 +806,6 @@ namespace DCA
                          ))/
                 (a2*Power(a3,2)*Power(a2 + a3,2)*std::exp((a2 + a3)*beta));
             }
-          //else
 
           if(abs(a2+a3)<ed_options::get_epsilon())
             {
@@ -868,19 +813,8 @@ namespace DCA
 
               result = (2. - 2.*a3*beta + Power(a3,2)*Power(beta,2) - 2./std::exp(a3*beta))/(2.*Power(a3,3));
             }
-
-          //return result;
         }
 
-      //       if(index>1)
-      //         {
-      //           cout << "\n\t" << index << "\n";
-      //           cout << a1 << "\n";
-      //           cout << a2 << "\n";
-      //           cout << a3 << "\n";
-      //           cout << "\n";
-      //         }
-      //       assert(index==1);
       assert(result==result); // check for NAN
 
       return result;
@@ -931,18 +865,13 @@ namespace DCA
 
       std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
-      // #ifdef USE_OPENMP_DIRECTIVES
-      // #pragma omp parallel for
-      // #endif
       for(int HS_0=0; HS_0<Hilbert_spaces.size(); ++HS_0){
         for(int HS_1=0; HS_1<Hilbert_spaces.size(); ++HS_1){
           for(int HS_2=0; HS_2<Hilbert_spaces.size(); ++HS_2){
             for(int HS_3=0; HS_3<Hilbert_spaces.size(); ++HS_3){
 
-              int thread_id = 0;//omp_get_thread_num();
-              //               if(thread_id==0)
-              //                 cout << "\t" << HS_0 << "\t" << HS_1 << "\t" << HS_2 << "\t" << HS_3 << "\t" << print_time() << "\n";
-
+              int thread_id = 0;
+           
               for(int nu_0=0; nu_0<nu::dmn_size(); nu_0++){
                 for(int nu_1=0; nu_1<nu::dmn_size(); nu_1++){
                   for(int nu_2=0; nu_2<nu::dmn_size(); nu_2++){
@@ -951,8 +880,6 @@ namespace DCA
                       for(int r_0=0; r_0<r_dmn::dmn_size(); r_0++){
                         for(int r_1=0; r_1<r_dmn::dmn_size(); r_1++){
                           for(int r_2=0; r_2<r_dmn::dmn_size(); r_2++){
-                            //for(int r_3=0; r_3<r_dmn::dmn_size(); r_3++){
-
                             int r_3 = origin;
 
                             tp_Greens_function_data_type& data = data_vec[thread_id];
@@ -1014,8 +941,6 @@ namespace DCA
                                         factor *= data.overlap_3(l_3, l_0);
 
                                         if(abs(factor)>CUT_OFF){
-
-                                          //cout << factor << endl;
 
                                           int index = data.nu_nu_nu_nu_r_r_r_dmn(nu_0, nu_1, nu_2, nu_3, r_0 , r_1 , r_2);
 

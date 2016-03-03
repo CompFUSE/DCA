@@ -82,16 +82,6 @@ namespace DCA
                    HS_field_sign_type HS_field_sign,
                    int site=0);
 
-      /*
-        double one__div__exp_V_function_min_one(int linind);
-
-        double one__div__exp_V_function_min_one(int spin_orbital_1,
-        int spin_orbital_2,
-        HS_spin_states_type HS_spin,
-        HS_field_sign_type HS_field_sign,
-        int site=0);
-      */
-
       double exp_delta_V(int linind);
 
       template<typename vertex_singleton_t>
@@ -142,8 +132,6 @@ namespace DCA
       FUNC_LIB::function<double, nu_nu_r_dmn_t>                gamma_function;
       FUNC_LIB::function<double, nu_nu_HS_s_HS_f_r_dmn_t>      exp_V_function;
 
-      //FUNC_LIB::function<double, nu_nu_HS_s_HS_f_r_dmn_t>      one__div__exp_V_function_min_one_function;
-
       FUNC_LIB::function<double, nu_nu_HS_s_HS_s_HS_f_r_dmn_t> exp_delta_V_function;
     };
 
@@ -153,11 +141,8 @@ namespace DCA
 
       gamma_function("gamma_function"),
       exp_V_function("exp_V_function"),
-      //one__div__exp_V_function_min_one_function("one__div__exp_V_function_min_one_function"),
       exp_delta_V_function("exp_delta_V_function")
-    {
-
-    }
+    {}
 
     template<typename parameters_type>
     CV<parameters_type>::~CV()
@@ -173,11 +158,7 @@ namespace DCA
       ss << ",";
 
       exp_V_function.to_JSON(ss);
-      ss << ",";
-
-      //     one__div__exp_V_function_min_one_function.to_JSON(ss);
-      //     ss << ",";
-
+  
       exp_delta_V_function.to_JSON(ss);
     }
 
@@ -195,9 +176,6 @@ namespace DCA
                                                                     HS_field_sign_type HS_field_sign,
                                                                     int site)
     {
-//       int HS_spin_ind  = do_cast<int>::execute(HS_spin);
-//       int HS_field_ind = do_cast<int>::execute(HS_field_sign);
-
       int HS_spin_ind  = HS_spin_domain      ::to_coordinate(HS_spin);
       int HS_field_ind = HS_field_sign_domain::to_coordinate(HS_field_sign);
 
@@ -227,7 +205,6 @@ namespace DCA
           HS_field_sign_type  HS_field = HS_FIELD_UP;
 
           return std::exp(-gamma_function(spin_orbitals.first, spin_orbitals.second, 0)*(new_HS_spin-old_HS_spin)*HS_field);
-          //return this->exp_V(spin_orbitals.first, spin_orbitals.second, HS_spin, HS_field);
         }
 
       return 0.;
@@ -253,9 +230,6 @@ namespace DCA
                                              HS_field_sign_type HS_field_sign,
                                              int site)
     {
-//       int HS_spin_ind  = do_cast<int>::execute(HS_spin);
-//       int HS_field_ind = do_cast<int>::execute(HS_field_sign);
-
       int HS_spin_ind  = HS_spin_domain      ::to_coordinate(HS_spin);
       int HS_field_ind = HS_field_sign_domain::to_coordinate(HS_field_sign);
 
@@ -306,10 +280,6 @@ namespace DCA
     {
       assert(site==0);
 
-//       int HS_spin_1_ind = do_cast<int>::execute(HS_spin_1);
-//       int HS_spin_2_ind = do_cast<int>::execute(HS_spin_2);
-//       int HS_field_ind  = do_cast<int>::execute(HS_field_sign);
-
       int HS_spin_1_ind = HS_spin_domain      ::to_coordinate(HS_spin_1);
       int HS_spin_2_ind = HS_spin_domain      ::to_coordinate(HS_spin_2);
       int HS_field_ind  = HS_field_sign_domain::to_coordinate(HS_field_sign);
@@ -326,10 +296,6 @@ namespace DCA
                                                          int site)
     {
       assert(site==0);
-
-//       int HS_spin_1_ind = do_cast<int>::execute(HS_spin_1);
-//       int HS_spin_2_ind = do_cast<int>::execute(HS_spin_2);
-//       int HS_field_ind  = do_cast<int>::execute(HS_field_sign);
 
       int HS_spin_1_ind = HS_spin_domain      ::to_coordinate(HS_spin_1);
       int HS_spin_2_ind = HS_spin_domain      ::to_coordinate(HS_spin_2);
@@ -367,8 +333,6 @@ namespace DCA
     template<class parameters_type>
     void  CV<parameters_type>::initialize_gamma()
     {
-      //cout << __FUNCTION__ << endl;
-
       for(int nu_ind_i=0; nu_ind_i<2*BANDS; nu_ind_i++)
         {
           for(int nu_ind_j=0; nu_ind_j<2*BANDS; nu_ind_j++)
@@ -402,31 +366,17 @@ namespace DCA
                         {
                           HS_spin_states_type HS_spin  = HS_spin_domain_type      ::get_elements()[HS_spin_ind];
                           HS_field_sign_type  HS_field = HS_field_sign_domain_type::get_elements()[HS_field_ind];
-
-                          //if(H_interaction(nu_ind_i, nu_ind_j, r)>1.e-3)
-                          {
+			  
                             exp_V_function(nu_ind_i, nu_ind_j, HS_spin_ind, HS_field_ind, r)
                               = std::exp(-gamma_function(nu_ind_i, nu_ind_j, r)*HS_spin*HS_field);
-
-                            //                    if(std::fabs(exp_V_function(nu_ind_i, nu_ind_j, HS_spin_ind, HS_field_ind, r)-1.) > 1.e-16)
-                            //                      one__div__exp_V_function_min_one_function(nu_ind_i, nu_ind_j, HS_spin_ind, HS_field_ind, r)
-                            //                        = 1./(exp_V_function(nu_ind_i, nu_ind_j, HS_spin_ind, HS_field_ind, r)-1.);
-                          }
+                          
 
                           if(H_interaction(nu_ind_i, nu_ind_j, r)<-1.e-3)
                             {
-                              //                            cout << r_dmn_t::get_r_cluster()[r][0] << "\t"
-                              //                                 << r_dmn_t::get_r_cluster()[r][1] << "\t"
-                              //                                 << H_interaction(nu_ind_i, nu_ind_j, r) << endl;
-
                               HS_field = HS_FIELD_UP;
 
                               exp_V_function(nu_ind_i, nu_ind_j, HS_spin_ind, HS_field_ind, r)
                                 = std::exp(-gamma_function(nu_ind_i, nu_ind_j, r)*HS_spin*HS_field);
-
-                              //                            if(std::fabs(exp_V_function(nu_ind_i, nu_ind_j, HS_spin_ind, HS_field_ind, r)-1.) > 1.e-16)
-                              //                              one__div__exp_V_function_min_one_function(nu_ind_i, nu_ind_j, HS_spin_ind, HS_field_ind, r)
-                              //                                = 1./(exp_V_function(nu_ind_i, nu_ind_j, HS_spin_ind, 1, r)-1.);
                             }
                         }
                     }
@@ -455,11 +405,8 @@ namespace DCA
 
                               HS_field_sign_type  HS_field = HS_field_sign_domain_type::get_elements()[HS_field_ind];
 
-                              //if(H_interaction(nu_ind_i, nu_ind_j, r)>1.e-3)
-                              {
                                 exp_delta_V_function(nu_ind_i, nu_ind_j, HS_spin_1_ind, HS_spin_2_ind, HS_field_ind, r) =
                                   std::exp(-gamma_function(nu_ind_i, nu_ind_j, r)*(HS_spin_1-HS_spin_2)*HS_field);
-                              }
 
                               if(H_interaction(nu_ind_i, nu_ind_j, r)<-1.e-3)
                                 {

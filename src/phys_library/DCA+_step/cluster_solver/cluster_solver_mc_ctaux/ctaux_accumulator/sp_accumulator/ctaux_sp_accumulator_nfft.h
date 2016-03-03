@@ -34,7 +34,6 @@ namespace DCA
       typedef typename parameters_type::profiler_type    profiler_type;
       typedef typename parameters_type::concurrency_type concurrency_type;
 
-      //typedef typename parameters_type::MC_measurement_scalar_type scalar_type;
       typedef double scalar_type;
 
     public:
@@ -130,7 +129,6 @@ namespace DCA
 
       scalar_type one_div_two_beta = 1./(2.*parameters.get_beta());
 
-      //int spin_index = do_cast<int>::execute(e_spin);
       int spin_index = electron_spin_domain::to_coordinate(e_spin);
 
       int         r_ind, b_i, b_j, r_i, r_j;//, s_i, s_j;
@@ -148,14 +146,12 @@ namespace DCA
 
           for(int i=0; i<configuration_size; i++)
             {
-              //if(configuration_e_spin[i].get_HS_spin() != HS_ZERO && configuration_e_spin[j].get_HS_spin() != HS_ZERO)
               vertex_singleton_type& configuration_e_spin_i = configuration_e_spin[i];
 
               b_i = configuration_e_spin_i.get_band();
               r_i = configuration_e_spin_i.get_r_site();
               t_i = configuration_e_spin_i.get_tau();
 
-              //            r_ind = r_cluster_type::subtract(r_j, r_i);
               r_ind = r_DCA::parameter_type::subtract(r_j, r_i);
 
               delta_tau = t_i-t_j;
@@ -185,6 +181,8 @@ namespace DCA
     void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::accumulate_K_r_t(configuration_type&                           /*configuration*/,
                                                                                                            FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t> >& /*K_r_t*/,
                                                                                                            double                                        /*sign*/)
+    //WARNING empty function called
+    //TODO implement
     {
       // for next generation solver !!
 
@@ -248,7 +246,6 @@ namespace DCA
                   M_r_w(b1_ind, s1_ind, b2_ind, s2_ind, r_ind, w_ind)
                     = tmp(w_ind, b1_ind, s1_ind, b2_ind, s2_ind, r_ind);
 
-      //double one_div_n_sites = 1./double(base_cluster_type::get_cluster_size());
       double one_div_n_sites = 1./double(r_DCA::dmn_size());
       M_r_w *= one_div_n_sites;
     }
@@ -270,7 +267,6 @@ namespace DCA
                     M_r_w(b1_ind, s1_ind, b2_ind, s2_ind, r_ind, w_ind)
                       = tmp(w_ind, b1_ind, s1_ind, b2_ind, s2_ind, r_ind);
 
-        //double one_div_n_sites = 1./double(base_cluster_type::get_cluster_size());
         double one_div_n_sites = 1./double(r_DCA::dmn_size());
         M_r_w *= one_div_n_sites;
       }
@@ -288,52 +284,13 @@ namespace DCA
                     M_r_w_squared(b1_ind, s1_ind, b2_ind, s2_ind, r_ind, w_ind)
                       = tmp(w_ind, b1_ind, s1_ind, b2_ind, s2_ind, r_ind);
 
-        //double one_div_n_sites = 1./double(base_cluster_type::get_cluster_size());
         double one_div_n_sites = 1./double(r_DCA::dmn_size());
         M_r_w_squared *= one_div_n_sites;
       }
     }
 
-#ifdef MEASURE_ERROR_BARS
-    //     /*!
-    //      *  \brief Output and store standard deviation and error.
-    //      *
-    //      *  It computes and write to the given files the standard deviation of the measurements of the one particle accumulator.
-    //      *  It outputs the L1-Norm, i.e. \f$\sum_{i=1}^N \left|x_i\right|/N\f$, the L2-Norm, i.e. \f$\sqrt{\sum_{i=1}^N \left|x_i\right|^2/N}\f$,
-    //      *  and the Linf-Norm, i.e. \f$\max_{i=1}^N \left|x_i\right|\f$ of the standard deviation and of the error.
-    //      */
-    //     template<class parameters_type, class MOMS_type>
-    //     void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::store_standard_deviation(int nr_measurements,
-    //                                                                                                                    std::ofstream& points_file,
-    //                                                                                                                    std::ofstream& norm_file)
-    //     {
-    //       std::pair<std::vector<scalar_type>, int> std = cached_nfft_1D_obj.get_standard_deviation(concurrency, nr_measurements, points_file, norm_file);
-    //       scalar_type sqrt_n = sqrt(std.second);
 
-    //       cout<<scientific;
-    //       cout.precision(6);
-    //       if(concurrency.id()==concurrency.first()){
-    //         cout << "\n\n";
-    //         cout << "\t\t             standard deviation ||  error \n";
-    //         cout << "\t\t L1-norm   : " << std.first[0] << "       ||  " << std.first[0]/sqrt_n << "\n";
-    //         cout << "\t\t L2-norm   : " << std.first[1] << "       ||  " << std.first[1]/sqrt_n << "\n";
-    //         cout << "\t\t Linf-norm : " << std.first[2] << "       ||  " << std.first[2]/sqrt_n << "\n";
-    //         cout << "\n\n";
-    //       }
-    //     }
-
-
-    //     /*!
-    //      *  \brief Update the sum of the squares of the measurements. It has to be called after each measurement.
-    //      */
-    //     template<class parameters_type, class MOMS_type>
-    //     void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::update_sum_squares()
-    //     {
-    //       cached_nfft_1D_obj.update_sum_squares();
-    //     }
-#endif
-
-  }
+  }//namespace QMCI
 
 }
 

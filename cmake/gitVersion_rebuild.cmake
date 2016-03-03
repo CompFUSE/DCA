@@ -41,7 +41,7 @@ execute_process(
   COMMAND
   git
   status --porcelain
-  WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"  # .../build
+  WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
   RESULT_VARIABLE res
   OUTPUT_VARIABLE out
   )
@@ -71,5 +71,5 @@ endif()
 
 # Reconfigure gitVersion.cpp if something has changed.
 if (LOG_CHANGED OR STATUS_CHANGED)
-  configure_file("${CMAKE_BINARY_DIR}/../gitVersion/gitVersion.cpp.in" "${CMAKE_BINARY_DIR}/gitVersion/gitVersion.cpp" @ONLY)
+  configure_file("${CMAKE_SOURCE_DIR}/gitVersion/gitVersion.cpp.in" "${CMAKE_BINARY_DIR}/gitVersion/gitVersion.cpp" @ONLY)
 endif()

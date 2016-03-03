@@ -39,8 +39,6 @@ namespace DCA
       long long rhs;
 
       scalar_type value;
-      //std::complex<scalar_type> value;
-
     public:
 
       void print(){
@@ -60,7 +58,6 @@ namespace DCA
       long long rhs;
 
       scalar_type value;
-      //std::complex<scalar_type> value;
 
     public:
 
@@ -286,17 +283,13 @@ namespace DCA
 
       if(true)
         {
-          //Hamiltonians.print_fingerprint();
           Hamiltonians.reset();
-          //Hamiltonians.print_fingerprint();
         }
 
       for (int i = 0; i < Hilbert_spaces.size(); ++i){
 
         if ( !parameters.do_sector_check() || (Hilbert_spaces[i].get_eigenvalues()[0] == parameters.get_occupation() &&
                                                Hilbert_spaces[i].get_eigenvalues()[1] == parameters.get_magnetization()) ){
-
-          //std::cout << "Subspace #" << i  << ", interacting: " << interacting << std::endl;
 
           int N = Hilbert_spaces[i].size();
           Hamiltonians(i).resize_no_copy(N);
@@ -314,86 +307,8 @@ namespace DCA
           if(interacting)
             add_U_to_Hamiltonian(N, H, subspace);
 
-
-          //std::cout << "Subspace #" << i  << ", interacting: " << interacting
-          //   << ", block-diagonal: " << check_block_structure(N, H, subspace) << std::endl;
-
-          /*
-            if(parameters.do_sector_check())
-            {
-            int subspace_to_print = i;
-            std::cout << "Print Hamiltonian of subspace: " << subspace_to_print << std::endl;
-            {
-            char filename[160];
-            if (interacting)
-            sprintf(filename, "data/H_%d_real_int_urs.dat", subspace_to_print);
-            else
-            sprintf(filename, "data/H_%d_real_nonint_urs.dat", subspace_to_print);
-
-            std::ofstream data;
-            data.open(filename);
-
-            for (int i = 0; i < Hilbert_spaces[subspace_to_print-1].size(); ++i){
-            for (int j = 0; j < Hilbert_spaces[subspace_to_print-1].size(); ++j){
-            data << Hamiltonians(subspace_to_print-1)(i,j).real() << "\t";
-            }
-            data << "\n";
-            }
-            data.close();
-            }
-
-            {
-            char filename[160];
-            if (interacting)
-            sprintf(filename, "data/H_%d_imag_int_urs.dat", subspace_to_print);
-            else
-            sprintf(filename, "data/H_%d_imag_nonint_urs.dat", subspace_to_print);
-
-            std::ofstream data;
-            data.open(filename);
-
-            for (int i = 0; i < Hilbert_spaces[subspace_to_print-1].size(); ++i){
-            for (int j = 0; j < Hilbert_spaces[subspace_to_print-1].size(); ++j){
-            data << Hamiltonians(subspace_to_print-1)(i,j).imag() << "\t";
-            }
-            data << "\n";
-            }
-            data.close();
-            }
-            }
-          */
         }
       }
-
-      /*
-      for (int l = 0; l < V_i.size(); ++l)
-	V_i[l].print();
-      std::cout << "\n";
-
-      for (int l = 0; l < t_ij.size(); ++l)
-	t_ij[l].print();
-      std::cout << "\n";
-
-      for (int l = 0; l < U_ij.size(); ++l)
-	U_ij[l].print();
-      std::cout << "\n";
-
-      for (int HS_i = 0; HS_i < Hilbert_spaces.size(); ++HS_i)
-        {
-          std::cout << "\n \t" << HS_i << "\n\n";
-
-          for(int m = 0; m < Hilbert_spaces[HS_i].size(); ++m){
-            for(int n = 0; n < Hilbert_spaces[HS_i].size(); ++n){
-              //assert(abs(imag(Hamiltonians(HS_i)(m,n))) < ed_options::get_epsilon());
-              std::cout << (Hamiltonians(HS_i)(m,n)) << "\t";
-            }
-            std::cout << "\n";
-          }
-          std::cout << "\n";
-        }
-
-      assert(false);
-      */
     }
 
     template<typename parameter_type, typename ed_options>
@@ -729,121 +644,6 @@ namespace DCA
 
       shift_the_energies();
     }
-
-    //   template<typename parameter_type, typename ed_options>
-    //   void fermionic_Hamiltonian<parameter_type, ed_options>::diagonolize_Hamiltonians_mt()
-    //   {
-    //     if(concurrency.id()==0)
-    //       std::cout << "\n\t" << __FUNCTION__ << "\n\n";
-
-    //     int start = clock();
-
-    //     for(int i=0; i<occ_dmn::dmn_size(); i++){
-    //       for(int j=0; j<mag_dmn::dmn_size(); j++){
-
-    //         int N = n_occupation_states(i,j);
-
-    //         if(N==0)
-    //           {
-    //             eigen_energies(i,j).resize        (0);
-    //             eigen_states  (i,j).resize_no_copy(0);
-    //           }
-    //         else
-    //           {
-    //             eigen_energies(i,j).resize        (N);
-    //             eigen_states  (i,j).resize_no_copy(N);
-
-    //             for(int l=0; l<N; l++)
-    //               eigen_energies(i,j)[l] = 0;
-
-    //             for(int l_1=0; l_1<N; l_1++)
-    //               for(int l_0=0; l_0<N; l_0++)
-    //                 eigen_states(i,j)(l_0,l_1) = 0;
-    //           }
-    //       }
-    //     }
-
-    //     print_processor_lay_out();
-
-    //     int index  = 0;
-    //     int N_proc = concurrency.number_of_processors();
-
-    //     for(int i=0; i<occ_dmn::dmn_size(); i++){
-    //       for(int j=0; j<mag_dmn::dmn_size(); j++){
-
-    //         int N = n_occupation_states(i,j);
-
-    //         if(N!=0)
-    //           {
-    //             if((index % N_proc) == concurrency.id())        // ???
-    //               LIN_ALG::GEEV<LIN_ALG::CPU>::execute('V', 'U', Hamiltonians(i,j), eigen_energies(i,j), eigen_states(i,j));
-
-    //             index += 1;
-    //           }
-    //       }
-    //     }
-
-    //     for(int i=0; i<occ_dmn::dmn_size(); i++){
-    //       for(int j=0; j<mag_dmn::dmn_size(); j++){
-
-    //         int N = n_occupation_states(i,j);
-
-    //         if(N!=0)
-    //           {
-    //             concurrency.sum(eigen_energies(i,j));       // ???
-    //             concurrency.sum(eigen_states  (i,j));
-    //           }
-    //       }
-    //     }
-
-    //     int end = clock();
-
-    //     if(concurrency.id()==0)
-    //       {
-    //         std::cout << "\n\t" << __FUNCTION__ << "\t total time : " << double(end-start)/double(CLOCKS_PER_SEC) << "\n\n";
-
-    //         print_spectrum();
-    //       }
-
-    //     shift_the_energies();
-    //   }
-
-    //   template<typename parameter_type, typename ed_options>
-    //   void fermionic_Hamiltonian<parameter_type, ed_options>::print_processor_lay_out()
-    //   {
-    //     if(concurrency.id()==0)
-    //       {
-    //         int index  = 0;
-    //         int N_proc = concurrency.number_of_processors();
-
-    //         std::cout << "\n\n\tN \\ Sz\t";
-    //         for(int j=0; j<mag_dmn::dmn_size(); j++)
-    //           std::cout << mag_dmn::parameter_type::Sz(j) << "\t";
-
-    //         std::cout << "\n";
-    //         for(int i=0; i<occ_dmn::dmn_size(); i++){
-
-    //           std::cout << "\tN = "<< i << "\t";
-
-    //           for(int j=0; j<mag_dmn::dmn_size(); j++)
-    //             {
-    //               //std::cout << n_occupation_states(i,j) << "\t";
-
-    //               int N = n_occupation_states(i,j);
-    //               if(N!=0)
-    //                 {
-    //                   std::cout << (index % N_proc) << "\t";
-    //                   index += 1;
-    //                 }
-    //               else
-    //                 std::cout << " "               << "\t";
-
-    //             }
-    //           std::cout << "\n";
-    //         }
-    //         std::cout << "\n";
-    //       }
-    //   }
 
     template<typename parameter_type, typename ed_options>
     void fermionic_Hamiltonian<parameter_type, ed_options>::print_spectrum()

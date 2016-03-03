@@ -85,37 +85,7 @@ cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type,
     Fock_obj.print_subspaces();
   }
 #endif
-
-  // std::vector<ADVANCED_EXACT_DIAGONALIZATION::Hilbert_space<parameters_type,
-  // ed_options_type> >&
-  //   Hilbert_spaces = Fock_obj.get_elements();
-
-  // int HS_0 = 0;
-  // int HS_1 = 0;
-  // int b_s_r = parameters.get_nu();
-
-  // for(int i = 0; i < Hilbert_spaces.size(); ++i){
-  //   if(Hilbert_spaces[i].get_occupation()    == parameters.get_n_0() &&
-  //      Hilbert_spaces[i].get_magnetization() == parameters.get_Sz_0())
-  //     HS_0 = i;
-
-  //   if(Hilbert_spaces[i].get_occupation()    == parameters.get_n_1() &&
-  //      Hilbert_spaces[i].get_magnetization() == parameters.get_Sz_1())
-  //     HS_1 = i;
-  // }
-
-  // if(false)
-  //   {
-  //     std::cout << "Print Hilbert-space #" << HS_0 << std::endl;
-  //     Hilbert_spaces[HS_0].print(true);
-  //     std::cout << "Print Hilbert-space #" << HS_1 << std::endl;
-  //     Hilbert_spaces[HS_1].print(true);
-  //     std::cout << "bsr = " << b_s_r << std::endl;
-  //   }
-
-  // Fock_obj.apply_rotation_symmetry(parameters.get_symmetries(),
-  // parameters.get_ED_method());
-
+  
   if (concurrency.id() == concurrency.first()) {
     std::cout << "\n\n\n"
               << "Apply translation symmetry ..." << std::endl;
@@ -150,22 +120,12 @@ cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type,
 
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 void cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type,
-                    MOMS_type>::initialize(int /*dca_iteration*/) {
-  //     std::cout << __FUNCTION__ << "\n";
-
+                    MOMS_type>::initialize(int /*dca_iteration*/)
+{
+  
   FUNC_LIB::function<std::complex<double>, dmn_3<nu, nu, r_DCA> > H_DCA;
 
-  //     for(int l=0; l<r_DCA::dmn_size(); l++)
-  //       std::cout << l << "\t" << MOMS_imag.H_DCA(0,0,l) << "\n";
-  //     std::cout << "\n";
-
   MATH_ALGORITHMS::TRANSFORM<k_DCA, r_DCA>::execute(MOMS_imag.H_DCA, H_DCA);
-
-  //     for(int l=0; l<r_DCA::dmn_size(); l++)
-  //       std::cout << l << "\t" << H_DCA(0,0,l) << "\n";
-  //     std::cout << "\n";
-
-  // assert(false);
 
   Ham_obj.initialize(H_DCA, MOMS_imag.H_interactions);
 }
@@ -177,7 +137,7 @@ void cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type,
     std::cout << "\n" << __FUNCTION__ << "\n" << std::endl;
   }
 
-  {  // creation and annihilation matrices
+    // creation and annihilation matrices
     overlap_obj.construct_creation_set_all();
     overlap_obj.construct_annihilation_set_all();
     if (concurrency.id() == concurrency.first()) {
@@ -185,7 +145,7 @@ void cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type,
     }
     overlap_obj.construct_creation_set_nonzero_sparse();
     overlap_obj.construct_annihilation_set_nonzero_sparse();
-  }
+  
 
   {  // non-interacting Greensfunction
     if (concurrency.id() == concurrency.first()) {
@@ -203,15 +163,6 @@ void cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type,
     }
     Ham_obj.set_spectrum(MOMS_real.E0_w);
 
-    // Ham_obj.print_Hamiltonian("data/hamiltonian_nonint.dat");
-    // Ham_obj.print_eigen_energies("data/energies_nonint.dat");
-    // Ham_obj.print_eigen_states("data/eigenstates_nonint.dat");
-
-    // std::cout << "Check hermitianess: " << overlap_obj.check_hermitianess()
-    // << std::endl;
-
-    // overlap_obj.print_creation_matrix("data/creation_nonint.dat");
-
     sp_Greens_function_obj.compute_all_sp_functions_slow(MOMS_imag, MOMS_real,
                                                          false);
 
@@ -228,7 +179,7 @@ void cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type,
     }
   }
 
-  {  // interacting Greensfunction
+    // interacting Greensfunction
     if (concurrency.id() == concurrency.first()) {
       std::cout << "\n" << print_time() << std::endl;
     }
@@ -244,15 +195,6 @@ void cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type,
     }
     Ham_obj.set_spectrum(MOMS_real.E_w);
 
-    // Ham_obj.print_Hamiltonian("data/hamiltonian_int.dat");
-    // Ham_obj.print_eigen_energies("data/energies_int.dat");
-    // Ham_obj.print_eigen_states("data/eigenstates_int.dat");
-
-    // std::cout << "Check hermitianess: " << overlap_obj.check_hermitianess()
-    // << std::endl;
-
-    // overlap_obj.print_creation_matrix("data/creation_int.dat");
-
     sp_Greens_function_obj.compute_all_sp_functions_slow(MOMS_imag, MOMS_real,
                                                          true);
 
@@ -267,9 +209,8 @@ void cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type,
       tp_Greens_function_obj.compute_particle_particle_superconducting_A(
           MOMS_imag.G4_k_k_w_w);
     }
-  }
 
-  {
+  
     MOMS_real.A_w = 0;
     for (int l = 0; l < w_REAL::dmn_size(); l++)
       for (int j = 0; j < k_DCA::dmn_size(); j++)
@@ -284,7 +225,7 @@ void cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type,
 
     MOMS_real.A_w *= 1. / double(M_PI * k_DCA::dmn_size() * 2 * b::dmn_size());
     MOMS_real.A0_w *= 1. / double(M_PI * k_DCA::dmn_size() * 2 * b::dmn_size());
-  }
+  
 
   if (concurrency.id() == concurrency.first()) {
     std::cout << "\n" << print_time() << std::endl;

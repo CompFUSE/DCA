@@ -131,7 +131,6 @@ namespace DCA
   void posix_qmci_integrator<qmci_integrator_type>::write(IO::writer<DATA_FORMAT>& writer)
   {
     qmci_integrator_type::write(writer);
-    //accumulator.write(writer);
   }
 
   template<class qmci_integrator_type>
@@ -148,20 +147,6 @@ namespace DCA
       rng_vector[i] = rng_type(i+concurrency.id()*step,
                                concurrency.number_of_processors()*step,
                                rng_seed[i]);
-
-    //     std::cout<<scientific;
-    //     std::cout.precision(6);
-
-    //     for(int i=0; i<nr_walkers; ++i)
-    //       std::cout << "\t" << rng_seed[i];
-    //     std::cout << "\n\n";
-
-    //     for(int j=0; j<20; j++){
-    //       for(int i=0; i<nr_walkers; ++i)
-    //        std::cout << "\t" << rng_vector[i].get_random_number();
-    //       std::cout << "\n";
-    //     }
-    //     std::cout << "\n\n";
   }
 
   template<class qmci_integrator_type>
@@ -363,13 +348,6 @@ namespace DCA
               }
             }
         }
-      }
-
-    if(QMC_INTEGRATOR_BIT)
-      {
-        pthread_mutex_lock  (&mutex_numerical_error);
-        //accumulator.get_error_distribution() += walker.get_error_distribution();
-        pthread_mutex_unlock(&mutex_numerical_error);
       }
 
     if(id==0)

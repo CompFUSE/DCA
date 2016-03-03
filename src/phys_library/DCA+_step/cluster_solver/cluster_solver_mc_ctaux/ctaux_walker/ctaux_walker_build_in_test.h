@@ -43,7 +43,6 @@ namespace DCA
                     MOMS_type&       MOMS_ref,
                     int              id);
 
-      ~MC_walker_BIT();
 
       void  initialize();
 
@@ -125,13 +124,6 @@ namespace DCA
     {}
 
     template<class parameters_type, class MOMS_type>
-    MC_walker_BIT<CT_AUX_SOLVER, parameters_type, MOMS_type>::~MC_walker_BIT()
-    {
-      //     for(int l=0; l<numerical_error_domain::get_size(); l++)
-      //       cout << numerical_error_domain::get_elements()[l] << "\t" << error(l) << endl;
-    }
-
-    template<class parameters_type, class MOMS_type>
     FUNC_LIB::function<double, dmn_0<numerical_error_domain> >& MC_walker_BIT<CT_AUX_SOLVER, parameters_type, MOMS_type>::get_error_distribution()
     {
       return error;
@@ -144,13 +136,6 @@ namespace DCA
 
       CV_obj          .initialize(MOMS);
       G0_CPU_tools_obj.initialize(MOMS);
-
-      //     for(int i=-16; i<=0; i++){
-      //       for(double j=1; j<10; j+=1.){
-      //        x.push_back(j*std::pow(10., i));
-      //        y.push_back(0);
-      //       }
-      //     }
     }
 
     template<class parameters_type, class MOMS_type>
@@ -159,8 +144,6 @@ namespace DCA
                                                                                      LIN_ALG::matrix<double, device_t>& G0_up,
                                                                                      LIN_ALG::matrix<double, device_t>& G0_dn)
     {
-      //     cout << __FUNCTION__ << endl;
-
       G0_CPU_tools_obj.build_G0_matrix(configuration, G0_up_CPU, e_UP);
       G0_CPU_tools_obj.build_G0_matrix(configuration, G0_dn_CPU, e_DN);
 
@@ -176,8 +159,6 @@ namespace DCA
                                                                                     LIN_ALG::matrix<double, device_t>& N_up,
                                                                                     LIN_ALG::matrix<double, device_t>& N_dn)
     {
-      //     cout << __FUNCTION__ << endl;
-
       G0_up_CPU.difference(G0_up);
       G0_dn_CPU.difference(G0_dn);
 
@@ -204,8 +185,6 @@ namespace DCA
                                                                                     LIN_ALG::matrix<double, device_t>& G_up,
                                                                                     LIN_ALG::matrix<double, device_t>& G_dn)
     {
-      //     cout << __FUNCTION__ << endl;
-
       G0_up_CPU.difference(G0_up);
       G0_dn_CPU.difference(G0_dn);
 
