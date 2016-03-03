@@ -17,10 +17,6 @@ namespace MATH_ALGORITHMS
   
     typedef tetrahedron_neighbour_domain this_type;
     typedef std::vector<double>          element_type;
-  
-    //   typedef k_cluster<representation , cluster<parameters > > k_cluster_type;
-    //   typedef cluster<parameters >                              base_cluster_type;
-
     typedef dmn_0<cluster_type> cluster_dmn_t;
 
     const static int DIMENSION = cluster_type::DIMENSION;
@@ -73,9 +69,6 @@ namespace MATH_ALGORITHMS
 
 	for(int d=0; d<DIMENSION; d++)
 	  k[d] *= 2.;
-
-	//       VECTOR_OPERATIONS::PRINT(k);
-	//       cout << endl;
 
 	elements.push_back(k);
       }
@@ -131,24 +124,13 @@ namespace MATH_ALGORITHMS
 	      for(int n1=n0+1; n1<this_type::get_size(); ++n1){
 	      
 		coor[0] = n0;
-		coor[1] = n1;
-	      
-		// 	      std::vector<double> k0 = k_vecs[n0];
-		// 	      std::vector<double> k1 = k_vecs[n1];
-		// 	      VECTOR_OPERATIONS::PRINT(k0);
-		// 	      VECTOR_OPERATIONS::PRINT(k1);
-		// 	      cout << endl;      
+		coor[1] = n1;   
 
 		if(facet<DIMENSION>::is_facet(coor, k_vecs)){
 		
 		  std::vector<int> facet(2);
 		  facet[0]=n0;
 		  facet[1]=n1;
-		
-		  // 		VECTOR_OPERATIONS::PRINT(k_vecs[n0]);
-		  // 		VECTOR_OPERATIONS::PRINT(k_vecs[n1]);
-		  // 		cout << endl;
-		
 		  facets.push_back(facet);
 		}
 	      }

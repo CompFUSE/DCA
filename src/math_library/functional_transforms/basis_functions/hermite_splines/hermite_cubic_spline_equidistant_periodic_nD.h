@@ -9,9 +9,6 @@ namespace MATH_ALGORITHMS
   class hermite_cubic_spline<lh_dmn_type, rh_dmn_type, EQUIDISTANT, PERIODIC, DIMENSION>
   {
   private:
-
-    //const static int DIMENSION = 2;
-
     typedef typename lh_dmn_type::dmn_specifications_type lh_spec_dmn_type;
     typedef typename rh_dmn_type::dmn_specifications_type rh_spec_dmn_type;
 
@@ -32,7 +29,6 @@ namespace MATH_ALGORITHMS
       lh_element_type x = lh_dmn_type::get_elements()[i];
       rh_element_type y = rh_dmn_type::get_elements()[j];
 
-      //rh_scalar_type* basis       = rh_dmn_type::get_basis();
       rh_scalar_type* super_basis = rh_dmn_type::get_super_basis();
 
       rh_scalar_type* inv_basis       = rh_dmn_type::get_inverse_basis();

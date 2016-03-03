@@ -153,16 +153,6 @@ namespace MATH_ALGORITHMS
 
   void tetrahedron<2>::plot(Gnuplot& plot_obj)
   {
-//     std::vector<double> x(4);
-//     std::vector<double> y(4);
-
-//     x[0] = vec_0[0]; y[0] = vec_0[1];
-//     x[1] = vec_1[0]; y[1] = vec_1[1];
-//     x[2] = vec_2[0]; y[2] = vec_2[1];
-//     x[3] = vec_0[0]; y[3] = vec_0[1];
-
-//     plot_obj.plot_xy(x,y);
-    
     SHOW::plot_line_2D(plot_obj, vec_0, vec_1);
     SHOW::plot_line_2D(plot_obj, vec_1, vec_2);
     SHOW::plot_line_2D(plot_obj, vec_2, vec_0);
@@ -366,16 +356,7 @@ namespace MATH_ALGORITHMS
         assert(real(result)==real(result));
       }
 
-    //     if(false)
-    //       {
-    //real(result) *= (2*volume)*std::cos(Rx*K0x+Ry*K0y);
-    //imag(result) *= (2*volume)*std::sin(Rx*K0x+Ry*K0y);
-    //       }
-    //     else
-    //       {
-    //  //cout << std::exp(I*(Rx*K0x+Ry*K0y)) << "\t" << std::cos(Rx*K0x+Ry*K0y) << "\t" << std::sin(Rx*K0x+Ry*K0y) << "\n";
     result = (2*volume)*result*std::exp(I*(Rx*K0x+Ry*K0y));
-    //       }
 
     assert(real(result)==real(result));
 
@@ -401,57 +382,6 @@ namespace MATH_ALGORITHMS
     for(int i=0; i<matrix_size; i++)
       f_result[i] *= scaled_volume;
   }
-
-  /*
-    template<typename scalartype, typename mesh_t>
-    void tetrahedron<2>::integrate_inverse_function(int size, std::vector<scalartype*> f, mesh_t& mesh, scalartype* f_result)
-    {
-    //int SIZE = size;
-
-    static eigensystem_plan<scalartype, GENERAL> eigensystem_pln_0(size,'V','V');
-    memcpy(&eigensystem_pln_0.A[0], f[0], sizeof(scalartype)*square(size));
-    eigensystem_pln_0.execute_plan();
-
-    static eigensystem_plan<scalartype, GENERAL> eigensystem_pln_1(size,'V','V');
-    memcpy(&eigensystem_pln_1.A[0], f[1], sizeof(scalartype)*square(size));
-    eigensystem_pln_1.execute_plan();
-
-    static eigensystem_plan<scalartype, GENERAL> eigensystem_pln_2(size,'V','V');
-    memcpy(&eigensystem_pln_2.A[0], f[2], sizeof(scalartype)*square(size));
-    eigensystem_pln_2.execute_plan();
-
-    scalartype matrix_elements[3];
-    scalartype eigenvalues[3];
-
-    for(int l=0; l<size*size; l++)
-    f_result[l] = 0;
-
-    for(int i=0; i<size; i++){
-    for(int j=0; j<size; j++){
-
-    for(int l=0; l<size; l++){
-
-    matrix_elements[0] = std::conj(eigensystem_pln_0.VR[i+l*size])*eigensystem_pln_0.VR[l+j*size];
-    matrix_elements[1] = std::conj(eigensystem_pln_1.VR[i+l*size])*eigensystem_pln_1.VR[l+j*size];
-    matrix_elements[2] = std::conj(eigensystem_pln_2.VR[i+l*size])*eigensystem_pln_2.VR[l+j*size];
-
-    eigenvalues[0] = eigensystem_pln_0.W[l];
-    eigenvalues[1] = eigensystem_pln_1.W[l];
-    eigenvalues[2] = eigensystem_pln_2.W[l];
-
-    f_result[i + j*size] += integrate_matrix_element(matrix_elements, eigenvalues);
-    }
-    }
-    }
-
-    //   double surface_triangle = surface(&mesh[index[0]][0], &mesh[index[1]][0], &mesh[index[2]][0]);
-    //   assert(surface_triangle > 1.e-6);
-
-    for(int i=0; i<size; i++)
-    for(int j=0; j<size; j++)
-    f_result[i + j*size] *= (2.*volume);//(2.*surface_triangle);
-    }
-  */
 
   template<typename scalartype, typename mesh_t>
   void tetrahedron<2>::integrate_inverse_function(int size,
@@ -488,9 +418,6 @@ namespace MATH_ALGORITHMS
     scalartype two_vol = (2.*volume);
     for(int l=0; l<size*size; ++l)
       f_result[l] *= two_vol;
-    //   for(int j=0; j<size; ++j)
-    //     for(int i=0; i<size; ++i)
-    //       f_result[i + j*size] *= two_vol;//(2.*volume);//(2.*surface_triangle);
   }
 
   template<typename scalartype>

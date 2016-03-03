@@ -40,8 +40,6 @@ public:
 
   static void initialize_Brillouin_zone   (int N_recursion, int rule, double period);  
 
-    //private:
-
   static void initialize_flat_mesh(tetrahedron_mesh<cluster_type>& mesh);  
 
   static void initialize_gaussian_mesh(int rule, tetrahedron_mesh<cluster_type>& mesh);
@@ -100,30 +98,11 @@ void gaussian_quadrature_domain<dmn_0<tetrahedron_mesh<dmn_0<cluster_type> > > >
     
   is_initialized() = false;
 }
-
-/*
-  template<typename cluster_type>
-  void gaussian_quadrature_domain<dmn_0<tetrahedron_mesh<dmn_0<cluster_type> > > >::initialize_parallellepipedum(int N_recursion, int rule)
-  {
-  tetrahedron_mesh<dmn_0<cluster_type> > mesh(N_recursion);
-
-  mesh_initializer<tetrahedron_mesh<dmn_0<cluster_type> > >::execute_on_parallellepipedum(mesh, N_recursion);
-
-  if(rule<0)
-  initialize_flat_mesh(mesh);
-  else
-  initialize_gaussian_mesh(rule, mesh);
-
-  initialize_elements(mesh);
-  }
-*/
   
 template<typename cluster_type>
 void gaussian_quadrature_domain<dmn_0<tetrahedron_mesh<dmn_0<cluster_type> > > >::initialize_Brillouin_zone(int N_recursion, int rule)
 {
   tetrahedron_mesh<cluster_type> mesh(N_recursion);
-
-  //mesh_initializer<tetrahedron_mesh<dmn_0<cluster_type> > >::execute_on_Brillouin_zone(mesh, N_recursion);
 
   if(rule<0)
     initialize_flat_mesh(mesh);
@@ -137,10 +116,6 @@ template<typename cluster_type>
 void gaussian_quadrature_domain<dmn_0<tetrahedron_mesh<dmn_0<cluster_type> > > >::initialize_Brillouin_zone(int N_recursion, int rule, double period)
 {
   tetrahedron_mesh<cluster_type> mesh(N_recursion);
-
-  //cout << __FUNCTION__ << "\t" << mesh.get_tetrahedra().size() << "\n";
-
-  //mesh_initializer<tetrahedron_mesh<dmn_0<cluster_type> > >::execute_on_Brillouin_zone(mesh, N_recursion);
 
   if(rule<0)
     initialize_flat_mesh(mesh);

@@ -114,42 +114,12 @@ namespace MATH_LIBRARY
         lhs_element_type x_i = lhs_dmn_t::get_elements()[i];
         lhs_element_type x_j = lhs_dmn_t::get_elements()[j];
 
-        //       x_j[0] = x_j[0] + l0*2*M_PI + l1*0;
-        //       x_j[1] = x_j[1] + l0*0      + l1*2*M_PI;
-
         S(i,j) += (s_f*s_f)*std::exp(-0.5*VECTOR_OPERATIONS::L2_NORM(x_i, x_j)/(l*l));
       }
 
       S(i,i) += sigma*sigma;
     }
-
-    //S.print();
   }
-
-  /*
-    template<typename scalartype, typename lhs_dmn_t, typename rhs_dmn_t>
-    void gaussian_regression<scalartype, lhs_dmn_t, rhs_dmn_t>::compute_S_periodic(scalartype s_f, scalartype l, scalartype sigma)
-    {
-    for(int i=0; i<Nc; i++){
-    for(int j=0; j<Nc; j++){
-
-    S(i,j) = 0;
-
-    lhs_element_type x_i = lhs_dmn_t::get_elements()[i];
-    lhs_element_type x_j = lhs_dmn_t::get_elements()[j];
-
-    x_j[0] = x_j[0] + l0*2*M_PI + l1*0;
-    x_j[1] = x_j[1] + l0*0      + l1*2*M_PI;
-
-    S(i,j) += (s_f*s_f)*std::exp(-0.5*VECTOR_OPERATIONS::L2_NORM(x_i, x_j)/(l*l));
-    }
-
-    S(i,i) += sigma*sigma;
-    }
-
-    //S.print();
-    }
-  */
 
   // page 9, Rasmussen and Williams
   template<typename scalartype, typename lhs_dmn_t, typename rhs_dmn_t>
@@ -165,14 +135,9 @@ namespace MATH_LIBRARY
       for(int i=0; i<Nc; i++)
         A(i,j) = Xt_X(i,j)+S(i,j);
 
-    //   for(int i=0; i<Nc; i++)
-    //     A(i,i) += eps;
-
     LIN_ALG::PSEUDO_INVERSE<LIN_ALG::CPU>::execute(A, A_inv);
 
     LIN_ALG::GEMM<LIN_ALG::CPU>::execute('N', 'C', A_inv, X, A_inv_X);
-
-    //A_inv_X.print();
   }
 
 }

@@ -35,9 +35,6 @@ namespace MATH_ALGORITHMS
     template<typename mesh_t>
     void do_recursion(std::vector<tetrahedron<3> >& tetrahedra, mesh_t& mesh);
 
-//     template<typename scalartype>
-//     std::complex<scalartype> integrate_harmonic(std::vector<scalartype>& r_vec);
-
     template<typename scalartype, typename mesh_t>
     void integrate_function(int size, std::vector<scalartype*> f, mesh_t& mesh, scalartype* f_result);
 
@@ -377,127 +374,6 @@ namespace MATH_ALGORITHMS
       f_result[i] *= scaled_volume;
   }
 
-  /*!
-   *  We want to compute :
-   *
-   *  Integrate[Integrate[Integrate[E^(I Rx *(K0x + (K1x - K0x) t1 + (K2x - K0x) t2 + (K3x - K0x) t3) + I Ry *(K0y + (K1y - K0y) t1 + (K2y - K0y) t2 + (K3x - K0x) t3) + I Rz *(K0y + (K1y - K0y) t1 + (K2y - K0y) t2 + (K3x - K0x) t3) ), {t3, 0, 1-t1-t2}], {t2, 0, 1 - t1}], {t1, 0, 1}]
-   *
-   *  One has to be carefull in the special case that the r-vector is perpendicular to one of the sides of the triangle --> r*(k1-k0) = 0 or r*(k2-k1) = 0 or r*(k0-k2) = 0
-   *
-   *  |Rx*D1x + Ry*D1y| = 0 and  |Rx*D2x + Ry*D2y| > 0 :
-   *  sol01 = Integrate[ Integrate[E^(I Rx *(0 + D2x t2) + I Ry *(0 + D2y t2) ), {t2, 0, 1 - t1}], {t1, 0, 1}] // ComplexExpand
-   *
-   *  |Rx*D1x + Ry*D1y| > 0 and  |Rx*D2x + Ry*D2y| = 0 :
-   *  sol10 = Integrate[ Integrate[E^(I Rx *(D1x t1 + 0 t2) + I Ry *(D1y t1 + 0 t2) ), {t2, 0, 1 - t1}], {t1, 0, 1}] // ComplexExpand
-   *
-   *  |Rx*D1x + Ry*D1y| > 0 and  |Rx*D2x + Ry*D2y| > 0 :
-   *  sol11 = Integrate[ Integrate[E^(I Rx *(D1x t1 + D2x t2) + I Ry *(D1y t1 + D2y t2) ), {t2, 0, 1 - t1}], {t1, 0, 1}] // ComplexExpand
-   */
-  /*
-  template<typename scalartype>
-  std::complex<scalartype> tetrahedron<3>::integrate_harmonic(std::vector<scalartype>& r_vec)
-  {
-    const static scalartype EPSILON = 1.e-6;
-
-    assert(r_vec.size()==3);
-
-    std::vector<scalartype> r_tmp = r_vec;
-
-    std::complex<scalartype> result(0., 0.);
-
-    if(abs(Rx)<EPSILON and abs(Ry)<EPSILON and abs(Rz)<EPSILON){
-      real(result) = volume;
-      imag(result) = 0;
-
-      return result;
-    }
-
-    std::vector<scalartype> K_0 = vec_0;
-
-    std::vector<scalartype> D_1 = vec_0;
-    std::vector<scalartype> D_2 = vec_0;
-    std::vector<scalartype> D_3 = vec_0;
-
-    for(int d=0; d<3; d++){
-      D_1[d] = vec_1[d] - vec_0[d];
-      D_2[d] = vec_2[d] - vec_0[d];
-      D_3[d] = vec_3[d] - vec_0[d];
-    }
-
-    if(abs(VECTOR_OPERTIONS::DOT(r_tmp, D_2))<EPSILON){
-      std::swap(D_1, D_2);
-
-    if(abs(VECTOR_OPERTIONS::DOT(r_tmp, D_3))<EPSILON)
-      std::swap(D_1, D_3);
-
-    if(abs(VECTOR_OPERTIONS::DOT(r_tmp, D_1))<EPSILON)
-      {
-	result = 0;
-      }
-    else
-      {
-	result = 0;
-      }
-    
-    return result;
-  }
-  */
-
-  /*
-  template<typename scalartype, typename mesh_t>
-  void tetrahedron<3>::integrate_inverse_function(int size, std::vector<scalartype*> f, mesh_t& mesh, scalartype* f_result)
-  {
-    //int SIZE = size;
-  
-    for(int j=0; j<size; j++)
-      for(int i=0; i<size; i++)
-	f_result[i + j*size] = 0.;
-
-    static eigensystem_plan<scalartype, GENERAL> eigensystem_pln_0(size,'V','V');
-    memcpy(&eigensystem_pln_0.A[0], f[0], sizeof(scalartype)*square(size)); 
-    eigensystem_pln_0.execute_plan();
-
-    static eigensystem_plan<scalartype, GENERAL> eigensystem_pln_1(size,'V','V');
-    memcpy(&eigensystem_pln_1.A[0], f[1], sizeof(scalartype)*square(size)); 
-    eigensystem_pln_1.execute_plan();
-
-    static eigensystem_plan<scalartype, GENERAL> eigensystem_pln_2(size,'V','V');
-    memcpy(&eigensystem_pln_2.A[0], f[2], sizeof(scalartype)*square(size)); 
-    eigensystem_pln_2.execute_plan();
-
-    static eigensystem_plan<scalartype, GENERAL> eigensystem_pln_3(size,'V','V');
-    memcpy(&eigensystem_pln_3.A[0], f[3], sizeof(scalartype)*square(size)); 
-    eigensystem_pln_3.execute_plan();
-  
-    scalartype matrix_elements[4];
-    scalartype eigenvalues[4];
-
-    for(int i=0; i<size; i++){
-      for(int j=0; j<size; j++){
-
-	for(int l=0; l<size; l++){
-	
-	  matrix_elements[0] = std::conj(eigensystem_pln_0.VR[i+l*size])*eigensystem_pln_0.VR[l+j*size];
-	  matrix_elements[1] = std::conj(eigensystem_pln_1.VR[i+l*size])*eigensystem_pln_1.VR[l+j*size];
-	  matrix_elements[2] = std::conj(eigensystem_pln_2.VR[i+l*size])*eigensystem_pln_2.VR[l+j*size];
-	  matrix_elements[3] = std::conj(eigensystem_pln_3.VR[i+l*size])*eigensystem_pln_3.VR[l+j*size];
-
-	  eigenvalues[0] = eigensystem_pln_0.W[l];
-	  eigenvalues[1] = eigensystem_pln_1.W[l];
-	  eigenvalues[2] = eigensystem_pln_2.W[l];
-	  eigenvalues[3] = eigensystem_pln_3.W[l];
-
-	  f_result[i + j*size] += integrate_matrix_element(matrix_elements, eigenvalues);
-	}
-      }
-    }
-
-    for(int i=0; i<size; i++)
-      for(int j=0; j<size; j++)
-	f_result[i + j*size] *= (6.*volume);//(6.*volume_tetraheder);
-  }
-  */
-
   template<typename scalartype, typename mesh_t>
   void tetrahedron<3>::integrate_inverse_function(int size, 
                                                   std::vector<scalartype*> e,
@@ -532,9 +408,6 @@ namespace MATH_ALGORITHMS
 	}
       }
     }
-
-    //   double volume_tetraheder = compute_volume(&mesh[index[0]][0], &mesh[index[1]][0], &mesh[index[2]][0], &mesh[index[3]][0]);
-    //   assert(volume_tetraheder > 1.e-6);
 
     for(int i=0; i<size; i++)
       for(int j=0; j<size; j++)
@@ -571,15 +444,15 @@ namespace MATH_ALGORITHMS
       case THREEFOLD_DEGENERACY:
 	r[0] = (2.*std::pow(e[0],3) + 3.*std::pow(e[0],2)*e[1] - 6.*e[0]*std::pow(e[1],2) + std::pow(e[1],3) - 6.*std::pow(e[0],2)*e[1]*std::log(-e[0]) + 6.*std::pow(e[0],2)*e[1]*std::log(-e[1]))/(12.*std::pow(e[0] - e[1],4));
 	r[1] = (-11.*std::pow(e[0],3) + 18.*std::pow(e[0],2)*e[1] - 9.*e[0]*std::pow(e[1],2) + 2.*std::pow(e[1],3) + 6.*std::pow(e[0],3)*std::log(-e[0]) - 6.*std::pow(e[0],3)*std::log(-e[1]))/(36.*std::pow(e[0] - e[1],4));
-	r[2] = r[1];//(-11.*std::pow(e[0],3) + 18.*std::pow(e[0],2)*e[1] - 9.*e[0]*std::pow(e[1],2) + 2.*std::pow(e[1],3) + 6.*std::pow(e[0],3)*std::log(-e[0]) - 6.*std::pow(e[0],3)*std::log(-e[1]))/(36.*std::pow(e[0] - e[1],4));
-	r[3] = r[1];//(-11.*std::pow(e[0],3) + 18.*std::pow(e[0],2)*e[1] - 9.*e[0]*std::pow(e[1],2) + 2.*std::pow(e[1],3) + 6.*std::pow(e[0],3)*std::log(-e[0]) - 6.*std::pow(e[0],3)*std::log(-e[1]))/(36.*std::pow(e[0] - e[1],4));
+	r[2] = r[1];
+	r[3] = r[1];
 	break;
 	  
       case FOURFOLD_DEGENERACY:
 	r[0] = 1./24.*1./e[0];
-	r[1] = r[0];//1./24.*1./e[0];
-	r[2] = r[0];//1./24.*1./e[0];
-	r[3] = r[0];//1./24.*1./e[0];
+	r[1] = r[0];
+	r[2] = r[0];
+	r[3] = r[0];
 	break;
 
       default:

@@ -27,11 +27,8 @@ namespace MATH_ALGORITHMS
         for(int l=0; l<1.e6; l++)
           {
             t.push_back(t_dmn_t::get_elements()[0] + double(rand())/double(RAND_MAX)*delta);
-            //f.push_back(double(rand())/double(RAND_MAX));
 	    f.push_back(exp(-2.*M_PI/delta*(t[l]-begin)));
-	    
-	    //cout << t[l] << "\t" << f[l] << "\n";
-          }
+	              }
 
         FUNC_LIB::function<std::complex<scalartype>, w_dmn_t> f_w_1("f_w_1");
         FUNC_LIB::function<std::complex<scalartype>, w_dmn_t> f_w_2("f_w_2");

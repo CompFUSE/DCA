@@ -225,7 +225,7 @@ void tetrahedron_mesh<k_cluster<representation , cluster<parameters > > >::make_
       tetrahedra.erase(tetrahedra.begin(), tetrahedra.begin()+n_tet);
     }
 
-  { // get rid of mesh-redundancy
+  // get rid of mesh-redundancy
     std::vector<std::vector<double> >::iterator it;
     std::vector<std::vector<double> > mesh_old = mesh;
     
@@ -244,22 +244,6 @@ void tetrahedron_mesh<k_cluster<representation , cluster<parameters > > >::make_
     for(size_t l=0; l<tetrahedra.size(); l++)
       for(int z=0; z<3+1; z++)
 	tetrahedra[l].index[z] = index[tetrahedra[l].index[z]];
-  }
+  
 
-//   for(size_t i=0; i<mesh.size(); i++){
-//     for(size_t j=i+1; j<mesh.size(); j++){
-//       if(L2_norm(mesh[i], mesh[j]) < 1.e-6){
-// 	mesh.erase(mesh.begin()+j);
-	
-// 	for(size_t l=0; l<tetrahedra.size(); l++)
-// 	  for(int z=0; z<DIMENSION+1; z++)
-// 	    if(tetrahedra[l].index[z] == int(j))
-// 	      tetrahedra[l].index[z] = int(i);
-// 	    else
-// 	      tetrahedra[l].index[z] = tetrahedra[l].index[z]>int(j) ? tetrahedra[l].index[z]-1:tetrahedra[l].index[z]; 
-//       }
-//     }
-//   }
-
-//   cout << clock() << endl;
 }

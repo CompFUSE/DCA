@@ -65,10 +65,10 @@ akima_interpolation<scalartype>::akima_interpolation(int n):
   
   a = new scalartype[size];
   b = new scalartype[size];
-  c = new scalartype[size]; //(scalartype *) malloc (size * sizeof (scalartype));
-  d = new scalartype[size];//(scalartype *) malloc (size * sizeof (scalartype));
+  c = new scalartype[size]; 
+  d = new scalartype[size];
 
-  _m = new scalartype[size+4]; //(scalartype *) malloc ((size + 4) * sizeof (scalartype));
+  _m = new scalartype[size+4]; 
 
 }
 
@@ -187,16 +187,7 @@ void akima_interpolation<scalartype>::compute_coefficients(scalartype* x_array, 
           c[i] = (3.0 * m[i] - 2.0 * b[i] - tL_ip1) / h_i;
           d[i] = (b[i] + tL_ip1 - 2.0 * m[i]) / (h_i * h_i);
         }
-
-//       cout << x_array[i] 
-// 	   << "\t" << a[i]
-// 	   << "\t" << b[i]
-// 	   << "\t" << c[i]
-// 	   << "\t" << d[i]
-// 	   << endl;
     }
-
-//   cout << endl;
 }
 
 template<typename scalartype>
@@ -225,124 +216,5 @@ scalartype akima_interpolation<scalartype>::evaluate(scalartype x)
   
   return a0 + delx * (a1 + delx * (a2 + a3 * delx));
 }
-
-
-// void akima_eval_deriv (const void * vstate,
-// 		       const double x_array[], const double y_array[], int size,
-// 		       double x,
-// 		       gsl_interp_accel * a,
-// 		       double *dydx)
-// {
-//   const akima_state_t *state = (const akima_state_t *) vstate;
-
-//   int index;
-
-//   DISCARD_POINTER(y_array); /* prevent warning about unused parameter */
-  
-//   if (a != 0)
-//     {
-//       index = gsl_interp_accel_find (a, x_array, size, x);
-//     }
-//   else
-//     {
-//       index = gsl_interp_bsearch (x_array, x, 0, size - 1);
-//     }
-  
-//   /* evaluate */
-//   {
-//     double x_lo = x_array[index];
-//     double delx = x - x_lo;
-//     double b = state->b[index];
-//     double c = state->c[index];
-//     double d = state->d[index];
-//     *dydx = b + delx * (2.0 * c + 3.0 * d * delx);
-//     return GSL_SUCCESS;
-//   }
-// }
-
-
-// void akima_eval_deriv2(const void * vstate,
-// 			const double x_array[], const double y_array[], int size,
-// 			double x,
-// 			gsl_interp_accel * a,
-// 			double *y_pp)
-// {
-//   const akima_state_t *state = (const akima_state_t *) vstate;
-
-//   int index;
-
-//   DISCARD_POINTER(y_array); /* prevent warning about unused parameter */
-
-//   if (a != 0)
-//     {
-//       index = gsl_interp_accel_find (a, x_array, size, x);
-//     }
-//   else
-//     {
-//       index = gsl_interp_bsearch (x_array, x, 0, size - 1);
-//     }
-  
-//   /* evaluate */
-//   {
-//     const double x_lo = x_array[index];
-//     const double delx = x - x_lo;
-//     const double c = state->c[index];
-//     const double d = state->d[index];
-//     *y_pp = 2.0 * c + 6.0 * d * delx;
-//   }
-// }
-
-// void akima_eval_integ (const void * vstate,
-// 		       const double x_array[], const double y_array[], int size,
-// 		       gsl_interp_accel * acc,
-// 		       double a, double b,
-// 		       double * result)
-// {
-//   const akima_state_t *state = (const akima_state_t *) vstate;
-
-//   int i, index_a, index_b;
-
-//   if (acc != 0)
-//     {
-//       index_a = gsl_interp_accel_find (acc, x_array, size, a);
-//       index_b = gsl_interp_accel_find (acc, x_array, size, b);
-//     }
-//   else
-//     {
-//       index_a = gsl_interp_bsearch (x_array, a, 0, size - 1);
-//       index_b = gsl_interp_bsearch (x_array, b, 0, size - 1);
-//     }
-  
-//   *result = 0.0;
-
-//   /* interior intervals */
-  
-//   for(i=index_a; i<=index_b; i++) {
-//     const double x_hi = x_array[i + 1];
-//     const double x_lo = x_array[i];
-//     const double y_lo = y_array[i];
-//     const double dx = x_hi - x_lo;
-//     if(dx != 0.0) {
-
-//       if (i == index_a || i == index_b)
-//         {
-//           double x1 = (i == index_a) ? a : x_lo;
-//           double x2 = (i == index_b) ? b : x_hi;
-//           *result += integ_eval (y_lo, state->b[i], state->c[i], state->d[i],
-//                                  x_lo, x1, x2);
-//         }
-//       else
-//         {
-//           *result += dx * (y_lo 
-//                            + dx*(0.5*state->b[i] 
-//                                  + dx*(state->c[i]/3.0 
-//                                        + 0.25*state->d[i]*dx)));
-//         }
-//     }
-//     else {
-//       *result = 0.0;
-//     }
-//   }
-// }
 
 #endif

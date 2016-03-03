@@ -71,8 +71,7 @@ namespace wykobi
       template<typename T> struct ritter_minimum_bounding_ball;
       template<typename T> struct ritter_minimum_bounding_ball< point2d<T> >;
       template<typename T> struct ritter_minimum_bounding_ball< point3d<T> >;
-      //template<typename T, std::size_t D> struct ritter_minimum_bounding_ball< pointnd<T,D> >;
-
+     
       template<typename T> struct ritter_minimum_bounding_ball_with_ch_filter;
       template<typename T> struct ritter_minimum_bounding_ball_with_ch_filter< point2d<T> >;
 

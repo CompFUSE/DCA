@@ -12,7 +12,7 @@ namespace MATH_LIBRARY
   template<typename k_dmn_t>
   class covariance_function<PERIODIC_SQUARED_EXPONENTIAL, k_dmn_t>
   {
-    const static int DIMENSION;// = k_dmn_t::parameter_type::DIMENSION;
+    const static int DIMENSION;
 
   public:
 

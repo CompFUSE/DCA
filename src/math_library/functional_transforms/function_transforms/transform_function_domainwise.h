@@ -18,7 +18,6 @@ namespace MATH_ALGORITHMS
   {
     const static bool VERBOSE = false;
     
-    //typedef typename SWAP_COND<domain_input, type_input, type_output, 0>::Result TRANSFORMED_DOMAIN;
     typedef typename SWAP_FIRST<domain_input, type_input, type_output>::Result TRANSFORMED_DOMAIN;
     
     const static int CURR_DMN_INDEX = IndexOf<typename domain_input      ::this_type, type_input>::value;
@@ -34,8 +33,6 @@ namespace MATH_ALGORITHMS
     static void execute_on_first(FUNC_LIB::function<scalartype_input , domain_input >& f_input, 
 				 FUNC_LIB::function<scalartype_output, domain_output>& f_output)
     {
-//       GENERIC_ASSERT<IS_EQUAL<TRANSFORMED_DOMAIN, domain_output>::CHECK>::execute();
-
       if(VERBOSE)
 	std::cout << "\n\n\t" << __FUNCTION__ << "\t" << f_input.get_name() << " --> " << f_output.get_name() << "\n\n";
       
@@ -49,8 +46,6 @@ namespace MATH_ALGORITHMS
 				 FUNC_LIB::function<scalartype_output, domain_output>&  f_output,
 				 LIN_ALG::matrix<scalartype_T, LIN_ALG::CPU>& T)
     {
-//       GENERIC_ASSERT<IS_EQUAL<TRANSFORMED_DOMAIN, domain_output>::CHECK>::execute();
-
       if(VERBOSE)
 	std::cout << "\n\n\t" << __FUNCTION__ << "\t" << f_input.get_name() << " --> " << f_output.get_name() << "\n\n";
       
