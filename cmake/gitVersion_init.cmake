@@ -9,9 +9,9 @@ function(get_git_log _git_log)
 
   execute_process(
     COMMAND
-    git
+    git --git-dir ${PROJECT_SOURCE_DIR}/.git
     log -1
-    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     RESULT_VARIABLE res
     OUTPUT_VARIABLE out
     )
@@ -27,9 +27,9 @@ function(get_git_status _git_status)
 
   execute_process(
     COMMAND
-    git
+    git --git-dir ${PROJECT_SOURCE_DIR}/.git
     status --porcelain
-    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     RESULT_VARIABLE res
     OUTPUT_VARIABLE out
     )

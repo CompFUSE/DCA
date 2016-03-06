@@ -6,10 +6,13 @@
 # If either of them changes, gitVersion.cpp will be reconfigured which triggers the
 # recompilation of libgitVersion.
 
+# SCRIPT_SRC_DIR is passed in from the custom rule
+# as the CMAKE_SOURCE_DIR is not valid when run as a rule
+
 # Check git log
 execute_process(
   COMMAND
-  git
+  git --git-dir ${SCRIPT_SRC_DIR}/.git
   log -1
   WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"  # .../build
   RESULT_VARIABLE res
@@ -39,7 +42,7 @@ endif()
 # Check git status
 execute_process(
   COMMAND
-  git
+  git --git-dir ${SCRIPT_SRC_DIR}/.git
   status --porcelain
   WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
   RESULT_VARIABLE res
@@ -71,5 +74,5 @@ endif()
 
 # Reconfigure gitVersion.cpp if something has changed.
 if (LOG_CHANGED OR STATUS_CHANGED)
-  configure_file("${CMAKE_SOURCE_DIR}/gitVersion/gitVersion.cpp.in" "${CMAKE_BINARY_DIR}/gitVersion/gitVersion.cpp" @ONLY)
+  configure_file("${SCRIPT_SRC_DIR}/gitVersion/gitVersion.cpp.in" "${CMAKE_BINARY_DIR}/gitVersion/gitVersion.cpp" @ONLY)
 endif()
