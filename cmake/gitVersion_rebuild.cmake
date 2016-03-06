@@ -12,7 +12,7 @@
 # Check git log
 execute_process(
   COMMAND
-  git --git-dir ${SCRIPT_SRC_DIR}/.git
+  git --git-dir ${SCRIPT_SRC_DIR}/.git --work-tree ${SCRIPT_SRC_DIR}
   log -1
   WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"  # .../build
   RESULT_VARIABLE res
@@ -42,7 +42,7 @@ endif()
 # Check git status
 execute_process(
   COMMAND
-  git --git-dir ${SCRIPT_SRC_DIR}/.git
+  git --git-dir ${SCRIPT_SRC_DIR}/.git --work-tree ${SCRIPT_SRC_DIR}
   status --porcelain
   WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
   RESULT_VARIABLE res

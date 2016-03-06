@@ -9,7 +9,7 @@ function(get_git_log _git_log)
 
   execute_process(
     COMMAND
-    git --git-dir ${PROJECT_SOURCE_DIR}/.git
+    git --git-dir ${PROJECT_SOURCE_DIR}/.git --work-tree ${PROJECT_SOURCE_DIR}
     log -1
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     RESULT_VARIABLE res
@@ -27,7 +27,7 @@ function(get_git_status _git_status)
 
   execute_process(
     COMMAND
-    git --git-dir ${PROJECT_SOURCE_DIR}/.git
+    git --git-dir ${PROJECT_SOURCE_DIR}/.git --work-tree ${PROJECT_SOURCE_DIR}
     status --porcelain
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     RESULT_VARIABLE res
