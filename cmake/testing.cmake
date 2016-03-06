@@ -34,7 +34,7 @@ function(add_gtest)
 
   target_include_directories(${ADD_GTEST_NAME}
     PRIVATE "${ADD_GTEST_INCLUDES}"
-    PRIVATE "${CMAKE_SOURCE_DIR}/testing/common")
+    PRIVATE "${PROJECT_SOURCE_DIR}/testing/common")
 
   if (ADD_GTEST_MPI)
     if (NOT DEFINED ADD_GTEST_MPI_NUMPROC)
@@ -60,7 +60,7 @@ option(DCA_TESTS_INCLUDE_ADVANCED "Include time- and resource-consuming tests." 
 if (DCA_TESTS)
   enable_testing()
 
-  add_subdirectory(${gtest_DIR} ${CMAKE_BINARY_DIR}/gtest)
+  add_subdirectory(${gtest_DIR} ${PROJECT_BINARY_DIR}/gtest)
   
   target_compile_options(gtest      PRIVATE "-w")
   target_compile_options(gtest_main PRIVATE "-w")

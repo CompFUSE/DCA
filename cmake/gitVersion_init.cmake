@@ -16,7 +16,7 @@ function(get_git_log _git_log)
     OUTPUT_VARIABLE out
     )
 
-  file(WRITE "${CMAKE_BINARY_DIR}/gitVersion/git_log.txt" "${out}")
+  file(WRITE "${PROJECT_BINARY_DIR}/gitVersion/git_log.txt" "${out}")
   string(REPLACE "\n" "\\n" out "${out}")
   set(${_git_log} "${out}" PARENT_SCOPE)
 
@@ -34,7 +34,7 @@ function(get_git_status _git_status)
     OUTPUT_VARIABLE out
     )
 
-  file(WRITE "${CMAKE_BINARY_DIR}/gitVersion/git_status.txt" "${out}")
+  file(WRITE "${PROJECT_BINARY_DIR}/gitVersion/git_status.txt" "${out}")
   string(REPLACE "\n" "\\n" out "${out}")
   set(${_git_status} "${out}" PARENT_SCOPE)
 

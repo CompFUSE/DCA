@@ -4,8 +4,8 @@
 
 add_custom_target(
     gitVersion_helper
-    COMMAND ${CMAKE_COMMAND} -DSCRIPT_SRC_DIR=${PROJECT_SOURCE_DIR} -P ${CMAKE_SOURCE_DIR}/cmake/gitVersion_rebuild.cmake
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    COMMAND ${CMAKE_COMMAND} -DSCRIPT_SRC_DIR=${PROJECT_SOURCE_DIR} -DSCRIPT_BIN_DIR=${PROJECT_BINARY_DIR} -P ${PROJECT_SOURCE_DIR}/cmake/gitVersion_rebuild.cmake
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
 )
 
 add_library(gitVersion ${CMAKE_CURRENT_BINARY_DIR}/gitVersion.cpp)
