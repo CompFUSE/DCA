@@ -22,6 +22,7 @@ namespace COMP_LIB
 #include "parallelization_template.h"
 
 // MPI
+#ifdef MPI_SUPPORTED
 #include <mpi.h>
 
 #include "interfaces/type_map_interface_mpi.h"
@@ -36,6 +37,7 @@ namespace COMP_LIB
 #include "interfaces/collective_sum_interface_mpi.h"
 
 #include "parallelization_mpi.h"
+#endif
 
 // POSIX
 

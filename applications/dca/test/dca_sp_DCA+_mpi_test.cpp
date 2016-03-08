@@ -5,6 +5,9 @@
 //
 // Author: Urs Haehner (haehneru@itp.phys.ethz.ch), ETH Zurich
 //====================================================================
+#ifndef MPI_SUPPORTED
+#error MPI must be supported for the dca_sp_DCA+_mpi_test.
+#endif
 
 #include <string>
 #include <iostream>
