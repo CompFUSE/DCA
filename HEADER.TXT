@@ -1,0 +1,13 @@
+// Copyright (C) ???-2016 ETH Zurich
+// Copyright (C) ???-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific
+// publications.
+//
+// Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//         Raffaele Solca' (rasolca@itp.phys.ethz.ch)
+//
+// This file defines the header that should be used in every .cpp and .hpp file.
+// For Python, CMake and Bash scripts replace // with #.
