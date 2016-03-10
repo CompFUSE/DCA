@@ -115,10 +115,7 @@ void compute_band_structure::construct_path(std::string                        c
     {
       std::vector<double>& p0 = path_vecs[i];
       std::vector<double>& p1 = path_vecs[i+1];
-
-      //       VECTOR_OPERATIONS::PRINT(p0); cout << endl;
-      //       VECTOR_OPERATIONS::PRINT(p1); cout << endl;
-
+      
       assert(model::DIMENSION == int(p0.size()));
       assert(model::DIMENSION == int(p1.size()));
 
@@ -140,9 +137,6 @@ void compute_band_structure::construct_path(std::string                        c
           p0_tmp = p0;
           p1_tmp = p1;
         }
-
-      //       VECTOR_OPERATIONS::PRINT(p0_tmp); cout << endl;
-      //       VECTOR_OPERATIONS::PRINT(p1_tmp); cout << endl << endl;
 
       for(int l=0; l<Nb_interpolation; l++)
         {
@@ -240,8 +234,6 @@ void compute_band_structure::high_symmetry_line_3D(std::string& name,
 
 void compute_band_structure::high_symmetry_line_1D(std::vector<std::vector<double> >& collection_k_vecs)
 {
-  //cout << __FUNCTION__ << endl;
-
   int Nb_interpolation = INTERPOLATION_POINTS_BAND_STRUCTURE;
 
   std::vector<double>& b0 = k_DCA::parameter_type::get_super_basis_vectors()[0];
@@ -258,8 +250,6 @@ void compute_band_structure::high_symmetry_line_1D(std::vector<std::vector<doubl
 
 void compute_band_structure::high_symmetry_line_2D(std::vector<std::vector<double> >& collection_k_vecs)
 {
-  //cout << __FUNCTION__ << endl;
-
   int Nb_interpolation = INTERPOLATION_POINTS_BAND_STRUCTURE;
 
   std::vector<double>& b0 = k_DCA::parameter_type::get_super_basis_vectors()[0];
@@ -324,14 +314,7 @@ void compute_band_structure::high_symmetry_line_2D(std::vector<std::vector<doubl
 
 void compute_band_structure::high_symmetry_line_3D(std::vector<std::vector<double> >& collection_k_vecs)
 {
-  //cout << __FUNCTION__ << endl;
-
   int Nb_interpolation = INTERPOLATION_POINTS_BAND_STRUCTURE;
-
-  //   std::vector<double>& b0 = DCA_cluster_type::get_k_super_basis_new()[0];
-  //   std::vector<double>& b1 = DCA_cluster_type::get_k_super_basis_new()[1];
-  //   std::vector<double>& b2 = DCA_cluster_type::get_k_super_basis_new()[2];
-
   std::vector<double>& b0 = k_DCA::parameter_type::get_super_basis_vectors()[0];
   std::vector<double>& b1 = k_DCA::parameter_type::get_super_basis_vectors()[1];
   std::vector<double>& b2 = k_DCA::parameter_type::get_super_basis_vectors()[2];

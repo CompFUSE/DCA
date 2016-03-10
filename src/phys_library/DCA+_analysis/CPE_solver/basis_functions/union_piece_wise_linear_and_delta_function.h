@@ -31,21 +31,13 @@ public:
 
 int& union_piece_wise_linear_and_delta_function::get_size()
 {
-  static int size = 0;//piece_wise_linear_function::get_size() + delta_function::get_size();
+  static int size = 0;
   return size;
 }
 
 std::vector<double>& union_piece_wise_linear_and_delta_function::get_elements()
 {
   static std::vector<double> elements(0);
- 
-//   static bool first = true;
-//   if(first){
-//     elements.insert(elements.end(), piece_wise_linear_function::get_elements().begin(), piece_wise_linear_function::get_elements().end());
-//     elements.insert(elements.end(), delta_function::get_elements().begin(), delta_function::get_elements().end());
-//     first = false;
-//   }
-
   return elements;
 }
 
