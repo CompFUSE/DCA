@@ -205,28 +205,8 @@ namespace DCA
   }
 
   template<class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
-  template<IO::FORMAT DATA_FORMAT>
-  void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t, WEIGHTED_GRADIENT_METHOD>::write(IO::writer<DATA_FORMAT>& /*writer*/)
-  {
-    /*
-      writer.open_group("CPE-functions");
-
-      writer.execute(error_function);
-      writer.execute(alpha_function);
-
-      writer.execute(f_approx);
-      writer.execute(f_measured);
-
-      writer.close_group();
-    */
-  }
-
-  template<class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
   void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t, WEIGHTED_GRADIENT_METHOD>::initialize()
   {
-    //     std::cout << "\n\t w_IMAG     ::dmn_size() : " << w_IMAG     ::dmn_size();
-    //     std::cout << "\n\t alpha_dmn_t::dmn_size() : " << alpha_dmn_t::dmn_size();
-
     {
       A_matrix   .resize_no_copy(std::pair<int,int>(w_IMAG::dmn_size(), alpha_dmn_t::dmn_size()));
 
@@ -252,128 +232,33 @@ namespace DCA
   void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t, WEIGHTED_GRADIENT_METHOD>::execute_st(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w      > >& f_source,
                                                                                                                             FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w_dmn_t> >& f_target)
   {
-    //std::cout << __FUNCTION__ << "\t" << __LINE__ << "\n";
-
     profiler_type profiler(__FUNCTION__, __FILE__, __LINE__);
 
-    {// initialize f-measured
-      for(int w_ind=0; w_ind<w_IMAG::dmn_size(); w_ind++)
-        for(int k_ind=0; k_ind<k_dmn_t::dmn_size(); k_ind++)
-          for(int nu_j=0; nu_j<nu::dmn_size(); nu_j++)
-            for(int nu_i=0; nu_i<nu::dmn_size(); nu_i++)
-              f_measured(nu_i, nu_j, k_ind, w_ind) = f_source(nu_i, nu_j, k_ind, w::dmn_size()/2+w_ind);
-    }
+    // initialize f-measured
+    for(int w_ind=0; w_ind<w_IMAG::dmn_size(); w_ind++)
+      for(int k_ind=0; k_ind<k_dmn_t::dmn_size(); k_ind++)
+	for(int nu_j=0; nu_j<nu::dmn_size(); nu_j++)
+	  for(int nu_i=0; nu_i<nu::dmn_size(); nu_i++)
+	    f_measured(nu_i, nu_j, k_ind, w_ind) = f_source(nu_i, nu_j, k_ind, w::dmn_size()/2+w_ind);
+    
 
     CPE_data_type CPE_data_obj;
 
     CPE_data_obj.initialize(parameters, f_target, *this);
 
-    //std::cout << "\n\n";
     for(int k_ind=0; k_ind<k_dmn_t::dmn_size(); k_ind++){
-      for(int nu_ind=0; nu_ind<nu::dmn_size(); nu_ind++){
+      for(int nu_ind=0; nu_ind<nu::dmn_size(); nu_ind++){   
+	read_function_values(nu_ind, k_ind, CPE_data_obj);
 
-        //std::cout << k_ind << "\t" << nu_ind << "\t start reading measured function\n";
-        {
-          read_function_values(nu_ind, k_ind, CPE_data_obj);
-        }
-
-        //std::cout << k_ind << "\t" << nu_ind << "\t start analytic continuation\n";
-        {// find the alpha
-          perform_continuous_pole_expansion_threaded(CPE_data_obj);
-        }
-
-        //std::cout << k_ind << "\t" << nu_ind << "\t start writing approx function\n";
-        {
-          write_function_values(nu_ind, k_ind, CPE_data_obj);
-        }
+	// find the alpha
+	perform_continuous_pole_expansion_threaded(CPE_data_obj);      
+	write_function_values(nu_ind, k_ind, CPE_data_obj);      
       }
     }
 
     symmetrize::execute(f_target);
-
-    //SHOW::execute(f_approx,f_measured);
   }
 
-  /*
-    template<class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
-    void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t, WEIGHTED_GRADIENT_METHOD>::execute_mt(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w      > >& f_source,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w_dmn_t> >& f_target)
-    {
-    profiler_type profiler(__FUNCTION__, __FILE__, __LINE__);
-
-    {// initialize f-measured
-    for(int w_ind=0; w_ind<w_IMAG::dmn_size(); w_ind++)
-    for(int k_ind=0; k_ind<k_dmn_t::dmn_size(); k_ind++)
-    for(int nu_j=0; nu_j<nu::dmn_size(); nu_j++)
-    for(int nu_i=0; nu_i<nu::dmn_size(); nu_i++)
-    f_measured(nu_i, nu_j, k_ind, w_ind) = f_source(nu_i, nu_j, k_ind, w::dmn_size()/2+w_ind);
-    }
-
-    //SHOW::execute(f_measured);
-
-    int nr_threads = std::min(8, k_dmn_t::dmn_size());
-
-    std::vector<CPE_data_type > CPE_data_vector(nr_threads);
-
-    for(int l=0; l<nr_threads; l++)
-    CPE_data_vector[l].initialize(l, parameters, f_target, *this);
-
-    COMP_LIB::parallelization<COMP_LIB::POSIX_LIBRARY> parallelization_obj;
-
-    parallelization_obj.execute(nr_threads, threaded_analytical_continuation, (void*) &CPE_data_vector);
-
-    symmetrize::execute(f_target);
-
-    //SHOW::execute(f_approx,f_measured);
-    }
-
-    template<class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
-    void* continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t, WEIGHTED_GRADIENT_METHOD>::threaded_analytical_continuation(void* void_ptr)
-    {
-    COMP_LIB::posix_data*       data_ptr         = static_cast<COMP_LIB::posix_data      *>(void_ptr);
-    std::vector<CPE_data_type>* CPE_data_vec_ptr = static_cast<std::vector<CPE_data_type>*>(data_ptr->args);
-
-    int id         = data_ptr->id;
-    int nr_threads = data_ptr->nr_threads;
-
-    std::vector<CPE_data_type>& CPE_data_vec = *(CPE_data_vec_ptr);
-
-    k_dmn_t k_dmn;
-    std::pair<int, int> k_bounds = COMP_LIB::parallelization<COMP_LIB::POSIX_LIBRARY>::get_bounds(id, nr_threads, k_dmn);
-
-    //     std::stringstream ss;
-    //     {
-    //       ss << id << "\t" << nr_threads << "\t" << k_bounds.first << "\t" << k_bounds.second << "\t" << CPE_data_vec.size() << "\n";
-    //       std::cout << ss.str();
-    //     }
-
-    for(int k_ind=k_bounds.first; k_ind<k_bounds.second; k_ind++)
-    {
-    for(int nu_ind=0; nu_ind<nu::dmn_size(); nu_ind++)
-    {
-    //             ss << k_ind << "\t" << nu_ind << "\t start reading measured function\n";
-    //             std::cout << ss.str();
-    {
-    read_function_values(nu_ind, k_ind, CPE_data_vec[id]);
-    }
-
-    //             ss << k_ind << "\t" << nu_ind << "\t start analytic continuation\n";
-    //             std::cout << ss.str();
-    {// find the alpha
-    perform_continuous_pole_expansion_threaded_1(CPE_data_vec[id]);
-    }
-
-    //             ss << k_ind << "\t" << nu_ind << "\t start writing approx function\n";
-    //             std::cout << ss.str();
-    {
-    write_function_values(nu_ind, k_ind, CPE_data_vec[id]);
-    }
-    }
-    }
-
-    return 0;
-    }
-  */
 
   template<class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
   void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t, WEIGHTED_GRADIENT_METHOD>::execute_mt(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w      > >& f_source,
@@ -403,17 +288,8 @@ namespace DCA
             for(int nu_i=0; nu_i<nu::dmn_size(); nu_i++)
               f_measured(nu_i, nu_j, k_ind, w_ind) = f_source(nu_i, nu_j, k_ind, w::dmn_size()/2+w_ind);
     }
-
-    //SHOW::execute(f_measured);
-
+    
     {
-      //       f_approx = 0;
-      //       f_target = 0;
-
-      //       Sigma_0_moment = 0;
-      //       alpha_function = 0;
-      //       error_function = 0;
-
       dmn_3<b, s, k_dmn_t> b_s_k_dmn;
       std::pair<int, int>  bounds = concurrency.get_bounds(b_s_k_dmn);
 
@@ -440,15 +316,10 @@ namespace DCA
 
       concurrency.sum(S_approx);
       concurrency.sum(f_approx);
-      //concurrency.sum(f_measured);
-
       concurrency.sum(f_target);
     }
 
     symmetrize::execute(f_target);
-
-    //SHOW::execute(f_approx, f_measured);
-    //SHOW::execute(f_target);
   }
 
   template<class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
@@ -469,16 +340,6 @@ namespace DCA
 
     std::pair<int, int>  bounds = COMP_LIB::parallelization<COMP_LIB::POSIX_LIBRARY>::get_bounds(id, nr_threads, MPI_bounds);
 
-    //     if(id==0)
-    //       {
-    //         std::stringstream ss;
-    //         ss << "\n\n\n\t\t"        << __FUNCTION__ << "\n";
-    //  ss << "\t\t MPI-bounds   : " << MPI_bounds.first << "\t" << MPI_bounds.second << "\n";
-    //  ss << "\t\t POSIX-bounds : " << id << "\t" << nr_threads << "\t" << bounds.first << "\t" << bounds.second << "\n";
-    //  ss << "\n\n\n";
-    //         std::cout << ss.str();
-    //       }
-
     int coor[3];
     for(int l=bounds.first; l<bounds.second; l++)
       {
@@ -487,54 +348,19 @@ namespace DCA
         int nu_ind = nu_dmn(coor[0], coor[1]);
         int k_ind  = coor[2];
 
-        {
-          //         if(id==0)
-          //           {
-          //             std::stringstream ss;
-          //             ss << nu_ind << "\t" << k_ind << "\t start reading measured function\n";
-          //             std::cout << ss.str();
-          //           }
-          {
-            read_function_values(nu_ind, k_ind, CPE_data_vec[id]);
-          }
+	read_function_values(nu_ind, k_ind, CPE_data_vec[id]);          
+	if(CPE_data_vec[id].is_interacting_band[nu_ind])
+	  {// find the alpha
+	    perform_continuous_pole_expansion_threaded_1(CPE_data_vec[id]);
+	  }
+	else
+	  {
+	    for(int n_ind=0; n_ind<alpha_dmn_t::dmn_size(); n_ind++)
+	      CPE_data_vec[id].alpha_vec_d[n_ind] = 0.;
+	  }
 
-          //         if(id==0)
-          //           {
-          //             std::stringstream ss;
-          //             ss << nu_ind << "\t" << k_ind << "\t start analytic continuation\n";
-          //             std::cout << ss.str();
-          //           }
-
-          if(CPE_data_vec[id].is_interacting_band[nu_ind])
-            {// find the alpha
-              perform_continuous_pole_expansion_threaded_1(CPE_data_vec[id]);
-            }
-          else
-            {
-              for(int n_ind=0; n_ind<alpha_dmn_t::dmn_size(); n_ind++)
-                CPE_data_vec[id].alpha_vec_d[n_ind] = 0.;
-            }
-
-          //         if(id==0)
-          //           {
-          //             std::stringstream ss;
-          //             ss << nu_ind << "\t" << k_ind << "\t start writing approx function\n";
-          //             std::cout << ss.str();
-          //           }
-
-          {
-            write_function_values(nu_ind, k_ind, CPE_data_vec[id]);
-          }
-
-          //         if(id==0)
-          //           {
-          //             std::stringstream ss;
-          //             ss << "\n";
-          //             std::cout << ss.str();
-          //           }
-        }
+	write_function_values(nu_ind, k_ind, CPE_data_vec[id]);
       }
-
     return 0;
   }
 
@@ -659,9 +485,6 @@ namespace DCA
 
         CPE_iteration++;
       }
-
-    //     if(concurrency.id()==0 and CPE_data_obj.id==0)
-    //       std::cout << CPE_iteration << "\t" << MAX_ITERATIONS << "\t" << evaluate_Lambda_norm(CPE_data_obj) << "\t" << result << "\n";
   }
 
   template<class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
@@ -689,9 +512,6 @@ namespace DCA
 
         CPE_iteration++;
       }
-
-    //     if(concurrency.id()==0 and CPE_data_obj.id==0)
-    //       std::cout << CPE_iteration << "\t" << MAX_ITERATIONS << "\t" << evaluate_Lambda_norm(CPE_data_obj) << "\n";
   }
 
   template<class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
@@ -725,8 +545,6 @@ namespace DCA
   template<class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
   void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t, WEIGHTED_GRADIENT_METHOD>::compute_gradient_alphas(CPE_data_type& CPE_data_obj)
   {
-    //std::cout << __FUNCTION__ << "\t" << __LINE__ << "\n";
-
     profiler_type profiler(__FUNCTION__, __FILE__, __LINE__);
 
     //     grad_F = -2*A1*(real(spoints) - transpose(A1)*a) ...
@@ -767,17 +585,17 @@ namespace DCA
     }
 
     //if(normalize)
-    { // normalize
-      for(int n=0; n<alpha_dmn_t::dmn_size(); n++)
-        CPE_data_obj.gradient[n] = -(CPE_data_obj.gradient_re[n]+CPE_data_obj.gradient_im[n]);
+    // normalize
+    for(int n=0; n<alpha_dmn_t::dmn_size(); n++)
+      CPE_data_obj.gradient[n] = -(CPE_data_obj.gradient_re[n]+CPE_data_obj.gradient_im[n]);
 
-      double norm_gradient = 0;
-      for(int n=0; n<alpha_dmn_t::dmn_size(); n++)
-        norm_gradient += square(CPE_data_obj.gradient[n]);
+    double norm_gradient = 0;
+    for(int n=0; n<alpha_dmn_t::dmn_size(); n++)
+      norm_gradient += square(CPE_data_obj.gradient[n]);
 
-      for(int n=0; n<alpha_dmn_t::dmn_size(); n++)
-        CPE_data_obj.gradient[n] /= sqrt(norm_gradient);
-    }
+    for(int n=0; n<alpha_dmn_t::dmn_size(); n++)
+      CPE_data_obj.gradient[n] /= sqrt(norm_gradient);
+    
   }
 
   template<class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
@@ -828,29 +646,6 @@ namespace DCA
         case FOUND_A_MINIMUM:
           {
             assert(index>=2 and index<CPE_data_obj.x.size());
-
-            /*
-              {// compute the minimum
-              LIN_ALG::matrix<scalartype, LIN_ALG::CPU> V(3);
-
-              V(0,0) = square(CPE_data_obj.x[index-2]); V(0,1) = CPE_data_obj.x[index-2]; V(0,2) = 1.;
-              V(1,0) = square(CPE_data_obj.x[index-1]); V(1,1) = CPE_data_obj.x[index-1]; V(1,2) = 1.;
-              V(2,0) = square(CPE_data_obj.x[index-0]); V(2,1) = CPE_data_obj.x[index-0]; V(2,2) = 1.;
-
-              LIN_ALG::GEINV<LIN_ALG::CPU>::execute(V);
-
-              scalartype a = V(0,0)*CPE_data_obj.y[index-2] + V(0,1)*CPE_data_obj.y[index-1] + V(0,2)*CPE_data_obj.y[index-0];
-              scalartype b = V(1,0)*CPE_data_obj.y[index-2] + V(1,1)*CPE_data_obj.y[index-1] + V(1,2)*CPE_data_obj.y[index-0];
-              scalartype c = V(2,0)*CPE_data_obj.y[index-2] + V(2,1)*CPE_data_obj.y[index-1] + V(2,2)*CPE_data_obj.y[index-0];
-
-              assert(abs(CPE_data_obj.y[index-2] - (a*square(CPE_data_obj.x[index-2])+b*CPE_data_obj.x[index-2]+c) )<1.e-6);
-              assert(abs(CPE_data_obj.y[index-1] - (a*square(CPE_data_obj.x[index-1])+b*CPE_data_obj.x[index-1]+c) )<1.e-6);
-              assert(abs(CPE_data_obj.y[index-0] - (a*square(CPE_data_obj.x[index-0])+b*CPE_data_obj.x[index-0]+c) )<1.e-6);
-
-              lambda = -b/(2*a);
-              }
-            */
-
             lambda = find_minimum_1(index, CPE_data_obj);
 
             if(lambda<0)
@@ -876,43 +671,8 @@ namespace DCA
           throw std::logic_error(__FUNCTION__);
         }
     }
-
-    /*
-      {
-      // compute alpha at the minimum
-      for(int n=0; n<alpha_dmn_t::dmn_size(); n++){
-      scalartype value            = CPE_data_obj.alpha_vec_d[n] + lambda*CPE_data_obj.gradient[n];
-
-      real(CPE_data_obj.alpha_vec_z[n]) = value<0.? 0. : value;
-      imag(CPE_data_obj.alpha_vec_z[n]) = 0.;
-      }
-
-      // smooth alpha out
-      {
-      int factor = CPE_data_obj.smoothing_factor;
-
-      for(int n=0; n<alpha_dmn_t::dmn_size(); n++){
-
-      double N                    = 0.;
-      CPE_data_obj.alpha_vec_d[n] = 0 ;
-
-      for(int l=0-factor; l<=0+factor; l++)
-      {
-      if(n+l>-1 && n+l<alpha_dmn_t::dmn_size())
-      {
-      CPE_data_obj.alpha_vec_d[n] += real(CPE_data_obj.alpha_vec_z[n+l]);
-      N += 1.;
-      }
-      }
-
-      CPE_data_obj.alpha_vec_d[n] /= N;
-      }
-      }
-      }
-    */
-
+    
     compute_new_alpha(lambda, CPE_data_obj);
-
     return FOUND_A_MINIMUM;
   }
 
@@ -998,14 +758,8 @@ namespace DCA
 
         scalartype a = V(0,0)*CPE_data_obj.y[index-2] + V(0,1)*CPE_data_obj.y[index-1] + V(0,2)*CPE_data_obj.y[index-0];
         scalartype b = V(1,0)*CPE_data_obj.y[index-2] + V(1,1)*CPE_data_obj.y[index-1] + V(1,2)*CPE_data_obj.y[index-0];
-        //         scalartype c = V(2,0)*CPE_data_obj.y[index-2] + V(2,1)*CPE_data_obj.y[index-1] + V(2,2)*CPE_data_obj.y[index-0];
-
-        //         assert(abs(CPE_data_obj.y[index-2] - (a*square(CPE_data_obj.x[index-2])+b*CPE_data_obj.x[index-2]+c) )<1.e-6);
-        //         assert(abs(CPE_data_obj.y[index-1] - (a*square(CPE_data_obj.x[index-1])+b*CPE_data_obj.x[index-1]+c) )<1.e-6);
-        //         assert(abs(CPE_data_obj.y[index-0] - (a*square(CPE_data_obj.x[index-0])+b*CPE_data_obj.x[index-0]+c) )<1.e-6);
 
         lambda = -b/(2*a);
-
         lambda = lambda>0? lambda : 0;
       }
 
@@ -1073,12 +827,6 @@ namespace DCA
 
     scalartype a = (x2*(-y0 + y1) + x1*(y0 - y2) + x0*(-y1 + y2))/((x0 - x1)*(x0 - x2)*(x1 - x2));
     scalartype b = (std::pow(x2,2)*(y0 - y1) + std::pow(x0,2)*(y1 - y2) + std::pow(x1,2)*(-y0 + y2))/((x0 - x1)*(x0 - x2)*(x1 - x2));
-    //     scalartype c = (x0*x2*(-x0 + x2)*y1 + std::pow(x1,2)*(x2*y0 - x0*y2) + x1*(-(std::pow(x2,2)*y0) + std::pow(x0,2)*y2))/((x0 - x1)*(x0 - x2)*(x1 - x2));
-
-    //     assert(abs(CPE_data_obj.y[index-2] - (a*square(CPE_data_obj.x[index-2])+b*CPE_data_obj.x[index-2]+c) )<1.e-6);
-    //     assert(abs(CPE_data_obj.y[index-1] - (a*square(CPE_data_obj.x[index-1])+b*CPE_data_obj.x[index-1]+c) )<1.e-6);
-    //     assert(abs(CPE_data_obj.y[index-0] - (a*square(CPE_data_obj.x[index-0])+b*CPE_data_obj.x[index-0]+c) )<1.e-6);
-
     lambda = -b/(2*a);
 
     return lambda;
@@ -1099,12 +847,6 @@ namespace DCA
 
     scalartype a = V(0,0)*CPE_data_obj.y[index-2] + V(0,1)*CPE_data_obj.y[index-1] + V(0,2)*CPE_data_obj.y[index-0];
     scalartype b = V(1,0)*CPE_data_obj.y[index-2] + V(1,1)*CPE_data_obj.y[index-1] + V(1,2)*CPE_data_obj.y[index-0];
-    //     scalartype c = V(2,0)*CPE_data_obj.y[index-2] + V(2,1)*CPE_data_obj.y[index-1] + V(2,2)*CPE_data_obj.y[index-0];
-
-    //     assert(abs(CPE_data_obj.y[index-2] - (a*square(CPE_data_obj.x[index-2])+b*CPE_data_obj.x[index-2]+c) )<1.e-6);
-    //     assert(abs(CPE_data_obj.y[index-1] - (a*square(CPE_data_obj.x[index-1])+b*CPE_data_obj.x[index-1]+c) )<1.e-6);
-    //     assert(abs(CPE_data_obj.y[index-0] - (a*square(CPE_data_obj.x[index-0])+b*CPE_data_obj.x[index-0]+c) )<1.e-6);
-
     lambda = -b/(2*a);
 
     return lambda;
@@ -1113,8 +855,6 @@ namespace DCA
   template<class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
   double continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t, WEIGHTED_GRADIENT_METHOD>::evaluate_Lambda_norm(CPE_data_type& CPE_data_obj)
   {
-    //std::cout << __FUNCTION__ << "\t" << __LINE__ << "\n";
-
     profiler_type profiler(__FUNCTION__, __FILE__, __LINE__);
 
     std::complex<scalartype> MIN_ONE (-1, 0);

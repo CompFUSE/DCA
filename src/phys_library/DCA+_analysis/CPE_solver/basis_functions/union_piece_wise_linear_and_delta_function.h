@@ -73,7 +73,7 @@ std::complex<double> union_piece_wise_linear_and_delta_function::phi(int n, std:
   if(n<piece_wise_linear_function::get_size())
     return piece_wise_linear_function::phi(n,z);
   else
-    return delta_function::phi(n-piece_wise_linear_function::get_size(),z);//*piece_wise_linear_function::volume(0)/M_PI;
+    return delta_function::phi(n-piece_wise_linear_function::get_size(),z);
 }
 
 #endif

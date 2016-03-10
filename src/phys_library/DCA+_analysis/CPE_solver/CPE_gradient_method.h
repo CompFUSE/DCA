@@ -233,22 +233,6 @@ namespace DCA
     writer.close_group();
   }
 
-  /*
-    template<class parameters_type, class basis_function_t>
-    template<typename stream_type>
-    void continuous_pole_expansion<parameters_type, basis_function_t, GRADIENT_METHOD>::to_JSON(stream_type& ss)
-    {
-    alpha.to_JSON(ss);
-    ss << ",";
-
-    f_approx.to_JSON(ss);
-    ss << ",";
-
-    f_measured.to_JSON(ss);
-    ss << ",";
-    }
-  */
-
   template<class parameters_type, class basis_function_t>
   void continuous_pole_expansion<parameters_type, basis_function_t, GRADIENT_METHOD>::initialize()
   {
@@ -298,40 +282,7 @@ namespace DCA
       }
     }
   }
-
-  /*
-    template<class parameters_type, class basis_function_t>
-    void continuous_pole_expansion<parameters_type, basis_function_t, GRADIENT_METHOD>::compute_singular_values()
-    {
-    cout << __PRETTY_FUNCTION__ << endl;
-
-    for(int i=0; i<alpha_dmn_t::dmn_size(); i++)
-    cout << basis_function_t::volume(i) << endl;
-    cout << endl;
-
-    std::complex<double> I(0., 1);
-
-    for(int l=0; l<10; l++)
-    {
-    for(int j=0; j<w_IMAG::dmn_size(); j++){
-    std::complex<double> z(0., w_IMAG::get_elements()[j]);
-    for(int i=0; i<alpha_dmn_t::dmn_size(); i++)
-    A_mat(i,j) = (0.01+l*std::fabs(w_REAL::get_elements()[i]))*basis_function_t::phi(i, z);
-    }
-
-    singular_value_decomposition_plan<std::complex<double>, GENERAL> svd_obj(alpha_dmn_t::dmn_size(), w_IMAG::dmn_size(), 'N', 'N');
-    memcpy(svd_obj.A, &A_mat(0,0), sizeof(std::complex<double>)*alpha_dmn_t::dmn_size()*w_IMAG::dmn_size() );
-    svd_obj.execute_plan();
-
-    for(int l0=0; l0<20; ++l0)
-    cout << svd_obj.S[l0] << endl;
-    cout << endl;
-    }
-
-    throw std::logic_error(__FUNCTION__);
-    }
-  */
-
+  
   template<class parameters_type, class basis_function_t>
   template<typename target_dmn_t>
   void continuous_pole_expansion<parameters_type, basis_function_t, GRADIENT_METHOD>::execute(FUNC_LIB::function<std::complex<double>,       nu_nu_k_DCA_w             >& f_source,
@@ -363,18 +314,6 @@ namespace DCA
 
         for(int l=dmn_bounds.first; l<dmn_bounds.second; l++)
           {
-            /*
-              int linind = l;
-              for(int j=Nb_sbdms-1; j>-1; j--)
-              {
-              if(j != dmn_number)
-              {
-              coordinate[j] = linind % f_source[j];
-              linind = (linind-coordinate[j])/f_source[j];
-              }
-              }
-            */
-
             int linind = l;
             int coor[2];
             parallelized_dmn.linind_2_subind(linind, coor);
@@ -393,10 +332,6 @@ namespace DCA
                 f_measured.distribute(dmn_number, coordinate, &input_values[w::dmn_size()/2]);
 
                 perform_continuous_pole_expansion();
-
-                //            f_wn_distribute(dmn_number, coordinate);
-                //            alpha.distribute(dmn_number, coordinate, &alpha_ptr(0));
-
                 spline_alpha_to_output_values(target_dmn, output_values);
 
                 {
@@ -434,7 +369,6 @@ namespace DCA
   bool continuous_pole_expansion<parameters_type, basis_function_t, GRADIENT_METHOD>::spline_input_values_to_wn(std::complex<double>* input_values)
   {
     profiler_type profiler(__FUNCTION__, __FILE__, __LINE__);
-    //assert(w_IMAG::dmn_size() == w::dmn_size()/2);
 
     bool to_be_done = false;
     for(int n=0; n<w_IMAG::dmn_size(); n++){
@@ -455,19 +389,6 @@ namespace DCA
   void continuous_pole_expansion<parameters_type, basis_function_t, GRADIENT_METHOD>::f_wn_distribute(int dmn_number, int* coordinate)
   {
     profiler_type profiler(__FUNCTION__, __FILE__, __LINE__);
-    //assert(w_IMAG::dmn_size() == w::dmn_size()/2);
-
-    //   std::complex<double>* f_wn_ptr = new std::complex<double>[w_IMAG::dmn_size()];
-
-    //   for(int n=0; n<w_IMAG::dmn_size(); n++){
-    //     real(f_wn_ptr[n]) = f_wn_re_ptr(n);
-    //     imag(f_wn_ptr[n]) = f_wn_im_ptr(n);
-    //   }
-
-    //   f_approx.distribute(dmn_number, coordinate, f_wn_ptr);
-
-    //   delete [] f_wn_ptr;
-
     f_approx.distribute(dmn_number, coordinate, &f_wn(0));
   }
 
@@ -478,10 +399,6 @@ namespace DCA
 
     Sigma_0      = 0;
     grad_Sigma_0 = 0;
-
-    //   for(int n=0; n<alpha_dmn_t::dmn_size(); n++)
-    //     alpha_ptr(n) = 0;
-
     for(int n=0; n<alpha_dmn_t::dmn_size(); n++)
       alpha_ptr(n) = 1./double(alpha_dmn_t::dmn_size());
 
@@ -503,31 +420,6 @@ namespace DCA
 
     cout << CPE_iteration << "\t" << MAX_ITERATIONS << "\t" << evaluate_Lambda_norm(alpha_ptr) << "\n";
   }
-
-  /*
-    template<class parameters_type, class basis_function_t>
-    void continuous_pole_expansion<parameters_type, basis_function_t, GRADIENT_METHOD>::compute_gradient_Sigma_0(bool normalize)
-    {
-    project_from_real_axis_to_imaginary_axis(&alpha_ptr(0), &f_wn_re_ptr(0), A1);
-
-    for(int n=0; n<w_IMAG::dmn_size(); n++)
-    f_wn_re_ptr(n) = F_wn_re_ptr(n)-(f_wn_re_ptr(n)+Sigma_0);
-
-    grad_Sigma_0=0.;
-    for(int n=0; n<w_IMAG::dmn_size(); n++)
-    grad_Sigma_0 += -2.*f_wn_re_ptr(n);
-    }
-
-    template<class parameters_type, class basis_function_t>
-    void continuous_pole_expansion<parameters_type, basis_function_t, GRADIENT_METHOD>::find_new_Sigma_0(double LAMBDA_MAX)
-    {
-    for(int i=0; i<10; i++){
-    compute_gradient_Sigma_0();
-    Sigma_0 = Sigma_0 - grad_Sigma_0/double(2*w_IMAG::dmn_size());
-    }
-    }
-  */
-
   template<class parameters_type, class basis_function_t>
   void continuous_pole_expansion<parameters_type, basis_function_t, GRADIENT_METHOD>::compute_gradient_Sigma_0(bool normalize)
   {
@@ -599,80 +491,6 @@ namespace DCA
           gradient(n) = -(gradient_1(n) + gradient_2(n))/sqrt(norm_gradient);
       }
   }
-
-  /*
-    template<class parameters_type, class basis_function_t>
-    int continuous_pole_expansion<parameters_type, basis_function_t, GRADIENT_METHOD>::find_new_alpha(double LAMBDA_MAX)
-    {
-    cout << scientific;
-    cout.precision(12);
-
-    profiler_type profiler(concurrency, __FUNCTION__, __FILE__, __LINE__);
-
-    compute_gradient_alphas();
-
-    double L2_norm   = 1;
-    double L2_norm_0 = 0;
-
-    memcpy(&a_new_cpy(0), &alpha_ptr(0), sizeof(scalartype)*alpha_dmn_t::dmn_size());
-
-    double lambda       = 0;
-    double delta_lambda = LAMBDA_MAX/100.;
-
-    int index = 0;
-
-    while(true)
-    {
-    for(int n=0; n<alpha_dmn_t::dmn_size(); n++){
-    scalartype value = alpha_ptr(n) + lambda*gradient(n);
-    value < 0 ? a_new(n) = 0 : a_new(n) = value;
-    }
-
-    L2_norm = 0;
-
-    if(false)
-    {
-    project_from_real_axis_to_imaginary_axis(&a_new(0), &f_wn_re_ptr(0), A1);
-    project_from_real_axis_to_imaginary_axis(&a_new(0), &f_wn_im_ptr(0), A2);
-
-    for(int n=0; n<w_IMAG::dmn_size(); n++)
-    f_wn_re_ptr(n) += Sigma_0;
-
-    for(int n=0; n<w_IMAG::dmn_size(); n++)
-    L2_norm += square(f_wn_re_ptr(n)-F_wn_re_ptr(n)) + square(f_wn_im_ptr(n)-F_wn_im_ptr(n));
-    }
-    else
-    L2_norm = evaluate_Lambda_norm();
-
-    if(index == 0 || (L2_norm_0 - L2_norm)/L2_norm > 1.e-6){
-    L2_norm_0 = L2_norm;
-    memcpy(&a_new_cpy(0), &a_new(0), sizeof(scalartype)*alpha_dmn_t::dmn_size());
-    }
-    else
-    break;
-
-    //       if(concurrency.id()==0)
-    //  cout << "\t" << index << "\t" << lambda << "\t" << L2_norm << endl;
-
-    lambda += delta_lambda;
-
-    index++;
-
-    if(index>20)
-    delta_lambda = LAMBDA_MAX/10.;
-
-    if(index>100)
-    delta_lambda = LAMBDA_MAX/1.;
-    }
-
-    if(index==0)
-    memcpy(&alpha_ptr(0), &a_new_cpy(0), sizeof(scalartype)*alpha_dmn_t::dmn_size());
-    else
-    smooth_alpha();
-
-    return index;
-    }
-  */
 
   template<class parameters_type, class basis_function_t>
   int continuous_pole_expansion<parameters_type, basis_function_t, GRADIENT_METHOD>::find_new_alpha_2(double LAMBDA_MAX)
@@ -755,8 +573,6 @@ namespace DCA
         a_new_cpy(n) = value<0? 0 : value;
       }
 
-      //     if(concurrency.id()==0)
-      //       cout << L2_norm_lambda << "\n";
     }
     else
       index=0;
@@ -956,335 +772,3 @@ namespace DCA
 }
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// template<class parameters_type, class basis_function_t>
-// void continuous_pole_expansion<parameters_type, basis_function_t, GRADIENT_METHOD>::execute(FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& f_source,
-//                                                                                                            FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& f_target,
-//                                                                                                            bool                                           use_previous_result)
-// {
-//   concurrency << "\n\n\t --> condition_Greens_function \n\n";
-
-//   static_zero_moment    = true;
-//   project_to_unit_plane = true;
-
-//   Sigma_0 = 0.;
-
-//   perform_continuous_pole_expansion(f_source, f_target);
-
-//   static_zero_moment    = false;
-//   project_to_unit_plane = false;
-// }
-
-// template<class parameters_type, class basis_function_t>
-// void continuous_pole_expansion<parameters_type, basis_function_t, GRADIENT_METHOD>::execute(FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& f_source,
-//                                                                                                            FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& f_target,
-//                                                                                                            bool                                           use_previous_result)
-// {
-//   const static int dmn_number = 5;
-
-//   concurrency << "\n\n\t --> condition_Greens_function \n\n";
-
-//   static_zero_moment    = true;
-//   project_to_unit_plane = true;
-
-//   Sigma_0 = 0.;
-
-//   w   target_dmn;
-
-//   int Nb_sbdms    = f_source.signature();
-//   int Nb_elements = f_source.size();
-
-//   int* coordinate = new int[Nb_sbdms];
-//   memset(coordinate,0,sizeof(int)*Nb_sbdms);
-
-//   std::complex<double>* input_values    = new std::complex<double>[f_source[dmn_number] ];
-//   std::complex<double>* output_values   = new std::complex<double>[f_target[dmn_number] ];
-
-//   {
-//     int Nb_Pade = Nb_elements/f_source[dmn_number];
-
-//     for(int l=0; l<Nb_Pade; l++)
-//       {
-//      int linind = l;
-//      for(int j=Nb_sbdms-1; j>-1; j--)
-//        {
-//          if(j != dmn_number)
-//            {
-//              coordinate[j] = linind % f_source[j];
-//              linind = (linind-coordinate[j])/f_source[j];
-//            }
-//        }
-
-//      f_source.slice(dmn_number, coordinate, input_values);
-
-//      bool to_be_done = spline_input_values_to_wn(input_values);
-
-//      if(to_be_done)
-//        {
-//          S_wn.distribute(dmn_number, coordinate, &input_values[w::dmn_size()/2]);
-
-//          perform_continuous_pole_expansion();
-
-//          a_wn_distribute(dmn_number, coordinate);
-
-//          a_x.distribute(dmn_number, coordinate, &a_x_ptr(0));
-
-//          spline_a_x_to_output_values(target_dmn, output_values);
-
-//          f_target.distribute(dmn_number, coordinate, output_values);
-//        }
-//       }
-//   }
-
-//   delete [] coordinate;
-//   delete [] input_values;
-//   delete [] output_values;
-
-//   static_zero_moment    = false;
-//   project_to_unit_plane = false;
-// }
-
-// template<class parameters_type, class basis_function_t>
-// void continuous_pole_expansion<parameters_type, basis_function_t, GRADIENT_METHOD>::condition_Greens_function(FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& f_source,
-//                                                                                                                              FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& f_target)
-// {
-//   concurrency << "\n\n\t --> condition_Greens_function \n\n";
-
-//   static_zero_moment    = true;
-//   project_to_unit_plane = true;
-
-//   Sigma_0 = 0.;
-
-//   perform_continuous_pole_expansion(f_source, f_target);
-
-//   static_zero_moment    = false;
-//   project_to_unit_plane = false;
-// }
-
-// template<class parameters_type, class basis_function_t>
-// void continuous_pole_expansion<parameters_type, basis_function_t, GRADIENT_METHOD>::perform_continuous_pole_expansion(FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& f_source,
-//                                                                                                                                      FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& f_target)
-// {
-//   const static int dmn_number = 5;
-
-//   w   target_dmn;
-
-//   int Nb_sbdms    = f_source.signature();
-//   int Nb_elements = f_source.size();
-
-//   int* coordinate = new int[Nb_sbdms];
-//   memset(coordinate,0,sizeof(int)*Nb_sbdms);
-
-//   std::complex<double>* input_values    = new std::complex<double>[f_source[dmn_number] ];
-//   std::complex<double>* output_values   = new std::complex<double>[f_target[dmn_number] ];
-
-//   {
-//     int Nb_Pade = Nb_elements/f_source[dmn_number];
-
-//     for(int l=0; l<Nb_Pade; l++)
-//       {
-//      int linind = l;
-//      for(int j=Nb_sbdms-1; j>-1; j--)
-//        {
-//          if(j != dmn_number)
-//            {
-//              coordinate[j] = linind % f_source[j];
-//              linind = (linind-coordinate[j])/f_source[j];
-//            }
-//        }
-
-//      f_source.slice(dmn_number, coordinate, input_values);
-
-//      bool to_be_done = spline_input_values_to_wn(input_values);
-
-//      if(to_be_done)
-//        {
-//          S_wn.distribute(dmn_number, coordinate, &input_values[w::dmn_size()/2]);
-
-//          perform_continuous_pole_expansion();
-
-//          a_wn_distribute(dmn_number, coordinate);
-
-//          a_x.distribute(dmn_number, coordinate, &a_x_ptr(0));
-
-//          spline_a_x_to_output_values(target_dmn, output_values);
-
-//          f_target.distribute(dmn_number, coordinate, output_values);
-//        }
-//       }
-//   }
-
-//   delete [] coordinate;
-//   delete [] input_values;
-//   delete [] output_values;
-// }
-
-
-
-
-// template<class parameters_type, class basis_function_t>
-// template<typename MOMS_t>
-// void continuous_pole_expansion<parameters_type, basis_function_t, GRADIENT_METHOD>::compute_spectral_function(MOMS_t& MOMS)
-// {
-//   concurrency << "\n\n\t start perform continuous-pole-expansion G \n\n";
-
-//   perform_continuous_pole_expansion(MOMS.Sigma, Sigma);
-
-//   concurrency << "\n\n\t start coarsegraining G0 \n\n";
-
-//   FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w_REAL> Sigma_zero;
-//   coarsegrain_obj.compute_G_from_H_and_Sigma(MOMS.H_LDA, Sigma_zero, G0_k_w);
-
-//   concurrency << "\n\n\t start coarsegraining G \n\n";
-
-//   coarsegrain_obj.compute_G_from_H_and_Sigma(MOMS.H_LDA, Sigma, G_k_w);
-
-//   concurrency << "\n\n\t compute spectra \n\n";
-
-//   for(int b=0; b<b::dmn_size(); b++){
-//     for(int s=0; s<s::dmn_size(); s++){
-
-//       for(int w_ind=0; w_ind<w_REAL::dmn_size(); w_ind++){
-
-//      for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++){
-//        A_nu_w (b,s,w_ind) += -1./M_PI*imag(G_k_w (b,s,b,s,k_ind,w_ind));
-//        A0_nu_w(b,s,w_ind) += -1./M_PI*imag(G0_k_w(b,s,b,s,k_ind,w_ind));
-
-//        A_w (w_ind) += -1./M_PI*imag(G_k_w (b,s,b,s,k_ind,w_ind));
-//        A0_w(w_ind) += -1./M_PI*imag(G0_k_w(b,s,b,s,k_ind,w_ind));
-//      }
-//       }
-//     }
-//   }
-
-//   A_nu_w  /= (double(k_DCA::dmn_size()));
-//   A0_nu_w /= (double(k_DCA::dmn_size()));
-
-//   A_w  /= (double(k_DCA::dmn_size())*b::dmn_size()*s::dmn_size());
-//   A0_w /= (double(k_DCA::dmn_size())*b::dmn_size()*s::dmn_size());
-// }
-
-// template<class parameters_type, class basis_function_t>
-// void continuous_pole_expansion<parameters_type, basis_function_t, GRADIENT_METHOD>::perform_continuous_pole_expansion(FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w     >& f_source,
-//                                                                                                                                      FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w_REAL>& f_target)
-// {
-//   const static int dmn_number = 5;
-
-//   int Nb_sbdms    = f_source.signature();
-//   int Nb_elements = f_source.size();
-
-//   int* coordinate = new int[Nb_sbdms];
-//   memset(coordinate,0,sizeof(int)*Nb_sbdms);
-
-//   std::complex<double>* input_values    = new std::complex<double>[f_source[dmn_number] ];
-//   std::complex<double>* output_values   = new std::complex<double>[f_target[dmn_number] ];
-
-//   {
-//     int Nb_Pade = Nb_elements/f_source[dmn_number];
-
-//     for(int l=0; l<Nb_Pade; l++)
-//       {
-//      concurrency << "\n\t\t ";
-//      concurrency << int(double(l)/double(Nb_Pade)*100);
-//      concurrency << " % completed";
-
-//      int linind = l;
-//      for(int j=Nb_sbdms-1; j>-1; j--)
-//        {
-//          if(j != dmn_number)
-//            {
-//              coordinate[j] = linind % f_source[j];
-//              linind = (linind-coordinate[j])/f_source[j];
-//            }
-//        }
-
-//      f_source.slice(dmn_number, coordinate, input_values);
-
-//      bool to_be_done = spline_input_values_to_wn(input_values);
-
-//      if(to_be_done)
-//        {
-//          S_wn.distribute(dmn_number, coordinate, &input_values[w::dmn_size()/2]);
-
-//          perform_continuous_pole_expansion();
-
-//          a_wn_distribute(dmn_number, coordinate);
-
-//          a_x.distribute(dmn_number, coordinate, &a_x_ptr(0));
-
-//          spline_a_x_to_output_values(output_values);
-
-//          f_target.distribute(dmn_number, coordinate, output_values);
-//        }
-//       }
-//   }
-
-//   delete [] coordinate;
-//   delete [] input_values;
-//   delete [] output_values;
-// }

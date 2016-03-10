@@ -152,7 +152,6 @@ namespace DCA
 
     random_number_generator rng;
 
-    //continuous_pole_expansion<parameters_type, basis_function_t, GRADIENT_METHOD> cpe_obj;
     continuous_pole_expansion<parameters_type, basis_function_t, k_DCA, w_REAL, WEIGHTED_GRADIENT_METHOD> cpe_obj;
 
     FUNC_LIB::function<double, dmn_3<b, s, k_DCA> > G_k_beta_over_2;
