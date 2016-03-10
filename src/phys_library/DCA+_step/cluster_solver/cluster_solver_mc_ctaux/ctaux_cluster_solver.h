@@ -553,6 +553,8 @@ namespace DCA
   template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
   double cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::compute_S_k_w_from_G_k_w()
   {
+    //INTERNAL Giovanni: I am positive that memcpy is deprecated nowaday. I wonder if rather then coping a temporary
+    //INTERNAL           Sigma_Matrix, using std::move or working in place in MOMS.Sigma is better.
     static double alpha = parameters.get_DCA_convergence_factor();
 
     int matrix_size = b::dmn_size()*s::dmn_size()*b::dmn_size()*s::dmn_size();

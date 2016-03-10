@@ -16,8 +16,6 @@ namespace DCA
     template<QMCI_NAMES NAME, LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
     class MC_accumulator
     {
-      //typedef MultiOrbitalMultiSiteStructure<parameters_type> MOMS_type;
-
     public:
 
       MC_accumulator(parameters_type&   parameters_ref,

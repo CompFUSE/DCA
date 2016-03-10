@@ -60,8 +60,8 @@ inline double erf_inverse_help(double t)
 {
   // Abramowitz and Stegun formula 26.2.23.
   // The absolute value of the error should be less than 4.5 e-4.
-  static double c[3] = {2.515517, 0.802853, 0.010328};
-  static double d[3] = {1.432788, 0.189269, 0.001308};
+  static const  double c[3] = {2.515517, 0.802853, 0.010328};
+  static const  double d[3] = {1.432788, 0.189269, 0.001308};
   
   return t - ((c[2]*t + c[1])*t + c[0]) / 
     (((d[2]*t + d[1])*t + d[0])*t + 1.0);

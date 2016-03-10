@@ -123,8 +123,6 @@ namespace DCA
       MATH_ALGORITHMS::TRANSFORM<w, t>::execute(MOMS.G0_k_w_cluster_excluded, 
 						MOMS.G0_k_t_cluster_excluded);
 
-      //MOMS.G0_k_t_cluster_excluded /= parameters.get_beta();
-
       MOMS.G0_k_t_cluster_excluded += MOMS.G0_k_t;
 
       MATH_ALGORITHMS::TRANSFORM<k_DCA, r_DCA>::execute(MOMS.G0_k_t_cluster_excluded, 

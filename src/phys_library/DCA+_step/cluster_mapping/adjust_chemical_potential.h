@@ -96,8 +96,6 @@ namespace DCA
 
     while(true)
       {
-        //parameters.get_chemical_potential() = (lower_bound.first+upper_bound.first)/2.;
-
         double d_0 = parameters.get_density();
 
         double mu_lb = lower_bound.first;
@@ -105,10 +103,6 @@ namespace DCA
 
         double n_lb = lower_bound.second;
         double n_ub = upper_bound.second;
-
-        /*
-          parameters.get_chemical_potential() = (mu_ub-mu_lb)/(n_ub-n_lb)*(d_0-n_lb) + mu_lb;
-        */
 
         parameters.get_chemical_potential() = get_new_chemical_potential(d_0, mu_lb, mu_ub, n_lb, n_ub);
 
@@ -154,17 +148,6 @@ namespace DCA
                                                                                                                 double n_ub)
   {
     double new_mu = (mu_ub-mu_lb)/(n_ub-n_lb)*(d_0-n_lb) + mu_lb;
-
-    /*
-      if(abs(new_mu-mu_lb)/abs(mu_ub-mu_lb) < 0.25 or
-      abs(new_mu-mu_ub)/abs(mu_ub-mu_lb) < 0.25)
-      {
-      return (mu_lb+mu_ub)/2.;
-      }
-      else
-      return new_mu;
-    */
-
     return new_mu;
   }
 
@@ -307,68 +290,6 @@ namespace DCA
       result(nu_i) *= (2./(beta*N_k));
   }
 
-  /*
-    template<typename parameters_type, typename MOMS_type, typename coarsegraining_type>
-    double update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>::compute_density_correction()
-    {
-    double N_k  = k_DCA::dmn_size();
-    double beta = parameters.get_beta();
-
-    FUNC_LIB::function<std::complex<double>, dmn_2<nu, k_DCA> > G_diag ("G_diag");
-    FUNC_LIB::function<std::complex<double>, dmn_2<nu, k_DCA> > G0_diag("G0_diag");
-
-    for(int k_i=0; k_i<k_DCA::dmn_size(); k_i++)
-    for(int nu_i=0; nu_i<nu::dmn_size(); nu_i++)
-    G_diag(nu_i, k_i) = MOMS.G_k_w(nu_i, nu_i, k_i, w::dmn_size()-1);
-
-    for(int k_i=0; k_i<k_DCA::dmn_size(); k_i++)
-    for(int nu_i=0; nu_i<nu::dmn_size(); nu_i++)
-    G0_diag(nu_i, k_i) = MOMS.G0_k_w(nu_i, nu_i, k_i, w::dmn_size()-1);
-
-    std::complex<double> I(0,1);
-
-    double result = 0;
-
-    double wm = w::get_elements()[w::dmn_size()-1];
-
-    for(int k_i=0; k_i<k_DCA::dmn_size(); k_i++){
-    for(int nu_i=0; nu_i<nu::dmn_size(); nu_i++){
-
-    double A =   real(1./G_diag(nu_i, k_i));
-    double B = -(imag(1./G_diag(nu_i, k_i)) - wm)*wm;
-
-    double A0 =   real(1./G0_diag(nu_i, k_i));
-    double B0 = -(imag(1./G0_diag(nu_i, k_i)) - wm)*wm;
-
-    assert(abs((G_diag (nu_i, k_i)) - 1./(I*wm + A  + B /(I*wm))) < 1.e-12);
-    assert(abs((G0_diag(nu_i, k_i)) - 1./(I*wm + A0 + B0/(I*wm))) < 1.e-12);
-
-    double tmp = 0.0;
-    double sum = 0.0;
-
-    int l=w::dmn_size()/2;
-
-    do
-    {
-    std::complex<double> I_wn = (M_PI/beta)*(1+2*l)*I;
-
-    tmp  = real(1./(I_wn + A + B/I_wn) - 1./(I_wn + A0 + B0/I_wn));
-    sum += tmp;
-
-    l += 1;
-    }
-    while( abs(tmp/sum) > 1.e-6);
-
-    result += sum;
-    }
-    }
-
-    result *= (2./(beta*N_k));
-
-    return result;
-    }
-  */
-
   template<typename parameters_type, typename MOMS_type, typename coarsegraining_type>
   void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>::compute_density_coefficients(FUNC_LIB::function<             double , dmn_2<nu, k_DCA> >& A,
                                                                                                                 FUNC_LIB::function<             double , dmn_2<nu, k_DCA> >& B,
@@ -413,26 +334,6 @@ namespace DCA
             }
           }
       }
-    /*
-      if(true)
-      {
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> > G_diff("G_diff");
-
-      for(int k_i=0; k_i<k_DCA::dmn_size(); k_i++){
-      for(int nu_i=0; nu_i<nu::dmn_size(); nu_i++){
-
-      for(int w_i=0; w_i<w::dmn_size(); w_i++){
-
-      std::complex<double> I_wm(0,w::get_elements()[w_i]);
-
-      G_diff(nu_i, nu_i, k_i, w_i) = 1./(I_wm + A (nu_i, k_i) + B (nu_i, k_i)/I_wm) - G(nu_i, nu_i, k_i, w_i);
-      }
-      }
-      }
-
-      SHOW::execute_on_bands(G_diff);
-      }
-    */
   }
 
   template<typename parameters_type, typename MOMS_type, typename coarsegraining_type>
