@@ -138,8 +138,6 @@ namespace LIN_ALG
 
     data_ptr->GFLOPS = double(2*(data_ptr->M)*(data_ptr->K)*(data_ptr->N)*N_ITERATIONS)/time*(1.e-9);
 
-    //cout << "\n\t" << data_ptr->thread_id << "\t" << 2*(data_ptr->M)*(data_ptr->K)*(data_ptr->N)*100 << "\t" << time << "\t" <<  data_ptr->GFLOPS;
-
     LIN_ALG::CUBLAS_THREAD_MANAGER<GPU>::finalize(thread_id);
 
     return 0;

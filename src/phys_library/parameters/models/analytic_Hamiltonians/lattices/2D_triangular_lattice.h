@@ -13,18 +13,12 @@ public:
 
   typedef no_symmetry<2>       LDA_point_group;
   typedef DCA_point_group_type DCA_point_group;
-
-  //   const static cluster_shape_type DCA_cluster_shape = BETT_CLUSTER;
-  //   const static cluster_shape_type LDA_cluster_shape = PARALLELEPIPED;
-
   const static int DIMENSION = 2;
   const static int BANDS     = 1;
 
   static double* initialize_r_DCA_basis();
-  //   static double* initialize_k_DCA_basis();
 
   static double* initialize_r_LDA_basis();
-  //   static double* initialize_k_LDA_basis();
 
   static std::vector<int>                  get_flavors();
   static std::vector<std::vector<double> > get_a_vectors();
@@ -73,17 +67,6 @@ double* triangular_lattice<DCA_point_group_type>::initialize_r_LDA_basis()
 
   return r_LDA;
 }
-
-// template<typename DCA_point_group_type>
-// double* triangular_lattice<DCA_point_group_type>::initialize_k_LDA_basis()
-// {
-//   static double* k_LDA = new double[4];
-
-//   k_LDA[0] = 2*M_PI;  k_LDA[1] = 2*M_PI/sqrt(3.);
-//   k_LDA[2] = 2*M_PI;  k_LDA[3] = -2*M_PI/sqrt(3.);
-
-//   return k_LDA;
-// }
 
 template<typename DCA_point_group_type>
 std::vector<int> triangular_lattice<DCA_point_group_type>::get_flavors()
@@ -141,12 +124,6 @@ std::complex<double> triangular_lattice<DCA_point_group_type>::get_LDA_Hamiltoni
       H_LDA += -2.* t * cos(k[0]);
       H_LDA += -4.* t * cos(sqrt(3.)*k[1]/2.)*cos(k[0]/2.);
     }      
-
-  /*
-    H_LDA = -2.* t * cos(k[0])
-    + cos(cos( M_PI/3.)*k[0] + sin( M_PI/3.)*k[1])
-    + cos(cos(-M_PI/3.)*k[0] + sin(-M_PI/3.)*k[1]));
-  */
 
   return H_LDA;
 }

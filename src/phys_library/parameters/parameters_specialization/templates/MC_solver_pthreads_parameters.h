@@ -38,15 +38,7 @@ public:
 
   template<class read_write_type>
   void read_write(read_write_type& read_write_obj);
-
-/******************************************
- ***        DATA                        ***
- ******************************************/
-
-//   int    get_nr_walkers();
-//   int    get_nr_accumulators();
-//   int    get_additional_steps();
-
+  
 private:
 
   int nr_walkers;
@@ -118,7 +110,6 @@ void MC_pthreads_solver ::to_JSON(stream_type& ss, bool is_end)
   JSON_writer::write(ss, "nr-walkers"       , nr_walkers);
   JSON_writer::write(ss, "nr-accumulators"  , nr_accumulators);
   JSON_writer::write(ss, "additional-steps" , additional_steps, true);
-  //JSON_writer::write(ss, "use_gpu"          , use_gpu, true);
   
   if(is_end)
     ss << "}\n";
@@ -174,31 +165,5 @@ void MC_pthreads_solver::read_write(read_write_type& read_write_obj)
       throw std::logic_error(__PRETTY_FUNCTION__);
     }
 }
-
-/******************************************
- ***        DATA                        ***
- ******************************************/
-
-// int MC_pthreads_solver::get_nr_walkers()
-// {
-//   return nr_walkers;
-// }
-
-// int MC_pthreads_solver::get_nr_accumulators()
-// {
-//   return nr_accumulators;
-// }
-
-// int MC_pthreads_solver::get_additional_steps()
-// {
-//   return additional_steps;
-// }
-
-/*
-bool MC_pthreads_solver::get_use_gpu()
-{
-  return static_cast<bool>(use_gpu);
-}
-*/
 
 #endif

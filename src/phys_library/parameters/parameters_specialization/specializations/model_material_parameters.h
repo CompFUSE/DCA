@@ -42,14 +42,11 @@ public:
   std::string get_U_ij_file_name();
   std::string get_t_ij_file_name();
   
-  //double get_double_counting_correction();
-
 private:
  
   std::string U_ij_file_name;
   std::string t_ij_file_name;  
 
-  //double double_counting_correction;
 };
 
 template<material_name_type name, typename dca_point_group_t, typename interaction_t>
@@ -89,7 +86,6 @@ void model_parameters<tight_binding_model<material_lattice<name, dca_point_group
   concurrency.pack(buffer, buffer_size, position, U_ij_file_name);
   concurrency.pack(buffer, buffer_size, position, t_ij_file_name);
 
-  //concurrency.pack(buffer, buffer_size, position, double_counting_correction);
 }
 
 template<material_name_type name, typename dca_point_group_t, typename interaction_t>
@@ -99,7 +95,6 @@ void model_parameters<tight_binding_model<material_lattice<name, dca_point_group
   concurrency.unpack(buffer, buffer_size, position, U_ij_file_name);
   concurrency.unpack(buffer, buffer_size, position, t_ij_file_name);
 
-  //concurrency.unpack(buffer, buffer_size, position, double_counting_correction);
 }
 
 /******************************************
@@ -117,8 +112,6 @@ void  model_parameters<tight_binding_model<material_lattice<name, dca_point_grou
       read_write_obj.execute("t_ij-filename", t_ij_file_name);
       read_write_obj.execute("U_ij-filename", U_ij_file_name);
 
-      //try {read_write_obj.execute("double-counting-correction", double_counting_correction); } catch(const std::exception& r_e) {}
-
       read_write_obj.close_group();
     }
   catch(const std::exception& r_e) 
@@ -135,7 +128,6 @@ void  model_parameters<tight_binding_model<material_lattice<name, dca_point_grou
     ss << "\t--------------\n";
     ss << "\t\tt_ij-filename   : " << t_ij_file_name << "\n";
     ss << "\t\tU_ij-filename   : " << U_ij_file_name << "\n\n";
-    //ss << "\t\tdouble counting : " << double_counting_correction << "\n\n";
     
     std::cout << ss.str();
   }
@@ -156,11 +148,5 @@ std::string model_parameters<tight_binding_model<material_lattice<name, dca_poin
 {
   return t_ij_file_name;
 }
-
-// template<material_name_type name, typename dca_point_group_t, typename interaction_t>
-// double model_parameters<tight_binding_model<material_lattice<name, dca_point_group_t>, interaction_t> >::get_double_counting_correction()
-// {
-//   return double_counting_correction;
-// }
 
 #endif

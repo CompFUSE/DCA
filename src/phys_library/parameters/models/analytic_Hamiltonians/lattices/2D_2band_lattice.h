@@ -21,18 +21,6 @@ public:
   const static int BANDS     = 2;
 
 public:
-
-  //   template<class parameters_type>
-  //   static void initialize(parameters_type& parameters);
-
-  //   static std::vector<int>& LDA_grid_size();
-
-  //   static double* get_r_DCA_basis();
-  //   static double* get_k_DCA_basis();
-
-  //   static double* get_r_LDA_basis();
-  //   static double* get_k_LDA_basis();
-
   static double* initialize_r_DCA_basis();
   static double* initialize_k_DCA_basis();
 
@@ -59,42 +47,6 @@ public:
   static std::complex<double> get_LDA_Hamiltonians(parameters_type& parameters,
                                                    std::vector<double> k, int b1, int s1, int b2, int s2);
 };
-
-// template<typename point_group_type>
-// std::vector<int>& twoband_lattice<point_group_type>::LDA_grid_size()
-// {
-//   static std::vector<int> v(0);
-//   return v;
-// }
-
-// template<typename point_group_type>
-// double* twoband_lattice<point_group_type>::get_r_DCA_basis()
-// {
-//   static double* r_DCA = initialize_r_DCA_basis();
-//   return r_DCA;
-// }
-
-// template<typename point_group_type>
-// double* twoband_lattice<point_group_type>::get_k_DCA_basis()
-// {
-//   static double* k_DCA = initialize_k_DCA_basis();
-//   return k_DCA;
-// }
-
-// template<typename point_group_type>
-// double* twoband_lattice<point_group_type>::get_r_LDA_basis()
-// {
-//   static double* r_LDA = initialize_r_LDA_basis();
-//   return r_LDA;
-// }
-
-// template<typename point_group_type>
-// double* twoband_lattice<point_group_type>::get_k_LDA_basis()
-// {
-//   static double* k_LDA = initialize_k_LDA_basis();
-//   return k_LDA;
-// }
-
 
 template<typename point_group_type>
 double* twoband_lattice<point_group_type>::initialize_r_DCA_basis()

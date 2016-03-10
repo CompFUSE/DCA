@@ -97,11 +97,7 @@ namespace MATH_ALGORITHMS
 	
 	{
 	  clock_t t0 = clock();
-	  
-	  //while(true)
-	  for(int j=0; j<t.size(); j++){
-	    //scalartype t_val = (t[j]-t_dmn_t::get_elements().front())/(t_dmn_t::get_elements().back()-t_dmn_t::get_elements().front())-0.5;
-	    
+	  for(int j=0; j<t.size(); j++){  
 	    nfft_obj.accumulate_at(0, t_vals[j], f[j]);
 	  }
 	  

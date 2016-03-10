@@ -33,12 +33,6 @@ public:
  ***        READ/WRITE                  ***
  ******************************************/
 
-  template<class stream_type>
-  void to_JSON(stream_type& ss, bool is_end=false);
-  
-  template<class JSON_reader_type>
-  void from_JSON(JSON_reader_type& reader);
-
   template<class read_write_type>
   void read_write(read_write_type& read_write_obj);
 
@@ -177,52 +171,6 @@ void MCI_parameters::unpack( concurrency_type& concurrency, int* buffer, int buf
 /******************************************
  ***        READ/WRITE                  ***
  ******************************************/
-
-template<class stream_type>
-void MCI_parameters::to_JSON(stream_type& /*ss*/, bool /*is_end*/)
-{
-//   ss << "\"QMCI\" :";
-//   ss << "\n{ \n";
-
-//   JSON_writer::write(ss, "Sigma-file"                      , Sigma_file);
-//   JSON_writer::write(ss, "warm_up_sweeps"                  , warm_up_sweeps);
-//   JSON_writer::write(ss, "number_of_sweeps_per_measurement", number_of_sweeps_per_measurement);
-//   JSON_writer::write(ss, "measurements"                    , measurements);
-
-//   JSON_writer::write(ss, "do_adaptive_double_counting", do_adaptive_double_counting);
-  
-//   if(is_end)
-//     ss << "}\n";
-//   else
-//     ss << "},\n";
-}
-
-template<class JSON_reader_type>
-void MCI_parameters::from_JSON(JSON_reader_type& /*reader*/)
-{
-//   typedef typename JSON_reader_type::JsonAccessor JsonAccessor;
-//   const JsonAccessor control(reader["QMCI"]);
-    
-//   Sigma_file                       <= control["Sigma-file"];
-
-//   FILE* file_ptr = fopen(&(Sigma_file[0]), "r");
-//   if(file_ptr == NULL && Sigma_file != "zero"){
-//     cout << "\t no file with name : " << Sigma_file << endl;
-//     throw std::logic_error(__FUNCTION__);
-//   }
-
-//   warm_up_sweeps                   <= control["warm_up_sweeps"];
-//   number_of_sweeps_per_measurement <= control["number_of_sweeps_per_measurement"];
-//   measurements                     <= control["measurements"];
-
-//   try
-//     {
-//       do_adaptive_double_counting <= control["do_adaptive_double_counting"];
-//     }
-//   catch(const std::exception& r_e)
-//     {}
-}
-
 template<class read_write_type>
 void MCI_parameters::read_write(read_write_type& read_write_obj)
 {

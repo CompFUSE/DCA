@@ -283,10 +283,6 @@ namespace PROFILER
 		    profiling_table_0[name][i] += ((*itr).second)[i];
 	      }
 	    
-// 	    cout << "\n\t merging : " << id << "\n";
-// 	    for(profiling_iterator_type itr = profiling_table_0.begin(); itr != profiling_table_0.end(); ++itr) 
-// 	      cout << "\t\t" << ((*itr).first) << "\t" << ((*itr).second)[0] <<"\n";
-// 	    cout << "\n";
 	  }
       }
   }    

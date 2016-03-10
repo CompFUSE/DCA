@@ -43,8 +43,6 @@ public:
  ***        DATA                        ***
  ******************************************/
 
-//   int get_seed();
-
 private:
 
   int seed;
@@ -118,13 +116,5 @@ void random_number_seed_parameters::from_JSON(JSON_reader_type& reader)
     }
 }
 
-/******************************************
- ***        DATA                        ***
- ******************************************/
-
-// int random_number_seed_parameters::get_seed()
-// {
-//   return seed;
-// }
 
 #endif

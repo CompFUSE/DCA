@@ -35,13 +35,6 @@ public:
 /******************************************
  ***        READ/WRITE                  ***
  ******************************************/
-
-  template<class stream_type>
-  void to_JSON(stream_type& ss, bool is_end=false);
-  
-  template<class JSON_reader_type>
-  void from_JSON(JSON_reader_type& reader);
-
   template<class read_write_type>
   void read_write(read_write_type& read_write_obj);
 
@@ -54,8 +47,6 @@ public:
   int                & get_q_channel();
   std::vector<double>& get_q_vector();
   int                  get_w_channel();
-
-//   std::vector<std::vector<int> > get_host_vertex_Bett_matrix();
 
   bool                compute_chi_0();
   bool                compute_chi();
@@ -89,8 +80,6 @@ private:
   std::vector<double> q_vector;
   int                 w_channel;
 
-//   std::vector<std::vector<int> > host_vertex_Bett_matrix;
-
   double              singular_value_cut_off;
   int                 singular_value_index_cut_off;
   
@@ -116,8 +105,6 @@ vertex_parameters::vertex_parameters():
   q_vector(model::DIMENSION, 0),
   w_channel(0),
 
-  //host_vertex_Bett_matrix(model::DIMENSION, std::vector<int>(model::DIMENSION, 0)),
-
   singular_value_cut_off(0.5),
   singular_value_index_cut_off(128),
 
@@ -134,10 +121,7 @@ vertex_parameters::vertex_parameters():
   compute_eigenvalues_str("yes"),
   compute_P_q_cluster_str("no"),
   compute_P_q_lattice_str("no")
-{
-//   for(int d=0; d<model::DIMENSION; ++d)
-//     host_vertex_Bett_matrix[d][d] = 1;
-}
+{}
 
 vertex_parameters::~vertex_parameters()
 {}
@@ -156,27 +140,6 @@ int vertex_parameters::get_buffer_size( concurrency_type& concurrency)
   buffer_size += concurrency.get_buffer_size(q_channel);
   buffer_size += concurrency.get_buffer_size(q_vector);
   buffer_size += concurrency.get_buffer_size(w_channel);
-
-//   switch(model::DIMENSION)
-//     {
-//     case 1:
-//       buffer_size += concurrency.get_buffer_size(host_vertex_Bett_matrix[0]);
-//       break;
-
-//     case 2:
-//       buffer_size += concurrency.get_buffer_size(host_vertex_Bett_matrix[0]);
-//       buffer_size += concurrency.get_buffer_size(host_vertex_Bett_matrix[1]);
-//       break;
-	  
-//     case 3:
-//       buffer_size += concurrency.get_buffer_size(host_vertex_Bett_matrix[0]);
-//       buffer_size += concurrency.get_buffer_size(host_vertex_Bett_matrix[1]);
-//       buffer_size += concurrency.get_buffer_size(host_vertex_Bett_matrix[2]);
-//       break;
-      
-//     default:
-//       throw std::logic_error(__FUNCTION__);
-//     }
 
   buffer_size += concurrency.get_buffer_size(singular_value_cut_off);
   buffer_size += concurrency.get_buffer_size(singular_value_index_cut_off);
@@ -208,27 +171,6 @@ void vertex_parameters::pack( concurrency_type& concurrency, int* buffer, int bu
   concurrency.pack(buffer, buffer_size, position, q_vector);
   concurrency.pack(buffer, buffer_size, position, w_channel);
 
-//   switch(model::DIMENSION)
-//     {
-//     case 1:
-//        concurrency.pack(buffer, buffer_size, position, host_vertex_Bett_matrix[0]);
-//       break;
- 
-//     case 2:
-//        concurrency.pack(buffer, buffer_size, position, host_vertex_Bett_matrix[0]);
-//       concurrency.pack(buffer, buffer_size, position, host_vertex_Bett_matrix[1]);
-//       break;
-	  
-//     case 3:
-//       concurrency.pack(buffer, buffer_size, position, host_vertex_Bett_matrix[0]);
-//       concurrency.pack(buffer, buffer_size, position, host_vertex_Bett_matrix[1]);
-//       concurrency.pack(buffer, buffer_size, position, host_vertex_Bett_matrix[2]);
-//       break;
-	  
-//     default:
-//       throw std::logic_error(__FUNCTION__);
-//     }
-
   concurrency.pack(buffer, buffer_size, position, singular_value_cut_off);
   concurrency.pack(buffer, buffer_size, position, singular_value_index_cut_off);
 
@@ -256,27 +198,6 @@ void vertex_parameters::unpack( concurrency_type& concurrency, int* buffer, int 
   concurrency.unpack(buffer, buffer_size, position, q_vector);
   concurrency.unpack(buffer, buffer_size, position, w_channel);
 
-//   switch(model::DIMENSION)
-//     {
-//     case 1:
-//       concurrency.unpack(buffer, buffer_size, position, host_vertex_Bett_matrix[0]);
-//       break;
-
-//     case 2:
-//       concurrency.unpack(buffer, buffer_size, position, host_vertex_Bett_matrix[0]);
-//       concurrency.unpack(buffer, buffer_size, position, host_vertex_Bett_matrix[1]);
-//       break;
-	  
-//     case 3:
-//       concurrency.unpack(buffer, buffer_size, position, host_vertex_Bett_matrix[0]);
-//       concurrency.unpack(buffer, buffer_size, position, host_vertex_Bett_matrix[1]);
-//       concurrency.unpack(buffer, buffer_size, position, host_vertex_Bett_matrix[2]);
-//       break;
-	  
-//     default:
-//       throw std::logic_error(__FUNCTION__);
-//     }
-
   concurrency.unpack(buffer, buffer_size, position, singular_value_cut_off);
   concurrency.unpack(buffer, buffer_size, position, singular_value_index_cut_off);
 
@@ -298,108 +219,6 @@ void vertex_parameters::unpack( concurrency_type& concurrency, int* buffer, int 
 /******************************************
  ***        READ/WRITE                  ***
  ******************************************/
-
-template<class stream_type>
-void vertex_parameters::to_JSON(stream_type& /*ss*/, bool /*is_end*/)
-{
-//   ss << "\"vertex-measurement\" :";
-//   ss << "\n{ \n";
-
-//   JSON_writer::write(ss, "vertex-measurement-type", vertex_measurement_type_str);
-
-//   JSON_writer::write(ss, "q-vector"               , q_vector);
-//   JSON_writer::write(ss, "q-channel"              , q_channel);
-//   JSON_writer::write(ss, "w-channel"              , w_channel);
-
-//   JSON_writer::write(ss, "singular-value-cut-off"       , singular_value_cut_off);
-//   JSON_writer::write(ss, "singular-value-index-cut-off" , singular_value_index_cut_off);
-
-//   JSON_writer::write(ss, "deconvolute-Gamma"      , do_deconvolution_of_Gamma_str);
-
-//   JSON_writer::write(ss, "symmetrize-Gamma"       , do_symmetrization_of_Gamma_str);
-  
-//   JSON_writer::write(ss, "compute-chi_0"          , compute_chi_0_str);
-//   JSON_writer::write(ss, "compute-chi"            , compute_chi_str);
-
-//   JSON_writer::write(ss, "compute-eigenvalues"    , compute_eigenvalues_str);
-//   JSON_writer::write(ss, "compute-Pq-cluster"     , compute_P_q_cluster_str);
-//   JSON_writer::write(ss, "compute-Pq-lattice"     , compute_P_q_lattice_str, true);
-
-//   if(is_end)
-//     ss << "}\n";
-//   else
-//     ss << "},\n";
-}
-  
-template<class JSON_reader_type>
-void vertex_parameters::from_JSON(JSON_reader_type& /*reader*/)
-{
-  //cout << __FUNCTION__ << endl;
-
-//   typedef typename JSON_reader_type::JsonAccessor JsonAccessor;
-  
-//   try
-//     {
-//       const JsonAccessor control(reader["vertex-measurement"]);
-
-//       vertex_measurement_type_str   <= control["vertex-measurement-type"];
-//       q_vector                      <= control["q-channel"];
-//       w_channel                     <= control["w-channel"];
-
-//       if(int(q_vector.size()) != model::DIMENSION)
-// 	throw std::logic_error("int(q_vector.size()) != model::DIMENSION");
-
-//       try
-// 	{
-// 	  const JsonAccessor control2(reader["vertex-measurement"]["Bethe-Salpeter host-cluster"]);
-// 	  read_Bett_vectors(control2, host_vertex_Bett_matrix);
-// 	}
-//       catch(const std::exception& r_e) {}
-
-//       try
-// 	{ 
-// 	  singular_value_cut_off        <= control["singular-value-cut-off"]; 
-// 	  do_deconvolution_of_Gamma_str <= control["deconvolute-Gamma"];
-// 	  //cout << __FUNCTION__ << "\t singular_value_cut_off : " << singular_value_cut_off << endl;
-// 	}
-//       catch(const std::exception& r_e) {}
-
-//       try
-// 	{ 
-// 	  singular_value_index_cut_off  <= control["singular-value-index-cut-off"]; 
-// 	  //cout << __FUNCTION__ << "\t singular_value_cut_off_index : " << singular_value_index_cut_off << endl;
-// 	}
-//       catch(const std::exception& r_e) {}
-
-
-//       try
-// 	{ do_symmetrization_of_Gamma_str <= control["symmetrize-Gamma"]; }
-//       catch(const std::exception& r_e) {}
-
-//       try
-// 	{ compute_chi_0_str <= control["compute-chi_0"]; }
-//       catch(const std::exception& r_e) {}
-
-//       try
-// 	{ compute_chi_str <= control["compute-chi"]; }
-//       catch(const std::exception& r_e) {}
-
-//       try
-// 	{ compute_eigenvalues_str <= control["compute-eigenvalues"]; }
-//       catch(const std::exception& r_e) {}
-
-//       try
-// 	{ compute_P_q_cluster_str <= control["compute-Pq-cluster"]; }
-//       catch(const std::exception& r_e) {}
-
-//       try
-// 	{ compute_P_q_lattice_str <= control["compute-Pq-lattice"]; }
-//       catch(const std::exception& r_e) {}
-
-//     }
-//   catch(const std::exception& r_e)
-//     {}
-}
 
 template<class read_write_type>
 void vertex_parameters::read_write(read_write_type& read_write_obj)
@@ -505,10 +324,6 @@ int vertex_parameters::get_w_channel()
   return w_channel;
 }
 
-// std::vector<std::vector<int> > vertex_parameters::get_host_vertex_Bett_matrix()
-// {
-//   return host_vertex_Bett_matrix;
-// }
 
 double vertex_parameters::get_singular_value_cut_off()
 {
@@ -623,31 +438,4 @@ void vertex_parameters::find_q_channel()
     }
   }
 }
-
-// template<typename reader_t>
-// void vertex_parameters::read_Bett_vectors(reader_t& control, std::vector<std::vector<int> >& matrix)
-// {
-//   switch(model::DIMENSION)
-//     {
-//     case 1:
-//       matrix[0] <= control["Bett_vector_0"]; if(matrix[0].size() != 1) throw std::logic_error("Bett_matrix[0].size() != 1");
-//       break;
-
-//     case 2:
-//       matrix[0] <= control["Bett_vector_0"]; if(matrix[0].size() != 2) throw std::logic_error("Bett_matrix[0].size() != 2");
-//       matrix[1] <= control["Bett_vector_1"]; if(matrix[1].size() != 2) throw std::logic_error("Bett_matrix[1].size() != 2");
-//       break;
-      
-//     case 3:
-//       matrix[0] <= control["Bett_vector_0"]; if(matrix[0].size() != 3) throw std::logic_error("Bett_matrix[0].size() != 3");
-//       matrix[1] <= control["Bett_vector_1"]; if(matrix[1].size() != 3) throw std::logic_error("Bett_matrix[1].size() != 3");
-//       matrix[2] <= control["Bett_vector_2"]; if(matrix[2].size() != 3) throw std::logic_error("Bett_matrix[2].size() != 3");
-//       break;
-      
-//     default:
-//       throw std::logic_error(__FUNCTION__);
-//     }
-// }
-
-
 #endif

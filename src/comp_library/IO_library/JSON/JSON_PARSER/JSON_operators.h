@@ -190,8 +190,6 @@ namespace IO
 	
 	default: 
 	  {
-	    //std::cout << "std::map<t,t2> <= " << w.name() << " produced a type error!\n";
-	    //std::cout << " trying to assign a " << name(w.type) << " to a std::map!\n";
 	    throw std::logic_error(__FUNCTION__);
 	  }
 	}
@@ -204,7 +202,6 @@ namespace IO
       is >> value;
       return buffer;
     }
-
   
   }//namespace JSONPARSER
 

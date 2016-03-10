@@ -42,7 +42,7 @@ std::string frequency_domain_imag_axis::get_name()
 
 std::vector<double >& frequency_domain_imag_axis::get_elements()
 {
-  static std::vector<double > vec_elements(0,0.);// = initialize();
+  static std::vector<double > vec_elements(0,0.);
   return vec_elements;
 } 
 

@@ -1,19 +1,15 @@
 //-*-C++-*-
-
+  /*!
+   *  \author: Peter Staar
+   */
 #ifndef CONVERT_DCA_TYPES_TO_INDEX_H
 #define CONVERT_DCA_TYPES_TO_INDEX_H
 
 namespace QMC
 {
-  /*!
-   *  \author: Peter Staar
-   */
+
   template<typename target, class whatever>
   class convert{};
-
-  /*!
-   *  \author: Peter Staar
-   */
   template<>
   class convert<int, dmn_2<dmn_0<electron_band_domain>,dmn_0<electron_spin_domain> > >
   {
