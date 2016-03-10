@@ -3,11 +3,10 @@
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
-// See CITATION.txt for citation guidelines if you use this code for scientific
-// publications.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //         Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //
-// This file defines the header that should be used in every .cpp and .hpp file.
-// For Python, CMake and Bash scripts replace // with #.
+// This file defines the comment block every header and source file should start with.
+// TODO: What about CMake, Bash and Python scripts?
