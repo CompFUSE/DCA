@@ -716,7 +716,7 @@ printTL<D9>::print(s);
 ***           PRINT union_i           ***
 *****************************************/
 
-
+/*
 
 template <class D0 >
 struct printTL<union_1<D0 > > {
@@ -842,7 +842,7 @@ printTL<D9>::print(s);
 }
 };
 
-
+*/
 
 }
 
