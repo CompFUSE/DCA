@@ -1,4 +1,9 @@
-//-*-C++-*-
+/*
+ * dmn_variadic.h
+ *
+ *  Created on: Mar 10, 2016
+ *      Author: John Biddiscombe
+ */
 
 #ifndef DMN_VARIADIC_H_
 #define DMN_VARIADIC_H_
@@ -10,82 +15,45 @@
 #include <tuple>
 #include <assert.h>
 #include <utility>
+#include <tuple>
 #include <type_traits>
+#include <iterator>
+//
 #include "domain.h"
 #include "type_list.h"
 #include "type_list_definitions.h"
 
 //----------------------------------------------------------------------------
-// Indices trick, from http://loungecpp.wikidot.com/tips-and-tricks%3aindices
+// Variadic domain class with a list of sub-domains
 //----------------------------------------------------------------------------
-
-template<std::size_t... Indices>
-struct indices {
-};
-
-// this assumes that function type F returns int
-template<typename Tuple, std::size_t... Indices, typename F>
-std::array<int, std::tuple_size<Tuple>::value>
-apply(Tuple &&t, indices<Indices...>, F &&f) {
-    return std::array<int, std::tuple_size<Tuple>::value> {
-        {
-            f(std::get<Indices>(std::forward<Tuple>(t)))...
-        }
-    };
-}
-
-template<std::size_t N, std::size_t... Is>
-struct build_indices: build_indices<N - 1, N - 1, Is...> {
-};
-
-template<std::size_t... Is>
-struct build_indices<0, Is...> : indices<Is...> {
-};
-
-template<typename Tuple>
-using IndicesFor = build_indices<std::tuple_size<std::decay<Tuple>>::value>;
-
-
-//----------------------------------------------------------------------------
-// C++14 integer sequence
-//----------------------------------------------------------------------------
-template <typename Tuple, size_t... Indices>
-std::array<int, sizeof...(Indices)>
-call_f_detail(Tuple& tuple, std::index_sequence<Indices...> ) {
-    return { f(std::get<Indices>(tuple))... };
-}
-
-template <typename Tuple>
-std::array<int, std::tuple_size<Tuple>::value>
-call_f(Tuple& tuple) {
-    return call_f_detail(tuple,
-        // make the sequence type sequence<0, 1, 2, ..., N-1>
-        std::make_index_sequence<std::tuple_size<Tuple>::value>{}
-        );
-}
-//----------------------------------------------------------------------------
-using namespace TL;
-
 template<typename... domain_list>
-class dmn_variadic: public domain
-{
+class dmn_variadic: public domain {
 
 public:
 
 //    typedef typename Append<domain_typelist_0,
 //        typename Append<domain_typelist_1, domain_typelist_2>::Result>::Result this_type;
 
+    /// constructor, responsible for initializing all domain indexing arrays
     dmn_variadic();
 
+    /// return the size allocated by this domain.
+    /// includes all space for all subdomains
     static int& dmn_size() {
         static int size = -1;
+        std::cout << "Returning domain size " << size << std::endl << std::endl;
         return size;
     }
 
+    /// reset the domain back to the original state at creation time
     void reset();
 
+    /// primary operator to access elements by index.
+    ///
     template <typename ...Args>
     int operator()(Args &&... args);
+
+protected:
 
     template <typename ...Args>
     int index_lookup(
@@ -99,53 +67,146 @@ public:
         Args &&... args
     );
 
-/*
-    template <bool, typename ...Args>
-    struct operator_impl{
-        int operator()(Args &&... args);
-    };
-*/
+    template <typename Tuple, std::size_t... DomainIndex>
+    std::vector<int>
+    init_branch_domain_sizes(Tuple &t, std::index_sequence<DomainIndex...>);
+
+    template <typename Tuple, std::size_t... DomainIndex>
+    std::vector<int>
+    init_leaf_domain_sizes(Tuple &domaintuple, std::index_sequence<DomainIndex...>);
+
+
 protected:
     std::tuple<domain_list...> domains;
 };
 
+//----------------------------------------------------------------------------
+// utility function : takes a variadic list or arguments and returns nothing.
+// It is used to convert a variadic pack expansion into a function so that
+// arbitrary functions can be called with a pack expansion and drop the results.
+//----------------------------------------------------------------------------
+template<typename...Ts>
+void ignore_returnvalues(Ts&&...) {}
 
+//----------------------------------------------------------------------------
+// Get the branch domain sizes for each of the domain template arguments
+// returns a vector of the sizes
+//----------------------------------------------------------------------------
+template <typename... domain_list>
+template <typename Tuple, std::size_t... DomainIndex>
+std::vector<int>
+dmn_variadic<domain_list...>::init_branch_domain_sizes(Tuple &domaintuple, std::index_sequence<DomainIndex...>)
+{
+    return { (std::get<DomainIndex>(domaintuple).get_size())... };
+}
+
+//----------------------------------------------------------------------------
+// Get the number of leaf domains for each of the domain template arguments
+// returns a vector of the counts
+//----------------------------------------------------------------------------
+template <typename... domain_list>
+template <typename Tuple, std::size_t... DomainIndex>
+std::vector<int>
+dmn_variadic<domain_list...>::init_leaf_domain_sizes(Tuple &domaintuple, std::index_sequence<DomainIndex...>)
+{
+    return { (std::get<DomainIndex>(domaintuple).get_Nb_leaf_domains())... };
+}
+
+//----------------------------------------------------------------------------
+// Invoke a function for each element of a tuple
+//----------------------------------------------------------------------------
+
+namespace detail
+{
+    template<typename T, typename F, std::size_t... Indices>
+    void for_each(T&& t, F &&f, std::index_sequence<Indices...>)
+    {
+        auto l = { (f(std::get<Indices>(t)), 0)... };
+    }
+}
+
+template<typename... Ts, typename F>
+void for_each_in_tuple(std::tuple<Ts...> & t, F &&f)
+{
+    detail::for_each(t, std::forward<F>(f), std::make_index_sequence<sizeof...(Ts)>{});
+}
+
+struct leaf_domain_size_helper
+{
+    leaf_domain_size_helper(std::vector<int> &dest) : destination(dest) {}
+    //
+    template<typename Domain>
+    void operator () (Domain &&d)
+    {
+        std::vector<int> temp = d.get_leaf_domain_sizes();
+        std::cout << "Here with a domain of size " << d.get_size() << std::endl;
+        std::copy(std::begin(temp), std::end(temp), std::ostream_iterator<int>(std::cout, ","));
+        std::copy(std::begin(temp), std::end(temp), std::back_inserter(destination));
+        std::cout << std::endl;
+    }
+    //
+    std::vector<int> &destination;
+};
+
+//----------------------------------------------------------------------------
+// Constructor implementation
+//----------------------------------------------------------------------------
 template<typename... domain_list>
 dmn_variadic<domain_list...>::dmn_variadic() : domain()
 {
+    // create an index sequence that indexes the domains we are templated on
     std::index_sequence_for<domain_list...> indices;
-    branch_domain_sizes = {
-        std::get<indices>(domains).get_size()
-    };
+
+    // initialize a vector from the size of each top level domain (branch domain)
+    branch_domain_sizes = init_branch_domain_sizes(domains,indices);
+
+    std::cout << "Creating " << __PRETTY_FUNCTION__ << " " << branch_domain_sizes.size() << std::endl << "domain sizes : ";
+    std::copy(branch_domain_sizes.begin(), branch_domain_sizes.end(), std::ostream_iterator<int>(std::cout,","));
+    std::cout << std::endl;
 
     branch_domain_steps.resize(branch_domain_sizes.size(), 1);
-    for (size_t i = 0; i < branch_domain_sizes.size(); i++)
-        for (size_t j = 0; j < i; j++)
+    for (size_t i = 0; i < branch_domain_sizes.size(); i++) {
+        for (size_t j = 0; j < i; j++) {
             branch_domain_steps[i] *= branch_domain_sizes[j];
-/*
-    leaf_domain_sizes.insert(leaf_domain_sizes.end(),
-        std::get<indices>(domains).get_leaf_domain_sizes().begin(),
-        std::get<indices>(domains).get_leaf_domain_sizes().end());
-    leaf_domain_sizes.insert(leaf_domain_sizes.end(),
-        dmn_list_1.get_leaf_domain_sizes().begin(),
-        dmn_list_1.get_leaf_domain_sizes().end());
-    leaf_domain_sizes.insert(leaf_domain_sizes.end(),
-        dmn_list_2.get_leaf_domain_sizes().begin(),
-        dmn_list_2.get_leaf_domain_sizes().end());
+        }
+    }
+    std::cout << "Steps ";
+    std::copy(branch_domain_steps.begin(), branch_domain_steps.end(), std::ostream_iterator<int>(std::cout,","));
+    std::cout << std::endl;
+
+    // generate the leaf domain sizes from each sub domain
+    auto leaf_stuff = init_leaf_domain_sizes(domains, indices);
+    std::cout << "Leaf stuff ";
+    std::copy(leaf_stuff.begin(), leaf_stuff.end(), std::ostream_iterator<int>(std::cout, ","));
+    std::cout << std::endl;
+
+    for_each_in_tuple(domains, leaf_domain_size_helper(leaf_domain_sizes));
+    std::cout << "leaf domain size ";
+    std::copy(leaf_domain_sizes.begin(), leaf_domain_sizes.end(), std::ostream_iterator<int>(std::cout,","));
+    std::cout << std::endl;
 
     leaf_domain_steps.resize(leaf_domain_sizes.size(), 1);
     for (size_t i = 0; i < leaf_domain_sizes.size(); i++)
         for (size_t j = 0; j < i; j++)
             leaf_domain_steps[i] *= leaf_domain_sizes[j];
-*/
+
+    std::cout << "leaf step size ";
+    std::copy(leaf_domain_steps.begin(), leaf_domain_steps.end(), std::ostream_iterator<int>(std::cout,","));
+    std::cout << std::endl;
+
     size = 1;
 
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < sizeof...(domain_list); i++)
         size *= branch_domain_sizes[i];
 
     dmn_size() = size;
+    std::cout << "Domain size is " << size << std::endl;
 }
 
+//----------------------------------------------------------------------------
+// Get the number of leaf domains for each of the domain template arguments
+// returns a vector of the counts
+//----------------------------------------------------------------------------
 template<typename... domain_list>
 void dmn_variadic<domain_list...>::reset()
 {
@@ -186,6 +247,12 @@ void dmn_variadic<domain_list...>::reset()
     dmn_size() = size;
 }
 
+//----------------------------------------------------------------------------
+// indexing operator : access elements of the domain
+// if sizeof(args) < sizeof(domains) : error
+// if sizeof(args) == sizeof(domains) : call index via branch domains
+// if sizeof(args) == sizeof(leaf domains) : call index via leaf domains
+//----------------------------------------------------------------------------
 template<typename... domain_list>
 template <typename ...Args>
 int dmn_variadic<domain_list...>::operator()(Args&&... args) {
@@ -196,6 +263,11 @@ int dmn_variadic<domain_list...>::operator()(Args&&... args) {
     );
 }
 
+//----------------------------------------------------------------------------
+// indexing operator : access elements of the domain via branches
+// index_lookup is overloaded on std::integral_constant<bool, true>::type so
+// that if sizeof...(Args) == sizeof...(domain_list) then this is called
+//----------------------------------------------------------------------------
 template<typename... domain_list>
 template<typename ...Args>
 int dmn_variadic<domain_list...>::index_lookup(
@@ -215,6 +287,11 @@ int dmn_variadic<domain_list...>::index_lookup(
     */
 }
 
+//----------------------------------------------------------------------------
+// indexing operator : access elements of the domain via leaf domains
+// index_lookup is overloaded on std::integral_constant<bool, true>::type so
+// that if sizeof...(Args) == sizeof...(domain_list) then this is called
+//----------------------------------------------------------------------------
 template<typename... domain_list>
 template<typename ...Args>
 int dmn_variadic<domain_list...>::index_lookup(
