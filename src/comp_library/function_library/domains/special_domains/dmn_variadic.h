@@ -55,16 +55,16 @@ public:
 
 protected:
 
-    template <typename ...Args>
+    template<typename... Args>
     int index_lookup(
         std::integral_constant<bool, true>::type,
-        Args &&... args
+        int branch_i0, Args... args
     );
 
-    template <typename ...Args>
+    template<typename... Args>
     int index_lookup(
         std::integral_constant<bool, false>::type,
-        Args &&... args
+        int leaf_i0, Args... args
     );
 
     template <typename Tuple, std::size_t... DomainIndex>
@@ -115,7 +115,6 @@ dmn_variadic<domain_list...>::init_leaf_domain_sizes(Tuple &domaintuple, std::in
 //----------------------------------------------------------------------------
 // Invoke a function for each element of a tuple
 //----------------------------------------------------------------------------
-
 namespace detail
 {
     template<typename T, typename F, std::size_t... Indices>
@@ -131,6 +130,9 @@ void for_each_in_tuple(std::tuple<Ts...> & t, F &&f)
     detail::for_each(t, std::forward<F>(f), std::make_index_sequence<sizeof...(Ts)>{});
 }
 
+//----------------------------------------------------------------------------
+// helper function : for each domain, get the number of leaf domains
+//----------------------------------------------------------------------------
 struct leaf_domain_size_helper
 {
     leaf_domain_size_helper(std::vector<int> &dest) : destination(dest) {}
@@ -149,11 +151,58 @@ struct leaf_domain_size_helper
 };
 
 //----------------------------------------------------------------------------
+// modified an index sequence, offset/length
+// for indexing operations we multiply arguments by branch/leaf step sizes
+//----------------------------------------------------------------------------
+template <std::size_t O, std::size_t ... Is>
+std::index_sequence<(O + Is)...> add_offset(std::index_sequence<Is...>)
+{
+    return {};
+}
+
+template <std::size_t O, std::size_t N>
+auto make_index_sequence_with_offset()
+{
+    return add_offset<O>(std::make_index_sequence<N>{});
+}
+
+//----------------------------------------------------------------------------
+// index multiplication
+//----------------------------------------------------------------------------
+template<typename T>
+T sum(T v) {
+  return v;
+}
+
+template<typename T, typename... Args>
+T sum(T first, Args... args) {
+  return first + adder(args...);
+}
+
+
+template <typename ...Args, std::size_t ... Is>
+int multiply_offsets(const std::vector<int> &multipliers, Args &&... offsets, std::index_sequence<Is...>)
+{
+    return sum((offsets*std::get<Is>(multipliers))...);
+}
+//----------------------------------------------------------------------------
 // Constructor implementation
 //----------------------------------------------------------------------------
 template<typename... domain_list>
 dmn_variadic<domain_list...>::dmn_variadic() : domain()
 {
+    dmn_variadic<domain_list...>::reset();
+}
+
+//----------------------------------------------------------------------------
+// Get the number of leaf domains for each of the domain template arguments
+// returns a vector of the counts
+//----------------------------------------------------------------------------
+template<typename... domain_list>
+void dmn_variadic<domain_list...>::reset()
+{
+    domain::reset();
+
     // create an index sequence that indexes the domains we are templated on
     std::index_sequence_for<domain_list...> indices;
 
@@ -204,50 +253,6 @@ dmn_variadic<domain_list...>::dmn_variadic() : domain()
 }
 
 //----------------------------------------------------------------------------
-// Get the number of leaf domains for each of the domain template arguments
-// returns a vector of the counts
-//----------------------------------------------------------------------------
-template<typename... domain_list>
-void dmn_variadic<domain_list...>::reset()
-{
-    domain::reset();
-    std::index_sequence_for<domain_list...> indices;
-    std::get<indices>(domains).reset();
-
-/*
-    branch_domain_sizes.push_back(dmn_list_0.get_size());
-    branch_domain_sizes.push_back(dmn_list_1.get_size());
-    branch_domain_sizes.push_back(dmn_list_2.get_size());
-
-    branch_domain_steps.resize(branch_domain_sizes.size(), 1);
-    for (size_t i = 0; i < branch_domain_sizes.size(); i++)
-        for (size_t j = 0; j < i; j++)
-            branch_domain_steps[i] *= branch_domain_sizes[j];
-
-    leaf_domain_sizes.insert(leaf_domain_sizes.end(),
-        dmn_list_0.get_leaf_domain_sizes().begin(),
-        dmn_list_0.get_leaf_domain_sizes().end());
-    leaf_domain_sizes.insert(leaf_domain_sizes.end(),
-        dmn_list_1.get_leaf_domain_sizes().begin(),
-        dmn_list_1.get_leaf_domain_sizes().end());
-    leaf_domain_sizes.insert(leaf_domain_sizes.end(),
-        dmn_list_2.get_leaf_domain_sizes().begin(),
-        dmn_list_2.get_leaf_domain_sizes().end());
-
-    leaf_domain_steps.resize(leaf_domain_sizes.size(), 1);
-    for (size_t i = 0; i < leaf_domain_sizes.size(); i++)
-        for (size_t j = 0; j < i; j++)
-            leaf_domain_steps[i] *= leaf_domain_sizes[j];
-*/
-    size = 1;
-
-    for (int i = 0; i < 3; i++)
-        size *= branch_domain_sizes[i];
-
-    dmn_size() = size;
-}
-
-//----------------------------------------------------------------------------
 // indexing operator : access elements of the domain
 // if sizeof(args) < sizeof(domains) : error
 // if sizeof(args) == sizeof(domains) : call index via branch domains
@@ -269,12 +274,30 @@ int dmn_variadic<domain_list...>::operator()(Args&&... args) {
 // that if sizeof...(Args) == sizeof...(domain_list) then this is called
 //----------------------------------------------------------------------------
 template<typename... domain_list>
-template<typename ...Args>
+template<typename... Args>
 int dmn_variadic<domain_list...>::index_lookup(
     std::integral_constant<bool, true>::type,
-    Args&&... args)
+    int branch_i0, Args... branch_indices)
 {
     std::cout << "Branch overload " << std::endl;
+
+    // create an index sequence that indexes the domains we are templated on
+    std::index_sequence_for<domain_list...> indices;
+
+    // create an index sequence starting from 1, with length sizeof...(args)-1
+    auto seq = make_index_sequence_with_offset<1, sizeof...(Args)>();
+
+    int N = multiply_offsets(branch_domain_steps, std::forward<Args...>(branch_indices)..., indices);
+/*
+    return branch_i0 + sum( * branch_indices)...;
+
+    branch_index_helper bih(branch_domain_sizes);
+    for_each_in_tuple(domains, bih);
+    return bih.index;
+*/
+
+
+
     /*
         assert(branch_domain_sizes.size() == 3);
         assert(branch_i0 >= 0 && branch_i0 < branch_domain_sizes[0]);
@@ -293,10 +316,10 @@ int dmn_variadic<domain_list...>::index_lookup(
 // that if sizeof...(Args) == sizeof...(domain_list) then this is called
 //----------------------------------------------------------------------------
 template<typename... domain_list>
-template<typename ...Args>
+template<typename... Args>
 int dmn_variadic<domain_list...>::index_lookup(
     std::integral_constant<bool, false>::type,
-    Args&&... args)
+    int leaf_i0, Args... leaf_indices)
 {
     std::cout << "Subdomain overload " << std::endl;
 /*
