@@ -47,10 +47,6 @@ namespace DCA
 
       void simplify();
       void normalize();
-
-      // void set_eigenvalues(const std::vector< complex_type >& evals) { eigenvalues = evals; }
-      // void add_eigenvalue(const complex_type& eval)                  { eigenvalues.push_back(eval); }
-
       void sort();
 
       std::vector< phi_state<parameter_type, ed_options, PHI_SINGLET> >& get_phi_obj()       { return phi_obj; }
@@ -115,7 +111,6 @@ namespace DCA
         {
           psi_state<parameter_type, ed_options> phi_tmp(phi0.get_phi_obj(l));
 
-          //        complex_type coeff = 1./sqrt(order);
           phi_tmp.get_alpha(0) /= sqrt(order);
 
           for (int i = 0; i < order; ++i){
@@ -247,22 +242,6 @@ namespace DCA
     template<typename parameter_type, typename ed_options>
     void psi_state<parameter_type, ed_options>::sort()
     {
-      // std::vector< phi_type >       sorted_phis;
-      // std::vector< complex_type >   sorted_coefficients;
-
-      // for(int i = 0; i < size(); ++i){
-
-      //   int index = 0;
-      //   while (index < sorted_phis.size() && phis[i].to_ulong() >= sorted_phis[index].to_ulong()){
-      //     ++index;
-      //   }
-      //   sorted_phis.insert(sorted_phis.begin()+index, phis[i]);
-      //   sorted_coefficients.insert(sorted_coefficients.begin()+index, coefficients[i]);
-      // }
-
-      // phis.swap(sorted_phis);
-      // coefficients.swap(sorted_coefficients);
-
       std::sort(phi_obj.begin(), phi_obj.end());
     }
 

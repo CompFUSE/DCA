@@ -46,10 +46,6 @@ namespace DCA
     void execute();
 
     void finalize();
-
-    //     void iterate_to_consistency();
-    //     void iterate_to_consistency_2();
-
   private:
 
     void adjust_chemical_potential();
@@ -179,55 +175,6 @@ namespace DCA
       }
   }
 
-  /*
-    template<class parameters_type,class MOMS_type, class Monte_Carlo_Integrator_type>
-    void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::iterate_to_consistency()
-    {
-    for(int i=0; i<parameters.get_DCA_iterations(); i++)
-    {
-    if(concurrency.id() == concurrency.first())
-    std::cout << "\n\n\t" << __FUNCTION__ << " has started with DCA-iteration --> " << i << " \n\n";
-
-    {
-    profiler_t profiler("cluster-mapping", "DCA", __LINE__);
-    concurrency << "\n\n\t coarsegrain has started";
-    MOMS.coarsegrain_functions(i);
-    concurrency << "\n\t coarsegrain has ended";
-    }
-
-    DCA_info_struct.chemical_potential(i) = parameters.get_chemical_potential();
-
-    {
-    profiler_t profiler("Monte Carlo Integration", "DCA", __LINE__);
-    MonteCarloIntegrator.initialize(i); // load G0 from MOMS into MCI
-    MonteCarloIntegrator.integrate();   // --> does the gather !!
-    }
-
-    {
-    profiler_t profiler("gather and compute Self-Energy", "DCA", __LINE__);
-    MonteCarloIntegrator.finalize(DCA_info_struct); // load G and sigma from MCI into MOMS
-    }
-
-    {
-    profiler_t profiler("lattice-mapping", "DCA", __LINE__);
-    concurrency << "\n\n\t lattice-mapping has started";
-    perform_lattice_mapping();
-    //perform_lattice_mapping();
-    concurrency << "\n\n\t lattice-mapping has ended";
-    }
-
-    {
-    update_DCA_calculation_data_functions(i);
-    }
-    }
-
-    if(parameters.use_interpolated_Self_energy())
-    {
-    MOMS.compute_Sigma_bands();
-    MOMS.compute_single_particle_properties();
-    }
-    }
-  */
 
   template<class parameters_type,class MOMS_type, class Monte_Carlo_Integrator_type>
   void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::initialize()

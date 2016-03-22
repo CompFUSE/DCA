@@ -258,15 +258,11 @@ void SHOW::plot_points(Gnuplot& plot_obj, std::vector<std::vector<scalar_type> >
   for(size_t i=0; i<elements.size(); i++){
     x.push_back(elements[i][0]);
     y.push_back(elements[i][1]);
-
-    //cout << x[i] << "\t" << y[i] << endl;
   }
 
   plot_obj.plot_xy(x, y);
 
   plot_obj.showonscreen();
-
-  //assert(false);
 }
 #else
 template<typename scalar_type>
@@ -281,19 +277,18 @@ void SHOW::plot_bandstructure(FUNC_LIB::function<scalar_type, dmn_2<dmn_2<dmn_0_
   Gnuplot plot_obj("lines");
 
   for(int i=0; i<dmn_0_type::dmn_size(); i++)
-  {
-    std::vector<double> x(0);
-    std::vector<double> y(0);
+    {
+      std::vector<double> x(0);
+      std::vector<double> y(0);
 
-    for(int j=0; j<dmn_2_type::dmn_size(); j++){
-      x.push_back(j);
-      y.push_back(f(i,j));
+      for(int j=0; j<dmn_2_type::dmn_size(); j++){
+	x.push_back(j);
+	y.push_back(f(i,j));
+      }
+
+      plot_obj.plot_xy(x, y, f.get_name());
     }
 
-    plot_obj.plot_xy(x, y, f.get_name());
-  }
-
-  //plot_obj.set_xlabel(dmn_type::get_name());
   plot_obj.set_ylabel(f.get_name());
 
   plot_obj.showonscreen();
@@ -302,6 +297,7 @@ void SHOW::plot_bandstructure(FUNC_LIB::function<scalar_type, dmn_2<dmn_2<dmn_0_
     plot_obj.savetops(f.get_name());
 }
 #else
+
 template<typename scalar_type, typename dmn_0_type, typename dmn_1_type, typename dmn_2_type>
 void SHOW::plot_bandstructure(FUNC_LIB::function<scalar_type, dmn_2<dmn_2<dmn_0_type, dmn_1_type>, dmn_2_type> >& /*f*/, bool /*save_figure*/)
 {}
@@ -507,11 +503,9 @@ template<typename scalar_type, typename dmn_type_0, typename dmn_type_1, typenam
 void SHOW::plot_error_bars(FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& f,
                            FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dmn_type_0, dmn_type_1, dmn_type_2> >& g)
 {
-  //cout << __FUNCTION__ << endl;
 
   std::vector<double>& x_points = dmn_type_2::get_elements();
 
-  //Gnuplot plot_obj("linespoints");
   Gnuplot plot_obj("lines");
 
   plot_obj.set_xlabel(dmn_type_2::parameter_type::get_name());
@@ -679,37 +673,31 @@ void SHOW::execute(FUNC_LIB::function<scalar_type, dmn_2<dmn_type_0, dmn_type_1>
   plot_obj.set_ylabel(f.get_name());
 
   if(n==0)
-  {
-    for(int j=0; j<f[1]; j++)
     {
-      std::vector<double> y_re(0);
-      //std::vector<double> y_im(0);
-      for(int i=0; i<f[0]; i++)
-      {
-        y_re.push_back((f(i,j)));
-        //y_im.push_back(imag(f(i,j)));
-      }
+      for(int j=0; j<f[1]; j++)
+	{
+	  std::vector<double> y_re(0);
+	  for(int i=0; i<f[0]; i++)
+	    {
+	      y_re.push_back((f(i,j)));
+            }
 
-      plot_obj.plot_xy(x, y_re, "");
-      //plot_obj.plot_xy(x, y_im, "");
+	  plot_obj.plot_xy(x, y_re, "");
+	}
     }
-  }
   else
-  {
-    for(int j=0; j<f[0]; j++)
     {
-      std::vector<double> y_re(0);
-      //std::vector<double> y_im(0);
-      for(int i=0; i<f[1]; i++)
-      {
-        y_re.push_back((f(j,i)));
-        //y_im.push_back(imag(f(j,i)));
-      }
+      for(int j=0; j<f[0]; j++)
+	{
+	  std::vector<double> y_re(0);
+	  for(int i=0; i<f[1]; i++)
+	    {
+	      y_re.push_back((f(j,i)));
+	    }
 
-      plot_obj.plot_xy(x, y_re, "");
-      //plot_obj.plot_xy(x, y_im, "");
+	  plot_obj.plot_xy(x, y_re, "");
+	}
     }
-  }
 
   plot_obj.showonscreen();
 
@@ -731,7 +719,6 @@ void SHOW::execute(FUNC_LIB::function<std::complex<scalar_type>, dmn_2<dmn_type_
   std::vector<double> x;
   if(n==0)
   {
-    //x = dmn_type_0::get_elements();
     plot_obj.set_xlabel(dmn_type_0::get_name());
   }
   else
@@ -840,7 +827,6 @@ void SHOW::execute_on_bands(FUNC_LIB::function<scalar_type, dmn_3<dmn_type_0, dm
     std::vector<double> x(0);
     std::vector<double> y_re(0);
 
-    //for(int i=std::max(dmn_type_2::dmn_size()/2-32,0); i<std::min(dmn_type_2::dmn_size()/2+32, dmn_type_2::dmn_size()); i++){
     for(int i=0; i<dmn_type_2::dmn_size(); i++){
 
       x.push_back(x_points[i]);
@@ -878,7 +864,6 @@ void SHOW::execute_on_bands(FUNC_LIB::function<std::complex<scalar_type>, dmn_4<
     std::vector<double> y_re(0);
     std::vector<double> y_im(0);
 
-    //for(int i=std::max(dmn_type_2::dmn_size()/2-32,0); i<std::min(dmn_type_2::dmn_size()/2+32, dmn_type_2::dmn_size()); i++){
     for(int i=std::max(0,dmn_type_2::dmn_size()/2-shift); i<std::min(dmn_type_2::dmn_size(), dmn_type_2::dmn_size()/2+shift); i++){
 
       x.push_back(x_points[i]);
@@ -908,7 +893,6 @@ void SHOW::execute(FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dmn_type_0,
   std::vector<double>& x_points = dmn_type_2::get_elements();
 
   Gnuplot plot_obj("linespoints");
-  //Gnuplot plot_obj("lines");
 
   plot_obj.set_xlabel(dmn_type_2::parameter_type::get_name());
   plot_obj.set_ylabel(f.get_name());
@@ -922,8 +906,6 @@ void SHOW::execute(FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dmn_type_0,
       x.push_back(x_points[i]);
 
       y_re.push_back(f(0,0,j,i));
-
-      //cout << x_points[i] << "\t" << f(0,0,j,i) << endl;
     }
 
     plot_obj.plot_xy(x, y_re, f.get_name());
@@ -947,9 +929,6 @@ void SHOW::execute_on_bands(FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dm
 
   for(int j=0; j<dmn_type_0::dmn_size()/2; j++){
 
-
-    //Gnuplot plot_obj("lines");
-
     plot_obj.set_xlabel(dmn_type_2::parameter_type::get_name());
     plot_obj.set_ylabel(f.get_name());
 
@@ -961,7 +940,6 @@ void SHOW::execute_on_bands(FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dm
 
       y_re.push_back(f(j,j,0,i));
 
-      //cout << x_points[i] << "\t" << f(0,0,j,i) << endl;
     }
 
     plot_obj.plot_xy(x, y_re, f.get_name());
@@ -984,7 +962,6 @@ void SHOW::execute(FUNC_LIB::function<scalar_type, dmn_4<dmn_type_0, dmn_type_0,
 
   std::vector<double>& x_points = dmn_type_2::get_elements();
 
-  //Gnuplot plot_obj("linespoints");
   Gnuplot plot_obj("lines");
 
   plot_obj.set_xlabel(dmn_type_2::parameter_type::get_name());
@@ -1138,10 +1115,8 @@ void SHOW::execute(FUNC_LIB::function<std::complex<scalar_type>, dmn_0<dmn_type_
   }
 
   Gnuplot plot_obj("lines");
-  //Gnuplot plot_obj("points");
 
   plot_obj.set_xlabel(dmn_type_0::get_name());
-  //plot_obj.set_ylabel(f.get_name());
 
   plot_obj.plot_xy(x_0, f_re, "Re["+f.get_name()+"]");
   plot_obj.plot_xy(x_0, f_im, "Im["+f.get_name()+"]");
@@ -1231,8 +1206,6 @@ void SHOW::heatmap(FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& f, bool sa
   plot_obj << "unset surface";
   plot_obj << "set pm3d map";
 
-  //plot_obj << "set palette gray";
-
   plot_obj.replot();
 
   plot_obj.showonscreen();
@@ -1245,48 +1218,6 @@ template<typename scalar_type, typename dmn_type>
 void SHOW::heatmap(FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& /*f*/, bool /*save_figure*/)
 {}
 #endif
-
-/*
-  template<typename scalar_type, typename dmn_type>
-  void SHOW::heatmap(Gnuplot& plot_obj, FUNC_LIB::function<scalar_type, dmn_0<dmn_type> >& f)
-  {
-  #ifdef ALLOW_GNUPLOT
-
-  std::vector<std::vector<double> >& vecs = dmn_type::get_elements();
-
-  std::vector<double> x(0);
-  std::vector<double> y(0);
-  std::vector<double> z(0);
-
-  for(int i=0; i<f.size(); i++)
-  {
-  x.push_back(vecs[i][0]);
-  y.push_back(vecs[i][1]);
-  z.push_back(f(i));
-  }
-
-  //Gnuplot plot_obj("lines");
-
-  plot_obj << "set dgrid3d  100,100,16";
-  plot_obj << "set pm3d at b";
-
-  plot_obj.plot_xyz(x, y, z, f.get_name());
-
-  plot_obj << "unset surface";
-  plot_obj << "set pm3d map";
-
-  //plot_obj << "set palette gray";
-
-  plot_obj.replot();
-
-  plot_obj.showonscreen();
-
-  if(save_figure)
-  plot_obj.savetops(f.get_name());
-
-  #endif
-  }
-*/
 
 #ifdef ALLOW_GNUPLOT
 template<typename scalar_type, typename dmn_type>
@@ -1323,8 +1254,6 @@ void SHOW::heatmap(std::vector<scalar_type> x, std::vector<scalar_type> y, std::
 
   plot_obj << "unset surface";
   plot_obj << "set pm3d map";
-
-  //plot_obj << "set palette gray";
 
   plot_obj.replot();
 

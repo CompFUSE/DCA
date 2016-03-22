@@ -2,7 +2,6 @@
 
 #include "JSON_PARSER/JSON_enumerations.h"
 
-#include "JSON_PARSER/type_mixing.h"
 #include "JSON_PARSER/JSON_mode_stack.h"
 
 #include "JSON_PARSER/parse_buffer.h"

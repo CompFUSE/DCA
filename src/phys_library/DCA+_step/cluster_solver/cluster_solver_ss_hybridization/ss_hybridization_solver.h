@@ -133,8 +133,6 @@ namespace DCA
 
 	accumulator(parameters, MOMS),
 
-	//is_interacting_band_vector(b::dmn_size(), false),
-
 	Sigma_old("Self-Energy-n-1-iteration"),
 	Sigma_new("Self-Energy-n-0-iteration"),
 
@@ -513,10 +511,10 @@ namespace DCA
 			    std::complex<double> old_sigma = Sigma_old(b_ind,s_ind,b_ind,s_ind,k_ind, w_ind);
 
 			    if(w::dmn_size()/2-16<w_ind and w_ind<w::dmn_size()/2+16)
-			    {
+			      {
 				L2_Sigma_norm      += imag(new_sigma)*imag(new_sigma);
 				L2_difference_norm += imag(old_sigma-new_sigma)*imag(old_sigma-new_sigma);
-			    }
+			      }
 
 			    MOMS.Sigma(b_ind,s_ind,b_ind,s_ind,k_ind, w_ind) = alpha*(new_sigma) + (1-alpha)*old_sigma;
 			}
@@ -528,166 +526,44 @@ namespace DCA
 	symmetrize::execute(MOMS.Sigma, MOMS.H_symmetry);
 
 	if(concurrency.id() == concurrency.first())
-	    std::cout << "\n\t |Sigma_old-Sigma_new| : " << L2_difference_norm/L2_Sigma_norm << std::endl;
+	  std::cout << "\n\t |Sigma_old-Sigma_new| : " << L2_difference_norm/L2_Sigma_norm << std::endl;
 
 	return L2_difference_norm/L2_Sigma_norm;
     }
 
-    /*
-      template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
-      void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::measure_Sigma()
-      {
-      //FUNC_LIB::function<double, nu>& mu_HALF = ss_hybridization_solver_routines_type::get_mu_HALF();
 
-      if(true)
-      {
-      FUNC_LIB::function<double, nu>& mu_HALF = ss_hybridization_solver_routines_type::get_mu_HALF();
+  template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+  void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_Sigma_new(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w> >& G_r_w,
+											  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w> >& GS_r_w)
+  {
+    Sigma_new = 0;
+	
+    FUNC_LIB::function<double, nu>& mu_HALF = ss_hybridization_solver_routines_type::get_mu_HALF();
 
-      if(parameters.get_double_counting_method() == "constant-correction")
-      {
-      //             for(int w_ind=0; w_ind<w::dmn_size(); w_ind++)
-      //               for(int s_ind=0; s_ind<s::dmn_size(); s_ind++)
-      //                 for(int b_ind=0; b_ind<b::dmn_size(); b_ind++)
-      //                   if(ss_hybridization_solver_routines_type::is_interacting_band(b_ind))
-      //                     Sigma_new(b_ind,s_ind,b_ind,s_ind,0, w_ind) = (1./MOMS.G0_k_w_cluster_excluded(b_ind,s_ind,b_ind,s_ind,0, w_ind)-
-      //                                                                    1./accumulator.get_G_r_w()     (b_ind,s_ind,b_ind,s_ind,0, w_ind));
-
-      for(int w_ind=0; w_ind<w::dmn_size(); w_ind++)
+    for(int w_ind=0; w_ind<w::dmn_size(); w_ind++)
       for(int s_ind=0; s_ind<s::dmn_size(); s_ind++)
-      for(int b_ind=0; b_ind<b::dmn_size(); b_ind++)
-      if(ss_hybridization_solver_routines_type::is_interacting_band(b_ind))
-      Sigma_new(b_ind,s_ind,b_ind,s_ind,0, w_ind) = (accumulator.get_GS_r_w(b_ind,s_ind,b_ind,s_ind,0, w_ind)
-      /accumulator.get_G_r_w(b_ind,s_ind,b_ind,s_ind,0, w_ind) );
+	for(int b_ind=0; b_ind<b::dmn_size(); b_ind++)
+	  if(ss_hybridization_solver_routines_type::is_interacting_band(b_ind))
+	    Sigma_new(b_ind,s_ind,b_ind,s_ind,0, w_ind) = (GS_r_w(b_ind,s_ind,b_ind,s_ind,0, w_ind)
+							   /G_r_w(b_ind,s_ind,b_ind,s_ind,0, w_ind) );
 
-      for(int w_ind=0; w_ind<w::dmn_size(); w_ind++)
+    for(int w_ind=0; w_ind<w::dmn_size(); w_ind++)
       for(int s_ind=0; s_ind<s::dmn_size(); s_ind++)
-      for(int b_ind=0; b_ind<b::dmn_size(); b_ind++)
-      if(ss_hybridization_solver_routines_type::is_interacting_band(b_ind))
-      Sigma_new(b_ind,s_ind,b_ind,s_ind,0, w_ind) -= (mu_HALF(b_ind,s_ind));
-      }
-      else
-      {
-      for(int w_ind=0; w_ind<w::dmn_size(); w_ind++)
-      for(int s_ind=0; s_ind<s::dmn_size(); s_ind++)
-      for(int b_ind=0; b_ind<b::dmn_size(); b_ind++)
-      if(ss_hybridization_solver_routines_type::is_interacting_band(b_ind))
-      Sigma_new(b_ind,s_ind,b_ind,s_ind,0, w_ind) = (accumulator.get_GS_r_w()(b_ind,s_ind,b_ind,s_ind,0, w_ind)
-      /accumulator.get_G_r_w()(b_ind,s_ind,b_ind,s_ind,0, w_ind) );
-
-      for(int w_ind=0; w_ind<w::dmn_size(); w_ind++)
-      for(int s_ind=0; s_ind<s::dmn_size(); s_ind++)
-      for(int b_ind=0; b_ind<b::dmn_size(); b_ind++)
-      if(ss_hybridization_solver_routines_type::is_interacting_band(b_ind))
-      Sigma_new(b_ind,s_ind,b_ind,s_ind,0, w_ind) -= (parameters.get_double_counting_correction()
-      + mu_HALF(b_ind,s_ind));
-      }
-      //      SHOW::execute_on_bands(Sigma_new);
-      }
-      }
-    */
-
-    template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
-    void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_Sigma_new(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w> >& G_r_w,
-											    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w> >& GS_r_w)
-    {
-	Sigma_new = 0;
-
-	//     if(parameters.get_double_counting_method() != "none")
-	{
-	    FUNC_LIB::function<double, nu>& mu_HALF = ss_hybridization_solver_routines_type::get_mu_HALF();
-
-	    for(int w_ind=0; w_ind<w::dmn_size(); w_ind++)
-		for(int s_ind=0; s_ind<s::dmn_size(); s_ind++)
-		    for(int b_ind=0; b_ind<b::dmn_size(); b_ind++)
-			if(ss_hybridization_solver_routines_type::is_interacting_band(b_ind))
-			    Sigma_new(b_ind,s_ind,b_ind,s_ind,0, w_ind) = (GS_r_w(b_ind,s_ind,b_ind,s_ind,0, w_ind)
-									   /G_r_w(b_ind,s_ind,b_ind,s_ind,0, w_ind) );
-
-	    for(int w_ind=0; w_ind<w::dmn_size(); w_ind++)
-		for(int s_ind=0; s_ind<s::dmn_size(); s_ind++)
-		    for(int b_ind=0; b_ind<b::dmn_size(); b_ind++)
-			if(ss_hybridization_solver_routines_type::is_interacting_band(b_ind))
-			    Sigma_new(b_ind,s_ind,b_ind,s_ind,0, w_ind) -= (mu_HALF(b_ind,s_ind));
-	}
-	//     else
-	//       {
-	//         for(int w_ind=0; w_ind<w::dmn_size(); w_ind++)
-	//           for(int s_ind=0; s_ind<s::dmn_size(); s_ind++)
-	//             for(int b_ind=0; b_ind<b::dmn_size(); b_ind++)
-	//               if(ss_hybridization_solver_routines_type::is_interacting_band(b_ind))
-	//                 Sigma_new(b_ind,s_ind,b_ind,s_ind,0, w_ind) = (GS_r_w(b_ind,s_ind,b_ind,s_ind,0, w_ind)
-	//                                                                /G_r_w(b_ind,s_ind,b_ind,s_ind,0, w_ind) );
-
-	//         for(int w_ind=0; w_ind<w::dmn_size(); w_ind++)
-	//           for(int s_ind=0; s_ind<s::dmn_size(); s_ind++)
-	//             for(int b_ind=0; b_ind<b::dmn_size(); b_ind++)
-	//               if(ss_hybridization_solver_routines_type::is_interacting_band(b_ind))
-	//                 Sigma_new(b_ind,s_ind,b_ind,s_ind,0, w_ind) -= (parameters.get_double_counting_correction()
-	//                                                                 + mu_HALF(b_ind,s_ind));
-	//       }
-
-	/*
-	//         SHOW::execute_on_bands(Sigma_new);
-
-	FUNC_LIB::function<double, nu>& mu_HALF = ss_hybridization_solver_routines_type::get_mu_HALF();
-
-	if(parameters.get_double_counting_method() == "constant-correction")
-	{
-	//         for(int w_ind=0; w_ind<w::dmn_size(); w_ind++)
-	//           for(int s_ind=0; s_ind<s::dmn_size(); s_ind++)
-	//             for(int b_ind=0; b_ind<b::dmn_size(); b_ind++)
-	//               if(ss_hybridization_solver_routines_type::is_interacting_band(b_ind))
-	//                 Sigma_new(b_ind,s_ind,b_ind,s_ind,0, w_ind) = (1./MOMS.G0_k_w_cluster_excluded(b_ind,s_ind,b_ind,s_ind,0, w_ind)-
-	//                                                         1./accumulator.get_G_r_w()     (b_ind,s_ind,b_ind,s_ind,0, w_ind));
-	for(int w_ind=0; w_ind<w::dmn_size(); w_ind++)
-	for(int s_ind=0; s_ind<s::dmn_size(); s_ind++)
 	for(int b_ind=0; b_ind<b::dmn_size(); b_ind++)
-	if(ss_hybridization_solver_routines_type::is_interacting_band(b_ind))
-	Sigma_new(b_ind,s_ind,b_ind,s_ind,0, w_ind) = (GS_r_w(b_ind,s_ind,b_ind,s_ind,0, w_ind)
-	/G_r_w(b_ind,s_ind,b_ind,s_ind,0, w_ind) );
+	  if(ss_hybridization_solver_routines_type::is_interacting_band(b_ind))
+	    Sigma_new(b_ind,s_ind,b_ind,s_ind,0, w_ind) -= (mu_HALF(b_ind,s_ind));
+  }
 
-	for(int w_ind=0; w_ind<w::dmn_size(); w_ind++)
-	for(int s_ind=0; s_ind<s::dmn_size(); s_ind++)
-	for(int b_ind=0; b_ind<b::dmn_size(); b_ind++)
-	if(ss_hybridization_solver_routines_type::is_interacting_band(b_ind))
-	Sigma_new(b_ind,s_ind,b_ind,s_ind,0, w_ind) -= (mu_HALF(b_ind,s_ind));
 
-	}
-	else
-	{
-	for(int w_ind=0; w_ind<w::dmn_size(); w_ind++)
-	for(int s_ind=0; s_ind<s::dmn_size(); s_ind++)
-	for(int b_ind=0; b_ind<b::dmn_size(); b_ind++)
-	if(ss_hybridization_solver_routines_type::is_interacting_band(b_ind))
-	Sigma_new(b_ind,s_ind,b_ind,s_ind,0, w_ind) = (GS_r_w(b_ind,s_ind,b_ind,s_ind,0, w_ind)
-	/G_r_w(b_ind,s_ind,b_ind,s_ind,0, w_ind) );
+  template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+  int cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::find_w_cutoff()
+  {;
+    return std::max(1.0,std::min(parameters.get_Sigma_tail_cutoff()*parameters.get_beta()/(2.0*M_PI)-0.5,1.0*(w::dmn_size()/2)));
+  }
 
-	for(int w_ind=0; w_ind<w::dmn_size(); w_ind++)
-	for(int s_ind=0; s_ind<s::dmn_size(); s_ind++)
-	for(int b_ind=0; b_ind<b::dmn_size(); b_ind++)
-	if(ss_hybridization_solver_routines_type::is_interacting_band(b_ind))
-	Sigma_new(b_ind,s_ind,b_ind,s_ind,0, w_ind) -= (parameters.get_double_counting_correction()
-	+ mu_HALF(b_ind,s_ind));
-	}
-	//      SHOW::execute_on_bands(Sigma_new);
-	*/
-    }
-
-//   template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
-//   void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::adjust_self_energy_for_double_counting()
-//   {
-//   }
-
-    template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
-    int cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::find_w_cutoff()
-    {
-	//return w::dmn_size()/2;
-	return std::max(1.0,std::min(parameters.get_Sigma_tail_cutoff()*parameters.get_beta()/(2.0*M_PI)-0.5,1.0*(w::dmn_size()/2)));
-    }
-
-    template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
-    void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::find_tail_of_Sigma(double & S0, double & S1, int b,int s, int k)
-    {
+  template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+  void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::find_tail_of_Sigma(double & S0, double & S1, int b,int s, int k)
+  {
 	int    w_cutoff = find_w_cutoff();
 	S0=0.0;
 	S1=0.0;
@@ -697,28 +573,7 @@ namespace DCA
 	    *w::parameter_type::get_elements()[w::dmn_size()/2 + w_cutoff-1];
 
       
-	// for(int b_ind=0; b_ind<b::dmn_size(); b_ind++)
-	//   {
-	//     if(ss_hybridization_solver_routines_type::is_interacting_band(b_ind))
-	//       {
-	//         for(int s_ind=0; s_ind<s::dmn_size(); s_ind++)
-	// 	    {
-	// 		S0+=MOMS.H_interactions(b,s,b_ind,s_ind,0)*accumulator.get_length()(b_ind,s_ind);
-	// 		for(int b_ind_2=0; b_ind_2<b::dmn_size(); b_ind_2++)
-	// 		{
-	// 		    if(ss_hybridization_solver_routines_type::is_interacting_band(b_ind_2))
-	// 		    {
-	// 			for(int s_ind_2=0; s_ind_2<s::dmn_size(); s_ind_2++)
-	// 			{
-	// 			    S1+=MOMS.H_interactions(b,s,b_ind,s_ind,0)*MOMS.H_interactions(b,s,b_ind_2,s_ind_2,0)*
-	// 				(accumulator.get_overlap()(b_ind,s_ind,b_ind_2,s_ind_2)-accumulator.get_length()(b_ind,s_ind)*accumulator.get_length()(b_ind_2,s_ind_2));
-	// 			}
-	// 		    }
-	// 		}
-	// 	    }
-	// 	  }
-	//   }
-    }
+  }
 
 }
 

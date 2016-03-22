@@ -131,8 +131,6 @@ namespace INFERENCE
                                                                                  FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t> >& f_approx,
                                                                                  FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t> >& f_target)
   {
-    //cout << __FUNCTION__ << endl;
-
     execute(A, f_source, f_target);
 
     for(int j=0; j<p_dmn_t::dmn_size(); j++)

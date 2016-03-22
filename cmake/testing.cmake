@@ -4,6 +4,8 @@
 # References: - https://github.com/ALPSCore/ALPSCore
 ################################################################################
 
+include(CMakeParseArguments)
+
 function(add_gtest)
   set(options ADVANCED MPI GTEST_MAIN)
   set(oneValueArgs NAME MPI_NUMPROC)
@@ -32,7 +34,7 @@ function(add_gtest)
 
   target_include_directories(${ADD_GTEST_NAME}
     PRIVATE "${ADD_GTEST_INCLUDES}"
-    PRIVATE "${CMAKE_SOURCE_DIR}/testing/common")
+    PRIVATE "${PROJECT_SOURCE_DIR}/testing/common")
 
   if (ADD_GTEST_MPI)
     if (NOT DEFINED ADD_GTEST_MPI_NUMPROC)
@@ -42,12 +44,12 @@ function(add_gtest)
     
     add_test(
       NAME    ${ADD_GTEST_NAME}
-      COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${ADD_GTEST_MPI_NUMPROC} ${MPIEXEC_PREFLAGS} "./${ADD_GTEST_NAME}" ${MPIEXEC_POSTFLAGS})
+      COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${ADD_GTEST_MPI_NUMPROC} ${MPIEXEC_PREFLAGS} "$<TARGET_FILE:${ADD_GTEST_NAME}>" ${MPIEXEC_POSTFLAGS})
 
   else()
     add_test(
       NAME    ${ADD_GTEST_NAME}
-      COMMAND ${ADD_GTEST_NAME})
+      COMMAND "$<TARGET_FILE:${ADD_GTEST_NAME}>")
 
   endif()
 endfunction()
@@ -58,11 +60,8 @@ option(DCA_TESTS_INCLUDE_ADVANCED "Include time- and resource-consuming tests." 
 if (DCA_TESTS)
   enable_testing()
 
-  #add_subdirectory(${CMAKE_SOURCE_DIR}/libs/gmock-1.7.0)
-  add_subdirectory($ENV{EBROOTGTEST} ${CMAKE_BINARY_DIR}/gtest)
+  add_subdirectory(${gtest_DIR} ${PROJECT_BINARY_DIR}/gtest)
   
-  #target_compile_options(gmock      PRIVATE "-w")
-  #target_compile_options(gmock_main PRIVATE "-w")
   target_compile_options(gtest      PRIVATE "-w")
   target_compile_options(gtest_main PRIVATE "-w")
   

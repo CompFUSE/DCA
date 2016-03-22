@@ -112,21 +112,13 @@ namespace DCA
       void test_interpolation();
 
       int  get_random_interacting_flavor();
-
-      //       void construct_F_k_w();
-      //       void construct_F_r_t();
-	void do_insert_remove             (int j);
+      
+      void do_insert_remove             (int j);
       void insert_or_remove_full_line   (int j);
       void insert_or_remove_anti_segment(int j);
       void insert_or_remove_segment     (int j);
       void shift_segment                (int j);
       void swap_random_orbitals         ();
-
-      //       // high-frquency FT ...
-      //       void compute_moments (FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& f_source);
-      //       void add_moments     (FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& f_source);
-      //       void subtract_moments(FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& f_source);
-      //       void compensate_for_moments(FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_t>& f_source);
 
     private:
 
@@ -152,25 +144,7 @@ namespace DCA
       shift_segment_tools_t shift_segment_tools_obj;
       swap_segment_tools_t  swap_segment_tools_obj;
 
-      //std::vector<bool> is_interacting_band;
-
-      /*
-        FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w> F_k_w;
-        FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_t> F_k_t;
-        FUNC_LIB::function<double              , nu_nu_r_DCA_t> F_r_t;
-
-        FUNC_LIB::function<double                   , nu> mu;
-      */
-
       FUNC_LIB::function<vertex_vertex_matrix_type, nu> M;
-
-      //    public:
-      /*
-        FUNC_LIB::function<double, nu> mu_HALF;
-
-        FUNC_LIB::function<double, nu> a0;
-        FUNC_LIB::function<double, nu> a1;
-      */
 
       bool    thermalized;
 
@@ -216,22 +190,12 @@ namespace DCA
       shift_segment_tools_obj(ss_hybridization_walker_routines_obj),
       swap_segment_tools_obj (ss_hybridization_walker_routines_obj),
 
-      /*
-        F_k_w("cluster_hybridization_F_k_w"),
-        F_k_t("cluster_hybridization_F_k_t"),
-        F_r_t("cluster_hybridization_F_r_t"),
-
-        mu("orbital_dependent_chemical_potential"),
-      */
-
       M("M-matrices"),
 
       thermalized(false),
 
       sign(1)
-    {
-      //FLAVORS = b::dmn_size()*s::dmn_size();
-    }
+    {}
 
     template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
     MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::~MC_walker()
@@ -277,8 +241,6 @@ namespace DCA
 	
 	for(int i=0; i<M.size(); i++){
 	  M(i).get_current_size() = std::pair<int,int>(0,0);
-	  
-	  //M(i).print_fingerprint();
 	}
       }
     }
@@ -342,39 +304,8 @@ namespace DCA
 
       int nb_steps = nr_of_segments*factor*factor2;
 
-      for(int l=0; l<nb_steps; l++)
-        {
-          if(true)
-            {
-              do_step();
-            }
-	  /*
-          else
-            {
-              {
-                int so_ind = get_random_interacting_flavor();
+      for(int l=0; l<nb_steps; l++) do_step();
 
-                if(configuration.get_vertices(so_ind).size() == 0)
-                  insert_or_remove_full_line(so_ind);
-              }
-
-              {
-                {
-                  int so_ind = get_random_interacting_flavor();
-
-                  insert_or_remove_anti_segment(so_ind);
-                }
-
-                {
-                  int so_ind = get_random_interacting_flavor();
-
-                  if(!configuration.get_full_line(so_ind))
-                    insert_or_remove_segment(so_ind);
-                }
-              }
-            }
-	  */
-        }
     }
 
     template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
@@ -389,94 +320,19 @@ namespace DCA
     template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
     void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::do_step()
     {
-      if(true)
-        {
-	  /*
-          double percentage_steps  = parameters.get_steps_per_sweep();
-          double percentage_shifts = parameters.get_shifts_per_sweep();
-          double percentage_swaps  = 0;//parameters.get_swaps_per_sweep();
-
-          double total = (percentage_steps+percentage_shifts+percentage_swaps);
-
-          double p_0 = (percentage_steps + 0                 + 0.0             )/total;
-          double p_1 = (percentage_steps + percentage_shifts + 0.0             )/total;
-	  */
-
-
-
-
-          double p = rng.get_random_number();
+      double p = rng.get_random_number();
 	  
-	  int so_ind = get_random_interacting_flavor();
+      int so_ind = get_random_interacting_flavor();
 
-          if( p < p_0)
-            {
-		do_insert_remove(so_ind);
-            }
+      if( p < p_0)
+	{
+	  do_insert_remove(so_ind);
+	}
 
-          if( p_0 < p and p < p_1)
-            {
-              shift_segment(so_ind);
-            }
-
-//           if( p_1 < p)
-//             {
-//               swap_random_orbitals();
-//             }
-        }
-      /*
-      else
-        {
-          {
-            int so_ind = get_random_interacting_flavor();
-
-            if(configuration.get_vertices(so_ind).size() == 0)
-              insert_or_remove_full_line(so_ind);
-          }
-
-          {
-            {
-              int so_ind = get_random_interacting_flavor();
-
-              insert_or_remove_anti_segment(so_ind);
-            }
-
-            {
-              int so_ind = get_random_interacting_flavor();
-
-              if(!configuration.get_full_line(so_ind))
-                insert_or_remove_segment(so_ind);
-            }
-          }
-
-        }
-      */
-
-      /*
-        {
-        int j = get_random_interacting_flavor();
-
-        if(configuration.get_vertices(j).size() == 0)
-        insert_or_remove_full_line(j);
-        }
-
-        for(int k=0; k<parameters.get_steps_per_sweep(); k++)
-        {
-        int j = get_random_interacting_flavor();
-
-        insert_or_remove_anti_segment(j);
-
-        if(!configuration.get_full_line(j))
-        insert_or_remove_segment(j);
-        }
-      */
-
-//       if(concurrency.id()==0 and id==0)
-// 	{
-// 	  stringstream ss;
-// 	  ss << "\t" << nb_successfull_updates << ", " << nb_updates << ", " << nb_successfull_updates/nb_updates << "\n\n";
-// 	  std::cout << ss.str();
-// 	}
+      if( p_0 < p and p < p_1)
+	{
+	  shift_segment(so_ind);
+	}
     }
 
 
@@ -527,9 +383,7 @@ namespace DCA
       bool succes = full_line_tools_obj.insert_or_remove(j, mu(j));
 
       nb_successfull_updates += succes? 1 : 0;
-      
-      if(QMC_INTEGRATOR_BIT)
-        ss_ct_hybridization_walker_bit::FULL_CHECK(configuration, M, F_r_t, ss_hybridization_walker_routines_obj);
+
     }
 
     template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
@@ -545,8 +399,7 @@ namespace DCA
 
       nb_successfull_updates += succes? 1 : 0;
 
-      if(QMC_INTEGRATOR_BIT)
-        ss_ct_hybridization_walker_bit::FULL_CHECK(configuration, M, F_r_t, ss_hybridization_walker_routines_obj);
+
     }
 
     template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
@@ -561,9 +414,6 @@ namespace DCA
         succes = segment_tools_obj.remove_segment(j, mu(j), sign, M, F_r_t);
 
       nb_successfull_updates += succes? 1 : 0;
-
-      if(QMC_INTEGRATOR_BIT)
-        ss_ct_hybridization_walker_bit::FULL_CHECK(configuration, M, F_r_t, ss_hybridization_walker_routines_obj);
     }
 
     template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
@@ -579,8 +429,6 @@ namespace DCA
 
       nb_successfull_updates += succes? 1 : 0;
 
-      if(QMC_INTEGRATOR_BIT)
-        ss_ct_hybridization_walker_bit::FULL_CHECK(configuration, M, F_r_t, ss_hybridization_walker_routines_obj);
     }
 
     template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
@@ -594,131 +442,9 @@ namespace DCA
       bool succes= swap_segment_tools_obj.swap_orbitals(i, j, mu, sign, M, F_r_t);
       nb_successfull_updates += succes? 1 : 0;
 
-      if(QMC_INTEGRATOR_BIT)
-        ss_ct_hybridization_walker_bit::FULL_CHECK(configuration, M, F_r_t, ss_hybridization_walker_routines_obj);
     }
 
-    /*!
-     *
-     *   \brief We follow the convention that F(\omega) = omega*i+mu - G^{-1}_xc(\omega) (Notice that F behaves as H_0).
-     */
-    /*
-      template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
-      void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::construct_F_k_w()
-      {
-      if(thread_id==0){
-      SHOW::execute_on_bands(MOMS.G_k_w);
-      SHOW::execute_on_bands(MOMS.Sigma);
-
-      SHOW::execute_on_bands(MOMS.G0_k_w_cluster_excluded);
-      }
-
-      for(int w_ind=0; w_ind<w::dmn_size(); w_ind++){
-
-      double mu = parameters.get_chemical_potential();
-      double wm = w::parameter_type::get_elements()[w_ind];
-
-      std::complex<double> z(mu, wm);
-
-      for(int nu_ind=0; nu_ind<nu::dmn_size(); nu_ind++){
-
-      std::complex<double> G = MOMS.G_k_w(nu_ind, nu_ind, 0, w_ind);
-      std::complex<double> S = MOMS.Sigma(nu_ind, nu_ind, 0, w_ind);
-
-      F_k_w(nu_ind, nu_ind, 0, w_ind) = z-(1./G+S);
-      }
-      }
-
-      if(thread_id==0)
-      SHOW::execute_on_bands(F_k_w);
-      }
-    */
-
-    /*
-      template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
-      void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::construct_F_r_t()
-      {
-      //std::cout << "\n\t\t implement " << __FUNCTION__ << " properly !!\n\n";
-      //throw std::logic_error(__FUNCTION__);
-
-      compute_moments(F_k_w);
-
-      subtract_moments(F_k_w);
-
-      //FT<w,t>::execute(F_k_w, F_k_t);
-      MATH_ALGORITHMS::TRANSFORM<w, t>::execute(F_k_w, F_k_t);
-
-      add_moments(F_k_w);
-
-      compensate_for_moments(F_k_t);
-
-      //FT<k_DCA,r_DCA>::execute(F_k_t,F_r_t);
-      MATH_ALGORITHMS::TRANSFORM<k_DCA, r_DCA>::execute(F_k_t,F_r_t);
-
-      //       for(int i=0; i<F_r_t.size(); i++)
-      //         F_r_t(i) = abs(F_r_t(i));
-      }
-
-      template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
-      void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_moments(FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& f_source)
-      {
-      int    w_ind = 0;
-      double w_val = w::get_elements()[w_ind];
-
-      for(int nu_ind=0;nu_ind<nu::dmn_size();nu_ind++)
-      {
-      a0(nu_ind) = real( F_k_w(nu_ind,nu_ind,0,w_ind));
-      a1(nu_ind) = imag(-F_k_w(nu_ind,nu_ind,0,w_ind)*w_val);
-      }
-      }
-
-      template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
-      void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::subtract_moments(FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& f_source)
-      {
-
-      for(int w_ind=0; w_ind<w::dmn_size(); w_ind++){
-
-      std::complex<double> w_val = std::complex<double>(0, w::get_elements()[w_ind]);
-
-      for(int nu_ind=0; nu_ind<nu::dmn_size(); nu_ind++)
-      f_source(nu_ind, nu_ind, 0, w_ind) -= (a0(nu_ind) + a1(nu_ind)/w_val);
-      }
-
-      if(thread_id==0)
-      SHOW::execute(f_source);
-      }
-
-      template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
-      void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::add_moments(FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& f_source)
-      {
-      for(int w_ind=0; w_ind<w::dmn_size(); w_ind++){
-
-      std::complex<double> w_val = std::complex<double>(0, w::get_elements()[w_ind]);
-
-      for(int nu_ind=0; nu_ind<nu::dmn_size(); nu_ind++)
-      f_source(nu_ind, nu_ind, 0, w_ind) += (a0(nu_ind) + a1(nu_ind)/w_val);
-      }
-
-      if(thread_id==0)
-      SHOW::execute(f_source);
-      }
-
-      template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
-      void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compensate_for_moments(FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_t>& f_source)
-      {
-      for(int t_ind=0; t_ind<t::dmn_size(); t_ind++){
-
-      double t_val = t::get_elements()[t_ind];
-
-      for(int nu_ind=0; nu_ind<nu::dmn_size(); nu_ind++){
-      if(t_val<0)
-      f_source(nu_ind, nu_ind, 0, t_ind) += a1(nu_ind)/2.;
-      else
-      f_source(nu_ind, nu_ind, 0, t_ind) -= a1(nu_ind)/2.;
-      }
-      }
-      }
-    */
+  
   }
 
 }

@@ -283,10 +283,6 @@ namespace PROFILER
 		    profiling_table_0[name][i] += ((*itr).second)[i];
 	      }
 	    
-// 	    cout << "\n\t merging : " << id << "\n";
-// 	    for(profiling_iterator_type itr = profiling_table_0.begin(); itr != profiling_table_0.end(); ++itr) 
-// 	      cout << "\t\t" << ((*itr).first) << "\t" << ((*itr).second)[0] <<"\n";
-// 	    cout << "\n";
 	  }
       }
   }    
@@ -311,18 +307,12 @@ namespace PROFILER
 	category_table_type& category_table_i = get_category_map(id);
 	
 	if(category_table_i.size()>0)
-	  {
-	    for(category_table_iterator_type itr = category_table_i.begin(); itr != category_table_i.end(); ++itr) 
-	      {		
-		std::string name = ((*itr).first);
-		category_table_0[name] = ((*itr).second);
-	      }
-	    
-// 	    cout << "\n\t merging : " << id << "\n";
-// 	    for(category_table_iterator_type itr = category_table_0.begin(); itr != category_table_0.end(); ++itr) 
-// 	      cout << "\t\t" << ((*itr).first) << "\t" << ((*itr).second) <<"\n";
-// 	    cout << "\n";
-	  }
+	  for(category_table_iterator_type itr = category_table_i.begin(); itr != category_table_i.end(); ++itr) 
+	    {		
+	      std::string name = ((*itr).first);
+	      category_table_0[name] = ((*itr).second);
+	    }
+	  
       }
   }    
 
@@ -420,8 +410,6 @@ namespace PROFILER
 	for(size_t l=0; l<function_times.size(); ++l)
 	  of << "\t" << function_names[l] 
 	     << " | \t" << function_times[l]/number_of_threads[l] 
-// 	     << " | \t" << function_times[l]/number_of_threads[l]/number_of_counts[l]
-// 	     << " | \t" << number_of_counts[l]/number_of_threads[l]
 	     << " | \t" << function_times[l]/total_time 
 	     << "\n";
       }
@@ -452,148 +440,8 @@ namespace PROFILER
 
     os << "}";
   }
-
-  /*
-  template<typename time_event_type>
-  void CountingProfiler<time_event_type>::to_JSON_chronologically(const ParallelProcessingType& parallelProcessing,
-											  const std::string fileName, 
-											  profiling_table_type& profiling_table,
-											  bool average) 
-  {
-    std::ofstream fileStream(fileName.c_str());
-    
-    int size  = profiling_table.size();
-
-    fileStream << "{";
-    
-    for(int l=0; l<size; ++l)
-      {
-	int index = -1;
-
-	std::string              function_name = "";
-	std::vector<scalar_type> function_values;
-
-	int tmp=0;
-	for(profiling_iterator_type itr = profiling_table.begin(); itr != profiling_table.end(); ++itr)
-	  { 
-	    if(((*itr).second).back() == l)
-	      {
-		index           = tmp;
-		function_name   = (*itr).first;
-		function_values = (*itr).second;
-	      }
-
-	    tmp++;
-	  }
-	
-	fileStream << "\"" << l << "\" : ";
-
-	if(index>-1)
-	  {
-	    time_event_type::normalize(function_values);
-
-	    printCounterDict(parallelProcessing, fileStream, function_name, function_values);
-	    
-	  }
-	else{
-	  cout << l << "not found \n\n";
-	  
-	  fileStream << "{}";
-	}
-	
-	if(l==size-1)
-	  fileStream << " \n";
-	else
-	  fileStream << ",\n";
-      }
-
-    fileStream << "}";
-    
-    fileStream.close();
-  }
-
-  template<typename time_event_type>
-  void CountingProfiler<time_event_type>::toCSV(const ParallelProcessingType& parallelProcessing,
-								 const std::string fileName, 
-								 profiling_table_type& countsTable,
-								 bool average) 
-  {
-    std::string csvFileName(fileName);
-    
-    std::ofstream fileStream(csvFileName.c_str());
-    
-    size_t max_str_size=0;
-    for(profiling_iterator_type itr = countsTable.begin(); itr != countsTable.end(); ++itr){
-      if( ((*itr).first).size() > max_str_size)
-	max_str_size = ((*itr).first).size();
-    }
-
-    max_str_size += 16;
-
-    
-
-    // Print headings
-    const std::vector<std::string>& names(time_event_type::names(parallelProcessing));
-    fileStream << "Function, ";
-    for (size_t i=0; i< names.size(); i++)
-      fileStream << "\"" << names[i] << "\", ";
-    fileStream << "\n";
-    
-    for(profiling_iterator_type itr = countsTable.begin(); itr != countsTable.end(); ++itr) {
-      
-       std::string& functionName((*itr).first);
-       std::vector<scalar_type>&  counter((*itr).second);
-      
-      std::vector<scalar_type> nCounter = counter;
-
-      time_event_type::normalize(nCounter);
-      
-      functionName.resize(max_str_size, ' ');
-
-      fileStream << "\"" << functionName << "\", ";
-      for (size_t i=0; i < nCounter.size(); i++)
-	fileStream << nCounter[i] << ", ";
-      fileStream << "\n";
-    }
-      
-    fileStream.close();  
-  }
-  */
-
-  /*
-  template<typename time_event_type>
-  template<typename counter_value_type>
-  void CountingProfiler<time_event_type>::get_counter_value(const ParallelProcessingType& parallelProcessing,
-										    string counter_name,
-										    string function_name,
-										    counter_value_type& counter_value,
-										    bool average) 
-  {
-    static profiling_table_type countsTable(get_profiling_table());
-    
-    int counter_name_index=-1;
-    const std::vector<std::string>& names(time_event_type::names(parallelProcessing));
-    
-    for (size_t i=0; i< names.size(); i++)
-      if(counter_name == names[i])
-	counter_name_index = i;
-    
-    if(counter_name_index==-1)
-      throw std::logic_error(counter_name);
-    
-    for(profiling_iterator_type itr = countsTable.begin(); itr != countsTable.end(); ++itr) 
-      {
-	if(((*itr).first)==function_name)
-	  {
-	    counter_value = ((*itr).second)[counter_name_index];
-	
-	    if(average)
-	      counter_value /= parallelProcessing.number_of_processors();
-	  }
-      }
-  }
-  */
-}
+  
+}//namespace 
 
 #endif
 

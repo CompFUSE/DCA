@@ -427,8 +427,6 @@ namespace LIN_ALG {
   {
     if(new_current_size.first > global_size.first || new_current_size.second > global_size.second)
     {
-      //CUBLAS_THREAD_MANAGER<device_name>::synchronize_streams(thread_id, stream_id);
-
       if(new_current_size.first > global_size.first && new_current_size.second <= global_size.second)
         resize_rows(new_current_size);
 
@@ -437,8 +435,6 @@ namespace LIN_ALG {
 
       if(new_current_size.first > global_size.first && new_current_size.second > global_size.second)
         resize_rows_and_cols(new_current_size);
-
-      //CUBLAS_THREAD_MANAGER<device_name>::synchronize_streams(thread_id, stream_id);
     }
     else
     {
@@ -545,15 +541,11 @@ namespace LIN_ALG {
   {
     if(new_current_size.first > global_size.first || new_current_size.second > global_size.second)
     {
-      //CUBLAS_THREAD_MANAGER<device_name>::synchronize_streams(thread_id, stream_id);
-
       current_size = new_current_size;
       global_size  = comply_to_block_size(new_current_size);
 
       MEMORY_MANAGEMENT<device_name>::deallocate(data);
       MEMORY_MANAGEMENT<device_name>::  allocate(data, global_size);
-
-      //CUBLAS_THREAD_MANAGER<device_name>::synchronize_streams(thread_id, stream_id);
     }
     else
     {
@@ -678,55 +670,13 @@ namespace LIN_ALG {
     scalartype max_dif=0;
     for(int i=0; i<current_size.first; ++i){
       for(int j=0; j<current_size.second; ++j){
-        /*
-          if(std::fabs(cp_this(i,j)-cp_other(i,j)) < 1.e-6)
-          std::cout << "\t" << 0.;
-          else
-          std::cout << "\t" << cp_this(i,j)-cp_other(i,j);
-        */
-
+	
         if(std::fabs(cp_this(i,j)-cp_other(i,j)) > max_dif)
           max_dif = std::fabs(cp_this(i,j)-cp_other(i,j));
       }
-      //std::cout << "\n";
-    }
-    //std::cout << "\n";
-
-    if(std::fabs(max_dif)<1.e-8)
-    {
-      //std::cout << "\t\t Max Diff : OK " << endl;
-    }
-    else
-    {
-      //std::cout << "\t\t Max Diff : " <<  max_dif << endl;
-
-      //throw std::logic_error(__FUNCTION__);
-
-      /*
-        this->print();
-
-        other_matrix.print();
-
-        std::cout << "\n\n";
-
-        for(int i=0; i<current_size.first; ++i){
-        for(int j=0; j<current_size.second; ++j){
-
-        if(std::fabs(cp_this(i,j)-cp_other(i,j)) < 1.e-6)
-        std::cout << "\t" << 0.;
-        else
-        std::cout << "\t" << cp_this(i,j)-cp_other(i,j);
-        }
-        std::cout << "\n";
-        }
-        std::cout << "\n";
-      */
-
-      if(std::fabs(max_dif)>1.e-3)
-        throw std::logic_error(__FUNCTION__);
-
     }
 
+    if(std::fabs(max_dif)>1.e-3)  throw std::logic_error(__FUNCTION__);
     return max_dif;
   }
 
@@ -775,11 +725,6 @@ namespace LIN_ALG {
         std::cout << "\n";
       }
       std::cout << "\n";
-
-      /*
-        if(std::fabs(max_dif)>1.e-12)
-        throw std::logic_error(__FUNCTION__);
-      */
     }
 
     return max_dif;

@@ -233,14 +233,12 @@ void Parameters<concurrency_t, model_t, CLUSTER_SOLVER_NAME>::update_domains()
   frequency_domain_real_axis       ::initialize(*this);
   frequency_domain_imag_axis       ::initialize(*this);
 
-  {
     DCA::vertex_time_domain<DCA::SP_TIME_DOMAIN         >::initialize(*this);
     DCA::vertex_time_domain<DCA::TP_TIME_DOMAIN         >::initialize(*this);
     DCA::vertex_time_domain<DCA::SP_TIME_DOMAIN_POSITIVE>::initialize(*this);
     DCA::vertex_time_domain<DCA::TP_TIME_DOMAIN_POSITIVE>::initialize(*this);
-  }
 
-  {
+
     DCA::vertex_frequency_domain<DCA::COMPACT> ::initialize(*this);
     DCA::vertex_frequency_domain<DCA::EXTENDED>::initialize(*this);
 
@@ -248,54 +246,45 @@ void Parameters<concurrency_t, model_t, CLUSTER_SOLVER_NAME>::update_domains()
     DCA::vertex_frequency_domain<DCA::EXTENDED_POSITIVE>::initialize(*this);
     
     DCA::vertex_frequency_domain<DCA::EXTENDED_BOSONIC>::initialize(*this);
-  }
 
   // DCA
-  {
-    cluster_domain_initializer<r_DCA>::execute(model::get_r_DCA_basis(),//DCA_lattice_parameters_type::lattice_vectors(),
+    cluster_domain_initializer<r_DCA>::execute(model::get_r_DCA_basis(),
                                                DCA_Parameters::get_DCA_cluster());
-    //DCA_Parameters::get_DCA_Bett_matrix());
 
     cluster_domain_symmetry_initializer<r_DCA, DCA_point_group_type>::execute();
 
     if(concurrency_obj.id() == concurrency_obj.last())
       k_DCA::parameter_type::print(std::cout);
-  }
+
 
   // host
-  {
     cluster_domain_initializer<r_HOST>::execute(model::get_r_DCA_basis(),//DCA_lattice_parameters_type::lattice_vectors(),
                                                 function_parameters::get_sp_cluster());
-    //DCA_Parameters::get_host_Bett_matrix());
 
     cluster_domain_symmetry_initializer<r_HOST, DCA_point_group_type>::execute();
 
     if(concurrency_obj.id() == concurrency_obj.last())
       k_HOST::parameter_type::print(std::cout);
-  }
+
 
 
   // host
-  {
     cluster_domain_initializer<r_HOST_VERTEX>::execute(model::get_r_DCA_basis(),//DCA_lattice_parameters_type::lattice_vectors(),
                                                        function_parameters::get_tp_cluster());
-    //vertex_parameters::get_host_vertex_Bett_matrix());
 
     cluster_domain_symmetry_initializer<r_HOST_VERTEX, DCA_point_group_type>::execute();
 
     if(concurrency_obj.id() == concurrency_obj.last())
       k_HOST_VERTEX::parameter_type::print(std::cout);
-  }
+
 
 
   // LDA
-  {
     cluster_domain_initializer<r_LDA>::execute(model::get_r_DCA_basis(),//DCA_lattice_parameters_type::lattice_vectors(),
                                                function_parameters::get_H_k_grid_size());
 
     if(concurrency_obj.id() == concurrency_obj.last())
       k_LDA::parameter_type::print(std::cout);
-  }
 
 }
 

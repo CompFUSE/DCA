@@ -11,16 +11,7 @@ namespace DCA
   {
 #include "type_definitions.h"
 
-    //     typedef typename K_dmn::parameter_type k_cluster_type;
-    //     const static int DIMENSION = K_dmn::parameter_type::DIMENSION;
-
-    //     typedef dmn_0<coarsegraining_domain<K_dmn, QUADRATURE_K     > > tet_dmn_type;
-    //     typedef dmn_0<coarsegraining_domain<K_dmn, QUADRATURE_ORIGIN> > tet_0_dmn_type;
-
   public:
-
-    //     quadrature_integration(parameters_type& parameters_ref);
-    //     ~quadrature_integration();
 
     template<typename scalar_type>
     static void quadrature_integration_G_q_w_st(FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& I_q,
@@ -93,7 +84,6 @@ namespace DCA
                                                                                          FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& S_q,
                                                                                          FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& G_q)
   {
-    //cout << __FUNCTION__ << "\t" << q_dmn_t::dmn_size() << "\t" << print_time() << "\n";
     
     LIN_ALG::matrix<std::complex<scalar_type>, LIN_ALG::CPU>       G_inv("G_inv", nu::dmn_size());
     LIN_ALG::GEINV<LIN_ALG::CPU>::plan<std::complex<scalar_type> > geinv_obj(G_inv);
@@ -103,11 +93,6 @@ namespace DCA
       for(int j=0; j<nu::dmn_size(); j++)
         for(int i=0; i<nu::dmn_size(); i++)
           G_inv(i,j) = I_q(i,j,q_ind)-H_q(i,j,q_ind)-S_q(i,j,q_ind);
-
-//       if(false)
-//         LIN_ALG::GEINV<LIN_ALG::CPU>::execute(G_inv);
-//       else
-//         LIN_ALG::GEINV<LIN_ALG::CPU>::execute_on_Green_function_matrix(G_inv);
 
       geinv_obj.execute(G_inv);
 
@@ -126,8 +111,6 @@ namespace DCA
                                                                                          FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& S_q,
                                                                                          FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& G_q)
   {
-    //cout << __FUNCTION__ << "\t" << q_dmn_t::dmn_size() << "\t" << print_time() << "\n";
-
     G_q = 0.;
 
     quadrature_integration_functions<scalar_type> quadrature_integration_functions_obj;
@@ -172,11 +155,6 @@ namespace DCA
             for(int i=0; i<nu::dmn_size(); i++)
               G_inv(i,j) = I_q(i,j,q_ind)-H_q(i,j,q_ind)-S_q(i,j,q_ind);
 
-//           if(false)
-//             LIN_ALG::GEINV<LIN_ALG::CPU>::execute(G_inv);
-//           else
-//             LIN_ALG::GEINV<LIN_ALG::CPU>::execute_on_Green_function_matrix(G_inv);
-
 	  geinv_obj.execute(G_inv);
 
           for(int j=0; j<nu::dmn_size(); j++)
@@ -197,8 +175,6 @@ namespace DCA
                                                                                          FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& H_q,
                                                                                          FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t> >& G_q)
   {
-    //cout << __FUNCTION__ << endl;
-
     G_q = 0.;
 
     {
@@ -220,63 +196,6 @@ namespace DCA
         else
           LIN_ALG::GEEV<LIN_ALG::CPU>::execute_on_Greens_function_matrix('V', 'U', H_m, L, V);
 
-	/*
-	{// test GEEV
-	  cout << q_ind << endl;
-	  
-	  for(int j=0; j<nu::dmn_size(); j++){
-	    for(int i=0; i<nu::dmn_size(); i++){
-
-	      std::complex<scalar_type> H_val_0 = H_q(i,j,q_ind)-I_q(i,j,q_ind);
-
-// 	      std::complex<scalar_type> H_val_1 = 0;
-// 	      for(int l=0; l<nu::dmn_size(); l++)
-// 		H_val_1 += L[l]*real(conj(V(l,i))*V(l,j));
-
-	      std::complex<scalar_type> H_val_1 = 0;
-	      for(int l=0; l<nu::dmn_size(); l++)
-		H_val_1 += V(i,l)*L[l]*conj(V(j,l));
-
-	      if(abs(H_val_0-H_val_1)>1.e-6) 
-		{ 
-		  cout << abs(H_val_0-H_val_1) << endl;
-
-		  for(int i=0; i<nu::dmn_size(); i++){
-		    for(int j=0; j<nu::dmn_size(); j++){
-		      cout << H_q(i,j,q_ind)-I_q(i,j,q_ind) << "\t";
-		    }
-		    cout << endl;
-		  }
-		  cout << endl;
-
-		  for(int i=0; i<nu::dmn_size(); i++){
-		    for(int j=0; j<nu::dmn_size(); j++){
-		      cout << V(i,j) << "\t";
-		    }
-		    cout << endl;
-		  }
-		  cout << endl;
-
-		  for(int i=0; i<nu::dmn_size(); i++){
-		    for(int j=0; j<nu::dmn_size(); j++){
-
-		      std::complex<scalar_type> H_val_1 = 0;
-		      for(int l=0; l<nu::dmn_size(); l++)
-			H_val_1 += V(i,l)*L[l]*conj(V(j,l));
-
-		      cout << H_val_1 << "\t";
-		    }
-		    cout << endl;
-		  }
-		  cout << endl;
-
-		  assert(false);
-		}
-	    }
-	  }
-	}
-	*/
-
         for(int i=0; i<nu::dmn_size(); i++)
 	  {
 
@@ -296,12 +215,6 @@ namespace DCA
             throw std::logic_error(__FUNCTION__);
           }
         }
-
-//         for(int j=0; j<nu::dmn_size(); j++)
-//           for(int i=0; i<nu::dmn_size(); i++)
-//             for(int l=0; l<nu::dmn_size(); l++)
-//               G_q(i,j,q_ind) += G_t[l]*real(conj(V(l,i))*V(l,j));
-
         for(int j=0; j<nu::dmn_size(); j++)
           for(int i=0; i<nu::dmn_size(); i++)
             for(int l=0; l<nu::dmn_size(); l++)
@@ -400,10 +313,6 @@ namespace DCA
             }
           }
 
-//           for(int j=0; j<nu::dmn_size(); j++)
-//             for(int i=0; i<nu::dmn_size(); i++)
-//               for(int l=0; l<nu::dmn_size(); l++)
-//                 G_q(i,j,q_ind) += G_t[l]*real(conj(V(l,i))*V(l,j));
 
         for(int j=0; j<nu::dmn_size(); j++)
           for(int i=0; i<nu::dmn_size(); i++)

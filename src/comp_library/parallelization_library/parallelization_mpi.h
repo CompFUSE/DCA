@@ -61,13 +61,7 @@ namespace COMP_LIB
     MPI_Init(&argc, &argv);
 
     group.set();
-
-    //   {
-    //     std::stringstream ss;
-    //     ss << get_id() << "\t" << get_Nr_threads() << endl;
-    //     std::cout << ss.str();
-    //   }
-
+    
     RNG_interface<MPI_LIBRARY>::initialize();
   }
 
@@ -169,8 +163,7 @@ namespace COMP_LIB
 
         int off_set = 0;
 	object.pack(*this, buffer, buffer_size, off_set);
-        //object.pack_or_unpack(true, *this, buffer, buffer_size, off_set);
-
+    
         MPI_Bcast(buffer     , buffer_size, MPI_PACKED, root_id, group.get());
 
         delete [] buffer;
@@ -185,8 +178,7 @@ namespace COMP_LIB
 
         int off_set = 0;
 	object.unpack(*this, buffer, buffer_size, off_set);
-        //object.pack_or_unpack(false, *this, buffer, buffer_size, off_set);
-
+   
         delete [] buffer;
       }
 

@@ -16,15 +16,7 @@ namespace LIN_ALG {
     template<typename scalartype> void   allocate(scalartype*& ptr, int global_size);
     template<typename scalartype> void   allocate(scalartype*& ptr, std::pair<int,int> global_size);
     template<typename scalartype> void deallocate(scalartype*& ptr);
-
-//     template<typename scalartype> void memcopy_d_to_d(scalartype* target_ptr, scalartype* source_ptr, int size);
-//     template<typename scalartype> void memcopy_d_to_h(scalartype* target_ptr, scalartype* source_ptr, int size);
-//     template<typename scalartype> void memcopy_h_to_d(scalartype* target_ptr, scalartype* source_ptr, int size);
-
-//     template<typename scalartype> void memcopy_d_to_d_async(scalartype* target_ptr, scalartype* source_ptr, int size);
-//     template<typename scalartype> void memcopy_d_to_h_async(scalartype* target_ptr, scalartype* source_ptr, int size);
-//     template<typename scalartype> void memcopy_h_to_d_async(scalartype* target_ptr, scalartype* source_ptr, int size);
-      
+     
     template<typename scalartype> void set_to_zero(scalartype* ptr, int m);
     template<typename scalartype> void set_to_zero(scalartype* ptr, int LD, int m);
 
@@ -124,7 +116,6 @@ namespace LIN_ALG {
       int SIZE             = g_s.first*g_s.second;
       scalartype* new_data = new scalartype[SIZE];
       
-      //MEMORY_MANAGEMENT_ON_GPU::memcopy_d_to_h(new_data, ptr, SIZE);
       COPY_FROM<GPU, CPU>::execute(ptr, new_data, SIZE);
       
       std::cout.precision(6);

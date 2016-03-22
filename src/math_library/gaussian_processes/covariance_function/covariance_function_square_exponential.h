@@ -12,7 +12,7 @@ namespace MATH_LIBRARY
   template<typename k_dmn_t>
   class covariance_function<SQUARED_EXPONENTIAL, k_dmn_t>
   {
-    const static int DIMENSION;// = k_dmn_t::parameter_type::DIMENSION;
+    const static int DIMENSION;
 
   public:
 
@@ -89,23 +89,6 @@ namespace MATH_LIBRARY
           SHOW::plot_points(x,z);
         }
         break;
-
-//       case 2 :
-//         {
-// 	  for(int l=0; l<k_dmn_t::dmn_size(); l++){
-	    
-// 	    vec[0] = k_dmn_t::get_elements()[l][0];	    
-// 	    vec[1] = k_dmn_t::get_elements()[l][1];
-	    
-// 	    x.push_back(vec[0]);
-// 	    y.push_back(vec[1]);
-	    
-// 	    z.push_back(execute(vec));
-// 	  }
-
-//           SHOW::heatmap(x,y,z);
-//         }
-//         break;
 
       default:
         std::cout << __FUNCTION__ << std::endl;

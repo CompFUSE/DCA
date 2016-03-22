@@ -31,14 +31,6 @@ namespace TRAFOR
     {    
       typedef typename domain_input ::this_type type_list_input;
       typedef typename domain_output::this_type type_list_output;
-      
-//       if(VERBOSE)
-// 	print_types(f_input, f_output);
-
-//       typedef typename SWAP<domain_input, type_input, type_output>::Result TRANSFORMED_DOMAIN;	  
-//       GENERIC_ASSERT<IS_EQUAL<TRANSFORMED_DOMAIN, domain_output>::CHECK>::execute();
-      
-//       TRANSFORM_DOMAINWISE<domain_input, domain_output, type_input, type_output>::execute_on_first(f_input, f_output);
     }
 
   private:

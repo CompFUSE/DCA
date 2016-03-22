@@ -384,10 +384,7 @@ namespace DCA
        parameters.do_equal_time_measurements() or
        parameters.dump_cluster_Greens_functions())
       {
-        //      MATH_ALGORITHMS::TRANSFORM<r_DCA, k_DCA>::execute(G_r_t                  , G_k_t                  );
-        //      MATH_ALGORITHMS::TRANSFORM<r_DCA, k_DCA>::execute(G0_r_t_cluster_excluded, G0_k_t_cluster_excluded);
-
-        writer.execute(G_k_w);
+	writer.execute(G_k_w);
         writer.execute(G_k_w_stddev);
         writer.execute(G_r_w);
         writer.execute(G_k_t);
@@ -403,23 +400,6 @@ namespace DCA
         writer.execute(G0_k_t_cluster_excluded);
         writer.execute(G0_r_t_cluster_excluded);
       }
-
-    //     if(parameters.do_equal_time_measurements())
-    //       {
-    //  MATH_ALGORITHMS::TRANSFORM<r_DCA, k_DCA>::execute(G_r_t                  , G_k_t                  );
-    //  MATH_ALGORITHMS::TRANSFORM<r_DCA, k_DCA>::execute(G0_r_t_cluster_excluded, G0_k_t_cluster_excluded);
-
-    //  writer.execute(G_r_t);
-    //  writer.execute(G_k_t);
-
-    //  writer.execute(G0_r_t_cluster_excluded);
-    //  writer.execute(G0_k_t_cluster_excluded);
-    //       }
-
-    //     if(parameters.do_CPE() and not parameters.do_equal_time_measurements())
-    //       {
-    //  writer.execute(G_k_t);
-    //       }
 
     if(parameters.get_vertex_measurement_type() != NONE)
       {
@@ -463,9 +443,6 @@ namespace DCA
 
       compute_band_structure::execute(parameters, H_LDA, band_structure);
 
-      //       band_structure.print_fingerprint();
-      //       SHOW::plot_bandstructure(band_structure);
-      //       throw std::logic_error(__FUNCTION__);
     }
 
     if(concurrency.id()==concurrency.first())
@@ -486,19 +463,12 @@ namespace DCA
       std::cout << "\t\t start coarsegraining G0_k_w " << print_time() << "\n";
 
     {
-      //       FUNC_LIB::function<std::complex<double>, nu_nu_k_HOST_w> Sigma_zero;
-      //       Sigma_zero = 0.;
-
       FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w> Sigma_zero;
       Sigma_zero = 0.;
 
       coarsegrain_obj.compute_G_K_w(H_HOST, Sigma_zero, G0_k_w);
 
-      //SHOW::execute(G0_k_w);
-
       symmetrize::execute(G0_k_w, H_symmetry, true);
-
-      //SHOW::execute(G0_k_w);
     }
 
     if(concurrency.id()==0)
@@ -507,15 +477,10 @@ namespace DCA
     {
       coarsegrain_obj.compute_G0_K_t(H_HOST, G0_k_t);
 
-      //SHOW::execute(G0_k_t);
-
       symmetrize::execute(G0_k_t, H_symmetry, true);
 
-      //SHOW::execute(G0_k_t);
-      //assert(false);
     }
-
-    test_initialize_G0();
+    //test_initialize_G0();
 
     if(concurrency.id()==0)
       std::cout << "\n\t\t FT G0_k_w, G0_k_t --> G0_r_w, G0_r_t " << print_time() << "\n";
@@ -524,69 +489,15 @@ namespace DCA
       MATH_ALGORITHMS::TRANSFORM<k_dmn_t, r_dmn_t>::execute(G0_k_w, G0_r_w);
       MATH_ALGORITHMS::TRANSFORM<k_dmn_t, r_dmn_t>::execute(G0_k_t, G0_r_t);
 
-      //SHOW::execute(G0_r_w);
-      //symmetrize::execute(G0_r_w, H_symmetry, true);
-      //SHOW::execute(G0_r_w);
+       symmetrize::execute(G0_r_t, H_symmetry, true);
 
-      //SHOW::execute(G0_r_t);
-      symmetrize::execute(G0_r_t, H_symmetry, true);
-      //SHOW::execute(G0_r_t);
     }
 
     if(concurrency.id()==0)
       std::cout << "\t finished G0 " << print_time();
 
-    //assert(false);
   }
 
-  template<class parameters_type>
-  bool DCA_data<parameters_type>::test_initialize_G0()
-  {
-    /*
-      if(concurrency.id()==0)
-      {
-      std::cout << "\n\n\t start testing MATH-ALGORTHMS\n\n";
-
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_dmn_t,w> > G0_k_w_test("G_k_w_test");
-      FUNC_LIB::function<             double , dmn_4<nu,nu,k_dmn_t,t> > G0_k_t_test("G_k_t_test");
-
-      {
-      G0_k_w_test = G0_k_w;
-
-      MATH_ALGORITHMS::TRANSFORM<w, t>::execute(G0_k_w_test, G0_k_t_test);
-
-      FUNC_LIB::function<double, t> tmp_1("G0_k_t");
-      FUNC_LIB::function<double, t> tmp_2("FT[G0_k_w]");
-
-      for(int b_ind=0; b_ind<b_dmn_t::dmn_size(); b_ind++){
-      for(int k_ind=0; k_ind<k_dmn_t::dmn_size(); k_ind++){
-
-      for(int t_ind=0; t_ind<t::dmn_size(); t_ind++){
-      tmp_1(t_ind) = G0_k_t     (b_ind,0, b_ind,0, k_ind,t_ind);
-      tmp_2(t_ind) = G0_k_t_test(b_ind,0, b_ind,0, k_ind,t_ind);
-      }
-
-      SHOW::execute(tmp_1, tmp_2);
-      }
-      }
-      }
-
-      assert(false);
-
-      {
-      G0_k_t_test = G0_k_t;
-
-      MATH_ALGORITHMS::TRANSFORM<t, w>::execute(G0_k_t_test, G0_k_w_test);
-
-      //SHOW::execute(G0_k_w, G0_k_w_test);
-      }
-
-      std::cout << "\n\n\t stop testing MATH-ALGORTHMS\n\n";
-      }
-    */
-
-    return true;
-  }
 
   template<class parameters_type>
   void DCA_data<parameters_type>::initialize_Sigma()
@@ -628,7 +539,6 @@ namespace DCA
           for(int i=0; i<nu::dmn_size(); i++)
             G_inv(i,j) = I_k(i,j)-H_HOST(i,j,k_ind)-Sigma_lattice(i,j,k_ind,w_ind);
 
-        //LIN_ALG::GEINV<LIN_ALG::CPU>::execute_on_Green_function_matrix(G_inv);
         geinv_obj.execute(G_inv);
 
         for(int j=0; j<nu::dmn_size(); j++)

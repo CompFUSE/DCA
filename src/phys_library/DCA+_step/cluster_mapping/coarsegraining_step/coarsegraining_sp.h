@@ -48,12 +48,6 @@ namespace DCA
 
     void reset_fine_q_mesh(int recursion, int rule, int period);
 
-    template<typename other_scalar_type, typename k_dmn>
-    void plot_H_q(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn> >& H_0);
-
-    template<typename other_scalar_type, typename k_dmn>
-    void plot_S_q(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w> >& S_k_w);
-
     template<typename other_scalar_type, typename r_dmn>
     void compute_phi_r(FUNC_LIB::function<other_scalar_type, r_dmn>& phi_r);
 
@@ -197,11 +191,6 @@ namespace DCA
   template<typename parameters_type, typename K_dmn>
   void coarsegraining_sp<parameters_type, K_dmn>::initialize()
   {
-    //     if(concurrency.id() == concurrency.first())
-    //       cout << "\n\n\t initialization of coarsegraining_sp has started | time = " << print_time();
-
-    //SHOW::plot_points(K_dmn::get_elements());
-
     {
       this->compute_tetrahedron_mesh(parameters.get_k_mesh_refinement(),
                                      parameters.get_number_of_periods());
@@ -214,9 +203,6 @@ namespace DCA
     {
       w_q  .reset();
       w_tet.reset();
-
-      //       for(int l=0; l<w_q.size(); l++)
-      //         w_q(l) = quadrature_dmn::get_weights()[l];
 
       for(int l=0; l<w_q.size(); l++)
         w_q(l) = q_dmn::parameter_type::get_weights()[l];
@@ -240,77 +226,9 @@ namespace DCA
     }
 
     interpolation_matrices<scalar_type, k_HOST, q_dmn>::initialize(concurrency);
-
-    //     if(concurrency.id() == concurrency.first())
-    //       cout << "\t initialization of coarsegraining_sp has ended   | time = " << print_time() << "\n";
   }
 
-  template<typename parameters_type, typename K_dmn>
-  template<typename other_scalar_type, typename k_dmn>
-  void coarsegraining_sp<parameters_type, K_dmn>::plot_H_q(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn> >& /*H_0*/)
-  {
-    /*
-      FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn> > H_k("H_k");
 
-      for(int k_ind=0; k_ind<k_dmn::dmn_size(); k_ind++)
-      for(int j=0; j<nu::dmn_size(); j++)
-      for(int i=0; i<nu::dmn_size(); i++)
-      H_k(i,j,k_ind) = H_0(i,j,k_ind);
-
-      std::vector<scalar_type> x(q_dmn::dmn_size()*K_dmn::dmn_size());
-      std::vector<scalar_type> y(q_dmn::dmn_size()*K_dmn::dmn_size());
-      std::vector<scalar_type> z(q_dmn::dmn_size()*K_dmn::dmn_size());
-
-      for(int K_ind=0; K_ind<K_dmn::dmn_size(); K_ind++){
-
-      compute_H_q(K_ind, H_k);
-
-      for(int q_ind=0; q_ind<q_dmn::dmn_size(); q_ind++){
-      x[q_ind+K_ind*q_dmn::dmn_size()] = q_0_dmn::parameter_type::get_elements()[q_ind][0]+K_dmn::get_elements()[K_ind][0];
-      y[q_ind+K_ind*q_dmn::dmn_size()] = q_0_dmn::parameter_type::get_elements()[q_ind][1]+K_dmn::get_elements()[K_ind][1];
-      z[q_ind+K_ind*q_dmn::dmn_size()] = real(H_q(0,0,q_ind));
-      }
-      }
-
-      SHOW::plot_points(x,y);
-      SHOW::heatmap(x,y,z);
-    */
-  }
-
-  template<typename parameters_type, typename K_dmn>
-  template<typename other_scalar_type, typename k_dmn>
-  void coarsegraining_sp<parameters_type, K_dmn>::plot_S_q(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w> >& /*S_k_w*/)
-  {
-    /*
-      std::vector<scalar_type> x(q_dmn::dmn_size()*K_dmn::dmn_size());
-      std::vector<scalar_type> y(q_dmn::dmn_size()*K_dmn::dmn_size());
-      std::vector<scalar_type> z(q_dmn::dmn_size()*K_dmn::dmn_size());
-
-      FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn> > S_k;
-      FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn> > A_k;
-
-      for(int k_ind=0; k_ind<k_dmn::dmn_size(); k_ind++)
-      for(int j=0; j<nu::dmn_size(); j++)
-      for(int i=0; i<nu::dmn_size(); i++)
-      S_k(i,j,k_ind) = S_k_w(i,j,k_ind,w::dmn_size()/2);
-
-      transform_to_alpha::forward(scalar_type(1), S_k, A_k);
-
-      for(int K_ind=0; K_ind<K_dmn::dmn_size(); K_ind++){
-
-      compute_S_q_from_A_k(K_ind, w::dmn_size()/2, A_k);
-
-      for(int q_ind=0; q_ind<q_dmn::dmn_size(); q_ind++){
-      x[q_ind+K_ind*q_dmn::dmn_size()] = q_0_dmn::parameter_type::get_elements()[q_ind][0]+K_dmn::get_elements()[K_ind][0];
-      y[q_ind+K_ind*q_dmn::dmn_size()] = q_0_dmn::parameter_type::get_elements()[q_ind][1]+K_dmn::get_elements()[K_ind][1];
-      z[q_ind+K_ind*q_dmn::dmn_size()] = imag(S_q(0,0,q_ind));
-      }
-      }
-
-      SHOW::plot_points(x,y);
-      SHOW::heatmap(x,y,z);
-    */
-  }
 
   template<typename parameters_type, typename K_dmn>
   template<typename other_scalar_type, typename r_dmn>
@@ -354,29 +272,6 @@ namespace DCA
         {
           std::vector<double>               r_vec  = r_dmn::get_elements()[l];
           std::vector<std::vector<double> > r_vecs = cluster_operations::equivalent_vectors(r_vec, super_basis);
-
-          //      for(int tet_ind=0; tet_ind<tetrahedra.size(); tet_ind++)
-          //        {
-          //          std::complex<double> val_0 = tetrahedra[tet_ind].integrate_harmonic(r_vecs[0]);
-          //          std::complex<double> val_1 = tetrahedron_routines_harmonic_function::execute(r_vecs[0],
-          //                                                                                       tetrahedra[tet_ind]);
-
-          //          if(abs(val_0-val_1)>1.e-6){
-          //            VECTOR_OPERATIONS::PRINT(r_vecs[0]);
-          //            cout << "\t" << __FUNCTION__ << "\t" << val_0 << "\t" << val_1 << " be carefull !! \n";
-          //          }
-          //          else
-          //            cout << "\t" << __FUNCTION__ << "\t" << val_0 << "\t" << val_1 << " OK !! \n";
-          //        }
-
-          //      if(false)
-          //        {
-          //          for(int r_ind=0; r_ind<r_vecs.size(); r_ind++)
-          //            for(int tet_ind=0; tet_ind<tetrahedra.size(); tet_ind++)
-          //              phi_r(l) += real(tetrahedra[tet_ind].integrate_harmonic(r_vecs[r_ind]))/r_vecs.size();
-          //        }
-          //      else
-          //        {
           for(int r_ind=0; r_ind<r_vecs.size(); r_ind++)
             for(int tet_ind=0; tet_ind<tetrahedra.size(); tet_ind++)
               phi_r(l) += real(tetrahedron_routines_harmonic_function::execute(r_vecs[0],
@@ -487,7 +382,7 @@ namespace DCA
     for(int l=bounds.first; l<bounds.second; l++)
       {
         K_wm_dmn.linind_2_subind(l, coor);
-
+ 
         this->compute_G_q_w(coor[0], coor[1], H_k, S_K, I_q, H_q, S_q, G_q);
 
         for(int q_ind=0; q_ind<q_dmn::dmn_size(); q_ind++)
@@ -505,9 +400,6 @@ namespace DCA
 
       G_K_w /= V_K;
     }
-
-    //SHOW::execute_on_bands(G_K_w);
-    //throw std::logic_error(__FUNCTION__);
   }
 
   template<typename parameters_type, typename K_dmn>
@@ -516,9 +408,6 @@ namespace DCA
                                                                          FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn> >& S_K_w,
                                                                          FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn> >& G_K_w)
   {
-    // if(concurrency.id()==0)
-    //   cout << "\n\t start " << __FUNCTION__ << " : " << print_time() << endl;
-
     FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn       > > H_k("H_k");
     FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn> > S_K("S_K");
 
@@ -532,47 +421,20 @@ namespace DCA
 
     G_K_w = 0.;
 
-    /*
-      {
-      for(int tet_ind=0; tet_ind<tet_dmn::dmn_size(); tet_ind += 4)
-      {
-      VECTOR_OPERATIONS::PRINT(tet_dmn::get_elements()[tet_ind+0]); cout << "\n";
-      VECTOR_OPERATIONS::PRINT(tet_dmn::get_elements()[tet_ind+1]); cout << "\n";
-      VECTOR_OPERATIONS::PRINT(tet_dmn::get_elements()[tet_ind+2]); cout << "\n";
-      VECTOR_OPERATIONS::PRINT(tet_dmn::get_elements()[tet_ind+3]); cout << "\n";
-      }
-      cout << "\n";
-
-      for(int tet_ind=0; tet_ind<tet_dmn::dmn_size(); tet_ind += 4)
-      cout << tet_ind+0 << "\t" << tet_ind+1 << "\t" << tet_ind+2 << "\t" << tet_ind+3 << "\n";
-      cout << "\n";
-
-      assert(false);
-      }
-    */
-
     dmn_2<K_dmn, w_dmn> K_wm_dmn;
     std::pair<int, int> bounds = concurrency.get_bounds(K_wm_dmn);
 
     int coor[2];
     for(int l=bounds.first; l<bounds.second; l++)
       {
-        // update_shell(l-bounds.first, bounds.second-bounds.first+1);
-
         K_wm_dmn.linind_2_subind(l, coor);
 
         this->compute_G_q_w(coor[0], coor[1], H_k, S_K, I_tet, H_tet, S_tet, G_tet);
 
-        // if(l==w_dmn::dmn_size()/2-10 or l==w_dmn::dmn_size()/2+10)
-        //   {
-        //     //cout << w_dmn::get_elements()[l] << "\t";
-        //   }
-
         {
           FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu> > G_int;
 
-          //this->tetrahedron_integration_st(w_tet, G_tet, G_int);
-          this->tetrahedron_integration_mt(w_tet, G_tet, G_int);
+	  this->tetrahedron_integration_mt(w_tet, G_tet, G_int);
 
           for(int j=0; j<nu::dmn_size(); j++)
             for(int i=0; i<nu::dmn_size(); i++)
@@ -589,9 +451,6 @@ namespace DCA
 
       G_K_w /= V_K;
     }
-
-    // if(concurrency.id()==0)
-    //   cout << "\n\t end   " << __FUNCTION__ << " : " << print_time() << endl;
   }
 
   /*****************************************
@@ -695,53 +554,6 @@ namespace DCA
       G_K_w /= V_K;
     }
   }
-
-  /*
-    template<typename parameters_type, typename K_dmn>
-    template<typename k_dmn>
-    void coarsegraining_sp<parameters_type, K_dmn>::compute_G_q_t(int K_ind, int t_ind,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn> >& H_k)
-    {
-    scalar_type f_val = 1;
-    scalar_type t_val = t::get_elements()[t_ind];
-    scalar_type beta  = parameters.get_beta();
-
-    f_val = t_val<0? 1          : -1;
-    t_val = t_val<0? t_val+beta : t_val;
-
-    //compute_I_q(parameters.get_chemical_potential());
-    this->compute_I_q(parameters.get_chemical_potential(), I_q);
-
-    //compute_H_q(K_ind, H_0);
-    this->compute_H_q(K_ind, H_k, H_q);
-
-    LIN_ALG::matrix<std::complex<scalar_type>, LIN_ALG::CPU> H_m("H_m", nu::dmn_size());
-
-    LIN_ALG::vector<scalar_type              , LIN_ALG::CPU> L("e_l", nu::dmn_size());
-    LIN_ALG::matrix<std::complex<scalar_type>, LIN_ALG::CPU> V("V_l", nu::dmn_size());
-
-    LIN_ALG::vector<scalar_type              , LIN_ALG::CPU> G_t("e_l", nu::dmn_size());
-
-    G_q = 0.;
-
-    for(int q_ind=0; q_ind<q_dmn::dmn_size(); q_ind++){
-
-    for(int j=0; j<nu::dmn_size(); j++)
-    for(int i=0; i<nu::dmn_size(); i++)
-    H_m(i,j) = H_q(i,j,q_ind)-I_q(i,j,q_ind);
-
-    LIN_ALG::GEEV<LIN_ALG::CPU>::execute('V', 'U', H_m, L, V);
-
-    for(int i=0; i<nu::dmn_size(); i++)
-    G_t[i] = f_val*std::exp(L[i]*(beta-t_val))/(std::exp(L[i]*beta)+1.);
-
-    for(int j=0; j<nu::dmn_size(); j++)
-    for(int i=0; i<nu::dmn_size(); i++)
-    for(int l=0; l<nu::dmn_size(); l++)
-    G_q(i,j,q_ind) += G_t[l]*real(conj(V(l,i))*V(l,j));
-    }
-    }
-  */
 
   template<typename parameters_type, typename K_dmn>
   template<typename other_scalar_type, typename k_dmn>

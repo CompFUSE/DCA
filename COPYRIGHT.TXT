@@ -1,0 +1,2 @@
+Copyright (C) ???-2016 ETH Zurich
+Copyright (C) ???-2016 Center for Nanophase Materials Sciences, ORNL

@@ -71,7 +71,6 @@ namespace dca {
 	    
 	int k_plus_q  = DCA_k_cluster_type::add     (k, q);     
 	int q_minus_k = DCA_k_cluster_type::subtract(k, q); 
-	//int min_k = DCA_k_cluster_type::subtract(k, 0); 
 	    
 	for(int n1=0; n1<b::dmn_size(); n1++){
 	  for(int n2=0; n2<b::dmn_size(); n2++){
@@ -113,8 +112,6 @@ namespace dca {
 
 		    analysis_ref.G4_0_b_k_w__b_k_w(n1,n2,k,w_vertex,
 						   m1,m2,k,w_vertex) = MOMS.G_k_w(n1, e_UP, m1, e_UP, k, w)*MOMS.G_k_w(n2, e_UP, m2, e_UP, q_minus_k, w_nu+(2*W-1-w));
-// 		    analysis_ref.G4_0_b_k_w__b_k_w(n1,n2,k,w_vertex,
-// 						   m1,m2,k,w_vertex) = MOMS.G_k_w(n1, e_UP, m1, e_UP, min_k, 2*W-1-w)*MOMS.G_k_w(n2, e_UP, m2, e_UP, k_plus_q, w);
 		    break;
 		      
 		  default:

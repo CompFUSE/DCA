@@ -52,8 +52,6 @@ namespace DCA
     compute_G0_K_w_cluster_excluded();
   
     compute_G0_R_t_cluster_excluded();
-
-    //plot_G0_R_t_cluster_excluded();
   }
 
   /*
@@ -95,11 +93,6 @@ namespace DCA
 
 	for(int i=0; i<nu::dmn_size(); i++)
 	  one_plus_S_G(i,i) += 1.;
-
-// 	if(false)
-// 	  LIN_ALG::GEINV<LIN_ALG::CPU>::execute(one_plus_S_G);
-// 	else
-// 	  LIN_ALG::GEINV<LIN_ALG::CPU>::execute_on_Green_function_matrix(one_plus_S_G);
 
 	geinv_obj.execute(one_plus_S_G);
 

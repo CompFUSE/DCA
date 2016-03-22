@@ -24,9 +24,6 @@ namespace dca {
     void calculate_susceptibilties();
  
   private:
-
-//     void initialize();
-
     void apply_symmetries();
     
 
@@ -70,11 +67,7 @@ namespace dca {
     compute_bubble<parameter_type, k_DCA, w_VERTEX, TRAPEZIUM_INTEGRATION> make_G4_0_CG_obj;
 
     b_b_k_DCA_w_VERTEX b_b_k_DCA_w_VERTEX_domain;
-//     b_b_k_DCA_w_VERTEX          b_b_k_DCA_w_VERTEX_domain;
-
-//     std::vector<int>  corresponding_extended_index;
-//     std::vector<bool> is_compact_frequency;
-
+    
     FUNC_LIN::function<std::complex<double>, dmn_0<dmn<10, int> > >                              leading_eigenvalues;
     FUNC_LIN::function<std::complex<double>, dmn_2<dmn_0<dmn<10, int> >, dmn_0<dmn<3, int> > > > leading_symmetries;
     FUNC_LIN::function<std::complex<double>, dmn_2<b_b_k_DCA_w_VERTEX, dmn_0<dmn<10, int> > >  > leading_eigenvectors;
@@ -98,9 +91,6 @@ namespace dca {
 
     make_G4_0_CG_obj(parameters_in),
 
-//     corresponding_extended_index(w_VERTEX::dmn_size(),-1),
-//     is_compact_frequency(w_VERTEX_EXTENDED::dmn_size(),false),
-
     leading_eigenvalues("leading_eigenvalues"),
     leading_symmetries("leading_symmetries"),
     leading_eigenvectors("leading_eigenvectors"),
@@ -108,27 +98,11 @@ namespace dca {
     eigensystem_pln(square(b::dmn_size())*k_DCA::dmn_size()*w_VERTEX::dmn_size())
   {
     parameters.get_output_file_name() = parameters.get_output_susceptibilities_file_name();//string("data_susceptibilities.json");
-
-//     initialize();
   }
 
   template<class parameter_type, class MOMS_type>
   analysis<parameter_type, MOMS_type, PCM>::~analysis()
   {}
-
-//   template<class parameter_type, class MOMS_type>
-//   void analysis<parameter_type, MOMS_type, PCM>::initialize()
-//   {
-//     for(int i=0; i<w_VERTEX::dmn_size(); i++)
-//       for(int j=0; j<w_VERTEX_EXTENDED::dmn_size(); j++)
-// 	if(fabs(w_VERTEX::parameter_type::get_elements()[i]-w_VERTEX_EXTENDED::parameter_type::get_elements()[j])<1.e-6)
-// 	  corresponding_extended_index[i] = j;
-
-//     for(int j=0; j<w_VERTEX_EXTENDED::dmn_size(); j++)
-//       for(int i=0; i<w_VERTEX::dmn_size(); i++)
-//       	if(fabs(w_VERTEX::parameter_type::get_elements()[i]-w_VERTEX_EXTENDED::parameter_type::get_elements()[j])<1.e-6)
-// 	  is_compact_frequency[j] = true;
-//   }
 
   template<class parameter_type, class MOMS_type>
   template<class stream_type>
@@ -157,8 +131,6 @@ namespace dca {
     apply_symmetries();
 
     compute_Gamma_b_k_w__b_k_w();
-
-//     make_G4_0_CG_obj.execute(full_chi_0_b_k_w__b_k_w);
     {
       compute_bubble<parameter_type, k_DCA, w_VERTEX, TRAPEZIUM_INTEGRATION> compute_bubble(parameters);
       compute_bubble.execute(MOMS.H_LDA, MOMS.Sigma, full_chi_0_b_k_w__b_k_w);
@@ -535,4 +507,3 @@ namespace dca {
 
 
 #endif
-

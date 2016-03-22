@@ -10,9 +10,7 @@ namespace IO
     class JSON_character_mapper 
     {
     public:
-    
-      //     static std::string clsName(JSON_character_class_type cls);
-    
+
       static JSON_character_class_type map_char_to_class(wchar_t widec);
     
       static bool is_white_space(JSON_character_class_type& nextClass);

@@ -60,7 +60,6 @@ namespace LIN_ALG {
       if(Ni>0 and Nc>0)
 	{
 #ifdef DEBUG_CUDA
-	  //CUBLAS_THREAD_MANAGER<device_t>::synchronize_streams(thread_id, stream_id);
 	  cuda_check_for_errors_bgn(__FUNCTION__, __FILE__, __LINE__);
 #endif
 
@@ -75,7 +74,6 @@ namespace LIN_ALG {
 	  many_rows_kernel<<<blocks, threads, 0, stream_handle>>>(Nc, Ni, r_i, alpha, A, LD);
 
 #ifdef DEBUG_CUDA
-	  //CUBLAS_THREAD_MANAGER<device_t>::synchronize_streams(thread_id, stream_id);
 	  cuda_check_for_errors_end(__FUNCTION__, __FILE__, __LINE__);
 #endif
 	}

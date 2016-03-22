@@ -178,20 +178,7 @@ namespace TL
   {
     enum { value = -1 };
   };
-  /*  
-      template <class T, class Tail>
-      struct IndexOf_At<Typelist<T, Tail>, T>
-      {
-      enum { value = 0 };
-      };
-  
-      template <class Tail, class T>
-      struct IndexOf_At<Typelist<T, Tail>, T, -1>
-      {
-      public:
-      enum { value };
-      };
-  */
+
   template <class Tail, class T>
   struct IndexOf_At<Typelist<T, Tail>, T, 0>
   {
@@ -220,11 +207,11 @@ namespace TL
   };
 
 	
-  /*
-**********************************
+  
+/**********************************
 *	Append
-**********************************
-*/
+**********************************/
+
 
   template <class TList, class T> struct Append;
   

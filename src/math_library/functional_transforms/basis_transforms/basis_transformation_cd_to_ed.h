@@ -31,7 +31,6 @@ namespace MATH_ALGORITHMS
     typedef typename lh_spec_dmn_type::element_type lh_element_type;
     typedef typename rh_spec_dmn_type::element_type rh_element_type;
 
-    //typedef rh_scalar_type                               f_scalar_type;
     typedef std::complex<double>                         f_scalar_type;
     typedef LIN_ALG::matrix<f_scalar_type, LIN_ALG::CPU> matrix_type;
 

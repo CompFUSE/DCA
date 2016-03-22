@@ -29,9 +29,6 @@ public:
   static const int DIMENSION = lattice_type::DIMENSION;
   static const int BANDS     = lattice_type::BANDS;
 
-//   static const cluster_shape_type DCA_cluster_shape = lattice_type::DCA_cluster_shape;
-//   static const cluster_shape_type LDA_cluster_shape = lattice_type::LDA_cluster_shape;
-
   static double* get_r_DCA_basis();
   static double* get_k_DCA_basis();
 
@@ -101,13 +98,6 @@ double* tight_binding_model<lattice_type>::get_r_DCA_basis()
   return r_DCA;
 }
 
-// template<typename lattice_type>
-// double* tight_binding_model<lattice_type>::get_k_DCA_basis()
-// {
-//   static double* k_DCA = lattice_type::initialize_k_DCA_basis(); 
-//   return k_DCA;
-// }
-
 template<typename lattice_type>
 double* tight_binding_model<lattice_type>::get_r_LDA_basis()
 {
@@ -115,12 +105,6 @@ double* tight_binding_model<lattice_type>::get_r_LDA_basis()
   return r_LDA;
 }
 
-// template<typename lattice_type>
-// double* tight_binding_model<lattice_type>::get_k_LDA_basis()
-// {
-//   static double* k_LDA = lattice_type::initialize_k_LDA_basis();
-//   return k_LDA;
-// }
 
 template<typename lattice_type>
 std::vector<int> tight_binding_model<lattice_type>::get_flavors()
@@ -133,15 +117,6 @@ std::vector<std::vector<double> > tight_binding_model<lattice_type>::get_a_vecto
 {
   return lattice_type::get_a_vectors();
 }
-
-/*
-template<typename lattice_type>
-std::vector<std::pair<std::pair<int,int>, std::pair<int,int> > > tight_binding_model<lattice_type>::get_orbital_permutations()
-{
-  static std::vector<std::pair<std::pair<int,int>, std::pair<int,int> > > permutations = lattice_type::get_orbital_permutations();
-  return permutations;
-}
-*/
 
 template<typename lattice_type>
 template<class domain, class parameters_type>
@@ -182,64 +157,9 @@ void tight_binding_model<lattice_type>::initialize_H_LDA(FUNC_LIB::function<std:
     }  
 }
 
-
 template<typename lattice_type>
 template<class parameters_type>
 void tight_binding_model<lattice_type>::initialize(parameters_type& /*parameters*/)
-{
-/*
-  // compile-time switch
-
-    switch(DCA_cluster_shape)
-      {
-      case BETT_CLUSTER:
-	initialize_Bett_cluster(parameters);
-	break;
-	
-      case PARALLELEPIPED :
-	initialize_default(parameters);
-	break;
-	
-      default:
-	throw std::logic_error(__FUNCTION__);
-      }
-*/
-}
-
-/*
-template<typename lattice_type>
-template<class parameters_type>
-void tight_binding_model<lattice_type>::initialize_Bett_cluster(parameters_type& parameters)
-{
-  LDA_grid_size() = parameters.get_H_k_grid_size();//parameters.get_LDA_grid_size();
-
-  if(int(LDA_grid_size().size()) != DIMENSION)
-    throw std::logic_error(__FUNCTION__);
-
-  get_LDA_size() = 1;
-  for(int l=0; l<DIMENSION; l++)
-    get_LDA_size() *= LDA_grid_size()[l];
-}
-
-template<typename lattice_type>
-template<class parameters_type>
-void tight_binding_model<lattice_type>::initialize_default(parameters_type& parameters)
-{
-  throw std::logic_error(__FUNCTION__);
-
-//   DCA_grid_size() = parameters.get_DCA_grid_size();
-//   LDA_grid_size() = parameters.get_LDA_grid_size();
-
-//   if(int(DCA_grid_size().size()) != DIMENSION || int(LDA_grid_size().size()) != DIMENSION)
-//     throw std::logic_error(__FUNCTION__);
-
-//   get_DCA_size() = 1;
-//   get_LDA_size() = 1;
-//   for(int l=0; l<DIMENSION; l++){
-//     get_DCA_size() *= DCA_grid_size()[l];
-//     get_LDA_size() *= LDA_grid_size()[l];
-//   }
-}
-*/
+{}
 
 #endif

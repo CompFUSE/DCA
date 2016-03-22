@@ -128,7 +128,6 @@ public:
 
   typedef typename cluster_specifications<scalar_type,    N, R, S>::dmn_specifications_type dmn_specifications_type;
 
-  //typedef             scalar_type  scalar_type;
   typedef std::vector<scalar_type> element_type;
 
 public:
@@ -173,8 +172,6 @@ public:
   template<typename ss_type>
   static void print(ss_type& ss);
 
-//   template<class stream_type>
-//   static void to_JSON(stream_type& ss);
 };
 
 template<typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_REPRESENTATION R, CLUSTER_SHAPE S>
@@ -431,16 +428,8 @@ void cluster_domain<scalar_type, D, N, R, S>::print(ss_type& ss)
       }
     }
   
-  //get_add_matrix().print();
-
-  //get_subtract_matrix().print();
 }
 
-// template<typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_REPRESENTATION R, CLUSTER_SHAPE S>
-// template<typename ss_type>
-// void cluster_domain<scalar_type, D, N, R, S>::to_JSON(ss_type& ss)
-// {
 
-// }
 
 #endif

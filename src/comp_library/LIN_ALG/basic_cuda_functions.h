@@ -77,66 +77,12 @@ void initialize_magma()
   magma_init();
 }
 
-/*
-void cuda_organizer(int status)
-{
-  static CUdevice  dev;                                                        
-  static CUcontext context;                                                    
-  
-  if(status == 0)
-    {
-      if( CUDA_SUCCESS != cuInit(0) ) {                                   
-	fprintf(stderr, "CUDA: Not initialized\n" ); exit(-1);                
-      }                                                                     
-      
-      if( CUDA_SUCCESS != cuDeviceGet(&dev, 0) ) {			  
-	fprintf(stderr, "CUDA: Cannot get the device\n"); exit(-1);           
-      }                                                                     
-      
-      if( CUDA_SUCCESS != cuCtxCreate( &context, 0, dev ) ) {		  
-	fprintf(stderr, "CUDA: Cannot create the context\n"); exit(-1);       
-      }                                                                     
-      
-//       if( CUBLAS_STATUS_SUCCESS != cublasInit() ) {                        
-// 	fprintf(stderr, "CUBLAS: Not initialized\n"); exit(-1);               
-//       }    
-    }
-  else
-    {
-      cuCtxDetach( context ); 
-//       cublasShutdown();
-    }
-};
-*/
 
-/*
-bool cuda_check_for_errors()
-{
-  cudaDeviceSynchronize();
-
-  cudaError_t ret = cudaGetLastError();
-
-  if(ret != cudaSuccess)
-    {
-      std::string error_msg(cudaGetErrorString(ret));
-
-      std::cout << error_msg << std::endl;
-
-      throw std::logic_error(__FUNCTION__);
-    }
-
-  return true;
-}
-*/
 
 #ifdef DEBUG_CUDA
 
 bool cuda_check_for_errors(std::string function_name, std::string file_name, int line)
 {
-  //std::cout << __FUNCTION__ << std::endl;
-
-  //cudaDeviceSynchronize();
-
   cudaError_t ret = cudaGetLastError();
 
   if(ret != cudaSuccess)
@@ -158,10 +104,6 @@ bool cuda_check_for_errors(std::string function_name, std::string file_name, int
 
 bool cuda_check_for_errors_bgn(std::string function_name, std::string file_name, int line)
 {
-  //std::cout << __FUNCTION__ << std::endl;
-
-  //cudaDeviceSynchronize();
-
   cudaError_t ret = cudaGetLastError();
 
   if(ret != cudaSuccess)
@@ -183,8 +125,6 @@ bool cuda_check_for_errors_bgn(std::string function_name, std::string file_name,
 
 bool cuda_check_for_errors_end(std::string function_name, std::string file_name, int line)
 {
-  //std::cout << __FUNCTION__ << std::endl;
-
   cudaDeviceSynchronize();
 
   cudaError_t ret = cudaGetLastError();
@@ -207,52 +147,6 @@ bool cuda_check_for_errors_end(std::string function_name, std::string file_name,
 }
 
 #endif 
-
-/*
-cublasHandle_t* cublas_organizer(int thread_id, int N)
-{
-  static cublasHandle_t* handle = ;
-  
-  switch(status == 0)
-    {
-    case 0 :
-      {
-	if(CUDA_SUCCESS != cublasCreate(handle)){                        
-	  fprintf(stderr, "CUBLAS: Not initialized\n"); exit(-1);               
-	}    
-	
-	int* version=NULL;
-	if(CUDA_SUCCESS != cublasGetVersion(handle, version)){                        
-	  fprintf(stderr, "CUBLAS-verssion: Not initialized\n"); exit(-1);               
-	}    
-	else
-	  std::cout << "\n\n\t\t CUBLAS-VERSION : " << *version << std::endl;
-      }
-      break;
-
-    case 1 :
-      {
-	if(CUDA_SUCCESS != cublasDestroy(handle)){                        
-	  fprintf(stderr, "CUBLAS: Not destroyed\n"); exit(-1);               
-	}
-	
-	handle = NULL;
-      }
-      break;
-
-    default:
-    }
-  
-  return handle;
-};
-*/
-
-/*
-void cuda_thread_synchronize()
-{
-  cudaThreadSynchronize();	   
-}
-*/
 
 cudaDeviceProp& get_device_properties()
 {

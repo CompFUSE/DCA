@@ -128,7 +128,6 @@ namespace IO
 
     parse(file_name);
 
-    //writer<IO::JSON>::execute(std::cout, parse_result);
   }
 
   void reader<IO::JSON>::close_file()
@@ -175,8 +174,6 @@ namespace IO
   {
     size_t index = 0;
 
-    //cout << "\n\n " << get_path() << "/" << name << "\t" << index << "\n";
-     
     if(index==my_paths.size())
       value <= parse_result[name];
     else
@@ -190,8 +187,6 @@ namespace IO
   template<typename scalartype>
   void reader<IO::JSON>::execute(std::string name, scalartype& value, const JsonAccessor& current_result, size_t index)
   {
-    //cout << "\n\n " << get_path() << "/" << name << "\t" << index << "\n";
-
     if(index==my_paths.size())
       value <= current_result[name];
     else
@@ -224,9 +219,7 @@ namespace IO
 
   template<typename scalartype, typename domain_type>
   void reader<IO::JSON>::execute(std::string name, FUNC_LIB::function<scalartype, domain_type>& f, const JsonAccessor& current_result, size_t index)
-  {
-    //cout << get_path() << "/" << name << "\t" << index << "\n";
-
+  {    
     if(index==my_paths.size())
       {
 	std::vector<std::vector<scalartype> > value;
@@ -249,8 +242,6 @@ namespace IO
   void reader<IO::JSON>::execute(std::string name, FUNC_LIB::function<std::complex<scalartype>, domain_type>& f, const JsonAccessor& current_result, size_t index)
   {
     const std::complex<scalartype> I(0,1);
-
-    //cout << get_path() << "/" << name << "\t" << index << "\n";
 
     if(index==my_paths.size())
       {

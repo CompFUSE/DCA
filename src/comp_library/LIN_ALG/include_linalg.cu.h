@@ -20,9 +20,6 @@
 #include "basic_cuda_functions.h"
 #include "basic_cublas_functions.h"
 
-//#include <thrust/host_vector.h>
-//#include <thrust/device_vector.h>
-
 #include <utility>
 
 #include "src/linalg_operations/memory_management_GPU.cu.h"
@@ -30,9 +27,6 @@
 #include "src/linalg_operations/copy_from_CPU_GPU.cu.h"
 #include "src/linalg_operations/copy_from_GPU_CPU.cu.h"
 #include "src/linalg_operations/copy_from_GPU_GPU.cu.h"
-
-// cublas
-#include "src/linalg_operations/DOT_GPU.cu.h"
 
 // CUBLAS 1
 #include "src/linalg_operations/BLAS_1_SCALE_GPU.cu.h"

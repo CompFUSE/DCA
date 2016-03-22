@@ -225,7 +225,6 @@ namespace LIN_ALG {
   template<typename scalartype, device_type device_name>
   void vector<scalartype, device_name>::set(std::vector<scalartype>& other_vector)
   {
-    //resize(other_vector.size());
     reserve(other_vector.size());
     COPY_FROM<LIN_ALG::CPU, device_name>::execute(&other_vector[0], this->get_ptr(), current_size);
   }
@@ -262,7 +261,6 @@ namespace LIN_ALG {
   template<device_type other_device_name>
   void vector<scalartype, device_name>::set(vector<scalartype, other_device_name>& other_vector)
   {
-    //resize(other_vector.size());
     reserve(other_vector.size());
     COPY_FROM<other_device_name, device_name>::execute(other_vector.get_ptr(), this->get_ptr(), current_size);
   }
@@ -332,8 +330,6 @@ namespace LIN_ALG {
 
     if(new_current_size > global_size)
     {
-      //CUBLAS_THREAD_MANAGER<device_name>::synchronize_streams(thread_id, stream_id);
-
       int new_global_size = (new_current_size/64)*64+64;
       assert(new_global_size >= new_current_size);
 
@@ -351,8 +347,6 @@ namespace LIN_ALG {
 
       global_size  = new_global_size;
       current_size = new_current_size;
-
-      //CUBLAS_THREAD_MANAGER<device_name>::synchronize_streams(thread_id, stream_id);
     }
     else
       current_size = new_current_size;
@@ -365,8 +359,6 @@ namespace LIN_ALG {
 
     if(new_current_size > global_size)
     {
-      //CUBLAS_THREAD_MANAGER<device_name>::synchronize_streams(thread_id, stream_id);
-
       int new_global_size = (new_current_size/64)*64+64;
       assert(new_global_size >= new_current_size);
 
@@ -386,8 +378,6 @@ namespace LIN_ALG {
 
       global_size  = new_global_size;
       current_size = new_current_size;
-
-      //CUBLAS_THREAD_MANAGER<device_name>::synchronize_streams(thread_id, stream_id);
     }
     else
       current_size = new_current_size;

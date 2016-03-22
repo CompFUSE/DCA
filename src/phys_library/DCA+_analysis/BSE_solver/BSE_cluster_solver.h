@@ -12,8 +12,6 @@ namespace DCA
   class BSE_cluster_solver
   {
 #include "type_definitions.h"
-
-    //typedef float scalartype;
     typedef double scalartype;
 
     typedef typename parameters_type::profiler_type    profiler_t;
@@ -319,14 +317,8 @@ namespace DCA
       for(int i=0; i<N; i++)
         Gamma_matrix(i, j) = (invert_G4_0.inverted_matrix[i+j*N]
                               -invert_G4 .inverted_matrix[i+j*N]);
-
-    //     if(concurrency.id()==concurrency.last())
-    //       std::cout << "symmetrize Gamma_cluster" << std::endl;
-
-    //     symmetrize::execute(Gamma_cluster, MOMS.H_symmetry, parameters.get_q_vector(), false);
-    //     diagrammatic_symmetries_obj.execute(Gamma_cluster);
   }
-
-}
+  
+}//namespace DCA
 
 #endif

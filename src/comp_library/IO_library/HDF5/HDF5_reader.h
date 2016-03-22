@@ -150,7 +150,7 @@ namespace IO
   }
 
   template<typename scalar_type>
-  void reader<IO::HDF5>::execute(std::string name, scalar_type& value)//, H5File& file, std::string path)
+  void reader<IO::HDF5>::execute(std::string name, scalar_type& value)
   {
     std::string full_name = get_path()+"/"+name;
     
@@ -165,12 +165,11 @@ namespace IO
     catch(...)
       {
         std::cout << "\n\n\t the variable (" + name + ") does not exist in path : " + get_path() + "\n\n";
-	//throw std::logic_error(__FUNCTION__);
       }
   }
 
   template<typename scalar_type>
-  void reader<IO::HDF5>::execute(std::string name, std::vector<scalar_type>& value)//, H5File& file, std::string path)
+  void reader<IO::HDF5>::execute(std::string name, std::vector<scalar_type>& value)
   {
     std::string full_name = get_path()+"/"+name;
     
@@ -179,7 +178,6 @@ namespace IO
 	H5::DataSet  dataset   = my_file->openDataSet(full_name.c_str());
     
 	value.resize(dataset.getInMemDataSize()/sizeof(scalar_type));
-	// value.resize(dataset.getInMemDataSize());
 	
 	H5::DataSpace dataspace = dataset.getSpace();
 	
@@ -359,7 +357,6 @@ namespace IO
     catch(...)
       {
         std::cout << "\n\n\t the vector (" + name + ") does not exist in path : " + get_path() + "\n\n";
-	//throw std::logic_error(__FUNCTION__);
       }
   }
 
@@ -388,78 +385,9 @@ namespace IO
     catch(...)
       {
         std::cout << "\n\n\t the function (" + name + ") does not exist in path : " + get_path() + "\n\n";
-	//throw std::logic_error(__FUNCTION__);
       }
   }
   
-
-  /*
-  template<typename scalar_type>
-  void reader<IO::HDF5>::execute(std::string name, LIN_ALG::vector<scalar_type, LIN_ALG::CPU>& V, H5File& file, std::string path)
-  {
-    std::string new_path = path+"/"+name;
-    
-    try
-      {
-	{
-	  int cs=-1;
-	  execute("size", cs, file, new_path);
-	  
-	  V.reserve(cs);
-	}
-
-	{
-	  std::string  full_path = new_path+"/data";
-
-	  H5::DataSet  dataset    = my_file->openDataSet(full_path.c_str());
-	
-	  H5::DataSpace dataspace = dataset.getSpace();
-	
-	  H5Dread(dataset.getId(), IO::HDF5_TYPE<scalar_type>::get(), dataspace.getId(), H5S_ALL, H5P_DEFAULT, &V[0]);
-	}
-      }
-    catch(...)
-      {
-	cout << "\n\n\t the vector (" + name + ") does not exist in path : " + path + "\n\n";
-	//throw std::logic_error(__FUNCTION__);
-      }
-  }
-
-  template<typename scalar_type>
-  void reader<IO::HDF5>::execute(std::string name, LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& A, H5File& file, std::string path)
-  {
-    std::string new_path = path+"/"+name;
-    
-    try
-      {
-	std::vector<int> vec_cs(2,0);
-	std::vector<int> vec_gs(2,0);
-	
-	{
-	  execute("current-size", vec_cs, file, new_path);
-	  execute("global-size" , vec_gs, file, new_path);
-	}
-
-	A.resize_no_copy(std::pair<int,int>(vec_gs[0],vec_gs[1]));
-	A.resize_no_copy(std::pair<int,int>(vec_cs[0],vec_cs[1]));
-
-	{
-	  std::string  full_path = path+"/"+name+"/data";
-
-	  H5::DataSet  dataset    = my_file->openDataSet(full_path.c_str());
-	
-	  H5::DataSpace dataspace = dataset.getSpace();
-	
-	  H5Dread(dataset.getId(), IO::HDF5_TYPE<scalar_type>::get(), dataspace.getId(), H5S_ALL, H5P_DEFAULT, &A(0,0));
-	}
-      }
-    catch(...)
-      {
-	cout << "\n\n\t the matrix (" + name + ") does not exist in path : " + path + "\n\n";
-	//throw std::logic_error(__FUNCTION__);
-      }
-  }
-  */
 }
 
 #endif

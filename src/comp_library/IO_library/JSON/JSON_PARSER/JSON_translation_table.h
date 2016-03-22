@@ -8,9 +8,7 @@ namespace IO
   namespace JSONPARSER
   {
     class JSON_translation_table: 
-      public JSON_character_mapper// , 
-    //     public JSON_state// ,
-    //     public ActionsMixin
+      public JSON_character_mapper 
     {
     public:
 
@@ -387,7 +385,6 @@ namespace IO
 	  switch (cls) 
 	    {
 	    case C_LPARN: 
-	      //cout << "\n\t found array\n";
 	      return state_and_action_pair(MS,Consume,BeginMatrix);
 	  
 	    default:      

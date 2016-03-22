@@ -32,7 +32,6 @@ namespace MATH_ALGORITHMS
       lh_element_type x = lh_dmn_type::get_elements()[i];
       rh_element_type y = rh_dmn_type::get_elements()[j];
 
-      //rh_scalar_type* basis       = rh_dmn_type::get_basis();
       rh_scalar_type* super_basis = rh_dmn_type::get_super_basis();
 
       rh_scalar_type* inv_basis       = rh_dmn_type::get_inverse_basis();

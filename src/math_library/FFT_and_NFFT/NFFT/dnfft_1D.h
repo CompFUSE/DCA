@@ -7,42 +7,6 @@ namespace MATH_ALGORITHMS
 {
   namespace NFFT
   {
-    /*
-    enum NFFT_MODE_NAMES {EXACT, LINEAR, CUBIC};
-
-    template<int max_count, int count>
-    struct nfft_atomic_convolution
-    {
-      template<typename scalar_type>
-      inline static void execute_linear(scalar_type* f, scalar_type* M, scalar_type* y)
-      {
-        f[count] += (M[0+2*count]*y[0]+M[1+2*count]*y[1]);
-
-        nfft_atomic_convolution<max_count, count+1>::execute_linear(f, M, y);
-      }
-
-      template<typename scalar_type>
-      inline static void execute_cubic(scalar_type* f, scalar_type* M, scalar_type* y)
-      {
-        f[count] += (M[0+4*count]*y[0]+M[1+4*count]*y[1]+M[2+4*count]*y[2]+M[3+4*count]*y[3]);
-
-        nfft_atomic_convolution<max_count, count+1>::execute_cubic(f, M, y);
-      }
-    };
-
-    template<int max_count>
-    struct nfft_atomic_convolution<max_count, max_count>
-    {
-      template<typename scalar_type>
-      inline static void execute_linear(scalar_type* f, scalar_type* y, scalar_type* M)
-      {}
-
-      template<typename scalar_type>
-      inline static void execute_cubic(scalar_type* f, scalar_type* y, scalar_type* M)
-      {}
-    };
-    */
-
     /*! \file cached_auxilery_field_values.h
      *
      *  \author Peter Staar
@@ -116,19 +80,13 @@ namespace MATH_ALGORITHMS
 
       void unroll_linear_interpolation_fast(int N, scalartype* f_tmp_ptr, scalartype* matrix_ptr, scalartype* y_ptr);
       void unroll_cubic_interpolation_fast (int N, scalartype* f_tmp_ptr, scalartype* matrix_ptr, scalartype* y_ptr);
-      //void unroll_convolution              (int N, scalartype* f_tau_ptr, scalartype* f_tmp_ptr, scalartype  f_val);
-
+      
       void fold_time_domain_back();
 
       template<typename other_scalartype>
       void FT_f_tau_to_f_w(FUNC_LIB::function<std::complex<other_scalartype>, dmn_2<w_dmn_t, p_dmn_t> >& f_w);
 
     private:
-
-      //       NFFT_MODE_NAMES NAME;
-
-      //       int OVER_SAMPLING;
-      //       int WINDOW_SAMPLING;
 
       double SIGMA_WINDOW_SAMPLING;
 
@@ -159,11 +117,6 @@ namespace MATH_ALGORITHMS
 
     template<typename scalartype, typename w_dmn_t, typename p_dmn_t>
     dnfft_1D<scalartype, w_dmn_t, p_dmn_t>::dnfft_1D():
-      //       NAME(CUBIC),
-
-      //       OVER_SAMPLING  (DEFAULT_OVER_SAMPLING),
-      //       WINDOW_SAMPLING(DEFAULT_WINDOW_SAMPLING),
-
       SIGMA_WINDOW_SAMPLING(2),
 
       integer_wave_vectors(w_dmn_t::parameter_type::get_integer_wave_vectors()),
@@ -213,7 +166,6 @@ namespace MATH_ALGORITHMS
     int dnfft_1D<scalartype, w_dmn_t, p_dmn_t>::get_maximum_frequency()
     {
       return w_dmn_t::dmn_size()/2;
-      //return *std::max_element(integer_wave_vectors.begin(), integer_wave_vectors.end());
     }
 
     template<typename scalartype, typename w_dmn_t, typename p_dmn_t>
@@ -276,9 +228,6 @@ namespace MATH_ALGORITHMS
         linear_convolution_matrices_2.reset();
         cubic_convolution_matrices_2 .reset();
 	
-// 	f_tau                     .print_fingerprint();
-//      cubic_convolution_matrices.print_fingerprint();
-
         int         index = 0;
         scalar_type delta = convolution_time_values(0,1)-convolution_time_values(0,0);
         for(int i=0; i<oversampling_dmn_t::dmn_size(); i++)
@@ -311,13 +260,13 @@ namespace MATH_ALGORITHMS
                 cubic_convolution_matrices(2,i,j) = c;
                 cubic_convolution_matrices(3,i,j) = d;
 
-                linear_convolution_matrices_2(i,0,j) =     f0       ;//linear_convolution_matrices(0,i,j);
+                linear_convolution_matrices_2(i,0,j) =     f0       ;
                 linear_convolution_matrices_2(i,1,j) = (f1-f0)/delta;linear_convolution_matrices(1,i,j);
 
-                cubic_convolution_matrices_2(i,0,j) = a;//cubic_convolution_matrices(0,i,j);
-                cubic_convolution_matrices_2(i,1,j) = b;//cubic_convolution_matrices(1,i,j);
-                cubic_convolution_matrices_2(i,2,j) = c;//cubic_convolution_matrices(2,i,j);
-                cubic_convolution_matrices_2(i,3,j) = d;//cubic_convolution_matrices(3,i,j);
+                cubic_convolution_matrices_2(i,0,j) = a;
+                cubic_convolution_matrices_2(i,1,j) = b;
+                cubic_convolution_matrices_2(i,2,j) = c;
+                cubic_convolution_matrices_2(i,3,j) = d;
 
                 index += 1;
               }
@@ -403,7 +352,6 @@ namespace MATH_ALGORITHMS
     template<typename scalartype, typename w_dmn_t, typename p_dmn_t>
     inline void dnfft_1D<scalartype, w_dmn_t, p_dmn_t>::convolute_to_f_tau_exact_test(int index, scalartype t_val, scalartype f_val)
     {
-      //cout << __FUNCTION__ <<  endl;
       assert(t_val>-0.5-1.e-6 and t_val<0.5+1.e-6);
 
       const scalartype T_0           = padded_time_dmn_t::parameter_type::first_element();
@@ -418,7 +366,6 @@ namespace MATH_ALGORITHMS
     template<typename scalartype, typename w_dmn_t, typename p_dmn_t>
     inline void dnfft_1D<scalartype, w_dmn_t, p_dmn_t>::convolute_to_f_tau_fine_linear_interpolation_test(int index, scalartype t_val, scalartype f_val)
     {
-      //cout << __FUNCTION__ <<  endl;
       assert(t_val>-0.5-1.e-6 and t_val<0.5+1.e-6);
 
       const scalartype t_0 = window_function_time_dmn_t::parameter_type::first_element();
@@ -459,7 +406,6 @@ namespace MATH_ALGORITHMS
     template<typename scalartype, typename w_dmn_t, typename p_dmn_t>
     inline void dnfft_1D<scalartype, w_dmn_t, p_dmn_t>::convolute_to_f_tau_fine_cubic_interpolation_test(int index, scalartype t_val, scalartype f_val)
     {
-      //cout << __FUNCTION__ <<  endl;
       assert(t_val>-0.5-1.e-6 and t_val<0.5+1.e-6);
 
       const scalartype t_0 = window_function_time_dmn_t::parameter_type::first_element();
@@ -535,11 +481,6 @@ namespace MATH_ALGORITHMS
         case 17: nfft_atomic_convolution<17,0>::execute_linear(f_tau_ptr, matrix_ptr, y_ptr); return;
 
         default:
-          /*
-            for(int l=0; l<2*OVER_SAMPLING+1; l++)
-            f_tau_ptr[l] += (matrix_ptr[0+2*l]*y_ptr[0]+matrix_ptr[1+2*l]*y_ptr[1]);
-          */
-
           throw std::logic_error(__FUNCTION__);
         }
     }
@@ -572,60 +513,9 @@ namespace MATH_ALGORITHMS
         case 17: nfft_atomic_convolution<17,0>::execute_cubic(f_tau_ptr, matrix_ptr, y_ptr); return;
 
         default:
-          /*
-            for(int l=0; l<2*OVER_SAMPLING+1; l++)
-            f_tau_ptr[l] += (matrix_ptr[0+4*l]*y_ptr[0]+matrix_ptr[1+4*l]*y_ptr[1]+matrix_ptr[2+4*l]*y_ptr[2]+matrix_ptr[3+4*l]*y_ptr[3]);
-          */
-
           throw std::logic_error(__FUNCTION__);
         }
     }
-
-    /*
-      template<typename scalartype, typename w_dmn_t, typename p_dmn_t>
-      inline void dnfft_1D<scalartype, w_dmn_t, p_dmn_t>::unroll_convolution(int N,
-      scalartype* f_tau_ptr,
-      scalartype* f_tmp_ptr,
-      scalartype  f_val)
-      {
-      int l=0;
-
-      while(true)
-      {
-      switch(N-l)
-      {
-      case 0:
-      return;
-
-      case 1:
-      f_tau_ptr[0] += f_val*f_tmp_ptr[0];
-      return;
-
-      case 2:
-      f_tau_ptr[0] += f_val*f_tmp_ptr[0];
-      f_tau_ptr[1] += f_val*f_tmp_ptr[1];
-      return;
-
-      case 3:
-      f_tau_ptr[0] += f_val*f_tmp_ptr[0];
-      f_tau_ptr[1] += f_val*f_tmp_ptr[1];
-      f_tau_ptr[2] += f_val*f_tmp_ptr[2];
-      return;
-
-      default:
-      f_tau_ptr[0] += f_val*f_tmp_ptr[0];
-      f_tau_ptr[1] += f_val*f_tmp_ptr[1];
-      f_tau_ptr[2] += f_val*f_tmp_ptr[2];
-      f_tau_ptr[3] += f_val*f_tmp_ptr[3];
-
-      f_tmp_ptr += 4;
-      f_tau_ptr += 4;
-
-      l += 4;
-      }
-      }
-      }
-    */
 
     template<typename scalartype, typename w_dmn_t, typename p_dmn_t>
     void dnfft_1D<scalartype, w_dmn_t, p_dmn_t>::fold_time_domain_back()

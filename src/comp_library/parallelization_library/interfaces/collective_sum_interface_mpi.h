@@ -68,8 +68,6 @@ namespace COMP_LIB
   template<typename scalar_type>
   void collective_sum_interface<MPI_LIBRARY>::sum(scalar_type& value)
   {
-    //cout << __PRETTY_FUNCTION__ << endl;
-
     scalar_type result;
 
     MPI_Allreduce(&value,
@@ -85,8 +83,6 @@ namespace COMP_LIB
   template<typename scalar_type>
   void collective_sum_interface<MPI_LIBRARY>::sum(std::vector<scalar_type>& m)
   {
-    //cout << __PRETTY_FUNCTION__ << endl;
-
     std::vector<scalar_type> result(m.size(),scalar_type(0));
 
     MPI_Allreduce(&(m[0]),
@@ -103,18 +99,13 @@ namespace COMP_LIB
   template<typename scalar_type>
   void collective_sum_interface<MPI_LIBRARY>::sum(std::map<std::string, std::vector<scalar_type> >& m)
   {
-    //cout << __PRETTY_FUNCTION__ << endl;
 
     typedef typename std::map <std::string, std::vector<scalar_type> >::iterator iterator_type;
-
-    ////cout << id() << "\t" << m.size() << "\n";
 
     iterator_type it = m.begin();
 
     for( ; it != m.end(); ++it )
       {
-        ////cout << it->first  << "\n";
-
         std::vector<scalar_type> values((it->second).size());
 
         for(size_t l=0; l<(it->second).size(); l++)
@@ -130,8 +121,6 @@ namespace COMP_LIB
   template<typename scalar_type, class domain>
   void collective_sum_interface<MPI_LIBRARY>::sum(FUNC_LIB::function<scalar_type, domain>& f)
   {
-    //cout << __PRETTY_FUNCTION__ << "\t" << f.get_name() << endl;
-
     FUNC_LIB::function<scalar_type, domain> F;
 
     MPI_Allreduce(&f(0),
@@ -160,8 +149,6 @@ namespace COMP_LIB
   template<typename scalar_type, class domain>
   void collective_sum_interface<MPI_LIBRARY>::sum(FUNC_LIB::function<std::vector<scalar_type>, domain>& f)
   {
-    //cout << __PRETTY_FUNCTION__ << endl;
-
     int Nr = f(0).size();
     int Nc = f   .size();
 
@@ -182,8 +169,6 @@ namespace COMP_LIB
   void collective_sum_interface<MPI_LIBRARY>::sum(FUNC_LIB::function<scalar_type, domain>& f,
                                                   FUNC_LIB::function<scalar_type, domain>& f_target)
   {
-    //cout << __PRETTY_FUNCTION__ << endl;
-
     MPI_Allreduce(&f(0),
                   &f_target(0),
                   type_map_interface<MPI_LIBRARY, scalar_type>::factor()*f.size(),
@@ -195,8 +180,6 @@ namespace COMP_LIB
   template<typename scalar_type>
   void collective_sum_interface<MPI_LIBRARY>::sum(LIN_ALG::vector<scalar_type, LIN_ALG::CPU>& f)
   {
-    ////cout << __PRETTY_FUNCTION__ << endl;
-
     LIN_ALG::vector<scalar_type, LIN_ALG::CPU> F("F", f.get_current_size());
 
     MPI_Allreduce(&f[0],
@@ -240,8 +223,6 @@ namespace COMP_LIB
   template<typename some_type>
   void collective_sum_interface<MPI_LIBRARY>::sum_and_average(some_type& obj, int size)
   {
-    //cout << __PRETTY_FUNCTION__ << endl;
-
     sum(obj);
 
     double one_over_N = 1./(size*grouping.get_Nr_threads());
@@ -254,40 +235,29 @@ namespace COMP_LIB
 									 FUNC_LIB::function<scalar_type, domain>& f_stddev, 
 									 size_t size)
   {
-//     if(grouping.get_id()==0)
-//       cout << "\n\t\t average_and_compute_stddev " << f_mean.get_name() << "\t" /*<< print_time()*/ << "\n\n";
-
     scalar_type factor = 1./(size*grouping.get_Nr_threads());
 
     FUNC_LIB::function<scalar_type, domain> f_sum ("f-sum");
     FUNC_LIB::function<scalar_type, domain> f_diff("f-diff");
-
-    {
-      sum(f_mean, f_sum);
-    }
-
-    {
-      f_sum *= factor;
+    
+    sum(f_mean, f_sum);
+     
+    f_sum *= factor;
       
-      for(int i=0; i<f_sum.size(); i++)
-	f_diff(i) = (f_mean(i) - f_sum(i))*(f_mean(i) - f_sum(i));
+    for(int i=0; i<f_sum.size(); i++)
+      f_diff(i) = (f_mean(i) - f_sum(i))*(f_mean(i) - f_sum(i));
       
-      for(int i=0; i<f_sum.size(); i++)
-	f_mean(i) = f_sum(i);
-    }
+    for(int i=0; i<f_sum.size(); i++)
+      f_mean(i) = f_sum(i);
+     
+    sum(f_diff, f_stddev);
+     
+    f_stddev *= factor;
 
-    {
-      sum(f_diff, f_stddev);
-    }
+    for(int i=0; i<f_sum.size(); i++)
+      f_stddev(i) = std::sqrt(f_stddev(i));
 
-    {
-      f_stddev *= factor;
-
-      for(int i=0; i<f_sum.size(); i++)
-	f_stddev(i) = std::sqrt(f_stddev(i));
-
-      f_stddev /= std::sqrt(grouping.get_Nr_threads());
-    }
+    f_stddev /= std::sqrt(grouping.get_Nr_threads());
   }
 
   template<typename scalar_type, class domain>
@@ -295,44 +265,34 @@ namespace COMP_LIB
 									 FUNC_LIB::function<std::complex<scalar_type>, domain>& f_stddev, 
 									 size_t size)
   {
-//     if(grouping.get_id()==0)
-//       cout << "\n\t\t average_and_compute_stddev " << f_mean.get_name() << "\t" /*<< print_time()*/ << "\n\n";
 
     scalar_type factor = 1./(size*grouping.get_Nr_threads());
 
     FUNC_LIB::function<std::complex<scalar_type>, domain> f_sum ("f-sum");
     FUNC_LIB::function<std::complex<scalar_type>, domain> f_diff("f-diff");
 
-    {
-      sum(f_mean, f_sum);
-    }
+    sum(f_mean, f_sum);
 
-    {
-      f_sum *= factor;
+    f_sum *= factor;
       
-      for(int i=0; i<f_sum.size(); i++){
-	f_diff(i).real(real(f_mean(i) - f_sum(i))*real(f_mean(i) - f_sum(i)));
-	f_diff(i).imag(imag(f_mean(i) - f_sum(i))*imag(f_mean(i) - f_sum(i)));
-      }
-
-      for(int i=0; i<f_sum.size(); i++)
-	f_mean(i) = f_sum(i);
+    for(int i=0; i<f_sum.size(); i++){
+      f_diff(i).real(real(f_mean(i) - f_sum(i))*real(f_mean(i) - f_sum(i)));
+      f_diff(i).imag(imag(f_mean(i) - f_sum(i))*imag(f_mean(i) - f_sum(i)));
     }
 
-    {
-      sum(f_diff, f_stddev);
+    for(int i=0; i<f_sum.size(); i++)
+      f_mean(i) = f_sum(i);
+    
+    sum(f_diff, f_stddev);
+    
+    f_stddev *= factor;
+
+    for(int i=0; i<f_sum.size(); i++){
+      f_stddev(i).real(std::sqrt(real(f_stddev(i))));
+      f_stddev(i).imag(std::sqrt(imag(f_stddev(i))));
     }
 
-    {
-      f_stddev *= factor;
-
-      for(int i=0; i<f_sum.size(); i++){
-	f_stddev(i).real(std::sqrt(real(f_stddev(i))));
-	f_stddev(i).imag(std::sqrt(imag(f_stddev(i))));
-      }
-
-      f_stddev /= std::sqrt(grouping.get_Nr_threads());
-    }
+    f_stddev /= std::sqrt(grouping.get_Nr_threads());   
   }
 
 }

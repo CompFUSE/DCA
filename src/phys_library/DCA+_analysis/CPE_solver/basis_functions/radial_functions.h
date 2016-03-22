@@ -47,7 +47,6 @@ void radial_function::initialize(parameters_type& parameters)
 
   for(size_t l=0; l<elements.size(); l++){
     elements[l] = sgn(elements[l])*square(std::fabs(elements[l])/std::fabs(elements[0]))*fabs(elements[0]);
-    //cout << elements[l] << endl;
   }
 
   get_elements() = elements;

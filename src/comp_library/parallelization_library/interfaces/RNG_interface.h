@@ -1,4 +1,6 @@
 //-*-C++-*-
+//NOTE this file is to be modified to avoid call to std::rand
+
 
 #ifndef RNG_INTERFACE_H
 #define RNG_INTERFACE_H
@@ -29,8 +31,6 @@ namespace COMP_LIB
     long long seed;
 
     double normalization;
-    //std::mt19937 gen;
-    //std::uniform_real_distribution<> dis(1, 2);
   };
 
   template<PARALLELIZATION_LIBRARY_NAMES LIBRARY>
@@ -55,12 +55,6 @@ namespace COMP_LIB
       seed = std::rand();
 
     std::srand(seed);
-
-    //   {
-    //     std::stringstream ss;
-    //     ss << grouping.get_id() << "\t" << seed << endl;
-    //     cout << ss.str();
-    //   }
 
     normalization = 1./double(RAND_MAX);
   }

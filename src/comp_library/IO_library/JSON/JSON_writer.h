@@ -419,17 +419,12 @@ namespace IO
     execute("current-size", V.get_current_size());
     execute("global-size" , V.get_global_size());
 
-//     ss << std::fixed;
-//     ss.precision(16);
-
-    {
       ss << ",\n\n" << get_path() << "\"data\" : [";
 
       for(int j=0; j<V.get_current_size()-1; j++)
         ss << V[j] << ", ";
 
       ss << V[V.get_current_size()-1] << "]";
-    }
 
     close_group();
 
@@ -446,27 +441,18 @@ namespace IO
     execute("current-size", V.get_current_size());
     execute("global-size" , V.get_global_size());
 
-//     ss << std::fixed;
-//     ss.precision(16);
 
-    {
       ss << ",\n\n" << get_path() << "\"data-real\" : [";
-
       for(int j=0; j<V.get_current_size()-1; j++)
         ss << real(V[j]) << ", ";
 
       ss << real(V[V.get_current_size()-1]) << "]";
-    }
-
-    {
       ss << ",\n\n" << get_path() << "\"data-imag\" : [";
-
       for(int j=0; j<V.get_current_size()-1; j++)
         ss << imag(V[j]) << ", ";
-
+      
       ss << imag(V[V.get_current_size()-1]) << "]";
-    }
-
+      
     close_group();
 
     elements_in_group.back() += 1;
@@ -483,9 +469,6 @@ namespace IO
     execute("global-size" , A.get_global_size());
 
     ss << ",\n\n" << get_path() << "\"data\" : [";
-
-//     ss << std::fixed;
-//     ss.precision(16);
 
     for(int i=0; i<A.get_current_size().first; i++)
       {
@@ -517,11 +500,8 @@ namespace IO
     execute("current-size", A.get_current_size());
     execute("current-size", A.get_global_size());
 
-    {
+    
       ss << ",\n\n" << get_path() << "\"data-real\" : [";
-
-//       ss << std::fixed;
-//       ss.precision(16);
 
       for(int i=0; i<A.get_current_size().first; i++)
         {
@@ -537,13 +517,10 @@ namespace IO
         }
 
       ss << "]";
-    }
+    
 
-    {
       ss << ",\n\n" << get_path() << "\"data-imag\" : [";
 
-//       ss << std::fixed;
-//       ss.precision(16);
 
       for(int i=0; i<A.get_current_size().first; i++)
         {
@@ -559,7 +536,6 @@ namespace IO
         }
 
       ss << "]";
-    }
 
     close_group();
 
@@ -580,10 +556,7 @@ namespace IO
   {
     static int level = -1;
 
-    //typedef          std::map<std::wstring, JSONPARSER::Whatever>                 WhateverMap;
     typedef typename std::map<std::wstring, JSONPARSER::Whatever>::const_iterator WhateverMapItr;
-
-    //typedef std::string                  StringType;
 
     switch (w.type)
       {
@@ -642,8 +615,6 @@ namespace IO
           for(size_t i=0; i<w.whateverVector.size(); i++)
             {
               writer<IO::JSON>::execute(os, w.whateverVector[i]);
-
-              //os << w.whateverVector[i];
               if(i<w.whateverVector.size()-1)
                 os << ", ";
             }
@@ -684,6 +655,6 @@ namespace IO
         throw std::logic_error("typeName given wrong type");
       }
   }
-}
-
+  
+}//namespace IO
 #endif

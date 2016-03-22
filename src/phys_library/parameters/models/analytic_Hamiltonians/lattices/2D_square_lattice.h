@@ -14,17 +14,12 @@ public:
   typedef no_symmetry<2>   LDA_point_group;
   typedef point_group_type DCA_point_group;
 
-//   const static cluster_shape_type DCA_cluster_shape = BETT_CLUSTER;
-//   const static cluster_shape_type LDA_cluster_shape = PARALLELEPIPED;
-
   const static int DIMENSION = 2;
   const static int BANDS     = 1;
 
   static double* initialize_r_DCA_basis();
-//   static double* initialize_k_DCA_basis();
 
   static double* initialize_r_LDA_basis();
-//   static double* initialize_k_LDA_basis();
 
   static std::vector<int>                  get_flavors();
   static std::vector<std::vector<double> > get_a_vectors();
@@ -54,17 +49,6 @@ double* square_lattice<point_group_type>::initialize_r_DCA_basis()
   return r_DCA;
 }
 
-// template<typename point_group_type>
-// double* square_lattice<point_group_type>::initialize_k_DCA_basis()
-// {
-//   static double* k_DCA = new double[4];
-
-//   k_DCA[0] = 2*M_PI;  k_DCA[1] = 0.;
-//   k_DCA[2] = 0.;      k_DCA[3] = 2*M_PI;
-
-//   return k_DCA;
-// }
-
 template<typename point_group_type>
 double* square_lattice<point_group_type>::initialize_r_LDA_basis()
 {
@@ -75,17 +59,6 @@ double* square_lattice<point_group_type>::initialize_r_LDA_basis()
 
   return r_LDA;
 }
-
-// template<typename point_group_type>
-// double* square_lattice<point_group_type>::initialize_k_LDA_basis()
-// {
-//   static double* k_LDA = new double[4];
-
-//   k_LDA[0] = 2.*M_PI;  k_LDA[1] = 0.;
-//   k_LDA[2] = 0.;       k_LDA[3] = 2.*M_PI;
-
-//   return k_LDA;
-// }
 
 template<typename point_group_type>
 std::vector<int> square_lattice<point_group_type>::get_flavors()

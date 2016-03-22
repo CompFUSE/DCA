@@ -97,7 +97,6 @@ void time_domain::write(IO::writer<DATA_FORMAT>& writer)
 template<typename parameters_t>
 void time_domain::initialize(parameters_t& parameters)
 {
-  //time_slices = parameters.get_number_of_positive_times();
   time_slices = parameters.get_sp_time_intervals();
   beta        = parameters.get_beta();
 
@@ -130,87 +129,6 @@ void time_domain::to_JSN(stream_type& ss)
   ss << "]\n";
 }
 
-/*
-void time_domain::initialize_integration_domain(int                        level,
-						std::vector<scalar_type>&  weights,
-						std::vector<element_type>& elements)
-{
-  std::vector<std::pair<double,double> > vecs(0);
-
-  {
-    int point_num = 0;
-    MATH_ALGORITHMS::GAUSSIAN_QUADRATURE::get_size(RULE, DIMENSION, point_num);
-
-    scalar_type* w = new scalar_type[point_num];
-    scalar_type* x = new scalar_type[point_num*DIMENSION];
-
-    MATH_ALGORITHMS::GAUSSIAN_QUADRATURE::get_points(RULE, DIMENSION, point_num, w, x);
-
-    for(int j=0; j<point_num; j++)
-      {
-	std::pair<double,double> p(x[j], w[j]);
-	vecs.push_back(p);
-      }
-
-    sort(vecs.begin(), vecs.end());
-
-    for(int j=0; j<vecs.size()-1; j++){
-      if(abs(vecs[j+1].first-vecs[j].first)<1.e-6){
-	vecs[j].second += vecs[j+1].second;
-	
-	vecs.erase(vecs.begin()+j+1);
-      }
-    }
-
-    delete [] w;
-    delete [] x;
-  
-  }
-
-  {
-    int N = std::pow(2., level);
-    
-    weights .resize(0);
-    elements.resize(0);
-    
-    for(int i=0; i<get_size()/2-2; i++){
-
-      element_type min = get_elements()[i];
-      element_type max = get_elements()[i+1];
-      
-      double delta = double(max-min)/double(N);
-      
-      for(int j=0; j<N; j++){
-	  
-	for(int l=0; l<vecs.size(); l++){
-	  
-	  elements.push_back(min + j*delta*vecs[l].first);
-	  
-	  weights .push_back(vecs.size()*vecs[l].second*get_volume());
-	}
-      }
-    }
-    
-    for(int i=get_size()/2; i<get_size()-1; i++){
-
-      element_type min = get_elements()[i];
-      element_type max = get_elements()[i+1];
-      
-      double delta = double(max-min)/double(N);
-	
-      for(int j=0; j<N; j++){
-	
-	for(int l=0; l<vecs.size(); l++){
-	  
-	  elements.push_back(min + j*delta*vecs[l].first);
-	  
-	  weights .push_back(vecs.size()*vecs[l].second*get_volume());
-	}
-      }
-    }
-  }
-}
-*/
 
 void time_domain::initialize_integration_domain(int                        level,
 						std::vector<scalar_type>&  weights,
@@ -220,11 +138,6 @@ void time_domain::initialize_integration_domain(int                        level
     
   weights .resize(0);
   elements.resize(0);
-    
-//   {
-//       elements.push_back(get_elements()[0]);      
-//       weights .push_back(get_volume()/2.);
-//   }
 
   for(int i=0; i<get_size()/2-1; i++){
       
@@ -241,16 +154,6 @@ void time_domain::initialize_integration_domain(int                        level
     }
   }
 
-//   {
-//       elements.push_back(get_elements()[get_size()/2-1]);      
-//       weights .push_back(get_volume()/2.);
-//   }
-
-//   {
-//       elements.push_back(get_elements()[get_size()/2]);      
-//       weights .push_back(get_volume()/2.);
-//   }
-  
   for(int i=get_size()/2; i<get_size()-1; i++){
     
     element_type min = get_elements()[i];
@@ -265,10 +168,6 @@ void time_domain::initialize_integration_domain(int                        level
       weights .push_back(get_volume());
     }
 
-//     {
-// 	elements.push_back(get_elements()[get_size()-1]);      
-// 	weights .push_back(get_volume()/2.);
-//     }
   }  
 }
 

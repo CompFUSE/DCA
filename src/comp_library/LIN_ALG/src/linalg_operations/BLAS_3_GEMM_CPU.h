@@ -98,7 +98,6 @@ namespace LIN_ALG {
           C(i,j) = C_re(i,j)+I*C_im(i,j);
     }
 
-    //template<typename scalartype>
     static void execute(char TRANSA, char TRANSB,
                         matrix<std::complex<double>, CPU>& A,
                         matrix<             double , CPU>& B,
@@ -173,10 +172,6 @@ namespace LIN_ALG {
       scalartype alpha = a;
       scalartype beta  = b;
 
-//       int M = A.get_current_size().first;
-//       int K = A.get_current_size().second;
-//       int N = B.get_current_size().second;
-
       int M, K, N;
       {
         M = C.get_current_size().first;
@@ -195,16 +190,6 @@ namespace LIN_ALG {
 
       execute_gemm(TRANSA, TRANSB, M, N, K, alpha, A.get_ptr(), LDA, B.get_ptr(), LDB, beta, C.get_ptr(), LDC);
     }
-
-
-//     template<typename scalartype_a, typename scalartype_A, typename scalartype_B, typename scalartype_b, typename scalartype_C>
-//     static void execute(char TRANSA, char TRANSB, int M, int N, int K,
-//      scalartype_a alpha,
-//      scalartype_A* A, int LDA,
-//      scalartype_B* B, int LDB,
-//      scalartype_b  beta,
-//      scalartype_C* C, int LDC,
-//      int thread_id=0, int stream_id=0);
 
     template<typename scalartype>
     inline static void execute(char TRANSA, char TRANSB, int M, int N, int K,

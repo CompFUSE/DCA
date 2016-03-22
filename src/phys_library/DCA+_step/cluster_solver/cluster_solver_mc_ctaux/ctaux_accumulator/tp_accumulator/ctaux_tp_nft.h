@@ -384,71 +384,23 @@ namespace DCA
 
         T_l_times_M_ij          .resize_no_copy(std::pair<int,int>(w_vertex_dmn_t::dmn_size(), M_ij.get_current_size().second));
         T_l_times_M_ij_times_T_r.resize_no_copy(std::pair<int,int>(w_vertex_dmn_t::dmn_size(), w_vertex_dmn_t::dmn_size()));
-
         {
-	  /*
-          gemm_plan<std::complex<scalar_type> > zgemm_pln;
-
-          zgemm_pln.A = &T_l(0,0);
-          zgemm_pln.B = &M_ij(0,0);
-          zgemm_pln.C = &T_l_times_M_ij(0,0);
-
-          zgemm_pln.M = T_l .get_current_size().first; //w_VERTEX::dmn_size();//N_w;
-          zgemm_pln.K = T_l .get_current_size().second;//n_I;
-          zgemm_pln.N = M_ij.get_current_size().second;//n_J;
-
-          zgemm_pln.LDA = T_l.get_global_size()           .first;//N_w;
-          zgemm_pln.LDB = M_ij.get_global_size()          .first;//MAX;
-          zgemm_pln.LDC = T_l_times_M_ij.get_global_size().first;//N_w;
-
-          zgemm_pln.execute_plan();
-	  */
-
-	  LIN_ALG::GEMM<LIN_ALG::CPU>::execute(T_l, M_ij, T_l_times_M_ij);
-
-	  {
-	    int M = T_l .get_current_size().first; //w_VERTEX::dmn_size();//N_w;
-	    int K = T_l .get_current_size().second;//n_I;
-	    int N = M_ij.get_current_size().second;//n_J;
-
-	    FLOPS += 4.*(M)*(K)*(N);
-	  }
+	LIN_ALG::GEMM<LIN_ALG::CPU>::execute(T_l, M_ij, T_l_times_M_ij);
+	  
+	int M = T_l .get_current_size().first; //w_VERTEX::dmn_size();//N_w;
+	int K = T_l .get_current_size().second;//n_I;
+	int N = M_ij.get_current_size().second;//n_J;
+	FLOPS += 4.*(M)*(K)*(N);
 	}
-
-        {
-	  /*
-          gemm_plan<std::complex<scalar_type> > zgemm_pln;
-
-          zgemm_pln.TRANSA = 'N';
-          zgemm_pln.TRANSB = 'C';
-
-          zgemm_pln.A = &T_l_times_M_ij(0,0);
-          zgemm_pln.B = &T_r(0,0);
-          zgemm_pln.C = &T_l_times_M_ij_times_T_r(0,0);
-
-          zgemm_pln.M = T_l_times_M_ij          .get_current_size().first;//N_w;
-          zgemm_pln.K = T_l_times_M_ij          .get_current_size().second;//n_J;
-          zgemm_pln.N = T_l_times_M_ij_times_T_r.get_current_size().second;//N_w;
-
-          zgemm_pln.LDA = T_l_times_M_ij          .get_global_size().first;//N_w;
-          zgemm_pln.LDB = T_r                     .get_global_size().first;//N_w;
-          zgemm_pln.LDC = T_l_times_M_ij_times_T_r.get_global_size().first;//N_w;
-
-          zgemm_pln.execute_plan();
-	  */
-
-	  LIN_ALG::GEMM<LIN_ALG::CPU>::execute('N', 'C', T_l_times_M_ij, T_r, T_l_times_M_ij_times_T_r);
-
-	  {
-	    int M = T_l_times_M_ij          .get_current_size().first;//N_w;
-	    int K = T_l_times_M_ij          .get_current_size().second;//n_J;
-	    int N = T_l_times_M_ij_times_T_r.get_current_size().second;//N_w;
-
-	    FLOPS += 4.*(M)*(K)*(N);
-	  }
-        }
-
-        return FLOPS;
+	{
+	LIN_ALG::GEMM<LIN_ALG::CPU>::execute('N', 'C', T_l_times_M_ij, T_r, T_l_times_M_ij_times_T_r);
+	  
+	int M = T_l_times_M_ij          .get_current_size().first;//N_w;
+	int K = T_l_times_M_ij          .get_current_size().second;//n_J;
+	int N = T_l_times_M_ij_times_T_r.get_current_size().second;//N_w;
+	FLOPS += 4.*(M)*(K)*(N);
+	}
+	return FLOPS;
       }
 
       template<int dimension, class scalar_type, class r_dmn_t, class w_vertex_dmn_t, class w_vertex_pos_dmn_t>
@@ -471,24 +423,6 @@ namespace DCA
         T_l_times_M_ij_times_T_r.resize_no_copy(std::pair<int,int>(w_vertex_pos_dmn_t::dmn_size(), w_vertex_dmn_t::dmn_size()));
 
         {
-	  /*
-          gemm_plan<std::complex<scalar_type> > zgemm_pln;
-
-          zgemm_pln.A = &T_l(w_vertex_pos_dmn_t::dmn_size(),0);
-          zgemm_pln.B = &M_ij(0,0);
-          zgemm_pln.C = &T_l_times_M_ij(0,0);
-
-          zgemm_pln.M = T_l .get_current_size().first/2; //w_vertex_dmn_t::dmn_size();//N_w;
-          zgemm_pln.K = T_l .get_current_size().second;//n_I;
-          zgemm_pln.N = M_ij.get_current_size().second;//n_J;
-
-          zgemm_pln.LDA = T_l.get_global_size()           .first;//N_w;
-          zgemm_pln.LDB = M_ij.get_global_size()          .first;//MAX;
-          zgemm_pln.LDC = T_l_times_M_ij.get_global_size().first;//N_w;
-
-          zgemm_pln.execute_plan();
-	  */
-
 	  std::complex<scalar_type>* A = &T_l(w_vertex_pos_dmn_t::dmn_size(),0);
           std::complex<scalar_type>* B = &M_ij(0,0);
           std::complex<scalar_type>* C = &T_l_times_M_ij(0,0);
@@ -507,29 +441,7 @@ namespace DCA
         }
 
         {
-	  /*
-          gemm_plan<std::complex<scalar_type> > zgemm_pln;
-
-          zgemm_pln.TRANSA = 'N';
-          zgemm_pln.TRANSB = 'C';
-
-          zgemm_pln.A = &T_l_times_M_ij(0,0);
-          zgemm_pln.B = &T_r(0,0);
-          zgemm_pln.C = &T_l_times_M_ij_times_T_r(0,0);
-
-          zgemm_pln.M = T_l_times_M_ij          .get_current_size().first;//N_w;
-          zgemm_pln.K = T_l_times_M_ij          .get_current_size().second;//n_J;
-          zgemm_pln.N = T_l_times_M_ij_times_T_r.get_current_size().second;//N_w;
-
-          zgemm_pln.LDA = T_l_times_M_ij          .get_global_size().first;//N_w;
-          zgemm_pln.LDB = T_r                     .get_global_size().first;//N_w;
-          zgemm_pln.LDC = T_l_times_M_ij_times_T_r.get_global_size().first;//N_w;
-
-          zgemm_pln.execute_plan();
-	  */
-
 	  LIN_ALG::GEMM<LIN_ALG::CPU>::execute('N', 'C', T_l_times_M_ij, T_r, T_l_times_M_ij_times_T_r);
-
 	  {
 	    int M = T_l_times_M_ij          .get_current_size().first;//N_w;
 	    int K = T_l_times_M_ij          .get_current_size().second;//n_J;
@@ -543,12 +455,9 @@ namespace DCA
         return FLOPS;
       }
 
-
-    }
-
-  }
-
-}
+    }//namespace CT_AUX_ACCUMULATION
+  }//namespace QMCI
+}//namespace DCA
 
 #endif
 

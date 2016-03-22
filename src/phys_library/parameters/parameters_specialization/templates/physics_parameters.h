@@ -33,12 +33,6 @@ public:
  ***        READ/WRITE                  ***
  ******************************************/
 
-  template<class stream_type>
-  void to_JSON(stream_type& ss, bool is_end=false);
-  
-  template<class JSON_reader_type>
-  void from_JSON(JSON_reader_type& reader);
-
   template<class read_write_type>
   void read_write(read_write_type& read_write_obj);
 
@@ -133,36 +127,6 @@ void physics_parameters::unpack( concurrency_type& concurrency, int* buffer, int
 /******************************************
  ***        READ/WRITE                  ***
  ******************************************/
-
-template<class stream_type>
-void physics_parameters::to_JSON(stream_type& /*ss*/, bool /*is_end*/)
-{
-//   ss << "\"physics-parameters\" :";
-//   ss << "\n{ \n";
-
-//   JSON_writer::write(ss, "beta"                     , beta);
-//   JSON_writer::write(ss, "adjust-chemical-potential", adjusting_chemical_potential);
-//   JSON_writer::write(ss, "density"                  , density);
-//   JSON_writer::write(ss, "chemical-potential"       , chemical_potential, true);
-
-//   if(is_end)
-//     ss << "}\n";
-//   else
-//     ss << "},\n";
-}
-  
-template<class JSON_reader_type>
-void physics_parameters::from_JSON(JSON_reader_type& /*reader*/)
-{
-//   typedef typename JSON_reader_type::JsonAccessor JsonAccessor;
-//   const JsonAccessor control(reader["physics-parameters"]);
-    
-//   beta               <= control["beta"];
-
-//   adjusting_chemical_potential <= control["adjust-chemical-potential"];
-//   density                      <= control["density"];
-//   chemical_potential           <= control["chemical-potential"];
-}
 
 template<class read_write_type>
 void physics_parameters::read_write(read_write_type& read_write_obj)

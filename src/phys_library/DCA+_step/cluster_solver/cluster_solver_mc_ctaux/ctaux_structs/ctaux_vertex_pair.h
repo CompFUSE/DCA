@@ -27,21 +27,11 @@ namespace DCA
 #include "type_definitions.h"
 
       typedef typename parameters_type::rng_type rng_type;
-
-      //     typedef r_cluster<FULL, base_cluster_type> r_cluster_type;
-      //     typedef k_cluster<FULL, base_cluster_type> k_cluster_type;
-
-      //     typedef dmn_0<r_cluster_type> r_dmn_t;
-      //     typedef dmn_0<k_cluster_type> k_dmn_t;
-
       typedef r_DCA r_dmn_t;
       typedef k_DCA k_dmn_t;
 
       typedef typename r_dmn_t::parameter_type r_cluster_type;
       typedef typename k_dmn_t::parameter_type k_cluster_type;
-
-
-      //     typedef typename parameters_type::Concurrency_Type      concurrency_type;
 
       typedef vertex_singleton             vertex_singleton_type;
       typedef vertex_pair<parameters_type> this_type;
@@ -120,11 +110,10 @@ namespace DCA
     vertex_pair<parameters_type>::vertex_pair(parameters_type&   parameters_ref,
                                               rng_type&          rng_ref,
                                               int                configuration_index_in,
-                                              int                /*configuration_e_DN_index_in*/,
-                                              int                /*configuration_e_UP_index_in*/):
+                                              int                configuration_e_DN_index_in,
+                                              int                configuration_e_UP_index_in):
       parameters(parameters_ref),
       rng       (rng_ref),
-      //     concurrency(parameters.get_concurrency()),
 
       interacting_bands(parameters_ref.get_interacting_bands()),
       BANDS(interacting_bands.size()),
@@ -158,24 +147,6 @@ namespace DCA
     vertex_pair<parameters_type>&
     vertex_pair<parameters_type>::operator=(const vertex_pair<parameters_type>& other_vertex_pair) // --> necessary for push_back
     {
-      // bands         = other_vertex_pair.get_bands();
-      // e_spins       = other_vertex_pair.get_e_spins();
-      // spin_orbitals = other_vertex_pair.get_spin_orbitals();
-      // r_sites       = other_vertex_pair.get_r_sites();
-
-      // HS_spin       = other_vertex_pair.get_HS_spin();
-      // delta_r       = other_vertex_pair.get_delta_r();
-      // tau           = other_vertex_pair.get_tau();
-
-      // configuration_index          = other_vertex_pair.get_configuration_index();
-      // configuration_e_spin_indices = other_vertex_pair.get_configuration_e_spin_indices();
-
-      // creatable                    = other_vertex_pair.is_creatable();
-      // annihilatable                = other_vertex_pair.is_annihilatable();
-      // successfully_flipped         = other_vertex_pair.is_successfully_flipped();
-      // Bennett                      = other_vertex_pair.is_Bennett();
-      // shuffled                     = other_vertex_pair.is_shuffled();
-
       bands         = other_vertex_pair.bands;
       e_spins       = other_vertex_pair.e_spins;
       spin_orbitals = other_vertex_pair.spin_orbitals;

@@ -24,9 +24,6 @@ namespace DCA
 
       // Initialize with vector containing permutation of bits corresponding to symmetry operation
       void initialize(const std::vector<int>& permutation_vector);
-
-      // Execute symmetry operation
-      // change_coeffs = false: do not apply possible sign change
       
       void execute(psi_state<parameter_type, ed_options>& Psi, bool change_coeffs=true);
 
@@ -123,8 +120,6 @@ namespace DCA
         }
 
       Psi.sort();
-
-      //return sign;
     }
 
   }

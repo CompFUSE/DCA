@@ -7,8 +7,6 @@ namespace LIN_ALG {
 
   namespace GPU_KERNEL_BENNETT {
 
-//     template<typename scalartype>
-//     __global__ void Bennet_kernel(int N, int LD, scalartype* M, scalartype* c, scalartype* r){
     __global__ void Bennet_kernel(int N, int LD, double* M, double* c, double* r){
 
 	int b_id_i = blockIdx.x;
@@ -42,8 +40,6 @@ namespace LIN_ALG {
 	}
     }
 
-//     template<typename scalartype>
-// 	__global__ void update_the_diagonal(int I, int LD, scalartype* M, scalartype* c, scalartype* r){
     __global__ void update_the_diagonal(int I, int LD, double* M, double* c, double* r){
 
 	M[I+I*LD] += c[I]*r[I];
@@ -51,8 +47,6 @@ namespace LIN_ALG {
        
     }
 
- //    template<typename scalartype>
-// 	__global__ void update_the_row(int i, int N, int LD, scalartype* M, scalartype* c, scalartype* r){
     __global__ void update_the_row(int i, int N, int LD, double* M, double* c, double* r){
       
       int I = threadIdx.x + blockIdx.x*blockDim.x;
@@ -64,8 +58,6 @@ namespace LIN_ALG {
       }
     }
 
-//     template<typename scalartype>
-// 	__global__ void update_the_col(int i, int N, int LD, scalartype* M, scalartype* c, scalartype* r){
     __global__ void update_the_col(int i, int N, int LD, double* M, double* c, double* r){
 
 	int I=i;
@@ -77,8 +69,6 @@ namespace LIN_ALG {
 	}
     }
 
-//     template<typename scalartype>
-//     void BENNET<GPU>::standard_Bennet(int N, int LD, scalartype* M, scalartype* c, scalartype* r)
     void standard_Bennet(int N, int LD, double* M, double* c, double* r)
     {
 	if(N<32){
@@ -92,7 +82,6 @@ namespace LIN_ALG {
 	    Bennet_kernel<<<blocks,threads>>>(N, LD, M, c, r);
 	}
 	else{
-	  //cout << __PRETTY_FUNCTION__ << endl;
 
 	    int Nr_t = 32;
 	    int Nr_b = N/Nr_t;
@@ -111,19 +100,17 @@ namespace LIN_ALG {
 
 	    for(int i=0; i<N; ++i){
 
-		update_the_diagonal<<<b_d,t_d>>>(i, LD, M, c, r);
+	      update_the_diagonal<<<b_d,t_d>>>(i, LD, M, c, r);
 
-		update_the_row<<<b_r,t_r>>>(i, N, LD, M, c, r);
+	      update_the_row<<<b_r,t_r>>>(i, N, LD, M, c, r);
 
-		update_the_col<<<b_c,t_c>>>(i, N, LD, M, c, r);
+	      update_the_col<<<b_c,t_c>>>(i, N, LD, M, c, r);
 	    }
 	}
-    }
+    }//end: standard_Bennet
+    
+  }//namespace LIN_ALG 
+}//namespace GPU_KERNEL_BENNETT
 
-//     template void /*BENNET<GPU>::*/standard_Bennet<float>(int N, int LD, float* M, float* c, float* r);
-//     template void /*BENNET<GPU>::*/standard_Bennet<double>(int N, int LD, double* M, double* c, double* r);
- 
-  }
-}
 
 #endif

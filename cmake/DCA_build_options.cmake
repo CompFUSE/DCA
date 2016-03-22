@@ -26,7 +26,7 @@ if (DCA_SSE_ACCELERATION)
 endif()
 
 # Enable pthreads.
-option(DCA_PTHREADS "Enable pthreads" OFF)
+option(DCA_PTHREADS "Enable pthreads" ON)
 if (DCA_PTHREADS)
   set(DCA_MC_INTEGRATOR_TYPE "posix_qmci_integrator<quantum_cluster_solver_type>")
 else()
@@ -51,7 +51,7 @@ else()
 endif()
 
 # Choose the random number generator.
-set(DCA_RNG "NR" CACHE STRING "Choose the random number generator, options are: NR|SPRNG.")
+set(DCA_RNG "NR" CACHE STRING "Choose the random number generator, options are: NR|SPRNG." FORCE)
 if (${DCA_RNG} STREQUAL "NR")
   add_definitions(-DRNG_NUMERICAL_RECIPES)
 elseif (${DCA_RNG} STREQUAL "SPRNG")  # TODO: Support SPRNG.

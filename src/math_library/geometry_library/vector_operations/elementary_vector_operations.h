@@ -175,21 +175,6 @@ namespace VECTOR_OPERATIONS
     std::vector<scalartype> coordinate = r;
     LIN_ALG::GESV<LIN_ALG::CPU>::execute(N, &basis[0], &coordinate[0]);
 
-    /*
-      if(true)// testing
-      {
-      for(size_t d0=0; d0<N; ++d0){
-
-      scalartype res = -r[d0];
-      for(size_t d1=0; d1<N; ++d1)
-      res += B[d1][d0]*coordinate[d1];
-
-      if(abs(res)>1.e-6)
-      throw std::logic_error(__FUNCTION__);
-      }
-      }
-    */
-
     return coordinate;
   }
 
@@ -215,21 +200,6 @@ namespace VECTOR_OPERATIONS
     basis[1+2*1] = v2[1];
 
     LIN_ALG::GESV<LIN_ALG::CPU>::execute(N, &basis[0], &coor[0]);
-
-    /*
-      static invert_plan<double> invert_obj(2);
-
-      invert_obj.Matrix[0+2*0] = v1[0];
-      invert_obj.Matrix[1+2*0] = v1[1];
-
-      invert_obj.Matrix[0+2*1] = v2[0];
-      invert_obj.Matrix[1+2*1] = v2[1];
-
-      invert_obj.execute_plan();
-
-      coor[0] = invert_obj.inverted_matrix[0+2*0]*vec[0] + invert_obj.inverted_matrix[0+2*1]*vec[1];
-      coor[1] = invert_obj.inverted_matrix[1+2*0]*vec[0] + invert_obj.inverted_matrix[1+2*1]*vec[1];
-    */
   }
 
   template<typename scalartype>
@@ -262,28 +232,6 @@ namespace VECTOR_OPERATIONS
     basis[2+3*2] = v3[2];
 
     LIN_ALG::GESV<LIN_ALG::CPU>::execute(N, &basis[0], &coor[0]);
-
-    /*
-      static invert_plan<double> invert_obj(3);
-
-      invert_obj.Matrix[0+3*0] = v1[0];
-      invert_obj.Matrix[1+3*0] = v1[1];
-      invert_obj.Matrix[2+3*0] = v1[2];
-
-      invert_obj.Matrix[0+3*1] = v2[0];
-      invert_obj.Matrix[1+3*1] = v2[1];
-      invert_obj.Matrix[2+3*1] = v2[2];
-
-      invert_obj.Matrix[0+3*2] = v3[0];
-      invert_obj.Matrix[1+3*2] = v3[1];
-      invert_obj.Matrix[2+3*2] = v3[2];
-
-      invert_obj.execute_plan();
-
-      coor[0] = invert_obj.inverted_matrix[0+3*0]*vec[0] + invert_obj.inverted_matrix[0+3*1]*vec[1] + invert_obj.inverted_matrix[0+3*2]*vec[2];
-      coor[1] = invert_obj.inverted_matrix[1+3*0]*vec[0] + invert_obj.inverted_matrix[1+3*1]*vec[1] + invert_obj.inverted_matrix[1+3*2]*vec[2];
-      coor[2] = invert_obj.inverted_matrix[2+3*0]*vec[0] + invert_obj.inverted_matrix[2+3*1]*vec[1] + invert_obj.inverted_matrix[2+3*2]*vec[2];
-    */
   }
 
 

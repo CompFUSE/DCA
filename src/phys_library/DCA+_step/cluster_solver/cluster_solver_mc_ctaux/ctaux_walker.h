@@ -365,13 +365,10 @@ namespace DCA
       CV_obj.initialize(MOMS);
 
       configuration.initialize();      
-      //configuration.print();
-
+   
       is_thermalized() = false;
 
       { 
-	//std::cout << "\n\n\t G0-TOOLS \n\n";
-        
 	G0_tools_obj.initialize(MOMS);
         G0_tools_obj.build_G0_matrix(configuration, G0_up, e_UP);
         G0_tools_obj.build_G0_matrix(configuration, G0_dn, e_DN);
@@ -381,8 +378,6 @@ namespace DCA
       }
 
       {
-	//std::cout << "\n\n\t N-TOOLS \n\n";
-        
 	N_tools_obj.build_N_matrix(configuration, N_up, G0_up, e_UP);
         N_tools_obj.build_N_matrix(configuration, N_dn, G0_dn, e_DN);
 
@@ -391,8 +386,6 @@ namespace DCA
       }
 
       {
-	//std::cout << "\n\n\t G-TOOLS \n\n";
-        
 	G_tools_obj.build_G_matrix(configuration, N_up, G0_up, G_up, e_UP);
         G_tools_obj.build_G_matrix(configuration, N_dn, G0_dn, G_dn, e_DN);
 
@@ -499,16 +492,6 @@ namespace DCA
           check_G0_matrices(configuration, G0_up, G0_dn);
       }
 
-      /*
-        if(true)
-        {
-        std::cout << "\n\n\t G0-TOOLS \n\n";
-        G0_CPU_tools_obj.build_G0_matrix(configuration, G0_up_CPU, e_UP);
-        G0_CPU_tools_obj.build_G0_matrix(configuration, G0_dn_CPU, e_DN);
-        G0_up_CPU.difference(G0_up);
-        G0_dn_CPU.difference(G0_dn);
-        }
-      */
 
       {// update N for new shuffled vertices
         profiler_type profiler("N-matrix (update)", "CT-AUX walker", __LINE__, thread_id);
@@ -520,16 +503,6 @@ namespace DCA
           check_N_matrices(configuration, G0_up, G0_dn, N_up, N_dn);
       }
 
-      /*
-        if(true)
-        {
-        std::cout << "\n\n\t N-TOOLS : " << sign << "\t" << configuration.size() << "\n\n";
-        N_CPU_tools_obj.build_N_matrix(configuration, N_up_CPU, G0_up_CPU, e_UP);
-        N_CPU_tools_obj.build_N_matrix(configuration, N_dn_CPU, G0_dn_CPU, e_DN);
-        N_up_CPU.difference(N_up);
-        N_dn_CPU.difference(N_dn);
-        }
-      */
 
       {// update N for new shuffled vertices
         profiler_type profiler("G-matrix (update)", "CT-AUX walker", __LINE__, thread_id);
@@ -540,34 +513,11 @@ namespace DCA
         if(QMC_INTEGRATOR_BIT)
           check_G_matrices(configuration, G0_up, G0_dn, N_up, N_dn, G_up, G_dn);
       }
-
-      /*
-        {
-        std::cout << "\n\n\t G-TOOLS\n\n";
-        G_CPU_tools_obj.build_G_matrix(configuration, N_up_CPU, G0_up_CPU, G_up_CPU, e_UP);
-        G_CPU_tools_obj.build_G_matrix(configuration, N_dn_CPU, G0_dn_CPU, G_dn_CPU, e_DN);
-        G_up_CPU.difference(G_up);
-        G_dn_CPU.difference(G_dn);
-        }
-      */
-
-      /*
-        if(QMC_INTEGRATOR_BIT)
-        {
-        if(concurrency.id()==0 and thread_id==0)
-        std::cout << "\t N-update check :" << std::endl;
-
-        N_tools_obj.check_N_matrix(configuration, N_up, G0_up, Gamma_up, e_UP);
-        N_tools_obj.check_N_matrix(configuration, N_dn, G0_dn, Gamma_dn, e_DN);
-        }
-      */
     }
 
     template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
     void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::generate_delayed_spins()
     {
-      //std::cout << __FUNCTION__ << "\n";
-
       profiler_type profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
 
       delayed_spins.resize(0);
@@ -626,9 +576,6 @@ namespace DCA
             }
         }
 
-//       int Gamma_index_HS_field_DN = 0;
-//       int Gamma_index_HS_field_UP = 0;
-
       int Gamma_dn_size=0;
       int Gamma_up_size=0;
 
@@ -651,10 +598,6 @@ namespace DCA
 
           if(delayed_spins[i].e_spin_HS_field_DN == e_UP)
             {
- 	      //std::cout << "\t" << "e_UP" << "\t" << Gamma_up_size << "\t|\t";
-
-//               delayed_spins[i].Gamma_index_HS_field_DN = Gamma_index_HS_field_DN;
-//               Gamma_index_HS_field_DN += 1;
 
 	      delayed_spins[i].Gamma_index_HS_field_DN = Gamma_up_size;
 	      Gamma_up_size += 1;
@@ -667,10 +610,6 @@ namespace DCA
             }
           else
             {
- 	      //std::cout << "\t" << "e_DN" << "\t" << Gamma_dn_size << "\t|\t";
-
-//               delayed_spins[i].Gamma_index_HS_field_DN = Gamma_index_HS_field_DN;
-//               Gamma_index_HS_field_DN += 1;
 
 	      delayed_spins[i].Gamma_index_HS_field_DN = Gamma_dn_size;
 	      Gamma_dn_size += 1;
@@ -684,10 +623,6 @@ namespace DCA
 
           if(delayed_spins[i].e_spin_HS_field_UP == e_UP)
             {
- 	      //std::cout << "\t" << "e_UP" << "\t" << Gamma_up_size;
-
-//               delayed_spins[i].Gamma_index_HS_field_UP = Gamma_index_HS_field_UP;
-//               Gamma_index_HS_field_UP += 1;
 
 	      delayed_spins[i].Gamma_index_HS_field_UP = Gamma_up_size;
 	      Gamma_up_size += 1;
@@ -700,11 +635,6 @@ namespace DCA
             }
           else
             {
- 	      //std::cout << "\t" << "e_DN" << "\t" << Gamma_dn_size;
-
-//               delayed_spins[i].Gamma_index_HS_field_UP = Gamma_index_HS_field_UP;
-//               Gamma_index_HS_field_UP += 1;
-
 	      delayed_spins[i].Gamma_index_HS_field_UP = Gamma_dn_size;
 	      Gamma_dn_size += 1;
 
@@ -714,16 +644,12 @@ namespace DCA
               delayed_spins[i].exp_delta_V_HS_field_UP       = CV_obj.exp_delta_V      (v_j, new_HS_spin_value);
               delayed_spins[i].exp_minus_delta_V_HS_field_UP = CV_obj.exp_minus_delta_V(v_j, new_HS_spin_value);
             }
-
-	  //std::cout << "\n";
         }
     }
 
     template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
     void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::read_Gamma_matrices(e_spin_states e_spin)
     {
-      //std::cout << __FUNCTION__ << "\n";
-
       //profiler_type profiler(concurrency, __FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
 
       {
@@ -771,8 +697,6 @@ namespace DCA
     template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
     void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::compute_Gamma_matrices()
     {
-      //std::cout << __FUNCTION__ << "\n";
-
       profiler_type profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
 
       bennett_spins.resize(0);
@@ -816,21 +740,11 @@ namespace DCA
 
       remove_non_accepted_and_bennett_spins_from_Gamma(Gamma_up_size, Gamma_dn_size);
 
-      if(QMC_INTEGRATOR_BIT)
-        {
-          //if(concurrency.id()==0 and thread_id==0)
-          //std::cout << "\n\t Gamma-update check : \n\n";
-
-          //GAMMA_tools_obj.check_Gamma_LU(Gamma_up_CPU, N_up, G_up, configuration, e_UP);
-          //GAMMA_tools_obj.check_Gamma_LU(Gamma_dn_CPU, N_dn, G_dn, configuration, e_DN);
-        }
     }
 
     template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
     void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::neutralize_delayed_spin(int& delayed_index, int& Gamma_up_size, int& Gamma_dn_size)
     {
-      //std::cout << __FUNCTION__ << "\n";
-
       delayed_spins[delayed_index].is_accepted_move  = false;
 
       if(delayed_spins[delayed_index].e_spin_HS_field_DN == e_UP)
@@ -854,15 +768,11 @@ namespace DCA
           Gamma_dn_size += 1;
           CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::set_to_identity(Gamma_dn_CPU, delayed_spins[delayed_index].Gamma_index_HS_field_UP);
         }
-
-      //     delayed_index += 1;
     }
 
     template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
     void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::add_delayed_spins_to_the_configuration()
     {
-      //std::cout << __FUNCTION__ << "\n";
-
       for(size_t i=0; i<delayed_spins.size(); ++i)
         {
           int configuration_index = delayed_spins[i].random_vertex_ind;
@@ -930,8 +840,6 @@ namespace DCA
     template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
     void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::add_delayed_spin(int& delayed_index, int& Gamma_up_size, int& Gamma_dn_size)
     {
-      //std::cout << __FUNCTION__ << "\t|";
-
       assert(assert_exp_delta_V_value(HS_FIELD_DN,
                                       delayed_spins[delayed_index].random_vertex_ind,
                                       delayed_spins[delayed_index].new_HS_spin_value,
@@ -965,8 +873,6 @@ namespace DCA
       {
         if(delayed_spins[delayed_index].e_spin_HS_field_DN == e_UP)
           {
-	    //std::cout << "\t" << "e_UP" << "\t" << Gamma_index_HS_field_DN << "\t" << Gamma_up_size << "\t|\t";
-
             assert(Gamma_index_HS_field_DN == Gamma_up_size);
 
             ratio_HS_field_DN = ctaux_tools.solve_Gamma_blocked(Gamma_index_HS_field_DN, Gamma_up_CPU, exp_delta_V_HS_field_DN, Gamma_up_diag_max, Gamma_up_diag_min);
@@ -975,8 +881,6 @@ namespace DCA
           }
         else
           {
-	    //std::cout << "\t" << "e_DN" << "\t" << Gamma_index_HS_field_DN << "\t" << Gamma_dn_size << "\t|\t";
-
             assert(Gamma_index_HS_field_DN == Gamma_dn_size);
 
             ratio_HS_field_DN = ctaux_tools.solve_Gamma_blocked(Gamma_index_HS_field_DN, Gamma_dn_CPU, exp_delta_V_HS_field_DN, Gamma_dn_diag_max, Gamma_dn_diag_min);
@@ -986,8 +890,6 @@ namespace DCA
 
         if(delayed_spins[delayed_index].e_spin_HS_field_UP == e_UP)
           {
-	    //std::cout << "\t" << "e_UP" << "\t" << Gamma_index_HS_field_UP << "\t" << Gamma_up_size << "\t|\t";
-
             assert(Gamma_index_HS_field_UP == Gamma_up_size);
 
             ratio_HS_field_UP = ctaux_tools.solve_Gamma_blocked(Gamma_index_HS_field_UP, Gamma_up_CPU, exp_delta_V_HS_field_UP, Gamma_up_diag_max, Gamma_up_diag_min);
@@ -996,8 +898,6 @@ namespace DCA
           }
         else
           {
-	    //std::cout << "\t" << "e_DN" << "\t" << Gamma_index_HS_field_UP << "\t" << Gamma_dn_size << "\t|\t";
-
             assert(Gamma_index_HS_field_UP == Gamma_dn_size);
 
             ratio_HS_field_UP = ctaux_tools.solve_Gamma_blocked(Gamma_index_HS_field_UP, Gamma_dn_CPU, exp_delta_V_HS_field_UP, Gamma_dn_diag_max, Gamma_dn_diag_min);
@@ -1005,7 +905,6 @@ namespace DCA
             Gamma_dn_size += 1;
           }
 
-	//std::cout << "\n";
       }
 
       double determinant_ratio = ratio_HS_field_UP*ratio_HS_field_DN;
@@ -1037,33 +936,6 @@ namespace DCA
         }
       else
         {
-	  /*
-          Gamma_up_diag_max = tmp_up_diag_max<1. ? 1. : tmp_up_diag_max;
-          Gamma_dn_diag_max = tmp_dn_diag_max<1. ? 1. : tmp_dn_diag_max;
-          Gamma_up_diag_min = tmp_up_diag_min>1. ? 1. : tmp_up_diag_min;
-          Gamma_dn_diag_min = tmp_dn_diag_min>1. ? 1. : tmp_dn_diag_min;
-
-          delayed_spins[delayed_index].is_accepted_move  = false;
-
-          if(delayed_spins[delayed_index].e_spin_HS_field_DN == e_UP)
-            {
-              CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::set_to_identity(Gamma_up_CPU, Gamma_up_size-1);
-            }
-          else
-            {
-              CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::set_to_identity(Gamma_dn_CPU, Gamma_dn_size-1);
-            }
-
-          if(delayed_spins[delayed_index].e_spin_HS_field_UP == e_UP)
-            {
-              CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::set_to_identity(Gamma_up_CPU, Gamma_up_size-1);
-            }
-          else
-            {
-              CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::set_to_identity(Gamma_dn_CPU, Gamma_dn_size-1);
-            }
-	  */
-
 	  if(delayed_spins[delayed_index].e_spin_HS_field_DN == e_UP and 
 	     delayed_spins[delayed_index].e_spin_HS_field_UP == e_UP){
 
@@ -1115,7 +987,7 @@ namespace DCA
     void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::apply_bennett_on_Gamma_matrices(int& /*Gamma_up_size*/, int& /*Gamma_dn_size*/)
     {
       throw std::logic_error(__FUNCTION__);
-
+      //TODO implement Bennet updates 
       /*
         number_of_annihilations += 1;
 
@@ -1244,22 +1116,6 @@ namespace DCA
       SHRINK_tools_obj.reorganize_configuration_test(configuration, N_up, N_dn, G0_up, G0_dn);
 
       assert(configuration.assert_consistency());
-
-      if(QMC_INTEGRATOR_BIT)
-        {
-          //check_N_matrices(configuration, G0_up, G0_dn, N_up, N_dn);
-
-          /*
-            if(concurrency.id()==0){
-            std::cout << "\t\t <k>               = " << configuration.get_number_of_interacting_HS_spins() << std::endl;
-            std::cout << "\t\t # creatable spins = " << configuration.get_number_of_creatable_HS_spins() << std::endl;
-            std::cout << "\t N-woodburry check (2) :" << std::endl;
-            }
-
-            N_tools_obj.check_N_matrix(configuration, N_up, G0_up, Gamma_up, e_UP);
-            N_tools_obj.check_N_matrix(configuration, N_dn, G0_dn, Gamma_dn, e_DN);
-          */
-        }
     }
 
     template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>

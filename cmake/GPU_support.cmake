@@ -4,7 +4,7 @@
 # Description.
 ################################################################################
 
-option(DCA_GPU_SUPPORT            "Enable GPU support."        OFF)
+option(DCA_GPU_SUPPORT "Enable GPU support." OFF)
 option(DCA_GPU_PINNED_HOST_MEMORY "Enable pinned host memory." OFF)
 mark_as_advanced(DCA_GPU_PINNED_HOST_MEMORY)
 
@@ -35,23 +35,25 @@ if (DCA_GPU_SUPPORT)
 
   find_library(MAGMA_LIBRARY
     NAMES libmagma.a magma
-    PATHS $ENV{EBROOTMAGMA}/lib
+    PATHS ${MAGMA_DIR}/lib
     NO_DEFAULT_PATH
     )
+  mark_as_advanced(MAGMA_LIBRARY)
 
   set(DCA_GPU_LIBRARIES
     ${MAGMA_LIBRARY}
     ${CUDA_CUDA_LIBRARY}
+    ${CUDA_cusparse_LIBRARY}
     )
   # message("DCA_GPU_LIBRARIES: ${DCA_GPU_LIBRARIES}")
   
   CUDA_INCLUDE_DIRECTORIES(
-    "${CMAKE_SOURCE_DIR}/src/comp_library/LIN_ALG"
-    "${CMAKE_SOURCE_DIR}/src/phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker"
-    "${CMAKE_SOURCE_DIR}/src/phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_N_matrix_routines"
-    "${CMAKE_SOURCE_DIR}/src/phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_G_matrix_routines"
-    "${CMAKE_SOURCE_DIR}/src/phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_G0_matrix_routines"
-    "$ENV{EBROOTMAGMA}/include"
+    "${PROJECT_SOURCE_DIR}/src/comp_library/LIN_ALG"
+    "${PROJECT_SOURCE_DIR}/src/phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker"
+    "${PROJECT_SOURCE_DIR}/src/phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_N_matrix_routines"
+    "${PROJECT_SOURCE_DIR}/src/phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_G_matrix_routines"
+    "${PROJECT_SOURCE_DIR}/src/phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_G0_matrix_routines"
+    "${MAGMA_DIR}/include"
     )
 
 else()

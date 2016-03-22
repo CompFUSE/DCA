@@ -81,7 +81,6 @@ namespace DCA
 		for(int i=0; i<nu::dmn_size(); i++)
 		  G_inv(i,j) = I_k(i,j)-MOMS.H_HOST(i,j,k_ind);
 	      
-	      //LIN_ALG::GEINV<LIN_ALG::CPU>::execute_on_Green_function_matrix(G_inv);
 	      geinv_obj.execute(G_inv);
 
 	      for(int j=0; j<nu::dmn_size(); j++)
@@ -94,7 +93,6 @@ namespace DCA
 		for(int i=0; i<nu::dmn_size(); i++)
 		  G_inv(i,j) = I_k(i,j)-MOMS.H_HOST(i,j,k_ind)-MOMS.Sigma_lattice(i,j,k_ind,w_ind);
 	      
-	      //LIN_ALG::GEINV<LIN_ALG::CPU>::execute_on_Green_function_matrix(G_inv);
 	      geinv_obj.execute(G_inv);
 
 	      for(int j=0; j<nu::dmn_size(); j++)

@@ -118,25 +118,6 @@ void material_lattice<NiO_symmetric, point_group_type>::initialize_H_interaction
     for(int i=0; i<2*BANDS; i++)
 	for(int j=0; j<2*BANDS; j++)
 	    H_i(i,j,0) = U[i][j];
-
-    /*
-      {
-      std::stringstream ss;
-      ss.precision(6);
-      ss<<scientific;
-    
-      ss << "\n\n U_ij \n\n";
-      for(int i=0; i<2*BANDS; i++){
-      for(int j=0; j<2*BANDS; j++){
-      ss << "\t" << H_i(i,j,0);	
-      }
-      ss << "\n";
-      }
-      ss << "\n\n";
-
-      cout << ss.str();
-      }
-    */
 }
 
 template<typename point_group_type>
@@ -163,15 +144,6 @@ std::vector<std::vector<double> >& material_lattice<NiO_symmetric, point_group_t
 	IO::reader<IO::CSV>::execute(parameters.get_t_ij_file_name(), t_ij);
 
 	is_initialized=true;
-
-	/*
-	  cout << "\n\n";
-	  for(size_t i=0; i<128; i++){
-	  cout << "\t";
-	  VECTOR_OPERATIONS::PRINT(t_ij[i]); 
-	  cout << "\n";
-	  }
-	*/
     }
 
     return t_ij;
@@ -333,25 +305,6 @@ void material_lattice<NiO_unsymmetric, point_group_type>::initialize_H_interacti
     for(int i=0; i<2*BANDS; i++)
 	for(int j=0; j<2*BANDS; j++)
 	    H_i(i,j,0) = U[i][j];
-
-    /*
-      {
-      std::stringstream ss;
-      ss.precision(6);
-      ss<<scientific;
-    
-      ss << "\n\n U_ij \n\n";
-      for(int i=0; i<2*BANDS; i++){
-      for(int j=0; j<2*BANDS; j++){
-      ss << "\t" << H_i(i,j,0);	
-      }
-      ss << "\n";
-      }
-      ss << "\n\n";
-
-      cout << ss.str();
-      }
-    */
 }
 
 template<typename point_group_type>
@@ -379,14 +332,6 @@ std::vector<std::vector<double> >& material_lattice<NiO_unsymmetric, point_group
 
 	is_initialized=true;
 
-	/*
-	  cout << "\n\n";
-	  for(size_t i=0; i<128; i++){
-	  cout << "\t";
-	  VECTOR_OPERATIONS::PRINT(t_ij[i]); 
-	  cout << "\n";
-	  }
-	*/
     }
 
     return t_ij;

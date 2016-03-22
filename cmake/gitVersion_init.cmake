@@ -9,14 +9,14 @@ function(get_git_log _git_log)
 
   execute_process(
     COMMAND
-    git
+    git --git-dir ${PROJECT_SOURCE_DIR}/.git --work-tree ${PROJECT_SOURCE_DIR}
     log -1
-    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     RESULT_VARIABLE res
     OUTPUT_VARIABLE out
     )
 
-  file(WRITE "${CMAKE_BINARY_DIR}/gitVersion/git_log.txt" "${out}")
+  file(WRITE "${PROJECT_BINARY_DIR}/gitVersion/git_log.txt" "${out}")
   string(REPLACE "\n" "\\n" out "${out}")
   set(${_git_log} "${out}" PARENT_SCOPE)
 
@@ -27,14 +27,14 @@ function(get_git_status _git_status)
 
   execute_process(
     COMMAND
-    git
+    git --git-dir ${PROJECT_SOURCE_DIR}/.git --work-tree ${PROJECT_SOURCE_DIR}
     status --porcelain
-    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     RESULT_VARIABLE res
     OUTPUT_VARIABLE out
     )
 
-  file(WRITE "${CMAKE_BINARY_DIR}/gitVersion/git_status.txt" "${out}")
+  file(WRITE "${PROJECT_BINARY_DIR}/gitVersion/git_status.txt" "${out}")
   string(REPLACE "\n" "\\n" out "${out}")
   set(${_git_status} "${out}" PARENT_SCOPE)
 

@@ -357,21 +357,11 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::construct_annihilat
                         annihilation_set_nonzero_sparse(l_idx,r_idx,k).push_back(tmp);
                       }
                     }
-
-                    //                     if((r_idx==310 and l_idx==377) or
-                    //                        (r_idx==377 and l_idx==310))
-                    //                       {
-                    //                         x.push_back(i);
-                    //                         y.push_back(j);
-                    //                       }
                   }
               }
             }
           }
 
-        //         if((r_idx==310 and l_idx==377) or
-        //            (r_idx==377 and l_idx==310))
-        //           SHOW::plot_points(x, y);
 
         if(annihilation_set_nonzero_sparse(l_idx,r_idx,k).size() != 0)
           {
@@ -511,13 +501,6 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::compute_annihilatio
   matrix_type& V_i = Hamiltonian.get_eigen_states()(HS_i);
   matrix_type& V_j = Hamiltonian.get_eigen_states()(HS_j);
 
-//   {
-//   dense_annihilation.print_fingerprint();
-//   tmp.print_fingerprint();
-//   V_i.print_fingerprint();
-//   V_j.print_fingerprint();
-//   }
-
   {
     for(int j=0; j<tmp.get_number_of_cols(); j++)
       for(int i=0; i<tmp.get_number_of_rows(); i++)
@@ -656,36 +639,6 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::print_creation_matr
   data.close();
 
 }
-
-
-// template<typename parameter_type, typename ed_options>
-// void fermionic_overlap_matrices<parameter_type, ed_options>::compute_all_creation_matrices()
-// {
-//   if(concurrency.id()==0)
-//     std::cout << "\n\t" << __FUNCTION__ << std::endl;
-
-//   std::vector< Hilbert_space_type >& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
-
-//   int counter = 0;
-
-//   for(int HS_j = 0; HS_j < Hilbert_spaces.size(); ++HS_j){
-//     for(int HS_i = 0; HS_i < Hilbert_spaces.size(); ++HS_i){
-//       for(int k = 0; k < b_s_r_dmn_type::dmn_size(); ++k){
-
-//         if(creation_set_all(HS_i,HS_j,k) != -1){
-
-//           ++counter;
-//           std::cout << counter << std::endl;
-
-//           compute_sparse_creation(HS_i, HS_j, k);
-//           compute_dense_creation(HS_i, HS_j, k);
-//         }
-//       }
-//     }
-//   }
-// }
-
-
 
 
 template<typename parameter_type, typename ed_options>

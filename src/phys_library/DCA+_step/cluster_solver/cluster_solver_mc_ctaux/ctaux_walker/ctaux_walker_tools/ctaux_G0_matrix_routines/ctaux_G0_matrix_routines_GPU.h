@@ -55,12 +55,6 @@ namespace DCA
 
       typedef dmn_0<time_domain_left_oriented>   shifted_t;
 
-      //     typedef r_cluster<FULL, base_cluster_type> r_cluster_type;
-      //     typedef k_cluster<FULL, base_cluster_type> k_cluster_type;
-
-      //     typedef dmn_0<r_cluster_type> r_dmn_t;
-      //     typedef dmn_0<k_cluster_type> k_dmn_t;
-
       typedef r_DCA r_dmn_t;
       typedef k_DCA k_dmn_t;
 
@@ -212,7 +206,6 @@ namespace DCA
                                                                           e_spin_states_type                     e_spin)
     {
       //profiler_t profiler(concurrency, "G0-matrix (build)", "CT-AUX", __LINE__);
-
       std::vector<vertex_singleton_type>& configuration_e_spin = configuration.get(e_spin);
       int                                 configuration_size   = configuration_e_spin.size();
 
@@ -276,38 +269,11 @@ namespace DCA
       r_ind.resize(configuration_size);
       tau  .resize(configuration_size);
 
-      /*
-        b_ind_GPU.resize(configuration_size);
-        r_ind_GPU.resize(configuration_size);
-        tau_GPU  .resize(configuration_size);
-      */
-      /*
-        b_ind_GPU.reserve(configuration_size);
-        r_ind_GPU.reserve(configuration_size);
-        tau_GPU  .reserve(configuration_size);
-      */
-
       for(int l=0; l<configuration_size; ++l){
         b_ind[l] = configuration_e_spin[l].get_band();
         r_ind[l] = configuration_e_spin[l].get_r_site();
         tau  [l] = configuration_e_spin[l].get_tau();
       }
-
-      /*
-        LIN_ALG::COPY_FROM<LIN_ALG::CPU, LIN_ALG::GPU>::execute(b_ind.get_ptr(), b_ind_GPU.get_ptr(), configuration_size, LIN_ALG::ASYNCHRONOUS);
-        LIN_ALG::COPY_FROM<LIN_ALG::CPU, LIN_ALG::GPU>::execute(r_ind.get_ptr(), r_ind_GPU.get_ptr(), configuration_size, LIN_ALG::ASYNCHRONOUS);
-        LIN_ALG::COPY_FROM<LIN_ALG::CPU, LIN_ALG::GPU>::execute(tau  .get_ptr(), tau_GPU  .get_ptr(), configuration_size, LIN_ALG:: SYNCHRONOUS);
-      */
-
-      /*
-        b_ind_GPU.reserve(configuration_size);
-        r_ind_GPU.reserve(configuration_size);
-        tau_GPU  .reserve(configuration_size);
-
-        LIN_ALG::COPY_FROM<LIN_ALG::CPU, LIN_ALG::GPU>::execute(b_ind.get_ptr(), b_ind_GPU.get_ptr(), configuration_size, thread_id, stream_id);
-        LIN_ALG::COPY_FROM<LIN_ALG::CPU, LIN_ALG::GPU>::execute(r_ind.get_ptr(), r_ind_GPU.get_ptr(), configuration_size, thread_id, stream_id);
-        LIN_ALG::COPY_FROM<LIN_ALG::CPU, LIN_ALG::GPU>::execute(tau  .get_ptr(), tau_GPU  .get_ptr(), configuration_size, thread_id, stream_id);
-      */
 
       b_ind_GPU.set(b_ind, LIN_ALG::ASYNCHRONOUS);
       r_ind_GPU.set(r_ind, LIN_ALG::ASYNCHRONOUS);

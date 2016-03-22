@@ -96,14 +96,6 @@ namespace IO
 	ss_obj << char_ptr[i];
     }
 
-    //   template<typename some_type>
-    //   JSON_leaf& JSON_leaf::operator=(some_type rhs)
-    //   {
-    
-    //     cout << "\n\n\t JSON_leaf& JSON_leaf::operator=(some_type rhs) \n\n";
-    //     throw std::logic_error(__FUNCTION__);
-    //   }
-
     JSON_leaf& JSON_leaf::operator=(bool rhs)
     {
       if(bool_ptr==NULL)
@@ -249,8 +241,8 @@ namespace IO
     }
 
 
-  }
+  } //namespace JSONPARSER
 
-}
+}//namespace IO
 
 #endif

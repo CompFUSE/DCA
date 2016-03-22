@@ -27,8 +27,6 @@ public:
   template<IO::FORMAT DATA_FORMAT>
   static void write(IO::writer<DATA_FORMAT>& reader);
 
-//   template<class stream_type>
-//   static void to_JSON(stream_type& ss);
 };
 
 template<typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S>
@@ -60,124 +58,6 @@ void cluster_domain_family<scalar_type, D, N, S>::write(IO::writer<DATA_FORMAT>&
   writer.close_group();
 }
 
-/*
-template<typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S>
-template<class stream_type>
-void cluster_domain_family<scalar_type, D, N, S>::to_JSON(stream_type& ss)
-{
-  ss << "\"cluster\" : ";
 
-  ss << "{\n";
-
-  ss << "\"SUPER-BASIS\" : \n {" ;
-  ss << "\"R\" : {\n";
-  for(int i=0; i<DIMENSION; i++){
-    ss << "\"R_"<<i<<"\" : [";
-    for(int j=0; j<DIMENSION; j++){
-      ss << r_cluster_type::get_super_basis_vectors()[i][j];
-      
-      if(j==DIMENSION-1)
-	ss << "]";
-      else
-	ss << ", ";
-    }
-    
-    if(i==DIMENSION-1)
-      ss << "\n";
-    else
-      ss << ",\n";
-  }
-  ss << "},\n"; 
-  ss << "\"K\" : {\n";
-  for(int i=0; i<DIMENSION; i++){
-    ss << "\"K_"<<i<<"\" : [";
-    for(int j=0; j<DIMENSION; j++){
-      ss << k_cluster_type::get_super_basis_vectors()[i][j];
-      
-      if(j==DIMENSION-1)
-	ss << "]";
-      else
-	ss << ", ";
-    }
-    
-    if(i==DIMENSION-1)
-      ss << "\n";
-    else
-      ss << ",\n";
-  }
-  ss << "}\n"; 
-  ss << "},\n";
-
-  ss << "\"BASIS\" : \n {" ;
-  ss << "\"R\" : {\n";
-  for(int i=0; i<DIMENSION; i++){
-    ss << "\"R_"<<i<<"\" : [";
-    for(int j=0; j<DIMENSION; j++){
-      ss << r_cluster_type::get_basis_vectors()[i][j];
-      
-      if(j==DIMENSION-1)
-	ss << "]";
-      else
-	ss << ", ";
-    }
-    
-    if(i==DIMENSION-1)
-      ss << "\n";
-    else
-      ss << ",\n";
-  }
-  ss << "},\n"; 
-  ss << "\"K\" : {\n";
-  for(int i=0; i<DIMENSION; i++){
-    ss << "\"K_"<<i<<"\" : [";
-    for(int j=0; j<DIMENSION; j++){
-      ss << k_cluster_type::get_basis_vectors()[i][j];
-      
-      if(j==DIMENSION-1)
-	ss << "]";
-      else
-	ss << ", ";
-    }
-
-    if(i==DIMENSION-1)
-      ss << "\n";
-    else
-      ss << ",\n";
-  }
-  ss << "}\n"; 
-  ss << "},\n";
-
-  ss << "\"FULL-CLUSTER\" : \n {";
-  ss << "\"R\" : [\n";
-  for(int i=0; i<r_cluster_type::get_size(); i++){
-    ss << "[";
-    for(int j=0; j<DIMENSION; j++)
-      if(j == DIMENSION-1)
-	if(i == r_cluster_type::get_size()-1)
-	  ss << r_cluster_type::get_elements()[i][j] << "]\n";
-	else
-	  ss << r_cluster_type::get_elements()[i][j] << "],\n";
-       else
-	ss << r_cluster_type::get_elements()[i][j] << ", ";
-  }
-  ss << "],\n"; 
-  ss << "\"K\" : [\n";
-  for(int i=0; i<int(k_cluster_type::get_size()); i++){
-    ss << "[";
-    for(int j=0; j<DIMENSION; j++)
-      if(j == DIMENSION-1)
-	if(i == int(k_cluster_type::get_size())-1)
-	  ss << k_cluster_type::get_elements()[i][j] << "]\n";
-	else
-	  ss << k_cluster_type::get_elements()[i][j] << "],\n";
-      else
-	ss << k_cluster_type::get_elements()[i][j] << ", ";
-  }
-  ss << "]\n"; 
-  ss << "}";
-
-  ss << "}";
-}
-*/
 
 #endif
