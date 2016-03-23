@@ -126,11 +126,49 @@ struct _at_index {
 
 // was tuple_element, but we want typelist_element
 template <std::size_t I, typename Tuple>
-struct typelist_element;
+struct mp_element;
 
 template <std::size_t I, typename ...Ts>
-struct typelist_element<I, Typelist<Ts...>> : _at_index<I, Ts...>
+struct mp_element<I, Typelist<Ts...>> : _at_index<I, Ts...>
 {};
+
+//-----------------------------------------------------------------------------
+// Search a typelist for a first occurrence of the type T
+
+// Implementation: has index as a template parameter
+    template<size_t idx, typename T, class List>
+    struct mp_index_of_impl;
+
+    template<size_t idx, typename T> /// The type T is not in the list
+    struct mp_index_of_impl<idx, T, mp_list<>>
+    {
+        using type = std::integral_constant<int, -1>;
+    };
+
+    template<size_t idx, typename T, typename ... Ts>    ///> The type is found
+    struct mp_index_of_impl<idx, T, mp_list<T, Ts...>>
+    {
+        using type = std::integral_constant<int, idx>;
+    };
+
+    template<size_t idx, typename T, typename H, typename ... Ts>  ///> Recursion
+    struct mp_index_of_impl<idx, T, mp_list<H, Ts...>>
+    {
+        using type = typename mp_index_of_impl<idx + 1, T, mp_list<Ts...>>::type;
+    };
+
+    // Wrapping to supply initial index 0
+    template<typename T, class List>
+    struct mp_index_of;
+
+    // Specializing for idx >= 0
+    template<typename T, typename ... Ts>
+    struct mp_index_of<T, mp_list<Ts...>>
+    {
+        using type = typename mp_index_of_impl<0, T, mp_list<Ts...>>::type;
+        using value_type = typename type::value_type;
+        static constexpr value_type value = type::value;
+    };
 
 //----------------------------------------------------------------------------
 // namespace TL
@@ -140,6 +178,9 @@ struct typelist_element<I, Typelist<Ts...>> : _at_index<I, Ts...>
 namespace TL
 {
 
+    /***********************************
+     * Length
+     ***********************************/
     template<typename L>
     using Length = mp_size<L>;
 
@@ -153,39 +194,18 @@ namespace TL
      * TypeAt
      ***********************************/
     template <int I, typename ...Ts>
-    using TypeAt = typelist_element<I, Ts...>;
+    using TypeAt = mp_element<I, Ts...>;
 
     /***********************************
      * 	IndexOf
      ***********************************/
-
-    template <class TList, class T> struct IndexOf;
-
-    template <class T>
-    struct IndexOf<NullType, T>
-    {
-        enum { value = -1 };
-    };
-
-    template <class T, class Tail>
-    struct IndexOf<Typelist<T, Tail>, T>
-    {
-        enum { value = 0 };
-    };
-
-    template <class Head, class Tail, class T>
-    struct IndexOf<Typelist<Head, Tail>, T>
-    {
-    private:
-        enum { temp = IndexOf<Tail, T>::value };
-    public:
-        enum { value = temp == -1 ? -1 : 1 + temp };
-    };
+    template <typename T, typename ...Ts>
+    using IndexOf = mp_index_of<T,Ts...>;
 
     /***********************************
      * 	IndexOf_At
      ***********************************/
-
+/*
     template <class TList, class T, int N>
     struct IndexOf_At;
 
@@ -222,7 +242,7 @@ namespace TL
         enum { value = temp == -1 ? -1 : 1 + temp };
     };
 
-
+*/
 
     /**********************************
      * 	Append
