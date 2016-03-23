@@ -26,7 +26,7 @@ public:
   typedef Sn_3D<2,3,8> Sn_3D_3_8_type;
   typedef Sn_3D<2,4,8> Sn_3D_4_8_type;
 
-  typedef TYPELIST_9(inversion_type,
+  typedef Typelist<inversion_type,
 		      
 		      Cn_3D_Z_1_4_type,
 		      Cn_3D_Z_2_4_type,
@@ -36,7 +36,7 @@ public:
 		      Sn_3D_1_8_type,
 		      Sn_3D_2_8_type,
 		      Sn_3D_3_8_type,
-		      Sn_3D_4_8_type) point_group_type_list;
+		      Sn_3D_4_8_type> point_group_type_list;
 };
 
 

@@ -28,7 +28,7 @@ public:
   typedef typename point_group_product_left_2_right<Typelist<head_1, tail_1>, Typelist<head_2, tail_2> >::Result product_ij;
   typedef typename point_group_product_left_2_right<Typelist<head_2, tail_2>, Typelist<head_1, tail_1> >::Result product_ji;
 
-  typedef typename Append<product_ij, product_ji>::Result Result;
+  typedef typename Append<product_ij, product_ji>::type Result;
 };
 
 template<typename head_1, typename head_2, typename tail_1, typename tail_2>
@@ -39,29 +39,29 @@ public:
   typedef typename point_group_product_left_2_right <head_1, Typelist<head_2, tail_2> >::Result product_0j;
   typedef typename point_group_product_left_2_right <tail_1, Typelist<head_2, tail_2> >::Result product_ij;
 
-  typedef typename Append<product_0j, product_ij>::Result Result;
+  typedef typename Append<product_0j, product_ij>::type Result;
 };
 
 template<typename head_1, typename head_2, typename tail_2>
-class point_group_product_left_2_right<Typelist<head_2, tail_2>, TYPELIST_1(head_1)>
+class point_group_product_left_2_right<Typelist<head_2, tail_2>, Typelist<head_1>>
 {
 public:
   typedef typename point_group_product_left_2_right<Typelist<head_2, tail_2>, head_1>::Result Result;
 };
 
 template<typename head_1, typename head_2, typename tail_2>
-class point_group_product_left_2_right<TYPELIST_1(head_1), Typelist<head_2, tail_2> >
+class point_group_product_left_2_right<Typelist<head_1>, Typelist<head_2, tail_2> >
 {
 public:
   typedef typename point_group_product_left_2_right<head_1, Typelist<head_2, tail_2> >::Result Result;
 };
 
 template<typename head_1, typename head_2>
-class point_group_product_left_2_right<TYPELIST_1(head_1), TYPELIST_1(head_2)>
+class point_group_product_left_2_right<Typelist<head_1>, Typelist<head_2>>
 {
 public:
   typedef product_group_action<head_1, head_2> product_t; 
-  typedef TYPELIST_1(product_t)                Result;
+  typedef Typelist<product_t>                Result;
 };
 
 
@@ -81,11 +81,11 @@ public:
 };
 
 template<typename head, typename last_head>
-class point_group_product_left_2_right<head, TYPELIST_1(last_head) >
+class point_group_product_left_2_right<head, Typelist<last_head> >
 {
 public:
   typedef product_group_action<head, last_head> product_t;
-  typedef TYPELIST_1(product_t)                 Result;
+  typedef Typelist<product_t>                 Result;
 };
 
 /*
@@ -101,10 +101,10 @@ public:
 };
 
 template<typename head, typename last_head>
-class point_group_product_left_2_right<TYPELIST_1(last_head), head>
+class point_group_product_left_2_right<Typelist<last_head>, head>
 {
 public:
   typedef product_group_action<last_head, head> product_t;
-  typedef TYPELIST_1(product_t)                 Result;
+  typedef Typelist<product_t>                 Result;
 };
 #endif
