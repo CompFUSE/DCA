@@ -129,6 +129,7 @@ namespace FUNC_LIB
    @name I/O-interface
    @{
 */
+        void print_fingerprint(std::ostream &stream);
         void print_fingerprint();
         void print_2_file(const char* file_name);
 
@@ -617,31 +618,36 @@ namespace FUNC_LIB
 //++++++++++++++++++++++++++++++++++++++++//
 
 
+    template<typename scalartype, class domain>
+    void function<scalartype, domain>::print_fingerprint(std::ostream &stream)
+    {
+        stream << std::endl << std::endl << "function : " << name <<std::endl;
+
+        stream <<"*********************************"<<std::endl;
+
+        stream << "# subdomains        : " << Nb_sbdms << std::endl;
+
+        printTL<domain>::print(stream);
+
+        stream << "size of subdomains  : " << std::endl;
+        for(int i=0; i<Nb_sbdms; i++)
+            stream << size_sbdm[i] << "\t";
+        stream << std::endl;
+
+        stream << "memory step         : " << std::endl;
+        for(int i=0; i<Nb_sbdms; i++)
+            stream << step_sbdm[i] << "\t";
+        stream << std::endl;
+
+        stream << "# elements          : " << Nb_elements << std::endl;
+        stream << "# size              : " << Nb_elements*sizeof(scalartype)*(1.e-6) << " (mega-bytes)" << std::endl;
+        stream <<"*********************************"<<std::endl;
+    }
 
     template<typename scalartype, class domain>
     void function<scalartype, domain>::print_fingerprint()
     {
-        std::cout << std::endl << std::endl << "function : " << name <<std::endl;
-
-        std::cout <<"*********************************"<<std::endl;
-
-        std::cout << "# subdomains        : " << Nb_sbdms << std::endl;
-
-        printTL<domain>::print();
-
-        std::cout << "size of subdomains  : " << std::endl;
-        for(int i=0; i<Nb_sbdms; i++)
-            std::cout << size_sbdm[i] << "\t";
-        std::cout << std::endl;
-
-        std::cout << "memory step         : " << std::endl;
-        for(int i=0; i<Nb_sbdms; i++)
-            std::cout << step_sbdm[i] << "\t";
-        std::cout << std::endl;
-
-        std::cout << "# elements          : " << Nb_elements << std::endl;
-        std::cout << "# size              : " << Nb_elements*sizeof(scalartype)*(1.e-6) << " (mega-bytes)" << std::endl;
-        std::cout <<"*********************************"<<std::endl;
+        print_fingerprint(std::cout);
     }
 
     template<typename scalartype, class domain>
