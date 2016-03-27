@@ -17,7 +17,7 @@ fi
 echo "Loading easybild from $EB_SCRIPT into $EB_FOLDER"
 
 source $EB_SCRIPT  $EB_FOLDER
-DCA_SOURCE="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+source export DCA_SOURCE="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 echo "running scripts in ${DCA_SOURCE}/easybuild"
 export EASYBUILD_ROBOT_PATHS=$DCA_SOURCE/easybuild:$EASYBUILD_ROBOT_PATHS
 eb $DCA_SOURCE/easybuild/DCA++-CMake-CrayGNU-2015.11.eb -r
