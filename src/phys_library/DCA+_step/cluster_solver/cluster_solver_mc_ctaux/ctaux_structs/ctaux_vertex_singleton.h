@@ -33,6 +33,7 @@ namespace DCA
                        int                 spin_orbital_in,
                        int                 paired_spin_orbital_in,
                        int                 r_site_in,
+                       int                 delta_r_in,
                        double              tau_in,
                        HS_spin_states_type HS_spin_in,
                        HS_field_sign_type  HS_field_in,
@@ -56,6 +57,7 @@ namespace DCA
       int                  get_spin_orbital() const;
       int                  get_paired_spin_orbital() const;
       int                  get_r_site() const;
+      int                  get_delta_r() const;
       double               get_tau() const;
       HS_spin_states_type  get_HS_spin() const;
       HS_field_sign_type   get_HS_field() const;
@@ -72,6 +74,7 @@ namespace DCA
       int                paired_spin_orbital;
 
       int                 r_site;
+      int                 delta_r;
       double              tau;
 
       HS_spin_states_type HS_spin;
@@ -97,6 +100,7 @@ namespace DCA
 
                                        int                 paired_spin_orbital_in,
                                        int                 r_site_in,
+                                       int                 delta_r_in,
                                        double              tau_in,
 
                                        HS_spin_states_type HS_spin_in,
@@ -108,6 +112,7 @@ namespace DCA
 
       paired_spin_orbital(paired_spin_orbital_in),
       r_site(r_site_in),
+      delta_r(delta_r_in),
       tau(tau_in),
 
       HS_spin(HS_spin_in),
@@ -122,6 +127,7 @@ namespace DCA
 
       paired_spin_orbital ( other_vertex_couple.get_paired_spin_orbital()),
       r_site              ( other_vertex_couple.get_r_site()),
+      delta_r             ( other_vertex_couple.get_delta_r()),
       tau                 ( other_vertex_couple.get_tau()),
 
       HS_spin             ( other_vertex_couple.get_HS_spin()),
@@ -142,6 +148,7 @@ namespace DCA
 
       paired_spin_orbital = other_vertex_couple.get_paired_spin_orbital();
       r_site              = other_vertex_couple.get_r_site();
+      delta_r             = other_vertex_couple.get_delta_r();
       tau                 = other_vertex_couple.get_tau();
 
       HS_spin             = other_vertex_couple.get_HS_spin();
@@ -160,6 +167,7 @@ namespace DCA
 
       paired_spin_orbital = other_vertex_couple.get_paired_spin_orbital();
       r_site              = other_vertex_couple.get_r_site();
+      delta_r             = other_vertex_couple.get_delta_r();
       tau                 = other_vertex_couple.get_tau();
 
       HS_spin             = other_vertex_couple.get_HS_spin();
@@ -180,6 +188,7 @@ namespace DCA
 
             && paired_spin_orbital == other_vertex_couple.get_paired_spin_orbital()
             && r_site              == other_vertex_couple.get_r_site()
+            && delta_r             == other_vertex_couple.get_delta_r()
             && tau                 == other_vertex_couple.get_tau()
 
             && HS_spin             == other_vertex_couple.get_HS_spin()
@@ -241,6 +250,10 @@ namespace DCA
 
     int vertex_singleton::get_r_site() const
     { return r_site; }
+
+
+    int vertex_singleton::get_delta_r() const
+    { return delta_r; }
 
 
     double vertex_singleton::get_tau() const

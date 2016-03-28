@@ -34,9 +34,10 @@ int main(int argc, char *argv[]) {
   using ED_solver_type =
       cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, @DCA_LIN_ALG_DEVICE_TYPE@,
                      parameters_type, MOMS_type>;
-  using posix_QMC_solver_type =
-      posix_qmci_integrator<cluster_solver<@DCA_CLUSTER_SOLVER_TYPE@, @DCA_LIN_ALG_DEVICE_TYPE@,
-                                           parameters_type, MOMS_type> >;
+  using quantum_cluster_solver_type =
+    cluster_solver<@DCA_CLUSTER_SOLVER_TYPE@, @DCA_LIN_ALG_DEVICE_TYPE@,
+                   parameters_type, MOMS_type>;
+  using QMC_solver_type = @DCA_MC_INTEGRATOR_TYPE@;
 
   // Setup the parallelization.
   concurrency_type concurrency(argc, argv);
@@ -77,6 +78,8 @@ int main(int argc, char *argv[]) {
   ED_obj.execute();
   ED_obj.finalize(DCA_info_struct);
 
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_DCA,w> > Sigma_ED(MOMS_imag.Sigma);
+  
   if (concurrency.id() == concurrency.first()) {
     ED_obj.write(data_file_ED);
   }
@@ -84,19 +87,54 @@ int main(int argc, char *argv[]) {
   // QMC solver
   // The QMC solver uses the free Greens function G0 computed by the ED solver.
   // It is passed via the MOMS_imag object.
-  posix_QMC_solver_type QMC_obj(parameters, MOMS_imag);
+  QMC_solver_type QMC_obj(parameters, MOMS_imag);
   QMC_obj.initialize(1);
   QMC_obj.integrate();
   QMC_obj.finalize(DCA_info_struct);
 
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_DCA,w> > Sigma_QMC(MOMS_imag.Sigma);
+  
   if (concurrency.id() == concurrency.first()) {
     MOMS_imag.write(data_file_QMC);
   }
 
+  // Check errors
+  if (concurrency.id() == concurrency.first()) {
+    double max_absolute_diff = 0;
+    double max_relative_diff = 0;
+
+    std::cout << "\n\nErrors\n"
+              << "b1\tb2\ts1\ts2\tK\t|Sigma_ED - Sigma_QMC|_inf\t|Sigma_ED - Sigma_QMC|_inf / |Sigma_ED|_inf" << std::endl;
+    for (int b1 = 0; b1 < b::dmn_size(); ++b1) {
+      for (int b2 = 0; b2 < b::dmn_size(); ++b2) {
+        for (int s1 = 0; s1 < s::dmn_size(); ++s1) {
+          for (int s2 = 0; s2 < s::dmn_size(); ++s2) {
+            for (int k_ind = 0; k_ind < k_DCA::dmn_size(); ++k_ind) {
+              
+              double ED_min_QMC_inf = 0.;
+              double ED_inf = 0.;
+              for (int w_ind = 0; w_ind < w::dmn_size(); ++w_ind) {
+                ED_min_QMC_inf = std::max(ED_min_QMC_inf, std::abs(Sigma_ED(b1, s1, b2, s2, k_ind, w_ind)
+                                                                   - Sigma_QMC(b1, s1, b2, s2, k_ind, w_ind)));
+                ED_inf = std::max(ED_inf, std::abs(Sigma_ED(b1, s1, b2, s2,  k_ind, w_ind)));
+                max_absolute_diff = std::max(max_absolute_diff, ED_min_QMC_inf);
+                max_relative_diff = std::max(max_relative_diff, ED_min_QMC_inf/ED_inf);
+              }
+              std::cout << b1 << "\t" << b2 << "\t" << s1 << "\t" << s2 << "\t" << k_ind << "\t" << ED_min_QMC_inf << "\t\t\t" << ED_min_QMC_inf/ED_inf << std::endl;
+            }
+          }
+        }
+      }
+    }
+
+    std::cout << "\n|(Sigma_ED - Sigma_QMC)|_inf          = " << max_absolute_diff
+              << "\n|(Sigma_ED - Sigma_QMC)/Sigma_ED|_inf = " << max_relative_diff << std::endl;
+  }
+  
   parameters_type::profiler_type::stop(concurrency,
                                        parameters.get_profiling_file_name());
-
-  if (concurrency.id() == concurrency.last())
+  
+  if (concurrency.id() == concurrency.first())
     std::cout << "\nCheck ending.\n" << std::endl;
 
   return 0;

@@ -6,8 +6,8 @@
 /*!
  *  \author: peter staar
  */
-template<material_name_type name, typename dca_point_group_t, typename interaction_t>
-class model_parameters<tight_binding_model<material_lattice<name, dca_point_group_t>, interaction_t> >
+template<material_name_type name, typename dca_point_group_t>
+class model_parameters<tight_binding_model<material_lattice<name, dca_point_group_t> > >
 {
   
 public:
@@ -49,25 +49,25 @@ private:
 
 };
 
-template<material_name_type name, typename dca_point_group_t, typename interaction_t>
-model_parameters<tight_binding_model<material_lattice<name, dca_point_group_t>, interaction_t> >::model_parameters():
+template<material_name_type name, typename dca_point_group_t>
+model_parameters<tight_binding_model<material_lattice<name, dca_point_group_t> > >::model_parameters():
   U_ij_file_name("U_ij_file_name"),
   t_ij_file_name("t_ij_file_name")//,
 
   //double_counting_correction(0)
 {}
 
-template<material_name_type name, typename dca_point_group_t, typename interaction_t>
-model_parameters<tight_binding_model<material_lattice<name, dca_point_group_t>, interaction_t> >::~model_parameters()
+template<material_name_type name, typename dca_point_group_t>
+model_parameters<tight_binding_model<material_lattice<name, dca_point_group_t> > >::~model_parameters()
 {}
 
 /******************************************
  ***        CONCURRENCY                 ***
  ******************************************/
 
-template<material_name_type name, typename dca_point_group_t, typename interaction_t>
+template<material_name_type name, typename dca_point_group_t>
 template<class concurrency_type>
-int model_parameters<tight_binding_model<material_lattice<name, dca_point_group_t>, interaction_t> >::get_buffer_size( concurrency_type& concurrency)
+int model_parameters<tight_binding_model<material_lattice<name, dca_point_group_t> > >::get_buffer_size( concurrency_type& concurrency)
 {
   int buffer_size = 0;
 
@@ -79,18 +79,18 @@ int model_parameters<tight_binding_model<material_lattice<name, dca_point_group_
   return buffer_size;
 }
 
-template<material_name_type name, typename dca_point_group_t, typename interaction_t>
+template<material_name_type name, typename dca_point_group_t>
 template<class concurrency_type>
-void model_parameters<tight_binding_model<material_lattice<name, dca_point_group_t>, interaction_t> >::pack( concurrency_type& concurrency, int* buffer, int buffer_size, int& position)
+void model_parameters<tight_binding_model<material_lattice<name, dca_point_group_t> > >::pack( concurrency_type& concurrency, int* buffer, int buffer_size, int& position)
 {
   concurrency.pack(buffer, buffer_size, position, U_ij_file_name);
   concurrency.pack(buffer, buffer_size, position, t_ij_file_name);
 
 }
 
-template<material_name_type name, typename dca_point_group_t, typename interaction_t>
+template<material_name_type name, typename dca_point_group_t>
 template<class concurrency_type>
-void model_parameters<tight_binding_model<material_lattice<name, dca_point_group_t>, interaction_t> >::unpack( concurrency_type& concurrency, int* buffer, int buffer_size, int& position)
+void model_parameters<tight_binding_model<material_lattice<name, dca_point_group_t> > >::unpack( concurrency_type& concurrency, int* buffer, int buffer_size, int& position)
 {
   concurrency.unpack(buffer, buffer_size, position, U_ij_file_name);
   concurrency.unpack(buffer, buffer_size, position, t_ij_file_name);
@@ -101,9 +101,9 @@ void model_parameters<tight_binding_model<material_lattice<name, dca_point_group
  ***        READ/WRITE                  ***
  ******************************************/
 
-template<material_name_type name, typename dca_point_group_t, typename interaction_t>
+template<material_name_type name, typename dca_point_group_t>
 template<class read_write_type>
-void  model_parameters<tight_binding_model<material_lattice<name, dca_point_group_t>, interaction_t> >::read_write(read_write_type& read_write_obj)
+void  model_parameters<tight_binding_model<material_lattice<name, dca_point_group_t> > >::read_write(read_write_type& read_write_obj)
 {
   try
     {
@@ -137,14 +137,14 @@ void  model_parameters<tight_binding_model<material_lattice<name, dca_point_grou
  ***        DATA                        ***
  ******************************************/
 
-template<material_name_type name, typename dca_point_group_t, typename interaction_t>
-std::string model_parameters<tight_binding_model<material_lattice<name, dca_point_group_t>, interaction_t> >::get_U_ij_file_name()
+template<material_name_type name, typename dca_point_group_t>
+std::string model_parameters<tight_binding_model<material_lattice<name, dca_point_group_t> > >::get_U_ij_file_name()
 {
   return U_ij_file_name;
 }
 
-template<material_name_type name, typename dca_point_group_t, typename interaction_t>
-std::string model_parameters<tight_binding_model<material_lattice<name, dca_point_group_t>, interaction_t> >::get_t_ij_file_name()
+template<material_name_type name, typename dca_point_group_t>
+std::string model_parameters<tight_binding_model<material_lattice<name, dca_point_group_t> > >::get_t_ij_file_name()
 {
   return t_ij_file_name;
 }

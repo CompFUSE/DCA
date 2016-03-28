@@ -31,11 +31,33 @@ public:
     typedef typename parameters_type::nu nu;
 
     int BANDS = parameters.get_interacting_bands().size();
-
+    int origin = r_dmn_type::origin_index();
+    
     do
       {
 	int band_ind_1 = concurrency.get_random_number()*BANDS;
-	int band_ind_2 = concurrency.get_random_number()*BANDS;
+	// int band_ind_2 = concurrency.get_random_number()*BANDS;  // old version: gives the wrong probabilities
+
+        // In order to not double-count the intra-band interaction we need different probabilities
+        // for chosing the second band to be the same/different to the first band. Each band
+        // different to the first band should have twice the probablility to be chosen than the same
+        // band.
+        int band_ind_2 = band_ind_1;
+
+        // Hardcoded (efficient) version for 2 bands
+        // assert(BANDS == 2);
+        // double p = 2./3;
+        // if (concurrency.get_random_number() < p) {
+        //   band_ind_2 = 1 - band_ind_1;
+        // }
+
+        // General version
+        double p = 1. - 1./(2.*BANDS - 1.);  // probablity to choose any different band
+        if (concurrency.get_random_number() < p) {
+          while (band_ind_2 == band_ind_1) {
+            band_ind_2 = concurrency.get_random_number()*BANDS;
+          }
+        }
       
 	vertex.get_bands().first  = parameters.get_interacting_bands()[band_ind_1];
 	vertex.get_bands().second = parameters.get_interacting_bands()[band_ind_2];
@@ -55,7 +77,7 @@ public:
 	vertex.get_spin_orbitals().first  = QMC::convert<int, nu>::spin_orbital(vertex.get_bands().first , vertex.get_e_spins().first); 
 	vertex.get_spin_orbitals().second = QMC::convert<int, nu>::spin_orbital(vertex.get_bands().second, vertex.get_e_spins().second); 
       }
-    while(std::fabs(H_interactions(vertex.get_spin_orbitals().first, vertex.get_spin_orbitals().second, 0)) < 1.e-3 );
+    while(std::fabs(H_interactions(vertex.get_spin_orbitals().first, vertex.get_spin_orbitals().second, origin)) < 1.e-3 );
 
     int r_site = int(r_dmn_type::get_size()*concurrency.get_random_number());
     vertex.get_r_sites().first  = r_site;

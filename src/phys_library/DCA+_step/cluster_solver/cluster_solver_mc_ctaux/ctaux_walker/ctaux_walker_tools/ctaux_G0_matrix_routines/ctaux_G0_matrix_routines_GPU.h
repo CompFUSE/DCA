@@ -209,6 +209,11 @@ namespace DCA
       std::vector<vertex_singleton_type>& configuration_e_spin = configuration.get(e_spin);
       int                                 configuration_size   = configuration_e_spin.size();
 
+      // All interaction pairs are of the same spin type, which leads to a zero configuration size for one of the spin types.
+      if (configuration_size == 0) {
+        return;
+      }
+
       G0_e_spin.resize_no_copy(configuration_size);
 
       b_ind.resize(configuration_size);
@@ -250,6 +255,11 @@ namespace DCA
 
       std::vector<vertex_singleton_type>& configuration_e_spin = configuration.get(e_spin);
       int                                 configuration_size   = configuration_e_spin.size();
+
+      // All interaction pairs are of the same spin type, which leads to a zero configuration size for one of the spin types.
+      if (configuration_size == 0) {
+        return;
+      }
 
       G0_e_spin.resize(configuration_size);
 

@@ -27,4 +27,5 @@ if (DCA_BUILD_CLUSTER_SOLVER_CHECK)
     PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/..")
 endif()
 
-# add_subdirectory(test)
+add_subdirectory(test/CT-AUX/bilayer_lattice)
+add_subdirectory(test/CT-AUX/square_lattice)

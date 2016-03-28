@@ -141,6 +141,12 @@ namespace DCA
       assert(full_configuration.assert_block_form(e_spin));
 
       std::vector<vertex_singleton_type>&  configuration_e_spin = full_configuration.get(e_spin);
+      int configuration_size(configuration_e_spin.size());
+
+      // All interaction pairs are of the same spin type, which leads to a zero configuration size for one of the spin types.
+      if (configuration_size == 0) {
+        return;
+      }
 
       size_t vertex_index=0; // # of interacting-spins
       while(vertex_index < configuration_e_spin.size() && configuration_e_spin[vertex_index].get_HS_spin() != HS_ZERO)

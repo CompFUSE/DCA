@@ -390,6 +390,10 @@ namespace DCA
       std::vector<vertex_singleton_type>& configuration_e_spin = full_configuration.get(e_spin);
       int                                 configuration_size   = configuration_e_spin.size();
 
+      if (configuration_size == 0) {
+        return;
+      }
+
       int dead_spin   = 0;
       int configuration_index_dead_spin = configuration_e_spin[dead_spin].get_configuration_index();
 
@@ -542,6 +546,10 @@ namespace DCA
     {
       std::vector<vertex_singleton_type>& configuration_e_spin = full_configuration.get(e_spin);
       int                                 configuration_size   = configuration_e_spin.size();
+
+      if (configuration_size == 0) {
+        return;
+      }
 
       int dead_spin   = 0;
       int configuration_index_dead_spin = configuration_e_spin[dead_spin].get_configuration_index();

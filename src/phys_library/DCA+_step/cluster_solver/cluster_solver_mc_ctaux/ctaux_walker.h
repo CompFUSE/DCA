@@ -240,7 +240,7 @@ namespace DCA
       stream_id(0),
 
       CV_obj(parameters),
-      ctaux_tools(2*parameters.get_K_PHANI()),
+      ctaux_tools(MC_walker_data<CT_AUX_SOLVER, device_t, parameters_type>::MAX_VERTEX_SINGLETS * parameters.get_K_PHANI()),
 
       rng(rng_ref),
 

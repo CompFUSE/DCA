@@ -67,8 +67,8 @@ namespace DCA
         }
       };
 
-      template<class lattice_t, class interaction_t>
-      class accumulator_nonlocal_chi_atomic<tight_binding_model<lattice_t, interaction_t>, PARTICLE_HOLE_MAGNETIC>
+      template<class lattice_t>
+      class accumulator_nonlocal_chi_atomic<tight_binding_model<lattice_t>, PARTICLE_HOLE_MAGNETIC>
       {
 #include "type_definitions.h"
 

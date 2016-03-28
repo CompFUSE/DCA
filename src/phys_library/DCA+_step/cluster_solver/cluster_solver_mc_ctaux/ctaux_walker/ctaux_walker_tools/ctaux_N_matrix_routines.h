@@ -181,6 +181,11 @@ namespace DCA
       std::vector<vertex_singleton_type>&  configuration_e_spin = configuration.get(e_spin);
       int configuration_size(configuration_e_spin.size());
 
+      // All interaction pairs are of the same spin type, which leads to a zero configuration size for one of the spin types.
+      if (configuration_size == 0) {
+        return;
+      }
+
       exp_gamma_s        .resize(configuration_size);
       one_min_exp_gamma_s.resize(configuration_size);
 
@@ -229,6 +234,11 @@ namespace DCA
       std::vector<vertex_singleton_type>& configuration_e_spin = configuration.get(e_spin);
       int                                 configuration_size   = configuration_e_spin.size();
 
+      // All interaction pairs are of the same spin type, which leads to a zero configuration size for one of the spin types.
+      if (configuration_size == 0) {
+        return;
+      }
+
       int first_non_interacting_vertex_index = configuration.get_first_non_interacting_spin_index(e_spin);
       int first_shuffled_vertex_index        = configuration.get_first_shuffled_spin_index       (e_spin);
 
@@ -238,10 +248,18 @@ namespace DCA
       assert(configuration.assert_block_form(e_spin));
       assert(first_shuffled_vertex_index >= first_non_interacting_vertex_index);
 
-      {
-        N.resize(configuration_size);
+      if (first_non_interacting_vertex_index == configuration_size) {
+        assert(configuration_size == N.get_current_size().first);
+        // std::cout << __FUNCTION__
+        //           << "\tconfiguration_size = " << configuration_size
+        //           << "\tN.get_current_size().first = " << N.get_current_size().first << std::endl;
+        return;
       }
 
+      {
+        N.resize(configuration_size);  // Move after the next if block?
+      }
+      
       { // set columns to unity ...
         //profiler_t profiler(concurrency, "(a) set columns to unity", __FUNCTION__, __LINE__, true);
 
@@ -319,7 +337,7 @@ namespace DCA
         return;
 
       std::vector<vertex_singleton_type>& configuration_e_spin = full_configuration.get(e_spin);
-      int                                 configuration_size   = configuration_e_spin.size();
+      int                                 configuration_size   = configuration_e_spin.size();  // What happens if configuration_size = 0?
 
       std::vector<HS_spin_states_type>& spin_values = full_configuration.get_changed_spin_values_e_spin(e_spin);
       std::vector<int>&                 permutation = full_configuration.get_changed_spin_indices_e_spin(e_spin);
@@ -447,6 +465,7 @@ namespace DCA
                                                                      LIN_ALG::vector<double, LIN_ALG::CPU>& d_inv)
     {
       int                 spin_orbital, spin_orbital_paired;
+      int                 delta_r;
       double              exp_delta_V;
 
       HS_field_sign       HS_field_sign;
@@ -466,9 +485,11 @@ namespace DCA
         spin_orbital        = configuration_e_spin[permutation[i]].get_spin_orbital();
         spin_orbital_paired = configuration_e_spin[permutation[i]].get_paired_spin_orbital();
 
+        delta_r = configuration_e_spin[permutation[i]].get_delta_r();
+
         if(old_HS_spin == HS_ZERO)
           {
-            exp_delta_V = CV_obj.exp_delta_V(spin_orbital, spin_orbital_paired, new_HS_spin, old_HS_spin, HS_field_sign);
+            exp_delta_V = CV_obj.exp_delta_V(spin_orbital, spin_orbital_paired, new_HS_spin, old_HS_spin, HS_field_sign, delta_r);
             d_inv[i] = 1./exp_delta_V;
           }
         else{

@@ -4,8 +4,8 @@ typedef D4               DCA_point_group_type;
 
 typedef square_lattice<DCA_point_group_type> lattice_type;
 
-typedef on_site_u   interaction_type;
-typedef tight_binding_model<lattice_type, interaction_type> model;
+typedef general_interaction interaction_type;
+typedef tight_binding_model<lattice_type> model;
 
 typedef cluster_domain_family<double, lattice_type::DIMENSION, CLUSTER, BRILLOUIN_ZONE>    DCA_cluster_family_type;
 typedef cluster_domain_family<double, lattice_type::DIMENSION, LATTICE_SP, BRILLOUIN_ZONE> HOST_sp_cluster_family_type;

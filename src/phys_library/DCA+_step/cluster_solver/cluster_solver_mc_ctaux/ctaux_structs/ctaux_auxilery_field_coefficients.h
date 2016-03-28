@@ -39,7 +39,6 @@ namespace DCA
     public:
 
       CV(parameters_type& parameters);
-      ~CV();
 
       template<class stream_type>
       void to_JSON(stream_type& ss);
@@ -50,7 +49,7 @@ namespace DCA
                                              int spin_orbital_2,
                                              HS_spin_states_type HS_spin,
                                              HS_field_sign_type HS_field_sign,
-                                             int site=0);
+                                             int site);
 
       /*!
        *   if U_{\nu, \mu} > 0
@@ -80,7 +79,7 @@ namespace DCA
                    int spin_orbital_2,
                    HS_spin_states_type HS_spin,
                    HS_field_sign_type HS_field_sign,
-                   int site=0);
+                   int site);
 
       double exp_delta_V(int linind);
 
@@ -97,14 +96,14 @@ namespace DCA
                          HS_spin_states_type HS_spin_1,
                          HS_spin_states_type HS_spin_2,
                          HS_field_sign_type HS_field_sign,
-                         int site=0);
+                         int site);
 
       double exp_minus_delta_V(int spin_orbital_1,
                                int spin_orbital_2,
                                HS_spin_states_type HS_spin_1,
                                HS_spin_states_type HS_spin_2,
                                HS_field_sign_type HS_field_sign,
-                               int site=0);
+                               int site);
 
       template<typename MOMS_type>
       void initialize(MOMS_type& MOMS);
@@ -142,10 +141,6 @@ namespace DCA
       gamma_function("gamma_function"),
       exp_V_function("exp_V_function"),
       exp_delta_V_function("exp_delta_V_function")
-    {}
-
-    template<typename parameters_type>
-    CV<parameters_type>::~CV()
     {}
 
     template<typename parameters_type>
@@ -193,18 +188,19 @@ namespace DCA
     inline double CV<parameters_type>::get_QMC_factor(vertex_singleton_t& v, HS_spin_states_type new_HS_spin)
     {
       std::pair<int,int>& spin_orbitals = v.get_spin_orbitals();
+      int& delta_r = v.get_delta_r();
 
-      if(H_interaction(spin_orbitals.first, spin_orbitals.second, 0) > 1.e-3)
+      if(H_interaction(spin_orbitals.first, spin_orbitals.second, delta_r) > 1.e-3)
         {
           return 1.;
         }
 
-      if(H_interaction(spin_orbitals.first, spin_orbitals.second, 0) < -1.e-3)
+      if(H_interaction(spin_orbitals.first, spin_orbitals.second, delta_r) < -1.e-3)
         {
           HS_spin_states_type old_HS_spin  = v.get_HS_spin();
           HS_field_sign_type  HS_field = HS_FIELD_UP;
 
-          return std::exp(-gamma_function(spin_orbitals.first, spin_orbitals.second, 0)*(new_HS_spin-old_HS_spin)*HS_field);
+          return std::exp(-gamma_function(spin_orbitals.first, spin_orbitals.second, delta_r)*(new_HS_spin-old_HS_spin)*HS_field);
         }
 
       return 0.;
@@ -220,7 +216,9 @@ namespace DCA
       int spin_orbital         = v.get_spin_orbital();
       int spin_orbital_paired  = v.get_paired_spin_orbital();
 
-      return this->exp_V(spin_orbital, spin_orbital_paired, HS_spin, HS_field);
+      int delta_r = v.get_delta_r();
+
+      return this->exp_V(spin_orbital, spin_orbital_paired, HS_spin, HS_field, delta_r);
     }
 
     template<typename parameters_type>
@@ -250,10 +248,12 @@ namespace DCA
       int spin_orbital_1  = v.get_spin_orbital();
       int spin_orbital_2  = v.get_paired_spin_orbital();
 
+      int delta_r = v.get_delta_r();
+
       HS_spin_states_type old_HS_spin  = v.get_HS_spin();
       HS_field_sign_type  HS_field     = v.get_HS_field();
 
-      return this->exp_delta_V(spin_orbital_1, spin_orbital_2, new_HS_spin, old_HS_spin, HS_field, 0);
+      return this->exp_delta_V(spin_orbital_1, spin_orbital_2, new_HS_spin, old_HS_spin, HS_field, delta_r);
     }
 
     template<typename parameters_type>
@@ -264,10 +264,12 @@ namespace DCA
       int spin_orbital_1  = v.get_spin_orbital();
       int spin_orbital_2  = v.get_paired_spin_orbital();
 
+      int delta_r = v.get_delta_r();
+
       HS_spin_states_type old_HS_spin  = v.get_HS_spin();
       HS_field_sign_type  HS_field     = v.get_HS_field();
 
-      return this->exp_minus_delta_V(spin_orbital_1, spin_orbital_2, new_HS_spin, old_HS_spin, HS_field, 0);
+      return this->exp_minus_delta_V(spin_orbital_1, spin_orbital_2, new_HS_spin, old_HS_spin, HS_field, delta_r);
     }
 
     template<typename parameters_type>
@@ -278,8 +280,6 @@ namespace DCA
                                                    HS_field_sign_type HS_field_sign,
                                                    int site)
     {
-      assert(site==0);
-
       int HS_spin_1_ind = HS_spin_domain      ::to_coordinate(HS_spin_1);
       int HS_spin_2_ind = HS_spin_domain      ::to_coordinate(HS_spin_2);
       int HS_field_ind  = HS_field_sign_domain::to_coordinate(HS_field_sign);
@@ -295,8 +295,6 @@ namespace DCA
                                                          HS_field_sign_type HS_field_sign,
                                                          int site)
     {
-      assert(site==0);
-
       int HS_spin_1_ind = HS_spin_domain      ::to_coordinate(HS_spin_1);
       int HS_spin_2_ind = HS_spin_domain      ::to_coordinate(HS_spin_2);
       int HS_field_ind  = HS_field_sign_domain::to_coordinate(HS_field_sign);
@@ -318,12 +316,24 @@ namespace DCA
 
       CORRELATED_ORBITALS = 0;
 
-      for(int nu_ind_i=0; nu_ind_i<2*BANDS; nu_ind_i++)
-        for(int nu_ind_j=0; nu_ind_j<2*BANDS; nu_ind_j++)
-          for(int r=0; r<FULL_CLUSTER_SIZE; r++)
-            std::fabs(H_interaction(nu_ind_i, nu_ind_j, r)) > 1.e-3 ? CORRELATED_ORBITALS++ : CORRELATED_ORBITALS ;
+      for(int r_j = 0; r_j < FULL_CLUSTER_SIZE; ++r_j) {
+        for(int r_i = 0; r_i < FULL_CLUSTER_SIZE; ++r_i) {
 
-      CORRELATED_ORBITALS = CORRELATED_ORBITALS/2.;
+          int delta_r = r_dmn_t::parameter_type::subtract(r_j, r_i);  // delta_r = r_i - r_j
+
+          for(int nu_j = 0; nu_j < 2*BANDS; ++nu_j) {
+            for(int nu_i = 0; nu_i < 2*BANDS; ++nu_i) {
+
+              if (std::abs(H_interaction(nu_i, nu_j, delta_r)) > 1.e-3) {
+                ++CORRELATED_ORBITALS;
+              }
+
+            }
+          }
+        }
+      }
+
+      CORRELATED_ORBITALS /= 2.;
 
       initialize_gamma();
       initialize_exp_V();
@@ -341,7 +351,7 @@ namespace DCA
                 {
                   double U_i_j_r = std::fabs(H_interaction(nu_ind_i, nu_ind_j, r));
 
-                  double coshgamma=1.+U_i_j_r*BETA*FULL_CLUSTER_SIZE*CORRELATED_ORBITALS/(2.*K_CT_AUX);
+                  double coshgamma=1.+U_i_j_r*BETA*CORRELATED_ORBITALS/(2.*K_CT_AUX);
 
                   gamma_function(nu_ind_i, nu_ind_j, r) = acosh(coshgamma);
                 }
@@ -376,7 +386,7 @@ namespace DCA
                               HS_field = HS_FIELD_UP;
 
                               exp_V_function(nu_ind_i, nu_ind_j, HS_spin_ind, HS_field_ind, r)
-                                = std::exp(-gamma_function(nu_ind_i, nu_ind_j, r)*HS_spin*HS_field);
+                                = std::exp(-gamma_function(nu_ind_i, nu_ind_j, r)*HS_spin*HS_field);  // gamma=1? --> exp_V=1 ?!
                             }
                         }
                     }
@@ -427,4 +437,4 @@ namespace DCA
 
 }
 
-#endif
+#endif  // DCA_QMCI_CT_AUX_CACHED_AUXILARY_FIELD_VALUES_H

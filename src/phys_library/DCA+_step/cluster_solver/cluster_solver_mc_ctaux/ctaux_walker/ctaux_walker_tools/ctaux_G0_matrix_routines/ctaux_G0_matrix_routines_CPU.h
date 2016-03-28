@@ -112,6 +112,11 @@ namespace DCA
       std::vector<vertex_singleton_type>& configuration_e_spin = configuration.get(e_spin);
       int                                 configuration_size   = configuration_e_spin.size();
 
+      // All interaction pairs are of the same spin type, which leads to a zero configuration size for one of the spin types.
+      if (configuration_size == 0) {
+        return;
+      }
+
       G0_e_spin.resize_no_copy(configuration_size);
 
       for(int j=0; j<configuration_size; j++){
@@ -153,6 +158,11 @@ namespace DCA
       //profiler_t profiler(concurrency, "G0-matrix (build)", "CT-AUX", __LINE__);
 
       int configuration_size = configuration.size();
+
+      // All interaction pairs are of the same spin type, which leads to a zero configuration size for one of the spin types.
+      if (configuration_size == 0) {
+        return;
+      }
 
       G0.resize_no_copy(configuration_size);
 
@@ -198,6 +208,11 @@ namespace DCA
 
       std::vector<vertex_singleton_type>&  configuration_e_spin = configuration.get(e_spin);
       int                                  configuration_size   = configuration_e_spin.size();
+
+      // All interaction pairs are of the same spin type, which leads to a zero configuration size for one of the spin types.
+      if (configuration_size == 0) {
+        return;
+      }
 
       G0.resize(configuration_size);
 

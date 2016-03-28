@@ -291,6 +291,8 @@ namespace DCA
       std::vector<vertex_singleton_type>&  configuration_e_spin = get(e_spin);
       int                             configuration_size   = configuration_e_spin.size();
 
+      // FIXME: What and when to return if configuration_size = 0?
+
       int first_non_interacting_index, configuration_index;
       for(first_non_interacting_index = 0; first_non_interacting_index<configuration_size; first_non_interacting_index++)
         {
@@ -312,6 +314,8 @@ namespace DCA
     {
       std::vector<vertex_singleton_type>&  configuration_e_spin = get(e_spin);
       int                             configuration_size   = configuration_e_spin.size();
+
+      // FIXME: What and when to return if configuration_size = 0?
 
       assert(assert_block_form(e_spin));
 

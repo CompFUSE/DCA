@@ -21,6 +21,8 @@ namespace DCA
     template<LIN_ALG::device_type device_t, typename parameters_type>
     class MC_walker_data<CT_AUX_SOLVER, device_t, parameters_type>
     {
+    protected:
+
       const static int MAX_VERTEX_SINGLETS=4;
 
     public:

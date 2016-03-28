@@ -176,6 +176,7 @@ namespace DCA
                                    spin_orbitals.first,
                                    spin_orbitals.second,
                                    r_sites.first,
+                                   delta_r,
                                    tau,
                                    HS_spin,
                                    HS_FIELD_DN,
@@ -190,6 +191,7 @@ namespace DCA
                                    spin_orbitals.second,
                                    spin_orbitals.first,
                                    r_sites.second,
+                                   delta_r,
                                    tau,
                                    HS_spin,
                                    HS_FIELD_UP,
@@ -209,7 +211,7 @@ namespace DCA
       else
         HS_spin = HS_DN;
 
-      delta_r = r_cluster_type::subtract(r_sites.first, r_sites.second);
+      delta_r = r_cluster_type::subtract(r_sites.second, r_sites.first);  // delta_r = r_i - r_j
 
       tau = parameters.get_beta()*rng.get_random_number();//concurrency.get_random_number()*time_domain_type::beta;
 
@@ -220,7 +222,8 @@ namespace DCA
       Bennett              = false;
       shuffled             = true;
 
-      assert(spin_orbitals.first != spin_orbitals.second);
+      // For on-site interaction the spin-orbitals must be different.
+      assert(delta_r != 0 || spin_orbitals.first != spin_orbitals.second);
     }
 
     template<class parameters_type>
@@ -230,7 +233,7 @@ namespace DCA
 
       HS_spin = HS_ZERO;
 
-      delta_r = r_cluster_type::subtract(r_sites.first, r_sites.second);
+      delta_r = r_cluster_type::subtract(r_sites.second, r_sites.first);  // delta_r = r_i - r_j
 
       tau = parameters.get_beta()*rng.get_random_number();//concurrency.get_random_number()*time_domain_type::beta;
 
@@ -241,7 +244,7 @@ namespace DCA
       Bennett              = false;
       shuffled             = true;
 
-      assert(spin_orbitals.first != spin_orbitals.second);
+      assert(delta_r != 0 || spin_orbitals.first != spin_orbitals.second);
     }
 
     template<class parameters_type>
