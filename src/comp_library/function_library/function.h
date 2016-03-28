@@ -40,6 +40,7 @@ namespace FUNC_LIB
         function();
         function(std::string name);
         function(const function<scalartype, domain>& other_one);
+        function(function<scalartype, domain>&& other_one);
 
         ~function();
 
@@ -237,8 +238,6 @@ namespace FUNC_LIB
         size_sbdm(dmn.get_leaf_domain_sizes()),
         step_sbdm(Nb_sbdms,1)
     {
-        //std::cout << __PRETTY_FUNCTION__ << std::endl;
-
         for(int i=0; i<Nb_sbdms; i++)
             for(int j=0; j<i; j++)
                 step_sbdm[i] *= dmn.get_subdomain_size(j);
@@ -246,6 +245,26 @@ namespace FUNC_LIB
         fnc_values = new scalartype[Nb_elements];
 
         copy_from<scalartype>::execute(Nb_elements, fnc_values, other_one.values());
+    }
+
+    //destructive copy
+    template<typename scalartype, class domain>
+    function<scalartype, domain>::function(function<scalartype, domain>&& other_one):
+            name("no_name"),
+            function_type(__PRETTY_FUNCTION__),
+            dmn(),
+            Nb_elements(dmn.get_size()),
+            Nb_sbdms(dmn.get_leaf_domain_sizes().size()),
+            size_sbdm(dmn.get_leaf_domain_sizes()),
+            step_sbdm(Nb_sbdms,1)
+    {
+
+        for(int i=0; i<Nb_sbdms; i++)
+            for(int j=0; j<i; j++)
+                step_sbdm[i] *= dmn.get_subdomain_size(j);
+
+        fnc_values= other_one.fnc_values;
+        other_one.fnc_values= nullptr;
     }
 
 
@@ -426,6 +445,7 @@ namespace FUNC_LIB
     template<typename new_scalartype>
     void function<scalartype, domain>::operator=(new_scalartype c)
     {
+        //INTERNAL: Giovanni: why the additional copy?
         scalartype c_new(c);
 
         for(int linind=0; linind<Nb_elements; linind++)

@@ -537,7 +537,7 @@ namespace DCA
           for(int l=0; l<matrix_size; l++)
             G_matrix[l] = G_matrix[l] + G0_cluster_excluded_matrix[l];
         }
-
+//INTERNAL Giovanni:use move rather then copy?
         memcpy(&MOMS.G_k_w(0,0,0,0,k_ind,w_ind), G_matrix, sizeof(std::complex<double>)*matrix_size);
       }
     }
@@ -553,7 +553,7 @@ namespace DCA
   template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
   double cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::compute_S_k_w_from_G_k_w()
   {
-    //INTERNAL Giovanni: I am positive that memcpy is deprecated nowaday. I wonder if rather then coping a temporary
+    //INTERNAL Giovanni:  I wonder if rather then copying a temporary
     //INTERNAL           Sigma_Matrix, using std::move or working in place in MOMS.Sigma is better.
     static double alpha = parameters.get_DCA_convergence_factor();
 

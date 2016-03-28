@@ -6,7 +6,7 @@
 ################################################################################
 
 # Include CPU cache list.
-include(${CMAKE_CURRENT_LIST_DIR}/Cray_EB_CPU.cmake)
+include($ENV{DCA_SOURCE}/build-aux/Cray_EB_CPU.cmake)
 
 # For GPU support we also need MAGMA.
 set(MAGMA_DIR $ENV{EBROOTMAGMA}
