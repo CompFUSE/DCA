@@ -14,6 +14,9 @@
 #ifndef DMN_0_H
 #define DMN_0_H
 
+#include "comp_library/type_list/type_list.h"
+#include "domains/domain.h"
+
 template<typename parameters>
 class dmn_0 : public domain
 {

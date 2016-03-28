@@ -4,6 +4,21 @@
 #ifndef TYPELIST_H_
 #define TYPELIST_H_
 
+template<typename parameters>
+class dmn_0;
+template<typename... domain_list>
+class dmn_variadic;
+
+template <typename T1, typename T2>
+struct IsSame
+{
+    IsSame() {
+        static_assert(std::is_same<T1, T2>::value, "Types must be equal");
+    }
+    static_assert(std::is_same<T1, T2>::value, "Types must be equal");
+};
+
+
 //----------------------------------------------------------------------------
 template <typename T1, typename T2>
 struct assert_same
@@ -307,15 +322,6 @@ namespace TL
     /***********************************
      * 	Print
      ***********************************/
-
-    template<typename Head>
-    struct print_typename {
-        static void print() {
-            //std::cout << "\t" << __PRETTY_FUNCTION__ << std::endl;
-            std::cout << "\t" << Head::get_name() << std::endl;
-        }
-    };
-
     template<class Head>
     struct print_type {
         static void print() {
@@ -323,7 +329,7 @@ namespace TL
             //std::cout << "\t" << Head::get_name() << std::endl;
         }
 
-        static void print(std::stringstream& ss) {
+        static void print(std::ostream& ss) {
             //ss << "\t" << __PRETTY_FUNCTION__ << std::endl;
             ss << "\t" << Head::get_name() << std::endl;
         }
@@ -334,48 +340,78 @@ namespace TL
             //ss << "\t" << Head::get_name() << std::endl;
         }
     };
-/*
-    template<class TL>
+
+    //----------------------------------------------------------------------------
+    // PrintTL
+    //----------------------------------------------------------------------------
+    // basic print displays the type of the template instantiation
+    template <typename D>
     struct printTL {
         static void print() {
-            print_type<typename TL::Head>::print();
-            printTL<typename TL::Tail>::print();
+            print(std::cout);
         }
-
-        static void print(std::stringstream& ss) {
-            print_type<typename TL::Head>::print(ss);
-            printTL<typename TL::Tail>::print(ss);
+        //
+        static void print(std::ostream &stream) {
+            stream <<  "\t" << __PRETTY_FUNCTION__ << "\n";
         }
-
-        template<class stream_type>
-        static void to_JSON(stream_type& ss) {
-            ss << "\"";
-            print_type<typename TL::Head>::to_JSON(ss);
-
-            if (Length<typename TL::Tail>::value != 0)
-                ss << "\",\n";
-
-            printTL<typename TL::Tail>::to_JSON(ss);
+        static void to_JSON(std::ostream &stream) {
+            stream <<  "\t" << __PRETTY_FUNCTION__ << "\n";
         }
     };
 
-    template<>
-    struct printTL<NullType> {
+    // dmn_0 override is actually the same as basic, but provided
+    // for future customization
+    template <typename Domain>
+    struct printTL<dmn_0<Domain>> {
+        static void print()
+        {
+            print(std::cout);
+        }
+        static void print(std::ostream &stream)
+        {
+            stream <<  "\t" << __PRETTY_FUNCTION__ << "\n";
+        }
+    };
+
+    // dmn_variadic prints out all subdomains recursively via pack expansion
+    template <typename... Domains>
+    struct printTL<dmn_variadic<Domains...>> {
         static void print() {
-            std::cout << "[end]" << std::endl;
+            print(std::cout);
         }
-
-        static void print(std::stringstream& ss) {
-            ss << std::endl;
-        }
-
-        template<class stream_type>
-        static void to_JSON(stream_type& ss) {
-            ss << "\"";
+        // we can't expand a pack out without passing it as a parameter
+        // so expand the pack as a parameter list, and drop dummy return values
+        // use func(),0 because func() returns void
+        static void print(std::ostream &s) {
+            ignore_returnvalues( (printTL<Domains>::print(std::cout),0)...);
         }
     };
-*/
 
+    // dmn_variadic prints out all subdomains recursively via pack expansion
+    template <typename Domain, typename... Domains>
+    struct printTL<Typelist<Domain, Domains...>> {
+        static void print() {
+            print(std::cout);
+        }
+        // we can't expand a pack out without passing it as a parameter
+        // so expand the pack as a parameter list, and drop dummy return values
+        // use func(),0 because func() returns void
+        static void print(std::ostream &s) {
+            ignore_returnvalues( (printTL<Domains>::print(s),0)...);
+        }
+
+        static void to_JSON(std::ostream &s) {
+            s << "\"";
+            print_type<Domain>::to_JSON(s);
+            if (sizeof...(Domains)==0) {
+                s << "\"\n";
+            }
+            else {
+                s << "\",\n";
+                printTL<Typelist<Domains...>>::to_JSON(s);
+            }
+        }
+    };
 }
 
 #endif

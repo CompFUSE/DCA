@@ -325,50 +325,6 @@ namespace TL
             typename SWAP_ALL<D7,T1,T2>::Result,
             typename SWAP_ALL<D8,T1,T2>::Result   > Result;
     };
-
-    //----------------------------------------------------------------------------
-    // PrintTL
-    //----------------------------------------------------------------------------
-    // basic print displays the type of the template instantiation
-    template <typename D>
-    struct printTL {
-        static void print() {
-            print(std::cout);
-        }
-        //
-        static void print(std::ostream &stream) {
-            stream <<  "\t" << __PRETTY_FUNCTION__ << "\n";
-        }
-    };
-
-    // dmn_0 override is actually the same as basic, but provided
-    // for future customization
-    template <typename Domain>
-    struct printTL<dmn_0<Domain>> {
-        static void print()
-        {
-            print(std::cout);
-        }
-        static void print(std::ostream &stream)
-        {
-            stream <<  "\t" << __PRETTY_FUNCTION__ << "\n";
-        }
-    };
-
-    // dmn_variadic prints out all subdomains recursively via pack expansion
-    template <typename... Domains>
-    struct printTL<dmn_variadic<Domains...>> {
-        static void print() {
-            print(std::cout);
-        }
-        // we can't expand a pack out without passing it as a parameter
-        // so expand the pack as a parameter list, and drop dummy return values
-        // use func(),0 because func() returns void
-        static void print(std::ostream &s) {
-            ignore_returnvalues( (printTL<Domains>::print(std::cout),0)...);
-        }
-    };
-
 }
 
 #endif
