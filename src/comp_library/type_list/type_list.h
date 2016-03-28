@@ -237,7 +237,7 @@ struct mp_swap<mp_list<T1, Ts...>, T1, T2> {
 
 template<typename T0, typename ...Ts, typename T1, typename T2>
 struct mp_swap<mp_list<T0, Ts...>, T1, T2> {
-    typedef Typelist<T0, typename mp_swap<mp_list<Ts...>, T1, T2>::type> type;
+    typedef typename mp_prepend<typename mp_swap<mp_list<Ts...>, T1, T2>::type, T0>::type type;
 };
 
 //----------------------------------------------------------------------------
