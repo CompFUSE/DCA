@@ -2,7 +2,8 @@
 # Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 #
 # This cmake script is executed every time 'make' is executed.
-# It checks the last git log (git log -1) and git status (git status --porcelain).
+# It checks the last git log (git log -1) and git status
+# (git status --porcelain applications src testing).
 # If either of them changes, gitVersion.cpp will be reconfigured which triggers the
 # recompilation of libgitVersion.
 
@@ -43,7 +44,7 @@ endif()
 execute_process(
   COMMAND
   git --git-dir ${SCRIPT_SRC_DIR}/.git --work-tree ${SCRIPT_SRC_DIR}
-  status --porcelain
+  status --porcelain applications src testing
   WORKING_DIRECTORY "${SCRIPT_BIN_DIR}"
   RESULT_VARIABLE res
   OUTPUT_VARIABLE out
