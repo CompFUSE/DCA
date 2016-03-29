@@ -91,10 +91,10 @@ TEST(squareLattice_Nc4_onSite, Self_energy) {
           for (int nu_ind_1 = 0; nu_ind_1 < nu::dmn_size(); ++nu_ind_1) {
             EXPECT_NEAR(
                 Sigma_QMC_check(nu_ind_1, nu_ind_2, k_ind, w_ind).real(),
-                Sigma_QMC(nu_ind_1, nu_ind_2, k_ind, w_ind).real(), 1.e-14);
+                Sigma_QMC(nu_ind_1, nu_ind_2, k_ind, w_ind).real(), 1.e-12);
             EXPECT_NEAR(
                 Sigma_QMC_check(nu_ind_1, nu_ind_2, k_ind, w_ind).imag(),
-                Sigma_QMC(nu_ind_1, nu_ind_2, k_ind, w_ind).imag(), 1.e-14);
+                Sigma_QMC(nu_ind_1, nu_ind_2, k_ind, w_ind).imag(), 1.e-12);
           }
         }
       }
