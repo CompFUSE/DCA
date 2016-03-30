@@ -1,0 +1,19 @@
+#!/bin/bash -l
+#
+#SBATCH --job-name="UHUBBARDU_VVVAL_dDENS_NcSIZE_dca"
+#SBATCH --nodes=256
+#SBATCH --ntasks=256
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=16
+#SBATCH --ntasks-per-core=2
+#SBATCH --time=1:00:00
+#SBATCH --output=out.U=HUBBARDU_V=VVAL_d=DENS_Nc=SIZE.dca_ALGORITHM.%j.txt
+#SBATCH --error=err.U=HUBBARDU_V=VVAL_d=DENS_Nc=SIZE.dca_ALGORITHM.%j.txt
+
+export CRAY_CUDA_PROXY=1
+
+date
+
+JOBS
+
+date

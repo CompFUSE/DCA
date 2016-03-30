@@ -1,0 +1,175 @@
+{
+    "filename-parameters" :
+    {
+        "output-format"         : "HDF5",
+
+        "directory"             : "./T=TEMP/",
+
+        "output-file"           : "data.ALGORITHM_tp.hdf5",
+        "profiling-file"        : "profiling.ALGORITHM_tp.hdf5",
+
+        "spectrum-file"         : "data.CPE.hdf5",
+        "susceptibilities-file" : "data.BSE.hdf5"
+    },
+
+    "physics-parameters" :
+    {
+        "beta"                      :  BETA,
+
+        "adjust-chemical-potential" : "true",
+        "density"                   :  DENS,
+        "chemical-potential"        :  0.0
+    },
+
+    "2D-Hubbard-model" :
+    {
+        "t"       : 1,
+        "t-prime" : 0,
+
+        "U"       : UVAL,
+        "V"       : VVAL,
+        "V-prime" : VVAL
+    },
+
+    "DCA" :
+    {
+        "do-DCA+" : "true",
+
+        "interacting-bands" : [0],
+        "DCA-iterations"    : 1,
+        "DCA-accuracy"      : 0.00001,
+        "DCA-mixing-factor" : 1,
+
+        "cluster" : [VECX,
+                     VECY],
+
+        "cluster-mapping" :
+        {
+            "k-mesh-refinement" : 2,
+            "quadrature-rule"   : 1,
+            "number-of-periods" : PERIOD,
+
+            "precompute-Hamiltonian"      : "true",
+            "phi(k) integration accuracy" : 0.001,
+
+            "print-phi"                   : "false"
+        },
+
+        "lattice-mapping" :
+        {
+            "interpolation-method" : "wannier-interpolation",
+            "HTS-approximation"    : "false",
+
+            "deconvolution-tolerance"      : 0.01,
+            "max-deconvolution-iterations" : 16
+        }
+    },
+
+    "Monte-Carlo-Integration" :
+    {
+        "Sigma-file" : "./T=TEMP/data.ALGORITHM_sp.hdf5",
+
+        "warm-up-sweeps"         : WARM,
+        "sweeps-per-measurement" : 4,
+        "measurements"           : MEAS,
+
+        "adaptive-double-counting" : "false",
+
+        "RNG-seed" : SEED,
+
+        "MC-posix-parameters" :
+        {
+            "nr-walkers"       : 4,
+            "nr-accumulators"  : 12,
+            "additional-steps" : 0
+        }
+    },
+
+    "CT-AUX-solver" :
+    {
+        "submatrix-size"      : 64,
+        "initial-matrix-size" : 256,
+
+        "K-parameter"         : 1
+    },
+
+    "function-parameters" :
+    {
+        "single-particle-functions" :
+        {
+            "H(k) grid-size"        : [20, 20],
+
+            "time-intervals"        : 128,
+            "fermionic-frequencies" : 256,
+            "bosonic-frequencies"   : 32,
+
+            "sp-cluster" : [[20, 20],
+                            [20,-20]]
+        },
+
+        "two-particle-functions" :
+        {
+            "time-intervals"        : 16,
+
+            "fermionic-frequencies" : 16,
+            "bosonic-frequencies"   : 16,
+
+            "tp-cluster" : [[8, 8],
+                            [8,-8]]
+        },
+
+        "real-axis-functions" :
+        {
+            "lower-bound" : -10,
+            "upper-bound" :  10,
+
+            "nr-intervals" : 128,
+            "real-axis-off-set" : 0.01
+        }
+    },
+
+    "vertex-channel" :
+    {
+        "vertex-measurement-type" : "CHANNEL",
+
+        "q-channel" : QVEC,
+        "w-channel" : 0,
+
+        "deconvolute-Gamma" : "yes",
+        "symmetrize-Gamma"  : "yes",
+
+        "lattice-mapping" :
+        {
+            "singular-value-sigma-cut-off" : SIGMACUTOFF
+        },
+
+        "lattice-solver" :
+        {
+            "diagonolize-folded-Gamma-chi_0" : "false",
+            "BSE-cut-off-radius"             : RADIUSCUTOFF
+        },
+
+        "options" :
+        {
+            "compute-chi"   : "no",
+            "compute-chi_0" : "no",
+
+            "compute-eigenvalues" : "yes",
+
+            "compute-Pq-cluster" : "no",
+            "compute-Pq-lattice" : "no"
+        }
+    },
+
+    "CPE-parameters" :
+    {
+        "do-CPE" : "false",
+
+        "max-CPE-iterations"             : 10000,
+        "number-of-matsubara-freqencies" : 64,
+
+        "compute-free-spectrum"    : "true",
+        "compute-lattice-spectrum" : "false",
+        "compute-cluster-spectrum" : "false"
+    }
+}

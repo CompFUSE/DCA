@@ -1,0 +1,158 @@
+{
+    "filename-parameters" :
+    {
+        "output-format"         : "HDF5",
+
+        "directory"             : "./T=TEMP/",
+
+        "output-file"           : "data.ALGORITHM_sp.hdf5",
+        "profiling-file"        : "profiling.ALGORITHM_sp.hdf5",
+
+        "spectrum-file"         : "",
+        "susceptibilities-file" : ""
+    },
+
+    "physics-parameters" :
+    {
+        "beta"                      :  BETA,
+
+        "adjust-chemical-potential" : "true",
+        "density"                   :  DENS,
+        "chemical-potential"        :  0.0
+    },
+
+    "2D-Hubbard-model" :
+    {
+        "t"       : 1,
+        "t-prime" : 0,
+
+        "U"       : UVAL,
+        "V"       : VVAL,
+        "V-prime" : VVAL
+    },
+
+    "DCA" :
+    {
+        "do-DCA+" : "true",
+
+        "interacting-bands" : [0],
+        "DCA-iterations"    : ITERS,
+        "DCA-accuracy"      : 0.000001,
+        "DCA-mixing-factor" : 0.75,
+
+        "cluster" : [VECX,
+                     VECY],
+
+        "cluster-mapping" :
+        {
+            "k-mesh-refinement" : 3,
+            "quadrature-rule"   : 1,
+            "number-of-periods" : PERIOD,
+
+            "precompute-Hamiltonian"      : "true",
+            "phi(k) integration accuracy" : 0.001,
+
+            "print-phi"                   : "true"
+        },
+
+        "lattice-mapping" :
+        {
+            "interpolation-method" : "wannier-interpolation",
+            "HTS-approximation"    : "false",
+
+            "deconvolution-tolerance"      : 0.01,
+            "max-deconvolution-iterations" : 16
+        }
+    },
+
+    "Monte-Carlo-Integration" :
+    {
+        "Sigma-file" : "./T=PREVIOUS_TEMP/data.ALGORITHM_sp.hdf5",
+
+        "warm-up-sweeps"         : WARM,
+        "sweeps-per-measurement" : SWEEP,
+        "measurements"           : MEAS,
+
+        "adaptive-double-counting" : "false",
+
+        "RNG-seed" : SEED,
+
+        "MC-posix-parameters" :
+        {
+            "nr-walkers"       : 4,
+            "nr-accumulators"  : 12,
+            "additional-steps" : 0,
+
+            "HTS-threads" : 8
+        }
+    },
+
+    "CT-AUX-solver" :
+    {
+        "submatrix-size"      : 64,
+        "initial-matrix-size" : 256,
+
+        "K-parameter"         : 1
+    },
+
+    "function-parameters" :
+    {
+        "single-particle-functions" :
+        {
+            "H(k) grid-size"        : [20, 20],
+
+            "time-intervals"        : 128,
+            "fermionic-frequencies" : 256,
+
+            "bosonic-frequencies"   : 32,
+
+            "sp-cluster" : [[20, 20],
+                            [20,-20]]
+        },
+
+        "two-particle-functions" :
+        {
+            "time-intervals"        : 16,
+
+            "fermionic-frequencies" : 16,
+            "bosonic-frequencies"   : 16,
+
+            "tp-cluster" : [[8, 8],
+                            [8,-8]]
+        },
+
+        "real-axis-functions" :
+        {
+            "lower-bound" : -20,
+            "upper-bound" :  20,
+
+            "nr-intervals" : 21,
+            "real-axis-off-set" : 0.01
+        }
+    },
+
+    "equal-time-observables" :
+    {
+        "do-equal-time-measurements" : "false"
+    },
+
+    "CPE-parameters" :
+    {
+        "do-CPE" : "false",
+
+        "max-CPE-iterations" : 1024,
+        "max-CPE-error"      : 0.01,
+
+        "number-of-matsubara-freqencies" : 64,
+
+        "smoothing-factor" : 1,
+
+        "simulate-Gaussian-noise" : "false",
+        "nr-of-samples"           : 16,
+        "simulated-stddev"        : 0.1,
+
+        "compute-free-spectrum"    : "true",
+        "compute-lattice-spectrum" : "true",
+        "compute-cluster-spectrum" : "false"
+    }
+}
