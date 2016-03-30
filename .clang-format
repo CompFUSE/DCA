@@ -1,65 +1,80 @@
 ---
+# Need clang-format version 3.8 or above
+
 Language:        Cpp
-# BasedOnStyle:  Google
-AccessModifierOffset: -1
+
+AccessModifierOffset: -2
 AlignAfterOpenBracket: true
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
 AlignEscapedNewlinesLeft: true
 AlignOperands:   true
 AlignTrailingComments: true
 AllowAllParametersOfDeclarationOnNextLine: true
 AllowShortBlocksOnASingleLine: false
 AllowShortCaseLabelsOnASingleLine: false
-AllowShortIfStatementsOnASingleLine: true
-AllowShortLoopsOnASingleLine: true
-AllowShortFunctionsOnASingleLine: All
-AlwaysBreakAfterDefinitionReturnType: false
-AlwaysBreakTemplateDeclarations: true
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakAfterReturnType: None
 AlwaysBreakBeforeMultilineStrings: true
+AlwaysBreakTemplateDeclarations: true
+BinPackArguments: false
+BinPackParameters: false
 BreakBeforeBinaryOperators: None
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass:      false
+  AfterControlStatement: false
+  AfterEnum:       false
+  AfterFunction:   false
+  AfterNamespace:  false
+  AfterObjCDeclaration: false
+  AfterStruct:     false
+  AfterUnion:      false
+  BeforeCatch:     true
+  BeforeElse:      true
+  IndentBraces:    false
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializersBeforeComma: false
-BinPackParameters: true
-BinPackArguments: true
-ColumnLimit:     80
+ColumnLimit:     100
+CommentPragmas:  '^ IWYU pragma:'
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
 ConstructorInitializerIndentWidth: 4
-DerivePointerAlignment: true
-ExperimentalAutoDetectBinPacking: false
-IndentCaseLabels: true
-IndentWrappedFunctionNames: false
-IndentFunctionDeclarationAfterType: false
-MaxEmptyLinesToKeep: 1
-KeepEmptyLinesAtTheStartOfBlocks: false
-NamespaceIndentation: None
-ObjCBlockIndentWidth: 2
-ObjCSpaceAfterProperty: false
-ObjCSpaceBeforeProtocolList: false
-PenaltyBreakBeforeFirstCallParameter: 1
-PenaltyBreakComment: 300
-PenaltyBreakString: 1000
-PenaltyBreakFirstLessLess: 120
-PenaltyExcessCharacter: 1000000
-PenaltyReturnTypeOnItsOwnLine: 200
-PointerAlignment: Left
-SpacesBeforeTrailingComments: 2
+ContinuationIndentWidth: 4
 Cpp11BracedListStyle: true
-Standard:        Auto
+DerivePointerAlignment: false
+DisableFormat:   false
+ForEachMacros:   [ foreach, Q_FOREACH, BOOST_FOREACH ]
+IndentCaseLabels: true
 IndentWidth:     2
-TabWidth:        8
-UseTab:          Never
-BreakBeforeBraces: Attach
+IndentWrappedFunctionNames: false
+KeepEmptyLinesAtTheStartOfBlocks: false
+MacroBlockBegin: ''
+MacroBlockEnd:   ''
+MaxEmptyLinesToKeep: 1
+NamespaceIndentation: None
+PenaltyBreakBeforeFirstCallParameter: 10
+PenaltyBreakComment: 300
+PenaltyBreakFirstLessLess: 400
+PenaltyBreakString: 10000
+PenaltyExcessCharacter: 10
+PenaltyReturnTypeOnItsOwnLine: 1
+PointerAlignment: Left
+#ReflowComments: true # Supported only from clang 3.9
+#SortIncludes: false # Supported only from clang 3.9
+SpaceAfterCStyleCast: false
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeParens: ControlStatements
+SpaceInEmptyParentheses: false
+SpacesBeforeTrailingComments: 2
+SpacesInAngles:  false
+SpacesInContainerLiterals: true
+SpacesInCStyleCastParentheses: false
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
-SpacesInAngles:  false
-SpaceInEmptyParentheses: false
-SpacesInCStyleCastParentheses: false
-SpaceAfterCStyleCast: false
-SpacesInContainerLiterals: true
-SpaceBeforeAssignmentOperators: true
-ContinuationIndentWidth: 4
-CommentPragmas:  '^ IWYU pragma:'
-ForEachMacros:   [ foreach, Q_FOREACH, BOOST_FOREACH ]
-SpaceBeforeParens: ControlStatements
-DisableFormat:   false
+Standard:        Cpp11
+TabWidth:        8
+UseTab:          Never
 ...
 

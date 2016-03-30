@@ -44,10 +44,10 @@ Filenames should be all lowercase and can include numbers and underscores (\inli
 Header files use the extension \verb|.hpp|, while source files use the extension \verb|.cpp|.
 
 The filenames of the tests are composed by the filename of the object tested and the suffix \inlinecode{_test} is appended.
-The filenames of mock object used in tests are composed by the prefix \inlinecode{mock_} and the filename of the object that is replaced.
+The filename of fake objects used in tests are composed by the prefix \inlinecode{mock_} and the filename of the object that is replaced.
 
 \subsection{Header files}
-All header files should be self-contained. This means that each header do not have to require any special condition to be included.
+All header files should be self-contained. This means that each header can be included without defining anything special.
 In particular each header file should include all the headers needed and have \inlinecode{\#define} guards to prevent multiple inclusion.
 
 If a template or inline function is declared in a \verb|.hpp| file, the function has to be defined in the same file.
@@ -59,7 +59,7 @@ of the tree of the \verb|src| directory of the project. For example, the file \v
 #ifndef FOO_BAR_HPP
 #define FOO_BAR_HPP
 ...
-#endif // FOO_BAR_HPP
+#endif  // FOO_BAR_HPP
 \end{lstlisting}
 
 \section{Naming}
@@ -68,7 +68,7 @@ The names should be as descriptive as possible.
 
 \subsection{Type and Class Names}
 
-Function names should start with an uppercase character and should have a capital letter for each new word.
+Type and class names should start with an uppercase character and should have a capital letter for each new word.
 
 The \inlinecode{using} syntax is preferred to \inlinecode{typedef} for type definitions.
 
@@ -279,7 +279,7 @@ switch (var) {
     statement2;
     break;
 
-  case 1: {
+  case 1:
     statement1;
     statement2;
     break;
@@ -330,20 +330,19 @@ class Foo : public Bar {
 public:
   Foo();
   explicit Foo(int var);
-  ~Foo() {}
 
-  void Function();
-  void EmpyFunction() {}
+  void function();
+  void emptyFunction() {}
 
-  void set_var(int var) {
+  void setVar(int var) {
     var_ = var;
   }
-  int get_var() const {
+  int getVar() const {
     return var_;
   }
 
 private:
-  bool PrivateFunction();
+  bool privateFunction();
 
   int var_;
   int var2_;
