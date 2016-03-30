@@ -42,7 +42,7 @@ public:
     /// includes all space for all subdomains
     static int& dmn_size() {
         static int size = -1;
-        std::cout << "Returning domain size " << size << std::endl << std::endl;
+//        std::cout << "Returning domain size " << size << std::endl << std::endl;
         return size;
     }
 
@@ -134,10 +134,10 @@ struct leaf_domain_size_helper
     void operator () (Domain &&d)
     {
         std::vector<int> temp = d.get_leaf_domain_sizes();
-        std::cout << "Here with a domain of size " << d.get_size() << std::endl;
-        std::copy(std::begin(temp), std::end(temp), std::ostream_iterator<int>(std::cout, ","));
+//        std::cout << "Here with a domain of size " << d.get_size() << std::endl;
+//        std::copy(std::begin(temp), std::end(temp), std::ostream_iterator<int>(std::cout, ","));
         std::copy(std::begin(temp), std::end(temp), std::back_inserter(destination));
-        std::cout << std::endl;
+//        std::cout << std::endl;
     }
     //
     std::vector<int> &destination;
@@ -202,9 +202,9 @@ void dmn_variadic<domain_list...>::reset()
     // initialize a vector from the size of each top level domain (branch domain)
     branch_domain_sizes = init_branch_domain_sizes(domains,indices);
 
-    std::cout << "Creating " << __PRETTY_FUNCTION__ << " " << branch_domain_sizes.size() << std::endl << "domain sizes : ";
-    std::copy(branch_domain_sizes.begin(), branch_domain_sizes.end(), std::ostream_iterator<int>(std::cout,","));
-    std::cout << std::endl;
+//    std::cout << "Creating " << __PRETTY_FUNCTION__ << " " << branch_domain_sizes.size() << std::endl << "domain sizes : ";
+//    std::copy(branch_domain_sizes.begin(), branch_domain_sizes.end(), std::ostream_iterator<int>(std::cout,","));
+//    std::cout << std::endl;
 
     branch_domain_steps.resize(branch_domain_sizes.size(), 1);
     for (size_t i = 0; i < branch_domain_sizes.size(); i++) {
@@ -212,29 +212,32 @@ void dmn_variadic<domain_list...>::reset()
             branch_domain_steps[i] *= branch_domain_sizes[j];
         }
     }
-    std::cout << "Steps ";
-    std::copy(branch_domain_steps.begin(), branch_domain_steps.end(), std::ostream_iterator<int>(std::cout,","));
-    std::cout << std::endl;
+//    std::cout << "Steps ";
+//    std::copy(branch_domain_steps.begin(), branch_domain_steps.end(), std::ostream_iterator<int>(std::cout,","));
+//    std::cout << std::endl;
 
     // generate the leaf domain sizes from each sub domain
     auto leaf_stuff = init_leaf_domain_sizes(domains, indices);
-    std::cout << "Leaf stuff ";
-    std::copy(leaf_stuff.begin(), leaf_stuff.end(), std::ostream_iterator<int>(std::cout, ","));
-    std::cout << std::endl;
+//    std::cout << "Leaf stuff ";
+//    std::copy(leaf_stuff.begin(), leaf_stuff.end(), std::ostream_iterator<int>(std::cout, ","));
+//    std::cout << std::endl;
 
     for_each_in_tuple(domains, leaf_domain_size_helper(leaf_domain_sizes));
-    std::cout << "leaf domain size ";
-    std::copy(leaf_domain_sizes.begin(), leaf_domain_sizes.end(), std::ostream_iterator<int>(std::cout,","));
-    std::cout << std::endl;
+//    std::cout << "leaf domain size ";
+//    std::copy(leaf_domain_sizes.begin(), leaf_domain_sizes.end(), std::ostream_iterator<int>(std::cout,","));
+//    std::cou1t << std::endl;
+    if (leaf_domain_sizes.back()==0) {
+//        throw std::runtime_error("Domain size zero");
+    }
 
     leaf_domain_steps.resize(leaf_domain_sizes.size(), 1);
     for (size_t i = 0; i < leaf_domain_sizes.size(); i++)
         for (size_t j = 0; j < i; j++)
             leaf_domain_steps[i] *= leaf_domain_sizes[j];
 
-    std::cout << "leaf step size ";
-    std::copy(leaf_domain_steps.begin(), leaf_domain_steps.end(), std::ostream_iterator<int>(std::cout,","));
-    std::cout << std::endl;
+//    std::cout << "leaf step size ";
+//    std::copy(leaf_domain_steps.begin(), leaf_domain_steps.end(), std::ostream_iterator<int>(std::cout,","));
+//    std::cout << std::endl;
 
     size = 1;
 
@@ -242,7 +245,7 @@ void dmn_variadic<domain_list...>::reset()
         size *= branch_domain_sizes[i];
 
     dmn_size() = size;
-    std::cout << "Domain size is " << size << std::endl;
+//    std::cout << "Domain size is " << size << std::endl;
 }
 
 //----------------------------------------------------------------------------
@@ -261,6 +264,20 @@ int dmn_variadic<domain_list...>::operator()(Args&&... args) {
     );
 }
 
+template <typename ...Args, std::size_t ...Is>
+void check_indices(const char *msg, const std::vector<int> &sizes, std::index_sequence<Is...>, Args &&... indices) {
+
+    if (std::min({ (sizes[Is]-indices)... })<0) {
+        ignore_returnvalues((std::cerr << "size " << sizes[Is] << " index " << indices << " ")... );
+        std::cerr << " : Index too big error" << std::endl;
+        std::copy(sizes.begin(), sizes.end(), std::ostream_iterator<int>(std::cerr, ","));
+        throw std::runtime_error("Index too big error");
+     }
+    if( std::min({indices...})<0) {
+        std::cerr << "Index too small error" << std::endl;
+        throw std::runtime_error("Index too small error");
+    }
+}
 //----------------------------------------------------------------------------
 // indexing operator : access elements of the domain via branches
 // index_lookup is overloaded on std::integral_constant<bool, true>::type so
@@ -272,25 +289,17 @@ int dmn_variadic<domain_list...>::index_lookup(
     std::integral_constant<bool, true>::type,
     int branch_i0, Args... branch_indices)
 {
-    std::cout << "Branch overload " << std::endl;
-
-    // create an index sequence that indexes the domains we are templated on
-    std::index_sequence_for<domain_list...> indices;
+    static_assert( sizeof...(Args)+1 == sizeof...(domain_list), "not enough args");
 
     // create an index sequence starting from 1, with length sizeof...(args)-1
-    auto seq = make_index_sequence_with_offset<1, sizeof...(Args)>();
-return 0;
+    auto seq  = make_index_sequence_with_offset<1, sizeof...(Args)>();
+    auto seq2 = std::make_index_sequence<sizeof...(Args)+1>{};
 
-//    int N = multiply_offsets(branch_domain_steps, seq, std::forward<Args>(branch_indices)...);
-/*
-    return branch_i0 + sum( * branch_indices)...;
+    check_indices("branch " , branch_domain_sizes, seq2, branch_i0, std::forward<Args>(branch_indices)...);
 
-    branch_index_helper bih(branch_domain_sizes);
-    for_each_in_tuple(domains, bih);
-    return bih.index;
-*/
-
-
+    int N = branch_i0 + multiply_offsets(branch_domain_steps, seq, std::forward<Args>(branch_indices)...);
+//    std::cout << "Branch overload return " << N << "\n";
+    return N;
 
     /*
         assert(branch_domain_sizes.size() == 3);
@@ -315,8 +324,16 @@ int dmn_variadic<domain_list...>::index_lookup(
     std::integral_constant<bool, false>::type,
     int leaf_i0, Args... leaf_indices)
 {
+    // create an index sequence starting from 1, with length sizeof...(args)-1
+    auto seq = make_index_sequence_with_offset<1, sizeof...(Args)>();
+    auto seq2 = std::make_index_sequence<sizeof...(Args)+1>{};
 
-    std::cout << "Subdomain overload " << std::endl;
+    check_indices("leaf" , leaf_domain_sizes, seq2, leaf_i0, std::forward<Args>(leaf_indices)...);
+
+    int N = leaf_i0 + multiply_offsets(leaf_domain_steps, seq, std::forward<Args>(leaf_indices)...);
+//    std::cout << "Leaf overload return " << N << "\n";
+    return N;
+
 /*
     assert(leaf_domain_sizes.size() == 4);
     assert(sbdmn_i0 >= 0 && sbdmn_i0 < leaf_domain_sizes[0]);
