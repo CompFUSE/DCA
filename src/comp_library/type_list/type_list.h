@@ -248,6 +248,13 @@ struct mp_index_of<T, mp_list<Ts...>>
     static constexpr value_type value = type::value;
 };
 
+// Specializing for idx >= 0
+template<typename T, typename ... Ts>
+struct mp_index_of<mp_list<Ts...>, T>
+{
+//  static_assert(false, "Parameter ordering incorrect");
+};
+
 //-----------------------------------------------------------------------------
 /// swap first element out of a typelist
 template<typename TList, typename T1, typename T2>
