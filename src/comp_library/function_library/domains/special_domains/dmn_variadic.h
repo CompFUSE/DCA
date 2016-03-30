@@ -124,6 +124,20 @@ void for_each_in_tuple(std::tuple<Ts...> & t, F &&f)
 }
 
 //----------------------------------------------------------------------------
+// helper function : for each domain, call reset
+//----------------------------------------------------------------------------
+struct reset_domain
+{
+    reset_domain() {}
+    //
+    template<typename Domain>
+    void operator () (Domain &&d)
+    {
+      d.reset();
+    }
+};
+
+//----------------------------------------------------------------------------
 // helper function : for each domain, get the number of leaf domains
 //----------------------------------------------------------------------------
 struct leaf_domain_size_helper
@@ -195,6 +209,8 @@ template<typename... domain_list>
 void dmn_variadic<domain_list...>::reset()
 {
     domain::reset();
+
+    for_each_in_tuple(domains, reset_domain());
 
     // create an index sequence that indexes the domains we are templated on
     std::index_sequence_for<domain_list...> indices;
