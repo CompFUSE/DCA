@@ -6,7 +6,6 @@ build*
 
 # Bin directories
 bin*
-OLD/old_build/bin*
 
 # Ignore local machine specific initial cache files but exclude the templates.
 build-aux/local*
@@ -58,3 +57,4 @@ Thumbs.db
 
 # Other IDE files
 .idea
+*.swp

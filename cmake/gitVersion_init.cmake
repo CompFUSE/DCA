@@ -2,7 +2,7 @@
 # Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 #
 # Defines functions to get the git log (git log -1) and the git status
-# (git status --porcelain).
+# (git status --porcelain applications src testing).
 
 # Check git log
 function(get_git_log _git_log)
@@ -28,7 +28,7 @@ function(get_git_status _git_status)
   execute_process(
     COMMAND
     git --git-dir ${PROJECT_SOURCE_DIR}/.git --work-tree ${PROJECT_SOURCE_DIR}
-    status --porcelain
+    status --porcelain applications src testing
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     RESULT_VARIABLE res
     OUTPUT_VARIABLE out
