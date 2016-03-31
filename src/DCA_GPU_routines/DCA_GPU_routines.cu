@@ -4,10 +4,9 @@
 // #define DEBUG_CUDA
 // #define cudaDeviceScheduleBlockingSync 0x04
 
-#include "include_linalg.cu.h"
+#include "comp_library/linalg/include_linalg.cu.h"
 
-#include "ctaux_G0_matrix_routines_GPU.cu.h"
-#include "ctaux_G_matrix_routines_GPU.cu.h"
-#include "ctaux_N_matrix_routines_GPU.cu.h"
-
-#include "ctaux_walker_routines_GPU.cu.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_routines_GPU.cu.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_G0_matrix_routines/ctaux_G0_matrix_routines_GPU.cu.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_G_matrix_routines/ctaux_G_matrix_routines_GPU.cu.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_N_matrix_routines/ctaux_N_matrix_routines_GPU.cu.h"

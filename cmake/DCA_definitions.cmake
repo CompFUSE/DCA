@@ -10,8 +10,6 @@ set(DCA_LIBRARIES "${DCA_EXTERNAL_LIBS};gitVersion;modules")
 # Includes
 set(DCA_INCLUDES
   ${PROJECT_SOURCE_DIR}/src/  # Directory of enumerations.hpp
-  ${PROJECT_SOURCE_DIR}/src/LAPACK_PLANS
-  ${PROJECT_SOURCE_DIR}/src/comp_library/LIN_ALG
   ${PROJECT_SOURCE_DIR}/src/comp_library/IO_library
   ${PROJECT_SOURCE_DIR}/src/comp_library/function_library
   ${PROJECT_SOURCE_DIR}/src/comp_library/function_library/domains
