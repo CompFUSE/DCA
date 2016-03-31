@@ -14,6 +14,7 @@
 #define PHYS_LIBRARY_DOMAINS_CLUSTER_CLUSTER_TYPEDEFS_HPP
 
 #include <string>
+#include <stdexcept>
 
 std::string to_str(int DIMENSION) {
   return std::to_string(DIMENSION);
