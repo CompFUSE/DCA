@@ -74,8 +74,8 @@ const static bool DO_NFFT = true;
 
 
 // blas/lapack
-#include "include_blas_lapack_plans.h"
-#include "include_linalg.h"
+#include "comp_library/blas_lapack_plans/blas_lapack_plans.hpp"
+#include "comp_library/linalg/linalg.hpp"
 
 // various
 #include "static_functions.h"
