@@ -3,6 +3,8 @@
 #ifndef ELEMENTARY_COORDINATE_TRANSFORMATION_H
 #define ELEMENTARY_COORDINATE_TRANSFORMATION_H
 
+#include "comp_library/linalg/linalg.hpp"
+
 /*!
  *  \ingroup ALGORITHMS
  *

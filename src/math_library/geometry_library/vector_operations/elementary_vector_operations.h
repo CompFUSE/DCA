@@ -3,8 +3,8 @@
 #ifndef VECTOR_OPERATIONS_H
 #define VECTOR_OPERATIONS_H
 
-#include <vector>
-
+#include <algorithm>
+#include "comp_library/linalg/linalg.hpp"
 /*!
  *  \ingroup ALGORITHMS
  *

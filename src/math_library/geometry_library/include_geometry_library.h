@@ -1,6 +1,6 @@
 //-*-C++-*-
 
-#include "vector_operations/include_vector_operations.h"
+#include "vector_operations/vector_operations.hpp"
 
 #include "tetrahedron_mesh/include_tetrahedron_mesh.h"
 
