@@ -3,6 +3,11 @@
 #ifndef CLUSTER_OPERATIONS_H
 #define CLUSTER_OPERATIONS_H
 
+#include <utility>
+#include <vector>
+#include "cluster_typedefs.hpp"
+#include "math_library/geometry_library/vector_operations/include_vector_operations.h"
+
 /*!
  *  \author Peter Staar
  */
@@ -38,6 +43,9 @@ class cluster_operations
   template<typename scalar_type>
   static std::vector<std::vector<scalar_type> > equivalent_vectors(std::vector<scalar_type> R_vec,
 								   std::vector<std::vector<scalar_type> >& basis);
+
+  template<typename cluster_type, typename scalar_type>
+  static std::pair<std::vector<scalar_type>, int> find_closest_cluster_vector(const std::vector<scalar_type>& input_vec, const double tol);
 };
 
 
@@ -329,5 +337,36 @@ std::vector<std::vector<scalar_type> > cluster_operations::equivalent_vectors(st
 
   return r_min;
 }
+
+template<typename cluster_type, typename scalar_type>
+std::pair<std::vector<scalar_type>, int> cluster_operations::find_closest_cluster_vector(const std::vector<scalar_type>& input_vec, const double tol)
+{
+  std::vector<std::vector<scalar_type>>& elements = cluster_type::get_elements();
+  std::vector<std::vector<scalar_type>>& super_basis = cluster_type::get_super_basis_vectors();
+
+  std::vector<scalar_type> input_vec_translated = translate_inside_cluster(input_vec, super_basis);
+
+  if (elements.size() == 0) {
+    throw std::logic_error(__FUNCTION__);
+  }
+
+  double min_distance = VECTOR_OPERATIONS::L2_NORM(input_vec_translated, elements[0]);
+  int min_index = 0;
+  
+  for (int l=0; l < elements.size(); l++) {
+    double distance = VECTOR_OPERATIONS::L2_NORM(input_vec_translated, elements[l]);
+    if (distance < min_distance) {
+      min_distance = distance;
+      min_index = l;
+    }
+  }
+
+  if (min_distance > tol) {
+    throw std::logic_error(__FUNCTION__);
+  }
+
+  return std::make_pair(elements[min_index], min_index);
+}
+
 
 #endif

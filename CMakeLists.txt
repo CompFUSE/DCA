@@ -62,5 +62,9 @@ endif()
 # Testing
 include(testing)
 
+# if (DCA_TESTS)
+#   add_subdirectory(src/phys_library/domains/cluster)
+# endif()
+
 # Build applications
 add_subdirectory(applications)
