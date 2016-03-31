@@ -6,7 +6,7 @@
 #include <utility>
 #include <vector>
 #include "cluster_typedefs.hpp"
-#include "math_library/geometry_library/vector_operations/include_vector_operations.h"
+#include "math_library/geometry_library/vector_operations/vector_operations.hpp"
 
 /*!
  *  \author Peter Staar

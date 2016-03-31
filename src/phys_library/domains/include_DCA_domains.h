@@ -13,8 +13,7 @@
 #include "Quantum_domain/legendre_domain.h"
 #include "Quantum_domain/point_group_operation_dmn.h"
 
-//#include "include_cluster.h"
-#include "cluster/include_DCA+_cluster.h"
+#include "cluster/cluster.hpp"
 
 #include "time_and_frequency/time_domain.h"
 #include "time_and_frequency/time_domain_left_oriented.h"

@@ -16,4 +16,3 @@ add_gtest(NAME dca_sp_DCA+_mpi_test
   INCLUDES "${DCA_INCLUDES}"
   LIBS     "${DCA_LIBRARIES}"
   )
-
