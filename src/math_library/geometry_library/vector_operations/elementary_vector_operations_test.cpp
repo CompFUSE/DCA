@@ -7,12 +7,10 @@
 //
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// This file tests elementary_vector_operations.h.
+// This file tests elementary_vector_operations.hpp.
 
 #include "elementary_vector_operations.hpp"
-
 #include <vector>
-
 #include <gtest/gtest.h>
 
 TEST(elementary_vector_operations, IS_LARGER_VECTOR) {

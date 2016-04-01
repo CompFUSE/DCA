@@ -6,7 +6,6 @@
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Peter Staar (peter.w.j.staar@gmail.com)
-//         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // This file pulls in all cluster *.h files.
 // It is self-contained and can be included whenever a file depends on any of the cluster *.h files.
@@ -19,7 +18,7 @@
 
 #include "cluster_typedefs.hpp"
 
-#include "cluster_operations.h"
+#include "cluster_operations.hpp"
 
 #include "cluster_domain.h"
 #include "cluster_domain_family.h"

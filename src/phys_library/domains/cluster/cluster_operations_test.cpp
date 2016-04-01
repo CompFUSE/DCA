@@ -7,9 +7,9 @@
 //
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// This file tests cluster_operations.h.
+// This file tests cluster_operations.hpp.
 
-#include "cluster_operations.h"
+#include "cluster_operations.hpp"
 
 #include <algorithm>
 #include <iostream>
@@ -90,9 +90,15 @@ TEST_F(ClusterOperationsTest, index) {
   EXPECT_EQ(1, cluster_operations::index(vec1, unsorted_set_, PARALLELLEPIPEDUM));
   std::vector<double> vec2 = {-42., 24.};
   EXPECT_DEATH(cluster_operations::index(vec2, unsorted_set_, PARALLELLEPIPEDUM),
-               "(index>-1 and index<elements.size())");
+               "(index > -1 and index < elements.size())");
 
   // Sorted set (BRILLOUIN_ZONE)
   std::vector<double> vec3 = {0., 1.};
   EXPECT_EQ(2, cluster_operations::index(vec3, sorted_set_, BRILLOUIN_ZONE));
+}
+
+TEST_F(ClusterOperationsTest, translate_inside_cluster) {
+  std::vector<double> input {1., 0.};
+  std::vector<double> result {-1., 2.};
+  EXPECT_EQ(result, cluster_operations::translate_inside_cluster(input, r_cluster_super_basis_));
 }
