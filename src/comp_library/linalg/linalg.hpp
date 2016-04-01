@@ -25,9 +25,6 @@
 
 #include "src/matrix_scalartype.h"
 
-// ClangFormat sorts all includes that are in the same block. Since these header files are not yet
-// self-contained this will break the code.
-// clang-format off
 #include "src/linalg_structures/cublas_thread_manager_tem.h"
 #include "src/linalg_structures/cublas_thread_manager_CPU.h"
 #include "src/linalg_structures/cublas_thread_manager_GPU.h"
