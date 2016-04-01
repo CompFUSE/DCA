@@ -59,7 +59,7 @@ PenaltyBreakComment: 300
 PenaltyBreakFirstLessLess: 400
 PenaltyBreakString: 10000
 PenaltyExcessCharacter: 10
-PenaltyReturnTypeOnItsOwnLine: 1
+PenaltyReturnTypeOnItsOwnLine: 100000000
 PointerAlignment: Left
 #ReflowComments: true # Supported only from clang 3.9
 SortIncludes: false
