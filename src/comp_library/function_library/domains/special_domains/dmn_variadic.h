@@ -124,40 +124,6 @@ void for_each_in_tuple(std::tuple<Ts...> & t, F &&f)
 }
 
 //----------------------------------------------------------------------------
-// helper function : for each domain, call reset
-//----------------------------------------------------------------------------
-struct reset_domain
-{
-    reset_domain() {}
-    //
-    template<typename Domain>
-    void operator () (Domain &&d)
-    {
-      d.reset();
-    }
-};
-
-//----------------------------------------------------------------------------
-// helper function : for each domain, get the number of leaf domains
-//----------------------------------------------------------------------------
-struct leaf_domain_size_helper
-{
-    leaf_domain_size_helper(std::vector<int> &dest) : destination(dest) {}
-    //
-    template<typename Domain>
-    void operator () (Domain &&d)
-    {
-        std::vector<int> temp = d.get_leaf_domain_sizes();
-//        std::cout << "Here with a domain of size " << d.get_size() << std::endl;
-//        std::copy(std::begin(temp), std::end(temp), std::ostream_iterator<int>(std::cout, ","));
-        std::copy(std::begin(temp), std::end(temp), std::back_inserter(destination));
-//        std::cout << std::endl;
-    }
-    //
-    std::vector<int> &destination;
-};
-
-//----------------------------------------------------------------------------
 // modified an index sequence, offset/length
 // for indexing operations we multiply arguments by branch/leaf step sizes
 //----------------------------------------------------------------------------
@@ -192,6 +158,7 @@ int multiply_offsets(const std::vector<int> &multipliers, std::index_sequence<Is
 {
     return sum((offsets*(multipliers[Is]))...);
 }
+
 //----------------------------------------------------------------------------
 // Constructor implementation
 //----------------------------------------------------------------------------
@@ -210,7 +177,9 @@ void dmn_variadic<domain_list...>::reset()
 {
     domain::reset();
 
-    for_each_in_tuple(domains, reset_domain());
+    for_each_in_tuple(domains, [](auto &d) {
+        d.reset();
+    });
 
     // create an index sequence that indexes the domains we are templated on
     std::index_sequence_for<domain_list...> indices;
@@ -238,10 +207,12 @@ void dmn_variadic<domain_list...>::reset()
 //    std::copy(leaf_stuff.begin(), leaf_stuff.end(), std::ostream_iterator<int>(std::cout, ","));
 //    std::cout << std::endl;
 
-    for_each_in_tuple(domains, leaf_domain_size_helper(leaf_domain_sizes));
-//    std::cout << "leaf domain size ";
-//    std::copy(leaf_domain_sizes.begin(), leaf_domain_sizes.end(), std::ostream_iterator<int>(std::cout,","));
-//    std::cou1t << std::endl;
+    for_each_in_tuple(domains, [this](auto &d) {
+        std::vector<int> temp = d.get_leaf_domain_sizes();
+        std::copy(std::begin(temp), std::end(temp), std::back_inserter(leaf_domain_sizes));
+    });
+
+
     if (leaf_domain_sizes.back()==0) {
 //        throw std::runtime_error("Domain size zero");
     }
