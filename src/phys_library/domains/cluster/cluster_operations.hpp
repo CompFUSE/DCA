@@ -35,8 +35,7 @@ public:
                                             std::vector<std::vector<scalar_type>>& basis);
 
   template <typename scalar_type>
-  static scalar_type minimal_distance(std::vector<scalar_type> vec_0,
-                                      std::vector<scalar_type> vec_1,
+  static scalar_type minimal_distance(std::vector<scalar_type> vec_0, std::vector<scalar_type> vec_1,
                                       std::vector<std::vector<scalar_type>>& basis);
   template <typename scalar_type>
   static bool is_minimal(std::vector<scalar_type> R_vec,
@@ -99,9 +98,8 @@ int cluster_operations::origin_index(std::vector<std::vector<scalar_type>>& elem
 }
 
 template <typename scalar_type>
-std::vector<scalar_type>
-cluster_operations::translate_inside_cluster(std::vector<scalar_type>& r,
-                                             std::vector<std::vector<scalar_type>>& basis) {
+std::vector<scalar_type> cluster_operations::translate_inside_cluster(
+    std::vector<scalar_type>& r, std::vector<std::vector<scalar_type>>& basis) {
   int DIMENSION = r.size();
 
   std::vector<scalar_type> r_affine = VECTOR_OPERATIONS::COORDINATES(r, basis);
@@ -146,9 +144,9 @@ bool cluster_operations::test_translate_inside_cluster(std::vector<std::vector<s
 }
 
 template <typename scalar_type>
-scalar_type
-cluster_operations::minimal_distance(std::vector<scalar_type> vec_0, std::vector<scalar_type> vec_1,
-                                     std::vector<std::vector<scalar_type>>& basis) {
+scalar_type cluster_operations::minimal_distance(std::vector<scalar_type> vec_0,
+                                                 std::vector<scalar_type> vec_1,
+                                                 std::vector<std::vector<scalar_type>>& basis) {
   int DIMENSION = vec_0.size();
 
   vec_0 = translate_inside_cluster(vec_0, basis);
@@ -227,9 +225,8 @@ bool cluster_operations::is_minimal(std::vector<scalar_type> R_vec,
 }
 
 template <typename scalar_type>
-std::vector<std::vector<scalar_type>>
-cluster_operations::equivalent_vectors(std::vector<scalar_type> R_vec,
-                                       std::vector<std::vector<scalar_type>>& basis) {
+std::vector<std::vector<scalar_type>> cluster_operations::equivalent_vectors(
+    std::vector<scalar_type> R_vec, std::vector<std::vector<scalar_type>>& basis) {
   const static scalar_type EPS = 1.e-3;
   const static scalar_type ONE_PLUS_EPS = 1. + EPS;
   const static scalar_type ONE_MIN_EPS = 1. - EPS;
@@ -311,9 +308,8 @@ cluster_operations::equivalent_vectors(std::vector<scalar_type> R_vec,
 }
 
 template <typename cluster_type, typename scalar_type>
-std::pair<std::vector<scalar_type>, int>
-cluster_operations::find_closest_cluster_vector(const std::vector<scalar_type>& input_vec,
-                                                const double tol) {
+std::pair<std::vector<scalar_type>, int> cluster_operations::find_closest_cluster_vector(
+    const std::vector<scalar_type>& input_vec, const double tol) {
   std::vector<std::vector<scalar_type>>& elements = cluster_type::get_elements();
   std::vector<std::vector<scalar_type>>& super_basis = cluster_type::get_super_basis_vectors();
 

@@ -19,8 +19,8 @@ template <typename scalar_type>
 class coordinate_transformation {
 public:
   static void execute(scalar_type* v0, scalar_type* v1, scalar_type* vec, scalar_type* coor);
-  static void execute(scalar_type* v0, scalar_type* v1, scalar_type* v2,
-                      scalar_type* vec, scalar_type* coor);
+  static void execute(scalar_type* v0, scalar_type* v1, scalar_type* v2, scalar_type* vec,
+                      scalar_type* coor);
 
   static void execute(std::vector<scalar_type>& v0, std::vector<scalar_type>& v1,
                       std::vector<scalar_type>& vec, std::vector<scalar_type>& coor);

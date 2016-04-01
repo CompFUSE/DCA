@@ -8,9 +8,8 @@
 // Author: Peter Staar (peter.w.j.staar@gmail.com)
 //
 // This file pulls in all cluster *.h files.
-// It is self-contained and can be included whenever a file depends on any of the cluster *.h files.
 //
-// TODO: - Make all header files self-contained.
+// TODO: - Make this file and all header files self-contained.
 //       - Remove all deprecated files.
 
 #ifndef PHYS_LIBRARY_DOMAINS_CLUSTER_CLUSTER_HPP
@@ -39,4 +38,4 @@
 
 #include "interpolation/include_cluster_interpolation_routines.h"
 
-#endif  //  PHYS_LIBRARY_DOMAINS_CLUSTER_CLUSTER_HPP
+#endif  // PHYS_LIBRARY_DOMAINS_CLUSTER_CLUSTER_HPP

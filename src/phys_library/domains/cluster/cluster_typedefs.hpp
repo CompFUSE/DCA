@@ -5,7 +5,8 @@
 // See LICENSE.txt for terms of usage.
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
-// Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // This file contains enumerations used to specify the different cluster domains. It also provides
 // functions to convert these enumerations into strings.

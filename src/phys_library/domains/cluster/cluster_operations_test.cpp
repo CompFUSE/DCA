@@ -40,24 +40,14 @@ protected:
   ClusterOperationsTest()
       : unsorted_set_{{0., 1.}, {-1., 1.}, {0., 0.}, {1., 0.}},
         sorted_set_(unsorted_set_),
-        r_cluster_elements_{{-1.000000, 1.000000},
-                            {-1.000000, 2.000000},
-                            {0.000000, 0.000000},
-                            {0.000000, 1.000000},
-                            {0.000000, 2.000000},
-                            {0.000000, 3.000000},
-                            {1.000000, 1.000000},
-                            {1.000000, 2.000000}},
+        r_cluster_elements_{{-1.000000, 1.000000}, {-1.000000, 2.000000}, {0.000000, 0.000000},
+                            {0.000000, 1.000000},  {0.000000, 2.000000},  {0.000000, 3.000000},
+                            {1.000000, 1.000000},  {1.000000, 2.000000}},
         r_cluster_basis_{{1.00000, 0.00000}, {0.00000, 1.00000}},
         r_cluster_super_basis_{{2.00000, 2.00000}, {-2.00000, 2.00000}},
-        k_cluster_elements_{{0.000000, 0.000000},
-                            {0.000000, 3.141593},
-                            {1.570796, 1.570796},
-                            {1.570796, 4.712389},
-                            {3.141593, 0.000000},
-                            {3.141593, 3.141593},
-                            {4.712389, 1.570796},
-                            {4.712389, 4.712389}},
+        k_cluster_elements_{{0.000000, 0.000000}, {0.000000, 3.141593}, {1.570796, 1.570796},
+                            {1.570796, 4.712389}, {3.141593, 0.000000}, {3.141593, 3.141593},
+                            {4.712389, 1.570796}, {4.712389, 4.712389}},
         k_cluster_basis_{{1.570796, 1.570796}, {-1.570796, 1.570796}},
         k_cluster_super_basis_{{6.283185, -0.000000}, {0.000000, 6.283185}} {
     // Vectors in the Brillouin zone are sorted according to VECTOR_OPERATIONS::IS_LARGER_VECTOR.
@@ -98,7 +88,7 @@ TEST_F(ClusterOperationsTest, index) {
 }
 
 TEST_F(ClusterOperationsTest, translate_inside_cluster) {
-  std::vector<double> input {1., 0.};
-  std::vector<double> result {-1., 2.};
+  std::vector<double> input{1., 0.};
+  std::vector<double> result{-1., 2.};
   EXPECT_EQ(result, cluster_operations::translate_inside_cluster(input, r_cluster_super_basis_));
 }
