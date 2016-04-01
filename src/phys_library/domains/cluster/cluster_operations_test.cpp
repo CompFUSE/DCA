@@ -16,7 +16,7 @@
 #include <string>
 #include <vector>
 
-#include "math_library/geometry_library/vector_operations/elementary_vector_operations.h"
+#include "math_library/geometry_library/vector_operations/elementary_vector_operations.hpp"
 #include <gtest/gtest.h>
 
 template <typename T>

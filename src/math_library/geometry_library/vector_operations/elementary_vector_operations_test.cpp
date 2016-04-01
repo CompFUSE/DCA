@@ -9,7 +9,7 @@
 //
 // This file tests elementary_vector_operations.h.
 
-#include "elementary_vector_operations.h"
+#include "elementary_vector_operations.hpp"
 
 #include <vector>
 

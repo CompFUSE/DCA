@@ -14,7 +14,7 @@
 #ifndef MATH_LIBRARY_GEOMETRY_LIBRARY_VECTOR_OPERATIONS_VECTOR_OPERATIONS_HPP
 #define MATH_LIBRARY_GEOMETRY_LIBRARY_VECTOR_OPERATIONS_VECTOR_OPERATIONS_HPP
 
-#include "elementary_coordinate_transformations.h"
-#include "elementary_vector_operations.h"
+#include "elementary_coordinate_transformations.hpp"
+#include "elementary_vector_operations.hpp"
 
 #endif  // MATH_LIBRARY_GEOMETRY_LIBRARY_VECTOR_OPERATIONS_VECTOR_OPERATIONS_HPP
