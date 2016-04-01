@@ -10,17 +10,20 @@
 // This file tests cluster_operations.h.
 
 #include "cluster_operations.h"
-#include <gtest/gtest.h>
-#include <vector>
-#include <iostream>
-#include <algorithm>
-#include <string>
-#include "math_library/geometry_library/vector_operations/elementary_vector_operations.h"
 
-template<typename T>
-void print_elements(const std::vector<std::vector<T>>& elements, const std::string name="no-name") {
+#include <algorithm>
+#include <iostream>
+#include <string>
+#include <vector>
+
+#include "math_library/geometry_library/vector_operations/elementary_vector_operations.h"
+#include <gtest/gtest.h>
+
+template <typename T>
+void printVectorSet(const std::vector<std::vector<T>>& vector_set,
+                    const std::string name = "no-name") {
   std::cout << name << std::endl;
-  for (const auto& vec : elements) {
+  for (const auto& vec : vector_set) {
     std::cout << "(";
     if (vec.size() > 0) {
       std::cout << vec[0];
@@ -31,27 +34,65 @@ void print_elements(const std::vector<std::vector<T>>& elements, const std::stri
     std::cout << ")" << std::endl;
   }
 }
-  
-TEST(cluster_operations, origin_index) {
-  std::vector<std::vector<double>> unsorted_vec = {{0., 1.}, {-1., 1.}, {0.,0.}, {1., 0.}};
-  std::vector<std::vector<double>> empty = {{}, {}};
-  std::vector<std::vector<double>> one = {{1.,2.}};
-  print_elements(unsorted_vec, "unsorted_vec");
-  print_elements(empty, "empty");
-  print_elements(one, "one");
-  
-  std::vector<std::vector<double>> sorted_vec(unsorted_vec);
 
-  std::sort(sorted_vec.begin(), sorted_vec.end(), VECTOR_OPERATIONS::IS_LARGER_VECTOR<double>);
-  print_elements(sorted_vec, "sorted_vec");
-  
-  std::vector<double> v1 = {0., 1.};
-  std::vector<double> v2 = {0., 2.};
-  std::vector<double> v3 = {1., 0.};
-  std::cout << "VECTOR_OPERATIONS::IS_LARGER_VECTOR(v1, v2) = " << VECTOR_OPERATIONS::IS_LARGER_VECTOR(v1, v2) << std::endl;
-  std::cout << "VECTOR_OPERATIONS::IS_LARGER_VECTOR(v2, v1) = " << VECTOR_OPERATIONS::IS_LARGER_VECTOR(v2, v1) << std::endl;
-  std::cout << "VECTOR_OPERATIONS::IS_LARGER_VECTOR(v1, v3) = " << VECTOR_OPERATIONS::IS_LARGER_VECTOR(v1, v3) << std::endl;
+class ClusterOperationsTest : public ::testing::Test {
+protected:
+  ClusterOperationsTest()
+      : unsorted_set_{{0., 1.}, {-1., 1.}, {0., 0.}, {1., 0.}},
+        sorted_set_(unsorted_set_),
+        r_cluster_elements_{{-1.000000, 1.000000},
+                            {-1.000000, 2.000000},
+                            {0.000000, 0.000000},
+                            {0.000000, 1.000000},
+                            {0.000000, 2.000000},
+                            {0.000000, 3.000000},
+                            {1.000000, 1.000000},
+                            {1.000000, 2.000000}},
+        r_cluster_basis_{{1.00000, 0.00000}, {0.00000, 1.00000}},
+        r_cluster_super_basis_{{2.00000, 2.00000}, {-2.00000, 2.00000}},
+        k_cluster_elements_{{0.000000, 0.000000},
+                            {0.000000, 3.141593},
+                            {1.570796, 1.570796},
+                            {1.570796, 4.712389},
+                            {3.141593, 0.000000},
+                            {3.141593, 3.141593},
+                            {4.712389, 1.570796},
+                            {4.712389, 4.712389}},
+        k_cluster_basis_{{1.570796, 1.570796}, {-1.570796, 1.570796}},
+        k_cluster_super_basis_{{6.283185, -0.000000}, {0.000000, 6.283185}} {
+    // Vectors in the Brillouin zone are sorted according to VECTOR_OPERATIONS::IS_LARGER_VECTOR.
+    std::sort(sorted_set_.begin(), sorted_set_.end(), VECTOR_OPERATIONS::IS_LARGER_VECTOR<double>);
+  }
+  std::vector<std::vector<double>> unsorted_set_;
+  std::vector<std::vector<double>> sorted_set_;
 
-  EXPECT_EQ(1, cluster_operations::origin_index(sorted_vec, BRILLOUIN_ZONE));
-  EXPECT_EQ(2, cluster_operations::origin_index(unsorted_vec, PARALLELLEPIPEDUM));
+  // 8-site cluster [2,]
+  std::vector<std::vector<double>> r_cluster_elements_;
+  std::vector<std::vector<double>> r_cluster_basis_;
+  std::vector<std::vector<double>> r_cluster_super_basis_;
+
+  std::vector<std::vector<double>> k_cluster_elements_;
+  std::vector<std::vector<double>> k_cluster_basis_;
+  std::vector<std::vector<double>> k_cluster_super_basis_;
+};
+
+TEST_F(ClusterOperationsTest, origin_index) {
+  // Unsorted set (PARALLELEPIPEDUM)
+  EXPECT_EQ(2, cluster_operations::origin_index(unsorted_set_, PARALLELLEPIPEDUM));
+
+  // Sorted set (BRILLOUIN_ZONE)
+  EXPECT_EQ(1, cluster_operations::origin_index(sorted_set_, BRILLOUIN_ZONE));
+}
+
+TEST_F(ClusterOperationsTest, index) {
+  // Unsorted set (PARALLELEPIPEDUM)
+  std::vector<double> vec1 = {-1., 1.};
+  EXPECT_EQ(1, cluster_operations::index(vec1, unsorted_set_, PARALLELLEPIPEDUM));
+  std::vector<double> vec2 = {-42., 24.};
+  EXPECT_DEATH(cluster_operations::index(vec2, unsorted_set_, PARALLELLEPIPEDUM),
+               "(index>-1 and index<elements.size())");
+
+  // Sorted set (BRILLOUIN_ZONE)
+  std::vector<double> vec3 = {0., 1.};
+  EXPECT_EQ(2, cluster_operations::index(vec3, sorted_set_, BRILLOUIN_ZONE));
 }

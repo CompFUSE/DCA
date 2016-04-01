@@ -64,6 +64,7 @@ include(testing)
 
 if (DCA_TESTS)
   add_subdirectory(src/phys_library/domains/cluster)
+  add_subdirectory(src/math_library/geometry_library/vector_operations)
 endif()
 
 # Build applications

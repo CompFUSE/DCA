@@ -72,7 +72,7 @@ namespace VECTOR_OPERATIONS
   }
 
   template<typename scalartype>
-  bool IS_LARGER_VECTOR(std::vector<scalartype> v1, std::vector<scalartype> v2)
+  bool IS_LARGER_VECTOR(const std::vector<scalartype>& v1, const std::vector<scalartype>& v2)
   {
     assert(v1.size()==v2.size());
 

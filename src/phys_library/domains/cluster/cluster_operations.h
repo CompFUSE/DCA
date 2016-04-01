@@ -51,46 +51,42 @@ class cluster_operations
 
 template<typename scalar_type>
 int cluster_operations::index(std::vector<scalar_type>&               element,
-			      std::vector<std::vector<scalar_type> >& sorted_elements,
+			      std::vector<std::vector<scalar_type> >& elements,
 			      CLUSTER_SHAPE                           shape)
 {
-  /*
-  int index = lower_bound(sorted_elements.begin(), sorted_elements.end(), 
-			  element, VECTOR_OPERATIONS::IS_LARGER_VECTOR<scalar_type>) - sorted_elements.begin();
-  */
-
   int index = -1;
 
   switch(shape)
     {
     case BRILLOUIN_ZONE: // the k-vectors in the brillouin zone are sorted according to VECTOR_OPERATIONS::IS_LARGER_VECTOR !
-      index = lower_bound(sorted_elements.begin(), sorted_elements.end(), 
-			  element, VECTOR_OPERATIONS::IS_LARGER_VECTOR<scalar_type>) - sorted_elements.begin();
+      index = lower_bound(elements.begin(), elements.end(),
+			  element, VECTOR_OPERATIONS::IS_LARGER_VECTOR<scalar_type>) - elements.begin();
       break;
 
     case PARALLELLEPIPEDUM:
-      index = find(sorted_elements.begin(), sorted_elements.end(), element) - sorted_elements.begin();
+      index = find(elements.begin(), elements.end(), element) - elements.begin();
       break;
 
     default:
       throw std::logic_error(__FUNCTION__);
     }
 
-  assert(index>-1 and index<sorted_elements.size());
+  assert(index>-1 and index<elements.size());
 
-  if(VECTOR_OPERATIONS::L2_NORM(element, sorted_elements[index])>1.e-6)
+  if(VECTOR_OPERATIONS::L2_NORM(element, elements[index])>1.e-6)
     {
       std::cout << "\n\t " << __FUNCTION__ << "\t" << index << "\n"; 
       VECTOR_OPERATIONS::PRINT(element); std::cout << "\n";  
-      VECTOR_OPERATIONS::PRINT(sorted_elements[index]); std::cout << "\n";
+      VECTOR_OPERATIONS::PRINT(elements[index]); std::cout << "\n";
       std::cout << "\n\n";
     }
 
-  assert(VECTOR_OPERATIONS::L2_NORM(element, sorted_elements[index])<1.e-6);
+  assert(VECTOR_OPERATIONS::L2_NORM(element, elements[index])<1.e-6);
   
   return index;
 }
 
+// TODO: This function doesn't work with scalar_type != double since origin is of type std::vector<double>.
 template<typename scalar_type>
 int cluster_operations::origin_index(std::vector<std::vector<scalar_type> >& elements,
 				     CLUSTER_SHAPE                           shape)
