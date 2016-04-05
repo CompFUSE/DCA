@@ -6,6 +6,7 @@
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Peter Staar (peter.w.j.staar@gmail.com)
+//         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // Description: TBA
 
@@ -20,39 +21,52 @@
 class cluster_operations {
 public:
   template <typename scalar_type>
-  static int index(std::vector<scalar_type>& element,
-                   std::vector<std::vector<scalar_type>>& elements, CLUSTER_SHAPE shape);
+  static int index(const std::vector<scalar_type>& element,
+                   const std::vector<std::vector<scalar_type>>& elements, const CLUSTER_SHAPE shape);
 
   template <typename scalar_type>
-  static int origin_index(std::vector<std::vector<scalar_type>>& elements, CLUSTER_SHAPE shape);
+  static int origin_index(const std::vector<std::vector<scalar_type>>& elements,
+                          const CLUSTER_SHAPE shape);
 
   template <typename scalar_type>
   static std::vector<scalar_type> translate_inside_cluster(
-      std::vector<scalar_type>& r, std::vector<std::vector<scalar_type>>& basis);
+      const std::vector<scalar_type>& r, const std::vector<std::vector<scalar_type>>& basis);
 
   template <typename scalar_type>
-  static bool test_translate_inside_cluster(std::vector<std::vector<scalar_type>>& elements,
-                                            std::vector<std::vector<scalar_type>>& basis);
+  static bool test_translate_inside_cluster(const std::vector<std::vector<scalar_type>>& elements,
+                                            const std::vector<std::vector<scalar_type>>& basis);
 
   template <typename scalar_type>
   static scalar_type minimal_distance(std::vector<scalar_type> vec_0, std::vector<scalar_type> vec_1,
-                                      std::vector<std::vector<scalar_type>>& basis);
+                                      const std::vector<std::vector<scalar_type>>& basis);
   template <typename scalar_type>
-  static bool is_minimal(std::vector<scalar_type> R_vec,
-                         std::vector<std::vector<scalar_type>>& basis);
+  static bool is_minimal(const std::vector<scalar_type> R_vec,
+                         const std::vector<std::vector<scalar_type>>& basis);
 
   template <typename scalar_type>
   static std::vector<std::vector<scalar_type>> equivalent_vectors(
-      std::vector<scalar_type> R_vec, std::vector<std::vector<scalar_type>>& basis);
+      std::vector<scalar_type> R_vec, const std::vector<std::vector<scalar_type>>& basis);
 
-  template <typename cluster_type, typename scalar_type>
-  static std::pair<std::vector<scalar_type>, int> find_closest_cluster_vector(
-      const std::vector<scalar_type>& input_vec, const double tol);
+  // Finds and returns the cluster vector whose distance (L2 norm squared) to input_vec is minimal.
+  template <typename scalar_type>
+  static std::vector<scalar_type> find_closest_cluster_vector(
+      const std::vector<scalar_type>& input_vec,
+      const std::vector<std::vector<scalar_type>>& cluster_vectors,
+      const std::vector<std::vector<scalar_type>>& super_basis);
+
+  // Finds and returns the cluster vector whose distance (L2 norm squared) to input_vec is minimal.
+  // If the distance (L2 norm squared) is larger than 'tolerance' a logic_error is thrown.
+  template <typename scalar_type>
+  static std::vector<scalar_type> find_closest_cluster_vector(
+      const std::vector<scalar_type>& input_vec,
+      const std::vector<std::vector<scalar_type>>& cluster_vectors,
+      const std::vector<std::vector<scalar_type>>& super_basis, const scalar_type tolerance);
 };
 
 template <typename scalar_type>
-int cluster_operations::index(std::vector<scalar_type>& element,
-                              std::vector<std::vector<scalar_type>>& elements, CLUSTER_SHAPE shape) {
+int cluster_operations::index(const std::vector<scalar_type>& element,
+                              const std::vector<std::vector<scalar_type>>& elements,
+                              const CLUSTER_SHAPE shape) {
   int index = -1;
 
   switch (shape) {
@@ -90,8 +104,8 @@ int cluster_operations::index(std::vector<scalar_type>& element,
 // TODO: This function doesn't work with scalar_type != double since origin is of type
 // std::vector<double>.
 template <typename scalar_type>
-int cluster_operations::origin_index(std::vector<std::vector<scalar_type>>& elements,
-                                     CLUSTER_SHAPE shape) {
+int cluster_operations::origin_index(const std::vector<std::vector<scalar_type>>& elements,
+                                     const CLUSTER_SHAPE shape) {
   std::vector<double> origin(elements[0].size(), 0.);
 
   return index(origin, elements, shape);
@@ -99,31 +113,36 @@ int cluster_operations::origin_index(std::vector<std::vector<scalar_type>>& elem
 
 template <typename scalar_type>
 std::vector<scalar_type> cluster_operations::translate_inside_cluster(
-    std::vector<scalar_type>& r, std::vector<std::vector<scalar_type>>& basis) {
+    const std::vector<scalar_type>& r, const std::vector<std::vector<scalar_type>>& basis) {
   int DIMENSION = r.size();
 
   std::vector<scalar_type> r_affine = VECTOR_OPERATIONS::COORDINATES(r, basis);
 
   for (size_t d = 0; d < r.size(); d++) {
-    while (r_affine[d] < -1.e-6)
+    while (r_affine[d] < -1.e-6) {
       r_affine[d] += 1.;
+    }
 
-    while (r_affine[d] > 1 - 1.e-6)
+    while (r_affine[d] > 1 - 1.e-6) {
       r_affine[d] -= 1.;
+    }
   }
 
   std::vector<scalar_type> r_vec(r.size(), 0.);
 
-  for (size_t d1 = 0; d1 < DIMENSION; ++d1)
-    for (size_t d0 = 0; d0 < DIMENSION; ++d0)
+  for (size_t d1 = 0; d1 < DIMENSION; ++d1) {
+    for (size_t d0 = 0; d0 < DIMENSION; ++d0) {
       r_vec[d0] += basis[d1][d0] * r_affine[d1];
+    }
+  }
 
   return r_vec;
 }
 
 template <typename scalar_type>
-bool cluster_operations::test_translate_inside_cluster(std::vector<std::vector<scalar_type>>& elements,
-                                                       std::vector<std::vector<scalar_type>>& basis) {
+bool cluster_operations::test_translate_inside_cluster(
+    const std::vector<std::vector<scalar_type>>& elements,
+    const std::vector<std::vector<scalar_type>>& basis) {
   static bool passed_test = false;
 
   if (!passed_test) {
@@ -133,8 +152,9 @@ bool cluster_operations::test_translate_inside_cluster(std::vector<std::vector<s
       k1 = elements[l];
       k2 = translate_inside_cluster(k1, basis);
 
-      if (VECTOR_OPERATIONS::L2_NORM(k1, k2) > 1.e-6)
+      if (VECTOR_OPERATIONS::L2_NORM(k1, k2) > 1.e-6) {
         throw std::logic_error(__FUNCTION__);
+      }
     }
 
     passed_test = true;
@@ -146,7 +166,7 @@ bool cluster_operations::test_translate_inside_cluster(std::vector<std::vector<s
 template <typename scalar_type>
 scalar_type cluster_operations::minimal_distance(std::vector<scalar_type> vec_0,
                                                  std::vector<scalar_type> vec_1,
-                                                 std::vector<std::vector<scalar_type>>& basis) {
+                                                 const std::vector<std::vector<scalar_type>>& basis) {
   int DIMENSION = vec_0.size();
 
   vec_0 = translate_inside_cluster(vec_0, basis);
@@ -155,53 +175,59 @@ scalar_type cluster_operations::minimal_distance(std::vector<scalar_type> vec_0,
   scalar_type MIN_DISTANCE = VECTOR_OPERATIONS::L2_NORM(vec_0, vec_1);
 
   switch (DIMENSION) {
-    case 1: {
+    case 1:
       for (int l0 = -1; l0 <= 1; l0++) {
         std::vector<scalar_type> vec = vec_0;
 
-        for (int d = 0; d < DIMENSION; d++)
+        for (int d = 0; d < DIMENSION; d++) {
           vec[d] += (l0 * basis[0][d]);
+        }
 
         scalar_type distance = VECTOR_OPERATIONS::L2_NORM(vec, vec_1);
 
-        if (distance < MIN_DISTANCE)
+        if (distance < MIN_DISTANCE) {
           MIN_DISTANCE = distance;
+        }
       }
-    } break;
+      break;
 
-    case 2: {
+    case 2:
       for (int l0 = -1; l0 <= 1; l0++) {
         for (int l1 = -1; l1 <= 1; l1++) {
           std::vector<scalar_type> vec = vec_0;
 
-          for (int d = 0; d < DIMENSION; d++)
+          for (int d = 0; d < DIMENSION; d++) {
             vec[d] += (l0 * basis[0][d] + l1 * basis[1][d]);
+          }
 
           scalar_type distance = VECTOR_OPERATIONS::L2_NORM(vec, vec_1);
 
-          if (distance < MIN_DISTANCE)
+          if (distance < MIN_DISTANCE) {
             MIN_DISTANCE = distance;
+          }
         }
       }
-    } break;
+      break;
 
-    case 3: {
+    case 3:
       for (int l0 = -1; l0 <= 1; l0++) {
         for (int l1 = -1; l1 <= 1; l1++) {
           for (int l2 = -1; l2 <= 1; l2++) {
             std::vector<scalar_type> vec = vec_0;
 
-            for (int d = 0; d < DIMENSION; d++)
+            for (int d = 0; d < DIMENSION; d++) {
               vec[d] += (l0 * basis[0][d] + l1 * basis[1][d] + l2 * basis[2][d]);
+            }
 
             scalar_type distance = VECTOR_OPERATIONS::L2_NORM(vec, vec_1);
 
-            if (distance < MIN_DISTANCE)
+            if (distance < MIN_DISTANCE) {
               MIN_DISTANCE = distance;
+            }
           }
         }
       }
-    } break;
+      break;
 
     default:
       throw std::logic_error(__FUNCTION__);
@@ -211,8 +237,8 @@ scalar_type cluster_operations::minimal_distance(std::vector<scalar_type> vec_0,
 }
 
 template <typename scalar_type>
-bool cluster_operations::is_minimal(std::vector<scalar_type> R_vec,
-                                    std::vector<std::vector<scalar_type>>& basis) {
+bool cluster_operations::is_minimal(const std::vector<scalar_type> R_vec,
+                                    const std::vector<std::vector<scalar_type>>& basis) {
   int DIMENSION = R_vec.size();
 
   std::vector<scalar_type> origin(DIMENSION, 0.);
@@ -226,7 +252,7 @@ bool cluster_operations::is_minimal(std::vector<scalar_type> R_vec,
 
 template <typename scalar_type>
 std::vector<std::vector<scalar_type>> cluster_operations::equivalent_vectors(
-    std::vector<scalar_type> R_vec, std::vector<std::vector<scalar_type>>& basis) {
+    std::vector<scalar_type> R_vec, const std::vector<std::vector<scalar_type>>& basis) {
   const static scalar_type EPS = 1.e-3;
   const static scalar_type ONE_PLUS_EPS = 1. + EPS;
   const static scalar_type ONE_MIN_EPS = 1. - EPS;
@@ -307,34 +333,41 @@ std::vector<std::vector<scalar_type>> cluster_operations::equivalent_vectors(
   return r_min;
 }
 
-template <typename cluster_type, typename scalar_type>
-std::pair<std::vector<scalar_type>, int> cluster_operations::find_closest_cluster_vector(
-    const std::vector<scalar_type>& input_vec, const double tol) {
-  std::vector<std::vector<scalar_type>>& elements = cluster_type::get_elements();
-  std::vector<std::vector<scalar_type>>& super_basis = cluster_type::get_super_basis_vectors();
-
-  std::vector<scalar_type> input_vec_translated = translate_inside_cluster(input_vec, super_basis);
-
-  if (elements.size() == 0) {
+template <typename scalar_type>
+std::vector<scalar_type> cluster_operations::find_closest_cluster_vector(
+    const std::vector<scalar_type>& input_vec,
+    const std::vector<std::vector<scalar_type>>& cluster_vectors,
+    const std::vector<std::vector<scalar_type>>& super_basis) {
+  if (cluster_vectors.size() == 0) {
     throw std::logic_error(__FUNCTION__);
   }
 
-  double min_distance = VECTOR_OPERATIONS::L2_NORM(input_vec_translated, elements[0]);
+  double min_distance = minimal_distance(input_vec, cluster_vectors[0], super_basis);
   int min_index = 0;
 
-  for (int l = 0; l < elements.size(); l++) {
-    double distance = VECTOR_OPERATIONS::L2_NORM(input_vec_translated, elements[l]);
+  for (int i = 1; i < cluster_vectors.size(); ++i) {
+    double distance = minimal_distance(input_vec, cluster_vectors[i], super_basis);
     if (distance < min_distance) {
       min_distance = distance;
-      min_index = l;
+      min_index = i;
     }
   }
 
-  if (min_distance > tol) {
+  return cluster_vectors[min_index];
+}
+
+template <typename scalar_type>
+std::vector<scalar_type> cluster_operations::find_closest_cluster_vector(
+    const std::vector<scalar_type>& input_vec,
+    const std::vector<std::vector<scalar_type>>& cluster_vectors,
+    const std::vector<std::vector<scalar_type>>& super_basis, const scalar_type tolerance) {
+  std::vector<scalar_type> result_vec =
+      find_closest_cluster_vector(input_vec, cluster_vectors, super_basis);
+
+  if (minimal_distance(input_vec, result_vec, super_basis) > tolerance) {
     throw std::logic_error(__FUNCTION__);
   }
-
-  return std::make_pair(elements[min_index], min_index);
+  return result_vec;
 }
 
 #endif  // PHYS_LIBRARY_DOMAINS_CLUSTER_CLUSTER_OPERATIONS_HPP
