@@ -8,6 +8,9 @@
 // Author: Peter Staar (peter.w.j.staar@gmail.com)
 //
 // Description: TBA
+//
+// TODO: - Remove duplicated code.
+//       - Check function bodies for const correctness.
 
 #ifndef MATH_LIBRARY_GEOMETRY_LIBRARY_VECTOR_OPERATIONS_ELEMENTARY_VECTOR_TRANSFORMATION_HPP
 #define MATH_LIBRARY_GEOMETRY_LIBRARY_VECTOR_OPERATIONS_ELEMENTARY_VECTOR_TRANSFORMATION_HPP
@@ -17,55 +20,60 @@
 
 namespace VECTOR_OPERATIONS {
 template <typename scalartype>
-inline scalartype NORM(std::vector<scalartype>& v1) {
+inline scalartype NORM(const std::vector<scalartype>& v1) {
   scalartype norm = 0;
-  for (size_t i = 0; i < v1.size(); i++)
+  for (size_t i = 0; i < v1.size(); ++i) {
     norm += v1[i] * v1[i];
+  }
 
   return std::sqrt(norm);
 }
 
 template <typename scalartype>
-inline scalartype NORM(std::vector<scalartype>& v1, std::vector<scalartype>& v2) {
+inline scalartype NORM(const std::vector<scalartype>& v1, const std::vector<scalartype>& v2) {
   assert(v1.size() == v2.size());
 
   scalartype norm = 0;
-  for (size_t i = 0; i < v1.size(); i++)
+  for (size_t i = 0; i < v1.size(); ++i) {
     norm += (v1[i] - v2[i]) * (v1[i] - v2[i]);
+  }
 
   return std::sqrt(norm);
 }
 
 template <typename scalartype>
-inline scalartype L2_NORM(std::vector<scalartype>& v1) {
+inline scalartype L2_NORM(const std::vector<scalartype>& v1) {
   scalartype norm = 0;
-  for (size_t i = 0; i < v1.size(); i++)
+  for (size_t i = 0; i < v1.size(); ++i) {
     norm += v1[i] * v1[i];
+  }
 
   return norm;
 }
 
 template <typename scalartype>
-inline scalartype L2_NORM(std::vector<scalartype>& v1, std::vector<scalartype>& v2) {
+inline scalartype L2_NORM(const std::vector<scalartype>& v1, const std::vector<scalartype>& v2) {
   assert(v1.size() == v2.size());
 
   scalartype norm = 0;
-  for (size_t i = 0; i < v1.size(); i++)
+  for (size_t i = 0; i < v1.size(); ++i) {
     norm += (v1[i] - v2[i]) * (v1[i] - v2[i]);
+  }
 
   return norm;
 }
 
 template <typename scalartype>
-inline scalartype L2_NORM(int N, scalartype* v1, scalartype* v2) {
+inline scalartype L2_NORM(const int N, const scalartype* v1, const scalartype* v2) {
   scalartype norm = 0;
-  for (int i = 0; i < N; ++i)
+  for (int i = 0; i < N; ++i) {
     norm += (v1[i] - v2[i]) * (v1[i] - v2[i]);
+  }
 
   return norm;
 }
 
-bool SAME_VECTOR(std::vector<double> v1, std::vector<double> v2) {
+bool SAME_VECTOR(const std::vector<double> v1, const std::vector<double> v2) {
   return (L2_NORM(v1, v2) < 1.e-6);
 }
 
@@ -73,73 +81,84 @@ template <typename scalartype>
 bool IS_LARGER_VECTOR(const std::vector<scalartype>& v1, const std::vector<scalartype>& v2) {
   assert(v1.size() == v2.size());
 
-  for (size_t i = 0; i < v1.size(); i++)
-    if (std::fabs(v1[i] - v2[i]) > 1.e-6)
+  for (size_t i = 0; i < v1.size(); ++i) {
+    if (std::fabs(v1[i] - v2[i]) > 1.e-6) {
       return v1[i] < v2[i];
+    }
+  }
 
   return false;
 }
 
 template <typename scalartype>
-bool HAS_LARGER_NORM(std::vector<scalartype> v1, std::vector<scalartype> v2) {
+bool HAS_LARGER_NORM(const std::vector<scalartype> v1, const std::vector<scalartype> v2) {
   assert(v1.size() == v2.size());
 
-  if (std::abs(L2_NORM(v1) - L2_NORM(v2)) < 1.e-6)
+  if (std::abs(L2_NORM(v1) - L2_NORM(v2)) < 1.e-6) {
     return IS_LARGER_VECTOR(v1, v2);
+  }
 
-  if (L2_NORM(v1) < L2_NORM(v2))
+  if (L2_NORM(v1) < L2_NORM(v2)) {
     return true;
-  else
+  }
+  else {
     return false;
+  }
 }
 
 template <typename scalartype>
-inline std::vector<scalartype> SCALE(scalartype a, std::vector<scalartype>& v) {
+inline std::vector<scalartype> SCALE(const scalartype a, const std::vector<scalartype>& v) {
   std::vector<scalartype> tmp = v;
 
-  for (size_t i = 0; i < tmp.size(); ++i)
+  for (size_t i = 0; i < tmp.size(); ++i) {
     tmp[i] *= a;
+  }
 
   return tmp;
 }
 
 template <typename scalartype>
-inline std::vector<scalartype> ADD(std::vector<scalartype> v1, std::vector<scalartype> v2) {
+inline std::vector<scalartype> ADD(const std::vector<scalartype> v1,
+                                   const std::vector<scalartype> v2) {
   assert(v1.size() == v2.size());
 
   std::vector<scalartype> tmp(v1.size());
 
-  for (size_t i = 0; i < v1.size(); ++i)
+  for (size_t i = 0; i < v1.size(); ++i) {
     tmp[i] = v1[i] + v2[i];
+  }
 
   return tmp;
 }
 
 template <typename scalartype>
-inline std::vector<scalartype> SUBTRACT(std::vector<scalartype> v1, std::vector<scalartype> v2) {
+inline std::vector<scalartype> SUBTRACT(const std::vector<scalartype> v1,
+                                        const std::vector<scalartype> v2) {
   assert(v1.size() == v2.size());
 
   std::vector<scalartype> tmp(v1.size());
 
-  for (size_t i = 0; i < v1.size(); ++i)
+  for (size_t i = 0; i < v1.size(); ++i) {
     tmp[i] = v2[i] - v1[i];
+  }
 
   return tmp;
 }
 
 template <typename scalartype>
-inline scalartype DOT_PRODUCT(std::vector<scalartype>& v1, std::vector<scalartype>& v2) {
+inline scalartype DOT_PRODUCT(const std::vector<scalartype>& v1, const std::vector<scalartype>& v2) {
   assert(v1.size() == v2.size());
 
   scalartype norm = 0;
-  for (size_t i = 0; i < v1.size(); ++i)
+  for (size_t i = 0; i < v1.size(); ++i) {
     norm += v1[i] * v2[i];
+  }
 
   return norm;
 }
 
 template <typename scalartype>
-inline void CROSS_PRODUCT(std::vector<scalartype>& v1, std::vector<scalartype>& v2,
+inline void CROSS_PRODUCT(const std::vector<scalartype>& v1, const std::vector<scalartype>& v2,
                           std::vector<scalartype>& v3) {
   assert(v1.size() == 3);
   assert(v2.size() == 3);
@@ -151,17 +170,19 @@ inline void CROSS_PRODUCT(std::vector<scalartype>& v1, std::vector<scalartype>& 
 }
 
 template <typename scalartype>
-inline std::vector<scalartype> COORDINATES(std::vector<scalartype>& r,
-                                           std::vector<std::vector<scalartype>>& B) {
+inline std::vector<scalartype> COORDINATES(const std::vector<scalartype>& r,
+                                           const std::vector<std::vector<scalartype>>& B) {
   assert(r.size() == B.size());
 
   int N = r.size();
 
   std::vector<scalartype> basis(N * N);  // scalartype basis[N*N];
 
-  for (size_t d1 = 0; d1 < N; ++d1)
-    for (size_t d0 = 0; d0 < N; ++d0)
+  for (size_t d1 = 0; d1 < N; ++d1) {
+    for (size_t d0 = 0; d0 < N; ++d0) {
       basis[d0 + d1 * N] = B[d1][d0];
+    }
+  }
 
   std::vector<scalartype> coordinate = r;
   LIN_ALG::GESV<LIN_ALG::CPU>::execute(N, &basis[0], &coordinate[0]);
@@ -170,8 +191,8 @@ inline std::vector<scalartype> COORDINATES(std::vector<scalartype>& r,
 }
 
 template <typename scalartype>
-inline void COORDINATES(std::vector<scalartype>& v1, std::vector<scalartype>& v2,
-                        std::vector<scalartype>& vec, std::vector<scalartype>& coor) {
+inline void COORDINATES(const std::vector<scalartype>& v1, const std::vector<scalartype>& v2,
+                        const std::vector<scalartype>& vec, std::vector<scalartype>& coor) {
   assert(v1.size() == 2);
   assert(v2.size() == 2);
   assert(vec.size() == 2);
@@ -191,8 +212,8 @@ inline void COORDINATES(std::vector<scalartype>& v1, std::vector<scalartype>& v2
 }
 
 template <typename scalartype>
-inline void COORDINATES(std::vector<scalartype>& v1, std::vector<scalartype>& v2,
-                        std::vector<scalartype>& v3, std::vector<scalartype>& vec,
+inline void COORDINATES(const std::vector<scalartype>& v1, const std::vector<scalartype>& v2,
+                        const std::vector<scalartype>& v3, const std::vector<scalartype>& vec,
                         std::vector<scalartype>& coor) {
   assert(v1.size() == 3);
   assert(v2.size() == 3);
@@ -220,7 +241,7 @@ inline void COORDINATES(std::vector<scalartype>& v1, std::vector<scalartype>& v2
 }
 
 template <typename scalartype>
-inline scalartype VOLUME(std::vector<scalartype>& v1, std::vector<scalartype>& v2) {
+inline scalartype VOLUME(const std::vector<scalartype>& v1, const std::vector<scalartype>& v2) {
   assert(v1.size() == 2);
   assert(v2.size() == 2);
 
@@ -228,8 +249,8 @@ inline scalartype VOLUME(std::vector<scalartype>& v1, std::vector<scalartype>& v
 }
 
 template <typename scalartype>
-inline scalartype VOLUME(std::vector<scalartype>& v1, std::vector<scalartype>& v2,
-                         std::vector<scalartype>& v3) {
+inline scalartype VOLUME(const std::vector<scalartype>& v1, const std::vector<scalartype>& v2,
+                         const std::vector<scalartype>& v3) {
   assert(v1.size() == 3);
   assert(v2.size() == 3);
   assert(v3.size() == 3);
@@ -239,21 +260,23 @@ inline scalartype VOLUME(std::vector<scalartype>& v1, std::vector<scalartype>& v
 }
 
 template <typename scalartype>
-inline void PRINT(std::vector<scalartype> v1) {
+inline void PRINT(const std::vector<scalartype> v1) {
   std::cout << std::scientific;
   std::cout.precision(6);
 
-  for (size_t i = 0; i < v1.size(); i++)
+  for (size_t i = 0; i < v1.size(); ++i) {
     std::cout << v1[i] << "\t";
+  }
 }
 
 template <typename scalartype1, typename scalartype2>
-inline scalartype1 MINIMIZE(int N, scalartype1* x, scalartype2* y) {
+inline scalartype1 MINIMIZE(const int N, const scalartype1* x, const scalartype2* y) {
   int index = std::min_element(y, y + N) - y;
   assert(index > -1 && index < N);
 
-  if (index == 0 || index == N - 1)
+  if (index == 0 || index == N - 1) {
     return x[index];
+  }
   else {
     scalartype1* x_ptr = x + index - 1;
     scalartype1* y_ptr = y + index - 1;
@@ -272,18 +295,19 @@ inline scalartype1 MINIMIZE(int N, scalartype1* x, scalartype2* y) {
 }
 
 template <typename scalartype>
-inline scalartype MINIMIZE(std::vector<scalartype>& x, std::vector<scalartype>& y) {
+inline scalartype MINIMIZE(const std::vector<scalartype>& x, const std::vector<scalartype>& y) {
   assert(x.size() == y.size());
   return MINIMIZE(int(x.size()), &x[0], &y[0]);
 }
 
 template <typename scalartype1, typename scalartype2>
-inline scalartype1 MAXIMIZE(int N, scalartype1* x, scalartype2* y) {
+inline scalartype1 MAXIMIZE(const int N, const scalartype1* x, const scalartype2* y) {
   int index = std::max_element(y, y + N) - y;
   assert(index > -1 && index < N);
 
-  if (index == 0 || index == N - 1)
+  if (index == 0 || index == N - 1) {
     return x[index];
+  }
   else {
     scalartype1* x_ptr = x + index - 1;
     scalartype1* y_ptr = y + index - 1;
