@@ -186,7 +186,7 @@ namespace DCA
 
         w_vertex_ext_2_w_vertex_ext_pos("w_vertex_ext_2_w_vertex_ext_pos")
       {
-        int q_channel = parameters.get_q_channel();
+        int q_channel = parameters.get_q_channel_ind();
         //int k0_index  = k_cluster_type::get_k_0_index();
         int k0_index  = k_cluster_type::origin_index();
 

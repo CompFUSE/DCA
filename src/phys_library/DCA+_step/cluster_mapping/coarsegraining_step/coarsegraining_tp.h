@@ -195,7 +195,7 @@ namespace DCA
                                                           FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu , nu , k_DCA , w      > >& Sigma,
                                                           FUNC_LIB::function<std::complex<scalar_type>, dmn_4<b_b, b_b, K_dmn , w_dmn_t> >& chi)
   {
-    int Q_ind = cluster_operations::index(parameters.get_q_vector(), K_dmn::get_elements(), K_dmn::parameter_type::SHAPE);
+    int Q_ind = cluster_operations::index(parameters.get_q_channel_vec(), K_dmn::get_elements(), K_dmn::parameter_type::SHAPE);
 
     switch(parameters.get_vertex_measurement_type())
       {
@@ -231,7 +231,7 @@ namespace DCA
                                                           FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu , nu , k_HOST, w      > >& Sigma,
                                                           FUNC_LIB::function<std::complex<scalar_type>, dmn_4<b_b, b_b, K_dmn , w_dmn_t> >& chi)
   {
-    int Q_ind = cluster_operations::index(parameters.get_q_vector(), K_dmn::get_elements(), K_dmn::parameter_type::SHAPE);
+    int Q_ind = cluster_operations::index(parameters.get_q_channel_vec(), K_dmn::get_elements(), K_dmn::parameter_type::SHAPE);
 
     switch(parameters.get_vertex_measurement_type())
       {
@@ -344,7 +344,7 @@ namespace DCA
     // S_K_plus_Q_w(K) = S_K_w(K+Q)
     FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu , nu , k_DCA , w > > S_K_plus_Q_w;
 
-    int Q_ind = cluster_operations::index(parameters.get_q_vector(), k_DCA::get_elements(), k_DCA::parameter_type::SHAPE);
+    int Q_ind = cluster_operations::index(parameters.get_q_channel_vec(), k_DCA::get_elements(), k_DCA::parameter_type::SHAPE);
 
     for (int w_ind=0; w_ind<w::dmn_size(); ++w_ind) {
       for (int k_ind=0; k_ind<k_DCA::dmn_size(); ++k_ind) {
@@ -490,7 +490,7 @@ namespace DCA
     // S_Q_min_K_w(K) = S_K_w(Q-K)
     FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu , nu , k_DCA , w > > S_Q_min_K_w;
 
-    int Q_ind = cluster_operations::index(parameters.get_q_vector(), k_DCA::get_elements(), k_DCA::parameter_type::SHAPE);
+    int Q_ind = cluster_operations::index(parameters.get_q_channel_vec(), k_DCA::get_elements(), k_DCA::parameter_type::SHAPE);
 
     for (int w_ind=0; w_ind<w::dmn_size(); ++w_ind) {
       for (int k_ind=0; k_ind<k_DCA::dmn_size(); ++k_ind) {

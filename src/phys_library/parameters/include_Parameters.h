@@ -50,7 +50,7 @@
 
 #include "parameters_specialization/templates/function_parameters.h"
 
-#include "parameters_specialization/templates/vertex_parameters.h"
+#include "parameters_specialization/templates/vertex_parameters.hpp"
 #include "parameters_specialization/templates/equal_time_parameters.h"
 #include "parameters_specialization/templates/CPE_parameters.h"
 #include "parameters_specialization/templates/double_counting_parameters.h"

@@ -147,14 +147,12 @@ TEST_F(ClusterOperationsTest, find_closest_cluster_vector) {
   q_output = cluster_operations::find_closest_cluster_vector(q_input, r_cluster_elements_,
                                                              r_cluster_super_basis_);
   EXPECT_EQ(r_cluster_elements_[2], q_output);
-  // EXPECT_DOUBLE_EQ(0.0625, distance);
 
   // Arbitray vector outside the cluster.
   q_input = {0.75, 0.};
   q_output = cluster_operations::find_closest_cluster_vector(q_input, r_cluster_elements_,
                                                              r_cluster_super_basis_);
   EXPECT_EQ(r_cluster_elements_[1], q_output);
-  // EXPECT_DOUBLE_EQ(0.0625, distance);
 
   // If there are multiple cluster vectors with the same minimal distance the first one in the
   // std::vector is returned.
@@ -162,16 +160,15 @@ TEST_F(ClusterOperationsTest, find_closest_cluster_vector) {
   q_output = cluster_operations::find_closest_cluster_vector(q_input, r_cluster_elements_,
                                                              r_cluster_super_basis_);
   EXPECT_EQ(r_cluster_elements_[2], q_output);
-  // EXPECT_DOUBLE_EQ(0.25, distance);
 
   // Requiring a certain tolerance.
-  double tolerance = 0.1;
+  double tolerance = 0.3;
   q_input = {0.75, 0.};
   EXPECT_NO_THROW(q_output = cluster_operations::find_closest_cluster_vector(
                       q_input, r_cluster_elements_, r_cluster_super_basis_, tolerance));
   EXPECT_EQ(r_cluster_elements_[1], q_output);
 
-  tolerance = 0.01;
+  tolerance = 0.2;
   q_input = {0.75, 0.};
   EXPECT_THROW(cluster_operations::find_closest_cluster_vector(q_input, r_cluster_elements_,
                                                                r_cluster_super_basis_, tolerance),

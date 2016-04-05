@@ -445,7 +445,7 @@ namespace DCA
           {
             concurrency << "symmetrize Gamma_lattice according to the symmetry-group \n\n";
 
-            symmetrize::execute(Gamma_lattice  , parameters.get_q_vector());
+            symmetrize::execute(Gamma_lattice, parameters.get_q_channel_vec());
            }
 
         if(true)

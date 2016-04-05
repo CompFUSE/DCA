@@ -132,8 +132,8 @@ namespace DCA
           {
             concurrency << "symmetrize Gamma_lattice according to the symmetry-group \n\n";
 
-            symmetrize::execute(G_II  , parameters.get_q_vector());
-            symmetrize::execute(G_II_0, parameters.get_q_vector());
+            symmetrize::execute(G_II  , parameters.get_q_channel_vec());
+            symmetrize::execute(G_II_0, parameters.get_q_channel_vec());
           }
 
         if(true)
@@ -194,7 +194,7 @@ namespace DCA
 
     int W        = parameters.get_sp_fermionic_frequencies();
     int W_vertex = w_VERTEX::dmn_size()/2;
-    int q        = parameters.get_q_channel();
+    int q        = parameters.get_q_channel_ind();
 
     int w_nu = parameters.get_w_channel();
 

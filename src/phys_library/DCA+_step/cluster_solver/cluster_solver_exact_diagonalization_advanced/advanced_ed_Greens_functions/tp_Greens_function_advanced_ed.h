@@ -278,7 +278,7 @@ namespace DCA
       }
 
       {
-        int q_channel = parameters.get_q_channel();
+        int q_channel = parameters.get_q_channel_ind();
         int k0_index  = k_dmn::parameter_type::origin_index();
 
         for(int l=0; l<k_dmn::parameter_type::get_size(); l++){

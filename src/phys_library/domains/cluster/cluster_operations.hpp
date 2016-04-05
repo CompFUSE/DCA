@@ -13,6 +13,7 @@
 #ifndef PHYS_LIBRARY_DOMAINS_CLUSTER_CLUSTER_OPERATIONS_HPP
 #define PHYS_LIBRARY_DOMAINS_CLUSTER_CLUSTER_OPERATIONS_HPP
 
+#include <cmath>
 #include <utility>
 #include <vector>
 #include "cluster_typedefs.hpp"
@@ -47,15 +48,15 @@ public:
   static std::vector<std::vector<scalar_type>> equivalent_vectors(
       std::vector<scalar_type> R_vec, const std::vector<std::vector<scalar_type>>& basis);
 
-  // Finds and returns the cluster vector whose distance (L2 norm squared) to input_vec is minimal.
+  // Finds and returns the cluster vector whose distance (L2 norm) squared to input_vec is minimal.
   template <typename scalar_type>
   static std::vector<scalar_type> find_closest_cluster_vector(
       const std::vector<scalar_type>& input_vec,
       const std::vector<std::vector<scalar_type>>& cluster_vectors,
       const std::vector<std::vector<scalar_type>>& super_basis);
 
-  // Finds and returns the cluster vector whose distance (L2 norm squared) to input_vec is minimal.
-  // If the distance (L2 norm squared) is larger than 'tolerance' a logic_error is thrown.
+  // Finds and returns the cluster vector whose distance (L2 norm) squared to input_vec is minimal.
+  // If the distance is larger than 'tolerance' a logic_error is thrown.
   template <typename scalar_type>
   static std::vector<scalar_type> find_closest_cluster_vector(
       const std::vector<scalar_type>& input_vec,
@@ -364,7 +365,7 @@ std::vector<scalar_type> cluster_operations::find_closest_cluster_vector(
   std::vector<scalar_type> result_vec =
       find_closest_cluster_vector(input_vec, cluster_vectors, super_basis);
 
-  if (minimal_distance(input_vec, result_vec, super_basis) > tolerance) {
+  if (std::sqrt(minimal_distance(input_vec, result_vec, super_basis)) > tolerance) {
     throw std::logic_error(__FUNCTION__);
   }
   return result_vec;

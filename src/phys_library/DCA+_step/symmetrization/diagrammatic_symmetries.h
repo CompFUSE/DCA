@@ -166,8 +166,8 @@ template<class parameters_type>
 diagrammatic_symmetries<parameters_type>::diagrammatic_symmetries(parameters_type& parameters_ref):
   parameters(parameters_ref),
 
-  q_ind(parameters.get_q_channel()),
-  q_vec(parameters.get_q_vector()),
+  q_ind(parameters.get_q_channel_ind()),
+  q_vec(parameters.get_q_channel_vec()),
 
   q_vector_is_invertible(false),
   q_vector_is_reciprocal(false)
