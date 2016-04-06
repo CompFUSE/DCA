@@ -70,7 +70,7 @@ struct S8
 struct D4_trial
 {
   typedef point_group_product< C4::point_group_type_list,
-                               S8::point_group_type_list>::Result point_group_type_list;
+                               S8::point_group_type_list> point_group_type_list;
 };
 
 struct D4

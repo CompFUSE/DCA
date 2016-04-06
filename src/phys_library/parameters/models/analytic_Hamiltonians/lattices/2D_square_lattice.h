@@ -95,7 +95,7 @@ void square_lattice<point_group_type>::initialize_H_interaction(FUNC_LIB::functi
   H_interaction = 0.;
 
   // actually the same as DCA_r_cluster_type (see typedifinitions.h).
-  typedef typename TypeAt<typename domain::domain_typelist_2, 0>::Result DCA_r_cluster_t;
+  typedef typename TypeAt<0, typename domain::template domain_typelist<2>>::type DCA_r_cluster_t;
 
   int DIMENSION = DCA_r_cluster_t::DIMENSION;
   assert(DIMENSION == 2);
