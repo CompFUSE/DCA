@@ -114,6 +114,7 @@ namespace detail
     void for_each(T&& t, F &&f, std::index_sequence<Indices...>)
     {
         auto l = { (f(std::get<Indices>(t)), 0)... };
+        ignore_returnvalues(l);
     }
 }
 
