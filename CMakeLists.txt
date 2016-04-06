@@ -15,9 +15,18 @@ if (${PROJECT_BINARY_DIR} STREQUAL ${PROJECT_SOURCE_DIR})
                       rm -rf CMakeCache.txt CMakeFiles")
 endif()
 
-
+########################################
 # Include CMake scripts from cmake directory.
+########################################
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+
+########################################
+# load macros
+########################################
+include(DCA_macros)
+dca_add_config_define(DCA_SOURCE_DIRECTORY \"${PROJECT_SOURCE_DIR}\")
+# include the binary dir for generated "dca/config/defines.hpp"
+include_directories(${PROJECT_BINARY_DIR})
 
 # Modules
 add_subdirectory(modules)
@@ -59,6 +68,12 @@ if (DCA_GPU_SUPPORT)
   add_subdirectory(src/DCA_GPU_routines)
 endif()
 
+########################################
+# Global defines.hpp file
+########################################
+write_global_definitions_file("dca/config/defines.hpp")
+
+########################################
 # Testing
 include(testing)
 
