@@ -1,26 +1,15 @@
 //-*-C++-*-
 
-
 #ifndef TYPELIST_H_
 #define TYPELIST_H_
 
 template<typename parameters>
 class dmn_0;
-template<typename... domain_list>
+template<typename ... domain_list>
 class dmn_variadic;
 
-template <typename T1, typename T2>
-struct IsSame
-{
-    IsSame() {
-        static_assert(std::is_same<T1, T2>::value, "Types must be equal");
-    }
-    static_assert(std::is_same<T1, T2>::value, "Types must be equal");
-};
-
-
 //----------------------------------------------------------------------------
-template <typename T1, typename T2>
+template<typename T1, typename T2>
 struct assert_same
 {
     assert_same() {
@@ -147,12 +136,12 @@ struct mp_append<mp_list<Ts1...>, mp_list<Ts2...>>
     typedef mp_list<Ts1..., Ts2...> type;
 };
 
-template <typename ...Ts1,
-          typename ...Ts2,
-          typename ...Ts>
+template<typename ...Ts1,
+    typename ...Ts2,
+    typename ...Ts>
 struct mp_append<mp_list<Ts1...>, mp_list<Ts2...>, Ts...>
 {
-     typedef typename mp_append<mp_list<Ts1..., Ts2...>, Ts...>::type type;
+    typedef typename mp_append<mp_list<Ts1..., Ts2...>, Ts...>::type type;
 };
 
 //----------------------------------------------------------------------------
@@ -299,14 +288,14 @@ namespace TL
     /***********************************
      * TypeAt
      ***********************************/
-    template<int I, typename ...Ts>
-    using TypeAt = mp_element<I, Ts...>;
+    template<int I, typename Ts>
+    using TypeAt = mp_element<I, Ts>;
 
     /***********************************
      * 	IndexOf
      ***********************************/
-    template<typename T, typename ...Ts>
-    using IndexOf = mp_index_of<T,Ts...>;
+    template<typename T, typename Ts>
+    using IndexOf = mp_index_of<T,Ts>;
 
     /**********************************
      * 	Append
@@ -352,36 +341,36 @@ namespace TL
     // PrintTL
     //----------------------------------------------------------------------------
     // basic print displays the type of the template instantiation
-    template <typename D>
+    template<typename D>
     struct printTL {
         static void print() {
             print(std::cout);
         }
         //
         static void print(std::ostream &stream) {
-            stream <<  "\t" << __PRETTY_FUNCTION__ << "\n";
+            stream << "\t" << __PRETTY_FUNCTION__ << "\n";
         }
         static void to_JSON(std::ostream &stream) {
-            stream <<  "\t" << __PRETTY_FUNCTION__ << "\n";
+            stream << "\t" << __PRETTY_FUNCTION__ << "\n";
         }
     };
 
     // dmn_0 override is actually the same as basic, but provided
     // for future customization
-    template <typename Domain>
+    template<typename Domain>
     struct printTL<dmn_0<Domain>> {
         static void print()
         {
             print(std::cout);
         }
         static void print(std::ostream &stream)
-        {
-            stream <<  "\t" << __PRETTY_FUNCTION__ << "\n";
+            {
+            stream << "\t" << __PRETTY_FUNCTION__ << "\n";
         }
     };
 
     // dmn_variadic prints out all subdomains recursively via pack expansion
-    template <typename... Domains>
+    template<typename ... Domains>
     struct printTL<dmn_variadic<Domains...>> {
         static void print() {
             print(std::cout);
@@ -390,12 +379,12 @@ namespace TL
         // so expand the pack as a parameter list, and drop dummy return values
         // use func(),0 because func() returns void
         static void print(std::ostream &s) {
-            ignore_returnvalues( (printTL<Domains>::print(std::cout),0)...);
+            ignore_returnvalues((printTL<Domains>::print(std::cout),0)...);
         }
     };
 
     // dmn_variadic prints out all subdomains recursively via pack expansion
-    template <typename Domain, typename... Domains>
+    template<typename Domain, typename ... Domains>
     struct printTL<Typelist<Domain, Domains...>> {
         static void print() {
             print(std::cout);
@@ -404,21 +393,21 @@ namespace TL
         // so expand the pack as a parameter list, and drop dummy return values
         // use func(),0 because func() returns void
         static void print(std::ostream &s) {
-            ignore_returnvalues( (printTL<Domains>::print(s),0)...);
+            ignore_returnvalues((printTL<Domains>::print(s),0)...);
         }
 
         static void to_JSON(std::ostream &s) {
             s << "\"";
             print_type<Domain>::to_JSON(s);
             if (sizeof...(Domains)==0) {
-                s << "\"\n";
-            }
-            else {
-                s << "\",\n";
-                printTL<Typelist<Domains...>>::to_JSON(s);
-            }
+            s << "\"\n";
         }
-    };
+        else {
+            s << "\",\n";
+            printTL<Typelist<Domains...>>::to_JSON(s);
+        }
+    }
+};
 }
 
 #endif
