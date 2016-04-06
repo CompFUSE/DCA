@@ -19,9 +19,8 @@
 #include <type_traits>
 #include <iterator>
 //
+#include <dca/util/type_list.hpp>
 #include "domain.h"
-#include "type_list.h"
-
 
 //----------------------------------------------------------------------------
 // Variadic domain class with a list of sub-domains

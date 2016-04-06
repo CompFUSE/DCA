@@ -3,6 +3,8 @@
 #ifndef BASIS_TRANSFORMATIONS_DMN_0_TO_DMN_0_H
 #define BASIS_TRANSFORMATIONS_DMN_0_TO_DMN_0_H
 
+#include <dca/util/type_utils.hpp>
+
 namespace MATH_ALGORITHMS
 {
   /*!
@@ -99,15 +101,15 @@ namespace MATH_ALGORITHMS
       
       if(do_all_domains)
 	{
-	  printTL<type_list_input >::to_JSON(std::cout);
+	  dca::util::print_type<type_list_input >::to_JSON(std::cout);
 	  std::cout << "\n\n";
 	  
 	  typedef typename SWAP_ALL<domain_input, type_input, type_output>::Result TRANSFORMED_DOMAIN;
 	  
-	  printTL<typename TRANSFORMED_DOMAIN::this_type >::to_JSON(std::cout);
+	  dca::util::print_type<typename TRANSFORMED_DOMAIN::this_type >::to_JSON(std::cout);
 	  std::cout << "\n\n";
 	  
-	  printTL<type_list_output>::to_JSON(std::cout);
+	  dca::util::print_type<type_list_output>::to_JSON(std::cout);
 	  std::cout << "\n\n";
 	  
 	  FUNC_LIB::function<scalartype_output, TRANSFORMED_DOMAIN> T;
@@ -116,15 +118,15 @@ namespace MATH_ALGORITHMS
 	}
       else
 	{
-	  printTL<type_list_input >::to_JSON(std::cout);
+	  dca::util::print_type<type_list_input >::to_JSON(std::cout);
 	  std::cout << "\n\n";
 	  
 	  typedef typename SWAP_FIRST<domain_input, type_input, type_output>::Result TRANSFORMED_DOMAIN;
 	  
-	  printTL<typename TRANSFORMED_DOMAIN::this_type >::to_JSON(std::cout);
+	  dca::util::print_type<typename TRANSFORMED_DOMAIN::this_type >::to_JSON(std::cout);
 	  std::cout << "\n\n";
 	  
-	  printTL<type_list_output>::to_JSON(std::cout);
+	  dca::util::print_type<type_list_output>::to_JSON(std::cout);
 	  std::cout << "\n\n";
 	  
 	  FUNC_LIB::function<scalartype_output, TRANSFORMED_DOMAIN> T("FUNC_LIB::function<scalartype_output, TRANSFORMED_DOMAIN>");

@@ -38,8 +38,8 @@
 #include <pthread.h>
 
 // typelist-operations
-#include "type_list.h"
-using namespace TL;
+#include <dca/util/type_list.hpp>
+using namespace dca::util;
 
 // enumerations
 #include "enumerations.hpp"

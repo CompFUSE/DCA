@@ -6,8 +6,6 @@
  */
 
 //
-#include <gtest/gtest.h>
-
 #include <complex>
 #include <vector>
 #include <map>
@@ -21,25 +19,18 @@
 //
 #include "dca/config/defines.hpp"
 #include "dca/util/type_utils.hpp"
+#include "dca/util/type_list.hpp"
 //
-#include "type_list.h"
-//#include "type_list_definitions.h"
-using namespace TL;
+#include <gtest/gtest.h>
+//
+using namespace dca::util;
 //
 // include function-library
 #include "include_function_library.h"
 
 #include "domains/special_domains/dmn_variadic.h"
 #include "domains/domain_type_operations.h"
-/*
-namespace TL {
-template <>
-    struct Length<dmn<1, double> > {
-        enum { value = 0 };
-    };
-};
-*/
-//
+
 //----------------------------------------------------------------------------
 bool compare_to_file(const std::string &filename, const std::string &check)
 {
@@ -128,7 +119,6 @@ struct function_test<FUNC_LIB::function<double, dmn<N, Dmn>>> {
     fType &f;
 };
 
-
 template <typename Domain>
 struct function_test<FUNC_LIB::function<double, Domain>> {
     typedef FUNC_LIB::function<double, Domain> fType;
@@ -137,7 +127,7 @@ struct function_test<FUNC_LIB::function<double, Domain>> {
     typedef Domain domainType;
 //    typedef typename Domain::this_type sub_type;
     //
-//    const int Ntypes = TL::Length<sub_type>::value;
+//    const int Ntypes = dca::util::Length<sub_type>::value;
     //
     function_test(fType &func) : f(func) {}
     //
@@ -185,37 +175,37 @@ struct function_test<FUNC_LIB::function<double, Domain>> {
         using test_list = Typelist<int*, double, float&, int, int*, int, int, const float*, const int, long long, int&>;
         using test_list2 = Typelist<float, int, int*, double*, int, int, int*, double, int, float, const int, long long, int&>;
         std::cout << "Testing Typelist Length " << mp_size<test_list>::value << std::endl;
-        std::cout << "Testing Typelist Length " << TL::Length<test_list>::value << std::endl;
+        std::cout << "Testing Typelist Length " << dca::util::Length<test_list>::value << std::endl;
 
         std::cout << "Testing Typelist NumberOf " << mp_count<test_list, int>::value << std::endl;
-        std::cout << "Testing Typelist NumberOf " << TL::NumberOf<test_list, int>::value << std::endl;
+        std::cout << "Testing Typelist NumberOf " << dca::util::NumberOf<test_list, int>::value << std::endl;
 
         std::cout << "Testing Typelist IndexOf " << mp_index_of<long long, test_list>::value << std::endl;
-        std::cout << "Testing Typelist IndexOf " << TL::IndexOf<long long, test_list>::value << std::endl;
+        std::cout << "Testing Typelist IndexOf " << dca::util::IndexOf<long long, test_list>::value << std::endl;
 
         std::cout << "Testing Typelist TypeAt " << dca::util::type_name<mp_element<9, test_list>::type>().c_str() << std::endl;
-        std::cout << "Testing Typelist TypeAt " << dca::util::type_name<TL::TypeAt<9, test_list>::type>().c_str() << std::endl;
+        std::cout << "Testing Typelist TypeAt " << dca::util::type_name<dca::util::TypeAt<9, test_list>::type>().c_str() << std::endl;
 
         std::cout << "Testing Typelist Append " << mp_size<mp_append<test_list,test_list2>::type>::value << std::endl;
-        std::cout << "Testing Typelist Append " << TL::Length<TL::Append<test_list,test_list2>::type>::value << std::endl;
+        std::cout << "Testing Typelist Append " << dca::util::Length<dca::util::Append<test_list,test_list2>::type>::value << std::endl;
         std::cout << "Testing Typelist Append/Index " << mp_index_of<const float*, mp_append<test_list,test_list2>::type>::value << std::endl;
-        std::cout << "Testing Typelist Append/Index " << TL::IndexOf<const float*, TL::Append<test_list,test_list2>::type>::value << std::endl;
+        std::cout << "Testing Typelist Append/Index " << dca::util::IndexOf<const float*, dca::util::Append<test_list,test_list2>::type>::value << std::endl;
 
         std::cout << "Testing Typelist Prepend " << mp_size<mp_prepend<test_list,test_list2>::type>::value << std::endl;
-        std::cout << "Testing Typelist Prepend " << TL::Length<TL::Prepend<test_list,test_list2>::type>::value << std::endl;
+        std::cout << "Testing Typelist Prepend " << dca::util::Length<dca::util::Prepend<test_list,test_list2>::type>::value << std::endl;
         std::cout << "Testing Typelist Prepend/Index " << mp_index_of<const float*, mp_prepend<test_list,test_list2>::type>::value << std::endl;
-        std::cout << "Testing Typelist Prepend/Index " << TL::IndexOf<const float*, TL::Prepend<test_list,test_list2>::type>::value << std::endl;
+        std::cout << "Testing Typelist Prepend/Index " << dca::util::IndexOf<const float*, dca::util::Prepend<test_list,test_list2>::type>::value << std::endl;
         std::cout << std::endl;
 
         std::cout << "Printing typelist test_domain_16v \n";
-        TL::printTL<test::test_domain_16v>::print(std::cout);
+        dca::util::print_type<test::test_domain_16v>::print(std::cout);
 
         std::cout << "Printing typelist test_list \n";
-        TL::printTL<test_list>::print(std::cout);
+        dca::util::print_type<test_list>::print(std::cout);
         std::cout << std::endl;
 
-//        std::cout << "\nTesting Typelist count " << dca::util::type_name<TL::TypeAt<2,test_list>>().c_str() << std::endl;
-//        std::cout << "\nTesting Typelist count " << dca::util::type_name<TL::TypeAt<2,test_list>>().c_str() << std::endl;
+//        std::cout << "\nTesting Typelist count " << dca::util::type_name<dca::util::TypeAt<2,test_list>>().c_str() << std::endl;
+//        std::cout << "\nTesting Typelist count " << dca::util::type_name<dca::util::TypeAt<2,test_list>>().c_str() << std::endl;
 
 //        typedef typename TypeAt<typename Domain::domain_typelist_0, 0>::Result dom_0;
 //        std::cout << "Getting first subdomain " << "Type Id is " << typeid(dom_0).name() << std::endl;
@@ -326,16 +316,16 @@ TEST(Function, to_JSON)
 {
     std::stringstream result;
     //
-    TL::printTL<test::test_domain_16::this_type>::to_JSON(std::cout);
-    TL::printTL<test::test_domain_0a::this_type>::to_JSON(result); result << "\n";
-    TL::printTL<test::test_domain_0b::this_type>::to_JSON(result); result << "\n";
-    TL::printTL<test::test_domain_0c::this_type>::to_JSON(result); result << "\n";
-    TL::printTL<test::test_domain_0d::this_type>::to_JSON(result); result << "\n";
-    TL::printTL<test::test_domain_1d::this_type>::to_JSON(result); result << "\n";
-    TL::printTL<test::test_domain_2a::this_type>::to_JSON(result); result << "\n";
-    TL::printTL<test::test_domain_2c::this_type>::to_JSON(result); result << "\n";
-    TL::printTL<test::test_domain_4a::this_type>::to_JSON(result); result << "\n";
-    TL::printTL<test::test_domain_16::this_type>::to_JSON(result); result << "\n";
+    dca::util::print_type<test::test_domain_16::this_type>::to_JSON(std::cout);
+    dca::util::print_type<test::test_domain_0a::this_type>::to_JSON(result); result << "\n";
+    dca::util::print_type<test::test_domain_0b::this_type>::to_JSON(result); result << "\n";
+    dca::util::print_type<test::test_domain_0c::this_type>::to_JSON(result); result << "\n";
+    dca::util::print_type<test::test_domain_0d::this_type>::to_JSON(result); result << "\n";
+    dca::util::print_type<test::test_domain_1d::this_type>::to_JSON(result); result << "\n";
+    dca::util::print_type<test::test_domain_2a::this_type>::to_JSON(result); result << "\n";
+    dca::util::print_type<test::test_domain_2c::this_type>::to_JSON(result); result << "\n";
+    dca::util::print_type<test::test_domain_4a::this_type>::to_JSON(result); result << "\n";
+    dca::util::print_type<test::test_domain_16::this_type>::to_JSON(result); result << "\n";
     //
     EXPECT_TRUE(compare_to_file(DCA_SOURCE_DIRECTORY "/src/comp_library/function_library/test/json.txt", result.str()));
 }

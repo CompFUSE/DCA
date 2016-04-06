@@ -6,13 +6,13 @@
  * 	 author: Peter Staar
  */
 
+#include "dca/util/type_list.hpp"
 #include "domains/special_domains/dmn_variadic.h"
 
 #ifndef DOMAIN_TYPE_OPERATIONS_H_
 #define DOMAIN_TYPE_OPERATIONS_H_
 
-namespace TL
-{
+namespace dca { namespace util {
 
     /****************************************
      ***           SWAP-COND               ***
@@ -56,7 +56,7 @@ namespace TL
     struct SWAP_COND<dmn_2< D0, D1>,  T1, T2, N> {
 
         const static int LENGTH_0 = N;
-        const static int LENGTH_1 = N + TL::NumberOf<typename D0::this_type, T1>::value;
+        const static int LENGTH_1 = N + dca::util::NumberOf<typename D0::this_type, T1>::value;
 
         typedef dmn_2<
             typename SWAP_COND<D0, T1, T2, LENGTH_0>::Result,
@@ -67,8 +67,8 @@ namespace TL
     struct SWAP_COND<dmn_3< D0, D1, D2>,  T1, T2, N> {
 
         const static int LENGTH_0 = N;
-        const static int LENGTH_1 = N + TL::NumberOf<typename D0::this_type, T1>::value;
-        const static int LENGTH_2 = N + TL::NumberOf<typename D0::this_type, T1>::value + TL::NumberOf<typename D1::this_type, T1>::value;
+        const static int LENGTH_1 = N + dca::util::NumberOf<typename D0::this_type, T1>::value;
+        const static int LENGTH_2 = N + dca::util::NumberOf<typename D0::this_type, T1>::value + dca::util::NumberOf<typename D1::this_type, T1>::value;
 
         typedef dmn_3<
             typename SWAP_COND<D0, T1, T2, LENGTH_0>::Result,
@@ -80,9 +80,9 @@ namespace TL
     struct SWAP_COND<dmn_4< D0, D1, D2, D3>,  T1, T2, N> {
 
         const static int LENGTH_0 = N;
-        const static int LENGTH_1 = N + TL::NumberOf<typename D0::this_type, T1>::value;
-        const static int LENGTH_2 = N + TL::NumberOf<typename D0::this_type, T1>::value + TL::NumberOf<typename D1::this_type, T1>::value;
-        const static int LENGTH_3 = N + TL::NumberOf<typename D0::this_type, T1>::value + TL::NumberOf<typename D1::this_type, T1>::value + TL::NumberOf<typename D2::this_type, T1>::value;
+        const static int LENGTH_1 = N + dca::util::NumberOf<typename D0::this_type, T1>::value;
+        const static int LENGTH_2 = N + dca::util::NumberOf<typename D0::this_type, T1>::value + dca::util::NumberOf<typename D1::this_type, T1>::value;
+        const static int LENGTH_3 = N + dca::util::NumberOf<typename D0::this_type, T1>::value + dca::util::NumberOf<typename D1::this_type, T1>::value + dca::util::NumberOf<typename D2::this_type, T1>::value;
 
         typedef dmn_4<
             typename SWAP_COND<D0, T1, T2, LENGTH_0>::Result,
@@ -95,10 +95,10 @@ namespace TL
     struct SWAP_COND<dmn_5< D0, D1, D2, D3, D4>,  T1, T2, N> {
 
         const static int LENGTH_0 = N;
-        const static int LENGTH_1 = N + TL::NumberOf<typename D0::this_type, T1>::value;
-        const static int LENGTH_2 = N + TL::NumberOf<typename D0::this_type, T1>::value + TL::NumberOf<typename D1::this_type, T1>::value;
-        const static int LENGTH_3 = N + TL::NumberOf<typename D0::this_type, T1>::value + TL::NumberOf<typename D1::this_type, T1>::value + TL::NumberOf<typename D2::this_type, T1>::value;
-        const static int LENGTH_4 = N + TL::NumberOf<typename D0::this_type, T1>::value + TL::NumberOf<typename D1::this_type, T1>::value + TL::NumberOf<typename D2::this_type, T1>::value + TL::NumberOf<typename D3::this_type, T1>::value;
+        const static int LENGTH_1 = N + dca::util::NumberOf<typename D0::this_type, T1>::value;
+        const static int LENGTH_2 = N + dca::util::NumberOf<typename D0::this_type, T1>::value + dca::util::NumberOf<typename D1::this_type, T1>::value;
+        const static int LENGTH_3 = N + dca::util::NumberOf<typename D0::this_type, T1>::value + dca::util::NumberOf<typename D1::this_type, T1>::value + dca::util::NumberOf<typename D2::this_type, T1>::value;
+        const static int LENGTH_4 = N + dca::util::NumberOf<typename D0::this_type, T1>::value + dca::util::NumberOf<typename D1::this_type, T1>::value + dca::util::NumberOf<typename D2::this_type, T1>::value + dca::util::NumberOf<typename D3::this_type, T1>::value;
 
         typedef dmn_5<
             typename SWAP_COND<D0, T1, T2, LENGTH_0>::Result,
@@ -112,11 +112,11 @@ namespace TL
     struct SWAP_COND<dmn_6< D0, D1, D2, D3, D4, D5>,  T1, T2, N> {
 
         const static int LENGTH_0 = N;
-        const static int LENGTH_1 = N + TL::NumberOf<typename D0::this_type, T1>::value;
-        const static int LENGTH_2 = N + TL::NumberOf<typename D0::this_type, T1>::value + TL::NumberOf<typename D1::this_type, T1>::value;
-        const static int LENGTH_3 = N + TL::NumberOf<typename D0::this_type, T1>::value + TL::NumberOf<typename D1::this_type, T1>::value + TL::NumberOf<typename D2::this_type, T1>::value;
-        const static int LENGTH_4 = N + TL::NumberOf<typename D0::this_type, T1>::value + TL::NumberOf<typename D1::this_type, T1>::value + TL::NumberOf<typename D2::this_type, T1>::value + TL::NumberOf<typename D3::this_type, T1>::value;
-        const static int LENGTH_5 = N + TL::NumberOf<typename D0::this_type, T1>::value + TL::NumberOf<typename D1::this_type, T1>::value + TL::NumberOf<typename D2::this_type, T1>::value + TL::NumberOf<typename D3::this_type, T1>::value + TL::NumberOf<typename D4::this_type, T1>::value;
+        const static int LENGTH_1 = N + dca::util::NumberOf<typename D0::this_type, T1>::value;
+        const static int LENGTH_2 = N + dca::util::NumberOf<typename D0::this_type, T1>::value + dca::util::NumberOf<typename D1::this_type, T1>::value;
+        const static int LENGTH_3 = N + dca::util::NumberOf<typename D0::this_type, T1>::value + dca::util::NumberOf<typename D1::this_type, T1>::value + dca::util::NumberOf<typename D2::this_type, T1>::value;
+        const static int LENGTH_4 = N + dca::util::NumberOf<typename D0::this_type, T1>::value + dca::util::NumberOf<typename D1::this_type, T1>::value + dca::util::NumberOf<typename D2::this_type, T1>::value + dca::util::NumberOf<typename D3::this_type, T1>::value;
+        const static int LENGTH_5 = N + dca::util::NumberOf<typename D0::this_type, T1>::value + dca::util::NumberOf<typename D1::this_type, T1>::value + dca::util::NumberOf<typename D2::this_type, T1>::value + dca::util::NumberOf<typename D3::this_type, T1>::value + dca::util::NumberOf<typename D4::this_type, T1>::value;
 
         typedef dmn_6<
             typename SWAP_COND<D0, T1, T2, LENGTH_0>::Result,
@@ -131,12 +131,12 @@ namespace TL
     struct SWAP_COND<dmn_7< D0, D1, D2, D3, D4, D5, D6>,  T1, T2, N> {
 
         const static int LENGTH_0 = N;
-        const static int LENGTH_1 = N + TL::NumberOf<typename D0::this_type, T1>::value;
-        const static int LENGTH_2 = N + TL::NumberOf<typename D0::this_type, T1>::value + TL::NumberOf<typename D1::this_type, T1>::value;
-        const static int LENGTH_3 = N + TL::NumberOf<typename D0::this_type, T1>::value + TL::NumberOf<typename D1::this_type, T1>::value + TL::NumberOf<typename D2::this_type, T1>::value;
-        const static int LENGTH_4 = N + TL::NumberOf<typename D0::this_type, T1>::value + TL::NumberOf<typename D1::this_type, T1>::value + TL::NumberOf<typename D2::this_type, T1>::value + TL::NumberOf<typename D3::this_type, T1>::value;
-        const static int LENGTH_5 = N + TL::NumberOf<typename D0::this_type, T1>::value + TL::NumberOf<typename D1::this_type, T1>::value + TL::NumberOf<typename D2::this_type, T1>::value + TL::NumberOf<typename D3::this_type, T1>::value + TL::NumberOf<typename D4::this_type, T1>::value;
-        const static int LENGTH_6 = N + TL::NumberOf<typename D0::this_type, T1>::value + TL::NumberOf<typename D1::this_type, T1>::value + TL::NumberOf<typename D2::this_type, T1>::value + TL::NumberOf<typename D3::this_type, T1>::value + TL::NumberOf<typename D4::this_type, T1>::value + TL::NumberOf<typename D5::this_type, T1>::value;
+        const static int LENGTH_1 = N + dca::util::NumberOf<typename D0::this_type, T1>::value;
+        const static int LENGTH_2 = N + dca::util::NumberOf<typename D0::this_type, T1>::value + dca::util::NumberOf<typename D1::this_type, T1>::value;
+        const static int LENGTH_3 = N + dca::util::NumberOf<typename D0::this_type, T1>::value + dca::util::NumberOf<typename D1::this_type, T1>::value + dca::util::NumberOf<typename D2::this_type, T1>::value;
+        const static int LENGTH_4 = N + dca::util::NumberOf<typename D0::this_type, T1>::value + dca::util::NumberOf<typename D1::this_type, T1>::value + dca::util::NumberOf<typename D2::this_type, T1>::value + dca::util::NumberOf<typename D3::this_type, T1>::value;
+        const static int LENGTH_5 = N + dca::util::NumberOf<typename D0::this_type, T1>::value + dca::util::NumberOf<typename D1::this_type, T1>::value + dca::util::NumberOf<typename D2::this_type, T1>::value + dca::util::NumberOf<typename D3::this_type, T1>::value + dca::util::NumberOf<typename D4::this_type, T1>::value;
+        const static int LENGTH_6 = N + dca::util::NumberOf<typename D0::this_type, T1>::value + dca::util::NumberOf<typename D1::this_type, T1>::value + dca::util::NumberOf<typename D2::this_type, T1>::value + dca::util::NumberOf<typename D3::this_type, T1>::value + dca::util::NumberOf<typename D4::this_type, T1>::value + dca::util::NumberOf<typename D5::this_type, T1>::value;
 
         typedef dmn_7<
             typename SWAP_COND<D0, T1, T2, LENGTH_0>::Result,
@@ -152,13 +152,13 @@ namespace TL
     struct SWAP_COND<dmn_8< D0, D1, D2, D3, D4, D5, D6, D7>,  T1, T2, N> {
 
         const static int LENGTH_0 = N;
-        const static int LENGTH_1 = N + TL::NumberOf<typename D0::this_type, T1>::value;
-        const static int LENGTH_2 = N + TL::NumberOf<typename D0::this_type, T1>::value + TL::NumberOf<typename D1::this_type, T1>::value;
-        const static int LENGTH_3 = N + TL::NumberOf<typename D0::this_type, T1>::value + TL::NumberOf<typename D1::this_type, T1>::value + TL::NumberOf<typename D2::this_type, T1>::value;
-        const static int LENGTH_4 = N + TL::NumberOf<typename D0::this_type, T1>::value + TL::NumberOf<typename D1::this_type, T1>::value + TL::NumberOf<typename D2::this_type, T1>::value + TL::NumberOf<typename D3::this_type, T1>::value;
-        const static int LENGTH_5 = N + TL::NumberOf<typename D0::this_type, T1>::value + TL::NumberOf<typename D1::this_type, T1>::value + TL::NumberOf<typename D2::this_type, T1>::value + TL::NumberOf<typename D3::this_type, T1>::value + TL::NumberOf<typename D4::this_type, T1>::value;
-        const static int LENGTH_6 = N + TL::NumberOf<typename D0::this_type, T1>::value + TL::NumberOf<typename D1::this_type, T1>::value + TL::NumberOf<typename D2::this_type, T1>::value + TL::NumberOf<typename D3::this_type, T1>::value + TL::NumberOf<typename D4::this_type, T1>::value + TL::NumberOf<typename D5::this_type, T1>::value;
-        const static int LENGTH_7 = N + TL::NumberOf<typename D0::this_type, T1>::value + TL::NumberOf<typename D1::this_type, T1>::value + TL::NumberOf<typename D2::this_type, T1>::value + TL::NumberOf<typename D3::this_type, T1>::value + TL::NumberOf<typename D4::this_type, T1>::value + TL::NumberOf<typename D5::this_type, T1>::value + TL::NumberOf<typename D6::this_type, T1>::value;
+        const static int LENGTH_1 = N + dca::util::NumberOf<typename D0::this_type, T1>::value;
+        const static int LENGTH_2 = N + dca::util::NumberOf<typename D0::this_type, T1>::value + dca::util::NumberOf<typename D1::this_type, T1>::value;
+        const static int LENGTH_3 = N + dca::util::NumberOf<typename D0::this_type, T1>::value + dca::util::NumberOf<typename D1::this_type, T1>::value + dca::util::NumberOf<typename D2::this_type, T1>::value;
+        const static int LENGTH_4 = N + dca::util::NumberOf<typename D0::this_type, T1>::value + dca::util::NumberOf<typename D1::this_type, T1>::value + dca::util::NumberOf<typename D2::this_type, T1>::value + dca::util::NumberOf<typename D3::this_type, T1>::value;
+        const static int LENGTH_5 = N + dca::util::NumberOf<typename D0::this_type, T1>::value + dca::util::NumberOf<typename D1::this_type, T1>::value + dca::util::NumberOf<typename D2::this_type, T1>::value + dca::util::NumberOf<typename D3::this_type, T1>::value + dca::util::NumberOf<typename D4::this_type, T1>::value;
+        const static int LENGTH_6 = N + dca::util::NumberOf<typename D0::this_type, T1>::value + dca::util::NumberOf<typename D1::this_type, T1>::value + dca::util::NumberOf<typename D2::this_type, T1>::value + dca::util::NumberOf<typename D3::this_type, T1>::value + dca::util::NumberOf<typename D4::this_type, T1>::value + dca::util::NumberOf<typename D5::this_type, T1>::value;
+        const static int LENGTH_7 = N + dca::util::NumberOf<typename D0::this_type, T1>::value + dca::util::NumberOf<typename D1::this_type, T1>::value + dca::util::NumberOf<typename D2::this_type, T1>::value + dca::util::NumberOf<typename D3::this_type, T1>::value + dca::util::NumberOf<typename D4::this_type, T1>::value + dca::util::NumberOf<typename D5::this_type, T1>::value + dca::util::NumberOf<typename D6::this_type, T1>::value;
 
         typedef dmn_8<
             typename SWAP_COND<D0, T1, T2, LENGTH_0>::Result,
@@ -175,14 +175,14 @@ namespace TL
     struct SWAP_COND<dmn_9< D0, D1, D2, D3, D4, D5, D6, D7, D8>,  T1, T2, N> {
 
         const static int LENGTH_0 = N;
-        const static int LENGTH_1 = N + TL::NumberOf<typename D0::this_type, T1>::value;
-        const static int LENGTH_2 = N + TL::NumberOf<typename D0::this_type, T1>::value + TL::NumberOf<typename D1::this_type, T1>::value;
-        const static int LENGTH_3 = N + TL::NumberOf<typename D0::this_type, T1>::value + TL::NumberOf<typename D1::this_type, T1>::value + TL::NumberOf<typename D2::this_type, T1>::value;
-        const static int LENGTH_4 = N + TL::NumberOf<typename D0::this_type, T1>::value + TL::NumberOf<typename D1::this_type, T1>::value + TL::NumberOf<typename D2::this_type, T1>::value + TL::NumberOf<typename D3::this_type, T1>::value;
-        const static int LENGTH_5 = N + TL::NumberOf<typename D0::this_type, T1>::value + TL::NumberOf<typename D1::this_type, T1>::value + TL::NumberOf<typename D2::this_type, T1>::value + TL::NumberOf<typename D3::this_type, T1>::value + TL::NumberOf<typename D4::this_type, T1>::value;
-        const static int LENGTH_6 = N + TL::NumberOf<typename D0::this_type, T1>::value + TL::NumberOf<typename D1::this_type, T1>::value + TL::NumberOf<typename D2::this_type, T1>::value + TL::NumberOf<typename D3::this_type, T1>::value + TL::NumberOf<typename D4::this_type, T1>::value + TL::NumberOf<typename D5::this_type, T1>::value;
-        const static int LENGTH_7 = N + TL::NumberOf<typename D0::this_type, T1>::value + TL::NumberOf<typename D1::this_type, T1>::value + TL::NumberOf<typename D2::this_type, T1>::value + TL::NumberOf<typename D3::this_type, T1>::value + TL::NumberOf<typename D4::this_type, T1>::value + TL::NumberOf<typename D5::this_type, T1>::value + TL::NumberOf<typename D6::this_type, T1>::value;
-        const static int LENGTH_8 = N + TL::NumberOf<typename D0::this_type, T1>::value + TL::NumberOf<typename D1::this_type, T1>::value + TL::NumberOf<typename D2::this_type, T1>::value + TL::NumberOf<typename D3::this_type, T1>::value + TL::NumberOf<typename D4::this_type, T1>::value + TL::NumberOf<typename D5::this_type, T1>::value + TL::NumberOf<typename D6::this_type, T1>::value + TL::NumberOf<typename D7::this_type, T1>::value;
+        const static int LENGTH_1 = N + dca::util::NumberOf<typename D0::this_type, T1>::value;
+        const static int LENGTH_2 = N + dca::util::NumberOf<typename D0::this_type, T1>::value + dca::util::NumberOf<typename D1::this_type, T1>::value;
+        const static int LENGTH_3 = N + dca::util::NumberOf<typename D0::this_type, T1>::value + dca::util::NumberOf<typename D1::this_type, T1>::value + dca::util::NumberOf<typename D2::this_type, T1>::value;
+        const static int LENGTH_4 = N + dca::util::NumberOf<typename D0::this_type, T1>::value + dca::util::NumberOf<typename D1::this_type, T1>::value + dca::util::NumberOf<typename D2::this_type, T1>::value + dca::util::NumberOf<typename D3::this_type, T1>::value;
+        const static int LENGTH_5 = N + dca::util::NumberOf<typename D0::this_type, T1>::value + dca::util::NumberOf<typename D1::this_type, T1>::value + dca::util::NumberOf<typename D2::this_type, T1>::value + dca::util::NumberOf<typename D3::this_type, T1>::value + dca::util::NumberOf<typename D4::this_type, T1>::value;
+        const static int LENGTH_6 = N + dca::util::NumberOf<typename D0::this_type, T1>::value + dca::util::NumberOf<typename D1::this_type, T1>::value + dca::util::NumberOf<typename D2::this_type, T1>::value + dca::util::NumberOf<typename D3::this_type, T1>::value + dca::util::NumberOf<typename D4::this_type, T1>::value + dca::util::NumberOf<typename D5::this_type, T1>::value;
+        const static int LENGTH_7 = N + dca::util::NumberOf<typename D0::this_type, T1>::value + dca::util::NumberOf<typename D1::this_type, T1>::value + dca::util::NumberOf<typename D2::this_type, T1>::value + dca::util::NumberOf<typename D3::this_type, T1>::value + dca::util::NumberOf<typename D4::this_type, T1>::value + dca::util::NumberOf<typename D5::this_type, T1>::value + dca::util::NumberOf<typename D6::this_type, T1>::value;
+        const static int LENGTH_8 = N + dca::util::NumberOf<typename D0::this_type, T1>::value + dca::util::NumberOf<typename D1::this_type, T1>::value + dca::util::NumberOf<typename D2::this_type, T1>::value + dca::util::NumberOf<typename D3::this_type, T1>::value + dca::util::NumberOf<typename D4::this_type, T1>::value + dca::util::NumberOf<typename D5::this_type, T1>::value + dca::util::NumberOf<typename D6::this_type, T1>::value + dca::util::NumberOf<typename D7::this_type, T1>::value;
 
         typedef dmn_9<
             typename SWAP_COND<D0, T1, T2, LENGTH_0>::Result,
@@ -325,6 +325,7 @@ namespace TL
             typename SWAP_ALL<D7,T1,T2>::Result,
             typename SWAP_ALL<D8,T1,T2>::Result   > Result;
     };
-}
+} // namespace util
+} //namespace dca
 
 #endif

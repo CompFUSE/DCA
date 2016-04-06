@@ -20,10 +20,10 @@
 template<typename dmn_type, typename type_input, typename type_output>
 struct wannier_interpolation_domain_type
 {
-//   typedef typename TL::Swap<dmn_type,type_input,type_output>::Result Result;
+//   typedef typename dca::util::Swap<dmn_type,type_input,type_output>::Result Result;
 
   typedef typename dmn_type::this_type dmn_type_list;
-  typedef typename TL::Swap<dmn_type_list,type_input,type_output>::type Result;
+  typedef typename dca::util::Swap<dmn_type_list,type_input,type_output>::type Result;
 };
 
 /*! \class   wannier_interpolation_kernel

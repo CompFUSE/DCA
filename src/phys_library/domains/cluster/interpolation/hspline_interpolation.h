@@ -16,7 +16,7 @@ template<typename dmn_type, typename type_input, typename type_output>
 struct hspline_interpolation_domain_type
 {
   typedef typename dmn_type::this_type dmn_type_list;
-  typedef typename TL::Swap<dmn_type_list,type_input,type_output>::type Result;
+  typedef typename dca::util::Swap<dmn_type_list,type_input,type_output>::type Result;
 };
 
 /*! \class   hspline_interpolation_kernel

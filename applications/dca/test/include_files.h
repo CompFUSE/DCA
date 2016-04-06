@@ -1,6 +1,7 @@
 // File: include_files.h
 
 // Utilities library
+#include <dca/util/type_list.hpp>
 #include <cstdlib>
 #include <typeinfo>
 #include <ctime>
@@ -56,8 +57,7 @@
 
 
 // typelist-operations
-#include "type_list.h"
-using namespace TL;
+using namespace dca::util;
 
 // enumerations
 #include "enumerations.hpp"

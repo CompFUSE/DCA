@@ -14,7 +14,7 @@
 #ifndef DMN_0_H
 #define DMN_0_H
 
-#include "comp_library/type_list/type_list.h"
+#include <dca/util/type_list.hpp>
 #include "domains/domain.h"
 
 template<typename parameters>
@@ -22,7 +22,7 @@ class dmn_0 : public domain
 {
 public:
 
-  typedef Typelist<parameters>            this_type;
+  typedef dca::util::Typelist<parameters>            this_type;
 
   typedef          parameters               parameter_type;
   typedef typename parameters::element_type element_type;

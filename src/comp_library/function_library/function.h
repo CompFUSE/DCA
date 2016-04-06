@@ -3,6 +3,7 @@
 #ifndef FUNCTION_H
 #define FUNCTION_H
 
+#include <dca/util/type_utils.hpp>
 #include "scalar_cast_methods.h"
 #include "function_operations/set_to_zero.h"
 #include "function_operations/copy_from.h"
@@ -627,7 +628,7 @@ namespace FUNC_LIB
 
         stream << "# subdomains        : " << Nb_sbdms << std::endl;
 
-        printTL<domain>::print(stream);
+        dca::util::print_type<domain>::print(stream);
 
         stream << "size of subdomains  : " << std::endl;
         for(int i=0; i<Nb_sbdms; i++)
