@@ -32,6 +32,9 @@ class dmn_variadic: public domain {
 public:
     typedef typename mp_append< typename domain_list::this_type... >::type this_type;
 
+    template <int Index>
+    using domain_typelist = typename std::tuple_element<Index, std::tuple<typename domain_list::this_type...> >::type;
+
     /// constructor, responsible for initializing all domain indexing arrays
     dmn_variadic();
 
