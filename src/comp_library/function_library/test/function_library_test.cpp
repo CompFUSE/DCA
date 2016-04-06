@@ -98,17 +98,6 @@ namespace test {
 };
 
 //----------------------------------------------------------------------------
-template <typename T>
-struct dummy {
-    dummy(T& t) : Object(t) {}
-    //
-    template <typename Arg>
-    void operator()(Arg arg) {
-        Object.operator()(arg);
-    }
-    T & Object;
-};
-
 template <typename T1> struct function_test {};
 
 template <int N, typename Dmn>
@@ -139,17 +128,6 @@ struct function_test<FUNC_LIB::function<double, dmn<N, Dmn>>> {
     fType &f;
 };
 
-/*
-template <typename T>
-struct print_typelist;
-
-template <>
-struct print_typelist<typename Ts...> {
-  void print() {
-      std::cout << dca::util::type_name<TL::TypeAt<0,Ts>>().c_str() << ",";
-  }
-};
-*/
 
 template <typename Domain>
 struct function_test<FUNC_LIB::function<double, Domain>> {
@@ -330,8 +308,6 @@ TEST(Function, FillDomain)
 TEST(Function, FingerPrint)
 {
     std::stringstream result;
-//    auto &result = std::cout;
-
     //
     test::function_0a.print_fingerprint(result);
     test::function_0b.print_fingerprint(result);
@@ -342,7 +318,7 @@ TEST(Function, FingerPrint)
     test::function_4a.print_fingerprint(result);
     test::function_16.print_fingerprint(result);
     //
-//    EXPECT_TRUE(compare_to_file(DCA_SOURCE_DIRECTORY "/src/comp_library/function_library/test/baseline.txt", result.str()));
+    EXPECT_TRUE(compare_to_file(DCA_SOURCE_DIRECTORY "/src/comp_library/function_library/test/fingerprint.txt", result.str()));
 }
 
 //----------------------------------------------------------------------------
@@ -351,17 +327,17 @@ TEST(Function, to_JSON)
     std::stringstream result;
     //
     TL::printTL<test::test_domain_16::this_type>::to_JSON(std::cout);
-/*
-    test::function_0a.print_fingerprint(result);
-    test::function_0b.print_fingerprint(result);
-    test::function_0c.print_fingerprint(result);
-    test::function_0d.print_fingerprint(result);
-    test::function_1d.print_fingerprint(result);
-    test::function_2a.print_fingerprint(result);
-    test::function_4a.print_fingerprint(result);
-    test::function_16.print_fingerprint(result);
-*/    //
-//    EXPECT_TRUE(compare_to_file(DCA_SOURCE_DIRECTORY "/src/comp_library/function_library/test/baseline.txt", result.str()));
+    TL::printTL<test::test_domain_0a::this_type>::to_JSON(result); result << "\n";
+    TL::printTL<test::test_domain_0b::this_type>::to_JSON(result); result << "\n";
+    TL::printTL<test::test_domain_0c::this_type>::to_JSON(result); result << "\n";
+    TL::printTL<test::test_domain_0d::this_type>::to_JSON(result); result << "\n";
+    TL::printTL<test::test_domain_1d::this_type>::to_JSON(result); result << "\n";
+    TL::printTL<test::test_domain_2a::this_type>::to_JSON(result); result << "\n";
+    TL::printTL<test::test_domain_2c::this_type>::to_JSON(result); result << "\n";
+    TL::printTL<test::test_domain_4a::this_type>::to_JSON(result); result << "\n";
+    TL::printTL<test::test_domain_16::this_type>::to_JSON(result); result << "\n";
+    //
+    EXPECT_TRUE(compare_to_file(DCA_SOURCE_DIRECTORY "/src/comp_library/function_library/test/json.txt", result.str()));
 }
 
 //----------------------------------------------------------------------------

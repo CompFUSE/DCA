@@ -1,32 +1,32 @@
-"static void TL::print_type<dmn<1, double> >::to_JSON(stream_type &) [Head = dmn<1, double>, stream_type = std::__1::basic_stringstream<char, std::__1::char_traits<char>, std::__1::allocator<char> >]"
+"static void TL::print_type<dmn<1, double> >::to_JSON(stream_type &) [Head = dmn<1, double>, stream_type = std::__1::basic_ostream<char>]"
 
-"static void TL::print_type<dmn<2, double> >::to_JSON(stream_type &) [Head = dmn<2, double>, stream_type = std::__1::basic_stringstream<char, std::__1::char_traits<char>, std::__1::allocator<char> >]"
+"static void TL::print_type<dmn<2, double> >::to_JSON(stream_type &) [Head = dmn<2, double>, stream_type = std::__1::basic_ostream<char>]"
 
-"static void TL::print_type<dmn<4, double> >::to_JSON(stream_type &) [Head = dmn<4, double>, stream_type = std::__1::basic_stringstream<char, std::__1::char_traits<char>, std::__1::allocator<char> >]"
+"static void TL::print_type<dmn<4, double> >::to_JSON(stream_type &) [Head = dmn<4, double>, stream_type = std::__1::basic_ostream<char>]"
 
-"static void TL::print_type<dmn<8, double> >::to_JSON(stream_type &) [Head = dmn<8, double>, stream_type = std::__1::basic_stringstream<char, std::__1::char_traits<char>, std::__1::allocator<char> >]"
+"static void TL::print_type<dmn<8, double> >::to_JSON(stream_type &) [Head = dmn<8, double>, stream_type = std::__1::basic_ostream<char>]"
 
-"static void TL::print_type<dmn<8, double> >::to_JSON(stream_type &) [Head = dmn<8, double>, stream_type = std::__1::basic_stringstream<char, std::__1::char_traits<char>, std::__1::allocator<char> >]"
+"static void TL::print_type<dmn<8, double> >::to_JSON(stream_type &) [Head = dmn<8, double>, stream_type = std::__1::basic_ostream<char>]"
 
-"static void TL::print_type<dmn<1, double> >::to_JSON(stream_type &) [Head = dmn<1, double>, stream_type = std::__1::basic_stringstream<char, std::__1::char_traits<char>, std::__1::allocator<char> >]",
-"static void TL::print_type<dmn<2, double> >::to_JSON(stream_type &) [Head = dmn<2, double>, stream_type = std::__1::basic_stringstream<char, std::__1::char_traits<char>, std::__1::allocator<char> >]"
+"static void TL::print_type<dmn<1, double> >::to_JSON(stream_type &) [Head = dmn<1, double>, stream_type = std::__1::basic_ostream<char>]",
+"static void TL::print_type<dmn<2, double> >::to_JSON(stream_type &) [Head = dmn<2, double>, stream_type = std::__1::basic_ostream<char>]"
 
-"static void TL::print_type<dmn<4, double> >::to_JSON(stream_type &) [Head = dmn<4, double>, stream_type = std::__1::basic_stringstream<char, std::__1::char_traits<char>, std::__1::allocator<char> >]",
-"static void TL::print_type<dmn<8, double> >::to_JSON(stream_type &) [Head = dmn<8, double>, stream_type = std::__1::basic_stringstream<char, std::__1::char_traits<char>, std::__1::allocator<char> >]"
+"static void TL::print_type<dmn<4, double> >::to_JSON(stream_type &) [Head = dmn<4, double>, stream_type = std::__1::basic_ostream<char>]",
+"static void TL::print_type<dmn<8, double> >::to_JSON(stream_type &) [Head = dmn<8, double>, stream_type = std::__1::basic_ostream<char>]"
 
-"static void TL::print_type<dmn<1, double> >::to_JSON(stream_type &) [Head = dmn<1, double>, stream_type = std::__1::basic_stringstream<char, std::__1::char_traits<char>, std::__1::allocator<char> >]",
-"static void TL::print_type<dmn<2, double> >::to_JSON(stream_type &) [Head = dmn<2, double>, stream_type = std::__1::basic_stringstream<char, std::__1::char_traits<char>, std::__1::allocator<char> >]",
-"static void TL::print_type<dmn<4, double> >::to_JSON(stream_type &) [Head = dmn<4, double>, stream_type = std::__1::basic_stringstream<char, std::__1::char_traits<char>, std::__1::allocator<char> >]",
-"static void TL::print_type<dmn<8, double> >::to_JSON(stream_type &) [Head = dmn<8, double>, stream_type = std::__1::basic_stringstream<char, std::__1::char_traits<char>, std::__1::allocator<char> >]"
+"static void TL::print_type<dmn<1, double> >::to_JSON(stream_type &) [Head = dmn<1, double>, stream_type = std::__1::basic_ostream<char>]",
+"static void TL::print_type<dmn<2, double> >::to_JSON(stream_type &) [Head = dmn<2, double>, stream_type = std::__1::basic_ostream<char>]",
+"static void TL::print_type<dmn<4, double> >::to_JSON(stream_type &) [Head = dmn<4, double>, stream_type = std::__1::basic_ostream<char>]",
+"static void TL::print_type<dmn<8, double> >::to_JSON(stream_type &) [Head = dmn<8, double>, stream_type = std::__1::basic_ostream<char>]"
 
-"static void TL::print_type<dmn<1, double> >::to_JSON(stream_type &) [Head = dmn<1, double>, stream_type = std::__1::basic_stringstream<char, std::__1::char_traits<char>, std::__1::allocator<char> >]",
-"static void TL::print_type<dmn<2, double> >::to_JSON(stream_type &) [Head = dmn<2, double>, stream_type = std::__1::basic_stringstream<char, std::__1::char_traits<char>, std::__1::allocator<char> >]",
-"static void TL::print_type<dmn<4, double> >::to_JSON(stream_type &) [Head = dmn<4, double>, stream_type = std::__1::basic_stringstream<char, std::__1::char_traits<char>, std::__1::allocator<char> >]",
-"static void TL::print_type<dmn<8, double> >::to_JSON(stream_type &) [Head = dmn<8, double>, stream_type = std::__1::basic_stringstream<char, std::__1::char_traits<char>, std::__1::allocator<char> >]",
-"static void TL::print_type<dmn<1, double> >::to_JSON(stream_type &) [Head = dmn<1, double>, stream_type = std::__1::basic_stringstream<char, std::__1::char_traits<char>, std::__1::allocator<char> >]",
-"static void TL::print_type<dmn<2, double> >::to_JSON(stream_type &) [Head = dmn<2, double>, stream_type = std::__1::basic_stringstream<char, std::__1::char_traits<char>, std::__1::allocator<char> >]",
-"static void TL::print_type<dmn<4, double> >::to_JSON(stream_type &) [Head = dmn<4, double>, stream_type = std::__1::basic_stringstream<char, std::__1::char_traits<char>, std::__1::allocator<char> >]",
-"static void TL::print_type<dmn<8, double> >::to_JSON(stream_type &) [Head = dmn<8, double>, stream_type = std::__1::basic_stringstream<char, std::__1::char_traits<char>, std::__1::allocator<char> >]",
-"static void TL::print_type<dmn<4, double> >::to_JSON(stream_type &) [Head = dmn<4, double>, stream_type = std::__1::basic_stringstream<char, std::__1::char_traits<char>, std::__1::allocator<char> >]",
-"static void TL::print_type<dmn<8, double> >::to_JSON(stream_type &) [Head = dmn<8, double>, stream_type = std::__1::basic_stringstream<char, std::__1::char_traits<char>, std::__1::allocator<char> >]"
+"static void TL::print_type<dmn<1, double> >::to_JSON(stream_type &) [Head = dmn<1, double>, stream_type = std::__1::basic_ostream<char>]",
+"static void TL::print_type<dmn<2, double> >::to_JSON(stream_type &) [Head = dmn<2, double>, stream_type = std::__1::basic_ostream<char>]",
+"static void TL::print_type<dmn<4, double> >::to_JSON(stream_type &) [Head = dmn<4, double>, stream_type = std::__1::basic_ostream<char>]",
+"static void TL::print_type<dmn<8, double> >::to_JSON(stream_type &) [Head = dmn<8, double>, stream_type = std::__1::basic_ostream<char>]",
+"static void TL::print_type<dmn<1, double> >::to_JSON(stream_type &) [Head = dmn<1, double>, stream_type = std::__1::basic_ostream<char>]",
+"static void TL::print_type<dmn<2, double> >::to_JSON(stream_type &) [Head = dmn<2, double>, stream_type = std::__1::basic_ostream<char>]",
+"static void TL::print_type<dmn<4, double> >::to_JSON(stream_type &) [Head = dmn<4, double>, stream_type = std::__1::basic_ostream<char>]",
+"static void TL::print_type<dmn<8, double> >::to_JSON(stream_type &) [Head = dmn<8, double>, stream_type = std::__1::basic_ostream<char>]",
+"static void TL::print_type<dmn<4, double> >::to_JSON(stream_type &) [Head = dmn<4, double>, stream_type = std::__1::basic_ostream<char>]",
+"static void TL::print_type<dmn<8, double> >::to_JSON(stream_type &) [Head = dmn<8, double>, stream_type = std::__1::basic_ostream<char>]"
 

@@ -379,7 +379,7 @@ namespace TL
         // so expand the pack as a parameter list, and drop dummy return values
         // use func(),0 because func() returns void
         static void print(std::ostream &s) {
-            ignore_returnvalues((printTL<Domains>::print(std::cout),0)...);
+            ignore_returnvalues((printTL<Domains>::print(s),0)...);
         }
     };
 
@@ -393,6 +393,7 @@ namespace TL
         // so expand the pack as a parameter list, and drop dummy return values
         // use func(),0 because func() returns void
         static void print(std::ostream &s) {
+            printTL<Domain>::print(s);
             ignore_returnvalues((printTL<Domains>::print(s),0)...);
         }
 
@@ -400,14 +401,14 @@ namespace TL
             s << "\"";
             print_type<Domain>::to_JSON(s);
             if (sizeof...(Domains)==0) {
-            s << "\"\n";
+                s << "\"\n";
+            }
+            else {
+                s << "\",\n";
+                printTL<Typelist<Domains...>>::to_JSON(s);
+            }
         }
-        else {
-            s << "\",\n";
-            printTL<Typelist<Domains...>>::to_JSON(s);
-        }
-    }
-};
+    };
 }
 
 #endif
