@@ -1,6 +1,6 @@
 //-*-C++-*-
 
-/*! 
+/*!
  *  \class dmn_0
  *  \ingroup FUNCTION
  *
@@ -18,12 +18,12 @@ template<typename parameters>
 class dmn_0 : public domain
 {
 public:
-  
-  typedef TYPELIST_1(parameters)            this_type;
-  
+
+  typedef Typelist<parameters>            this_type;
+
   typedef          parameters               parameter_type;
   typedef typename parameters::element_type element_type;
-  
+
 public:
 
   dmn_0();
@@ -89,4 +89,4 @@ void dmn_0<parameters>::print_2_file(const char* filename)
   parameters::print_2_file(filename);
 }
 
-#endif 
+#endif

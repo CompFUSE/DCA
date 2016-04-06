@@ -114,6 +114,12 @@ using mp_count = typename mp_count_impl<L, V>::type;
 template<typename T, typename ...TL>
 struct mp_append;
 
+template<typename ...Ts>
+struct mp_append<mp_list<Ts...>>
+{
+    typedef mp_list<Ts...> type;
+};
+
 template<typename T, typename ...Ts>
 struct mp_append<mp_list<Ts...>, T>
 {
@@ -124,6 +130,14 @@ template<typename ...Ts1, typename ...Ts2>
 struct mp_append<mp_list<Ts1...>, mp_list<Ts2...>>
 {
     typedef mp_list<Ts1..., Ts2...> type;
+};
+
+template <typename ...Ts1,
+          typename ...Ts2,
+          typename ...Ts>
+struct mp_append<mp_list<Ts1...>, mp_list<Ts2...>, Ts...>
+{
+     typedef typename mp_append<mp_list<Ts1..., Ts2...>, Ts...>::type type;
 };
 
 //----------------------------------------------------------------------------

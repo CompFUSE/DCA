@@ -21,7 +21,7 @@
 //
 #include "domain.h"
 #include "type_list.h"
-#include "type_list_definitions.h"
+
 
 //----------------------------------------------------------------------------
 // Variadic domain class with a list of sub-domains
@@ -30,9 +30,7 @@ template<typename... domain_list>
 class dmn_variadic: public domain {
 
 public:
-
-//    typedef typename Append<domain_typelist_0,
-//        typename Append<domain_typelist_1, domain_typelist_2>::Result>::Result this_type;
+    typedef typename mp_append< typename domain_list::this_type... >::type this_type;
 
     /// constructor, responsible for initializing all domain indexing arrays
     dmn_variadic();
@@ -79,14 +77,6 @@ protected:
 protected:
     std::tuple<domain_list...> domains;
 };
-
-//----------------------------------------------------------------------------
-// utility function : takes a variadic list or arguments and returns nothing.
-// It is used to convert a variadic pack expansion into a function so that
-// arbitrary functions can be called with a pack expansion and drop the results.
-//----------------------------------------------------------------------------
-template<typename...Ts>
-void ignore_returnvalues(Ts&&...) {}
 
 //----------------------------------------------------------------------------
 // Get the branch domain sizes for each of the domain template arguments
@@ -176,14 +166,14 @@ T sum(T v) {
 
 template<typename T, typename... Args>
 T sum(T first, Args... args) {
-  return first + adder(args...);
+  return first + sum(args...);
 }
 
 
 template <typename ...Args, std::size_t ... Is>
-int multiply_offsets(const std::vector<int> &multipliers, Args &&... offsets, std::index_sequence<Is...>)
+int multiply_offsets(const std::vector<int> &multipliers, std::index_sequence<Is...>, Args &&... offsets)
 {
-    return sum((offsets*std::get<Is>(multipliers))...);
+    return sum((offsets*(multipliers[Is]))...);
 }
 //----------------------------------------------------------------------------
 // Constructor implementation
@@ -261,9 +251,9 @@ void dmn_variadic<domain_list...>::reset()
 template<typename... domain_list>
 template <typename ...Args>
 int dmn_variadic<domain_list...>::operator()(Args&&... args) {
-    static_assert( sizeof...(Args) < sizeof...(domain_list), "not enough args");
+    static_assert( sizeof...(Args) >= sizeof...(domain_list), "not enough args");
     return index_lookup(
-        std::integral_constant<bool, (sizeof...(Args) == sizeof...(domain_list))>::type,
+        std::integral_constant<bool, (sizeof...(Args) == sizeof...(domain_list))>(),
         std::forward<Args>(args)...
     );
 }
@@ -286,8 +276,9 @@ int dmn_variadic<domain_list...>::index_lookup(
 
     // create an index sequence starting from 1, with length sizeof...(args)-1
     auto seq = make_index_sequence_with_offset<1, sizeof...(Args)>();
+return 0;
 
-    int N = multiply_offsets(branch_domain_steps, std::forward<Args...>(branch_indices)..., indices);
+//    int N = multiply_offsets(branch_domain_steps, seq, std::forward<Args>(branch_indices)...);
 /*
     return branch_i0 + sum( * branch_indices)...;
 
@@ -321,6 +312,7 @@ int dmn_variadic<domain_list...>::index_lookup(
     std::integral_constant<bool, false>::type,
     int leaf_i0, Args... leaf_indices)
 {
+
     std::cout << "Subdomain overload " << std::endl;
 /*
     assert(leaf_domain_sizes.size() == 4);
@@ -334,6 +326,7 @@ int dmn_variadic<domain_list...>::index_lookup(
         + leaf_domain_steps[2] * sbdmn_i2
         + leaf_domain_steps[3] * sbdmn_i3;
 */
+    return 0;
 }
 
 #endif

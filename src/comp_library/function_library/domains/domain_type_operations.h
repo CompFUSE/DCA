@@ -361,7 +361,7 @@ namespace TL
         static void print() {
             print(std::cout);
         }
-        // we can't expand a pack uot without passing it as a parameter
+        // we can't expand a pack out without passing it as a parameter
         // so expand the pack as a parameter list, and drop dummy return values
         // use func(),0 because func() returns void
         static void print(std::ostream &s) {
