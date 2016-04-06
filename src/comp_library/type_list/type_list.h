@@ -9,15 +9,6 @@ template<typename ... domain_list>
 class dmn_variadic;
 
 //----------------------------------------------------------------------------
-template<typename T1, typename T2>
-struct assert_same
-{
-    assert_same() {
-        static_assert(std::is_same<T1, T2>::value, "Types must be equal");
-    }
-    static_assert(std::is_same<T1, T2>::value, "Types must be equal");
-};
-//----------------------------------------------------------------------------
 class NullType {
 };
 

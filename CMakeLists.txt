@@ -25,8 +25,15 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 ########################################
 include(DCA_macros)
 dca_add_config_define(DCA_SOURCE_DIRECTORY \"${PROJECT_SOURCE_DIR}\")
+
+########################################
+# include dirs
+########################################
 # include the binary dir for generated "dca/config/defines.hpp"
 include_directories(${PROJECT_BINARY_DIR})
+
+# include the root offset for "dca/.../.../" #includes
+include_directories(${PROJECT_SOURCE_DIR})
 
 # Modules
 add_subdirectory(modules)

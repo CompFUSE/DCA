@@ -1,3 +1,6 @@
+#ifndef __DCA_UTILS_TYPE_UTILS_HPP_
+#define __DCA_UTILS_TYPE_UTILS_HPP_
+
 #include <type_traits>
 #include <typeinfo>
 #ifndef _MSC_VER
@@ -9,10 +12,24 @@
 
 namespace dca { namespace util {
 
-    ///
+    //----------------------------------------------------------------------------
+    /// an assertion is thrown if the two types do not match
+    /// extends std::is_same<> by forcing the compiler to print the types in
+    /// the error message which helps with debugging
+    //----------------------------------------------------------------------------
+    template<typename T1, typename T2>
+    struct assert_same
+    {
+        assert_same() {
+            static_assert(std::is_same<T1, T2>::value, "Types must be equal");
+        }
+        static_assert(std::is_same<T1, T2>::value, "Types must be equal");
+    };
+
+    //----------------------------------------------------------------------------
     /// print a type cleanly if possible
     /// StackOverflow http://stackoverflow.com/questions/81870/is-it-possible-to-print-a-variables-type-in-standard-c
-    ///
+    //----------------------------------------------------------------------------
     template<class T>
     std::string type_name()
     {
@@ -41,3 +58,4 @@ namespace dca { namespace util {
 
 } // namespace util
 } //namespace dca
+#endif

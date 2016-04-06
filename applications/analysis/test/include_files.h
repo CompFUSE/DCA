@@ -59,9 +59,6 @@ const static bool DO_NFFT = true;
 #include "static_functions.h"
 #include "include_symmetry_library.h"
 
-// include generic-algorithms
-#include "include_generic_methods.h"
-
 // include function-library
 #include "include_function_library.h"
 

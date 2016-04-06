@@ -3,6 +3,8 @@
 #ifndef WANNIER_INTERPOLATION_H
 #define WANNIER_INTERPOLATION_H
 
+#include <dca/util/type_utils.hpp>
+
 /*!
  *  \defgroup INTERPOLATION
  *  \ingroup  ALGORITHMS
@@ -152,12 +154,12 @@ void wannier_interpolation<source_dmn_type, target_dmn_type>::execute(FUNC_LIB::
 //   GENERIC_ASSERT< IS_EQUAL_TYPE<domain_output, wannier_interpolation_domain>::check >::execute();
 
   typedef typename domain_output::this_type domain_output_list_type;
-  GENERIC_ASSERT< IS_EQUAL_TYPE<domain_output_list_type, wannier_interpolation_domain>::check >::execute();
+  dca::util::assert_same<domain_output_list_type, wannier_interpolation_domain>();
 
   typedef typename domain_input::this_type type_list_input;
   typedef typename domain_output::this_type type_list_output;
 
-  GENERIC_ASSERT< (IndexOf<source_dmn_type, type_list_input>::value > -1) >::execute();
+  static_assert(IndexOf<source_dmn_type, type_list_input>::value > -1, "Type list error");
 
   wannier_interpolation_generic<type_list_input,
     type_list_output,
