@@ -13,6 +13,8 @@
 #include <iostream>
 #include <cmath>
 
+#include "lattice_types.hpp"
+#include "model_type.hpp"
 #include "gitVersion.hpp"
 #include "modules.hpp"
 #include "include_files.h"

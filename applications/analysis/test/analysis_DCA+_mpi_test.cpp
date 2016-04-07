@@ -10,6 +10,9 @@
 #include <iostream>
 #include <complex>
 
+#include "model_type.hpp"
+#include "lattice_types.hpp"
+
 #include "gitVersion.hpp"
 #include "modules.hpp"
 #include "include_files.h"

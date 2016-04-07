@@ -10,7 +10,7 @@ file(COPY check_data.analysis_DCA+_mpi_test.hdf5
   DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 
-set(TEST_INCLUDES  "${PROJECT_SOURCE_DIR}/applications;${CMAKE_CURRENT_SOURCE_DIR};${DCA_INCLUDES}") #use default types for test
+set(TEST_INCLUDES  "${CMAKE_CURRENT_SOURCE_DIR};${DCA_INCLUDES}")
 
 add_gtest(NAME analysis_DCA+_mpi_test
   ADVANCED

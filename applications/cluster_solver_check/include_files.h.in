@@ -2,6 +2,10 @@
 //
 // The value of QMC_INTEGRATOR_BIT is set by the cmake configuration.
 
+//model
+#include "lattice_types.hpp"
+#include "model_type.hpp"
+
 // Utilities library
 #include <cstdlib>
 #include <typeinfo>
