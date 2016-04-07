@@ -2,6 +2,8 @@
 
 #ifndef DOUBLE_COUNTING_PARAMETERS_H
 #define DOUBLE_COUNTING_PARAMETERS_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 /*!
  *  \class  equalt_time_parameters
@@ -12,7 +14,6 @@
  */
 class double_counting_parameters
 {
-#include "type_definitions.h"
 
 public:
 

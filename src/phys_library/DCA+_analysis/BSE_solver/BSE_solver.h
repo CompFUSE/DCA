@@ -2,16 +2,19 @@
 
 #ifndef BSE_SOLVER_H
 #define BSE_SOLVER_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
   /*!
    *  \author Peter Staar
    */
+  using types::k_HOST_VERTEX;
+  using types::w_VERTEX;
   template<class parameters_type, class MOMS_type>
   class BSE_solver
   {
-#include "type_definitions.h"
 
     typedef double scalartype;
 

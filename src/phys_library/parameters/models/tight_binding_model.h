@@ -2,7 +2,8 @@
 
 #ifndef TIGHT_BINDING_MODEL_H
 #define TIGHT_BINDING_MODEL_H
-
+#include "phys_library/domain_types.hpp"
+using namespace types;
 /*!
  *   \author Peter Staar
  */
@@ -138,11 +139,6 @@ template<class domain, class parameters_type>
 void tight_binding_model<lattice_type>::initialize_H_LDA(FUNC_LIB::function<std::complex<double> , domain >& H_LDA,
 									   parameters_type&                          parameters)
 {
-  typedef typename parameters_type::k_LDA k_LDA; 
-  typedef typename parameters_type::LDA_k_cluster_type LDA_k_cluster_type;
-  typedef typename parameters_type::b b;
-  typedef typename parameters_type::s s;
-
   std::vector<double> k;
   
   for(int k_ind=0; k_ind<k_LDA::dmn_size(); k_ind++)

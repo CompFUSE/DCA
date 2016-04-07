@@ -3,7 +3,8 @@
 #ifndef Cn_2D_H_
 #define Cn_2D_H_
 
-#include "../group_action.h"
+#include "phys_library/domains/cluster/symmetries/symmetry_operations/group_action.h"
+#include "phys_library/domains/cluster/symmetries/symmetry_operations/trigoniometric_ops/trig_ops.h"
 
 /*!
  *  \author Peter Staar
@@ -23,12 +24,6 @@ public:
 
    static double* matrix()
   {
-//     double theta = double(n)/double(m);
-
-//     // in column major order !
-//     static double matrix[2*2] = { cos(2.*M_PI*theta), sin(2.*M_PI*theta),
-// 				  -sin(2.*M_PI*theta), cos(2.*M_PI*theta)};
-
     static double* matrix = init();
     return matrix;
   }

@@ -2,6 +2,8 @@
 
 #ifndef ADVANCED_FERMIONIC_TP_GREENS_FUNCTION_H
 #define ADVANCED_FERMIONIC_TP_GREENS_FUNCTION_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -72,7 +74,6 @@ namespace DCA
     template<typename parameter_type, typename ed_options>
     class fermionic_tp_Greens_function
     {
-#include "type_definitions.h"
 
       //typedef ED_type_definitions<parameter_type, b_dmn, s_dmn, r_dmn> ED_type_def;
 

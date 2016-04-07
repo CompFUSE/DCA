@@ -2,6 +2,8 @@
 
 #ifndef DCA_QMCI_CTAUX_CLUSTER_SOLVER_H
 #define DCA_QMCI_CTAUX_CLUSTER_SOLVER_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -22,7 +24,6 @@ namespace DCA
   {
   protected:
 
-#include "type_definitions.h"
 
     typedef MOMS_type       this_MOMS_type;
     typedef parameters_type this_parameters_type;
@@ -209,7 +210,7 @@ namespace DCA
     {// Compute new Sigma
       compute_G_k_w_from_M_r_w();
 
-      MATH_ALGORITHMS::TRANSFORM<k_DCA,r_DCA>::execute(MOMS.G_k_w, MOMS.G_r_w);
+      math_algorithms::functional_transforms::TRANSFORM<k_DCA,r_DCA>::execute(MOMS.G_k_w, MOMS.G_r_w);
 
       dca_info_struct.L2_Sigma_difference(DCA_iteration) = compute_S_k_w_from_G_k_w();
 
@@ -220,8 +221,8 @@ namespace DCA
           for(int l=0; l<w::dmn_size()/4; l++)
             x.push_back(real(MOMS.Sigma(i,i,j,l)));
 
-          dca_info_struct.Sigma_zero_moment (i, j, DCA_iteration) = statistical_methods<double>::mean(x);//real(MOMS.Sigma(i,i,j,0));
-          dca_info_struct.standard_deviation(i, j, DCA_iteration) = statistical_methods<double>::standard_deviation(x);//
+          dca_info_struct.Sigma_zero_moment (i, j, DCA_iteration) =  math_algorithms::statistical_methods<double>::mean(x);
+          dca_info_struct.standard_deviation(i, j, DCA_iteration) =  math_algorithms::statistical_methods<double>::standard_deviation(x);//
         }
       }
     }
@@ -361,7 +362,7 @@ namespace DCA
           for(int l=0; l<accumulator.get_M_r_w().size(); l++)
             M_r_w_new(l) = accumulator.get_M_r_w()(l)/double(Nb_measurements_per_node*sign);
 
-          MATH_ALGORITHMS::TRANSFORM<r_DCA, k_DCA>::execute(M_r_w_new, M_k_w_new);
+          math_algorithms::functional_transforms::TRANSFORM<r_DCA, k_DCA>::execute(M_r_w_new, M_k_w_new);
 
           compute_G_k_w_new(M_k_w_new, G_k_w_new);
           compute_S_k_w_new(G_k_w_new, Sigma_new);
@@ -491,7 +492,7 @@ namespace DCA
   void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::compute_G_k_w_from_M_r_w()
   {
     //FT<r_DCA, k_DCA>::execute(accumulator.get_M_r_w(), accumulator.get_M_k_w());
-    MATH_ALGORITHMS::TRANSFORM<r_DCA, k_DCA>::execute(accumulator.get_M_r_w(), accumulator.get_M_k_w());
+    math_algorithms::functional_transforms::TRANSFORM<r_DCA, k_DCA>::execute(accumulator.get_M_r_w(), accumulator.get_M_k_w());
 
     int matrix_size = b::dmn_size()*s::dmn_size()*b::dmn_size()*s::dmn_size();
     int matrix_dim  = b::dmn_size()*s::dmn_size();

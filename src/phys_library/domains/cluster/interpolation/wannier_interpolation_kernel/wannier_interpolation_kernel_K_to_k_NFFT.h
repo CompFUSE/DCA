@@ -2,10 +2,11 @@
 
 #ifndef WANNIER_INTERPOLATION_KERNEL_K_TO_k_NFFT_H
 #define WANNIER_INTERPOLATION_KERNEL_K_TO_k_NFFT_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 // class centered_r_LDA 
 // {
-// #include "type_definitions.h"
 
 // public:
 
@@ -32,7 +33,6 @@
 template<typename source_base_cluster_type, typename target_dmn_type>
 class wannier_interpolation_kernel<k_cluster<FULL, source_base_cluster_type>, target_dmn_type>
 {
-#include "type_definitions.h"
 
   const static int DIMENSION = source_base_cluster_type::DIMENSION;
 

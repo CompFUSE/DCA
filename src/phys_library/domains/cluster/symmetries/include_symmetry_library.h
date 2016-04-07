@@ -31,7 +31,6 @@
 
 #include "point_groups/2D/2D_oblique.h"
 #include "point_groups/2D/2D_rectangular.h"
-#include "point_groups/2D/2D_centered_rectangular.h"
 #include "point_groups/2D/2D_hexagonal.h"
 #include "point_groups/2D/2D_square.h"
 

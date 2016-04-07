@@ -2,6 +2,8 @@
 
 #ifndef DCA_HIGH_TEMPERATURE_SERIES_SOLVER_INTEGRATOR_H
 #define DCA_HIGH_TEMPERATURE_SERIES_SOLVER_INTEGRATOR_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -15,7 +17,6 @@ namespace DCA
   template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
   class cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_type>
   {
-#include "type_definitions.h" 
 
   public:
     

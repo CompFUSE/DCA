@@ -2,6 +2,8 @@
 
 #ifndef DCA_TRANSFORM_TO_ALPHA_STEP_H
 #define DCA_TRANSFORM_TO_ALPHA_STEP_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA 
 {
@@ -16,7 +18,6 @@ namespace DCA
    */
   class transform_to_alpha
   {
-#include "type_definitions.h"
 
   public:
 

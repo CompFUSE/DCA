@@ -2,6 +2,8 @@
 
 #ifndef SS_HYBRIDIZATION_WALKER_ROUTINES_H
 #define SS_HYBRIDIZATION_WALKER_ROUTINES_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -221,7 +223,6 @@ namespace DCA
     template<typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
     class ss_hybridization_walker_routines : public ss_hybridization_solver_routines<parameters_t, MOMS_t>
     {
-#include "type_definitions.h"
 
       typedef b b_dmn_t;
       typedef s s_dmn_t;
@@ -440,7 +441,7 @@ namespace DCA
     {
       int size = t_dmn_t::dmn_size()/2;
 
-      akima_interpolation<double> ai_obj(size);
+      math_algorithms::interpolation::akima_interpolation<double> ai_obj(size);
 
       double* x = new double[size];
       double* y = new double[size];

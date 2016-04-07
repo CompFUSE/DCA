@@ -2,6 +2,8 @@
 
 #ifndef DCA_QMCI_CT_AUX_CACHED_AUXILARY_FIELD_VALUES_H
 #define DCA_QMCI_CT_AUX_CACHED_AUXILARY_FIELD_VALUES_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -22,7 +24,6 @@ namespace DCA
     template<typename parameters_type>
     class CV
     {
-#include "type_definitions.h"
 
       typedef r_DCA r_dmn_t;
 
@@ -308,7 +309,7 @@ namespace DCA
     {
       BETA               = parameters.get_beta();
       K_CT_AUX           = parameters.get_K_CT_AUX();
-      BANDS              = electron_band_domain_type::get_size();
+      BANDS              = electron_band_domain::get_size();
       FULL_CLUSTER_SIZE  = r_dmn_t::dmn_size();
 
       H_interaction       = MOMS.H_interactions;

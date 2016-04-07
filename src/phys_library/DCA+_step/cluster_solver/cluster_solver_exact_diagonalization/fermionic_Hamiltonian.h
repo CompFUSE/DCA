@@ -2,6 +2,8 @@
 
 #ifndef FERMIONIC_HAMILTONIAN_H
 #define FERMIONIC_HAMILTONIAN_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -47,7 +49,6 @@ namespace DCA
     template<typename parameter_type, typename b_dmn, typename s_dmn, typename r_dmn>
     class fermionic_Hamiltonian
     {
-#include "type_definitions.h"
 
     public:
 

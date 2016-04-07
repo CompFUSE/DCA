@@ -35,7 +35,7 @@ using namespace std;
 // typelist-operations
 
 #include "type_list.h"   
-#include "type_list_definitions.h" 
+#include "comp_library/type_list/type_list_definitions.h" 
 using namespace TL;
 
 // libraries

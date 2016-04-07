@@ -2,6 +2,8 @@
 
 #ifndef UNION_PIECE_WISE_LINEAR_AND_DELTA_FUNCTION_H
 #define UNION_PIECE_WISE_LINEAR_AND_DELTA_FUNCTION_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 /*!
  *  \ingroup CPE-BASIS-FUNCTIONS
@@ -10,7 +12,6 @@
  */
 class union_piece_wise_linear_and_delta_function
 {
-#include "type_definitions.h"
 
 public:
 

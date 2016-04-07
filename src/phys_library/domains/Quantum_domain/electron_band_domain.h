@@ -2,7 +2,11 @@
 
 #ifndef ELECTRON_BAND_DOMAIN_H
 #define ELECTRON_BAND_DOMAIN_H
-
+#include <string>
+#include <vector>
+#include <assert.h>
+#include "comp_library/IO_library/template_writer.h"
+#include "comp_library/IO_library/template_reader.h"
 /*!
  *  \author Peter Staar
  */
@@ -14,9 +18,6 @@ struct band_element
   int                 number;
   int                 flavor;
   std::vector<double> a_vec;
-
-//   template<class stream_type>
-//   void to_JSON(stream_type& ss);
 };
 
 band_element::band_element():
@@ -28,35 +29,14 @@ band_element::band_element():
 band_element::~band_element()
 {}
 
-/*
-template<class stream_type>
-void band_element::to_JSON(stream_type& ss)
-{
-  ss << "\n { \n";
-  //ss << "\"number\" : {\n";
-  ss << "\"number\" : " << number << ",\n";
-  ss << "\"flavor\" : " << flavor << ",\n";
-
-  ss << "\"a_vec\"  : [ ";
-  for(size_t i=0; i<a_vec.size(); ++i){
-    if(i == a_vec.size()-1)
-      ss << a_vec[i] << "]";
-    else
-      ss << a_vec[i] << ", ";
-  }
-
-  ss << "\n}";
-}
-*/
-
 /*!
  *  \author Peter Staar
  */
+int n_bands_defined=0;
 class electron_band_domain 
 {
 public:
 
-  //typedef int element_type;
   typedef band_element element_type;
 
 public:
@@ -114,42 +94,15 @@ void electron_band_domain::initialize(parameters_type& /*parameters*/, int NB_BA
 {
   get_size() = NB_BANDS;
 
-  assert(NB_BANDS==int(flavors.size()));
-  assert(NB_BANDS==int(a_vecs .size()));
+  assert(NB_BANDS == int(flavors.size()));
+  assert(NB_BANDS == int(a_vecs.size()));
 
-  for(size_t i=0; i<get_elements().size(); ++i){
-    
+  for (size_t i = 0; i < get_elements().size(); ++i) {
+
     get_elements()[i].number = i;
     get_elements()[i].flavor = i;//flavors[i];
-    get_elements()[i].a_vec  = a_vecs[i];
-  }
-
-//   {
-//     parameters.is_interacting_band().resize(NB_BANDS, false);
-
-//     for(size_t l=0; l<parameters.get_interacting_bands().size(); l++)
-//       parameters.is_interacting_band()[parameters.get_interacting_bands()[l]] = true;
-//   }
-}
-
-/*
-template<class stream_type>
-void electron_band_domain::to_JSON(stream_type& ss)
-{
-  ss << "\"electron_band_domain\" : {";
-    
-  for(int l=0; l<get_size(); l++){
-    
-    ss << "\n\"orbital " << l << "\" :";
-
-    get_elements()[l].to_JSON(ss);
-
-    if(l == get_size()-1)
-      ss << "\n}\n";
-    else
-      ss << ", ";
+    get_elements()[i].a_vec = a_vecs[i];
   }
 }
-*/
 
 #endif

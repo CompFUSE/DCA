@@ -2,6 +2,8 @@
 
 #ifndef DFT_VASP_DATA_H
 #define DFT_VASP_DATA_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DFT
 {
@@ -43,7 +45,6 @@ namespace DFT
     template<class parameters_type>
     class data
     {
-#include "type_definitions.h"
 
       //typedef typename k_vasp::parameter_type::dual_type           vasp_r_cluster_type;
       typedef dmn_0<centered_cluster_domain<vasp_r_cluster_type> > vasp_r_centered_dmn;
@@ -422,13 +423,13 @@ namespace DFT
 
       function<double, dmn_2<vasp_r_centered_dmn, b_vasp> > tmp;
 
-      MATH_ALGORITHMS::TRANSFORM<k_vasp, vasp_r_centered_dmn>::execute(band_e, tmp);
+      math_algorithms::functional_transforms::TRANSFORM<k_vasp, vasp_r_centered_dmn>::execute(band_e, tmp);
 
       for(int j=0; j<b_vasp::dmn_size(); j++)
         for(int r_ind=0; r_ind<vasp_r_centered_dmn::dmn_size(); r_ind++)
           tmp(r_ind, j) *= vasp_r_centered_dmn::parameter_type::get_weights()[r_ind];
 
-      MATH_ALGORITHMS::TRANSFORM<vasp_r_centered_dmn, bz_cut>::execute(tmp, E_0_vasp);
+      math_algorithms::functional_transforms::TRANSFORM<vasp_r_centered_dmn, bz_cut>::execute(tmp, E_0_vasp);
 
       //       if(true)
       //         {
@@ -483,14 +484,14 @@ namespace DFT
 
       function<double, dmn_3<vasp_r_centered_dmn, o_dmft, o_dmft> > tmp;
 
-      MATH_ALGORITHMS::TRANSFORM<k_vasp, vasp_r_centered_dmn>::execute(H_0, tmp);
+      math_algorithms::functional_transforms::TRANSFORM<k_vasp, vasp_r_centered_dmn>::execute(H_0, tmp);
 
       for(int j=0; j<o_dmft::dmn_size(); j++)
         for(int i=0; i<o_dmft::dmn_size(); i++)
           for(int r_ind=0; r_ind<vasp_r_centered_dmn::dmn_size(); r_ind++)
             tmp(r_ind, i, j) *= vasp_r_centered_dmn::parameter_type::get_weights()[r_ind];
 
-      MATH_ALGORITHMS::TRANSFORM<vasp_r_centered_dmn, bz_cut>::execute(tmp, H_0_dmft);
+      math_algorithms::functional_transforms::TRANSFORM<vasp_r_centered_dmn, bz_cut>::execute(tmp, H_0_dmft);
 
       //       H_0_dmft.print_fingerprint();
 

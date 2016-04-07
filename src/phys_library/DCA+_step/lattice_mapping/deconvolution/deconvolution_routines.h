@@ -2,6 +2,10 @@
 
 #ifndef DCA_DECONVOLUTION_ROUTINES_H
 #define DCA_DECONVOLUTION_ROUTINES_H
+#include "phys_library/domain_types.hpp"
+#include "math_library/functional_transforms/basis_transforms/basis_transform.h"
+#include "phys_library/DCA+_step/symmetrization/symmetrize.h"
+using namespace types;
 
 namespace DCA
 {
@@ -14,7 +18,6 @@ namespace DCA
   template<typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
   class deconvolution_routines
   {
-#include "type_definitions.h"
 
     typedef typename parameters_type::profiler_type    profiler_type;
     typedef typename parameters_type::concurrency_type concurrency_type;
@@ -28,8 +31,8 @@ namespace DCA
     typedef dmn_0<source_r_cluster_type>              source_r_dmn_t;
     typedef dmn_0<target_r_cluster_type>              target_r_dmn_t;
 
-    typedef MATH_ALGORITHMS::basis_transform<target_k_dmn_t, target_r_dmn_t> trafo_k_to_r_type;
-    typedef MATH_ALGORITHMS::basis_transform<target_r_dmn_t, target_k_dmn_t> trafo_r_to_k_type;
+    typedef math_algorithms::functional_transforms::basis_transform<target_k_dmn_t, target_r_dmn_t> trafo_k_to_r_type;
+    typedef math_algorithms::functional_transforms::basis_transform<target_r_dmn_t, target_k_dmn_t> trafo_r_to_k_type;
 
   public:
 
@@ -84,9 +87,6 @@ namespace DCA
   template<typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
   void deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::initialize()
   {
-//     if(concurrency.id() == concurrency.first())
-//       cout << "\n\n\t initialization of deconvolution_routines has started | time = " << print_time();
-
     DCA::coarsegraining_sp<parameters_type, source_k_dmn_t> coarsegrain_obj(parameters);
 
     coarsegrain_obj.compute_phi_r(phi_r);
@@ -124,16 +124,11 @@ namespace DCA
             for(int j=0; j<target_k_dmn_t::dmn_size(); j++)
               result += T(i,j);
 
-            //    if(abs(result-1)>1.e-6)
-            //      cout << "\t T " << i << "\t" << result << "\n";
-
-            //assert(abs(result-1)<1.e-6);
             for(int j=0; j<target_k_dmn_t::dmn_size(); j++)
               T(i,j) /= result;
           }
       }
 
-      //T.print();
 
       {
         T_k_to_r_scaled.copy_from(T_k_to_r);
@@ -155,38 +150,19 @@ namespace DCA
             for(int j=0; j<target_k_dmn_t::dmn_size(); j++)
               result += T_symmetrized(i,j);
 
-            //    if(abs(result-1)>1.e-6)
-            //      cout << "\t T_symmetrized " << i << "\t" << result << "\n";
-
-            //assert(abs(result-1)<1.e-6);
             for(int j=0; j<target_k_dmn_t::dmn_size(); j++)
               T_symmetrized(i,j) /= result;
           }
       }
     }
 
-    //T_symmetrized.print();
-
-//     if(concurrency.id() == concurrency.first())
-//       cout << "\t initialization of deconvolution_routines has ended | time = " << print_time() << "\n";
   }
 
   template<typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
   void deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::compute_phi_inv(double epsilon)
   {
-    if(true)
-      {
         for(int i=0; i<target_k_dmn_t::dmn_size(); i++)
           phi_r_inv(i) = std::abs(phi_r(i)) > epsilon ? 1./phi_r(i) : 0.;//1./epsilon;
-      }
-    else
-      {
-	for(int i=0; i<target_k_dmn_t::dmn_size(); i++)
-	  if(std::abs(phi_r(i)) > epsilon)
-	    phi_r_inv(i) = 1./phi_r(i);
-	  else
-	    phi_r_inv(i) = phi_r(i)>0 ? 1./epsilon : -1./epsilon;
-      }
   }
 
   template<typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
@@ -217,24 +193,18 @@ namespace DCA
 
   }
 
-  template<typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
-  void deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::compute_T_inv_matrix(double epsilon, 
-												     LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU>& T_eps)
-  {
-    compute_phi_inv(epsilon);
-
-//     FUNC_LIB::function<double, target_r_dmn_t> phi_r_inv;
-//     for(int i=0; i<target_k_dmn_t::dmn_size(); i++)
-//       phi_r_inv(i) = phi_r(i) > epsilon ? 1./phi_r(i) : 0;//1./epsilon;
-
-    LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU>& T_k_to_r = trafo_k_to_r_type::get_transformation_matrix();
-    LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU>& T_r_to_k = trafo_r_to_k_type::get_transformation_matrix();
-
-    LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> T_k_to_r_scaled("T_k_to_r_scaled");
-//     LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> T_k_to_k       ("T_k_to_r");
-
+    template<typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
+    void deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::compute_T_inv_matrix(double epsilon,
+                                                                                                       LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU>& T_eps)
     {
-//       T_k_to_k       .copy_from(T_k_to_r);
+      compute_phi_inv(epsilon);
+
+      LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU>& T_k_to_r = trafo_k_to_r_type::get_transformation_matrix();
+      LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU>& T_r_to_k = trafo_r_to_k_type::get_transformation_matrix();
+
+      LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> T_k_to_r_scaled("T_k_to_r_scaled");
+
+
       T_k_to_r_scaled.copy_from(T_k_to_r);
 
       for(int j=0; j<target_k_dmn_t::dmn_size(); j++)
@@ -242,7 +212,6 @@ namespace DCA
           T_k_to_r_scaled(i,j) *= phi_r_inv(i);
 
       LIN_ALG::GEMM<LIN_ALG::CPU>::execute(T_r_to_k, T_k_to_r_scaled, T_eps);
-    }
 
   }
 

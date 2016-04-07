@@ -2,6 +2,8 @@
 
 #ifndef COMPUTE_SECOND_ORDER_SIGMA_H
 #define COMPUTE_SECOND_ORDER_SIGMA_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -16,7 +18,6 @@ namespace DCA
     template<class parameters_type, class k_dmn_t>
     class sigma_perturbation<2, parameters_type, k_dmn_t>
     {
-#include "type_definitions.h"
 
       typedef typename parameters_type::profiler_type    profiler_type;
       typedef typename parameters_type::concurrency_type concurrency_type;

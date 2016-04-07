@@ -2,6 +2,8 @@
 
 #ifndef CONTINUOUS_POLE_EXPANSION_DATA_H
 #define CONTINUOUS_POLE_EXPANSION_DATA_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -16,7 +18,6 @@ namespace DCA
   template<typename scalartype, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
   class CPE_data
   {
-#include "type_definitions.h"
 
     typedef dmn_0<basis_function_t> alpha_dmn_t;
 

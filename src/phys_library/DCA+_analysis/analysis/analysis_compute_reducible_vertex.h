@@ -2,6 +2,8 @@
 
 #ifndef ANALYSIS_COMPUTE_REDUCIBLE_VERTEX_H
 #define ANALYSIS_COMPUTE_REDUCIBLE_VERTEX_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace dca {
 
@@ -11,7 +13,6 @@ namespace dca {
   template<class parameter_type, class MOMS_type>
   class analysis<parameter_type, MOMS_type, ANALYSIS_COMPUTE_REDUCIBLE_VERTEX>
   {
-#include "type_definitions.h"
    typedef dmn_0<brillouin_zone_path_domain<FERMI_SURFACE_SQUARE_2D_LATTICE> > k_dmn_cut_type;
 
   public:

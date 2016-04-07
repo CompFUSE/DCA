@@ -2,6 +2,8 @@
 
 #ifndef FERMIONIC_SP_GREENS_FUNCTION_H
 #define FERMIONIC_SP_GREENS_FUNCTION_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -46,7 +48,6 @@ namespace DCA
     template<typename parameter_type, typename b_dmn, typename s_dmn, typename r_dmn>
     class fermionic_sp_Greens_function
     {
-#include "type_definitions.h"
 
       typedef ED_type_definitions<parameter_type, b_dmn, s_dmn, r_dmn> ED_type_def;
 
@@ -424,9 +425,9 @@ namespace DCA
         G_r_w      *= factor;
         G_r_w_real *= factor;
         G_r_t      *= -factor;
-        MATH_ALGORITHMS::TRANSFORM<r_dmn, k_dmn>::execute(G_r_w     , G_k_w);
-        MATH_ALGORITHMS::TRANSFORM<r_dmn, k_dmn>::execute(G_r_w_real, G_k_w_real);
-        MATH_ALGORITHMS::TRANSFORM<r_dmn, k_dmn>::execute(G_r_t     , G_k_t);
+        math_algorithms::functional_transforms::TRANSFORM<r_dmn, k_dmn>::execute(G_r_w     , G_k_w);
+        math_algorithms::functional_transforms::TRANSFORM<r_dmn, k_dmn>::execute(G_r_w_real, G_k_w_real);
+        math_algorithms::functional_transforms::TRANSFORM<r_dmn, k_dmn>::execute(G_r_t     , G_k_t);
 
       }
     }

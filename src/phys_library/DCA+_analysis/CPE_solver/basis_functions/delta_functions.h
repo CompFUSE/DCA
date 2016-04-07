@@ -2,6 +2,8 @@
 
 #ifndef DELTA_FUNCTION_H
 #define DELTA_FUNCTION_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 /*!
  *  \ingroup CPE-BASIS-FUNCTIONS
@@ -10,7 +12,6 @@
  */
 class delta_function
 {
-#include "type_definitions.h"
 
 public:
 

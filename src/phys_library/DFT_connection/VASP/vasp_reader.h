@@ -2,6 +2,8 @@
 
 #ifndef DFT_VASP_READER_H
 #define DFT_VASP_READER_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DFT
 {
@@ -17,7 +19,6 @@ namespace DFT
     template<class parameters_type>
     class reader
     {
-#include "type_definitions.h"
 
     public:
 

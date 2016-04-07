@@ -2,6 +2,8 @@
 
 #ifndef PIECE_WISE_LINEAR_FUNCTION_H
 #define PIECE_WISE_LINEAR_FUNCTION_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -11,7 +13,6 @@ namespace DCA
    */
   class piece_wise_linear_function
   {
-#include "type_definitions.h"
 
   public:
 

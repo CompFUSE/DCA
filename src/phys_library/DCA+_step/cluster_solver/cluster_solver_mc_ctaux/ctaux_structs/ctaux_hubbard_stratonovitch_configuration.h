@@ -2,6 +2,8 @@
 
 #ifndef DCA_QMCI_CT_AUX_HS_CONFIGURATION_H
 #define DCA_QMCI_CT_AUX_HS_CONFIGURATION_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -18,7 +20,6 @@ namespace DCA
     template<class parameters_type>
     class CT_AUX_HS_configuration
     {
-#include "type_definitions.h"
 
       typedef typename parameters_type::rng_type rng_type;
 

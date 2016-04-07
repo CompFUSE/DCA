@@ -1,11 +1,8 @@
 ################################################################################
 # CMake build script for DCA++
 ################################################################################
-
 cmake_minimum_required(VERSION 3.0)
-
 project(DCA++ C CXX)
-
 # Disable in-source builds.
 if (${PROJECT_BINARY_DIR} STREQUAL ${PROJECT_SOURCE_DIR})
   message(FATAL_ERROR "In-source builds are not permitted.

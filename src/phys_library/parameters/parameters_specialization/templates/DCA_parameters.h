@@ -2,6 +2,8 @@
 
 #ifndef DCA_PARAMETERS_H
 #define DCA_PARAMETERS_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 /*!
  *   \ingroup  PARAMETERS
@@ -11,7 +13,6 @@
  */
 class DCA_Parameters
 {
-#include "type_definitions.h"
 
 public:
 

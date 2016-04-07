@@ -47,7 +47,6 @@ int main(int argc,char *argv[])
 
   //============================================================ Configure the calculation by selecting type definitions.
 
-#include "type_definitions.h"
 
   static const LIN_ALG::device_type       DEVICE            = LIN_ALG::CPU;
   static const MPI_library_type           MPI_LIBRARY_TYPE  = MPI_LIBRARY;

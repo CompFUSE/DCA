@@ -2,6 +2,7 @@
 
 #ifndef SYMMETRIZE_TWO_PARTICLE_FUNCTION_H
 #define SYMMETRIZE_TWO_PARTICLE_FUNCTION_H
+#include "phys_library/domain_types.hpp"
 
 /*! \class   symmetrize_two_particle_function
  *  \ingroup SYMMETRIZE-FUNCTIONS
@@ -26,8 +27,6 @@
  */
 class symmetrize_two_particle_function
 {
-#include "type_definitions.h"
-
   typedef b b_dmn_t;
 
 protected:
@@ -134,36 +133,7 @@ void symmetrize_two_particle_function::execute(FUNC_LIB::function<scalartype, dm
       }
     }
   }
- 
-//   if(true)
-//     {// G4 is real in r,r,t,t
-//       typedef typename k_dmn_t::parameter_type k_cluster_type;
-
-//       int N_w = w_dmn_t::dmn_size()-1;
-	
-//       int* coor = new int[f.signature()];
-	
-//       for(int i=0; i<f.size(); i++)
-// 	{
-// 	  memset(coor,0,sizeof(int)*f.signature());
-// 	  int linind = i;
-	    
-// 	  f.linind_2_subind(linind, coor);
-
-// 	  int min_k1 = k_cluster_type::subtract(coor[4], k_cluster_type::get_k_0_index());
-// 	  int min_k2 = k_cluster_type::subtract(coor[5], k_cluster_type::get_k_0_index());
-
-// 	  std::complex<double> c = (            f(coor[0], coor[1], coor[2], coor[3], coor[4], coor[5],     coor[6],     coor[7])
-// 				    + std::conj(f(coor[0], coor[1], coor[2], coor[3], min_k1,  min_k2 , N_w-coor[6], N_w-coor[7])))/2.;
-
-// 	  f(coor[0], coor[1], coor[2], coor[3], coor[4], coor[5],     coor[6],     coor[7]) = c;           
-// 	  f(coor[0], coor[1], coor[2], coor[3], min_k1,  min_k2 , N_w-coor[6], N_w-coor[7]) = std::conj(c);
-// 	}
-
-//       delete [] coor;
-//     }
 }
-
 template<typename scalartype, typename k_dmn_t, typename w_dmn_t>
 void symmetrize_two_particle_function::execute(FUNC_LIB::function<scalartype, dmn_2< dmn_4<b, b, k_dmn_t, w_dmn_t>,  dmn_4<b, b, k_dmn_t, w_dmn_t> > >& f, std::vector<double> Q, bool do_diff)
 {
@@ -198,34 +168,6 @@ void symmetrize_two_particle_function::execute(FUNC_LIB::function<scalartype, dm
       }
     }
   }
-
-//   if(true)
-//     {// G4 is real in r,r,t,t
-//       typedef typename k_dmn_t::parameter_type k_cluster_type;
-
-//       int N_w = w_dmn_t::dmn_size()-1;
-	
-//       int* coor = new int[f.signature()];
-	
-//       for(int i=0; i<f.size(); i++)
-// 	{
-// 	  memset(coor,0,sizeof(int)*f.signature());
-// 	  int linind = i;
-	    
-// 	  f.linind_2_subind(linind, coor);
-
-// 	  int min_k1 = k_cluster_type::subtract(coor[2], k_cluster_type::get_k_0_index());
-// 	  int min_k2 = k_cluster_type::subtract(coor[6], k_cluster_type::get_k_0_index());
-
-// 	  std::complex<double> c = (            f(coor[0], coor[1], coor[2],     coor[3], coor[4], coor[5], coor[6],    coor[7])
-// 				    + std::conj(f(coor[0], coor[1], min_k1,  N_w-coor[3], coor[4], coor[5], min_k2, N_w-coor[7])))/2.;
-
-// 	  f(coor[0], coor[1], coor[2],       coor[3], coor[4], coor[5], coor[6],       coor[7]) = c;           
-// 	  f(coor[0], coor[1], min_k1 , N_w - coor[3], coor[4], coor[5], min_k2 , N_w - coor[7]) = std::conj(c);
-// 	}
-
-//       delete [] coor;
-//     }
 }
 
 template<typename scalartype, typename k_dmn_t, typename w_dmn_t>
@@ -270,7 +212,6 @@ void symmetrize_two_particle_function::execute(FUNC_LIB::function<scalartype, dm
 {
   typedef typename k_dmn_t::parameter_type k_cluster_type;
 
-  //typedef typename k_cluster_type::sym_super_cell_dmn_t sym_super_cell_dmn_t;
   typedef typename cluster_symmetry<k_cluster_type>::sym_super_cell_dmn_t sym_super_cell_dmn_t;
   
   static FUNC_LIB::function<std::pair<int,int>, dmn_2< dmn_2<k_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& k_symmetry_matrix = cluster_symmetry<k_cluster_type>::get_symmetry_matrix();

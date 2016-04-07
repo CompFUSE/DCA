@@ -2,6 +2,8 @@
 
 #ifndef ANALYSIS_H
 #define ANALYSIS_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace dca {
 
@@ -11,7 +13,6 @@ namespace dca {
   template<class parameter_type, class MOMS_type, MC_integration_method_type Monte_Carlo_solver_t>
   class analysis 
   {
-#include "type_definitions.h"
     
     const static int N_LAMBDA = 10;
     typedef dmn_0<dmn<N_LAMBDA, int> > lambda_dmn_type;

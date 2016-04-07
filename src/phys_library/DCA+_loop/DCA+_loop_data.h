@@ -2,6 +2,8 @@
 
 #ifndef DCA_CALCULATION_DATA_H
 #define DCA_CALCULATION_DATA_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -11,7 +13,6 @@ namespace DCA
    */
   class DCA_calculation_data
   {
-#include "type_definitions.h"
 
     typedef dmn_0<dmn<32, int> > expansion_dmn_t;
 
@@ -26,8 +27,6 @@ namespace DCA
     template<IO::FORMAT DATA_FORMAT>
     void write(IO::writer<DATA_FORMAT>& reader);
 
-//     template<class stream_type>
-//     void to_JSON(stream_type& ss);
 
   public:
 
@@ -117,57 +116,6 @@ namespace DCA
     writer.close_group();
   }
 
-  /*
-  template<class stream_type>
-  void DCA_calculation_data::to_JSON(stream_type& ss)
-  {
-    //ss << ",";
-
-    Gflop_per_mpi_task.to_JSON(ss);
-    ss << ",";
-
-    times_per_mpi_task.to_JSON(ss);
-    ss << ",";
-
-    Gflops_per_mpi_task.to_JSON(ss);
-    ss << ",";
-    
-    max_Gflops_per_mpi_task.to_JSON(ss);
-    ss << ",";
-
-    sign               .to_JSON(ss);
-    ss << ",";
-
-    L2_Sigma_difference.to_JSON(ss);
-    ss << ",";
-    
-    standard_deviation.to_JSON(ss);
-    ss << ",";
-
-    chemical_potential .to_JSON(ss);
-    ss << ",";
-
-    density            .to_JSON(ss);
-    ss << ",";
-
-    average_expansion_order.to_JSON(ss);
-    ss << ",";
-
-    Sigma_zero_moment.to_JSON(ss);
-    ss << ",";
-
-    orbital_occupancies.to_JSON(ss);
-    ss << ",";
-
-    sigma_lambda.to_JSON(ss);
-    ss << ",";
-
-    n_k.to_JSON(ss);
-    ss << ",";
-
-    A_k.to_JSON(ss);
-  }
-  */
 
 }
 

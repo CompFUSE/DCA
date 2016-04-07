@@ -2,6 +2,8 @@
 
 #ifndef DCA_QMCI_CTAUX_ACCUMULATOR_H
 #define DCA_QMCI_CTAUX_ACCUMULATOR_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -23,7 +25,6 @@ namespace DCA
     template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
     class MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type> : public MC_accumulator_data
     {
-#include "type_definitions.h"
     protected:
 
       typedef parameters_type   my_parameters_type;

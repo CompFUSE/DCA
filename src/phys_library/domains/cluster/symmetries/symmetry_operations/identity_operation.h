@@ -1,3 +1,4 @@
+
 //-*-C++-*-
 
 #ifndef IDENTITY_GROUP_OPERATION_H

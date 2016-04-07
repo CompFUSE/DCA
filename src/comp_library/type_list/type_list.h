@@ -1,9 +1,12 @@
 //-*-C++-*-
 
-#include "type_list_definitions.h"
 
 #ifndef TYPELIST_H_
 #define TYPELIST_H_
+#include <sstream>
+#include "phys_library/domains/cluster/symmetries/symmetry_operations/identity_operation.h"
+#include "comp_library/type_list/type_list_definitions.h"
+
 
 class NullType {};
 
@@ -388,7 +391,6 @@ namespace TL
   template <typename Head>
   struct print_typename {
     static void print() {
-      //std::cout << "\t" << __PRETTY_FUNCTION__ << std::endl;
       std::cout << "\t" << Head::get_name() << std::endl;
     }
   };
@@ -397,18 +399,15 @@ namespace TL
   struct print_type {
     static void print() {
       std::cout << "\t" << __PRETTY_FUNCTION__ << std::endl;
-      //std::cout << "\t" << Head::get_name() << std::endl;
-    }
+        }
     
     static void print(std::stringstream& ss) {
-      //ss << "\t" << __PRETTY_FUNCTION__ << std::endl;
       ss << "\t" << Head::get_name() << std::endl;
     }
 
     template<class stream_type>
     static void to_JSON(stream_type& ss) {
       ss << __PRETTY_FUNCTION__;
-      //ss << "\t" << Head::get_name() << std::endl;
     }
   };
   

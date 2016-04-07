@@ -2,6 +2,8 @@
 
 #ifndef DCA_LATTICE_MAP_TP_H
 #define DCA_LATTICE_MAP_TP_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -14,7 +16,6 @@ namespace DCA
   template<typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
   class lattice_map_tp
   {
-#include "type_definitions.h"
 
     typedef typename parameters_type::profiler_type    profiler_type;
     typedef typename parameters_type::concurrency_type concurrency_type;

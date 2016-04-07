@@ -2,6 +2,9 @@
 
 #ifndef COMPUTE_SPECTRUM_H
 #define COMPUTE_SPECTRUM_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
+#include<complex>
 
 namespace DCA
 {
@@ -17,11 +20,10 @@ namespace DCA
    *  \brief   This class organizes the compution of the spectrum, using a CPE analytic continuation.
    *  \version 1.0
    */
+  using types::b; using types::nu; using types::s; using types::t;
   template<class parameters_type, class basis_function_t>
   class compute_spectrum
   {
-#include "type_definitions.h"
-
   public:
 
     typedef typename parameters_type::profiler_type    profiler_type;

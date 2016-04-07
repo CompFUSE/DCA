@@ -2,6 +2,7 @@
 
 #ifndef SYMMETRIZE_SINGLE_PARTICLE_FUNCTION_H
 #define SYMMETRIZE_SINGLE_PARTICLE_FUNCTION_H
+#include "phys_library/domain_types.hpp"
 
 /*! \class   symmetrize_single_particle_function
  *  \ingroup SYMMETRIZE-FUNCTIONS
@@ -33,8 +34,6 @@
  */
 class symmetrize_single_particle_function
 {
-#include "type_definitions.h"
-
   typedef dmn_0<electron_band_domain> b_dmn_t;
 
 protected:
@@ -44,18 +43,8 @@ protected:
                       FUNC_LIB::function<int       , dmn_2<nu_dmn_t, nu_dmn_t>                   >& H_symmetry,
                       bool do_diff=false);
 
-  /*
-    template<typename scalartype, typename cluster_type>
-    static void execute(FUNC_LIB::function<scalartype, dmn_0<r_cluster<FULL, cluster_type> > >& f, bool do_diff=false);
-  */
-
   template<typename scalartype, typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S>
   static void execute(FUNC_LIB::function<scalartype, dmn_0<cluster_domain<scalar_type, D, N, REAL_SPACE, S> > >& f, bool do_diff=false);
-
-  /*
-    template<typename scalartype, typename cluster_type>
-    static void execute(FUNC_LIB::function<scalartype, dmn_0<k_cluster<FULL, cluster_type> > >& f, bool do_diff=false);
-  */
 
   template<typename scalartype, typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S>
   static void execute(FUNC_LIB::function<scalartype, dmn_0<cluster_domain<scalar_type, D, N, MOMENTUM_SPACE, S> > >& f, bool do_diff=false);
@@ -68,11 +57,6 @@ protected:
 
   template<typename scalartype, typename f_dmn_0, typename f_dmn_1>
   static void execute(FUNC_LIB::function<scalartype, dmn_4<nu, nu, f_dmn_0, f_dmn_1> >& f, bool do_diff=false);
-
-  /*
-    template<typename scalartype, typename cluster_type>
-    static void execute(FUNC_LIB::function<scalartype, dmn_4<nu, nu, dmn_0<r_cluster<FULL, cluster_type> >, w> >& f, bool do_diff=false);
-  */
 
 private:
 
@@ -115,18 +99,8 @@ private:
   template<typename scalartype>
   static void execute(FUNC_LIB::function<scalartype, w_VERTEX_EXTENDED>& f, bool do_diff=false);
 
-  /*
-    template<typename scalartype, typename cluster_type>
-    static void execute(FUNC_LIB::function<scalartype, dmn_3<b_dmn_t, b_dmn_t, dmn_0<r_cluster<FULL, cluster_type> > > >& f, bool do_diff=false);
-  */
-
   template<typename scalartype, typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S>
   static void execute(FUNC_LIB::function<scalartype, dmn_3<b_dmn_t, b_dmn_t, dmn_0<cluster_domain<scalar_type, D, N, REAL_SPACE, S> > > >& f, bool do_diff=false);
-
-  /*
-    template<typename scalartype, typename cluster_type>
-    static void execute(FUNC_LIB::function<scalartype, dmn_3<b_dmn_t, b_dmn_t, dmn_0<k_cluster<FULL, cluster_type> > > >& f, bool do_diff=false);
-  */
 
   template<typename scalartype, typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S>
   static void execute(FUNC_LIB::function<scalartype, dmn_3<b_dmn_t, b_dmn_t, dmn_0<cluster_domain<scalar_type, D, N, MOMENTUM_SPACE, S> > > >& f, bool do_diff=false);
@@ -207,8 +181,6 @@ void symmetrize_single_particle_function::execute(FUNC_LIB::function<scalartype,
 template<typename scalartype, typename f_dmn_0, typename f_dmn_1>
 void symmetrize_single_particle_function::execute(FUNC_LIB::function<scalartype, dmn_4<nu, nu, f_dmn_0, f_dmn_1> >& f, bool do_diff)
 {
-  //   if(do_diff)
-  //     cout << "\tsymmetrizing : " << f.get_name() << endl;
 
   symmetrize_over_electron_spin(f, do_diff);
 
@@ -256,82 +228,6 @@ void symmetrize_single_particle_function::execute(FUNC_LIB::function<scalartype,
     }
   }
 }
-
-/*
-  template<typename scalartype, typename cluster_type>
-  void symmetrize_single_particle_function::execute(FUNC_LIB::function<scalartype, dmn_4<nu, nu, dmn_0<r_cluster<FULL, cluster_type> >, w> >& f, bool do_diff)
-  {
-  typedef dmn_0<r_cluster<FULL, cluster_type> > r_dmn_t;
-
-  //   if(do_diff)
-  //     cout << "\tsymmetrizing : " << f.get_name() << endl;
-
-  symmetrize_over_electron_spin(f, do_diff);
-
-  {
-  FUNC_LIB::function<scalartype, dmn_3<b, b, r_dmn_t> > f0(f.get_name());
-
-  for(int ind_1=0; ind_1<w::dmn_size(); ++ind_1){
-
-  for(int spin_ind=0; spin_ind<s::dmn_size(); ++spin_ind){
-
-  for(int b_0=0; b_0<b::dmn_size(); ++b_0)
-  for(int b_1=0; b_1<b::dmn_size(); ++b_1)
-  for(int ind_0=0; ind_0<r_dmn_t::dmn_size(); ++ind_0)
-  f0(b_0, b_1, ind_0) = f(b_0, spin_ind, b_1, spin_ind, ind_0, ind_1);
-
-  symmetrize_single_particle_function::execute(f0, do_diff);
-
-  for(int b_0=0; b_0<b::dmn_size(); ++b_0)
-  for(int b_1=0; b_1<b::dmn_size(); ++b_1)
-  for(int ind_0=0; ind_0<r_dmn_t::dmn_size(); ++ind_0)
-  f(b_0, spin_ind, b_1, spin_ind, ind_0, ind_1) = f0(b_0, b_1, ind_0);
-  }
-  }
-  }
-
-  {
-  FUNC_LIB::function<scalartype, dmn_4<nu, nu, r_dmn_t, w> > f_new(f.get_name());
-
-  int w_0 = w::dmn_size()-1;
-  int r_0 = r_dmn_t::parameter_type::origin_index();
-
-  for(int w_ind_0=0; w_ind_0<w::dmn_size()/2; ++w_ind_0){
-  for(int r_ind_0=0; r_ind_0<r_dmn_t::dmn_size(); ++r_ind_0){
-
-  int w_ind_1 = w_0-w_ind_0;
-  int r_ind_1 = r_dmn_t::parameter_type::subtract(r_ind_0, r_0);
-
-  for(int b0=0; b0<2*b_dmn_t::dmn_size(); ++b0){
-  for(int b1=0; b1<2*b_dmn_t::dmn_size(); ++b1){
-
-  scalartype tmp_0 = f(b0, b1, r_ind_0, w_ind_0);
-  scalartype tmp_1 = f(b1, b0, r_ind_1, w_ind_1);
-
-  scalartype tmp = (tmp_0+conjugate(tmp_1))/2.;
-
-  f_new(b0, b1, r_ind_0, w_ind_0) =           tmp ;
-  f_new(b1, b0, r_ind_1, w_ind_1) = conjugate(tmp);
-  }
-  }
-  }
-  }
-
-  double max=0;
-  for(int ind=0; ind<f.size(); ++ind)
-  {
-  max = std::max(max, abs(f(ind)-f_new(ind)));
-
-  f(ind) = f_new(ind);
-  }
-
-  if(do_diff)
-  difference(max, f.get_name(), "w-domain of the function : "+f.get_name()+"\n");
-  }
-  }
-*/
-
-
 
 
 
@@ -581,49 +477,6 @@ void symmetrize_single_particle_function::execute(FUNC_LIB::function<scalartype,
     difference(max, "w_VERTEX_EXTENDED-domain of the function : "+f.get_name()+"\n");
 }
 
-/*
-  template<typename scalartype, typename cluster_type>
-  void symmetrize_single_particle_function::execute(FUNC_LIB::function<scalartype, dmn_0<r_cluster<FULL, cluster_type> > >& f, bool do_diff)
-  {
-  typedef r_cluster<FULL, cluster_type> r_cluster_type;
-  typedef dmn_0<r_cluster_type>         r_dmn_t;
-
-  typedef typename r_cluster_type::sym_super_cell_dmn_t sym_super_cell_dmn_t;
-
-  static FUNC_LIB::function<std::pair<int,int>, dmn_2< dmn_2<r_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& r_symmetry_matrix = cluster_symmetry<r_cluster_type>::get_symmetry_matrix();
-
-  static FUNC_LIB::function<scalartype, r_dmn_t> f_new;
-
-  f_new = scalartype(0.);
-
-  for(int S_ind=0; S_ind<sym_super_cell_dmn_t::dmn_size(); ++S_ind){
-
-  for(int r_ind=0; r_ind<r_dmn_t::dmn_size(); ++r_ind){
-
-  int R_new_ind = r_symmetry_matrix(r_ind, 0, S_ind).first;
-
-  f_new(r_ind) += f(R_new_ind);
-  }
-  }
-
-  if(sym_super_cell_dmn_t::dmn_size()>0)
-  f_new /= double(sym_super_cell_dmn_t::dmn_size());
-  else
-  throw std::logic_error(__FUNCTION__);
-
-  double max=0;
-  for(int ind=0; ind<f.size(); ++ind)
-  {
-  max = std::max(max, abs(f(ind)-f_new(ind)));
-
-  f(ind) = f_new(ind);
-  }
-
-  if(do_diff)
-  difference(max, f.get_name(), "r-cluster-domain of the function : "+f.get_name()+"\n");
-  }
-*/
-
 template<typename scalartype, typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S>
 void symmetrize_single_particle_function::execute(FUNC_LIB::function<scalartype, dmn_0<cluster_domain<scalar_type, D, N, REAL_SPACE, S> > >& f, bool do_diff)
 {
@@ -634,8 +487,6 @@ void symmetrize_single_particle_function::execute(FUNC_LIB::function<scalartype,
 
   static FUNC_LIB::function<std::pair<int,int>, dmn_2< dmn_2<r_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& r_symmetry_matrix = cluster_symmetry<r_cluster_type>::get_symmetry_matrix();
 
-  //typedef typename r_cluster_type::sym_super_cell_dmn_t sym_super_cell_dmn_t;
-  //static FUNC_LIB::function<std::pair<int,int>, dmn_2< dmn_2<r_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& r_symmetry_matrix = cluster_symmetry<r_cluster_type>::get_symmetry_matrix();
 
   static FUNC_LIB::function<scalartype, r_dmn_t> f_new;
 
@@ -667,57 +518,6 @@ void symmetrize_single_particle_function::execute(FUNC_LIB::function<scalartype,
   if(do_diff)
     difference(max, f.get_name(), "r-cluster-domain of the function : "+f.get_name()+"\n");
 }
-
-/*
-  template<typename scalartype, typename cluster_type>
-  void symmetrize_single_particle_function::execute(FUNC_LIB::function<scalartype, dmn_3<b_dmn_t, b_dmn_t, dmn_0<r_cluster<FULL, cluster_type> > > >& f, bool do_diff)
-  {
-  typedef r_cluster<FULL, cluster_type> r_cluster_type;
-  typedef dmn_0<r_cluster_type>         r_dmn_t;
-
-  typedef typename cluster_symmetry<r_cluster_type>::sym_super_cell_dmn_t sym_super_cell_dmn_t;
-
-  static FUNC_LIB::function<std::pair<int,int>, dmn_2< dmn_2<r_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& r_symmetry_matrix = cluster_symmetry<r_cluster_type>::get_symmetry_matrix();
-
-  static FUNC_LIB::function<scalartype, dmn_3<b_dmn_t, b_dmn_t, r_dmn_t> > f_new;
-
-  f_new = scalartype(0.);
-
-  for(int S_ind=0; S_ind<sym_super_cell_dmn_t::dmn_size(); ++S_ind){
-
-  for(int b0=0; b0<b_dmn_t::dmn_size(); ++b0){
-  for(int b1=0; b1<b_dmn_t::dmn_size(); ++b1){
-
-  for(int r_ind=0; r_ind<r_dmn_t::dmn_size(); ++r_ind){
-
-  int R_new_ind = r_symmetry_matrix(r_ind, 0, S_ind).first;
-
-  int b0_new = r_symmetry_matrix(0    , b0, S_ind).second;
-  int b1_new = r_symmetry_matrix(r_ind, b1, S_ind).second;
-
-  f_new(b0, b1, r_ind) += f(b0_new , b1_new, R_new_ind);
-  }
-  }
-  }
-  }
-
-  if(sym_super_cell_dmn_t::dmn_size()>0)
-  f_new /= double(sym_super_cell_dmn_t::dmn_size());
-  else
-  throw std::logic_error(__FUNCTION__);
-
-  double max=0;
-  for(int ind=0; ind<f.size(); ++ind)
-  {
-  max = std::max(max, abs(f(ind)-f_new(ind)));
-
-  f(ind) = f_new(ind);
-  }
-
-  if(do_diff)
-  difference(max, f.get_name(), "r-cluster-domain of the function : "+f.get_name()+"\n");
-  }
-*/
 
 template<typename scalartype, typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S>
 void symmetrize_single_particle_function::execute(FUNC_LIB::function<scalartype, dmn_3<b_dmn_t, b_dmn_t, dmn_0<cluster_domain<scalar_type, D, N, REAL_SPACE, S> > > >& f,
@@ -769,49 +569,6 @@ void symmetrize_single_particle_function::execute(FUNC_LIB::function<scalartype,
     difference(max, f.get_name(), "r-cluster-domain of the function : "+f.get_name()+"\n");
 }
 
-/*
-  template<typename scalartype, typename cluster_type>
-  void symmetrize_single_particle_function::execute(FUNC_LIB::function<scalartype, dmn_0<k_cluster<FULL, cluster_type> > >& f, bool do_diff)
-  {
-  typedef k_cluster<FULL, cluster_type> k_cluster_type;
-  typedef dmn_0<k_cluster_type>         k_dmn_t;
-
-  typedef typename cluster_symmetry<k_cluster_type>::sym_super_cell_dmn_t sym_super_cell_dmn_t;
-
-  static FUNC_LIB::function<std::pair<int,int>, dmn_2< dmn_2<k_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& k_symmetry_matrix = cluster_symmetry<k_cluster_type>::get_symmetry_matrix();
-
-  static FUNC_LIB::function<scalartype, k_dmn_t> f_new;
-
-  f_new = scalartype(0.);
-
-  for(int S_ind=0; S_ind<sym_super_cell_dmn_t::dmn_size(); ++S_ind){
-
-  for(int k_ind=0; k_ind<k_dmn_t::dmn_size(); ++k_ind){
-
-  int K_new_ind = k_symmetry_matrix(k_ind, 0, S_ind).first;
-
-  f_new(k_ind) += f(K_new_ind);
-  }
-  }
-
-  if(sym_super_cell_dmn_t::dmn_size()>0)
-  f_new /= double(sym_super_cell_dmn_t::dmn_size());
-  else
-  throw std::logic_error(__FUNCTION__);
-
-  double max=0;
-  for(int ind=0; ind<f.size(); ++ind)
-  {
-  max = std::max(max, abs(f(ind)-f_new(ind)));
-
-  f(ind) = f_new(ind);
-  }
-
-  if(do_diff)
-  difference(max, f.get_name(), "k-cluster-domain of the function : "+f.get_name()+"\n");
-  }
-*/
-
 template<typename scalartype, typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S>
 void symmetrize_single_particle_function::execute(FUNC_LIB::function<scalartype, dmn_0<cluster_domain<scalar_type, D, N, MOMENTUM_SPACE, S> > >& f, bool do_diff)
 {
@@ -852,54 +609,6 @@ void symmetrize_single_particle_function::execute(FUNC_LIB::function<scalartype,
   if(do_diff)
     difference(max, f.get_name(), "k-cluster-domain of the function : "+f.get_name()+"\n");
 }
-
-/*
-  template<typename scalartype, typename cluster_type>
-  void symmetrize_single_particle_function::execute(FUNC_LIB::function<scalartype, dmn_3<b_dmn_t, b_dmn_t, dmn_0<k_cluster<FULL, cluster_type> > > >& f, bool do_diff)
-  {
-  typedef k_cluster<FULL, cluster_type> k_cluster_type;
-  typedef dmn_0<k_cluster_type>         k_dmn_t;
-
-  typedef typename cluster_symmetry<k_cluster_type>::sym_super_cell_dmn_t sym_super_cell_dmn_t;
-
-  static FUNC_LIB::function<std::pair<int,int>, dmn_2< dmn_2<k_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >& k_symmetry_matrix = cluster_symmetry<k_cluster_type>::get_symmetry_matrix();
-
-  static FUNC_LIB::function<scalartype, dmn_3<b_dmn_t, b_dmn_t, k_dmn_t> > f_new;
-
-  f_new = scalartype(0.);
-
-  for(int S_ind=0; S_ind<sym_super_cell_dmn_t::dmn_size(); ++S_ind){
-
-  for(int b0=0; b0<b_dmn_t::dmn_size(); ++b0){
-  for(int b1=0; b1<b_dmn_t::dmn_size(); ++b1){
-
-  for(int k_ind=0; k_ind<k_dmn_t::dmn_size(); ++k_ind){
-
-  int K_new_ind = k_symmetry_matrix(k_ind, b0, S_ind).first;
-
-  int b0_new = k_symmetry_matrix(0    , b0, S_ind).second;
-  int b1_new = k_symmetry_matrix(k_ind, b1, S_ind).second;
-
-  f_new(b0, b1, k_ind) += f(b0_new , b1_new, K_new_ind);
-  }
-  }
-  }
-  }
-
-  f_new /= double(sym_super_cell_dmn_t::dmn_size());
-
-  double max=0;
-  for(int ind=0; ind<f.size(); ++ind)
-  {
-  max = std::max(max, abs(f(ind)-f_new(ind)));
-
-  f(ind) = f_new(ind);
-  }
-
-  if(do_diff)
-  difference(max, f.get_name(), "k-clusterdomain of the function : "+f.get_name()+"\n");
-  }
-*/
 
 template<typename scalartype, typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S>
 void symmetrize_single_particle_function::execute(FUNC_LIB::function<scalartype, dmn_3<b_dmn_t, b_dmn_t, dmn_0<cluster_domain<scalar_type, D, N, MOMENTUM_SPACE, S> > > >& f,

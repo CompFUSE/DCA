@@ -2,6 +2,8 @@
 
 #ifndef SS_CT_HYB_ACCUMULATOR_H
 #define SS_CT_HYB_ACCUMULATOR_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -23,7 +25,6 @@ namespace DCA
     class MC_accumulator<SS_CT_HYB, device_t, parameters_type, MOMS_type> : public MC_accumulator_data,
                                                                             public ss_hybridization_solver_routines<parameters_type, MOMS_type>
     {
-#include "type_definitions.h"
 
     public:
 

@@ -2,6 +2,8 @@
 
 #ifndef DCA_QMCI_ACCUMULATOR_NONLOCAL_G_H
 #define DCA_QMCI_ACCUMULATOR_NONLOCAL_G_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -22,7 +24,6 @@ namespace DCA
       template<class parameters_type, class MOMS_type>
       class accumulator_nonlocal_G
       {
-#include "type_definitions.h"
 
         typedef r_DCA r_dmn_t;
         typedef k_DCA k_dmn_t;
@@ -224,8 +225,8 @@ namespace DCA
         {
           profiler_t profiler("nonlocal-G-FT r --> k", "CT-AUX accumulator", __LINE__, thread_id);
 
-          MATH_ALGORITHMS::TRANSFORM<r_dmn_t, k_dmn_t>::execute(M_r_r_w_w, M_k_r_w_w);
-          MATH_ALGORITHMS::TRANSFORM<r_dmn_t, k_dmn_t>::execute(M_k_r_w_w, M_k_k_w_w_e_spin);
+          math_algorithms::functional_transforms::TRANSFORM<r_dmn_t, k_dmn_t>::execute(M_r_r_w_w, M_k_r_w_w);
+          math_algorithms::functional_transforms::TRANSFORM<r_dmn_t, k_dmn_t>::execute(M_k_r_w_w, M_k_k_w_w_e_spin);
 
           scalar_type  Nc        = scalar_type(k_DCA::dmn_size());
           scalar_type one_div_Nc = 1./Nc;

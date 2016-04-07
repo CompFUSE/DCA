@@ -6,6 +6,8 @@
 
 #ifndef HYBRIDIZATION_SYMMETRIES_ENUMERATED_H
 #define HYBRIDIZATION_SYMMETRIES_ENUMERATED_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace QMC 
 {
@@ -21,7 +23,6 @@ namespace QMC
   template<>
   struct set_quantum_number_hyb<PARTICLE_NUMBER>
   {
-#include "type_definitions.h"
 
   public:
 
@@ -39,7 +40,6 @@ namespace QMC
   template<>
   struct set_quantum_number_hyb<Sz>
   {
-#include "type_definitions.h"
 
   public:
 
@@ -70,7 +70,6 @@ namespace QMC
   template<>
   struct set_quantum_number_hyb<TOTAL_MOMENTUM>
   {
-#include "type_definitions.h"
 
   public:
 

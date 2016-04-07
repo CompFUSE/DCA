@@ -2,6 +2,8 @@
 
 #ifndef DCA_TETRAHEDRON_INTEGRATION_H
 #define DCA_TETRAHEDRON_INTEGRATION_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -9,7 +11,6 @@ namespace DCA
   template<typename parameters_type, typename K_dmn>
   class tetrahedron_integration
   {
-#include "type_definitions.h"
 
     typedef typename K_dmn::parameter_type k_cluster_type;
     const static int DIMENSION = K_dmn::parameter_type::DIMENSION;

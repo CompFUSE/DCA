@@ -59,7 +59,7 @@
 
 // typelist-operations
 #include "type_list.h"
-#include "type_list_definitions.h"
+#include "comp_library/type_list/type_list_definitions.h"
 using namespace TL;
 
 // enumerations
@@ -107,7 +107,7 @@ const static bool DO_NFFT = true;
 // profiling
 #include "include_profiling.h"
 
-#include "include_math_library.h"
+#include "math_library/math_library.hpp"
 
 // include domains
 #include "include_DCA_domains.h"

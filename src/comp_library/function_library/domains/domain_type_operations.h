@@ -6,7 +6,7 @@
  * 	 author: Peter Staar  
  */ 
 
-#include "type_list_definitions.h" 
+#include "comp_library/type_list/type_list_definitions.h" 
 
 
 #ifndef DOMAIN_TYPE_OPERATIONS_H_

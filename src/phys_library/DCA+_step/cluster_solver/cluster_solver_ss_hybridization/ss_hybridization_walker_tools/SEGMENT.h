@@ -2,6 +2,8 @@
 
 #ifndef SEGMENT_H
 #define SEGMENT_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace QMC {
   
@@ -19,7 +21,6 @@ namespace QMC {
   template<typename configuration_t, typename parameters_t, typename MOMS_t, typename concurrency_t>
   class segment
   {
-#include "type_definitions.h"
    
     typedef typename configuration_t::orbital_configuration_t orbital_configuration_t;
 

@@ -2,6 +2,8 @@
 
 #ifndef ADVANCED_FERMIONIC_OVERLAP_MATRIX_ELEMENT_H
 #define ADVANCED_FERMIONIC_OVERLAP_MATRIX_ELEMENT_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -10,7 +12,6 @@ namespace DCA
     template<typename parameter_type, typename ed_options>//b_dmn, typename s_dmn, typename r_dmn>
     struct sparse_element
     {
-#include "type_definitions.h"
 
 //       typedef ED_type_definitions<parameter_type, b_dmn, s_dmn, r_dmn> ED_type_def;
 

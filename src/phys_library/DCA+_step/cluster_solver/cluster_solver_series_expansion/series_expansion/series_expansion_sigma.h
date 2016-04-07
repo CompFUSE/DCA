@@ -2,6 +2,8 @@
 
 #ifndef COMPUTE_SERIES_EXPANSION_SIGMA_H
 #define COMPUTE_SERIES_EXPANSION_SIGMA_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -18,7 +20,6 @@ namespace DCA
     template<class parameters_type, class MOMS_type>
     class series_expansion
     {
-#include "type_definitions.h"
 
       typedef typename parameters_type::concurrency_type concurrency_type;
 

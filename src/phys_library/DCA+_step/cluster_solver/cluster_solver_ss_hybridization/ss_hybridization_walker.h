@@ -2,6 +2,8 @@
 
 #ifndef SS_CT_HYBRIDIZATION_WALKER_H
 #define SS_CT_HYBRIDIZATION_WALKER_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -27,7 +29,6 @@ namespace DCA
     template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
     class MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>
     {
-#include "type_definitions.h"
 
       typedef typename parameters_type::rng_type rng_type;
 

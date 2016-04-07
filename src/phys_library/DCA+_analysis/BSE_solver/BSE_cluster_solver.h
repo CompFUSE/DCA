@@ -3,6 +3,11 @@
 #ifndef BSE_CLUSTER_SOLVER_H
 #define BSE_CLUSTER_SOLVER_H
 
+#include "phys_library/DCA+_step/symmetrization/diagrammatic_symmetries.h"
+#include "phys_library/DCA+_step/symmetrization/symmetrize.h"
+#include"phys_library/domain_types.hpp"
+using namespace types;
+
 namespace DCA
 {
   /*!
@@ -11,7 +16,6 @@ namespace DCA
   template<class parameters_type, class MOMS_type>
   class BSE_cluster_solver
   {
-#include "type_definitions.h"
     typedef double scalartype;
 
     typedef typename parameters_type::profiler_type    profiler_t;

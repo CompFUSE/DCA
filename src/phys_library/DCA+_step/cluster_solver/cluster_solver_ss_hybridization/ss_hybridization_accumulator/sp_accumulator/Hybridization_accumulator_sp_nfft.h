@@ -2,6 +2,8 @@
 
 #ifndef SS_HYBRIDIZATION_ACCUMULATOR_SP_NFFT_H
 #define SS_HYBRIDIZATION_ACCUMULATOR_SP_NFFT_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -36,7 +38,6 @@ namespace DCA
     template<class parameters_type, class base_cluster_type>
     class MC_single_particle_accumulator<SS_CT_HYB, NFFT, parameters_type, base_cluster_type>
     {
-#include "type_definitions.h"
 
       typedef r_DCA r_dmn_t;
       typedef k_DCA k_dmn_t;
@@ -98,11 +99,11 @@ namespace DCA
 
       int                       N_spin_orbitals;
 
-      MATH_ALGORITHMS::NFFT::dnfft_1D<double, w_dmn_t, p_dmn_t> cached_nfft_1D_G_obj;
-      //MATH_ALGORITHMS::NFFT::dnfft_1D<double, w_dmn_t, p_dmn_t> cached_nfft_1D_G_squared_obj;
+      math_algorithms::NFFT::dnfft_1D<double, w_dmn_t, p_dmn_t> cached_nfft_1D_G_obj;
+      //math_algorithms::NFFT::dnfft_1D<double, w_dmn_t, p_dmn_t> cached_nfft_1D_G_squared_obj;
 
-      MATH_ALGORITHMS::NFFT::dnfft_1D<double, w_dmn_t, p_dmn_t> cached_nfft_1D_GS_obj;
-      //MATH_ALGORITHMS::NFFT::dnfft_1D<double, w_dmn_t, p_dmn_t> cached_nfft_1D_GS_squared_obj;
+      math_algorithms::NFFT::dnfft_1D<double, w_dmn_t, p_dmn_t> cached_nfft_1D_GS_obj;
+      //math_algorithms::NFFT::dnfft_1D<double, w_dmn_t, p_dmn_t> cached_nfft_1D_GS_squared_obj;
     };
 
     template<class parameters_type, class base_cluster_type>

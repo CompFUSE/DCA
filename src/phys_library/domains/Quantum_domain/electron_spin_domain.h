@@ -2,6 +2,7 @@
 
 #ifndef ELECTRON_SPIN_DOMAIN_H
 #define ELECTRON_SPIN_DOMAIN_H
+#include "comp_library/IO_library/HDF5/HDF5_writer.h"
 
 enum    e_spin_states {e_DN=-1, e_UP=1};
 typedef e_spin_states e_spin_states_type;

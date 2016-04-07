@@ -2,6 +2,8 @@
 
 #ifndef PARAMETERS_H
 #define PARAMETERS_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 /*!
  *   \ingroup  PARAMETERS
@@ -31,7 +33,6 @@ class Parameters : public file_names_parameters,
 {
 public:
 
-#include "type_definitions.h"
 
   typedef random_number_generator rng_type;
 

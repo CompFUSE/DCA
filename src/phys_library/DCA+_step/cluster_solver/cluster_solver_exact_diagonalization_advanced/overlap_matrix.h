@@ -2,6 +2,8 @@
 
 #ifndef ADVANCED_FERMIONIC_OVERLAP_MATRICES_H
 #define ADVANCED_FERMIONIC_OVERLAP_MATRICES_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -10,7 +12,6 @@ namespace DCA
     template<typename parameter_type, typename ed_options>
     class fermionic_overlap_matrices
     {
-#include "type_definitions.h"
 
     public:
 

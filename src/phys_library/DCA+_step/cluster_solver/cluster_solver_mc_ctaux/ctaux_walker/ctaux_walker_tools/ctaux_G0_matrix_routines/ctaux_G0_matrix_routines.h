@@ -2,6 +2,9 @@
 
 #ifndef DCA_QMCI_G0_INTERPOLATION_TEMPLATE_H
 #define DCA_QMCI_G0_INTERPOLATION_TEMPLATE_H
+#include "phys_library/domain_types.hpp"
+#include "math_library/interpolation_library/akima_interpolation.h"
+using namespace types;
 
 namespace DCA
 {
@@ -21,7 +24,6 @@ namespace DCA
     template<typename parameters_type>
     class G0_INTERPOLATION_TEMPLATE
     {
-#include "type_definitions.h"
 
       typedef vertex_singleton    vertex_singleton_type;
 
@@ -153,7 +155,7 @@ namespace DCA
     {
       int size = t::dmn_size()/2;
 
-      akima_interpolation<double> ai_obj(size);
+      math_algorithms::interpolation::akima_interpolation<double> ai_obj(size);
 
       double* x = new double[size];
       double* y = new double[size];

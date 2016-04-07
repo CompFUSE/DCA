@@ -2,6 +2,8 @@
 
 #ifndef DCA_DOUBLE_COUNTING_CORRECTION_STEP_H
 #define DCA_DOUBLE_COUNTING_CORRECTION_STEP_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 /*!
  *  \author Peter Staar
  *  \author Andrei Plamada
@@ -13,7 +15,6 @@ namespace DCA
   template<typename parameters_type, typename MOMS_type>
   class double_counting_correction
   {
-#include "type_definitions.h"
 
     typedef typename parameters_type::concurrency_type concurrency_type;
 

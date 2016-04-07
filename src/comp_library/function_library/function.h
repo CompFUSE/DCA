@@ -3,11 +3,13 @@
 #ifndef FUNCTION_H
 #define FUNCTION_H
 
-#include "scalar_cast_methods.h"
-#include "function_operations/set_to_zero.h"
-#include "function_operations/copy_from.h"
-#include "function_operations/function_operators_collection.h"
-#include "function_operations/subind_2_linind_collection.h"
+#include <assert.h>
+#include "comp_library/function_library/function_operations/set_to_zero.h"
+#include "comp_library/function_library/function_operations/copy_from.h"
+#include "comp_library/function_library/function_operations/function_operators_collection.h"
+#include "comp_library/function_library/function_operations/subind_2_linind_collection.h"
+#include "comp_library/function_library/scalar_cast_methods.h"
+#include "comp_library/type_list/type_list.h"
 
 
 namespace FUNC_LIB
@@ -627,7 +629,7 @@ namespace FUNC_LIB
 
         std::cout << "# subdomains        : " << Nb_sbdms << std::endl;
 
-        printTL<domain>::print();
+        TL::printTL<domain>::print();
 
         std::cout << "size of subdomains  : " << std::endl;
         for(int i=0; i<Nb_sbdms; i++)

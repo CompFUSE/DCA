@@ -2,6 +2,8 @@
 
 #ifndef DCA_QMCI_ACCUMULATOR_NONLOCAL_CHI_H
 #define DCA_QMCI_ACCUMULATOR_NONLOCAL_CHI_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -53,7 +55,6 @@ namespace DCA
       template<class parameters_type, class MOMS_type>
       class accumulator_nonlocal_chi
       {
-#include "type_definitions.h"
 
         typedef r_DCA r_dmn_t;
         typedef k_DCA k_dmn_t;

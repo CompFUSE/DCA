@@ -2,6 +2,8 @@
 
 #ifndef DCA_INTERPOLATION_ROUTINES_H
 #define DCA_INTERPOLATION_ROUTINES_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -12,7 +14,6 @@ namespace DCA
   template<typename parameters_type, typename source_k_dmn, typename target_k_dmn>
   class interpolation_routines
   {
-#include "type_definitions.h"
 
     typedef typename parameters_type::profiler_type    profiler_type;
     typedef typename parameters_type::concurrency_type concurrency_type;

@@ -2,6 +2,9 @@
 
 #ifndef DCA_CALCULATION_H
 #define DCA_CALCULATION_H
+#include "phys_library/domain_types.hpp"
+#include "phys_library/DCA+_loop/DCA+_loop_data.h"
+using namespace types;
 
 namespace DCA
 {
@@ -14,7 +17,6 @@ namespace DCA
   template<class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
   class DCA_calculation
   {
-#include "type_definitions.h"
 
     typedef typename parameters_type::profiler_type    profiler_t;
     typedef typename parameters_type::concurrency_type concurrency_type;

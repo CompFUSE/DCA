@@ -2,6 +2,8 @@
 
 #ifndef DCA_QMCI_G0_INTERPOLATION_CPU_H
 #define DCA_QMCI_G0_INTERPOLATION_CPU_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -17,7 +19,6 @@ namespace DCA
     template<typename parameters_type>
     class G0_INTERPOLATION<LIN_ALG::CPU, parameters_type> : public G0_INTERPOLATION_TEMPLATE<parameters_type>
     {
-#include "type_definitions.h"
 
       typedef vertex_singleton vertex_singleton_type;
 

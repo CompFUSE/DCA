@@ -3,18 +3,18 @@
 
 #ifndef MAKE_G4_MATRIX_H
 #define MAKE_G4_MATRIX_H
+#include"phys_library/domain_types.hpp"
+//using types::b; using types::k_DCA; using types::w_VERTEX;
+using namespace types;
 
 namespace dca {
-
   /*! \file MAKE_G4_MATRIX.h
    *
    * author : peter staar
    */
   template<class parameter_type, class MOMS_type>
   class make_G4_matrix 
-  {
-#include "type_definitions.h"
-    
+  {  
   public:
     
     template<typename scalartype_1, typename scalartype_2>

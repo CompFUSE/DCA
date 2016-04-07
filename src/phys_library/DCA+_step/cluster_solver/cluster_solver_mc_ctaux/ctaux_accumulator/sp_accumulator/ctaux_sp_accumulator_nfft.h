@@ -2,6 +2,8 @@
 
 #ifndef DCA_QMCI_CTAUX_SP_ACCUMULATOR_NFFT_H
 #define DCA_QMCI_CTAUX_SP_ACCUMULATOR_NFFT_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -18,7 +20,6 @@ namespace DCA
     template<class parameters_type, class MOMS_type>
     class MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>
     {
-#include "type_definitions.h"
 
       typedef vertex_singleton vertex_singleton_type;
 
@@ -74,8 +75,8 @@ namespace DCA
       parameters_type&  parameters;
       concurrency_type& concurrency;
 
-      MATH_ALGORITHMS::NFFT::dnfft_1D<double, w_dmn_t, p_dmn_t> cached_nfft_1D_M_r_w_obj;
-      MATH_ALGORITHMS::NFFT::dnfft_1D<double, w_dmn_t, p_dmn_t> cached_nfft_1D_M_r_w_squared_obj;
+      math_algorithms::NFFT::dnfft_1D<double, w_dmn_t, p_dmn_t> cached_nfft_1D_M_r_w_obj;
+      math_algorithms::NFFT::dnfft_1D<double, w_dmn_t, p_dmn_t> cached_nfft_1D_M_r_w_squared_obj;
     };
 
     template<class parameters_type, class MOMS_type>

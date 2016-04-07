@@ -2,6 +2,8 @@
 
 #ifndef WANNIER_INTERPOLATION_KERNEL_NU_NU_K_TO_NU_NU_k_NFFT_H
 #define WANNIER_INTERPOLATION_KERNEL_NU_NU_K_TO_NU_NU_k_NFFT_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 /*! \class   wannier_interpolation_kernel
  *  \ingroup INTERPOLATION
@@ -13,7 +15,6 @@ template<typename b_dmn_t, typename source_k_dmn_type, typename target_k_dmn_typ
 class wannier_interpolation_kernel<dmn_3<b_dmn_t, b_dmn_t, source_k_dmn_type>, 
 				   dmn_3<b_dmn_t, b_dmn_t, target_k_dmn_type> >
 {
-#include "type_definitions.h"
 
   typedef typename source_k_dmn_type::parameter_type source_k_cluster_type;
   typedef typename target_k_dmn_type::parameter_type target_k_cluster_type;

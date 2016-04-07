@@ -10,9 +10,11 @@ file(COPY check_data.dca_sp_DCA+_mpi_test.hdf5
 
 list(APPEND DCA_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}")
 
+set(TEST_INCLUDES  "${PROJECT_SOURCE_DIR}/applications;${DCA_INCLUDES}") #use default types for test
+
 add_gtest(NAME dca_sp_DCA+_mpi_test
   ADVANCED
   MPI MPI_NUMPROC 8
-  INCLUDES "${DCA_INCLUDES}"
+  INCLUDES "${TEST_INCLUDES}"
   LIBS     "${DCA_LIBRARIES}"
   )

@@ -2,6 +2,9 @@
 
 #ifndef DCA_UPDATE_CHEMICAL_POTENTIAL_STEP_H
 #define DCA_UPDATE_CHEMICAL_POTENTIAL_STEP_H
+#include"phys_library/domain_types.hpp"
+#include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
+using namespace types;
 /*!
  *  \author Peter Staar
  *  \author Andrei Plamada
@@ -13,7 +16,6 @@ namespace DCA
   template<typename parameters_type, typename MOMS_type, typename coarsegraining_type>
   class update_chemical_potential
   {
-#include "type_definitions.h"
 
     typedef typename parameters_type::concurrency_type concurrency_type;
 
@@ -206,40 +208,37 @@ namespace DCA
           }
       }
   }
-
-  template<typename parameters_type, typename MOMS_type, typename coarsegraining_type>
-  double update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>::compute_density()
-  {
-    if(parameters.use_interpolated_Self_energy())
-      coarsegraining.compute_G_K_w(MOMS.H_HOST, MOMS.Sigma_lattice, MOMS.G_k_w);
-    else
-      coarsegraining.compute_G_K_w(MOMS.H_HOST, MOMS.Sigma        , MOMS.G_k_w);
-
-    MOMS.G_k_w -= MOMS.G0_k_w;
-
+    
+    template<typename parameters_type, typename MOMS_type, typename coarsegraining_type>
+    double update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>::compute_density()
     {
-      MATH_ALGORITHMS::TRANSFORM<w, t>::execute(MOMS.G_k_w, MOMS.G_k_t);
-
+      if(parameters.use_interpolated_Self_energy())
+        coarsegraining.compute_G_K_w(MOMS.H_HOST, MOMS.Sigma_lattice, MOMS.G_k_w);
+      else
+        coarsegraining.compute_G_K_w(MOMS.H_HOST, MOMS.Sigma        , MOMS.G_k_w);
+      
+      MOMS.G_k_w -= MOMS.G0_k_w;
+      
+      math_algorithms::functional_transforms::TRANSFORM<w, t>::execute(MOMS.G_k_w, MOMS.G_k_t);
+      
       MOMS.G_k_t += MOMS.G0_k_t;
-
-      MATH_ALGORITHMS::TRANSFORM<k_DCA, r_DCA>::execute(MOMS.G_k_t, MOMS.G_r_t);
+      
+      math_algorithms::functional_transforms::TRANSFORM<k_DCA, r_DCA>::execute(MOMS.G_k_t, MOMS.G_r_t);
+      
+      MOMS.G_k_w += MOMS.G0_k_w;
+      
+      FUNC_LIB::function<double, nu> result;
+      result=0.0;
+      compute_density_correction(result);
+      double result_total=0.0;
+      for(int i=0; i<nu::dmn_size(); i++) {
+        result(i) += 1. - MOMS.G_r_t(i, i, r_DCA::parameter_type::origin_index(), 0);
+        MOMS.orbital_occupancy(i) = result(i);
+        result_total += result(i);
+      }
+      return result_total;
     }
-
-    MOMS.G_k_w += MOMS.G0_k_w;
-
-    FUNC_LIB::function<double, nu> result;
-    result=0.0;
-    compute_density_correction(result);
-    double result_total=0.0;
-    for(int i=0; i<nu::dmn_size(); i++)
-    {
-	result(i) += 1.-MOMS.G_r_t(i,i,r_DCA::parameter_type::origin_index(),0);
-	MOMS.orbital_occupancy(i)=result(i);
-	result_total +=result(i);
-    }
-    return result_total;
-  }
-
+    
 
   /*!
    *  We assume that G_ii(w>>0) ~ 1/(i w_m + A + B/(i w_m))

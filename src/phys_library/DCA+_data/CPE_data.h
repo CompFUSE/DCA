@@ -2,6 +2,8 @@
 
 #ifndef MOMS_W_REAL_H
 #define MOMS_W_REAL_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 /*!
  * \class   MultiOrbitalMultiSiteStructure
@@ -15,7 +17,6 @@
 template<class parameters_type>
 class MOMS_w_real
 {
-#include "type_definitions.h"
 
   typedef typename parameters_type::profiler_type    profiler_t;
   typedef typename parameters_type::concurrency_type concurrency_type;

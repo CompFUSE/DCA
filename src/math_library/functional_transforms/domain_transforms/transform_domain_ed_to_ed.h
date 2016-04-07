@@ -1,47 +1,48 @@
 //-*-C++-*-
 
-#ifndef BASIS_TRANSFORMATIONS_ED_TO_ED_H
-#define BASIS_TRANSFORMATIONS_ED_TO_ED_H
+#ifndef MATH_LIBRARY_FUNCTIONAL_TRANSFORMS_DOMAIN_TRANSFORMS_TRANSFORM_DOMAIN_ED_TO_ED_H
+#define MATH_LIBRARY_FUNCTIONAL_TRANSFORMS_DOMAIN_TRANSFORMS_TRANSFORM_DOMAIN_ED_TO_ED_H
 
-namespace MATH_ALGORITHMS
-{
-  template<typename type_input, typename type_output,int DMN_INDEX>
-  class TRANSFORM_DOMAIN<type_input, EXPANSION, type_output, EXPANSION, DMN_INDEX> : public TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>
-  {
-  private:
+#include <iostream>
+#include "comp_library/linalg/linalg.hpp"
+#include "comp_library/function_library/include_function_library.h"
+#include "math_library/typedefs.hpp"
+#include "math_library/functional_transforms/domain_transforms/transform_domain_template.h"
 
-    const static bool VERBOSE = false;
+namespace math_algorithms {
+namespace functional_transforms {
+// math_algorithms::functional_transforms::
 
-    typedef basis_transformation<type_input, EXPANSION, type_output, EXPANSION> basis_transformation_type;
-    typedef typename basis_transformation_type::matrix_type                     matrix_type;
+template <typename type_input, typename type_output, int DMN_INDEX>
+class TRANSFORM_DOMAIN<type_input, EXPANSION, type_output, EXPANSION, DMN_INDEX>
+    : public TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX> {
+private:
+  const static bool VERBOSE = false;
 
-  public:
-    
-    template<typename scalartype_input, class domain_input, 
-	     typename scalartype_output, class domain_output>
-    static void execute(FUNC_LIB::function<scalartype_input , domain_input >& f_input, 
-			FUNC_LIB::function<scalartype_output, domain_output>& f_output)
-    {
-      default_execute(f_input, f_output);
-    }
+  typedef basis_transformation<type_input, EXPANSION, type_output, EXPANSION> basis_transformation_type;
+  typedef typename basis_transformation_type::matrix_type matrix_type;
 
-  private:
- 
-    template<typename scalartype_input, class domain_input, 
-	     typename scalartype_output, class domain_output>
-    static void default_execute(FUNC_LIB::function<scalartype_input , domain_input >& f_input, 
-				FUNC_LIB::function<scalartype_output, domain_output>& f_output)
-    {
-      if(VERBOSE)
-        std::cout << "\n\t default-transform (continuous -> expansion) " << DMN_INDEX << "  " << type_input::get_name() << " --> " << type_output::get_name() << "\n\n";
+public:
+  template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
+  static void execute(FUNC_LIB::function<scalartype_input, domain_input>& f_input,
+                      FUNC_LIB::function<scalartype_output, domain_output>& f_output) {
+    default_execute(f_input, f_output);
+  }
 
-      matrix_type& T = basis_transformation_type::get_transformation_matrix();
+private:
+  template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
+  static void default_execute(FUNC_LIB::function<scalartype_input, domain_input>& f_input,
+                              FUNC_LIB::function<scalartype_output, domain_output>& f_output) {
+    if (VERBOSE)
+      std::cout << "\n\t default-transform (continuous -> expansion) " << DMN_INDEX << "  "
+                << type_input::get_name() << " --> " << type_output::get_name() << "\n\n";
 
-      transform(f_input, f_output, T);
-    }
-    
-  };
+    matrix_type& T = basis_transformation_type::get_transformation_matrix();
 
-}
+    transform(f_input, f_output, T);
+  }
+};
+}  // functional_transforms
+}  // math_algorithms
 
-#endif
+#endif  // MATH_LIBRARY_FUNCTIONAL_TRANSFORMS_DOMAIN_TRANSFORMS_TRANSFORM_DOMAIN_ED_TO_ED_H

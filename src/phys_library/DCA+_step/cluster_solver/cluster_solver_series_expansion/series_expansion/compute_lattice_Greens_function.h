@@ -2,6 +2,8 @@
 
 #ifndef COMPUTE_LATTICE_GREENS_FUNCTION_H
 #define COMPUTE_LATTICE_GREENS_FUNCTION_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -11,7 +13,6 @@ namespace DCA
     template<class parameters_type, class MOMS_type, class k_dmn_t, class w_dmn_t>
     class compute_lattice_Greens_function
     {
-#include "type_definitions.h"
 
       typedef typename parameters_type::concurrency_type concurrency_type;
 

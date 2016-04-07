@@ -2,6 +2,8 @@
 
 #ifndef SS_CT_HYB_ACCUMULATOR_LEGENDRE_H
 #define SS_CT_HYB_ACCUMULATOR_LEGENDRE_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace QMC {
 
@@ -53,7 +55,6 @@ namespace QMC {
   template<class parameters_type, class base_cluster_type>
   class MC_single_particle_accumulator<SS_CT_HYB, LEGENDRE, parameters_type, base_cluster_type>
   {
-#include "type_definitions.h" 
     typedef double scalar_type;
 
     typedef r_cluster<FULL, base_cluster_type> r_cluster_type;

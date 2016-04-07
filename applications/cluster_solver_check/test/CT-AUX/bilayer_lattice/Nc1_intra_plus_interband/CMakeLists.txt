@@ -10,11 +10,12 @@ file(COPY data.ED.hdf5
 file(COPY check_data.QMC.hdf5
   DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
-list(APPEND DCA_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/..")
+set(TEST_INCLUDES "${PROJECT_SOURCE_DIR}/applications;${CMAKE_CURRENT_SOURCE_DIR}/..;${DCA_INCLUDES}")
+
 
 add_gtest(NAME bilayer_lattice_Nc1_intra_plus_interband
   ADVANCED
   MPI MPI_NUMPROC 8
-  INCLUDES "${DCA_INCLUDES}"
+  INCLUDES "${TEST_INCLUDES}"
   LIBS     "${DCA_LIBRARIES}"
   )

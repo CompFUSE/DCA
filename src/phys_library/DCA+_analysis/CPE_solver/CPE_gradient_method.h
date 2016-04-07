@@ -2,6 +2,8 @@
 
 #ifndef CONTINUOUS_POLE_EXPANSION_GRADIENT_METHOD_H
 #define CONTINUOUS_POLE_EXPANSION_GRADIENT_METHOD_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -15,7 +17,6 @@ namespace DCA
   template<class parameters_type, class basis_function_t>
   class continuous_pole_expansion<parameters_type, basis_function_t, GRADIENT_METHOD>
   {
-#include "type_definitions.h"
 
   public:
 

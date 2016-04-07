@@ -2,6 +2,8 @@
 
 #ifndef COMPUTE_BARE_BUBBLE_H
 #define COMPUTE_BARE_BUBBLE_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -22,7 +24,6 @@ namespace DCA
     template<channel_type channel_value, class parameters_type, class k_dmn_t, class w_dmn_t>
     class compute_bubble
     {
-#include "type_definitions.h"
 
       typedef typename parameters_type::profiler_type    profiler_type;
       typedef typename parameters_type::concurrency_type concurrency_type;

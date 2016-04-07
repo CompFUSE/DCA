@@ -2,7 +2,7 @@
 # applications/analysis/CMakeLists.txt
 ################################################################################
 
-configure_file(include_files.h.in "${CMAKE_CURRENT_BINARY_DIR}/include_files.h" @ONLY)
+configure_file(include_files.inc.in "${CMAKE_CURRENT_BINARY_DIR}/include_files.inc" @ONLY)
 
 if (DCA_BUILD_ANALYSIS)
   message(STATUS "Generating main_analysis.cpp.")

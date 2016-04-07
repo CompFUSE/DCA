@@ -2,6 +2,9 @@
 
 #ifndef DCA_DECONVOLUTION_SP_H
 #define DCA_DECONVOLUTION_SP_H
+#include "phys_library/domain_types.hpp"
+#include "math_library/inference_library/Richardson_Lucy_deconvolution.h"
+using namespace types;
 
 namespace DCA
 {
@@ -14,7 +17,6 @@ namespace DCA
   template<typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
   class deconvolution_sp : public deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>
   {
-#include "type_definitions.h"
 
     typedef typename parameters_type::profiler_type    profiler_type;
     typedef typename parameters_type::concurrency_type concurrency_type;
@@ -28,8 +30,8 @@ namespace DCA
     typedef dmn_0<source_r_cluster_type>              source_r_dmn_t;
     typedef dmn_0<target_r_cluster_type>              target_r_dmn_t;
 
-    typedef MATH_ALGORITHMS::basis_transform<target_k_dmn_t, target_r_dmn_t> trafo_k_to_r_type;
-    typedef MATH_ALGORITHMS::basis_transform<target_r_dmn_t, target_k_dmn_t> trafo_r_to_k_type;
+    typedef math_algorithms::functional_transforms::basis_transform<target_k_dmn_t, target_r_dmn_t> trafo_k_to_r_type;
+    typedef math_algorithms::functional_transforms::basis_transform<target_r_dmn_t, target_k_dmn_t> trafo_r_to_k_type;
 
   public:
 
@@ -77,7 +79,7 @@ namespace DCA
     typedef dmn_0<dmn<2, int> >    z;
     typedef dmn_5<z, b, b, s, w> p_dmn_t;
 
-    INFERENCE::Richardson_Lucy_deconvolution<parameters_type, target_k_dmn_t, p_dmn_t> RL_obj(parameters);
+    math_algorithms::inference::Richardson_Lucy_deconvolution<parameters_type, target_k_dmn_t, p_dmn_t> RL_obj(parameters);
 
     FUNC_LIB::function<double, dmn_2<target_k_dmn_t, p_dmn_t> > S_source("S_source");
     FUNC_LIB::function<double, dmn_2<target_k_dmn_t, p_dmn_t> > S_approx("S_approx");

@@ -2,6 +2,8 @@
 
 #ifndef SS_HYBRIDIZATION_SOLVER_H
 #define SS_HYBRIDIZATION_SOLVER_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -20,7 +22,6 @@ namespace DCA
     template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
     class cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type> : public QMCI::ss_hybridization_solver_routines<parameters_type, MOMS_type>
     {
-#include "type_definitions.h"
 
     public:
 
@@ -237,7 +238,7 @@ namespace DCA
     {
 	compute_G_k_w();
 
-	MATH_ALGORITHMS::TRANSFORM<k_DCA,r_DCA>::execute(MOMS.G_k_w, MOMS.G_r_w);
+	math_algorithms::functional_transforms::TRANSFORM<k_DCA,r_DCA>::execute(MOMS.G_k_w, MOMS.G_r_w);
 
 	dca_info_struct.L2_Sigma_difference(DCA_iteration) = compute_S_k_w_from_G_k_w();
 
@@ -471,7 +472,7 @@ namespace DCA
     template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
     void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_G_k_w()
     {
-	MATH_ALGORITHMS::TRANSFORM<r_DCA, k_DCA>::execute(accumulator.get_G_r_w(), MOMS.G_k_w);
+	math_algorithms::functional_transforms::TRANSFORM<r_DCA, k_DCA>::execute(accumulator.get_G_r_w(), MOMS.G_k_w);
     }
 
     template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>

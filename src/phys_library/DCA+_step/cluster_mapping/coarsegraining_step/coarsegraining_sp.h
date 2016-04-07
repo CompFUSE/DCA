@@ -2,6 +2,8 @@
 
 #ifndef DCA_COARSEGRAINING_SP_H
 #define DCA_COARSEGRAINING_SP_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -9,7 +11,6 @@ namespace DCA
   class coarsegraining_sp : public coarsegraining_routines<parameters_type, K_dmn>,
                             public tetrahedron_integration<parameters_type, K_dmn>
   {
-#include "type_definitions.h"
 
     typedef typename K_dmn::parameter_type k_cluster_type;
 
@@ -25,9 +26,9 @@ namespace DCA
 
     typedef std::complex<scalar_type> complex_type;
 
-    typedef dmn_0<MATH_ALGORITHMS::tetrahedron_mesh<K_dmn> >             tetrahedron_dmn;
+    typedef dmn_0<math_algorithms::tetrahedron_mesh<K_dmn> >             tetrahedron_dmn;
 
-    typedef MATH_ALGORITHMS::gaussian_quadrature_domain<tetrahedron_dmn> quadrature_dmn;
+    typedef math_algorithms::gaussian_quadrature_domain<tetrahedron_dmn> quadrature_dmn;
 
     typedef dmn_0<coarsegraining_domain<K_dmn, K     > > q_dmn;
     typedef dmn_0<coarsegraining_domain<K_dmn, ORIGIN> > q_0_dmn;
@@ -254,11 +255,11 @@ namespace DCA
   template<typename other_scalar_type, typename r_dmn>
   void coarsegraining_sp<parameters_type, K_dmn>::compute_phi_r(FUNC_LIB::function<other_scalar_type, r_dmn>& phi_r)
   {
-    MATH_ALGORITHMS::tetrahedron_mesh<k_cluster_type> mesh(parameters.get_k_mesh_refinement());
+    math_algorithms::tetrahedron_mesh<k_cluster_type> mesh(parameters.get_k_mesh_refinement());
 
     quadrature_dmn::translate_according_to_period(parameters.get_number_of_periods(), mesh);
 
-    std::vector<MATH_ALGORITHMS::tetrahedron<DIMENSION> >& tetrahedra = mesh.get_tetrahedra();
+    std::vector<math_algorithms::tetrahedron<DIMENSION> >& tetrahedra = mesh.get_tetrahedra();
 
     {
       phi_r = 0.;
@@ -297,11 +298,11 @@ namespace DCA
   {
     std::cout << "\n" << __FUNCTION__ << std::endl;
 
-    MATH_ALGORITHMS::tetrahedron_mesh<k_cluster_type> mesh(parameters.get_k_mesh_refinement());
+    math_algorithms::tetrahedron_mesh<k_cluster_type> mesh(parameters.get_k_mesh_refinement());
 
     quadrature_dmn::translate_according_to_period(parameters.get_number_of_periods(), mesh);
 
-    std::vector<MATH_ALGORITHMS::tetrahedron<DIMENSION> >& tetrahedra = mesh.get_tetrahedra();
+    std::vector<math_algorithms::tetrahedron<DIMENSION> >& tetrahedra = mesh.get_tetrahedra();
 
     phi_r = 0.;
 

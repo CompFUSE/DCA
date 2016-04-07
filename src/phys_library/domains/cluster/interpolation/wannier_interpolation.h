@@ -18,8 +18,6 @@
 template<typename dmn_type, typename type_input, typename type_output>
 struct wannier_interpolation_domain_type
 {
-//   typedef typename TL::Swap<dmn_type,type_input,type_output>::Result Result;
-
   typedef typename dmn_type::this_type dmn_type_list;
   typedef typename TL::Swap<dmn_type_list,type_input,type_output>::Result Result;
 };
@@ -104,9 +102,6 @@ struct wannier_interpolation_generic
   static void execute(FUNC_LIB::function<scalartype_input , domain_input>& f_input, 
 		      FUNC_LIB::function<scalartype_output, domain_output>& f_output)
   {
-    //typedef typename TypeListAt<type_list1,IndexOf<type_list1, type_input>::value>::Result new_typelist1;
-    //typedef typename TypeListAt<type_list2,IndexOf<type_list1, type_input>::value>::Result new_typelist2;
-
     wannier_interpolation_any_2_any<type_input, type_output, IndexOf<type_list1, type_input>::value + dmn_shift>::execute(f_input,f_output);
 
   }
@@ -131,8 +126,6 @@ struct wannier_interpolation_generic<type_list1, type_list2, type_input, type_ou
 template<typename source_dmn_type, typename target_dmn_type>
 class wannier_interpolation
 {
-  //#include "type_definitions.h"
-
 public:
   
   template<typename scalartype_input, class domain_input, 
@@ -148,8 +141,6 @@ void wannier_interpolation<source_dmn_type, target_dmn_type>::execute(FUNC_LIB::
 								      FUNC_LIB::function<scalartype_output, domain_output>& f_output)
 {    
   typedef typename wannier_interpolation_domain_type<domain_input, source_dmn_type, target_dmn_type>::Result wannier_interpolation_domain;
-
-//   GENERIC_ASSERT< IS_EQUAL_TYPE<domain_output, wannier_interpolation_domain>::check >::execute();
 
   typedef typename domain_output::this_type domain_output_list_type;
   GENERIC_ASSERT< IS_EQUAL_TYPE<domain_output_list_type, wannier_interpolation_domain>::check >::execute();

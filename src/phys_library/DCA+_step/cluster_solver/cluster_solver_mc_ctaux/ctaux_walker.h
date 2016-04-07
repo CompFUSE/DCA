@@ -2,6 +2,8 @@
 
 #ifndef DCA_QMCI_CT_AUX_WALKER_H
 #define DCA_QMCI_CT_AUX_WALKER_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -28,7 +30,6 @@ namespace DCA
     class MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type> : public MC_walker_BIT <CT_AUX_SOLVER,           parameters_type, MOMS_type>,
                                                                            public MC_walker_data<CT_AUX_SOLVER, device_t, parameters_type>
     {
-#include "type_definitions.h"
 
       typedef vertex_singleton                         vertex_singleton_type;
       typedef CT_AUX_HS_configuration<parameters_type> configuration_type;

@@ -2,6 +2,8 @@
 
 #ifndef DCA_INTERPOLATION_SP_H
 #define DCA_INTERPOLATION_SP_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -12,7 +14,6 @@ namespace DCA
   template<typename parameters_type, typename source_k_dmn, typename target_k_dmn>
   class interpolation_sp : public interpolation_routines<parameters_type, source_k_dmn, target_k_dmn>
   {
-#include "type_definitions.h"
 
     typedef typename parameters_type::profiler_type    profiler_type;
     typedef typename parameters_type::concurrency_type concurrency_type;
@@ -84,7 +85,7 @@ namespace DCA
 
     FUNC_LIB::function<std::complex<double>, nu_nu_r_centered_w> cluster_centered_function("cluster_centered_function");
 
-    MATH_ALGORITHMS::TRANSFORM<source_k_dmn, r_centered_dmn>::execute(cluster_function, cluster_centered_function);
+    math_algorithms::functional_transforms::TRANSFORM<source_k_dmn, r_centered_dmn>::execute(cluster_function, cluster_centered_function);
 
     for(int w_ind=0; w_ind<w::dmn_size(); w_ind++)
       for(int r_ind=0; r_ind<r_centered_dmn::dmn_size(); r_ind++)
@@ -92,7 +93,7 @@ namespace DCA
           for(int i=0; i<nu::dmn_size(); i++)
             cluster_centered_function(i,j,r_ind,w_ind) *= r_centered_dmn::parameter_type::get_weights()[r_ind];
 
-    MATH_ALGORITHMS::TRANSFORM<r_centered_dmn, target_k_dmn>::execute(cluster_centered_function, interp_function);
+    math_algorithms::functional_transforms::TRANSFORM<r_centered_dmn, target_k_dmn>::execute(cluster_centered_function, interp_function);
   }
 
   template<typename parameters_type, typename source_k_dmn, typename target_k_dmn>
@@ -103,14 +104,14 @@ namespace DCA
 
     FUNC_LIB::function<std::complex<double>, nu_nu_r_centered> cluster_centered_function("cluster_centered_function");
 
-    MATH_ALGORITHMS::TRANSFORM<source_k_dmn, r_centered_dmn>::execute(cluster_function, cluster_centered_function);
+    math_algorithms::functional_transforms::TRANSFORM<source_k_dmn, r_centered_dmn>::execute(cluster_function, cluster_centered_function);
 
     for(int r_ind=0; r_ind<r_centered_dmn::dmn_size(); r_ind++)
       for(int j=0; j<nu::dmn_size(); j++)
         for(int i=0; i<nu::dmn_size(); i++)
           cluster_centered_function(i,j,r_ind) *= r_centered_dmn::parameter_type::get_weights()[r_ind];
 
-    MATH_ALGORITHMS::TRANSFORM<r_centered_dmn, target_k_dmn>::execute(cluster_centered_function, interp_function);
+    math_algorithms::functional_transforms::TRANSFORM<r_centered_dmn, target_k_dmn>::execute(cluster_centered_function, interp_function);
   }
   
 }

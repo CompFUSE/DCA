@@ -2,6 +2,8 @@
 
 #ifndef SS_HYBRIDIZATION_SWAP_SEGMENT_TOOLS_H
 #define SS_HYBRIDIZATION_SWAP_SEGMENT_TOOLS_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -12,10 +14,10 @@ namespace DCA
    *  \brief   This class implements the swap of segemnts between two hybridization lines.
    *
    */
+  using types::s; using types::b;
   template<typename hybridization_routines_type>
   class swap_segment_tools
   {
-#include "type_definitions.h"
 
     typedef LIN_ALG::matrix<double, LIN_ALG::CPU> vertex_vertex_matrix_type;
 

@@ -2,6 +2,8 @@
 
 #ifndef COMPUTE_FOURTH_ORDER_SIGMA_H
 #define COMPUTE_FOURTH_ORDER_SIGMA_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -17,7 +19,6 @@ namespace DCA
     template<class parameter_type, class k_dmn_t>
     class sigma_perturbation<4, parameter_type, k_dmn_t>
     {
-#include "type_definitions.h"
 
       typedef typename parameter_type::profiler_type    profiler_t;
       typedef typename parameter_type::concurrency_type concurrency_t;

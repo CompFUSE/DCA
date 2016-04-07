@@ -2,6 +2,8 @@
 
 #ifndef BRILLOUIN_ZONE_PARAMETERS_H
 #define BRILLOUIN_ZONE_PARAMETERS_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 /*!
  *   \ingroup  PARAMETERS
@@ -11,7 +13,6 @@
  */
 class brillouin_zone_parameters 
 {
-#include "type_definitions.h"
 
 public:
 

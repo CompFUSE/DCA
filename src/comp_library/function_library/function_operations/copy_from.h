@@ -2,8 +2,10 @@
 
 #ifndef COPY_SCALARTYPES_IN_FUNCTIONS_H
 #define COPY_SCALARTYPES_IN_FUNCTIONS_H
-
 #include <fftw3.h>
+#include <cstring>
+using std::memcpy;
+
 
 /*! \class  
  *  \author Peter Staar

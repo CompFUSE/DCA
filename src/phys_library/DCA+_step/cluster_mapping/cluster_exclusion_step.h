@@ -2,13 +2,14 @@
 
 #ifndef DCA_CLUSTER_EXCLUSION_STEP_H
 #define DCA_CLUSTER_EXCLUSION_STEP_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
   template<typename parameters_type, typename MOMS_type>
   class cluster_exclusion
   {
-#include "type_definitions.h"
 
     typedef typename parameters_type::profiler_type    profiler_t;
     typedef typename parameters_type::concurrency_type concurrency_type;
@@ -120,12 +121,12 @@ namespace DCA
     MOMS.G0_k_w_cluster_excluded -= MOMS.G0_k_w;
 
     {
-      MATH_ALGORITHMS::TRANSFORM<w, t>::execute(MOMS.G0_k_w_cluster_excluded, 
+      math_algorithms::functional_transforms::TRANSFORM<w, t>::execute(MOMS.G0_k_w_cluster_excluded, 
 						MOMS.G0_k_t_cluster_excluded);
 
       MOMS.G0_k_t_cluster_excluded += MOMS.G0_k_t;
 
-      MATH_ALGORITHMS::TRANSFORM<k_DCA, r_DCA>::execute(MOMS.G0_k_t_cluster_excluded, 
+      math_algorithms::functional_transforms::TRANSFORM<k_DCA, r_DCA>::execute(MOMS.G0_k_t_cluster_excluded, 
 							MOMS.G0_r_t_cluster_excluded);
     }
 

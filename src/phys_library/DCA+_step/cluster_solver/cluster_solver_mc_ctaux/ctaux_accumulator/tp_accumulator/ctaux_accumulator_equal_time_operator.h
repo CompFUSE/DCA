@@ -2,6 +2,8 @@
 
 #ifndef DCA_QMCI_CTAUX_TP_ACCUMULATOR_EQUAL_TIME_H
 #define DCA_QMCI_CTAUX_TP_ACCUMULATOR_EQUAL_TIME_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -17,7 +19,6 @@ namespace DCA
     template<class parameters_type, class MOMS_type>
     class MC_two_particle_equal_time_accumulator
     {
-#include "type_definitions.h"
 
       typedef double           scalar_type;
       typedef vertex_singleton vertex_singleton_type;
@@ -242,7 +243,7 @@ namespace DCA
         for(int k_ind=0; k_ind<k_dmn_t::dmn_size(); k_ind++)
           dwave_k_factor(k_ind) = cos(k_dmn_t::get_elements()[k_ind][0])-cos(k_dmn_t::get_elements()[k_ind][1]);
 
-        MATH_ALGORITHMS::TRANSFORM<k_dmn_t, r_dmn_t>::execute(dwave_k_factor, dwave_r_factor);
+        math_algorithms::functional_transforms::TRANSFORM<k_dmn_t, r_dmn_t>::execute(dwave_k_factor, dwave_r_factor);
 
 	/*
 	if(thread_id==0)
@@ -298,7 +299,7 @@ namespace DCA
     {
       int size = t_dmn_t::dmn_size()/2;
 
-      akima_interpolation<double> ai_obj(size);
+      math_algorithms::interpolation::akima_interpolation<double> ai_obj(size);
 
       double* x = new double[size];
       double* y = new double[size];
@@ -508,7 +509,7 @@ namespace DCA
     {
       int size = t_VERTEX::dmn_size();
 
-      akima_interpolation<double> ai_obj(size);
+      math_algorithms::interpolation::akima_interpolation<double> ai_obj(size);
 
       double* x = new double[size];
       double* y = new double[size];

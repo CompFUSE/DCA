@@ -2,8 +2,11 @@
 
 #ifndef HDF5_WRITER_HEADER_H
 #define HDF5_WRITER_HEADER_H
-
 #include <vector>
+#include "comp_library/IO_library/IO_types.h"
+#include "comp_library/function_library/domains/special_domains/dmn_0.h"
+#include "comp_library/IO_library/HDF5/include_HDF5.h"
+#include "comp_library/IO_library/template_writer.h"
 
 namespace IO
 {
@@ -568,11 +571,7 @@ namespace IO
       {
         int N_dmns = f.signature();
 
-        std::vector<hsize_t> dims(N_dmns+1);  // hsize_t dims[N_dmns+1];
-
-        //      dims[0] = 2;
-        //      for(int l=0; l<N_dmns; l++)
-        //        dims[1+l] = f[l];
+        std::vector<hsize_t> dims(N_dmns+1);
 
         // be carefull --> HDF5 is by default row-major, while the function-class is column-major !
         dims[N_dmns] = 2;

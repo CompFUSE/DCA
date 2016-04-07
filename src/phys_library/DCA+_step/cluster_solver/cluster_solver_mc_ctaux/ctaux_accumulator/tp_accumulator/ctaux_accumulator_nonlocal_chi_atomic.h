@@ -2,6 +2,8 @@
 
 #ifndef DCA_QMCI_ACCUMULATOR_NONLOCAL_CHI_ATOMIC_H
 #define DCA_QMCI_ACCUMULATOR_NONLOCAL_CHI_ATOMIC_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -25,7 +27,6 @@ namespace DCA
       template<class model_type>
       class accumulator_nonlocal_chi_atomic<model_type, PARTICLE_HOLE_MAGNETIC>
       {
-#include "type_definitions.h"
 
       public:
 
@@ -70,7 +71,6 @@ namespace DCA
       template<class lattice_t>
       class accumulator_nonlocal_chi_atomic<tight_binding_model<lattice_t>, PARTICLE_HOLE_MAGNETIC>
       {
-#include "type_definitions.h"
 
         const static int BANDS = lattice_t::BANDS;
 

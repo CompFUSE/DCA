@@ -15,16 +15,6 @@
 template<typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S, typename target_dmn_type>
 class wannier_interpolation_kernel<cluster_domain<scalar_type, D, N, MOMENTUM_SPACE, S>, target_dmn_type>
 {
-  //#include "type_definitions.h"
-
-//   const static int DIMENSION = source_base_cluster_type::DIMENSION;
-
-//   typedef r_cluster<FULL, source_base_cluster_type> source_r_cluster_type;
-//   typedef k_cluster<FULL, source_base_cluster_type> source_k_cluster_type;
-
-//   typedef dmn_0<source_r_cluster_type> source_r_dmn_t;
-//   typedef dmn_0<source_k_cluster_type> source_k_dmn_t;
-
   typedef cluster_domain<scalar_type, D, N, MOMENTUM_SPACE, S> k_cluster_type;
   
   const static int DIMENSION = k_cluster_type::DIMENSION;
@@ -36,10 +26,6 @@ class wannier_interpolation_kernel<cluster_domain<scalar_type, D, N, MOMENTUM_SP
   typedef dmn_0<source_k_cluster_type> source_k_dmn_t;
 
   typedef dmn_0<target_dmn_type> target_k_dmn_t;
-
-public:
-
-  //typedef dmn_0<centered_r_LDA> centered_r_LDA_dmn_t;
 
 public:
 
@@ -83,7 +69,6 @@ private:
 
     static int get_size() {
       return get_elements().size();
-      //return r_LDA::dmn_size();
     }
 
     static std::vector<element_type>& get_elements() {
@@ -119,9 +104,6 @@ wannier_interpolation_kernel<cluster_domain<scalar_type, D, N, MOMENTUM_SPACE, S
 
 template<typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S, typename target_dmn_type>
 wannier_interpolation_kernel<cluster_domain<scalar_type, D, N, MOMENTUM_SPACE, S>, target_dmn_type>::wannier_interpolation_kernel():
-  //grid_size(LDA_cluster_type::grid_size()),
-  //grid_size(k_LDA::parameter_type::get_dimensions()),
-
   grid_size(DIMENSION, 32),
 
   nfft_K_2_R(),
@@ -263,13 +245,10 @@ void wannier_interpolation_kernel<cluster_domain<scalar_type, D, N, MOMENTUM_SPA
   std::vector<std::vector<double> > collection_k_vecs_affine(target_k_dmn_t::dmn_size(), std::vector<double>(DIMENSION, 0));
 
   for(int j=0; j<target_k_dmn_t::dmn_size(); j++){
-    //collection_k_vecs_affine[j] = source_k_cluster_type::get_affine_coordinate(collection_k_vecs[j]);
-    collection_k_vecs_affine[j] = VECTOR_OPERATIONS::COORDINATES(collection_k_vecs[j],
-								 source_k_cluster_type::get_super_basis_vectors());
-
-    //VECTOR_OPERATIONS::PRINT(collection_k_vecs_affine[j]); cout<<endl;
+      collection_k_vecs_affine[j] = VECTOR_OPERATIONS::COORDINATES(collection_k_vecs[j],
+                                                                   source_k_cluster_type::get_super_basis_vectors());
   }
-  //cout<<endl;
+
 
   for(int j=0; j<target_k_dmn_t::dmn_size(); j++){
     for(int i=0; i<DIMENSION; i++){
@@ -305,13 +284,9 @@ void wannier_interpolation_kernel<cluster_domain<scalar_type, D, N, MOMENTUM_SPA
 
   for(int K_ind=0; K_ind<source_k_dmn_t::dmn_size(); K_ind++){
 
-//     VECTOR_OPERATIONS::PRINT(source_k_dmn_t::get_elements()[K_ind]);
-//     cout << real(input_ptr[K_ind]) << "\t" << imag(input_ptr[K_ind]) << endl;
-
     nfft_K_2_R.f[K_ind][0] = real(input_ptr[K_ind]);
     nfft_K_2_R.f[K_ind][1] = imag(input_ptr[K_ind]);
   }
-//   cout << endl;
 
   nfft_adjoint(&nfft_K_2_R);
   
@@ -323,11 +298,7 @@ void wannier_interpolation_kernel<cluster_domain<scalar_type, D, N, MOMENTUM_SPA
     }
     else 
       F_R(R_ind) = 0.;
-
-//     VECTOR_OPERATIONS::PRINT(centered_r_cluster_dmn_t::get_elements()[R_ind]);
-//     cout << real(F_R(R_ind)) << "\t" << imag(F_R(R_ind)) << endl;
   }
-//   cout << endl;
 }
 
 template<typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S, typename target_dmn_type>
@@ -343,12 +314,7 @@ void wannier_interpolation_kernel<cluster_domain<scalar_type, D, N, MOMENTUM_SPA
   for(int k_ind=0; k_ind<target_k_dmn_t::dmn_size(); k_ind++){
       output_ptr[k_ind].real( nfft_R_2_k.f[k_ind][0] ); 
       output_ptr[k_ind].imag( nfft_R_2_k.f[k_ind][1] ); 
-
-//     VECTOR_OPERATIONS::PRINT(target_k_dmn_t::get_elements()[k_ind]);
-//     cout << real(output_ptr[k_ind]) << "\t" << imag(output_ptr[k_ind]) << endl;
   }
-
-//   cout << endl;
 }
 
 /*!
@@ -430,14 +396,11 @@ void wannier_interpolation_kernel<cluster_domain<scalar_type, D, N, MOMENTUM_SPA
 
     std::vector<double> R_vec = source_r_dmn_t::get_elements()[R_ind];
 
-    //std::vector<std::vector<double> > r_vecs = source_r_cluster_type::find_equivalent_vectors_with_minimal_distance_to_origin(R_vec).second;
     std::vector<std::vector<double> > r_vecs = cluster_operations::equivalent_vectors(R_vec, source_r_cluster_type::get_super_basis_vectors());
 
     for(size_t l=0; l<r_vecs.size(); l++){
 
-      //std::vector<double> r_aff = LDA_r_cluster_type::get_lattice_affine_coordinate(r_vecs[l]);
-      //std::vector<double> r_aff = source_r_cluster_type::get_lattice_affine_coordinate(r_vecs[l]);
-      std::vector<double> r_aff = VECTOR_OPERATIONS::COORDINATES(r_vecs[l], source_r_cluster_type::get_basis_vectors());//source_r_cluster_type::get_lattice_affine_coordinate(r_vecs[l]);
+      std::vector<double> r_aff = VECTOR_OPERATIONS::COORDINATES(r_vecs[l], source_r_cluster_type::get_basis_vectors());
 
       for(int R_cen_ind=0; R_cen_ind<centered_r_cluster_dmn_t::dmn_size(); R_cen_ind++)
 	if(VECTOR_OPERATIONS::L2_NORM(r_aff, centered_r_cluster_dmn_t::get_elements()[R_cen_ind]) < 1.e-3)
@@ -461,14 +424,6 @@ void wannier_interpolation_kernel<cluster_domain<scalar_type, D, N, MOMENTUM_SPA
 	lies_within_cutoff(l) = 0;
     }
   }
-
-//   for(int l=0; l<lies_within_cutoff.size(); l++){
-//     if(lies_within_cutoff(l)>0){
-//       VECTOR_OPERATIONS::PRINT(centered_r_cluster_dmn_t::get_elements()[l]);
-//       cout << "\t" << lies_within_cutoff(l) << endl;
-//     }
-//   }
-//   cout << endl;
 }
 
 #endif

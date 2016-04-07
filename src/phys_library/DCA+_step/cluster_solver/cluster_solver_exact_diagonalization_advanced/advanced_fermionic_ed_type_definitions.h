@@ -2,6 +2,8 @@
 
 #ifndef ADVANCED_FERMIONIC_ED_TYPE_DEFINITIONS_H
 #define ADVANCED_FERMIONIC_ED_TYPE_DEFINITIONS_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 #include <bitset>
 
@@ -18,7 +20,6 @@ namespace DCA
     template<typename parameter_type>
     struct advanced_ed_options
     {
-#include "type_definitions.h"
     public:
 
       const static size_t N=8*sizeof(size_t);

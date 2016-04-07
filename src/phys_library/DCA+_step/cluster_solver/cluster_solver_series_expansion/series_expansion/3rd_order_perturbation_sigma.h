@@ -2,6 +2,8 @@
 
 #ifndef COMPUTE_THIRD_ORDER_SIGMA_H
 #define COMPUTE_THIRD_ORDER_SIGMA_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -16,7 +18,6 @@ namespace DCA
     template<class parameter_type, class k_dmn_t>
     class sigma_perturbation<3, parameter_type, k_dmn_t>
     {
-#include "type_definitions.h"
 
     public:
 

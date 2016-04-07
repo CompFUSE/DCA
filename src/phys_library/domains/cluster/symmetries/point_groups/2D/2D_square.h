@@ -2,6 +2,9 @@
 
 #ifndef SQUARE_2D_H
 #define SQUARE_2D_H
+#include "phys_library/domains/cluster/symmetries/symmetry_operations/2D/Cn.h"
+#include "phys_library/domains/cluster/symmetries/symmetry_operations/2D/Sn.h"
+#include "comp_library/type_list/type_list.h"
 
 /*!
  *  \author: Peter Staar
@@ -65,12 +68,6 @@ struct S8
                      Sn_2D_6_8_type,
                      Sn_2D_7_8_type,
                      identity_group_operation<2>) point_group_type_list;
-};
-
-struct D4_trial
-{
-  typedef point_group_product< C4::point_group_type_list,
-                               S8::point_group_type_list>::Result point_group_type_list;
 };
 
 struct D4

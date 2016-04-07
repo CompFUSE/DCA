@@ -2,6 +2,7 @@
 
 #ifndef FREQUENCY_DOMAIN_COMPACT_H
 #define FREQUENCY_DOMAIN_COMPACT_H
+#include "phys_library/domains/time_and_frequency/frequency_domain.h"
 
 namespace DCA
 {

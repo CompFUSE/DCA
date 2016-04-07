@@ -2,6 +2,9 @@
 
 #ifndef DCA_QMCI_VERTEX_PAIR_H
 #define DCA_QMCI_VERTEX_PAIR_H
+#include"phys_library/domain_types.hpp"
+#include "phys_library/parameters/models/analytic_Hamiltonians/interactions/general_interaction.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -24,7 +27,6 @@ namespace DCA
     template<class parameters_type>
     class vertex_pair
     {
-#include "type_definitions.h"
 
       typedef typename parameters_type::rng_type rng_type;
       typedef r_DCA r_dmn_t;
@@ -202,18 +204,17 @@ namespace DCA
     template<class parameters_type>
     void vertex_pair<parameters_type>::set_random_interacting()
     {
-      interaction_type::set_vertex(*this, parameters, rng/*concurrency*/, CV<parameters_type>::get_H_interaction());
+      general_interaction::set_vertex(*this, parameters, rng/*concurrency*/, CV<parameters_type>::get_H_interaction());
 
-      double draw = rng.get_random_number();//concurrency.get_random_number();
+      double draw = rng.get_random_number();
 
       if(draw > 1/2.)
         HS_spin = HS_UP;
       else
         HS_spin = HS_DN;
 
-      delta_r = r_cluster_type::subtract(r_sites.second, r_sites.first);  // delta_r = r_i - r_j
-
-      tau = parameters.get_beta()*rng.get_random_number();//concurrency.get_random_number()*time_domain_type::beta;
+      delta_r = r_cluster_type::subtract(r_sites.second, r_sites.first);
+      tau = parameters.get_beta()*rng.get_random_number();
 
       creatable     = false;
       annihilatable = true;
@@ -229,13 +230,13 @@ namespace DCA
     template<class parameters_type>
     void vertex_pair<parameters_type>::set_random_noninteracting()
     {
-      interaction_type::set_vertex(*this, parameters, rng/*concurrency*/, CV<parameters_type>::get_H_interaction());
+      general_interaction::set_vertex(*this, parameters, rng/*concurrency*/, CV<parameters_type>::get_H_interaction());
 
       HS_spin = HS_ZERO;
 
       delta_r = r_cluster_type::subtract(r_sites.second, r_sites.first);  // delta_r = r_i - r_j
 
-      tau = parameters.get_beta()*rng.get_random_number();//concurrency.get_random_number()*time_domain_type::beta;
+      tau = parameters.get_beta()*rng.get_random_number();
 
       creatable     = true;
       annihilatable = false;

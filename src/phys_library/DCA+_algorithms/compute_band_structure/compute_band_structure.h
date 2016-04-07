@@ -2,14 +2,14 @@
 
 #ifndef COMPUTE_BAND_STRUCTURE_H
 #define COMPUTE_BAND_STRUCTURE_H
-
+#include "phys_library/domain_types.hpp"
+#include "model_type.hpp"
+using namespace types;
 /*!
  *  \author peter staar
  */
 class compute_band_structure
 {
-#include "type_definitions.h"
-
   // we give it a prime number such that it is positioned on an edge or corner of a patch!
   static const int INTERPOLATION_POINTS_BAND_STRUCTURE = brillouin_zone_cut_domain_type::INTERPOLATION_POINTS;//101;
 
@@ -42,8 +42,7 @@ void compute_band_structure::execute(parameter_type&                            
 				     FUNC_LIB::function<std::complex<double>, dmn_3<nu,nu,K_dmn_t> >& H_LDA,
 				     FUNC_LIB::function<double, nu_k_cut>&                            band_structure)
 {
-  //int matrix_dim = s::dmn_size()*b::dmn_size();
-
+ 
   std::vector<std::vector<double> > collection_k_vecs;
 
   { // construct the path in the Brilluoin zone ...

@@ -16,7 +16,6 @@
 #include "gitVersion.hpp"
 #include "modules.hpp"
 #include "include_files.h"
-#include "type_definitions.h"
 
 using namespace DCA;
 

@@ -2,6 +2,8 @@
 
 #ifndef DCA_DATA_H
 #define DCA_DATA_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -17,7 +19,6 @@ namespace DCA
   template<class parameters_type>
   class DCA_data
   {
-#include "type_definitions.h"
 
     const static int DIMENSION = lattice_type::DIMENSION;
 
@@ -367,7 +368,7 @@ namespace DCA
 
 	FUNC_LIB::function<std::complex<double>, dmn_3<nu,nu,k_dmn_t> > S_k_DCA("Sigma-k-DCA");
 	memcpy(&S_k_DCA(0), &Sigma(0,0,0,w::dmn_size()/2), sizeof(std::complex<double>)*std::pow(2*b::dmn_size(),2.)*k_dmn_t::dmn_size());
-	MATH_ALGORITHMS::TRANSFORM<k_dmn_t, r_dmn_t>::execute(S_k_DCA, S_r_DCA);
+	math_algorithms::functional_transforms::TRANSFORM<k_dmn_t, r_dmn_t>::execute(S_k_DCA, S_r_DCA);
 	
 	writer.execute(S_r_DCA);
       }
@@ -486,8 +487,8 @@ namespace DCA
       std::cout << "\n\t\t FT G0_k_w, G0_k_t --> G0_r_w, G0_r_t " << print_time() << "\n";
 
     {
-      MATH_ALGORITHMS::TRANSFORM<k_dmn_t, r_dmn_t>::execute(G0_k_w, G0_r_w);
-      MATH_ALGORITHMS::TRANSFORM<k_dmn_t, r_dmn_t>::execute(G0_k_t, G0_r_t);
+      math_algorithms::functional_transforms::TRANSFORM<k_dmn_t, r_dmn_t>::execute(G0_k_w, G0_r_w);
+      math_algorithms::functional_transforms::TRANSFORM<k_dmn_t, r_dmn_t>::execute(G0_k_t, G0_r_t);
 
        symmetrize::execute(G0_r_t, H_symmetry, true);
 
@@ -514,7 +515,7 @@ namespace DCA
     {
       memcpy(&S_k(0), &Sigma_lattice(0,0,0,w::dmn_size()/2), sizeof(std::complex<double>)*std::pow(2*b::dmn_size(),2.)*k_HOST::dmn_size());
 
-      MATH_ALGORITHMS::TRANSFORM<k_HOST, r_HOST>::execute(S_k, S_r);
+      math_algorithms::functional_transforms::TRANSFORM<k_HOST, r_HOST>::execute(S_k, S_r);
     }
 
     {

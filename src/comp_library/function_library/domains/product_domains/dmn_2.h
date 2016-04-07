@@ -8,9 +8,9 @@
 #include <vector>     
 #include <string>     
 #include <assert.h>   
-#include "domain.h"   
-#include "type_list.h"   
-#include "type_list_definitions.h"   
+#include "comp_library/function_library/domains/domain.h"   
+#include "comp_library/type_list/type_list.h"   
+#include "comp_library/type_list/type_list_definitions.h"   
 
 using namespace TL; 
 

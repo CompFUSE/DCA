@@ -56,8 +56,8 @@
 
 
 // typelist-operations
-#include "type_list.h"
-#include "type_list_definitions.h"
+#include "comp_library/type_list/type_list.h"
+#include "comp_library/type_list/type_list_definitions.h"
 using namespace TL;
 
 // enumerations
@@ -76,39 +76,39 @@ const static bool DO_NFFT = true;
 #include "comp_library/linalg/linalg.hpp"
 
 // various
-#include "static_functions.h"
-#include "include_symmetry_library.h"
+#include "math_library/static_functions.h"
+#include "phys_library/domains/cluster/symmetries/include_symmetry_library.h"
 //#include "statistical_methods.h"
 
 // include generic-algorithms
 // #include "generic_assert.h"
-#include "include_generic_methods.h"
+#include "comp_library/generic_methods_library/include_generic_methods.h"
 
 // include function-library
-#include "include_function_library.h"
+#include "comp_library/function_library/include_function_library.h"
 
 // IO-library
-#include "include_IO_operations.h"
+#include "comp_library/IO_library/include_IO_operations.h"
 
 // include plotting
-#include "include_plotting.h"
+#include "comp_library/function_plotting/include_plotting.h"
 
 // random number generator
-#include "include_random_number_generator.h"
+#include "math_library/random_number_library/include_random_number_generator.h"
 
 // include block-matrix operations
 //#include "include_blocked_blas_calls.h"
 
 // parallelization
-#include "include_parallelization_library.h"
+#include "comp_library/parallelization_library/include_parallelization_library.h"
 
 // profiling
-#include "include_profiling.h"
+#include "comp_library/profiler_library/include_profiling.h"
 
-#include "include_math_library.h"
+#include "math_library/math_library.hpp"
 
 // include domains
-#include "include_DCA_domains.h"
+#include "phys_library/domains/include_DCA_domains.h"
 // #include "numerical_error_domain.h"
 // #include "DCA_iteration_domain.h"
 // #include "Feynman_expansion_order_domain.h"
@@ -129,32 +129,32 @@ const static bool DO_NFFT = true;
 // #include "frequency_domain_compact.h"
 
 // type-dependent-conversions
-#include "convert_DCA_types_to_index.h"
+#include "phys_library/domains/convert_DCA_types_to_index.h"
 
 // include models
-#include "include_Hamiltonians.h"
+#include "phys_library/parameters/models/include_Hamiltonians.h"
 // #include "dft_model.h"
 // #include "Koshevnikov_model.h"
 
 // include algorithms
-#include "include_symmetries.h"
+#include "phys_library/DCA+_step/symmetrization/include_symmetries.h"
 // #include "include_tetrahedron_mesh.h"
 // #include "include_symmetries.h"
-#include "compute_band_structure.h"
+#include "phys_library/DCA+_algorithms/compute_band_structure/compute_band_structure.h"
 // #include "adjust_chemical_potential.h"
 
-#include "include_DCA_steps.h"
+#include "phys_library/DCA+_step/include_DCA_steps.h"
 
 // include parameters
-#include "include_Parameters.h"
+#include "phys_library/parameters/include_Parameters.h"
 
-#include "include_DCA+_data.h"
+#include "phys_library/DCA+_data/DCA_data.h"
 
 // #include "include_DCA_steps.h"
 
-#include "include_cluster_solver.h"
+#include "phys_library/DCA+_step/cluster_solver/include_cluster_solver.h"
 
-#include "include_DCA+_loop.h"
+#include "phys_library/DCA+_loop/DCA+_loop.h"
 
 // include CPE
 //#include "include_CPE.h"
@@ -166,4 +166,4 @@ const static bool DO_NFFT = true;
 //#include "include_series_expansion.h"
 
 // analysis
-#include "include_analysis.h"
+#include "phys_library/DCA+_analysis/include_analysis.h"

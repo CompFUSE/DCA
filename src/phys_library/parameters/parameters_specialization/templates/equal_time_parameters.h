@@ -2,6 +2,8 @@
 
 #ifndef EQUAL_TIME_PARAMETERS_H
 #define EQUAL_TIME_PARAMETERS_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 /*!
  *  \class  equalt_time_parameters
@@ -12,7 +14,6 @@
  */
 class equal_time_parameters
 {
-#include "type_definitions.h"
 
 public:
 

@@ -2,7 +2,9 @@
 
 #ifndef GROUP_ACTION_H_
 #define GROUP_ACTION_H_
-
+#include <vector>
+#include<cmath>
+using std::pow;
 /*
  *      Author: Peter Staar
  */
@@ -66,9 +68,6 @@ void group_action<2>::action(std::vector<double>& vec, const double* matrix)
 
   tmp_vec[0] = matrix[0]*vec[0] + matrix[2]*vec[1];
   tmp_vec[1] = matrix[1]*vec[0] + matrix[3]*vec[1];
-
-  //cout << matrix[0] << "\t" << matrix[2] << endl; 
-  //cout << matrix[1] << "\t" << matrix[3] << endl; 
 
   vec[0] = tmp_vec[0];
   vec[1] = tmp_vec[1];

@@ -2,6 +2,8 @@
 
 #ifndef COMPUTE_INTERACTION_H
 #define COMPUTE_INTERACTION_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -16,7 +18,6 @@ namespace DCA
      */
     class compute_interaction
     {
-#include "type_definitions.h"
 
     public:
 

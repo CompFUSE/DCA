@@ -10,11 +10,12 @@
 
 #include <string>
 #include <iostream>
-
 #include "gitVersion.hpp"
 #include "modules.hpp"
-#include "include_files.h"
-#include "type_definitions.h"
+
+#include "lattice_types.hpp"
+#include "model_type.hpp"
+#include"include_files.inc"
 
 @DCA_CUDA_FUNCTION@
 

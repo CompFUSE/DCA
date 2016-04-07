@@ -2,6 +2,8 @@
 
 #ifndef UNION_RADIAL_AND_DELTA_FUNCTION_H
 #define UNION_RADIAL_AND_DELTA_FUNCTION_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 /*!
  *  \ingroup CPE-BASIS-FUNCTIONS
@@ -10,7 +12,6 @@
  */
 class union_radial_and_delta_function
 {
-#include "type_definitions.h"
 
 public:
 

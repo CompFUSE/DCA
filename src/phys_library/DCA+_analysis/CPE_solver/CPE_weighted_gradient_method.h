@@ -2,48 +2,52 @@
 
 #ifndef CONTINUOUS_POLE_EXPANSION_WEIGHTED_GRADIENT_METHOD_H
 #define CONTINUOUS_POLE_EXPANSION_WEIGHTED_GRADIENT_METHOD_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
+#include<complex>
+#include<vector>
 
 namespace DCA
 {
-  /*!
+    /*!
    *  \ingroup CPE
    *
    *  \author  Peter Staar
    *  \brief   This class implements a CPE analytic continuation, using a gradient method as a minimization-algorithm.
    *  \version 1.0
    */
-  template<class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
-  class continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t, WEIGHTED_GRADIENT_METHOD>
-  {
-#include "type_definitions.h"
+    using types::nu;
+    template<class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
+    class continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t, WEIGHTED_GRADIENT_METHOD>
+    {
 
-    enum    gradient_minimization_state {BELOW_MAX_ERROR, FOUND_THE_MINIMUM, FOUND_A_MINIMUM, END_OF_PATH};
-    typedef gradient_minimization_state gradient_minimization_state_t;
+        enum    gradient_minimization_state {BELOW_MAX_ERROR, FOUND_THE_MINIMUM, FOUND_A_MINIMUM, END_OF_PATH};
+        typedef gradient_minimization_state gradient_minimization_state_t;
 
-  public:
+    public:
 
-    typedef double                                     scalartype;
+        typedef double                                     scalartype;
 
-    typedef typename parameters_type::profiler_type    profiler_type;
-    typedef typename parameters_type::concurrency_type concurrency_type;
+        typedef typename parameters_type::profiler_type    profiler_type;
+        typedef typename parameters_type::concurrency_type concurrency_type;
 
-    typedef dmn_0<basis_function_t>          alpha_dmn_t;
+        typedef dmn_0<basis_function_t>          alpha_dmn_t;
 
-    typedef dmn_3<nu,nu,k_dmn_t            > nu_nu_k_dmn;
+        typedef dmn_3<nu,nu,k_dmn_t            > nu_nu_k_dmn;
 
-    typedef dmn_4<nu,nu,k_dmn_t,w     >      nu_nu_k_dmn_w;
-    typedef dmn_4<nu,nu,k_dmn_t,w_IMAG>      nu_nu_k_dmn_w_IMAG;
+        typedef dmn_4<nu,nu,k_dmn_t,w     >      nu_nu_k_dmn_w;
+        typedef dmn_4<nu,nu,k_dmn_t,w_IMAG>      nu_nu_k_dmn_w_IMAG;
 
-    typedef dmn_4<nu,nu,k_dmn_t,alpha_dmn_t> nu_nu_k_dmn_alpha_dmn;
+        typedef dmn_4<nu,nu,k_dmn_t,alpha_dmn_t> nu_nu_k_dmn_alpha_dmn;
 
-    typedef CPE_data<scalartype, basis_function_t, k_dmn_t, w_dmn_t> CPE_data_type;
+        typedef CPE_data<scalartype, basis_function_t, k_dmn_t, w_dmn_t> CPE_data_type;
 
-  public:
+    public:
 
-    continuous_pole_expansion(parameters_type&  parameters,
-                              concurrency_type& concurrency,
-                              bool              fixed_zero_moment=false,
-                              double            zero_moment=0,
+        continuous_pole_expansion(parameters_type&  parameters,
+                                  concurrency_type& concurrency,
+                                  bool              fixed_zero_moment=false,
+                                  double            zero_moment=0,
                               bool              fixed_first_moment=false,
                               double            first_moment=1);
 

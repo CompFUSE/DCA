@@ -2,6 +2,8 @@
 
 #ifndef DFT_VASP_PARAMETERS_H
 #define DFT_VASP_PARAMETERS_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DFT
 {
@@ -17,7 +19,6 @@ namespace DFT
     template<class concurrency_t>
     class parameters
     {
-#include "type_definitions.h"
 
       typedef concurrency_t concurrency_type;
 

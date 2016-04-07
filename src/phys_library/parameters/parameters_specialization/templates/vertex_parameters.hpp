@@ -21,9 +21,10 @@
 #include <vector>
 #include <iostream>
 #include <string>
+#include "phys_library/domain_types.hpp"
+using namespace types;
 
 class vertex_parameters {
-#include "type_definitions.h"
 
 public:
   vertex_parameters();

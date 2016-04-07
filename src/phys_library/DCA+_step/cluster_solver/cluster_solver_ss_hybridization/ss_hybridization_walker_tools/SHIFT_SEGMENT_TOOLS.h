@@ -2,6 +2,8 @@
 
 #ifndef SS_HYBRIDIZATION_SHIFT_SEGMENT_TOOLS_H
 #define SS_HYBRIDIZATION_SHIFT_SEGMENT_TOOLS_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -20,7 +22,6 @@ namespace DCA
     template<typename hybridization_routines_type>
     class shift_segment_tools
     {
-#include "type_definitions.h"
 
 	typedef typename hybridization_routines_type::parameters_type    parameters_type;
 	typedef typename hybridization_routines_type::MOMS_type          MOMS_type;

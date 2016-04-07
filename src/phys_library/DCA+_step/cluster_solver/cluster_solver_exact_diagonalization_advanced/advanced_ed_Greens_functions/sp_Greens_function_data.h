@@ -2,6 +2,8 @@
 
 #ifndef ADVANCED_FERMIONIC_SP_GREENS_FUNCTION_DATA_H
 #define ADVANCED_FERMIONIC_SP_GREENS_FUNCTION_DATA_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -17,7 +19,6 @@ namespace DCA
     template<typename ed_options>
     class sp_Greens_function_data
     {
-#include "type_definitions.h"
 
       typedef typename ed_options::b_dmn b_dmn;
       typedef typename ed_options::s_dmn s_dmn;

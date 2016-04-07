@@ -2,6 +2,8 @@
 
 #ifndef FUNCTION_PARAMETERS_H
 #define FUNCTION_PARAMETERS_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 /*!
  *   \ingroup  PARAMETERS
@@ -11,7 +13,6 @@
  */
 class function_parameters 
 {
-#include "type_definitions.h"
 
 public:
 

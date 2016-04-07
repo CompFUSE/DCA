@@ -2,6 +2,8 @@
 
 #ifndef DCA_QUADRATURE_INTEGRATION_H
 #define DCA_QUADRATURE_INTEGRATION_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -9,7 +11,6 @@ namespace DCA
   template<typename parameters_type, typename q_dmn_t>
   class quadrature_integration
   {
-#include "type_definitions.h"
 
   public:
 

@@ -2,6 +2,8 @@
 
 #ifndef DCA_QMCI_CACHED_NFT_H
 #define DCA_QMCI_CACHED_NFT_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -44,7 +46,6 @@ namespace DCA
       template<int dimension, class scalar_type, class r_dmn_t, class w_vertex_dmn_t, class w_vertex_pos_dmn_t>
       class cached_nft
       {
-#include "type_definitions.h"
 
         typedef typename r_dmn_t::parameter_type r_cluster_type;
 

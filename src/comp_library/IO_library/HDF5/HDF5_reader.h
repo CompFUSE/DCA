@@ -3,6 +3,13 @@
 #ifndef HDF5_READER_HEADER_H
 #define HDF5_READER_HEADER_H
 
+#include <string>
+#include <fstream>
+#include "comp_library/IO_library/IO_types.h"
+#include "comp_library/IO_library/template_reader.h"
+#include "comp_library/function_library/function.h"
+#include "comp_library/linalg/linalg.hpp"
+
 namespace IO
 {
   

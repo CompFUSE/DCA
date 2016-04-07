@@ -42,6 +42,8 @@
 
 #ifndef BSE_LATTICE_SOLVER_H
 #define BSE_LATTICE_SOLVER_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -51,7 +53,6 @@ namespace DCA
   template<class parameters_type, class MOMS_type>
   class BSE_lattice_solver
   {
-#include "type_definitions.h"
 
     typedef double scalartype;
 
@@ -420,25 +421,6 @@ namespace DCA
         lattice_map_tp_obj.execute(Gamma_cluster, Gamma_lattice);
       }
 
-    if (false)
-    {
-      if(concurrency.id()==concurrency.last())
-        std::cout << "\n\n\t symmetrize Gamma_lattice for even-frequency part (only need to symmetrize w2 argument in Gamma(k1,w1,k2,w2)), then compute Gamma_chi_0_lattice " << print_time() << " ...";
-
-      for(int w2=0; w2<w_VERTEX::dmn_size(); w2++)
-        for(int K2=0; K2<k_HOST_VERTEX::dmn_size(); K2++)
-          for(int m2=0; m2<b::dmn_size(); m2++)
-            for(int n2=0; n2<b::dmn_size(); n2++)
-
-              for(int w1=0; w1<w_VERTEX::dmn_size(); w1++)
-                for(int K1=0; K1<k_HOST_VERTEX::dmn_size(); K1++)
-                  for(int m1=0; m1<b::dmn_size(); m1++)
-                    for(int n1=0; n1<b::dmn_size(); n1++)
-                    {
-                      Gamma_sym(n1,m1,K1,w1,n2,m2,K2,w2) = 0.5* (Gamma_lattice(n1,m1,K1,w1,n2,m2,K2,w2) + Gamma_lattice(n1,m1,K1,w1,n2,m2,K2,w_VERTEX::dmn_size()-1-w2));
-                    }
-    }
-  
     if(parameters.do_symmetrization_of_Gamma())
       {
         if(true)
@@ -654,6 +636,24 @@ namespace DCA
       std::cout << __FUNCTION__ << std::endl;
 
     profiler_type prof(__FUNCTION__, "BSE_lattice_solver", __LINE__);
+    if (false)
+    {
+      if(concurrency.id()==concurrency.last())
+        std::cout << "\n\n\t symmetrize Gamma_lattice for even-frequency part (only need to symmetrize w2 argument in Gamma(k1,w1,k2,w2)), then compute Gamma_chi_0_lattice " << print_time() << " ...";
+
+      for(int w2=0; w2<w_VERTEX::dmn_size(); w2++)
+        for(int K2=0; K2<k_HOST_VERTEX::dmn_size(); K2++)
+          for(int m2=0; m2<b::dmn_size(); m2++)
+            for(int n2=0; n2<b::dmn_size(); n2++)
+
+              for(int w1=0; w1<w_VERTEX::dmn_size(); w1++)
+                for(int K1=0; K1<k_HOST_VERTEX::dmn_size(); K1++)
+                  for(int m1=0; m1<b::dmn_size(); m1++)
+                    for(int n1=0; n1<b::dmn_size(); n1++)
+                    {
+                      Gamma_sym(n1,m1,K1,w1,n2,m2,K2,w2) = 0.5* (Gamma_lattice(n1,m1,K1,w1,n2,m2,K2,w2) + Gamma_lattice(n1,m1,K1,w1,n2,m2,K2,w_VERTEX::dmn_size()-1-w2));
+                    }
+    }
 
     int N = lattice_eigenvector_dmn_t::dmn_size();
     int M = crystal_eigenvector_dmn_t::dmn_size();

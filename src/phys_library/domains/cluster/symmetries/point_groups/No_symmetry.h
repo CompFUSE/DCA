@@ -3,8 +3,8 @@
 #ifndef NULL_SYMMETRY_H
 #define NULL_SYMMETRY_H
 
-#include "point_group.h"
-#include "type_list_definitions.h"
+#include "phys_library/domains/cluster/symmetries/point_group.h"
+#include "comp_library/type_list/type_list_definitions.h"
 
 /*!
  *  \author: Peter Staar

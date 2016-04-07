@@ -2,6 +2,8 @@
 
 #ifndef EXACT_DIAGONALIZATION_CLUSTER_SOLVER_H
 #define EXACT_DIAGONALIZATION_CLUSTER_SOLVER_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -19,7 +21,6 @@ namespace DCA
   template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
   class cluster_solver<ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
   {
-#include "type_definitions.h"
 
     typedef DCA_data   <parameters_type> MOMS_w_imag_type;
     typedef MOMS_w_real<parameters_type> MOMS_w_real_type;
@@ -82,7 +83,7 @@ namespace DCA
   {
     FUNC_LIB::function<std::complex<double>, dmn_3<nu,nu,r_DCA> > H_DCA;
     //FT<k_DCA, r_DCA>::execute(MOMS_imag.H_DCA, H_DCA);
-    MATH_ALGORITHMS::TRANSFORM<k_DCA, r_DCA>::execute(MOMS_imag.H_DCA, H_DCA);
+    math_algorithms::functional_transforms::TRANSFORM<k_DCA, r_DCA>::execute(MOMS_imag.H_DCA, H_DCA);
 
     Ham_obj.initialize(H_DCA, MOMS_imag.H_interactions);
   }

@@ -1,112 +1,99 @@
 //-*-C++-*-
+#ifndef MATH_LIBRARY_FUNCTIONAL_TRANSFORMS_BASIS_FUNCTIONS_BASIS_FUNCTION_HARMONICS_H
+#define MATH_LIBRARY_FUNCTIONAL_TRANSFORMS_BASIS_FUNCTIONS_BASIS_FUNCTION_HARMONICS_H
 
-#ifndef BASIS_FUNCTION_HARMONICS_H
-#define BASIS_FUNCTION_HARMONICS_H
+#include "math_library/typedefs.hpp"
+#include "math_library/functional_transforms/basis_functions/basis_function_template.h"
 
-namespace MATH_ALGORITHMS
-{
-  template<typename lhs_dmn_type, typename rhs_dmn_type>
-  class basis_function<lhs_dmn_type, KRONECKER_DELTA, rhs_dmn_type, HARMONICS>
-  {
-  public:
+namespace math_algorithms {
+namespace functional_transforms {
+// math_algorithms::functional_transforms::
 
-    typedef typename lhs_dmn_type::dmn_specifications_type lhs_spec_dmn_type;
-    typedef typename rhs_dmn_type::dmn_specifications_type rhs_spec_dmn_type;
+template <typename lhs_dmn_type, typename rhs_dmn_type>
+class basis_function<lhs_dmn_type, KRONECKER_DELTA, rhs_dmn_type, HARMONICS> {
+public:
+  typedef typename lhs_dmn_type::dmn_specifications_type lhs_spec_dmn_type;
+  typedef typename rhs_dmn_type::dmn_specifications_type rhs_spec_dmn_type;
 
-    typedef typename lhs_spec_dmn_type::scalar_type lhs_scalar_type;
-    typedef typename rhs_spec_dmn_type::scalar_type rhs_scalar_type;
+  typedef typename lhs_spec_dmn_type::scalar_type lhs_scalar_type;
+  typedef typename rhs_spec_dmn_type::scalar_type rhs_scalar_type;
 
-    typedef typename lhs_spec_dmn_type::element_type lhs_element_type;
-    typedef typename rhs_spec_dmn_type::element_type rhs_element_type;
-    
-    typedef std::complex<lhs_scalar_type> f_scalar_type;
+  typedef typename lhs_spec_dmn_type::element_type lhs_element_type;
+  typedef typename rhs_spec_dmn_type::element_type rhs_element_type;
 
-  public:
+  typedef std::complex<lhs_scalar_type> f_scalar_type;
 
-    static f_scalar_type execute(int i, int j)
-    {
-      return execute(lhs_dmn_type::get_elements()[i], rhs_dmn_type::get_elements()[j]);
-    }
+public:
+  static f_scalar_type execute(int i, int j) {
+    return execute(lhs_dmn_type::get_elements()[i], rhs_dmn_type::get_elements()[j]);
+  }
 
-    static f_scalar_type execute(lhs_element_type& lh_elem, rhs_element_type& rh_elem)
-    {
-      const static f_scalar_type I(0,1);
+  static f_scalar_type execute(lhs_element_type& lh_elem, rhs_element_type& rh_elem) {
+    const static f_scalar_type I(0, 1);
 
-      f_scalar_type phase = dot_prod(lh_elem, rh_elem);
+    f_scalar_type phase = dot_prod(lh_elem, rh_elem);
 
-      return std::exp(I*phase);
-    }
+    return std::exp(I * phase);
+  }
 
-  private:
-    
-    template<typename scalartype>
-    inline static scalartype dot_prod(scalartype x, scalartype y)
-    {
-      return x*y;
-    }
+private:
+  template <typename scalartype>
+  inline static scalartype dot_prod(scalartype x, scalartype y) {
+    return x * y;
+  }
 
-    template<typename scalartype>
-    inline static scalartype dot_prod(std::vector<scalartype> x, std::vector<scalartype> y)
-    {
-      scalartype result=0;
-      for(size_t l=0; l<x.size(); l++)
-	result += x[l]*y[l];
-      return result;
-    }
-  };
+  template <typename scalartype>
+  inline static scalartype dot_prod(std::vector<scalartype> x, std::vector<scalartype> y) {
+    scalartype result = 0;
+    for (size_t l = 0; l < x.size(); l++)
+      result += x[l] * y[l];
+    return result;
+  }
+};
 
+template <typename lhs_dmn_type, typename rhs_dmn_type>
+class basis_function<lhs_dmn_type, HERMITE_CUBIC_SPLINE, rhs_dmn_type, HARMONICS> {
+public:
+  typedef typename lhs_dmn_type::dmn_specifications_type lhs_spec_dmn_type;
+  typedef typename rhs_dmn_type::dmn_specifications_type rhs_spec_dmn_type;
 
-  template<typename lhs_dmn_type, typename rhs_dmn_type>
-  class basis_function<lhs_dmn_type, HERMITE_CUBIC_SPLINE, rhs_dmn_type, HARMONICS>
-  {
-  public:
+  typedef typename lhs_spec_dmn_type::scalar_type lhs_scalar_type;
+  typedef typename rhs_spec_dmn_type::scalar_type rhs_scalar_type;
 
-    typedef typename lhs_dmn_type::dmn_specifications_type lhs_spec_dmn_type;
-    typedef typename rhs_dmn_type::dmn_specifications_type rhs_spec_dmn_type;
+  typedef typename lhs_spec_dmn_type::element_type lhs_element_type;
+  typedef typename rhs_spec_dmn_type::element_type rhs_element_type;
 
-    typedef typename lhs_spec_dmn_type::scalar_type lhs_scalar_type;
-    typedef typename rhs_spec_dmn_type::scalar_type rhs_scalar_type;
+  typedef std::complex<lhs_scalar_type> f_scalar_type;
 
-    typedef typename lhs_spec_dmn_type::element_type lhs_element_type;
-    typedef typename rhs_spec_dmn_type::element_type rhs_element_type;
-    
-    typedef std::complex<lhs_scalar_type> f_scalar_type;
+public:
+  static f_scalar_type execute(int i, int j) {
+    return execute(lhs_dmn_type::get_elements()[i], rhs_dmn_type::get_elements()[j]);
+  }
 
-  public:
+  static f_scalar_type execute(lhs_element_type& lh_elem, rhs_element_type& rh_elem) {
+    const static f_scalar_type I(0, 1);
 
-    static f_scalar_type execute(int i, int j)
-    {
-      return execute(lhs_dmn_type::get_elements()[i], rhs_dmn_type::get_elements()[j]);
-    }
+    f_scalar_type phase = dot_prod(lh_elem, rh_elem);
 
-    static f_scalar_type execute(lhs_element_type& lh_elem, rhs_element_type& rh_elem)
-    {
-      const static f_scalar_type I(0,1);
+    // return std::exp(I*phase)/lhs_dmn_type::get_volume();
+    return std::exp(-I * phase) / lhs_dmn_type::get_volume();
+  }
 
-      f_scalar_type phase = dot_prod(lh_elem, rh_elem);
+private:
+  template <typename scalartype>
+  inline static scalartype dot_prod(scalartype x, scalartype y) {
+    return x * y;
+  }
 
-      //return std::exp(I*phase)/lhs_dmn_type::get_volume();
-      return std::exp(-I*phase)/lhs_dmn_type::get_volume();
-    }
+  template <typename scalartype>
+  inline static scalartype dot_prod(std::vector<scalartype> x, std::vector<scalartype> y) {
+    scalartype result = 0;
+    for (size_t l = 0; l < x.size(); l++)
+      result += x[l] * y[l];
+    return result;
+  }
+};
+}  // functional_transforms
+}  // math_algorithms
 
-  private:
-    
-    template<typename scalartype>
-    inline static scalartype dot_prod(scalartype x, scalartype y)
-    {
-      return x*y;
-    }
-
-    template<typename scalartype>
-    inline static scalartype dot_prod(std::vector<scalartype> x, std::vector<scalartype> y)
-    {
-      scalartype result=0;
-      for(size_t l=0; l<x.size(); l++)
-	result += x[l]*y[l];
-      return result;
-    }
-  };
-
-}
-
-#endif
+#endif  // MATH_LIBRARY_FUNCTIONAL_TRANSFORMS_BASIS_FUNCTIONS_BASIS_FUNCTION_HARMONICS_H

@@ -2,6 +2,8 @@
 
 #ifndef SS_HYBRIDIZATION_CONFIGURATION_H
 #define SS_HYBRIDIZATION_CONFIGURATION_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA 
 {
@@ -14,7 +16,6 @@ namespace DCA
    */ 
   class SS_CT_HYB_configuration
   {
-#include "type_definitions.h" 
 
   public:
 

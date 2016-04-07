@@ -2,6 +2,8 @@
 
 #ifndef DCA_COARSEGRAINING_TP_H
 #define DCA_COARSEGRAINING_TP_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -9,7 +11,6 @@ namespace DCA
   template<typename parameters_type, typename K_dmn>
   class coarsegraining_tp : public coarsegraining_routines<parameters_type, K_dmn>
   {
-#include "type_definitions.h"
 
     typedef typename K_dmn::parameter_type k_cluster_type;
 
@@ -23,8 +24,8 @@ namespace DCA
     typedef std::complex   <scalar_type>               complex_type;
     typedef LIN_ALG::matrix<scalar_type, LIN_ALG::CPU> matrix_type;
 
-    typedef dmn_0<MATH_ALGORITHMS::tetrahedron_mesh<K_dmn> >             tetrahedron_dmn;
-    typedef MATH_ALGORITHMS::gaussian_quadrature_domain<tetrahedron_dmn> quadrature_dmn;
+    typedef dmn_0<math_algorithms::tetrahedron_mesh<K_dmn> >             tetrahedron_dmn;
+    typedef math_algorithms::gaussian_quadrature_domain<tetrahedron_dmn> quadrature_dmn;
 
     typedef dmn_0<coarsegraining_domain<K_dmn, K        > > q_dmn;
     typedef dmn_0<coarsegraining_domain<K_dmn, K_PLUS_Q > > q_plus_Q_dmn;

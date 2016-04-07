@@ -2,6 +2,7 @@
 
 #ifndef HDF5_TYPES_HEADER_H
 #define HDF5_TYPES_HEADER_H
+#include <complex>
 
 namespace IO
 {

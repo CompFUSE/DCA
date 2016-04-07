@@ -2,6 +2,8 @@
 
 #ifndef MAKE_G4_0_MATRIX_H
 #define MAKE_G4_0_MATRIX_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace dca {
 
@@ -12,7 +14,6 @@ namespace dca {
   template<class parameter_type, class MOMS_type>
   class make_G4_0_matrix 
   {
-#include "type_definitions.h"
     
   public:
  

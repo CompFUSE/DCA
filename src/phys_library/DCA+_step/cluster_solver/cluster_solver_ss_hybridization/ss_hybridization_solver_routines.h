@@ -2,6 +2,8 @@
 
 #ifndef SS_HYBRIDIZATION_SOLVER_ROUTINES_H
 #define SS_HYBRIDIZATION_SOLVER_ROUTINES_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA
 {
@@ -19,7 +21,6 @@ namespace DCA
     template<typename parameters_t, typename MOMS_t>
     class ss_hybridization_solver_routines
     {
-#include "type_definitions.h"
 
       const static bool SHOW_FUNCTIONS = false;
 
@@ -259,13 +260,13 @@ namespace DCA
 
       subtract_moments(F_k_w);
 
-      MATH_ALGORITHMS::TRANSFORM<w, t>::execute(F_k_w, F_k_t);
+      math_algorithms::functional_transforms::TRANSFORM<w, t>::execute(F_k_w, F_k_t);
 
       add_moments(F_k_w);
 
       compensate_for_moments(F_k_t);
 
-      MATH_ALGORITHMS::TRANSFORM<k_DCA, r_DCA>::execute(F_k_t, F_r_t);
+      math_algorithms::functional_transforms::TRANSFORM<k_DCA, r_DCA>::execute(F_k_t, F_r_t);
     }
 
     template<typename parameters_t, typename MOMS_t>

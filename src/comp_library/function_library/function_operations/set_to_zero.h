@@ -2,6 +2,7 @@
 
 #ifndef SET_TO_ZERO
 #define SET_TO_ZERO
+#include <complex>
 
 /*! \class  set_to_zero
  *  \author Peter Staar, Bart Ydens

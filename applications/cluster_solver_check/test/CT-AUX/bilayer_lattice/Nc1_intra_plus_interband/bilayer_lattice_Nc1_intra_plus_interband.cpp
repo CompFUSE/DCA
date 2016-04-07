@@ -14,7 +14,6 @@
 #include "gitVersion.hpp"
 #include "modules.hpp"
 #include "include_files.h"
-#include "type_definitions.h"
 #include "gtest/gtest.h"
 #include "minimalist_printer.hpp"
 #include "dca_mpi_test_environment.hpp"

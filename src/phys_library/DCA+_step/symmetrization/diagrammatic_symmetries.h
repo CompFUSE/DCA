@@ -2,7 +2,7 @@
 
 #ifndef DIAGRAMMATIC_SYMMETRIES_H
 #define DIAGRAMMATIC_SYMMETRIES_H
-
+#include "phys_library/domain_types.hpp"
 /*! 
  *  \ingroup SYMMETRIZE-FUNCTIONS
  *
@@ -106,8 +106,6 @@
 template<class parameters_type>
 class diagrammatic_symmetries
 {
-#include "type_definitions.h"
-
 public:
 
   diagrammatic_symmetries(parameters_type& parameters);
@@ -191,17 +189,13 @@ void diagrammatic_symmetries<parameters_type>::execute(FUNC_LIB::function<scalar
     
     for(size_t l=0; l<q_rec.size(); ++l)
       q_rec[l] *= -1.;
-    
-    //q_rec = k_dmn::parameter_type::back_inside_cluster(q_rec);
-    q_rec = cluster_operations::translate_inside_cluster(q_rec, k_dmn::parameter_type::get_super_basis_vectors());
+        q_rec = cluster_operations::translate_inside_cluster(q_rec, k_dmn::parameter_type::get_super_basis_vectors());
 
     if(VECTOR_OPERATIONS::L2_NORM(q_rec)<1.e-6){
       q_vector_is_invertible=true;
-      //cout << "\n\t q_vec is invertible !!! \n\n";
-    }
+        }
     else{
       q_vector_is_invertible=false;
-      //cout << "\n\t q_vec is NOT invertible !!! \n\n";
     }
 
     symmetrize_over_matsubara_frequencies(G);
@@ -214,12 +208,10 @@ void diagrammatic_symmetries<parameters_type>::execute(FUNC_LIB::function<scalar
     for(size_t l=0; l<q_rec.size(); ++l)
       q_rec[l] *= 2;
     
-    //q_rec = k_dmn::parameter_type::back_inside_cluster(q_rec);
     q_rec = cluster_operations::translate_inside_cluster(q_rec, k_dmn::parameter_type::get_super_basis_vectors());
 
     if(VECTOR_OPERATIONS::L2_NORM(q_rec)<1.e-6){
       q_vector_is_reciprocal=true;
-      //cout << "\n\t q_vec is reciprocal !!! \n\n";
     }
     else{
       q_vector_is_reciprocal=false;
@@ -255,8 +247,6 @@ template<class parameters_type>
 template<typename scalartype, typename k_dmn, typename w_dmn>
 void diagrammatic_symmetries<parameters_type>::execute(FUNC_LIB::function<scalartype, dmn_3<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn>, k_dmn> >& G)
 {  
-  //cout << __PRETTY_FUNCTION__ << endl;
-
   symmetrize_over_matsubara_frequencies(G);
 
   switch(parameters.get_vertex_measurement_type())
@@ -292,8 +282,6 @@ template<class parameters_type>
 template<typename scalartype, typename k_dmn, typename w_dmn>
 void diagrammatic_symmetries<parameters_type>::symmetrize_over_matsubara_frequencies(FUNC_LIB::function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G)
 {
-  //cout << __PRETTY_FUNCTION__ << endl;
-
   if(b::dmn_size()>1)
     throw std::logic_error(__FUNCTION__);
 
@@ -382,8 +370,7 @@ template<class parameters_type>
 template<typename scalartype, typename k_dmn, typename w_dmn>
 void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_ph(FUNC_LIB::function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G)
 {
-  //cout << __PRETTY_FUNCTION__ << endl;
-
+  
   if(b::dmn_size()>1)
     throw std::logic_error(__FUNCTION__);
 
@@ -399,24 +386,6 @@ void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_ph(F
 
 		  int k1_plus_q = k_dmn::parameter_type::add(k1,q_ind);
 		  int k2_plus_q = k_dmn::parameter_type::add(k2,q_ind);
-
-// 		  if(q_vector_is_reciprocal)
-// 		    {		      
-// 		      scalartype tmp1 = G(nu_1,nu_2,k1       ,w1, mu_1,mu_2,k2       ,w2);
-// 		      scalartype tmp2 = G(nu_1,nu_2,k2       ,w2, mu_1,mu_2,k1       ,w1);
-// 		      scalartype tmp3 = G(nu_1,nu_2,k1_plus_q,w1, mu_1,mu_2,k2_plus_q,w2);
-// 		      scalartype tmp4 = G(nu_1,nu_2,k2_plus_q,w2, mu_1,mu_2,k1_plus_q,w1);
-		      
-// 		      scalartype tmp = (tmp1+conj(tmp2)+conj(tmp3)+tmp4)/4.;
-		      
-// 		      G(nu_1,nu_2,k1       ,w1, mu_1,mu_2,k2       ,w2) = tmp;
-// 		      G(nu_1,nu_2,k2       ,w2, mu_1,mu_2,k1       ,w1) = conj(tmp);
-// 		      G(nu_1,nu_2,k1_plus_q,w1, mu_1,mu_2,k2_plus_q,w2) = conj(tmp);
-// 		      G(nu_1,nu_2,k2_plus_q,w2, mu_1,mu_2,k1_plus_q,w1) = tmp;
-// 		    }
-// 		  else
-
-		  //int min_q_ind = k_dmn::parameter_type::subtract(q_ind, k_dmn::parameter_type::get_k_0_index());
 		  int min_q_ind = k_dmn::parameter_type::subtract(q_ind, k_dmn::parameter_type::origin_index());
 
 		  if(min_q_ind == q_ind)
@@ -477,7 +446,6 @@ void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_ph(F
 		    int k1_plus_q = k_dmn::parameter_type::add(k1,q);
 		    int k2_plus_q = k_dmn::parameter_type::add(k2,q);
 
-		    //int min_q = k_dmn::parameter_type::subtract(q, k_dmn::parameter_type::get_k_0_index());
 		    int min_q = k_dmn::parameter_type::subtract(q, k_dmn::parameter_type::origin_index());
 		    
 		    scalartype tmp1 = G(nu_1,nu_2,k1       ,w1, mu_1,mu_2,k2       ,w2,     q);
@@ -524,8 +492,6 @@ template<class parameters_type>
 template<typename scalartype, typename k_dmn, typename w_dmn>
 void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_pp(FUNC_LIB::function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G)
 {
-  //cout << __PRETTY_FUNCTION__ << endl;
-
   if(b::dmn_size()>1)
     throw std::logic_error(__FUNCTION__);
 

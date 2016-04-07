@@ -2,6 +2,8 @@
 
 #ifndef SS_HYBRIDIZATION_FULL_LINE_TOOLS_H
 #define SS_HYBRIDIZATION_FULL_LINE_TOOLS_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace DCA 
 {
@@ -19,7 +21,6 @@ namespace DCA
   template<typename hybridization_routines_type>
   class full_line_tools
   {
-#include "type_definitions.h"
    
     typedef typename hybridization_routines_type::parameters_type    parameters_type;
     typedef typename hybridization_routines_type::MOMS_type          MOMS_type;

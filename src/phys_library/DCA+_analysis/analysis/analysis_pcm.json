@@ -2,6 +2,8 @@
 
 #ifndef ANALYSIS_PCM_H
 #define ANALYSIS_PCM_H
+#include"phys_library/domain_types.hpp"
+using namespace types;
 
 namespace dca {
 
@@ -11,7 +13,6 @@ namespace dca {
   template<class parameter_type, class MOMS_type>
   class analysis<parameter_type, MOMS_type, PCM>
   {
-#include "type_definitions.h"
     
   public:
  
