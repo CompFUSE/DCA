@@ -20,6 +20,8 @@ public:
 
 public:
   static std::string& to_str() {
+    using math_algorithms::to_str;
+
     static std::string name = to_str(DOMAIN_REPRESENTATION) + " " + to_str(BASIS_EXPANSION) + " " +
                               to_str(BOUNDARY_CONDITION) + " " + to_str(ELEMENT_SPACING);
 
