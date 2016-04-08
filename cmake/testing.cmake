@@ -34,7 +34,7 @@ function(add_gtest)
 
   target_include_directories(${ADD_GTEST_NAME}
     PRIVATE "${ADD_GTEST_INCLUDES}"
-    PRIVATE "${PROJECT_SOURCE_DIR}/testing/common")
+    PRIVATE "${PROJECT_SOURCE_DIR}/test/common")
 
   if (ADD_GTEST_MPI)
     if (NOT DEFINED ADD_GTEST_MPI_NUMPROC)
