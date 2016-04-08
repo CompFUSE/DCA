@@ -2,7 +2,7 @@
 # applications/cluster_solver_check/CMakeLists.txt
 ################################################################################
 
-configure_file(include_files.h.in "${CMAKE_CURRENT_BINARY_DIR}/include_files.h" @ONLY)
+configure_file(include_files.inc.in "${CMAKE_CURRENT_BINARY_DIR}/include_files.inc" @ONLY)
 
 if (DCA_BUILD_CLUSTER_SOLVER_CHECK)
   message(STATUS "Generating cluster_solver_check.cpp.")

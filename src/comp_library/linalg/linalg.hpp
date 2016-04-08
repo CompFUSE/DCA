@@ -16,6 +16,7 @@
 #ifndef COMP_LIBRARY_LIN_ALG_INCLUDE_LIN_ALG_HPP
 #define COMP_LIBRARY_LIN_ALG_INCLUDE_LIN_ALG_HPP
 
+#include <stdexcept>
 #include <vector>
 
 #include "comp_library/blas_lapack_plans/blas_lapack_plans.hpp"
