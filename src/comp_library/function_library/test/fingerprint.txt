@@ -3,7 +3,7 @@
 function : test_domain_0a
 *********************************
 # subdomains        : 1
-	static void dca::util::print_type<dmn_0<dmn<1, double> > >::print(std::ostream &) [D = dmn_0<dmn<1, double> >]
+	dmn_0<dmn<1, double> >
 size of subdomains  : 
 1	
 memory step         : 
@@ -16,7 +16,7 @@ memory step         :
 function : test_domain_0b
 *********************************
 # subdomains        : 1
-	static void dca::util::print_type<dmn_0<dmn<2, double> > >::print(std::ostream &) [D = dmn_0<dmn<2, double> >]
+	dmn_0<dmn<2, double> >
 size of subdomains  : 
 2	
 memory step         : 
@@ -29,7 +29,7 @@ memory step         :
 function : test_domain_0c
 *********************************
 # subdomains        : 1
-	static void dca::util::print_type<dmn_0<dmn<4, double> > >::print(std::ostream &) [D = dmn_0<dmn<4, double> >]
+	dmn_0<dmn<4, double> >
 size of subdomains  : 
 4	
 memory step         : 
@@ -42,7 +42,7 @@ memory step         :
 function : test_domain_0d
 *********************************
 # subdomains        : 1
-	static void dca::util::print_type<dmn_0<dmn<8, double> > >::print(std::ostream &) [D = dmn_0<dmn<8, double> >]
+	dmn_0<dmn<8, double> >
 size of subdomains  : 
 8	
 memory step         : 
@@ -55,7 +55,7 @@ memory step         :
 function : test_domain_1d
 *********************************
 # subdomains        : 1
-	static void dca::util::print_type<dmn_0<dmn<8, double> > >::print(std::ostream &) [D = dmn_0<dmn<8, double> >]
+	dmn_0<dmn<8, double> >
 size of subdomains  : 
 8	
 memory step         : 
@@ -68,8 +68,8 @@ memory step         :
 function : test_domain_2a
 *********************************
 # subdomains        : 2
-	static void dca::util::print_type<dmn_0<dmn<1, double> > >::print(std::ostream &) [D = dmn_0<dmn<1, double> >]
-	static void dca::util::print_type<dmn_0<dmn<2, double> > >::print(std::ostream &) [D = dmn_0<dmn<2, double> >]
+	dmn_0<dmn<1, double> >
+	dmn_0<dmn<2, double> >
 size of subdomains  : 
 1	2	
 memory step         : 
@@ -82,10 +82,10 @@ memory step         :
 function : test_domain_4a
 *********************************
 # subdomains        : 4
-	static void dca::util::print_type<dmn_0<dmn<1, double> > >::print(std::ostream &) [D = dmn_0<dmn<1, double> >]
-	static void dca::util::print_type<dmn_0<dmn<2, double> > >::print(std::ostream &) [D = dmn_0<dmn<2, double> >]
-	static void dca::util::print_type<dmn_0<dmn<4, double> > >::print(std::ostream &) [D = dmn_0<dmn<4, double> >]
-	static void dca::util::print_type<dmn_0<dmn<8, double> > >::print(std::ostream &) [D = dmn_0<dmn<8, double> >]
+	dmn_0<dmn<1, double> >
+	dmn_0<dmn<2, double> >
+	dmn_0<dmn<4, double> >
+	dmn_0<dmn<8, double> >
 size of subdomains  : 
 1	2	4	8	
 memory step         : 
@@ -98,16 +98,16 @@ memory step         :
 function : test_domain_16
 *********************************
 # subdomains        : 10
-	static void dca::util::print_type<dmn_0<dmn<1, double> > >::print(std::ostream &) [D = dmn_0<dmn<1, double> >]
-	static void dca::util::print_type<dmn_0<dmn<2, double> > >::print(std::ostream &) [D = dmn_0<dmn<2, double> >]
-	static void dca::util::print_type<dmn_0<dmn<4, double> > >::print(std::ostream &) [D = dmn_0<dmn<4, double> >]
-	static void dca::util::print_type<dmn_0<dmn<8, double> > >::print(std::ostream &) [D = dmn_0<dmn<8, double> >]
-	static void dca::util::print_type<dmn_0<dmn<1, double> > >::print(std::ostream &) [D = dmn_0<dmn<1, double> >]
-	static void dca::util::print_type<dmn_0<dmn<2, double> > >::print(std::ostream &) [D = dmn_0<dmn<2, double> >]
-	static void dca::util::print_type<dmn_0<dmn<4, double> > >::print(std::ostream &) [D = dmn_0<dmn<4, double> >]
-	static void dca::util::print_type<dmn_0<dmn<8, double> > >::print(std::ostream &) [D = dmn_0<dmn<8, double> >]
-	static void dca::util::print_type<dmn_0<dmn<4, double> > >::print(std::ostream &) [D = dmn_0<dmn<4, double> >]
-	static void dca::util::print_type<dmn_0<dmn<8, double> > >::print(std::ostream &) [D = dmn_0<dmn<8, double> >]
+	dmn_0<dmn<1, double> >
+	dmn_0<dmn<2, double> >
+	dmn_0<dmn<4, double> >
+	dmn_0<dmn<8, double> >
+	dmn_0<dmn<1, double> >
+	dmn_0<dmn<2, double> >
+	dmn_0<dmn<4, double> >
+	dmn_0<dmn<8, double> >
+	dmn_0<dmn<4, double> >
+	dmn_0<dmn<8, double> >
 size of subdomains  : 
 1	2	4	8	1	2	4	8	4	8	
 memory step         : 

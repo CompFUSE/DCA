@@ -95,10 +95,10 @@ namespace dca {
             }
             //
             static void print(std::ostream &stream) {
-                stream << "\t" << __PRETTY_FUNCTION__ << "\n";
+                stream << "\t" << type_name<D>().c_str() << "\n";
             }
             static void to_JSON(std::ostream &stream) {
-                stream << "\t" << __PRETTY_FUNCTION__;
+                stream << "\t" << type_name<D>().c_str();
             }
         };
 
@@ -112,7 +112,7 @@ namespace dca {
             }
             static void print(std::ostream &stream)
                 {
-                stream << "\t" << __PRETTY_FUNCTION__ << "\n";
+                stream << "\t" << type_name<dmn_0<Domain>>().c_str() << "\n";
             }
         };
 
