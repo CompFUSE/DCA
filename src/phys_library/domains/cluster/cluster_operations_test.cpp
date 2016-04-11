@@ -70,6 +70,8 @@ protected:
   std::vector<std::vector<double>> k_cluster_super_basis_;
 };
 
+using ClusterOperationsDeathTest = ClusterOperationsTest;
+
 TEST_F(ClusterOperationsTest, origin_index) {
   // Unsorted set (PARALLELEPIPEDUM)
   EXPECT_EQ(2, cluster_operations::origin_index(unsorted_set_, PARALLELLEPIPEDUM));
@@ -85,18 +87,24 @@ TEST_F(ClusterOperationsTest, index) {
               cluster_operations::index(unsorted_set_[index], unsorted_set_, PARALLELLEPIPEDUM));
   }
 
-  std::vector<double> not_element{-42., 24.};
-  EXPECT_DEATH(cluster_operations::index(not_element, unsorted_set_, PARALLELLEPIPEDUM),
-               "(index > -1 and index < elements.size())");
-
   // Sorted set (BRILLOUIN_ZONE)
   for (int index = 0; index < sorted_set_.size(); ++index) {
     EXPECT_EQ(index, cluster_operations::index(sorted_set_[index], sorted_set_, BRILLOUIN_ZONE));
   }
+}
 
+TEST_F(ClusterOperationsDeathTest, index) {
+#ifndef NDEBUG
+  // Unsorted set (PARALLELEPIPEDUM)
+  std::vector<double> not_element{-42., 24.};
+  EXPECT_DEATH(cluster_operations::index(not_element, unsorted_set_, PARALLELLEPIPEDUM),
+               "index > -1 and index < elements.size()");
+
+  // Sorted set (BRILLOUIN_ZONE)
   not_element = {-42., 24.};
   EXPECT_DEATH(cluster_operations::index(not_element, sorted_set_, BRILLOUIN_ZONE),
                "VECTOR_OPERATIONS::L2_NORM");
+#endif  // NDEBUG
 }
 
 TEST_F(ClusterOperationsTest, translate_inside_cluster) {
