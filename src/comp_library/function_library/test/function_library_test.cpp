@@ -85,7 +85,7 @@ namespace test {
     test_domain_0v dummy;
     test_domain_16v dummy2;
     //
-};
+}
 
 //----------------------------------------------------------------------------
 template <typename T1> struct function_test {};
