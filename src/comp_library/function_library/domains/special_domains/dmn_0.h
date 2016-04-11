@@ -1,6 +1,6 @@
 //-*-C++-*-
 
-/*! 
+/*!
  *  \class dmn_0
  *  \ingroup FUNCTION
  *
@@ -13,19 +13,20 @@
 
 #ifndef DMN_0_H
 #define DMN_0_H
+
+#include <dca/util/type_list.hpp>
 #include "comp_library/function_library/domains/domain.h"
-#include "comp_library/type_list/type_list.h"
 
 template<typename parameters>
 class dmn_0 : public domain
 {
 public:
-  
-  typedef TYPELIST_1(parameters)            this_type;
-  
+
+  typedef dca::util::Typelist<parameters>            this_type;
+
   typedef          parameters               parameter_type;
   typedef typename parameters::element_type element_type;
-  
+
 public:
 
   dmn_0();
@@ -91,4 +92,4 @@ void dmn_0<parameters>::print_2_file(const char* filename)
   parameters::print_2_file(filename);
 }
 
-#endif 
+#endif

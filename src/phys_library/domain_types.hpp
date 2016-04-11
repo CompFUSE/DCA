@@ -17,12 +17,7 @@
 #include "phys_library/domains/Quantum_domain/DCA_iteration_domain.h"
 // TODO  check which domains to include
 #include "comp_library/function_library/domains/special_domains/dmn_0.h"
-#include "comp_library/function_library/domains/product_domains/dmn_2.h"
-#include "comp_library/function_library/domains/product_domains/dmn_3.h"
-#include "comp_library/function_library/domains/product_domains/dmn_4.h"
-#include "comp_library/function_library/domains/product_domains/dmn_5.h"
-#include "comp_library/function_library/domains/product_domains/dmn_6.h"
-#include "comp_library/function_library/domains/product_domains/dmn_8.h"
+#include "comp_library/function_library/domains/special_domains/dmn_variadic.h"
 
 namespace types {
 
@@ -88,82 +83,82 @@ using tp_time_pos_dmn_t = dmn_0<tp_vertex_time_domain_pos_type>;
 using crystal_harmonics_expansion = centered_cluster_domain<r_HOST_VERTEX::parameter_type>;
 using crystal_harmonics_expansion_dmn_t = dmn_0<crystal_harmonics_expansion>;
 
-using nu = dmn_2<b, s>;  // orbital-spin index
-using b_r_DCA = dmn_2<b, r_DCA>;
-using b_k_DCA = dmn_2<b, k_DCA>;
-using nu_nu = dmn_2<nu, nu>;
-using nu_nu__nu_nu = dmn_2<nu_nu, nu_nu>;
-using nu_r_DCA = dmn_2<nu, r_DCA>;
-using nu_k_DCA = dmn_2<nu, k_DCA>;
-using nu_w_REAL = dmn_2<nu, w_REAL>;
-using b_b = dmn_2<b, b>;
-using b_b__b_b = dmn_2<b_b, b_b>;
-using s_s = dmn_2<s, s>;
-using w_k_DCA = dmn_2<w, k_DCA>;
-using k_DCA_w = dmn_2<k_DCA, w>;
-using k_DCA_t = dmn_2<k_DCA, t>;
-using t_k_DCA = dmn_2<t, k_DCA>;
-using k_DCA_w_REAL = dmn_2<k_DCA, w_REAL>;
-using w_REAL_k_DCA = dmn_2<w_REAL, k_DCA>;
-using k_DCA_w_VERTEX = dmn_2<k_DCA, w_VERTEX>;
-using k_DCA_w_VERTEX_EXTENDED = dmn_2<k_DCA, w_VERTEX_EXTENDED>;
-using nu_k_LDA = dmn_2<nu, k_LDA>;
-using r_DCA_r_DCA = dmn_2<r_DCA, r_DCA>;
-using r_DCA_k_DCA = dmn_2<r_DCA, k_DCA>;
-using k_DCA_k_DCA = dmn_2<k_DCA, k_DCA>;
-using k_DCA_k_PCM = dmn_2<k_DCA, k_PCM>;
-using k_PCM_k_DCA = dmn_2<k_PCM, k_DCA>;
-using r_PCM_r_PCM = dmn_2<r_PCM, r_PCM>;
-using k_PCM_k_PCM = dmn_2<k_PCM, k_PCM>;
-using r_PCM_k_PCM = dmn_2<r_PCM, k_PCM>;
-using r_DCA_r_PCM = dmn_2<r_DCA, r_PCM>;
-using k_PCM_r_PCM = dmn_2<k_PCM, r_PCM>;
-using k_DCA_r_DCA = dmn_2<k_DCA, r_DCA>;
+using nu = dmn_variadic<b, s>;  // orbital-spin index
+using b_r_DCA = dmn_variadic<b, r_DCA>;
+using b_k_DCA = dmn_variadic<b, k_DCA>;
+using nu_nu = dmn_variadic<nu, nu>;
+using nu_nu__nu_nu = dmn_variadic<nu_nu, nu_nu>;
+using nu_r_DCA = dmn_variadic<nu, r_DCA>;
+using nu_k_DCA = dmn_variadic<nu, k_DCA>;
+using nu_w_REAL = dmn_variadic<nu, w_REAL>;
+using b_b = dmn_variadic<b, b>;
+using b_b__b_b = dmn_variadic<b_b, b_b>;
+using s_s = dmn_variadic<s, s>;
+using w_k_DCA = dmn_variadic<w, k_DCA>;
+using k_DCA_w = dmn_variadic<k_DCA, w>;
+using k_DCA_t = dmn_variadic<k_DCA, t>;
+using t_k_DCA = dmn_variadic<t, k_DCA>;
+using k_DCA_w_REAL = dmn_variadic<k_DCA, w_REAL>;
+using w_REAL_k_DCA = dmn_variadic<w_REAL, k_DCA>;
+using k_DCA_w_VERTEX = dmn_variadic<k_DCA, w_VERTEX>;
+using k_DCA_w_VERTEX_EXTENDED = dmn_variadic<k_DCA, w_VERTEX_EXTENDED>;
+using nu_k_LDA = dmn_variadic<nu, k_LDA>;
+using r_DCA_r_DCA = dmn_variadic<r_DCA, r_DCA>;
+using r_DCA_k_DCA = dmn_variadic<r_DCA, k_DCA>;
+using k_DCA_k_DCA = dmn_variadic<k_DCA, k_DCA>;
+using k_DCA_k_PCM = dmn_variadic<k_DCA, k_PCM>;
+using k_PCM_k_DCA = dmn_variadic<k_PCM, k_DCA>;
+using r_PCM_r_PCM = dmn_variadic<r_PCM, r_PCM>;
+using k_PCM_k_PCM = dmn_variadic<k_PCM, k_PCM>;
+using r_PCM_k_PCM = dmn_variadic<r_PCM, k_PCM>;
+using r_DCA_r_PCM = dmn_variadic<r_DCA, r_PCM>;
+using k_PCM_r_PCM = dmn_variadic<k_PCM, r_PCM>;
+using k_DCA_r_DCA = dmn_variadic<k_DCA, r_DCA>;
 
-using b_b_r_DCA = dmn_3<b, b, r_DCA>;
-using b_b_k_DCA = dmn_3<b, b, k_DCA>;
-using b_b_r_PCM = dmn_3<b, b, r_PCM>;
-using b_b_k_PCM = dmn_3<b, b, k_PCM>;
-using b_r_DCA_s = dmn_3<b, r_DCA, s>;
-using b_k_DCA_s = dmn_3<b, k_DCA, s>;
-using b_s__k_LDA = dmn_3<b, s, k_LDA>;
-using b_b__s__k_LDA = dmn_3<b_b, s, k_LDA>;
-using nu_nu_k_LDA = dmn_3<nu, nu, k_LDA>;
-using nu_nu_r_LDA = dmn_3<nu, nu, r_LDA>;
-using nu_nu_r_DCA = dmn_3<nu, nu, r_DCA>;
-using nu_nu_k_DCA = dmn_3<nu, nu, k_DCA>;
-using nu_nu_r_PCM = dmn_3<nu, nu, r_PCM>;
-using nu_nu_k_PCM = dmn_3<nu, nu, k_PCM>;
-using nu_nu_w = dmn_3<nu, nu, w>;
-using nu_nu_w_REAL = dmn_3<nu, nu, w_REAL>;
-using b_b_r_DCA_r_DCA = dmn_4<b, b, r_DCA, r_DCA>;
-using nu_nu_k_DCA_w = dmn_4<nu, nu, k_DCA, w>;
-using nu_nu_k_DCA_t = dmn_4<nu, nu, k_DCA, t>;
-using nu_nu_r_DCA_t = dmn_4<nu, nu, r_DCA, t>;
-using nu_nu_r_DCA_w = dmn_4<nu, nu, r_DCA, w>;
-using nu_nu_k_PCM_w = dmn_4<nu, nu, k_PCM, w>;
-using nu_nu_k_PCM_t = dmn_4<nu, nu, k_PCM, t>;
-using nu_nu_r_PCM_t = dmn_4<nu, nu, r_PCM, t>;
-using nu_nu_r_PCM_w = dmn_4<nu, nu, r_PCM, w>;
-using nu_nu_k_HOST_w = dmn_4<nu, nu, k_HOST, w>;
-using nu_nu_k_HOST_t = dmn_4<nu, nu, k_HOST, t>;
-using nu_nu_r_HOST_t = dmn_4<nu, nu, r_HOST, t>;
-using nu_nu_r_HOST_w = dmn_4<nu, nu, r_HOST, w>;
-using t_r_DCA_nu_nu = dmn_4<t, r_DCA, nu, nu>;
-using b_b_b_b = dmn_4<b, b, b, b>;
-using nu_nu_k_DCA_w_REAL = dmn_4<nu, nu, k_DCA, w_REAL>;
-using nu_nu_k_DCA_w_IMAG = dmn_4<nu, nu, k_DCA, w_IMAG>;
-using nu_nu__nu_nu__k_DCA = dmn_5<nu, nu, nu, nu, k_DCA>;
-using b_b_r_DCA_w_VERTEX_w_VERTEX = dmn_5<b, b, r_DCA, w_VERTEX, w_VERTEX>;
-using b_b_r_PCM_r_PCM_w_VERTEX_w_VERTEX = dmn_6<b, b, r_PCM, r_PCM, w_VERTEX, w_VERTEX>;
-using b_b_k_PCM_k_PCM_w_VERTEX_w_VERTEX = dmn_6<b, b, k_PCM, k_PCM, w_VERTEX, w_VERTEX>;
-using b_b_k_DCA_b_b_k_DCA = dmn_6<b, b, k_DCA, b, b, k_DCA>;
-using b_b__b_b__k_PCM_k_PCM_w_VERTEX_w_VERTEX = dmn_8<b, b, b, b, k_PCM, k_PCM, w_VERTEX, w_VERTEX>;
+using b_b_r_DCA = dmn_variadic<b, b, r_DCA>;
+using b_b_k_DCA = dmn_variadic<b, b, k_DCA>;
+using b_b_r_PCM = dmn_variadic<b, b, r_PCM>;
+using b_b_k_PCM = dmn_variadic<b, b, k_PCM>;
+using b_r_DCA_s = dmn_variadic<b, r_DCA, s>;
+using b_k_DCA_s = dmn_variadic<b, k_DCA, s>;
+using b_s__k_LDA = dmn_variadic<b, s, k_LDA>;
+using b_b__s__k_LDA = dmn_variadic<b_b, s, k_LDA>;
+using nu_nu_k_LDA = dmn_variadic<nu, nu, k_LDA>;
+using nu_nu_r_LDA = dmn_variadic<nu, nu, r_LDA>;
+using nu_nu_r_DCA = dmn_variadic<nu, nu, r_DCA>;
+using nu_nu_k_DCA = dmn_variadic<nu, nu, k_DCA>;
+using nu_nu_r_PCM = dmn_variadic<nu, nu, r_PCM>;
+using nu_nu_k_PCM = dmn_variadic<nu, nu, k_PCM>;
+using nu_nu_w = dmn_variadic<nu, nu, w>;
+using nu_nu_w_REAL = dmn_variadic<nu, nu, w_REAL>;
+using b_b_r_DCA_r_DCA = dmn_variadic<b, b, r_DCA, r_DCA>;
+using nu_nu_k_DCA_w = dmn_variadic<nu, nu, k_DCA, w>;
+using nu_nu_k_DCA_t = dmn_variadic<nu, nu, k_DCA, t>;
+using nu_nu_r_DCA_t = dmn_variadic<nu, nu, r_DCA, t>;
+using nu_nu_r_DCA_w = dmn_variadic<nu, nu, r_DCA, w>;
+using nu_nu_k_PCM_w = dmn_variadic<nu, nu, k_PCM, w>;
+using nu_nu_k_PCM_t = dmn_variadic<nu, nu, k_PCM, t>;
+using nu_nu_r_PCM_t = dmn_variadic<nu, nu, r_PCM, t>;
+using nu_nu_r_PCM_w = dmn_variadic<nu, nu, r_PCM, w>;
+using nu_nu_k_HOST_w = dmn_variadic<nu, nu, k_HOST, w>;
+using nu_nu_k_HOST_t = dmn_variadic<nu, nu, k_HOST, t>;
+using nu_nu_r_HOST_t = dmn_variadic<nu, nu, r_HOST, t>;
+using nu_nu_r_HOST_w = dmn_variadic<nu, nu, r_HOST, w>;
+using t_r_DCA_nu_nu = dmn_variadic<t, r_DCA, nu, nu>;
+using b_b_b_b = dmn_variadic<b, b, b, b>;
+using nu_nu_k_DCA_w_REAL = dmn_variadic<nu, nu, k_DCA, w_REAL>;
+using nu_nu_k_DCA_w_IMAG = dmn_variadic<nu, nu, k_DCA, w_IMAG>;
+using nu_nu__nu_nu__k_DCA = dmn_variadic<nu, nu, nu, nu, k_DCA>;
+using b_b_r_DCA_w_VERTEX_w_VERTEX = dmn_variadic<b, b, r_DCA, w_VERTEX, w_VERTEX>;
+using b_b_r_PCM_r_PCM_w_VERTEX_w_VERTEX = dmn_variadic<b, b, r_PCM, r_PCM, w_VERTEX, w_VERTEX>;
+using b_b_k_PCM_k_PCM_w_VERTEX_w_VERTEX = dmn_variadic<b, b, k_PCM, k_PCM, w_VERTEX, w_VERTEX>;
+using b_b_k_DCA_b_b_k_DCA = dmn_variadic<b, b, k_DCA, b, b, k_DCA>;
+using b_b__b_b__k_PCM_k_PCM_w_VERTEX_w_VERTEX = dmn_variadic<b, b, b, b, k_PCM, k_PCM, w_VERTEX, w_VERTEX>;
 
 // Band-structure plot
 using brillouin_zone_cut_domain_type = brillouin_zone_cut_domain<101>;
 using k_domain_cut_dmn_type = dmn_0<brillouin_zone_cut_domain_type>;
-using nu_k_cut = dmn_2<nu, k_domain_cut_dmn_type>;
+using nu_k_cut = dmn_variadic<nu, k_domain_cut_dmn_type>;
 
 using DCA_iteration_domain_type = dmn_0<DCA_iteration_domain>;
 }  // types

@@ -30,7 +30,7 @@ namespace QMC
 
     static FUNC_LIB::function<int, nu>& spo_function = intitialize_spin_orbital();
 
-    if(IS_EQUAL_TYPE<TypeAt<parameter_typelist,0>::Result, electron_band_domain>::check)
+    if(std::is_same<TypeAt<0,parameter_typelist>::type, electron_band_domain>::value)
       {
         return spo_function(band, electron_spin_domain::to_coordinate(e_spin));
         //return spo_function(band, do_cast<int>::execute(e_spin));

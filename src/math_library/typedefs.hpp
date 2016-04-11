@@ -113,17 +113,6 @@ struct IS_EQUAL<type_lhs, type_lhs> {
   const static bool CHECK = true;
 };
 
-template <bool QUESTION>
-struct GENERIC_ASSERT {};
-
-template <>
-struct GENERIC_ASSERT<false> {};
-
-template <>
-struct GENERIC_ASSERT<true> {
-  static void execute(){};
-};
-
 }  // math_algorithms
 
 #endif  // MATH_LIBRARY_TYPEDEFS_HPP

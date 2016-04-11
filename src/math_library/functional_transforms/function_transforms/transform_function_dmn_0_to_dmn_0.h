@@ -6,128 +6,133 @@
 #include <iostream>
 #include "math_library/functional_transforms/domain_transforms/domain_transforms.hpp"
 #include "comp_library/linalg/linalg.hpp"
-#include "comp_library/generic_methods_library/generic_assert.h"
 #include "comp_library/function_library/include_function_library.h"
 #include "math_library/typedefs.hpp"
 
 namespace math_algorithms {
 namespace functional_transforms {
-// math_algorithms::functional_transforms::
 
-template <typename type_input, typename type_output>
-class TRANSFORM<dmn_0<type_input>, dmn_0<type_output>> {
-  const static bool VERBOSE = false;
+  template<typename type_input, typename type_output>
+  class TRANSFORM<dmn_0<type_input>, dmn_0<type_output> > {
+	  const static bool VERBOSE = false;
 
-public:
-  template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-  static void execute(FUNC_LIB::function<scalartype_input, domain_input>& f_input,
-                      FUNC_LIB::function<scalartype_output, domain_output>& f_output) {
-    if (VERBOSE)
-      print_types(f_input, f_output);
+  public:
 
-    typedef typename SWAP_FIRST<domain_input, type_input, type_output>::Result TRANSFORMED_DOMAIN;
-    GENERIC_ASSERT<IS_EQUAL<TRANSFORMED_DOMAIN, domain_output>::CHECK>::execute();
+	  template<typename scalartype_input, class domain_input,
+			  typename scalartype_output, class domain_output>
+	  static void execute(FUNC_LIB::function<scalartype_input, domain_input> &f_input,
+						  FUNC_LIB::function<scalartype_output, domain_output> &f_output) {
+		  if (VERBOSE)
+			  print_types(f_input, f_output);
 
-    TRANSFORM_DOMAINWISE<domain_input, domain_output, type_input, type_output>::execute_on_first(
-        f_input, f_output);
-  }
+		  typedef typename SWAP_FIRST<domain_input, type_input, type_output>::Result TRANSFORMED_DOMAIN;
+		  dca::util::assert_same<TRANSFORMED_DOMAIN, domain_output>();
 
-  template <typename scalartype_input, class domain_input, typename scalartype_output,
-            class domain_output, typename scalartype_T>
-  static void execute(FUNC_LIB::function<scalartype_input, domain_input>& f_input,
-                      FUNC_LIB::function<scalartype_output, domain_output>& f_output,
-                      LIN_ALG::matrix<scalartype_T, LIN_ALG::CPU>& T) {
-    if (VERBOSE)
-      print_types(f_input, f_output);
+		  TRANSFORM_DOMAINWISE<domain_input, domain_output, type_input, type_output>::execute_on_first(f_input,
+																									   f_output);
+	  }
 
-    typedef typename SWAP_FIRST<domain_input, type_input, type_output>::Result TRANSFORMED_DOMAIN;
-    GENERIC_ASSERT<IS_EQUAL<TRANSFORMED_DOMAIN, domain_output>::CHECK>::execute();
+	  template<typename scalartype_input, class domain_input,
+			  typename scalartype_output, class domain_output,
+			  typename scalartype_T>
+	  static void execute(FUNC_LIB::function<scalartype_input, domain_input> &f_input,
+						  FUNC_LIB::function<scalartype_output, domain_output> &f_output,
+						  LIN_ALG::matrix<scalartype_T, LIN_ALG::CPU> &T) {
+		  if (VERBOSE)
+			  print_types(f_input, f_output);
 
-    TRANSFORM_DOMAINWISE<domain_input, domain_output, type_input, type_output>::execute_on_first(
-        f_input, f_output, T);
-  }
+		  typedef typename SWAP_FIRST<domain_input, type_input, type_output>::Result TRANSFORMED_DOMAIN;
+		  dca::util::assert_same<TRANSFORMED_DOMAIN, domain_output>();
 
-  template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-  static void execute_on_all(FUNC_LIB::function<scalartype_input, domain_input>& f_input,
-                             FUNC_LIB::function<scalartype_output, domain_output>& f_output) {
-    if (VERBOSE)
-      print_types(f_input, f_output);
+		  TRANSFORM_DOMAINWISE<domain_input, domain_output, type_input, type_output>::execute_on_first(f_input,
+																									   f_output, T);
+	  }
 
-    typedef typename SWAP_ALL<domain_input, type_input, type_output>::Result TRANSFORMED_DOMAIN;
+	  template<typename scalartype_input, class domain_input,
+			  typename scalartype_output, class domain_output>
+	  static void execute_on_all(FUNC_LIB::function<scalartype_input, domain_input> &f_input,
+								 FUNC_LIB::function<scalartype_output, domain_output> &f_output) {
+		  if (VERBOSE)
+			  print_types(f_input, f_output);
 
-    GENERIC_ASSERT<IS_EQUAL<TRANSFORMED_DOMAIN, domain_output>::CHECK>::execute();
+		  typedef typename SWAP_ALL<domain_input, type_input, type_output>::Result TRANSFORMED_DOMAIN;
 
-    TRANSFORM_DOMAINWISE<domain_input, domain_output, type_input, type_output>::execute_on_all(
-        f_input, f_output);
-  }
+		  dca::util::assert_same<TRANSFORMED_DOMAIN, domain_output>();
 
-  template <typename scalartype_input, class domain_input, typename scalartype_output,
-            class domain_output, typename scalartype_T>
-  static void execute_on_all(FUNC_LIB::function<scalartype_input, domain_input>& f_input,
-                             FUNC_LIB::function<scalartype_output, domain_output>& f_output,
-                             LIN_ALG::matrix<scalartype_T, LIN_ALG::CPU>& T) {
-    if (VERBOSE)
-      print_types(f_input, f_output);
+		  TRANSFORM_DOMAINWISE<domain_input, domain_output, type_input, type_output>::execute_on_all(f_input, f_output);
+	  }
 
-    typedef typename SWAP_ALL<domain_input, type_input, type_output>::Result TRANSFORMED_DOMAIN;
+	  template<typename scalartype_input, class domain_input,
+			  typename scalartype_output, class domain_output,
+			  typename scalartype_T>
+	  static void execute_on_all(FUNC_LIB::function<scalartype_input, domain_input> &f_input,
+								 FUNC_LIB::function<scalartype_output, domain_output> &f_output,
+								 LIN_ALG::matrix<scalartype_T, LIN_ALG::CPU> &T) {
+		  if (VERBOSE)
+			  print_types(f_input, f_output);
 
-    GENERIC_ASSERT<IS_EQUAL<TRANSFORMED_DOMAIN, domain_output>::CHECK>::execute();
+		  typedef typename SWAP_ALL<domain_input, type_input, type_output>::Result TRANSFORMED_DOMAIN;
 
-    TRANSFORM_DOMAINWISE<domain_input, domain_output, type_input, type_output>::execute_on_all(
-        f_input, f_output, T);
-  }
+		  dca::util::assert_same<TRANSFORMED_DOMAIN, domain_output>();
 
-private:
-  template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-  static void print_types(FUNC_LIB::function<scalartype_input, domain_input>& f_input,
-                          FUNC_LIB::function<scalartype_output, domain_output>& f_output,
-                          bool do_all_domains = false) {
-    typedef typename domain_input::this_type type_list_input;
-    typedef typename domain_output::this_type type_list_output;
+		  TRANSFORM_DOMAINWISE<domain_input, domain_output, type_input, type_output>::execute_on_all(f_input, f_output,
+																									 T);
+	  }
 
-    print_type<type_input>::to_JSON(std::cout);
-    std::cout << "\n\n";
-    print_type<type_output>::to_JSON(std::cout);
-    std::cout << "\n\n";
+  private:
 
-    if (do_all_domains) {
-      printTL<type_list_input>::to_JSON(std::cout);
-      std::cout << "\n\n";
+	  template<typename scalartype_input, class domain_input,
+			  typename scalartype_output, class domain_output>
+	  static void print_types(FUNC_LIB::function<scalartype_input, domain_input> &f_input,
+							  FUNC_LIB::function<scalartype_output, domain_output> &f_output,
+							  bool do_all_domains = false) {
+		  typedef typename domain_input::this_type type_list_input;
+		  typedef typename domain_output::this_type type_list_output;
 
-      typedef typename SWAP_ALL<domain_input, type_input, type_output>::Result TRANSFORMED_DOMAIN;
+		  print_type<type_input>::to_JSON(std::cout);
+		  std::cout << "\n\n";
+		  print_type<type_output>::to_JSON(std::cout);
+		  std::cout << "\n\n";
 
-      printTL<typename TRANSFORMED_DOMAIN::this_type>::to_JSON(std::cout);
-      std::cout << "\n\n";
+		  if (do_all_domains) {
+			  dca::util::print_type<type_list_input>::to_JSON(std::cout);
+			  std::cout << "\n\n";
 
-      printTL<type_list_output>::to_JSON(std::cout);
-      std::cout << "\n\n";
+			  typedef typename SWAP_ALL<domain_input, type_input, type_output>::Result TRANSFORMED_DOMAIN;
 
-      FUNC_LIB::function<scalartype_output, TRANSFORMED_DOMAIN> T;
-      T.print_fingerprint();
-      f_output.print_fingerprint();
-    }
-    else {
-      printTL<type_list_input>::to_JSON(std::cout);
-      std::cout << "\n\n";
+			  dca::util::print_type<typename TRANSFORMED_DOMAIN::this_type>::to_JSON(std::cout);
+			  std::cout << "\n\n";
 
-      typedef typename SWAP_FIRST<domain_input, type_input, type_output>::Result TRANSFORMED_DOMAIN;
+			  dca::util::print_type<type_list_output>::to_JSON(std::cout);
+			  std::cout << "\n\n";
 
-      printTL<typename TRANSFORMED_DOMAIN::this_type>::to_JSON(std::cout);
-      std::cout << "\n\n";
+			  FUNC_LIB::function<scalartype_output, TRANSFORMED_DOMAIN> T;
+			  T.print_fingerprint();
+			  f_output.print_fingerprint();
+		  }
+		  else {
+			  dca::util::print_type<type_list_input>::to_JSON(std::cout);
+			  std::cout << "\n\n";
 
-      printTL<type_list_output>::to_JSON(std::cout);
-      std::cout << "\n\n";
+			  typedef typename SWAP_FIRST<domain_input, type_input, type_output>::Result TRANSFORMED_DOMAIN;
 
-      FUNC_LIB::function<scalartype_output, TRANSFORMED_DOMAIN> T(
-          "FUNC_LIB::function<scalartype_output, TRANSFORMED_DOMAIN>");
+			  dca::util::print_type<typename TRANSFORMED_DOMAIN::this_type>::to_JSON(std::cout);
+			  std::cout << "\n\n";
 
-      f_input.print_fingerprint();
-      T.print_fingerprint();
-      f_output.print_fingerprint();
-    }
-  }
-};
+			  dca::util::print_type<type_list_output>::to_JSON(std::cout);
+			  std::cout << "\n\n";
+
+			  FUNC_LIB::function<scalartype_output, TRANSFORMED_DOMAIN> T(
+					  "FUNC_LIB::function<scalartype_output, TRANSFORMED_DOMAIN>");
+
+			  f_input.print_fingerprint();
+			  T.print_fingerprint();
+			  f_output.print_fingerprint();
+		  }
+	  }
+  };
+
 }  // functional_transforms
 }  // math_algorithms
 
-#endif  // MATH_LIBRARY_FUNCTIONAL_TRANSFORMS_FUNCTION_TRANSFORMS_TRANSFORM_FUNCTION_DMN_0_TO_DMN_0_H
+#endif

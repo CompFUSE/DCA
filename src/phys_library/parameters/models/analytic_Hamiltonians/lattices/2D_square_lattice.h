@@ -6,6 +6,8 @@
 #include "phys_library/domains/cluster/symmetries/point_groups/No_symmetry.h"
 #include "comp_library/function_library/function.h"
 #include "phys_library/domains/cluster/cluster_operations.hpp"
+#include "dca/util/type_list.hpp"
+using dca::util::TypeAt;
 
 /*!
  *  \author peter staar
@@ -99,7 +101,7 @@ void square_lattice<point_group_type>::initialize_H_interaction(FUNC_LIB::functi
   H_interaction = 0.;
 
   // actually the same as DCA_r_cluster_type (see typedifinitions.h).
-  typedef typename TL::TypeAt<typename domain::domain_typelist_2, 0>::Result DCA_r_cluster_t;
+  typedef typename TypeAt<0, typename domain::template domain_typelist<2>>::type DCA_r_cluster_t;
 
   int DIMENSION = DCA_r_cluster_t::DIMENSION;
   assert(DIMENSION == 2);

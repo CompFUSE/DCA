@@ -19,11 +19,10 @@
  *  pointgroup :: set of group-actions
  */
 
-typedef TYPELIST_1(Sn_2D_0_4_type) Sx_2d;
-typedef TYPELIST_1(Sn_2D_1_4_type) Sy_2d;
+typedef Typelist<Sn_2D_0_4_type> Sx_2d;
+typedef Typelist<Sn_2D_1_4_type> Sy_2d;
 
-typedef Append<C2, 
-	       Append<Sx_2d, Sy_2d>::Result >::Result D2;
+typedef Append<C2, Append<Sx_2d, Sy_2d>::type >::type D2;
 
 
 #endif

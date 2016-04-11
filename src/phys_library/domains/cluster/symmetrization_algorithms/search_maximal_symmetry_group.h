@@ -22,7 +22,7 @@ class search_symmetry_group
 {
 private:
 
-  typedef typename TypeAt<point_group, INDEX>::Result symmetry_type;
+  typedef typename TypeAt<INDEX, point_group>::type symmetry_type;
   typedef typename symmetry_type::base_type           group_action_type;
 
   const static int DIMENSION = base_cluster_type::DIMENSION;

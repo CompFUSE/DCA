@@ -40,9 +40,9 @@
 #include <pthread.h>
 
 // typelist-operations
-#include "comp_library/type_list/type_list.h"
-#include "comp_library/type_list/type_list_definitions.h"
-using namespace TL;
+#include <dca/util/type_list.hpp>
+#include <dca/util/type_utils.hpp>
+using namespace dca::util;
 
 // enumerations
 #include "enumerations.hpp"
@@ -62,9 +62,6 @@ const static bool DO_NFFT = true;
 // various
 #include "math_library/static_functions.h"
 #include "phys_library/domains/cluster/symmetries/include_symmetry_library.h"
-
-// include generic-algorithms
-#include "comp_library/generic_methods_library/include_generic_methods.h"
 
 // include function-library
 #include "comp_library/function_library/include_function_library.h"

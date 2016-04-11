@@ -3,13 +3,15 @@
 #ifndef FUNCTION_H
 #define FUNCTION_H
 
-#include <assert.h>
+#include <cassert>
+//
+#include <dca/util/type_utils.hpp>
+#include "scalar_cast_methods.h"
 #include "comp_library/function_library/function_operations/set_to_zero.h"
 #include "comp_library/function_library/function_operations/copy_from.h"
 #include "comp_library/function_library/function_operations/function_operators_collection.h"
 #include "comp_library/function_library/function_operations/subind_2_linind_collection.h"
-#include "comp_library/function_library/scalar_cast_methods.h"
-#include "comp_library/type_list/type_list.h"
+
 
 
 namespace FUNC_LIB
@@ -131,6 +133,7 @@ namespace FUNC_LIB
    @name I/O-interface
    @{
 */
+        void print_fingerprint(std::ostream &stream);
         void print_fingerprint();
         void print_2_file(const char* file_name);
 
@@ -619,31 +622,36 @@ namespace FUNC_LIB
 //++++++++++++++++++++++++++++++++++++++++//
 
 
+    template<typename scalartype, class domain>
+    void function<scalartype, domain>::print_fingerprint(std::ostream &stream)
+    {
+        stream << std::endl << std::endl << "function : " << name <<std::endl;
+
+        stream <<"*********************************"<<std::endl;
+
+        stream << "# subdomains        : " << Nb_sbdms << std::endl;
+
+        dca::util::print_type<domain>::print(stream);
+
+        stream << "size of subdomains  : " << std::endl;
+        for(int i=0; i<Nb_sbdms; i++)
+            stream << size_sbdm[i] << "\t";
+        stream << std::endl;
+
+        stream << "memory step         : " << std::endl;
+        for(int i=0; i<Nb_sbdms; i++)
+            stream << step_sbdm[i] << "\t";
+        stream << std::endl;
+
+        stream << "# elements          : " << Nb_elements << std::endl;
+        stream << "# size              : " << Nb_elements*sizeof(scalartype)*(1.e-6) << " (mega-bytes)" << std::endl;
+        stream <<"*********************************"<<std::endl;
+    }
 
     template<typename scalartype, class domain>
     void function<scalartype, domain>::print_fingerprint()
     {
-        std::cout << std::endl << std::endl << "function : " << name <<std::endl;
-
-        std::cout <<"*********************************"<<std::endl;
-
-        std::cout << "# subdomains        : " << Nb_sbdms << std::endl;
-
-        TL::printTL<domain>::print();
-
-        std::cout << "size of subdomains  : " << std::endl;
-        for(int i=0; i<Nb_sbdms; i++)
-            std::cout << size_sbdm[i] << "\t";
-        std::cout << std::endl;
-
-        std::cout << "memory step         : " << std::endl;
-        for(int i=0; i<Nb_sbdms; i++)
-            std::cout << step_sbdm[i] << "\t";
-        std::cout << std::endl;
-
-        std::cout << "# elements          : " << Nb_elements << std::endl;
-        std::cout << "# size              : " << Nb_elements*sizeof(scalartype)*(1.e-6) << " (mega-bytes)" << std::endl;
-        std::cout <<"*********************************"<<std::endl;
+        print_fingerprint(std::cout);
     }
 
     template<typename scalartype, class domain>

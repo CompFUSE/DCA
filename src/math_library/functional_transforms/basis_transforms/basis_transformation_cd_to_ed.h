@@ -7,7 +7,6 @@
 #include <cassert>
 #include <string>
 #include "comp_library/linalg/linalg.hpp"
-#include "comp_library/generic_methods_library/generic_assert.h"
 #include "math_library/functional_transforms/basis_functions/basis_functions.hpp"
 
 namespace math_algorithms {
@@ -72,8 +71,6 @@ public:
   }
 
   static void initialize_transformation_matrix() {
-    GENERIC_ASSERT<CONTINUOUS == rh_spec_dmn_type::DOMAIN_REPRESENTATION>::execute();
-    GENERIC_ASSERT<EXPANSION == lh_spec_dmn_type::DOMAIN_REPRESENTATION>::execute();
 
     is_initialized() = true;
 

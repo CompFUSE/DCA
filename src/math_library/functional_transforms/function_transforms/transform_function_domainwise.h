@@ -1,5 +1,4 @@
 //-*-C++-*-
-
 #ifndef MATH_LIBRARY_FUNCTIONAL_TRANSFORMS_FUNCTION_TRANSFORMS_TRANSFORM_FUNCTION_DOMAINWISE_H
 #define MATH_LIBRARY_FUNCTIONAL_TRANSFORMS_FUNCTION_TRANSFORMS_TRANSFORM_FUNCTION_DOMAINWISE_H
 
@@ -7,21 +6,28 @@
 #include "comp_library/linalg/linalg.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "math_library/typedefs.hpp"
-#include "math_library/functional_transforms/domain_transforms/domain_transforms.hpp"
+//#include "math_library/functional_transforms/domain_transforms/domain_transforms.hpp"
+#include <dca/util/type_list.hpp>
+using dca::util::IndexOf;
 
 namespace math_algorithms {
 namespace functional_transforms {
-// math_algorithms::functional_transforms::
-
+/*!
+*  \class
+*  \ingroup
+*
+*  \author  Peter Staar
+*  \brief   ...
+*/
 template <typename domain_input, typename domain_output, typename type_input, typename type_output>
 struct TRANSFORM_DOMAINWISE {
   const static bool VERBOSE = false;
 
   typedef typename SWAP_FIRST<domain_input, type_input, type_output>::Result TRANSFORMED_DOMAIN;
 
-  const static int CURR_DMN_INDEX = IndexOf<typename domain_input::this_type, type_input>::value;
+  const static int CURR_DMN_INDEX = IndexOf<type_input, typename domain_input::this_type>::value;
   const static int NEXT_DMN_INDEX =
-      IndexOf<typename TRANSFORMED_DOMAIN::this_type, type_input>::value;
+      IndexOf<type_input, typename TRANSFORMED_DOMAIN::this_type>::value;
 
   typedef typename type_input::dmn_specifications_type input_specs_type;
   typedef typename type_output::dmn_specifications_type output_specs_type;
@@ -139,6 +145,7 @@ struct TRANSFORM_DOMAINWISE {
     }
   }
 };
+
 }  // functional_transforms
 }  // math_algorithms
 

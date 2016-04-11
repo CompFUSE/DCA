@@ -3,6 +3,8 @@
 #ifndef HSPLINE_INTERPOLATION_ALGORITHM_H
 #define HSPLINE_INTERPOLATION_ALGORITHM_H
 
+#include <dca/util/type_utils.hpp>
+
 /*!
  *  \class   hspline_interpolation_domain_type
  *  \ingroup INTERPOLATION
@@ -14,7 +16,7 @@ template<typename dmn_type, typename type_input, typename type_output>
 struct hspline_interpolation_domain_type
 {
   typedef typename dmn_type::this_type dmn_type_list;
-  typedef typename TL::Swap<dmn_type_list,type_input,type_output>::Result Result;
+  typedef typename dca::util::Swap<dmn_type_list,type_input,type_output>::type Result;
 };
 
 /*! \class   hspline_interpolation_kernel
@@ -101,7 +103,7 @@ struct hspline_interpolation_generic
     //typedef typename TypeListAt<type_list1,IndexOf<type_list1, type_input>::value>::Result new_typelist1;
     //typedef typename TypeListAt<type_list2,IndexOf<type_list1, type_input>::value>::Result new_typelist2;
 
-    hspline_interpolation_any_2_any<type_input, type_output, IndexOf<type_list1, type_input>::value + dmn_shift>::execute(f_input,f_output, a);
+    hspline_interpolation_any_2_any<type_input, type_output, IndexOf<type_input, type_list1>::value + dmn_shift>::execute(f_input,f_output, a);
   }
 };
 
@@ -134,25 +136,23 @@ public:
                       FUNC_LIB::function<scalartype_output, domain_output>& f_output,
                       double a)
   {
-//     GENERIC_ASSERT<IS_EQUAL_TYPE<scalartype_input , float>::check or IS_EQUAL_TYPE<scalartype_input , double>::check>::execute();
-//     GENERIC_ASSERT<IS_EQUAL_TYPE<scalartype_output, float>::check or IS_EQUAL_TYPE<scalartype_output, double>::check>::execute();
 
     typedef typename hspline_interpolation_domain_type<domain_input, source_dmn_type, target_dmn_type>::Result hspline_interpolation_domain;
 
     typedef typename domain_output::this_type domain_output_list_type;
-    GENERIC_ASSERT<IS_EQUAL_TYPE<domain_output_list_type, hspline_interpolation_domain>::check >::execute();
+    dca::util::assert_same<domain_output_list_type, hspline_interpolation_domain>();
 
     typedef typename domain_input::this_type type_list_input;
     typedef typename domain_output::this_type type_list_output;
 
-    GENERIC_ASSERT< (IndexOf<type_list_input, source_dmn_type>::value > -1) >::execute();
+    static_assert(IndexOf<source_dmn_type, type_list_input>::value > -1, "Type list error");
 
     hspline_interpolation_generic<type_list_input,
                                   type_list_output,
                                   source_dmn_type,
                                   target_dmn_type,
                                   0,
-                                  IndexOf<type_list_input, source_dmn_type>::value >::execute(f_input, f_output, a);
+                                  IndexOf<source_dmn_type, type_list_input>::value >::execute(f_input, f_output, a);
   }
 
   /*

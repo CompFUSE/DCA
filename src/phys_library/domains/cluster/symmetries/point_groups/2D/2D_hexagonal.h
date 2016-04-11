@@ -35,48 +35,48 @@ typedef Sn_2D<5,6> Sn_2D_5_6_type;
  */
 struct C3
 {
-  typedef TYPELIST_2(Cn_2D_1_3_type,
-                     Cn_2D_2_3_type) point_group_type_list;
+  typedef Typelist<Cn_2D_1_3_type,
+                     Cn_2D_2_3_type> point_group_type_list;
 };
 
 struct S3
 {
-  typedef TYPELIST_3(Sn_2D_0_3_type,
+  typedef Typelist<Sn_2D_0_3_type,
                      Sn_2D_1_3_type,
-                     Sn_2D_2_3_type) point_group_type_list;
+                     Sn_2D_2_3_type> point_group_type_list;
 };
 
 struct D3
 {
-  typedef TYPELIST_5(Cn_2D_1_3_type,
+  typedef Typelist<Cn_2D_1_3_type,
                      Cn_2D_2_3_type,
                      Sn_2D_0_3_type,
                      Sn_2D_1_3_type,
-                     Sn_2D_2_3_type) point_group_type_list;
+                     Sn_2D_2_3_type> point_group_type_list;
 };
 
 struct C6
 {
-  typedef TYPELIST_5(Cn_2D_1_6_type,
+  typedef Typelist<Cn_2D_1_6_type,
                      Cn_2D_2_6_type,
                      Cn_2D_3_6_type,
                      Cn_2D_4_6_type,
-                     Cn_2D_5_6_type) point_group_type_list;
+                     Cn_2D_5_6_type> point_group_type_list;
 };
 
 struct S6
 {
-  typedef TYPELIST_6(Sn_2D_0_6_type,
+  typedef Typelist<Sn_2D_0_6_type,
                      Sn_2D_1_6_type,
                      Sn_2D_2_6_type,
                      Sn_2D_3_6_type,
                      Sn_2D_4_6_type,
-                     Sn_2D_5_6_type) point_group_type_list;
+                     Sn_2D_5_6_type> point_group_type_list;
 };
 
 struct D6
 {
-  typedef TYPELIST_11(Cn_2D_1_6_type,
+  typedef Typelist<Cn_2D_1_6_type,
                       Cn_2D_2_6_type,
                       Cn_2D_3_6_type,
                       Cn_2D_4_6_type,
@@ -86,7 +86,7 @@ struct D6
                       Sn_2D_2_6_type,
                       Sn_2D_3_6_type,
                       Sn_2D_4_6_type,
-                      Sn_2D_5_6_type) point_group_type_list;
+                      Sn_2D_5_6_type> point_group_type_list;
 };
 
 #endif

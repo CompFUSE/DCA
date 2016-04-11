@@ -1,0 +1,32 @@
+"	static void dca::util::print_type<dmn<1, double> >::to_JSON(std::ostream &) [D = dmn<1, double>]"
+
+"	static void dca::util::print_type<dmn<2, double> >::to_JSON(std::ostream &) [D = dmn<2, double>]"
+
+"	static void dca::util::print_type<dmn<4, double> >::to_JSON(std::ostream &) [D = dmn<4, double>]"
+
+"	static void dca::util::print_type<dmn<8, double> >::to_JSON(std::ostream &) [D = dmn<8, double>]"
+
+"	static void dca::util::print_type<dmn<8, double> >::to_JSON(std::ostream &) [D = dmn<8, double>]"
+
+"	static void dca::util::print_type<dmn<1, double> >::to_JSON(std::ostream &) [D = dmn<1, double>]",
+"	static void dca::util::print_type<dmn<2, double> >::to_JSON(std::ostream &) [D = dmn<2, double>]"
+
+"	static void dca::util::print_type<dmn<4, double> >::to_JSON(std::ostream &) [D = dmn<4, double>]",
+"	static void dca::util::print_type<dmn<8, double> >::to_JSON(std::ostream &) [D = dmn<8, double>]"
+
+"	static void dca::util::print_type<dmn<1, double> >::to_JSON(std::ostream &) [D = dmn<1, double>]",
+"	static void dca::util::print_type<dmn<2, double> >::to_JSON(std::ostream &) [D = dmn<2, double>]",
+"	static void dca::util::print_type<dmn<4, double> >::to_JSON(std::ostream &) [D = dmn<4, double>]",
+"	static void dca::util::print_type<dmn<8, double> >::to_JSON(std::ostream &) [D = dmn<8, double>]"
+
+"	static void dca::util::print_type<dmn<1, double> >::to_JSON(std::ostream &) [D = dmn<1, double>]",
+"	static void dca::util::print_type<dmn<2, double> >::to_JSON(std::ostream &) [D = dmn<2, double>]",
+"	static void dca::util::print_type<dmn<4, double> >::to_JSON(std::ostream &) [D = dmn<4, double>]",
+"	static void dca::util::print_type<dmn<8, double> >::to_JSON(std::ostream &) [D = dmn<8, double>]",
+"	static void dca::util::print_type<dmn<1, double> >::to_JSON(std::ostream &) [D = dmn<1, double>]",
+"	static void dca::util::print_type<dmn<2, double> >::to_JSON(std::ostream &) [D = dmn<2, double>]",
+"	static void dca::util::print_type<dmn<4, double> >::to_JSON(std::ostream &) [D = dmn<4, double>]",
+"	static void dca::util::print_type<dmn<8, double> >::to_JSON(std::ostream &) [D = dmn<8, double>]",
+"	static void dca::util::print_type<dmn<4, double> >::to_JSON(std::ostream &) [D = dmn<4, double>]",
+"	static void dca::util::print_type<dmn<8, double> >::to_JSON(std::ostream &) [D = dmn<8, double>]"
+
