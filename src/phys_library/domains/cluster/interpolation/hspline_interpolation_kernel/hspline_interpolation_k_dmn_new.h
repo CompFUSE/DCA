@@ -2,15 +2,14 @@
 
 #ifndef PHYS_LIBRARY_DOMAINS_CLUSTER_INTERPOLATION_HSPLINE_INTERPOLATION_KERNEL_HSPLINE_INTERPOLATION_K_DMN_NEW_H
 #define PHYS_LIBRARY_DOMAINS_CLUSTER_INTERPOLATION_HSPLINE_INTERPOLATION_KERNEL_HSPLINE_INTERPOLATION_K_DMN_NEW_H
-
 /*!
  *  \ingroup INTERPOLATION
  *
  *  \author  Peter Staar
  *  \brief   This class implements a Hermite spline interpolation technique in momentum space.
  */
-// template<typename scalartype, cluster_representation_type cluster_representation, typename
-// base_cluster_type, typename target_k_dmn_t>
+#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron_neighbour_domain.h"
+
 template <typename scalartype, typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S,
           typename target_k_dmn_t>
 class hspline_interpolation_kernel<scalartype, cluster_domain<scalar_type, D, N, MOMENTUM_SPACE, S>,
@@ -358,17 +357,6 @@ void hspline_interpolation_kernel<scalartype, cluster_domain<scalar_type, D, N, 
   neighbours.resize(0);
 
   neighbours = math_algorithms::tetrahedron_neighbour_domain<k_cluster_type>::get_elements();
-
-  //   tetrahedron_mesh<k_cluster_type> tet_mesh(1);
-  //   neighbours.resize(0);
-  //   for(size_t f_ind=0; f_ind<tet_mesh.get_facets().size(); ++f_ind){
-  //     std::vector<double> k(DIMENSION,0.);
-  //     for(size_t k_ind=0; k_ind<tet_mesh.get_facets()[f_ind].index.size(); ++k_ind)
-  //       k = VECTOR_OPERATIONS::ADD(k,
-  //       tet_mesh.get_simplices()[tet_mesh.get_facets()[f_ind].index[k_ind]].k_vec);
-  //     neighbours.push_back(k);
-  //   }
-  //   assert(neighbours.size() == tet_mesh.get_facets().size());
 }
 
 template <typename scalartype, typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S,

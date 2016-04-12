@@ -3,7 +3,8 @@
 #ifndef DCA_QMCI_POSIX_MC_INTEGRATOR_FOR_MC_H
 #define DCA_QMCI_POSIX_MC_INTEGRATOR_FOR_MC_H
 
-#include "dca/math_library/random_number_library//random_number_library.hpp"
+#include "dca/math_library/random_number_library/random_number_library.hpp"
+#include "posix_qmci_accumulator.h"
 
 namespace DCA {
 /*!
@@ -25,7 +26,7 @@ class posix_qmci_integrator : protected qmci_integrator_type {
   typedef typename parameters_type::profiler_type profiler_type;
   typedef typename parameters_type::concurrency_type concurrency_type;
 
-  using  random_number_generator = typename parameters_type::random_number_generator;
+  using random_number_generator = typename parameters_type::random_number_generator;
 
   typedef typename qmci_integrator_type::walker_type walker_type;
   typedef typename qmci_integrator_type::accumulator_type accumulator_type;

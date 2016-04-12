@@ -2,6 +2,7 @@
 
 #ifndef MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_NEIGHBOUR_DOMAIN_H
 #define MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_NEIGHBOUR_DOMAIN_H
+#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron_mesh.h"
 
 namespace math_algorithms {
 /*!  \ingroup TETRAHEDRON-MESH

@@ -23,12 +23,11 @@ dca_mpi_test_environment* dca_test_env;
 TEST(bilayerLattice_Nc1_interband, Self_Energy) {
   using namespace DCA;
 
-  using parameters_type =
-      Parameters<dca_mpi_test_environment::concurrency_type, model, random_number_generator, CT_AUX_CLUSTER_SOLVER>;
+  using parameters_type = Parameters<dca_mpi_test_environment::concurrency_type, model,
+                                     random_number_generator, CT_AUX_CLUSTER_SOLVER>;
   using MOMS_type = DCA_data<parameters_type>;
-  using quantum_cluster_solver_type =
+  using QMC_solver_type =
       cluster_solver<CT_AUX_CLUSTER_SOLVER, LIN_ALG::CPU, parameters_type, MOMS_type>;
-  using QMC_solver_type = quantum_cluster_solver_type;
 
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
     GitVersion::print();

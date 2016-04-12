@@ -1,9 +1,6 @@
 //-*-C++-*-
 // TODO: Merge empty else functions to fewer variadic template functions.
 
-#ifndef SHOW_FUNCTION_H
-#define SHOW_FUNCTION_H
-
 class SHOW
 {
 public:
@@ -1265,4 +1262,3 @@ void SHOW::heatmap(std::vector<scalar_type> /*x*/, std::vector<scalar_type> /*y*
 {}
 #endif
 
-#endif

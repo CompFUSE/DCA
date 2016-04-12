@@ -2,6 +2,7 @@
 
 #ifndef MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_IMPLEMENTATION_TETRAHEDRON_3D_H
 #define MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_IMPLEMENTATION_TETRAHEDRON_3D_H
+#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron_template.h"
 
 namespace math_algorithms {
 /*!
@@ -64,7 +65,7 @@ private:
   scalartype integrate_matrix_element(scalartype* f, scalartype* e);
 
   template <typename scalartype>
-  eigenvalue_degeneracy_t find_degeneracy(scalartype* f, scalartype* e);
+  eigenvalue_degeneracy find_degeneracy(scalartype* f, scalartype* e);
 
   static bool pair_same(std::pair<std::complex<double>, std::complex<double>> const& x,
                         std::pair<std::complex<double>, std::complex<double>> const& y);
@@ -407,7 +408,7 @@ template <typename scalartype>
 scalartype tetrahedron<3>::integrate_matrix_element(scalartype* f, scalartype* e) {
   static scalartype r[3 + 1];
 
-  eigenvalue_degeneracy_t degeneracy = find_degeneracy(f, e);
+  eigenvalue_degeneracy degeneracy = find_degeneracy(f, e);
 
   switch (degeneracy) {
     case NO_DEGENERACY:
@@ -539,7 +540,7 @@ scalartype tetrahedron<3>::integrate_matrix_element(scalartype* f, scalartype* e
 }
 
 template <typename scalartype>
-eigenvalue_degeneracy_t tetrahedron<3>::find_degeneracy(scalartype* f, scalartype* e) {
+eigenvalue_degeneracy tetrahedron<3>::find_degeneracy(scalartype* f, scalartype* e) {
   static std::vector<std::pair<scalartype, scalartype>> vec(3 + 1);
 
   vec[0].first = e[0];

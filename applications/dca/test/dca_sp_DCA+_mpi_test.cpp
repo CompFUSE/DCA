@@ -8,17 +8,15 @@
 #ifndef MPI_SUPPORTED
 #error MPI must be supported for the dca_sp_DCA+_mpi_test.
 #endif
+#include "include_files.inc"
+
 #include <dca/config/defines.hpp>
-
-#include <string>
-#include <iostream>
-#include <cmath>
-
+// mpi parallelization
+#include "comp_library/parallelization_library/parallelization_mpi.h"
 #include "lattice_types.hpp"
 #include "model_type.hpp"
 #include "gitVersion.hpp"
 #include "modules.hpp"
-#include "include_files.h"
 #include "gtest/gtest.h"
 #include "minimalist_printer.hpp"
 #include "dca_mpi_test_environment.hpp"
@@ -28,8 +26,8 @@ dca_mpi_test_environment* dca_test_env;
 TEST(dca_sp_DCAplus_mpi, Self_energy) {
   using namespace DCA;
 
-  using parameters_type =
-      Parameters<dca_mpi_test_environment::concurrency_type, model, random_number_generator, CT_AUX_CLUSTER_SOLVER>;
+  using parameters_type = Parameters<dca_mpi_test_environment::concurrency_type, model,
+                                     random_number_generator, CT_AUX_CLUSTER_SOLVER>;
   using MOMS_type = DCA_data<parameters_type>;
   using Monte_Carlo_Integrator_type =
       cluster_solver<CT_AUX_CLUSTER_SOLVER, LIN_ALG::CPU, parameters_type, MOMS_type>;

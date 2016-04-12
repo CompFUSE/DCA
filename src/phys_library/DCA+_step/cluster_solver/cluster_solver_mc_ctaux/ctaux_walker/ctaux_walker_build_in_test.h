@@ -2,9 +2,9 @@
 
 #ifndef DCA_QMCI_CT_AUX_WALKER_BIT_H
 #define DCA_QMCI_CT_AUX_WALKER_BIT_H
-#include "phys_library/domain_types.hpp"
-#include "dca/math_library/random_number_library//random_number_library.hpp"
-using namespace types;
+
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_template/qmci_walker.h"
+#include "dca/math_library/random_number_library/random_number_library.hpp"
 
 namespace DCA {
 namespace QMCI {

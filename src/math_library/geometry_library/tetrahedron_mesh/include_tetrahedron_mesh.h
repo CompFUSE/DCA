@@ -1,20 +1,12 @@
 //-*-C++-*-
 
-#ifndef TETRAHEDRON_EIGENVALUE_DEGENERACY_H
-#define TETRAHEDRON_EIGENVALUE_DEGENERACY_H
-
-enum    eigenvalue_degeneracy {NO_DEGENERACY, TWOFOLD_DEGENERACY, THREEFOLD_DEGENERACY, THREEFOLD_DEGENERACY_A, THREEFOLD_DEGENERACY_B, FOURFOLD_DEGENERACY};
-typedef eigenvalue_degeneracy eigenvalue_degeneracy_t;
-
-#endif
+#ifndef MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_INCLUDE_TETRAHEDRON_MESH_H
+#define MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_INCLUDE_TETRAHEDRON_MESH_H
 
 #include "simplex.h"
 #include "facet.h"
 
-#include "tetrahedron.h"
-#include "tetrahedron_implementation/tetrahedron_1D.h"
-#include "tetrahedron_implementation/tetrahedron_2D.h"
-#include "tetrahedron_implementation/tetrahedron_3D.h"
+#include "tetrahedron.hpp"
 
 #include "tetrahedron_mesh_implementation/tetrahedron_mesh_initializer.h"
 #include "tetrahedron_mesh_implementation/tetrahedron_mesh_initializer_2D.h"
@@ -22,7 +14,6 @@ typedef eigenvalue_degeneracy eigenvalue_degeneracy_t;
 
 #include "tetrahedron_mesh.h"
 
-// #include "tetrahedron_mesh_2D.h"
-// #include "tetrahedron_mesh_3D.h"
-
 #include "tetrahedron_neighbour_domain.h"
+
+#endif

@@ -3,7 +3,11 @@
 /*
  *      Author: peter staar
  */
+// INTERNAL this file is not ready to be included
+#ifndef MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_MESH_IMPLEMENTATION_TETRAHEDRON_MESH_3D_H
+#define MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_MESH_IMPLEMENTATION_TETRAHEDRON_MESH_3D_H
 
+#include "tetrahedron_mesh_initializer.h"
 template <cluster_representation_type representation, typename parameters>
 void tetrahedron_mesh<k_cluster<representation, cluster<parameters>>>::make_convex_hull_3D() {
   std::vector<double>& b0 = k_cluster_type::get_super_basis()[0];
@@ -239,3 +243,5 @@ void tetrahedron_mesh<k_cluster<representation, cluster<parameters>>>::make_mesh
     for (int z = 0; z < 3 + 1; z++)
       tetrahedra[l].index[z] = index[tetrahedra[l].index[z]];
 }
+
+#endif

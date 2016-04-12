@@ -6,6 +6,7 @@
  *  \author Peter Staar
  */
 #include "math_library/domain_specifications/domain_specifications.hpp"
+#include "phys_library/domains/cluster/cluster_operations.hpp"
 template <typename cluster_type>
 class cluster_symmetry {};
 

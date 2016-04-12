@@ -13,5 +13,5 @@
 // QMCI-template
 #include "cluster_solver_mc_template/include_qmci_templates.h"
 #include "cluster_solver_mc_pthread_jacket/include_posix_qmci_integration.h"
-#include "cluster_solver_mc_ctaux/include_ctaux_qmci.h"
+#include "cluster_solver_mc_ctaux/ctaux_cluster_solver.h"
 #include "cluster_solver_ss_hybridization/include_ss_hybridization_qmci.h"

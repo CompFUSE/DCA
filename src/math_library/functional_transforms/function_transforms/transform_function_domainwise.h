@@ -5,8 +5,9 @@
 #include <iostream>
 #include "comp_library/linalg/linalg.hpp"
 #include "comp_library/function_library/include_function_library.h"
-#include "math_library/typedefs.hpp"
-//#include "math_library/functional_transforms/domain_transforms/domain_transforms.hpp"
+#include "math_library/functional_transforms/basis_transforms/basis_transforms.hpp"
+#include "math_library/functional_transforms/domain_transforms/domain_transforms.hpp"
+//#include "comp_library/function_library/domains/domain_type_operations.h"
 #include <dca/util/type_list.hpp>
 using dca::util::IndexOf;
 
@@ -23,7 +24,8 @@ template <typename domain_input, typename domain_output, typename type_input, ty
 struct TRANSFORM_DOMAINWISE {
   const static bool VERBOSE = false;
 
-  typedef typename SWAP_FIRST<domain_input, type_input, type_output>::Result TRANSFORMED_DOMAIN;
+  using TRANSFORMED_DOMAIN =
+      typename dca::util::SWAP_FIRST<domain_input, type_input, type_output>::Result;
 
   const static int CURR_DMN_INDEX = IndexOf<type_input, typename domain_input::this_type>::value;
   const static int NEXT_DMN_INDEX =
@@ -44,8 +46,9 @@ struct TRANSFORM_DOMAINWISE {
 
     assert(CURR_DMN_INDEX > -1 and CURR_DMN_INDEX < f_input.signature());
 
-    TRANSFORM_DOMAIN<type_input, DMN_REP_LHS, type_output, DMN_REP_RHS, CURR_DMN_INDEX>::execute(
-        f_input, f_output);
+    math_algorithms::functional_transforms::TRANSFORM_DOMAIN<
+        type_input, DMN_REP_LHS, type_output, DMN_REP_RHS, CURR_DMN_INDEX>::execute(f_input,
+                                                                                    f_output);
   }
 
   template <typename scalartype_input, typename scalartype_output, typename scalartype_T>

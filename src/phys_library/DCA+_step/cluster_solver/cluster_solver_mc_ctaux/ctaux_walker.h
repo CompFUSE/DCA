@@ -2,9 +2,18 @@
 
 #ifndef DCA_QMCI_CT_AUX_WALKER_H
 #define DCA_QMCI_CT_AUX_WALKER_H
-#include "phys_library/domain_types.hpp"
-#include "dca/math_library/random_number_library//random_number_library.hpp"
-using namespace types;
+
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_template/qmci_walker.h"
+#include "dca/math_library/random_number_library/random_number_library.hpp"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_walker_data.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_vertex_singleton.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_hubbard_stratonovitch_configuration.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_typedefinitions.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_domains/HS_vertex_move_domain.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_routines_CPU.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_walker_tools.hpp"
+// TODO maybe. Include everything only if QMC_INTEGRATOR_BIT is defined
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_build_in_test.h"
 
 namespace DCA {
 namespace QMCI {
@@ -107,9 +116,11 @@ private:
                                 HS_spin_states_type new_HS_spin_value, double exp_delta_V);
 
 private:
+#ifdef QMC_INTEGRATOR_BIT
   using MC_walker_BIT<CT_AUX_SOLVER, parameters_type, MOMS_type>::check_G0_matrices;
   using MC_walker_BIT<CT_AUX_SOLVER, parameters_type, MOMS_type>::check_N_matrices;
   using MC_walker_BIT<CT_AUX_SOLVER, parameters_type, MOMS_type>::check_G_matrices;
+#endif
 
 private:
   struct delayed_spin_struct {
@@ -354,25 +365,27 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::initialize(
     G0_tools_obj.initialize(MOMS);
     G0_tools_obj.build_G0_matrix(configuration, G0_up, e_UP);
     G0_tools_obj.build_G0_matrix(configuration, G0_dn, e_DN);
-
-    if (QMC_INTEGRATOR_BIT)
-      check_G0_matrices(configuration, G0_up, G0_dn);
+#ifdef QMC_INTEGRATOR_BIT
+    check_G0_matrices(configuration, G0_up, G0_dn);
+#endif
   }
 
   {
     N_tools_obj.build_N_matrix(configuration, N_up, G0_up, e_UP);
     N_tools_obj.build_N_matrix(configuration, N_dn, G0_dn, e_DN);
 
-    if (QMC_INTEGRATOR_BIT)
-      check_N_matrices(configuration, G0_up, G0_dn, N_up, N_dn);
+#ifdef QMC_INTEGRATOR_BIT
+    check_N_matrices(configuration, G0_up, G0_dn, N_up, N_dn);
+#endif
   }
 
   {
     G_tools_obj.build_G_matrix(configuration, N_up, G0_up, G_up, e_UP);
     G_tools_obj.build_G_matrix(configuration, N_dn, G0_dn, G_dn, e_DN);
 
-    if (QMC_INTEGRATOR_BIT)
-      check_G_matrices(configuration, G0_up, G0_dn, N_up, N_dn, G_up, G_dn);
+#ifdef QMC_INTEGRATOR_BIT
+    check_G_matrices(configuration, G0_up, G0_dn, N_up, N_dn, G_up, G_dn);
+#endif
   }
 }
 
@@ -462,8 +475,9 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type,
     G0_tools_obj.update_G0_matrix(configuration, G0_up, e_UP);
     G0_tools_obj.update_G0_matrix(configuration, G0_dn, e_DN);
 
-    if (QMC_INTEGRATOR_BIT)
-      check_G0_matrices(configuration, G0_up, G0_dn);
+#ifdef QMC_INTEGRATOR_BIT
+    check_G0_matrices(configuration, G0_up, G0_dn);
+#endif
   }
 
   {  // update N for new shuffled vertices
@@ -472,8 +486,9 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type,
     N_tools_obj.update_N_matrix(configuration, G0_up, N_up, e_UP);
     N_tools_obj.update_N_matrix(configuration, G0_dn, N_dn, e_DN);
 
-    if (QMC_INTEGRATOR_BIT)
-      check_N_matrices(configuration, G0_up, G0_dn, N_up, N_dn);
+#ifdef QMC_INTEGRATOR_BIT
+    check_N_matrices(configuration, G0_up, G0_dn, N_up, N_dn);
+#endif
   }
 
   {  // update N for new shuffled vertices
@@ -482,8 +497,9 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type,
     G_tools_obj.build_G_matrix(configuration, N_up, G0_up, G_up, e_UP);
     G_tools_obj.build_G_matrix(configuration, N_dn, G0_dn, G_dn, e_DN);
 
-    if (QMC_INTEGRATOR_BIT)
-      check_G_matrices(configuration, G0_up, G0_dn, N_up, N_dn, G_up, G_dn);
+#ifdef QMC_INTEGRATOR_BIT
+    check_G_matrices(configuration, G0_up, G0_dn, N_up, N_dn, G_up, G_dn);
+#endif
   }
 }
 

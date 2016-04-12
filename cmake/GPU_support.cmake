@@ -12,14 +12,12 @@ if (DCA_GPU_SUPPORT)
   # Path to libcuda.so in Daint and Titan. Needed by FindCUDA.
   set(ENV{CUDA_LIB_PATH} "/opt/cray/nvidia/default/lib64")
 
-  # FIXME: Only necessary when CXX_FLAGS include C++11.
   set(CUDA_PROPAGATE_HOST_FLAGS OFF
     CACHE BOOL "Propage C/CXX_FLAGS and friends to the host compiler via -Xcompile")
   
   find_package(CUDA REQUIRED)
 
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -arch=${CUDA_GPU_ARCH} -DNDEBUG")
-  # message("${CUDA_NVCC_FLAGS}")
 
   add_definitions(-DUSE_GPU)
 

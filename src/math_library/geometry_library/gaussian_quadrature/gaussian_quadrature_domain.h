@@ -4,6 +4,7 @@
 #define MATH_LIBRARY_GEOMETRY_LIBRARY_GAUSSIAN_QUADRATURE_GAUSSIAN_QUADRATURE_DOMAIN_H
 
 #include "math_library/typedefs.hpp"
+#include "gaussian_quadrature_algorithm.h"
 #include "math_library/domain_specifications/domain_specifications.hpp"
 
 namespace math_algorithms {

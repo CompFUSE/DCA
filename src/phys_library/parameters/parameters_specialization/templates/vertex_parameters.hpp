@@ -21,13 +21,10 @@
 #include <vector>
 #include <iostream>
 #include <string>
-#include "phys_library/domain_types.hpp"
-using namespace types;
 
 class vertex_parameters {
-
 public:
-  vertex_parameters();
+  vertex_parameters(int dimensions);
 
   /******************************************
    ***        CONCURRENCY                 ***
@@ -104,10 +101,10 @@ private:
   std::string compute_P_q_lattice_str;
 };
 
-vertex_parameters::vertex_parameters()
+vertex_parameters::vertex_parameters(int dimensions)
     : vertex_measurement_type_str("NONE"),
 
-      q_channel_vec_input(model::DIMENSION, 0),
+      q_channel_vec_input(dimensions, 0),
       w_channel(0),
 
       singular_value_cut_off(0.5),

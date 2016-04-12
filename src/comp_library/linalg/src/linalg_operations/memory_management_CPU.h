@@ -3,6 +3,8 @@
 #ifndef LIN_ALG_MEMORY_MANAGEMENT_CPU_H
 #define LIN_ALG_MEMORY_MANAGEMENT_CPU_H
 
+#include "comp_library/linalg/linalg_device_types.h"
+#include "comp_library/linalg/src/linalg_operations/memory_management_tem.h"
 #include "dca/util/type_list.hpp"
 using dca::util::ignore_returnvalues;
 
@@ -60,10 +62,9 @@ public:
 #ifdef ENABLE_PINNED_MEMORY_ALLOCATION
     ignore_returnvalues(MEMORY_MANAGEMENT_ON_GPU::allocate_pinned_host_memory(ptr, global_size));
 #else
-    ignore_returnvalues( posix_memalign((void**)&ptr, 128,
-                              global_size.first * global_size.second * sizeof(scalartype)) );
+    ignore_returnvalues(posix_memalign(
+        (void**)&ptr, 128, global_size.first * global_size.second * sizeof(scalartype)));
 #endif
-
 
     assert(ptr != NULL);
   }

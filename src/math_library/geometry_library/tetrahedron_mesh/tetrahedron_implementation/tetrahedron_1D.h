@@ -2,7 +2,8 @@
 
 #ifndef MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_IMPLEMENTATION_TETRAHEDRON_1D_H
 #define MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_IMPLEMENTATION_TETRAHEDRON_1D_H
-
+#include "comp_library/function_plotting/include_plotting.h"
+#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron_template.h"
 namespace math_algorithms {
 /*!
  *  \ingroup TETRAHEDRON

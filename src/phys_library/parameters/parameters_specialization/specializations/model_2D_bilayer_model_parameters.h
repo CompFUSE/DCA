@@ -3,60 +3,57 @@
 #ifndef TB_BILAYER_SQUARE_HUBBARD_MODEL_PARAMETERS_H
 #define TB_BILAYER_SQUARE_HUBBARD_MODEL_PARAMETERS_H
 
+#include "phys_library/parameters/models/analytic_Hamiltonians/lattices/2D_bilayer_lattice.h"
 /*!
  *  \author Peter Staar
  */
-template<typename dca_point_group_t>
-class model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t> > >
-{
-
+template <typename dca_point_group_t>
+class model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t>>> {
 public:
-
   model_parameters();
   ~model_parameters();
 
-/******************************************
- ***        CONCURRENCY                 ***
- ******************************************/
+  /******************************************
+   ***        CONCURRENCY                 ***
+   ******************************************/
 
-  template<class concurrency_type>
-  int  get_buffer_size( concurrency_type& concurrency);
+  template <class concurrency_type>
+  int get_buffer_size(concurrency_type& concurrency);
 
-  template<class concurrency_type>
-  void pack( concurrency_type& concurrency, int* buffer, int buffer_size, int& position);
+  template <class concurrency_type>
+  void pack(concurrency_type& concurrency, int* buffer, int buffer_size, int& position);
 
-  template<class concurrency_type>
-  void unpack( concurrency_type& concurrency, int* buffer, int buffer_size, int& position);
+  template <class concurrency_type>
+  void unpack(concurrency_type& concurrency, int* buffer, int buffer_size, int& position);
 
-/******************************************
- ***        READ/WRITE                  ***
- ******************************************/
+  /******************************************
+   ***        READ/WRITE                  ***
+   ******************************************/
 
-  template<class read_write_type>
+  template <class read_write_type>
   void read_write(read_write_type& read_write_obj);
 
-/******************************************
- ***        DATA                        ***
- ******************************************/
+  /******************************************
+   ***        DATA                        ***
+   ******************************************/
 
-  double  get_t();
-  double  get_t_prime();
+  double get_t();
+  double get_t_prime();
 
-  double  get_t_perp ();
+  double get_t_perp();
 
-  double  get_U();
-  double  get_U_prime();
+  double get_U();
+  double get_U_prime();
 
-  double  get_V();
-  double  get_V_prime();
+  double get_V();
+  double get_V_prime();
 
 private:
-  
   double t;
   double t_prime;
 
   double t_perp;
- 
+
   double U;
   double U_prime;
 
@@ -64,32 +61,30 @@ private:
   double V_prime;
 };
 
-template<typename dca_point_group_t>
-model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t> > >::model_parameters():
-  t(1),
-  t_prime(0),
+template <typename dca_point_group_t>
+model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t>>>::model_parameters()
+    : t(1),
+      t_prime(0),
 
-  t_perp(0),
+      t_perp(0),
 
-  U(4),
-  U_prime(0),
+      U(4),
+      U_prime(0),
 
-  V(0),
-  V_prime(0)
-{}
+      V(0),
+      V_prime(0) {}
 
-template<typename dca_point_group_t>
-model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t> > >::~model_parameters()
-{}
+template <typename dca_point_group_t>
+model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t>>>::~model_parameters() {}
 
 /******************************************
  ***        CONCURRENCY                 ***
  ******************************************/
 
-template<typename dca_point_group_t>
-template<class concurrency_type>
-int model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t> > >::get_buffer_size( concurrency_type& concurrency)
-{
+template <typename dca_point_group_t>
+template <class concurrency_type>
+int model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t>>>::get_buffer_size(
+    concurrency_type& concurrency) {
   int buffer_size = 0;
 
   buffer_size += concurrency.get_buffer_size(t);
@@ -105,10 +100,10 @@ int model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t> > >:
   return buffer_size;
 }
 
-template<typename dca_point_group_t>
-template<class concurrency_type>
-void model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t> > >::pack( concurrency_type& concurrency, int* buffer, int buffer_size, int& position)
-{
+template <typename dca_point_group_t>
+template <class concurrency_type>
+void model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t>>>::pack(
+    concurrency_type& concurrency, int* buffer, int buffer_size, int& position) {
   concurrency.pack(buffer, buffer_size, position, t);
   concurrency.pack(buffer, buffer_size, position, t_prime);
   concurrency.pack(buffer, buffer_size, position, t_perp);
@@ -120,10 +115,10 @@ void model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t> > >
   concurrency.pack(buffer, buffer_size, position, V_prime);
 }
 
-template<typename dca_point_group_t>
-template<class concurrency_type>
-void model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t> > >::unpack( concurrency_type& concurrency, int* buffer, int buffer_size, int& position)
-{
+template <typename dca_point_group_t>
+template <class concurrency_type>
+void model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t>>>::unpack(
+    concurrency_type& concurrency, int* buffer, int buffer_size, int& position) {
   concurrency.unpack(buffer, buffer_size, position, t);
   concurrency.unpack(buffer, buffer_size, position, t_prime);
   concurrency.unpack(buffer, buffer_size, position, t_perp);
@@ -139,31 +134,57 @@ void model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t> > >
  ***        READ/WRITE                  ***
  ******************************************/
 
-template<typename dca_point_group_t>
-template<class read_write_type>
-void  model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t> > >::read_write(read_write_type& read_write_obj)
-{
-  try
-    {
-      read_write_obj.open_group("bilayer-model");
+template <typename dca_point_group_t>
+template <class read_write_type>
+void model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t>>>::read_write(
+    read_write_type& read_write_obj) {
+  try {
+    read_write_obj.open_group("bilayer-model");
 
-      try { read_write_obj.execute("t" , t);       } catch(const std::exception& r_e) {}
-      try { read_write_obj.execute("t-prime", t_prime); } catch(const std::exception& r_e) {}
-      try { read_write_obj.execute("tz", t_perp); } catch(const std::exception& r_e) {}	
-
-      try { read_write_obj.execute("U" , U);       } catch(const std::exception& r_e) {}
-      try { read_write_obj.execute("U-prime", U_prime); } catch(const std::exception& r_e) {}
-
-      try { read_write_obj.execute("V" , V);       } catch(const std::exception& r_e) {}
-      try { read_write_obj.execute("V-prime", V_prime); } catch(const std::exception& r_e) {}
-
-      read_write_obj.close_group();
+    try {
+      read_write_obj.execute("t", t);
     }
-  catch(const std::exception& r_e) 
-    { 
-      std::cout << "\n\t bilayer-model parameters defined !!\n\n";
-      throw std::logic_error(__PRETTY_FUNCTION__);
+    catch (const std::exception& r_e) {
     }
+    try {
+      read_write_obj.execute("t-prime", t_prime);
+    }
+    catch (const std::exception& r_e) {
+    }
+    try {
+      read_write_obj.execute("tz", t_perp);
+    }
+    catch (const std::exception& r_e) {
+    }
+
+    try {
+      read_write_obj.execute("U", U);
+    }
+    catch (const std::exception& r_e) {
+    }
+    try {
+      read_write_obj.execute("U-prime", U_prime);
+    }
+    catch (const std::exception& r_e) {
+    }
+
+    try {
+      read_write_obj.execute("V", V);
+    }
+    catch (const std::exception& r_e) {
+    }
+    try {
+      read_write_obj.execute("V-prime", V_prime);
+    }
+    catch (const std::exception& r_e) {
+    }
+
+    read_write_obj.close_group();
+  }
+  catch (const std::exception& r_e) {
+    std::cout << "\n\t bilayer-model parameters defined !!\n\n";
+    throw std::logic_error(__PRETTY_FUNCTION__);
+  }
 
   {
     std::stringstream ss;
@@ -191,45 +212,38 @@ void  model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t> > 
  ***        DATA                        ***
  ******************************************/
 
-template<typename dca_point_group_t>
-double model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t> > >::get_t()
-{
+template <typename dca_point_group_t>
+double model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t>>>::get_t() {
   return t;
 }
 
-template<typename dca_point_group_t>
-double model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t> > >::get_t_prime()
-{
+template <typename dca_point_group_t>
+double model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t>>>::get_t_prime() {
   return t_prime;
 }
 
-template<typename dca_point_group_t>
-double model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t> > >::get_t_perp()
-{
+template <typename dca_point_group_t>
+double model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t>>>::get_t_perp() {
   return t_perp;
 }
 
-template<typename dca_point_group_t>
-double model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t> > >::get_U()
-{
+template <typename dca_point_group_t>
+double model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t>>>::get_U() {
   return U;
 }
- 
-template<typename dca_point_group_t>
-double model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t> > >::get_U_prime()
-{
+
+template <typename dca_point_group_t>
+double model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t>>>::get_U_prime() {
   return U_prime;
 }
 
-template<typename dca_point_group_t>
-double model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t> > >::get_V()
-{
+template <typename dca_point_group_t>
+double model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t>>>::get_V() {
   return V;
 }
- 
-template<typename dca_point_group_t>
-double model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t> > >::get_V_prime()
-{
+
+template <typename dca_point_group_t>
+double model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t>>>::get_V_prime() {
   return V_prime;
 }
 

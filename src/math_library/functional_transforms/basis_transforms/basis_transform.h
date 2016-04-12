@@ -3,6 +3,7 @@
 #ifndef MATH_LIBRARY_FUNCTIONAL_TRANSFORMS_BASIS_TRANSFORMS_BASIS_TRANSFORM_H
 #define MATH_LIBRARY_FUNCTIONAL_TRANSFORMS_BASIS_TRANSFORMS_BASIS_TRANSFORM_H
 
+#include "math_library/functional_transforms/basis_transforms/basis_transformation_template.h"
 #include "comp_library/function_library/domains/special_domains/dmn_0.h"
 
 namespace math_algorithms {

@@ -3,6 +3,9 @@
 #ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_COARSEGRAINING_INTERPOLATION_MATRICES_H
 #define PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_COARSEGRAINING_INTERPOLATION_MATRICES_H
 
+#include "coarsgraining_names.hpp"
+#include "phys_library/DCA+_step/lattice_mapping/interpolation/interpolation_matrices.h"
+#include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_domain.h"
 namespace DCA {
 template <typename scalar_type, typename k_dmn, typename K_dmn, COARSEGRAIN_DOMAIN_NAMES NAME>
 class interpolation_matrices<scalar_type, k_dmn, dmn_0<coarsegraining_domain<K_dmn, NAME>>> {

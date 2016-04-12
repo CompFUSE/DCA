@@ -65,8 +65,6 @@ using namespace dca::util;
 // enumerations
 #include "enumerations.hpp"
 
-// BIT
-const static bool QMC_INTEGRATOR_BIT = @DCA_QMC_INTEGRATOR_BIT_VALUE@;
 
 
 // NFFT <--> DFT

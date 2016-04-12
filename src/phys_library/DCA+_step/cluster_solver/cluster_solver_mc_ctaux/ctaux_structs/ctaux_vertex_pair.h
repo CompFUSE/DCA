@@ -2,10 +2,9 @@
 
 #ifndef DCA_QMCI_VERTEX_PAIR_H
 #define DCA_QMCI_VERTEX_PAIR_H
-#include "phys_library/domain_types.hpp"
 #include "phys_library/parameters/models/analytic_Hamiltonians/interactions/general_interaction.hpp"
-#include "dca/math_library/random_number_library//random_number_library.hpp"
-using namespace types;
+#include "dca/math_library/random_number_library/random_number_library.hpp"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_auxilery_field_coefficients.h"
 
 namespace DCA {
 namespace QMCI {

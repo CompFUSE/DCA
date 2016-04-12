@@ -1,22 +1,20 @@
 //-*-C++-*-
-
 /*!
- *  \defgroup PROFILING  
+ *  \defgroup PROFILING
  *  \ingroup  ALGORITHMS
  */
+#ifndef COMP_LIBRARY_PROFILER_LIBRARY_INCLUDE_PROFILING_H
+#define COMP_LIBRARY_PROFILER_LIBRARY_INCLUDE_PROFILING_H
 
-std::string print_time()
-{
+std::string print_time() {
   time_t rawtime;
-  struct tm * timeinfo;
-  
-  time ( &rawtime );
-  timeinfo = localtime ( &rawtime );
-  
-  //return asctime(timeinfo);
+  struct tm* timeinfo;
+
+  time(&rawtime);
+  timeinfo = localtime(&rawtime);
 
   char buffer[80];
-  strftime(buffer,80,"%d-%m-%Y %I:%M:%S",timeinfo);
+  strftime(buffer, 80, "%d-%m-%Y %I:%M:%S", timeinfo);
   std::string str(buffer);
 
   return str;
@@ -27,7 +25,7 @@ std::string print_time()
 
 #ifdef NO_PROFILING
 
-#include "profilers/null_profiler.h"	
+#include "profilers/null_profiler.h"
 
 #endif
 
@@ -49,3 +47,5 @@ std::string print_time()
 #include "profilers/counting_profiler.h"
 
 #endif
+
+#endif  // COMP_LIBRARY_PROFILER_LIBRARY_INCLUDE_PROFILING_H

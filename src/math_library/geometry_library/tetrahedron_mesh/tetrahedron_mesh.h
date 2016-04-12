@@ -2,6 +2,12 @@
 
 #ifndef MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_MESH_H
 #define MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_MESH_H
+#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron.hpp"
+#include "math_library/geometry_library/tetrahedron_mesh/simplex.h"
+#include "math_library/geometry_library/tetrahedron_mesh/facet.h"
+#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron_mesh_implementation/tetrahedron_mesh_initializer_2D.h"
+//#include
+//"math_library/geometry_library/tetrahedron_mesh/tetrahedron_mesh_implementation/tetrahedron_mesh_initializer_3D.h"
 
 namespace math_algorithms {
 /*!

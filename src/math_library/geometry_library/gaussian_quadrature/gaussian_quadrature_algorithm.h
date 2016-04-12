@@ -2,6 +2,7 @@
 
 #ifndef MATH_LIBRARY_GEOMETRY_LIBRARY_GAUSSIAN_QUADRATURE_GAUSSIAN_QUADRATURE_ALGORITHM_H
 #define MATH_LIBRARY_GEOMETRY_LIBRARY_GAUSSIAN_QUADRATURE_GAUSSIAN_QUADRATURE_ALGORITHM_H
+#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron.hpp"
 
 namespace math_algorithms {
 /*!

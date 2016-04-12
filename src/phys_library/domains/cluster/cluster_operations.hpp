@@ -102,8 +102,8 @@ int cluster_operations::index(const std::vector<scalar_type>& element,
   return index;
 }
 
-// TODO: This function doesn't work with scalar_type != double since origin is of type
-// std::vector<double>.
+// INTERNAL: This function doesn't work with scalar_type != double since origin is of type
+//       std::vector<double>.
 template <typename scalar_type>
 int cluster_operations::origin_index(const std::vector<std::vector<scalar_type>>& elements,
                                      const CLUSTER_SHAPE shape) {

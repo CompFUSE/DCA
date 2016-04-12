@@ -52,7 +52,6 @@ class MC_walker_BIT {
 
 public:
   MC_walker_BIT(parameters_type& parameters_ref, MOMS_type& MOMS_ref);
-
   ~MC_walker_BIT();
 };
 }

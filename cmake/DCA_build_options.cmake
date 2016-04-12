@@ -67,9 +67,7 @@ endif()
 # Enable BIT.
 option(DCA_QMC_INTEGRATOR_BIT "Enable BIT." OFF)
 if (DCA_QMC_INTEGRATOR_BIT)
-  set(DCA_QMC_INTEGRATOR_BIT_VALUE "true")
-else()
-  set(DCA_QMC_INTEGRATOR_BIT_VALUE "false")
+  add_definitions('-DDCA_QMC_INTEGRATOR_BIT')
 endif()
 
 # Compute the standard deviation.

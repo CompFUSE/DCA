@@ -2,297 +2,287 @@
 
 #ifndef DCA_QMCI_CTAUX_SP_ACCUMULATOR_NFFT_H
 #define DCA_QMCI_CTAUX_SP_ACCUMULATOR_NFFT_H
-#include"phys_library/domain_types.hpp"
-using namespace types;
 
-namespace DCA
-{
-  namespace QMCI
-  {
-    /*!
-     *  \ingroup CT-AUX
-     *
-     *  \brief   This class measures the single-particle functions with an NFFT scheme in the CT-AUX QMC engine.
-     *  \author  Peter Staar
-     *  \author  Raffaele Solca'
-     *  \version 1.0
-     */
-    template<class parameters_type, class MOMS_type>
-    class MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>
-    {
+#include "math_library/NFFT/dnfft_1D.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_template/qmci_accumulator.h"
 
-      typedef vertex_singleton vertex_singleton_type;
+namespace DCA {
+namespace QMCI {
+/*!
+ *  \ingroup CT-AUX
+ *
+ *  \brief   This class measures the single-particle functions with an NFFT scheme in the CT-AUX QMC
+ * engine.
+ *  \author  Peter Staar
+ *  \author  Raffaele Solca'
+ *  \version 1.0
+ */
+template <class parameters_type, class MOMS_type>
+class MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type> {
+  typedef vertex_singleton vertex_singleton_type;
 
-      typedef r_DCA r_dmn_t;
-      typedef k_DCA k_dmn_t;
+  typedef r_DCA r_dmn_t;
+  typedef k_DCA k_dmn_t;
 
-      typedef w                      w_dmn_t;
-      typedef dmn_3<nu, nu, r_dmn_t> p_dmn_t;
+  typedef w w_dmn_t;
+  typedef dmn_3<nu, nu, r_dmn_t> p_dmn_t;
 
-      typedef b b_dmn_t;
-      typedef s s_dmn_t;
+  typedef b b_dmn_t;
+  typedef s s_dmn_t;
 
-      typedef typename parameters_type::profiler_type    profiler_type;
-      typedef typename parameters_type::concurrency_type concurrency_type;
+  typedef typename parameters_type::profiler_type profiler_type;
+  typedef typename parameters_type::concurrency_type concurrency_type;
 
-      typedef double scalar_type;
+  typedef double scalar_type;
 
-    public:
+public:
+  MC_single_particle_accumulator(parameters_type& parameters_ref);
 
-      MC_single_particle_accumulator(parameters_type& parameters_ref);
+  ~MC_single_particle_accumulator();
 
-      ~MC_single_particle_accumulator();
+  void initialize(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w>>& M_r_w);
 
-      void initialize(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w);
+  void initialize(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w>>& M_r_w,
+                  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w>>& M_r_w_squared);
 
-      void initialize(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w,
-		      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w_squared);
+  void finalize();
 
-      void finalize();
+  void finalize(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w>>& M_r_w,
+                FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w>>& M_r_w_squared);
 
-      void finalize(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w,
-		    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w_squared);
+  template <class configuration_type, class vertex_vertex_matrix_type>
+  void accumulate_M_r_w(configuration_type& configuration_e_spin, vertex_vertex_matrix_type& M,
+                        double sign, e_spin_states e_spin);
 
-      template<class configuration_type, class vertex_vertex_matrix_type>
-      void accumulate_M_r_w(configuration_type&        configuration_e_spin,
-                            vertex_vertex_matrix_type& M,
-                            double                     sign,
-                            e_spin_states              e_spin);
+  template <class configuration_type>
+  void accumulate_K_r_t(configuration_type& configuration,
+                        FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t>>& K_r_t, double sign);
 
-      template<class configuration_type>
-      void accumulate_K_r_t(configuration_type&                           configuration,
-                            FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t> >& K_r_t,
-                            double                                        sign);
+  int find_first_non_interacting_spin(std::vector<vertex_singleton_type>& configuration_e_spin);
 
+  void compute_M_r_w(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w>>& M_r_w);
+  void compute_M_r_w_square(
+      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w>>& M_r_w_square);
 
-      int find_first_non_interacting_spin(std::vector<vertex_singleton_type>& configuration_e_spin);
+private:
+  parameters_type& parameters;
+  concurrency_type& concurrency;
 
-      void compute_M_r_w       (FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w);
-      void compute_M_r_w_square(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w_square);
+  math_algorithms::NFFT::dnfft_1D<double, w_dmn_t, p_dmn_t> cached_nfft_1D_M_r_w_obj;
+  math_algorithms::NFFT::dnfft_1D<double, w_dmn_t, p_dmn_t> cached_nfft_1D_M_r_w_squared_obj;
+};
 
-    private:
-
-      parameters_type&  parameters;
-      concurrency_type& concurrency;
-
-      math_algorithms::NFFT::dnfft_1D<double, w_dmn_t, p_dmn_t> cached_nfft_1D_M_r_w_obj;
-      math_algorithms::NFFT::dnfft_1D<double, w_dmn_t, p_dmn_t> cached_nfft_1D_M_r_w_squared_obj;
-    };
-
-    template<class parameters_type, class MOMS_type>
-    MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::MC_single_particle_accumulator(parameters_type& parameters_ref):
-      parameters(parameters_ref),
+template <class parameters_type, class MOMS_type>
+MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type,
+                               MOMS_type>::MC_single_particle_accumulator(parameters_type& parameters_ref)
+    : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
 
       cached_nfft_1D_M_r_w_obj(),
-      cached_nfft_1D_M_r_w_squared_obj()
-    {}
+      cached_nfft_1D_M_r_w_squared_obj() {}
 
-    template<class parameters_type, class MOMS_type>
-    MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::~MC_single_particle_accumulator()
-    {}
+template <class parameters_type, class MOMS_type>
+MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type,
+                               MOMS_type>::~MC_single_particle_accumulator() {}
 
-    template<class parameters_type, class MOMS_type>
-    void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::initialize(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w)
-    {
-      cached_nfft_1D_M_r_w_obj.initialize();
+template <class parameters_type, class MOMS_type>
+void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::initialize(
+    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w>>& M_r_w) {
+  cached_nfft_1D_M_r_w_obj.initialize();
 
-      for(int i=0; i<M_r_w.size(); i++)
-        M_r_w(i) = 0;
+  for (int i = 0; i < M_r_w.size(); i++)
+    M_r_w(i) = 0;
+}
+
+template <class parameters_type, class MOMS_type>
+void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::initialize(
+    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w>>& M_r_w,
+    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w>>& M_r_w_squared) {
+  cached_nfft_1D_M_r_w_obj.initialize();
+  cached_nfft_1D_M_r_w_squared_obj.initialize();
+
+  for (int i = 0; i < M_r_w.size(); i++)
+    M_r_w(i) = 0;
+
+  for (int i = 0; i < M_r_w_squared.size(); i++)
+    M_r_w_squared(i) = 0;
+}
+
+template <class parameters_type, class MOMS_type>
+void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::finalize() {}
+
+template <class parameters_type, class MOMS_type>
+template <class configuration_type, class vertex_vertex_matrix_type>
+void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::accumulate_M_r_w(
+    configuration_type& configuration_e_spin, vertex_vertex_matrix_type& M, double sign,
+    e_spin_states e_spin) {
+  int coor_nfft[5];
+
+  scalar_type one_div_two_beta = 1. / (2. * parameters.get_beta());
+
+  int spin_index = electron_spin_domain::to_coordinate(e_spin);
+
+  int r_ind, b_i, b_j, r_i, r_j;  //, s_i, s_j;
+  scalar_type t_i, t_j, delta_tau, scaled_tau, f_tau;
+
+  int configuration_size =
+      find_first_non_interacting_spin(configuration_e_spin);  // configuration_e_spin.size();
+
+  for (int j = 0; j < configuration_size; j++) {
+    vertex_singleton_type& configuration_e_spin_j = configuration_e_spin[j];
+
+    b_j = configuration_e_spin_j.get_band();
+    r_j = configuration_e_spin_j.get_r_site();
+    t_j = configuration_e_spin_j.get_tau();
+
+    for (int i = 0; i < configuration_size; i++) {
+      vertex_singleton_type& configuration_e_spin_i = configuration_e_spin[i];
+
+      b_i = configuration_e_spin_i.get_band();
+      r_i = configuration_e_spin_i.get_r_site();
+      t_i = configuration_e_spin_i.get_tau();
+
+      r_ind = r_DCA::parameter_type::subtract(r_j, r_i);
+
+      delta_tau = t_i - t_j;
+
+      coor_nfft[0] = b_i;
+      coor_nfft[1] = spin_index;
+      coor_nfft[2] = b_j;
+      coor_nfft[3] = spin_index;
+      coor_nfft[4] = r_ind;
+
+      scaled_tau = delta_tau * one_div_two_beta;
+
+      scaled_tau += i == j ? 1.e-16 : 0.;
+
+      f_tau = M(i, j) * sign;
+
+      assert(configuration_e_spin[i].get_HS_spin() != HS_ZERO &&
+             configuration_e_spin[j].get_HS_spin() != HS_ZERO);
+
+      cached_nfft_1D_M_r_w_obj.accumulate_at(coor_nfft, scaled_tau, f_tau);
+      cached_nfft_1D_M_r_w_squared_obj.accumulate_at(coor_nfft, scaled_tau, f_tau * f_tau);
     }
+  }
+}
 
-    template<class parameters_type, class MOMS_type>
-    void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::initialize(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w,
-                                                                                                     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w_squared)
+template <class parameters_type, class MOMS_type>
+template <class configuration_type>
+void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::accumulate_K_r_t(
+    configuration_type& /*configuration*/,
+    FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t>>& /*K_r_t*/, double /*sign*/)
+// WARNING empty function called
+// TODO implement
+{
+  // for next generation solver !!
+
+  /*
+    typedef vertex_singleton<base_cluster_type> vertex_singleton_type;
+
+    double delta_tau = 2.*parameters.get_beta()/(t::dmn_size()-2);
+
+    for(int j=0; j<configuration.size(); j++)
     {
-      cached_nfft_1D_M_r_w_obj        .initialize();
-      cached_nfft_1D_M_r_w_squared_obj.initialize();
+    vertex_singleton_type& vertex = configuration[j];
 
-      for(int i=0; i<M_r_w.size(); i++)
-        M_r_w(i) = 0;
+    //      int b_0   = vertex.get_band();
+    //      int s_0   = vertex.get_e_spin();
 
-      for(int i=0; i<M_r_w_squared.size(); i++)
-        M_r_w_squared(i) = 0;
+    //      int b_1   = vertex.get_band();
+    //      int s_1   = vertex.get_e_spin();
+
+    int r_ind = vertex.get_r_site();
+    int t_ind = t::dmn_size()/2+(vertex.get_tau()/delta_tau);
+
+    if(t_ind<0 or t_ind>=t::dmn_size())
+    t_ind = 0;
+
+    double f_tau = 0.;
+    if(vertex.get_HS_spin() != HS_ZERO)
+    f_tau = 1.;
+
+    K_r_t(0, 0, 0, 0, r_ind, t_ind) += sign*f_tau;
+    K_r_t(0, 1, 0, 1, r_ind, t_ind) += sign*f_tau;
     }
+  */
+}
 
-    template<class parameters_type, class MOMS_type>
-    void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::finalize()
-    {}
+template <class parameters_type, class MOMS_type>
+int MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::find_first_non_interacting_spin(
+    std::vector<vertex_singleton_type>& configuration_e_spin) {
+  int configuration_size = configuration_e_spin.size();
 
-    template<class parameters_type, class MOMS_type>
-    template<class configuration_type, class vertex_vertex_matrix_type>
-    void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::accumulate_M_r_w(configuration_type&        configuration_e_spin,
-                                                                                                           vertex_vertex_matrix_type& M,
-                                                                                                           double                     sign,
-                                                                                                           e_spin_states              e_spin)
-    {
-      int coor_nfft[5];
+  int vertex_index = 0;
+  while (vertex_index < configuration_size &&
+         configuration_e_spin[vertex_index].get_HS_spin() != HS_ZERO)
+    vertex_index++;
 
-      scalar_type one_div_two_beta = 1./(2.*parameters.get_beta());
+  assert(vertex_index == configuration_size ||
+         configuration_e_spin[vertex_index].get_HS_spin() == HS_ZERO);
 
-      int spin_index = electron_spin_domain::to_coordinate(e_spin);
+  return vertex_index;
+}
 
-      int         r_ind, b_i, b_j, r_i, r_j;//, s_i, s_j;
-      scalar_type t_i, t_j, delta_tau, scaled_tau, f_tau;
+template <class parameters_type, class MOMS_type>
+void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::compute_M_r_w(
+    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w>>& M_r_w) {
+  FUNC_LIB::function<std::complex<double>, dmn_2<w_dmn_t, p_dmn_t>> tmp("tmp M_r_w");
+  cached_nfft_1D_M_r_w_obj.finalize(tmp);
 
-      int configuration_size = find_first_non_interacting_spin(configuration_e_spin);//configuration_e_spin.size();
+  for (int w_ind = 0; w_ind < w_dmn_t::dmn_size(); w_ind++)
+    for (int r_ind = 0; r_ind < r_dmn_t::dmn_size(); r_ind++)
+      for (int s2_ind = 0; s2_ind < s_dmn_t::dmn_size(); s2_ind++)
+        for (int b2_ind = 0; b2_ind < b_dmn_t::dmn_size(); b2_ind++)
+          for (int s1_ind = 0; s1_ind < s_dmn_t::dmn_size(); s1_ind++)
+            for (int b1_ind = 0; b1_ind < b_dmn_t::dmn_size(); b1_ind++)
+              M_r_w(b1_ind, s1_ind, b2_ind, s2_ind, r_ind, w_ind) =
+                  tmp(w_ind, b1_ind, s1_ind, b2_ind, s2_ind, r_ind);
 
-      for(int j=0; j<configuration_size; j++)
-        {
-          vertex_singleton_type& configuration_e_spin_j = configuration_e_spin[j];
+  double one_div_n_sites = 1. / double(r_DCA::dmn_size());
+  M_r_w *= one_div_n_sites;
+}
 
-          b_j = configuration_e_spin_j.get_band();
-          r_j = configuration_e_spin_j.get_r_site();
-          t_j = configuration_e_spin_j.get_tau();
+template <class parameters_type, class MOMS_type>
+void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::finalize(
+    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w>>& M_r_w,
+    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w>>& M_r_w_squared) {
+  {
+    FUNC_LIB::function<std::complex<double>, dmn_2<w_dmn_t, p_dmn_t>> tmp("tmp M_r_w");
+    cached_nfft_1D_M_r_w_obj.finalize(tmp);
 
-          for(int i=0; i<configuration_size; i++)
-            {
-              vertex_singleton_type& configuration_e_spin_i = configuration_e_spin[i];
+    for (int w_ind = 0; w_ind < w_dmn_t::dmn_size(); w_ind++)
+      for (int r_ind = 0; r_ind < r_dmn_t::dmn_size(); r_ind++)
+        for (int s2_ind = 0; s2_ind < s_dmn_t::dmn_size(); s2_ind++)
+          for (int b2_ind = 0; b2_ind < b_dmn_t::dmn_size(); b2_ind++)
+            for (int s1_ind = 0; s1_ind < s_dmn_t::dmn_size(); s1_ind++)
+              for (int b1_ind = 0; b1_ind < b_dmn_t::dmn_size(); b1_ind++)
+                M_r_w(b1_ind, s1_ind, b2_ind, s2_ind, r_ind, w_ind) =
+                    tmp(w_ind, b1_ind, s1_ind, b2_ind, s2_ind, r_ind);
 
-              b_i = configuration_e_spin_i.get_band();
-              r_i = configuration_e_spin_i.get_r_site();
-              t_i = configuration_e_spin_i.get_tau();
+    double one_div_n_sites = 1. / double(r_DCA::dmn_size());
+    M_r_w *= one_div_n_sites;
+  }
 
-              r_ind = r_DCA::parameter_type::subtract(r_j, r_i);
+  {
+    FUNC_LIB::function<std::complex<double>, dmn_2<w_dmn_t, p_dmn_t>> tmp("tmp M_r_w");
+    cached_nfft_1D_M_r_w_squared_obj.finalize(tmp);
 
-              delta_tau = t_i-t_j;
+    for (int w_ind = 0; w_ind < w_dmn_t::dmn_size(); w_ind++)
+      for (int r_ind = 0; r_ind < r_dmn_t::dmn_size(); r_ind++)
+        for (int s2_ind = 0; s2_ind < s_dmn_t::dmn_size(); s2_ind++)
+          for (int b2_ind = 0; b2_ind < b_dmn_t::dmn_size(); b2_ind++)
+            for (int s1_ind = 0; s1_ind < s_dmn_t::dmn_size(); s1_ind++)
+              for (int b1_ind = 0; b1_ind < b_dmn_t::dmn_size(); b1_ind++)
+                M_r_w_squared(b1_ind, s1_ind, b2_ind, s2_ind, r_ind, w_ind) =
+                    tmp(w_ind, b1_ind, s1_ind, b2_ind, s2_ind, r_ind);
 
-              coor_nfft[0] = b_i;
-              coor_nfft[1] = spin_index;
-              coor_nfft[2] = b_j;
-              coor_nfft[3] = spin_index;
-              coor_nfft[4] = r_ind;
+    double one_div_n_sites = 1. / double(r_DCA::dmn_size());
+    M_r_w_squared *= one_div_n_sites;
+  }
+}
 
-              scaled_tau = delta_tau*one_div_two_beta;
-
-              scaled_tau += i==j ? 1.e-16 : 0.;
-
-              f_tau = M(i,j)*sign;
-
-              assert(configuration_e_spin[i].get_HS_spin() != HS_ZERO && configuration_e_spin[j].get_HS_spin() != HS_ZERO);
-
-              cached_nfft_1D_M_r_w_obj        .accumulate_at(coor_nfft, scaled_tau, f_tau);
-              cached_nfft_1D_M_r_w_squared_obj.accumulate_at(coor_nfft, scaled_tau, f_tau*f_tau);
-            }
-        }
-    }
-
-    template<class parameters_type, class MOMS_type>
-    template<class configuration_type>
-    void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::accumulate_K_r_t(configuration_type&                           /*configuration*/,
-                                                                                                           FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t> >& /*K_r_t*/,
-                                                                                                           double                                        /*sign*/)
-    //WARNING empty function called
-    //TODO implement
-    {
-      // for next generation solver !!
-
-      /*
-        typedef vertex_singleton<base_cluster_type> vertex_singleton_type;
-
-        double delta_tau = 2.*parameters.get_beta()/(t::dmn_size()-2);
-
-        for(int j=0; j<configuration.size(); j++)
-        {
-        vertex_singleton_type& vertex = configuration[j];
-
-        //      int b_0   = vertex.get_band();
-        //      int s_0   = vertex.get_e_spin();
-
-        //      int b_1   = vertex.get_band();
-        //      int s_1   = vertex.get_e_spin();
-
-        int r_ind = vertex.get_r_site();
-        int t_ind = t::dmn_size()/2+(vertex.get_tau()/delta_tau);
-
-        if(t_ind<0 or t_ind>=t::dmn_size())
-        t_ind = 0;
-
-        double f_tau = 0.;
-        if(vertex.get_HS_spin() != HS_ZERO)
-        f_tau = 1.;
-
-        K_r_t(0, 0, 0, 0, r_ind, t_ind) += sign*f_tau;
-        K_r_t(0, 1, 0, 1, r_ind, t_ind) += sign*f_tau;
-        }
-      */
-    }
-
-    template<class parameters_type, class MOMS_type>
-    int MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::find_first_non_interacting_spin(std::vector<vertex_singleton_type>& configuration_e_spin)
-    {
-      int configuration_size = configuration_e_spin.size();
-
-      int vertex_index=0;
-      while(vertex_index<configuration_size && configuration_e_spin[vertex_index].get_HS_spin() != HS_ZERO)
-        vertex_index++;
-
-      assert(vertex_index==configuration_size || configuration_e_spin[vertex_index].get_HS_spin() == HS_ZERO);
-
-      return vertex_index;
-    }
-
-    template<class parameters_type, class MOMS_type>
-    void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::compute_M_r_w(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w)
-    {
-      FUNC_LIB::function<std::complex<double>, dmn_2<w_dmn_t, p_dmn_t> > tmp("tmp M_r_w");
-      cached_nfft_1D_M_r_w_obj.finalize(tmp);
-
-      for(int w_ind=0; w_ind<w_dmn_t::dmn_size(); w_ind++)
-        for(int r_ind=0; r_ind<r_dmn_t::dmn_size(); r_ind++)
-          for(int s2_ind=0; s2_ind<s_dmn_t::dmn_size(); s2_ind++)
-            for(int b2_ind=0; b2_ind<b_dmn_t::dmn_size(); b2_ind++)
-              for(int s1_ind=0; s1_ind<s_dmn_t::dmn_size(); s1_ind++)
-                for(int b1_ind=0; b1_ind<b_dmn_t::dmn_size(); b1_ind++)
-                  M_r_w(b1_ind, s1_ind, b2_ind, s2_ind, r_ind, w_ind)
-                    = tmp(w_ind, b1_ind, s1_ind, b2_ind, s2_ind, r_ind);
-
-      double one_div_n_sites = 1./double(r_DCA::dmn_size());
-      M_r_w *= one_div_n_sites;
-    }
-
-    template<class parameters_type, class MOMS_type>
-    void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::finalize(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w,
-                                                                                                   FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w> >& M_r_w_squared)
-    {
-      {
-        FUNC_LIB::function<std::complex<double>, dmn_2<w_dmn_t, p_dmn_t> > tmp("tmp M_r_w");
-        cached_nfft_1D_M_r_w_obj.finalize(tmp);
-
-        for(int w_ind=0; w_ind<w_dmn_t::dmn_size(); w_ind++)
-          for(int r_ind=0; r_ind<r_dmn_t::dmn_size(); r_ind++)
-            for(int s2_ind=0; s2_ind<s_dmn_t::dmn_size(); s2_ind++)
-              for(int b2_ind=0; b2_ind<b_dmn_t::dmn_size(); b2_ind++)
-                for(int s1_ind=0; s1_ind<s_dmn_t::dmn_size(); s1_ind++)
-                  for(int b1_ind=0; b1_ind<b_dmn_t::dmn_size(); b1_ind++)
-                    M_r_w(b1_ind, s1_ind, b2_ind, s2_ind, r_ind, w_ind)
-                      = tmp(w_ind, b1_ind, s1_ind, b2_ind, s2_ind, r_ind);
-
-        double one_div_n_sites = 1./double(r_DCA::dmn_size());
-        M_r_w *= one_div_n_sites;
-      }
-
-      {
-        FUNC_LIB::function<std::complex<double>, dmn_2<w_dmn_t, p_dmn_t> > tmp("tmp M_r_w");
-        cached_nfft_1D_M_r_w_squared_obj.finalize(tmp);
-
-        for(int w_ind=0; w_ind<w_dmn_t::dmn_size(); w_ind++)
-          for(int r_ind=0; r_ind<r_dmn_t::dmn_size(); r_ind++)
-            for(int s2_ind=0; s2_ind<s_dmn_t::dmn_size(); s2_ind++)
-              for(int b2_ind=0; b2_ind<b_dmn_t::dmn_size(); b2_ind++)
-                for(int s1_ind=0; s1_ind<s_dmn_t::dmn_size(); s1_ind++)
-                  for(int b1_ind=0; b1_ind<b_dmn_t::dmn_size(); b1_ind++)
-                    M_r_w_squared(b1_ind, s1_ind, b2_ind, s2_ind, r_ind, w_ind)
-                      = tmp(w_ind, b1_ind, s1_ind, b2_ind, s2_ind, r_ind);
-
-        double one_div_n_sites = 1./double(r_DCA::dmn_size());
-        M_r_w_squared *= one_div_n_sites;
-      }
-    }
-
-
-  }//namespace QMCI
-
+}  // namespace QMCI
 }
 
 #endif

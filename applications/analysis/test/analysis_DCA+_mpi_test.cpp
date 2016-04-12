@@ -6,10 +6,6 @@
 // Author: Urs Haehner (haehneru@itp.phys.ethz.ch), ETH Zurich
 //====================================================================
 
-#include <string>
-#include <iostream>
-#include <complex>
-
 #include "model_type.hpp"
 #include "lattice_types.hpp"
 
@@ -25,15 +21,15 @@ dca_mpi_test_environment* dca_test_env;
 TEST(analysis_DCAplus_mpi, leading_eigenvalues) {
   using namespace DCA;
 
-  using parameters_type = Parameters<dca_mpi_test_environment::concurrency_type,
-                                     model, void/*rng type*/,CT_AUX_CLUSTER_SOLVER>;
+  using parameters_type = Parameters<dca_mpi_test_environment::concurrency_type, model,
+                                     void /*rng type*/, CT_AUX_CLUSTER_SOLVER>;
   using MOMS_type = DCA_data<parameters_type>;
 
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
     std::cout << "Analysis starting.\n"
-              << "MPI-world set up: "
-              << dca_test_env->concurrency.number_of_processors()
-              << " processes.\n" << std::endl;
+              << "MPI-world set up: " << dca_test_env->concurrency.number_of_processors()
+              << " processes.\n"
+              << std::endl;
 
     GitVersion::print();
     Modules::print();
@@ -52,17 +48,18 @@ TEST(analysis_DCAplus_mpi, leading_eigenvalues) {
   analysis_obj.calculate_susceptibilities_2();
 
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
-    std::cout << "\nProcessor " << dca_test_env->concurrency.id()
-              << " is checking data " << std::endl;
-    
+    std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is checking data "
+              << std::endl;
+
     const static int N_LAMBDAS = 10;
-    typedef dmn_0<dmn<N_LAMBDAS, int> > lambda_dmn_type;
+    typedef dmn_0<dmn<N_LAMBDAS, int>> lambda_dmn_type;
 
     FUNC_LIB::function<std::complex<double>, lambda_dmn_type>& leading_eigenvalues =
         analysis_obj.get_leading_eigenvalues();
 
     // Read eigenvalues from check_data file.
-    FUNC_LIB::function<std::complex<double>, lambda_dmn_type> leading_eigenvalues_check("leading-eigenvalues");
+    FUNC_LIB::function<std::complex<double>, lambda_dmn_type> leading_eigenvalues_check(
+        "leading-eigenvalues");
     IO::reader<IO::HDF5> reader;
     reader.open_file("check_data.analysis_DCA+_mpi_test.hdf5");
     reader.open_group("analysis-functions");
@@ -71,18 +68,15 @@ TEST(analysis_DCAplus_mpi, leading_eigenvalues) {
 
     // Compare the computed eigenvalues with the expected result.
     for (int i = 0; i < lambda_dmn_type::dmn_size(); ++i) {
-      EXPECT_NEAR(leading_eigenvalues_check(i).real(),
-                  leading_eigenvalues(i).real(), 1.e-14);
-      EXPECT_NEAR(leading_eigenvalues_check(i).imag(),
-                  leading_eigenvalues(i).imag(), 1.e-14);
+      EXPECT_NEAR(leading_eigenvalues_check(i).real(), leading_eigenvalues(i).real(), 1.e-14);
+      EXPECT_NEAR(leading_eigenvalues_check(i).imag(), leading_eigenvalues(i).imag(), 1.e-14);
     }
   }
-  
+
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.last()) {
-    std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is writing data "
-              << std::endl;
+    std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is writing data " << std::endl;
     analysis_obj.write();
-    
+
     std::cout << "\nAnalysis ending.\n" << std::endl;
   }
 }
@@ -92,12 +86,10 @@ int main(int argc, char** argv) {
 
   ::testing::InitGoogleTest(&argc, argv);
 
-  dca_test_env = new dca_mpi_test_environment(
-      argc, argv, "input.analysis_DCA+_mpi_test.json");
+  dca_test_env = new dca_mpi_test_environment(argc, argv, "input.analysis_DCA+_mpi_test.json");
   ::testing::AddGlobalTestEnvironment(dca_test_env);
 
-  ::testing::TestEventListeners& listeners =
-      ::testing::UnitTest::GetInstance()->listeners();
+  ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
 
   if (dca_test_env->concurrency.id() != 0) {
     delete listeners.Release(listeners.default_result_printer());

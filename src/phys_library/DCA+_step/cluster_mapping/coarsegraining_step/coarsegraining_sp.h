@@ -2,343 +2,61 @@
 
 #ifndef DCA_COARSEGRAINING_SP_H
 #define DCA_COARSEGRAINING_SP_H
-#include"phys_library/domain_types.hpp"
+#include <sstream>
+#include "phys_library/domain_types.hpp"
+#include "comp_library/profiler_library/include_profiling.h"
+// TODO decide if including template class is better.
+#include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_interpolation_matrices.h"
+#include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_routines.h"
+#include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/tetrahedron_integration.h"
+#include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/tetrahedron_routines_harmonic_function.h"
 using namespace types;
 
-namespace DCA
-{
-  template<typename parameters_type, typename K_dmn>
-  class coarsegraining_sp : public coarsegraining_routines<parameters_type, K_dmn>,
-                            public tetrahedron_integration<parameters_type, K_dmn>
-  {
+namespace DCA {
+template <typename parameters_type, typename K_dmn>
+class coarsegraining_sp : public coarsegraining_routines<parameters_type, K_dmn>,
+                          public tetrahedron_integration<parameters_type, K_dmn> {
+  typedef typename K_dmn::parameter_type k_cluster_type;
 
-    typedef typename K_dmn::parameter_type k_cluster_type;
+  const static int DIMENSION = K_dmn::parameter_type::DIMENSION;
 
-    const static int DIMENSION = K_dmn::parameter_type::DIMENSION;
-
-    typedef typename parameters_type::concurrency_type concurrency_type;
+  typedef typename parameters_type::concurrency_type concurrency_type;
 
 #ifdef SINGLE_PRECISION_COARSEGRAINING
-    typedef              float        scalar_type;
+  typedef float scalar_type;
 #else
-    typedef              double       scalar_type;
+  typedef double scalar_type;
 #endif
 
-    typedef std::complex<scalar_type> complex_type;
+  typedef std::complex<scalar_type> complex_type;
 
-    typedef dmn_0<math_algorithms::tetrahedron_mesh<K_dmn> >             tetrahedron_dmn;
+  typedef dmn_0<math_algorithms::tetrahedron_mesh<K_dmn>> tetrahedron_dmn;
 
-    typedef math_algorithms::gaussian_quadrature_domain<tetrahedron_dmn> quadrature_dmn;
+  typedef math_algorithms::gaussian_quadrature_domain<tetrahedron_dmn> quadrature_dmn;
 
-    typedef dmn_0<coarsegraining_domain<K_dmn, K     > > q_dmn;
-    typedef dmn_0<coarsegraining_domain<K_dmn, ORIGIN> > q_0_dmn;
+  typedef dmn_0<coarsegraining_domain<K_dmn, K>> q_dmn;
+  typedef dmn_0<coarsegraining_domain<K_dmn, ORIGIN>> q_0_dmn;
 
-    typedef dmn_0<coarsegraining_domain<K_dmn, TETRAHEDRON_K     > > tet_dmn;
-    typedef dmn_0<coarsegraining_domain<K_dmn, TETRAHEDRON_ORIGIN> > tet_0_dmn;
+  typedef dmn_0<coarsegraining_domain<K_dmn, TETRAHEDRON_K>> tet_dmn;
+  typedef dmn_0<coarsegraining_domain<K_dmn, TETRAHEDRON_ORIGIN>> tet_0_dmn;
 
-    typedef dmn_3<nu, nu, q_dmn  > nu_nu_q;
-    typedef dmn_3<nu, nu, tet_dmn> nu_nu_tet;
+  typedef dmn_3<nu, nu, q_dmn> nu_nu_q;
+  typedef dmn_3<nu, nu, tet_dmn> nu_nu_tet;
 
-  public:
+public:
+  coarsegraining_sp(parameters_type& parameters_ref);
 
-    coarsegraining_sp(parameters_type& parameters_ref);
+  ~coarsegraining_sp();
 
-    ~coarsegraining_sp();
+  void initialize();
 
-    void initialize();
+  void reset_fine_q_mesh(int recursion, int rule, int period);
 
-    void reset_fine_q_mesh(int recursion, int rule, int period);
+  template <typename other_scalar_type, typename r_dmn>
+  void compute_phi_r(FUNC_LIB::function<other_scalar_type, r_dmn>& phi_r);
 
-    template<typename other_scalar_type, typename r_dmn>
-    void compute_phi_r(FUNC_LIB::function<other_scalar_type, r_dmn>& phi_r);
-
-    template<typename other_scalar_type, typename r_dmn>
-    void print_phi_r_to_shell(FUNC_LIB::function<other_scalar_type, r_dmn>& phi_r);
-
-    /*****************************************
-     ***                                   ***
-     ***         Routines for DCA          ***
-     ***                                   ***
-     *****************************************/
-
-    template<typename other_scalar_type>
-    void compute_S_K_w(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& S_k_w,
-                       FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& S_K_w);
-
-    template<typename other_scalar_type, typename k_dmn>
-    void compute_G_K_w(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn> >&    H_0,
-                       FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& S_K_w,
-                       FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& G_K_w);
-
-    template<typename other_scalar_type, typename k_dmn, typename w_dmn>
-    void compute_G_K_w_with_TIM(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn> >&        H_0,
-                                FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn> >& S_K_w,
-                                FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn> >& G_K_w);
-
-    /*****************************************
-     ***                                   ***
-     ***         Routines for DCA+         ***
-     ***                                   ***
-     *****************************************/
-
-    template<typename other_scalar_type, typename k_dmn>
-    void compute_S_K_w(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w> >& S_k_w,
-                       FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& S_K_w);
-
-
-    template<typename other_scalar_type, typename k_dmn>
-    void compute_G_K_w(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn> >&    H_0,
-                       FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w> >& S_k_w,
-                       FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& G_K_w);
-
-    template<typename other_scalar_type, typename k_dmn, typename w_dmn>
-    void compute_G_K_w_with_TIM(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn> >&        H_0,
-                                FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w_dmn> >& S_K_w,
-                                FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn> >& G_K_w);
-
-
-    template<typename other_scalar_type, typename k_dmn>
-    void compute_G0_K_t(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn   > >& H_0,
-                        FUNC_LIB::function<             other_scalar_type , dmn_4<nu, nu, K_dmn, t> >& G0_k_w);
-
-  private:
-
-    void update_shell(int i, int N);
-
-    template<typename other_scalar_type, typename r_dmn>
-    void plot_phi_r(FUNC_LIB::function<other_scalar_type, r_dmn>& phi_r);
-
-  private:
-
-    parameters_type&  parameters;
-    concurrency_type& concurrency;
-
-    bool              initialized;
-
-    // tetrahedron q-points
-    FUNC_LIB::function<             scalar_type,  tet_dmn  > w_tet;
-
-    FUNC_LIB::function<std::complex<scalar_type>, nu_nu_tet> I_tet;
-    FUNC_LIB::function<std::complex<scalar_type>, nu_nu_tet> H_tet;
-    FUNC_LIB::function<std::complex<scalar_type>, nu_nu_tet> S_tet;
-    FUNC_LIB::function<std::complex<scalar_type>, nu_nu_tet> A_tet;
-    FUNC_LIB::function<std::complex<scalar_type>, nu_nu_tet> G_tet;
-
-    // gaussian q-points
-    FUNC_LIB::function<             scalar_type,  q_dmn  > w_q;
-
-    FUNC_LIB::function<std::complex<scalar_type>, nu_nu_q> I_q;
-    FUNC_LIB::function<std::complex<scalar_type>, nu_nu_q> H_q;
-    FUNC_LIB::function<std::complex<scalar_type>, nu_nu_q> S_q;
-    FUNC_LIB::function<std::complex<scalar_type>, nu_nu_q> A_q;
-    FUNC_LIB::function<std::complex<scalar_type>, nu_nu_q> G_q;
-  };
-
-  template<typename parameters_type, typename K_dmn>
-  coarsegraining_sp<parameters_type, K_dmn>::coarsegraining_sp(parameters_type& parameters_ref):
-    coarsegraining_routines<parameters_type, K_dmn>(parameters_ref),
-    tetrahedron_integration<parameters_type, K_dmn>(parameters_ref),
-
-    parameters (parameters_ref),
-    concurrency(parameters.get_concurrency()),
-
-    initialized(false),
-
-    // tetrahedron q-points
-    w_tet("w_tet"),
-
-    I_tet("I_tet"),
-    H_tet("H_tet"),
-    S_tet("S_tet"),
-    A_tet("A_tet"),
-    G_tet("G_tet"),
-
-    // gaussian q-points
-    w_q("w_q"),
-
-    I_q("I_q"),
-    H_q("H_q"),
-    S_q("S_q"),
-    A_q("A_q"),
-    G_q("G_q")
-  {
-    initialize();
-  }
-
-  template<typename parameters_type, typename K_dmn>
-  coarsegraining_sp<parameters_type, K_dmn>::~coarsegraining_sp()
-  {}
-
-  template<typename parameters_type, typename K_dmn>
-  void coarsegraining_sp<parameters_type, K_dmn>::update_shell(int i, int N)
-  {
-    int tmp = i;
-
-    if( concurrency.id() == concurrency.first() && N > 10 && (tmp % (N/10)) == 0 )
-      {
-        std::stringstream ss;
-
-        ss << std::scientific;
-        ss.precision(6);
-
-        ss << "\t\t\t"<< double(i)/double(N)*100. << " % completed \t ";
-        ss << print_time();
-        ss << "\n";
-
-        std::cout << ss.str();
-      }
-  }
-
-  template<typename parameters_type, typename K_dmn>
-  void coarsegraining_sp<parameters_type, K_dmn>::initialize()
-  {
-    {
-      this->compute_tetrahedron_mesh(parameters.get_k_mesh_refinement(),
-                                     parameters.get_number_of_periods());
-
-      this->compute_gaussian_mesh(parameters.get_k_mesh_refinement(),
-                                  parameters.get_gaussian_quadrature_rule(),
-                                  parameters.get_number_of_periods());
-    }
-
-    {
-      w_q  .reset();
-      w_tet.reset();
-
-      for(int l=0; l<w_q.size(); l++)
-        w_q(l) = q_dmn::parameter_type::get_weights()[l];
-
-      for(int l=0; l<w_tet.size(); l++)
-        w_tet(l) = tet_dmn::parameter_type::get_weights()[l];
-    }
-
-    {
-      I_tet.reset();
-      H_tet.reset();
-      S_tet.reset();
-      A_tet.reset();
-      G_tet.reset();
-
-      I_q.reset();
-      H_q.reset();
-      S_q.reset();
-      A_q.reset();
-      G_q.reset();
-    }
-
-    interpolation_matrices<scalar_type, k_HOST, q_dmn>::initialize(concurrency);
-  }
-
-
-
-  template<typename parameters_type, typename K_dmn>
-  template<typename other_scalar_type, typename r_dmn>
-  void coarsegraining_sp<parameters_type, K_dmn>::plot_phi_r(FUNC_LIB::function<other_scalar_type, r_dmn>& phi_r)
-  {
-    std::vector<double> x;
-    std::vector<double> y;
-
-    std::vector<std::vector<double> > super_basis = r_dmn::parameter_type::get_super_basis_vectors();
-    for(int r_ind=0; r_ind<r_dmn::dmn_size(); r_ind++){
-
-      std::vector<double>               r_vec  = r_dmn::get_elements()[r_ind];
-      std::vector<std::vector<double> > r_vecs = cluster_operations::equivalent_vectors(r_vec, super_basis);
-
-      x.push_back(std::sqrt(r_vecs[0][0]*r_vecs[0][0]+r_vecs[0][1]*r_vecs[0][1]));
-      y.push_back((phi_r(r_ind)));
-    }
-
-    SHOW::plot_points(x, y);
-  }
-
-  template<typename parameters_type, typename K_dmn>
-  template<typename other_scalar_type, typename r_dmn>
-  void coarsegraining_sp<parameters_type, K_dmn>::compute_phi_r(FUNC_LIB::function<other_scalar_type, r_dmn>& phi_r)
-  {
-    math_algorithms::tetrahedron_mesh<k_cluster_type> mesh(parameters.get_k_mesh_refinement());
-
-    quadrature_dmn::translate_according_to_period(parameters.get_number_of_periods(), mesh);
-
-    std::vector<math_algorithms::tetrahedron<DIMENSION> >& tetrahedra = mesh.get_tetrahedra();
-
-    {
-      phi_r = 0.;
-
-      r_dmn r_domain;
-      std::pair<int, int> bounds = concurrency.get_bounds(r_domain);
-
-      std::vector<std::vector<double> > super_basis = r_dmn::parameter_type::get_super_basis_vectors();
-
-      for(int l=bounds.first; l<bounds.second; l++)
-        {
-          std::vector<double>               r_vec  = r_dmn::get_elements()[l];
-          std::vector<std::vector<double> > r_vecs = cluster_operations::equivalent_vectors(r_vec, super_basis);
-          for(int r_ind=0; r_ind<r_vecs.size(); r_ind++)
-            for(int tet_ind=0; tet_ind<tetrahedra.size(); tet_ind++)
-              phi_r(l) += real(tetrahedron_routines_harmonic_function::execute(r_vecs[0],
-                                                                               tetrahedra[tet_ind]))/r_vecs.size();
-          //        }
-        }
-
-      concurrency.sum(phi_r);
-
-      {
-        scalar_type V_K=0;
-        for(int q_ind=0; q_ind<q_dmn::dmn_size(); q_ind++)
-          V_K += w_q(q_ind);
-
-        phi_r /= V_K;
-      }
-    }
-  }
-
-  template<typename parameters_type, typename K_dmn>
-  template<typename other_scalar_type, typename r_dmn>
-  void coarsegraining_sp<parameters_type, K_dmn>::print_phi_r_to_shell(FUNC_LIB::function<other_scalar_type, r_dmn>& phi_r)
-  {
-    std::cout << "\n" << __FUNCTION__ << std::endl;
-
-    math_algorithms::tetrahedron_mesh<k_cluster_type> mesh(parameters.get_k_mesh_refinement());
-
-    quadrature_dmn::translate_according_to_period(parameters.get_number_of_periods(), mesh);
-
-    std::vector<math_algorithms::tetrahedron<DIMENSION> >& tetrahedra = mesh.get_tetrahedra();
-
-    phi_r = 0.;
-
-    r_dmn r_domain;
-    std::pair<int, int> bounds = concurrency.get_bounds(r_domain);
-
-    for(int l=bounds.first; l<bounds.second; l++)
-      {
-        std::vector<double> r_vec = r_dmn::get_elements()[l];
-
-        for(int tet_ind=0; tet_ind<tetrahedra.size(); tet_ind++)
-          phi_r(l) += real(tetrahedron_routines_harmonic_function::execute(r_vec,
-                                                                           tetrahedra[tet_ind]));
-      }
-
-    concurrency.sum(phi_r);
-
-    {
-      scalar_type V_K=0;
-      for(int q_ind=0; q_ind<q_dmn::dmn_size(); q_ind++)
-        V_K += w_q(q_ind);
-
-      phi_r /= V_K;
-    }
-
-    std::cout << "r_ind\tx\t\ty\t\tr\t\tphi(r)" << std::endl;
-
-    for(int r_ind=0; r_ind<r_dmn::dmn_size(); r_ind++){
-
-      std::vector<double> r_vec = r_dmn::get_elements()[r_ind];
-
-      std::cout << r_ind << "\t" << r_vec[0] << "\t" << r_vec[1] << "\t" << std::sqrt(r_vec[0]*r_vec[0]+r_vec[1]*r_vec[1]) << "\t" << phi_r(r_ind) << std::endl;
-    }
-
-  }
-
+  template <typename other_scalar_type, typename r_dmn>
+  void print_phi_r_to_shell(FUNC_LIB::function<other_scalar_type, r_dmn>& phi_r);
 
   /*****************************************
    ***                                   ***
@@ -346,113 +64,22 @@ namespace DCA
    ***                                   ***
    *****************************************/
 
-  template<typename parameters_type, typename K_dmn>
-  template<typename other_scalar_type>
-  void coarsegraining_sp<parameters_type, K_dmn>::compute_S_K_w(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& S_k_w,
-                                                                FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& S_K_w)
-  {
-    for(int l=0; l<S_k_w.size(); l++)
-      S_K_w(l) = S_k_w(l);
-  }
+  template <typename other_scalar_type>
+  void compute_S_K_w(
+      FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w>>& S_k_w,
+      FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w>>& S_K_w);
 
-  template<typename parameters_type, typename K_dmn>
-  template<typename other_scalar_type, typename k_dmn>
-  void coarsegraining_sp<parameters_type, K_dmn>::compute_G_K_w(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn> >&    H_0,
-                                                                FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& S_K_w,
-                                                                FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& G_K_w)
-  {
-    //cout << "\n\n\n\t" << __FUNCTION__ << "\n\n\n";
+  template <typename other_scalar_type, typename k_dmn>
+  void compute_G_K_w(
+      FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn>>& H_0,
+      FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w>>& S_K_w,
+      FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w>>& G_K_w);
 
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn> >    H_k("H_k");
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, K_dmn, w> > S_K("S_K");
-
-    for(int l=0; l<S_K_w.size(); l++)
-      S_K(l) = S_K_w(l);
-
-    for(int k_ind=0; k_ind<k_dmn::dmn_size(); k_ind++)
-      for(int j=0; j<nu::dmn_size(); j++)
-        for(int i=0; i<nu::dmn_size(); i++)
-          H_k(i,j,k_ind) = H_0(i,j,k_ind);
-
-    G_K_w = 0.;
-
-    dmn_2<K_dmn, w> K_wm_dmn;
-    std::pair<int, int> bounds = concurrency.get_bounds(K_wm_dmn);
-
-    int coor[2];
-    for(int l=bounds.first; l<bounds.second; l++)
-      {
-        K_wm_dmn.linind_2_subind(l, coor);
- 
-        this->compute_G_q_w(coor[0], coor[1], H_k, S_K, I_q, H_q, S_q, G_q);
-
-        for(int q_ind=0; q_ind<q_dmn::dmn_size(); q_ind++)
-          for(int j=0; j<nu::dmn_size(); j++)
-            for(int i=0; i<nu::dmn_size(); i++)
-              G_K_w(i,j,coor[0],coor[1]) += G_q(i,j,q_ind)*w_q(q_ind);
-      }
-
-    concurrency.sum(G_K_w);
-
-    {
-      scalar_type V_K=0;
-      for(int q_ind=0; q_ind<q_dmn::dmn_size(); q_ind++)
-        V_K += w_q(q_ind);
-
-      G_K_w /= V_K;
-    }
-  }
-
-  template<typename parameters_type, typename K_dmn>
-  template<typename other_scalar_type, typename k_dmn, typename w_dmn>
-  void coarsegraining_sp<parameters_type, K_dmn>::compute_G_K_w_with_TIM(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn> >&        H_0,
-                                                                         FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn> >& S_K_w,
-                                                                         FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn> >& G_K_w)
-  {
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn       > > H_k("H_k");
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn> > S_K("S_K");
-
-    for(int l=0; l<S_K_w.size(); l++)
-      S_K(l) = S_K_w(l);
-
-    for(int k_ind=0; k_ind<k_dmn::dmn_size(); k_ind++)
-      for(int j=0; j<nu::dmn_size(); j++)
-        for(int i=0; i<nu::dmn_size(); i++)
-          H_k(i,j,k_ind) = H_0(i,j,k_ind);
-
-    G_K_w = 0.;
-
-    dmn_2<K_dmn, w_dmn> K_wm_dmn;
-    std::pair<int, int> bounds = concurrency.get_bounds(K_wm_dmn);
-
-    int coor[2];
-    for(int l=bounds.first; l<bounds.second; l++)
-      {
-        K_wm_dmn.linind_2_subind(l, coor);
-
-        this->compute_G_q_w(coor[0], coor[1], H_k, S_K, I_tet, H_tet, S_tet, G_tet);
-
-        {
-          FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu> > G_int;
-
-	  this->tetrahedron_integration_mt(w_tet, G_tet, G_int);
-
-          for(int j=0; j<nu::dmn_size(); j++)
-            for(int i=0; i<nu::dmn_size(); i++)
-              G_K_w(i,j,coor[0],coor[1]) += G_int(i,j);
-        }
-      }
-
-    concurrency.sum(G_K_w);
-
-    {
-      scalar_type V_K=0;
-      for(int tet_ind=0; tet_ind<tet_dmn::dmn_size(); tet_ind++)
-        V_K += w_tet(tet_ind);
-
-      G_K_w /= V_K;
-    }
-  }
+  template <typename other_scalar_type, typename k_dmn, typename w_dmn>
+  void compute_G_K_w_with_TIM(
+      FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn>>& H_0,
+      FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn>>& S_K_w,
+      FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn>>& G_K_w);
 
   /*****************************************
    ***                                   ***
@@ -460,143 +87,506 @@ namespace DCA
    ***                                   ***
    *****************************************/
 
-  template<typename parameters_type, typename K_dmn>
-  template<typename other_scalar_type, typename k_dmn>
-  void coarsegraining_sp<parameters_type, K_dmn>::compute_S_K_w(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w> >& S_k_w,
-                                                                FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& S_K_w)
+  template <typename other_scalar_type, typename k_dmn>
+  void compute_S_K_w(
+      FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w>>& S_k_w,
+      FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w>>& S_K_w);
+
+  template <typename other_scalar_type, typename k_dmn>
+  void compute_G_K_w(
+      FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn>>& H_0,
+      FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w>>& S_k_w,
+      FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w>>& G_K_w);
+
+  template <typename other_scalar_type, typename k_dmn, typename w_dmn>
+  void compute_G_K_w_with_TIM(
+      FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn>>& H_0,
+      FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w_dmn>>& S_K_w,
+      FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn>>& G_K_w);
+
+  template <typename other_scalar_type, typename k_dmn>
+  void compute_G0_K_t(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn>>& H_0,
+                      FUNC_LIB::function<other_scalar_type, dmn_4<nu, nu, K_dmn, t>>& G0_k_w);
+
+private:
+  void update_shell(int i, int N);
+
+  template <typename other_scalar_type, typename r_dmn>
+  void plot_phi_r(FUNC_LIB::function<other_scalar_type, r_dmn>& phi_r);
+
+private:
+  parameters_type& parameters;
+  concurrency_type& concurrency;
+
+  bool initialized;
+
+  // tetrahedron q-points
+  FUNC_LIB::function<scalar_type, tet_dmn> w_tet;
+
+  FUNC_LIB::function<std::complex<scalar_type>, nu_nu_tet> I_tet;
+  FUNC_LIB::function<std::complex<scalar_type>, nu_nu_tet> H_tet;
+  FUNC_LIB::function<std::complex<scalar_type>, nu_nu_tet> S_tet;
+  FUNC_LIB::function<std::complex<scalar_type>, nu_nu_tet> A_tet;
+  FUNC_LIB::function<std::complex<scalar_type>, nu_nu_tet> G_tet;
+
+  // gaussian q-points
+  FUNC_LIB::function<scalar_type, q_dmn> w_q;
+
+  FUNC_LIB::function<std::complex<scalar_type>, nu_nu_q> I_q;
+  FUNC_LIB::function<std::complex<scalar_type>, nu_nu_q> H_q;
+  FUNC_LIB::function<std::complex<scalar_type>, nu_nu_q> S_q;
+  FUNC_LIB::function<std::complex<scalar_type>, nu_nu_q> A_q;
+  FUNC_LIB::function<std::complex<scalar_type>, nu_nu_q> G_q;
+};
+
+template <typename parameters_type, typename K_dmn>
+coarsegraining_sp<parameters_type, K_dmn>::coarsegraining_sp(parameters_type& parameters_ref)
+    : coarsegraining_routines<parameters_type, K_dmn>(parameters_ref),
+      tetrahedron_integration<parameters_type, K_dmn>(parameters_ref),
+
+      parameters(parameters_ref),
+      concurrency(parameters.get_concurrency()),
+
+      initialized(false),
+
+      // tetrahedron q-points
+      w_tet("w_tet"),
+
+      I_tet("I_tet"),
+      H_tet("H_tet"),
+      S_tet("S_tet"),
+      A_tet("A_tet"),
+      G_tet("G_tet"),
+
+      // gaussian q-points
+      w_q("w_q"),
+
+      I_q("I_q"),
+      H_q("H_q"),
+      S_q("S_q"),
+      A_q("A_q"),
+      G_q("G_q") {
+  initialize();
+}
+
+template <typename parameters_type, typename K_dmn>
+coarsegraining_sp<parameters_type, K_dmn>::~coarsegraining_sp() {}
+
+template <typename parameters_type, typename K_dmn>
+void coarsegraining_sp<parameters_type, K_dmn>::update_shell(int i, int N) {
+  int tmp = i;
+
+  if (concurrency.id() == concurrency.first() && N > 10 && (tmp % (N / 10)) == 0) {
+    std::stringstream ss;
+
+    ss << std::scientific;
+    ss.precision(6);
+
+    ss << "\t\t\t" << double(i) / double(N) * 100. << " % completed \t ";
+    ss << print_time();
+    ss << "\n";
+
+    std::cout << ss.str();
+  }
+}
+
+template <typename parameters_type, typename K_dmn>
+void coarsegraining_sp<parameters_type, K_dmn>::initialize() {
   {
-    S_K_w = 0.;
+    this->compute_tetrahedron_mesh(parameters.get_k_mesh_refinement(),
+                                   parameters.get_number_of_periods());
 
-    FUNC_LIB::function<std::complex<      scalar_type>, dmn_3<nu, nu, k_dmn   > > A_k("A_k");
-    FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w> > A_k_w("A_k_w");
+    this->compute_gaussian_mesh(parameters.get_k_mesh_refinement(),
+                                parameters.get_gaussian_quadrature_rule(),
+                                parameters.get_number_of_periods());
+  }
 
-    transform_to_alpha::forward (1., S_k_w, A_k_w);
+  {
+    w_q.reset();
+    w_tet.reset();
 
-    dmn_2<K_dmn, w> K_wm_dmn;
-    std::pair<int, int> bounds = concurrency.get_bounds(K_wm_dmn);
+    for (int l = 0; l < w_q.size(); l++)
+      w_q(l) = q_dmn::parameter_type::get_weights()[l];
 
-    int coor[2];
-    for(int l=bounds.first; l<bounds.second; l++)
-      {
-        K_wm_dmn.linind_2_subind(l, coor);
+    for (int l = 0; l < w_tet.size(); l++)
+      w_tet(l) = tet_dmn::parameter_type::get_weights()[l];
+  }
 
-        for(int k_ind=0; k_ind<k_dmn::dmn_size(); k_ind++)
-          for(int j=0; j<nu::dmn_size(); j++)
-            for(int i=0; i<nu::dmn_size(); i++)
-              A_k(i,j,k_ind) = A_k_w(i,j,k_ind,coor[1]);
+  {
+    I_tet.reset();
+    H_tet.reset();
+    S_tet.reset();
+    A_tet.reset();
+    G_tet.reset();
 
-        this->compute_S_q_from_A_k(coor[0], coor[1], A_k, A_q, S_q);
+    I_q.reset();
+    H_q.reset();
+    S_q.reset();
+    A_q.reset();
+    G_q.reset();
+  }
 
-        for(int q_ind=0; q_ind<q_dmn::dmn_size(); q_ind++)
-          for(int j=0; j<nu::dmn_size(); j++)
-            for(int i=0; i<nu::dmn_size(); i++)
-              S_K_w(i,j,coor[0],coor[1]) += S_q(i,j,q_ind)*w_q(q_ind);
-      }
+  interpolation_matrices<scalar_type, k_HOST, q_dmn>::initialize(concurrency);
+}
 
-    concurrency.sum(S_K_w);
+template <typename parameters_type, typename K_dmn>
+template <typename other_scalar_type, typename r_dmn>
+void coarsegraining_sp<parameters_type, K_dmn>::plot_phi_r(
+    FUNC_LIB::function<other_scalar_type, r_dmn>& phi_r) {
+  std::vector<double> x;
+  std::vector<double> y;
+
+  std::vector<std::vector<double>> super_basis = r_dmn::parameter_type::get_super_basis_vectors();
+  for (int r_ind = 0; r_ind < r_dmn::dmn_size(); r_ind++) {
+    std::vector<double> r_vec = r_dmn::get_elements()[r_ind];
+    std::vector<std::vector<double>> r_vecs =
+        cluster_operations::equivalent_vectors(r_vec, super_basis);
+
+    x.push_back(std::sqrt(r_vecs[0][0] * r_vecs[0][0] + r_vecs[0][1] * r_vecs[0][1]));
+    y.push_back((phi_r(r_ind)));
+  }
+
+  SHOW::plot_points(x, y);
+}
+
+template <typename parameters_type, typename K_dmn>
+template <typename other_scalar_type, typename r_dmn>
+void coarsegraining_sp<parameters_type, K_dmn>::compute_phi_r(
+    FUNC_LIB::function<other_scalar_type, r_dmn>& phi_r) {
+  math_algorithms::tetrahedron_mesh<k_cluster_type> mesh(parameters.get_k_mesh_refinement());
+
+  quadrature_dmn::translate_according_to_period(parameters.get_number_of_periods(), mesh);
+
+  std::vector<math_algorithms::tetrahedron<DIMENSION>>& tetrahedra = mesh.get_tetrahedra();
+
+  {
+    phi_r = 0.;
+
+    r_dmn r_domain;
+    std::pair<int, int> bounds = concurrency.get_bounds(r_domain);
+
+    std::vector<std::vector<double>> super_basis = r_dmn::parameter_type::get_super_basis_vectors();
+
+    for (int l = bounds.first; l < bounds.second; l++) {
+      std::vector<double> r_vec = r_dmn::get_elements()[l];
+      std::vector<std::vector<double>> r_vecs =
+          cluster_operations::equivalent_vectors(r_vec, super_basis);
+      for (int r_ind = 0; r_ind < r_vecs.size(); r_ind++)
+        for (int tet_ind = 0; tet_ind < tetrahedra.size(); tet_ind++)
+          phi_r(l) +=
+              real(tetrahedron_routines_harmonic_function::execute(r_vecs[0], tetrahedra[tet_ind])) /
+              r_vecs.size();
+      //        }
+    }
+
+    concurrency.sum(phi_r);
 
     {
-      scalar_type V_K=0;
-      for(int q_ind=0; q_ind<q_dmn::dmn_size(); q_ind++)
+      scalar_type V_K = 0;
+      for (int q_ind = 0; q_ind < q_dmn::dmn_size(); q_ind++)
         V_K += w_q(q_ind);
 
-      S_K_w /= V_K;
+      phi_r /= V_K;
+    }
+  }
+}
+
+template <typename parameters_type, typename K_dmn>
+template <typename other_scalar_type, typename r_dmn>
+void coarsegraining_sp<parameters_type, K_dmn>::print_phi_r_to_shell(
+    FUNC_LIB::function<other_scalar_type, r_dmn>& phi_r) {
+  std::cout << "\n" << __FUNCTION__ << std::endl;
+
+  math_algorithms::tetrahedron_mesh<k_cluster_type> mesh(parameters.get_k_mesh_refinement());
+
+  quadrature_dmn::translate_according_to_period(parameters.get_number_of_periods(), mesh);
+
+  std::vector<math_algorithms::tetrahedron<DIMENSION>>& tetrahedra = mesh.get_tetrahedra();
+
+  phi_r = 0.;
+
+  r_dmn r_domain;
+  std::pair<int, int> bounds = concurrency.get_bounds(r_domain);
+
+  for (int l = bounds.first; l < bounds.second; l++) {
+    std::vector<double> r_vec = r_dmn::get_elements()[l];
+
+    for (int tet_ind = 0; tet_ind < tetrahedra.size(); tet_ind++)
+      phi_r(l) += real(tetrahedron_routines_harmonic_function::execute(r_vec, tetrahedra[tet_ind]));
+  }
+
+  concurrency.sum(phi_r);
+
+  {
+    scalar_type V_K = 0;
+    for (int q_ind = 0; q_ind < q_dmn::dmn_size(); q_ind++)
+      V_K += w_q(q_ind);
+
+    phi_r /= V_K;
+  }
+
+  std::cout << "r_ind\tx\t\ty\t\tr\t\tphi(r)" << std::endl;
+
+  for (int r_ind = 0; r_ind < r_dmn::dmn_size(); r_ind++) {
+    std::vector<double> r_vec = r_dmn::get_elements()[r_ind];
+
+    std::cout << r_ind << "\t" << r_vec[0] << "\t" << r_vec[1] << "\t"
+              << std::sqrt(r_vec[0] * r_vec[0] + r_vec[1] * r_vec[1]) << "\t" << phi_r(r_ind)
+              << std::endl;
+  }
+}
+
+/*****************************************
+ ***                                   ***
+ ***         Routines for DCA          ***
+ ***                                   ***
+ *****************************************/
+
+template <typename parameters_type, typename K_dmn>
+template <typename other_scalar_type>
+void coarsegraining_sp<parameters_type, K_dmn>::compute_S_K_w(
+    FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w>>& S_k_w,
+    FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w>>& S_K_w) {
+  for (int l = 0; l < S_k_w.size(); l++)
+    S_K_w(l) = S_k_w(l);
+}
+
+template <typename parameters_type, typename K_dmn>
+template <typename other_scalar_type, typename k_dmn>
+void coarsegraining_sp<parameters_type, K_dmn>::compute_G_K_w(
+    FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn>>& H_0,
+    FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w>>& S_K_w,
+    FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w>>& G_K_w) {
+  // cout << "\n\n\n\t" << __FUNCTION__ << "\n\n\n";
+
+  FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn>> H_k("H_k");
+  FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, K_dmn, w>> S_K("S_K");
+
+  for (int l = 0; l < S_K_w.size(); l++)
+    S_K(l) = S_K_w(l);
+
+  for (int k_ind = 0; k_ind < k_dmn::dmn_size(); k_ind++)
+    for (int j = 0; j < nu::dmn_size(); j++)
+      for (int i = 0; i < nu::dmn_size(); i++)
+        H_k(i, j, k_ind) = H_0(i, j, k_ind);
+
+  G_K_w = 0.;
+
+  dmn_2<K_dmn, w> K_wm_dmn;
+  std::pair<int, int> bounds = concurrency.get_bounds(K_wm_dmn);
+
+  int coor[2];
+  for (int l = bounds.first; l < bounds.second; l++) {
+    K_wm_dmn.linind_2_subind(l, coor);
+
+    this->compute_G_q_w(coor[0], coor[1], H_k, S_K, I_q, H_q, S_q, G_q);
+
+    for (int q_ind = 0; q_ind < q_dmn::dmn_size(); q_ind++)
+      for (int j = 0; j < nu::dmn_size(); j++)
+        for (int i = 0; i < nu::dmn_size(); i++)
+          G_K_w(i, j, coor[0], coor[1]) += G_q(i, j, q_ind) * w_q(q_ind);
+  }
+
+  concurrency.sum(G_K_w);
+
+  {
+    scalar_type V_K = 0;
+    for (int q_ind = 0; q_ind < q_dmn::dmn_size(); q_ind++)
+      V_K += w_q(q_ind);
+
+    G_K_w /= V_K;
+  }
+}
+
+template <typename parameters_type, typename K_dmn>
+template <typename other_scalar_type, typename k_dmn, typename w_dmn>
+void coarsegraining_sp<parameters_type, K_dmn>::compute_G_K_w_with_TIM(
+    FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn>>& H_0,
+    FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn>>& S_K_w,
+    FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn>>& G_K_w) {
+  FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn>> H_k("H_k");
+  FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn>> S_K("S_K");
+
+  for (int l = 0; l < S_K_w.size(); l++)
+    S_K(l) = S_K_w(l);
+
+  for (int k_ind = 0; k_ind < k_dmn::dmn_size(); k_ind++)
+    for (int j = 0; j < nu::dmn_size(); j++)
+      for (int i = 0; i < nu::dmn_size(); i++)
+        H_k(i, j, k_ind) = H_0(i, j, k_ind);
+
+  G_K_w = 0.;
+
+  dmn_2<K_dmn, w_dmn> K_wm_dmn;
+  std::pair<int, int> bounds = concurrency.get_bounds(K_wm_dmn);
+
+  int coor[2];
+  for (int l = bounds.first; l < bounds.second; l++) {
+    K_wm_dmn.linind_2_subind(l, coor);
+
+    this->compute_G_q_w(coor[0], coor[1], H_k, S_K, I_tet, H_tet, S_tet, G_tet);
+
+    {
+      FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu>> G_int;
+
+      this->tetrahedron_integration_mt(w_tet, G_tet, G_int);
+
+      for (int j = 0; j < nu::dmn_size(); j++)
+        for (int i = 0; i < nu::dmn_size(); i++)
+          G_K_w(i, j, coor[0], coor[1]) += G_int(i, j);
     }
   }
 
-  template<typename parameters_type, typename K_dmn>
-  template<typename other_scalar_type, typename k_dmn>
-  void coarsegraining_sp<parameters_type, K_dmn>::compute_G_K_w(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn> >&    H_0,
-                                                                FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w> >& S_k_w,
-                                                                FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w> >& G_K_w)
+  concurrency.sum(G_K_w);
+
   {
-    G_K_w = 0.;
+    scalar_type V_K = 0;
+    for (int tet_ind = 0; tet_ind < tet_dmn::dmn_size(); tet_ind++)
+      V_K += w_tet(tet_ind);
 
-    FUNC_LIB::function<std::complex<      scalar_type>, dmn_3<nu, nu, k_dmn> > H_k("H_k");
-    FUNC_LIB::function<std::complex<      scalar_type>, dmn_3<nu, nu, k_dmn> > A_k("A_k");
+    G_K_w /= V_K;
+  }
+}
 
-    FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w> > A_k_w("A_k_w");
+/*****************************************
+ ***                                   ***
+ ***         Routines for DCA+         ***
+ ***                                   ***
+ *****************************************/
 
-    transform_to_alpha::forward(1., S_k_w, A_k_w);
+template <typename parameters_type, typename K_dmn>
+template <typename other_scalar_type, typename k_dmn>
+void coarsegraining_sp<parameters_type, K_dmn>::compute_S_K_w(
+    FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w>>& S_k_w,
+    FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w>>& S_K_w) {
+  S_K_w = 0.;
 
-    for(int k_ind=0; k_ind<k_dmn::dmn_size(); k_ind++)
-      for(int j=0; j<nu::dmn_size(); j++)
-        for(int i=0; i<nu::dmn_size(); i++)
-          H_k(i,j,k_ind) = H_0(i,j,k_ind);
+  FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn>> A_k("A_k");
+  FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w>> A_k_w("A_k_w");
 
-    dmn_2<K_dmn, w> K_wm_dmn;
-    std::pair<int, int> bounds = concurrency.get_bounds(K_wm_dmn);
+  transform_to_alpha::forward(1., S_k_w, A_k_w);
 
-    int coor[2];
-    for(int l=bounds.first; l<bounds.second; l++)
-      {
-        K_wm_dmn.linind_2_subind(l, coor);
+  dmn_2<K_dmn, w> K_wm_dmn;
+  std::pair<int, int> bounds = concurrency.get_bounds(K_wm_dmn);
 
-        for(int k_ind=0; k_ind<k_dmn::dmn_size(); k_ind++)
-          for(int j=0; j<nu::dmn_size(); j++)
-            for(int i=0; i<nu::dmn_size(); i++)
-              A_k(i,j,k_ind) = A_k_w(i,j,k_ind,coor[1]);
+  int coor[2];
+  for (int l = bounds.first; l < bounds.second; l++) {
+    K_wm_dmn.linind_2_subind(l, coor);
 
-        this->compute_G_q_w(coor[0], coor[1], H_k, A_k, I_q, H_q, A_q, S_q, G_q);
+    for (int k_ind = 0; k_ind < k_dmn::dmn_size(); k_ind++)
+      for (int j = 0; j < nu::dmn_size(); j++)
+        for (int i = 0; i < nu::dmn_size(); i++)
+          A_k(i, j, k_ind) = A_k_w(i, j, k_ind, coor[1]);
 
-        for(int q_ind=0; q_ind<q_dmn::dmn_size(); q_ind++)
-          for(int j=0; j<nu::dmn_size(); j++)
-            for(int i=0; i<nu::dmn_size(); i++)
-              G_K_w(i,j,coor[0],coor[1]) += G_q(i,j,q_ind)*w_q(q_ind);
-      }
+    this->compute_S_q_from_A_k(coor[0], coor[1], A_k, A_q, S_q);
 
-    concurrency.sum(G_K_w);
-
-    {
-      scalar_type V_K=0;
-      for(int q_ind=0; q_ind<q_dmn::dmn_size(); q_ind++)
-        V_K += w_q(q_ind);
-
-      G_K_w /= V_K;
-    }
+    for (int q_ind = 0; q_ind < q_dmn::dmn_size(); q_ind++)
+      for (int j = 0; j < nu::dmn_size(); j++)
+        for (int i = 0; i < nu::dmn_size(); i++)
+          S_K_w(i, j, coor[0], coor[1]) += S_q(i, j, q_ind) * w_q(q_ind);
   }
 
-  template<typename parameters_type, typename K_dmn>
-  template<typename other_scalar_type, typename k_dmn>
-  void coarsegraining_sp<parameters_type, K_dmn>::compute_G0_K_t(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn   > >& H_0,
-                                                                 FUNC_LIB::function<             other_scalar_type , dmn_4<nu, nu, K_dmn, t> >& G_K_t)
+  concurrency.sum(S_K_w);
+
   {
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn> > H_k("H_k");
+    scalar_type V_K = 0;
+    for (int q_ind = 0; q_ind < q_dmn::dmn_size(); q_ind++)
+      V_K += w_q(q_ind);
 
-    for(int k_ind=0; k_ind<k_dmn::dmn_size(); k_ind++)
-      for(int j=0; j<nu::dmn_size(); j++)
-        for(int i=0; i<nu::dmn_size(); i++)
-          H_k(i,j,k_ind) = H_0(i,j,k_ind);
+    S_K_w /= V_K;
+  }
+}
 
-    G_K_t = 0.;
+template <typename parameters_type, typename K_dmn>
+template <typename other_scalar_type, typename k_dmn>
+void coarsegraining_sp<parameters_type, K_dmn>::compute_G_K_w(
+    FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn>>& H_0,
+    FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w>>& S_k_w,
+    FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w>>& G_K_w) {
+  G_K_w = 0.;
 
-    dmn_2<K_dmn, t> K_t_dmn;
-    std::pair<int, int> bounds = concurrency.get_bounds(K_t_dmn);
+  FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn>> H_k("H_k");
+  FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn>> A_k("A_k");
 
-    int coor[2];
-    for(int l=bounds.first; l<bounds.second; l++)
-      {
-        K_t_dmn.linind_2_subind(l, coor);
+  FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w>> A_k_w("A_k_w");
 
-        this->compute_G_q_t(coor[0], coor[1], H_k, I_q, H_q, G_q);
+  transform_to_alpha::forward(1., S_k_w, A_k_w);
 
-        for(int q_ind=0; q_ind<q_dmn::dmn_size(); q_ind++)
-          for(int j=0; j<nu::dmn_size(); j++)
-            for(int i=0; i<nu::dmn_size(); i++)
-              G_K_t(i,j,coor[0],coor[1]) += real(G_q(i,j,q_ind))*w_q(q_ind);
-      }
+  for (int k_ind = 0; k_ind < k_dmn::dmn_size(); k_ind++)
+    for (int j = 0; j < nu::dmn_size(); j++)
+      for (int i = 0; i < nu::dmn_size(); i++)
+        H_k(i, j, k_ind) = H_0(i, j, k_ind);
 
-    concurrency.sum(G_K_t);
+  dmn_2<K_dmn, w> K_wm_dmn;
+  std::pair<int, int> bounds = concurrency.get_bounds(K_wm_dmn);
 
-    {
-      scalar_type V_K=0;
-      for(int q_ind=0; q_ind<q_dmn::dmn_size(); q_ind++)
-        V_K += w_q(q_ind);
+  int coor[2];
+  for (int l = bounds.first; l < bounds.second; l++) {
+    K_wm_dmn.linind_2_subind(l, coor);
 
-      G_K_t /= V_K;
-    }
+    for (int k_ind = 0; k_ind < k_dmn::dmn_size(); k_ind++)
+      for (int j = 0; j < nu::dmn_size(); j++)
+        for (int i = 0; i < nu::dmn_size(); i++)
+          A_k(i, j, k_ind) = A_k_w(i, j, k_ind, coor[1]);
+
+    this->compute_G_q_w(coor[0], coor[1], H_k, A_k, I_q, H_q, A_q, S_q, G_q);
+
+    for (int q_ind = 0; q_ind < q_dmn::dmn_size(); q_ind++)
+      for (int j = 0; j < nu::dmn_size(); j++)
+        for (int i = 0; i < nu::dmn_size(); i++)
+          G_K_w(i, j, coor[0], coor[1]) += G_q(i, j, q_ind) * w_q(q_ind);
   }
 
+  concurrency.sum(G_K_w);
+
+  {
+    scalar_type V_K = 0;
+    for (int q_ind = 0; q_ind < q_dmn::dmn_size(); q_ind++)
+      V_K += w_q(q_ind);
+
+    G_K_w /= V_K;
+  }
+}
+
+template <typename parameters_type, typename K_dmn>
+template <typename other_scalar_type, typename k_dmn>
+void coarsegraining_sp<parameters_type, K_dmn>::compute_G0_K_t(
+    FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn>>& H_0,
+    FUNC_LIB::function<other_scalar_type, dmn_4<nu, nu, K_dmn, t>>& G_K_t) {
+  FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn>> H_k("H_k");
+
+  for (int k_ind = 0; k_ind < k_dmn::dmn_size(); k_ind++)
+    for (int j = 0; j < nu::dmn_size(); j++)
+      for (int i = 0; i < nu::dmn_size(); i++)
+        H_k(i, j, k_ind) = H_0(i, j, k_ind);
+
+  G_K_t = 0.;
+
+  dmn_2<K_dmn, t> K_t_dmn;
+  std::pair<int, int> bounds = concurrency.get_bounds(K_t_dmn);
+
+  int coor[2];
+  for (int l = bounds.first; l < bounds.second; l++) {
+    K_t_dmn.linind_2_subind(l, coor);
+
+    this->compute_G_q_t(coor[0], coor[1], H_k, I_q, H_q, G_q);
+
+    for (int q_ind = 0; q_ind < q_dmn::dmn_size(); q_ind++)
+      for (int j = 0; j < nu::dmn_size(); j++)
+        for (int i = 0; i < nu::dmn_size(); i++)
+          G_K_t(i, j, coor[0], coor[1]) += real(G_q(i, j, q_ind)) * w_q(q_ind);
+  }
+
+  concurrency.sum(G_K_t);
+
+  {
+    scalar_type V_K = 0;
+    for (int q_ind = 0; q_ind < q_dmn::dmn_size(); q_ind++)
+      V_K += w_q(q_ind);
+
+    G_K_t /= V_K;
+  }
+}
 }
 
 #endif

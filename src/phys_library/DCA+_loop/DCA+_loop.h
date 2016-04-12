@@ -4,373 +4,358 @@
 #define DCA_CALCULATION_H
 #include "phys_library/domain_types.hpp"
 #include "phys_library/DCA+_loop/DCA+_loop_data.h"
+#include "phys_library/DCA+_step/cluster_mapping/adjust_chemical_potential.h"
+#include "phys_library/DCA+_step/cluster_mapping/cluster_exclusion_step.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_template.h"
+#include "phys_library/DCA+_step/cluster_mapping/double_counting_correction.h"
+#include "phys_library/DCA+_step/lattice_mapping/lattice_mapping_sp.h"
 using namespace types;
 
-namespace DCA
-{
-  /*!
-   *  \class DCA_Calculation
-   *
-   *  \author Peter Staar, Andrei Plamada
-   *  \brief  This class encapsulates the DCA-loop, using the template programming style.
-   */
-  template<class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
-  class DCA_calculation
-  {
+namespace DCA {
+/*!
+ *  \class DCA_Calculation
+ *
+ *  \author Peter Staar, Andrei Plamada
+ *  \brief  This class encapsulates the DCA-loop, using the template programming style.
+ */
+template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
+class DCA_calculation {
+  typedef typename parameters_type::profiler_type profiler_t;
+  typedef typename parameters_type::concurrency_type concurrency_type;
 
-    typedef typename parameters_type::profiler_type    profiler_t;
-    typedef typename parameters_type::concurrency_type concurrency_type;
+  typedef DCA::cluster_exclusion<parameters_type, MOMS_type> cluster_exclusion_type;
+  typedef DCA::double_counting_correction<parameters_type, MOMS_type> double_counting_correction_type;
 
-    typedef DCA::cluster_exclusion         <parameters_type, MOMS_type> cluster_exclusion_type;
-    typedef DCA::double_counting_correction<parameters_type, MOMS_type> double_counting_correction_type;
+  typedef DCA::coarsegraining_sp<parameters_type, k_DCA> coarsegraining_sp_type;
+  typedef DCA::lattice_map_sp<parameters_type, k_DCA, k_HOST> lattice_map_sp_type;
 
-    typedef DCA::coarsegraining_sp<parameters_type, k_DCA        > coarsegraining_sp_type;
-    typedef DCA::lattice_map_sp   <parameters_type, k_DCA, k_HOST> lattice_map_sp_type;
+  typedef DCA::update_chemical_potential<parameters_type, MOMS_type, coarsegraining_sp_type>
+      update_chemical_potential_type;
 
-    typedef DCA::update_chemical_potential<parameters_type, MOMS_type, coarsegraining_sp_type> update_chemical_potential_type;
+  typedef DCA::cluster_solver<DCA::HIGH_TEMPERATURE_SERIES, LIN_ALG::CPU, parameters_type, MOMS_type>
+      HTS_solver_type;
 
-    typedef DCA::cluster_solver<DCA::HIGH_TEMPERATURE_SERIES, LIN_ALG::CPU, parameters_type, MOMS_type> HTS_solver_type;
+public:
+  DCA_calculation(parameters_type& parameters_ref, MOMS_type& MOMS_ref,
+                  concurrency_type& concurrency_ref);
 
-  public:
+  ~DCA_calculation();
 
-    DCA_calculation(parameters_type&   parameters_ref,
-                    MOMS_type&         MOMS_ref,
-                    concurrency_type&  concurrency_ref);
+  void read();
 
-    ~DCA_calculation();
+  void write();
 
-    void read();
+  void initialize();
 
-    void write();
+  void execute();
 
-    void initialize();
+  void finalize();
 
-    void execute();
+private:
+  void adjust_chemical_potential();
 
-    void finalize();
-  private:
+  void perform_cluster_mapping();
 
-    void adjust_chemical_potential();
+  void perform_cluster_mapping_self_energy();
 
-    void perform_cluster_mapping();
+  void perform_cluster_mapping_Greens_function();
 
-    void perform_cluster_mapping_self_energy();
+  void adjust_coarsegrained_self_energy();
 
-    void perform_cluster_mapping_Greens_function();
+  void perform_cluster_exclusion_step();
 
-    void adjust_coarsegrained_self_energy();
+  double solve_cluster_problem(int DCA_iteration);
 
-    void perform_cluster_exclusion_step();
+  void adjust_impurity_self_energy();
 
-    double solve_cluster_problem(int DCA_iteration);
+  void perform_lattice_mapping();
 
-    void adjust_impurity_self_energy();
+  void perform_lattice_mapping_with_HTS();
+  void perform_lattice_mapping_without_HTS();
 
-    void perform_lattice_mapping();
+  void update_DCA_calculation_data_functions(int DCA_iteration);
 
-    void perform_lattice_mapping_with_HTS();
-    void perform_lattice_mapping_without_HTS();
+private:
+  parameters_type& parameters;
+  MOMS_type& MOMS;
+  concurrency_type& concurrency;
 
-    void update_DCA_calculation_data_functions(int DCA_iteration);
+  DCA_calculation_data DCA_info_struct;
 
-  private:
+  cluster_exclusion_type cluster_exclusion_obj;
+  double_counting_correction_type double_counting_correction_obj;
 
-    parameters_type&            parameters;
-    MOMS_type&                  MOMS;
-    concurrency_type&           concurrency;
+  coarsegraining_sp_type cluster_mapping_obj;
+  lattice_map_sp_type lattice_mapping_obj;
 
-    DCA_calculation_data   DCA_info_struct;
+  update_chemical_potential_type update_chemical_potential_obj;
 
-    cluster_exclusion_type          cluster_exclusion_obj;
-    double_counting_correction_type double_counting_correction_obj;
+  Monte_Carlo_Integrator_type MonteCarloIntegrator;
+};
 
-    coarsegraining_sp_type cluster_mapping_obj;
-    lattice_map_sp_type    lattice_mapping_obj;
+template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
+DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::DCA_calculation(
+    parameters_type& parameters_ref, MOMS_type& MOMS_ref, concurrency_type& concurrency_ref)
+    : parameters(parameters_ref),
+      MOMS(MOMS_ref),
+      concurrency(concurrency_ref),
 
-    update_chemical_potential_type update_chemical_potential_obj;
+      DCA_info_struct(),
 
-    Monte_Carlo_Integrator_type MonteCarloIntegrator;
-  };
+      cluster_exclusion_obj(parameters, MOMS),
+      double_counting_correction_obj(parameters, MOMS),
 
-  template<class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
-  DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::DCA_calculation(parameters_type&   parameters_ref,
-                                                                                            MOMS_type&         MOMS_ref,
-                                                                                            concurrency_type&  concurrency_ref):
-    parameters(parameters_ref),
-    MOMS(MOMS_ref),
-    concurrency(concurrency_ref),
+      cluster_mapping_obj(parameters),
+      lattice_mapping_obj(parameters),
 
-    DCA_info_struct(),
+      update_chemical_potential_obj(parameters, MOMS, cluster_mapping_obj),
 
-    cluster_exclusion_obj         (parameters, MOMS),
-    double_counting_correction_obj(parameters, MOMS),
+      MonteCarloIntegrator(parameters_ref, MOMS_ref) {
+  if (concurrency.id() == concurrency.first())
+    std::cout << "\n\n\t" << __FUNCTION__ << " has started \t" << print_time() << "\n\n";
+}
 
-    cluster_mapping_obj(parameters),
-    lattice_mapping_obj(parameters),
+template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
+DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::~DCA_calculation() {
+  if (concurrency.id() == concurrency.first())
+    std::cout << "\n\n\t" << __FUNCTION__ << " has finished \t" << print_time() << "\n\n";
+}
 
-    update_chemical_potential_obj(parameters, MOMS, cluster_mapping_obj),
+template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
+void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::read() {
+  if (parameters.get_Sigma_file() != "zero")
+    MOMS.read(parameters.get_Sigma_file());
+}
 
-    MonteCarloIntegrator(parameters_ref, MOMS_ref)
-  {
-    if(concurrency.id() == concurrency.first())
-      std::cout << "\n\n\t" << __FUNCTION__ << " has started \t" << print_time() << "\n\n";
-  }
+template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
+void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::write() {
+  IO::FORMAT FORMAT = parameters.get_output_format();
+  std::string file_name = parameters.get_directory() + parameters.get_output_file_name();
 
-  template<class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
-  DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::~DCA_calculation()
-  {
-    if(concurrency.id() == concurrency.first())
-      std::cout << "\n\n\t" << __FUNCTION__ << " has finished \t" << print_time() << "\n\n";
-  }
+  std::cout << "\n\n\t\t start writing " << file_name << "\t" << print_time() << "\n\n";
 
-  template<class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
-  void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::read()
-  {
-    if(parameters.get_Sigma_file() != "zero")
-      MOMS.read(parameters.get_Sigma_file());
-  }
-
-  template<class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
-  void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::write()
-  {
-    IO::FORMAT  FORMAT    = parameters.get_output_format();
-    std::string file_name = parameters.get_directory() + parameters.get_output_file_name();
-
-    std::cout << "\n\n\t\t start writing " << file_name << "\t" << print_time() << "\n\n";
-
-    switch(FORMAT)
+  switch (FORMAT) {
+    case IO::JSON: {
+      IO::writer<IO::JSON> writer;
       {
-      case IO::JSON :
-        {
-          IO::writer<IO::JSON> writer;
-          {
-            writer.open_file(file_name);
+        writer.open_file(file_name);
 
-            parameters          .write(writer);
-            MOMS                .write(writer);
-            MonteCarloIntegrator.write(writer);
-            DCA_info_struct     .write(writer);
+        parameters.write(writer);
+        MOMS.write(writer);
+        MonteCarloIntegrator.write(writer);
+        DCA_info_struct.write(writer);
 
-            writer.close_file();
-          }
-        }
-        break;
-
-      case IO::HDF5 :
-        {
-          IO::writer<IO::HDF5> writer;
-          {
-            writer.open_file(file_name);
-
-            parameters          .write(writer);
-            MOMS                .write(writer);
-            MonteCarloIntegrator.write(writer);
-            DCA_info_struct     .write(writer);
-
-            writer.close_file();
-          }
-        }
-        break;
-
-      default:
-        throw std::logic_error(__FUNCTION__);
+        writer.close_file();
       }
-  }
+    } break;
 
-
-  template<class parameters_type,class MOMS_type, class Monte_Carlo_Integrator_type>
-  void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::initialize()
-  {
-    if(parameters.get_Sigma_file() != "zero")
+    case IO::HDF5: {
+      IO::writer<IO::HDF5> writer;
       {
-        MOMS.initialize_Sigma();
+        writer.open_file(file_name);
 
-        perform_lattice_mapping();
+        parameters.write(writer);
+        MOMS.write(writer);
+        MonteCarloIntegrator.write(writer);
+        DCA_info_struct.write(writer);
+
+        writer.close_file();
       }
+    } break;
+
+    default:
+      throw std::logic_error(__FUNCTION__);
+  }
+}
+
+template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
+void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::initialize() {
+  if (parameters.get_Sigma_file() != "zero") {
+    MOMS.initialize_Sigma();
+
+    perform_lattice_mapping();
+  }
+}
+
+template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
+void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::execute() {
+  for (int i = 0; i < parameters.get_DCA_iterations(); i++) {
+    adjust_chemical_potential();
+
+    perform_cluster_mapping();
+
+    adjust_coarsegrained_self_energy();  // double-counting-correction
+
+    perform_cluster_exclusion_step();
+
+    double L2_Sigma_difference =
+        solve_cluster_problem(i);  // returned from cluster_solver::finalize
+
+    adjust_impurity_self_energy();  // double-counting-correction
+
+    perform_lattice_mapping();
+
+    update_DCA_calculation_data_functions(i);
+
+    if (L2_Sigma_difference <
+        parameters.get_DCA_accuracy())  // set the acquired accuracy on |Sigma_QMC - Sigma_cg|
+      break;
+  }
+}
+
+template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
+void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::finalize() {
+  perform_cluster_mapping_self_energy();
+
+  MOMS.compute_Sigma_bands();
+
+  MOMS.compute_single_particle_properties();
+}
+
+template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
+void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::adjust_chemical_potential() {
+  if (parameters.adjust_chemical_potential())
+    update_chemical_potential_obj.execute();
+}
+
+template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
+void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::perform_cluster_mapping() {
+  perform_cluster_mapping_self_energy();
+
+  perform_cluster_mapping_Greens_function();
+
+  // perform_cluster_exclusion_step();
+}
+
+template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
+void DCA_calculation<parameters_type, MOMS_type,
+                     Monte_Carlo_Integrator_type>::perform_cluster_mapping_self_energy() {
+  if (concurrency.id() == 0)
+    std::cout << "\n\t\t coarsegrain-Selfenergy " << print_time();
+
+  profiler_t profiler("coarsegrain-Selfenergy", "DCA", __LINE__);
+
+  if (parameters.use_interpolated_Self_energy())
+    cluster_mapping_obj.compute_S_K_w(MOMS.Sigma_lattice, MOMS.Sigma_cluster);
+  else
+    MOMS.Sigma_cluster = MOMS.Sigma;
+
+  MOMS.print_Sigma_QMC_versus_Sigma_cg();
+
+  symmetrize::execute(MOMS.Sigma_cluster, MOMS.H_symmetry);
+}
+
+template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
+void DCA_calculation<parameters_type, MOMS_type,
+                     Monte_Carlo_Integrator_type>::perform_cluster_mapping_Greens_function() {
+  if (concurrency.id() == 0)
+    std::cout << "\n\t\t coarsegrain-Greens-function " << print_time();
+
+  profiler_t profiler("coarsegrain-Greens-function", "DCA", __LINE__);
+
+  if (parameters.use_interpolated_Self_energy())
+    cluster_mapping_obj.compute_G_K_w(MOMS.H_HOST, MOMS.Sigma_lattice, MOMS.G_k_w);
+  else
+    cluster_mapping_obj.compute_G_K_w(MOMS.H_HOST, MOMS.Sigma, MOMS.G_k_w);
+
+  symmetrize::execute(MOMS.G_k_w, MOMS.H_symmetry);
+}
+
+template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
+void DCA_calculation<parameters_type, MOMS_type,
+                     Monte_Carlo_Integrator_type>::adjust_coarsegrained_self_energy() {
+  double_counting_correction_obj.execute_before_solver();
+}
+
+template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
+void DCA_calculation<parameters_type, MOMS_type,
+                     Monte_Carlo_Integrator_type>::perform_cluster_exclusion_step() {
+  if (concurrency.id() == 0)
+    std::cout << "\n\t\t cluster-exclusion-step " << print_time();
+
+  profiler_t profiler("cluster-exclusion-step", "DCA", __LINE__);
+
+  cluster_exclusion_obj.execute();
+}
+
+template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
+double DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::solve_cluster_problem(
+    int DCA_iteration) {
+  {
+    profiler_t profiler("initialize cluster-solver", "DCA", __LINE__);
+    MonteCarloIntegrator.initialize(DCA_iteration);
   }
 
-  template<class parameters_type,class MOMS_type, class Monte_Carlo_Integrator_type>
-  void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::execute()
   {
-    for(int i=0; i<parameters.get_DCA_iterations(); i++)
-      {
-        adjust_chemical_potential();
-
-        perform_cluster_mapping();
-
-        adjust_coarsegrained_self_energy(); // double-counting-correction
-
-        perform_cluster_exclusion_step();
-
-        double L2_Sigma_difference = solve_cluster_problem(i);  // returned from cluster_solver::finalize
-
-        adjust_impurity_self_energy(); // double-counting-correction
-
-        perform_lattice_mapping();
-
-        update_DCA_calculation_data_functions(i);
-        
-        if (L2_Sigma_difference < parameters.get_DCA_accuracy())  // set the acquired accuracy on |Sigma_QMC - Sigma_cg|
-          break;
-      }
+    profiler_t profiler("Quantum Monte Carlo integration", "DCA", __LINE__);
+    MonteCarloIntegrator.integrate();
   }
 
-  template<class parameters_type,class MOMS_type, class Monte_Carlo_Integrator_type>
-  void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::finalize()
   {
-    perform_cluster_mapping_self_energy();
+    profiler_t profiler("finalize cluster-solver", "DCA", __LINE__);
+    double L2_Sigma_difference = MonteCarloIntegrator.finalize(DCA_info_struct);
 
-    MOMS.compute_Sigma_bands();
-
-    MOMS.compute_single_particle_properties();
+    return L2_Sigma_difference;
   }
+}
 
-  template<class parameters_type,class MOMS_type, class Monte_Carlo_Integrator_type>
-  void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::adjust_chemical_potential()
-  {
-    if(parameters.adjust_chemical_potential())
-      update_chemical_potential_obj.execute();
-  }
+template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
+void DCA_calculation<parameters_type, MOMS_type,
+                     Monte_Carlo_Integrator_type>::adjust_impurity_self_energy() {
+  double_counting_correction_obj.execute_after_solver();
+}
 
-  template<class parameters_type,class MOMS_type, class Monte_Carlo_Integrator_type>
-  void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::perform_cluster_mapping()
-  {
-    perform_cluster_mapping_self_energy();
+template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
+void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::perform_lattice_mapping() {
+  profiler_t profiler("lattice-mapping", "DCA", __LINE__);
 
-    perform_cluster_mapping_Greens_function();
+  if (concurrency.id() == 0)
+    std::cout << "\n\t\t lattice-mapping " << print_time();
 
-    //perform_cluster_exclusion_step();
-  }
+  if (parameters.use_interpolated_Self_energy()) {
+    if (parameters.use_HTS_approximation()) {
+      MOMS_type MOMS_HTS(parameters);
 
-  template<class parameters_type,class MOMS_type, class Monte_Carlo_Integrator_type>
-  void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::perform_cluster_mapping_self_energy()
-  {
-    if(concurrency.id()==0)
-      std::cout << "\n\t\t coarsegrain-Selfenergy " << print_time();
+      MOMS_HTS.H_HOST = MOMS.H_HOST;
+      MOMS_HTS.H_interactions = MOMS.H_interactions;
 
-    profiler_t profiler("coarsegrain-Selfenergy", "DCA", __LINE__);
+      HTS_solver_type HTS_solver(parameters, MOMS_HTS);
 
-    if(parameters.use_interpolated_Self_energy())
-      cluster_mapping_obj.compute_S_K_w(MOMS.Sigma_lattice, MOMS.Sigma_cluster);
-    else
-      MOMS.Sigma_cluster = MOMS.Sigma;
-
-    MOMS.print_Sigma_QMC_versus_Sigma_cg();
-
-    symmetrize::execute(MOMS.Sigma_cluster, MOMS.H_symmetry);
-  }
-
-  template<class parameters_type,class MOMS_type, class Monte_Carlo_Integrator_type>
-  void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::perform_cluster_mapping_Greens_function()
-  {
-    if(concurrency.id()==0)
-      std::cout << "\n\t\t coarsegrain-Greens-function " << print_time();
-
-    profiler_t profiler("coarsegrain-Greens-function", "DCA", __LINE__);
-
-    if(parameters.use_interpolated_Self_energy())
-      cluster_mapping_obj.compute_G_K_w(MOMS.H_HOST, MOMS.Sigma_lattice, MOMS.G_k_w);
-    else
-      cluster_mapping_obj.compute_G_K_w(MOMS.H_HOST, MOMS.Sigma        , MOMS.G_k_w);
-
-    symmetrize::execute(MOMS.G_k_w, MOMS.H_symmetry);
-  }
-
-  template<class parameters_type,class MOMS_type, class Monte_Carlo_Integrator_type>
-  void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::adjust_coarsegrained_self_energy()
-  {
-    double_counting_correction_obj.execute_before_solver();
-  }
-
-  template<class parameters_type,class MOMS_type, class Monte_Carlo_Integrator_type>
-  void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::perform_cluster_exclusion_step()
-  {
-    if(concurrency.id()==0)
-      std::cout << "\n\t\t cluster-exclusion-step " << print_time();
-
-    profiler_t profiler("cluster-exclusion-step", "DCA", __LINE__);
-
-    cluster_exclusion_obj.execute();
-  }
-
-  template<class parameters_type,class MOMS_type, class Monte_Carlo_Integrator_type>
-  double DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::solve_cluster_problem(int DCA_iteration)
-  {
-    {
-      profiler_t profiler("initialize cluster-solver", "DCA", __LINE__);
-      MonteCarloIntegrator.initialize(DCA_iteration);
+      lattice_mapping_obj.execute_with_HTS_approximation(
+          MOMS_HTS, HTS_solver, cluster_mapping_obj, MOMS.Sigma, MOMS.Sigma_lattice_interpolated,
+          MOMS.Sigma_lattice_coarsegrained, MOMS.Sigma_lattice);
     }
-
-    {
-      profiler_t profiler("Quantum Monte Carlo integration", "DCA", __LINE__);
-      MonteCarloIntegrator.integrate();
-    }
-
-    {
-      profiler_t profiler("finalize cluster-solver", "DCA", __LINE__);
-      double L2_Sigma_difference = MonteCarloIntegrator.finalize(DCA_info_struct);
-      
-      return L2_Sigma_difference;
+    else {
+      lattice_mapping_obj.execute(MOMS.Sigma, MOMS.Sigma_lattice_interpolated,
+                                  MOMS.Sigma_lattice_coarsegrained, MOMS.Sigma_lattice);
     }
   }
+}
 
-  template<class parameters_type,class MOMS_type, class Monte_Carlo_Integrator_type>
-  void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::adjust_impurity_self_energy()
-  {
-    double_counting_correction_obj.execute_after_solver();
+template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
+void DCA_calculation<parameters_type, MOMS_type,
+                     Monte_Carlo_Integrator_type>::update_DCA_calculation_data_functions(int i) {
+  DCA_info_struct.density(i) = update_chemical_potential_obj.compute_density();
+  DCA_info_struct.chemical_potential(i) = parameters.get_chemical_potential();
+
+  if (concurrency.id() == 0) {
+    std::cout << "\n\n\t\t\t total-density : " << DCA_info_struct.density(i)
+              << "\t (time : " << print_time() << ")\n\n";
   }
 
-  template<class parameters_type,class MOMS_type, class Monte_Carlo_Integrator_type>
-  void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::perform_lattice_mapping()
-  {
-    profiler_t profiler("lattice-mapping", "DCA", __LINE__);
+  for (int l1 = 0; l1 < b::dmn_size() * s::dmn_size(); l1++)
+    DCA_info_struct.orbital_occupancies(l1, i) = MOMS.orbital_occupancy(l1);
 
-    if(concurrency.id()==0)
-      std::cout << "\n\t\t lattice-mapping " << print_time();
+  for (int l1 = 0; l1 < b::dmn_size() * s::dmn_size(); l1++)
+    for (int k_ind = 0; k_ind < k_DCA::dmn_size(); k_ind++)
+      DCA_info_struct.n_k(l1, k_ind, i) = 1. - MOMS.G_k_t(l1, l1, k_ind, 0);
 
-    if(parameters.use_interpolated_Self_energy())
-      {
-        if(parameters.use_HTS_approximation())
-          {
-            MOMS_type MOMS_HTS(parameters);
-
-            MOMS_HTS.H_HOST         = MOMS.H_HOST;
-            MOMS_HTS.H_interactions = MOMS.H_interactions;
-
-            HTS_solver_type HTS_solver(parameters, MOMS_HTS);
-
-            lattice_mapping_obj.execute_with_HTS_approximation(MOMS_HTS, HTS_solver, cluster_mapping_obj,
-                                                               MOMS.Sigma, MOMS.Sigma_lattice_interpolated, MOMS.Sigma_lattice_coarsegrained, MOMS.Sigma_lattice);
-          }
-        else
-          {
-            lattice_mapping_obj.execute(MOMS.Sigma, MOMS.Sigma_lattice_interpolated, MOMS.Sigma_lattice_coarsegrained, MOMS.Sigma_lattice);
-          }
-      }
-  }
-
-  template<class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
-  void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::update_DCA_calculation_data_functions(int i)
-  {
-    DCA_info_struct.density           (i) = update_chemical_potential_obj.compute_density();
-    DCA_info_struct.chemical_potential(i) = parameters.get_chemical_potential();
-
-    if(concurrency.id()==0)
-      {
-        std::cout << "\n\n\t\t\t total-density : " << DCA_info_struct.density(i) << "\t (time : " << print_time() << ")\n\n";
-      }
-
-    for(int l1=0; l1<b::dmn_size()*s::dmn_size(); l1++)
-      DCA_info_struct.orbital_occupancies(l1, i) = MOMS.orbital_occupancy(l1);
-
-    for(int l1=0; l1<b::dmn_size()*s::dmn_size(); l1++)
-      for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++)
-        DCA_info_struct.n_k(l1, k_ind, i) = 1.-MOMS.G_k_t(l1,l1,k_ind,0);
-
-    for(int l1=0; l1<b::dmn_size()*s::dmn_size(); l1++)
-      for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++)
-        DCA_info_struct.A_k(l1, k_ind, i) = MOMS.G_k_t(l1,l1,k_ind,parameters.get_sp_time_intervals()/2)*parameters.get_beta()/M_PI;
-  }
+  for (int l1 = 0; l1 < b::dmn_size() * s::dmn_size(); l1++)
+    for (int k_ind = 0; k_ind < k_DCA::dmn_size(); k_ind++)
+      DCA_info_struct.A_k(l1, k_ind, i) =
+          MOMS.G_k_t(l1, l1, k_ind, parameters.get_sp_time_intervals() / 2) *
+          parameters.get_beta() / M_PI;
+}
 }
 
 #endif

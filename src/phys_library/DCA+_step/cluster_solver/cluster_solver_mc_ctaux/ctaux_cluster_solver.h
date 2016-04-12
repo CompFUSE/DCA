@@ -2,9 +2,12 @@
 
 #ifndef DCA_QMCI_CTAUX_CLUSTER_SOLVER_H
 #define DCA_QMCI_CTAUX_CLUSTER_SOLVER_H
-#include "phys_library/domain_types.hpp"
+
+#include "math_library/statistical_methods.h"
 #include "dca/math_library/random_number_library/random_number_library.hpp"
-using namespace types;
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_template.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_accumulator.h"
 
 namespace DCA {
 /*!

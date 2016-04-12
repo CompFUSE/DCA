@@ -1,0 +1,7 @@
+#ifndef MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_H
+#define MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_H
+#include "tetrahedron_template.h"
+#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron_implementation/tetrahedron_1D.h"
+#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron_implementation/tetrahedron_2D.h"
+#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron_implementation/tetrahedron_3D.h"
+#endif
