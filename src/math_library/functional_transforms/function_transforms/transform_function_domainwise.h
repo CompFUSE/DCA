@@ -7,7 +7,7 @@
 #include "comp_library/function_library/include_function_library.h"
 #include "math_library/typedefs.hpp"
 //#include "math_library/functional_transforms/domain_transforms/domain_transforms.hpp"
-#include <dca/util/type_list.hpp>
+#include <include/dca/util/type_list.hpp>
 using dca::util::IndexOf;
 
 namespace math_algorithms {

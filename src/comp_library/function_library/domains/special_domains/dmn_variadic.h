@@ -20,8 +20,8 @@
 #include <iterator>
 #include <algorithm>
 
-#include <dca/util/type_list.hpp>
-#include <dca/util/type_utils.hpp>
+#include <include/dca/util/type_list.hpp>
+#include <include/dca/util/type_utils.hpp>
 #include "comp_library/function_library/domains/domain.h"
 
 //----------------------------------------------------------------------------

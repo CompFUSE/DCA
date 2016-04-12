@@ -4,7 +4,7 @@
 #define NULL_SYMMETRY_H
 
 #include "phys_library/domains/cluster/symmetries/point_group.h"
-#include "dca/util/type_list.hpp"
+#include "include/dca/util/type_list.hpp"
 
 /*!
  *  \author: Peter Staar

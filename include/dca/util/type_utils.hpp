@@ -9,7 +9,7 @@
 #include <memory>
 #include <string>
 
-#include <dca/util/type_list.hpp>
+#include <include/dca/util/type_list.hpp>
 
 // forward declare these templates so we can use them in print functions
 // @TODO, move the domain print type functions to the domain classes
@@ -116,44 +116,47 @@ namespace dca {
             }
         };
 
-        // dmn_variadic prints out all subdomains recursively via pack expansion
-        template<typename ... Domains>
+        // dmn_variadic prints out all subdomains recursively in left-to-right order via pack
+        // expansion.
+        template <typename... Domains>
         struct print_type<dmn_variadic<Domains...>> {
-            static void print() {
-                print(std::cout);
-            }
-            // we can't expand a pack out without passing it as a parameter
-            // so expand the pack as a parameter list, and drop dummy return values
-            // use func(),0 because func() returns void
-            static void print(std::ostream &s) {
-                ignore_returnvalues((print_type<Domains>::print(s),0)...);
-            }
+          static void print() {
+            print(std::cout);
+          }
+
+          // The std::initialize_list guarantees that the expressions that calculate its arguments
+          // are executed in left-to-right order. It should have no overhead.
+          // (http://florianjw.de/en/variadic_templates.html)
+          // The void cast inside the initializer-list is a a precaution against potential
+          // overloaded comma operators. Acutally it would be nicer to use lambda expressions
+          // instead of the comma operator but a bug in gcc prevents us from doing this.
+          static void print(std::ostream& s) {
+            (void)std::initializer_list<int>{((void)print_type<Domains>::print(s), 0)...};
+          }
         };
 
-        // dmn_variadic prints out all subdomains recursively via pack expansion
-        template<typename Domain, typename ... Domains>
+        // Typelist prints out all subdomains recursively in left-to-right oder via pack expansion.
+        template <typename Domain, typename... Domains>
         struct print_type<dca::util::Typelist<Domain, Domains...>> {
-            static void print() {
-                print(std::cout);
-            }
-            // we can't expand a pack out without passing it as a parameter
-            // so expand the pack as a parameter list, and drop dummy return values
-            // use func(),0 because func() returns void
-            static void print(std::ostream &s) {
-                ignore_returnvalues((print_type<Domains>::print(s),0)...);
-            }
+          static void print() {
+            print(std::cout);
+          }
+          // Reuse dmn_variadic variant.
+          static void print(std::ostream& s) {
+            print_type<dmn_variadic<Domain, Domains...>>::print(s);
+          }
 
-            static void to_JSON(std::ostream &s) {
-                s << "\"";
-                print_type<Domain>::to_JSON(s);
-                if (sizeof...(Domains)==0) {
-                    s << "\"\n";
-                }
-                else {
-                    s << "\",\n";
-                    print_type<dca::util::Typelist<Domains...>>::to_JSON(s);
-                }
+          static void to_JSON(std::ostream& s) {
+            s << "\"";
+            print_type<Domain>::to_JSON(s);
+            if (sizeof...(Domains) == 0) {
+              s << "\"\n";
             }
+            else {
+              s << "\",\n";
+              print_type<dca::util::Typelist<Domains...>>::to_JSON(s);
+            }
+          }
         };
 
     } // namespace util
