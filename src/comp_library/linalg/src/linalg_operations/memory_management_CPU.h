@@ -3,6 +3,9 @@
 #ifndef LIN_ALG_MEMORY_MANAGEMENT_CPU_H
 #define LIN_ALG_MEMORY_MANAGEMENT_CPU_H
 
+#include "dca/util/type_list.hpp"
+using dca::util::ignore_returnvalues;
+
 namespace LIN_ALG {
 
 namespace MEMORY_MANAGEMENT_ON_GPU {
@@ -43,11 +46,11 @@ public:
   inline static void allocate(scalartype*& ptr, int global_size) {
     assert(ptr == NULL);
 #ifdef ENABLE_PINNED_MEMORY_ALLOCATION
-    int err = MEMORY_MANAGEMENT_ON_GPU::allocate_pinned_host_memory(ptr, global_size);
+    ignore_returnvalues(MEMORY_MANAGEMENT_ON_GPU::allocate_pinned_host_memory(ptr, global_size));
 #else
-    int err = posix_memalign((void**)&ptr, 128, global_size * sizeof(scalartype));
+    ignore_returnvalues(posix_memalign((void**)&ptr, 128, global_size * sizeof(scalartype)));
 #endif
-    assert(not err);
+
     assert(ptr != NULL);
   }
 
@@ -55,13 +58,13 @@ public:
   inline static void allocate(scalartype*& ptr, std::pair<int, int>& global_size) {
     assert(ptr == NULL);
 #ifdef ENABLE_PINNED_MEMORY_ALLOCATION
-    int err = MEMORY_MANAGEMENT_ON_GPU::allocate_pinned_host_memory(ptr, global_size);
+    ignore_returnvalues(MEMORY_MANAGEMENT_ON_GPU::allocate_pinned_host_memory(ptr, global_size));
 #else
-    int err = posix_memalign((void**)&ptr, 128,
-                              global_size.first * global_size.second * sizeof(scalartype));
+    ignore_returnvalues( posix_memalign((void**)&ptr, 128,
+                              global_size.first * global_size.second * sizeof(scalartype)) );
 #endif
 
-    assert(not err);
+
     assert(ptr != NULL);
   }
 
@@ -69,8 +72,8 @@ public:
   inline static void deallocate(scalartype*& ptr) {
     assert(ptr != NULL);
 #ifdef ENABLE_PINNED_MEMORY_ALLOCATION
-    int err = MEMORY_MANAGEMENT_ON_GPU::deallocate_pinned_host_memory(ptr);
-    assert(not err);
+    ignore_returnvalues(MEMORY_MANAGEMENT_ON_GPU::deallocate_pinned_host_memory(ptr));
+
 #else
     free(ptr);
 #endif
