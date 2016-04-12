@@ -1,8 +1,16 @@
 #!/bin/bash
+# Author: Giovanni Balduzzi
 #
-# Sources the easybuild setup script specifiying /project/s299/easybuild/daint
-# as the project directory and afterwards loads the DCA++ module created with
-# easybuild.
+# Sources the easybuild setup script specifing the project eb directory 
+# and afterwards loads the DCA++ module created with easybuild.
+#
+# USAGE:
+# source load_EB_DCA++.bash <eb load script> <eb build folder>
+#     compile DCA in your build directory by using:
+# cmake -C ${DCA_SOURCE}/build-aux/Cray_EB_(CPU/GPU).cmake ${DCA_SOURCE}
+#
+# NOTE: You might want to modify the toolchain in this script
+#       and the cuda-toolkit  minor version in DCA++-CMake-CrayGNU-2015.11.eb
 
 #default inputs
 ############################################################################################################
@@ -12,7 +20,7 @@ TOOLCHAIN="" #leave empty for default CrayGnu,2015.11
 ############################################################################################################
 
 
-#if the arguments are provided loas eb into from $1 and build into $2
+#if the arguments are provided loads eb into from $1 and build into $2
 #else revert to default.
 if [ "$#" -eq 3 ]; then
 EB_SCRIPT=$1
@@ -23,9 +31,10 @@ EB_SCRIPT=$DEFAULT_EB_SCRIPT
 EB_FOLDER=$DEFAULT_EB_FOLDER
 fi
 echo "Loading easybild from $EB_SCRIPT into $EB_FOLDER"
-
 source $EB_SCRIPT  $EB_FOLDER
-source export DCA_SOURCE="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+export DCA_SOURCE="$(cd "$( dirname "${BASH_SOURCE[0]}" )"/../ && pwd )"
+
 echo "running scripts in ${DCA_SOURCE}/easybuild"
 export EASYBUILD_ROBOT_PATHS=$DCA_SOURCE/easybuild:$EASYBUILD_ROBOT_PATHS
 if [ $TOOLCHAIN="" ]; then
