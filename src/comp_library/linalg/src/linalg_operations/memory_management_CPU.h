@@ -3,7 +3,7 @@
 #ifndef LIN_ALG_MEMORY_MANAGEMENT_CPU_H
 #define LIN_ALG_MEMORY_MANAGEMENT_CPU_H
 
-#include "dca/util/type_list.hpp"
+#include "include/dca/util/type_list.hpp"
 using dca::util::ignore_returnvalues;
 
 namespace LIN_ALG {
