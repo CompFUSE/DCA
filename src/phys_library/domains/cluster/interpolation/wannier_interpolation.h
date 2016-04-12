@@ -3,7 +3,7 @@
 #ifndef WANNIER_INTERPOLATION_H
 #define WANNIER_INTERPOLATION_H
 
-#include <dca/util/type_utils.hpp>
+#include <include/dca/util/type_utils.hpp>
 using namespace dca::util;
 
 

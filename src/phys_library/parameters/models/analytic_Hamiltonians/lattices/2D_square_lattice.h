@@ -6,7 +6,7 @@
 #include "phys_library/domains/cluster/symmetries/point_groups/No_symmetry.h"
 #include "comp_library/function_library/function.h"
 #include "phys_library/domains/cluster/cluster_operations.hpp"
-#include "dca/util/type_list.hpp"
+#include "include/dca/util/type_list.hpp"
 using dca::util::TypeAt;
 
 /*!

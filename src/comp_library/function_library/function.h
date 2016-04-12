@@ -5,7 +5,7 @@
 
 #include <cassert>
 //
-#include <dca/util/type_utils.hpp>
+#include <include/dca/util/type_utils.hpp>
 #include "scalar_cast_methods.h"
 #include "comp_library/function_library/function_operations/set_to_zero.h"
 #include "comp_library/function_library/function_operations/copy_from.h"

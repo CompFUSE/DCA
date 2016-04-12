@@ -31,7 +31,7 @@ dca_add_config_define(DCA_SOURCE_DIRECTORY \"${PROJECT_SOURCE_DIR}\")
 #------------------------------------------------------------------------------
 # include dirs
 #------------------------------------------------------------------------------
-# include the binary dir for generated "dca/config/defines.hpp"
+# include the binary dir for generated "include/dca/config/defines.hpp"
 include_directories(${PROJECT_BINARY_DIR})
 
 # include the root offset for "dca/.../.../" #includes
@@ -123,7 +123,7 @@ endif()
 #------------------------------------------------------------------------------
 # Global defines.hpp file
 #------------------------------------------------------------------------------
-write_global_definitions_file("dca/config/defines.hpp")
+write_global_definitions_file("include/dca/config/defines.hpp")
 
 #------------------------------------------------------------------------------
 # Testing

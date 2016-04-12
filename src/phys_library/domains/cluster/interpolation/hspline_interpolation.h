@@ -3,7 +3,7 @@
 #ifndef HSPLINE_INTERPOLATION_ALGORITHM_H
 #define HSPLINE_INTERPOLATION_ALGORITHM_H
 
-#include <dca/util/type_utils.hpp>
+#include <include/dca/util/type_utils.hpp>
 
 /*!
  *  \class   hspline_interpolation_domain_type
