@@ -3,6 +3,10 @@
 #ifndef TRIANGULAR_LATTICE_2D_H
 #define TRIANGULAR_LATTICE_2D_H
 
+#include "phys_library/domains/cluster/symmetries/point_groups/No_symmetry.h"
+#include "comp_library/function_library/function.h"
+#include "phys_library/domains/cluster/cluster_operations.hpp"
+
 /*!
  *      Author: peter staar
  */
