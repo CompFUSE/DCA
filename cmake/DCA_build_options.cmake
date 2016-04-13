@@ -52,7 +52,7 @@ endif()
 
 # Choose the random number generator.
 #The first two options are from Numerical Recipes, the last from the standard Mersenne Twistor.
-set(DCA_RNG "RAN" CACHE STRING "Choose the random number generator, options are: RAN | RANQ2 | MT.")
+set(DCA_RNG "RANQ2" CACHE STRING "Choose the random number generator, options are: RAN | RANQ2 | MT." FORCE)
 if (${DCA_RNG} STREQUAL "RANQ2")
   add_definitions(-D CMAKE_RNG=rng::ranq2)
 elseif(${DCA_RNG} STREQUAL "RAN")
