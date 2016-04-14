@@ -1,5 +1,4 @@
 //-*-C++-*-
-//TODO doing(Giovanni):fix the seeding
 
 #ifndef PARALLELIZATION_LIBRARY_POSIX_LIBRARY_H
 #define PARALLELIZATION_LIBRARY_POSIX_LIBRARY_H

@@ -184,10 +184,6 @@ namespace DCA
     parameters(parameters_ref),
     concurrency(parameters.get_concurrency()),
 
-    rng(concurrency.id(),
-        concurrency.number_of_processors(),
-        concurrency.get_seed()),
-
     cpe_obj(parameters, concurrency),
 
     G_k_beta_over_2               ("G_k_beta_over_2"),
@@ -211,7 +207,9 @@ namespace DCA
 
     f_measured       ("f-measured"),
     f_measured_stddev("f-measured-stddev")
-  {}
+  {
+    rng.set_seed(concurrency.id());
+  }
 
   template<class parameters_type, class basis_function_t>
   compute_spectrum<parameters_type, basis_function_t>::~compute_spectrum()
