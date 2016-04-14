@@ -14,7 +14,7 @@
 #ifndef DMN_0_H
 #define DMN_0_H
 
-#include <include/dca/util/type_list.hpp>
+#include <dca/util/type_list.hpp>
 #include "comp_library/function_library/domains/domain.h"
 
 template<typename parameters>

@@ -41,7 +41,7 @@
 
 
 // typelist-operations
-#include <include/dca/util/type_list.hpp>
+#include <dca/util/type_list.hpp>
 using namespace dca::util;
 
 // enumerations

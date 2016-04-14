@@ -9,7 +9,7 @@
 #include <memory>
 #include <string>
 
-#include <include/dca/util/type_list.hpp>
+#include <dca/util/type_list.hpp>
 
 // forward declare these templates so we can use them in print functions
 // @TODO, move the domain print type functions to the domain classes

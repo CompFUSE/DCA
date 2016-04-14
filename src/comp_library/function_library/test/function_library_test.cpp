@@ -17,9 +17,9 @@
 #include <iomanip>
 #include <cstdio>
 //
-#include "include/dca/config/defines.hpp"
-#include "include/dca/util/type_utils.hpp"
-#include "include/dca/util/type_list.hpp"
+#include "dca/config/defines.hpp"
+#include "dca/util/type_utils.hpp"
+#include "dca/util/type_list.hpp"
 //
 #include <gtest/gtest.h>
 //

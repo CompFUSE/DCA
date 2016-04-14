@@ -6,7 +6,7 @@
 #include "phys_library/domains/cluster/symmetries/symmetry_operations/identity_operation.h"
 #include "phys_library/domains/cluster/symmetries/symmetry_operations/2D/Cn.h"
 #include "phys_library/domains/cluster/symmetries/symmetry_operations/2D/Sn.h"
-#include "include/dca/util/type_list.hpp"
+#include "dca/util/type_list.hpp"
 using dca::util::Typelist;
 /*!
  *  \author: Peter Staar

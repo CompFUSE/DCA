@@ -31,10 +31,15 @@ dca_add_config_define(DCA_SOURCE_DIRECTORY \"${PROJECT_SOURCE_DIR}\")
 #------------------------------------------------------------------------------
 # include dirs
 #------------------------------------------------------------------------------
-# include the binary dir for generated "include/dca/config/defines.hpp"
-include_directories(${PROJECT_BINARY_DIR})
+# For including the generated "dca/config/defines.hpp".
+include_directories(${PROJECT_BINARY_DIR}/include)
 
-# include the root offset for "dca/.../.../" #includes
+# For <dca/.../...> #includes.
+include_directories(${PROJECT_SOURCE_DIR}/include)
+
+# For "src/.../..." includes.
+# Note that these includes should disappear over time since header files should
+# be moved into include/dca/.../ and included via #include <dca/.../...>.
 include_directories(${PROJECT_SOURCE_DIR})
 
 #------------------------------------------------------------------------------
