@@ -26,9 +26,6 @@ namespace COMP_LIB
     int first();
     int last ();
 
-    void set_seed(long seed);
-    long get_seed();
-
     template<typename object_type>
     bool broadcast(object_type& object, int root_id=0);
 
@@ -41,17 +38,13 @@ namespace COMP_LIB
   private:
 
     processor_grouping<LIBRARY> group;
-
-    long SEED;
   };
 
   template<PARALLELIZATION_LIBRARY_NAMES LIBRARY>
   parallelization<LIBRARY>::parallelization(int /*argc*/, char */*argv*/[]):
     print_on_shell_interface<LIBRARY>(group),
     packing_interface       <LIBRARY>(group),
-    collective_sum_interface<LIBRARY>(group),
-    
-    SEED(0)
+    collective_sum_interface<LIBRARY>(group)
   {}
 
   template<PARALLELIZATION_LIBRARY_NAMES LIBRARY>
@@ -82,20 +75,6 @@ namespace COMP_LIB
     return 0;
   }
 
-  template<PARALLELIZATION_LIBRARY_NAMES LIBRARY>
-  long parallelization<LIBRARY>::get_seed()
-  {
-    return SEED;
-  }
-
-  template<PARALLELIZATION_LIBRARY_NAMES LIBRARY>
-  void parallelization<LIBRARY>::set_seed(long seed)
-  {
-    srand(seed);
-
-    for(int l=0; l<=id(); l++)
-      SEED = rand();
-  }
 
   template<PARALLELIZATION_LIBRARY_NAMES LIBRARY>
   template<typename object_type>

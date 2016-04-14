@@ -17,7 +17,6 @@ namespace COMP_LIB
     int  id;
     int  nr_threads;
 
-    long seed;
 
     void* args;
   };
@@ -25,9 +24,6 @@ namespace COMP_LIB
   posix_data::posix_data():
     id(-1),
     nr_threads(-1),
-   
-    seed(-1),
-
     args(NULL)
   {}
 
@@ -45,7 +41,7 @@ namespace COMP_LIB
     processor_grouping();
     ~processor_grouping();
 
-    void fork(int N, long SEED, void * (*start_routine)(void *), void *arg);
+    void fork(int N, void * (*start_routine)(void *), void *arg);
     void join();
 
   private:
@@ -62,10 +58,8 @@ namespace COMP_LIB
   processor_grouping<POSIX_LIBRARY>::~processor_grouping()
   {}
 
-  void processor_grouping<POSIX_LIBRARY>::fork(int N, long seed, void* (*routine)(void *), void *arg)
+  void processor_grouping<POSIX_LIBRARY>::fork(int N, void* (*routine)(void *), void *arg)
   {
-    srand(seed);
-
     pthread_vector.resize(N);
     data_vector   .resize(N);
 
@@ -73,8 +67,6 @@ namespace COMP_LIB
       {
 	data_vector[l].id         = l;
 	data_vector[l].nr_threads = N;
-	
-	data_vector[l].seed = rand();
 
 	data_vector[l].args = arg;
 	

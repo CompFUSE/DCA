@@ -1,5 +1,5 @@
 //-*-C++-*-
-//TODO fix the seeding
+//TODO doing(Giovanni):fix the seeding
 
 #ifndef PARALLELIZATION_LIBRARY_POSIX_LIBRARY_H
 #define PARALLELIZATION_LIBRARY_POSIX_LIBRARY_H
@@ -20,9 +20,6 @@ namespace COMP_LIB
 
     void execute(int N, void * (*start_routine)(void *), void *arg);
 
-    void set_seed(long seed);
-    long get_seed();
-
     template<typename domain_t>
     static std::pair<int, int> get_bounds(int       id,
                                           int       N,
@@ -41,11 +38,9 @@ namespace COMP_LIB
 
     processor_grouping<POSIX_LIBRARY> group;
 
-    long SEED;
   };
 
-  parallelization<POSIX_LIBRARY>::parallelization():
-    SEED(0)
+  parallelization<POSIX_LIBRARY>::parallelization()
   {}
 
   parallelization<POSIX_LIBRARY>::~parallelization()
@@ -53,13 +48,13 @@ namespace COMP_LIB
 
   void parallelization<POSIX_LIBRARY>::execute(int N, void * (*start_routine)(void *), void* arg)
   {
-    group.fork(N, SEED, start_routine, arg);
+    group.fork(N, start_routine, arg);
     group.join();
   }
 
   void parallelization<POSIX_LIBRARY>::fork(int N, void * (*start_routine)(void *), void* arg)
   {
-    group.fork(N, SEED, start_routine, arg);
+    group.fork(N, start_routine, arg);
   }
 
   void parallelization<POSIX_LIBRARY>::join()
@@ -67,15 +62,6 @@ namespace COMP_LIB
     group.join();
   }
 
-  long parallelization<POSIX_LIBRARY>::get_seed()
-  {
-    return SEED;
-  }
-
-  void parallelization<POSIX_LIBRARY>::set_seed(long seed)
-  {
-    SEED = seed;
-  }
 
   template<typename domain_t>
   std::pair<int, int> parallelization<POSIX_LIBRARY>::get_bounds(int       id,
