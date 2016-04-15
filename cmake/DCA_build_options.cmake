@@ -52,15 +52,17 @@ endif()
 
 # Choose the random number generator.
 #The first two options are from Numerical Recipes, the last from the standard Mersenne Twistor.
-set(DCA_RNG "RANQ2" CACHE STRING "Choose the random number generator, options are: RAN | RANQ2 | MT." FORCE)
+set(DCA_RNG "SPRNG" CACHE STRING  "Choose the random number generator, options are: SPRNG | RAN | RANQ2 | MT.")
 if (${DCA_RNG} STREQUAL "RANQ2")
   add_definitions(-D CMAKE_RNG=rng::ranq2)
 elseif(${DCA_RNG} STREQUAL "RAN")
   add_definitions(-DCMAKE_RNG=rng::ran)
 elseif(${DCA_RNG} STREQUAL "MT")
   add_definitions(-DCMAKE_RNG=rng::rng_mt)
+  elseif(${DCA_RNG} STREQUAL "SPRNG")
+  add_definitions(-DCMAKE_RNG=rng::sprng_interface)
 else()
-  message(FATAL_ERROR "Please set RNG to a valid value: RAN | RANQ2 | MT.")
+  message(FATAL_ERROR "Please set RNG to a valid value: SPRNG | RAN | RANQ2 | MT.")
 endif()
 
 # Enable BIT.

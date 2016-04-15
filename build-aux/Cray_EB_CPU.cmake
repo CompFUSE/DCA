@@ -14,6 +14,8 @@ set(SPGLIB_DIR $ENV{EBROOTSPGLIB}
   CACHE FILEPATH "Path to spglib installation directory.")
 set(gtest_DIR $ENV{EBROOTGTEST} CACHE FILEPATH "Path to Google Test.")
 mark_as_advanced(NFFT_DIR SPGLIB_DIR gtest_DIR)
+set(SPRNG_DIR $ENV{EBROOTSPRNG}
+        CACHE FILEPATH "Path to SPRNG installation directory.")
 
 # The C++ compile wrapper CC already includes and links to these libraries.
 # No need to look for them.

@@ -20,6 +20,11 @@ find_library(SPGLIB_LIBRARY
   PATHS ${SPGLIB_DIR}/lib
   NO_DEFAULT_PATH)
 
+find_library(SPRNG_LIBRARY
+        NAMES libsprng.a sprng
+        PATHS ${SPRNG_DIR}/lib
+        NO_DEFAULT_PATH)
+
 # Lapack
 if (NOT DCA_LAPACK_IMPLICIT)
   find_package(LAPACK REQUIRED)
@@ -52,11 +57,13 @@ set(DCA_EXTERNAL_LIBS
   ${NFFT_LIBRARY}
   ${FFTW_LIBRARY}
   ${SPGLIB_LIBRARY}
+  ${SPRNG_LIBRARY}
 )
 
 set(DCA_EXTERNAL_INCLUDES
   ${NFFT_DIR}/include
   ${SPGLIB_DIR}/include
+  ${SPRNG_DIR}/include
   ${FFTW_INCLUDE_DIR}
   ${HDF5_INCLUDE_DIRS})
 
@@ -65,4 +72,6 @@ mark_as_advanced(
   NFFT_LIBRARY
   SPGLIB_LIBRARY
   FFTW_INCLUDE_DIR FFTW_LIBRARY
-  HDF5_DIR)
+  HDF5_DIR
+  SPRNG_LIBRARY
+)
