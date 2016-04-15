@@ -208,7 +208,7 @@ namespace DCA
     f_measured       ("f-measured"),
     f_measured_stddev("f-measured-stddev")
   {
-    rng.set_seed(concurrency.id());
+    rng.set_hashed_seed(concurrency.id());
   }
 
   template<class parameters_type, class basis_function_t>

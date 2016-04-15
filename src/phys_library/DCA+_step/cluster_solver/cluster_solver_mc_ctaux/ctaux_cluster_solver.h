@@ -122,7 +122,7 @@ namespace DCA
 
     DCA_iteration(-1)
   {
-    rng.set_seed((long)(concurrency.id())), //assure each markov chain gets a different seed
+    rng.set_hashed_seed((long)(concurrency.id())), //assure each markov chain gets a different seed
     concurrency << "\n\n\t CT-AUX Integrator is born \n\n";
   }
 

@@ -139,7 +139,7 @@ namespace DCA
   void posix_qmci_integrator<qmci_integrator_type>::set_the_rngs()
   {
     int common_seed=nr_walkers * concurrency.id();
-    for(int i=0; i<nr_walkers; ++i)  rng_vector[i].set_seed((long)common_seed+i);
+    for(int i=0; i<nr_walkers; ++i)  rng_vector[i].set_hashed_seed((long)common_seed+i);
   }
 
   template<class qmci_integrator_type>
