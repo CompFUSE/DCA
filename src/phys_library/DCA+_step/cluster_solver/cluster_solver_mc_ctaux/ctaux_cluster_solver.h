@@ -55,9 +55,7 @@ namespace DCA
 
   protected:
 
-    void warm_up(walker_type& walker);
 
-    void measure(walker_type& walker);
 
     void update_shell(int i, int N, int N_k);
     void update_shell(int i, int N, int N_k, int N_s);
@@ -94,14 +92,18 @@ namespace DCA
 
     double total_time;
 
-    random_number_generator         rng;
-
     accumulator_type accumulator;
 
     FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w> Sigma_old;
     FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w> Sigma_new;
 
     int DCA_iteration;
+
+  private:
+
+      random_number_generator         rng;
+      void warm_up(walker_type& walker);
+      void measure(walker_type& walker);
   };
 
   template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
