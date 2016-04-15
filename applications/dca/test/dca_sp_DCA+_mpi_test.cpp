@@ -8,6 +8,7 @@
 #ifndef MPI_SUPPORTED
 #error MPI must be supported for the dca_sp_DCA+_mpi_test.
 #endif
+#include <dca/config/defines.hpp>
 
 #include <string>
 #include <iostream>
@@ -65,7 +66,7 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
     // Read self-energy from check_data file.
     FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_DCA,w> > Sigma_check("Self_Energy");
     IO::reader<IO::HDF5> reader;
-    reader.open_file("check_data.dca_sp_DCA+_mpi_test.hdf5");
+    reader.open_file(DCA_SOURCE_DIRECTORY "/applications/dca/test/check_data.dca_sp_DCA+_mpi_test.hdf5");
     reader.open_group("functions");
     reader.execute(Sigma_check);
     reader.close_file();
@@ -100,7 +101,7 @@ int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
   dca_test_env = new dca_mpi_test_environment(
-      argc, argv, "input.dca_sp_DCA+_mpi_test.json");
+      argc, argv,  DCA_SOURCE_DIRECTORY "/applications/dca/test/input.dca_sp_DCA+_mpi_test.json");
   ::testing::AddGlobalTestEnvironment(dca_test_env);
 
   ::testing::TestEventListeners& listeners =
