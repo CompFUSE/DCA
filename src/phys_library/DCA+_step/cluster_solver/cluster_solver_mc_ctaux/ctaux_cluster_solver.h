@@ -38,7 +38,8 @@ namespace DCA
   public:
 
     cluster_solver(parameters_type&   parameters_ref,
-                   MOMS_type&         MOMS_ref);
+                   MOMS_type&         MOMS_ref,
+                   bool standalone=true);
 
     ~cluster_solver();
 
@@ -105,7 +106,7 @@ namespace DCA
 
   template<LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
   cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::cluster_solver(parameters_type&   parameters_ref,
-                                                                                              MOMS_type&         MOMS_ref):
+                                                                                              MOMS_type&         MOMS_ref,bool set_rng):
     parameters(parameters_ref),
     MOMS(MOMS_ref),
     concurrency(parameters.get_concurrency()),
@@ -122,7 +123,8 @@ namespace DCA
 
     DCA_iteration(-1)
   {
-    rng.set_hashed_seed(concurrency.id()), //assure each markov chain gets a different seed
+    //INTERNAL this function get called at posix_qmci_cluster solver even if walkers are not spawned here
+    if(set_rng) rng.set_hashed_seed(concurrency.id()), //assure each markov chain gets a different seed
     concurrency << "\n\n\t CT-AUX Integrator is born \n\n";
   }
 

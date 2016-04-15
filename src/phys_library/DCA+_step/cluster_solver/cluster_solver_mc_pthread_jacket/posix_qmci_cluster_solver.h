@@ -87,7 +87,6 @@ namespace DCA
     int nr_walkers     ;
     int nr_accumulators;
 
-    std::vector<long>     rng_seed;
     std::vector<rng_type> rng_vector;
 
     std::queue<posix_accumulator_type*> accumulators_queue;
@@ -103,7 +102,7 @@ namespace DCA
   template<class qmci_integrator_type>
   posix_qmci_integrator<qmci_integrator_type>::posix_qmci_integrator(parameters_type&   parameters_ref,
                                                                      MOMS_type&         MOMS_ref):
-    qmci_integrator_type(parameters_ref, MOMS_ref),
+    qmci_integrator_type(parameters_ref, MOMS_ref,false/*do not set rng*/),
 
     nr_walkers     (parameters.get_nr_walkers()),
     nr_accumulators(parameters.get_nr_accumulators()),
