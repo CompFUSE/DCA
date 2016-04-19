@@ -20,6 +20,7 @@ find_library(SPGLIB_LIBRARY
   PATHS ${SPGLIB_DIR}/lib
   NO_DEFAULT_PATH)
 
+#SPRNG
 find_library(SPRNG_LIBRARY
         NAMES libsprng.a sprng
         PATHS ${SPRNG_DIR}/lib

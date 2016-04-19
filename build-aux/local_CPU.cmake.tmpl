@@ -20,7 +20,7 @@ set(SPRNG_DIR 'path/to/sprng/directory'
 # Google Test: This uses the provided version of Google Test in libs.
 set(gtest_DIR "${CMAKE_CURRENT_LIST_DIR}/../libs/gmock-1.7.0/gtest/"
   CACHE FILEPATH "Path to Google Test.")
-mark_as_advanced(NFFT_DIR SPGLIB_DIR gtest_DIR)
+mark_as_advanced(SPRNG_DIR)
 
 # MPIEXEC stuff for executing parallel tests.
 # Note: CXX and CC must be set as environment variables to the corresponding MPI
