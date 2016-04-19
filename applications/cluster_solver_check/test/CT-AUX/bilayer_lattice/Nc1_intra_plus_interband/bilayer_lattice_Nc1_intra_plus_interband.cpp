@@ -108,6 +108,7 @@ TEST(bilayerLattice_Nc1_intra_plus_interband, Self_Energy) {
     writer.open_group("functions");
     Sigma_QMC.get_name()="Self_Energy";
     writer.execute(Sigma_QMC);
+    writer.close_group();
     writer.close_file();
     std::cout << "\nDCA main ending.\n" << std::endl;
   }

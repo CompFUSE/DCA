@@ -76,9 +76,9 @@ TEST(bilayerLattice_Nc1_intraband, Self_Energy) {
   // Read QMC self-energy from check_data file and compare it with the newly
   // computed QMC self-energy.
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> >
-        Sigma_QMC_check("Self_Energy");
-    IO::reader<IO::HDF5> reader;
+    FUNC_LIB::function <std::complex<double>, dmn_4<nu, nu, k_DCA, w>>
+            Sigma_QMC_check("Self_Energy");
+    IO::reader <IO::HDF5> reader;
     reader.open_file("check_data.QMC.hdf5");
     reader.open_group("functions");
     reader.execute(Sigma_QMC_check);
@@ -89,15 +89,16 @@ TEST(bilayerLattice_Nc1_intraband, Self_Energy) {
         for (int nu_ind_2 = 0; nu_ind_2 < nu::dmn_size(); ++nu_ind_2) {
           for (int nu_ind_1 = 0; nu_ind_1 < nu::dmn_size(); ++nu_ind_1) {
             EXPECT_NEAR(
-                Sigma_QMC_check(nu_ind_1, nu_ind_2, k_ind, w_ind).real(),
-                Sigma_QMC(nu_ind_1, nu_ind_2, k_ind, w_ind).real(), 1.e-12);
+                    Sigma_QMC_check(nu_ind_1, nu_ind_2, k_ind, w_ind).real(),
+                    Sigma_QMC(nu_ind_1, nu_ind_2, k_ind, w_ind).real(), 1.e-12);
             EXPECT_NEAR(
-                Sigma_QMC_check(nu_ind_1, nu_ind_2, k_ind, w_ind).imag(),
-                Sigma_QMC(nu_ind_1, nu_ind_2, k_ind, w_ind).imag(), 1.e-12);
+                    Sigma_QMC_check(nu_ind_1, nu_ind_2, k_ind, w_ind).imag(),
+                    Sigma_QMC(nu_ind_1, nu_ind_2, k_ind, w_ind).imag(), 1.e-12);
           }
         }
       }
     }
+  }
     //write result
     if (dca_test_env->concurrency.id() == dca_test_env->concurrency.last()) {
       std::cout << "\nProcessor " << dca_test_env->concurrency.id()
@@ -107,11 +108,10 @@ TEST(bilayerLattice_Nc1_intraband, Self_Energy) {
       writer.open_group("functions");
       Sigma_QMC.get_name()="Self_Energy";
       writer.execute(Sigma_QMC);
+      writer.close_group();
       writer.close_file();
       std::cout << "\nDCA main ending.\n" << std::endl;
     }
-  }
-
 }
 
 int main(int argc, char** argv) {
