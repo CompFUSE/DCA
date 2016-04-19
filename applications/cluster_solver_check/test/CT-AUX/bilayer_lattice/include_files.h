@@ -44,6 +44,9 @@
 #include <dca/util/type_utils.hpp>
 using namespace dca::util;
 
+//macro
+//#include "dca/config/defines.hpp"
+
 // enumerations
 #include "enumerations.hpp"
 

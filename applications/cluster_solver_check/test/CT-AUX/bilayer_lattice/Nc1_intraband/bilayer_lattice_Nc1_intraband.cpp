@@ -20,7 +20,7 @@
 
 dca_mpi_test_environment* dca_test_env;
 
-TEST(bilayerLattice_Nc1_intraband, Self_energy) {
+TEST(bilayerLattice_Nc1_intraband, Self_Energy) {
   using namespace DCA;
 
   using parameters_type = Parameters<dca_mpi_test_environment::concurrency_type,
@@ -98,7 +98,20 @@ TEST(bilayerLattice_Nc1_intraband, Self_energy) {
         }
       }
     }
+    //write result
+    if (dca_test_env->concurrency.id() == dca_test_env->concurrency.last()) {
+      std::cout << "\nProcessor " << dca_test_env->concurrency.id()
+      << " is writing data " << std::endl;
+      IO::writer<IO::HDF5> writer;
+      writer.open_file("output.hdf5");
+      writer.open_group("functions");
+      Sigma_QMC.get_name()="Self_Energy";
+      writer.execute(Sigma_QMC);
+      writer.close_file();
+      std::cout << "\nDCA main ending.\n" << std::endl;
+    }
   }
+
 }
 
 int main(int argc, char** argv) {
