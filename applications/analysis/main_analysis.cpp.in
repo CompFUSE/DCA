@@ -30,7 +30,7 @@ int main(int argc, char** argv) {
   // Configure the DCA(+) calculation by selecting type definitions.
   using concurrency_type = COMP_LIB::parallelization<@DCA_PARALLELIZATION_LIBRARY_TYPE@>;
   // CT_AUX_CLUSTER_SOLVER is just a dummy variable when running the analysis.
-  using parameters_type = Parameters<concurrency_type, model, CT_AUX_CLUSTER_SOLVER>;
+  using parameters_type = Parameters<concurrency_type, model,void/*rng type*/,CT_AUX_CLUSTER_SOLVER>;
   using MOMS_type = DCA_data<parameters_type>;
 
   // Setup the parallelization.

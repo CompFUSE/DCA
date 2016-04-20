@@ -30,10 +30,11 @@ int main(int argc, char *argv[]) {
   }
   
   std::string file_name(argv[1]);
-  
+  //select (TODO model) and rng.
+  using random_number_generator = @DCA_RNG_TYPE@;
   // Configure the DCA(+) calculation by selecting type definitions.
   using concurrency_type = COMP_LIB::parallelization<@DCA_PARALLELIZATION_LIBRARY_TYPE@>;
-  using parameters_type = Parameters<concurrency_type, model, @DCA_CLUSTER_SOLVER_TYPE@>;
+  using parameters_type = Parameters<concurrency_type, model, random_number_generator, @DCA_CLUSTER_SOLVER_TYPE@>;
   using MOMS_type = DCA_data<parameters_type>;
   using quantum_cluster_solver_type =
     cluster_solver<@DCA_CLUSTER_SOLVER_TYPE@, @DCA_LIN_ALG_DEVICE_TYPE@,

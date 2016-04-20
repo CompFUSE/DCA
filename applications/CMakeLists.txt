@@ -10,12 +10,9 @@ if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/model_type.hpp")
 endif()
 
 if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/lattice_types.hpp")
-    file(COPY lattice_types.hpp DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-  endif()
-
-  if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/rng_type.inc")
-    file(COPY rng_type.inc DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+  file(COPY lattice_types.hpp DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 endif()
+
 
 set(DCA_APPLICATION_FOLDER ${CMAKE_CURRENT_BINARY_DIR}) #dir of model_type.hpp
 

@@ -97,6 +97,9 @@ const static bool DO_NFFT = true;
 
 #include "phys_library/DCA+_step/include_DCA_steps.h"
 
+//include rng
+#include "dca/math_library/random_number_library/ranq2.hpp"
+using random_number_generator = rng::ranq2;
 // include parameters
 #include "phys_library/parameters/include_Parameters.h"
 

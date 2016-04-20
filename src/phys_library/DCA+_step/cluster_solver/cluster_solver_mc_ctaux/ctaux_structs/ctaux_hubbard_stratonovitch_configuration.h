@@ -18,7 +18,7 @@ namespace QMCI {
  */
 template <class parameters_type>
 class CT_AUX_HS_configuration {
-  typedef random_number_generator rng_type;
+  using rng_type = typename parameters_type::random_number_generator;
 
 public:
   typedef HS_spin_states_type spin_state_type;

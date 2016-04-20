@@ -3,8 +3,7 @@
 #ifndef DCA_QMCI_CTAUX_CLUSTER_SOLVER_H
 #define DCA_QMCI_CTAUX_CLUSTER_SOLVER_H
 #include "phys_library/domain_types.hpp"
-#include "dca/math_library/random_number_library//random_number_library.hpp"
-#include "rng_type.inc"
+#include "dca/math_library/random_number_library/random_number_library.hpp"
 using namespace types;
 
 namespace DCA {
@@ -26,6 +25,7 @@ protected:
   typedef MOMS_type this_MOMS_type;
   typedef parameters_type this_parameters_type;
 
+  using random_number_generator = typename parameters_type::random_number_generator;
   typedef typename parameters_type::profiler_type profiler_type;
   typedef typename parameters_type::concurrency_type concurrency_type;
 

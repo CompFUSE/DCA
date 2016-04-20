@@ -30,7 +30,7 @@ class MC_walker_BIT<CT_AUX_SOLVER, parameters_type, MOMS_type> {
   typedef vertex_singleton vertex_singleton_type;
   typedef CT_AUX_HS_configuration<parameters_type> configuration_type;
 
-  using rng_type = random_number_generator;
+  using rng_type = typename parameters_type::random_number_generator;
 
   typedef
       typename MC_type_definitions<CT_AUX_SOLVER, parameters_type, MOMS_type>::profiler_type profiler_type;

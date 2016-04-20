@@ -26,7 +26,7 @@ TEST(analysis_DCAplus_mpi, leading_eigenvalues) {
   using namespace DCA;
 
   using parameters_type = Parameters<dca_mpi_test_environment::concurrency_type,
-                                     model, CT_AUX_CLUSTER_SOLVER>;
+                                     model, void/*rng type*/,CT_AUX_CLUSTER_SOLVER>;
   using MOMS_type = DCA_data<parameters_type>;
 
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {

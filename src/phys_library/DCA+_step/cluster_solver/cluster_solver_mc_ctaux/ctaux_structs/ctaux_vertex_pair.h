@@ -25,7 +25,7 @@ namespace QMCI {
  */
 template <class parameters_type>
 class vertex_pair {
-  typedef random_number_generator rng_type;
+  using rng_type = typename parameters_type::random_number_generator;
 
   typedef r_DCA r_dmn_t;
   typedef k_DCA k_dmn_t;

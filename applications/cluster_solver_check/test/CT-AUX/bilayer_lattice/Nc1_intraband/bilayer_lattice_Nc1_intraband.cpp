@@ -24,7 +24,7 @@ TEST(bilayerLattice_Nc1_intraband, Self_Energy) {
   using namespace DCA;
 
   using parameters_type =
-      Parameters<dca_mpi_test_environment::concurrency_type, model, CT_AUX_CLUSTER_SOLVER>;
+      Parameters<dca_mpi_test_environment::concurrency_type, model, random_number_generator, CT_AUX_CLUSTER_SOLVER>;
   using MOMS_type = DCA_data<parameters_type>;
   using quantum_cluster_solver_type =
       cluster_solver<CT_AUX_CLUSTER_SOLVER, LIN_ALG::CPU, parameters_type, MOMS_type>;

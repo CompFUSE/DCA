@@ -29,7 +29,7 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
   using namespace DCA;
 
   using parameters_type =
-      Parameters<dca_mpi_test_environment::concurrency_type, model, CT_AUX_CLUSTER_SOLVER>;
+      Parameters<dca_mpi_test_environment::concurrency_type, model, random_number_generator, CT_AUX_CLUSTER_SOLVER>;
   using MOMS_type = DCA_data<parameters_type>;
   using Monte_Carlo_Integrator_type =
       cluster_solver<CT_AUX_CLUSTER_SOLVER, LIN_ALG::CPU, parameters_type, MOMS_type>;
