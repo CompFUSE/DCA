@@ -20,6 +20,12 @@ find_library(SPGLIB_LIBRARY
   PATHS ${SPGLIB_DIR}/lib
   NO_DEFAULT_PATH)
 
+#SPRNG optional library
+find_library(SPRNG_LIBRARY
+        NAMES libsprng.a sprng
+        PATHS ${SPRNG_DIR}/lib
+        NO_DEFAULT_PATH)
+
 # Lapack
 if (NOT DCA_LAPACK_IMPLICIT)
   find_package(LAPACK REQUIRED)
@@ -51,18 +57,28 @@ set(DCA_EXTERNAL_LIBS
   ${HDF5_LIBRARIES}
   ${NFFT_LIBRARY}
   ${FFTW_LIBRARY}
-  ${SPGLIB_LIBRARY}
+  ${SPRNG_LIBRARY}
 )
 
 set(DCA_EXTERNAL_INCLUDES
   ${NFFT_DIR}/include
   ${SPGLIB_DIR}/include
   ${FFTW_INCLUDE_DIR}
-  ${HDF5_INCLUDE_DIRS})
+  ${HDF5_INCLUDE_DIRS}
+  )
+
+if(${SPRNG_SUPPORT} STREQUAL ON)
+  message("Including SPRNG lib.")
+  list(APPEND DCA_EXTERNAL_LIBS ${SPGLIB_LIBRARY})
+  list(APPEND DCA_EXTERNAL_INCLUDES ${SPRNG_DIR}/include)
+  add_definitions('-DCMAKE_SPRNG_SUPPORT')
+endif()
 
 mark_as_advanced(
   MPI_LIBRARY MPI_EXTRA_LIBRARY
   NFFT_LIBRARY
   SPGLIB_LIBRARY
   FFTW_INCLUDE_DIR FFTW_LIBRARY
-  HDF5_DIR)
+  HDF5_DIR
+  SPRNG_LIBRARY
+)

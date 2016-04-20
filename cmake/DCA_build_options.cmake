@@ -33,6 +33,9 @@ else()
   set(DCA_MC_INTEGRATOR_TYPE "quantum_cluster_solver_type")
 endif()
 
+# enable sprng library
+option(SPRNG_SUPPORT "Enable sprng library" OFF)
+
 # Enable profiling and auto-tuning.
 set(DCA_PROFILING_MODE "NONE" CACHE STRING "Choose the profiling mode, options are: NONE|COUNTING|PAPI.")
 option(DCA_AUTO_TUNING "Enable auto-tuning." OFF)
@@ -51,14 +54,24 @@ else()
 endif()
 
 # Choose the random number generator.
-set(DCA_RNG "NR" CACHE STRING "Choose the random number generator, options are: NR|SPRNG." FORCE)
-if (${DCA_RNG} STREQUAL "NR")
-  add_definitions(-DRNG_NUMERICAL_RECIPES)
-elseif (${DCA_RNG} STREQUAL "SPRNG")  # TODO: Support SPRNG.
-  message(FATAL_ERROR "SPRNG is not yet supported. Please choose NR.")
-  #add_definitions(-DRNG_SPRNG)
+#The first two options are from Numerical Recipes, the last from the standard Mersenne Twistor.
+set(DCA_RNG "RAN" CACHE STRING  "Choose the random number generator, options are: SPRNG | RAN | RANQ2 | MT.")
+if (${DCA_RNG} STREQUAL "RANQ2")
+  add_definitions(-D CMAKE_RNG=rng::ranq2)
+elseif(${DCA_RNG} STREQUAL "RAN")
+  add_definitions(-DCMAKE_RNG=rng::ran)
+elseif(${DCA_RNG} STREQUAL "MT")
+  add_definitions(-DCMAKE_RNG=rng::rng_mt)
+  elseif(${DCA_RNG} STREQUAL "SPRNG")
+  if(SPRNG_SUPPORT STREQUAL OFF)
+    message("Sprng is not supported. Reverting to default rng")
+    set(DCA_RNG "RAN" CACHE STRING  "Choose the random number generator, options are: RAN | RANQ2 | MT." FORCE)
+    add_definitions(-DCMAKE_RNG=rng::ran)
+    else()
+    add_definitions(-DCMAKE_RNG=rng::sprng_interface)
+    endif()
 else()
-  message(FATAL_ERROR "Please set RNG to a valid value: NR|SPRNG.")
+  message(FATAL_ERROR "Please set RNG to a valid value: SPRNG | RAN | RANQ2 | MT.")
 endif()
 
 # Enable BIT.

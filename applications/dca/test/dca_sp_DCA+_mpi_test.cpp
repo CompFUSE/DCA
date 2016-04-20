@@ -8,6 +8,7 @@
 #ifndef MPI_SUPPORTED
 #error MPI must be supported for the dca_sp_DCA+_mpi_test.
 #endif
+#include <dca/config/defines.hpp>
 
 #include <string>
 #include <iostream>
@@ -27,19 +28,19 @@ dca_mpi_test_environment* dca_test_env;
 TEST(dca_sp_DCAplus_mpi, Self_energy) {
   using namespace DCA;
 
-  using parameters_type = Parameters<dca_mpi_test_environment::concurrency_type,
-                                     model, CT_AUX_CLUSTER_SOLVER>;
+  using parameters_type =
+      Parameters<dca_mpi_test_environment::concurrency_type, model, CT_AUX_CLUSTER_SOLVER>;
   using MOMS_type = DCA_data<parameters_type>;
   using Monte_Carlo_Integrator_type =
-    cluster_solver<CT_AUX_CLUSTER_SOLVER, LIN_ALG::CPU, parameters_type, MOMS_type>;
+      cluster_solver<CT_AUX_CLUSTER_SOLVER, LIN_ALG::CPU, parameters_type, MOMS_type>;
   using DCA_calculation_type =
-    DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>;
+      DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>;
 
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
     std::cout << "\nDCA main starting.\n"
-              << "MPI-world set up: "
-              << dca_test_env->concurrency.number_of_processors()
-              << " processes.\n" << std::endl;
+              << "MPI-world set up: " << dca_test_env->concurrency.number_of_processors()
+              << " processes.\n"
+              << std::endl;
 
     GitVersion::print();
     Modules::print();
@@ -59,13 +60,14 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
   dca_object.finalize();
 
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
-    std::cout << "\nProcessor " << dca_test_env->concurrency.id()
-              << " is checking data " << std::endl;
+    std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is checking data "
+              << std::endl;
 
     // Read self-energy from check_data file.
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_DCA,w> > Sigma_check("Self_Energy");
+    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> Sigma_check("Self_Energy");
     IO::reader<IO::HDF5> reader;
-    reader.open_file("check_data.dca_sp_DCA+_mpi_test.hdf5");
+    reader.open_file(DCA_SOURCE_DIRECTORY
+                     "/applications/dca/test/check_data.dca_sp_DCA+_mpi_test.hdf5");
     reader.open_group("functions");
     reader.execute(Sigma_check);
     reader.close_file();
@@ -84,27 +86,25 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
       }
     }
   }
-  
+
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.last()) {
-    std::cout << "\nProcessor " << dca_test_env->concurrency.id()
-              << " is writing data " << std::endl;
+    std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is writing data " << std::endl;
     dca_object.write();
-    
+
     std::cout << "\nDCA main ending.\n" << std::endl;
   }
- }
-  
+}
+
 int main(int argc, char** argv) {
   int result = 0;
 
   ::testing::InitGoogleTest(&argc, argv);
 
   dca_test_env = new dca_mpi_test_environment(
-      argc, argv, "input.dca_sp_DCA+_mpi_test.json");
+      argc, argv, DCA_SOURCE_DIRECTORY "/applications/dca/test/input.dca_sp_DCA+_mpi_test.json");
   ::testing::AddGlobalTestEnvironment(dca_test_env);
 
-  ::testing::TestEventListeners& listeners =
-      ::testing::UnitTest::GetInstance()->listeners();
+  ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
 
   if (dca_test_env->concurrency.id() != 0) {
     delete listeners.Release(listeners.default_result_printer());

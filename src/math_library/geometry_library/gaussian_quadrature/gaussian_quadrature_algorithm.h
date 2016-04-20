@@ -718,6 +718,7 @@ double GAUSSIAN_QUADRATURE::r8vec_dot(int n, double a1[], double a2[]) {
 
   Output, double R8VEC_UNIFORM_01[N], the vector of pseudorandom values.
 */
+// INTERNAL Can we use the standard rng?
 double* GAUSSIAN_QUADRATURE::r8vec_uniform_01(int n, int* seed) {
   int i;
   int k;

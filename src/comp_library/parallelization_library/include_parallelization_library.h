@@ -1,8 +1,7 @@
 //-*-C++-*-
 
-namespace COMP_LIB
-{
-  enum PARALLELIZATION_LIBRARY_NAMES {SERIAL_LIBRARY, POSIX_LIBRARY, OMP_LIBRARY, MPI_LIBRARY};
+namespace COMP_LIB {
+enum PARALLELIZATION_LIBRARY_NAMES { SERIAL_LIBRARY, POSIX_LIBRARY, OMP_LIBRARY, MPI_LIBRARY };
 }
 
 #include "interfaces/type_map_interface.h"
@@ -10,8 +9,6 @@ namespace COMP_LIB
 #include "interfaces/processor_grouping_interface.h"
 
 #include "interfaces/packing_interface.h"
-
-#include "interfaces/RNG_interface.h"
 
 #include "interfaces/collective_min_interface.h"
 #include "interfaces/collective_max_interface.h"

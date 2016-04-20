@@ -44,16 +44,17 @@
 #include <dca/util/type_utils.hpp>
 using namespace dca::util;
 
+// macro
+//#include "dca/config/defines.hpp"
+
 // enumerations
 #include "enumerations.hpp"
 
 // BIT
 const static bool QMC_INTEGRATOR_BIT = false;
 
-
 // NFFT <--> DFT
 const static bool DO_NFFT = true;
-
 
 // blas/lapack
 #include "comp_library/blas_lapack_plans/blas_lapack_plans.hpp"
@@ -73,7 +74,7 @@ const static bool DO_NFFT = true;
 #include "comp_library/function_plotting/include_plotting.h"
 
 // random number generator
-#include "math_library/random_number_library/include_random_number_generator.h"
+#include "dca/math_library/random_number_library//random_number_library.hpp"
 
 // parallelization
 #include "comp_library/parallelization_library/include_parallelization_library.h"
@@ -85,7 +86,6 @@ const static bool DO_NFFT = true;
 
 // include domains
 #include "phys_library/domains/include_DCA_domains.h"
-
 
 // type-dependent-conversions
 #include "phys_library/domains/convert_DCA_types_to_index.h"
@@ -111,7 +111,5 @@ const static bool DO_NFFT = true;
 
 #include "phys_library/DCA+_loop/include_DCA+_loop.h"
 
-
 // analysis
 #include "phys_library/DCA+_analysis/include_analysis.h"
-

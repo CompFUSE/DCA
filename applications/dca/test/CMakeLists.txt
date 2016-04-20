@@ -1,18 +1,13 @@
 ################################################################################
 # applications/dca/test/CMakeLists.txt
 ################################################################################
+set(TEST_INCLUDES
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${DCA_INCLUDES}
+        )
 
-#
-# dca sp DCA+ MPI
-#
-file(COPY input.dca_sp_DCA+_mpi_test.json
-  DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-file(COPY check_data.dca_sp_DCA+_mpi_test.hdf5
-  DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
-list(APPEND DCA_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}")
-
-set(TEST_INCLUDES  "${CMAKE_CURRENT_SOURCE_DIR};${DCA_INCLUDES}") #use default types for test
+set(TEST_INCLUDES  "${CMAKE_CURRENT_SOURCE_DIR};${DCA_INCLUDES}") 
 
 add_gtest(NAME dca_sp_DCA+_mpi_test
   ADVANCED
@@ -24,6 +19,6 @@ add_gtest(NAME dca_sp_DCA+_mpi_test
 add_gtest(NAME dca_sp_DCA+_pthread_test
   ADVANCED
   MPI MPI_NUMPROC 1
-  INCLUDES "${DCA_INCLUDES}"
+  INCLUDES "${TEST_INCLUDES}"
   LIBS     "${DCA_LIBRARIES}"
   )
