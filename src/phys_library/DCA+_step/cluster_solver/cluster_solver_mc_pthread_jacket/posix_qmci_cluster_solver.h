@@ -3,7 +3,9 @@
 #ifndef DCA_QMCI_POSIX_MC_INTEGRATOR_FOR_MC_H
 #define DCA_QMCI_POSIX_MC_INTEGRATOR_FOR_MC_H
 
-#include "math_library/random_number_library/random_number_generator.hpp"
+#include "math_library/random_number_library/random_number_library.hpp"
+#include "rng_type.inc"
+
 namespace DCA {
 /*!
  *  \defgroup POSIX-TEMPLATES

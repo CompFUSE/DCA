@@ -4,7 +4,7 @@
 #define DCA_QMCI_VERTEX_PAIR_H
 #include "phys_library/domain_types.hpp"
 #include "phys_library/parameters/models/analytic_Hamiltonians/interactions/general_interaction.hpp"
-#include "math_library/random_number_library/random_number_generator.hpp"
+#include "math_library/random_number_library/random_number_library.hpp"
 using namespace types;
 
 namespace DCA {

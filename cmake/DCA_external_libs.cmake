@@ -71,6 +71,7 @@ if(${SPRNG_SUPPORT} STREQUAL ON)
   message("Including SPRNG lib.")
   list(APPEND DCA_EXTERNAL_LIBS ${SPGLIB_LIBRARY})
   list(APPEND DCA_EXTERNAL_INCLUDES ${SPRNG_DIR}/include)
+  add_definitions('-DCMAKE_SPRNG_SUPPORT')
 endif()
 
 mark_as_advanced(
