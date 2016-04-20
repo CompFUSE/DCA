@@ -15,7 +15,7 @@ sources = ['sprng5.tar.bz2']
 with_configure = True
 
 # does not support parallel build
-parallel = 1
+parallel = 1 # number of cores
 
 
 files_to_copy = [

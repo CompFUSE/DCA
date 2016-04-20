@@ -1,3 +1,0 @@
-+change parallelization for mpi seeding
-+make correlation test
--make test for total call

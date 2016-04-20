@@ -3,85 +3,64 @@
 #ifndef PROCESSOR_GROUPING_INTERFACE_POSIX_LBRARY_H
 #define PROCESSOR_GROUPING_INTERFACE_POSIX_LBRARY_H
 
-namespace COMP_LIB
-{
-  struct posix_data
-  {
-  public:
+namespace COMP_LIB {
+struct posix_data {
+public:
+  posix_data();
+  ~posix_data();
 
-    posix_data();
-    ~posix_data();
+public:
+  int id;
+  int nr_threads;
 
-  public:
+  void* args;
+};
 
-    int  id;
-    int  nr_threads;
+posix_data::posix_data() : id(-1), nr_threads(-1), args(NULL) {}
 
+posix_data::~posix_data() {}
 
-    void* args;
-  };
+/*!
+ *  \author Peter Staar
+ */
+template <>
+class processor_grouping<POSIX_LIBRARY> {
+public:
+  processor_grouping();
+  ~processor_grouping();
 
-  posix_data::posix_data():
-    id(-1),
-    nr_threads(-1),
-    args(NULL)
-  {}
+  void fork(int N, void* (*start_routine)(void*), void* arg);
+  void join();
 
-  posix_data::~posix_data()
-  {}
+private:
+  std::vector<pthread_t> pthread_vector;
+  std::vector<posix_data> data_vector;
+};
 
-  /*!
-   *  \author Peter Staar
-   */
-  template<>
-  class processor_grouping<POSIX_LIBRARY>
-  {
-  public:
+processor_grouping<POSIX_LIBRARY>::processor_grouping() : pthread_vector(0), data_vector(0) {}
 
-    processor_grouping();
-    ~processor_grouping();
+processor_grouping<POSIX_LIBRARY>::~processor_grouping() {}
 
-    void fork(int N, void * (*start_routine)(void *), void *arg);
-    void join();
+void processor_grouping<POSIX_LIBRARY>::fork(int N, void* (*routine)(void*), void* arg) {
+  pthread_vector.resize(N);
+  data_vector.resize(N);
 
-  private:
+  for (int l = 0; l < pthread_vector.size(); l++) {
+    data_vector[l].id = l;
+    data_vector[l].nr_threads = N;
 
-    std::vector<pthread_t > pthread_vector;
-    std::vector<posix_data> data_vector;
-  };
+    data_vector[l].args = arg;
 
-  processor_grouping<POSIX_LIBRARY>::processor_grouping():
-    pthread_vector(0),
-    data_vector   (0)
-  {}
-
-  processor_grouping<POSIX_LIBRARY>::~processor_grouping()
-  {}
-
-  void processor_grouping<POSIX_LIBRARY>::fork(int N, void* (*routine)(void *), void *arg)
-  {
-    pthread_vector.resize(N);
-    data_vector   .resize(N);
-
-    for(int l=0; l<pthread_vector.size(); l++)
-      {
-	data_vector[l].id         = l;
-	data_vector[l].nr_threads = N;
-
-	data_vector[l].args = arg;
-	
-	pthread_create(&pthread_vector[l], NULL, routine, (void*) (&data_vector[l]));
-      }
+    pthread_create(&pthread_vector[l], NULL, routine, (void*)(&data_vector[l]));
   }
-  
-  void processor_grouping<POSIX_LIBRARY>::join()
-  {
-    for(int l=0; l<pthread_vector.size(); l++)
-      pthread_join(pthread_vector[l], NULL);
+}
 
-    pthread_vector.resize(0);
-  }
+void processor_grouping<POSIX_LIBRARY>::join() {
+  for (int l = 0; l < pthread_vector.size(); l++)
+    pthread_join(pthread_vector[l], NULL);
 
+  pthread_vector.resize(0);
+}
 }
 
 #endif

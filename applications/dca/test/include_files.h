@@ -37,7 +37,6 @@
 // Parallelization libraries
 #include <pthread.h>
 
-
 // typelist-operations
 #include <dca/util/type_list.hpp>
 #include <dca/util/type_utils.hpp>
@@ -49,10 +48,8 @@ using namespace dca::util;
 // BIT
 const static bool QMC_INTEGRATOR_BIT = false;
 
-
 // NFFT <--> DFT
 const static bool DO_NFFT = true;
-
 
 // blas/lapack
 #include "comp_library/blas_lapack_plans/blas_lapack_plans.hpp"
@@ -71,7 +68,6 @@ const static bool DO_NFFT = true;
 
 // include plotting
 #include "comp_library/function_plotting/include_plotting.h"
-
 
 // parallelization
 #include "comp_library/parallelization_library/include_parallelization_library.h"

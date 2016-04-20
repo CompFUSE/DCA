@@ -48,15 +48,12 @@ using namespace dca::util;
 // BIT
 const static bool QMC_INTEGRATOR_BIT = false;
 
-
 // NFFT <--> DFT
 const static bool DO_NFFT = true;
-
 
 // blas/lapack
 #include "comp_library/blas_lapack_plans/blas_lapack_plans.hpp"
 #include "comp_library/linalg/linalg.hpp"
-
 
 // various
 #include "math_library/static_functions.h"
@@ -102,7 +99,6 @@ const static bool DO_NFFT = true;
 #include "phys_library/parameters/include_Parameters.h"
 
 #include "phys_library/DCA+_data/include_DCA+_data.h"
-
 
 #include "phys_library/DCA+_step/cluster_solver/include_cluster_solver.h"
 

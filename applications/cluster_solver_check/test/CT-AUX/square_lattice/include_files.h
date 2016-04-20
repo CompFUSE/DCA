@@ -39,7 +39,6 @@
 // Parallelization libraries
 #include <pthread.h>
 
-
 // typelist-operations
 #include <dca/util/type_list.hpp>
 using namespace dca::util;
@@ -49,7 +48,6 @@ using namespace dca::util;
 
 // BIT
 const static bool QMC_INTEGRATOR_BIT = false;
-
 
 // NFFT <--> DFT
 const static bool DO_NFFT = true;
@@ -85,7 +83,6 @@ const static bool DO_NFFT = true;
 // include domains
 #include "phys_library/domains/include_DCA_domains.h"
 
-
 // type-dependent-conversions
 #include "phys_library/domains/convert_DCA_types_to_index.h"
 
@@ -109,7 +106,6 @@ const static bool DO_NFFT = true;
 #include "phys_library/DCA+_step/cluster_solver/include_cluster_solver.h"
 
 #include "phys_library/DCA+_loop/include_DCA+_loop.h"
-
 
 // analysis
 #include "phys_library/DCA+_analysis/include_analysis.h"
