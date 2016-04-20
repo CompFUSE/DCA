@@ -3,7 +3,7 @@
 #ifndef DCA_QMCI_CT_AUX_HS_CONFIGURATION_H
 #define DCA_QMCI_CT_AUX_HS_CONFIGURATION_H
 #include "phys_library/domain_types.hpp"
-#include "math_library/random_number_library/random_number_library.hpp"
+#include "dca/math_library/random_number_library//random_number_library.hpp"
 using namespace types;
 
 namespace DCA {

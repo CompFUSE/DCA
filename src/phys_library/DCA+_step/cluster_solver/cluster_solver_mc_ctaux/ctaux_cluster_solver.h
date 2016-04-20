@@ -3,7 +3,7 @@
 #ifndef DCA_QMCI_CTAUX_CLUSTER_SOLVER_H
 #define DCA_QMCI_CTAUX_CLUSTER_SOLVER_H
 #include "phys_library/domain_types.hpp"
-#include "math_library/random_number_library/random_number_library.hpp"
+#include "dca/math_library/random_number_library//random_number_library.hpp"
 #include "rng_type.inc"
 using namespace types;
 
