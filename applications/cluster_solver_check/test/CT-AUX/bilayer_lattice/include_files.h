@@ -74,7 +74,7 @@ const static bool DO_NFFT = true;
 #include "comp_library/function_plotting/include_plotting.h"
 
 // random number generator
-#include "math_library/random_number_library/random_number_library.hpp"
+#include "dca/math_library/random_number_library//random_number_library.hpp"
 
 // parallelization
 #include "comp_library/parallelization_library/include_parallelization_library.h"

@@ -67,5 +67,5 @@ if (DCA_TESTS)
   
   include_directories(${gtest_SOURCE_DIR}/include)
 
-  add_subdirectory(${CMAKE_SOURCE_DIR}/src/math_library/random_number_library/test)
+  add_subdirectory(${CMAKE_SOURCE_DIR}/test/unit/math_library/random_number_library)
 endif()
