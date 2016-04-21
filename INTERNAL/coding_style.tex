@@ -34,10 +34,12 @@
 
 \section{Files}
 Each file should contain the header included in \inlinecode{HEADER.TXT}, and the author of the file.
-If you make significant changes to a file consider adding your name to the author list.
+If you make significant changes to a file consider adding your name to the author list.\\
 
 \subsection{File organization}
-Each class should be defined a different file, whose name is the class name in lower case.
+Each class should be defined a different file, whose name is the class name in lower case.\\
+
+Header files should be placed in \verb|include/dca/|, source files in \verb|src/|. Tests should be placed in \verb|test/unit/|, \verb|test/integration/|, \verb|test/system-level/| or \verb|test/performance/| according to their type. \verb|include/dca/|, \verb|src/| and \verb|test/unit/| should have the same tree structure.
 
 \subsection{File Names}
 Filenames should be all lowercase and can include numbers and underscores (\inlinecode{_}). Uppercase are allowed for abbreviations and chemical compounds.
@@ -52,16 +54,30 @@ In particular each header file should include all the headers needed and have \i
 
 If a template or inline function is declared in a \verb|.hpp| file, the function has to be defined in the same file.
 
-The symbol name of the \inlinecode{\#define} guards should be \inlinecode{PATH_FILENAME_HPP}, and they should be based on the full path
-of the tree of the \verb|src| directory of the project. For example, the file \verb|dca_ethz/src/foo/bar.hpp| in project foo should have the following guard:
+The symbol name of the \inlinecode{\#define} guards should be \inlinecode{PATH_FILENAME_HPP}, where \inlinecode{PATH} is based on the \verb|include| directory. For example, the file\\ \verb|dca_ethz/include/dca/foo/bar.hpp| should have the following guard:
 
 \begin{lstlisting}
-#ifndef FOO_BAR_HPP
-#define FOO_BAR_HPP
+#ifndef DCA_FOO_BAR_HPP
+#define DCA_FOO_BAR_HPP
 ...
-#endif  // FOO_BAR_HPP
+#endif  // DCA_FOO_BAR_HPP
 \end{lstlisting}
 
+\subsection{Includes}
+Header files should be included with the full path based on the \verb|include| directory. For example, the file \verb|dca_ethz/include/dca/foo/bar.hpp| should be included as
+\begin{lstlisting}
+#include "dca/foo/bar.hpp"
+\end{lstlisting}
+Even if the included file is located in the same directory as the including file this rule should be obeyed. \\
+
+For readability it is suggested to use the standard order of includes:
+\begin{enumerate}
+	\item Related header
+	\item C library
+	\item C++ library
+	\item Other libraries' .h
+	\item Your project's .h
+\end{enumerate}
 \section{Naming}
 
 The names should be as descriptive as possible.
