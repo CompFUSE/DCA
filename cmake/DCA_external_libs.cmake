@@ -20,12 +20,6 @@ find_library(SPGLIB_LIBRARY
   PATHS ${SPGLIB_DIR}/lib
   NO_DEFAULT_PATH)
 
-#SPRNG optional library
-find_library(SPRNG_LIBRARY
-        NAMES libsprng.a sprng
-        PATHS ${SPRNG_DIR}/lib
-        NO_DEFAULT_PATH)
-
 # Lapack
 if (NOT DCA_LAPACK_IMPLICIT)
   find_package(LAPACK REQUIRED)
@@ -67,18 +61,32 @@ set(DCA_EXTERNAL_INCLUDES
   ${HDF5_INCLUDE_DIRS}
   )
 
-if(${SPRNG_SUPPORT} STREQUAL ON)
-  message("Including SPRNG lib.")
-  list(APPEND DCA_EXTERNAL_LIBS ${SPGLIB_LIBRARY})
-  list(APPEND DCA_EXTERNAL_INCLUDES ${SPRNG_DIR}/include)
-  add_definitions('-DCMAKE_SPRNG_SUPPORT')
-endif()
-
 mark_as_advanced(
   MPI_LIBRARY MPI_EXTRA_LIBRARY
   NFFT_LIBRARY
   SPGLIB_LIBRARY
   FFTW_INCLUDE_DIR FFTW_LIBRARY
   HDF5_DIR
-  SPRNG_LIBRARY
 )
+
+# SPRNG
+# Only try to find SPRNG if it is the requested rng to use.
+if (${DCA_RNG} STREQUAL "SPRNG")
+  # INTERNAL: Is there a find_package for SPRNG?
+  find_library(SPRNG_LIBRARY
+    NAMES libsprng.a sprng
+    PATHS ${SPRNG_DIR}/lib
+    NO_DEFAULT_PATH)
+
+  if (${SPRNG_LIBRARY} STREQUAL "SPRNG_LIBRARY-NOTFOUND")
+    unset(SPRNG_LIBRARY CACHE)
+    message(FATAL_ERROR "SPRNG library was not found!\nChoose a different option for the random number generator.")
+  endif()
+  
+  list(APPEND DCA_EXTERNAL_LIBS ${SPGLIB_LIBRARY})
+  list(APPEND DCA_EXTERNAL_INCLUDES ${SPRNG_DIR}/include)
+
+  mark_as_advanced(SPRNG_LIBRARY)
+
+  add_definitions(-DSPRNG_SUPPORTED)
+endif()
