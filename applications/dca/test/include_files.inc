@@ -22,3 +22,5 @@ const bool DO_NFFT = true;
 using random_number_generator = rng::ranq2;
 
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_cluster_solver.h"
+
+#include "comp_library/IO_library/JSON/JSON_writer.h"

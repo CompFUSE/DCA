@@ -2,7 +2,9 @@
 
 #ifndef PARAMETERS_H
 #define PARAMETERS_H
-#include "phys_library/domain_types.hpp"
+#include<string>
+
+//#include "phys_library/domain_types.hpp"
 #include "phys_library/parameters/parameters_specialization/templates/template_parameters.hpp"
 // TODO   includes numerical error only if QMCI_INTEGRATOR BIT = 1
 #include "phys_library/domains/include_DCA_domains.h"
@@ -11,9 +13,8 @@
 #include "phys_library/parameters/parameters_specialization/specializations/model_tight_binding_parameters.h"
 #include "phys_library/parameters/parameters_specialization/specializations/model_2D_bilayer_model_parameters.h"
 #include "phys_library/parameters/parameters_specialization/specializations/MC_solver_ct_aux_parameters.h"
-#include "comp_library/IO_library/JSON/include_JSON.h"
 
-using namespace types;
+//using namespace types;
 
 /*!
  *   \ingroup  PARAMETERS
@@ -68,6 +69,7 @@ public:
   template <IO::FORMAT DATA_FORMAT>
   void write(IO::writer<DATA_FORMAT>& writer);
 
+  template <IO::FORMAT DATA_FORMAT>
   void read_input_and_broadcast(std::string file_name);
 
   template <typename read_write_t>
@@ -187,6 +189,7 @@ void Parameters<concurrency_t, model, rng_t, CLUSTER_SOLVER_NAME>::write(
 }
 
 template <class concurrency_t, class model, class rng_t, DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
+template <IO::FORMAT DATA_FORMAT>
 void Parameters<concurrency_t, model, rng_t, CLUSTER_SOLVER_NAME>::read_input_and_broadcast(
     std::string filename) {
   for (bool flag = false; !flag;) {
@@ -194,7 +197,7 @@ void Parameters<concurrency_t, model, rng_t, CLUSTER_SOLVER_NAME>::read_input_an
       file_names_parameters::get_input_file_name() = filename;
 
       {
-        IO::reader<IO::JSON> read_obj;
+        IO::reader<DATA_FORMAT> read_obj;
 
         read_obj.open_file(filename);
 

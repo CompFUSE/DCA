@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
 
   // Create the parameters object from the input file.
   parameters_type parameters(GitVersion::string(), concurrency);
-  parameters.read_input_and_broadcast(file_name);
+  parameters.read_input_and_broadcast<IO::JSON>(file_name);
   parameters.update_model();
   parameters.update_domains();
 

@@ -13,3 +13,5 @@ const bool DO_NFFT = true;
 
 // analysis
 #include "phys_library/DCA+_analysis/include_analysis.h"
+
+#include "comp_library/IO_library/JSON/JSON_writer.h"

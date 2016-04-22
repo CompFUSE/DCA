@@ -35,7 +35,7 @@ TEST(bilayerLattice_Nc1_interband, Self_Energy) {
   }
 
   parameters_type parameters(GitVersion::string(), dca_test_env->concurrency);
-  parameters.read_input_and_broadcast(dca_test_env->input_file);
+  parameters.read_input_and_broadcast<IO::JSON>(dca_test_env->input_file);
   parameters.update_model();
   parameters.update_domains();
 
@@ -44,7 +44,7 @@ TEST(bilayerLattice_Nc1_interband, Self_Energy) {
   MOMS_type MOMS_imag(parameters);
   MOMS_imag.initialize();
 
-  // Read and broadcast ED data
+  // Read and broadcast<IO::JSON> ED data
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
     IO::reader<IO::HDF5> reader;
     reader.open_file("data.ED.hdf5");

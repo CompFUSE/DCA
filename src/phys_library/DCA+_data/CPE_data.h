@@ -5,7 +5,8 @@
 #include "phys_library/domain_types.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/IO_library/JSON/JSON_reader.h"
-//#include "comp_library/IO_library/HDF5/HDF5_writer.h"
+#include "comp_library/IO_library/JSON/JSON_writer.h"
+#include "comp_library/IO_library/HDF5/HDF5_writer.h"
 
 using namespace types;
 

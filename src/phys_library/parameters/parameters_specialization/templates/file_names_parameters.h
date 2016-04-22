@@ -9,6 +9,8 @@
  *   \author   Peter Staar
  *   \brief    ...
  */
+#include<string>
+#include "comp_library/IO_library/IO_types.h"
 class file_names_parameters
 {
 public:

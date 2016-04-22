@@ -36,7 +36,7 @@ TEST(analysis_DCAplus_mpi, leading_eigenvalues) {
   }
 
   parameters_type parameters(GitVersion::string(), dca_test_env->concurrency);
-  parameters.read_input_and_broadcast(dca_test_env->input_file);
+  parameters.read_input_and_broadcast<IO::JSON>(dca_test_env->input_file);
   parameters.update_model();
   parameters.update_domains();
 

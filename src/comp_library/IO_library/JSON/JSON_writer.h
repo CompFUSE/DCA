@@ -3,6 +3,7 @@
 #ifndef JSON_WRITER_HEADER_H
 #define JSON_WRITER_HEADER_H
 
+#include "comp_library/IO_library/template_writer.h"
 namespace IO
 {
 
