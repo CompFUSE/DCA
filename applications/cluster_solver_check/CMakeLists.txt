@@ -23,8 +23,9 @@ if (DCA_BUILD_CLUSTER_SOLVER_CHECK)
   endif()
   
   target_include_directories(cluster_solver_check
+    PRIVATE "${DCA_APPLICATION_FOLDER}"
     PRIVATE ${DCA_INCLUDES}
-    PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/..")
+    )
 endif()
 
 add_subdirectory(test/CT-AUX/bilayer_lattice)
