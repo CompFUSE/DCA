@@ -13,7 +13,7 @@ const static bool DO_NFFT = true;
 //DCA data
 #include "phys_library/DCA+_data/DCA_data.h"
 
-// analysis
-#include "phys_library/DCA+_analysis/include_analysis.h"
+//BSE solver
+#include "phys_library/DCA+_analysis/BSE_solver/BSE_solver.h"
 
 #include "comp_library/IO_library/JSON/JSON_writer.h"

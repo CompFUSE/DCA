@@ -3,7 +3,7 @@
 #ifndef MC_SOLVER_ANALYSIS_INTERPOLATION_PARAMETERS_H
 #define MC_SOLVER_ANALYSIS_INTERPOLATION_PARAMETERS_H
 
-#include "/home/giovanni/Programs/DCA/src/phys_library/parameters/parameters_specialization/templates/MC_solver_parameters.h"
+#include "phys_library/parameters/parameters_specialization/templates/MC_solver_parameters.h"
 
 /*!
  *   \author peter staar

@@ -2,6 +2,9 @@
 
 #ifndef BSE_SOLVER_H
 #define BSE_SOLVER_H
+
+#include "phys_library/DCA+_analysis/BSE_solver/BSE_cluster_solver.h"
+#include "phys_library/DCA+_analysis/BSE_solver/BSE_lattice_solver.h"
 #include"phys_library/domain_types.hpp"
 using namespace types;
 
