@@ -3,12 +3,15 @@
 #ifndef MC_SOLVER_ANALYSIS_INTERPOLATION_PARAMETERS_H
 #define MC_SOLVER_ANALYSIS_INTERPOLATION_PARAMETERS_H
 
+#include "/home/giovanni/Programs/DCA/src/phys_library/parameters/parameters_specialization/templates/MC_solver_parameters.h"
+
 /*!
  *   \author peter staar
  *   \brief  This class organizes the input-parameters for the ANALYSIS_INTERPOLATION-QMC method.
  */
+
 template<>
-class MC_solver_parameters<ANALYSIS_INTERPOLATION> 
+class MC_solver_parameters<DCA::ANALYSIS_INTERPOLATION>
 {
 public:
 
@@ -61,12 +64,12 @@ private:
   std::vector<std::vector<int   > > Bett_matrix;
 };
 
-MC_solver_parameters<ANALYSIS_INTERPOLATION>::MC_solver_parameters():
+MC_solver_parameters<DCA::ANALYSIS_INTERPOLATION>::MC_solver_parameters():
   dimension(-1),
   Bett_matrix(0)
 {}
 
-MC_solver_parameters<ANALYSIS_INTERPOLATION>::~MC_solver_parameters()
+MC_solver_parameters<DCA::ANALYSIS_INTERPOLATION>::~MC_solver_parameters()
 {}
 
 /******************************************
@@ -74,7 +77,7 @@ MC_solver_parameters<ANALYSIS_INTERPOLATION>::~MC_solver_parameters()
  ******************************************/
 
 template<class concurrency_type>
-int MC_solver_parameters<ANALYSIS_INTERPOLATION> ::get_buffer_size(const concurrency_type& concurrency) const
+int MC_solver_parameters<DCA::ANALYSIS_INTERPOLATION> ::get_buffer_size(const concurrency_type& concurrency) const
 {
   int buffer_size = 0;
 
@@ -89,7 +92,7 @@ int MC_solver_parameters<ANALYSIS_INTERPOLATION> ::get_buffer_size(const concurr
 }
 
 template<class concurrency_type>
-void MC_solver_parameters<ANALYSIS_INTERPOLATION> ::pack(const concurrency_type& concurrency, int* buffer, int buffer_size, int& position)
+void MC_solver_parameters<DCA::ANALYSIS_INTERPOLATION> ::pack(const concurrency_type& concurrency, int* buffer, int buffer_size, int& position)
 {
   concurrency.pack(buffer, buffer_size, position, dimension);
 
@@ -100,7 +103,7 @@ void MC_solver_parameters<ANALYSIS_INTERPOLATION> ::pack(const concurrency_type&
 }
 
 template<class concurrency_type>
-void MC_solver_parameters<ANALYSIS_INTERPOLATION> ::unpack(const concurrency_type& concurrency, int* buffer, int buffer_size, int& position)
+void MC_solver_parameters<DCA::ANALYSIS_INTERPOLATION> ::unpack(const concurrency_type& concurrency, int* buffer, int buffer_size, int& position)
 {
   concurrency.unpack(buffer, buffer_size, position, dimension);
 
@@ -116,7 +119,7 @@ void MC_solver_parameters<ANALYSIS_INTERPOLATION> ::unpack(const concurrency_typ
  ******************************************/
 
 template<class stream_type>
-void MC_solver_parameters<ANALYSIS_INTERPOLATION> ::to_JSON(stream_type& ss, bool is_end)
+void MC_solver_parameters<DCA::ANALYSIS_INTERPOLATION> ::to_JSON(stream_type& ss, bool is_end)
 {
   ss << "\"MC-solver-parameters\" :";
   ss << "\n{ \n";
@@ -130,7 +133,7 @@ void MC_solver_parameters<ANALYSIS_INTERPOLATION> ::to_JSON(stream_type& ss, boo
 }
   
 template<class JSON_reader_type>
-void MC_solver_parameters<ANALYSIS_INTERPOLATION> ::from_JSON(JSON_reader_type& reader)
+void MC_solver_parameters<DCA::ANALYSIS_INTERPOLATION> ::from_JSON(JSON_reader_type& reader)
 {
   typedef typename JSON_reader_type::JsonAccessor JsonAccessor;
   const JsonAccessor control(reader["MC-solver-parameters"]);
@@ -145,7 +148,7 @@ void MC_solver_parameters<ANALYSIS_INTERPOLATION> ::from_JSON(JSON_reader_type& 
  ******************************************/
 
 
-std::vector<std::vector<int> >& MC_solver_parameters<ANALYSIS_INTERPOLATION>::get_PCM_Bett_matrix()
+std::vector<std::vector<int> >& MC_solver_parameters<DCA::ANALYSIS_INTERPOLATION>::get_PCM_Bett_matrix()
 {
   return Bett_matrix;
 }
@@ -155,7 +158,7 @@ std::vector<std::vector<int> >& MC_solver_parameters<ANALYSIS_INTERPOLATION>::ge
  ******************************************/
 
 template<typename scalartype>
-std::vector<scalartype> MC_solver_parameters<ANALYSIS_INTERPOLATION>::linearize(const std::vector<std::vector<scalartype> >& vec) const
+std::vector<scalartype> MC_solver_parameters<DCA::ANALYSIS_INTERPOLATION>::linearize(const std::vector<std::vector<scalartype> >& vec) const
 {
   std::vector<scalartype> result;
 
@@ -167,7 +170,7 @@ std::vector<scalartype> MC_solver_parameters<ANALYSIS_INTERPOLATION>::linearize(
 }
 
 template<typename scalartype>
-void MC_solver_parameters<ANALYSIS_INTERPOLATION>::un_linearize(int                                    dimension,
+void MC_solver_parameters<DCA::ANALYSIS_INTERPOLATION>::un_linearize(int                                    dimension,
 					     std::vector<scalartype>&		    vec_lin,
 					     std::vector<std::vector<scalartype> >& vec)
 {

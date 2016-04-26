@@ -1,0 +1,8 @@
+#ifndef PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_MODEL_PARAMETERS_COLLECTION_HPP
+#define PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_MODEL_PARAMETERS_COLLECTION_HPP
+
+//add more models if needed
+#include "/home/giovanni/Programs/DCA/src/phys_library/parameters/parameters_specialization/model_specilizations/model_tight_binding_parameters.h"
+#include "/home/giovanni/Programs/DCA/src/phys_library/parameters/parameters_specialization/model_specilizations/model_2D_bilayer_model_parameters.h"
+
+#endif

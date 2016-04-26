@@ -3,7 +3,7 @@
 // NFFT <--> DFT
 const bool DO_NFFT = true;
 // include parameters
-#include "phys_library/parameters/include_Parameters.h"
+#include "phys_library/parameters/Parameters.h"
 
 #include "phys_library/DCA+_data/include_DCA+_data.h"
 

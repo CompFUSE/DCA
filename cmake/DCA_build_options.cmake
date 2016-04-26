@@ -10,6 +10,7 @@
 set(DCA_QMC_TYPE "CT-AUX" CACHE STRING "Choose the Monte-Carlo algorithm, options are: CT-AUX|SS-CT-HYB|HTS.")
 if (${DCA_QMC_TYPE} STREQUAL "CT-AUX")
   set(DCA_CLUSTER_SOLVER_TYPE "DCA::CT_AUX_CLUSTER_SOLVER")
+  add_definitions("-DUSE_CTAUX")
 elseif (${DCA_QMC_TYPE} STREQUAL "SS-CT-HYB")
   set(DCA_CLUSTER_SOLVER_TYPE "DCA::SS_CT_HYB")
 elseif (${DCA_QMC_TYPE} STREQUAL "HTS")

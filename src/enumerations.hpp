@@ -7,7 +7,8 @@ namespace DCA
                              ED_CLUSTER_SOLVER,
                              ADVANCED_ED_CLUSTER_SOLVER,
                              CT_AUX_CLUSTER_SOLVER,
-                             SS_CT_HYB};
+                             SS_CT_HYB,
+                             ANALYSIS_INTERPOLATION};
 }
 
 enum cluster_shape {BETT_CLUSTER,

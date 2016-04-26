@@ -6,15 +6,12 @@
 
 //#include "phys_library/domain_types.hpp"
 #include "phys_library/parameters/parameters_specialization/templates/template_parameters.hpp"
-// TODO   includes numerical error only if QMCI_INTEGRATOR BIT = 1
+// TODO  (maybe) includes numerical error only if QMCI_INTEGRATOR BIT = 1
 #include "phys_library/domains/include_DCA_domains.h"
 #include "enumerations.hpp"
-// TODO ! move model parameters to model class so that not everthing is included
-#include "phys_library/parameters/parameters_specialization/specializations/model_tight_binding_parameters.h"
-#include "phys_library/parameters/parameters_specialization/specializations/model_2D_bilayer_model_parameters.h"
-#include "phys_library/parameters/parameters_specialization/specializations/MC_solver_ct_aux_parameters.h"
 
-//using namespace types;
+#include "phys_library/parameters/parameters_specialization/model_parameters_collection.hpp"
+#include "phys_library/parameters/parameters_specialization/solver_parameters_collection.hpp"
 
 /*!
  *   \ingroup  PARAMETERS
