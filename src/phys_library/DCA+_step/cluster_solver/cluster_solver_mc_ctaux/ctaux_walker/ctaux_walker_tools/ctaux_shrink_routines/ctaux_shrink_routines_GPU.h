@@ -49,17 +49,14 @@ namespace DCA
         assert(N_up.get_current_size() == G0_up.get_current_size());
         assert(N_dn.get_current_size() == G0_dn.get_current_size());
 
-        if(QMC_INTEGRATOR_BIT)
-          {
+#ifdef QMC_INTEGRATOR_BIT
+
             N_dn_CPU.copy_from(N_dn);
             N_up_CPU.copy_from(N_up);
 
             G0_dn_CPU.copy_from(G0_dn);
             G0_up_CPU.copy_from(G0_up);
-          }
-
-        if(true)
-          {
+#endif
             i_s_up.set(source_index_up, LIN_ALG::ASYNCHRONOUS);
             i_t_up.set(target_index_up, LIN_ALG::ASYNCHRONOUS);
 
@@ -77,22 +74,10 @@ namespace DCA
 
             LIN_ALG::SWAP<LIN_ALG::GPU>::many_rows(G0_dn, i_s_dn, i_t_dn, thread_id, stream_id);
             LIN_ALG::SWAP<LIN_ALG::GPU>::many_cols(G0_dn, i_s_dn, i_t_dn, thread_id, stream_id);
-          }
-        else
-          {
-            for(size_t l=0; l<source_index_up.size(); ++l){
-              LIN_ALG::SWAP<LIN_ALG::GPU>::row_and_column(N_up , source_index_up[l], target_index_up[l], thread_id, stream_id);
-              LIN_ALG::SWAP<LIN_ALG::GPU>::row_and_column(G0_up, source_index_up[l], target_index_up[l], thread_id, stream_id);
-            }
 
-            for(size_t l=0; l<source_index_dn.size(); ++l){
-              LIN_ALG::SWAP<LIN_ALG::GPU>::row_and_column(N_dn , source_index_dn[l], target_index_dn[l], thread_id, stream_id);
-              LIN_ALG::SWAP<LIN_ALG::GPU>::row_and_column(G0_dn, source_index_dn[l], target_index_dn[l], thread_id, stream_id);
-            }
-          }
 
-        if(QMC_INTEGRATOR_BIT)
-          {
+#ifdef QMC_INTEGRATOR_BIT
+
             SHRINK_TOOLS_ALGORITHMS_CPU_obj.execute(source_index_up, target_index_up, N_up_CPU, G0_up_CPU,
                                                     source_index_dn, target_index_dn, N_dn_CPU, G0_dn_CPU);
 
@@ -101,7 +86,7 @@ namespace DCA
 
             G0_dn_CPU.difference(G0_dn);
             G0_up_CPU.difference(G0_up);
-          }
+#endif
       }
 
     private:
