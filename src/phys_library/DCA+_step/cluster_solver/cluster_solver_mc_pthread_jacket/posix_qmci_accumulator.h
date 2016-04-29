@@ -28,7 +28,7 @@ public:
 
   using qmci_accumulator_type::initialize;
   using qmci_accumulator_type::finalize;
-  using qmci_accumulator_type::to_JSON;
+  // using qmci_accumulator_type::to_JSON;
   using qmci_accumulator_type::get_configuration;
 
   template <typename walker_type>

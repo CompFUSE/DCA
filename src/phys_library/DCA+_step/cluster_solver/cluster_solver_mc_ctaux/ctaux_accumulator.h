@@ -109,9 +109,6 @@ public:
     return G4;
   }
 
-  template <class stream_type>
-  void to_JSON(stream_type& ss);
-
 #ifdef MEASURE_ERROR_BARS
   void store_standard_deviation(int nr_measurements, std::ofstream& points_file,
                                 std::ofstream& norm_file);

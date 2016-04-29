@@ -1,5 +1,5 @@
 //-*-C++-*-
-//TODO  Why is there a reference to high_temperature_serie_solver ??
+// TODO  Why is there a reference to high_temperature_serie_solver ??
 #ifndef DCA_LATTICE_MAP_SP_H
 #define DCA_LATTICE_MAP_SP_H
 
