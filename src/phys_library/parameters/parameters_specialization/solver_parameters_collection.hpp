@@ -2,12 +2,13 @@
 #define PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_SOLVER_PARAMETERS_COLLECTION_HPP
 
 // add more if needed
-#if defined(USE_CTAUX)
+
+//INTERNAL ct_aux_parameters must be included as they currently provide the read_write interface for the analysis.
 #include "phys_library/parameters/parameters_specialization/solver_specializations/MC_solver_ct_aux_parameters.h"
-#elif defined(USE_SS_CT_HYB)
+#ifdef USE_SS_CT_HYB
 #include "phys_library/parameters/parameters_specialization/solver_specializations/MC_solver_ss_hybridization_parameters.h"
-#else
-#include "phys_library/parameters/parameters_specialization/templates/MC_solver_parameters.h"
 #endif
+#include "phys_library/parameters/parameters_specialization/templates/MC_solver_parameters.h"
+
 
 #endif  // PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_SOLVER_PARAMETERS_COLLECTION_HPP

@@ -21,16 +21,8 @@ const bool DO_NFFT = true;
 
 #include "comp_library/IO_library/JSON/JSON_writer.h"
 
+#include "phys_library/DCA+_step/cluster_solver/@DCA_SOLVER_FILE@"
+
 #ifdef USE_PTHREADS
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_pthread_jacket/include_posix_qmci_integration.h"
 #endif
-#if   defined(USE_CTAUX)
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_cluster_solver.h"
-#elif defined(USE_SS_CT_HYB)
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_solver.h"
-#elif defined(USE_HTS)
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/high_temperature_series_expansion_solver.h"
-#else
-#error "define a MC_solver"
-#endif
-

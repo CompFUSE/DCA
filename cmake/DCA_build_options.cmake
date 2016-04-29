@@ -5,17 +5,21 @@
 # - preprocessor definitions (-D) and
 # - direct replacements in the source code.
 ################################################################################
-
 # Choose the Monte-Carlo algorithm.
 set(DCA_QMC_TYPE "CT-AUX" CACHE STRING "Choose the Monte-Carlo algorithm, options are: CT-AUX|SS-CT-HYB|HTS.")
 if (${DCA_QMC_TYPE} STREQUAL "CT-AUX")
   set(DCA_CLUSTER_SOLVER_TYPE "DCA::CT_AUX_CLUSTER_SOLVER")
+  set(DCA_SOLVER_FILE "cluster_solver_mc_ctaux/ctaux_cluster_solver.h")
   add_definitions("-DUSE_CTAUX")
 elseif (${DCA_QMC_TYPE} STREQUAL "SS-CT-HYB")
   set(DCA_CLUSTER_SOLVER_TYPE "DCA::SS_CT_HYB")
+  set(DCA_SOLVER_FILE "cluster_solver_ss_hybridization/ss_hybridization_solver.h")
   add_definitions(-DUSE_SS_CT_HYB)
 elseif (${DCA_QMC_TYPE} STREQUAL "HTS")
   set(DCA_CLUSTER_SOLVER_TYPE "DCA::HIGH_TEMPERATURE_SERIES")
+  set(DCA_SOLVER_FILE "cluster_solver_series_expansion/high_temperature_series_expansion_solver.h")
+  #TODO make self contained or remove.
+  message(ERROR "High temperature solver is not fully supported")
   add_definitions(-DUSE_HTS)
 else()
   message(FATAL_ERROR "Please set QMC_TYPE to a valid option: CT-AUX|SS-CT-HYB|HTS.")
