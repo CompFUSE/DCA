@@ -3,6 +3,11 @@
 #ifndef SS_CT_HYB_ACCUMULATOR_H
 #define SS_CT_HYB_ACCUMULATOR_H
 #include "phys_library/domain_types.hpp"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_template/qmci_accumulator.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_template/qmci_accumulator_data.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_domains/Feynman_expansion_order_domain.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_accumulator/sp_accumulator/Hybridization_accumulator_sp_nfft.h"
+
 using namespace types;
 
 namespace DCA {

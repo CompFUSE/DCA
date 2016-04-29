@@ -3,6 +3,10 @@
 #ifndef SS_CT_HYBRIDIZATION_WALKER_H
 #define SS_CT_HYBRIDIZATION_WALKER_H
 #include "phys_library/domain_types.hpp"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_template/qmci_walker.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_type_definitions.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_walker_tools/ss_hybridization_walker_routines.h"
+
 using namespace types;
 
 namespace DCA {

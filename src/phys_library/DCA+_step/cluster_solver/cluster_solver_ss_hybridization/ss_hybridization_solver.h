@@ -3,6 +3,11 @@
 #ifndef SS_HYBRIDIZATION_SOLVER_H
 #define SS_HYBRIDIZATION_SOLVER_H
 #include "phys_library/domain_types.hpp"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_template.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_solver_routines.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_walker.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_accumulator.h"
+
 using namespace types;
 
 namespace DCA {
@@ -40,7 +45,7 @@ public:
   const static int MC_TYPE = SS_CT_HYB;
 
 public:
-  cluster_solver(parameters_type& parameters_ref, MOMS_type& MOMS_ref);
+  cluster_solver(parameters_type& parameters_ref, MOMS_type& MOMS_ref, bool standalone = true);
 
   ~cluster_solver();
 
@@ -111,7 +116,7 @@ protected:
 
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::cluster_solver(
-    parameters_type& parameters_ref, MOMS_type& MOMS_ref)
+    parameters_type& parameters_ref, MOMS_type& MOMS_ref, bool standalone)
     : QMCI::ss_hybridization_solver_routines<parameters_type, MOMS_type>(parameters_ref, MOMS_ref),
 
       parameters(parameters_ref),
@@ -123,14 +128,14 @@ cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::cluster_solver(
 
       total_time(0),
 
-      rng((long)concurrency.id(), concurrency.number_of_processors(), concurrency.get_seed()),
-
       accumulator(parameters, MOMS),
 
       Sigma_old("Self-Energy-n-1-iteration"),
       Sigma_new("Self-Energy-n-0-iteration"),
 
       DCA_iteration(-1) {
+  if (standalone)
+    rng.init_from_id(concurrency.id(), concurrency.number_of_processors());
   concurrency << "\n\n\t SS CT-HYB Integrator is born \n\n";
 }
 
