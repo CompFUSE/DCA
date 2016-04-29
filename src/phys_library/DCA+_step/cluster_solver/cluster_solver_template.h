@@ -28,7 +28,7 @@ namespace DCA
     cluster_solver(parameters_type&   parameters_ref,
                    MOMS_type&         MOMS_ref);
 
-    ~cluster_solver();
+    virtual ~cluster_solver()=0; //this template must be specialized
 
     void initialize(int dca_iteration);
 

@@ -6,7 +6,6 @@
 #include "phys_library/DCA+_loop/DCA+_loop_data.h"
 #include "phys_library/DCA+_step/cluster_mapping/adjust_chemical_potential.h"
 #include "phys_library/DCA+_step/cluster_mapping/cluster_exclusion_step.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_template.h"
 #include "phys_library/DCA+_step/cluster_mapping/double_counting_correction.h"
 #include "phys_library/DCA+_step/lattice_mapping/lattice_mapping_sp.h"
 using namespace types;

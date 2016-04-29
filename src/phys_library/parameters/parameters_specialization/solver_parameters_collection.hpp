@@ -2,9 +2,13 @@
 #define PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_SOLVER_PARAMETERS_COLLECTION_HPP
 
 //add more if needed
-#ifndef USE_CTAUX
-#error "Include the necessair solver parameters file"
-#endif
+#if defined(USE_CTAUX)
 #include "phys_library/parameters/parameters_specialization/solver_specializations/MC_solver_ct_aux_parameters.h"
-
+#elif  defined(USE_SS_CT_HYB)
+#include "phys_library/parameters/parameters_specialization/solver_specializations/MC_solver_ss_hybridization_parameters.h"
+#else
+#include "phys_library/parameters/parameters_specialization/templates/MC_solver_parameters.h"
 #endif
+
+
+#endif // PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_SOLVER_PARAMETERS_COLLECTION_HPP
