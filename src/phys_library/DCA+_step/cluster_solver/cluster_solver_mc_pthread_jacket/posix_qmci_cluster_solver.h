@@ -129,8 +129,8 @@ void posix_qmci_integrator<qmci_integrator_type>::write(IO::writer<DATA_FORMAT>&
 
 template <class qmci_integrator_type>
 void posix_qmci_integrator<qmci_integrator_type>::set_the_rngs() {
-  int id_base = nr_walkers * concurrency.id();
-  int tot_walkers = nr_walkers * concurrency.number_of_processors();
+  const int id_base = nr_walkers * concurrency.id();
+  const int tot_walkers = nr_walkers * concurrency.number_of_processors();
   for (int i = 0; i < nr_walkers; ++i)
     rng_vector[i].init_from_id(id_base + i, tot_walkers);
 }
@@ -274,7 +274,10 @@ void posix_qmci_integrator<qmci_integrator_type>::start_walker(int id) {
   if (id == 0)
     concurrency << "\n\t\t QMCI starts\n\n";
 
-  walker_type walker(parameters, MOMS, rng_vector[id], id);
+  //remove accumulators from id count
+  const int walker_id = (id <= nr_accumulators) ? id-id/2 :
+                        id - nr_accumulators;
+  walker_type walker(parameters, MOMS, rng_vector[walker_id], id);
 
   walker.initialize();
 
