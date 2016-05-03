@@ -275,7 +275,8 @@ void posix_qmci_integrator<qmci_integrator_type>::start_walker(int id) {
     concurrency << "\n\t\t QMCI starts\n\n";
 
   //remove accumulators from id count
-  const int walker_id = (id <= nr_accumulators) ? id-id/2 :
+  const int min_nr= std::min(nr_accumulators,nr_walkers);
+  const int walker_id = (id < 2*min_nr) ? id-id/2 :
                         id - nr_accumulators;
   walker_type walker(parameters, MOMS, rng_vector[walker_id], id);
 
