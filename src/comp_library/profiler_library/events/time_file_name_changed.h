@@ -3,7 +3,9 @@
 #ifndef DCA_TIME_HEADER_H
 #define DCA_TIME_HEADER_H
 
+#include<sstream>
 #include <sys/resource.h>
+#include <sys/time.h>
 
 namespace PROFILER
 {

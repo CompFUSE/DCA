@@ -1,7 +1,13 @@
 //-*-C++-*-
-
 #ifndef DCA_CLUSTER_SOLVER_TEMPLATE_H
 #define DCA_CLUSTER_SOLVER_TEMPLATE_H
+
+#include "src/enumerations.hpp"
+#include "src/comp_library/linalg/linalg_device_types.h"
+#include "src/comp_library/IO_library/IO_types.h"
+#include "comp_library/IO_library/template_reader.h"
+#include "comp_library/IO_library/template_writer.h"
+
 
 namespace DCA {
 /*!

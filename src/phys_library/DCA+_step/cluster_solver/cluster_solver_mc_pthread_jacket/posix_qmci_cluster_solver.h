@@ -4,6 +4,7 @@
 #define DCA_QMCI_POSIX_MC_INTEGRATOR_FOR_MC_H
 
 #include "dca/math_library/random_number_library/random_number_library.hpp"
+#include "comp_library/profiler_library/events/time_file_name_changed.h"
 #include "posix_qmci_accumulator.h"
 
 namespace DCA {
@@ -274,8 +275,8 @@ void posix_qmci_integrator<qmci_integrator_type>::start_walker(int id) {
   if (id == 0)
     concurrency << "\n\t\t QMCI starts\n\n";
 
-  //remove accumulators from id count
-  const int min_nr= std::min(nr_accumulators,nr_walkers);
+  // remove accumulators from id count
+  const int min_nr = std::min(nr_accumulators, nr_walkers);
   const int walker_id = (id < 2*min_nr) ? id-id/2 :
                         id - nr_accumulators;
   walker_type walker(parameters, MOMS, rng_vector[walker_id], id);

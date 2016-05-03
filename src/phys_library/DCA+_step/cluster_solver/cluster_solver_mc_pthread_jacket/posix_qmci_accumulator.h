@@ -4,6 +4,7 @@
 #define DCA_QMCI_POSIX_JACKET_FOR_MC_ACCUMULATION_H
 
 #include <queue>
+#include <iostream>
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_template/qmci_accumulator.h"
 
 namespace DCA {
@@ -28,7 +29,6 @@ public:
 
   using qmci_accumulator_type::initialize;
   using qmci_accumulator_type::finalize;
-  // using qmci_accumulator_type::to_JSON;
   using qmci_accumulator_type::get_configuration;
 
   template <typename walker_type>
@@ -43,6 +43,10 @@ public:
 
   template <LIN_ALG::device_type device_t, class parameters_t, class MOMS_t>
   void sum_to(MC_accumulator<SS_CT_HYB, device_t, parameters_t, MOMS_t>& accumulator_obj);
+
+  /*//generic method
+  template<class AccumulatorSum>
+  void sum_to(AccumulatorSum& accumulator);*/
 
 protected:
   using qmci_accumulator_type::get_Gflop;
