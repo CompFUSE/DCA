@@ -10,6 +10,6 @@ using model = tight_binding_model<lattice_type>;
 // using LATTICE = cuprate_single_band_LATTICE<DCA_point_group_type>;
 // using LATTICE = cuprate_three_band_LATTICE<DCA_point_group_type>;
 // using LATTICE = bilayer_LATTICE<DCA_point_group_type>;
-} // end namespace types
+}  // end namespace types
 
 #endif

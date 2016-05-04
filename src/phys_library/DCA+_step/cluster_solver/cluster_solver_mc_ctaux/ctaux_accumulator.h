@@ -30,6 +30,7 @@ template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 class MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>
     : public MC_accumulator_data {
 public:
+  using this_type = MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>;
   typedef parameters_type my_parameters_type;
   typedef MOMS_type my_MOMS_type;
 
@@ -57,6 +58,8 @@ public:
   void update_from(walker_type& walker);
 
   void measure();
+
+  void sum_to(this_type & other);
 
   void finalize();
 
@@ -541,6 +544,64 @@ void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type,
     accumulator_nonlocal_chi_obj.execute(current_sign, accumulator_nonlocal_G_obj);
   }
 }
+
+template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type,
+MOMS_type>::sum_to(this_type& other) {
+  finalize();
+
+  other.get_Gflop() += get_Gflop();
+
+  other.get_sign() += get_sign();
+  other.get_number_of_measurements() += get_number_of_measurements();
+
+  {
+    for (int i = 0; i < visited_expansion_order_k.size(); i++)
+      other.get_visited_expansion_order_k()(i) +=
+              visited_expansion_order_k(i);
+
+    for (int i = 0; i < error.size(); i++)
+      other.get_error_distribution()(i) += error(i);
+  }
+
+  {  // equal time measurements
+    for (int i = 0; i < G_r_t.size(); i++)
+      other.get_G_r_t()(i) += G_r_t(i);
+
+    for (int i = 0; i < G_r_t_stddev.size(); i++)
+      other.get_G_r_t_stddev()(i) += G_r_t_stddev(i);
+
+    for (int i = 0; i < charge_cluster_moment.size(); i++)
+      other.get_charge_cluster_moment()(i) +=
+              charge_cluster_moment(i);
+
+    for (int i = 0; i < magnetic_cluster_moment.size(); i++)
+      other.get_magnetic_cluster_moment()(i) +=
+              magnetic_cluster_moment(i);
+
+    for (int i = 0; i < dwave_pp_correlator.size(); i++)
+      other.get_dwave_pp_correlator()(i) += dwave_pp_correlator(i);
+  }
+
+  {  // sp-measurements
+    for (int i = 0; i < K_r_t.size(); i++)
+      other.get_K_r_t()(i) += K_r_t(i);
+
+    for (int i = 0; i < M_r_w.size(); i++)
+      other.get_M_r_w()(i) += M_r_w(i);
+
+    for (int i = 0; i < M_r_w_squared.size(); i++)
+      other.get_M_r_w_squared()(i) += M_r_w_squared(i);
+  }
+
+  {  // tp-measurements
+    for (int i = 0; i < G4.size(); i++)
+      other.get_G4()(i) += G4(i);
+  }
+
+}
+
+
 }
 }
 

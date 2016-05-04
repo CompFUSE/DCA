@@ -7,6 +7,8 @@
 // publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//
+// Description: Mock rng for the posix test. Stores the thread id it gets called with.
 
 #ifndef DCA_UNIT_PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_PTHREAD_JACKET_MOCKRNG_HPP
 #define DCA_UNIT_PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_PTHREAD_JACKET_MOCKRNG_HPP
@@ -22,8 +24,12 @@ public:
   ~MockRng() {}
   void init_from_id(int id, int max_id);
 
-  static void initialize() { pthread_mutex_init(&rng_lock, NULL); }
-  static void finalize() { pthread_mutex_destroy(&rng_lock); }
+  static void initialize() {
+    pthread_mutex_init(&rng_lock, NULL);
+  }
+  static void finalize() {
+    pthread_mutex_destroy(&rng_lock);
+  }
   static void reset() {
     ids.clear();
     max_ids.clear();
@@ -33,6 +39,7 @@ public:
 private:
   static pthread_mutex_t rng_lock;
   static std::vector<int> ids, max_ids;
+
 public:
   int id;
 };

@@ -49,6 +49,6 @@ using lattice_type = square_lattice<DCA_point_group_type>;
 // using lattice_type = cuprate_3_band_LATTICE_kent<DCA_point_group_type>;
 // using lattice_type = non_interacting_cluster_square_2D<DCA_point_group_type>;
 
-} // namespace types
+}  // namespace types
 
-#endif // LATTICE_TYPES_HPP
+#endif  // LATTICE_TYPES_HPP

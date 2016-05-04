@@ -44,18 +44,15 @@ public:
   template <LIN_ALG::device_type device_t, class parameters_t, class MOMS_t>
   void sum_to(MC_accumulator<SS_CT_HYB, device_t, parameters_t, MOMS_t>& accumulator_obj);
 
-  /*//generic method
-  template<class AccumulatorSum>
-  void sum_to(AccumulatorSum& accumulator);*/
+  //generic method, to be implemented
+  void sum_to(qmci_accumulator_type& other);
 
-protected:
-  using qmci_accumulator_type::get_Gflop;
-  using qmci_accumulator_type::get_sign;
-  using qmci_accumulator_type::get_number_of_measurements;
 
-private:
-  using qmci_accumulator_type::parameters;
-  using qmci_accumulator_type::MOMS;
+  //using qmci_accumulator_type::get_Gflop;
+  //using qmci_accumulator_type::get_sign;
+  //using qmci_accumulator_type::get_number_of_measurements;
+  //sing qmci_accumulator_type::parameters;
+  //using qmci_accumulator_type::MOMS;
 
   int thread_id;
 
@@ -123,88 +120,10 @@ void posix_qmci_accumulator<qmci_accumulator_type>::measure(
 }
 
 template <class qmci_accumulator_type>
-template <LIN_ALG::device_type device_t, class parameters_t, class MOMS_t>
-void posix_qmci_accumulator<qmci_accumulator_type>::sum_to(
-    MC_accumulator<CT_AUX_SOLVER, device_t, parameters_t, MOMS_t>& accumulator_obj) {
+void posix_qmci_accumulator<qmci_accumulator_type>::sum_to(qmci_accumulator_type& other) {
+
   pthread_mutex_lock(&mutex_accumulator);
-
-  finalize();
-
-  accumulator_obj.get_Gflop() += qmci_accumulator_type::get_Gflop();
-
-  accumulator_obj.get_sign() += qmci_accumulator_type::get_sign();
-  accumulator_obj.get_number_of_measurements() += qmci_accumulator_type::get_number_of_measurements();
-
-  {
-    for (int i = 0; i < qmci_accumulator_type::visited_expansion_order_k.size(); i++)
-      accumulator_obj.get_visited_expansion_order_k()(i) +=
-          qmci_accumulator_type::visited_expansion_order_k(i);
-
-    for (int i = 0; i < qmci_accumulator_type::error.size(); i++)
-      accumulator_obj.get_error_distribution()(i) += qmci_accumulator_type::error(i);
-  }
-
-  {  // equal time measurements
-    for (int i = 0; i < qmci_accumulator_type::G_r_t.size(); i++)
-      accumulator_obj.get_G_r_t()(i) += qmci_accumulator_type::G_r_t(i);
-
-    for (int i = 0; i < qmci_accumulator_type::G_r_t_stddev.size(); i++)
-      accumulator_obj.get_G_r_t_stddev()(i) += qmci_accumulator_type::G_r_t_stddev(i);
-
-    for (int i = 0; i < qmci_accumulator_type::charge_cluster_moment.size(); i++)
-      accumulator_obj.get_charge_cluster_moment()(i) +=
-          qmci_accumulator_type::charge_cluster_moment(i);
-
-    for (int i = 0; i < qmci_accumulator_type::magnetic_cluster_moment.size(); i++)
-      accumulator_obj.get_magnetic_cluster_moment()(i) +=
-          qmci_accumulator_type::magnetic_cluster_moment(i);
-
-    for (int i = 0; i < qmci_accumulator_type::dwave_pp_correlator.size(); i++)
-      accumulator_obj.get_dwave_pp_correlator()(i) += qmci_accumulator_type::dwave_pp_correlator(i);
-  }
-
-  {  // sp-measurements
-    for (int i = 0; i < qmci_accumulator_type::K_r_t.size(); i++)
-      accumulator_obj.get_K_r_t()(i) += qmci_accumulator_type::K_r_t(i);
-
-    for (int i = 0; i < qmci_accumulator_type::M_r_w.size(); i++)
-      accumulator_obj.get_M_r_w()(i) += qmci_accumulator_type::M_r_w(i);
-
-    for (int i = 0; i < qmci_accumulator_type::M_r_w_squared.size(); i++)
-      accumulator_obj.get_M_r_w_squared()(i) += qmci_accumulator_type::M_r_w_squared(i);
-  }
-
-  {  // tp-measurements
-    for (int i = 0; i < qmci_accumulator_type::G4.size(); i++)
-      accumulator_obj.get_G4()(i) += qmci_accumulator_type::G4(i);
-  }
-
-  pthread_mutex_unlock(&mutex_accumulator);
-}
-
-template <class qmci_accumulator_type>
-template <LIN_ALG::device_type device_t, class parameters_t, class MOMS_t>
-void posix_qmci_accumulator<qmci_accumulator_type>::sum_to(
-    MC_accumulator<SS_CT_HYB, device_t, parameters_t, MOMS_t>& accumulator_obj) {
-  pthread_mutex_lock(&mutex_accumulator);
-
-  finalize();
-
-  accumulator_obj.get_sign() += qmci_accumulator_type::get_sign();
-  accumulator_obj.get_number_of_measurements() += qmci_accumulator_type::get_number_of_measurements();
-
-  for (int i = 0; i < qmci_accumulator_type::visited_expansion_order_k.size(); i++)
-    accumulator_obj.get_visited_expansion_order_k()(i) +=
-        qmci_accumulator_type::visited_expansion_order_k(i);
-
-  {  // sp-measurements
-    for (int i = 0; i < qmci_accumulator_type::G_r_w.size(); i++)
-      accumulator_obj.get_G_r_w()(i) += qmci_accumulator_type::G_r_w(i);
-
-    for (int i = 0; i < qmci_accumulator_type::GS_r_w.size(); i++)
-      accumulator_obj.get_GS_r_w()(i) += qmci_accumulator_type::GS_r_w(i);
-  }
-
+  qmci_accumulator_type::sum_to(other);
   pthread_mutex_unlock(&mutex_accumulator);
 }
 

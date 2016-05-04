@@ -7,6 +7,8 @@
 // publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//
+// Description: Mock MC solver for the posix test.
 
 #ifndef DCA_UNIT_PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_PTHREAD_JACKET_MOCK_SOLVER_HPP
 #define DCA_UNIT_PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_PTHREAD_JACKET_MOCK_SOLVER_HPP
@@ -26,10 +28,11 @@ public:
   using this_parameters_type = Parameters;
 
 public:
-  MockSolver(this_parameters_type &p_ref, this_MOMS_type &m_ref,
-             bool standalone = true);
+  MockSolver(this_parameters_type& p_ref, this_MOMS_type& m_ref, bool standalone = true);
   void initialize(int i) {}
-  double finalize(long int i) { return 0; }
+  double finalize(long int i) {
+    return 0;
+  }
 
 protected:
   void update_shell(int i, int N, int N_k);
@@ -39,17 +42,14 @@ protected:
 
   double total_time = 0;
   int DCA_iteration = 0;
-  this_parameters_type parameters;
+  this_parameters_type& parameters;
   this_MOMS_type MOMS;
   this_parameters_type::concurrency_type concurrency;
-  MockAccumulator
-          accumulator; // pthread accumulator measurements get summed here
+  MockAccumulator accumulator;  // pthread accumulator measurements get summed here
 };
 
-MockSolver::MockSolver(this_parameters_type &p_ref, this_MOMS_type &m_ref,
-                       bool standalone)
-        : parameters(p_ref), MOMS(m_ref),
-          concurrency(parameters.get_concurrency()) {
+MockSolver::MockSolver(this_parameters_type& p_ref, this_MOMS_type& m_ref, bool standalone)
+    : parameters(p_ref), MOMS(m_ref), concurrency(parameters.get_concurrency()) {
   if (standalone == true)
     throw std::logic_error("MockSolver is not called from pthread jacket");
 }
