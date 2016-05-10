@@ -54,7 +54,7 @@ private:
 };
 
 MockParameters::MockParameters(int n_w, int n_a)
-    : concurrency_obj(1, NULL), nr_walkers(n_w), nr_accumulators(n_a) {
+    : nr_accumulators(n_a), nr_walkers(n_w), concurrency_obj(1, NULL) {
   pthread_mutex_init(&parameters_lock, NULL);
 }
 

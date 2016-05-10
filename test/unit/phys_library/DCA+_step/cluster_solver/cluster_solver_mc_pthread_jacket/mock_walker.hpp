@@ -48,7 +48,7 @@ pthread_mutex_t MockWalker::walker_lock;
 std::vector<bool> MockWalker::available_walker_ids;
 
 MockWalker::MockWalker(Parameters& pars0, MOMS_t& moms, rng_type& rng0, int id0)
-    : pars(pars0), rng(rng0), thread_id(id0), fake_configuration(1, 1) {
+    : fake_configuration(1, 1), pars(pars0), rng(rng0), thread_id(id0) {
   const int w_id = rng.id;
   std::cout << "Thread id: " << thread_id << "  Walker id:" << w_id << std::endl;
   const int nr_w = pars.get_nr_walkers();

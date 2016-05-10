@@ -50,14 +50,14 @@ protected:
 
 private:
   std::vector<int> fake_configuration;
-  int id = -1;
+  //int id = -1;
 
 public:
   int n_measurments = 0;
 };
 
 MockAccumulator::MockAccumulator(Parameters& p_ref, MOMS_t& m_ref, int id0)
-    : parameters(p_ref), MOMS(m_ref), id(id0), fake_configuration(1, 0) {}
+    : MOMS(m_ref), parameters(p_ref), fake_configuration(1, 0)/*, id(id0)*/ {}
 
 void MockAccumulator::measure() {
   if (fake_configuration[0] != 1)
