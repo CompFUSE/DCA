@@ -30,6 +30,7 @@ class MC_accumulator<SS_CT_HYB, device_t, parameters_type, MOMS_type>
       public ss_hybridization_solver_routines<parameters_type, MOMS_type> {
 public:
   using this_type = MC_accumulator<SS_CT_HYB, device_t, parameters_type, MOMS_type>;
+
   typedef parameters_type my_parameters_type;
   typedef MOMS_type my_MOMS_type;
 
@@ -80,7 +81,8 @@ public:
   void update_from(walker_type& walker);
   void measure();
 
-
+  // Sums all accumulated objects of this accumulator to the equivalent objects of the 'other'
+  // accumulator.
   void sum_to(this_type& other);
 
   void compute_G_r_w(FUNC_LIB::function<double, nu> mu_DC);
@@ -271,15 +273,14 @@ void MC_accumulator<SS_CT_HYB, device_t, parameters_type, MOMS_type>::accumulate
 }
 
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
-void MC_accumulator<SS_CT_HYB, device_t, parameters_type, MOMS_type>::sum_to(this_type &other) {
+void MC_accumulator<SS_CT_HYB, device_t, parameters_type, MOMS_type>::sum_to(this_type& other) {
   finalize();
 
   other.get_sign() += get_sign();
   other.get_number_of_measurements() += get_number_of_measurements();
 
   for (int i = 0; i < visited_expansion_order_k.size(); i++)
-    other.get_visited_expansion_order_k()(i) +=
-            visited_expansion_order_k(i);
+    other.get_visited_expansion_order_k()(i) += visited_expansion_order_k(i);
 
   {  // sp-measurements
     for (int i = 0; i < G_r_w.size(); i++)
@@ -289,7 +290,6 @@ void MC_accumulator<SS_CT_HYB, device_t, parameters_type, MOMS_type>::sum_to(thi
       other.get_GS_r_w()(i) += GS_r_w(i);
   }
 }
-
 }
 }
 

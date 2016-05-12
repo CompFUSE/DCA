@@ -3,7 +3,7 @@
 #ifndef DCA_TIME_HEADER_H
 #define DCA_TIME_HEADER_H
 
-#include<sstream>
+#include <sstream>
 #include <sys/resource.h>
 #include <sys/time.h>
 
@@ -200,12 +200,6 @@ namespace PROFILER
   
   //======================================================================
 
-} // end namespace DCA
+}  // PROFILER
 
-
-
-/*@}*/
-#endif
-
-
-
+#endif  // DCA_TIME_HEADER_H

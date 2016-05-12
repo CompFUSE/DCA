@@ -2,22 +2,21 @@
 #ifndef DCA_CLUSTER_SOLVER_TEMPLATE_H
 #define DCA_CLUSTER_SOLVER_TEMPLATE_H
 
-#include "src/enumerations.hpp"
-#include "src/comp_library/linalg/linalg_device_types.h"
-#include "src/comp_library/IO_library/IO_types.h"
+#include "enumerations.hpp"
+#include "comp_library/linalg/linalg_device_types.h"
+#include "comp_library/IO_library/IO_types.h"
 #include "comp_library/IO_library/template_reader.h"
 #include "comp_library/IO_library/template_writer.h"
-
 
 namespace DCA {
 /*!
  *  \defgroup CLUSTER-SOLVER
  */
 namespace QMCI {
+// DCA::QMCI::
 enum QMCI_NAMES { CT_AUX_SOLVER, SS_CT_HYB };
-
 enum QMCI_SP_MEASUREMENT_NAMES { NFFT };
-}
+}  // QMCI
 
 /*!
  * \brief   high temperature series expansion solver
@@ -48,6 +47,7 @@ public:
   template <IO::FORMAT DATA_FORMAT>
   void write(IO::writer<DATA_FORMAT>& reader);
 };
-}
 
-#endif
+}  // DCA
+
+#endif  // DCA_CLUSTER_SOLVER_TEMPLATE_H

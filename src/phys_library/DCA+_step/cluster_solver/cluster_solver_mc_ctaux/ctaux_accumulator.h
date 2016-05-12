@@ -31,6 +31,7 @@ class MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>
     : public MC_accumulator_data {
 public:
   using this_type = MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>;
+
   typedef parameters_type my_parameters_type;
   typedef MOMS_type my_MOMS_type;
 
@@ -59,7 +60,9 @@ public:
 
   void measure();
 
-  void sum_to(this_type & other);
+  // Sums all accumulated objects of this accumulator to the equivalent objects of the 'other'
+  // accumulator.
+  void sum_to(this_type& other);
 
   void finalize();
 
@@ -546,8 +549,7 @@ void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type,
 }
 
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
-void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type,
-MOMS_type>::sum_to(this_type& other) {
+void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::sum_to(this_type& other) {
   finalize();
 
   other.get_Gflop() += get_Gflop();
@@ -557,8 +559,7 @@ MOMS_type>::sum_to(this_type& other) {
 
   {
     for (int i = 0; i < visited_expansion_order_k.size(); i++)
-      other.get_visited_expansion_order_k()(i) +=
-              visited_expansion_order_k(i);
+      other.get_visited_expansion_order_k()(i) += visited_expansion_order_k(i);
 
     for (int i = 0; i < error.size(); i++)
       other.get_error_distribution()(i) += error(i);
@@ -572,12 +573,10 @@ MOMS_type>::sum_to(this_type& other) {
       other.get_G_r_t_stddev()(i) += G_r_t_stddev(i);
 
     for (int i = 0; i < charge_cluster_moment.size(); i++)
-      other.get_charge_cluster_moment()(i) +=
-              charge_cluster_moment(i);
+      other.get_charge_cluster_moment()(i) += charge_cluster_moment(i);
 
     for (int i = 0; i < magnetic_cluster_moment.size(); i++)
-      other.get_magnetic_cluster_moment()(i) +=
-              magnetic_cluster_moment(i);
+      other.get_magnetic_cluster_moment()(i) += magnetic_cluster_moment(i);
 
     for (int i = 0; i < dwave_pp_correlator.size(); i++)
       other.get_dwave_pp_correlator()(i) += dwave_pp_correlator(i);
@@ -598,10 +597,7 @@ MOMS_type>::sum_to(this_type& other) {
     for (int i = 0; i < G4.size(); i++)
       other.get_G4()(i) += G4(i);
   }
-
 }
-
-
 }
 }
 
