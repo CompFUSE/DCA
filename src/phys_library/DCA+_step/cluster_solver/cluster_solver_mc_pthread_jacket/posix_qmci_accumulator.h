@@ -27,6 +27,11 @@ public:
 
   ~posix_qmci_accumulator();
 
+  using qmci_accumulator_type::initialize;
+  using qmci_accumulator_type::finalize;
+  // using qmci_accumulator_type::to_JSON;
+  using qmci_accumulator_type::get_configuration;
+
   template <typename walker_type>
   void update_from(walker_type& walker);
 
@@ -37,6 +42,15 @@ public:
   // Sums all accumulated objects of this accumulator to the equivalent objects of the 'other'
   // accumulator.
   void sum_to(qmci_accumulator_type& other);
+
+protected:
+  using qmci_accumulator_type::get_Gflop;
+  using qmci_accumulator_type::get_sign;
+  using qmci_accumulator_type::get_number_of_measurements;
+
+private:
+  using qmci_accumulator_type::parameters;
+  using qmci_accumulator_type::MOMS;
 
   int thread_id;
 

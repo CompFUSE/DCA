@@ -107,6 +107,14 @@ include(DCA_compiler_options)
 include(DCA_external_libs)
 
 #------------------------------------------------------------------------------
+# Internal libraries
+# TODO: When the number of 'internal' libraries grows, we might want to combine
+#       these into a few big libraries; e.g. one for comp, math and phys,
+#       respectively.
+#------------------------------------------------------------------------------
+add_subdirectory(src/phys_library/DCA_step/cluster_solver/posix_qmci)
+
+#------------------------------------------------------------------------------
 # Common definitions
 # NOTE: Needs to be included after DCA_external_libs.
 #------------------------------------------------------------------------------

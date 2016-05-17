@@ -3,9 +3,15 @@
 #ifndef DCA_QMCI_POSIX_MC_INTEGRATOR_FOR_MC_H
 #define DCA_QMCI_POSIX_MC_INTEGRATOR_FOR_MC_H
 
+#include <pthread.h>
+#include <cassert>
+#include <vector>
+#include <queue>
+#include <string>
 #include "dca/math_library/random_number_library/random_number_library.hpp"
 #include "comp_library/profiler_library/events/time_file_name_changed.h"
-#include "posix_qmci_accumulator.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_pthread_jacket/posix_qmci_accumulator.h"
+#include "dca/phys_library/DCA_step/cluster_solver/posix_qmci/thread_task_handler.hpp"
 
 namespace DCA {
 /*!
@@ -16,7 +22,7 @@ namespace DCA {
  * \ingroup POSIX-TEMPLATES
  * \brief   A posix-MC_integrator that implements a threaded MC-integration, independent of the
  * MC-TYPE.
- * \author  Raffaele Solca, Peter Staar
+ * \author  Raffaele Solca, Peter Staar, Urs R. Haehner
  * \version 1.0
  */
 template <class qmci_integrator_type>
@@ -51,10 +57,6 @@ public:
   double finalize(dca_info_struct_t& dca_info_struct);
 
 private:
-  void print_thread_distribution();
-
-  void set_the_rngs();
-
   static void* start_walker_static(void* arg);
   static void* start_accumulator_static(void* arg);
 
@@ -63,6 +65,7 @@ private:
 
   void warm_up(walker_type& walker, int id);
 
+  // TODO: Are the following using statements redundant and can therefore be removed?
   using qmci_integrator_type::compute_error_bars;
   using qmci_integrator_type::sum_measurements;
   using qmci_integrator_type::symmetrize_measurements;
@@ -82,8 +85,10 @@ private:
 
   int acc_finished;
 
-  int nr_walkers;
-  int nr_accumulators;
+  const int nr_walkers;
+  const int nr_accumulators;
+
+  dca::phys::solver::ThreadTaskHandler thread_task_handler_;
 
   std::vector<random_number_generator> rng_vector;
 
@@ -105,6 +110,8 @@ posix_qmci_integrator<qmci_integrator_type>::posix_qmci_integrator(parameters_ty
       nr_walkers(parameters.get_nr_walkers()),
       nr_accumulators(parameters.get_nr_accumulators()),
 
+      thread_task_handler_(nr_walkers, nr_accumulators),
+
       rng_vector(nr_walkers),
       accumulators_queue() {
   if (nr_walkers < 1 || nr_accumulators < 1) {
@@ -115,8 +122,8 @@ posix_qmci_integrator<qmci_integrator_type>::posix_qmci_integrator(parameters_ty
     throw std::logic_error(__PRETTY_FUNCTION__);
   }
 
-  // initialize the seeds and the rng's
-  set_the_rngs();
+  dca::math::rng::initializeWalkerRngs(concurrency.id(), concurrency.number_of_processors(),
+                                       nr_walkers, rng_vector);
 }
 
 template <class qmci_integrator_type>
@@ -126,14 +133,6 @@ template <class qmci_integrator_type>
 template <IO::FORMAT DATA_FORMAT>
 void posix_qmci_integrator<qmci_integrator_type>::write(IO::writer<DATA_FORMAT>& writer) {
   qmci_integrator_type::write(writer);
-}
-
-template <class qmci_integrator_type>
-void posix_qmci_integrator<qmci_integrator_type>::set_the_rngs() {
-  const int id_base = nr_walkers * concurrency.id();
-  const int tot_walkers = nr_walkers * concurrency.number_of_processors();
-  for (int i = 0; i < nr_walkers; ++i)
-    rng_vector[i].init_from_id(id_base + i, tot_walkers);
 }
 
 template <class qmci_integrator_type>
@@ -164,27 +163,20 @@ void posix_qmci_integrator<qmci_integrator_type>::integrate() {
   std::vector<std::pair<this_type*, int>> data(nr_accumulators + nr_walkers);
 
   {
-    print_thread_distribution();
+    if (concurrency.id() == 0)
+      thread_task_handler_.print();
 
     PROFILER::WallTime start_time;
 
-    int min_nr_walkers_nr_accumulators = std::min(nr_walkers, nr_accumulators);
-    for (int i = 0; i < 2 * min_nr_walkers_nr_accumulators; ++i) {
+    for (int i = 0; i < nr_walkers + nr_accumulators; ++i) {
       data[i] = std::pair<this_type*, int>(this, i);
 
-      if (i % 2 == 0)
+      if (thread_task_handler_.getTask(i) == "walker")
         pthread_create(&threads[i], NULL, start_walker_static, &data[i]);
-      else
+      else if (thread_task_handler_.getTask(i) == "accumulator")
         pthread_create(&threads[i], NULL, start_accumulator_static, &data[i]);
-    }
-
-    for (int i = 2 * min_nr_walkers_nr_accumulators; i < nr_walkers + nr_accumulators; ++i) {
-      data[i] = std::pair<this_type*, int>(this, i);
-
-      if (min_nr_walkers_nr_accumulators != nr_walkers)
-        pthread_create(&threads[i], NULL, start_walker_static, &data[i]);
       else
-        pthread_create(&threads[i], NULL, start_accumulator_static, &data[i]);
+        throw std::logic_error("Thread is neither a walker nor an accumulator.");
     }
 
     void* rc;
@@ -205,26 +197,6 @@ void posix_qmci_integrator<qmci_integrator_type>::integrate() {
   sum_measurements(parameters.get_number_of_measurements() * nr_accumulators);
 
   concurrency << "\n\t\t threaded QMC integration ends\n\n";
-}
-
-template <class qmci_integrator_type>
-void posix_qmci_integrator<qmci_integrator_type>::print_thread_distribution() {
-  if (concurrency.id() == 0) {
-    int min_nr_walkers_nr_accumulators = std::min(nr_walkers, nr_accumulators);
-    for (int i = 0; i < 2 * min_nr_walkers_nr_accumulators; ++i) {
-      if (i % 2 == 0)
-        std::cout << "\t pthread-id : " << i << "  -->   (walker)\n";
-      else
-        std::cout << "\t pthread-id : " << i << "  -->   (accumulator)\n";
-    }
-
-    for (int i = 2 * min_nr_walkers_nr_accumulators; i < nr_walkers + nr_accumulators; ++i) {
-      if (min_nr_walkers_nr_accumulators != nr_walkers)
-        std::cout << "\t pthread-id : " << i << "  -->   (walker)\n";
-      else
-        std::cout << "\t pthread-id : " << i << "  -->   (accumulator)\n";
-    }
-  }
 }
 
 template <class qmci_integrator_type>
@@ -275,11 +247,8 @@ void posix_qmci_integrator<qmci_integrator_type>::start_walker(int id) {
   if (id == 0)
     concurrency << "\n\t\t QMCI starts\n\n";
 
-  // remove accumulators from id count
-  const int min_nr = std::min(nr_accumulators, nr_walkers);
-  const int walker_id = (id < 2*min_nr) ? id-id/2 :
-                        id - nr_accumulators;
-  walker_type walker(parameters, MOMS, rng_vector[walker_id], id);
+  const int rng_index = thread_task_handler_.walkerIDToRngIndex(id);
+  walker_type walker(parameters, MOMS, rng_vector[rng_index], id);
 
   walker.initialize();
 
@@ -385,6 +354,7 @@ void posix_qmci_integrator<qmci_integrator_type>::start_accumulator(int id) {
     pthread_mutex_unlock(&mutex_merge);
   }
 }
-}
+
+}  // DCA
 
 #endif

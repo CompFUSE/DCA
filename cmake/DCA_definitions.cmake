@@ -4,7 +4,7 @@
 
 # Libraries
 # FIXME: Handle gitVersion and modules library nicer.
-set(DCA_LIBRARIES "${DCA_EXTERNAL_LIBS};gitVersion;modules")
+set(DCA_LIBRARIES "${DCA_EXTERNAL_LIBS};gitVersion;modules;posix_qmci")
 # message("DCA_LIBRARIES: ${DCA_LIBRARIES}")
 
 # Includes
