@@ -83,7 +83,7 @@ if (${DCA_RNG} STREQUAL "SPRNG")
     message(FATAL_ERROR "SPRNG library was not found!\nChoose a different option for the random number generator.")
   endif()
   
-  list(APPEND DCA_EXTERNAL_LIBS ${SPGLIB_LIBRARY})
+  list(APPEND DCA_EXTERNAL_LIBS ${SPRNG_LIBRARY})
   list(APPEND DCA_EXTERNAL_INCLUDES ${SPRNG_DIR}/include)
 
   mark_as_advanced(SPRNG_LIBRARY)
