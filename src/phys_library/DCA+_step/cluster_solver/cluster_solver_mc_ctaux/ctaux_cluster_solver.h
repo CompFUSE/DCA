@@ -118,11 +118,12 @@ cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::clu
       DCA_iteration(-1) {
   // INTERNAL this function get called at posix_qmci_cluster solver even if walkers are not spawned
   // here
+  // TODO: ALWAYS initialize the rng PROPERLY.
   if (set_rng)
     rng.init_from_id(
         concurrency.id(),
-        concurrency.number_of_processors()),  // assure each markov chain gets a different seed
-        concurrency << "\n\n\t CT-AUX Integrator is born \n\n";
+        concurrency.number_of_processors());  // assure each markov chain gets a different seed
+  concurrency << "\n\n\t CT-AUX Integrator is born \n\n";
 }
 
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
