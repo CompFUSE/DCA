@@ -9,12 +9,6 @@
 
 namespace PROFILER
 {
-  //======================================================================
-
-  /*! 
-   *  \ingroup PROFILING
-   *
-   */
   class TimeBase {
   public:
 
@@ -28,12 +22,6 @@ namespace PROFILER
     }
   };
   
-  //======================================================================
-
-  /*! 
-   *  \ingroup PROFILING
-   *
-   */
   class Time: public TimeBase {
   public:
 
@@ -49,12 +37,6 @@ namespace PROFILER
     }
   };
   
-  //======================================================================
-
-  /*! 
-   *  \ingroup PROFILING
-   *
-   */
   class WallTime: public Time {
   public: 
 
@@ -68,12 +50,6 @@ namespace PROFILER
     }
   };
   
-  //======================================================================
-
-  /*! 
-   *  \ingroup PROFILING
-   *
-   */
   class ResourceTime: public Time {
   public:
     
@@ -106,12 +82,6 @@ namespace PROFILER
     {}
   }; 
   
-  //======================================================================
-
-  /*! 
-   *  \ingroup PROFILING
-   *
-   */
   class UserTime: public ResourceTime {
   public: 
     typedef struct rusage UsageType;
@@ -126,12 +96,6 @@ namespace PROFILER
     }
   };
   
-  //======================================================================
-  
-  /*! 
-   *  \ingroup PROFILING
-   *
-   */
   class SystemTime: public ResourceTime {
   public: 
     typedef struct rusage UsageType;
@@ -146,12 +110,6 @@ namespace PROFILER
     }
   };
   
-  //======================================================================
-
-  /*! 
-   *  \ingroup PROFILING
-   *
-   */
   class Duration: public TimeBase  {
   public:
     
@@ -198,8 +156,6 @@ namespace PROFILER
     return Duration(time,earlierTime);
   }
   
-  //======================================================================
-
 }  // PROFILER
 
 #endif  // DCA_TIME_HEADER_H

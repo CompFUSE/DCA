@@ -49,11 +49,9 @@ std::vector<std::string> ThreadTaskHandler::generateThreadTasksVec(const int num
 
   const int min_num_walkers_num_accumulators = std::min(num_walkers, num_accumulators);
 
-  for (int i = 0; i < 2 * min_num_walkers_num_accumulators; ++i) {
-    if (i % 2 == 0)
-      thread_tasks[i] = "walker";
-    else
-      thread_tasks[i] = "accumulator";
+  for (int i = 0; i < 2 * min_num_walkers_num_accumulators; i += 2) {
+    thread_tasks[i] = "walker";
+    thread_tasks[i + 1] = "accumulator";
   }
 
   for (int i = 2 * min_num_walkers_num_accumulators; i < num_walkers + num_accumulators; ++i) {

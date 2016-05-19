@@ -11,8 +11,8 @@
 // thread.
 // For performance reasons walker and accumulator threads should be created alternately, i.e.
 // walker, accumulator, w, a, w, a, ... . If the number of walkers and accumulators differ, the
-// remaining threads are created in the end, e.g. for 4 walkers and 2 accumulators this means: w, a,
-// w, a, w, w.
+// remaining threads are created in the end, e.g. for 4 walkers and 2 accumulators this means:
+// w, a, w, a, w, w.
 
 #ifndef DCA_PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_POSIX_QMCI_THREAD_TASK_HANDLER_HPP
 #define DCA_PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_POSIX_QMCI_THREAD_TASK_HANDLER_HPP
