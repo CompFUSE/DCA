@@ -3,7 +3,10 @@
 #------------------------------------------------------------------------------
 cmake_minimum_required(VERSION 3.0)
 project(DCA++ C CXX)
+
+#------------------------------------------------------------------------------
 # Disable in-source builds.
+#------------------------------------------------------------------------------
 if (${PROJECT_BINARY_DIR} STREQUAL ${PROJECT_SOURCE_DIR})
   message(FATAL_ERROR "In-source builds are not permitted.
                       Make a separate folder for building:\n
@@ -42,6 +45,9 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 # be moved into include/dca/.../ and included via #include <dca/.../...>.
 include_directories(${PROJECT_SOURCE_DIR})
 
+# directory where dca/config/defines.hpp will be created 
+include_directories(${CMAKE_BINARY_DIR})
+
 #------------------------------------------------------------------------------
 # Check for CXX features that might not be supported 
 # if any of these features are not supported by the compiler, then
@@ -70,8 +76,14 @@ DCA_check_cxx_features(
 )
 
 #------------------------------------------------------------------------------
+# Include CMake scripts from cmake directory.
+#------------------------------------------------------------------------------
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+
+#------------------------------------------------------------------------------
 # Modules : for reproducibility
 #------------------------------------------------------------------------------
+
 add_subdirectory(modules)
 include(modules_init)
 get_module_list(MODULE_LIST)
@@ -148,6 +160,32 @@ if (DCA_TESTS)
   add_subdirectory(src/phys_library/domains/cluster)
   add_subdirectory(src/math_library/geometry_library/vector_operations)
 endif()
+
+#------------------------------------------------------------------------------
+# Configure the header containing all compile definitions
+#------------------------------------------------------------------------------
+get_property(DCA_CONFIG_DEFINITIONS_VAR GLOBAL PROPERTY DCA_CONFIG_DEFINITIONS)
+
+list(SORT DCA_CONFIG_DEFINITIONS_VAR)
+list(REMOVE_DUPLICATES DCA_CONFIG_DEFINITIONS_VAR)
+list(REMOVE_ITEM DCA_CONFIG_DEFINITIONS_VAR "")
+
+set(dca_config_defines "// Generated from CMake definitons\n\n")
+foreach(def ${DCA_CONFIG_DEFINITIONS_VAR})
+  set(dca_config_defines "${dca_config_defines}#define ${def} ${${def}_define}\n")
+endforeach()
+
+# Generate a defines.hpp to be used in the build directory ...
+set(DCA_DEFINES_PREFIX ${DCA_BUILD_PREFIX})
+configure_file("${PROJECT_SOURCE_DIR}/cmake/templates/config_defines.hpp.in"
+               "${CMAKE_BINARY_DIR}/dca/config/defines.hpp"
+               @ONLY)
+
+# Generate a defines.hpp to be used in the install directory ...
+set(DCA_DEFINES_PREFIX ${DCA_PREFIX})
+configure_file("${PROJECT_SOURCE_DIR}/cmake/templates/config_defines.hpp.in"
+               "${CMAKE_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/dca/config/defines.hpp"
+               @ONLY)
 
 #------------------------------------------------------------------------------
 # Build applications
