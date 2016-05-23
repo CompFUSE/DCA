@@ -5,7 +5,7 @@
 
 #include <complex>
 // TODO check if full parallelization lib is needed
-#include "comp_library/parallelization_library/include_parallelization_library.h"
+#include "dca/concurrency/concurrency.hpp"
 namespace COMP_LIB {
 /*!
  *  \author Peter Staar
