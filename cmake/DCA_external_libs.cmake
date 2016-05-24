@@ -73,6 +73,8 @@ mark_as_advanced(
 # Only try to find SPRNG if it is the requested rng to use.
 if (${DCA_RNG} STREQUAL "SPRNG")
   # INTERNAL: Is there a find_package for SPRNG?
+  dca_add_config_define(DCA_HAVE_SPRNG)
+
   find_library(SPRNG_LIBRARY
     NAMES libsprng.a sprng
     PATHS ${SPRNG_DIR}/lib
@@ -87,6 +89,4 @@ if (${DCA_RNG} STREQUAL "SPRNG")
   list(APPEND DCA_EXTERNAL_INCLUDES ${SPRNG_DIR}/include)
 
   mark_as_advanced(SPRNG_LIBRARY)
-
-  add_definitions(-DSPRNG_SUPPORTED)
 endif()
