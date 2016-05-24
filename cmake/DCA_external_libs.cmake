@@ -5,7 +5,7 @@
 #       - Write FindSPGLIB.cmake.
 #       - Write FindFFTW.cmake.
 #       - Use static libraries for NFFT and SPGLIB?
-#       - Set DCA_XXX_AVAILABLE to true after XXX was found?
+#       - Set DCA_HAVE_XXX to true after XXX was found?
 ################################################################################
 
 # NFFT

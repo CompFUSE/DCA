@@ -33,8 +33,8 @@ if (DCA_SSE_ACCELERATION)
 endif()
 
 # Enable pthreads.
-option(DCA_PTHREADS "Enable pthreads" ON)
-if (DCA_PTHREADS)
+option(DCA_WITH_PTHREADS "Enable pthreads" ON)
+if (DCA_WITH_PTHREADS)
   dca_add_config_define(DCA_HAVE_PTHREADS)
   set(DCA_MC_INTEGRATOR_TYPE "DCA::posix_qmci_integrator<quantum_cluster_solver_type>")
   dca_add_config_define(DCA_MC_INTEGRATOR_TYPE "DCA::posix_qmci_integrator<quantum_cluster_solver_type>")

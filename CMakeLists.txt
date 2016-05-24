@@ -141,7 +141,7 @@ include(MPI_support)
 # GPU support
 #------------------------------------------------------------------------------
 include(GPU_support)
-if (DCA_GPU_SUPPORT)
+if (DCA_WITH_CUDA)
   add_subdirectory(src/DCA_GPU_routines)
 endif()
 

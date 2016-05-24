@@ -17,7 +17,7 @@ function(add_gtest)
     return()
   endif()
 
-  if (ADD_GTEST_MPI AND NOT DCA_MPI_AVAILABLE)
+  if (ADD_GTEST_MPI AND NOT DCA_HAVE_MPI)
     message(WARNING "Requested MPI for test ${ADD_GTEST_NAME} but MPI is not available. Test is skipped.")
     return()
   endif()
