@@ -8,7 +8,7 @@ if (DCA_BUILD_CLUSTER_SOLVER_CHECK)
   message(STATUS "Generating cluster_solver_check.cpp.")
   configure_file(cluster_solver_check.cpp.in "${CMAKE_CURRENT_BINARY_DIR}/cluster_solver_check.cpp" @ONLY)
   
-  if (DCA_GPU_SUPPORT)
+  if (DCA_WITH_CUDA)
     add_executable(cluster_solver_check ${CMAKE_CURRENT_BINARY_DIR}/cluster_solver_check.cpp)
     target_link_libraries(cluster_solver_check
       DCA_GPU_routines
