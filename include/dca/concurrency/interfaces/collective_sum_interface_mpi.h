@@ -6,6 +6,7 @@
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
+//         Andrei Plamada (plamada@phys.ethz.ch)
 //
 // Description
 
@@ -63,6 +64,20 @@ public:
   void average_and_compute_stddev(FUNC_LIB::function<std::complex<scalar_type>, domain>& f_mean,
                                   FUNC_LIB::function<std::complex<scalar_type>, domain>& f_stddev,
                                   size_t size);
+
+  // f contains the initial data and the covariance is overwritten in the same variable
+  // TODO: const f_estimated
+  template <typename Scalar, class domain>
+  void computeCovariance(FUNC_LIB::function<Scalar, domain>& f,
+                         FUNC_LIB::function<Scalar, domain>& f_estimated,
+                         FUNC_LIB::function<Scalar, dmn_variadic<domain, domain>>& cov);
+
+  // f contains the initial data and the covariance is overwritten in the same variable
+  // the covariance constructed is equivalent with the covariance of the vector [Re(f),Im(f)]
+  template <typename Scalar, class domain, class cov_domain>
+  void computeCovariance(FUNC_LIB::function<std::complex<Scalar>, domain>& f,
+                         FUNC_LIB::function<std::complex<Scalar>, domain>& f_estimated,
+                         FUNC_LIB::function<Scalar, cov_domain>& cov);
 
 private:
   processor_grouping<MPI_LIBRARY>& grouping;
@@ -265,6 +280,42 @@ void collective_sum_interface<MPI_LIBRARY>::average_and_compute_stddev(
   }
 
   f_stddev /= std::sqrt(grouping.get_Nr_threads());
+}
+
+template <typename Scalar, class domain>
+void collective_sum_interface<MPI_LIBRARY>::computeCovariance(
+    FUNC_LIB::function<Scalar, domain>& f, FUNC_LIB::function<Scalar, domain>& f_estimated,
+    FUNC_LIB::function<Scalar, dmn_variadic<domain, domain>>& cov) {
+  for (int i = 0; i < f.size(); i++)
+    for (int j = 0; j < f.size(); j++)
+      cov(i, j) = (f(i) - f_estimated(i)) * (f(j) - f_estimated(j));
+
+  sum_and_average(cov, 1);
+}
+
+template <typename Scalar, class domain, class cov_domain>
+void collective_sum_interface<MPI_LIBRARY>::computeCovariance(
+    FUNC_LIB::function<std::complex<Scalar>, domain>& f,
+    FUNC_LIB::function<std::complex<Scalar>, domain>& f_estimated,
+    FUNC_LIB::function<Scalar, cov_domain>& cov) {
+  assert(4 * f.size() * f.size() == cov.size());
+
+  // compute the covariance for the real and imaginary part seperately
+  for (int i = 0; i < f.size(); i++)
+    for (int j = 0; j < f.size(); j++) {
+      cov(i, j) = (f(i).real() - f_estimated(i).real()) *
+                  (f(j).real() - f_estimated(j).real());  // treat real part
+      cov(i + f.size(), j + f.size()) =
+          (f(i).imag() - f_estimated(i).imag()) *
+          (f(j).imag() - f_estimated(j).imag());  // and imaginary part independently
+
+      cov(i, j + f.size()) = (f(i).real() - f_estimated(i).real()) *
+                             (f(j).imag() - f_estimated(j).imag());  // treat real part
+      cov(i + f.size(), j) =
+          (f(i).imag() - f_estimated(i).imag()) *
+          (f(j).real() - f_estimated(j).imag());  // and imaginary part independently
+    }
+  sum_and_average(cov, 1);
 }
 
 }  // concurrency
