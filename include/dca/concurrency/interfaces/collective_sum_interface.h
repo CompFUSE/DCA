@@ -1,15 +1,29 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
-#ifndef COLLECTIVE_SUM_INTERFACE_H
-#define COLLECTIVE_SUM_INTERFACE_H
-#include "map"
+#ifndef DCA_CONCURRENCY_COLLECTIVE_SUM_INTERFACE_H
+#define DCA_CONCURRENCY_COLLECTIVE_SUM_INTERFACE_H
+
+#include <map>
 #include <vector>
+#include "dca/concurrency/concurrency_types.hpp"
+#include "dca/concurrency/interfaces/processor_grouping_interface.h"
 #include "comp_library/linalg/src/vector.h"
 #include "comp_library/linalg/src/matrix.h"
-namespace COMP_LIB {
-/*!
- *  \author Peter Staar
- */
+#include "comp_library/function_library/function.h"
+
+namespace dca {
+namespace concurrency {
+// dca::concurrency::
+
 template <PARALLELIZATION_LIBRARY_NAMES LIBRARY>
 class collective_sum_interface {
 public:
@@ -93,6 +107,8 @@ void collective_sum_interface<LIBRARY>::sum(LIN_ALG::matrix<scalar_type, LIN_ALG
 template <PARALLELIZATION_LIBRARY_NAMES LIBRARY>
 template <typename some_type>
 void collective_sum_interface<LIBRARY>::sum_and_average(some_type& /*obj*/, int /*size*/) {}
-}
 
-#endif
+}  // concurrency
+}  // dca
+
+#endif  // DCA_CONCURRENCY_COLLECTIVE_SUM_INTERFACE_H

@@ -1,51 +1,56 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
-#ifndef COLLECTIVE_MIN_INTERFACE_MPI_H
-#define COLLECTIVE_MIN_INTERFACE_MPI_H
+#ifndef DCA_CONCURRENCY_COLLECTIVE_MIN_INTERFACE_MPI_H
+#define DCA_CONCURRENCY_COLLECTIVE_MIN_INTERFACE_MPI_H
 
-namespace COMP_LIB
-{
-  /*!
-   *  \author Peter Staar
-   */
-  template<>
-  class collective_min_interface<MPI_LIBRARY>
-  {
-  public:
+#include "dca/concurrency/interfaces/collective_min_interface.h"
+#include <mpi.h>
+#include "dca/concurrency/interfaces/type_map_interface_mpi.h"
+#include "dca/concurrency/interfaces/processor_grouping_interface_mpi.h"
 
-    collective_min_interface(processor_grouping<MPI_LIBRARY>& grouping_ref);
-    ~collective_min_interface();
+namespace dca {
+namespace concurrency {
+// dca::concurrency::
 
-    template<typename scalar_type>
-    void min(scalar_type& value);
+template <>
+class collective_min_interface<MPI_LIBRARY> {
+public:
+  collective_min_interface(processor_grouping<MPI_LIBRARY>& grouping_ref);
+  ~collective_min_interface();
 
-  private:
+  template <typename scalar_type>
+  void min(scalar_type& value);
 
-    processor_grouping<MPI_LIBRARY>& grouping;
-  };
+private:
+  processor_grouping<MPI_LIBRARY>& grouping;
+};
 
-  collective_min_interface<MPI_LIBRARY>::collective_min_interface(processor_grouping<MPI_LIBRARY>& grouping_ref):
-    grouping(grouping_ref)
-  {}
+collective_min_interface<MPI_LIBRARY>::collective_min_interface(
+    processor_grouping<MPI_LIBRARY>& grouping_ref)
+    : grouping(grouping_ref) {}
 
-  collective_min_interface<MPI_LIBRARY>::~collective_min_interface()
-  {}
+collective_min_interface<MPI_LIBRARY>::~collective_min_interface() {}
 
-  template<typename scalar_type>
-  void collective_min_interface<MPI_LIBRARY>::min(scalar_type& value)
-  {
-    scalar_type result;
+template <typename scalar_type>
+void collective_min_interface<MPI_LIBRARY>::min(scalar_type& value) {
+  scalar_type result;
 
-    MPI_Allreduce(&value,
-                  &result,
-                  type_map_interface<MPI_LIBRARY, scalar_type>::factor(),
-                  type_map_interface<MPI_LIBRARY, scalar_type>::value(),
-                  MPI_MIN,
-                  grouping.get());
+  MPI_Allreduce(&value, &result, type_map_interface<MPI_LIBRARY, scalar_type>::factor(),
+                type_map_interface<MPI_LIBRARY, scalar_type>::value(), MPI_MIN, grouping.get());
 
-    value = result;
-  }
-
+  value = result;
 }
 
-#endif
+}  // concurrency
+}  // dca
+
+#endif  // DCA_CONCURRENCY_COLLECTIVE_MIN_INTERFACE_MPI_H

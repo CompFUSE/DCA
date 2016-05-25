@@ -1,12 +1,25 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
-#ifndef PARALLELIZATION_LIBRARY_TEMPLATE_H
-#define PARALLELIZATION_LIBRARY_TEMPLATE_H
+#ifndef DCA_CONCURRENCY_PARALLELIZATION_TEMPLATE_H
+#define DCA_CONCURRENCY_PARALLELIZATION_TEMPLATE_H
 
-namespace COMP_LIB {
-/*!
- *  \author Peter Staar
- */
+#include "dca/concurrency/concurrency_types.hpp"
+#include "dca/concurrency/interfaces/print_on_shell_interface.h"
+#include "dca/concurrency/interfaces/packing_interface.h"
+#include "dca/concurrency/interfaces/collective_sum_interface.h"
+
+namespace dca {
+namespace concurrency {
+
 template <PARALLELIZATION_LIBRARY_NAMES LIBRARY>
 class parallelization : public print_on_shell_interface<LIBRARY>,
                         public packing_interface<LIBRARY>,
@@ -87,6 +100,8 @@ std::pair<int, int> parallelization<LIBRARY>::get_bounds(domain_t& dmn) {
 
   return bounds;
 }
-}
 
-#endif
+}  // concurrency
+}  // dca
+
+#endif  // DCA_CONCURRENCY_PARALLELIZATION_TEMPLATE_H

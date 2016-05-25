@@ -1,15 +1,24 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
-#ifndef TYPE_MAP_INTERFACE_H
-#define TYPE_MAP_INTERFACE_H
+#ifndef DCA_CONCURRENCY_TYPE_MAP_INTERFACE_H
+#define DCA_CONCURRENCY_TYPE_MAP_INTERFACE_H
 
 #include <complex>
-// TODO check if full parallelization lib is needed
-#include "dca/concurrency/concurrency.hpp"
-namespace COMP_LIB {
-/*!
- *  \author Peter Staar
- */
+#include "dca/concurrency/concurrency_types.hpp"
+
+namespace dca {
+namespace concurrency {
+// dca::concurrency::
+
 template <PARALLELIZATION_LIBRARY_NAMES LIBRARY, typename scalar_type>
 class type_map_interface {
 public:
@@ -22,9 +31,6 @@ public:
   }
 };
 
-/*!
- *  \author Peter Staar
- */
 template <PARALLELIZATION_LIBRARY_NAMES LIBRARY, typename scalar_type>
 class type_map_interface<LIBRARY, std::complex<scalar_type>> {
 public:
@@ -36,5 +42,8 @@ public:
     return sizeof(scalar_type);
   }
 };
-}
-#endif
+
+}  // concurrency
+}  // dca
+
+#endif  // DCA_CONCURRENCY_TYPE_MAP_INTERFACE_H

@@ -1,13 +1,28 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
-#ifndef PROCESSOR_GROUPING_INTERFACE_POSIX_LBRARY_H
-#define PROCESSOR_GROUPING_INTERFACE_POSIX_LBRARY_H
+#ifndef DCA_CONCURRENCY_PROCESSOR_GROUPING_INTERFACE_PTHREADS_H
+#define DCA_CONCURRENCY_PROCESSOR_GROUPING_INTERFACE_PTHREADS_H
 
-namespace COMP_LIB {
+#include "dca/concurrency/interfaces/processor_grouping_interface.h"
+#include <vector>
+#include <pthread.h>
+
+namespace dca {
+namespace concurrency {
+// dca::concurrency::
+
 struct posix_data {
 public:
-  posix_data();
-  ~posix_data();
+  posix_data() : id(-1), nr_threads(-1), args(NULL) {}
 
 public:
   int id;
@@ -16,13 +31,6 @@ public:
   void* args;
 };
 
-posix_data::posix_data() : id(-1), nr_threads(-1), args(NULL) {}
-
-posix_data::~posix_data() {}
-
-/*!
- *  \author Peter Staar
- */
 template <>
 class processor_grouping<POSIX_LIBRARY> {
 public:
@@ -61,6 +69,8 @@ void processor_grouping<POSIX_LIBRARY>::join() {
 
   pthread_vector.resize(0);
 }
-}
 
-#endif
+}  // concurrency
+}  // dca
+
+#endif  // DCA_CONCURRENCY_PROCESSOR_GROUPING_INTERFACE_PTHREADS_H

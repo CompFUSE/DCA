@@ -1,14 +1,26 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
-#ifndef PACKING_INTERFACE_HEADER
-#define PACKING_INTERFACE_HEADER
+#ifndef DCA_CONCURRENCY_PACKING_INTERFACE_H
+#define DCA_CONCURRENCY_PACKING_INTERFACE_H
 
 #include <vector>
+#include "dca/concurrency/concurrency_types.hpp"
+#include "dca/concurrency/interfaces/processor_grouping_interface.h"
 #include "comp_library/function_library/function.h"
-namespace COMP_LIB {
-/*!
- *  \author Peter Staar
- */
+
+namespace dca {
+namespace concurrency {
+// dca::concurrency::
+
 template <PARALLELIZATION_LIBRARY_NAMES LIBRARY>
 class packing_interface {
 public:
@@ -65,6 +77,8 @@ template <typename T, class dmn_type>
 size_t packing_interface<LIBRARY>::get_buffer_size(FUNC_LIB::function<T, dmn_type>& f) {
   return f.size() * size(f(0));
 }
-}
 
-#endif
+}  // concurrency
+}  // dca
+
+#endif  // DCA_CONCURRENCY_PACKING_INTERFACE_H
