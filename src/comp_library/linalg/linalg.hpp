@@ -13,8 +13,8 @@
 // TODO: - Make all header files self-contained (especially matrix.h and vector.h).
 //       - Remove all deprecated files.
 
-#ifndef COMP_LIBRARY_LIN_ALG_INCLUDE_LIN_ALG_HPP
-#define COMP_LIBRARY_LIN_ALG_INCLUDE_LIN_ALG_HPP
+#ifndef COMP_LIBRARY_LINALG_LINALG_HPP
+#define COMP_LIBRARY_LINALG_LINALG_HPP
 
 #include <stdexcept>
 #include <vector>
@@ -133,4 +133,4 @@
 #include "src/linalg_structures/performance_inspector_CPU.h"
 #include "src/linalg_structures/performance_inspector_GPU.h"
 
-#endif  // COMP_LIBRARY_LIN_ALG_INCLUDE_LIN_ALG_HPP
+#endif  // COMP_LIBRARY_LINALG_LINALG_HPP
