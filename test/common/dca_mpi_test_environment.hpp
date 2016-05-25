@@ -10,7 +10,7 @@
 
 class dca_mpi_test_environment : public ::testing::Environment {
 public:
-  using concurrency_type =  COMP_LIB::parallelization<COMP_LIB::MPI_LIBRARY>;
+  using concurrency_type =  dca::concurrency::parallelization<dca::concurrency::MPI_LIBRARY>;
 
   dca_mpi_test_environment(int argc,char *argv[], std::string file_name)
     : concurrency(argc, argv)

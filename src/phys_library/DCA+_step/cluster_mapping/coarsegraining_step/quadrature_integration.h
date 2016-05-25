@@ -3,7 +3,7 @@
 #ifndef DCA_QUADRATURE_INTEGRATION_H
 #define DCA_QUADRATURE_INTEGRATION_H
 
-#include "comp_library/parallelization_library/include_parallelization_library.h"
+#include "dca/concurrency/concurrency.hpp"
 
 namespace DCA {
 
@@ -103,7 +103,7 @@ void quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G_
   quadrature_integration_functions_obj.S_q_ptr = &S_q;
   quadrature_integration_functions_obj.G_q_ptr = &G_q;
 
-  COMP_LIB::parallelization<COMP_LIB::POSIX_LIBRARY> parallelization_obj;
+  dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY> parallelization_obj;
 
   parallelization_obj.execute(nr_threads, quadrature_integration_G_q_w_mt<scalar_type>,
                               (void*)&quadrature_integration_functions_obj);
@@ -114,7 +114,7 @@ template <typename scalar_type>
 void* quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G_q_w_mt(void* void_ptr) {
   typedef quadrature_integration_functions<scalar_type> quadrature_functions_type;
 
-  COMP_LIB::posix_data* data_ptr = static_cast<COMP_LIB::posix_data*>(void_ptr);
+  dca::concurrency::posix_data* data_ptr = static_cast<dca::concurrency::posix_data*>(void_ptr);
   quadrature_functions_type* functions_ptr = static_cast<quadrature_functions_type*>(data_ptr->args);
 
   int id = data_ptr->id;
@@ -131,7 +131,7 @@ void* quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G
 
   q_dmn_t q_dmn;
   std::pair<int, int> q_bounds =
-      COMP_LIB::parallelization<COMP_LIB::POSIX_LIBRARY>::get_bounds(id, nr_threads, q_dmn);
+      dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY>::get_bounds(id, nr_threads, q_dmn);
 
   {
     LIN_ALG::matrix<std::complex<scalar_type>, LIN_ALG::CPU> G_inv("G_inv", nu::dmn_size());
@@ -226,7 +226,7 @@ void quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G_
   quadrature_integration_functions_obj.H_q_ptr = &H_q;
   quadrature_integration_functions_obj.G_q_ptr = &G_q;
 
-  COMP_LIB::parallelization<COMP_LIB::POSIX_LIBRARY> parallelization_obj;
+  dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY> parallelization_obj;
 
   parallelization_obj.execute(nr_threads, quadrature_integration_G_q_t_mt<scalar_type>,
                               (void*)&quadrature_integration_functions_obj);
@@ -237,7 +237,7 @@ template <typename scalar_type>
 void* quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G_q_t_mt(void* void_ptr) {
   typedef quadrature_integration_functions<scalar_type> quadrature_functions_type;
 
-  COMP_LIB::posix_data* data_ptr = static_cast<COMP_LIB::posix_data*>(void_ptr);
+  dca::concurrency::posix_data* data_ptr = static_cast<dca::concurrency::posix_data*>(void_ptr);
   quadrature_functions_type* functions_ptr = static_cast<quadrature_functions_type*>(data_ptr->args);
 
   int id = data_ptr->id;
@@ -257,7 +257,7 @@ void* quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G
 
   q_dmn_t q_dmn;
   std::pair<int, int> q_bounds =
-      COMP_LIB::parallelization<COMP_LIB::POSIX_LIBRARY>::get_bounds(id, nr_threads, q_dmn);
+      dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY>::get_bounds(id, nr_threads, q_dmn);
 
   {
     LIN_ALG::matrix<std::complex<scalar_type>, LIN_ALG::CPU> H_m("H_m", nu::dmn_size());

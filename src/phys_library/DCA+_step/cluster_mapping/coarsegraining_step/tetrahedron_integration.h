@@ -149,7 +149,7 @@ void tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_mt
 
   // tetrahedron_integration_functions_obj.G_int_vec.resize(nr_threads, G_int);
 
-  COMP_LIB::parallelization<COMP_LIB::POSIX_LIBRARY> parallelization_obj;
+  dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY> parallelization_obj;
 
   switch (DIMENSION) {
     //       case 1:
@@ -250,7 +250,7 @@ template <typename scalar_type>
 void* tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_mt_2D(void* void_ptr) {
   typedef tetrahedron_integration_functions<scalar_type> tetrahedron_functions_type;
 
-  COMP_LIB::posix_data* data_ptr = static_cast<COMP_LIB::posix_data*>(void_ptr);
+  dca::concurrency::posix_data* data_ptr = static_cast<dca::concurrency::posix_data*>(void_ptr);
   tetrahedron_functions_type* functions_ptr =
       static_cast<tetrahedron_functions_type*>(data_ptr->args);
 
@@ -265,7 +265,7 @@ void* tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_m
 
   tet_dmn_type tet_dmn;
   std::pair<int, int> tet_bounds =
-      COMP_LIB::parallelization<COMP_LIB::POSIX_LIBRARY>::get_bounds(id, nr_threads, tet_dmn);
+      dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY>::get_bounds(id, nr_threads, tet_dmn);
 
   for (int j = 0; j < nu::dmn_size(); j++)
     for (int i = 0; i < nu::dmn_size(); i++)
@@ -374,7 +374,7 @@ template <typename scalar_type>
 void* tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_mt_3D(void* void_ptr) {
   typedef tetrahedron_integration_functions<scalar_type> tetrahedron_functions_type;
 
-  COMP_LIB::posix_data* data_ptr = static_cast<COMP_LIB::posix_data*>(void_ptr);
+  dca::concurrency::posix_data* data_ptr = static_cast<dca::concurrency::posix_data*>(void_ptr);
   tetrahedron_functions_type* functions_ptr =
       static_cast<tetrahedron_functions_type*>(data_ptr->args);
 
@@ -389,7 +389,7 @@ void* tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_m
 
   tet_dmn_type tet_dmn;
   std::pair<int, int> tet_bounds =
-      COMP_LIB::parallelization<COMP_LIB::POSIX_LIBRARY>::get_bounds(id, nr_threads, tet_dmn);
+      dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY>::get_bounds(id, nr_threads, tet_dmn);
 
   for (int j = 0; j < nu::dmn_size(); j++)
     for (int i = 0; i < nu::dmn_size(); i++)

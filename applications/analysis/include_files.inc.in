@@ -4,8 +4,8 @@
 // NFFT <--> DFT
 const static bool DO_NFFT = true;
 
-// parallelization
-#include "comp_library/parallelization_library/include_parallelization_library.h"
+// Concurrency
+#include "dca/concurrency/concurrency.hpp"
 
 //parameters
 #include "phys_library/parameters/Parameters.h"

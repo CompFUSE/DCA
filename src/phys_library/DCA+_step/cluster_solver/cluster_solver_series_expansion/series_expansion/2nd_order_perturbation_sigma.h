@@ -277,7 +277,7 @@ namespace DCA
       }
 
       {
-	COMP_LIB::parallelization<COMP_LIB::POSIX_LIBRARY> pthreads;
+	dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY> pthreads;
 
 	pthreads.execute(nr_threads, threaded_execute_2B, (void*) &args);
       }
@@ -321,7 +321,7 @@ namespace DCA
     template<class parameters_type, class k_dmn_t>
     void* sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_2B(void* void_ptr)
     {
-      COMP_LIB::posix_data*    data_ptr       = static_cast<COMP_LIB::posix_data   *>(void_ptr);
+      dca::concurrency::posix_data*    data_ptr       = static_cast<dca::concurrency::posix_data   *>(void_ptr);
       sigma_perturbation_data* sigma_pert_ptr = static_cast<sigma_perturbation_data*>(data_ptr->args);
 
       //U_function_type&   U   = *(sigma_pert_ptr->U_ptr);
@@ -339,7 +339,7 @@ namespace DCA
       int nr_threads = data_ptr->nr_threads;
 
       k_dmn_t k_dmn;
-      std::pair<int, int> k_bounds = COMP_LIB::parallelization<COMP_LIB::POSIX_LIBRARY>::get_bounds(id, nr_threads, k_dmn);
+      std::pair<int, int> k_bounds = dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY>::get_bounds(id, nr_threads, k_dmn);
       
       for(int k_ind=k_bounds.first; k_ind<k_bounds.second; k_ind++)
         {

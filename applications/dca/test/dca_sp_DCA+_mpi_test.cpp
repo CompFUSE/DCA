@@ -12,7 +12,7 @@
 
 #include <dca/config/defines.hpp>
 // mpi parallelization
-#include "comp_library/parallelization_library/parallelization_mpi.h"
+#include "dca/concurrency/parallelization_mpi.h"
 #include "lattice_types.hpp"
 #include "model_type.hpp"
 #include "gitVersion.hpp"

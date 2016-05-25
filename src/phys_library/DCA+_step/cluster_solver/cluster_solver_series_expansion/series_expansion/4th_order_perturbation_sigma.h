@@ -408,7 +408,7 @@ namespace DCA
       Sigma_4G = 0.;
 
       dmn_2<w_VERTEX_BOSONIC, k_dmn_t> dmn;
-      thread_manager_sum<concurrency_t> sum_manager(concurrency);
+      dca::concurrency::thread_manager_sum<concurrency_t> sum_manager(concurrency);
 
       do
         {
@@ -476,7 +476,7 @@ namespace DCA
       Sigma_4H = 0.;
 
       dmn_2<w_VERTEX_BOSONIC, k_dmn_t> dmn;
-      thread_manager_sum<concurrency_t> sum_manager(concurrency);
+      dca::concurrency::thread_manager_sum<concurrency_t> sum_manager(concurrency);
 
       do
         {
@@ -604,7 +604,7 @@ namespace DCA
       FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w_VERTEX_BOSONIC> > F; // Calculating part independent of k
 
       dmn_2<w_VERTEX_BOSONIC, k_dmn_t> dmn;
-      thread_manager_sum<concurrency_t> sum_manager(concurrency);
+      dca::concurrency::thread_manager_sum<concurrency_t> sum_manager(concurrency);
 
       do
         {
@@ -691,7 +691,7 @@ namespace DCA
       FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w_VERTEX_BOSONIC> > F; // Calculating part independent of k
 
       dmn_2<w_VERTEX_BOSONIC, k_dmn_t> dmn;
-      thread_manager_sum<concurrency_t> sum_manager(concurrency);
+      dca::concurrency::thread_manager_sum<concurrency_t> sum_manager(concurrency);
 
       do
         {
@@ -777,7 +777,7 @@ namespace DCA
       FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w_VERTEX_BOSONIC> > F; // Calculating part independent of k
 
       dmn_2<w_VERTEX_BOSONIC, k_dmn_t> dmn;
-      thread_manager_sum<concurrency_t> sum_manager(concurrency);
+      dca::concurrency::thread_manager_sum<concurrency_t> sum_manager(concurrency);
 
       do
         {

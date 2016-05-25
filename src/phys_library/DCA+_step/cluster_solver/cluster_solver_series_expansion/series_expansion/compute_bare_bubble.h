@@ -140,8 +140,7 @@ namespace DCA
 
 	args.concurrency_ptr = &concurrency;
 	
-	COMP_LIB::parallelization<COMP_LIB::POSIX_LIBRARY> pthreads;
-	
+	dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY> pthreads;
 	switch(channel_value)
 	  {
 	  case ph:
@@ -209,7 +208,7 @@ namespace DCA
     template<channel_type channel_value, class parameters_type, class k_dmn_t, class w_dmn_t>
     void* compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded_execute_on_cluster_ph(void* void_ptr)
     {
-      COMP_LIB::posix_data* data_ptr   = static_cast<COMP_LIB::posix_data*>(void_ptr);
+      dca::concurrency::posix_data* data_ptr   = static_cast<dca::concurrency::posix_data*>(void_ptr);
       bubble_data*          bubble_ptr = static_cast<bubble_data*         >(data_ptr->args);
 
       G_function_type& G   = *(bubble_ptr->G_ptr);
@@ -224,7 +223,7 @@ namespace DCA
       int nr_threads = data_ptr->nr_threads;
 
       k_dmn_t q_dmn;
-      std::pair<int, int> q_bounds = COMP_LIB::parallelization<COMP_LIB::POSIX_LIBRARY>::get_bounds(id, nr_threads, q_dmn);
+      std::pair<int, int> q_bounds = dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY>::get_bounds(id, nr_threads, q_dmn);
 
       for(int q_ind=q_bounds.first; q_ind<q_bounds.second; ++q_ind)
         {
@@ -301,8 +300,8 @@ namespace DCA
     template<channel_type channel_value, class parameters_type, class k_dmn_t, class w_dmn_t>
     void* compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded_execute_on_cluster_pp(void* void_ptr)
     {
-      COMP_LIB::posix_data* data_ptr   = static_cast<COMP_LIB::posix_data*>(void_ptr);
-      bubble_data*          bubble_ptr = static_cast<bubble_data*         >(data_ptr->args);
+      dca::concurrency::posix_data* data_ptr = static_cast<dca::concurrency::posix_data*>(void_ptr);
+      bubble_data* bubble_ptr = static_cast<bubble_data*>(data_ptr->args);
 
       G_function_type& G   = *(bubble_ptr->G_ptr);
       function_type&   chi = *(bubble_ptr->chi_ptr);
@@ -316,7 +315,7 @@ namespace DCA
       int nr_threads = data_ptr->nr_threads;
 
       k_dmn_t q_dmn;
-      std::pair<int, int> q_bounds = COMP_LIB::parallelization<COMP_LIB::POSIX_LIBRARY>::get_bounds(id, nr_threads, q_dmn);
+      std::pair<int, int> q_bounds = dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY>::get_bounds(id, nr_threads, q_dmn);
 
       for(int q_ind=q_bounds.first; q_ind<q_bounds.second; ++q_ind)
         {

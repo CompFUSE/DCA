@@ -9,7 +9,7 @@
 
 #include <dca/config/defines.hpp>
 // parallelization
-#include "comp_library/parallelization_library/parallelization_pthreads.h"
+#include "dca/concurrency/parallelization_pthreads.h"
 // posix qmc
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_pthread_jacket/posix_qmci_cluster_solver.h"
 

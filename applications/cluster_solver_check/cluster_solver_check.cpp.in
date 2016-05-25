@@ -12,12 +12,15 @@
 
 #include <string>
 #include <iostream>
-
 #include "gitVersion.hpp"
 #include "modules.hpp"
+
 #include "lattice_types.hpp"
 #include "model_type.hpp"
 #include "include_files.inc"
+#include "phys_library/DCA+_loop/DCA+_loop_data.h"  // DCA_calculation_data
+#include "phys_library/DCA+_data/CPE_data.h"  // MOMS_w_real
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/include_advanced_ed_solver.h"  // ED solver
 
 using namespace DCA;
 
@@ -58,7 +61,7 @@ int main(int argc, char *argv[]) {
 
   // Create the parameters object from the input file.
   parameters_type parameters(GitVersion::string(), concurrency);
-  parameters.read_input_and_broadcast(file_name);
+  parameters.read_input_and_broadcast<IO::JSON>(file_name);
   parameters.update_model();
   parameters.update_domains();
 
