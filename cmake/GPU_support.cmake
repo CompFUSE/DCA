@@ -4,11 +4,12 @@
 # Description.
 ################################################################################
 
-option(DCA_GPU_SUPPORT "Enable GPU support." OFF)
+option(DCA_WITH_CUDA "Enable GPU support." OFF)
 option(DCA_GPU_PINNED_HOST_MEMORY "Enable pinned host memory." OFF)
 mark_as_advanced(DCA_GPU_PINNED_HOST_MEMORY)
 
-if (DCA_GPU_SUPPORT)
+if (DCA_WITH_CUDA)
+  dca_add_config_define(DCA_HAVE_CUDA)
   # Path to libcuda.so in Daint and Titan. Needed by FindCUDA.
   set(ENV{CUDA_LIB_PATH} "/opt/cray/nvidia/default/lib64")
 
@@ -18,8 +19,6 @@ if (DCA_GPU_SUPPORT)
   find_package(CUDA REQUIRED)
 
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -arch=${CUDA_GPU_ARCH} -DNDEBUG")
-
-  add_definitions(-DUSE_GPU)
 
   if (DCA_GPU_PINNED_HOST_MEMORY)
     add_definitions(-DENABLE_PINNED_MEMORY_ALLOCATION)

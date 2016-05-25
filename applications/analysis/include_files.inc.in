@@ -1,6 +1,8 @@
 // File: include_files.h.in
 //
 
+#include <dca/config/defines.hpp>
+
 // NFFT <--> DFT
 const static bool DO_NFFT = true;
 

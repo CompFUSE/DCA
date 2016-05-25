@@ -5,10 +5,11 @@
 //
 // Author: Urs Haehner (haehneru@itp.phys.ethz.ch), ETH Zurich
 //====================================================================
-#ifndef MPI_SUPPORTED
+#include "include_files.inc"
+
+#ifndef DCA_HAVE_MPI
 #error MPI must be supported for the dca_sp_DCA+_mpi_test.
 #endif
-#include "include_files.inc"
 
 #include <dca/config/defines.hpp>
 // mpi parallelization

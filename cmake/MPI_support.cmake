@@ -9,10 +9,10 @@
 #             - https://github.com/andrealani/ShockFitting
 ################################################################################
 
-option(DCA_MPI_SUPPORT "Enable MPI support." ON)
-set(DCA_MPI_AVAILABLE FALSE CACHE INTERNAL "")
+option(DCA_WITH_MPI "Enable MPI support." ON)
+set(DCA_HAVE_MPI FALSE CACHE INTERNAL "")
 
-if (DCA_MPI_SUPPORT)
+if (DCA_WITH_MPI)
   # Check if CXX compiler already supports MPI.
   include(CheckCXXSourceCompiles)
   check_cxx_source_compiles(
@@ -27,7 +27,7 @@ if (DCA_MPI_SUPPORT)
   
   if (CXX_SUPPORTS_MPI)
     message(STATUS "CXX compiler supports MPI: ${CMAKE_CXX_COMPILER}.")
-    set(DCA_MPI_AVAILABLE TRUE)
+    set(DCA_HAVE_MPI TRUE)
     
   else()
     # Try to find MPI.
@@ -40,14 +40,14 @@ if (DCA_MPI_SUPPORT)
       execute_process(COMMAND ${CMAKE_CXX_COMPILER} "-dumpversion" OUTPUT_VARIABLE cxx_version    OUTPUT_STRIP_TRAILING_WHITESPACE)
       if ("${mpicxx_version}" VERSION_EQUAL "${cxx_version}")
         message(STATUS "Found MPI CXX compiler: ${MPI_CXX_COMPILER}.")
-        set(DCA_MPI_AVAILABLE TRUE)
+        set(DCA_HAVE_MPI TRUE)
       else()
         message(WARNING "MPI CXX compiler doesn't match CXX compiler.
                        \nMPI support disabled.
                        \nTo enable MPI support set environment variable CXX to mpicxx wrapper
                        \nand run CMake in a fresh build tree.")
-        set(DCA_MPI_SUPPORT   OFF CACHE BOOL "Enable MPI support." FORCE)
-        set(DCA_MPI_AVAILABLE FALSE)
+        set(DCA_WITH_MPI OFF CACHE BOOL "Enable MPI support." FORCE)
+        set(DCA_HAVE_MPI FALSE)
       endif()
       
       list(APPEND CMAKE_CXX_FLAGS ${MPI_CXX_COMPILE_FLAGS})
@@ -56,15 +56,15 @@ if (DCA_MPI_SUPPORT)
       
     else()
       message(WARNING "MPI not found. MPI support disabled.")
-      set(DCA_MPI_SUPPORT   OFF CACHE BOOL "Enable MPI support." FORCE)
-      set(DCA_MPI_AVAILABLE FALSE)
+      set(DCA_WITH_MPI OFF CACHE BOOL "Enable MPI support." FORCE)
+      set(DCA_HAVE_MPI FALSE)
     endif()
     
   endif()
   
   
   # If MPI is available find MPIEXEC/MPIRUN for execution of tests.
-  if (DCA_MPI_AVAILABLE)
+  if (DCA_HAVE_MPI)
     if (NOT ("${MPIEXEC}" STREQUAL "" OR "${MPIEXEC}" STREQUAL "MPIEXEC-NOTFOUND"))
       message(STATUS
         "MPIEXEC already set to ${MPIEXEC}.\n   MPIEXEC_NUMPROC_FLAG is ${MPIEXEC_NUMPROC_FLAG}.")
@@ -85,9 +85,11 @@ if (DCA_MPI_SUPPORT)
   endif()
 endif()
   
-if (DCA_MPI_AVAILABLE)
+if (DCA_HAVE_MPI)
+  dca_add_config_define(DCA_HAVE_MPI)
   set(DCA_PARALLELIZATION_LIBRARY_TYPE "dca::concurrency::MPI_LIBRARY")
-  add_definitions(-DMPI_SUPPORTED)
+  dca_add_config_define(DCA_PARALLELIZATION_LIBRARY_TYPE "dca::concurrency::MPI_LIBRARY")
 else()
+  dca_add_config_define(DCA_PARALLELIZATION_LIBRARY_TYPE "dca::concurrency::SERIAL_LIBRARY")
   set(DCA_PARALLELIZATION_LIBRARY_TYPE "dca::concurrency::SERIAL_LIBRARY")
 endif()

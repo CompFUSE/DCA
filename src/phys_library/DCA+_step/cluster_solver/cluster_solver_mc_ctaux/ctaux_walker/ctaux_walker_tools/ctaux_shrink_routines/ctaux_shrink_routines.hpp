@@ -3,7 +3,7 @@
 // author: Giovanni Balduzzi
 
 #include "ctaux_shrink_routines_CPU.h"
-#ifdef USE_GPU
+#ifdef DCA_HAVE_CUDA
 #include "ctaux_shrink_routines_GPU.h"
 #endif
 

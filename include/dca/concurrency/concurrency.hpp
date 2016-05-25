@@ -12,15 +12,19 @@
 #ifndef DCA_CONCURRENCY_CONCURRENCY_HPP
 #define DCA_CONCURRENCY_CONCURRENCY_HPP
 
+#include <dca/config/defines.hpp>
+
 #include "parallelization_template.h"
 
 // MPI
-#ifdef MPI_SUPPORTED
-#include "parallelization_mpi.h"
+#ifdef DCA_HAVE_MPI
+# include "parallelization_mpi.h"
 #endif
 
 // POSIX threads
-#include "parallelization_pthreads.h"
+#ifdef DCA_HAVE_PTHREADS
+# include "parallelization_pthreads.h"
+#endif
 
 #include "thread_manager_sum.h"
 

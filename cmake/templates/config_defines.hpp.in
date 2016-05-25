@@ -1,6 +1,6 @@
-#if !defined(DCA_CONFIG_DEFINES_HPP)
+#ifndef DCA_CONFIG_DEFINES_HPP
 #define DCA_CONFIG_DEFINES_HPP
 
 @dca_config_defines@
 
-#endif
+#endif  // DCA_CONFIG_DEFINES_HPP

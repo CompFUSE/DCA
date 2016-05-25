@@ -12,7 +12,9 @@ function(dca_add_config_define definition)
   else()
     set_property(GLOBAL APPEND PROPERTY DCA_CONFIG_DEFINITIONS "${definition}")
   endif()
-  get_property(DCA_CONFIG_DEFINITIONS_VAR GLOBAL PROPERTY HPX_CONFIG_DEFINITIONS)
+   # debugging only
+   # get_property(DCA_CONFIG_DEFINITIONS_VAR GLOBAL PROPERTY DCA_CONFIG_DEFINITIONS)
+   # message("Config vars are\n" ${DCA_CONFIG_DEFINITIONS_VAR})
 endfunction()
 
 ################################################################################

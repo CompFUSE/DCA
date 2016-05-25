@@ -8,7 +8,7 @@ if (DCA_BUILD_ANALYSIS)
   message(STATUS "Generating main_analysis.cpp.")
   configure_file(main_analysis.cpp.in "${CMAKE_CURRENT_BINARY_DIR}/main_analysis.cpp" @ONLY)
   
-  if (DCA_GPU_SUPPORT)
+  if (DCA_WITH_CUDA)
     cuda_add_executable(main_analysis ${CMAKE_CURRENT_BINARY_DIR}/main_analysis.cpp)
     target_link_libraries(main_analysis
       DCA_GPU_routines
