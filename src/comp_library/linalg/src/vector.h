@@ -1,11 +1,25 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
-#ifndef LIN_ALG_VECTORS_H
-#define LIN_ALG_VECTORS_H
+#ifndef COMP_LIBRARY_LINALG_SRC_VECTOR_H
+#define COMP_LIBRARY_LINALG_SRC_VECTOR_H
 
+#include <cassert>
+#include <cmath>
+#include <string>
+#include <vector>
+
+#include "comp_library/linalg/linalg_device_types.h"
 #include "comp_library/linalg/src/matrix_scalartype.h"
 #include "comp_library/linalg/src/linalg_structures/cublas_thread_manager_tem.h"
-// TODO try to avoid inclusion
 #include "comp_library/linalg/src/linalg_operations/memory_management_CPU.h"
 #include "comp_library/linalg/src/linalg_operations/memory_management_GPU.h"
 
@@ -406,6 +420,7 @@ template <typename scalartype, device_type device_name>
 void vector<scalartype, device_name>::print() {
   MEMORY_MANAGEMENT<device_name>::print(data, current_size, global_size);
 }
-}
 
-#endif
+}  // LIN_ALG
+
+#endif  // COMP_LIBRARY_LINALG_SRC_VECTOR_H
