@@ -308,7 +308,7 @@ namespace DCA
           for(int l=0; l<nr_threads; l++)
             CPE_data_vector[l].initialize(l, bounds, parameters, f_target, *this);
 
-          COMP_LIB::parallelization<COMP_LIB::POSIX_LIBRARY> parallelization_obj;
+          dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY> parallelization_obj;
 
           parallelization_obj.execute(nr_threads, threaded_analytical_continuation, (void*) &CPE_data_vector);
         }
@@ -329,7 +329,7 @@ namespace DCA
   template<class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
   void* continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t, WEIGHTED_GRADIENT_METHOD>::threaded_analytical_continuation(void* void_ptr)
   {
-    COMP_LIB::posix_data*       data_ptr         = static_cast<COMP_LIB::posix_data      *>(void_ptr);
+    dca::concurrency::posix_data* data_ptr = static_cast<dca::concurrency::posix_data*>(void_ptr);
     std::vector<CPE_data_type>* CPE_data_vec_ptr = static_cast<std::vector<CPE_data_type>*>(data_ptr->args);
 
     int id         = data_ptr->id;
@@ -342,7 +342,7 @@ namespace DCA
     dmn_2<b, s>          nu_dmn;
     dmn_3<b, s, k_dmn_t> b_s_k_dmn;
 
-    std::pair<int, int>  bounds = COMP_LIB::parallelization<COMP_LIB::POSIX_LIBRARY>::get_bounds(id, nr_threads, MPI_bounds);
+    std::pair<int, int>  bounds = dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY>::get_bounds(id, nr_threads, MPI_bounds);
 
     int coor[3];
     for(int l=bounds.first; l<bounds.second; l++)

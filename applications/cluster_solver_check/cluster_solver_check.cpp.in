@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
   std::string file_name(argv[1]);
 
   using random_number_generator = @DCA_RNG_TYPE@;
-  using concurrency_type = COMP_LIB::parallelization<@DCA_PARALLELIZATION_LIBRARY_TYPE@>;
+  using concurrency_type = dca::concurrency::parallelization<@DCA_PARALLELIZATION_LIBRARY_TYPE@>;
   using parameters_type = Parameters<concurrency_type, model, random_number_generator, @DCA_CLUSTER_SOLVER_TYPE@>;
   using MOMS_type = DCA_data<parameters_type>;
   using ED_solver_type =

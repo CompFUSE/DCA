@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
   //select (TODO model) and rng.
   using random_number_generator = @DCA_RNG_TYPE@;
   // Configure the DCA(+) calculation by selecting type definitions.
-  using concurrency_type = COMP_LIB::parallelization<@DCA_PARALLELIZATION_LIBRARY_TYPE@>;
+  using concurrency_type = dca::concurrency::parallelization<@DCA_PARALLELIZATION_LIBRARY_TYPE@>;
   using parameters_type = Parameters<concurrency_type, model, random_number_generator, @DCA_CLUSTER_SOLVER_TYPE@>;
   using MOMS_type = DCA_data<parameters_type>;
   using quantum_cluster_solver_type =
