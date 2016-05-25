@@ -49,8 +49,6 @@ private:
   static std::vector<std::string> generateThreadTasksVec(const int num_walkers,
                                                          const int num_accumulators);
 
-//  const int num_walkers_;
-//  const int num_accumulators_;
   const std::vector<std::string> thread_tasks_;
 };
 

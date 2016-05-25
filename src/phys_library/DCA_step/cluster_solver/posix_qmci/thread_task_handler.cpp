@@ -17,9 +17,7 @@ namespace solver {
 // dca::phys::solver::
 
 ThreadTaskHandler::ThreadTaskHandler(const int num_walkers, const int num_accumulators)
-    : //num_walkers_(num_walkers),
-      //num_accumulators_(num_accumulators),
-      thread_tasks_(generateThreadTasksVec(num_walkers, num_accumulators)) {}
+    : thread_tasks_(generateThreadTasksVec(num_walkers, num_accumulators)) {}
 
 void ThreadTaskHandler::print() const {
   for (int i = 0; i < thread_tasks_.size(); ++i) {

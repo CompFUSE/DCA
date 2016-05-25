@@ -32,11 +32,8 @@ include(DCA_macros)
 dca_add_config_define(DCA_SOURCE_DIRECTORY \"${PROJECT_SOURCE_DIR}\")
 
 #------------------------------------------------------------------------------
-# include dirs
+# Include dirs
 #------------------------------------------------------------------------------
-# For including the generated "dca/config/defines.hpp".
-include_directories(${PROJECT_BINARY_DIR}/include)
-
 # For <dca/.../...> #includes.
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
@@ -45,7 +42,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 # be moved into include/dca/.../ and included via #include <dca/.../...>.
 include_directories(${PROJECT_SOURCE_DIR})
 
-# directory where dca/config/defines.hpp will be created 
+# Directory where dca/config/defines.hpp will be created.
 include_directories(${CMAKE_BINARY_DIR})
 
 #------------------------------------------------------------------------------

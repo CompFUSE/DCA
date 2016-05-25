@@ -25,4 +25,4 @@ set(CUDA_HOST_COMPILER "${CMAKE_C_COMPILER}"
 set(CUDA_GPU_ARCH "your_gpu_arch" CACHE STRING "" FORCE)
 
 # Change dafault cache entries.
-set(DCA_GPU_SUPPORT ON FORCE)
+option(DCA_WITH_CUDA "Enable CUDA support." ON)
