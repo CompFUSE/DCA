@@ -9,8 +9,8 @@
 //
 // Description
 
-#ifndef DCA_CONCURRENCY_COLLECTIVE_SUM_INTERFACE_PTHREADS_H
-#define DCA_CONCURRENCY_COLLECTIVE_SUM_INTERFACE_PTHREADS_H
+#ifndef DCA_CONCURRENCY_INTERFACES_COLLECTIVE_SUM_INTERFACE_PTHREADS_H
+#define DCA_CONCURRENCY_INTERFACES_COLLECTIVE_SUM_INTERFACE_PTHREADS_H
 
 #include "dca/concurrency/interfaces/collective_sum_interface.h"
 #include <pthread.h>
@@ -57,4 +57,4 @@ void collective_sum_interface<POSIX_LIBRARY>::sum(FUNC_LIB::function<scalar_type
 }  // concurrency
 }  // dca
 
-#endif  // DCA_CONCURRENCY_COLLECTIVE_SUM_INTERFACE_PTHREADS_H
+#endif  // DCA_CONCURRENCY_INTERFACES_COLLECTIVE_SUM_INTERFACE_PTHREADS_H

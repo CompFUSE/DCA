@@ -9,8 +9,8 @@
 //
 // Description
 
-#ifndef DCA_CONCURRENCY_TYPE_MAP_INTERFACE_MPI_H
-#define DCA_CONCURRENCY_TYPE_MAP_INTERFACE_MPI_H
+#ifndef DCA_CONCURRENCY_INTERFACES_TYPE_MAP_INTERFACE_MPI_H
+#define DCA_CONCURRENCY_INTERFACES_TYPE_MAP_INTERFACE_MPI_H
 
 #include "dca/concurrency/interfaces/type_map_interface.h"
 #include <mpi.h>
@@ -130,4 +130,4 @@ public:
 }  // concurrency
 }  // dca
 
-#endif  // DCA_CONCURRENCY_TYPE_MAP_INTERFACE_MPI_H
+#endif  // DCA_CONCURRENCY_INTERFACES_TYPE_MAP_INTERFACE_MPI_H

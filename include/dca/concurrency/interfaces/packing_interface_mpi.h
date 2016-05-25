@@ -9,8 +9,8 @@
 //
 // Description
 
-#ifndef DCA_CONCURRENCY_PACKING_INTERFACE_MPI_H
-#define DCA_CONCURRENCY_PACKING_INTERFACE_MPI_H
+#ifndef DCA_CONCURRENCY_INTERFACES_PACKING_INTERFACE_MPI_H
+#define DCA_CONCURRENCY_INTERFACES_PACKING_INTERFACE_MPI_H
 
 #include "dca/concurrency/interfaces/packing_interface.h"
 #include <mpi.h>
@@ -464,4 +464,4 @@ void packing_interface<MPI_LIBRARY>::unpack(int* buffer, int size, int& off_set,
 }  // concurrency
 }  // dca
 
-#endif  // DCA_CONCURRENCY_PACKING_INTERFACE_MPI_H
+#endif  // DCA_CONCURRENCY_INTERFACES_PACKING_INTERFACE_MPI_H

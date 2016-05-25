@@ -9,8 +9,8 @@
 //
 // Description
 
-#ifndef DCA_CONCURRENCY_COLLECTIVE_MIN_INTERFACE_H
-#define DCA_CONCURRENCY_COLLECTIVE_MIN_INTERFACE_H
+#ifndef DCA_CONCURRENCY_INTERFACES_COLLECTIVE_MIN_INTERFACE_H
+#define DCA_CONCURRENCY_INTERFACES_COLLECTIVE_MIN_INTERFACE_H
 
 #include "dca/concurrency/concurrency_types.hpp"
 #include "dca/concurrency/interfaces/processor_grouping_interface.h"
@@ -46,4 +46,4 @@ void collective_min_interface<LIBRARY>::min(scalar_type& /*value*/) {}
 }  // concurrency
 }  // dca
 
-#endif  // DCA_CONCURRENCY_COLLECTIVE_MIN_INTERFACE_H
+#endif  // DCA_CONCURRENCY_INTERFACES_COLLECTIVE_MIN_INTERFACE_H

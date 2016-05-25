@@ -9,8 +9,8 @@
 //
 // Description
 
-#ifndef DCA_CONCURRENCY_COLLECTIVE_SUM_INTERFACE_MPI_H
-#define DCA_CONCURRENCY_COLLECTIVE_SUM_INTERFACE_MPI_H
+#ifndef DCA_CONCURRENCY_INTERFACES_COLLECTIVE_SUM_INTERFACE_MPI_H
+#define DCA_CONCURRENCY_INTERFACES_COLLECTIVE_SUM_INTERFACE_MPI_H
 
 #include "dca/concurrency/interfaces/collective_sum_interface.h"
 #include <mpi.h>
@@ -270,4 +270,4 @@ void collective_sum_interface<MPI_LIBRARY>::average_and_compute_stddev(
 }  // concurrency
 }  // dca
 
-#endif  // DCA_CONCURRENCY_COLLECTIVE_SUM_INTERFACE_MPI_H
+#endif  // DCA_CONCURRENCY_INTERFACES_COLLECTIVE_SUM_INTERFACE_MPI_H

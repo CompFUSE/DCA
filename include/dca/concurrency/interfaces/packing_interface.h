@@ -9,8 +9,8 @@
 //
 // Description
 
-#ifndef DCA_CONCURRENCY_PACKING_INTERFACE_H
-#define DCA_CONCURRENCY_PACKING_INTERFACE_H
+#ifndef DCA_CONCURRENCY_INTERFACES_PACKING_INTERFACE_H
+#define DCA_CONCURRENCY_INTERFACES_PACKING_INTERFACE_H
 
 #include <vector>
 #include "dca/concurrency/concurrency_types.hpp"
@@ -81,4 +81,4 @@ size_t packing_interface<LIBRARY>::get_buffer_size(FUNC_LIB::function<T, dmn_typ
 }  // concurrency
 }  // dca
 
-#endif  // DCA_CONCURRENCY_PACKING_INTERFACE_H
+#endif  // DCA_CONCURRENCY_INTERFACES_PACKING_INTERFACE_H

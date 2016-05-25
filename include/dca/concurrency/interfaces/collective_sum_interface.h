@@ -9,8 +9,8 @@
 //
 // Description
 
-#ifndef DCA_CONCURRENCY_COLLECTIVE_SUM_INTERFACE_H
-#define DCA_CONCURRENCY_COLLECTIVE_SUM_INTERFACE_H
+#ifndef DCA_CONCURRENCY_INTERFACES_COLLECTIVE_SUM_INTERFACE_H
+#define DCA_CONCURRENCY_INTERFACES_COLLECTIVE_SUM_INTERFACE_H
 
 #include <map>
 #include <vector>
@@ -111,4 +111,4 @@ void collective_sum_interface<LIBRARY>::sum_and_average(some_type& /*obj*/, int 
 }  // concurrency
 }  // dca
 
-#endif  // DCA_CONCURRENCY_COLLECTIVE_SUM_INTERFACE_H
+#endif  // DCA_CONCURRENCY_INTERFACES_COLLECTIVE_SUM_INTERFACE_H

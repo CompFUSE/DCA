@@ -9,8 +9,8 @@
 //
 // Description
 
-#ifndef DCA_CONCURRENCY_TYPE_MAP_INTERFACE_H
-#define DCA_CONCURRENCY_TYPE_MAP_INTERFACE_H
+#ifndef DCA_CONCURRENCY_INTERFACES_TYPE_MAP_INTERFACE_H
+#define DCA_CONCURRENCY_INTERFACES_TYPE_MAP_INTERFACE_H
 
 #include <complex>
 #include "dca/concurrency/concurrency_types.hpp"
@@ -46,4 +46,4 @@ public:
 }  // concurrency
 }  // dca
 
-#endif  // DCA_CONCURRENCY_TYPE_MAP_INTERFACE_H
+#endif  // DCA_CONCURRENCY_INTERFACES_TYPE_MAP_INTERFACE_H

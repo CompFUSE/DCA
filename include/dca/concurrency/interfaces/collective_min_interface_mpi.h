@@ -9,8 +9,8 @@
 //
 // Description
 
-#ifndef DCA_CONCURRENCY_COLLECTIVE_MIN_INTERFACE_MPI_H
-#define DCA_CONCURRENCY_COLLECTIVE_MIN_INTERFACE_MPI_H
+#ifndef DCA_CONCURRENCY_INTERFACES_COLLECTIVE_MIN_INTERFACE_MPI_H
+#define DCA_CONCURRENCY_INTERFACES_COLLECTIVE_MIN_INTERFACE_MPI_H
 
 #include "dca/concurrency/interfaces/collective_min_interface.h"
 #include <mpi.h>
@@ -53,4 +53,4 @@ void collective_min_interface<MPI_LIBRARY>::min(scalar_type& value) {
 }  // concurrency
 }  // dca
 
-#endif  // DCA_CONCURRENCY_COLLECTIVE_MIN_INTERFACE_MPI_H
+#endif  // DCA_CONCURRENCY_INTERFACES_COLLECTIVE_MIN_INTERFACE_MPI_H

@@ -9,8 +9,8 @@
 //
 // Description
 
-#ifndef DCA_CONCURRENCY_COLLECTIVE_MAX_INTERFACE_MPI_H
-#define DCA_CONCURRENCY_COLLECTIVE_MAX_INTERFACE_MPI_H
+#ifndef DCA_CONCURRENCY_INTERFACES_COLLECTIVE_MAX_INTERFACE_MPI_H
+#define DCA_CONCURRENCY_INTERFACES_COLLECTIVE_MAX_INTERFACE_MPI_H
 
 #include "dca/concurrency/interfaces/collective_max_interface.h"
 #include <mpi.h>
@@ -53,4 +53,4 @@ void collective_max_interface<MPI_LIBRARY>::max(scalar_type& value) {
 }  // concurrency
 }  // dca
 
-#endif  // DCA_CONCURRENCY_COLLECTIVE_MAX_INTERFACE_MPI_H
+#endif  // DCA_CONCURRENCY_INTERFACES_COLLECTIVE_MAX_INTERFACE_MPI_H

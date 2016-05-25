@@ -9,8 +9,8 @@
 //
 // Description
 
-#ifndef DCA_CONCURRENCY_PRINT_ON_SHELL_INTERFACE_H
-#define DCA_CONCURRENCY_PRINT_ON_SHELL_INTERFACE_H
+#ifndef DCA_CONCURRENCY_INTERFACES_PRINT_ON_SHELL_INTERFACE_H
+#define DCA_CONCURRENCY_INTERFACES_PRINT_ON_SHELL_INTERFACE_H
 
 #include <iostream>
 #include "dca/concurrency/concurrency_types.hpp"
@@ -80,4 +80,4 @@ void print_on_shell_interface<LIBRARY>::operator<<(const whatever* whtvr) {
 }  // concurrency
 }  // dca
 
-#endif  // DCA_CONCURRENCY_PRINT_ON_SHELL_INTERFACE_H
+#endif  // DCA_CONCURRENCY_INTERFACES_PRINT_ON_SHELL_INTERFACE_H
