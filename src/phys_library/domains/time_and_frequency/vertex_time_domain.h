@@ -1,7 +1,20 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// This class implements various types and orderings of the matsubara-time domain via templates.
 
 #ifndef PHYS_LIBRARY_DOMAINS_TIME_AND_FREQUENCY_VERTEX_TIME_DOMAIN_H
 #define PHYS_LIBRARY_DOMAINS_TIME_AND_FREQUENCY_VERTEX_TIME_DOMAIN_H
+
+#include <stdexcept>
+#include <string>
+#include <vector>
 
 namespace DCA {
 enum VERTEX_TIME_NAME {
@@ -46,13 +59,6 @@ std::string to_str(VERTEX_TIME_NAME NAME) {
   return "NONE";
 }
 
-/*!
- *
- * \author Peter Staar
- *
- * \brief  This class implements various types and orderings of the matsubara-time domain, via a
- * templates.
- */
 template <VERTEX_TIME_NAME NAME>
 class vertex_time_domain {
 public:
@@ -61,8 +67,6 @@ public:
 
   typedef double scalar_type;
   typedef double element_type;
-
-  typedef math_algorithms::interval_dmn_1D_type dmn_specifications_type;
 
   typedef vertex_time_domain<NAME> parameter_type;
 
@@ -78,11 +82,11 @@ public:
 
   static std::vector<element_type>& get_elements();
 
-  template <IO::FORMAT DATA_FORMAT>
-  static void read(IO::reader<DATA_FORMAT>& reader);
+  template <typename Reader>
+  static void read(Reader& reader);
 
-  template <IO::FORMAT DATA_FORMAT>
-  static void write(IO::writer<DATA_FORMAT>& writer);
+  template <typename Writer>
+  static void write(Writer& writer);
 
   template <typename parameters_t>
   static void initialize(parameters_t& parameters);
@@ -131,8 +135,8 @@ std::vector<typename vertex_time_domain<NAME>::element_type>& vertex_time_domain
 }
 
 template <VERTEX_TIME_NAME NAME>
-template <IO::FORMAT DATA_FORMAT>
-void vertex_time_domain<NAME>::write(IO::writer<DATA_FORMAT>& writer) {
+template <typename Writer>
+void vertex_time_domain<NAME>::write(Writer& writer) {
   writer.open_group(get_name());
 
   writer.execute("elements", get_elements());

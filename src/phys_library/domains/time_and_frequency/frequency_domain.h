@@ -1,19 +1,27 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
 #ifndef PHYS_LIBRARY_DOMAINS_TIME_AND_FREQUENCY_FREQUENCY_DOMAIN_H
 #define PHYS_LIBRARY_DOMAINS_TIME_AND_FREQUENCY_FREQUENCY_DOMAIN_H
 
-/*!
- *  \author: peter staar
- */
+#include <cmath>
+#include <string>
+#include <vector>
+
 class frequency_domain {
 public:
   const static int DIMENSION = 1;
 
   typedef double scalar_type;
   typedef double element_type;
-
-  typedef math_algorithms::harmonic_dmn_1D_type dmn_specifications_type;
 
 public:
   static int& get_size();
@@ -28,11 +36,11 @@ public:
 
   static int phase(double frequency);
 
-  template <IO::FORMAT DATA_FORMAT>
-  static void read(IO::reader<DATA_FORMAT>& reader);
+  template <typename Reader>
+  static void read(Reader& reader);
 
-  template <IO::FORMAT DATA_FORMAT>
-  static void write(IO::writer<DATA_FORMAT>& writer);
+  template <typename Writer>
+  static void write(Writer& writer);
 
   template <typename parameters_t>
   static void initialize(parameters_t& parameters);
@@ -68,8 +76,8 @@ std::vector<int>& frequency_domain::get_integer_wave_vectors() {
   return elements;
 }
 
-template <IO::FORMAT DATA_FORMAT>
-void frequency_domain::write(IO::writer<DATA_FORMAT>& writer) {
+template <typename Writer>
+void frequency_domain::write(Writer& writer) {
   writer.open_group(get_name());
 
   writer.execute("elements", get_elements());

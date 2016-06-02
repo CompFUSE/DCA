@@ -1,11 +1,21 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
 #ifndef PHYS_LIBRARY_DOMAINS_TIME_AND_FREQUENCY_TIME_DOMAIN_H
 #define PHYS_LIBRARY_DOMAINS_TIME_AND_FREQUENCY_TIME_DOMAIN_H
 
-/*!
- *  \author Peter Staar
- */
+#include <cmath>
+#include <string>
+#include <vector>
+
 class time_domain {
 public:
   const static int RULE = 1;
@@ -13,8 +23,6 @@ public:
 
   typedef double scalar_type;
   typedef double element_type;
-
-  typedef math_algorithms::interval_dmn_1D_type dmn_specifications_type;
 
 public:
   // const static int DIMENSION = 1;
@@ -33,11 +41,11 @@ public:
   template <class stream_type>
   static void to_JSN(stream_type& ss);
 
-  template <IO::FORMAT DATA_FORMAT>
-  static void read(IO::reader<DATA_FORMAT>& reader);
+  template <typename Reader>
+  static void read(Reader& reader);
 
-  template <IO::FORMAT DATA_FORMAT>
-  static void write(IO::writer<DATA_FORMAT>& writer);
+  template <typename Writer>
+  static void write(Writer& writer);
 
   template <typename parameters_t>
   static void initialize(parameters_t& parameters);
@@ -76,8 +84,8 @@ double time_domain::get_volume() {
   return (get_elements().back() + 1.e-10);
 }
 
-template <IO::FORMAT DATA_FORMAT>
-void time_domain::write(IO::writer<DATA_FORMAT>& writer) {
+template <typename Writer>
+void time_domain::write(Writer& writer) {
   writer.open_group(get_name());
 
   writer.execute("elements", get_elements());
