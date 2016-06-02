@@ -1,18 +1,24 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// This class conaints all parameters for the Monte Carlo integrator.
 
-#ifndef MCI_PARAMETERS_H
-#define MCI_PARAMETERS_H
+#ifndef PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_TEMPLATES_MCI_PARAMETERS_H
+#define PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_TEMPLATES_MCI_PARAMETERS_H
 
-/*!
- *   \ingroup  PARAMETERS
- *
- *   \author   Peter Staar
- *   \brief    ...
- */
+#include <iostream>
+#include <stdexcept>
+#include <string>
+
 class MCI_parameters {
 public:
   MCI_parameters();
-  ~MCI_parameters();
 
   /******************************************
    ***        CONCURRENCY                 ***
@@ -69,9 +75,7 @@ private:
 };
 
 MCI_parameters::MCI_parameters()
-    :
-
-      Sigma_file("zero"),
+    : Sigma_file("zero"),
 
       warm_up_sweeps(20),
       number_of_sweeps_per_measurement(1.),
@@ -84,8 +88,6 @@ MCI_parameters::MCI_parameters()
       additional_steps(1),
 
       nr_HTS_threads(1) {}
-
-MCI_parameters::~MCI_parameters() {}
 
 /******************************************
  ***        CONCURRENCY                 ***
@@ -264,4 +266,4 @@ int MCI_parameters::get_nr_HTS_threads() {
   return nr_HTS_threads;
 }
 
-#endif
+#endif  // PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_TEMPLATES_MCI_PARAMETERS_H

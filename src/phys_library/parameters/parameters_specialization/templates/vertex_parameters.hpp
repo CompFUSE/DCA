@@ -10,9 +10,6 @@
 //
 // This class contains all possible parameters that define the two-particle Greens-function and the
 // analysis of it.
-//
-// TODO: - Clean-up.
-//       - Make this file self-contained.
 
 #ifndef PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_TEMPLATES_VERTEX_PARAMETERS_HPP
 #define PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_TEMPLATES_VERTEX_PARAMETERS_HPP
@@ -22,9 +19,17 @@
 #include <iostream>
 #include <string>
 
+#include "enumerations.hpp"
+#include "phys_library/domains/cluster/cluster_operations.hpp"
+#include "phys_library/domains/cluster/cluster_domain.h"
+
+template <int dimension>
 class vertex_parameters {
 public:
-  vertex_parameters(int dimensions);
+  using DCA_k_cluster_type =
+      cluster_domain<double, dimension, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
+
+  vertex_parameters();
 
   /******************************************
    ***        CONCURRENCY                 ***
@@ -101,10 +106,11 @@ private:
   std::string compute_P_q_lattice_str;
 };
 
-vertex_parameters::vertex_parameters(int dimensions)
+template <int dimension>
+vertex_parameters<dimension>::vertex_parameters()
     : vertex_measurement_type_str("NONE"),
 
-      q_channel_vec_input(dimensions, 0),
+      q_channel_vec_input(dimension, 0),
       w_channel(0),
 
       singular_value_cut_off(0.5),
@@ -128,8 +134,9 @@ vertex_parameters::vertex_parameters(int dimensions)
  ***        CONCURRENCY                 ***
  ******************************************/
 
+template <int dimension>
 template <class concurrency_type>
-int vertex_parameters::get_buffer_size(concurrency_type& concurrency) {
+int vertex_parameters<dimension>::get_buffer_size(concurrency_type& concurrency) {
   int buffer_size = 0;
 
   buffer_size += concurrency.get_buffer_size(vertex_measurement_type_str);
@@ -157,9 +164,10 @@ int vertex_parameters::get_buffer_size(concurrency_type& concurrency) {
   return buffer_size;
 }
 
+template <int dimension>
 template <class concurrency_type>
-void vertex_parameters::pack(concurrency_type& concurrency, int* buffer, int buffer_size,
-                             int& position) {
+void vertex_parameters<dimension>::pack(concurrency_type& concurrency, int* buffer, int buffer_size,
+                                        int& position) {
   concurrency.pack(buffer, buffer_size, position, vertex_measurement_type_str);
 
   concurrency.pack(buffer, buffer_size, position, q_channel_vec_input);
@@ -183,9 +191,10 @@ void vertex_parameters::pack(concurrency_type& concurrency, int* buffer, int buf
   concurrency.pack(buffer, buffer_size, position, compute_P_q_lattice_str);
 }
 
+template <int dimension>
 template <class concurrency_type>
-void vertex_parameters::unpack(concurrency_type& concurrency, int* buffer, int buffer_size,
-                               int& position) {
+void vertex_parameters<dimension>::unpack(concurrency_type& concurrency, int* buffer,
+                                          int buffer_size, int& position) {
   concurrency.unpack(buffer, buffer_size, position, vertex_measurement_type_str);
 
   concurrency.unpack(buffer, buffer_size, position, q_channel_vec_input);
@@ -213,8 +222,9 @@ void vertex_parameters::unpack(concurrency_type& concurrency, int* buffer, int b
  ***        READ/WRITE                  ***
  ******************************************/
 
+template <int dimension>
 template <class read_write_type>
-void vertex_parameters::read_write(read_write_type& read_write_obj) {
+void vertex_parameters<dimension>::read_write(read_write_type& read_write_obj) {
   try {
     read_write_obj.open_group("vertex-channel");
 
@@ -325,7 +335,8 @@ void vertex_parameters::read_write(read_write_type& read_write_obj) {
  ***        DATA                        ***
  ******************************************/
 
-vertex_measurement_type vertex_parameters::get_vertex_measurement_type() {
+template <int dimension>
+vertex_measurement_type vertex_parameters<dimension>::get_vertex_measurement_type() {
   if (vertex_measurement_type_str == "PARTICLE_HOLE_TRANSVERSE")
     return PARTICLE_HOLE_TRANSVERSE;
 
@@ -357,14 +368,16 @@ vertex_measurement_type vertex_parameters::get_vertex_measurement_type() {
   throw std::logic_error(__FUNCTION__);
 }
 
-const int& vertex_parameters::get_q_channel_ind() {
+template <int dimension>
+const int& vertex_parameters<dimension>::get_q_channel_ind() {
   static const int q_channel_ind(cluster_operations::index(
       get_q_channel_vec(), DCA_k_cluster_type::get_elements(), DCA_k_cluster_type::SHAPE));
 
   return q_channel_ind;
 }
 
-const std::vector<double>& vertex_parameters::get_q_channel_vec() {
+template <int dimension>
+const std::vector<double>& vertex_parameters<dimension>::get_q_channel_vec() {
   static const std::vector<double> q_channel_vec(cluster_operations::find_closest_cluster_vector(
       q_channel_vec_input, DCA_k_cluster_type::get_elements(),
       DCA_k_cluster_type::get_super_basis_vectors(), 1.e-3));
@@ -372,23 +385,28 @@ const std::vector<double>& vertex_parameters::get_q_channel_vec() {
   return q_channel_vec;
 }
 
-int vertex_parameters::get_w_channel() {
+template <int dimension>
+int vertex_parameters<dimension>::get_w_channel() {
   return w_channel;
 }
 
-double vertex_parameters::get_singular_value_cut_off() {
+template <int dimension>
+double vertex_parameters<dimension>::get_singular_value_cut_off() {
   return singular_value_cut_off;
 }
 
-int vertex_parameters::get_singular_value_index_cut_off() {
+template <int dimension>
+int vertex_parameters<dimension>::get_singular_value_index_cut_off() {
   return singular_value_index_cut_off;
 }
 
-double vertex_parameters::get_BSE_cut_off_radius() {
+template <int dimension>
+double vertex_parameters<dimension>::get_BSE_cut_off_radius() {
   return BSE_cut_off_radius;
 }
 
-bool vertex_parameters::do_diagonolization_on_folded_Gamma_chi_0() {
+template <int dimension>
+bool vertex_parameters<dimension>::do_diagonolization_on_folded_Gamma_chi_0() {
   if (diagonolize_folded_Gamma_chi_0 == "true")
     return true;
 
@@ -398,7 +416,8 @@ bool vertex_parameters::do_diagonolization_on_folded_Gamma_chi_0() {
   throw std::logic_error(__FUNCTION__);
 }
 
-bool vertex_parameters::do_deconvolution_of_Gamma() {
+template <int dimension>
+bool vertex_parameters<dimension>::do_deconvolution_of_Gamma() {
   if (do_deconvolution_of_Gamma_str == "yes")
     return true;
 
@@ -408,7 +427,8 @@ bool vertex_parameters::do_deconvolution_of_Gamma() {
   throw std::logic_error(__FUNCTION__);
 }
 
-bool vertex_parameters::do_symmetrization_of_Gamma() {
+template <int dimension>
+bool vertex_parameters<dimension>::do_symmetrization_of_Gamma() {
   if (do_symmetrization_of_Gamma_str == "yes")
     return true;
 
@@ -418,7 +438,8 @@ bool vertex_parameters::do_symmetrization_of_Gamma() {
   throw std::logic_error(__FUNCTION__);
 }
 
-bool vertex_parameters::compute_chi_0() {
+template <int dimension>
+bool vertex_parameters<dimension>::compute_chi_0() {
   if (compute_chi_0_str == "yes")
     return true;
 
@@ -428,7 +449,8 @@ bool vertex_parameters::compute_chi_0() {
   throw std::logic_error(__FUNCTION__);
 }
 
-bool vertex_parameters::compute_chi() {
+template <int dimension>
+bool vertex_parameters<dimension>::compute_chi() {
   if (compute_chi_str == "yes")
     return true;
 
@@ -438,7 +460,8 @@ bool vertex_parameters::compute_chi() {
   throw std::logic_error(__FUNCTION__);
 }
 
-bool vertex_parameters::compute_eigenvalues() {
+template <int dimension>
+bool vertex_parameters<dimension>::compute_eigenvalues() {
   if (compute_eigenvalues_str == "yes")
     return true;
 
@@ -448,7 +471,8 @@ bool vertex_parameters::compute_eigenvalues() {
   throw std::logic_error(__FUNCTION__);
 }
 
-bool vertex_parameters::compute_P_q_cluster() {
+template <int dimension>
+bool vertex_parameters<dimension>::compute_P_q_cluster() {
   if (compute_P_q_cluster_str == "yes")
     return true;
 
@@ -458,7 +482,8 @@ bool vertex_parameters::compute_P_q_cluster() {
   throw std::logic_error(__FUNCTION__);
 }
 
-bool vertex_parameters::compute_P_q_lattice() {
+template <int dimension>
+bool vertex_parameters<dimension>::compute_P_q_lattice() {
   if (compute_P_q_lattice_str == "yes")
     return true;
 
