@@ -1,7 +1,23 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
-#ifndef POINT_GROUP_SYMMETRY_DOMAIN_H
-#define POINT_GROUP_SYMMETRY_DOMAIN_H
+#ifndef PHYS_LIBRARY_DOMAINS_QUANTUM_DOMAIN_POINT_GROUP_OPERATION_DMN_H
+#define PHYS_LIBRARY_DOMAINS_QUANTUM_DOMAIN_POINT_GROUP_OPERATION_DMN_H
+
+#include <cassert>
+#include <complex>
+#include <cstring>
+#include <stdexcept>
+#include <string>
+#include <vector>
 
 enum symmetry_group_level { UNIT_CELL, SUPER_CELL };
 typedef symmetry_group_level symmetry_group_level_type;
@@ -21,10 +37,6 @@ std::string to_str(symmetry_group_level name) {
   }
 }
 
-/*!
- *  \author  Peter Staar
- *  \brief ...
- */
 class point_group_symmetry_element {
 public:
   /*!
@@ -172,9 +184,6 @@ void point_group_symmetry_element::to_JSON(stream_type& ss) {
   ss << "\n\n\n";
 }
 
-/*!
- *  \brief ...
- */
 template <symmetry_group_level_type symmetry_group_level, typename base_cluster_type>
 class point_group_symmetry_domain {
 public:
@@ -192,8 +201,8 @@ public:
 
   static std::vector<double> transform(int i, std::vector<double> vec);
 
-  template <IO::FORMAT DATA_FORMAT>
-  static void write(IO::writer<DATA_FORMAT>& writer);
+  template <typename Writer>
+  static void write(Writer& writer);
 
   template <class stream_type>
   static void to_JSON(stream_type& ss);
@@ -244,9 +253,8 @@ std::vector<double> point_group_symmetry_domain<symmetry_group_level, base_clust
 }
 
 template <symmetry_group_level_type symmetry_group_level, typename base_cluster_type>
-template <IO::FORMAT DATA_FORMAT>
-void point_group_symmetry_domain<symmetry_group_level, base_cluster_type>::write(
-    IO::writer<DATA_FORMAT>& /*writer*/) {
+template <typename Writer>
+void point_group_symmetry_domain<symmetry_group_level, base_cluster_type>::write(Writer& /*writer*/) {
   //   std::vector<double>               T(DIMENSION);
   //   std::vector<std::vector<double> > O(DIMENSION, std::vector<double>(DIMENSION));
 
@@ -281,4 +289,4 @@ void point_group_symmetry_domain<symmetry_group_level, base_cluster_type>::to_JS
   ss << "}\n";
 }
 
-#endif
+#endif  // PHYS_LIBRARY_DOMAINS_QUANTUM_DOMAIN_POINT_GROUP_OPERATION_DMN_H
