@@ -16,13 +16,17 @@
 #include <string>
 #include <vector>
 
+#include "math_library/domain_specifications/domain_specifications.hpp"
+
 class frequency_domain {
 public:
   const static int DIMENSION = 1;
 
   typedef double scalar_type;
   typedef double element_type;
-
+  
+  typedef math_algorithms::harmonic_dmn_1D_type dmn_specifications_type;
+  
 public:
   static int& get_size();
   static std::string get_name();

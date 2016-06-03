@@ -16,6 +16,8 @@
 #include <string>
 #include <vector>
 
+#include "math_library/domain_specifications/domain_specifications.hpp"
+
 class time_domain {
 public:
   const static int RULE = 1;
@@ -24,6 +26,8 @@ public:
   typedef double scalar_type;
   typedef double element_type;
 
+  typedef math_algorithms::interval_dmn_1D_type dmn_specifications_type;
+  
 public:
   // const static int DIMENSION = 1;
   typedef time_domain parameter_type;  // --> used in the interpolation!
