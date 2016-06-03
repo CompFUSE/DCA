@@ -1,38 +1,57 @@
-// Copyright 2016 ETH Zurich.
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
 //
-// Author: Urs Haehner (haehneru@itp.phys.ethz.ch), ETH Zurich
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Urs Haehner (haehneru@itp.phys.ethz.ch)
+//
+// Description
 
-#ifndef GENERAL_INTERACTION_HPP
-#define GENERAL_INTERACTION_HPP
+#ifndef PHYS_LIBRARY_PARAMETERS_MODELS_ANALYTIC_HAMILTONIANS_GENERAL_INTERACTION_HPP
+#define PHYS_LIBRARY_PARAMETERS_MODELS_ANALYTIC_HAMILTONIANS_GENERAL_INTERACTION_HPP
+
 #include <array>
 #include <vector>
-#include "phys_library/domains/convert_DCA_types_to_index.h"
-#include "phys_library/domain_types.hpp"
-using namespace types;
 
+#include "comp_library/function_library/include_function_library.h"
+#include "phys_library/domains/cluster/cluster_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
+#include "phys_library/domains/convert_DCA_types_to_index.h"
+
+template <typename parameters_type>
 class general_interaction {
 public:
-  template <class vertex_pair_type, class parameters_type, class rng_type, class H_interaction_type>
+  using b = dmn_0<electron_band_domain>;
+  using s = dmn_0<electron_spin_domain>;
+  using nu = dmn_variadic<b, s>;
+  using r_DCA =
+      dmn_0<cluster_domain<double, parameters_type::lattice_dimension, CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>>;
+
+  template <class vertex_pair_type, class rng_type, class H_interaction_type>
   static void set_vertex(vertex_pair_type& vertex, parameters_type& parameters, rng_type& rng,
                          H_interaction_type H_interaction);
 
 private:
-  template <class parameters_type, class H_interaction_type>
+  template <class H_interaction_type>
   static std::vector<int> make_correlated_orbitals(parameters_type& parameters,
                                                    H_interaction_type& H_interaction);
-  static inline dmn_6<b, s, b, s, r_DCA, r_DCA>& get_domain();
+
+  static dmn_6<b, s, b, s, r_DCA, r_DCA>& get_domain() {
+    static dmn_6<b, s, b, s, r_DCA, r_DCA> b_s_b_s_r_r_dmn;
+    return b_s_b_s_r_r_dmn;
+  }
 };
 
-inline dmn_6<b, s, b, s, r_DCA, r_DCA>& general_interaction::get_domain() {
-  static dmn_6<b, s, b, s, r_DCA, r_DCA> b_s_b_s_r_r_dmn;
-  return b_s_b_s_r_r_dmn;
-}
-
-template <class vertex_pair_type, class parameters_type, class rng_type, class H_interaction_type>
-void general_interaction::set_vertex(vertex_pair_type& vertex, parameters_type& parameters,
-                                     rng_type& rng, H_interaction_type H_interaction) {
+template <typename parameters_type>
+template <class vertex_pair_type, class rng_type, class H_interaction_type>
+void general_interaction<parameters_type>::set_vertex(vertex_pair_type& vertex,
+                                                      parameters_type& parameters, rng_type& rng,
+                                                      H_interaction_type H_interaction) {
   static std::vector<int> correlated_orbitals =
-      general_interaction::make_correlated_orbitals(parameters, H_interaction);
+      general_interaction<parameters_type>::make_correlated_orbitals(parameters, H_interaction);
 
   // Get a random pair of correlated orbitals
   const int pos = rng.get_random_number() * correlated_orbitals.size();
@@ -58,9 +77,10 @@ void general_interaction::set_vertex(vertex_pair_type& vertex, parameters_type& 
   vertex.get_r_sites().second = sub_ind[5];
 }
 
-template <class parameters_type, class H_interaction_type>
-std::vector<int> general_interaction::make_correlated_orbitals(parameters_type& parameters,
-                                                               H_interaction_type& H_interaction) {
+template <typename parameters_type>
+template <class H_interaction_type>
+std::vector<int> general_interaction<parameters_type>::make_correlated_orbitals(
+    parameters_type& parameters, H_interaction_type& H_interaction) {
   std::vector<int> correlated_orbitals;
 
   for (int r_j = 0; r_j < r_DCA::dmn_size(); ++r_j) {
@@ -84,4 +104,4 @@ std::vector<int> general_interaction::make_correlated_orbitals(parameters_type& 
   return correlated_orbitals;
 }
 
-#endif  // GENERAL_INTERACTION_HPP
+#endif  // PHYS_LIBRARY_PARAMETERS_MODELS_ANALYTIC_HAMILTONIANS_GENERAL_INTERACTION_HPP

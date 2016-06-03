@@ -1,13 +1,26 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
-#ifndef BILAYER_LATTICE_2D_H
-#define BILAYER_LATTICE_2D_H
+#ifndef PHYS_LIBRARY_PARAMETERS_MODELS_ANALYTIC_HAMILTONIANS_LATTICES_2D_BILAYER_LATTICE_H
+#define PHYS_LIBRARY_PARAMETERS_MODELS_ANALYTIC_HAMILTONIANS_LATTICES_2D_BILAYER_LATTICE_H
+
+#include <cmath>
+#include <complex>
+#include <utility>
+#include <vector>
 
 #include "enumerations.hpp"
+#include "comp_library/function_library/include_function_library.h"
 #include "phys_library/domains/cluster/symmetries/point_groups/No_symmetry.h"
-/*!
- *  \author peter staar
- */
+
 template <typename point_group_type>
 class bilayer_lattice {
 public:
@@ -220,4 +233,4 @@ std::complex<double> bilayer_lattice<point_group_type>::get_LDA_Hamiltonians(
   return H_LDA;
 }
 
-#endif
+#endif  // PHYS_LIBRARY_PARAMETERS_MODELS_ANALYTIC_HAMILTONIANS_LATTICES_2D_BILAYER_LATTICE_H
