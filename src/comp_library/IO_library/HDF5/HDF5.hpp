@@ -7,14 +7,12 @@
 //
 // Author: Peter Staar (peter.w.j.staar@gmail.com)
 //
-// This header file defines the supported IO types.
+// This file pulls in all HDF5 header files.
 
-#ifndef COMP_LIBRARY_IO_LIBRARY_IO_TYPES_H
-#define COMP_LIBRARY_IO_LIBRARY_IO_TYPES_H
+#ifndef COMP_LIBRARY_IO_LIBRARY_HDF5_HDF5_HPP
+#define COMP_LIBRARY_IO_LIBRARY_HDF5_HDF5_HPP
 
-namespace IO {
-enum FORMAT { CSV, JSON, HDF5 };
-typedef FORMAT format_type;
-}
+#include "HDF5_reader.h"
+#include "HDF5_writer.h"
 
-#endif  // COMP_LIBRARY_IO_LIBRARY_IO_TYPES_H
+#endif  // COMP_LIBRARY_IO_LIBRARY_HDF5_HDF5_HPP

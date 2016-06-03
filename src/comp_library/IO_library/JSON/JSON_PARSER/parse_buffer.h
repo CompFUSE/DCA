@@ -1,68 +1,61 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
-#ifndef  JSONPARSER_PARSEBUFFER_H
-#define  JSONPARSER_PARSEBUFFER_H
+#ifndef COMP_LIBRARY_IO_LIBRARY_JSON_JSON_PARSER_PARSE_BUFFER_H
+#define COMP_LIBRARY_IO_LIBRARY_JSON_JSON_PARSER_PARSE_BUFFER_H
 
-namespace IO
-{
-  namespace JSONPARSER
-  {
-    class ParseBuffer// : 
-    //     public type_mixing
-    {
-    public:
+#include <iostream>
+#include <string>
+#include <vector>
 
-      ParseBuffer();
-      ~ParseBuffer();
+namespace IO {
+namespace JSONPARSER {
+class ParseBuffer {
+public:
+  ParseBuffer();
 
-      void clear();
-    
-      void put(wchar_t wc);
+  void clear();
 
-      std::wstring str(); 
+  void put(wchar_t wc);
 
-      std::string to_string(); 
+  std::wstring str();
 
-    public:
+  std::string to_string();
 
-      std::vector<wchar_t> theCharacters;
-      bool                 trace;    
-    };
+public:
+  std::vector<wchar_t> theCharacters;
+  bool trace;
+};
 
-    ParseBuffer::ParseBuffer():
-      //     type_mixing(),
-      theCharacters(),
-      trace(false)
-    {}
+ParseBuffer::ParseBuffer() : theCharacters(), trace(false) {}
 
-    ParseBuffer::~ParseBuffer()
-    {}
+void ParseBuffer::clear() {
+  theCharacters.clear();
 
-    void ParseBuffer::clear() 
-    {
-      theCharacters.clear();
-    
-      if(trace) 
-	std::wcout << L"   ParseBuffer: clear()\n";
-    }
-    
-    void ParseBuffer::put(wchar_t wc) 
-    {
-      theCharacters.push_back(wc);
-    }
-
-    std::wstring ParseBuffer::str() 
-    {
-      return std::wstring(theCharacters.begin(), theCharacters.end());
-    }
-
-    std::string ParseBuffer::to_string() 
-    {
-      return std::string(theCharacters.begin(), theCharacters.end());
-    }
-
-  }
-
+  if (trace)
+    std::wcout << L"   ParseBuffer: clear()\n";
 }
 
-#endif
+void ParseBuffer::put(wchar_t wc) {
+  theCharacters.push_back(wc);
+}
+
+std::wstring ParseBuffer::str() {
+  return std::wstring(theCharacters.begin(), theCharacters.end());
+}
+
+std::string ParseBuffer::to_string() {
+  return std::string(theCharacters.begin(), theCharacters.end());
+}
+}
+}
+
+#endif  // COMP_LIBRARY_IO_LIBRARY_JSON_JSON_PARSER_PARSE_BUFFER_H

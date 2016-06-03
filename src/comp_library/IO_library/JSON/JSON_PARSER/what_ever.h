@@ -1,9 +1,23 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
-#ifndef JSONPARSER_WHATEVER_H
-#define JSONPARSER_WHATEVER_H
+#ifndef COMP_LIBRARY_IO_LIBRARY_JSON_JSON_PARSER_WHAT_EVER_H
+#define COMP_LIBRARY_IO_LIBRARY_JSON_JSON_PARSER_WHAT_EVER_H
 
+#include <cstdlib>
+#include <cassert>
 #include <map>
+#include <sstream>
+#include <vector>
+
 #include "comp_library/IO_library/JSON/JSON_PARSER/JSON_enumerations.h"
 
 namespace IO {
@@ -15,22 +29,21 @@ public:
 
 public:
   Whatever();
-  ~Whatever();
 
   Whatever(JSON_whatever_type t);
 
-  size_t size() const;
+  std::size_t size() const;
 
   // std::wstring name()  const ;
   std::string name() const;
 
   Whatever& operator[](const std::wstring key);
   Whatever& operator[](const std::string key);
-  Whatever& operator[](size_t index);
+  Whatever& operator[](std::size_t index);
 
   const Whatever& operator[](const std::wstring key) const;
   const Whatever& operator[](const std::string key) const;
-  const Whatever& operator[](size_t index) const;
+  const Whatever& operator[](std::size_t index) const;
 
   static Whatever null();
   Whatever& back();
@@ -115,8 +128,6 @@ Whatever::Whatever(JSON_whatever_type t)
       startPos(0),
       endPos(0) {}
 
-Whatever::~Whatever() {}
-
 std::wstring Whatever::typeName(JSON_whatever_type t) {
   switch (t) {
     case WHATEVER_MAT:
@@ -198,7 +209,7 @@ Whatever& Whatever::operator[](const std::wstring key) {
   return whateverMap[key];
 }
 
-Whatever& Whatever::operator[](size_t index) {
+Whatever& Whatever::operator[](std::size_t index) {
   assert(type == WHATEVER_VECTOR);
   assert(index < whateverVector.size());
 
@@ -221,14 +232,14 @@ const Whatever& Whatever::operator[](const std::string key) const {
   return wm[wKey];
 }
 
-const Whatever& Whatever::operator[](size_t index) const {
+const Whatever& Whatever::operator[](std::size_t index) const {
   assert(type == WHATEVER_VECTOR);
   assert(index < whateverVector.size());
 
   return whateverVector[index];
 }
 
-size_t Whatever::size() const {
+std::size_t Whatever::size() const {
   assert(type == WHATEVER_VECTOR);
   return whateverVector.size();
 }
@@ -308,4 +319,4 @@ void Whatever::set(double value) {
 }
 }
 
-#endif
+#endif  // COMP_LIBRARY_IO_LIBRARY_JSON_JSON_PARSER_WHAT_EVER_H

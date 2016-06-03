@@ -1,248 +1,229 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
-#ifndef JSONPARSER_DATABASE_H
-#define JSONPARSER_DATABASE_H
+#ifndef COMP_LIBRARY_IO_LIBRARY_JSON_JSON_PARSER_JSON_DATA_BASE_H
+#define COMP_LIBRARY_IO_LIBRARY_JSON_JSON_PARSER_JSON_DATA_BASE_H
 
-namespace IO
-{
-  namespace JSONPARSER
-  {
-    class JSON_leaf
-    {
-    public:
+#include <cstring>
+#include <map>
+#include <string>
+#include <vector>
 
-      JSON_leaf();
-      JSON_leaf(int n);
-      JSON_leaf(int n, int ld);
+namespace IO {
+namespace JSONPARSER {
+class JSON_leaf {
+public:
+  JSON_leaf();
+  JSON_leaf(int n);
+  JSON_leaf(int n, int ld);
 
+  ~JSON_leaf();
 
-      ~JSON_leaf();
+  template <typename ss>
+  void print(ss& ss_obj);
 
-      template<typename ss>
-      void print(ss& ss_obj);
+  template <typename some_type>
+  JSON_leaf& operator=(some_type rhs);
 
-      template<typename some_type>
-      JSON_leaf& operator=(some_type rhs);
+  JSON_leaf& operator=(bool rhs);
+  JSON_leaf& operator=(char rhs);
+  JSON_leaf& operator=(std::string rhs);
+  JSON_leaf& operator=(int rhs);
+  JSON_leaf& operator=(double rhs);
 
-      JSON_leaf& operator=(bool rhs);
-      JSON_leaf& operator=(char rhs);
-      JSON_leaf& operator=(std::string rhs);
-      JSON_leaf& operator=(int rhs);
-      JSON_leaf& operator=(double rhs);
+public:
+  std::size_t N;
+  std::size_t LD;
 
-    public:
+  bool* bool_ptr;
+  char* char_ptr;
+  int* int_ptr;
+  double* double_ptr;
+};
 
-      size_t N;
-      size_t LD;
-    
-      bool  * bool_ptr;
-      char  * char_ptr;
-      int   * int_ptr;
-      double* double_ptr;
-    };
-
-    JSON_leaf::JSON_leaf():    
-      N (0),
+JSON_leaf::JSON_leaf()
+    : N(0),
       LD(0),
 
       bool_ptr(NULL),
       char_ptr(NULL),
       int_ptr(NULL),
-      double_ptr(NULL)
-    {}
+      double_ptr(NULL) {}
 
-    JSON_leaf::JSON_leaf(int n):    
-      N (n),
+JSON_leaf::JSON_leaf(int n)
+    : N(n),
       LD(n),
 
       bool_ptr(NULL),
       char_ptr(NULL),
       int_ptr(NULL),
-      double_ptr(NULL)
-    {
-      bool_ptr = new bool[LD];
-      char_ptr = new char[LD];
-    }
+      double_ptr(NULL) {
+  bool_ptr = new bool[LD];
+  char_ptr = new char[LD];
+}
 
-    JSON_leaf::JSON_leaf(int n, int ld):    
-      N (n),
+JSON_leaf::JSON_leaf(int n, int ld)
+    : N(n),
       LD(ld),
 
       bool_ptr(NULL),
       char_ptr(NULL),
       int_ptr(NULL),
-      double_ptr(NULL)
-    {}
+      double_ptr(NULL) {}
 
-    JSON_leaf::~JSON_leaf()
-    {
-      if(bool_ptr!=NULL)
-	delete [] bool_ptr; 
+JSON_leaf::~JSON_leaf() {
+  if (bool_ptr != NULL)
+    delete[] bool_ptr;
 
-      if(int_ptr!=NULL)
-	delete [] int_ptr; 
+  if (int_ptr != NULL)
+    delete[] int_ptr;
 
-      if(char_ptr!=NULL)
-	delete [] char_ptr; 
+  if (char_ptr != NULL)
+    delete[] char_ptr;
 
-      if(double_ptr!=NULL)
-	delete [] double_ptr; 
-    }
+  if (double_ptr != NULL)
+    delete[] double_ptr;
+}
 
-    template<typename ss>
-    void JSON_leaf::print(ss& ss_obj)
-    {
-      for(size_t i=0; i<N; i++)
-	ss_obj << char_ptr[i];
-    }
+template <typename ss>
+void JSON_leaf::print(ss& ss_obj) {
+  for (size_t i = 0; i < N; i++)
+    ss_obj << char_ptr[i];
+}
 
-    JSON_leaf& JSON_leaf::operator=(bool rhs)
-    {
-      if(bool_ptr==NULL)
-	{
-	  N = 1;
-	  bool_ptr = new bool[N];
-	}
+JSON_leaf& JSON_leaf::operator=(bool rhs) {
+  if (bool_ptr == NULL) {
+    N = 1;
+    bool_ptr = new bool[N];
+  }
 
-      bool_ptr[0] = rhs;
-      return *this;
-    }
+  bool_ptr[0] = rhs;
+  return *this;
+}
 
-    JSON_leaf& JSON_leaf::operator=(char rhs)
-    {
-      if(char_ptr==NULL)
-	{
-	  N = 1;
-	  char_ptr = new char[N];
-	}
-    
-      char_ptr[0] = rhs;
-      return *this;
-    }
+JSON_leaf& JSON_leaf::operator=(char rhs) {
+  if (char_ptr == NULL) {
+    N = 1;
+    char_ptr = new char[N];
+  }
 
-    JSON_leaf& JSON_leaf::operator=(std::string rhs)
-    {
-      N = rhs.size();
+  char_ptr[0] = rhs;
+  return *this;
+}
 
-      if(char_ptr!=NULL)
-	delete [] char_ptr;
+JSON_leaf& JSON_leaf::operator=(std::string rhs) {
+  N = rhs.size();
 
-      char_ptr = new char[N];
-    
-      memcpy(char_ptr, &rhs[0], N*sizeof(char));
-    
-      return *this;
-    }
+  if (char_ptr != NULL)
+    delete[] char_ptr;
 
-    JSON_leaf& JSON_leaf::operator=(int rhs)
-    {
-      if(int_ptr==NULL)
-	{
-	  N = 1;
-	  int_ptr = new int[N];
-	}
+  char_ptr = new char[N];
 
-      int_ptr[0] = rhs;
-      return *this;
-    }
+  memcpy(char_ptr, &rhs[0], N * sizeof(char));
 
-    JSON_leaf& JSON_leaf::operator=(double rhs)
-    {
-      if(double_ptr==NULL)
-	{
-	  N = 1;
-	  double_ptr = new double[N];
-	}
-    
-      double_ptr[0] = rhs;
-      return *this;
-    }
-   
+  return *this;
+}
 
+JSON_leaf& JSON_leaf::operator=(int rhs) {
+  if (int_ptr == NULL) {
+    N = 1;
+    int_ptr = new int[N];
+  }
 
-    class JSON_tree
-    {
-    public:
+  int_ptr[0] = rhs;
+  return *this;
+}
 
-      typedef std::map<std::string, JSON_leaf> map_JSON_leaf_type;
-      typedef std::map<std::string, JSON_tree> map_JSON_tree_type;
+JSON_leaf& JSON_leaf::operator=(double rhs) {
+  if (double_ptr == NULL) {
+    N = 1;
+    double_ptr = new double[N];
+  }
 
-      typedef std::vector<JSON_tree>       vec_arbitrary_JSON_type;
+  double_ptr[0] = rhs;
+  return *this;
+}
 
-    public:
-    
-      JSON_tree();
-      ~JSON_tree();
-    
-      std::string& name();
+class JSON_tree {
+public:
+  typedef std::map<std::string, JSON_leaf> map_JSON_leaf_type;
+  typedef std::map<std::string, JSON_tree> map_JSON_tree_type;
 
-      template<typename ss>
-      void print(ss& ss_obj);
+  typedef std::vector<JSON_tree> vec_arbitrary_JSON_type;
 
-      JSON_tree& operator[](std::string& key);
+public:
+  JSON_tree();
+  ~JSON_tree();
 
-      template<typename val_t>
-      void set(std::string& key, val_t& val);
+  std::string& name();
 
-      template<typename val_t>
-      void set(std::string& key, val_t* val, size_t);
+  template <typename ss>
+  void print(ss& ss_obj);
 
-      template<typename val_t>
-      void set(std::string& key, std::vector<val_t>& val_vec);
+  JSON_tree& operator[](std::string& key);
 
-    private:
+  template <typename val_t>
+  void set(std::string& key, val_t& val);
 
-      std::string key;
-      size_t      index;
+  template <typename val_t>
+  void set(std::string& key, val_t* val, size_t);
 
-      JSON_tree*         parent;
+  template <typename val_t>
+  void set(std::string& key, std::vector<val_t>& val_vec);
 
-      map_JSON_leaf_type JSON_leaf_obj;
-      map_JSON_tree_type JSON_tree_obj;
+private:
+  std::string key;
+  size_t index;
 
-      vec_arbitrary_JSON_type vec;
-    };
+  JSON_tree* parent;
 
-    JSON_tree::JSON_tree():
-      key("no-key"),
+  map_JSON_leaf_type JSON_leaf_obj;
+  map_JSON_tree_type JSON_tree_obj;
+
+  vec_arbitrary_JSON_type vec;
+};
+
+JSON_tree::JSON_tree()
+    : key("no-key"),
       index(0),
 
       parent(NULL),
 
       JSON_leaf_obj(),
       JSON_tree_obj(),
-    
-      vec(0)
-    {}
 
-    JSON_tree::~JSON_tree()
-    {}
+      vec(0) {}
 
-    std::string& JSON_tree::name()
-    {
-      return key;
-    }
+JSON_tree::~JSON_tree() {}
 
-    JSON_tree& JSON_tree::operator[](std::string& key)
-    {
-      return JSON_tree_obj[key];
-    }
+std::string& JSON_tree::name() {
+  return key;
+}
 
-    template<typename val_t>
-    void JSON_tree::set(std::string& key, val_t& val)
-    {
-      JSON_leaf_obj[key] = val;
-    }
+JSON_tree& JSON_tree::operator[](std::string& key) {
+  return JSON_tree_obj[key];
+}
 
-    template<typename val_t>
-    void JSON_tree::set(std::string& key, std::vector<val_t>& val)
-    {
-      JSON_leaf_obj[key] = val;
-    }
+template <typename val_t>
+void JSON_tree::set(std::string& key, val_t& val) {
+  JSON_leaf_obj[key] = val;
+}
 
+template <typename val_t>
+void JSON_tree::set(std::string& key, std::vector<val_t>& val) {
+  JSON_leaf_obj[key] = val;
+}
 
-  } //namespace JSONPARSER
+}  // JSONPARSER
 
-}//namespace IO
+}  // IO
 
-#endif
+#endif  // COMP_LIBRARY_IO_LIBRARY_JSON_JSON_PARSER_JSON_DATA_BASE_H

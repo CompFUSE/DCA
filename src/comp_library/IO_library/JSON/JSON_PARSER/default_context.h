@@ -1,8 +1,23 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
-#ifndef JSONPARSER_DEFAULTCONTEXT_H
-#define JSONPARSER_DEFAULTCONTEXT_H
+#ifndef COMP_LIBRARY_IO_LIBRARY_JSON_JSON_PARSER_DEFAULT_CONTEXT_H
+#define COMP_LIBRARY_IO_LIBRARY_JSON_JSON_PARSER_DEFAULT_CONTEXT_H
+
+#include <iostream>
+#include <string>
+#include <vector>
+
 #include "comp_library/IO_library/JSON/JSON_PARSER/parse_buffer.h"
+#include "comp_library/IO_library/JSON/JSON_PARSER/what_ever.h"
 #include "comp_library/IO_library/JSON/JSON_PARSER/JSON_operators.h"
 
 namespace IO {
@@ -10,7 +25,6 @@ namespace JSONPARSER {
 class JSON_context {
 public:
   JSON_context();
-  ~JSON_context();
 
   void begin_array();
   void begin_object();
@@ -58,8 +72,6 @@ public:
 };
 
 JSON_context::JSON_context() : result(), stack(1, &result), key(L""), trace(false) {}
-
-JSON_context::~JSON_context() {}
 
 void JSON_context::begin_object() {
   beginObjectOrArray<WHATEVER_MAP>();
@@ -206,7 +218,6 @@ void JSON_context::Key(const std::wstring& s) {
 }
 
 }  // namespace JSONPARSER
-
 }  // namespace IO
 
-#endif
+#endif  // COMP_LIBRARY_IO_LIBRARY_JSON_JSON_PARSER_DEFAULT_CONTEXT_H

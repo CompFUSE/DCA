@@ -1,16 +1,34 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Based on json-cpp.
 
-#ifndef JSON_READER_HEADER_H
-#define JSON_READER_HEADER_H
-#include "src/comp_library/IO_library/JSON/JSON_PARSER/what_ever.h"
+#ifndef COMP_LIBRARY_IO_LIBRARY_JSON_JSON_READER_H
+#define COMP_LIBRARY_IO_LIBRARY_JSON_JSON_READER_H
+
+#include "comp_library/IO_library/template_reader.h"
+
+#include <complex>
+#include <fstream>
+#include <stdexcept>
+#include <sstream>
+#include <string>
+#include <vector>
+
+#include "comp_library/IO_library/JSON/JSON_PARSER/what_ever.h"
 #include "comp_library/IO_library/JSON/JSON_PARSER/JSON_parser.h"
 #include "comp_library/IO_library/JSON/JSON_PARSER/default_context.h"
+#include "comp_library/function_library/include_function_library.h"
+#include "comp_library/linalg/linalg.hpp"
 
 namespace IO {
 
-/*!
- * \author: based on json-cpp
- */
 template <>
 class reader<IO::JSON> {
 public:
@@ -21,7 +39,6 @@ public:
 
 public:
   reader();
-  ~reader();
 
   bool is_reader() {
     return true;
@@ -114,8 +131,6 @@ reader<IO::JSON>::reader()
       parse_result(parser.get_JSON_tree().result),
 
       my_paths(0) {}
-
-reader<IO::JSON>::~reader() {}
 
 std::string reader<IO::JSON>::get_current_file_name() {
   return current_file_name;
@@ -369,4 +384,4 @@ const reader<IO::JSON>::JsonAccessor& reader<IO::JSON>::get_JSON_tree() {
 }
 }
 
-#endif
+#endif  // COMP_LIBRARY_IO_LIBRARY_JSON_JSON_READER_H

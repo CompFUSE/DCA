@@ -7,14 +7,15 @@
 //
 // Author: Peter Staar (peter.w.j.staar@gmail.com)
 //
-// This header file defines the supported IO types.
+// Description
+//
+// TODO: Cleanup CSV if necessary.
 
-#ifndef COMP_LIBRARY_IO_LIBRARY_IO_TYPES_H
-#define COMP_LIBRARY_IO_LIBRARY_IO_TYPES_H
+#ifndef COMP_LIBRARY_IO_LIBRARY_IO_HPP
+#define COMP_LIBRARY_IO_LIBRARY_IO_HPP
 
-namespace IO {
-enum FORMAT { CSV, JSON, HDF5 };
-typedef FORMAT format_type;
-}
+// #include "CSV/include_CSV.h"
+#include "JSON/JSON.hpp"
+#include "HDF5/HDF5.hpp"
 
-#endif  // COMP_LIBRARY_IO_LIBRARY_IO_TYPES_H
+#endif  // COMP_LIBRARY_IO_LIBRARY_IO_HPP

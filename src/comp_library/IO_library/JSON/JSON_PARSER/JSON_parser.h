@@ -1,7 +1,18 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
-#ifndef JSON_PARSER_H
-#define JSON_PARSER_H
+#ifndef COMP_LIBRARY_IO_LIBRARY_JSON_JSON_PARSER_JSON_PARSER_H
+#define COMP_LIBRARY_IO_LIBRARY_JSON_JSON_PARSER_JSON_PARSER_H
+
+#include <cassert>
 
 #include "comp_library/IO_library/JSON/JSON_PARSER/JSON_character_mapper.h"
 #include "comp_library/IO_library/JSON/JSON_PARSER/JSON_mode_stack.h"
@@ -11,14 +22,11 @@
 
 namespace IO {
 namespace JSONPARSER {
-/*!
- *
- */
+
 template <typename context_type>
 class JSON_parser : public JSON_character_mapper, public JSON_mode_stack {
 public:
   JSON_parser();
-  ~JSON_parser();
 
   bool execute(std::wistream& inputStream);
 
@@ -77,9 +85,6 @@ JSON_parser<context_type>::JSON_parser()
       numLines(0),
       trace(false),
       filename("") {}
-
-template <typename context_type>
-JSON_parser<context_type>::~JSON_parser() {}
 
 template <typename context_type>
 context_type& JSON_parser<context_type>::get_JSON_tree() {
@@ -356,4 +361,4 @@ std::pair<wchar_t, JSON_character_class_type> JSON_parser<context_type>::get_nex
 }
 }
 
-#endif
+#endif  // COMP_LIBRARY_IO_LIBRARY_JSON_JSON_PARSER_JSON_PARSER_H

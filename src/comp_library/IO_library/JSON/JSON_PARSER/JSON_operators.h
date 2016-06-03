@@ -1,9 +1,21 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
-#ifndef JSONPARSER_OPERATORS_H
-#define JSONPARSER_OPERATORS_H
+#ifndef COMP_LIBRARY_IO_LIBRARY_JSON_JSON_PARSER_JSON_OPERATORS_H
+#define COMP_LIBRARY_IO_LIBRARY_JSON_JSON_PARSER_JSON_OPERATORS_H
+
+#include <complex>
 
 #include "comp_library/IO_library/JSON/JSON_PARSER/parse_buffer.h"
+#include "comp_library/IO_library/JSON/JSON_PARSER/what_ever.h"
 
 namespace IO {
 namespace JSONPARSER {
@@ -151,8 +163,7 @@ ParseBuffer& operator>>(ParseBuffer& buffer, T& value) {
   return buffer;
 }
 
-}  // namespace JSONPARSER
+}  // JSONPARSER
+}  // IO
 
-}  // namespace IO
-
-#endif
+#endif  // COMP_LIBRARY_IO_LIBRARY_JSON_JSON_PARSER_JSON_OPERATORS_H
