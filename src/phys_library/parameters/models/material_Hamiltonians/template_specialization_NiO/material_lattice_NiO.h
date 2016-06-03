@@ -1,13 +1,20 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//         Andrei Plamada (plamada@itp.phys.ethz.ch)
+//
+// Description
 
-#ifndef MATERIAL_LATTICE_NIO_H
-#define MATERIAL_LATTICE_NIO_H
+#ifndef PHYS_LIBRARY_PARAMETERS_MODELS_MATERIAL_HAMILTONIANS_TEMPLATE_SPECIALIZATION_NIO_MATERIAL_LATTICE_NIO_H
+#define PHYS_LIBRARY_PARAMETERS_MODELS_MATERIAL_HAMILTONIANS_TEMPLATE_SPECIALIZATION_NIO_MATERIAL_LATTICE_NIO_H
 
-#include "comp_library/IO_library/CSV/CSV_reader.h"
-/*!
- *  \author Peter Staar
- *  \author Andrei Plamada
- */
+#include "comp_library/IO_library/CSV/CSV.hpp"
+#include "phys_library/parameters/models/material_hamiltonians/material_lattice_template.h"
 
 template <typename point_group_type>
 class material_lattice<NiO_symmetric, point_group_type> {
@@ -367,4 +374,4 @@ std::complex<double> material_lattice<NiO_unsymmetric, point_group_type>::get_LD
   return H_LDA;
 }
 
-#endif
+#endif  // PHYS_LIBRARY_PARAMETERS_MODELS_MATERIAL_HAMILTONIANS_TEMPLATE_SPECIALIZATION_NIO_MATERIAL_LATTICE_NIO_H
