@@ -7,15 +7,12 @@
 //
 // Author: Peter Staar (peter.w.j.staar@gmail.com)
 //
-// Description
-//
-// TODO: Cleanup CSV if necessary.
+// This file pulls in all CSV header files.
 
-#ifndef COMP_LIBRARY_IO_LIBRARY_IO_HPP
-#define COMP_LIBRARY_IO_LIBRARY_IO_HPP
+#ifndef COMP_LIBRARY_IO_LIBRARY_CSV_CSV_HPP
+#define COMP_LIBRARY_IO_LIBRARY_CSV_CSV_HPP
 
-#include "CSV/CSV.hpp"
-#include "HDF5/HDF5.hpp"
-#include "JSON/JSON.hpp"
+#include "CSV_reader.h"
+#include "CSV_writer.h"
 
-#endif  // COMP_LIBRARY_IO_LIBRARY_IO_HPP
+#endif  // COMP_LIBRARY_IO_LIBRARY_CSV_CSV_HPP
