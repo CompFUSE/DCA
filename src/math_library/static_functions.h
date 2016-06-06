@@ -1,6 +1,22 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
+
 #ifndef MATH_LIBRARY_STATIC_FUNCTIONS_H
 #define MATH_LIBRARY_STATIC_FUNCTIONS_H
+
+#include <cassert>
+#include <cmath>
+#include <complex>
+#include <stdexcept>
+#include <utility>
 
 double sgn(double a) {
   if (a >= 0)
@@ -217,4 +233,4 @@ int row_major_index_2_column_major_index<3>(int row_index, int* grid) {
   return true;
 }*/
 
-#endif
+#endif  // MATH_LIBRARY_STATIC_FUNCTIONS_H
