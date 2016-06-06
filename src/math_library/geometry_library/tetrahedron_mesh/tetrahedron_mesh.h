@@ -1,27 +1,29 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// This class constructs a tetrahedron mesh for the Brillouin-zone defined by the template argument
+// cluster_type.
 
 #ifndef MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_MESH_H
 #define MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_MESH_H
-#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron.hpp"
-#include "math_library/geometry_library/tetrahedron_mesh/simplex.h"
+
+#include <cassert>
+#include <iostream>
+#include <vector>
+
 #include "math_library/geometry_library/tetrahedron_mesh/facet.h"
-#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron_mesh_implementation/tetrahedron_mesh_initializer_2D.h"
-//#include
-//"math_library/geometry_library/tetrahedron_mesh/tetrahedron_mesh_implementation/tetrahedron_mesh_initializer_3D.h"
+#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron/tetrahedron.hpp"
+#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron_mesh_initializer/tetrahedron_mesh_initializer.hpp"
+#include "math_library/geometry_library/tetrahedron_mesh/simplex.h"
 
 namespace math_algorithms {
-/*!
- *  \defgroup TETRAHEDRON-MESH
- *  \ingroup  ALGORITHMS
- */
 
-/*! \class   tetrahedron_mesh
- *  \ingroup TETRAHEDRON-MESH
- *
- *  \author  Peter Staar
- *  \brief   This class constructs a tetrahedron mesh for the Brillouin-zone, defined by the
- * k-cluster template.
- */
 template <typename cluster_type>
 class tetrahedron_mesh {
 public:
@@ -34,7 +36,6 @@ public:
 
 public:
   tetrahedron_mesh(int n_recursion);
-  ~tetrahedron_mesh();
 
   int size();
   tetrahedron<DIMENSION>& operator[](int l);
@@ -96,9 +97,6 @@ tetrahedron_mesh<cluster_type>::tetrahedron_mesh(int n_recursion)
 }
 
 template <typename cluster_type>
-tetrahedron_mesh<cluster_type>::~tetrahedron_mesh() {}
-
-template <typename cluster_type>
 int tetrahedron_mesh<cluster_type>::size() {
   return tetrahedra.size();
 }
@@ -112,7 +110,7 @@ typename tetrahedron_mesh<cluster_type>::tetrahedron_t& tetrahedron_mesh<cluster
 
 template <typename cluster_type>
 void tetrahedron_mesh<cluster_type>::translate_simplices(std::vector<double> K) {
-  for (size_t i = 0; i < simplices.size(); i++)
+  for (std::size_t i = 0; i < simplices.size(); i++)
     for (int j = 0; j < DIMENSION; j++)
       simplices[i].k_vec[j] += K[j];
 }
@@ -121,8 +119,8 @@ template <typename cluster_type>
 void tetrahedron_mesh<cluster_type>::translate_mesh(std::vector<std::vector<double>>& centered_mesh,
                                                     std::vector<std::vector<double>>& translated_mesh,
                                                     std::vector<double>& K) {
-  for (size_t i = 0; i < centered_mesh.size(); i++)
-    for (size_t j = 0; j < centered_mesh[i].size(); j++)
+  for (std::size_t i = 0; i < centered_mesh.size(); i++)
+    for (std::size_t j = 0; j < centered_mesh[i].size(); j++)
       translated_mesh[i][j] = centered_mesh[i][j] + K[j];
 }
 
@@ -135,7 +133,7 @@ bool tetrahedron_mesh<cluster_type>::is_inside_volume(std::vector<double> k_vec)
   int coor[DIMENSION];
   double pars[DIMENSION + 1];
 
-  for (size_t l = 0; l < facets.size(); l++) {
+  for (std::size_t l = 0; l < facets.size(); l++) {
     for (int d = 0; d < DIMENSION; d++)
       coor[d] = facets[l].index[d];
 
@@ -157,7 +155,7 @@ template <typename cluster_type>
 bool tetrahedron_mesh<cluster_type>::check_consistency() {
   bool OK = true;
 
-  for (size_t l = 0; l < tetrahedra.size(); l++) {
+  for (std::size_t l = 0; l < tetrahedra.size(); l++) {
     OK = tetrahedra[l].check_consistency(mesh);
 
     if (!OK)
@@ -172,10 +170,10 @@ void tetrahedron_mesh<cluster_type>::plot_simplices() {
   std::cout << std::scientific;
   std::cout.precision(6);
 
-  for (size_t l = 0; l < simplices.size(); l++) {
+  for (std::size_t l = 0; l < simplices.size(); l++) {
     std::cout << l << "\t";
 
-    for (size_t i = 0; i < simplices[l].k_vec.size(); i++)
+    for (std::size_t i = 0; i < simplices[l].k_vec.size(); i++)
       std::cout << simplices[l].k_vec[i] << "\t";
 
     std::cout << "\n";
@@ -189,10 +187,10 @@ void tetrahedron_mesh<cluster_type>::plot_facets() {
   std::cout << std::scientific;
   std::cout.precision(6);
 
-  for (size_t l = 0; l < facets.size(); l++) {
+  for (std::size_t l = 0; l < facets.size(); l++) {
     std::cout << l << "\t";
 
-    for (size_t i = 0; i < facets[l].index.size(); i++)
+    for (std::size_t i = 0; i < facets[l].index.size(); i++)
       std::cout << facets[l].index[i] << "\t";
     std::cout << "\n";
   }
@@ -204,10 +202,10 @@ template <typename cluster_type>
 void tetrahedron_mesh<cluster_type>::plot_mesh_points() {
   std::cout.precision(6);
 
-  for (size_t l = 0; l < mesh.size(); l++) {
+  for (std::size_t l = 0; l < mesh.size(); l++) {
     std::cout << l << "\t";
 
-    for (size_t i = 0; i < mesh[l].size(); i++)
+    for (std::size_t i = 0; i < mesh[l].size(); i++)
       std::cout << mesh[l][i] << "\t";
 
     std::cout << "\n";
@@ -220,14 +218,15 @@ template <typename cluster_type>
 void tetrahedron_mesh<cluster_type>::plot_tetrahedra() {
   std::cout.precision(6);
 
-  for (size_t l = 0; l < tetrahedra.size(); l++) {
-    for (size_t i = 0; i < DIMENSION + 1; i++)
+  for (std::size_t l = 0; l < tetrahedra.size(); l++) {
+    for (std::size_t i = 0; i < DIMENSION + 1; i++)
       std::cout << tetrahedra[l].index[i] << "\t";
     std::cout << "\n";
   }
 
   std::cout << "\n";
 }
-}
+
+}  // math_algorithms
 
 #endif  // MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_MESH_H

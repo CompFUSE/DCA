@@ -1,16 +1,27 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Full template specialization for a 1D tetrahedron.
 
-#ifndef MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_IMPLEMENTATION_TETRAHEDRON_1D_H
-#define MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_IMPLEMENTATION_TETRAHEDRON_1D_H
+#ifndef MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_TETRAHEDRON_1D_H
+#define MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_TETRAHEDRON_1D_H
+
+#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron/tetrahedron_template.h"
+
+#include <cassert>
+#include <cstdlib>
+#include <vector>
+
 #include "comp_library/function_plotting/include_plotting.h"
-#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron_template.h"
+
 namespace math_algorithms {
-/*!
- *  \ingroup TETRAHEDRON
- *
- *  \author  Peter Staar
- *  \brief   Implementation for a 1D tetrahedron.
- */
+
 template <>
 struct tetrahedron<1> {
 public:
@@ -151,4 +162,4 @@ void tetrahedron<1>::do_recursion(std::vector<tetrahedron<1>>& tetrahedra, mesh_
 }
 }
 
-#endif  // MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_IMPLEMENTATION_TETRAHEDRON_1D_H
+#endif  // MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_TETRAHEDRON_1D_H

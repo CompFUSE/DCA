@@ -1,26 +1,32 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// This class represents a facet (= edge-surface) of the Brillouin-zone. It is templated over the
+// dimension of k-space.
 
 #ifndef MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_FACET_H
 #define MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_FACET_H
 
+#include <cassert>
+#include <cmath>
+#include <stdexcept>
+#include <vector>
+
+#include "math_library/geometry_library/tetrahedron_mesh/simplex.h"
+
 namespace math_algorithms {
-/*!
- *  \class  facet
- *  \ingroup TETRAHEDRON
- *
- *  \author Peter Staar
- *  \brief  This class represents a facet (= edge-surface) of the Brillouin-zone. It is templated
- * over the dimension of k-space.
- */
+
+// Empty templace class declaration
 template <int DIMENSION>
 struct facet {};
 
-/*!
- *  \ingroup TETRAHEDRON
- *
- *  \author Peter Staar
- *  \brief  This class implements a 2D facet (= edge-surface) of the Brillouin-zone.
- */
+// Full template specialiaztion for 2D
 template <>
 struct facet<2> {
 public:
@@ -147,12 +153,7 @@ bool facet<2>::equal(facet& f1, facet& f2, std::vector<simplex<2>>& /*simplex_ve
     return false;
 }
 
-/*!
- *  \ingroup TETRAHEDRON
- *
- *  \author Peter Staar
- *  \brief  This class implements a 3D facet (= edge-surface) of the Brillouin-zone.
- */
+// Full template specialiaztion for 3D
 template <>
 struct facet<3> {
 public:
@@ -352,6 +353,7 @@ bool facet<3>::equal(facet& f1, facet& f2, std::vector<simplex<3>>& simplex_vect
 
   return are_equal;
 }
-}
+
+}  // math_algorithms
 
 #endif  // MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_FACET_H

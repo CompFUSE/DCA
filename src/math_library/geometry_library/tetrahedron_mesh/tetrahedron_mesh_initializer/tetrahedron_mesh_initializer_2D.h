@@ -1,13 +1,32 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Template specialization for the initialization of a 2D tetrahedron mesh.
 
-#ifndef MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_MESH_IMPLEMENTATION_TETRAHEDRON_MESH_INITIALIZER_2D_H
-#define MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_MESH_IMPLEMENTATION_TETRAHEDRON_MESH_INITIALIZER_2D_H
+#ifndef MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_MESH_INITIALIZER_TETRAHEDRON_MESH_INITIALIZER_2D_H
+#define MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_MESH_INITIALIZER_TETRAHEDRON_MESH_INITIALIZER_2D_H
 
-#include "tetrahedron_mesh_initializer.h"
+#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron_mesh_initializer/tetrahedron_mesh_initializer_template.hpp"
+
+#include <algorithm>
+#include <cassert>
+#include <cstdlib>
+#include <cstring>
+#include <vector>
+
+#include "math_library/geometry_library/tetrahedron_mesh/facet.h"
+#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron/tetrahedron_2D.h"
+#include "math_library/geometry_library/tetrahedron_mesh/simplex.h"
+#include "math_library/geometry_library/vector_operations/vector_operations.hpp"
+
 namespace math_algorithms {
-/*
- *  \author: peter staar
- */
+
 template <class k_cluster_type>
 class tetrahedron_mesh_initializer<2, k_cluster_type> {
   const static int DIMENSION = 2;
@@ -21,8 +40,6 @@ public:
   tetrahedron_mesh_initializer(std::vector<simplex_t>& simplices_ref,
                                std::vector<facet_t>& facets_ref, std::vector<vector_t>& mesh_ref,
                                std::vector<tetrahedron_t>& tetrahedra_ref, int N_recursion_ref);
-
-  ~tetrahedron_mesh_initializer();
 
   void execute();
 
@@ -51,9 +68,6 @@ tetrahedron_mesh_initializer<2, k_cluster_type>::tetrahedron_mesh_initializer(
       tetrahedra(tetrahedra_ref),
 
       N_recursion(N_recursion_ref) {}
-
-template <class k_cluster_type>
-tetrahedron_mesh_initializer<2, k_cluster_type>::~tetrahedron_mesh_initializer() {}
 
 template <class k_cluster_type>
 void tetrahedron_mesh_initializer<2, k_cluster_type>::execute() {
@@ -90,8 +104,8 @@ void tetrahedron_mesh_initializer<2, k_cluster_type>::make_convex_hull() {
 
   solve_plan<double> slv_pln(2, 1);
 
-  for (size_t l0 = 0; l0 < B_collection.size(); l0++) {
-    for (size_t l1 = 0; l1 < B_collection.size(); l1++) {
+  for (std::size_t l0 = 0; l0 < B_collection.size(); l0++) {
+    for (std::size_t l1 = 0; l1 < B_collection.size(); l1++) {
       A[0 + 2 * 0] = B_collection[l0][0];
       A[0 + 2 * 1] = B_collection[l0][1];
       A[1 + 2 * 0] = B_collection[l1][0];
@@ -129,8 +143,8 @@ void tetrahedron_mesh_initializer<2, k_cluster_type>::make_convex_hull() {
   {
     std::vector<double> K(2, 0);
 
-    for (size_t B_ind = 0; B_ind < B_collection.size(); B_ind++) {
-      for (size_t s_ind = 0; s_ind < simplices.size(); s_ind++) {
+    for (std::size_t B_ind = 0; B_ind < B_collection.size(); B_ind++) {
+      for (std::size_t s_ind = 0; s_ind < simplices.size(); s_ind++) {
         double diff_k_K = VECTOR_OPERATIONS::L2_NORM(simplices[s_ind].k_vec, K);
         double diff_k_B = VECTOR_OPERATIONS::L2_NORM(simplices[s_ind].k_vec, B_collection[B_ind]);
 
@@ -142,8 +156,8 @@ void tetrahedron_mesh_initializer<2, k_cluster_type>::make_convex_hull() {
     }
 
     {
-      for (size_t s_ind0 = 0; s_ind0 < simplices.size(); s_ind0++) {
-        for (size_t s_ind1 = s_ind0 + 1; s_ind1 < simplices.size(); s_ind1++) {
+      for (std::size_t s_ind0 = 0; s_ind0 < simplices.size(); s_ind0++) {
+        for (std::size_t s_ind1 = s_ind0 + 1; s_ind1 < simplices.size(); s_ind1++) {
           if (VECTOR_OPERATIONS::L2_NORM(simplices[s_ind0].k_vec, simplices[s_ind1].k_vec) < 1.e-6) {
             simplices.erase(simplices.begin() + s_ind1);
             s_ind1--;
@@ -158,8 +172,8 @@ template <class k_cluster_type>
 void tetrahedron_mesh_initializer<2, k_cluster_type>::find_facets() {
   int coor[2];
 
-  for (size_t l0 = 0; l0 < simplices.size(); l0++) {
-    for (size_t l1 = 0; l1 < simplices.size(); l1++) {
+  for (std::size_t l0 = 0; l0 < simplices.size(); l0++) {
+    for (std::size_t l1 = 0; l1 < simplices.size(); l1++) {
       coor[0] = l0;
       coor[1] = l1;
 
@@ -179,8 +193,8 @@ void tetrahedron_mesh_initializer<2, k_cluster_type>::find_facets() {
     }
   }
 
-  for (size_t l0 = 0; l0 < facets.size(); l0++) {
-    for (size_t l1 = l0 + 1; l1 < facets.size(); l1++) {
+  for (std::size_t l0 = 0; l0 < facets.size(); l0++) {
+    for (std::size_t l1 = l0 + 1; l1 < facets.size(); l1++) {
       if (facet<DIMENSION>::equal(facets[l0], facets[l1], simplices)) {
         facets.erase(facets.begin() + l1);
         l1--;
@@ -193,10 +207,10 @@ template <class k_cluster_type>
 void tetrahedron_mesh_initializer<2, k_cluster_type>::make_mesh_points() {
   mesh.resize(1, std::vector<double>(DIMENSION, 0.));
 
-  for (size_t l = 0; l < simplices.size(); l++)
+  for (std::size_t l = 0; l < simplices.size(); l++)
     mesh.push_back(simplices[l].k_vec);
 
-  for (size_t l = 0; l < facets.size(); l++) {
+  for (std::size_t l = 0; l < facets.size(); l++) {
     tetrahedron<DIMENSION> tet;
 
     {
@@ -208,7 +222,7 @@ void tetrahedron_mesh_initializer<2, k_cluster_type>::make_mesh_points() {
     {
       std::vector<double> normal(DIMENSION, 0.);
 
-      for (size_t i = 0; i < facets[l].index.size(); i++) {
+      for (std::size_t i = 0; i < facets[l].index.size(); i++) {
         normal[0] += simplices[facets[l].index[i]].k_vec[0] / double(facets[l].index.size());
         normal[1] += simplices[facets[l].index[i]].k_vec[1] / double(facets[l].index.size());
       }
@@ -236,22 +250,22 @@ void tetrahedron_mesh_initializer<2, k_cluster_type>::make_mesh_points() {
     std::vector<std::vector<double>>::iterator it;
     std::vector<std::vector<double>> mesh_old = mesh;
 
-    sort(mesh.begin(), mesh.end());
-    it = unique(mesh.begin(), mesh.end());
+    std::sort(mesh.begin(), mesh.end());
+    it = std::unique(mesh.begin(), mesh.end());
     mesh.erase(it, mesh.end());
 
     std::vector<int> index(mesh_old.size(), -1);
 
-    for (size_t i = 0; i < mesh_old.size(); i++) {
+    for (std::size_t i = 0; i < mesh_old.size(); i++) {
       it = lower_bound(mesh.begin(), mesh.end(), mesh_old[i]);  // --> complexity log(N) !
       index[i] = it - mesh.begin();
       assert(index[i] < int(mesh.size()));
     }
 
-    for (size_t l = 0; l < tetrahedra.size(); l++)
+    for (std::size_t l = 0; l < tetrahedra.size(); l++)
       for (int z = 0; z < DIMENSION + 1; z++)
         tetrahedra[l].index[z] = index[tetrahedra[l].index[z]];
   }
 }
 }
-#endif  // MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_MESH_IMPLEMENTATION_TETRAHEDRON_MESH_INITIALIZER_2D_H
+#endif  // MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_MESH_INITIALIZER_TETRAHEDRON_MESH_INITIALIZER_2D_H

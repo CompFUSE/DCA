@@ -1,16 +1,28 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// This class constructs a tetrahedron neighbour domain in the Brillouin-zone defined by the
+// template argument cluster_type.
 
 #ifndef MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_NEIGHBOUR_DOMAIN_H
 #define MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_NEIGHBOUR_DOMAIN_H
+
+#include <vector>
+#include <stdexcept>
+
+#include "comp_library/function_library/include_function_library.h"
+#include "math_library/geometry_library/vector_operations/vector_operations.hpp"
+#include "math_library/geometry_library/tetrahedron_mesh/facet.h"
 #include "math_library/geometry_library/tetrahedron_mesh/tetrahedron_mesh.h"
 
 namespace math_algorithms {
-/*!  \ingroup TETRAHEDRON-MESH
- *
- *  \author  Peter Staar
- *  \brief  This class constructs a tetrahedron neighbour domain in the Brillouin-zone, defined by
- * the k-cluster template.
- */
+
 template <typename cluster_type>
 class tetrahedron_neighbour_domain {
 public:
@@ -46,10 +58,10 @@ private:
 
     tetrahedron_mesh<cluster_type> tet_mesh(1);
 
-    for (size_t f_ind = 0; f_ind < tet_mesh.get_facets().size(); ++f_ind) {
+    for (std::size_t f_ind = 0; f_ind < tet_mesh.get_facets().size(); ++f_ind) {
       std::vector<double> k(DIMENSION, 0.);
 
-      for (size_t k_ind = 0; k_ind < tet_mesh.get_facets()[f_ind].index.size(); ++k_ind)
+      for (std::size_t k_ind = 0; k_ind < tet_mesh.get_facets()[f_ind].index.size(); ++k_ind)
         k = VECTOR_OPERATIONS::ADD(
             k, tet_mesh.get_simplices()[tet_mesh.get_facets()[f_ind].index[k_ind]].k_vec);
 

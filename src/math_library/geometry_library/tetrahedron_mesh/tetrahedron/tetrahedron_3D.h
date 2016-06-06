@@ -1,16 +1,31 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Full template specialization for a 3D tetrahedron.
 
-#ifndef MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_IMPLEMENTATION_TETRAHEDRON_3D_H
-#define MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_IMPLEMENTATION_TETRAHEDRON_3D_H
-#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron_template.h"
+#ifndef MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_TETRAHEDRON_3D_H
+#define MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_TETRAHEDRON_3D_H
+
+#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron/tetrahedron_template.h"
+
+#include <algorithm>
+#include <complex>
+#include <iostream>
+#include <utility>
+#include <vector>
+
+#include "comp_library/function_plotting/include_plotting.h"
+#include "math_library/geometry_library/vector_operations/vector_operations.hpp"
+#include "math_library/static_functions.h"
 
 namespace math_algorithms {
-/*!
- *  \ingroup TETRAHEDRON
- *
- *  \author  Peter Staar
- *  \brief   Implementation for a 3D tetrahedron.
- */
+
 template <>
 struct tetrahedron<3> {
 public:
@@ -552,7 +567,7 @@ eigenvalue_degeneracy tetrahedron<3>::find_degeneracy(scalartype* f, scalartype*
   vec[3].first = e[3];
   vec[3].second = f[3];
 
-  stable_sort(vec.begin(), vec.end(), &pair_less);
+  std::stable_sort(vec.begin(), vec.end(), &pair_less);
   int degeneracy = unique(vec.begin(), vec.end(), tetrahedron<3>::pair_same) - vec.begin();
 
   e[0] = vec[0].first;
@@ -632,4 +647,4 @@ bool tetrahedron<3>::check_consistency(mesh_t& mesh) {
 }
 }
 
-#endif  // MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_IMPLEMENTATION_TETRAHEDRON_3D_H
+#endif  // MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_TETRAHEDRON_3D_H
