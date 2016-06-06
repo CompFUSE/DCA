@@ -9,7 +9,7 @@
 //
 // This file tests cluster_operations.hpp.
 
-#include "cluster_operations.hpp"
+#include "phys_library/domains/cluster/cluster_operations.hpp"
 
 #include <algorithm>
 #include <iostream>

@@ -154,7 +154,6 @@ include(testing)
 
 if (DCA_TESTS)
   add_subdirectory(src/comp_library/function_library/test)
-  add_subdirectory(src/phys_library/domains/cluster)
   add_subdirectory(src/math_library/geometry_library/vector_operations)
 endif()
 
