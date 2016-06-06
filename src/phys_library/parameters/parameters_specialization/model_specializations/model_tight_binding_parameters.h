@@ -1,18 +1,28 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
-#ifndef TB_HUBBARD_MODEL_PARAMETERS_H
-#define TB_HUBBARD_MODEL_PARAMETERS_H
+#ifndef PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_MODEL_SPECILIZATIONS_MODEL_TIGHT_BINDING_PARAMETERS_H
+#define PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_MODEL_SPECILIZATIONS_MODEL_TIGHT_BINDING_PARAMETERS_H
 
 #include "phys_library/parameters/parameters_specialization/templates/model_parameters.h"
+
+#include <iostream>
+#include <stdexcept>
+
 #include "phys_library/parameters/models/tight_binding_model.h"
-/*!
- *  \author: Peter Staar
- */
+
 template <typename lattice_type>
 class model_parameters<tight_binding_model<lattice_type>> {
 public:
   model_parameters();
-  ~model_parameters();
 
   /******************************************
    ***        CONCURRENCY                 ***
@@ -65,9 +75,6 @@ model_parameters<tight_binding_model<lattice_type>>::model_parameters()
 
       V(0.),
       V_prime(0.) {}
-
-template <typename lattice_type>
-model_parameters<tight_binding_model<lattice_type>>::~model_parameters() {}
 
 /******************************************
  ***        CONCURRENCY                 ***
@@ -190,4 +197,4 @@ double model_parameters<tight_binding_model<lattice_type>>::get_V_prime() {
   return V_prime;
 }
 
-#endif
+#endif  // PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_MODEL_SPECILIZATIONS_MODEL_TIGHT_BINDING_PARAMETERS_H

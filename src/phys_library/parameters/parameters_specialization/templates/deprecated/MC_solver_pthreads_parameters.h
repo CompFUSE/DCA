@@ -11,7 +11,6 @@ class MC_pthreads_solver
 public:
 
   MC_pthreads_solver();
-  ~MC_pthreads_solver();
 
 /******************************************
  ***        CONCURRENCY                 ***
@@ -54,9 +53,6 @@ MC_pthreads_solver::MC_pthreads_solver():
   additional_steps(1),
 
   HTS_threads(1)
-{}
-
-MC_pthreads_solver::~MC_pthreads_solver()
 {}
 
 /******************************************

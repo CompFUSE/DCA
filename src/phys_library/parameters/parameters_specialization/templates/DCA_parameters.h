@@ -20,7 +20,7 @@
 
 class DCA_Parameters {
 public:
-  DCA_Parameters(int dimension);
+  DCA_Parameters(int lattice_dimension);
 
   /******************************************
    ***        CONCURRENCY                 ***
@@ -121,7 +121,7 @@ private:
   int max_deconvolution_iterations;
 };
 
-DCA_Parameters::DCA_Parameters(int dimension)
+DCA_Parameters::DCA_Parameters(int lattice_dimension)
     : do_DCA_plus("false"),
 
       interacting_bands(0),
@@ -129,7 +129,7 @@ DCA_Parameters::DCA_Parameters(int dimension)
       DCA_accuracy(0.01),
       DCA_mixing_factor(1.),
 
-      DCA_cluster(dimension, std::vector<int>(dimension, 0)),
+      DCA_cluster(lattice_dimension, std::vector<int>(lattice_dimension, 0)),
 
       // cluster-mapping
       k_mesh_refinement(3),

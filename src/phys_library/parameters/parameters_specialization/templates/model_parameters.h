@@ -16,7 +16,6 @@ template <class model_t>
 class model_parameters {
 public:
   model_parameters();
-  ~model_parameters();
 
   /******************************************
    ***        CONCURRENCY                 ***

@@ -1,17 +1,30 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
-#ifndef TB_BILAYER_SQUARE_HUBBARD_MODEL_PARAMETERS_H
-#define TB_BILAYER_SQUARE_HUBBARD_MODEL_PARAMETERS_H
+#ifndef PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_MODEL_SPECILIZATIONS_MODEL_2D_BILAYER_MODEL_PARAMETERS_H
+#define PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_MODEL_SPECILIZATIONS_MODEL_2D_BILAYER_MODEL_PARAMETERS_H
 
+#include "phys_library/parameters/parameters_specialization/templates/model_parameters.h"
+
+#include <iostream>
+#include <sstream>
+#include <stdexcept>
+
+#include "phys_library/parameters/models/tight_binding_model.h"
 #include "phys_library/parameters/models/analytic_Hamiltonians/lattices/2D_bilayer_lattice.h"
-/*!
- *  \author Peter Staar
- */
+
 template <typename dca_point_group_t>
 class model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t>>> {
 public:
   model_parameters();
-  ~model_parameters();
 
   /******************************************
    ***        CONCURRENCY                 ***
@@ -73,9 +86,6 @@ model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t>>>::model
 
       V(0),
       V_prime(0) {}
-
-template <typename dca_point_group_t>
-model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t>>>::~model_parameters() {}
 
 /******************************************
  ***        CONCURRENCY                 ***
@@ -247,4 +257,4 @@ double model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t>>>
   return V_prime;
 }
 
-#endif
+#endif  // PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_MODEL_SPECILIZATIONS_MODEL_2D_BILAYER_MODEL_PARAMETERS_H

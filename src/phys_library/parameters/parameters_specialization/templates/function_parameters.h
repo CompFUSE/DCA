@@ -20,7 +20,7 @@
 
 class function_parameters {
 public:
-  function_parameters(int dimension);
+  function_parameters(int lattice_dimension);
 
   /******************************************
    ***        CONCURRENCY                 ***
@@ -90,8 +90,8 @@ private:
   std::vector<std::vector<int>> tp_cluster;
 };
 
-function_parameters::function_parameters(int dimension)
-    : H_k_grid_size(dimension, 8),
+function_parameters::function_parameters(int lattice_dimension)
+    : H_k_grid_size(lattice_dimension, 8),
 
       sp_time_intervals(128),
 

@@ -1,17 +1,31 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
-#ifndef MATERIAL_MODEL_PARAMETERS_H
-#define MATERIAL_MODEL_PARAMETERS_H
+#ifndef PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_MODEL_SPECILIZATIONS_MODEL_MATERIAL_PARAMETERS_H
+#define PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_MODEL_SPECILIZATIONS_MODEL_MATERIAL_PARAMETERS_H
 
-#include "phys_library/parameters/models/material_Hamiltonians/include_material_Hamiltonians.h"
-/*!
- *  \author: peter staar
- */
+#include "phys_library/parameters/parameters_specialization/templates/model_parameters.h"
+
+#include <iostream>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+
+#include "phys_library/parameters/models/tight_binding_model.h"
+#include "phys_library/parameters/models/material_Hamiltonians/material_hamiltonians.hpp"
+
 template <material_name_type name, typename dca_point_group_t>
 class model_parameters<tight_binding_model<material_lattice<name, dca_point_group_t>>> {
 public:
   model_parameters();
-  ~model_parameters();
 
   /******************************************
    ***        CONCURRENCY                 ***
@@ -52,10 +66,6 @@ model_parameters<tight_binding_model<material_lattice<name, dca_point_group_t>>>
 
 // double_counting_correction(0)
 {}
-
-template <material_name_type name, typename dca_point_group_t>
-model_parameters<tight_binding_model<material_lattice<name, dca_point_group_t>>>::~model_parameters() {
-}
 
 /******************************************
  ***        CONCURRENCY                 ***
@@ -141,4 +151,4 @@ std::string model_parameters<
   return t_ij_file_name;
 }
 
-#endif
+#endif  // PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_MODEL_SPECILIZATIONS_MODEL_MATERIAL_PARAMETERS_H
