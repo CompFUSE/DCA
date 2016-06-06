@@ -1,15 +1,31 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// This class implements the Hermite spline interpolation kernel.
 
-#ifndef PHYS_LIBRARY_DOMAINS_CLUSTER_INTERPOLATION_HSPLINE_INTERPOLATION_KERNEL_HSPLINE_INTERPOLATION_K_DMN_NEW_H
-#define PHYS_LIBRARY_DOMAINS_CLUSTER_INTERPOLATION_HSPLINE_INTERPOLATION_KERNEL_HSPLINE_INTERPOLATION_K_DMN_NEW_H
-/*!
- *  \ingroup INTERPOLATION
- *
- *  \author  Peter Staar
- *  \brief   This class implements a Hermite spline interpolation technique in momentum space.
- */
+#ifndef PHYS_LIBRARY_DOMAINS_CLUSTER_INTERPOLATION_HSPLINE_INTERPOLATION_HSPLINE_INTERPOLATION_KERNEL_HPP
+#define PHYS_LIBRARY_DOMAINS_CLUSTER_INTERPOLATION_HSPLINE_INTERPOLATION_HSPLINE_INTERPOLATION_KERNEL_HPP
+
+#include <cassert>
+#include <stdexcept>
+#include <vector>
+
 #include "math_library/geometry_library/tetrahedron_mesh/tetrahedron_neighbour_domain.h"
+#include "phys_library/domains/cluster/cluster_typedefs.hpp"
+#include "phys_library/domains/cluster/cluster_domain.h"
+#include "phys_library/domains/cluster/interpolation/extended_k_domain.h"
 
+// Empty template class declaration
+template <typename scalartype, typename source_dmn_type, typename target_dmn_type>
+class hspline_interpolation_kernel {};
+
+// Template specialization for Hermite spline interpolation in momentum space
 template <typename scalartype, typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S,
           typename target_k_dmn_t>
 class hspline_interpolation_kernel<scalartype, cluster_domain<scalar_type, D, N, MOMENTUM_SPACE, S>,
@@ -765,4 +781,4 @@ void hspline_interpolation_kernel<scalartype, cluster_domain<scalar_type, D, N, 
   }
 }
 
-#endif  // PHYS_LIBRARY_DOMAINS_CLUSTER_INTERPOLATION_HSPLINE_INTERPOLATION_KERNEL_HSPLINE_INTERPOLATION_K_DMN_NEW_H
+#endif  // PHYS_LIBRARY_DOMAINS_CLUSTER_INTERPOLATION_HSPLINE_INTERPOLATION_HSPLINE_INTERPOLATION_KERNEL_HPP
