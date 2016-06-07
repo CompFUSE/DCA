@@ -1,15 +1,18 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
-#ifndef POINT_GROUP_H
-#define POINT_GROUP_H
+#ifndef PHYS_LIBRARY_DOMAINS_CLUSTER_SYMMETRIES_POINT_GROUP_H
+#define PHYS_LIBRARY_DOMAINS_CLUSTER_SYMMETRIES_POINT_GROUP_H
 
-#include "symmetry_operations/group_action.h"
+template <int DIMENSION>
+class point_group {};
 
-/*!
- *      Author: Peter Staar
- */
-template<int DIMENSION>
-class point_group
-{};
-
-#endif
+#endif  // PHYS_LIBRARY_DOMAINS_CLUSTER_SYMMETRIES_POINT_GROUP_H
