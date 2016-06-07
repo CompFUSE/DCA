@@ -1,31 +1,36 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// The operation is lattice compatible if there exists a integer matrix I, such that
+//     O*V = V*I .
+// The operation is lattice compatible if there exists a integer matrix I and a permutation matrix
+// P, such that
+//     O*a = a*P .
 
-#ifndef SEARCH_MAXIMAL_SYMMETRY_GROUP_H
-#define SEARCH_MAXIMAL_SYMMETRY_GROUP_H
+#ifndef PHYS_LIBRARY_DOMAINS_CLUSTER_SYMMETRIZATION_ALGORITHMS_SEARCH_MAXIMAL_SYMMETRY_GROUP_H
+#define PHYS_LIBRARY_DOMAINS_CLUSTER_SYMMETRIZATION_ALGORITHMS_SEARCH_MAXIMAL_SYMMETRY_GROUP_H
+
+#include <cstring>
+#include <stdexcept>
+#include <vector>
 
 #include "dca/util/type_list.hpp"
-using dca::util::Length;
-using dca::util::TypeAt;
-/*!
- *  \ingroup SYMMETRIES
- *
- *  \author  Peter Staar
- *
- *  The operation is lattice compatible if there exists a integer matrix I, such that
- *
- *  O*V = V*I
- *
- *  The operation is lattice compatible if there exists a integer matrix I and a permutation matrix
- * P, such that
- *
- *  O*a = a*P
- *
- */
+#include "comp_library/linalg/linalg.hpp"
+#include "math_library/geometry_library/vector_operations/vector_operations.hpp"
+#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
+#include "phys_library/domains/Quantum_domain/point_group_operation_dmn.h"
+
 template <class base_cluster_type, class point_group,
           symmetry_group_level_type symmetry_group_level, int INDEX>
 class search_symmetry_group {
 private:
-  typedef typename TypeAt<INDEX, point_group>::type symmetry_type;
+  typedef typename dca::util::TypeAt<INDEX, point_group>::type symmetry_type;
   typedef typename symmetry_type::base_type group_action_type;
 
   const static int DIMENSION = base_cluster_type::DIMENSION;
@@ -66,9 +71,9 @@ private:
       {
         invert_plan<double> invert_pln(DIMENSION);
 
-        memcpy(invert_pln.Matrix, &T[0], sizeof(double) * DIMENSION * DIMENSION);
+        std::memcpy(invert_pln.Matrix, &T[0], sizeof(double) * DIMENSION * DIMENSION);
         invert_pln.execute_plan();
-        memcpy(&T_inv[0], invert_pln.inverted_matrix, sizeof(double) * DIMENSION * DIMENSION);
+        std::memcpy(&T_inv[0], invert_pln.inverted_matrix, sizeof(double) * DIMENSION * DIMENSION);
       }
     }
   };
@@ -238,19 +243,13 @@ public:
   static void execute() {}
 };
 
-/*!
- *  \ingroup SYMMETRIES
- *
- *  \author  Peter Staar
- */
-
 template <class base_cluster_type, class point_group, symmetry_group_level_type symmetry_group_level>
 class search_maximal_symmetry_group {
 public:
   typedef typename point_group::point_group_type_list point_group_type_list;
 
   const static int DIMENSION = base_cluster_type::DIMENSION;
-  const static int MAX_SIZE = Length<point_group_type_list>::value;
+  const static int MAX_SIZE = dca::util::Length<point_group_type_list>::value;
 
   //   typedef r_cluster<FULL, base_cluster_type> r_cluster_type;
   //   typedef k_cluster<FULL, base_cluster_type> k_cluster_type;
@@ -270,4 +269,4 @@ public:
   }
 };
 
-#endif
+#endif  // PHYS_LIBRARY_DOMAINS_CLUSTER_SYMMETRIZATION_ALGORITHMS_SEARCH_MAXIMAL_SYMMETRY_GROUP_H

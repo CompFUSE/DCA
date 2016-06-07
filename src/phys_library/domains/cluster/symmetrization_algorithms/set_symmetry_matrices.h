@@ -1,15 +1,27 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
-#ifndef SET_SYMMETRY_MATRIX_H
-#define SET_SYMMETRY_MATRIX_H
+#ifndef PHYS_LIBRARY_DOMAINS_CLUSTER_SYMMETRIZATION_ALGORITHMS_SET_SYMMETRY_MATRICES_H
+#define PHYS_LIBRARY_DOMAINS_CLUSTER_SYMMETRIZATION_ALGORITHMS_SET_SYMMETRY_MATRICES_H
+
+#include <stdexcept>
+#include <vector>
 
 #include "comp_library/function_library/include_function_library.h"
+#include "math_library/geometry_library/vector_operations/vector_operations.hpp"
+#include "phys_library/domains/cluster/cluster_domain_symmetry.h"
+#include "phys_library/domains/cluster/cluster_operations.hpp"
+#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
+#include "phys_library/domains/Quantum_domain/point_group_operation_dmn.h"
 
-/*!
- *  \author   Peter Staar
- *
- *  \ingroup  ALGORITHMS
- */
 template <class base_cluster_type>
 class set_symmetry_matrices {
   const static int DIMENSION = base_cluster_type::DIMENSION;
@@ -254,4 +266,4 @@ void set_symmetry_matrices<base_cluster_type>::print_on_shell() {
   }
 }
 
-#endif
+#endif  // PHYS_LIBRARY_DOMAINS_CLUSTER_SYMMETRIZATION_ALGORITHMS_SET_SYMMETRY_MATRICES_H

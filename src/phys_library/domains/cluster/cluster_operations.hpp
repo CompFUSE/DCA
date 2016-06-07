@@ -8,7 +8,7 @@
 // Author: Peter Staar (peter.w.j.staar@gmail.com)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// Description: TBA
+// Description
 
 #ifndef PHYS_LIBRARY_DOMAINS_CLUSTER_CLUSTER_OPERATIONS_HPP
 #define PHYS_LIBRARY_DOMAINS_CLUSTER_CLUSTER_OPERATIONS_HPP
@@ -16,7 +16,8 @@
 #include <cmath>
 #include <utility>
 #include <vector>
-#include "cluster_typedefs.hpp"
+
+#include "phys_library/domains/cluster/cluster_typedefs.hpp"
 #include "math_library/geometry_library/vector_operations/vector_operations.hpp"
 
 class cluster_operations {
