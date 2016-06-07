@@ -221,7 +221,7 @@ std::complex<double> fourband_lattice<point_group_type>::get_LDA_Hamiltonians(
   std::complex<double> H_LDA = 0.;
 
   if (s1 == s2) {
-    if (b1 == b2)
+    if (b1 == b2) {
       if (b1 == 0)
         H_LDA += ei0;
       else if (b1 == 1)
@@ -230,12 +230,13 @@ std::complex<double> fourband_lattice<point_group_type>::get_LDA_Hamiltonians(
         H_LDA += eb0;
       else
         H_LDA += eb1;
-
-    else if (abs(b1 - b2) == 2)
+    }
+    else if (abs(b1 - b2) == 2) {
       if (b1 % 2 == 0)
         H_LDA += t0;
       else if (b1 % 2 == 1)
         H_LDA += t1;
+    }
   }
 
   return H_LDA;
