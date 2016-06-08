@@ -1,30 +1,62 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// This class computes the interpolated cluster self-energy using the alpha transformation.
 
-#ifndef DCA_INTERPOLATION_SP_H
-#define DCA_INTERPOLATION_SP_H
+#ifndef PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_INTERPOLATION_INTERPOLATION_SP_H
+#define PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_INTERPOLATION_INTERPOLATION_SP_H
 
+#include <complex>
+#include <iostream>
+
+#include "dca/util/print_time.hpp"
+#include "comp_library/function_library/include_function_library.h"
+#include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
 #include "phys_library/DCA+_step/lattice_mapping/interpolation/interpolation_routines.h"
+#include "phys_library/DCA+_step/lattice_mapping/interpolation/transform_to_alpha.hpp"
+#include "phys_library/domains/cluster/centered_cluster_domain.h"
+#include "phys_library/domains/cluster/cluster_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
+#include "phys_library/domains/time_and_frequency/frequency_domain.h"
+
 namespace DCA {
-/*!
- *  \author Peter Staar
- *  \brief  This class computes the interpolated cluster self-energy, using the alpha
- * transformation.
- */
+
 template <typename parameters_type, typename source_k_dmn, typename target_k_dmn>
 class interpolation_sp : public interpolation_routines<parameters_type, source_k_dmn, target_k_dmn> {
-  typedef typename parameters_type::profiler_type profiler_type;
-  typedef typename parameters_type::concurrency_type concurrency_type;
+public:
+  using profiler_type = typename parameters_type::profiler_type;
+  using concurrency_type = typename parameters_type::concurrency_type;
 
-  typedef typename source_k_dmn::parameter_type::dual_type source_r_cluster_type;
+  using source_r_cluster_type = typename source_k_dmn::parameter_type::dual_type;
+  using r_centered_dmn = dmn_0<centered_cluster_domain<source_r_cluster_type>>;
 
-  typedef dmn_0<centered_cluster_domain<source_r_cluster_type>> r_centered_dmn;
+  using w = dmn_0<frequency_domain>;
 
-  typedef dmn_3<nu, nu, r_centered_dmn> nu_nu_r_centered;
-  typedef dmn_4<nu, nu, r_centered_dmn, w> nu_nu_r_centered_w;
+  using b = dmn_0<electron_band_domain>;
+  using s = dmn_0<electron_spin_domain>;
+  using nu = dmn_variadic<b, s>;  // orbital-spin index
+
+  using DCA_k_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                            CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
+  using k_DCA = dmn_0<DCA_k_cluster_type>;
+  using host_k_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                             LATTICE_SP, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
+  using k_HOST = dmn_0<host_k_cluster_type>;
+
+  using nu_nu_r_centered = dmn_variadic<nu, nu, r_centered_dmn>;
+  using nu_nu_r_centered_w = dmn_variadic<nu, nu, r_centered_dmn, w>;
+  using nu_nu_k_DCA_w = dmn_variadic<nu, nu, k_DCA, w>;
+  using nu_nu_k_HOST_w = dmn_variadic<nu, nu, k_HOST, w>;
 
 public:
   interpolation_sp(parameters_type& parameters_ref);
-  ~interpolation_sp();
 
   void execute_with_alpha_transformation(
       FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, source_k_dmn, w>>& cluster_self_energy,
@@ -52,11 +84,8 @@ interpolation_sp<parameters_type, source_k_dmn, target_k_dmn>::interpolation_sp(
       parameters(parameters_ref),
       concurrency(parameters.get_concurrency()) {
   if (concurrency.id() == concurrency.first())
-    std::cout << "\n\n\t" << __FUNCTION__ << " is created " << print_time();
+    std::cout << "\n\n\t" << __FUNCTION__ << " is created " << dca::util::print_time();
 }
-
-template <typename parameters_type, typename source_k_dmn, typename target_k_dmn>
-interpolation_sp<parameters_type, source_k_dmn, target_k_dmn>::~interpolation_sp() {}
 
 template <typename parameters_type, typename source_k_dmn, typename target_k_dmn>
 void interpolation_sp<parameters_type, source_k_dmn, target_k_dmn>::execute_with_alpha_transformation(
@@ -119,6 +148,7 @@ void interpolation_sp<parameters_type, source_k_dmn, target_k_dmn>::execute(
   math_algorithms::functional_transforms::TRANSFORM<r_centered_dmn, target_k_dmn>::execute(
       cluster_centered_function, interp_function);
 }
-}
 
-#endif
+}  // DCA
+
+#endif  // PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_INTERPOLATION_INTERPOLATION_SP_H

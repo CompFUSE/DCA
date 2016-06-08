@@ -1,32 +1,58 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// This class computes the interpolated cluster vertex.
 
-#ifndef DCA_INTERPOLATION_TP_H
-#define DCA_INTERPOLATION_TP_H
+#ifndef PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_INTERPOLATION_INTERPOLATION_TP_H
+#define PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_INTERPOLATION_INTERPOLATION_TP_H
+
+#include <complex>
+#include <utility>
+
+#include "comp_library/function_library/include_function_library.h"
+#include "comp_library/linalg/linalg.hpp"
+#include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
 #include "phys_library/DCA+_step/lattice_mapping/interpolation/interpolation_routines.h"
-#include "math_library/functional_transforms/basis_functions/basis_functions.hpp"
+#include "phys_library/domains/cluster/centered_cluster_domain.h"
+#include "phys_library/domains/cluster/cluster_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
+#include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
 
 namespace DCA {
-/*!
- *  \author Peter Staar
- *  \brief  This class computes the interpolated cluster vertex.
- */
+
 template <typename parameters_type, typename source_k_dmn, typename target_k_dmn>
 class interpolation_tp : public interpolation_routines<parameters_type, source_k_dmn, target_k_dmn> {
-  typedef typename parameters_type::profiler_type profiler_type;
-  typedef typename parameters_type::concurrency_type concurrency_type;
+public:
+  using profiler_type = typename parameters_type::profiler_type;
+  using concurrency_type = typename parameters_type::concurrency_type;
 
-  typedef typename source_k_dmn::parameter_type::dual_type source_r_cluster_type;
+  using source_r_cluster_type = typename source_k_dmn::parameter_type::dual_type;
+  using r_centered_dmn = dmn_0<centered_cluster_domain<source_r_cluster_type>>;
 
-  typedef dmn_0<centered_cluster_domain<source_r_cluster_type>> r_centered_dmn;
-
-  typedef math_algorithms::functional_transforms::basis_function<
+  using basis_function_type = math_algorithms::functional_transforms::basis_function<
       typename target_k_dmn::parameter_type, math_algorithms::KRONECKER_DELTA,
-      typename source_k_dmn::parameter_type, math_algorithms::HERMITE_CUBIC_SPLINE>
-      basis_function_type;
+      typename source_k_dmn::parameter_type, math_algorithms::HERMITE_CUBIC_SPLINE>;
+
+  using b = dmn_0<electron_band_domain>;
+
+  using compact_vertex_frequency_domain_type = DCA::vertex_frequency_domain<DCA::COMPACT>;
+  using w_VERTEX = dmn_0<compact_vertex_frequency_domain_type>;
+
+  using DCA_k_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                            CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
+  using k_DCA = dmn_0<DCA_k_cluster_type>;
+  using host_vertex_k_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                                    LATTICE_TP, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
+  using k_HOST_VERTEX = dmn_0<host_vertex_k_cluster_type>;
 
 public:
   interpolation_tp(parameters_type& parameters_ref);
-  ~interpolation_tp();
 
   template <typename scalartype>
   void initialize_T_K_to_k(LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& T_K_to_k);
@@ -51,9 +77,6 @@ interpolation_tp<parameters_type, source_k_dmn, target_k_dmn>::interpolation_tp(
 
       parameters(parameters_ref),
       concurrency(parameters.get_concurrency()) {}
-
-template <typename parameters_type, typename source_k_dmn, typename target_k_dmn>
-interpolation_tp<parameters_type, source_k_dmn, target_k_dmn>::~interpolation_tp() {}
 
 template <typename parameters_type, typename source_k_dmn, typename target_k_dmn>
 template <typename scalartype>
@@ -84,6 +107,7 @@ void interpolation_tp<parameters_type, source_k_dmn, target_k_dmn>::execute(
   math_algorithms::functional_transforms::TRANSFORM<k_DCA, k_HOST_VERTEX>::execute_on_all(
       Gamma_cluster, Gamma_lattice, T_K_to_k);
 }
-}
 
-#endif
+}  // DCA
+
+#endif  // PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_INTERPOLATION_INTERPOLATION_TP_H
