@@ -1,25 +1,29 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
+
 #ifndef MATH_LIBRARY_FUNCTIONAL_TRANSFORMS_FUNCTION_TRANSFORMS_TRANSFORM_FUNCTION_DOMAINWISE_H
 #define MATH_LIBRARY_FUNCTIONAL_TRANSFORMS_FUNCTION_TRANSFORMS_TRANSFORM_FUNCTION_DOMAINWISE_H
 
 #include <iostream>
+
+#include "dca/util/type_list.hpp"
+
 #include "comp_library/linalg/linalg.hpp"
 #include "comp_library/function_library/include_function_library.h"
-#include "math_library/functional_transforms/basis_transforms/basis_transforms.hpp"
+#include "math_library/typedefs.hpp"
 #include "math_library/functional_transforms/domain_transforms/domain_transforms.hpp"
-//#include "comp_library/function_library/domains/domain_type_operations.h"
-#include <dca/util/type_list.hpp>
-using dca::util::IndexOf;
 
 namespace math_algorithms {
 namespace functional_transforms {
-/*!
-*  \class
-*  \ingroup
-*
-*  \author  Peter Staar
-*  \brief   ...
-*/
+
 template <typename domain_input, typename domain_output, typename type_input, typename type_output>
 struct TRANSFORM_DOMAINWISE {
   const static bool VERBOSE = false;
@@ -27,9 +31,10 @@ struct TRANSFORM_DOMAINWISE {
   using TRANSFORMED_DOMAIN =
       typename dca::util::SWAP_FIRST<domain_input, type_input, type_output>::Result;
 
-  const static int CURR_DMN_INDEX = IndexOf<type_input, typename domain_input::this_type>::value;
+  const static int CURR_DMN_INDEX =
+      dca::util::IndexOf<type_input, typename domain_input::this_type>::value;
   const static int NEXT_DMN_INDEX =
-      IndexOf<type_input, typename TRANSFORMED_DOMAIN::this_type>::value;
+      dca::util::IndexOf<type_input, typename TRANSFORMED_DOMAIN::this_type>::value;
 
   typedef typename type_input::dmn_specifications_type input_specs_type;
   typedef typename type_output::dmn_specifications_type output_specs_type;

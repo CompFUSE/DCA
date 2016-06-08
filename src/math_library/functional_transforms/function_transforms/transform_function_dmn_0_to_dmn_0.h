@@ -1,16 +1,25 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
 #ifndef MATH_LIBRARY_FUNCTIONAL_TRANSFORMS_FUNCTION_TRANSFORMS_TRANSFORM_FUNCTION_DMN_0_TO_DMN_0_H
 #define MATH_LIBRARY_FUNCTIONAL_TRANSFORMS_FUNCTION_TRANSFORMS_TRANSFORM_FUNCTION_DMN_0_TO_DMN_0_H
 
 #include <iostream>
-#include "math_library/functional_transforms/domain_transforms/domain_transforms.hpp"
-//#include "comp_library/linalg/linalg.hpp"
+
+#include "dca/util/type_list.hpp"
+
+#include "comp_library/linalg/linalg.hpp"
 #include "comp_library/function_library/include_function_library.h"
-//#include "math_library/typedefs.hpp"
-using dca::util::SWAP_ALL;
-using dca::util::SWAP_FIRST;
-using dca::util::print_type;
+#include "math_library/functional_transforms/function_transforms/transform_function_domainwise.h"
+#include "math_library/functional_transforms/function_transforms/transform_function_template.h"
 
 namespace math_algorithms {
 namespace functional_transforms {
@@ -26,7 +35,8 @@ public:
     if (VERBOSE)
       print_types(f_input, f_output);
 
-    using TRANSFORMED_DOMAIN = typename SWAP_FIRST<domain_input, type_input, type_output>::Result;
+    using TRANSFORMED_DOMAIN =
+        typename dca::util::SWAP_FIRST<domain_input, type_input, type_output>::Result;
     dca::util::assert_same<TRANSFORMED_DOMAIN, domain_output>();
 
     TRANSFORM_DOMAINWISE<domain_input, domain_output, type_input, type_output>::execute_on_first(
@@ -41,7 +51,8 @@ public:
     if (VERBOSE)
       print_types(f_input, f_output);
 
-    using TRANSFORMED_DOMAIN = typename SWAP_FIRST<domain_input, type_input, type_output>::Result;
+    using TRANSFORMED_DOMAIN =
+        typename dca::util::SWAP_FIRST<domain_input, type_input, type_output>::Result;
     dca::util::assert_same<TRANSFORMED_DOMAIN, domain_output>();
 
     TRANSFORM_DOMAINWISE<domain_input, domain_output, type_input, type_output>::execute_on_first(
@@ -54,7 +65,8 @@ public:
     if (VERBOSE)
       print_types(f_input, f_output);
 
-    using TRANSFORMED_DOMAIN = typename SWAP_ALL<domain_input, type_input, type_output>::Result;
+    using TRANSFORMED_DOMAIN =
+        typename dca::util::SWAP_ALL<domain_input, type_input, type_output>::Result;
 
     dca::util::assert_same<TRANSFORMED_DOMAIN, domain_output>();
 
@@ -70,7 +82,8 @@ public:
     if (VERBOSE)
       print_types(f_input, f_output);
 
-    using TRANSFORMED_DOMAIN = typename SWAP_ALL<domain_input, type_input, type_output>::Result;
+    using TRANSFORMED_DOMAIN =
+        typename dca::util::SWAP_ALL<domain_input, type_input, type_output>::Result;
 
     dca::util::assert_same<TRANSFORMED_DOMAIN, domain_output>();
 
@@ -86,21 +99,22 @@ private:
     typedef typename domain_input::this_type type_list_input;
     typedef typename domain_output::this_type type_list_output;
 
-    print_type<type_input>::to_JSON(std::cout);
+    dca::util::print_type<type_input>::to_JSON(std::cout);
     std::cout << "\n\n";
-    print_type<type_output>::to_JSON(std::cout);
+    dca::util::print_type<type_output>::to_JSON(std::cout);
     std::cout << "\n\n";
 
     if (do_all_domains) {
-      print_type<type_list_input>::to_JSON(std::cout);
+      dca::util::print_type<type_list_input>::to_JSON(std::cout);
       std::cout << "\n\n";
 
-      using TRANSFORMED_DOMAIN = typename SWAP_ALL<domain_input, type_input, type_output>::Result;
+      using TRANSFORMED_DOMAIN =
+          typename dca::util::SWAP_ALL<domain_input, type_input, type_output>::Result;
 
-      print_type<typename TRANSFORMED_DOMAIN::this_type>::to_JSON(std::cout);
+      dca::util::print_type<typename TRANSFORMED_DOMAIN::this_type>::to_JSON(std::cout);
       std::cout << "\n\n";
 
-      print_type<type_list_output>::to_JSON(std::cout);
+      dca::util::print_type<type_list_output>::to_JSON(std::cout);
       std::cout << "\n\n";
 
       FUNC_LIB::function<scalartype_output, TRANSFORMED_DOMAIN> T;
@@ -108,15 +122,16 @@ private:
       f_output.print_fingerprint();
     }
     else {
-      print_type<type_list_input>::to_JSON(std::cout);
+      dca::util::print_type<type_list_input>::to_JSON(std::cout);
       std::cout << "\n\n";
 
-      using TRANSFORMED_DOMAIN = typename SWAP_FIRST<domain_input, type_input, type_output>::Result;
+      using TRANSFORMED_DOMAIN =
+          typename dca::util::SWAP_FIRST<domain_input, type_input, type_output>::Result;
 
-      print_type<typename TRANSFORMED_DOMAIN::this_type>::to_JSON(std::cout);
+      dca::util::print_type<typename TRANSFORMED_DOMAIN::this_type>::to_JSON(std::cout);
       std::cout << "\n\n";
 
-      print_type<type_list_output>::to_JSON(std::cout);
+      dca::util::print_type<type_list_output>::to_JSON(std::cout);
       std::cout << "\n\n";
 
       FUNC_LIB::function<scalartype_output, TRANSFORMED_DOMAIN> T(

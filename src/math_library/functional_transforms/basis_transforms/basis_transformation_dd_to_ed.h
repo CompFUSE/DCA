@@ -1,13 +1,24 @@
-//-*-C++-*-
-// Author: Peter Staar
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
 #ifndef MATH_LIBRARY_FUNCTIONAL_TRANSFORMS_BASIS_TRANSFORMS_BASIS_TRANSFORMATION_DD_TO_ED_H
 #define MATH_LIBRARY_FUNCTIONAL_TRANSFORMS_BASIS_TRANSFORMS_BASIS_TRANSFORMATION_DD_TO_ED_H
 
 #include <cassert>
 #include <string>
+
 #include "comp_library/linalg/linalg.hpp"
 #include "math_library/functional_transforms/basis_functions/basis_functions.hpp"
+#include "math_library/functional_transforms/basis_transforms/basis_transformation_template.h"
+#include "math_library/typedefs.hpp"
 
 namespace math_algorithms {
 namespace functional_transforms {
@@ -56,7 +67,6 @@ public:
   }
 
   static void initialize_transformation_matrix() {
-
     is_initialized() = true;
 
     int M = lh_dmn_type::get_size();
@@ -75,6 +85,7 @@ public:
     LIN_ALG::PSEUDO_INVERSE<LIN_ALG::CPU>::execute(T_inv, T);
   }
 };
+
 }  // functional_transforms
 }  // math_algorithms
 

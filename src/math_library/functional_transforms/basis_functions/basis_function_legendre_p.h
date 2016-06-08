@@ -1,10 +1,20 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
+
 #ifndef MATH_LIBRARY_FUNCTIONAL_TRANSFORMS_BASIS_FUNCTIONS_BASIS_FUNCTION_LEGENDRE_P_H
 #define MATH_LIBRARY_FUNCTIONAL_TRANSFORMS_BASIS_FUNCTIONS_BASIS_FUNCTION_LEGENDRE_P_H
 
 #include <cassert>
-#include "math_library/typedefs.hpp"
 #include "math_library/functional_transforms/basis_functions/basis_function_template.h"
+#include "math_library/typedefs.hpp"
 
 namespace math_algorithms {
 namespace functional_transforms {

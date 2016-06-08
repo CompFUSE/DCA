@@ -1,13 +1,25 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
+
 #ifndef MATH_LIBRARY_FUNCTIONAL_TRANSFORMS_BASIS_FUNCTIONS_HERMITE_SPLINES_HERMITE_CUBIC_SPLINE_EQUIDISTANT_PERIODIC_ND_H
 #define MATH_LIBRARY_FUNCTIONAL_TRANSFORMS_BASIS_FUNCTIONS_HERMITE_SPLINES_HERMITE_CUBIC_SPLINE_EQUIDISTANT_PERIODIC_ND_H
 
-#include "math_library/typedefs.hpp"
 #include "math_library/functional_transforms/basis_functions/hermite_splines/hermite_cubic_spline_template.h"
+#include "math_library/functional_transforms/basis_functions/hermite_splines/hermite_spline.h"
+#include "math_library/typedefs.hpp"
 
 namespace math_algorithms {
 namespace functional_transforms {
 // math_algorithms::functional_transforms::
+
 template <typename lh_dmn_type, typename rh_dmn_type, int DIMENSION>
 class hermite_cubic_spline<lh_dmn_type, rh_dmn_type, EQUIDISTANT, PERIODIC, DIMENSION> {
 private:
@@ -93,6 +105,7 @@ public:
     return result;
   }
 };
+
 }  // functional_transforms
 }  // math_algorithms
 
