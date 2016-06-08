@@ -12,34 +12,29 @@
 #ifndef PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_TEMPLATES_PROFILING_PARAMETERS_H
 #define PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_TEMPLATES_PROFILING_PARAMETERS_H
 
-#ifdef NO_PROFILING
-#include "comp_library/profiler_library/profilers/null_profiler.h"
-#endif
-#if defined(COUNTING_PROFILING) || defined(DCA_PAPI_PROFILING)
-#include "comp_library/profiler_library/profilers/counting_profiler.h"
-#endif
+#include <cstdlib>
+#include "comp_library/profiler_library/profiler.hpp"
 
-template <class concurrency_type>
 class profiling_parameters {
 public:
-#ifdef NO_PROFILING
-  typedef PROFILER::no_profiling_mode profiler_type;
-#endif
+#ifdef DCA_NO_PROFILING
+  typedef PROFILER::NullProfiler profiler_type;
+#endif  // DCA_NO_PROFILING
 
-#ifdef COUNTING_PROFILING
-  typedef PROFILER::time_event<size_t> event_type;
+#ifdef DCA_COUNTING_PROFILING
+  typedef PROFILER::time_event<std::size_t> event_type;
   typedef PROFILER::CountingProfiler<event_type> profiler_type;
-#endif
-
-#ifdef DCA_CRAYPAT_PROFILING
-  typedef size_t counter_type;
-  typedef dca::CraypatProfiler<counter_type> profiler_type;
-#endif
+#endif  // DCA_COUNTING_PROFILING
 
 #ifdef DCA_PAPI_PROFILING
   typedef PROFILER::papi_and_time_event<long long> event_type;
   typedef PROFILER::CountingProfiler<event_type> profiler_type;
-#endif
+#endif  // DCA_PAPI_PROFILING
+
+#ifdef DCA_CRAYPAT_PROFILING
+  typedef std::size_t counter_type;
+  typedef dca::CraypatProfiler<counter_type> profiler_type;
+#endif  // DCA_CRAYPAT_PROFILING
 };
 
 #endif  // PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_TEMPLATES_PROFILING_PARAMETERS_H
