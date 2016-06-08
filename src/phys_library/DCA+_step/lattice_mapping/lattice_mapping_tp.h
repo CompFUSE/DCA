@@ -1,23 +1,33 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// This class implements the lattice mapping for two-particle functions.
 
-#ifndef DCA_LATTICE_MAP_TP_H
-#define DCA_LATTICE_MAP_TP_H
+#ifndef PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_LATTICE_MAPPING_TP_H
+#define PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_LATTICE_MAPPING_TP_H
 
-#include "phys_library/DCA+_step/lattice_mapping/interpolation/interpolation_tp.h"
+#include <complex>
+#include <iostream>
+#include <vector>
+
+#include "comp_library/function_library/include_function_library.h"
+#include "comp_library/function_plotting/include_plotting.h"
 #include "phys_library/DCA+_step/lattice_mapping/deconvolution/deconvolution_tp.h"
+#include "phys_library/DCA+_step/lattice_mapping/interpolation/interpolation_tp.h"
+#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
+#include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
 
 namespace DCA {
-/*! \ingroup LATTICE-MAPPING
- *
- *  \author Peter Staar
- *  \brief  This class implements the lattice_map.
- *
- */
-template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
-class lattice_map_tp {
-  typedef typename parameters_type::profiler_type profiler_type;
-  typedef typename parameters_type::concurrency_type concurrency_type;
 
+template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
+class lattice_mapping_tp {
   struct tmp_cluster_domain {
     typedef typename target_k_dmn_t::parameter_type::element_type element_type;
     typedef typename target_k_dmn_t::parameter_type::dmn_specifications_type dmn_specifications_type;
@@ -30,17 +40,24 @@ class lattice_map_tp {
     }
   };
 
-  typedef b b_dmn_t;
-  typedef w_VERTEX w_dmn_t;
-  typedef dmn_0<tmp_cluster_domain> tmp_k_dmn_t;
+public:
+  using concurrency_type = typename parameters_type::concurrency_type;
 
-  typedef dmn_4<b_dmn_t, b_dmn_t, tmp_k_dmn_t, w_dmn_t> tmp_vector_dmn_t;
-  typedef dmn_4<b_dmn_t, b_dmn_t, source_k_dmn_t, w_dmn_t> source_vector_dmn_t;
-  typedef dmn_4<b_dmn_t, b_dmn_t, target_k_dmn_t, w_dmn_t> target_vector_dmn_t;
+  using b = dmn_0<electron_band_domain>;
+  using s = dmn_0<electron_spin_domain>;
+  using nu = dmn_variadic<b, s>;  // orbital-spin index
+
+  using w = dmn_0<frequency_domain>;
+  using compact_vertex_frequency_domain_type = DCA::vertex_frequency_domain<DCA::COMPACT>;
+  using w_VERTEX = dmn_0<compact_vertex_frequency_domain_type>;
+
+  using tmp_k_dmn_t = dmn_0<tmp_cluster_domain>;
+  using tmp_vector_dmn_t = dmn_4<b, b, tmp_k_dmn_t, w_VERTEX>;
+  using source_vector_dmn_t = dmn_4<b, b, source_k_dmn_t, w_VERTEX>;
+  using target_vector_dmn_t = dmn_4<b, b, target_k_dmn_t, w_VERTEX>;
 
 public:
-  lattice_map_tp(parameters_type& parameters_ref);
-  ~lattice_map_tp();
+  lattice_mapping_tp(parameters_type& parameters_ref);
 
   template <typename scalartype>
   void execute(FUNC_LIB::function<std::complex<scalartype>,
@@ -63,7 +80,7 @@ private:
 };
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
-lattice_map_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::lattice_map_tp(
+lattice_mapping_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::lattice_mapping_tp(
     parameters_type& parameters_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
@@ -72,11 +89,8 @@ lattice_map_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::lattice_map_tp(
       deconvolution_obj(parameters) {}
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
-lattice_map_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::~lattice_map_tp() {}
-
-template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 template <typename scalartype>
-void lattice_map_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(
+void lattice_mapping_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(
     FUNC_LIB::function<std::complex<scalartype>, dmn_2<source_vector_dmn_t, source_vector_dmn_t>>& f_source,
     FUNC_LIB::function<std::complex<scalartype>, dmn_2<target_vector_dmn_t, target_vector_dmn_t>>&
         f_target) {
@@ -103,7 +117,7 @@ void lattice_map_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 template <typename k_dmn_t>
-void lattice_map_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::plot_function(
+void lattice_mapping_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::plot_function(
     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& f) {
   std::vector<double> x(0);
   std::vector<double> y(0);
@@ -114,8 +128,8 @@ void lattice_map_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::plot_funct
   for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); k_ind++) {
     x.push_back(k_dmn_t::get_elements()[k_ind][0]);
     y.push_back(k_dmn_t::get_elements()[k_ind][1]);
-    z_re.push_back(real(f(0, 0, k_ind, w::dmn_size() / 2)));
-    z_im.push_back(imag(f(0, 0, k_ind, w::dmn_size() / 2)));
+    z_re.push_back(std::real(f(0, 0, k_ind, w::dmn_size() / 2)));
+    z_im.push_back(std::imag(f(0, 0, k_ind, w::dmn_size() / 2)));
   }
 
   SHOW::heatmap(x, y, z_re);
@@ -123,4 +137,4 @@ void lattice_map_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::plot_funct
 }
 }
 
-#endif
+#endif  // PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_LATTICE_MAPPING_TP_H

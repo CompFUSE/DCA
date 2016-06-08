@@ -1,27 +1,50 @@
-//-*-C++-*-
-// TODO  Why is there a reference to high_temperature_serie_solver ??
-#ifndef DCA_LATTICE_MAP_SP_H
-#define DCA_LATTICE_MAP_SP_H
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// This class implements the lattice mapping for single-particle functions.
 
-#include "phys_library/DCA+_step/lattice_mapping/interpolation/interpolation_sp.h"
+#ifndef PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_LATTICE_MAPPING_SP_H
+#define PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_LATTICE_MAPPING_SP_H
+
+#include <complex>
+#include <vector>
+
+#include "comp_library/function_library/include_function_library.h"
+#include "comp_library/function_plotting/include_plotting.h"
 #include "phys_library/DCA+_step/lattice_mapping/deconvolution/deconvolution_sp.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/high_temperature_series_expansion_solver.h"
+#include "phys_library/DCA+_step/lattice_mapping/interpolation/interpolation_sp.h"
+#include "phys_library/domains/cluster/cluster_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
+#include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
 
 namespace DCA {
-/*! \ingroup LATTICE-MAPPING
- *
- *  \author Peter Staar
- *  \brief  This class implements the lattice_map.
- *
- */
+
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
-class lattice_map_sp {
-  typedef typename parameters_type::profiler_type profiler_type;
-  typedef typename parameters_type::concurrency_type concurrency_type;
+class lattice_mapping_sp {
+public:
+  using concurrency_type = typename parameters_type::concurrency_type;
+
+  using w = dmn_0<frequency_domain>;
+  using b = dmn_0<electron_band_domain>;
+  using s = dmn_0<electron_spin_domain>;
+  using nu = dmn_variadic<b, s>;  // orbital-spin index
+
+  using DCA_k_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                            CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
+  using k_DCA = dmn_0<DCA_k_cluster_type>;
+  using host_k_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                             LATTICE_SP, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
+  using k_HOST = dmn_0<host_k_cluster_type>;
 
 public:
-  lattice_map_sp(parameters_type& parameters_ref);
-  ~lattice_map_sp();
+  lattice_mapping_sp(parameters_type& parameters_ref);
 
   void execute(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, source_k_dmn_t, w>>& f_source,
                FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w>>& Sigma_interp,
@@ -56,7 +79,7 @@ private:
 };
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
-lattice_map_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::lattice_map_sp(
+lattice_mapping_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::lattice_mapping_sp(
     parameters_type& parameters_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
@@ -70,10 +93,7 @@ lattice_map_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::lattice_map_sp(
       Sigma_lattice("Sigma_lattice_HTS") {}
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
-lattice_map_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::~lattice_map_sp() {}
-
-template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
-void lattice_map_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(
+void lattice_mapping_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(
     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, source_k_dmn_t, w>>& f_source,
     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w>>& f_interp,
     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w>>& f_approx,
@@ -97,7 +117,7 @@ void lattice_map_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 template <typename MOMS_type, typename HTS_solver_type, typename coarsegraining_sp_type>
-void lattice_map_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute_with_HTS_approximation(
+void lattice_mapping_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute_with_HTS_approximation(
     MOMS_type& HTS_MOMS, HTS_solver_type& HTS_solver, coarsegraining_sp_type& cluster_mapping_obj,
     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, source_k_dmn_t, w>>& f_source,
     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w>>& f_interp,
@@ -139,7 +159,7 @@ void lattice_map_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute_wi
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 template <typename k_dmn_t>
-void lattice_map_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::plot_function(
+void lattice_mapping_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::plot_function(
     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& f) {
   std::vector<double> x(0);
   std::vector<double> y(0);
@@ -151,8 +171,8 @@ void lattice_map_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::plot_funct
     x.push_back(k_dmn_t::get_elements()[k_ind][0]);
     y.push_back(k_dmn_t::get_elements()[k_ind][1]);
 
-    z_re.push_back(real(f(0, 0, k_ind, w::dmn_size() / 2)));
-    z_im.push_back(imag(f(0, 0, k_ind, w::dmn_size() / 2)));
+    z_re.push_back(std::real(f(0, 0, k_ind, w::dmn_size() / 2)));
+    z_im.push_back(std::imag(f(0, 0, k_ind, w::dmn_size() / 2)));
   }
 
   SHOW::heatmap(x, y, z_re, f.get_name());
@@ -160,4 +180,4 @@ void lattice_map_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::plot_funct
 }
 }
 
-#endif
+#endif  // PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_LATTICE_MAPPING_SP_H
