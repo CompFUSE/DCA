@@ -1,10 +1,26 @@
-//-*-C++-*-
-// Author: Peter Staar
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
-#ifndef MATH_LIBRARY_INFERENCE_LIBRARY_RICHARDSON_LUCY_DECONVOLUTION_H
-#define MATH_LIBRARY_INFERENCE_LIBRARY_RICHARDSON_LUCY_DECONVOLUTION_H
+#ifndef DCA_MATH_INFERENCE_RICHARDSON_LUCY_DECONVOLUTION_HPP
+#define DCA_MATH_INFERENCE_RICHARDSON_LUCY_DECONVOLUTION_HPP
 
-namespace math_algorithms {
+#include <cassert>
+#include <cmath>
+#include <iostream>
+#include <utility>
+
+#include "comp_library/function_library/include_function_library.h"
+#include "comp_library/linalg/linalg.hpp"
+
+namespace math {
 namespace inference {
 // math_algorithms::inference::
 
@@ -12,7 +28,6 @@ template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
 class Richardson_Lucy_deconvolution {
 public:
   Richardson_Lucy_deconvolution(parameters_type& parameters_ref);
-  ~Richardson_Lucy_deconvolution();
 
   void execute(LIN_ALG::matrix<double, LIN_ALG::CPU>& matrix,
                FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t>>& f_source,
@@ -59,9 +74,6 @@ Richardson_Lucy_deconvolution<parameters_type, k_dmn_t, p_dmn_t>::Richardson_Luc
 
       u_t("u_t (Richardson_Lucy_deconvolution)"),
       u_t_p_1("u_{t+1} (Richardson_Lucy_deconvolution)") {}
-
-template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
-Richardson_Lucy_deconvolution<parameters_type, k_dmn_t, p_dmn_t>::~Richardson_Lucy_deconvolution() {}
 
 template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
 void Richardson_Lucy_deconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
@@ -213,6 +225,6 @@ bool Richardson_Lucy_deconvolution<parameters_type, k_dmn_t, p_dmn_t>::update_f_
 }
 
 }  // inference
-}  // math_algorithms
+}  // math
 
-#endif  // MATH_LIBRARY_INFERENCE_LIBRARY_RICHARDSON_LUCY_DECONVOLUTION_H
+#endif  // DCA_MATH_INFERENCE_RICHARDSON_LUCY_DECONVOLUTION_HPP
