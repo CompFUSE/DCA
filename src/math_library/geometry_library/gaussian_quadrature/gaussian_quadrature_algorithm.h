@@ -1,10 +1,5 @@
-//-*-C++-*-
+// TODO: This file is under GNU LGPL license!!!
 
-#ifndef MATH_LIBRARY_GEOMETRY_LIBRARY_GAUSSIAN_QUADRATURE_GAUSSIAN_QUADRATURE_ALGORITHM_H
-#define MATH_LIBRARY_GEOMETRY_LIBRARY_GAUSSIAN_QUADRATURE_GAUSSIAN_QUADRATURE_ALGORITHM_H
-#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron.hpp"
-
-namespace math_algorithms {
 /*!
   License: This code is distributed under the GNU LGPL license.
   --------
@@ -30,6 +25,16 @@ namespace math_algorithms {
 
   http://people.sc.fsu.edu/~jburkardt/c_src/gm_rule/gm_rule.html
 */
+
+#ifndef MATH_LIBRARY_GEOMETRY_LIBRARY_GAUSSIAN_QUADRATURE_GAUSSIAN_QUADRATURE_ALGORITHM_H
+#define MATH_LIBRARY_GEOMETRY_LIBRARY_GAUSSIAN_QUADRATURE_GAUSSIAN_QUADRATURE_ALGORITHM_H
+
+#include <cmath>
+#include <iostream>
+
+#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron/tetrahedron.hpp"
+
+namespace math_algorithms {
 class GAUSSIAN_QUADRATURE {
 public:
   template <int DIM>
@@ -719,7 +724,6 @@ double GAUSSIAN_QUADRATURE::r8vec_dot(int n, double a1[], double a2[]) {
 
   Output, double R8VEC_UNIFORM_01[N], the vector of pseudorandom values.
 */
-// INTERNAL Can we use the standard rng?
 double* GAUSSIAN_QUADRATURE::r8vec_uniform_01(int n, int* seed) {
   int i;
   int k;
@@ -885,7 +889,7 @@ double* GAUSSIAN_QUADRATURE::simplex_unit_sample(int dim_num, int n, int* seed)
     e = r8vec_uniform_01(dim_num + 1, seed);
 
     for (i = 0; i <= dim_num; i++) {
-      e[i] = -log(e[i]);
+      e[i] = -std::log(e[i]);
     }
 
     total = 0.0;
