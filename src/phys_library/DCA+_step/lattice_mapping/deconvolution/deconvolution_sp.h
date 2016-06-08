@@ -1,40 +1,44 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// This class implements the deconvolution step of the lattice mapping for single-particle
+// functions.
 
-#ifndef DCA_DECONVOLUTION_SP_H
-#define DCA_DECONVOLUTION_SP_H
-#include "math_library/inference_library/Richardson_Lucy_deconvolution.h"
+#ifndef PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_DECONVOLUTION_SP_H
+#define PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_DECONVOLUTION_SP_H
+
+#include <algorithm>
+#include <complex>
+
+#include "dca/math/inference/Richardson_Lucy_deconvolution.hpp"
+#include "comp_library/function_library/include_function_library.h"
+#include "math_library/functional_transforms/basis_transforms/basis_transform.h"
 #include "phys_library/DCA+_step/lattice_mapping/deconvolution/deconvolution_routines.h"
+#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
+#include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
 
 namespace DCA {
-/*! \ingroup LATTICE-MAPPING
- *
- *  \author Peter Staar
- *  \brief  This class implements the deconvolution in the lattice-mapping.
- *
- */
+
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 class deconvolution_sp
     : public deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t> {
-  typedef typename parameters_type::profiler_type profiler_type;
-  typedef typename parameters_type::concurrency_type concurrency_type;
+public:
+  using concurrency_type = typename parameters_type::concurrency_type;
 
-  typedef typename source_k_dmn_t::parameter_type source_k_cluster_type;
-  typedef typename target_k_dmn_t::parameter_type target_k_cluster_type;
-
-  typedef typename source_k_cluster_type::dual_type source_r_cluster_type;
-  typedef typename target_k_cluster_type::dual_type target_r_cluster_type;
-
-  typedef dmn_0<source_r_cluster_type> source_r_dmn_t;
-  typedef dmn_0<target_r_cluster_type> target_r_dmn_t;
-
-  typedef math_algorithms::functional_transforms::basis_transform<target_k_dmn_t, target_r_dmn_t>
-      trafo_k_to_r_type;
-  typedef math_algorithms::functional_transforms::basis_transform<target_r_dmn_t, target_k_dmn_t>
-      trafo_r_to_k_type;
+  using w = dmn_0<frequency_domain>;
+  using b = dmn_0<electron_band_domain>;
+  using s = dmn_0<electron_spin_domain>;
+  using nu = dmn_variadic<b, s>;  // orbital-spin index
 
 public:
   deconvolution_sp(parameters_type& parameters_ref);
-  ~deconvolution_sp();
 
   void execute(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, source_k_dmn_t, w>>& f_source,
                FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w>>& Sigma_interp,
@@ -60,9 +64,6 @@ deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::deconvolution
       concurrency(parameters.get_concurrency()) {}
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
-deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::~deconvolution_sp() {}
-
-template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 void deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(
     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, source_k_dmn_t, w>>& f_source,
     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w>>& f_interp,
@@ -75,8 +76,8 @@ void deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(
   typedef dmn_0<dmn<2, int>> z;
   typedef dmn_5<z, b, b, s, w> p_dmn_t;
 
-  math_algorithms::inference::Richardson_Lucy_deconvolution<parameters_type, target_k_dmn_t, p_dmn_t>
-      RL_obj(parameters);
+  math::inference::Richardson_Lucy_deconvolution<parameters_type, target_k_dmn_t, p_dmn_t> RL_obj(
+      parameters);
 
   FUNC_LIB::function<double, dmn_2<target_k_dmn_t, p_dmn_t>> S_source("S_source");
   FUNC_LIB::function<double, dmn_2<target_k_dmn_t, p_dmn_t>> S_approx("S_approx");
@@ -196,4 +197,4 @@ void deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::find_shi
 }
 }
 
-#endif
+#endif  // PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_DECONVOLUTION_SP_H
