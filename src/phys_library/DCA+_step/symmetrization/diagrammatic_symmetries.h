@@ -1,256 +1,277 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// This class implements the symmetrization of the 2-particle functions according to the diagrams.
 
-#ifndef DIAGRAMMATIC_SYMMETRIES_H
-#define DIAGRAMMATIC_SYMMETRIES_H
-#include "phys_library/domain_types.hpp"
-/*! 
- *  \ingroup SYMMETRIZE-FUNCTIONS
- *
- *  \author Peter Staar
- *  \brief  This class implements symmetrizations of the 2-particle functions according to the diagrams.
- *
+/*
  *  \image html feynman_diagram.pdf
  *
  *
  *  \section all symmetries for all 2-particle quantities.
- *  
+ *
  *   All two-particle functions have translation symmetry,
  *
  *   \f{eqnarray*}{
- *     G^{2}(k_1,\varpi_1, k_2,\varpi_1, q,\nu) &=&  G^{2}(k_1+P,\varpi_1+\mu, k_2+P,\varpi_2+\mu, q+P, \nu+\mu)
+ *     G^{2}(k_1,\varpi_1, k_2,\varpi_1, q,\nu) &=&  G^{2}(k_1+P,\varpi_1+\mu, k_2+P,\varpi_2+\mu,
+ *     q+P, \nu+\mu)
  *   \f}
  *
- *   Since all two-particle functions are real in real-space and imaginary time, we have an inversion symmetry,
+ *   Since all two-particle functions are real in real-space and imaginary time, we have an
+ *   inversion symmetry,
  *
  *   \f{eqnarray*}{
- *     G^{2}(k_1,\varpi_1, k_2,\varpi_1, q,\nu) &=& \overline{G^{2}(-k_1,-\varpi_1, -k_2,-\varpi_2, -q,-\nu)}
+ *     G^{2}(k_1,\varpi_1, k_2,\varpi_1, q,\nu) &=& \overline{G^{2}(-k_1,-\varpi_1, -k_2,-\varpi_2,
+ *     -q,-\nu)}
  *   \f}
  *
  *   If the crystal has inversion symmetry, then
  *
  *   \f{eqnarray*}{
- *     G^{2}(k_1,\varpi_1, k_2,\varpi_1, q,\nu) &=& \overline{G^{2}(k_1,-\varpi_1, k_2,-\varpi_1, q,-\nu)}
+ *     G^{2}(k_1,\varpi_1, k_2,\varpi_1, q,\nu) &=& \overline{G^{2}(k_1,-\varpi_1, k_2,-\varpi_1,
+ *     q,-\nu)}
  *   \f}
  *
  *  \section ph particle-hole channel
  *
- *   The particle-hole Greens function \f$G^{ph}\f$ flips the arrow direction under a rotation of \f$\pi\f$ around the horizontal axes (see fig 1).
+ *   The particle-hole Greens function \f$G^{ph}\f$ flips the arrow direction under a rotation of
+ *   \f$\pi\f$ around the horizontal axes (see fig 1).
  *   We therefore get that,
  *
  *   \f{eqnarray*}{
- *   G^{pp}(k_1, k_2, q) &=& G^{ph}(k_1+q, k_1, k_2, k_2+q) \\ 
- *                       &=& \overline{G^{ph}(k_1, k_1+q, k_2+q, k_2)} \\ 
+ *   G^{pp}(k_1, k_2, q) &=& G^{ph}(k_1+q, k_1, k_2, k_2+q) \\
+ *                       &=& \overline{G^{ph}(k_1, k_1+q, k_2+q, k_2)} \\
  *			 &=& \overline{G^{ph}(k_1+q, k_2+q, -q)}
  *   \f}
  *
- *   The particle-hole Greens function \f$G^{ph}\f$ flips the arrow direction under a rotation of \f$\pi\f$ around the verical axes (see fig 1).
+ *   The particle-hole Greens function \f$G^{ph}\f$ flips the arrow direction under a rotation of
+ *   \f$\pi\f$ around the verical axes (see fig 1).
  *   We therefore get that,
  *
  *   \f{eqnarray*}{
- *   G^{pp}(k_1, k_2, q) &=& G^{ph}(k_1+q, k_1, k_2, k_2+q) \\ 
- *                       &=& \overline{G^{ph}(k_2+q, k_2, k_1, k_1+q)} \\ 
+ *   G^{pp}(k_1, k_2, q) &=& G^{ph}(k_1+q, k_1, k_2, k_2+q) \\
+ *                       &=& \overline{G^{ph}(k_2+q, k_2, k_1, k_1+q)} \\
  *                       &=& \overline{G^{ph}(k_2, k_1, q)}
  *   \f}
  *
- *   The particle-hole Greens function \f$G^{ph}\f$ remains invariant under a rotation of \f$\pi\f$ around both the horizontal and vertical axes (see fig 1).
+ *   The particle-hole Greens function \f$G^{ph}\f$ remains invariant under a rotation of \f$\pi\f$
+ *   around both the horizontal and vertical axes (see fig 1).
  *   We therefore get that,
- * \f{eqnarray*}{
- *   G^{ph}(k_1, k_2, q) &=& G^{ph}(k_1+q, k_1, k_2, k_2+q) \\ 
- *                       &=& G^{ph}(k_1, k_1+q, k_2+q, k_2) \\ 
- *                       &=& G^{ph}(k_2+q, k_1+q, -q)  
- * \f}
+ *   \f{eqnarray*}{
+ *   G^{ph}(k_1, k_2, q) &=& G^{ph}(k_1+q, k_1, k_2, k_2+q) \\
+ *                       &=& G^{ph}(k_1, k_1+q, k_2+q, k_2) \\
+ *                       &=& G^{ph}(k_2+q, k_1+q, -q)
+ *   \f}
  *
  *
  *
  *  \section pp particle-particle channel
  *
- *   The particle-particle Greens function \f$G^{pp}\f$ remains invariant under a rotation of \f$\pi\f$ around the horizontal axes (see fig 1).
+ *   The particle-particle Greens function \f$G^{pp}\f$ remains invariant under a rotation of
+ *   \f$\pi\f$ around the horizontal axes (see fig 1).
  *   We therefore get that,
  *
  *   \f{eqnarray*}{
- *   G^{pp}(k_1, k_2, q) &=& G^{pp}(q-k_1, k_1, k_2, q-k_2) \\ 
- *                       &=& G^{pp}(k_1, q-k_1, q-k_2, k_2) \\ 
- *                       &=& G^{pp}(q-k_1, q-k_2, q)  
+ *   G^{pp}(k_1, k_2, q) &=& G^{pp}(q-k_1, k_1, k_2, q-k_2) \\
+ *                       &=& G^{pp}(k_1, q-k_1, q-k_2, k_2) \\
+ *                       &=& G^{pp}(q-k_1, q-k_2, q)
  *   \f}
  *
- *   The particle-particle Greens function \f$G^{pp}\f$ remains invariant under a rotation of \f$\pi\f$ around the vertical axes (see fig 1).
+ *   The particle-particle Greens function \f$G^{pp}\f$ remains invariant under a rotation of
+ *   \f$\pi\f$ around the vertical axes (see fig 1).
  *   We therefore get that,
  *
  *   \f{eqnarray*}{
- *   G^{pp}(k_1, k_2, q) &=& G^{pp}(q-k_1, k_1, k_2, q-k_2) \\ 
- *                       &=& \overline{G^{pp}(q-k_2, k_2, k_1, q-k_1)} \\ 
+ *   G^{pp}(k_1, k_2, q) &=& G^{pp}(q-k_1, k_1, k_2, q-k_2) \\
+ *                       &=& \overline{G^{pp}(q-k_2, k_2, k_1, q-k_1)} \\
  *                       &=& \overline{G^{pp}(k_2, k_1, q)}
  *   \f}
  *
- *   The particle-particle Greens function \f$G^{pp}\f$ remains invariant under a rotation of \f$\pi\f$ around the horizontal and vertical axes (see fig 1).
+ *   The particle-particle Greens function \f$G^{pp}\f$ remains invariant under a rotation of
+ *   \f$\pi\f$ around the horizontal and vertical axes (see fig 1).
  *   We therefore get that,
  *
  *   \f{eqnarray*}{
- *   G^{pp}(k_1, k_2, q) &=& G^{pp}(q-k_1, k_1, k_2, q-k_2) \\ 
- *                       &=& \overline{G^{pp}(q-k_2, k_2, k_1, q-k_1)} \\ 
+ *   G^{pp}(k_1, k_2, q) &=& G^{pp}(q-k_1, k_1, k_2, q-k_2) \\
+ *                       &=& \overline{G^{pp}(q-k_2, k_2, k_1, q-k_1)} \\
  *                       &=& \overline{G^{pp}(q-k_2, q-k_1, q)}
  *   \f}
  *
  *  Furthermore, \f$G^{pp}\f$ is real for any q-vector, since
  *
  *   \f{eqnarray*}{
- *   G^{pp}(k_1, k_2, q) &=& G^{pp}(q-k_1, k_1, k_2, q-k_2) \\ 
- *                       &=& G^{pp}(k_1, q-k_1, q-k_2, k_2) \\ 
+ *   G^{pp}(k_1, k_2, q) &=& G^{pp}(q-k_1, k_1, k_2, q-k_2) \\
+ *                       &=& G^{pp}(k_1, q-k_1, q-k_2, k_2) \\
  *                       &=& \overline{G^{pp}(-k_1, k_1-q, k_2-q,-k_2)}  \ \
  *			 &=& \overline{G^{pp}(q-k_1, k_1, k_2,q-k_2)} \	\
  *			 &=& \overline{G^{pp}(k_1, k_2, q)}
  *   \f}
- *
- * 
  */
-template<class parameters_type>
-class diagrammatic_symmetries
-{
+
+#ifndef PHYS_LIBRARY_DCA_STEP_SYMMETRIZATION_DIAGRAMMATIC_SYMMETRIES_H
+#define PHYS_LIBRARY_DCA_STEP_SYMMETRIZATION_DIAGRAMMATIC_SYMMETRIES_H
+
+#include <complex>
+#include <stdexcept>
+#include <vector>
+
+#include "enumerations.hpp"
+#include "comp_library/function_library/include_function_library.h"
+#include "math_library/geometry_library/vector_operations/vector_operations.hpp"
+#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
+#include "phys_library/domains/cluster/cluster_operations.hpp"
+
+template <class parameters_type>
+class diagrammatic_symmetries {
 public:
+  using b = dmn_0<electron_band_domain>;
 
+public:
   diagrammatic_symmetries(parameters_type& parameters);
-  ~diagrammatic_symmetries();
 
-  template<typename scalartype, typename k_dmn, typename w_dmn>
-  void execute(FUNC_LIB::function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G);
+  template <typename scalartype, typename k_dmn, typename w_dmn>
+  void execute(
+      FUNC_LIB::function<scalartype, dmn_2<dmn_4<b, b, k_dmn, w_dmn>, dmn_4<b, b, k_dmn, w_dmn>>>& G);
 
-  template<typename scalartype, typename k_dmn, typename w_dmn>
-  void execute(FUNC_LIB::function<scalartype, dmn_3<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn>, k_dmn > >& G);
-
-private:
-
-  template<typename scalartype, typename k_dmn, typename w_dmn>
-  void symmetrize_over_matsubara_frequencies(FUNC_LIB::function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G);
-
-  template<typename scalartype, typename k_dmn, typename w_dmn>
-  void symmetrize_over_matsubara_frequencies(FUNC_LIB::function<scalartype, dmn_3<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn>, k_dmn> >& G);
-
-
-
-  template<typename scalartype, typename k_dmn, typename w_dmn>
-  void symmetrize_over_pi_rotations_ph(FUNC_LIB::function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G);
-
-  template<typename scalartype, typename k_dmn, typename w_dmn>
-  void symmetrize_over_pi_rotations_ph(FUNC_LIB::function<scalartype, dmn_3<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn>, k_dmn> >& G);
-
-
-
-  template<typename scalartype, typename k_dmn, typename w_dmn>
-  void symmetrize_over_pi_rotations_pp(FUNC_LIB::function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G);
-  
-  template<typename scalartype, typename k_dmn, typename w_dmn>
-  void symmetrize_over_pi_rotations_pp(FUNC_LIB::function<scalartype, dmn_3<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn>, k_dmn> >& G);
-  
-
-
-  template<typename scalartype, typename k_dmn, typename w_dmn>
-  void set_real(FUNC_LIB::function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G);
-
-  template<typename scalartype, typename k_dmn, typename w_dmn>
-  void set_real(FUNC_LIB::function<scalartype, dmn_3<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn>, k_dmn> >& G);
+  template <typename scalartype, typename k_dmn, typename w_dmn>
+  void execute(FUNC_LIB::function<
+               scalartype, dmn_3<dmn_4<b, b, k_dmn, w_dmn>, dmn_4<b, b, k_dmn, w_dmn>, k_dmn>>& G);
 
 private:
+  template <typename scalartype, typename k_dmn, typename w_dmn>
+  void symmetrize_over_matsubara_frequencies(
+      FUNC_LIB::function<scalartype, dmn_2<dmn_4<b, b, k_dmn, w_dmn>, dmn_4<b, b, k_dmn, w_dmn>>>& G);
 
+  template <typename scalartype, typename k_dmn, typename w_dmn>
+  void symmetrize_over_matsubara_frequencies(
+      FUNC_LIB::function<scalartype,
+                         dmn_3<dmn_4<b, b, k_dmn, w_dmn>, dmn_4<b, b, k_dmn, w_dmn>, k_dmn>>& G);
+
+  template <typename scalartype, typename k_dmn, typename w_dmn>
+  void symmetrize_over_pi_rotations_ph(
+      FUNC_LIB::function<scalartype, dmn_2<dmn_4<b, b, k_dmn, w_dmn>, dmn_4<b, b, k_dmn, w_dmn>>>& G);
+
+  template <typename scalartype, typename k_dmn, typename w_dmn>
+  void symmetrize_over_pi_rotations_ph(
+      FUNC_LIB::function<scalartype,
+                         dmn_3<dmn_4<b, b, k_dmn, w_dmn>, dmn_4<b, b, k_dmn, w_dmn>, k_dmn>>& G);
+
+  template <typename scalartype, typename k_dmn, typename w_dmn>
+  void symmetrize_over_pi_rotations_pp(
+      FUNC_LIB::function<scalartype, dmn_2<dmn_4<b, b, k_dmn, w_dmn>, dmn_4<b, b, k_dmn, w_dmn>>>& G);
+
+  template <typename scalartype, typename k_dmn, typename w_dmn>
+  void symmetrize_over_pi_rotations_pp(
+      FUNC_LIB::function<scalartype,
+                         dmn_3<dmn_4<b, b, k_dmn, w_dmn>, dmn_4<b, b, k_dmn, w_dmn>, k_dmn>>& G);
+
+  template <typename scalartype, typename k_dmn, typename w_dmn>
+  void set_real(
+      FUNC_LIB::function<scalartype, dmn_2<dmn_4<b, b, k_dmn, w_dmn>, dmn_4<b, b, k_dmn, w_dmn>>>& G);
+
+  template <typename scalartype, typename k_dmn, typename w_dmn>
+  void set_real(FUNC_LIB::function<
+                scalartype, dmn_3<dmn_4<b, b, k_dmn, w_dmn>, dmn_4<b, b, k_dmn, w_dmn>, k_dmn>>& G);
+
+private:
   parameters_type& parameters;
 
-  int                 q_ind;
+  int q_ind;
   std::vector<double> q_vec;
 
   bool q_vector_is_invertible;
   bool q_vector_is_reciprocal;
 };
 
-template<class parameters_type>
-diagrammatic_symmetries<parameters_type>::diagrammatic_symmetries(parameters_type& parameters_ref):
-  parameters(parameters_ref),
+template <class parameters_type>
+diagrammatic_symmetries<parameters_type>::diagrammatic_symmetries(parameters_type& parameters_ref)
+    : parameters(parameters_ref),
 
-  q_ind(parameters.get_q_channel_ind()),
-  q_vec(parameters.get_q_channel_vec()),
+      q_ind(parameters.get_q_channel_ind()),
+      q_vec(parameters.get_q_channel_vec()),
 
-  q_vector_is_invertible(false),
-  q_vector_is_reciprocal(false)
-{
-}
+      q_vector_is_invertible(false),
+      q_vector_is_reciprocal(false) {}
 
-template<class parameters_type>
-diagrammatic_symmetries<parameters_type>::~diagrammatic_symmetries()
-{}
-
-template<class parameters_type>
-template<typename scalartype, typename k_dmn, typename w_dmn>
-void diagrammatic_symmetries<parameters_type>::execute(FUNC_LIB::function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G)
-{  
+template <class parameters_type>
+template <typename scalartype, typename k_dmn, typename w_dmn>
+void diagrammatic_symmetries<parameters_type>::execute(
+    FUNC_LIB::function<scalartype, dmn_2<dmn_4<b, b, k_dmn, w_dmn>, dmn_4<b, b, k_dmn, w_dmn>>>& G) {
   /*
-   *  if you have more bands, make sure that the inversion does not interfere with a permutation of the bands !!!
+   *  if you have more bands, make sure that the inversion does not interfere with a permutation of
+   * the bands !!!
    */
-  if(true)
-  {
+  if (true) {
     std::vector<double> q_rec(q_vec);
-    
-    for(size_t l=0; l<q_rec.size(); ++l)
-      q_rec[l] *= -1.;
-        q_rec = cluster_operations::translate_inside_cluster(q_rec, k_dmn::parameter_type::get_super_basis_vectors());
 
-    if(VECTOR_OPERATIONS::L2_NORM(q_rec)<1.e-6){
-      q_vector_is_invertible=true;
-        }
-    else{
-      q_vector_is_invertible=false;
+    for (size_t l = 0; l < q_rec.size(); ++l)
+      q_rec[l] *= -1.;
+    q_rec = cluster_operations::translate_inside_cluster(
+        q_rec, k_dmn::parameter_type::get_super_basis_vectors());
+
+    if (VECTOR_OPERATIONS::L2_NORM(q_rec) < 1.e-6) {
+      q_vector_is_invertible = true;
+    }
+    else {
+      q_vector_is_invertible = false;
     }
 
     symmetrize_over_matsubara_frequencies(G);
   }
 
-  if(true)
-  {
+  if (true) {
     std::vector<double> q_rec(q_vec);
-    
-    for(size_t l=0; l<q_rec.size(); ++l)
+
+    for (size_t l = 0; l < q_rec.size(); ++l)
       q_rec[l] *= 2;
-    
-    q_rec = cluster_operations::translate_inside_cluster(q_rec, k_dmn::parameter_type::get_super_basis_vectors());
 
-    if(VECTOR_OPERATIONS::L2_NORM(q_rec)<1.e-6){
-      q_vector_is_reciprocal=true;
+    q_rec = cluster_operations::translate_inside_cluster(
+        q_rec, k_dmn::parameter_type::get_super_basis_vectors());
+
+    if (VECTOR_OPERATIONS::L2_NORM(q_rec) < 1.e-6) {
+      q_vector_is_reciprocal = true;
     }
-    else{
-      q_vector_is_reciprocal=false;
-      //cout << "\n\t q_vec is NOT reciprocal !!! \n\n";
+    else {
+      q_vector_is_reciprocal = false;
+      // cout << "\n\t q_vec is NOT reciprocal !!! \n\n";
     }
 
-    switch(parameters.get_vertex_measurement_type())
-      {
+    switch (parameters.get_vertex_measurement_type()) {
       case PARTICLE_HOLE_TRANSVERSE:
-	symmetrize_over_pi_rotations_ph(G);
-	break;
+        symmetrize_over_pi_rotations_ph(G);
+        break;
 
       case PARTICLE_HOLE_MAGNETIC:
-	symmetrize_over_pi_rotations_ph(G);
-	break;
-      
+        symmetrize_over_pi_rotations_ph(G);
+        break;
+
       case PARTICLE_HOLE_CHARGE:
-	symmetrize_over_pi_rotations_ph(G);
-	break;
-	
+        symmetrize_over_pi_rotations_ph(G);
+        break;
+
       case PARTICLE_PARTICLE_SUPERCONDUCTING:
-	set_real(G);
-	symmetrize_over_pi_rotations_pp(G);
-	break;
-	
+        set_real(G);
+        symmetrize_over_pi_rotations_pp(G);
+        break;
+
       default:
-	throw std::logic_error(__FUNCTION__);
-      }
+        throw std::logic_error(__FUNCTION__);
+    }
   }
 }
 
-template<class parameters_type>
-template<typename scalartype, typename k_dmn, typename w_dmn>
-void diagrammatic_symmetries<parameters_type>::execute(FUNC_LIB::function<scalartype, dmn_3<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn>, k_dmn> >& G)
-{  
+template <class parameters_type>
+template <typename scalartype, typename k_dmn, typename w_dmn>
+void diagrammatic_symmetries<parameters_type>::execute(
+    FUNC_LIB::function<scalartype, dmn_3<dmn_4<b, b, k_dmn, w_dmn>, dmn_4<b, b, k_dmn, w_dmn>, k_dmn>>& G) {
   symmetrize_over_matsubara_frequencies(G);
 
-  switch(parameters.get_vertex_measurement_type())
-    {
+  switch (parameters.get_vertex_measurement_type()) {
     case PARTICLE_HOLE_TRANSVERSE:
       symmetrize_over_pi_rotations_ph(G);
       break;
@@ -258,19 +279,19 @@ void diagrammatic_symmetries<parameters_type>::execute(FUNC_LIB::function<scalar
     case PARTICLE_HOLE_MAGNETIC:
       symmetrize_over_pi_rotations_ph(G);
       break;
-      
+
     case PARTICLE_HOLE_CHARGE:
       symmetrize_over_pi_rotations_ph(G);
       break;
-	
+
     case PARTICLE_PARTICLE_SUPERCONDUCTING:
-      //set_real(G);
+      // set_real(G);
       symmetrize_over_pi_rotations_pp(G);
       break;
-      
+
     default:
       throw std::logic_error(__FUNCTION__);
-    }
+  }
 }
 
 // Symmetrizes G_2 over Matsubara frequencies for G_2 only given for one q-vector.
@@ -278,87 +299,83 @@ void diagrammatic_symmetries<parameters_type>::execute(FUNC_LIB::function<scalar
 //     G_2(k_1, w_1, k_2, w_2, q, nu) = conj(G_2(k_1, -w_1, k_2, -w_2, q, -nu)),
 // which for nu=0 reduces to
 //     G_2(k_1, w_1, k_2, w_2, q) = conj(G_2(k_1, -w_1, k_2, -w_2, q)).
-template<class parameters_type>
-template<typename scalartype, typename k_dmn, typename w_dmn>
-void diagrammatic_symmetries<parameters_type>::symmetrize_over_matsubara_frequencies(FUNC_LIB::function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G)
-{
-  if(b::dmn_size()>1)
+template <class parameters_type>
+template <typename scalartype, typename k_dmn, typename w_dmn>
+void diagrammatic_symmetries<parameters_type>::symmetrize_over_matsubara_frequencies(
+    FUNC_LIB::function<scalartype, dmn_2<dmn_4<b, b, k_dmn, w_dmn>, dmn_4<b, b, k_dmn, w_dmn>>>& G) {
+  if (b::dmn_size() > 1)
     throw std::logic_error(__FUNCTION__);
 
-  if(q_vector_is_invertible)
-    {
-      for(int nu_1=0; nu_1<b::dmn_size(); nu_1++){
-	for(int nu_2=0; nu_2<b::dmn_size(); nu_2++){
-	  for(int k1=0; k1<k_dmn::dmn_size(); k1++){
-	    for(int w1=0; w1<w_dmn::dmn_size(); w1++){
-	      
-	      for(int mu_1=0; mu_1<b::dmn_size(); mu_1++){
-		for(int mu_2=0; mu_2<b::dmn_size(); mu_2++){
-		  for(int k2=0; k2<k_dmn::dmn_size(); k2++){
-		    for(int w2=0; w2<w_dmn::dmn_size(); w2++){
-		      
-		      int min_w1 = w_dmn::dmn_size()-1-w1;
-		      int min_w2 = w_dmn::dmn_size()-1-w2;
-		      
-		      std::complex<double> tmp1 = G(nu_1,nu_2,k1,    w1, mu_1,mu_2,k2,     w2);
-		      std::complex<double> tmp2 = G(nu_1,nu_2,k1,min_w1, mu_1,mu_2,k2, min_w2);
-		      
-		      G(nu_1,nu_2,k1,    w1, mu_1,mu_2,k2,     w2) = (     tmp1  + conj(tmp2))/2.;
-		      G(nu_1,nu_2,k1,min_w1, mu_1,mu_2,k2, min_w2) = (conj(tmp1) +      tmp2 )/2.;
-		    }
-		  }
-		}
-	      }
-	    }
-	  }
-	}
+  if (q_vector_is_invertible) {
+    for (int nu_1 = 0; nu_1 < b::dmn_size(); nu_1++) {
+      for (int nu_2 = 0; nu_2 < b::dmn_size(); nu_2++) {
+        for (int k1 = 0; k1 < k_dmn::dmn_size(); k1++) {
+          for (int w1 = 0; w1 < w_dmn::dmn_size(); w1++) {
+            for (int mu_1 = 0; mu_1 < b::dmn_size(); mu_1++) {
+              for (int mu_2 = 0; mu_2 < b::dmn_size(); mu_2++) {
+                for (int k2 = 0; k2 < k_dmn::dmn_size(); k2++) {
+                  for (int w2 = 0; w2 < w_dmn::dmn_size(); w2++) {
+                    int min_w1 = w_dmn::dmn_size() - 1 - w1;
+                    int min_w2 = w_dmn::dmn_size() - 1 - w2;
+
+                    std::complex<double> tmp1 = G(nu_1, nu_2, k1, w1, mu_1, mu_2, k2, w2);
+                    std::complex<double> tmp2 = G(nu_1, nu_2, k1, min_w1, mu_1, mu_2, k2, min_w2);
+
+                    G(nu_1, nu_2, k1, w1, mu_1, mu_2, k2, w2) = (tmp1 + conj(tmp2)) / 2.;
+                    G(nu_1, nu_2, k1, min_w1, mu_1, mu_2, k2, min_w2) = (conj(tmp1) + tmp2) / 2.;
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
+  }
 }
 
 // Symmetrizes G_2 over Matsubara frequencies for G_2 given for all q-vectors (in the cluster).
 // See comment to previous function for details.
-template<class parameters_type>
-template<typename scalartype, typename k_dmn, typename w_dmn>
-void diagrammatic_symmetries<parameters_type>::symmetrize_over_matsubara_frequencies(FUNC_LIB::function<scalartype, dmn_3<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn>, k_dmn> >& G)
-{
-  if(b::dmn_size()>1)
+template <class parameters_type>
+template <typename scalartype, typename k_dmn, typename w_dmn>
+void diagrammatic_symmetries<parameters_type>::symmetrize_over_matsubara_frequencies(
+    FUNC_LIB::function<scalartype, dmn_3<dmn_4<b, b, k_dmn, w_dmn>, dmn_4<b, b, k_dmn, w_dmn>, k_dmn>>& G) {
+  if (b::dmn_size() > 1)
     throw std::logic_error(__FUNCTION__);
 
-  if(parameters.get_w_channel()==0)
-    {
-      for(int nu_1=0; nu_1<b::dmn_size(); nu_1++){
-	for(int nu_2=0; nu_2<b::dmn_size(); nu_2++){
-	  for(int k1=0; k1<k_dmn::dmn_size(); k1++){
-	    for(int w1=0; w1<w_dmn::dmn_size(); w1++){
-	      
-	      for(int mu_1=0; mu_1<b::dmn_size(); mu_1++){
-		for(int mu_2=0; mu_2<b::dmn_size(); mu_2++){
-		  for(int k2=0; k2<k_dmn::dmn_size(); k2++){
-		    for(int w2=0; w2<w_dmn::dmn_size(); w2++){
-		      
-		      for(int q=0; q<k_dmn::dmn_size(); q++){
-			int min_w1 = w_dmn::dmn_size()-1-w1;
-			int min_w2 = w_dmn::dmn_size()-1-w2;
-		      
-			std::complex<double> tmp1 = G(nu_1,nu_2,k1,    w1, mu_1,mu_2,k2,     w2, q);
-			std::complex<double> tmp2 = G(nu_1,nu_2,k1,min_w1, mu_1,mu_2,k2, min_w2, q);
-			
-			G(nu_1,nu_2,k1,    w1, mu_1,mu_2,k2,     w2, q) = (     tmp1  + conj(tmp2))/2.;
-			G(nu_1,nu_2,k1,min_w1, mu_1,mu_2,k2, min_w2, q) = (conj(tmp1) +      tmp2 )/2.;
-		      }
-		    }
-		  }
-		}
-	      }
-	    }
-	  }
-	}
+  if (parameters.get_w_channel() == 0) {
+    for (int nu_1 = 0; nu_1 < b::dmn_size(); nu_1++) {
+      for (int nu_2 = 0; nu_2 < b::dmn_size(); nu_2++) {
+        for (int k1 = 0; k1 < k_dmn::dmn_size(); k1++) {
+          for (int w1 = 0; w1 < w_dmn::dmn_size(); w1++) {
+            for (int mu_1 = 0; mu_1 < b::dmn_size(); mu_1++) {
+              for (int mu_2 = 0; mu_2 < b::dmn_size(); mu_2++) {
+                for (int k2 = 0; k2 < k_dmn::dmn_size(); k2++) {
+                  for (int w2 = 0; w2 < w_dmn::dmn_size(); w2++) {
+                    for (int q = 0; q < k_dmn::dmn_size(); q++) {
+                      int min_w1 = w_dmn::dmn_size() - 1 - w1;
+                      int min_w2 = w_dmn::dmn_size() - 1 - w2;
+
+                      std::complex<double> tmp1 = G(nu_1, nu_2, k1, w1, mu_1, mu_2, k2, w2, q);
+                      std::complex<double> tmp2 =
+                          G(nu_1, nu_2, k1, min_w1, mu_1, mu_2, k2, min_w2, q);
+
+                      G(nu_1, nu_2, k1, w1, mu_1, mu_2, k2, w2, q) = (tmp1 + conj(tmp2)) / 2.;
+                      G(nu_1, nu_2, k1, min_w1, mu_1, mu_2, k2, min_w2, q) = (conj(tmp1) + tmp2) / 2.;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
+  }
 }
 
-// Symmetrizes G_2^ph over horizontal and vertical rotations by pi for G_2^ph only given for one q-vector.
+// Symmetrizes G_2^ph over horizontal and vertical rotations by pi for G_2^ph only given for one
+// q-vector.
 //
 // Horizontal + vertical rotation:
 //     G_2^ph(k_1, w_1, k_2, w_2, q, nu) = G_2^ph(k_2+q, w_2+nu, k_1+q, w_1+nu, -q, -nu),
@@ -366,49 +383,47 @@ void diagrammatic_symmetries<parameters_type>::symmetrize_over_matsubara_frequen
 //     G_2^ph(k_1, w_1, k_2, w_2, q) = G_2^ph(k_2+q, w_2, k_1+q, w_1, -q).
 // If q = -q one gets
 //     G_2^ph(k_1, w_1, k_2, w_2) = G_2^ph(k_2+q, w_2, k_1+q, w_1).
-template<class parameters_type>
-template<typename scalartype, typename k_dmn, typename w_dmn>
-void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_ph(FUNC_LIB::function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G)
-{
-  
-  if(b::dmn_size()>1)
+template <class parameters_type>
+template <typename scalartype, typename k_dmn, typename w_dmn>
+void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_ph(
+    FUNC_LIB::function<scalartype, dmn_2<dmn_4<b, b, k_dmn, w_dmn>, dmn_4<b, b, k_dmn, w_dmn>>>& G) {
+  if (b::dmn_size() > 1)
     throw std::logic_error(__FUNCTION__);
 
-  for(int nu_1=0; nu_1<b::dmn_size(); nu_1++){
-    for(int nu_2=0; nu_2<b::dmn_size(); nu_2++){
-      for(int k1=0; k1<k_dmn::dmn_size(); k1++){
-	for(int w1=0; w1<w_dmn::dmn_size(); w1++){
+  for (int nu_1 = 0; nu_1 < b::dmn_size(); nu_1++) {
+    for (int nu_2 = 0; nu_2 < b::dmn_size(); nu_2++) {
+      for (int k1 = 0; k1 < k_dmn::dmn_size(); k1++) {
+        for (int w1 = 0; w1 < w_dmn::dmn_size(); w1++) {
+          for (int mu_1 = 0; mu_1 < b::dmn_size(); mu_1++) {
+            for (int mu_2 = 0; mu_2 < b::dmn_size(); mu_2++) {
+              for (int k2 = 0; k2 < k_dmn::dmn_size(); k2++) {
+                for (int w2 = 0; w2 < w_dmn::dmn_size(); w2++) {
+                  int k1_plus_q = k_dmn::parameter_type::add(k1, q_ind);
+                  int k2_plus_q = k_dmn::parameter_type::add(k2, q_ind);
+                  int min_q_ind =
+                      k_dmn::parameter_type::subtract(q_ind, k_dmn::parameter_type::origin_index());
 
-	  for(int mu_1=0; mu_1<b::dmn_size(); mu_1++){
-	    for(int mu_2=0; mu_2<b::dmn_size(); mu_2++){
-	      for(int k2=0; k2<k_dmn::dmn_size(); k2++){
-		for(int w2=0; w2<w_dmn::dmn_size(); w2++){
+                  if (min_q_ind == q_ind) {
+                    scalartype tmp1 = G(nu_1, nu_2, k1, w1, mu_1, mu_2, k2, w2);
+                    scalartype tmp2 = G(nu_1, nu_2, k2_plus_q, w2, mu_1, mu_2, k1_plus_q, w1);
 
-		  int k1_plus_q = k_dmn::parameter_type::add(k1,q_ind);
-		  int k2_plus_q = k_dmn::parameter_type::add(k2,q_ind);
-		  int min_q_ind = k_dmn::parameter_type::subtract(q_ind, k_dmn::parameter_type::origin_index());
+                    scalartype tmp = (tmp1 + tmp2) / 2.;
 
-		  if(min_q_ind == q_ind)
-		    {
-		      scalartype tmp1 = G(nu_1,nu_2,k1       ,w1, mu_1,mu_2,k2       ,w2);
-		      scalartype tmp2 = G(nu_1,nu_2,k2_plus_q,w2, mu_1,mu_2,k1_plus_q,w1);
-
-		      scalartype tmp = (tmp1+tmp2)/2.;
-
-		       G(nu_1,nu_2,k1       ,w1, mu_1,mu_2,k2       ,w2) = tmp;
-		       G(nu_1,nu_2,k2_plus_q,w2, mu_1,mu_2,k1_plus_q,w1) = tmp;
-		    }
-		}
-	      }
-	    }
-	  }
-	}
+                    G(nu_1, nu_2, k1, w1, mu_1, mu_2, k2, w2) = tmp;
+                    G(nu_1, nu_2, k2_plus_q, w2, mu_1, mu_2, k1_plus_q, w1) = tmp;
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
 }
 
-// Symmetrizes G_2^ph over horizontal and vertical rotations by pi for G_2^ph given for all q-vectors (in the cluster).
+// Symmetrizes G_2^ph over horizontal and vertical rotations by pi for G_2^ph given for all
+// q-vectors (in the cluster).
 //
 // Vertical rotation:
 //     G_2^ph(k_1, w_1, k_2, w_2, q, nu) = conj(G_2^ph(k_2, w_2, k_1, w_1, q, nu)),
@@ -424,53 +439,52 @@ void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_ph(F
 //     G_2^ph(k_1, w_1, k_2, w_2, q, nu) = G_2^ph(k_2+q, w_2+nu, k_1+q, w_1+nu, -q, -nu),
 // which for nu=0 reduces to
 //     G_2^ph(k_1, w_1, k_2, w_2, q) = G_2^ph(k_2+q, w_2, k_1+q, w_1, -q).
-template<class parameters_type>
-template<typename scalartype, typename k_dmn, typename w_dmn>
-void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_ph(FUNC_LIB::function<scalartype, dmn_3<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn>, k_dmn> >& G)
-{
-  if(b::dmn_size()>1)
+template <class parameters_type>
+template <typename scalartype, typename k_dmn, typename w_dmn>
+void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_ph(
+    FUNC_LIB::function<scalartype, dmn_3<dmn_4<b, b, k_dmn, w_dmn>, dmn_4<b, b, k_dmn, w_dmn>, k_dmn>>& G) {
+  if (b::dmn_size() > 1)
     throw std::logic_error(__FUNCTION__);
 
-  for(int nu_1=0; nu_1<b::dmn_size(); nu_1++){
-    for(int nu_2=0; nu_2<b::dmn_size(); nu_2++){
-      for(int k1=0; k1<k_dmn::dmn_size(); k1++){
-	for(int w1=0; w1<w_dmn::dmn_size(); w1++){
+  for (int nu_1 = 0; nu_1 < b::dmn_size(); nu_1++) {
+    for (int nu_2 = 0; nu_2 < b::dmn_size(); nu_2++) {
+      for (int k1 = 0; k1 < k_dmn::dmn_size(); k1++) {
+        for (int w1 = 0; w1 < w_dmn::dmn_size(); w1++) {
+          for (int mu_1 = 0; mu_1 < b::dmn_size(); mu_1++) {
+            for (int mu_2 = 0; mu_2 < b::dmn_size(); mu_2++) {
+              for (int k2 = 0; k2 < k_dmn::dmn_size(); k2++) {
+                for (int w2 = 0; w2 < w_dmn::dmn_size(); w2++) {
+                  for (int q = 0; q < k_dmn::dmn_size(); q++) {
+                    int k1_plus_q = k_dmn::parameter_type::add(k1, q);
+                    int k2_plus_q = k_dmn::parameter_type::add(k2, q);
 
-	  for(int mu_1=0; mu_1<b::dmn_size(); mu_1++){
-	    for(int mu_2=0; mu_2<b::dmn_size(); mu_2++){
-	      for(int k2=0; k2<k_dmn::dmn_size(); k2++){
-		for(int w2=0; w2<w_dmn::dmn_size(); w2++){
+                    int min_q =
+                        k_dmn::parameter_type::subtract(q, k_dmn::parameter_type::origin_index());
 
-		  for(int q=0; q<k_dmn::dmn_size(); q++){
+                    scalartype tmp1 = G(nu_1, nu_2, k1, w1, mu_1, mu_2, k2, w2, q);
+                    scalartype tmp2 = G(nu_1, nu_2, k2, w2, mu_1, mu_2, k1, w1, q);
+                    scalartype tmp3 = G(nu_1, nu_2, k1_plus_q, w1, mu_1, mu_2, k2_plus_q, w2, min_q);
+                    scalartype tmp4 = G(nu_1, nu_2, k2_plus_q, w2, mu_1, mu_2, k1_plus_q, w1, min_q);
 
-		    int k1_plus_q = k_dmn::parameter_type::add(k1,q);
-		    int k2_plus_q = k_dmn::parameter_type::add(k2,q);
+                    scalartype tmp = (tmp1 + conj(tmp2) + conj(tmp3) + tmp4) / 4.;
 
-		    int min_q = k_dmn::parameter_type::subtract(q, k_dmn::parameter_type::origin_index());
-		    
-		    scalartype tmp1 = G(nu_1,nu_2,k1       ,w1, mu_1,mu_2,k2       ,w2,     q);
-		    scalartype tmp2 = G(nu_1,nu_2,k2       ,w2, mu_1,mu_2,k1       ,w1,     q);
-		    scalartype tmp3 = G(nu_1,nu_2,k1_plus_q,w1, mu_1,mu_2,k2_plus_q,w2, min_q);
-		    scalartype tmp4 = G(nu_1,nu_2,k2_plus_q,w2, mu_1,mu_2,k1_plus_q,w1, min_q);
-			
-		    scalartype tmp = (tmp1+conj(tmp2)+conj(tmp3)+tmp4)/4.;
-			
-		    G(nu_1,nu_2,k1       ,w1, mu_1,mu_2,k2       ,w2,     q) = tmp;
-		    G(nu_1,nu_2,k2       ,w2, mu_1,mu_2,k1       ,w1,     q) = conj(tmp);
-		    G(nu_1,nu_2,k1_plus_q,w1, mu_1,mu_2,k2_plus_q,w2, min_q) = conj(tmp);
-		    G(nu_1,nu_2,k2_plus_q,w2, mu_1,mu_2,k1_plus_q,w1, min_q) = tmp;
-		  }
-		}
-	      }
-	    }
-	  }
-	}
+                    G(nu_1, nu_2, k1, w1, mu_1, mu_2, k2, w2, q) = tmp;
+                    G(nu_1, nu_2, k2, w2, mu_1, mu_2, k1, w1, q) = conj(tmp);
+                    G(nu_1, nu_2, k1_plus_q, w1, mu_1, mu_2, k2_plus_q, w2, min_q) = conj(tmp);
+                    G(nu_1, nu_2, k2_plus_q, w2, mu_1, mu_2, k1_plus_q, w1, min_q) = tmp;
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
 }
 
-// Symmetrizes G_2^pp over horizontal and vertical rotations by pi for G_2^pp only given for one q-vector.
+// Symmetrizes G_2^pp over horizontal and vertical rotations by pi for G_2^pp only given for one
+// q-vector.
 //
 // Horizontal rotation:
 //     G_2^pp(k_1, w_1, k_2, w_2, q, nu) = G_2^ph(q-k_1, nu-w_1, q-k_2, nu-w_2, q, nu),
@@ -488,161 +502,154 @@ void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_ph(F
 //     G_2^pp(k_1, w_1, k_2, w_2, q) = conj(G_2^ph(q-k_2, -w_2, q-k_1, -w_1, q).
 //
 // In addition G_2^pp is real.
-template<class parameters_type>
-template<typename scalartype, typename k_dmn, typename w_dmn>
-void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_pp(FUNC_LIB::function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G)
-{
-  if(b::dmn_size()>1)
+template <class parameters_type>
+template <typename scalartype, typename k_dmn, typename w_dmn>
+void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_pp(
+    FUNC_LIB::function<scalartype, dmn_2<dmn_4<b, b, k_dmn, w_dmn>, dmn_4<b, b, k_dmn, w_dmn>>>& G) {
+  if (b::dmn_size() > 1)
     throw std::logic_error(__FUNCTION__);
 
-  for(int nu_1=0; nu_1<b::dmn_size(); nu_1++){
-    for(int nu_2=0; nu_2<b::dmn_size(); nu_2++){
-      for(int k1=0; k1<k_dmn::dmn_size(); k1++){
-	for(int w1=0; w1<w_dmn::dmn_size(); w1++){
+  for (int nu_1 = 0; nu_1 < b::dmn_size(); nu_1++) {
+    for (int nu_2 = 0; nu_2 < b::dmn_size(); nu_2++) {
+      for (int k1 = 0; k1 < k_dmn::dmn_size(); k1++) {
+        for (int w1 = 0; w1 < w_dmn::dmn_size(); w1++) {
+          for (int mu_1 = 0; mu_1 < b::dmn_size(); mu_1++) {
+            for (int mu_2 = 0; mu_2 < b::dmn_size(); mu_2++) {
+              for (int k2 = 0; k2 < k_dmn::dmn_size(); k2++) {
+                for (int w2 = 0; w2 < w_dmn::dmn_size(); w2++) {
+                  int q_min_k1 = k_dmn::parameter_type::subtract(k1, q_ind);
+                  int q_min_k2 = k_dmn::parameter_type::subtract(k2, q_ind);
 
-	  for(int mu_1=0; mu_1<b::dmn_size(); mu_1++){
-	    for(int mu_2=0; mu_2<b::dmn_size(); mu_2++){
-	      for(int k2=0; k2<k_dmn::dmn_size(); k2++){
-		for(int w2=0; w2<w_dmn::dmn_size(); w2++){
+                  int min_w1 = w_dmn::dmn_size() - 1 - w1;
+                  int min_w2 = w_dmn::dmn_size() - 1 - w2;
 
-		  int q_min_k1 = k_dmn::parameter_type::subtract(k1,q_ind);
-		  int q_min_k2 = k_dmn::parameter_type::subtract(k2,q_ind);
+                  scalartype tmp1 = G(nu_1, nu_2, k1, w1, mu_1, mu_2, k2, w2);
+                  scalartype tmp2 = G(nu_1, nu_2, q_min_k1, min_w1, mu_1, mu_2, q_min_k2, min_w2);
+                  scalartype tmp3 = G(nu_1, nu_2, k2, w2, mu_1, mu_2, k1, w1);
+                  scalartype tmp4 = G(nu_1, nu_2, q_min_k2, min_w2, mu_1, mu_2, q_min_k1, min_w1);
 
-		  int min_w1 = w_dmn::dmn_size()-1-w1;
-		  int min_w2 = w_dmn::dmn_size()-1-w2;
+                  scalartype tmp = (tmp1 + tmp2 + conj(tmp3) + conj(tmp4)) /
+                                   4.;  // NOTE: Complex conj. effectless since G is real.
 
-		  scalartype tmp1 = G(nu_1,nu_2,      k1,    w1, mu_1,mu_2,      k2,     w2);
-		  scalartype tmp2 = G(nu_1,nu_2,q_min_k1,min_w1, mu_1,mu_2,q_min_k2, min_w2);
-		  scalartype tmp3 = G(nu_1,nu_2,      k2,    w2, mu_1,mu_2,      k1,     w1);
-		  scalartype tmp4 = G(nu_1,nu_2,q_min_k2,min_w2, mu_1,mu_2,q_min_k1, min_w1);
-		      
-		  scalartype tmp = (tmp1+tmp2+conj(tmp3)+conj(tmp4))/4.;  // NOTE: Complex conj. effectless since G is real.
-		  
-		  G(nu_1,nu_2,      k1,    w1, mu_1,mu_2,      k2,     w2) = tmp;
-		  G(nu_1,nu_2,q_min_k1,min_w1, mu_1,mu_2,q_min_k2, min_w2) = tmp;
-		  G(nu_1,nu_2,      k2,    w2, mu_1,mu_2,      k1,     w1) = conj(tmp);
-		  G(nu_1,nu_2,q_min_k2,min_w2, mu_1,mu_2,q_min_k1, min_w1) = conj(tmp);
-		}
-	      }
-	    }
-	  }
-	}
+                  G(nu_1, nu_2, k1, w1, mu_1, mu_2, k2, w2) = tmp;
+                  G(nu_1, nu_2, q_min_k1, min_w1, mu_1, mu_2, q_min_k2, min_w2) = tmp;
+                  G(nu_1, nu_2, k2, w2, mu_1, mu_2, k1, w1) = conj(tmp);
+                  G(nu_1, nu_2, q_min_k2, min_w2, mu_1, mu_2, q_min_k1, min_w1) = conj(tmp);
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
 }
 
-// Symmetrizes G_2^pp over horizontal and vertical rotations by pi for G_2^pp given for all q-vectors (in the cluster).
+// Symmetrizes G_2^pp over horizontal and vertical rotations by pi for G_2^pp given for all
+// q-vectors (in the cluster).
 // See comment to previous function for details.
-template<class parameters_type>
-template<typename scalartype, typename k_dmn, typename w_dmn>
-void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_pp(FUNC_LIB::function<scalartype, dmn_3<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn>, k_dmn> >& G)
-{
-  if(b::dmn_size()>1)
+template <class parameters_type>
+template <typename scalartype, typename k_dmn, typename w_dmn>
+void diagrammatic_symmetries<parameters_type>::symmetrize_over_pi_rotations_pp(
+    FUNC_LIB::function<scalartype, dmn_3<dmn_4<b, b, k_dmn, w_dmn>, dmn_4<b, b, k_dmn, w_dmn>, k_dmn>>& G) {
+  if (b::dmn_size() > 1)
     throw std::logic_error(__FUNCTION__);
 
-  for(int nu_1=0; nu_1<b::dmn_size(); nu_1++){
-    for(int nu_2=0; nu_2<b::dmn_size(); nu_2++){
-      for(int k1=0; k1<k_dmn::dmn_size(); k1++){
-	for(int w1=0; w1<w_dmn::dmn_size(); w1++){
+  for (int nu_1 = 0; nu_1 < b::dmn_size(); nu_1++) {
+    for (int nu_2 = 0; nu_2 < b::dmn_size(); nu_2++) {
+      for (int k1 = 0; k1 < k_dmn::dmn_size(); k1++) {
+        for (int w1 = 0; w1 < w_dmn::dmn_size(); w1++) {
+          for (int mu_1 = 0; mu_1 < b::dmn_size(); mu_1++) {
+            for (int mu_2 = 0; mu_2 < b::dmn_size(); mu_2++) {
+              for (int k2 = 0; k2 < k_dmn::dmn_size(); k2++) {
+                for (int w2 = 0; w2 < w_dmn::dmn_size(); w2++) {
+                  for (int q = 0; q < k_dmn::dmn_size(); q++) {
+                    int q_min_k1 = k_dmn::parameter_type::subtract(k1, q);
+                    int q_min_k2 = k_dmn::parameter_type::subtract(k2, q);
 
-	  for(int mu_1=0; mu_1<b::dmn_size(); mu_1++){
-	    for(int mu_2=0; mu_2<b::dmn_size(); mu_2++){
-	      for(int k2=0; k2<k_dmn::dmn_size(); k2++){
-		for(int w2=0; w2<w_dmn::dmn_size(); w2++){
+                    int min_w1 = w_dmn::dmn_size() - 1 - w1;
+                    int min_w2 = w_dmn::dmn_size() - 1 - w2;
 
-		  for(int q=0; q<k_dmn::dmn_size(); q++){
+                    scalartype tmp1 = G(nu_1, nu_2, k1, w1, mu_1, mu_2, k2, w2, q);
+                    scalartype tmp2 =
+                        G(nu_1, nu_2, q_min_k1, min_w1, mu_1, mu_2, q_min_k2, min_w2, q);
+                    scalartype tmp3 = G(nu_1, nu_2, k2, w2, mu_1, mu_2, k1, w1, q);
+                    scalartype tmp4 =
+                        G(nu_1, nu_2, q_min_k2, min_w2, mu_1, mu_2, q_min_k1, min_w1, q);
 
-		    int q_min_k1 = k_dmn::parameter_type::subtract(k1,q);
-		    int q_min_k2 = k_dmn::parameter_type::subtract(k2,q);
-		    
-		    int min_w1 = w_dmn::dmn_size()-1-w1;
-		    int min_w2 = w_dmn::dmn_size()-1-w2;
-		    
-		    scalartype tmp1 = G(nu_1,nu_2,      k1,    w1, mu_1,mu_2,      k2,     w2, q);
-		    scalartype tmp2 = G(nu_1,nu_2,q_min_k1,min_w1, mu_1,mu_2,q_min_k2, min_w2, q);
-		    scalartype tmp3 = G(nu_1,nu_2,      k2,    w2, mu_1,mu_2,      k1,     w1, q);
-		    scalartype tmp4 = G(nu_1,nu_2,q_min_k2,min_w2, mu_1,mu_2,q_min_k1, min_w1, q);
-		    
-		    scalartype tmp = (tmp1+tmp2+conj(tmp3)+conj(tmp4))/4.;
-		    
-		    G(nu_1,nu_2,      k1,    w1, mu_1,mu_2,      k2,     w2, q) = tmp;
-		    G(nu_1,nu_2,q_min_k1,min_w1, mu_1,mu_2,q_min_k2, min_w2, q) = tmp;
-		    G(nu_1,nu_2,      k2,    w2, mu_1,mu_2,      k1,     w1, q) = conj(tmp);
-		    G(nu_1,nu_2,q_min_k2,min_w2, mu_1,mu_2,q_min_k1, min_w1, q) = conj(tmp);
-		  }
-		}
-	      }
-	    }
-	  }
-	}
+                    scalartype tmp = (tmp1 + tmp2 + conj(tmp3) + conj(tmp4)) / 4.;
+
+                    G(nu_1, nu_2, k1, w1, mu_1, mu_2, k2, w2, q) = tmp;
+                    G(nu_1, nu_2, q_min_k1, min_w1, mu_1, mu_2, q_min_k2, min_w2, q) = tmp;
+                    G(nu_1, nu_2, k2, w2, mu_1, mu_2, k1, w1, q) = conj(tmp);
+                    G(nu_1, nu_2, q_min_k2, min_w2, mu_1, mu_2, q_min_k1, min_w1, q) = conj(tmp);
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
 }
 
-template<class parameters_type>
-template<typename scalartype, typename k_dmn, typename w_dmn>
-void diagrammatic_symmetries<parameters_type>::set_real(FUNC_LIB::function<scalartype, dmn_2<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn> > >& G)
-{
-  if(b::dmn_size()>1)
+template <class parameters_type>
+template <typename scalartype, typename k_dmn, typename w_dmn>
+void diagrammatic_symmetries<parameters_type>::set_real(
+    FUNC_LIB::function<scalartype, dmn_2<dmn_4<b, b, k_dmn, w_dmn>, dmn_4<b, b, k_dmn, w_dmn>>>& G) {
+  if (b::dmn_size() > 1)
     throw std::logic_error(__FUNCTION__);
 
-  for(int nu_1=0; nu_1<b::dmn_size(); nu_1++){
-    for(int nu_2=0; nu_2<b::dmn_size(); nu_2++){
-      for(int k1=0; k1<k_dmn::dmn_size(); k1++){
-	for(int w1=0; w1<w_dmn::dmn_size(); w1++){
+  for (int nu_1 = 0; nu_1 < b::dmn_size(); nu_1++) {
+    for (int nu_2 = 0; nu_2 < b::dmn_size(); nu_2++) {
+      for (int k1 = 0; k1 < k_dmn::dmn_size(); k1++) {
+        for (int w1 = 0; w1 < w_dmn::dmn_size(); w1++) {
+          for (int mu_1 = 0; mu_1 < b::dmn_size(); mu_1++) {
+            for (int mu_2 = 0; mu_2 < b::dmn_size(); mu_2++) {
+              for (int k2 = 0; k2 < k_dmn::dmn_size(); k2++) {
+                for (int w2 = 0; w2 < w_dmn::dmn_size(); w2++) {
+                  scalartype tmp1 = G(nu_1, nu_2, k1, w1, mu_1, mu_2, k2, w2);
 
-	  for(int mu_1=0; mu_1<b::dmn_size(); mu_1++){
-	    for(int mu_2=0; mu_2<b::dmn_size(); mu_2++){
-	      for(int k2=0; k2<k_dmn::dmn_size(); k2++){
-		for(int w2=0; w2<w_dmn::dmn_size(); w2++){
-
-		  scalartype tmp1 = G(nu_1,nu_2,k1,w1, mu_1,mu_2,k2,w2);
-
-		  G(nu_1,nu_2,k1,w1, mu_1,mu_2,k2,w2) = real(tmp1);
-		}
-	      }
-	    }
-	  }
-	}
+                  G(nu_1, nu_2, k1, w1, mu_1, mu_2, k2, w2) = real(tmp1);
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
 }
 
-template<class parameters_type>
-template<typename scalartype, typename k_dmn, typename w_dmn>
-void diagrammatic_symmetries<parameters_type>::set_real(FUNC_LIB::function<scalartype, dmn_3<dmn_4<b,b,k_dmn,w_dmn>, dmn_4<b,b,k_dmn,w_dmn>, k_dmn> >& G)
-{
-  if(b::dmn_size()>1)
+template <class parameters_type>
+template <typename scalartype, typename k_dmn, typename w_dmn>
+void diagrammatic_symmetries<parameters_type>::set_real(
+    FUNC_LIB::function<scalartype, dmn_3<dmn_4<b, b, k_dmn, w_dmn>, dmn_4<b, b, k_dmn, w_dmn>, k_dmn>>& G) {
+  if (b::dmn_size() > 1)
     throw std::logic_error(__FUNCTION__);
 
-  for(int nu_1=0; nu_1<b::dmn_size(); nu_1++){
-    for(int nu_2=0; nu_2<b::dmn_size(); nu_2++){
-      for(int k1=0; k1<k_dmn::dmn_size(); k1++){
-	for(int w1=0; w1<w_dmn::dmn_size(); w1++){
+  for (int nu_1 = 0; nu_1 < b::dmn_size(); nu_1++) {
+    for (int nu_2 = 0; nu_2 < b::dmn_size(); nu_2++) {
+      for (int k1 = 0; k1 < k_dmn::dmn_size(); k1++) {
+        for (int w1 = 0; w1 < w_dmn::dmn_size(); w1++) {
+          for (int mu_1 = 0; mu_1 < b::dmn_size(); mu_1++) {
+            for (int mu_2 = 0; mu_2 < b::dmn_size(); mu_2++) {
+              for (int k2 = 0; k2 < k_dmn::dmn_size(); k2++) {
+                for (int w2 = 0; w2 < w_dmn::dmn_size(); w2++) {
+                  for (int q = 0; q < k_dmn::dmn_size(); q++) {
+                    scalartype tmp1 = G(nu_1, nu_2, k1, w1, mu_1, mu_2, k2, w2, q);
 
-	  for(int mu_1=0; mu_1<b::dmn_size(); mu_1++){
-	    for(int mu_2=0; mu_2<b::dmn_size(); mu_2++){
-	      for(int k2=0; k2<k_dmn::dmn_size(); k2++){
-		for(int w2=0; w2<w_dmn::dmn_size(); w2++){
-
-		  for(int q=0; q<k_dmn::dmn_size(); q++){
-
-		    scalartype tmp1 = G(nu_1,nu_2,k1,w1, mu_1,mu_2,k2,w2, q);
-		    
-		    G(nu_1,nu_2,k1,w1, mu_1,mu_2,k2,w2, q) = real(tmp1);
-		  }
-		}
-	      }
-	    }
-	  }
-	}
+                    G(nu_1, nu_2, k1, w1, mu_1, mu_2, k2, w2, q) = real(tmp1);
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
 }
 
-
-#endif
+#endif  // PHYS_LIBRARY_DCA_STEP_SYMMETRIZATION_DIAGRAMMATIC_SYMMETRIES_H
