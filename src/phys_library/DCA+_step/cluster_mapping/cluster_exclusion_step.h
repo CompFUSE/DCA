@@ -1,187 +1,197 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
-#ifndef DCA_CLUSTER_EXCLUSION_STEP_H
-#define DCA_CLUSTER_EXCLUSION_STEP_H
-#include"phys_library/domain_types.hpp"
-using namespace types;
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_CLUSTER_EXCLUSION_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_CLUSTER_EXCLUSION_HPP
 
-namespace DCA
-{
-  template<typename parameters_type, typename MOMS_type>
-  class cluster_exclusion
-  {
+#include <complex>
 
-    typedef typename parameters_type::profiler_type    profiler_t;
-    typedef typename parameters_type::concurrency_type concurrency_type;
+#include "comp_library/function_library/include_function_library.h"
+#include "comp_library/function_plotting/include_plotting.h"
+#include "comp_library/linalg/linalg.hpp"
+#include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
+#include "phys_library/domains/cluster/cluster_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
+#include "phys_library/domains/time_and_frequency/frequency_domain.h"
+#include "phys_library/domains/time_and_frequency/time_domain.h"
 
-  public:
+namespace DCA {
+template <typename parameters_type, typename MOMS_type>
+class cluster_exclusion {
+public:
+  using profiler_type = typename parameters_type::profiler_type;
+  using concurrency_type = typename parameters_type::concurrency_type;
 
-    cluster_exclusion(parameters_type&    parameters_ref,
-		      MOMS_type& MOMS_ref);
+  using t = dmn_0<time_domain>;
+  using w = dmn_0<frequency_domain>;
 
-    ~cluster_exclusion();
-  
-    void execute();
+  using b = dmn_0<electron_band_domain>;
+  using s = dmn_0<electron_spin_domain>;
+  using nu = dmn_variadic<b, s>;  // orbital-spin index
 
-  private:
+  using DCA_r_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                            CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>;
+  using r_DCA = dmn_0<DCA_r_cluster_type>;
+  using DCA_k_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                            CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
+  using k_DCA = dmn_0<DCA_k_cluster_type>;
 
-    void compute_G0_K_w_cluster_excluded();
-    void compute_G0_R_t_cluster_excluded();
+public:
+  cluster_exclusion(parameters_type& parameters_ref, MOMS_type& MOMS_ref);
 
-    void plot_G0_R_t_cluster_excluded();
+  void execute();
 
-  private:
+private:
+  void compute_G0_K_w_cluster_excluded();
+  void compute_G0_R_t_cluster_excluded();
 
-    parameters_type& parameters;
-    MOMS_type&       MOMS;
-  };
+  void plot_G0_R_t_cluster_excluded();
 
-  template<typename parameters_type, typename MOMS_type>
-  cluster_exclusion<parameters_type, MOMS_type>::cluster_exclusion(parameters_type& parameters_ref,
-								   MOMS_type&       MOMS_ref):
-    parameters(parameters_ref),
-    MOMS(MOMS_ref)
-  {}
+private:
+  parameters_type& parameters;
+  MOMS_type& MOMS;
+};
 
-  template<typename parameters_type, typename MOMS_type>
-  cluster_exclusion<parameters_type, MOMS_type>::~cluster_exclusion()
-  {}
+template <typename parameters_type, typename MOMS_type>
+cluster_exclusion<parameters_type, MOMS_type>::cluster_exclusion(parameters_type& parameters_ref,
+                                                                 MOMS_type& MOMS_ref)
+    : parameters(parameters_ref), MOMS(MOMS_ref) {}
 
-  template<typename parameters_type, typename MOMS_type>
-  void cluster_exclusion<parameters_type, MOMS_type>::execute()
-  {
-    compute_G0_K_w_cluster_excluded();
-  
-    compute_G0_R_t_cluster_excluded();
-  }
+template <typename parameters_type, typename MOMS_type>
+void cluster_exclusion<parameters_type, MOMS_type>::execute() {
+  compute_G0_K_w_cluster_excluded();
 
-  /*
-   *   G = G_0 + G_0*S*G = G_0 * (1 + S*G)
-   *
-   *   G_0 = G*(1 + S*G)^-1
-   */
-  template<typename parameters_type, typename MOMS_type>
-  void cluster_exclusion<parameters_type, MOMS_type>::compute_G0_K_w_cluster_excluded()
-  {
-    profiler_t profiler(__FUNCTION__, "cluster_exclusion", __LINE__);
-
-    LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> G_matrix("G_matrix" , nu::dmn_size());
-    LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> S_matrix("S_matrix", nu::dmn_size());
-    LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> one_plus_S_G("one_plus_S_G", nu::dmn_size());
-    LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> G0_matrix("G0_matrix", nu::dmn_size());
-
-    LIN_ALG::GEINV<LIN_ALG::CPU>::plan<std::complex<double> > geinv_obj(one_plus_S_G);
-
-    for(int w_ind=0; w_ind<w::dmn_size(); w_ind++){
-      for(int K_ind=0; K_ind<k_DCA::dmn_size(); K_ind++){
-	
-	for(int j=0; j<nu::dmn_size(); j++)
-	  for(int i=0; i<nu::dmn_size(); i++)
-	    G_matrix(i,j) = MOMS.G_k_w(i,j,K_ind,w_ind);
-      
-	for(int j=0; j<nu::dmn_size(); j++)
-	  for(int i=0; i<nu::dmn_size(); i++)
-	    S_matrix(i,j) = MOMS.Sigma_cluster(i,j,K_ind,w_ind);
-
-	for(int j=0; j<nu::dmn_size(); j++)
-	  for(int i=0; i<nu::dmn_size(); i++)
-	    one_plus_S_G(i,j) = 0;
-
-	for(int j=0; j<nu::dmn_size(); j++)
-	  for(int i=0; i<nu::dmn_size(); i++)
-	    for(int l=0; l<nu::dmn_size(); l++)
-	      one_plus_S_G(i,j) += S_matrix(i,l)*G_matrix(l,j);
-
-	for(int i=0; i<nu::dmn_size(); i++)
-	  one_plus_S_G(i,i) += 1.;
-
-	geinv_obj.execute(one_plus_S_G);
-
-	for(int j=0; j<nu::dmn_size(); j++)
-	  for(int i=0; i<nu::dmn_size(); i++)
-	    G0_matrix(i,j) = 0;
-
-	for(int j=0; j<nu::dmn_size(); j++)
-	  for(int i=0; i<nu::dmn_size(); i++)
-	    for(int l=0; l<nu::dmn_size(); l++)
-	      G0_matrix(i,j) += G_matrix(i,l)*one_plus_S_G(l,j);
-
-	for(int j=0; j<nu::dmn_size(); j++)
-	  for(int i=0; i<nu::dmn_size(); i++)
-	    MOMS.G0_k_w_cluster_excluded(i,j,K_ind,w_ind) = G0_matrix(i,j);
-      }
-    }
-  }
-
-  template<typename parameters_type, typename MOMS_type>
-  void cluster_exclusion<parameters_type, MOMS_type>::compute_G0_R_t_cluster_excluded()
-  {
-    profiler_t profiler(__FUNCTION__, "cluster_exclusion", __LINE__);
-
-    MOMS.G0_k_w_cluster_excluded -= MOMS.G0_k_w;
-
-    {
-      math_algorithms::functional_transforms::TRANSFORM<w, t>::execute(MOMS.G0_k_w_cluster_excluded, 
-						MOMS.G0_k_t_cluster_excluded);
-
-      MOMS.G0_k_t_cluster_excluded += MOMS.G0_k_t;
-
-      math_algorithms::functional_transforms::TRANSFORM<k_DCA, r_DCA>::execute(MOMS.G0_k_t_cluster_excluded, 
-							MOMS.G0_r_t_cluster_excluded);
-    }
-
-    MOMS.G0_k_w_cluster_excluded += MOMS.G0_k_w;
-  }
-
-  template<typename parameters_type, typename MOMS_type>
-  void cluster_exclusion<parameters_type, MOMS_type>::plot_G0_R_t_cluster_excluded()
-  {
-    {
-      FUNC_LIB::function<float, t> tmp("G0_k_t");
-    
-      Gnuplot plot_obj("lines");
-      for(int R_ind=0; R_ind<r_DCA::dmn_size(); R_ind++)  
-	{
-	  for(int t_ind=0; t_ind<t::dmn_size(); t_ind++)
-	    tmp(t_ind) = MOMS.G0_k_t(0,0,R_ind,t_ind);
-	
-	  SHOW::execute(plot_obj, tmp);      
-	}
-    
-      plot_obj.showonscreen();
-    }
-
-    {
-      FUNC_LIB::function<float, t> tmp("G0_k_t_cluster_excluded");
-    
-      Gnuplot plot_obj("lines");
-      for(int R_ind=0; R_ind<r_DCA::dmn_size(); R_ind++)  
-	{
-	  for(int t_ind=0; t_ind<t::dmn_size(); t_ind++)
-	    tmp(t_ind) = MOMS.G0_k_t_cluster_excluded(0,0,R_ind,t_ind);
-	
-	  SHOW::execute(plot_obj, tmp);      
-	}
-    
-      plot_obj.showonscreen();
-    }
-
-    {
-      FUNC_LIB::function<float, t> tmp("G0_r_t");
-    
-      Gnuplot plot_obj("lines");
-      for(int R_ind=0; R_ind<r_DCA::dmn_size(); R_ind++)  
-	{
-	  for(int t_ind=0; t_ind<t::dmn_size(); t_ind++)
-	    tmp(t_ind) = MOMS.G0_r_t_cluster_excluded(0,0,R_ind,t_ind);
-	
-	  SHOW::execute(plot_obj, tmp);      
-	}
-    
-      plot_obj.showonscreen();
-    }
-  }
-
+  compute_G0_R_t_cluster_excluded();
 }
 
-#endif
+/*
+ *   G = G_0 + G_0*S*G = G_0 * (1 + S*G)
+ *
+ *   G_0 = G*(1 + S*G)^-1
+ */
+template <typename parameters_type, typename MOMS_type>
+void cluster_exclusion<parameters_type, MOMS_type>::compute_G0_K_w_cluster_excluded() {
+  profiler_type profiler(__FUNCTION__, "cluster_exclusion", __LINE__);
+
+  LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> G_matrix("G_matrix", nu::dmn_size());
+  LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> S_matrix("S_matrix", nu::dmn_size());
+  LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> one_plus_S_G("one_plus_S_G", nu::dmn_size());
+  LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> G0_matrix("G0_matrix", nu::dmn_size());
+
+  LIN_ALG::GEINV<LIN_ALG::CPU>::plan<std::complex<double>> geinv_obj(one_plus_S_G);
+
+  for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++) {
+    for (int K_ind = 0; K_ind < k_DCA::dmn_size(); K_ind++) {
+      for (int j = 0; j < nu::dmn_size(); j++)
+        for (int i = 0; i < nu::dmn_size(); i++)
+          G_matrix(i, j) = MOMS.G_k_w(i, j, K_ind, w_ind);
+
+      for (int j = 0; j < nu::dmn_size(); j++)
+        for (int i = 0; i < nu::dmn_size(); i++)
+          S_matrix(i, j) = MOMS.Sigma_cluster(i, j, K_ind, w_ind);
+
+      for (int j = 0; j < nu::dmn_size(); j++)
+        for (int i = 0; i < nu::dmn_size(); i++)
+          one_plus_S_G(i, j) = 0;
+
+      for (int j = 0; j < nu::dmn_size(); j++)
+        for (int i = 0; i < nu::dmn_size(); i++)
+          for (int l = 0; l < nu::dmn_size(); l++)
+            one_plus_S_G(i, j) += S_matrix(i, l) * G_matrix(l, j);
+
+      for (int i = 0; i < nu::dmn_size(); i++)
+        one_plus_S_G(i, i) += 1.;
+
+      geinv_obj.execute(one_plus_S_G);
+
+      for (int j = 0; j < nu::dmn_size(); j++)
+        for (int i = 0; i < nu::dmn_size(); i++)
+          G0_matrix(i, j) = 0;
+
+      for (int j = 0; j < nu::dmn_size(); j++)
+        for (int i = 0; i < nu::dmn_size(); i++)
+          for (int l = 0; l < nu::dmn_size(); l++)
+            G0_matrix(i, j) += G_matrix(i, l) * one_plus_S_G(l, j);
+
+      for (int j = 0; j < nu::dmn_size(); j++)
+        for (int i = 0; i < nu::dmn_size(); i++)
+          MOMS.G0_k_w_cluster_excluded(i, j, K_ind, w_ind) = G0_matrix(i, j);
+    }
+  }
+}
+
+template <typename parameters_type, typename MOMS_type>
+void cluster_exclusion<parameters_type, MOMS_type>::compute_G0_R_t_cluster_excluded() {
+  profiler_type profiler(__FUNCTION__, "cluster_exclusion", __LINE__);
+
+  MOMS.G0_k_w_cluster_excluded -= MOMS.G0_k_w;
+
+  {
+    math_algorithms::functional_transforms::TRANSFORM<w, t>::execute(MOMS.G0_k_w_cluster_excluded,
+                                                                     MOMS.G0_k_t_cluster_excluded);
+
+    MOMS.G0_k_t_cluster_excluded += MOMS.G0_k_t;
+
+    math_algorithms::functional_transforms::TRANSFORM<k_DCA, r_DCA>::execute(
+        MOMS.G0_k_t_cluster_excluded, MOMS.G0_r_t_cluster_excluded);
+  }
+
+  MOMS.G0_k_w_cluster_excluded += MOMS.G0_k_w;
+}
+
+template <typename parameters_type, typename MOMS_type>
+void cluster_exclusion<parameters_type, MOMS_type>::plot_G0_R_t_cluster_excluded() {
+  {
+    FUNC_LIB::function<float, t> tmp("G0_k_t");
+
+    Gnuplot plot_obj("lines");
+    for (int R_ind = 0; R_ind < r_DCA::dmn_size(); R_ind++) {
+      for (int t_ind = 0; t_ind < t::dmn_size(); t_ind++)
+        tmp(t_ind) = MOMS.G0_k_t(0, 0, R_ind, t_ind);
+
+      SHOW::execute(plot_obj, tmp);
+    }
+
+    plot_obj.showonscreen();
+  }
+
+  {
+    FUNC_LIB::function<float, t> tmp("G0_k_t_cluster_excluded");
+
+    Gnuplot plot_obj("lines");
+    for (int R_ind = 0; R_ind < r_DCA::dmn_size(); R_ind++) {
+      for (int t_ind = 0; t_ind < t::dmn_size(); t_ind++)
+        tmp(t_ind) = MOMS.G0_k_t_cluster_excluded(0, 0, R_ind, t_ind);
+
+      SHOW::execute(plot_obj, tmp);
+    }
+
+    plot_obj.showonscreen();
+  }
+
+  {
+    FUNC_LIB::function<float, t> tmp("G0_r_t");
+
+    Gnuplot plot_obj("lines");
+    for (int R_ind = 0; R_ind < r_DCA::dmn_size(); R_ind++) {
+      for (int t_ind = 0; t_ind < t::dmn_size(); t_ind++)
+        tmp(t_ind) = MOMS.G0_r_t_cluster_excluded(0, 0, R_ind, t_ind);
+
+      SHOW::execute(plot_obj, tmp);
+    }
+
+    plot_obj.showonscreen();
+  }
+}
+}
+
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_CLUSTER_EXCLUSION_HPP
