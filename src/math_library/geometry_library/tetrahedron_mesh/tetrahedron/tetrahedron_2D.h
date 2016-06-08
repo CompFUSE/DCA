@@ -12,6 +12,7 @@
 #ifndef MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_TETRAHEDRON_2D_H
 #define MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_TETRAHEDRON_2D_H
 
+#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron/eigenvalue_degeneracy.hpp"
 #include "math_library/geometry_library/tetrahedron_mesh/tetrahedron/tetrahedron_template.h"
 
 #include <algorithm>
