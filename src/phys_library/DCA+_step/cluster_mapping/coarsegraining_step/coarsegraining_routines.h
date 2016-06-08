@@ -1,21 +1,45 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
-#ifndef DCA_COARSEGRAINING_ROUTINES_H
-#define DCA_COARSEGRAINING_ROUTINES_H
+#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_COARSEGRAINING_ROUTINES_H
+#define PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_COARSEGRAINING_ROUTINES_H
 
-#include "phys_library/domain_types.hpp"
+#include <complex>
+
+#include "comp_library/function_library/include_function_library.h"
+#include "comp_library/linalg/linalg.hpp"
+
 #include "math_library/geometry_library/tetrahedron_mesh/tetrahedron_mesh.h"
-#include "math_library/geometry_library/gaussian_quadrature/include_gaussian_quadrature.h"
-#include "phys_library/DCA+_step/lattice_mapping/interpolation/interpolation_matrices.h"
+#include "math_library/geometry_library/gaussian_quadrature/gaussian_quadrature_domain.h"
+
+#include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_domain.h"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/quadrature_integration.h"
-#include "phys_library/DCA+_step/lattice_mapping/interpolation/transform_to_alpha_step.h"
-#include "coarsegraining_domain.h"
-using namespace types;
+#include "phys_library/DCA+_step/lattice_mapping/interpolation/interpolation_matrices.h"
+#include "phys_library/DCA+_step/lattice_mapping/interpolation/transform_to_alpha.hpp"
+
+#include "phys_library/domains/cluster/cluster_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
+#include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
+#include "phys_library/domains/time_and_frequency/frequency_domain_real_axis.h"
+#include "phys_library/domains/time_and_frequency/time_domain.h"
 
 namespace DCA {
 
 template <typename scalar_type, typename k_dmn_t, typename q_dmn_t>
 struct coarsegraining_functions {
+  using b = dmn_0<electron_band_domain>;
+  using s = dmn_0<electron_spin_domain>;
+  using nu = dmn_variadic<b, s>;  // orbital-spin index
+
   int K_ind;
   int w_ind;
 
@@ -33,20 +57,31 @@ struct coarsegraining_functions {
 
 template <typename parameters_type, typename K_dmn>
 class coarsegraining_routines {
-  typedef typename K_dmn::parameter_type k_cluster_type;
+public:
+  using concurrency_type = typename parameters_type::concurrency_type;
+
+  using k_cluster_type = typename K_dmn::parameter_type;
+
+  using tetrahedron_dmn = dmn_0<math_algorithms::tetrahedron_mesh<K_dmn>>;
+  using quadrature_dmn = math_algorithms::gaussian_quadrature_domain<tetrahedron_dmn>;
+
+  using t = dmn_0<time_domain>;
+  using w = dmn_0<frequency_domain>;
+  using w_REAL = dmn_0<frequency_domain_real_axis>;
+
+  using b = dmn_0<electron_band_domain>;
+  using s = dmn_0<electron_spin_domain>;
+  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using nu_nu = dmn_variadic<nu, nu>;
+
+  using DCA_k_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                            CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
+  using k_DCA = dmn_0<DCA_k_cluster_type>;
 
   const static int DIMENSION = K_dmn::parameter_type::DIMENSION;
 
-  typedef typename parameters_type::concurrency_type concurrency_type;
-
-  typedef dmn_0<math_algorithms::tetrahedron_mesh<K_dmn>> tetrahedron_dmn;
-
-  typedef math_algorithms::gaussian_quadrature_domain<tetrahedron_dmn> quadrature_dmn;
-
 public:
   coarsegraining_routines(parameters_type& parameters_ref);
-
-  ~coarsegraining_routines();
 
 protected:
   void compute_tetrahedron_mesh(int k_mesh_refinement, int number_of_periods);
@@ -144,9 +179,6 @@ protected:
 template <typename parameters_type, typename K_dmn>
 coarsegraining_routines<parameters_type, K_dmn>::coarsegraining_routines(parameters_type& parameters_ref)
     : parameters(parameters_ref), concurrency(parameters.get_concurrency()) {}
-
-template <typename parameters_type, typename K_dmn>
-coarsegraining_routines<parameters_type, K_dmn>::~coarsegraining_routines() {}
 
 template <typename parameters_type, typename K_dmn>
 void coarsegraining_routines<parameters_type, K_dmn>::compute_tetrahedron_mesh(int k_mesh_refinement,
@@ -442,4 +474,4 @@ void coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_w(
 }
 }
 
-#endif
+#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_COARSEGRAINING_ROUTINES_H

@@ -1,8 +1,26 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
-#ifndef DCA_TETRAHEDRON_ROUTINES_INVERSE_MATRIX_FUNCTION_H
-#define DCA_TETRAHEDRON_ROUTINES_INVERSE_MATRIX_FUNCTION_H
-#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron_template.h"
+#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_TETRAHEDRON_ROUTINES_INVERSE_MATRIX_FUNCTION_H
+#define PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_TETRAHEDRON_ROUTINES_INVERSE_MATRIX_FUNCTION_H
+
+#include <cassert>
+#include <complex>
+#include <stdexcept>
+#include <utility>
+#include <vector>
+
+#include "comp_library/linalg/linalg.hpp"
+#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron/eigenvalue_degeneracy.hpp"
+#include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/tetrahedron_integration_data.hpp"
 
 namespace DCA {
 
@@ -85,7 +103,7 @@ private:
       std::vector<matrix_element_struct<scalartype>>& vec);
 
   template <typename scalartype>
-  static void integrate_eigenvalues_2D(eigenvalue_degeneracy degeneracy,
+  static void integrate_eigenvalues_2D(math_algorithms::eigenvalue_degeneracy degeneracy,
                                        std::vector<matrix_element_struct<scalartype>>& vec);
 
   template <typename scalartype>
@@ -94,19 +112,23 @@ private:
 
   template <typename scalartype>
   static std::complex<scalartype> integrate_matrix_element_3D(
-      eigenvalue_degeneracy degeneracy, std::vector<matrix_element_struct<scalartype>>& vec);
+      math_algorithms::eigenvalue_degeneracy degeneracy,
+      std::vector<matrix_element_struct<scalartype>>& vec);
 
   template <typename scalartype>
-  static void integrate_eigenvalues_3D(eigenvalue_degeneracy degeneracy,
+  static void integrate_eigenvalues_3D(math_algorithms::eigenvalue_degeneracy degeneracy,
                                        std::vector<matrix_element_struct<scalartype>>& vec);
   template <typename scalartype>
-  static eigenvalue_degeneracy find_degeneracy_1D(std::vector<matrix_element_struct<scalartype>>& vec);
+  static math_algorithms::eigenvalue_degeneracy find_degeneracy_1D(
+      std::vector<matrix_element_struct<scalartype>>& vec);
 
   template <typename scalartype>
-  static eigenvalue_degeneracy find_degeneracy_2D(std::vector<matrix_element_struct<scalartype>>& vec);
+  static math_algorithms::eigenvalue_degeneracy find_degeneracy_2D(
+      std::vector<matrix_element_struct<scalartype>>& vec);
 
   template <typename scalartype>
-  static eigenvalue_degeneracy find_degeneracy_3D(std::vector<matrix_element_struct<scalartype>>& vec);
+  static math_algorithms::eigenvalue_degeneracy find_degeneracy_3D(
+      std::vector<matrix_element_struct<scalartype>>& vec);
 };
 
 template <typename scalartype>
@@ -270,7 +292,7 @@ std::complex<scalartype> tetrahedron_routines_inverse_matrix_function::integrate
     std::vector<matrix_element_struct<scalartype>>& vec) {
   assert(vec.size() == 2);
 
-  eigenvalue_degeneracy degeneracy = find_degeneracy_1D(vec);
+  math_algorithms::eigenvalue_degeneracy degeneracy = find_degeneracy_1D(vec);
 
   std::complex<scalartype> r[2];
   std::complex<scalartype> f[3];
@@ -282,12 +304,12 @@ std::complex<scalartype> tetrahedron_routines_inverse_matrix_function::integrate
   std::complex<scalartype> e1 = vec[1].e;
 
   switch (degeneracy) {
-    case NO_DEGENERACY: {
+    case math_algorithms::NO_DEGENERACY: {
       r[0] = (e0 - e1 - e1 * Log(-e0) + e1 * Log(-e1)) / Power(e0 - e1, 2);
       r[1] = (-e0 + e1 + e0 * Log(-e0) - e0 * Log(-e1)) / Power(e0 - e1, 2);
     } break;
 
-    case TWOFOLD_DEGENERACY: {
+    case math_algorithms::TWOFOLD_DEGENERACY: {
       r[0] = 1 / (2. * e0);
       r[1] = 1 / (2. * e0);
     } break;
@@ -309,14 +331,14 @@ std::complex<scalartype> tetrahedron_routines_inverse_matrix_function::integrate
 }
 
 template <typename scalartype>
-eigenvalue_degeneracy tetrahedron_routines_inverse_matrix_function::find_degeneracy_1D(
+math_algorithms::eigenvalue_degeneracy tetrahedron_routines_inverse_matrix_function::find_degeneracy_1D(
     std::vector<matrix_element_struct<scalartype>>& vec) {
   assert(vec.size() == 2);
 
   if (are_equal(vec[0].e, vec[1].e))
-    return TWOFOLD_DEGENERACY;
+    return math_algorithms::TWOFOLD_DEGENERACY;
 
-  return NO_DEGENERACY;
+  return math_algorithms::NO_DEGENERACY;
 }
 
 /************************************
@@ -411,7 +433,7 @@ void tetrahedron_routines_inverse_matrix_function::execute(
       vec[1].log_min_e = Log(-vec[1].e);
       vec[2].log_min_e = Log(-vec[2].e);
 
-      eigenvalue_degeneracy degeneracy = find_degeneracy_2D(vec);
+      math_algorithms::eigenvalue_degeneracy degeneracy = find_degeneracy_2D(vec);
 
       integrate_eigenvalues_2D(degeneracy, vec);
 
@@ -439,7 +461,7 @@ std::complex<scalartype> tetrahedron_routines_inverse_matrix_function::integrate
     std::vector<matrix_element_struct<scalartype>>& vec) {
   assert(vec.size() == 3);
 
-  eigenvalue_degeneracy degeneracy = find_degeneracy_2D(vec);
+  math_algorithms::eigenvalue_degeneracy degeneracy = find_degeneracy_2D(vec);
 
   std::complex<scalartype> r[3];
   std::complex<scalartype> f[3];
@@ -453,7 +475,7 @@ std::complex<scalartype> tetrahedron_routines_inverse_matrix_function::integrate
   std::complex<scalartype> e2 = vec[2].e;
 
   switch (degeneracy) {
-    case NO_DEGENERACY: {
+    case math_algorithms::NO_DEGENERACY: {
       assert(not_equal(vec[0].e, vec[1].e));
       assert(not_equal(vec[1].e, vec[2].e));
       assert(not_equal(vec[2].e, vec[0].e));
@@ -473,7 +495,7 @@ std::complex<scalartype> tetrahedron_routines_inverse_matrix_function::integrate
           (2. * (e0 - e1) * Power(e0 - e2, 2) * Power(e1 - e2, 2));
     } break;
 
-    case TWOFOLD_DEGENERACY: {
+    case math_algorithms::TWOFOLD_DEGENERACY: {
       assert(not_equal(vec[0].e, vec[1].e));
       assert(are_equal(vec[1].e, vec[2].e));
 
@@ -487,7 +509,7 @@ std::complex<scalartype> tetrahedron_routines_inverse_matrix_function::integrate
              (4. * Power(e0 - e1, 3));
     } break;
 
-    case THREEFOLD_DEGENERACY: {
+    case math_algorithms::THREEFOLD_DEGENERACY: {
       assert(are_equal(vec[0].e, vec[1].e));
       assert(are_equal(vec[0].e, vec[2].e));
 
@@ -515,7 +537,8 @@ std::complex<scalartype> tetrahedron_routines_inverse_matrix_function::integrate
 
 template <typename scalartype>
 void tetrahedron_routines_inverse_matrix_function::integrate_eigenvalues_2D(
-    eigenvalue_degeneracy degeneracy, std::vector<matrix_element_struct<scalartype>>& vec) {
+    math_algorithms::eigenvalue_degeneracy degeneracy,
+    std::vector<matrix_element_struct<scalartype>>& vec) {
   assert(vec.size() == 3);
 
   int i0 = vec[0].i;
@@ -531,7 +554,7 @@ void tetrahedron_routines_inverse_matrix_function::integrate_eigenvalues_2D(
   std::complex<scalartype> log_min_e2 = vec[2].log_min_e;
 
   switch (degeneracy) {
-    case NO_DEGENERACY: {
+    case math_algorithms::NO_DEGENERACY: {
       assert(not_equal(vec[0].e, vec[1].e));
       assert(not_equal(vec[1].e, vec[2].e));
       assert(not_equal(vec[2].e, vec[0].e));
@@ -553,7 +576,7 @@ void tetrahedron_routines_inverse_matrix_function::integrate_eigenvalues_2D(
                   (2. * (e0 - e1) * Power(e0 - e2, 2) * Power(e1 - e2, 2));
     } break;
 
-    case TWOFOLD_DEGENERACY: {
+    case math_algorithms::TWOFOLD_DEGENERACY: {
       assert(not_equal(vec[0].e, vec[1].e));
       assert(are_equal(vec[1].e, vec[2].e));
 
@@ -568,7 +591,7 @@ void tetrahedron_routines_inverse_matrix_function::integrate_eigenvalues_2D(
                   (4. * Power(e0 - e1, 3));
     } break;
 
-    case THREEFOLD_DEGENERACY: {
+    case math_algorithms::THREEFOLD_DEGENERACY: {
       assert(are_equal(vec[0].e, vec[1].e));
       assert(are_equal(vec[0].e, vec[2].e));
 
@@ -583,26 +606,26 @@ void tetrahedron_routines_inverse_matrix_function::integrate_eigenvalues_2D(
 }
 
 template <typename scalartype>
-eigenvalue_degeneracy tetrahedron_routines_inverse_matrix_function::find_degeneracy_2D(
+math_algorithms::eigenvalue_degeneracy tetrahedron_routines_inverse_matrix_function::find_degeneracy_2D(
     std::vector<matrix_element_struct<scalartype>>& vec) {
   assert(vec.size() == 3);
 
   if (not_equal(vec[0].e, vec[1].e) and not_equal(vec[1].e, vec[2].e) and
       not_equal(vec[2].e, vec[0].e))
-    return NO_DEGENERACY;
+    return math_algorithms::NO_DEGENERACY;
 
   if (are_equal(vec[0].e, vec[1].e) and are_equal(vec[0].e, vec[2].e))
-    return THREEFOLD_DEGENERACY;
+    return math_algorithms::THREEFOLD_DEGENERACY;
 
   do {
     if (not_equal(vec[0].e, vec[1].e) and are_equal(vec[1].e, vec[2].e))
-      return TWOFOLD_DEGENERACY;
+      return math_algorithms::TWOFOLD_DEGENERACY;
   } while (std::next_permutation(
       vec.begin(), vec.end(),
       tetrahedron_routines_inverse_matrix_function::permutation_comp<scalartype>));
 
   throw std::logic_error(__FUNCTION__);
-  return NO_DEGENERACY;
+  return math_algorithms::NO_DEGENERACY;
 }
 
 /************************************
@@ -691,7 +714,7 @@ void tetrahedron_routines_inverse_matrix_function::execute(
     vec[2].log_min_e = Log(-vec[2].e);
     vec[3].log_min_e = Log(-vec[3].e);
 
-    eigenvalue_degeneracy degeneracy = find_degeneracy_3D(vec);
+    math_algorithms::eigenvalue_degeneracy degeneracy = find_degeneracy_3D(vec);
 
     integrate_eigenvalues_3D(degeneracy, vec);
 
@@ -720,7 +743,7 @@ std::complex<scalartype> tetrahedron_routines_inverse_matrix_function::integrate
     std::vector<matrix_element_struct<scalartype>>& vec) {
   assert(vec.size() == 4);
 
-  eigenvalue_degeneracy degeneracy = find_degeneracy_3D(vec);
+  math_algorithms::eigenvalue_degeneracy degeneracy = find_degeneracy_3D(vec);
 
   std::complex<scalartype> r[4];
   std::complex<scalartype> f[4];
@@ -741,7 +764,7 @@ std::complex<scalartype> tetrahedron_routines_inverse_matrix_function::integrate
   std::complex<scalartype> log_min_e3 = vec[3].log_min_e;
 
   switch (degeneracy) {
-    case NO_DEGENERACY: {
+    case math_algorithms::NO_DEGENERACY: {
       assert(not_equal(e0, e1));
       assert(not_equal(e1, e2));
       assert(not_equal(e2, e3));
@@ -792,7 +815,7 @@ std::complex<scalartype> tetrahedron_routines_inverse_matrix_function::integrate
              (6. * (e0 - e1) * (e0 - e2) * Power(e0 - e3, 2));
     } break;
 
-    case TWOFOLD_DEGENERACY: {
+    case math_algorithms::TWOFOLD_DEGENERACY: {
       assert(not_equal(e0, e1));
       assert(not_equal(e1, e2));
       assert(not_equal(e2, e0));
@@ -833,7 +856,7 @@ std::complex<scalartype> tetrahedron_routines_inverse_matrix_function::integrate
              (12. * (e0 - e1) * Power(e0 - e2, 3) * Power(-e1 + e2, 3));
     } break;
 
-    case THREEFOLD_DEGENERACY_A: {
+    case math_algorithms::THREEFOLD_DEGENERACY_A: {
       assert(not_equal(e0, e1));
       assert(are_equal(e2, e1));
       assert(are_equal(e3, e1));
@@ -852,7 +875,7 @@ std::complex<scalartype> tetrahedron_routines_inverse_matrix_function::integrate
              (36. * Power(e0 - e1, 4));
     } break;
 
-    case THREEFOLD_DEGENERACY_B: {
+    case math_algorithms::THREEFOLD_DEGENERACY_B: {
       assert(not_equal(e0, e1));
       assert(are_equal(e0, e2));
 
@@ -870,7 +893,7 @@ std::complex<scalartype> tetrahedron_routines_inverse_matrix_function::integrate
              (12. * Power(e0 - e1, 4));
     } break;
 
-    case FOURFOLD_DEGENERACY: {
+    case math_algorithms::FOURFOLD_DEGENERACY: {
       assert(are_equal(e0, e1));
       assert(are_equal(e0, e2));
       assert(are_equal(e0, e3));
@@ -901,7 +924,8 @@ std::complex<scalartype> tetrahedron_routines_inverse_matrix_function::integrate
 
 template <typename scalartype>
 std::complex<scalartype> tetrahedron_routines_inverse_matrix_function::integrate_matrix_element_3D(
-    eigenvalue_degeneracy degeneracy, std::vector<matrix_element_struct<scalartype>>& vec) {
+    math_algorithms::eigenvalue_degeneracy degeneracy,
+    std::vector<matrix_element_struct<scalartype>>& vec) {
   assert(vec.size() == 4);
   std::complex<scalartype> r[4];
   std::complex<scalartype> f[4];
@@ -927,7 +951,7 @@ std::complex<scalartype> tetrahedron_routines_inverse_matrix_function::integrate
   std::complex<scalartype> log_min_e3 = vec[3].log_min_e;
 
   switch (degeneracy) {
-    case NO_DEGENERACY: {
+    case math_algorithms::NO_DEGENERACY: {
       assert(not_equal(e0, e1));
       assert(not_equal(e1, e2));
       assert(not_equal(e2, e3));
@@ -978,7 +1002,7 @@ std::complex<scalartype> tetrahedron_routines_inverse_matrix_function::integrate
              (6. * (e0 - e1) * (e0 - e2) * Power(e0 - e3, 2));
     } break;
 
-    case TWOFOLD_DEGENERACY: {
+    case math_algorithms::TWOFOLD_DEGENERACY: {
       assert(not_equal(e0, e1));
       assert(not_equal(e1, e2));
       assert(not_equal(e2, e0));
@@ -1019,7 +1043,7 @@ std::complex<scalartype> tetrahedron_routines_inverse_matrix_function::integrate
              (12. * (e0 - e1) * Power(e0 - e2, 3) * Power(-e1 + e2, 3));
     } break;
 
-    case THREEFOLD_DEGENERACY_A: {
+    case math_algorithms::THREEFOLD_DEGENERACY_A: {
       assert(not_equal(e0, e1));
       assert(are_equal(e2, e1));
       assert(are_equal(e3, e1));
@@ -1038,7 +1062,7 @@ std::complex<scalartype> tetrahedron_routines_inverse_matrix_function::integrate
              (36. * Power(e0 - e1, 4));
     } break;
 
-    case THREEFOLD_DEGENERACY_B: {
+    case math_algorithms::THREEFOLD_DEGENERACY_B: {
       assert(not_equal(e0, e1));
       assert(are_equal(e0, e2));
       assert(are_equal(e1, e3));
@@ -1057,7 +1081,7 @@ std::complex<scalartype> tetrahedron_routines_inverse_matrix_function::integrate
              (12. * Power(e0 - e1, 4));
     } break;
 
-    case FOURFOLD_DEGENERACY: {
+    case math_algorithms::FOURFOLD_DEGENERACY: {
       assert(are_equal(e0, e1));
       assert(are_equal(e0, e2));
       assert(are_equal(e0, e3));
@@ -1088,7 +1112,8 @@ std::complex<scalartype> tetrahedron_routines_inverse_matrix_function::integrate
 
 template <typename scalartype>
 void tetrahedron_routines_inverse_matrix_function::integrate_eigenvalues_3D(
-    eigenvalue_degeneracy degeneracy, std::vector<matrix_element_struct<scalartype>>& vec) {
+    math_algorithms::eigenvalue_degeneracy degeneracy,
+    std::vector<matrix_element_struct<scalartype>>& vec) {
   assert(vec.size() == 4);
 
   int i0 = vec[0].i;
@@ -1107,7 +1132,7 @@ void tetrahedron_routines_inverse_matrix_function::integrate_eigenvalues_3D(
   std::complex<scalartype> log_min_e3 = vec[3].log_min_e;
 
   switch (degeneracy) {
-    case NO_DEGENERACY: {
+    case math_algorithms::NO_DEGENERACY: {
       assert(not_equal(e0, e1));
       assert(not_equal(e1, e2));
       assert(not_equal(e2, e3));
@@ -1159,7 +1184,7 @@ void tetrahedron_routines_inverse_matrix_function::integrate_eigenvalues_3D(
                   (6. * (e0 - e1) * (e0 - e2) * Power(e0 - e3, 2));
     } break;
 
-    case TWOFOLD_DEGENERACY: {
+    case math_algorithms::TWOFOLD_DEGENERACY: {
       assert(not_equal(e0, e1));
       assert(not_equal(e1, e2));
       assert(not_equal(e2, e0));
@@ -1200,7 +1225,7 @@ void tetrahedron_routines_inverse_matrix_function::integrate_eigenvalues_3D(
                   (12. * (e0 - e1) * Power(e0 - e2, 3) * Power(-e1 + e2, 3));
     } break;
 
-    case THREEFOLD_DEGENERACY_A: {
+    case math_algorithms::THREEFOLD_DEGENERACY_A: {
       assert(not_equal(e0, e1));
       assert(are_equal(e2, e1));
       assert(are_equal(e3, e1));
@@ -1219,7 +1244,7 @@ void tetrahedron_routines_inverse_matrix_function::integrate_eigenvalues_3D(
                   (36. * Power(e0 - e1, 4));
     } break;
 
-    case THREEFOLD_DEGENERACY_B: {
+    case math_algorithms::THREEFOLD_DEGENERACY_B: {
       assert(not_equal(e0, e1));
       assert(are_equal(e0, e2));
       assert(are_equal(e1, e3));
@@ -1238,7 +1263,7 @@ void tetrahedron_routines_inverse_matrix_function::integrate_eigenvalues_3D(
                   (12. * Power(e0 - e1, 4));
     } break;
 
-    case FOURFOLD_DEGENERACY: {
+    case math_algorithms::FOURFOLD_DEGENERACY: {
       assert(are_equal(e0, e1));
       assert(are_equal(e0, e2));
       assert(are_equal(e0, e3));
@@ -1255,19 +1280,19 @@ void tetrahedron_routines_inverse_matrix_function::integrate_eigenvalues_3D(
 }
 
 template <typename scalartype>
-eigenvalue_degeneracy tetrahedron_routines_inverse_matrix_function::find_degeneracy_3D(
+math_algorithms::eigenvalue_degeneracy tetrahedron_routines_inverse_matrix_function::find_degeneracy_3D(
     std::vector<matrix_element_struct<scalartype>>& vec) {
   assert(vec.size() == 4);
 
   if (not_equal(vec[1].e, vec[0].e) and not_equal(vec[2].e, vec[1].e) and
       not_equal(vec[3].e, vec[2].e) and not_equal(vec[0].e, vec[3].e) and
       not_equal(vec[3].e, vec[1].e) and not_equal(vec[2].e, vec[0].e)) {
-    return NO_DEGENERACY;
+    return math_algorithms::NO_DEGENERACY;
   }
 
   if (are_equal(vec[1].e, vec[0].e) and are_equal(vec[2].e, vec[0].e) and
       are_equal(vec[3].e, vec[0].e)) {
-    return FOURFOLD_DEGENERACY;
+    return math_algorithms::FOURFOLD_DEGENERACY;
   }
 
   vec[0].i = 0;
@@ -1278,25 +1303,25 @@ eigenvalue_degeneracy tetrahedron_routines_inverse_matrix_function::find_degener
   do {
     if (not_equal(vec[1].e, vec[0].e) and not_equal(vec[2].e, vec[1].e) and
         not_equal(vec[0].e, vec[2].e) and are_equal(vec[3].e, vec[2].e)) {
-      return TWOFOLD_DEGENERACY;
+      return math_algorithms::TWOFOLD_DEGENERACY;
     }
 
     if (not_equal(vec[1].e, vec[0].e) and are_equal(vec[2].e, vec[1].e) and
         are_equal(vec[3].e, vec[1].e)) {
-      return THREEFOLD_DEGENERACY_A;
+      return math_algorithms::THREEFOLD_DEGENERACY_A;
     }
 
     if (not_equal(vec[1].e, vec[0].e) and are_equal(vec[2].e, vec[0].e) and
         are_equal(vec[3].e, vec[1].e)) {
-      return THREEFOLD_DEGENERACY_B;
+      return math_algorithms::THREEFOLD_DEGENERACY_B;
     }
   } while (std::next_permutation(
       vec.begin(), vec.end(),
       tetrahedron_routines_inverse_matrix_function::permutation_comp<scalartype>));
 
   throw std::logic_error(__FUNCTION__);
-  return NO_DEGENERACY;
+  return math_algorithms::NO_DEGENERACY;
 }
 }
 
-#endif
+#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_TETRAHEDRON_ROUTINES_INVERSE_MATRIX_FUNCTION_H

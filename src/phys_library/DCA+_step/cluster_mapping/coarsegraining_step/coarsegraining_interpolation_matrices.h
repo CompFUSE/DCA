@@ -1,26 +1,48 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
 #ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_COARSEGRAINING_INTERPOLATION_MATRICES_H
 #define PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_COARSEGRAINING_INTERPOLATION_MATRICES_H
 
-#include "coarsgraining_names.hpp"
-#include "phys_library/DCA+_step/lattice_mapping/interpolation/interpolation_matrices.h"
+#include <cassert>
+#include <cmath>
+#include <complex>
+#include <iostream>
+#include <utility>
+
+#include "comp_library/linalg/linalg.hpp"
+#include "comp_library/function_library/include_function_library.h"
+#include "math_library/functional_transforms/basis_transforms/basis_transforms.hpp"
+#include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_names.hpp"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_domain.h"
+#include "phys_library/DCA+_step/lattice_mapping/interpolation/interpolation_matrices.h"
+#include "phys_library/domains/cluster/centered_cluster_domain.h"
+
 namespace DCA {
+
 template <typename scalar_type, typename k_dmn, typename K_dmn, COARSEGRAIN_DOMAIN_NAMES NAME>
 class interpolation_matrices<scalar_type, k_dmn, dmn_0<coarsegraining_domain<K_dmn, NAME>>> {
-  typedef typename k_dmn::parameter_type::dual_type r_dmn;
-
-  typedef dmn_0<coarsegraining_domain<K_dmn, NAME>> q_dmn;
-  typedef dmn_0<centered_cluster_domain<r_dmn>> r_centered_dmn;
-
-  typedef math_algorithms::functional_transforms::basis_transform<k_dmn, r_centered_dmn> trafo_k_to_r_type;
-  typedef math_algorithms::functional_transforms::basis_transform<r_centered_dmn, q_dmn> trafo_r_to_q_type;
-
-  typedef typename trafo_k_to_r_type::matrix_type trafo_matrix_type;
-
 public:
-  typedef LIN_ALG::matrix<scalar_type, LIN_ALG::CPU> matrix_type;
+  using r_dmn = typename k_dmn::parameter_type::dual_type;
+
+  using q_dmn = dmn_0<coarsegraining_domain<K_dmn, NAME>>;
+  using r_centered_dmn = dmn_0<centered_cluster_domain<r_dmn>>;
+
+  using trafo_k_to_r_type =
+      math_algorithms::functional_transforms::basis_transform<k_dmn, r_centered_dmn>;
+  using trafo_r_to_q_type =
+      math_algorithms::functional_transforms::basis_transform<r_centered_dmn, q_dmn>;
+  using trafo_matrix_type = typename trafo_k_to_r_type::matrix_type;
+
+  using matrix_type = LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>;
 
 public:
   static FUNC_LIB::function<matrix_type, K_dmn>& get() {

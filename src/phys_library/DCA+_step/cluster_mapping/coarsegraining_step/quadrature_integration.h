@@ -1,14 +1,36 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
-#ifndef DCA_QUADRATURE_INTEGRATION_H
-#define DCA_QUADRATURE_INTEGRATION_H
+#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_QUADRATURE_INTEGRATION_H
+#define PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_QUADRATURE_INTEGRATION_H
 
-#include "dca/concurrency/concurrency.hpp"
+#include <complex>
+#include <iostream>
+#include <stdexcept>
+
+#include "dca/concurrency/parallelization_pthreads.h"
+#include "comp_library/function_library/include_function_library.h"
+#include "comp_library/linalg/linalg.hpp"
+#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
 
 namespace DCA {
 
 template <typename parameters_type, typename q_dmn_t>
 class quadrature_integration {
+public:
+  using b = dmn_0<electron_band_domain>;
+  using s = dmn_0<electron_spin_domain>;
+  using nu = dmn_variadic<b, s>;
+
 public:
   template <typename scalar_type>
   static void quadrature_integration_G_q_w_st(
@@ -49,8 +71,6 @@ private:
   struct quadrature_integration_functions {
     quadrature_integration_functions()
         : I_q_ptr(NULL), H_q_ptr(NULL), S_q_ptr(NULL), G_q_ptr(NULL) {}
-
-    ~quadrature_integration_functions() {}
 
     scalar_type beta;
 
@@ -131,7 +151,8 @@ void* quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G
 
   q_dmn_t q_dmn;
   std::pair<int, int> q_bounds =
-      dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY>::get_bounds(id, nr_threads, q_dmn);
+      dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY>::get_bounds(id, nr_threads,
+                                                                                     q_dmn);
 
   {
     LIN_ALG::matrix<std::complex<scalar_type>, LIN_ALG::CPU> G_inv("G_inv", nu::dmn_size());
@@ -257,7 +278,8 @@ void* quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G
 
   q_dmn_t q_dmn;
   std::pair<int, int> q_bounds =
-      dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY>::get_bounds(id, nr_threads, q_dmn);
+      dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY>::get_bounds(id, nr_threads,
+                                                                                     q_dmn);
 
   {
     LIN_ALG::matrix<std::complex<scalar_type>, LIN_ALG::CPU> H_m("H_m", nu::dmn_size());
@@ -307,4 +329,4 @@ void* quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G
 }
 }
 
-#endif
+#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_QUADRATURE_INTEGRATION_H

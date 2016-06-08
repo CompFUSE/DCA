@@ -1,52 +1,78 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
-#ifndef DCA_COARSEGRAINING_SP_H
-#define DCA_COARSEGRAINING_SP_H
+#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_COARSEGRAINING_SP_H
+#define PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_COARSEGRAINING_SP_H
+
+#include <complex>
+#include <iostream>
 #include <sstream>
-#include "phys_library/domain_types.hpp"
-#include "comp_library/profiler_library/include_profiling.h"
-// TODO decide if including template class is better.
+#include <vector>
+
+#include "dca/util/print_time.hpp"
+#include "comp_library/function_library/include_function_library.h"
+#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron_mesh.h"
+#include "math_library/geometry_library/gaussian_quadrature/gaussian_quadrature_domain.h"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_interpolation_matrices.h"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_routines.h"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/tetrahedron_integration.h"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/tetrahedron_routines_harmonic_function.h"
-using namespace types;
+#include "phys_library/domains/cluster/cluster_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
+#include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
+#include "phys_library/domains/time_and_frequency/time_domain.h"
 
 namespace DCA {
+
 template <typename parameters_type, typename K_dmn>
 class coarsegraining_sp : public coarsegraining_routines<parameters_type, K_dmn>,
                           public tetrahedron_integration<parameters_type, K_dmn> {
-  typedef typename K_dmn::parameter_type k_cluster_type;
+public:
+  using concurrency_type = typename parameters_type::concurrency_type;
+
+  using k_cluster_type = typename K_dmn::parameter_type;
+  using host_k_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                             LATTICE_SP, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
+  using k_HOST = dmn_0<host_k_cluster_type>;
+
+#ifdef SINGLE_PRECISION_COARSEGRAINING
+  using scalar_type = float;
+#else
+  using scalar_type = double;
+#endif  // SINGLE_PRECISION_COARSEGRAINING
+  using complex_type = std::complex<scalar_type>;
+
+  using tetrahedron_dmn = dmn_0<math_algorithms::tetrahedron_mesh<K_dmn>>;
+  using quadrature_dmn = math_algorithms::gaussian_quadrature_domain<tetrahedron_dmn>;
+
+  using q_dmn = dmn_0<coarsegraining_domain<K_dmn, K>>;
+  using q_0_dmn = dmn_0<coarsegraining_domain<K_dmn, ORIGIN>>;
+  using tet_dmn = dmn_0<coarsegraining_domain<K_dmn, TETRAHEDRON_K>>;
+  using tet_0_dmn = dmn_0<coarsegraining_domain<K_dmn, TETRAHEDRON_ORIGIN>>;
+
+  using t = dmn_0<time_domain>;
+  using w = dmn_0<frequency_domain>;
+
+  using b = dmn_0<electron_band_domain>;
+  using s = dmn_0<electron_spin_domain>;
+  using nu = dmn_variadic<b, s>;  // orbital-spin index
+
+  using nu_nu_q = dmn_variadic<nu, nu, q_dmn>;
+  using nu_nu_tet = dmn_variadic<nu, nu, tet_dmn>;
 
   const static int DIMENSION = K_dmn::parameter_type::DIMENSION;
 
-  typedef typename parameters_type::concurrency_type concurrency_type;
-
-#ifdef SINGLE_PRECISION_COARSEGRAINING
-  typedef float scalar_type;
-#else
-  typedef double scalar_type;
-#endif
-
-  typedef std::complex<scalar_type> complex_type;
-
-  typedef dmn_0<math_algorithms::tetrahedron_mesh<K_dmn>> tetrahedron_dmn;
-
-  typedef math_algorithms::gaussian_quadrature_domain<tetrahedron_dmn> quadrature_dmn;
-
-  typedef dmn_0<coarsegraining_domain<K_dmn, K>> q_dmn;
-  typedef dmn_0<coarsegraining_domain<K_dmn, ORIGIN>> q_0_dmn;
-
-  typedef dmn_0<coarsegraining_domain<K_dmn, TETRAHEDRON_K>> tet_dmn;
-  typedef dmn_0<coarsegraining_domain<K_dmn, TETRAHEDRON_ORIGIN>> tet_0_dmn;
-
-  typedef dmn_3<nu, nu, q_dmn> nu_nu_q;
-  typedef dmn_3<nu, nu, tet_dmn> nu_nu_tet;
-
 public:
   coarsegraining_sp(parameters_type& parameters_ref);
-
-  ~coarsegraining_sp();
 
   void initialize();
 
@@ -170,9 +196,6 @@ coarsegraining_sp<parameters_type, K_dmn>::coarsegraining_sp(parameters_type& pa
 }
 
 template <typename parameters_type, typename K_dmn>
-coarsegraining_sp<parameters_type, K_dmn>::~coarsegraining_sp() {}
-
-template <typename parameters_type, typename K_dmn>
 void coarsegraining_sp<parameters_type, K_dmn>::update_shell(int i, int N) {
   int tmp = i;
 
@@ -183,7 +206,7 @@ void coarsegraining_sp<parameters_type, K_dmn>::update_shell(int i, int N) {
     ss.precision(6);
 
     ss << "\t\t\t" << double(i) / double(N) * 100. << " % completed \t ";
-    ss << print_time();
+    ss << dca::util::print_time();
     ss << "\n";
 
     std::cout << ss.str();
@@ -273,9 +296,9 @@ void coarsegraining_sp<parameters_type, K_dmn>::compute_phi_r(
           cluster_operations::equivalent_vectors(r_vec, super_basis);
       for (int r_ind = 0; r_ind < r_vecs.size(); r_ind++)
         for (int tet_ind = 0; tet_ind < tetrahedra.size(); tet_ind++)
-          phi_r(l) +=
-              real(tetrahedron_routines_harmonic_function::execute(r_vecs[0], tetrahedra[tet_ind])) /
-              r_vecs.size();
+          phi_r(l) += std::real(tetrahedron_routines_harmonic_function::execute(
+                          r_vecs[0], tetrahedra[tet_ind])) /
+                      r_vecs.size();
       //        }
     }
 
@@ -312,7 +335,8 @@ void coarsegraining_sp<parameters_type, K_dmn>::print_phi_r_to_shell(
     std::vector<double> r_vec = r_dmn::get_elements()[l];
 
     for (int tet_ind = 0; tet_ind < tetrahedra.size(); tet_ind++)
-      phi_r(l) += real(tetrahedron_routines_harmonic_function::execute(r_vec, tetrahedra[tet_ind]));
+      phi_r(l) +=
+          std::real(tetrahedron_routines_harmonic_function::execute(r_vec, tetrahedra[tet_ind]));
   }
 
   concurrency.sum(phi_r);
@@ -574,7 +598,7 @@ void coarsegraining_sp<parameters_type, K_dmn>::compute_G0_K_t(
     for (int q_ind = 0; q_ind < q_dmn::dmn_size(); q_ind++)
       for (int j = 0; j < nu::dmn_size(); j++)
         for (int i = 0; i < nu::dmn_size(); i++)
-          G_K_t(i, j, coor[0], coor[1]) += real(G_q(i, j, q_ind)) * w_q(q_ind);
+          G_K_t(i, j, coor[0], coor[1]) += std::real(G_q(i, j, q_ind)) * w_q(q_ind);
   }
 
   concurrency.sum(G_K_t);
@@ -587,6 +611,6 @@ void coarsegraining_sp<parameters_type, K_dmn>::compute_G0_K_t(
     G_K_t /= V_K;
   }
 }
-}
+}  // DCA
 
-#endif
+#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_COARSEGRAINING_SP_H
