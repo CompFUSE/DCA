@@ -12,8 +12,6 @@
 #ifndef COMP_LIBRARY_PROFILER_LIBRARY_PROFILER_HPP
 #define COMP_LIBRARY_PROFILER_LIBRARY_PROFILER_HPP
 
-#include <string>
-
 #include "comp_library/profiler_library/events/time.hpp"
 
 #ifdef DCA_NO_PROFILING
@@ -33,20 +31,5 @@
 #ifdef DCA_CRAYPAT_PROFILING
 #include "CraypatProfiler.h"
 #endif  // DCA_CRAYPAT_PROFILING
-
-// Utility functions
-std::string print_time() {
-  time_t rawtime;
-  struct tm* timeinfo;
-
-  time(&rawtime);
-  timeinfo = localtime(&rawtime);
-
-  char buffer[80];
-  strftime(buffer, 80, "%d-%m-%Y %I:%M:%S", timeinfo);
-  std::string str(buffer);
-
-  return str;
-}
 
 #endif  // COMP_LIBRARY_PROFILER_LIBRARY_PROFILER_HPP
