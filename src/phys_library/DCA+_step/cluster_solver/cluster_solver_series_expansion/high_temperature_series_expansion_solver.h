@@ -1,24 +1,34 @@
-//-*-C++-*-
-#ifndef DCA_HIGH_TEMPERATURE_SERIES_SOLVER_INTEGRATOR_H
-#define DCA_HIGH_TEMPERATURE_SERIES_SOLVER_INTEGRATOR_H
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// This class implements the high temperature series expansion solver.
 
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/series_expansion/series_expansion_sigma.h"
+#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SERIES_EXPANSION_HIGH_TEMPERATURE_SERIES_EXPANSION_SOLVER_H
+#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SERIES_EXPANSION_HIGH_TEMPERATURE_SERIES_EXPANSION_SOLVER_H
+
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_template.h"
 
+#include <iostream>
+#include <stdexcept>
+#include <string>
+
+#include "enumerations.hpp"
+#include "comp_library/IO_library/IO.hpp"
+#include "comp_library/linalg/linalg_device_types.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/series_expansion_sigma.h"
+
 namespace DCA {
-/*!
- * \class   cluster_solver<HIGH_TEMPERATURE_SERIES_SOLVER>
- * \ingroup CLUSTER-SOLVER
- * \brief   high temperature series expansion solver
- * \author  Peter Staar
- * \version 1.0
- */
+
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 class cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_type> {
 public:
   cluster_solver(parameters_type& parameters_ref, MOMS_type& MOMS_ref);
-
-  ~cluster_solver();
 
   void initialize();
   void initialize(int dca_iteration);
@@ -54,9 +64,6 @@ cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_type>::c
       MOMS(MOMS_ref),
 
       series_exp_obj(parameters, MOMS) {}
-
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
-cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_type>::~cluster_solver() {}
 
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 void cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_type>::initialize() {}
@@ -141,4 +148,4 @@ void cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_typ
 }
 }
 
-#endif
+#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SERIES_EXPANSION_HIGH_TEMPERATURE_SERIES_EXPANSION_SOLVER_H

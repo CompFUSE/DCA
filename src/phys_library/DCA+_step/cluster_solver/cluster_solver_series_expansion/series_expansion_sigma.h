@@ -1,35 +1,54 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//
+// This class computes the self-energy using a series expansion.
 
-#ifndef COMPUTE_SERIES_EXPANSION_SIGMA_H
-#define COMPUTE_SERIES_EXPANSION_SIGMA_H
+#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SERIES_EXPANSION_SERIES_EXPANSION_SIGMA_H
+#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SERIES_EXPANSION_SERIES_EXPANSION_SIGMA_H
 
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/series_expansion/include_series_expansion.h"
+#include <complex>
+
+#include "comp_library/function_library/include_function_library.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/1st_order_perturbation_sigma.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/2nd_order_perturbation_sigma.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/3rd_order_perturbation_sigma.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/4th_order_perturbation_sigma.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/compute_bare_bubble.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/compute_interaction.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/compute_lattice_Greens_function.h"
+#include "phys_library/domains/cluster/cluster_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
+#include "phys_library/domains/time_and_frequency/frequency_domain.h"
 
 namespace DCA {
-
 namespace SERIES_EXPANSION {
-/*!
- * \class
- *
- * \authors Peter Staar, Urs R. Haehner
- *
- * \brief  This class implements the computation of the self-energy using a series expansion.
- */
+
 template <class parameters_type, class MOMS_type>
 class series_expansion {
-  typedef typename parameters_type::concurrency_type concurrency_type;
+public:
+  using concurrency_type = typename parameters_type::concurrency_type;
 
-  //       typedef typename MOMS_type::r_dmn_t r_dmn_t;
-  //       typedef typename MOMS_type::k_dmn_t k_dmn_t;
+  using k_HOST = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, LATTICE_SP,
+                                      MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using k_dmn_t = k_HOST;
 
-  typedef r_HOST r_dmn_t;
-  typedef k_HOST k_dmn_t;
+  using w = dmn_0<frequency_domain>;
+  using b = dmn_0<electron_band_domain>;
+  using s = dmn_0<electron_spin_domain>;
+  using nu = dmn_variadic<b, s>;  // orbital-spin index
 
-  typedef FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>> sigma_function_t;
+  using sigma_function_t = FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>;
 
 public:
   series_expansion(parameters_type& parameter_ref, MOMS_type& MOMS_ref);
-  ~series_expansion();
 
   template <class stream_type>
   void to_JSON(stream_type& ss);
@@ -40,8 +59,8 @@ public:
     return Sigma;
   }
 
-  template <IO::FORMAT DATA_FORMAT>
-  void write(IO::writer<DATA_FORMAT>& writer);
+  template <typename Writer>
+  void write(Writer& writer);
 
 private:
   parameters_type& parameters;
@@ -81,9 +100,6 @@ series_expansion<parameters_type, MOMS_type>::series_expansion(parameters_type& 
       sigma_perturbation_4_obj(parameters, interaction_obj, ph_bubble, pp_bubble) {
   interaction_obj.execute(MOMS.H_interactions);
 }
-
-template <class parameters_type, class MOMS_type>
-series_expansion<parameters_type, MOMS_type>::~series_expansion() {}
 
 template <class parameters_type, class MOMS_type>
 void series_expansion<parameters_type, MOMS_type>::execute(bool /*do_not_adjust_mu*/) {
@@ -130,8 +146,8 @@ void series_expansion<parameters_type, MOMS_type>::execute(bool /*do_not_adjust_
 }
 
 template <class parameters_type, class MOMS_type>
-template <IO::FORMAT DATA_FORMAT>
-void series_expansion<parameters_type, MOMS_type>::write(IO::writer<DATA_FORMAT>& writer) {
+template <typename Writer>
+void series_expansion<parameters_type, MOMS_type>::write(Writer& writer) {
   writer.execute(Sigma);
 
   ph_bubble.write(writer);
@@ -145,4 +161,4 @@ void series_expansion<parameters_type, MOMS_type>::write(IO::writer<DATA_FORMAT>
 }
 }
 
-#endif
+#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SERIES_EXPANSION_SERIES_EXPANSION_SIGMA_H
