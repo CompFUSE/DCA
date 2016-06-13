@@ -2,8 +2,6 @@
 
 #ifndef ANALYSIS_INTERPOLATION_H
 #define ANALYSIS_INTERPOLATION_H
-#include"phys_library/domain_types.hpp"
-using namespace types;
 
 namespace dca {
 
@@ -13,6 +11,9 @@ namespace dca {
   template<class parameter_type, class MOMS_type>
   class analysis<parameter_type, MOMS_type, ANALYSIS_INTERPOLATION>
   {
+#include "type_definitions.h"
+
+    //typedef float scalartype;
     typedef double scalartype;
 
     const static int N_LAMBDAS = 10;
@@ -22,6 +23,8 @@ namespace dca {
     typedef dmn_0<dmn<N_HARMONICS, int> > harmonics_dmn_type;
 
     typedef dmn_0<brillouin_zone_path_domain<SQUARE_2D_LATTICE> > k_dmn_cut_type;
+    //typedef dmn_0<brillouin_zone_path_domain<FERMI_SURFACE_SQUARE_2D_LATTICE> > k_dmn_cut_type;
+
     typedef typename parameter_type::profiler_type    profiler_t;
     typedef typename parameter_type::concurrency_type concurrency_t;
 
@@ -172,6 +175,8 @@ namespace dca {
     leading_U_k("leading_U_k_interpolated"),
     leading_Vt_k("leading_Vt_k_interpolated")
   {
+    //parameters.get_output_file_name() = parameters.get_susceptibilities_file_name();
+
     initialize_wave_functions();
 
     {
@@ -285,6 +290,98 @@ namespace dca {
 
     writer.close_group();
   }
+
+//   template<class parameter_type, class MOMS_type>
+//   template<class stream_type>
+//   void analysis<parameter_type, MOMS_type, ANALYSIS_INTERPOLATION>::to_JSON(stream_type& ss)
+//   {    
+//     if(parameters.compute_eigenvalues())
+//       {
+// 	leading_eigenvalues.to_JSON(ss);
+// 	ss << ",\n";
+
+// 	leading_symmetries.to_JSON(ss);
+// 	ss << ",\n";
+//       }
+
+//     if(parameters.compute_P_q_cluster())
+//       {
+// 	P_q_cluster.to_JSON(ss);
+// 	ss << ",\n";
+//       }
+
+//     if(parameters.compute_P_q_lattice())
+//       {
+// 	P_q_lattice.to_JSON(ss);
+// 	ss << ",\n";
+//       }
+
+//     if(parameters.compute_eigenvalues())
+//       {
+// 	leading_phi_t_chi_0_phi.to_JSON(ss);
+// 	ss << ",\n";
+	
+// 	leading_phi_t_Gamma_phi.to_JSON(ss);
+// 	ss << ",\n";
+	
+// 	if(true)
+// 	  {
+// 	    MOMS.band_structure.to_JSON(ss);
+// 	    ss << ",";
+	    
+// 	    MOMS.Sigma_band_structure.to_JSON(ss);
+// 	    ss << ",";
+	    
+// 	    MOMS.Sigma_cluster_band_structure.to_JSON(ss);
+// 	    ss << ",";
+	    
+// 	    MOMS.Sigma_lattice_band_structure.to_JSON(ss);
+// 	    ss << ",";
+	    
+// 	    MOMS.Sigma_band_structure_interpolated.to_JSON(ss);
+// 	    ss << ",";
+	    
+// 	    MOMS.Sigma_band_structure_coarsegrained.to_JSON(ss);
+// 	    ss << ",";
+// 	  }
+	
+// 	if(true)
+// 	  {
+// 	    FUNC_LIB::function<std::complex<scalartype>, cluster_eigenvector_dmn_t> tmp("chi_0_function");
+	    
+// 	    for(int i=0; i<tmp.size(); ++i)
+// 	      tmp(i) = G4_0(i,i);
+	    
+// 	    tmp.to_JSON(ss);
+// 	    ss << ",\n";
+// 	  }
+	
+// 	if(true)
+// 	  {
+// 	    FUNC_LIB::function<std::complex<scalartype>, lattice_eigenvector_dmn_t> tmp("full_chi_0_function");
+	    
+// 	    for(int i=0; i<tmp.size(); ++i)
+// 	      tmp(i) = chi_0(i,i);
+	    
+// 	    tmp.to_JSON(ss);
+// 	    ss << ",\n";
+// 	  }
+	
+// 	leading_eigenvectors.to_JSON(ss);
+// 	ss << ",\n";
+	
+// 	leading_U_K.to_JSON(ss);
+// 	ss << ",\n";
+	
+// 	leading_Vt_K.to_JSON(ss);
+// 	ss << ",\n";
+	
+// 	leading_U_k.to_JSON(ss);
+// 	ss << ",\n";
+	
+// 	leading_Vt_k.to_JSON(ss);
+//       }
+//   }
   
   template<class parameter_type, class MOMS_type>
   void analysis<parameter_type, MOMS_type, ANALYSIS_INTERPOLATION>::initialize_wave_functions()
@@ -294,6 +391,9 @@ namespace dca {
     wave_functions_names(0) = "s-wave";
     wave_functions_names(1) = "p-wave";
     wave_functions_names(2) = "d-wave";
+
+    //wave_functions_names(1) = "cos(kx)+cos(ky)";
+    //wave_functions_names(2) = "cos(kx)-cos(ky)";
 
     {// s-wave
       std::complex<scalartype> norm_psi=0;
@@ -311,8 +411,8 @@ namespace dca {
     {// p-wave
       std::complex<scalartype> norm_psi=0;
 
-      scalartype alpha_x = 1;
-      scalartype alpha_y = 1;
+      scalartype alpha_x = 1;//host_vertex_cluster_type::get_r_basis()[0][0];
+      scalartype alpha_y = 1;//host_vertex_cluster_type::get_r_basis()[1][1];
 
       for(int k_ind=0; k_ind<k_HOST_VERTEX::dmn_size(); k_ind++)
 	harmonics(k_ind, 1) = (cos(alpha_x*k_HOST_VERTEX::get_elements()[k_ind][0]) 
@@ -328,8 +428,8 @@ namespace dca {
     {// d-wave
       std::complex<scalartype> norm_psi=0;
 
-      scalartype alpha_x = 1;
-      scalartype alpha_y = 1;
+      scalartype alpha_x = 1;//host_vertex_cluster_type::get_r_basis()[0][0];
+      scalartype alpha_y = 1;//host_vertex_cluster_type::get_r_basis()[1][1];
 
       for(int k_ind=0; k_ind<k_HOST_VERTEX::dmn_size(); k_ind++)
 	harmonics(k_ind, 2) = (cos(alpha_x*k_HOST_VERTEX::get_elements()[k_ind][0]) 
@@ -468,6 +568,12 @@ namespace dca {
       for(int i=0; i<N; i++)
 	Gamma_cluster(i, j) = (invert_G4_0.inverted_matrix[i+j*N]
 			       -invert_G4 .inverted_matrix[i+j*N]);
+    
+//     if(concurrency.id()==concurrency.last())
+//       cout << "symmetrize Gamma_cluster" << endl;
+
+//     symmetrize::execute(Gamma_cluster, MOMS.H_symmetry, parameters.get_q_vector(), false);
+//     diagrammatic_symmetries_obj.execute(Gamma_cluster);
   }
 
   template<class parameter_type, class MOMS_type>
@@ -478,15 +584,43 @@ namespace dca {
     if(concurrency.id()==concurrency.last())
       cout << "\t" << __FUNCTION__ << endl << endl;
 
+//     if(false)
+//       MOMS.coarsegrain_inversion_obj.execute(Gamma_cluster, Gamma_lattice);
+//     else
     {
       if(concurrency.id()==concurrency.last())
 	cout << "\n\n \t making a new coarsegrain_inversion object ... \n\n";
       
       coarsegrain_inversion<parameter_type, k_DCA, k_HOST_VERTEX, QUADRATURE_INTEGRATION> coarsegrain_inversion_obj(parameters);
+      //coarsegrain_inversion_obj.execute(Gamma_cluster, Gamma_lattice);
       coarsegrain_inversion_obj.execute(Gamma_cluster, Gamma_lattice, leading_U_K, leading_Vt_K, leading_U_k, leading_Vt_k);
     }
     
-        
+    
+    //     {
+    //       profiler_t prof(concurrency, "compute_Gamma_lattice hspline Gamma", __FILE__, __LINE__);
+    //       MOMS.coarsegrain_inversion_obj.interpolate(Gamma_cluster, Gamma_lattice);
+    //     }
+
+    //     {
+    //       symmetrize::execute(Gamma_lattice, MOMS.H_symmetry, parameters.get_q_vector());
+    //       diagrammatic_symmetries_obj.execute(Gamma_lattice);
+    //     }
+
+    //     if(false)
+    //       {// works apparently well, but need to test with interpolation first ...
+    // 	profiler_t prof(concurrency, "compute_Gamma_lattice CG-inv Gamma", __FILE__, __LINE__);
+    
+    // 	FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t> tmp2;
+    // 	MOMS.coarsegrain_inversion_obj.execute(Gamma_lattice, tmp2);
+    
+    // 	Gamma_lattice = tmp2;
+    //       }
+    
+    //     {
+    //       symmetrize::execute(Gamma_lattice, MOMS.H_symmetry, parameters.get_q_vector());
+    //       diagrammatic_symmetries_obj.execute(Gamma_lattice);
+    //     }        
   }
 
   template<class parameter_type, class MOMS_type>
@@ -508,7 +642,8 @@ namespace dca {
 
     {
       profiler_t prof("compute_chi_0 compute_bubble", __FILE__, __LINE__);
-
+      
+      //compute_bubble<parameter_type, k_HOST_VERTEX, w_VERTEX, TRAPEZIUM_INTEGRATION> make_G4_0_CG_obj(parameters);
       compute_bubble<parameter_type, k_HOST_VERTEX, w_VERTEX, QUADRATURE_INTEGRATION> make_G4_0_CG_obj(parameters);
       
       make_G4_0_CG_obj.execute(MOMS.H_LDA, MOMS.Sigma_lattice, chi_0);
@@ -516,6 +651,8 @@ namespace dca {
     
     scalartype renorm = 1./(parameters.get_beta()*k_HOST_VERTEX::dmn_size());
     chi_0 *= renorm;
+    
+    //     symmetrize::execute(chi_0, MOMS.H_symmetry, parameters.get_q_vector());
   }
 
   template<class parameter_type, class MOMS_type>
@@ -822,6 +959,13 @@ namespace dca {
       {
 	std::complex<scalartype> lambda = leading_eigenvalues(i);
 
+	/*
+	cout << "    ---> (leading) j = " << i 
+	     << "    sval = "             << sqrt(square(1.0 - real(lambda)) + square(imag(lambda)))
+	     << "    eigenval = "         << real(lambda) << " ; " << std::fabs(imag(lambda)) 
+	     << "    |    ";
+	*/
+
 	cout << "    ---> lambda_" << i << " = " 
 	     << real(lambda)                    << " ; " << std::fabs(imag(lambda))              << "    |    " 
 	     << abs(leading_phi_t_chi_0_phi(i)) << " , " << std::abs(leading_phi_t_Gamma_phi(i)) << "    |    ";
@@ -848,14 +992,29 @@ namespace dca {
 
     FUNC_LIB::function<std::complex<scalartype>, HOST_HOST_matrix_dmn_t> chi("chi");
     FUNC_LIB::function<std::complex<scalartype>, HOST_HOST_matrix_dmn_t> denominator("temporary");
+
+//     {// \Chi_0 * \Gamma --> Gamma_times_full_chi_0(0);
+//       gemm_plan<std::complex<scalartype> > gemm_pln(N);
+      
+//       gemm_pln.A = &full_chi_0_b_k_w__b_k_w(0);
+//       gemm_pln.B = &Gamma_b_k_w__b_k_w(0);
+//       gemm_pln.C = &denominator(0);
+      
+//       gemm_pln.execute_plan();
+//     }
+
     cout << "\t compute denominator \n";
 
+    //eigensystem_plan<std::complex<scalartype>, GENERAL> eigensystem_pln(N,'V','V');
     { 
+//       memcpy(&eigensystem_pln.A[0], &denominator(0), sizeof(std::complex<scalartype>)*denominator.size()); 
+//       eigensystem_pln.execute_plan();
 
       invert_plan<std::complex<scalartype> > invert_pln(N);
 	
       memcpy(invert_pln.Matrix, eigensystem_pln.VR, sizeof(std::complex<scalartype>)*N*N);
       invert_pln.execute_plan();
+// 	memcpy(eigensystem_pln.VL, invert_pln.inverted_matrix, sizeof(std::complex<scalartype>)*N*N);
 
       {
 	scalartype ONE(1);
@@ -883,8 +1042,11 @@ namespace dca {
 	gemm_pln.execute_plan();
       }  
 
+      //std::complex<scalartype> result = 0.;
       for(int i=0; i < chi.size(); i++) 
 	chi_q(0) += chi(i);
+    
+      //chi_q(0) *= 1./( parameters.get_beta() /* host_cluster_type::get_cluster_size()*/ );
     }
   }
 
@@ -893,7 +1055,10 @@ namespace dca {
   {
     profiler_t prof(__FUNCTION__, __FILE__, __LINE__);
 
+    //cout << __FUNCTION__ << endl;
     {
+      //int start = clock();
+
       for(int H_ind=0; H_ind<N_HARMONICS; H_ind++){
 	
 	for(int w2=0; w2<w_VERTEX::dmn_size(); w2++){
@@ -945,8 +1110,15 @@ namespace dca {
 	  }
 	}
       }
+
+//       cout << "\n\n time to compute_P_q_cluster : " 
+// 	   << scalartype(clock()-start)/scalartype(CLOCKS_PER_SEC) << "\n\n";
+    }
   }
-  }
+
+  // eqn 20-21 in PRB 64 195130
+  // \chi(Q,T) = \frac{1}{(\beta*N_c)^2} \sum_{K1,K2} \chi[Q,K1,K2]
+  //           ===> \chi[Q,K1,K2] = [1-\chi^0 * \Gamma]^{-1} * \chi^0[Q,K1,K2]
   template<class parameter_type, class MOMS_type>
   void analysis<parameter_type, MOMS_type, ANALYSIS_INTERPOLATION>::compute_P_q_lattice()
   {

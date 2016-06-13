@@ -2,8 +2,6 @@
 
 #ifndef ANALYSIS_COMPUTE_REDUCIBLE_VERTEX_H
 #define ANALYSIS_COMPUTE_REDUCIBLE_VERTEX_H
-#include"phys_library/domain_types.hpp"
-using namespace types;
 
 namespace dca {
 
@@ -13,7 +11,10 @@ namespace dca {
   template<class parameter_type, class MOMS_type>
   class analysis<parameter_type, MOMS_type, ANALYSIS_COMPUTE_REDUCIBLE_VERTEX>
   {
-   typedef dmn_0<brillouin_zone_path_domain<FERMI_SURFACE_SQUARE_2D_LATTICE> > k_dmn_cut_type;
+#include "type_definitions.h"
+
+    //typedef dmn_0<brillouin_zone_path_domain<SQUARE_2D_LATTICE> > k_dmn_cut_type;
+    typedef dmn_0<brillouin_zone_path_domain<FERMI_SURFACE_SQUARE_2D_LATTICE> > k_dmn_cut_type;
 
   public:
  
@@ -102,21 +103,44 @@ namespace dca {
     reducible_vertex("reducible_vertex"),
 
     full_reducible_vertex("full_reducible_vertex"),
+    //full_reducible_vertex_2("full_reducible_vertex_2"),
+
+//     make_G4_obj  (parameters_in, MOMS_in),
     make_G4_0_obj(parameters_in, MOMS_in)
 
+//     corresponding_extended_index(w_VERTEX::dmn_size(),-1),
+//     is_compact_frequency(w_VERTEX::dmn_size(),false)
   {
     data_filename                     = parameters.get_output_file_name();
     parameters.get_output_file_name() = parameters.get_output_susceptibilities_file_name();
+
+//     initialize();
   }
 
   template<class parameter_type, class MOMS_type>
   analysis<parameter_type, MOMS_type, ANALYSIS_COMPUTE_REDUCIBLE_VERTEX>::~analysis()
   {}
 
+//   template<class parameter_type, class MOMS_type>
+//   void analysis<parameter_type, MOMS_type, ANALYSIS_COMPUTE_REDUCIBLE_VERTEX>::initialize()
+//   {
+// //     for(int i=0; i<w_VERTEX::dmn_size(); i++)
+// //       for(int j=0; j<w_VERTEX::dmn_size(); j++)
+// // 	if(std::fabs(w_VERTEX::parameter_type::get_elements()[i]-w_VERTEX::parameter_type::get_elements()[j])<1.e-6)
+// // 	  corresponding_extended_index[i] = j;
+
+// //     for(int j=0; j<w_VERTEX::dmn_size(); j++)
+// //       for(int i=0; i<w_VERTEX::dmn_size(); i++)
+// //       	if(std::fabs(w_VERTEX::parameter_type::get_elements()[i]-w_VERTEX::parameter_type::get_elements()[j])<1.e-6)
+// // 	  is_compact_frequency[j] = true;
+//   }
+
   template<class parameter_type, class MOMS_type>
   template<class stream_type>
   void analysis<parameter_type, MOMS_type, ANALYSIS_COMPUTE_REDUCIBLE_VERTEX>::to_JSON(stream_type& ss)
   {
+    //reducible_vertex.to_JSON(ss);
+
     if(parameters.get_output_file_name() == parameters.get_directory()+"/full_reducible_vertex.json")
       {
 	FUNC_LIB::function<std::complex<double>, dmn_7<b,b,k_DCA,  b,b,k_DCA, k_DCA> > reducible_vertex_small("full_reducible_vertex");
@@ -189,12 +213,18 @@ namespace dca {
       
       delete [] coor_1;
       delete [] coor_2;
+
+//       diagrammatic_symmetries_obj.execute(G4);
+//       symmetrize::execute(G4, parameters.get_q_vector());
     }
 
     {
       make_G4_0_obj.execute(*this);
       for(int l=0; l<full_chi_0.size(); l++)
 	full_chi_0(l) = G4_0_b_k_w__b_k_w(l);
+
+//       diagrammatic_symmetries_obj.execute(full_chi_0);
+//       symmetrize::execute(full_chi_0, parameters.get_q_vector());
     }
 
     G4         *= renorm;
@@ -214,6 +244,8 @@ namespace dca {
 
     FUNC_LIB::function<std::complex<double>, dmn_8<b,b,b,b,k_DCA,k_DCA,w_VERTEX,w_VERTEX>         > G4_k_k_w_w("G4_k_k_w_w");
     FUNC_LIB::function<std::complex<double>, dmn_3<b_b_k_DCA_w_VERTEX, b_b_k_DCA_w_VERTEX, k_DCA> > G4_full   ("G4_k_w_k_w");
+    //FUNC_LIB::function<std::complex<double>, dmn_3<b_b_k_DCA_w_VERTEX, b_b_k_DCA_w_VERTEX, k_DCA> > G4_0_full ("G4_0_k_w_k_w");
+
     for(int q_ind=0; q_ind<k_DCA::dmn_size(); q_ind++)
       {
 	parameters.get_q_channel() = q_ind;
@@ -226,9 +258,15 @@ namespace dca {
 	read_this_G4(q_ind, G4_k_k_w_w);
 
 	set_into_full_G4(q_ind, G4_k_k_w_w, G4_full);
+
+// 	make_G4_0_obj.execute(*this);
+// 	for(int j=0; j<sqrt(full_chi_0.size()); ++j)
+// 	  for(int i=0; i<sqrt(full_chi_0.size()); ++i)
+// 	    G4_0_full(i,j,q_ind) = G4_0_b_k_w__b_k_w(i,j);
       }
 
     symmetrize::                execute(G4_full);
+    //diagrammatic_symmetries_obj.execute(G4_full);
 
     double renorm = 1./(parameters.get_beta()*k_DCA::dmn_size());
 
@@ -260,12 +298,15 @@ namespace dca {
       }
 
     symmetrize::                execute(full_reducible_vertex);
+    //diagrammatic_symmetries_obj.execute(full_reducible_vertex);
   }
 
 
   template<class parameter_type, class MOMS_type>
   void analysis<parameter_type, MOMS_type, ANALYSIS_COMPUTE_REDUCIBLE_VERTEX>::apply_symmetries()
   {
+    //cout << __FUNCTION__ << endl;
+
     symmetrize::execute(MOMS.Sigma, MOMS.H_symmetry);
 
     symmetrize::execute(MOMS.G_k_w, MOMS.H_symmetry);
@@ -288,6 +329,21 @@ namespace dca {
     filename.insert(loc, q_str);
 
     cout << filename << endl;
+
+    {
+//       if(! ifstream(&(filename)[0])){
+// 	cout << "\t no file with name : " << &(filename)[0] << endl;
+// 	throw std::logic_error(__FUNCTION__);
+//       }
+
+//       FILE* file_ptr = fopen(&(filename)[0], "r");
+//       if(file_ptr == NULL){
+// 	cout << "\t no file with name : " << &(filename)[0] << endl;
+// 	throw std::logic_error(__FUNCTION__);
+//       }
+//       fclose(file_ptr);
+    }
+
     {
       std::fstream input_file(&(filename)[0], ios::in);
       G4_q.from_JSON(input_file);
@@ -339,6 +395,9 @@ namespace dca {
       memcpy(&invert_pln.Matrix[0], &full_chi_0(0), sizeof(std::complex<double>)*N*N);
       invert_pln.execute_plan();
       memcpy(&inverted_full_chi_0(0), invert_pln.inverted_matrix, sizeof(std::complex<double>)*N*N);
+
+      //cout << "symmetrize chi_0_b_k_w__b_k_w" << endl;
+      //symmetrize::execute(inverted_full_chi_0, MOMS.H_symmetry, true);
     }
 
     for(int l=0; l<G4.size(); l++)
@@ -383,8 +442,11 @@ namespace dca {
 	      
 	      for(int b3=0; b3<b::dmn_size(); b3++){
 		for(int b4=0; b4<b::dmn_size(); b4++)
+		  //for(int k2=0; k2<k_DCA::dmn_size(); k2++)
 		    {
+		      
 		      int k2=k1;
+
 		      int k1_plus_k2      = k_DCA::parameter_type::add(k1,k2);
 		      int q_min_k1_min_k2 = k_DCA::parameter_type::subtract(k1_plus_k2, k3);
 		    
@@ -402,8 +464,11 @@ namespace dca {
 	    
 	    for(int b3=0; b3<b::dmn_size(); b3++){
 	      for(int b4=0; b4<b::dmn_size(); b4++)
+		//for(int k2=0; k2<k_DCA::dmn_size(); k2++)
 		{
-		  cout << real(G4_full(b1,b2,k1,w_VERTEX::dmn_size()/2,  b3,b4,k1,w_VERTEX::dmn_size()/2, k3)) << "\t"; 
+		  int k2=k1;
+
+		  cout << real(G4_full(b1,b2,k1,w_VERTEX::dmn_size()/2,  b3,b4,k2,w_VERTEX::dmn_size()/2, k3)) << "\t"; 
 		}
 	      cout << "\n";
 	    }
@@ -413,4 +478,3 @@ namespace dca {
 }
 
 #endif
-
