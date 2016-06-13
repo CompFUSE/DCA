@@ -1,20 +1,16 @@
-//-*-C++-*-
-// Author: Peter Staar
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
-#ifndef MATH_LIBRARY_NFFT_BASIS_FUNCTIONS_WINDOW_FUNCTION_KAISER_H
-#define MATH_LIBRARY_NFFT_BASIS_FUNCTIONS_WINDOW_FUNCTION_KAISER_H
-
-#include <iostream>
-#include <limits>
-#include <stdexcept>
-#include <cmath>
-
-namespace math_algorithms {
-namespace NFFT {
-// math_algorithms::NFFT::
-
-// The Kaiser Bessel function is defined as,
 /*
+  The Kaiser Bessel function is defined as,
   \f{eqnarray}{
   \phi(\tau) &=&
   \left\{
@@ -40,6 +36,20 @@ namespace NFFT {
   b &=& \pi\:\Big(2.-\frac{1}{\sigma}\Big)
   \f}
  */
+
+#ifndef MATH_LIBRARY_NFFT_BASIS_FUNCTIONS_WINDOW_FUNCTION_KAISER_H
+#define MATH_LIBRARY_NFFT_BASIS_FUNCTIONS_WINDOW_FUNCTION_KAISER_H
+
+#include <cmath>
+#include <iostream>
+#include <limits>
+#include <stdexcept>
+
+#include "math_library/static_functions.h"  // for square
+
+namespace math_algorithms {
+namespace NFFT {
+// math_algorithms::NFFT::
 
 template <int DIMENSION>
 struct kaiser_bessel_function {

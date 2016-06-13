@@ -1,9 +1,24 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
+//
+// \Delta \tau = \frac{1}{m*N_{varpi}*step}
 
 #ifndef MATH_LIBRARY_NFFT_DOMAINS_NFFT_TIME_DOMAIN_H
 #define MATH_LIBRARY_NFFT_DOMAINS_NFFT_TIME_DOMAIN_H
 
+#include <stdexcept>
+#include <string>
 #include <vector>
+
+#include "math_library/domain_specifications/domain_specifications.hpp"
 
 namespace math_algorithms {
 namespace NFFT {
