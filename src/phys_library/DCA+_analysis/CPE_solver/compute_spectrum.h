@@ -1,38 +1,64 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// This class computes the spectrum using a CPE analytic continuation method.
 
-#ifndef COMPUTE_SPECTRUM_H
-#define COMPUTE_SPECTRUM_H
-#include "phys_library/domain_types.hpp"
-using namespace types;
+#ifndef PHYS_LIBRARY_DCA_ANALYSIS_CPE_SOLVER_COMPUTE_SPECTRUM_H
+#define PHYS_LIBRARY_DCA_ANALYSIS_CPE_SOLVER_COMPUTE_SPECTRUM_H
+
+#include <cassert>
+#include <cmath>
 #include <complex>
+#include <iostream>
+#include <stdexcept>
+#include <string>
+
+#include "dca/util/print_time.hpp"
+#include "comp_library/function_library/include_function_library.h"
+#include "comp_library/function_plotting/include_plotting.h"
+#include "comp_library/IO_library/IO.hpp"
+#include "comp_library/linalg/linalg.hpp"
+#include "math_library/geometry_library/vector_operations/vector_operations.hpp"
+#include "math_library/static_functions.h"  // for gaussian_distribution
+#include "phys_library/DCA+_analysis/CPE_solver/CPE_weighted_gradient_method.h"
+#include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_sp.h"
+#include "phys_library/domains/cluster/cluster_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
+#include "phys_library/domains/time_and_frequency/frequency_domain.h"
+#include "phys_library/domains/time_and_frequency/frequency_domain_real_axis.h"
+#include "phys_library/domains/time_and_frequency/frequency_domain_imag_axis.h"
+#include "phys_library/domains/time_and_frequency/time_domain.h"
 
 namespace DCA {
-/*!
- *  \defgroup SPECTRUM
- *  \ingroup  ANALYSIS
- */
 
-/*! \class   compute_spectrum
- *  \ingroup SPECTRUM
- *
- *  \author  Peter Staar
- *  \brief   This class organizes the compution of the spectrum, using a CPE analytic continuation.
- *  \version 1.0
- */
-using types::b;
-using types::nu;
-using types::s;
-using types::t;
 template <class parameters_type, class basis_function_t>
 class compute_spectrum {
 public:
-  typedef typename parameters_type::profiler_type profiler_type;
-  typedef typename parameters_type::concurrency_type concurrency_type;
+  using concurrency_type = typename parameters_type::concurrency_type;
   using random_number_generator = typename parameters_type::random_number_generator;
+
+  using t = dmn_0<time_domain>;
+  using w = dmn_0<frequency_domain>;
+  using w_REAL = dmn_0<frequency_domain_real_axis>;
+  using w_IMAG = dmn_0<frequency_domain_imag_axis>;
+
+  using b = dmn_0<electron_band_domain>;
+  using s = dmn_0<electron_spin_domain>;
+  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using nu_nu = dmn_variadic<nu, nu>;
+
+  using k_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
+                                     MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
 
 public:
   compute_spectrum(parameters_type& parameters);
-  ~compute_spectrum();
 
   template <typename MOMS_imag_type, typename MOMS_real_type>
   void write(std::string file_name, MOMS_imag_type& MOMS_imag, MOMS_real_type& MOMS_real);
@@ -206,9 +232,6 @@ compute_spectrum<parameters_type, basis_function_t>::compute_spectrum(parameters
 }
 
 template <class parameters_type, class basis_function_t>
-compute_spectrum<parameters_type, basis_function_t>::~compute_spectrum() {}
-
-template <class parameters_type, class basis_function_t>
 template <typename MOMS_imag_type, typename MOMS_real_type>
 void compute_spectrum<parameters_type, basis_function_t>::write(std::string file_name,
                                                                 MOMS_imag_type& /*MOMS_imag*/,
@@ -298,8 +321,8 @@ template <typename MOMS_imag_type, typename MOMS_real_type>
 void compute_spectrum<parameters_type, basis_function_t>::execute_without_error_bars(
     MOMS_imag_type& MOMS_imag, MOMS_real_type& MOMS_real) {
   if (concurrency.id() == 0)
-    std::cout << "\n\n\t start analytic-continuation without error-bars (time = " << print_time()
-              << ")\n";
+    std::cout << "\n\n\t start analytic-continuation without error-bars (time = "
+              << dca::util::print_time() << ")\n";
 
   if (parameters.compute_free_spectrum()) {
     MOMS_real.Sigma = 0;
@@ -413,7 +436,7 @@ void compute_spectrum<parameters_type, basis_function_t>::execute_with_error_bar
     for (int l = 0; l < nb_samples; l++) {
       if (concurrency.id() == 0)
         std::cout << "\t start analytic-continuation on sample = " << l
-                  << " (time = " << print_time() << ")\n";
+                  << " (time = " << dca::util::print_time() << ")\n";
 
       {  // generate a new sample that is equal for each MPI-task!
 
@@ -565,7 +588,7 @@ void compute_spectrum<parameters_type, basis_function_t>::perform_analytic_conti
     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_imag_dmn_t>>& S_k_w_imag,
     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_real_dmn_t>>& S_k_w_real) {
   if (concurrency.id() == 0)
-    std::cout << "\t\t start CPE (time = " << print_time() << ") --> ";
+    std::cout << "\t\t start CPE (time = " << dca::util::print_time() << ") --> ";
 
   // cpe_obj.execute_st(S_k_w_imag, S_k_w_real);
   {
@@ -580,7 +603,7 @@ void compute_spectrum<parameters_type, basis_function_t>::perform_analytic_conti
   }
 
   if (concurrency.id() == 0)
-    std::cout << " (time = " << print_time() << ")\n";
+    std::cout << " (time = " << dca::util::print_time() << ")\n";
 }
 
 template <class parameters_type, class basis_function_t>
@@ -590,7 +613,7 @@ void compute_spectrum<parameters_type, basis_function_t>::compute_G_k_w_on_clust
     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& Sigma,
     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& G_k_w) {
   if (concurrency.id() == 0)
-    std::cout << "\t\t start AC on G_K_w (time = " << print_time() << ") --> ";
+    std::cout << "\t\t start AC on G_K_w (time = " << dca::util::print_time() << ") --> ";
 
   LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> G_matrix("G-matrix", nu::dmn_size());
   LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> S_matrix("S-matrix", nu::dmn_size());
@@ -630,7 +653,7 @@ void compute_spectrum<parameters_type, basis_function_t>::compute_G_k_w_on_clust
   }
 
   if (concurrency.id() == 0)
-    std::cout << " (time = " << print_time() << ")\n";
+    std::cout << " (time = " << dca::util::print_time() << ")\n";
 }
 
 template <class parameters_type, class basis_function_t>
@@ -640,14 +663,14 @@ void compute_spectrum<parameters_type, basis_function_t>::compute_G_k_w_on_latti
     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_cluster_dmn_t, w_dmn_t>>& Sigma,
     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_cluster_dmn_t, w_dmn_t>>& G_k_w) {
   if (concurrency.id() == 0)
-    std::cout << "\t\t start TIM (time = " << print_time() << ") --> ";
+    std::cout << "\t\t start TIM (time = " << dca::util::print_time() << ") --> ";
 
   DCA::coarsegraining_sp<parameters_type, k_DCA> coarsegraining_sp_obj(parameters);
 
   coarsegraining_sp_obj.compute_G_K_w_with_TIM(H_k, Sigma, G_k_w);
 
   if (concurrency.id() == 0)
-    std::cout << " (time = " << print_time() << ")\n";
+    std::cout << " (time = " << dca::util::print_time() << ")\n";
 }
 
 template <class parameters_type, class basis_function_t>
@@ -955,4 +978,4 @@ void compute_spectrum<parameters_type, basis_function_t>::test_A_w_versus_G_t(
 }
 }
 
-#endif
+#endif  // PHYS_LIBRARY_DCA_ANALYSIS_CPE_SOLVER_COMPUTE_SPECTRUM_H

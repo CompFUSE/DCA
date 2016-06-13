@@ -9,8 +9,8 @@
 //
 // Description
 
-#ifndef PHYS_LIBRARY_DCA_ANALYSIS_CPE_SOLVER_BASIS_FUNCTIONS_UNION_RADIAL_AND_DELTA_FUNCTION_H
-#define PHYS_LIBRARY_DCA_ANALYSIS_CPE_SOLVER_BASIS_FUNCTIONS_UNION_RADIAL_AND_DELTA_FUNCTION_H
+#ifndef PHYS_LIBRARY_DCA_ANALYSIS_CPE_SOLVER_BASIS_FUNCTIONS_RADIAL_FUNCTION_HPP
+#define PHYS_LIBRARY_DCA_ANALYSIS_CPE_SOLVER_BASIS_FUNCTIONS_RADIAL_FUNCTION_HPP
 
 #include <cassert>
 #include <cmath>
@@ -18,11 +18,10 @@
 #include <vector>
 
 #include "comp_library/function_library/domains/special_domains/dmn_0.h"
+#include "math_library/static_functions.h"  // for sgn
 #include "phys_library/domains/time_and_frequency/frequency_domain_real_axis.h"
-#include "phys_library/DCA+_analysis/CPE_solver/basis_functions/delta_function.hpp"
-#include "phys_library/DCA+_analysis/CPE_solver/basis_functions/radial_function.hpp"
 
-class union_radial_and_delta_function {
+class radial_function {
 public:
   using element_type = double;
   using w_REAL = dmn_0<frequency_domain_real_axis>;
@@ -36,42 +35,36 @@ public:
 
   static double volume(int n);
   static std::complex<double> phi(int n, std::complex<double> z);
-
-private:
-  static std::vector<double> poles;
 };
 
-std::vector<double> union_radial_and_delta_function::poles(0, 0);
-
-int union_radial_and_delta_function::get_size() {
+int radial_function::get_size() {
   return get_elements().size();
 }
 
-std::vector<double>& union_radial_and_delta_function::get_elements() {
-  static std::vector<double> elements(0);
+std::vector<double>& radial_function::get_elements() {
+  static std::vector<double> elements(0, 0);
   return elements;
 }
 
 template <typename parameters_type>
-void union_radial_and_delta_function::initialize(parameters_type& parameters) {
-  poles = parameters.get_poles();
+void radial_function::initialize(parameters_type& parameters) {
+  std::vector<double> elements = w_REAL::get_elements();
 
-  get_elements() = w_REAL::get_elements();
+  for (size_t l = 0; l < elements.size(); l++) {
+    elements[l] = sgn(elements[l]) * square(std::fabs(elements[l]) / std::fabs(elements[0])) *
+                  std::fabs(elements[0]);
+  }
+
+  get_elements() = elements;
 }
 
-double union_radial_and_delta_function::volume(int n) {
+double radial_function::volume(int n) {
   assert(n >= 0 && n < w_REAL::dmn_size());
 
   double volume;
 
-  for (size_t l1 = 0; l1 < poles.size(); l1++)
-    for (size_t l2 = 0; l2 < get_elements().size(); l2++)
-      if (std::fabs(poles[l1] - get_elements()[l2]) < 1.e-6)
-        return M_PI;
-
-  if (n == 0) {
+  if (n == 0)
     volume = 2. * (get_elements()[1] - get_elements()[0]) / 2.;
-  }
   else {
     if (n == get_size() - 1)
       volume = 2. * (get_elements()[n] - get_elements()[n - 1]) / 2.;
@@ -82,27 +75,10 @@ double union_radial_and_delta_function::volume(int n) {
   return volume;
 }
 
-std::complex<double> union_radial_and_delta_function::phi(int n, std::complex<double> z) {
+std::complex<double> radial_function::phi(int n, std::complex<double> z) {
   assert(n >= 0 && n < get_size());
 
-  double w = 1.;
-
   std::complex<double> A_mn, x0, x1, x2;
-
-  for (size_t l = 0; l < poles.size(); l++) {            // go over all poles
-    if (std::abs(get_elements()[n] - poles[l]) < 1.e-6)  // elements()[n] is a pole !!
-    {
-      if (std::abs(imag(z) < 1.e-6))  // z lies on the real axis
-      {
-        if (std::abs(z - poles[l]) < 1.e-6)  // z is on the pole !
-          return 0.;
-        else
-          return std::complex<double>(w, 0.) / (real(z) - poles[l]);
-      }
-      else
-        return w / (z - poles[l]);
-    }
-  }
 
   if (n == 0) {
     double delta_x = (get_elements()[1] - get_elements()[0]);
@@ -136,4 +112,4 @@ std::complex<double> union_radial_and_delta_function::phi(int n, std::complex<do
   return A_mn;
 }
 
-#endif  // PHYS_LIBRARY_DCA_ANALYSIS_CPE_SOLVER_BASIS_FUNCTIONS_UNION_RADIAL_AND_DELTA_FUNCTION_H
+#endif  // PHYS_LIBRARY_DCA_ANALYSIS_CPE_SOLVER_BASIS_FUNCTIONS_RADIAL_FUNCTION_HPP
