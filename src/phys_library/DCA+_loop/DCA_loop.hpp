@@ -1,44 +1,66 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//         Andrei Plamada (plamada@itp.phys.ethz.ch)
+//
+// This class executes the DCA(+) loop.
 
-#ifndef DCA_CALCULATION_H
-#define DCA_CALCULATION_H
-#include "phys_library/domain_types.hpp"
-#include "phys_library/DCA+_loop/DCA+_loop_data.h"
-#include "phys_library/DCA+_step/cluster_mapping/adjust_chemical_potential.h"
-#include "phys_library/DCA+_step/cluster_mapping/cluster_exclusion_step.h"
-#include "phys_library/DCA+_step/cluster_mapping/double_counting_correction.h"
+#ifndef PHYS_LIBRARY_DCA_LOOP_DCA_LOOP_HPP
+#define PHYS_LIBRARY_DCA_LOOP_DCA_LOOP_HPP
+
+#include <cmath>
+#include <iostream>
+#include <stdexcept>
+#include <string>
+
+#include "dca/phys/DCA_step/cluster_mapping/cluster_exclusion.hpp"
+#include "dca/phys/DCA_step/cluster_mapping/double_counting_correction.hpp"
+#include "dca/phys/DCA_step/cluster_mapping/update_chemical_potential.hpp"
+#include "dca/util/print_time.hpp"
+#include "comp_library/function_library/include_function_library.h"
+#include "comp_library/IO_library/IO.hpp"
+#include "phys_library/DCA+_loop/DCA_loop_data.hpp"
+#include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_sp.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/high_temperature_series_expansion_solver.h"
 #include "phys_library/DCA+_step/lattice_mapping/lattice_mapping_sp.h"
-using namespace types;
+#include "phys_library/DCA+_step/symmetrization/symmetrize.h"
+#include "phys_library/domains/cluster/cluster_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
 
 namespace DCA {
-/*!
- *  \class DCA_Calculation
- *
- *  \author Peter Staar, Andrei Plamada
- *  \brief  This class encapsulates the DCA-loop, using the template programming style.
- */
+
 template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
-class DCA_calculation {
-  typedef typename parameters_type::profiler_type profiler_t;
-  typedef typename parameters_type::concurrency_type concurrency_type;
+class DCA_loop {
+public:
+  using profiler_type = typename parameters_type::profiler_type;
+  using concurrency_type = typename parameters_type::concurrency_type;
 
-  typedef DCA::cluster_exclusion<parameters_type, MOMS_type> cluster_exclusion_type;
-  typedef DCA::double_counting_correction<parameters_type, MOMS_type> double_counting_correction_type;
+  using b = dmn_0<electron_band_domain>;
+  using s = dmn_0<electron_spin_domain>;
+  using k_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
+                                     MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using k_HOST = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, LATTICE_SP,
+                                      MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
 
-  typedef DCA::coarsegraining_sp<parameters_type, k_DCA> coarsegraining_sp_type;
-  typedef DCA::lattice_map_sp<parameters_type, k_DCA, k_HOST> lattice_map_sp_type;
-
-  typedef DCA::update_chemical_potential<parameters_type, MOMS_type, coarsegraining_sp_type>
-      update_chemical_potential_type;
-
-  typedef DCA::cluster_solver<DCA::HIGH_TEMPERATURE_SERIES, LIN_ALG::CPU, parameters_type, MOMS_type>
-      HTS_solver_type;
+  using cluster_exclusion_type = DCA::cluster_exclusion<parameters_type, MOMS_type>;
+  using double_counting_correction_type = DCA::double_counting_correction<parameters_type, MOMS_type>;
+  using coarsegraining_sp_type = DCA::coarsegraining_sp<parameters_type, k_DCA>;
+  using lattice_map_sp_type = DCA::lattice_mapping_sp<parameters_type, k_DCA, k_HOST>;
+  using update_chemical_potential_type =
+      DCA::update_chemical_potential<parameters_type, MOMS_type, coarsegraining_sp_type>;
+  using HTS_solver_type =
+      DCA::cluster_solver<DCA::HIGH_TEMPERATURE_SERIES, LIN_ALG::CPU, parameters_type, MOMS_type>;
 
 public:
-  DCA_calculation(parameters_type& parameters_ref, MOMS_type& MOMS_ref,
-                  concurrency_type& concurrency_ref);
+  DCA_loop(parameters_type& parameters_ref, MOMS_type& MOMS_ref, concurrency_type& concurrency_ref);
 
-  ~DCA_calculation();
+  ~DCA_loop();
 
   void read();
 
@@ -72,14 +94,14 @@ private:
   void perform_lattice_mapping_with_HTS();
   void perform_lattice_mapping_without_HTS();
 
-  void update_DCA_calculation_data_functions(int DCA_iteration);
+  void update_DCA_loop_data_functions(int DCA_iteration);
 
 private:
   parameters_type& parameters;
   MOMS_type& MOMS;
   concurrency_type& concurrency;
 
-  DCA_calculation_data DCA_info_struct;
+  DCA_loop_data<parameters_type> DCA_info_struct;
 
   cluster_exclusion_type cluster_exclusion_obj;
   double_counting_correction_type double_counting_correction_obj;
@@ -93,7 +115,7 @@ private:
 };
 
 template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
-DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::DCA_calculation(
+DCA_loop<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::DCA_loop(
     parameters_type& parameters_ref, MOMS_type& MOMS_ref, concurrency_type& concurrency_ref)
     : parameters(parameters_ref),
       MOMS(MOMS_ref),
@@ -111,27 +133,28 @@ DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::DCA_ca
 
       MonteCarloIntegrator(parameters_ref, MOMS_ref) {
   if (concurrency.id() == concurrency.first())
-    std::cout << "\n\n\t" << __FUNCTION__ << " has started \t" << print_time() << "\n\n";
+    std::cout << "\n\n\t" << __FUNCTION__ << " has started \t" << dca::util::print_time() << "\n\n";
 }
 
 template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
-DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::~DCA_calculation() {
+DCA_loop<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::~DCA_loop() {
   if (concurrency.id() == concurrency.first())
-    std::cout << "\n\n\t" << __FUNCTION__ << " has finished \t" << print_time() << "\n\n";
+    std::cout << "\n\n\t" << __FUNCTION__ << " has finished \t" << dca::util::print_time()
+              << "\n\n";
 }
 
 template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
-void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::read() {
+void DCA_loop<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::read() {
   if (parameters.get_Sigma_file() != "zero")
     MOMS.read(parameters.get_Sigma_file());
 }
 
 template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
-void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::write() {
+void DCA_loop<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::write() {
   IO::FORMAT FORMAT = parameters.get_output_format();
   std::string file_name = parameters.get_directory() + parameters.get_output_file_name();
 
-  std::cout << "\n\n\t\t start writing " << file_name << "\t" << print_time() << "\n\n";
+  std::cout << "\n\n\t\t start writing " << file_name << "\t" << dca::util::print_time() << "\n\n";
 
   switch (FORMAT) {
     case IO::JSON: {
@@ -168,7 +191,7 @@ void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::w
 }
 
 template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
-void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::initialize() {
+void DCA_loop<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::initialize() {
   if (parameters.get_Sigma_file() != "zero") {
     MOMS.initialize_Sigma();
 
@@ -177,7 +200,7 @@ void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::i
 }
 
 template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
-void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::execute() {
+void DCA_loop<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::execute() {
   for (int i = 0; i < parameters.get_DCA_iterations(); i++) {
     adjust_chemical_potential();
 
@@ -194,7 +217,7 @@ void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::e
 
     perform_lattice_mapping();
 
-    update_DCA_calculation_data_functions(i);
+    update_DCA_loop_data_functions(i);
 
     if (L2_Sigma_difference <
         parameters.get_DCA_accuracy())  // set the acquired accuracy on |Sigma_QMC - Sigma_cg|
@@ -203,7 +226,7 @@ void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::e
 }
 
 template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
-void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::finalize() {
+void DCA_loop<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::finalize() {
   perform_cluster_mapping_self_energy();
 
   MOMS.compute_Sigma_bands();
@@ -212,13 +235,13 @@ void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::f
 }
 
 template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
-void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::adjust_chemical_potential() {
+void DCA_loop<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::adjust_chemical_potential() {
   if (parameters.adjust_chemical_potential())
     update_chemical_potential_obj.execute();
 }
 
 template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
-void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::perform_cluster_mapping() {
+void DCA_loop<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::perform_cluster_mapping() {
   perform_cluster_mapping_self_energy();
 
   perform_cluster_mapping_Greens_function();
@@ -227,12 +250,12 @@ void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::p
 }
 
 template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
-void DCA_calculation<parameters_type, MOMS_type,
-                     Monte_Carlo_Integrator_type>::perform_cluster_mapping_self_energy() {
+void DCA_loop<parameters_type, MOMS_type,
+              Monte_Carlo_Integrator_type>::perform_cluster_mapping_self_energy() {
   if (concurrency.id() == 0)
-    std::cout << "\n\t\t coarsegrain-Selfenergy " << print_time();
+    std::cout << "\n\t\t coarsegrain-Selfenergy " << dca::util::print_time();
 
-  profiler_t profiler("coarsegrain-Selfenergy", "DCA", __LINE__);
+  profiler_type profiler("coarsegrain-Selfenergy", "DCA", __LINE__);
 
   if (parameters.use_interpolated_Self_energy())
     cluster_mapping_obj.compute_S_K_w(MOMS.Sigma_lattice, MOMS.Sigma_cluster);
@@ -245,12 +268,12 @@ void DCA_calculation<parameters_type, MOMS_type,
 }
 
 template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
-void DCA_calculation<parameters_type, MOMS_type,
-                     Monte_Carlo_Integrator_type>::perform_cluster_mapping_Greens_function() {
+void DCA_loop<parameters_type, MOMS_type,
+              Monte_Carlo_Integrator_type>::perform_cluster_mapping_Greens_function() {
   if (concurrency.id() == 0)
-    std::cout << "\n\t\t coarsegrain-Greens-function " << print_time();
+    std::cout << "\n\t\t coarsegrain-Greens-function " << dca::util::print_time();
 
-  profiler_t profiler("coarsegrain-Greens-function", "DCA", __LINE__);
+  profiler_type profiler("coarsegrain-Greens-function", "DCA", __LINE__);
 
   if (parameters.use_interpolated_Self_energy())
     cluster_mapping_obj.compute_G_K_w(MOMS.H_HOST, MOMS.Sigma_lattice, MOMS.G_k_w);
@@ -261,37 +284,35 @@ void DCA_calculation<parameters_type, MOMS_type,
 }
 
 template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
-void DCA_calculation<parameters_type, MOMS_type,
-                     Monte_Carlo_Integrator_type>::adjust_coarsegrained_self_energy() {
+void DCA_loop<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::adjust_coarsegrained_self_energy() {
   double_counting_correction_obj.execute_before_solver();
 }
 
 template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
-void DCA_calculation<parameters_type, MOMS_type,
-                     Monte_Carlo_Integrator_type>::perform_cluster_exclusion_step() {
+void DCA_loop<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::perform_cluster_exclusion_step() {
   if (concurrency.id() == 0)
-    std::cout << "\n\t\t cluster-exclusion-step " << print_time();
+    std::cout << "\n\t\t cluster-exclusion-step " << dca::util::print_time();
 
-  profiler_t profiler("cluster-exclusion-step", "DCA", __LINE__);
+  profiler_type profiler("cluster-exclusion-step", "DCA", __LINE__);
 
   cluster_exclusion_obj.execute();
 }
 
 template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
-double DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::solve_cluster_problem(
+double DCA_loop<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::solve_cluster_problem(
     int DCA_iteration) {
   {
-    profiler_t profiler("initialize cluster-solver", "DCA", __LINE__);
+    profiler_type profiler("initialize cluster-solver", "DCA", __LINE__);
     MonteCarloIntegrator.initialize(DCA_iteration);
   }
 
   {
-    profiler_t profiler("Quantum Monte Carlo integration", "DCA", __LINE__);
+    profiler_type profiler("Quantum Monte Carlo integration", "DCA", __LINE__);
     MonteCarloIntegrator.integrate();
   }
 
   {
-    profiler_t profiler("finalize cluster-solver", "DCA", __LINE__);
+    profiler_type profiler("finalize cluster-solver", "DCA", __LINE__);
     double L2_Sigma_difference = MonteCarloIntegrator.finalize(DCA_info_struct);
 
     return L2_Sigma_difference;
@@ -299,17 +320,16 @@ double DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>:
 }
 
 template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
-void DCA_calculation<parameters_type, MOMS_type,
-                     Monte_Carlo_Integrator_type>::adjust_impurity_self_energy() {
+void DCA_loop<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::adjust_impurity_self_energy() {
   double_counting_correction_obj.execute_after_solver();
 }
 
 template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
-void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::perform_lattice_mapping() {
-  profiler_t profiler("lattice-mapping", "DCA", __LINE__);
+void DCA_loop<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::perform_lattice_mapping() {
+  profiler_type profiler("lattice-mapping", "DCA", __LINE__);
 
   if (concurrency.id() == 0)
-    std::cout << "\n\t\t lattice-mapping " << print_time();
+    std::cout << "\n\t\t lattice-mapping " << dca::util::print_time();
 
   if (parameters.use_interpolated_Self_energy()) {
     if (parameters.use_HTS_approximation()) {
@@ -332,14 +352,14 @@ void DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::p
 }
 
 template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
-void DCA_calculation<parameters_type, MOMS_type,
-                     Monte_Carlo_Integrator_type>::update_DCA_calculation_data_functions(int i) {
+void DCA_loop<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::update_DCA_loop_data_functions(
+    int i) {
   DCA_info_struct.density(i) = update_chemical_potential_obj.compute_density();
   DCA_info_struct.chemical_potential(i) = parameters.get_chemical_potential();
 
   if (concurrency.id() == 0) {
     std::cout << "\n\n\t\t\t total-density : " << DCA_info_struct.density(i)
-              << "\t (time : " << print_time() << ")\n\n";
+              << "\t (time : " << dca::util::print_time() << ")\n\n";
   }
 
   for (int l1 = 0; l1 < b::dmn_size() * s::dmn_size(); l1++)
@@ -357,4 +377,4 @@ void DCA_calculation<parameters_type, MOMS_type,
 }
 }
 
-#endif
+#endif  // PHYS_LIBRARY_DCA_LOOP_DCA_LOOP_HPP
