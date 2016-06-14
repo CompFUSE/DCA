@@ -2,8 +2,6 @@
 
 #ifndef SS_CT_HYBRIDIZATION_BIT_TOOLS_H
 #define SS_CT_HYBRIDIZATION_BIT_TOOLS_H
-#include"phys_library/domain_types.hpp"
-using namespace types;
 
 namespace DCA
 {
@@ -15,6 +13,7 @@ namespace DCA
      */
     struct ss_ct_hybridization_walker_bit
     {
+#include "type_definitions.h"
 
     public :
 

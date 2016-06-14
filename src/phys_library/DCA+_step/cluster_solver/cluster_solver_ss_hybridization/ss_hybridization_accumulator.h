@@ -1,29 +1,37 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Bart Ydens
+//
+// This class organizes the measurements in the SS CT-HYB QMC.
 
-#ifndef SS_CT_HYB_ACCUMULATOR_H
-#define SS_CT_HYB_ACCUMULATOR_H
-#include "phys_library/domain_types.hpp"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_template/qmci_accumulator.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_template/qmci_accumulator_data.h"
+#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_ACCUMULATOR_H
+#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_ACCUMULATOR_H
+
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_template/mc_accumulator.hpp"
+
+#include <complex>
+
+#include "comp_library/function_library/include_function_library.h"
+#include "comp_library/linalg/linalg_device_types.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_domains/Feynman_expansion_order_domain.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_template/mc_accumulator_data.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_accumulator/sp_accumulator/Hybridization_accumulator_sp_nfft.h"
-
-using namespace types;
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_solver_routines.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_walker.h"
+#include "phys_library/domains/cluster/cluster_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
+#include "phys_library/domains/time_and_frequency/frequency_domain.h"
 
 namespace DCA {
 namespace QMCI {
-/*!
- *  \defgroup SS CT-HYB-ACCUMULATOR
- *  \ingroup  SS CT-HYB
- */
+// DCA::QMCI::
 
-/*!
- *  \ingroup SS CT-HYB
- *
- *  \brief   This class organizes the measurements in the SS CT-HYB QMC
- *  \author  Bart Ydens
- *  \version 1.0
- */
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 class MC_accumulator<SS_CT_HYB, device_t, parameters_type, MOMS_type>
     : public MC_accumulator_data,
@@ -41,14 +49,17 @@ public:
   typedef
       typename walker_type::ss_hybridization_walker_routines_type ss_hybridization_walker_routines_type;
 
+  using w = dmn_0<frequency_domain>;
+  using b = dmn_0<electron_band_domain>;
+  using s = dmn_0<electron_spin_domain>;
+  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using nu_nu = dmn_variadic<nu, nu>;
+
+  using r_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
+                                     REAL_SPACE, BRILLOUIN_ZONE>>;
   typedef r_DCA r_dmn_t;
-  typedef k_DCA k_dmn_t;
 
-  typedef w w_dmn_t;
   typedef dmn_3<nu, nu, r_dmn_t> p_dmn_t;
-
-  typedef b b_dmn_t;
-  typedef s s_dmn_t;
 
   typedef typename parameters_type::profiler_type profiler_type;
   typedef typename parameters_type::concurrency_type concurrency_type;
@@ -69,8 +80,6 @@ public:
 
 public:
   MC_accumulator(parameters_type& parameters_ref, MOMS_type& MOMS_ref, int id = 0);
-
-  ~MC_accumulator();
 
   void initialize(int dca_iteration);
 
@@ -116,8 +125,8 @@ public:
   /*!
    *  \brief Print the functions G_r_w and G_k_w.
    */
-  template <IO::FORMAT DATA_FORMAT>
-  void write(IO::writer<DATA_FORMAT>& writer);
+  template <typename Writer>
+  void write(Writer& writer);
 
 protected:
   using MC_accumulator_data::DCA_iteration;
@@ -171,9 +180,6 @@ MC_accumulator<SS_CT_HYB, device_t, parameters_type, MOMS_type>::MC_accumulator(
       single_particle_accumulator_obj(parameters) {}
 
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
-MC_accumulator<SS_CT_HYB, device_t, parameters_type, MOMS_type>::~MC_accumulator() {}
-
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 void MC_accumulator<SS_CT_HYB, device_t, parameters_type, MOMS_type>::initialize(int dca_iteration) {
   MC_accumulator_data::initialize(dca_iteration);
 
@@ -193,9 +199,8 @@ void MC_accumulator<SS_CT_HYB, device_t, parameters_type,
 }
 
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
-template <IO::FORMAT DATA_FORMAT>
-void MC_accumulator<SS_CT_HYB, device_t, parameters_type, MOMS_type>::write(
-    IO::writer<DATA_FORMAT>& writer) {
+template <typename Writer>
+void MC_accumulator<SS_CT_HYB, device_t, parameters_type, MOMS_type>::write(Writer& writer) {
   writer.execute(G_r_w);
   writer.execute(GS_r_w);
 }
@@ -290,7 +295,8 @@ void MC_accumulator<SS_CT_HYB, device_t, parameters_type, MOMS_type>::sum_to(thi
       other.get_GS_r_w()(i) += GS_r_w(i);
   }
 }
-}
-}
 
-#endif
+}  // QMCI
+}  // DCA
+
+#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_ACCUMULATOR_H

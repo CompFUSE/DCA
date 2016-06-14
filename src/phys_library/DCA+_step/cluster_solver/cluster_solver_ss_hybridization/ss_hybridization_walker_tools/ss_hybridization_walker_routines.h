@@ -1,20 +1,42 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//         Bart Ydens
+//
+// This class implements the helper functions for the insertion and removal of (anti-)segments. The
+// helper functions include the calculation of the determinant ratio and the computation of the new
+// hybridization matrix using sherman-morrison equations.
 
-#ifndef SS_HYBRIDIZATION_WALKER_ROUTINES_H
-#define SS_HYBRIDIZATION_WALKER_ROUTINES_H
-#include "phys_library/domain_types.hpp"
+#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_WALKER_TOOLS_SS_HYBRIDIZATION_WALKER_ROUTINES_H
+#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_WALKER_TOOLS_SS_HYBRIDIZATION_WALKER_ROUTINES_H
+
+#include <cassert>
+#include <iostream>
+#include <utility>
+#include <vector>
+
+#include "comp_library/function_library/include_function_library.h"
+#include "comp_library/linalg/linalg.hpp"
 #include "math_library/interpolation_library/akima_interpolation.h"
-// other tols used by the walker
-#include "FULL_LINE_TOOLS.h"
-#include "ANTI_SEGMENT_TOOLS.h"
-#include "SEGMENT.h"
-#include "SEGMENT_TOOLS.h"
-#include "SHIFT_SEGMENT_TOOLS.h"
-#include "SWAP_SEGMENT_TOOLS.h"
-using namespace types;
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_solver_routines.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_structures/ss_hybridization_vertex.h"
+#include "phys_library/domains/cluster/cluster_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
+#include "phys_library/domains/time_and_frequency/frequency_domain.h"
+#include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
+#include "phys_library/domains/time_and_frequency/time_domain.h"
+#include "phys_library/domains/time_and_frequency/time_domain_left_oriented.h"
 
 namespace DCA {
 namespace QMCI {
+// DCA::QMCI::
+
 struct static_matrix_routines {
   template <typename scalar_type>
   static void add_row(LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& M) {
@@ -207,28 +229,22 @@ struct static_matrix_routines {
   }
 };
 
-/*!
- *  \class   hybridization_walker_routines
- *  \ingroup SS_HYBRIDIZATION
- *
- *  \author  Bart Ydens, Peter Staar
- *  \brief   This class implements the help functions for the insertion and removal of
- * (anti-)segments. The help functions
- *  include the calculation of the deteminant ratio and the computation of the new hybridization
- * matrix, using sherman-morrison equations.
- *
- */
 template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
 class ss_hybridization_walker_routines
     : public ss_hybridization_solver_routines<parameters_t, MOMS_t> {
-  typedef b b_dmn_t;
-  typedef s s_dmn_t;
+public:
+  using t = dmn_0<time_domain>;
+  using w = dmn_0<frequency_domain>;
 
-  typedef r_DCA r_dmn_t;
-  typedef k_DCA k_dmn_t;
+  using b = dmn_0<electron_band_domain>;
+  using s = dmn_0<electron_spin_domain>;
+  using nu = dmn_variadic<b, s>;  // orbital-spin index
 
-  typedef t t_dmn_t;
-  typedef w w_dmn_t;
+  using r_DCA = dmn_0<cluster_domain<double, parameters_t::lattice_type::DIMENSION, CLUSTER,
+                                     REAL_SPACE, BRILLOUIN_ZONE>>;
+  using r_dmn_t = r_DCA;
+
+  using nu_nu_r_DCA_t = dmn_variadic<nu, nu, r_DCA, t>;
 
   typedef dmn_0<time_domain_left_oriented> shifted_t;
   typedef dmn_4<nu, nu, r_dmn_t, shifted_t> nu_nu_r_dmn_t_shifted_t;
@@ -236,20 +252,16 @@ class ss_hybridization_walker_routines
   typedef dmn_0<dmn<4, int>> akima_dmn_t;
   typedef dmn_5<akima_dmn_t, nu, nu, r_dmn_t, shifted_t> akima_nu_nu_r_dmn_t_shifted_t;
 
-public:
   typedef parameters_t parameters_type;
   typedef MOMS_t MOMS_type;
   typedef configuration_t configuration_type;
   typedef rng_t rng_type;
 
-  typedef typename parameters_type::profiler_type profiler_type;
   typedef typename parameters_type::concurrency_type concurrency_type;
 
 public:
   ss_hybridization_walker_routines(parameters_t& parameters_ref, MOMS_t& MOMS_ref,
                                    configuration_t& configuration_ref, rng_t& rng_ref);
-
-  ~ss_hybridization_walker_routines();
 
   void initialize();
   void initialize_akima_coefficients(FUNC_LIB::function<double, nu_nu_r_DCA_t>& F_r_t);
@@ -392,35 +404,31 @@ ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::
 }
 
 template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
-ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t,
-                                 rng_t>::~ss_hybridization_walker_routines() {}
-
-template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
 void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::initialize() {}
 
 template <class parameters_t, class MOMS_t, typename configuration_t, typename rng_t>
 void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::initialize_akima_coefficients(
     FUNC_LIB::function<double, nu_nu_r_DCA_t>& F_r_t) {
-  int size = t_dmn_t::dmn_size() / 2;
+  int size = t::dmn_size() / 2;
 
   math_algorithms::interpolation::akima_interpolation<double> ai_obj(size);
 
   double* x = new double[size];
   double* y = new double[size];
 
-  for (int t_ind = 0; t_ind < t_dmn_t::dmn_size() / 2; t_ind++)
+  for (int t_ind = 0; t_ind < t::dmn_size() / 2; t_ind++)
     x[t_ind] = t_ind;
 
   {
     for (int r_ind = 0; r_ind < r_dmn_t::dmn_size(); r_ind++) {
       for (int nu1_ind = 0; nu1_ind < nu::dmn_size(); nu1_ind++) {
         for (int nu0_ind = 0; nu0_ind < nu::dmn_size(); nu0_ind++) {
-          for (int t_ind = 0; t_ind < t_dmn_t::dmn_size() / 2; t_ind++)
+          for (int t_ind = 0; t_ind < t::dmn_size() / 2; t_ind++)
             y[t_ind] = -F_r_t(nu0_ind, nu1_ind, r_ind, t_ind);
 
           ai_obj.initialize(x, y);
 
-          for (int t_ind = 0; t_ind < t_dmn_t::dmn_size() / 2 - 1; t_ind++)
+          for (int t_ind = 0; t_ind < t::dmn_size() / 2 - 1; t_ind++)
             for (int l = 0; l < 4; l++)
               akima_coefficients(l, nu0_ind, nu1_ind, r_ind, t_ind) = ai_obj.get_alpha(l, t_ind);
         }
@@ -432,15 +440,15 @@ void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng
     for (int r_ind = 0; r_ind < r_dmn_t::dmn_size(); r_ind++) {
       for (int nu1_ind = 0; nu1_ind < nu::dmn_size(); nu1_ind++) {
         for (int nu0_ind = 0; nu0_ind < nu::dmn_size(); nu0_ind++) {
-          for (int t_ind = t_dmn_t::dmn_size() / 2; t_ind < t_dmn_t::dmn_size(); t_ind++)
-            y[t_ind - t_dmn_t::dmn_size() / 2] = -F_r_t(nu0_ind, nu1_ind, r_ind, t_ind);
+          for (int t_ind = t::dmn_size() / 2; t_ind < t::dmn_size(); t_ind++)
+            y[t_ind - t::dmn_size() / 2] = -F_r_t(nu0_ind, nu1_ind, r_ind, t_ind);
 
           ai_obj.initialize(x, y);
 
-          for (int t_ind = t_dmn_t::dmn_size() / 2; t_ind < t_dmn_t::dmn_size() - 1; t_ind++)
+          for (int t_ind = t::dmn_size() / 2; t_ind < t::dmn_size() - 1; t_ind++)
             for (int l = 0; l < 4; l++)
               akima_coefficients(l, nu0_ind, nu1_ind, r_ind, t_ind - 1) =
-                  ai_obj.get_alpha(l, t_ind - t_dmn_t::dmn_size() / 2);
+                  ai_obj.get_alpha(l, t_ind - t::dmn_size() / 2);
         }
       }
     }
@@ -1164,7 +1172,8 @@ void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng
 
   gemm_pln.execute_plan();
 }
-}
-}
 
-#endif
+}  // QMCI
+}  // DCA
+
+#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_WALKER_TOOLS_SS_HYBRIDIZATION_WALKER_ROUTINES_H

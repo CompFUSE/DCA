@@ -9,14 +9,13 @@
 
 #ifndef HYBRIDIZATION_HILBERT_SPACE_H
 #define HYBRIDIZATION_HILBERT_SPACE_H
-#include"phys_library/domain_types.hpp"
-using namespace types;
 
 namespace QMC 
 {
   class Hybridization_Hilbert_space
   {
 
+#include "type_definitions.h"
     
   public:
 

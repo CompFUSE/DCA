@@ -9,14 +9,13 @@
 
 #ifndef HYBRIDIZATION_HAMILTONIAN_H
 #define HYBRIDIZATION_HAMILTONIAN_H
-#include"phys_library/domain_types.hpp"
-using namespace types;
 
 namespace QMC 
 {
   template<class parameters_type, class MOMS_type>
   class Hybridization_Hamiltonian
   {
+#include "type_definitions.h"
   public:
 
     typedef typename parameters_type::Concurrency_Type concurrency_type;

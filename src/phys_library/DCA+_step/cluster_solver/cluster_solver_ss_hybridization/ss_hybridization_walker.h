@@ -1,35 +1,50 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Bart Ydens
+//         Peter Staar (peter.w.j.staar@gmail.com)
+//         Andrei Plamada (plamada@itp.phys.ethz.ch)
+//
+// This class organizes the MC walker in the SS CT-HYB QMC.
 
-#ifndef SS_CT_HYBRIDIZATION_WALKER_H
-#define SS_CT_HYBRIDIZATION_WALKER_H
-#include "phys_library/domain_types.hpp"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_template/qmci_walker.h"
+#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_WALKER_H
+#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_WALKER_H
+
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_template/mc_walker.hpp"
+
+#include <cmath>
+#include <iostream>
+#include <stdexcept>
+#include <sstream>
+#include <utility>
+#include <vector>
+
+#include "comp_library/function_library/include_function_library.h"
+#include "comp_library/linalg/linalg_device_types.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_solver_routines.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_type_definitions.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_walker_tools/ANTI_SEGMENT_TOOLS.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_walker_tools/FULL_LINE_TOOLS.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_walker_tools/SEGMENT_TOOLS.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_walker_tools/SHIFT_SEGMENT_TOOLS.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_walker_tools/SWAP_SEGMENT_TOOLS.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_walker_tools/ss_hybridization_walker_routines.h"
-
-using namespace types;
+#include "phys_library/domains/cluster/cluster_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
+#include "phys_library/domains/time_and_frequency/time_domain.h"
 
 namespace DCA {
 namespace QMCI {
-/*!
- *  \defgroup CT-AUX-WALKER
- *  \ingroup  SS-CT-HYB
- */
+// DCA::QMCI::
 
-/*!
- *  \defgroup STRUCTURES
- *  \ingroup  SS-CT-HYB
- */
-
-/*!
- *  \ingroup SS-CT-HYB
- *
- *  \brief   This class organizes the MC-walker in the SS CT-HYB QMC
- *  \author  Bart Ydens, Peter Staar, Andrei Plamada
- *  \version 1.0
- */
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 class MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type> {
+public:
   typedef typename parameters_type::random_number_generator rng_type;
 
   typedef
@@ -37,12 +52,19 @@ class MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type> {
   typedef
       typename MC_type_definitions<SS_CT_HYB, parameters_type, MOMS_type>::concurrency_type concurrency_type;
 
-public:
   typedef
       typename MC_type_definitions<SS_CT_HYB, parameters_type, MOMS_type>::vertex_vertex_matrix_type
           vertex_vertex_matrix_type;
   typedef typename MC_type_definitions<SS_CT_HYB, parameters_type, MOMS_type>::configuration_type
       configuration_type;
+
+  using t = dmn_0<time_domain>;
+  using b = dmn_0<electron_band_domain>;
+  using s = dmn_0<electron_spin_domain>;
+  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using r_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
+                                     REAL_SPACE, BRILLOUIN_ZONE>>;
+  using nu_nu_r_DCA_t = dmn_variadic<nu, nu, r_DCA, t>;
 
   typedef FUNC_LIB::function<vertex_vertex_matrix_type, nu> M_matrix_type;
 
@@ -426,7 +448,8 @@ void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::swap_random_orb
   bool succes = swap_segment_tools_obj.swap_orbitals(i, j, mu, sign, M, F_r_t);
   nb_successfull_updates += succes ? 1 : 0;
 }
-}
-}
 
-#endif
+}  // QMCI
+}  // DCA
+
+#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_WALKER_H

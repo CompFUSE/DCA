@@ -9,8 +9,6 @@
 
 #ifndef HYBRIDIZATION_SYMMETRIES_H
 #define HYBRIDIZATION_SYMMETRIES_H
-#include"phys_library/domain_types.hpp"
-using namespace types;
 
 namespace QMC 
 {
@@ -18,6 +16,7 @@ namespace QMC
   class Hybridization_symmetries
   {
 
+#include "type_definitions.h"
 
   public:
 

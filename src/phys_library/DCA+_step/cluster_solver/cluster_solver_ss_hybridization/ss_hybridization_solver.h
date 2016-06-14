@@ -1,27 +1,40 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Bart Ydens
+//         Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Single-site Monte Carlo integrator based on a hybridization expansion.
 
-#ifndef SS_HYBRIDIZATION_SOLVER_H
-#define SS_HYBRIDIZATION_SOLVER_H
-#include "phys_library/domain_types.hpp"
+#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_SOLVER_H
+#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_SOLVER_H
+
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_template.h"
+
+#include <cassert>
+#include <complex>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <vector>
+
+#include "dca/util/print_time.hpp"
+#include "comp_library/function_library/include_function_library.h"
+#include "comp_library/linalg/linalg_device_types.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_accumulator.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_solver_routines.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_walker.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_accumulator.h"
-
-using namespace types;
+#include "phys_library/DCA+_step/symmetrization/symmetrize.h"
+#include "phys_library/domains/cluster/cluster_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
+#include "phys_library/domains/time_and_frequency/frequency_domain.h"
 
 namespace DCA {
-/*!
- * \defgroup SS CT-HYB
- * \ingroup  MONTE-CARLO-INTEGRATOR
- */
-
-/*!
- * \brief single-site Monte Carlo integrator, based on a hybridization expansion.
- * \author Peter Staar
- * \author Bart Ydens
- * \version 1.0
- */
 
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 class cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>
@@ -41,7 +54,17 @@ public:
   typedef QMCI::MC_walker<QMCI::SS_CT_HYB, LIN_ALG::CPU, parameters_type, MOMS_type> walker_type;
   typedef QMCI::MC_accumulator<QMCI::SS_CT_HYB, LIN_ALG::CPU, parameters_type, MOMS_type> accumulator_type;
 
-public:
+  using w = dmn_0<frequency_domain>;
+  using b = dmn_0<electron_band_domain>;
+  using s = dmn_0<electron_spin_domain>;
+  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using r_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
+                                     REAL_SPACE, BRILLOUIN_ZONE>>;
+  using k_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
+                                     MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+
+  using nu_nu_k_DCA_w = dmn_variadic<nu, nu, k_DCA, w>;
+
   const static int MC_TYPE = SS_CT_HYB;
 
 public:
@@ -346,7 +369,7 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::update_she
     }
 
     std::cout << "\t <k> :" << k << " \t";
-    std::cout << print_time() << "\n";
+    std::cout << dca::util::print_time() << "\n";
   }
 }
 
@@ -405,7 +428,7 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::symmetrize
   symmetrize::execute(accumulator.get_GS_r_w(), MOMS.H_symmetry);
 
   {
-    std::vector<int> flavors = model::get_flavors();
+    std::vector<int> flavors = parameters_type::model_type::get_flavors();
     assert(flavors.size() == b::dmn_size());
 
     FUNC_LIB::function<std::complex<double>, b> f_val;
@@ -547,6 +570,7 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::find_tail_
   S1 = imag(Sigma_new(b, s, b, s, k, w::dmn_size() / 2 + w_cutoff - 1)) *
        w::parameter_type::get_elements()[w::dmn_size() / 2 + w_cutoff - 1];
 }
-}
 
-#endif
+}  // DCA
+
+#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_SOLVER_H

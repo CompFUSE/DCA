@@ -1,29 +1,39 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//         Bart Ydens
+//
+// This class organizes the configuration space in the single-site hybridization QMC.
 
-#ifndef SS_HYBRIDIZATION_CONFIGURATION_H
-#define SS_HYBRIDIZATION_CONFIGURATION_H
-#include "phys_library/domain_types.hpp"
+#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_STRUCTURES_SS_HYBRIDIZATION_CONFIGURATION_H
+#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_STRUCTURES_SS_HYBRIDIZATION_CONFIGURATION_H
+
+#include <iostream>
+#include <vector>
+
+#include "comp_library/function_library/include_function_library.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_structures/ss_hybridization_vertex.h"
-using namespace types;
+#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
 
 namespace DCA {
-/*!
- *  \brief   This class organizes the configuration space in the single-site hybridization QMC.
- *  \author  Peter Staar
- *  \author  Bart Ydens
- *  \version 1.0
- *
- */
+
 class SS_CT_HYB_configuration {
 public:
-  typedef SS_CT_HYB_configuration this_type;
+  using this_type = SS_CT_HYB_configuration;
+  using orbital_configuration_type = std::vector<Hybridization_vertex>;
 
-  typedef std::vector<Hybridization_vertex> orbital_configuration_type;
+  using b = dmn_0<electron_band_domain>;
+  using s = dmn_0<electron_spin_domain>;
+  using nu = dmn_variadic<b, s>;  // orbital-spin index
 
 public:
   SS_CT_HYB_configuration();
-
-  ~SS_CT_HYB_configuration();
 
   int size();
 
@@ -50,8 +60,6 @@ SS_CT_HYB_configuration::SS_CT_HYB_configuration()
   for (int i = 0; i < N_spin_orbitals; i++)
     has_full_line(i) = false;
 }
-
-SS_CT_HYB_configuration::~SS_CT_HYB_configuration() {}
 
 int SS_CT_HYB_configuration::size() {
   int size = 0;
@@ -84,7 +92,7 @@ void SS_CT_HYB_configuration::copy_from(this_type& other_configuration) {
 
     vertices(l).resize(other_vertices.size());
 
-    for (int i = 0; i < other_vertices.size(); i++) {
+    for (std::size_t i = 0; i < other_vertices.size(); i++) {
       vertices(l)[i].set_t_end(other_vertices[i].t_end());
       vertices(l)[i].set_t_start(other_vertices[i].t_start());
     }
@@ -106,6 +114,7 @@ void SS_CT_HYB_configuration::print() {
   }
   std::cout << "\n";
 }
-}
 
-#endif
+}  // DCA
+
+#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_STRUCTURES_SS_HYBRIDIZATION_CONFIGURATION_H
