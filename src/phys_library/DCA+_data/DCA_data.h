@@ -1,58 +1,85 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// This class contains all functions needed for the MOMS DCA calculation.
 
-#ifndef DCA_DATA_H
-#define DCA_DATA_H
-#include "phys_library/domain_types.hpp"
+#ifndef PHYS_LIBRARY_DCA_DATA_DCA_DATA_H
+#define PHYS_LIBRARY_DCA_DATA_DCA_DATA_H
+
+#include <algorithm>
+#include <complex>
+#include <cstring>
+#include <iostream>
+#include <string>
+#include <stdexcept>
+#include <utility>
+#include <vector>
+
 #include "enumerations.hpp"
+#include "dca/phys/DCA_algorithms/compute_band_structure.hpp"
+#include "dca/util/print_time.hpp"
 #include "comp_library/function_library/include_function_library.h"
+#include "comp_library/linalg/linalg.hpp"
+#include "comp_library/IO_library/IO.hpp"
 #include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
-#include "comp_library/IO_library/IO_types.h"
-#include "phys_library/domains/cluster/interpolation/wannier_interpolation.h"
-#include "phys_library/DCA+_algorithms/compute_band_structure/compute_band_structure.h"
+#include "math_library/geometry_library/vector_operations/vector_operations.hpp"
+#include "phys_library/domains/cluster/cluster_domain.h"
+#include "phys_library/domains/cluster/interpolation/hspline_interpolation/hspline_interpolation.hpp"
+#include "phys_library/domains/cluster/interpolation/wannier_interpolation/wannier_interpolation.hpp"
+#include "phys_library/domains/Quantum_domain/brillouin_zone_cut_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
+#include "phys_library/domains/time_and_frequency/frequency_domain.h"
+#include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
+#include "phys_library/domains/time_and_frequency/time_domain.h"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_sp.h"
-
-#include "comp_library/IO_library/JSON/JSON_reader.h"
-#include "comp_library/IO_library/JSON/JSON_writer.h"
-
-#include "comp_library/IO_library/HDF5/HDF5_reader.h"
-#include "comp_library/IO_library/HDF5/HDF5_writer.h"
-
-#include "comp_library/profiler_library/include_profiling.h"
 #include "phys_library/DCA+_step/symmetrization/symmetrize.h"
-#include "phys_library/domains/cluster/interpolation/hspline_interpolation.h"
-
-using namespace types;
 
 namespace DCA {
-/*!
- * \class   DCA_data
- *
- * \brief   class that contains all functions needed for the DCA-MOMS
- *
- * \date    21 December, 2009
- * \author  Peter Staar
- * \version 1.0
- */
+
 template <class parameters_type>
 class DCA_data {
-  const static int DIMENSION = lattice_type::DIMENSION;
-
-  typedef typename parameters_type::profiler_type profiler_t;
-  typedef typename parameters_type::concurrency_type concurrency_type;
-
 public:
-  typedef b b_dmn_t;
-  typedef s s_dmn_t;
+  using profiler_type = typename parameters_type::profiler_type;
+  using concurrency_type = typename parameters_type::concurrency_type;
 
-  typedef r_DCA r_dmn_t;
-  typedef k_DCA k_dmn_t;
+  using t = dmn_0<time_domain>;
+  using w = dmn_0<frequency_domain>;
+  using compact_vertex_frequency_domain_type = DCA::vertex_frequency_domain<DCA::COMPACT>;
+  using w_VERTEX = dmn_0<compact_vertex_frequency_domain_type>;
 
-  typedef typename r_dmn_t::parameter_type r_cluster_type;
-  typedef typename k_dmn_t::parameter_type k_cluster_type;
+  using b = dmn_0<electron_band_domain>;
+  using s = dmn_0<electron_spin_domain>;
+  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using nu_nu = dmn_variadic<nu, nu>;
+
+  using r_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
+                                     REAL_SPACE, BRILLOUIN_ZONE>>;
+  using DCA_k_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                            CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
+  using k_DCA = dmn_0<DCA_k_cluster_type>;
+  using r_HOST = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, LATTICE_SP,
+                                      REAL_SPACE, BRILLOUIN_ZONE>>;
+  using k_HOST = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, LATTICE_SP,
+                                      MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using k_LDA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, LATTICE_SP,
+                                     MOMENTUM_SPACE, PARALLELLEPIPEDUM>>;
+
+  using k_domain_cut_dmn_type = dmn_0<brillouin_zone_cut_domain<101>>;
+  using nu_k_cut = dmn_variadic<nu, k_domain_cut_dmn_type>;
+
+  using nu_nu_k_DCA_w = dmn_variadic<nu, nu, k_DCA, w>;
+
+  const static int DIMENSION = parameters_type::lattice_type::DIMENSION;
 
 public:
   DCA_data(parameters_type& parameters_ref);
-  ~DCA_data();
 
   void read(std::string filename);
 
@@ -85,9 +112,9 @@ private:
 
 public:
   FUNC_LIB::function<int, nu_nu> H_symmetry;
-  FUNC_LIB::function<double, dmn_3<nu, nu, r_dmn_t>> H_interactions;
+  FUNC_LIB::function<double, dmn_3<nu, nu, r_DCA>> H_interactions;
 
-  FUNC_LIB::function<std::complex<double>, dmn_3<nu, nu, k_dmn_t>> H_DCA;
+  FUNC_LIB::function<std::complex<double>, dmn_3<nu, nu, k_DCA>> H_DCA;
   FUNC_LIB::function<std::complex<double>, dmn_3<nu, nu, k_HOST>> H_HOST;
   FUNC_LIB::function<std::complex<double>, dmn_3<nu, nu, k_LDA>> H_LDA;
 
@@ -105,44 +132,42 @@ public:
   FUNC_LIB::function<std::complex<double>, dmn_3<nu, nu, k_HOST>> S_k;  //("Sigma-k-lattice");
   FUNC_LIB::function<std::complex<double>, dmn_3<nu, nu, r_HOST>> S_r;  //("Sigma-r-lattice");
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>> Sigma;
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>> Sigma_stddev;
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> Sigma;
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> Sigma_stddev;
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>> Sigma_cluster;
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> Sigma_cluster;
   FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_HOST, w>> Sigma_lattice;
   FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_HOST, w>> Sigma_lattice_interpolated;
   FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_HOST, w>> Sigma_lattice_coarsegrained;
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>> G_k_w;
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>> G_k_w_stddev;
-  FUNC_LIB::function<double, dmn_4<nu, nu, k_dmn_t, t>> G_k_t;
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w>> G_r_w;
-  FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t>> G_r_t;
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> G_k_w;
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> G_k_w_stddev;
+  FUNC_LIB::function<double, dmn_4<nu, nu, k_DCA, t>> G_k_t;
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>> G_r_w;
+  FUNC_LIB::function<double, dmn_4<nu, nu, r_DCA, t>> G_r_t;
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>> G0_k_w;
-  FUNC_LIB::function<double, dmn_4<nu, nu, k_dmn_t, t>> G0_k_t;
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w>> G0_r_w;
-  FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t>> G0_r_t;
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> G0_k_w;
+  FUNC_LIB::function<double, dmn_4<nu, nu, k_DCA, t>> G0_k_t;
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>> G0_r_w;
+  FUNC_LIB::function<double, dmn_4<nu, nu, r_DCA, t>> G0_r_t;
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>> G0_k_w_cluster_excluded;
-  FUNC_LIB::function<double, dmn_4<nu, nu, k_dmn_t, t>> G0_k_t_cluster_excluded;
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w>> G0_r_w_cluster_excluded;
-  FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t>> G0_r_t_cluster_excluded;
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> G0_k_w_cluster_excluded;
+  FUNC_LIB::function<double, dmn_4<nu, nu, k_DCA, t>> G0_k_t_cluster_excluded;
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>> G0_r_w_cluster_excluded;
+  FUNC_LIB::function<double, dmn_4<nu, nu, r_DCA, t>> G0_r_t_cluster_excluded;
 
-  FUNC_LIB::function<std::complex<double>, dmn_8<b, b, b, b, k_dmn_t, k_dmn_t, w_VERTEX, w_VERTEX>> G4_k_k_w_w;
-  FUNC_LIB::function<std::complex<double>, dmn_8<b, b, b, b, k_dmn_t, k_dmn_t, w_VERTEX, w_VERTEX>>
+  FUNC_LIB::function<std::complex<double>, dmn_8<b, b, b, b, k_DCA, k_DCA, w_VERTEX, w_VERTEX>> G4_k_k_w_w;
+  FUNC_LIB::function<std::complex<double>, dmn_8<b, b, b, b, k_DCA, k_DCA, w_VERTEX, w_VERTEX>>
       G4_k_k_w_w_stddev;
 
-  FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t>> K_r_t;
+  FUNC_LIB::function<double, dmn_4<nu, nu, r_DCA, t>> K_r_t;
 
   FUNC_LIB::function<double, nu> orbital_occupancy;
 };
 
 template <class parameters_type>
 DCA_data<parameters_type>::DCA_data(parameters_type& parameters_ref)
-    :
-
-      parameters(parameters_ref),
+    : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
 
       H_symmetry("H_symmetry"),
@@ -204,9 +229,6 @@ DCA_data<parameters_type>::DCA_data(parameters_type& parameters_ref)
 {
   H_symmetry = -1;
 }
-
-template <class parameters_type>
-DCA_data<parameters_type>::~DCA_data() {}
 
 template <class parameters_type>
 void DCA_data<parameters_type>::read(std::string filename) {
@@ -306,8 +328,7 @@ void DCA_data<parameters_type>::write(std::string file_name) {
 
   std::cout << "\n\n\t\t start writing " << file_name << "\n\n";
 
-  switch (FORMAT)  // INTERNAL is there a better way to not copy code?
-  {
+  switch (FORMAT) {
     case IO::JSON: {
       IO::writer<IO::JSON> writer;
       {
@@ -360,12 +381,12 @@ void DCA_data<parameters_type>::write(IO::writer<DATA_FORMAT>& writer) {
   if (!parameters.use_interpolated_Self_energy()) {  // Compute Sigma-r-DCA for the lowest frequency
                                                      // via Fourier transformation of DCA cluster
                                                      // Sigma.
-    FUNC_LIB::function<std::complex<double>, dmn_3<nu, nu, r_dmn_t>> S_r_DCA("Sigma-r-DCA");
+    FUNC_LIB::function<std::complex<double>, dmn_3<nu, nu, r_DCA>> S_r_DCA("Sigma-r-DCA");
 
-    FUNC_LIB::function<std::complex<double>, dmn_3<nu, nu, k_dmn_t>> S_k_DCA("Sigma-k-DCA");
-    memcpy(&S_k_DCA(0), &Sigma(0, 0, 0, w::dmn_size() / 2),
-           sizeof(std::complex<double>) * std::pow(2 * b::dmn_size(), 2.) * k_dmn_t::dmn_size());
-    math_algorithms::functional_transforms::TRANSFORM<k_dmn_t, r_dmn_t>::execute(S_k_DCA, S_r_DCA);
+    FUNC_LIB::function<std::complex<double>, dmn_3<nu, nu, k_DCA>> S_k_DCA("Sigma-k-DCA");
+    std::memcpy(&S_k_DCA(0), &Sigma(0, 0, 0, w::dmn_size() / 2),
+                sizeof(std::complex<double>) * std::pow(2 * b::dmn_size(), 2.) * k_DCA::dmn_size());
+    math_algorithms::functional_transforms::TRANSFORM<k_DCA, r_DCA>::execute(S_k_DCA, S_r_DCA);
 
     writer.execute(S_r_DCA);
   }
@@ -420,36 +441,36 @@ void DCA_data<parameters_type>::initialize() {
 template <class parameters_type>
 void DCA_data<parameters_type>::initialize_H_0_and_H_i() {
   if (concurrency.id() == concurrency.first())
-    std::cout << "\n\n\t initialize H_0(k) and H_i " << print_time() << "\n";
+    std::cout << "\n\n\t initialize H_0(k) and H_i " << dca::util::print_time() << "\n";
 
-  model::initialize_H_LDA(H_LDA, parameters);
+  parameters_type::model_type::initialize_H_LDA(H_LDA, parameters);
 
-  model::initialize_H_interaction(H_interactions, parameters);
+  parameters_type::model_type::initialize_H_interaction(H_interactions, parameters);
 
-  model::initialize_H_symmetries(H_symmetry);
+  parameters_type::model_type::initialize_H_symmetries(H_symmetry);
 
   {
-    wannier_interpolation<k_LDA, k_dmn_t>::execute(H_LDA, H_DCA);
+    wannier_interpolation<k_LDA, k_DCA>::execute(H_LDA, H_DCA);
     wannier_interpolation<k_LDA, k_HOST>::execute(H_LDA, H_HOST);
 
     compute_band_structure::execute(parameters, H_LDA, band_structure);
   }
 
   if (concurrency.id() == concurrency.first())
-    std::cout << "\t finished H_0(k) and H_i " << print_time() << "\n";
+    std::cout << "\t finished H_0(k) and H_i " << dca::util::print_time() << "\n";
 }
 
 template <class parameters_type>
 void DCA_data<parameters_type>::initialize_G0() {
-  profiler_t prof("initialize-G0", "input", __LINE__);
+  profiler_type prof("initialize-G0", "input", __LINE__);
 
   if (concurrency.id() == 0)
-    std::cout << "\n\n\t initialize G0 " << print_time() << "\n";
+    std::cout << "\n\n\t initialize G0 " << dca::util::print_time() << "\n";
 
   DCA::coarsegraining_sp<parameters_type, k_DCA> coarsegrain_obj(parameters);
 
   if (concurrency.id() == 0)
-    std::cout << "\t\t start coarsegraining G0_k_w " << print_time() << "\n";
+    std::cout << "\t\t start coarsegraining G0_k_w " << dca::util::print_time() << "\n";
 
   {
     FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w> Sigma_zero;
@@ -461,7 +482,7 @@ void DCA_data<parameters_type>::initialize_G0() {
   }
 
   if (concurrency.id() == 0)
-    std::cout << "\t\t start coarsegraining G0_k_t " << print_time() << "\n";
+    std::cout << "\t\t start coarsegraining G0_k_t " << dca::util::print_time() << "\n";
 
   {
     coarsegrain_obj.compute_G0_K_t(H_HOST, G0_k_t);
@@ -471,22 +492,22 @@ void DCA_data<parameters_type>::initialize_G0() {
   // test_initialize_G0();
 
   if (concurrency.id() == 0)
-    std::cout << "\n\t\t FT G0_k_w, G0_k_t --> G0_r_w, G0_r_t " << print_time() << "\n";
+    std::cout << "\n\t\t FT G0_k_w, G0_k_t --> G0_r_w, G0_r_t " << dca::util::print_time() << "\n";
 
   {
-    math_algorithms::functional_transforms::TRANSFORM<k_dmn_t, r_dmn_t>::execute(G0_k_w, G0_r_w);
-    math_algorithms::functional_transforms::TRANSFORM<k_dmn_t, r_dmn_t>::execute(G0_k_t, G0_r_t);
+    math_algorithms::functional_transforms::TRANSFORM<k_DCA, r_DCA>::execute(G0_k_w, G0_r_w);
+    math_algorithms::functional_transforms::TRANSFORM<k_DCA, r_DCA>::execute(G0_k_t, G0_r_t);
 
     symmetrize::execute(G0_r_t, H_symmetry, true);
   }
 
   if (concurrency.id() == 0)
-    std::cout << "\t finished G0 " << print_time();
+    std::cout << "\t finished G0 " << dca::util::print_time();
 }
 
 template <class parameters_type>
 void DCA_data<parameters_type>::initialize_Sigma() {
-  profiler_t prof("initialize-Sigma", "input", __LINE__);
+  profiler_type prof("initialize-Sigma", "input", __LINE__);
 
   if (parameters.get_Sigma_file() != "zero")
     this->read(parameters.get_Sigma_file());
@@ -495,8 +516,8 @@ void DCA_data<parameters_type>::initialize_Sigma() {
 template <class parameters_type>
 void DCA_data<parameters_type>::compute_single_particle_properties() {
   {
-    memcpy(&S_k(0), &Sigma_lattice(0, 0, 0, w::dmn_size() / 2),
-           sizeof(std::complex<double>) * std::pow(2 * b::dmn_size(), 2.) * k_HOST::dmn_size());
+    std::memcpy(&S_k(0), &Sigma_lattice(0, 0, 0, w::dmn_size() / 2),
+                sizeof(std::complex<double>) * std::pow(2 * b::dmn_size(), 2.) * k_HOST::dmn_size());
 
     math_algorithms::functional_transforms::TRANSFORM<k_HOST, r_HOST>::execute(S_k, S_r);
   }
@@ -537,18 +558,19 @@ void DCA_data<parameters_type>::compute_Sigma_bands() {
     Sigma_band_structure.reset();
     Sigma_cluster_band_structure.reset();
 
-    std::vector<std::pair<double, int>> length_and_distance(k_dmn_t::dmn_size(),
+    std::vector<std::pair<double, int>> length_and_distance(k_DCA::dmn_size(),
                                                             std::pair<double, int>(0, -1));
 
     for (int k_ind = 0; k_ind < k_domain_cut_dmn_type::dmn_size(); ++k_ind) {
       std::vector<double> k_vec = cluster_operations::translate_inside_cluster(
-          k_domain_cut_dmn_type::get_elements()[k_ind], k_cluster_type::get_super_basis_vectors());
+          k_domain_cut_dmn_type::get_elements()[k_ind],
+          DCA_k_cluster_type::get_super_basis_vectors());
 
-      for (int K_ind = 0; K_ind < k_dmn_t::dmn_size(); ++K_ind) {
+      for (int K_ind = 0; K_ind < k_DCA::dmn_size(); ++K_ind) {
         length_and_distance[K_ind].second = K_ind;
 
         length_and_distance[K_ind].first = cluster_operations::minimal_distance(
-            k_vec, k_dmn_t::get_elements()[K_ind], k_cluster_type::get_super_basis_vectors());
+            k_vec, k_DCA::get_elements()[K_ind], DCA_k_cluster_type::get_super_basis_vectors());
       }
 
       std::sort(length_and_distance.begin(), length_and_distance.end());
@@ -625,8 +647,8 @@ void DCA_data<parameters_type>::print_Sigma_QMC_versus_Sigma_cg() {
                    "---------------------------------\n";
     }
 
-    for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind) {
-      VECTOR_OPERATIONS::PRINT(k_dmn_t::get_elements()[k_ind]);
+    for (int k_ind = 0; k_ind < k_DCA::dmn_size(); ++k_ind) {
+      VECTOR_OPERATIONS::PRINT(k_DCA::get_elements()[k_ind]);
       std::cout << real(Sigma(0, 0, k_ind, w::dmn_size() / 2)) << "\t"
                 << imag(Sigma(0, 0, k_ind, w::dmn_size() / 2)) << "\t";
       std::cout << real(Sigma_cluster(0, 0, k_ind, w::dmn_size() / 2)) << "\t"
@@ -637,4 +659,4 @@ void DCA_data<parameters_type>::print_Sigma_QMC_versus_Sigma_cg() {
 }
 }
 
-#endif
+#endif  // PHYS_LIBRARY_DCA_DATA_DCA_DATA_H

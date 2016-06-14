@@ -1,40 +1,53 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// This class contains all functions on the real frequency axis.
 
-#ifndef MOMS_W_REAL_H
-#define MOMS_W_REAL_H
-#include "phys_library/domain_types.hpp"
+#ifndef PHYS_LIBRARY_DCA_DATA_MOMS_W_REAL_HPP
+#define PHYS_LIBRARY_DCA_DATA_MOMS_W_REAL_HPP
+
+#include <complex>
+#include <iostream>
+#include <stdexcept>
+#include <string>
+
 #include "comp_library/function_library/include_function_library.h"
-#include "comp_library/IO_library/JSON/JSON_reader.h"
-#include "comp_library/IO_library/JSON/JSON_writer.h"
-#include "comp_library/IO_library/HDF5/HDF5_writer.h"
+#include "comp_library/IO_library/IO.hpp"
+#include "phys_library/domains/cluster/cluster_domain.h"
+#include "phys_library/domains/time_and_frequency/frequency_domain_real_axis.h"
+#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
 
-using namespace types;
-
-/*!
- * \class   MultiOrbitalMultiSiteStructure
- *
- * \brief   class that contains all functions on the real axis
- *
- * \date    6 Dec, 2013
- * \author  Peter Staar
- * \version 1.0
- */
 template <class parameters_type>
 class MOMS_w_real {
-  typedef typename parameters_type::profiler_type profiler_t;
-  typedef typename parameters_type::concurrency_type concurrency_type;
+public:
+  using concurrency_type = typename parameters_type::concurrency_type;
+
+  using w_REAL = dmn_0<frequency_domain_real_axis>;
+
+  using b = dmn_0<electron_band_domain>;
+  using s = dmn_0<electron_spin_domain>;
+  using nu = dmn_variadic<b, s>;  // orbital-spin index
+
+  using r_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
+                                     REAL_SPACE, BRILLOUIN_ZONE>>;
+  using k_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
+                                     MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
 
 public:
   MOMS_w_real(parameters_type& parameters_ref);
-  ~MOMS_w_real();
 
   void read(std::string filename);
-
   void write(std::string filename);
 
   template <IO::FORMAT DATA_FORMAT>
   void read(IO::reader<DATA_FORMAT>& reader);
-
   template <IO::FORMAT DATA_FORMAT>
   void write(IO::writer<DATA_FORMAT>& writer);
 
@@ -69,9 +82,7 @@ public:
 
 template <class parameters_type>
 MOMS_w_real<parameters_type>::MOMS_w_real(parameters_type& parameters_ref)
-    :
-
-      parameters(parameters_ref),
+    : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
 
       A_w("spectral-density"),
@@ -96,9 +107,6 @@ MOMS_w_real<parameters_type>::MOMS_w_real(parameters_type& parameters_ref)
       G_k_w_stddev("cluster-greens-function-G_k_w-real-axis-stddev"),
 
       G_r_w("cluster-greens-function-G_r_w-real-axis") {}
-
-template <class parameters_type>
-MOMS_w_real<parameters_type>::~MOMS_w_real() {}
 
 template <class parameters_type>
 void MOMS_w_real<parameters_type>::read(std::string filename) {
@@ -269,4 +277,4 @@ void MOMS_w_real<parameters_type>::write(IO::writer<DATA_FORMAT>& writer) {
   }
 */
 
-#endif
+#endif  // PHYS_LIBRARY_DCA_DATA_MOMS_W_REAL_HPP
