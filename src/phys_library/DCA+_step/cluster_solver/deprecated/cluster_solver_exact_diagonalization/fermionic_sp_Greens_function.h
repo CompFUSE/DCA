@@ -2,8 +2,6 @@
 
 #ifndef FERMIONIC_SP_GREENS_FUNCTION_H
 #define FERMIONIC_SP_GREENS_FUNCTION_H
-#include"phys_library/domain_types.hpp"
-using namespace types;
 
 namespace DCA
 {
@@ -48,6 +46,7 @@ namespace DCA
     template<typename parameter_type, typename b_dmn, typename s_dmn, typename r_dmn>
     class fermionic_sp_Greens_function
     {
+#include "type_definitions.h"
 
       typedef ED_type_definitions<parameter_type, b_dmn, s_dmn, r_dmn> ED_type_def;
 
@@ -425,9 +424,13 @@ namespace DCA
         G_r_w      *= factor;
         G_r_w_real *= factor;
         G_r_t      *= -factor;
-        math_algorithms::functional_transforms::TRANSFORM<r_dmn, k_dmn>::execute(G_r_w     , G_k_w);
-        math_algorithms::functional_transforms::TRANSFORM<r_dmn, k_dmn>::execute(G_r_w_real, G_k_w_real);
-        math_algorithms::functional_transforms::TRANSFORM<r_dmn, k_dmn>::execute(G_r_t     , G_k_t);
+
+        //       FT<r_dmn, k_dmn>::execute(G_r_w     , G_k_w);
+        //       FT<r_dmn, k_dmn>::execute(G_r_w_real, G_k_w_real);
+        //       FT<r_dmn, k_dmn>::execute(G_r_t     , G_k_t);
+        MATH_ALGORITHMS::TRANSFORM<r_dmn, k_dmn>::execute(G_r_w     , G_k_w);
+        MATH_ALGORITHMS::TRANSFORM<r_dmn, k_dmn>::execute(G_r_w_real, G_k_w_real);
+        MATH_ALGORITHMS::TRANSFORM<r_dmn, k_dmn>::execute(G_r_t     , G_k_t);
 
       }
     }
@@ -591,6 +594,9 @@ namespace DCA
 
         delete [] coor;
       }
+      //     while(!sum_manager.sum_and_check(G_r_t) and
+      //          !sum_manager.sum_and_check(G_r_w) and
+      //          !sum_manager.sum_and_check(G_r_w_real));
     }
 
 
@@ -753,6 +759,9 @@ namespace DCA
 
         delete [] coor;
       }
+      //     while(!sum_manager.sum_and_check(G_r_t) and
+      //          !sum_manager.sum_and_check(G_r_w) and
+      //          !sum_manager.sum_and_check(G_r_w_real));
     }
 
     template<typename parameter_type, typename b_dmn, typename s_dmn, typename r_dmn>
@@ -845,6 +854,7 @@ namespace DCA
             overlap_indices& overlap_i = overlap_lhs[i];
             assert(index_i == overlap_i.index);
 
+            //V_lhs_value[bp_i] += overlap_i.sign*conj_value(psi_0(overlap_i.lhs, l0))*psi_1(overlap_i.rhs, l1);
             V_lhs_value[bp_i] += overlap_i.sign*conj_value(psi_0_vec[overlap_i.lhs])*psi_1_vec[overlap_i.rhs];
           }
         }
@@ -871,7 +881,8 @@ namespace DCA
             overlap_indices& overlap_j = overlap_rhs[j];
             assert(index_j == overlap_j.index);
 
-	    V_rhs_value[bp_j] += overlap_j.sign*psi_0_vec[overlap_j.rhs]*conj_value(psi_1_vec[overlap_j.lhs]);
+            //V_rhs_value[bp_j] += overlap_j.sign*psi_0(overlap_j.rhs, l0)*conj_value(psi_1(overlap_j.lhs, l1));
+            V_rhs_value[bp_j] += overlap_j.sign*psi_0_vec[overlap_j.rhs]*conj_value(psi_1_vec[overlap_j.lhs]);
           }
         }
       }
