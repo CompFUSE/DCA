@@ -1,18 +1,15 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// This class organizes the construction of the N-matrix.
 
-#ifndef DCA_QMCI_N_MATRIX_ROUTINES_H
-#define DCA_QMCI_N_MATRIX_ROUTINES_H
-
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_N_matrix_routines/ctaux_N_matrix_routines.hpp"
-namespace DCA {
-namespace QMCI {
-/*!
- *  \class   N_TOOLS
- *  \ingroup CT-AUX-WALKER
- *
- *  \author Peter Staar
- *  \brief  This class organizes the construction of the N-matrix.
- *
+/*
  *  The N-matrix can be computed directly from the Hubbard-spin configuration,
  *
  *  \f{eqnarray}{
@@ -30,6 +27,23 @@ namespace QMCI {
  *    N_{i,j} &=& \delta_{i,j}  \mbox{ if } j \leq n
  *  \f}
  */
+
+#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_WALKER_CTAUX_WALKER_TOOLS_CTAUX_N_MATRIX_ROUTINES_H
+#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_WALKER_CTAUX_WALKER_TOOLS_CTAUX_N_MATRIX_ROUTINES_H
+
+#include <iostream>
+#include <utility>
+#include <vector>
+
+#include "comp_library/linalg/linalg.hpp"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_auxilery_field_coefficients.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_vertex_singleton.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_N_matrix_routines/ctaux_N_matrix_routines.hpp"
+
+namespace DCA {
+namespace QMCI {
+// DCA::QMCI::
+
 template <LIN_ALG::device_type device_t, typename parameters_type>
 class N_TOOLS : public N_MATRIX_TOOLS<device_t, parameters_type> {
   const static int MAX_VERTEX_SINGLETS = 4;
@@ -41,8 +55,6 @@ class N_TOOLS : public N_MATRIX_TOOLS<device_t, parameters_type> {
 
 public:
   N_TOOLS(int id, parameters_type& parameters, CV<parameters_type>& CV_obj_ref);
-
-  ~N_TOOLS();
 
   double get_Gflop();
 
@@ -131,6 +143,13 @@ N_TOOLS<device_t, parameters_type>::N_TOOLS(int id, parameters_type& parameters_
       exp_V_minus_one_val("exp_V_minus_one_val (N_TOOLS)",
                           MAX_VERTEX_SINGLETS * parameters.get_K_PHANI()),
 
+      //     G                       ("G (N_TOOLS)"                       ,
+      //     MAX_VERTEX_SINGLETS*parameters.get_K_PHANI()),
+      //     N_new_spins             ("N_new_spins (N_TOOLS)"             ,
+      //     MAX_VERTEX_SINGLETS*parameters.get_K_PHANI()),
+      //     G0_times_exp_V_minus_one("G0_times_exp_V_minus_one (N_TOOLS)",
+      //     MAX_VERTEX_SINGLETS*parameters.get_K_PHANI())
+
       G("G (N_TOOLS)", std::pair<int, int>(0, 0),
         std::pair<int, int>(parameters.get_initial_matrix_size(),
                             MAX_VERTEX_SINGLETS * parameters.get_K_PHANI())),
@@ -140,9 +159,6 @@ N_TOOLS<device_t, parameters_type>::N_TOOLS(int id, parameters_type& parameters_
       G0_times_exp_V_minus_one("G0_times_exp_V_minus_one (N_TOOLS)", std::pair<int, int>(0, 0),
                                std::pair<int, int>(MAX_VERTEX_SINGLETS * parameters.get_K_PHANI(),
                                                    parameters.get_initial_matrix_size())) {}
-
-template <LIN_ALG::device_type device_t, typename parameters_type>
-N_TOOLS<device_t, parameters_type>::~N_TOOLS() {}
 
 template <LIN_ALG::device_type device_t, typename parameters_type>
 double N_TOOLS<device_t, parameters_type>::get_Gflop() {
@@ -354,11 +370,16 @@ void N_TOOLS<device_t, parameters_type>::rebuild_N_matrix_via_Gamma_LU(
 
     G.resize_no_copy(std::pair<int, int>(configuration_size, Gamma_size));
 
-    std::vector<double> exp_V(permutation.size());
-    for (size_t l = 0; l < permutation.size(); ++l)
-      exp_V[l] = CV_obj.exp_V(configuration_e_spin[permutation[l]]);
+    // if(true)
+    {
+      std::vector<double> exp_V(permutation.size());
+      for (size_t l = 0; l < permutation.size(); ++l)
+        exp_V[l] = CV_obj.exp_V(configuration_e_spin[permutation[l]]);
 
-    N_MATRIX_TOOLS<device_t, parameters_type>::compute_G_cols(exp_V, N, G_precomputed, G);
+      N_MATRIX_TOOLS<device_t, parameters_type>::compute_G_cols(exp_V, N, G_precomputed, G);
+    }
+    // else
+    // compute_G_changed_vertices_to_all_vertex(N, G_precomputed, full_configuration, e_spin);
   }
 
   {  // Gamma_LU * X = N(p_k,:) --> X = Gamma_inv_times_N_new_spins ==> (stored in N_new_spins)
@@ -387,6 +408,51 @@ void N_TOOLS<device_t, parameters_type>::rebuild_N_matrix_via_Gamma_LU(
     N_MATRIX_TOOLS<device_t, parameters_type>::scale_rows(N);
   }
 }
+
+/*
+  template<LIN_ALG::device_type device_t, typename parameters_type>
+  inline void N_TOOLS<device_t, parameters_type>::set_data()
+  {
+  std::vector<double> exp_V(permutation.size());
+  std::vector<double> d_vec(permutation.size());
+
+  {
+  for(size_t l=0; l<permutation.size(); ++l)
+  exp_V[l] = CV_obj.exp_V(configuration_e_spin[permutation[l]]);
+  }
+
+  {
+  int                 spin_orbital, spin_orbital_paired;
+  double              exp_delta_V;
+
+  HS_field_sign       HS_field_sign;
+  HS_spin_states_type old_HS_spin, new_HS_spin;
+
+  for(int i=0; i<int(permutation.size()); ++i){
+
+  HS_spin_states_type old_HS_spin = configuration_e_spin[permutation[i]].get_HS_spin();
+  HS_spin_states_type new_HS_spin = spin_values[i];
+
+  HS_field_sign HS_field_sign = configuration_e_spin[permutation[i]].get_HS_field();
+
+  int spin_orbital        = configuration_e_spin[permutation[i]].get_spin_orbital();
+  int spin_orbital_paired = configuration_e_spin[permutation[i]].get_paired_spin_orbital();
+
+  if(old_HS_spin == HS_ZERO)
+  {
+  d_vec[i] = 1./CV_obj.exp_delta_V(spin_orbital, spin_orbital_paired, new_HS_spin, old_HS_spin,
+  HS_field_sign);
+  }
+  else
+  {
+  d_inv[i] = 0;
+  }
+  }
+  }
+
+  N_MATRIX_TOOLS<device_t, parameters_type>::set_data(permutation, exp_V, d_vec);
+  }
+*/
 
 template <LIN_ALG::device_type device_t, typename parameters_type>
 inline void N_TOOLS<device_t, parameters_type>::copy_rows_N(std::vector<int>& permutation,
@@ -440,6 +506,7 @@ void N_TOOLS<device_t, parameters_type>::compute_G_changed_vertices_to_all_verte
                                        1);
       LIN_ALG::SCALE<device_t>::execute(configuration_size, alpha, G.get_ptr(0, l), 1);
 
+      // G(j_ind,l) -= 1./denumerator;
       LIN_ALG::MEMORY_MANAGEMENT<device_t>::add(G.get_ptr(j_ind, l), -1. / denumerator);
     }
   }
@@ -461,6 +528,7 @@ inline void N_TOOLS<device_t, parameters_type>::compute_d_vector(
   d_inv.resize(permutation.size());
 
   std::vector<int> d_index(0);
+  // std::vector<int> N_index(0);
 
   for (int i = 0; i < int(permutation.size()); ++i) {
     old_HS_spin = configuration_e_spin[permutation[i]].get_HS_spin();
@@ -480,8 +548,16 @@ inline void N_TOOLS<device_t, parameters_type>::compute_d_vector(
     }
     else {
       d_inv[i] = 0;
+
+      // d_inv[i] =
+      // 1./LIN_ALG::MEMORY_MANAGEMENT<device_t>::get(N.get_ptr(permutation[i],permutation[i]));
+      // d_inv[i] = 1./N(permutation[i],permutation[i]);
+
+      // d_index.push_back(i);
     }
   }
+
+  // N_MATRIX_TOOLS<device_t, parameters_type>::set_d_vector(d_index, N, d_inv);
 
   N_MATRIX_TOOLS<device_t, parameters_type>::set_d_vector(d_inv);
 }
@@ -504,6 +580,7 @@ bool N_TOOLS<device_t, parameters_type>::assert_that_there_are_no_Bennett_spins(
 
     for (size_t i = 0; i < permutation.size(); i++) {
       int configuration_index = configuration_e_spin[permutation[i]].get_configuration_index();
+      // assert(!full_configuration[configuration_index].is_Bennett());
       if (full_configuration[configuration_index].is_Bennett())
         throw std::logic_error(__FUNCTION__);
     }
@@ -515,6 +592,7 @@ bool N_TOOLS<device_t, parameters_type>::assert_that_there_are_no_Bennett_spins(
 
     for (size_t i = 0; i < permutation.size(); i++) {
       int configuration_index = configuration_e_spin[permutation[i]].get_configuration_index();
+      // assert(!full_configuration[configuration_index].is_Bennett());
       if (full_configuration[configuration_index].is_Bennett())
         throw std::logic_error(__FUNCTION__);
     }
@@ -537,8 +615,28 @@ void N_TOOLS<device_t, parameters_type>::check_N_matrix(configuration_type& conf
   build_N_matrix(configuration, N_correct, G0, e_spin);
 
   N.difference(N_correct);
-}
-}
+
+  //     if(! N.difference(N_correct))
+  //       {
+  //        configuration.print();
+  //        configuration.print(e_spin);
+
+  //        N_correct.print();
+  //        N.print();
+
+  //        std::cout << "\t\t e_spin : " << e_spin << std::endl;
+  //        Gamma.print();
+
+  //        for(int i=0; i<N.get_current_size(); i++)
+  //          std::cout << "\t\t" << configuration[i].get_HS_spin();
+  //        std::cout << "\n";
+
+  //        //throw std::logic_error(__FUNCTION__);
+
+  //       }
 }
 
-#endif
+}  // QMCI
+}  // DCA
+
+#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_WALKER_CTAUX_WALKER_TOOLS_CTAUX_N_MATRIX_ROUTINES_H

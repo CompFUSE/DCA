@@ -1,30 +1,36 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
-#ifndef DCA_QMCI_CT_AUX_WALKER_BIT_H
-#define DCA_QMCI_CT_AUX_WALKER_BIT_H
+#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_WALKER_CTAUX_WALKER_BUILD_IN_TEST_H
+#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_WALKER_CTAUX_WALKER_BUILD_IN_TEST_H
 
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_template/qmci_walker.h"
-#include "dca/math_library/random_number_library/random_number_library.hpp"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_template/mc_walker_bit.hpp"
+
+#include <vector>
+
+#include "comp_library/function_library/include_function_library.h"
+#include "comp_library/linalg/src/matrix.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_auxilery_field_coefficients.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_hubbard_stratonovitch_configuration.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_vertex_singleton.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_typedefinitions.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_G0_matrix_routines/ctaux_G0_matrix_routines_CPU.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_G_matrix_routines.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_N_matrix_routines.h"
+#include "phys_library/domains/Quantum_domain/numerical_error_domain.h"
 
 namespace DCA {
 namespace QMCI {
-/*!
- *  \defgroup CT-AUX-WALKER
- *  \ingroup  CT-AUX
- */
+// DCA::QMCI::
 
-/*!
- *  \defgroup STRUCTURES
- *  \ingroup  CT-AUX
- */
-
-/*!
- *  \ingroup CT-AUX
- *
- *  \brief   This class organizes the MC-walker in the CT-AUX QMC
- *  \author  Peter Staar
- *  \version 1.0
- */
 template <class parameters_type, class MOMS_type>
 class MC_walker_BIT<CT_AUX_SOLVER, parameters_type, MOMS_type> {
   typedef vertex_singleton vertex_singleton_type;
@@ -39,6 +45,8 @@ class MC_walker_BIT<CT_AUX_SOLVER, parameters_type, MOMS_type> {
 
 public:
   MC_walker_BIT(parameters_type& parameters_ref, MOMS_type& MOMS_ref, int id);
+
+  ~MC_walker_BIT();
 
   void initialize();
 
@@ -114,6 +122,12 @@ MC_walker_BIT<CT_AUX_SOLVER, parameters_type, MOMS_type>::MC_walker_BIT(paramete
       error("error") {}
 
 template <class parameters_type, class MOMS_type>
+MC_walker_BIT<CT_AUX_SOLVER, parameters_type, MOMS_type>::~MC_walker_BIT() {
+  //     for(int l=0; l<numerical_error_domain::get_size(); l++)
+  //       cout << numerical_error_domain::get_elements()[l] << "\t" << error(l) << endl;
+}
+
+template <class parameters_type, class MOMS_type>
 FUNC_LIB::function<double, dmn_0<numerical_error_domain>>& MC_walker_BIT<
     CT_AUX_SOLVER, parameters_type, MOMS_type>::get_error_distribution() {
   return error;
@@ -125,6 +139,13 @@ void MC_walker_BIT<CT_AUX_SOLVER, parameters_type, MOMS_type>::initialize() {
 
   CV_obj.initialize(MOMS);
   G0_CPU_tools_obj.initialize(MOMS);
+
+  //     for(int i=-16; i<=0; i++){
+  //       for(double j=1; j<10; j+=1.){
+  //        x.push_back(j*std::pow(10., i));
+  //        y.push_back(0);
+  //       }
+  //     }
 }
 
 template <class parameters_type, class MOMS_type>
@@ -132,6 +153,8 @@ template <LIN_ALG::device_type device_t>
 void MC_walker_BIT<CT_AUX_SOLVER, parameters_type, MOMS_type>::check_G0_matrices(
     configuration_type& configuration, LIN_ALG::matrix<double, device_t>& G0_up,
     LIN_ALG::matrix<double, device_t>& G0_dn) {
+  //     cout << __FUNCTION__ << endl;
+
   G0_CPU_tools_obj.build_G0_matrix(configuration, G0_up_CPU, e_UP);
   G0_CPU_tools_obj.build_G0_matrix(configuration, G0_dn_CPU, e_DN);
 
@@ -145,6 +168,8 @@ void MC_walker_BIT<CT_AUX_SOLVER, parameters_type, MOMS_type>::check_N_matrices(
     configuration_type& configuration, LIN_ALG::matrix<double, device_t>& G0_up,
     LIN_ALG::matrix<double, device_t>& G0_dn, LIN_ALG::matrix<double, device_t>& N_up,
     LIN_ALG::matrix<double, device_t>& N_dn) {
+  //     cout << __FUNCTION__ << endl;
+
   G0_up_CPU.difference(G0_up);
   G0_dn_CPU.difference(G0_dn);
 
@@ -167,6 +192,8 @@ void MC_walker_BIT<CT_AUX_SOLVER, parameters_type, MOMS_type>::check_G_matrices(
     LIN_ALG::matrix<double, device_t>& G0_dn, LIN_ALG::matrix<double, device_t>& N_up,
     LIN_ALG::matrix<double, device_t>& N_dn, LIN_ALG::matrix<double, device_t>& G_up,
     LIN_ALG::matrix<double, device_t>& G_dn) {
+  //     cout << __FUNCTION__ << endl;
+
   G0_up_CPU.difference(G0_up);
   G0_dn_CPU.difference(G0_dn);
 
@@ -179,7 +206,8 @@ void MC_walker_BIT<CT_AUX_SOLVER, parameters_type, MOMS_type>::check_G_matrices(
   G_up_CPU.difference(G_up);
   G_dn_CPU.difference(G_dn);
 }
-}
-}
 
-#endif
+}  // QMCI
+}  // DCA
+
+#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_WALKER_CTAUX_WALKER_BUILD_IN_TEST_H

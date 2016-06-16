@@ -1,18 +1,32 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// This class organizes the construction of the \f$ G = N\:G^{0} \f$-matrix.
 
-#ifndef DCA_QMCI_G_ROUTINES_H
-#define DCA_QMCI_G_ROUTINES_H
+#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_WALKER_CTAUX_WALKER_TOOLS_CTAUX_G_MATRIX_ROUTINES_H
+#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_WALKER_CTAUX_WALKER_TOOLS_CTAUX_G_MATRIX_ROUTINES_H
 
+#include <cassert>
+#include <iostream>
+#include <sstream>
+#include <utility>
+#include <vector>
+
+#include "comp_library/linalg/linalg.hpp"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_auxilery_field_coefficients.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_vertex_singleton.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_G_matrix_routines/ctaux_G_matrix_routines.hpp"
+
 namespace DCA {
 namespace QMCI {
-/*!
- *  \class   G_TOOLS
- *  \ingroup CT-AUX-WALKER
- *
- *  \author Peter Staar
- *  \brief  This class organizes the construction of the \f$ G = N\:G^{0} \f$-matrix.
- */
+// DCA::QMCI::
+
 template <LIN_ALG::device_type device_t, typename parameters_type>
 class G_TOOLS : public G_MATRIX_TOOLS<device_t, parameters_type> {
   typedef vertex_singleton vertex_singleton_type;
@@ -22,8 +36,6 @@ class G_TOOLS : public G_MATRIX_TOOLS<device_t, parameters_type> {
 
 public:
   G_TOOLS(int id, parameters_type& parameters, CV<parameters_type>& CV_obj_ref);
-
-  ~G_TOOLS();
 
   double get_Gflop();
 
@@ -93,9 +105,6 @@ G_TOOLS<device_t, parameters_type>::G_TOOLS(int id, parameters_type& parameters_
       concurrency(parameters.get_concurrency()),
 
       CV_obj(CV_obj_ref) {}
-
-template <LIN_ALG::device_type device_t, typename parameters_type>
-G_TOOLS<device_t, parameters_type>::~G_TOOLS() {}
 
 template <LIN_ALG::device_type device_t, typename parameters_type>
 double G_TOOLS<device_t, parameters_type>::get_Gflop() {
@@ -265,7 +274,8 @@ inline double G_TOOLS<device_t, parameters_type>::compute_G_vertex_to_new_vertex
     LIN_ALG::matrix<double, device_t>& G) {
   return G(configuration_e_spin_index_i, configuration_e_spin_index_j);
 }
-}
-}
 
-#endif
+}  // QMCI
+}  // DCA
+
+#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_WALKER_CTAUX_WALKER_TOOLS_CTAUX_G_MATRIX_ROUTINES_H

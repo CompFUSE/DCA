@@ -1,12 +1,27 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Template specialization for CPU.
 
-#ifndef DCA_QMCI_N_MATRIX_ROUTINES_CPU_H
-#define DCA_QMCI_N_MATRIX_ROUTINES_CPU_H
+#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_WALKER_CTAUX_WALKER_TOOLS_CTAUX_N_MATRIX_ROUTINES_CTAUX_N_MATRIX_ROUTINES_CPU_H
+#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_WALKER_CTAUX_WALKER_TOOLS_CTAUX_N_MATRIX_ROUTINES_CTAUX_N_MATRIX_ROUTINES_CPU_H
 
-#include "ctaux_N_matrix_routines_TEM.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_N_matrix_routines/ctaux_N_matrix_routines_TEM.h"
+
+#include <cassert>
+#include <vector>
+
+#include "comp_library/linalg/linalg.hpp"
 
 namespace DCA {
 namespace QMCI {
+// DCA::QMCI::
 
 template <typename parameters_type>
 class N_MATRIX_TOOLS<LIN_ALG::CPU, parameters_type> {
@@ -153,7 +168,8 @@ void N_MATRIX_TOOLS<LIN_ALG::CPU, parameters_type>::compute_G_cols(
     }
   }
 }
-}
-}
 
-#endif
+}  // QMCI
+}  // DCA
+
+#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_WALKER_CTAUX_WALKER_TOOLS_CTAUX_N_MATRIX_ROUTINES_CTAUX_N_MATRIX_ROUTINES_CPU_H

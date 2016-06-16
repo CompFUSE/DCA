@@ -1,22 +1,30 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// This class represents a vertex singleton.
 
-#ifndef DCA_QMCI_VERTEX_SINGLETON_H
-#define DCA_QMCI_VERTEX_SINGLETON_H
+#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_STRUCTS_CTAUX_VERTEX_SINGLETON_H
+#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_STRUCTS_CTAUX_VERTEX_SINGLETON_H
 
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_domains/HS_spin_domain.h"
+#include <cassert>
+#include <iostream>
+
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_domains/HS_field_sign_domain.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_domains/HS_spin_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
+
 namespace DCA {
 namespace QMCI {
-/*!
- *  \class   vertex_singleton
- *  \ingroup STRUCTURES
- *
- *  \author  Peter Staar
- *  \version 1.0
- *  \brief   This class represents a vertex_singleton.
- */
+// DCA::QMCI::
 
 class vertex_singleton {
+public:
   typedef vertex_singleton this_type;
 
 public:
@@ -32,8 +40,6 @@ public:
                    int configuration_index_in);
 
   vertex_singleton(const this_type& other_vertex_couple);
-
-  ~vertex_singleton();
 
   this_type& operator=(this_type& other_vertex_couple);
 
@@ -118,8 +124,6 @@ vertex_singleton::vertex_singleton(const vertex_singleton& other_vertex_couple)
       HS_spin(other_vertex_couple.get_HS_spin()),
       HS_field(other_vertex_couple.get_HS_field()),
       configuration_index(other_vertex_couple.get_configuration_index()) {}
-
-vertex_singleton::~vertex_singleton() {}
 
 vertex_singleton& vertex_singleton::operator=(vertex_singleton& other_vertex_couple) {
   band = other_vertex_couple.get_band();
@@ -251,7 +255,8 @@ int vertex_singleton::get_configuration_index() const {
 int& vertex_singleton::get_configuration_index() {
   return configuration_index;
 }
-}
-}
 
-#endif
+}  // QMCI
+}  // DCA
+
+#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_STRUCTS_CTAUX_VERTEX_SINGLETON_H

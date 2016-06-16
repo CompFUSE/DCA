@@ -1,28 +1,36 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// This class kills old used HS-spin, and resizes the N-matrix
 
-#ifndef DCA_QMCI_SHRINK_ROUTINES_H
-#define DCA_QMCI_SHRINK_ROUTINES_H
+#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_WALKER_CTAUX_WALKER_TOOLS_CTAUX_SHRINK_ROUTINES_H
+#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_WALKER_CTAUX_WALKER_TOOLS_CTAUX_SHRINK_ROUTINES_H
 
+#include <cassert>
+#include <iostream>
+#include <stdexcept>
+#include <vector>
+
+#include "comp_library/linalg/linalg.hpp"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_vertex_singleton.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_shrink_routines/ctaux_shrink_routines.hpp"
+
 namespace DCA {
 namespace QMCI {
-/*!
- *  \class   SHRINK_TOOLS
- *  \ingroup CT-AUX-WALKER
- *
- *  \author Peter Staar
- *  \brief  This class kills old used HS-spin, and resizes the N-matrix
- *
- */
-template <LIN_ALG::device_type device_t>
-class SHRINK_TOOLS
+// DCA::QMCI::
 
-{
+template <LIN_ALG::device_type device_t>
+class SHRINK_TOOLS {
   typedef vertex_singleton vertex_singleton_type;
 
 public:
   SHRINK_TOOLS(int id);
-  ~SHRINK_TOOLS();
 
   template <class configuration_type, class vertex_vertex_matrix_type>
   static void shrink_Gamma(configuration_type& full_configuration,
@@ -122,9 +130,6 @@ SHRINK_TOOLS<device_t>::SHRINK_TOOLS(int id)
       target_index_dn(0),
 
       SHRINK_TOOLS_ALGORITHMS_obj(thread_id) {}
-
-template <LIN_ALG::device_type device_t>
-SHRINK_TOOLS<device_t>::~SHRINK_TOOLS() {}
 
 template <LIN_ALG::device_type device_t>
 template <class configuration_type, class vertex_vertex_matrix_type>
@@ -671,7 +676,8 @@ bool SHRINK_TOOLS<device_t>::test_swap_vectors(std::vector<int>& source_index,
 
   return true;
 }
-}
-}
 
-#endif
+}  // QMCI
+}  // DCA
+
+#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_WALKER_CTAUX_WALKER_TOOLS_CTAUX_SHRINK_ROUTINES_H

@@ -1,36 +1,41 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// This class represents a vertex-pair, that constitutes 2 vertex-singlets.
+//
+// TODO: Make this class fulfill the rule of 3 (5).
 
-#ifndef DCA_QMCI_VERTEX_PAIR_H
-#define DCA_QMCI_VERTEX_PAIR_H
-#include "phys_library/parameters/models/analytic_Hamiltonians/interactions/general_interaction.hpp"
-#include "dca/math_library/random_number_library/random_number_library.hpp"
+#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_STRUCTS_CTAUX_VERTEX_PAIR_H
+#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_STRUCTS_CTAUX_VERTEX_PAIR_H
+
+#include <cassert>
+#include <utility>
+#include <vector>
+
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_auxilery_field_coefficients.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_vertex_singleton.h"
+#include "phys_library/domains/cluster/cluster_domain.h"
+#include "phys_library/parameters/models/analytic_hamiltonians/interactions/general_interaction.hpp"
 
 namespace DCA {
 namespace QMCI {
-/*!
- *  \class   vertex_pair
- *  \ingroup STRUCTURES
- *
- *  \author  Peter Staar
- *  \version 1.0
- *  \brief   This class represents a vertex-pair, that constitutes 2 vertex-singlets.
- *
- * TODO: Make this class fulfill the rule of 3 (5): add
- *       - copy constructor
- *       - (move constructor)
- *       - (move assignment operator)
- *       - clean up (copy) assignment operator
- */
+// DCA::QMCI::
+
 template <class parameters_type>
 class vertex_pair {
+public:
   using rng_type = typename parameters_type::random_number_generator;
 
+  using r_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
+                                     REAL_SPACE, BRILLOUIN_ZONE>>;
   typedef r_DCA r_dmn_t;
-  typedef k_DCA k_dmn_t;
-
   typedef typename r_dmn_t::parameter_type r_cluster_type;
-  typedef typename k_dmn_t::parameter_type k_cluster_type;
 
   typedef vertex_singleton vertex_singleton_type;
   typedef vertex_pair<parameters_type> this_type;
@@ -38,8 +43,6 @@ class vertex_pair {
 public:
   vertex_pair(parameters_type& parameters_ref, rng_type& rng_ref, int configuration_index_in,
               int configuration_e_DN_index_in, int configuration_e_UP_index_in);
-
-  ~vertex_pair();
 
   this_type& operator=(const this_type& other_vertex_pair);
 
@@ -102,10 +105,12 @@ private:
 
 template <class parameters_type>
 vertex_pair<parameters_type>::vertex_pair(parameters_type& parameters_ref, rng_type& rng_ref,
-                                          int configuration_index_in, int configuration_e_DN_index_in,
-                                          int configuration_e_UP_index_in)
+                                          int configuration_index_in,
+                                          int /*configuration_e_DN_index_in*/,
+                                          int /*configuration_e_UP_index_in*/)
     : parameters(parameters_ref),
       rng(rng_ref),
+      //     concurrency(parameters.get_concurrency()),
 
       interacting_bands(parameters_ref.get_interacting_bands()),
       BANDS(interacting_bands.size()),
@@ -129,9 +134,6 @@ vertex_pair<parameters_type>::vertex_pair(parameters_type& parameters_ref, rng_t
       successfully_flipped(false),
       Bennett(false),
       shuffled(false) {}
-
-template <class parameters_type>
-vertex_pair<parameters_type>::~vertex_pair() {}
 
 template <class parameters_type>
 vertex_pair<parameters_type>& vertex_pair<parameters_type>::operator=(
@@ -174,18 +176,20 @@ vertex_singleton vertex_pair<parameters_type>::second() {
 
 template <class parameters_type>
 void vertex_pair<parameters_type>::set_random_interacting() {
-  general_interaction::set_vertex(*this, parameters, rng /*concurrency*/,
-                                  CV<parameters_type>::get_H_interaction());
+  general_interaction<parameters_type>::set_vertex(*this, parameters, rng /*concurrency*/,
+                                                   CV<parameters_type>::get_H_interaction());
 
-  double draw = rng.get_random_number();
+  double draw = rng.get_random_number();  // concurrency.get_random_number();
 
   if (draw > 1 / 2.)
     HS_spin = HS_UP;
   else
     HS_spin = HS_DN;
 
-  delta_r = r_cluster_type::subtract(r_sites.second, r_sites.first);
-  tau = parameters.get_beta() * rng.get_random_number();
+  delta_r = r_cluster_type::subtract(r_sites.second, r_sites.first);  // delta_r = r_i - r_j
+
+  tau = parameters.get_beta() *
+        rng.get_random_number();  // concurrency.get_random_number()*time_domain_type::beta;
 
   creatable = false;
   annihilatable = true;
@@ -200,14 +204,15 @@ void vertex_pair<parameters_type>::set_random_interacting() {
 
 template <class parameters_type>
 void vertex_pair<parameters_type>::set_random_noninteracting() {
-  general_interaction::set_vertex(*this, parameters, rng /*concurrency*/,
-                                  CV<parameters_type>::get_H_interaction());
+  general_interaction<parameters_type>::set_vertex(*this, parameters, rng /*concurrency*/,
+                                                   CV<parameters_type>::get_H_interaction());
 
   HS_spin = HS_ZERO;
 
   delta_r = r_cluster_type::subtract(r_sites.second, r_sites.first);  // delta_r = r_i - r_j
 
-  tau = parameters.get_beta() * rng.get_random_number();
+  tau = parameters.get_beta() *
+        rng.get_random_number();  // concurrency.get_random_number()*time_domain_type::beta;
 
   creatable = true;
   annihilatable = false;
@@ -288,7 +293,8 @@ template <class parameters_type>
 bool& vertex_pair<parameters_type>::is_shuffled() {
   return shuffled;
 }
-}
-}
 
-#endif
+}  // QMCI
+}  // DCA
+
+#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_STRUCTS_CTAUX_VERTEX_PAIR_H

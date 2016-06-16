@@ -1,15 +1,36 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// This class organizes the interpolation of \f$G^{0}\f$ towards the \f$G^{0}\f$-matrix.
 
-#ifndef DCA_QMCI_G0_INTERPOLATION_GPU_H
-#define DCA_QMCI_G0_INTERPOLATION_GPU_H
-#include "ctaux_GO_interpolation_template.hpp"
-#include "ctaux_G0_matrix_routines_TEM.h"
-#include "phys_library/domain_types.hpp"
-using namespace types;
+#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_WALKER_CTAUX_WALKER_TOOLS_CTAUX_G0_MATRIX_ROUTINES_CTAUX_G0_MATRIX_ROUTINES_GPU_H
+#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_WALKER_CTAUX_WALKER_TOOLS_CTAUX_G0_MATRIX_ROUTINES_CTAUX_G0_MATRIX_ROUTINES_GPU_H
+
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_G0_matrix_routines/ctaux_G0_matrix_routines_TEM.h"
+
+#include <cassert>
+#include <utility>
+#include <vector>
+
+#include "comp_library/function_library/domains/special_domains/dmn_0.h"
+#include "comp_library/linalg/src/matrix.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_vertex_singleton.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_G0_matrix_routines/G0_interpolation_template.hpp"
+#include "phys_library/domains/cluster/cluster_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
+#include "phys_library/domains/time_and_frequency/time_domain_left_oriented.h"
 
 namespace DCA {
 namespace QMCI {
 namespace G0_INTERPOLATION_KERNELS {
+// DCA::QMCI::G0_INTERPOLATION_KERNELS::
+
 void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, double beta, int Nc, int Nv, int* b, int* r,
                                 double* t, double* G0, std::pair<int, int> G0_cs,
                                 std::pair<int, int> G0_gs, double* r0_min_r1,
@@ -23,31 +44,26 @@ void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, double beta, int Nc, int
                                 std::pair<int, int> r0_min_r1_cs, std::pair<int, int> r0_min_r1_gs,
                                 double* alpha, std::pair<int, int> alpha_cs,
                                 std::pair<int, int> alpha_gs, int thread_id, int stream_id);
-}
 
-/*!
- *  \class   G0_INTERPOLATION_GPU
- *  \ingroup CT-AUX-WALKER
- *
- *  \author Peter Staar
- *  \brief  This class organizes the interpolation of \f$G^{0}\f$ towards the \f$G^{0}\f$-matrix.
- */
+}  // G0_INTERPOLATION_KERNELS
+
 template <typename parameters_type>
 class G0_INTERPOLATION<LIN_ALG::GPU, parameters_type>
     : public G0_INTERPOLATION_TEMPLATE<parameters_type> {
-  typedef vertex_singleton vertex_singleton_type;
+public:
+  using vertex_singleton_type = vertex_singleton;
+  using shifted_t = dmn_0<time_domain_left_oriented>;
+  using b = dmn_0<electron_band_domain>;
 
-  typedef dmn_0<time_domain_left_oriented> shifted_t;
-
-  typedef r_DCA r_dmn_t;
-  typedef k_DCA k_dmn_t;
+  using r_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
+                                     REAL_SPACE, BRILLOUIN_ZONE>>;
+  using r_dmn_t = r_DCA;
 
   typedef typename parameters_type::concurrency_type concurrency_type;
   typedef typename parameters_type::profiler_type profiler_t;
 
 public:
   G0_INTERPOLATION(int id, parameters_type& parameters);
-  ~G0_INTERPOLATION();
 
   template <class MOMS_type>
   void initialize(MOMS_type& MOMS);
@@ -145,9 +161,6 @@ G0_INTERPOLATION<LIN_ALG::GPU, parameters_type>::G0_INTERPOLATION(int id,
   tau_GPU.set_thread_and_stream_id(thread_id, stream_id);
 }
 
-template <typename parameters_type>
-G0_INTERPOLATION<LIN_ALG::GPU, parameters_type>::~G0_INTERPOLATION() {}
-
 /*!
  *  \brief  Set the functions 'G0_r_t_shifted' and 'grad_G0_r_t_shifted'
  */
@@ -190,6 +203,7 @@ void G0_INTERPOLATION<LIN_ALG::GPU, parameters_type>::build_G0_matrix(
     configuration_type& configuration, LIN_ALG::matrix<double, LIN_ALG::GPU>& G0_e_spin,
     e_spin_states_type e_spin) {
   // profiler_t profiler(concurrency, "G0-matrix (build)", "CT-AUX", __LINE__);
+
   std::vector<vertex_singleton_type>& configuration_e_spin = configuration.get(e_spin);
   int configuration_size = configuration_e_spin.size();
 
@@ -255,11 +269,44 @@ void G0_INTERPOLATION<LIN_ALG::GPU, parameters_type>::update_G0_matrix(
   r_ind.resize(configuration_size);
   tau.resize(configuration_size);
 
+  /*
+    b_ind_GPU.resize(configuration_size);
+    r_ind_GPU.resize(configuration_size);
+    tau_GPU  .resize(configuration_size);
+  */
+  /*
+    b_ind_GPU.reserve(configuration_size);
+    r_ind_GPU.reserve(configuration_size);
+    tau_GPU  .reserve(configuration_size);
+  */
+
   for (int l = 0; l < configuration_size; ++l) {
     b_ind[l] = configuration_e_spin[l].get_band();
     r_ind[l] = configuration_e_spin[l].get_r_site();
     tau[l] = configuration_e_spin[l].get_tau();
   }
+
+  /*
+    LIN_ALG::COPY_FROM<LIN_ALG::CPU, LIN_ALG::GPU>::execute(b_ind.get_ptr(), b_ind_GPU.get_ptr(),
+    configuration_size, LIN_ALG::ASYNCHRONOUS);
+    LIN_ALG::COPY_FROM<LIN_ALG::CPU, LIN_ALG::GPU>::execute(r_ind.get_ptr(), r_ind_GPU.get_ptr(),
+    configuration_size, LIN_ALG::ASYNCHRONOUS);
+    LIN_ALG::COPY_FROM<LIN_ALG::CPU, LIN_ALG::GPU>::execute(tau  .get_ptr(), tau_GPU  .get_ptr(),
+    configuration_size, LIN_ALG:: SYNCHRONOUS);
+  */
+
+  /*
+    b_ind_GPU.reserve(configuration_size);
+    r_ind_GPU.reserve(configuration_size);
+    tau_GPU  .reserve(configuration_size);
+
+    LIN_ALG::COPY_FROM<LIN_ALG::CPU, LIN_ALG::GPU>::execute(b_ind.get_ptr(), b_ind_GPU.get_ptr(),
+    configuration_size, thread_id, stream_id);
+    LIN_ALG::COPY_FROM<LIN_ALG::CPU, LIN_ALG::GPU>::execute(r_ind.get_ptr(), r_ind_GPU.get_ptr(),
+    configuration_size, thread_id, stream_id);
+    LIN_ALG::COPY_FROM<LIN_ALG::CPU, LIN_ALG::GPU>::execute(tau  .get_ptr(), tau_GPU  .get_ptr(),
+    configuration_size, thread_id, stream_id);
+  */
 
   b_ind_GPU.set(b_ind, LIN_ALG::ASYNCHRONOUS);
   r_ind_GPU.set(r_ind, LIN_ALG::ASYNCHRONOUS);
@@ -273,7 +320,8 @@ void G0_INTERPOLATION<LIN_ALG::GPU, parameters_type>::update_G0_matrix(
       akima_coefficients_GPU.get_current_size(), akima_coefficients_GPU.get_global_size(),
       thread_id, stream_id);
 }
-}
-}
 
-#endif
+}  // QMCI
+}  // DCA
+
+#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_WALKER_CTAUX_WALKER_TOOLS_CTAUX_G0_MATRIX_ROUTINES_CTAUX_G0_MATRIX_ROUTINES_GPU_H

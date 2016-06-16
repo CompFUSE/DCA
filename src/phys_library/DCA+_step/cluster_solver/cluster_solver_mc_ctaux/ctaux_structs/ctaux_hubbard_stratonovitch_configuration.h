@@ -1,35 +1,43 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// This class organizes the Hubbard Stratonovitch configuration.
 
-#ifndef DCA_QMCI_CT_AUX_HS_CONFIGURATION_H
-#define DCA_QMCI_CT_AUX_HS_CONFIGURATION_H
-#include "dca/math_library/random_number_library/random_number_library.hpp"
+#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_STRUCTS_CTAUX_HUBBARD_STRATONOVITCH_CONFIGURATION_H
+#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_STRUCTS_CTAUX_HUBBARD_STRATONOVITCH_CONFIGURATION_H
+
+#include <cassert>
+#include <iostream>
+#include <stdexcept>
+#include <vector>
+
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_domains/HS_field_sign_domain.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_domains/HS_spin_domain.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_vertex_pair.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_vertex_singleton.h"
 
 namespace DCA {
 namespace QMCI {
-/*!
- *  \class   CT_AUX_HS_configuration
- *  \ingroup STRUCTURES
- *
- *  \author Peter Staar
- *  \version 1.0
- *  \brief  This class organizes the Hubbard Stratonovitch configuration.
- */
+// DCA::QMCI::
+
 template <class parameters_type>
 class CT_AUX_HS_configuration {
+public:
   using rng_type = typename parameters_type::random_number_generator;
 
-public:
   typedef HS_spin_states_type spin_state_type;
 
   typedef vertex_singleton vertex_singleton_type;
   typedef vertex_pair<parameters_type> vertex_pair_type;
 
-  //     typedef typename parameters_type::Concurrency_Type          concurrency_type;
-
 public:
   CT_AUX_HS_configuration(parameters_type& parameters_ref, rng_type& rng_ref);
-  ~CT_AUX_HS_configuration();
 
   int size();
   vertex_pair_type& operator[](int index);
@@ -117,9 +125,6 @@ CT_AUX_HS_configuration<parameters_type>::CT_AUX_HS_configuration(parameters_typ
 
       changed_spin_indices_e_DN(0),
       changed_spin_values_e_DN(0) {}
-
-template <class parameters_type>
-CT_AUX_HS_configuration<parameters_type>::~CT_AUX_HS_configuration() {}
 
 template <class parameters_type>
 int CT_AUX_HS_configuration<parameters_type>::size() {
@@ -809,7 +814,8 @@ void CT_AUX_HS_configuration<parameters_type>::print(e_spin_states_type e_spin) 
 
   std::cout << ss.str();
 }
-}
-}
 
-#endif
+}  // QMCI
+}  // DCA
+
+#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_STRUCTS_CTAUX_HUBBARD_STRATONOVITCH_CONFIGURATION_H

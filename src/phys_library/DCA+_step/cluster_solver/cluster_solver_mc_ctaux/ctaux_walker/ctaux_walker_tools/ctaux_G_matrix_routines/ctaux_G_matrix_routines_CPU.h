@@ -1,11 +1,28 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Template specialization for CPU.
 
-#ifndef DCA_QMCI_G_MATRIX_ROUTINES_CPU_H
-#define DCA_QMCI_G_MATRIX_ROUTINES_CPU_H
+#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_WALKER_CTAUX_WALKER_TOOLS_CTAUX_G_MATRIX_ROUTINES_CTAUX_G_MATRIX_ROUTINES_CPU_H
+#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_WALKER_CTAUX_WALKER_TOOLS_CTAUX_G_MATRIX_ROUTINES_CTAUX_G_MATRIX_ROUTINES_CPU_H
 
-#include "ctaux_G_matrix_routines_TEM.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_G_matrix_routines/ctaux_G_matrix_routines_TEM.h"
+
+#include <cassert>
+
+#include "comp_library/linalg/src/matrix.h"
+#include "comp_library/linalg/src/vector.h"
+
 namespace DCA {
 namespace QMCI {
+// DCA::QMCI::
+
 template <typename parameters_type>
 class G_MATRIX_TOOLS<LIN_ALG::CPU, parameters_type> {
   typedef typename parameters_type::concurrency_type concurrency_type;
@@ -17,8 +34,6 @@ public:
 
         parameters(parameters_ref),
         concurrency(parameters.get_concurrency()) {}
-
-  ~G_MATRIX_TOOLS() {}
 
   void read_G_matrix_elements(LIN_ALG::vector<int, LIN_ALG::CPU>& i_index,
                               LIN_ALG::vector<int, LIN_ALG::CPU>& j_index,
@@ -112,7 +127,8 @@ private:
   parameters_type& parameters;
   concurrency_type& concurrency;
 };
-}
-}
 
-#endif
+}  // QMCI
+}  // DCA
+
+#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_WALKER_CTAUX_WALKER_TOOLS_CTAUX_G_MATRIX_ROUTINES_CTAUX_G_MATRIX_ROUTINES_CPU_H

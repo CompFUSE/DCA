@@ -1,47 +1,40 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// This class computes the nonlocal \f$\chi(k_1,k_2,q)\f$.
 
-#ifndef DCA_QMCI_ACCUMULATOR_NONLOCAL_CHI_H
-#define DCA_QMCI_ACCUMULATOR_NONLOCAL_CHI_H
-#include "phys_library/domain_types.hpp"
-using namespace types;
-
-namespace DCA {
-namespace QMCI {
-namespace CT_AUX_ACCUMULATION {
-/*!
- *  \class   accumulator_nonlocal_chi
- *  \ingroup CT-AUX-ACCUMULATOR
- *
- *  \brief   This class computes the nonlocal \f$\chi(k_1,k_2,q)\f$
- *  \date    12-07-2011
- *  \author  Peter Staar
- *  \version 1.0
- *
- *  definition of two-particle functions:
+/*
+ *  Definition of two-particle functions:
  *
  *  \section ph particle-hole channel:
  *
  *  The magnetic channel,
  *
  *  \f{eqnarray*}{
- *   G^{II}_{ph} &=& \frac{1}{4} \sum_{\sigma_1,\sigma_2 = \pm1} (\sigma_1 \: \sigma_2) \langle
- * T_\tau\{c^\dagger_{k_1+q,\sigma_1} c_{k_1,\sigma_1} c^\dagger_{k_2,\sigma_2}  c_{k_2+q,\sigma_2}
- * \}\rangle
+ *    G^{II}_{ph} &=& \frac{1}{4} \sum_{\sigma_1,\sigma_2 = \pm1} (\sigma_1 \: \sigma_2) \langle
+ *    T_\tau\{c^\dagger_{k_1+q,\sigma_1} c_{k_1,\sigma_1} c^\dagger_{k_2,\sigma_2}
+ *    c_{k_2+q,\sigma_2} \}\rangle
  *  \f}
  *
  *  The charge channel,
  *
  *  \f{eqnarray*}{
- *   G^{II}_{ph} &=& \frac{1}{4} \sum_{\sigma_1,\sigma_2 = \pm1} \langle
- * T_\tau\{c^\dagger_{k_1+q,\sigma_1} c_{k_1,\sigma_1} c^\dagger_{k_2,\sigma_2}  c_{k_2+q,\sigma_2}
- * \}\rangle
+ *    G^{II}_{ph} &=& \frac{1}{4} \sum_{\sigma_1,\sigma_2 = \pm1} \langle
+ *    T_\tau\{c^\dagger_{k_1+q,\sigma_1} c_{k_1,\sigma_1} c^\dagger_{k_2,\sigma_2}
+ *    c_{k_2+q,\sigma_2} \}\rangle
  *  \f}
  *
  *  The transverse channel,
  *
  *  \f{eqnarray*}{
- *   G^{II}_{ph} &=& \frac{1}{2} \sum_{\sigma = \pm1} \langle T_\tau\{c^\dagger_{k_1+q,\sigma}
- * c_{k_1,-\sigma} c^\dagger_{k_2,-\sigma}  c_{k_2+q,\sigma} \}\rangle
+ *    G^{II}_{ph} &=& \frac{1}{2} \sum_{\sigma = \pm1} \langle T_\tau\{c^\dagger_{k_1+q,\sigma}
+ *    c_{k_1,-\sigma} c^\dagger_{k_2,-\sigma}  c_{k_2+q,\sigma} \}\rangle
  *  \f}
  *
  *  \section pp particle-hole channel:
@@ -49,17 +42,44 @@ namespace CT_AUX_ACCUMULATION {
  *  The transverse (or superconducting) channel,
  *
  *  \f{eqnarray*}{
- *   G^{II}_{pp} &=& \frac{1}{2} \sum_{\sigma= \pm1} \langle T_\tau\{ c^\dagger_{q-k_1,\sigma}
- * c^\dagger_{k_1,-\sigma} c_{k_2,-\sigma}  c_{q-k_2,\sigma} \}
+ *    G^{II}_{pp} &=& \frac{1}{2} \sum_{\sigma= \pm1} \langle T_\tau\{ c^\dagger_{q-k_1,\sigma}
+ *    c^\dagger_{k_1,-\sigma} c_{k_2,-\sigma}  c_{q-k_2,\sigma} \}
  *  \f}
- *
- *
  */
+
+#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_ACCUMULATOR_TP_ACCUMULATOR_CTAUX_ACCUMULATOR_NONLOCAL_CHI_H
+#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_ACCUMULATOR_TP_ACCUMULATOR_CTAUX_ACCUMULATOR_NONLOCAL_CHI_H
+
+#include <cassert>
+#include <cmath>
+#include <complex>
+
+#include "enumerations.hpp"
+#include "comp_library/function_library/include_function_library.h"
+#include "phys_library/domains/cluster/cluster_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
+#include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
+
+namespace DCA {
+namespace QMCI {
+namespace CT_AUX_ACCUMULATION {
+// DCA::QMCI::CT_AUX_ACCUMULATION::
+
 template <class parameters_type, class MOMS_type>
 class accumulator_nonlocal_chi {
+public:
+  using w_VERTEX = dmn_0<DCA::vertex_frequency_domain<DCA::COMPACT>>;
+  using w_VERTEX_EXTENDED = dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED>>;
+  using w_VERTEX_EXTENDED_POS = dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED_POSITIVE>>;
+
+  using b = dmn_0<electron_band_domain>;
+
+  using r_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
+                                     REAL_SPACE, BRILLOUIN_ZONE>>;
+  using k_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
+                                     MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
   typedef r_DCA r_dmn_t;
   typedef k_DCA k_dmn_t;
-
   typedef typename r_dmn_t::parameter_type r_cluster_type;
   typedef typename k_dmn_t::parameter_type k_cluster_type;
 
@@ -79,8 +99,6 @@ public:
       parameters_type& parameters_ref, MOMS_type& MOMS_ref, int id,
       FUNC_LIB::function<std::complex<double>,
                          dmn_8<b, b, b, b, k_dmn_t, k_dmn_t, w_VERTEX, w_VERTEX>>& G4_ref);
-
-  ~accumulator_nonlocal_chi();
 
   void initialize();
 
@@ -198,6 +216,7 @@ accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulator_nonlocal_chi(
 
       w_vertex_ext_2_w_vertex_ext_pos("w_vertex_ext_2_w_vertex_ext_pos") {
   int q_channel = parameters.get_q_channel_ind();
+  // int k0_index  = k_cluster_type::get_k_0_index();
   int k0_index = k_cluster_type::origin_index();
 
   for (int l = 0; l < k_cluster_type::get_size(); l++) {
@@ -228,12 +247,11 @@ accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulator_nonlocal_chi(
         w_vertex_ext_2_w_vertex_ext_pos(l) = w_VERTEX_EXTENDED_POS::dmn_size() - 1 - l;
       else
         w_vertex_ext_2_w_vertex_ext_pos(l) = l - w_VERTEX_EXTENDED_POS::dmn_size();
+
+      // cout << l << "\t" << w_vertex_ext_2_w_vertex_ext_pos(l) << "\n";
     }
   }
 }
-
-template <class parameters_type, class MOMS_type>
-accumulator_nonlocal_chi<parameters_type, MOMS_type>::~accumulator_nonlocal_chi() {}
 
 template <class parameters_type, class MOMS_type>
 void accumulator_nonlocal_chi<parameters_type, MOMS_type>::initialize() {
@@ -241,9 +259,10 @@ void accumulator_nonlocal_chi<parameters_type, MOMS_type>::initialize() {
 }
 
 template <class parameters_type, class MOMS_type>
-void accumulator_nonlocal_chi<parameters_type, MOMS_type>::finalize()
-// WARNING empty function
-{}
+void accumulator_nonlocal_chi<parameters_type, MOMS_type>::finalize() {
+  //       for(int i=0; i<G4.size(); i++)
+  //      MOMS.G4_k_k_w_w(i) = G4(i);
+}
 
 template <class parameters_type, class MOMS_type>
 template <class nonlocal_G_t>
@@ -373,9 +392,11 @@ void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_h
       int w1_ext_plus_w_nu = w1_ext + w_nu;
 
       for (int k2 = 0; k2 < k_dmn_t::dmn_size(); k2++) {
+        //          int k2_plus_q = k_cluster_type::add(k2,q_channel);
         k2_plus_q = q_plus_(k2);
 
         for (int k1 = 0; k1 < k_dmn_t::dmn_size(); k1++) {
+          //          int k1_plus_q = k_cluster_type::add(k1,q_channel);
           k1_plus_q = q_plus_(k1);
 
           for (int m1 = 0; m1 < b::dmn_size(); m1++) {
@@ -402,7 +423,21 @@ void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_h
                            (G2_UP_n1_m1_k1_k1_plus_q_w1_w1 - G2_DN_n1_m1_k1_k1_plus_q_w1_w1) *
                                (G2_UP_n2_m2_k2_plus_q_k2_w2_w2 - G2_DN_n2_m2_k2_plus_q_k2_w2_w2);
 
+                  /*
+                    G4 = - (G2_k_k_w_w_e_DN(n1, m2, k1, k2, w1, w2) * G2_k_k_w_w_e_DN(n2, m1,
+                    k2_plus_q, k1_plus_q, w2+w_channel, w1+w_channel)
+                    + G2_k_k_w_w_e_UP(n1, m2, k1, k2, w1, w2) * G2_k_k_w_w_e_UP(n2, m1, k2_plus_q,
+                    k1_plus_q, w2+w_channel, w1+w_channel))
+
+                    + (G2_k_k_w_w_e_UP(n1, m1, k1, k1_plus_q, w1, w1+w_channel) -
+                    G2_k_k_w_w_e_DN(n1, m1, k1, k1_plus_q, w1, w1+w_channel))
+                    * (G2_k_k_w_w_e_UP(n2, m2, k2_plus_q, k2, w2+w_channel, w2) -
+                    G2_k_k_w_w_e_DN(n2, m2, k2_plus_q, k2, w2+w_channel, w2));
+                    */
+
                   G4(n1, n2, m1, m2, k1, k2, w1, w2) += std::complex<double>(sign_div_2 * G4_val);
+                  // MOMS.G4_k_k_w_w(n1, n2, m1, m2, k1, k2, w1, w2) +=
+                  // std::complex<double>(sign_div_2 * G4);
                 }
               }
             }
@@ -453,6 +488,14 @@ void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_h
             for (int m2 = 0; m2 < b::dmn_size(); m2++) {
               for (int n1 = 0; n1 < b::dmn_size(); n1++) {
                 for (int n2 = 0; n2 < b::dmn_size(); n2++) {
+                  //                    F(n1, m2, k1, k2, w1, w2,
+                  //                      G2_k_k_w_w_e_DN, G2_DN_n1_m2_k1_k2_w1_w2,
+                  //                      G2_k_k_w_w_e_UP, G2_UP_n1_m2_k1_k2_w1_w2);
+
+                  //                    F(n2, m1, k2_plus_q, k1_plus_q, w2+w_nu, w1+w_nu,
+                  //                      G2_k_k_w_w_e_DN, G2_DN_n2_m1_k2_plus_q_k1_plus_q_w2_w1,
+                  //                      G2_k_k_w_w_e_UP, G2_UP_n2_m1_k2_plus_q_k1_plus_q_w2_w1);
+
                   F(n1, m2, k1, k2, w1_ext, w2_ext, G2_k_k_w_w_e_DN, G2_DN_n1_m2_k1_k2_w1_w2,
                     G2_k_k_w_w_e_UP, G2_UP_n1_m2_k1_k2_w1_w2);
 
@@ -473,6 +516,66 @@ void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_h
     }
   }
 }
+
+/*
+  template<class parameters_type, class MOMS_type>
+  void accumulator_nonlocal_chi<parameters_type,
+  MOMS_type>::accumulate_particle_hole_magnetic_fast(FUNC_LIB::function<std::complex<scalar_type>,
+  dmn_6<b,b,k_dmn_t,k_dmn_t,w_VERTEX,w_VERTEX> >& G2_k_k_w_w_e_DN,
+  FUNC_LIB::function<std::complex<scalar_type>, dmn_6<b,b,k_dmn_t,k_dmn_t,w_VERTEX,w_VERTEX> >&
+  G2_k_k_w_w_e_UP,
+  scalar_type sign)
+  {
+  std::complex<scalar_type> *G2_DN_n1_m2_k1_k2_w1_w2, *G2_UP_n1_m2_k1_k2_w1_w2,
+  *G2_DN_n2_m1_k2_plus_q_k1_plus_q_w2_w1, *G2_UP_n2_m1_k2_plus_q_k1_plus_q_w2_w1,
+  *G2_DN_n1_m1_k1_k1_plus_q_w1_w1, *G2_UP_n1_m1_k1_k1_plus_q_w1_w1,
+  *G2_DN_n2_m2_k2_plus_q_k2_w2_w2, *G2_UP_n2_m2_k2_plus_q_k2_w2_w2;
+
+  std::complex<double>* G4;
+
+  int k2_plus_q, k1_plus_q;
+
+  scalar_type sign_div_2 =scalar_type(sign)/2.;
+
+  for(int w2=0; w2<w_VERTEX::dmn_size(); w2++){
+  for(int w1=0; w1<w_VERTEX::dmn_size(); w1++){
+
+  for(int k2=0; k2<k_dmn_t::dmn_size(); k2++){
+
+  //        int k2_plus_q = k_cluster_type::add(k2,q_channel);
+  k2_plus_q = q_plus_(k2);
+
+  for(int k1=0; k1<k_dmn_t::dmn_size(); k1++){
+
+  //          int k1_plus_q = k_cluster_type::add(k1,q_channel);
+  k1_plus_q = q_plus_(k1);
+
+  G2_DN_n1_m2_k1_k2_w1_w2 = &G2_k_k_w_w_e_DN(0, 0, k1, k2, w1, w2);
+  G2_UP_n1_m2_k1_k2_w1_w2 = &G2_k_k_w_w_e_UP(0, 0, k1, k2, w1, w2);
+
+  G2_DN_n2_m1_k2_plus_q_k1_plus_q_w2_w1 = &G2_k_k_w_w_e_DN(0, 0, k2_plus_q, k1_plus_q, w2, w1);
+  G2_UP_n2_m1_k2_plus_q_k1_plus_q_w2_w1 = &G2_k_k_w_w_e_UP(0, 0, k2_plus_q, k1_plus_q, w2, w1);
+
+  G2_DN_n1_m1_k1_k1_plus_q_w1_w1 = &G2_k_k_w_w_e_DN(0, 0, k1, k1_plus_q, w1, w1);
+  G2_UP_n1_m1_k1_k1_plus_q_w1_w1 = &G2_k_k_w_w_e_UP(0, 0, k1, k1_plus_q, w1, w1);
+
+  G2_DN_n2_m2_k2_plus_q_k2_w2_w2 = &G2_k_k_w_w_e_DN(0, 0, k2_plus_q, k2, w2, w2);
+  G2_UP_n2_m2_k2_plus_q_k2_w2_w2 = &G2_k_k_w_w_e_UP(0, 0, k2_plus_q, k2, w2, w2);
+
+  G4 = &MOMS.G4_k_k_w_w(0,0,0,0, k1, k2, w1, w2);
+
+  accumulator_nonlocal_chi_atomic<model, PARTICLE_HOLE_MAGNETIC>::execute(G2_DN_n1_m2_k1_k2_w1_w2
+  , G2_UP_n1_m2_k1_k2_w1_w2,
+  G2_DN_n2_m1_k2_plus_q_k1_plus_q_w2_w1, G2_DN_n2_m1_k2_plus_q_k1_plus_q_w2_w1,
+  G2_DN_n1_m1_k1_k1_plus_q_w1_w1       , G2_UP_n1_m1_k1_k1_plus_q_w1_w1,
+  G2_DN_n2_m2_k2_plus_q_k2_w2_w2       , G2_UP_n2_m2_k2_plus_q_k2_w2_w2,
+  G4, sign_div_2);
+  }
+  }
+  }
+  }
+  }
+*/
 
 template <class parameters_type, class MOMS_type>
 void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_hole_charge(
@@ -538,7 +641,21 @@ void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_h
                        (G2_UP_n1_m1_k1_k1_plus_q_w1_w1 + G2_DN_n1_m1_k1_k1_plus_q_w1_w1) *
                            (G2_UP_n2_m2_k2_plus_q_k2_w2_w2 + G2_DN_n2_m2_k2_plus_q_k2_w2_w2);
 
+                  /*
+                    G4 = - (G2_k_k_w_w_e_DN(n1, m2, k1, k2, w1, w2) * G2_k_k_w_w_e_DN(n2, m1,
+                    k2_plus_q, k1_plus_q, w2+w_channel, w1+w_channel)
+                    + G2_k_k_w_w_e_UP(n1, m2, k1, k2, w1, w2) * G2_k_k_w_w_e_UP(n2, m1, k2_plus_q,
+                    k1_plus_q, w2+w_channel, w1+w_channel))
+
+                    + (G2_k_k_w_w_e_UP(n1, m1, k1, k1_plus_q, w1, w1+w_channel) +
+                    G2_k_k_w_w_e_DN(n1, m1, k1, k1_plus_q, w1, w1+w_channel))
+                    * (G2_k_k_w_w_e_UP(n2, m2, k2_plus_q, k2, w2+w_channel, w2) +
+                    G2_k_k_w_w_e_DN(n2, m2, k2_plus_q, k2, w2+w_channel, w2));
+                    */
+
                   G4(n1, n2, m1, m2, k1, k2, w1, w2) += std::complex<double>(sign_div_2 * G4_val);
+                  // MOMS.G4_k_k_w_w(n1, n2, m1, m2, k1, k2, w1, w2) +=
+                  // std::complex<double>(sign_div_2 * G4);
                 }
               }
             }
@@ -600,8 +717,9 @@ void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_p
     }
   }
 }
-}
-}
-}
 
-#endif
+}  // CT_AUX_ACCUMULATION
+}  // QMCI
+}  // DCA
+
+#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_ACCUMULATOR_TP_ACCUMULATOR_CTAUX_ACCUMULATOR_NONLOCAL_CHI_H

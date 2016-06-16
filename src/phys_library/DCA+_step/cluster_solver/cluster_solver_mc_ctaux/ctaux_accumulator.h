@@ -1,31 +1,50 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//         Raffaele Solca' (rasolca@itp.phys.ethz.ch)
+//
+// This class organizes the measurements in the CT-AUX QMC.
 
-#ifndef DCA_QMCI_CTAUX_ACCUMULATOR_H
-#define DCA_QMCI_CTAUX_ACCUMULATOR_H
+#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_ACCUMULATOR_H
+#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_ACCUMULATOR_H
 
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_template/qmci_accumulator_data.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_template/qmci_accumulator.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_template/mc_accumulator.hpp"
+
+#include <cassert>
+#include <cmath>
+#include <complex>
+#include <fstream>
+#include <vector>
+
+#include "enumerations.hpp"
+#include "comp_library/function_library/include_function_library.h"
+#include "comp_library/linalg/src/matrix.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_accumulator/sp_accumulator/ctaux_sp_accumulator_nfft.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_accumulator/tp_accumulator/ctaux_accumulator_equal_time_operator.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_domains/Feynman_expansion_order_domain.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_accumulator/tp_accumulator/ctaux_accumulator_nonlocal_G.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_accumulator/tp_accumulator/ctaux_accumulator_nonlocal_chi.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_accumulator/sp_accumulator/ctaux_sp_accumulator_nfft.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_domains/Feynman_expansion_order_domain.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_hubbard_stratonovitch_configuration.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_vertex_pair.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_vertex_singleton.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_template/mc_accumulator_data.hpp"
+#include "phys_library/domains/cluster/cluster_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
+#include "phys_library/domains/Quantum_domain/numerical_error_domain.h"
+#include "phys_library/domains/time_and_frequency/frequency_domain.h"
+#include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
+#include "phys_library/domains/time_and_frequency/time_domain.h"
 
 namespace DCA {
 namespace QMCI {
-/*!
- *  \defgroup CT-AUX-ACCUMULATOR
- *  \ingroup  CT-AUX
- */
+// DCA::QMCI::
 
-/*!
- *  \ingroup CT-AUX
- *
- *  \brief   This class organizes the measurements in the CT-AUX QMC
- *  \author  Peter Staar
- *  \author  Raffaele Solca'
- *  \version 1.0
- */
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 class MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>
     : public MC_accumulator_data {
@@ -38,6 +57,18 @@ public:
   typedef vertex_pair<parameters_type> vertex_pair_type;
   typedef vertex_singleton vertex_singleton_type;
 
+  using t = dmn_0<time_domain>;
+  using w = dmn_0<frequency_domain>;
+  using w_VERTEX = dmn_0<DCA::vertex_frequency_domain<DCA::COMPACT>>;
+
+  using b = dmn_0<electron_band_domain>;
+  using s = dmn_0<electron_spin_domain>;
+  using nu = dmn_variadic<b, s>;  // orbital-spin index
+
+  using r_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
+                                     REAL_SPACE, BRILLOUIN_ZONE>>;
+  using k_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
+                                     MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
   typedef r_DCA r_dmn_t;
   typedef k_DCA k_dmn_t;
 
@@ -48,10 +79,8 @@ public:
 
   MC_accumulator(parameters_type& parameters_ref, MOMS_type& MOMS_ref, int id);
 
-  ~MC_accumulator();
-
-  template <IO::FORMAT DATA_FORMAT>
-  void write(IO::writer<DATA_FORMAT>& writer);
+  template <typename Writer>
+  void write(Writer& writer);
 
   void initialize(int dca_iteration);
 
@@ -77,36 +106,36 @@ public:
   }
 
   // equal time-measurements
-  FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t>>& get_G_r_t() {
+  FUNC_LIB::function<double, dmn_variadic<nu, nu, r_dmn_t, t>>& get_G_r_t() {
     return G_r_t;
   }
-  FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t>>& get_G_r_t_stddev() {
+  FUNC_LIB::function<double, dmn_variadic<nu, nu, r_dmn_t, t>>& get_G_r_t_stddev() {
     return G_r_t_stddev;
   }
 
-  FUNC_LIB::function<double, dmn_2<b, r_dmn_t>>& get_charge_cluster_moment() {
+  FUNC_LIB::function<double, dmn_variadic<b, r_dmn_t>>& get_charge_cluster_moment() {
     return charge_cluster_moment;
   }
-  FUNC_LIB::function<double, dmn_2<b, r_dmn_t>>& get_magnetic_cluster_moment() {
+  FUNC_LIB::function<double, dmn_variadic<b, r_dmn_t>>& get_magnetic_cluster_moment() {
     return magnetic_cluster_moment;
   }
-  FUNC_LIB::function<double, dmn_2<b, r_dmn_t>>& get_dwave_pp_correlator() {
+  FUNC_LIB::function<double, dmn_variadic<b, r_dmn_t>>& get_dwave_pp_correlator() {
     return dwave_pp_correlator;
   }
 
   // sp-measurements
-  FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t>>& get_K_r_t() {
+  FUNC_LIB::function<double, dmn_variadic<nu, nu, r_dmn_t, t>>& get_K_r_t() {
     return K_r_t;
   }
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w>>& get_M_r_w() {
+  FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, r_dmn_t, w>>& get_M_r_w() {
     return M_r_w;
   }
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w>>& get_M_r_w_squared() {
+  FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, r_dmn_t, w>>& get_M_r_w_squared() {
     return M_r_w_squared;
   }
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& get_M_k_w() {
+  FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, k_dmn_t, w>>& get_M_k_w() {
     return M_k_w;
   }
 
@@ -114,6 +143,9 @@ public:
   FUNC_LIB::function<std::complex<double>, dmn_8<b, b, b, b, k_dmn_t, k_dmn_t, w_VERTEX, w_VERTEX>>& get_G4() {
     return G4;
   }
+
+  template <class stream_type>
+  void to_JSON(stream_type& ss);
 
 #ifdef MEASURE_ERROR_BARS
   void store_standard_deviation(int nr_measurements, std::ofstream& points_file,
@@ -166,21 +198,21 @@ protected:
   FUNC_LIB::function<double, dmn_0<numerical_error_domain>> error;
   FUNC_LIB::function<double, dmn_0<Feynman_expansion_order_domain>> visited_expansion_order_k;
 
-  FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t>> K_r_t;
+  FUNC_LIB::function<double, dmn_variadic<nu, nu, r_dmn_t, t>> K_r_t;
 
-  FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t>> G_r_t;
-  FUNC_LIB::function<double, dmn_4<nu, nu, r_dmn_t, t>> G_r_t_stddev;
+  FUNC_LIB::function<double, dmn_variadic<nu, nu, r_dmn_t, t>> G_r_t;
+  FUNC_LIB::function<double, dmn_variadic<nu, nu, r_dmn_t, t>> G_r_t_stddev;
 
-  FUNC_LIB::function<double, dmn_2<b, r_dmn_t>> charge_cluster_moment;
-  FUNC_LIB::function<double, dmn_2<b, r_dmn_t>> magnetic_cluster_moment;
-  FUNC_LIB::function<double, dmn_2<b, r_dmn_t>> dwave_pp_correlator;
+  FUNC_LIB::function<double, dmn_variadic<b, r_dmn_t>> charge_cluster_moment;
+  FUNC_LIB::function<double, dmn_variadic<b, r_dmn_t>> magnetic_cluster_moment;
+  FUNC_LIB::function<double, dmn_variadic<b, r_dmn_t>> dwave_pp_correlator;
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w>> M_r_w;
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w>> M_r_w_squared;
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w>> M_r_w_stddev;
+  FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, r_dmn_t, w>> M_r_w;
+  FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, r_dmn_t, w>> M_r_w_squared;
+  FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, r_dmn_t, w>> M_r_w_stddev;
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>> M_k_w;
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>> M_k_w_stddev;
+  FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, k_dmn_t, w>> M_k_w;
+  FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, k_dmn_t, w>> M_k_w_stddev;
 
   MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>
       single_particle_accumulator_obj;
@@ -245,9 +277,6 @@ MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::MC_accumula
       accumulator_nonlocal_chi_obj(parameters, MOMS, id, G4) {}
 
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
-MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::~MC_accumulator() {}
-
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::initialize(int dca_iteration) {
   profiler_type profiler(__FUNCTION__, "CT-AUX accumulator", __LINE__, thread_id);
 
@@ -309,6 +338,9 @@ void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::finali
         MC_two_particle_equal_time_accumulator_obj.get_magnetic_cluster_moment();
     dwave_pp_correlator = MC_two_particle_equal_time_accumulator_obj.get_dwave_pp_correlator();
   }
+
+  //       single_particle_accumulator_obj.compute_M_r_w(M_r_w);
+  //       single_particle_accumulator_obj.compute_M_r_w(M_r_w);
 }
 
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
@@ -321,14 +353,18 @@ std::vector<vertex_singleton>& MC_accumulator<CT_AUX_SOLVER, device_t, parameter
 }
 
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
-template <IO::FORMAT DATA_FORMAT>
-void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::write(
-    IO::writer<DATA_FORMAT>& writer) {
+template <typename Writer>
+void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::write(Writer& writer) {
+//       writer.open_group("CT-AUX-SOLVER-functions");
+
 #ifdef QMC_INTEGRATOR_BIT
   writer.execute(error);
-#endif
+#endif  // QMC_INTEGRATOR_BIT
 
   writer.execute(visited_expansion_order_k);
+
+  //       writer.execute(M_r_w);
+  //       writer.execute(M_r_w_stddev);
 
   if (parameters.do_equal_time_measurements()) {
     writer.execute(charge_cluster_moment);
@@ -338,6 +374,8 @@ void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::write(
     writer.execute(G_r_t);
     writer.execute(G_r_t_stddev);
   }
+
+  //       writer.close_group();
 }
 
 /*!
@@ -369,7 +407,7 @@ void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::update
 #ifdef QMC_INTEGRATOR_BIT
   error += walker.get_error_distribution();
   walker.get_error_distribution() = 0;
-#endif
+#endif  // QMC_INTEGRATOR_BIT
 
   HS_configuration_e_DN.resize(full_configuration.get(e_DN).size());
   copy(full_configuration.get(e_DN).begin(), full_configuration.get(e_DN).end(),
@@ -381,6 +419,9 @@ void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::update
 
   compute_M_v_v(HS_configuration_e_DN, walker.get_N(e_DN), M_e_DN, walker.get_thread_id(), 0);
   compute_M_v_v(HS_configuration_e_UP, walker.get_N(e_UP), M_e_UP, walker.get_thread_id(), 0);
+
+  // LIN_ALG::CUBLAS_THREAD_MANAGER<walker_type::walker_device_type>::synchronize_streams(walker.get_thread_id(),
+  // 0);
 }
 
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
@@ -598,7 +639,8 @@ void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::sum_to
       other.get_G4()(i) += G4(i);
   }
 }
-}
-}
 
-#endif
+}  // QMCI
+}  // DCA
+
+#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_ACCUMULATOR_H

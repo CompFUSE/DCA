@@ -1,42 +1,68 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Cluster Monte Carlo integrator based on a continuous-time auxilary field expansion.
 
-#ifndef DCA_QMCI_CTAUX_CLUSTER_SOLVER_H
-#define DCA_QMCI_CTAUX_CLUSTER_SOLVER_H
+#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_CLUSTER_SOLVER_H
+#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_CLUSTER_SOLVER_H
 
-#include "math_library/statistical_methods.h"
-#include "dca/math_library/random_number_library/random_number_library.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_template.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker.h"
+
+#include <cassert>
+#include <cmath>
+#include <complex>
+#include <iostream>
+#include <vector>
+
+#include "dca/util/print_time.hpp"
+#include "comp_library/function_library/include_function_library.h"
+#include "comp_library/profiler_library/events/time.hpp"
+#include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
+#include "math_library/statistical_methods.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_accumulator.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker.h"
+#include "phys_library/DCA+_step/symmetrization/symmetrize.h"
+#include "phys_library/domains/cluster/cluster_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
+#include "phys_library/domains/time_and_frequency/frequency_domain.h"
 
 namespace DCA {
-/*!
- * \defgroup CT-AUX
- * \ingroup  MONTE-CARLO-INTEGRATOR
- */
 
-/*!
- * \ingroup CT-AUX
- *
- * \brief   cluster Monte Carlo integrator, based on a continuous-time auxilary field expansion.
- * \author  Peter Staar
- * \version 1.0
- */
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 class cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type> {
-protected:
+public:
   typedef MOMS_type this_MOMS_type;
   typedef parameters_type this_parameters_type;
 
-  using random_number_generator = typename parameters_type::random_number_generator;
+  using rng_type = typename parameters_type::random_number_generator;
+
   typedef typename parameters_type::profiler_type profiler_type;
   typedef typename parameters_type::concurrency_type concurrency_type;
 
   typedef QMCI::MC_walker<QMCI::CT_AUX_SOLVER, device_t, parameters_type, MOMS_type> walker_type;
   typedef QMCI::MC_accumulator<QMCI::CT_AUX_SOLVER, LIN_ALG::CPU, parameters_type, MOMS_type> accumulator_type;
 
+  using w = dmn_0<frequency_domain>;
+  using b = dmn_0<electron_band_domain>;
+  using s = dmn_0<electron_spin_domain>;
+  using nu = dmn_variadic<b, s>;  // orbital-spin index
+
+  using r_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
+                                     REAL_SPACE, BRILLOUIN_ZONE>>;
+  using k_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
+                                     MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+
+  using nu_nu_k_DCA_w = dmn_variadic<nu, nu, k_DCA, w>;
+
 public:
-  cluster_solver(parameters_type& parameters_ref, MOMS_type& MOMS_ref, bool standalone = true);
+  cluster_solver(parameters_type& parameters_ref, MOMS_type& MOMS_ref, bool set_rng = true);
 
   ~cluster_solver();
 
@@ -51,6 +77,10 @@ public:
   double finalize(dca_info_struct_t& dca_info_struct);
 
 protected:
+  void warm_up(walker_type& walker);
+
+  void measure(walker_type& walker);
+
   void update_shell(int i, int N, int N_k);
   void update_shell(int i, int N, int N_k, int N_s);
 
@@ -85,17 +115,14 @@ protected:
 
   double total_time;
 
+  rng_type rng;
+
   accumulator_type accumulator;
 
   FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w> Sigma_old;
   FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w> Sigma_new;
 
   int DCA_iteration;
-
-private:
-  random_number_generator rng;
-  void warm_up(walker_type& walker);
-  void measure(walker_type& walker);
 };
 
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
@@ -116,8 +143,6 @@ cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::clu
       Sigma_new("Self-Energy-n-0-iteration"),
 
       DCA_iteration(-1) {
-  // INTERNAL this function get called at posix_qmci_cluster solver even if walkers are not spawned
-  // here
   // TODO: ALWAYS initialize the rng PROPERLY.
   if (set_rng)
     rng.init_from_id(
@@ -204,6 +229,7 @@ double cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_typ
   {  // Compute new Sigma
     compute_G_k_w_from_M_r_w();
 
+    // FT<k_DCA,r_DCA>::execute(MOMS.G_k_w, MOMS.G_r_w);
     math_algorithms::functional_transforms::TRANSFORM<k_DCA, r_DCA>::execute(MOMS.G_k_w, MOMS.G_r_w);
 
     dca_info_struct.L2_Sigma_difference(DCA_iteration) = compute_S_k_w_from_G_k_w();
@@ -215,12 +241,16 @@ double cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_typ
           x.push_back(real(MOMS.Sigma(i, i, j, l)));
 
         dca_info_struct.Sigma_zero_moment(i, j, DCA_iteration) =
-            math_algorithms::statistical_methods<double>::mean(x);
+            math_algorithms::statistical_methods<double>::mean(x);  // real(MOMS.Sigma(i,i,j,0));
         dca_info_struct.standard_deviation(i, j, DCA_iteration) =
             math_algorithms::statistical_methods<double>::standard_deviation(x);  //
       }
     }
   }
+
+  //     if(DCA_iteration == parameters.get_DCA_iterations()-1 &&
+  //     parameters.do_equal_time_measurements())
+  //       MOMS.G_r_t =
 
   if (DCA_iteration == parameters.get_DCA_iterations() - 1 &&
       parameters.get_vertex_measurement_type() != NONE)
@@ -319,7 +349,7 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
     std::cout << "\t\t\t" << double(i) / double(N) * 100. << " % completed \t ";
 
     std::cout << "\t <k> :" << N_k << "      ";
-    std::cout << print_time() << "\n";
+    std::cout << dca::util::print_time() << "\n";
   }
 }
 
@@ -335,7 +365,7 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
     std::cout << "\t\t\t" << double(i) / double(N) * 100. << " % completed \t ";
 
     std::cout << "\t <k> :" << N_k << "    N : " << N_s << "      ";
-    std::cout << print_time() << "\n";
+    std::cout << dca::util::print_time() << "\n";
   }
 }
 
@@ -345,7 +375,8 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
   if (DCA_iteration == parameters.get_DCA_iterations() - 1) {
     {
       if (concurrency.id() == 0)
-        std::cout << "\n\t\t compute-error-bars on Self-energy\t" << print_time() << "\n\n";
+        std::cout << "\n\t\t compute-error-bars on Self-energy\t" << dca::util::print_time()
+                  << "\n\n";
 
       FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> G_k_w_new("G_k_w_new");
 
@@ -369,7 +400,7 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
     {  // sum G4
       if (parameters.get_vertex_measurement_type() != NONE) {
         if (concurrency.id() == 0)
-          std::cout << "\n\t\t compute-error-bars on G4\t" << print_time() << "\n\n";
+          std::cout << "\n\t\t compute-error-bars on G4\t" << dca::util::print_time() << "\n\n";
 
         double sign = accumulator.get_sign() / double(Nb_measurements_per_node);
 
@@ -388,7 +419,7 @@ template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::sum_measurements(
     int Nb_measurements) {
   if (concurrency.id() == 0)
-    std::cout << "\n\t\t sum measurements \t" << print_time() << "\n"
+    std::cout << "\n\t\t sum measurements \t" << dca::util::print_time() << "\n"
               << "\n\t\t\t QMC-time : " << total_time << " [sec]"
               << "\n\t\t\t Gflops   : " << accumulator.get_Gflop() / total_time << " [Gf]"
               << "\n\t\t\t sign     : " << accumulator.get_sign() / double(Nb_measurements)
@@ -475,7 +506,7 @@ template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type,
                     MOMS_type>::symmetrize_measurements() {
   if (concurrency.id() == 0)
-    std::cout << "\n\t\t symmetrize measurements has started \t" << print_time() << "\n";
+    std::cout << "\n\t\t symmetrize measurements has started \t" << dca::util::print_time() << "\n";
 
   symmetrize::execute(accumulator.get_M_r_w(), MOMS.H_symmetry);
   symmetrize::execute(accumulator.get_M_r_w_squared(), MOMS.H_symmetry);
@@ -533,7 +564,7 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type,
         for (int l = 0; l < matrix_size; l++)
           G_matrix[l] = G_matrix[l] + G0_cluster_excluded_matrix[l];
       }
-      // INTERNAL Giovanni:use move rather then copy?
+
       memcpy(&MOMS.G_k_w(0, 0, 0, 0, k_ind, w_ind), G_matrix,
              sizeof(std::complex<double>) * matrix_size);
     }
@@ -550,9 +581,9 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type,
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 double cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type,
                       MOMS_type>::compute_S_k_w_from_G_k_w() {
-  // INTERNAL Giovanni:  I wonder if rather then copying a temporary
-  // INTERNAL           Sigma_Matrix, using std::move or working in place in MOMS.Sigma is better.
   static double alpha = parameters.get_DCA_convergence_factor();
+  //     double L2_difference_norm = 0;
+  //     double L2_Sigma_norm      = 0;
 
   int matrix_size = b::dmn_size() * s::dmn_size() * b::dmn_size() * s::dmn_size();
   int matrix_dim = b::dmn_size() * s::dmn_size();
@@ -614,6 +645,9 @@ template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::compute_G_k_w_new(
     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>>& M_k_w_new,
     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>>& G_k_w_new) {
+  //     if(concurrency.id()==0)
+  //       std::cout << "\n\t\t compute-G_k_w_new\t" << dca::util::print_time() << "\n\n";
+
   LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> G_matrix("G_matrix", nu::dmn_size());
   LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> G0_matrix("G0_matrix", nu::dmn_size());
   LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> M_matrix("M_matrix", nu::dmn_size());
@@ -645,6 +679,12 @@ template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::compute_S_k_w_new(
     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>>& G_k_w_new,
     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>>& S_k_w_new) {
+  //     if(concurrency.id()==0)
+  //       std::cout << "\n\t\t start compute-S_k_w\t" << dca::util::print_time() << "\n\n";
+
+  //     LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> G_matrix ("G_matrix" , nu::dmn_size());
+  //     LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> G0_matrix("G0_matrix", nu::dmn_size());
+
   int N = nu::dmn_size();
 
   std::complex<double>* G_matrix = new std::complex<double>[N * N];
@@ -675,14 +715,15 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
   if (parameters.adjust_self_energy_for_double_counting())
     adjust_self_energy_for_double_counting();
 
+  //     if(concurrency.id()==0)
+  //       std::cout << "\n\t\t end compute-S_k_w\t" << dca::util::print_time() << "\n\n";
+
   symmetrize::execute(S_k_w_new, MOMS.H_symmetry);
 }
 
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type,
-                    MOMS_type>::set_non_interacting_bands_to_zero()
-// WARNING this function is not implemented
-{
+                    MOMS_type>::set_non_interacting_bands_to_zero() {
   /*
   for(int w_ind=0; w_ind<w::dmn_size(); w_ind++){
     for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++){
@@ -699,6 +740,7 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type,
       }
     }
   }
+
   for(int w_ind=0; w_ind<w::dmn_size(); w_ind++)
     for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++)
       for(int l2=0; l2<2*b::dmn_size(); l2++)
@@ -711,7 +753,61 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type,
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type,
                     MOMS_type>::adjust_self_energy_for_double_counting() {
-  // set_non_interacting_bands_to_zero();
+  set_non_interacting_bands_to_zero();
+
+  /*
+  FUNC_LIB::function<double, nu> d_0;
+  for(int l1=0; l1<b::dmn_size()*s::dmn_size(); l1++)
+    for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++)
+      for(int w_ind=0; w_ind<32; w_ind++)
+        d_0(l1) += real(MOMS.Sigma(l1,l1,k_ind,w_ind));
+
+  d_0 /= double(32.*k_DCA::dmn_size());
+
+  for(int l1=0; l1<b::dmn_size()*s::dmn_size(); l1++)
+    for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++)
+      for(int w_ind=0; w_ind<w::dmn_size(); w_ind++)
+        MOMS.Sigma(l1,l1,k_ind,w_ind) -= d_0(l1);
+  */
+
+  /*
+  if(parameters.get_double_counting_method()=="constant")
+    {
+      std::vector<int>& interacting_bands = parameters.get_interacting_bands();
+
+      for(int w_ind=0; w_ind<w::dmn_size(); w_ind++)
+        for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++)
+          for(int s_ind=0; s_ind<s::dmn_size(); s_ind++)
+            for(int b_ind=0; b_ind<interacting_bands.size(); b_ind++)
+              MOMS.Sigma(interacting_bands[b_ind], s_ind,
+                         interacting_bands[b_ind], s_ind,
+                         k_ind                   , w_ind) -=
+  parameters.get_double_counting_correction();
+    }
+
+  if(parameters.get_double_counting_method()=="adaptive")
+    {
+      std::vector<int>& interacting_bands = parameters.get_interacting_bands();
+
+      for(int b_ind=0; b_ind<interacting_bands.size(); b_ind++)
+        for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++){
+          for(int s_ind=0; s_ind<s::dmn_size(); s_ind++){
+
+            double value = real(MOMS.Sigma(interacting_bands[b_ind], s_ind,
+                                           interacting_bands[b_ind], s_ind,
+                                           k_ind                   , 0));
+
+            for(int w_ind=0; w_ind<w::dmn_size(); w_ind++){
+
+              MOMS.Sigma(interacting_bands[b_ind], s_ind,
+                         interacting_bands[b_ind], s_ind,
+                         k_ind                   , w_ind) -= value;
+            }
+          }
+        }
+    }
+  */
+
   symmetrize::execute(MOMS.Sigma, MOMS.H_symmetry);
 }
 
@@ -756,6 +852,7 @@ double cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_typ
   }
   return L2_error;
 }
-}
 
-#endif
+}  // DCA
+
+#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_CLUSTER_SOLVER_H
