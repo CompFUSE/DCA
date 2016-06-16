@@ -415,8 +415,8 @@ void writer<IO::HDF5>::execute(std::string name, std::vector<std::vector<scalar_
         */
 
         // hdf5 has row-major ordering!
-        for (int i = 0; i < dims[0]; i++)
-          for (int j = 0; j < dims[1]; j++)
+        for (hsize_t i = 0; i < dims[0]; i++)
+          for (hsize_t j = 0; j < dims[1]; j++)
             tmp[i * dims[1] + j] = value[i][j];
 
         H5Dwrite(dataset->getId(), IO::HDF5_TYPE<scalar_type>::get(), dataspace->getId(), H5S_ALL,

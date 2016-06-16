@@ -178,8 +178,8 @@ inline std::vector<scalartype> COORDINATES(const std::vector<scalartype>& r,
 
   std::vector<scalartype> basis(N * N);  // scalartype basis[N*N];
 
-  for (size_t d1 = 0; d1 < N; ++d1) {
-    for (size_t d0 = 0; d0 < N; ++d0) {
+  for (int d1 = 0; d1 < N; ++d1) {
+    for (int d0 = 0; d0 < N; ++d0) {
       basis[d0 + d1 * N] = B[d1][d0];
     }
   }

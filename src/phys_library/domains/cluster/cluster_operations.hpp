@@ -132,8 +132,8 @@ std::vector<scalar_type> cluster_operations::translate_inside_cluster(
 
   std::vector<scalar_type> r_vec(r.size(), 0.);
 
-  for (size_t d1 = 0; d1 < DIMENSION; ++d1) {
-    for (size_t d0 = 0; d0 < DIMENSION; ++d0) {
+  for (int d1 = 0; d1 < DIMENSION; ++d1) {
+    for (int d0 = 0; d0 < DIMENSION; ++d0) {
       r_vec[d0] += basis[d1][d0] * r_affine[d1];
     }
   }
