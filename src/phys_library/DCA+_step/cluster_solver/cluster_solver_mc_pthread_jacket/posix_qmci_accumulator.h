@@ -1,20 +1,26 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//         Raffaele Solca' (rasolca@itp.phys.ethz.ch)
+//
+// A posix jacket that implements a MC accumulator independent of the MC method.
 
-#ifndef DCA_QMCI_POSIX_JACKET_FOR_MC_ACCUMULATION_H
-#define DCA_QMCI_POSIX_JACKET_FOR_MC_ACCUMULATION_H
+#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_PTHREAD_JACKET_POSIX_QMCI_ACCUMULATOR_H
+#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_PTHREAD_JACKET_POSIX_QMCI_ACCUMULATOR_H
 
+#include <pthread.h>
 #include <queue>
-#include <iostream>
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_template/qmci_accumulator.h"
+#include <stdexcept>
 
 namespace DCA {
 namespace QMCI {
-/*!
- * \ingroup POSIX-TEMPLATES
- * \brief   A posix-jacket that implements a MC-accumulator, independent of the MC-TYPE.
- * \author  Peter Staar, Raffaele Solca
- * \version 1.0
- */
+// DCA::QMCI::
+
 template <class qmci_accumulator_type>
 class posix_qmci_accumulator : protected qmci_accumulator_type {
   typedef typename qmci_accumulator_type::my_parameters_type parameters_type;
@@ -39,6 +45,9 @@ public:
 
   void measure(pthread_mutex_t& mutex_queue, std::queue<this_type*>& accumulators_queue);
 
+  // void sum_to(qmci_accumulator_type& accumulator_obj);
+  // int get_expansion_order();
+
   // Sums all accumulated objects of this accumulator to the equivalent objects of the 'other'
   // accumulator.
   void sum_to(qmci_accumulator_type& other);
@@ -51,6 +60,27 @@ protected:
 private:
   using qmci_accumulator_type::parameters;
   using qmci_accumulator_type::MOMS;
+
+  /*
+      using qmci_accumulator_type::HS_configuration_e_UP;
+      using qmci_accumulator_type::HS_configuration_e_DN;
+
+      using qmci_accumulator_type::visited_expansion_order_k;
+
+      using qmci_accumulator_type::K_r_t;
+
+      using qmci_accumulator_type::G_r_t;
+      using qmci_accumulator_type::G_r_t_stddev;
+
+      using qmci_accumulator_type::charge_cluster_moment;
+      using qmci_accumulator_type::magnetic_cluster_moment;
+      using qmci_accumulator_type::dwave_pp_correlator;
+
+      using qmci_accumulator_type::M_r_w;
+      using qmci_accumulator_type::M_r_w_squared;
+
+      using qmci_accumulator_type::G4;
+  */
 
   int thread_id;
 
@@ -73,6 +103,12 @@ posix_qmci_accumulator<qmci_accumulator_type>::~posix_qmci_accumulator() {
   pthread_cond_destroy(&start_measuring);
   pthread_mutex_destroy(&mutex_accumulator);
 }
+
+//     template<class qmci_accumulator_type>
+//     int posix_qmci_accumulator<qmci_accumulator_type>::get_expansion_order()
+//     {
+//       return HS_configuration_e_UP.size();
+//     }
 
 template <class qmci_accumulator_type>
 template <typename walker_type>
@@ -122,7 +158,7 @@ void posix_qmci_accumulator<qmci_accumulator_type>::sum_to(qmci_accumulator_type
   pthread_mutex_unlock(&mutex_accumulator);
 }
 
-}  // namespace QMCI
-}  // namespace DCA
+}  // QMCI
+}  // DCA
 
-#endif  // DCA_QMCI_POSIX_JACKET_FOR_MC_ACCUMULATION_H
+#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_PTHREAD_JACKET_POSIX_QMCI_ACCUMULATOR_H

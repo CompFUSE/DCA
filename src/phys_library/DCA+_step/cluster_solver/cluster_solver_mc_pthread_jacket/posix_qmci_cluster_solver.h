@@ -1,30 +1,33 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//         Raffaele Solca' (rasolca@itp.phys.ethz.ch)
+//         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//
+//  A posix MC integrator that implements a threaded MC integration independent of the MC method.
 
-#ifndef DCA_QMCI_POSIX_MC_INTEGRATOR_FOR_MC_H
-#define DCA_QMCI_POSIX_MC_INTEGRATOR_FOR_MC_H
+#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_PTHREAD_JACKET_POSIX_QMCI_CLUSTER_SOLVER_H
+#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_PTHREAD_JACKET_POSIX_QMCI_CLUSTER_SOLVER_H
 
 #include <pthread.h>
-#include <cassert>
-#include <vector>
+
+#include <iostream>
 #include <queue>
-#include <string>
+#include <stdexcept>
+#include <vector>
+
 #include "dca/math_library/random_number_library/random_number_library.hpp"
-#include "comp_library/profiler_library/events/time_file_name_changed.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_pthread_jacket/posix_qmci_accumulator.h"
 #include "dca/phys_library/DCA_step/cluster_solver/posix_qmci/thread_task_handler.hpp"
+#include "comp_library/profiler_library/events/time.hpp"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_pthread_jacket/posix_qmci_accumulator.h"
 
 namespace DCA {
-/*!
- *  \defgroup POSIX-TEMPLATES
- */
 
-/*!
- * \ingroup POSIX-TEMPLATES
- * \brief   A posix-MC_integrator that implements a threaded MC-integration, independent of the
- * MC-TYPE.
- * \author  Raffaele Solca, Peter Staar, Urs R. Haehner
- * \version 1.0
- */
 template <class qmci_integrator_type>
 class posix_qmci_integrator : protected qmci_integrator_type {
   typedef typename qmci_integrator_type::this_MOMS_type MOMS_type;
@@ -44,12 +47,10 @@ class posix_qmci_integrator : protected qmci_integrator_type {
 public:
   posix_qmci_integrator(parameters_type& parameters_ref, MOMS_type& MOMS_ref);
 
-  ~posix_qmci_integrator();
+  template <typename Writer>
+  void write(Writer& reader);
 
-  template <IO::FORMAT DATA_FORMAT>
-  void write(IO::writer<DATA_FORMAT>& reader);
-
-  void initialize(int dca_iteration0);
+  void initialize(int dca_iteration);
 
   void integrate();
 
@@ -80,8 +81,6 @@ private:
   using qmci_integrator_type::DCA_iteration;
 
   using qmci_integrator_type::accumulator;
-
-  int dca_iteration;
 
   int acc_finished;
 
@@ -127,18 +126,14 @@ posix_qmci_integrator<qmci_integrator_type>::posix_qmci_integrator(parameters_ty
 }
 
 template <class qmci_integrator_type>
-posix_qmci_integrator<qmci_integrator_type>::~posix_qmci_integrator() {}
-
-template <class qmci_integrator_type>
-template <IO::FORMAT DATA_FORMAT>
-void posix_qmci_integrator<qmci_integrator_type>::write(IO::writer<DATA_FORMAT>& writer) {
+template <typename Writer>
+void posix_qmci_integrator<qmci_integrator_type>::write(Writer& writer) {
   qmci_integrator_type::write(writer);
+  // accumulator.write(writer);
 }
 
 template <class qmci_integrator_type>
-void posix_qmci_integrator<qmci_integrator_type>::initialize(int dca_iteration0) {
-  dca_iteration = dca_iteration0;
-
+void posix_qmci_integrator<qmci_integrator_type>::initialize(int dca_iteration) {
   profiler_type profiler(__FUNCTION__, "posix-MC-Integration", __LINE__);
 
   qmci_integrator_type::initialize(dca_iteration);
@@ -297,6 +292,12 @@ void posix_qmci_integrator<qmci_integrator_type>::start_walker(int id) {
     }
   }
 
+#ifdef QMC_INTEGRATOR_BIT
+  pthread_mutex_lock(&mutex_numerical_error);
+  // accumulator.get_error_distribution() += walker.get_error_distribution();
+  pthread_mutex_unlock(&mutex_numerical_error);
+#endif  // QMC_INTEGRATOR_BIT
+
   if (id == 0)
     concurrency << "\n\t\t QMCI ends\n\n";
 }
@@ -357,4 +358,4 @@ void posix_qmci_integrator<qmci_integrator_type>::start_accumulator(int id) {
 
 }  // DCA
 
-#endif
+#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_PTHREAD_JACKET_POSIX_QMCI_CLUSTER_SOLVER_H
