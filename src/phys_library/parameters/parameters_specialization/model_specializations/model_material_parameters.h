@@ -20,7 +20,7 @@
 #include <string>
 
 #include "phys_library/parameters/models/tight_binding_model.h"
-#include "phys_library/parameters/models/material_Hamiltonians/material_hamiltonians.hpp"
+#include "phys_library/parameters/models/material_hamiltonians/material_hamiltonians.hpp"
 
 template <material_name_type name, typename dca_point_group_t>
 class model_parameters<tight_binding_model<material_lattice<name, dca_point_group_t>>> {

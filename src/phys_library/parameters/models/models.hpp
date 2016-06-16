@@ -12,8 +12,8 @@
 #ifndef PHYS_LIBRARY_PARAMETERS_MODELS_MODELS_HPP
 #define PHYS_LIBRARY_PARAMETERS_MODELS_MODELS_HPP
 
-#include "phys_library/parameters/models/analytic_Hamiltonians/analytic_hamiltonians.hpp"
-#include "phys_library/parameters/models/material_Hamiltonians/material_hamiltonians.hpp"
+#include "phys_library/parameters/models/analytic_hamiltonians/analytic_hamiltonians.hpp"
+#include "phys_library/parameters/models/material_hamiltonians/material_hamiltonians.hpp"
 #include "tight_binding_model.h"
 
 #endif  // PHYS_LIBRARY_PARAMETERS_MODELS_MODELS_HPP

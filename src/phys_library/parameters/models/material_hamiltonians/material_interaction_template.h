@@ -12,7 +12,7 @@
 #ifndef PHYS_LIBRARY_PARAMETERS_MODELS_MATERIAL_HAMILTONIANS_MATERIAL_INTERACTION_TEMPLATE_H
 #define PHYS_LIBRARY_PARAMETERS_MODELS_MATERIAL_HAMILTONIANS_MATERIAL_INTERACTION_TEMPLATE_H
 
-#include "phys_library/parameters/models/material_Hamiltonians/material_names.hpp"
+#include "phys_library/parameters/models/material_hamiltonians/material_names.hpp"
 #include "comp_library/function_library/include_function_library.h"
 
 template <material_name_type name, typename point_group_type>

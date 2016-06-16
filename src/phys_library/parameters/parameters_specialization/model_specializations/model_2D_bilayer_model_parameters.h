@@ -19,7 +19,7 @@
 #include <stdexcept>
 
 #include "phys_library/parameters/models/tight_binding_model.h"
-#include "phys_library/parameters/models/analytic_Hamiltonians/lattices/2D_bilayer_lattice.h"
+#include "phys_library/parameters/models/analytic_hamiltonians/lattices/2D_bilayer_lattice.h"
 
 template <typename dca_point_group_t>
 class model_parameters<tight_binding_model<bilayer_lattice<dca_point_group_t>>> {

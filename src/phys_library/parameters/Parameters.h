@@ -1,29 +1,47 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//         Raffaele Solca' (rasolca@itp.phys.ethz.ch)
+//
+// Description
 
-#ifndef PARAMETERS_H
-#define PARAMETERS_H
-#include<string>
+#ifndef PHYS_LIBRARY_PARAMETERS_PARAMTERS_H
+#define PHYS_LIBRARY_PARAMETERS_PARAMTERS_H
 
-//#include "phys_library/domain_types.hpp"
-#include "phys_library/parameters/parameters_specialization/templates/template_parameters.hpp"
-// TODO  (maybe) includes numerical error only if QMCI_INTEGRATOR BIT = 1
-#include "phys_library/domains/include_DCA_domains.h"
+#include <iostream>
+#include <string>
+#include <vector>
+
 #include "enumerations.hpp"
+#include "comp_library/function_library/domains/special_domains/dmn_0.h"
+#include "phys_library/parameters/parameters_specialization/model_specializations/model_specializations.hpp"
+#include "phys_library/parameters/parameters_specialization/solver_specializations/solver_specializations.hpp"
+#include "phys_library/parameters/parameters_specialization/templates/templates.hpp"
+#include "phys_library/domains/cluster/cluster_domain.h"
+#include "phys_library/domains/cluster/cluster_domain_family.h"
+#include "phys_library/domains/cluster/cluster_domain_initializer.h"
+#include "phys_library/domains/cluster/cluster_domain_symmetry_initializer.h"
+#include "phys_library/domains/Quantum_domain/DCA_iteration_domain.h"
+#include "phys_library/domains/Quantum_domain/numerical_error_domain.h"
+#include "phys_library/domains/time_and_frequency/frequency_domain.h"
+#include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
+#include "phys_library/domains/time_and_frequency/frequency_domain_real_axis.h"
+#include "phys_library/domains/time_and_frequency/frequency_domain_imag_axis.h"
+#include "phys_library/domains/time_and_frequency/time_domain.h"
+#include "phys_library/domains/time_and_frequency/time_domain_left_oriented.h"
+#include "phys_library/domains/time_and_frequency/vertex_time_domain.h"
 
-#include "phys_library/parameters/parameters_specialization/model_parameters_collection.hpp"
-#include "phys_library/parameters/parameters_specialization/solver_parameters_collection.hpp"
-
-/*!
- *   \ingroup  PARAMETERS
- *
- *   \author   Peter Staar, Raffaele Solca.
- *   \brief    ...
- */
-template <class concurrency_t, class model, class rng_t, DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
+template <typename concurrency_t, typename model_t, typename rng_t,
+          DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
 class Parameters : public file_names_parameters,
-                   public profiling_parameters<concurrency_t>,
+                   public profiling_parameters,
                    public physics_parameters,
-                   public model_parameters<model>,
+                   public model_parameters<model_t>,
                    public DCA_Parameters,
 
                    public function_parameters,
@@ -32,15 +50,56 @@ class Parameters : public file_names_parameters,
                    public MC_solver_parameters<CLUSTER_SOLVER_NAME>,
                    public ED_solver_parameters,
 
-                   public vertex_parameters,
+                   public vertex_parameters<model_t::lattice_type::DIMENSION>,
                    public equal_time_parameters,
                    public CPE_parameters,
 
                    public brillouin_zone_parameters,
                    public double_counting_parameters {
 public:
-  typedef concurrency_t concurrency_type;
+  using concurrency_type = concurrency_t;
   using random_number_generator = rng_t;
+  using model_type = model_t;
+  using lattice_type = typename model_t::lattice_type;
+
+  // Time and frequency domains
+  using t = dmn_0<time_domain>;
+  using w = dmn_0<frequency_domain>;
+  using w_VERTEX_EXTENDED = dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED>>;
+  using w_VERTEX_EXTENDED_POS = dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED_POSITIVE>>;
+
+  // DCA cluster domains
+  using r_DCA =
+      dmn_0<cluster_domain<double, model_t::lattice_type::DIMENSION, CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>>;
+  using k_DCA =
+      dmn_0<cluster_domain<double, model_t::lattice_type::DIMENSION, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+
+  // Host cluster domains
+  using r_HOST =
+      dmn_0<cluster_domain<double, model_t::lattice_type::DIMENSION, LATTICE_SP, REAL_SPACE, BRILLOUIN_ZONE>>;
+  using k_HOST = dmn_0<cluster_domain<double, model_t::lattice_type::DIMENSION, LATTICE_SP,
+                                      MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+
+  // Host vertex cluster domains
+  using r_HOST_VERTEX =
+      dmn_0<cluster_domain<double, model_t::lattice_type::DIMENSION, LATTICE_TP, REAL_SPACE, BRILLOUIN_ZONE>>;
+  using k_HOST_VERTEX = dmn_0<cluster_domain<double, model_t::lattice_type::DIMENSION, LATTICE_TP,
+                                             MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+
+  // LDA cluster domains
+  using r_LDA = dmn_0<cluster_domain<double, model_t::lattice_type::DIMENSION, LATTICE_SP,
+                                     REAL_SPACE, PARALLELLEPIPEDUM>>;
+  using k_LDA = dmn_0<cluster_domain<double, model_t::lattice_type::DIMENSION, LATTICE_SP,
+                                     MOMENTUM_SPACE, PARALLELLEPIPEDUM>>;
+
+  using DCA_cluster_family_type =
+      cluster_domain_family<double, model_t::lattice_type::DIMENSION, CLUSTER, BRILLOUIN_ZONE>;
+  using HOST_sp_cluster_family_type =
+      cluster_domain_family<double, model_t::lattice_type::DIMENSION, LATTICE_SP, BRILLOUIN_ZONE>;
+  using HOST_tp_cluster_family_type =
+      cluster_domain_family<double, model_t::lattice_type::DIMENSION, LATTICE_TP, BRILLOUIN_ZONE>;
+
+  constexpr static int lattice_dimension = model_t::lattice_type::DIMENSION;
 
 #ifdef SINGLE_PRECISION_MEASUREMENTS
   typedef float MC_measurement_scalar_type;
@@ -58,15 +117,14 @@ public:
 
 public:
   Parameters(std::string version_stamp, concurrency_type& concurrency_obj);
-  ~Parameters();
 
-  template <IO::FORMAT DATA_FORMAT>
-  void read(IO::reader<DATA_FORMAT>& reader);
+  template <typename Reader>
+  void read(Reader& reader);
 
-  template <IO::FORMAT DATA_FORMAT>
-  void write(IO::writer<DATA_FORMAT>& writer);
+  template <typename Writer>
+  void write(Writer& writer);
 
-  template <IO::FORMAT DATA_FORMAT>
+  template <typename Reader>
   void read_input_and_broadcast(std::string file_name);
 
   template <typename read_write_t>
@@ -95,19 +153,20 @@ private:
   concurrency_type& concurrency_obj;
 };
 
-template <class concurrency_t, class model, class rng_t, DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
-Parameters<concurrency_t, model, rng_t, CLUSTER_SOLVER_NAME>::Parameters(
+template <typename concurrency_t, typename model_t, typename rng_t,
+          DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
+Parameters<concurrency_t, model_t, rng_t, CLUSTER_SOLVER_NAME>::Parameters(
     std::string version_stamp_str, concurrency_t& concurrency_object)
     : file_names_parameters(),
       physics_parameters(),
-      model_parameters<model>(),
-      DCA_Parameters(model::DIMENSION),
+      model_parameters<model_t>(),
+      DCA_Parameters(model_t::DIMENSION),
 
-      function_parameters(),
+      function_parameters(model_t::DIMENSION),
       MCI_parameters(),
 
       MC_solver_parameters<CLUSTER_SOLVER_NAME>(),
-      vertex_parameters(model::DIMENSION),
+      vertex_parameters<model_t::DIMENSION>(),
       equal_time_parameters(),
       CPE_parameters(),
 
@@ -130,13 +189,10 @@ Parameters<concurrency_t, model, rng_t, CLUSTER_SOLVER_NAME>::Parameters(
 #endif
 }
 
-template <class concurrency_t, class model, class rng_t, DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
-Parameters<concurrency_t, model, rng_t, CLUSTER_SOLVER_NAME>::~Parameters() {}
-
-template <class concurrency_t, class model, class rng_t, DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
-template <IO::FORMAT DATA_FORMAT>
-void Parameters<concurrency_t, model, rng_t, CLUSTER_SOLVER_NAME>::write(
-    IO::writer<DATA_FORMAT>& writer) {
+template <typename concurrency_t, typename model_t, typename rng_t,
+          DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
+template <typename Writer>
+void Parameters<concurrency_t, model_t, rng_t, CLUSTER_SOLVER_NAME>::write(Writer& writer) {
   {
     writer.open_group("parameters");
 
@@ -159,7 +215,7 @@ void Parameters<concurrency_t, model, rng_t, CLUSTER_SOLVER_NAME>::write(
 
     DCA_iteration_domain::write(writer);
 
-    if (get_vertex_measurement_type() != NONE) {
+    if (vertex_parameters<model_t::DIMENSION>::get_vertex_measurement_type() != NONE) {
       DCA::vertex_time_domain<DCA::SP_TIME_DOMAIN>::write(writer);
       DCA::vertex_time_domain<DCA::TP_TIME_DOMAIN>::write(writer);
       DCA::vertex_time_domain<DCA::SP_TIME_DOMAIN_POSITIVE>::write(writer);
@@ -185,16 +241,17 @@ void Parameters<concurrency_t, model, rng_t, CLUSTER_SOLVER_NAME>::write(
   }
 }
 
-template <class concurrency_t, class model, class rng_t, DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
-template <IO::FORMAT DATA_FORMAT>
-void Parameters<concurrency_t, model, rng_t, CLUSTER_SOLVER_NAME>::read_input_and_broadcast(
+template <typename concurrency_t, typename model_t, typename rng_t,
+          DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
+template <typename Reader>
+void Parameters<concurrency_t, model_t, rng_t, CLUSTER_SOLVER_NAME>::read_input_and_broadcast(
     std::string filename) {
   for (bool flag = false; !flag;) {
     if (concurrency_obj.id() == concurrency_obj.first()) {
       file_names_parameters::get_input_file_name() = filename;
 
       {
-        IO::reader<DATA_FORMAT> read_obj;
+        Reader read_obj;
 
         read_obj.open_file(filename);
 
@@ -208,15 +265,18 @@ void Parameters<concurrency_t, model, rng_t, CLUSTER_SOLVER_NAME>::read_input_an
   }
 }
 
-template <class concurrency_t, class model, class rng_t, DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
-void Parameters<concurrency_t, model, rng_t, CLUSTER_SOLVER_NAME>::update_model() {
-  model::initialize(*this);
+template <typename concurrency_t, typename model_t, typename rng_t,
+          DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
+void Parameters<concurrency_t, model_t, rng_t, CLUSTER_SOLVER_NAME>::update_model() {
+  model_t::initialize(*this);
 }
 
-template <class concurrency_t, class model, class rng_t, DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
-void Parameters<concurrency_t, model, rng_t, CLUSTER_SOLVER_NAME>::update_domains() {
+template <typename concurrency_t, typename model_t, typename rng_t,
+          DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
+void Parameters<concurrency_t, model_t, rng_t, CLUSTER_SOLVER_NAME>::update_domains() {
   DCA_iteration_domain::initialize(*this);
-  electron_band_domain::initialize(*this, model::BANDS, model::get_flavors(), model::get_a_vectors());
+  electron_band_domain::initialize(*this, model_t::BANDS, model_t::get_flavors(),
+                                   model_t::get_a_vectors());
 
   // time && frequency-domains
   time_domain::initialize(*this);
@@ -239,46 +299,48 @@ void Parameters<concurrency_t, model, rng_t, CLUSTER_SOLVER_NAME>::update_domain
   DCA::vertex_frequency_domain<DCA::EXTENDED_BOSONIC>::initialize(*this);
 
   // DCA
-  cluster_domain_initializer<r_DCA>::execute(model::get_r_DCA_basis(),
+  cluster_domain_initializer<r_DCA>::execute(model_t::get_r_DCA_basis(),
                                              DCA_Parameters::get_DCA_cluster());
 
-  cluster_domain_symmetry_initializer<r_DCA, DCA_point_group_type>::execute();
+  cluster_domain_symmetry_initializer<r_DCA, typename model_t::lattice_type::DCA_point_group>::execute();
 
   if (concurrency_obj.id() == concurrency_obj.last())
     k_DCA::parameter_type::print(std::cout);
 
   // host
   cluster_domain_initializer<r_HOST>::execute(
-      model::get_r_DCA_basis(),  // DCA_lattice_parameters_type::lattice_vectors(),
+      model_t::get_r_DCA_basis(),  // DCA_lattice_parameters_type::lattice_vectors(),
       function_parameters::get_sp_cluster());
 
-  cluster_domain_symmetry_initializer<r_HOST, DCA_point_group_type>::execute();
+  cluster_domain_symmetry_initializer<r_HOST, typename model_t::lattice_type::DCA_point_group>::execute();
 
   if (concurrency_obj.id() == concurrency_obj.last())
     k_HOST::parameter_type::print(std::cout);
 
   // host
   cluster_domain_initializer<r_HOST_VERTEX>::execute(
-      model::get_r_DCA_basis(),  // DCA_lattice_parameters_type::lattice_vectors(),
+      model_t::get_r_DCA_basis(),  // DCA_lattice_parameters_type::lattice_vectors(),
       function_parameters::get_tp_cluster());
 
-  cluster_domain_symmetry_initializer<r_HOST_VERTEX, DCA_point_group_type>::execute();
+  cluster_domain_symmetry_initializer<r_HOST_VERTEX,
+                                      typename model_t::lattice_type::DCA_point_group>::execute();
 
   if (concurrency_obj.id() == concurrency_obj.last())
     k_HOST_VERTEX::parameter_type::print(std::cout);
 
   // LDA
   cluster_domain_initializer<r_LDA>::execute(
-      model::get_r_DCA_basis(),  // DCA_lattice_parameters_type::lattice_vectors(),
+      model_t::get_r_DCA_basis(),  // DCA_lattice_parameters_type::lattice_vectors(),
       function_parameters::get_H_k_grid_size());
 
   if (concurrency_obj.id() == concurrency_obj.last())
     k_LDA::parameter_type::print(std::cout);
 }
 
-template <class concurrency_t, class model, class rng_t, DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
+template <typename concurrency_t, typename model_t, typename rng_t,
+          DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
 template <typename read_write_t>
-void Parameters<concurrency_t, model, rng_t, CLUSTER_SOLVER_NAME>::read_write(
+void Parameters<concurrency_t, model_t, rng_t, CLUSTER_SOLVER_NAME>::read_write(
     read_write_t& read_write_obj) {
   if (read_write_obj.is_writer()) {
     read_write_obj.execute("date", date_str);
@@ -289,7 +351,7 @@ void Parameters<concurrency_t, model, rng_t, CLUSTER_SOLVER_NAME>::read_write(
   file_names_parameters::read_write(read_write_obj);
 
   physics_parameters::read_write(read_write_obj);
-  model_parameters<model>::read_write(read_write_obj);
+  model_parameters<model_t>::read_write(read_write_obj);
   DCA_Parameters::read_write(read_write_obj);
 
   MCI_parameters::read_write(read_write_obj);
@@ -297,7 +359,7 @@ void Parameters<concurrency_t, model, rng_t, CLUSTER_SOLVER_NAME>::read_write(
   ED_solver_parameters::read_write(read_write_obj);
 
   function_parameters::read_write(read_write_obj);
-  vertex_parameters::read_write(read_write_obj);
+  vertex_parameters<model_t::DIMENSION>::read_write(read_write_obj);
   equal_time_parameters::read_write(read_write_obj);
 
   CPE_parameters::read_write(read_write_obj);
@@ -305,15 +367,16 @@ void Parameters<concurrency_t, model, rng_t, CLUSTER_SOLVER_NAME>::read_write(
   brillouin_zone_parameters::read_write(read_write_obj);
 }
 
-template <class concurrency_t, class model, class rng_t, DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
-int Parameters<concurrency_t, model, rng_t, CLUSTER_SOLVER_NAME>::get_buffer_size(
+template <typename concurrency_t, typename model_t, typename rng_t,
+          DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
+int Parameters<concurrency_t, model_t, rng_t, CLUSTER_SOLVER_NAME>::get_buffer_size(
     concurrency_t& concurrency) {
   int buffer_size = 0;
 
   buffer_size += file_names_parameters::get_buffer_size(concurrency);
 
   buffer_size += physics_parameters::get_buffer_size(concurrency);
-  buffer_size += model_parameters<model>::get_buffer_size(concurrency);
+  buffer_size += model_parameters<model_t>::get_buffer_size(concurrency);
   buffer_size += DCA_Parameters::get_buffer_size(concurrency);
 
   buffer_size += MCI_parameters::get_buffer_size(concurrency);
@@ -321,7 +384,7 @@ int Parameters<concurrency_t, model, rng_t, CLUSTER_SOLVER_NAME>::get_buffer_siz
   buffer_size += ED_solver_parameters::get_buffer_size(concurrency);
 
   buffer_size += function_parameters::get_buffer_size(concurrency);
-  buffer_size += vertex_parameters::get_buffer_size(concurrency);
+  buffer_size += vertex_parameters<model_t::DIMENSION>::get_buffer_size(concurrency);
   buffer_size += equal_time_parameters::get_buffer_size(concurrency);
   buffer_size += CPE_parameters::get_buffer_size(concurrency);
 
@@ -332,14 +395,16 @@ int Parameters<concurrency_t, model, rng_t, CLUSTER_SOLVER_NAME>::get_buffer_siz
   return buffer_size;
 }
 
-template <class concurrency_t, class model, class rng_t, DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
-void Parameters<concurrency_t, model, rng_t, CLUSTER_SOLVER_NAME>::pack(concurrency_t& concurrency,
-                                                                        int* buffer, int buffer_size,
-                                                                        int& position) {
+template <typename concurrency_t, typename model_t, typename rng_t,
+          DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
+void Parameters<concurrency_t, model_t, rng_t, CLUSTER_SOLVER_NAME>::pack(concurrency_t& concurrency,
+                                                                          int* buffer,
+                                                                          int buffer_size,
+                                                                          int& position) {
   file_names_parameters::pack(concurrency, buffer, buffer_size, position);
 
   physics_parameters::pack(concurrency, buffer, buffer_size, position);
-  model_parameters<model>::pack(concurrency, buffer, buffer_size, position);
+  model_parameters<model_t>::pack(concurrency, buffer, buffer_size, position);
   DCA_Parameters::pack(concurrency, buffer, buffer_size, position);
 
   MCI_parameters::pack(concurrency, buffer, buffer_size, position);
@@ -347,7 +412,7 @@ void Parameters<concurrency_t, model, rng_t, CLUSTER_SOLVER_NAME>::pack(concurre
   ED_solver_parameters::pack(concurrency, buffer, buffer_size, position);
 
   function_parameters::pack(concurrency, buffer, buffer_size, position);
-  vertex_parameters::pack(concurrency, buffer, buffer_size, position);
+  vertex_parameters<model_t::DIMENSION>::pack(concurrency, buffer, buffer_size, position);
   equal_time_parameters::pack(concurrency, buffer, buffer_size, position);
   CPE_parameters::pack(concurrency, buffer, buffer_size, position);
 
@@ -356,15 +421,14 @@ void Parameters<concurrency_t, model, rng_t, CLUSTER_SOLVER_NAME>::pack(concurre
   brillouin_zone_parameters::pack(concurrency, buffer, buffer_size, position);
 }
 
-template <class concurrency_t, class model, class rng_t, DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
-void Parameters<concurrency_t, model, rng_t, CLUSTER_SOLVER_NAME>::unpack(concurrency_t& concurrency,
-                                                                          int* buffer,
-                                                                          int buffer_size,
-                                                                          int& position) {
+template <typename concurrency_t, typename model_t, typename rng_t,
+          DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
+void Parameters<concurrency_t, model_t, rng_t, CLUSTER_SOLVER_NAME>::unpack(
+    concurrency_t& concurrency, int* buffer, int buffer_size, int& position) {
   file_names_parameters::unpack(concurrency, buffer, buffer_size, position);
 
   physics_parameters::unpack(concurrency, buffer, buffer_size, position);
-  model_parameters<model>::unpack(concurrency, buffer, buffer_size, position);
+  model_parameters<model_t>::unpack(concurrency, buffer, buffer_size, position);
   DCA_Parameters::unpack(concurrency, buffer, buffer_size, position);
 
   MCI_parameters::unpack(concurrency, buffer, buffer_size, position);
@@ -372,7 +436,7 @@ void Parameters<concurrency_t, model, rng_t, CLUSTER_SOLVER_NAME>::unpack(concur
   ED_solver_parameters::unpack(concurrency, buffer, buffer_size, position);
 
   function_parameters::unpack(concurrency, buffer, buffer_size, position);
-  vertex_parameters::unpack(concurrency, buffer, buffer_size, position);
+  vertex_parameters<model_t::DIMENSION>::unpack(concurrency, buffer, buffer_size, position);
   equal_time_parameters::unpack(concurrency, buffer, buffer_size, position);
   CPE_parameters::unpack(concurrency, buffer, buffer_size, position);
 
@@ -381,13 +445,15 @@ void Parameters<concurrency_t, model, rng_t, CLUSTER_SOLVER_NAME>::unpack(concur
   brillouin_zone_parameters::unpack(concurrency, buffer, buffer_size, position);
 }
 
-template <class concurrency_t, class model, class rng_t, DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
-concurrency_t& Parameters<concurrency_t, model, rng_t, CLUSTER_SOLVER_NAME>::get_concurrency() {
+template <typename concurrency_t, typename model_t, typename rng_t,
+          DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
+concurrency_t& Parameters<concurrency_t, model_t, rng_t, CLUSTER_SOLVER_NAME>::get_concurrency() {
   return concurrency_obj;
 }
 
-template <class concurrency_t, class model, class rng_t, DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
-std::string Parameters<concurrency_t, model, rng_t, CLUSTER_SOLVER_NAME>::make_python_readable(
+template <typename concurrency_t, typename model_t, typename rng_t,
+          DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
+std::string Parameters<concurrency_t, model_t, rng_t, CLUSTER_SOLVER_NAME>::make_python_readable(
     std::string str) {
   {
     std::string tmp("\n\n");
@@ -422,4 +488,4 @@ std::string Parameters<concurrency_t, model, rng_t, CLUSTER_SOLVER_NAME>::make_p
   return str;
 }
 
-#endif
+#endif  // PHYS_LIBRARY_PARAMETERS_PARAMTERS_H

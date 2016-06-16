@@ -394,7 +394,7 @@ bool DCA_Parameters::use_interpolated_Self_energy() {
 bool DCA_Parameters::is_an_interacting_band(int i) {
   bool result = false;
 
-  for (int l = 0; l < interacting_bands.size(); l++)
+  for (std::size_t l = 0; l < interacting_bands.size(); l++)
     if (i == interacting_bands[l])
       result = true;
 
