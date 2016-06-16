@@ -1,34 +1,29 @@
-//-*-C++-*-
-#ifndef DCA_CLUSTER_SOLVER_TEMPLATE_H
-#define DCA_CLUSTER_SOLVER_TEMPLATE_H
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// This file provides an empty template class for cluster solvers.
+
+#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_TEMPLATE_H
+#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_TEMPLATE_H
+
+#include <string>
 
 #include "enumerations.hpp"
+#include "comp_library/IO_library/IO.hpp"
 #include "comp_library/linalg/linalg_device_types.h"
-#include "comp_library/IO_library/IO_types.h"
-#include "comp_library/IO_library/template_reader.h"
-#include "comp_library/IO_library/template_writer.h"
 
 namespace DCA {
-/*!
- *  \defgroup CLUSTER-SOLVER
- */
-namespace QMCI {
-// DCA::QMCI::
-enum QMCI_NAMES { CT_AUX_SOLVER, SS_CT_HYB };
-enum QMCI_SP_MEASUREMENT_NAMES { NFFT };
-}  // QMCI
 
-/*!
- * \brief   high temperature series expansion solver
- * \author  Peter Staar
- * \version 1.0
- */
 template <CLUSTER_SOLVER_NAMES NAME, LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 class cluster_solver {
 public:
   cluster_solver(parameters_type& parameters_ref, MOMS_type& MOMS_ref);
-
-  virtual ~cluster_solver();
 
   void initialize(int dca_iteration);
 
@@ -50,4 +45,4 @@ public:
 
 }  // DCA
 
-#endif  // DCA_CLUSTER_SOLVER_TEMPLATE_H
+#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_TEMPLATE_H
