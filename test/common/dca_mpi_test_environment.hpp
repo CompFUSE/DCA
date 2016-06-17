@@ -1,24 +1,37 @@
-// Copyright 2015 ETH Zurich.
-// Description.
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
 //
-// Author: Urs Haehner (haehneru@itp.phys.ethz.ch), ETH Zurich
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//
+// Testing environment for DCA++ tests that use MPI.
 
-#ifndef DCA_MPI_TEST_ENVIRONMENT_HPP
-#define DCA_MPI_TEST_ENVIRONMENT_HPP
+#ifndef DCA_TEST_COMMON_MPI_TEST_ENVIRONMENT_HPP
+#define DCA_TEST_COMMON_MPI_TEST_ENVIRONMENT_HPP
 
 #include <string>
+#include "gtest/gtest.h"
+#include "dca/concurrency/parallelization_mpi.h"
 
-class dca_mpi_test_environment : public ::testing::Environment {
+namespace dca {
+namespace testing {
+// dca::testing::
+
+class DcaMpiTestEnvironment : public ::testing::Environment {
 public:
-  using concurrency_type =  dca::concurrency::parallelization<dca::concurrency::MPI_LIBRARY>;
+  using ConcurrencyType = dca::concurrency::parallelization<dca::concurrency::MPI_LIBRARY>;
 
-  dca_mpi_test_environment(int argc,char *argv[], std::string file_name)
-    : concurrency(argc, argv)
-    , input_file(file_name)
-  {}
+  DcaMpiTestEnvironment(int argc, char* argv[], std::string file_name)
+      : concurrency(argc, argv), input_file_name(file_name) {}
 
-  concurrency_type concurrency;
-  std::string      input_file;
+  ConcurrencyType concurrency;
+  std::string input_file_name;
 };
 
-#endif  // DCA_MPI_TEST_ENVIRONMENT_HPP
+}  // testing
+}  // dca
+
+#endif  // DCA_TEST_COMMON_MPI_TEST_ENVIRONMENT_HPP
