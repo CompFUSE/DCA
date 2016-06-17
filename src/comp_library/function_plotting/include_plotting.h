@@ -1,9 +1,14 @@
-//-*-C++-*-
+// TODO: Cleanup!
+
 #ifndef SRC_COMP_LIBRARY_FUNCTION_PLOTTING_INCLUDE_PLOTTING_H
 #define SRC_COMP_LIBRARY_FUNCTION_PLOTTING_INCLUDE_PLOTTING_H
+
 #ifdef ALLOW_GNUPLOT
 #include "comp_library/function_plotting/gnuplot/gnuplot_interface.hpp"
 #else
+
+#include "comp_library/function_library/include_function_library.h"
+
 class Gnuplot {
 public:
   Gnuplot(const std::string& /*style*/ = "points") {}
