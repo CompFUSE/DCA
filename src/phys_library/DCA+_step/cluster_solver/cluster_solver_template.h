@@ -14,13 +14,13 @@
 
 #include <string>
 
-#include "enumerations.hpp"
 #include "comp_library/IO_library/IO.hpp"
 #include "comp_library/linalg/linalg_device_types.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_name.hpp"
 
 namespace DCA {
 
-template <CLUSTER_SOLVER_NAMES NAME, LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <ClusterSolverName solver_name, LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 class cluster_solver {
 public:
   cluster_solver(parameters_type& parameters_ref, MOMS_type& MOMS_ref);

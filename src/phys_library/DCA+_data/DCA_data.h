@@ -21,7 +21,6 @@
 #include <utility>
 #include <vector>
 
-#include "enumerations.hpp"
 #include "dca/phys/DCA_algorithms/compute_band_structure.hpp"
 #include "dca/util/print_time.hpp"
 #include "comp_library/function_library/include_function_library.h"
@@ -29,6 +28,8 @@
 #include "comp_library/IO_library/IO.hpp"
 #include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
 #include "math_library/geometry_library/vector_operations/vector_operations.hpp"
+#include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_sp.h"
+#include "phys_library/DCA+_step/symmetrization/symmetrize.h"
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/cluster/interpolation/hspline_interpolation/hspline_interpolation.hpp"
 #include "phys_library/domains/cluster/interpolation/wannier_interpolation/wannier_interpolation.hpp"
@@ -38,8 +39,7 @@
 #include "phys_library/domains/time_and_frequency/frequency_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
 #include "phys_library/domains/time_and_frequency/time_domain.h"
-#include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_sp.h"
-#include "phys_library/DCA+_step/symmetrization/symmetrize.h"
+#include "phys_library/vertex_measurement_type.hpp"
 
 namespace DCA {
 

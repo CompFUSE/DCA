@@ -3,6 +3,17 @@
 #ifndef ANALYSIS_H
 #define ANALYSIS_H
 
+enum MC_integration_method {CT_AUX,
+                            HYBRIDIZATION,
+                            HYBRIDIZATION_FULL,
+                            PCM,
+                            ANALYSIS,
+                            ANALYSIS_INTERPOLATION,
+                            ANALYSIS_COMPUTE_REDUCIBLE_VERTEX,
+                            HIGH_TEMPERATURE_SERIES_SOLVER,
+                            ED_CLUSTER_SOLVER};
+using MC_integration_method_type = MC_integration_method;
+
 namespace dca {
 
   /*! 

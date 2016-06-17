@@ -33,6 +33,7 @@
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_fermionic_ed_type_definitions.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/overlap_matrix.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain_real_axis.h"
+#include "phys_library/vertex_measurement_type.hpp"
 
 namespace DCA {
 

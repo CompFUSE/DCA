@@ -16,7 +16,6 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "enumerations.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "phys_library/DCA+_step/symmetrization/diagrammatic_symmetries.h"
 #include "phys_library/DCA+_step/symmetrization/symmetrize.h"
@@ -25,6 +24,7 @@
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
+#include "phys_library/vertex_measurement_type.hpp"
 
 namespace DCA {
 

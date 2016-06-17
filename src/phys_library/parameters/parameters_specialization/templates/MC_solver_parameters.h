@@ -12,9 +12,9 @@
 #ifndef PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_TEMPLATES_MC_SOLVER_PARAMETERS_H
 #define PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_TEMPLATES_MC_SOLVER_PARAMETERS_H
 
-#include "enumerations.hpp"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_name.hpp"
 
-template <DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
+template <DCA::ClusterSolverName solver_name>
 class MC_solver_parameters {
 public:
   MC_solver_parameters();
@@ -53,42 +53,40 @@ public:
   void read_write(read_write_type& read_write_obj);
 };
 
-template <DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
-MC_solver_parameters<CLUSTER_SOLVER_NAME>::MC_solver_parameters() {}
+template <DCA::ClusterSolverName solver_name>
+MC_solver_parameters<solver_name>::MC_solver_parameters() {}
 
 /******************************************
  ***        CONCURRENCY                 ***
  ******************************************/
 
-template <DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
+template <DCA::ClusterSolverName solver_name>
 template <class concurrency_type>
-int MC_solver_parameters<CLUSTER_SOLVER_NAME>::get_buffer_size(
-    const concurrency_type& /*concurrency*/) const {
+int MC_solver_parameters<solver_name>::get_buffer_size(const concurrency_type& /*concurrency*/) const {
   return 0;
 }
 
-template <DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
+template <DCA::ClusterSolverName solver_name>
 template <class concurrency_type>
-void MC_solver_parameters<CLUSTER_SOLVER_NAME>::pack(const concurrency_type& /*concurrency*/,
-                                                     int* /*buffer*/, int /*buffer_size*/,
-                                                     int& /*position*/) {}
+void MC_solver_parameters<solver_name>::pack(const concurrency_type& /*concurrency*/, int* /*buffer*/,
+                                             int /*buffer_size*/, int& /*position*/) {}
 
-template <DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
+template <DCA::ClusterSolverName solver_name>
 template <class concurrency_type>
-void MC_solver_parameters<CLUSTER_SOLVER_NAME>::unpack(const concurrency_type& /*concurrency*/,
-                                                       int* /*buffer*/, int /*buffer_size*/,
-                                                       int& /*position*/) {}
+void MC_solver_parameters<solver_name>::unpack(const concurrency_type& /*concurrency*/,
+                                               int* /*buffer*/, int /*buffer_size*/,
+                                               int& /*position*/) {}
 
 /******************************************
  ***        READ/WRITE                  ***
  ******************************************/
 
-template <DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
+template <DCA::ClusterSolverName solver_name>
 template <class stream_type>
-void MC_solver_parameters<CLUSTER_SOLVER_NAME>::to_JSON(stream_type& /*ss*/) {}
+void MC_solver_parameters<solver_name>::to_JSON(stream_type& /*ss*/) {}
 
-template <DCA::CLUSTER_SOLVER_NAMES CLUSTER_SOLVER_NAME>
+template <DCA::ClusterSolverName solver_name>
 template <class JSON_reader_type>
-void MC_solver_parameters<CLUSTER_SOLVER_NAME>::from_JSON(JSON_reader_type& /*reader*/) {}
+void MC_solver_parameters<solver_name>::from_JSON(JSON_reader_type& /*reader*/) {}
 
 #endif  // PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_TEMPLATES_MC_SOLVER_PARAMETERS_H

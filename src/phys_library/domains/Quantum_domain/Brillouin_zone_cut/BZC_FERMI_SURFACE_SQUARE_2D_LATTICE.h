@@ -16,9 +16,9 @@
 #include <string>
 #include <vector>
 
-#include "enumerations.hpp"
+#include "phys_library/domains/Quantum_domain/Brillouin_zone_cut/brillouin_zone_cut_type.hpp"
 
-template <BRILLOUIN_ZONE_CUT_TYPE brillouin_zone_cut_t>
+template <BrillouinZoneCutType brillouin_zone_cut>
 class brillouin_zone_path_domain;
 
 template <>

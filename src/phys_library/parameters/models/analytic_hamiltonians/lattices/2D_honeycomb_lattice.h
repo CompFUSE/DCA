@@ -19,9 +19,9 @@
 #include <utility>
 #include <vector>
 
-#include "enumerations.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "phys_library/domains/cluster/symmetries/point_groups/No_symmetry.h"
+#include "phys_library/parameters/models/analytic_hamiltonians/lattices/cluster_shape_type.hpp"
 
 template <typename DCA_point_group_type>
 class graphene_model {
@@ -29,8 +29,8 @@ public:
   typedef no_symmetry<2> LDA_point_group;
   typedef DCA_point_group_type DCA_point_group;
 
-  const static cluster_shape_type DCA_cluster_shape = BETT_CLUSTER;
-  const static cluster_shape_type LDA_cluster_shape = PARALLELEPIPED;
+  const static ClusterShapeType DCA_cluster_shape = BETT_CLUSTER;
+  const static ClusterShapeType LDA_cluster_shape = PARALLELEPIPED;
 
   const static int DIMENSION = 2;
   const static int BANDS = 2;

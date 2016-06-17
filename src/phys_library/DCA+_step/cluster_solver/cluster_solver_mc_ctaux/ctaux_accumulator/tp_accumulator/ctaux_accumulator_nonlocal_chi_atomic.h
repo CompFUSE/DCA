@@ -15,17 +15,17 @@
 #include <complex>
 #include <stdexcept>
 
-#include "enumerations.hpp"
 #include "comp_library/function_library/domains/special_domains/dmn_0.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/parameters/models/tight_binding_model.h"
+#include "phys_library/vertex_measurement_type.hpp"
 
 namespace DCA {
 namespace QMCI {
 namespace CT_AUX_ACCUMULATION {
 // DCA::QMCI::CT_AUX_ACCUMULATION::
 
-template <class model_type, vertex_measurement_type vertex_measurement>
+template <class model_type, VertexMeasurementType vertex_measurement>
 class accumulator_nonlocal_chi_atomic {};
 
 template <class model_type>

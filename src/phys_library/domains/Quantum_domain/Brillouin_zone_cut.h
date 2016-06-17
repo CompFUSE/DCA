@@ -15,12 +15,11 @@
 #include <string>
 #include <vector>
 
-#include "enumerations.hpp"
+#include "phys_library/domains/Quantum_domain/Brillouin_zone_cut/brillouin_zone_cut_type.hpp"
+#include "phys_library/domains/Quantum_domain/Brillouin_zone_cut/BZC_FERMI_SURFACE_SQUARE_2D_LATTICE.h"
+#include "phys_library/domains/Quantum_domain/Brillouin_zone_cut/BZC_SQUARE_2D_LATTICE.h"
 
-#include "Brillouin_zone_cut/BZC_SQUARE_2D_LATTICE.h"
-#include "Brillouin_zone_cut/BZC_FERMI_SURFACE_SQUARE_2D_LATTICE.h"
-
-template <BRILLOUIN_ZONE_CUT_TYPE brillouin_zone_cut_t>
+template <BrillouinZoneCutType brillouin_zone_cut>
 class brillouin_zone_path_domain {
 public:
   template <class stream_type>
@@ -30,9 +29,9 @@ public:
   static void to_JSON(stream_type& ss, std::string name, std::vector<std::vector<double>> elements);
 };
 
-template <BRILLOUIN_ZONE_CUT_TYPE brillouin_zone_cut_t>
+template <BrillouinZoneCutType brillouin_zone_cut>
 template <class stream_type>
-void brillouin_zone_path_domain<brillouin_zone_cut_t>::to_JSON(stream_type& ss) {
+void brillouin_zone_path_domain<brillouin_zone_cut>::to_JSON(stream_type& ss) {
   to_JSON(ss, brillouin_zone_path_domain<SQUARE_2D_LATTICE>::get_name(),
           brillouin_zone_path_domain<SQUARE_2D_LATTICE>::get_elements());
 
@@ -41,9 +40,9 @@ void brillouin_zone_path_domain<brillouin_zone_cut_t>::to_JSON(stream_type& ss) 
           brillouin_zone_path_domain<FERMI_SURFACE_SQUARE_2D_LATTICE>::get_elements());
 }
 
-template <BRILLOUIN_ZONE_CUT_TYPE brillouin_zone_cut_t>
+template <BrillouinZoneCutType brillouin_zone_cut>
 template <class stream_type>
-void brillouin_zone_path_domain<brillouin_zone_cut_t>::to_JSON(
+void brillouin_zone_path_domain<brillouin_zone_cut>::to_JSON(
     stream_type& ss, std::string name, std::vector<std::vector<double>> elements) {
   ss << "\"" << name << "\" : [\n";
 

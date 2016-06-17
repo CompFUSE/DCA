@@ -19,9 +19,9 @@
 #include <iostream>
 #include <string>
 
-#include "enumerations.hpp"
 #include "phys_library/domains/cluster/cluster_operations.hpp"
 #include "phys_library/domains/cluster/cluster_domain.h"
+#include "phys_library/vertex_measurement_type.hpp"
 
 template <int lattice_dimension>
 class vertex_parameters {
@@ -54,7 +54,7 @@ public:
    ***        DATA                        ***
    ******************************************/
 
-  vertex_measurement_type get_vertex_measurement_type();
+  VertexMeasurementType get_vertex_measurement_type();
 
   // This function returns the 'exact' q-channel vector, i.e. the k-cluster vector whose distance
   // (L2 norm) to the input q-channel vector is minimal.
@@ -336,7 +336,7 @@ void vertex_parameters<lattice_dimension>::read_write(read_write_type& read_writ
  ******************************************/
 
 template <int lattice_dimension>
-vertex_measurement_type vertex_parameters<lattice_dimension>::get_vertex_measurement_type() {
+VertexMeasurementType vertex_parameters<lattice_dimension>::get_vertex_measurement_type() {
   if (vertex_measurement_type_str == "PARTICLE_HOLE_TRANSVERSE")
     return PARTICLE_HOLE_TRANSVERSE;
 

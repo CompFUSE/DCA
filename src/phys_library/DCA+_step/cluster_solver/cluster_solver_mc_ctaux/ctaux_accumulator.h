@@ -21,7 +21,6 @@
 #include <fstream>
 #include <vector>
 
-#include "enumerations.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/linalg/src/matrix.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_accumulator/sp_accumulator/ctaux_sp_accumulator_nfft.h"
@@ -40,6 +39,7 @@
 #include "phys_library/domains/time_and_frequency/frequency_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
 #include "phys_library/domains/time_and_frequency/time_domain.h"
+#include "phys_library/vertex_measurement_type.hpp"
 
 namespace DCA {
 namespace QMCI {
