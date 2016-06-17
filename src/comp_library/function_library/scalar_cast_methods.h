@@ -1,5 +1,4 @@
 //-*-C++-*-
-//TODO check if some of these methods are redundant. 
 #ifndef SCALAR_CAST_METHODS_H
 #define SCALAR_CAST_METHODS_H
 #include <complex>
