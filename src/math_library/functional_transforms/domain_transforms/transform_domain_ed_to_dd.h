@@ -20,7 +20,7 @@
 #include "math_library/functional_transforms/basis_transforms/basis_transforms.hpp"
 #include "math_library/functional_transforms/domain_transforms/transform_domain_template.h"
 #include "math_library/functional_transforms/domain_transforms/transformation_characteristics.h"
-#include "math_library/typedefs.hpp"
+#include "math_library/functional_transforms/typedefs.hpp"
 
 namespace math_algorithms {
 namespace functional_transforms {

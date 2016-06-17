@@ -21,7 +21,7 @@
 #include "math_library/functional_transforms/domain_specifications/domain_specifications.hpp"
 #include "math_library/geometry_library/gaussian_quadrature/gaussian_quadrature_algorithm.h"
 #include "math_library/geometry_library/tetrahedron_mesh/tetrahedron_mesh.h"
-#include "math_library/typedefs.hpp"
+#include "math_library/functional_transforms/typedefs.hpp"
 
 namespace math_algorithms {
 template <typename dmn_type>

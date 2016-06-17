@@ -13,7 +13,7 @@
 #define MATH_LIBRARY_FUNCTIONAL_TRANSFORMS_DOMAIN_TRANSFORMS_TRANSFORM_DOMAIN_TEMPLATE_H
 
 #include "comp_library/function_library/include_function_library.h"
-#include "math_library/typedefs.hpp"
+#include "math_library/functional_transforms/typedefs.hpp"
 
 namespace math_algorithms {
 namespace functional_transforms {

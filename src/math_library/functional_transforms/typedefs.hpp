@@ -1,5 +1,20 @@
-#ifndef MATH_LIBRARY_TYPEDEFS_HPP
-#define MATH_LIBRARY_TYPEDEFS_HPP
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
+//
+// TODO: Split up in one file per enum and maybe remove IS_EQUAL and GENERIC_ASSERT structs.
+
+#ifndef MATH_LIBRARY_FUNCTIONAL_TRANSFORMS_TYPEDEFS_HPP
+#define MATH_LIBRARY_FUNCTIONAL_TRANSFORMS_TYPEDEFS_HPP
+
+#include <string>
 
 namespace math_algorithms {
 
@@ -113,6 +128,17 @@ struct IS_EQUAL<type_lhs, type_lhs> {
   const static bool CHECK = true;
 };
 
+template <bool QUESTION>
+struct GENERIC_ASSERT {};
+
+template <>
+struct GENERIC_ASSERT<false> {};
+
+template <>
+struct GENERIC_ASSERT<true> {
+  static void execute(){};
+};
+
 }  // math_algorithms
 
-#endif  // MATH_LIBRARY_TYPEDEFS_HPP
+#endif  // MATH_LIBRARY_FUNCTIONAL_TRANSFORMS_TYPEDEFS_HPP

@@ -15,7 +15,7 @@
 #include "math_library/functional_transforms/basis_functions/basis_function_template.h"
 #include "math_library/functional_transforms/basis_functions/hermite_splines/hermite_cubic_spline_equidistant_periodic_nD.h"
 #include "math_library/functional_transforms/basis_functions/hermite_splines/hermite_spline.h"
-#include "math_library/typedefs.hpp"
+#include "math_library/functional_transforms/typedefs.hpp"
 
 namespace math_algorithms {
 namespace functional_transforms {

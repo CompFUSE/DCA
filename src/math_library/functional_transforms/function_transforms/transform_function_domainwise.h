@@ -18,7 +18,7 @@
 
 #include "comp_library/linalg/linalg.hpp"
 #include "comp_library/function_library/include_function_library.h"
-#include "math_library/typedefs.hpp"
+#include "math_library/functional_transforms/typedefs.hpp"
 #include "math_library/functional_transforms/domain_transforms/domain_transforms.hpp"
 
 namespace math_algorithms {

@@ -15,7 +15,7 @@
 #include <vector>
 
 #include "math_library/functional_transforms/domain_specifications/domain_specifications.hpp"
-#include "math_library/typedefs.hpp"
+#include "math_library/functional_transforms/typedefs.hpp"
 
 namespace math_algorithms {
 namespace functional_transforms {

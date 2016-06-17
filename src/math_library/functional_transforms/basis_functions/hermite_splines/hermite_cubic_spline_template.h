@@ -12,7 +12,7 @@
 #ifndef MATH_LIBRARY_FUNCTIONAL_TRANSFORMS_BASIS_FUNCTIONS_HERMITE_SPLINES_HERMITE_CUBIC_SPLINE_TEMPLATE_H
 #define MATH_LIBRARY_FUNCTIONAL_TRANSFORMS_BASIS_FUNCTIONS_HERMITE_SPLINES_HERMITE_CUBIC_SPLINE_TEMPLATE_H
 
-#include "math_library/typedefs.hpp"
+#include "math_library/functional_transforms/typedefs.hpp"
 
 namespace math_algorithms {
 namespace functional_transforms {

@@ -19,7 +19,7 @@
 #include "comp_library/linalg/linalg.hpp"
 #include "math_library/functional_transforms/domain_specifications/domain_specifications.hpp"
 #include "math_library/geometry_library/vector_operations/vector_operations.hpp"
-#include "math_library/typedefs.hpp"
+#include "math_library/functional_transforms/typedefs.hpp"
 #include "phys_library/domains/cluster/cluster_operations.hpp"
 #include "phys_library/domains/cluster/cluster_typedefs.hpp"
 
