@@ -18,7 +18,7 @@
 #include <string>
 #include <vector>
 
-#include "math_library/domain_specifications/domain_specifications.hpp"
+#include "math_library/functional_transforms/domain_specifications/domain_specifications.hpp"
 
 namespace math_algorithms {
 namespace NFFT {

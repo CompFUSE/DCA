@@ -1,7 +1,21 @@
-#ifndef MATH_LIBRARY_DOMAIN_SPECIFICATIONS_DOMAIN_SPECIFICATIONS_HPP
-#define MATH_LIBRARY_DOMAIN_SPECIFICATIONS_DOMAIN_SPECIFICATIONS_HPP
-#include "math_library/typedefs.hpp"
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
+
+#ifndef MATH_LIBRARY_FUNCTIONAL_TRANSFORMS_DOMAIN_SPECIFICATIONS_DOMAIN_SPECIFICATIONS_HPP
+#define MATH_LIBRARY_FUNCTIONAL_TRANSFORMS_DOMAIN_SPECIFICATIONS_DOMAIN_SPECIFICATIONS_HPP
+
+#include <string>
 #include <vector>
+
+#include "math_library/typedefs.hpp"
 
 namespace math_algorithms {
 
@@ -67,4 +81,4 @@ using discrete_periodic_dmn_nD_type =
 
 }  // math_algorithms
 
-#endif  // MATH_LIBRARY_DOMAIN_SPECIFICATIONS_DOMAIN_SPECIFICATIONS_HPP
+#endif  // MATH_LIBRARY_FUNCTIONAL_TRANSFORMS_DOMAIN_SPECIFICATIONS_DOMAIN_SPECIFICATIONS_HPP

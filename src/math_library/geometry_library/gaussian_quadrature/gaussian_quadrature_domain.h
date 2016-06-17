@@ -18,7 +18,7 @@
 #include <vector>
 
 #include "comp_library/function_library/domains/special_domains/dmn_0.h"
-#include "math_library/domain_specifications/domain_specifications.hpp"
+#include "math_library/functional_transforms/domain_specifications/domain_specifications.hpp"
 #include "math_library/geometry_library/gaussian_quadrature/gaussian_quadrature_algorithm.h"
 #include "math_library/geometry_library/tetrahedron_mesh/tetrahedron_mesh.h"
 #include "math_library/typedefs.hpp"
