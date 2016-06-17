@@ -2,19 +2,16 @@
 # applications/analysis/CMakeLists.txt
 ################################################################################
 
-configure_file(include_files.inc.in "${CMAKE_CURRENT_BINARY_DIR}/include_files.inc" @ONLY)
-
 if (DCA_BUILD_ANALYSIS)
   message(STATUS "Generating main_analysis.cpp.")
   configure_file(main_analysis.cpp.in "${CMAKE_CURRENT_BINARY_DIR}/main_analysis.cpp" @ONLY)
-  
+
   if (DCA_WITH_CUDA)
     cuda_add_executable(main_analysis ${CMAKE_CURRENT_BINARY_DIR}/main_analysis.cpp)
     target_link_libraries(main_analysis
-      DCA_GPU_routines
-      ${DCA_LIBRARIES}
-      ${DCA_GPU_LIBRARIES}
-      )
+                          DCA_GPU_routines
+                          ${DCA_LIBRARIES}
+                          ${DCA_GPU_LIBRARIES})
     cuda_add_cublas_to_target(main_analysis)
     
   else()
@@ -23,8 +20,8 @@ if (DCA_BUILD_ANALYSIS)
   endif()
   
   target_include_directories(main_analysis
-    PRIVATE ${DCA_INCLUDES}
-    PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/..")
+                             PRIVATE ${DCA_LATTICE_MODELS_FOLDER}
+                             PRIVATE ${DCA_INCLUDES})
 endif()
 
 add_subdirectory(test)

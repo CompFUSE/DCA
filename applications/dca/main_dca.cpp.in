@@ -1,58 +1,70 @@
-//====================================================================
-// Copyright 2013-2015 ETH Zurich.
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
 //
-// Executes the DCA(+) loop.
-// Usage: ./main inputFileName
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
-// Authors: Peter Staar (taa@zurich.ibm.com), IBM Research - Zurich
-//          Urs Haehner (haehneru@itp.phys.ethz.ch), ETH Zurich
-//====================================================================
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//
+// Main file for a DCA(+) calculation.
+// Usage: ./main_dca input_file.json
 
 #include <string>
 #include <iostream>
+
+#include "dca/config/defines.hpp"
 #include "gitVersion.hpp"
 #include "modules.hpp"
 
-#include "lattice_types.hpp"
-#include "model_type.hpp"
-#include"include_files.inc"
+#include "tight_binding_on_2D_square_lattice.hpp"
+
+#include "dca/concurrency/concurrency.hpp"
+#include "dca/math_library/random_number_library/random_number_library.hpp"
+#include "comp_library/IO_library/JSON/JSON.hpp"
+#include "phys_library/DCA+_data/DCA_data.h"
+#include "phys_library/DCA+_loop/DCA_loop.hpp"
+#include "phys_library/DCA+_step/cluster_solver/@DCA_SOLVER_FILE@"
+#ifdef DCA_HAVE_PTHREADS
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_pthread_jacket/posix_qmci_cluster_solver.h"
+#endif  // DCA_HAVE_PTHREADS
+#include "phys_library/parameters/Parameters.h"
 
 @DCA_CUDA_FUNCTION@
 
 @DCA_INITIALIZE_MAGMA_0@
 
-using namespace DCA;
+using namespace DCA;  // TODO: Remove when all namespaces are fixed.
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   if (argc < 2) {
-    std::cerr << "Usage: " << argv[0] << " inputFileName" << std::endl;
+    std::cerr << "Usage: " << argv[0] << " input_file.json" << std::endl;
     return -1;
   }
-  
-  std::string file_name(argv[1]);
-  //select (TODO model) and rng.
-  using random_number_generator = @DCA_RNG_TYPE@;
+
+  std::string input_file_name(argv[1]);
+
   // Configure the DCA(+) calculation by selecting type definitions.
-  using concurrency_type = dca::concurrency::parallelization<@DCA_PARALLELIZATION_LIBRARY_TYPE@>;
-  using parameters_type = Parameters<concurrency_type, model, random_number_generator, @DCA_CLUSTER_SOLVER_TYPE@>;
-  using MOMS_type = DCA_data<parameters_type>;
-  using quantum_cluster_solver_type =
-    cluster_solver<@DCA_CLUSTER_SOLVER_TYPE@, @DCA_LIN_ALG_DEVICE_TYPE@,
-                   parameters_type, MOMS_type>;
-  using Monte_Carlo_Integrator_type = @DCA_MC_INTEGRATOR_TYPE@;
-  using DCA_calculation_type =
-    DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>;
+  using RngType = @DCA_RNG_TYPE@;
+  using ConcurrencyType = dca::concurrency::parallelization<@DCA_PARALLELIZATION_LIBRARY_TYPE@>;
+  using ParametersType = Parameters<ConcurrencyType, ModelType, RngType, @DCA_CLUSTER_SOLVER_TYPE@>;
+  using DcaDataType = DCA_data<ParametersType>;
+  using ClusterSolverBaseType =
+      cluster_solver<@DCA_CLUSTER_SOLVER_TYPE@, @DCA_LIN_ALG_DEVICE_TYPE@, ParametersType, DcaDataType>;
+  using ClusterSolverType = @DCA_MC_INTEGRATOR_TYPE@;
+  using DcaLoopType = DCA_loop<ParametersType, DcaDataType, ClusterSolverType>;
 
-  // Setup the parallelization.
-  concurrency_type concurrency(argc, argv);
+  // Set up the parallelization.
+  ConcurrencyType concurrency(argc, argv);
 
-  parameters_type::profiler_type::start();
+  ParametersType::profiler_type::start();
 
   // Print some info.
   if (concurrency.id() == concurrency.first()) {
     std::cout << "\nDCA main starting.\n"
-              << "MPI-world set up: " << concurrency.number_of_processors()
-              << " processes.\n" << std::endl;
+              << "MPI-world set up: " << concurrency.number_of_processors() << " processes.\n"
+              << std::endl;
 
     print_device_info();
 
@@ -63,34 +75,33 @@ int main(int argc, char *argv[]) {
   @DCA_INITIALIZE_MAGMA_1@
 
   // Create the parameters object from the input file.
-  parameters_type parameters(GitVersion::string(), concurrency);
-  parameters.read_input_and_broadcast<IO::JSON>(file_name);
+  ParametersType parameters(GitVersion::string(), concurrency);
+  parameters.read_input_and_broadcast<IO::reader<IO::JSON>>(input_file_name);
   parameters.update_model();
   parameters.update_domains();
 
-  // Create and initialize the DCA_data object.
-  MOMS_type MOMS(parameters);
-  MOMS.initialize();
+  // Create and initialize the DCA data object.
+  DcaDataType dca_data(parameters);
+  dca_data.initialize();
 
-  DCA_calculation_type dca_object(parameters, MOMS, concurrency);
+  DcaLoopType dca_loop(parameters, dca_data, concurrency);
 
   {
-    parameters_type::profiler_type profiler(__FUNCTION__, __FILE__, __LINE__);
+    ParametersType::profiler_type profiler(__FUNCTION__, __FILE__, __LINE__);
 
-    dca_object.initialize();
-    dca_object.execute();
-    dca_object.finalize();
+    dca_loop.initialize();
+    dca_loop.execute();
+    dca_loop.finalize();
   }
 
-  parameters_type::profiler_type::stop(concurrency, parameters.get_profiling_file_name());
+  ParametersType::profiler_type::stop(concurrency, parameters.get_profiling_file_name());
 
   if (concurrency.id() == concurrency.last()) {
-    std::cout << "\nProcessor " << concurrency.id()
-              << " is writing data " << std::endl;
-    dca_object.write();
-    
+    std::cout << "\nProcessor " << concurrency.id() << " is writing data " << std::endl;
+    dca_loop.write();
+
     std::cout << "\nDCA main ending.\n" << std::endl;
   }
-  
+
   return 0;
 }

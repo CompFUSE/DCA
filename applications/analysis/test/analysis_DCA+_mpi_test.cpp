@@ -1,29 +1,54 @@
-//====================================================================
-// Copyright 2015 ETH Zurich.
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
 //
-// Description
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
-// Author: Urs Haehner (haehneru@itp.phys.ethz.ch), ETH Zurich
-//====================================================================
+// Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//
+// Integration test for a concurrent (using MPI) DCA+ analysis calculation.
+// It runs a simulation of a tight-binding model on 2D square lattice.
 
-#include "model_type.hpp"
-#include "lattice_types.hpp"
+#include <string>
+#include <iostream>
 
+#include "gtest/gtest.h"
+
+#include "dca/config/defines.hpp"
+#ifndef DCA_HAVE_MPI
+#error MPI must be supported for the analysis_DCA+_mpi_test.
+#endif  // DCA_HAVE_MPI
 #include "gitVersion.hpp"
 #include "modules.hpp"
-#include "include_files.h"
-#include "gtest/gtest.h"
-#include "minimalist_printer.hpp"
 #include "dca_mpi_test_environment.hpp"
+#include "minimalist_printer.hpp"
 
-dca_mpi_test_environment* dca_test_env;
+#include "comp_library/function_library/include_function_library.h"
+#include "comp_library/IO_library/HDF5/HDF5.hpp"
+#include "comp_library/IO_library/JSON/JSON.hpp"
+#include "phys_library/DCA+_analysis/BSE_solver/BSE_solver.h"
+#include "phys_library/DCA+_data/DCA_data.h"
+#include "phys_library/domains/cluster/symmetries/point_groups/2D/2D_square.h"
+#include "phys_library/parameters/models/analytic_hamiltonians/lattices/2D_square_lattice.h"
+#include "phys_library/parameters/models/tight_binding_model.h"
+#include "phys_library/parameters/Parameters.h"
+
+dca::testing::DcaMpiTestEnvironment* dca_test_env;
+
+namespace dca {
+namespace testing {
+// dca::testing::
+
+using namespace DCA;
 
 TEST(analysis_DCAplus_mpi, leading_eigenvalues) {
-  using namespace DCA;
-
-  using parameters_type = Parameters<dca_mpi_test_environment::concurrency_type, model,
-                                     void /*rng type*/, CT_AUX_CLUSTER_SOLVER>;
-  using MOMS_type = DCA_data<parameters_type>;
+  using DcaPointGroupType = D4;
+  using LatticeType = square_lattice<DcaPointGroupType>;
+  using ModelType = tight_binding_model<LatticeType>;
+  using ParametersType = Parameters<DcaMpiTestEnvironment::ConcurrencyType, ModelType,
+                                    void /*RngType*/, CT_AUX_CLUSTER_SOLVER>;
+  using DcaDataType = DCA_data<ParametersType>;
 
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
     std::cout << "Analysis starting.\n"
@@ -35,24 +60,24 @@ TEST(analysis_DCAplus_mpi, leading_eigenvalues) {
     Modules::print();
   }
 
-  parameters_type parameters(GitVersion::string(), dca_test_env->concurrency);
-  parameters.read_input_and_broadcast<IO::JSON>(dca_test_env->input_file);
+  ParametersType parameters(GitVersion::string(), dca_test_env->concurrency);
+  parameters.read_input_and_broadcast<IO::reader<IO::JSON>>(dca_test_env->input_file_name);
   parameters.update_model();
   parameters.update_domains();
 
-  MOMS_type MOMS(parameters);
-  MOMS.initialize();
-  MOMS.read(parameters.get_directory() + parameters.get_output_file_name());
+  DcaDataType dca_data(parameters);
+  dca_data.initialize();
+  dca_data.read(parameters.get_directory() + parameters.get_output_file_name());
 
-  BSE_solver<parameters_type, MOMS_type> analysis_obj(parameters, MOMS);
+  BSE_solver<ParametersType, DcaDataType> analysis_obj(parameters, dca_data);
   analysis_obj.calculate_susceptibilities_2();
 
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
     std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is checking data "
               << std::endl;
 
-    const static int N_LAMBDAS = 10;
-    typedef dmn_0<dmn<N_LAMBDAS, int>> lambda_dmn_type;
+    const static int num_lambdas = 10;
+    using lambda_dmn_type = dmn_0<dmn<num_lambdas, int>>;
 
     FUNC_LIB::function<std::complex<double>, lambda_dmn_type>& leading_eigenvalues =
         analysis_obj.get_leading_eigenvalues();
@@ -61,7 +86,8 @@ TEST(analysis_DCAplus_mpi, leading_eigenvalues) {
     FUNC_LIB::function<std::complex<double>, lambda_dmn_type> leading_eigenvalues_check(
         "leading-eigenvalues");
     IO::reader<IO::HDF5> reader;
-    reader.open_file("check_data.analysis_DCA+_mpi_test.hdf5");
+    reader.open_file(DCA_SOURCE_DIRECTORY
+                     "/applications/analysis/test/check_data.analysis_DCA+_mpi_test.hdf5");
     reader.open_group("analysis-functions");
     reader.execute(leading_eigenvalues_check);
     reader.close_file();
@@ -81,19 +107,24 @@ TEST(analysis_DCAplus_mpi, leading_eigenvalues) {
   }
 }
 
+}  // testing
+}  // dca
+
 int main(int argc, char** argv) {
   int result = 0;
 
   ::testing::InitGoogleTest(&argc, argv);
 
-  dca_test_env = new dca_mpi_test_environment(argc, argv, "input.analysis_DCA+_mpi_test.json");
+  dca_test_env = new dca::testing::DcaMpiTestEnvironment(
+      argc, argv,
+      DCA_SOURCE_DIRECTORY "/applications/analysis/test/input.analysis_DCA+_mpi_test.json");
   ::testing::AddGlobalTestEnvironment(dca_test_env);
 
   ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
 
   if (dca_test_env->concurrency.id() != 0) {
     delete listeners.Release(listeners.default_result_printer());
-    listeners.Append(new MinimalistPrinter);
+    listeners.Append(new dca::testing::MinimalistPrinter);
   }
 
   result = RUN_ALL_TESTS();

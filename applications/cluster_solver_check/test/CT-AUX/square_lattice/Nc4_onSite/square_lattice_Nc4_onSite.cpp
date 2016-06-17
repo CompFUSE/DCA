@@ -1,75 +1,114 @@
-//====================================================================
-// Copyright 2016 ETH Zurich.
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // No-change test for CT-AUX.
 // Square lattice with only on-site interaction.
-//
-// Author: Urs Haehner (haehneru@itp.phys.ethz.ch), ETH Zurich
-//====================================================================
 
-#include <string>
 #include <iostream>
 #include <cmath>
+#include <string>
 
+#include "gtest/gtest.h"
+
+#include "dca/config/defines.hpp"
+#ifndef DCA_HAVE_MPI
+#error MPI must be supported for the dca_DCA+_mpi_test.
+#endif  // DCA_HAVE_MPI
 #include "gitVersion.hpp"
 #include "modules.hpp"
-#include "include_files.h"
-#include "gtest/gtest.h"
-#include "minimalist_printer.hpp"
 #include "dca_mpi_test_environment.hpp"
+#include "minimalist_printer.hpp"
 
-dca_mpi_test_environment* dca_test_env;
+#include "dca/math_library/random_number_library/ranq2.hpp"
+#include "comp_library/function_library/include_function_library.h"
+#include "comp_library/IO_library/HDF5/HDF5.hpp"
+#include "comp_library/IO_library/JSON/JSON.hpp"
+#include "phys_library/DCA+_data/DCA_data.h"
+#include "phys_library/DCA+_loop/DCA_loop_data.hpp"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_cluster_solver.h"
+#include "phys_library/domains/cluster/symmetries/point_groups/2D/2D_square.h"
+#include "phys_library/domains/cluster/cluster_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
+#include "phys_library/domains/time_and_frequency/frequency_domain.h"
+#include "phys_library/parameters/models/analytic_hamiltonians/lattices/2D_square_lattice.h"
+#include "phys_library/parameters/models/tight_binding_model.h"
+#include "phys_library/parameters/Parameters.h"
+
+dca::testing::DcaMpiTestEnvironment* dca_test_env;
+
+namespace dca {
+namespace testing {
+// dca::testing::
+
+using namespace DCA;
 
 TEST(squareLattice_Nc4_onSite, Self_Energy) {
-  using namespace DCA;
+  using RngType = rng::ranq2;
+  using DcaPointGroupType = D4;
+  using LatticeType = square_lattice<DcaPointGroupType>;
+  using ModelType = tight_binding_model<LatticeType>;
+  using ParametersType =
+      Parameters<DcaMpiTestEnvironment::ConcurrencyType, ModelType, RngType, CT_AUX_CLUSTER_SOLVER>;
+  using DcaDataType = DCA_data<ParametersType>;
+  using QmcSolverType =
+      cluster_solver<CT_AUX_CLUSTER_SOLVER, LIN_ALG::CPU, ParametersType, DcaDataType>;
 
-  using parameters_type =
-      Parameters<dca_mpi_test_environment::concurrency_type, model, random_number_generator, CT_AUX_CLUSTER_SOLVER>;
-  using MOMS_type = DCA_data<parameters_type>;
-  using quantum_cluster_solver_type =
-      cluster_solver<CT_AUX_CLUSTER_SOLVER, LIN_ALG::CPU, parameters_type, MOMS_type>;
-  using QMC_solver_type = quantum_cluster_solver_type;
+  using w = dmn_0<frequency_domain>;
+  using b = dmn_0<electron_band_domain>;
+  using s = dmn_0<electron_spin_domain>;
+  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using k_DCA =
+      dmn_0<cluster_domain<double, LatticeType::DIMENSION, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
 
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
     GitVersion::print();
     Modules::print();
   }
 
-  parameters_type parameters(GitVersion::string(), dca_test_env->concurrency);
-  parameters.read_input_and_broadcast<IO::JSON>(dca_test_env->input_file);
+  ParametersType parameters(GitVersion::string(), dca_test_env->concurrency);
+  parameters.read_input_and_broadcast<IO::reader<IO::JSON>>(dca_test_env->input_file_name);
   parameters.update_model();
   parameters.update_domains();
 
-  DCA_calculation_data DCA_info_struct;
+  DCA_loop_data<ParametersType> dca_loop_data;
 
-  MOMS_type MOMS_imag(parameters);
-  MOMS_imag.initialize();
+  DcaDataType dca_data_imag(parameters);
+  dca_data_imag.initialize();
 
   // Read and broadcast<IO::JSON> ED data
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
     IO::reader<IO::HDF5> reader;
-    reader.open_file("data.ED.hdf5");
+    reader.open_file(
+        DCA_SOURCE_DIRECTORY
+        "/applications/cluster_solver_check/test/CT-AUX/square_lattice/Nc4_onSite/data.ED.hdf5");
     reader.open_group("functions");
-    // reader.execute(MOMS_imag.Sigma);
-    reader.execute(MOMS_imag.G0_k_w_cluster_excluded);
-    reader.execute(MOMS_imag.G0_r_t_cluster_excluded);
+    // reader.execute(dca_data_imag.Sigma);
+    reader.execute(dca_data_imag.G0_k_w_cluster_excluded);
+    reader.execute(dca_data_imag.G0_r_t_cluster_excluded);
     reader.close_file();
   }
 
-  // dca_test_env->concurrency.broadcast(MOMS_imag.Sigma);
-  dca_test_env->concurrency.broadcast(MOMS_imag.G0_k_w_cluster_excluded);
-  dca_test_env->concurrency.broadcast(MOMS_imag.G0_r_t_cluster_excluded);
+  // dca_test_env->concurrency.broadcast(dca_data_imag.Sigma);
+  dca_test_env->concurrency.broadcast(dca_data_imag.G0_k_w_cluster_excluded);
+  dca_test_env->concurrency.broadcast(dca_data_imag.G0_r_t_cluster_excluded);
 
   // FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> >
-  //   Sigma_ED(MOMS_imag.Sigma);
+  //   Sigma_ED(dca_data_imag.Sigma);
 
   // Do one QMC iteration
-  QMC_solver_type QMC_obj(parameters, MOMS_imag);
-  QMC_obj.initialize(1);
-  QMC_obj.integrate();
-  QMC_obj.finalize(DCA_info_struct);
+  QmcSolverType qmc_solver(parameters, dca_data_imag);
+  qmc_solver.initialize(1);
+  qmc_solver.integrate();
+  qmc_solver.finalize(dca_loop_data);
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> Sigma_QMC(MOMS_imag.Sigma);
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> Sigma_QMC(dca_data_imag.Sigma);
 
   // Read QMC self-energy from check_data file and compare it with the newly
   // computed QMC self-energy.
@@ -77,7 +116,9 @@ TEST(squareLattice_Nc4_onSite, Self_Energy) {
     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> Sigma_QMC_check(
         "Self_Energy");
     IO::reader<IO::HDF5> reader;
-    reader.open_file("check_data.QMC.hdf5");
+    reader.open_file(
+        DCA_SOURCE_DIRECTORY
+        "/applications/cluster_solver_check/test/CT-AUX/square_lattice/Nc4_onSite/check_data.QMC.hdf5");
     reader.open_group("functions");
     reader.execute(Sigma_QMC_check);
     reader.close_file();
@@ -95,7 +136,8 @@ TEST(squareLattice_Nc4_onSite, Self_Energy) {
       }
     }
   }
-  // write result
+
+  // Write results
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.last()) {
     std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is writing data " << std::endl;
     IO::writer<IO::HDF5> writer;
@@ -109,19 +151,25 @@ TEST(squareLattice_Nc4_onSite, Self_Energy) {
   }
 }
 
+}  // testing
+}  // dca
+
 int main(int argc, char** argv) {
   int result = 0;
 
   ::testing::InitGoogleTest(&argc, argv);
 
-  dca_test_env = new dca_mpi_test_environment(argc, argv, "input.square_lattice_Nc4_onSite.json");
+  dca_test_env = new dca::testing::DcaMpiTestEnvironment(argc, argv, DCA_SOURCE_DIRECTORY
+                                                         "/applications/cluster_solver_check/test/"
+                                                         "CT-AUX/square_lattice/Nc4_onSite/"
+                                                         "input.square_lattice_Nc4_onSite.json");
   ::testing::AddGlobalTestEnvironment(dca_test_env);
 
   ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
 
   if (dca_test_env->concurrency.id() != 0) {
     delete listeners.Release(listeners.default_result_printer());
-    listeners.Append(new MinimalistPrinter);
+    listeners.Append(new dca::testing::MinimalistPrinter);
   }
 
   result = RUN_ALL_TESTS();

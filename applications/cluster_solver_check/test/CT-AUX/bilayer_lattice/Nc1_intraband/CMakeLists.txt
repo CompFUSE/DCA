@@ -3,16 +3,8 @@
 # CMakeLists.txt
 ################################################################################
 
-file(COPY input.bilayer_lattice_Nc1_intraband.json
-  DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-file(COPY data.ED.hdf5
-  DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-file(COPY check_data.QMC.hdf5
-  DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-
 add_gtest(NAME bilayer_lattice_Nc1_intraband
-  ADVANCED
-  MPI MPI_NUMPROC 8
-  INCLUDES "${TEST_INCLUDES}"
-  LIBS     "${DCA_LIBRARIES}"
-  )
+          ADVANCED
+          MPI MPI_NUMPROC 8
+          INCLUDES ${DCA_INCLUDES}
+          LIBS ${DCA_LIBRARIES})

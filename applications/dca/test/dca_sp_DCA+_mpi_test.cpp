@@ -1,39 +1,71 @@
-//====================================================================
-// Copyright 2015 ETH Zurich.
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
 //
-// Description
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
-// Author: Urs Haehner (haehneru@itp.phys.ethz.ch), ETH Zurich
-//====================================================================
-#include "include_files.inc"
+// Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//
+// Integration test for a concurrent (using MPI) DCA+ calculation using the CT-AUX cluster solver.
+// It runs a simulation of a tight-binding model on 2D square lattice.
 
+#include <iostream>
+#include <string>
+
+#include "gtest/gtest.h"
+
+#include "dca/config/defines.hpp"
 #ifndef DCA_HAVE_MPI
-#error MPI must be supported for the dca_sp_DCA+_mpi_test.
-#endif
-
-#include <dca/config/defines.hpp>
-// mpi parallelization
-#include "dca/concurrency/parallelization_mpi.h"
-#include "lattice_types.hpp"
-#include "model_type.hpp"
+#error MPI must be supported for the dca_DCA+_mpi_test.
+#endif  // DCA_HAVE_MPI
 #include "gitVersion.hpp"
 #include "modules.hpp"
-#include "gtest/gtest.h"
-#include "minimalist_printer.hpp"
 #include "dca_mpi_test_environment.hpp"
+#include "minimalist_printer.hpp"
 
-dca_mpi_test_environment* dca_test_env;
+#include "dca/math_library/random_number_library/ranq2.hpp"
+#include "comp_library/function_library/include_function_library.h"
+#include "comp_library/IO_library/HDF5/HDF5.hpp"
+#include "comp_library/IO_library/JSON/JSON.hpp"
+#include "phys_library/DCA+_data/DCA_data.h"
+#include "phys_library/DCA+_loop/DCA_loop.hpp"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_cluster_solver.h"
+#include "phys_library/domains/cluster/symmetries/point_groups/2D/2D_square.h"
+#include "phys_library/domains/cluster/cluster_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
+#include "phys_library/domains/time_and_frequency/frequency_domain.h"
+#include "phys_library/parameters/models/analytic_hamiltonians/lattices/2D_square_lattice.h"
+#include "phys_library/parameters/models/tight_binding_model.h"
+#include "phys_library/parameters/Parameters.h"
+
+dca::testing::DcaMpiTestEnvironment* dca_test_env;
+
+namespace dca {
+namespace testing {
+// dca::testing::
+
+using namespace DCA;
 
 TEST(dca_sp_DCAplus_mpi, Self_energy) {
-  using namespace DCA;
+  using RngType = rng::ranq2;
+  using DcaPointGroupType = D4;
+  using LatticeType = square_lattice<DcaPointGroupType>;
+  using ModelType = tight_binding_model<LatticeType>;
+  using ParametersType =
+      Parameters<DcaMpiTestEnvironment::ConcurrencyType, ModelType, RngType, CT_AUX_CLUSTER_SOLVER>;
+  using DcaDataType = DCA_data<ParametersType>;
+  using ClusterSolverType =
+      cluster_solver<CT_AUX_CLUSTER_SOLVER, LIN_ALG::CPU, ParametersType, DcaDataType>;
+  using DcaLoopType = DCA_loop<ParametersType, DcaDataType, ClusterSolverType>;
 
-  using parameters_type = Parameters<dca_mpi_test_environment::concurrency_type, model,
-                                     random_number_generator, CT_AUX_CLUSTER_SOLVER>;
-  using MOMS_type = DCA_data<parameters_type>;
-  using Monte_Carlo_Integrator_type =
-      cluster_solver<CT_AUX_CLUSTER_SOLVER, LIN_ALG::CPU, parameters_type, MOMS_type>;
-  using DCA_calculation_type =
-      DCA_calculation<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>;
+  using w = dmn_0<frequency_domain>;
+  using b = dmn_0<electron_band_domain>;
+  using s = dmn_0<electron_spin_domain>;
+  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using k_DCA =
+      dmn_0<cluster_domain<double, LatticeType::DIMENSION, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
 
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
     std::cout << "\nDCA main starting.\n"
@@ -45,18 +77,18 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
     Modules::print();
   }
 
-  parameters_type parameters(GitVersion::string(), dca_test_env->concurrency);
-  parameters.read_input_and_broadcast<IO::JSON>(dca_test_env->input_file);
+  ParametersType parameters(GitVersion::string(), dca_test_env->concurrency);
+  parameters.read_input_and_broadcast<IO::reader<IO::JSON>>(dca_test_env->input_file_name);
   parameters.update_model();
   parameters.update_domains();
 
-  MOMS_type MOMS(parameters);
-  MOMS.initialize();
+  DcaDataType dca_data(parameters);
+  dca_data.initialize();
 
-  DCA_calculation_type dca_object(parameters, MOMS, dca_test_env->concurrency);
-  dca_object.initialize();
-  dca_object.execute();
-  dca_object.finalize();
+  DcaLoopType dca_loop(parameters, dca_data, dca_test_env->concurrency);
+  dca_loop.initialize();
+  dca_loop.execute();
+  dca_loop.finalize();
 
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
     std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is checking data "
@@ -77,9 +109,9 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
         for (int nu_ind_2 = 0; nu_ind_2 < nu::dmn_size(); ++nu_ind_2) {
           for (int nu_ind_1 = 0; nu_ind_1 < nu::dmn_size(); ++nu_ind_1) {
             EXPECT_NEAR(Sigma_check(nu_ind_1, nu_ind_2, k_ind, w_ind).real(),
-                        MOMS.Sigma(nu_ind_1, nu_ind_2, k_ind, w_ind).real(), 1.e-12);
+                        dca_data.Sigma(nu_ind_1, nu_ind_2, k_ind, w_ind).real(), 1.e-12);
             EXPECT_NEAR(Sigma_check(nu_ind_1, nu_ind_2, k_ind, w_ind).imag(),
-                        MOMS.Sigma(nu_ind_1, nu_ind_2, k_ind, w_ind).imag(), 1.e-12);
+                        dca_data.Sigma(nu_ind_1, nu_ind_2, k_ind, w_ind).imag(), 1.e-12);
           }
         }
       }
@@ -88,18 +120,21 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
 
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.last()) {
     std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is writing data " << std::endl;
-    dca_object.write();
+    dca_loop.write();
 
     std::cout << "\nDCA main ending.\n" << std::endl;
   }
 }
+
+}  // testing
+}  // dca
 
 int main(int argc, char** argv) {
   int result = 0;
 
   ::testing::InitGoogleTest(&argc, argv);
 
-  dca_test_env = new dca_mpi_test_environment(
+  dca_test_env = new dca::testing::DcaMpiTestEnvironment(
       argc, argv, DCA_SOURCE_DIRECTORY "/applications/dca/test/input.dca_sp_DCA+_mpi_test.json");
   ::testing::AddGlobalTestEnvironment(dca_test_env);
 
@@ -107,7 +142,7 @@ int main(int argc, char** argv) {
 
   if (dca_test_env->concurrency.id() != 0) {
     delete listeners.Release(listeners.default_result_printer());
-    listeners.Append(new MinimalistPrinter);
+    listeners.Append(new dca::testing::MinimalistPrinter);
   }
 
   result = RUN_ALL_TESTS();

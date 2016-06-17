@@ -1,106 +1,126 @@
-//====================================================================
-// Copyright 2013-2016 ETH Zurich.
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // First solves the cluster problem by exact diagonalization and then
 // using QMC.
-//
-// Usage: ./cluster_solver_check inputFileName
-//
-// Authors: Peter Staar (taa@zurich.ibm.com), IBM Research - Zurich
-//          Urs Haehner (haehneru@itp.phys.ethz.ch), ETH Zurich
-//====================================================================
+// Usage: ./cluster_solver_check input_file.json
 
 #include <string>
 #include <iostream>
+
+#include "dca/config/defines.hpp"
 #include "gitVersion.hpp"
 #include "modules.hpp"
 
-#include "lattice_types.hpp"
-#include "model_type.hpp"
-#include "include_files.inc"
-#include "phys_library/DCA+_loop/DCA+_loop_data.h"  // DCA_calculation_data
-#include "phys_library/DCA+_data/CPE_data.h"  // MOMS_w_real
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/include_advanced_ed_solver.h"  // ED solver
+#include "tight_binding_on_2D_square_lattice.hpp"
 
-using namespace DCA;
+#include "dca/concurrency/concurrency.hpp"
+#include "dca/math_library/random_number_library/random_number_library.hpp"
+#include "comp_library/function_library/include_function_library.h"
+#include "comp_library/IO_library/JSON/JSON.hpp"
+#include "phys_library/DCA+_data/DCA_data.h"
+#include "phys_library/DCA+_data/moms_w_real.hpp"
+#include "phys_library/DCA+_loop/DCA_loop_data.hpp"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_cluster_solver.h"
+#include "phys_library/DCA+_step/cluster_solver/@DCA_SOLVER_FILE@"
+#ifdef DCA_HAVE_PTHREADS
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_pthread_jacket/posix_qmci_cluster_solver.h"
+#endif  // DCA_HAVE_PTHREADS
+#include "phys_library/domains/cluster/cluster_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
+#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
+#include "phys_library/domains/time_and_frequency/frequency_domain.h"
+#include "phys_library/parameters/Parameters.h"
 
-int main(int argc, char *argv[]) {
+using namespace DCA;  // TODO: Remove when all namespaces are fixed.
+
+int main(int argc, char* argv[]) {
   if (argc < 2) {
-    std::cerr << "Usage: " << argv[0] << " inputFileName" << std::endl;
+    std::cerr << "Usage: " << argv[0] << " input_file.json" << std::endl;
     return -1;
   }
 
-  std::string file_name(argv[1]);
+  std::string input_file_name(argv[1]);
 
-  using random_number_generator = @DCA_RNG_TYPE@;
-  using concurrency_type = dca::concurrency::parallelization<@DCA_PARALLELIZATION_LIBRARY_TYPE@>;
-  using parameters_type = Parameters<concurrency_type, model, random_number_generator, @DCA_CLUSTER_SOLVER_TYPE@>;
-  using MOMS_type = DCA_data<parameters_type>;
-  using ED_solver_type =
-      cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, @DCA_LIN_ALG_DEVICE_TYPE@,
-                     parameters_type, MOMS_type>;
-  using quantum_cluster_solver_type =
-    cluster_solver<@DCA_CLUSTER_SOLVER_TYPE@, @DCA_LIN_ALG_DEVICE_TYPE@,
-                   parameters_type, MOMS_type>;
-  using QMC_solver_type = @DCA_MC_INTEGRATOR_TYPE@;
+  using RngType = @DCA_RNG_TYPE@;
+  using ConcurrencyType = dca::concurrency::parallelization<@DCA_PARALLELIZATION_LIBRARY_TYPE@>;
+  using ParametersType = Parameters<ConcurrencyType, ModelType, RngType, @DCA_CLUSTER_SOLVER_TYPE@>;
+  using DcaDataType = DCA_data<ParametersType>;
+  using EdSolverType =
+      cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, @DCA_LIN_ALG_DEVICE_TYPE@, ParametersType, DcaDataType>;
+  using ClusterSolverBaseType =
+      cluster_solver<@DCA_CLUSTER_SOLVER_TYPE@, @DCA_LIN_ALG_DEVICE_TYPE@, ParametersType, DcaDataType>;
+  using QmcSolverType = @DCA_MC_INTEGRATOR_TYPE@;
 
-  // Setup the parallelization.
-  concurrency_type concurrency(argc, argv);
+  using w = dmn_0<frequency_domain>;
+  using b = dmn_0<electron_band_domain>;
+  using s = dmn_0<electron_spin_domain>;
+  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using k_DCA =
+      dmn_0<cluster_domain<double, LatticeType::DIMENSION, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
 
-  parameters_type::profiler_type::start();
+  // Set up the parallelization.
+  ConcurrencyType concurrency(argc, argv);
+
+  ParametersType::profiler_type::start();
 
   // Print some info.
   if (concurrency.id() == concurrency.first()) {
     std::cout << "\nCluster-solver-check starting.\n"
-              << "MPI-world set up: " << concurrency.number_of_processors()
-              << " processes.\n" << std::endl;
+              << "MPI-world set up: " << concurrency.number_of_processors() << " processes.\n"
+              << std::endl;
 
     GitVersion::print();
     Modules::print();
   }
 
   // Create the parameters object from the input file.
-  parameters_type parameters(GitVersion::string(), concurrency);
-  parameters.read_input_and_broadcast<IO::JSON>(file_name);
+  ParametersType parameters(GitVersion::string(), concurrency);
+  parameters.read_input_and_broadcast<IO::reader<IO::JSON>>(input_file_name);
   parameters.update_model();
   parameters.update_domains();
 
-  DCA_calculation_data DCA_info_struct;
+  DCA_loop_data<ParametersType> dca_loop_data;
 
   // Create and initialize the DCA_data objects.
-  MOMS_type MOMS_imag(parameters);
-  MOMS_imag.initialize();
-  MOMS_w_real<parameters_type> MOMS_real(parameters);
+  DcaDataType dca_data_imag(parameters);
+  dca_data_imag.initialize();
+  MOMS_w_real<ParametersType> dca_data_real(parameters);
 
-  std::string data_file_ED =
-      parameters.get_directory() + parameters.get_ED_output_file_name();
-  std::string data_file_QMC =
-      parameters.get_directory() + parameters.get_QMC_output_file_name();
+  std::string data_file_ED = parameters.get_directory() + parameters.get_ED_output_file_name();
+  std::string data_file_QMC = parameters.get_directory() + parameters.get_QMC_output_file_name();
 
   // ED solver
-  ED_solver_type ED_obj(parameters, MOMS_imag, MOMS_real);
-  ED_obj.initialize(0);
-  ED_obj.execute();
-  ED_obj.finalize(DCA_info_struct);
+  EdSolverType ED_solver(parameters, dca_data_imag, dca_data_real);
+  ED_solver.initialize(0);
+  ED_solver.execute();
+  ED_solver.finalize(dca_loop_data);
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_DCA,w> > Sigma_ED(MOMS_imag.Sigma);
-  
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> Sigma_ED(dca_data_imag.Sigma);
+
   if (concurrency.id() == concurrency.first()) {
-    ED_obj.write(data_file_ED);
+    ED_solver.write(data_file_ED);
   }
 
   // QMC solver
   // The QMC solver uses the free Greens function G0 computed by the ED solver.
-  // It is passed via the MOMS_imag object.
-  QMC_solver_type QMC_obj(parameters, MOMS_imag);
-  QMC_obj.initialize(1);
-  QMC_obj.integrate();
-  QMC_obj.finalize(DCA_info_struct);
+  // It is passed via the dca_data_imag object.
+  QmcSolverType QMC_solver(parameters, dca_data_imag);
+  QMC_solver.initialize(1);  // 1 = dummy iteration number
+  QMC_solver.integrate();
+  QMC_solver.finalize(dca_loop_data);
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu,k_DCA,w> > Sigma_QMC(MOMS_imag.Sigma);
-  
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> Sigma_QMC(dca_data_imag.Sigma);
+
   if (concurrency.id() == concurrency.first()) {
-    MOMS_imag.write(data_file_QMC);
+    dca_data_imag.write(data_file_QMC);
   }
 
   // Check errors
@@ -109,23 +129,26 @@ int main(int argc, char *argv[]) {
     double max_relative_diff = 0;
 
     std::cout << "\n\nErrors\n"
-              << "b1\tb2\ts1\ts2\tK\t|Sigma_ED - Sigma_QMC|_inf\t|Sigma_ED - Sigma_QMC|_inf / |Sigma_ED|_inf" << std::endl;
+              << "b1\tb2\ts1\ts2\tK\t|Sigma_ED - Sigma_QMC|_inf\t|Sigma_ED - Sigma_QMC|_inf / "
+                 "|Sigma_ED|_inf"
+              << std::endl;
     for (int b1 = 0; b1 < b::dmn_size(); ++b1) {
       for (int b2 = 0; b2 < b::dmn_size(); ++b2) {
         for (int s1 = 0; s1 < s::dmn_size(); ++s1) {
           for (int s2 = 0; s2 < s::dmn_size(); ++s2) {
             for (int k_ind = 0; k_ind < k_DCA::dmn_size(); ++k_ind) {
-              
               double ED_min_QMC_inf = 0.;
               double ED_inf = 0.;
               for (int w_ind = 0; w_ind < w::dmn_size(); ++w_ind) {
-                ED_min_QMC_inf = std::max(ED_min_QMC_inf, std::abs(Sigma_ED(b1, s1, b2, s2, k_ind, w_ind)
-                                                                   - Sigma_QMC(b1, s1, b2, s2, k_ind, w_ind)));
-                ED_inf = std::max(ED_inf, std::abs(Sigma_ED(b1, s1, b2, s2,  k_ind, w_ind)));
+                ED_min_QMC_inf =
+                    std::max(ED_min_QMC_inf, std::abs(Sigma_ED(b1, s1, b2, s2, k_ind, w_ind) -
+                                                      Sigma_QMC(b1, s1, b2, s2, k_ind, w_ind)));
+                ED_inf = std::max(ED_inf, std::abs(Sigma_ED(b1, s1, b2, s2, k_ind, w_ind)));
                 max_absolute_diff = std::max(max_absolute_diff, ED_min_QMC_inf);
-                max_relative_diff = std::max(max_relative_diff, ED_min_QMC_inf/ED_inf);
+                max_relative_diff = std::max(max_relative_diff, ED_min_QMC_inf / ED_inf);
               }
-              std::cout << b1 << "\t" << b2 << "\t" << s1 << "\t" << s2 << "\t" << k_ind << "\t" << ED_min_QMC_inf << "\t\t\t" << ED_min_QMC_inf/ED_inf << std::endl;
+              std::cout << b1 << "\t" << b2 << "\t" << s1 << "\t" << s2 << "\t" << k_ind << "\t"
+                        << ED_min_QMC_inf << "\t\t\t" << ED_min_QMC_inf / ED_inf << std::endl;
             }
           }
         }
@@ -135,10 +158,9 @@ int main(int argc, char *argv[]) {
     std::cout << "\n|(Sigma_ED - Sigma_QMC)|_inf          = " << max_absolute_diff
               << "\n|(Sigma_ED - Sigma_QMC)/Sigma_ED|_inf = " << max_relative_diff << std::endl;
   }
-  
-  parameters_type::profiler_type::stop(concurrency,
-                                       parameters.get_profiling_file_name());
-  
+
+  ParametersType::profiler_type::stop(concurrency, parameters.get_profiling_file_name());
+
   if (concurrency.id() == concurrency.first())
     std::cout << "\nCheck ending.\n" << std::endl;
 
