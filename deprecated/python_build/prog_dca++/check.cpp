@@ -49,6 +49,7 @@ int main(int argc,char *argv[])
 
   //============================================================ Configure the calculation by selecting type definitions.
 
+#include "type_definitions.h"
 
   /*
   static const LIN_ALG ::device_type                   LIN_ALG_DEVICE               = LIN_ALG::CPU;

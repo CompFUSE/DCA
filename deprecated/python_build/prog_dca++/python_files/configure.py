@@ -53,9 +53,9 @@ class configure:
                      "Titan"    : "-arch=sm_35",
                      "Daint"    : "-arch=sm_35"}
 
-#     GPU_magma_root_dic = {"Todi"     : "/project/s299/rasolca/todi/magmaeigen/",
-#                           "Titan"    : "/ccs/home/staarp/magma/magmaeigen/",
-#                           "Daint"    : "/project/s299/rasolca/todi/magmaeigen/"}
+    GPU_magma_root_dic = {"Todi"     : "/project/s299/rasolca/todi/magmaeigen/",
+                          "Titan"    : "/ccs/home/staarp/magma/magmaeigen/",
+                          "Daint"    : "/project/s299/rasolca/todi/magmaeigen/"}
 
     GPU_library_dic = {"Todi"     : "  -lmagma -lcuda -lcudart -lcublas -lcblas",
                        "Titan"    : "  -lmagma -lcuda -lcudart -lcublas -lcblas",
@@ -388,7 +388,7 @@ class configure:
             text = text.replace("GPU_COMPILER"          , self.GPU_CC            [self.machine_name])
             text = text.replace("FLAGOPTIONS_GPU"       , self.GPU_flags_dic     [self.machine_name])
             text = text.replace("LIBRARIES_GPU"         , self.GPU_library_dic   [self.machine_name])
-            #text = text.replace("MACHINE_MAGMA_ROOT_DIR", self.GPU_magma_root_dic[self.machine_name])
+            text = text.replace("MACHINE_MAGMA_ROOT_DIR", self.GPU_magma_root_dic[self.machine_name])
             text = text.replace("PROG_NAME"    , "dca_gpu")
         else:
             text = text.replace("PROG_NAME"    , "dca_cpu")

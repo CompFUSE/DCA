@@ -27,13 +27,12 @@
 #include <fstream>
 #include <iomanip>
 #include <queue>
-#include <bitset>
 
 #define NDEBUG
 //#define DEBUG_CUDA
 //#define cudaDeviceScheduleBlockingSync 0x04
 
-// using namespace std;
+using namespace std;
 
 #include "include_linalg.cu.h"
 

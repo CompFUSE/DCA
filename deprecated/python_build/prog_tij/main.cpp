@@ -70,6 +70,7 @@ int main(int argc,char *argv[])
 
   // ============================================================ Configure the calculation by selecting type definitions.
 
+#include "type_definitions.h"
 
   typedef COMP_LIB::parallelization<PARALLELIZATION_LIBRARY_NAME>  concurrency_type;
 

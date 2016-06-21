@@ -45,20 +45,6 @@ void print_version()
   cout << str << endl;
 }
 
-bool file_exists(std::string file_name)
-{
-  std::wifstream tmp(file_name.c_str());
-
-  if(!tmp or !tmp.good() or tmp.bad())
-    {
-      return false;
-    }
-  else
-    {
-      return true;
-    }
-}
-
 //void synchronize_devices(){}
 
 int main(int argc,char *argv[])
@@ -72,6 +58,7 @@ int main(int argc,char *argv[])
 
   //============================================================ Configure the calculation by selecting type definitions.
 
+#include "type_definitions.h"
 
   //static const LIN_ALG ::device_type                   LIN_ALG_DEVICE               = LIN_ALG::CPU;
   static const DCA     ::CLUSTER_SOLVER_NAMES          CLUSTER_SOLVER_NAME          = DCA::CT_AUX_CLUSTER_SOLVER;

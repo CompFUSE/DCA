@@ -39,6 +39,7 @@ int main(int argc,char *argv[])
 
   //============================================================ Configure the calculation by selecting type definitions.
 
+#include "type_definitions.h"
 
   static const MPI_library_type           MPI_LIBRARY_TYPE  = MPI_LIBRARY;
   static const MC_integration_method_type MC_ALGORITHM_TYPE = CT_AUX;
