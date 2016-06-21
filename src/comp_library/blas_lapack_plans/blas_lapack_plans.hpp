@@ -11,35 +11,30 @@
 // It is self-contained and can be included whenever a file depends on any of the BLAS and LAPACK
 // plans *.h files.
 //
-// TODO: - Make all header files self-contained.
-//       - Remove all deprecated files.
+// TODO: Make all header files self-contained.
 
 #ifndef COMP_LIBRARY_BLAS_LAPACK_PLANS_BLAS_LAPACK_PLANS_HPP
 #define COMP_LIBRARY_BLAS_LAPACK_PLANS_BLAS_LAPACK_PLANS_HPP
 
-#include <cassert>
-#include <complex>
-#include <cstring>
-#include <iostream>
-
-enum matrix_form { GENERAL, HERMITIAN, LU, L, U };
-using matrix_form_type = matrix_form;
-
-enum LINEAR_ALGEBRA_LIBRARY { BLAS_LIBRARY, CUBLAS_LIBRARY, LAPACK_LIBRARY, MAGMA_LIBRARY };
-using LINEAR_ALGEBRA_LIBRARY_TYPE = LINEAR_ALGEBRA_LIBRARY;
-
 // BLAS
-#include "BLAS/BLAS_C_wrappers.h"
-#include "BLAS/blas_gemm.h"
-#include "BLAS/gemv_plan.h"
+#include "comp_library/blas_lapack_plans/BLAS/BLAS_C_wrappers.h"
+#include "comp_library/blas_lapack_plans/BLAS/blas_gemm.h"
+// #include "comp_library/blas_lapack_plans/BLAS/gbmv_plan.h"
+#include "comp_library/blas_lapack_plans/BLAS/gemv_plan.h"
 
 // LAPACK
-#include "LAPACK/LAPACK_C_wrappers.h"
-#include "LAPACK/geinv_plan.h"
-#include "LAPACK/geqr_plans/geqr_plans_real.h"
-#include "LAPACK/gesv_plan.h"
+#include "comp_library/blas_lapack_plans/LAPACK/LAPACK_C_wrappers.h"
+// #include "comp_library/blas_lapack_plans/LAPACK/eigensystem_plans/include_eigensystem_plans.h"
+#include "comp_library/blas_lapack_plans/LAPACK/geinv_plan.h"
+// #include "comp_library/blas_lapack_plans/LAPACK/gelss_plans/include_gelss_plan.h"
+#include "comp_library/blas_lapack_plans/LAPACK/geqr_plans/geqr_plans_real.h"
+#include "comp_library/blas_lapack_plans/LAPACK/gesv_plan.h"
+// #include "comp_library/blas_lapack_plans/LAPACK/gesvd_plan.h"
+// #include "comp_library/blas_lapack_plans/LAPACK/getrf_plan.h"
+// #include "comp_library/blas_lapack_plans/LAPACK/lapack_getrs.h"
 
 // LINEAR_ALGEBRA_PLANS
-#include "LINEAR_ALGEBRA_PLANS/gemm_plan.h"
+#include "comp_library/blas_lapack_plans/LINEAR_ALGEBRA_PLANS/gemm_plan.h"
+// #include "comp_library/blas_lapack_plans/LINEAR_ALGEBRA_PLANS/getrs_plan.h"
 
 #endif  // COMP_LIBRARY_BLAS_LAPACK_PLANS_BLAS_LAPACK_PLANS_HPP

@@ -19,38 +19,38 @@ public:
   ~block_gemm_plan();
   
   template<class matrix_type, class domain>
-  void execute_plan(FUNC_LIB::function<matrix_type, dmn_2<domain, domain> >& Matrix_1,
-		    FUNC_LIB::function<matrix_type, dmn_2<domain, domain> >& Matrix_2,
-		    FUNC_LIB::function<matrix_type, dmn_2<domain, domain> >& Matrix_result,
+  void execute_plan(function<matrix_type, dmn_2<domain, domain> >& Matrix_1,
+		    function<matrix_type, dmn_2<domain, domain> >& Matrix_2,
+		    function<matrix_type, dmn_2<domain, domain> >& Matrix_result,
 		    scalartype a=1, scalartype b=0,
 		    char A='N'    , char B='N');
   
   template<typename matrix_type, class domain, typename other_scalartype>
-  void execute_plan(FUNC_LIB::function<matrix_type                  , dmn_2<domain, domain> >& Matrix_1,
-		    FUNC_LIB::function<std::vector<other_scalartype>, dmn_2<domain, domain> >& vector,
-		    FUNC_LIB::function<matrix_type                  , dmn_2<domain, domain> >& Matrix_2);
+  void execute_plan(function<matrix_type                  , dmn_2<domain, domain> >& Matrix_1,
+		    function<std::vector<other_scalartype>, dmn_2<domain, domain> >& vector,
+		    function<matrix_type                  , dmn_2<domain, domain> >& Matrix_2);
   
   template<typename matrix_type, class domain, typename other_scalartype>
-  void execute_plan(FUNC_LIB::function<std::vector<other_scalartype>, dmn_2<domain, domain> >& vector,
-		    FUNC_LIB::function<matrix_type                  , dmn_2<domain, domain> >& Matrix_1,
-		    FUNC_LIB::function<matrix_type                  , dmn_2<domain, domain> >& Matrix_2);
+  void execute_plan(function<std::vector<other_scalartype>, dmn_2<domain, domain> >& vector,
+		    function<matrix_type                  , dmn_2<domain, domain> >& Matrix_1,
+		    function<matrix_type                  , dmn_2<domain, domain> >& Matrix_2);
 
   template<typename matrix_type, class domain, typename other_scalartype_0, typename other_scalartype_1>
-  void execute_plan_resize(FUNC_LIB::function<matrix_type ,dmn_2<domain, domain> >& Matrix_1,
-			   FUNC_LIB::function<matrix_type ,dmn_2<domain, domain> >& Matrix_2,
-			   FUNC_LIB::function<matrix_type ,dmn_2<domain, domain> >& Matrix_result,
+  void execute_plan_resize(function<matrix_type ,dmn_2<domain, domain> >& Matrix_1,
+			   function<matrix_type ,dmn_2<domain, domain> >& Matrix_2,
+			   function<matrix_type ,dmn_2<domain, domain> >& Matrix_result,
 			   other_scalartype_0 a = 1., other_scalartype_1 b = 0.,
 			   char A = 'N', char B = 'N');
 
   template<typename matrix_type, class domain, typename other_scalartype>
-  void execute_plan_resize(FUNC_LIB::function<std::vector<other_scalartype>, dmn_2<domain, domain> >& vector,
-			   FUNC_LIB::function<matrix_type                  , dmn_2<domain, domain> >& Matrix_1,
-			   FUNC_LIB::function<matrix_type                  , dmn_2<domain, domain> >& Matrix_2);
+  void execute_plan_resize(function<std::vector<other_scalartype>, dmn_2<domain, domain> >& vector,
+			   function<matrix_type                  , dmn_2<domain, domain> >& Matrix_1,
+			   function<matrix_type                  , dmn_2<domain, domain> >& Matrix_2);
 
   template<typename matrix_type, class domain, typename other_scalartype>
-  void execute_plan_resize(FUNC_LIB::function<matrix_type                  , dmn_2<domain, domain> >& Matrix_1,
-			   FUNC_LIB::function<std::vector<other_scalartype>, dmn_2<domain, domain> >& vector,
-			   FUNC_LIB::function<matrix_type                  , dmn_2<domain, domain> >& Matrix_2);
+  void execute_plan_resize(function<matrix_type                  , dmn_2<domain, domain> >& Matrix_1,
+			   function<std::vector<other_scalartype>, dmn_2<domain, domain> >& vector,
+			   function<matrix_type                  , dmn_2<domain, domain> >& Matrix_2);
 
 private:
   void assert_sizes(std::pair<int,int> m1,
@@ -72,9 +72,9 @@ block_gemm_plan<scalartype>::~block_gemm_plan()
   
 template<typename scalartype>
 template<typename matrix_type, class domain>
-void block_gemm_plan<scalartype>::execute_plan(FUNC_LIB::function<matrix_type ,dmn_2<domain, domain> >& Matrix_1,
-					       FUNC_LIB::function<matrix_type ,dmn_2<domain, domain> >& Matrix_2,
-					       FUNC_LIB::function<matrix_type ,dmn_2<domain, domain> >& Matrix_result,
+void block_gemm_plan<scalartype>::execute_plan(function<matrix_type ,dmn_2<domain, domain> >& Matrix_1,
+					       function<matrix_type ,dmn_2<domain, domain> >& Matrix_2,
+					       function<matrix_type ,dmn_2<domain, domain> >& Matrix_result,
 					       scalartype a, scalartype b,
 					       char A, char B)
 {
@@ -127,9 +127,9 @@ void block_gemm_plan<scalartype>::execute_plan(FUNC_LIB::function<matrix_type ,d
   
 template<typename scalartype>
 template<typename matrix_type, class domain, typename other_scalartype>
-void  block_gemm_plan<scalartype>::execute_plan(FUNC_LIB::function<matrix_type                  , dmn_2<domain, domain> >& Matrix_1,
-						FUNC_LIB::function<std::vector<other_scalartype>, dmn_2<domain, domain> >& vector,
-						FUNC_LIB::function<matrix_type                  , dmn_2<domain, domain> >& Matrix_2)
+void  block_gemm_plan<scalartype>::execute_plan(function<matrix_type                  , dmn_2<domain, domain> >& Matrix_1,
+						function<std::vector<other_scalartype>, dmn_2<domain, domain> >& vector,
+						function<matrix_type                  , dmn_2<domain, domain> >& Matrix_2)
 {
   std::pair<int,int> Matrix_1_current_size;
   
@@ -156,9 +156,9 @@ void  block_gemm_plan<scalartype>::execute_plan(FUNC_LIB::function<matrix_type  
 
 template<typename scalartype>
 template<typename matrix_type, class domain, typename other_scalartype>
-void  block_gemm_plan<scalartype>::execute_plan(FUNC_LIB::function<std::vector<other_scalartype>, dmn_2<domain, domain> >& vector,
-						FUNC_LIB::function<matrix_type                  , dmn_2<domain, domain> >& Matrix_1,
-						FUNC_LIB::function<matrix_type                  , dmn_2<domain, domain> >& Matrix_2)
+void  block_gemm_plan<scalartype>::execute_plan(function<std::vector<other_scalartype>, dmn_2<domain, domain> >& vector,
+						function<matrix_type                  , dmn_2<domain, domain> >& Matrix_1,
+						function<matrix_type                  , dmn_2<domain, domain> >& Matrix_2)
 {
   std::pair<int,int> Matrix_1_current_size;
   
@@ -185,9 +185,9 @@ void  block_gemm_plan<scalartype>::execute_plan(FUNC_LIB::function<std::vector<o
  
 template<typename scalartype>
 template<typename matrix_type, class domain, typename other_scalartype_0, typename other_scalartype_1>
-void block_gemm_plan<scalartype>::execute_plan_resize(FUNC_LIB::function<matrix_type ,dmn_2<domain, domain> >& Matrix_1,
-						      FUNC_LIB::function<matrix_type ,dmn_2<domain, domain> >& Matrix_2,
-						      FUNC_LIB::function<matrix_type ,dmn_2<domain, domain> >& Matrix_result,
+void block_gemm_plan<scalartype>::execute_plan_resize(function<matrix_type ,dmn_2<domain, domain> >& Matrix_1,
+						      function<matrix_type ,dmn_2<domain, domain> >& Matrix_2,
+						      function<matrix_type ,dmn_2<domain, domain> >& Matrix_result,
 						      other_scalartype_0 a, other_scalartype_1 b,
 						      char A, char B)
 {
@@ -257,9 +257,9 @@ void block_gemm_plan<scalartype>::execute_plan_resize(FUNC_LIB::function<matrix_
 
 template<typename scalartype>
 template<typename matrix_type, class domain, typename other_scalartype>
-void  block_gemm_plan<scalartype>::execute_plan_resize(FUNC_LIB::function<matrix_type                  , dmn_2<domain, domain> >& Matrix_1,
-						       FUNC_LIB::function<std::vector<other_scalartype>, dmn_2<domain, domain> >& vector,
-						       FUNC_LIB::function<matrix_type                  , dmn_2<domain, domain> >& Matrix_2)
+void  block_gemm_plan<scalartype>::execute_plan_resize(function<matrix_type                  , dmn_2<domain, domain> >& Matrix_1,
+						       function<std::vector<other_scalartype>, dmn_2<domain, domain> >& vector,
+						       function<matrix_type                  , dmn_2<domain, domain> >& Matrix_2)
 {
   static std::pair<int,int> Matrix_1_current_size;
   static std::pair<int,int> Matrix_2_current_size;
@@ -294,9 +294,9 @@ void  block_gemm_plan<scalartype>::execute_plan_resize(FUNC_LIB::function<matrix
 
 template<typename scalartype>
 template<typename matrix_type, class domain, typename other_scalartype>
- void  block_gemm_plan<scalartype>::execute_plan_resize(FUNC_LIB::function<std::vector<other_scalartype>, dmn_2<domain, domain> >& vector,
-							FUNC_LIB::function<matrix_type                  , dmn_2<domain, domain> >& Matrix_1,
-							FUNC_LIB::function<matrix_type                  , dmn_2<domain, domain> >& Matrix_2)
+ void  block_gemm_plan<scalartype>::execute_plan_resize(function<std::vector<other_scalartype>, dmn_2<domain, domain> >& vector,
+							function<matrix_type                  , dmn_2<domain, domain> >& Matrix_1,
+							function<matrix_type                  , dmn_2<domain, domain> >& Matrix_2)
   {
     static std::pair<int,int> Matrix_1_current_size;
     static std::pair<int,int> Matrix_2_current_size;

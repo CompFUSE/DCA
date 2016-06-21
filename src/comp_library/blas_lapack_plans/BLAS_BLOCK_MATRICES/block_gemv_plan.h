@@ -19,7 +19,7 @@ public:
   ~block_gemv_plan();
     
   template<typename matrix_type, class domain>
-  void execute_plan(FUNC_LIB::function<matrix_type ,dmn_2<domain, domain> >& Matrix,
+  void execute_plan(function<matrix_type ,dmn_2<domain, domain> >& Matrix,
 		    scalartype* vector_source,
 		    scalartype* vector_target);
     
@@ -40,7 +40,7 @@ block_gemv_plan<scalartype>::~block_gemv_plan()
   
 template<typename scalartype>
 template<typename matrix_type, class domain>
-void block_gemv_plan<scalartype>::execute_plan(FUNC_LIB::function<matrix_type, dmn_2<domain, domain> >& Matrix,
+void block_gemv_plan<scalartype>::execute_plan(function<matrix_type, dmn_2<domain, domain> >& Matrix,
 					       scalartype*                                    vector_source,
 					       scalartype*                                    vector_target)
 {
