@@ -40,7 +40,7 @@ namespace LIN_ALG {
 
       int INFO=0;
 
-      std::vector<int> IPIV(m_A); 
+      std::vector<int> IPIV(m_A);  // int IPIV[m_A];
       
       for(int i=0; i<m_A; i++)
         IPIV[i] = i+1;

@@ -1,12 +1,26 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
-#ifndef LIN_ALG_MEMORY_MANAGEMENT_GPU_H
-#define LIN_ALG_MEMORY_MANAGEMENT_GPU_H
+#ifndef COMP_LIBRARY_LINALG_SRC_LINALG_OPERATIONS_MEMORY_MANAGEMENT_GPU_H
+#define COMP_LIBRARY_LINALG_SRC_LINALG_OPERATIONS_MEMORY_MANAGEMENT_GPU_H
 
-#include "copy_from_GPU_CPU.h"
+#include <iostream>
+#include <utility>
+
+#include "comp_library/linalg/src/linalg_operations/copy_from_GPU_CPU.h"
+#include "comp_library/linalg/src/linalg_operations/memory_management_tem.h"
+
 namespace LIN_ALG {
-
 namespace MEMORY_MANAGEMENT_ON_GPU {
+// LIN_ALG::MEMORY_MANAGEMENT_ON_GPU::
 
 template <typename scalartype>
 scalartype get(scalartype* ptr);
@@ -25,6 +39,20 @@ void allocate(scalartype*& ptr, std::pair<int, int> global_size);
 template <typename scalartype>
 void deallocate(scalartype*& ptr);
 
+//     template<typename scalartype> void memcopy_d_to_d(scalartype* target_ptr, scalartype*
+//     source_ptr, int size);
+//     template<typename scalartype> void memcopy_d_to_h(scalartype* target_ptr, scalartype*
+//     source_ptr, int size);
+//     template<typename scalartype> void memcopy_h_to_d(scalartype* target_ptr, scalartype*
+//     source_ptr, int size);
+
+//     template<typename scalartype> void memcopy_d_to_d_async(scalartype* target_ptr, scalartype*
+//     source_ptr, int size);
+//     template<typename scalartype> void memcopy_d_to_h_async(scalartype* target_ptr, scalartype*
+//     source_ptr, int size);
+//     template<typename scalartype> void memcopy_h_to_d_async(scalartype* target_ptr, scalartype*
+//     source_ptr, int size);
+
 template <typename scalartype>
 void set_to_zero(scalartype* ptr, int m);
 template <typename scalartype>
@@ -34,7 +62,8 @@ template <typename scalartype>
 void remove_first_row(int m, int n, scalartype* A, int LDA);
 template <typename scalartype>
 void remove_first_col(int m, int n, scalartype* A, int LDA);
-}
+
+}  // MEMORY_MANAGEMENT_ON_GPU
 
 template <>
 class MEMORY_MANAGEMENT<GPU> {
@@ -124,6 +153,7 @@ public:
     int SIZE = g_s.first * g_s.second;
     scalartype* new_data = new scalartype[SIZE];
 
+    // MEMORY_MANAGEMENT_ON_GPU::memcopy_d_to_h(new_data, ptr, SIZE);
     COPY_FROM<GPU, CPU>::execute(ptr, new_data, SIZE);
 
     std::cout.precision(6);
@@ -147,4 +177,4 @@ public:
 };
 }
 
-#endif
+#endif  // COMP_LIBRARY_LINALG_SRC_LINALG_OPERATIONS_MEMORY_MANAGEMENT_GPU_H

@@ -301,6 +301,19 @@ namespace LIN_ALG {
     
   }
 
+// #ifdef DEBUG_CUDA
+
+//   cudaStream_t& get_stream_handle(int thread_id, int stream_id)
+//   {
+//     assert(thread_id>-1 and thread_id<16);
+//     assert(stream_id>-1 and stream_id<8);
+
+//     static cudaStream_t stream[8];
+//     return stream[stream_id];
+//   }
+
+// #elif
+
   cudaStream_t& get_stream_handle(int thread_id, int stream_id)
   {
     assert(thread_id>-1 and thread_id<16);
@@ -409,6 +422,8 @@ namespace LIN_ALG {
       }
   }
 
+// #endif
+
   void create_stream_handle(int thread_id)
   {
     for(int stream_id=0; stream_id<8; ++stream_id)
@@ -440,14 +455,3 @@ namespace LIN_ALG {
 }
 
 #endif
-
-
-
-
-
-
-
-
-
-
-

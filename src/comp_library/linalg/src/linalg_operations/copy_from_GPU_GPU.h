@@ -35,13 +35,16 @@ namespace LIN_ALG
     template<typename scalartype>
     static void execute(scalartype* source_ptr, scalartype* target_ptr, int size)
     {
+      //MEMORY_MANAGEMENT_ON_GPU::memcopy_d_to_d(target_ptr, source_ptr, size);
       COPY_FROM_GPU_to_GPU::memcopy_d_to_d(target_ptr, source_ptr, size);
     }
+    
     
     template<typename scalartype>
     static void execute(scalartype* source_ptr, std::pair<int, int>& source_c_s, std::pair<int, int>& source_g_s,
 			scalartype* target_ptr, std::pair<int, int>& target_c_s, std::pair<int, int>& target_g_s)
     {
+      //assert(test_sizes(source_c_s, target_c_s));
       COPY_FROM_GPU_to_GPU::memcopy_2D_d_to_d(source_ptr, source_c_s, source_g_s, target_ptr, target_c_s, target_g_s);
     }
     
@@ -60,6 +63,23 @@ namespace LIN_ALG
 				       target_gpu_matrix.get_ptr(), target_gpu_matrix.get_current_size(), target_gpu_matrix.get_global_size());
 	}
     }
+
+    /*
+    static bool test_sizes(std::pair<int, int>& source_c_s,
+			   std::pair<int, int>& target_c_s)
+    {
+      if(source_c_s==target_c_s)
+	return true;
+      else
+	{
+	  cout << "\t(" << source_c_s.first << ", " << source_c_s.second << ")\t<==>\t("<< target_c_s.first << ", " << target_c_s.second << ")" << endl;
+	  
+	  throw std::logic_error(__FUNCTION__);
+	}
+      
+      return false;
+    }
+    */
 
   };
   

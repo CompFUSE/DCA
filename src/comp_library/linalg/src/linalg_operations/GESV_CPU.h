@@ -4,7 +4,6 @@
 #define LINALG_GESV_CPU_H
 
 #include <vector>
-#include <comp_library/linalg/src/linalg_operations/GESV_tem.h>
 
 namespace LIN_ALG {
 

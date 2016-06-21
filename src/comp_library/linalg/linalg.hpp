@@ -10,13 +10,16 @@
 // This file pulls in all Linalg *.h files.
 // It is self-contained and can be included whenever a file depends on any of the Linalg *.h files.
 //
-// TODO: - Make all header files self-contained (especially matrix.h and vector.h).
-//       - Remove all deprecated files.
+// TODO: Make all header files self-contained.
 
 #ifndef COMP_LIBRARY_LINALG_LINALG_HPP
 #define COMP_LIBRARY_LINALG_LINALG_HPP
 
+#include <cassert>
+#include <complex>
+#include <iostream>
 #include <stdexcept>
+#include <utility>
 #include <vector>
 
 #include "comp_library/blas_lapack_plans/blas_lapack_plans.hpp"

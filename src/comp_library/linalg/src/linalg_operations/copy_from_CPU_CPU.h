@@ -21,6 +21,17 @@ namespace LIN_ALG {
 	memcpy(target_ptr, source_ptr, sizeof(scalartype)*size);
       }
 
+//       template<typename scalartype>
+//       static void execute(scalartype* source_ptr, scalartype* target_ptr, int size, int thread_id, int stream_id){
+// 	assert(thread_id>-1 and stream_id>-1);
+// 	memcpy(target_ptr, source_ptr, sizeof(scalartype)*size);
+//       }
+
+//       template<typename scalartype>
+//       static void execute(scalartype* source_ptr, scalartype* target_ptr, int size, copy_concurrency_type copy_t=SYNCHRONOUS){
+// 	memcpy(target_ptr, source_ptr, sizeof(scalartype)*size);
+//       }
+
       template<typename cpu_matrix_type>
       static void execute(cpu_matrix_type& source_cpu_matrix, cpu_matrix_type& target_cpu_matrix, int thread_id=0, int stream_id=0)
       {

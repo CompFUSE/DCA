@@ -35,6 +35,3 @@ namespace LIN_ALG {
 }
 
 #endif
-
-
-

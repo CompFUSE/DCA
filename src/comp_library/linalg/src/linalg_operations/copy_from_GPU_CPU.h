@@ -1,13 +1,25 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Structure to copy a matrix from the GPU to the CPU.
 
-#ifndef COPY_FROM_GPU_CPU_H
-#define COPY_FROM_GPU_CPU_H
+#ifndef COMP_LIBRARY_LINALG_SRC_LINALG_OPERATIONS_COPY_FROM_GPU_CPU_H
+#define COMP_LIBRARY_LINALG_SRC_LINALG_OPERATIONS_COPY_FROM_GPU_CPU_H
+
+#include <cassert>
+#include <utility>
 
 #include "comp_library/linalg/src/linalg_operations/copy_from_tem.h"
 
 namespace LIN_ALG {
-
 namespace COPY_FROM_GPU_to_CPU {
+// LIN_ALG::COPY_FROM_GPU_to_CPU::
 
 template <typename scalartype>
 void memcopy_d_to_h(scalartype* target_ptr, scalartype* source_ptr, int size);
@@ -26,11 +38,9 @@ void memcopy_2D_d_to_h_async(scalartype* source_ptr, std::pair<int, int>& source
                              std::pair<int, int>& source_g_s, scalartype* target_ptr,
                              std::pair<int, int>& target_c_s, std::pair<int, int>& target_g_s,
                              int thread_id, int stream_id);
-}
 
-/*!
- *  \brief structure to copy a matrix from the GPU to the CPU
- */
+}  // COPY_FROM_GPU_to_CPU
+
 template <>
 class COPY_FROM<GPU, CPU> {
 public:
@@ -92,6 +102,7 @@ public:
               thread_id, stream_id);
   }
 };
-}
 
-#endif
+}  // LIN_ALG
+
+#endif  // COMP_LIBRARY_LINALG_SRC_LINALG_OPERATIONS_COPY_FROM_GPU_CPU_H

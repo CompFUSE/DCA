@@ -24,6 +24,16 @@ namespace LIN_ALG {
 
       if(M.get_number_of_cols()>0 && L>0){
 
+// 	scalartype* data = M.get_ptr(0,0);
+	
+// 	int N = M.get_global_size().first;
+// 	int L = M.get_current_size().first-index-1;
+	
+// 	for(int i=0; i<M.get_current_size().second; i++)
+// 	  memmove(&data[index + i*N], &data[(index+1) + i*N], sizeof(scalartype)*L);
+
+// 	int L = M.get_number_of_rows()-index-1;
+
 	for(int i=0; i<M.get_number_of_cols(); i++)
 	  memmove(M.get_ptr(index,i), M.get_ptr((index+1),i), sizeof(scalartype)*L);
       }
@@ -39,6 +49,13 @@ namespace LIN_ALG {
       int L = M.get_number_of_cols()-index-1;
 
       if(M.get_number_of_rows()>0 && L>0){
+
+// 	scalartype* data = &M(0,0);
+
+// 	int N = M.get_global_size().first;
+// 	int L = M.get_current_size().second-index-1;
+	
+// 	memmove(&data[index*N], &data[(index+1)*N], sizeof(scalartype)*N*L);
 
 	int N = M.get_leading_dimension();
 	memmove(M.get_ptr(0,index), M.get_ptr(0,index+1), sizeof(scalartype)*N*L);
@@ -58,5 +75,3 @@ namespace LIN_ALG {
 }
 
 #endif
-
-

@@ -20,6 +20,8 @@ namespace LIN_ALG
 
 	if(M<=N)
 	  {
+	    // A_inv = A'*inv(A*A')
+
 	    matrix<scalartype, CPU> A_At("A_At", std::pair<int,int>(M,M));
 
 	    GEMM<CPU>::execute('N', 'C', A, A, A_At);
@@ -29,6 +31,9 @@ namespace LIN_ALG
 	    matrix<scalartype, CPU> Vt("Vt", std::pair<int,int>(M,M));
 
 	    {
+	      // inv(A*A') = V*inv(D)*V';   [D, V] = eig(A*A')
+
+	      
 	      GEEV<CPU>::execute('V', 'U', A_At, S, V);	      
 
 	      Vt.copy_from(V);
@@ -50,6 +55,8 @@ namespace LIN_ALG
 	  }
 	else
 	  {
+	    // A_inv = inv(A'*A)*A'
+
 	    matrix<scalartype, CPU> At_A("At_A", std::pair<int,int>(N,N));
 
 	    LIN_ALG::GEMM<CPU>::execute('C', 'N', A, A, At_A);
@@ -57,7 +64,10 @@ namespace LIN_ALG
 	    vector<scalartype, CPU> S ("S" , N);
 	    matrix<scalartype, CPU> V ("V" , std::pair<int,int>(N,N));
 	    matrix<scalartype, CPU> Vt("Vt", std::pair<int,int>(N,N));
-	   	      
+
+	    {
+	      // inv(A'*A) = V*inv(D)*V';   [D, V] = eig(A'*A)	    
+	      
 	      GEEV<CPU>::execute('V', 'U', At_A, S, V);
 	      
 	      Vt.copy_from(V);
@@ -72,7 +82,8 @@ namespace LIN_ALG
 		  for(int i=0; i<N; i++)
 		    V(i,j) *= one_over_sigma;
 		}
-	    
+	    }
+
 	    GEMM<CPU>::execute('N', 'C', V   , Vt, At_A);
 	    GEMM<CPU>::execute('N', 'C', At_A, A , A_inv);	    
 	  }
@@ -88,6 +99,7 @@ namespace LIN_ALG
 
 	if(M<=N)
 	  {
+	    // A_inv = A'*inv(A*A')
 
 	    matrix<std::complex<scalartype>, CPU> A_At("A_At", std::pair<int,int>(M,M));
 
@@ -98,6 +110,7 @@ namespace LIN_ALG
 	    matrix<std::complex<scalartype>, CPU> Vt("Vt", std::pair<int,int>(M,M));
 
 	    {
+	      // inv(A*A') = V*inv(D)*V';   [D, V] = eig(A*A')
 
 	      GEEV<CPU>::execute('V', 'U', A_At, S, V);
 
@@ -109,6 +122,8 @@ namespace LIN_ALG
 		  
 		  if(S[j]>EPSILON*S[M-1]){
 		    one_over_sigma = 1./S[j];
+
+		    //cout << j << "\t" << S[j] << endl;
 		  }
 
 		  for(int i=0; i<M; i++)
@@ -122,6 +137,8 @@ namespace LIN_ALG
 	  }
 	else
 	  {
+	    // A_inv = inv(A'*A)*A'
+
 	    matrix<std::complex<scalartype>, CPU> At_A("At_A", std::pair<int,int>(N,N));
 
 	    LIN_ALG::GEMM<CPU>::execute('C', 'N', A, A, At_A);
@@ -131,6 +148,7 @@ namespace LIN_ALG
 	    matrix<std::complex<scalartype>, CPU> Vt("Vt", std::pair<int,int>(N,N));
 
 	    {
+	      // inv(A'*A) = V*inv(D)*V';   [D, V] = eig(A'*A)	    
 	      
 	      GEEV<CPU>::execute('V', 'U', At_A, S, V);
 	      

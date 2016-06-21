@@ -1,13 +1,24 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (peter.w.j.staar@gmail.com)
+//
+// Description
 
-#ifndef LIN_ALG_MEMORY_MANAGEMENT_TEMPLATE_H
-#define LIN_ALG_MEMORY_MANAGEMENT_TEMPLATE_H
+#ifndef COMP_LIBRARY_LINALG_SRC_LINALG_OPERATIONS_MEMORY_MANAGEMENT_TEM_H
+#define COMP_LIBRARY_LINALG_SRC_LINALG_OPERATIONS_MEMORY_MANAGEMENT_TEM_H
 
-namespace LIN_ALG
-{  
-    template<device_type device_name>
-    class MEMORY_MANAGEMENT
-    {};
-}
+#include "comp_library/linalg/linalg_device_types.h"
 
-#endif
+namespace LIN_ALG {
+
+template <device_type device_name>
+class MEMORY_MANAGEMENT {};
+
+}  // LIN_ALG
+
+#endif  // COMP_LIBRARY_LINALG_SRC_LINALG_OPERATIONS_MEMORY_MANAGEMENT_TEM_H

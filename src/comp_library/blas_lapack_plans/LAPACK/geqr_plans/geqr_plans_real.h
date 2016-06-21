@@ -8,6 +8,7 @@
  */
 
 #include <algorithm>
+#include <cstring>
 #include <stdexcept>
 
 #include "comp_library/blas_lapack_plans/LAPACK/LAPACK_C_wrappers.h"

@@ -32,6 +32,7 @@ namespace LIN_ALG
 
       int INFO=0;
 
+      //int IPIV[m_A];
       int* IPIV = new int[m_A];
 
       for(int i=0; i<m_A; i++)

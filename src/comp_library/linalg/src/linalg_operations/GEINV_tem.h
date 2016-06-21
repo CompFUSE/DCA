@@ -104,6 +104,27 @@ namespace LIN_ALG
         }
     }
 
+    /*
+    template<typename scalartype>
+    static void execute_on_Green_function_matrix(matrix<scalartype, device_t>& A)
+    {
+      assert(A.get_current_size().first % 2 == 0);
+      assert(A.get_current_size().first  == A.get_current_size().second);
+
+      switch(A.get_current_size().first)
+        {
+        case 2:
+          {
+            A(0,0) = scalartype(1.)/A(0,0);
+            A(1,1) = scalartype(1.)/A(1,1);
+          }
+          break;
+
+        default:
+          execute(A);
+        }
+    }
+    */
     
     template<typename scalartype>
     class plan

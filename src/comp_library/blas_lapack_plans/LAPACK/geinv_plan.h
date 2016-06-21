@@ -11,6 +11,7 @@
 
 #include <cassert>
 #include <complex>
+#include <cstring>
 
 #include "comp_library/blas_lapack_plans/LAPACK/LAPACK_C_wrappers.h"
 

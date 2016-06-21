@@ -1,4 +1,4 @@
-//-*-C++-*-
+//-*-C++-*-                                                                                                                                                                                                                                                                                                                                                        
 
 #ifndef LINALG_DOT_CPU_H
 #define LINALG_DOT_CPU_H
@@ -27,6 +27,16 @@ namespace LIN_ALG {
     {
       return BLAS::ddot_(&length, a, &inc_a, b, &inc_b);
     }
+    
+//     inline static std::complex<float> execute(int length, std::complex<float>* a, int inc_a, std::complex<float>* b, int inc_b)
+//     {
+//       return BLAS::cdot_(&length, a, &inc_a, b, &inc_b);
+//     }
+    
+//     inline static std::complex<double> execute(int length, std::complex<double>* a, int inc_a, std::complex<double>* b, int inc_b)
+//     {
+//       return BLAS::zdot_(&length, a, &inc_a, b, &inc_b);
+//     }
   };
 
 }

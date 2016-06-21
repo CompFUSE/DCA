@@ -23,6 +23,16 @@ namespace LIN_ALG {
       inline static double execute(int length, double* a, int inc_a, double* b, int inc_b){
 	return GPU_KERNEL_DOT::ddot(length, a, inc_a, b, inc_b);
       }
+  
+      /*    
+      inline static void execute(int length, cuComplex* a, int inc_a, cuComplex* b, int inc_b){
+	    cublasCswap(length, a, inc_a, b, inc_b);
+      }
+	
+      inline static void execute(int length, cuDoubleComplex* a, int inc_a, cuDoubleComplex* b, int inc_b){
+	cublasZswap(length, a, inc_a, b, inc_b);
+      }
+      */
   };
   
 }
