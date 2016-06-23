@@ -24,12 +24,32 @@ set(DCA_LAPACK_IMPLICIT TRUE CACHE INTERNAL "")
 set(DCA_FFTW_IMPLICIT   TRUE CACHE INTERNAL "")
 
 # MPIEXEC stuff for executing parallel tests.
+# Check whether the system uses the aprun or the srun command. To do this we exploit that executing
+# the command that is available results in an error message that contains the command name and
+# executing the command that is not available just results in "No such file or directory".
+execute_process(COMMAND srun
+                RESULT_VARIABLE srun_res
+                ERROR_VARIABLE srun_err)
+# message ("res = ${srun_res}")
+# essage ("err = ${srun_err}")
+execute_process(COMMAND aprun
+                RESULT_VARIABLE aprun_res
+                ERROR_VARIABLE aprun_err)
+# message ("res = ${aprun_res}")
+# message ("err = ${aprun_err}")
+
+if ("${srun_err}" MATCHES ".*srun.*")
+# message ("Use srun.")
+set(MPIEXEC "srun"
+  CACHE FILEPATH "Executable for running MPI programs.")
+elseif ("${aprun_err}" MATCHES ".*aprun.*")
+# message ("Use aprun.")
 set(MPIEXEC "aprun"
   CACHE FILEPATH "Executable for running MPI programs.")
+else ()
+message (FATAL_ERROR "Neither aprun nor srun command found.")
+endif ()
 set(MPIEXEC_NUMPROC_FLAG "-n"
   CACHE FILEPATH "Flag used by MPI to specify the number of processes for
                   MPIEXEC; the next option will be the number of processes.")
-set(MPIEXEC_POSTFLAGS "-d 1"
-  CACHE FILEPATH
-  "These flags will come after all flags given to MPIEXEC.")
-mark_as_advanced(MPIEXEC MPIEXEC_NUMPROC_FLAG MPIEXEC_POSTFLAGS)
+mark_as_advanced(MPIEXEC MPIEXEC_NUMPROC_FLAG)
