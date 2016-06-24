@@ -37,6 +37,7 @@ build-aux/local*
 # Compiled library directories
 libs/nfft-3.3.0
 libs/spglib-1.7.3
+libs/sprng5
 libs/include
 libs/lib
 libs/share
