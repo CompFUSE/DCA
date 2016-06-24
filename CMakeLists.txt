@@ -34,13 +34,13 @@ dca_add_config_define(DCA_SOURCE_DIRECTORY \"${PROJECT_SOURCE_DIR}\")
 #------------------------------------------------------------------------------
 # Include dirs
 #------------------------------------------------------------------------------
-# For <dca/.../...> #includes.
+# For "dca/.../..." #includes.
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
-# For "src/.../..." includes.
+# For src includes, e.g. #include "phys_library/...".
 # Note that these includes should disappear over time since header files should
-# be moved into include/dca/.../ and included via #include <dca/.../...>.
-include_directories(${PROJECT_SOURCE_DIR})
+# be moved into include/dca/.../ and included via #include "dca/.../...".
+include_directories(${PROJECT_SOURCE_DIR}/src)
 
 # Directory where dca/config/defines.hpp will be created.
 include_directories(${CMAKE_BINARY_DIR})
@@ -81,24 +81,22 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 # Modules : for reproducibility
 #------------------------------------------------------------------------------
 
-add_subdirectory(modules)
 include(modules_init)
 get_module_list(MODULE_LIST)
-configure_file("${PROJECT_SOURCE_DIR}/modules/modules.cpp.in"
-  "${PROJECT_BINARY_DIR}/modules/modules.cpp" @ONLY)
+configure_file("${PROJECT_SOURCE_DIR}/src/util/modules.cpp.in"
+  "${PROJECT_BINARY_DIR}/src/util/modules.cpp" @ONLY)
 
 #------------------------------------------------------------------------------
 # Git Version : for reproducibility
 #------------------------------------------------------------------------------
-add_subdirectory(gitVersion)
-include(gitVersion_init)
+include(git_version_init)
 get_git_log(GIT_LOG)  # Executes 'git log -1'.
 get_git_status(GIT_STATUS)  # Executes 'git status --porcelain'.
 if(GIT_STATUS)
   message(WARNING "Working tree is dirty. Run 'git status' for details.")  
 endif()
-configure_file("${PROJECT_SOURCE_DIR}/gitVersion/gitVersion.cpp.in"
-  "${PROJECT_BINARY_DIR}/gitVersion/gitVersion.cpp" @ONLY)
+configure_file("${PROJECT_SOURCE_DIR}/src/util/git_version.cpp.in"
+  "${PROJECT_BINARY_DIR}/src/util/git_version.cpp" @ONLY)
 
 #------------------------------------------------------------------------------
 # DCA++ options
@@ -121,6 +119,7 @@ include(DCA_external_libs)
 #       these into a few big libraries; e.g. one for comp, math and phys,
 #       respectively.
 #------------------------------------------------------------------------------
+add_subdirectory(src/util)
 add_subdirectory(src/phys_library/DCA_step/cluster_solver/posix_qmci)
 
 #------------------------------------------------------------------------------

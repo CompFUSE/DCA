@@ -10,22 +10,22 @@
 // No-change test for CT-AUX.
 // Bilayer lattice with only interband interaction.
 
+#include "dca/config/defines.hpp"
+#ifndef DCA_HAVE_MPI
+#error MPI must be supported for the dca_DCA+_mpi_test.
+#endif  // DCA_HAVE_MPI
+
 #include <iostream>
 #include <cmath>
 #include <string>
 
 #include "gtest/gtest.h"
 
-#include "dca/config/defines.hpp"
-#ifndef DCA_HAVE_MPI
-#error MPI must be supported for the dca_DCA+_mpi_test.
-#endif  // DCA_HAVE_MPI
-#include "gitVersion.hpp"
-#include "modules.hpp"
 #include "dca_mpi_test_environment.hpp"
 #include "minimalist_printer.hpp"
-
 #include "dca/math_library/random_number_library/ranq2.hpp"
+#include "dca/util/git_version.hpp"
+#include "dca/util/modules.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/IO_library/HDF5/HDF5.hpp"
 #include "comp_library/IO_library/JSON/JSON.hpp"
@@ -68,11 +68,11 @@ TEST(bilayerLattice_Nc1_interband, Self_Energy) {
       dmn_0<cluster_domain<double, LatticeType::DIMENSION, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
 
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
-    GitVersion::print();
-    Modules::print();
+    dca::util::GitVersion::print();
+    dca::util::Modules::print();
   }
 
-  ParametersType parameters(GitVersion::string(), dca_test_env->concurrency);
+  ParametersType parameters(dca::util::GitVersion::string(), dca_test_env->concurrency);
   parameters.read_input_and_broadcast<IO::reader<IO::JSON>>(dca_test_env->input_file_name);
   parameters.update_model();
   parameters.update_domains();

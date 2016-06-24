@@ -3,15 +3,10 @@
 ################################################################################
 
 # Libraries
-# FIXME: Handle gitVersion and modules library nicer.
-set(DCA_LIBRARIES "${DCA_EXTERNAL_LIBS};gitVersion;modules;posix_qmci")
+# TODO: Handle git_version and modules libraries nicer.
+set(DCA_LIBRARIES "${DCA_EXTERNAL_LIBS};git_version;modules;posix_qmci")
 # message("DCA_LIBRARIES: ${DCA_LIBRARIES}")
 
 # Includes
-set(DCA_INCLUDES
-  ${PROJECT_SOURCE_DIR}/src
-   )
-list(APPEND DCA_INCLUDES "${PROJECT_SOURCE_DIR}/gitVersion")  # Directory of gitVersion.hpp.
-list(APPEND DCA_INCLUDES "${PROJECT_SOURCE_DIR}/modules")  # Directory of modules.hpp.
-list(APPEND DCA_INCLUDES "${DCA_EXTERNAL_INCLUDES}")
+set(DCA_INCLUDES ${DCA_EXTERNAL_INCLUDES})
 # message("DCA_INCLUDES: ${DCA_INCLUDES}")

@@ -10,20 +10,20 @@
 // Integration test for a concurrent (using MPI) DCA+ analysis calculation.
 // It runs a simulation of a tight-binding model on 2D square lattice.
 
+#include "dca/config/defines.hpp"
+#ifndef DCA_HAVE_MPI
+#error MPI must be supported for the analysis_DCA+_mpi_test.
+#endif  // DCA_HAVE_MPI
+
 #include <string>
 #include <iostream>
 
 #include "gtest/gtest.h"
 
-#include "dca/config/defines.hpp"
-#ifndef DCA_HAVE_MPI
-#error MPI must be supported for the analysis_DCA+_mpi_test.
-#endif  // DCA_HAVE_MPI
-#include "gitVersion.hpp"
-#include "modules.hpp"
 #include "dca_mpi_test_environment.hpp"
 #include "minimalist_printer.hpp"
-
+#include "dca/util/git_version.hpp"
+#include "dca/util/modules.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/IO_library/HDF5/HDF5.hpp"
 #include "comp_library/IO_library/JSON/JSON.hpp"
@@ -56,11 +56,11 @@ TEST(analysis_DCAplus_mpi, leading_eigenvalues) {
               << " processes.\n"
               << std::endl;
 
-    GitVersion::print();
-    Modules::print();
+    dca::util::GitVersion::print();
+    dca::util::Modules::print();
   }
 
-  ParametersType parameters(GitVersion::string(), dca_test_env->concurrency);
+  ParametersType parameters(dca::util::GitVersion::string(), dca_test_env->concurrency);
   parameters.read_input_and_broadcast<IO::reader<IO::JSON>>(dca_test_env->input_file_name);
   parameters.update_model();
   parameters.update_domains();

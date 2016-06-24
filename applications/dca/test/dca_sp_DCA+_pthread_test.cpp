@@ -10,23 +10,22 @@
 // Integration test for a DCA+ main loop calculation using the pthreaded CT-AUX cluster solver.
 // It runs a simulation of a tight-binding model on 2D square lattice.
 
+#include "dca/config/defines.hpp"
+#ifndef DCA_HAVE_MPI
+#error MPI must be supported for the dca_DCA+_mpi_test.
+#endif  // DCA_HAVE_MPI
+
 #include <iostream>
 #include <string>
 
 #include "gtest/gtest.h"
 
-#include "dca/config/defines.hpp"
-#ifndef DCA_HAVE_MPI
-#error MPI must be supported for the dca_DCA+_mpi_test.
-#endif  // DCA_HAVE_MPI
-#include "gitVersion.hpp"
-#include "modules.hpp"
-// TODO:
 #include "dca_mpi_test_environment.hpp"
 #include "minimalist_printer.hpp"
-
 #include "dca/concurrency/parallelization_pthreads.h"
 #include "dca/math_library/random_number_library/ranq2.hpp"
+#include "dca/util/git_version.hpp"
+#include "dca/util/modules.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/IO_library/HDF5/HDF5.hpp"
 #include "comp_library/IO_library/JSON/JSON.hpp"
@@ -83,11 +82,11 @@ TEST(dca_sp_DCAplus_pthread, Self_energy) {
               << " processes.\n"
               << std::endl;
 
-    GitVersion::print();
-    Modules::print();
+    dca::util::GitVersion::print();
+    dca::util::Modules::print();
   }
 
-  ParametersType parameters(GitVersion::string(), dca_test_env->concurrency);
+  ParametersType parameters(dca::util::GitVersion::string(), dca_test_env->concurrency);
   parameters.read_input_and_broadcast<IO::reader<IO::JSON>>(dca_test_env->input_file_name);
   parameters.update_model();
   parameters.update_domains();
