@@ -9,8 +9,8 @@
 //
 // Testing environment for DCA++ tests that use MPI.
 
-#ifndef DCA_TEST_COMMON_MPI_TEST_ENVIRONMENT_HPP
-#define DCA_TEST_COMMON_MPI_TEST_ENVIRONMENT_HPP
+#ifndef DCA_TESTING_MPI_TEST_ENVIRONMENT_HPP
+#define DCA_TESTING_MPI_TEST_ENVIRONMENT_HPP
 
 #include <string>
 #include "gtest/gtest.h"
@@ -34,4 +34,4 @@ public:
 }  // testing
 }  // dca
 
-#endif  // DCA_TEST_COMMON_MPI_TEST_ENVIRONMENT_HPP
+#endif  // DCA_TESTING_MPI_TEST_ENVIRONMENT_HPP

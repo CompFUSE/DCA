@@ -20,8 +20,8 @@
 
 #include "gtest/gtest.h"
 
-#include "dca_mpi_test_environment.hpp"
-#include "minimalist_printer.hpp"
+#include "dca/testing/dca_mpi_test_environment.hpp"
+#include "dca/testing/minimalist_printer.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 #include "comp_library/function_library/include_function_library.h"

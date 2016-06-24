@@ -10,8 +10,8 @@
 // This class provides an alternative output mode which produces minimal amount of information about
 // tests. Only failed assertions are disclosed.
 
-#ifndef DCA_TEST_COMMON_MINIMALIST_PRINTER_HPP
-#define DCA_TEST_COMMON_MINIMALIST_PRINTER_HPP
+#ifndef DCA_TESTING_MINIMALIST_PRINTER_HPP
+#define DCA_TESTING_MINIMALIST_PRINTER_HPP
 
 #include "gtest/gtest.h"
 
@@ -34,4 +34,4 @@ private:
 }  // testing
 }  // dca
 
-#endif  // DCA_TEST_COMMON_MINIMALIST_PRINTER_HPP
+#endif  // DCA_TESTING_MINIMALIST_PRINTER_HPP
