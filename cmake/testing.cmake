@@ -7,7 +7,7 @@
 include(CMakeParseArguments)
 
 function(add_gtest)
-  set(options ADVANCED MPI GTEST_MAIN)
+  set(options ADVANCED MPI CUDA GTEST_MAIN)
   set(oneValueArgs NAME MPI_NUMPROC)
   set(multiValueArgs INCLUDES SOURCES LIBS)
   cmake_parse_arguments(ADD_GTEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
@@ -22,6 +22,11 @@ function(add_gtest)
     return()
   endif()
 
+  if (ADD_GTEST_CUDA AND NOT DCA_HAVE_CUDA)
+    message(WARNING "Requested CUDA for test ${ADD_GTEST_NAME} but CUDA is not available. Test is skipped.")
+    return()
+  endif()
+
   add_executable(${ADD_GTEST_NAME} ${ADD_GTEST_NAME}.cpp "${ADD_GTEST_SOURCES}")
   
   if (ADD_GTEST_GTEST_MAIN)
@@ -30,6 +35,14 @@ function(add_gtest)
   else()
     # Test has its own main.
     target_link_libraries(${ADD_GTEST_NAME} gtest "${ADD_GTEST_LIBS}")
+  endif()
+
+  # TODO: Pass GPU routines and GPU libraries as argument to add_gtest function?
+  if (ADD_GTEST_CUDA)
+       target_link_libraries(${ADD_GTEST_NAME}
+                             DCA_GPU_routines
+                             ${DCA_GPU_LIBRARIES})
+       cuda_add_cublas_to_target(${ADD_GTEST_NAME})
   endif()
 
   target_include_directories(${ADD_GTEST_NAME} PRIVATE "${ADD_GTEST_INCLUDES}")
