@@ -24,31 +24,31 @@ set(DCA_LAPACK_IMPLICIT TRUE CACHE INTERNAL "")
 set(DCA_FFTW_IMPLICIT   TRUE CACHE INTERNAL "")
 
 # MPIEXEC stuff for executing parallel tests.
-# Check whether the system uses the aprun or the srun command. To do this we exploit that executing
-# the command that is available results in an error message that contains the command name and
-# executing the command that is not available just results in "No such file or directory".
-execute_process(COMMAND srun
-                RESULT_VARIABLE srun_res
-                ERROR_VARIABLE srun_err)
-# message ("res = ${srun_res}")
-# essage ("err = ${srun_err}")
-execute_process(COMMAND aprun
-                RESULT_VARIABLE aprun_res
-                ERROR_VARIABLE aprun_err)
-# message ("res = ${aprun_res}")
-# message ("err = ${aprun_err}")
+# If the 'slurm' module is loaded, the command for running MPI programs is 'srun'.
+# Otherwise, check whether the 'alps' module is loaded and use 'aprun'.
+execute_process(COMMAND modulecmd bash list
+                RESULT_VARIABLE res
+                ERROR_VARIABLE module_list)
 
-if ("${srun_err}" MATCHES ".*srun.*")
-# message ("Use srun.")
+string(FIND ${module_list} "slurm" slurm_found)
+if (NOT (${slurm_found} EQUAL -1))
+# Use srun
 set(MPIEXEC "srun"
   CACHE FILEPATH "Executable for running MPI programs.")
-elseif ("${aprun_err}" MATCHES ".*aprun.*")
-# message ("Use aprun.")
-set(MPIEXEC "aprun"
-  CACHE FILEPATH "Executable for running MPI programs.")
-else ()
-message (FATAL_ERROR "Neither aprun nor srun command found.")
-endif ()
+
+else()
+# Check for aprun
+  string(FIND ${module_list} "alps" alps_found)
+  if (NOT (${alps_found} EQUAL -1))
+    # Use aprun
+    set(MPIEXEC "aprun"
+        CACHE FILEPATH "Executable for running MPI programs.")
+  else()
+    message (FATAL_ERROR "Neither aprun nor srun command found.")
+  endif()
+
+endif()
+  
 set(MPIEXEC_NUMPROC_FLAG "-n"
   CACHE FILEPATH "Flag used by MPI to specify the number of processes for
                   MPIEXEC; the next option will be the number of processes.")
