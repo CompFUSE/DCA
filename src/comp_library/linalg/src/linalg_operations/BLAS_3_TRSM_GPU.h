@@ -35,9 +35,9 @@ namespace LIN_ALG {
     */
     
     inline static void execute(char SIDE, char UPLO, char TRANSA, char DIAG, int M, int N, double ALPHA, double* A, int LDA, double* B, int LDB, 
-			       int thread_id, int stream_id)
+			       int thread_id, int /*stream_id*/)
     {
-      assert(stream_id==0);
+      // assert(stream_id==0);
       GPU_KERNEL_TRSM::dtrsm(SIDE, UPLO, TRANSA, DIAG, M, N, ALPHA, A, LDA, B, LDB, thread_id);
     }
     

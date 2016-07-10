@@ -60,9 +60,9 @@ namespace LIN_ALG {
 			       double* B, int LDB,
 			       double  beta, 
 			       double* C, int LDC,
-			       int thread_id, int stream_id)
+			       int thread_id, int /*stream_id*/)
     {
-      assert(stream_id==0);
+      // assert(stream_id==0);
       GPU_KERNEL_GEMM::dgemm(TRANSA, TRANSB, M, N, K, alpha, A, LDA, B, LDB, beta, C, LDC, thread_id);
     }
 

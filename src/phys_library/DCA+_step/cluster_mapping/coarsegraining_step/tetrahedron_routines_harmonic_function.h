@@ -248,9 +248,10 @@ std::complex<double> tetrahedron_routines_harmonic_function::case_2D(double dotR
   return result;
 }
 
-std::complex<double> tetrahedron_routines_harmonic_function::case_d1_2D(double dotRD1, double dotRD2,
+std::complex<double> tetrahedron_routines_harmonic_function::case_d1_2D(double /*dotRD1*/,
+                                                                        double dotRD2,
                                                                         double dotRD2minD1) {
-  assert(std::abs(dotRD1) < 1.e-6);
+  // assert(std::abs(dotRD1) < 1.e-6);
   assert(std::abs(dotRD2) > 1.e-6);
   assert(std::abs(dotRD2minD1) > 1.e-6);
 
@@ -265,10 +266,11 @@ std::complex<double> tetrahedron_routines_harmonic_function::case_d1_2D(double d
   return result;
 }
 
-std::complex<double> tetrahedron_routines_harmonic_function::case_d2_2D(double dotRD1, double dotRD2,
+std::complex<double> tetrahedron_routines_harmonic_function::case_d2_2D(double dotRD1,
+                                                                        double /*dotRD2*/,
                                                                         double dotRD2minD1) {
   assert(std::abs(dotRD1) > 1.e-6);
-  assert(std::abs(dotRD2) < 1.e-6);
+  // assert(std::abs(dotRD2) < 1.e-6);
   assert(std::abs(dotRD2minD1) > 1.e-6);
 
   std::complex<double> result(0., 0.);
@@ -346,12 +348,12 @@ std::complex<double> tetrahedron_routines_harmonic_function::case_3D(double dotR
   return result;
 }
 
-std::complex<double> tetrahedron_routines_harmonic_function::case_d1_3D(double dotRD1,
+std::complex<double> tetrahedron_routines_harmonic_function::case_d1_3D(double /*dotRD1*/,
                                                                         double dotRD2, double dotRD3,
                                                                         double /*dotRD2minD1*/,
                                                                         double dotRD3minD2,
                                                                         double /*dotRD1minD3*/) {
-  assert(std::abs(dotRD1) < 1.e-6);
+  // assert(std::abs(dotRD1) < 1.e-6);
   assert(std::abs(dotRD2) > 1.e-6);
   assert(std::abs(dotRD3) > 1.e-6);
 
@@ -386,13 +388,11 @@ std::complex<double> tetrahedron_routines_harmonic_function::case_d1_3D(double d
   return result;
 }
 
-std::complex<double> tetrahedron_routines_harmonic_function::case_d2_3D(double dotRD1,
-                                                                        double dotRD2, double dotRD3,
-                                                                        double /*dotRD2minD1*/,
-                                                                        double /*dotRD3minD2*/,
-                                                                        double dotRD1minD3) {
+std::complex<double> tetrahedron_routines_harmonic_function::case_d2_3D(
+    double dotRD1, double /*dotRD2*/, double dotRD3, double /*dotRD2minD1*/, double /*dotRD3minD2*/,
+    double dotRD1minD3) {
   assert(std::abs(dotRD1) > 1.e-6);
-  assert(std::abs(dotRD2) < 1.e-6);
+  // assert(std::abs(dotRD2) < 1.e-6);
   assert(std::abs(dotRD3) > 1.e-6);
 
   //     assert(std::abs(dotRD2minD1) > 1.e-6);
@@ -426,14 +426,14 @@ std::complex<double> tetrahedron_routines_harmonic_function::case_d2_3D(double d
   return result;
 }
 
-std::complex<double> tetrahedron_routines_harmonic_function::case_d3_3D(double dotRD1,
-                                                                        double dotRD2, double dotRD3,
+std::complex<double> tetrahedron_routines_harmonic_function::case_d3_3D(double dotRD1, double dotRD2,
+                                                                        double /*dotRD3*/,
                                                                         double dotRD2minD1,
                                                                         double /*dotRD3minD2*/,
                                                                         double /*dotRD1minD3*/) {
   assert(std::abs(dotRD1) > 1.e-6);
   assert(std::abs(dotRD2) > 1.e-6);
-  assert(std::abs(dotRD3) < 1.e-6);
+  // assert(std::abs(dotRD3) < 1.e-6);
 
   //     assert(std::abs(dotRD2minD1) > 1.e-6);
   //     assert(std::abs(dotRD3minD2) > 1.e-6);
@@ -467,10 +467,10 @@ std::complex<double> tetrahedron_routines_harmonic_function::case_d3_3D(double d
 }
 
 std::complex<double> tetrahedron_routines_harmonic_function::case_d1_d2_3D(
-    double dotRD1, double dotRD2, double dotRD3, double /*dotRD2minD1*/, double /*dotRD3minD2*/,
-    double /*dotRD1minD3*/) {
-  assert(std::abs(dotRD1) < 1.e-6);
-  assert(std::abs(dotRD2) < 1.e-6);
+    double /*dotRD1*/, double /*dotRD2*/, double dotRD3, double /*dotRD2minD1*/,
+    double /*dotRD3minD2*/, double /*dotRD1minD3*/) {
+  // assert(std::abs(dotRD1) < 1.e-6);
+  // assert(std::abs(dotRD2) < 1.e-6);
   assert(std::abs(dotRD3) > 1.e-6);
 
   //     assert(std::abs(dotRD2minD1) > 1.e-6);
@@ -490,11 +490,11 @@ std::complex<double> tetrahedron_routines_harmonic_function::case_d1_d2_3D(
 }
 
 std::complex<double> tetrahedron_routines_harmonic_function::case_d2_d3_3D(
-    double dotRD1, double dotRD2, double dotRD3, double /*dotRD2minD1*/, double /*dotRD3minD2*/,
-    double /*dotRD1minD3*/) {
+    double dotRD1, double /*dotRD2*/, double /*dotRD3*/, double /*dotRD2minD1*/,
+    double /*dotRD3minD2*/, double /*dotRD1minD3*/) {
   assert(std::abs(dotRD1) > 1.e-6);
-  assert(std::abs(dotRD2) < 1.e-6);
-  assert(std::abs(dotRD3) < 1.e-6);
+  // assert(std::abs(dotRD2) < 1.e-6);
+  // assert(std::abs(dotRD3) < 1.e-6);
 
   //     assert(std::abs(dotRD2minD1) > 1.e-6);
   //     assert(std::abs(dotRD3minD2) > 1.e-6);
@@ -513,11 +513,11 @@ std::complex<double> tetrahedron_routines_harmonic_function::case_d2_d3_3D(
 }
 
 std::complex<double> tetrahedron_routines_harmonic_function::case_d3_d1_3D(
-    double dotRD1, double dotRD2, double dotRD3, double /*dotRD2minD1*/, double /*dotRD3minD2*/,
-    double /*dotRD1minD3*/) {
-  assert(std::abs(dotRD1) < 1.e-6);
+    double /*dotRD1*/, double dotRD2, double /*dotRD3*/, double /*dotRD2minD1*/,
+    double /*dotRD3minD2*/, double /*dotRD1minD3*/) {
+  // assert(std::abs(dotRD1) < 1.e-6);
   assert(std::abs(dotRD2) > 1.e-6);
-  assert(std::abs(dotRD3) < 1.e-6);
+  // assert(std::abs(dotRD3) < 1.e-6);
 
   //     assert(std::abs(dotRD2minD1) > 1.e-6);
   //     assert(std::abs(dotRD3minD2) > 1.e-6);

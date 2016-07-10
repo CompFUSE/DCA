@@ -77,11 +77,11 @@ void electron_band_domain::write(Writer& writer) {
 
 template <typename parameters_type>
 void electron_band_domain::initialize(parameters_type& /*parameters*/, int NB_BANDS,
-                                      std::vector<int> flavors,
+                                      std::vector<int> /*flavors*/,
                                       std::vector<std::vector<double>> a_vecs) {
   get_size() = NB_BANDS;
 
-  assert(NB_BANDS == int(flavors.size()));
+  // assert(NB_BANDS == int(flavors.size()));
   assert(NB_BANDS == int(a_vecs.size()));
 
   for (size_t i = 0; i < get_elements().size(); ++i) {

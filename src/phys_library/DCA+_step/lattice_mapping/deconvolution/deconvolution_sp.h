@@ -65,7 +65,7 @@ deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::deconvolution
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 void deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, source_k_dmn_t, w>>& f_source,
+    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, source_k_dmn_t, w>>& /*f_source*/,
     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w>>& f_interp,
     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w>>& f_approx,
     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w>>& f_target) {

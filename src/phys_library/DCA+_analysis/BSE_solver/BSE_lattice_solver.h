@@ -499,7 +499,7 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_Gamma_chi_0(
 
 template <class parameters_type, class MOMS_type>
 void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_full_Gamma_chi_0_real(
-    FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
+    FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& /*Gamma_lattice*/,
     FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice) {
   profiler_type prof(__FUNCTION__, "BSE_lattice_solver", __LINE__);
 
@@ -643,7 +643,7 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::record_eigenvalues_and_eige
 template <class parameters_type, class MOMS_type>
 void BSE_lattice_solver<parameters_type, MOMS_type>::record_eigenvalues_and_eigenvectors(
     LIN_ALG::vector<std::complex<scalartype>, LIN_ALG::CPU>& L,
-    LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& VL,
+    LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& /*VL*/,
     LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& VR) {
   int N = lattice_eigenvector_dmn_t::dmn_size();
   int M = crystal_eigenvector_dmn_t::dmn_size();
@@ -775,7 +775,7 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_folded_Gamma_ch
 template <class parameters_type, class MOMS_type>
 void BSE_lattice_solver<parameters_type, MOMS_type>::record_eigenvalues_and_folded_eigenvectors(
     LIN_ALG::vector<std::complex<scalartype>, LIN_ALG::CPU>& L,
-    LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& VL,
+    LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& /*VL*/,
     LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& VR) {
   int N = lattice_eigenvector_dmn_t::dmn_size();
   int M = crystal_eigenvector_dmn_t::dmn_size();

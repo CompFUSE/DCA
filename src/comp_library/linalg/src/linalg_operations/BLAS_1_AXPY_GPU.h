@@ -23,15 +23,15 @@ namespace LIN_ALG {
       }
     */
 
-    inline static void execute(int length, double alpha, double* a, int inc_a, double* b, int inc_b, int thread_id, int stream_id)
+    inline static void execute(int length, double alpha, double* a, int inc_a, double* b, int inc_b, int thread_id, int /*stream_id*/)
     {
-      assert(stream_id==0);
+      // assert(stream_id==0);
       GPU_KERNEL_AXPY::daxpy(length, alpha, a, inc_a, b, inc_b, thread_id);
     }
 
-    inline static void execute(int length, double alpha, double* a, int inc_a, double* b, int inc_b, int /*id*/, int thread_id, int stream_id)
+    inline static void execute(int length, double alpha, double* a, int inc_a, double* b, int inc_b, int /*id*/, int thread_id, int /*stream_id*/)
     {
-      assert(stream_id==0);
+      // assert(stream_id==0);
       GPU_KERNEL_AXPY::daxpy(length, alpha, a, inc_a, b, inc_b, thread_id);
     }
 

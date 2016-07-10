@@ -97,7 +97,7 @@ struct function_test<FUNC_LIB::function<double, dmn<N, Dmn>>> {
     function_test(fType &func) : f(func) {}
 
     template <typename Arg>
-    bool check_1(Arg arg) {
+    bool check_1(Arg /*arg*/) {
         //
 /*        std::cout << "Sub branch size " << std::endl;
         for (int i=0; i<f.get_Nb_branch_domains(); i++) {
@@ -151,7 +151,7 @@ struct function_test<FUNC_LIB::function<double, Domain>> {
     //
 
     template <typename Arg>
-    bool check_1(Arg arg) {
+    bool check_1(Arg /*arg*/) {
         //
         std::cout << "Sub branch size " << std::endl;
         for (int i=0; i<f.get_domain().get_Nb_branch_domains(); i++) {
@@ -216,7 +216,7 @@ struct function_test<FUNC_LIB::function<double, Domain>> {
     }
     //
     template <typename... Args>
-    scalartype expand(Args... args) {
+    scalartype expand(Args... /*args*/) {
         return scalartype(0);
     }
     //

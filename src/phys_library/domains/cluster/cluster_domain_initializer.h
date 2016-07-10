@@ -147,8 +147,8 @@ void cluster_domain_initializer<dmn_0<cluster_domain<scalar_type, DIMENSION, NAM
 
 template <typename scalar_type, int DIMENSION, CLUSTER_NAMES NAME, CLUSTER_SHAPE SHAPE>
 void cluster_domain_initializer<
-    dmn_0<cluster_domain<scalar_type, DIMENSION, NAME, REAL_SPACE, SHAPE>>>::allocate_data(int N) {
-  assert(N == DIMENSION);
+  dmn_0<cluster_domain<scalar_type, DIMENSION, NAME, REAL_SPACE, SHAPE>>>::allocate_data(int /*N*/) {
+  // assert(N == DIMENSION);
 
   {
     r_dmn::get_basis() = new scalar_type[DIMENSION * DIMENSION];

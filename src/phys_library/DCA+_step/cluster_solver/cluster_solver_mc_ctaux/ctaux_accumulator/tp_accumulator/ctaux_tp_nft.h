@@ -17,6 +17,7 @@
 #include <utility>
 #include <vector>
 
+#include "dca/util/ignore_unused.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/linalg/linalg.hpp"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
@@ -297,6 +298,9 @@ template <int dimension, class scalar_type, class r_dmn_t, class w_vertex_dmn_t,
 template <typename configuration_t, typename matrix_t>
 void cached_nft<dimension, scalar_type, r_dmn_t, w_vertex_dmn_t, w_vertex_pos_dmn_t>::compute_M_matrix(
     configuration_t& configuration, matrix_t& M, int b_i, int r_i, int b_j, int r_j) {
+  // In release mode 'configuration' is an unused parameter.
+  dca::util::ignoreUnused(configuration);
+
   M_ij.resize_no_copy(std::pair<int, int>(end_index(b_i, r_i) - start_index(b_i, r_i),
                                           end_index(b_j, r_j) - start_index(b_j, r_j)));
 

@@ -16,7 +16,7 @@ namespace LIN_ALG {
       char TRANSA = 'N';
       char TRANSB = 'N';
 
-      test_sizes(TRANSA, TRANSB, A, B, C);
+      assert(test_sizes(TRANSA, TRANSB, A, B, C));
 
       scalartype alpha = 1.;
       scalartype beta  = 0.;
@@ -40,7 +40,7 @@ namespace LIN_ALG {
       char TRANSA = 'N';
       char TRANSB = 'N';
 
-      test_sizes(TRANSA, TRANSB, A, B, C);
+      assert(test_sizes(TRANSA, TRANSB, A, B, C));
 
       scalartype alpha = a;
       scalartype beta  = b;
@@ -62,7 +62,7 @@ namespace LIN_ALG {
                         matrix<scalartype, CPU>& B,
                         matrix<scalartype, CPU>& C)
     {
-      test_sizes(TRANSA, TRANSB, A, B, C);
+      assert(test_sizes(TRANSA, TRANSB, A, B, C));
 
       execute(TRANSA, TRANSB, A, B, C, 0, 0);
     }
@@ -73,7 +73,7 @@ namespace LIN_ALG {
                         matrix<std::complex<scalartype>, CPU>& B,
                         matrix<std::complex<scalartype>, CPU>& C)
     {
-      test_sizes(TRANSA, TRANSB, A, B, C);
+      assert(test_sizes(TRANSA, TRANSB, A, B, C));
 
       matrix<scalartype, CPU> B_re("B_re", B.get_current_size(), B.get_global_size());
       matrix<scalartype, CPU> B_im("B_im", B.get_current_size(), B.get_global_size());
@@ -104,7 +104,7 @@ namespace LIN_ALG {
                         matrix<             double , CPU>& B,
                         matrix<std::complex<double>, CPU>& C)
     {
-      test_sizes(TRANSA, TRANSB, A, B, C);
+      assert(test_sizes(TRANSA, TRANSB, A, B, C));
 
       matrix<double, CPU> A_re("A_re", A.get_current_size(), A.get_global_size());
       matrix<double, CPU> A_im("A_im", A.get_current_size(), A.get_global_size());
@@ -136,7 +136,7 @@ namespace LIN_ALG {
                         matrix<scalartype, CPU>& C,
                         int /*thread_id*/, int /*stream_id*/)
     {
-      test_sizes(TRANSA, TRANSB, A, B, C);
+      assert(test_sizes(TRANSA, TRANSB, A, B, C));
 
       scalartype alpha = 1;
       scalartype beta  = 0;
@@ -261,7 +261,7 @@ namespace LIN_ALG {
     }
 
     template<typename scalartype_1, typename scalartype_2, typename scalartype_3>
-    inline static void test_sizes(char TRANSA, char TRANSB,
+    inline static bool test_sizes(char TRANSA, char TRANSB,
                                   matrix<scalartype_1, CPU>& A,
                                   matrix<scalartype_2, CPU>& B,
                                   matrix<scalartype_3, CPU>& C)
@@ -270,32 +270,33 @@ namespace LIN_ALG {
       {
         if(TRANSB=='N')
         {
-          assert(A.get_current_size().first  == C.get_current_size().first);
-          assert(A.get_current_size().second == B.get_current_size().first);
-          assert(B.get_current_size().second == C.get_current_size().second);
+          return ((A.get_current_size().first == C.get_current_size().first) &&
+                  (A.get_current_size().second == B.get_current_size().first) &&
+                  (B.get_current_size().second == C.get_current_size().second));
         }
         else
         {
-          assert(A.get_current_size().first  == C.get_current_size().first);
-          assert(A.get_current_size().second == B.get_current_size().second);
-          assert(B.get_current_size().first  == C.get_current_size().second);
+          return ((A.get_current_size().first == C.get_current_size().first) &&
+                  (A.get_current_size().second == B.get_current_size().second) &&
+                  (B.get_current_size().first == C.get_current_size().second));
         }
       }
       else
       {
         if(TRANSB=='N')
         {
-          assert(A.get_current_size().second  == C.get_current_size().first);
-          assert(A.get_current_size().first   == B.get_current_size().first);
-          assert(B.get_current_size().second == C.get_current_size().second);
+          return ((A.get_current_size().second == C.get_current_size().first) &&
+                  (A.get_current_size().first == B.get_current_size().first) &&
+                  (B.get_current_size().second == C.get_current_size().second));
         }
         else
         {
-          assert(A.get_current_size().second  == C.get_current_size().first);
-          assert(A.get_current_size().first   == B.get_current_size().second);
-          assert(B.get_current_size().first  == C.get_current_size().second);
+          return ((A.get_current_size().second == C.get_current_size().first) &&
+                  (A.get_current_size().first == B.get_current_size().second) &&
+                  (B.get_current_size().first == C.get_current_size().second));
         }
       }
+      return false;
     }
 
   };

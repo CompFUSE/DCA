@@ -80,7 +80,7 @@ void general_interaction<parameters_type>::set_vertex(vertex_pair_type& vertex,
 template <typename parameters_type>
 template <class H_interaction_type>
 std::vector<int> general_interaction<parameters_type>::make_correlated_orbitals(
-    parameters_type& parameters, H_interaction_type& H_interaction) {
+    parameters_type& /*parameters*/, H_interaction_type& H_interaction) {
   std::vector<int> correlated_orbitals;
 
   for (int r_j = 0; r_j < r_DCA::dmn_size(); ++r_j) {

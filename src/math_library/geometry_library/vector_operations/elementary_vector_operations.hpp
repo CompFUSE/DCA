@@ -192,10 +192,10 @@ inline std::vector<scalartype> COORDINATES(const std::vector<scalartype>& r,
 
 template <typename scalartype>
 inline void COORDINATES(const std::vector<scalartype>& v1, const std::vector<scalartype>& v2,
-                        const std::vector<scalartype>& vec, std::vector<scalartype>& coor) {
+                        const std::vector<scalartype>& /*vec*/, std::vector<scalartype>& coor) {
   assert(v1.size() == 2);
   assert(v2.size() == 2);
-  assert(vec.size() == 2);
+  // assert(vec.size() == 2);
   assert(coor.size() == 2);
 
   int N = 2;
@@ -213,12 +213,12 @@ inline void COORDINATES(const std::vector<scalartype>& v1, const std::vector<sca
 
 template <typename scalartype>
 inline void COORDINATES(const std::vector<scalartype>& v1, const std::vector<scalartype>& v2,
-                        const std::vector<scalartype>& v3, const std::vector<scalartype>& vec,
+                        const std::vector<scalartype>& v3, const std::vector<scalartype>& /*vec*/,
                         std::vector<scalartype>& coor) {
   assert(v1.size() == 3);
   assert(v2.size() == 3);
   assert(v3.size() == 3);
-  assert(vec.size() == 3);
+  // assert(vec.size() == 3);
   assert(coor.size() == 3);
 
   int N = 3;

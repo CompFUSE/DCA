@@ -21,25 +21,25 @@ namespace LIN_ALG {
 
     template<typename scalartype>
     inline static void row(matrix<scalartype, GPU>& M, scalartype val, int i,
-                           int /*thread_id*/, int stream_id)
+                           int /*thread_id*/, int /*stream_id*/)
     {
-      assert(stream_id==0);
+      // assert(stream_id==0);
       execute(M.get_current_size().second, val, M.get_ptr(i,0), M.get_global_size().first);
     }
 
     template<typename scalartype>
     inline static void col(matrix<scalartype, GPU>& M, scalartype val, int i,
-                           int /*thread_id*/, int stream_id)
+                           int /*thread_id*/, int /*stream_id*/)
     {
-      assert(stream_id==0);
+      // assert(stream_id==0);
       execute(M.get_current_size().first, val, M.get_ptr(0,i), val, M.get_global_size().second);
     }
 
     template<typename scalartype>
     inline static void row_and_col(matrix<scalartype, GPU>& M, scalartype val, int i,
-                                   int /*thread_id*/, int stream_id)
+                                   int /*thread_id*/, int /*stream_id*/)
     {
-      assert(stream_id==0);
+      // assert(stream_id==0);
       SCALE<GPU>::row(M, val, i);
       SCALE<GPU>::col(M, val, i);
     }
@@ -51,9 +51,9 @@ namespace LIN_ALG {
     */
 
     inline static void execute(int length, double f, double* a, int inc_a,
-			       int thread_id, int stream_id)
+			       int thread_id, int /*stream_id*/)
     {
-      assert(stream_id==0);
+      // assert(stream_id==0);
       GPU_KERNEL_SCALE::dscale(length, f, a, inc_a, thread_id);
     }
 
