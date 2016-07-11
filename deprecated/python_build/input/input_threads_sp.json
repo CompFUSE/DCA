@@ -1,155 +1,155 @@
 {
-    "filename-parameters" : 
+    "filename-parameters" :
     {
-	"output-format"         : "HDF5",
+        "output-format"         : "HDF5",
 
         "output-file"           : "data.hdf5",
-	"profiling-file"        : "profiling_classical3.hdf5",
+        "profiling-file"        : "profiling_classical3.hdf5",
 
         "spectrum-file"         : "data_CPE.hdf5",
-	"susceptibilities-file" : "data_susceptibilities.hdf5"
+        "susceptibilities-file" : "data_susceptibilities.hdf5"
     },
 
     "physics-parameters" :
-    { 
+    {
         "beta"                      :  10,
 
-	"adjust-chemical-potential" : "false", 
+        "adjust-chemical-potential" : "false",
         "density"                   :  1.0,
         "chemical-potential"        :  0.0
     },
 
-    "2D-Hubbard-model" : 
+    "2D-Hubbard-model" :
     {
-	"t"       : 1,
-	"t-prime" : 0,
+        "t"       : 1,
+        "t-prime" : 0,
 
-	"U"       : 4,
-	"U-prime" : 0
+        "U"       : 4,
+        "U-prime" : 0
     },
 
-    "DCA" : 
+    "DCA" :
     {
-    	"do-DCA+" : "true",
+        "do-DCA+" : "true",
 
-	"interacting-bands" : [0],
-	"DCA-iterations"    : 2,
-	"DCA-mixing-factor" : 1.,
-	
-	"cluster" : [[ 2, 4],
-		     [ 4, 0]],
+        "interacting-bands" : [0],
+        "DCA-iterations"    : 2,
+        "DCA-mixing-factor" : 1.,
 
-	"cluster-mapping" : 
-	{
-	   "k-mesh-refinement" : 3,
-	   "quadrature-rule"   : 0,
-	   "number-of-periods" : 2,
+        "cluster" : [[ 2, 4],
+                     [ 4, 0]],
 
-	   "number-of-threads" : 8,
+        "cluster-mapping" :
+        {
+           "k-mesh-refinement" : 3,
+           "quadrature-rule"   : 0,
+           "number-of-periods" : 2,
 
-	   "precompute-Hamiltonian"      : "true",
-	   "phi(k) integration accuracy" : 0.01,
+           "number-of-threads" : 8,
 
-	   "print-phi"                   : "true"
-	},
+           "precompute-Hamiltonian"      : "true",
+           "phi(k) integration accuracy" : 0.01,
 
-	"lattice-mapping" : 
-	{
-	   "interpolation-method" : "wannier-interpolation",
-	   "HTS-approximation"    : "false",
+           "print-phi"                   : "true"
+        },
 
-	   "deconvolution-tolerance"      : 0.01,
-	   "max-deconvolution-iterations" : 32
-	}
+        "lattice-mapping" :
+        {
+           "interpolation-method" : "wannier-interpolation",
+           "HTS-approximation"    : "false",
+
+           "deconvolution-tolerance"      : 0.01,
+           "max-deconvolution-iterations" : 32
+        }
     },
 
-    "Monte-Carlo-Integration" : 
+    "Monte-Carlo-Integration" :
     {
-	"Sigma-file" : "zero",
+        "Sigma-file" : "zero",
 
-	"warm-up-sweeps"         : 20,
-	"sweeps-per-measurement" : 1,
-	"measurements"           : 1000,
+        "warm-up-sweeps"         : 20,
+        "sweeps-per-measurement" : 1,
+        "measurements"           : 1000,
 
-	"adaptive-double-counting" : "false",
-	
-	"RNG-seed" : 985456376,
+        "adaptive-double-counting" : "false",
 
-	"MC-posix-parameters" : 
-	{
-	    "nr-walkers"       : 2,
-	    "nr-accumulators"  : 2,
-	    "additional-steps" : 0,
+        "RNG-seed" : 985456376,
 
-	    "HTS-threads" : 8
-	}
+        "MC-posix-parameters" :
+        {
+            "nr-walkers"       : 2,
+            "nr-accumulators"  : 2,
+            "additional-steps" : 0,
+
+            "HTS-threads" : 8
+        }
     },
 
-    "CT-AUX-solver" : 
+    "CT-AUX-solver" :
     {
-	"submatrix-size"      : 64,
-	"initial-matrix-size" : 256,
+        "submatrix-size"      : 64,
+        "initial-matrix-size" : 256,
 
-	"K-parameter"         : 1
+        "K-parameter"         : 1
     },
 
-    "function-parameters" : 
+    "function-parameters" :
     {
-	"single-particle-functions" : 
-	{
-	    "H(k) grid-size"        : [32, 32],	
+        "single-particle-functions" :
+        {
+            "H(k) grid-size"        : [32, 32],
 
-	    "time-intervals"        : 64,
-	    "fermionic-frequencies" : 128,
-	    "bosonic-frequencies"   : 32,
-	    
-	    "sp-cluster" : [[10, 10],
-		      	    [10,-10]]
-	},
+            "time-intervals"        : 64,
+            "fermionic-frequencies" : 128,
+            "bosonic-frequencies"   : 32,
 
-	"two-particle-functions" : 
-	{
-	    "time-intervals"        : 16,
+            "sp-cluster" : [[10, 10],
+                            [10,-10]]
+        },
 
-	    "fermionic-frequencies" : 16,
-	    "bosonic-frequencies"   : 16,
-	
-	    "tp-cluster" : [[8, 8],
-		      	    [8,-8]]
-	},
+        "two-particle-functions" :
+        {
+            "time-intervals"        : 16,
 
-	"real-axis-functions" :
-	{
-	    "lower-bound" : -20,
-	    "upper-bound" :  20,
+            "fermionic-frequencies" : 16,
+            "bosonic-frequencies"   : 16,
 
-	    "nr-intervals" : 401,
-	    "real-axis-off-set" : 0.01
-	}
+            "tp-cluster" : [[8, 8],
+                            [8,-8]]
+        },
+
+        "real-axis-functions" :
+        {
+            "lower-bound" : -20,
+            "upper-bound" :  20,
+
+            "nr-intervals" : 401,
+            "real-axis-off-set" : 0.01
+        }
      },
 
-    "equal-time-observables" : 
+    "equal-time-observables" :
     {
-	"do-equal-time-measurements" : "false"
+        "do-equal-time-measurements" : "false"
     },
 
-    "CPE-parameters" : 
+    "CPE-parameters" :
     {
-	"do-CPE" : "true",
+        "do-CPE" : "true",
 
-	"max-CPE-iterations" : 1024,
-	"max-CPE-error"      : 0.01,
+        "max-CPE-iterations" : 1024,
+        "max-CPE-error"      : 0.01,
 
-	"number-of-matsubara-freqencies" : 64,
+        "number-of-matsubara-freqencies" : 64,
 
-	"smoothing-factor" : 1,	
-	
-	"simulate-Gaussian-noise" : "false",
-	"nr-of-samples"           : 16,
-	"simulated-stddev"        : 0.1,
+        "smoothing-factor" : 1,
 
-	"compute-free-spectrum"    : "true",
-	"compute-lattice-spectrum" : "true",
-	"compute-cluster-spectrum" : "false"
+        "simulate-Gaussian-noise" : "false",
+        "nr-of-samples"           : 16,
+        "simulated-stddev"        : 0.1,
+
+        "compute-free-spectrum"    : "true",
+        "compute-lattice-spectrum" : "true",
+        "compute-cluster-spectrum" : "false"
     }
 }
