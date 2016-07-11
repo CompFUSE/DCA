@@ -1,133 +1,133 @@
 {
-    "filename-parameters" : 
+    "filename-parameters" :
     {
-	"output-format"         : "HDF5",
+        "output-format"         : "HDF5",
 
-	"output-ED"  : "output__ED.hdf5",
-	"output-QMC" : "output_QMC.hdf5",
+        "output-ED"  : "output__ED.hdf5",
+        "output-QMC" : "output_QMC.hdf5",
 
         "dump-cluster-Greens-function" : "true"
     },
 
     "physics-parameters" :
-    { 
+    {
         "beta"                      :  10,
 
-	"adjust-chemical-potential" : "false", 
+        "adjust-chemical-potential" : "false",
         "density"                   :  1.0,
         "chemical-potential"        : -0.0
     },
 
-    "2D-Hubbard-model" : 
+    "2D-Hubbard-model" :
     {
-	"t"       : 1,
-	"U"       : 2,
+        "t"       : 1,
+        "U"       : 2,
         "V"       : 0.1,
         "V-prime" : 0.1
     },
 
-    "DCA" : 
+    "DCA" :
     {
-    	"do-DCA+" : "false",
+        "do-DCA+" : "false",
 
-	"interacting-bands" : [0],
-	"DCA-iterations"    : 2,
-	"DCA-mixing-factor" : 1.0,
-	
-	"cluster" : [[ 2, 0],
-		     [ 0, 2]],
+        "interacting-bands" : [0],
+        "DCA-iterations"    : 2,
+        "DCA-mixing-factor" : 1.0,
 
-	"cluster-mapping" : 
-	{
-	   "k-mesh-refinement" : 2,
-	   "quadrature-rule"   : 0,
-	   "number-of-periods" : 0,
+        "cluster" : [[ 2, 0],
+                     [ 0, 2]],
 
-	   "precompute-Hamiltonian"      : "true",
-	   "phi(k) integration accuracy" : 0.01,
+        "cluster-mapping" :
+        {
+           "k-mesh-refinement" : 2,
+           "quadrature-rule"   : 0,
+           "number-of-periods" : 0,
 
-	   "print-phi"                   : "false"
-	},
+           "precompute-Hamiltonian"      : "true",
+           "phi(k) integration accuracy" : 0.01,
 
-	"lattice-mapping" : 
-	{
-	   "interpolation-method"         : "wannier-interpolation",
+           "print-phi"                   : "false"
+        },
 
-	   "deconvolution-tolerance"      : 0.01,
-	   "max-deconvolution-iterations" : 16
-	}
+        "lattice-mapping" :
+        {
+           "interpolation-method"         : "wannier-interpolation",
+
+           "deconvolution-tolerance"      : 0.01,
+           "max-deconvolution-iterations" : 16
+        }
     },
 
-    "Monte-Carlo-Integration" : 
+    "Monte-Carlo-Integration" :
     {
-	"Sigma-file" : "zero",
+        "Sigma-file" : "zero",
 
-	"warm-up-sweeps"         : 10,
-	"sweeps-per-measurement" : 10,
-	"measurements"           : 1000,
+        "warm-up-sweeps"         : 10,
+        "sweeps-per-measurement" : 10,
+        "measurements"           : 1000,
 
-	"adaptive-double-counting" : "false",
-	
-	"RNG-seed" : 985456376,
+        "adaptive-double-counting" : "false",
 
-	"MC-posix-parameters" : 
-	{
-	    "nr-walkers"       : 2,
-	    "nr-accumulators"  : 2,
-	    "additional-steps" : 0
-	}
+        "RNG-seed" : 985456376,
+
+        "MC-posix-parameters" :
+        {
+            "nr-walkers"       : 2,
+            "nr-accumulators"  : 2,
+            "additional-steps" : 0
+        }
     },
 
-    "CT-AUX-solver" : 
+    "CT-AUX-solver" :
     {
-	"submatrix-size"      : 1,
-	"initial-matrix-size" : 64,
+        "submatrix-size"      : 1,
+        "initial-matrix-size" : 64,
 
-	"K-parameter"         : 10
+        "K-parameter"         : 10
     },
 
-    "ED-solver-parameters" : 
+    "ED-solver-parameters" :
     {
-    	"eigenvalue-cut-off" : 0.000001
+        "eigenvalue-cut-off" : 0.000001
     },
 
-    "function-parameters" : 
+    "function-parameters" :
     {
-	"single-particle-functions" : 
-	{
-	    "H(k) grid-size"        : [8, 8],	
+        "single-particle-functions" :
+        {
+            "H(k) grid-size"        : [8, 8],
 
-	    "time-intervals"        : 512,
+            "time-intervals"        : 512,
 
-	    "fermionic-frequencies" : 512,
-	    "bosonic-frequencies"   : 128,
-	    
-	    "sp-cluster" : [[8, 8],
-		      	    [8,-8]]
-	},
+            "fermionic-frequencies" : 512,
+            "bosonic-frequencies"   : 128,
 
-	"two-particle-functions" : 
-	{
-	    "time-intervals"        : 32,
+            "sp-cluster" : [[8, 8],
+                            [8,-8]]
+        },
 
-	    "fermionic-frequencies" : 4,
-	    "bosonic-frequencies"   : 16,
-	
-	    "tp-cluster" : [[8, 8],
-		      	    [8,-8]]
-	},
+        "two-particle-functions" :
+        {
+            "time-intervals"        : 32,
 
-	"real-axis-functions" :
-	{
-	    "lower-bound" : -10,
-	    "upper-bound" :  10,
+            "fermionic-frequencies" : 4,
+            "bosonic-frequencies"   : 16,
 
-	    "nr-intervals" : 256,
-	    "real-axis-off-set" : 0.01
-	}
+            "tp-cluster" : [[8, 8],
+                            [8,-8]]
+        },
+
+        "real-axis-functions" :
+        {
+            "lower-bound" : -10,
+            "upper-bound" :  10,
+
+            "nr-intervals" : 256,
+            "real-axis-off-set" : 0.01
+        }
      },
 
-    "equal-time-observables" : 
+    "equal-time-observables" :
     {
         "do-equal-time-measurements" : "false"
     }
