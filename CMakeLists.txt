@@ -119,6 +119,7 @@ include(DCA_external_libs)
 #       these into a few big libraries; e.g. one for comp, math and phys,
 #       respectively.
 #------------------------------------------------------------------------------
+add_subdirectory(src/math/geometry/gaussian_quadrature)
 add_subdirectory(src/util)
 add_subdirectory(src/phys_library/DCA_step/cluster_solver/posix_qmci)
 

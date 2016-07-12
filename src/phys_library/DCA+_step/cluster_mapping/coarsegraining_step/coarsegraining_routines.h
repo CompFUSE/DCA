@@ -14,11 +14,12 @@
 
 #include <complex>
 
+#include "dca/math/geometry/gaussian_quadrature/gaussian_quadrature_domain.hpp"
+
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/linalg/linalg.hpp"
 
 #include "math_library/geometry_library/tetrahedron_mesh/tetrahedron_mesh.h"
-#include "math_library/geometry_library/gaussian_quadrature/gaussian_quadrature_domain.h"
 
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_domain.h"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/quadrature_integration.h"
@@ -63,7 +64,7 @@ public:
   using k_cluster_type = typename K_dmn::parameter_type;
 
   using tetrahedron_dmn = dmn_0<math_algorithms::tetrahedron_mesh<K_dmn>>;
-  using quadrature_dmn = math_algorithms::gaussian_quadrature_domain<tetrahedron_dmn>;
+  using quadrature_dmn = dca::math::gaussquad::gaussian_quadrature_domain<tetrahedron_dmn>;
 
   using t = dmn_0<time_domain>;
   using w = dmn_0<frequency_domain>;
