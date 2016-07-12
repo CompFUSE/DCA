@@ -17,13 +17,20 @@
 #include <string>
 #include <vector>
 
+#include "dca/math/geometry/gaussian_quadrature/compute_weights_and_abscissas.hpp"
 #include "comp_library/function_library/domains/special_domains/dmn_0.h"
 #include "math_library/functional_transforms/domain_specifications/domain_specifications.hpp"
-#include "math_library/geometry_library/gaussian_quadrature/gaussian_quadrature_algorithm.h"
 #include "math_library/geometry_library/tetrahedron_mesh/tetrahedron_mesh.h"
 #include "math_library/functional_transforms/typedefs.hpp"
 
-namespace math_algorithms {
+namespace dca {
+namespace math {
+namespace gaussquad {
+// dca::math::gaussquad::
+
+// TODO: Remove this when all namespaces are fixed.
+using namespace math_algorithms;
+
 template <typename dmn_type>
 class gaussian_quadrature_domain {};
 
@@ -173,7 +180,7 @@ void gaussian_quadrature_domain<dmn_0<tetrahedron_mesh<dmn_0<cluster_type>>>>::i
   std::vector<tetrahedron<DIMENSION>>& tets = mesh.get_tetrahedra();
 
   for (int l = 0; l < tets.size(); l++)
-    math_algorithms::GAUSSIAN_QUADRATURE::set_points(rule, tets[l]);
+    computeWeightsAndAbscissas(rule, tets[l]);
 }
 
 template <typename cluster_type>
@@ -261,6 +268,9 @@ void gaussian_quadrature_domain<dmn_0<tetrahedron_mesh<dmn_0<cluster_type>>>>::p
 
   plot_obj.showonscreen();
 }
-}
+
+}  // gaussquad
+}  // math
+}  // dca
 
 #endif  // MATH_LIBRARY_GEOMETRY_LIBRARY_GAUSSIAN_QUADRATURE_GAUSSIAN_QUADRATURE_DOMAIN_H

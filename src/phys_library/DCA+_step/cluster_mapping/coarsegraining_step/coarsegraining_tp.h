@@ -17,11 +17,11 @@
 #include <stdexcept>
 #include <vector>
 
+#include "dca/math/geometry/gaussian_quadrature/gaussian_quadrature_domain.hpp"
 #include "dca/util/print_time.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/linalg/linalg.hpp"
 #include "math_library/geometry_library/tetrahedron_mesh/tetrahedron_mesh.h"
-#include "math_library/geometry_library/gaussian_quadrature/gaussian_quadrature_domain.h"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_interpolation_matrices.h"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_routines.h"
 #include "phys_library/domains/cluster/cluster_domain.h"
@@ -52,7 +52,7 @@ public:
   using matrix_type = LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>;
 
   using tetrahedron_dmn = dmn_0<math_algorithms::tetrahedron_mesh<K_dmn>>;
-  using quadrature_dmn = math_algorithms::gaussian_quadrature_domain<tetrahedron_dmn>;
+  using quadrature_dmn = dca::math::gaussquad::gaussian_quadrature_domain<tetrahedron_dmn>;
 
   using q_dmn = dmn_0<coarsegraining_domain<K_dmn, K>>;
   using q_plus_Q_dmn = dmn_0<coarsegraining_domain<K_dmn, K_PLUS_Q>>;
