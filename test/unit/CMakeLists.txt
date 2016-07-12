@@ -1,3 +1,4 @@
+add_subdirectory(${PROJECT_SOURCE_DIR}/test/unit/math/geometry/gaussian_quadrature)
 add_subdirectory(${PROJECT_SOURCE_DIR}/test/unit/math_library/random_number_library)
 add_subdirectory(${PROJECT_SOURCE_DIR}/test/unit/phys_library/DCA_step/cluster_solver/posix_qmci)
 add_subdirectory(${PROJECT_SOURCE_DIR}/test/unit/phys/domains/cluster)
