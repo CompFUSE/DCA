@@ -13,7 +13,7 @@
 #include "gtest/gtest.h"
 #include "math_library/geometry_library/tetrahedron_mesh/tetrahedron/tetrahedron.hpp"
 
-TEST(SetPointsTest, 1DUnitSimplex) {
+TEST(ComputeWeightsAndAbscissasTest, 1DUnitSimplex) {
   // 1D unit simplex = line segment of length 1
   math_algorithms::tetrahedron<1> tet;
   tet.vec_0 = {0.};
@@ -34,7 +34,7 @@ TEST(SetPointsTest, 1DUnitSimplex) {
   EXPECT_FLOAT_EQ(0.5, tet.q_vecs[2]);
 }
 
-TEST(SetPointsTest, 1DTransformedSimplex) {
+TEST(ComputeWeightsAndAbscissasTest, 1DTransformedSimplex) {
   // Transformed 1D simplex: unit simplex streched by a factor of 2 and shifted by 1
   math_algorithms::tetrahedron<1> tet;
   tet.vec_0 = {1.};
@@ -55,7 +55,7 @@ TEST(SetPointsTest, 1DTransformedSimplex) {
   EXPECT_FLOAT_EQ(2.0, tet.q_vecs[2]);
 }
 
-TEST(SetPointsTest, 2DUnitSimplex) {
+TEST(ComputeWeightsAndAbscissasTest, 2DUnitSimplex) {
   // 2D unit simplex = isosceles triangle of side length 1
   math_algorithms::tetrahedron<2> tet;
   tet.vec_0 = {0., 0.};
@@ -83,7 +83,7 @@ TEST(SetPointsTest, 2DUnitSimplex) {
   EXPECT_FLOAT_EQ(0.33333334, tet.q_vecs[7]);
 }
 
-TEST(SetPointsTest, 2DTransformedSimplex) {
+TEST(ComputeWeightsAndAbscissasTest, 2DTransformedSimplex) {
   math_algorithms::tetrahedron<2> tet;
   tet.vec_0 = {2., 1.};
   tet.vec_1 = {3., 4.};
@@ -110,7 +110,7 @@ TEST(SetPointsTest, 2DTransformedSimplex) {
   EXPECT_FLOAT_EQ(2.6666667, tet.q_vecs[7]);
 }
 
-TEST(SetPointsTest, 3DUnitSimplex) {
+TEST(ComputeWeightsAndAbscissasTest, 3DUnitSimplex) {
   math_algorithms::tetrahedron<3> tet;
   tet.vec_0 = {0., 0., 0.};
   tet.vec_1 = {1., 0., 0.};
@@ -146,7 +146,7 @@ TEST(SetPointsTest, 3DUnitSimplex) {
   EXPECT_FLOAT_EQ(0.25, tet.q_vecs[14]);
 }
 
-TEST(SetPointsTest, 3DTransformedSimplex) {
+TEST(ComputeWeightsAndAbscissasTest, 3DTransformedSimplex) {
   math_algorithms::tetrahedron<3> tet;
   tet.vec_0 = {2., 1., 1.};
   tet.vec_1 = {3., 4., 0.};
