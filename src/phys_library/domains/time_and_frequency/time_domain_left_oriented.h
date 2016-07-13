@@ -5,7 +5,7 @@
 // See LICENSE.txt for terms of usage.
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
-// Author: Peter Staar (peter.w.j.staar@gmail.com)
+// Author: Peter Staar (taa@zurich.ibm.com)
 //
 // This class parametrizes the time-domain with N intervals, but it leaves out the right edge.
 

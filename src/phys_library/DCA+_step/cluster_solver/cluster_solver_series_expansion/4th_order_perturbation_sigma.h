@@ -5,7 +5,7 @@
 // See LICENSE.txt for terms of usage.
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
-// Author: Peter Staar (peter.w.j.staar@gmail.com)
+// Author: Peter Staar (taa@zurich.ibm.com)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // This class computes the self-energy in fourth order.

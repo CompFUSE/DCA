@@ -5,7 +5,7 @@
 // See LICENSE.txt for terms of usage.
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
-// Author: Peter Staar (peter.w.j.staar@gmail.com)
+// Author: Peter Staar (taa@zurich.ibm.com)
 //
 // This file pulls in all vector operations *.h files.
 // It is self-contained and can be included whenever a file depends on any of the vector operations

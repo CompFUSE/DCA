@@ -5,7 +5,7 @@
 // See LICENSE.txt for terms of usage.
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
-// Author: Peter Staar (peter.w.j.staar@gmail.com)
+// Author: Peter Staar (taa@zurich.ibm.com)
 //
 // Description
 #ifndef MATH_LIBRARY_FUNCTIONAL_TRANSFORMS_BASIS_TRANSFORMS_INNER_PRODUCT_DOMAIN_H

@@ -5,7 +5,7 @@
 // See LICENSE.txt for terms of usage.
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
-// Author: Peter Staar (peter.w.j.staar@gmail.com)
+// Author: Peter Staar (taa@zurich.ibm.com)
 //
 // This class symmetrizes two-particle Greens functions according to cluster symmetries, matsubara
 // frequencies and band-index symmetries.

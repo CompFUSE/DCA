@@ -6,7 +6,7 @@
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Bart Ydens
-//         Peter Staar (peter.w.j.staar@gmail.com)
+//         Peter Staar (taa@zurich.ibm.com)
 //
 // Single-site Monte Carlo integrator based on a hybridization expansion.
 

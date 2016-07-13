@@ -5,7 +5,7 @@
 // See LICENSE.txt for terms of usage.
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
-// Author: Peter Staar (peter.w.j.staar@gmail.com)
+// Author: Peter Staar (taa@zurich.ibm.com)
 //
 // Empty class declaration for the tetrahedron mesh initializer object that is templated over the
 // dimension of the tetrahedron mesh and the momentum space cluster type.
