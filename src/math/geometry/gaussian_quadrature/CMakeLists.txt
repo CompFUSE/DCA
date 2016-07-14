@@ -7,7 +7,8 @@ add_library(gaussian_quadrature SHARED compute_weights_and_abscissas.cpp simplex
 # the full path to the include directories.
 target_include_directories(gaussian_quadrature
                            PRIVATE ${PROJECT_SOURCE_DIR}/include
-                           PRIVATE ${PROJECT_SOURCE_DIR}/include/dca/math/geometry/gaussian_quadrature)
+                           PRIVATE ${PROJECT_SOURCE_DIR}/include/dca/math/geometry/gaussian_quadrature
+                           PRIVATE ${FFTW_INCLUDE_DIR})
 
 # The shared library already needs to be linked to LAPACK.
 target_link_libraries(gaussian_quadrature PRIVATE ${LAPACK_LIBRARIES})
