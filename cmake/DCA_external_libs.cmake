@@ -21,12 +21,12 @@ find_library(SPGLIB_LIBRARY
   NO_DEFAULT_PATH)
 
 # Lapack
-if (NOT DCA_LAPACK_IMPLICIT)
+if (NOT DCA_HAVE_LAPACK)
   find_package(LAPACK REQUIRED)
 endif()
 
 # HDF5
-if (NOT DCA_HDF5_IMPLICIT)
+if (NOT DCA_HAVE_HDF5)
   # Find HDF5 by looking for a CMake configuration file (hdf5-1.10.x).
   find_package(HDF5 COMPONENTS C CXX NO_MODULE QUIET)
   if (NOT HDF5_FOUND) 
@@ -37,7 +37,7 @@ if (NOT DCA_HDF5_IMPLICIT)
 endif()
 
 # FFTW
-if (NOT DCA_FFTW_IMPLICIT)
+if (NOT DCA_HAVE_FFTW)
   find_library(FFTW_LIBRARY NAMES fftw3)
   get_filename_component(FFTW_LIB_DIR ${FFTW_LIBRARY} DIRECTORY)
   get_filename_component(FFTW_DIR     ${FFTW_LIB_DIR} DIRECTORY)
@@ -51,29 +51,25 @@ set(DCA_EXTERNAL_LIBS
   ${HDF5_LIBRARIES}
   ${NFFT_LIBRARY}
   ${FFTW_LIBRARY}
-  ${SPRNG_LIBRARY}
-)
+  ${SPRNG_LIBRARY})
 
 set(DCA_EXTERNAL_INCLUDES
   ${NFFT_DIR}/include
   ${SPGLIB_DIR}/include
   ${FFTW_INCLUDE_DIR}
-  ${HDF5_INCLUDE_DIRS}
-  )
+  ${HDF5_INCLUDE_DIRS})
 
 mark_as_advanced(
   MPI_LIBRARY MPI_EXTRA_LIBRARY
   NFFT_LIBRARY
   SPGLIB_LIBRARY
   FFTW_INCLUDE_DIR FFTW_LIBRARY
-  HDF5_DIR
-)
+  HDF5_DIR)
 
 # SPRNG
 # Only try to find SPRNG if it is the requested rng to use.
 if (${DCA_RNG} STREQUAL "SPRNG")
   # INTERNAL: Is there a find_package for SPRNG?
-  dca_add_config_define(DCA_HAVE_SPRNG)
 
   find_library(SPRNG_LIBRARY
     NAMES libsprng.a sprng
@@ -84,7 +80,9 @@ if (${DCA_RNG} STREQUAL "SPRNG")
     unset(SPRNG_LIBRARY CACHE)
     message(FATAL_ERROR "SPRNG library was not found!\nChoose a different option for the random number generator.")
   endif()
-  
+
+  dca_add_config_define(DCA_HAVE_SPRNG)
+
   list(APPEND DCA_EXTERNAL_LIBS ${SPRNG_LIBRARY})
   list(APPEND DCA_EXTERNAL_INCLUDES ${SPRNG_DIR}/include)
 
