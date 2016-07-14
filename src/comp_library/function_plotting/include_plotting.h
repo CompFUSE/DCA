@@ -1,13 +1,14 @@
-// TODO: Cleanup!
+// TODO: Clean-up!
 
 #ifndef SRC_COMP_LIBRARY_FUNCTION_PLOTTING_INCLUDE_PLOTTING_H
 #define SRC_COMP_LIBRARY_FUNCTION_PLOTTING_INCLUDE_PLOTTING_H
 
-#ifdef ALLOW_GNUPLOT
+#ifdef DCA_HAVE_GNUPLOT
 #include "comp_library/function_plotting/gnuplot/gnuplot_interface.hpp"
-#else
 
-#include "comp_library/function_library/include_function_library.h"
+#else
+#include <string>
+#include <vector>
 
 class Gnuplot {
 public:
@@ -32,7 +33,8 @@ public:
 
   void showonscreen() {}
 };
-#endif
+#endif  // DCA_HAVE_GNUPLOT
 
 #include "comp_library/function_plotting/show_function.inc"
-#endif
+
+#endif  // SRC_COMP_LIBRARY_FUNCTION_PLOTTING_INCLUDE_PLOTTING_H
