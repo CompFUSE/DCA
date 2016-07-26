@@ -17,24 +17,14 @@
 #define COMP_LIBRARY_BLAS_LAPACK_PLANS_BLAS_LAPACK_PLANS_HPP
 
 // BLAS
-#include "comp_library/blas_lapack_plans/BLAS/BLAS_C_wrappers.h"
-#include "comp_library/blas_lapack_plans/BLAS/blas_gemm.h"
-// #include "comp_library/blas_lapack_plans/BLAS/gbmv_plan.h"
-#include "comp_library/blas_lapack_plans/BLAS/gemv_plan.h"
+#include "dca/linalg/blas/blas1.hpp"
+#include "dca/linalg/blas/blas2.hpp"
+#include "dca/linalg/blas/blas3.hpp"
 
 // LAPACK
 #include "comp_library/blas_lapack_plans/LAPACK/LAPACK_C_wrappers.h"
-// #include "comp_library/blas_lapack_plans/LAPACK/eigensystem_plans/include_eigensystem_plans.h"
 #include "comp_library/blas_lapack_plans/LAPACK/geinv_plan.h"
-// #include "comp_library/blas_lapack_plans/LAPACK/gelss_plans/include_gelss_plan.h"
 #include "comp_library/blas_lapack_plans/LAPACK/geqr_plans/geqr_plans_real.h"
 #include "comp_library/blas_lapack_plans/LAPACK/gesv_plan.h"
-// #include "comp_library/blas_lapack_plans/LAPACK/gesvd_plan.h"
-// #include "comp_library/blas_lapack_plans/LAPACK/getrf_plan.h"
-// #include "comp_library/blas_lapack_plans/LAPACK/lapack_getrs.h"
-
-// LINEAR_ALGEBRA_PLANS
-#include "comp_library/blas_lapack_plans/LINEAR_ALGEBRA_PLANS/gemm_plan.h"
-// #include "comp_library/blas_lapack_plans/LINEAR_ALGEBRA_PLANS/getrs_plan.h"
 
 #endif  // COMP_LIBRARY_BLAS_LAPACK_PLANS_BLAS_LAPACK_PLANS_HPP

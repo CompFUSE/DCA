@@ -503,12 +503,11 @@ void CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::solve_Gamma_blocked(
           double* L_il = &A[(bl + 1) * Nk + (l + 0) * Nk * LD];
           double* U_li = &A[(l + 0) * Nk + (bl + 0) * Nk * LD];
 
-          LIN_ALG::GEMM<LIN_ALG::CPU>::execute('N', 'N', N - (bl + 1) * Nk, Nk, Nk, -1., L_il, LD,
-                                               U_li, LD, 1., A_10, LD);
+          dca::linalg::gemm("N", "N", N - (bl + 1) * Nk, Nk, Nk, -1., L_il, LD, U_li, LD, 1., A_10,
+                            LD);
         }
 
-        LIN_ALG::TRSM<LIN_ALG::CPU>::execute('R', 'U', 'N', 'N', N - (bl + 1) * Nk, Nk, 1, A_00, LD,
-                                             A_10, LD);
+        dca::linalg::trsm("R", "U", "N", "N", N - (bl + 1) * Nk, Nk, 1., A_00, LD, A_10, LD);
       }
 
       {
@@ -518,12 +517,11 @@ void CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::solve_Gamma_blocked(
           double* L_il = &A[(bl + 0) * Nk + (l + 0) * Nk * LD];
           double* U_li = &A[(l + 0) * Nk + (bl + 1) * Nk * LD];
 
-          LIN_ALG::GEMM<LIN_ALG::CPU>::execute('N', 'N', Nk, N - (bl + 1) * Nk, Nk, -1., L_il, LD,
-                                               U_li, LD, 1., A_01, LD);
+          dca::linalg::gemm("N", "N", Nk, N - (bl + 1) * Nk, Nk, -1., L_il, LD, U_li, LD, 1., A_01,
+                            LD);
         }
 
-        LIN_ALG::TRSM<LIN_ALG::CPU>::execute('L', 'L', 'N', 'U', Nk, N - (bl + 1) * Nk, 1., A_00,
-                                             LD, A_01, LD);
+        dca::linalg::trsm("L", "L", "N", "U", Nk, N - (bl + 1) * Nk, 1., A_00, LD, A_01, LD);
       }
     }
   }

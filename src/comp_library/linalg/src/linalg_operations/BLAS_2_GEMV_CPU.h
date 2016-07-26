@@ -47,36 +47,6 @@ namespace LIN_ALG {
                         scalartype  beta,
                         scalartype* C, int LDC,
                         int thread_id=0, int stream_id=0);
-
-  private:
-
-    inline static void execute_gemv(char TRANS, int M, int N,
-                                    float alpha,
-                                    float* A, int LDA,
-                                    float* B, int LDB,
-                                    float  beta,
-                                    float* C, int LDC);
-
-    inline static void execute_gemv(char TRANS, int M, int N,
-                                    double alpha,
-                                    double* A, int LDA,
-                                    double* B, int LDB,
-                                    double  beta,
-                                    double* C, int LDC);
-
-    inline static void execute_gemv(char TRANS, int M, int N,
-                                    std::complex<float> alpha,
-                                    std::complex<float>* A, int LDA,
-                                    std::complex<float>* B, int LDB,
-                                    std::complex<float>  beta,
-                                    std::complex<float>* C, int LDC);
-
-    inline static void execute_gemv(char TRANS, int M, int N,
-                                    std::complex<double> alpha,
-                                    std::complex<double>* A, int LDA,
-                                    std::complex<double>* B, int LDB,
-                                    std::complex<double>  beta,
-                                    std::complex<double>* C, int LDC);
   };
 
   template<typename scalartype>
@@ -94,7 +64,7 @@ namespace LIN_ALG {
     int LDB = 1;//N;
     int LDC = 1;//N;
 
-    execute_gemv(TRANS, M, N, alpha, A, LDA, B, LDB, beta, C, LDC);
+    execute_gemv(&TRANS, M, N, alpha, A, LDA, B, LDB, beta, C, LDC);
   }
 
   template<typename scalartype>
@@ -183,49 +153,8 @@ namespace LIN_ALG {
                           scalartype* C, int LDC,
                           int /*thread_id*/, int /*stream_id*/)
   {
-    execute_gemv(TRANS, M, N, alpha, A, LDA, B, LDB, beta, C, LDC);
+    dca::linalg::gemv(&TRANS, M, N, alpha, A, LDA, B, LDB, beta, C, LDC);
   }
-
-  void GEMV<CPU>::execute_gemv(char TRANS, int M, int N,
-                               float alpha,
-                               float* A, int LDA,
-                               float* B, int LDB,
-                               float  beta,
-                               float* C, int LDC)
-  {
-    BLAS::sgemv_(&TRANS, &M, &N, &alpha, A, &LDA, B, &LDB, &beta, C, &LDC);
-  }
-
-  void GEMV<CPU>::execute_gemv(char TRANS, int M, int N,
-                               double alpha,
-                               double* A, int LDA,
-                               double* B, int LDB,
-                               double  beta,
-                               double* C, int LDC)
-  {
-    BLAS::dgemv_(&TRANS, &M, &N, &alpha, A, &LDA, B, &LDB, &beta, C, &LDC);
-  }
-
-  void GEMV<CPU>::execute_gemv(char TRANS, int M, int N,
-                               std::complex<float> alpha,
-                               std::complex<float>* A, int LDA,
-                               std::complex<float>* B, int LDB,
-                               std::complex<float>  beta,
-                               std::complex<float>* C, int LDC)
-  {
-    BLAS::cgemv_(&TRANS, &M, &N, &alpha, A, &LDA, B, &LDB, &beta, C, &LDC);
-  }
-
-  void GEMV<CPU>::execute_gemv(char TRANS, int M, int N,
-                               std::complex<double> alpha,
-                               std::complex<double>* A, int LDA,
-                               std::complex<double>* B, int LDB,
-                               std::complex<double>  beta,
-                               std::complex<double>* C, int LDC)
-  {
-    BLAS::zgemv_(&TRANS, &M, &N, &alpha, A, &LDA, B, &LDB, &beta, C, &LDC);
-  }
-
 }
 
 #endif

@@ -87,10 +87,6 @@
 #include "src/linalg_operations/LASET_CPU.h"
 #include "src/linalg_operations/LASET_GPU.h"
 
-#include "src/linalg_operations/DOT_tem.h"
-#include "src/linalg_operations/DOT_CPU.h"
-#include "src/linalg_operations/DOT_GPU.h"
-
 #include "src/linalg_operations/GEMD_tem.h"
 #include "src/linalg_operations/GEMD_CPU.h"
 #include "src/linalg_operations/GEMD_GPU.h"

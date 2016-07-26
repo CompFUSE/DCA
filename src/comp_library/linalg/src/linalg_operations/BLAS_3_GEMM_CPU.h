@@ -29,7 +29,7 @@ namespace LIN_ALG {
       int LDB = B.get_global_size().first;
       int LDC = C.get_global_size().first;
 
-      execute_gemm(TRANSA, TRANSB, M, N, K, alpha, A.get_ptr(), LDA, B.get_ptr(), LDB, beta, C.get_ptr(), LDC);
+      execute(TRANSA, TRANSB, M, N, K, alpha, A.get_ptr(), LDA, B.get_ptr(), LDB, beta, C.get_ptr(), LDC);
     }
 
     template<typename scalartype>
@@ -53,7 +53,7 @@ namespace LIN_ALG {
       int LDB = B.get_global_size().first;
       int LDC = C.get_global_size().first;
 
-      execute_gemm(TRANSA, TRANSB, M, N, K, alpha, A.get_ptr(), LDA, B.get_ptr(), LDB, beta, C.get_ptr(), LDC);
+      execute(TRANSA, TRANSB, M, N, K, alpha, A.get_ptr(), LDA, B.get_ptr(), LDB, beta, C.get_ptr(), LDC);
     }
 
     template<typename scalartype>
@@ -157,7 +157,7 @@ namespace LIN_ALG {
       int LDB = B.get_global_size().first;
       int LDC = C.get_global_size().first;
 
-      execute_gemm(TRANSA, TRANSB, M, N, K, alpha, A.get_ptr(), LDA, B.get_ptr(), LDB, beta, C.get_ptr(), LDC);
+      execute(TRANSA, TRANSB, M, N, K, alpha, A.get_ptr(), LDA, B.get_ptr(), LDB, beta, C.get_ptr(), LDC);
     }
 
     template<typename scalartype>
@@ -172,10 +172,6 @@ namespace LIN_ALG {
 
       scalartype alpha = a;
       scalartype beta  = b;
-
-//       int M = A.get_current_size().first;
-//       int K = A.get_current_size().second;
-//       int N = B.get_current_size().second;
 
       int M, K, N;
       {
@@ -193,18 +189,9 @@ namespace LIN_ALG {
       int LDB = B.get_global_size().first;
       int LDC = C.get_global_size().first;
 
-      execute_gemm(TRANSA, TRANSB, M, N, K, alpha, A.get_ptr(), LDA, B.get_ptr(), LDB, beta, C.get_ptr(), LDC);
+      execute(TRANSA, TRANSB, M, N, K, alpha, A.get_ptr(), LDA, B.get_ptr(), LDB, beta, C.get_ptr(), LDC);
     }
 
-
-//     template<typename scalartype_a, typename scalartype_A, typename scalartype_B, typename scalartype_b, typename scalartype_C>
-//     static void execute(char TRANSA, char TRANSB, int M, int N, int K,
-//      scalartype_a alpha,
-//      scalartype_A* A, int LDA,
-//      scalartype_B* B, int LDB,
-//      scalartype_b  beta,
-//      scalartype_C* C, int LDC,
-//      int thread_id=0, int stream_id=0);
 
     template<typename scalartype>
     inline static void execute(char TRANSA, char TRANSB, int M, int N, int K,
@@ -215,50 +202,10 @@ namespace LIN_ALG {
                                scalartype* C, int LDC,
                                int /*thread_id*/=0, int /*stream_id*/=0)
     {
-      execute_gemm(TRANSA, TRANSB, M, N, K, alpha, A, LDA, B, LDB, beta, C, LDC);
+      dca::linalg::gemm(&TRANSA, &TRANSB, M, N, K, alpha, A, LDA, B, LDB, beta, C, LDC);
     }
 
   private:
-
-    inline static void execute_gemm(char TRANSA, char TRANSB, int M, int N, int K,
-                                    float alpha,
-                                    float* A, int LDA,
-                                    float* B, int LDB,
-                                    float  beta,
-                                    float* C, int LDC)
-    {
-      BLAS::sgemm_(&TRANSA, &TRANSB, &M, &N, &K, &alpha, A, &LDA, B, &LDB, &beta, C, &LDC);
-    }
-
-    inline static void execute_gemm(char TRANSA, char TRANSB, int M, int N, int K,
-                                    double alpha,
-                                    double* A, int LDA,
-                                    double* B, int LDB,
-                                    double  beta,
-                                    double* C, int LDC)
-    {
-      BLAS::dgemm_(&TRANSA, &TRANSB, &M, &N, &K, &alpha, A, &LDA, B, &LDB, &beta, C, &LDC);
-    }
-
-    inline static void execute_gemm(char TRANSA, char TRANSB, int M, int N, int K,
-                                    std::complex<float> alpha,
-                                    std::complex<float>* A, int LDA,
-                                    std::complex<float>* B, int LDB,
-                                    std::complex<float>  beta,
-                                    std::complex<float>* C, int LDC)
-    {
-      BLAS::cgemm_(&TRANSA, &TRANSB, &M, &N, &K, &alpha, A, &LDA, B, &LDB, &beta, C, &LDC);
-    }
-
-    inline static void execute_gemm(char TRANSA, char TRANSB, int M, int N, int K,
-                                    std::complex<double> alpha,
-                                    std::complex<double>* A, int LDA,
-                                    std::complex<double>* B, int LDB,
-                                    std::complex<double>  beta,
-                                    std::complex<double>* C, int LDC)
-    {
-      BLAS::zgemm_(&TRANSA, &TRANSB, &M, &N, &K, &alpha, A, &LDA, B, &LDB, &beta, C, &LDC);
-    }
 
     template<typename scalartype_1, typename scalartype_2, typename scalartype_3>
     inline static bool test_sizes(char TRANSA, char TRANSB,
