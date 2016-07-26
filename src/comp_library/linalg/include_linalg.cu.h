@@ -31,9 +31,6 @@
 #include "src/linalg_operations/copy_from_GPU_CPU.cu.h"
 #include "src/linalg_operations/copy_from_GPU_GPU.cu.h"
 
-// cublas
-#include "src/linalg_operations/DOT_GPU.cu.h"
-
 // CUBLAS 1
 #include "src/linalg_operations/BLAS_1_SCALE_GPU.cu.h"
 #include "src/linalg_operations/BLAS_1_AXPY_GPU.cu.h"
