@@ -8,7 +8,6 @@ add_custom_target(git_version_helper
   WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
 
 add_library(git_version ${CMAKE_CURRENT_BINARY_DIR}/git_version.cpp)
-# target_include_directories(git_version PUBLIC ${PROJECT_SOURCE_DIR}/include)
 add_dependencies(git_version git_version_helper)
 
 # Modules
@@ -18,5 +17,4 @@ add_custom_target(modules_helper
   WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
 
 add_library(modules ${CMAKE_CURRENT_BINARY_DIR}/modules.cpp)
-# target_include_directories(modules PUBLIC ${CMAKE_SOURCE_DIR}/include)
 add_dependencies(modules modules_helper)
