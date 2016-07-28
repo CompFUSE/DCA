@@ -32,7 +32,6 @@ if (NOT DCA_HAVE_HDF5)
     # Fall back to a search for a FindHDF5.cmake file and execute it.
     find_package(HDF5 REQUIRED COMPONENTS C CXX)
   endif()
-  include_directories(${HDF5_INCLUDE_DIR} ${HDF5_INCLUDE_DIR_CPP})
 endif()
 
 # FFTW
@@ -59,7 +58,9 @@ set(DCA_EXTERNAL_INCLUDES
   ${NFFT_DIR}/include
   ${SPGLIB_DIR}/include
   ${FFTW_INCLUDE_DIR}
-  ${HDF5_INCLUDE_DIRS})
+  ${HDF5_INCLUDE_DIRS}
+  ${HDF5_INCLUDE_DIR}
+  ${HDF5_INCLUDE_DIR_CPP})
 
 mark_as_advanced(
   MPI_LIBRARY MPI_EXTRA_LIBRARY
