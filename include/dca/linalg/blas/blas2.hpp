@@ -108,7 +108,8 @@ void zher2_(const char* uplo, const int* n, const std::complex<double>* alpha,
 // C++ wrappers
 namespace dca {
 namespace linalg {
-// dca::linalg::
+namespace blas {
+// dca::linalg::blas::
 inline void gemv(const char* trans, int m, int n, float alpha, const float* a, int lda,
                  const float* x, int incx, float beta, float* y, int incy) {
   sgemv_(trans, &m, &n, &alpha, a, &lda, x, &incx, &beta, y, &incy);
@@ -242,6 +243,7 @@ inline void her2(const char* uplo, int n, std::complex<double> alpha, const std:
                  int incx, const std::complex<double>* y, int incy, std::complex<double>* a, int lda) {
   zher2_(uplo, &n, &alpha, x, &incx, y, &incy, a, &lda);
 }
+}  // blas
 }  // linalg
 }  // dca
 

@@ -47,7 +47,7 @@ namespace LIN_ALG {
     static void execute(int length, scalar_type* a, int inc_a, scalar_type* b, int inc_b,
                         int /*thread_id*/, int /*stream_id*/)
     {
-      dca::linalg::swap(length, a, inc_a, b, inc_b);
+      dca::linalg::blas::swap(length, a, inc_a, b, inc_b);
     }
   };
 

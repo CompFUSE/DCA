@@ -52,7 +52,8 @@ double ddot_(const int* n, const double* x, const int* incx, const double* y, co
 // C++ wrappers
 namespace dca {
 namespace linalg {
-// dca::linalg::
+namespace blas {
+// dca::linalg::blas::
 inline void swap(int n, float* x, int incx, float* y, int incy) {
   sswap_(&n, x, &incx, y, &incy);
 }
@@ -113,6 +114,7 @@ inline float dot(int n, const float* x, int incx, const float* y, int incy) {
 inline double dot(int n, const double* x, int incx, const double* y, int incy) {
   return ddot_(&n, x, &incx, y, &incy);
 }
+}  // blas
 }  // linalg
 }  // dca
 

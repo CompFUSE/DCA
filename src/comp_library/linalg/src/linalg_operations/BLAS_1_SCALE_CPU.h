@@ -36,7 +36,7 @@ namespace LIN_ALG {
     inline static void execute(int length, scalartype f, scalartype* a, int inc_a,
                                int /*thread_id*/, int /*stream_id*/)
     {
-      dca::linalg::scal(&length, &f, a, &inc_a);
+      dca::linalg::blas::scal(&length, &f, a, &inc_a);
     }
 
     inline static void many_rows(int Nc, int Ni, int* r_i, double* alpha, double* A, int LD,

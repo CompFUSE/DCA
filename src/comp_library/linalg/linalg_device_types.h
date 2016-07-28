@@ -3,13 +3,17 @@
 #ifndef LIN_ALG_DEVICE_TYPES
 #define LIN_ALG_DEVICE_TYPES
 
+#include "dca/linalg/devicetype.hpp"
+
 namespace LIN_ALG {
 
-  enum    device_types {CPU, GPU};
-  typedef device_types device_type;
+// TODO: remove device_type and replace with DeviceType
+typedef dca::linalg::DeviceType device_type;
+const device_type CPU = dca::linalg::CPU;
+const device_type GPU = dca::linalg::GPU;
 
-  enum    copy_concurrency_types {SYNCHRONOUS, ASYNCHRONOUS};
-  typedef copy_concurrency_types copy_concurrency_type;
+enum copy_concurrency_types { SYNCHRONOUS, ASYNCHRONOUS };
+typedef copy_concurrency_types copy_concurrency_type;
 }
 
-#endif 
+#endif

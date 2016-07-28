@@ -427,7 +427,7 @@ double cached_nft<dimension, scalar_type, r_dmn_t, w_vertex_dmn_t,
     int LDB = M_ij.get_global_size().first;            // MAX;
     int LDC = T_l_times_M_ij.get_global_size().first;  // N_w;
 
-    LIN_ALG::GEMM<LIN_ALG::CPU>::execute('N', 'N', M, N, K, ONE, A, LDA, B, LDB, ZERO, C, LDC);
+    dca::linalg::blas::gemm("N", "N", M, N, K, ONE, A, LDA, B, LDB, ZERO, C, LDC);
 
     FLOPS += 4 * (M) * (K) * (N);
   }

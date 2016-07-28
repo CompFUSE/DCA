@@ -280,9 +280,9 @@ template <typename scalartype, typename scalar_type, int D, CLUSTER_NAMES N, CLU
           typename target_k_dmn_t>
 void hspline_interpolation_kernel<scalartype, cluster_domain<scalar_type, D, N, MOMENTUM_SPACE, S>,
                                   target_k_dmn_t>::execute(scalartype* input, scalartype* output) {
-  dca::linalg::gemm("N", "N", target_k_dmn_t::get_size(), 1, source_k_dmn_t::get_size(), 1.,
-                    interpolation_matrix, target_k_dmn_t::get_size(), input,
-                    source_k_dmn_t::get_size(), 0., output, target_k_dmn_t::get_size());
+  dca::linalg::blas::gemm("N", "N", target_k_dmn_t::get_size(), 1, source_k_dmn_t::get_size(), 1.,
+                          interpolation_matrix, target_k_dmn_t::get_size(), input,
+                          source_k_dmn_t::get_size(), 0., output, target_k_dmn_t::get_size());
 }
 
 template <typename scalartype, typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S,
@@ -290,9 +290,9 @@ template <typename scalartype, typename scalar_type, int D, CLUSTER_NAMES N, CLU
 void hspline_interpolation_kernel<scalartype, cluster_domain<scalar_type, D, N, MOMENTUM_SPACE, S>,
                                   target_k_dmn_t>::execute(scalartype* input, scalartype* output,
                                                            int n) {
-  dca::linalg::gemm("N", "N", target_k_dmn_t::get_size(), n, source_k_dmn_t::get_size(), 1.,
-                    interpolation_matrix, target_k_dmn_t::get_size(), input,
-                    source_k_dmn_t::get_size(), 0., output, target_k_dmn_t::get_size());
+  dca::linalg::blas::gemm("N", "N", target_k_dmn_t::get_size(), n, source_k_dmn_t::get_size(), 1.,
+                          interpolation_matrix, target_k_dmn_t::get_size(), input,
+                          source_k_dmn_t::get_size(), 0., output, target_k_dmn_t::get_size());
 }
 
 template <typename scalartype, typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S,
@@ -300,8 +300,8 @@ template <typename scalartype, typename scalar_type, int D, CLUSTER_NAMES N, CLU
 void hspline_interpolation_kernel<scalartype, cluster_domain<scalar_type, D, N, MOMENTUM_SPACE, S>,
                                   target_k_dmn_t>::execute_on_transpose(scalartype* input,
                                                                         scalartype* output, int n) {
-  dca::linalg::gemm("N", "T", n, target_k_dmn_t::get_size(), source_k_dmn_t::get_size(), 1., input,
-                    n, interpolation_matrix, target_k_dmn_t::get_size(), 0., output, n);
+  dca::linalg::blas::gemm("N", "T", n, target_k_dmn_t::get_size(), source_k_dmn_t::get_size(), 1.,
+                          input, n, interpolation_matrix, target_k_dmn_t::get_size(), 0., output, n);
 }
 
 template <typename scalartype, typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S,
@@ -403,8 +403,8 @@ void hspline_interpolation_kernel<scalartype, cluster_domain<scalar_type, D, N, 
     for (int d = 0; d < DIMENSION; ++d)
       k_vecs_target[d + l * DIMENSION] = target_k_dmn_t::get_elements()[l][d];
 
-  dca::linalg::gemm("N", "N", DIMENSION, target_k_dmn_t::get_size(), DIMENSION, 1., k_basis_inv,
-                    DIMENSION, k_vecs_target, DIMENSION, 0., k_vecs_source, DIMENSION);
+  dca::linalg::blas::gemm("N", "N", DIMENSION, target_k_dmn_t::get_size(), DIMENSION, 1., k_basis_inv,
+                          DIMENSION, k_vecs_target, DIMENSION, 0., k_vecs_source, DIMENSION);
 
   for (int l = 0; l < target_k_dmn_t::get_size(); ++l) {
     for (int d = 0; d < DIMENSION; ++d) {
@@ -419,8 +419,8 @@ void hspline_interpolation_kernel<scalartype, cluster_domain<scalar_type, D, N, 
     }
   }
 
-  dca::linalg::gemm("N", "N", DIMENSION, target_k_dmn_t::get_size(), DIMENSION, 1., k_basis,
-                    DIMENSION, k_vecs_source, DIMENSION, 0., k_vecs, DIMENSION);
+  dca::linalg::blas::gemm("N", "N", DIMENSION, target_k_dmn_t::get_size(), DIMENSION, 1., k_basis,
+                          DIMENSION, k_vecs_source, DIMENSION, 0., k_vecs, DIMENSION);
 }
 
 template <typename scalartype, typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S,
@@ -429,15 +429,15 @@ void hspline_interpolation_kernel<scalartype, cluster_domain<scalar_type, D, N, 
                                   target_k_dmn_t>::find_k_indices() {
   int N_k = target_k_dmn_t::get_size();
 
-  dca::linalg::gemm("N", "N", DIMENSION, N_k, DIMENSION, 1., k_super_basis_inv, DIMENSION, k_vecs,
-                    DIMENSION, 0., k_vecs_affine, DIMENSION);
+  dca::linalg::blas::gemm("N", "N", DIMENSION, N_k, DIMENSION, 1., k_super_basis_inv, DIMENSION,
+                          k_vecs, DIMENSION, 0., k_vecs_affine, DIMENSION);
 
   for (int l = 0; l < N_k; ++l)
     for (int d = 0; d < DIMENSION; ++d)
       k_vecs_affine[d + l * DIMENSION] = floor(k_vecs_affine[d + l * DIMENSION]);
 
-  dca::linalg::gemm("N", "N", DIMENSION, N_k, DIMENSION, 1., k_super_basis, DIMENSION,
-                    k_vecs_affine, DIMENSION, 0., k_vecs_index, DIMENSION);
+  dca::linalg::blas::gemm("N", "N", DIMENSION, N_k, DIMENSION, 1., k_super_basis, DIMENSION,
+                          k_vecs_affine, DIMENSION, 0., k_vecs_index, DIMENSION);
 }
 
 template <typename scalartype, typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S,

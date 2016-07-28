@@ -31,7 +31,7 @@ namespace LIN_ALG {
       assert(yi>-1 && yi<Y.get_current_size().second);
       assert(X.get_current_size().first == Y.get_current_size().first);
 
-      dca::linalg::copy(X.get_current_size().first, X.get_ptr(0,xi), 1, Y.get_ptr(0,yi), 1);
+      dca::linalg::blas::copy(X.get_current_size().first, X.get_ptr(0,xi), 1, Y.get_ptr(0,yi), 1);
     }
 
     template<typename scalartype>

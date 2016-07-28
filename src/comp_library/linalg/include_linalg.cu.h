@@ -17,8 +17,8 @@
 #define HAVE_CUBLAS 1
 #include "magma.h"
 
-#include "basic_cuda_functions.h"
-#include "basic_cublas_functions.h"
+#include "basic_cuda_functions.cu.h"
+#include "basic_cublas_functions.cu.h"
 
 //#include <thrust/host_vector.h>
 //#include <thrust/device_vector.h>
@@ -33,13 +33,8 @@
 
 // CUBLAS 1
 #include "src/linalg_operations/BLAS_1_SCALE_GPU.cu.h"
-#include "src/linalg_operations/BLAS_1_AXPY_GPU.cu.h"
 #include "src/linalg_operations/BLAS_1_COPY_GPU.cu.h"
 #include "src/linalg_operations/BLAS_1_SWAP_GPU.cu.h"
-
-// CUBLAS 3
-#include "src/linalg_operations/BLAS_3_TRSM_GPU.cu.h"
-#include "src/linalg_operations/BLAS_3_GEMM_GPU.cu.h"
 
 // own kernels
 #include "src/linalg_operations/GEMD_GPU.cu.h"
@@ -48,7 +43,6 @@
 
 // magma
 #include "src/linalg_operations/LASET_GPU.cu.h"
-#include "src/linalg_operations/TRSV_GPU.cu.h"
 #include "src/linalg_operations/GETRF_GPU.cu.h"
 #include "src/linalg_operations/GETRI_GPU.cu.h"
 #include "src/linalg_operations/GETRS_GPU.cu.h"

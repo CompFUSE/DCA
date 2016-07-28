@@ -127,7 +127,8 @@ void ztrsm_(const char* side, const char* uplo, const char* transa, const char* 
 // C++ wrappers
 namespace dca {
 namespace linalg {
-// dca::linalg::
+namespace blas {
+// dca::linalg::blas::
 inline void gemm(const char* transa, const char* transb, int m, int n, int k, float alpha,
                  const float* a, int lda, const float* b, int ldb, float beta, float* c, int ldc) {
   sgemm_(transa, transb, &m, &n, &k, &alpha, a, &lda, b, &ldb, &beta, c, &ldc);
@@ -275,6 +276,7 @@ inline void trsm(const char* side, const char* uplo, const char* transa, const c
                  std::complex<double>* b, int ldb) {
   ztrsm_(side, uplo, transa, diag, &m, &n, &alpha, a, &lda, b, &ldb);
 }
+}  // blas
 }  // linalg
 }  // dca
 

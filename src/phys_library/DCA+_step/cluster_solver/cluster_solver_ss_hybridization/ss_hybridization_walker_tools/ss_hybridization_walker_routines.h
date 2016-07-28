@@ -727,7 +727,7 @@ double ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, r
     compute_Q_prime(Q, M, Q_prime);
 
     int size = M.get_current_size().first;
-    det_rat += dca::linalg::dot(size, &R[0], inc, &Q_prime[0], inc);
+    det_rat += dca::linalg::blas::dot(size, &R[0], inc, &Q_prime[0], inc);
   }
 
   // take care of sign changes produced by segments which "wind around"
@@ -884,8 +884,8 @@ void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng
     int incy = M.get_global_size().first;
     int size = M.get_current_size().first;
 
-    dca::linalg::copy(size, &M(0, s), inc, &Q_prime[0], inc);
-    dca::linalg::copy(size, &M(r, 0), incy, &R_prime[0], inc);
+    dca::linalg::blas::copy(size, &M(0, s), inc, &Q_prime[0], inc);
+    dca::linalg::blas::copy(size, &M(r, 0), incy, &R_prime[0], inc);
 
     compute_M(Q_prime, R_prime, -1. / Q_prime[r], M);
 
@@ -931,7 +931,7 @@ double ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, r
   assert(M.get_current_size().first == M.get_current_size().second);
   int size = M.get_current_size().first;
 
-  dca::linalg::copy(size, &M(0, k), inc, &Q_prime[0], inc);
+  dca::linalg::blas::copy(size, &M(0, k), inc, &Q_prime[0], inc);
 
   typename orbital_configuration_t::iterator it0;
   it0 = segments_old.begin();
@@ -940,7 +940,7 @@ double ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, r
     R[i] = interpolate_F(coor, new_segment.t_end() - (it0 + i)->t_start(), F);
   }
 
-  double det_rat = dca::linalg::dot(size, &R[0], inc, &Q_prime[0], inc);
+  double det_rat = dca::linalg::blas::dot(size, &R[0], inc, &Q_prime[0], inc);
 
   for (int i = 0; i < M.get_current_size().first; i++) {
     R[i] = interpolate_F(coor, new_segment.t_end() - (it0 + i)->t_start(), F) -
@@ -998,7 +998,7 @@ double ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, r
   int size = M.get_current_size().first;
   int incy = M.get_global_size().first;
 
-  dca::linalg::copy(size, &M(k, 0), incy, &R_prime[0], inc);
+  dca::linalg::blas::copy(size, &M(k, 0), incy, &R_prime[0], inc);
 
   typename orbital_configuration_t::iterator it0;
   it0 = segments_old.begin();
@@ -1007,7 +1007,7 @@ double ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, r
     Q[i] = interpolate_F(coor, (it0 + i)->t_end() - new_segment.t_start(), F);
   }
 
-  double det_rat = dca::linalg::dot(size, &R_prime[0], inc, &Q[0], inc);
+  double det_rat = dca::linalg::blas::dot(size, &R_prime[0], inc, &Q[0], inc);
 
   for (int i = 0; i < M.get_current_size().first; i++) {
     Q[i] = interpolate_F(coor, (it0 + i)->t_end() - new_segment.t_start(), F) -
@@ -1098,8 +1098,8 @@ template <typename parameters_t, typename MOMS_t, typename configuration_t, type
 template <typename vertex_vertex_matrix_type>
 void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::compute_Q_prime(
     std::vector<double>& Q, vertex_vertex_matrix_type& M, std::vector<double>& Q_prime) {
-  dca::linalg::gemv("N", M.get_current_size().first, M.get_current_size().second, -1., &M(0, 0),
-                    M.get_global_size().first, &Q[0], 1, 0., &Q_prime[0], 1);
+  dca::linalg::blas::gemv("N", M.get_current_size().first, M.get_current_size().second, -1.,
+                          &M(0, 0), M.get_global_size().first, &Q[0], 1, 0., &Q_prime[0], 1);
 }
 
 /*!
@@ -1112,8 +1112,8 @@ template <typename parameters_t, typename MOMS_t, typename configuration_t, type
 template <typename vertex_vertex_matrix_type>
 void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::compute_R_prime(
     std::vector<double>& R, vertex_vertex_matrix_type& M, std::vector<double>& R_prime) {
-  dca::linalg::gemv("T", M.get_current_size().first, M.get_current_size().second, -1., &M(0, 0),
-                    M.get_global_size().first, &R[0], 1, 0., &R_prime[0], 1);
+  dca::linalg::blas::gemv("T", M.get_current_size().first, M.get_current_size().second, -1.,
+                          &M(0, 0), M.get_global_size().first, &R[0], 1, 0., &R_prime[0], 1);
 }
 
 /*!
@@ -1127,11 +1127,11 @@ template <typename vertex_vertex_matrix_type>
 void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::compute_M(
     std::vector<double>& Q_prime, std::vector<double>& R_prime, double S_prime,
     vertex_vertex_matrix_type& M) {
-  dca::linalg::gemm("N", "N", M.get_current_size().first, M.get_current_size().second, 1, S_prime,
-                    &Q_prime[0], M.get_global_size().first, &R_prime[0], 1, 1., &M(0, 0),
-                    M.get_global_size().first);
-  // dca::linalg::ger(M.get_current_size().first, M.get_current_size().second, S_prime, &Q_prime[0],
-  // 1, &R_prime[0], 1, &M(0, 0), M.get_global_size().first);
+  dca::linalg::blas::gemm("N", "N", M.get_current_size().first, M.get_current_size().second, 1,
+                          S_prime, &Q_prime[0], M.get_global_size().first, &R_prime[0], 1, 1.,
+                          &M(0, 0), M.get_global_size().first);
+  // dca::linalg::blas::ger(M.get_current_size().first, M.get_current_size().second, S_prime,
+  // &Q_prime[0], 1, &R_prime[0], 1, &M(0, 0), M.get_global_size().first);
 }
 
 }  // QMCI

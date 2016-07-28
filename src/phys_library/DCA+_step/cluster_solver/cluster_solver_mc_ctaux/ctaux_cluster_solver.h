@@ -541,13 +541,14 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type,
              sizeof(std::complex<double>) * matrix_size);
 
       // G0 * M --> G0_times_M_matrix
-      dca::linalg::gemm("N", "N", matrix_dim, matrix_dim, matrix_dim, 1., G0_cluster_excluded_matrix,
-                        matrix_dim, M_matrix, matrix_dim, 0., G0_times_M_matrix, matrix_dim);
+      dca::linalg::blas::gemm("N", "N", matrix_dim, matrix_dim, matrix_dim, 1.,
+                              G0_cluster_excluded_matrix, matrix_dim, M_matrix, matrix_dim, 0.,
+                              G0_times_M_matrix, matrix_dim);
 
       // - G0_times_M_matrix * G0 / beta --> G_matrix
-      dca::linalg::gemm("N", "N", matrix_dim, matrix_dim, matrix_dim, -1. / parameters.get_beta(),
-                        G0_times_M_matrix, matrix_dim, G0_cluster_excluded_matrix, matrix_dim, 0.,
-                        G_matrix, matrix_dim);
+      dca::linalg::blas::gemm("N", "N", matrix_dim, matrix_dim, matrix_dim,
+                              -1. / parameters.get_beta(), G0_times_M_matrix, matrix_dim,
+                              G0_cluster_excluded_matrix, matrix_dim, 0., G_matrix, matrix_dim);
 
       {  // G_matrix + G0_cluster_excluded_matrix --> G_matrix
         for (int l = 0; l < matrix_size; l++)
