@@ -7,11 +7,8 @@
 //
 // Author: Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //
-// This file pulls in all BLAS and LAPACK plans *.h files.
-// It is self-contained and can be included whenever a file depends on any of the BLAS and LAPACK
-// plans *.h files.
-//
-// TODO: Make all header files self-contained.
+// This file includes all the header files in include/dca/linalg.
+// TODO: This file is temporary and will be removed or updated.
 
 // BLAS
 #include "dca/linalg/blas/blas1.hpp"
@@ -25,4 +22,4 @@
 #endif  // DCA_HAVE_CUDA
 
 // Device selector struct
-#include "dca/linalg/blas/usedevice.hpp"
+#include "dca/linalg/blas/use_device.hpp"

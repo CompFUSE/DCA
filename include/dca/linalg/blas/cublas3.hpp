@@ -9,8 +9,8 @@
 //
 // This file provides the declaration of the BLAS level 3 routines and implements C++ wrappers.
 
-#ifndef DCA_LINALG_CUBLAS3_HPP
-#define DCA_LINALG_CUBLAS3_HPP
+#ifndef DCA_LINALG_BLAS_CUBLAS3_HPP
+#define DCA_LINALG_BLAS_CUBLAS3_HPP
 
 #include <complex>
 #include <cublas_v2.h>
@@ -119,4 +119,5 @@ inline void trsm(cublasHandle_t handle, const char* side, const char* uplo, cons
 }  // cublas
 }  // linalg
 }  // dca
-#endif  // DCA_LINALG_BLAS3_HPP
+
+#endif  // DCA_LINALG_BLAS_CUBLAS3_HPP

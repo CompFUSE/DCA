@@ -9,10 +9,10 @@
 //
 // This file provides device-generic wrappers for some of the BLAS routines.
 
-#ifndef DCA_LINALG_USEDEVICE_HPP
-#define DCA_LINALG_USEDEVICE_HPP
+#ifndef DCA_LINALG_BLAS_USE_DEVICE_HPP
+#define DCA_LINALG_BLAS_USE_DEVICE_HPP
 
-#include "dca/linalg/devicetype.hpp"
+#include "dca/linalg/device_type.hpp"
 
 #include "dca/linalg/blas/blas1.hpp"
 #include "dca/linalg/blas/blas2.hpp"
@@ -90,4 +90,4 @@ struct UseDevice<GPU> {
 }  // linalg
 }  // dca
 
-#endif  // DCA_LINALG_USEDEVICE_HPP
+#endif  // DCA_LINALG_BLAS_USE_DEVICE_HPP

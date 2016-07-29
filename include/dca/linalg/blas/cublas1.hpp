@@ -9,8 +9,8 @@
 //
 // This file provides the implementation of the C++ wrappers for the CUBLAS level 1 functions.
 
-#ifndef DCA_LINALG_CUBLAS1_HPP
-#define DCA_LINALG_CUBLAS1_HPP
+#ifndef DCA_LINALG_BLAS_CUBLAS1_HPP
+#define DCA_LINALG_BLAS_CUBLAS1_HPP
 
 #include <complex>
 #include <cublas_v2.h>
@@ -54,4 +54,4 @@ inline void axpy(cublasHandle_t handle, int n, std::complex<double> alpha,
 }  // linalg
 }  // dca
 
-#endif  // DCA_LINALG_BLAS1_HPP
+#endif  // DCA_LINALG_BLAS_CUBLAS1_HPP

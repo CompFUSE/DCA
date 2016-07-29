@@ -9,8 +9,8 @@
 //
 // This file provides the type of devices used for linear algebra routines.
 
-#ifndef DCA_LINALG_DEVICETYPE_HPP
-#define DCA_LINALG_DEVICETYPE_HPP
+#ifndef DCA_LINALG_DEVICE_TYPE_HPP
+#define DCA_LINALG_DEVICE_TYPE_HPP
 
 namespace dca {
 namespace linalg {

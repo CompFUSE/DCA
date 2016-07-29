@@ -3,7 +3,7 @@
 #ifndef LIN_ALG_DEVICE_TYPES
 #define LIN_ALG_DEVICE_TYPES
 
-#include "dca/linalg/devicetype.hpp"
+#include "dca/linalg/device_type.hpp"
 
 namespace LIN_ALG {
 

@@ -9,8 +9,8 @@
 //
 // This file provides the declaration of the BLAS level 1 routines and implements C++ wrappers.
 
-#ifndef DCA_LINALG_BLAS1_HPP
-#define DCA_LINALG_BLAS1_HPP
+#ifndef DCA_LINALG_BLAS_BLAS1_HPP
+#define DCA_LINALG_BLAS_BLAS1_HPP
 
 #include <complex>
 
@@ -118,4 +118,4 @@ inline double dot(int n, const double* x, int incx, const double* y, int incy) {
 }  // linalg
 }  // dca
 
-#endif  // DCA_LINALG_BLAS1_HPP
+#endif  // DCA_LINALG_BLAS_BLAS1_HPP

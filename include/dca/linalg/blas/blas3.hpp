@@ -9,8 +9,8 @@
 //
 // This file provides the declaration of the BLAS level 3 routines and implements C++ wrappers.
 
-#ifndef DCA_LINALG_BLAS3_HPP
-#define DCA_LINALG_BLAS3_HPP
+#ifndef DCA_LINALG_BLAS_BLAS3_HPP
+#define DCA_LINALG_BLAS_BLAS3_HPP
 
 #include <complex>
 
@@ -280,4 +280,4 @@ inline void trsm(const char* side, const char* uplo, const char* transa, const c
 }  // linalg
 }  // dca
 
-#endif  // DCA_LINALG_BLAS3_HPP
+#endif  // DCA_LINALG_BLAS_BLAS3_HPP

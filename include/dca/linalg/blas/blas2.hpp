@@ -9,8 +9,8 @@
 //
 // This file provides the declaration of the BLAS level 2 routines and implements C++ wrappers.
 
-#ifndef DCA_LINALG_BLAS2_HPP
-#define DCA_LINALG_BLAS2_HPP
+#ifndef DCA_LINALG_BLAS_BLAS2_HPP
+#define DCA_LINALG_BLAS_BLAS2_HPP
 
 #include <complex>
 
@@ -247,4 +247,4 @@ inline void her2(const char* uplo, int n, std::complex<double> alpha, const std:
 }  // linalg
 }  // dca
 
-#endif  // DCA_LINALG_BLAS2_HPP
+#endif  // DCA_LINALG_BLAS_BLAS2_HPP
