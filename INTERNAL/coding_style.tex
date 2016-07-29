@@ -23,6 +23,7 @@
     commentstyle=\color{magenta},
     otherkeywords={Type,Type1,Type2,Type3},
     keepspaces=true,
+    showspaces=true,
 }
 
 \newcommand{\inlinecode}[1]{\lstinline|#1|}
@@ -34,10 +35,11 @@
 
 \section{Files}
 Each file should contain the header included in \inlinecode{HEADER.TXT}, and the author of the file.
-If you make significant changes to a file consider adding your name to the author list.\\
+The header should also provide a description of the content of the file.
+If you make significant changes to a file consider adding your name to the author list.
 
 \subsection{File organization}
-Each class should be defined a different file, whose name is the class name in lower case.\\
+Each class should be defined a different file, whose name is the class name where the upper case letters are replaced with a underscore (\inlinecode{_}) and the lower case letter.i (Exception: if the upper case letter is the first letter, no underscore is prepended).
 
 Header files should be placed in \verb|include/dca/|, source files in \verb|src/|. Tests should be placed in \verb|test/unit/|, \verb|test/integration/|, \verb|test/system-level/| or \verb|test/performance/| according to their type. \verb|include/dca/|, \verb|src/| and \verb|test/unit/| should have the same tree structure.
 
@@ -145,7 +147,7 @@ If you modify a piece of code, also adapt the comments that belong to it if nece
 
 \subsection{Comments excluded in releases}
 
-Comments formatted as \inlinecode{// TODO: Comment} and \inlinecode{// INTERNAL: Comment} are removed in the releases.
+Comments formatted as \inlinecode{// TODO: Comment}, \inlinecode{// INTERNAL: Comment} and \inlinecode{// REVIEW: Comment} are removed in the releases.
 
 \subsection{Punctuation, Spelling and Grammar}
 
@@ -204,7 +206,7 @@ Class1<Class2<type1>> object;  // OK with C++11, does not
 Use empty lines when it helps the readability of the code, but do not use too many.
 Do not use empty lines after a brace which opens a scope,
 or before a brace which closes a scope.
-Each file should contain an empty line at the end of the file (Some editors add an empty line automatically, some do not) . 
+Each file should contain an empty line at the end of the file (Some editors add an empty line automatically, some do not) .
 
 \subsection{Indentation}
 
@@ -274,9 +276,9 @@ Examples:
 \begin{lstlisting}
 if (condition)
   statement;
-else  
+else
   statement;
-  
+
 if (condition) {
   statement;
 }
@@ -307,7 +309,7 @@ switch (var) {
 
   default:
     statement1;
-    statement2;  
+    statement2;
 }
 \end{lstlisting}
 
@@ -413,22 +415,22 @@ void foo();
 
 namespace ns1{
 namespace ns2{
-//ns1::ns2::
+// ns1::ns2::
 void foo();
 
 namespace ns3{
-//ns1::ns2::ns3::
+// ns1::ns2::ns3::
 void bar();
-} // ns3
-} // ns2
+}  // ns3
+}  // ns2
 
 namespace ns4{
 namespace ns5{
-//ns1::ns4::ns5::
+// ns1::ns4::ns5::
 void foo();
-} // ns5
-} // ns4
-} // ns1
+}  // ns5
+}  // ns4
+}  // ns1
 \end{lstlisting}
 
 \end{document}
