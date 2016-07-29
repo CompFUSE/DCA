@@ -16,6 +16,7 @@
 #include <stdexcept>
 #include <vector>
 
+#include "comp_library/linalg/linalg.hpp"
 #include "math_library/geometry_library/tetrahedron_mesh/tetrahedron_neighbour_domain.h"
 #include "phys_library/domains/cluster/cluster_typedefs.hpp"
 #include "phys_library/domains/cluster/cluster_domain.h"

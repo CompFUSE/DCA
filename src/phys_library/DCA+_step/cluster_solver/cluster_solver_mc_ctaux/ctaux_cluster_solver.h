@@ -22,6 +22,7 @@
 
 #include "dca/util/print_time.hpp"
 #include "comp_library/function_library/include_function_library.h"
+#include "comp_library/linalg/linalg.hpp"
 #include "comp_library/profiler_library/events/time.hpp"
 #include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
 #include "math_library/statistical_methods.h"
