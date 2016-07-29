@@ -98,19 +98,14 @@ void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(
   scalartype beta(0);
 
   if (M == 1) {
-    LIN_ALG::GEMM<LIN_ALG::CPU>::execute('N', 'N', T.get_current_size().first, P,
-                                         T.get_current_size().second, alpha, &T(0, 0),
-                                         T.get_global_size().first, &f_input(0), f_input[DMN_INDEX],
-                                         beta, &f_output(0), f_output[DMN_INDEX]);
+    dca::linalg::blas::gemm("N", "N", T.get_current_size().first, P, T.get_current_size().second, alpha, &T(0, 0), T.get_global_size().first, &f_input(0), f_input[DMN_INDEX], beta, &f_output(0), f_output[DMN_INDEX]);
   }
   else {
     for (int l = 0; l < P; l++) {
       int lin_ind_lhs = M * K * l;
       int lin_ind_rhs = M * N * l;
 
-      LIN_ALG::GEMM<LIN_ALG::CPU>::execute('N', 'T', M, N, K, alpha, &f_input(lin_ind_lhs), M,
-                                           &T(0, 0), T.get_global_size().first, beta,
-                                           &f_output(lin_ind_rhs), M);
+      dca::linalg::blas::gemm("N", "T", M, N, K, alpha, &f_input(lin_ind_lhs), M, &T(0, 0), T.get_global_size().first, beta, &f_output(lin_ind_rhs), M);
     }
   }
 }
@@ -131,9 +126,7 @@ void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(
     scalartype alpha(1);
     scalartype beta(0);
 
-    LIN_ALG::GEMM<LIN_ALG::CPU>::execute('N', 'T', 2 * M, N, K, alpha, &real(f_input(lin_ind_lhs)),
-                                         2 * M, &T(0, 0), T.get_global_size().first, beta,
-                                         &real(f_output(lin_ind_rhs)), 2 * M);
+    dca::linalg::blas::gemm("N", "T", 2 * M, N, K, alpha, &real(f_input(lin_ind_lhs)), 2 * M, &T(0, 0), T.get_global_size().first, beta, &real(f_output(lin_ind_rhs)), 2 * M);
   }
 }
 

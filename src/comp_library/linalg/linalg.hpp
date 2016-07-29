@@ -22,6 +22,8 @@
 #include <utility>
 #include <vector>
 
+#include "dca/linalg/linalg.hpp"
+
 #include "comp_library/blas_lapack_plans/blas_lapack_plans.hpp"
 
 #include "linalg_device_types.h"
@@ -54,10 +56,6 @@
 #include "src/linalg_operations/REMOVE_GPU.h"
 
 // BLAS 1
-#include "src/linalg_operations/BLAS_1_AXPY_tem.h"
-#include "src/linalg_operations/BLAS_1_AXPY_CPU.h"
-#include "src/linalg_operations/BLAS_1_AXPY_GPU.h"
-
 #include "src/linalg_operations/BLAS_1_COPY_tem.h"
 #include "src/linalg_operations/BLAS_1_COPY_CPU.h"
 #include "src/linalg_operations/BLAS_1_COPY_GPU.h"
@@ -70,34 +68,17 @@
 #include "src/linalg_operations/BLAS_1_SWAP_CPU.h"
 #include "src/linalg_operations/BLAS_1_SWAP_GPU.h"
 
-// BLAS 2
-#include "src/linalg_operations/BLAS_2_GEMV_tem.h"
-#include "src/linalg_operations/BLAS_2_GEMV_CPU.h"
-
 // BLAS 3
 #include "src/linalg_operations/BLAS_3_TRSM_tem.h"
-#include "src/linalg_operations/BLAS_3_TRSM_CPU.h"
-#include "src/linalg_operations/BLAS_3_TRSM_GPU.h"
-
 #include "src/linalg_operations/BLAS_3_GEMM_tem.h"
-#include "src/linalg_operations/BLAS_3_GEMM_CPU.h"
-#include "src/linalg_operations/BLAS_3_GEMM_GPU.h"
 
 #include "src/linalg_operations/LASET_tem.h"
 #include "src/linalg_operations/LASET_CPU.h"
 #include "src/linalg_operations/LASET_GPU.h"
 
-#include "src/linalg_operations/DOT_tem.h"
-#include "src/linalg_operations/DOT_CPU.h"
-#include "src/linalg_operations/DOT_GPU.h"
-
 #include "src/linalg_operations/GEMD_tem.h"
 #include "src/linalg_operations/GEMD_CPU.h"
 #include "src/linalg_operations/GEMD_GPU.h"
-
-#include "src/linalg_operations/TRSV_tem.h"
-#include "src/linalg_operations/TRSV_CPU.h"
-#include "src/linalg_operations/TRSV_GPU.h"
 
 #include "src/linalg_operations/BENNET_tem.h"
 #include "src/linalg_operations/BENNET_CPU.h"

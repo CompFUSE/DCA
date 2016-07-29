@@ -270,8 +270,7 @@ void coarsegraining_routines<parameters_type, K_dmn>::wannier_interpolation(
   int LDB = T.get_global_size().first;
   int LDC = 2 * nu_nu::dmn_size();
 
-  LIN_ALG::GEMM<LIN_ALG::CPU>::execute('N', 'T', M, N, K, alpha, A_ptr, LDA, B_ptr, LDB, beta,
-                                       C_ptr, LDC);
+  dca::linalg::blas::gemm("N", "T", M, N, K, alpha, A_ptr, LDA, B_ptr, LDB, beta, C_ptr, LDC);
 }
 
 template <typename parameters_type, typename K_dmn>

@@ -44,34 +44,10 @@ namespace LIN_ALG {
   private:
 
     template<typename scalar_type>
-    static void execute(int /*length*/, scalar_type* /*a*/, int /*inc_a*/, scalar_type* /*b*/, int /*inc_b*/,
+    static void execute(int length, scalar_type* a, int inc_a, scalar_type* b, int inc_b,
                         int /*thread_id*/, int /*stream_id*/)
     {
-      throw std::logic_error(__FUNCTION__);
-    }
-
-    inline static void execute(int length, float* a, int inc_a, float* b, int inc_b,
-                               int /*thread_id*/, int /*stream_id*/)
-    {
-      BLAS::sswap_(&length, a, &inc_a, b, &inc_b);
-    }
-    
-    inline static void execute(int length, double* a, int inc_a, double* b, int inc_b,
-                               int /*thread_id*/, int /*stream_id*/)
-    {
-      BLAS::dswap_(&length, a, &inc_a, b, &inc_b);
-    }
-    
-    inline static void execute(int length, std::complex<float>* a, int inc_a, std::complex<float>* b, int inc_b,
-                               int /*thread_id*/, int /*stream_id*/)
-    {
-      BLAS::cswap_(&length, a, &inc_a, b, &inc_b);
-    }
-    
-    inline static void execute(int length, std::complex<double>* a, int inc_a, std::complex<double>* b, int inc_b,
-                               int /*thread_id*/, int /*stream_id*/)
-    {
-      BLAS::zswap_(&length, a, &inc_a, b, &inc_b);
+      dca::linalg::blas::swap(length, a, inc_a, b, inc_b);
     }
   };
 

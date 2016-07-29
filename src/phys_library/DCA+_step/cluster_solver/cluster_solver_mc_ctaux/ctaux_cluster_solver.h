@@ -22,6 +22,7 @@
 
 #include "dca/util/print_time.hpp"
 #include "comp_library/function_library/include_function_library.h"
+#include "comp_library/linalg/linalg.hpp"
 #include "comp_library/profiler_library/events/time.hpp"
 #include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
 #include "math_library/statistical_methods.h"
@@ -540,26 +541,15 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type,
       memcpy(M_matrix, &accumulator.get_M_k_w()(0, 0, 0, 0, k_ind, w_ind),
              sizeof(std::complex<double>) * matrix_size);
 
-      {  // G0 * M --> G0_times_M_matrix
-        gemm_plan<std::complex<double>> gemm(matrix_dim);
-        gemm.A = G0_cluster_excluded_matrix;
-        gemm.B = M_matrix;
-        gemm.C = G0_times_M_matrix;
+      // G0 * M --> G0_times_M_matrix
+      dca::linalg::blas::gemm("N", "N", matrix_dim, matrix_dim, matrix_dim, 1.,
+                              G0_cluster_excluded_matrix, matrix_dim, M_matrix, matrix_dim, 0.,
+                              G0_times_M_matrix, matrix_dim);
 
-        gemm.execute_plan();
-      }
-
-      {  // - G0_times_M_matrix * G0 / beta --> G_matrix
-        gemm_plan<std::complex<double>> gemm(matrix_dim);
-        gemm.A = G0_times_M_matrix;
-        gemm.B = G0_cluster_excluded_matrix;
-        gemm.C = G_matrix;
-
-        gemm.alpha = -double(1) / parameters.get_beta();  // time_domain_type::get_beta();
-        gemm.beta = double(0);
-
-        gemm.execute_plan();
-      }
+      // - G0_times_M_matrix * G0 / beta --> G_matrix
+      dca::linalg::blas::gemm("N", "N", matrix_dim, matrix_dim, matrix_dim,
+                              -1. / parameters.get_beta(), G0_times_M_matrix, matrix_dim,
+                              G0_cluster_excluded_matrix, matrix_dim, 0., G_matrix, matrix_dim);
 
       {  // G_matrix + G0_cluster_excluded_matrix --> G_matrix
         for (int l = 0; l < matrix_size; l++)

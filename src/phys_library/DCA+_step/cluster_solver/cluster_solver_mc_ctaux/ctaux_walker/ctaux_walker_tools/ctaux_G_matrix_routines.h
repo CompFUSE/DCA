@@ -163,9 +163,9 @@ void G_TOOLS<device_t, parameters_type>::build_G_matrix(configuration_type& full
     profiler_t profiler_2(concurrency, ss.str().c_str(), __FILE__, __LINE__);
 #endif
 
-    LIN_ALG::GEMM<device_t>::execute('N', 'N', m, n, k, 1., N.get_ptr(0, 0), LD_N,
-                                     G0.get_ptr(0, vertex_index), LD_G0, 0., G.get_ptr(0, 0), LD_G,
-                                     thread_id, stream_id);
+    dca::linalg::UseDevice<device_t>::gemm("N", "N", m, n, k, 1., N.get_ptr(0, 0), LD_N,
+                                           G0.get_ptr(0, vertex_index), LD_G0, 0., G.get_ptr(0, 0),
+                                           LD_G, thread_id, stream_id);
 
     GFLOP += 2. * double(m) * double(n) * double(k) * (1.e-9);
   }
