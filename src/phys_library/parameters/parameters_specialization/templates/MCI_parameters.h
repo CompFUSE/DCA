@@ -52,6 +52,8 @@ public:
 
   bool adjust_self_energy_for_double_counting();
 
+  int get_seed();
+
   int get_nr_walkers();
   int get_nr_accumulators();
   int get_additional_steps();
@@ -66,6 +68,8 @@ private:
   int measurements;
 
   std::string do_adaptive_double_counting;
+
+  int RNG_seed;
 
   int nr_walkers;
   int nr_accumulators;
@@ -82,6 +86,8 @@ MCI_parameters::MCI_parameters()
       measurements(100),
 
       do_adaptive_double_counting("false"),
+
+      RNG_seed(985456376),
 
       nr_walkers(1),
       nr_accumulators(1),
@@ -105,6 +111,8 @@ int MCI_parameters::get_buffer_size(concurrency_type& concurrency) {
 
   buffer_size += concurrency.get_buffer_size(do_adaptive_double_counting);
 
+  buffer_size += concurrency.get_buffer_size(RNG_seed);
+
   buffer_size += concurrency.get_buffer_size(nr_walkers);
   buffer_size += concurrency.get_buffer_size(nr_accumulators);
   buffer_size += concurrency.get_buffer_size(additional_steps);
@@ -124,6 +132,8 @@ void MCI_parameters::pack(concurrency_type& concurrency, int* buffer, int buffer
 
   concurrency.pack(buffer, buffer_size, position, do_adaptive_double_counting);
 
+  concurrency.pack(buffer, buffer_size, position, RNG_seed);
+
   concurrency.pack(buffer, buffer_size, position, nr_walkers);
   concurrency.pack(buffer, buffer_size, position, nr_accumulators);
   concurrency.pack(buffer, buffer_size, position, additional_steps);
@@ -141,6 +151,8 @@ void MCI_parameters::unpack(concurrency_type& concurrency, int* buffer, int buff
   concurrency.unpack(buffer, buffer_size, position, measurements);
 
   concurrency.unpack(buffer, buffer_size, position, do_adaptive_double_counting);
+
+  concurrency.unpack(buffer, buffer_size, position, RNG_seed);
 
   concurrency.unpack(buffer, buffer_size, position, nr_walkers);
   concurrency.unpack(buffer, buffer_size, position, nr_accumulators);
@@ -180,6 +192,12 @@ void MCI_parameters::read_write(read_write_type& read_write_obj) {
 
     try {
       read_write_obj.execute("adaptive-double-counting", do_adaptive_double_counting);
+    }
+    catch (const std::exception& r_e) {
+    }
+
+    try {
+      read_write_obj.execute("RNG-seed", RNG_seed);
     }
     catch (const std::exception& r_e) {
     }
@@ -248,6 +266,10 @@ bool MCI_parameters::adjust_self_energy_for_double_counting() {
     return true;
 
   throw std::logic_error("do_adaptive_double_counting needs to be true or false !!! ");
+}
+
+int MCI_parameters::get_seed() {
+  return RNG_seed;
 }
 
 int MCI_parameters::get_nr_walkers() {
