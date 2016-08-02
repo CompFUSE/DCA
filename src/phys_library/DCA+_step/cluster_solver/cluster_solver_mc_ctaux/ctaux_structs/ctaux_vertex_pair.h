@@ -179,7 +179,7 @@ void vertex_pair<parameters_type>::set_random_interacting() {
   general_interaction<parameters_type>::set_vertex(*this, parameters, rng /*concurrency*/,
                                                    CV<parameters_type>::get_H_interaction());
 
-  double draw = rng.get_random_number();  // concurrency.get_random_number();
+  double draw = rng();  // concurrency.get_random_number();
 
   if (draw > 1 / 2.)
     HS_spin = HS_UP;
@@ -189,7 +189,7 @@ void vertex_pair<parameters_type>::set_random_interacting() {
   delta_r = r_cluster_type::subtract(r_sites.second, r_sites.first);  // delta_r = r_i - r_j
 
   tau = parameters.get_beta() *
-        rng.get_random_number();  // concurrency.get_random_number()*time_domain_type::beta;
+        rng();  // concurrency.get_random_number()*time_domain_type::beta;
 
   creatable = false;
   annihilatable = true;
@@ -212,7 +212,7 @@ void vertex_pair<parameters_type>::set_random_noninteracting() {
   delta_r = r_cluster_type::subtract(r_sites.second, r_sites.first);  // delta_r = r_i - r_j
 
   tau = parameters.get_beta() *
-        rng.get_random_number();  // concurrency.get_random_number()*time_domain_type::beta;
+        rng();  // concurrency.get_random_number()*time_domain_type::beta;
 
   creatable = true;
   annihilatable = false;

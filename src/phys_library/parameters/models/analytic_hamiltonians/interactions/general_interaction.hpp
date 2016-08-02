@@ -54,7 +54,7 @@ void general_interaction<parameters_type>::set_vertex(vertex_pair_type& vertex,
       general_interaction<parameters_type>::make_correlated_orbitals(parameters, H_interaction);
 
   // Get a random pair of correlated orbitals
-  const int pos = rng.get_random_number() * correlated_orbitals.size();
+  const int pos = rng() * correlated_orbitals.size();
   const int lin_ind = correlated_orbitals[pos];
 
   std::array<int, 6> sub_ind;  // [0]=b1, [1]=s1, [2]=b2, [3]=s2, [4]=r1, [5]=r2

@@ -465,7 +465,7 @@ int CT_AUX_HS_configuration<parameters_type>::get_random_interacting_vertex() {
   int vertex_index;
 
   do {
-    vertex_index = int(rng.get_random_number() * configuration.size());
+    vertex_index = int(rng() * configuration.size());
   } while (!configuration[vertex_index].is_annihilatable());
 
   return vertex_index;

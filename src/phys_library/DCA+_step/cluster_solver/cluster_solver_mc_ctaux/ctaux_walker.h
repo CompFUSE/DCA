@@ -779,7 +779,7 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::compute_Gam
       if (number_of_interacting_spins > 0)
         alpha = double(bennett_spins.size()) / double(number_of_interacting_spins);
 
-      if (false and rng.get_random_number() < alpha) {
+      if (false and rng() < alpha) {
         apply_bennett_on_Gamma_matrices(Gamma_up_size, Gamma_dn_size);
 
         neutralize_delayed_spin(delayed_index, Gamma_up_size, Gamma_dn_size);
@@ -996,7 +996,7 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::add_delayed
       calculate_acceptace_ratio(determinant_ratio, delayed_spins[delayed_index].HS_current_move,
                                 delayed_spins[delayed_index].QMC_factor);
 
-  if (std::fabs(acceptance_ratio) >= rng.get_random_number()) {
+  if (std::fabs(acceptance_ratio) >= rng()) {
     delayed_spins[delayed_index].is_accepted_move = true;
 
     if (acceptance_ratio < 0)
@@ -1100,7 +1100,7 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::apply_benne
     double ratio_HS_field_DN = 0;
     double ratio_HS_field_UP = 0;
 
-    int bennett_index = int(rng.get_random_number()*double(bennett_spins.size()));
+    int bennett_index = int(rng()*double(bennett_spins.size()));
 
     e_spin_states e_spin_HS_field_DN = bennett_spins[bennett_index].e_spin_HS_field_DN;
     e_spin_states e_spin_HS_field_UP = bennett_spins[bennett_index].e_spin_HS_field_UP;
@@ -1145,7 +1145,7 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::apply_benne
     double acceptance_ratio  = calculate_acceptace_ratio(determinant_ratio,
     bennett_spins[bennett_index].HS_current_move);
 
-    if( std::fabs(acceptance_ratio) >= rng.get_random_number() )
+    if( std::fabs(acceptance_ratio) >= rng() )
     {
     number_of_interacting_spins -= 1;
 
@@ -1234,7 +1234,7 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::clean_up_th
 
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 HS_vertex_move_type MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::get_new_HS_move() {
-  if (rng.get_random_number() > 0.50000000) {
+  if (rng() > 0.50000000) {
     return CREATION;
   }
 
@@ -1257,7 +1257,7 @@ template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 HS_spin_states_type MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::get_new_spin_value(
     HS_vertex_move_type HS_current_move) {
   if (HS_current_move == CREATION) {
-    if (rng.get_random_number() > 0.50000000)
+    if (rng() > 0.50000000)
       return HS_UP;
     else
       return HS_DN;

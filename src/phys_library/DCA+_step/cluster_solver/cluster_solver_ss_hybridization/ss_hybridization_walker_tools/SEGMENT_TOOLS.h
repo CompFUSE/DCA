@@ -92,7 +92,7 @@ bool segment_tools<hybridization_routines_type>::insert_segment(int this_flavor,
   if (configuration.get_full_line(this_flavor) == true)
     return -1;
 
-  double t = beta * rng.get_random_number();
+  double t = beta * rng();
   // cout << "t : " << t << endl;
 
   double t_up;    // distance to next segment up
@@ -110,8 +110,8 @@ bool segment_tools<hybridization_routines_type>::insert_segment(int this_flavor,
 
   if (t_down >
       0) {  // t does not lie on a segment -> it's possible to insert a new one starting from t
-    // double length = beta*rng.get_random_number();
-    double length = hybridization_routines.compute_length(rng.get_random_number(), t_up, 0);
+    // double length = beta*rng();
+    double length = hybridization_routines.compute_length(rng(), t_up, 0);
     // cout << "length : " << length << endl;
     if (length < t_up) {
       Hybridization_vertex segment_insert;
@@ -144,7 +144,7 @@ bool segment_tools<hybridization_routines_type>::insert_segment(int this_flavor,
       // log_prob = log(beta*beta/(vertices.size()+1)*det_rat)+mu*length-otherlength_u;
       log_prob = log(beta * t_up / (vertices.size() + 1) * det_rat) + mu * length - otherlength_u;
       // cout << "log_prob : " << log_prob << endl;
-      if (log(rng.get_random_number()) < log_prob) {
+      if (log(rng()) < log_prob) {
         int position = 0;
         for (typename orbital_configuration_type::iterator it = vertices.begin(); it != s_up; it++)
           position++;
@@ -179,7 +179,7 @@ bool segment_tools<hybridization_routines_type>::remove_segment(int this_flavor,
   typename orbital_configuration_type::iterator s_up;    // iterator of the segment up
   typename orbital_configuration_type::iterator s_down;  // iterator of the segment down
 
-  int position = rng.get_random_number() * vertices.size();
+  int position = rng() * vertices.size();
 
   s_down = vertices.begin();
   for (int i = 0; i < position; i++)
@@ -217,7 +217,7 @@ bool segment_tools<hybridization_routines_type>::remove_segment(int this_flavor,
   // log_prob = log(beta*beta/vertices.size()/det_rat)+length*mu-otherlength_u;
   log_prob = log(beta * t_total / vertices.size() / det_rat) + length * mu - otherlength_u;
 
-  if (log(rng.get_random_number()) < -log_prob) {
+  if (log(rng()) < -log_prob) {
     hybridization_routines.compute_M_down(position, position, M(this_flavor));
     sign *= det_rat_sign;
     vertices.erase(s_down);

@@ -98,7 +98,7 @@ bool full_line_tools<hybridization_routines_type>::insert_full_line(int j, doubl
 
   double otherlength_u = get_other_length_u(j);
 
-  if (log(rng.get_random_number()) < beta * mu - otherlength_u) {
+  if (log(rng()) < beta * mu - otherlength_u) {
     configuration.get_full_line(j) = true;
     return true;
   }
@@ -114,7 +114,7 @@ bool full_line_tools<hybridization_routines_type>::remove_full_line(int j, doubl
 
   double otherlength_u = get_other_length_u(j);
 
-  if (log(rng.get_random_number()) < -beta * mu + otherlength_u) {
+  if (log(rng()) < -beta * mu + otherlength_u) {
     configuration.get_full_line(j) = false;
     return true;
   }

@@ -205,6 +205,8 @@ compute_spectrum<parameters_type, basis_function_t>::compute_spectrum(parameters
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
 
+      rng(concurrency.id(), concurrency.number_of_processors(), parameters.get_seed()),
+
       cpe_obj(parameters, concurrency),
 
       G_k_beta_over_2("G_k_beta_over_2"),
@@ -227,9 +229,7 @@ compute_spectrum<parameters_type, basis_function_t>::compute_spectrum(parameters
       f_approx_stddev("f-approx-stddev"),
 
       f_measured("f-measured"),
-      f_measured_stddev("f-measured-stddev") {
-  rng.init_from_id(concurrency.id());
-}
+      f_measured_stddev("f-measured-stddev") {}
 
 template <class parameters_type, class basis_function_t>
 template <typename MOMS_imag_type, typename MOMS_real_type>
@@ -555,8 +555,8 @@ void compute_spectrum<parameters_type, basis_function_t>::generate_new_sample(
       for (int b_j = 0; b_j < b::dmn_size(); b_j++) {
         for (int b_i = 0; b_i < b::dmn_size(); b_i++) {
           if ((b_i == b_j) and parameters.is_an_interacting_band(b_i)) {
-            double error_re = rng.get_random_number();
-            double error_im = rng.get_random_number();
+            double error_re = rng();
+            double error_im = rng();
 
             std::complex<double> mean = S_K_w_mean(b_i, 0, b_j, 0, k_ind, w_ind);
             std::complex<double> stddev = S_K_w_stddev(b_i, 0, b_j, 0, k_ind, w_ind);

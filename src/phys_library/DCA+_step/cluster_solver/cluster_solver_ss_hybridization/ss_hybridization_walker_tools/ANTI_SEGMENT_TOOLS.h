@@ -130,10 +130,10 @@ template <typename hybridization_routines_type>
 template <typename function_type_1, typename function_type_2>
 bool anti_segment_tools<hybridization_routines_type>::insert_anti_segment_into_full_line(
     int this_flavor, double mu, double& sign, function_type_1& M, function_type_2& F) {
-  double t = BETA * rng.get_random_number();
+  double t = BETA * rng();
   double max_length = BETA;
 
-  double length = hybridization_routines.compute_length(rng.get_random_number(), max_length, 0);
+  double length = hybridization_routines.compute_length(rng(), max_length, 0);
 
   double t_end = (t + length < BETA ? t + length : t + length - BETA);
 
@@ -151,7 +151,7 @@ bool anti_segment_tools<hybridization_routines_type>::insert_anti_segment_into_f
 
   log_prob = log(BETA * max_length * det_rat) - length * mu + otherlength_u;
 
-  if (log(rng.get_random_number()) < log_prob) {
+  if (log(rng()) < log_prob) {
     hybridization_routines.compute_M_up(0, 0, M(this_flavor), vertices, F, R, Q, det_rat * overlap);
     sign *= det_rat_sign;
     vertices.push_back(segment_insert);
@@ -169,7 +169,7 @@ template <typename hybridization_routines_type>
 template <typename function_type_1, typename function_type_2>
 bool anti_segment_tools<hybridization_routines_type>::insert_anti_segment_into_segmented_line(
     int this_flavor, double mu, double& /*sign*/, function_type_1& M, function_type_2& F) {
-  double t = BETA * rng.get_random_number();
+  double t = BETA * rng();
 
   double t_up;    // distance to next segment up (t_start)
   double t_down;  // distance to next segment down (t_end)
@@ -183,8 +183,8 @@ bool anti_segment_tools<hybridization_routines_type>::insert_anti_segment_into_s
 
   if (t_down <
       0) {  // t does lie on a segment -> it's possible to insert an anti-segment starting from t
-    // double length = BETA*rng.get_random_number();
-    double length = hybridization_routines.compute_length(rng.get_random_number(), -t_down, 0);
+    // double length = BETA*rng();
+    double length = hybridization_routines.compute_length(rng(), -t_down, 0);
     if (length < -t_down) {
       Hybridization_vertex segment_shrink(s_down->t_start(), t);
 
@@ -207,7 +207,7 @@ bool anti_segment_tools<hybridization_routines_type>::insert_anti_segment_into_s
       log_prob =
           log(BETA * (-t_down) / (vertices.size() + 1) * det_rat) - length * mu + otherlength_u;
       // log_prob = log(BETA*(BETA)/(vertices.size()+1)*det_rat)-length*mu+otherlength_u;
-      if (log(rng.get_random_number()) < log_prob) {
+      if (log(rng()) < log_prob) {
         int s, r;  // s is the segment which is shifted, r the segment which is inserted
         s = 0;
         for (typename orbital_configuration_type::iterator it = vertices.begin(); it != s_down; it++)
@@ -283,7 +283,7 @@ bool anti_segment_tools<hybridization_routines_type>::remove_anti_segment_for_on
 
   double log_prob = log((BETA * BETA / det_rat)) - length * mu + otherlength_u;
 
-  if (log(rng.get_random_number()) < -log_prob) {
+  if (log(rng()) < -log_prob) {
     configuration.get_full_line(this_flavor) = true;
     vertices.erase(s_down);
     hybridization_routines.compute_M_down(0, 0, M(this_flavor));
@@ -307,7 +307,7 @@ bool anti_segment_tools<hybridization_routines_type>::remove_anti_segment_for_mu
 
   assert(vertices.size() > 1);
 
-  int r = rng.get_random_number() * vertices.size();
+  int r = rng() * vertices.size();
   s_up = vertices.begin();
   for (int i = 0; i < r; i++)
     s_up++;
@@ -342,7 +342,7 @@ bool anti_segment_tools<hybridization_routines_type>::remove_anti_segment_for_mu
   log_prob = log(BETA * t_total / vertices.size() / det_rat) - length * mu + otherlength_u;
   // log_prob = log(BETA*BETA/vertices.size()/det_rat)-length*mu+otherlength_u;
 
-  if (log(rng.get_random_number()) < -log_prob) {
+  if (log(rng()) < -log_prob) {
     hybridization_routines.compute_M_down(r, s, M(this_flavor));
 
     double t_end = s_up->t_end();
