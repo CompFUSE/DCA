@@ -17,6 +17,7 @@
 #include <string>
 #include <vector>
 
+#include "dca/util/print_type.hpp"
 #include "comp_library/function_library/domains/special_domains/dmn_0.h"
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/cluster/cluster_domain_family.h"
@@ -337,6 +338,11 @@ void Parameters<concurrency_t, model_t, rng_t, solver_name>::read_write(read_wri
     read_write_obj.execute("date", date_str);
     read_write_obj.execute("time", time_str);
     read_write_obj.execute("compiler", compiler_str);
+
+    // TODO: Remove this redundant object that is only needed since the execute function of reader
+    // types expects an l-value.
+    std::string rng_type_str = dca::util::Type<rng_t>::print();
+    read_write_obj.execute("random-number-generator", rng_type_str);
   }
 
   file_names_parameters::read_write(read_write_obj);
