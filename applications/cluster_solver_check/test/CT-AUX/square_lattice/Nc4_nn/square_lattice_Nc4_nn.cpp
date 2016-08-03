@@ -21,7 +21,7 @@
 
 #include "gtest/gtest.h"
 
-#include "dca/math_library/random_number_library/ranq2.hpp"
+#include "dca/math/random/random.hpp"
 #include "dca/testing/dca_mpi_test_environment.hpp"
 #include "dca/testing/minimalist_printer.hpp"
 #include "dca/util/git_version.hpp"
@@ -43,19 +43,15 @@
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
-namespace dca {
-namespace testing {
-// dca::testing::
-
 using namespace DCA;
 
 TEST(squareLattice_Nc4_nn, Self_Energy) {
-  using RngType = rng::ranq2;
+  using RngType = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
   using DcaPointGroupType = D4;
   using LatticeType = square_lattice<DcaPointGroupType>;
   using ModelType = tight_binding_model<LatticeType>;
-  using ParametersType =
-      Parameters<DcaMpiTestEnvironment::ConcurrencyType, ModelType, RngType, CT_AUX_CLUSTER_SOLVER>;
+  using ParametersType = Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, ModelType,
+                                    RngType, CT_AUX_CLUSTER_SOLVER>;
   using DcaDataType = DCA_data<ParametersType>;
   using QmcSolverType =
       cluster_solver<CT_AUX_CLUSTER_SOLVER, LIN_ALG::CPU, ParametersType, DcaDataType>;
@@ -150,9 +146,6 @@ TEST(squareLattice_Nc4_nn, Self_Energy) {
     std::cout << "\nDCA main ending.\n" << std::endl;
   }
 }
-
-}  // testing
-}  // dca
 
 int main(int argc, char** argv) {
   int result = 0;

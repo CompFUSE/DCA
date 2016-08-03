@@ -25,7 +25,7 @@
 
 #include "gtest/gtest.h"
 
-#include "dca/math_library/random_number_library/ranq2.hpp"
+#include "dca/math/random/random.hpp"
 #include "dca/testing/dca_mpi_test_environment.hpp"
 #include "dca/testing/minimalist_printer.hpp"
 #include "dca/util/git_version.hpp"
@@ -50,19 +50,15 @@ dca::testing::DcaMpiTestEnvironment* dca_test_env;
 void print_device_info();
 void initialize_magma();
 
-namespace dca {
-namespace testing {
-// dca::testing::
-
 using namespace DCA;
 
 TEST(dca_sp_DCAplus_mpi, Self_energy) {
-  using RngType = rng::ranq2;
+  using RngType = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
   using DcaPointGroupType = D4;
   using LatticeType = square_lattice<DcaPointGroupType>;
   using ModelType = tight_binding_model<LatticeType>;
-  using ParametersType =
-      Parameters<DcaMpiTestEnvironment::ConcurrencyType, ModelType, RngType, CT_AUX_CLUSTER_SOLVER>;
+  using ParametersType = Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, ModelType,
+                                    RngType, CT_AUX_CLUSTER_SOLVER>;
   using DcaDataType = DCA_data<ParametersType>;
   using ClusterSolverType =
       cluster_solver<CT_AUX_CLUSTER_SOLVER, LIN_ALG::GPU, ParametersType, DcaDataType>;
@@ -137,9 +133,6 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
     std::cout << "\nDCA main ending.\n" << std::endl;
   }
 }
-
-}  // testing
-}  // dca
 
 int main(int argc, char** argv) {
   int result = 0;
