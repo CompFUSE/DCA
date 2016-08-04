@@ -60,29 +60,50 @@ else()
   add_definitions(-DDCA_NO_PROFILING)
 endif()
 
-# Choose the random number generator.
-set(DCA_RNG "RAN" CACHE STRING  "Choose the random number generator, options are: SPRNG | RAN | RANQ2 | MT.")
-if (${DCA_RNG} STREQUAL "RANQ2")
-  add_definitions(-D CMAKE_RNG=rng::ranq2)
-elseif(${DCA_RNG} STREQUAL "RAN")
-  set(DCA_RNG_TYPE "rng::ran")
-elseif(${DCA_RNG} STREQUAL "MT")
-  set(DCA_RNG_TYPE "rng::rng_mt")
-elseif(${DCA_RNG} STREQUAL "SPRNG")
-  set(DCA_RNG_TYPE "rng::sprng_interface")
+################################################################################
+# Select the random number generator
+set(DCA_RNG "std::ranlux48_base" CACHE STRING "Random number generator, options are: std::ranlux48_base | std::ranlux48 | std::mt19937_64 | SPRNG_LFG | SPRNG_MLFG | Ranq2.")
+set_property(CACHE DCA_RNG
+  PROPERTY STRINGS std::ranlux48_base std::ranlux48 std::mt19937_64 SPRNG_LFG SPRNG_MLFG Ranq2)
+
+if(${DCA_RNG} STREQUAL "std::ranlux48_base")
+  set(DCA_RNG dca::math::random::StdRandomWrapper<std::ranlux48_base>)
+  set(DCA_RNG_INCLUDE "dca/math/random/std_random_wrapper.hpp")
+
+elseif(${DCA_RNG} STREQUAL "std::ranlux48")
+  set(DCA_RNG dca::math::random::StdRandomWrapper<std::ranlux48>)
+  set(DCA_RNG_INCLUDE "dca/math/random/std_random_wrapper.hpp")
+
+elseif(${DCA_RNG} STREQUAL "std::mt19937_64")
+  set(DCA_RNG dca::math::random::StdRandomWrapper<std::mt19937_64>)
+  set(DCA_RNG_INCLUDE "dca/math/random/std_random_wrapper.hpp")
+
+elseif(${DCA_RNG} STREQUAL "SPRNG_LFG")
+  set(DCA_RNG dca::math::random::SprngWrapper<dca::math::random::LFG>)
+  set(DCA_RNG_INCLUDE "dca/math/random/sprng_wrapper.hpp")
+
+elseif(${DCA_RNG} STREQUAL "SPRNG_MLFG")
+  set(DCA_RNG dca::math::random::SprngWrapper<dca::math::random::MLFG>)
+  set(DCA_RNG_INCLUDE "dca/math/random/sprng_wrapper.hpp")
+
+elseif(${DCA_RNG} STREQUAL "Ranq2")
+  set(DCA_RNG dca::math::random::Ranq2)
+  set(DCA_RNG_INCLUDE "dca/math/random/ranq2.hpp")
+  
 else()
-  message(FATAL_ERROR "Please set RNG to a valid value: SPRNG | RAN | RANQ2 | MT.")
+  message(FATAL_ERROR "Please set DCA_RNG to a valid option: std::ranlux48_base | std::ranlux48 |
+                       std::mt19937_64 | SPRNG_LFG | SPRNG_MLFG | Ranq2.")
 endif()
 
+configure_file("${PROJECT_SOURCE_DIR}/cmake/templates/config_rng.hpp.in"
+  "${PROJECT_BINARY_DIR}/include/dca/config/rng.hpp"
+  @ONLY)
+
+################################################################################
 # Enable BIT.
 option(DCA_QMC_INTEGRATOR_BIT "Enable BIT." OFF)
 if (DCA_QMC_INTEGRATOR_BIT)
-  add_definitions('-DDCA_QMC_INTEGRATOR_BIT')
-  set(DCA_QMC_INTEGRATOR_BIT_VALUE "true")
-  dca_add_config_define(DCA_QMC_INTEGRATOR_BIT_VALUE "true")
-else()
-  set(DCA_QMC_INTEGRATOR_BIT_VALUE "false")
-  dca_add_config_define(DCA_QMC_INTEGRATOR_BIT_VALUE "false")
+  dca_add_config_define(DCA_QMC_INTEGRATOR_BIT)
 endif()
 
 # Compute the standard deviation.
