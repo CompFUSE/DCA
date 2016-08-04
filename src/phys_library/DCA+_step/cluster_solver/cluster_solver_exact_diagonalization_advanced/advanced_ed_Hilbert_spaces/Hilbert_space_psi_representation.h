@@ -189,7 +189,8 @@ typename std::vector<psi_state<parameter_type, ed_options>>::iterator Hilbert_sp
   typename std::vector<psi_state<parameter_type, ed_options>>::iterator it =
       std::lower_bound(psi_states.begin(), psi_states.end(), psi);
 
-  while (it != psi_states.end() && !(operator< <parameter_type, ed_options>(psi, *it))) {
+  while (it != psi_states.end() &&
+         !(DCA::ADVANCED_EXACT_DIAGONALIZATION::operator< <parameter_type, ed_options>(psi, *it))) {
     if (std::abs(abs(scalar_product<parameter_type, ed_options>(*it, psi)) - scalar_type(1.)) <
         ed_options::get_epsilon())  // 1.e-10)
       return it;
