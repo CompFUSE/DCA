@@ -3,7 +3,6 @@
 #
 # TODO: - Write FindNFFT.cmake.
 #       - Write FindSPGLIB.cmake.
-#       - Write FindFFTW.cmake.
 #       - Use static libraries for NFFT and SPGLIB?
 #       - Set DCA_HAVE_XXX to true after XXX was found?
 ################################################################################
@@ -38,10 +37,9 @@ endif()
 
 # FFTW
 if (NOT DCA_HAVE_FFTW)
-  find_library(FFTW_LIBRARY NAMES fftw3)
-  get_filename_component(FFTW_LIB_DIR ${FFTW_LIBRARY} DIRECTORY)
-  get_filename_component(FFTW_DIR     ${FFTW_LIB_DIR} DIRECTORY)
-  set(FFTW_INCLUDE_DIR "${FFTW_DIR}/include" CACHE FILEPATH "Path to fftw3.h.")
+  if (NOT FFTW_INCLUDE_DIR OR NOT FFTW_LIBRARIES)
+    message(FATAL_ERROR "FFTW_INCLUDE_DIR and FFTW_LIBRARIES have to be set.")
+  endif()
 endif()
 
 set(DCA_EXTERNAL_LIBS
@@ -50,7 +48,7 @@ set(DCA_EXTERNAL_LIBS
   ${HDF5_CXX_LIBRARIES}
   ${HDF5_LIBRARIES}
   ${NFFT_LIBRARY}
-  ${FFTW_LIBRARY}
+  ${FFTW_LIBRARIES}
   ${SPRNG_LIBRARY})
 
 set(DCA_EXTERNAL_INCLUDES
@@ -63,7 +61,6 @@ mark_as_advanced(
   MPI_LIBRARY MPI_EXTRA_LIBRARY
   NFFT_LIBRARY
   SPGLIB_LIBRARY
-  FFTW_INCLUDE_DIR FFTW_LIBRARY
   HDF5_DIR)
 
 # SPRNG
