@@ -36,7 +36,7 @@ if (NOT (${slurm_found} EQUAL -1))
   # Use srun
   set(MPIEXEC "srun"
     CACHE FILEPATH "Executable for running MPI programs.")
-  
+
 else()
   # Check for aprun
   string(FIND ${module_list} "alps" alps_found)
@@ -47,7 +47,7 @@ else()
   else()
     message (FATAL_ERROR "Neither aprun nor srun command found.")
   endif()
-  
+
 endif()
 
 set(MPIEXEC_NUMPROC_FLAG "-n"
