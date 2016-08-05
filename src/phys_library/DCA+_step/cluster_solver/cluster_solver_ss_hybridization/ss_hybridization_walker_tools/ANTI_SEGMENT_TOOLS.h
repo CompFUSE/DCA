@@ -149,9 +149,9 @@ bool anti_segment_tools<hybridization_routines_type>::insert_anti_segment_into_f
   det_rat = hybridization_routines.det_rat_up(this_flavor, segment_insert, M(this_flavor), vertices,
                                               F, R, Q, det_rat_sign, overlap);
 
-  log_prob = log(BETA * max_length * det_rat) - length * mu + otherlength_u;
+  log_prob = std::log(BETA * max_length * det_rat) - length * mu + otherlength_u;
 
-  if (log(rng()) < log_prob) {
+  if (std::log(rng()) < log_prob) {
     hybridization_routines.compute_M_up(0, 0, M(this_flavor), vertices, F, R, Q, det_rat * overlap);
     sign *= det_rat_sign;
     vertices.push_back(segment_insert);
@@ -205,9 +205,9 @@ bool anti_segment_tools<hybridization_routines_type>::insert_anti_segment_into_s
                                                   vertices, F, R, Q, det_rat_sign, overlap);
 
       log_prob =
-          log(BETA * (-t_down) / (vertices.size() + 1) * det_rat) - length * mu + otherlength_u;
-      // log_prob = log(BETA*(BETA)/(vertices.size()+1)*det_rat)-length*mu+otherlength_u;
-      if (log(rng()) < log_prob) {
+          std::log(BETA * (-t_down) / (vertices.size() + 1) * det_rat) - length * mu + otherlength_u;
+      // log_prob = std::log(BETA*(BETA)/(vertices.size()+1)*det_rat)-length*mu+otherlength_u;
+      if (std::log(rng()) < log_prob) {
         int s, r;  // s is the segment which is shifted, r the segment which is inserted
         s = 0;
         for (typename orbital_configuration_type::iterator it = vertices.begin(); it != s_down; it++)
@@ -281,9 +281,9 @@ bool anti_segment_tools<hybridization_routines_type>::remove_anti_segment_for_on
 
   double otherlength_u = get_other_length_u(this_flavor, anti_segment);
 
-  double log_prob = log((BETA * BETA / det_rat)) - length * mu + otherlength_u;
+  double log_prob = std::log((BETA * BETA / det_rat)) - length * mu + otherlength_u;
 
-  if (log(rng()) < -log_prob) {
+  if (std::log(rng()) < -log_prob) {
     configuration.get_full_line(this_flavor) = true;
     vertices.erase(s_down);
     hybridization_routines.compute_M_down(0, 0, M(this_flavor));
@@ -339,10 +339,10 @@ bool anti_segment_tools<hybridization_routines_type>::remove_anti_segment_for_mu
 
   det_rat = hybridization_routines.det_rat_down(r, s, M(this_flavor), vertices, det_rat_sign);
 
-  log_prob = log(BETA * t_total / vertices.size() / det_rat) - length * mu + otherlength_u;
-  // log_prob = log(BETA*BETA/vertices.size()/det_rat)-length*mu+otherlength_u;
+  log_prob = std::log(BETA * t_total / vertices.size() / det_rat) - length * mu + otherlength_u;
+  // log_prob = std::log(BETA*BETA/vertices.size()/det_rat)-length*mu+otherlength_u;
 
-  if (log(rng()) < -log_prob) {
+  if (std::log(rng()) < -log_prob) {
     hybridization_routines.compute_M_down(r, s, M(this_flavor));
 
     double t_end = s_up->t_end();

@@ -18,6 +18,7 @@
 #define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_WALKER_TOOLS_FULL_LINE_TOOLS_H
 
 #include <cstdlib>
+#include <cmath>
 
 #include "comp_library/function_library/domains/special_domains/dmn_0.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
@@ -98,7 +99,7 @@ bool full_line_tools<hybridization_routines_type>::insert_full_line(int j, doubl
 
   double otherlength_u = get_other_length_u(j);
 
-  if (log(rng()) < beta * mu - otherlength_u) {
+  if (std::log(rng()) < beta * mu - otherlength_u) {
     configuration.get_full_line(j) = true;
     return true;
   }
@@ -114,7 +115,7 @@ bool full_line_tools<hybridization_routines_type>::remove_full_line(int j, doubl
 
   double otherlength_u = get_other_length_u(j);
 
-  if (log(rng()) < -beta * mu + otherlength_u) {
+  if (std::log(rng()) < -beta * mu + otherlength_u) {
     configuration.get_full_line(j) = false;
     return true;
   }

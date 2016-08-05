@@ -779,6 +779,8 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::compute_Gam
       if (number_of_interacting_spins > 0)
         alpha = double(bennett_spins.size()) / double(number_of_interacting_spins);
 
+      // INTERNAL: Does this turn off the Bennett updates?
+      // TODO: Clean this up by e.g. using a flag 'Bennett_updates'.
       if (false and rng() < alpha) {
         apply_bennett_on_Gamma_matrices(Gamma_up_size, Gamma_dn_size);
 
@@ -1234,7 +1236,7 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::clean_up_th
 
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 HS_vertex_move_type MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::get_new_HS_move() {
-  if (rng() > 0.50000000) {
+  if (rng() > 0.5) {
     return CREATION;
   }
 
@@ -1257,7 +1259,7 @@ template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 HS_spin_states_type MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::get_new_spin_value(
     HS_vertex_move_type HS_current_move) {
   if (HS_current_move == CREATION) {
-    if (rng() > 0.50000000)
+    if (rng() > 0.5)
       return HS_UP;
     else
       return HS_DN;

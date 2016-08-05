@@ -404,7 +404,7 @@ void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::insert_or_remov
   nb_updates += 1;
 
   bool succes;
-  if (rng() < 0.50000000)
+  if (rng() < 0.5)
     succes = anti_segment_tools_obj.insert_anti_segment(j, mu(j), sign, M, F_r_t);
   else
     succes = anti_segment_tools_obj.remove_anti_segment(j, mu(j), sign, M, F_r_t);
@@ -417,7 +417,7 @@ void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::insert_or_remov
   nb_updates += 1;
 
   bool succes;
-  if (rng() < 0.50000000)
+  if (rng() < 0.5)
     succes = segment_tools_obj.insert_segment(j, mu(j), sign, M, F_r_t);
   else
     succes = segment_tools_obj.remove_segment(j, mu(j), sign, M, F_r_t);
@@ -430,7 +430,7 @@ void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::shift_segment(i
   nb_updates += 1;
 
   bool succes;
-  if (rng() < 0.50000000)
+  if (rng() < 0.5)
     succes = shift_segment_tools_obj.shift_segment_start_vertex(j, mu(j), sign, M, F_r_t);
   else
     succes = shift_segment_tools_obj.shift_segment_end_vertex(j, mu(j), sign, M, F_r_t);
