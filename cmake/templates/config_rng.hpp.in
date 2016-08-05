@@ -14,6 +14,6 @@
 #define DCA_CONFIG_RNG_HPP
 
 #include "@DCA_RNG_INCLUDE@"
-using RandomNumberGenerator = @DCA_RNG@;
+using RandomNumberGenerator = @DCA_RNG_TYPE@;
 
 #endif  // DCA_CONFIG_RNG_HPP

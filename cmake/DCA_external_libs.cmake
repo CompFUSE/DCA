@@ -51,8 +51,7 @@ set(DCA_EXTERNAL_LIBS
   ${HDF5_CXX_LIBRARIES}
   ${HDF5_LIBRARIES}
   ${NFFT_LIBRARY}
-  ${FFTW_LIBRARY}
-  ${SPRNG_LIBRARY})
+  ${FFTW_LIBRARY})
 
 set(DCA_EXTERNAL_INCLUDES
   ${NFFT_DIR}/include
@@ -84,6 +83,6 @@ if (SPRNG_LIBRARY AND SPRNG_INCLUDE_DIR)
   list(APPEND DCA_EXTERNAL_INCLUDES ${SPRNG_INCLUDE_DIR})
 endif()
 
-if ((NOT DCA_HAVE_SPRNG) AND (${DCA_RNG} STREQUAL "SPRNG"))
-    message(FATAL_ERROR "SPRNG library was not found!\nChoose a different random number generator.")
+if ((${DCA_RNG} MATCHES "^SPRNG") AND (NOT DCA_HAVE_SPRNG))
+    message(FATAL_ERROR "SPRNG library was not found! Choose a different random number generator.")
 endif()

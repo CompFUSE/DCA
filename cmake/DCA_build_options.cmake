@@ -67,32 +67,31 @@ set_property(CACHE DCA_RNG
   PROPERTY STRINGS std::ranlux48_base std::ranlux48 std::mt19937_64 SPRNG_LFG SPRNG_MLFG Ranq2)
 
 if(${DCA_RNG} STREQUAL "std::ranlux48_base")
-  set(DCA_RNG dca::math::random::StdRandomWrapper<std::ranlux48_base>)
+  set(DCA_RNG_TYPE dca::math::random::StdRandomWrapper<std::ranlux48_base>)
   set(DCA_RNG_INCLUDE "dca/math/random/std_random_wrapper.hpp")
 
 elseif(${DCA_RNG} STREQUAL "std::ranlux48")
-  set(DCA_RNG dca::math::random::StdRandomWrapper<std::ranlux48>)
+  set(DCA_RNG_TYPE dca::math::random::StdRandomWrapper<std::ranlux48>)
   set(DCA_RNG_INCLUDE "dca/math/random/std_random_wrapper.hpp")
 
 elseif(${DCA_RNG} STREQUAL "std::mt19937_64")
-  set(DCA_RNG dca::math::random::StdRandomWrapper<std::mt19937_64>)
+  set(DCA_RNG_TYPE dca::math::random::StdRandomWrapper<std::mt19937_64>)
   set(DCA_RNG_INCLUDE "dca/math/random/std_random_wrapper.hpp")
 
 elseif(${DCA_RNG} STREQUAL "SPRNG_LFG")
-  set(DCA_RNG dca::math::random::SprngWrapper<dca::math::random::LFG>)
+  set(DCA_RNG_TYPE dca::math::random::SprngWrapper<dca::math::random::LFG>)
   set(DCA_RNG_INCLUDE "dca/math/random/sprng_wrapper.hpp")
 
 elseif(${DCA_RNG} STREQUAL "SPRNG_MLFG")
-  set(DCA_RNG dca::math::random::SprngWrapper<dca::math::random::MLFG>)
+  set(DCA_RNG_TYPE dca::math::random::SprngWrapper<dca::math::random::MLFG>)
   set(DCA_RNG_INCLUDE "dca/math/random/sprng_wrapper.hpp")
 
 elseif(${DCA_RNG} STREQUAL "Ranq2")
-  set(DCA_RNG dca::math::random::Ranq2)
+  set(DCA_RNG_TYPE dca::math::random::Ranq2)
   set(DCA_RNG_INCLUDE "dca/math/random/ranq2.hpp")
   
 else()
-  message(FATAL_ERROR "Please set DCA_RNG to a valid option: std::ranlux48_base | std::ranlux48 |
-                       std::mt19937_64 | SPRNG_LFG | SPRNG_MLFG | Ranq2.")
+  message(FATAL_ERROR "Please set DCA_RNG to a valid option: std::ranlux48_base | std::ranlux48 | std::mt19937_64 | SPRNG_LFG | SPRNG_MLFG | Ranq2.")
 endif()
 
 configure_file("${PROJECT_SOURCE_DIR}/cmake/templates/config_rng.hpp.in"
