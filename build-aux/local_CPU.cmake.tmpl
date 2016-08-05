@@ -30,15 +30,14 @@ set(HDF5_ROOT "/path/to/HDF5-installation" CACHE PATH "Path to HDF5 installation
 
 # FFTW
 set(FFTW_INCLUDE_DIR "/path/to/FFTW3-include-dir" CACHE PATH "Path to fftw3.h.")
-set(FFTW_LIBRARIES "/paths/to/FFTW3-libraries" CACHE FILEPATH "Paths to FFTW3 libraries.")
+set(FFTW_LIBRARY "/path/to/FFTW3-library" CACHE FILEPATH "Path to FFTW3 library.")
 
 mark_as_advanced(
   NFFT_DIR
   SPGLIB_DIR
   gtest_DIR
   SPRNG_DIR
-  HDF5_ROOT
-  FFTW_INCLUDE_DIR FFTW_LIBRARIES)
+  HDF5_ROOT)
 
 # MPIEXEC stuff for executing parallel tests
 # Note: CXX and CC must be set as environment variables to the corresponding MPI C++ and C compiler
