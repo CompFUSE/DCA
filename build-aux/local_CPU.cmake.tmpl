@@ -8,31 +8,41 @@
 #
 # NFFT: If the instructions in libs/README are followed, NFFT_DIR should be set to
 # "${CMAKE_CURRENT_LIST_DIR}/../libs".
-set(NFFT_DIR "/path/to/NFFT-installation" CACHE FILEPATH "Path to NFFT installation directory.")
+set(NFFT_DIR "/path/to/NFFT-installation"
+  CACHE PATH "Path to NFFT installation directory.")
 
 # spglib: If the instructions in libs/README are followed, SPGLIB_DIR should be set to
 # "${CMAKE_CURRENT_LIST_DIR}/../libs".
 set(SPGLIB_DIR "/path/to/spglib-installation"
-    CACHE FILEPATH "Path to spglib installation directory.")
+  CACHE PATH "Path to spglib installation directory.")
 
 # SPRNG
-set(SPRNG_DIR "/path/to/SPRNG-installation" CACHE FILEPATH "Path to SPRNG installation directory.")
+set(SPRNG_DIR "/path/to/SPRNG-installation"
+  CACHE PATH "Path to SPRNG installation directory.")
 
 # Google Test: This uses the provided version of Google Test in libs.
 set(gtest_DIR "${CMAKE_CURRENT_LIST_DIR}/../libs/gmock-1.7.0/gtest/"
-    CACHE FILEPATH "Path to Google Test.")
+  CACHE PATH "Path to Google Test.")
 
 # HDF5
 # CMake 3.6 does not properly find HDF5 if HDF5_ROOT is not set.
-set(HDF5_ROOT "/path/to/HDF5-installation" CACHE FILEPATH "Path to HDF5 installation directory.")
+set(HDF5_ROOT "/path/to/HDF5-installation" CACHE PATH "Path to HDF5 installation directory.")
 
-mark_as_advanced(NFFT_DIR SPGLIB_DIR gtest_DIR SPRNG_DIR HDF5_ROOT)
+# FFTW
+set(FFTW_INCLUDE_DIR "/path/to/FFTW3-include-dir" CACHE PATH "Path to fftw3.h.")
+set(FFTW_LIBRARY "/path/to/FFTW3-library" CACHE FILEPATH "Path to FFTW3 library.")
+
+mark_as_advanced(
+  NFFT_DIR
+  SPGLIB_DIR
+  gtest_DIR
+  SPRNG_DIR
+  HDF5_ROOT)
 
 # MPIEXEC stuff for executing parallel tests
 # Note: CXX and CC must be set as environment variables to the corresponding MPI C++ and C compiler
 #       wrappers before running cmake.
 set(MPIEXEC "/path/to/mpiexec/mpiexec" CACHE FILEPATH "Executable for running MPI programs.")
-set(MPIEXEC_NUMPROC_FLAG "-np" CACHE FILEPATH
-    "Flag used by MPI to specify the number of processes for MPIEXEC;
-     the next option will be the number of processes.")
+set(MPIEXEC_NUMPROC_FLAG "-np"
+  CACHE STRING "Flag used by MPI to specify the number of processes for MPIEXEC; the next option will be the number of processes.")
 mark_as_advanced(MPIEXEC MPIEXEC_NUMPROC_FLAG)
