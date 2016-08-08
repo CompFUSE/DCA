@@ -337,15 +337,15 @@ void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::do_sweep() {
 
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 int MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::get_random_interacting_flavor() {
-  int spin = s::dmn_size() * rng.get_random_number();
-  int int_band = parameters.get_interacting_bands().size() * rng.get_random_number();
+  int spin = s::dmn_size() * rng();
+  int int_band = parameters.get_interacting_bands().size() * rng();
 
   return parameters.get_interacting_bands()[int_band] + spin * b::dmn_size();
 }
 
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::do_step() {
-  double p = rng.get_random_number();
+  double p = rng();
 
   int so_ind = get_random_interacting_flavor();
 
@@ -360,7 +360,7 @@ void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::do_step() {
 
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::do_insert_remove(int so_ind) {
-  double rn = rng.get_random_number();
+  double rn = rng();
 
   if (configuration.get_vertices(so_ind).size() == 0) {
     bool succes;
@@ -404,7 +404,7 @@ void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::insert_or_remov
   nb_updates += 1;
 
   bool succes;
-  if (rng.get_random_number() < 0.50000000)
+  if (rng() < 0.5)
     succes = anti_segment_tools_obj.insert_anti_segment(j, mu(j), sign, M, F_r_t);
   else
     succes = anti_segment_tools_obj.remove_anti_segment(j, mu(j), sign, M, F_r_t);
@@ -417,7 +417,7 @@ void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::insert_or_remov
   nb_updates += 1;
 
   bool succes;
-  if (rng.get_random_number() < 0.50000000)
+  if (rng() < 0.5)
     succes = segment_tools_obj.insert_segment(j, mu(j), sign, M, F_r_t);
   else
     succes = segment_tools_obj.remove_segment(j, mu(j), sign, M, F_r_t);
@@ -430,7 +430,7 @@ void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::shift_segment(i
   nb_updates += 1;
 
   bool succes;
-  if (rng.get_random_number() < 0.50000000)
+  if (rng() < 0.5)
     succes = shift_segment_tools_obj.shift_segment_start_vertex(j, mu(j), sign, M, F_r_t);
   else
     succes = shift_segment_tools_obj.shift_segment_end_vertex(j, mu(j), sign, M, F_r_t);

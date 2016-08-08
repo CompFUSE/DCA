@@ -27,7 +27,7 @@ function(write_global_definitions_file filename)
   list(REMOVE_DUPLICATES DCA_CONFIG_DEFINITIONS_VAR)
   list(REMOVE_ITEM DCA_CONFIG_DEFINITIONS_VAR "")
 
-  set(dca_config_defines "// Generated from CMake definitons\n\n")
+  set(dca_config_defines "// Generated from CMake definitions\n\n")
   foreach(def ${DCA_CONFIG_DEFINITIONS_VAR})
     set(dca_config_defines "${dca_config_defines}#define ${def} ${${def}_define}\n")
   endforeach()

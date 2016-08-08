@@ -176,10 +176,10 @@ vertex_singleton vertex_pair<parameters_type>::second() {
 
 template <class parameters_type>
 void vertex_pair<parameters_type>::set_random_interacting() {
-  general_interaction<parameters_type>::set_vertex(*this, parameters, rng /*concurrency*/,
+  general_interaction<parameters_type>::set_vertex(*this, parameters, rng,
                                                    CV<parameters_type>::get_H_interaction());
 
-  double draw = rng.get_random_number();  // concurrency.get_random_number();
+  double draw = rng();
 
   if (draw > 1 / 2.)
     HS_spin = HS_UP;
@@ -188,8 +188,7 @@ void vertex_pair<parameters_type>::set_random_interacting() {
 
   delta_r = r_cluster_type::subtract(r_sites.second, r_sites.first);  // delta_r = r_i - r_j
 
-  tau = parameters.get_beta() *
-        rng.get_random_number();  // concurrency.get_random_number()*time_domain_type::beta;
+  tau = parameters.get_beta() * rng();
 
   creatable = false;
   annihilatable = true;
@@ -204,15 +203,14 @@ void vertex_pair<parameters_type>::set_random_interacting() {
 
 template <class parameters_type>
 void vertex_pair<parameters_type>::set_random_noninteracting() {
-  general_interaction<parameters_type>::set_vertex(*this, parameters, rng /*concurrency*/,
+  general_interaction<parameters_type>::set_vertex(*this, parameters, rng,
                                                    CV<parameters_type>::get_H_interaction());
 
   HS_spin = HS_ZERO;
 
   delta_r = r_cluster_type::subtract(r_sites.second, r_sites.first);  // delta_r = r_i - r_j
 
-  tau = parameters.get_beta() *
-        rng.get_random_number();  // concurrency.get_random_number()*time_domain_type::beta;
+  tau = parameters.get_beta() * rng();
 
   creatable = true;
   annihilatable = false;

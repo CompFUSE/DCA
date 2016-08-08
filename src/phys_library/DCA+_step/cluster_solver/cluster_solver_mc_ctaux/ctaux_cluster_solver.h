@@ -64,7 +64,7 @@ public:
   using nu_nu_k_DCA_w = dmn_variadic<nu, nu, k_DCA, w>;
 
 public:
-  cluster_solver(parameters_type& parameters_ref, MOMS_type& MOMS_ref, bool set_rng = true);
+  cluster_solver(parameters_type& parameters_ref, MOMS_type& MOMS_ref);
 
   ~cluster_solver();
 
@@ -129,7 +129,7 @@ protected:
 
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::cluster_solver(
-    parameters_type& parameters_ref, MOMS_type& MOMS_ref, bool set_rng)
+    parameters_type& parameters_ref, MOMS_type& MOMS_ref)
     : parameters(parameters_ref),
       MOMS(MOMS_ref),
       concurrency(parameters.get_concurrency()),
@@ -139,17 +139,14 @@ cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::clu
 
       total_time(0),
 
+      rng(concurrency.id(), concurrency.number_of_processors(), parameters.get_seed()),
+
       accumulator(parameters, MOMS, 0),
 
       Sigma_old("Self-Energy-n-1-iteration"),
       Sigma_new("Self-Energy-n-0-iteration"),
 
       DCA_iteration(-1) {
-  // TODO: ALWAYS initialize the rng PROPERLY.
-  if (set_rng)
-    rng.init_from_id(
-        concurrency.id(),
-        concurrency.number_of_processors());  // assure each markov chain gets a different seed
   concurrency << "\n\n\t CT-AUX Integrator is born \n\n";
 }
 

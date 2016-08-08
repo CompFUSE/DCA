@@ -42,8 +42,8 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 # be moved into include/dca/.../ and included via #include "dca/.../...".
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
-# Directory where dca/config/defines.hpp will be created.
-include_directories(${CMAKE_BINARY_DIR})
+# Directory where dca/config/headers.hpp will be created.
+include_directories(${CMAKE_BINARY_DIR}/include)
 
 #------------------------------------------------------------------------------
 # Check for CXX features that might not be supported 
@@ -120,6 +120,7 @@ include(DCA_external_libs)
 #       respectively.
 #------------------------------------------------------------------------------
 add_subdirectory(src/math/geometry/gaussian_quadrature)
+add_subdirectory(src/math/random)
 add_subdirectory(src/util)
 add_subdirectory(src/phys_library/DCA_step/cluster_solver/posix_qmci)
 
@@ -145,7 +146,7 @@ endif()
 #------------------------------------------------------------------------------
 # Global defines.hpp file
 #------------------------------------------------------------------------------
-write_global_definitions_file("include/dca/config/defines.hpp")
+# write_global_definitions_file("include/dca/config/defines.hpp")
 
 #------------------------------------------------------------------------------
 # Testing
@@ -166,7 +167,7 @@ list(SORT DCA_CONFIG_DEFINITIONS_VAR)
 list(REMOVE_DUPLICATES DCA_CONFIG_DEFINITIONS_VAR)
 list(REMOVE_ITEM DCA_CONFIG_DEFINITIONS_VAR "")
 
-set(dca_config_defines "// Generated from CMake definitons\n\n")
+set(dca_config_defines "// Generated from CMake definitions\n\n")
 foreach(def ${DCA_CONFIG_DEFINITIONS_VAR})
   set(dca_config_defines "${dca_config_defines}#define ${def} ${${def}_define}\n")
 endforeach()
@@ -174,15 +175,17 @@ endforeach()
 # Generate a defines.hpp to be used in the build directory ...
 set(DCA_DEFINES_PREFIX ${DCA_BUILD_PREFIX})
 configure_file("${PROJECT_SOURCE_DIR}/cmake/templates/config_defines.hpp.in"
-               "${CMAKE_BINARY_DIR}/dca/config/defines.hpp"
+               "${CMAKE_BINARY_DIR}/include/dca/config/defines.hpp"
                @ONLY)
 
 # Generate a defines.hpp to be used in the install directory ...
-set(DCA_DEFINES_PREFIX ${DCA_PREFIX})
-configure_file("${PROJECT_SOURCE_DIR}/cmake/templates/config_defines.hpp.in"
-               "${CMAKE_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/dca/config/defines.hpp"
-               @ONLY)
+# set(DCA_DEFINES_PREFIX ${DCA_PREFIX})
+# configure_file("${PROJECT_SOURCE_DIR}/cmake/templates/config_defines.hpp.in"
+#                "${CMAKE_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/dca/config/defines.hpp"
+#                @ONLY)
 
+install(DIRECTORY ${PROJECT_BINARY_DIR}/include/dca/config DESTINATION include/dca)
+             
 #------------------------------------------------------------------------------
 # Build applications
 #------------------------------------------------------------------------------

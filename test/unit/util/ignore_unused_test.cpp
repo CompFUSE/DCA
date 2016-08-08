@@ -9,14 +9,35 @@
 //
 // This file tests ignore_unused.hpp
 
+#include <vector>
 #include "dca/util/ignore_unused.hpp"
 #include "gtest/gtest.h"
 
-TEST(IgnoreUnusedTest, basicTest) {
+TEST(IgnoreUnusedTest, NoArguments) {
+  dca::util::ignoreUnused();
+}
+
+TEST(IgnoreUnusedTest, FundamentalTypes) {
   int i = 42;
   double d = 3.14;
-
-  dca::util::ignoreUnused();
   dca::util::ignoreUnused(i);
   dca::util::ignoreUnused(d);
+}
+
+TEST(IgnoreUnusedTest, StdTypes) {
+  std::vector<double> v(10, 3.14);
+  dca::util::ignoreUnused(v);
+}
+
+class MyClass {};
+
+TEST(IgnoreUnusedTest, CustomTypes) {
+  MyClass c;
+  dca::util::ignoreUnused(c);
+}
+
+TEST(IgnoreUnusedTest, MultipleArguments) {
+  float f = 1.2f;
+  bool b = true;
+  dca::util::ignoreUnused(f, b);
 }

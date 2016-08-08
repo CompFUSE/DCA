@@ -92,7 +92,7 @@ bool shift_segment_tools<hybridization_routines_type>::shift_segment_end_vertex(
   if (size < 1)
     return -1;
 
-  int n = size * rng.get_random_number();
+  int n = size * rng();
 
   typename orbital_configuration_type::iterator s, s_up;
   s = vertices.begin() + n;
@@ -102,7 +102,7 @@ bool shift_segment_tools<hybridization_routines_type>::shift_segment_end_vertex(
   if (interval <= 0)
     interval += BETA;
 
-  double length = hybridization_routines.compute_length(rng.get_random_number(), interval, 0);
+  double length = hybridization_routines.compute_length(rng(), interval, 0);
   double length_old = s->t_end() - s->t_start();
   if (length_old < 0)
     length_old += BETA;
@@ -134,8 +134,7 @@ bool shift_segment_tools<hybridization_routines_type>::shift_segment_end_vertex(
   det_rat = hybridization_routines.det_rat_shift_end(this_flavor, segment_insert, n, M(this_flavor),
                                                      vertices, F, R, Q, det_rat_sign, overlap);
 
-  if (std::log(rng.get_random_number()) <
-      std::log(det_rat) + (length - length_old) * mu - otherlength_u) {
+  if (std::log(rng()) < std::log(det_rat) + (length - length_old) * mu - otherlength_u) {
     if (det_rat_sign < 0) {
       M(this_flavor).print();
     }
@@ -162,7 +161,7 @@ bool shift_segment_tools<hybridization_routines_type>::shift_segment_start_verte
   if (size < 1)
     return -1;
 
-  int n = size * rng.get_random_number();
+  int n = size * rng();
 
   typename orbital_configuration_type::iterator s, s_up;
   s = vertices.begin() + n;
@@ -174,7 +173,7 @@ bool shift_segment_tools<hybridization_routines_type>::shift_segment_start_verte
   if (interval <= 0)
     interval += BETA;
 
-  double length = hybridization_routines.compute_length(rng.get_random_number(), interval, 0);
+  double length = hybridization_routines.compute_length(rng(), interval, 0);
   double length_old = s_up->t_end() - s_up->t_start();
   if (length_old < 0)
     length_old += BETA;
@@ -206,8 +205,7 @@ bool shift_segment_tools<hybridization_routines_type>::shift_segment_start_verte
   det_rat = hybridization_routines.det_rat_shift_start(
       this_flavor, segment_insert, n, M(this_flavor), vertices, F, R, Q, det_rat_sign, overlap);
 
-  if (std::log(rng.get_random_number()) <
-      std::log(det_rat) + (length - length_old) * mu - otherlength_u) {
+  if (std::log(rng()) < std::log(det_rat) + (length - length_old) * mu - otherlength_u) {
     if (det_rat_sign < 0) {
       M(this_flavor).print();
     }

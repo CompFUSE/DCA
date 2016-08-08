@@ -14,9 +14,8 @@ endif()
 # simplex_gm_rule.cpp includes simplex_gm_rule.hpp without any path prefix. We therefore need to add
 # the full path to the include directories.
 target_include_directories(gaussian_quadrature
-                           PRIVATE ${PROJECT_SOURCE_DIR}/include
                            PRIVATE ${PROJECT_SOURCE_DIR}/include/dca/math/geometry/gaussian_quadrature
-                           PRIVATE ${FFTW_INCLUDE_DIR})
+                           PUBLIC ${FFTW_INCLUDE_DIR})
 
 # Silence compiler warnings caused by simplex_gm_rule.cpp.
 target_compile_options(gaussian_quadrature PRIVATE "-Wno-unused-parameter")

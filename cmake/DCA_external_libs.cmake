@@ -32,7 +32,6 @@ if (NOT DCA_HAVE_HDF5)
     # Fall back to a search for a FindHDF5.cmake file and execute it.
     find_package(HDF5 REQUIRED COMPONENTS C CXX)
   endif()
-  include_directories(${HDF5_INCLUDE_DIR} ${HDF5_INCLUDE_DIR_CPP})
 endif()
 
 # FFTW
@@ -52,14 +51,15 @@ set(DCA_EXTERNAL_LIBS
   ${HDF5_CXX_LIBRARIES}
   ${HDF5_LIBRARIES}
   ${NFFT_LIBRARY}
-  ${FFTW_LIBRARY}
-  ${SPRNG_LIBRARY})
+  ${FFTW_LIBRARY})
 
 set(DCA_EXTERNAL_INCLUDES
   ${NFFT_DIR}/include
   ${SPGLIB_DIR}/include
   ${FFTW_INCLUDE_DIR}
-  ${HDF5_INCLUDE_DIRS})
+  ${HDF5_INCLUDE_DIRS}
+  ${HDF5_INCLUDE_DIR}
+  ${HDF5_INCLUDE_DIR_CPP})
 
 mark_as_advanced(
   MPI_LIBRARY MPI_EXTRA_LIBRARY
@@ -68,24 +68,21 @@ mark_as_advanced(
   HDF5_DIR)
 
 # SPRNG
-# Only try to find SPRNG if it is the requested rng to use.
-if (${DCA_RNG} STREQUAL "SPRNG")
-  # INTERNAL: Is there a find_package for SPRNG?
+set(DCA_HAVE_SPRNG FALSE CACHE INTERNAL "")
 
-  find_library(SPRNG_LIBRARY
-    NAMES libsprng.a sprng
-    PATHS ${SPRNG_DIR}/lib
-    NO_DEFAULT_PATH)
-
-  if (${SPRNG_LIBRARY} STREQUAL "SPRNG_LIBRARY-NOTFOUND")
-    unset(SPRNG_LIBRARY CACHE)
-    message(FATAL_ERROR "SPRNG library was not found!\nChoose a different option for the random number generator.")
-  endif()
-
+find_library(SPRNG_LIBRARY sprng
+             HINTS ${SPRNG_DIR}/lib)
+find_path(SPRNG_INCLUDE_DIR sprng_cpp.h
+          HINTS ${SPRNG_DIR}/include)
+mark_as_advanced(SPRNG_LIBRARY SPRNG_INCLUDE_DIR)
+        
+if (SPRNG_LIBRARY AND SPRNG_INCLUDE_DIR)
+  set(DCA_HAVE_SPRNG TRUE)
   dca_add_config_define(DCA_HAVE_SPRNG)
-
   list(APPEND DCA_EXTERNAL_LIBS ${SPRNG_LIBRARY})
-  list(APPEND DCA_EXTERNAL_INCLUDES ${SPRNG_DIR}/include)
+  list(APPEND DCA_EXTERNAL_INCLUDES ${SPRNG_INCLUDE_DIR})
+endif()
 
-  mark_as_advanced(SPRNG_LIBRARY)
+if ((${DCA_RNG} MATCHES "^SPRNG") AND (NOT DCA_HAVE_SPRNG))
+    message(FATAL_ERROR "SPRNG library was not found! Choose a different random number generator.")
 endif()

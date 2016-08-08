@@ -21,7 +21,6 @@
 #include <stdexcept>
 #include <vector>
 
-#include "dca/math_library/random_number_library/random_number_library.hpp"
 #include "dca/phys_library/DCA_step/cluster_solver/posix_qmci/thread_task_handler.hpp"
 #include "comp_library/profiler_library/events/time.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_pthread_jacket/posix_qmci_accumulator.h"
@@ -104,25 +103,23 @@ private:
 template <class qmci_integrator_type>
 posix_qmci_integrator<qmci_integrator_type>::posix_qmci_integrator(parameters_type& parameters_ref,
                                                                    MOMS_type& MOMS_ref)
-    : qmci_integrator_type(parameters_ref, MOMS_ref, false /*do not set rng*/),
+    : qmci_integrator_type(parameters_ref, MOMS_ref),
 
       nr_walkers(parameters.get_nr_walkers()),
       nr_accumulators(parameters.get_nr_accumulators()),
 
       thread_task_handler_(nr_walkers, nr_accumulators),
 
-      rng_vector(nr_walkers),
       accumulators_queue() {
   if (nr_walkers < 1 || nr_accumulators < 1) {
-    std::cout << "\n\n\n"
-              << "\t nr_walkers      --> " << nr_walkers << "\t nr_accumulators --> "
-              << nr_accumulators << "\n\n\n"
-              << "\t\t\t\t WTF are you doing !!!!\n\n";
-    throw std::logic_error(__PRETTY_FUNCTION__);
+    throw std::logic_error(
+        "Both the number of walkers and the number of accumulators must be at least 1.");
   }
 
-  dca::math::rng::initializeWalkerRngs(concurrency.id(), concurrency.number_of_processors(),
-                                       nr_walkers, rng_vector);
+  for (int i = 0; i < nr_walkers; ++i) {
+    rng_vector.emplace_back(concurrency.id(), concurrency.number_of_processors(),
+                            parameters.get_seed());
+  }
 }
 
 template <class qmci_integrator_type>

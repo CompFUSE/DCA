@@ -4,7 +4,7 @@
 
 # Libraries
 # TODO: Handle git_version and modules libraries nicer.
-set(DCA_LIBRARIES "${DCA_EXTERNAL_LIBS};git_version;modules;posix_qmci;gaussian_quadrature")
+set(DCA_LIBRARIES "${DCA_EXTERNAL_LIBS};git_version;modules;posix_qmci;gaussian_quadrature;random")
 # message("DCA_LIBRARIES: ${DCA_LIBRARIES}")
 
 # Includes

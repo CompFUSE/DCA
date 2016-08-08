@@ -148,7 +148,7 @@ bool swap_segment_tools<hybridization_routines_type>::swap_orbitals(
   }
 
   double log_prob = std::log(std::fabs(det_rat)) + (-overlap_u - e_site);
-  if (std::log(rng.get_random_number()) < log_prob) {
+  if (std::log(rng()) < log_prob) {
     if (nonsymmetric_orbitals) {
       construct_inverse(M(i), beta, F, i, j);
       construct_inverse(M(j), beta, F, j, i);

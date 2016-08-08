@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
   using ConcurrencyType = dca::concurrency::parallelization<@DCA_PARALLELIZATION_LIBRARY_TYPE@>;
   // CT_AUX_CLUSTER_SOLVER is just a dummy variable when running the analysis.
   using ParametersType =
-      Parameters<ConcurrencyType, ModelType, void /*RngType*/, CT_AUX_CLUSTER_SOLVER>;
+      Parameters<ConcurrencyType, ModelType, void /*RandomNumberGenerator*/, CT_AUX_CLUSTER_SOLVER>;
   using DcaDataType = DCA_data<ParametersType>;
 
   // Set up the parallelization.
