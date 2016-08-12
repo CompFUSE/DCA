@@ -23,8 +23,6 @@
 //
 #include <gtest/gtest.h>
 //
-using namespace dca::util;
-//
 // include function-library
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/function_library/domains/special_domains/dmn_variadic.h"
@@ -171,28 +169,28 @@ struct function_test<FUNC_LIB::function<double, Domain>> {
 //        IsSame<test::test_domain_2a, test::test_domain_2c>();
 
         std::cout << std::endl;
-        using test_list = Typelist<int*, double, float&, int, int*, int, int, const float*, const int, long long, int&>;
-        using test_list2 = Typelist<float, int, int*, double*, int, int, int*, double, int, float, const int, long long, int&>;
-        std::cout << "Testing Typelist Length " << mp_size<test_list>::value << std::endl;
+        using test_list = dca::util::Typelist<int*, double, float&, int, int*, int, int, const float*, const int, long long, int&>;
+        using test_list2 = dca::util::Typelist<float, int, int*, double*, int, int, int*, double, int, float, const int, long long, int&>;
+        std::cout << "Testing Typelist Length " << dca::util::mp_size<test_list>::value << std::endl;
         std::cout << "Testing Typelist Length " << dca::util::Length<test_list>::value << std::endl;
 
-        std::cout << "Testing Typelist NumberOf " << mp_count<test_list, int>::value << std::endl;
+        std::cout << "Testing Typelist NumberOf " << dca::util::mp_count<test_list, int>::value << std::endl;
         std::cout << "Testing Typelist NumberOf " << dca::util::NumberOf<test_list, int>::value << std::endl;
 
-        std::cout << "Testing Typelist IndexOf " << mp_index_of<long long, test_list>::value << std::endl;
+        std::cout << "Testing Typelist IndexOf " << dca::util::mp_index_of<long long, test_list>::value << std::endl;
         std::cout << "Testing Typelist IndexOf " << dca::util::IndexOf<long long, test_list>::value << std::endl;
 
-        std::cout << "Testing Typelist TypeAt " << dca::util::type_name<mp_element<9, test_list>::type>().c_str() << std::endl;
+        std::cout << "Testing Typelist TypeAt " << dca::util::type_name<dca::util::mp_element<9, test_list>::type>().c_str() << std::endl;
         std::cout << "Testing Typelist TypeAt " << dca::util::type_name<dca::util::TypeAt<9, test_list>::type>().c_str() << std::endl;
 
-        std::cout << "Testing Typelist Append " << mp_size<mp_append<test_list,test_list2>::type>::value << std::endl;
+        std::cout << "Testing Typelist Append " << dca::util::mp_size<dca::util::mp_append<test_list,test_list2>::type>::value << std::endl;
         std::cout << "Testing Typelist Append " << dca::util::Length<dca::util::Append<test_list,test_list2>::type>::value << std::endl;
-        std::cout << "Testing Typelist Append/Index " << mp_index_of<const float*, mp_append<test_list,test_list2>::type>::value << std::endl;
+        std::cout << "Testing Typelist Append/Index " << dca::util::mp_index_of<const float*, dca::util::mp_append<test_list,test_list2>::type>::value << std::endl;
         std::cout << "Testing Typelist Append/Index " << dca::util::IndexOf<const float*, dca::util::Append<test_list,test_list2>::type>::value << std::endl;
 
-        std::cout << "Testing Typelist Prepend " << mp_size<mp_prepend<test_list,test_list2>::type>::value << std::endl;
+        std::cout << "Testing Typelist Prepend " << dca::util::mp_size<dca::util::mp_prepend<test_list,test_list2>::type>::value << std::endl;
         std::cout << "Testing Typelist Prepend " << dca::util::Length<dca::util::Prepend<test_list,test_list2>::type>::value << std::endl;
-        std::cout << "Testing Typelist Prepend/Index " << mp_index_of<const float*, mp_prepend<test_list,test_list2>::type>::value << std::endl;
+        std::cout << "Testing Typelist Prepend/Index " << dca::util::mp_index_of<const float*, dca::util::mp_prepend<test_list,test_list2>::type>::value << std::endl;
         std::cout << "Testing Typelist Prepend/Index " << dca::util::IndexOf<const float*, dca::util::Prepend<test_list,test_list2>::type>::value << std::endl;
         std::cout << std::endl;
 
