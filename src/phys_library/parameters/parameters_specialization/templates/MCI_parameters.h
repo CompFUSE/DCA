@@ -7,12 +7,14 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// This class conaints all parameters for the Monte Carlo integrator.
+// This class contains all parameters for the Monte Carlo integrator.
 
 #ifndef PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_TEMPLATES_MCI_PARAMETERS_H
 #define PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_TEMPLATES_MCI_PARAMETERS_H
 
 #include <iostream>
+#include <limits>
+#include <random>
 #include <stdexcept>
 #include <string>
 
@@ -61,6 +63,10 @@ public:
   int get_nr_HTS_threads();
 
 private:
+  void generateRandomSeed();
+
+  static constexpr int default_seed = 985456376;
+
   std::string Sigma_file;
 
   int warm_up_sweeps;
@@ -87,7 +93,7 @@ MCI_parameters::MCI_parameters()
 
       do_adaptive_double_counting("false"),
 
-      RNG_seed(985456376),
+      RNG_seed(default_seed),
 
       nr_walkers(1),
       nr_accumulators(1),
@@ -196,10 +202,38 @@ void MCI_parameters::read_write(read_write_type& read_write_obj) {
     catch (const std::exception& r_e) {
     }
 
-    try {
-      read_write_obj.execute("RNG-seed", RNG_seed);
+    if (read_write_obj.is_reader()) {
+      // The input file can contain an integral seed or the seeding option "random".
+      try {
+        // Try to read a seeding option.
+        std::string seed_string;
+        read_write_obj.execute("RNG-seed", seed_string);
+        if (seed_string == "random")
+          generateRandomSeed();
+        else {
+          std::cerr << "Warning: Invalid seeding option. Using default seed = " << default_seed
+                    << "." << std::endl;
+          RNG_seed = default_seed;
+        }
+      }
+      catch (const std::exception& r_e) {
+        try {
+          // Read the seed as an integer.
+          read_write_obj.execute("RNG-seed", RNG_seed);
+        }
+
+        catch (const std::exception& r_e2) {
+        }
+      }
     }
-    catch (const std::exception& r_e) {
+
+    else {
+      // Write the RNG seed.
+      try {
+        read_write_obj.execute("RNG-seed", RNG_seed);
+      }
+      catch (const std::exception& r_e) {
+      }
     }
 
     {
@@ -270,6 +304,12 @@ bool MCI_parameters::adjust_self_energy_for_double_counting() {
 
 int MCI_parameters::get_seed() {
   return RNG_seed;
+}
+
+void MCI_parameters::generateRandomSeed() {
+  std::random_device rd;
+  std::uniform_int_distribution<int> dist(0, std::numeric_limits<int>::max());
+  RNG_seed = dist(rd);
 }
 
 int MCI_parameters::get_nr_walkers() {
