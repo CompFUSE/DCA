@@ -63,10 +63,10 @@ private:
   static void initialize_elements_3D(std::vector<int> R_basis);
 
   static void initialize_add(scalar_type* basis, std::vector<std::vector<scalar_type>>& elements,
-                             LIN_ALG::matrix<int, LIN_ALG::CPU>& A);
+                             dca::linalg::Matrix<int, dca::linalg::CPU>& A);
 
   static void initialize_subtract(scalar_type* basis, std::vector<std::vector<scalar_type>>& elements,
-                                  LIN_ALG::matrix<int, LIN_ALG::CPU>& A);
+                                  dca::linalg::Matrix<int, dca::linalg::CPU>& A);
 
   static void initialize_volume();
 };
@@ -147,7 +147,7 @@ void cluster_domain_initializer<dmn_0<cluster_domain<scalar_type, DIMENSION, NAM
 
 template <typename scalar_type, int DIMENSION, CLUSTER_NAMES NAME, CLUSTER_SHAPE SHAPE>
 void cluster_domain_initializer<
-  dmn_0<cluster_domain<scalar_type, DIMENSION, NAME, REAL_SPACE, SHAPE>>>::allocate_data(int /*N*/) {
+    dmn_0<cluster_domain<scalar_type, DIMENSION, NAME, REAL_SPACE, SHAPE>>>::allocate_data(int /*N*/) {
   // assert(N == DIMENSION);
 
   {
@@ -215,7 +215,7 @@ template <typename scalar_type, int DIMENSION, CLUSTER_NAMES NAME, CLUSTER_SHAPE
 void cluster_domain_initializer<
     dmn_0<cluster_domain<scalar_type, DIMENSION, NAME, REAL_SPACE, SHAPE>>>::compute_basis() {
   {
-    LIN_ALG::matrix<scalar_type, LIN_ALG::CPU> A("A", DIMENSION);
+    dca::linalg::Matrix<scalar_type, dca::linalg::CPU> A("A", DIMENSION);
 
     for (int d0 = 0; d0 < DIMENSION; d0++)
       for (int d1 = 0; d1 < DIMENSION; d1++)
@@ -225,7 +225,7 @@ void cluster_domain_initializer<
       for (int d1 = 0; d1 < DIMENSION; d1++)
         k_dmn::get_inverse_super_basis()[d0 + d1 * DIMENSION] = A(d1, d0) / (2 * M_PI);
 
-    LIN_ALG::GEINV<LIN_ALG::CPU>::execute(A);
+    LIN_ALG::GEINV<dca::linalg::CPU>::execute(A);
 
     //     for(int d0=0; d0<DIMENSION; d0++)
     //       for(int d1=0; d1<DIMENSION; d1++)
@@ -263,7 +263,7 @@ void cluster_domain_initializer<
   }
 
   {
-    LIN_ALG::matrix<scalar_type, LIN_ALG::CPU> A("A", DIMENSION);
+    dca::linalg::Matrix<scalar_type, dca::linalg::CPU> A("A", DIMENSION);
 
     for (int d0 = 0; d0 < DIMENSION; d0++)
       for (int d1 = 0; d1 < DIMENSION; d1++)
@@ -273,7 +273,7 @@ void cluster_domain_initializer<
       for (int d1 = 0; d1 < DIMENSION; d1++)
         k_dmn::get_inverse_basis()[d0 + d1 * DIMENSION] = A(d1, d0) / (2 * M_PI);
 
-    LIN_ALG::GEINV<LIN_ALG::CPU>::execute(A);
+    LIN_ALG::GEINV<dca::linalg::CPU>::execute(A);
 
     //     for(int d0=0; d0<DIMENSION; d0++)
     //       for(int d1=0; d1<DIMENSION; d1++)
@@ -672,7 +672,7 @@ void cluster_domain_initializer<dmn_0<cluster_domain<scalar_type, DIMENSION, NAM
 template <typename scalar_type, int DIMENSION, CLUSTER_NAMES NAME, CLUSTER_SHAPE SHAPE>
 void cluster_domain_initializer<dmn_0<cluster_domain<scalar_type, DIMENSION, NAME, REAL_SPACE, SHAPE>>>::
     initialize_add(scalar_type* basis, std::vector<std::vector<scalar_type>>& elements,
-                   LIN_ALG::matrix<int, LIN_ALG::CPU>& A) {
+                   dca::linalg::Matrix<int, dca::linalg::CPU>& A) {
   assert(SHAPE == BRILLOUIN_ZONE);
 
   std::vector<std::vector<scalar_type>> basis_vecs(0);
@@ -685,7 +685,7 @@ void cluster_domain_initializer<dmn_0<cluster_domain<scalar_type, DIMENSION, NAM
     basis_vecs.push_back(b_vec);
   }
 
-  A.resize_no_copy(elements.size());
+  A.resizeNoCopy(elements.size());
 
   for (int i = 0; i < elements.size(); i++) {
     for (int j = 0; j < elements.size(); j++) {
@@ -713,7 +713,7 @@ void cluster_domain_initializer<dmn_0<cluster_domain<scalar_type, DIMENSION, NAM
 template <typename scalar_type, int DIMENSION, CLUSTER_NAMES NAME, CLUSTER_SHAPE SHAPE>
 void cluster_domain_initializer<dmn_0<cluster_domain<scalar_type, DIMENSION, NAME, REAL_SPACE, SHAPE>>>::
     initialize_subtract(scalar_type* basis, std::vector<std::vector<scalar_type>>& elements,
-                        LIN_ALG::matrix<int, LIN_ALG::CPU>& A) {
+                        dca::linalg::Matrix<int, dca::linalg::CPU>& A) {
   assert(SHAPE == BRILLOUIN_ZONE);
 
   std::vector<std::vector<scalar_type>> basis_vecs(0);
@@ -726,7 +726,7 @@ void cluster_domain_initializer<dmn_0<cluster_domain<scalar_type, DIMENSION, NAM
     basis_vecs.push_back(b_vec);
   }
 
-  A.resize_no_copy(elements.size());
+  A.resizeNoCopy(elements.size());
 
   for (int i = 0; i < elements.size(); i++) {
     for (int j = 0; j < elements.size(); j++) {

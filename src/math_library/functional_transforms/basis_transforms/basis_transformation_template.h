@@ -45,7 +45,7 @@ public:
 
   typedef typename basis_function_type::f_scalar_type f_scalar_type;
 
-  typedef LIN_ALG::matrix<f_scalar_type, LIN_ALG::CPU> matrix_type;
+  typedef dca::linalg::Matrix<f_scalar_type, dca::linalg::CPU> matrix_type;
 
 public:
   static bool& is_initialized() {
@@ -58,8 +58,8 @@ public:
     return name;
   }
 
-  static LIN_ALG::matrix<f_scalar_type, LIN_ALG::CPU>& get_transformation_matrix() {
-    static LIN_ALG::matrix<f_scalar_type, LIN_ALG::CPU> T;
+  static dca::linalg::Matrix<f_scalar_type, dca::linalg::CPU>& get_transformation_matrix() {
+    static dca::linalg::Matrix<f_scalar_type, dca::linalg::CPU> T;
 
     if (not is_initialized())
       initialize_transformation_matrix();
@@ -75,7 +75,7 @@ public:
 
     assert(M > 0 and N > 0);
 
-    LIN_ALG::matrix<f_scalar_type, LIN_ALG::CPU>& T = get_transformation_matrix();
+    dca::linalg::Matrix<f_scalar_type, dca::linalg::CPU>& T = get_transformation_matrix();
 
     T.reserve(std::pair<int, int>(M, N));
 

@@ -37,7 +37,7 @@
 
 namespace DCA {
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 class cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type> {
 public:
   using MOMS_w_imag_type = DCA_data<parameters_type>;
@@ -83,7 +83,7 @@ private:
       tp_Greens_function_obj;
 };
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::cluster_solver(
     parameters_type& parameters_ref, MOMS_type& MOMS_imag_ref, MOMS_w_real_type& MOMS_real_ref)
     : parameters(parameters_ref),
@@ -132,7 +132,7 @@ cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
     std::cout << "subspaces orthogonal: " << Fock_obj.check_orthogonality() << std::endl;
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::initialize(
     int /*dca_iteration*/) {
   FUNC_LIB::function<std::complex<double>, dmn_3<nu, nu, r_DCA>> H_DCA;
@@ -142,7 +142,7 @@ void cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_
   Ham_obj.initialize(H_DCA, MOMS_imag.H_interactions);
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::execute() {
   if (concurrency.id() == concurrency.first()) {
     std::cout << "\n" << __FUNCTION__ << "\n" << std::endl;
@@ -243,7 +243,7 @@ void cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_
   }
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 template <typename dca_info_struct_t>
 void cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::finalize(
     dca_info_struct_t& /*dca_info_struct*/) {
@@ -263,7 +263,7 @@ void cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_
     MOMS_imag.G0_r_t_cluster_excluded(l) = MOMS_imag.G0_r_t(l);
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::write(
     std::string file_name) {
   IO::FORMAT FORMAT = parameters.get_output_format();

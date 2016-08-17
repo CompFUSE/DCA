@@ -88,16 +88,16 @@ void compute_band_structure::execute(
 
   {  // compute the bands ...
 
-    LIN_ALG::vector<double, LIN_ALG::CPU> L_vec(nu::dmn_size());
-    LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> H_mat(nu::dmn_size());
-    LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> V_mat(nu::dmn_size());
+    dca::linalg::Vector<double, dca::linalg::CPU> L_vec(nu::dmn_size());
+    dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> H_mat(nu::dmn_size());
+    dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> V_mat(nu::dmn_size());
 
     for (int l = 0; l < int(collection_k_vecs.size()); l++) {
       for (int i = 0; i < nu::dmn_size(); i++)
         for (int j = 0; j < nu::dmn_size(); j++)
           H_mat(i, j) = H_k(i, j, l);
 
-      LIN_ALG::GEEV<LIN_ALG::CPU>::execute('N', 'U', H_mat, L_vec, V_mat);
+      LIN_ALG::GEEV<dca::linalg::CPU>::execute('N', 'U', H_mat, L_vec, V_mat);
 
       for (int i = 0; i < b::dmn_size(); i++)
         for (int j = 0; j < s::dmn_size(); j++)

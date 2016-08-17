@@ -22,16 +22,16 @@ namespace LIN_ALG {
     template<typename scalartype>
     static void execute(matrix<scalartype, GPU>& A, matrix<scalartype, GPU>& X){
 
-      int m_A = A.get_current_size().first;
-      int n_A = A.get_current_size().second;
-      int LDA = A.get_global_size().first;
+      int m_A = A.size().first;
+      int n_A = A.size().second;
+      int LDA = A.leadingDimension();
 
       if(m_A != n_A)
         throw std::logic_error(__FUNCTION__);
 
-      int m_X  = X.get_current_size().first;
-      int NRHS = X.get_current_size().second;
-      int LDX  = X.get_global_size().first;
+      int m_X  = X.size().first;
+      int NRHS = X.size().second;
+      int LDX  = X.leadingDimension();
 
       if(m_A != m_X)
         throw std::logic_error(__FUNCTION__);
@@ -45,7 +45,7 @@ namespace LIN_ALG {
       for(int i=0; i<m_A; i++)
         IPIV[i] = i+1;
 
-      execute(TRANS, m_A, NRHS, A.get_ptr(), LDA, &IPIV[0], X.get_ptr(), LDX, INFO);
+      execute(TRANS, m_A, NRHS, A.ptr(), LDA, &IPIV[0], X.ptr(), LDX, INFO);
     }
 
     static void execute(char& TRANS, int& N, int& NRHS, float* Matrix_A, int& LDA, int* IPIV, float* Matrix_B, int& LDB, int& INFO)

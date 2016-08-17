@@ -35,7 +35,7 @@ namespace DCA {
 namespace QMCI {
 // DCA::QMCI::
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 class MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>
     : public MC_walker_BIT<CT_AUX_SOLVER, parameters_type, MOMS_type>,
       public MC_walker_data<CT_AUX_SOLVER, device_t, parameters_type> {
@@ -49,7 +49,7 @@ public:
   using concurrency_type =
       typename MC_type_definitions<CT_AUX_SOLVER, parameters_type, MOMS_type>::concurrency_type;
 
-  const static LIN_ALG::device_type walker_device_type = device_t;
+  const static dca::linalg::DeviceType walker_device_type = device_t;
 
 public:
   MC_walker(parameters_type& parameters_ref, MOMS_type& MOMS_ref, rng_type& rng_ref, int id);
@@ -63,7 +63,7 @@ public:
   void do_sweep();
   void do_step();
 
-  LIN_ALG::matrix<double, device_t>& get_N(e_spin_states_type e_spin);
+  dca::linalg::Matrix<double, device_t>& get_N(e_spin_states_type e_spin);
   configuration_type& get_configuration();
 
   int get_sign();
@@ -89,8 +89,17 @@ private:
   void apply_bennett_on_Gamma_matrices(int& Gamma_up_size, int& Gamma_dn_size);
   void neutralize_delayed_spin(int& delayed_index, int& Gamma_up_size, int& Gamma_dn_size);
 
-  void download_from_device();
-  void upload_to_device();
+  template <dca::linalg::DeviceType dev_t = device_t>
+  std::enable_if_t<dev_t == device_t && device_t != dca::linalg::CPU, void> download_from_device();
+
+  template <dca::linalg::DeviceType dev_t = device_t>
+  std::enable_if_t<dev_t == device_t && device_t == dca::linalg::CPU, void> download_from_device();
+
+  template <dca::linalg::DeviceType dev_t = device_t>
+  std::enable_if_t<dev_t == device_t && device_t != dca::linalg::CPU, void> upload_to_device();
+
+  template <dca::linalg::DeviceType dev_t = device_t>
+  std::enable_if_t<dev_t == device_t && device_t == dca::linalg::CPU, void> upload_to_device();
 
   void add_delayed_spins();
   void update_Gamma_matrix_spin_by_spin();
@@ -161,7 +170,7 @@ private:
   int stream_id;
 
   CV<parameters_type> CV_obj;
-  CT_AUX_WALKER_TOOLS<LIN_ALG::CPU> ctaux_tools;
+  CT_AUX_WALKER_TOOLS<dca::linalg::CPU> ctaux_tools;
 
   rng_type& rng;
   configuration_type configuration;
@@ -184,16 +193,16 @@ private:
   using MC_walker_data<CT_AUX_SOLVER, device_t, parameters_type>::G_up;
   using MC_walker_data<CT_AUX_SOLVER, device_t, parameters_type>::G_dn;
 
-  LIN_ALG::matrix<double, LIN_ALG::CPU> Gamma_up_CPU;
-  LIN_ALG::matrix<double, LIN_ALG::CPU> Gamma_dn_CPU;
+  dca::linalg::Matrix<double, dca::linalg::CPU> Gamma_up_CPU;
+  dca::linalg::Matrix<double, dca::linalg::CPU> Gamma_dn_CPU;
 
   double Gamma_up_diag_max;
   double Gamma_up_diag_min;
   double Gamma_dn_diag_max;
   double Gamma_dn_diag_min;
 
-  LIN_ALG::matrix<double, LIN_ALG::CPU> stored_Gamma_up_CPU;
-  LIN_ALG::matrix<double, LIN_ALG::CPU> stored_Gamma_dn_CPU;
+  dca::linalg::Matrix<double, dca::linalg::CPU> stored_Gamma_up_CPU;
+  dca::linalg::Matrix<double, dca::linalg::CPU> stored_Gamma_dn_CPU;
 
   std::vector<int> random_vertex_vector;
   std::vector<HS_vertex_move_type> HS_current_move_vector;
@@ -203,9 +212,9 @@ private:
   std::vector<double> exp_V_CPU;
   std::vector<double> exp_delta_V_CPU;
 
-  LIN_ALG::vector<int, device_t> vertex_indixes;
-  LIN_ALG::vector<double, device_t> exp_V;
-  LIN_ALG::vector<double, device_t> exp_delta_V;
+  dca::linalg::Vector<int, device_t> vertex_indixes;
+  dca::linalg::Vector<double, device_t> exp_V;
+  dca::linalg::Vector<double, device_t> exp_delta_V;
 
   std::vector<delayed_spin_struct> delayed_spins;
   std::vector<delayed_spin_struct> bennett_spins;
@@ -221,7 +230,7 @@ private:
   int sign;
 };
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::MC_walker(
     parameters_type& parameters_ref, MOMS_type& MOMS_ref, rng_type& rng_ref, int id)
     : MC_walker_BIT<CT_AUX_SOLVER, parameters_type, MOMS_type>(parameters_ref, MOMS_ref, id),
@@ -249,18 +258,16 @@ MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::MC_walker(
 
       SHRINK_tools_obj(thread_id),
 
-      Gamma_up_CPU("Gamma_up_CPU", Gamma_up.get_current_size(), Gamma_up.get_global_size()),
-      Gamma_dn_CPU("Gamma_dn_CPU", Gamma_dn.get_current_size(), Gamma_dn.get_global_size()),
+      Gamma_up_CPU("Gamma_up_CPU", Gamma_up.size(), Gamma_up.capacity()),
+      Gamma_dn_CPU("Gamma_dn_CPU", Gamma_dn.size(), Gamma_dn.capacity()),
 
       Gamma_up_diag_max(1),
       Gamma_up_diag_min(1),
       Gamma_dn_diag_max(1),
       Gamma_dn_diag_min(1),
 
-      stored_Gamma_up_CPU("stored_Gamma_up_CPU", Gamma_up.get_current_size(),
-                          Gamma_up.get_global_size()),
-      stored_Gamma_dn_CPU("stored_Gamma_dn_CPU", Gamma_dn.get_current_size(),
-                          Gamma_dn.get_global_size()),
+      stored_Gamma_up_CPU("stored_Gamma_up_CPU", Gamma_up.size(), Gamma_up.capacity()),
+      stored_Gamma_dn_CPU("stored_Gamma_dn_CPU", Gamma_dn.size(), Gamma_dn.capacity()),
 
       random_vertex_vector(0),
       HS_current_move_vector(0),
@@ -278,18 +285,18 @@ MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::MC_walker(
 
   LIN_ALG::CUBLAS_THREAD_MANAGER<device_t>::initialize(thread_id);
 
-  Gamma_up_CPU.set_thread_and_stream_id(thread_id, 0);
-  Gamma_dn_CPU.set_thread_and_stream_id(thread_id, 0);
+  Gamma_up_CPU.setThreadAndStreamId(thread_id, 0);
+  Gamma_dn_CPU.setThreadAndStreamId(thread_id, 0);
 
-  stored_Gamma_up_CPU.set_thread_and_stream_id(thread_id, 0);
-  stored_Gamma_dn_CPU.set_thread_and_stream_id(thread_id, 0);
+  stored_Gamma_up_CPU.setThreadAndStreamId(thread_id, 0);
+  stored_Gamma_dn_CPU.setThreadAndStreamId(thread_id, 0);
 
-  vertex_indixes.set_thread_and_stream_id(thread_id, 0);
-  exp_V.set_thread_and_stream_id(thread_id, 0);
-  exp_delta_V.set_thread_and_stream_id(thread_id, 0);
+  vertex_indixes.setThreadAndStreamId(thread_id, 0);
+  exp_V.setThreadAndStreamId(thread_id, 0);
+  exp_delta_V.setThreadAndStreamId(thread_id, 0);
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::~MC_walker() {
   LIN_ALG::CUBLAS_THREAD_MANAGER<device_t>::finalize(thread_id);
 
@@ -300,32 +307,32 @@ MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::~MC_walker() {
   }
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
-LIN_ALG::matrix<double, device_t>& MC_walker<CT_AUX_SOLVER, device_t, parameters_type,
-                                             MOMS_type>::get_N(e_spin_states_type e_spin) {
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
+dca::linalg::Matrix<double, device_t>& MC_walker<CT_AUX_SOLVER, device_t, parameters_type,
+                                                 MOMS_type>::get_N(e_spin_states_type e_spin) {
   if (e_spin == e_DN)
     return N_dn;
   else
     return N_up;
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 typename MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::configuration_type& MC_walker<
     CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::get_configuration() {
   return configuration;
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 int MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::get_sign() {
   return sign;
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 int MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::get_thread_id() {
   return thread_id;
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 double MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::get_Gflop() {
   double Gflop = 0.;
 
@@ -335,16 +342,16 @@ double MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::get_Gflop
   return Gflop;
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 bool& MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::is_thermalized() {
   return thermalized;
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 template <class stream_type>
 void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::to_JSON(stream_type& /*ss*/) {}
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::initialize() {
   MC_walker_BIT<CT_AUX_SOLVER, parameters_type, MOMS_type>::initialize();
 
@@ -395,7 +402,7 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::initialize(
   }
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::do_sweep() {
   double factor = 1.;
   if (thermalized)
@@ -408,7 +415,7 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::do_sweep() 
     do_step();
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::do_step() {
   add_non_interacting_spins_to_configuration();
 
@@ -427,50 +434,75 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::do_step() {
   clean_up_the_configuration();
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
-void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::download_from_device() {
+// In case Gamma_up and Gamma_down do not reside in the CPU memory, copy them.
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType dev_t>
+std::enable_if_t<dev_t == device_t && device_t != dca::linalg::CPU, void> MC_walker<
+    CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::download_from_device() {
   profiler_type profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
 
-  assert(Gamma_up_CPU.get_global_size() == Gamma_up.get_global_size());
-  assert(Gamma_dn_CPU.get_global_size() == Gamma_dn.get_global_size());
+  assert(Gamma_up_CPU.capacity() == Gamma_up.capacity());
+  assert(Gamma_dn_CPU.capacity() == Gamma_dn.capacity());
 
   read_Gamma_matrices(e_UP);
   read_Gamma_matrices(e_DN);
 
-  if (device_t == LIN_ALG::CPU) {
-    Gamma_up_CPU.swap(Gamma_up);
-    Gamma_dn_CPU.swap(Gamma_dn);
-  }
-  else {
-    Gamma_up_CPU.copy_from(Gamma_up, LIN_ALG::ASYNCHRONOUS);
-    Gamma_dn_CPU.copy_from(Gamma_dn, LIN_ALG::ASYNCHRONOUS);
-  }
+  Gamma_up_CPU.copy_from(Gamma_up, LIN_ALG::ASYNCHRONOUS);
+  Gamma_dn_CPU.copy_from(Gamma_dn, LIN_ALG::ASYNCHRONOUS);
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
-void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::upload_to_device() {
+// In case Gamma_up and Gamma_down reside in the CPU memory, avoid the copies using swap.
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType dev_t>
+std::enable_if_t<dev_t == device_t && device_t == dca::linalg::CPU, void> MC_walker<
+    CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::download_from_device() {
   profiler_type profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
 
-  assert(Gamma_up_CPU.get_global_size() == Gamma_up.get_global_size());
-  assert(Gamma_dn_CPU.get_global_size() == Gamma_dn.get_global_size());
+  assert(Gamma_up_CPU.capacity() == Gamma_up.capacity());
+  assert(Gamma_dn_CPU.capacity() == Gamma_dn.capacity());
 
-  if (device_t == LIN_ALG::CPU) {
-    Gamma_up.swap(Gamma_up_CPU);
-    Gamma_dn.swap(Gamma_dn_CPU);
-  }
-  else {
-    Gamma_up.copy_from(Gamma_up_CPU, LIN_ALG::ASYNCHRONOUS);
-    Gamma_dn.copy_from(Gamma_dn_CPU, LIN_ALG::ASYNCHRONOUS);
-  }
+  read_Gamma_matrices(e_UP);
+  read_Gamma_matrices(e_DN);
+
+  Gamma_up_CPU.swap(Gamma_up);
+  Gamma_dn_CPU.swap(Gamma_dn);
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+// In case Gamma_up and Gamma_down do not reside in the CPU memory, copy them.
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType dev_t>
+std::enable_if_t<dev_t == device_t && device_t != dca::linalg::CPU, void> MC_walker<
+    CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::upload_to_device() {
+  profiler_type profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
+
+  assert(Gamma_up_CPU.capacity() == Gamma_up.capacity());
+  assert(Gamma_dn_CPU.capacity() == Gamma_dn.capacity());
+
+  Gamma_up.copy_from(Gamma_up_CPU, LIN_ALG::ASYNCHRONOUS);
+  Gamma_dn.copy_from(Gamma_dn_CPU, LIN_ALG::ASYNCHRONOUS);
+}
+
+// In case Gamma_up and Gamma_down reside in the CPU memory, avoid the copies using swap.
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType dev_t>
+std::enable_if_t<dev_t == device_t && device_t == dca::linalg::CPU, void> MC_walker<
+    CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::upload_to_device() {
+  profiler_type profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
+
+  assert(Gamma_up_CPU.capacity() == Gamma_up.capacity());
+  assert(Gamma_dn_CPU.capacity() == Gamma_dn.capacity());
+
+  Gamma_up.swap(Gamma_up_CPU);
+  Gamma_dn.swap(Gamma_dn_CPU);
+}
+
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_walker<CT_AUX_SOLVER, device_t, parameters_type,
                MOMS_type>::add_non_interacting_spins_to_configuration() {
   // profiler_type profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
 
-  Gamma_up.resize_no_copy(0);
-  Gamma_dn.resize_no_copy(0);
+  Gamma_up.resizeNoCopy(0);
+  Gamma_dn.resizeNoCopy(0);
 
   // shuffle the configuration + do some configuration checks
   configuration.shuffle_noninteracting_vertices();
@@ -551,7 +583,7 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type,
   */
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::generate_delayed_spins() {
   // std::cout << __FUNCTION__ << "\n";
 
@@ -708,7 +740,7 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::generate_de
   }
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::read_Gamma_matrices(
     e_spin_states e_spin) {
   // std::cout << __FUNCTION__ << "\n";
@@ -755,7 +787,7 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::read_Gamma_
   }
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::compute_Gamma_matrices() {
   // std::cout << __FUNCTION__ << "\n";
 
@@ -808,7 +840,7 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::compute_Gam
   // #endif  // QMC_INTEGRATOR_BIT
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::neutralize_delayed_spin(
     int& delayed_index, int& Gamma_up_size, int& Gamma_dn_size) {
   // std::cout << __FUNCTION__ << "\n";
@@ -817,30 +849,30 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::neutralize_
 
   if (delayed_spins[delayed_index].e_spin_HS_field_DN == e_UP) {
     Gamma_up_size += 1;
-    CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::set_to_identity(
+    CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::set_to_identity(
         Gamma_up_CPU, delayed_spins[delayed_index].Gamma_index_HS_field_DN);
   }
   else {
     Gamma_dn_size += 1;
-    CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::set_to_identity(
+    CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::set_to_identity(
         Gamma_dn_CPU, delayed_spins[delayed_index].Gamma_index_HS_field_DN);
   }
 
   if (delayed_spins[delayed_index].e_spin_HS_field_UP == e_UP) {
     Gamma_up_size += 1;
-    CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::set_to_identity(
+    CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::set_to_identity(
         Gamma_up_CPU, delayed_spins[delayed_index].Gamma_index_HS_field_UP);
   }
   else {
     Gamma_dn_size += 1;
-    CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::set_to_identity(
+    CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::set_to_identity(
         Gamma_dn_CPU, delayed_spins[delayed_index].Gamma_index_HS_field_UP);
   }
 
   //     delayed_index += 1;
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_walker<CT_AUX_SOLVER, device_t, parameters_type,
                MOMS_type>::add_delayed_spins_to_the_configuration() {
   // std::cout << __FUNCTION__ << "\n";
@@ -862,7 +894,7 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type,
   assert(number_of_interacting_spins == configuration.get_number_of_interacting_HS_spins());
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_walker<CT_AUX_SOLVER, device_t, parameters_type,
                MOMS_type>::remove_non_accepted_and_bennett_spins_from_Gamma(int& Gamma_up_size,
                                                                             int& Gamma_dn_size) {
@@ -878,35 +910,33 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type,
 
       if (e_spin_HS_field_UP == e_UP) {
         Gamma_up_size -= 1;
-        CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::remove_row_and_column(Gamma_up_CPU,
-                                                                 Gamma_index_HS_field_UP);
+        CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::remove_row_and_column(Gamma_up_CPU,
+                                                                     Gamma_index_HS_field_UP);
       }
       else {
         Gamma_dn_size -= 1;
-        CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::remove_row_and_column(Gamma_dn_CPU,
-                                                                 Gamma_index_HS_field_UP);
+        CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::remove_row_and_column(Gamma_dn_CPU,
+                                                                     Gamma_index_HS_field_UP);
       }
 
       if (e_spin_HS_field_DN == e_UP) {
         Gamma_up_size -= 1;
-        CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::remove_row_and_column(Gamma_up_CPU,
-                                                                 Gamma_index_HS_field_DN);
+        CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::remove_row_and_column(Gamma_up_CPU,
+                                                                     Gamma_index_HS_field_DN);
       }
       else {
         Gamma_dn_size -= 1;
-        CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::remove_row_and_column(Gamma_dn_CPU,
-                                                                 Gamma_index_HS_field_DN);
+        CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::remove_row_and_column(Gamma_dn_CPU,
+                                                                     Gamma_index_HS_field_DN);
       }
     }
   }
 
-  assert(Gamma_up_size == Gamma_up_CPU.get_current_size().first and
-         Gamma_up_size == Gamma_up_CPU.get_current_size().second);
-  assert(Gamma_dn_size == Gamma_dn_CPU.get_current_size().first and
-         Gamma_dn_size == Gamma_dn_CPU.get_current_size().second);
+  assert(Gamma_up_size == Gamma_up_CPU.size().first and Gamma_up_size == Gamma_up_CPU.size().second);
+  assert(Gamma_dn_size == Gamma_dn_CPU.size().first and Gamma_dn_size == Gamma_dn_CPU.size().second);
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::add_delayed_spin(
     int& delayed_index, int& Gamma_up_size, int& Gamma_dn_size) {
   // std::cout << __FUNCTION__ << "\t|";
@@ -1029,20 +1059,20 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::add_delayed
 
     if(delayed_spins[delayed_index].e_spin_HS_field_DN == e_UP)
       {
-        CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::set_to_identity(Gamma_up_CPU, Gamma_up_size-1);
+        CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::set_to_identity(Gamma_up_CPU, Gamma_up_size-1);
       }
     else
       {
-        CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::set_to_identity(Gamma_dn_CPU, Gamma_dn_size-1);
+        CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::set_to_identity(Gamma_dn_CPU, Gamma_dn_size-1);
       }
 
     if(delayed_spins[delayed_index].e_spin_HS_field_UP == e_UP)
       {
-        CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::set_to_identity(Gamma_up_CPU, Gamma_up_size-1);
+        CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::set_to_identity(Gamma_up_CPU, Gamma_up_size-1);
       }
     else
       {
-        CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::set_to_identity(Gamma_dn_CPU, Gamma_dn_size-1);
+        CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::set_to_identity(Gamma_dn_CPU, Gamma_dn_size-1);
       }
     */
 
@@ -1051,8 +1081,8 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::add_delayed
       Gamma_up_diag_max = tmp_up_diag_max < 1. ? 1. : tmp_up_diag_max;
       Gamma_up_diag_min = tmp_up_diag_min > 1. ? 1. : tmp_up_diag_min;
 
-      CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::set_to_identity(Gamma_up_CPU, Gamma_up_size - 2);
-      CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::set_to_identity(Gamma_up_CPU, Gamma_up_size - 1);
+      CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::set_to_identity(Gamma_up_CPU, Gamma_up_size - 2);
+      CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::set_to_identity(Gamma_up_CPU, Gamma_up_size - 1);
     }
 
     if (delayed_spins[delayed_index].e_spin_HS_field_DN == e_DN and
@@ -1062,8 +1092,8 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::add_delayed
       Gamma_up_diag_min = tmp_up_diag_min > 1. ? 1. : tmp_up_diag_min;
       Gamma_dn_diag_min = tmp_dn_diag_min > 1. ? 1. : tmp_dn_diag_min;
 
-      CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::set_to_identity(Gamma_dn_CPU, Gamma_dn_size - 1);
-      CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::set_to_identity(Gamma_up_CPU, Gamma_up_size - 1);
+      CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::set_to_identity(Gamma_dn_CPU, Gamma_dn_size - 1);
+      CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::set_to_identity(Gamma_up_CPU, Gamma_up_size - 1);
     }
 
     if (delayed_spins[delayed_index].e_spin_HS_field_DN == e_UP and
@@ -1073,8 +1103,8 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::add_delayed
       Gamma_up_diag_min = tmp_up_diag_min > 1. ? 1. : tmp_up_diag_min;
       Gamma_dn_diag_min = tmp_dn_diag_min > 1. ? 1. : tmp_dn_diag_min;
 
-      CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::set_to_identity(Gamma_up_CPU, Gamma_up_size - 1);
-      CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::set_to_identity(Gamma_dn_CPU, Gamma_dn_size - 1);
+      CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::set_to_identity(Gamma_up_CPU, Gamma_up_size - 1);
+      CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::set_to_identity(Gamma_dn_CPU, Gamma_dn_size - 1);
     }
 
     if (delayed_spins[delayed_index].e_spin_HS_field_DN == e_DN and
@@ -1082,13 +1112,13 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::add_delayed
       Gamma_dn_diag_max = tmp_dn_diag_max < 1. ? 1. : tmp_dn_diag_max;
       Gamma_dn_diag_min = tmp_dn_diag_min > 1. ? 1. : tmp_dn_diag_min;
 
-      CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::set_to_identity(Gamma_dn_CPU, Gamma_dn_size - 2);
-      CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::set_to_identity(Gamma_dn_CPU, Gamma_dn_size - 1);
+      CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::set_to_identity(Gamma_dn_CPU, Gamma_dn_size - 2);
+      CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::set_to_identity(Gamma_dn_CPU, Gamma_dn_size - 1);
     }
   }
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::apply_bennett_on_Gamma_matrices(
     int& /*Gamma_up_size*/, int& /*Gamma_dn_size*/) {
   throw std::logic_error(__FUNCTION__);
@@ -1158,23 +1188,23 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::apply_benne
     if(bennett_spins[bennett_index].e_spin_HS_field_DN == e_UP)
     {
     int k = bennett_spins[bennett_index].Gamma_index_HS_field_DN;
-    CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::set_to_identity(Gamma_up_CPU, k);
+    CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::set_to_identity(Gamma_up_CPU, k);
     }
     else
     {
     int k = bennett_spins[bennett_index].Gamma_index_HS_field_DN;
-    CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::set_to_identity(Gamma_dn_CPU, k);
+    CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::set_to_identity(Gamma_dn_CPU, k);
     }
 
     if(bennett_spins[bennett_index].e_spin_HS_field_UP == e_UP)
     {
     int k = bennett_spins[bennett_index].Gamma_index_HS_field_UP;
-    CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::set_to_identity(Gamma_up_CPU, k);
+    CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::set_to_identity(Gamma_up_CPU, k);
     }
     else
     {
     int k = bennett_spins[bennett_index].Gamma_index_HS_field_UP;
-    CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::set_to_identity(Gamma_dn_CPU, k);
+    CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::set_to_identity(Gamma_dn_CPU, k);
     }
     }
 
@@ -1195,7 +1225,7 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::apply_benne
   */
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::update_N_matrix_with_Gamma_matrix() {
   profiler_type profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
 
@@ -1208,7 +1238,7 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::update_N_ma
   configuration.commit_accepted_spins();
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::clean_up_the_configuration() {
   profiler_type profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
 
@@ -1234,7 +1264,7 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::clean_up_th
   // #endif  // QMC_INTEGRATOR_BIT
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 HS_vertex_move_type MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::get_new_HS_move() {
   if (rng() > 0.5) {
     return CREATION;
@@ -1246,7 +1276,7 @@ HS_vertex_move_type MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_typ
   return ANNIHILATION;
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 int MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::get_new_vertex_index(
     HS_vertex_move_type HS_current_move) {
   if (HS_current_move == CREATION)
@@ -1255,7 +1285,7 @@ int MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::get_new_vert
   return configuration.get_random_interacting_vertex();
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 HS_spin_states_type MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::get_new_spin_value(
     HS_vertex_move_type HS_current_move) {
   if (HS_current_move == CREATION) {
@@ -1268,7 +1298,7 @@ HS_spin_states_type MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_typ
   return HS_ZERO;
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 double MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::calculate_acceptace_ratio(
     double determinant_ratio, HS_vertex_move_type HS_current_move, double QMC_factor) {
   double N = number_of_interacting_spins;
@@ -1286,7 +1316,7 @@ double MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::calculate
   return acceptance_ratio;
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 bool MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::assert_exp_delta_V_value(
     HS_field_sign HS_field, int random_vertex_ind, HS_spin_states_type new_HS_spin_value,
     double exp_delta_V) {

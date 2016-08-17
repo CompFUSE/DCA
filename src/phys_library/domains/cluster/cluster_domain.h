@@ -176,8 +176,8 @@ public:
   static int add(int i, int j);
   static int subtract(int i, int j);
 
-  static LIN_ALG::matrix<int, LIN_ALG::CPU>& get_add_matrix();
-  static LIN_ALG::matrix<int, LIN_ALG::CPU>& get_subtract_matrix();
+  static dca::linalg::Matrix<int, dca::linalg::CPU>& get_add_matrix();
+  static dca::linalg::Matrix<int, dca::linalg::CPU>& get_subtract_matrix();
 
   static void reset();
 
@@ -267,27 +267,27 @@ int cluster_domain<scalar_type, D, N, R, S>::origin_index() {
 
 template <typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_REPRESENTATION R, CLUSTER_SHAPE S>
 int cluster_domain<scalar_type, D, N, R, S>::add(int i, int j) {
-  static LIN_ALG::matrix<int, LIN_ALG::CPU>& A = get_add_matrix();
+  static dca::linalg::Matrix<int, dca::linalg::CPU>& A = get_add_matrix();
   return A(i, j);
 }
 
 template <typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_REPRESENTATION R, CLUSTER_SHAPE S>
-LIN_ALG::matrix<int, LIN_ALG::CPU>& cluster_domain<scalar_type, D, N, R, S>::get_add_matrix() {
+dca::linalg::Matrix<int, dca::linalg::CPU>& cluster_domain<scalar_type, D, N, R, S>::get_add_matrix() {
   assert(SHAPE == BRILLOUIN_ZONE);
-  static LIN_ALG::matrix<int, LIN_ALG::CPU> A("add", get_size());
+  static dca::linalg::Matrix<int, dca::linalg::CPU> A("add", get_size());
   return A;
 }
 
 template <typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_REPRESENTATION R, CLUSTER_SHAPE S>
 int cluster_domain<scalar_type, D, N, R, S>::subtract(int i, int j) {
-  static LIN_ALG::matrix<int, LIN_ALG::CPU>& A = get_subtract_matrix();
+  static dca::linalg::Matrix<int, dca::linalg::CPU>& A = get_subtract_matrix();
   return A(i, j);
 }
 
 template <typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_REPRESENTATION R, CLUSTER_SHAPE S>
-LIN_ALG::matrix<int, LIN_ALG::CPU>& cluster_domain<scalar_type, D, N, R, S>::get_subtract_matrix() {
+dca::linalg::Matrix<int, dca::linalg::CPU>& cluster_domain<scalar_type, D, N, R, S>::get_subtract_matrix() {
   assert(SHAPE == BRILLOUIN_ZONE);
-  static LIN_ALG::matrix<int, LIN_ALG::CPU> A("subtract", get_size());
+  static dca::linalg::Matrix<int, dca::linalg::CPU> A("subtract", get_size());
   return A;
 }
 

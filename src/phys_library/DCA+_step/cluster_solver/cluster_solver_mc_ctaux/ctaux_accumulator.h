@@ -21,8 +21,9 @@
 #include <fstream>
 #include <vector>
 
+#include "dca/linalg/matrix.hpp"
+
 #include "comp_library/function_library/include_function_library.h"
-#include "comp_library/linalg/src/matrix.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_accumulator/sp_accumulator/ctaux_sp_accumulator_nfft.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_accumulator/tp_accumulator/ctaux_accumulator_equal_time_operator.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_accumulator/tp_accumulator/ctaux_accumulator_nonlocal_G.h"
@@ -45,7 +46,7 @@ namespace DCA {
 namespace QMCI {
 // DCA::QMCI::
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 class MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>
     : public MC_accumulator_data {
 public:
@@ -155,12 +156,12 @@ public:
 
 private:
   void compute_M_v_v(std::vector<vertex_singleton_type>& configuration_e_spin,
-                     LIN_ALG::matrix<double, LIN_ALG::CPU>& N,
-                     LIN_ALG::matrix<double, LIN_ALG::CPU>& M, int thread_id, int stream_id);
+                     dca::linalg::Matrix<double, dca::linalg::CPU>& N,
+                     dca::linalg::Matrix<double, dca::linalg::CPU>& M, int thread_id, int stream_id);
 
   void compute_M_v_v(std::vector<vertex_singleton_type>& configuration_e_spin,
-                     LIN_ALG::matrix<double, LIN_ALG::GPU>& N,
-                     LIN_ALG::matrix<double, LIN_ALG::CPU>& M, int thread_id, int stream_id);
+                     dca::linalg::Matrix<double, dca::linalg::GPU>& N,
+                     dca::linalg::Matrix<double, dca::linalg::CPU>& M, int thread_id, int stream_id);
 
   void accumulate_single_particle_quantities();
 
@@ -192,8 +193,8 @@ protected:
   std::vector<vertex_singleton_type> HS_configuration_e_UP;
   std::vector<vertex_singleton_type> HS_configuration_e_DN;
 
-  LIN_ALG::matrix<double, LIN_ALG::CPU> M_e_UP;
-  LIN_ALG::matrix<double, LIN_ALG::CPU> M_e_DN;
+  dca::linalg::Matrix<double, dca::linalg::CPU> M_e_UP;
+  dca::linalg::Matrix<double, dca::linalg::CPU> M_e_DN;
 
   FUNC_LIB::function<double, dmn_0<numerical_error_domain>> error;
   FUNC_LIB::function<double, dmn_0<Feynman_expansion_order_domain>> visited_expansion_order_k;
@@ -225,7 +226,7 @@ protected:
   CT_AUX_ACCUMULATION::accumulator_nonlocal_chi<parameters_type, MOMS_type> accumulator_nonlocal_chi_obj;
 };
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::MC_accumulator(
     parameters_type& parameters_ref, MOMS_type& MOMS_ref, int id)
     : MC_accumulator_data(),
@@ -276,7 +277,7 @@ MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::MC_accumula
       accumulator_nonlocal_G_obj(parameters, MOMS, id),
       accumulator_nonlocal_chi_obj(parameters, MOMS, id, G4) {}
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::initialize(int dca_iteration) {
   profiler_type profiler(__FUNCTION__, "CT-AUX accumulator", __LINE__, thread_id);
 
@@ -309,7 +310,7 @@ void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::initia
     accumulator_nonlocal_chi_obj.initialize();
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::finalize() {
   profiler_type profiler(__FUNCTION__, "CT-AUX accumulator", __LINE__, thread_id);
 
@@ -343,7 +344,7 @@ void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::finali
   //       single_particle_accumulator_obj.compute_M_r_w(M_r_w);
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 std::vector<vertex_singleton>& MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type,
                                               MOMS_type>::get_configuration(e_spin_states_type e_spin) {
   if (e_spin == e_UP)
@@ -352,7 +353,7 @@ std::vector<vertex_singleton>& MC_accumulator<CT_AUX_SOLVER, device_t, parameter
     return HS_configuration_e_DN;
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 template <typename Writer>
 void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::write(Writer& writer) {
 //       writer.open_group("CT-AUX-SOLVER-functions");
@@ -385,7 +386,7 @@ void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::write(
  *    M_{i,j} &=& (e^{V_i}-1) N_{i,j}
  *   \f}
  */
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 template <typename walker_type>
 void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::update_from(
     walker_type& walker) {
@@ -424,7 +425,7 @@ void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::update
   // 0);
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::measure() {
   number_of_measurements += 1;
   accumulated_sign += current_sign;
@@ -451,7 +452,7 @@ void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::measur
  *  and the Linf-Norm, i.e. \f$\max_{i=1}^N \left|x_i\right|\f$ of the standard deviation and of the
  * error.
  */
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::store_standard_deviation(
     int nr_measurements, std::ofstream& points_file, std::ofstream& norm_file) {
   single_particle_accumulator_obj.store_standard_deviation(nr_measurements, points_file, norm_file);
@@ -461,7 +462,7 @@ void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::store_
  *  \brief Update the sum of the squares of the measurements of the single particle accumulator.
  *         It has to be called after each measurement.
  */
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::update_sum_squares() {
   single_particle_accumulator_obj.update_sum_squares();
 }
@@ -472,24 +473,25 @@ void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::update
  *    M_{i,j} &=& (e^{V_i}-1) N_{i,j} \nonumber
  *   \f}
  */
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::compute_M_v_v(
     std::vector<vertex_singleton_type>& configuration_e_spin,
-    LIN_ALG::matrix<double, LIN_ALG::CPU>& N, LIN_ALG::matrix<double, LIN_ALG::CPU>& M,
-    int /*walker_thread_id*/, int /*walker_stream_id*/) {
-  assert(int(configuration_e_spin.size()) == N.get_number_of_rows() && N.is_square());
+    dca::linalg::Matrix<double, dca::linalg::CPU>& N,
+    dca::linalg::Matrix<double, dca::linalg::CPU>& M, int /*walker_thread_id*/,
+    int /*walker_stream_id*/) {
+  assert(int(configuration_e_spin.size()) == N.nrRows() && N.is_square());
 
   // What happens if configuration_size = 0?
   int configuration_size = configuration_e_spin.size();
 
-  M.resize_no_copy(N.get_current_size());
+  M.resizeNoCopy(N.size());
 
   exp_V_minus_one.resize(configuration_size);
 
   for (int i = 0; i < configuration_size; ++i)
     exp_V_minus_one[i] = CV_obj.exp_V(configuration_e_spin[i]) - 1.;
 
-  LIN_ALG::GEMD<LIN_ALG::CPU>::execute(&exp_V_minus_one[0], N, M);
+  LIN_ALG::GEMD<dca::linalg::CPU>::execute(&exp_V_minus_one[0], N, M);
 }
 
 /*!
@@ -497,20 +499,21 @@ void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::comput
  *    M_{i,j} &=& (e^{V_i}-1) N_{i,j} \nonumber
  *   \f}
  */
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::compute_M_v_v(
     std::vector<vertex_singleton_type>& configuration_e_spin,
-    LIN_ALG::matrix<double, LIN_ALG::GPU>& N, LIN_ALG::matrix<double, LIN_ALG::CPU>& M,
-    int walker_thread_id, int walker_stream_id) {
-  assert(int(configuration_e_spin.size()) == N.get_number_of_rows() && N.is_square());
+    dca::linalg::Matrix<double, dca::linalg::GPU>& N,
+    dca::linalg::Matrix<double, dca::linalg::CPU>& M, int walker_thread_id, int walker_stream_id) {
+  assert(int(configuration_e_spin.size()) == N.nrRows() && N.is_square());
 
-  M.resize_no_copy(N.get_current_size());
+  M.resizeNoCopy(N.size());
 
   {
-    LIN_ALG::COPY_FROM<LIN_ALG::GPU, LIN_ALG::CPU>::execute(N, M, walker_thread_id, walker_stream_id);
+    LIN_ALG::COPY_FROM<dca::linalg::GPU, dca::linalg::CPU>::execute(N, M, walker_thread_id,
+                                                                    walker_stream_id);
 
-    LIN_ALG::CUBLAS_THREAD_MANAGER<LIN_ALG::GPU>::synchronize_streams(walker_thread_id,
-                                                                      walker_stream_id);
+    LIN_ALG::CUBLAS_THREAD_MANAGER<dca::linalg::GPU>::synchronize_streams(walker_thread_id,
+                                                                          walker_stream_id);
   }
 
   // What happens if configuration_size = 0?
@@ -520,7 +523,7 @@ void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::comput
   for (int i = 0; i < configuration_size; ++i)
     exp_V_minus_one[i] = CV_obj.exp_V(configuration_e_spin[i]) - 1.;
 
-  LIN_ALG::GEMD<LIN_ALG::CPU>::execute(&exp_V_minus_one[0], M, M);
+  LIN_ALG::GEMD<dca::linalg::CPU>::execute(&exp_V_minus_one[0], M, M);
 }
 
 /*************************************************************
@@ -529,7 +532,7 @@ void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::comput
  **                                                         **
  *************************************************************/
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type,
                     MOMS_type>::accumulate_single_particle_quantities() {
   profiler_type profiler("sp-accumulation", "CT-AUX accumulator", __LINE__, thread_id);
@@ -539,8 +542,8 @@ void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type,
   single_particle_accumulator_obj.accumulate_M_r_w(HS_configuration_e_DN, M_e_DN, current_sign, e_DN);
   single_particle_accumulator_obj.accumulate_M_r_w(HS_configuration_e_UP, M_e_UP, current_sign, e_UP);
 
-  GFLOP += 2. * 8. * square(M_e_DN.get_current_size().first) * (1.e-9);
-  GFLOP += 2. * 8. * square(M_e_UP.get_current_size().first) * (1.e-9);
+  GFLOP += 2. * 8. * square(M_e_DN.size().first) * (1.e-9);
+  GFLOP += 2. * 8. * square(M_e_UP.size().first) * (1.e-9);
 }
 
 /*************************************************************
@@ -549,7 +552,7 @@ void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type,
  **                                                         **
  *************************************************************/
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type,
                     MOMS_type>::accumulate_equal_time_quantities() {
   profiler_type profiler("equal-time-measurements", "CT-AUX accumulator", __LINE__, thread_id);
@@ -572,7 +575,7 @@ void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type,
  **                                                         **
  *************************************************************/
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type,
                     MOMS_type>::accumulate_two_particle_quantities() {
   {
@@ -589,7 +592,7 @@ void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type,
   }
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::sum_to(this_type& other) {
   finalize();
 

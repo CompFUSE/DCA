@@ -10,6 +10,9 @@
 // This file includes all the header files in include/dca/linalg.
 // TODO: This file is temporary and will be removed or updated.
 
+#include "dca/linalg/vector.hpp"
+#include "dca/linalg/matrix.hpp"
+
 // BLAS
 #include "dca/linalg/blas/blas1.hpp"
 #include "dca/linalg/blas/blas2.hpp"

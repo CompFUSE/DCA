@@ -19,7 +19,7 @@
 #include <vector>
 
 #include "comp_library/function_library/domains/special_domains/dmn_0.h"
-#include "comp_library/linalg/src/matrix.h"
+#include "dca/linalg/matrix.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_vertex_singleton.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_G0_matrix_routines/G0_interpolation_template.hpp"
 #include "phys_library/domains/cluster/cluster_domain.h"
@@ -48,7 +48,7 @@ void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, double beta, int Nc, int
 }  // G0_INTERPOLATION_KERNELS
 
 template <typename parameters_type>
-class G0_INTERPOLATION<LIN_ALG::GPU, parameters_type>
+class G0_INTERPOLATION<dca::linalg::GPU, parameters_type>
     : public G0_INTERPOLATION_TEMPLATE<parameters_type> {
 public:
   using vertex_singleton_type = vertex_singleton;
@@ -69,16 +69,16 @@ public:
   void initialize(MOMS_type& MOMS);
 
   template <class configuration_type>
-  void build_G0_matrix(configuration_type& configuration, LIN_ALG::matrix<double, LIN_ALG::GPU>& G0,
-                       e_spin_states_type spin);
+  void build_G0_matrix(configuration_type& configuration,
+                       dca::linalg::Matrix<double, dca::linalg::GPU>& G0, e_spin_states_type spin);
 
   template <class configuration_type>
   void update_G0_matrix(configuration_type& configuration,
-                        LIN_ALG::matrix<double, LIN_ALG::GPU>& G0, e_spin_states_type spin);
+                        dca::linalg::Matrix<double, dca::linalg::GPU>& G0, e_spin_states_type spin);
 
 private:
   void build_G0_matrix(std::vector<vertex_singleton_type>& configuration,
-                       LIN_ALG::matrix<double, LIN_ALG::GPU>& G0);
+                       dca::linalg::Matrix<double, dca::linalg::GPU>& G0);
 
   double interpolate(int nu_0, int nu_1, int delta_r, double delta_time);
 
@@ -96,33 +96,33 @@ private:
 
   using G0_INTERPOLATION_TEMPLATE<parameters_type>::r1_minus_r0;
 
-  LIN_ALG::matrix<double, LIN_ALG::GPU> r1_min_r0_GPU;
+  dca::linalg::Matrix<double, dca::linalg::GPU> r1_min_r0_GPU;
 
-  LIN_ALG::matrix<double, LIN_ALG::CPU> G0_r_t_CPU;
-  LIN_ALG::matrix<double, LIN_ALG::GPU> G0_r_t_GPU;
+  dca::linalg::Matrix<double, dca::linalg::CPU> G0_r_t_CPU;
+  dca::linalg::Matrix<double, dca::linalg::GPU> G0_r_t_GPU;
 
-  LIN_ALG::matrix<double, LIN_ALG::CPU> grad_G0_r_t_CPU;
-  LIN_ALG::matrix<double, LIN_ALG::GPU> grad_G0_r_t_GPU;
+  dca::linalg::Matrix<double, dca::linalg::CPU> grad_G0_r_t_CPU;
+  dca::linalg::Matrix<double, dca::linalg::GPU> grad_G0_r_t_GPU;
 
-  LIN_ALG::matrix<double, LIN_ALG::CPU> akima_coefficients_CPU;
-  LIN_ALG::matrix<double, LIN_ALG::GPU> akima_coefficients_GPU;
+  dca::linalg::Matrix<double, dca::linalg::CPU> akima_coefficients_CPU;
+  dca::linalg::Matrix<double, dca::linalg::GPU> akima_coefficients_GPU;
 
   int Nb, Nr, Nt;
 
-  LIN_ALG::vector<int, LIN_ALG::CPU> b_ind;
-  LIN_ALG::vector<int, LIN_ALG::CPU> r_ind;
-  LIN_ALG::vector<double, LIN_ALG::CPU> tau;
+  dca::linalg::Vector<int, dca::linalg::CPU> b_ind;
+  dca::linalg::Vector<int, dca::linalg::CPU> r_ind;
+  dca::linalg::Vector<double, dca::linalg::CPU> tau;
 
-  LIN_ALG::vector<int, LIN_ALG::GPU> b_ind_GPU;
-  LIN_ALG::vector<int, LIN_ALG::GPU> r_ind_GPU;
-  LIN_ALG::vector<double, LIN_ALG::GPU> tau_GPU;
+  dca::linalg::Vector<int, dca::linalg::GPU> b_ind_GPU;
+  dca::linalg::Vector<int, dca::linalg::GPU> r_ind_GPU;
+  dca::linalg::Vector<double, dca::linalg::GPU> tau_GPU;
 
   using G0_INTERPOLATION_TEMPLATE<parameters_type>::beta;
 };
 
 template <typename parameters_type>
-G0_INTERPOLATION<LIN_ALG::GPU, parameters_type>::G0_INTERPOLATION(int id,
-                                                                  parameters_type& parameters_ref)
+G0_INTERPOLATION<dca::linalg::GPU, parameters_type>::G0_INTERPOLATION(int id,
+                                                                      parameters_type& parameters_ref)
     : G0_INTERPOLATION_TEMPLATE<parameters_type>(id, parameters_ref),
 
       thread_id(id),
@@ -149,16 +149,16 @@ G0_INTERPOLATION<LIN_ALG::GPU, parameters_type>::G0_INTERPOLATION(int id,
       Nr(r_dmn_t::dmn_size()),
       Nt(shifted_t::dmn_size()),
 
-      b_ind("b_ind G0_INTERPOLATION<LIN_ALG::GPU>", 4096),
-      r_ind("r_ind G0_INTERPOLATION<LIN_ALG::GPU>", 4096),
-      tau("tau   G0_INTERPOLATION<LIN_ALG::GPU>", 4096),
+      b_ind("b_ind G0_INTERPOLATION<dca::linalg::GPU>", 4096),
+      r_ind("r_ind G0_INTERPOLATION<dca::linalg::GPU>", 4096),
+      tau("tau   G0_INTERPOLATION<dca::linalg::GPU>", 4096),
 
-      b_ind_GPU("b_ind_GPU G0_INTERPOLATION<LIN_ALG::GPU>", 4096),
-      r_ind_GPU("r_ind_GPU G0_INTERPOLATION<LIN_ALG::GPU>", 4096),
-      tau_GPU("tau_GPU   G0_INTERPOLATION<LIN_ALG::GPU>", 4096) {
-  b_ind_GPU.set_thread_and_stream_id(thread_id, stream_id);
-  r_ind_GPU.set_thread_and_stream_id(thread_id, stream_id);
-  tau_GPU.set_thread_and_stream_id(thread_id, stream_id);
+      b_ind_GPU("b_ind_GPU G0_INTERPOLATION<dca::linalg::GPU>", 4096),
+      r_ind_GPU("r_ind_GPU G0_INTERPOLATION<dca::linalg::GPU>", 4096),
+      tau_GPU("tau_GPU   G0_INTERPOLATION<dca::linalg::GPU>", 4096) {
+  b_ind_GPU.setThreadAndStreamId(thread_id, stream_id);
+  r_ind_GPU.setThreadAndStreamId(thread_id, stream_id);
+  tau_GPU.setThreadAndStreamId(thread_id, stream_id);
 }
 
 /*!
@@ -166,7 +166,7 @@ G0_INTERPOLATION<LIN_ALG::GPU, parameters_type>::G0_INTERPOLATION(int id,
  */
 template <typename parameters_type>
 template <class MOMS_type>
-void G0_INTERPOLATION<LIN_ALG::GPU, parameters_type>::initialize(MOMS_type& MOMS) {
+void G0_INTERPOLATION<dca::linalg::GPU, parameters_type>::initialize(MOMS_type& MOMS) {
   G0_INTERPOLATION_TEMPLATE<parameters_type>::initialize(MOMS);
 
   for (int t_ind = 0; t_ind < shifted_t::dmn_size(); t_ind++) {
@@ -182,8 +182,8 @@ void G0_INTERPOLATION<LIN_ALG::GPU, parameters_type>::initialize(MOMS_type& MOMS
     }
   }
 
-  LIN_ALG::COPY_FROM<LIN_ALG::CPU, LIN_ALG::GPU>::execute(G0_r_t_CPU, G0_r_t_GPU);
-  LIN_ALG::COPY_FROM<LIN_ALG::CPU, LIN_ALG::GPU>::execute(grad_G0_r_t_CPU, grad_G0_r_t_GPU);
+  LIN_ALG::COPY_FROM<dca::linalg::CPU, dca::linalg::GPU>::execute(G0_r_t_CPU, G0_r_t_GPU);
+  LIN_ALG::COPY_FROM<dca::linalg::CPU, dca::linalg::GPU>::execute(grad_G0_r_t_CPU, grad_G0_r_t_GPU);
 
   for (int t_ind = 0; t_ind < shifted_t::dmn_size(); t_ind++)
     for (int r_ind = 0; r_ind < r_dmn_t::dmn_size(); r_ind++)
@@ -193,14 +193,14 @@ void G0_INTERPOLATION<LIN_ALG::GPU, parameters_type>::initialize(MOMS_type& MOMS
             akima_coefficients_CPU(l_ind + 4 * t_ind, nu0_ind + Nb * (nu1_ind + Nb * r_ind)) =
                 akima_coefficients(l_ind, nu0_ind, nu1_ind, r_ind, t_ind);
 
-  LIN_ALG::COPY_FROM<LIN_ALG::CPU, LIN_ALG::GPU>::execute(akima_coefficients_CPU,
-                                                          akima_coefficients_GPU);
+  LIN_ALG::COPY_FROM<dca::linalg::CPU, dca::linalg::GPU>::execute(akima_coefficients_CPU,
+                                                                  akima_coefficients_GPU);
 }
 
 template <typename parameters_type>
 template <class configuration_type>
-void G0_INTERPOLATION<LIN_ALG::GPU, parameters_type>::build_G0_matrix(
-    configuration_type& configuration, LIN_ALG::matrix<double, LIN_ALG::GPU>& G0_e_spin,
+void G0_INTERPOLATION<dca::linalg::GPU, parameters_type>::build_G0_matrix(
+    configuration_type& configuration, dca::linalg::Matrix<double, dca::linalg::GPU>& G0_e_spin,
     e_spin_states_type e_spin) {
   // profiler_t profiler(concurrency, "G0-matrix (build)", "CT-AUX", __LINE__);
 
@@ -213,7 +213,7 @@ void G0_INTERPOLATION<LIN_ALG::GPU, parameters_type>::build_G0_matrix(
     return;
   }
 
-  G0_e_spin.resize_no_copy(configuration_size);
+  G0_e_spin.resizeNoCopy(configuration_size);
 
   b_ind.resize(configuration_size);
   r_ind.resize(configuration_size);
@@ -229,26 +229,25 @@ void G0_INTERPOLATION<LIN_ALG::GPU, parameters_type>::build_G0_matrix(
     tau[l] = configuration_e_spin[l].get_tau();
   }
 
-  LIN_ALG::COPY_FROM<LIN_ALG::CPU, LIN_ALG::GPU>::execute(
-      b_ind.get_ptr(), b_ind_GPU.get_ptr(), configuration_size);  //, LIN_ALG::ASYNCHRONOUS);
-  LIN_ALG::COPY_FROM<LIN_ALG::CPU, LIN_ALG::GPU>::execute(
-      r_ind.get_ptr(), r_ind_GPU.get_ptr(), configuration_size);  //, LIN_ALG::ASYNCHRONOUS);
-  LIN_ALG::COPY_FROM<LIN_ALG::CPU, LIN_ALG::GPU>::execute(
-      tau.get_ptr(), tau_GPU.get_ptr(), configuration_size);  //, LIN_ALG:: SYNCHRONOUS);
+  LIN_ALG::COPY_FROM<dca::linalg::CPU, dca::linalg::GPU>::execute(
+      b_ind.ptr(), b_ind_GPU.ptr(), configuration_size);  //, LIN_ALG::ASYNCHRONOUS);
+  LIN_ALG::COPY_FROM<dca::linalg::CPU, dca::linalg::GPU>::execute(
+      r_ind.ptr(), r_ind_GPU.ptr(), configuration_size);  //, LIN_ALG::ASYNCHRONOUS);
+  LIN_ALG::COPY_FROM<dca::linalg::CPU, dca::linalg::GPU>::execute(
+      tau.ptr(), tau_GPU.ptr(), configuration_size);  //, LIN_ALG:: SYNCHRONOUS);
 
   int first_shuffled_index = 0;  // configuration.get_first_shuffled_spin_index(e_spin);
   G0_INTERPOLATION_KERNELS::akima_interpolation_on_GPU(
-      Nb, Nr, Nt, beta, first_shuffled_index, configuration_size, b_ind_GPU.get_ptr(),
-      r_ind_GPU.get_ptr(), tau_GPU.get_ptr(), G0_e_spin.get_ptr(), G0_e_spin.get_current_size(),
-      G0_e_spin.get_global_size(), r1_min_r0_GPU.get_ptr(), r1_min_r0_GPU.get_current_size(),
-      r1_min_r0_GPU.get_global_size(), akima_coefficients_GPU.get_ptr(),
-      akima_coefficients_GPU.get_current_size(), akima_coefficients_GPU.get_global_size());
+      Nb, Nr, Nt, beta, first_shuffled_index, configuration_size, b_ind_GPU.ptr(), r_ind_GPU.ptr(),
+      tau_GPU.ptr(), G0_e_spin.ptr(), G0_e_spin.size(), G0_e_spin.capacity(), r1_min_r0_GPU.ptr(),
+      r1_min_r0_GPU.size(), r1_min_r0_GPU.capacity(), akima_coefficients_GPU.ptr(),
+      akima_coefficients_GPU.size(), akima_coefficients_GPU.capacity());
 }
 
 template <typename parameters_type>
 template <class configuration_type>
-void G0_INTERPOLATION<LIN_ALG::GPU, parameters_type>::update_G0_matrix(
-    configuration_type& configuration, LIN_ALG::matrix<double, LIN_ALG::GPU>& G0_e_spin,
+void G0_INTERPOLATION<dca::linalg::GPU, parameters_type>::update_G0_matrix(
+    configuration_type& configuration, dca::linalg::Matrix<double, dca::linalg::GPU>& G0_e_spin,
     e_spin_states_type e_spin) {
   assert(G0_e_spin.get_thread_id() == thread_id);
 
@@ -287,11 +286,11 @@ void G0_INTERPOLATION<LIN_ALG::GPU, parameters_type>::update_G0_matrix(
   }
 
   /*
-    LIN_ALG::COPY_FROM<LIN_ALG::CPU, LIN_ALG::GPU>::execute(b_ind.get_ptr(), b_ind_GPU.get_ptr(),
+    LIN_ALG::COPY_FROM<dca::linalg::CPU, dca::linalg::GPU>::execute(b_ind.ptr(), b_ind_GPU.ptr(),
     configuration_size, LIN_ALG::ASYNCHRONOUS);
-    LIN_ALG::COPY_FROM<LIN_ALG::CPU, LIN_ALG::GPU>::execute(r_ind.get_ptr(), r_ind_GPU.get_ptr(),
+    LIN_ALG::COPY_FROM<dca::linalg::CPU, dca::linalg::GPU>::execute(r_ind.ptr(), r_ind_GPU.ptr(),
     configuration_size, LIN_ALG::ASYNCHRONOUS);
-    LIN_ALG::COPY_FROM<LIN_ALG::CPU, LIN_ALG::GPU>::execute(tau  .get_ptr(), tau_GPU  .get_ptr(),
+    LIN_ALG::COPY_FROM<dca::linalg::CPU, dca::linalg::GPU>::execute(tau  .ptr(), tau_GPU  .ptr(),
     configuration_size, LIN_ALG:: SYNCHRONOUS);
   */
 
@@ -300,11 +299,11 @@ void G0_INTERPOLATION<LIN_ALG::GPU, parameters_type>::update_G0_matrix(
     r_ind_GPU.reserve(configuration_size);
     tau_GPU  .reserve(configuration_size);
 
-    LIN_ALG::COPY_FROM<LIN_ALG::CPU, LIN_ALG::GPU>::execute(b_ind.get_ptr(), b_ind_GPU.get_ptr(),
+    LIN_ALG::COPY_FROM<dca::linalg::CPU, dca::linalg::GPU>::execute(b_ind.ptr(), b_ind_GPU.ptr(),
     configuration_size, thread_id, stream_id);
-    LIN_ALG::COPY_FROM<LIN_ALG::CPU, LIN_ALG::GPU>::execute(r_ind.get_ptr(), r_ind_GPU.get_ptr(),
+    LIN_ALG::COPY_FROM<dca::linalg::CPU, dca::linalg::GPU>::execute(r_ind.ptr(), r_ind_GPU.ptr(),
     configuration_size, thread_id, stream_id);
-    LIN_ALG::COPY_FROM<LIN_ALG::CPU, LIN_ALG::GPU>::execute(tau  .get_ptr(), tau_GPU  .get_ptr(),
+    LIN_ALG::COPY_FROM<dca::linalg::CPU, dca::linalg::GPU>::execute(tau  .ptr(), tau_GPU  .ptr(),
     configuration_size, thread_id, stream_id);
   */
 
@@ -313,12 +312,10 @@ void G0_INTERPOLATION<LIN_ALG::GPU, parameters_type>::update_G0_matrix(
   tau_GPU.set(tau, LIN_ALG::ASYNCHRONOUS);
 
   G0_INTERPOLATION_KERNELS::akima_interpolation_on_GPU(
-      Nb, Nr, Nt, beta, first_shuffled_index, configuration_size, b_ind_GPU.get_ptr(),
-      r_ind_GPU.get_ptr(), tau_GPU.get_ptr(), G0_e_spin.get_ptr(), G0_e_spin.get_current_size(),
-      G0_e_spin.get_global_size(), r1_min_r0_GPU.get_ptr(), r1_min_r0_GPU.get_current_size(),
-      r1_min_r0_GPU.get_global_size(), akima_coefficients_GPU.get_ptr(),
-      akima_coefficients_GPU.get_current_size(), akima_coefficients_GPU.get_global_size(),
-      thread_id, stream_id);
+      Nb, Nr, Nt, beta, first_shuffled_index, configuration_size, b_ind_GPU.ptr(), r_ind_GPU.ptr(),
+      tau_GPU.ptr(), G0_e_spin.ptr(), G0_e_spin.size(), G0_e_spin.capacity(), r1_min_r0_GPU.ptr(),
+      r1_min_r0_GPU.size(), r1_min_r0_GPU.capacity(), akima_coefficients_GPU.ptr(),
+      akima_coefficients_GPU.size(), akima_coefficients_GPU.capacity(), thread_id, stream_id);
 }
 
 }  // QMCI

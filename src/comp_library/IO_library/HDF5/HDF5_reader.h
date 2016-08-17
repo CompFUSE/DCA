@@ -77,13 +77,13 @@ public:
   void execute(std::string name, FUNC_LIB::function<scalartype, domain_type>& f);
 
   template <typename scalar_type>
-  void execute(std::string name, LIN_ALG::vector<scalar_type, LIN_ALG::CPU>& A);
+  void execute(std::string name, dca::linalg::Vector<scalar_type, dca::linalg::CPU>& A);
 
   template <typename scalar_type>
-  void execute(std::string name, LIN_ALG::vector<std::complex<scalar_type>, LIN_ALG::CPU>& A);
+  void execute(std::string name, dca::linalg::Vector<std::complex<scalar_type>, dca::linalg::CPU>& A);
 
   template <typename scalar_type>
-  void execute(std::string name, LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& A);
+  void execute(std::string name, dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A);
 
 private:
   bool fexists(const char* filename);
@@ -308,7 +308,8 @@ void reader<IO::HDF5>::execute(std::string name, FUNC_LIB::function<scalartype, 
 }
 
 template <typename scalar_type>
-void reader<IO::HDF5>::execute(std::string name, LIN_ALG::vector<scalar_type, LIN_ALG::CPU>& V) {
+void reader<IO::HDF5>::execute(std::string name,
+                               dca::linalg::Vector<scalar_type, dca::linalg::CPU>& V) {
   try {
     open_group(name);
 
@@ -333,7 +334,7 @@ void reader<IO::HDF5>::execute(std::string name, LIN_ALG::vector<scalar_type, LI
 
 template <typename scalar_type>
 void reader<IO::HDF5>::execute(std::string name,
-                               LIN_ALG::vector<std::complex<scalar_type>, LIN_ALG::CPU>& V) {
+                               dca::linalg::Vector<std::complex<scalar_type>, dca::linalg::CPU>& V) {
   try {
     open_group(name);
 
@@ -356,7 +357,8 @@ void reader<IO::HDF5>::execute(std::string name,
 }
 
 template <typename scalar_type>
-void reader<IO::HDF5>::execute(std::string name, LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& A) {
+void reader<IO::HDF5>::execute(std::string name,
+                               dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A) {
   try {
     open_group(name);
 
@@ -367,9 +369,9 @@ void reader<IO::HDF5>::execute(std::string name, LIN_ALG::matrix<scalar_type, LI
     H5::DataSpace dataspace = dataset.getSpace();
 
     // These 2 lines fix the bug of reading into a matrix which has been resized to a smaller size
-    // hsize_t global_size[2] = {A.get_number_of_cols(), A.get_number_of_rows()}; // HDF5 use row
+    // hsize_t global_size[2] = {A.nrCols(), A.nrRows()}; // HDF5 use row
     // major data distribution
-    // hsize_t global_size[2] = {A.get_global_size().second, A.get_global_size().first}; // HDF5 use
+    // hsize_t global_size[2] = {A.capacity().second, A.capacity().first}; // HDF5 use
     // row major data distribution
     // dataspace.setExtentSimple(2, &global_size[0], NULL);
 

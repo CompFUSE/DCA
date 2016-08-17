@@ -27,7 +27,7 @@ namespace DCA {
 template <typename hybridization_routines_type>
 class swap_segment_tools {
 public:
-  typedef LIN_ALG::matrix<double, LIN_ALG::CPU> vertex_vertex_matrix_type;
+  typedef dca::linalg::Matrix<double, dca::linalg::CPU> vertex_vertex_matrix_type;
 
   typedef typename hybridization_routines_type::parameters_type parameters_type;
   typedef typename hybridization_routines_type::MOMS_type MOMS_type;
@@ -183,20 +183,20 @@ double swap_segment_tools<hybridization_routines_type>::construct_inverse(
     construct_matrix(M, beta, F, flavor_1, flavor_2);
 
     /*
-      invert_plan<double> inv_pln(segments.size(), M.get_global_size());
-      memcpy(inv_pln.Matrix, &M(0,0), sizeof(double)*M.get_global_size()*M.get_global_size());
+      invert_plan<double> inv_pln(segments.size(), M.capacity());
+      memcpy(inv_pln.Matrix, &M(0,0), sizeof(double)*M.capacity()*M.capacity());
       inv_pln.execute_plan();
       memcpy( &M(0,0),
-      inv_pln.inverted_matrix,sizeof(double)*M.get_global_size()*M.get_global_size());
+      inv_pln.inverted_matrix,sizeof(double)*M.capacity()*M.capacity());
 
-      for(int i=0; i<M.get_current_size().first; i++){
-      det *= inv_pln.Matrix[i+M.get_global_size().first*i];
+      for(int i=0; i<M.size().first; i++){
+      det *= inv_pln.Matrix[i+M.leadingDimension()*i];
       }
     */
 
-    LIN_ALG::GEINV<LIN_ALG::CPU>::execute(M);
+    LIN_ALG::GEINV<dca::linalg::CPU>::execute(M);
 
-    for (int i = 0; i < M.get_current_size().first; i++)
+    for (int i = 0; i < M.size().first; i++)
       det *= M(i, i);
   }
   else

@@ -37,7 +37,7 @@
 
 namespace DCA {
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 class cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type> {
 public:
   typedef MOMS_type this_MOMS_type;
@@ -49,7 +49,8 @@ public:
   typedef typename parameters_type::concurrency_type concurrency_type;
 
   typedef QMCI::MC_walker<QMCI::CT_AUX_SOLVER, device_t, parameters_type, MOMS_type> walker_type;
-  typedef QMCI::MC_accumulator<QMCI::CT_AUX_SOLVER, LIN_ALG::CPU, parameters_type, MOMS_type> accumulator_type;
+  typedef QMCI::MC_accumulator<QMCI::CT_AUX_SOLVER, dca::linalg::CPU, parameters_type, MOMS_type>
+      accumulator_type;
 
   using w = dmn_0<frequency_domain>;
   using b = dmn_0<electron_band_domain>;
@@ -127,7 +128,7 @@ protected:
   int DCA_iteration;
 };
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::cluster_solver(
     parameters_type& parameters_ref, MOMS_type& MOMS_ref)
     : parameters(parameters_ref),
@@ -150,12 +151,12 @@ cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::clu
   concurrency << "\n\n\t CT-AUX Integrator is born \n\n";
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::~cluster_solver() {
   concurrency << "\n\n\t CT-AUX Integrator has died \n\n";
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 template <IO::FORMAT DATA_FORMAT>
 void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::write(
     IO::writer<DATA_FORMAT>& writer) {
@@ -169,7 +170,7 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
   writer.close_group();
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::initialize(
     int dca_iteration) {
   DCA_iteration = dca_iteration;
@@ -183,7 +184,7 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
               << ")\n\n";
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::integrate() {
   concurrency << "\n\t\t integration has started \n";
 
@@ -221,7 +222,7 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
   concurrency << "\n\t\t integration has ended \n";
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 template <typename dca_info_struct_t>
 double cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::finalize(
     dca_info_struct_t& dca_info_struct) {
@@ -287,7 +288,7 @@ double cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_typ
   return dca_info_struct.L2_Sigma_difference(DCA_iteration);
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::warm_up(
     walker_type& walker) {
   profiler_type profiler("thermalization", "QMCI", __LINE__);
@@ -308,7 +309,7 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
   concurrency << "\n\t\t warm-up has ended\n\n";
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::measure(
     walker_type& walker) {
   concurrency << "\n\t\t measuring has started \n\n";
@@ -336,7 +337,7 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
   concurrency << "\n\t\t measuring has ended \n\n";
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::update_shell(
     int i, int N, int N_k) {
   int tmp = i;
@@ -352,7 +353,7 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
   }
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::update_shell(
     int i, int N, int N_k, int N_s) {
   int tmp = i;
@@ -368,7 +369,7 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
   }
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::compute_error_bars(
     int Nb_measurements_per_node) {
   if (DCA_iteration == parameters.get_DCA_iterations() - 1) {
@@ -414,7 +415,7 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
   }
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::sum_measurements(
     int Nb_measurements) {
   if (concurrency.id() == 0)
@@ -501,7 +502,7 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
   }
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type,
                     MOMS_type>::symmetrize_measurements() {
   if (concurrency.id() == 0)
@@ -511,7 +512,7 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type,
   symmetrize::execute(accumulator.get_M_r_w_squared(), MOMS.H_symmetry);
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type,
                     MOMS_type>::compute_G_k_w_from_M_r_w() {
   // FT<r_DCA, k_DCA>::execute(accumulator.get_M_r_w(), accumulator.get_M_k_w());
@@ -566,7 +567,7 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type,
   delete[] G0_times_M_matrix;
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 double cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type,
                       MOMS_type>::compute_S_k_w_from_G_k_w() {
   static double alpha = parameters.get_DCA_convergence_factor();
@@ -629,17 +630,17 @@ double cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type,
   return L2_norm;
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::compute_G_k_w_new(
     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>>& M_k_w_new,
     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>>& G_k_w_new) {
   //     if(concurrency.id()==0)
   //       std::cout << "\n\t\t compute-G_k_w_new\t" << dca::util::print_time() << "\n\n";
 
-  LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> G_matrix("G_matrix", nu::dmn_size());
-  LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> G0_matrix("G0_matrix", nu::dmn_size());
-  LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> M_matrix("M_matrix", nu::dmn_size());
-  LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> G0_M_matrix("M_matrix", nu::dmn_size());
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G_matrix("G_matrix", nu::dmn_size());
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G0_matrix("G0_matrix", nu::dmn_size());
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> M_matrix("M_matrix", nu::dmn_size());
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G0_M_matrix("M_matrix", nu::dmn_size());
 
   for (int k_ind = 0; k_ind < k_DCA::dmn_size(); k_ind++) {
     for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++) {
@@ -651,8 +652,8 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
         for (int i = 0; i < nu::dmn_size(); i++)
           M_matrix(i, j) = M_k_w_new(i, j, k_ind, w_ind);
 
-      LIN_ALG::GEMM<LIN_ALG::CPU>::execute(G0_matrix, M_matrix, G0_M_matrix);
-      LIN_ALG::GEMM<LIN_ALG::CPU>::execute(G0_M_matrix, G0_matrix, G_matrix);
+      LIN_ALG::GEMM<dca::linalg::CPU>::execute(G0_matrix, M_matrix, G0_M_matrix);
+      LIN_ALG::GEMM<dca::linalg::CPU>::execute(G0_M_matrix, G0_matrix, G_matrix);
 
       for (int j = 0; j < nu::dmn_size(); j++)
         for (int i = 0; i < nu::dmn_size(); i++)
@@ -663,15 +664,17 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
   symmetrize::execute(G_k_w_new, MOMS.H_symmetry);
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::compute_S_k_w_new(
     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>>& G_k_w_new,
     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>>& S_k_w_new) {
   //     if(concurrency.id()==0)
   //       std::cout << "\n\t\t start compute-S_k_w\t" << dca::util::print_time() << "\n\n";
 
-  //     LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> G_matrix ("G_matrix" , nu::dmn_size());
-  //     LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> G0_matrix("G0_matrix", nu::dmn_size());
+  //     dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G_matrix ("G_matrix" ,
+  //     nu::dmn_size());
+  //     dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G0_matrix("G0_matrix",
+  //     nu::dmn_size());
 
   int N = nu::dmn_size();
 
@@ -688,8 +691,8 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
         for (int i = 0; i < nu::dmn_size(); i++)
           G_matrix[i + j * N] = G_k_w_new(i, j, k_ind, w_ind);
 
-      LIN_ALG::GEINV<LIN_ALG::CPU>::execute(N, G0_matrix);
-      LIN_ALG::GEINV<LIN_ALG::CPU>::execute(N, G_matrix);
+      LIN_ALG::GEINV<dca::linalg::CPU>::execute(N, G0_matrix);
+      LIN_ALG::GEINV<dca::linalg::CPU>::execute(N, G_matrix);
 
       for (int j = 0; j < nu::dmn_size(); j++)
         for (int i = 0; i < nu::dmn_size(); i++)
@@ -709,7 +712,7 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
   symmetrize::execute(S_k_w_new, MOMS.H_symmetry);
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type,
                     MOMS_type>::set_non_interacting_bands_to_zero() {
   /*
@@ -738,7 +741,7 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type,
   */
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type,
                     MOMS_type>::adjust_self_energy_for_double_counting() {
   set_non_interacting_bands_to_zero();
@@ -799,7 +802,7 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type,
   symmetrize::execute(MOMS.Sigma, MOMS.H_symmetry);
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 double cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::mix_self_energy(
     double alpha) {
   symmetrize::execute(MOMS.Sigma, MOMS.H_symmetry);

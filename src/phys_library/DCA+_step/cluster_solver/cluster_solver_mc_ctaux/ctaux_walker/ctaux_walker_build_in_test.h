@@ -16,8 +16,9 @@
 
 #include <vector>
 
+#include "dca/linalg/matrix.hpp"
+
 #include "comp_library/function_library/include_function_library.h"
-#include "comp_library/linalg/src/matrix.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_auxilery_field_coefficients.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_hubbard_stratonovitch_configuration.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_vertex_singleton.h"
@@ -52,23 +53,26 @@ public:
 
   FUNC_LIB::function<double, dmn_0<numerical_error_domain>>& get_error_distribution();
 
-  template <LIN_ALG::device_type device_t>
-  void check_G0_matrices(configuration_type& configuration, LIN_ALG::matrix<double, device_t>& G0_up,
-                         LIN_ALG::matrix<double, device_t>& G0_dn);
+  template <dca::linalg::DeviceType device_t>
+  void check_G0_matrices(configuration_type& configuration,
+                         dca::linalg::Matrix<double, device_t>& G0_up,
+                         dca::linalg::Matrix<double, device_t>& G0_dn);
 
-  template <LIN_ALG::device_type device_t>
-  void check_N_matrices(configuration_type& configuration, LIN_ALG::matrix<double, device_t>& G0_up,
-                        LIN_ALG::matrix<double, device_t>& G0_dn,
-                        LIN_ALG::matrix<double, device_t>& N_up,
-                        LIN_ALG::matrix<double, device_t>& N_dn);
+  template <dca::linalg::DeviceType device_t>
+  void check_N_matrices(configuration_type& configuration,
+                        dca::linalg::Matrix<double, device_t>& G0_up,
+                        dca::linalg::Matrix<double, device_t>& G0_dn,
+                        dca::linalg::Matrix<double, device_t>& N_up,
+                        dca::linalg::Matrix<double, device_t>& N_dn);
 
-  template <LIN_ALG::device_type device_t>
-  void check_G_matrices(configuration_type& configuration, LIN_ALG::matrix<double, device_t>& G0_up,
-                        LIN_ALG::matrix<double, device_t>& G0_dn,
-                        LIN_ALG::matrix<double, device_t>& N_up,
-                        LIN_ALG::matrix<double, device_t>& N_dn,
-                        LIN_ALG::matrix<double, device_t>& G_up,
-                        LIN_ALG::matrix<double, device_t>& G_dn);
+  template <dca::linalg::DeviceType device_t>
+  void check_G_matrices(configuration_type& configuration,
+                        dca::linalg::Matrix<double, device_t>& G0_up,
+                        dca::linalg::Matrix<double, device_t>& G0_dn,
+                        dca::linalg::Matrix<double, device_t>& N_up,
+                        dca::linalg::Matrix<double, device_t>& N_dn,
+                        dca::linalg::Matrix<double, device_t>& G_up,
+                        dca::linalg::Matrix<double, device_t>& G_dn);
 
 private:
   parameters_type& parameters;
@@ -79,18 +83,18 @@ private:
 
   CV<parameters_type> CV_obj;
 
-  G0_INTERPOLATION<LIN_ALG::CPU, parameters_type> G0_CPU_tools_obj;
-  N_TOOLS<LIN_ALG::CPU, parameters_type> N_CPU_tools_obj;
-  G_TOOLS<LIN_ALG::CPU, parameters_type> G_CPU_tools_obj;
+  G0_INTERPOLATION<dca::linalg::CPU, parameters_type> G0_CPU_tools_obj;
+  N_TOOLS<dca::linalg::CPU, parameters_type> N_CPU_tools_obj;
+  G_TOOLS<dca::linalg::CPU, parameters_type> G_CPU_tools_obj;
 
-  LIN_ALG::matrix<double, LIN_ALG::CPU> G0_up_CPU;
-  LIN_ALG::matrix<double, LIN_ALG::CPU> G0_dn_CPU;
+  dca::linalg::Matrix<double, dca::linalg::CPU> G0_up_CPU;
+  dca::linalg::Matrix<double, dca::linalg::CPU> G0_dn_CPU;
 
-  LIN_ALG::matrix<double, LIN_ALG::CPU> N_up_CPU;
-  LIN_ALG::matrix<double, LIN_ALG::CPU> N_dn_CPU;
+  dca::linalg::Matrix<double, dca::linalg::CPU> N_up_CPU;
+  dca::linalg::Matrix<double, dca::linalg::CPU> N_dn_CPU;
 
-  LIN_ALG::matrix<double, LIN_ALG::CPU> G_up_CPU;
-  LIN_ALG::matrix<double, LIN_ALG::CPU> G_dn_CPU;
+  dca::linalg::Matrix<double, dca::linalg::CPU> G_up_CPU;
+  dca::linalg::Matrix<double, dca::linalg::CPU> G_dn_CPU;
 
   FUNC_LIB::function<double, dmn_0<numerical_error_domain>> error;
 };
@@ -149,10 +153,10 @@ void MC_walker_BIT<CT_AUX_SOLVER, parameters_type, MOMS_type>::initialize() {
 }
 
 template <class parameters_type, class MOMS_type>
-template <LIN_ALG::device_type device_t>
+template <dca::linalg::DeviceType device_t>
 void MC_walker_BIT<CT_AUX_SOLVER, parameters_type, MOMS_type>::check_G0_matrices(
-    configuration_type& configuration, LIN_ALG::matrix<double, device_t>& G0_up,
-    LIN_ALG::matrix<double, device_t>& G0_dn) {
+    configuration_type& configuration, dca::linalg::Matrix<double, device_t>& G0_up,
+    dca::linalg::Matrix<double, device_t>& G0_dn) {
   //     cout << __FUNCTION__ << endl;
 
   G0_CPU_tools_obj.build_G0_matrix(configuration, G0_up_CPU, e_UP);
@@ -163,11 +167,11 @@ void MC_walker_BIT<CT_AUX_SOLVER, parameters_type, MOMS_type>::check_G0_matrices
 }
 
 template <class parameters_type, class MOMS_type>
-template <LIN_ALG::device_type device_t>
+template <dca::linalg::DeviceType device_t>
 void MC_walker_BIT<CT_AUX_SOLVER, parameters_type, MOMS_type>::check_N_matrices(
-    configuration_type& configuration, LIN_ALG::matrix<double, device_t>& G0_up,
-    LIN_ALG::matrix<double, device_t>& G0_dn, LIN_ALG::matrix<double, device_t>& N_up,
-    LIN_ALG::matrix<double, device_t>& N_dn) {
+    configuration_type& configuration, dca::linalg::Matrix<double, device_t>& G0_up,
+    dca::linalg::Matrix<double, device_t>& G0_dn, dca::linalg::Matrix<double, device_t>& N_up,
+    dca::linalg::Matrix<double, device_t>& N_dn) {
   //     cout << __FUNCTION__ << endl;
 
   G0_up_CPU.difference(G0_up);
@@ -186,12 +190,12 @@ void MC_walker_BIT<CT_AUX_SOLVER, parameters_type, MOMS_type>::check_N_matrices(
 }
 
 template <class parameters_type, class MOMS_type>
-template <LIN_ALG::device_type device_t>
+template <dca::linalg::DeviceType device_t>
 void MC_walker_BIT<CT_AUX_SOLVER, parameters_type, MOMS_type>::check_G_matrices(
-    configuration_type& configuration, LIN_ALG::matrix<double, device_t>& G0_up,
-    LIN_ALG::matrix<double, device_t>& G0_dn, LIN_ALG::matrix<double, device_t>& N_up,
-    LIN_ALG::matrix<double, device_t>& N_dn, LIN_ALG::matrix<double, device_t>& G_up,
-    LIN_ALG::matrix<double, device_t>& G_dn) {
+    configuration_type& configuration, dca::linalg::Matrix<double, device_t>& G0_up,
+    dca::linalg::Matrix<double, device_t>& G0_dn, dca::linalg::Matrix<double, device_t>& N_up,
+    dca::linalg::Matrix<double, device_t>& N_dn, dca::linalg::Matrix<double, device_t>& G_up,
+    dca::linalg::Matrix<double, device_t>& G_dn) {
   //     cout << __FUNCTION__ << endl;
 
   G0_up_CPU.difference(G0_up);

@@ -18,7 +18,7 @@ namespace DCA {
 namespace QMCI {
 // DCA::QMCI::
 
-template <LIN_ALG::device_type device_t>
+template <dca::linalg::DeviceType device_t>
 class CT_AUX_WALKER_TOOLS {};
 
 }  // QMCI

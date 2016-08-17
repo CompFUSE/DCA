@@ -15,8 +15,8 @@ namespace LIN_ALG
 			  matrix<scalartype, CPU>& A_inv,
 			  scalartype EPSILON=1.e-6)
       {
-	int M = A.get_current_size().first;
-	int N = A.get_current_size().second;
+	int M = A.size().first;
+	int N = A.size().second;
 
 	if(M<=N)
 	  {
@@ -26,7 +26,7 @@ namespace LIN_ALG
 
 	    GEMM<CPU>::execute('N', 'C', A, A, A_At);
 
-	    vector<scalartype, CPU> S ("S" , M);
+	    dca::linalg::Vector<scalartype, CPU> S ("S" , M);
 	    matrix<scalartype, CPU> V ("V" , std::pair<int,int>(M,M));
 	    matrix<scalartype, CPU> Vt("Vt", std::pair<int,int>(M,M));
 
@@ -61,7 +61,7 @@ namespace LIN_ALG
 
 	    LIN_ALG::GEMM<CPU>::execute('C', 'N', A, A, At_A);
 
-	    vector<scalartype, CPU> S ("S" , N);
+	    dca::linalg::Vector<scalartype, CPU> S ("S" , N);
 	    matrix<scalartype, CPU> V ("V" , std::pair<int,int>(N,N));
 	    matrix<scalartype, CPU> Vt("Vt", std::pair<int,int>(N,N));
 
@@ -94,8 +94,8 @@ namespace LIN_ALG
 			  matrix<std::complex<scalartype>, CPU>& A_inv,
 			  scalartype EPSILON=1.e-6)
       {
-	int M = A.get_current_size().first;
-	int N = A.get_current_size().second;
+	int M = A.size().first;
+	int N = A.size().second;
 
 	if(M<=N)
 	  {
@@ -105,7 +105,7 @@ namespace LIN_ALG
 
 	    GEMM<CPU>::execute('N', 'C', A, A, A_At);
 
-	    vector<             scalartype , CPU> S ("S" , M);
+	    dca::linalg::Vector<scalartype, CPU> S ("S" , M);
 	    matrix<std::complex<scalartype>, CPU> V ("V" , std::pair<int,int>(M,M));
 	    matrix<std::complex<scalartype>, CPU> Vt("Vt", std::pair<int,int>(M,M));
 
@@ -143,7 +143,7 @@ namespace LIN_ALG
 
 	    LIN_ALG::GEMM<CPU>::execute('C', 'N', A, A, At_A);
 
-	    vector<             scalartype , CPU> S ("S" , N);
+	    dca::linalg::Vector<scalartype, CPU> S ("S" , N);
 	    matrix<std::complex<scalartype>, CPU> V ("V" , std::pair<int,int>(N,N));
 	    matrix<std::complex<scalartype>, CPU> Vt("Vt", std::pair<int,int>(N,N));
 

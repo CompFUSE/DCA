@@ -59,7 +59,7 @@ struct TRANSFORM_DOMAINWISE {
   template <typename scalartype_input, typename scalartype_output, typename scalartype_T>
   static void execute_on_first(FUNC_LIB::function<scalartype_input, domain_input>& f_input,
                                FUNC_LIB::function<scalartype_output, domain_output>& f_output,
-                               LIN_ALG::matrix<scalartype_T, LIN_ALG::CPU>& T) {
+                               dca::linalg::Matrix<scalartype_T, dca::linalg::CPU>& T) {
     if (VERBOSE)
       std::cout << "\n\n\t" << __FUNCTION__ << "\t" << f_input.get_name() << " --> "
                 << f_output.get_name() << "\n\n";
@@ -114,7 +114,7 @@ struct TRANSFORM_DOMAINWISE {
   template <typename scalartype_input, typename scalartype_output, typename scalartype_T>
   static void execute_on_all(FUNC_LIB::function<scalartype_input, domain_input>& f_input,
                              FUNC_LIB::function<scalartype_output, domain_output>& f_output,
-                             LIN_ALG::matrix<scalartype_T, LIN_ALG::CPU>& T) {
+                             dca::linalg::Matrix<scalartype_T, dca::linalg::CPU>& T) {
     if (VERBOSE) {
       std::cout << "\n\n\t" << __FUNCTION__ << "\t" << f_input.get_name() << " --> "
                 << f_output.get_name() << "\n\n";

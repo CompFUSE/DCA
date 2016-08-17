@@ -44,9 +44,6 @@
 #include "src/linalg_operations/memory_management_CPU.h"
 #include "src/linalg_operations/memory_management_GPU.h"
 
-#include "src/vector.h"
-#include "src/matrix.h"
-
 #include "src/linalg_operations/LU_MATRIX_OPERATIONS.h"
 #include "src/linalg_operations/LU_MATRIX_OPERATIONS_CPU.h"
 #include "src/linalg_operations/LU_MATRIX_OPERATIONS_GPU.h"

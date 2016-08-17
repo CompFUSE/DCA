@@ -73,10 +73,10 @@ public:
   void execute(std::string name, FUNC_LIB::function<scalartype, domain_type>& f);
 
   template <typename scalar_type>
-  void execute(std::string name, LIN_ALG::vector<scalar_type, LIN_ALG::CPU>& A);
+  void execute(std::string name, dca::linalg::Vector<scalar_type, dca::linalg::CPU>& A);
 
   template <typename scalar_type>
-  void execute(std::string name, LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& A);
+  void execute(std::string name, dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A);
 
 private:
   template <typename scalartype>
@@ -91,19 +91,19 @@ private:
                const JsonAccessor& current_result, size_t index);
 
   template <typename scalar_type>
-  void execute(std::string name, LIN_ALG::vector<scalar_type, LIN_ALG::CPU>& A,
+  void execute(std::string name, dca::linalg::Vector<scalar_type, dca::linalg::CPU>& A,
                const JsonAccessor& current_result, size_t index);
 
   template <typename scalar_type>
-  void execute(std::string name, LIN_ALG::vector<std::complex<scalar_type>, LIN_ALG::CPU>& A,
+  void execute(std::string name, dca::linalg::Vector<std::complex<scalar_type>, dca::linalg::CPU>& A,
                const JsonAccessor& current_result, size_t index);
 
   template <typename scalar_type>
-  void execute(std::string name, LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& A,
+  void execute(std::string name, dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A,
                const JsonAccessor& current_result, size_t index);
 
   template <typename scalar_type>
-  void execute(std::string name, LIN_ALG::matrix<std::complex<scalar_type>, LIN_ALG::CPU>& A,
+  void execute(std::string name, dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU>& A,
                const JsonAccessor& current_result, size_t index);
 
 private:
@@ -258,12 +258,14 @@ void reader<IO::JSON>::execute(std::string name,
 }
 
 template <typename scalar_type>
-void reader<IO::JSON>::execute(std::string name, LIN_ALG::vector<scalar_type, LIN_ALG::CPU>& V) {
+void reader<IO::JSON>::execute(std::string name,
+                               dca::linalg::Vector<scalar_type, dca::linalg::CPU>& V) {
   execute(name, V, parse_result, 0);
 }
 
 template <typename scalar_type>
-void reader<IO::JSON>::execute(std::string name, LIN_ALG::vector<scalar_type, LIN_ALG::CPU>& V,
+void reader<IO::JSON>::execute(std::string name,
+                               dca::linalg::Vector<scalar_type, dca::linalg::CPU>& V,
                                const JsonAccessor& current_result, size_t index) {
   if (index == my_paths.size()) {
     std::vector<scalar_type> value;
@@ -282,7 +284,7 @@ void reader<IO::JSON>::execute(std::string name, LIN_ALG::vector<scalar_type, LI
 
 template <typename scalar_type>
 void reader<IO::JSON>::execute(std::string name,
-                               LIN_ALG::vector<std::complex<scalar_type>, LIN_ALG::CPU>& V,
+                               dca::linalg::Vector<std::complex<scalar_type>, dca::linalg::CPU>& V,
                                const JsonAccessor& current_result, size_t index) {
   if (index == my_paths.size()) {
     std::vector<scalar_type> value;
@@ -305,12 +307,14 @@ void reader<IO::JSON>::execute(std::string name,
 }
 
 template <typename scalar_type>
-void reader<IO::JSON>::execute(std::string name, LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& A) {
+void reader<IO::JSON>::execute(std::string name,
+                               dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A) {
   execute(name, A, parse_result, 0);
 }
 
 template <typename scalar_type>
-void reader<IO::JSON>::execute(std::string name, LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& A,
+void reader<IO::JSON>::execute(std::string name,
+                               dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A,
                                const JsonAccessor& current_result, size_t index) {
   if (index == my_paths.size()) {
     std::vector<std::vector<scalar_type>> value;
@@ -330,7 +334,7 @@ void reader<IO::JSON>::execute(std::string name, LIN_ALG::matrix<scalar_type, LI
 
 template <typename scalar_type>
 void reader<IO::JSON>::execute(std::string name,
-                               LIN_ALG::matrix<std::complex<scalar_type>, LIN_ALG::CPU>& A,
+                               dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU>& A,
                                const JsonAccessor& current_result, size_t index) {
   if (index == my_paths.size()) {
     std::vector<std::vector<scalar_type>> value;

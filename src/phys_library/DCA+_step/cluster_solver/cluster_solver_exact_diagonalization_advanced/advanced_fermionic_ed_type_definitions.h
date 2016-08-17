@@ -41,9 +41,9 @@ public:
   using scalar_type = double;
   using complex_type = std::complex<scalar_type>;
 
-  using vector_type = LIN_ALG::vector<scalar_type, LIN_ALG::CPU>;
-  using matrix_type = LIN_ALG::matrix<complex_type, LIN_ALG::CPU>;
-  using int_matrix_type = LIN_ALG::matrix<int, LIN_ALG::CPU>;
+  using vector_type = dca::linalg::Vector<scalar_type, dca::linalg::CPU>;
+  using matrix_type = dca::linalg::Matrix<complex_type, dca::linalg::CPU>;
+  using int_matrix_type = dca::linalg::Matrix<int, dca::linalg::CPU>;
 
   using b = dmn_0<electron_band_domain>;
   using s = dmn_0<electron_spin_domain>;

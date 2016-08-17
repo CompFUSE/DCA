@@ -19,7 +19,7 @@ namespace DCA {
 namespace QMCI {
 // DCA::QMCI::
 
-template <QmciType qmci_type, LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <QmciType qmci_type, dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 class MC_accumulator {
 public:
   MC_accumulator(parameters_type& parameters_ref, MOMS_type& MOMS_ref);

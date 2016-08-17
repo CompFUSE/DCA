@@ -42,7 +42,7 @@ public:
       math_algorithms::functional_transforms::basis_transform<r_centered_dmn, q_dmn>;
   using trafo_matrix_type = typename trafo_k_to_r_type::matrix_type;
 
-  using matrix_type = LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>;
+  using matrix_type = dca::linalg::Matrix<scalar_type, dca::linalg::CPU>;
 
 public:
   static FUNC_LIB::function<matrix_type, K_dmn>& get() {
@@ -97,7 +97,7 @@ void interpolation_matrices<scalar_type, k_dmn, dmn_0<coarsegraining_domain<K_dm
   for (int K_ind = 0; K_ind < K_dmn::dmn_size(); K_ind++) {
     matrix_type& T_k_to_q = get(K_ind);
 
-    T_k_to_q.resize_no_copy(std::pair<int, int>(q_dmn::dmn_size(), k_dmn::dmn_size()));
+    T_k_to_q.resizeNoCopy(std::pair<int, int>(q_dmn::dmn_size(), k_dmn::dmn_size()));
 
     for (int j = 0; j < k_dmn::dmn_size(); j++)
       for (int i = 0; i < q_dmn::dmn_size(); i++)
@@ -112,10 +112,9 @@ template <typename concurrency_type>
 void interpolation_matrices<scalar_type, k_dmn, dmn_0<coarsegraining_domain<K_dmn, NAME>>>::print_memory_used(
     concurrency_type& concurrency) {
   if (concurrency.id() == 0) {
-    std::pair<int, int> global_size = get(0).get_global_size();
+    std::pair<int, int> capacity = get(0).capacity();
     std::cout << " stopped ( "
-              << sizeof(scalar_type) * global_size.first * global_size.second * 1.e-6 *
-                     K_dmn::dmn_size()
+              << sizeof(scalar_type) * capacity.first * capacity.second * 1.e-6 * K_dmn::dmn_size()
               << " Mbytes) \n\n";
   }
 }
@@ -135,7 +134,7 @@ void interpolation_matrices<scalar_type, k_dmn, dmn_0<coarsegraining_domain<K_dm
   std::pair<int, int> bounds = concurrency.get_bounds(K_dmn_obj);
 
   trafo_matrix_type trafo_k_to_q;
-  trafo_k_to_q.resize_no_copy(std::pair<int, int>(q_dmn::dmn_size(), k_dmn::dmn_size()));
+  trafo_k_to_q.resizeNoCopy(std::pair<int, int>(q_dmn::dmn_size(), k_dmn::dmn_size()));
 
   for (int K_ind = bounds.first; K_ind < bounds.second; K_ind++) {
     {
@@ -151,7 +150,7 @@ void interpolation_matrices<scalar_type, k_dmn, dmn_0<coarsegraining_domain<K_dm
         for (int i = 0; i < q_dmn::dmn_size(); i++)
           trafo_r_to_q(i, j) *= r_centered_dmn::parameter_type::get_weights()[j];
 
-      LIN_ALG::GEMM<LIN_ALG::CPU>::execute(trafo_r_to_q, trafo_k_to_r, trafo_k_to_q);
+      LIN_ALG::GEMM<dca::linalg::CPU>::execute(trafo_r_to_q, trafo_k_to_r, trafo_k_to_q);
     }
 
     {
@@ -186,7 +185,7 @@ void interpolation_matrices<scalar_type, k_dmn, dmn_0<coarsegraining_domain<K_dm
   std::pair<int, int> bounds = concurrency.get_bounds(K_dmn_obj);
 
   trafo_matrix_type trafo_k_to_q;
-  trafo_k_to_q.resize_no_copy(std::pair<int, int>(q_dmn::dmn_size(), k_dmn::dmn_size()));
+  trafo_k_to_q.resizeNoCopy(std::pair<int, int>(q_dmn::dmn_size(), k_dmn::dmn_size()));
 
   for (int K_ind = bounds.first; K_ind < bounds.second; K_ind++) {
     {
@@ -202,7 +201,7 @@ void interpolation_matrices<scalar_type, k_dmn, dmn_0<coarsegraining_domain<K_dm
         for (int i = 0; i < q_dmn::dmn_size(); i++)
           trafo_r_to_q(i, j) *= r_centered_dmn::parameter_type::get_weights()[j];
 
-      LIN_ALG::GEMM<LIN_ALG::CPU>::execute(trafo_r_to_q, trafo_k_to_r, trafo_k_to_q);
+      LIN_ALG::GEMM<dca::linalg::CPU>::execute(trafo_r_to_q, trafo_k_to_r, trafo_k_to_q);
     }
 
     {

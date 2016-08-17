@@ -45,7 +45,7 @@ public:
 
   typedef typename basis_function_type::f_scalar_type f_scalar_type;
 
-  typedef LIN_ALG::matrix<f_scalar_type, LIN_ALG::CPU> matrix_type;
+  typedef dca::linalg::Matrix<f_scalar_type, dca::linalg::CPU> matrix_type;
 
 public:
   static std::string& get_name() {
@@ -77,7 +77,7 @@ public:
 
     matrix_type& T = get_transformation_matrix();
 
-    T.resize_no_copy(std::pair<int, int>(M, N));
+    T.resizeNoCopy(std::pair<int, int>(M, N));
 
     for (int j = 0; j < N; j++)
       for (int i = 0; i < M; i++)

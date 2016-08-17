@@ -44,7 +44,7 @@ namespace DCA {
 namespace QMCI {
 // DCA::QMCI::
 
-template <LIN_ALG::device_type device_t, typename parameters_type>
+template <dca::linalg::DeviceType device_t, typename parameters_type>
 class N_TOOLS : public N_MATRIX_TOOLS<device_t, parameters_type> {
   const static int MAX_VERTEX_SINGLETS = 4;
 
@@ -59,40 +59,43 @@ public:
   double get_Gflop();
 
   template <class configuration_type>
-  void build_N_matrix(configuration_type& configuration, LIN_ALG::matrix<double, device_t>& N,
-                      LIN_ALG::matrix<double, device_t>& G0, e_spin_states_type e_spin);
+  void build_N_matrix(configuration_type& configuration, dca::linalg::Matrix<double, device_t>& N,
+                      dca::linalg::Matrix<double, device_t>& G0, e_spin_states_type e_spin);
 
   template <class configuration_type>
-  void update_N_matrix(configuration_type& full_configuration, LIN_ALG::matrix<double, device_t>& G0,
-                       LIN_ALG::matrix<double, device_t>& N, e_spin_states_type e_spin);
+  void update_N_matrix(configuration_type& full_configuration,
+                       dca::linalg::Matrix<double, device_t>& G0,
+                       dca::linalg::Matrix<double, device_t>& N, e_spin_states_type e_spin);
 
   template <class configuration_type>
   void rebuild_N_matrix_via_Gamma_LU(configuration_type& full_configuration,
-                                     LIN_ALG::matrix<double, device_t>& N,
-                                     LIN_ALG::matrix<double, device_t>& Gamma_LU,
-                                     LIN_ALG::matrix<double, device_t>& G, e_spin_states_type e_spin);
+                                     dca::linalg::Matrix<double, device_t>& N,
+                                     dca::linalg::Matrix<double, device_t>& Gamma_LU,
+                                     dca::linalg::Matrix<double, device_t>& G,
+                                     e_spin_states_type e_spin);
 
   template <class configuration_type>
-  void check_N_matrix(configuration_type& configuration, LIN_ALG::matrix<double, device_t>& G0,
-                      LIN_ALG::matrix<double, device_t>& N,
-                      LIN_ALG::matrix<double, device_t>& Gamma, e_spin_states_type e_spin);
+  void check_N_matrix(configuration_type& configuration, dca::linalg::Matrix<double, device_t>& G0,
+                      dca::linalg::Matrix<double, device_t>& N,
+                      dca::linalg::Matrix<double, device_t>& Gamma, e_spin_states_type e_spin);
 
 private:
-  void copy_rows_N(std::vector<int>& permutation, LIN_ALG::matrix<double, device_t>& N);
+  void copy_rows_N(std::vector<int>& permutation, dca::linalg::Matrix<double, device_t>& N);
 
   template <class configuration_type>
-  void compute_G_changed_vertices_to_all_vertex(LIN_ALG::matrix<double, device_t>& N,
-                                                LIN_ALG::matrix<double, device_t>& G_precomputed,
+  void compute_G_changed_vertices_to_all_vertex(dca::linalg::Matrix<double, device_t>& N,
+                                                dca::linalg::Matrix<double, device_t>& G_precomputed,
                                                 configuration_type& full_configuration,
                                                 e_spin_states_type e_spin);
 
-  void compute_d_vector(std::vector<int>& permutation, LIN_ALG::matrix<double, device_t>& N,
+  void compute_d_vector(std::vector<int>& permutation, dca::linalg::Matrix<double, device_t>& N,
                         std::vector<HS_spin_states_type>& spin_values,
                         std::vector<vertex_singleton_type>& configuration_e_spin,
-                        LIN_ALG::vector<double, LIN_ALG::CPU>& d_inv);
+                        dca::linalg::Vector<double, dca::linalg::CPU>& d_inv);
 
-  void scale_rows_N(std::vector<int>& permutation, LIN_ALG::vector<double, LIN_ALG::CPU>& d_inv,
-                    LIN_ALG::matrix<double, device_t>& N);
+  void scale_rows_N(std::vector<int>& permutation,
+                    dca::linalg::Vector<double, dca::linalg::CPU>& d_inv,
+                    dca::linalg::Matrix<double, device_t>& N);
 
   template <class configuration_type>
   static bool assert_N_matrix_format(configuration_type& full_configuration);
@@ -111,14 +114,15 @@ private:
 
   CV<parameters_type>& CV_obj;
 
-  LIN_ALG::vector<double, LIN_ALG::CPU> exp_gamma_s, one_min_exp_gamma_s, d_inv, exp_V_minus_one_val;
+  dca::linalg::Vector<double, dca::linalg::CPU> exp_gamma_s, one_min_exp_gamma_s, d_inv,
+      exp_V_minus_one_val;
 
-  LIN_ALG::matrix<double, device_t> G;
-  LIN_ALG::matrix<double, device_t> N_new_spins;
-  LIN_ALG::matrix<double, device_t> G0_times_exp_V_minus_one;
+  dca::linalg::Matrix<double, device_t> G;
+  dca::linalg::Matrix<double, device_t> N_new_spins;
+  dca::linalg::Matrix<double, device_t> G0_times_exp_V_minus_one;
 };
 
-template <LIN_ALG::device_type device_t, typename parameters_type>
+template <dca::linalg::DeviceType device_t, typename parameters_type>
 N_TOOLS<device_t, parameters_type>::N_TOOLS(int id, parameters_type& parameters_ref,
                                             CV<parameters_type>& CV_obj_ref)
     :
@@ -160,7 +164,7 @@ N_TOOLS<device_t, parameters_type>::N_TOOLS(int id, parameters_type& parameters_
                                std::pair<int, int>(MAX_VERTEX_SINGLETS * parameters.get_K_PHANI(),
                                                    parameters.get_initial_matrix_size())) {}
 
-template <LIN_ALG::device_type device_t, typename parameters_type>
+template <dca::linalg::DeviceType device_t, typename parameters_type>
 double N_TOOLS<device_t, parameters_type>::get_Gflop() {
   double result = GFLOP;
   GFLOP = 0.;
@@ -179,11 +183,11 @@ double N_TOOLS<device_t, parameters_type>::get_Gflop() {
  * HS_{spin}}-1]
  *  \f}
  */
-template <LIN_ALG::device_type device_t, typename parameters_type>
+template <dca::linalg::DeviceType device_t, typename parameters_type>
 template <class configuration_type>
 void N_TOOLS<device_t, parameters_type>::build_N_matrix(configuration_type& configuration,
-                                                        LIN_ALG::matrix<double, device_t>& N,
-                                                        LIN_ALG::matrix<double, device_t>& G0,
+                                                        dca::linalg::Matrix<double, device_t>& N,
+                                                        dca::linalg::Matrix<double, device_t>& G0,
                                                         e_spin_states_type e_spin) {
   std::vector<vertex_singleton_type>& configuration_e_spin = configuration.get(e_spin);
   int configuration_size(configuration_e_spin.size());
@@ -197,7 +201,7 @@ void N_TOOLS<device_t, parameters_type>::build_N_matrix(configuration_type& conf
   exp_gamma_s.resize(configuration_size);
   one_min_exp_gamma_s.resize(configuration_size);
 
-  N.resize_no_copy(configuration_size);
+  N.resizeNoCopy(configuration_size);
 
   for (int i = 0; i < configuration_size; ++i)
     exp_gamma_s[i] = CV_obj.exp_V(configuration_e_spin[i]);
@@ -214,9 +218,8 @@ void N_TOOLS<device_t, parameters_type>::build_N_matrix(configuration_type& conf
   {
     double* exp_gamma_s_ptr = N_MATRIX_TOOLS<device_t, parameters_type>::get_device_ptr(exp_gamma_s);
 
-    dca::linalg::blas::UseDevice<device_t>::axpy(configuration_size, 1., exp_gamma_s_ptr, 1,
-                                                 N.get_ptr(), N.get_leading_dimension() + 1,
-                                                 thread_id, stream_id);
+    dca::linalg::blas::UseDevice<device_t>::axpy(configuration_size, 1., exp_gamma_s_ptr, 1, N.ptr(),
+                                                 N.leadingDimension() + 1, thread_id, stream_id);
   }
 
   LIN_ALG::GEINV<device_t>::execute(N);
@@ -233,11 +236,11 @@ void N_TOOLS<device_t, parameters_type>::build_N_matrix(configuration_type& conf
  *    N_{i,j} &=& \delta_{i,j}  \mbox{ if } j \leq n
  *  \f}
  */
-template <LIN_ALG::device_type device_t, typename parameters_type>
+template <dca::linalg::DeviceType device_t, typename parameters_type>
 template <class configuration_type>
 void N_TOOLS<device_t, parameters_type>::update_N_matrix(configuration_type& configuration,
-                                                         LIN_ALG::matrix<double, device_t>& G0,
-                                                         LIN_ALG::matrix<double, device_t>& N,
+                                                         dca::linalg::Matrix<double, device_t>& G0,
+                                                         dca::linalg::Matrix<double, device_t>& N,
                                                          e_spin_states_type e_spin) {
   // profiler_t profiler(concurrency, "update_N_matrix", "CT-AUX", __LINE__, true);
 
@@ -260,10 +263,10 @@ void N_TOOLS<device_t, parameters_type>::update_N_matrix(configuration_type& con
   assert(first_shuffled_vertex_index >= first_non_interacting_vertex_index);
 
   if (first_non_interacting_vertex_index == configuration_size) {
-    assert(configuration_size == N.get_current_size().first);
+    assert(configuration_size == N.size().first);
     // std::cout << __FUNCTION__
     //           << "\tconfiguration_size = " << configuration_size
-    //           << "\tN.get_current_size().first = " << N.get_current_size().first << std::endl;
+    //           << "\tN.size().first = " << N.size().first << std::endl;
     return;
   }
 
@@ -276,14 +279,18 @@ void N_TOOLS<device_t, parameters_type>::update_N_matrix(configuration_type& con
 
     int i = first_non_interacting_vertex_index;
 
-    int N_r = N.get_number_of_rows();
-    int N_c = N.get_number_of_cols();
+    int N_r = N.nrRows();
+    int N_c = N.nrCols();
 
-    int LD = N.get_leading_dimension();
+    int LD = N.leadingDimension();
 
     assert(N_r == N_c);
-    dca::linalg::lapack::UseDevice<device_t>::laset("A", i, N_c - i, 0., 0., N.get_ptr(0, i), LD, thread_id, stream_id);
-    dca::linalg::lapack::UseDevice<device_t>::laset("A", N_r - i, N_c - i, 1., 0., N.get_ptr(i, i), LD, thread_id, stream_id);
+    LIN_ALG::LASET<device_t>::set_zero(i, N_c - i, N.ptr(0, i), LD, thread_id, stream_id);
+    LIN_ALG::LASET<device_t>::set_unity(N_r - i, N_c - i, N.ptr(i, i), LD, thread_id, stream_id);
+    // dca::linalg::lapack::UseDevice<device_t>::laset("A", i, N_c - i, 0., 0., N.ptr(0, i), LD,
+    //                                                thread_id, stream_id);
+    // dca::linalg::lapack::UseDevice<device_t>::laset("A", N_r - i, N_c - i, 1., 0., N.ptr(i, i),
+    //                                                LD, thread_id, stream_id);
   }
 
   if (first_shuffled_vertex_index == configuration_size || first_non_interacting_vertex_index == 0)
@@ -292,10 +299,10 @@ void N_TOOLS<device_t, parameters_type>::update_N_matrix(configuration_type& con
   {  // G0_times_exp_V_minus_one <--- \sum_{l=0}^{l<vertex_index} G0_{i,l}*exp_V_minus_one[l]
     // profiler_t profiler(concurrency, "(b) GEMD", __FUNCTION__, __LINE__, true);
 
-    std::pair<int, int> current_size(configuration_size - first_shuffled_vertex_index,
-                                     first_non_interacting_vertex_index);
+    std::pair<int, int> size(configuration_size - first_shuffled_vertex_index,
+                             first_non_interacting_vertex_index);
 
-    G0_times_exp_V_minus_one.resize_no_copy(current_size);
+    G0_times_exp_V_minus_one.resizeNoCopy(size);
 
     exp_V_minus_one_val.resize(first_non_interacting_vertex_index);
     for (int j = 0; j < first_non_interacting_vertex_index; ++j)
@@ -305,11 +312,10 @@ void N_TOOLS<device_t, parameters_type>::update_N_matrix(configuration_type& con
         N_MATRIX_TOOLS<device_t, parameters_type>::get_device_ptr(exp_V_minus_one_val);
 
     LIN_ALG::GEMD<device_t>::execute(
-        current_size, &G0.get_ptr()[first_shuffled_vertex_index], G0.get_leading_dimension(),
-        diagonal_matrix_ptr,
+        size, &G0.ptr()[first_shuffled_vertex_index], G0.leadingDimension(), diagonal_matrix_ptr,
         // N_MATRIX_TOOLS<device_t, parameters_type>::get_device_ptr(exp_V_minus_one_val),
-        G0_times_exp_V_minus_one.get_ptr(), G0_times_exp_V_minus_one.get_leading_dimension(),
-        thread_id, stream_id);
+        G0_times_exp_V_minus_one.ptr(), G0_times_exp_V_minus_one.leadingDimension(), thread_id,
+        stream_id);
   }
 
   {  // G0_exp_V_minus_one * N
@@ -319,26 +325,26 @@ void N_TOOLS<device_t, parameters_type>::update_N_matrix(configuration_type& con
     int k = first_non_interacting_vertex_index;
     int n = first_non_interacting_vertex_index;
 
-    int LD_G0 = G0_times_exp_V_minus_one.get_global_size().first;
-    int LD_N = N.get_global_size().first;
+    int LD_G0 = G0_times_exp_V_minus_one.leadingDimension();
+    int LD_N = N.leadingDimension();
 
     dca::linalg::blas::UseDevice<device_t>::gemm(
-        "N", "N", m, n, k, 1., G0_times_exp_V_minus_one.get_ptr(), LD_G0, N.get_ptr(), LD_N, 0.,
-        &N.get_ptr()[first_shuffled_vertex_index], LD_N, thread_id, stream_id);
+        "N", "N", m, n, k, 1., G0_times_exp_V_minus_one.ptr(), LD_G0, N.ptr(), LD_N, 0.,
+        &N.ptr()[first_shuffled_vertex_index], LD_N, thread_id, stream_id);
 
     GFLOP += 2. * double(m) * double(k) * double(n) * (1.e-9);
   }
 }
 
-template <LIN_ALG::device_type device_t, typename parameters_type>
+template <dca::linalg::DeviceType device_t, typename parameters_type>
 template <class configuration_type>
 void N_TOOLS<device_t, parameters_type>::rebuild_N_matrix_via_Gamma_LU(
-    configuration_type& full_configuration, LIN_ALG::matrix<double, device_t>& N,
-    LIN_ALG::matrix<double, device_t>& Gamma, LIN_ALG::matrix<double, device_t>& G_precomputed,
-    e_spin_states_type e_spin) {
+    configuration_type& full_configuration, dca::linalg::Matrix<double, device_t>& N,
+    dca::linalg::Matrix<double, device_t>& Gamma,
+    dca::linalg::Matrix<double, device_t>& G_precomputed, e_spin_states_type e_spin) {
   // profiler_t profiler(concurrency, "rebuild_N_matrix_via_Gamma_LU", "CT-AUX", __LINE__, true);
 
-  int Gamma_size = Gamma.get_current_size().first;
+  int Gamma_size = Gamma.size().first;
 
   if (Gamma_size == 0)
     return;
@@ -352,7 +358,7 @@ void N_TOOLS<device_t, parameters_type>::rebuild_N_matrix_via_Gamma_LU(
 
   assert(spin_values.size() == permutation.size());
   assert(Gamma_size == int(permutation.size()));
-  assert(N.get_current_size().first == int(configuration_size));
+  assert(N.size().first == int(configuration_size));
   assert(assert_that_there_are_no_Bennett_spins(full_configuration));
 
   N_MATRIX_TOOLS<device_t, parameters_type>::set_permutation(permutation);
@@ -360,7 +366,7 @@ void N_TOOLS<device_t, parameters_type>::rebuild_N_matrix_via_Gamma_LU(
   {  // get the rows of N corresponding to the new spins => N_new_spins
     // profiler_t profiler(concurrency, "(a) resize N && copy rows", __FUNCTION__, __LINE__, true);
 
-    N_new_spins.resize_no_copy(std::pair<int, int>(Gamma_size, configuration_size));
+    N_new_spins.resizeNoCopy(std::pair<int, int>(Gamma_size, configuration_size));
 
     // copy_rows_N(permutation, N);
     N_MATRIX_TOOLS<device_t, parameters_type>::copy_rows(N, N_new_spins);
@@ -369,7 +375,7 @@ void N_TOOLS<device_t, parameters_type>::rebuild_N_matrix_via_Gamma_LU(
   {  // get the columns of G corresponding to the new spins => G_new_spins
     // profiler_t profiler(concurrency, "(b) resize G && copy cols", __FUNCTION__, __LINE__, true);
 
-    G.resize_no_copy(std::pair<int, int>(configuration_size, Gamma_size));
+    G.resizeNoCopy(std::pair<int, int>(configuration_size, Gamma_size));
 
     // if(true)
     {
@@ -411,7 +417,7 @@ void N_TOOLS<device_t, parameters_type>::rebuild_N_matrix_via_Gamma_LU(
 }
 
 /*
-  template<LIN_ALG::device_type device_t, typename parameters_type>
+  template<dca::linalg::DeviceType device_t, typename parameters_type>
   inline void N_TOOLS<device_t, parameters_type>::set_data()
   {
   std::vector<double> exp_V(permutation.size());
@@ -455,9 +461,9 @@ void N_TOOLS<device_t, parameters_type>::rebuild_N_matrix_via_Gamma_LU(
   }
 */
 
-template <LIN_ALG::device_type device_t, typename parameters_type>
+template <dca::linalg::DeviceType device_t, typename parameters_type>
 inline void N_TOOLS<device_t, parameters_type>::copy_rows_N(std::vector<int>& permutation,
-                                                            LIN_ALG::matrix<double, device_t>& N) {
+                                                            dca::linalg::Matrix<double, device_t>& N) {
   // profiler_t profiler(concurrency, __FUNCTION__, __FUNCTION__, __LINE__);
 
   if (true) {
@@ -477,10 +483,10 @@ inline void N_TOOLS<device_t, parameters_type>::copy_rows_N(std::vector<int>& pe
  *    G_{i,j} = \sum_l N_{i,l}*G0_{l,j}
  *  \f}
  */
-template <LIN_ALG::device_type device_t, typename parameters_type>
+template <dca::linalg::DeviceType device_t, typename parameters_type>
 template <class configuration_type>
 void N_TOOLS<device_t, parameters_type>::compute_G_changed_vertices_to_all_vertex(
-    LIN_ALG::matrix<double, device_t>& N, LIN_ALG::matrix<double, device_t>& G_precomputed,
+    dca::linalg::Matrix<double, device_t>& N, dca::linalg::Matrix<double, device_t>& G_precomputed,
     configuration_type& full_configuration, e_spin_states_type e_spin) {
   std::vector<vertex_singleton_type>& configuration_e_spin = full_configuration.get(e_spin);
 
@@ -489,36 +495,35 @@ void N_TOOLS<device_t, parameters_type>::compute_G_changed_vertices_to_all_verte
   int configuration_size = configuration_e_spin.size();
   int Gamma_size = permutation.size();
 
-  int N_ind = N.get_number_of_cols() - G_precomputed.get_number_of_cols();
+  int N_ind = N.nrCols() - G_precomputed.nrCols();
 
   for (int l = 0; l < Gamma_size; ++l) {
     int j_ind = permutation[l];
 
     if (j_ind >= N_ind)
-      LIN_ALG::COPY<device_t>::execute(configuration_size, G_precomputed.get_ptr(0, j_ind - N_ind),
-                                       1, G.get_ptr(0, l), 1);
+      LIN_ALG::COPY<device_t>::execute(configuration_size, G_precomputed.ptr(0, j_ind - N_ind), 1,
+                                       G.ptr(0, l), 1);
     else {
       double exp_V = CV_obj.exp_V(configuration_e_spin[j_ind]);
       double denumerator = exp_V - 1.;
 
       double alpha = exp_V / denumerator;
 
-      LIN_ALG::COPY<device_t>::execute(configuration_size, N.get_ptr(0, j_ind), 1, G.get_ptr(0, l),
-                                       1);
-      LIN_ALG::SCALE<device_t>::execute(configuration_size, alpha, G.get_ptr(0, l), 1);
+      LIN_ALG::COPY<device_t>::execute(configuration_size, N.ptr(0, j_ind), 1, G.ptr(0, l), 1);
+      LIN_ALG::SCALE<device_t>::execute(configuration_size, alpha, G.ptr(0, l), 1);
 
       // G(j_ind,l) -= 1./denumerator;
-      LIN_ALG::MEMORY_MANAGEMENT<device_t>::add(G.get_ptr(j_ind, l), -1. / denumerator);
+      LIN_ALG::MEMORY_MANAGEMENT<device_t>::add(G.ptr(j_ind, l), -1. / denumerator);
     }
   }
 }
 
-template <LIN_ALG::device_type device_t, typename parameters_type>
+template <dca::linalg::DeviceType device_t, typename parameters_type>
 inline void N_TOOLS<device_t, parameters_type>::compute_d_vector(
-    std::vector<int>& permutation, LIN_ALG::matrix<double, device_t>& /*N*/,
+    std::vector<int>& permutation, dca::linalg::Matrix<double, device_t>& /*N*/,
     std::vector<HS_spin_states_type>& spin_values,
     std::vector<vertex_singleton_type>& configuration_e_spin,
-    LIN_ALG::vector<double, LIN_ALG::CPU>& d_inv) {
+    dca::linalg::Vector<double, dca::linalg::CPU>& d_inv) {
   int spin_orbital, spin_orbital_paired;
   int delta_r;
   double exp_delta_V;
@@ -551,7 +556,7 @@ inline void N_TOOLS<device_t, parameters_type>::compute_d_vector(
       d_inv[i] = 0;
 
       // d_inv[i] =
-      // 1./LIN_ALG::MEMORY_MANAGEMENT<device_t>::get(N.get_ptr(permutation[i],permutation[i]));
+      // 1./LIN_ALG::MEMORY_MANAGEMENT<device_t>::get(N.ptr(permutation[i],permutation[i]));
       // d_inv[i] = 1./N(permutation[i],permutation[i]);
 
       // d_index.push_back(i);
@@ -563,15 +568,15 @@ inline void N_TOOLS<device_t, parameters_type>::compute_d_vector(
   N_MATRIX_TOOLS<device_t, parameters_type>::set_d_vector(d_inv);
 }
 
-template <LIN_ALG::device_type device_t, typename parameters_type>
-inline void N_TOOLS<device_t, parameters_type>::scale_rows_N(std::vector<int>& permutation,
-                                                             LIN_ALG::vector<double, LIN_ALG::CPU>& d_inv,
-                                                             LIN_ALG::matrix<double, device_t>& N) {
+template <dca::linalg::DeviceType device_t, typename parameters_type>
+inline void N_TOOLS<device_t, parameters_type>::scale_rows_N(
+    std::vector<int>& permutation, dca::linalg::Vector<double, dca::linalg::CPU>& d_inv,
+    dca::linalg::Matrix<double, device_t>& N) {
   for (size_t i = 0; i < permutation.size(); ++i)
     LIN_ALG::SCALE<device_t>::row(N, d_inv[i], permutation[i]);
 }
 
-template <LIN_ALG::device_type device_t, typename parameters_type>
+template <dca::linalg::DeviceType device_t, typename parameters_type>
 template <class configuration_type>
 bool N_TOOLS<device_t, parameters_type>::assert_that_there_are_no_Bennett_spins(
     configuration_type& full_configuration) {
@@ -602,14 +607,13 @@ bool N_TOOLS<device_t, parameters_type>::assert_that_there_are_no_Bennett_spins(
   return true;
 }
 
-template <LIN_ALG::device_type device_t, typename parameters_type>
+template <dca::linalg::DeviceType device_t, typename parameters_type>
 template <class configuration_type>
-void N_TOOLS<device_t, parameters_type>::check_N_matrix(configuration_type& configuration,
-                                                        LIN_ALG::matrix<double, device_t>& N,
-                                                        LIN_ALG::matrix<double, device_t>& G0,
-                                                        LIN_ALG::matrix<double, device_t>& /*Gamma*/,
-                                                        e_spin_states_type e_spin) {
-  LIN_ALG::matrix<double, device_t> N_correct(N.get_current_size(), N.get_global_size());
+void N_TOOLS<device_t, parameters_type>::check_N_matrix(
+    configuration_type& configuration, dca::linalg::Matrix<double, device_t>& N,
+    dca::linalg::Matrix<double, device_t>& G0, dca::linalg::Matrix<double, device_t>& /*Gamma*/,
+    e_spin_states_type e_spin) {
+  dca::linalg::Matrix<double, device_t> N_correct(N.size(), N.capacity());
 
   std::cout.precision(4);
 
@@ -628,7 +632,7 @@ void N_TOOLS<device_t, parameters_type>::check_N_matrix(configuration_type& conf
   //        std::cout << "\t\t e_spin : " << e_spin << std::endl;
   //        Gamma.print();
 
-  //        for(int i=0; i<N.get_current_size(); i++)
+  //        for(int i=0; i<N.size(); i++)
   //          std::cout << "\t\t" << configuration[i].get_HS_spin();
   //        std::cout << "\n";
 

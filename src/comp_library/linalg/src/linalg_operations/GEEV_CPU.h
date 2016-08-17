@@ -17,15 +17,15 @@ namespace LIN_ALG {
     template<typename scalartype>
     static void execute(char JOBVL, char JOBVR,
                         matrix<scalartype, CPU>& A,
-                        vector<scalartype, CPU>& lambda_re,
-                        vector<scalartype, CPU>& lambda_im,
+                        dca::linalg::Vector<scalartype, CPU>& lambda_re,
+                        dca::linalg::Vector<scalartype, CPU>& lambda_im,
                         matrix<scalartype, CPU>& VL,
                         matrix<scalartype, CPU>& VR);
 
     template<typename scalartype>
     static void execute(char JOBVL, char JOBVR,
                         matrix<std::complex<scalartype>, CPU>& A,
-                        vector<std::complex<scalartype>, CPU>& lambda,
+                        dca::linalg::Vector<std::complex<scalartype>, CPU>& lambda,
                         matrix<std::complex<scalartype>, CPU>& VL,
                         matrix<std::complex<scalartype>, CPU>& VR);
 
@@ -36,19 +36,19 @@ namespace LIN_ALG {
     template<typename scalartype>
     static void execute(char JOBZ, char UPLO,
                         matrix<scalartype, CPU>& A,
-                        vector<scalartype, CPU>& lambda_re,
+                        dca::linalg::Vector<scalartype, CPU>& lambda_re,
                         matrix<scalartype, CPU>& VR);
 
     template<typename scalartype>
     static void execute(char JOBZ, char UPLO,
                         matrix<std::complex<scalartype>, CPU>& A,
-                        vector<             scalartype , CPU>& lambda,
+                        dca::linalg::Vector<scalartype, CPU>& lambda,
                         matrix<std::complex<scalartype>, CPU>& VR);
 
     template<typename scalartype>
     static void execute_on_Greens_function_matrix(char JOBZ, char UPLO,
                                                   matrix<std::complex<scalartype>, CPU>& A,
-                                                  vector<             scalartype , CPU>& lambda,
+                                                  dca::linalg::Vector<scalartype, CPU>& lambda,
                                                   matrix<std::complex<scalartype>, CPU>& VR);
 
     /*
@@ -62,12 +62,12 @@ namespace LIN_ALG {
 
       void initialize(char JOBZ, char UPLO,
 		      matrix<scalartype, CPU>& A,
-		      vector<scalartype, CPU>& lambda_re,
+		      dca::linalg::Vector<scalartype, CPU>& lambda_re,
 		      matrix<scalartype, CPU>& VR);
 
       void execute(char JOBZ, char UPLO,
 		   matrix<scalartype, CPU>& A,
-		   vector<scalartype, CPU>& lambda_re,
+		   dca::linalg::Vector<scalartype, CPU>& lambda_re,
 		   matrix<scalartype, CPU>& VR);
 
     private:
@@ -75,10 +75,10 @@ namespace LIN_ALG {
       bool initialzed;
 
       int LIWORK;
-      vector<int , CPU> IWORK;
+      dca::linalg::Vector<int, CPU> IWORK;
 
       int LWORK;
-      vector<scalartype, CPU> WORK;      
+      dca::linalg::Vector<scalartype, CPU> WORK;      
     };
     */
 
@@ -92,22 +92,22 @@ namespace LIN_ALG {
 
       void initialize(char JOBZ, char UPLO,
 		      matrix<scalartype, CPU>& A,
-		      vector<scalartype, CPU>& lambda_re,
+		      dca::linalg::Vector<scalartype, CPU>& lambda_re,
 		      matrix<scalartype, CPU>& VR);
 
       void initialize(char JOBZ, char UPLO,
 		      matrix<std::complex<scalartype>, CPU>& A,
-		      vector<std::complex<scalartype>, CPU>& lambda_re,
+		      dca::linalg::Vector<std::complex<scalartype>, CPU>& lambda_re,
 		      matrix<std::complex<scalartype>, CPU>& VR);
 
       void execute(char JOBZ, char UPLO,
 		   matrix<scalartype, CPU>& A,
-		   vector<scalartype, CPU>& lambda_re,
+		   dca::linalg::Vector<scalartype, CPU>& lambda_re,
 		   matrix<scalartype, CPU>& VR);
 
       void execute(char JOBZ, char UPLO,
 		   matrix<std::complex<scalartype>, CPU>& A,
-		   vector<std::complex<scalartype>, CPU>& lambda_re,
+		   dca::linalg::Vector<std::complex<scalartype>, CPU>& lambda_re,
 		   matrix<std::complex<scalartype>, CPU>& VR);
 
     private:
@@ -115,13 +115,13 @@ namespace LIN_ALG {
       bool initialzed;
 
       int LIWORK;
-      vector<int , CPU> IWORK;
+      dca::linalg::Vector<int, CPU> IWORK;
 
       int LRWORK;
-      vector<scalartype, CPU> RWORK;      
+      dca::linalg::Vector<scalartype, CPU> RWORK;      
 
       int LWORK;
-      vector<std::complex<scalartype>, CPU> WORK;      
+      dca::linalg::Vector<std::complex<scalartype>, CPU> WORK;      
     };
 
     /*************************************
@@ -133,7 +133,7 @@ namespace LIN_ALG {
                        scalartype LB,
                        scalartype UB,
                        matrix<scalartype, CPU>& A,
-                       vector<scalartype, CPU>& lambda,
+                       dca::linalg::Vector<scalartype, CPU>& lambda,
                        matrix<scalartype, CPU>& VR,
                        std::string              alg_type="DEFAULT");
 
@@ -142,7 +142,7 @@ namespace LIN_ALG {
                        scalartype LB,
                        scalartype UB,
                        matrix<std::complex<scalartype>, CPU>& A,
-                       vector<             scalartype , CPU>& lambda,
+                       dca::linalg::Vector<scalartype, CPU>& lambda,
                        matrix<std::complex<scalartype>, CPU>& V,
                        std::string              alg_type="DEFAULT");
 
@@ -151,7 +151,7 @@ namespace LIN_ALG {
                        int LB,
                        int UB,
                        matrix<scalartype, CPU>& A,
-                       vector<scalartype, CPU>& lambda,
+                       dca::linalg::Vector<scalartype, CPU>& lambda,
                        matrix<scalartype, CPU>& VR,
                        std::string              alg_type="DEFAULT");
 
@@ -160,7 +160,7 @@ namespace LIN_ALG {
                        int LB,
                        int UB,
                        matrix<std::complex<scalartype>, CPU>& A,
-                       vector<             scalartype , CPU>& lambda,
+                       dca::linalg::Vector<scalartype, CPU>& lambda,
                        matrix<std::complex<scalartype>, CPU>& V,
                        std::string              alg_type="DEFAULT");
 
@@ -171,13 +171,13 @@ namespace LIN_ALG {
     template<typename scalartype>
     static void execute_on_small_matrix(char JOBZ, char UPLO,
                                         matrix<scalartype, CPU>& A,
-                                        vector<scalartype, CPU>& lambda_re,
+                                        dca::linalg::Vector<scalartype, CPU>& lambda_re,
                                         matrix<scalartype, CPU>& VR);
 
     template<typename scalartype>
     static void execute_on_small_matrix(char JOBZ, char UPLO,
                                         matrix<std::complex<scalartype>, CPU>& A,
-                                        vector<             scalartype , CPU>& lambda,
+                                        dca::linalg::Vector<scalartype, CPU>& lambda,
                                         matrix<std::complex<scalartype>, CPU>& VR);
 
   private:
@@ -189,7 +189,7 @@ namespace LIN_ALG {
                        int IL,
                        int IU,
                        matrix<scalartype, CPU>& A,
-                       vector<scalartype, CPU>& lambda,
+                       dca::linalg::Vector<scalartype, CPU>& lambda,
                        matrix<scalartype, CPU>& V,
                        std::string              alg_type);
 
@@ -200,7 +200,7 @@ namespace LIN_ALG {
                        int IL,
                        int IU,
                        matrix<std::complex<scalartype>, CPU>& A,
-                       vector<             scalartype , CPU>& lambda,
+                       dca::linalg::Vector<scalartype, CPU>& lambda,
                        matrix<std::complex<scalartype>, CPU>& V,
                        std::string              alg_type);
 
@@ -309,8 +309,8 @@ namespace LIN_ALG {
   template<typename scalartype>
   void GEEV<CPU>::execute(char JOBVL, char JOBVR,
                           matrix<scalartype, CPU>& A,
-                          vector<scalartype, CPU>& lambda_re,
-                          vector<scalartype, CPU>& lambda_im,
+                          dca::linalg::Vector<scalartype, CPU>& lambda_re,
+                          dca::linalg::Vector<scalartype, CPU>& lambda_im,
                           matrix<scalartype, CPU>& VL,
                           matrix<scalartype, CPU>& VR)
   {
@@ -320,17 +320,17 @@ namespace LIN_ALG {
     if( JOBVR != 'N' and JOBVR != 'V')
       throw std::logic_error(__FUNCTION__);
 
-    if( A.get_current_size().first !=  A.get_current_size().second)
+    if( A.size().first !=  A.size().second)
       throw std::logic_error(__FUNCTION__);
 
     matrix<std::complex<scalartype>, CPU> X;
     X.copy_from(A);
 
-    int N_A = A.get_current_size().first;
-    int LDA = A.get_global_size().first;
+    int N_A = A.size().first;
+    int LDA = A.leadingDimension();
 
-    int LDVL = VL.get_global_size().first;
-    int LDVR = VR.get_global_size().first;
+    int LDVL = VL.leadingDimension();
+    int LDVR = VR.leadingDimension();
 
     int LWORK = -1;
 
@@ -343,7 +343,7 @@ namespace LIN_ALG {
       LWORK = WORK[0];
     }
 
-    vector<scalartype, CPU> WORK(LWORK);
+    dca::linalg::Vector<scalartype, CPU> WORK(LWORK);
 
     execute(JOBVL, JOBVR, N_A, &X(0,0), LDA, &lambda_re(0), &lambda_im(0), &VL(0,0), LDVL, &VR(0,0), LDVR, &WORK[0], LWORK, INFO);
   }
@@ -351,7 +351,7 @@ namespace LIN_ALG {
   template<typename scalartype>
   void GEEV<CPU>::execute(char JOBVL, char JOBVR,
                           matrix<std::complex<scalartype>, CPU>& A,
-                          vector<std::complex<scalartype>, CPU>& lambda,
+                          dca::linalg::Vector<std::complex<scalartype>, CPU>& lambda,
                           matrix<std::complex<scalartype>, CPU>& VL,
                           matrix<std::complex<scalartype>, CPU>& VR)
   {
@@ -361,21 +361,21 @@ namespace LIN_ALG {
     if( JOBVR != 'N' and JOBVR != 'V')
       throw std::logic_error(__FUNCTION__);
 
-    if( A.get_current_size().first !=  A.get_current_size().second)
+    if( A.size().first !=  A.size().second)
       throw std::logic_error(__FUNCTION__);
 
     matrix<std::complex<scalartype>, CPU> X;
     X.copy_from(A);
 
-    int N_A = A.get_current_size().first;
-    int LDA = A.get_global_size().first;
+    int N_A = A.size().first;
+    int LDA = A.leadingDimension();
 
-    int LDVL = VL.get_global_size().first;
-    int LDVR = VR.get_global_size().first;
+    int LDVL = VL.leadingDimension();
+    int LDVR = VR.leadingDimension();
 
     int LWORK = -1;
 
-    vector<scalartype, CPU> RWORK(2*N_A);
+    dca::linalg::Vector<scalartype, CPU> RWORK(2*N_A);
 
     int INFO = -1;
 
@@ -386,7 +386,7 @@ namespace LIN_ALG {
       LWORK = real(WORK);
     }
 
-    vector<std::complex<scalartype>, CPU> WORK(LWORK);
+    dca::linalg::Vector<std::complex<scalartype>, CPU> WORK(LWORK);
 
     execute(JOBVL, JOBVR, N_A, &X(0,0), LDA, &lambda[0], &VL(0,0), LDVL, &VR(0,0), LDVR, &WORK[0], LWORK, &RWORK[0], INFO);
   }
@@ -400,7 +400,7 @@ namespace LIN_ALG {
   template<typename scalartype>
   void GEEV<CPU>::execute(char JOBZ, char UPLO,
                           matrix<scalartype, CPU>& A,
-                          vector<scalartype, CPU>& lambda,
+                          dca::linalg::Vector<scalartype, CPU>& lambda,
                           matrix<scalartype, CPU>& VR)
   {
     if( JOBZ != 'N' and JOBZ != 'V')
@@ -409,15 +409,15 @@ namespace LIN_ALG {
     if( UPLO != 'U' and UPLO != 'L')
       throw std::logic_error(__FUNCTION__);
 
-    int N_A = A.get_current_size().first;
-    int LDA = A.get_global_size().first;
+    int N_A = A.size().first;
+    int LDA = A.leadingDimension();
 
     VR.copy_from(A);
 
     if(false)
       {
         int LWORK = -1;
-        vector<scalartype, CPU> WORK("WORK", 1);
+        dca::linalg::Vector<scalartype, CPU> WORK("WORK", 1);
 
         {
           execute(JOBZ, UPLO, N_A, &VR(0,0), LDA, &lambda[0], &WORK[0], LWORK);
@@ -431,10 +431,10 @@ namespace LIN_ALG {
     else
       {
         int LWORK = -1;
-        vector<scalartype, CPU> WORK("WORK", 1);
+        dca::linalg::Vector<scalartype, CPU> WORK("WORK", 1);
 
         int LIWORK = -1;
-        vector<int , CPU> IWORK("LIWORK", 1);
+        dca::linalg::Vector<int, CPU> IWORK("LIWORK", 1);
 
         {
           execute(JOBZ, UPLO, N_A, &VR(0,0), LDA, &lambda[0], &WORK[0], LWORK, &IWORK[0], LIWORK);
@@ -453,7 +453,7 @@ namespace LIN_ALG {
   template<typename scalartype>
   void GEEV<CPU>::execute(char JOBZ, char UPLO,
                           matrix<std::complex<scalartype>, CPU>& A,
-                          vector<             scalartype , CPU>& lambda,
+                          dca::linalg::Vector<scalartype, CPU>& lambda,
                           matrix<std::complex<scalartype>, CPU>& VR)
   {
     if( JOBZ != 'N' and JOBZ != 'V')
@@ -464,16 +464,16 @@ namespace LIN_ALG {
 
     VR.copy_from(A);
 
-    int N_A = VR.get_current_size().first;
-    int LDA = VR.get_global_size().first;
+    int N_A = VR.size().first;
+    int LDA = VR.leadingDimension();
 
     if(false)
       {
         int LWORK = -1;
-        vector<std::complex<scalartype>, CPU> WORK("WORK", 1);
+        dca::linalg::Vector<std::complex<scalartype>, CPU> WORK("WORK", 1);
 
         int LRWORK = std::max(1, 3*N_A-2);
-        vector<scalartype , CPU> RWORK("RWORK", LRWORK);
+        dca::linalg::Vector<scalartype , CPU> RWORK("RWORK", LRWORK);
 
         {
           execute(JOBZ, UPLO, N_A, &VR(0,0), LDA, &lambda[0], &WORK[0], LWORK, &RWORK[0]);
@@ -488,13 +488,13 @@ namespace LIN_ALG {
     else
       {
         int LWORK = -1;
-        vector<std::complex<scalartype>, CPU> WORK("WORK", 1);
+        dca::linalg::Vector<std::complex<scalartype>, CPU> WORK("WORK", 1);
 
         int LRWORK = -1;
-        vector<scalartype , CPU> RWORK("RWORK", 1);
+        dca::linalg::Vector<scalartype , CPU> RWORK("RWORK", 1);
 
         int LIWORK = -1;
-        vector<int , CPU> IWORK("RWORK", 1);
+        dca::linalg::Vector<int, CPU> IWORK("RWORK", 1);
 
         {
           execute(JOBZ, UPLO, N_A, &VR(0,0), LDA, &lambda[0], &WORK[0], LWORK, &RWORK[0], LRWORK, &IWORK[0], LIWORK);
@@ -516,10 +516,10 @@ namespace LIN_ALG {
   template<typename scalartype>
   void GEEV<CPU>::execute_on_Greens_function_matrix(char JOBZ, char UPLO,
                                                     matrix<std::complex<scalartype>, CPU>& A,
-                                                    vector<             scalartype , CPU>& lambda,
+                                                    dca::linalg::Vector<scalartype, CPU>& lambda,
                                                     matrix<std::complex<scalartype>, CPU>& VR)
   {
-    int N = A.get_current_size().first;
+    int N = A.size().first;
     assert(N%2==0);
 
     switch(N)
@@ -551,10 +551,10 @@ namespace LIN_ALG {
   template<typename scalartype>
   void GEEV<CPU>::execute_on_small_matrix(char JOBZ, char UPLO,
                                           matrix<scalartype, CPU>& A,
-                                          vector<scalartype, CPU>& lambda,
+                                          dca::linalg::Vector<scalartype, CPU>& lambda,
                                           matrix<scalartype, CPU>& VR)
   {
-    int N = A.get_current_size().first;
+    int N = A.size().first;
 
     switch(N)
       {
@@ -574,10 +574,10 @@ namespace LIN_ALG {
   template<typename scalartype>
   void GEEV<CPU>::execute_on_small_matrix(char JOBZ, char UPLO,
                                           matrix<std::complex<scalartype>, CPU>& A,
-                                          vector<             scalartype , CPU>& lambda,
+                                          dca::linalg::Vector<scalartype, CPU>& lambda,
                                           matrix<std::complex<scalartype>, CPU>& VR)
   {
-    int N = A.get_current_size().first;
+    int N = A.size().first;
 
     switch(N)
       {
@@ -607,7 +607,7 @@ namespace LIN_ALG {
                          scalartype VL,
                          scalartype VU,
                          matrix<scalartype, CPU>& A,
-                         vector<scalartype, CPU>& lambda,
+                         dca::linalg::Vector<scalartype, CPU>& lambda,
                          matrix<scalartype, CPU>& VR,
                          std::string              alg_type)
   {
@@ -624,7 +624,7 @@ namespace LIN_ALG {
                          scalartype VL,
                          scalartype VU,
                          matrix<std::complex<scalartype>, CPU>& A,
-                         vector<             scalartype , CPU>& lambda,
+                         dca::linalg::Vector<scalartype, CPU>& lambda,
                          matrix<std::complex<scalartype>, CPU>& VR,
                          std::string              alg_type)
   {
@@ -640,7 +640,7 @@ namespace LIN_ALG {
   int GEEV<CPU>::execute(char JOBZ, char UPLO,
                          int IL, int IU,
                          matrix<scalartype, CPU>& A,
-                         vector<scalartype, CPU>& lambda,
+                         dca::linalg::Vector<scalartype, CPU>& lambda,
                          matrix<scalartype, CPU>& VR,
                          std::string              alg_type)
   {
@@ -656,7 +656,7 @@ namespace LIN_ALG {
   int GEEV<CPU>::execute(char JOBZ, char UPLO,
                          int IL, int IU,
                          matrix<std::complex<scalartype>, CPU>& A,
-                         vector<             scalartype , CPU>& lambda,
+                         dca::linalg::Vector<scalartype, CPU>& lambda,
                          matrix<std::complex<scalartype>, CPU>& VR,
                          std::string                            alg_type)
   {
@@ -675,7 +675,7 @@ namespace LIN_ALG {
                          int IL,
                          int IU,
                          matrix<scalartype, CPU>& A,
-                         vector<scalartype, CPU>& lambda,
+                         dca::linalg::Vector<scalartype, CPU>& lambda,
                          matrix<scalartype, CPU>& V,
                          std::string              alg_type)
   {
@@ -690,19 +690,19 @@ namespace LIN_ALG {
     X.copy_from(A);
     V.copy_from(A);
 
-    int N_A = A.get_current_size().first;
+    int N_A = A.size().first;
 
-    int LDA = X.get_global_size().first;
-    int LDZ = V.get_global_size().first;
+    int LDA = X.leadingDimension();
+    int LDZ = V.leadingDimension();
 
     int M=-1;
 
     if(alg_type == "DEFAULT")
       {
-        vector<scalartype, CPU> WORK(1);
+        dca::linalg::Vector<scalartype, CPU> WORK(1);
 
-        vector<int       , CPU> IWORK(5*N_A);
-        vector<int       , CPU> IFAIL(N_A);
+        dca::linalg::Vector<int, CPU> IWORK(5*N_A);
+        dca::linalg::Vector<int, CPU> IFAIL(N_A);
 
         int LWORK = -1;
         int INFO  = -1;
@@ -732,7 +732,7 @@ namespace LIN_ALG {
                          int IL,
                          int IU,
                          matrix<std::complex<scalartype>, CPU>& A,
-                         vector<             scalartype , CPU>& lambda,
+                         dca::linalg::Vector<scalartype, CPU>& lambda,
                          matrix<std::complex<scalartype>, CPU>& V,
                          std::string                            alg_type)
   {
@@ -747,20 +747,20 @@ namespace LIN_ALG {
     X.copy_from(A);
     V.copy_from(A);
 
-    int N_A = A.get_current_size().first;
+    int N_A = A.size().first;
 
-    int LDA = X.get_global_size().first;
-    int LDZ = V.get_global_size().first;
+    int LDA = X.leadingDimension();
+    int LDZ = V.leadingDimension();
 
     int M=-1;
 
     if(alg_type == "DEFAULT")
       {
-        vector<std::complex<scalartype>, CPU> WORK(1);
-        vector<             scalartype , CPU> RWORK(7*N_A);
+        dca::linalg::Vector<std::complex<scalartype>, CPU> WORK(1);
+        dca::linalg::Vector<scalartype, CPU> RWORK(7*N_A);
 
-        vector<int, CPU> IWORK(5*N_A);
-        vector<int, CPU> IFAIL(N_A);
+        dca::linalg::Vector<int, CPU> IWORK(5*N_A);
+        dca::linalg::Vector<int, CPU> IFAIL(N_A);
 
         int LWORK  = -1;
         int LRWORK = -1;

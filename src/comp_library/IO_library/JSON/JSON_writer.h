@@ -89,16 +89,16 @@ public:
   void execute(std::string name, FUNC_LIB::function<std::complex<scalar_type>, domain_type>& f);
 
   template <typename scalar_type>
-  void execute(std::string name, LIN_ALG::vector<scalar_type, LIN_ALG::CPU>& A);
+  void execute(std::string name, dca::linalg::Vector<scalar_type, dca::linalg::CPU>& A);
 
   template <typename scalar_type>
-  void execute(std::string name, LIN_ALG::vector<std::complex<scalar_type>, LIN_ALG::CPU>& A);
+  void execute(std::string name, dca::linalg::Vector<std::complex<scalar_type>, dca::linalg::CPU>& A);
 
   template <typename scalar_type>
-  void execute(std::string name, LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& A);
+  void execute(std::string name, dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A);
 
   template <typename scalar_type>
-  void execute(std::string name, LIN_ALG::matrix<std::complex<scalar_type>, LIN_ALG::CPU>& A);
+  void execute(std::string name, dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU>& A);
 
   template <class stream_type>
   static void execute(stream_type& ss, const JsonAccessor& parseResult);
@@ -406,20 +406,21 @@ void writer<IO::JSON>::execute(std::string name,
 }
 
 template <typename scalar_type>
-void writer<IO::JSON>::execute(std::string name, LIN_ALG::vector<scalar_type, LIN_ALG::CPU>& V) {
+void writer<IO::JSON>::execute(std::string name,
+                               dca::linalg::Vector<scalar_type, dca::linalg::CPU>& V) {
   open_group(name);
 
   execute("name", V.get_name());
 
-  execute("current-size", V.get_current_size());
-  execute("global-size", V.get_global_size());
+  execute("current-size", V.size());
+  execute("global-size", V.capacity());
 
   ss << ",\n\n" << get_path() << "\"data\" : [";
 
-  for (int j = 0; j < V.get_current_size() - 1; j++)
+  for (int j = 0; j < V.size() - 1; j++)
     ss << V[j] << ", ";
 
-  ss << V[V.get_current_size() - 1] << "]";
+  ss << V[V.size() - 1] << "]";
 
   close_group();
 
@@ -428,24 +429,24 @@ void writer<IO::JSON>::execute(std::string name, LIN_ALG::vector<scalar_type, LI
 
 template <typename scalar_type>
 void writer<IO::JSON>::execute(std::string name,
-                               LIN_ALG::vector<std::complex<scalar_type>, LIN_ALG::CPU>& V) {
+                               dca::linalg::Vector<std::complex<scalar_type>, dca::linalg::CPU>& V) {
   open_group(name);
 
   execute("name", V.get_name());
 
-  execute("current-size", V.get_current_size());
-  execute("global-size", V.get_global_size());
+  execute("current-size", V.size());
+  execute("global-size", V.capacity());
 
   ss << ",\n\n" << get_path() << "\"data-real\" : [";
-  for (int j = 0; j < V.get_current_size() - 1; j++)
+  for (int j = 0; j < V.size() - 1; j++)
     ss << real(V[j]) << ", ";
 
-  ss << real(V[V.get_current_size() - 1]) << "]";
+  ss << real(V[V.size() - 1]) << "]";
   ss << ",\n\n" << get_path() << "\"data-imag\" : [";
-  for (int j = 0; j < V.get_current_size() - 1; j++)
+  for (int j = 0; j < V.size() - 1; j++)
     ss << imag(V[j]) << ", ";
 
-  ss << imag(V[V.get_current_size() - 1]) << "]";
+  ss << imag(V[V.size() - 1]) << "]";
 
   close_group();
 
@@ -453,26 +454,27 @@ void writer<IO::JSON>::execute(std::string name,
 }
 
 template <typename scalar_type>
-void writer<IO::JSON>::execute(std::string name, LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& A) {
+void writer<IO::JSON>::execute(std::string name,
+                               dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A) {
   open_group(name);
 
   execute("name", A.get_name());
 
-  execute("current-size", A.get_current_size());
-  execute("global-size", A.get_global_size());
+  execute("current-size", A.size());
+  execute("global-size", A.capacity());
 
   ss << ",\n\n" << get_path() << "\"data\" : [";
 
-  for (int i = 0; i < A.get_current_size().first; i++) {
+  for (int i = 0; i < A.size().first; i++) {
     ss << "[";
 
-    for (int j = 0; j < A.get_current_size().second - 1; j++)
+    for (int j = 0; j < A.size().second - 1; j++)
       ss << A(i, j) << ", ";
 
-    if (i == A.get_current_size().first - 1)
-      ss << A(i, A.get_current_size().second - 1) << "]";
+    if (i == A.size().first - 1)
+      ss << A(i, A.size().second - 1) << "]";
     else
-      ss << A(i, A.get_current_size().second - 1) << "],\n" << get_path() << "          ";
+      ss << A(i, A.size().second - 1) << "],\n" << get_path() << "          ";
   }
 
   ss << "]";
@@ -484,44 +486,42 @@ void writer<IO::JSON>::execute(std::string name, LIN_ALG::matrix<scalar_type, LI
 
 template <typename scalar_type>
 void writer<IO::JSON>::execute(std::string name,
-                               LIN_ALG::matrix<std::complex<scalar_type>, LIN_ALG::CPU>& A) {
+                               dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU>& A) {
   open_group(name);
 
   execute("name", A.get_name());
 
-  execute("current-size", A.get_current_size());
-  execute("current-size", A.get_global_size());
+  execute("current-size", A.size());
+  execute("current-size", A.capacity());
 
   ss << ",\n\n" << get_path() << "\"data-real\" : [";
 
-  for (int i = 0; i < A.get_current_size().first; i++) {
+  for (int i = 0; i < A.size().first; i++) {
     ss << "[";
 
-    for (int j = 0; j < A.get_current_size().second - 1; j++)
+    for (int j = 0; j < A.size().second - 1; j++)
       ss << real(A(i, j)) << ", ";
 
-    if (i == A.get_current_size().first - 1)
-      ss << real(A(i, A.get_current_size().second - 1)) << "]";
+    if (i == A.size().first - 1)
+      ss << real(A(i, A.size().second - 1)) << "]";
     else
-      ss << real(A(i, A.get_current_size().second - 1)) << "],\n"
-         << get_path() << "               ";
+      ss << real(A(i, A.size().second - 1)) << "],\n" << get_path() << "               ";
   }
 
   ss << "]";
 
   ss << ",\n\n" << get_path() << "\"data-imag\" : [";
 
-  for (int i = 0; i < A.get_current_size().first; i++) {
+  for (int i = 0; i < A.size().first; i++) {
     ss << "[";
 
-    for (int j = 0; j < A.get_current_size().second - 1; j++)
+    for (int j = 0; j < A.size().second - 1; j++)
       ss << imag(A(i, j)) << ", ";
 
-    if (i == A.get_current_size().first - 1)
-      ss << imag(A(i, A.get_current_size().second - 1)) << "]";
+    if (i == A.size().first - 1)
+      ss << imag(A(i, A.size().second - 1)) << "]";
     else
-      ss << imag(A(i, A.get_current_size().second - 1)) << "],\n"
-         << get_path() << "               ";
+      ss << imag(A(i, A.size().second - 1)) << "],\n" << get_path() << "               ";
   }
 
   ss << "]";

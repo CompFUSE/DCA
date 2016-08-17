@@ -21,19 +21,19 @@ namespace LIN_ALG {
       	template<typename scalartype>
 	static void execute(matrix<scalartype, GPU>& A, int* IPIV){
 	  
-	  int M = A.get_current_size().first;
-	  int N = A.get_current_size().second;
+	  int M = A.size().first;
+	  int N = A.size().second;
 
 	  if(N != M)
 	    throw std::logic_error(__FUNCTION__);
 
-	  int LDA = A.get_global_size().first;
+	  int LDA = A.leadingDimension();
 
 	  int LWORK        = GPU_KERNELS_GETRI::get_work_space(N)*N;
-	  LIN_ALG::vector<scalartype, GPU> WORK(LWORK);
+	  dca::linalg::Vector<scalartype, GPU> WORK(LWORK);
 
 	  int INFO=0;
-	  execute(N, A.get_ptr(), LDA, IPIV, WORK.get_ptr(), LWORK, INFO);
+	  execute(N, A.ptr(), LDA, IPIV, WORK.ptr(), LWORK, INFO);
 	}
 
       static void execute(int N, float* A, int LDA, int* IPIV, float* WORK, int LWORK, int& INFO){

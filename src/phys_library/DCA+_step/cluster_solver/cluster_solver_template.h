@@ -20,7 +20,8 @@
 
 namespace DCA {
 
-template <ClusterSolverName solver_name, LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <ClusterSolverName solver_name, dca::linalg::DeviceType device_t, class parameters_type,
+          class MOMS_type>
 class cluster_solver {
 public:
   cluster_solver(parameters_type& parameters_ref, MOMS_type& MOMS_ref);

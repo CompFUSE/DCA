@@ -42,7 +42,7 @@ namespace DCA {
 namespace QMCI {
 // DCA::QMCI::
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 class MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type> {
 public:
   typedef typename parameters_type::random_number_generator rng_type;
@@ -198,7 +198,7 @@ private:
   double p_1;
 };
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::MC_walker(parameters_type& parameters_ref,
                                                                       MOMS_type& MOMS_ref,
                                                                       rng_type& rng_ref, int id)
@@ -230,7 +230,7 @@ MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::MC_walker(parameters
 
       sign(1) {}
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::~MC_walker() {
   if (concurrency.id() == 0 and thread_id == 0) {
     std::stringstream ss;
@@ -240,7 +240,7 @@ MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::~MC_walker() {
   }
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::initialize() {
   ss_hybridization_solver_routines_obj.initialize_functions();
 
@@ -271,12 +271,12 @@ void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::initialize() {
     is_thermalized() = false;
 
     for (int i = 0; i < M.size(); i++) {
-      M(i).get_current_size() = std::pair<int, int>(0, 0);
+      M(i).resize(0);
     }
   }
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::test_interpolation() {
   std::cout << __FUNCTION__ << std::endl;
 
@@ -318,7 +318,7 @@ void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::test_interpolat
   throw std::logic_error(__FUNCTION__);
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::do_sweep() {
   double factor = 1.;
   if (thermalized)
@@ -335,7 +335,7 @@ void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::do_sweep() {
     do_step();
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 int MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::get_random_interacting_flavor() {
   int spin = s::dmn_size() * rng();
   int int_band = parameters.get_interacting_bands().size() * rng();
@@ -343,7 +343,7 @@ int MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::get_random_inter
   return parameters.get_interacting_bands()[int_band] + spin * b::dmn_size();
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::do_step() {
   double p = rng();
 
@@ -358,7 +358,7 @@ void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::do_step() {
   }
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::do_insert_remove(int so_ind) {
   double rn = rng();
 
@@ -390,7 +390,7 @@ void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::do_insert_remov
   }
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::insert_or_remove_full_line(int j) {
   nb_updates += 1;
 
@@ -399,7 +399,7 @@ void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::insert_or_remov
   nb_successfull_updates += succes ? 1 : 0;
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::insert_or_remove_anti_segment(int j) {
   nb_updates += 1;
 
@@ -412,7 +412,7 @@ void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::insert_or_remov
   nb_successfull_updates += succes ? 1 : 0;
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::insert_or_remove_segment(int j) {
   nb_updates += 1;
 
@@ -425,7 +425,7 @@ void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::insert_or_remov
   nb_successfull_updates += succes ? 1 : 0;
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::shift_segment(int j) {
   nb_updates += 1;
 
@@ -438,7 +438,7 @@ void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::shift_segment(i
   nb_successfull_updates += succes ? 1 : 0;
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::swap_random_orbitals() {
   nb_updates += 1;
 

@@ -44,7 +44,7 @@ public:
   typedef typename inverse_basis_transformation_type::matrix_type matrix_type;
 
   //     typedef typename lh_spec_dmn_type::scalar_type f_scalar_type;
-  //     typedef LIN_ALG::matrix<f_scalar_type, LIN_ALG::CPU> matrix_type;
+  //     typedef dca::linalg::Matrix<f_scalar_type, dca::linalg::CPU> matrix_type;
 
 public:
   static bool& is_initialized() {
@@ -76,13 +76,13 @@ public:
 
     matrix_type& T = get_transformation_matrix();
 
-    T.resize_no_copy(std::pair<int, int>(M, N));
+    T.resizeNoCopy(std::pair<int, int>(M, N));
 
     inverse_basis_transformation_type::is_initialized() = false;
 
     matrix_type& T_inv = inverse_basis_transformation_type::get_transformation_matrix();
 
-    LIN_ALG::PSEUDO_INVERSE<LIN_ALG::CPU>::execute(T_inv, T);
+    LIN_ALG::PSEUDO_INVERSE<dca::linalg::CPU>::execute(T_inv, T);
   }
 };
 

@@ -25,7 +25,7 @@ namespace DCA {
 namespace QMCI {
 // DCA::QMCI::
 
-template <LIN_ALG::device_type device_t>
+template <dca::linalg::DeviceType device_t>
 class SHRINK_TOOLS {
   typedef vertex_singleton vertex_singleton_type;
 
@@ -47,10 +47,10 @@ public:
 
   template <class configuration_type>
   void reorganize_configuration_test(configuration_type& full_configuration,
-                                     LIN_ALG::matrix<double, device_t>& N_up,
-                                     LIN_ALG::matrix<double, device_t>& N_dn,
-                                     LIN_ALG::matrix<double, device_t>& G0_up,
-                                     LIN_ALG::matrix<double, device_t>& G0_dn);
+                                     dca::linalg::Matrix<double, device_t>& N_up,
+                                     dca::linalg::Matrix<double, device_t>& N_dn,
+                                     dca::linalg::Matrix<double, device_t>& G0_up,
+                                     dca::linalg::Matrix<double, device_t>& G0_dn);
 
 private:
   template <class configuration_type, class vertex_vertex_matrix_type>
@@ -59,14 +59,14 @@ private:
 
   template <class configuration_type>
   static void shrink_Gamma_matrix(configuration_type& full_configuration,
-                                  LIN_ALG::matrix<double, device_t>& Gamma,
+                                  dca::linalg::Matrix<double, device_t>& Gamma,
                                   e_spin_states_type e_spin);
 
   /*
     template<class configuration_type>
     void swap_interacting_vertices_to_left(configuration_type&        full_configuration,
-    LIN_ALG::matrix<double, device_t>& N,
-    LIN_ALG::matrix<double, device_t>& G0,
+    dca::linalg::Matrix<double, device_t>& N,
+    dca::linalg::Matrix<double, device_t>& G0,
     e_spin_states_type         e_spin);
   */
 
@@ -79,8 +79,8 @@ private:
   /*
     template<class configuration_type>
     static void swap_non_changed_vertices_to_left(configuration_type&        full_configuration,
-    LIN_ALG::matrix<double, device_t>& N,
-    LIN_ALG::matrix<double, device_t>& G0,
+    dca::linalg::Matrix<double, device_t>& N,
+    dca::linalg::Matrix<double, device_t>& G0,
     e_spin_states_type         e_spin);
   */
 
@@ -92,15 +92,14 @@ private:
 
   template <class configuration_type>
   static void erase_non_creatable_and_non_annihilatable_spins(
-      configuration_type& full_configuration, LIN_ALG::matrix<double, device_t>& N_up,
-      LIN_ALG::matrix<double, device_t>& N_dn, LIN_ALG::matrix<double, device_t>& G0_up,
-      LIN_ALG::matrix<double, device_t>& G0_dn);
+      configuration_type& full_configuration, dca::linalg::Matrix<double, device_t>& N_up,
+      dca::linalg::Matrix<double, device_t>& N_dn, dca::linalg::Matrix<double, device_t>& G0_up,
+      dca::linalg::Matrix<double, device_t>& G0_dn);
 
   template <class configuration_type>
-  static void erase_non_creatable_and_non_annihilatable_spins(configuration_type& full_configuration,
-                                                              LIN_ALG::matrix<double, device_t>& N,
-                                                              LIN_ALG::matrix<double, device_t>& G0,
-                                                              e_spin_states_type e_spin);
+  static void erase_non_creatable_and_non_annihilatable_spins(
+      configuration_type& full_configuration, dca::linalg::Matrix<double, device_t>& N,
+      dca::linalg::Matrix<double, device_t>& G0, e_spin_states_type e_spin);
 
 private:
   bool test_swap_vectors(std::vector<int>& source_index, std::vector<int>& target_index, int size);
@@ -118,7 +117,7 @@ private:
   SHRINK_TOOLS_ALGORITHMS<device_t> SHRINK_TOOLS_ALGORITHMS_obj;
 };
 
-template <LIN_ALG::device_type device_t>
+template <dca::linalg::DeviceType device_t>
 SHRINK_TOOLS<device_t>::SHRINK_TOOLS(int id)
     : thread_id(id),
       stream_id(0),
@@ -131,7 +130,7 @@ SHRINK_TOOLS<device_t>::SHRINK_TOOLS(int id)
 
       SHRINK_TOOLS_ALGORITHMS_obj(thread_id) {}
 
-template <LIN_ALG::device_type device_t>
+template <dca::linalg::DeviceType device_t>
 template <class configuration_type, class vertex_vertex_matrix_type>
 void SHRINK_TOOLS<device_t>::shrink_Gamma(configuration_type& full_configuration,
                                           vertex_vertex_matrix_type& Gamma_up,
@@ -157,7 +156,7 @@ void SHRINK_TOOLS<device_t>::shrink_Gamma(configuration_type& full_configuration
              full_configuration.get_changed_spin_indices_e_spin(e_DN).size());
 }
 
-template <LIN_ALG::device_type device_t>
+template <dca::linalg::DeviceType device_t>
 template <class configuration_type, class vertex_vertex_matrix_type>
 void SHRINK_TOOLS<device_t>::shrink_Gamma_matrix(configuration_type& full_configuration,
                                                  vertex_vertex_matrix_type& Gamma,
@@ -170,7 +169,7 @@ void SHRINK_TOOLS<device_t>::shrink_Gamma_matrix(configuration_type& full_config
   std::vector<HS_spin_states_type>& changed_spin_values_e_spin =
       full_configuration.get_changed_spin_values_e_spin(e_spin);
 
-  for (int i = 0; i < Gamma.get_current_size();) {
+  for (int i = 0; i < Gamma.size();) {
     int configuration_index_e_spin = changed_spin_indices_e_spin[i];
     int configuration_index =
         configuration_e_spin[configuration_index_e_spin].get_configuration_index();
@@ -186,10 +185,10 @@ void SHRINK_TOOLS<device_t>::shrink_Gamma_matrix(configuration_type& full_config
   }
 }
 
-template <LIN_ALG::device_type device_t>
+template <dca::linalg::DeviceType device_t>
 template <class configuration_type>
 void SHRINK_TOOLS<device_t>::shrink_Gamma_matrix(configuration_type& full_configuration,
-                                                 LIN_ALG::matrix<double, device_t>& Gamma,
+                                                 dca::linalg::Matrix<double, device_t>& Gamma,
                                                  e_spin_states_type e_spin) {
   std::vector<int> configuration_spin_indices_to_be_erased(0);
 
@@ -201,7 +200,7 @@ void SHRINK_TOOLS<device_t>::shrink_Gamma_matrix(configuration_type& full_config
 
   assert(Gamma.is_square());
 
-  for (int i = 0; i < Gamma.get_current_size().first;) {
+  for (int i = 0; i < Gamma.size().first;) {
     int configuration_index_e_spin = changed_spin_indices_e_spin[i];
     int configuration_index =
         configuration_e_spin[configuration_index_e_spin].get_configuration_index();
@@ -218,13 +217,12 @@ void SHRINK_TOOLS<device_t>::shrink_Gamma_matrix(configuration_type& full_config
   }
 }
 
-template <LIN_ALG::device_type device_t>
+template <dca::linalg::DeviceType device_t>
 template <class configuration_type>
-void SHRINK_TOOLS<device_t>::reorganize_configuration_test(configuration_type& full_configuration,
-                                                           LIN_ALG::matrix<double, device_t>& N_up,
-                                                           LIN_ALG::matrix<double, device_t>& N_dn,
-                                                           LIN_ALG::matrix<double, device_t>& G0_up,
-                                                           LIN_ALG::matrix<double, device_t>& G0_dn) {
+void SHRINK_TOOLS<device_t>::reorganize_configuration_test(
+    configuration_type& full_configuration, dca::linalg::Matrix<double, device_t>& N_up,
+    dca::linalg::Matrix<double, device_t>& N_dn, dca::linalg::Matrix<double, device_t>& G0_up,
+    dca::linalg::Matrix<double, device_t>& G0_dn) {
   {
     source_index_up.resize(0);
     target_index_up.resize(0);
@@ -236,8 +234,8 @@ void SHRINK_TOOLS<device_t>::reorganize_configuration_test(configuration_type& f
     swap_interacting_vertices_to_left(full_configuration, source_index_dn, target_index_dn, e_DN);
 
     // cout << "swap_interacting_vertices_to_left" << endl;
-    test_swap_vectors(source_index_up, target_index_up, N_up.get_current_size().first);
-    test_swap_vectors(source_index_dn, target_index_dn, N_dn.get_current_size().first);
+    test_swap_vectors(source_index_up, target_index_up, N_up.size().first);
+    test_swap_vectors(source_index_dn, target_index_dn, N_dn.size().first);
 
     if (false) {
       // SHRINK_TOOLS_ALGORITHMS_obj.execute(source_index_up, target_index_up, N_up, G0_up);
@@ -260,8 +258,8 @@ void SHRINK_TOOLS<device_t>::reorganize_configuration_test(configuration_type& f
     swap_non_changed_vertices_to_left(full_configuration, source_index_dn, target_index_dn, e_DN);
 
     // cout << "swap_non_changed_vertices_to_left" << endl;
-    test_swap_vectors(source_index_up, target_index_up, N_up.get_current_size().first);
-    test_swap_vectors(source_index_dn, target_index_dn, N_dn.get_current_size().first);
+    test_swap_vectors(source_index_up, target_index_up, N_up.size().first);
+    test_swap_vectors(source_index_dn, target_index_dn, N_dn.size().first);
 
     if (false) {
       // SHRINK_TOOLS_ALGORITHMS_obj.execute(source_index_up, target_index_up, N_up, G0_up);
@@ -291,12 +289,12 @@ void SHRINK_TOOLS<device_t>::reorganize_configuration_test(configuration_type& f
 }
 
 /*
-  template<LIN_ALG::device_type device_t>
+  template<dca::linalg::DeviceType device_t>
   template<class configuration_type>
   void SHRINK_TOOLS<device_t>::swap_interacting_vertices_to_left(configuration_type&
   full_configuration,
-  LIN_ALG::matrix<double, device_t>& N,
-  LIN_ALG::matrix<double, device_t>& G0,
+  dca::linalg::Matrix<double, device_t>& N,
+  dca::linalg::Matrix<double, device_t>& G0,
   e_spin_states_type                 e_spin)
   {
   std::vector<vertex_singleton_type>& configuration_e_spin = full_configuration.get(e_spin);
@@ -367,7 +365,7 @@ void SHRINK_TOOLS<device_t>::reorganize_configuration_test(configuration_type& f
   }
 */
 
-template <LIN_ALG::device_type device_t>
+template <dca::linalg::DeviceType device_t>
 template <class configuration_type>
 void SHRINK_TOOLS<device_t>::swap_interacting_vertices_to_left(configuration_type& full_configuration,
                                                                std::vector<int>& source_index,
@@ -445,12 +443,12 @@ void SHRINK_TOOLS<device_t>::swap_interacting_vertices_to_left(configuration_typ
 }
 
 /*
-  template<LIN_ALG::device_type device_t>
+  template<dca::linalg::DeviceType device_t>
   template<class configuration_type>
   void SHRINK_TOOLS<device_t>::swap_non_changed_vertices_to_left(configuration_type&
   full_configuration,
-  LIN_ALG::matrix<double, device_t>& N,
-  LIN_ALG::matrix<double, device_t>& G0,
+  dca::linalg::Matrix<double, device_t>& N,
+  dca::linalg::Matrix<double, device_t>& G0,
   e_spin_states_type         e_spin)
   {
   //cout << __FUNCTION__ << endl;
@@ -524,7 +522,7 @@ void SHRINK_TOOLS<device_t>::swap_interacting_vertices_to_left(configuration_typ
   }
 */
 
-template <LIN_ALG::device_type device_t>
+template <dca::linalg::DeviceType device_t>
 template <class configuration_type>
 void SHRINK_TOOLS<device_t>::swap_non_changed_vertices_to_left(configuration_type& full_configuration,
                                                                std::vector<int>& source_index,
@@ -599,12 +597,12 @@ void SHRINK_TOOLS<device_t>::swap_non_changed_vertices_to_left(configuration_typ
   }
 }
 
-template <LIN_ALG::device_type device_t>
+template <dca::linalg::DeviceType device_t>
 template <class configuration_type>
 void SHRINK_TOOLS<device_t>::erase_non_creatable_and_non_annihilatable_spins(
-    configuration_type& full_configuration, LIN_ALG::matrix<double, device_t>& N_up,
-    LIN_ALG::matrix<double, device_t>& N_dn, LIN_ALG::matrix<double, device_t>& G0_up,
-    LIN_ALG::matrix<double, device_t>& G0_dn) {
+    configuration_type& full_configuration, dca::linalg::Matrix<double, device_t>& N_up,
+    dca::linalg::Matrix<double, device_t>& N_dn, dca::linalg::Matrix<double, device_t>& G0_up,
+    dca::linalg::Matrix<double, device_t>& G0_dn) {
   erase_non_creatable_and_non_annihilatable_spins(full_configuration, N_up, G0_up, e_UP);
   erase_non_creatable_and_non_annihilatable_spins(full_configuration, N_dn, G0_dn, e_DN);
 
@@ -616,11 +614,11 @@ void SHRINK_TOOLS<device_t>::erase_non_creatable_and_non_annihilatable_spins(
   }
 }
 
-template <LIN_ALG::device_type device_t>
+template <dca::linalg::DeviceType device_t>
 template <class configuration_type>
 void SHRINK_TOOLS<device_t>::erase_non_creatable_and_non_annihilatable_spins(
-    configuration_type& full_configuration, LIN_ALG::matrix<double, device_t>& N,
-    LIN_ALG::matrix<double, device_t>& G0, e_spin_states_type e_spin) {
+    configuration_type& full_configuration, dca::linalg::Matrix<double, device_t>& N,
+    dca::linalg::Matrix<double, device_t>& G0, e_spin_states_type e_spin) {
   std::vector<vertex_singleton_type>& configuration_e_spin = full_configuration.get(e_spin);
 
   for (size_t i = 0; i < configuration_e_spin.size();) {
@@ -632,15 +630,15 @@ void SHRINK_TOOLS<device_t>::erase_non_creatable_and_non_annihilatable_spins(
       i++;
   }
 
-  //     N .get_current_size() = configuration_e_spin.size();
-  //     G0.get_current_size() = configuration_e_spin.size();
+  //     N .size() = configuration_e_spin.size();
+  //     G0.size() = configuration_e_spin.size();
   int SIZE = configuration_e_spin.size();
 
-  N.get_current_size() = std::pair<int, int>(SIZE, SIZE);
-  G0.get_current_size() = std::pair<int, int>(SIZE, SIZE);
+  N.resize(SIZE);
+  G0.resize(SIZE);
 }
 
-template <LIN_ALG::device_type device_t>
+template <dca::linalg::DeviceType device_t>
 bool SHRINK_TOOLS<device_t>::test_swap_vectors(std::vector<int>& source_index,
                                                std::vector<int>& target_index, int size) {
   if (source_index.size() != target_index.size())

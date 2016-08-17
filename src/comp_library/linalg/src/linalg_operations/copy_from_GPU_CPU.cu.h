@@ -79,8 +79,8 @@ namespace LIN_ALG
      ******************************/
 
     template<typename scalartype>
-    void memcopy_2D_d_to_h(scalartype* source_ptr, std::pair<int, int>& source_c_s, std::pair<int, int>& source_g_s,
-			   scalartype* target_ptr, std::pair<int, int>& target_c_s, std::pair<int, int>& target_g_s)
+    void memcopy_2D_d_to_h(scalartype* source_ptr, const std::pair<int, int>& source_c_s, const std::pair<int, int>& source_g_s,
+			   scalartype* target_ptr, const std::pair<int, int>& target_c_s, const std::pair<int, int>& target_g_s)
     {
 #ifdef DEBUG_CUDA
        cuda_check_for_errors(__FUNCTION__, __FILE__, __LINE__);
@@ -105,22 +105,22 @@ namespace LIN_ALG
 #endif
     }
     
-    template void memcopy_2D_d_to_h(bool*   source_ptr, std::pair<int, int>& source_c_s, std::pair<int, int>& source_g_s, 
-				    bool*   target_ptr, std::pair<int, int>& target_c_s, std::pair<int, int>& target_g_s);
-    template void memcopy_2D_d_to_h(int*    source_ptr, std::pair<int, int>& source_c_s, std::pair<int, int>& source_g_s, 
-				    int*    target_ptr, std::pair<int, int>& target_c_s, std::pair<int, int>& target_g_s);
-    template void memcopy_2D_d_to_h(float*  source_ptr, std::pair<int, int>& source_c_s, std::pair<int, int>& source_g_s, 
-				    float*  target_ptr, std::pair<int, int>& target_c_s, std::pair<int, int>& target_g_s);
-    template void memcopy_2D_d_to_h(double* source_ptr, std::pair<int, int>& source_c_s, std::pair<int, int>& source_g_s, 
-				    double* target_ptr, std::pair<int, int>& target_c_s, std::pair<int, int>& target_g_s);
+    template void memcopy_2D_d_to_h(bool*   source_ptr, const std::pair<int, int>& source_c_s, const std::pair<int, int>& source_g_s, 
+				    bool*   target_ptr, const std::pair<int, int>& target_c_s, const std::pair<int, int>& target_g_s);
+    template void memcopy_2D_d_to_h(int*    source_ptr, const std::pair<int, int>& source_c_s, const std::pair<int, int>& source_g_s, 
+				    int*    target_ptr, const std::pair<int, int>& target_c_s, const std::pair<int, int>& target_g_s);
+    template void memcopy_2D_d_to_h(float*  source_ptr, const std::pair<int, int>& source_c_s, const std::pair<int, int>& source_g_s, 
+				    float*  target_ptr, const std::pair<int, int>& target_c_s, const std::pair<int, int>& target_g_s);
+    template void memcopy_2D_d_to_h(double* source_ptr, const std::pair<int, int>& source_c_s, const std::pair<int, int>& source_g_s, 
+				    double* target_ptr, const std::pair<int, int>& target_c_s, const std::pair<int, int>& target_g_s);
 
     /************************************
      ***   memcopy_2D_d_to_h_async    ***
      ************************************/
 
     template<typename scalartype>
-    void memcopy_2D_d_to_h_async(scalartype* source_ptr, std::pair<int, int>& source_c_s, std::pair<int, int>& source_g_s,
-				 scalartype* target_ptr, std::pair<int, int>& target_c_s, std::pair<int, int>& target_g_s, int thread_id, int stream_id)
+    void memcopy_2D_d_to_h_async(scalartype* source_ptr, const std::pair<int, int>& source_c_s, const std::pair<int, int>& source_g_s,
+				 scalartype* target_ptr, const std::pair<int, int>& target_c_s, const std::pair<int, int>& target_g_s, int thread_id, int stream_id)
     {
 #ifdef DEBUG_CUDA
        cuda_check_for_errors(__FUNCTION__, __FILE__, __LINE__);
@@ -147,14 +147,14 @@ namespace LIN_ALG
 #endif
     }
     
-    template void memcopy_2D_d_to_h_async(bool*   source_ptr, std::pair<int, int>& source_c_s, std::pair<int, int>& source_g_s, 
-					  bool*   target_ptr, std::pair<int, int>& target_c_s, std::pair<int, int>& target_g_s, int thread_id, int stream_id);
-    template void memcopy_2D_d_to_h_async(int*    source_ptr, std::pair<int, int>& source_c_s, std::pair<int, int>& source_g_s, 
-					  int*    target_ptr, std::pair<int, int>& target_c_s, std::pair<int, int>& target_g_s, int thread_id, int stream_id);
-    template void memcopy_2D_d_to_h_async(float*  source_ptr, std::pair<int, int>& source_c_s, std::pair<int, int>& source_g_s, 
-					  float*  target_ptr, std::pair<int, int>& target_c_s, std::pair<int, int>& target_g_s, int thread_id, int stream_id);
-    template void memcopy_2D_d_to_h_async(double* source_ptr, std::pair<int, int>& source_c_s, std::pair<int, int>& source_g_s, 
-					  double* target_ptr, std::pair<int, int>& target_c_s, std::pair<int, int>& target_g_s, int thread_id, int stream_id);
+    template void memcopy_2D_d_to_h_async(bool*   source_ptr, const std::pair<int, int>& source_c_s, const std::pair<int, int>& source_g_s, 
+					  bool*   target_ptr, const std::pair<int, int>& target_c_s, const std::pair<int, int>& target_g_s, int thread_id, int stream_id);
+    template void memcopy_2D_d_to_h_async(int*    source_ptr, const std::pair<int, int>& source_c_s, const std::pair<int, int>& source_g_s, 
+					  int*    target_ptr, const std::pair<int, int>& target_c_s, const std::pair<int, int>& target_g_s, int thread_id, int stream_id);
+    template void memcopy_2D_d_to_h_async(float*  source_ptr, const std::pair<int, int>& source_c_s, const std::pair<int, int>& source_g_s, 
+					  float*  target_ptr, const std::pair<int, int>& target_c_s, const std::pair<int, int>& target_g_s, int thread_id, int stream_id);
+    template void memcopy_2D_d_to_h_async(double* source_ptr, const std::pair<int, int>& source_c_s, const std::pair<int, int>& source_g_s, 
+					  double* target_ptr, const std::pair<int, int>& target_c_s, const std::pair<int, int>& target_g_s, int thread_id, int stream_id);
 
   }
 }

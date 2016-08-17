@@ -16,10 +16,10 @@ namespace LIN_ALG {
     {
       
       
-      assert(i>-1 && i<M.get_current_size().first);
-      assert(j>-1 && j<M.get_current_size().first);
+      assert(i>-1 && i<M.size().first);
+      assert(j>-1 && j<M.size().first);
      
-      execute(M.get_current_size().second, &M(i,0), M.get_global_size().first, &M(j,0), M.get_global_size().first, thread_id, stream_id);
+      execute(M.size().second, &M(i,0), M.leadingDimension(), &M(j,0), M.leadingDimension(), thread_id, stream_id);
     }
 
     template<typename scalartype>
@@ -27,10 +27,10 @@ namespace LIN_ALG {
 		    int thread_id, int stream_id)
     {
 
-      assert(i>-1 && i<M.get_current_size().second);
-      assert(j>-1 && j<M.get_current_size().second);
+      assert(i>-1 && i<M.size().second);
+      assert(j>-1 && j<M.size().second);
 
-      execute(M.get_current_size().first, &M(0,i), 1, &M(0,j), 1, thread_id, stream_id);
+      execute(M.size().first, &M(0,i), 1, &M(0,j), 1, thread_id, stream_id);
     }
 
     template<typename scalartype>

@@ -30,7 +30,7 @@ public:
   // Types that define the scalar type and matrix type.
   typedef double scalartype;
   // typedef resizeable_square_matrix<scalartype> vertex_vertex_matrix_type;
-  typedef LIN_ALG::matrix<scalartype, LIN_ALG::CPU> vertex_vertex_matrix_type;
+  typedef dca::linalg::Matrix<scalartype, dca::linalg::CPU> vertex_vertex_matrix_type;
 
   // Types that define the vertex and configuration type.
   typedef SS_CT_HYB_configuration configuration_type;

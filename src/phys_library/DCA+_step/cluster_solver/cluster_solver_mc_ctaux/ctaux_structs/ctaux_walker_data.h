@@ -20,7 +20,7 @@ namespace DCA {
 namespace QMCI {
 // DCA::QMCI::
 
-template <LIN_ALG::device_type device_t, typename parameters_type>
+template <dca::linalg::DeviceType device_t, typename parameters_type>
 class MC_walker_data<CT_AUX_SOLVER, device_t, parameters_type> {
 protected:
   const static int MAX_VERTEX_SINGLETS = 4;
@@ -31,23 +31,23 @@ public:
 public:
   int thread_id;
 
-  LIN_ALG::matrix<double, device_t> N_up;
-  LIN_ALG::matrix<double, device_t> N_dn;
+  dca::linalg::Matrix<double, device_t> N_up;
+  dca::linalg::Matrix<double, device_t> N_dn;
 
-  LIN_ALG::matrix<double, device_t> G0_up;
-  LIN_ALG::matrix<double, device_t> G0_dn;
+  dca::linalg::Matrix<double, device_t> G0_up;
+  dca::linalg::Matrix<double, device_t> G0_dn;
 
-  LIN_ALG::matrix<double, device_t> Gamma_up;
-  LIN_ALG::matrix<double, device_t> Gamma_dn;
+  dca::linalg::Matrix<double, device_t> Gamma_up;
+  dca::linalg::Matrix<double, device_t> Gamma_dn;
 
-  LIN_ALG::matrix<double, device_t> stored_Gamma_up;
-  LIN_ALG::matrix<double, device_t> stored_Gamma_dn;
+  dca::linalg::Matrix<double, device_t> stored_Gamma_up;
+  dca::linalg::Matrix<double, device_t> stored_Gamma_dn;
 
-  LIN_ALG::matrix<double, device_t> G_up;
-  LIN_ALG::matrix<double, device_t> G_dn;
+  dca::linalg::Matrix<double, device_t> G_up;
+  dca::linalg::Matrix<double, device_t> G_dn;
 };
 
-template <LIN_ALG::device_type device_t, typename parameters_type>
+template <dca::linalg::DeviceType device_t, typename parameters_type>
 MC_walker_data<CT_AUX_SOLVER, device_t, parameters_type>::MC_walker_data(parameters_type& parameters,
                                                                          int id)
     : thread_id(id),
@@ -70,20 +70,20 @@ MC_walker_data<CT_AUX_SOLVER, device_t, parameters_type>::MC_walker_data(paramet
       G_dn("G_dn", std::pair<int, int>(0, 0),
            std::pair<int, int>(parameters.get_initial_matrix_size(),
                                MAX_VERTEX_SINGLETS * parameters.get_K_PHANI())) {
-  N_up.set_thread_and_stream_id(thread_id, 0);
-  N_dn.set_thread_and_stream_id(thread_id, 0);
+  N_up.setThreadAndStreamId(thread_id, 0);
+  N_dn.setThreadAndStreamId(thread_id, 0);
 
-  G0_up.set_thread_and_stream_id(thread_id, 0);
-  G0_dn.set_thread_and_stream_id(thread_id, 0);
+  G0_up.setThreadAndStreamId(thread_id, 0);
+  G0_dn.setThreadAndStreamId(thread_id, 0);
 
-  Gamma_up.set_thread_and_stream_id(thread_id, 0);
-  Gamma_dn.set_thread_and_stream_id(thread_id, 0);
+  Gamma_up.setThreadAndStreamId(thread_id, 0);
+  Gamma_dn.setThreadAndStreamId(thread_id, 0);
 
-  stored_Gamma_up.set_thread_and_stream_id(thread_id, 0);
-  stored_Gamma_dn.set_thread_and_stream_id(thread_id, 0);
+  stored_Gamma_up.setThreadAndStreamId(thread_id, 0);
+  stored_Gamma_dn.setThreadAndStreamId(thread_id, 0);
 
-  G_up.set_thread_and_stream_id(thread_id, 0);
-  G_dn.set_thread_and_stream_id(thread_id, 0);
+  G_up.setThreadAndStreamId(thread_id, 0);
+  G_dn.setThreadAndStreamId(thread_id, 0);
 }
 
 }  // QMCI

@@ -40,9 +40,9 @@ public:
 public:
   deconvolution_routines(parameters_type& parameters_ref);
 
-  void compute_T_inv_matrix(double epsilon, LIN_ALG::matrix<double, LIN_ALG::CPU>& T_eps);
+  void compute_T_inv_matrix(double epsilon, dca::linalg::Matrix<double, dca::linalg::CPU>& T_eps);
   void compute_T_inv_matrix(double epsilon,
-                            LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU>& T_eps);
+                            dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU>& T_eps);
 
 private:
   void initialize();
@@ -59,8 +59,8 @@ protected:
 
   FUNC_LIB::function<double, target_r_dmn_t> phi_r_inv;
 
-  LIN_ALG::matrix<double, LIN_ALG::CPU> T;
-  LIN_ALG::matrix<double, LIN_ALG::CPU> T_symmetrized;
+  dca::linalg::Matrix<double, dca::linalg::CPU> T;
+  dca::linalg::Matrix<double, dca::linalg::CPU> T_symmetrized;
 };
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
@@ -92,13 +92,13 @@ void deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::in
   symmetrize::execute(phi_r_symmetrized);
 
   {
-    LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU>& T_k_to_r =
+    dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU>& T_k_to_r =
         trafo_k_to_r_type::get_transformation_matrix();
-    LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU>& T_r_to_k =
+    dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU>& T_r_to_k =
         trafo_r_to_k_type::get_transformation_matrix();
 
-    LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> T_k_to_r_scaled("T_k_to_r_scaled");
-    LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> T_k_to_k("T_k_to_r");
+    dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> T_k_to_r_scaled("T_k_to_r_scaled");
+    dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> T_k_to_k("T_k_to_r");
 
     T_k_to_k.copy_from(T_k_to_r);  // resize the matrix;
 
@@ -109,7 +109,7 @@ void deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::in
         for (int i = 0; i < target_k_dmn_t::dmn_size(); i++)
           T_k_to_r_scaled(i, j) *= phi_r(i);
 
-      LIN_ALG::GEMM<LIN_ALG::CPU>::execute(T_r_to_k, T_k_to_r_scaled, T_k_to_k);
+      LIN_ALG::GEMM<dca::linalg::CPU>::execute(T_r_to_k, T_k_to_r_scaled, T_k_to_k);
 
       for (int j = 0; j < target_k_dmn_t::dmn_size(); j++)
         for (int i = 0; i < target_k_dmn_t::dmn_size(); i++)
@@ -133,7 +133,7 @@ void deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::in
         for (int i = 0; i < target_k_dmn_t::dmn_size(); i++)
           T_k_to_r_scaled(i, j) *= phi_r_symmetrized(i);
 
-      LIN_ALG::GEMM<LIN_ALG::CPU>::execute(T_r_to_k, T_k_to_r_scaled, T_k_to_k);
+      LIN_ALG::GEMM<dca::linalg::CPU>::execute(T_r_to_k, T_k_to_r_scaled, T_k_to_k);
 
       for (int j = 0; j < target_k_dmn_t::dmn_size(); j++)
         for (int i = 0; i < target_k_dmn_t::dmn_size(); i++)
@@ -161,16 +161,16 @@ void deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::co
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 void deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::compute_T_inv_matrix(
-    double epsilon, LIN_ALG::matrix<double, LIN_ALG::CPU>& T_eps) {
+    double epsilon, dca::linalg::Matrix<double, dca::linalg::CPU>& T_eps) {
   compute_phi_inv(epsilon);
 
-  LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU>& T_k_to_r =
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU>& T_k_to_r =
       trafo_k_to_r_type::get_transformation_matrix();
-  LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU>& T_r_to_k =
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU>& T_r_to_k =
       trafo_r_to_k_type::get_transformation_matrix();
 
-  LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> T_k_to_r_scaled("T_k_to_r_scaled");
-  LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> T_k_to_k("T_k_to_r");
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> T_k_to_r_scaled("T_k_to_r_scaled");
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> T_k_to_k("T_k_to_r");
 
   {
     T_k_to_k.copy_from(T_k_to_r);
@@ -180,7 +180,7 @@ void deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::co
       for (int i = 0; i < target_k_dmn_t::dmn_size(); i++)
         T_k_to_r_scaled(i, j) *= phi_r_inv(i);
 
-    LIN_ALG::GEMM<LIN_ALG::CPU>::execute(T_r_to_k, T_k_to_r_scaled, T_k_to_k);
+    LIN_ALG::GEMM<dca::linalg::CPU>::execute(T_r_to_k, T_k_to_r_scaled, T_k_to_k);
 
     for (int j = 0; j < target_k_dmn_t::dmn_size(); j++)
       for (int i = 0; i < target_k_dmn_t::dmn_size(); i++)
@@ -190,15 +190,15 @@ void deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::co
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 void deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::compute_T_inv_matrix(
-    double epsilon, LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU>& T_eps) {
+    double epsilon, dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU>& T_eps) {
   compute_phi_inv(epsilon);
 
-  LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU>& T_k_to_r =
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU>& T_k_to_r =
       trafo_k_to_r_type::get_transformation_matrix();
-  LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU>& T_r_to_k =
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU>& T_r_to_k =
       trafo_r_to_k_type::get_transformation_matrix();
 
-  LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> T_k_to_r_scaled("T_k_to_r_scaled");
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> T_k_to_r_scaled("T_k_to_r_scaled");
 
   T_k_to_r_scaled.copy_from(T_k_to_r);
 
@@ -206,7 +206,7 @@ void deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::co
     for (int i = 0; i < target_k_dmn_t::dmn_size(); i++)
       T_k_to_r_scaled(i, j) *= phi_r_inv(i);
 
-  LIN_ALG::GEMM<LIN_ALG::CPU>::execute(T_r_to_k, T_k_to_r_scaled, T_eps);
+  LIN_ALG::GEMM<dca::linalg::CPU>::execute(T_r_to_k, T_k_to_r_scaled, T_eps);
 }
 }
 

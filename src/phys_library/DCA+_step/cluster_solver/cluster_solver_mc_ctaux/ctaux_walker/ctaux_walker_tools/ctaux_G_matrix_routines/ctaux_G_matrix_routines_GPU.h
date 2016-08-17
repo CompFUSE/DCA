@@ -16,8 +16,8 @@
 
 #include <cassert>
 
-#include "comp_library/linalg/src/matrix.h"
-#include "comp_library/linalg/src/vector.h"
+#include "dca/linalg/matrix.hpp"
+#include "dca/linalg/vector.hpp"
 
 namespace DCA {
 namespace QMCI {
@@ -39,7 +39,7 @@ void compute_col_on_Gamma_matrix(int row_index, int S, int vertex_index, int* in
 }  // GPU_KERNELS_G_TOOLS
 
 template <typename parameters_type>
-class G_MATRIX_TOOLS<LIN_ALG::GPU, parameters_type> {
+class G_MATRIX_TOOLS<dca::linalg::GPU, parameters_type> {
   const static int MAX_VERTEX_SINGLETS = 4;
 
   typedef typename parameters_type::concurrency_type concurrency_type;
@@ -57,12 +57,12 @@ public:
         is_Bennett_gpu(0, MAX_VERTEX_SINGLETS * parameters_ref.get_K_PHANI()),
         exp_Vj_gpu(0, MAX_VERTEX_SINGLETS * parameters_ref.get_K_PHANI()) {}
 
-  void read_G_matrix_elements(LIN_ALG::vector<int, LIN_ALG::CPU>& i_index,
-                              LIN_ALG::vector<int, LIN_ALG::CPU>& j_index,
-                              LIN_ALG::vector<bool, LIN_ALG::CPU>& is_Bennett,
-                              LIN_ALG::vector<double, LIN_ALG::CPU>& exp_Vj,
-                              LIN_ALG::matrix<double, LIN_ALG::GPU>& N,
-                              LIN_ALG::matrix<double, LIN_ALG::GPU>& G_precomputed,
+  void read_G_matrix_elements(dca::linalg::Vector<int, dca::linalg::CPU>& i_index,
+                              dca::linalg::Vector<int, dca::linalg::CPU>& j_index,
+                              dca::linalg::Vector<bool, dca::linalg::CPU>& is_Bennett,
+                              dca::linalg::Vector<double, dca::linalg::CPU>& exp_Vj,
+                              dca::linalg::Matrix<double, dca::linalg::GPU>& N,
+                              dca::linalg::Matrix<double, dca::linalg::GPU>& G_precomputed,
                               double* result_ptr, int incr) {
     assert(i_index.size() == j_index.size());
     assert(i_index.size() == is_Bennett.size());
@@ -75,53 +75,53 @@ public:
     is_Bennett_gpu.resize(S);
     exp_Vj_gpu.resize(S);
 
-    LIN_ALG::COPY_FROM<LIN_ALG::CPU, LIN_ALG::GPU>::execute(i_index.get_ptr(),
-                                                            i_index_gpu.get_ptr(), i_index.size());
-    LIN_ALG::COPY_FROM<LIN_ALG::CPU, LIN_ALG::GPU>::execute(j_index.get_ptr(),
-                                                            j_index_gpu.get_ptr(), j_index.size());
-    LIN_ALG::COPY_FROM<LIN_ALG::CPU, LIN_ALG::GPU>::execute(
-        is_Bennett.get_ptr(), is_Bennett_gpu.get_ptr(), is_Bennett.size());
-    LIN_ALG::COPY_FROM<LIN_ALG::CPU, LIN_ALG::GPU>::execute(exp_Vj.get_ptr(), exp_Vj_gpu.get_ptr(),
-                                                            exp_Vj.size());
+    LIN_ALG::COPY_FROM<dca::linalg::CPU, dca::linalg::GPU>::execute(
+        i_index.ptr(), i_index_gpu.ptr(), i_index.size());
+    LIN_ALG::COPY_FROM<dca::linalg::CPU, dca::linalg::GPU>::execute(
+        j_index.ptr(), j_index_gpu.ptr(), j_index.size());
+    LIN_ALG::COPY_FROM<dca::linalg::CPU, dca::linalg::GPU>::execute(
+        is_Bennett.ptr(), is_Bennett_gpu.ptr(), is_Bennett.size());
+    LIN_ALG::COPY_FROM<dca::linalg::CPU, dca::linalg::GPU>::execute(exp_Vj.ptr(), exp_Vj_gpu.ptr(),
+                                                                    exp_Vj.size());
 
-    int vertex_index = N.get_number_of_cols() - G_precomputed.get_number_of_cols();
+    int vertex_index = N.nrCols() - G_precomputed.nrCols();
 
     GPU_KERNELS_G_TOOLS::read_G_matrix_elements(
-        S, vertex_index, i_index_gpu.get_ptr(), j_index_gpu.get_ptr(), is_Bennett_gpu.get_ptr(),
-        exp_Vj_gpu.get_ptr(), N.get_ptr(), N.get_leading_dimension(), G_precomputed.get_ptr(),
-        G_precomputed.get_leading_dimension(), result_ptr, incr);
+        S, vertex_index, i_index_gpu.ptr(), j_index_gpu.ptr(), is_Bennett_gpu.ptr(),
+        exp_Vj_gpu.ptr(), N.ptr(), N.leadingDimension(), G_precomputed.ptr(),
+        G_precomputed.leadingDimension(), result_ptr, incr);
   }
 
-  void compute_row_on_Gamma_matrix(int row_index, LIN_ALG::vector<int, LIN_ALG::GPU>& indices,
-                                   LIN_ALG::vector<double, LIN_ALG::GPU>& exp_V,
-                                   LIN_ALG::matrix<double, LIN_ALG::GPU>& N,
-                                   LIN_ALG::matrix<double, LIN_ALG::GPU>& G_precomputed,
+  void compute_row_on_Gamma_matrix(int row_index, dca::linalg::Vector<int, dca::linalg::GPU>& indices,
+                                   dca::linalg::Vector<double, dca::linalg::GPU>& exp_V,
+                                   dca::linalg::Matrix<double, dca::linalg::GPU>& N,
+                                   dca::linalg::Matrix<double, dca::linalg::GPU>& G_precomputed,
                                    double* row_ptr, int incr) {
-    int vertex_index = N.get_number_of_cols() - G_precomputed.get_number_of_cols();
+    int vertex_index = N.nrCols() - G_precomputed.nrCols();
 
     GPU_KERNELS_G_TOOLS::compute_row_on_Gamma_matrix(
         row_index, indices.size(), vertex_index,
 
-        indices.get_ptr(), exp_V.get_ptr(),
+        indices.ptr(), exp_V.ptr(),
 
-        N.get_ptr(), N.get_leading_dimension(), G_precomputed.get_ptr(),
-        G_precomputed.get_leading_dimension(), row_ptr, incr);
+        N.ptr(), N.leadingDimension(), G_precomputed.ptr(), G_precomputed.leadingDimension(),
+        row_ptr, incr);
   }
 
-  void compute_col_on_Gamma_matrix(int col_index, LIN_ALG::vector<int, LIN_ALG::GPU>& indices,
-                                   LIN_ALG::vector<double, LIN_ALG::GPU>& exp_V,
-                                   LIN_ALG::matrix<double, LIN_ALG::GPU>& N,
-                                   LIN_ALG::matrix<double, LIN_ALG::GPU>& G_precomputed,
+  void compute_col_on_Gamma_matrix(int col_index, dca::linalg::Vector<int, dca::linalg::GPU>& indices,
+                                   dca::linalg::Vector<double, dca::linalg::GPU>& exp_V,
+                                   dca::linalg::Matrix<double, dca::linalg::GPU>& N,
+                                   dca::linalg::Matrix<double, dca::linalg::GPU>& G_precomputed,
                                    double* col_ptr, int incr) {
-    int vertex_index = N.get_number_of_cols() - G_precomputed.get_number_of_cols();
+    int vertex_index = N.nrCols() - G_precomputed.nrCols();
 
     GPU_KERNELS_G_TOOLS::compute_col_on_Gamma_matrix(
         col_index, indices.size(), vertex_index,
 
-        indices.get_ptr(), exp_V.get_ptr(),
+        indices.ptr(), exp_V.ptr(),
 
-        N.get_ptr(), N.get_leading_dimension(), G_precomputed.get_ptr(),
-        G_precomputed.get_leading_dimension(), col_ptr, incr);
+        N.ptr(), N.leadingDimension(), G_precomputed.ptr(), G_precomputed.leadingDimension(),
+        col_ptr, incr);
   }
 
 private:
@@ -130,9 +130,9 @@ private:
   parameters_type& parameters;
   concurrency_type& concurrency;
 
-  LIN_ALG::vector<int, LIN_ALG::GPU> i_index_gpu, j_index_gpu;
-  LIN_ALG::vector<bool, LIN_ALG::GPU> is_Bennett_gpu;
-  LIN_ALG::vector<double, LIN_ALG::GPU> exp_Vj_gpu;
+  dca::linalg::Vector<int, dca::linalg::GPU> i_index_gpu, j_index_gpu;
+  dca::linalg::Vector<bool, dca::linalg::GPU> is_Bennett_gpu;
+  dca::linalg::Vector<double, dca::linalg::GPU> exp_Vj_gpu;
 };
 
 }  // QMCI

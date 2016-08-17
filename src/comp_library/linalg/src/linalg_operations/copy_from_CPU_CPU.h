@@ -3,6 +3,8 @@
 #ifndef COPY_FROM_CPU_CPU_H
 #define COPY_FROM_CPU_CPU_H
 
+#include <cstring>
+
 namespace LIN_ALG {
 
   /*!
@@ -37,22 +39,22 @@ namespace LIN_ALG {
       {
 	// assert(thread_id>-1 and stream_id>-1);
 
-	if(source_cpu_matrix.get_global_size() == target_cpu_matrix.get_global_size())
+	if(source_cpu_matrix.capacity() == target_cpu_matrix.capacity())
 	  {
-	    int size = source_cpu_matrix.get_global_size().first*source_cpu_matrix.get_global_size().second;
+	    size_t size = sizeFromPair(source_cpu_matrix.capacity());
 	    
-	    COPY_FROM<CPU, CPU>::execute(source_cpu_matrix.get_ptr(), target_cpu_matrix.get_ptr(), size);
+	    COPY_FROM<CPU, CPU>::execute(source_cpu_matrix.ptr(), target_cpu_matrix.ptr(), size);
 	  }
 	else
 	  {
-	    COPY_FROM<CPU, CPU>::execute(source_cpu_matrix.get_ptr(), source_cpu_matrix.get_current_size(), source_cpu_matrix.get_global_size(),
-					 target_cpu_matrix.get_ptr(), target_cpu_matrix.get_current_size(), target_cpu_matrix.get_global_size());
+	    COPY_FROM<CPU, CPU>::execute(source_cpu_matrix.ptr(), source_cpu_matrix.size(), source_cpu_matrix.capacity(),
+					 target_cpu_matrix.ptr(), target_cpu_matrix.size(), target_cpu_matrix.capacity());
 	  }
       }
 
       template<typename scalartype>
-      static void execute(scalartype* source_ptr, std::pair<int, int>& source_c_s, std::pair<int, int>& source_g_s,
-			  scalartype* target_ptr, std::pair<int, int>& /*target_c_s*/, std::pair<int, int>& target_g_s,
+      static void execute(scalartype* source_ptr, const std::pair<int, int>& source_c_s, const std::pair<int, int>& source_g_s,
+			  scalartype* target_ptr, const std::pair<int, int>& /*target_c_s*/, const std::pair<int, int>& target_g_s,
 			  int /*thread_id*/=0, int /*stream_id*/=0)
       {
 	// assert(source_c_s == target_c_s);

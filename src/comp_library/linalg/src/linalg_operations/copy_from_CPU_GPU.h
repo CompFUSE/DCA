@@ -14,12 +14,12 @@ namespace LIN_ALG {
     void memcopy_h_to_d_async(scalartype* target_ptr, scalartype* source_ptr, int size, int thread_id, int stream_id);
 
     template<typename scalartype>
-    void memcopy_2D_h_to_d(scalartype* source_ptr, std::pair<int, int>& source_c_s, std::pair<int, int>& source_g_s, 
-			   scalartype* target_ptr, std::pair<int, int>& target_c_s, std::pair<int, int>& target_g_s);
+    void memcopy_2D_h_to_d(scalartype* source_ptr, const std::pair<int, int>& source_c_s, const std::pair<int, int>& source_g_s, 
+			   scalartype* target_ptr, const std::pair<int, int>& target_c_s, const std::pair<int, int>& target_g_s);
 
     template<typename scalartype>
-    void memcopy_2D_h_to_d_async(scalartype* source_ptr, std::pair<int, int>& source_c_s, std::pair<int, int>& source_g_s, 
-				 scalartype* target_ptr, std::pair<int, int>& target_c_s, std::pair<int, int>& target_g_s, int thread_id, int stream_id);
+    void memcopy_2D_h_to_d_async(scalartype* source_ptr, const std::pair<int, int>& source_c_s, const std::pair<int, int>& source_g_s, 
+				 scalartype* target_ptr, const std::pair<int, int>& target_c_s, const std::pair<int, int>& target_g_s, int thread_id, int stream_id);
   }
 
   /*!
@@ -44,8 +44,8 @@ namespace LIN_ALG {
     
 
     template<typename scalartype>
-    inline static void execute(scalartype* source_ptr, std::pair<int, int>& source_c_s, std::pair<int, int>& source_g_s,
-			       scalartype* target_ptr, std::pair<int, int>& target_c_s, std::pair<int, int>& target_g_s)
+    inline static void execute(scalartype* source_ptr, const std::pair<int, int>& source_c_s, const std::pair<int, int>& source_g_s,
+			       scalartype* target_ptr, const std::pair<int, int>& target_c_s, const std::pair<int, int>& target_g_s)
     {
       assert(source_c_s==target_c_s);
 
@@ -53,8 +53,8 @@ namespace LIN_ALG {
     }
 
     template<typename scalartype>
-    inline static void execute(scalartype* source_ptr, std::pair<int, int>& source_c_s, std::pair<int, int>& source_g_s,
-			       scalartype* target_ptr, std::pair<int, int>& target_c_s, std::pair<int, int>& target_g_s, 
+    inline static void execute(scalartype* source_ptr, const std::pair<int, int>& source_c_s, const std::pair<int, int>& source_g_s,
+			       scalartype* target_ptr, const std::pair<int, int>& target_c_s, const std::pair<int, int>& target_g_s, 
 			       int thread_id, int stream_id)
     {
       assert(source_c_s==target_c_s);
@@ -67,29 +67,29 @@ namespace LIN_ALG {
     template<typename cpu_matrix_type, typename gpu_matrix_type>
     inline static void execute(cpu_matrix_type& cpu_matrix, gpu_matrix_type& gpu_matrix)
     {
-      if(cpu_matrix.get_global_size() == gpu_matrix.get_global_size())
+      if(cpu_matrix.capacity() == gpu_matrix.capacity())
 	{
-	  int size = cpu_matrix.get_global_size().first*cpu_matrix.get_global_size().second;
+	  size_t size = sizeFromPair(cpu_matrix.capacity());
 	  
-	  execute(cpu_matrix.get_ptr(), gpu_matrix.get_ptr(), size);
+	  execute(cpu_matrix.ptr(), gpu_matrix.ptr(), size);
 	}
       else
-	execute(cpu_matrix.get_ptr(), cpu_matrix.get_current_size(), cpu_matrix.get_global_size(),
-		gpu_matrix.get_ptr(), gpu_matrix.get_current_size(), gpu_matrix.get_global_size());
+	execute(cpu_matrix.ptr(), cpu_matrix.size(), cpu_matrix.capacity(),
+		gpu_matrix.ptr(), gpu_matrix.size(), gpu_matrix.capacity());
     }
 
     template<typename cpu_matrix_type, typename gpu_matrix_type>
     inline static void execute(cpu_matrix_type& cpu_matrix, gpu_matrix_type& gpu_matrix, int thread_id, int stream_id)
     {
-      if(cpu_matrix.get_global_size() == gpu_matrix.get_global_size())
+      if(cpu_matrix.capacity() == gpu_matrix.capacity())
 	{
-	  int size = cpu_matrix.get_global_size().first*cpu_matrix.get_global_size().second;
+	  size_t size = sizeFromPair(cpu_matrix.capacity());
 	  
-	  execute(cpu_matrix.get_ptr(), gpu_matrix.get_ptr(), size, thread_id, stream_id);
+	  execute(cpu_matrix.ptr(), gpu_matrix.ptr(), size, thread_id, stream_id);
 	}
       else
-	execute(cpu_matrix.get_ptr(), cpu_matrix.get_current_size(), cpu_matrix.get_global_size(),
-		gpu_matrix.get_ptr(), gpu_matrix.get_current_size(), gpu_matrix.get_global_size(), 
+	execute(cpu_matrix.ptr(), cpu_matrix.size(), cpu_matrix.capacity(),
+		gpu_matrix.ptr(), gpu_matrix.size(), gpu_matrix.capacity(), 
 		thread_id, stream_id);
     }
 

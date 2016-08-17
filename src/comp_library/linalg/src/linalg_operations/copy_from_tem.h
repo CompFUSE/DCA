@@ -17,6 +17,10 @@
 
 namespace LIN_ALG {
 
+inline size_t sizeFromPair(std::pair<int,int> size) {
+  return static_cast<size_t>(size.first) * static_cast<size_t>(size.second);
+}
+
 template <device_type source_device_name, device_type target_device_name>
 class COPY_FROM {
   template <typename cpu_matrix_type, typename gpu_matrix_type>

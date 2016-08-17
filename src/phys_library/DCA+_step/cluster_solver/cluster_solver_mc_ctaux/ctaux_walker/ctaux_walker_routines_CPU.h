@@ -26,67 +26,72 @@ namespace QMCI {
 // DCA::QMCI::
 
 template <>
-class CT_AUX_WALKER_TOOLS<LIN_ALG::CPU> {
-  const static int BLOCK_SIZE = LIN_ALG::matrix<double, LIN_ALG::CPU>::BLOCK_SIZE;
+class CT_AUX_WALKER_TOOLS<dca::linalg::CPU> {
+  const static int BLOCK_SIZE = 32;  // dca::linalg::Matrix<double, dca::linalg::CPU>::BLOCK_SIZE;
 
 public:
   CT_AUX_WALKER_TOOLS(int k_ph);
 
-  inline static void compute_Gamma(LIN_ALG::matrix<double, LIN_ALG::CPU>& Gamma,
-                                   LIN_ALG::matrix<double, LIN_ALG::CPU>& N,
-                                   LIN_ALG::matrix<double, LIN_ALG::CPU>& G_precomputed,
-                                   LIN_ALG::vector<int, LIN_ALG::CPU>& random_vertex_vector,
-                                   LIN_ALG::vector<double, LIN_ALG::CPU>& exp_V,
-                                   LIN_ALG::vector<double, LIN_ALG::CPU>& exp_delta_V,
+  inline static void compute_Gamma(dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma,
+                                   dca::linalg::Matrix<double, dca::linalg::CPU>& N,
+                                   dca::linalg::Matrix<double, dca::linalg::CPU>& G_precomputed,
+                                   dca::linalg::Vector<int, dca::linalg::CPU>& random_vertex_vector,
+                                   dca::linalg::Vector<double, dca::linalg::CPU>& exp_V,
+                                   dca::linalg::Vector<double, dca::linalg::CPU>& exp_delta_V,
                                    int thread_id, int stream_id);
 
-  inline static void set_to_identity(LIN_ALG::matrix<double, LIN_ALG::CPU>& M, int index);
+  inline static void set_to_identity(dca::linalg::Matrix<double, dca::linalg::CPU>& M, int index);
 
-  inline static void remove_row_and_column(LIN_ALG::matrix<double, LIN_ALG::CPU>& M, int index);
+  inline static void remove_row_and_column(dca::linalg::Matrix<double, dca::linalg::CPU>& M,
+                                           int index);
 
-  // inline double solve_Gamma(int n, LIN_ALG::matrix<double, LIN_ALG::CPU>& Gamma_LU, double
+  // inline double solve_Gamma(int n, dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma_LU,
+  // double
   // exp_delta_V);
-  inline double solve_Gamma(int n, LIN_ALG::matrix<double, LIN_ALG::CPU>& Gamma_LU,
+  inline double solve_Gamma(int n, dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma_LU,
                             double exp_delta_V, double& max, double& min);
-  inline double solve_Gamma_blocked(int n, LIN_ALG::matrix<double, LIN_ALG::CPU>& Gamma_LU,
+  inline double solve_Gamma_blocked(int n, dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma_LU,
                                     double exp_delta_V, double& max, double& min);
 
-  inline double apply_bennett_on_Gamma(int k, int n, LIN_ALG::matrix<double, LIN_ALG::CPU>& Gamma_LU,
+  inline double apply_bennett_on_Gamma(int k, int n,
+                                       dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma_LU,
                                        double phani_gamma, double& max, double& min);
 
 private:
-  inline void solve_Gamma_slow(int n, LIN_ALG::matrix<double, LIN_ALG::CPU>& Gamma_LU);
-  inline void solve_Gamma_fast(int n, LIN_ALG::matrix<double, LIN_ALG::CPU>& Gamma_LU);
-  inline void solve_Gamma_BLAS(int n, LIN_ALG::matrix<double, LIN_ALG::CPU>& Gamma_LU);
+  inline void solve_Gamma_slow(int n, dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma_LU);
+  inline void solve_Gamma_fast(int n, dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma_LU);
+  inline void solve_Gamma_BLAS(int n, dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma_LU);
 
   inline void solve_Gamma_fast(int n, double* A, int LD);
 
-  inline void solve_Gamma_blocked(int n, LIN_ALG::matrix<double, LIN_ALG::CPU>& Gamma_LU);
+  inline void solve_Gamma_blocked(int n, dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma_LU);
 
-  bool test_max_min(int n, LIN_ALG::matrix<double, LIN_ALG::CPU>& Gamma_LU, double max, double min);
+  bool test_max_min(int n, dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma_LU, double max,
+                    double min);
 
 private:
-  LIN_ALG::vector<double, LIN_ALG::CPU> r;
-  LIN_ALG::vector<double, LIN_ALG::CPU> c;
-  LIN_ALG::vector<double, LIN_ALG::CPU> d;
+  dca::linalg::Vector<double, dca::linalg::CPU> r;
+  dca::linalg::Vector<double, dca::linalg::CPU> c;
+  dca::linalg::Vector<double, dca::linalg::CPU> d;
 };
 
-CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::CT_AUX_WALKER_TOOLS(int k_ph) : r(k_ph), c(k_ph), d(k_ph) {}
+CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::CT_AUX_WALKER_TOOLS(int k_ph) : r(k_ph), c(k_ph), d(k_ph) {}
 
-void CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::compute_Gamma(
-    LIN_ALG::matrix<double, LIN_ALG::CPU>& Gamma, LIN_ALG::matrix<double, LIN_ALG::CPU>& N,
-    LIN_ALG::matrix<double, LIN_ALG::CPU>& G_precomputed,
-    LIN_ALG::vector<int, LIN_ALG::CPU>& random_vertex_vector,
-    LIN_ALG::vector<double, LIN_ALG::CPU>& exp_V,
-    LIN_ALG::vector<double, LIN_ALG::CPU>& exp_delta_V, int /*thread_id*/, int /*stream_id*/) {
+void CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::compute_Gamma(
+    dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma,
+    dca::linalg::Matrix<double, dca::linalg::CPU>& N,
+    dca::linalg::Matrix<double, dca::linalg::CPU>& G_precomputed,
+    dca::linalg::Vector<int, dca::linalg::CPU>& random_vertex_vector,
+    dca::linalg::Vector<double, dca::linalg::CPU>& exp_V,
+    dca::linalg::Vector<double, dca::linalg::CPU>& exp_delta_V, int /*thread_id*/, int /*stream_id*/) {
   Gamma.resize(random_vertex_vector.size());
 
-  assert(Gamma.get_number_of_rows() == Gamma.get_number_of_cols());
+  assert(Gamma.nrRows() == Gamma.nrCols());
 
-  int vertex_index = N.get_number_of_cols() - G_precomputed.get_number_of_cols();
+  int vertex_index = N.nrCols() - G_precomputed.nrCols();
 
-  for (int i = 0; i < Gamma.get_number_of_rows(); i++) {
-    for (int j = 0; j < Gamma.get_number_of_cols(); j++) {
+  for (int i = 0; i < Gamma.nrRows(); i++) {
+    for (int j = 0; j < Gamma.nrCols(); j++) {
       int configuration_e_spin_index_i = random_vertex_vector[i];
       int configuration_e_spin_index_j = random_vertex_vector[j];
 
@@ -110,10 +115,10 @@ void CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::compute_Gamma(
   }
 }
 
-void CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::set_to_identity(LIN_ALG::matrix<double, LIN_ALG::CPU>& M,
-                                                        int index) {
-  int LD_i = M.get_global_size().first;
-  int LD_j = M.get_global_size().second;
+void CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::set_to_identity(
+    dca::linalg::Matrix<double, dca::linalg::CPU>& M, int index) {
+  int LD_i = M.leadingDimension();
+  int LD_j = M.capacity().second;
 
   {
     double* M_ptr = &M(0, index);
@@ -130,14 +135,13 @@ void CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::set_to_identity(LIN_ALG::matrix<double, 
   M(index, index) = 1.;
 }
 
-void CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::remove_row_and_column(LIN_ALG::matrix<double, LIN_ALG::CPU>& M,
-                                                              int index) {
-  LIN_ALG::REMOVE<LIN_ALG::CPU>::row_and_column(M, index);
+void CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::remove_row_and_column(
+    dca::linalg::Matrix<double, dca::linalg::CPU>& M, int index) {
+  LIN_ALG::REMOVE<dca::linalg::CPU>::row_and_column(M, index);
 }
 
-bool CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::test_max_min(int n,
-                                                     LIN_ALG::matrix<double, LIN_ALG::CPU>& Gamma_LU,
-                                                     double max_ref, double min_ref) {
+bool CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::test_max_min(
+    int n, dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma_LU, double max_ref, double min_ref) {
   double Gamma_val = std::fabs(Gamma_LU(0, 0));
 
   double max = Gamma_val;
@@ -167,9 +171,9 @@ bool CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::test_max_min(int n,
   }
 }
 
-double CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::solve_Gamma(int n,
-                                                      LIN_ALG::matrix<double, LIN_ALG::CPU>& Gamma_LU,
-                                                      double exp_delta_V, double& max, double& min) {
+double CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::solve_Gamma(
+    int n, dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma_LU, double exp_delta_V, double& max,
+    double& min) {
   // solve_Gamma_slow(n, Gamma_LU);
   solve_Gamma_fast(n, Gamma_LU);
   // solve_Gamma_BLAS(n, Gamma_LU);
@@ -213,13 +217,13 @@ double CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::solve_Gamma(int n,
  *          w = x*U_n
  *          d = -x*y+\beta
  */
-void CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::solve_Gamma_slow(
-    int n, LIN_ALG::matrix<double, LIN_ALG::CPU>& Gamma_LU) {
-  int LD = Gamma_LU.get_global_size().first;
+void CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::solve_Gamma_slow(
+    int n, dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma_LU) {
+  int LD = Gamma_LU.leadingDimension();
 
   {
-    double* y = Gamma_LU.get_ptr(0, n);
-    double* x = Gamma_LU.get_ptr(n, 0);
+    double* y = Gamma_LU.ptr(0, n);
+    double* x = Gamma_LU.ptr(n, 0);
 
     {
       if (false) {  // serial
@@ -268,12 +272,12 @@ void CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::solve_Gamma_slow(
  *          w = x*U_n
  *          d = -x*y+\beta
  */
-void CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::solve_Gamma_fast(
-    int n, LIN_ALG::matrix<double, LIN_ALG::CPU>& Gamma_LU) {
-  solve_Gamma_fast(n, &Gamma_LU(0, 0), Gamma_LU.get_leading_dimension());
+void CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::solve_Gamma_fast(
+    int n, dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma_LU) {
+  solve_Gamma_fast(n, &Gamma_LU(0, 0), Gamma_LU.leadingDimension());
 }
 
-void CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::solve_Gamma_fast(int n, double* A, int LD) {
+void CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::solve_Gamma_fast(int n, double* A, int LD) {
   {
     double* y = &A[0 + n * LD];
 
@@ -349,15 +353,14 @@ void CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::solve_Gamma_fast(int n, double* A, int L
  *          w = x*U_n
  *          d = -x*y+\beta
  */
-void CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::solve_Gamma_BLAS(
-    int n, LIN_ALG::matrix<double, LIN_ALG::CPU>& Gamma_LU /*, double exp_delta_V*/) {
-  int lda = Gamma_LU.get_global_size().first;
+void CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::solve_Gamma_BLAS(
+    int n, dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma_LU /*, double exp_delta_V*/) {
+  int lda = Gamma_LU.leadingDimension();
 
   {
-    dca::linalg::blas::trsv("L", "N", "U", n, Gamma_LU.get_ptr(0, 0), lda, Gamma_LU.get_ptr(0, n), 1);
+    dca::linalg::blas::trsv("L", "N", "U", n, Gamma_LU.ptr(0, 0), lda, Gamma_LU.ptr(0, n), 1);
 
-    dca::linalg::blas::trsv("U", "T", "N", n, Gamma_LU.get_ptr(0, 0), lda, Gamma_LU.get_ptr(n, 0),
-                            lda);
+    dca::linalg::blas::trsv("U", "T", "N", n, Gamma_LU.ptr(0, 0), lda, Gamma_LU.ptr(n, 0), lda);
 
     {
       double xy = 0;
@@ -369,8 +372,8 @@ void CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::solve_Gamma_BLAS(
   }
 }
 
-double CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::solve_Gamma_blocked(
-    int n, LIN_ALG::matrix<double, LIN_ALG::CPU>& Gamma_LU, double exp_delta_V, double& max,
+double CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::solve_Gamma_blocked(
+    int n, dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma_LU, double exp_delta_V, double& max,
     double& min) {
   // std::cout << "\t(" << min << ", " << max << " ) ";
 
@@ -392,7 +395,7 @@ double CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::solve_Gamma_blocked(
       // matrix.
       // Since the current diagonal element should not be considered for max/min, we need to already
       // update the Gamma matrix (which will set it to 1).
-      CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::set_to_identity(Gamma_LU, n);
+      CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::set_to_identity(Gamma_LU, n);
 
       return 1.e-16;
     }
@@ -454,14 +457,14 @@ double CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::solve_Gamma_blocked(
  *
  *
  */
-void CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::solve_Gamma_blocked(
-    int n, LIN_ALG::matrix<double, LIN_ALG::CPU>& Gamma_LU) {
-  assert(n > -1 and n < Gamma_LU.get_current_size().first);
+void CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::solve_Gamma_blocked(
+    int n, dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma_LU) {
+  assert(n > -1 and n < Gamma_LU.size().first);
 
   int Nk = BLOCK_SIZE;
 
-  int N = Gamma_LU.get_current_size().first;
-  int LD = Gamma_LU.get_global_size().first;
+  int N = Gamma_LU.size().first;
+  int LD = Gamma_LU.leadingDimension();
 
   double* A = &Gamma_LU(0, 0);
 
@@ -526,10 +529,10 @@ void CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::solve_Gamma_blocked(
   }
 }
 
-double CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::apply_bennett_on_Gamma(
-    int k, int n, LIN_ALG::matrix<double, LIN_ALG::CPU>& Gamma_LU, double exp_delta_V, double& max,
-    double& min) {
-  int ld = Gamma_LU.get_global_size().first;
+double CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::apply_bennett_on_Gamma(
+    int k, int n, dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma_LU, double exp_delta_V,
+    double& max, double& min) {
+  int ld = Gamma_LU.leadingDimension();
 
   double* r_ptr = &r[0];
   double* c_ptr = &c[0];
@@ -561,7 +564,7 @@ double CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::apply_bennett_on_Gamma(
         c_ptr[i] += Gamma_LU(i, k) * Gamma_LU(k, k);
     }
 
-    LIN_ALG::BENNET<LIN_ALG::CPU>::standard_Bennet(n, ld, &Gamma_LU(0, 0), c_ptr, r_ptr);
+    LIN_ALG::BENNET<dca::linalg::CPU>::standard_Bennet(n, ld, &Gamma_LU(0, 0), c_ptr, r_ptr);
   }
 
   {  // remove the row
@@ -585,7 +588,7 @@ double CT_AUX_WALKER_TOOLS<LIN_ALG::CPU>::apply_bennett_on_Gamma(
         r_ptr[i] += Gamma_LU(k, i) * Gamma_LU(i, i);
     }
 
-    LIN_ALG::BENNET<LIN_ALG::CPU>::standard_Bennet(n, ld, &Gamma_LU(0, 0), c_ptr, r_ptr);
+    LIN_ALG::BENNET<dca::linalg::CPU>::standard_Bennet(n, ld, &Gamma_LU(0, 0), c_ptr, r_ptr);
   }
 
   double ratio = 1.;

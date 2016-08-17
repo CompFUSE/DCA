@@ -16,8 +16,8 @@
 
 #include <cassert>
 
-#include "comp_library/linalg/src/matrix.h"
-#include "comp_library/linalg/src/vector.h"
+#include "dca/linalg/matrix.hpp"
+#include "dca/linalg/vector.hpp"
 
 namespace DCA {
 namespace QMCI {
@@ -31,24 +31,23 @@ void compute_Gamma(double* Gamma, int Gamma_n, int Gamma_ld, double* N, int N_r,
 }  // CT_AUX_WALKER_GPU_KERNELS
 
 template <>
-class CT_AUX_WALKER_TOOLS<LIN_ALG::GPU> {
+class CT_AUX_WALKER_TOOLS<dca::linalg::GPU> {
 public:
-  static void compute_Gamma(LIN_ALG::matrix<double, LIN_ALG::GPU>& Gamma,
-                            LIN_ALG::matrix<double, LIN_ALG::GPU>& N,
-                            LIN_ALG::matrix<double, LIN_ALG::GPU>& G,
-                            LIN_ALG::vector<int, LIN_ALG::GPU>& random_vertex_vector,
-                            LIN_ALG::vector<double, LIN_ALG::GPU>& exp_V,
-                            LIN_ALG::vector<double, LIN_ALG::GPU>& exp_delta_V, int thread_id,
-                            int stream_id) {
+  static void compute_Gamma(dca::linalg::Matrix<double, dca::linalg::GPU>& Gamma,
+                            dca::linalg::Matrix<double, dca::linalg::GPU>& N,
+                            dca::linalg::Matrix<double, dca::linalg::GPU>& G,
+                            dca::linalg::Vector<int, dca::linalg::GPU>& random_vertex_vector,
+                            dca::linalg::Vector<double, dca::linalg::GPU>& exp_V,
+                            dca::linalg::Vector<double, dca::linalg::GPU>& exp_delta_V,
+                            int thread_id, int stream_id) {
     Gamma.resize(random_vertex_vector.size());
 
-    assert(Gamma.get_number_of_rows() == Gamma.get_number_of_cols());
+    assert(Gamma.nrRows() == Gamma.nrCols());
 
     CT_AUX_WALKER_GPU_KERNELS::compute_Gamma(
-        Gamma.get_ptr(), Gamma.get_number_of_rows(), Gamma.get_leading_dimension(), N.get_ptr(),
-        N.get_number_of_rows(), N.get_number_of_cols(), N.get_leading_dimension(), G.get_ptr(),
-        G.get_number_of_rows(), G.get_number_of_cols(), G.get_leading_dimension(),
-        random_vertex_vector.get_ptr(), exp_V.get_ptr(), exp_delta_V.get_ptr(), thread_id, stream_id);
+        Gamma.ptr(), Gamma.nrRows(), Gamma.leadingDimension(), N.ptr(), N.nrRows(), N.nrCols(),
+        N.leadingDimension(), G.ptr(), G.nrRows(), G.nrCols(), G.leadingDimension(),
+        random_vertex_vector.ptr(), exp_V.ptr(), exp_delta_V.ptr(), thread_id, stream_id);
   }
 };
 
