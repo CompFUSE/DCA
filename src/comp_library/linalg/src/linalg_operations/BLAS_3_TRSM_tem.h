@@ -14,10 +14,10 @@ public:
     assert(uplo == 'U' or uplo == 'L');
     assert(diag == 'U' or diag == 'N');
 
-    dca::linalg::UseDevice<device_name>::trsm("L", &uplo, "N", &diag, X.get_number_of_rows(),
-                                              X.get_number_of_cols(), scalartype(1), A.get_ptr(),
-                                              A.get_leading_dimension(), X.get_ptr(),
-                                              X.get_leading_dimension(), thread_id, stream_id);
+    dca::linalg::blas::UseDevice<device_name>::trsm(
+        "L", &uplo, "N", &diag, X.get_number_of_rows(), X.get_number_of_cols(), scalartype(1),
+        A.get_ptr(), A.get_leading_dimension(), X.get_ptr(), X.get_leading_dimension(), thread_id,
+        stream_id);
   }
 };
 }

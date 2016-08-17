@@ -25,7 +25,8 @@
 
 namespace dca {
 namespace linalg {
-// dca::linalg::
+namespace blas {
+// dca::linalg::blas::
 
 template <DeviceType DeviceName>
 struct UseDevice;
@@ -87,6 +88,7 @@ struct UseDevice<GPU> {
 };
 #endif  // DCA_HAVE_CUDA
 
+}  // blas
 }  // linalg
 }  // dca
 

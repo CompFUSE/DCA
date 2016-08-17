@@ -214,8 +214,9 @@ void N_TOOLS<device_t, parameters_type>::build_N_matrix(configuration_type& conf
   {
     double* exp_gamma_s_ptr = N_MATRIX_TOOLS<device_t, parameters_type>::get_device_ptr(exp_gamma_s);
 
-    dca::linalg::UseDevice<device_t>::axpy(configuration_size, 1., exp_gamma_s_ptr, 1, N.get_ptr(),
-                                           N.get_leading_dimension() + 1, thread_id, stream_id);
+    dca::linalg::blas::UseDevice<device_t>::axpy(configuration_size, 1., exp_gamma_s_ptr, 1,
+                                                 N.get_ptr(), N.get_leading_dimension() + 1,
+                                                 thread_id, stream_id);
   }
 
   LIN_ALG::GEINV<device_t>::execute(N);
@@ -281,8 +282,8 @@ void N_TOOLS<device_t, parameters_type>::update_N_matrix(configuration_type& con
     int LD = N.get_leading_dimension();
 
     assert(N_r == N_c);
-    LIN_ALG::LASET<device_t>::set_zero(i, N_c - i, N.get_ptr(0, i), LD, thread_id, stream_id);
-    LIN_ALG::LASET<device_t>::set_unity(N_r - i, N_c - i, N.get_ptr(i, i), LD, thread_id, stream_id);
+    dca::linalg::lapack::UseDevice<device_t>::laset("A", i, N_c - i, 0., 0., N.get_ptr(0, i), LD, thread_id, stream_id);
+    dca::linalg::lapack::UseDevice<device_t>::laset("A", N_r - i, N_c - i, 1., 0., N.get_ptr(i, i), LD, thread_id, stream_id);
   }
 
   if (first_shuffled_vertex_index == configuration_size || first_non_interacting_vertex_index == 0)
@@ -321,7 +322,7 @@ void N_TOOLS<device_t, parameters_type>::update_N_matrix(configuration_type& con
     int LD_G0 = G0_times_exp_V_minus_one.get_global_size().first;
     int LD_N = N.get_global_size().first;
 
-    dca::linalg::UseDevice<device_t>::gemm(
+    dca::linalg::blas::UseDevice<device_t>::gemm(
         "N", "N", m, n, k, 1., G0_times_exp_V_minus_one.get_ptr(), LD_G0, N.get_ptr(), LD_N, 0.,
         &N.get_ptr()[first_shuffled_vertex_index], LD_N, thread_id, stream_id);
 

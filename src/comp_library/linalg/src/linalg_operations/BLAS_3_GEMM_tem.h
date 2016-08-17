@@ -59,9 +59,9 @@ public:
     int ldb = b.get_global_size().first;
     int ldc = c.get_global_size().first;
 
-    dca::linalg::UseDevice<device_name>::gemm(&transa, &transb, m, n, k, alpha, a.get_ptr(), lda,
-                                              b.get_ptr(), ldb, beta, c.get_ptr(), ldc, thread_id,
-                                              stream_id);
+    dca::linalg::blas::UseDevice<device_name>::gemm(&transa, &transb, m, n, k, alpha, a.get_ptr(),
+                                                    lda, b.get_ptr(), ldb, beta, c.get_ptr(), ldc,
+                                                    thread_id, stream_id);
   }
 
   /*
