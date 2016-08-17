@@ -2,4 +2,5 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/test/unit/math/geometry/gaussian_quadratu
 add_subdirectory(${PROJECT_SOURCE_DIR}/test/unit/math/random)
 add_subdirectory(${PROJECT_SOURCE_DIR}/test/unit/phys_library/DCA_step/cluster_solver/posix_qmci)
 add_subdirectory(${PROJECT_SOURCE_DIR}/test/unit/phys/domains/cluster)
+add_subdirectory(${PROJECT_SOURCE_DIR}/test/unit/phys/parameters/mci_parameters)
 add_subdirectory(${PROJECT_SOURCE_DIR}/test/unit/util)
