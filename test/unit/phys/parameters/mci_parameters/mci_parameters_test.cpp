@@ -12,6 +12,7 @@
 
 #include "phys_library/parameters/parameters_specialization/templates/MCI_parameters.h"
 
+#include <algorithm>  // for std::sort and std::unique
 #include <fstream>
 #include <limits>
 #include <vector>
@@ -83,8 +84,11 @@ TEST(MciParametersTest, ReadTooLargeSeed) {
   const int max = std::numeric_limits<int>::max();
   std::ofstream input;
   input.open("input_too_large_seed.json");
-  input << "{\n    \"Monte-Carlo-Integration\": {\n        \"RNG-seed\": " << max
-        << "0\n    }        \n}\n";
+  input << "{\n"
+        << "    \"Monte-Carlo-Integration\": {\n"
+        << "        \"RNG-seed\": " << max << "0\n"  // Writes max * 10.
+        << "    }\n"
+        << "}\n";
   input.close();
 
   IO::reader<IO::JSON> reader;
@@ -102,8 +106,11 @@ TEST(MciParametersTest, ReadTooSmallSeed) {
   const int min = std::numeric_limits<int>::min();
   std::ofstream input;
   input.open("input_too_small_seed.json");
-  input << "{\n    \"Monte-Carlo-Integration\": {\n        \"RNG-seed\": " << min
-        << "0\n    }        \n}\n";
+  input << "{\n"
+        << "    \"Monte-Carlo-Integration\": {\n"
+        << "        \"RNG-seed\": " << min << "0\n"  // Writes min * 10.
+        << "    }\n"
+        << "}\n";
   input.close();
 
   IO::reader<IO::JSON> reader;
@@ -123,7 +130,7 @@ TEST(MciParametersTest, RandomSeed) {
 
   reader.open_file(DCA_TEST_DIRECTORY "input_random_seed.json");
 
-  std::vector<uint64_t> seeds;
+  std::vector<int> seeds;
   const int n_seeds = 5;
 
   for (int i = 0; i < n_seeds; i++) {
@@ -133,13 +140,16 @@ TEST(MciParametersTest, RandomSeed) {
 
   reader.close_file();
 
+  // Check that the seeds are in the expected interval.
   for (int i = 0; i < n_seeds; i++) {
     EXPECT_GE(seeds[i], 0);
     EXPECT_LE(seeds[i], std::numeric_limits<int>::max());
-
-    for (int j = i + 1; j < n_seeds; j++)
-      EXPECT_NE(seeds[i], seeds[j]);
   }
+
+  // Check that varying seeds are generated.
+  std::sort(seeds.begin(), seeds.end());
+  auto new_end = std::unique(seeds.begin(), seeds.end());
+  EXPECT_GT(new_end - seeds.begin(), 1);
 }
 
 TEST(MciParametersTest, InvalidSeedingOption) {
