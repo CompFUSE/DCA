@@ -40,6 +40,4 @@
 #include "src/linalg_operations/LASET_GPU.cu.h"
 #include "src/linalg_operations/GETRF_GPU.cu.h"
 #include "src/linalg_operations/GETRI_GPU.cu.h"
-#include "src/linalg_operations/GETRS_GPU.cu.h"
-#include "src/linalg_operations/GESVD_GPU.cu.h"
 #include "src/linalg_operations/GEEV_GPU.cu.h"
