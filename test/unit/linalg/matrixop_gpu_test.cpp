@@ -15,6 +15,7 @@
 #include <string>
 #include <utility>
 #include "gtest/gtest.h"
+#include "dca/linalg/lapack/use_device.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/util/handle_functions.hpp"
 #include "cpu_test_util.hpp"
@@ -430,6 +431,48 @@ TYPED_TEST(MatrixopComplexGPUTest, Trsm) {
         }
     }
   }
+}
+
+TYPED_TEST(MatrixopRealGPUTest, Laset) {
+  using ScalarType = TypeParam;
+  std::pair<int, int> size(3, 5);
+  ScalarType diag = 3.4;
+  ScalarType offdiag = -1.4;
+
+  dca::linalg::Matrix<ScalarType, dca::linalg::GPU> da(size);
+  dca::linalg::lapack::UseDevice<dca::linalg::GPU>::laset(size.first, size.second, offdiag, diag,
+                                                          da.ptr(), da.leadingDimension(), 0, 0);
+
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> a(da);
+
+  for (int j = 0; j < a.nrCols(); ++j)
+    for (int i = 0; i < a.nrRows(); ++i) {
+      if (i == j)
+        EXPECT_EQ(diag, a(i, j));
+      else
+        EXPECT_EQ(offdiag, a(i, j));
+    }
+}
+
+TYPED_TEST(MatrixopComplexGPUTest, Laset) {
+  using ScalarType = TypeParam;
+  std::pair<int, int> size(3, 35);
+  ScalarType diag(3.4, 1.11);
+  ScalarType offdiag(-1.4, 0.1);
+
+  dca::linalg::Matrix<ScalarType, dca::linalg::GPU> da(size);
+  dca::linalg::lapack::UseDevice<dca::linalg::GPU>::laset(size.first, size.second, offdiag, diag,
+                                                          da.ptr(), da.leadingDimension(), 0, 0);
+
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> a(da);
+
+  for (int j = 0; j < a.nrCols(); ++j)
+    for (int i = 0; i < a.nrRows(); ++i) {
+      if (i == j)
+        EXPECT_EQ(diag, a(i, j));
+      else
+        EXPECT_EQ(offdiag, a(i, j));
+    }
 }
 
 TEST(MatrixopGPUTest, RemoveRowCol) {

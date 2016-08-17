@@ -15,6 +15,7 @@
 #include <string>
 #include <utility>
 #include "gtest/gtest.h"
+#include "dca/linalg/lapack/use_device.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/blas/blas3.hpp"
 #include "cpu_test_util.hpp"
@@ -723,6 +724,44 @@ TYPED_TEST(MatrixopComplexCPUTest, Trsm) {
         }
     }
   }
+}
+
+TYPED_TEST(MatrixopRealCPUTest, Laset) {
+  using ScalarType = TypeParam;
+  std::pair<int, int> size(3, 5);
+  ScalarType diag = 3.4;
+  ScalarType offdiag = -1.4;
+
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> a(size);
+  dca::linalg::lapack::UseDevice<dca::linalg::CPU>::laset(size.first, size.second, offdiag, diag,
+                                                          a.ptr(), a.leadingDimension(), -1, -1);
+
+  for (int j = 0; j < a.nrCols(); ++j)
+    for (int i = 0; i < a.nrRows(); ++i) {
+      if (i == j)
+        EXPECT_EQ(diag, a(i, j));
+      else
+        EXPECT_EQ(offdiag, a(i, j));
+    }
+}
+
+TYPED_TEST(MatrixopComplexCPUTest, Laset) {
+  using ScalarType = TypeParam;
+  std::pair<int, int> size(3, 35);
+  ScalarType diag(3.4, 1.11);
+  ScalarType offdiag(-1.4, 0.1);
+
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> a(size);
+  dca::linalg::lapack::UseDevice<dca::linalg::CPU>::laset(size.first, size.second, offdiag, diag,
+                                                          a.ptr(), a.leadingDimension(), -1, -1);
+
+  for (int j = 0; j < a.nrCols(); ++j)
+    for (int i = 0; i < a.nrRows(); ++i) {
+      if (i == j)
+        EXPECT_EQ(diag, a(i, j));
+      else
+        EXPECT_EQ(offdiag, a(i, j));
+    }
 }
 
 TEST(MatrixopCPUTest, InsertRowCol) {

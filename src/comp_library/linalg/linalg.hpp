@@ -40,10 +40,6 @@
 #include "src/linalg_operations/LU_MATRIX_OPERATIONS_GPU.h"
 
 // LAPACK
-#include "src/linalg_operations/LASET_tem.h"
-#include "src/linalg_operations/LASET_CPU.h"
-#include "src/linalg_operations/LASET_GPU.h"
-
 #include "src/linalg_operations/GEMD_tem.h"
 #include "src/linalg_operations/GEMD_CPU.h"
 #include "src/linalg_operations/GEMD_GPU.h"
