@@ -9,16 +9,16 @@
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // This file implements a class to store a subset of a previously defined one-dimensional domain.
-// This subset can either be a set of single elements or a range starting from either the beginning
-// or the middle index (more precisely base-domain-size/2) of the base domain. The domain is created
-// by a type definition followed by a call to an initialize function.
+// This subset can either be a set of single elements or a range of the original domain.
+// The domain is created by a type definition followed by a call to an initialize function.
 //
 // INTERNAL: This class is probably good enough for its purpose, but it doesn't seem to be
-// 'complete'.
+//           'complete'.
 
 #ifndef COMP_LIBRARY_FUNCTION_LIBRARY_DOMAINS_SPECIAL_DOMAINS_REDUCED_DOMAIN_HPP
 #define COMP_LIBRARY_FUNCTION_LIBRARY_DOMAINS_SPECIAL_DOMAINS_REDUCED_DOMAIN_HPP
 
+#include <algorithm>  // for std::is_sorted
 #include <cassert>
 #include <cstdlib>  // for std::size_t
 #include <stdexcept>
@@ -35,14 +35,13 @@ class ReducedDomain {
 public:
   using ElementType = typename BaseDomain::element_type;
 
-  // If from_middle = true, creates a domain that contains the first n elements of the base domain
-  // counted from the middle index (= base-domain-size/2) of the base domain.
-  // If from_middle = false, creates a domain that contains the first n elements of the base domain.
-  static void initialize(const std::size_t n, const bool from_middle, const std::string& name = "");
+  // Creates a domain that contains the elements in the range [first, last) of the base domain.
+  static void initialize(const std::size_t first, const std::size_t last,
+                         const std::string& name = "");
 
   // Creates a domain that only contains the elements of the base domain with the given indices.
-  // INTERNAL: What should be the preconditions on indicies? Sorted, no duplicates,
-  //           size <= base-domain-size?
+  // Preconditions: - 0 <= indices[i] < base-domain-size, for 0 <= i < indices.size().
+  //                - indices is sorted and doesn't contain duplicates.
   static void initialize(const std::vector<std::size_t>& indices, const std::string& name = "");
 
   // Use '_' (underscore) to be consistent with other domain classes.
@@ -75,23 +74,21 @@ template <class BaseDomain>
 std::vector<typename ReducedDomain<BaseDomain>::ElementType> ReducedDomain<BaseDomain>::elements_;
 
 template <class BaseDomain>
-void ReducedDomain<BaseDomain>::initialize(const std::size_t n, const bool from_middle,
+void ReducedDomain<BaseDomain>::initialize(const std::size_t first, const std::size_t last,
                                            const std::string& name) {
   commonInit(name);
 
   const std::size_t base_size = BaseDomain::dmn_size();
 
-  if (from_middle) {
-    if (n > (base_size + 1) / 2)
-      throw std::out_of_range("Range to copy goes beyond end of base domain.");
-  }
-  else {
-    if (n > base_size)
-      throw std::out_of_range("Range to copy goes beyond end of base domain.");
-  }
+  if (first >= base_size)
+    throw std::out_of_range("First index must be < base-domain-size.");
+  if (last > base_size)
+    throw std::out_of_range("Last index must be <= base-domain-size.");
+  if (first > last)
+    throw std::logic_error("Last index must be >= first index.");
 
-  elements_.assign(BaseDomain::get_elements().begin() + from_middle * base_size / 2,
-                   BaseDomain::get_elements().begin() + from_middle * base_size / 2 + n);
+  elements_.assign(BaseDomain::get_elements().begin() + first,
+                   BaseDomain::get_elements().begin() + last);
 }
 
 template <class BaseDomain>
@@ -99,14 +96,17 @@ void ReducedDomain<BaseDomain>::initialize(const std::vector<std::size_t>& indic
                                            const std::string& name) {
   commonInit(name);
 
-  if (indices.size() > BaseDomain::dmn_size())
-    throw std::out_of_range("More indices than elements in the base domain.");
+  if (!std::is_sorted(indices.begin(), indices.end()))
+    throw std::logic_error("Indices must be sorted.");
 
   elements_.resize(indices.size());
 
   for (std::size_t i = 0; i < indices.size(); i++) {
     if (indices[i] >= BaseDomain::dmn_size())
       throw std::out_of_range("Indices must be < base-domain-size.");
+    if (i > 0 && indices[i - 1] == indices[i])
+      throw std::logic_error("Vector with indices contains duplicates.");
+
     elements_[i] = BaseDomain::get_elements()[indices[i]];
   }
 }
@@ -114,7 +114,7 @@ void ReducedDomain<BaseDomain>::initialize(const std::vector<std::size_t>& indic
 template <class BaseDomain>
 void ReducedDomain<BaseDomain>::commonInit(const std::string& name) {
   if (initialized_)
-    throw(std::logic_error("Domain has already been initialized."));
+    throw std::logic_error("Domain has already been initialized.");
 
   initialized_ = true;
 
