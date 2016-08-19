@@ -19,19 +19,24 @@ TEST(DmnTest, WithoutElements) {
   EXPECT_EQ(3, Dmn1::get_size());
   EXPECT_EQ(Dmn1::dmn_size(), Dmn1::get_size());
   EXPECT_EQ("dmn<3, int>", Dmn1::get_name());
+  EXPECT_THROW(Dmn1::get_elements(), std::logic_error);
 
   // Specify element type
   using Dmn2 = dmn<42, double>;
   EXPECT_EQ(42, Dmn2::get_size());
   EXPECT_EQ("dmn<42, double>", Dmn2::get_name());
+  EXPECT_THROW(Dmn2::get_elements(), std::logic_error);
 }
 
 TEST(DmnTest, WithElements) {
   const std::vector<int> elements_1{1, 0, -3, 42};
   using Dmn1 = dmn<4, int>;
-  Dmn1::set_elements(elements_1);
   EXPECT_EQ(4, Dmn1::get_size());
   EXPECT_EQ("dmn<4, int>", Dmn1::get_name());
+
+  EXPECT_THROW(Dmn1::get_elements(), std::logic_error);
+  Dmn1::set_elements(elements_1);
+  EXPECT_NO_THROW(Dmn1::get_elements());
   EXPECT_EQ(elements_1, Dmn1::get_elements());
 
   // Try to set the elements of the domain with a vector of wrong size.

@@ -50,6 +50,8 @@ public:
     elements_ = elements;
   }
   static const std::vector<element_t>& get_elements() {
+    if (elements_.size() != size)
+      throw std::logic_error("Elements have not been set.");
     return elements_;
   }
 
