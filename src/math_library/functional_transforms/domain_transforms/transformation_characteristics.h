@@ -23,7 +23,7 @@ template <int DMN_INDEX>
 class TRANSFORM_DOMAIN_PROCEDURE {
 public:
   template <typename f_input_t, typename f_output_t>
-  static void characterize_transformation(f_input_t& f_input, f_output_t f_output, int& M, int& K,
+  static void characterize_transformation(f_input_t& f_input, f_output_t& f_output, int& M, int& K,
                                           int& N, int& P);
 
   template <typename scalartype_1, class domain_input, typename scalartype_2, class domain_output,
@@ -71,7 +71,7 @@ public:
 template <int DMN_INDEX>
 template <typename f_input_t, typename f_output_t>
 void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::characterize_transformation(f_input_t& f_input,
-                                                                        f_output_t f_output, int& M,
+                                                                        f_output_t& f_output, int& M,
                                                                         int& K, int& N, int& P) {
   M = 1;
   for (int l = 0; l < DMN_INDEX; l++)
@@ -98,14 +98,17 @@ void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(
   scalartype beta(0);
 
   if (M == 1) {
-    dca::linalg::blas::gemm("N", "N", T.get_current_size().first, P, T.get_current_size().second, alpha, &T(0, 0), T.get_global_size().first, &f_input(0), f_input[DMN_INDEX], beta, &f_output(0), f_output[DMN_INDEX]);
+    dca::linalg::blas::gemm("N", "N", T.get_current_size().first, P, T.get_current_size().second,
+                            alpha, &T(0, 0), T.get_global_size().first, &f_input(0),
+                            f_input[DMN_INDEX], beta, &f_output(0), f_output[DMN_INDEX]);
   }
   else {
     for (int l = 0; l < P; l++) {
       int lin_ind_lhs = M * K * l;
       int lin_ind_rhs = M * N * l;
 
-      dca::linalg::blas::gemm("N", "T", M, N, K, alpha, &f_input(lin_ind_lhs), M, &T(0, 0), T.get_global_size().first, beta, &f_output(lin_ind_rhs), M);
+      dca::linalg::blas::gemm("N", "T", M, N, K, alpha, &f_input(lin_ind_lhs), M, &T(0, 0),
+                              T.get_global_size().first, beta, &f_output(lin_ind_rhs), M);
     }
   }
 }
@@ -126,7 +129,9 @@ void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(
     scalartype alpha(1);
     scalartype beta(0);
 
-    dca::linalg::blas::gemm("N", "T", 2 * M, N, K, alpha, &real(f_input(lin_ind_lhs)), 2 * M, &T(0, 0), T.get_global_size().first, beta, &real(f_output(lin_ind_rhs)), 2 * M);
+    dca::linalg::blas::gemm("N", "T", 2 * M, N, K, alpha, &real(f_input(lin_ind_lhs)), 2 * M,
+                            &T(0, 0), T.get_global_size().first, beta, &real(f_output(lin_ind_rhs)),
+                            2 * M);
   }
 }
 

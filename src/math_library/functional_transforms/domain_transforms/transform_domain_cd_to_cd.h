@@ -50,7 +50,7 @@ public:
 
 private:
   template <typename f_input_t, typename f_output_t>
-  static void characterize_transformation(f_input_t& f_input, f_output_t f_output, int& M, int& K,
+  static void characterize_transformation(f_input_t& f_input, f_output_t& f_output, int& M, int& K,
                                           int& N, int& P);
 };
 
@@ -147,8 +147,9 @@ void TRANSFORM_DOMAIN<type_input, CONTINUOUS, type_output, CONTINUOUS, DMN_INDEX
 template <typename type_input, typename type_output, int DMN_INDEX>
 template <typename f_input_t, typename f_output_t>
 void TRANSFORM_DOMAIN<type_input, CONTINUOUS, type_output, CONTINUOUS,
-                      DMN_INDEX>::characterize_transformation(f_input_t& f_input, f_output_t f_output,
-                                                              int& M, int& K, int& N, int& P) {
+                      DMN_INDEX>::characterize_transformation(f_input_t& f_input,
+                                                              f_output_t& f_output, int& M, int& K,
+                                                              int& N, int& P) {
   M = 1;
   for (int l = 0; l < DMN_INDEX; l++)
     M *= f_input[l];
