@@ -65,25 +65,25 @@ public:
                                   FUNC_LIB::function<std::complex<scalar_type>, domain>& f_stddev,
                                   size_t size);
 
-  // Compute the covariance matrix of the measurements of the different nodes.
+  // Computes the covariance matrix of the measurements of the different nodes.
   // In: f, f_estimated
   // Out: cov
   // TODO: const f, f_estimated
-  template <typename Scalar, class domain>
-  void computeCovariance(FUNC_LIB::function<Scalar, domain>& f,
-                         FUNC_LIB::function<Scalar, domain>& f_estimated,
-                         FUNC_LIB::function<Scalar, dmn_variadic<domain, domain>>& cov);
+  template <typename Scalar, class Domain>
+  void computeCovariance(FUNC_LIB::function<Scalar, Domain>& f,
+                         FUNC_LIB::function<Scalar, Domain>& f_estimated,
+                         FUNC_LIB::function<Scalar, dmn_variadic<Domain, Domain>>& cov);
 
-  // Compute the covariance matrix of the measurements of the different nodes.
-  // The real part and the imaginary part are treated independently,
-  // and cov represents the covariance of the vector [Re(f),Im(f)].
+  // Computes the covariance matrix of complex measurements of the different nodes.
+  // The real part and the imaginary part are treated independently, and cov represents
+  // the covariance of the real vector [Re(f[0]), Re(f[1]), ..., Im(f[0]), Im(f[1]), ...].
   // In: f, f_estimated
   // Out: cov
   // TODO: const f, f_estimated
-  template <typename Scalar, class domain, class cov_domain>
-  void computeCovariance(FUNC_LIB::function<std::complex<Scalar>, domain>& f,
-                         FUNC_LIB::function<std::complex<Scalar>, domain>& f_estimated,
-                         FUNC_LIB::function<Scalar, cov_domain>& cov);
+  template <typename Scalar, class Domain, class CovDomain>
+  void computeCovariance(FUNC_LIB::function<std::complex<Scalar>, Domain>& f,
+                         FUNC_LIB::function<std::complex<Scalar>, Domain>& f_estimated,
+                         FUNC_LIB::function<Scalar, CovDomain>& cov);
 
 private:
   processor_grouping<MPI_LIBRARY>& grouping;
@@ -288,10 +288,10 @@ void collective_sum_interface<MPI_LIBRARY>::average_and_compute_stddev(
   f_stddev /= std::sqrt(grouping.get_Nr_threads());
 }
 
-template <typename Scalar, class domain>
+template <typename Scalar, class Domain>
 void collective_sum_interface<MPI_LIBRARY>::computeCovariance(
-    FUNC_LIB::function<Scalar, domain>& f, FUNC_LIB::function<Scalar, domain>& f_estimated,
-    FUNC_LIB::function<Scalar, dmn_variadic<domain, domain>>& cov) {
+    FUNC_LIB::function<Scalar, Domain>& f, FUNC_LIB::function<Scalar, Domain>& f_estimated,
+    FUNC_LIB::function<Scalar, dmn_variadic<Domain, Domain>>& cov) {
   for (int i = 0; i < f.size(); i++)
     for (int j = 0; j < f.size(); j++)
       cov(i, j) = (f(i) - f_estimated(i)) * (f(j) - f_estimated(j));
@@ -299,17 +299,16 @@ void collective_sum_interface<MPI_LIBRARY>::computeCovariance(
   sum_and_average(cov, 1);
 }
 
-template <typename Scalar, class domain, class cov_domain>
+template <typename Scalar, class Domain, class CovDomain>
 void collective_sum_interface<MPI_LIBRARY>::computeCovariance(
-    FUNC_LIB::function<std::complex<Scalar>, domain>& f,
-    FUNC_LIB::function<std::complex<Scalar>, domain>& f_estimated,
-    FUNC_LIB::function<Scalar, cov_domain>& cov) {
+    FUNC_LIB::function<std::complex<Scalar>, Domain>& f,
+    FUNC_LIB::function<std::complex<Scalar>, Domain>& f_estimated,
+    FUNC_LIB::function<Scalar, CovDomain>& cov) {
   assert(4 * f.size() * f.size() == cov.size());
 
   // Treat real and imaginary parts as independent entries
   for (int i = 0; i < f.size(); i++)
     for (int j = 0; j < f.size(); j++) {
-
       // Real - Real
       cov(i, j) = (f(i).real() - f_estimated(i).real()) * (f(j).real() - f_estimated(j).real());
 
@@ -317,7 +316,7 @@ void collective_sum_interface<MPI_LIBRARY>::computeCovariance(
       cov(i + f.size(), j + f.size()) =
           (f(i).imag() - f_estimated(i).imag()) * (f(j).imag() - f_estimated(j).imag());
 
-      // Real - Inaginary
+      // Real - Imaginary
       cov(i, j + f.size()) =
           (f(i).real() - f_estimated(i).real()) * (f(j).imag() - f_estimated(j).imag());
 
