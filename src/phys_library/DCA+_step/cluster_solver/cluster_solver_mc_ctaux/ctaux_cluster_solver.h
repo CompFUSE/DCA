@@ -89,8 +89,8 @@ protected:
 
   void symmetrize_measurements();
 
-  void compute_error_bars(int Nb_measurements);
-  void sum_measurements(int Nb_measurements);
+  void compute_error_bars();
+  void sum_measurements();
 
   void compute_G_k_w_from_M_r_w();
 
@@ -117,6 +117,8 @@ protected:
   double MC_integration_time;
 
   double total_time;
+
+  int nb_measurements_;
 
   rng_type rng;
 
@@ -148,6 +150,7 @@ cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::clu
       Sigma_new("Self-Energy-n-0-iteration"),
 
       DCA_iteration(-1) {
+  nb_measurements_ = parameters.get_number_of_measurements();
   concurrency << "\n\n\t CT-AUX Integrator is born \n\n";
 }
 
@@ -217,16 +220,15 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
 
   symmetrize_measurements();
 
-  sum_measurements(parameters.get_number_of_measurements());
-
-  concurrency << "\n\t\t integration has ended \n";
+  sum_measurements();
+  concurrency << "\n\t\t on node integration has ended \n";
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 template <typename dca_info_struct_t>
 double cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::finalize(
     dca_info_struct_t& dca_info_struct) {
-  {  // Compute new Sigma
+    // Compute new Sigma
     compute_G_k_w_from_M_r_w();
 
     // FT<k_DCA,r_DCA>::execute(MOMS.G_k_w, MOMS.G_r_w);
@@ -246,7 +248,6 @@ double cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_typ
             math_algorithms::statistical_methods<double>::standard_deviation(x);  //
       }
     }
-  }
 
   //     if(DCA_iteration == parameters.get_DCA_iterations()-1 &&
   //     parameters.do_equal_time_measurements())
@@ -369,63 +370,64 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
   }
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::compute_error_bars(
-    int Nb_measurements_per_node) {
+template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::compute_error_bars() {
   if (DCA_iteration == parameters.get_DCA_iterations() - 1) {
-    {
+    if (concurrency.id() == 0)
+      std::cout << "\n\t\t compute-error-bars on Self-energy\t" << dca::util::print_time()
+                << "\n\n";
+
+    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> G_k_w_new("G_k_w_new");
+
+    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>> M_r_w_new("M_r_w_new");
+    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> M_k_w_new("M_k_w_new");
+
+    double sign = accumulator.get_sign() / double(nb_measurements_);
+
+    for (int l = 0; l < accumulator.get_M_r_w().size(); l++)
+      M_r_w_new(l) = accumulator.get_M_r_w()(l) / double(nb_measurements_ * sign);
+
+    math_algorithms::functional_transforms::TRANSFORM<r_DCA, k_DCA>::execute(M_r_w_new, M_k_w_new);
+
+    compute_G_k_w_new(M_k_w_new, G_k_w_new);
+    compute_S_k_w_new(G_k_w_new, Sigma_new);
+
+    concurrency.average_and_compute_stddev(Sigma_new, MOMS.Sigma_stddev, 1);
+    concurrency.average_and_compute_stddev(G_k_w_new, MOMS.G_k_w_stddev, 1);
+
+    // sum G4
+    if (parameters.get_vertex_measurement_type() != NONE) {
       if (concurrency.id() == 0)
-        std::cout << "\n\t\t compute-error-bars on Self-energy\t" << dca::util::print_time()
-                  << "\n\n";
+        std::cout << "\n\t\t compute-error-bars on G4\t" << dca::util::print_time() << "\n\n";
 
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> G_k_w_new("G_k_w_new");
+      double sign = accumulator.get_sign() / double(nb_measurements_);
 
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>> M_r_w_new("M_r_w_new");
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> M_k_w_new("M_k_w_new");
+      for (int l = 0; l < MOMS.G4_k_k_w_w.size(); l++)
+        MOMS.G4_k_k_w_w(l) = accumulator.get_G4()(l) / double(nb_measurements_ * sign);
 
-      double sign = accumulator.get_sign() / double(Nb_measurements_per_node);
+      MOMS.G4_k_k_w_w /= square(parameters.get_beta());
 
-      for (int l = 0; l < accumulator.get_M_r_w().size(); l++)
-        M_r_w_new(l) = accumulator.get_M_r_w()(l) / double(Nb_measurements_per_node * sign);
-
-      math_algorithms::functional_transforms::TRANSFORM<r_DCA, k_DCA>::execute(M_r_w_new, M_k_w_new);
-
-      compute_G_k_w_new(M_k_w_new, G_k_w_new);
-      compute_S_k_w_new(G_k_w_new, Sigma_new);
-
-      concurrency.average_and_compute_stddev(Sigma_new, MOMS.Sigma_stddev, 1);
-      concurrency.average_and_compute_stddev(G_k_w_new, MOMS.G_k_w_stddev, 1);
-    }
-
-    {  // sum G4
-      if (parameters.get_vertex_measurement_type() != NONE) {
-        if (concurrency.id() == 0)
-          std::cout << "\n\t\t compute-error-bars on G4\t" << dca::util::print_time() << "\n\n";
-
-        double sign = accumulator.get_sign() / double(Nb_measurements_per_node);
-
-        for (int l = 0; l < MOMS.G4_k_k_w_w.size(); l++)
-          MOMS.G4_k_k_w_w(l) = accumulator.get_G4()(l) / double(Nb_measurements_per_node * sign);
-
-        MOMS.G4_k_k_w_w /= square(parameters.get_beta());
-
-        concurrency.average_and_compute_stddev(MOMS.G4_k_k_w_w, MOMS.G4_k_k_w_w_stddev, 1);
-      }
+      concurrency.average_and_compute_stddev(MOMS.G4_k_k_w_w, MOMS.G4_k_k_w_w_stddev, 1);
     }
   }
 }
 
+<<<<<<< HEAD
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::sum_measurements(
     int Nb_measurements) {
+=======
+template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::sum_measurements() {
+>>>>>>> 6da35e1... The solvers store the required measurments as a member.
   if (concurrency.id() == 0)
     std::cout << "\n\t\t sum measurements \t" << dca::util::print_time() << "\n"
               << "\n\t\t\t QMC-time : " << total_time << " [sec]"
               << "\n\t\t\t Gflops   : " << accumulator.get_Gflop() / total_time << " [Gf]"
-              << "\n\t\t\t sign     : " << accumulator.get_sign() / double(Nb_measurements)
+              << "\n\t\t\t sign     : " << accumulator.get_sign() / double(nb_measurements_)
               << " \n";
 
-  assert(accumulator.get_number_of_measurements() == Nb_measurements);
+  assert(accumulator.get_number_of_measurements() == nb_measurements_);
 
   {  // sum the flops
     profiler_type profiler("MC-time", "QMC-collectives", __LINE__);
@@ -439,23 +441,23 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
 
   {  // sum the sign
     profiler_type profiler("QMC-sign", "QMC-collectives", __LINE__);
-    concurrency.sum_and_average(accumulator.get_sign(), Nb_measurements);
+    concurrency.sum_and_average(accumulator.get_sign(), nb_measurements_);
   }
 
   {  // sum M_r_w
     {
       profiler_type profiler("QMC-self-energy", "QMC-collectives", __LINE__);
-      concurrency.sum_and_average(accumulator.get_K_r_t(), Nb_measurements);
+      concurrency.sum_and_average(accumulator.get_K_r_t(), nb_measurements_);
     }
 
     {
       profiler_type profiler("QMC-self-energy", "QMC-collectives", __LINE__);
-      concurrency.sum_and_average(accumulator.get_M_r_w(), Nb_measurements);
+      concurrency.sum_and_average(accumulator.get_M_r_w(), nb_measurements_);
     }
 
     {
       profiler_type profiler("QMC-self-energy", "QMC-collectives", __LINE__);
-      concurrency.sum_and_average(accumulator.get_M_r_w_squared(), Nb_measurements);
+      concurrency.sum_and_average(accumulator.get_M_r_w_squared(), nb_measurements_);
     }
 
     accumulator.get_K_r_t() /= accumulator.get_sign();          // sign;
@@ -467,15 +469,15 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
 
   if (parameters.do_equal_time_measurements()) {
     profiler_type profiler("QMC-two-particle-Greens-function", "QMC-collectives", __LINE__);
-    concurrency.sum_and_average(accumulator.get_G_r_t(), Nb_measurements);
-    concurrency.sum_and_average(accumulator.get_G_r_t_stddev(), Nb_measurements);
+    concurrency.sum_and_average(accumulator.get_G_r_t(), nb_measurements_);
+    concurrency.sum_and_average(accumulator.get_G_r_t_stddev(), nb_measurements_);
 
     accumulator.get_G_r_t() /= (accumulator.get_sign());
-    accumulator.get_G_r_t_stddev() /= (accumulator.get_sign() * std::sqrt(Nb_measurements));
+    accumulator.get_G_r_t_stddev() /= (accumulator.get_sign() * std::sqrt(nb_measurements_));
 
-    concurrency.sum_and_average(accumulator.get_charge_cluster_moment(), Nb_measurements);
-    concurrency.sum_and_average(accumulator.get_magnetic_cluster_moment(), Nb_measurements);
-    concurrency.sum_and_average(accumulator.get_dwave_pp_correlator(), Nb_measurements);
+    concurrency.sum_and_average(accumulator.get_charge_cluster_moment(), nb_measurements_);
+    concurrency.sum_and_average(accumulator.get_magnetic_cluster_moment(), nb_measurements_);
+    concurrency.sum_and_average(accumulator.get_dwave_pp_correlator(), nb_measurements_);
 
     accumulator.get_charge_cluster_moment() /= (accumulator.get_sign());
     accumulator.get_magnetic_cluster_moment() /= (accumulator.get_sign());
@@ -488,7 +490,7 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
   if (parameters.get_vertex_measurement_type() != NONE) {
     {
       profiler_type profiler("QMC-two-particle-Greens-function", "QMC-collectives", __LINE__);
-      concurrency.sum_and_average(accumulator.get_G4(), Nb_measurements);
+      concurrency.sum_and_average(accumulator.get_G4(), nb_measurements_);
     }
 
     for (int l = 0; l < MOMS.G4_k_k_w_w.size(); l++)

@@ -98,8 +98,9 @@ protected:
 
   void symmetrize_measurements();
 
-  void compute_error_bars(int Nb_measurements);
-  void sum_measurements(int Nb_measurements);
+  void compute_error_bars();
+
+  void sum_measurements();
 
   void compute_G_k_w();
 
@@ -125,6 +126,8 @@ protected:
   double MC_integration_time;
 
   double total_time;
+
+  int nb_measurements_;
 
   rng_type rng;
   accumulator_type accumulator;
@@ -158,6 +161,7 @@ cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::cluster_solver(
       Sigma_new("Self-Energy-n-0-iteration"),
 
       DCA_iteration(-1) {
+  nb_measurements_ = parameters.get_number_of_measurements();
   concurrency << "\n\n\t SS CT-HYB Integrator is born \n\n";
 }
 
@@ -240,9 +244,7 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::integrate(
 
   symmetrize_measurements();
 
-  sum_measurements(parameters.get_number_of_measurements());
-
-  concurrency << "\n\t\t integration has ended \n";
+  concurrency << "\n\t\t on node integration has ended \n";
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
@@ -255,12 +257,10 @@ double cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::finalize
 
   dca_info_struct.L2_Sigma_difference(DCA_iteration) = compute_S_k_w_from_G_k_w();
 
-  if (false) {
-    SHOW::execute_on_bands(accumulator.get_G_r_w());
-    SHOW::execute_on_bands(accumulator.get_GS_r_w());
-    SHOW::execute_on_bands(MOMS.G_k_w);
-    SHOW::execute_on_bands(MOMS.Sigma);
-  }
+  // SHOW::execute_on_bands(accumulator.get_G_r_w());
+  // SHOW::execute_on_bands(accumulator.get_GS_r_w());
+  // SHOW::execute_on_bands(MOMS.G_k_w);
+  // SHOW::execute_on_bands(MOMS.Sigma);
 
   if (concurrency.id() == 0) {
     std::stringstream ss;
@@ -324,14 +324,11 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::measure(wa
     { walker.do_sweep(); }
 
     {
-      if (false) {
-        accumulator.measure(walker);
-      }
-      else {
-        accumulator.update_from(walker);
+      //  accumulator.measure(walker);
 
-        accumulator.measure();
-      }
+      accumulator.update_from(walker);
+
+      accumulator.measure();
     }
 
     update_shell(i, parameters.get_number_of_measurements(), walker.get_configuration().size());
@@ -372,23 +369,21 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::update_she
   }
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_error_bars(
-    int Nb_measurements_per_node) {
-  concurrency << "\n\t\t computing the error-bars \n";
+template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_error_bars() {
+  if (DCA_iteration == parameters.get_DCA_iterations() - 1) {
+    concurrency << "\n\t\t computing the error-bars \n";
 
-  {  // Sigma
-
-    double sign = accumulator.get_sign() / double(Nb_measurements_per_node);
+    double sign = accumulator.get_sign() / double(nb_measurements_);
 
     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>> G_r_w("G_r_w_tmp");
     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>> GS_r_w("GS_r_w_tmp");
 
     for (int l = 0; l < G_r_w.size(); l++)
-      G_r_w(l) = accumulator.get_G_r_w()(l) / double(Nb_measurements_per_node * sign);
+      G_r_w(l) = accumulator.get_G_r_w()(l) / double(nb_measurements_ * sign);
 
     for (int l = 0; l < GS_r_w.size(); l++)
-      GS_r_w(l) = accumulator.get_GS_r_w()(l) / double(Nb_measurements_per_node * sign);
+      GS_r_w(l) = accumulator.get_GS_r_w()(l) / double(nb_measurements_ * sign);
 
     compute_Sigma_new(G_r_w, GS_r_w);
 
@@ -396,22 +391,21 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_er
   }
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::sum_measurements(
-    int Nb_measurements) {
+template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::sum_measurements() {
   concurrency << "\n\t\t sum measurements \n";
 
   {  // sum the sign
-    concurrency.sum_and_average(accumulator.get_sign(), Nb_measurements);
+    concurrency.sum_and_average(accumulator.get_sign(), nb_measurements_);
   }
 
   {  // sum G_r_w
-    concurrency.sum_and_average(accumulator.get_G_r_w(), Nb_measurements);
+    concurrency.sum_and_average(accumulator.get_G_r_w(), nb_measurements_);
     accumulator.get_G_r_w() /= accumulator.get_sign();
   }
 
   {  // sum GS_r_w
-    concurrency.sum_and_average(accumulator.get_GS_r_w(), Nb_measurements);
+    concurrency.sum_and_average(accumulator.get_GS_r_w(), nb_measurements_);
     accumulator.get_GS_r_w() /= accumulator.get_sign();
   }
 
