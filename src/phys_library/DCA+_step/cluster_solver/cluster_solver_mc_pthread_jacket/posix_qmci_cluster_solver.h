@@ -187,7 +187,8 @@ void posix_qmci_integrator<qmci_integrator_type>::integrate() {
 
   symmetrize_measurements();
 
-  compute_error_bars();
+  if (DCA_iteration == parameters.get_DCA_iterations() - 1)
+    compute_error_bars();
 
   sum_measurements();
 

@@ -372,43 +372,40 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
 
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::compute_error_bars() {
-  if (DCA_iteration == parameters.get_DCA_iterations() - 1) {
+  if (concurrency.id() == 0)
+    std::cout << "\n\t\t compute-error-bars on Self-energy\t" << dca::util::print_time() << "\n\n";
+
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> G_k_w_new("G_k_w_new");
+
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>> M_r_w_new("M_r_w_new");
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> M_k_w_new("M_k_w_new");
+
+  double sign = accumulator.get_sign() / double(nb_measurements_);
+
+  for (int l = 0; l < accumulator.get_M_r_w().size(); l++)
+    M_r_w_new(l) = accumulator.get_M_r_w()(l) / double(nb_measurements_ * sign);
+
+  math_algorithms::functional_transforms::TRANSFORM<r_DCA, k_DCA>::execute(M_r_w_new, M_k_w_new);
+
+  compute_G_k_w_new(M_k_w_new, G_k_w_new);
+  compute_S_k_w_new(G_k_w_new, Sigma_new);
+
+  concurrency.average_and_compute_stddev(Sigma_new, MOMS.Sigma_stddev, 1);
+  concurrency.average_and_compute_stddev(G_k_w_new, MOMS.G_k_w_stddev, 1);
+
+  // sum G4
+  if (parameters.get_vertex_measurement_type() != NONE) {
     if (concurrency.id() == 0)
-      std::cout << "\n\t\t compute-error-bars on Self-energy\t" << dca::util::print_time()
-                << "\n\n";
-
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> G_k_w_new("G_k_w_new");
-
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>> M_r_w_new("M_r_w_new");
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> M_k_w_new("M_k_w_new");
+      std::cout << "\n\t\t compute-error-bars on G4\t" << dca::util::print_time() << "\n\n";
 
     double sign = accumulator.get_sign() / double(nb_measurements_);
 
-    for (int l = 0; l < accumulator.get_M_r_w().size(); l++)
-      M_r_w_new(l) = accumulator.get_M_r_w()(l) / double(nb_measurements_ * sign);
+    for (int l = 0; l < MOMS.G4_k_k_w_w.size(); l++)
+      MOMS.G4_k_k_w_w(l) = accumulator.get_G4()(l) / double(nb_measurements_ * sign);
 
-    math_algorithms::functional_transforms::TRANSFORM<r_DCA, k_DCA>::execute(M_r_w_new, M_k_w_new);
+    MOMS.G4_k_k_w_w /= square(parameters.get_beta());
 
-    compute_G_k_w_new(M_k_w_new, G_k_w_new);
-    compute_S_k_w_new(G_k_w_new, Sigma_new);
-
-    concurrency.average_and_compute_stddev(Sigma_new, MOMS.Sigma_stddev, 1);
-    concurrency.average_and_compute_stddev(G_k_w_new, MOMS.G_k_w_stddev, 1);
-
-    // sum G4
-    if (parameters.get_vertex_measurement_type() != NONE) {
-      if (concurrency.id() == 0)
-        std::cout << "\n\t\t compute-error-bars on G4\t" << dca::util::print_time() << "\n\n";
-
-      double sign = accumulator.get_sign() / double(nb_measurements_);
-
-      for (int l = 0; l < MOMS.G4_k_k_w_w.size(); l++)
-        MOMS.G4_k_k_w_w(l) = accumulator.get_G4()(l) / double(nb_measurements_ * sign);
-
-      MOMS.G4_k_k_w_w /= square(parameters.get_beta());
-
-      concurrency.average_and_compute_stddev(MOMS.G4_k_k_w_w, MOMS.G4_k_k_w_w_stddev, 1);
-    }
+    concurrency.average_and_compute_stddev(MOMS.G4_k_k_w_w, MOMS.G4_k_k_w_w_stddev, 1);
   }
 }
 

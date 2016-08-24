@@ -371,24 +371,22 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::update_she
 
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_error_bars() {
-  if (DCA_iteration == parameters.get_DCA_iterations() - 1) {
-    concurrency << "\n\t\t computing the error-bars \n";
+  concurrency << "\n\t\t computing the error-bars \n";
 
-    double sign = accumulator.get_sign() / double(nb_measurements_);
+  double sign = accumulator.get_sign() / double(nb_measurements_);
 
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>> G_r_w("G_r_w_tmp");
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>> GS_r_w("GS_r_w_tmp");
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>> G_r_w("G_r_w_tmp");
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>> GS_r_w("GS_r_w_tmp");
 
-    for (int l = 0; l < G_r_w.size(); l++)
-      G_r_w(l) = accumulator.get_G_r_w()(l) / double(nb_measurements_ * sign);
+  for (int l = 0; l < G_r_w.size(); l++)
+    G_r_w(l) = accumulator.get_G_r_w()(l) / double(nb_measurements_ * sign);
 
-    for (int l = 0; l < GS_r_w.size(); l++)
-      GS_r_w(l) = accumulator.get_GS_r_w()(l) / double(nb_measurements_ * sign);
+  for (int l = 0; l < GS_r_w.size(); l++)
+    GS_r_w(l) = accumulator.get_GS_r_w()(l) / double(nb_measurements_ * sign);
 
-    compute_Sigma_new(G_r_w, GS_r_w);
+  compute_Sigma_new(G_r_w, GS_r_w);
 
-    concurrency.average_and_compute_stddev(Sigma_new, MOMS.Sigma_stddev, 1);
-  }
+  concurrency.average_and_compute_stddev(Sigma_new, MOMS.Sigma_stddev, 1);
 }
 
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
