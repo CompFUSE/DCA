@@ -54,7 +54,7 @@ public:
   void sum(LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& f);
 
   template <typename some_type>
-  void sum_and_average(some_type& obj, int size);
+  void sum_and_average(some_type& obj, int nr_meas_rank = 1);
 
   template <typename scalar_type, class domain>
   void average_and_compute_stddev(FUNC_LIB::function<scalar_type, domain>& f_mean,
@@ -218,10 +218,10 @@ void collective_sum_interface<MPI_LIBRARY>::sum(LIN_ALG::matrix<scalar_type, LIN
 }
 
 template <typename some_type>
-void collective_sum_interface<MPI_LIBRARY>::sum_and_average(some_type& obj, int size) {
+void collective_sum_interface<MPI_LIBRARY>::sum_and_average(some_type& obj, int nr_meas_rank) {
   sum(obj);
 
-  double one_over_N = 1. / (size * grouping.get_Nr_threads());
+  double one_over_N = 1. / (nr_meas_rank * grouping.get_Nr_threads());
 
   obj *= one_over_N;
 }
