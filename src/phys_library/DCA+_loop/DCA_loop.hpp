@@ -72,7 +72,7 @@ public:
 
   void finalize();
 
-private:
+protected:
   void adjust_chemical_potential();
 
   void perform_cluster_mapping();
@@ -96,11 +96,12 @@ private:
 
   void update_DCA_loop_data_functions(int DCA_iteration);
 
-private:
+protected:
   parameters_type& parameters;
   MOMS_type& MOMS;
   concurrency_type& concurrency;
 
+private:
   DCA_loop_data<parameters_type> DCA_info_struct;
 
   cluster_exclusion_type cluster_exclusion_obj;
@@ -111,7 +112,8 @@ private:
 
   update_chemical_potential_type update_chemical_potential_obj;
 
-  Monte_Carlo_Integrator_type MonteCarloIntegrator;
+protected:
+  Monte_Carlo_Integrator_type monte_carlo_integrator_;
 };
 
 template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
@@ -131,7 +133,7 @@ DCA_loop<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::DCA_loop(
 
       update_chemical_potential_obj(parameters, MOMS, cluster_mapping_obj),
 
-      MonteCarloIntegrator(parameters_ref, MOMS_ref) {
+      monte_carlo_integrator_(parameters_ref, MOMS_ref) {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t" << __FUNCTION__ << " has started \t" << dca::util::print_time() << "\n\n";
 }
@@ -164,7 +166,7 @@ void DCA_loop<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::write() 
 
         parameters.write(writer);
         MOMS.write(writer);
-        MonteCarloIntegrator.write(writer);
+        monte_carlo_integrator_.write(writer);
         DCA_info_struct.write(writer);
 
         writer.close_file();
@@ -178,7 +180,7 @@ void DCA_loop<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::write() 
 
         parameters.write(writer);
         MOMS.write(writer);
-        MonteCarloIntegrator.write(writer);
+        monte_carlo_integrator_.write(writer);
         DCA_info_struct.write(writer);
 
         writer.close_file();
@@ -303,17 +305,17 @@ double DCA_loop<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::solve_
     int DCA_iteration) {
   {
     profiler_type profiler("initialize cluster-solver", "DCA", __LINE__);
-    MonteCarloIntegrator.initialize(DCA_iteration);
+    monte_carlo_integrator_.initialize(DCA_iteration);
   }
 
   {
     profiler_type profiler("Quantum Monte Carlo integration", "DCA", __LINE__);
-    MonteCarloIntegrator.integrate();
+    monte_carlo_integrator_.integrate();
   }
 
   {
     profiler_type profiler("finalize cluster-solver", "DCA", __LINE__);
-    double L2_Sigma_difference = MonteCarloIntegrator.finalize(DCA_info_struct);
+    double L2_Sigma_difference = monte_carlo_integrator_.finalize(DCA_info_struct);
 
     return L2_Sigma_difference;
   }
