@@ -89,6 +89,12 @@ public:
   template <IO::FORMAT DATA_FORMAT>
   void write(IO::writer<DATA_FORMAT>& reader);
 
+  // For testing purposes:
+  // TODO: Const correctness.
+  FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, r_DCA, w>>& get_GS_r_w() {
+    return accumulator.get_GS_r_w();
+  }
+
 protected:
   void warm_up(walker_type& walker);
 

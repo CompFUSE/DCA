@@ -28,7 +28,7 @@
 namespace DCA {
 
 template <class qmci_integrator_type>
-class posix_qmci_integrator : protected qmci_integrator_type {
+class posix_qmci_integrator : public qmci_integrator_type {
   typedef typename qmci_integrator_type::this_MOMS_type MOMS_type;
   typedef typename qmci_integrator_type::this_parameters_type parameters_type;
 

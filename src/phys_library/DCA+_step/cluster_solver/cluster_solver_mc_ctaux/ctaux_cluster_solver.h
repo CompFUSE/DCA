@@ -79,6 +79,10 @@ public:
   template <typename dca_info_struct_t>
   double finalize(dca_info_struct_t& dca_info_struct);
 
+  //  For testing purposes.
+  //  Returns the function G_k_w before the average across mpi ranks is performed.
+  auto onNode_G_k_w();
+
 protected:
   void warm_up(walker_type& walker);
 
@@ -842,6 +846,25 @@ double cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_typ
     std::cout << "\n\t\t |Sigma_QMC - Sigma_cg|_2 ~ " << L2_error << "\n\n";
   }
   return L2_error;
+}
+
+template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+auto cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::onNode_G_k_w() {
+  // INTERNAL this somewhat duplicates compute_error_bars and might be modified
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> G_k_w_new("G_k_w");
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>> M_r_w_new("M_r_w_new");
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> M_k_w_new("M_k_w_new");
+
+  double sign = accumulator.get_sign() / double(nb_measurements_);
+
+  for (int l = 0; l < accumulator.get_M_r_w().size(); l++)
+    M_r_w_new(l) = accumulator.get_M_r_w()(l) / double(nb_measurements_ * sign);
+
+  math_algorithms::functional_transforms::TRANSFORM<r_DCA, k_DCA>::execute(M_r_w_new, M_k_w_new);
+
+  compute_G_k_w_new(M_k_w_new, G_k_w_new);
+
+  return G_k_w_new;
 }
 
 }  // DCA
