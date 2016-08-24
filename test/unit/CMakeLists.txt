@@ -1,3 +1,4 @@
+add_subdirectory(concurrency)
 add_subdirectory(function/domains)
 add_subdirectory(math/geometry/gaussian_quadrature)
 add_subdirectory(math/random)
