@@ -65,15 +65,21 @@ public:
                                   FUNC_LIB::function<std::complex<scalar_type>, domain>& f_stddev,
                                   size_t size);
 
-  // f contains the initial data and the covariance is overwritten in the same variable
-  // TODO: const f_estimated
+  // Compute the covariance matrix of the measurements of the different nodes.
+  // In: f, f_estimated
+  // Out: cov
+  // TODO: const f, f_estimated
   template <typename Scalar, class domain>
   void computeCovariance(FUNC_LIB::function<Scalar, domain>& f,
                          FUNC_LIB::function<Scalar, domain>& f_estimated,
                          FUNC_LIB::function<Scalar, dmn_variadic<domain, domain>>& cov);
 
-  // f contains the initial data and the covariance is overwritten in the same variable
-  // the covariance constructed is equivalent with the covariance of the vector [Re(f),Im(f)]
+  // Compute the covariance matrix of the measurements of the different nodes.
+  // The real part and the imaginary part are treated independently,
+  // and cov represents the covariance of the vector [Re(f),Im(f)].
+  // In: f, f_estimated
+  // Out: cov
+  // TODO: const f, f_estimated
   template <typename Scalar, class domain, class cov_domain>
   void computeCovariance(FUNC_LIB::function<std::complex<Scalar>, domain>& f,
                          FUNC_LIB::function<std::complex<Scalar>, domain>& f_estimated,
@@ -300,20 +306,24 @@ void collective_sum_interface<MPI_LIBRARY>::computeCovariance(
     FUNC_LIB::function<Scalar, cov_domain>& cov) {
   assert(4 * f.size() * f.size() == cov.size());
 
-  // compute the covariance for the real and imaginary part seperately
+  // Treat real and imaginary parts as independent entries
   for (int i = 0; i < f.size(); i++)
     for (int j = 0; j < f.size(); j++) {
-      cov(i, j) = (f(i).real() - f_estimated(i).real()) *
-                  (f(j).real() - f_estimated(j).real());  // treat real part
-      cov(i + f.size(), j + f.size()) =
-          (f(i).imag() - f_estimated(i).imag()) *
-          (f(j).imag() - f_estimated(j).imag());  // and imaginary part independently
 
-      cov(i, j + f.size()) = (f(i).real() - f_estimated(i).real()) *
-                             (f(j).imag() - f_estimated(j).imag());  // treat real part
+      // Real - Real
+      cov(i, j) = (f(i).real() - f_estimated(i).real()) * (f(j).real() - f_estimated(j).real());
+
+      // Imaginary - Imaginary
+      cov(i + f.size(), j + f.size()) =
+          (f(i).imag() - f_estimated(i).imag()) * (f(j).imag() - f_estimated(j).imag());
+
+      // Real - Inaginary
+      cov(i, j + f.size()) =
+          (f(i).real() - f_estimated(i).real()) * (f(j).imag() - f_estimated(j).imag());
+
+      // Imaginary - Real
       cov(i + f.size(), j) =
-          (f(i).imag() - f_estimated(i).imag()) *
-          (f(j).real() - f_estimated(j).imag());  // and imaginary part independently
+          (f(i).imag() - f_estimated(i).imag()) * (f(j).real() - f_estimated(j).imag());
     }
   sum_and_average(cov, 1);
 }
