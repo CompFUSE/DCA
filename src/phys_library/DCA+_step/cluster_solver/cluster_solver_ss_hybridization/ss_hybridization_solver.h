@@ -242,8 +242,6 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::integrate(
 
   measure(walker);
 
-  symmetrize_measurements();
-
   concurrency << "\n\t\t on node integration has ended \n";
 }
 
@@ -251,6 +249,11 @@ template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_ty
 template <typename dca_info_struct_t>
 double cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::finalize(
     dca_info_struct_t& dca_info_struct) {
+  // Average measurements over nodes.
+  sum_measurements();
+
+  symmetrize_measurements();
+
   compute_G_k_w();
 
   math_algorithms::functional_transforms::TRANSFORM<k_DCA, r_DCA>::execute(MOMS.G_k_w, MOMS.G_r_w);

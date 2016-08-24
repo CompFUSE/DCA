@@ -218,9 +218,6 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
 
   accumulator.get_error_distribution() += walker.get_error_distribution();
 
-  symmetrize_measurements();
-
-  sum_measurements();
   concurrency << "\n\t\t on node integration has ended \n";
 }
 
@@ -228,26 +225,30 @@ template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_ty
 template <typename dca_info_struct_t>
 double cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::finalize(
     dca_info_struct_t& dca_info_struct) {
-    // Compute new Sigma
-    compute_G_k_w_from_M_r_w();
+  // Average measurements over nodes.
+  sum_measurements();
 
-    // FT<k_DCA,r_DCA>::execute(MOMS.G_k_w, MOMS.G_r_w);
-    math_algorithms::functional_transforms::TRANSFORM<k_DCA, r_DCA>::execute(MOMS.G_k_w, MOMS.G_r_w);
+  symmetrize_measurements();
+  // Compute new Sigma.
+  compute_G_k_w_from_M_r_w();
 
-    dca_info_struct.L2_Sigma_difference(DCA_iteration) = compute_S_k_w_from_G_k_w();
+  // FT<k_DCA,r_DCA>::execute(MOMS.G_k_w, MOMS.G_r_w);
+  math_algorithms::functional_transforms::TRANSFORM<k_DCA, r_DCA>::execute(MOMS.G_k_w, MOMS.G_r_w);
 
-    for (int i = 0; i < b::dmn_size() * s::dmn_size(); i++) {
-      for (int j = 0; j < k_DCA::dmn_size(); j++) {
-        std::vector<double> x;
-        for (int l = 0; l < w::dmn_size() / 4; l++)
-          x.push_back(real(MOMS.Sigma(i, i, j, l)));
+  dca_info_struct.L2_Sigma_difference(DCA_iteration) = compute_S_k_w_from_G_k_w();
 
-        dca_info_struct.Sigma_zero_moment(i, j, DCA_iteration) =
-            math_algorithms::statistical_methods<double>::mean(x);  // real(MOMS.Sigma(i,i,j,0));
-        dca_info_struct.standard_deviation(i, j, DCA_iteration) =
-            math_algorithms::statistical_methods<double>::standard_deviation(x);  //
-      }
+  for (int i = 0; i < b::dmn_size() * s::dmn_size(); i++) {
+    for (int j = 0; j < k_DCA::dmn_size(); j++) {
+      std::vector<double> x;
+      for (int l = 0; l < w::dmn_size() / 4; l++)
+        x.push_back(real(MOMS.Sigma(i, i, j, l)));
+
+      dca_info_struct.Sigma_zero_moment(i, j, DCA_iteration) =
+          math_algorithms::statistical_methods<double>::mean(x);  // real(MOMS.Sigma(i,i,j,0));
+      dca_info_struct.standard_deviation(i, j, DCA_iteration) =
+          math_algorithms::statistical_methods<double>::standard_deviation(x);  //
     }
+  }
 
   //     if(DCA_iteration == parameters.get_DCA_iterations()-1 &&
   //     parameters.do_equal_time_measurements())

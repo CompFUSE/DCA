@@ -67,7 +67,6 @@ private:
 
   // TODO: Are the following using statements redundant and can therefore be removed?
   using qmci_integrator_type::compute_error_bars;
-  using qmci_integrator_type::sum_measurements;
   using qmci_integrator_type::symmetrize_measurements;
 
 private:
@@ -185,13 +184,6 @@ void posix_qmci_integrator<qmci_integrator_type>::integrate() {
     total_time = duration.sec + 1.e-6 * duration.usec;
   }
 
-  symmetrize_measurements();
-
-  if (DCA_iteration == parameters.get_DCA_iterations() - 1)
-    compute_error_bars();
-
-  sum_measurements();
-
   concurrency << "\n\t\t threaded QMC integration ends\n\n";
 }
 
@@ -199,7 +191,11 @@ template <class qmci_integrator_type>
 template <typename dca_info_struct_t>
 double posix_qmci_integrator<qmci_integrator_type>::finalize(dca_info_struct_t& dca_info_struct) {
   profiler_type profiler(__FUNCTION__, "posix-MC-Integration", __LINE__);
-
+  // Compute standard deviation.
+  if (DCA_iteration == parameters.get_DCA_iterations() - 1)
+    // TODO expansive memory allocation  should be made optional
+    compute_error_bars();
+  // Inter node average and following computations.
   double L2_Sigma_difference = qmci_integrator_type::finalize(dca_info_struct);
 
   pthread_mutex_destroy(&mutex_print);
