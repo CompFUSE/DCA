@@ -80,6 +80,7 @@ For readability it is suggested to use the standard order of includes:
 	\item Other libraries' .h
 	\item Your project's .h
 \end{enumerate}
+In each section the included files should be sorted in alphabetical order.
 \section{Naming}
 
 The names should be as descriptive as possible.
@@ -122,6 +123,20 @@ Use the \inlinecode{// Comment} syntax. The \inlinecode{/* ... */} syntax is all
 
 Each function, whose name does not fully describe the operations performed should have comments that describe what the function does.
 
+For function parameters whose type is non-const reference or pointer to non-const memory,
+it should be specified if they are input (In:), output (Out:) or input-output parameters (InOut:).
+
+Example:
+\begin{lstlisting}
+// Updates foo and computes bar using in_1 .. in_5.
+// In: in_3, in_5
+// InOut: foo
+// Out: bar
+void computeFooBar(Type in_1, const Type& in_2, Type& in_3,
+                   const Type* in_4, Type* in_5, Type& foo,
+                   Type& bar);
+\end{lstlisting}
+
 \subsection{Variable Comments}
 
 No comments, since the name should be self-descriptive.
@@ -154,6 +169,8 @@ Comments formatted as \inlinecode{// TODO: Comment}, \inlinecode{// INTERNAL: Co
 Pay attention to correct punctuation, spelling, and grammar. This will improve the clarity and readability of the comments.
 
 \section{Formatting}
+
+Use the provided clang-format style to format \verb|.hpp| and \verb|.cpp| files.
 
 \subsection{Line Length}
 
@@ -234,6 +251,9 @@ Type LongNameClass::LongNameFunction(Type1 par1, Type2 par2
   ...
 }
 \end{lstlisting}
+
+% For formatting purpose, can be removed.
+\vspace{3em}
 
 In case of a long list of parameters prefer
 \begin{lstlisting}
