@@ -1,0 +1,148 @@
+{
+  "filename-parameters"
+      : {
+        "output-format" : "HDF5",
+
+        "output-file" : "NiO_fullDCA_output.hdf5",
+        "profiling-file" : "profiling_NiO.hdf5",
+
+        "spectrum-file" : "data_CPE_NiO.hdf5",
+        "susceptibilities-file" : "data_susceptibilities_NiO.hdf5"
+      },
+
+        "physics-parameters"
+        : {
+          "beta" : 5,
+
+          "adjust-chemical-potential" : "false",
+          "density" : 14.0,
+          "chemical-potential" : 0.00
+        },
+
+          "material-model"
+          : {"t_ij-filename" : "hard_coded", "U_ij-filename" : "hard_coded"},
+
+            "double-counting-parameters"
+            : {
+              "double-counting-method" : "constant-correction-with-U-correction",
+              "double-counting-correction" : 59.0
+            },
+
+              "DCA" : {
+                "do-DCA+" : "false",
+                "DCA-accuracy" : 0,
+                "interacting-bands" : [ 0, 1, 2, 3, 4 ],
+                "DCA-iterations" : 9,
+                "DCA-mixing-factor" : 0.75,
+
+                "cluster" : [ [ 1, 0, 0 ], [ 0, 1, 0 ], [ 0, 0, 1 ] ],
+
+                "cluster-mapping" : {
+                  "k-mesh-refinement" : 2,
+                  "quadrature-rule" : 1,
+                  "number-of-periods" : 0,
+
+                  "number-of-tail-frequencies" : 32,
+                  "number-of-threads" : 8,
+
+                  "precompute-Hamiltonian" : "true",
+                  "phi(k) integration accuracy" : 0.01,
+
+                  "print-phi" : "false"
+                },
+
+                "lattice-mapping" : {
+                  "interpolation-method" : "wannier-interpolation",
+
+                  "deconvolution-tolerance" : 0.01,
+                  "max-deconvolution-iterations" : 16
+                }
+              },
+
+                      "Monte-Carlo-Integration"
+                      : {
+                        "Sigma-file" : "zero",
+
+                        "warm-up-sweeps" : 10000,
+                        "sweeps-per-measurement" : 1,
+                        "measurements" : 1000000,
+
+                        "adaptive-double-counting" : 0,
+
+                        "RNG-seed" : 985456376,
+
+                        "MC-posix-parameters" :
+                            {"nr-walkers" : 4, "nr-accumulators" : 4, "additional-steps" : 0}
+                      },
+
+                        "CT-AUX-solver"
+                        : {
+                          "submatrix-size" : 16,
+                          "initial-matrix-size" : 256,
+
+                          "K-parameter" : 100
+                        },
+
+                          "SS-CT-HYB-solver"
+                          : {
+                            "steps-per-sweep" : 1.0,
+                            "shifts-per-sweep" : 1.0,
+                            "swaps-per-sweep" : 0.0,
+                            "Sigma-tail-cutoff" : 60
+                          },
+
+                            "ED-solver-parameters"
+                            : {"eigenvalue-cut-off" : 1e-6},
+
+                              "function-parameters" : {
+                                "single-particle-functions" : {
+                                  "H(k) grid-size" : [ 6, 6, 6 ],
+
+                                  "time-intervals" : 512,
+                                  "fermionic-frequencies" : 512,
+                                  "bosonic-frequencies" : 32,
+
+                                  "sp-cluster" : [ [ 4, 0, 0 ], [ 0, 4, 0 ], [ 0, 0, 4 ] ]
+                                },
+
+                                "two-particle-functions" : {
+                                  "time-intervals" : 32,
+
+                                  "fermionic-frequencies" : 16,
+                                  "bosonic-frequencies" : 16,
+
+                                  "tp-cluster" : [ [ 4, 0, 0 ], [ 0, 4, 0 ], [ 0, 0, 4 ] ]
+                                },
+
+                                "real-axis-functions" : {
+                                  "lower-bound" : -30,
+                                  "upper-bound" : 20,
+                                  "nr-intervals" : 1001,
+                                  "real-axis-off-set" : 0.01
+                                }
+                              },
+
+                                                      "equal-time-observables"
+                                                      : {"do-equal-time-measurements" : "false"},
+
+                                                        "CPE-parameters" : {
+    "do-CPE" : "true",
+
+               "max-CPE-iterations" : 10000,
+               "max-CPE-error" : 0.01,
+
+               "number-of-matsubara-freqencies" : 32,
+
+               "smoothing-factor" : 1,
+
+               "simulate-Gaussian-noise" : "false",
+                                           "nr-of-samples" : 100,
+                                           "simulated-stddev" : 0.01,
+
+                                           "compute-free-spectrum" : "true",
+                                                                     "compute-lattice-spectrum"
+                                                                     : "true",
+                                                                       "compute-cluster-spectrum"
+                                                                       : "false"
+  }
+}
