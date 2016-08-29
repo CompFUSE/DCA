@@ -22,6 +22,7 @@
 #include <utility>
 
 #include "dca/linalg/device_type.hpp"
+#include "dca/linalg/util/memory.hpp"
 
 #include "comp_library/linalg/src/linalg_operations/copy_from_tem.h"
 #include "comp_library/linalg/src/linalg_operations/copy_from_CPU_CPU.h"
@@ -270,7 +271,7 @@ Matrix<ScalarType, device_name>::Matrix(std::string str, std::pair<int, int> siz
   assert(capacity.first >= size_.first && capacity.second >= size_.second);
   assert(capacity_.first >= capacity.first && capacity_.second >= capacity.second);
 
-  MEMORY_MANAGEMENT<device_name>::allocate(data_, capacity_);
+  util::Memory<device_name>::allocate(data_, nrElements(capacity_));
   MEMORY_MANAGEMENT<device_name>::set_to_zero(data_, nrElements(capacity_));
 }
 
@@ -282,7 +283,7 @@ Matrix<ScalarType, device_name>::Matrix(const Matrix<ScalarType, device_name>& r
       thread_id_(-1),
       stream_id_(-1),
       data_(nullptr) {
-  MEMORY_MANAGEMENT<device_name>::allocate(data_, capacity_);
+  util::Memory<device_name>::allocate(data_, nrElements(capacity_));
 
   COPY_FROM<device_name, device_name>::execute(rhs.data_, rhs.size_, rhs.capacity_, data_, size_,
                                                capacity_);
@@ -297,7 +298,7 @@ Matrix<ScalarType, device_name>::Matrix(const Matrix<ScalarType, rhs_device_name
       thread_id_(-1),
       stream_id_(-1),
       data_(nullptr) {
-  MEMORY_MANAGEMENT<device_name>::allocate(data_, capacity_);
+  util::Memory<device_name>::allocate(data_, nrElements(capacity_));
 
   COPY_FROM<rhs_device_name, device_name>::execute(rhs.data_, rhs.size_, rhs.capacity_, data_,
                                                    size_, capacity_);
@@ -305,7 +306,7 @@ Matrix<ScalarType, device_name>::Matrix(const Matrix<ScalarType, rhs_device_name
 
 template <typename ScalarType, DeviceType device_name>
 Matrix<ScalarType, device_name>::~Matrix() {
-  MEMORY_MANAGEMENT<device_name>::deallocate(data_);
+  util::Memory<device_name>::deallocate(data_);
 }
 
 template <typename ScalarType, DeviceType device_name>
@@ -316,10 +317,10 @@ void Matrix<ScalarType, device_name>::resize(std::pair<int, int> new_size) {
     std::pair<int, int> new_capacity = capacityMultipleOfBlockSize(new_size);
 
     ValueType* new_data = NULL;
-    MEMORY_MANAGEMENT<device_name>::allocate(new_data, new_capacity);
+    util::Memory<device_name>::allocate(new_data, nrElements(new_capacity));
     COPY_FROM<device_name, device_name>::execute(data_, size_, capacity_, new_data, size_,
                                                  new_capacity);
-    MEMORY_MANAGEMENT<device_name>::deallocate(data_);
+    util::Memory<device_name>::deallocate(data_);
 
     data_ = new_data;
     capacity_ = new_capacity;
@@ -367,8 +368,8 @@ void Matrix<ScalarType, device_name>::resizeNoCopy(std::pair<int, int> new_size)
     size_ = new_size;
     capacity_ = capacityMultipleOfBlockSize(new_size);
 
-    MEMORY_MANAGEMENT<device_name>::deallocate(data_);
-    MEMORY_MANAGEMENT<device_name>::allocate(data_, capacity_);
+    util::Memory<device_name>::deallocate(data_);
+    util::Memory<device_name>::allocate(data_, nrElements(capacity_));
 
     // CUBLAS_THREAD_MANAGER<device_name>::synchronize_streams(thread_id_, stream_id_);
   }

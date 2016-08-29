@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "dca/linalg/device_type.hpp"
+#include "dca/linalg/util/memory.hpp"
 
 #include "comp_library/linalg/src/linalg_operations/copy_from_tem.h"
 #include "comp_library/linalg/src/linalg_operations/copy_from_CPU_CPU.h"
@@ -197,7 +198,7 @@ Vector<ScalarType, device_name>::Vector(std::string name, size_t size, size_t ca
       stream_id_(stream_id),
       data_(nullptr) {
   assert(capacity_ >= size_);
-  MEMORY_MANAGEMENT<device_name>::allocate(data_, capacity_);
+  util::Memory<device_name>::allocate(data_, capacity_);
   MEMORY_MANAGEMENT<device_name>::set_to_zero(data_, capacity_);
 }
 
@@ -210,7 +211,7 @@ Vector<ScalarType, device_name>::Vector(const Vector<ScalarType, device_name>& r
       stream_id_(-1),
       data_(nullptr) {
   assert(capacity_ >= size_);
-  MEMORY_MANAGEMENT<device_name>::allocate(data_, capacity_);
+  util::Memory<device_name>::allocate(data_, capacity_);
   COPY_FROM<device_name, device_name>::execute(rhs.data_, data_, size_);
 }
 
@@ -224,13 +225,13 @@ Vector<ScalarType, device_name>::Vector(const Vector<ScalarType, rhs_device_name
       stream_id_(-1),
       data_(nullptr) {
   assert(capacity_ >= size_);
-  MEMORY_MANAGEMENT<device_name>::allocate(data_, capacity_);
+  util::Memory<device_name>::allocate(data_, capacity_);
   COPY_FROM<rhs_device_name, device_name>::execute(rhs.data_, data_, size_);
 }
 
 template <typename ScalarType, DeviceType device_name>
 Vector<ScalarType, device_name>::~Vector() {
-  MEMORY_MANAGEMENT<device_name>::deallocate(data_);
+  util::Memory<device_name>::deallocate(data_);
 }
 
 template <typename ScalarType, DeviceType device_name>
@@ -337,9 +338,9 @@ void Vector<ScalarType, device_name>::resize(size_t new_size) {
 
     ValueType* new_data = nullptr;
 
-    MEMORY_MANAGEMENT<device_name>::allocate(new_data, new_capacity);
+    util::Memory<device_name>::allocate(new_data, new_capacity);
     COPY_FROM<device_name, device_name>::execute(&data_[0], &new_data[0], size_);
-    MEMORY_MANAGEMENT<device_name>::deallocate(data_);
+    util::Memory<device_name>::deallocate(data_);
 
     data_ = new_data;
     capacity_ = new_capacity;
@@ -358,8 +359,8 @@ void Vector<ScalarType, device_name>::resizeNoCopy(size_t new_size) {
 
     int new_capacity = (new_size / 64 + 1) * 64;
 
-    MEMORY_MANAGEMENT<device_name>::deallocate(data_);
-    MEMORY_MANAGEMENT<device_name>::allocate(data_, new_capacity);
+    util::Memory<device_name>::deallocate(data_);
+    util::Memory<device_name>::allocate(data_, new_capacity);
 
     capacity_ = new_capacity;
     size_ = new_size;

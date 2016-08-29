@@ -23,37 +23,6 @@ namespace MEMORY_MANAGEMENT_ON_GPU {
 // LIN_ALG::MEMORY_MANAGEMENT_ON_GPU::
 
 template <typename scalartype>
-scalartype get(scalartype* ptr);
-template <typename scalartype>
-scalartype get(scalartype* ptr, int index);
-
-template <typename scalartype>
-void set(scalartype* ptr, scalartype val);
-template <typename scalartype>
-void add(scalartype* ptr, scalartype val);
-
-template <typename scalartype>
-void allocate(scalartype*& ptr, int global_size);
-template <typename scalartype>
-void allocate(scalartype*& ptr, std::pair<int, int> global_size);
-template <typename scalartype>
-void deallocate(scalartype*& ptr);
-
-//     template<typename scalartype> void memcopy_d_to_d(scalartype* target_ptr, scalartype*
-//     source_ptr, int size);
-//     template<typename scalartype> void memcopy_d_to_h(scalartype* target_ptr, scalartype*
-//     source_ptr, int size);
-//     template<typename scalartype> void memcopy_h_to_d(scalartype* target_ptr, scalartype*
-//     source_ptr, int size);
-
-//     template<typename scalartype> void memcopy_d_to_d_async(scalartype* target_ptr, scalartype*
-//     source_ptr, int size);
-//     template<typename scalartype> void memcopy_d_to_h_async(scalartype* target_ptr, scalartype*
-//     source_ptr, int size);
-//     template<typename scalartype> void memcopy_h_to_d_async(scalartype* target_ptr, scalartype*
-//     source_ptr, int size);
-
-template <typename scalartype>
 void set_to_zero(scalartype* ptr, int m);
 template <typename scalartype>
 void set_to_zero(scalartype* ptr, int LD, int m);
@@ -68,40 +37,6 @@ void remove_first_col(int m, int n, scalartype* A, int LDA);
 template <>
 class MEMORY_MANAGEMENT<GPU> {
 public:
-  template <typename scalartype>
-  inline static scalartype get(scalartype* ptr) {
-    return MEMORY_MANAGEMENT_ON_GPU::get(ptr);
-  }
-
-  template <typename scalartype>
-  inline static scalartype get(scalartype* ptr, int index) {
-    return MEMORY_MANAGEMENT_ON_GPU::get(ptr, index);
-  }
-
-  template <typename scalartype>
-  inline static void set(scalartype* ptr, scalartype val) {
-    MEMORY_MANAGEMENT_ON_GPU::set(ptr, val);
-  }
-
-  template <typename scalartype>
-  inline static void add(scalartype* ptr, scalartype val) {
-    MEMORY_MANAGEMENT_ON_GPU::add(ptr, val);
-  }
-
-  template <typename scalartype>
-  static void allocate(scalartype*& ptr, int global_size) {
-    MEMORY_MANAGEMENT_ON_GPU::allocate(ptr, global_size);
-  }
-
-  template <typename scalartype>
-  static void allocate(scalartype*& ptr, std::pair<int, int> global_size) {
-    MEMORY_MANAGEMENT_ON_GPU::allocate(ptr, global_size);
-  }
-
-  template <typename scalartype>
-  static void deallocate(scalartype*& ptr) {
-    MEMORY_MANAGEMENT_ON_GPU::deallocate(ptr);
-  }
 
   template <typename scalartype>
   static void set_to_zero(scalartype* ptr, int size) {
@@ -128,7 +63,6 @@ public:
     int SIZE = g_s;
     scalartype* new_data = new scalartype[SIZE];
 
-    // MEMORY_MANAGEMENT_ON_GPU::memcopy_d_to_h(new_data, ptr, SIZE);
     COPY_FROM<GPU, CPU>::execute(ptr, new_data, SIZE);
 
     std::cout.precision(6);
@@ -153,7 +87,6 @@ public:
     int SIZE = g_s.first * g_s.second;
     scalartype* new_data = new scalartype[SIZE];
 
-    // MEMORY_MANAGEMENT_ON_GPU::memcopy_d_to_h(new_data, ptr, SIZE);
     COPY_FROM<GPU, CPU>::execute(ptr, new_data, SIZE);
 
     std::cout.precision(6);
