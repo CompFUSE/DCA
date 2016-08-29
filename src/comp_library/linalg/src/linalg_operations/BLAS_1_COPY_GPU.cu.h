@@ -34,13 +34,13 @@ namespace LIN_ALG {
     {
       if(N_i>0 and N_x>0)
 	{
-	  int bl_x = get_number_of_blocks(N_i, BLOCK_SIZE_x);
-	  int bl_y = get_number_of_blocks(N_x, BLOCK_SIZE_y);
+	  int bl_x = dca::util::ceilDiv(N_i, BLOCK_SIZE_x);
+	  int bl_y = dca::util::ceilDiv(N_x, BLOCK_SIZE_y);
 	  
 	  dim3 threads(BLOCK_SIZE_x);
 	  dim3 blocks (bl_x, bl_y);
 
-	  cudaStream_t& stream_handle = LIN_ALG::get_stream_handle(thread_id, stream_id);
+	  cudaStream_t stream_handle = dca::linalg::util::getStream(thread_id, stream_id);
 	  
 	  many_row_copies_kernel<<<blocks, threads, 0, stream_handle>>>(N_x, N_i, i_x, x, inc_x, i_y, y, inc_y);
 	}
@@ -67,13 +67,13 @@ namespace LIN_ALG {
     {
       if(N_i>0 and N_x>0)
 	{
-	  int bl_x = get_number_of_blocks(N_x, BLOCK_SIZE_x);
-	  int bl_y = get_number_of_blocks(N_i, BLOCK_SIZE_y);
+	  int bl_x = dca::util::ceilDiv(N_x, BLOCK_SIZE_x);
+	  int bl_y = dca::util::ceilDiv(N_i, BLOCK_SIZE_y);
 	  
 	  dim3 threads(BLOCK_SIZE_x);
 	  dim3 blocks (bl_x, bl_y);
 	  
-	  cudaStream_t& stream_handle = LIN_ALG::get_stream_handle(thread_id, stream_id);
+	  cudaStream_t stream_handle = dca::linalg::util::getStream(thread_id, stream_id);
 	  
 	  many_column_copies_kernel<<<blocks, threads, 0, stream_handle>>>(N_x, N_i, i_x, x, inc_x, i_y, y, inc_y);
 	}

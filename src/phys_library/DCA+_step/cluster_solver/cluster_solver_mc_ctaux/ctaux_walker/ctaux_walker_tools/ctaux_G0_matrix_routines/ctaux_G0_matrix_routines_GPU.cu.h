@@ -70,7 +70,7 @@ void interpolate_G0_matrix_on_GPU(int Nb, int Nr, int Nt, double beta, int Nv, i
 #endif
 
   int Nr_t = 16;
-  int Nr_b = get_number_of_blocks(Nv, Nr_t);
+  int Nr_b = dca::util::ceilDiv(Nv, Nr_t);
 
   dim3 threads(Nr_t, Nr_t);
   dim3 blocks(Nr_b, Nr_b);
@@ -254,7 +254,7 @@ void interpolate_G0_matrix_on_GPU(int Nb, int Nr, int Nt, double beta, int Nv, i
 
   {
   int Nr_t = NUMBER_OF_THREADS;
-  int Nr_b = get_number_of_blocks(Nv, Nr_t);
+  int Nr_b = dca::util::ceilDiv(Nv, Nr_t);
 
   dim3 threads(Nr_t);
   dim3 blocks (Nr_b);
@@ -271,7 +271,7 @@ void interpolate_G0_matrix_on_GPU(int Nb, int Nr, int Nt, double beta, int Nv, i
   if(Nv-Nc>0)
   {
   int Nr_t = Nv-Nc;
-  int Nr_b = get_number_of_blocks(Nc, BLOCK_SIZE);
+  int Nr_b = dca::util::ceilDiv(Nc, BLOCK_SIZE);
 
   dim3 threads(Nr_t);
   dim3 blocks (Nr_b);
@@ -288,7 +288,7 @@ void interpolate_G0_matrix_on_GPU(int Nb, int Nr, int Nt, double beta, int Nv, i
 
   //       {
   //      int Nr_t = 16;
-  //      int Nr_b = get_number_of_blocks(Nv, Nr_t);
+  //      int Nr_b = dca::util::ceilDiv(Nv, Nr_t);
 
   //      dim3 threads(Nr_t, Nr_t);
   //      dim3 blocks (Nr_b, Nr_b);
@@ -434,8 +434,8 @@ void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, double beta, int Nc, int
     cuda_check_for_errors_bgn(__FUNCTION__, __FILE__, __LINE__);
 #endif
 
-    int bl_x = get_number_of_blocks(Nv, BLOCK_SIZE_x);
-    int bl_y = get_number_of_blocks(Nv - Nc, BLOCK_SIZE_y);
+    int bl_x = dca::util::ceilDiv(Nv, BLOCK_SIZE_x);
+    int bl_y = dca::util::ceilDiv(Nv - Nc, BLOCK_SIZE_y);
 
     dim3 threads(BLOCK_SIZE_x);
     dim3 blocks(bl_x, bl_y);
@@ -453,8 +453,8 @@ void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, double beta, int Nc, int
     cuda_check_for_errors_bgn(__FUNCTION__, __FILE__, __LINE__);
 #endif
 
-    int bl_x = get_number_of_blocks(Nv - Nc, BLOCK_SIZE_x);
-    int bl_y = get_number_of_blocks(Nc, BLOCK_SIZE_y);
+    int bl_x = dca::util::ceilDiv(Nv - Nc, BLOCK_SIZE_x);
+    int bl_y = dca::util::ceilDiv(Nc, BLOCK_SIZE_y);
 
     dim3 threads(BLOCK_SIZE_x);
     dim3 blocks(bl_x, bl_y);
@@ -482,13 +482,13 @@ void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, double beta, int Nc, int
     cuda_check_for_errors_bgn(__FUNCTION__, __FILE__, __LINE__);
 #endif
 
-    int bl_x = get_number_of_blocks(Nv, BLOCK_SIZE_x);
-    int bl_y = get_number_of_blocks(Nv - Nc, BLOCK_SIZE_y);
+    int bl_x = dca::util::ceilDiv(Nv, BLOCK_SIZE_x);
+    int bl_y = dca::util::ceilDiv(Nv - Nc, BLOCK_SIZE_y);
 
     dim3 threads(BLOCK_SIZE_x);
     dim3 blocks(bl_x, bl_y);
 
-    cudaStream_t& stream_handle = LIN_ALG::get_stream_handle(thread_id, stream_id);
+    cudaStream_t stream_handle = dca::linalg::util::getStream(thread_id, stream_id);
 
     akima_interpolation_fat_column<<<blocks, threads, 0, stream_handle>>>(
         Nb, Nr, Nt, beta, Nc, Nv, b, r, t, G0, G0_cs, G0_gs, r0_min_r1, r0_min_r1_cs, r0_min_r1_gs,
@@ -504,13 +504,13 @@ void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, double beta, int Nc, int
     cuda_check_for_errors_bgn(__FUNCTION__, __FILE__, __LINE__);
 #endif
 
-    int bl_x = get_number_of_blocks(Nv - Nc, BLOCK_SIZE_x);
-    int bl_y = get_number_of_blocks(Nc, BLOCK_SIZE_y);
+    int bl_x = dca::util::ceilDiv(Nv - Nc, BLOCK_SIZE_x);
+    int bl_y = dca::util::ceilDiv(Nc, BLOCK_SIZE_y);
 
     dim3 threads(BLOCK_SIZE_x);
     dim3 blocks(bl_x, bl_y);
 
-    cudaStream_t& stream_handle = LIN_ALG::get_stream_handle(thread_id, stream_id);
+    cudaStream_t stream_handle = dca::linalg::util::getStream(thread_id, stream_id);
 
     akima_interpolation_fat_row<<<blocks, threads, 0, stream_handle>>>(
         Nb, Nr, Nt, beta, Nc, Nv, b, r, t, G0, G0_cs, G0_gs, r0_min_r1, r0_min_r1_cs, r0_min_r1_gs,

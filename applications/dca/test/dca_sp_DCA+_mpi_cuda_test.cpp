@@ -18,8 +18,10 @@
 
 #include "gtest/gtest.h"
 
-#include "dca/parallel/pthreading/pthreading.hpp"
+#include "dca/linalg/util/info_cuda.hpp"
+#include "dca/linalg/util/util_cublas.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
+#include "dca/parallel/pthreading/pthreading.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
 #include "dca/phys/parameters/parameters.hpp"
@@ -41,9 +43,6 @@
 #include "phys_library/domains/time_and_frequency/frequency_domain.h"
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
-
-void print_device_info();
-void initialize_magma();
 
 using namespace DCA;
 
@@ -74,13 +73,13 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
               << " processes.\n"
               << std::endl;
 
-    print_device_info();
+    dca::linalg::util::printInfoDevices();
 
     dca::util::GitVersion::print();
     dca::util::Modules::print();
   }
 
-  initialize_magma();
+  dca::linalg::util::initializeMagma();
 
   ParametersType parameters(dca::util::GitVersion::string(), dca_test_env->concurrency);
   parameters.read_input_and_broadcast<IO::reader<IO::JSON>>(dca_test_env->input_file_name);

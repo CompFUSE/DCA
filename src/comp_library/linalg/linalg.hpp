@@ -92,6 +92,8 @@
 // Performance inspector
 #include "src/linalg_structures/performance_inspector_tem.h"
 #include "src/linalg_structures/performance_inspector_CPU.h"
+#ifdef DCA_HAVE_CUDA
 #include "src/linalg_structures/performance_inspector_GPU.h"
+#endif
 
 #endif  // COMP_LIBRARY_LINALG_LINALG_HPP

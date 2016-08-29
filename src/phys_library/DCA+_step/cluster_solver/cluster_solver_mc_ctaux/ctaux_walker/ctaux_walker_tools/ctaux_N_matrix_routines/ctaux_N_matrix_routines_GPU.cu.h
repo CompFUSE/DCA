@@ -57,13 +57,13 @@ void compute_G_cols(int N_i, int N_r, int N_c, int* p_ptr, double* exp_V_ptr, do
                     int N_ld, double* G_ptr, int G_ld, double* G_cols_ptr, int G_cols_ld,
                     int thread_id, int stream_id) {
   if (N_r > 0 and N_i > 0) {
-    int bl_x = get_number_of_blocks(N_r, BLOCK_SIZE_x);
-    int bl_y = get_number_of_blocks(N_i, BLOCK_SIZE_y);
+    int bl_x = dca::util::ceilDiv(N_r, BLOCK_SIZE_x);
+    int bl_y = dca::util::ceilDiv(N_i, BLOCK_SIZE_y);
 
     dim3 threads(BLOCK_SIZE_x);
     dim3 blocks(bl_x, bl_y);
 
-    cudaStream_t& stream_handle = LIN_ALG::get_stream_handle(thread_id, stream_id);
+    cudaStream_t stream_handle = dca::linalg::util::getStream(thread_id, stream_id);
 
     compute_G_cols_kernel<<<blocks, threads, 0, stream_handle>>>(
         N_i, N_r, N_c, p_ptr, exp_V_ptr, N_ptr, N_ld, G_ptr, G_ld, G_cols_ptr, G_cols_ld);
@@ -93,12 +93,12 @@ void compute_d_vector(int N_i, int* d_ind, double* d_ptr, int* p_ptr, double* N_
 #endif
 
     int Nr_t = 32;
-    int Nr_b = get_number_of_blocks(N_i, Nr_t);
+    int Nr_b = dca::util::ceilDiv(N_i, Nr_t);
 
     dim3 threads(Nr_t);
     dim3 blocks(Nr_b);
 
-    cudaStream_t& stream_handle = LIN_ALG::get_stream_handle(thread_id, stream_id);
+    cudaStream_t stream_handle = dca::linalg::util::getStream(thread_id, stream_id);
 
     compute_d_vector_kernel<<<blocks, threads, 0, stream_handle>>>(N_i, d_ind, d_ptr, p_ptr, N_ptr,
                                                                    N_ld);

@@ -49,7 +49,7 @@ namespace LIN_ALG
        cuda_check_for_errors_bgn(__FUNCTION__, __FILE__, __LINE__);
 #endif
 
-      cudaStream_t& stream_handle = get_stream_handle(thread_id, stream_id);
+      cudaStream_t stream_handle = dca::linalg::util::getStream(thread_id, stream_id);
 
       cudaError_t ret = cudaMemcpyAsync(target_ptr, source_ptr, sizeof(scalartype)*size, cudaMemcpyHostToDevice, stream_handle);
 
@@ -122,7 +122,7 @@ namespace LIN_ALG
        cuda_check_for_errors_bgn(__FUNCTION__, __FILE__, __LINE__);
 #endif
 
-      cudaStream_t& stream_handle = get_stream_handle(thread_id, stream_id);
+      cudaStream_t stream_handle = dca::linalg::util::getStream(thread_id, stream_id);
 
       cudaError_t ret = cudaMemcpy2DAsync(target_ptr, target_g_s.first*sizeof(scalartype),
 					  source_ptr, source_g_s.first*sizeof(scalartype), source_c_s.first*sizeof(scalartype), source_c_s.second,

@@ -499,6 +499,7 @@ void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::comput
  *    M_{i,j} &=& (e^{V_i}-1) N_{i,j} \nonumber
  *   \f}
  */
+#ifdef DCA_HAVE_CUDA
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::compute_M_v_v(
     std::vector<vertex_singleton_type>& configuration_e_spin,
@@ -525,6 +526,7 @@ void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::comput
 
   LIN_ALG::GEMD<dca::linalg::CPU>::execute(&exp_V_minus_one[0], M, M);
 }
+#endif  // DCA_HAVE_CUDA
 
 /*************************************************************
  **                                                         **

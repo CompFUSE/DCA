@@ -35,13 +35,13 @@ namespace LIN_ALG {
 	  cuda_check_for_errors_bgn(__FUNCTION__, __FILE__, __LINE__);
 #endif
 	  
-	  int grid_x = get_number_of_blocks(m, N_threads);
-	  int grid_y = get_number_of_blocks(n, N_threads);
+	  int grid_x = dca::util::ceilDiv(m, N_threads);
+	  int grid_y = dca::util::ceilDiv(n, N_threads);
 	  
 	  dim3 grid (grid_x, grid_y);
 	  dim3 block(N_threads);
 	  
-	  cudaStream_t& stream_handle = LIN_ALG::get_stream_handle(thread_id, stream_id);
+	  cudaStream_t stream_handle = dca::linalg::util::getStream(thread_id, stream_id);
 
 	  matrix_times_diagonal_kernel<<<grid, block, 0, stream_handle>>>(m, n, M, LDM, D, A, LDA);
 

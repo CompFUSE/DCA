@@ -16,24 +16,13 @@
 #include <utility>
 #include "gtest/gtest.h"
 #include "dca/linalg/matrix.hpp"
-#include "dca/linalg/blas/blas3.hpp"
+#include "dca/linalg/util/handle_functions.hpp"
 #include "cpu_test_util.hpp"
 #include "gpu_test_util.hpp"
 
-#include "../src/comp_library/linalg/basic_cublas_functions.h"
 namespace testing {
-using namespace LIN_ALG;
-
-void initializeHandelAndStreams(int id) {
-  create_cublas_handle(id);
-  create_stream_handle(id);
-
-  link_thread_stream_to_cublas_handle(id, 0);
-}
-
-void destroyHandelAndStreams(int id) {
-  destroy_cublas_handle(id);
-  destroy_stream_handle(id);
+void initializeHandlesAndStreams() {
+  dca::linalg::util::getHandleContainer();
 }
 }
 
@@ -51,7 +40,7 @@ TYPED_TEST_CASE(MatrixopRealGPUTest, FloatingPointTypes);
 TYPED_TEST(MatrixopRealGPUTest, Gemm) {
   using ScalarType = TypeParam;
 
-  testing::initializeHandelAndStreams(0);
+  testing::initializeHandlesAndStreams();
 
   auto val_a = [](int i, int j) { return 3 * i - 2 * j; };
   auto val_b = [](int i, int j) { return 4 * i - 3 * j; };
@@ -197,7 +186,6 @@ TYPED_TEST(MatrixopRealGPUTest, Gemm) {
       }
     }
   }
-  testing::destroyHandelAndStreams(0);
 }
 
 template <typename ComplexType>
@@ -217,7 +205,7 @@ TYPED_TEST_CASE(MatrixopComplexGPUTest, ComplexFloatingPointTypes);
 TYPED_TEST(MatrixopComplexGPUTest, Gemm) {
   using ScalarType = TypeParam;
 
-  testing::initializeHandelAndStreams(0);
+  testing::initializeHandlesAndStreams();
 
   auto val_a = [](int i, int j) { return ScalarType(3 * i - 2 * j, 1 - i * i + j); };
   auto val_b = [](int i, int j) { return ScalarType(i - 2 * j * j, 4 * i - 3 * j); };
@@ -362,14 +350,13 @@ TYPED_TEST(MatrixopComplexGPUTest, Gemm) {
       }
     }
   }
-  testing::destroyHandelAndStreams(0);
 }
 */
 
 TYPED_TEST(MatrixopRealGPUTest, Trsm) {
   using ScalarType = TypeParam;
 
-  testing::initializeHandelAndStreams(0);
+  testing::initializeHandlesAndStreams();
 
   auto val_a = [](int i, int j) { return 1 + 3 * i - 2 * j; };
   auto val_b = [](int i, int j) { return 4 * i - 3 * j; };
@@ -405,7 +392,6 @@ TYPED_TEST(MatrixopRealGPUTest, Trsm) {
         }
     }
   }
-  testing::destroyHandelAndStreams(0);
 }
 
 // TODO: Enable this test when MEMORY_MANAGEMENT if fixed
@@ -413,7 +399,7 @@ TYPED_TEST(MatrixopRealGPUTest, Trsm) {
 TYPED_TEST(MatrixopComplexGPUTest, Trsm) {
   using ScalarType = TypeParam;
 
-  testing::initializeHandelAndStreams(0);
+  testing::initializeHandlesAndStreams();
 
   auto val_a = [](int i, int j) { return ScalarType(3 * i - 2 * j, 1 - i * i + j); };
   auto val_b = [](int i, int j) { return ScalarType(i - 2 * j * j, 4 * i - 3 * j); };
@@ -449,11 +435,10 @@ TYPED_TEST(MatrixopComplexGPUTest, Trsm) {
         }
     }
   }
-  testing::destroyHandelAndStreams(0);
 }
 */
 TEST(MatrixopGPUTest, RemoveRowCol) {
-  testing::initializeHandelAndStreams(0);
+  testing::initializeHandlesAndStreams();
 
   std::pair<int, int> size2(3, 4);
   auto val = [](int i, int j) { return 10 * i + j; };
@@ -522,11 +507,10 @@ TEST(MatrixopGPUTest, RemoveRowCol) {
         EXPECT_EQ(mat(i, j), mat_test(i - 1, j - 1));
     }
   }
-  testing::destroyHandelAndStreams(0);
 }
 
 TEST(MatrixopGPUTest, CopyRow) {
-  testing::initializeHandelAndStreams(0);
+  testing::initializeHandlesAndStreams();
   std::pair<int, int> size2_a(4, 3);
   std::pair<int, int> size2_b(6, 3);
 
@@ -588,11 +572,10 @@ TEST(MatrixopGPUTest, CopyRow) {
           EXPECT_EQ(b(i, j), c(i, j));
     }
   }
-  testing::destroyHandelAndStreams(0);
 }
 
 TEST(MatrixopGPUTest, CopyCol) {
-  testing::initializeHandelAndStreams(0);
+  testing::initializeHandlesAndStreams();
   std::pair<int, int> size2_a(3, 4);
   std::pair<int, int> size2_b(3, 6);
 
@@ -655,11 +638,10 @@ TEST(MatrixopGPUTest, CopyCol) {
           EXPECT_EQ(b(i, j), c(i, j));
     }
   }
-  testing::destroyHandelAndStreams(0);
 }
 
 TEST(MatrixopGPUTest, ScaleRow) {
-  testing::initializeHandelAndStreams(0);
+  testing::initializeHandlesAndStreams();
   const double epsilon = std::numeric_limits<double>::epsilon();
   std::pair<int, int> size2_a(4, 3);
 
@@ -717,11 +699,10 @@ TEST(MatrixopGPUTest, ScaleRow) {
           EXPECT_EQ(a(i, j), c(i, j));
     }
   }
-  testing::destroyHandelAndStreams(0);
 }
 
 TEST(MatrixopGPUTest, ScaleCol) {
-  testing::initializeHandelAndStreams(0);
+  testing::initializeHandlesAndStreams();
   const double epsilon = std::numeric_limits<double>::epsilon();
   std::pair<int, int> size2_a(3, 4);
 
@@ -759,11 +740,10 @@ TEST(MatrixopGPUTest, ScaleCol) {
           EXPECT_EQ(a(i, j), c(i, j));
     }
   }
-  testing::destroyHandelAndStreams(0);
 }
 
 TEST(MatrixopGPUTest, SwapRow) {
-  testing::initializeHandelAndStreams(0);
+  testing::initializeHandlesAndStreams();
   std::pair<int, int> size2_a(6, 3);
 
   dca::linalg::Vector<int, dca::linalg::CPU> i_1(3);
@@ -811,11 +791,10 @@ TEST(MatrixopGPUTest, SwapRow) {
       for (int i = 0; i < a.nrRows(); ++i)
         EXPECT_EQ(a(i, j), c(i, j));
   }
-  testing::destroyHandelAndStreams(0);
 }
 
 TEST(MatrixopGPUTest, SwapCol) {
-  testing::initializeHandelAndStreams(0);
+  testing::initializeHandlesAndStreams();
   std::pair<int, int> size2_a(3, 6);
 
   dca::linalg::Vector<int, dca::linalg::CPU> j_1(3);
@@ -863,7 +842,6 @@ TEST(MatrixopGPUTest, SwapCol) {
       for (int i = 0; i < a.nrRows(); ++i)
         EXPECT_EQ(a(i, j), c(i, j));
   }
-  testing::destroyHandelAndStreams(0);
 }
 
 TEST(MatrixopGPUTest, Difference) {

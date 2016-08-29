@@ -16,7 +16,4 @@
 
 constexpr dca::linalg::DeviceType walker_device = dca::linalg::GPU;
 
-void print_device_info();
-void initialize_magma();
-
 #endif  // DCA_CONFIG_WALKER_DEVICE_HPP
