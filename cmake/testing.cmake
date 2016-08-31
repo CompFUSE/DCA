@@ -33,7 +33,7 @@ function(add_gtest)
 
   # Create macro with project source dir. We use this as the root path for reading files in tests.
   target_compile_definitions(${ADD_GTEST_NAME} PRIVATE DCA_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\")
-  
+
   if (ADD_GTEST_GTEST_MAIN)
     # Use gtest main.
     target_link_libraries(${ADD_GTEST_NAME} gtest_main "${ADD_GTEST_LIBS}")
@@ -57,7 +57,7 @@ function(add_gtest)
       # message("MPI_NUMPROC not specified. Setting it to 4.")
       set(ADD_GTEST_MPI_NUMPROC 4)
     endif()
-    
+
     add_test(
       NAME    ${ADD_GTEST_NAME}
       COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${ADD_GTEST_MPI_NUMPROC} ${MPIEXEC_PREFLAGS} "$<TARGET_FILE:${ADD_GTEST_NAME}>")
@@ -77,10 +77,10 @@ if (DCA_TESTS)
   enable_testing()
 
   add_subdirectory(${gtest_DIR} ${PROJECT_BINARY_DIR}/gtest)
-  
+
   target_compile_options(gtest      PRIVATE "-w")
   target_compile_options(gtest_main PRIVATE "-w")
-  
+
   include_directories(${gtest_SOURCE_DIR}/include)
 
   add_subdirectory(${PROJECT_SOURCE_DIR}/applications/analysis/test)

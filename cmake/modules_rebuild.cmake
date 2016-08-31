@@ -20,22 +20,22 @@ string(REPLACE "\n" "\\n" MODULE_LIST "${MODULE_LIST}")
 
 if (EXISTS "${SCRIPT_BIN_DIR}/src/util/module_list.txt")
   file(READ "${SCRIPT_BIN_DIR}/src/util/module_list.txt" module_list_txt)
-  
+
   if (NOT (err STREQUAL module_list_txt))
     file(WRITE "${SCRIPT_BIN_DIR}/src/util/module_list.txt" "${err}")
     configure_file("${SCRIPT_SRC_DIR}/src/util/modules.cpp.in" "${SCRIPT_BIN_DIR}/src/util/modules.cpp" @ONLY)
-  
+
     # Execute 'make clean'.
     execute_process(
       COMMAND make clean
       WORKING_DIRECTORY "${SCRIPT_BIN_DIR}")  # .../build
   endif()
-  
+
 else()
   file(WRITE "${SCRIPT_BIN_DIR}/modules/module_list.txt" "${err}")
   configure_file("${SCRIPT_SRC_DIR}/src/util/modules.cpp.in" "${SCRIPT_BIN_DIR}/src/util/modules.cpp" @ONLY)
-  
+
   execute_process(
     COMMAND make clean
-    WORKING_DIRECTORY "${SCRIPT_BIN_DIR}")  
+    WORKING_DIRECTORY "${SCRIPT_BIN_DIR}")
 endif()

@@ -43,7 +43,7 @@ if (DCA_WITH_CUDA)
   # Copy walker device config file for GPU.
   configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/walker_device_gpu.hpp"
     "${CMAKE_BINARY_DIR}/include/dca/config/walker_device.hpp")
-  
+
 else()
   # Copy walker device config file for CPU.
   configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/walker_device_cpu.hpp"
@@ -175,7 +175,7 @@ elseif (DCA_RNG STREQUAL "Ranq2")
   set(DCA_RNG_INCLUDE "dca/math/random/ranq2.hpp")
 
 else()
-  message(FATAL_ERROR "Please set DCA_RNG to a valid option: std::ranlux48_base | std::ranlux48 | 
+  message(FATAL_ERROR "Please set DCA_RNG to a valid option: std::ranlux48_base | std::ranlux48 |
                        std::mt19937_64 | SPRNG_LFG | SPRNG_MLFG | Ranq2.")
 endif()
 

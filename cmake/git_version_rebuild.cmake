@@ -48,7 +48,7 @@ set(GIT_STATUS "${out}")
 string(REPLACE "\n" "\\n" GIT_STATUS "${GIT_STATUS}")
 
 if(GIT_STATUS)
-  message(WARNING "Working tree is dirty. Run git status for details.")  
+  message(WARNING "Working tree is dirty. Run git status for details.")
 endif()
 
 set(STATUS_CHANGED FALSE)

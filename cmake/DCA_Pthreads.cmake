@@ -1,6 +1,6 @@
 ################################################################################
 # Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
-# 
+#
 # Checks for Pthreads and accordingly sets DCA_HAVE_PTHREADS.
 
 set(DCA_HAVE_PTHREADS FALSE CACHE INTERNAL "")

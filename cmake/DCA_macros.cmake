@@ -41,16 +41,16 @@ endfunction()
 # definitions'.
 function(dca_write_config_definitions_file)
   get_property(DCA_CONFIG_DEFINITIONS_VAR GLOBAL PROPERTY DCA_CONFIG_DEFINITIONS)
-  
+
   list(SORT DCA_CONFIG_DEFINITIONS_VAR)
   list(REMOVE_DUPLICATES DCA_CONFIG_DEFINITIONS_VAR)
   list(REMOVE_ITEM DCA_CONFIG_DEFINITIONS_VAR "")
-  
+
   set(dca_config_defines "")
   foreach(def ${DCA_CONFIG_DEFINITIONS_VAR})
     set(dca_config_defines "${dca_config_defines}#define ${def} ${${def}_define}\n")
   endforeach()
-  
+
   configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/config_defines.hpp.in"
     "${CMAKE_BINARY_DIR}/include/dca/config/config_defines.hpp"
     @ONLY)
@@ -61,16 +61,16 @@ endfunction()
 # definitions'.
 function(dca_write_haves_definitions_file)
   get_property(DCA_HAVES_DEFINITIONS_VAR GLOBAL PROPERTY DCA_HAVES_DEFINITIONS)
-  
+
   list(SORT DCA_HAVES_DEFINITIONS_VAR)
   list(REMOVE_DUPLICATES DCA_HAVES_DEFINITIONS_VAR)
   list(REMOVE_ITEM DCA_HAVES_DEFINITIONS_VAR "")
-  
+
   set(dca_haves_defines "")
   foreach(def ${DCA_HAVES_DEFINITIONS_VAR})
     set(dca_haves_defines "${dca_haves_defines}#define ${def} ${${def}_define}\n")
   endforeach()
-  
+
   configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/haves_defines.hpp.in"
     "${CMAKE_BINARY_DIR}/include/dca/config/haves_defines.hpp"
     @ONLY)
