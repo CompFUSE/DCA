@@ -11,21 +11,15 @@
 // Main file for the DCA(+) analysis.
 // Usage: ./main_analysis input_file.json
 
-#include "dca/config/defines.hpp"
-
 #include <iostream>
 #include <string>
 
-#include "tight_binding_on_2D_square_lattice.hpp"
-#include "dca/concurrency/concurrency.hpp"
+// Defines Concurrency, ParametersType, DcaData, and BseSolver.
+#include "dca/config/analysis.hpp"
+
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 #include "comp_library/IO_library/JSON/JSON.hpp"
-#include "phys_library/DCA+_analysis/BSE_solver/BSE_solver.h"
-#include "phys_library/DCA+_data/DCA_data.h"
-#include "phys_library/parameters/Parameters.h"
-
-using namespace DCA;  // TODO: Remove when all namespaces are fixed.
 
 int main(int argc, char** argv) {
   if (argc < 2) {
@@ -33,21 +27,13 @@ int main(int argc, char** argv) {
     return -1;
   }
 
-  std::string input_file_name(argv[1]);
+  std::string input_file(argv[1]);
 
-  // Configure the DCA(+) calculation by selecting type definitions.
-  using ConcurrencyType = dca::concurrency::parallelization<@DCA_PARALLELIZATION_LIBRARY_TYPE@>;
-  // CT_AUX_CLUSTER_SOLVER is just a dummy variable when running the analysis.
-  using ParametersType =
-      Parameters<ConcurrencyType, ModelType, void /*RandomNumberGenerator*/, CT_AUX_CLUSTER_SOLVER>;
-  using DcaDataType = DCA_data<ParametersType>;
-
-  // Set up the parallelization.
-  ConcurrencyType concurrency(argc, argv);
+  Concurrency concurrency(argc, argv);
 
   // Print some info.
   if (concurrency.id() == concurrency.first()) {
-    std::cout << "\nAnalysis starting.\n"
+    std::cout << "\nDCA(+) analysis starting.\n"
               << "MPI-world set up: " << concurrency.number_of_processors() << " processes.\n"
               << std::endl;
 
@@ -57,19 +43,18 @@ int main(int argc, char** argv) {
 
   // Create the parameters object from the input file.
   ParametersType parameters(dca::util::GitVersion::string(), concurrency);
-  parameters.read_input_and_broadcast<IO::reader<IO::JSON>>(input_file_name);
+  parameters.read_input_and_broadcast<IO::reader<IO::JSON>>(input_file);
   parameters.update_model();
   parameters.update_domains();
 
-  // Create and initialize the DCA_data object and read the dca output.
-  DcaDataType dca_data(parameters);
+  // Create and initialize the DCA data object and read the output of the DCA(+) calculation.
+  DcaData dca_data(parameters);
   dca_data.initialize();
   dca_data.read(parameters.get_directory() + parameters.get_output_file_name());
 
   // Compute the susceptibility.
   if (parameters.get_vertex_measurement_type() != NONE) {
-    BSE_solver<ParametersType, DcaDataType> analysis_obj(parameters, dca_data);
-
+    BseSolver analysis_obj(parameters, dca_data);
     analysis_obj.calculate_susceptibilities_2();
 
     if (concurrency.id() == concurrency.last()) {
@@ -79,7 +64,7 @@ int main(int argc, char** argv) {
   }
 
   if (concurrency.id() == concurrency.last())
-    std::cout << "\nAnalysis ending.\n" << std::endl;
+    std::cout << "\nDCA(+) analysis ending.\n" << std::endl;
 
   return 0;
 }

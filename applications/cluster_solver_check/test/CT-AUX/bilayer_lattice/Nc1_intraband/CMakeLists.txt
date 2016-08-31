@@ -4,7 +4,9 @@
 ################################################################################
 
 add_gtest(NAME bilayer_lattice_Nc1_intraband
-          ADVANCED
-          MPI MPI_NUMPROC 8
-          INCLUDES ${DCA_INCLUDES}
-          LIBS ${DCA_LIBRARIES})
+  ADVANCED
+  MPI MPI_NUMPROC 8
+  INCLUDES ${DCA_INCLUDES}
+  LIBS ${DCA_LIBRARIES})
+
+target_compile_definitions(bilayer_lattice_Nc1_intraband PRIVATE DCA_WITH_REDUCED_VERTEX_FUNCTION)

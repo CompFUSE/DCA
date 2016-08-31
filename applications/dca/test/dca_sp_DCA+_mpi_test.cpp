@@ -7,19 +7,15 @@
 //
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// Integration test for a concurrent (using MPI) DCA+ calculation using the CT-AUX cluster solver.
+// No-change test for a concurrent (using MPI) DCA+ calculation using the CT-AUX cluster solver.
 // It runs a simulation of a tight-binding model on 2D square lattice.
-
-#include "dca/config/defines.hpp"
-#ifndef DCA_HAVE_MPI
-#error MPI must be supported for the dca_DCA+_mpi_test.
-#endif  // DCA_HAVE_MPI
 
 #include <iostream>
 #include <string>
 
 #include "gtest/gtest.h"
 
+#include "dca/config/haves_defines.hpp"
 #include "dca/math/random/random.hpp"
 #include "dca/testing/dca_mpi_test_environment.hpp"
 #include "dca/testing/minimalist_printer.hpp"
@@ -28,6 +24,7 @@
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/IO_library/HDF5/HDF5.hpp"
 #include "comp_library/IO_library/JSON/JSON.hpp"
+#include "comp_library/profiler_library/profilers/null_profiler.hpp"
 #include "phys_library/DCA+_data/DCA_data.h"
 #include "phys_library/DCA+_loop/DCA_loop.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_cluster_solver.h"
@@ -49,8 +46,9 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
   using DcaPointGroupType = D4;
   using LatticeType = square_lattice<DcaPointGroupType>;
   using ModelType = tight_binding_model<LatticeType>;
-  using ParametersType = Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, ModelType,
-                                    RngType, CT_AUX_CLUSTER_SOLVER>;
+  using ParametersType =
+      Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, PROFILER::NullProfiler,
+                 ModelType, RngType, CT_AUX_CLUSTER_SOLVER>;
   using DcaDataType = DCA_data<ParametersType>;
   using ClusterSolverType =
       cluster_solver<CT_AUX_CLUSTER_SOLVER, LIN_ALG::CPU, ParametersType, DcaDataType>;
@@ -93,8 +91,7 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
     // Read self-energy from check_data file.
     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> Sigma_check("Self_Energy");
     IO::reader<IO::HDF5> reader;
-    reader.open_file(DCA_SOURCE_DIRECTORY
-                     "/applications/dca/test/check_data.dca_sp_DCA+_mpi_test.hdf5");
+    reader.open_file(DCA_SOURCE_DIR "/applications/dca/test/check_data.dca_sp_DCA+_mpi_test.hdf5");
     reader.open_group("functions");
     reader.execute(Sigma_check);
     reader.close_file();
@@ -128,7 +125,7 @@ int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
   dca_test_env = new dca::testing::DcaMpiTestEnvironment(
-      argc, argv, DCA_SOURCE_DIRECTORY "/applications/dca/test/input.dca_sp_DCA+_mpi_test.json");
+      argc, argv, DCA_SOURCE_DIR "/applications/dca/test/input.dca_sp_DCA+_mpi_test.json");
   ::testing::AddGlobalTestEnvironment(dca_test_env);
 
   ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();

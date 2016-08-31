@@ -7,19 +7,15 @@
 //
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// Integration test for a concurrent (using MPI) DCA+ analysis calculation.
+// No-change test for a concurrent (using MPI) DCA+ analysis calculation.
 // It runs a simulation of a tight-binding model on 2D square lattice.
-
-#include "dca/config/defines.hpp"
-#ifndef DCA_HAVE_MPI
-#error MPI must be supported for the analysis_DCA+_mpi_test.
-#endif  // DCA_HAVE_MPI
 
 #include <string>
 #include <iostream>
 
 #include "gtest/gtest.h"
 
+#include "dca/config/haves_defines.hpp"
 #include "dca/testing/dca_mpi_test_environment.hpp"
 #include "dca/testing/minimalist_printer.hpp"
 #include "dca/util/git_version.hpp"
@@ -27,6 +23,7 @@
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/IO_library/HDF5/HDF5.hpp"
 #include "comp_library/IO_library/JSON/JSON.hpp"
+#include "comp_library/profiler_library/profilers/null_profiler.hpp"
 #include "phys_library/DCA+_analysis/BSE_solver/BSE_solver.h"
 #include "phys_library/DCA+_data/DCA_data.h"
 #include "phys_library/domains/cluster/symmetries/point_groups/2D/2D_square.h"
@@ -36,18 +33,15 @@
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
-namespace dca {
-namespace testing {
-// dca::testing::
-
 using namespace DCA;
 
 TEST(analysis_DCAplus_mpi, leading_eigenvalues) {
   using DcaPointGroupType = D4;
   using LatticeType = square_lattice<DcaPointGroupType>;
   using ModelType = tight_binding_model<LatticeType>;
-  using ParametersType = Parameters<DcaMpiTestEnvironment::ConcurrencyType, ModelType,
-                                    void /*RngType*/, CT_AUX_CLUSTER_SOLVER>;
+  using ParametersType =
+      Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, PROFILER::NullProfiler,
+                 ModelType, void /*RngType*/, CT_AUX_CLUSTER_SOLVER>;
   using DcaDataType = DCA_data<ParametersType>;
 
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
@@ -86,7 +80,7 @@ TEST(analysis_DCAplus_mpi, leading_eigenvalues) {
     FUNC_LIB::function<std::complex<double>, lambda_dmn_type> leading_eigenvalues_check(
         "leading-eigenvalues");
     IO::reader<IO::HDF5> reader;
-    reader.open_file(DCA_SOURCE_DIRECTORY
+    reader.open_file(DCA_SOURCE_DIR
                      "/applications/analysis/test/check_data.analysis_DCA+_mpi_test.hdf5");
     reader.open_group("analysis-functions");
     reader.execute(leading_eigenvalues_check);
@@ -107,17 +101,13 @@ TEST(analysis_DCAplus_mpi, leading_eigenvalues) {
   }
 }
 
-}  // testing
-}  // dca
-
 int main(int argc, char** argv) {
   int result = 0;
 
   ::testing::InitGoogleTest(&argc, argv);
 
   dca_test_env = new dca::testing::DcaMpiTestEnvironment(
-      argc, argv,
-      DCA_SOURCE_DIRECTORY "/applications/analysis/test/input.analysis_DCA+_mpi_test.json");
+      argc, argv, DCA_SOURCE_DIR "/applications/analysis/test/input.analysis_DCA+_mpi_test.json");
   ::testing::AddGlobalTestEnvironment(dca_test_env);
 
   ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
