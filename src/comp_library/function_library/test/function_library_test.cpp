@@ -17,7 +17,6 @@
 #include <iomanip>
 #include <cstdio>
 //
-#include "dca/config/defines.hpp"
 #include "dca/util/type_utils.hpp"
 #include "dca/util/type_list.hpp"
 //
@@ -305,7 +304,7 @@ TEST(Function, FingerPrint)
     test::function_4a.print_fingerprint(result);
     test::function_16.print_fingerprint(result);
     //
-    EXPECT_TRUE(compare_to_file(DCA_SOURCE_DIRECTORY "/src/comp_library/function_library/test/fingerprint.txt", result.str()));
+    EXPECT_TRUE(compare_to_file(DCA_SOURCE_DIR "/src/comp_library/function_library/test/fingerprint.txt", result.str()));
 }
 
 //----------------------------------------------------------------------------
@@ -324,12 +323,5 @@ TEST(Function, to_JSON)
     dca::util::print_type<test::test_domain_4a::this_type>::to_JSON(result); result << "\n";
     dca::util::print_type<test::test_domain_16::this_type>::to_JSON(result); result << "\n";
     //
-    EXPECT_TRUE(compare_to_file(DCA_SOURCE_DIRECTORY "/src/comp_library/function_library/test/json.txt", result.str()));
-}
-
-//----------------------------------------------------------------------------
-int main(int ac, char* av[])
-{
-    testing::InitGoogleTest(&ac, av);
-    return RUN_ALL_TESTS();
+    EXPECT_TRUE(compare_to_file(DCA_SOURCE_DIR "/src/comp_library/function_library/test/json.txt", result.str()));
 }
