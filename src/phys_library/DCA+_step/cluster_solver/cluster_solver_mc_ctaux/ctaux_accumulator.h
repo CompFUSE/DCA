@@ -357,9 +357,9 @@ template <typename Writer>
 void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::write(Writer& writer) {
 //       writer.open_group("CT-AUX-SOLVER-functions");
 
-#ifdef QMC_INTEGRATOR_BIT
+#ifdef DCA_WITH_QMC_BIT
   writer.execute(error);
-#endif  // QMC_INTEGRATOR_BIT
+#endif  // DCA_WITH_QMC_BIT
 
   writer.execute(visited_expansion_order_k);
 
@@ -404,10 +404,10 @@ void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::update
       visited_expansion_order_k(k) += 1.;
   }
 
-#ifdef QMC_INTEGRATOR_BIT
+#ifdef DCA_WITH_QMC_BIT
   error += walker.get_error_distribution();
   walker.get_error_distribution() = 0;
-#endif  // QMC_INTEGRATOR_BIT
+#endif  // DCA_WITH_QMC_BIT
 
   HS_configuration_e_DN.resize(full_configuration.get(e_DN).size());
   copy(full_configuration.get(e_DN).begin(), full_configuration.get(e_DN).end(),
