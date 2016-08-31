@@ -160,7 +160,7 @@ void G_TOOLS<device_t, parameters_type>::build_G_matrix(configuration_type& full
 #ifdef DCA_WITH_AUTOTUNING
     std::stringstream ss;
     ss << "GEMM_1_" << int(m / 16) * 16 + 8 << "_" << int(k / 16) * 16 + 8 << "_" << n;
-    profiler_t profiler_2(concurrency, ss.str().c_str(), __FILE__, __LINE__);
+    profiler_t profiler_2(ss.str().c_str(), __FILE__, __LINE__);
 #endif  // DCA_WITH_AUTOTUNING
 
     dca::linalg::UseDevice<device_t>::gemm("N", "N", m, n, k, 1., N.get_ptr(0, 0), LD_N,
