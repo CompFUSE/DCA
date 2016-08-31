@@ -9,12 +9,11 @@
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // This is a CMake generated header file.
-// It contains various definitions to configure the applications according to the options set in
-// CMake.
+// It contains preprocessor definitions about the availability of libraries.
 
-#ifndef DCA_CONFIG_DEFINES_HPP
-#define DCA_CONFIG_DEFINES_HPP
+#ifndef DCA_CONFIG_HAVES_DEFINES_HPP
+#define DCA_CONFIG_HAVES_DEFINES_HPP
 
-@dca_config_defines@
+@dca_haves_defines@
 
-#endif  // DCA_CONFIG_DEFINES_HPP
+#endif  // DCA_CONFIG_HAVES_DEFINES_HPP
