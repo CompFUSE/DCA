@@ -24,7 +24,6 @@
 #include "phys_library/parameters/parameters_specialization/templates/function_parameters.h"
 #include "phys_library/parameters/parameters_specialization/templates/model_parameters.h"
 #include "phys_library/parameters/parameters_specialization/templates/physics_parameters.h"
-#include "phys_library/parameters/parameters_specialization/templates/profiling_parameters.h"
 #include "phys_library/parameters/parameters_specialization/templates/vertex_parameters.hpp"
 
 #endif  // PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_TEMPLATES_TEMPLATES_HPP
