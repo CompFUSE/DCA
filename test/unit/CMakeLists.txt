@@ -1,5 +1,6 @@
 add_subdirectory(concurrency)
 add_subdirectory(function/domains)
+add_subdirectory(linalg)
 add_subdirectory(math/geometry/gaussian_quadrature)
 add_subdirectory(math/random)
 add_subdirectory(phys_library/DCA_step/cluster_solver/posix_qmci)
