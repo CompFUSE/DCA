@@ -1,3 +1,4 @@
+################################################################################
 # Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 #
 # This cmake script is executed every time 'make' is executed. It checks the last git log
@@ -68,5 +69,6 @@ endif()
 
 # Reconfigure git_version.cpp if something has changed.
 if (LOG_CHANGED OR STATUS_CHANGED)
-  configure_file("${SCRIPT_SRC_DIR}/src/util/git_version.cpp.in" "${SCRIPT_BIN_DIR}/src/util/git_version.cpp" @ONLY)
+  configure_file("${SCRIPT_SRC_DIR}/src/util/git_version.cpp.in"
+    "${SCRIPT_BIN_DIR}/src/util/git_version.cpp" @ONLY)
 endif()

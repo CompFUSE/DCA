@@ -1,11 +1,20 @@
 ################################################################################
-# initializa a global variable to empty 'definitions' string
-################################################################################
-set_property(GLOBAL PROPERTY DCA_CONFIG_DEFINITIONS "")
+# Author: John Biddiscombe (john.biddiscombe@cscs.ch)
+#         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+#
+# Contains global variables with lists of preprocessor definitions.
+# DCA_CONFIG_DEFINITIONS holds preprocessor definitions to configure the applications, e.g.
+# DCA_WITH_CT_AUX.
+# DCA_HAVES_DEFINITIONS holds preprocessor defintions about availability of certain libraries, e.g.
+# MPI or Pthreads.
 
 ################################################################################
-# function to add a definition to the global 'definitions' string
+# Initialize global variables to empty strings.
+set_property(GLOBAL PROPERTY DCA_CONFIG_DEFINITIONS "")
+set_property(GLOBAL PROPERTY DCA_HAVES_DEFINITIONS "")
+
 ################################################################################
+# Adds a definition to the global 'config definitions' string.
 function(dca_add_config_define definition)
   if(ARGN)
     set_property(GLOBAL APPEND PROPERTY DCA_CONFIG_DEFINITIONS "${definition} ${ARGN}")
@@ -18,29 +27,51 @@ function(dca_add_config_define definition)
 endfunction()
 
 ################################################################################
-# Configure the header to include all compile definitions
+# Adds a definition to the global 'have definitions' string.
+function(dca_add_haves_define definition)
+  if(ARGN)
+    set_property(GLOBAL APPEND PROPERTY DCA_HAVES_DEFINITIONS "${definition} ${ARGN}")
+  else()
+    set_property(GLOBAL APPEND PROPERTY DCA_HAVES_DEFINITIONS "${definition}")
+  endif()
+endfunction()
+
 ################################################################################
-function(write_global_definitions_file filename)
+# Generates in the build directory the config_defines.hpp that contains all 'config preprocessor
+# definitions'.
+function(dca_write_config_definitions_file)
   get_property(DCA_CONFIG_DEFINITIONS_VAR GLOBAL PROPERTY DCA_CONFIG_DEFINITIONS)
   
   list(SORT DCA_CONFIG_DEFINITIONS_VAR)
   list(REMOVE_DUPLICATES DCA_CONFIG_DEFINITIONS_VAR)
   list(REMOVE_ITEM DCA_CONFIG_DEFINITIONS_VAR "")
-
-  set(dca_config_defines "// Generated from CMake definitions\n\n")
+  
+  set(dca_config_defines "")
   foreach(def ${DCA_CONFIG_DEFINITIONS_VAR})
     set(dca_config_defines "${dca_config_defines}#define ${def} ${${def}_define}\n")
   endforeach()
+  
+  configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/config_defines.hpp.in"
+    "${CMAKE_BINARY_DIR}/include/dca/config/config_defines.hpp"
+    @ONLY)
+endfunction()
 
-  # Generate a defines.hpp to be used in the build directory ...
-  set(DCA_DEFINES_PREFIX ${DCA_BUILD_PREFIX})
-  configure_file("${PROJECT_SOURCE_DIR}/cmake/templates/config_defines.hpp.in"
-                 "${PROJECT_BINARY_DIR}/${filename}"
-                 @ONLY)
-
-  # Generate a defines.hpp to be used in the install directory ...
-  set(DCA_DEFINES_PREFIX ${DCA_PREFIX})
-  configure_file("${PROJECT_SOURCE_DIR}/cmake/templates/config_defines.hpp.in"
-                 "${PROJECT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/${filename}"
-                 @ONLY)
+################################################################################
+# Generates in the build directory the haves_defines.hpp that contains all 'haves preprocessor
+# definitions'.
+function(dca_write_haves_definitions_file)
+  get_property(DCA_HAVES_DEFINITIONS_VAR GLOBAL PROPERTY DCA_HAVES_DEFINITIONS)
+  
+  list(SORT DCA_HAVES_DEFINITIONS_VAR)
+  list(REMOVE_DUPLICATES DCA_HAVES_DEFINITIONS_VAR)
+  list(REMOVE_ITEM DCA_HAVES_DEFINITIONS_VAR "")
+  
+  set(dca_haves_defines "")
+  foreach(def ${DCA_HAVES_DEFINITIONS_VAR})
+    set(dca_haves_defines "${dca_haves_defines}#define ${def} ${${def}_define}\n")
+  endforeach()
+  
+  configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/haves_defines.hpp.in"
+    "${CMAKE_BINARY_DIR}/include/dca/config/haves_defines.hpp"
+    @ONLY)
 endfunction()

@@ -1,3 +1,4 @@
+################################################################################
 # Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 #
 # Defines functions to get the git log (git log -1) and the git status

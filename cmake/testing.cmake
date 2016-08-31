@@ -1,8 +1,10 @@
 ################################################################################
-# Description.
+# Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 #
+# Enables testing.
 # References: - https://github.com/ALPSCore/ALPSCore
-################################################################################
+#
+# TODO: Check this file.
 
 include(CMakeParseArguments)
 
@@ -28,6 +30,9 @@ function(add_gtest)
   endif()
 
   add_executable(${ADD_GTEST_NAME} ${ADD_GTEST_NAME}.cpp "${ADD_GTEST_SOURCES}")
+
+  # Create macro with project source dir. We use this as the root path for reading files in tests.
+  target_compile_definitions(${ADD_GTEST_NAME} PRIVATE DCA_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\")
   
   if (ADD_GTEST_GTEST_MAIN)
     # Use gtest main.
@@ -55,7 +60,7 @@ function(add_gtest)
     
     add_test(
       NAME    ${ADD_GTEST_NAME}
-      COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${ADD_GTEST_MPI_NUMPROC} ${MPIEXEC_PREFLAGS} "$<TARGET_FILE:${ADD_GTEST_NAME}>" ${MPIEXEC_POSTFLAGS})
+      COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${ADD_GTEST_MPI_NUMPROC} ${MPIEXEC_PREFLAGS} "$<TARGET_FILE:${ADD_GTEST_NAME}>")
 
   else()
     add_test(
@@ -78,5 +83,10 @@ if (DCA_TESTS)
   
   include_directories(${gtest_SOURCE_DIR}/include)
 
+  add_subdirectory(${PROJECT_SOURCE_DIR}/applications/analysis/test)
+  add_subdirectory(${PROJECT_SOURCE_DIR}/applications/cluster_solver_check/test)
+  add_subdirectory(${PROJECT_SOURCE_DIR}/applications/dca/test)
   add_subdirectory(${PROJECT_SOURCE_DIR}/test)
+  add_subdirectory(${PROJECT_SOURCE_DIR}/src/comp_library/function_library/test)
+  add_subdirectory(${PROJECT_SOURCE_DIR}/src/math_library/geometry_library/vector_operations)
 endif()

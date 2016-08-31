@@ -1,3 +1,4 @@
+################################################################################
 # Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 #
 # This cmake script is executed every time 'make' is executed. It checks the list of currently

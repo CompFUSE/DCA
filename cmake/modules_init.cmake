@@ -1,3 +1,4 @@
+################################################################################
 # Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 #
 # Defines a function to get a list of the currently loaded modules (module list).
