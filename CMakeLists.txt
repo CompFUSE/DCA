@@ -22,13 +22,13 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 ################################################################################
 # Load global variables to store preprocessor definitions.
-include(DCA_macros)
+include(dca_defines)
 
 ################################################################################
 # Check for CXX features that might not be supported.
 # If any of these features are not supported by the compiler, then the DCA++ project will not
 # compile.
-include(DCA_cmake_features)  # for dca_check_cxx_features
+include(dca_cmake_utils)  # for dca_check_cxx_features
 
 dca_check_cxx_features(
   cxx_alias_templates
@@ -54,19 +54,19 @@ dca_check_cxx_features(
 # Check for libraries and accordingly set DCA_HAVE_XXX variables.
 
 # SPRNG
-include(DCA_SPRNG)
+include(dca_sprng)
 
 # Gnuplot
-include(DCA_Gnuplot)
+include(dca_gnuplot)
 
 # MPI
-include(DCA_MPI)
+include(dca_mpi)
 
 # Pthreads
-include(DCA_Pthreads)
+include(dca_pthreads)
 
 # CUDA
-include(DCA_CUDA)
+include(dca_cuda)
 
 ################################################################################
 # Include dirs
@@ -84,7 +84,7 @@ include_directories(${CMAKE_BINARY_DIR}/include)
 
 ################################################################################
 # Modules: for reproducibility
-include(modules_init)
+include(dca_modules/init)
 
 get_module_list(MODULE_LIST)
 
@@ -93,7 +93,7 @@ configure_file("${PROJECT_SOURCE_DIR}/src/util/modules.cpp.in"
 
 ################################################################################
 # Git Version: for reproducibility
-include(git_version_init)
+include(dca_git_version/init)
 
 get_git_log(GIT_LOG)        # Executes 'git log -1'.
 get_git_status(GIT_STATUS)  # Executes 'git status --porcelain'.
@@ -106,22 +106,17 @@ configure_file("${PROJECT_SOURCE_DIR}/src/util/git_version.cpp.in"
   "${PROJECT_BINARY_DIR}/src/util/git_version.cpp" @ONLY)
 
 ################################################################################
-# DCA++ build options
-include(DCA_build_options)
+# Configure DCA++'s applications
+include(dca_config)
 
 ################################################################################
 # Compiler options and tweaks
 # Depends on DCA_build_options.
-include(DCA_compiler_options)
+include(dca_compiler_options)
 
 ################################################################################
 # External libraries
-include(DCA_external_libs)
-
-################################################################################
-# Common definitions
-# Depends on DCA_external_libs.
-include(DCA_definitions)
+include(dca_external_libs)
 
 ################################################################################
 # Generate preprocessor definitions header files.
@@ -132,10 +127,6 @@ dca_write_haves_definitions_file()
 install(DIRECTORY ${CMAKE_BINARY_DIR}/include/dca/config DESTINATION include/dca)
 
 ################################################################################
-# Testing
-include(testing)
-
-################################################################################
 # Internal libraries
 # TODO: When the number of 'internal' libraries grows, we might want to combine these into a few big
 #       libraries; e.g. one for math, phys, etc.
@@ -143,6 +134,35 @@ add_subdirectory(src/math/geometry/gaussian_quadrature)
 add_subdirectory(src/math/random)
 add_subdirectory(src/phys_library/DCA_step/cluster_solver/posix_qmci)
 add_subdirectory(src/util)
+
+################################################################################
+# Common definitions for building DCA++ applications and tests.
+# Libraries
+set(DCA_LIBRARIES ${DCA_EXTERNAL_LIBS} git_version modules posix_qmci gaussian_quadrature random)
+
+# Includes
+set(DCA_INCLUDES ${DCA_EXTERNAL_INCLUDES})
+
+################################################################################
+# Testing
+option(DCA_WITH_TESTS_FAST "Build DCA++'s fast tests." OFF)
+option(DCA_WITH_TESTS_EXTENSIVE "Build DCA++'s extensive tests." OFF)
+option(DCA_WITH_TESTS_PERFORMANCE "Build DCA++'s performance tests." OFF)
+
+if (DCA_WITH_TESTS_FAST OR DCA_WITH_TESTS_EXTENSIVE OR DCA_WITH_TESTS_PERFORMANCE)
+  include(dca_testing)
+
+  enable_testing()
+
+  add_subdirectory(${gtest_DIR} ${PROJECT_BINARY_DIR}/gtest)
+
+  add_subdirectory(${PROJECT_SOURCE_DIR}/applications/analysis/test)
+  add_subdirectory(${PROJECT_SOURCE_DIR}/applications/cluster_solver_check/test)
+  add_subdirectory(${PROJECT_SOURCE_DIR}/applications/dca/test)
+  add_subdirectory(${PROJECT_SOURCE_DIR}/test)
+  add_subdirectory(${PROJECT_SOURCE_DIR}/src/comp_library/function_library/test)
+  add_subdirectory(${PROJECT_SOURCE_DIR}/src/math_library/geometry_library/vector_operations)
+endif()
 
 ################################################################################
 # Build applications.
