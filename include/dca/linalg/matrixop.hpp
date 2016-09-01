@@ -9,6 +9,7 @@
 //         Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //
 // This file provides the matrix interface for the following matrix operations:
+// - copyCol, copyRow, copyCols, copyRows
 // - insertCol, insertRow (for CPU matrices only)
 // - removeCol, removeRow, removeRowAndCol
 // - scaleCol, scaleRow, scaleRows
@@ -31,6 +32,93 @@ namespace dca {
 namespace linalg {
 namespace matrixop {
 // dca::linalg::matrixop::
+
+// Copies the jx-th column of mat_x to the jy-th column of mat_y.
+// In/Out: mat_y
+// Preconditions: mat_x.nrRows() == mat_y.nrRows(),
+//                0 <= jx < mat_x.nrCols(), 0 <= jy < mat_y.nrCols().
+template <typename ScalarType, DeviceType device_name>
+inline void copyCol(const Matrix<ScalarType, device_name>& mat_x, int jx,
+                    Matrix<ScalarType, device_name>& mat_y, int jy, int thread_id = 0,
+                    int stream_id = 0) {
+  assert(jx >= 0 && jx < mat_x.nrCols());
+  assert(jy >= 0 && jy < mat_y.nrCols());
+  assert(mat_x.nrRows() == mat_y.nrRows());
+
+  blas::UseDevice<device_name>::copy(mat_x.nrRows(), mat_x.ptr(0, jx), 1, mat_y.ptr(0, jy), 1,
+                                     thread_id, stream_id);
+}
+
+// Copies the j_x[i]-th column of mat_x to the j_y[i]-th column of mat_y, for 0 <= i < j_x.size().
+// In/Out: mat_y
+// Preconditions: j_x.size() <= j_y.size(), mat_x.nrRows() == mat_y.nrRows()
+//                0 <= j_x[i] < mat_x.nrCols() for 0 <= i < j_x.size(),
+//                0 <= j_y[i] < mat_y.nrCols() for 0 <= i < j_x.size().
+template <typename ScalarType>
+inline void copyCols(const Matrix<ScalarType, CPU>& mat_x, const Vector<int, CPU>& j_x,
+                     Matrix<ScalarType, CPU>& mat_y, const Vector<int, CPU>& j_y,
+                     int /*thread_id*/ = 0, int /*stream_id*/ = 0) {
+  assert(j_x.size() <= j_y.size());
+
+  for (int ind_j = 0; ind_j < j_x.size(); ++ind_j)
+    copyCol(mat_x, j_x[ind_j], mat_y, j_y[ind_j]);
+}
+template <typename ScalarType>
+inline void copyCols(const Matrix<ScalarType, GPU>& mat_x, const Vector<int, GPU>& j_x,
+                     Matrix<ScalarType, GPU>& mat_y, const Vector<int, GPU>& j_y, int thread_id = 0,
+                     int stream_id = 0) {
+  assert(j_x.size() <= j_y.size());
+  assert(mat_x.nrRows() == mat_y.nrRows());
+
+  GPU_KERNEL::many_column_copies(mat_x.nrRows(), j_x.size(), j_x.ptr(), mat_x.ptr(),
+                                 mat_x.leadingDimension(), j_y.ptr(), mat_y.ptr(),
+                                 mat_y.leadingDimension(), thread_id, stream_id);
+}
+
+// Copies the ix-th row of mat_x to the iy-th row of mat_y.
+// In/Out: mat_y
+// Preconditions: mat_x.nrCols() == mat_y.nrCols(),
+//                0 <= ix < mat_x.nrRows(), 0 <= iy < mat_y.nrRows().
+template <typename ScalarType, DeviceType device_name>
+inline void copyRow(const Matrix<ScalarType, device_name>& mat_x, int ix,
+                    Matrix<ScalarType, device_name>& mat_y, int iy, int thread_id = 0,
+                    int stream_id = 0) {
+  assert(ix >= 0 && ix < mat_x.nrRows());
+  assert(iy >= 0 && iy < mat_y.nrRows());
+  assert(mat_x.nrCols() == mat_y.nrCols());
+
+  blas::UseDevice<device_name>::copy(mat_x.nrCols(), mat_x.ptr(ix, 0), mat_x.leadingDimension(),
+                                     mat_y.ptr(iy, 0), mat_y.leadingDimension(), thread_id,
+                                     stream_id);
+}
+
+// Copies the i_x[i]-th row of mat_x to the i_y[i]-th row of mat_y, for 0 <= i < i_x.size().
+// In/Out: mat_y
+// Preconditions: i_x.size() <= i_y.size(), mat_x.nrCols() == mat_y.nrCols()
+//                0 <= i_x[i] < mat_x.nrRows() for 0 <= i < i_x.size(),
+//                0 <= i_y[i] < mat_y.nrRows() for 0 <= i < i_x.size().
+template <typename ScalarType>
+inline void copyRows(const Matrix<ScalarType, CPU>& mat_x, const Vector<int, CPU>& i_x,
+                     Matrix<ScalarType, CPU>& mat_y, const Vector<int, CPU>& i_y,
+                     int /*thread_id*/ = 0, int /*stream_id*/ = 0) {
+  assert(i_x.size() <= i_y.size());
+  assert(mat_x.nrCols() == mat_y.nrCols());
+
+  for (int j = 0; j < mat_x.nrCols(); ++j)
+    for (int ind_i = 0; ind_i < i_x.size(); ++ind_i)
+      mat_y(i_y[ind_i], j) = mat_x(i_x[ind_i], j);
+}
+template <typename ScalarType>
+inline void copyRows(const Matrix<ScalarType, GPU>& mat_x, const Vector<int, GPU>& i_x,
+                     Matrix<ScalarType, GPU>& mat_y, const Vector<int, GPU>& i_y, int thread_id = 0,
+                     int stream_id = 0) {
+  assert(i_x.size() <= i_y.size());
+  assert(mat_x.nrCols() == mat_y.nrCols());
+
+  GPU_KERNEL::many_row_copies(mat_x.nrCols(), i_x.size(), i_x.ptr(), mat_x.ptr(),
+                              mat_x.leadingDimension(), i_y.ptr(), mat_y.ptr(),
+                              mat_y.leadingDimension(), thread_id, stream_id);
+}
 
 // Insert a column at position j. The data is moved accordingly.
 // In/Out: mat

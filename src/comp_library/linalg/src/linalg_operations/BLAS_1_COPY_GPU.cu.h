@@ -5,36 +5,12 @@
 
 namespace LIN_ALG {
 
-  namespace GPU_KERNEL_COPY {
+  namespace GPU_KERNEL {
 
-    void dcopy(int length, double* x, int inc_x, double* y, int inc_y)
-    {
-      cublasStatus_t status = cublasDcopy(get_thread_handle(0), length, x, inc_x, y, inc_y);
-      
-      if(status != CUBLAS_STATUS_SUCCESS)
-	  cublas_error_msg(status, __FUNCTION__, __FILE__, __LINE__);
+    //const static int BLOCK_SIZE_x = 32;
+    //const static int BLOCK_SIZE_y = 8;
 
-#ifdef DEBUG_CUDA
-      cuda_check_for_errors(__FUNCTION__, __FILE__, __LINE__);
-#endif
-    }
-
-    void dcopy(int length, double* x, int inc_x, double* y, int inc_y, int id)
-    {
-      cublasStatus_t status = cublasDcopy(get_thread_handle(id), length, x, inc_x, y, inc_y);
-      
-      if(status != CUBLAS_STATUS_SUCCESS)
-	  cublas_error_msg(status, __FUNCTION__, __FILE__, __LINE__);
-
-#ifdef DEBUG_CUDA
-      cuda_check_for_errors(__FUNCTION__, __FILE__, __LINE__);
-#endif
-    }
-
-    const static int BLOCK_SIZE_x = 32;
-    const static int BLOCK_SIZE_y = 8;
-
-    __global__ void many_row_copies_kernel(int N_x, int N_i, int* i_x, double* x, int inc_x, int* i_y, double* y, int inc_y)
+    __global__ void many_row_copies_kernel(int N_x, int N_i, const int* i_x, const double* x, int inc_x, const int* i_y, double* y, int inc_y)
     {
       int index = threadIdx.x + blockIdx.x*BLOCK_SIZE_x;
       
@@ -54,7 +30,7 @@ namespace LIN_ALG {
 	}
     }
 
-    void many_row_copies(int N_x, int N_i, int* i_x, double* x, int inc_x, int* i_y, double* y, int inc_y, int thread_id, int stream_id)
+    void many_row_copies(int N_x, int N_i, const int* i_x, const double* x, int inc_x, const int* i_y, double* y, int inc_y, int thread_id, int stream_id)
     {
       if(N_i>0 and N_x>0)
 	{
@@ -70,7 +46,7 @@ namespace LIN_ALG {
 	}
     }
 
-    __global__ void many_column_copies_kernel(int N_x, int N_i, int* i_x, double* x, int inc_x, int* i_y, double* y, int inc_y)
+    __global__ void many_column_copies_kernel(int N_x, int N_i, const int* i_x, const double* x, int inc_x, const int* i_y, double* y, int inc_y)
     {      
       int I = threadIdx.x + blockIdx.x*BLOCK_SIZE_x;
 	
@@ -87,7 +63,7 @@ namespace LIN_ALG {
 	}
     }
 
-    void many_column_copies(int N_x, int N_i, int* i_x, double* x, int inc_x, int* i_y, double* y, int inc_y, int thread_id, int stream_id)
+    void many_column_copies(int N_x, int N_i, const int* i_x, const double* x, int inc_x, const int* i_y, double* y, int inc_y, int thread_id, int stream_id)
     {
       if(N_i>0 and N_x>0)
 	{
