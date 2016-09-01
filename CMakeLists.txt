@@ -160,7 +160,6 @@ if (DCA_WITH_TESTS_FAST OR DCA_WITH_TESTS_EXTENSIVE OR DCA_WITH_TESTS_PERFORMANC
   add_subdirectory(${PROJECT_SOURCE_DIR}/applications/cluster_solver_check/test)
   add_subdirectory(${PROJECT_SOURCE_DIR}/applications/dca/test)
   add_subdirectory(${PROJECT_SOURCE_DIR}/test)
-  add_subdirectory(${PROJECT_SOURCE_DIR}/src/math_library/geometry_library/vector_operations)
 endif()
 
 ################################################################################

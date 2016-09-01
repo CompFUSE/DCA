@@ -9,9 +9,9 @@
 //
 // This file tests elementary_vector_operations.hpp.
 
-#include "elementary_vector_operations.hpp"
+#include "math_library/geometry_library/vector_operations/elementary_vector_operations.hpp"
 #include <vector>
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
 TEST(elementary_vector_operations, IS_LARGER_VECTOR) {
   std::vector<double> v1 = {0., 1.};
