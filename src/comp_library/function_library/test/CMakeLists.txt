@@ -1,3 +1,3 @@
-add_gtest(NAME function_library_test
+dca_add_gtest(function_library_test
   GTEST_MAIN
-  INCLUDES "${FFTW_INCLUDE_DIR}")
+  INCLUDE_DIRS "${FFTW_INCLUDE_DIR}")

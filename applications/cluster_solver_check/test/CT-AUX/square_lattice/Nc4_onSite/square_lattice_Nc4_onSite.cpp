@@ -10,6 +10,8 @@
 // No-change test for CT-AUX.
 // Square lattice with only on-site interaction.
 
+#define DCA_WITH_REDUCED_VERTEX_FUNCTION
+
 #include <complex>
 #include <iostream>
 #include <string>
@@ -17,7 +19,7 @@
 #include "gtest/gtest.h"
 
 #include "dca/config/haves_defines.hpp"
-#include "dca/math/random/random.hpp"
+#include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/testing/dca_mpi_test_environment.hpp"
 #include "dca/testing/minimalist_printer.hpp"
 #include "dca/util/git_version.hpp"

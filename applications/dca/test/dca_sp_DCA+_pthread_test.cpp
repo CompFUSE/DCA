@@ -10,6 +10,8 @@
 // No-change test for a DCA+ calculation using the pthreaded CT-AUX cluster solver.
 // It runs a simulation of a tight-binding model on 2D square lattice.
 
+#define DCA_WITH_REDUCED_VERTEX_FUNCTION
+
 #include <iostream>
 #include <string>
 
@@ -17,7 +19,7 @@
 
 #include "dca/config/haves_defines.hpp"
 #include "dca/concurrency/parallelization_pthreads.h"
-#include "dca/math/random/random.hpp"
+#include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/testing/dca_mpi_test_environment.hpp"
 #include "dca/testing/minimalist_printer.hpp"
 #include "dca/util/git_version.hpp"

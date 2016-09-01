@@ -3,10 +3,8 @@
 # CMakeLists.txt
 ################################################################################
 
-add_gtest(NAME bilayer_lattice_Nc1_interband
-  ADVANCED
+dca_add_gtest(bilayer_lattice_Nc1_interband
+  EXTENSIVE
   MPI MPI_NUMPROC 8
-  INCLUDES ${DCA_INCLUDES}
+  INCLUDE_DIRS ${DCA_INCLUDES}
   LIBS ${DCA_LIBRARIES})
-
-target_compile_definitions(bilayer_lattice_Nc1_interband PRIVATE DCA_WITH_REDUCED_VERTEX_FUNCTION)

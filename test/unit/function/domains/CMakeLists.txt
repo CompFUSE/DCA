@@ -1,13 +1,13 @@
 # Unit tests for domain classes
 
-add_gtest(NAME dmn_test
+dca_add_gtest(dmn_test
   GTEST_MAIN
-  INCLUDES ${PROJECT_SOURCE_DIR}/include)
+  INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include)
 
-add_gtest(NAME reduced_domain_test
+dca_add_gtest(reduced_domain_test
   GTEST_MAIN
-  INCLUDES ${PROJECT_SOURCE_DIR}/include)
+  INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include)
 
-add_gtest(NAME dmn_0_test
+dca_add_gtest(dmn_0_test
   GTEST_MAIN
-  INCLUDES ${PROJECT_SOURCE_DIR}/include)
+  INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include)

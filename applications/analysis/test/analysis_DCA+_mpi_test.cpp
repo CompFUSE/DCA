@@ -10,6 +10,8 @@
 // No-change test for a concurrent (using MPI) DCA+ analysis calculation.
 // It runs a simulation of a tight-binding model on 2D square lattice.
 
+#define DCA_WITH_REDUCED_VERTEX_FUNCTION
+
 #include <string>
 #include <iostream>
 
