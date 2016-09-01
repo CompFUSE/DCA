@@ -9,6 +9,8 @@
 //         Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //
 // This file provides the matrix interface for the following matrix operations:
+// - insertCol, insertRow
+// - removeCol, removeRow, removeRowAndCol
 // - gemm
 // - trsm
 
@@ -24,6 +26,113 @@ namespace dca {
 namespace linalg {
 namespace matrixop {
 // dca::linalg::matrixop::
+
+// Insert a column at position j. The data is moved accordingly.
+// In/Out: mat
+// Preconditions: 0 <= j < mat.nrCols() + 1.
+template <typename ScalarType>
+void insertCol(Matrix<ScalarType, CPU>& mat, int j) {
+  assert(j >= 0 && j < mat.nrCols() + 1);
+
+  mat.resize(std::make_pair(mat.nrRows(), mat.nrCols() + 1));
+
+  if (mat.nrRows() > 0 && j < mat.nrCols() - 1)
+    memmove(mat.ptr(0, j + 1), mat.ptr(0, j),
+            sizeof(ScalarType) * (mat.nrCols() - j) * mat.leadingDimension());
+
+  for (int i = 0; i < mat.nrRows(); ++i)
+    mat(i, j) = 0;
+}
+
+// Insert a row at position i. The data is moved accordingly.
+// In/Out: mat
+// Preconditions: 0 <= i < mat.nrRows() + 1.
+template <typename ScalarType>
+void insertRow(Matrix<ScalarType, CPU>& mat, int i) {
+  assert(i >= 0 && i < mat.nrRows() + 1);
+
+  mat.resize(std::make_pair(mat.nrRows() + 1, mat.nrCols()));
+
+  if (i < mat.nrRows() - 1)
+    for (int j = 0; j < mat.nrCols(); ++j)
+      memmove(mat.ptr(i + 1, j), mat.ptr(i, j), sizeof(ScalarType) * (mat.nrRows() - i));
+
+  for (int j = 0; j < mat.nrCols(); ++j)
+    mat(i, j) = 0;
+}
+
+// Remove the j-th column. The data is moved accordingly.
+// In/Out: mat
+// Preconditions: 0 <= j < mat.nrCols().
+template <typename ScalarType>
+void removeCol(Matrix<ScalarType, CPU>& mat, int j) {
+  assert(j >= 0 && j < mat.nrCols());
+
+  if (mat.nrRows() > 0 && j < mat.nrCols() - 1)
+    memmove(mat.ptr(0, j), mat.ptr(0, j + 1),
+            sizeof(ScalarType) * (mat.nrCols() - j - 1) * mat.leadingDimension());
+
+  mat.resize(std::make_pair(mat.nrRows(), mat.nrCols() - 1));
+}
+
+// Remove the j-th column. The data is moved accordingly.
+// In/Out: mat
+// Preconditions: 0 <= j < mat.nrCols().
+template <typename ScalarType>
+void removeCol(Matrix<ScalarType, GPU>& mat, int j) {
+  assert(j >= 0 && j < mat.nrCols());
+
+  if (mat.nrRows() > 0 && j < mat.nrCols() - 1)
+    LIN_ALG::MEMORY_MANAGEMENT<GPU>::remove_first_col(mat.nrRows(), mat.nrCols() - j, mat.ptr(0, j),
+                                                      mat.leadingDimension());
+
+  mat.resize(std::make_pair(mat.nrRows(), mat.nrCols() - 1));
+}
+
+// Remove the i-th row. The data is moved accordingly.
+// In/Out: mat
+// Preconditions: 0 <= i < mat.nrRows().
+template <typename ScalarType>
+void removeRow(Matrix<ScalarType, CPU>& mat, int i) {
+  assert(i >= 0 && i < mat.nrRows());
+
+  if (i < mat.nrRows() - 1)
+    for (int j = 0; j < mat.nrCols(); ++j)
+      memmove(mat.ptr(i, j), mat.ptr(i + 1, j), sizeof(ScalarType) * (mat.nrRows() - i - 1));
+
+  mat.resize(std::make_pair(mat.nrRows() - 1, mat.nrCols()));
+}
+
+// Remove the i-th row. The data is moved accordingly.
+// In/Out: mat
+// Preconditions: 0 <= i < mat.nrRows().
+template <typename ScalarType>
+void removeRow(Matrix<ScalarType, GPU>& mat, int i) {
+  assert(i >= 0 && i < mat.nrRows());
+
+  if (mat.nrCols() > 0 && i < mat.nrRows() - 1)
+    LIN_ALG::MEMORY_MANAGEMENT<GPU>::remove_first_row(mat.nrRows() - i, mat.nrCols(), mat.ptr(i, 0),
+                                                      mat.leadingDimension());
+
+  mat.resize(std::make_pair(mat.nrRows() - 1, mat.nrCols()));
+}
+
+// Remove the i-th row and the j-th column. The data is moved accordingly.
+// In/Out: mat
+// Preconditions: 0 <= i < mat.nrRows(), 0 <= j < mat.nrCols().
+template <typename ScalarType, DeviceType device_name>
+inline void removeRowAndCol(Matrix<ScalarType, device_name>& mat, int i, int j) {
+  removeRow(mat, i);
+  removeCol(mat, j);
+}
+
+// Remove the i-th row and the i-th column. The data is moved accordingly.
+// In/Out: mat
+// Preconditions: 0 <= i < mat.nrRows(), i < mat.nrCols().
+template <typename ScalarType, DeviceType device_name>
+inline void removeRowAndCol(Matrix<ScalarType, device_name>& mat, int i) {
+  removeRowAndCol(mat, i, i);
+}
 
 // Performs the matrix-matrix multiplication c <- alpha * op(a) * op(b) + beta * c,
 // where op(X) = X if transX == 'N', op(X) = transposed(X) if transX == 'T', and

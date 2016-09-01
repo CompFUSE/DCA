@@ -20,6 +20,9 @@
 #include <utility>
 #include <vector>
 
+#include "dca/linalg/matrix.hpp"
+#include "dca/linalg/matrixop.hpp"
+
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/linalg/linalg.hpp"
 #include "math_library/interpolation_library/akima_interpolation.h"
@@ -38,105 +41,6 @@ namespace QMCI {
 // DCA::QMCI::
 
 struct static_matrix_routines {
-  template <typename scalar_type>
-  static void add_row(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M) {
-    std::pair<int, int> new_size = M.size();
-
-    new_size.first += 1;
-
-    M.resize(new_size);
-  }
-
-  template <typename scalar_type>
-  static void add_col(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M) {
-    std::pair<int, int> new_size = M.size();
-
-    new_size.second += 1;
-
-    M.resize(new_size);
-  }
-
-  template <typename scalar_type>
-  static void remove_row(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M) {
-    std::pair<int, int> new_size = M.size();
-
-    new_size.first -= 1;
-
-    M.resize(new_size);
-  }
-
-  template <typename scalar_type>
-  static void remove_col(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M) {
-    std::pair<int, int> new_size = M.size();
-
-    new_size.second -= 1;
-
-    M.resize(new_size);
-  }
-
-  template <typename scalar_type>
-  static void insert_row(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M, int index_row) {
-    assert(index_row > -1 and index_row < M.size().first);
-
-    add_row(M);
-
-    std::pair<int, int> size = M.size();
-
-    // copy the remaining rows on the bottom
-    for (int i = 0; i < size.second; i++)
-      memmove(&M(index_row + 1, i), &M(index_row, i), sizeof(scalar_type) * (size.first - index_row));
-
-    for (int i = 0; i < size.second; i++)
-      M(index_row, i) = 0;
-  }
-
-  template <typename scalar_type>
-  static void insert_col(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M, int index_column) {
-    assert(index_column > -1 and index_column < M.size().second);
-
-    add_col(M);
-
-    std::pair<int, int> size = M.size();
-    std::pair<int, int> capacity = M.capacity();
-
-    // copy the remaining columns on the right
-    memmove(&M(0, index_column + 1), &M(0, index_column),
-            sizeof(scalar_type) * capacity.first * (size.second - 1 - index_column));
-
-    for (int j = 0; j < size.first; j++)
-      M(j, index_column) = 0;
-  }
-
-  template <typename scalar_type>
-  static void remove_row(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M, int index_row) {
-    assert(index_row >= 0 and index_row < M.size().first);
-
-    std::pair<int, int> size = M.size();
-
-    // copy the remaining rows on the bottom
-    if ((size.first - (index_row + 1)) > 0)
-      for (int i = 0; i < size.second; i++)
-        memmove(&M(index_row, i), &M(index_row + 1, i),
-                sizeof(scalar_type) * (size.first - (index_row + 1)));
-
-    remove_row(M);
-  }
-
-  template <typename scalar_type>
-  static void remove_col(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M, int index_column) {
-    assert(index_column >= 0 and index_column < M.size().second);
-
-    std::pair<int, int> size = M.size();
-    std::pair<int, int> capacity = M.capacity();
-
-    // copy the remaining columns on the right
-    if ((size.second - (index_column + 1)) > 0)
-      memmove(&M(0, index_column), &M(0, index_column + 1),
-              sizeof(scalar_type) * capacity.first * (size.second - (index_column + 1)));
-
-    remove_col(M);
-  }
-
   template <typename scalar_type>
   static void cycle_column_forward(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M) {
     assert(M.size().first == M.size().second);
@@ -292,20 +196,6 @@ public:
 
   template <typename scalar_type>
   static void cycle_row_backward(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M);
-
-  template <typename scalar_type>
-  static void insert_row_and_column(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M, int r,
-                                    int s);
-
-  template <typename scalar_type>
-  static void remove_row_and_column(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M, int r,
-                                    int s);
-
-  template <typename scalar_type>
-  static void insert_row_and_add_column(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M, int r);
-
-  template <typename scalar_type>
-  static void add_row_and_insert_column(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M, int s);
 
   template <typename Hybridization_function_t>
   double interpolate_F(int* coor_flavor, double tau, Hybridization_function_t& F);
@@ -534,38 +424,6 @@ void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng
 }
 
 template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
-template <typename scalar_type>
-void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::insert_row_and_column(
-    dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M, int index_row, int index_col) {
-  static_matrix_routines::insert_row(M, index_row);
-  static_matrix_routines::insert_col(M, index_col);
-}
-
-template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
-template <typename scalar_type>
-void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::remove_row_and_column(
-    dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M, int index_row, int index_col) {
-  static_matrix_routines::remove_row(M, index_row);
-  static_matrix_routines::remove_col(M, index_col);
-}
-
-template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
-template <typename scalar_type>
-void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::insert_row_and_add_column(
-    dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M, int index_row) {
-  static_matrix_routines::insert_row(M, index_row);
-  static_matrix_routines::add_col(M);
-}
-
-template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
-template <typename scalar_type>
-void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::add_row_and_insert_column(
-    dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M, int index_col) {
-  static_matrix_routines::add_row(M);
-  static_matrix_routines::insert_col(M, index_col);
-}
-
-template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
 double ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::compute_length(
     double r, double l_max, double mu) {
   if (mu == 0)
@@ -780,22 +638,8 @@ void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng
     // M.cycle_column_forward();
   }
 
-  if (r < M.size().first && s < M.size().first) {
-    // M.insert_row_and_column(r,s);
-    insert_row_and_column(M, r, s);
-  }
-  else if (r < M.size().first && s == M.size().first) {
-    // M.insert_row_and_add_column(r);
-    insert_row_and_add_column(M, r);
-  }
-  else if (r == M.size().first && s < M.size().first) {
-    // M.add_row_and_insert_column(s);
-    add_row_and_insert_column(M, s);
-  }
-  else {
-    assert(r == s && r == size);
-    M.resize(size + 1);
-  }
+  dca::linalg::matrixop::insertRow(M, r);
+  dca::linalg::matrixop::insertCol(M, s);
 
   // row k+1 and column k
   if (r != 0 || r == s) {  // segments remain in the usual order
@@ -886,8 +730,7 @@ void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng
 
     compute_M(Q_prime, R_prime, -1. / Q_prime[r], M);
 
-    // M.remove_row_and_column(r,s);
-    remove_row_and_column(M, r, s);
+    dca::linalg::matrixop::removeRowAndCol(M, r, s);
 
     if (r == 0 && s != 0) {  // need to permute indices of R, L, M
       // M.cycle_column_backward();
