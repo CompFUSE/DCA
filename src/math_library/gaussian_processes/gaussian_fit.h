@@ -123,8 +123,7 @@ void gaussian_fit<scalar_type, K_dmn_t, k_dmn_t>::initialize_interpolation_matri
     interpolation_matrix_tmp(i, i) += error * error;
   }
 
-  LIN_ALG::GEMM<dca::linalg::CPU>::execute('N', 'N', interpolation_matrix_tmp, K_K_inv,
-                                           interpolation_matrix);
+  dca::linalg::matrixop::gemm('N', 'N', interpolation_matrix_tmp, K_K_inv, interpolation_matrix);
 }
 
 template <typename scalar_type, typename K_dmn_t, typename k_dmn_t>
@@ -168,8 +167,8 @@ void gaussian_fit<scalar_type, K_dmn_t, k_dmn_t>::initialize_correlation_matrix(
     k_to_K(i, i) += error * error;
   }
 
-  LIN_ALG::GEMM<dca::linalg::CPU>::execute('N', 'N', scalar_type(-1), interpolation_matrix, k_to_K,
-                                           scalar_type(1), correlation_matrix);
+  dca::linalg::matrixop::gemm('N', 'N', scalar_type(-1), interpolation_matrix, k_to_K,
+                              scalar_type(1), correlation_matrix);
 }
 
 }  // math_algorithm

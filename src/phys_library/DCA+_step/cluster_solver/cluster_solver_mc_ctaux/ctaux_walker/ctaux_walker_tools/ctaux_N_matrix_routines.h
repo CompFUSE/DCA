@@ -392,8 +392,8 @@ void N_TOOLS<device_t, parameters_type>::rebuild_N_matrix_via_Gamma_LU(
   {  // Gamma_LU * X = N(p_k,:) --> X = Gamma_inv_times_N_new_spins ==> (stored in N_new_spins)
     // profiler_t profiler(concurrency, "(c) LU-solve", __FUNCTION__, __LINE__, true);
 
-    LIN_ALG::TRSM<device_t>::execute('L', 'U', Gamma, N_new_spins, thread_id, stream_id);
-    LIN_ALG::TRSM<device_t>::execute('U', 'N', Gamma, N_new_spins, thread_id, stream_id);
+    dca::linalg::matrixop::trsm('L', 'U', Gamma, N_new_spins, thread_id, stream_id);
+    dca::linalg::matrixop::trsm('U', 'N', Gamma, N_new_spins, thread_id, stream_id);
 
     GFLOP += 2. * double(Gamma_size) * double(Gamma_size) * double(configuration_size) * (1.e-9);
   }
@@ -401,7 +401,7 @@ void N_TOOLS<device_t, parameters_type>::rebuild_N_matrix_via_Gamma_LU(
   {  // do N - G*Gamma_inv_times_N_new_spins --> N  || DGEMM --> work-horsegg
     // profiler_t profiler(concurrency, "(d) dgemm", __FUNCTION__, __LINE__, true);
 
-    LIN_ALG::GEMM<device_t>::execute(-1., G, N_new_spins, 1., N, thread_id, stream_id);
+    dca::linalg::matrixop::gemm(-1., G, N_new_spins, 1., N, thread_id, stream_id);
 
     GFLOP +=
         2. * double(configuration_size) * double(Gamma_size) * double(configuration_size) * (1.e-9);

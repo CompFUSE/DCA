@@ -65,10 +65,6 @@
 #include "src/linalg_operations/BLAS_1_SWAP_CPU.h"
 #include "src/linalg_operations/BLAS_1_SWAP_GPU.h"
 
-// BLAS 3
-#include "src/linalg_operations/BLAS_3_TRSM_tem.h"
-#include "src/linalg_operations/BLAS_3_GEMM_tem.h"
-
 #include "src/linalg_operations/LASET_tem.h"
 #include "src/linalg_operations/LASET_CPU.h"
 #include "src/linalg_operations/LASET_GPU.h"

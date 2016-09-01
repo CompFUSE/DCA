@@ -424,8 +424,8 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::compute_creation_ma
   matrix_type& V_i = Hamiltonian.get_eigen_states()(HS_i);
   matrix_type& V_j = Hamiltonian.get_eigen_states()(HS_j);
 
-  LIN_ALG::GEMM<dca::linalg::CPU>::execute('N', 'N', sparse_creation, V_j, helper);
-  LIN_ALG::GEMM<dca::linalg::CPU>::execute('C', 'N', V_i, helper, dense_creation);
+  dca::linalg::matrixop::gemm('N', 'N', sparse_creation, V_j, helper);
+  dca::linalg::matrixop::gemm('C', 'N', V_i, helper, dense_creation);
 }
 
 template <typename parameter_type, typename ed_options>
@@ -461,7 +461,7 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::compute_creation_ma
     }
   }
 
-  LIN_ALG::GEMM<dca::linalg::CPU>::execute('C', 'N', V_i, tmp, dense_creation);
+  dca::linalg::matrixop::gemm('C', 'N', V_i, tmp, dense_creation);
 }
 
 template <typename parameter_type, typename ed_options>
@@ -478,8 +478,8 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::compute_annihilatio
   matrix_type& V_i = Hamiltonian.get_eigen_states()(HS_i);
   matrix_type& V_j = Hamiltonian.get_eigen_states()(HS_j);
 
-  LIN_ALG::GEMM<dca::linalg::CPU>::execute('N', 'N', sparse_annihilation, V_j, helper);
-  LIN_ALG::GEMM<dca::linalg::CPU>::execute('C', 'N', V_i, helper, dense_annihilation);
+  dca::linalg::matrixop::gemm('N', 'N', sparse_annihilation, V_j, helper);
+  dca::linalg::matrixop::gemm('C', 'N', V_i, helper, dense_annihilation);
 }
 
 template <typename parameter_type, typename ed_options>
@@ -515,7 +515,7 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::compute_annihilatio
     }
   }
 
-  LIN_ALG::GEMM<dca::linalg::CPU>::execute('C', 'N', V_i, tmp, dense_annihilation);
+  dca::linalg::matrixop::gemm('C', 'N', V_i, tmp, dense_annihilation);
 }
 
 template <typename parameter_type, typename ed_options>

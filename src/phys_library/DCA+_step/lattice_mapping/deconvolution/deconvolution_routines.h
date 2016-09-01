@@ -109,7 +109,7 @@ void deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::in
         for (int i = 0; i < target_k_dmn_t::dmn_size(); i++)
           T_k_to_r_scaled(i, j) *= phi_r(i);
 
-      LIN_ALG::GEMM<dca::linalg::CPU>::execute(T_r_to_k, T_k_to_r_scaled, T_k_to_k);
+      dca::linalg::matrixop::gemm(T_r_to_k, T_k_to_r_scaled, T_k_to_k);
 
       for (int j = 0; j < target_k_dmn_t::dmn_size(); j++)
         for (int i = 0; i < target_k_dmn_t::dmn_size(); i++)
@@ -133,7 +133,7 @@ void deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::in
         for (int i = 0; i < target_k_dmn_t::dmn_size(); i++)
           T_k_to_r_scaled(i, j) *= phi_r_symmetrized(i);
 
-      LIN_ALG::GEMM<dca::linalg::CPU>::execute(T_r_to_k, T_k_to_r_scaled, T_k_to_k);
+      dca::linalg::matrixop::gemm(T_r_to_k, T_k_to_r_scaled, T_k_to_k);
 
       for (int j = 0; j < target_k_dmn_t::dmn_size(); j++)
         for (int i = 0; i < target_k_dmn_t::dmn_size(); i++)
@@ -180,7 +180,7 @@ void deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::co
       for (int i = 0; i < target_k_dmn_t::dmn_size(); i++)
         T_k_to_r_scaled(i, j) *= phi_r_inv(i);
 
-    LIN_ALG::GEMM<dca::linalg::CPU>::execute(T_r_to_k, T_k_to_r_scaled, T_k_to_k);
+    dca::linalg::matrixop::gemm(T_r_to_k, T_k_to_r_scaled, T_k_to_k);
 
     for (int j = 0; j < target_k_dmn_t::dmn_size(); j++)
       for (int i = 0; i < target_k_dmn_t::dmn_size(); i++)
@@ -206,7 +206,7 @@ void deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::co
     for (int i = 0; i < target_k_dmn_t::dmn_size(); i++)
       T_k_to_r_scaled(i, j) *= phi_r_inv(i);
 
-  LIN_ALG::GEMM<dca::linalg::CPU>::execute(T_r_to_k, T_k_to_r_scaled, T_eps);
+  dca::linalg::matrixop::gemm(T_r_to_k, T_k_to_r_scaled, T_eps);
 }
 }
 

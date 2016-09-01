@@ -112,7 +112,7 @@ public:
         for (int i = 0; i < A.size().first; i++)
           A(i, j) *= inner_product_dmn::get_weights()[i];
 
-      LIN_ALG::GEMM<dca::linalg::CPU>::execute('N', 'N', B, A, T);
+      dca::linalg::matrixop::gemm('N', 'N', B, A, T);
 
       double max = 0;
       for (int j = 0; j < N; j++)

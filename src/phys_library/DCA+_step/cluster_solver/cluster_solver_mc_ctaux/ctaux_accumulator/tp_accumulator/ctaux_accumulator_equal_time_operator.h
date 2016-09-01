@@ -647,11 +647,11 @@ void MC_two_particle_equal_time_accumulator<parameters_type, MOMS_type>::compute
   }
 
   {
-    LIN_ALG::GEMM<dca::linalg::CPU>::execute(M_matrix_dn, G0_matrix_dn_right, M_G0_matrix_dn);
-    LIN_ALG::GEMM<dca::linalg::CPU>::execute(M_matrix_up, G0_matrix_up_right, M_G0_matrix_up);
+    dca::linalg::matrixop::gemm(M_matrix_dn, G0_matrix_dn_right, M_G0_matrix_dn);
+    dca::linalg::matrixop::gemm(M_matrix_up, G0_matrix_up_right, M_G0_matrix_up);
 
-    LIN_ALG::GEMM<dca::linalg::CPU>::execute(G0_matrix_dn_left, M_G0_matrix_dn, G0_M_G0_matrix_dn);
-    LIN_ALG::GEMM<dca::linalg::CPU>::execute(G0_matrix_up_left, M_G0_matrix_up, G0_M_G0_matrix_up);
+    dca::linalg::matrixop::gemm(G0_matrix_dn_left, M_G0_matrix_dn, G0_M_G0_matrix_dn);
+    dca::linalg::matrixop::gemm(G0_matrix_up_left, M_G0_matrix_up, G0_M_G0_matrix_up);
   }
 
   {

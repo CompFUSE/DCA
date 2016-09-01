@@ -636,7 +636,7 @@ void compute_spectrum<parameters_type, basis_function_t>::compute_G_k_w_on_clust
         for (int i = 0; i < nu::dmn_size(); i++)
           G0_matrix(i, j) = G0_k_w(i, j, k_ind, w_ind);
 
-      LIN_ALG::GEMM<dca::linalg::CPU>::execute(S_matrix, G0_matrix, S_times_G0_matrix);
+      dca::linalg::matrixop::gemm(S_matrix, G0_matrix, S_times_G0_matrix);
 
       for (int i = 0; i < nu::dmn_size(); i++)
         S_times_G0_matrix(i, i) = 1. - S_times_G0_matrix(i, i);
@@ -644,7 +644,7 @@ void compute_spectrum<parameters_type, basis_function_t>::compute_G_k_w_on_clust
       // LIN_ALG::GEINV<dca::linalg::CPU>::execute(S_times_G0_matrix);
       geinv_obj.execute(S_times_G0_matrix);
 
-      LIN_ALG::GEMM<dca::linalg::CPU>::execute(S_times_G0_matrix, G0_matrix, G_matrix);
+      dca::linalg::matrixop::gemm(S_times_G0_matrix, G0_matrix, G_matrix);
 
       for (int j = 0; j < nu::dmn_size(); j++)
         for (int i = 0; i < nu::dmn_size(); i++)

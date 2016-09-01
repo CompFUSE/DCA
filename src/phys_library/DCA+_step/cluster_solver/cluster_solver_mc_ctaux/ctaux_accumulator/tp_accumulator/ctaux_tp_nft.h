@@ -366,7 +366,7 @@ double cached_nft<dimension, scalar_type, r_dmn_t, w_vertex_dmn_t, w_vertex_pos_
       std::pair<int, int>(w_vertex_dmn_t::dmn_size(), w_vertex_dmn_t::dmn_size()));
 
   {
-    LIN_ALG::GEMM<dca::linalg::CPU>::execute(T_l, M_ij, T_l_times_M_ij);
+    dca::linalg::matrixop::gemm(T_l, M_ij, T_l_times_M_ij);
 
     {
       int M = T_l.size().first;    // w_VERTEX::dmn_size();//N_w;
@@ -378,7 +378,7 @@ double cached_nft<dimension, scalar_type, r_dmn_t, w_vertex_dmn_t, w_vertex_pos_
   }
 
   {
-    LIN_ALG::GEMM<dca::linalg::CPU>::execute('N', 'C', T_l_times_M_ij, T_r, T_l_times_M_ij_times_T_r);
+    dca::linalg::matrixop::gemm('N', 'C', T_l_times_M_ij, T_r, T_l_times_M_ij_times_T_r);
 
     {
       int M = T_l_times_M_ij.size().first;             // N_w;
@@ -431,7 +431,7 @@ double cached_nft<dimension, scalar_type, r_dmn_t, w_vertex_dmn_t,
   }
 
   {
-    LIN_ALG::GEMM<dca::linalg::CPU>::execute('N', 'C', T_l_times_M_ij, T_r, T_l_times_M_ij_times_T_r);
+    dca::linalg::matrixop::gemm('N', 'C', T_l_times_M_ij, T_r, T_l_times_M_ij_times_T_r);
 
     {
       int M = T_l_times_M_ij.size().first;             // N_w;

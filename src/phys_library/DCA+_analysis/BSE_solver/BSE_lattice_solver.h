@@ -524,8 +524,8 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_full_Gamma_chi_
       for (int i = 0; i < N; i++)
         chi_0(i, j) = sqrt(chi_0_lattice(i, j));
 
-    LIN_ALG::GEMM<dca::linalg::CPU>::execute(chi_0, Gamma, chi_0_Gamma);
-    LIN_ALG::GEMM<dca::linalg::CPU>::execute(chi_0_Gamma, chi_0, chi_0_Gamma_chi_0_temp);
+    dca::linalg::matrixop::gemm(chi_0, Gamma, chi_0_Gamma);
+    dca::linalg::matrixop::gemm(chi_0_Gamma, chi_0, chi_0_Gamma_chi_0_temp);
 
     for (int j = 0; j < N; j++)
       for (int i = 0; i < N; i++)
@@ -584,7 +584,7 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_full_Gamma_chi_
       for (int i = 0; i < N; i++)
         chi_0(i, j) = chi_0_lattice(i, j);
 
-    LIN_ALG::GEMM<dca::linalg::CPU>::execute(Gamma, chi_0, Gamma_chi_0);
+    dca::linalg::matrixop::gemm(Gamma, chi_0, Gamma_chi_0);
 
     if (concurrency.id() == concurrency.last())
       std::cout << " finished " << dca::util::print_time() << "\n";
@@ -726,7 +726,7 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_folded_Gamma_ch
         for (int i = 0; i < N; i++)
           chi_0(i, j) = chi_0_lattice(i, j);
 
-      LIN_ALG::GEMM<dca::linalg::CPU>::execute(Gamma, chi_0, Gamma_chi_0_lattice);
+      dca::linalg::matrixop::gemm(Gamma, chi_0, Gamma_chi_0_lattice);
 
       if (concurrency.id() == concurrency.last())
         std::cout << " finished " << dca::util::print_time() << "\n";
@@ -745,8 +745,8 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_folded_Gamma_ch
         for (int i = 0; i < N; i++)
           P(i, j) = crystal_harmonics(i, j);
 
-      LIN_ALG::GEMM<dca::linalg::CPU>::execute('N', 'N', Gamma_chi_0_lattice, P, tmp);
-      LIN_ALG::GEMM<dca::linalg::CPU>::execute('C', 'N', P, tmp, Gamma_chi_0_crystal);
+      dca::linalg::matrixop::gemm('N', 'N', Gamma_chi_0_lattice, P, tmp);
+      dca::linalg::matrixop::gemm('C', 'N', P, tmp, Gamma_chi_0_crystal);
 
       if (concurrency.id() == concurrency.last())
         std::cout << " finished " << dca::util::print_time() << "\n";
@@ -831,8 +831,8 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::compute_folded_susceptibili
     VL.copy_from(VR);
     LIN_ALG::GEINV<dca::linalg::CPU>::execute(VL);
 
-    LIN_ALG::GEMM<dca::linalg::CPU>::execute('N', 'N', VR, D_inv, VR_D_inv);
-    LIN_ALG::GEMM<dca::linalg::CPU>::execute('N', 'N', VR_D_inv, VL, P_1_min_Gamma_chi_0_P);
+    dca::linalg::matrixop::gemm('N', 'N', VR, D_inv, VR_D_inv);
+    dca::linalg::matrixop::gemm('N', 'N', VR_D_inv, VL, P_1_min_Gamma_chi_0_P);
 
     if (concurrency.id() == concurrency.last())
       std::cout << " finished " << dca::util::print_time() << "\n";
@@ -857,8 +857,8 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::compute_folded_susceptibili
       for (int i = 0; i < N; i++)
         P(i, j) = crystal_harmonics(i, j);
 
-    LIN_ALG::GEMM<dca::linalg::CPU>::execute('N', 'N', chi_0, P, tmp);
-    LIN_ALG::GEMM<dca::linalg::CPU>::execute('C', 'N', P, tmp, P_chi_0_P);
+    dca::linalg::matrixop::gemm('N', 'N', chi_0, P, tmp);
+    dca::linalg::matrixop::gemm('C', 'N', P, tmp, P_chi_0_P);
 
     if (concurrency.id() == concurrency.last())
       std::cout << " finished " << dca::util::print_time() << "\n";
@@ -872,8 +872,7 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::compute_folded_susceptibili
     {
       dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> chi_matrix("chi", M);
 
-      LIN_ALG::GEMM<dca::linalg::CPU>::execute('N', 'N', P_chi_0_P, P_1_min_Gamma_chi_0_P,
-                                               chi_matrix);
+      dca::linalg::matrixop::gemm('N', 'N', P_chi_0_P, P_1_min_Gamma_chi_0_P, chi_matrix);
 
       for (int j = 0; j < M; j++)
         for (int i = 0; i < M; i++)

@@ -12,6 +12,7 @@
 
 #include "dca/linalg/vector.hpp"
 #include "dca/linalg/matrix.hpp"
+#include "dca/linalg/matrixop.hpp"
 
 // BLAS
 #include "dca/linalg/blas/blas1.hpp"
