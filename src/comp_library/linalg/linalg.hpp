@@ -48,11 +48,6 @@
 #include "src/linalg_operations/LU_MATRIX_OPERATIONS_CPU.h"
 #include "src/linalg_operations/LU_MATRIX_OPERATIONS_GPU.h"
 
-// BLAS 1
-#include "src/linalg_operations/BLAS_1_SWAP_tem.h"
-#include "src/linalg_operations/BLAS_1_SWAP_CPU.h"
-#include "src/linalg_operations/BLAS_1_SWAP_GPU.h"
-
 // LAPACK
 #include "src/linalg_operations/LASET_tem.h"
 #include "src/linalg_operations/LASET_CPU.h"

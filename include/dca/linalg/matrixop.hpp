@@ -13,6 +13,8 @@
 // - insertCol, insertRow (for CPU matrices only)
 // - removeCol, removeRow, removeRowAndCol
 // - scaleCol, scaleRow, scaleRows
+// - swapCol, swapRow, swapRowAndCol
+// - swapCols, swapRows (for GPU matrices only)
 // - gemm
 // - trsm
 
@@ -262,6 +264,71 @@ inline void scaleRows(Matrix<ScalarType, GPU>& mat, const Vector<int, GPU>& i,
 
   GPU_KERNEL::scale_many_rows(mat.nrCols(), i.size(), i.ptr(), val.ptr(), mat.ptr(),
                               mat.leadingDimension(), thread_id, stream_id);
+}
+
+// Swaps the j1-th column with the j2-th column of mat.
+// In/Out: mat
+// Preconditions: 0 <= j1 < mat.nrCols(), 0 <= j2 < mat_y.nrCols().
+template <typename ScalarType, DeviceType device_name>
+inline void swapCol(Matrix<ScalarType, device_name>& mat, int j1, int j2, int thread_id = 0,
+                    int stream_id = 0) {
+  assert(j1 >= 0 && j1 < mat.nrCols());
+  assert(j2 >= 0 && j2 < mat.nrCols());
+  blas::UseDevice<device_name>::swap(mat.nrRows(), mat.ptr(0, j1), 1, mat.ptr(0, j2), 1, thread_id,
+                                     stream_id);
+}
+
+// Swaps the j_1[i]-th column with the j_2[i]-th column of mat, for 0 <= i < j_1.size().
+// In/Out: mat
+// Preconditions: j_1.size() <= j_2.size()
+//                0 <= j_1[i] < mat.nrCols() for 0 <= i < j_1.size(),
+//                0 <= j_2[i] < mat.nrCols() for 0 <= i < j_1.size().
+//                j_1[i] != j_1[j] for i != j, j_2[i] != j_2[j] for i != j,
+//                j_1[i] != j_2[j] for all i, j.
+template <typename ScalarType>
+inline void swapCols(Matrix<ScalarType, GPU>& mat, const Vector<int, GPU>& j_1,
+                     const Vector<int, GPU>& j_2, int thread_id = 0, int stream_id = 0) {
+  assert(j_1.size() <= j_2.size());
+  LIN_ALG::GPU_KERNEL::swap_many_cols(mat.nrRows(), mat.nrCols(), mat.ptr(), mat.leadingDimension(),
+                                      j_1.size(), j_1.ptr(), j_2.ptr(), thread_id, stream_id);
+}
+
+// Swaps the i1-th row with the i2-th row of mat.
+// In/Out: mat
+// Preconditions: 0 <= i1 < mat.nrRows(), 0 <= i2 < mat_y.nrRows().
+template <typename ScalarType, DeviceType device_name>
+inline void swapRow(Matrix<ScalarType, device_name>& mat, int i1, int i2, int thread_id = 0,
+                    int stream_id = 0) {
+  assert(i1 >= 0 && i1 < mat.nrRows());
+  assert(i2 >= 0 && i2 < mat.nrRows());
+  blas::UseDevice<device_name>::swap(mat.nrCols(), mat.ptr(i1, 0), mat.leadingDimension(),
+                                     mat.ptr(i2, 0), mat.leadingDimension(), thread_id, stream_id);
+}
+
+// Swaps the i_1[i]-th row with the i_2[i]-th row of mat, for 0 <= i < i_1.size().
+// In/Out: mat
+// Preconditions: i_2.size() == i_2.size()
+//                0 <= i_1[i] < mat.nrRows() for 0 <= i < i_1.size(),
+//                0 <= i_2[i] < mat.nrRows() for 0 <= i < i_1.size().
+//                i_1[i] != i_1[j] for i != j, i_2[i] != i_2[j] for i != j,
+//                i_1[i] != i_2[j] for all i, j.
+template <typename ScalarType>
+inline void swapRows(Matrix<ScalarType, GPU>& mat, const Vector<int, GPU>& i_1,
+                     const Vector<int, GPU>& i_2, int thread_id = 0, int stream_id = 0) {
+  assert(i_1.size() == i_2.size());
+  LIN_ALG::GPU_KERNEL::swap_many_rows(mat.nrRows(), mat.nrCols(), mat.ptr(), mat.leadingDimension(),
+                                      i_1.size(), i_1.ptr(), i_2.ptr(), thread_id, stream_id);
+}
+
+// Swaps the i1-th row with the i2-th row and the i1-th column with the i2-th column of mat.
+// In/Out: mat
+// Preconditions: 0 <= i1 < mat.nrRows(), i1 < mat.nrCols(),
+//                0 <= i2 < mat.nrRows(), i2 < mat.nrCols().
+template <typename ScalarType, DeviceType device_name>
+inline void swapRowAndCol(Matrix<ScalarType, device_name>& mat, int i1, int i2, int thread_id = 0,
+                          int stream_id = 0) {
+  swapRow(mat, i1, i2, thread_id, stream_id);
+  swapCol(mat, i1, i2, thread_id, stream_id);
 }
 
 // Performs the matrix-matrix multiplication c <- alpha * op(a) * op(b) + beta * c,
