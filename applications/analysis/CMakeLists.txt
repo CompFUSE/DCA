@@ -2,6 +2,6 @@
 
 if (DCA_BUILD_ANALYSIS)
   add_executable(main_analysis main_analysis.cpp)
-  target_link_libraries(main_analysis ${DCA_LIBRARIES})
-  target_include_directories(main_analysis PRIVATE ${DCA_INCLUDES})
+  target_include_directories(main_analysis PRIVATE ${DCA_INCLUDE_DIRS})
+  target_link_libraries(main_analysis ${DCA_LIBS})
 endif()

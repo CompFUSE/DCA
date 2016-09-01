@@ -7,7 +7,7 @@
 
 set(DCA_HAVE_CUDA FALSE CACHE INTERNAL "")
 set(DCA_HAVE_MAGMA FALSE CACHE INTERNAL "")
-set(DCA_GPU_LIBRARIES "" CACHE INTERNAL "")
+set(DCA_CUDA_LIBS "" CACHE INTERNAL "")
 
 # Path to libcuda.so on Daint and Titan. Needed by FindCUDA.
 # TODO: Can we move this to the init-cache-file for daint/titan?
@@ -24,7 +24,7 @@ if (CUDA_FOUND)
     CACHE BOOL "Propage C/CXX_FLAGS and friends to the host compiler via -Xcompile")
 
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -arch=${CUDA_GPU_ARCH} -DNDEBUG")
-  list(APPEND DCA_GPU_LIBRARIES ${CUDA_CUDA_LIBRARY} ${CUDA_cusparse_LIBRARY})
+  list(APPEND DCA_CUDA_LIBS ${CUDA_CUDA_LIBRARY} ${CUDA_cusparse_LIBRARY})
   CUDA_INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src)
 endif()
 
@@ -37,7 +37,9 @@ if (MAGMA_LIBRARY AND MAGMA_INCLUDE_DIR)
   set(DCA_HAVE_MAGMA TRUE CACHE INTERNAL "")
   dca_add_haves_define(DCA_HAVE_MAGMA)
 
-  list(APPEND DCA_GPU_LIBRARIES ${MAGMA_LIBRARY})
+  # INTERNAL: When MAGMA is not required anymore for all the GPU code, we could remove/modify the
+  #           next two lines.
+  list(APPEND DCA_CUDA_LIBS ${MAGMA_LIBRARY})
   CUDA_INCLUDE_DIRECTORIES(${MAGMA_INCLUDE_DIR})
 endif()
 

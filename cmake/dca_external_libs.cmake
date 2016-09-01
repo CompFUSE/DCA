@@ -7,7 +7,7 @@
 #       - Use static or shared libraries?
 
 set(DCA_EXTERNAL_LIBS "" CACHE INTERNAL "")
-set(DCA_EXTERNAL_INCLUDES "" CACHE INTERNAL "")
+set(DCA_EXTERNAL_INCLUDE_DIRS "" CACHE INTERNAL "")
 
 ################################################################################
 # NFFT
@@ -17,7 +17,7 @@ find_path(NFFT_INCLUDE_DIR nfft3.h HINTS ${NFFT_DIR}/include)
 mark_as_advanced(NFFT_LIBRARY NFFT_INCLUDE_DIR)
 
 list(APPEND DCA_EXTERNAL_LIBS ${NFFT_LIBRARY})
-list(APPEND DCA_EXTERNAL_INCLUDES ${NFFT_INCLUDE_DIR})
+list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${NFFT_INCLUDE_DIR})
 
 ################################################################################
 # SPGLIB
@@ -27,7 +27,7 @@ find_path(SPGLIB_INCLUDE_DIR spglib.h HINTS ${SPGLIB_DIR}/include/spglib)
 mark_as_advanced(SPGLIB_LIBRARY SPGLIB_INCLUDE_DIR)
 
 list(APPEND DCA_EXTERNAL_LIBS ${SPGLIB_LIBRARY})
-list(APPEND DCA_EXTERNAL_INCLUDES ${SPGLIB_INCLUDE_DIR})
+list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${SPGLIB_INCLUDE_DIR})
 
 ################################################################################
 # Lapack
@@ -54,7 +54,7 @@ endif()
 mark_as_advanced(HDF5_CXX_INCLUDE_DIR HDF5_C_INCLUDE_DIR HDF5_DIR)
 
 list(APPEND DCA_EXTERNAL_LIBS ${HDF5_LIBRARIES})
-list(APPEND DCA_EXTERNAL_INCLUDES ${HDF5_INCLUDE_DIRS})
+list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${HDF5_INCLUDE_DIRS})
 
 ################################################################################
 # FFTW
@@ -69,7 +69,7 @@ if (NOT DCA_HAVE_FFTW)
 endif()
 
 list(APPEND DCA_EXTERNAL_LIBS ${FFTW_LIBRARY})
-list(APPEND DCA_EXTERNAL_INCLUDES ${FFTW_INCLUDE_DIR})
+list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${FFTW_INCLUDE_DIR})
 
 ################################################################################
 # SPRNG
@@ -79,9 +79,9 @@ if (DCA_RNG MATCHES "^SPRNG")
   endif()
 
   list(APPEND DCA_EXTERNAL_LIBS ${SPRNG_LIBRARY})
-  list(APPEND DCA_EXTERNAL_INCLUDES ${SPRNG_INCLUDE_DIR})
+  list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${SPRNG_INCLUDE_DIR})
 endif()
 
 ################################################################################
 # message("DCA_EXTERNAL_LIBS = ${DCA_EXTERNAL_LIBS}")
-# message("DCA_EXTERNAL_INCLUDES = ${DCA_EXTERNAL_INCLUDES}")
+# message("DCA_EXTERNAL_INCLUDE_DIRS = ${DCA_EXTERNAL_INCLUDE_DIRS}")

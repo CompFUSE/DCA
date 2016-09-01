@@ -66,7 +66,7 @@ include(dca_mpi)
 include(dca_pthreads)
 
 # CUDA
-include(dca_cuda)
+include(dca_cuda)  # Sets DCA_CUDA_LIBS.
 
 ################################################################################
 # Include dirs
@@ -111,16 +111,16 @@ include(dca_config)
 
 ################################################################################
 # Compiler options and tweaks
-# Depends on DCA_build_options.
+# Depends on dca_config.
 include(dca_compiler_options)
 
 ################################################################################
 # External libraries
-include(dca_external_libs)
+include(dca_external_libs)  # Sets DCA_EXTERNAL_LIBS and DCA_EXTERNAL_INCLUDE_DIRS.
 
 ################################################################################
 # Generate preprocessor definitions header files.
-# Depends on DCA_build_options.
+# Depends on dca_config.
 dca_write_config_definitions_file()
 dca_write_haves_definitions_file()
 
@@ -136,12 +136,16 @@ add_subdirectory(src/phys_library/DCA_step/cluster_solver/posix_qmci)
 add_subdirectory(src/util)
 
 ################################################################################
-# Common definitions for building DCA++ applications and tests.
+# Common definitions for building DCA++'s applications and tests.
 # Libraries
-set(DCA_LIBRARIES ${DCA_EXTERNAL_LIBS} git_version modules posix_qmci gaussian_quadrature random)
+set(DCA_LIBS ${DCA_EXTERNAL_LIBS} git_version modules posix_qmci gaussian_quadrature random)
+
+if (DCA_HAVE_CUDA)
+  list(APPEND DCA_LIBS DCA_GPU_routines ${DCA_CUDA_LIBS})
+endif()
 
 # Includes
-set(DCA_INCLUDES ${DCA_EXTERNAL_INCLUDES})
+set(DCA_INCLUDE_DIRS ${DCA_EXTERNAL_INCLUDE_DIRS})
 
 ################################################################################
 # Testing
