@@ -192,13 +192,11 @@ if (DCA_CLUSTER_SOLVER STREQUAL "CT-AUX")
   set(DCA_CLUSTER_SOLVER_NAME DCA::CT_AUX_CLUSTER_SOLVER)
   set(DCA_CLUSTER_SOLVER_INCLUDE
     "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_cluster_solver.h")
-  dca_add_config_define(DCA_WITH_CT_AUX)
 
 elseif (DCA_CLUSTER_SOLVER STREQUAL "SS-CT-HYB")
   set(DCA_CLUSTER_SOLVER_NAME DCA::SS_CT_HYB)
   set(DCA_CLUSTER_SOLVER_INCLUDE
     "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_solver.h")
-  dca_add_config_define(DCA_WITH_SS_CT_HYB)
 
 elseif (DCA_CLUSTER_SOLVER STREQUAL "HTS")
   # TODO: Remove this if HTS solver is fixed.
@@ -206,7 +204,6 @@ elseif (DCA_CLUSTER_SOLVER STREQUAL "HTS")
   set(DCA_CLUSTER_SOLVER_NAME DCA::HIGH_TEMPERATURE_SERIES)
   set(DCA_CLUSTER_SOLVER_INCLUDE
     "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/high_temperature_series_expansion_solver.h")
-  dca_add_config_define(DCA_WITH_HTS)
 
 else()
   message(FATAL_ERROR "Please set DCA_CLUSTER_SOLVER to a valid option: CT-AUX | SS-CT-HYB | HTS.")
