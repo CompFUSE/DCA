@@ -40,6 +40,24 @@ struct UseDevice<CPU> {
     blas::axpy(n, alpha, x, incx, y, incy);
   }
 
+  template <typename ScalarType>
+  inline static void copy(int n, const ScalarType* x, int incx, ScalarType* y, int incy,
+                          int /*thread_id*/, int /*stream_id*/) {
+    blas::copy(n, x, incx, y, incy);
+  }
+
+  template <typename ScalarType>
+  inline static void scal(int n, ScalarType alpha, ScalarType* x, int incx, int /*thread_id*/,
+                          int /*stream_id*/) {
+    blas::scal(n, alpha, x, incx);
+  }
+
+  template <typename ScalarType>
+  inline static void swap(int n, ScalarType* x, int incx, ScalarType* y, int incy,
+                          int /*thread_id*/, int /*stream_id*/) {
+    blas::swap(n, x, incx, y, incy);
+  }
+
   // Level 3
   template <typename ScalarType>
   inline static void gemm(const char* transa, const char* transb, int m, int n, int k,
@@ -67,6 +85,24 @@ struct UseDevice<GPU> {
   inline static void axpy(int n, ScalarType alpha, const ScalarType* x, int incx, ScalarType* y,
                           int incy, int thread_id, int /*stream_id*/) {
     cublas::axpy(get_thread_handle(thread_id), n, alpha, x, incx, y, incy);
+  }
+
+  template <typename ScalarType>
+  inline static void copy(int n, const ScalarType* x, int incx, ScalarType* y, int incy,
+                          int thread_id, int /*stream_id*/) {
+    cublas::copy(get_thread_handle(thread_id), n, x, incx, y, incy);
+  }
+
+  template <typename ScalarType>
+  inline static void scal(int n, ScalarType alpha, ScalarType* x, int incx, int thread_id,
+                          int /*stream_id*/) {
+    cublas::scal(get_thread_handle(thread_id), n, alpha, x, incx);
+  }
+
+  template <typename ScalarType>
+  inline static void swap(int n, ScalarType* x, int incx, ScalarType* y, int incy, int thread_id,
+                          int /*stream_id*/) {
+    cublas::swap(get_thread_handle(thread_id), n, x, incx, y, incy);
   }
 
   // Level 3
