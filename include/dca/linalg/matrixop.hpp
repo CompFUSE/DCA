@@ -11,6 +11,7 @@
 // This file provides the matrix interface for the following matrix operations:
 // - insertCol, insertRow (for CPU matrices only)
 // - removeCol, removeRow, removeRowAndCol
+// - scaleCol, scaleRow, scaleRows
 // - gemm
 // - trsm
 
@@ -18,9 +19,13 @@
 #define DCA_LINALG_MATRIXOP_HPP
 
 #include <cassert>
+#include <cstring>
 
-#include "dca/linalg/matrix.hpp"
 #include "dca/linalg/blas/use_device.hpp"
+#include "dca/linalg/matrix.hpp"
+#include "dca/linalg/vector.hpp"
+
+#include "comp_library/linalg/src/linalg_operations/GPUfunc.h"
 
 namespace dca {
 namespace linalg {
@@ -126,6 +131,49 @@ inline void removeRowAndCol(Matrix<ScalarType, device_name>& mat, int i, int j) 
 template <typename ScalarType, DeviceType device_name>
 inline void removeRowAndCol(Matrix<ScalarType, device_name>& mat, int i) {
   removeRowAndCol(mat, i, i);
+}
+
+// Scales the j-th column of mat by val.
+// In/Out: mat
+// Preconditions: 0 <= j < mat.nrCols().
+template <typename ScalarType, DeviceType device_name>
+inline void scaleCol(Matrix<ScalarType, device_name>& mat, int j, ScalarType val, int thread_id = 0,
+                     int stream_id = 0) {
+  assert(j >= 0 && j < mat.nrCols());
+  blas::UseDevice<device_name>::scal(mat.nrRows(), val, mat.ptr(0, j), 1, thread_id, stream_id);
+}
+
+// Scales the i-th row of mat by val.
+// In/Out: mat
+// Preconditions: 0 <= i < mat.nrRow().
+template <typename ScalarType, DeviceType device_name>
+inline void scaleRow(Matrix<ScalarType, device_name>& mat, int i, ScalarType val, int thread_id = 0,
+                     int stream_id = 0) {
+  assert(i >= 0 && i < mat.nrRows());
+  blas::UseDevice<device_name>::scal(mat.nrCols(), val, mat.ptr(i, 0), mat.leadingDimension(),
+                                     thread_id, stream_id);
+}
+
+// Scales the i[k]-th row of mat by val[k] for 0 <= k < i.size().
+// In/Out: mat
+// Preconditions: i.size() == val.size(), 0 <= i[k] < mat.nrRow() for 0 <= k < i.size().
+template <typename ScalarType>
+inline void scaleRows(Matrix<ScalarType, CPU>& mat, const Vector<int, CPU>& i,
+                      const Vector<ScalarType, CPU>& val, int /*thread_id*/ = 0,
+                      int /*stream_id*/ = 0) {
+  assert(i.size() == val.size());
+
+  for (int j = 0; j < mat.nrCols(); ++j)
+    for (int ind = 0; ind < i.size(); ++ind)
+      mat(i[ind], j) *= val[ind];
+}
+template <typename ScalarType>
+inline void scaleRows(Matrix<ScalarType, GPU>& mat, const Vector<int, GPU>& i,
+                      const Vector<ScalarType, GPU>& val, int thread_id = 0, int stream_id = 0) {
+  assert(i.size() == val.size());
+
+  GPU_KERNEL::scale_many_rows(mat.nrCols(), i.size(), i.ptr(), val.ptr(), mat.ptr(),
+                              mat.leadingDimension(), thread_id, stream_id);
 }
 
 // Performs the matrix-matrix multiplication c <- alpha * op(a) * op(b) + beta * c,

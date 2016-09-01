@@ -5,36 +5,12 @@
 
 namespace LIN_ALG {
 
-  namespace GPU_KERNEL_SCALE {
+  namespace GPU_KERNEL {
 
-    void dscale(int length, double f, double* a, int inc_a)
-    {
-      cublasStatus_t status = cublasDscal(get_thread_handle(0), length, &f, a, inc_a);
-      
-      if(status != CUBLAS_STATUS_SUCCESS)
-	  cublas_error_msg(status, __FUNCTION__, __FILE__, __LINE__);
-
-#ifdef DEBUG_CUDA
-      cuda_check_for_errors_end(__FUNCTION__, __FILE__, __LINE__);
-#endif
-    }
-
-    void dscale(int length, double f, double* a, int inc_a, int id)
-    {
-      cublasStatus_t status = cublasDscal(get_thread_handle(id), length, &f, a, inc_a);
-      
-      if(status != CUBLAS_STATUS_SUCCESS)
-	  cublas_error_msg(status, __FUNCTION__, __FILE__, __LINE__);
-
-#ifdef DEBUG_CUDA
-      cuda_check_for_errors_end(__FUNCTION__, __FILE__, __LINE__);
-#endif
-    }
-        
     const static int BLOCK_SIZE_x = 32;
     const static int BLOCK_SIZE_y = 8;
 
-    __global__ void many_rows_kernel(int Nc, int Ni, int* r_i, double* alpha, double* A, int LD)
+    __global__ void many_rows_kernel(int Nc, int Ni, const int* r_i, const double* alpha, double* A, int LD)
     {
       int index = threadIdx.x + blockIdx.x*BLOCK_SIZE_x;
 	  
@@ -48,14 +24,13 @@ namespace LIN_ALG {
 	{
 	  int row_index = r_i[index];
 	  assert(row_index>-1);
-	  assert(row_index<Nc);
 
 	  for(int l=l_MIN; l<l_MAX; ++l)
 	    A[row_index+l*LD] *= alpha[index]; 
 	}
     }
 
-    void many_rows(int Nc, int Ni, int* r_i, double* alpha, double* A, int LD, int thread_id, int stream_id)
+    void scale_many_rows(int Nc, int Ni, const int* r_i, const double* alpha, double* A, int LD, int thread_id, int stream_id)
     {
       if(Ni>0 and Nc>0)
 	{

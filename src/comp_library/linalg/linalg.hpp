@@ -53,14 +53,11 @@
 #include "src/linalg_operations/BLAS_1_COPY_CPU.h"
 #include "src/linalg_operations/BLAS_1_COPY_GPU.h"
 
-#include "src/linalg_operations/BLAS_1_SCALE_tem.h"
-#include "src/linalg_operations/BLAS_1_SCALE_CPU.h"
-#include "src/linalg_operations/BLAS_1_SCALE_GPU.h"
-
 #include "src/linalg_operations/BLAS_1_SWAP_tem.h"
 #include "src/linalg_operations/BLAS_1_SWAP_CPU.h"
 #include "src/linalg_operations/BLAS_1_SWAP_GPU.h"
 
+// LAPACK
 #include "src/linalg_operations/LASET_tem.h"
 #include "src/linalg_operations/LASET_CPU.h"
 #include "src/linalg_operations/LASET_GPU.h"
