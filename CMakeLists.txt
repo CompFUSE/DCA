@@ -135,6 +135,10 @@ add_subdirectory(src/math/random)
 add_subdirectory(src/phys_library/DCA_step/cluster_solver/posix_qmci)
 add_subdirectory(src/util)
 
+if (DCA_HAVE_CUDA)
+  add_subdirectory(src/DCA_GPU_routines)
+endif()
+
 ################################################################################
 # Common definitions for building DCA++'s applications and tests.
 # Libraries

@@ -38,8 +38,6 @@ if (DCA_WITH_CUDA)
     dca_add_config_define(ENABLE_PINNED_MEMORY_ALLOCATION)
   endif()
 
-  add_subdirectory(src/DCA_GPU_routines)
-
   # Copy walker device config file for GPU.
   configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/walker_device_gpu.hpp"
     "${CMAKE_BINARY_DIR}/include/dca/config/walker_device.hpp")

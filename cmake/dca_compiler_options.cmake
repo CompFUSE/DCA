@@ -18,9 +18,16 @@ endif()
 unset(CMAKE_REQUIRED_FLAGS)
 
 # Warnings
-set(WARNINGS -Wall -Wextra -Wpedantic -Wno-sign-compare)
+set(DCA_WARNINGS -Wall -Wextra -Wpedantic -Wno-sign-compare)
 
-# Flags
-set(FLAGS -std=c++14)  # -funroll-loops -finline-functions
+# Languange standard
+set(DCA_STD_FLAG -std=c++14)
 
-add_compile_options(${WARNINGS} ${FLAGS} ${DCA_THREADING_FLAGS})
+# Set CXX flags.
+add_compile_options(${DCA_WARNINGS} ${DCA_STD_FLAG} ${DCA_THREADING_FLAGS})
+
+# Set NVCC flags.
+if (DCA_HAVE_CUDA)
+  list(APPEND CUDA_NVCC_FLAGS -arch=${CUDA_GPU_ARCH} -Xcompiler -Wall -Xcompiler -Wextra
+    -Xcompiler -Wno-unused-parameter -Xcompiler -Wno-switch -Xcompiler ${DCA_THREADING_FLAGS})
+endif()
