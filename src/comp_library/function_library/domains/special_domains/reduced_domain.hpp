@@ -14,6 +14,8 @@
 //
 // INTERNAL: This class is probably good enough for its purpose, but it doesn't seem to be
 //           'complete'.
+//
+// TODO: This class can only be used with dmn_variadic when it's wrapped with dmn_0.
 
 #ifndef COMP_LIBRARY_FUNCTION_LIBRARY_DOMAINS_SPECIAL_DOMAINS_REDUCED_DOMAIN_HPP
 #define COMP_LIBRARY_FUNCTION_LIBRARY_DOMAINS_SPECIAL_DOMAINS_REDUCED_DOMAIN_HPP
@@ -34,6 +36,7 @@ template <typename BaseDomain>
 class ReducedDomain {
 public:
   using ElementType = typename BaseDomain::element_type;
+  using element_type = ElementType;  // For putting ReducedDomain in dmn_0.
 
   // Creates a domain that contains the elements in the range [first, last) of the base domain.
   static void initialize(const std::size_t first, const std::size_t last,

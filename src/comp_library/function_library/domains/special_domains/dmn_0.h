@@ -12,6 +12,8 @@
 #ifndef COMP_LIBRARY_FUNCTION_LIBRARY_DOMAINS_SPECIAL_DOMAINS_DMN_0_H
 #define COMP_LIBRARY_FUNCTION_LIBRARY_DOMAINS_SPECIAL_DOMAINS_DMN_0_H
 
+#include <string>
+
 #include "dca/util/type_list.hpp"
 #include "comp_library/function_library/domains/domain.h"
 
@@ -34,6 +36,8 @@ public:
   static int dmn_size();
 
   static std::vector<element_type>& get_elements();
+
+  static const std::string& get_name();
 
   static void print_2_file(const char* filename);
 };
@@ -77,6 +81,12 @@ std::vector<typename parameters::element_type>& dmn_0<parameters>::get_elements(
 template <typename parameters>
 void dmn_0<parameters>::print_2_file(const char* filename) {
   parameters::print_2_file(filename);
+}
+
+template <typename parameters>
+const std::string& dmn_0<parameters>::get_name() {
+  static std::string name = "dmn_0<" + parameters::get_name() + ">";
+  return name;
 }
 
 #endif  // COMP_LIBRARY_FUNCTION_LIBRARY_DOMAINS_SPECIAL_DOMAINS_DMN_0_H
