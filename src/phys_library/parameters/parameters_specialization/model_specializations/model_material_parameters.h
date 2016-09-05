@@ -51,8 +51,11 @@ public:
    ***        DATA                        ***
    ******************************************/
 
-  std::string get_U_ij_file_name();
-  std::string get_t_ij_file_name();
+  const std::string& get_U_ij_file_name();
+  const std::string& get_t_ij_file_name();
+
+  void set_U_ij_file_name(const std::string& file_name);
+  void set_t_ij_file_name(const std::string& file_name);
 
 private:
   std::string U_ij_file_name;
@@ -140,15 +143,27 @@ void model_parameters<tight_binding_model<material_lattice<name, dca_point_group
  ******************************************/
 
 template <material_name_type name, typename dca_point_group_t>
-std::string model_parameters<
+const std::string& model_parameters<
     tight_binding_model<material_lattice<name, dca_point_group_t>>>::get_U_ij_file_name() {
   return U_ij_file_name;
 }
 
 template <material_name_type name, typename dca_point_group_t>
-std::string model_parameters<
+const std::string& model_parameters<
     tight_binding_model<material_lattice<name, dca_point_group_t>>>::get_t_ij_file_name() {
   return t_ij_file_name;
+}
+
+template <material_name_type name, typename dca_point_group_t>
+void model_parameters<tight_binding_model<material_lattice<name, dca_point_group_t>>>::set_U_ij_file_name(
+    const std::string& file_name) {
+  U_ij_file_name = file_name;
+}
+
+template <material_name_type name, typename dca_point_group_t>
+void model_parameters<tight_binding_model<material_lattice<name, dca_point_group_t>>>::set_t_ij_file_name(
+    const std::string& file_name) {
+  t_ij_file_name = file_name;
 }
 
 #endif  // PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_MODEL_SPECILIZATIONS_MODEL_MATERIAL_PARAMETERS_H
