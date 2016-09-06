@@ -14,6 +14,7 @@
 #include <string>
 #include <utility>
 #include "gtest/gtest.h"
+#include "cpu_test_util.hpp"
 
 TEST(MatrixCPUTest, Constructors) {
   int size = 3;
@@ -191,12 +192,8 @@ TEST(MatrixCPUTest, CopyConstructor) {
   std::pair<int, int> size2(2, 3);
 
   dca::linalg::Matrix<float, dca::linalg::CPU> mat("name", size2);
-  // Set the elements.
-  for (int j = 0; j < mat.nrCols(); ++j)
-    for (int i = 0; i < mat.nrRows(); ++i) {
-      float el = 3 * i - 2 * j;
-      mat(i, j) = el;
-    }
+  auto el_value = [](int i, int j) { return 3 * i - 2 * j; };
+  testing::setMatrixElements(mat, el_value);
 
   dca::linalg::Matrix<float, dca::linalg::CPU> mat_copy(mat);
   EXPECT_EQ(mat.get_name(), mat_copy.get_name());
@@ -221,12 +218,8 @@ TEST(MatrixCPUTest, Assignement) {
     auto capacity = mat_copy.capacity();
 
     dca::linalg::Matrix<float, dca::linalg::CPU> mat("name", size2);
-    // Set the elements.
-    for (int j = 0; j < mat.nrCols(); ++j)
-      for (int i = 0; i < mat.nrRows(); ++i) {
-        float el = 3 * i - 2 * j;
-        mat(i, j) = el;
-      }
+    auto el_value = [](int i, int j) { return 3 * i - 2 * j; };
+    testing::setMatrixElements(mat, el_value);
 
     mat_copy = mat;
     EXPECT_EQ(mat.get_name(), mat_copy.get_name());
@@ -247,13 +240,8 @@ TEST(MatrixCPUTest, Assignement) {
     ++size2.first;
 
     dca::linalg::Matrix<float, dca::linalg::CPU> mat("name", size2);
-
-    // Set the elements.
-    for (int j = 0; j < mat.nrCols(); ++j)
-      for (int i = 0; i < mat.nrRows(); ++i) {
-        float el = 3 * i - 2 * j;
-        mat(i, j) = el;
-      }
+    auto el_value = [](int i, int j) { return 3 * i - 2 * j; };
+    testing::setMatrixElements(mat, el_value);
 
     mat_copy = mat;
     EXPECT_EQ(mat.get_name(), mat_copy.get_name());
@@ -299,13 +287,8 @@ TEST(MatrixCPUTest, ResizePair) {
     std::pair<int, int> size2(4, 2);
 
     dca::linalg::Matrix<long, dca::linalg::CPU> mat(size2);
-
-    // Set the elements.
-    for (int j = 0; j < mat.nrCols(); ++j)
-      for (int i = 0; i < mat.nrRows(); ++i) {
-        long el = 1 + 3 * i - 2 * j;
-        mat(i, j) = el;
-      }
+    auto el_value = [](int i, int j) { return 1 + 3 * i - 2 * j; };
+    testing::setMatrixElements(mat, el_value);
 
     // Resize to capacity. No reallocation have to take place.
     auto old_ptr = mat.ptr();
@@ -319,7 +302,7 @@ TEST(MatrixCPUTest, ResizePair) {
     // Check the value of the elements.
     for (int j = 0; j < size2.second; ++j)
       for (int i = 0; i < size2.first; ++i) {
-        long el = 1 + 3 * i - 2 * j;
+        long el = el_value(i, j);
         EXPECT_EQ(el, mat(i, j));
       }
   }
@@ -329,12 +312,8 @@ TEST(MatrixCPUTest, ResizePair) {
     dca::linalg::Matrix<long, dca::linalg::CPU> mat(size2);
     auto old_ptr = mat.ptr();
     auto capacity = mat.capacity();
-    // Set the elements.
-    for (int j = 0; j < mat.nrCols(); ++j)
-      for (int i = 0; i < mat.nrRows(); ++i) {
-        long el = 1 + 3 * i - 2 * j;
-        mat(i, j) = el;
-      }
+    auto el_value = [](int i, int j) { return 1 + 3 * i - 2 * j; };
+    testing::setMatrixElements(mat, el_value);
 
     // Shrink the matrix. No reallocation have to take place.
     auto new_size = mat.size();
@@ -347,7 +326,7 @@ TEST(MatrixCPUTest, ResizePair) {
     // Check the value of the elements.
     for (int j = 0; j < mat.nrCols(); ++j)
       for (int i = 0; i < mat.nrRows(); ++i) {
-        long el = 1 + 3 * i - 2 * j;
+        long el = el_value(i, j);
         EXPECT_EQ(el, mat(i, j));
       }
   }
@@ -357,12 +336,8 @@ TEST(MatrixCPUTest, ResizePair) {
     dca::linalg::Matrix<long, dca::linalg::CPU> mat(size2);
     auto old_ptr = mat.ptr();
     auto capacity = mat.capacity();
-    // Set the elements.
-    for (int j = 0; j < mat.nrCols(); ++j)
-      for (int i = 0; i < mat.nrRows(); ++i) {
-        long el = 1 + 3 * i - 2 * j;
-        mat(i, j) = el;
-      }
+    auto el_value = [](int i, int j) { return 1 + 3 * i - 2 * j; };
+    testing::setMatrixElements(mat, el_value);
 
     // New number of rows is larger than capacity().first.
     // Reallocation have to take place.
@@ -376,7 +351,7 @@ TEST(MatrixCPUTest, ResizePair) {
     // Check the value of the elements.
     for (int j = 0; j < 1; ++j)
       for (int i = 0; i < size2.first; ++i) {
-        long el = 1 + 3 * i - 2 * j;
+        long el = el_value(i, j);
         EXPECT_EQ(el, mat(i, j));
       }
   }
@@ -386,12 +361,8 @@ TEST(MatrixCPUTest, ResizePair) {
     dca::linalg::Matrix<long, dca::linalg::CPU> mat(size2);
     auto old_ptr = mat.ptr();
     auto capacity = mat.capacity();
-    // Set the elements.
-    for (int j = 0; j < mat.nrCols(); ++j)
-      for (int i = 0; i < mat.nrRows(); ++i) {
-        long el = 1 + 3 * i - 2 * j;
-        mat(i, j) = el;
-      }
+    auto el_value = [](int i, int j) { return 1 + 3 * i - 2 * j; };
+    testing::setMatrixElements(mat, el_value);
 
     // New number of columns is larger than capacity().second.
     // Reallocation have to take place.
@@ -405,7 +376,7 @@ TEST(MatrixCPUTest, ResizePair) {
     // Check the value of the elements.
     for (int j = 0; j < size2.second; ++j)
       for (int i = 0; i < 1; ++i) {
-        long el = 1 + 3 * i - 2 * j;
+        long el = el_value(i, j);
         EXPECT_EQ(el, mat(i, j));
       }
   }
@@ -417,12 +388,8 @@ TEST(MatrixCPUTest, ResizeValue) {
 
     dca::linalg::Matrix<long, dca::linalg::CPU> mat(size2);
 
-    // Set the elements.
-    for (int j = 0; j < mat.nrCols(); ++j)
-      for (int i = 0; i < mat.nrRows(); ++i) {
-        long el = 1 + 3 * i - 2 * j;
-        mat(i, j) = el;
-      }
+    auto el_value = [](int i, int j) { return 1 + 3 * i - 2 * j; };
+    testing::setMatrixElements(mat, el_value);
 
     // Resize to capacity. No reallocation have to take place.
     auto old_ptr = mat.ptr();
@@ -436,7 +403,7 @@ TEST(MatrixCPUTest, ResizeValue) {
     // Check the value of the elements.
     for (int j = 0; j < size2.second; ++j)
       for (int i = 0; i < size2.first; ++i) {
-        long el = 1 + 3 * i - 2 * j;
+        long el = el_value(i, j);
         EXPECT_EQ(el, mat(i, j));
       }
   }
@@ -446,12 +413,8 @@ TEST(MatrixCPUTest, ResizeValue) {
     dca::linalg::Matrix<long, dca::linalg::CPU> mat(size2);
     auto old_ptr = mat.ptr();
     auto capacity = mat.capacity();
-    // Set the elements.
-    for (int j = 0; j < mat.nrCols(); ++j)
-      for (int i = 0; i < mat.nrRows(); ++i) {
-        long el = 1 + 3 * i - 2 * j;
-        mat(i, j) = el;
-      }
+    auto el_value = [](int i, int j) { return 1 + 3 * i - 2 * j; };
+    testing::setMatrixElements(mat, el_value);
 
     // Shrink the matrix. No reallocation have to take place.
     int new_size = 2;
@@ -463,7 +426,7 @@ TEST(MatrixCPUTest, ResizeValue) {
     // Check the value of the elements.
     for (int j = 0; j < mat.nrCols(); ++j)
       for (int i = 0; i < mat.nrRows(); ++i) {
-        long el = 1 + 3 * i - 2 * j;
+        long el = el_value(i, j);
         EXPECT_EQ(el, mat(i, j));
       }
   }
@@ -473,12 +436,8 @@ TEST(MatrixCPUTest, ResizeValue) {
     dca::linalg::Matrix<long, dca::linalg::CPU> mat(size2);
     auto old_ptr = mat.ptr();
     auto capacity = mat.capacity();
-    // Set the elements.
-    for (int j = 0; j < mat.nrCols(); ++j)
-      for (int i = 0; i < mat.nrRows(); ++i) {
-        long el = 1 + 3 * i - 2 * j;
-        mat(i, j) = el;
-      }
+    auto el_value = [](int i, int j) { return 1 + 3 * i - 2 * j; };
+    testing::setMatrixElements(mat, el_value);
 
     // New size is larger than capacity.
     // Reallocation have to take place.
@@ -492,7 +451,7 @@ TEST(MatrixCPUTest, ResizeValue) {
     // Check the value of the elements.
     for (int j = 0; j < size2.second; ++j)
       for (int i = 0; i < size2.first; ++i) {
-        long el = 1 + 3 * i - 2 * j;
+        long el = el_value(i, j);
         EXPECT_EQ(el, mat(i, j));
       }
   }

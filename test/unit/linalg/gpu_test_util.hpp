@@ -7,12 +7,13 @@
 //
 // Author: Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //
-// This file provides some utilities to test simple GPU operations.
+// This file provides some utilities to test simple Matrix<GPU> operations.
 
 #ifndef DCA_TEST_UNIT_LINALG_GPU_TEST_UTIL_HPP
 #define DCA_TEST_UNIT_LINALG_GPU_TEST_UTIL_HPP
 
 #include <cuda_runtime.h>
+#include "dca/linalg/matrix.hpp"
 
 namespace testing {
 template <typename ScalarType>
@@ -42,13 +43,24 @@ void setOnDevice(ScalarType* ptr, ScalarType value) {
 }
 
 template <typename ScalarType>
-ScalarType getFromDevice(ScalarType* ptr) {
+ScalarType getFromDevice(const ScalarType* ptr) {
   ScalarType value;
   // TODO: check return code.
   cudaMemcpy(&value, ptr, sizeof(ScalarType), cudaMemcpyDefault);
   return value;
 }
 
+// The elements of the matrix will be set with mat(i, j) = func(i, j).
+// In: func
+// Out: mat
+template <typename ScalarType, typename F>
+void setMatrixElements(dca::linalg::Matrix<ScalarType, dca::linalg::GPU>& mat, F& func) {
+  for (int j = 0; j < mat.nrCols(); ++j)
+    for (int i = 0; i < mat.nrRows(); ++i) {
+      ScalarType el(func(i, j));
+      setOnDevice(mat.ptr(i, j), el);
+    }
+}
 }  // testing
 
 #endif  // DCA_TEST_UNIT_LINALG_GPU_TEST_UTIL_HPP

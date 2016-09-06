@@ -204,12 +204,8 @@ TEST(MatrixGPUTest, CopyConstructor) {
   std::pair<int, int> size2(2, 3);
 
   dca::linalg::Matrix<float, dca::linalg::GPU> mat("name", size2);
-  // Set the elements.
-  for (int j = 0; j < mat.nrCols(); ++j)
-    for (int i = 0; i < mat.nrRows(); ++i) {
-      float el = 3 * i - 2 * j;
-      testing::setOnDevice(mat.ptr(i, j), el);
-    }
+  auto el_value = [](int i, int j) { return 3 * i - 2 * j; };
+  testing::setMatrixElements(mat, el_value);
 
   dca::linalg::Matrix<float, dca::linalg::GPU> mat_copy(mat);
   EXPECT_EQ(mat.get_name(), mat_copy.get_name());
@@ -234,12 +230,8 @@ TEST(MatrixGPUTest, Assignement) {
     auto capacity = mat_copy.capacity();
 
     dca::linalg::Matrix<float, dca::linalg::GPU> mat("name", size2);
-    // Set the elements.
-    for (int j = 0; j < mat.nrCols(); ++j)
-      for (int i = 0; i < mat.nrRows(); ++i) {
-        float el = 3 * i - 2 * j;
-        testing::setOnDevice(mat.ptr(i, j), el);
-      }
+    auto el_value = [](int i, int j) { return 3 * i - 2 * j; };
+    testing::setMatrixElements(mat, el_value);
 
     mat_copy = mat;
     EXPECT_EQ(mat.get_name(), mat_copy.get_name());
@@ -260,13 +252,8 @@ TEST(MatrixGPUTest, Assignement) {
     ++size2.first;
 
     dca::linalg::Matrix<float, dca::linalg::GPU> mat("name", size2);
-
-    // Set the elements.
-    for (int j = 0; j < mat.nrCols(); ++j)
-      for (int i = 0; i < mat.nrRows(); ++i) {
-        float el = 3 * i - 2 * j;
-        testing::setOnDevice(mat.ptr(i, j), el);
-      }
+    auto el_value = [](int i, int j) { return 3 * i - 2 * j; };
+    testing::setMatrixElements(mat, el_value);
 
     mat_copy = mat;
     EXPECT_EQ(mat.get_name(), mat_copy.get_name());
@@ -314,13 +301,8 @@ TEST(MatrixGPUTest, ResizePair) {
     std::pair<int, int> size2(4, 2);
 
     dca::linalg::Matrix<Long, dca::linalg::GPU> mat(size2);
-
-    // Set the elements.
-    for (int j = 0; j < mat.nrCols(); ++j)
-      for (int i = 0; i < mat.nrRows(); ++i) {
-        Long el = 1 + 3 * i - 2 * j;
-        testing::setOnDevice(mat.ptr(i, j), el);
-      }
+    auto el_value = [](int i, int j) { return 1 + 3 * i - 2 * j; };
+    testing::setMatrixElements(mat, el_value);
 
     // Resize to capacity. No reallocation have to take place.
     auto old_ptr = mat.ptr();
@@ -334,7 +316,7 @@ TEST(MatrixGPUTest, ResizePair) {
     // Check the value of the elements.
     for (int j = 0; j < size2.second; ++j)
       for (int i = 0; i < size2.first; ++i) {
-        Long el = 1 + 3 * i - 2 * j;
+        Long el = el_value(i, j);
         EXPECT_EQ(el, testing::getFromDevice(mat.ptr(i, j)));
       }
   }
@@ -344,12 +326,8 @@ TEST(MatrixGPUTest, ResizePair) {
     dca::linalg::Matrix<Long, dca::linalg::GPU> mat(size2);
     auto old_ptr = mat.ptr();
     auto capacity = mat.capacity();
-    // Set the elements.
-    for (int j = 0; j < mat.nrCols(); ++j)
-      for (int i = 0; i < mat.nrRows(); ++i) {
-        Long el = 1 + 3 * i - 2 * j;
-        testing::setOnDevice(mat.ptr(i, j), el);
-      }
+    auto el_value = [](int i, int j) { return 1 + 3 * i - 2 * j; };
+    testing::setMatrixElements(mat, el_value);
 
     // Shrink the matrix. No reallocation have to take place.
     auto new_size = mat.size();
@@ -362,7 +340,7 @@ TEST(MatrixGPUTest, ResizePair) {
     // Check the value of the elements.
     for (int j = 0; j < mat.nrCols(); ++j)
       for (int i = 0; i < mat.nrRows(); ++i) {
-        Long el = 1 + 3 * i - 2 * j;
+        Long el = el_value(i, j);
         EXPECT_EQ(el, testing::getFromDevice(mat.ptr(i, j)));
       }
   }
@@ -372,12 +350,8 @@ TEST(MatrixGPUTest, ResizePair) {
     dca::linalg::Matrix<Long, dca::linalg::GPU> mat(size2);
     auto old_ptr = mat.ptr();
     auto capacity = mat.capacity();
-    // Set the elements.
-    for (int j = 0; j < mat.nrCols(); ++j)
-      for (int i = 0; i < mat.nrRows(); ++i) {
-        Long el = 1 + 3 * i - 2 * j;
-        testing::setOnDevice(mat.ptr(i, j), el);
-      }
+    auto el_value = [](int i, int j) { return 1 + 3 * i - 2 * j; };
+    testing::setMatrixElements(mat, el_value);
 
     // New number of rows is larger than capacity().first.
     // Reallocation have to take place.
@@ -391,7 +365,7 @@ TEST(MatrixGPUTest, ResizePair) {
     // Check the value of the elements.
     for (int j = 0; j < 1; ++j)
       for (int i = 0; i < size2.first; ++i) {
-        Long el = 1 + 3 * i - 2 * j;
+        Long el = el_value(i, j);
         EXPECT_EQ(el, testing::getFromDevice(mat.ptr(i, j)));
       }
   }
@@ -401,12 +375,8 @@ TEST(MatrixGPUTest, ResizePair) {
     dca::linalg::Matrix<Long, dca::linalg::GPU> mat(size2);
     auto old_ptr = mat.ptr();
     auto capacity = mat.capacity();
-    // Set the elements.
-    for (int j = 0; j < mat.nrCols(); ++j)
-      for (int i = 0; i < mat.nrRows(); ++i) {
-        Long el = 1 + 3 * i - 2 * j;
-        testing::setOnDevice(mat.ptr(i, j), el);
-      }
+    auto el_value = [](int i, int j) { return 1 + 3 * i - 2 * j; };
+    testing::setMatrixElements(mat, el_value);
 
     // New number of columns is larger than capacity().second.
     // Reallocation have to take place.
@@ -420,7 +390,7 @@ TEST(MatrixGPUTest, ResizePair) {
     // Check the value of the elements.
     for (int j = 0; j < size2.second; ++j)
       for (int i = 0; i < 1; ++i) {
-        Long el = 1 + 3 * i - 2 * j;
+        Long el = el_value(i, j);
         EXPECT_EQ(el, testing::getFromDevice(mat.ptr(i, j)));
       }
   }
@@ -432,12 +402,8 @@ TEST(MatrixGPUTest, ResizeValue) {
 
     dca::linalg::Matrix<Long, dca::linalg::GPU> mat(size2);
 
-    // Set the elements.
-    for (int j = 0; j < mat.nrCols(); ++j)
-      for (int i = 0; i < mat.nrRows(); ++i) {
-        Long el = 1 + 3 * i - 2 * j;
-        testing::setOnDevice(mat.ptr(i, j), el);
-      }
+    auto el_value = [](int i, int j) { return 1 + 3 * i - 2 * j; };
+    testing::setMatrixElements(mat, el_value);
 
     // Resize to capacity. No reallocation have to take place.
     auto old_ptr = mat.ptr();
@@ -451,7 +417,7 @@ TEST(MatrixGPUTest, ResizeValue) {
     // Check the value of the elements.
     for (int j = 0; j < size2.second; ++j)
       for (int i = 0; i < size2.first; ++i) {
-        Long el = 1 + 3 * i - 2 * j;
+        Long el = el_value(i, j);
         EXPECT_EQ(el, testing::getFromDevice(mat.ptr(i, j)));
       }
   }
@@ -461,12 +427,8 @@ TEST(MatrixGPUTest, ResizeValue) {
     dca::linalg::Matrix<Long, dca::linalg::GPU> mat(size2);
     auto old_ptr = mat.ptr();
     auto capacity = mat.capacity();
-    // Set the elements.
-    for (int j = 0; j < mat.nrCols(); ++j)
-      for (int i = 0; i < mat.nrRows(); ++i) {
-        Long el = 1 + 3 * i - 2 * j;
-        testing::setOnDevice(mat.ptr(i, j), el);
-      }
+    auto el_value = [](int i, int j) { return 1 + 3 * i - 2 * j; };
+    testing::setMatrixElements(mat, el_value);
 
     // Shrink the matrix. No reallocation have to take place.
     int new_size = 2;
@@ -478,7 +440,7 @@ TEST(MatrixGPUTest, ResizeValue) {
     // Check the value of the elements.
     for (int j = 0; j < mat.nrCols(); ++j)
       for (int i = 0; i < mat.nrRows(); ++i) {
-        Long el = 1 + 3 * i - 2 * j;
+        Long el = el_value(i, j);
         EXPECT_EQ(el, testing::getFromDevice(mat.ptr(i, j)));
       }
   }
@@ -488,12 +450,8 @@ TEST(MatrixGPUTest, ResizeValue) {
     dca::linalg::Matrix<Long, dca::linalg::GPU> mat(size2);
     auto old_ptr = mat.ptr();
     auto capacity = mat.capacity();
-    // Set the elements.
-    for (int j = 0; j < mat.nrCols(); ++j)
-      for (int i = 0; i < mat.nrRows(); ++i) {
-        Long el = 1 + 3 * i - 2 * j;
-        testing::setOnDevice(mat.ptr(i, j), el);
-      }
+    auto el_value = [](int i, int j) { return 1 + 3 * i - 2 * j; };
+    testing::setMatrixElements(mat, el_value);
 
     // New size is larger than capacity.
     // Reallocation have to take place.
@@ -507,7 +465,7 @@ TEST(MatrixGPUTest, ResizeValue) {
     // Check the value of the elements.
     for (int j = 0; j < size2.second; ++j)
       for (int i = 0; i < size2.first; ++i) {
-        Long el = 1 + 3 * i - 2 * j;
+        Long el = el_value(i, j);
         EXPECT_EQ(el, testing::getFromDevice(mat.ptr(i, j)));
       }
   }

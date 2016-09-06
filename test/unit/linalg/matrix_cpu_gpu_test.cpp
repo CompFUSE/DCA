@@ -14,6 +14,7 @@
 #include <string>
 #include <utility>
 #include "gtest/gtest.h"
+#include "cpu_test_util.hpp"
 #include "gpu_test_util.hpp"
 
 TEST(MatrixCPUTest, PointerMemoryType) {
@@ -68,12 +69,8 @@ TEST(MatrixCPUGPUTest, Constructors) {
   std::pair<int, int> size2(2, 3);
 
   dca::linalg::Matrix<float, dca::linalg::CPU> mat("name", size2);
-  // Set the elements.
-  for (int j = 0; j < mat.nrCols(); ++j)
-    for (int i = 0; i < mat.nrRows(); ++i) {
-      float el = 3 * i - 2 * j;
-      mat(i, j) = el;
-    }
+  auto el_value = [](int i, int j) { return 3 * i - 2 * j; };
+  testing::setMatrixElements(mat, el_value);
 
   dca::linalg::Matrix<float, dca::linalg::GPU> mat_copy(mat);
   ASSERT_EQ(mat.get_name(), mat_copy.get_name());
@@ -109,12 +106,8 @@ TEST(MatrixCPUGPUTest, Assignement) {
     auto capacity_2 = mat_copy_copy.capacity();
 
     dca::linalg::Matrix<float, dca::linalg::CPU> mat("name", size2);
-    // Set the elements.
-    for (int j = 0; j < mat.nrCols(); ++j)
-      for (int i = 0; i < mat.nrRows(); ++i) {
-        float el = 3 * i - 2 * j;
-        mat(i, j) = el;
-      }
+    auto el_value = [](int i, int j) { return 3 * i - 2 * j; };
+    testing::setMatrixElements(mat, el_value);
 
     mat_copy = mat;
     ASSERT_EQ(mat.get_name(), mat_copy.get_name());
@@ -144,12 +137,8 @@ TEST(MatrixCPUGPUTest, Assignement) {
         std::make_pair(std::max(mat_copy.capacity().first, mat_copy_copy.capacity().first) + 1, 3);
 
     dca::linalg::Matrix<float, dca::linalg::CPU> mat("name", size2);
-    // Set the elements.
-    for (int j = 0; j < mat.nrCols(); ++j)
-      for (int i = 0; i < mat.nrRows(); ++i) {
-        float el = 3 * i - 2 * j;
-        mat(i, j) = el;
-      }
+    auto el_value = [](int i, int j) { return 3 * i - 2 * j; };
+    testing::setMatrixElements(mat, el_value);
 
     mat_copy = mat;
     ASSERT_EQ(mat.get_name(), mat_copy.get_name());
