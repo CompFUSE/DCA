@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "dca/phys/parameters/mc_solver_parameters.hpp"
+#include "dca/phys/parameters/physics_parameters.hpp"
 #include "dca/phys/parameters/vertex_parameters.hpp"
 #include "dca/util/print_type.hpp"
 #include "comp_library/function_library/domains/special_domains/dmn_0.h"
@@ -39,12 +40,13 @@
 
 // TODO: Remove when the Parameters class itself is put inside the namespace dca::phys::params.
 using dca::phys::params::McSolverParameters;
+using dca::phys::params::PhysicsParameters;
 using dca::phys::params::VertexParameters;
 
 template <typename concurrency_t, typename Profiler, typename model_t, typename rng_t,
           DCA::ClusterSolverName solver_name>
 class Parameters : public file_names_parameters,
-                   public physics_parameters,
+                   public PhysicsParameters,
                    public model_parameters<model_t>,
                    public DCA_Parameters,
 
@@ -163,7 +165,7 @@ template <typename concurrency_t, typename Profiler, typename model_t, typename 
 Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::Parameters(
     std::string version_stamp_str, concurrency_t& concurrency_object)
     : file_names_parameters(),
-      physics_parameters(),
+      PhysicsParameters(),
       model_parameters<model_t>(),
       DCA_Parameters(model_t::DIMENSION),
 
@@ -360,7 +362,7 @@ void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::read_writ
 
   file_names_parameters::read_write(read_write_obj);
 
-  physics_parameters::read_write(read_write_obj);
+  PhysicsParameters::readWrite(read_write_obj);
   model_parameters<model_t>::read_write(read_write_obj);
   DCA_Parameters::read_write(read_write_obj);
 
@@ -385,7 +387,7 @@ int Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::get_buffer
 
   buffer_size += file_names_parameters::get_buffer_size(concurrency);
 
-  buffer_size += physics_parameters::get_buffer_size(concurrency);
+  buffer_size += PhysicsParameters::getBufferSize(concurrency);
   buffer_size += model_parameters<model_t>::get_buffer_size(concurrency);
   buffer_size += DCA_Parameters::get_buffer_size(concurrency);
 
@@ -411,7 +413,7 @@ void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::pack(
     concurrency_t& concurrency, int* buffer, int buffer_size, int& position) {
   file_names_parameters::pack(concurrency, buffer, buffer_size, position);
 
-  physics_parameters::pack(concurrency, buffer, buffer_size, position);
+  PhysicsParameters::pack(concurrency, buffer, buffer_size, position);
   model_parameters<model_t>::pack(concurrency, buffer, buffer_size, position);
   DCA_Parameters::pack(concurrency, buffer, buffer_size, position);
 
@@ -435,7 +437,7 @@ void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::unpack(
     concurrency_t& concurrency, int* buffer, int buffer_size, int& position) {
   file_names_parameters::unpack(concurrency, buffer, buffer_size, position);
 
-  physics_parameters::unpack(concurrency, buffer, buffer_size, position);
+  PhysicsParameters::unpack(concurrency, buffer, buffer_size, position);
   model_parameters<model_t>::unpack(concurrency, buffer, buffer_size, position);
   DCA_Parameters::unpack(concurrency, buffer, buffer_size, position);
 

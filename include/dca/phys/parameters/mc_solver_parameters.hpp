@@ -49,11 +49,9 @@ public:
   int get_submatrix_size() const {
     return submatrix_size_;
   }
-
   int get_initial_matrix_size() const {
     return initial_matrix_size_;
   }
-
   double get_K_parameter() const {
     return K_parameter_;
   }
@@ -116,7 +114,7 @@ void McSolverParameters<DCA::CT_AUX_CLUSTER_SOLVER>::readWrite(ReaderOrWriter& r
     reader_or_writer.close_group();
   }
   catch (const std::exception& r_e) {
-    std::cout << "\nCT-AUX-solver-parameters defined!\n" << std::endl;
+    std::cout << "\nNo CT-AUX solver parameters defined!\n" << std::endl;
     throw std::logic_error(__PRETTY_FUNCTION__);
   }
 }
@@ -130,10 +128,8 @@ public:
 
   template <typename Concurrency>
   int getBufferSize(Concurrency& concurrency) const;
-
   template <typename Concurrency>
   void pack(Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
-
   template <typename Concurrency>
   void unpack(Concurrency& concurrency, int* buffer, int buffer_size, int& position);
 
@@ -143,15 +139,12 @@ public:
   int get_Sigma_tail_cutoff() const {
     return Sigma_tail_cutoff_;
   }
-
   double get_steps_per_sweep() const {
     return steps_per_sweep_;
   }
-
   double get_swaps_per_sweep() const {
     return swaps_per_sweep_;
   }
-
   double get_shifts_per_sweep() const {
     return shifts_per_sweep_;
   }
@@ -223,8 +216,7 @@ void McSolverParameters<DCA::SS_CT_HYB>::readWrite(ReaderOrWriter& reader_or_wri
     reader_or_writer.close_group();
   }
   catch (const std::exception& r_e) {
-    std::cout << "\nSS-CT-HYB-solver-parameters defined!\n" << std::endl;
-    ;
+    std::cout << "\nNo SS-CT-HYB solver parameters defined!\n" << std::endl;
     throw std::logic_error(__PRETTY_FUNCTION__);
   }
 }
