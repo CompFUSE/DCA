@@ -13,14 +13,15 @@
 #ifndef PHYS_LIBRARY_PARAMETERS_MODELS_MATERIAL_HAMILTONIANS_TEMPLATE_SPECIALIZATION_NIO_MATERIAL_LATTICE_NIO_H
 #define PHYS_LIBRARY_PARAMETERS_MODELS_MATERIAL_HAMILTONIANS_TEMPLATE_SPECIALIZATION_NIO_MATERIAL_LATTICE_NIO_H
 
+#include <array>
 #include "comp_library/IO_library/CSV/CSV.hpp"
 #include "phys_library/parameters/models/material_hamiltonians/material_lattice_template.h"
 
 template <typename point_group_type>
 class material_lattice<NiO_symmetric, point_group_type> {
 public:
-  const static int DIMENSION = 3;
-  const static int BANDS = 8;
+  static constexpr int DIMENSION = 3;
+  static constexpr int BANDS = 8;
 
   typedef no_symmetry<DIMENSION> LDA_point_group;
   typedef point_group_type DCA_point_group;
@@ -47,13 +48,13 @@ public:
 private:
   template <class parameters_type>
   static std::vector<std::vector<double>>& get_t_ij(parameters_type& parameters);
+
+  static constexpr double a = 7.89358;  // 3.946789070;
 };
 
 template <typename point_group_type>
 double* material_lattice<NiO_symmetric, point_group_type>::initialize_r_DCA_basis() {
-  const static double a = 7.89358;  // 3.946789070;
-
-  static double* r_DCA = new double[9];
+  static std::array<double, 9> r_DCA;
 
   r_DCA[0] = 0;
   r_DCA[3] = a / 2.;
@@ -65,14 +66,12 @@ double* material_lattice<NiO_symmetric, point_group_type>::initialize_r_DCA_basi
   r_DCA[5] = a / 2.;
   r_DCA[8] = 0;
 
-  return r_DCA;
+  return r_DCA.data();
 }
 
 template <typename point_group_type>
 double* material_lattice<NiO_symmetric, point_group_type>::initialize_r_LDA_basis() {
-  const static double a = 7.89358;  // 3.946789070;
-
-  static double* r_LDA = new double[9];
+  static std::array<double, 9> r_LDA;
 
   r_LDA[0] = 0;
   r_LDA[3] = a / 2.;
@@ -84,7 +83,7 @@ double* material_lattice<NiO_symmetric, point_group_type>::initialize_r_LDA_basi
   r_LDA[5] = a / 2.;
   r_LDA[8] = 0;
 
-  return r_LDA;
+  return r_LDA.data();
 }
 
 template <typename point_group_type>
@@ -202,8 +201,8 @@ std::complex<double> material_lattice<NiO_symmetric, point_group_type>::get_LDA_
 template <typename point_group_type>
 class material_lattice<NiO_unsymmetric, point_group_type> {
 public:
-  const static int DIMENSION = 3;
-  const static int BANDS = 8;
+  static constexpr int DIMENSION = 3;
+  static constexpr int BANDS = 8;
 
   typedef no_symmetry<DIMENSION> LDA_point_group;
   typedef point_group_type DCA_point_group;
@@ -230,13 +229,13 @@ public:
 private:
   template <class parameters_type>
   static std::vector<std::vector<double>>& get_t_ij(parameters_type& parameters);
+
+  static constexpr double a = 7.89358;  // 3.946789070;
 };
 
 template <typename point_group_type>
 double* material_lattice<NiO_unsymmetric, point_group_type>::initialize_r_DCA_basis() {
-  const static double a = 7.89358;  // 3.946789070;
-
-  static double* r_DCA = new double[9];
+  static std::array<double, 9> r_DCA;
 
   r_DCA[0] = 0;
   r_DCA[3] = a / 2.;
@@ -248,14 +247,12 @@ double* material_lattice<NiO_unsymmetric, point_group_type>::initialize_r_DCA_ba
   r_DCA[5] = a / 2.;
   r_DCA[8] = 0;
 
-  return r_DCA;
+  return r_DCA.data();
 }
 
 template <typename point_group_type>
 double* material_lattice<NiO_unsymmetric, point_group_type>::initialize_r_LDA_basis() {
-  const static double a = 7.89358;  // 3.946789070;
-
-  static double* r_LDA = new double[9];
+  static std::array<double, 9> r_LDA;
 
   r_LDA[0] = 0;
   r_LDA[3] = a / 2.;
@@ -267,7 +264,7 @@ double* material_lattice<NiO_unsymmetric, point_group_type>::initialize_r_LDA_ba
   r_LDA[5] = a / 2.;
   r_LDA[8] = 0;
 
-  return r_LDA;
+  return r_LDA.data();
 }
 
 template <typename point_group_type>
