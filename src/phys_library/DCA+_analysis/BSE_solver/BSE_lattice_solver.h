@@ -487,7 +487,7 @@ template <class parameters_type, class MOMS_type>
 void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_Gamma_chi_0(
     FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
     FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice) {
-  if (parameters.do_diagonolization_on_folded_Gamma_chi_0()) {
+  if (parameters.do_diagonalization_on_folded_Gamma_chi_0()) {
     diagonolize_folded_Gamma_chi_0(Gamma_lattice, chi_0_lattice);
   }
   else {

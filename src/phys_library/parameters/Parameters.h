@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "dca/phys/parameters/mc_solver_parameters.hpp"
+#include "dca/phys/parameters/vertex_parameters.hpp"
 #include "dca/util/print_type.hpp"
 #include "comp_library/function_library/domains/special_domains/dmn_0.h"
 #include "phys_library/domains/cluster/cluster_domain.h"
@@ -38,6 +39,7 @@
 
 // TODO: Remove when the Parameters class itself is put inside the namespace dca::phys::params.
 using dca::phys::params::McSolverParameters;
+using dca::phys::params::VertexParameters;
 
 template <typename concurrency_t, typename Profiler, typename model_t, typename rng_t,
           DCA::ClusterSolverName solver_name>
@@ -52,7 +54,7 @@ class Parameters : public file_names_parameters,
                    public McSolverParameters<solver_name>,
                    public ED_solver_parameters,
 
-                   public vertex_parameters<model_t::lattice_type::DIMENSION>,
+                   public VertexParameters<model_t::lattice_type::DIMENSION>,
                    public equal_time_parameters,
                    public CPE_parameters,
 
@@ -169,7 +171,7 @@ Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::Parameters(
       MCI_parameters(),
 
       McSolverParameters<solver_name>(),
-      vertex_parameters<model_t::DIMENSION>(),
+      VertexParameters<model_t::DIMENSION>(),
       equal_time_parameters(),
       CPE_parameters(),
 
@@ -218,7 +220,7 @@ void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::write(Wri
 
     DCA_iteration_domain::write(writer);
 
-    if (vertex_parameters<model_t::DIMENSION>::get_vertex_measurement_type() != NONE) {
+    if (VertexParameters<model_t::DIMENSION>::get_vertex_measurement_type() != NONE) {
       DCA::vertex_time_domain<DCA::SP_TIME_DOMAIN>::write(writer);
       DCA::vertex_time_domain<DCA::TP_TIME_DOMAIN>::write(writer);
       DCA::vertex_time_domain<DCA::SP_TIME_DOMAIN_POSITIVE>::write(writer);
@@ -367,7 +369,7 @@ void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::read_writ
   ED_solver_parameters::read_write(read_write_obj);
 
   function_parameters::read_write(read_write_obj);
-  vertex_parameters<model_t::DIMENSION>::read_write(read_write_obj);
+  VertexParameters<model_t::DIMENSION>::readWrite(read_write_obj);
   equal_time_parameters::read_write(read_write_obj);
 
   CPE_parameters::read_write(read_write_obj);
@@ -392,7 +394,7 @@ int Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::get_buffer
   buffer_size += ED_solver_parameters::get_buffer_size(concurrency);
 
   buffer_size += function_parameters::get_buffer_size(concurrency);
-  buffer_size += vertex_parameters<model_t::DIMENSION>::get_buffer_size(concurrency);
+  buffer_size += VertexParameters<model_t::DIMENSION>::getBufferSize(concurrency);
   buffer_size += equal_time_parameters::get_buffer_size(concurrency);
   buffer_size += CPE_parameters::get_buffer_size(concurrency);
 
@@ -418,7 +420,7 @@ void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::pack(
   ED_solver_parameters::pack(concurrency, buffer, buffer_size, position);
 
   function_parameters::pack(concurrency, buffer, buffer_size, position);
-  vertex_parameters<model_t::DIMENSION>::pack(concurrency, buffer, buffer_size, position);
+  VertexParameters<model_t::DIMENSION>::pack(concurrency, buffer, buffer_size, position);
   equal_time_parameters::pack(concurrency, buffer, buffer_size, position);
   CPE_parameters::pack(concurrency, buffer, buffer_size, position);
 
@@ -442,7 +444,7 @@ void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::unpack(
   ED_solver_parameters::unpack(concurrency, buffer, buffer_size, position);
 
   function_parameters::unpack(concurrency, buffer, buffer_size, position);
-  vertex_parameters<model_t::DIMENSION>::unpack(concurrency, buffer, buffer_size, position);
+  VertexParameters<model_t::DIMENSION>::unpack(concurrency, buffer, buffer_size, position);
   equal_time_parameters::unpack(concurrency, buffer, buffer_size, position);
   CPE_parameters::unpack(concurrency, buffer, buffer_size, position);
 
