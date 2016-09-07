@@ -1,58 +1,36 @@
-#------------------------------------------------------------------------------
+################################################################################
+# Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+#         John Biddiscombe (john.biddiscombe@cscs.ch)
+#
 # CMake build script for DCA++
-#------------------------------------------------------------------------------
+
 cmake_minimum_required(VERSION 3.0)
 project(DCA++ C CXX)
 
-#------------------------------------------------------------------------------
+################################################################################
 # Disable in-source builds.
-#------------------------------------------------------------------------------
 if (${PROJECT_BINARY_DIR} STREQUAL ${PROJECT_SOURCE_DIR})
-  message(FATAL_ERROR "In-source builds are not permitted.
-                      Make a separate folder for building:\n
-                      mkdir build; cd build; cmake ..\n
-                      Before that, remove the files already created:\n
-                      rm -rf CMakeCache.txt CMakeFiles")
+  message(FATAL_ERROR "In-source builds are not permitted. Make a separate folder for building:\n
+                       mkdir build; cd build; cmake ..\n
+                       Before that, remove the files that have already been created:\n
+                       rm -rf CMakeCache.txt CMakeFiles")
 endif()
 
-#------------------------------------------------------------------------------
+################################################################################
 # Include CMake scripts from cmake directory.
-#------------------------------------------------------------------------------
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-#------------------------------------------------------------------------------
-# load project macros
-#------------------------------------------------------------------------------
-include(DCA_macros)
+################################################################################
+# Load global variables to store preprocessor definitions.
+include(dca_defines)
 
-#------------------------------------------------------------------------------
-# add the project source dir to a global #define : we use this as the
-# root path for getting files for/from testing
-#------------------------------------------------------------------------------
-dca_add_config_define(DCA_SOURCE_DIRECTORY \"${PROJECT_SOURCE_DIR}\")
+################################################################################
+# Check for CXX features that might not be supported.
+# If any of these features are not supported by the compiler, then the DCA++ project will not
+# compile.
+include(dca_cmake_utils)  # for dca_check_cxx_features
 
-#------------------------------------------------------------------------------
-# Include dirs
-#------------------------------------------------------------------------------
-# For "dca/.../..." #includes.
-include_directories(${PROJECT_SOURCE_DIR}/include)
-
-# For src includes, e.g. #include "phys_library/...".
-# Note that these includes should disappear over time since header files should
-# be moved into include/dca/.../ and included via #include "dca/.../...".
-include_directories(${PROJECT_SOURCE_DIR}/src)
-
-# Directory where dca/config/headers.hpp will be created.
-include_directories(${CMAKE_BINARY_DIR}/include)
-
-#------------------------------------------------------------------------------
-# Check for CXX features that might not be supported 
-# if any of these features are not supported by the compiler, then
-# the DCA+ project will not compile, so check them
-#------------------------------------------------------------------------------
-include(DCA_cmake_features)
-
-DCA_check_cxx_features(
+dca_check_cxx_features(
   cxx_alias_templates
   cxx_auto_type
   cxx_constexpr
@@ -72,121 +50,126 @@ DCA_check_cxx_features(
   cxx_variadic_templates
 )
 
-#------------------------------------------------------------------------------
-# Include CMake scripts from cmake directory.
-#------------------------------------------------------------------------------
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+################################################################################
+# Check for libraries and accordingly set DCA_HAVE_XXX variables.
 
-#------------------------------------------------------------------------------
-# Modules : for reproducibility
-#------------------------------------------------------------------------------
+# SPRNG
+include(dca_sprng)
 
-include(modules_init)
+# Gnuplot
+include(dca_gnuplot)
+
+# MPI
+include(dca_mpi)
+
+# Pthreads
+include(dca_pthreads)
+
+# CUDA
+include(dca_cuda)  # Sets DCA_CUDA_LIBS.
+
+################################################################################
+# Include dirs
+
+# For "dca/.../..." #includes.
+include_directories(${PROJECT_SOURCE_DIR}/include)
+
+# For src includes, e.g. #include "phys_library/...".
+# Note that these includes should disappear over time since header files should be moved into
+# include/dca/.../ and included via #include "dca/.../...".
+include_directories(${PROJECT_SOURCE_DIR}/src)
+
+# Directory where dca/config/headers.hpp will be created.
+include_directories(${CMAKE_BINARY_DIR}/include)
+
+################################################################################
+# Modules: for reproducibility
+include(dca_modules/init)
+
 get_module_list(MODULE_LIST)
+
 configure_file("${PROJECT_SOURCE_DIR}/src/util/modules.cpp.in"
   "${PROJECT_BINARY_DIR}/src/util/modules.cpp" @ONLY)
 
-#------------------------------------------------------------------------------
-# Git Version : for reproducibility
-#------------------------------------------------------------------------------
-include(git_version_init)
-get_git_log(GIT_LOG)  # Executes 'git log -1'.
+################################################################################
+# Git Version: for reproducibility
+include(dca_git_version/init)
+
+get_git_log(GIT_LOG)        # Executes 'git log -1'.
 get_git_status(GIT_STATUS)  # Executes 'git status --porcelain'.
-if(GIT_STATUS)
-  message(WARNING "Working tree is dirty. Run 'git status' for details.")  
+
+if (GIT_STATUS)
+  message(WARNING "Working tree is dirty. Run 'git status' for details.")
 endif()
+
 configure_file("${PROJECT_SOURCE_DIR}/src/util/git_version.cpp.in"
   "${PROJECT_BINARY_DIR}/src/util/git_version.cpp" @ONLY)
 
-#------------------------------------------------------------------------------
-# DCA++ options
-#------------------------------------------------------------------------------
-include(DCA_build_options)
+################################################################################
+# Configure DCA++'s applications
+include(dca_config)
 
-#------------------------------------------------------------------------------
+################################################################################
 # Compiler options and tweaks
-#------------------------------------------------------------------------------
-include(DCA_compiler_options)
+# Depends on dca_config.
+include(dca_compiler_options)
 
-#------------------------------------------------------------------------------
+################################################################################
 # External libraries
-#------------------------------------------------------------------------------
-include(DCA_external_libs)
+include(dca_external_libs)  # Sets DCA_EXTERNAL_LIBS and DCA_EXTERNAL_INCLUDE_DIRS.
 
-#------------------------------------------------------------------------------
+################################################################################
+# Generate preprocessor definitions header files.
+# Depends on dca_config.
+dca_write_config_definitions_file()
+dca_write_haves_definitions_file()
+
+install(DIRECTORY ${CMAKE_BINARY_DIR}/include/dca/config DESTINATION include/dca)
+
+################################################################################
 # Internal libraries
-# TODO: When the number of 'internal' libraries grows, we might want to combine
-#       these into a few big libraries; e.g. one for comp, math and phys,
-#       respectively.
-#------------------------------------------------------------------------------
+# TODO: When the number of 'internal' libraries grows, we might want to combine these into a few big
+#       libraries; e.g. one for math, phys, etc.
 add_subdirectory(src/math/geometry/gaussian_quadrature)
 add_subdirectory(src/math/random)
-add_subdirectory(src/util)
 add_subdirectory(src/phys_library/DCA_step/cluster_solver/posix_qmci)
+add_subdirectory(src/util)
 
-#------------------------------------------------------------------------------
-# Common definitions
-# NOTE: Needs to be included after DCA_external_libs.
-#------------------------------------------------------------------------------
-include(DCA_definitions)
-
-#------------------------------------------------------------------------------
-# MPI support
-#------------------------------------------------------------------------------
-include(MPI_support)
-
-#------------------------------------------------------------------------------
-# GPU support
-#------------------------------------------------------------------------------
-include(GPU_support)
-if (DCA_WITH_CUDA)
+if (DCA_HAVE_CUDA)
   add_subdirectory(src/DCA_GPU_routines)
 endif()
 
-#------------------------------------------------------------------------------
-# Global defines.hpp file
-#------------------------------------------------------------------------------
-# write_global_definitions_file("include/dca/config/defines.hpp")
+################################################################################
+# Common definitions for building DCA++'s applications and tests.
+# Libraries
+set(DCA_LIBS ${DCA_EXTERNAL_LIBS} git_version modules posix_qmci gaussian_quadrature random)
 
-#------------------------------------------------------------------------------
-# Testing
-#------------------------------------------------------------------------------
-include(testing)
-
-if (DCA_TESTS)
-  add_subdirectory(src/comp_library/function_library/test)
-  add_subdirectory(src/math_library/geometry_library/vector_operations)
+if (DCA_HAVE_CUDA)
+  list(APPEND DCA_LIBS DCA_GPU_routines ${DCA_CUDA_LIBS})
 endif()
 
-#------------------------------------------------------------------------------
-# Configure the header containing all compile definitions
-#------------------------------------------------------------------------------
-get_property(DCA_CONFIG_DEFINITIONS_VAR GLOBAL PROPERTY DCA_CONFIG_DEFINITIONS)
+# Includes
+set(DCA_INCLUDE_DIRS ${DCA_EXTERNAL_INCLUDE_DIRS})
 
-list(SORT DCA_CONFIG_DEFINITIONS_VAR)
-list(REMOVE_DUPLICATES DCA_CONFIG_DEFINITIONS_VAR)
-list(REMOVE_ITEM DCA_CONFIG_DEFINITIONS_VAR "")
+################################################################################
+# Testing
+option(DCA_WITH_TESTS_FAST "Build DCA++'s fast tests." OFF)
+option(DCA_WITH_TESTS_EXTENSIVE "Build DCA++'s extensive tests." OFF)
+option(DCA_WITH_TESTS_PERFORMANCE "Build DCA++'s performance tests." OFF)
 
-set(dca_config_defines "// Generated from CMake definitions\n\n")
-foreach(def ${DCA_CONFIG_DEFINITIONS_VAR})
-  set(dca_config_defines "${dca_config_defines}#define ${def} ${${def}_define}\n")
-endforeach()
+if (DCA_WITH_TESTS_FAST OR DCA_WITH_TESTS_EXTENSIVE OR DCA_WITH_TESTS_PERFORMANCE)
+  include(dca_testing)
 
-# Generate a defines.hpp to be used in the build directory ...
-set(DCA_DEFINES_PREFIX ${DCA_BUILD_PREFIX})
-configure_file("${PROJECT_SOURCE_DIR}/cmake/templates/config_defines.hpp.in"
-               "${CMAKE_BINARY_DIR}/include/dca/config/defines.hpp"
-               @ONLY)
+  enable_testing()
 
-# Generate a defines.hpp to be used in the install directory ...
-# set(DCA_DEFINES_PREFIX ${DCA_PREFIX})
-# configure_file("${PROJECT_SOURCE_DIR}/cmake/templates/config_defines.hpp.in"
-#                "${CMAKE_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/dca/config/defines.hpp"
-#                @ONLY)
+  add_subdirectory(${gtest_DIR} ${PROJECT_BINARY_DIR}/gtest)
 
-install(DIRECTORY ${PROJECT_BINARY_DIR}/include/dca/config DESTINATION include/dca)
-             
-#------------------------------------------------------------------------------
-# Build applications
-#------------------------------------------------------------------------------
+  add_subdirectory(${PROJECT_SOURCE_DIR}/test)
+  add_subdirectory(${PROJECT_SOURCE_DIR}/applications/analysis/test)
+  add_subdirectory(${PROJECT_SOURCE_DIR}/applications/cluster_solver_check/test)
+  add_subdirectory(${PROJECT_SOURCE_DIR}/applications/dca/test)
+endif()
+
+################################################################################
+# Build applications.
 add_subdirectory(applications)

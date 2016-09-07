@@ -10,18 +10,16 @@
 // No-change test for CT-AUX.
 // Square lattice with only nearest-neighbor interaction.
 
-#include "dca/config/defines.hpp"
-#ifndef DCA_HAVE_MPI
-#error MPI must be supported for the dca_DCA+_mpi_test.
-#endif  // DCA_HAVE_MPI
+#define DCA_WITH_REDUCED_VERTEX_FUNCTION
 
+#include <complex>
 #include <iostream>
-#include <cmath>
 #include <string>
 
 #include "gtest/gtest.h"
 
-#include "dca/math/random/random.hpp"
+#include "dca/config/haves_defines.hpp"
+#include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/testing/dca_mpi_test_environment.hpp"
 #include "dca/testing/minimalist_printer.hpp"
 #include "dca/util/git_version.hpp"
@@ -29,6 +27,7 @@
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/IO_library/HDF5/HDF5.hpp"
 #include "comp_library/IO_library/JSON/JSON.hpp"
+#include "comp_library/profiler_library/profilers/null_profiler.hpp"
 #include "phys_library/DCA+_data/DCA_data.h"
 #include "phys_library/DCA+_loop/DCA_loop_data.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_cluster_solver.h"
@@ -50,8 +49,9 @@ TEST(squareLattice_Nc4_nn, Self_Energy) {
   using DcaPointGroupType = D4;
   using LatticeType = square_lattice<DcaPointGroupType>;
   using ModelType = tight_binding_model<LatticeType>;
-  using ParametersType = Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, ModelType,
-                                    RngType, CT_AUX_CLUSTER_SOLVER>;
+  using ParametersType =
+      Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, PROFILER::NullProfiler,
+                 ModelType, RngType, CT_AUX_CLUSTER_SOLVER>;
   using DcaDataType = DCA_data<ParametersType>;
   using QmcSolverType =
       cluster_solver<CT_AUX_CLUSTER_SOLVER, LIN_ALG::CPU, ParametersType, DcaDataType>;
@@ -82,7 +82,7 @@ TEST(squareLattice_Nc4_nn, Self_Energy) {
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
     IO::reader<IO::HDF5> reader;
     reader.open_file(
-        DCA_SOURCE_DIRECTORY
+        DCA_SOURCE_DIR
         "/applications/cluster_solver_check/test/CT-AUX/square_lattice/Nc4_nn/data.ED.hdf5");
     reader.open_group("functions");
     // reader.execute(dca_data_imag.Sigma);
@@ -113,7 +113,7 @@ TEST(squareLattice_Nc4_nn, Self_Energy) {
         "Self_Energy");
     IO::reader<IO::HDF5> reader;
     reader.open_file(
-        DCA_SOURCE_DIRECTORY
+        DCA_SOURCE_DIR
         "/applications/cluster_solver_check/test/CT-AUX/square_lattice/Nc4_nn/check_data.QMC.hdf5");
     reader.open_group("functions");
     reader.execute(Sigma_QMC_check);
@@ -152,7 +152,7 @@ int main(int argc, char** argv) {
 
   ::testing::InitGoogleTest(&argc, argv);
 
-  dca_test_env = new dca::testing::DcaMpiTestEnvironment(argc, argv, DCA_SOURCE_DIRECTORY
+  dca_test_env = new dca::testing::DcaMpiTestEnvironment(argc, argv, DCA_SOURCE_DIR
                                                          "/applications/cluster_solver_check/test/"
                                                          "CT-AUX/square_lattice/Nc4_nn/"
                                                          "input.square_lattice_Nc4_nn.json");

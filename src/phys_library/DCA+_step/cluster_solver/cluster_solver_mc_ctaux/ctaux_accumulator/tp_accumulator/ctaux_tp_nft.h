@@ -133,7 +133,7 @@ double cached_nft<dimension, scalar_type, r_dmn_t, w_vertex_dmn_t, w_vertex_pos_
         M_r_r_w_w) {
   double FLOPS = 0;
 
-  int r0_index = r_cluster_type::get_r_0_index();
+  int r0_index = r_cluster_type::origin_index();
   int N_r = r_cluster_type::get_size();
   int N_b = b::dmn_size();
   int N_w = w_vertex_dmn_t::dmn_size();

@@ -8,7 +8,8 @@
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // This header file defines the supported underlying parallelization libraries.
-// TODO: Remove Pthreads and OpenMP?
+// TODO: - Remove Pthreads and OpenMP?
+//       - Make conform with coding style.
 
 #ifndef DCA_CONCURRENCY_CONCURRENCY_TYPES_HPP
 #define DCA_CONCURRENCY_CONCURRENCY_TYPES_HPP

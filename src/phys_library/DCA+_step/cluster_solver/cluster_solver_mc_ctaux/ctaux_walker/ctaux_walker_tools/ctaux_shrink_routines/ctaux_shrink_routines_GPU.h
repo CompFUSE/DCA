@@ -58,13 +58,13 @@ public:
     assert(N_up.size() == G0_up.size());
     assert(N_dn.size() == G0_dn.size());
 
-#ifdef QMC_INTEGRATOR_BIT
+#ifdef DCA_WITH_QMC_BIT
     N_dn_CPU.copy_from(N_dn);
     N_up_CPU.copy_from(N_up);
 
     G0_dn_CPU.copy_from(G0_dn);
     G0_up_CPU.copy_from(G0_up);
-#endif  // QMC_INTEGRATOR_BIT
+#endif  // DCA_WITH_QMC_BIT
 
     if (true) {
       i_s_up.set(source_index_up, LIN_ALG::ASYNCHRONOUS);
@@ -101,7 +101,7 @@ public:
       }
     }
 
-#ifdef QMC_INTEGRATOR_BIT
+#ifdef DCA_WITH_QMC_BIT
     SHRINK_TOOLS_ALGORITHMS_CPU_obj.execute(source_index_up, target_index_up, N_up_CPU, G0_up_CPU,
                                             source_index_dn, target_index_dn, N_dn_CPU, G0_dn_CPU);
 
@@ -111,7 +111,7 @@ public:
     G0_dn_CPU.difference(G0_dn);
     G0_up_CPU.difference(G0_up);
   }
-#endif  // QMC_INTEGRATOR_BIT
+#endif  // DCA_WITH_QMC_BIT
 
 }
 

@@ -1,31 +1,29 @@
 # linalg unit tests
 
-add_gtest(NAME vector_cpu_test
-          GTEST_MAIN)
+dca_add_gtest(vector_cpu_test GTEST_MAIN)
 
-add_gtest(NAME vector_cpu_gpu_test
-          CUDA
-          INCLUDES ${DCA_INCLUDES}
-          LIBS ${DCA_LIBRARIES}
-          GTEST_MAIN)
+dca_add_gtest(vector_cpu_gpu_test
+              GTEST_MAIN
+              CUDA
+              INCLUDE_DIRS ${TEST_INCLUDE_DIRS}
+              LIBS ${DCA_LIBS})
 
-add_gtest(NAME vector_gpu_test
-          CUDA
-          INCLUDES ${DCA_INCLUDES}
-          LIBS ${DCA_LIBRARIES}
-          GTEST_MAIN)
+dca_add_gtest(vector_gpu_test
+              GTEST_MAIN
+              CUDA
+              INCLUDE_DIRS ${TEST_INCLUDE_DIRS}
+              LIBS ${DCA_LIBS})
 
-add_gtest(NAME matrix_cpu_test
-          GTEST_MAIN)
+dca_add_gtest(matrix_cpu_test GTEST_MAIN)
 
-add_gtest(NAME matrix_cpu_gpu_test
-          CUDA
-          INCLUDES ${DCA_INCLUDES}
-          LIBS ${DCA_LIBRARIES}
-          GTEST_MAIN)
+dca_add_gtest(matrix_cpu_gpu_test
+              GTEST_MAIN
+              CUDA
+              INCLUDE_DIRS ${TEST_INCLUDE_DIRS}
+              LIBS ${DCA_LIBS})
 
-add_gtest(NAME matrix_gpu_test
-          CUDA
-          INCLUDES ${DCA_INCLUDES}
-          LIBS ${DCA_LIBRARIES}
-          GTEST_MAIN)
+dca_add_gtest(matrix_gpu_test
+              GTEST_MAIN
+              CUDA
+              INCLUDE_DIRS ${TEST_INCLUDE_DIRS}
+              LIBS ${DCA_LIBS})

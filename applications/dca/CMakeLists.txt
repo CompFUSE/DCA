@@ -1,27 +1,11 @@
-################################################################################
-# applications/dca/CMakeLists.txt
-################################################################################
+# Builds main_dca.
 
 if (DCA_BUILD_DCA)
-  message(STATUS "Generating main_dca.cpp.")
-  configure_file(main_dca.cpp.in "${CMAKE_CURRENT_BINARY_DIR}/main_dca.cpp" @ONLY)
+  add_executable(main_dca main_dca.cpp)
+  target_include_directories(main_dca PRIVATE ${DCA_INCLUDE_DIRS})
+  target_link_libraries(main_dca ${DCA_LIBS})
   
   if (DCA_WITH_CUDA)
-    add_executable(main_dca ${CMAKE_CURRENT_BINARY_DIR}/main_dca.cpp)
-    target_link_libraries(main_dca
-                          DCA_GPU_routines
-                          ${DCA_LIBRARIES}
-                          ${DCA_GPU_LIBRARIES})
     cuda_add_cublas_to_target(main_dca)
-    
-  else()
-    add_executable(main_dca ${CMAKE_CURRENT_BINARY_DIR}/main_dca.cpp)
-    target_link_libraries(main_dca ${DCA_LIBRARIES})
   endif()
-  
-  target_include_directories(main_dca
-                             PRIVATE ${DCA_LATTICE_MODELS_FOLDER}
-                             PRIVATE ${DCA_INCLUDES})
 endif()
-
-add_subdirectory(test)

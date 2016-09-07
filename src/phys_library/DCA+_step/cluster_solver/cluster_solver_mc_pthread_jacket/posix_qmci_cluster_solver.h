@@ -289,11 +289,11 @@ void posix_qmci_integrator<qmci_integrator_type>::start_walker(int id) {
     }
   }
 
-#ifdef QMC_INTEGRATOR_BIT
+#ifdef DCA_WITH_QMC_BIT
   pthread_mutex_lock(&mutex_numerical_error);
   // accumulator.get_error_distribution() += walker.get_error_distribution();
   pthread_mutex_unlock(&mutex_numerical_error);
-#endif  // QMC_INTEGRATOR_BIT
+#endif  // DCA_WITH_QMC_BIT
 
   if (id == 0)
     concurrency << "\n\t\t QMCI ends\n\n";

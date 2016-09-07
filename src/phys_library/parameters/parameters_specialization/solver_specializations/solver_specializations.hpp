@@ -13,12 +13,7 @@
 #ifndef PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_SOLVER_SPECILIZATIONS_SOLVER_SPECILIZATIONS_HPP
 #define PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_SOLVER_SPECILIZATIONS_SOLVER_SPECILIZATIONS_HPP
 
-#ifdef USE_CTAUX
 #include "phys_library/parameters/parameters_specialization/solver_specializations/MC_solver_ct_aux_parameters.h"
-#endif
-
-#ifdef USE_SS_CT_HYB
 #include "phys_library/parameters/parameters_specialization/solver_specializations/MC_solver_ss_hybridization_parameters.h"
-#endif
 
 #endif  // PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_SOLVER_SPECILIZATIONS_SOLVER_SPECILIZATIONS_HPP
