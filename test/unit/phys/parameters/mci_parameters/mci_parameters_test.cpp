@@ -38,7 +38,7 @@ TEST(MciParametersTest, ReadAll) {
   IO::reader<IO::JSON> reader;
   MCI_parameters pars;
 
-  reader.open_file(DCA_TEST_DIRECTORY "input_read_all.json");
+  reader.open_file(DCA_SOURCE_DIR "/test/unit/phys/parameters/mci_parameters/input_read_all.json");
   pars.read_write(reader);
   reader.close_file();
 
@@ -61,7 +61,7 @@ TEST(MciParametersTest, ReadPositiveIntegerSeed) {
   IO::reader<IO::JSON> reader;
   MCI_parameters pars;
 
-  reader.open_file(DCA_TEST_DIRECTORY "input_pos_int_seed.json");
+  reader.open_file(DCA_SOURCE_DIR "/test/unit/phys/parameters/mci_parameters/input_pos_int_seed.json");
   pars.read_write(reader);
   reader.close_file();
 
@@ -72,7 +72,7 @@ TEST(MciParametersTest, ReadNegativeIntegerSeed) {
   IO::reader<IO::JSON> reader;
   MCI_parameters pars;
 
-  reader.open_file(DCA_TEST_DIRECTORY "input_neg_int_seed.json");
+  reader.open_file(DCA_SOURCE_DIR "/test/unit/phys/parameters/mci_parameters/input_neg_int_seed.json");
   pars.read_write(reader);
   reader.close_file();
 
@@ -128,7 +128,7 @@ TEST(MciParametersTest, RandomSeed) {
   IO::reader<IO::JSON> reader;
   MCI_parameters pars;
 
-  reader.open_file(DCA_TEST_DIRECTORY "input_random_seed.json");
+  reader.open_file(DCA_SOURCE_DIR "/test/unit/phys/parameters/mci_parameters/input_random_seed.json");
 
   std::vector<int> seeds;
   const int n_seeds = 5;
@@ -156,7 +156,7 @@ TEST(MciParametersTest, InvalidSeedingOption) {
   IO::reader<IO::JSON> reader;
   MCI_parameters pars;
 
-  reader.open_file(DCA_TEST_DIRECTORY "input_invalid_seeding_option.json");
+  reader.open_file(DCA_SOURCE_DIR "/test/unit/phys/parameters/mci_parameters/input_invalid_seeding_option.json");
   pars.read_write(reader);
   reader.close_file();
 

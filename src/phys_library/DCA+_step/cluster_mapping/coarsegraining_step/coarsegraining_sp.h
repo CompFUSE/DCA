@@ -44,11 +44,11 @@ public:
                                              LATTICE_SP, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
   using k_HOST = dmn_0<host_k_cluster_type>;
 
-#ifdef SINGLE_PRECISION_COARSEGRAINING
+#ifdef DCA_WITH_SINGLE_PRECISION_COARSEGRAINING
   using scalar_type = float;
 #else
   using scalar_type = double;
-#endif  // SINGLE_PRECISION_COARSEGRAINING
+#endif  // DCA_WITH_SINGLE_PRECISION_COARSEGRAINING
   using complex_type = std::complex<scalar_type>;
 
   using tetrahedron_dmn = dmn_0<math_algorithms::tetrahedron_mesh<K_dmn>>;

@@ -1,0 +1,3 @@
+add_subdirectory(DCA_step/cluster_solver/posix_qmci)
+add_subdirectory(domains/cluster)
+add_subdirectory(parameters/mci_parameters)

@@ -3,8 +3,8 @@
 # CMakeLists.txt
 ################################################################################
 
-add_gtest(NAME bilayer_lattice_Nc1_intraband
-          ADVANCED
-          MPI MPI_NUMPROC 8
-          INCLUDES ${DCA_INCLUDES}
-          LIBS ${DCA_LIBRARIES})
+dca_add_gtest(bilayer_lattice_Nc1_intraband
+  EXTENSIVE
+  MPI MPI_NUMPROC 8
+  INCLUDE_DIRS ${DCA_INCLUDE_DIRS}
+  LIBS ${DCA_LIBS})

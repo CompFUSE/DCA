@@ -367,9 +367,9 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::initialize(
     G0_tools_obj.build_G0_matrix(configuration, G0_up, e_UP);
     G0_tools_obj.build_G0_matrix(configuration, G0_dn, e_DN);
 
-#ifdef QMC_INTEGRATOR_BIT
+#ifdef DCA_WITH_QMC_BIT
     check_G0_matrices(configuration, G0_up, G0_dn);
-#endif  // QMC_INTEGRATOR_BIT
+#endif  // DCA_WITH_QMC_BIT
   }
 
   {
@@ -378,9 +378,9 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::initialize(
     N_tools_obj.build_N_matrix(configuration, N_up, G0_up, e_UP);
     N_tools_obj.build_N_matrix(configuration, N_dn, G0_dn, e_DN);
 
-#ifdef QMC_INTEGRATOR_BIT
+#ifdef DCA_WITH_QMC_BIT
     check_N_matrices(configuration, G0_up, G0_dn, N_up, N_dn);
-#endif  // QMC_INTEGRATOR_BIT
+#endif  // DCA_WITH_QMC_BIT
   }
 
   {
@@ -389,9 +389,9 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::initialize(
     G_tools_obj.build_G_matrix(configuration, N_up, G0_up, G_up, e_UP);
     G_tools_obj.build_G_matrix(configuration, N_dn, G0_dn, G_dn, e_DN);
 
-#ifdef QMC_INTEGRATOR_BIT
+#ifdef DCA_WITH_QMC_BIT
     check_G_matrices(configuration, G0_up, G0_dn, N_up, N_dn, G_up, G_dn);
-#endif  // QMC_INTEGRATOR_BIT
+#endif  // DCA_WITH_QMC_BIT
   }
 }
 
@@ -481,9 +481,9 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type,
     G0_tools_obj.update_G0_matrix(configuration, G0_up, e_UP);
     G0_tools_obj.update_G0_matrix(configuration, G0_dn, e_DN);
 
-#ifdef QMC_INTEGRATOR_BIT
+#ifdef DCA_WITH_QMC_BIT
     check_G0_matrices(configuration, G0_up, G0_dn);
-#endif  // QMC_INTEGRATOR_BIT
+#endif  // DCA_WITH_QMC_BIT
   }
 
   /*
@@ -503,9 +503,9 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type,
     N_tools_obj.update_N_matrix(configuration, G0_up, N_up, e_UP);
     N_tools_obj.update_N_matrix(configuration, G0_dn, N_dn, e_DN);
 
-#ifdef QMC_INTEGRATOR_BIT
+#ifdef DCA_WITH_QMC_BIT
     check_N_matrices(configuration, G0_up, G0_dn, N_up, N_dn);
-#endif  // QMC_INTEGRATOR_BIT
+#endif  // DCA_WITH_QMC_BIT
   }
 
   /*
@@ -525,9 +525,9 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type,
     G_tools_obj.build_G_matrix(configuration, N_up, G0_up, G_up, e_UP);
     G_tools_obj.build_G_matrix(configuration, N_dn, G0_dn, G_dn, e_DN);
 
-#ifdef QMC_INTEGRATOR_BIT
+#ifdef DCA_WITH_QMC_BIT
     check_G_matrices(configuration, G0_up, G0_dn, N_up, N_dn, G_up, G_dn);
-#endif  // QMC_INTEGRATOR_BIT
+#endif  // DCA_WITH_QMC_BIT
   }
 
   /*
@@ -541,13 +541,13 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type,
   */
 
   /*
-#ifdef QMC_INTEGRATOR_BIT
+#ifdef DCA_WITH_QMC_BIT
     if(concurrency.id()==0 and thread_id==0)
     std::cout << "\t N-update check :" << std::endl;
 
     N_tools_obj.check_N_matrix(configuration, N_up, G0_up, Gamma_up, e_UP);
     N_tools_obj.check_N_matrix(configuration, N_dn, G0_dn, Gamma_dn, e_DN);
-#endif  // QMC_INTEGRATOR_BIT
+#endif  // DCA_WITH_QMC_BIT
   */
 }
 
@@ -799,13 +799,13 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::compute_Gam
 
   remove_non_accepted_and_bennett_spins_from_Gamma(Gamma_up_size, Gamma_dn_size);
 
-  // #ifdef QMC_INTEGRATOR_BIT
+  // #ifdef DCA_WITH_QMC_BIT
   //   if (concurrency.id() == 0 and thread_id == 0)
   //     std::cout << "\n\t Gamma-update check : \n\n";
 
   //   GAMMA_tools_obj.check_Gamma_LU(Gamma_up_CPU, N_up, G_up, configuration, e_UP);
   //   GAMMA_tools_obj.check_Gamma_LU(Gamma_dn_CPU, N_dn, G_dn, configuration, e_DN);
-  // #endif  // QMC_INTEGRATOR_BIT
+  // #endif  // DCA_WITH_QMC_BIT
 }
 
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
@@ -1216,7 +1216,7 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::clean_up_th
 
   assert(configuration.assert_consistency());
 
-  // #ifdef QMC_INTEGRATOR_BIT
+  // #ifdef DCA_WITH_QMC_BIT
   //   check_N_matrices(configuration, G0_up, G0_dn, N_up, N_dn);
 
   //   if (concurrency.id() == 0) {
@@ -1231,7 +1231,7 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::clean_up_th
 
   //   N_tools_obj.check_N_matrix(configuration, N_up, G0_up, Gamma_up, e_UP);
   //   N_tools_obj.check_N_matrix(configuration, N_dn, G0_dn, Gamma_dn, e_DN);
-  // #endif  // QMC_INTEGRATOR_BIT
+  // #endif  // DCA_WITH_QMC_BIT
 }
 
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
