@@ -16,7 +16,6 @@
 #include "phys_library/parameters/parameters_specialization/templates/DCA_parameters.h"
 #include "phys_library/parameters/parameters_specialization/templates/ED_solver_parameters.h"
 #include "phys_library/parameters/parameters_specialization/templates/MCI_parameters.h"
-#include "phys_library/parameters/parameters_specialization/templates/MC_solver_parameters.h"
 #include "phys_library/parameters/parameters_specialization/templates/brillouin_zone_parameters.h"
 #include "phys_library/parameters/parameters_specialization/templates/double_counting_parameters.h"
 #include "phys_library/parameters/parameters_specialization/templates/equal_time_parameters.h"

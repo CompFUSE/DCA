@@ -190,7 +190,7 @@ template <class parameters_type>
 void CT_AUX_HS_configuration<parameters_type>::initialize() {
   reset();
 
-  for (int i = 0; i < parameters.get_K_PHANI(); i++) {
+  for (int i = 0; i < parameters.get_submatrix_size(); i++) {
     vertex_pair_type vertex(parameters, rng, configuration.size(), configuration_e_DN.size(),
                             configuration_e_UP.size());
 
@@ -225,7 +225,7 @@ void CT_AUX_HS_configuration<parameters_type>::shuffle_noninteracting_vertices()
   }
 
   // add npn-interacting-spins
-  while (current_Nb_of_creatable_spins < parameters.get_K_PHANI()) {
+  while (current_Nb_of_creatable_spins < parameters.get_submatrix_size()) {
     vertex_pair_type vertex(parameters, rng, configuration.size(), configuration_e_DN.size(),
                             configuration_e_UP.size());
 

@@ -17,6 +17,7 @@
 #include <string>
 #include <vector>
 
+#include "dca/phys/parameters/mc_solver_parameters.hpp"
 #include "dca/util/print_type.hpp"
 #include "comp_library/function_library/domains/special_domains/dmn_0.h"
 #include "phys_library/domains/cluster/cluster_domain.h"
@@ -33,8 +34,10 @@
 #include "phys_library/domains/time_and_frequency/time_domain_left_oriented.h"
 #include "phys_library/domains/time_and_frequency/vertex_time_domain.h"
 #include "phys_library/parameters/parameters_specialization/model_specializations/model_specializations.hpp"
-#include "phys_library/parameters/parameters_specialization/solver_specializations/solver_specializations.hpp"
 #include "phys_library/parameters/parameters_specialization/templates/templates.hpp"
+
+// TODO: Remove when the Parameters class itself is put inside the namespace dca::phys::params.
+using dca::phys::params::McSolverParameters;
 
 template <typename concurrency_t, typename Profiler, typename model_t, typename rng_t,
           DCA::ClusterSolverName solver_name>
@@ -46,7 +49,7 @@ class Parameters : public file_names_parameters,
                    public function_parameters,
                    public MCI_parameters,
 
-                   public MC_solver_parameters<solver_name>,
+                   public McSolverParameters<solver_name>,
                    public ED_solver_parameters,
 
                    public vertex_parameters<model_t::lattice_type::DIMENSION>,
@@ -165,7 +168,7 @@ Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::Parameters(
       function_parameters(model_t::DIMENSION),
       MCI_parameters(),
 
-      MC_solver_parameters<solver_name>(),
+      McSolverParameters<solver_name>(),
       vertex_parameters<model_t::DIMENSION>(),
       equal_time_parameters(),
       CPE_parameters(),
@@ -360,7 +363,7 @@ void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::read_writ
   DCA_Parameters::read_write(read_write_obj);
 
   MCI_parameters::read_write(read_write_obj);
-  MC_solver_parameters<solver_name>::read_write(read_write_obj);
+  McSolverParameters<solver_name>::readWrite(read_write_obj);
   ED_solver_parameters::read_write(read_write_obj);
 
   function_parameters::read_write(read_write_obj);
@@ -385,7 +388,7 @@ int Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::get_buffer
   buffer_size += DCA_Parameters::get_buffer_size(concurrency);
 
   buffer_size += MCI_parameters::get_buffer_size(concurrency);
-  buffer_size += MC_solver_parameters<solver_name>::get_buffer_size(concurrency);
+  buffer_size += McSolverParameters<solver_name>::getBufferSize(concurrency);
   buffer_size += ED_solver_parameters::get_buffer_size(concurrency);
 
   buffer_size += function_parameters::get_buffer_size(concurrency);
@@ -411,7 +414,7 @@ void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::pack(
   DCA_Parameters::pack(concurrency, buffer, buffer_size, position);
 
   MCI_parameters::pack(concurrency, buffer, buffer_size, position);
-  MC_solver_parameters<solver_name>::pack(concurrency, buffer, buffer_size, position);
+  McSolverParameters<solver_name>::pack(concurrency, buffer, buffer_size, position);
   ED_solver_parameters::pack(concurrency, buffer, buffer_size, position);
 
   function_parameters::pack(concurrency, buffer, buffer_size, position);
@@ -435,7 +438,7 @@ void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::unpack(
   DCA_Parameters::unpack(concurrency, buffer, buffer_size, position);
 
   MCI_parameters::unpack(concurrency, buffer, buffer_size, position);
-  MC_solver_parameters<solver_name>::unpack(concurrency, buffer, buffer_size, position);
+  McSolverParameters<solver_name>::unpack(concurrency, buffer, buffer_size, position);
   ED_solver_parameters::unpack(concurrency, buffer, buffer_size, position);
 
   function_parameters::unpack(concurrency, buffer, buffer_size, position);
