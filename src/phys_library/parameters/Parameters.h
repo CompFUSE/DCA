@@ -17,6 +17,7 @@
 #include <string>
 #include <vector>
 
+#include "dca/phys/parameters/function_parameters.hpp"
 #include "dca/phys/parameters/mc_solver_parameters.hpp"
 #include "dca/phys/parameters/physics_parameters.hpp"
 #include "dca/phys/parameters/vertex_parameters.hpp"
@@ -39,6 +40,7 @@
 #include "phys_library/parameters/parameters_specialization/templates/templates.hpp"
 
 // TODO: Remove when the Parameters class itself is put inside the namespace dca::phys::params.
+using dca::phys::params::FunctionParameters;
 using dca::phys::params::McSolverParameters;
 using dca::phys::params::PhysicsParameters;
 using dca::phys::params::VertexParameters;
@@ -50,7 +52,7 @@ class Parameters : public file_names_parameters,
                    public model_parameters<model_t>,
                    public DCA_Parameters,
 
-                   public function_parameters,
+                   public FunctionParameters,
                    public MCI_parameters,
 
                    public McSolverParameters<solver_name>,
@@ -169,7 +171,7 @@ Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::Parameters(
       model_parameters<model_t>(),
       DCA_Parameters(model_t::DIMENSION),
 
-      function_parameters(model_t::DIMENSION),
+      FunctionParameters(model_t::DIMENSION),
       MCI_parameters(),
 
       McSolverParameters<solver_name>(),
@@ -317,7 +319,7 @@ void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::update_do
   // host
   cluster_domain_initializer<r_HOST>::execute(
       model_t::get_r_DCA_basis(),  // DCA_lattice_parameters_type::lattice_vectors(),
-      function_parameters::get_sp_cluster());
+      FunctionParameters::get_sp_cluster());
 
   cluster_domain_symmetry_initializer<r_HOST, typename model_t::lattice_type::DCA_point_group>::execute();
 
@@ -327,7 +329,7 @@ void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::update_do
   // host
   cluster_domain_initializer<r_HOST_VERTEX>::execute(
       model_t::get_r_DCA_basis(),  // DCA_lattice_parameters_type::lattice_vectors(),
-      function_parameters::get_tp_cluster());
+      FunctionParameters::get_tp_cluster());
 
   cluster_domain_symmetry_initializer<r_HOST_VERTEX,
                                       typename model_t::lattice_type::DCA_point_group>::execute();
@@ -338,7 +340,7 @@ void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::update_do
   // LDA
   cluster_domain_initializer<r_LDA>::execute(
       model_t::get_r_DCA_basis(),  // DCA_lattice_parameters_type::lattice_vectors(),
-      function_parameters::get_H_k_grid_size());
+      FunctionParameters::get_H_k_grid_size());
 
   if (concurrency_obj.id() == concurrency_obj.last())
     k_LDA::parameter_type::print(std::cout);
@@ -370,7 +372,7 @@ void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::read_writ
   McSolverParameters<solver_name>::readWrite(read_write_obj);
   ED_solver_parameters::read_write(read_write_obj);
 
-  function_parameters::read_write(read_write_obj);
+  FunctionParameters::readWrite(read_write_obj);
   VertexParameters<model_t::DIMENSION>::readWrite(read_write_obj);
   equal_time_parameters::read_write(read_write_obj);
 
@@ -395,7 +397,7 @@ int Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::get_buffer
   buffer_size += McSolverParameters<solver_name>::getBufferSize(concurrency);
   buffer_size += ED_solver_parameters::get_buffer_size(concurrency);
 
-  buffer_size += function_parameters::get_buffer_size(concurrency);
+  buffer_size += FunctionParameters::getBufferSize(concurrency);
   buffer_size += VertexParameters<model_t::DIMENSION>::getBufferSize(concurrency);
   buffer_size += equal_time_parameters::get_buffer_size(concurrency);
   buffer_size += CPE_parameters::get_buffer_size(concurrency);
@@ -421,7 +423,7 @@ void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::pack(
   McSolverParameters<solver_name>::pack(concurrency, buffer, buffer_size, position);
   ED_solver_parameters::pack(concurrency, buffer, buffer_size, position);
 
-  function_parameters::pack(concurrency, buffer, buffer_size, position);
+  FunctionParameters::pack(concurrency, buffer, buffer_size, position);
   VertexParameters<model_t::DIMENSION>::pack(concurrency, buffer, buffer_size, position);
   equal_time_parameters::pack(concurrency, buffer, buffer_size, position);
   CPE_parameters::pack(concurrency, buffer, buffer_size, position);
@@ -445,7 +447,7 @@ void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::unpack(
   McSolverParameters<solver_name>::unpack(concurrency, buffer, buffer_size, position);
   ED_solver_parameters::unpack(concurrency, buffer, buffer_size, position);
 
-  function_parameters::unpack(concurrency, buffer, buffer_size, position);
+  FunctionParameters::unpack(concurrency, buffer, buffer_size, position);
   VertexParameters<model_t::DIMENSION>::unpack(concurrency, buffer, buffer_size, position);
   equal_time_parameters::unpack(concurrency, buffer, buffer_size, position);
   CPE_parameters::unpack(concurrency, buffer, buffer_size, position);

@@ -1,0 +1,25 @@
+{
+    "function-parameters": {
+        "single-particle-functions": {
+            "H(k) grid-size": [10, 10],
+            "time-intervals": 64,
+            "fermionic-frequencies": 64,
+            "bosonic-frequencies": 64,
+            "sp-cluster": [[4, 0],
+                           [2, 4]]
+        },
+        "two-particle-functions": {
+            "time-intervals": 32,
+            "fermionic-frequencies": 32,
+            "bosonic-frequencies": 32,
+            "tp-cluster": [[ 4, 4],
+                           [ 4,-4]]
+        },
+        "real-axis-functions": {
+            "lower-bound": -8,
+            "upper-bound": 8,
+            "nr-intervals": 64,
+            "real-axis-off-set": 0.1
+        }
+    }
+}
