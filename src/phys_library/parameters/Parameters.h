@@ -17,6 +17,7 @@
 #include <string>
 #include <vector>
 
+#include "dca/phys/parameters/equal_time_parameters.hpp"
 #include "dca/phys/parameters/filename_parameters.hpp"
 #include "dca/phys/parameters/function_parameters.hpp"
 #include "dca/phys/parameters/mc_solver_parameters.hpp"
@@ -41,6 +42,7 @@
 #include "phys_library/parameters/parameters_specialization/templates/templates.hpp"
 
 // TODO: Remove when the Parameters class itself is put inside the namespace dca::phys::params.
+using dca::phys::params::EqualTimeParameters;
 using dca::phys::params::FilenameParameters;
 using dca::phys::params::FunctionParameters;
 using dca::phys::params::McSolverParameters;
@@ -61,7 +63,7 @@ class Parameters : public FilenameParameters,
                    public ED_solver_parameters,
 
                    public VertexParameters<model_t::lattice_type::DIMENSION>,
-                   public equal_time_parameters,
+                   public EqualTimeParameters,
                    public CPE_parameters,
 
                    public brillouin_zone_parameters,
@@ -178,7 +180,7 @@ Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::Parameters(
 
       McSolverParameters<solver_name>(),
       VertexParameters<model_t::DIMENSION>(),
-      equal_time_parameters(),
+      EqualTimeParameters(),
       CPE_parameters(),
 
       brillouin_zone_parameters(),
@@ -367,7 +369,7 @@ void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::read_writ
 
   FunctionParameters::readWrite(read_write_obj);
   VertexParameters<model_t::DIMENSION>::readWrite(read_write_obj);
-  equal_time_parameters::read_write(read_write_obj);
+  EqualTimeParameters::readWrite(read_write_obj);
 
   CPE_parameters::read_write(read_write_obj);
   double_counting_parameters::read_write(read_write_obj);
@@ -392,7 +394,7 @@ int Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::get_buffer
 
   buffer_size += FunctionParameters::getBufferSize(concurrency);
   buffer_size += VertexParameters<model_t::DIMENSION>::getBufferSize(concurrency);
-  buffer_size += equal_time_parameters::get_buffer_size(concurrency);
+  buffer_size += EqualTimeParameters::getBufferSize(concurrency);
   buffer_size += CPE_parameters::get_buffer_size(concurrency);
 
   buffer_size += brillouin_zone_parameters::get_buffer_size(concurrency);
@@ -418,7 +420,7 @@ void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::pack(
 
   FunctionParameters::pack(concurrency, buffer, buffer_size, position);
   VertexParameters<model_t::DIMENSION>::pack(concurrency, buffer, buffer_size, position);
-  equal_time_parameters::pack(concurrency, buffer, buffer_size, position);
+  EqualTimeParameters::pack(concurrency, buffer, buffer_size, position);
   CPE_parameters::pack(concurrency, buffer, buffer_size, position);
 
   brillouin_zone_parameters::pack(concurrency, buffer, buffer_size, position);
@@ -442,7 +444,7 @@ void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::unpack(
 
   FunctionParameters::unpack(concurrency, buffer, buffer_size, position);
   VertexParameters<model_t::DIMENSION>::unpack(concurrency, buffer, buffer_size, position);
-  equal_time_parameters::unpack(concurrency, buffer, buffer_size, position);
+  EqualTimeParameters::unpack(concurrency, buffer, buffer_size, position);
   CPE_parameters::unpack(concurrency, buffer, buffer_size, position);
 
   brillouin_zone_parameters::unpack(concurrency, buffer, buffer_size, position);

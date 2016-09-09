@@ -1,3 +1,4 @@
+add_subdirectory(equal_time_parameters)
 add_subdirectory(filename_parameters)
 add_subdirectory(function_parameters)
 add_subdirectory(mc_solver_parameters)
