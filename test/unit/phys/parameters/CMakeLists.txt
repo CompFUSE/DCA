@@ -1,3 +1,4 @@
+add_subdirectory(double_counting_parameters)
 add_subdirectory(equal_time_parameters)
 add_subdirectory(filename_parameters)
 add_subdirectory(function_parameters)
