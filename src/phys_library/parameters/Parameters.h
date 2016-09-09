@@ -17,6 +17,7 @@
 #include <string>
 #include <vector>
 
+#include "dca/phys/parameters/filename_parameters.hpp"
 #include "dca/phys/parameters/function_parameters.hpp"
 #include "dca/phys/parameters/mc_solver_parameters.hpp"
 #include "dca/phys/parameters/physics_parameters.hpp"
@@ -40,6 +41,7 @@
 #include "phys_library/parameters/parameters_specialization/templates/templates.hpp"
 
 // TODO: Remove when the Parameters class itself is put inside the namespace dca::phys::params.
+using dca::phys::params::FilenameParameters;
 using dca::phys::params::FunctionParameters;
 using dca::phys::params::McSolverParameters;
 using dca::phys::params::PhysicsParameters;
@@ -47,7 +49,7 @@ using dca::phys::params::VertexParameters;
 
 template <typename concurrency_t, typename Profiler, typename model_t, typename rng_t,
           DCA::ClusterSolverName solver_name>
-class Parameters : public file_names_parameters,
+class Parameters : public FilenameParameters,
                    public PhysicsParameters,
                    public model_parameters<model_t>,
                    public DCA_Parameters,
@@ -166,7 +168,7 @@ template <typename concurrency_t, typename Profiler, typename model_t, typename 
           DCA::ClusterSolverName solver_name>
 Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::Parameters(
     std::string version_stamp_str, concurrency_t& concurrency_object)
-    : file_names_parameters(),
+    : FilenameParameters(),
       PhysicsParameters(),
       model_parameters<model_t>(),
       DCA_Parameters(model_t::DIMENSION),
@@ -255,23 +257,14 @@ template <typename concurrency_t, typename Profiler, typename model_t, typename 
 template <typename Reader>
 void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::read_input_and_broadcast(
     std::string filename) {
-  for (bool flag = false; !flag;) {
-    if (concurrency_obj.id() == concurrency_obj.first()) {
-      file_names_parameters::get_input_file_name() = filename;
-
-      {
-        Reader read_obj;
-
-        read_obj.open_file(filename);
-
-        this->read_write(read_obj);
-
-        read_obj.close_file();
-      }
-    }
-
-    flag = concurrency_obj.broadcast_object(*this);
+  if (concurrency_obj.id() == concurrency_obj.first()) {
+    Reader read_obj;
+    read_obj.open_file(filename);
+    this->read_write(read_obj);
+    read_obj.close_file();
   }
+
+  concurrency_obj.broadcast_object(*this);
 }
 
 template <typename concurrency_t, typename Profiler, typename model_t, typename rng_t,
@@ -362,7 +355,7 @@ void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::read_writ
     read_write_obj.execute("random-number-generator", rng_type_str);
   }
 
-  file_names_parameters::read_write(read_write_obj);
+  FilenameParameters::readWrite(read_write_obj);
 
   PhysicsParameters::readWrite(read_write_obj);
   model_parameters<model_t>::read_write(read_write_obj);
@@ -387,7 +380,7 @@ int Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::get_buffer
     concurrency_t& concurrency) {
   int buffer_size = 0;
 
-  buffer_size += file_names_parameters::get_buffer_size(concurrency);
+  buffer_size += FilenameParameters::getBufferSize(concurrency);
 
   buffer_size += PhysicsParameters::getBufferSize(concurrency);
   buffer_size += model_parameters<model_t>::get_buffer_size(concurrency);
@@ -413,7 +406,7 @@ template <typename concurrency_t, typename Profiler, typename model_t, typename 
           DCA::ClusterSolverName solver_name>
 void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::pack(
     concurrency_t& concurrency, int* buffer, int buffer_size, int& position) {
-  file_names_parameters::pack(concurrency, buffer, buffer_size, position);
+  FilenameParameters::pack(concurrency, buffer, buffer_size, position);
 
   PhysicsParameters::pack(concurrency, buffer, buffer_size, position);
   model_parameters<model_t>::pack(concurrency, buffer, buffer_size, position);
@@ -437,7 +430,7 @@ template <typename concurrency_t, typename Profiler, typename model_t, typename 
           DCA::ClusterSolverName solver_name>
 void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::unpack(
     concurrency_t& concurrency, int* buffer, int buffer_size, int& position) {
-  file_names_parameters::unpack(concurrency, buffer, buffer_size, position);
+  FilenameParameters::unpack(concurrency, buffer, buffer_size, position);
 
   PhysicsParameters::unpack(concurrency, buffer, buffer_size, position);
   model_parameters<model_t>::unpack(concurrency, buffer, buffer_size, position);
