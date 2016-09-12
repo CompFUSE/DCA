@@ -21,6 +21,7 @@
 #include "dca/phys/parameters/dca_parameters.hpp"
 #include "dca/phys/parameters/double_counting_parameters.hpp"
 #include "dca/phys/parameters/equal_time_parameters.hpp"
+#include "dca/phys/parameters/ed_solver_parameters.hpp"
 #include "dca/phys/parameters/filename_parameters.hpp"
 #include "dca/phys/parameters/function_parameters.hpp"
 #include "dca/phys/parameters/mc_solver_parameters.hpp"
@@ -48,6 +49,7 @@
 using dca::phys::params::BrillouinZoneParameters;
 using dca::phys::params::DcaParameters;
 using dca::phys::params::DoubleCountingParameters;
+using dca::phys::params::EdSolverParameters;
 using dca::phys::params::EqualTimeParameters;
 using dca::phys::params::FilenameParameters;
 using dca::phys::params::FunctionParameters;
@@ -66,7 +68,7 @@ class Parameters : public FilenameParameters,
                    public MCI_parameters,
 
                    public McSolverParameters<solver_name>,
-                   public ED_solver_parameters,
+                   public EdSolverParameters,
 
                    public VertexParameters<model_t::lattice_type::DIMENSION>,
                    public EqualTimeParameters,
@@ -371,7 +373,7 @@ void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::read_writ
 
   MCI_parameters::read_write(read_write_obj);
   McSolverParameters<solver_name>::readWrite(read_write_obj);
-  ED_solver_parameters::read_write(read_write_obj);
+  EdSolverParameters::readWrite(read_write_obj);
 
   FunctionParameters::readWrite(read_write_obj);
   VertexParameters<model_t::DIMENSION>::readWrite(read_write_obj);
@@ -396,7 +398,7 @@ int Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::get_buffer
 
   buffer_size += MCI_parameters::get_buffer_size(concurrency);
   buffer_size += McSolverParameters<solver_name>::getBufferSize(concurrency);
-  buffer_size += ED_solver_parameters::get_buffer_size(concurrency);
+  buffer_size += EdSolverParameters::getBufferSize(concurrency);
 
   buffer_size += FunctionParameters::getBufferSize(concurrency);
   buffer_size += VertexParameters<model_t::DIMENSION>::getBufferSize(concurrency);
@@ -421,7 +423,7 @@ void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::pack(
 
   MCI_parameters::pack(concurrency, buffer, buffer_size, position);
   McSolverParameters<solver_name>::pack(concurrency, buffer, buffer_size, position);
-  ED_solver_parameters::pack(concurrency, buffer, buffer_size, position);
+  EdSolverParameters::pack(concurrency, buffer, buffer_size, position);
 
   FunctionParameters::pack(concurrency, buffer, buffer_size, position);
   VertexParameters<model_t::DIMENSION>::pack(concurrency, buffer, buffer_size, position);
@@ -444,7 +446,7 @@ void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::unpack(
 
   MCI_parameters::unpack(concurrency, buffer, buffer_size, position);
   McSolverParameters<solver_name>::unpack(concurrency, buffer, buffer_size, position);
-  ED_solver_parameters::unpack(concurrency, buffer, buffer_size, position);
+  EdSolverParameters::unpack(concurrency, buffer, buffer_size, position);
 
   FunctionParameters::unpack(concurrency, buffer, buffer_size, position);
   VertexParameters<model_t::DIMENSION>::unpack(concurrency, buffer, buffer_size, position);
