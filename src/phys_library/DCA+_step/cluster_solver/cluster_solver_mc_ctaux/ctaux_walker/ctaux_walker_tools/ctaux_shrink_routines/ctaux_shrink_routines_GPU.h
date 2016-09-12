@@ -18,7 +18,10 @@
 #include <stdexcept>
 #include <vector>
 
-#include "comp_library/linalg/linalg.hpp"
+#include "dca/linalg/vector.hpp"
+#include "dca/linalg/matrix.hpp"
+#include "dca/linalg/matrixop.hpp"
+
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_shrink_routines/ctaux_shrink_routines_CPU.h"
 
 namespace DCA {
@@ -105,11 +108,11 @@ public:
     SHRINK_TOOLS_ALGORITHMS_CPU_obj.execute(source_index_up, target_index_up, N_up_CPU, G0_up_CPU,
                                             source_index_dn, target_index_dn, N_dn_CPU, G0_dn_CPU);
 
-    N_dn_CPU.difference(N_dn);
-    N_up_CPU.difference(N_up);
+    dca::linalg::matrixop::difference(N_dn_CPU, N_dn);
+    dca::linalg::matrixop::difference(N_up_CPU, N_up);
 
-    G0_dn_CPU.difference(G0_dn);
-    G0_up_CPU.difference(G0_up);
+    dca::linalg::matrixop::difference(G0_dn_CPU, G0_dn);
+    dca::linalg::matrixop::difference(G0_up_CPU, G0_up);
   }
 #endif  // DCA_WITH_QMC_BIT
 

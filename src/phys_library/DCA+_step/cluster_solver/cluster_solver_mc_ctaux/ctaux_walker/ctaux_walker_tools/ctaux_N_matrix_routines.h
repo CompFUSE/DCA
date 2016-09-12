@@ -548,9 +548,9 @@ void N_TOOLS<device_t, parameters_type>::check_N_matrix(
 
   build_N_matrix(configuration, N_correct, G0, e_spin);
 
-  N.difference(N_correct);
+  dca::linalg::matrixop::difference(N, N_correct);
 
-  //     if(! N.difference(N_correct))
+  //     if(! dca::linalg::matrixop::difference(N, N_correct))
   //       {
   //        configuration.print();
   //        configuration.print(e_spin);

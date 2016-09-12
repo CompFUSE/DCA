@@ -129,7 +129,7 @@ inline void copyRows(const Matrix<ScalarType, GPU>& mat_x, const Vector<int, GPU
 // Preconditions: a.size() == b.size().
 template <typename ScalarType>
 auto difference(const Matrix<ScalarType, CPU>& a, const Matrix<ScalarType, CPU>& b,
-                double diff_threshold) {
+                double diff_threshold = 1e-3) {
   assert(a.size() == b.size());
 
   auto max_diff = std::abs(ScalarType(0));
@@ -163,13 +163,13 @@ auto difference(const Matrix<ScalarType, CPU>& a, const Matrix<ScalarType, CPU>&
 }
 template <typename ScalarType, DeviceType device_name>
 auto difference(const Matrix<ScalarType, device_name>& a, const Matrix<ScalarType, CPU>& b,
-                double diff_threshold) {
+                double diff_threshold = 1e-3) {
   Matrix<ScalarType, CPU> cp_a(a);
   return difference(cp_a, b, diff_threshold);
 }
 template <typename ScalarType, DeviceType device_name_a, DeviceType device_name_b>
 auto difference(const Matrix<ScalarType, device_name_a>& a,
-                const Matrix<ScalarType, device_name_b>& b, double diff_threshold) {
+                const Matrix<ScalarType, device_name_b>& b, double diff_threshold = 1e-3) {
   Matrix<ScalarType, CPU> cp_b(b);
   return difference(a, cp_b, diff_threshold);
 }

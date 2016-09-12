@@ -17,6 +17,7 @@
 #include <vector>
 
 #include "dca/linalg/matrix.hpp"
+#include "dca/linalg/matrixop.hpp"
 
 #include "comp_library/function_library/include_function_library.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_auxilery_field_coefficients.h"
@@ -162,8 +163,8 @@ void MC_walker_BIT<CT_AUX_SOLVER, parameters_type, MOMS_type>::check_G0_matrices
   G0_CPU_tools_obj.build_G0_matrix(configuration, G0_up_CPU, e_UP);
   G0_CPU_tools_obj.build_G0_matrix(configuration, G0_dn_CPU, e_DN);
 
-  G0_up_CPU.difference(G0_up);
-  G0_dn_CPU.difference(G0_dn);
+  difference(G0_up_CPU, G0_up);
+  difference(G0_dn_CPU, G0_dn);
 }
 
 template <class parameters_type, class MOMS_type>
@@ -174,14 +175,14 @@ void MC_walker_BIT<CT_AUX_SOLVER, parameters_type, MOMS_type>::check_N_matrices(
     dca::linalg::Matrix<double, device_t>& N_dn) {
   //     cout << __FUNCTION__ << endl;
 
-  G0_up_CPU.difference(G0_up);
-  G0_dn_CPU.difference(G0_dn);
+  difference(G0_up_CPU, G0_up);
+  difference(G0_dn_CPU, G0_dn);
 
   N_CPU_tools_obj.build_N_matrix(configuration, N_up_CPU, G0_up_CPU, e_UP);
   N_CPU_tools_obj.build_N_matrix(configuration, N_dn_CPU, G0_dn_CPU, e_DN);
 
-  double err_up = N_up_CPU.difference(N_up);
-  double err_dn = N_dn_CPU.difference(N_dn);
+  double err_up = difference(N_up_CPU, N_up);
+  double err_dn = difference(N_dn_CPU, N_dn);
 
   std::vector<double>& x = numerical_error_domain::get_elements();
   for (size_t l = 0; l < x.size() - 1; l++)
@@ -198,17 +199,17 @@ void MC_walker_BIT<CT_AUX_SOLVER, parameters_type, MOMS_type>::check_G_matrices(
     dca::linalg::Matrix<double, device_t>& G_dn) {
   //     cout << __FUNCTION__ << endl;
 
-  G0_up_CPU.difference(G0_up);
-  G0_dn_CPU.difference(G0_dn);
+  difference(G0_up_CPU, G0_up);
+  difference(G0_dn_CPU, G0_dn);
 
-  N_up_CPU.difference(N_up);
-  N_dn_CPU.difference(N_dn);
+  difference(N_up_CPU, N_up);
+  difference(N_dn_CPU, N_dn);
 
   G_CPU_tools_obj.build_G_matrix(configuration, N_up_CPU, G0_up_CPU, G_up_CPU, e_UP);
   G_CPU_tools_obj.build_G_matrix(configuration, N_dn_CPU, G0_dn_CPU, G_dn_CPU, e_DN);
 
-  G_up_CPU.difference(G_up);
-  G_dn_CPU.difference(G_dn);
+  difference(G_up_CPU, G_up);
+  difference(G_dn_CPU, G_dn);
 }
 
 }  // QMCI
