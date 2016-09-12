@@ -12,7 +12,6 @@
 #ifndef PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_TEMPLATES_TEMPLATES_HPP
 #define PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_TEMPLATES_TEMPLATES_HPP
 
-#include "phys_library/parameters/parameters_specialization/templates/CPE_parameters.h"
 #include "phys_library/parameters/parameters_specialization/templates/MCI_parameters.h"
 #include "phys_library/parameters/parameters_specialization/templates/model_parameters.h"
 

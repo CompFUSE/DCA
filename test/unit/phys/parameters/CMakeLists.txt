@@ -1,4 +1,5 @@
 add_subdirectory(brillouin_zone_parameters)
+add_subdirectory(cpe_parameters)
 add_subdirectory(dca_parameters)
 add_subdirectory(double_counting_parameters)
 add_subdirectory(ed_solver_parameters)

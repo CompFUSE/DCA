@@ -73,10 +73,6 @@ void frequency_domain_imag_axis::to_JSON(stream_type& ss) {
 
 template <typename parameters_t>
 void frequency_domain_imag_axis::initialize(parameters_t& parameters) {
-  if (parameters.get_N_wn() == -1)
-    parameters.get_N_wn() =
-        parameters.get_sp_fermionic_frequencies();  // number_of_positive_frequencies();
-
   get_elements().resize(parameters.get_N_wn());
 
   for (int l = 0; l < get_size(); l++)
