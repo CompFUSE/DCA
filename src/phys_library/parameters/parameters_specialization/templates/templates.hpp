@@ -16,7 +16,6 @@
 #include "phys_library/parameters/parameters_specialization/templates/DCA_parameters.h"
 #include "phys_library/parameters/parameters_specialization/templates/ED_solver_parameters.h"
 #include "phys_library/parameters/parameters_specialization/templates/MCI_parameters.h"
-#include "phys_library/parameters/parameters_specialization/templates/brillouin_zone_parameters.h"
 #include "phys_library/parameters/parameters_specialization/templates/model_parameters.h"
 
 #endif  // PHYS_LIBRARY_PARAMETERS_PARAMETERS_SPECIALIZATION_TEMPLATES_TEMPLATES_HPP

@@ -1,3 +1,4 @@
+add_subdirectory(brillouin_zone_parameters)
 add_subdirectory(double_counting_parameters)
 add_subdirectory(equal_time_parameters)
 add_subdirectory(filename_parameters)

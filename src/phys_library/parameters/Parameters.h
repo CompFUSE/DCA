@@ -17,6 +17,7 @@
 #include <string>
 #include <vector>
 
+#include "dca/phys/parameters/brillouin_zone_parameters.hpp"
 #include "dca/phys/parameters/double_counting_parameters.hpp"
 #include "dca/phys/parameters/equal_time_parameters.hpp"
 #include "dca/phys/parameters/filename_parameters.hpp"
@@ -43,6 +44,7 @@
 #include "phys_library/parameters/parameters_specialization/templates/templates.hpp"
 
 // TODO: Remove when the Parameters class itself is put inside the namespace dca::phys::params.
+using dca::phys::params::BrillouinZoneParameters;
 using dca::phys::params::EqualTimeParameters;
 using dca::phys::params::DoubleCountingParameters;
 using dca::phys::params::FilenameParameters;
@@ -68,7 +70,7 @@ class Parameters : public FilenameParameters,
                    public EqualTimeParameters,
                    public CPE_parameters,
 
-                   public brillouin_zone_parameters,
+                   public BrillouinZoneParameters,
                    public DoubleCountingParameters {
 public:
   using concurrency_type = concurrency_t;
@@ -185,7 +187,7 @@ Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::Parameters(
       EqualTimeParameters(),
       CPE_parameters(),
 
-      brillouin_zone_parameters(),
+      BrillouinZoneParameters(),
 
       version_stamp(make_python_readable(version_stamp_str)),
 
@@ -375,7 +377,7 @@ void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::read_writ
 
   CPE_parameters::read_write(read_write_obj);
   DoubleCountingParameters::readWrite(read_write_obj);
-  brillouin_zone_parameters::read_write(read_write_obj);
+  BrillouinZoneParameters::readWrite(read_write_obj);
 }
 
 template <typename concurrency_t, typename Profiler, typename model_t, typename rng_t,
@@ -399,9 +401,8 @@ int Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::get_buffer
   buffer_size += EqualTimeParameters::getBufferSize(concurrency);
   buffer_size += CPE_parameters::get_buffer_size(concurrency);
 
-  buffer_size += brillouin_zone_parameters::get_buffer_size(concurrency);
+  buffer_size += BrillouinZoneParameters::getBufferSize(concurrency);
   buffer_size += DoubleCountingParameters::getBufferSize(concurrency);
-  buffer_size += brillouin_zone_parameters::get_buffer_size(concurrency);
 
   return buffer_size;
 }
@@ -425,9 +426,8 @@ void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::pack(
   EqualTimeParameters::pack(concurrency, buffer, buffer_size, position);
   CPE_parameters::pack(concurrency, buffer, buffer_size, position);
 
-  brillouin_zone_parameters::pack(concurrency, buffer, buffer_size, position);
+  BrillouinZoneParameters::pack(concurrency, buffer, buffer_size, position);
   DoubleCountingParameters::pack(concurrency, buffer, buffer_size, position);
-  brillouin_zone_parameters::pack(concurrency, buffer, buffer_size, position);
 }
 
 template <typename concurrency_t, typename Profiler, typename model_t, typename rng_t,
@@ -449,9 +449,8 @@ void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::unpack(
   EqualTimeParameters::unpack(concurrency, buffer, buffer_size, position);
   CPE_parameters::unpack(concurrency, buffer, buffer_size, position);
 
-  brillouin_zone_parameters::unpack(concurrency, buffer, buffer_size, position);
+  BrillouinZoneParameters::unpack(concurrency, buffer, buffer_size, position);
   DoubleCountingParameters::unpack(concurrency, buffer, buffer_size, position);
-  brillouin_zone_parameters::unpack(concurrency, buffer, buffer_size, position);
 }
 
 template <typename concurrency_t, typename Profiler, typename model_t, typename rng_t,
