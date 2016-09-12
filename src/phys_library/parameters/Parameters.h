@@ -26,6 +26,7 @@
 #include "dca/phys/parameters/filename_parameters.hpp"
 #include "dca/phys/parameters/function_parameters.hpp"
 #include "dca/phys/parameters/mc_solver_parameters.hpp"
+#include "dca/phys/parameters/mci_parameters.hpp"
 #include "dca/phys/parameters/physics_parameters.hpp"
 #include "dca/phys/parameters/vertex_parameters.hpp"
 #include "dca/util/print_type.hpp"
@@ -56,6 +57,7 @@ using dca::phys::params::EqualTimeParameters;
 using dca::phys::params::FilenameParameters;
 using dca::phys::params::FunctionParameters;
 using dca::phys::params::McSolverParameters;
+using dca::phys::params::MciParameters;
 using dca::phys::params::PhysicsParameters;
 using dca::phys::params::VertexParameters;
 
@@ -67,7 +69,7 @@ class Parameters : public FilenameParameters,
                    public DcaParameters,
 
                    public FunctionParameters,
-                   public MCI_parameters,
+                   public MciParameters,
 
                    public McSolverParameters<solver_name>,
                    public EdSolverParameters,
@@ -186,7 +188,7 @@ Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::Parameters(
       DcaParameters(model_t::DIMENSION),
 
       FunctionParameters(model_t::DIMENSION),
-      MCI_parameters(),
+      MciParameters(),
 
       McSolverParameters<solver_name>(),
       VertexParameters<model_t::DIMENSION>(),
@@ -373,7 +375,7 @@ void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::read_writ
   model_parameters<model_t>::read_write(read_write_obj);
   DcaParameters::readWrite(read_write_obj);
 
-  MCI_parameters::read_write(read_write_obj);
+  MciParameters::readWrite(read_write_obj);
   McSolverParameters<solver_name>::readWrite(read_write_obj);
   EdSolverParameters::readWrite(read_write_obj);
 
@@ -398,7 +400,7 @@ int Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::get_buffer
   buffer_size += model_parameters<model_t>::get_buffer_size(concurrency);
   buffer_size += DcaParameters::getBufferSize(concurrency);
 
-  buffer_size += MCI_parameters::get_buffer_size(concurrency);
+  buffer_size += MciParameters::getBufferSize(concurrency);
   buffer_size += McSolverParameters<solver_name>::getBufferSize(concurrency);
   buffer_size += EdSolverParameters::getBufferSize(concurrency);
 
@@ -423,7 +425,7 @@ void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::pack(
   model_parameters<model_t>::pack(concurrency, buffer, buffer_size, position);
   DcaParameters::pack(concurrency, buffer, buffer_size, position);
 
-  MCI_parameters::pack(concurrency, buffer, buffer_size, position);
+  MciParameters::pack(concurrency, buffer, buffer_size, position);
   McSolverParameters<solver_name>::pack(concurrency, buffer, buffer_size, position);
   EdSolverParameters::pack(concurrency, buffer, buffer_size, position);
 
@@ -446,7 +448,7 @@ void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::unpack(
   model_parameters<model_t>::unpack(concurrency, buffer, buffer_size, position);
   DcaParameters::unpack(concurrency, buffer, buffer_size, position);
 
-  MCI_parameters::unpack(concurrency, buffer, buffer_size, position);
+  MciParameters::unpack(concurrency, buffer, buffer_size, position);
   McSolverParameters<solver_name>::unpack(concurrency, buffer, buffer_size, position);
   EdSolverParameters::unpack(concurrency, buffer, buffer_size, position);
 
