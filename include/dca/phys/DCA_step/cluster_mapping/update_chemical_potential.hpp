@@ -219,7 +219,7 @@ void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>:
 
 template <typename parameters_type, typename MOMS_type, typename coarsegraining_type>
 double update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>::compute_density() {
-  if (parameters.use_interpolated_Self_energy())
+  if (parameters.do_DCA_plus())
     coarsegraining.compute_G_K_w(MOMS.H_HOST, MOMS.Sigma_lattice, MOMS.G_k_w);
   else
     coarsegraining.compute_G_K_w(MOMS.H_HOST, MOMS.Sigma, MOMS.G_k_w);

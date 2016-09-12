@@ -184,7 +184,7 @@ template <typename parameters_type, typename K_dmn>
 void coarsegraining_tp<parameters_type, K_dmn>::initialize() {
   if (true)
     coarsegraining_routines<parameters_type, K_dmn>::compute_gaussian_mesh(
-        parameters.get_k_mesh_refinement(), parameters.get_gaussian_quadrature_rule(),
+        parameters.get_k_mesh_refinement(), parameters.get_quadrature_rule(),
         parameters.get_number_of_periods());
   else
     coarsegraining_routines<parameters_type, K_dmn>::compute_gaussian_mesh(1, 0, 0);

@@ -219,8 +219,7 @@ void coarsegraining_sp<parameters_type, K_dmn>::initialize() {
     this->compute_tetrahedron_mesh(parameters.get_k_mesh_refinement(),
                                    parameters.get_number_of_periods());
 
-    this->compute_gaussian_mesh(parameters.get_k_mesh_refinement(),
-                                parameters.get_gaussian_quadrature_rule(),
+    this->compute_gaussian_mesh(parameters.get_k_mesh_refinement(), parameters.get_quadrature_rule(),
                                 parameters.get_number_of_periods());
   }
 

@@ -94,7 +94,7 @@ void Richardson_Lucy_deconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
   initialize_errors(is_finished, error_function);
 
   int l = 0;
-  for (l = 0; l < parameters.get_deconvolution_iterations(); l++) {
+  for (l = 0; l < parameters.get_max_deconvolution_iterations(); l++) {
     for (int j = 0; j < p_dmn_t::dmn_size(); j++)
       for (int i = 0; i < k_dmn_t::dmn_size(); i++)
         d_over_c(i, j) = d(i, j) / c(i, j);

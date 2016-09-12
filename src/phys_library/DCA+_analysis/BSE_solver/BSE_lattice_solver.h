@@ -393,7 +393,7 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::compute_chi_0_lattice(
 
   MOMS.Sigma_lattice = 0.;
 
-  if (parameters.use_interpolated_Self_energy()) {
+  if (parameters.do_DCA_plus()) {
     // in case we do the analysis with the DCA+
 
     if (parameters.use_HTS_approximation()) {
@@ -454,7 +454,7 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::compute_Gamma_lattice_3(
 
   // Need following condition lines for regular DCA; otherwise execute(Gamma_cluster, Gamma_lattice)
   // still do SVD etc.
-  if (!parameters.use_interpolated_Self_energy()) {
+  if (!parameters.do_DCA_plus()) {
     int N = lattice_eigenvector_dmn_t::dmn_size();
     for (int i = 0; i < N; i++)
       for (int j = 0; j < N; j++)

@@ -257,7 +257,7 @@ void DCA_loop<parameters_type, MOMS_type,
 
   profiler_type profiler("coarsegrain-Selfenergy", "DCA", __LINE__);
 
-  if (parameters.use_interpolated_Self_energy())
+  if (parameters.do_DCA_plus())
     cluster_mapping_obj.compute_S_K_w(MOMS.Sigma_lattice, MOMS.Sigma_cluster);
   else
     MOMS.Sigma_cluster = MOMS.Sigma;
@@ -275,7 +275,7 @@ void DCA_loop<parameters_type, MOMS_type,
 
   profiler_type profiler("coarsegrain-Greens-function", "DCA", __LINE__);
 
-  if (parameters.use_interpolated_Self_energy())
+  if (parameters.do_DCA_plus())
     cluster_mapping_obj.compute_G_K_w(MOMS.H_HOST, MOMS.Sigma_lattice, MOMS.G_k_w);
   else
     cluster_mapping_obj.compute_G_K_w(MOMS.H_HOST, MOMS.Sigma, MOMS.G_k_w);
@@ -331,7 +331,7 @@ void DCA_loop<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::perform_
   if (concurrency.id() == 0)
     std::cout << "\n\t\t lattice-mapping " << dca::util::print_time();
 
-  if (parameters.use_interpolated_Self_energy()) {
+  if (parameters.do_DCA_plus()) {
     if (parameters.use_HTS_approximation()) {
       MOMS_type MOMS_HTS(parameters);
 

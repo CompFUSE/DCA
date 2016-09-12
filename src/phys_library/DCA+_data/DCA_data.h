@@ -365,7 +365,7 @@ void DCA_data<parameters_type>::write(IO::writer<DATA_FORMAT>& writer) {
 
   writer.execute(band_structure);
 
-  if (parameters.use_interpolated_Self_energy()) {
+  if (parameters.do_DCA_plus()) {
     writer.execute(Sigma_band_structure);
     writer.execute(Sigma_cluster_band_structure);
     writer.execute(Sigma_lattice_band_structure);
@@ -378,9 +378,9 @@ void DCA_data<parameters_type>::write(IO::writer<DATA_FORMAT>& writer) {
     writer.execute(G_k);
   }
 
-  if (!parameters.use_interpolated_Self_energy()) {  // Compute Sigma-r-DCA for the lowest frequency
-                                                     // via Fourier transformation of DCA cluster
-                                                     // Sigma.
+  if (!parameters.do_DCA_plus()) {  // Compute Sigma-r-DCA for the lowest frequency
+                                    // via Fourier transformation of DCA cluster
+                                    // Sigma.
     FUNC_LIB::function<std::complex<double>, dmn_3<nu, nu, r_DCA>> S_r_DCA("Sigma-r-DCA");
 
     FUNC_LIB::function<std::complex<double>, dmn_3<nu, nu, k_DCA>> S_k_DCA("Sigma-k-DCA");
@@ -586,7 +586,7 @@ void DCA_data<parameters_type>::compute_Sigma_bands() {
   }
 
   Sigma_lattice_band_structure.reset();
-  if (parameters.use_interpolated_Self_energy()) {
+  if (parameters.do_DCA_plus()) {
     FUNC_LIB::function<std::complex<double>, dmn_2<nu, k_HOST>> S_k_dmn("S_k_dmn_s");
 
     for (int b_ind = 0; b_ind < b::dmn_size(); ++b_ind)
@@ -614,7 +614,7 @@ void DCA_data<parameters_type>::compute_Sigma_bands() {
   }
 
   Sigma_band_structure_coarsegrained.reset();
-  if (parameters.use_interpolated_Self_energy()) {
+  if (parameters.do_DCA_plus()) {
     FUNC_LIB::function<std::complex<double>, dmn_2<nu, k_HOST>> S_k_dmn("S_k_dmn_s");
 
     for (int b_ind = 0; b_ind < b::dmn_size(); ++b_ind)
@@ -630,7 +630,7 @@ void DCA_data<parameters_type>::compute_Sigma_bands() {
 
 template <class parameters_type>
 void DCA_data<parameters_type>::print_Sigma_QMC_versus_Sigma_cg() {
-  if (concurrency.id() == 0 /*and parameters.use_interpolated_Self_energy()*/) {
+  if (concurrency.id() == 0 /*and parameters.do_DCA_plus()*/) {
     if (DIMENSION == 2) {
       std::cout << "\n\n";
       std::cout << "        K-vectors             || Re[Sigma_QMC]   Im[Sigma_QMC]   Re[Sigma_cg]  "

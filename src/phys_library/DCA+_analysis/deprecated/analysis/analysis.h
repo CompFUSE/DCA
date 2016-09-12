@@ -241,7 +241,7 @@ namespace dca {
       if(concurrency.id() == concurrency.last())
 	cout << "\ncompute chi_0\n" << endl;
      
-      if(parameters.use_interpolated_Self_energy()){
+      if(parameters.do_DCA_plus()){
 
 	MOMS.coarsegrain_inversion_obj.execute(MOMS.Sigma, MOMS.Sigma_lattice_interpolated, MOMS.Sigma_lattice_coarsegrained, MOMS.Sigma_lattice);    
 
