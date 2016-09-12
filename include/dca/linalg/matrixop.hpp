@@ -10,6 +10,7 @@
 //
 // This file provides the matrix interface for the following matrix operations:
 // - copyCol, copyRow, copyCols, copyRows
+// - difference
 // - insertCol, insertRow (for CPU matrices only)
 // - removeCol, removeRow, removeRowAndCol
 // - scaleCol, scaleRow, scaleRows
@@ -120,6 +121,57 @@ inline void copyRows(const Matrix<ScalarType, GPU>& mat_x, const Vector<int, GPU
   GPU_KERNEL::many_row_copies(mat_x.nrCols(), i_x.size(), i_x.ptr(), mat_x.ptr(),
                               mat_x.leadingDimension(), i_y.ptr(), mat_y.ptr(),
                               mat_y.leadingDimension(), thread_id, stream_id);
+}
+
+// Returns the difference of two matrices in terms of max_i,j(|a(i, j) - b(i, j)|).
+// If the difference is larger than the threshold a std::logig_error exception is thrown,
+// and if DNDEBUG is not defined each difference which exceed the threshold is printed.
+// Preconditions: a.size() == b.size().
+template <typename ScalarType>
+auto difference(const Matrix<ScalarType, CPU>& a, const Matrix<ScalarType, CPU>& b,
+                double diff_threshold) {
+  assert(a.size() == b.size());
+
+  auto max_diff = std::abs(ScalarType(0));
+
+  for (int j = 0; j < a.nrCols(); ++j) {
+    for (int i = 0; i < a.nrRows(); ++i) {
+      max_diff = std::max(max_diff, std::abs(a(i, j) - b(i, j)));
+    }
+  }
+
+  if (max_diff > diff_threshold) {
+#ifndef DNDEBUG
+    std::stringstream s;
+    for (int i = 0; i < a.nrRows(); ++i) {
+      for (int j = 0; j < a.nrCols(); ++j) {
+        if (std::abs(a(i, j) - b(i, j)) <= diff_threshold)
+          s << 0. << "\t";
+        else
+          s << a(i, j) - b(i, j) << "\t";
+      }
+      s << "\n";
+    }
+    s << std::endl;
+    std::cout << s.str();
+#endif  // DNDEBUG
+
+    throw std::logic_error(__FUNCTION__);
+  }
+
+  return max_diff;
+}
+template <typename ScalarType, DeviceType device_name>
+auto difference(const Matrix<ScalarType, device_name>& a, const Matrix<ScalarType, CPU>& b,
+                double diff_threshold) {
+  Matrix<ScalarType, CPU> cp_a(a);
+  return difference(cp_a, b, diff_threshold);
+}
+template <typename ScalarType, DeviceType device_name_a, DeviceType device_name_b>
+auto difference(const Matrix<ScalarType, device_name_a>& a,
+                const Matrix<ScalarType, device_name_b>& b, double diff_threshold) {
+  Matrix<ScalarType, CPU> cp_b(b);
+  return difference(a, cp_b, diff_threshold);
 }
 
 // Insert a column at position j. The data is moved accordingly.

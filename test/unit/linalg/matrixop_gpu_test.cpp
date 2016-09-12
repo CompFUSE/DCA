@@ -865,3 +865,30 @@ TEST(MatrixopGPUTest, SwapCol) {
   }
   testing::destroyHandelAndStreams(0);
 }
+
+TEST(MatrixopGPUTest, Difference) {
+  std::pair<int, int> size2_a(5, 4);
+  const double epsilon = std::numeric_limits<double>::epsilon();
+  double diff = .01;
+
+  auto val_a = [](int i, int j) { return 10 * i + j; };
+
+  dca::linalg::Matrix<double, dca::linalg::CPU> a(size2_a);
+  testing::setMatrixElements(a, val_a);
+  dca::linalg::Matrix<double, dca::linalg::GPU> da(a);
+
+  for (int sg : {1, -1})
+    for (int ia : {0, 1, 4})
+      for (int ja : {0, 2, 3}) {
+        dca::linalg::Matrix<double, dca::linalg::CPU> b(a);
+        b(ia, ja) += sg * diff;
+        double err = std::abs(epsilon * b(ia, ja));
+        dca::linalg::Matrix<double, dca::linalg::GPU> db(b);
+
+        EXPECT_NEAR(diff, dca::linalg::matrixop::difference(da, db, 2 * diff), err);
+        EXPECT_NEAR(diff, dca::linalg::matrixop::difference(da, db, diff + err), err);
+        auto diffcalc = dca::linalg::matrixop::difference(da, db, 2 * diff);
+        EXPECT_NEAR(diff, dca::linalg::matrixop::difference(da, db, diffcalc), err);
+        EXPECT_THROW(dca::linalg::matrixop::difference(da, db, diffcalc - err), std::logic_error);
+      }
+}
