@@ -162,6 +162,12 @@ if (DCA_WITH_TESTS_FAST OR DCA_WITH_TESTS_EXTENSIVE OR DCA_WITH_TESTS_PERFORMANC
 
   enable_testing()
 
+  if ((CMAKE_BUILD_TYPE STREQUAL "Release") OR
+      (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo") OR
+      (CMAKE_BUILD_TYPE STREQUAL "MinSizeRel"))
+    message(WARNING "Tests are built with NDEBUG defined!")
+  endif()
+  
   add_subdirectory(${gtest_DIR} ${PROJECT_BINARY_DIR}/gtest)
 
   add_subdirectory(${PROJECT_SOURCE_DIR}/test)
