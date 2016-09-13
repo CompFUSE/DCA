@@ -95,8 +95,8 @@ set(DCA_MODEL "tight-binding" CACHE STRING "Model type, options are: tight-bindi
 set_property(CACHE DCA_MODEL PROPERTY STRINGS tight-binding)
 
 if (DCA_MODEL STREQUAL "tight-binding")
-  set(DCA_MODEL_TYPE tight_binding_model<Lattice>)
-  set(DCA_MODEL_INCLUDE "phys_library/parameters/models/tight_binding_model.h")
+  set(DCA_MODEL_TYPE dca::phys::models::TightBindingModel<Lattice>)
+  set(DCA_MODEL_INCLUDE "dca/phys/models/tight_binding_model.hpp")
 
 else()
   message(FATAL_ERROR "Please set DCA_MODEL to a valid option: tight-binding.")

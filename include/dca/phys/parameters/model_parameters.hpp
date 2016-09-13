@@ -21,7 +21,7 @@
 #include <stdexcept>
 #include <string>
 
-#include "phys_library/parameters/models/tight_binding_model.h"
+#include "dca/phys/models/tight_binding_model.hpp"
 #include "phys_library/parameters/models/analytic_hamiltonians/lattices/2D_2band_lattice.h"
 #include "phys_library/parameters/models/analytic_hamiltonians/lattices/2D_4band_lattice.h"
 #include "phys_library/parameters/models/analytic_hamiltonians/lattices/2D_bilayer_lattice.h"

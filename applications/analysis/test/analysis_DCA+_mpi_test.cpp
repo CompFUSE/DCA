@@ -18,6 +18,7 @@
 #include "gtest/gtest.h"
 
 #include "dca/config/haves_defines.hpp"
+#include "dca/phys/models/tight_binding_model.hpp"
 #include "dca/phys/parameters/parameters.hpp"
 #include "dca/testing/dca_mpi_test_environment.hpp"
 #include "dca/testing/minimalist_printer.hpp"
@@ -31,7 +32,6 @@
 #include "phys_library/DCA+_data/DCA_data.h"
 #include "phys_library/domains/cluster/symmetries/point_groups/2D/2D_square.h"
 #include "phys_library/parameters/models/analytic_hamiltonians/lattices/2D_square_lattice.h"
-#include "phys_library/parameters/models/tight_binding_model.h"
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
@@ -40,7 +40,7 @@ using namespace DCA;
 TEST(analysis_DCAplus_mpi, leading_eigenvalues) {
   using DcaPointGroupType = D4;
   using LatticeType = square_lattice<DcaPointGroupType>;
-  using ModelType = tight_binding_model<LatticeType>;
+  using ModelType = dca::phys::models::TightBindingModel<LatticeType>;
   using ParametersType =
       dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType,
                                     PROFILER::NullProfiler, ModelType, void /*RngType*/,

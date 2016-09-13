@@ -5,7 +5,7 @@
 // See LICENSE.txt for terms of usage.
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
-// Author: Urs Haehner (haehneru@itp.phys.ethz.ch)
+// Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // Description
 
