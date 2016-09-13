@@ -18,7 +18,7 @@ namespace DCA {
 namespace QMCI {
 // DCA::QMCI::
 
-template <LIN_ALG::device_type device_t, typename parameters_type>
+template <dca::linalg::DeviceType device_t, typename parameters_type>
 class N_MATRIX_TOOLS {};
 
 }  // QMCI

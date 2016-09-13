@@ -16,15 +16,15 @@
 
 #include <cassert>
 
-#include "comp_library/linalg/src/matrix.h"
-#include "comp_library/linalg/src/vector.h"
+#include "dca/linalg/matrix.hpp"
+#include "dca/linalg/vector.hpp"
 
 namespace DCA {
 namespace QMCI {
 // DCA::QMCI::
 
 template <typename parameters_type>
-class G_MATRIX_TOOLS<LIN_ALG::CPU, parameters_type> {
+class G_MATRIX_TOOLS<dca::linalg::CPU, parameters_type> {
   typedef typename parameters_type::concurrency_type concurrency_type;
   typedef typename parameters_type::profiler_type profiler_t;
 
@@ -35,12 +35,12 @@ public:
         parameters(parameters_ref),
         concurrency(parameters.get_concurrency()) {}
 
-  void read_G_matrix_elements(LIN_ALG::vector<int, LIN_ALG::CPU>& i_index,
-                              LIN_ALG::vector<int, LIN_ALG::CPU>& j_index,
-                              LIN_ALG::vector<bool, LIN_ALG::CPU>& is_Bennett,
-                              LIN_ALG::vector<double, LIN_ALG::CPU>& exp_Vj,
-                              LIN_ALG::matrix<double, LIN_ALG::CPU>& N,
-                              LIN_ALG::matrix<double, LIN_ALG::CPU>& G_precomputed,
+  void read_G_matrix_elements(dca::linalg::Vector<int, dca::linalg::CPU>& i_index,
+                              dca::linalg::Vector<int, dca::linalg::CPU>& j_index,
+                              dca::linalg::Vector<bool, dca::linalg::CPU>& is_Bennett,
+                              dca::linalg::Vector<double, dca::linalg::CPU>& exp_Vj,
+                              dca::linalg::Matrix<double, dca::linalg::CPU>& N,
+                              dca::linalg::Matrix<double, dca::linalg::CPU>& G_precomputed,
                               double* result_ptr, int incr) {
     assert(i_index.size() == j_index.size());
     assert(i_index.size() == is_Bennett.size());
@@ -48,7 +48,7 @@ public:
 
     double result, delta;
 
-    int vertex_index = N.get_number_of_cols() - G_precomputed.get_number_of_cols();
+    int vertex_index = N.nrCols() - G_precomputed.nrCols();
 
     for (int l = 0; l < i_index.size(); ++l) {
       result = 0;
@@ -64,15 +64,15 @@ public:
     }
   }
 
-  void compute_row_on_Gamma_matrix(int row_index, LIN_ALG::vector<int, LIN_ALG::CPU>& indices,
-                                   LIN_ALG::vector<double, LIN_ALG::CPU>& exp_V,
-                                   LIN_ALG::matrix<double, LIN_ALG::CPU>& N,
-                                   LIN_ALG::matrix<double, LIN_ALG::CPU>& G_precomputed,
+  void compute_row_on_Gamma_matrix(int row_index, dca::linalg::Vector<int, dca::linalg::CPU>& indices,
+                                   dca::linalg::Vector<double, dca::linalg::CPU>& exp_V,
+                                   dca::linalg::Matrix<double, dca::linalg::CPU>& N,
+                                   dca::linalg::Matrix<double, dca::linalg::CPU>& G_precomputed,
                                    double* row_ptr, int incr) {
     int i_index, j_index;
     double result, delta;
 
-    int vertex_index = N.get_number_of_cols() - G_precomputed.get_number_of_cols();
+    int vertex_index = N.nrCols() - G_precomputed.nrCols();
 
     i_index = indices[row_index];
 
@@ -92,15 +92,15 @@ public:
     }
   }
 
-  void compute_col_on_Gamma_matrix(int col_index, LIN_ALG::vector<int, LIN_ALG::CPU>& indices,
-                                   LIN_ALG::vector<double, LIN_ALG::CPU>& exp_V,
-                                   LIN_ALG::matrix<double, LIN_ALG::CPU>& N,
-                                   LIN_ALG::matrix<double, LIN_ALG::CPU>& G_precomputed,
+  void compute_col_on_Gamma_matrix(int col_index, dca::linalg::Vector<int, dca::linalg::CPU>& indices,
+                                   dca::linalg::Vector<double, dca::linalg::CPU>& exp_V,
+                                   dca::linalg::Matrix<double, dca::linalg::CPU>& N,
+                                   dca::linalg::Matrix<double, dca::linalg::CPU>& G_precomputed,
                                    double* col_ptr, int incr) {
     int i_index, j_index;
     double result, delta, exp_Vj;
 
-    int vertex_index = N.get_number_of_cols() - G_precomputed.get_number_of_cols();
+    int vertex_index = N.nrCols() - G_precomputed.nrCols();
 
     j_index = indices[col_index];
     exp_Vj = exp_V[col_index];

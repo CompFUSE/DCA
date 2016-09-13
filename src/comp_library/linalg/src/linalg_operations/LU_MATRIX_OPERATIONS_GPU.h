@@ -24,7 +24,7 @@ namespace LIN_ALG {
 
       assert(M.is_square());
 
-      scalartype determinant = LU_MATRIX_OPERATIONS_GPU::determinant_tridiagonal(M.get_number_of_rows(), M.get_ptr(0,0), M.get_leading_dimension());
+      scalartype determinant = LU_MATRIX_OPERATIONS_GPU::determinant_tridiagonal(M.nrRows(), M.ptr(0,0), M.leadingDimension());
 
       return determinant;
     }
@@ -34,7 +34,7 @@ namespace LIN_ALG {
 
       assert(M.is_square());
 
-      std::pair<scalartype, scalartype> p = LU_MATRIX_OPERATIONS_GPU::minmax_diagonal(M.get_number_of_rows(), M.get_ptr(0,0), M.get_leading_dimension());
+      std::pair<scalartype, scalartype> p = LU_MATRIX_OPERATIONS_GPU::minmax_diagonal(M.nrRows(), M.ptr(0,0), M.leadingDimension());
 
       return p.first/p.second;
     }

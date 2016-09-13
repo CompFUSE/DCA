@@ -28,7 +28,7 @@ public:
 public:
   double sigma_f;
 
-  LIN_ALG::matrix<double, LIN_ALG::CPU> A;
+  dca::linalg::Matrix<double, dca::linalg::CPU> A;
 };
 
 template <typename k_dmn_t>

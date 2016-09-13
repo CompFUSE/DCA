@@ -99,12 +99,12 @@ private:
   FUNC_LIB::function<int, b_r_dmn_t> start_index;
   FUNC_LIB::function<int, b_r_dmn_t> end_index;
 
-  LIN_ALG::matrix<std::complex<scalar_type>, LIN_ALG::CPU> T_l_times_M_ij_times_T_r;
-  LIN_ALG::matrix<std::complex<scalar_type>, LIN_ALG::CPU> M_ij;
-  LIN_ALG::matrix<std::complex<scalar_type>, LIN_ALG::CPU> T;
-  LIN_ALG::matrix<std::complex<scalar_type>, LIN_ALG::CPU> T_l;
-  LIN_ALG::matrix<std::complex<scalar_type>, LIN_ALG::CPU> T_r;
-  LIN_ALG::matrix<std::complex<scalar_type>, LIN_ALG::CPU> T_l_times_M_ij;
+  dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU> T_l_times_M_ij_times_T_r;
+  dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU> M_ij;
+  dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU> T;
+  dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU> T_l;
+  dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU> T_r;
+  dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU> T_l_times_M_ij;
 };
 
 template <int dimension, class scalar_type, class r_dmn_t, class w_vertex_dmn_t, class w_vertex_pos_dmn_t>
@@ -280,7 +280,7 @@ void cached_nft<dimension, scalar_type, r_dmn_t, w_vertex_dmn_t, w_vertex_pos_dm
   int N_v = configuration.size();
   int N_w = W.size();
 
-  T.resize_no_copy(std::pair<int, int>(N_w, N_v));
+  T.resizeNoCopy(std::pair<int, int>(N_w, N_v));
 
   scalar_type x;
 
@@ -301,8 +301,8 @@ void cached_nft<dimension, scalar_type, r_dmn_t, w_vertex_dmn_t, w_vertex_pos_dm
   // In release mode 'configuration' is an unused parameter.
   dca::util::ignoreUnused(configuration);
 
-  M_ij.resize_no_copy(std::pair<int, int>(end_index(b_i, r_i) - start_index(b_i, r_i),
-                                          end_index(b_j, r_j) - start_index(b_j, r_j)));
+  M_ij.resizeNoCopy(std::pair<int, int>(end_index(b_i, r_i) - start_index(b_i, r_i),
+                                        end_index(b_j, r_j) - start_index(b_j, r_j)));
 
   for (int l_i = start_index(b_i, r_i); l_i < end_index(b_i, r_i); l_i++) {
     assert(p[l_i].first == b_i);
@@ -331,7 +331,7 @@ template <int dimension, class scalar_type, class r_dmn_t, class w_vertex_dmn_t,
 void cached_nft<dimension, scalar_type, r_dmn_t, w_vertex_dmn_t,
                 w_vertex_pos_dmn_t>::compute_T_matrices(int b_i, int r_i, int b_j, int r_j) {
   // T_l matrix
-  T_l.resize_no_copy(
+  T_l.resizeNoCopy(
       std::pair<int, int>(w_vertex_dmn_t::dmn_size(), end_index(b_i, r_i) - start_index(b_i, r_i)));
 
   for (int l_i = start_index(b_i, r_i); l_i < end_index(b_i, r_i); l_i++) {
@@ -341,7 +341,7 @@ void cached_nft<dimension, scalar_type, r_dmn_t, w_vertex_dmn_t,
   }
 
   // T_r matrix
-  T_r.resize_no_copy(
+  T_r.resizeNoCopy(
       std::pair<int, int>(w_vertex_dmn_t::dmn_size(), end_index(b_j, r_j) - start_index(b_j, r_j)));
 
   for (int l_j = start_index(b_j, r_j); l_j < end_index(b_j, r_j); l_j++) {
@@ -355,36 +355,35 @@ template <int dimension, class scalar_type, class r_dmn_t, class w_vertex_dmn_t,
 double cached_nft<dimension, scalar_type, r_dmn_t, w_vertex_dmn_t, w_vertex_pos_dmn_t>::execute_FT() {
   double FLOPS = 0.;
 
-  assert(T_l.get_current_size().first == w_vertex_dmn_t::dmn_size());
-  assert(T_l.get_current_size().second == M_ij.get_current_size().first);
+  assert(T_l.size().first == w_vertex_dmn_t::dmn_size());
+  assert(T_l.size().second == M_ij.size().first);
 
-  assert(T_r.get_current_size().first == w_vertex_dmn_t::dmn_size());
-  assert(T_r.get_current_size().second == M_ij.get_current_size().second);
+  assert(T_r.size().first == w_vertex_dmn_t::dmn_size());
+  assert(T_r.size().second == M_ij.size().second);
 
-  T_l_times_M_ij.resize_no_copy(
-      std::pair<int, int>(w_vertex_dmn_t::dmn_size(), M_ij.get_current_size().second));
-  T_l_times_M_ij_times_T_r.resize_no_copy(
+  T_l_times_M_ij.resizeNoCopy(std::pair<int, int>(w_vertex_dmn_t::dmn_size(), M_ij.size().second));
+  T_l_times_M_ij_times_T_r.resizeNoCopy(
       std::pair<int, int>(w_vertex_dmn_t::dmn_size(), w_vertex_dmn_t::dmn_size()));
 
   {
-    LIN_ALG::GEMM<LIN_ALG::CPU>::execute(T_l, M_ij, T_l_times_M_ij);
+    LIN_ALG::GEMM<dca::linalg::CPU>::execute(T_l, M_ij, T_l_times_M_ij);
 
     {
-      int M = T_l.get_current_size().first;    // w_VERTEX::dmn_size();//N_w;
-      int K = T_l.get_current_size().second;   // n_I;
-      int N = M_ij.get_current_size().second;  // n_J;
+      int M = T_l.size().first;    // w_VERTEX::dmn_size();//N_w;
+      int K = T_l.size().second;   // n_I;
+      int N = M_ij.size().second;  // n_J;
 
       FLOPS += 4. * (M) * (K) * (N);
     }
   }
 
   {
-    LIN_ALG::GEMM<LIN_ALG::CPU>::execute('N', 'C', T_l_times_M_ij, T_r, T_l_times_M_ij_times_T_r);
+    LIN_ALG::GEMM<dca::linalg::CPU>::execute('N', 'C', T_l_times_M_ij, T_r, T_l_times_M_ij_times_T_r);
 
     {
-      int M = T_l_times_M_ij.get_current_size().first;             // N_w;
-      int K = T_l_times_M_ij.get_current_size().second;            // n_J;
-      int N = T_l_times_M_ij_times_T_r.get_current_size().second;  // N_w;
+      int M = T_l_times_M_ij.size().first;             // N_w;
+      int K = T_l_times_M_ij.size().second;            // n_J;
+      int N = T_l_times_M_ij_times_T_r.size().second;  // N_w;
 
       FLOPS += 4. * (M) * (K) * (N);
     }
@@ -403,15 +402,14 @@ double cached_nft<dimension, scalar_type, r_dmn_t, w_vertex_dmn_t,
 
   assert(w_vertex_pos_dmn_t::dmn_size() == w_vertex_dmn_t::dmn_size() / 2);
 
-  assert(T_l.get_current_size().first == w_vertex_dmn_t::dmn_size());
-  assert(T_l.get_current_size().second == M_ij.get_current_size().first);
+  assert(T_l.size().first == w_vertex_dmn_t::dmn_size());
+  assert(T_l.size().second == M_ij.size().first);
 
-  assert(T_r.get_current_size().first == w_vertex_dmn_t::dmn_size());
-  assert(T_r.get_current_size().second == M_ij.get_current_size().second);
+  assert(T_r.size().first == w_vertex_dmn_t::dmn_size());
+  assert(T_r.size().second == M_ij.size().second);
 
-  T_l_times_M_ij.resize_no_copy(
-      std::pair<int, int>(w_vertex_pos_dmn_t::dmn_size(), M_ij.get_current_size().second));
-  T_l_times_M_ij_times_T_r.resize_no_copy(
+  T_l_times_M_ij.resizeNoCopy(std::pair<int, int>(w_vertex_pos_dmn_t::dmn_size(), M_ij.size().second));
+  T_l_times_M_ij_times_T_r.resizeNoCopy(
       std::pair<int, int>(w_vertex_pos_dmn_t::dmn_size(), w_vertex_dmn_t::dmn_size()));
 
   {
@@ -419,13 +417,13 @@ double cached_nft<dimension, scalar_type, r_dmn_t, w_vertex_dmn_t,
     std::complex<scalar_type>* B = &M_ij(0, 0);
     std::complex<scalar_type>* C = &T_l_times_M_ij(0, 0);
 
-    int M = T_l.get_current_size().first / 2;
-    int K = T_l.get_current_size().second;
-    int N = M_ij.get_current_size().second;
+    int M = T_l.size().first / 2;
+    int K = T_l.size().second;
+    int N = M_ij.size().second;
 
-    int LDA = T_l.get_global_size().first;             // N_w;
-    int LDB = M_ij.get_global_size().first;            // MAX;
-    int LDC = T_l_times_M_ij.get_global_size().first;  // N_w;
+    int LDA = T_l.leadingDimension();             // N_w;
+    int LDB = M_ij.leadingDimension();            // MAX;
+    int LDC = T_l_times_M_ij.leadingDimension();  // N_w;
 
     dca::linalg::blas::gemm("N", "N", M, N, K, ONE, A, LDA, B, LDB, ZERO, C, LDC);
 
@@ -433,12 +431,12 @@ double cached_nft<dimension, scalar_type, r_dmn_t, w_vertex_dmn_t,
   }
 
   {
-    LIN_ALG::GEMM<LIN_ALG::CPU>::execute('N', 'C', T_l_times_M_ij, T_r, T_l_times_M_ij_times_T_r);
+    LIN_ALG::GEMM<dca::linalg::CPU>::execute('N', 'C', T_l_times_M_ij, T_r, T_l_times_M_ij_times_T_r);
 
     {
-      int M = T_l_times_M_ij.get_current_size().first;             // N_w;
-      int K = T_l_times_M_ij.get_current_size().second;            // n_J;
-      int N = T_l_times_M_ij_times_T_r.get_current_size().second;  // N_w;
+      int M = T_l_times_M_ij.size().first;             // N_w;
+      int K = T_l_times_M_ij.size().second;            // n_J;
+      int N = T_l_times_M_ij_times_T_r.size().second;  // N_w;
 
       FLOPS += 4. * (M) * (K) * (N);
     }

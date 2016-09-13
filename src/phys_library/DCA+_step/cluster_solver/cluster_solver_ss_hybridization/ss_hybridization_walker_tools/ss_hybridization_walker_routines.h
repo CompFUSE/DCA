@@ -39,8 +39,8 @@ namespace QMCI {
 
 struct static_matrix_routines {
   template <typename scalar_type>
-  static void add_row(LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& M) {
-    std::pair<int, int> new_size = M.get_current_size();
+  static void add_row(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M) {
+    std::pair<int, int> new_size = M.size();
 
     new_size.first += 1;
 
@@ -48,8 +48,8 @@ struct static_matrix_routines {
   }
 
   template <typename scalar_type>
-  static void add_col(LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& M) {
-    std::pair<int, int> new_size = M.get_current_size();
+  static void add_col(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M) {
+    std::pair<int, int> new_size = M.size();
 
     new_size.second += 1;
 
@@ -57,8 +57,8 @@ struct static_matrix_routines {
   }
 
   template <typename scalar_type>
-  static void remove_row(LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& M) {
-    std::pair<int, int> new_size = M.get_current_size();
+  static void remove_row(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M) {
+    std::pair<int, int> new_size = M.size();
 
     new_size.first -= 1;
 
@@ -66,8 +66,8 @@ struct static_matrix_routines {
   }
 
   template <typename scalar_type>
-  static void remove_col(LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& M) {
-    std::pair<int, int> new_size = M.get_current_size();
+  static void remove_col(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M) {
+    std::pair<int, int> new_size = M.size();
 
     new_size.second -= 1;
 
@@ -75,155 +75,152 @@ struct static_matrix_routines {
   }
 
   template <typename scalar_type>
-  static void insert_row(LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& M, int index_row) {
-    assert(index_row > -1 and index_row < M.get_current_size().first);
+  static void insert_row(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M, int index_row) {
+    assert(index_row > -1 and index_row < M.size().first);
 
     add_row(M);
 
-    std::pair<int, int> current_size = M.get_current_size();
+    std::pair<int, int> size = M.size();
 
     // copy the remaining rows on the bottom
-    for (int i = 0; i < current_size.second; i++)
-      memmove(&M(index_row + 1, i), &M(index_row, i),
-              sizeof(scalar_type) * (current_size.first - index_row));
+    for (int i = 0; i < size.second; i++)
+      memmove(&M(index_row + 1, i), &M(index_row, i), sizeof(scalar_type) * (size.first - index_row));
 
-    for (int i = 0; i < current_size.second; i++)
+    for (int i = 0; i < size.second; i++)
       M(index_row, i) = 0;
   }
 
   template <typename scalar_type>
-  static void insert_col(LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& M, int index_column) {
-    assert(index_column > -1 and index_column < M.get_current_size().second);
+  static void insert_col(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M, int index_column) {
+    assert(index_column > -1 and index_column < M.size().second);
 
     add_col(M);
 
-    std::pair<int, int> current_size = M.get_current_size();
-    std::pair<int, int> global_size = M.get_global_size();
+    std::pair<int, int> size = M.size();
+    std::pair<int, int> capacity = M.capacity();
 
     // copy the remaining columns on the right
     memmove(&M(0, index_column + 1), &M(0, index_column),
-            sizeof(scalar_type) * global_size.first * (current_size.second - 1 - index_column));
+            sizeof(scalar_type) * capacity.first * (size.second - 1 - index_column));
 
-    for (int j = 0; j < current_size.first; j++)
+    for (int j = 0; j < size.first; j++)
       M(j, index_column) = 0;
   }
 
   template <typename scalar_type>
-  static void remove_row(LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& M, int index_row) {
-    assert(index_row >= 0 and index_row < M.get_current_size().first);
+  static void remove_row(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M, int index_row) {
+    assert(index_row >= 0 and index_row < M.size().first);
 
-    std::pair<int, int> current_size = M.get_current_size();
+    std::pair<int, int> size = M.size();
 
     // copy the remaining rows on the bottom
-    if ((current_size.first - (index_row + 1)) > 0)
-      for (int i = 0; i < current_size.second; i++)
+    if ((size.first - (index_row + 1)) > 0)
+      for (int i = 0; i < size.second; i++)
         memmove(&M(index_row, i), &M(index_row + 1, i),
-                sizeof(scalar_type) * (current_size.first - (index_row + 1)));
+                sizeof(scalar_type) * (size.first - (index_row + 1)));
 
     remove_row(M);
   }
 
   template <typename scalar_type>
-  static void remove_col(LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& M, int index_column) {
-    assert(index_column >= 0 and index_column < M.get_current_size().second);
+  static void remove_col(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M, int index_column) {
+    assert(index_column >= 0 and index_column < M.size().second);
 
-    std::pair<int, int> current_size = M.get_current_size();
-    std::pair<int, int> global_size = M.get_global_size();
+    std::pair<int, int> size = M.size();
+    std::pair<int, int> capacity = M.capacity();
 
     // copy the remaining columns on the right
-    if ((current_size.second - (index_column + 1)) > 0)
+    if ((size.second - (index_column + 1)) > 0)
       memmove(&M(0, index_column), &M(0, index_column + 1),
-              sizeof(scalar_type) * global_size.first * (current_size.second - (index_column + 1)));
+              sizeof(scalar_type) * capacity.first * (size.second - (index_column + 1)));
 
     remove_col(M);
   }
 
   template <typename scalar_type>
-  static void cycle_column_forward(LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& M) {
-    assert(M.get_current_size().first == M.get_current_size().second);
-    assert(M.get_global_size().first == M.get_global_size().second);
+  static void cycle_column_forward(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M) {
+    assert(M.size().first == M.size().second);
+    assert(M.capacity().first == M.capacity().second);
 
-    std::pair<int, int> current_size = M.get_current_size();
-    std::pair<int, int> global_size = M.get_global_size();
+    std::pair<int, int> size = M.size();
+    std::pair<int, int> capacity = M.capacity();
 
-    scalar_type* tmp_column = new scalar_type[current_size.first];
+    scalar_type* tmp_column = new scalar_type[size.first];
 
-    for (int l = 0; l < current_size.first; l++)
-      tmp_column[l] = M(l, current_size.first - 1);
+    for (int l = 0; l < size.first; l++)
+      tmp_column[l] = M(l, size.first - 1);
 
-    if ((current_size.first - 1) > 0)
-      memmove(&M(0, 1), &M(0, 0), sizeof(scalar_type) * global_size.first * (current_size.first - 1));
+    if ((size.first - 1) > 0)
+      memmove(&M(0, 1), &M(0, 0), sizeof(scalar_type) * capacity.first * (size.first - 1));
 
-    for (int l = 0; l < current_size.first; l++)
+    for (int l = 0; l < size.first; l++)
       M(l, 0) = tmp_column[l];
 
     delete[] tmp_column;
   }
 
   template <typename scalar_type>
-  static void cycle_column_backward(LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& M) {
-    assert(M.get_current_size().first == M.get_current_size().second);
-    assert(M.get_global_size().first == M.get_global_size().second);
+  static void cycle_column_backward(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M) {
+    assert(M.size().first == M.size().second);
+    assert(M.capacity().first == M.capacity().second);
 
-    std::pair<int, int> current_size = M.get_current_size();
-    std::pair<int, int> global_size = M.get_global_size();
+    std::pair<int, int> size = M.size();
+    std::pair<int, int> capacity = M.capacity();
 
-    scalar_type* tmp_column = new scalar_type[current_size.first];
+    scalar_type* tmp_column = new scalar_type[size.first];
 
-    for (int l = 0; l < current_size.first; l++)
+    for (int l = 0; l < size.first; l++)
       tmp_column[l] = M(l, 0);
 
-    if ((current_size.first - 1) > 0)
-      memmove(&M(0, 0), &M(0, 1), sizeof(scalar_type) * global_size.first * (current_size.first - 1));
+    if ((size.first - 1) > 0)
+      memmove(&M(0, 0), &M(0, 1), sizeof(scalar_type) * capacity.first * (size.first - 1));
 
-    for (int l = 0; l < current_size.first; l++)
-      M(l, current_size.first - 1) = tmp_column[l];
+    for (int l = 0; l < size.first; l++)
+      M(l, size.first - 1) = tmp_column[l];
 
     delete[] tmp_column;
   }
 
   template <typename scalar_type>
-  static void cycle_row_forward(LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& M) {
-    assert(M.get_current_size().first == M.get_current_size().second);
-    assert(M.get_global_size().first == M.get_global_size().second);
+  static void cycle_row_forward(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M) {
+    assert(M.size().first == M.size().second);
+    assert(M.capacity().first == M.capacity().second);
 
-    std::pair<int, int> current_size = M.get_current_size();
-    // std::pair<int,int> global_size  = M.get_global_size();
+    std::pair<int, int> size = M.size();
 
-    scalar_type* tmp_row = new scalar_type[current_size.first];
+    scalar_type* tmp_row = new scalar_type[size.first];
 
-    for (int l = 0; l < current_size.first; l++)
-      tmp_row[l] = M(current_size.first - 1, l);
+    for (int l = 0; l < size.first; l++)
+      tmp_row[l] = M(size.first - 1, l);
 
-    for (int l = 0; l < current_size.first; l++)
-      for (int row_i = current_size.first - 1; row_i > 0; row_i--)
+    for (int l = 0; l < size.first; l++)
+      for (int row_i = size.first - 1; row_i > 0; row_i--)
         M(row_i, l) = M(row_i - 1, l);
 
-    for (int l = 0; l < current_size.first; l++)
+    for (int l = 0; l < size.first; l++)
       M(0, l) = tmp_row[l];
 
     delete[] tmp_row;
   }
 
   template <typename scalar_type>
-  static void cycle_row_backward(LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& M) {
-    assert(M.get_current_size().first == M.get_current_size().second);
-    assert(M.get_global_size().first == M.get_global_size().second);
+  static void cycle_row_backward(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M) {
+    assert(M.size().first == M.size().second);
+    assert(M.capacity().first == M.capacity().second);
 
-    std::pair<int, int> current_size = M.get_current_size();
-    // std::pair<int,int> global_size  = M.get_global_size();
+    std::pair<int, int> size = M.size();
 
-    scalar_type* tmp_row = new scalar_type[current_size.first];
+    scalar_type* tmp_row = new scalar_type[size.first];
 
-    for (int l = 0; l < current_size.first; l++)
+    for (int l = 0; l < size.first; l++)
       tmp_row[l] = M(0, l);
 
-    for (int l = 0; l < current_size.first; l++)
-      for (int row_i = 0; row_i < current_size.first - 1; row_i++)
+    for (int l = 0; l < size.first; l++)
+      for (int row_i = 0; row_i < size.first - 1; row_i++)
         M(row_i, l) = M(row_i + 1, l);
 
-    for (int l = 0; l < current_size.first; l++)
-      M(current_size.first - 1, l) = tmp_row[l];
+    for (int l = 0; l < size.first; l++)
+      M(size.first - 1, l) = tmp_row[l];
 
     delete[] tmp_row;
   }
@@ -285,28 +282,30 @@ public:
 
   // matrix-routines --> has to move to LIN_ALG at some point!
   template <typename scalar_type>
-  static void cycle_column_forward(LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& M);
+  static void cycle_column_forward(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M);
 
   template <typename scalar_type>
-  static void cycle_column_backward(LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& M);
+  static void cycle_column_backward(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M);
 
   template <typename scalar_type>
-  static void cycle_row_forward(LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& M);
+  static void cycle_row_forward(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M);
 
   template <typename scalar_type>
-  static void cycle_row_backward(LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& M);
+  static void cycle_row_backward(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M);
 
   template <typename scalar_type>
-  static void insert_row_and_column(LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& M, int r, int s);
+  static void insert_row_and_column(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M, int r,
+                                    int s);
 
   template <typename scalar_type>
-  static void remove_row_and_column(LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& M, int r, int s);
+  static void remove_row_and_column(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M, int r,
+                                    int s);
 
   template <typename scalar_type>
-  static void insert_row_and_add_column(LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& M, int r);
+  static void insert_row_and_add_column(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M, int r);
 
   template <typename scalar_type>
-  static void add_row_and_insert_column(LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& M, int s);
+  static void add_row_and_insert_column(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M, int s);
 
   template <typename Hybridization_function_t>
   double interpolate_F(int* coor_flavor, double tau, Hybridization_function_t& F);
@@ -509,35 +508,35 @@ int ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_
 template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
 template <typename scalar_type>
 void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::cycle_column_forward(
-    LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& M) {
+    dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M) {
   static_matrix_routines::cycle_column_forward(M);
 }
 
 template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
 template <typename scalar_type>
 void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::cycle_column_backward(
-    LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& M) {
+    dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M) {
   static_matrix_routines::cycle_column_backward(M);
 }
 
 template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
 template <typename scalar_type>
 void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::cycle_row_forward(
-    LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& M) {
+    dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M) {
   static_matrix_routines::cycle_row_forward(M);
 }
 
 template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
 template <typename scalar_type>
 void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::cycle_row_backward(
-    LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& M) {
+    dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M) {
   static_matrix_routines::cycle_row_backward(M);
 }
 
 template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
 template <typename scalar_type>
 void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::insert_row_and_column(
-    LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& M, int index_row, int index_col) {
+    dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M, int index_row, int index_col) {
   static_matrix_routines::insert_row(M, index_row);
   static_matrix_routines::insert_col(M, index_col);
 }
@@ -545,7 +544,7 @@ void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng
 template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
 template <typename scalar_type>
 void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::remove_row_and_column(
-    LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& M, int index_row, int index_col) {
+    dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M, int index_row, int index_col) {
   static_matrix_routines::remove_row(M, index_row);
   static_matrix_routines::remove_col(M, index_col);
 }
@@ -553,7 +552,7 @@ void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng
 template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
 template <typename scalar_type>
 void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::insert_row_and_add_column(
-    LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& M, int index_row) {
+    dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M, int index_row) {
   static_matrix_routines::insert_row(M, index_row);
   static_matrix_routines::add_col(M);
 }
@@ -561,7 +560,7 @@ void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng
 template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
 template <typename scalar_type>
 void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::add_row_and_insert_column(
-    LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& M, int index_col) {
+    dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M, int index_col) {
   static_matrix_routines::add_row(M);
   static_matrix_routines::insert_col(M, index_col);
 }
@@ -699,10 +698,8 @@ double ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, r
   int inc = 1;
   std::vector<double> Q(1, 0.);
 
-  // int M_size = M.get_current_size().first
-
-  if (M.get_current_size().first > (int)Q.size())
-    Q.resize(M.get_current_size().first);
+  if (M.size().first > (int)Q.size())
+    Q.resize(M.size().first);
 
   // int* coor = new int[2];
   int coor[2];
@@ -716,7 +713,7 @@ double ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, r
   // Q[i] =  F(\tau^i_{e} - \tau^n_{s})
   double det_rat = interpolate_F(coor, new_segment.t_end() - new_segment.t_start(), F);
 
-  if (M.get_current_size().first > 0) {
+  if (M.size().first > 0) {
     typename orbital_configuration_t::iterator it = segments_old.begin();
     for (size_t i = 0; i < segments_old.size(); i++) {
       R[i] = interpolate_F(coor, new_segment.t_end() - it->t_start(), F);
@@ -726,7 +723,7 @@ double ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, r
 
     compute_Q_prime(Q, M, Q_prime);
 
-    int size = M.get_current_size().first;
+    int size = M.size().first;
     det_rat += dca::linalg::blas::dot(size, &R[0], inc, &Q_prime[0], inc);
   }
 
@@ -767,11 +764,11 @@ void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng
   std::vector<double> R_prime(1, 0.);
 
   int i_new, j_new;
-  int size = M.get_current_size().first;
+  int size = M.size().first;
 
   if (size > 0) {
     if (size > (int)R_prime.size())
-      R_prime.resize(M.get_current_size().first);
+      R_prime.resize(M.size().first);
 
     compute_R_prime(R, M, R_prime);
 
@@ -783,15 +780,15 @@ void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng
     // M.cycle_column_forward();
   }
 
-  if (r < M.get_current_size().first && s < M.get_current_size().first) {
+  if (r < M.size().first && s < M.size().first) {
     // M.insert_row_and_column(r,s);
     insert_row_and_column(M, r, s);
   }
-  else if (r < M.get_current_size().first && s == M.get_current_size().first) {
+  else if (r < M.size().first && s == M.size().first) {
     // M.insert_row_and_add_column(r);
     insert_row_and_add_column(M, r);
   }
-  else if (r == M.get_current_size().first && s < M.get_current_size().first) {
+  else if (r == M.size().first && s < M.size().first) {
     // M.add_row_and_insert_column(s);
     add_row_and_insert_column(M, s);
   }
@@ -875,14 +872,14 @@ void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng
   std::vector<double> Q_prime(1, 0.);
   std::vector<double> R_prime(1, 0.);
 
-  if (M.get_current_size().first > 1) {
-    if (M.get_current_size().first > (int)R_prime.size()) {
-      Q_prime.resize(M.get_current_size().first);
-      R_prime.resize(M.get_current_size().first);
+  if (M.size().first > 1) {
+    if (M.size().first > (int)R_prime.size()) {
+      Q_prime.resize(M.size().first);
+      R_prime.resize(M.size().first);
     }
 
-    int incy = M.get_global_size().first;
-    int size = M.get_current_size().first;
+    int incy = M.leadingDimension();
+    int size = M.size().first;
 
     dca::linalg::blas::copy(size, &M(0, s), inc, &Q_prime[0], inc);
     dca::linalg::blas::copy(size, &M(r, 0), incy, &R_prime[0], inc);
@@ -928,21 +925,21 @@ double ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, r
   nu nu_obj;
   nu_obj.linind_2_subind(this_flavor, coor);
 
-  assert(M.get_current_size().first == M.get_current_size().second);
-  int size = M.get_current_size().first;
+  assert(M.size().first == M.size().second);
+  int size = M.size().first;
 
   dca::linalg::blas::copy(size, &M(0, k), inc, &Q_prime[0], inc);
 
   typename orbital_configuration_t::iterator it0;
   it0 = segments_old.begin();
 
-  for (int i = 0; i < M.get_current_size().first; i++) {
+  for (int i = 0; i < M.size().first; i++) {
     R[i] = interpolate_F(coor, new_segment.t_end() - (it0 + i)->t_start(), F);
   }
 
   double det_rat = dca::linalg::blas::dot(size, &R[0], inc, &Q_prime[0], inc);
 
-  for (int i = 0; i < M.get_current_size().first; i++) {
+  for (int i = 0; i < M.size().first; i++) {
     R[i] = interpolate_F(coor, new_segment.t_end() - (it0 + i)->t_start(), F) -
            interpolate_F(coor, (it0 + k)->t_end() - (it0 + i)->t_start(), F);
   }
@@ -994,22 +991,22 @@ double ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, r
   nu nu_obj;
   nu_obj.linind_2_subind(this_flavor, coor);
 
-  assert(M.get_current_size().first == M.get_current_size().second);
-  int size = M.get_current_size().first;
-  int incy = M.get_global_size().first;
+  assert(M.size().first == M.size().second);
+  int size = M.size().first;
+  int incy = M.leadingDimension();
 
   dca::linalg::blas::copy(size, &M(k, 0), incy, &R_prime[0], inc);
 
   typename orbital_configuration_t::iterator it0;
   it0 = segments_old.begin();
 
-  for (int i = 0; i < M.get_current_size().first; i++) {
+  for (int i = 0; i < M.size().first; i++) {
     Q[i] = interpolate_F(coor, (it0 + i)->t_end() - new_segment.t_start(), F);
   }
 
   double det_rat = dca::linalg::blas::dot(size, &R_prime[0], inc, &Q[0], inc);
 
-  for (int i = 0; i < M.get_current_size().first; i++) {
+  for (int i = 0; i < M.size().first; i++) {
     Q[i] = interpolate_F(coor, (it0 + i)->t_end() - new_segment.t_start(), F) -
            interpolate_F(coor, (it0 + i)->t_end() - (it0 + k)->t_start(), F);
   }
@@ -1054,8 +1051,8 @@ void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng
 
   double S_prime = 1. / det_rat;
 
-  if (M.get_current_size().first > (int)R_prime.size())
-    R_prime.resize(M.get_current_size().first);
+  if (M.size().first > (int)R_prime.size())
+    R_prime.resize(M.size().first);
 
   compute_R_prime(R, M, R_prime);
 
@@ -1080,8 +1077,8 @@ void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng
 
   double S_prime = 1. / det_rat;
 
-  if (M.get_current_size().first > (int)Q_prime.size())
-    Q_prime.resize(M.get_current_size().first);
+  if (M.size().first > (int)Q_prime.size())
+    Q_prime.resize(M.size().first);
 
   compute_Q_prime(Q, M, Q_prime);
 
@@ -1098,8 +1095,8 @@ template <typename parameters_t, typename MOMS_t, typename configuration_t, type
 template <typename vertex_vertex_matrix_type>
 void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::compute_Q_prime(
     std::vector<double>& Q, vertex_vertex_matrix_type& M, std::vector<double>& Q_prime) {
-  dca::linalg::blas::gemv("N", M.get_current_size().first, M.get_current_size().second, -1.,
-                          &M(0, 0), M.get_global_size().first, &Q[0], 1, 0., &Q_prime[0], 1);
+  dca::linalg::blas::gemv("N", M.size().first, M.size().second, -1., &M(0, 0), M.leadingDimension(),
+                          &Q[0], 1, 0., &Q_prime[0], 1);
 }
 
 /*!
@@ -1112,8 +1109,8 @@ template <typename parameters_t, typename MOMS_t, typename configuration_t, type
 template <typename vertex_vertex_matrix_type>
 void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::compute_R_prime(
     std::vector<double>& R, vertex_vertex_matrix_type& M, std::vector<double>& R_prime) {
-  dca::linalg::blas::gemv("T", M.get_current_size().first, M.get_current_size().second, -1.,
-                          &M(0, 0), M.get_global_size().first, &R[0], 1, 0., &R_prime[0], 1);
+  dca::linalg::blas::gemv("T", M.size().first, M.size().second, -1., &M(0, 0), M.leadingDimension(),
+                          &R[0], 1, 0., &R_prime[0], 1);
 }
 
 /*!
@@ -1127,11 +1124,10 @@ template <typename vertex_vertex_matrix_type>
 void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::compute_M(
     std::vector<double>& Q_prime, std::vector<double>& R_prime, double S_prime,
     vertex_vertex_matrix_type& M) {
-  dca::linalg::blas::gemm("N", "N", M.get_current_size().first, M.get_current_size().second, 1,
-                          S_prime, &Q_prime[0], M.get_global_size().first, &R_prime[0], 1, 1.,
-                          &M(0, 0), M.get_global_size().first);
-  // dca::linalg::blas::ger(M.get_current_size().first, M.get_current_size().second, S_prime,
-  // &Q_prime[0], 1, &R_prime[0], 1, &M(0, 0), M.get_global_size().first);
+  dca::linalg::blas::gemm("N", "N", M.size().first, M.size().second, 1, S_prime, &Q_prime[0],
+                          M.leadingDimension(), &R_prime[0], 1, 1., &M(0, 0), M.leadingDimension());
+  // dca::linalg::blas::ger(M.size().first, M.size().second, S_prime,
+  // &Q_prime[0], 1, &R_prime[0], 1, &M(0, 0), M.leadingDimension());
 }
 
 }  // QMCI

@@ -185,7 +185,7 @@ inline std::vector<scalartype> COORDINATES(const std::vector<scalartype>& r,
   }
 
   std::vector<scalartype> coordinate = r;
-  LIN_ALG::GESV<LIN_ALG::CPU>::execute(N, &basis[0], &coordinate[0]);
+  LIN_ALG::GESV<dca::linalg::CPU>::execute(N, &basis[0], &coordinate[0]);
 
   return coordinate;
 }
@@ -208,7 +208,7 @@ inline void COORDINATES(const std::vector<scalartype>& v1, const std::vector<sca
   basis[0 + 2 * 1] = v2[0];
   basis[1 + 2 * 1] = v2[1];
 
-  LIN_ALG::GESV<LIN_ALG::CPU>::execute(N, &basis[0], &coor[0]);
+  LIN_ALG::GESV<dca::linalg::CPU>::execute(N, &basis[0], &coor[0]);
 }
 
 template <typename scalartype>
@@ -237,7 +237,7 @@ inline void COORDINATES(const std::vector<scalartype>& v1, const std::vector<sca
   basis[1 + 3 * 2] = v3[1];
   basis[2 + 3 * 2] = v3[2];
 
-  LIN_ALG::GESV<LIN_ALG::CPU>::execute(N, &basis[0], &coor[0]);
+  LIN_ALG::GESV<dca::linalg::CPU>::execute(N, &basis[0], &coor[0]);
 }
 
 template <typename scalartype>

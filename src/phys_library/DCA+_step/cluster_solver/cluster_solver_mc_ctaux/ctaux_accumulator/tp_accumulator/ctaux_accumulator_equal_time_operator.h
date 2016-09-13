@@ -96,9 +96,9 @@ public:
 
   template <class configuration_type>
   void compute_G_r_t(configuration_type& configuration_e_up,
-                     LIN_ALG::matrix<double, LIN_ALG::CPU>& M_up,
+                     dca::linalg::Matrix<double, dca::linalg::CPU>& M_up,
                      configuration_type& configuration_e_dn,
-                     LIN_ALG::matrix<double, LIN_ALG::CPU>& M_dn);
+                     dca::linalg::Matrix<double, dca::linalg::CPU>& M_dn);
 
   void accumulate_G_r_t(double sign);
 
@@ -125,15 +125,15 @@ private:
 
   template <class configuration_type>
   void compute_G0_matrix(e_spin_states e_spin, configuration_type& configuration,
-                         LIN_ALG::matrix<float, LIN_ALG::CPU>& G0_matrix);
+                         dca::linalg::Matrix<float, dca::linalg::CPU>& G0_matrix);
 
   template <class configuration_type>
   void compute_G0_matrix_left(e_spin_states e_spin, configuration_type& configuration,
-                              LIN_ALG::matrix<float, LIN_ALG::CPU>& G0_matrix);
+                              dca::linalg::Matrix<float, dca::linalg::CPU>& G0_matrix);
 
   template <class configuration_type>
   void compute_G0_matrix_right(e_spin_states e_spin, configuration_type& configuration,
-                               LIN_ALG::matrix<float, LIN_ALG::CPU>& G0_matrix);
+                               dca::linalg::Matrix<float, dca::linalg::CPU>& G0_matrix);
 
   double interpolate_akima(int b_i, int s_i, int b_j, int s_j, int delta_r, double tau);
 
@@ -183,26 +183,26 @@ private:
       float, dmn_variadic<dmn_variadic<b, r_dmn_t, t_VERTEX>, dmn_variadic<b, r_dmn_t, t_VERTEX>>>
       G0_integration_factor_dn;
 
-  LIN_ALG::matrix<float, LIN_ALG::CPU> G0_original_up;
-  LIN_ALG::matrix<float, LIN_ALG::CPU> G0_original_dn;
+  dca::linalg::Matrix<float, dca::linalg::CPU> G0_original_up;
+  dca::linalg::Matrix<float, dca::linalg::CPU> G0_original_dn;
 
-  LIN_ALG::matrix<float, LIN_ALG::CPU> M_matrix_up;
-  LIN_ALG::matrix<float, LIN_ALG::CPU> M_matrix_dn;
+  dca::linalg::Matrix<float, dca::linalg::CPU> M_matrix_up;
+  dca::linalg::Matrix<float, dca::linalg::CPU> M_matrix_dn;
 
-  LIN_ALG::matrix<float, LIN_ALG::CPU> G0_matrix_up;
-  LIN_ALG::matrix<float, LIN_ALG::CPU> G0_matrix_dn;
+  dca::linalg::Matrix<float, dca::linalg::CPU> G0_matrix_up;
+  dca::linalg::Matrix<float, dca::linalg::CPU> G0_matrix_dn;
 
-  LIN_ALG::matrix<float, LIN_ALG::CPU> G0_matrix_up_left;
-  LIN_ALG::matrix<float, LIN_ALG::CPU> G0_matrix_dn_left;
+  dca::linalg::Matrix<float, dca::linalg::CPU> G0_matrix_up_left;
+  dca::linalg::Matrix<float, dca::linalg::CPU> G0_matrix_dn_left;
 
-  LIN_ALG::matrix<float, LIN_ALG::CPU> G0_matrix_up_right;
-  LIN_ALG::matrix<float, LIN_ALG::CPU> G0_matrix_dn_right;
+  dca::linalg::Matrix<float, dca::linalg::CPU> G0_matrix_up_right;
+  dca::linalg::Matrix<float, dca::linalg::CPU> G0_matrix_dn_right;
 
-  LIN_ALG::matrix<float, LIN_ALG::CPU> M_G0_matrix_up;
-  LIN_ALG::matrix<float, LIN_ALG::CPU> M_G0_matrix_dn;
+  dca::linalg::Matrix<float, dca::linalg::CPU> M_G0_matrix_up;
+  dca::linalg::Matrix<float, dca::linalg::CPU> M_G0_matrix_dn;
 
-  LIN_ALG::matrix<float, LIN_ALG::CPU> G0_M_G0_matrix_up;
-  LIN_ALG::matrix<float, LIN_ALG::CPU> G0_M_G0_matrix_dn;
+  dca::linalg::Matrix<float, dca::linalg::CPU> G0_M_G0_matrix_up;
+  dca::linalg::Matrix<float, dca::linalg::CPU> G0_M_G0_matrix_dn;
 
   FUNC_LIB::function<
       float, dmn_variadic<dmn_variadic<b, r_dmn_t, t_VERTEX>, dmn_variadic<b, r_dmn_t, t_VERTEX>>>
@@ -399,9 +399,9 @@ void MC_two_particle_equal_time_accumulator<parameters_type, MOMS_type>::initial
   int r_i, r_j, delta_r;
   int t_i, t_j, delta_tau;
 
-  G0_original_up.resize_no_copy(
+  G0_original_up.resizeNoCopy(
       std::pair<int, int>(b_r_t_VERTEX_dmn_t::dmn_size(), b_r_t_VERTEX_dmn_t::dmn_size()));
-  G0_original_dn.resize_no_copy(
+  G0_original_dn.resizeNoCopy(
       std::pair<int, int>(b_r_t_VERTEX_dmn_t::dmn_size(), b_r_t_VERTEX_dmn_t::dmn_size()));
 
   dmn_variadic<nu, nu, r_dmn_t, t_VERTEX> G_r_t_dmn;
@@ -443,14 +443,14 @@ void MC_two_particle_equal_time_accumulator<parameters_type, MOMS_type>::initial
   int r_ind, b_i, b_j, r_i, r_j;
   scalar_type t_i, t_j, delta_tau;  //, scaled_tau, f_tau;
 
-  G0_original_dn.resize_no_copy(
+  G0_original_dn.resizeNoCopy(
       std::pair<int, int>(b_r_t_VERTEX_dmn_t::dmn_size(), b_r_t_VERTEX_dmn_t::dmn_size()));
-  G0_original_up.resize_no_copy(
+  G0_original_up.resizeNoCopy(
       std::pair<int, int>(b_r_t_VERTEX_dmn_t::dmn_size(), b_r_t_VERTEX_dmn_t::dmn_size()));
 
-  G0_M_G0_matrix_dn.resize_no_copy(
+  G0_M_G0_matrix_dn.resizeNoCopy(
       std::pair<int, int>(b_r_t_VERTEX_dmn_t::dmn_size(), b_r_t_VERTEX_dmn_t::dmn_size()));
-  G0_M_G0_matrix_up.resize_no_copy(
+  G0_M_G0_matrix_up.resizeNoCopy(
       std::pair<int, int>(b_r_t_VERTEX_dmn_t::dmn_size(), b_r_t_VERTEX_dmn_t::dmn_size()));
 
   for (int j = 0; j < b_r_t_VERTEX_dmn_t::dmn_size(); j++) {
@@ -490,13 +490,13 @@ void MC_two_particle_equal_time_accumulator<parameters_type, MOMS_type>::test_G0
 
   G_r_t_accumulated = 0;
 
-  for (int j = 0; j < G0_original_dn.get_current_size().first; j++)
-    for (int i = 0; i < G0_original_dn.get_current_size().first; i++)
+  for (int j = 0; j < G0_original_dn.size().first; j++)
+    for (int i = 0; i < G0_original_dn.size().first; i++)
       G_r_t_accumulated(G0_indices_dn(i, j)) +=
           G0_sign_dn(i, j) * G0_integration_factor_dn(i, j) * G0_original_dn(i, j);
 
-  for (int j = 0; j < G0_original_up.get_current_size().first; j++)
-    for (int i = 0; i < G0_original_up.get_current_size().first; i++)
+  for (int j = 0; j < G0_original_up.size().first; j++)
+    for (int i = 0; i < G0_original_up.size().first; i++)
       G_r_t_accumulated(G0_indices_up(i, j)) +=
           G0_sign_up(i, j) * G0_integration_factor_up(i, j) * G0_original_up(i, j);
 
@@ -594,19 +594,19 @@ void MC_two_particle_equal_time_accumulator<parameters_type, MOMS_type>::interpo
 template <class parameters_type, class MOMS_type>
 template <class configuration_type>
 void MC_two_particle_equal_time_accumulator<parameters_type, MOMS_type>::compute_G_r_t(
-    configuration_type& configuration_e_up, LIN_ALG::matrix<double, LIN_ALG::CPU>& M_up,
-    configuration_type& configuration_e_dn, LIN_ALG::matrix<double, LIN_ALG::CPU>& M_dn) {
+    configuration_type& configuration_e_up, dca::linalg::Matrix<double, dca::linalg::CPU>& M_up,
+    configuration_type& configuration_e_dn, dca::linalg::Matrix<double, dca::linalg::CPU>& M_dn) {
   {
     int configuration_size = find_first_non_interacting_spin(configuration_e_dn);
 
-    M_matrix_dn.resize_no_copy(std::pair<int, int>(configuration_size, configuration_size));
+    M_matrix_dn.resizeNoCopy(std::pair<int, int>(configuration_size, configuration_size));
 
-    G0_matrix_dn_left.resize_no_copy(
+    G0_matrix_dn_left.resizeNoCopy(
         std::pair<int, int>(b_r_t_VERTEX_dmn_t::dmn_size(), configuration_size));
-    G0_matrix_dn_right.resize_no_copy(
+    G0_matrix_dn_right.resizeNoCopy(
         std::pair<int, int>(configuration_size, b_r_t_VERTEX_dmn_t::dmn_size()));
 
-    M_G0_matrix_dn.resize_no_copy(
+    M_G0_matrix_dn.resizeNoCopy(
         std::pair<int, int>(configuration_size, b_r_t_VERTEX_dmn_t::dmn_size()));
 
     for (int j = 0; j < configuration_size; j++)
@@ -620,14 +620,14 @@ void MC_two_particle_equal_time_accumulator<parameters_type, MOMS_type>::compute
   {
     int configuration_size = find_first_non_interacting_spin(configuration_e_up);
 
-    M_matrix_up.resize_no_copy(std::pair<int, int>(configuration_size, configuration_size));
+    M_matrix_up.resizeNoCopy(std::pair<int, int>(configuration_size, configuration_size));
 
-    G0_matrix_up_left.resize_no_copy(
+    G0_matrix_up_left.resizeNoCopy(
         std::pair<int, int>(b_r_t_VERTEX_dmn_t::dmn_size(), configuration_size));
-    G0_matrix_up_right.resize_no_copy(
+    G0_matrix_up_right.resizeNoCopy(
         std::pair<int, int>(configuration_size, b_r_t_VERTEX_dmn_t::dmn_size()));
 
-    M_G0_matrix_up.resize_no_copy(
+    M_G0_matrix_up.resizeNoCopy(
         std::pair<int, int>(configuration_size, b_r_t_VERTEX_dmn_t::dmn_size()));
 
     for (int j = 0; j < configuration_size; j++)
@@ -647,20 +647,20 @@ void MC_two_particle_equal_time_accumulator<parameters_type, MOMS_type>::compute
   }
 
   {
-    LIN_ALG::GEMM<LIN_ALG::CPU>::execute(M_matrix_dn, G0_matrix_dn_right, M_G0_matrix_dn);
-    LIN_ALG::GEMM<LIN_ALG::CPU>::execute(M_matrix_up, G0_matrix_up_right, M_G0_matrix_up);
+    LIN_ALG::GEMM<dca::linalg::CPU>::execute(M_matrix_dn, G0_matrix_dn_right, M_G0_matrix_dn);
+    LIN_ALG::GEMM<dca::linalg::CPU>::execute(M_matrix_up, G0_matrix_up_right, M_G0_matrix_up);
 
-    LIN_ALG::GEMM<LIN_ALG::CPU>::execute(G0_matrix_dn_left, M_G0_matrix_dn, G0_M_G0_matrix_dn);
-    LIN_ALG::GEMM<LIN_ALG::CPU>::execute(G0_matrix_up_left, M_G0_matrix_up, G0_M_G0_matrix_up);
+    LIN_ALG::GEMM<dca::linalg::CPU>::execute(G0_matrix_dn_left, M_G0_matrix_dn, G0_M_G0_matrix_dn);
+    LIN_ALG::GEMM<dca::linalg::CPU>::execute(G0_matrix_up_left, M_G0_matrix_up, G0_M_G0_matrix_up);
   }
 
   {
-    for (int j = 0; j < G0_M_G0_matrix_dn.get_current_size().second; j++)
-      for (int i = 0; i < G0_M_G0_matrix_dn.get_current_size().first; i++)
+    for (int j = 0; j < G0_M_G0_matrix_dn.size().second; j++)
+      for (int i = 0; i < G0_M_G0_matrix_dn.size().first; i++)
         G_r_t_dn(i, j) = G0_sign_dn(i, j) * (G0_original_dn(i, j) - G0_M_G0_matrix_dn(i, j));
 
-    for (int j = 0; j < G0_M_G0_matrix_up.get_current_size().second; j++)
-      for (int i = 0; i < G0_M_G0_matrix_up.get_current_size().first; i++)
+    for (int j = 0; j < G0_M_G0_matrix_up.size().second; j++)
+      for (int i = 0; i < G0_M_G0_matrix_up.size().first; i++)
         G_r_t_up(i, j) = G0_sign_up(i, j) * (G0_original_up(i, j) - G0_M_G0_matrix_up(i, j));
   }
 }
@@ -776,7 +776,7 @@ template <class parameters_type, class MOMS_type>
 template <class configuration_type>
 void MC_two_particle_equal_time_accumulator<parameters_type, MOMS_type>::compute_G0_matrix(
     e_spin_states e_spin, configuration_type& configuration,
-    LIN_ALG::matrix<float, LIN_ALG::CPU>& G0_matrix) {
+    dca::linalg::Matrix<float, dca::linalg::CPU>& G0_matrix) {
   int spin_index = electron_spin_domain::to_coordinate(e_spin);
 
   int r_ind, b_i, b_j, r_i, r_j;    //, s_i, s_j;
@@ -808,7 +808,7 @@ template <class parameters_type, class MOMS_type>
 template <class configuration_type>
 void MC_two_particle_equal_time_accumulator<parameters_type, MOMS_type>::compute_G0_matrix_left(
     e_spin_states e_spin, configuration_type& configuration,
-    LIN_ALG::matrix<float, LIN_ALG::CPU>& G0_matrix) {
+    dca::linalg::Matrix<float, dca::linalg::CPU>& G0_matrix) {
   int spin_index = electron_spin_domain::to_coordinate(e_spin);
 
   int r_ind, b_i, b_j, r_i, r_j;    //, s_i, s_j;
@@ -840,7 +840,7 @@ template <class parameters_type, class MOMS_type>
 template <class configuration_type>
 void MC_two_particle_equal_time_accumulator<parameters_type, MOMS_type>::compute_G0_matrix_right(
     e_spin_states e_spin, configuration_type& configuration,
-    LIN_ALG::matrix<float, LIN_ALG::CPU>& G0_matrix) {
+    dca::linalg::Matrix<float, dca::linalg::CPU>& G0_matrix) {
   int spin_index = electron_spin_domain::to_coordinate(e_spin);
 
   int r_ind, b_i, b_j, r_i, r_j;    //, s_i, s_j;

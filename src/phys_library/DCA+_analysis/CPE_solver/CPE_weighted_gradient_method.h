@@ -134,14 +134,14 @@ private:
   static double evaluate_Lambda_norm(CPE_data_type& CPE_data_obj);
 
   static void project_from_real_axis_to_imaginary_axis(
-      LIN_ALG::vector<scalartype, LIN_ALG::CPU>& real_values,
-      LIN_ALG::vector<scalartype, LIN_ALG::CPU>& imag_values,
-      LIN_ALG::matrix<scalartype, LIN_ALG::CPU>& matrix);
+      dca::linalg::Vector<scalartype, dca::linalg::CPU>& real_values,
+      dca::linalg::Vector<scalartype, dca::linalg::CPU>& imag_values,
+      dca::linalg::Matrix<scalartype, dca::linalg::CPU>& matrix);
 
   static void project_from_imaginary_axis_to_real_axis(
-      LIN_ALG::vector<scalartype, LIN_ALG::CPU>& imag_values,
-      LIN_ALG::vector<scalartype, LIN_ALG::CPU>& real_values,
-      LIN_ALG::matrix<scalartype, LIN_ALG::CPU>& matrix);
+      dca::linalg::Vector<scalartype, dca::linalg::CPU>& imag_values,
+      dca::linalg::Vector<scalartype, dca::linalg::CPU>& real_values,
+      dca::linalg::Matrix<scalartype, dca::linalg::CPU>& matrix);
 
 private:
   parameters_type& parameters;
@@ -157,10 +157,10 @@ public:
   FUNC_LIB::function<std::complex<scalartype>, nu_nu_k_dmn_w_IMAG> f_approx;
   FUNC_LIB::function<std::complex<scalartype>, nu_nu_k_dmn_w_IMAG> f_measured;
 
-  LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU> A_matrix;
+  dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> A_matrix;
 
-  LIN_ALG::matrix<scalartype, LIN_ALG::CPU> A_matrix_re;
-  LIN_ALG::matrix<scalartype, LIN_ALG::CPU> A_matrix_im;
+  dca::linalg::Matrix<scalartype, dca::linalg::CPU> A_matrix_re;
+  dca::linalg::Matrix<scalartype, dca::linalg::CPU> A_matrix_im;
 };
 
 template <class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
@@ -229,10 +229,10 @@ template <class parameters_type, class basis_function_t, typename k_dmn_t, typen
 void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t,
                                WEIGHTED_GRADIENT_METHOD>::initialize() {
   {
-    A_matrix.resize_no_copy(std::pair<int, int>(w_IMAG::dmn_size(), alpha_dmn_t::dmn_size()));
+    A_matrix.resizeNoCopy(std::pair<int, int>(w_IMAG::dmn_size(), alpha_dmn_t::dmn_size()));
 
-    A_matrix_re.resize_no_copy(std::pair<int, int>(w_IMAG::dmn_size(), alpha_dmn_t::dmn_size()));
-    A_matrix_im.resize_no_copy(std::pair<int, int>(w_IMAG::dmn_size(), alpha_dmn_t::dmn_size()));
+    A_matrix_re.resizeNoCopy(std::pair<int, int>(w_IMAG::dmn_size(), alpha_dmn_t::dmn_size()));
+    A_matrix_im.resizeNoCopy(std::pair<int, int>(w_IMAG::dmn_size(), alpha_dmn_t::dmn_size()));
 
     for (int wn_ind = 0; wn_ind < w_IMAG::dmn_size(); wn_ind++) {
       std::complex<double> z(0., w_IMAG::get_elements()[wn_ind]);
@@ -426,7 +426,8 @@ void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn
   }
 
   {  // write in the values on the imaginary axis.
-    LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& A_matrix = *(CPE_data_obj.A_matrix_ptr);
+    dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& A_matrix =
+        *(CPE_data_obj.A_matrix_ptr);
 
     FUNC_LIB::function<std::complex<scalartype>, nu_nu_k_DCA_w_IMAG>& f_approx_func =
         *(CPE_data_obj.f_approx_ptr);
@@ -757,7 +758,7 @@ int continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_
     lambda = CPE_data_obj.x[99];
   }
   else {
-    LIN_ALG::matrix<scalartype, LIN_ALG::CPU> V(3);
+    dca::linalg::Matrix<scalartype, dca::linalg::CPU> V(3);
 
     V(0, 0) = square(CPE_data_obj.x[index - 2]);
     V(0, 1) = CPE_data_obj.x[index - 2];
@@ -769,7 +770,7 @@ int continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_
     V(2, 1) = CPE_data_obj.x[index - 0];
     V(2, 2) = 1.;
 
-    LIN_ALG::GEINV<LIN_ALG::CPU>::execute(V);
+    LIN_ALG::GEINV<dca::linalg::CPU>::execute(V);
 
     scalartype a = V(0, 0) * CPE_data_obj.y[index - 2] + V(0, 1) * CPE_data_obj.y[index - 1] +
                    V(0, 2) * CPE_data_obj.y[index - 0];
@@ -854,7 +855,7 @@ double continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_d
                                                                            CPE_data_type& CPE_data_obj) {
   double lambda = 0;
 
-  LIN_ALG::matrix<scalartype, LIN_ALG::CPU> V(3);
+  dca::linalg::Matrix<scalartype, dca::linalg::CPU> V(3);
 
   V(0, 0) = square(CPE_data_obj.x[index - 2]);
   V(0, 1) = CPE_data_obj.x[index - 2];
@@ -866,7 +867,7 @@ double continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_d
   V(2, 1) = CPE_data_obj.x[index - 0];
   V(2, 2) = 1.;
 
-  LIN_ALG::GEINV<LIN_ALG::CPU>::execute(V);
+  LIN_ALG::GEINV<dca::linalg::CPU>::execute(V);
 
   scalartype a = V(0, 0) * CPE_data_obj.y[index - 2] + V(0, 1) * CPE_data_obj.y[index - 1] +
                  V(0, 2) * CPE_data_obj.y[index - 0];
@@ -889,8 +890,8 @@ double continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_d
   for (int m = 0; m < w_IMAG::dmn_size(); m++)
     CPE_data_obj.f_wn_vec[m] = CPE_data_obj.F_wn_vec[m] - CPE_data_obj.Sigma_0;
 
-  LIN_ALG::GEMV<LIN_ALG::CPU>::execute('N', PLUS_ONE, *(CPE_data_obj.A_matrix_ptr),
-                                       CPE_data_obj.alpha_vec_z, MIN_ONE, CPE_data_obj.f_wn_vec);
+  LIN_ALG::GEMV<dca::linalg::CPU>::execute('N', PLUS_ONE, *(CPE_data_obj.A_matrix_ptr),
+                                           CPE_data_obj.alpha_vec_z, MIN_ONE, CPE_data_obj.f_wn_vec);
 
   scalartype L2_norm = 0;
   for (int l = 0; l < w_IMAG::dmn_size(); l++)
@@ -902,23 +903,25 @@ double continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_d
 template <class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
 void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t,
                                WEIGHTED_GRADIENT_METHOD>::
-    project_from_real_axis_to_imaginary_axis(LIN_ALG::vector<scalartype, LIN_ALG::CPU>& real_values,
-                                             LIN_ALG::vector<scalartype, LIN_ALG::CPU>& imag_values,
-                                             LIN_ALG::matrix<scalartype, LIN_ALG::CPU>& matrix) {
+    project_from_real_axis_to_imaginary_axis(
+        dca::linalg::Vector<scalartype, dca::linalg::CPU>& real_values,
+        dca::linalg::Vector<scalartype, dca::linalg::CPU>& imag_values,
+        dca::linalg::Matrix<scalartype, dca::linalg::CPU>& matrix) {
   profiler_type profiler(__FUNCTION__, __FILE__, __LINE__);
 
-  LIN_ALG::GEMV<LIN_ALG::CPU>::execute('N', matrix, real_values, imag_values);
+  LIN_ALG::GEMV<dca::linalg::CPU>::execute('N', matrix, real_values, imag_values);
 }
 
 template <class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
 void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t,
                                WEIGHTED_GRADIENT_METHOD>::
-    project_from_imaginary_axis_to_real_axis(LIN_ALG::vector<scalartype, LIN_ALG::CPU>& imag_values,
-                                             LIN_ALG::vector<scalartype, LIN_ALG::CPU>& real_values,
-                                             LIN_ALG::matrix<scalartype, LIN_ALG::CPU>& matrix) {
+    project_from_imaginary_axis_to_real_axis(
+        dca::linalg::Vector<scalartype, dca::linalg::CPU>& imag_values,
+        dca::linalg::Vector<scalartype, dca::linalg::CPU>& real_values,
+        dca::linalg::Matrix<scalartype, dca::linalg::CPU>& matrix) {
   profiler_type profiler(__FUNCTION__, __FILE__, __LINE__);
 
-  LIN_ALG::GEMV<LIN_ALG::CPU>::execute('T', matrix, imag_values, real_values);
+  LIN_ALG::GEMV<dca::linalg::CPU>::execute('T', matrix, imag_values, real_values);
 }
 }
 

@@ -30,42 +30,42 @@ public:
             typename scalartype_3>
   static void transform(FUNC_LIB::function<scalartype_1, domain_input>& f_input,
                         FUNC_LIB::function<scalartype_2, domain_output>& f_output,
-                        LIN_ALG::matrix<scalartype_3, LIN_ALG::CPU>& T);
+                        dca::linalg::Matrix<scalartype_3, dca::linalg::CPU>& T);
 
   template <typename scalartype, class domain_input, class domain_output>
   static void transform(FUNC_LIB::function<scalartype, domain_input>& f_input,
                         FUNC_LIB::function<scalartype, domain_output>& f_output,
-                        LIN_ALG::matrix<scalartype, LIN_ALG::CPU>& T);
+                        dca::linalg::Matrix<scalartype, dca::linalg::CPU>& T);
 
   template <typename scalartype, class domain_input, class domain_output>
   static void transform(FUNC_LIB::function<std::complex<scalartype>, domain_input>& f_input,
                         FUNC_LIB::function<std::complex<scalartype>, domain_output>& f_output,
-                        LIN_ALG::matrix<scalartype, LIN_ALG::CPU>& T);
+                        dca::linalg::Matrix<scalartype, dca::linalg::CPU>& T);
 
   template <typename scalartype, class domain_input, class domain_output>
   static void transform(FUNC_LIB::function<scalartype, domain_input>& f_input,
                         FUNC_LIB::function<scalartype, domain_output>& f_output,
-                        LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& T);
+                        dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& T);
 
   template <class domain_input, class domain_output>
   static void transform(FUNC_LIB::function<float, domain_input>& f_input,
                         FUNC_LIB::function<float, domain_output>& f_output,
-                        LIN_ALG::matrix<double, LIN_ALG::CPU>& T);
+                        dca::linalg::Matrix<double, dca::linalg::CPU>& T);
 
   template <class domain_input, class domain_output>
   static void transform(FUNC_LIB::function<std::complex<float>, domain_input>& f_input,
                         FUNC_LIB::function<std::complex<float>, domain_output>& f_output,
-                        LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU>& T);
+                        dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU>& T);
 
   template <typename scalartype, class domain_input, class domain_output>
   static void transform(FUNC_LIB::function<scalartype, domain_output>& f_input,
                         FUNC_LIB::function<std::complex<scalartype>, domain_input>& f_output,
-                        LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& T);
+                        dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& T);
 
   template <typename scalartype, class domain_input, class domain_output>
   static void transform(FUNC_LIB::function<std::complex<scalartype>, domain_input>& f_input,
                         FUNC_LIB::function<scalartype, domain_output>& f_output,
-                        LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& T);
+                        dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& T);
 };
 
 template <int DMN_INDEX>
@@ -90,7 +90,7 @@ template <typename scalartype, class domain_input, class domain_output>
 void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(
     FUNC_LIB::function<scalartype, domain_input>& f_input,
     FUNC_LIB::function<scalartype, domain_output>& f_output,
-    LIN_ALG::matrix<scalartype, LIN_ALG::CPU>& T) {
+    dca::linalg::Matrix<scalartype, dca::linalg::CPU>& T) {
   int M, K, N, P;
   characterize_transformation(f_input, f_output, M, K, N, P);
 
@@ -98,9 +98,9 @@ void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(
   scalartype beta(0);
 
   if (M == 1) {
-    dca::linalg::blas::gemm("N", "N", T.get_current_size().first, P, T.get_current_size().second,
-                            alpha, &T(0, 0), T.get_global_size().first, &f_input(0),
-                            f_input[DMN_INDEX], beta, &f_output(0), f_output[DMN_INDEX]);
+    dca::linalg::blas::gemm("N", "N", T.size().first, P, T.size().second, alpha, &T(0, 0),
+                            T.leadingDimension(), &f_input(0), f_input[DMN_INDEX], beta,
+                            &f_output(0), f_output[DMN_INDEX]);
   }
   else {
     for (int l = 0; l < P; l++) {
@@ -108,7 +108,7 @@ void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(
       int lin_ind_rhs = M * N * l;
 
       dca::linalg::blas::gemm("N", "T", M, N, K, alpha, &f_input(lin_ind_lhs), M, &T(0, 0),
-                              T.get_global_size().first, beta, &f_output(lin_ind_rhs), M);
+                              T.leadingDimension(), beta, &f_output(lin_ind_rhs), M);
     }
   }
 }
@@ -118,7 +118,7 @@ template <typename scalartype, class domain_input, class domain_output>
 void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(
     FUNC_LIB::function<std::complex<scalartype>, domain_input>& f_input,
     FUNC_LIB::function<std::complex<scalartype>, domain_output>& f_output,
-    LIN_ALG::matrix<scalartype, LIN_ALG::CPU>& T) {
+    dca::linalg::Matrix<scalartype, dca::linalg::CPU>& T) {
   int M, K, N, P;
   characterize_transformation(f_input, f_output, M, K, N, P);
 
@@ -130,7 +130,7 @@ void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(
     scalartype beta(0);
 
     dca::linalg::blas::gemm("N", "T", 2 * M, N, K, alpha, &real(f_input(lin_ind_lhs)), 2 * M,
-                            &T(0, 0), T.get_global_size().first, beta, &real(f_output(lin_ind_rhs)),
+                            &T(0, 0), T.leadingDimension(), beta, &real(f_output(lin_ind_rhs)),
                             2 * M);
   }
 }
@@ -140,11 +140,11 @@ template <typename scalartype, class domain_input, class domain_output>
 void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(
     FUNC_LIB::function<scalartype, domain_input>& f_input,
     FUNC_LIB::function<scalartype, domain_output>& f_output,
-    LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& T) {
-  LIN_ALG::matrix<scalartype, LIN_ALG::CPU> T_re("T_re", T.get_current_size());
+    dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& T) {
+  dca::linalg::Matrix<scalartype, dca::linalg::CPU> T_re("T_re", T.size());
 
-  for (int j = 0; j < T.get_current_size().second; j++)
-    for (int i = 0; i < T.get_current_size().first; i++)
+  for (int j = 0; j < T.size().second; j++)
+    for (int i = 0; i < T.size().first; i++)
       T_re(i, j) = real(T(i, j));
 
   transform(f_input, f_output, T_re);
@@ -154,11 +154,12 @@ template <int DMN_INDEX>
 template <class domain_input, class domain_output>
 void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(
     FUNC_LIB::function<float, domain_input>& f_input,
-    FUNC_LIB::function<float, domain_output>& f_output, LIN_ALG::matrix<double, LIN_ALG::CPU>& T) {
-  LIN_ALG::matrix<float, LIN_ALG::CPU> T_float("T_re", T.get_current_size());
+    FUNC_LIB::function<float, domain_output>& f_output,
+    dca::linalg::Matrix<double, dca::linalg::CPU>& T) {
+  dca::linalg::Matrix<float, dca::linalg::CPU> T_float("T_re", T.size());
 
-  for (int j = 0; j < T.get_current_size().second; j++)
-    for (int i = 0; i < T.get_current_size().first; i++)
+  for (int j = 0; j < T.size().second; j++)
+    for (int i = 0; i < T.size().first; i++)
       T_float(i, j) = T(i, j);
 
   transform(f_input, f_output, T_float);
@@ -169,11 +170,11 @@ template <class domain_input, class domain_output>
 void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(
     FUNC_LIB::function<std::complex<float>, domain_input>& f_input,
     FUNC_LIB::function<std::complex<float>, domain_output>& f_output,
-    LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU>& T) {
-  LIN_ALG::matrix<std::complex<float>, LIN_ALG::CPU> T_float("T_re", T.get_current_size());
+    dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU>& T) {
+  dca::linalg::Matrix<std::complex<float>, dca::linalg::CPU> T_float("T_re", T.size());
 
-  for (int j = 0; j < T.get_current_size().second; j++)
-    for (int i = 0; i < T.get_current_size().first; i++)
+  for (int j = 0; j < T.size().second; j++)
+    for (int i = 0; i < T.size().first; i++)
       T_float(i, j) = T(i, j);
 
   transform(f_input, f_output, T_float);
@@ -184,7 +185,7 @@ template <typename scalartype, class domain_input, class domain_output>
 void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(
     FUNC_LIB::function<scalartype, domain_output>& f_input,
     FUNC_LIB::function<std::complex<scalartype>, domain_input>& f_output,
-    LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& T) {
+    dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& T) {
   FUNC_LIB::function<std::complex<scalartype>, domain_output> f_in("f_in");
 
   for (int i = 0; i < f_input.size(); i++)
@@ -198,20 +199,20 @@ template <typename scalartype, class domain_input, class domain_output>
 void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(
     FUNC_LIB::function<std::complex<scalartype>, domain_input>& f_input,
     FUNC_LIB::function<scalartype, domain_output>& f_output,
-    LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& T) {
+    dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& T) {
   f_output = 0.;
 
   FUNC_LIB::function<scalartype, domain_input> f_in("f_in");
   FUNC_LIB::function<scalartype, domain_output> f_out("f_out");
 
-  LIN_ALG::matrix<scalartype, LIN_ALG::CPU> T_tmp("T_tmp", T.get_current_size());
+  dca::linalg::Matrix<scalartype, dca::linalg::CPU> T_tmp("T_tmp", T.size());
 
   {
     for (int i = 0; i < f_input.size(); i++)
       f_in(i) = real(f_input(i));
 
-    for (int j = 0; j < T.get_current_size().second; j++)
-      for (int i = 0; i < T.get_current_size().first; i++)
+    for (int j = 0; j < T.size().second; j++)
+      for (int i = 0; i < T.size().first; i++)
         T_tmp(i, j) = real(T(i, j));
 
     transform(f_in, f_out, T_tmp);
@@ -224,8 +225,8 @@ void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(
     for (int i = 0; i < f_input.size(); i++)
       f_in(i) = imag(f_input(i));
 
-    for (int j = 0; j < T.get_current_size().second; j++)
-      for (int i = 0; i < T.get_current_size().first; i++)
+    for (int j = 0; j < T.size().second; j++)
+      for (int i = 0; i < T.size().first; i++)
         T_tmp(i, j) = imag(T(i, j));
 
     transform(f_in, f_out, T_tmp);

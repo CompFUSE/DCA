@@ -82,12 +82,13 @@ template <typename parameters_type, typename MOMS_type>
 void cluster_exclusion<parameters_type, MOMS_type>::compute_G0_K_w_cluster_excluded() {
   profiler_type profiler(__FUNCTION__, "cluster_exclusion", __LINE__);
 
-  LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> G_matrix("G_matrix", nu::dmn_size());
-  LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> S_matrix("S_matrix", nu::dmn_size());
-  LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> one_plus_S_G("one_plus_S_G", nu::dmn_size());
-  LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> G0_matrix("G0_matrix", nu::dmn_size());
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G_matrix("G_matrix", nu::dmn_size());
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> S_matrix("S_matrix", nu::dmn_size());
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> one_plus_S_G("one_plus_S_G",
+                                                                           nu::dmn_size());
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G0_matrix("G0_matrix", nu::dmn_size());
 
-  LIN_ALG::GEINV<LIN_ALG::CPU>::plan<std::complex<double>> geinv_obj(one_plus_S_G);
+  LIN_ALG::GEINV<dca::linalg::CPU>::plan<std::complex<double>> geinv_obj(one_plus_S_G);
 
   for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++) {
     for (int K_ind = 0; K_ind < k_DCA::dmn_size(); K_ind++) {

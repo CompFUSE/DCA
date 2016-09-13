@@ -26,36 +26,37 @@ namespace QMCI {
 // DCA::QMCI::
 
 template <>
-class SHRINK_TOOLS_ALGORITHMS<LIN_ALG::GPU> {
+class SHRINK_TOOLS_ALGORITHMS<dca::linalg::GPU> {
 public:
   SHRINK_TOOLS_ALGORITHMS(int id)
       : thread_id(id),
         stream_id(0),
 
-        i_s_dn("i_s_dn SHRINK_TOOLS_ALGORITHMS<LIN_ALG::GPU>", 512),
-        i_t_dn("i_t_dn SHRINK_TOOLS_ALGORITHMS<LIN_ALG::GPU>", 512),
+        i_s_dn("i_s_dn SHRINK_TOOLS_ALGORITHMS<dca::linalg::GPU>", 512),
+        i_t_dn("i_t_dn SHRINK_TOOLS_ALGORITHMS<dca::linalg::GPU>", 512),
 
-        i_s_up("i_s_up SHRINK_TOOLS_ALGORITHMS<LIN_ALG::GPU>", 512),
-        i_t_up("i_t_up SHRINK_TOOLS_ALGORITHMS<LIN_ALG::GPU>", 512),
+        i_s_up("i_s_up SHRINK_TOOLS_ALGORITHMS<dca::linalg::GPU>", 512),
+        i_t_up("i_t_up SHRINK_TOOLS_ALGORITHMS<dca::linalg::GPU>", 512),
 
         SHRINK_TOOLS_ALGORITHMS_CPU_obj(id) {
-    i_s_dn.set_thread_and_stream_id(thread_id, stream_id);
-    i_t_dn.set_thread_and_stream_id(thread_id, stream_id);
+    i_s_dn.setThreadAndStreamId(thread_id, stream_id);
+    i_t_dn.setThreadAndStreamId(thread_id, stream_id);
 
-    i_s_up.set_thread_and_stream_id(thread_id, stream_id);
-    i_t_up.set_thread_and_stream_id(thread_id, stream_id);
+    i_s_up.setThreadAndStreamId(thread_id, stream_id);
+    i_t_up.setThreadAndStreamId(thread_id, stream_id);
   }
 
   void execute(std::vector<int>& source_index_up, std::vector<int>& target_index_up,
-               LIN_ALG::matrix<double, LIN_ALG::GPU>& N_up,
-               LIN_ALG::matrix<double, LIN_ALG::GPU>& G0_up, std::vector<int>& source_index_dn,
-               std::vector<int>& target_index_dn, LIN_ALG::matrix<double, LIN_ALG::GPU>& N_dn,
-               LIN_ALG::matrix<double, LIN_ALG::GPU>& G0_dn) {
+               dca::linalg::Matrix<double, dca::linalg::GPU>& N_up,
+               dca::linalg::Matrix<double, dca::linalg::GPU>& G0_up,
+               std::vector<int>& source_index_dn, std::vector<int>& target_index_dn,
+               dca::linalg::Matrix<double, dca::linalg::GPU>& N_dn,
+               dca::linalg::Matrix<double, dca::linalg::GPU>& G0_dn) {
     assert(source_index_up.size() == target_index_up.size());
     assert(source_index_dn.size() == target_index_dn.size());
 
-    assert(N_up.get_current_size() == G0_up.get_current_size());
-    assert(N_dn.get_current_size() == G0_dn.get_current_size());
+    assert(N_up.size() == G0_up.size());
+    assert(N_dn.size() == G0_dn.size());
 
 #ifdef DCA_WITH_QMC_BIT
     N_dn_CPU.copy_from(N_dn);
@@ -72,31 +73,31 @@ public:
       i_s_dn.set(source_index_dn, LIN_ALG::ASYNCHRONOUS);
       i_t_dn.set(target_index_dn, LIN_ALG::ASYNCHRONOUS);
 
-      LIN_ALG::SWAP<LIN_ALG::GPU>::many_rows(N_up, i_s_up, i_t_up, thread_id, stream_id);
-      LIN_ALG::SWAP<LIN_ALG::GPU>::many_cols(N_up, i_s_up, i_t_up, thread_id, stream_id);
+      LIN_ALG::SWAP<dca::linalg::GPU>::many_rows(N_up, i_s_up, i_t_up, thread_id, stream_id);
+      LIN_ALG::SWAP<dca::linalg::GPU>::many_cols(N_up, i_s_up, i_t_up, thread_id, stream_id);
 
-      LIN_ALG::SWAP<LIN_ALG::GPU>::many_rows(G0_up, i_s_up, i_t_up, thread_id, stream_id);
-      LIN_ALG::SWAP<LIN_ALG::GPU>::many_cols(G0_up, i_s_up, i_t_up, thread_id, stream_id);
+      LIN_ALG::SWAP<dca::linalg::GPU>::many_rows(G0_up, i_s_up, i_t_up, thread_id, stream_id);
+      LIN_ALG::SWAP<dca::linalg::GPU>::many_cols(G0_up, i_s_up, i_t_up, thread_id, stream_id);
 
-      LIN_ALG::SWAP<LIN_ALG::GPU>::many_rows(N_dn, i_s_dn, i_t_dn, thread_id, stream_id);
-      LIN_ALG::SWAP<LIN_ALG::GPU>::many_cols(N_dn, i_s_dn, i_t_dn, thread_id, stream_id);
+      LIN_ALG::SWAP<dca::linalg::GPU>::many_rows(N_dn, i_s_dn, i_t_dn, thread_id, stream_id);
+      LIN_ALG::SWAP<dca::linalg::GPU>::many_cols(N_dn, i_s_dn, i_t_dn, thread_id, stream_id);
 
-      LIN_ALG::SWAP<LIN_ALG::GPU>::many_rows(G0_dn, i_s_dn, i_t_dn, thread_id, stream_id);
-      LIN_ALG::SWAP<LIN_ALG::GPU>::many_cols(G0_dn, i_s_dn, i_t_dn, thread_id, stream_id);
+      LIN_ALG::SWAP<dca::linalg::GPU>::many_rows(G0_dn, i_s_dn, i_t_dn, thread_id, stream_id);
+      LIN_ALG::SWAP<dca::linalg::GPU>::many_cols(G0_dn, i_s_dn, i_t_dn, thread_id, stream_id);
     }
     else {
       for (size_t l = 0; l < source_index_up.size(); ++l) {
-        LIN_ALG::SWAP<LIN_ALG::GPU>::row_and_column(N_up, source_index_up[l], target_index_up[l],
-                                                    thread_id, stream_id);
-        LIN_ALG::SWAP<LIN_ALG::GPU>::row_and_column(G0_up, source_index_up[l], target_index_up[l],
-                                                    thread_id, stream_id);
+        LIN_ALG::SWAP<dca::linalg::GPU>::row_and_column(N_up, source_index_up[l],
+                                                        target_index_up[l], thread_id, stream_id);
+        LIN_ALG::SWAP<dca::linalg::GPU>::row_and_column(G0_up, source_index_up[l],
+                                                        target_index_up[l], thread_id, stream_id);
       }
 
       for (size_t l = 0; l < source_index_dn.size(); ++l) {
-        LIN_ALG::SWAP<LIN_ALG::GPU>::row_and_column(N_dn, source_index_dn[l], target_index_dn[l],
-                                                    thread_id, stream_id);
-        LIN_ALG::SWAP<LIN_ALG::GPU>::row_and_column(G0_dn, source_index_dn[l], target_index_dn[l],
-                                                    thread_id, stream_id);
+        LIN_ALG::SWAP<dca::linalg::GPU>::row_and_column(N_dn, source_index_dn[l],
+                                                        target_index_dn[l], thread_id, stream_id);
+        LIN_ALG::SWAP<dca::linalg::GPU>::row_and_column(G0_dn, source_index_dn[l],
+                                                        target_index_dn[l], thread_id, stream_id);
       }
     }
 
@@ -114,8 +115,8 @@ public:
 
 }
 
-private:
-bool test_swap_vectors(std::vector<int>& source_index, std::vector<int>& target_index) {
+private : bool
+          test_swap_vectors(std::vector<int>& source_index, std::vector<int>& target_index) {
   if (source_index.size() != target_index.size())
     throw std::logic_error("source_index.size() != target_index.size()");
 
@@ -141,19 +142,19 @@ private:
 int thread_id;
 int stream_id;
 
-LIN_ALG::vector<int, LIN_ALG::GPU> i_s_dn;
-LIN_ALG::vector<int, LIN_ALG::GPU> i_t_dn;
+dca::linalg::Vector<int, dca::linalg::GPU> i_s_dn;
+dca::linalg::Vector<int, dca::linalg::GPU> i_t_dn;
 
-LIN_ALG::vector<int, LIN_ALG::GPU> i_s_up;
-LIN_ALG::vector<int, LIN_ALG::GPU> i_t_up;
+dca::linalg::Vector<int, dca::linalg::GPU> i_s_up;
+dca::linalg::Vector<int, dca::linalg::GPU> i_t_up;
 
-LIN_ALG::matrix<double, LIN_ALG::CPU> N_dn_CPU;
-LIN_ALG::matrix<double, LIN_ALG::CPU> G0_dn_CPU;
+dca::linalg::Matrix<double, dca::linalg::CPU> N_dn_CPU;
+dca::linalg::Matrix<double, dca::linalg::CPU> G0_dn_CPU;
 
-LIN_ALG::matrix<double, LIN_ALG::CPU> N_up_CPU;
-LIN_ALG::matrix<double, LIN_ALG::CPU> G0_up_CPU;
+dca::linalg::Matrix<double, dca::linalg::CPU> N_up_CPU;
+dca::linalg::Matrix<double, dca::linalg::CPU> G0_up_CPU;
 
-SHRINK_TOOLS_ALGORITHMS<LIN_ALG::CPU> SHRINK_TOOLS_ALGORITHMS_CPU_obj;
+SHRINK_TOOLS_ALGORITHMS<dca::linalg::CPU> SHRINK_TOOLS_ALGORITHMS_CPU_obj;
 };
 
 }  // QMCI

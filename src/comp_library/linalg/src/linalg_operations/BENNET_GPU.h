@@ -19,12 +19,12 @@ namespace LIN_ALG {
 	template<typename scalartype>
 	static void execute(matrix<scalartype, GPU>& M, scalartype* c, scalartype* r){
 	    
-	    assert(M.get_current_size().first == M.get_current_size().second);
+	    assert(M.size().first == M.size().second);
 
-	    int N  = M.get_current_size().first;
-	    int LD = M.get_global_size() .first;
+	    int N  = M.size().first;
+	    int LD = M.leadingDimension();
 
-	    GPU_KERNEL_BENNETT::standard_Bennet(N, LD, M.get_ptr(), &c[0], &r[0]);
+	    GPU_KERNEL_BENNETT::standard_Bennet(N, LD, M.ptr(), &c[0], &r[0]);
 	}
 
       template<typename scalartype>

@@ -49,7 +49,7 @@ public:
 
   using scalar_type = double;
   using complex_type = std::complex<scalar_type>;
-  using matrix_type = LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>;
+  using matrix_type = dca::linalg::Matrix<scalar_type, dca::linalg::CPU>;
 
   using tetrahedron_dmn = dmn_0<math_algorithms::tetrahedron_mesh<K_dmn>>;
   using quadrature_dmn = dca::math::gaussquad::gaussian_quadrature_domain<tetrahedron_dmn>;

@@ -27,7 +27,7 @@ namespace DCA {
 namespace QMCI {
 // DCA::QMCI::
 
-template <LIN_ALG::device_type device_t, typename parameters_type>
+template <dca::linalg::DeviceType device_t, typename parameters_type>
 class G_TOOLS : public G_MATRIX_TOOLS<device_t, parameters_type> {
   typedef vertex_singleton vertex_singleton_type;
 
@@ -40,44 +40,45 @@ public:
   double get_Gflop();
 
   template <class configuration_type>
-  void build_G_matrix(configuration_type& full_configuration, LIN_ALG::matrix<double, device_t>& N,
-                      LIN_ALG::matrix<double, device_t>& G0, LIN_ALG::matrix<double, device_t>& G,
-                      e_spin_states_type e_spin);
+  void build_G_matrix(configuration_type& full_configuration,
+                      dca::linalg::Matrix<double, device_t>& N,
+                      dca::linalg::Matrix<double, device_t>& G0,
+                      dca::linalg::Matrix<double, device_t>& G, e_spin_states_type e_spin);
 
   double compute_G_matrix_element(int configuration_e_spin_index_i, int configuration_e_spin_index_j,
-                                  LIN_ALG::matrix<double, device_t>& N,
-                                  LIN_ALG::matrix<double, device_t>& G_precomputed,
+                                  dca::linalg::Matrix<double, device_t>& N,
+                                  dca::linalg::Matrix<double, device_t>& G_precomputed,
                                   std::vector<vertex_singleton_type>& configuration_e_spin);
 
-  void compute_row_on_Gamma_matrix(int row_index, LIN_ALG::vector<int, device_t>& indices,
-                                   LIN_ALG::vector<double, device_t>& exp_V,
-                                   LIN_ALG::matrix<double, device_t>& N,
-                                   LIN_ALG::matrix<double, device_t>& G_precomputed,
+  void compute_row_on_Gamma_matrix(int row_index, dca::linalg::Vector<int, device_t>& indices,
+                                   dca::linalg::Vector<double, device_t>& exp_V,
+                                   dca::linalg::Matrix<double, device_t>& N,
+                                   dca::linalg::Matrix<double, device_t>& G_precomputed,
                                    double* result_ptr, int incr);
 
-  void compute_col_on_Gamma_matrix(int col_index, LIN_ALG::vector<int, device_t>& indices,
-                                   LIN_ALG::vector<double, device_t>& exp_V,
-                                   LIN_ALG::matrix<double, device_t>& N,
-                                   LIN_ALG::matrix<double, device_t>& G_precomputed,
+  void compute_col_on_Gamma_matrix(int col_index, dca::linalg::Vector<int, device_t>& indices,
+                                   dca::linalg::Vector<double, device_t>& exp_V,
+                                   dca::linalg::Matrix<double, device_t>& N,
+                                   dca::linalg::Matrix<double, device_t>& G_precomputed,
                                    double* result_ptr, int incr);
 
-  void compute_G_matrix_element(LIN_ALG::vector<int, LIN_ALG::CPU>& i_index,
-                                LIN_ALG::vector<int, LIN_ALG::CPU>& j_index,
-                                LIN_ALG::vector<bool, LIN_ALG::CPU>& is_Bennett,
-                                LIN_ALG::vector<double, LIN_ALG::CPU>& exp_Vj,
-                                LIN_ALG::matrix<double, device_t>& N,
-                                LIN_ALG::matrix<double, device_t>& G_precomputed,
+  void compute_G_matrix_element(dca::linalg::Vector<int, dca::linalg::CPU>& i_index,
+                                dca::linalg::Vector<int, dca::linalg::CPU>& j_index,
+                                dca::linalg::Vector<bool, dca::linalg::CPU>& is_Bennett,
+                                dca::linalg::Vector<double, dca::linalg::CPU>& exp_Vj,
+                                dca::linalg::Matrix<double, device_t>& N,
+                                dca::linalg::Matrix<double, device_t>& G_precomputed,
                                 double* result_ptr, int incr);
 
 private:
   double compute_G_vertex_to_old_vertex(int configuration_e_spin_index_i,
                                         int configuration_e_spin_index_j,
-                                        LIN_ALG::matrix<double, device_t>& N,
+                                        dca::linalg::Matrix<double, device_t>& N,
                                         std::vector<vertex_singleton_type>& configuration_e_spin);
 
   double compute_G_vertex_to_new_vertex(int configuration_e_spin_index_i,
                                         int configuration_e_spin_index_j,
-                                        LIN_ALG::matrix<double, device_t>& G);
+                                        dca::linalg::Matrix<double, device_t>& G);
 
 private:
   int thread_id;
@@ -91,7 +92,7 @@ private:
   CV<parameters_type>& CV_obj;
 };
 
-template <LIN_ALG::device_type device_t, typename parameters_type>
+template <dca::linalg::DeviceType device_t, typename parameters_type>
 G_TOOLS<device_t, parameters_type>::G_TOOLS(int id, parameters_type& parameters_ref,
                                             CV<parameters_type>& CV_obj_ref)
     : G_MATRIX_TOOLS<device_t, parameters_type>(id, parameters_ref),
@@ -106,7 +107,7 @@ G_TOOLS<device_t, parameters_type>::G_TOOLS(int id, parameters_type& parameters_
 
       CV_obj(CV_obj_ref) {}
 
-template <LIN_ALG::device_type device_t, typename parameters_type>
+template <dca::linalg::DeviceType device_t, typename parameters_type>
 double G_TOOLS<device_t, parameters_type>::get_Gflop() {
   double result = GFLOP;
   GFLOP = 0;
@@ -117,12 +118,12 @@ double G_TOOLS<device_t, parameters_type>::get_Gflop() {
   return result;
 }
 
-template <LIN_ALG::device_type device_t, typename parameters_type>
+template <dca::linalg::DeviceType device_t, typename parameters_type>
 template <class configuration_type>
 void G_TOOLS<device_t, parameters_type>::build_G_matrix(configuration_type& full_configuration,
-                                                        LIN_ALG::matrix<double, device_t>& N,
-                                                        LIN_ALG::matrix<double, device_t>& G0,
-                                                        LIN_ALG::matrix<double, device_t>& G,
+                                                        dca::linalg::Matrix<double, device_t>& N,
+                                                        dca::linalg::Matrix<double, device_t>& G0,
+                                                        dca::linalg::Matrix<double, device_t>& G,
                                                         e_spin_states_type e_spin) {
   // profiler_t profiler(concurrency, "build_G_matrix", "CT-AUX", __LINE__);
 
@@ -143,19 +144,19 @@ void G_TOOLS<device_t, parameters_type>::build_G_matrix(configuration_type& full
     vertex_index++;
 
   {
-    std::pair<int, int> size = N.get_current_size();
+    std::pair<int, int> size = N.size();
     size.second -= vertex_index;
-    G.resize_no_copy(size);
+    G.resizeNoCopy(size);
   }
 
-  if (N.get_current_size().first > 0 && vertex_index < configuration_e_spin.size()) {
-    int m = N.get_current_size().first;
-    int k = G0.get_current_size().first;
-    int n = G.get_current_size().second;
+  if (N.size().first > 0 && vertex_index < configuration_e_spin.size()) {
+    int m = N.size().first;
+    int k = G0.size().first;
+    int n = G.size().second;
 
-    int LD_N = N.get_leading_dimension();
-    int LD_G0 = G0.get_leading_dimension();
-    int LD_G = G.get_leading_dimension();
+    int LD_N = N.leadingDimension();
+    int LD_G0 = G0.leadingDimension();
+    int LD_G = G.leadingDimension();
 
 #ifdef DCA_WITH_AUTOTUNING
     std::stringstream ss;
@@ -163,9 +164,9 @@ void G_TOOLS<device_t, parameters_type>::build_G_matrix(configuration_type& full
     profiler_t profiler_2(ss.str().c_str(), __FILE__, __LINE__);
 #endif  // DCA_WITH_AUTOTUNING
 
-    dca::linalg::UseDevice<device_t>::gemm("N", "N", m, n, k, 1., N.get_ptr(0, 0), LD_N,
-                                           G0.get_ptr(0, vertex_index), LD_G0, 0., G.get_ptr(0, 0),
-                                           LD_G, thread_id, stream_id);
+    dca::linalg::blas::UseDevice<device_t>::gemm("N", "N", m, n, k, 1., N.ptr(0, 0), LD_N,
+                                                 G0.ptr(0, vertex_index), LD_G0, 0., G.ptr(0, 0),
+                                                 LD_G, thread_id, stream_id);
 
     GFLOP += 2. * double(m) * double(n) * double(k) * (1.e-9);
   }
@@ -177,12 +178,12 @@ void G_TOOLS<device_t, parameters_type>::build_G_matrix(configuration_type& full
  *    G_{i,j} &=& \sum_l N(i,l) * G^{0}(l,j)
  *  \f}
  */
-template <LIN_ALG::device_type device_t, typename parameters_type>
+template <dca::linalg::DeviceType device_t, typename parameters_type>
 inline double G_TOOLS<device_t, parameters_type>::compute_G_matrix_element(
     int configuration_e_spin_index_i, int configuration_e_spin_index_j,
-    LIN_ALG::matrix<double, device_t>& N, LIN_ALG::matrix<double, device_t>& G_precomputed,
+    dca::linalg::Matrix<double, device_t>& N, dca::linalg::Matrix<double, device_t>& G_precomputed,
     std::vector<vertex_singleton_type>& configuration_e_spin) {
-  int vertex_index = N.get_number_of_cols() - G_precomputed.get_number_of_cols();
+  int vertex_index = N.nrCols() - G_precomputed.nrCols();
 
   double result;
 
@@ -202,12 +203,13 @@ inline double G_TOOLS<device_t, parameters_type>::compute_G_matrix_element(
  *    G_{i,j} &=& \sum_l N(i,l) * G^{0}(l,j)
  *  \f}
  */
-template <LIN_ALG::device_type device_t, typename parameters_type>
+template <dca::linalg::DeviceType device_t, typename parameters_type>
 inline void G_TOOLS<device_t, parameters_type>::compute_G_matrix_element(
-    LIN_ALG::vector<int, LIN_ALG::CPU>& i_index, LIN_ALG::vector<int, LIN_ALG::CPU>& j_index,
-    LIN_ALG::vector<bool, LIN_ALG::CPU>& is_Bennett, LIN_ALG::vector<double, LIN_ALG::CPU>& exp_Vj,
-    LIN_ALG::matrix<double, device_t>& N, LIN_ALG::matrix<double, device_t>& G_precomputed,
-    double* result_ptr, int incr) {
+    dca::linalg::Vector<int, dca::linalg::CPU>& i_index,
+    dca::linalg::Vector<int, dca::linalg::CPU>& j_index,
+    dca::linalg::Vector<bool, dca::linalg::CPU>& is_Bennett,
+    dca::linalg::Vector<double, dca::linalg::CPU>& exp_Vj, dca::linalg::Matrix<double, device_t>& N,
+    dca::linalg::Matrix<double, device_t>& G_precomputed, double* result_ptr, int incr) {
   G_MATRIX_TOOLS<device_t, parameters_type>::read_G_matrix_elements(
       i_index, j_index, is_Bennett, exp_Vj, N, G_precomputed, result_ptr, incr);
 }
@@ -218,11 +220,11 @@ inline void G_TOOLS<device_t, parameters_type>::compute_G_matrix_element(
  *    G_{i,j} &=& \sum_l N(i,l) * G^{0}(l,j)
  *  \f}
  */
-template <LIN_ALG::device_type device_t, typename parameters_type>
+template <dca::linalg::DeviceType device_t, typename parameters_type>
 inline void G_TOOLS<device_t, parameters_type>::compute_row_on_Gamma_matrix(
-    int row_index, LIN_ALG::vector<int, device_t>& indices,
-    LIN_ALG::vector<double, device_t>& exp_V, LIN_ALG::matrix<double, device_t>& N,
-    LIN_ALG::matrix<double, device_t>& G_precomputed, double* result_ptr, int incr) {
+    int row_index, dca::linalg::Vector<int, device_t>& indices,
+    dca::linalg::Vector<double, device_t>& exp_V, dca::linalg::Matrix<double, device_t>& N,
+    dca::linalg::Matrix<double, device_t>& G_precomputed, double* result_ptr, int incr) {
   assert(row_index > -1 && row_index < indices.size());
   G_MATRIX_TOOLS<device_t, parameters_type>::compute_row_on_Gamma_matrix(
       row_index, indices, exp_V, N, G_precomputed, result_ptr, incr);
@@ -234,11 +236,11 @@ inline void G_TOOLS<device_t, parameters_type>::compute_row_on_Gamma_matrix(
  *    G_{i,j} &=& \sum_l N(i,l) * G^{0}(l,j)
  *  \f}
  */
-template <LIN_ALG::device_type device_t, typename parameters_type>
+template <dca::linalg::DeviceType device_t, typename parameters_type>
 inline void G_TOOLS<device_t, parameters_type>::compute_col_on_Gamma_matrix(
-    int col_index, LIN_ALG::vector<int, device_t>& indices,
-    LIN_ALG::vector<double, device_t>& exp_V, LIN_ALG::matrix<double, device_t>& N,
-    LIN_ALG::matrix<double, device_t>& G_precomputed, double* result_ptr, int incr) {
+    int col_index, dca::linalg::Vector<int, device_t>& indices,
+    dca::linalg::Vector<double, device_t>& exp_V, dca::linalg::Matrix<double, device_t>& N,
+    dca::linalg::Matrix<double, device_t>& G_precomputed, double* result_ptr, int incr) {
   assert(col_index > -1 && col_index < indices.size());
   G_MATRIX_TOOLS<device_t, parameters_type>::compute_col_on_Gamma_matrix(
       col_index, indices, exp_V, N, G_precomputed, result_ptr, incr);
@@ -249,10 +251,11 @@ inline void G_TOOLS<device_t, parameters_type>::compute_col_on_Gamma_matrix(
  *    G_{i,j} = (N_{ij} e^{V_j} - delta_{i,j})/(e^{V_j} -1) \mbox{  (eqn 33)}
  *  \f}
  */
-template <LIN_ALG::device_type device_t, typename parameters_type>
+template <dca::linalg::DeviceType device_t, typename parameters_type>
 inline double G_TOOLS<device_t, parameters_type>::compute_G_vertex_to_old_vertex(
     int configuration_e_spin_index_i, int configuration_e_spin_index_j,
-    LIN_ALG::matrix<double, device_t>& N, std::vector<vertex_singleton_type>& configuration_e_spin) {
+    dca::linalg::Matrix<double, device_t>& N,
+    std::vector<vertex_singleton_type>& configuration_e_spin) {
   double delta = (configuration_e_spin_index_i == configuration_e_spin_index_j) ? 1. : 0.;
 
   vertex_singleton_type& v_j = configuration_e_spin[configuration_e_spin_index_j];
@@ -268,10 +271,10 @@ inline double G_TOOLS<device_t, parameters_type>::compute_G_vertex_to_old_vertex
  *    G_{i,j} = \sum_l N(i,l)*G0(l,j)
  *  \f}
  */
-template <LIN_ALG::device_type device_t, typename parameters_type>
+template <dca::linalg::DeviceType device_t, typename parameters_type>
 inline double G_TOOLS<device_t, parameters_type>::compute_G_vertex_to_new_vertex(
     int configuration_e_spin_index_i, int configuration_e_spin_index_j,
-    LIN_ALG::matrix<double, device_t>& G) {
+    dca::linalg::Matrix<double, device_t>& G) {
   return G(configuration_e_spin_index_i, configuration_e_spin_index_j);
 }
 

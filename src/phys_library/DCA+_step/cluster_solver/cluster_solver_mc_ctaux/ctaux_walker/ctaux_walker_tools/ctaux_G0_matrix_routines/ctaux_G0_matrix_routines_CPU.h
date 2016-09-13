@@ -17,8 +17,9 @@
 #include <cassert>
 #include <vector>
 
+#include "dca/linalg/matrix.hpp"
+
 #include "comp_library/function_library/domains/special_domains/dmn_0.h"
-#include "comp_library/linalg/src/matrix.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_vertex_singleton.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_G0_matrix_routines/G0_interpolation_template.hpp"
 #include "phys_library/domains/cluster/cluster_domain.h"
@@ -29,7 +30,7 @@ namespace QMCI {
 // DCA::QMCI::
 
 template <typename parameters_type>
-class G0_INTERPOLATION<LIN_ALG::CPU, parameters_type>
+class G0_INTERPOLATION<dca::linalg::CPU, parameters_type>
     : public G0_INTERPOLATION_TEMPLATE<parameters_type> {
 public:
   using vertex_singleton_type = vertex_singleton;
@@ -49,15 +50,15 @@ public:
   using G0_INTERPOLATION_TEMPLATE<parameters_type>::initialize;
 
   template <class configuration_type>
-  void build_G0_matrix(configuration_type& configuration, LIN_ALG::matrix<double, LIN_ALG::CPU>& G0,
-                       e_spin_states_type spin);
+  void build_G0_matrix(configuration_type& configuration,
+                       dca::linalg::Matrix<double, dca::linalg::CPU>& G0, e_spin_states_type spin);
 
   void build_G0_matrix(std::vector<vertex_singleton_type>& configuration,
-                       LIN_ALG::matrix<double, LIN_ALG::CPU>& G0);
+                       dca::linalg::Matrix<double, dca::linalg::CPU>& G0);
 
   template <class configuration_type>
   void update_G0_matrix(configuration_type& configuration,
-                        LIN_ALG::matrix<double, LIN_ALG::CPU>& G0, e_spin_states_type spin);
+                        dca::linalg::Matrix<double, dca::linalg::CPU>& G0, e_spin_states_type spin);
 
 private:
   double interpolate(int nu_0, int nu_1, int delta_r, double delta_time);
@@ -95,16 +96,16 @@ private:
 };
 
 template <typename parameters_type>
-G0_INTERPOLATION<LIN_ALG::CPU, parameters_type>::G0_INTERPOLATION(int id,
-                                                                  parameters_type& parameters_ref)
+G0_INTERPOLATION<dca::linalg::CPU, parameters_type>::G0_INTERPOLATION(int id,
+                                                                      parameters_type& parameters_ref)
     : G0_INTERPOLATION_TEMPLATE<parameters_type>(id, parameters_ref),
 
       thread_id(id) {}
 
 template <typename parameters_type>
 template <class configuration_type>
-void G0_INTERPOLATION<LIN_ALG::CPU, parameters_type>::build_G0_matrix(
-    configuration_type& configuration, LIN_ALG::matrix<double, LIN_ALG::CPU>& G0_e_spin,
+void G0_INTERPOLATION<dca::linalg::CPU, parameters_type>::build_G0_matrix(
+    configuration_type& configuration, dca::linalg::Matrix<double, dca::linalg::CPU>& G0_e_spin,
     e_spin_states_type e_spin) {
   std::vector<vertex_singleton_type>& configuration_e_spin = configuration.get(e_spin);
   int configuration_size = configuration_e_spin.size();
@@ -115,7 +116,7 @@ void G0_INTERPOLATION<LIN_ALG::CPU, parameters_type>::build_G0_matrix(
     return;
   }
 
-  G0_e_spin.resize_no_copy(configuration_size);
+  G0_e_spin.resizeNoCopy(configuration_size);
 
   for (int j = 0; j < configuration_size; j++) {
     vertex_singleton_type& v_j = configuration_e_spin[j];
@@ -147,8 +148,9 @@ void G0_INTERPOLATION<LIN_ALG::CPU, parameters_type>::build_G0_matrix(
 }
 
 template <typename parameters_type>
-void G0_INTERPOLATION<LIN_ALG::CPU, parameters_type>::build_G0_matrix(
-    std::vector<vertex_singleton_type>& configuration, LIN_ALG::matrix<double, LIN_ALG::CPU>& G0) {
+void G0_INTERPOLATION<dca::linalg::CPU, parameters_type>::build_G0_matrix(
+    std::vector<vertex_singleton_type>& configuration,
+    dca::linalg::Matrix<double, dca::linalg::CPU>& G0) {
   // profiler_t profiler(concurrency, "G0-matrix (build)", "CT-AUX", __LINE__);
 
   int configuration_size = configuration.size();
@@ -159,7 +161,7 @@ void G0_INTERPOLATION<LIN_ALG::CPU, parameters_type>::build_G0_matrix(
     return;
   }
 
-  G0.resize_no_copy(configuration_size);
+  G0.resizeNoCopy(configuration_size);
 
   for (int j = 0; j < configuration_size; j++) {
     vertex_singleton_type& v_j = configuration[j];
@@ -192,8 +194,8 @@ void G0_INTERPOLATION<LIN_ALG::CPU, parameters_type>::build_G0_matrix(
 
 template <typename parameters_type>
 template <class configuration_type>
-void G0_INTERPOLATION<LIN_ALG::CPU, parameters_type>::update_G0_matrix(
-    configuration_type& configuration, LIN_ALG::matrix<double, LIN_ALG::CPU>& G0,
+void G0_INTERPOLATION<dca::linalg::CPU, parameters_type>::update_G0_matrix(
+    configuration_type& configuration, dca::linalg::Matrix<double, dca::linalg::CPU>& G0,
     e_spin_states_type e_spin) {
   // profiler_t profiler("G0-matrix (update)", "CT-AUX", __LINE__);
 
@@ -211,7 +213,7 @@ void G0_INTERPOLATION<LIN_ALG::CPU, parameters_type>::update_G0_matrix(
   int first_shuffled_index = configuration.get_first_shuffled_spin_index(e_spin);
 
   for (int j = 0; j < first_shuffled_index; j++) {
-    double* G0_ptr = G0.get_ptr(0, j);
+    double* G0_ptr = G0.ptr(0, j);
 
     vertex_singleton_type& v_j = configuration_e_spin[j];
 
@@ -227,7 +229,7 @@ void G0_INTERPOLATION<LIN_ALG::CPU, parameters_type>::update_G0_matrix(
   }
 
   for (int j = first_shuffled_index; j < configuration_size; j++) {
-    double* G0_ptr = G0.get_ptr(0, j);
+    double* G0_ptr = G0.ptr(0, j);
 
     vertex_singleton_type& v_j = configuration_e_spin[j];
 
@@ -261,7 +263,7 @@ void G0_INTERPOLATION<LIN_ALG::CPU, parameters_type>::update_G0_matrix(
   /*
     for(int j=first_shuffled_index; j<configuration_size; j++){
 
-    double* G0_ptr = G0.get_ptr(0,j);
+    double* G0_ptr = G0.ptr(0,j);
 
     vertex_singleton_type& v_j = configuration_e_spin[j];
 
@@ -279,8 +281,9 @@ void G0_INTERPOLATION<LIN_ALG::CPU, parameters_type>::update_G0_matrix(
 }
 
 template <typename parameters_type>
-inline double G0_INTERPOLATION<LIN_ALG::CPU, parameters_type>::interpolate(int nu_0, int nu_1,
-                                                                           int delta_r, double tau) {
+inline double G0_INTERPOLATION<dca::linalg::CPU, parameters_type>::interpolate(int nu_0, int nu_1,
+                                                                               int delta_r,
+                                                                               double tau) {
   // make sure that new_tau is positive !!
   new_tau = tau + beta;
 
@@ -302,7 +305,7 @@ inline double G0_INTERPOLATION<LIN_ALG::CPU, parameters_type>::interpolate(int n
 }
 
 template <typename parameters_type>
-inline double G0_INTERPOLATION<LIN_ALG::CPU, parameters_type>::interpolate_on_diagonal(int nu_i) {
+inline double G0_INTERPOLATION<dca::linalg::CPU, parameters_type>::interpolate_on_diagonal(int nu_i) {
   const static int t_0_index = shifted_t::dmn_size() / 2;
   const static int r_0_index = r_cluster_type::origin_index();
 
@@ -310,9 +313,10 @@ inline double G0_INTERPOLATION<LIN_ALG::CPU, parameters_type>::interpolate_on_di
 }
 
 template <typename parameters_type>
-inline double G0_INTERPOLATION<LIN_ALG::CPU, parameters_type>::interpolate_akima(int nu_0, int nu_1,
-                                                                                 int delta_r,
-                                                                                 double tau) {
+inline double G0_INTERPOLATION<dca::linalg::CPU, parameters_type>::interpolate_akima(int nu_0,
+                                                                                     int nu_1,
+                                                                                     int delta_r,
+                                                                                     double tau) {
   // make sure that new_tau is positive !!
   new_tau = tau + beta;
 
@@ -334,7 +338,8 @@ inline double G0_INTERPOLATION<LIN_ALG::CPU, parameters_type>::interpolate_akima
 
 /*
   template<typename parameters_type>
-  inline double G0_INTERPOLATION<LIN_ALG::CPU, parameters_type>::interpolate(int nu_0, int nu_1, int
+  inline double G0_INTERPOLATION<dca::linalg::CPU, parameters_type>::interpolate(int nu_0, int nu_1,
+  int
   delta_r, double tau)
   {
   new_tau = tau+beta;

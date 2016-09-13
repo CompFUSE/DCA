@@ -29,20 +29,20 @@ namespace LIN_ALG {
     static void row(matrix<scalartype, GPU>& M, int i, int j, int thread_id, int stream_id)
     {
       
-      assert(i>-1 && i<M.get_current_size().first);
-      assert(j>-1 && j<M.get_current_size().first);
+      assert(i>-1 && i<M.size().first);
+      assert(j>-1 && j<M.size().first);
       
-      execute(M.get_current_size().second, M.get_ptr(i,0), M.get_global_size().first, M.get_ptr(j,0), M.get_global_size().first, thread_id, stream_id);
+      execute(M.size().second, M.ptr(i,0), M.leadingDimension(), M.ptr(j,0), M.leadingDimension(), thread_id, stream_id);
     }
     
     template<typename scalartype>
     static void col(matrix<scalartype, GPU>& M, int i, int j, int thread_id, int stream_id)
     {
 
-      assert(i>-1 && i<M.get_current_size().second);
-      assert(j>-1 && j<M.get_current_size().second);
+      assert(i>-1 && i<M.size().second);
+      assert(j>-1 && j<M.size().second);
 	  
-      execute(M.get_current_size().first, M.get_ptr(0,i), 1, M.get_ptr(0,j), 1, thread_id, stream_id);
+      execute(M.size().first, M.ptr(0,i), 1, M.ptr(0,j), 1, thread_id, stream_id);
     }
 	
     template<typename scalartype>
@@ -54,23 +54,23 @@ namespace LIN_ALG {
 
     template<typename scalartype>
     static void many_rows(matrix<scalartype, GPU>& M, 
-			  vector<int       , GPU>& index_source,
-			  vector<int       , GPU>& index_target,
+			  dca::linalg::Vector<int, GPU>& index_source,
+			  dca::linalg::Vector<int, GPU>& index_target,
 			  int thread_id, int stream_id)
     {      
       assert(index_source.size() == index_target.size());
       
-      int M_r = M.get_current_size().first;
-      int M_c = M.get_current_size().second;
+      int M_r = M.size().first;
+      int M_c = M.size().second;
 
-      scalartype* M_ptr =  M.get_ptr();
+      scalartype* M_ptr =  M.ptr();
 
-      int M_LD = M.get_global_size().first;
+      int M_LD = M.leadingDimension();
 
       int N_s = index_source.size();
 
-      int* i_s_ptr = index_source.get_ptr();
-      int* i_t_ptr = index_target.get_ptr();
+      int* i_s_ptr = index_source.ptr();
+      int* i_t_ptr = index_target.ptr();
 
       GPU_KERNEL_SWAP::swap_many_rows(M_r, M_c, M_ptr, M_LD, 
 				      N_s, i_s_ptr, i_t_ptr,
@@ -79,23 +79,23 @@ namespace LIN_ALG {
     
     template<typename scalartype>
     static void many_cols(matrix<scalartype, GPU>& M, 
-			  vector<int       , GPU>& index_source,
-			  vector<int       , GPU>& index_target,
+			  dca::linalg::Vector<int, GPU>& index_source,
+			  dca::linalg::Vector<int, GPU>& index_target,
 			  int thread_id, int stream_id)
     {
       assert(index_source.size() == index_target.size());
       
-      int M_r = M.get_current_size().first;
-      int M_c = M.get_current_size().second;
+      int M_r = M.size().first;
+      int M_c = M.size().second;
 
-      scalartype* M_ptr =  M.get_ptr();
+      scalartype* M_ptr =  M.ptr();
 
-      int M_LD = M.get_global_size().first;
+      int M_LD = M.leadingDimension();
 
       int N_s = index_source.size();
 
-      int* i_s_ptr = index_source.get_ptr();
-      int* i_t_ptr = index_target.get_ptr();
+      int* i_s_ptr = index_source.ptr();
+      int* i_t_ptr = index_target.ptr();
 
       GPU_KERNEL_SWAP::swap_many_cols(M_r, M_c, M_ptr, M_LD, 
 				      N_s, i_s_ptr, i_t_ptr,

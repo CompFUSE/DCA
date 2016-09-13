@@ -19,7 +19,7 @@ namespace DCA {
 namespace QMCI {
 // DCA::QMCI::
 
-template <QmciType qmci_type, LIN_ALG::device_type device_t, typename parameters_type>
+template <QmciType qmci_type, dca::linalg::DeviceType device_t, typename parameters_type>
 class MC_walker_data {
 public:
   MC_walker_data(parameters_type& parameters);

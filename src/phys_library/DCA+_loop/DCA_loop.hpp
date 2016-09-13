@@ -55,7 +55,7 @@ public:
   using update_chemical_potential_type =
       DCA::update_chemical_potential<parameters_type, MOMS_type, coarsegraining_sp_type>;
   using HTS_solver_type =
-      DCA::cluster_solver<DCA::HIGH_TEMPERATURE_SERIES, LIN_ALG::CPU, parameters_type, MOMS_type>;
+      DCA::cluster_solver<DCA::HIGH_TEMPERATURE_SERIES, dca::linalg::CPU, parameters_type, MOMS_type>;
 
 public:
   DCA_loop(parameters_type& parameters_ref, MOMS_type& MOMS_ref, concurrency_type& concurrency_ref);

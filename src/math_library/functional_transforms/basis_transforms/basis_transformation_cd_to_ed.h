@@ -42,7 +42,7 @@ public:
   typedef typename rh_spec_dmn_type::element_type rh_element_type;
 
   typedef std::complex<double> f_scalar_type;
-  typedef LIN_ALG::matrix<f_scalar_type, LIN_ALG::CPU> matrix_type;
+  typedef dca::linalg::Matrix<f_scalar_type, dca::linalg::CPU> matrix_type;
 
   typedef inner_product_domain<input_type> inner_product_dmn;
 
@@ -91,9 +91,9 @@ public:
 
     assert(M > 0 and N > 0);
 
-    LIN_ALG::matrix<f_scalar_type, LIN_ALG::CPU>& T = get_transformation_matrix();
+    dca::linalg::Matrix<f_scalar_type, dca::linalg::CPU>& T = get_transformation_matrix();
 
-    T.resize_no_copy(std::pair<int, int>(M, N));
+    T.resizeNoCopy(std::pair<int, int>(M, N));
 
     matrix_type T_cpy("T", std::pair<int, int>(M, N));
 
@@ -108,11 +108,11 @@ public:
       input_matrix_type& A = input_transform_type::get_transformation_matrix();
       output_matrix_type& B = output_transform_type::get_transformation_matrix();
 
-      for (int j = 0; j < A.get_current_size().second; j++)
-        for (int i = 0; i < A.get_current_size().first; i++)
+      for (int j = 0; j < A.size().second; j++)
+        for (int i = 0; i < A.size().first; i++)
           A(i, j) *= inner_product_dmn::get_weights()[i];
 
-      LIN_ALG::GEMM<LIN_ALG::CPU>::execute('N', 'N', B, A, T);
+      LIN_ALG::GEMM<dca::linalg::CPU>::execute('N', 'N', B, A, T);
 
       double max = 0;
       for (int j = 0; j < N; j++)

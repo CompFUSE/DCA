@@ -13,19 +13,19 @@ namespace LIN_ALG {
     template<typename scalartype>
     static void execute(matrix<scalartype, CPU>& A, int* IPIV){
 	  
-      int M = A.get_current_size().first;
-      int N = A.get_current_size().second;
+      int M = A.size().first;
+      int N = A.size().second;
 
       if(N != M)
 	throw std::logic_error(__FUNCTION__);
 
-      int LDA = A.get_global_size().first;
+      int LDA = A.leadingDimension();
 
       int LWORK        = 16*N;
       scalartype* WORK = new scalartype[LWORK];
 
       int INFO=0;
-      execute(N, A.get_ptr(), LDA, IPIV, WORK, LWORK, INFO);
+      execute(N, A.ptr(), LDA, IPIV, WORK, LWORK, INFO);
 
       delete [] WORK;
 

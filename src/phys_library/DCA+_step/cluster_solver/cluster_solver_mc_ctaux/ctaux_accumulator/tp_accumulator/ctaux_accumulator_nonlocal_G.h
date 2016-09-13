@@ -15,8 +15,9 @@
 #include <complex>
 #include <vector>
 
+#include "dca/linalg/matrix.hpp"
+
 #include "comp_library/function_library/include_function_library.h"
-#include "comp_library/linalg/src/matrix.h"
 #include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_accumulator/tp_accumulator/ctaux_tp_nft.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_vertex_singleton.h"
@@ -60,7 +61,7 @@ public:
 
   typedef vertex_singleton vertex_singleton_type;
 
-  typedef LIN_ALG::matrix<double, LIN_ALG::CPU> vertex_vertex_matrix_type;
+  typedef dca::linalg::Matrix<double, dca::linalg::CPU> vertex_vertex_matrix_type;
 
 public:
   accumulator_nonlocal_G(parameters_type& parameters_ref, MOMS_type& MOMS_ref, int id);

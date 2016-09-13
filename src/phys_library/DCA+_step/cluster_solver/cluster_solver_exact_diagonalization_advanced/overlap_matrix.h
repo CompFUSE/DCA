@@ -376,7 +376,7 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::compute_sparse_crea
                                                                                      int b_s_r) {
   std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
-  sparse_creation.resize_no_copy(
+  sparse_creation.resizeNoCopy(
       std::pair<int, int>(Hilbert_spaces[HS_i].size(), Hilbert_spaces[HS_j].size()));
 
   for (int j = 0; j < Hilbert_spaces[HS_j].size(); ++j)
@@ -396,7 +396,7 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::compute_sparse_anni
                                                                                          int b_s_r) {
   std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
-  sparse_annihilation.resize_no_copy(
+  sparse_annihilation.resizeNoCopy(
       std::pair<int, int>(Hilbert_spaces[HS_i].size(), Hilbert_spaces[HS_j].size()));
 
   for (int j = 0; j < Hilbert_spaces[HS_j].size(); ++j)
@@ -417,15 +417,15 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::compute_creation_ma
 
   compute_sparse_creation(HS_i, HS_j, b_s_r);
 
-  dense_creation.resize_no_copy(
+  dense_creation.resizeNoCopy(
       std::pair<int, int>(Hilbert_spaces[HS_i].size(), Hilbert_spaces[HS_j].size()));
-  helper.resize_no_copy(std::pair<int, int>(Hilbert_spaces[HS_i].size(), Hilbert_spaces[HS_j].size()));
+  helper.resizeNoCopy(std::pair<int, int>(Hilbert_spaces[HS_i].size(), Hilbert_spaces[HS_j].size()));
 
   matrix_type& V_i = Hamiltonian.get_eigen_states()(HS_i);
   matrix_type& V_j = Hamiltonian.get_eigen_states()(HS_j);
 
-  LIN_ALG::GEMM<LIN_ALG::CPU>::execute('N', 'N', sparse_creation, V_j, helper);
-  LIN_ALG::GEMM<LIN_ALG::CPU>::execute('C', 'N', V_i, helper, dense_creation);
+  LIN_ALG::GEMM<dca::linalg::CPU>::execute('N', 'N', sparse_creation, V_j, helper);
+  LIN_ALG::GEMM<dca::linalg::CPU>::execute('C', 'N', V_i, helper, dense_creation);
 }
 
 template <typename parameter_type, typename ed_options>
@@ -435,16 +435,16 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::compute_creation_ma
 
   std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
-  dense_creation.resize_no_copy(
+  dense_creation.resizeNoCopy(
       std::pair<int, int>(Hilbert_spaces[HS_i].size(), Hilbert_spaces[HS_j].size()));
-  tmp.resize_no_copy(std::pair<int, int>(Hilbert_spaces[HS_i].size(), Hilbert_spaces[HS_j].size()));
+  tmp.resizeNoCopy(std::pair<int, int>(Hilbert_spaces[HS_i].size(), Hilbert_spaces[HS_j].size()));
 
   matrix_type& V_i = Hamiltonian.get_eigen_states()(HS_i);
   matrix_type& V_j = Hamiltonian.get_eigen_states()(HS_j);
 
   {
-    for (int j = 0; j < tmp.get_number_of_cols(); j++)
-      for (int i = 0; i < tmp.get_number_of_rows(); i++)
+    for (int j = 0; j < tmp.nrCols(); j++)
+      for (int i = 0; i < tmp.nrRows(); i++)
         tmp(i, j) = 0.;
 
     std::vector<sparse_element_type>& sparse_elements =
@@ -456,12 +456,12 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::compute_creation_ma
       int i = sparse_elements[k].i;
       int j = sparse_elements[k].j;
 
-      for (int l = 0; l < V_j.get_number_of_cols(); l++)
+      for (int l = 0; l < V_j.nrCols(); l++)
         tmp(i, l) += value * V_j(j, l);
     }
   }
 
-  LIN_ALG::GEMM<LIN_ALG::CPU>::execute('C', 'N', V_i, tmp, dense_creation);
+  LIN_ALG::GEMM<dca::linalg::CPU>::execute('C', 'N', V_i, tmp, dense_creation);
 }
 
 template <typename parameter_type, typename ed_options>
@@ -471,15 +471,15 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::compute_annihilatio
 
   compute_sparse_annihilation(HS_i, HS_j, b_s_r);
 
-  dense_annihilation.resize_no_copy(
+  dense_annihilation.resizeNoCopy(
       std::pair<int, int>(Hilbert_spaces[HS_i].size(), Hilbert_spaces[HS_j].size()));
-  helper.resize_no_copy(std::pair<int, int>(Hilbert_spaces[HS_i].size(), Hilbert_spaces[HS_j].size()));
+  helper.resizeNoCopy(std::pair<int, int>(Hilbert_spaces[HS_i].size(), Hilbert_spaces[HS_j].size()));
 
   matrix_type& V_i = Hamiltonian.get_eigen_states()(HS_i);
   matrix_type& V_j = Hamiltonian.get_eigen_states()(HS_j);
 
-  LIN_ALG::GEMM<LIN_ALG::CPU>::execute('N', 'N', sparse_annihilation, V_j, helper);
-  LIN_ALG::GEMM<LIN_ALG::CPU>::execute('C', 'N', V_i, helper, dense_annihilation);
+  LIN_ALG::GEMM<dca::linalg::CPU>::execute('N', 'N', sparse_annihilation, V_j, helper);
+  LIN_ALG::GEMM<dca::linalg::CPU>::execute('C', 'N', V_i, helper, dense_annihilation);
 }
 
 template <typename parameter_type, typename ed_options>
@@ -489,16 +489,16 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::compute_annihilatio
 
   std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
-  dense_annihilation.resize_no_copy(
+  dense_annihilation.resizeNoCopy(
       std::pair<int, int>(Hilbert_spaces[HS_i].size(), Hilbert_spaces[HS_j].size()));
-  tmp.resize_no_copy(std::pair<int, int>(Hilbert_spaces[HS_i].size(), Hilbert_spaces[HS_j].size()));
+  tmp.resizeNoCopy(std::pair<int, int>(Hilbert_spaces[HS_i].size(), Hilbert_spaces[HS_j].size()));
 
   matrix_type& V_i = Hamiltonian.get_eigen_states()(HS_i);
   matrix_type& V_j = Hamiltonian.get_eigen_states()(HS_j);
 
   {
-    for (int j = 0; j < tmp.get_number_of_cols(); j++)
-      for (int i = 0; i < tmp.get_number_of_rows(); i++)
+    for (int j = 0; j < tmp.nrCols(); j++)
+      for (int i = 0; i < tmp.nrRows(); i++)
         tmp(i, j) = 0.;
 
     std::vector<sparse_element_type>& sparse_elements =
@@ -510,12 +510,12 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::compute_annihilatio
       int i = sparse_elements[k].i;
       int j = sparse_elements[k].j;
 
-      for (int l = 0; l < V_j.get_number_of_cols(); l++)
+      for (int l = 0; l < V_j.nrCols(); l++)
         tmp(i, l) += value * V_j(j, l);
     }
   }
 
-  LIN_ALG::GEMM<LIN_ALG::CPU>::execute('C', 'N', V_i, tmp, dense_annihilation);
+  LIN_ALG::GEMM<dca::linalg::CPU>::execute('C', 'N', V_i, tmp, dense_annihilation);
 }
 
 template <typename parameter_type, typename ed_options>

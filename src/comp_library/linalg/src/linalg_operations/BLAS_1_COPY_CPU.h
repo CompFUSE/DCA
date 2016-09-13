@@ -15,23 +15,23 @@ namespace LIN_ALG {
                     int /*thread_id*/, int /*stream_id*/)
     {
 
-      assert(xi>-1 && xi<X.get_current_size().first);
-      assert(yi>-1 && yi<Y.get_current_size().first);
+      assert(xi>-1 && xi<X.size().first);
+      assert(yi>-1 && yi<Y.size().first);
 
-      assert(X.get_current_size().second == Y.get_current_size().second);
+      assert(X.size().second == Y.size().second);
 
-      execute(X.get_current_size().second, X.get_ptr(xi,0), X.get_global_size().first, Y.get_ptr(yi,0), Y.get_global_size().first);
+      execute(X.size().second, X.ptr(xi,0), X.leadingDimension(), Y.ptr(yi,0), Y.leadingDimension());
     }
 
     template<typename scalartype>
     static void col(matrix<scalartype, CPU>& X, int xi, matrix<scalartype, CPU>& Y, int yi,
                     int /*thread_id*/, int /*stream_id*/)
     {
-      assert(xi>-1 && xi<X.get_current_size().second);
-      assert(yi>-1 && yi<Y.get_current_size().second);
-      assert(X.get_current_size().first == Y.get_current_size().first);
+      assert(xi>-1 && xi<X.size().second);
+      assert(yi>-1 && yi<Y.size().second);
+      assert(X.size().first == Y.size().first);
 
-      dca::linalg::blas::copy(X.get_current_size().first, X.get_ptr(0,xi), 1, Y.get_ptr(0,yi), 1);
+      dca::linalg::blas::copy(X.size().first, X.ptr(0,xi), 1, Y.ptr(0,yi), 1);
     }
 
     template<typename scalartype>

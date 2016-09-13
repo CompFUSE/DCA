@@ -55,7 +55,7 @@ public:
   interpolation_tp(parameters_type& parameters_ref);
 
   template <typename scalartype>
-  void initialize_T_K_to_k(LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& T_K_to_k);
+  void initialize_T_K_to_k(dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& T_K_to_k);
 
   template <typename scalartype>
   void execute(FUNC_LIB::function<std::complex<scalartype>,
@@ -81,11 +81,11 @@ interpolation_tp<parameters_type, source_k_dmn, target_k_dmn>::interpolation_tp(
 template <typename parameters_type, typename source_k_dmn, typename target_k_dmn>
 template <typename scalartype>
 void interpolation_tp<parameters_type, source_k_dmn, target_k_dmn>::initialize_T_K_to_k(
-    LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& T_K_to_k) {
+    dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& T_K_to_k) {
   int Nr = target_k_dmn::dmn_size();
   int Nc = source_k_dmn::dmn_size();
 
-  T_K_to_k.resize_no_copy(std::pair<int, int>(Nr, Nc));
+  T_K_to_k.resizeNoCopy(std::pair<int, int>(Nr, Nc));
 
   for (int j = 0; j < Nc; j++)
     for (int i = 0; i < Nr; i++)
@@ -100,7 +100,7 @@ void interpolation_tp<parameters_type, source_k_dmn, target_k_dmn>::execute(
     FUNC_LIB::function<std::complex<scalartype>,
                        dmn_2<dmn_4<b, b, k_HOST_VERTEX, w_VERTEX>, dmn_4<b, b, k_HOST_VERTEX, w_VERTEX>>>&
         Gamma_lattice) {
-  LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU> T_K_to_k("T_K_to_k");
+  dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> T_K_to_k("T_K_to_k");
 
   initialize_T_K_to_k(T_K_to_k);
 

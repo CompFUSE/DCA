@@ -17,7 +17,7 @@ namespace LIN_ALG {
 
       scalartype determinant = 1.;
 
-      for(int i=0; i<M.get_current_size().first; i++)
+      for(int i=0; i<M.size().first; i++)
         determinant *= M(i,i);
 
       return determinant;
@@ -31,7 +31,7 @@ namespace LIN_ALG {
       scalartype MIN = std::abs(M(0,0));
       scalartype MAX = std::abs(M(0,0));
 
-      for(int i=0; i<M.get_current_size().first; i++)
+      for(int i=0; i<M.size().first; i++)
 	{
 	  if(std::fabs(M(i,i)) < MIN ) MIN = std::abs(M(i,i));
 	  if(std::fabs(M(i,i)) > MAX ) MAX = std::abs(M(i,i));

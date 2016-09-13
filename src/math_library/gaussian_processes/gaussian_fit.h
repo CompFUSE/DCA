@@ -18,7 +18,7 @@ class gaussian_fit {
   typedef typename k_dmn_t::parameter_type::element_type k_element_type;
 
 public:
-  typedef LIN_ALG::matrix<scalar_type, LIN_ALG::CPU> matrix_type;
+  typedef dca::linalg::Matrix<scalar_type, dca::linalg::CPU> matrix_type;
 
 public:
   gaussian_fit();
@@ -54,14 +54,14 @@ template <typename scalar_type, typename K_dmn_t, typename k_dmn_t>
 gaussian_fit<scalar_type, K_dmn_t, k_dmn_t>::~gaussian_fit() {}
 
 template <typename scalar_type, typename K_dmn_t, typename k_dmn_t>
-LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& gaussian_fit<scalar_type, K_dmn_t,
-                                                         k_dmn_t>::get_interpolation_matrix() {
+dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& gaussian_fit<scalar_type, K_dmn_t,
+                                                                 k_dmn_t>::get_interpolation_matrix() {
   return interpolation_matrix;
 }
 
 template <typename scalar_type, typename K_dmn_t, typename k_dmn_t>
-LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& gaussian_fit<scalar_type, K_dmn_t,
-                                                         k_dmn_t>::get_correlation_matrix() {
+dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& gaussian_fit<scalar_type, K_dmn_t,
+                                                                 k_dmn_t>::get_correlation_matrix() {
   return correlation_matrix;
 }
 
@@ -81,9 +81,9 @@ void gaussian_fit<scalar_type, K_dmn_t, k_dmn_t>::initialize_interpolation_matri
   int N_r = k_dmn_t::dmn_size();
   int N_c = K_dmn_t::dmn_size();
 
-  interpolation_matrix.resize_no_copy(std::pair<int, int>(N_r, N_c));
+  interpolation_matrix.resizeNoCopy(std::pair<int, int>(N_r, N_c));
 
-  LIN_ALG::matrix<scalar_type, LIN_ALG::CPU> K_K("K_K", std::pair<int, int>(N_c, N_c));
+  dca::linalg::Matrix<scalar_type, dca::linalg::CPU> K_K("K_K", std::pair<int, int>(N_c, N_c));
 
   for (int i = 0; i < N_c; i++) {
     for (int j = 0; j < N_c; j++) {
@@ -100,11 +100,12 @@ void gaussian_fit<scalar_type, K_dmn_t, k_dmn_t>::initialize_interpolation_matri
     K_K(i, i) += error * error;
   }
 
-  LIN_ALG::matrix<scalar_type, LIN_ALG::CPU> K_K_inv("K_K_inv", std::pair<int, int>(N_c, N_c));
+  dca::linalg::Matrix<scalar_type, dca::linalg::CPU> K_K_inv("K_K_inv",
+                                                             std::pair<int, int>(N_c, N_c));
 
-  LIN_ALG::PSEUDO_INVERSE<LIN_ALG::CPU>::execute(K_K, K_K_inv);
+  LIN_ALG::PSEUDO_INVERSE<dca::linalg::CPU>::execute(K_K, K_K_inv);
 
-  LIN_ALG::matrix<scalar_type, LIN_ALG::CPU> interpolation_matrix_tmp(
+  dca::linalg::Matrix<scalar_type, dca::linalg::CPU> interpolation_matrix_tmp(
       "K_K_inv", std::pair<int, int>(N_r, N_c));
 
   for (int i = 0; i < N_r; i++) {
@@ -122,8 +123,8 @@ void gaussian_fit<scalar_type, K_dmn_t, k_dmn_t>::initialize_interpolation_matri
     interpolation_matrix_tmp(i, i) += error * error;
   }
 
-  LIN_ALG::GEMM<LIN_ALG::CPU>::execute('N', 'N', interpolation_matrix_tmp, K_K_inv,
-                                       interpolation_matrix);
+  LIN_ALG::GEMM<dca::linalg::CPU>::execute('N', 'N', interpolation_matrix_tmp, K_K_inv,
+                                           interpolation_matrix);
 }
 
 template <typename scalar_type, typename K_dmn_t, typename k_dmn_t>
@@ -133,7 +134,7 @@ void gaussian_fit<scalar_type, K_dmn_t, k_dmn_t>::initialize_correlation_matrix(
   int N_c = K_dmn_t::dmn_size();
   int N_r = k_dmn_t::dmn_size();
 
-  correlation_matrix.resize_no_copy(std::pair<int, int>(N_r, N_r));
+  correlation_matrix.resizeNoCopy(std::pair<int, int>(N_r, N_r));
 
   for (int i = 0; i < N_r; i++) {
     for (int j = 0; j < N_r; j++) {
@@ -150,7 +151,7 @@ void gaussian_fit<scalar_type, K_dmn_t, k_dmn_t>::initialize_correlation_matrix(
     correlation_matrix(i, i) += error * error;
   }
 
-  LIN_ALG::matrix<scalar_type, LIN_ALG::CPU> k_to_K("k_to_K", std::pair<int, int>(N_c, N_r));
+  dca::linalg::Matrix<scalar_type, dca::linalg::CPU> k_to_K("k_to_K", std::pair<int, int>(N_c, N_r));
 
   for (int i = 0; i < N_c; i++) {
     for (int j = 0; j < N_r; j++) {
@@ -167,8 +168,8 @@ void gaussian_fit<scalar_type, K_dmn_t, k_dmn_t>::initialize_correlation_matrix(
     k_to_K(i, i) += error * error;
   }
 
-  LIN_ALG::GEMM<LIN_ALG::CPU>::execute('N', 'N', scalar_type(-1), interpolation_matrix, k_to_K,
-                                       scalar_type(1), correlation_matrix);
+  LIN_ALG::GEMM<dca::linalg::CPU>::execute('N', 'N', scalar_type(-1), interpolation_matrix, k_to_K,
+                                           scalar_type(1), correlation_matrix);
 }
 
 }  // math_algorithm

@@ -24,23 +24,23 @@ namespace LIN_ALG {
                     int /*thread_id*/, int /*stream_id*/)
     {
 
-      assert(xi>-1 && xi<X.get_current_size().first);
-      assert(yi>-1 && yi<Y.get_current_size().first);
+      assert(xi>-1 && xi<X.size().first);
+      assert(yi>-1 && yi<Y.size().first);
 
-      assert(X.get_current_size().second == Y.get_current_size().second);
+      assert(X.size().second == Y.size().second);
 	  
-      execute(X.get_current_size().second, X.get_ptr(xi,0), X.get_leading_dimension(), Y.get_ptr(yi,0), Y.get_leading_dimension());
+      execute(X.size().second, X.ptr(xi,0), X.leadingDimension(), Y.ptr(yi,0), Y.leadingDimension());
     }
       
     template<typename scalartype>
     static void col(matrix<scalartype, GPU>& X, int xi, matrix<scalartype, GPU>& Y, int yi,
                     int /*thread_id*/, int /*stream_id*/)
     {
-      assert(xi>-1 && xi<X.get_current_size().second);
-      assert(yi>-1 && yi<Y.get_current_size().second);
-      assert(X.get_current_size().first == Y.get_current_size().first);
+      assert(xi>-1 && xi<X.size().second);
+      assert(yi>-1 && yi<Y.size().second);
+      assert(X.size().first == Y.size().first);
 	  
-      execute(X.get_number_of_rows(), X.get_ptr(0,xi), 1, Y.get_ptr(0,yi), 1);
+      execute(X.nrRows(), X.ptr(0,xi), 1, Y.ptr(0,yi), 1);
     }
      
     inline static void execute(int length, double* x, int inc_x, double* y, int inc_y,

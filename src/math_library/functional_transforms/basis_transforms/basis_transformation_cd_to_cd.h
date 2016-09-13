@@ -46,7 +46,7 @@ public:
 
   typedef typename basis_function_type::f_scalar_type f_scalar_type;
 
-  typedef LIN_ALG::matrix<f_scalar_type, LIN_ALG::CPU> matrix_type;
+  typedef dca::linalg::Matrix<f_scalar_type, dca::linalg::CPU> matrix_type;
 
   typedef inner_product_domain<output_type> inner_product_dmn;
 

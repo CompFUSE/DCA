@@ -91,8 +91,8 @@ void quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G_
     FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& H_q,
     FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& S_q,
     FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& G_q) {
-  LIN_ALG::matrix<std::complex<scalar_type>, LIN_ALG::CPU> G_inv("G_inv", nu::dmn_size());
-  LIN_ALG::GEINV<LIN_ALG::CPU>::plan<std::complex<scalar_type>> geinv_obj(G_inv);
+  dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU> G_inv("G_inv", nu::dmn_size());
+  LIN_ALG::GEINV<dca::linalg::CPU>::plan<std::complex<scalar_type>> geinv_obj(G_inv);
 
   for (int q_ind = 0; q_ind < q_dmn_t::dmn_size(); q_ind++) {
     for (int j = 0; j < nu::dmn_size(); j++)
@@ -155,8 +155,8 @@ void* quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G
                                                                                      q_dmn);
 
   {
-    LIN_ALG::matrix<std::complex<scalar_type>, LIN_ALG::CPU> G_inv("G_inv", nu::dmn_size());
-    LIN_ALG::GEINV<LIN_ALG::CPU>::plan<std::complex<scalar_type>> geinv_obj(G_inv);
+    dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU> G_inv("G_inv", nu::dmn_size());
+    LIN_ALG::GEINV<dca::linalg::CPU>::plan<std::complex<scalar_type>> geinv_obj(G_inv);
 
     for (int q_ind = q_bounds.first; q_ind < q_bounds.second; q_ind += 1) {
       for (int j = 0; j < nu::dmn_size(); j++)
@@ -184,12 +184,12 @@ void quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G_
   G_q = 0.;
 
   {
-    LIN_ALG::matrix<std::complex<scalar_type>, LIN_ALG::CPU> H_m("H_m", nu::dmn_size());
+    dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU> H_m("H_m", nu::dmn_size());
 
-    LIN_ALG::vector<scalar_type, LIN_ALG::CPU> L("e_l", nu::dmn_size());
-    LIN_ALG::matrix<std::complex<scalar_type>, LIN_ALG::CPU> V("V_l", nu::dmn_size());
+    dca::linalg::Vector<scalar_type, dca::linalg::CPU> L("e_l", nu::dmn_size());
+    dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU> V("V_l", nu::dmn_size());
 
-    LIN_ALG::vector<scalar_type, LIN_ALG::CPU> G_t("e_l", nu::dmn_size());
+    dca::linalg::Vector<scalar_type, dca::linalg::CPU> G_t("e_l", nu::dmn_size());
 
     for (int q_ind = 0; q_ind < q_dmn_t::dmn_size(); q_ind++) {
       for (int j = 0; j < nu::dmn_size(); j++)
@@ -197,9 +197,9 @@ void quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G_
           H_m(i, j) = H_q(i, j, q_ind) - I_q(i, j, q_ind);
 
       if (false)
-        LIN_ALG::GEEV<LIN_ALG::CPU>::execute('V', 'U', H_m, L, V);
+        LIN_ALG::GEEV<dca::linalg::CPU>::execute('V', 'U', H_m, L, V);
       else
-        LIN_ALG::GEEV<LIN_ALG::CPU>::execute_on_Greens_function_matrix('V', 'U', H_m, L, V);
+        LIN_ALG::GEEV<dca::linalg::CPU>::execute_on_Greens_function_matrix('V', 'U', H_m, L, V);
 
       for (int i = 0; i < nu::dmn_size(); i++) {
         if (L[i] < 0)
@@ -282,12 +282,12 @@ void* quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G
                                                                                      q_dmn);
 
   {
-    LIN_ALG::matrix<std::complex<scalar_type>, LIN_ALG::CPU> H_m("H_m", nu::dmn_size());
+    dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU> H_m("H_m", nu::dmn_size());
 
-    LIN_ALG::vector<scalar_type, LIN_ALG::CPU> L("e_l", nu::dmn_size());
-    LIN_ALG::matrix<std::complex<scalar_type>, LIN_ALG::CPU> V("V_l", nu::dmn_size());
+    dca::linalg::Vector<scalar_type, dca::linalg::CPU> L("e_l", nu::dmn_size());
+    dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU> V("V_l", nu::dmn_size());
 
-    LIN_ALG::vector<scalar_type, LIN_ALG::CPU> G_t("e_l", nu::dmn_size());
+    dca::linalg::Vector<scalar_type, dca::linalg::CPU> G_t("e_l", nu::dmn_size());
 
     for (int q_ind = q_bounds.first; q_ind < q_bounds.second; q_ind += 1) {
       for (int j = 0; j < nu::dmn_size(); j++)
@@ -295,9 +295,9 @@ void* quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G
           H_m(i, j) = H_q(i, j, q_ind) - I_q(i, j, q_ind);
 
       if (false)
-        LIN_ALG::GEEV<LIN_ALG::CPU>::execute('V', 'U', H_m, L, V);
+        LIN_ALG::GEEV<dca::linalg::CPU>::execute('V', 'U', H_m, L, V);
       else
-        LIN_ALG::GEEV<LIN_ALG::CPU>::execute_on_Greens_function_matrix('V', 'U', H_m, L, V);
+        LIN_ALG::GEEV<dca::linalg::CPU>::execute_on_Greens_function_matrix('V', 'U', H_m, L, V);
 
       for (int i = 0; i < nu::dmn_size(); i++) {
         if (L[i] < 0)

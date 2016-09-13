@@ -20,14 +20,14 @@ namespace LIN_ALG {
     static void execute(matrix<scalartype, GPU>& M, scalartype* D, matrix<scalartype, GPU>& A,
 			int thread_id, int stream_id)
     {
-      int m = M.get_current_size().first;
-      int n = M.get_current_size().second;
+      int m = M.size().first;
+      int n = M.size().second;
 
-      int LDM = M.get_global_size().first;
-      int LDA = A.get_global_size().first;
+      int LDM = M.leadingDimension();
+      int LDA = A.leadingDimension();
 
-      scalartype* M_ptr = M.get_ptr();
-      scalartype* A_ptr = A.get_ptr();
+      scalartype* M_ptr = M.ptr();
+      scalartype* A_ptr = A.ptr();
 
       GPU_KERNEL_GEMD::execute(m, n, M_ptr, LDM, D, A_ptr, LDA, thread_id, stream_id);
     }

@@ -36,7 +36,7 @@
 
 namespace DCA {
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 class cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>
     : public QMCI::ss_hybridization_solver_routines<parameters_type, MOMS_type> {
 public:
@@ -51,8 +51,8 @@ public:
   typedef QMCI::ss_hybridization_solver_routines<parameters_type, MOMS_type>
       ss_hybridization_solver_routines_type;
 
-  typedef QMCI::MC_walker<QMCI::SS_CT_HYB, LIN_ALG::CPU, parameters_type, MOMS_type> walker_type;
-  typedef QMCI::MC_accumulator<QMCI::SS_CT_HYB, LIN_ALG::CPU, parameters_type, MOMS_type> accumulator_type;
+  typedef QMCI::MC_walker<QMCI::SS_CT_HYB, dca::linalg::CPU, parameters_type, MOMS_type> walker_type;
+  typedef QMCI::MC_accumulator<QMCI::SS_CT_HYB, dca::linalg::CPU, parameters_type, MOMS_type> accumulator_type;
 
   using w = dmn_0<frequency_domain>;
   using b = dmn_0<electron_band_domain>;
@@ -137,7 +137,7 @@ protected:
   FUNC_LIB::function<double, nu> mu_DC;
 };
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::cluster_solver(
     parameters_type& parameters_ref, MOMS_type& MOMS_ref)
     : QMCI::ss_hybridization_solver_routines<parameters_type, MOMS_type>(parameters_ref, MOMS_ref),
@@ -161,12 +161,12 @@ cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::cluster_solver(
   concurrency << "\n\n\t SS CT-HYB Integrator is born \n\n";
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::~cluster_solver() {
   concurrency << "\n\n\t SS CT-HYB Integrator has died \n\n";
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 template <IO::FORMAT DATA_FORMAT>
 void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::write(
     IO::writer<DATA_FORMAT>& writer) {
@@ -189,7 +189,7 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::write(
   writer.close_group();
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::initialize(int dca_iteration) {
   if (concurrency.id() == 0)
     std::cout << "\n\n\t SS CT-HYB Integrator has started ( DCA-iteration : " << dca_iteration
@@ -226,7 +226,7 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::initialize
   }
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::integrate() {
   concurrency << "\n\t\t integration has started \n";
 
@@ -245,7 +245,7 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::integrate(
   concurrency << "\n\t\t integration has ended \n";
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 template <typename dca_info_struct_t>
 double cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::finalize(
     dca_info_struct_t& dca_info_struct) {
@@ -301,7 +301,7 @@ double cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::finalize
   return dca_info_struct.L2_Sigma_difference(DCA_iteration);
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::warm_up(walker_type& walker) {
   concurrency << "\n\t\t warm-up has started\n\n";
 
@@ -316,7 +316,7 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::warm_up(wa
   concurrency << "\n\t\t warm-up has ended\n\n";
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::measure(walker_type& walker) {
   concurrency << "\n\t\t measuring has started \n\n";
 
@@ -356,7 +356,7 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::measure(wa
   concurrency << "\n\t\t measuring has ended \n\n";
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::update_shell(int i, int N,
                                                                                    int k) {
   if (concurrency.id() == concurrency.first() && N > 10 && (i % (N / 10)) == 0) {
@@ -372,7 +372,7 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::update_she
   }
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_error_bars(
     int Nb_measurements_per_node) {
   concurrency << "\n\t\t computing the error-bars \n";
@@ -396,7 +396,7 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_er
   }
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::sum_measurements(
     int Nb_measurements) {
   concurrency << "\n\t\t sum measurements \n";
@@ -418,7 +418,7 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::sum_measur
   concurrency.sum(accumulator.get_visited_expansion_order_k());
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::symmetrize_measurements() {
   concurrency << "\n\t\t symmetrize measurements has started \n";
 
@@ -467,13 +467,13 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::symmetrize
   }
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_G_k_w() {
   math_algorithms::functional_transforms::TRANSFORM<r_DCA, k_DCA>::execute(accumulator.get_G_r_w(),
                                                                            MOMS.G_k_w);
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 double cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_S_k_w_from_G_k_w() {
   double alpha = DCA_iteration > 0 ? parameters.get_DCA_convergence_factor() : 1;
 
@@ -527,7 +527,7 @@ double cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_
   return L2_difference_norm / L2_Sigma_norm;
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_Sigma_new(
     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>>& G_r_w,
     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>>& GS_r_w) {
@@ -550,7 +550,7 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_Si
           Sigma_new(b_ind, s_ind, b_ind, s_ind, 0, w_ind) -= (mu_HALF(b_ind, s_ind));
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 int cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::find_w_cutoff() {
   ;
   return std::max(
@@ -558,7 +558,7 @@ int cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::find_w_cuto
                     1.0 * (w::dmn_size() / 2)));
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::find_tail_of_Sigma(
     double& S0, double& S1, int b, int s, int k) {
   int w_cutoff = find_w_cutoff();

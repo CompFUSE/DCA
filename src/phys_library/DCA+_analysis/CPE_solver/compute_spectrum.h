@@ -615,14 +615,14 @@ void compute_spectrum<parameters_type, basis_function_t>::compute_G_k_w_on_clust
   if (concurrency.id() == 0)
     std::cout << "\t\t start AC on G_K_w (time = " << dca::util::print_time() << ") --> ";
 
-  LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> G_matrix("G-matrix", nu::dmn_size());
-  LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> S_matrix("S-matrix", nu::dmn_size());
-  LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> G0_matrix("G0-matrix", nu::dmn_size());
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G_matrix("G-matrix", nu::dmn_size());
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> S_matrix("S-matrix", nu::dmn_size());
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G0_matrix("G0-matrix", nu::dmn_size());
 
-  LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> S_times_G0_matrix("SxG0_matrix",
-                                                                        nu::dmn_size());
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> S_times_G0_matrix("SxG0_matrix",
+                                                                                nu::dmn_size());
 
-  LIN_ALG::GEINV<LIN_ALG::CPU>::plan<std::complex<double>> geinv_obj;
+  LIN_ALG::GEINV<dca::linalg::CPU>::plan<std::complex<double>> geinv_obj;
 
   geinv_obj.initialize(S_times_G0_matrix);
 
@@ -636,15 +636,15 @@ void compute_spectrum<parameters_type, basis_function_t>::compute_G_k_w_on_clust
         for (int i = 0; i < nu::dmn_size(); i++)
           G0_matrix(i, j) = G0_k_w(i, j, k_ind, w_ind);
 
-      LIN_ALG::GEMM<LIN_ALG::CPU>::execute(S_matrix, G0_matrix, S_times_G0_matrix);
+      LIN_ALG::GEMM<dca::linalg::CPU>::execute(S_matrix, G0_matrix, S_times_G0_matrix);
 
       for (int i = 0; i < nu::dmn_size(); i++)
         S_times_G0_matrix(i, i) = 1. - S_times_G0_matrix(i, i);
 
-      // LIN_ALG::GEINV<LIN_ALG::CPU>::execute(S_times_G0_matrix);
+      // LIN_ALG::GEINV<dca::linalg::CPU>::execute(S_times_G0_matrix);
       geinv_obj.execute(S_times_G0_matrix);
 
-      LIN_ALG::GEMM<LIN_ALG::CPU>::execute(S_times_G0_matrix, G0_matrix, G_matrix);
+      LIN_ALG::GEMM<dca::linalg::CPU>::execute(S_times_G0_matrix, G0_matrix, G_matrix);
 
       for (int j = 0; j < nu::dmn_size(); j++)
         for (int i = 0; i < nu::dmn_size(); i++)

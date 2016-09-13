@@ -16,8 +16,8 @@ public:
   gaussian_regression();
   ~gaussian_regression();
 
-  void set_X(LIN_ALG::matrix<scalartype, LIN_ALG::CPU>& X_ref);
-  void set_S(LIN_ALG::matrix<scalartype, LIN_ALG::CPU>& S_ref);
+  void set_X(dca::linalg::Matrix<scalartype, dca::linalg::CPU>& X_ref);
+  void set_S(dca::linalg::Matrix<scalartype, dca::linalg::CPU>& S_ref);
 
   void compute_S(scalartype s_f, scalartype l, scalartype sigma);
   void compute_A(double eps);
@@ -35,14 +35,14 @@ private:
   int Nc;
 
   // y = X w
-  LIN_ALG::matrix<scalartype, LIN_ALG::CPU> X;
+  dca::linalg::Matrix<scalartype, dca::linalg::CPU> X;
 
-  LIN_ALG::matrix<scalartype, LIN_ALG::CPU> S;
-  LIN_ALG::matrix<scalartype, LIN_ALG::CPU> S_inv;
+  dca::linalg::Matrix<scalartype, dca::linalg::CPU> S;
+  dca::linalg::Matrix<scalartype, dca::linalg::CPU> S_inv;
 
-  LIN_ALG::matrix<scalartype, LIN_ALG::CPU> A;
-  LIN_ALG::matrix<scalartype, LIN_ALG::CPU> A_inv;
-  LIN_ALG::matrix<scalartype, LIN_ALG::CPU> A_inv_X;
+  dca::linalg::Matrix<scalartype, dca::linalg::CPU> A;
+  dca::linalg::Matrix<scalartype, dca::linalg::CPU> A_inv;
+  dca::linalg::Matrix<scalartype, dca::linalg::CPU> A_inv_X;
 };
 
 template <typename scalartype, typename lhs_dmn_t, typename rhs_dmn_t>
@@ -89,7 +89,7 @@ void gaussian_regression<scalartype, lhs_dmn_t, rhs_dmn_t>::execute(
 
 template <typename scalartype, typename lhs_dmn_t, typename rhs_dmn_t>
 void gaussian_regression<scalartype, lhs_dmn_t, rhs_dmn_t>::set_X(
-    LIN_ALG::matrix<scalartype, LIN_ALG::CPU>& X_ref) {
+    dca::linalg::Matrix<scalartype, dca::linalg::CPU>& X_ref) {
   X.copy_from(X_ref);
 }
 
@@ -114,19 +114,19 @@ void gaussian_regression<scalartype, lhs_dmn_t, rhs_dmn_t>::compute_S(scalartype
 // page 9, Rasmussen and Williams
 template <typename scalartype, typename lhs_dmn_t, typename rhs_dmn_t>
 void gaussian_regression<scalartype, lhs_dmn_t, rhs_dmn_t>::compute_A(double eps) {
-  LIN_ALG::PSEUDO_INVERSE<LIN_ALG::CPU>::execute(S, S_inv);
+  LIN_ALG::PSEUDO_INVERSE<dca::linalg::CPU>::execute(S, S_inv);
 
-  LIN_ALG::matrix<scalartype, LIN_ALG::CPU> Xt_X("Xt_X", std::pair<int, int>(Nc, Nc));
+  dca::linalg::Matrix<scalartype, dca::linalg::CPU> Xt_X("Xt_X", std::pair<int, int>(Nc, Nc));
 
-  LIN_ALG::GEMM<LIN_ALG::CPU>::execute('C', 'N', X, X, Xt_X);
+  LIN_ALG::GEMM<dca::linalg::CPU>::execute('C', 'N', X, X, Xt_X);
 
   for (int j = 0; j < Nc; j++)
     for (int i = 0; i < Nc; i++)
       A(i, j) = Xt_X(i, j) + S(i, j);
 
-  LIN_ALG::PSEUDO_INVERSE<LIN_ALG::CPU>::execute(A, A_inv);
+  LIN_ALG::PSEUDO_INVERSE<dca::linalg::CPU>::execute(A, A_inv);
 
-  LIN_ALG::GEMM<LIN_ALG::CPU>::execute('N', 'C', A_inv, X, A_inv_X);
+  LIN_ALG::GEMM<dca::linalg::CPU>::execute('N', 'C', A_inv, X, A_inv_X);
 }
 }
 

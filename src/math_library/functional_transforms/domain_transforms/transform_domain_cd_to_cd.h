@@ -81,9 +81,8 @@ void TRANSFORM_DOMAIN<type_input, CONTINUOUS, type_output, CONTINUOUS, DMN_INDEX
     int lin_ind_lhs = M * K * l;
     int lin_ind_rhs = M * N * l;
 
-    LIN_ALG::GEMM<LIN_ALG::CPU>::execute('N', 'T', M, N, K, scalartype(1), &f_input(lin_ind_lhs), M,
-                                         &T(0, 0), T.get_global_size().first, scalartype(0),
-                                         &f_output(lin_ind_rhs), M);
+    dca::linalg::blas::gemm("N", "T", M, N, K, scalartype(1), &f_input(lin_ind_lhs), M, &T(0, 0),
+                            T.leadingDimension(), scalartype(0), &f_output(lin_ind_rhs), M);
   }
 }
 
@@ -121,8 +120,8 @@ void TRANSFORM_DOMAIN<type_input, CONTINUOUS, type_output, CONTINUOUS, DMN_INDEX
       for (int i = 0; i < M * K; i++)
         A[i] = real(f_input(lin_ind_lhs + i));
 
-      LIN_ALG::GEMM<LIN_ALG::CPU>::execute('N', 'T', M, N, K, scalartype(1), A, M, &T(0, 0),
-                                           T.get_global_size().first, scalartype(0), C, M);
+      dca::linalg::blas::gemm("N", "T", M, N, K, scalartype(1), A, M, &T(0, 0),
+                              T.leadingDimension(), scalartype(0), C, M);
 
       for (int i = 0; i < M * N; i++)
         real(f_output(lin_ind_rhs + i)) = C[i];
@@ -132,8 +131,8 @@ void TRANSFORM_DOMAIN<type_input, CONTINUOUS, type_output, CONTINUOUS, DMN_INDEX
       for (int i = 0; i < M * K; i++)
         A[i] = imag(f_input(lin_ind_lhs + i));
 
-      LIN_ALG::GEMM<LIN_ALG::CPU>::execute('N', 'T', M, N, K, scalartype(1), A, M, &T(0, 0),
-                                           T.get_global_size().first, scalartype(0), C, M);
+      dca::linalg::blas::gemm('N', 'T', M, N, K, scalartype(1), A, M, &T(0, 0),
+                              T.leadingDimension(), scalartype(0), C, M);
 
       for (int i = 0; i < M * N; i++)
         imag(f_output(lin_ind_rhs + i)) = C[i];

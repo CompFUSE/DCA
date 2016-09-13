@@ -511,16 +511,16 @@ void data<parameters_type>::compute_dmft_band_structure() {
 
   {  // compute the bands ...
 
-    LIN_ALG::vector<double, LIN_ALG::CPU> L_vec(o_dmft::dmn_size());
-    LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> H_mat(o_dmft::dmn_size());
-    LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> V_mat(o_dmft::dmn_size());
+    dca::linalg::Vector<double, dca::linalg::CPU> L_vec(o_dmft::dmn_size());
+    dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> H_mat(o_dmft::dmn_size());
+    dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> V_mat(o_dmft::dmn_size());
 
     for (int l = 0; l < bz_cut::dmn_size(); l++) {
       for (int i = 0; i < o_dmft::dmn_size(); i++)
         for (int j = 0; j < o_dmft::dmn_size(); j++)
           H_mat(i, j) = H_0_dmft(l, i, j);
 
-      LIN_ALG::GEEV<LIN_ALG::CPU>::execute('N', 'U', H_mat, L_vec, V_mat);
+      LIN_ALG::GEEV<dca::linalg::CPU>::execute('N', 'U', H_mat, L_vec, V_mat);
 
       for (int i = 0; i < o_dmft::dmn_size(); i++)
         E_0_dmft(l, i) = L_vec[i];
@@ -653,10 +653,10 @@ void data<parameters_type>::check_bloch_hamiltonians() {
   {
     std::cout << "\n\n\t checking it my way " << __FUNCTION__ << "\n";
 
-    LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> p_lhs("P_lhs");
-    LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> p_rhs("P_rhs");
+    dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> p_lhs("P_lhs");
+    dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> p_rhs("P_rhs");
 
-    LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> p_lhs_times_p_rhs(
+    dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> p_lhs_times_p_rhs(
         "P_lhs x H_DFT(k) x P_rhs");
 
     p_lhs.resize(std::pair<int, int>(o_dmft::dmn_size(), b_dmft::dmn_size()));
@@ -675,7 +675,7 @@ void data<parameters_type>::check_bloch_hamiltonians() {
         for (int ib = 0; ib < b_dmft::dmn_size(); ib++)  // p1 and p2
           p_rhs(ib, io) = std::conj(p_lhs(io, ib));
 
-      LIN_ALG::GEMM<LIN_ALG::CPU>::execute(p_lhs, p_rhs, p_lhs_times_p_rhs);
+      LIN_ALG::GEMM<dca::linalg::CPU>::execute(p_lhs, p_rhs, p_lhs_times_p_rhs);
 
       for (int ib = 0; ib < b_dmft::dmn_size(); ib++)
         for (int io = 0; io < o_dmft::dmn_size(); io++)
@@ -753,13 +753,13 @@ void data<parameters_type>::downfold_bloch_hamiltonians() {
   {
     std::cout << "\n\n\t checking it my way " << __FUNCTION__ << "\n";
 
-    LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> p_lhs("P_lhs");
-    LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> p_rhs("P_rhs");
+    dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> p_lhs("P_lhs");
+    dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> p_rhs("P_rhs");
 
-    LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> H_k("H_k");
+    dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> H_k("H_k");
 
-    LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> p_lhs_x_H_k("P_lhs x H_DFT(k)");
-    LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> p_lhs_x_H_k_x_p_rhs(
+    dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> p_lhs_x_H_k("P_lhs x H_DFT(k)");
+    dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> p_lhs_x_H_k_x_p_rhs(
         "P_lhs x H_DFT(k) x P_rhs");
 
     p_lhs.resize(std::pair<int, int>(o_dmft::dmn_size(), b_dmft::dmn_size()));
@@ -786,8 +786,8 @@ void data<parameters_type>::downfold_bloch_hamiltonians() {
         for (int ib = 0; ib < b_dmft::dmn_size(); ib++)
           H_k(ib, jb) = BlochHami(ik, ib, jb);
 
-      LIN_ALG::GEMM<LIN_ALG::CPU>::execute(p_lhs, H_k, p_lhs_x_H_k);
-      LIN_ALG::GEMM<LIN_ALG::CPU>::execute(p_lhs_x_H_k, p_rhs, p_lhs_x_H_k_x_p_rhs);
+      LIN_ALG::GEMM<dca::linalg::CPU>::execute(p_lhs, H_k, p_lhs_x_H_k);
+      LIN_ALG::GEMM<dca::linalg::CPU>::execute(p_lhs_x_H_k, p_rhs, p_lhs_x_H_k_x_p_rhs);
 
       for (int jo = 0; jo < o_dmft::dmn_size(); jo++)
         for (int io = 0; io < o_dmft::dmn_size(); io++)

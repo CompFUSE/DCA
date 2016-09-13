@@ -44,14 +44,14 @@ namespace LIN_ALG {
     template<typename scalartype>
     static void execute(char JOBZ, 
 			matrix<scalartype, CPU>& A, 
-			vector<scalartype, CPU>& S,
+			dca::linalg::Vector<scalartype, CPU>& S,
 			matrix<scalartype, CPU>& U,
 			matrix<scalartype, CPU>& VT);
     
     template<typename scalartype>
     static void execute(char JOBZ, 
 			matrix<std::complex<scalartype>, CPU>& A, 
-			vector<             scalartype , CPU>& S,
+			dca::linalg::Vector<scalartype, CPU>& S,
 			matrix<std::complex<scalartype>, CPU>& U,
 			matrix<std::complex<scalartype>, CPU>& VT);
       
@@ -110,7 +110,7 @@ namespace LIN_ALG {
   template<typename scalartype>
   void GESVD<GPU>::execute(char JOBZ, 
 			   matrix<scalartype, CPU>& A, 
-			   vector<scalartype, CPU>& S,
+			   dca::linalg::Vector<scalartype, CPU>& S,
 			   matrix<scalartype, CPU>& U,
 			   matrix<scalartype, CPU>& VT)
   {
@@ -120,13 +120,13 @@ namespace LIN_ALG {
     matrix<scalartype, CPU> X;
     X.copy_from(A);
     
-    int M = X.get_current_size().first;
-    int N = X.get_current_size().second;
+    int M = X.size().first;
+    int N = X.size().second;
     
-    int LDX = X.get_global_size().first;
+    int LDX = X.leadingDimension();
     
-    int LDU  = U .get_global_size().first;
-    int LDVT = VT.get_global_size().first;
+    int LDU  = U .leadingDimension();
+    int LDVT = VT.leadingDimension();
 
     if(true)
       {
@@ -135,7 +135,7 @@ namespace LIN_ALG {
 
 	int LWORK  = -1;
 
-	vector<scalartype, CPU> WORK(1);
+	dca::linalg::Vector<scalartype, CPU> WORK(1);
 
 	{// optimal work-space query
 	  execute(JOBU, JOBVT, M, N, &X(0,0), LDX, &S[0], &U(0,0), LDU, &VT(0,0), LDVT, &WORK[0], LWORK);
@@ -153,7 +153,7 @@ namespace LIN_ALG {
 	
 	int LIWORK = 8*std::min(M,N);
 	
-	vector<scalartype, CPU> WORK(1);
+	dca::linalg::Vector<scalartype, CPU> WORK(1);
 	vector<int       , CPU> IWORK(LIWORK);
 	
 	{// optimal work-space query
@@ -171,7 +171,7 @@ namespace LIN_ALG {
   template<typename scalartype>
   void GESVD<GPU>::execute(char JOBZ, 
 			   matrix<std::complex<scalartype>, CPU>& A, 
-			   vector<             scalartype , CPU>& S,
+			   dca::linalg::Vector<scalartype, CPU>& S,
 			   matrix<std::complex<scalartype>, CPU>& U,
 			   matrix<std::complex<scalartype>, CPU>& VT)
   {
@@ -181,13 +181,13 @@ namespace LIN_ALG {
     matrix<std::complex<scalartype>, CPU> X;
     X.copy_from(A);
     
-    int M = X.get_current_size().first;
-    int N = X.get_current_size().second;
+    int M = X.size().first;
+    int N = X.size().second;
     
-    int LDX = X.get_global_size().first;
+    int LDX = X.leadingDimension();
     
-    int LDU  = U .get_global_size().first;
-    int LDVT = VT.get_global_size().first;
+    int LDU  = U .leadingDimension();
+    int LDVT = VT.leadingDimension();
 
     if(true)
       {
@@ -197,8 +197,8 @@ namespace LIN_ALG {
 	int LWORK  = -1;
 	int LRWORK = 5*std::min(M,N);
 
-	vector<std::complex<scalartype>, CPU> WORK(1);
-	vector<             scalartype , CPU> RWORK(LRWORK);
+	dca::linalg::Vector<std::complex<scalartype>, CPU> WORK(1);
+	dca::linalg::Vector<scalartype, CPU> RWORK(LRWORK);
 
 	{// optimal work-space query
 	  execute(JOBU, JOBVT, M, N, &X(0,0), LDX, &S[0], &U(0,0), LDU, &VT(0,0), LDVT, &WORK[0], LWORK, &RWORK[0]);
@@ -222,8 +222,8 @@ namespace LIN_ALG {
 	
 	int LIWORK = 8*std::min(M,N);
 	
-	vector<std::complex<scalartype>, CPU> WORK(1);
-	vector<             scalartype , CPU> RWORK(LRWORK);
+	dca::linalg::Vector<std::complex<scalartype>, CPU> WORK(1);
+	dca::linalg::Vector<scalartype, CPU> RWORK(LRWORK);
 	vector<             int        , CPU> IWORK(LIWORK);
 	
 	{// optimal work-space query

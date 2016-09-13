@@ -47,7 +47,7 @@ public:
             class domain_output, typename scalartype_T>
   static void execute(FUNC_LIB::function<scalartype_input, domain_input>& f_input,
                       FUNC_LIB::function<scalartype_output, domain_output>& f_output,
-                      LIN_ALG::matrix<scalartype_T, LIN_ALG::CPU>& T) {
+                      dca::linalg::Matrix<scalartype_T, dca::linalg::CPU>& T) {
     if (VERBOSE)
       print_types(f_input, f_output);
 
@@ -78,7 +78,7 @@ public:
             class domain_output, typename scalartype_T>
   static void execute_on_all(FUNC_LIB::function<scalartype_input, domain_input>& f_input,
                              FUNC_LIB::function<scalartype_output, domain_output>& f_output,
-                             LIN_ALG::matrix<scalartype_T, LIN_ALG::CPU>& T) {
+                             dca::linalg::Matrix<scalartype_T, dca::linalg::CPU>& T) {
     if (VERBOSE)
       print_types(f_input, f_output);
 

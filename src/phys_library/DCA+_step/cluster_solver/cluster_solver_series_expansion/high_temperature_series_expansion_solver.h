@@ -24,7 +24,7 @@
 
 namespace DCA {
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 class cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_type> {
 public:
   cluster_solver(parameters_type& parameters_ref, MOMS_type& MOMS_ref);
@@ -56,7 +56,7 @@ private:
   int DCA_it;
 };
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_type>::cluster_solver(
     parameters_type& parameters_ref, MOMS_type& MOMS_ref)
     : parameters(parameters_ref),
@@ -64,16 +64,16 @@ cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_type>::c
 
       series_exp_obj(parameters, MOMS) {}
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_type>::initialize() {}
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_type>::initialize(
     int dca_iteration) {
   DCA_it = dca_iteration;
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_type>::execute() {
   series_exp_obj.execute(false);
 
@@ -86,17 +86,17 @@ void cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_typ
   MOMS.compute_Sigma_bands();
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_type>::finalize() {}
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 template <typename dca_info_struct_t>
 void cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_type>::finalize(
     dca_info_struct_t& /*dca_info_struct*/) {
   finalize();
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_type>::write(
     std::string file_name) {
   IO::FORMAT FORMAT = parameters.get_output_format();
@@ -135,7 +135,7 @@ void cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_typ
   }
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 template <IO::FORMAT DATA_FORMAT>
 void cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_type>::write(
     IO::writer<DATA_FORMAT>& /*writer*/) {

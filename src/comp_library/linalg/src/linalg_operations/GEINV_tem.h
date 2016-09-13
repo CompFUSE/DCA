@@ -14,14 +14,14 @@ namespace LIN_ALG
     template<typename scalartype>
     static void execute(matrix<scalartype, device_t>& A)
     {
-      assert(A.get_current_size().first  == A.get_current_size().second);
+      assert(A.size().first  == A.size().second);
 
-      LIN_ALG::vector<int, CPU> IPIV(A.get_current_size().first);
-      for(int i=0; i<A.get_current_size().first; i++)
+      dca::linalg::Vector<int, CPU> IPIV(A.size().first);
+      for(int i=0; i<A.size().first; i++)
         IPIV[i] = i+1;
 
-      GETRF<device_t>::execute(A, IPIV.get_ptr());
-      GETRI<device_t>::execute(A, IPIV.get_ptr());
+      GETRF<device_t>::execute(A, IPIV.ptr());
+      GETRI<device_t>::execute(A, IPIV.ptr());
     }
 
     template<typename scalartype>
@@ -89,9 +89,9 @@ namespace LIN_ALG
     template<typename scalartype>
     static void execute_on_small_matrix(matrix<scalartype, device_t>& A)
     {
-      assert(A.get_current_size().first == A.get_current_size().second);
+      assert(A.size().first == A.size().second);
 
-      switch(A.get_current_size().first)
+      switch(A.size().first)
         {
         case 1:
           {
@@ -108,10 +108,10 @@ namespace LIN_ALG
     template<typename scalartype>
     static void execute_on_Green_function_matrix(matrix<scalartype, device_t>& A)
     {
-      assert(A.get_current_size().first % 2 == 0);
-      assert(A.get_current_size().first  == A.get_current_size().second);
+      assert(A.size().first % 2 == 0);
+      assert(A.size().first  == A.size().second);
 
-      switch(A.get_current_size().first)
+      switch(A.size().first)
         {
         case 2:
           {
@@ -160,9 +160,9 @@ namespace LIN_ALG
       
       void initialize(matrix<scalartype, device_t>& A)
       {
-	assert(A.get_current_size().first == A.get_current_size().second);
+	assert(A.size().first == A.size().second);
 	
-	N = A.get_current_size().first;
+	N = A.size().first;
 
 	LWORK = 16*std::max(1,N);
 
@@ -181,8 +181,8 @@ namespace LIN_ALG
       {
 	assert(initialized);
 
-	assert(A.get_current_size().first == A.get_current_size().second);
-	assert(A.get_current_size().first == N);
+	assert(A.size().first == A.size().second);
+	assert(A.size().first == N);
 	
 	for(int j=0; j<N; j++)
 	  for(int i=0; i<N; i++)

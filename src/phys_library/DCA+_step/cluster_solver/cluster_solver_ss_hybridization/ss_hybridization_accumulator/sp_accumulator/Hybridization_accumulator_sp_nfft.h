@@ -202,7 +202,7 @@ void MC_single_particle_accumulator<SS_CT_HYB, NFFT, parameters_type, base_clust
     coor_nfft[3] = coor[1];
     coor_nfft[4] = 0;
 
-    LIN_ALG::matrix<double, LIN_ALG::CPU>& M_ind = M_matrices(flavor);
+    dca::linalg::Matrix<double, dca::linalg::CPU>& M_ind = M_matrices(flavor);
     orbital_configuration_type& segments = configuration.get_vertices(flavor);
 
     for (int j = 0; j < (int)segments.size(); j++) {

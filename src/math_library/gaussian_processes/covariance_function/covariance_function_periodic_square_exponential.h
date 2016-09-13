@@ -29,7 +29,7 @@ public:
 public:
   double sigma_f;
 
-  LIN_ALG::matrix<double, LIN_ALG::CPU> A;
+  dca::linalg::Matrix<double, dca::linalg::CPU> A;
 };
 
 template <typename k_dmn_t>
@@ -41,7 +41,7 @@ covariance_function<PERIODIC_SQUARED_EXPONENTIAL, k_dmn_t>::covariance_function(
     : sigma_f(1.),
 
       A("A", std::pair<int, int>(DIMENSION, DIMENSION)) {
-  LIN_ALG::matrix<double, LIN_ALG::CPU> T("T", std::pair<int, int>(DIMENSION, DIMENSION));
+  dca::linalg::Matrix<double, dca::linalg::CPU> T("T", std::pair<int, int>(DIMENSION, DIMENSION));
 
   for (int li = 0; li < DIMENSION; li++)
     for (int lj = 0; lj < DIMENSION; lj++)

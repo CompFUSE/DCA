@@ -24,7 +24,7 @@ namespace QMCI {
 // DCA::QMCI::
 
 template <typename parameters_type>
-class N_MATRIX_TOOLS<LIN_ALG::CPU, parameters_type> {
+class N_MATRIX_TOOLS<dca::linalg::CPU, parameters_type> {
   const static int MAX_VERTEX_SINGLETS = 4;
 
   typedef typename parameters_type::concurrency_type concurrency_type;
@@ -34,24 +34,24 @@ public:
   N_MATRIX_TOOLS(int id, parameters_type& parameters_ref);
   ~N_MATRIX_TOOLS();
 
-  double* get_device_ptr(LIN_ALG::vector<double, LIN_ALG::CPU>& v);
+  double* get_device_ptr(dca::linalg::Vector<double, dca::linalg::CPU>& v);
 
   int* get_permutation();
   void set_permutation(std::vector<int>& p);
 
-  void set_d_vector(std::vector<int>& d_index, LIN_ALG::matrix<double, LIN_ALG::CPU>& N,
-                    LIN_ALG::vector<double, LIN_ALG::CPU>& d_inv);
+  void set_d_vector(std::vector<int>& d_index, dca::linalg::Matrix<double, dca::linalg::CPU>& N,
+                    dca::linalg::Vector<double, dca::linalg::CPU>& d_inv);
 
-  void set_d_vector(LIN_ALG::vector<double, LIN_ALG::CPU>& d_inv);
+  void set_d_vector(dca::linalg::Vector<double, dca::linalg::CPU>& d_inv);
 
-  void scale_rows(LIN_ALG::matrix<double, LIN_ALG::CPU>& N);
+  void scale_rows(dca::linalg::Matrix<double, dca::linalg::CPU>& N);
 
-  void copy_rows(LIN_ALG::matrix<double, LIN_ALG::CPU>& N,
-                 LIN_ALG::matrix<double, LIN_ALG::CPU>& N_new_spins);
+  void copy_rows(dca::linalg::Matrix<double, dca::linalg::CPU>& N,
+                 dca::linalg::Matrix<double, dca::linalg::CPU>& N_new_spins);
 
-  void compute_G_cols(std::vector<double>& exp_V, LIN_ALG::matrix<double, LIN_ALG::CPU>& N,
-                      LIN_ALG::matrix<double, LIN_ALG::CPU>& G,
-                      LIN_ALG::matrix<double, LIN_ALG::CPU>& G_cols);
+  void compute_G_cols(std::vector<double>& exp_V, dca::linalg::Matrix<double, dca::linalg::CPU>& N,
+                      dca::linalg::Matrix<double, dca::linalg::CPU>& G,
+                      dca::linalg::Matrix<double, dca::linalg::CPU>& G_cols);
 
 private:
   int thread_id;
@@ -60,17 +60,18 @@ private:
   parameters_type& parameters;
   concurrency_type& concurrency;
 
-  LIN_ALG::vector<int, LIN_ALG::CPU> identity;
-  LIN_ALG::vector<int, LIN_ALG::CPU> permutation;
+  dca::linalg::Vector<int, dca::linalg::CPU> identity;
+  dca::linalg::Vector<int, dca::linalg::CPU> permutation;
 
-  LIN_ALG::vector<double, LIN_ALG::CPU> exp_V;
-  LIN_ALG::vector<double, LIN_ALG::CPU> d_vec;
+  dca::linalg::Vector<double, dca::linalg::CPU> exp_V;
+  dca::linalg::Vector<double, dca::linalg::CPU> d_vec;
 
-  // LIN_ALG::matrix<double, LIN_ALG::CPU> data;
+  // dca::linalg::Matrix<double, dca::linalg::CPU> data;
 };
 
 template <typename parameters_type>
-N_MATRIX_TOOLS<LIN_ALG::CPU, parameters_type>::N_MATRIX_TOOLS(int id, parameters_type& parameters_ref)
+N_MATRIX_TOOLS<dca::linalg::CPU, parameters_type>::N_MATRIX_TOOLS(int id,
+                                                                  parameters_type& parameters_ref)
     : thread_id(id),
       stream_id(0),
 
@@ -87,71 +88,74 @@ N_MATRIX_TOOLS<LIN_ALG::CPU, parameters_type>::N_MATRIX_TOOLS(int id, parameters
 }
 
 template <typename parameters_type>
-N_MATRIX_TOOLS<LIN_ALG::CPU, parameters_type>::~N_MATRIX_TOOLS() {}
+N_MATRIX_TOOLS<dca::linalg::CPU, parameters_type>::~N_MATRIX_TOOLS() {}
 
 template <typename parameters_type>
-double* N_MATRIX_TOOLS<LIN_ALG::CPU, parameters_type>::get_device_ptr(
-    LIN_ALG::vector<double, LIN_ALG::CPU>& v) {
-  return v.get_ptr();
+double* N_MATRIX_TOOLS<dca::linalg::CPU, parameters_type>::get_device_ptr(
+    dca::linalg::Vector<double, dca::linalg::CPU>& v) {
+  return v.ptr();
 }
 
 template <typename parameters_type>
-int* N_MATRIX_TOOLS<LIN_ALG::CPU, parameters_type>::get_permutation() {
-  return permutation.get_ptr();
+int* N_MATRIX_TOOLS<dca::linalg::CPU, parameters_type>::get_permutation() {
+  return permutation.ptr();
 }
 
 template <typename parameters_type>
-void N_MATRIX_TOOLS<LIN_ALG::CPU, parameters_type>::set_permutation(std::vector<int>& p) {
+void N_MATRIX_TOOLS<dca::linalg::CPU, parameters_type>::set_permutation(std::vector<int>& p) {
   permutation.set(p);
 }
 
 template <typename parameters_type>
-void N_MATRIX_TOOLS<LIN_ALG::CPU, parameters_type>::set_d_vector(
-    LIN_ALG::vector<double, LIN_ALG::CPU>& d_inv) {
+void N_MATRIX_TOOLS<dca::linalg::CPU, parameters_type>::set_d_vector(
+    dca::linalg::Vector<double, dca::linalg::CPU>& d_inv) {
   d_vec.set(d_inv);
 }
 
 template <typename parameters_type>
-void N_MATRIX_TOOLS<LIN_ALG::CPU, parameters_type>::scale_rows(LIN_ALG::matrix<double, LIN_ALG::CPU>& N) {
+void N_MATRIX_TOOLS<dca::linalg::CPU, parameters_type>::scale_rows(
+    dca::linalg::Matrix<double, dca::linalg::CPU>& N) {
   assert(permutation.size() == d_vec.size());
 
   int N_i = permutation.size();
-  int N_c = N.get_number_of_cols();
+  int N_c = N.nrCols();
 
-  int N_LD = N.get_leading_dimension();
+  int N_LD = N.leadingDimension();
 
-  LIN_ALG::SCALE<LIN_ALG::CPU>::many_rows(N_c, N_i, permutation.get_ptr(), d_vec.get_ptr(),
-                                          N.get_ptr(), N_LD, thread_id, stream_id);
+  LIN_ALG::SCALE<dca::linalg::CPU>::many_rows(N_c, N_i, permutation.ptr(), d_vec.ptr(), N.ptr(),
+                                              N_LD, thread_id, stream_id);
 }
 
 template <typename parameters_type>
-void N_MATRIX_TOOLS<LIN_ALG::CPU, parameters_type>::copy_rows(
-    LIN_ALG::matrix<double, LIN_ALG::CPU>& N, LIN_ALG::matrix<double, LIN_ALG::CPU>& N_new_spins) {
-  assert(N_new_spins.get_number_of_cols() == N.get_number_of_cols());
-  assert(N_new_spins.get_number_of_rows() == permutation.size());
+void N_MATRIX_TOOLS<dca::linalg::CPU, parameters_type>::copy_rows(
+    dca::linalg::Matrix<double, dca::linalg::CPU>& N,
+    dca::linalg::Matrix<double, dca::linalg::CPU>& N_new_spins) {
+  assert(N_new_spins.nrCols() == N.nrCols());
+  assert(N_new_spins.nrRows() == permutation.size());
 
   int N_i = permutation.size();
-  int N_c = N.get_number_of_cols();
+  int N_c = N.nrCols();
 
   assert(N_i <= identity.size());
 
-  LIN_ALG::COPY<LIN_ALG::CPU>::many_rows(
-      N_c, N_i, permutation.get_ptr(), N.get_ptr(), N.get_leading_dimension(), identity.get_ptr(),
-      N_new_spins.get_ptr(), N_new_spins.get_leading_dimension(), thread_id, stream_id);
+  LIN_ALG::COPY<dca::linalg::CPU>::many_rows(N_c, N_i, permutation.ptr(), N.ptr(),
+                                             N.leadingDimension(), identity.ptr(), N_new_spins.ptr(),
+                                             N_new_spins.leadingDimension(), thread_id, stream_id);
 }
 
 template <typename parameters_type>
-void N_MATRIX_TOOLS<LIN_ALG::CPU, parameters_type>::compute_G_cols(
-    std::vector<double>& exp_V, LIN_ALG::matrix<double, LIN_ALG::CPU>& N,
-    LIN_ALG::matrix<double, LIN_ALG::CPU>& G, LIN_ALG::matrix<double, LIN_ALG::CPU>& G_cols) {
-  assert(N.get_number_of_rows() == G.get_number_of_rows());
-  assert(N.get_number_of_rows() == G_cols.get_number_of_rows());
-  assert(permutation.size() == G_cols.get_number_of_cols());
+void N_MATRIX_TOOLS<dca::linalg::CPU, parameters_type>::compute_G_cols(
+    std::vector<double>& exp_V, dca::linalg::Matrix<double, dca::linalg::CPU>& N,
+    dca::linalg::Matrix<double, dca::linalg::CPU>& G,
+    dca::linalg::Matrix<double, dca::linalg::CPU>& G_cols) {
+  assert(N.nrRows() == G.nrRows());
+  assert(N.nrRows() == G_cols.nrRows());
+  assert(permutation.size() == G_cols.nrCols());
   assert(int(exp_V.size()) == permutation.size());
 
-  int N_r = N.get_number_of_rows();
+  int N_r = N.nrRows();
 
-  int N_ind = N.get_number_of_cols() - G.get_number_of_cols();
+  int N_ind = N.nrCols() - G.nrCols();
 
   for (int l = 0; l < permutation.size(); ++l) {
     if (permutation[l] >= N_ind) {

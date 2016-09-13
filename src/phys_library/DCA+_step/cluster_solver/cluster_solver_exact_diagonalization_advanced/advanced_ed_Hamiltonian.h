@@ -292,7 +292,7 @@ void fermionic_Hamiltonian<parameter_type, ed_options>::construct_Hamiltonians(b
         (Hilbert_spaces[i].get_eigenvalues()[0] == parameters.get_occupation() &&
          Hilbert_spaces[i].get_eigenvalues()[1] == parameters.get_magnetization())) {
       int N = Hilbert_spaces[i].size();
-      Hamiltonians(i).resize_no_copy(N);
+      Hamiltonians(i).resizeNoCopy(N);
 
       matrix_type& H = Hamiltonians(i);
       Hilbert_space_type& subspace = Hilbert_spaces[i];
@@ -596,7 +596,7 @@ void fermionic_Hamiltonian<parameter_type, ed_options>::diagonalize_Hamiltonians
     std::vector<int> Hilbert_space_evals = Hilbert_spaces[i].get_eigenvalues();
 
     eigen_energies(i).resize(N);
-    eigen_states(i).resize_no_copy(N);
+    eigen_states(i).resizeNoCopy(N);
 
     {
       if (concurrency.id() == 0)
@@ -604,8 +604,8 @@ void fermionic_Hamiltonian<parameter_type, ed_options>::diagonalize_Hamiltonians
                   << ", \t size : " << N << ", \t time : ";
 
       int start = clock();
-      LIN_ALG::GEEV<LIN_ALG::CPU>::execute('V', 'U', Hamiltonians(i), eigen_energies(i),
-                                           eigen_states(i));
+      LIN_ALG::GEEV<dca::linalg::CPU>::execute('V', 'U', Hamiltonians(i), eigen_energies(i),
+                                               eigen_states(i));
       int end = clock();
 
       if (concurrency.id() == 0)

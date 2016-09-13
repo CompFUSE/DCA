@@ -12,8 +12,9 @@
 #ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_WALKER_CTAUX_WALKER_TOOLS_CTAUX_G0_MATRIX_ROUTINES_G0_INTERPOLATION_TEMPLATE_HPP
 #define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_CTAUX_CTAUX_WALKER_CTAUX_WALKER_TOOLS_CTAUX_G0_MATRIX_ROUTINES_G0_INTERPOLATION_TEMPLATE_HPP
 
+#include "dca/linalg/matrix.hpp"
+
 #include "comp_library/function_library/include_function_library.h"
-#include "comp_library/linalg/src/matrix.h"
 #include "math_library/interpolation_library/akima_interpolation.h"
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
@@ -68,7 +69,7 @@ protected:
 
   nu_nu_r_dmn_t_shifted_t nu_nu_r_dmn_t_t_shifted_dmn;
 
-  LIN_ALG::matrix<double, LIN_ALG::CPU> r1_minus_r0;
+  dca::linalg::Matrix<double, dca::linalg::CPU> r1_minus_r0;
 
   FUNC_LIB::function<double, nu_nu_r_dmn_t_shifted_t> G0_r_t_shifted;
   FUNC_LIB::function<double, nu_nu_r_dmn_t_shifted_t> grad_G0_r_t_shifted;

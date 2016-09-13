@@ -48,10 +48,10 @@ public:
   void sum(FUNC_LIB::function<std::vector<scalar_type>, domain>& f);
 
   template <typename scalar_type>
-  void sum(LIN_ALG::vector<scalar_type, LIN_ALG::CPU>& f);
+  void sum(linalg::Vector<scalar_type, linalg::CPU>& f);
 
   template <typename scalar_type>
-  void sum(LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& f);
+  void sum(dca::linalg::Matrix<scalar_type, linalg::CPU>& f);
 
   template <typename some_type>
   void sum_and_average(some_type& obj, int nr_meas_rank = 1);
@@ -162,7 +162,7 @@ void collective_sum_interface<MPI_LIBRARY>::sum(FUNC_LIB::function<std::vector<s
   int Nr = f(0).size();
   int Nc = f.size();
 
-  LIN_ALG::matrix<scalar_type, LIN_ALG::CPU> M("M", std::pair<int, int>(Nr, Nc));
+  dca::linalg::Matrix<scalar_type, linalg::CPU> M("M", std::pair<int, int>(Nr, Nc));
 
   for (int j = 0; j < Nc; j++)
     for (int i = 0; i < Nr; i++)
@@ -184,36 +184,35 @@ void collective_sum_interface<MPI_LIBRARY>::sum(FUNC_LIB::function<scalar_type, 
 }
 
 template <typename scalar_type>
-void collective_sum_interface<MPI_LIBRARY>::sum(LIN_ALG::vector<scalar_type, LIN_ALG::CPU>& f) {
-  LIN_ALG::vector<scalar_type, LIN_ALG::CPU> F("F", f.get_current_size());
+void collective_sum_interface<MPI_LIBRARY>::sum(linalg::Vector<scalar_type, linalg::CPU>& f) {
+  linalg::Vector<scalar_type, linalg::CPU> F("F", f.size());
 
-  MPI_Allreduce(&f[0], &F[0],
-                type_map_interface<MPI_LIBRARY, scalar_type>::factor() * f.get_current_size(),
+  MPI_Allreduce(&f[0], &F[0], type_map_interface<MPI_LIBRARY, scalar_type>::factor() * f.size(),
                 type_map_interface<MPI_LIBRARY, scalar_type>::value(), MPI_SUM, grouping.get());
 
-  for (int i = 0; i < F.get_current_size(); i++)
+  for (int i = 0; i < F.size(); i++)
     f[i] = F[i];
 
-  for (int i = 0; i < F.get_current_size(); i++)
+  for (int i = 0; i < F.size(); i++)
     if (f[i] != f[i])
       throw std::logic_error(__FUNCTION__);
 }
 
 template <typename scalar_type>
-void collective_sum_interface<MPI_LIBRARY>::sum(LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& f) {
-  LIN_ALG::matrix<scalar_type, LIN_ALG::CPU> F("F", f.get_current_size(), f.get_global_size());
+void collective_sum_interface<MPI_LIBRARY>::sum(dca::linalg::Matrix<scalar_type, linalg::CPU>& f) {
+  dca::linalg::Matrix<scalar_type, linalg::CPU> F("F", f.size(), f.capacity());
 
-  assert(f.get_global_size().first == F.get_global_size().first);
-  assert(f.get_global_size().second == F.get_global_size().second);
+  assert(f.capacity().first == F.capacity().first);
+  assert(f.capacity().second == F.capacity().second);
 
-  int Nr = f.get_global_size().first;
-  int Nc = f.get_global_size().second;
+  int Nr = f.capacity().first;
+  int Nc = f.capacity().second;
 
   MPI_Allreduce(&f(0, 0), &F(0, 0), type_map_interface<MPI_LIBRARY, scalar_type>::factor() * Nr * Nc,
                 type_map_interface<MPI_LIBRARY, scalar_type>::value(), MPI_SUM, grouping.get());
 
-  for (int j = 0; j < F.get_current_size().second; j++)
-    for (int i = 0; i < F.get_current_size().first; i++)
+  for (int j = 0; j < F.size().second; j++)
+    for (int i = 0; i < F.size().first; i++)
       f(i, j) = F(i, j);
 }
 

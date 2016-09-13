@@ -24,7 +24,7 @@ namespace LIN_ALG {
                            int /*thread_id*/, int /*stream_id*/)
     {
       // assert(stream_id==0);
-      execute(M.get_current_size().second, val, M.get_ptr(i,0), M.get_global_size().first);
+      execute(M.size().second, val, M.ptr(i,0), M.leadingDimension());
     }
 
     template<typename scalartype>
@@ -32,7 +32,7 @@ namespace LIN_ALG {
                            int /*thread_id*/, int /*stream_id*/)
     {
       // assert(stream_id==0);
-      execute(M.get_current_size().first, val, M.get_ptr(0,i), M.get_global_size().second);
+      execute(M.size().first, val, M.ptr(0,i), M.capacity().second);
     }
 
     template<typename scalartype>

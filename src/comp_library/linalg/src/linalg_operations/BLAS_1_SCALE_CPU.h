@@ -14,14 +14,14 @@ namespace LIN_ALG {
     inline static void row(matrix<scalartype, CPU>& M, scalartype val, int i,
                            int /*thread_id*/, int /*stream_id*/)
     {
-      execute(M.get_current_size().second, val, &M(i,0), M.get_global_size().first);
+      execute(M.size().second, val, &M(i,0), M.leadingDimension());
     }
 
     template<typename scalartype>
     inline static void col(matrix<scalartype, CPU>& M, scalartype val, int i,
                            int /*thread_id*/, int /*stream_id*/)
     {
-      execute(M.get_current_size().first, val, &M(0,i), M.get_global_size().second);
+      execute(M.size().first, val, &M(0,i), M.capacity().second);
     }
 
     template<typename scalartype>

@@ -25,7 +25,8 @@
 
 namespace dca {
 namespace linalg {
-// dca::linalg::
+namespace blas {
+// dca::linalg::blas::
 
 template <DeviceType DeviceName>
 struct UseDevice;
@@ -63,8 +64,8 @@ template <>
 struct UseDevice<GPU> {
   // Level 1
   template <typename ScalarType>
-  inline static void axpy(int n, ScalarType alpha, const ScalarType* x, int incx, ScalarType* y, int incy,
-                          int thread_id, int /*stream_id*/) {
+  inline static void axpy(int n, ScalarType alpha, const ScalarType* x, int incx, ScalarType* y,
+                          int incy, int thread_id, int /*stream_id*/) {
     cublas::axpy(get_thread_handle(thread_id), n, alpha, x, incx, y, incy);
   }
 
@@ -87,6 +88,7 @@ struct UseDevice<GPU> {
 };
 #endif  // DCA_HAVE_CUDA
 
+}  // blas
 }  // linalg
 }  // dca
 

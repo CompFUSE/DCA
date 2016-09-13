@@ -14,16 +14,16 @@ namespace LIN_ALG
     template<typename scalartype>
     static void execute(matrix<scalartype, CPU>& A, matrix<scalartype, CPU>& X){
 
-      int m_A = A.get_current_size().first;
-      int n_A = A.get_current_size().second;
-      int LDA = A.get_global_size().first;
+      int m_A = A.size().first;
+      int n_A = A.size().second;
+      int LDA = A.leadingDimension();
 
       if(m_A != n_A)
         throw std::logic_error(__FUNCTION__);
 
-      int m_X  = X.get_current_size().first;
-      int NRHS = X.get_current_size().second;
-      int LDX  = X.get_global_size().first;
+      int m_X  = X.size().first;
+      int NRHS = X.size().second;
+      int LDX  = X.leadingDimension();
 
       if(m_A != m_X)
         throw std::logic_error(__FUNCTION__);
@@ -38,24 +38,24 @@ namespace LIN_ALG
       for(int i=0; i<m_A; i++)
         IPIV[i] = i+1;
 
-      execute(TRANS, m_A, NRHS, A.get_ptr(), LDA, IPIV, X.get_ptr(), LDX, INFO);
+      execute(TRANS, m_A, NRHS, A.ptr(), LDA, IPIV, X.ptr(), LDX, INFO);
 
       delete [] IPIV;
     }
 
     template<typename scalartype>
-    static void execute(matrix<scalartype, CPU>& A, vector<scalartype, CPU>& X){
+    static void execute(matrix<scalartype, CPU>& A, dca::linalg::Vector<scalartype, CPU>& X){
 
-      int m_A = A.get_current_size().first;
-      int n_A = A.get_current_size().second;
-      int LDA = A.get_global_size().first;
+      int m_A = A.size().first;
+      int n_A = A.size().second;
+      int LDA = A.leadingDimension();
 
       if(m_A != n_A)
         throw std::logic_error(__FUNCTION__);
 
-      int m_X  = X.get_current_size();
-      int NRHS = 1;//X.get_current_size().second;
-      int LDX  = X.get_global_size();
+      int m_X  = X.size();
+      int NRHS = 1;//X.size().second;
+      int LDX  = X.capacity();
 
       if(m_A != m_X)
         throw std::logic_error(__FUNCTION__);
@@ -70,7 +70,7 @@ namespace LIN_ALG
       for(int i=0; i<m_A; i++)
         IPIV[i] = i+1;
 
-      execute(TRANS, m_A, NRHS, A.get_ptr(), LDA, IPIV, X.get_ptr(), LDX, INFO);
+      execute(TRANS, m_A, NRHS, A.ptr(), LDA, IPIV, X.ptr(), LDX, INFO);
 
       delete [] IPIV;
     }

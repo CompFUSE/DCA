@@ -70,31 +70,31 @@ public:
   FUNC_LIB::function<std::complex<scalartype>, dmn_variadic<nu, nu, k_dmn_t, w_IMAG>>* f_approx_ptr;
   FUNC_LIB::function<std::complex<scalartype>, dmn_variadic<nu, nu, k_dmn_t, w_IMAG>>* f_measured_ptr;
 
-  LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>* A_matrix_ptr;
+  dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>* A_matrix_ptr;
 
-  LIN_ALG::matrix<scalartype, LIN_ALG::CPU>* A_matrix_re_ptr;
-  LIN_ALG::matrix<scalartype, LIN_ALG::CPU>* A_matrix_im_ptr;
+  dca::linalg::Matrix<scalartype, dca::linalg::CPU>* A_matrix_re_ptr;
+  dca::linalg::Matrix<scalartype, dca::linalg::CPU>* A_matrix_im_ptr;
 
   scalartype Sigma_0;
   scalartype grad_Sigma_0;
 
-  LIN_ALG::vector<scalartype, LIN_ALG::CPU> alpha_vec_d;
-  LIN_ALG::vector<std::complex<scalartype>, LIN_ALG::CPU> alpha_vec_z;
+  dca::linalg::Vector<scalartype, dca::linalg::CPU> alpha_vec_d;
+  dca::linalg::Vector<std::complex<scalartype>, dca::linalg::CPU> alpha_vec_z;
 
-  LIN_ALG::vector<scalartype, LIN_ALG::CPU> gradient;
-  LIN_ALG::vector<scalartype, LIN_ALG::CPU> gradient_re;
-  LIN_ALG::vector<scalartype, LIN_ALG::CPU> gradient_im;
+  dca::linalg::Vector<scalartype, dca::linalg::CPU> gradient;
+  dca::linalg::Vector<scalartype, dca::linalg::CPU> gradient_re;
+  dca::linalg::Vector<scalartype, dca::linalg::CPU> gradient_im;
 
-  LIN_ALG::vector<std::complex<scalartype>, LIN_ALG::CPU> F_wn_vec;
-  LIN_ALG::vector<scalartype, LIN_ALG::CPU> F_wn_re_vec;
-  LIN_ALG::vector<scalartype, LIN_ALG::CPU> F_wn_im_vec;
+  dca::linalg::Vector<std::complex<scalartype>, dca::linalg::CPU> F_wn_vec;
+  dca::linalg::Vector<scalartype, dca::linalg::CPU> F_wn_re_vec;
+  dca::linalg::Vector<scalartype, dca::linalg::CPU> F_wn_im_vec;
 
-  LIN_ALG::vector<std::complex<scalartype>, LIN_ALG::CPU> f_wn_vec;
-  LIN_ALG::vector<scalartype, LIN_ALG::CPU> f_wn_re_vec;
-  LIN_ALG::vector<scalartype, LIN_ALG::CPU> f_wn_im_vec;
+  dca::linalg::Vector<std::complex<scalartype>, dca::linalg::CPU> f_wn_vec;
+  dca::linalg::Vector<scalartype, dca::linalg::CPU> f_wn_re_vec;
+  dca::linalg::Vector<scalartype, dca::linalg::CPU> f_wn_im_vec;
 
-  LIN_ALG::vector<scalartype, LIN_ALG::CPU> x;
-  LIN_ALG::vector<scalartype, LIN_ALG::CPU> y;
+  dca::linalg::Vector<scalartype, dca::linalg::CPU> x;
+  dca::linalg::Vector<scalartype, dca::linalg::CPU> y;
 };
 
 template <typename scalartype, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
@@ -109,7 +109,7 @@ CPE_data<scalartype, basis_function_t, k_dmn_t, w_dmn_t>::CPE_data()
       max_error(0.0),
       real_axis_off_set(0.1),
 
-      f_target_ptr(NULL),
+      f_tarptr(NULL),
 
       Sigma_0_moment_ptr(NULL),
       alpha_function_ptr(NULL),
@@ -160,7 +160,7 @@ CPE_data<scalartype, basis_function_t, k_dmn_t, w_dmn_t>::CPE_data(
       max_error(0.0),
       real_axis_off_set(0.1),
 
-      f_target_ptr(NULL),
+      f_tarptr(NULL),
 
       Sigma_0_moment_ptr(NULL),
       alpha_function_ptr(NULL),

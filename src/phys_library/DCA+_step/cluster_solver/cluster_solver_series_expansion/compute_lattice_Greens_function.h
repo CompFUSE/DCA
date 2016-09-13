@@ -71,10 +71,10 @@ compute_lattice_Greens_function<parameters_type, MOMS_type, k_dmn_t, w_dmn_t>::c
 
 template <class parameters_type, class MOMS_type, class k_dmn_t, class w_dmn_t>
 void compute_lattice_Greens_function<parameters_type, MOMS_type, k_dmn_t, w_dmn_t>::execute() {
-  LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> I_k("I_matrix", nu::dmn_size());
-  LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> G_inv("G_inv", nu::dmn_size());
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> I_k("I_matrix", nu::dmn_size());
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G_inv("G_inv", nu::dmn_size());
 
-  LIN_ALG::GEINV<LIN_ALG::CPU>::plan<std::complex<double>> geinv_obj(G_inv);
+  LIN_ALG::GEINV<dca::linalg::CPU>::plan<std::complex<double>> geinv_obj(G_inv);
 
   for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++) {
     std::complex<double> i_wm_plus_mu;

@@ -88,16 +88,16 @@ public:
   void execute(std::string name, FUNC_LIB::function<std::complex<scalar_type>, domain_type>& f);
 
   template <typename scalar_type>
-  void execute(std::string name, LIN_ALG::vector<scalar_type, LIN_ALG::CPU>& A);
+  void execute(std::string name, dca::linalg::Vector<scalar_type, dca::linalg::CPU>& A);
 
   template <typename scalar_type>
-  void execute(std::string name, LIN_ALG::vector<std::complex<scalar_type>, LIN_ALG::CPU>& A);
+  void execute(std::string name, dca::linalg::Vector<std::complex<scalar_type>, dca::linalg::CPU>& A);
 
   template <typename scalar_type>
-  void execute(std::string name, LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& A);
+  void execute(std::string name, dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A);
 
   template <typename scalar_type>
-  void execute(std::string name, LIN_ALG::matrix<std::complex<scalar_type>, LIN_ALG::CPU>& A);
+  void execute(std::string name, dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU>& A);
 
 private:
   bool fexists(const char* filename);
@@ -602,7 +602,8 @@ void writer<IO::HDF5>::execute(std::string name,
 }
 
 template <typename scalar_type>
-void writer<IO::HDF5>::execute(std::string name, LIN_ALG::vector<scalar_type, LIN_ALG::CPU>& V) {
+void writer<IO::HDF5>::execute(std::string name,
+                               dca::linalg::Vector<scalar_type, dca::linalg::CPU>& V) {
   H5::H5File& file = (*my_file);
 
   open_group(name);
@@ -636,18 +637,18 @@ void writer<IO::HDF5>::execute(std::string name, LIN_ALG::vector<scalar_type, LI
 
 template <typename scalar_type>
 void writer<IO::HDF5>::execute(std::string name,
-                               LIN_ALG::vector<std::complex<scalar_type>, LIN_ALG::CPU>& V) {
+                               dca::linalg::Vector<std::complex<scalar_type>, dca::linalg::CPU>& V) {
   H5::H5File& file = (*my_file);
 
   open_group(name);
 
   execute("name", V.get_name());
-  execute("size", V.get_current_size());
+  execute("size", V.size());
 
   hsize_t dims[2];
 
   dims[0] = 2;
-  dims[1] = V.get_current_size();
+  dims[1] = V.size();
 
   H5::DataSet* dataset = NULL;
   H5::DataSpace* dataspace = NULL;
@@ -670,7 +671,8 @@ void writer<IO::HDF5>::execute(std::string name,
 }
 
 template <typename scalar_type>
-void writer<IO::HDF5>::execute(std::string name, LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& A) {
+void writer<IO::HDF5>::execute(std::string name,
+                               dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A) {
   H5::H5File& file = (*my_file);
 
   open_group(name);
@@ -678,14 +680,14 @@ void writer<IO::HDF5>::execute(std::string name, LIN_ALG::matrix<scalar_type, LI
   {
     execute("name", A.get_name());
 
-    execute("current-size", A.get_current_size());
-    execute("global-size", A.get_global_size());
+    execute("current-size", A.size());
+    execute("global-size", A.capacity());
   }
 
   hsize_t dims[2];
 
-  dims[0] = A.get_global_size().first;
-  dims[1] = A.get_global_size().second;
+  dims[0] = A.capacity().first;
+  dims[1] = A.capacity().second;
 
   H5::DataSet* dataset = NULL;
   H5::DataSpace* dataspace = NULL;
@@ -709,7 +711,7 @@ void writer<IO::HDF5>::execute(std::string name, LIN_ALG::matrix<scalar_type, LI
 
 template <typename scalar_type>
 void writer<IO::HDF5>::execute(std::string name,
-                               LIN_ALG::matrix<std::complex<scalar_type>, LIN_ALG::CPU>& A) {
+                               dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU>& A) {
   H5::H5File& file = (*my_file);
 
   open_group(name);
@@ -719,20 +721,20 @@ void writer<IO::HDF5>::execute(std::string name,
 
     std::vector<int> vec(2, 0);
 
-    vec[0] = A.get_current_size().first;
-    vec[1] = A.get_current_size().second;
+    vec[0] = A.size().first;
+    vec[1] = A.size().second;
     execute("current-size", vec);
 
-    vec[0] = A.get_global_size().first;
-    vec[1] = A.get_global_size().second;
+    vec[0] = A.capacity().first;
+    vec[1] = A.capacity().second;
     execute("global-size", vec);
   }
 
   hsize_t dims[3];
 
   dims[0] = 2;
-  dims[1] = A.get_global_size().first;
-  dims[2] = A.get_global_size().second;
+  dims[1] = A.capacity().first;
+  dims[2] = A.capacity().second;
 
   H5::DataSet* dataset = NULL;
   H5::DataSpace* dataspace = NULL;

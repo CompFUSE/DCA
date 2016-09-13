@@ -29,11 +29,11 @@ class Richardson_Lucy_deconvolution {
 public:
   Richardson_Lucy_deconvolution(parameters_type& parameters_ref);
 
-  void execute(LIN_ALG::matrix<double, LIN_ALG::CPU>& matrix,
+  void execute(dca::linalg::Matrix<double, dca::linalg::CPU>& matrix,
                FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t>>& f_source,
                FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t>>& f_target);
 
-  void execute(LIN_ALG::matrix<double, LIN_ALG::CPU>& A,
+  void execute(dca::linalg::Matrix<double, dca::linalg::CPU>& A,
                FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t>>& f_source,
                FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t>>& f_approx,
                FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t>>& f_target);
@@ -52,13 +52,13 @@ private:
   parameters_type& parameters;
   typename parameters_type::concurrency_type& concurrency;
 
-  LIN_ALG::matrix<double, LIN_ALG::CPU> c;
-  LIN_ALG::matrix<double, LIN_ALG::CPU> d;
+  dca::linalg::Matrix<double, dca::linalg::CPU> c;
+  dca::linalg::Matrix<double, dca::linalg::CPU> d;
 
-  LIN_ALG::matrix<double, LIN_ALG::CPU> d_over_c;
+  dca::linalg::Matrix<double, dca::linalg::CPU> d_over_c;
 
-  LIN_ALG::matrix<double, LIN_ALG::CPU> u_t;
-  LIN_ALG::matrix<double, LIN_ALG::CPU> u_t_p_1;
+  dca::linalg::Matrix<double, dca::linalg::CPU> u_t;
+  dca::linalg::Matrix<double, dca::linalg::CPU> u_t_p_1;
 };
 
 template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
@@ -77,11 +77,11 @@ Richardson_Lucy_deconvolution<parameters_type, k_dmn_t, p_dmn_t>::Richardson_Luc
 
 template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
 void Richardson_Lucy_deconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
-    LIN_ALG::matrix<double, LIN_ALG::CPU>& A,
+    dca::linalg::Matrix<double, dca::linalg::CPU>& A,
     FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t>>& f_source,
     FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t>>& f_target) {
-  assert(A.get_current_size().first == k_dmn_t::dmn_size());
-  assert(A.get_current_size().first == A.get_current_size().second);
+  assert(A.size().first == k_dmn_t::dmn_size());
+  assert(A.size().first == A.size().second);
 
   FUNC_LIB::function<bool, p_dmn_t> is_finished("is_finished");
   FUNC_LIB::function<double, p_dmn_t> error_function("error_function");
@@ -89,7 +89,7 @@ void Richardson_Lucy_deconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
   initialize_matrices(f_source);
 
   // compute c
-  LIN_ALG::GEMM<LIN_ALG::CPU>::execute(A, u_t, c);
+  LIN_ALG::GEMM<dca::linalg::CPU>::execute(A, u_t, c);
 
   initialize_errors(is_finished, error_function);
 
@@ -100,14 +100,14 @@ void Richardson_Lucy_deconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
         d_over_c(i, j) = d(i, j) / c(i, j);
 
     // compute u_t_plus_1
-    LIN_ALG::GEMM<LIN_ALG::CPU>::execute('T', 'N', A, d_over_c, u_t_p_1);
+    LIN_ALG::GEMM<dca::linalg::CPU>::execute('T', 'N', A, d_over_c, u_t_p_1);
 
     for (int j = 0; j < p_dmn_t::dmn_size(); j++)
       for (int i = 0; i < k_dmn_t::dmn_size(); i++)
         u_t(i, j) = u_t_p_1(i, j) * u_t(i, j);
 
     // compute c
-    LIN_ALG::GEMM<LIN_ALG::CPU>::execute(A, u_t, c);
+    LIN_ALG::GEMM<dca::linalg::CPU>::execute(A, u_t, c);
 
     bool finished = update_f_target(is_finished, error_function, f_target);
 
@@ -127,7 +127,7 @@ void Richardson_Lucy_deconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
 
 template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
 void Richardson_Lucy_deconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
-    LIN_ALG::matrix<double, LIN_ALG::CPU>& A,
+    dca::linalg::Matrix<double, dca::linalg::CPU>& A,
     FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t>>& f_source,
     FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t>>& f_approx,
     FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t>>& f_target) {
@@ -137,7 +137,7 @@ void Richardson_Lucy_deconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
     for (int i = 0; i < k_dmn_t::dmn_size(); i++)
       u_t(i, j) = f_target(i, j);
 
-  LIN_ALG::GEMM<LIN_ALG::CPU>::execute(A, u_t, c);
+  LIN_ALG::GEMM<dca::linalg::CPU>::execute(A, u_t, c);
 
   for (int j = 0; j < p_dmn_t::dmn_size(); j++)
     for (int i = 0; i < k_dmn_t::dmn_size(); i++)
@@ -150,13 +150,13 @@ void Richardson_Lucy_deconvolution<parameters_type, k_dmn_t, p_dmn_t>::initializ
   int nr_rows = k_dmn_t::dmn_size();
   int nr_cols = p_dmn_t::dmn_size();
 
-  c.resize_no_copy(std::pair<int, int>(nr_rows, nr_cols));
-  d.resize_no_copy(std::pair<int, int>(nr_rows, nr_cols));
+  c.resizeNoCopy(std::pair<int, int>(nr_rows, nr_cols));
+  d.resizeNoCopy(std::pair<int, int>(nr_rows, nr_cols));
 
-  d_over_c.resize_no_copy(std::pair<int, int>(nr_rows, nr_cols));
+  d_over_c.resizeNoCopy(std::pair<int, int>(nr_rows, nr_cols));
 
-  u_t.resize_no_copy(std::pair<int, int>(nr_rows, nr_cols));
-  u_t_p_1.resize_no_copy(std::pair<int, int>(nr_rows, nr_cols));
+  u_t.resizeNoCopy(std::pair<int, int>(nr_rows, nr_cols));
+  u_t_p_1.resizeNoCopy(std::pair<int, int>(nr_rows, nr_cols));
 
   for (int j = 0; j < nr_cols; j++)
     for (int i = 0; i < nr_rows; i++)

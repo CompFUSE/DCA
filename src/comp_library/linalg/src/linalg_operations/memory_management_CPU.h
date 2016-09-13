@@ -114,7 +114,7 @@ public:
   }
 
   template <typename scalartype>
-  static void print(scalartype* ptr, int c_s, int g_s) {
+  static void print(const scalartype* ptr, int c_s, int g_s) {
     std::cout.precision(6);
     std::cout << std::scientific;
 
@@ -131,7 +131,7 @@ public:
   }
 
   template <typename scalartype>
-  static void print(scalartype*& ptr, std::pair<int, int>& c_s, std::pair<int, int>& g_s) {
+  static void print(const scalartype* ptr, std::pair<int, int> c_s, std::pair<int, int> g_s) {
     std::cout.precision(6);
     std::cout << std::scientific;
 

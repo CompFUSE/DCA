@@ -253,7 +253,7 @@ void coarsegraining_routines<parameters_type, K_dmn>::wannier_interpolation(
   if (not interpolation_matrices_type::is_initialized())
     interpolation_matrices_type::initialize(concurrency);
 
-  LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& T = interpolation_matrices_type::get(K_ind);
+  dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& T = interpolation_matrices_type::get(K_ind);
 
   scalar_type alpha(1.);
   scalar_type beta(0.);
@@ -267,7 +267,7 @@ void coarsegraining_routines<parameters_type, K_dmn>::wannier_interpolation(
   int N = q_dmn_t::dmn_size();
 
   int LDA = 2 * nu_nu::dmn_size();
-  int LDB = T.get_global_size().first;
+  int LDB = T.leadingDimension();
   int LDC = 2 * nu_nu::dmn_size();
 
   dca::linalg::blas::gemm("N", "T", M, N, K, alpha, A_ptr, LDA, B_ptr, LDB, beta, C_ptr, LDC);

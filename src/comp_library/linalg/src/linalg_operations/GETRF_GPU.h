@@ -19,13 +19,13 @@ namespace LIN_ALG {
       	template<typename scalartype>
 	static void execute(matrix<scalartype, GPU>& A, int* IPIV){
 	  
-	  int M = A.get_current_size().first;
-	  int N = A.get_current_size().second;
+	  int M = A.size().first;
+	  int N = A.size().second;
 
-	  int LDA = A.get_global_size().first;
+	  int LDA = A.leadingDimension();
 
 	  int INFO=0;
-	  execute(M, N, A.get_ptr(), LDA, IPIV, INFO);
+	  execute(M, N, A.ptr(), LDA, IPIV, INFO);
 	}
 
       static void execute( int M, int N, float* A, int LDA, int* IPIV, int& INFO){

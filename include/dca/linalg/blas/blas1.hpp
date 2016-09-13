@@ -23,11 +23,11 @@ void cswap_(const int* n, std::complex<float>* x, const int* incx, std::complex<
 void zswap_(const int* n, std::complex<double>* x, const int* incx, std::complex<double>* y,
             const int* incy);
 
-void sscal_(const int* n, const float* alpha, float* y, const int* incy);
-void dscal_(const int* n, const double* alpha, double* y, const int* incy);
-void cscal_(const int* n, const std::complex<float>* alpha, std::complex<float>* y, const int* incy);
-void zscal_(const int* n, const std::complex<double>* alpha, std::complex<double>* y,
-            const int* incy);
+void sscal_(const int* n, const float* alpha, float* x, const int* incx);
+void dscal_(const int* n, const double* alpha, double* x, const int* incx);
+void cscal_(const int* n, const std::complex<float>* alpha, std::complex<float>* x, const int* incx);
+void zscal_(const int* n, const std::complex<double>* alpha, std::complex<double>* x,
+            const int* incx);
 
 void scopy_(const int* n, const float* x, const int* incx, float* y, const int* incy);
 void dcopy_(const int* n, const double* x, const int* incx, double* y, const int* incy);
@@ -67,17 +67,17 @@ inline void swap(int n, std::complex<double>* x, int incx, std::complex<double>*
   zswap_(&n, x, &incx, y, &incy);
 }
 
-inline void scal(int n, float alpha, float* y, int incy) {
-  sscal_(&n, &alpha, y, &incy);
+inline void scal(int n, float alpha, float* x, int incx) {
+  sscal_(&n, &alpha, x, &incx);
 }
-inline void scal(int n, double alpha, double* y, int incy) {
-  dscal_(&n, &alpha, y, &incy);
+inline void scal(int n, double alpha, double* x, int incx) {
+  dscal_(&n, &alpha, x, &incx);
 }
-inline void scal(int n, std::complex<float> alpha, std::complex<float>* y, int incy) {
-  cscal_(&n, &alpha, y, &incy);
+inline void scal(int n, std::complex<float> alpha, std::complex<float>* x, int incx) {
+  cscal_(&n, &alpha, x, &incx);
 }
-inline void scal(int n, std::complex<double> alpha, std::complex<double>* y, int incy) {
-  zscal_(&n, &alpha, y, &incy);
+inline void scal(int n, std::complex<double> alpha, std::complex<double>* x, int incx) {
+  zscal_(&n, &alpha, x, &incx);
 }
 
 inline void copy(int n, const float* x, int incx, float* y, int incy) {

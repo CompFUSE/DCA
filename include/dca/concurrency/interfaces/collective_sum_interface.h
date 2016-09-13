@@ -16,8 +16,8 @@
 #include <vector>
 #include "dca/concurrency/concurrency_types.hpp"
 #include "dca/concurrency/interfaces/processor_grouping_interface.h"
-#include "comp_library/linalg/src/vector.h"
-#include "comp_library/linalg/src/matrix.h"
+#include "dca/linalg/vector.hpp"
+#include "dca/linalg/matrix.hpp"
 #include "comp_library/function_library/function.h"
 
 namespace dca {
@@ -50,10 +50,10 @@ public:
   void sum(FUNC_LIB::function<std::vector<scalar_type>, domain>& f);
 
   template <typename scalar_type>
-  void sum(LIN_ALG::vector<scalar_type, LIN_ALG::CPU>& f);
+  void sum(linalg::Vector<scalar_type, linalg::CPU>& f);
 
   template <typename scalar_type>
-  void sum(LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& f);
+  void sum(dca::linalg::Matrix<scalar_type, linalg::CPU>& f);
 
   template <typename some_type>
   void sum_and_average(some_type& obj, int size);
@@ -98,11 +98,11 @@ void collective_sum_interface<LIBRARY>::sum(FUNC_LIB::function<std::vector<scala
 
 template <PARALLELIZATION_LIBRARY_NAMES LIBRARY>
 template <typename scalar_type>
-void collective_sum_interface<LIBRARY>::sum(LIN_ALG::vector<scalar_type, LIN_ALG::CPU>& /*f*/) {}
+void collective_sum_interface<LIBRARY>::sum(linalg::Vector<scalar_type, linalg::CPU>& /*f*/) {}
 
 template <PARALLELIZATION_LIBRARY_NAMES LIBRARY>
 template <typename scalar_type>
-void collective_sum_interface<LIBRARY>::sum(LIN_ALG::matrix<scalar_type, LIN_ALG::CPU>& /*f*/) {}
+void collective_sum_interface<LIBRARY>::sum(dca::linalg::Matrix<scalar_type, linalg::CPU>& /*f*/) {}
 
 template <PARALLELIZATION_LIBRARY_NAMES LIBRARY>
 template <typename some_type>

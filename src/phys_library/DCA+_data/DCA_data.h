@@ -525,10 +525,10 @@ void DCA_data<parameters_type>::compute_single_particle_properties() {
   {
     int w_ind = w::dmn_size() / 2;
 
-    LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> I_k("I_matrix", nu::dmn_size());
-    LIN_ALG::matrix<std::complex<double>, LIN_ALG::CPU> G_inv("G_inv", nu::dmn_size());
+    dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> I_k("I_matrix", nu::dmn_size());
+    dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G_inv("G_inv", nu::dmn_size());
 
-    LIN_ALG::GEINV<LIN_ALG::CPU>::plan<std::complex<double>> geinv_obj(G_inv);
+    LIN_ALG::GEINV<dca::linalg::CPU>::plan<std::complex<double>> geinv_obj(G_inv);
 
     std::complex<double> i_wm_plus_mu;
 

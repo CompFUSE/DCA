@@ -158,28 +158,28 @@ private:
       FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
       FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice);
 
-  void record_eigenvalues_and_eigenvectors(LIN_ALG::vector<scalartype, LIN_ALG::CPU>& L,
-                                           LIN_ALG::matrix<scalartype, LIN_ALG::CPU>& VR);
+  void record_eigenvalues_and_eigenvectors(dca::linalg::Vector<scalartype, dca::linalg::CPU>& L,
+                                           dca::linalg::Matrix<scalartype, dca::linalg::CPU>& VR);
 
   void record_eigenvalues_and_eigenvectors(
-      LIN_ALG::vector<std::complex<scalartype>, LIN_ALG::CPU>& L,
-      LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& VL,
-      LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& VR);
+      dca::linalg::Vector<std::complex<scalartype>, dca::linalg::CPU>& L,
+      dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& VL,
+      dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& VR);
 
   void diagonolize_folded_Gamma_chi_0(
       FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
       FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice);
 
   void record_eigenvalues_and_folded_eigenvectors(
-      LIN_ALG::vector<std::complex<scalartype>, LIN_ALG::CPU>& L,
-      LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& VL,
-      LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& VR);
+      dca::linalg::Vector<std::complex<scalartype>, dca::linalg::CPU>& L,
+      dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& VL,
+      dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& VR);
 
   void compute_folded_susceptibility(
       FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice,
-      LIN_ALG::vector<std::complex<scalartype>, LIN_ALG::CPU>& L,
-      LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& VL,
-      LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& VR);
+      dca::linalg::Vector<std::complex<scalartype>, dca::linalg::CPU>& L,
+      dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& VL,
+      dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& VR);
 
   void symmetrize_leading_eigenvectors();
 
@@ -379,7 +379,7 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::compute_chi_0_lattice(
     std::cout << "\t" << __FUNCTION__ << std::endl << std::endl;
 
   using HTS_solver_type =
-      DCA::cluster_solver<DCA::HIGH_TEMPERATURE_SERIES, LIN_ALG::CPU, parameters_type, MOMS_type>;
+      DCA::cluster_solver<DCA::HIGH_TEMPERATURE_SERIES, dca::linalg::CPU, parameters_type, MOMS_type>;
 
   using lattice_map_sp_type = DCA::lattice_mapping_sp<parameters_type, k_DCA, k_HOST>;
 
@@ -505,12 +505,12 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_full_Gamma_chi_
 
   int N = lattice_eigenvector_dmn_t::dmn_size();
 
-  LIN_ALG::matrix<scalartype, LIN_ALG::CPU> chi_0_Gamma_chi_0("chi_0_Gamma_chi_0", N);
-  LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU> chi_0_Gamma_chi_0_temp(
+  dca::linalg::Matrix<scalartype, dca::linalg::CPU> chi_0_Gamma_chi_0("chi_0_Gamma_chi_0", N);
+  dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> chi_0_Gamma_chi_0_temp(
       "chi_0_Gamma_chi_0_temp", N);
-  LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU> chi_0_Gamma("chi_0_Gamma", N);
-  LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU> Gamma("Gamma", N);
-  LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU> chi_0("chi_0", N);
+  dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> chi_0_Gamma("chi_0_Gamma", N);
+  dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> Gamma("Gamma", N);
+  dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> chi_0("chi_0", N);
 
   {
     if (concurrency.id() == concurrency.last())
@@ -524,8 +524,8 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_full_Gamma_chi_
       for (int i = 0; i < N; i++)
         chi_0(i, j) = sqrt(chi_0_lattice(i, j));
 
-    LIN_ALG::GEMM<LIN_ALG::CPU>::execute(chi_0, Gamma, chi_0_Gamma);
-    LIN_ALG::GEMM<LIN_ALG::CPU>::execute(chi_0_Gamma, chi_0, chi_0_Gamma_chi_0_temp);
+    LIN_ALG::GEMM<dca::linalg::CPU>::execute(chi_0, Gamma, chi_0_Gamma);
+    LIN_ALG::GEMM<dca::linalg::CPU>::execute(chi_0_Gamma, chi_0, chi_0_Gamma_chi_0_temp);
 
     for (int j = 0; j < N; j++)
       for (int i = 0; i < N; i++)
@@ -540,12 +540,12 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_full_Gamma_chi_
       std::cout << "\n\n\t diagonalize Gamma_chi_0 in pp SC channel " << dca::util::print_time()
                 << " ...";
 
-    LIN_ALG::vector<scalartype, LIN_ALG::CPU> L("L (BSE_lattice_solver)", N);
+    dca::linalg::Vector<scalartype, dca::linalg::CPU> L("L (BSE_lattice_solver)", N);
 
-    LIN_ALG::matrix<scalartype, LIN_ALG::CPU> VR("VR (BSE_lattice_solver)", N);
+    dca::linalg::Matrix<scalartype, dca::linalg::CPU> VR("VR (BSE_lattice_solver)", N);
 
-    LIN_ALG::GEEV<LIN_ALG::CPU>::execute('V', 'U', chi_0_Gamma_chi_0, L,
-                                         VR);  // dsyev lapack routine
+    LIN_ALG::GEEV<dca::linalg::CPU>::execute('V', 'U', chi_0_Gamma_chi_0, L,
+                                             VR);  // dsyev lapack routine
 
     if (concurrency.id() == concurrency.last())
       std::cout << " finished " << dca::util::print_time() << "\n";
@@ -567,14 +567,14 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_full_Gamma_chi_
 
   int N = lattice_eigenvector_dmn_t::dmn_size();
 
-  LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU> Gamma_chi_0("Gamma_chi_0", N);
+  dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> Gamma_chi_0("Gamma_chi_0", N);
 
   {
     if (concurrency.id() == concurrency.last())
       std::cout << "\n\n\t compute Gamma_chi_0_lattice " << dca::util::print_time() << " ...";
 
-    LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU> Gamma("Gamma", N);
-    LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU> chi_0("chi_0", N);
+    dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> Gamma("Gamma", N);
+    dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> chi_0("chi_0", N);
 
     for (int j = 0; j < N; j++)
       for (int i = 0; i < N; i++)
@@ -584,7 +584,7 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_full_Gamma_chi_
       for (int i = 0; i < N; i++)
         chi_0(i, j) = chi_0_lattice(i, j);
 
-    LIN_ALG::GEMM<LIN_ALG::CPU>::execute(Gamma, chi_0, Gamma_chi_0);
+    LIN_ALG::GEMM<dca::linalg::CPU>::execute(Gamma, chi_0, Gamma_chi_0);
 
     if (concurrency.id() == concurrency.last())
       std::cout << " finished " << dca::util::print_time() << "\n";
@@ -594,12 +594,12 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_full_Gamma_chi_
     if (concurrency.id() == concurrency.last())
       std::cout << "\n\n\t diagonalize Gamma_chi_0 " << dca::util::print_time() << " ...";
 
-    LIN_ALG::vector<std::complex<scalartype>, LIN_ALG::CPU> L("L (BSE_lattice_solver)", N);
+    dca::linalg::Vector<std::complex<scalartype>, dca::linalg::CPU> L("L (BSE_lattice_solver)", N);
 
-    LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU> VR("VR (BSE_lattice_solver)", N);
-    LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU> VL("VL (BSE_lattice_solver)", N);
+    dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> VR("VR (BSE_lattice_solver)", N);
+    dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> VL("VL (BSE_lattice_solver)", N);
 
-    LIN_ALG::GEEV<LIN_ALG::CPU>::execute('N', 'V', Gamma_chi_0, L, VL, VR);
+    LIN_ALG::GEEV<dca::linalg::CPU>::execute('N', 'V', Gamma_chi_0, L, VL, VR);
 
     if (concurrency.id() == concurrency.last())
       std::cout << " finished " << dca::util::print_time() << "\n";
@@ -615,7 +615,8 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_full_Gamma_chi_
 
 template <class parameters_type, class MOMS_type>
 void BSE_lattice_solver<parameters_type, MOMS_type>::record_eigenvalues_and_eigenvectors(
-    LIN_ALG::vector<scalartype, LIN_ALG::CPU>& L, LIN_ALG::matrix<scalartype, LIN_ALG::CPU>& VR) {
+    dca::linalg::Vector<scalartype, dca::linalg::CPU>& L,
+    dca::linalg::Matrix<scalartype, dca::linalg::CPU>& VR) {
   int N = lattice_eigenvector_dmn_t::dmn_size();
   std::vector<std::pair<scalartype, int>> eigenvals_mod(N);
 
@@ -642,9 +643,9 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::record_eigenvalues_and_eige
 
 template <class parameters_type, class MOMS_type>
 void BSE_lattice_solver<parameters_type, MOMS_type>::record_eigenvalues_and_eigenvectors(
-    LIN_ALG::vector<std::complex<scalartype>, LIN_ALG::CPU>& L,
-    LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& /*VL*/,
-    LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& VR) {
+    dca::linalg::Vector<std::complex<scalartype>, dca::linalg::CPU>& L,
+    dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& /*VL*/,
+    dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& VR) {
   int N = lattice_eigenvector_dmn_t::dmn_size();
   int M = crystal_eigenvector_dmn_t::dmn_size();
 
@@ -703,17 +704,19 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_folded_Gamma_ch
   int N = lattice_eigenvector_dmn_t::dmn_size();
   int M = crystal_eigenvector_dmn_t::dmn_size();
 
-  LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU> Gamma_chi_0_crystal("Gamma_chi_0", M);
+  dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> Gamma_chi_0_crystal("Gamma_chi_0",
+                                                                                      M);
 
   {
-    LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU> Gamma_chi_0_lattice("Gamma_chi_0", N);
+    dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> Gamma_chi_0_lattice(
+        "Gamma_chi_0", N);
 
     {
       if (concurrency.id() == concurrency.last())
         std::cout << "\n\n\t compute Gamma_chi_0_lattice " << dca::util::print_time() << " ...";
 
-      LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU> Gamma("Gamma", N);
-      LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU> chi_0("chi_0", N);
+      dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> Gamma("Gamma", N);
+      dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> chi_0("chi_0", N);
 
       for (int j = 0; j < N; j++)
         for (int i = 0; i < N; i++)
@@ -723,7 +726,7 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_folded_Gamma_ch
         for (int i = 0; i < N; i++)
           chi_0(i, j) = chi_0_lattice(i, j);
 
-      LIN_ALG::GEMM<LIN_ALG::CPU>::execute(Gamma, chi_0, Gamma_chi_0_lattice);
+      LIN_ALG::GEMM<dca::linalg::CPU>::execute(Gamma, chi_0, Gamma_chi_0_lattice);
 
       if (concurrency.id() == concurrency.last())
         std::cout << " finished " << dca::util::print_time() << "\n";
@@ -733,15 +736,17 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_folded_Gamma_ch
       if (concurrency.id() == concurrency.last())
         std::cout << "\n\n\t compute P_Gamma_chi_0_lattice_P " << dca::util::print_time() << " ...";
 
-      LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU> P("P", std::pair<int, int>(N, M));
-      LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU> tmp("tmp", std::pair<int, int>(N, M));
+      dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> P("P",
+                                                                        std::pair<int, int>(N, M));
+      dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> tmp(
+          "tmp", std::pair<int, int>(N, M));
 
       for (int j = 0; j < M; j++)
         for (int i = 0; i < N; i++)
           P(i, j) = crystal_harmonics(i, j);
 
-      LIN_ALG::GEMM<LIN_ALG::CPU>::execute('N', 'N', Gamma_chi_0_lattice, P, tmp);
-      LIN_ALG::GEMM<LIN_ALG::CPU>::execute('C', 'N', P, tmp, Gamma_chi_0_crystal);
+      LIN_ALG::GEMM<dca::linalg::CPU>::execute('N', 'N', Gamma_chi_0_lattice, P, tmp);
+      LIN_ALG::GEMM<dca::linalg::CPU>::execute('C', 'N', P, tmp, Gamma_chi_0_crystal);
 
       if (concurrency.id() == concurrency.last())
         std::cout << " finished " << dca::util::print_time() << "\n";
@@ -753,12 +758,12 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_folded_Gamma_ch
       std::cout << "\n\n\t diagonalize P_Gamma_chi_0_lattice_P " << dca::util::print_time()
                 << " ...";
 
-    LIN_ALG::vector<std::complex<scalartype>, LIN_ALG::CPU> L("L (BSE_lattice_solver)", M);
+    dca::linalg::Vector<std::complex<scalartype>, dca::linalg::CPU> L("L (BSE_lattice_solver)", M);
 
-    LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU> VL("VL (BSE_lattice_solver)", M);
-    LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU> VR("VR (BSE_lattice_solver)", M);
+    dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> VL("VL (BSE_lattice_solver)", M);
+    dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> VR("VR (BSE_lattice_solver)", M);
 
-    LIN_ALG::GEEV<LIN_ALG::CPU>::execute('N', 'V', Gamma_chi_0_crystal, L, VL, VR);
+    LIN_ALG::GEEV<dca::linalg::CPU>::execute('N', 'V', Gamma_chi_0_crystal, L, VL, VR);
 
     if (concurrency.id() == concurrency.last())
       std::cout << " finished " << dca::util::print_time() << "\n";
@@ -774,9 +779,9 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_folded_Gamma_ch
 
 template <class parameters_type, class MOMS_type>
 void BSE_lattice_solver<parameters_type, MOMS_type>::record_eigenvalues_and_folded_eigenvectors(
-    LIN_ALG::vector<std::complex<scalartype>, LIN_ALG::CPU>& L,
-    LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& /*VL*/,
-    LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& VR) {
+    dca::linalg::Vector<std::complex<scalartype>, dca::linalg::CPU>& L,
+    dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& /*VL*/,
+    dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& VR) {
   int N = lattice_eigenvector_dmn_t::dmn_size();
   int M = crystal_eigenvector_dmn_t::dmn_size();
 
@@ -805,54 +810,55 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::record_eigenvalues_and_fold
 template <class parameters_type, class MOMS_type>
 void BSE_lattice_solver<parameters_type, MOMS_type>::compute_folded_susceptibility(
     FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice,
-    LIN_ALG::vector<std::complex<scalartype>, LIN_ALG::CPU>& L,
-    LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& VL,
-    LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU>& VR) {
+    dca::linalg::Vector<std::complex<scalartype>, dca::linalg::CPU>& L,
+    dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& VL,
+    dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& VR) {
   int N = lattice_eigenvector_dmn_t::dmn_size();
   int M = crystal_eigenvector_dmn_t::dmn_size();
 
-  LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU> P_1_min_Gamma_chi_0_P(
+  dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> P_1_min_Gamma_chi_0_P(
       "P_1_min_Gamma_chi_0_P", M);
   {
     if (concurrency.id() == concurrency.last())
       std::cout << "\n\n\t invert VR  " << dca::util::print_time() << " ...";
 
-    LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU> D_inv("D_inv", M);
-    LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU> VR_D_inv("VR_D_inv", M);
+    dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> D_inv("D_inv", M);
+    dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> VR_D_inv("VR_D_inv", M);
 
     for (int l = 0; l < M; l++)
       D_inv(l, l) = 1. / (1. - L[l]);
 
     VL.copy_from(VR);
-    LIN_ALG::GEINV<LIN_ALG::CPU>::execute(VL);
+    LIN_ALG::GEINV<dca::linalg::CPU>::execute(VL);
 
-    LIN_ALG::GEMM<LIN_ALG::CPU>::execute('N', 'N', VR, D_inv, VR_D_inv);
-    LIN_ALG::GEMM<LIN_ALG::CPU>::execute('N', 'N', VR_D_inv, VL, P_1_min_Gamma_chi_0_P);
+    LIN_ALG::GEMM<dca::linalg::CPU>::execute('N', 'N', VR, D_inv, VR_D_inv);
+    LIN_ALG::GEMM<dca::linalg::CPU>::execute('N', 'N', VR_D_inv, VL, P_1_min_Gamma_chi_0_P);
 
     if (concurrency.id() == concurrency.last())
       std::cout << " finished " << dca::util::print_time() << "\n";
   }
 
-  LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU> P_chi_0_P("P_chi_0_P", M);
+  dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> P_chi_0_P("P_chi_0_P", M);
   {
     if (concurrency.id() == concurrency.last())
       std::cout << "\n\n\t compute P_chi_0_P " << dca::util::print_time() << " ...";
 
-    LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU> chi_0("chi_0", N);
+    dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> chi_0("chi_0", N);
 
     for (int j = 0; j < N; j++)
       for (int i = 0; i < N; i++)
         chi_0(i, j) = chi_0_lattice(i, j);
 
-    LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU> P("P", std::pair<int, int>(N, M));
-    LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU> tmp("tmp", std::pair<int, int>(N, M));
+    dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> P("P", std::pair<int, int>(N, M));
+    dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> tmp("tmp",
+                                                                        std::pair<int, int>(N, M));
 
     for (int j = 0; j < M; j++)
       for (int i = 0; i < N; i++)
         P(i, j) = crystal_harmonics(i, j);
 
-    LIN_ALG::GEMM<LIN_ALG::CPU>::execute('N', 'N', chi_0, P, tmp);
-    LIN_ALG::GEMM<LIN_ALG::CPU>::execute('C', 'N', P, tmp, P_chi_0_P);
+    LIN_ALG::GEMM<dca::linalg::CPU>::execute('N', 'N', chi_0, P, tmp);
+    LIN_ALG::GEMM<dca::linalg::CPU>::execute('C', 'N', P, tmp, P_chi_0_P);
 
     if (concurrency.id() == concurrency.last())
       std::cout << " finished " << dca::util::print_time() << "\n";
@@ -864,9 +870,10 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::compute_folded_susceptibili
         chi_q_tmp("chi_q_tmp");
 
     {
-      LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU> chi_matrix("chi", M);
+      dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> chi_matrix("chi", M);
 
-      LIN_ALG::GEMM<LIN_ALG::CPU>::execute('N', 'N', P_chi_0_P, P_1_min_Gamma_chi_0_P, chi_matrix);
+      LIN_ALG::GEMM<dca::linalg::CPU>::execute('N', 'N', P_chi_0_P, P_1_min_Gamma_chi_0_P,
+                                               chi_matrix);
 
       for (int j = 0; j < M; j++)
         for (int i = 0; i < M; i++)

@@ -124,8 +124,6 @@ namespace LIN_ALG {
 	throw std::logic_error(__FUNCTION__);
       }
 
-      assert(ptr!=NULL);
-
 #ifdef DEBUG_CUDA
        cuda_check_for_errors_end(__FUNCTION__, __FILE__, __LINE__);
 #endif
@@ -149,8 +147,6 @@ namespace LIN_ALG {
 
 	throw std::logic_error(__FUNCTION__);
       }
-
-      assert(ptr!=NULL);
 
 #ifdef DEBUG_CUDA
        cuda_check_for_errors_end(__FUNCTION__, __FILE__, __LINE__);
@@ -178,8 +174,6 @@ namespace LIN_ALG {
 	throw std::logic_error(__FUNCTION__);
       }
 
-      assert(ptr!=NULL);
-
 #ifdef DEBUG_CUDA
        cuda_check_for_errors_end(__FUNCTION__, __FILE__, __LINE__);
 #endif
@@ -204,8 +198,6 @@ namespace LIN_ALG {
 	throw std::logic_error(__FUNCTION__);
       }
 
-      assert(ptr!=NULL);
-
 #ifdef DEBUG_CUDA
        cuda_check_for_errors_end(__FUNCTION__, __FILE__, __LINE__);
 #endif
@@ -218,8 +210,6 @@ namespace LIN_ALG {
        cuda_check_for_errors_bgn(__FUNCTION__, __FILE__, __LINE__);
 #endif
 
-      assert(ptr!=NULL);
-      
       cudaError_t ret = cudaFree(ptr);
 
       if(ret != cudaSuccess){
@@ -243,8 +233,6 @@ namespace LIN_ALG {
 #ifdef DEBUG_CUDA
        cuda_check_for_errors_bgn(__FUNCTION__, __FILE__, __LINE__);
 #endif
-
-      assert(ptr!=NULL);
 
       cudaError_t ret = cudaFreeHost(ptr);
 

@@ -32,7 +32,7 @@ namespace DCA {
 namespace QMCI {
 // DCA::QMCI::
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 class MC_accumulator<SS_CT_HYB, device_t, parameters_type, MOMS_type>
     : public MC_accumulator_data,
       public ss_hybridization_solver_routines<parameters_type, MOMS_type> {
@@ -155,7 +155,7 @@ protected:
   MC_single_particle_accumulator<SS_CT_HYB, NFFT, parameters_type, MOMS_type> single_particle_accumulator_obj;
 };
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 MC_accumulator<SS_CT_HYB, device_t, parameters_type, MOMS_type>::MC_accumulator(
     parameters_type& parameters_ref, MOMS_type& MOMS_ref, int id)
     : ss_hybridization_solver_routines<parameters_type, MOMS_type>(parameters_ref, MOMS_ref),
@@ -179,7 +179,7 @@ MC_accumulator<SS_CT_HYB, device_t, parameters_type, MOMS_type>::MC_accumulator(
 
       single_particle_accumulator_obj(parameters) {}
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_accumulator<SS_CT_HYB, device_t, parameters_type, MOMS_type>::initialize(int dca_iteration) {
   MC_accumulator_data::initialize(dca_iteration);
 
@@ -191,14 +191,14 @@ void MC_accumulator<SS_CT_HYB, device_t, parameters_type, MOMS_type>::initialize
   overlap = 0;
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_accumulator<SS_CT_HYB, device_t, parameters_type,
                     MOMS_type>::finalize()  // FUNC_LIB::function<double, nu> mu_DC)
 {
   single_particle_accumulator_obj.finalize(G_r_w, GS_r_w);
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 template <typename Writer>
 void MC_accumulator<SS_CT_HYB, device_t, parameters_type, MOMS_type>::write(Writer& writer) {
   writer.execute(G_r_w);
@@ -211,7 +211,7 @@ void MC_accumulator<SS_CT_HYB, device_t, parameters_type, MOMS_type>::write(Writ
  **                                                         **
  *************************************************************/
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_accumulator<SS_CT_HYB, device_t, parameters_type, MOMS_type>::update_from(walker_type& walker) {
   current_sign = walker.get_sign();
 
@@ -221,7 +221,7 @@ void MC_accumulator<SS_CT_HYB, device_t, parameters_type, MOMS_type>::update_fro
     M_matrices(l).copy_from(walker.get_M_matrices()(l));
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_accumulator<SS_CT_HYB, device_t, parameters_type, MOMS_type>::measure() {
   number_of_measurements += 1;
   accumulated_sign += current_sign;
@@ -234,7 +234,7 @@ void MC_accumulator<SS_CT_HYB, device_t, parameters_type, MOMS_type>::measure() 
                                              MOMS.H_interactions);
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_accumulator<SS_CT_HYB, device_t, parameters_type, MOMS_type>::accumulate_length(
     walker_type& walker) {
   ss_hybridization_walker_routines_type& hybridization_routines =
@@ -249,7 +249,7 @@ void MC_accumulator<SS_CT_HYB, device_t, parameters_type, MOMS_type>::accumulate
   }
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_accumulator<SS_CT_HYB, device_t, parameters_type, MOMS_type>::accumulate_overlap(
     walker_type& walker) {
   ss_hybridization_walker_routines_type& hybridization_routines =
@@ -277,7 +277,7 @@ void MC_accumulator<SS_CT_HYB, device_t, parameters_type, MOMS_type>::accumulate
   }
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_accumulator<SS_CT_HYB, device_t, parameters_type, MOMS_type>::sum_to(this_type& other) {
   finalize();
 

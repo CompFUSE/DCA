@@ -71,8 +71,8 @@ void deconvolution_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(
         Gamma_lattice_deconv) {
   int N = k_HOST_VERTEX::dmn_size();
 
-  LIN_ALG::matrix<std::complex<scalartype>, LIN_ALG::CPU> phi_inv("phi_inv",
-                                                                  std::pair<int, int>(N, N));
+  dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> phi_inv(
+      "phi_inv", std::pair<int, int>(N, N));
 
   this->compute_T_inv_matrix(parameters.get_singular_value_cut_off(), phi_inv);
 
