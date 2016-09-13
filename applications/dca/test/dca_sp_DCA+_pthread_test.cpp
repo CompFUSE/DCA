@@ -20,6 +20,7 @@
 #include "dca/config/haves_defines.hpp"
 #include "dca/concurrency/parallelization_pthreads.h"
 #include "dca/math/random/std_random_wrapper.hpp"
+#include "dca/phys/parameters/parameters.hpp"
 #include "dca/testing/dca_mpi_test_environment.hpp"
 #include "dca/testing/minimalist_printer.hpp"
 #include "dca/util/git_version.hpp"
@@ -39,7 +40,6 @@
 #include "phys_library/domains/time_and_frequency/frequency_domain.h"
 #include "phys_library/parameters/models/analytic_hamiltonians/lattices/2D_square_lattice.h"
 #include "phys_library/parameters/models/tight_binding_model.h"
-#include "phys_library/parameters/Parameters.h"
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
@@ -57,8 +57,8 @@ TEST(dca_sp_DCAplus_pthread, Self_energy) {
   using LatticeType = square_lattice<DcaPointGroupType>;
   using ModelType = tight_binding_model<LatticeType>;
   using ParametersType =
-      Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, PROFILER::NullProfiler,
-                 ModelType, RngType, CT_AUX_CLUSTER_SOLVER>;
+      dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType,
+                                    PROFILER::NullProfiler, ModelType, RngType, CT_AUX_CLUSTER_SOLVER>;
   using DcaDataType = DCA_data<ParametersType>;
   using ClusterSolverBaseType =
       cluster_solver<CT_AUX_CLUSTER_SOLVER, LIN_ALG::CPU, ParametersType, DcaDataType>;

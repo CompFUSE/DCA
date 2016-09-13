@@ -18,6 +18,7 @@
 #include "gtest/gtest.h"
 
 #include "dca/config/haves_defines.hpp"
+#include "dca/phys/parameters/parameters.hpp"
 #include "dca/testing/dca_mpi_test_environment.hpp"
 #include "dca/testing/minimalist_printer.hpp"
 #include "dca/util/git_version.hpp"
@@ -31,7 +32,6 @@
 #include "phys_library/domains/cluster/symmetries/point_groups/2D/2D_square.h"
 #include "phys_library/parameters/models/analytic_hamiltonians/lattices/2D_square_lattice.h"
 #include "phys_library/parameters/models/tight_binding_model.h"
-#include "phys_library/parameters/Parameters.h"
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
@@ -42,8 +42,9 @@ TEST(analysis_DCAplus_mpi, leading_eigenvalues) {
   using LatticeType = square_lattice<DcaPointGroupType>;
   using ModelType = tight_binding_model<LatticeType>;
   using ParametersType =
-      Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, PROFILER::NullProfiler,
-                 ModelType, void /*RngType*/, CT_AUX_CLUSTER_SOLVER>;
+      dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType,
+                                    PROFILER::NullProfiler, ModelType, void /*RngType*/,
+                                    CT_AUX_CLUSTER_SOLVER>;
   using DcaDataType = DCA_data<ParametersType>;
 
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
