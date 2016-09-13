@@ -1,0 +1,6 @@
+{
+    "material-model": {
+        "t_ij-filename": "t_ij.txt",
+        "U_ij-filename": "U_ij.txt"
+    }
+}

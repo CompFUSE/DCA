@@ -27,6 +27,7 @@
 #include "dca/phys/parameters/function_parameters.hpp"
 #include "dca/phys/parameters/mc_solver_parameters.hpp"
 #include "dca/phys/parameters/mci_parameters.hpp"
+#include "dca/phys/parameters/model_parameters.hpp"
 #include "dca/phys/parameters/physics_parameters.hpp"
 #include "dca/phys/parameters/vertex_parameters.hpp"
 #include "dca/util/print_type.hpp"
@@ -44,8 +45,6 @@
 #include "phys_library/domains/time_and_frequency/time_domain.h"
 #include "phys_library/domains/time_and_frequency/time_domain_left_oriented.h"
 #include "phys_library/domains/time_and_frequency/vertex_time_domain.h"
-#include "phys_library/parameters/parameters_specialization/model_specializations/model_specializations.hpp"
-#include "phys_library/parameters/parameters_specialization/templates/templates.hpp"
 
 // TODO: Remove when the Parameters class itself is put inside the namespace dca::phys::params.
 using dca::phys::params::BrillouinZoneParameters;
@@ -58,6 +57,7 @@ using dca::phys::params::FilenameParameters;
 using dca::phys::params::FunctionParameters;
 using dca::phys::params::McSolverParameters;
 using dca::phys::params::MciParameters;
+using dca::phys::params::ModelParameters;
 using dca::phys::params::PhysicsParameters;
 using dca::phys::params::VertexParameters;
 
@@ -65,7 +65,7 @@ template <typename concurrency_t, typename Profiler, typename model_t, typename 
           DCA::ClusterSolverName solver_name>
 class Parameters : public FilenameParameters,
                    public PhysicsParameters,
-                   public model_parameters<model_t>,
+                   public ModelParameters<model_t>,
                    public DcaParameters,
 
                    public FunctionParameters,
@@ -184,7 +184,7 @@ Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::Parameters(
     std::string version_stamp_str, concurrency_t& concurrency_object)
     : FilenameParameters(),
       PhysicsParameters(),
-      model_parameters<model_t>(),
+      ModelParameters<model_t>(),
       DcaParameters(model_t::DIMENSION),
 
       FunctionParameters(model_t::DIMENSION),
@@ -372,7 +372,7 @@ void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::read_writ
   FilenameParameters::readWrite(read_write_obj);
 
   PhysicsParameters::readWrite(read_write_obj);
-  model_parameters<model_t>::read_write(read_write_obj);
+  ModelParameters<model_t>::readWrite(read_write_obj);
   DcaParameters::readWrite(read_write_obj);
 
   MciParameters::readWrite(read_write_obj);
@@ -397,7 +397,7 @@ int Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::get_buffer
   buffer_size += FilenameParameters::getBufferSize(concurrency);
 
   buffer_size += PhysicsParameters::getBufferSize(concurrency);
-  buffer_size += model_parameters<model_t>::get_buffer_size(concurrency);
+  buffer_size += ModelParameters<model_t>::getBufferSize(concurrency);
   buffer_size += DcaParameters::getBufferSize(concurrency);
 
   buffer_size += MciParameters::getBufferSize(concurrency);
@@ -422,7 +422,7 @@ void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::pack(
   FilenameParameters::pack(concurrency, buffer, buffer_size, position);
 
   PhysicsParameters::pack(concurrency, buffer, buffer_size, position);
-  model_parameters<model_t>::pack(concurrency, buffer, buffer_size, position);
+  ModelParameters<model_t>::pack(concurrency, buffer, buffer_size, position);
   DcaParameters::pack(concurrency, buffer, buffer_size, position);
 
   MciParameters::pack(concurrency, buffer, buffer_size, position);
@@ -445,7 +445,7 @@ void Parameters<concurrency_t, Profiler, model_t, rng_t, solver_name>::unpack(
   FilenameParameters::unpack(concurrency, buffer, buffer_size, position);
 
   PhysicsParameters::unpack(concurrency, buffer, buffer_size, position);
-  model_parameters<model_t>::unpack(concurrency, buffer, buffer_size, position);
+  ModelParameters<model_t>::unpack(concurrency, buffer, buffer_size, position);
   DcaParameters::unpack(concurrency, buffer, buffer_size, position);
 
   MciParameters::unpack(concurrency, buffer, buffer_size, position);
