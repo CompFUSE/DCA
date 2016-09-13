@@ -207,7 +207,7 @@ private:
   inline static size_t nrElements(std::pair<int, int> size) {
     return static_cast<size_t>(size.first) * static_cast<size_t>(size.second);
   }
-  const static int block_size = 32;
+  const static int block_size_ = 32;
 
   std::string name_;
 
@@ -495,8 +495,8 @@ std::pair<int, int> Matrix<ScalarType, device_name>::capacityMultipleOfBlockSize
   assert(size.first >= 0);
   assert(size.second >= 0);
 
-  size.first = (size.first + block_size - 1) / block_size * block_size;
-  size.second = (size.second + block_size - 1) / block_size * block_size;
+  size.first = (size.first + block_size_ - 1) / block_size_ * block_size_;
+  size.second = (size.second + block_size_ - 1) / block_size_ * block_size_;
 
   return size;
 }
