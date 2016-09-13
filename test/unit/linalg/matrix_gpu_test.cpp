@@ -7,7 +7,7 @@
 //
 // Author: Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //
-// This file tests the interaction between Matrix<CPU> and Matrix<GPU>.
+// This file tests the Matrix<GPU> class.
 
 #include "dca/linalg/matrix.hpp"
 #include <complex>
@@ -304,7 +304,7 @@ TEST(MatrixGPUTest, ResizePair) {
     auto el_value = [](int i, int j) { return 1 + 3 * i - 2 * j; };
     testing::setMatrixElements(mat, el_value);
 
-    // Resize to capacity. No reallocation have to take place.
+    // Resize to capacity. No reallocation has to take place.
     auto old_ptr = mat.ptr();
     auto capacity = mat.capacity();
     auto new_size = capacity;
@@ -329,7 +329,7 @@ TEST(MatrixGPUTest, ResizePair) {
     auto el_value = [](int i, int j) { return 1 + 3 * i - 2 * j; };
     testing::setMatrixElements(mat, el_value);
 
-    // Shrink the matrix. No reallocation have to take place.
+    // Shrink the matrix. No reallocation has to take place.
     auto new_size = mat.size();
     --new_size.first;
     mat.resize(new_size);
@@ -354,7 +354,7 @@ TEST(MatrixGPUTest, ResizePair) {
     testing::setMatrixElements(mat, el_value);
 
     // New number of rows is larger than capacity().first.
-    // Reallocation have to take place.
+    // Reallocation has to take place.
     auto new_size = std::make_pair(capacity.first + 1, 1);
     mat.resize(new_size);
     EXPECT_EQ(new_size, mat.size());
@@ -379,7 +379,7 @@ TEST(MatrixGPUTest, ResizePair) {
     testing::setMatrixElements(mat, el_value);
 
     // New number of columns is larger than capacity().second.
-    // Reallocation have to take place.
+    // Reallocation has to take place.
     auto new_size = std::make_pair(1, capacity.second + 1);
     mat.resize(new_size);
     EXPECT_EQ(new_size, mat.size());
@@ -405,7 +405,7 @@ TEST(MatrixGPUTest, ResizeValue) {
     auto el_value = [](int i, int j) { return 1 + 3 * i - 2 * j; };
     testing::setMatrixElements(mat, el_value);
 
-    // Resize to capacity. No reallocation have to take place.
+    // Resize to capacity. No reallocation has to take place.
     auto old_ptr = mat.ptr();
     auto capacity = mat.capacity();
     int new_size = std::min(capacity.first, capacity.second);
@@ -430,7 +430,7 @@ TEST(MatrixGPUTest, ResizeValue) {
     auto el_value = [](int i, int j) { return 1 + 3 * i - 2 * j; };
     testing::setMatrixElements(mat, el_value);
 
-    // Shrink the matrix. No reallocation have to take place.
+    // Shrink the matrix. No reallocation has to take place.
     int new_size = 2;
     mat.resize(new_size);
     EXPECT_EQ(std::make_pair(new_size, new_size), mat.size());
@@ -454,7 +454,7 @@ TEST(MatrixGPUTest, ResizeValue) {
     testing::setMatrixElements(mat, el_value);
 
     // New size is larger than capacity.
-    // Reallocation have to take place.
+    // Reallocation has to take place.
     int new_size = std::min(capacity.first, capacity.second) + 1;
     mat.resize(new_size);
     EXPECT_EQ(std::make_pair(new_size, new_size), mat.size());
@@ -477,7 +477,7 @@ TEST(MatrixGPUTest, ResizeNoCopyPair) {
 
     dca::linalg::Matrix<Long, dca::linalg::GPU> mat(size2);
 
-    // Resize to capacity. No reallocation have to take place.
+    // Resize to capacity. No reallocation has to take place.
     auto old_ptr = mat.ptr();
     auto capacity = mat.capacity();
     auto new_size = capacity;
@@ -493,7 +493,7 @@ TEST(MatrixGPUTest, ResizeNoCopyPair) {
     auto old_ptr = mat.ptr();
     auto capacity = mat.capacity();
 
-    // Shrink the matrix. No reallocation have to take place.
+    // Shrink the matrix. No reallocation has to take place.
     auto new_size = mat.size();
     --new_size.first;
     mat.resizeNoCopy(new_size);
@@ -508,7 +508,7 @@ TEST(MatrixGPUTest, ResizeNoCopyPair) {
     auto capacity = mat.capacity();
 
     // New number of rows is larger than capacity().first.
-    // Reallocation have to take place.
+    // Reallocation has to take place.
     auto new_size = std::make_pair(capacity.first + 1, 1);
     mat.resizeNoCopy(new_size);
     EXPECT_EQ(new_size, mat.size());
@@ -523,7 +523,7 @@ TEST(MatrixGPUTest, ResizeNoCopyPair) {
     auto capacity = mat.capacity();
 
     // New number of columns is larger than capacity().second.
-    // Reallocation have to take place.
+    // Reallocation has to take place.
     auto new_size = std::make_pair(1, capacity.second + 1);
     mat.resizeNoCopy(new_size);
     EXPECT_EQ(new_size, mat.size());
@@ -539,7 +539,7 @@ TEST(MatrixGPUTest, ResizeNoCopyValue) {
 
     dca::linalg::Matrix<Long, dca::linalg::GPU> mat(size2);
 
-    // Resize to capacity. No reallocation have to take place.
+    // Resize to capacity. No reallocation has to take place.
     auto old_ptr = mat.ptr();
     auto capacity = mat.capacity();
     int new_size = std::min(capacity.first, capacity.second);
@@ -555,7 +555,7 @@ TEST(MatrixGPUTest, ResizeNoCopyValue) {
     auto old_ptr = mat.ptr();
     auto capacity = mat.capacity();
 
-    // Shrink the matrix. No reallocation have to take place.
+    // Shrink the matrix. No reallocation has to take place.
     int new_size = 2;
     mat.resizeNoCopy(new_size);
     EXPECT_EQ(std::make_pair(new_size, new_size), mat.size());
@@ -569,7 +569,7 @@ TEST(MatrixGPUTest, ResizeNoCopyValue) {
     auto capacity = mat.capacity();
 
     // New size is larger than capacity.
-    // Reallocation have to take place.
+    // Reallocation has to take place.
     int new_size = std::min(capacity.first, capacity.second) + 1;
     mat.resizeNoCopy(new_size);
     EXPECT_EQ(std::make_pair(new_size, new_size), mat.size());

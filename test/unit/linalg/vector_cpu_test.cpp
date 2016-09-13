@@ -200,7 +200,7 @@ TEST(VectorCPUTest, Resize) {
       vec[i] = el;
     }
 
-    // Resize to capacity. No reallocation have to take place.
+    // Resize to capacity. No reallocation has to take place.
     auto old_ptr = vec.ptr();
     auto capacity = vec.capacity();
     int new_size = capacity;
@@ -227,7 +227,7 @@ TEST(VectorCPUTest, Resize) {
       vec[i] = el;
     }
 
-    // Shrink the vecrix. No reallocation have to take place.
+    // Shrink the vector. No reallocation has to take place.
     int new_size = 2;
     vec.resize(new_size);
     EXPECT_EQ(new_size, vec.size());
@@ -253,7 +253,7 @@ TEST(VectorCPUTest, Resize) {
     }
 
     // New size is larger than capacity.
-    // Reallocation have to take place.
+    // Reallocation has to take place.
     int new_size = capacity + 1;
     vec.resize(new_size);
     EXPECT_EQ(new_size, vec.size());
@@ -274,7 +274,7 @@ TEST(VectorCPUTest, ResizeNoCopy) {
 
     dca::linalg::Vector<long, dca::linalg::CPU> vec(size);
 
-    // Resize to capacity. No reallocation have to take place.
+    // Resize to capacity. No reallocation has to take place.
     auto old_ptr = vec.ptr();
     auto capacity = vec.capacity();
     size_t new_size = capacity;
@@ -290,7 +290,7 @@ TEST(VectorCPUTest, ResizeNoCopy) {
     auto old_ptr = vec.ptr();
     auto capacity = vec.capacity();
 
-    // Shrink the vecrix. No reallocation have to take place.
+    // Shrink the vector. No reallocation has to take place.
     size_t new_size = 2;
     vec.resizeNoCopy(new_size);
     EXPECT_EQ(new_size, vec.size());
@@ -304,7 +304,7 @@ TEST(VectorCPUTest, ResizeNoCopy) {
     auto capacity = vec.capacity();
 
     // New size is larger than capacity.
-    // Reallocation have to take place.
+    // Reallocation has to take place.
     size_t new_size = capacity + 1;
     vec.resizeNoCopy(new_size);
     EXPECT_EQ(new_size, vec.size());

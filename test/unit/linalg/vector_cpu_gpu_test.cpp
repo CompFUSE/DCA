@@ -7,7 +7,7 @@
 //
 // Author: Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //
-// This file tests the Vector<CPU> class.
+// This file tests the interaction between Vector<CPU> and Vector<GPU>.
 
 #include "dca/linalg/vector.hpp"
 #include <complex>

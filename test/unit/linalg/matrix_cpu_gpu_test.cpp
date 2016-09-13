@@ -7,7 +7,7 @@
 //
 // Author: Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //
-// This file tests the Matrix<GPU> class.
+// This file tests the interaction between Matrix<CPU> and Matrix<GPU>.
 
 #include "dca/linalg/matrix.hpp"
 #include <complex>
