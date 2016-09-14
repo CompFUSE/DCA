@@ -18,10 +18,10 @@
 #include <utility>
 #include <vector>
 
+#include "dca/phys/models/general_interaction.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_auxilery_field_coefficients.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_vertex_singleton.h"
 #include "phys_library/domains/cluster/cluster_domain.h"
-#include "phys_library/parameters/models/analytic_hamiltonians/interactions/general_interaction.hpp"
 
 namespace DCA {
 namespace QMCI {
@@ -176,8 +176,8 @@ vertex_singleton vertex_pair<parameters_type>::second() {
 
 template <class parameters_type>
 void vertex_pair<parameters_type>::set_random_interacting() {
-  general_interaction<parameters_type>::set_vertex(*this, parameters, rng,
-                                                   CV<parameters_type>::get_H_interaction());
+  dca::phys::models::general_interaction<parameters_type>::set_vertex(
+      *this, parameters, rng, CV<parameters_type>::get_H_interaction());
 
   double draw = rng();
 
@@ -203,8 +203,8 @@ void vertex_pair<parameters_type>::set_random_interacting() {
 
 template <class parameters_type>
 void vertex_pair<parameters_type>::set_random_noninteracting() {
-  general_interaction<parameters_type>::set_vertex(*this, parameters, rng,
-                                                   CV<parameters_type>::get_H_interaction());
+  dca::phys::models::general_interaction<parameters_type>::set_vertex(
+      *this, parameters, rng, CV<parameters_type>::get_H_interaction());
 
   HS_spin = HS_ZERO;
 

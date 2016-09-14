@@ -1,3 +1,5 @@
+// INTERNAL: Keep this file for later reference.
+
 //-*-C++-*-
 
 #ifndef ON_SITE_U_H
