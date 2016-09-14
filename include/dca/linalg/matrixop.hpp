@@ -9,7 +9,7 @@
 //         Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //
 // This file provides the matrix interface for the following matrix operations:
-// - insertCol, insertRow
+// - insertCol, insertRow (for CPU matrices only)
 // - removeCol, removeRow, removeRowAndCol
 // - gemm
 // - trsm
@@ -30,6 +30,7 @@ namespace matrixop {
 // Insert a column at position j. The data is moved accordingly.
 // In/Out: mat
 // Preconditions: 0 <= j < mat.nrCols() + 1.
+// Postconditions: The elements of the inserted column are set to 0.
 template <typename ScalarType>
 void insertCol(Matrix<ScalarType, CPU>& mat, int j) {
   assert(j >= 0 && j < mat.nrCols() + 1);
@@ -47,6 +48,7 @@ void insertCol(Matrix<ScalarType, CPU>& mat, int j) {
 // Insert a row at position i. The data is moved accordingly.
 // In/Out: mat
 // Preconditions: 0 <= i < mat.nrRows() + 1.
+// Postconditions: The elements of the inserted row are set to 0.
 template <typename ScalarType>
 void insertRow(Matrix<ScalarType, CPU>& mat, int i) {
   assert(i >= 0 && i < mat.nrRows() + 1);
@@ -74,10 +76,6 @@ void removeCol(Matrix<ScalarType, CPU>& mat, int j) {
 
   mat.resize(std::make_pair(mat.nrRows(), mat.nrCols() - 1));
 }
-
-// Remove the j-th column. The data is moved accordingly.
-// In/Out: mat
-// Preconditions: 0 <= j < mat.nrCols().
 template <typename ScalarType>
 void removeCol(Matrix<ScalarType, GPU>& mat, int j) {
   assert(j >= 0 && j < mat.nrCols());
@@ -102,10 +100,6 @@ void removeRow(Matrix<ScalarType, CPU>& mat, int i) {
 
   mat.resize(std::make_pair(mat.nrRows() - 1, mat.nrCols()));
 }
-
-// Remove the i-th row. The data is moved accordingly.
-// In/Out: mat
-// Preconditions: 0 <= i < mat.nrRows().
 template <typename ScalarType>
 void removeRow(Matrix<ScalarType, GPU>& mat, int i) {
   assert(i >= 0 && i < mat.nrRows());
@@ -137,7 +131,7 @@ inline void removeRowAndCol(Matrix<ScalarType, device_name>& mat, int i) {
 // Performs the matrix-matrix multiplication c <- alpha * op(a) * op(b) + beta * c,
 // where op(X) = X if transX == 'N', op(X) = transposed(X) if transX == 'T', and
 // op(X) == conjugate_transposed(X) if transX == 'C' (X = a, b).
-// In/Out: c
+// In/Out: c ('In' only if beta != 0)
 // Preconditions: transa and transb should be one of the following: 'N', 'T' for real ScalarType
 //                or  'N', 'T', 'C' for complex ScalarType
 //                a.nrRows() == c.nrRows() if transa == 'N', a.nrCols() == c.nrRows() otherwise,
