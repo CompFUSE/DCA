@@ -5,12 +5,15 @@
 // See LICENSE.txt for terms of usage.
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
-// Author: Urs Haehner (haehneru@itp.phys.ethz.ch)
+// Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// Description
+// This class provides a function to set a vertex in the Monte Carlo solver.
+//
+// TODO: - Rename class.
+//       - Const correctness.
 
-#ifndef PHYS_LIBRARY_PARAMETERS_MODELS_ANALYTIC_HAMILTONIANS_GENERAL_INTERACTION_HPP
-#define PHYS_LIBRARY_PARAMETERS_MODELS_ANALYTIC_HAMILTONIANS_GENERAL_INTERACTION_HPP
+#ifndef DCA_PHYS_MODELS_GENERAL_INTERACTION_HPP
+#define DCA_PHYS_MODELS_GENERAL_INTERACTION_HPP
 
 #include <array>
 #include <vector>
@@ -20,6 +23,11 @@
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
 #include "phys_library/domains/convert_DCA_types_to_index.h"
+
+namespace dca {
+namespace phys {
+namespace models {
+// dca::phys::models::
 
 template <typename parameters_type>
 class general_interaction {
@@ -104,4 +112,8 @@ std::vector<int> general_interaction<parameters_type>::make_correlated_orbitals(
   return correlated_orbitals;
 }
 
-#endif  // PHYS_LIBRARY_PARAMETERS_MODELS_ANALYTIC_HAMILTONIANS_GENERAL_INTERACTION_HPP
+}  // models
+}  // phys
+}  // dca
+
+#endif  // DCA_PHYS_MODELS_GENERAL_INTERACTION_HPP

@@ -10,7 +10,7 @@
 // Template specialization of model parameters for 2D bilayer model.
 
 template <typename PointGroup>
-class ModelParameters<tight_binding_model<bilayer_lattice<PointGroup>>> {
+class ModelParameters<models::TightBindingModel<models::bilayer_lattice<PointGroup>>> {
 public:
   ModelParameters()
       : t_(1.), t_prime_(0.), t_perp_(0.), U_(4.), U_prime_(0.), V_(0.), V_prime_(0.) {}
@@ -59,7 +59,7 @@ private:
 
 template <typename PointGroup>
 template <typename Concurrency>
-int ModelParameters<tight_binding_model<bilayer_lattice<PointGroup>>>::getBufferSize(
+int ModelParameters<models::TightBindingModel<models::bilayer_lattice<PointGroup>>>::getBufferSize(
     Concurrency& concurrency) const {
   int buffer_size = 0;
 
@@ -76,7 +76,7 @@ int ModelParameters<tight_binding_model<bilayer_lattice<PointGroup>>>::getBuffer
 
 template <typename PointGroup>
 template <typename Concurrency>
-void ModelParameters<tight_binding_model<bilayer_lattice<PointGroup>>>::pack(
+void ModelParameters<models::TightBindingModel<models::bilayer_lattice<PointGroup>>>::pack(
     Concurrency& concurrency, int* buffer, int buffer_size, int& position) const {
   concurrency.pack(buffer, buffer_size, position, t_);
   concurrency.pack(buffer, buffer_size, position, t_prime_);
@@ -89,7 +89,7 @@ void ModelParameters<tight_binding_model<bilayer_lattice<PointGroup>>>::pack(
 
 template <typename PointGroup>
 template <typename Concurrency>
-void ModelParameters<tight_binding_model<bilayer_lattice<PointGroup>>>::unpack(
+void ModelParameters<models::TightBindingModel<models::bilayer_lattice<PointGroup>>>::unpack(
     Concurrency& concurrency, int* buffer, int buffer_size, int& position) {
   concurrency.unpack(buffer, buffer_size, position, t_);
   concurrency.unpack(buffer, buffer_size, position, t_prime_);
@@ -102,7 +102,7 @@ void ModelParameters<tight_binding_model<bilayer_lattice<PointGroup>>>::unpack(
 
 template <typename PointGroup>
 template <typename ReaderOrWriter>
-void ModelParameters<tight_binding_model<bilayer_lattice<PointGroup>>>::readWrite(
+void ModelParameters<models::TightBindingModel<models::bilayer_lattice<PointGroup>>>::readWrite(
     ReaderOrWriter& reader_or_writer) {
   try {
     reader_or_writer.open_group("bilayer-model");

@@ -10,12 +10,6 @@
 //
 // Description
 
-#ifndef PHYS_LIBRARY_PARAMETERS_MODELS_MATERIAL_HAMILTONIANS_TEMPLATE_SPECIALIZATION_CUO2_MATERIAL_LATTICE_CUO2_H
-#define PHYS_LIBRARY_PARAMETERS_MODELS_MATERIAL_HAMILTONIANS_TEMPLATE_SPECIALIZATION_CUO2_MATERIAL_LATTICE_CUO2_H
-
-#include "comp_library/IO_library/CSV/CSV.hpp"
-#include "phys_library/parameters/models/material_hamiltonians/material_lattice_template.h"
-
 template <typename point_group_type>
 class material_lattice<CuO2, point_group_type> {
 public:
@@ -208,5 +202,3 @@ std::complex<double> material_lattice<CuO2, point_group_type>::get_LDA_Hamiltoni
 
   return H_LDA;
 }
-
-#endif  // PHYS_LIBRARY_PARAMETERS_MODELS_MATERIAL_HAMILTONIANS_TEMPLATE_SPECIALIZATION_CUO2_MATERIAL_LATTICE_CUO2_H

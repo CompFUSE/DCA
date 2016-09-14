@@ -9,14 +9,19 @@
 //
 // Description
 
-#ifndef PHYS_LIBRARY_PARAMETERS_MODELS_ANALYTIC_HAMILTONIANS_LATTICES_2D_TRIANGULAR_LATTICE_H
-#define PHYS_LIBRARY_PARAMETERS_MODELS_ANALYTIC_HAMILTONIANS_LATTICES_2D_TRIANGULAR_LATTICE_H
+#ifndef DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_TRIANGULAR_LATTICE_HPP
+#define DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_TRIANGULAR_LATTICE_HPP
 
 #include <complex>
 #include <vector>
 
 #include "comp_library/function_library/include_function_library.h"
 #include "phys_library/domains/cluster/symmetries/point_groups/No_symmetry.h"
+
+namespace dca {
+namespace phys {
+namespace models {
+// dca::phys::models::
 
 template <typename DCA_point_group_type>
 class triangular_lattice {
@@ -138,4 +143,8 @@ std::complex<double> triangular_lattice<DCA_point_group_type>::get_LDA_Hamiltoni
   return H_LDA;
 }
 
-#endif  // PHYS_LIBRARY_PARAMETERS_MODELS_ANALYTIC_HAMILTONIANS_LATTICES_2D_TRIANGULAR_LATTICE_H
+}  // models
+}  // phys
+}  // dca
+
+#endif  // DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_TRIANGULAR_LATTICE_HPP

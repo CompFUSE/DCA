@@ -10,17 +10,22 @@
 //
 // Description
 
-#ifndef PHYS_LIBRARY_PARAMETERS_MODELS_ANALYTIC_HAMILTONIANS_LATTICES_2D_4BAND_LATTICE_H
-#define PHYS_LIBRARY_PARAMETERS_MODELS_ANALYTIC_HAMILTONIANS_LATTICES_2D_4BAND_LATTICE_H
+#ifndef DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_FOURBAND_LATTICE_HPP
+#define DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_FOURBAND_LATTICE_HPP
 
 #include <cmath>
 #include <complex>
 #include <utility>
 #include <vector>
 
+#include "dca/phys/models/analytic_hamiltonians/cluster_shape_type.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "phys_library/domains/cluster/symmetries/point_groups/No_symmetry.h"
-#include "phys_library/parameters/models/analytic_hamiltonians/lattices/cluster_shape_type.hpp"
+
+namespace dca {
+namespace phys {
+namespace models {
+// dca::phys::models::
 
 template <typename point_group_type>
 class fourband_lattice {
@@ -243,4 +248,8 @@ std::complex<double> fourband_lattice<point_group_type>::get_LDA_Hamiltonians(
   return H_LDA;
 }
 
-#endif  // PHYS_LIBRARY_PARAMETERS_MODELS_ANALYTIC_HAMILTONIANS_LATTICES_2D_4BAND_LATTICE_H
+}  // models
+}  // phys
+}  // dca
+
+#endif  // DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_FOURBAND_LATTICE_HPP

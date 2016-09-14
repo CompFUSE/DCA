@@ -13,15 +13,15 @@
 
 #include "dca/phys/parameters/model_parameters.hpp"
 #include "gtest/gtest.h"
+#include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "comp_library/IO_library/JSON/JSON.hpp"
 #include "phys_library/domains/cluster/symmetries/point_groups/2D/2D_square.h"
-#include "phys_library/parameters/models/analytic_hamiltonians/lattices/2D_square_lattice.h"
 
 using PointGroup = D4;
-using Lattice = square_lattice<PointGroup>;
+using Lattice = dca::phys::models::square_lattice<PointGroup>;
 
 TEST(ModelParametersTightBindingTest, DefaultValues) {
-  dca::phys::params::ModelParameters<tight_binding_model<Lattice>> pars;
+  dca::phys::params::ModelParameters<dca::phys::models::TightBindingModel<Lattice>> pars;
 
   EXPECT_EQ(1., pars.get_t());
   EXPECT_EQ(0., pars.get_t_prime());
@@ -32,7 +32,7 @@ TEST(ModelParametersTightBindingTest, DefaultValues) {
 
 TEST(ModelParametersTightBindingTest, ReadAll) {
   IO::reader<IO::JSON> reader;
-  dca::phys::params::ModelParameters<tight_binding_model<Lattice>> pars;
+  dca::phys::params::ModelParameters<dca::phys::models::TightBindingModel<Lattice>> pars;
 
   reader.open_file(DCA_SOURCE_DIR
                    "/test/unit/phys/parameters/model_parameters/input_read_all_tight_binding.json");

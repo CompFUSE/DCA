@@ -9,12 +9,6 @@
 //
 // Description
 
-#ifndef PHYS_LIBRARY_PARAMETERS_MODELS_MATERIAL_HAMILTONIANS_TEMPLATE_SPECIALIZATION_SRVO3_MATERIAL_LATTICE_SRVO3_H
-#define PHYS_LIBRARY_PARAMETERS_MODELS_MATERIAL_HAMILTONIANS_TEMPLATE_SPECIALIZATION_SRVO3_MATERIAL_LATTICE_SRVO3_H
-
-#include "comp_library/IO_library/CSV/CSV.hpp"
-#include "phys_library/parameters/models/material_hamiltonians/material_lattice_template.h"
-
 template <typename point_group_type>
 class material_lattice<SrVO3, point_group_type> {
 public:
@@ -233,5 +227,3 @@ std::complex<double> material_lattice<SrVO3, point_group_type>::get_LDA_Hamilton
 
   return H_LDA;
 }
-
-#endif  // PHYS_LIBRARY_PARAMETERS_MODELS_MATERIAL_HAMILTONIANS_TEMPLATE_SPECIALIZATION_SRVO3_MATERIAL_LATTICE_SRVO3_H

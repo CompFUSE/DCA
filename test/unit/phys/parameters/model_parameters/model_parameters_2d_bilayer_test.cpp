@@ -19,7 +19,9 @@
 using PointGroup = D4;
 
 TEST(ModelParameters2dBilayerTest, DefaultValues) {
-  dca::phys::params::ModelParameters<tight_binding_model<bilayer_lattice<PointGroup>>> pars;
+  dca::phys::params::ModelParameters<
+      dca::phys::models::TightBindingModel<dca::phys::models::bilayer_lattice<PointGroup>>>
+      pars;
 
   EXPECT_EQ(1., pars.get_t());
   EXPECT_EQ(0., pars.get_t_prime());
@@ -32,7 +34,9 @@ TEST(ModelParameters2dBilayerTest, DefaultValues) {
 
 TEST(ModelParameters2dBilayerTest, ReadAll) {
   IO::reader<IO::JSON> reader;
-  dca::phys::params::ModelParameters<tight_binding_model<bilayer_lattice<PointGroup>>> pars;
+  dca::phys::params::ModelParameters<
+      dca::phys::models::TightBindingModel<dca::phys::models::bilayer_lattice<PointGroup>>>
+      pars;
 
   reader.open_file(DCA_SOURCE_DIR
                    "/test/unit/phys/parameters/model_parameters/input_read_all_2d_bilayer.json");

@@ -9,8 +9,9 @@
 //
 // Description
 
-#ifndef PHYS_LIBRARY_PARAMETERS_MODELS_ANALYTIC_HAMILTONIANS_LATTICES_2D_SQUARE_LATTICE_H
-#define PHYS_LIBRARY_PARAMETERS_MODELS_ANALYTIC_HAMILTONIANS_LATTICES_2D_SQUARE_LATTICE_H
+#ifndef DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_SQUARE_LATTICE_HPP
+#define DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_SQUARE_LATTICE_HPP
+
 
 #include <complex>
 #include <utility>
@@ -20,6 +21,11 @@
 #include "comp_library/function_library/include_function_library.h"
 #include "phys_library/domains/cluster/cluster_operations.hpp"
 #include "phys_library/domains/cluster/symmetries/point_groups/No_symmetry.h"
+
+namespace dca {
+namespace phys {
+namespace models {
+// dca::phys::models::
 
 template <typename point_group_type>
 class square_lattice {
@@ -174,4 +180,8 @@ std::complex<double> square_lattice<point_group_type>::get_LDA_Hamiltonians(
   return H_LDA;
 }
 
-#endif  // PHYS_LIBRARY_PARAMETERS_MODELS_ANALYTIC_HAMILTONIANS_LATTICES_2D_SQUARE_LATTICE_H
+}  // models
+}  // phys
+}  // dca
+
+#endif  // DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_SQUARE_LATTICE_HPP

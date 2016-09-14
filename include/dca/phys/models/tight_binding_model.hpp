@@ -9,8 +9,8 @@
 //
 // Description
 
-#ifndef PHYS_LIBRARY_PARAMETERS_MODELS_TIGHT_BINDING_MODEL_H
-#define PHYS_LIBRARY_PARAMETERS_MODELS_TIGHT_BINDING_MODEL_H
+#ifndef DCA_PHYS_MODELS_TIGHT_BINDING_MODEL_HPP
+#define DCA_PHYS_MODELS_TIGHT_BINDING_MODEL_HPP
 
 #include <vector>
 
@@ -19,12 +19,17 @@
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
 
-template <typename lattice>
-class tight_binding_model {
+namespace dca {
+namespace phys {
+namespace models {
+// dca::phys::models::
+
+template <typename Lattice>
+class TightBindingModel {
 public:
-  using lattice_type = lattice;
+  using lattice_type = Lattice;
   using k_LDA =
-      dmn_0<cluster_domain<double, lattice_type::DIMENSION, LATTICE_SP, MOMENTUM_SPACE, PARALLELLEPIPEDUM>>;
+      dmn_0<cluster_domain<double, Lattice::DIMENSION, LATTICE_SP, MOMENTUM_SPACE, PARALLELLEPIPEDUM>>;
   using b = dmn_0<electron_band_domain>;
   using s = dmn_0<electron_spin_domain>;
 
@@ -37,11 +42,11 @@ public:
   static std::vector<int>& LDA_grid_size();
 
   // taken care of via lattice-type
-  typedef typename lattice_type::LDA_point_group LDA_point_group;
-  typedef typename lattice_type::DCA_point_group DCA_point_group;
+  typedef typename Lattice::LDA_point_group LDA_point_group;
+  typedef typename Lattice::DCA_point_group DCA_point_group;
 
-  static const int DIMENSION = lattice_type::DIMENSION;
-  static const int BANDS = lattice_type::BANDS;
+  static const int DIMENSION = Lattice::DIMENSION;
+  static const int BANDS = Lattice::BANDS;
 
   static double* get_r_DCA_basis();
   static double* get_k_DCA_basis();
@@ -76,69 +81,68 @@ private:
   static void initialize_default(parameters_type& parameters);
 };
 
-template <typename lattice_type>
-int& tight_binding_model<lattice_type>::get_DCA_size() {
+template <typename Lattice>
+int& TightBindingModel<Lattice>::get_DCA_size() {
   static int DCA_size = -1;
   return DCA_size;
 }
 
-template <typename lattice_type>
-int& tight_binding_model<lattice_type>::get_LDA_size() {
+template <typename Lattice>
+int& TightBindingModel<Lattice>::get_LDA_size() {
   static int LDA_size = -1;
   return LDA_size;
 }
 
-template <typename lattice_type>
-std::vector<int>& tight_binding_model<lattice_type>::DCA_grid_size() {
+template <typename Lattice>
+std::vector<int>& TightBindingModel<Lattice>::DCA_grid_size() {
   static std::vector<int> v(0);
   return v;
 }
 
-template <typename lattice_type>
-std::vector<int>& tight_binding_model<lattice_type>::LDA_grid_size() {
+template <typename Lattice>
+std::vector<int>& TightBindingModel<Lattice>::LDA_grid_size() {
   static std::vector<int> v(0);
   return v;
 }
 
-template <typename lattice_type>
-double* tight_binding_model<lattice_type>::get_r_DCA_basis() {
-  static double* r_DCA = lattice_type::initialize_r_DCA_basis();
+template <typename Lattice>
+double* TightBindingModel<Lattice>::get_r_DCA_basis() {
+  static double* r_DCA = Lattice::initialize_r_DCA_basis();
   return r_DCA;
 }
 
-template <typename lattice_type>
-double* tight_binding_model<lattice_type>::get_r_LDA_basis() {
-  static double* r_LDA = lattice_type::initialize_r_LDA_basis();
+template <typename Lattice>
+double* TightBindingModel<Lattice>::get_r_LDA_basis() {
+  static double* r_LDA = Lattice::initialize_r_LDA_basis();
   return r_LDA;
 }
 
-template <typename lattice_type>
-std::vector<int> tight_binding_model<lattice_type>::get_flavors() {
-  return lattice_type::get_flavors();
+template <typename Lattice>
+std::vector<int> TightBindingModel<Lattice>::get_flavors() {
+  return Lattice::get_flavors();
 }
 
-template <typename lattice_type>
-std::vector<std::vector<double>> tight_binding_model<lattice_type>::get_a_vectors() {
-  return lattice_type::get_a_vectors();
+template <typename Lattice>
+std::vector<std::vector<double>> TightBindingModel<Lattice>::get_a_vectors() {
+  return Lattice::get_a_vectors();
 }
 
-template <typename lattice_type>
+template <typename Lattice>
 template <class domain, class parameters_type>
-void tight_binding_model<lattice_type>::initialize_H_interaction(
+void TightBindingModel<Lattice>::initialize_H_interaction(
     FUNC_LIB::function<double, domain>& H_interaction, parameters_type& parameters) {
-  lattice_type::initialize_H_interaction(H_interaction, parameters);
+  Lattice::initialize_H_interaction(H_interaction, parameters);
 }
 
-template <typename lattice_type>
+template <typename Lattice>
 template <class domain>
-void tight_binding_model<lattice_type>::initialize_H_symmetries(
-    FUNC_LIB::function<int, domain>& H_symmetry) {
-  lattice_type::initialize_H_symmetry(H_symmetry);
+void TightBindingModel<Lattice>::initialize_H_symmetries(FUNC_LIB::function<int, domain>& H_symmetry) {
+  Lattice::initialize_H_symmetry(H_symmetry);
 }
 
-template <typename lattice_type>
+template <typename Lattice>
 template <class domain, class parameters_type>
-void tight_binding_model<lattice_type>::initialize_H_LDA(
+void TightBindingModel<Lattice>::initialize_H_LDA(
     FUNC_LIB::function<std::complex<double>, domain>& H_LDA, parameters_type& parameters) {
   std::vector<double> k;
 
@@ -150,12 +154,16 @@ void tight_binding_model<lattice_type>::initialize_H_LDA(
         for (int b_ind2 = 0; b_ind2 < b::dmn_size(); b_ind2++)
           for (int s_ind2 = 0; s_ind2 < s::dmn_size(); s_ind2++)
             H_LDA(b_ind1, s_ind1, b_ind2, s_ind2, k_ind) =
-                lattice_type::get_LDA_Hamiltonians(parameters, k, b_ind1, s_ind1, b_ind2, s_ind2);
+                Lattice::get_LDA_Hamiltonians(parameters, k, b_ind1, s_ind1, b_ind2, s_ind2);
   }
 }
 
-template <typename lattice_type>
+template <typename Lattice>
 template <class parameters_type>
-void tight_binding_model<lattice_type>::initialize(parameters_type& /*parameters*/) {}
+void TightBindingModel<Lattice>::initialize(parameters_type& /*parameters*/) {}
 
-#endif  // PHYS_LIBRARY_PARAMETERS_MODELS_TIGHT_BINDING_MODEL_H
+}  // models
+}  // phys
+}  // dca
+
+#endif  // DCA_PHYS_MODELS_TIGHT_BINDING_MODEL_HPP

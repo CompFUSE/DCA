@@ -10,7 +10,7 @@
 // Template specialization of model parameters for tight-binding model.
 
 template <typename Lattice>
-class ModelParameters<tight_binding_model<Lattice>> {
+class ModelParameters<models::TightBindingModel<Lattice>> {
 public:
   ModelParameters() : t_(1.), t_prime_(0.), U_(4.), V_(0.), V_prime_(0.) {}
 
@@ -50,7 +50,7 @@ private:
 
 template <typename Lattice>
 template <typename Concurrency>
-int ModelParameters<tight_binding_model<Lattice>>::getBufferSize(Concurrency& concurrency) const {
+int ModelParameters<models::TightBindingModel<Lattice>>::getBufferSize(Concurrency& concurrency) const {
   int buffer_size = 0;
 
   buffer_size += concurrency.get_buffer_size(t_);
@@ -64,8 +64,8 @@ int ModelParameters<tight_binding_model<Lattice>>::getBufferSize(Concurrency& co
 
 template <typename Lattice>
 template <typename Concurrency>
-void ModelParameters<tight_binding_model<Lattice>>::pack(Concurrency& concurrency, int* buffer,
-                                                         int buffer_size, int& position) const {
+void ModelParameters<models::TightBindingModel<Lattice>>::pack(Concurrency& concurrency, int* buffer,
+                                                               int buffer_size, int& position) const {
   concurrency.pack(buffer, buffer_size, position, t_);
   concurrency.pack(buffer, buffer_size, position, t_prime_);
   concurrency.pack(buffer, buffer_size, position, U_);
@@ -75,8 +75,9 @@ void ModelParameters<tight_binding_model<Lattice>>::pack(Concurrency& concurrenc
 
 template <typename Lattice>
 template <typename Concurrency>
-void ModelParameters<tight_binding_model<Lattice>>::unpack(Concurrency& concurrency, int* buffer,
-                                                           int buffer_size, int& position) {
+void ModelParameters<models::TightBindingModel<Lattice>>::unpack(Concurrency& concurrency,
+                                                                 int* buffer, int buffer_size,
+                                                                 int& position) {
   concurrency.unpack(buffer, buffer_size, position, t_);
   concurrency.unpack(buffer, buffer_size, position, t_prime_);
   concurrency.unpack(buffer, buffer_size, position, U_);
@@ -86,7 +87,7 @@ void ModelParameters<tight_binding_model<Lattice>>::unpack(Concurrency& concurre
 
 template <typename Lattice>
 template <typename ReaderOrWriter>
-void ModelParameters<tight_binding_model<Lattice>>::readWrite(ReaderOrWriter& reader_or_writer) {
+void ModelParameters<models::TightBindingModel<Lattice>>::readWrite(ReaderOrWriter& reader_or_writer) {
   try {
     reader_or_writer.open_group("2D-Hubbard-model");
 

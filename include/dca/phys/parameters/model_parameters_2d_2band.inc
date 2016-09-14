@@ -11,7 +11,7 @@
 // Template specialization of model parameters for 2D 2-band model.
 
 template <typename PointGroup>
-class ModelParameters<tight_binding_model<twoband_lattice<PointGroup>>> {
+class ModelParameters<models::TightBindingModel<models::twoband_lattice<PointGroup>>> {
 public:
   ModelParameters() : ei0_(0.), eb0_(0.), t0_(0.), U0_(0.) {}
 
@@ -47,7 +47,7 @@ private:
 
 template <typename PointGroup>
 template <typename Concurrency>
-int ModelParameters<tight_binding_model<twoband_lattice<PointGroup>>>::getBufferSize(
+int ModelParameters<models::TightBindingModel<models::twoband_lattice<PointGroup>>>::getBufferSize(
     Concurrency& concurrency) const {
   int buffer_size = 0;
 
@@ -61,7 +61,7 @@ int ModelParameters<tight_binding_model<twoband_lattice<PointGroup>>>::getBuffer
 
 template <typename PointGroup>
 template <typename Concurrency>
-void ModelParameters<tight_binding_model<twoband_lattice<PointGroup>>>::pack(
+void ModelParameters<models::TightBindingModel<models::twoband_lattice<PointGroup>>>::pack(
     Concurrency& concurrency, int* buffer, int buffer_size, int& position) const {
   concurrency.pack(buffer, buffer_size, position, ei0_);
   concurrency.pack(buffer, buffer_size, position, eb0_);
@@ -71,7 +71,7 @@ void ModelParameters<tight_binding_model<twoband_lattice<PointGroup>>>::pack(
 
 template <typename PointGroup>
 template <typename Concurrency>
-void ModelParameters<tight_binding_model<twoband_lattice<PointGroup>>>::unpack(
+void ModelParameters<models::TightBindingModel<models::twoband_lattice<PointGroup>>>::unpack(
     Concurrency& concurrency, int* buffer, int buffer_size, int& position) {
   concurrency.unpack(buffer, buffer_size, position, ei0_);
   concurrency.unpack(buffer, buffer_size, position, eb0_);
@@ -81,7 +81,7 @@ void ModelParameters<tight_binding_model<twoband_lattice<PointGroup>>>::unpack(
 
 template <typename PointGroup>
 template <typename ReaderOrWriter>
-void ModelParameters<tight_binding_model<twoband_lattice<PointGroup>>>::readWrite(
+void ModelParameters<models::TightBindingModel<models::twoband_lattice<PointGroup>>>::readWrite(
     ReaderOrWriter& reader_or_writer) {
   try {
     reader_or_writer.open_group("twoband-model");

@@ -19,7 +19,9 @@
 using PointGroup = D4;
 
 TEST(ModelParameters2d2bandTest, DefaultValues) {
-  dca::phys::params::ModelParameters<tight_binding_model<twoband_lattice<PointGroup>>> pars;
+  dca::phys::params::ModelParameters<
+      dca::phys::models::TightBindingModel<dca::phys::models::twoband_lattice<PointGroup>>>
+      pars;
 
   EXPECT_EQ(0., pars.get_ei0());
   EXPECT_EQ(0., pars.get_eb0());
@@ -29,7 +31,9 @@ TEST(ModelParameters2d2bandTest, DefaultValues) {
 
 TEST(ModelParameters2d2bandTest, ReadAll) {
   IO::reader<IO::JSON> reader;
-  dca::phys::params::ModelParameters<tight_binding_model<twoband_lattice<PointGroup>>> pars;
+  dca::phys::params::ModelParameters<
+      dca::phys::models::TightBindingModel<dca::phys::models::twoband_lattice<PointGroup>>>
+      pars;
 
   reader.open_file(DCA_SOURCE_DIR
                    "/test/unit/phys/parameters/model_parameters/input_read_all_2d_2band.json");

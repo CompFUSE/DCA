@@ -9,8 +9,8 @@
 //
 // Template specialization of model parameters for material models.
 
-template <material_name_type name, typename PointGroup>
-class ModelParameters<tight_binding_model<material_lattice<name, PointGroup>>> {
+template <models::material_name_type name, typename PointGroup>
+class ModelParameters<models::TightBindingModel<models::material_lattice<name, PointGroup>>> {
 public:
   ModelParameters() : t_ij_file_name_("t_ij_file_name"), U_ij_file_name_("U_ij_file_name") {}
 
@@ -43,9 +43,9 @@ private:
   std::string U_ij_file_name_;
 };
 
-template <material_name_type name, typename PointGroup>
+template <models::material_name_type name, typename PointGroup>
 template <typename Concurrency>
-int ModelParameters<tight_binding_model<material_lattice<name, PointGroup>>>::getBufferSize(
+int ModelParameters<models::TightBindingModel<models::material_lattice<name, PointGroup>>>::getBufferSize(
     Concurrency& concurrency) const {
   int buffer_size = 0;
 
@@ -55,25 +55,25 @@ int ModelParameters<tight_binding_model<material_lattice<name, PointGroup>>>::ge
   return buffer_size;
 }
 
-template <material_name_type name, typename PointGroup>
+template <models::material_name_type name, typename PointGroup>
 template <typename Concurrency>
-void ModelParameters<tight_binding_model<material_lattice<name, PointGroup>>>::pack(
+void ModelParameters<models::TightBindingModel<models::material_lattice<name, PointGroup>>>::pack(
     Concurrency& concurrency, int* buffer, int buffer_size, int& position) const {
   concurrency.pack(buffer, buffer_size, position, t_ij_file_name_);
   concurrency.pack(buffer, buffer_size, position, U_ij_file_name_);
 }
 
-template <material_name_type name, typename PointGroup>
+template <models::material_name_type name, typename PointGroup>
 template <typename Concurrency>
-void ModelParameters<tight_binding_model<material_lattice<name, PointGroup>>>::unpack(
+void ModelParameters<models::TightBindingModel<models::material_lattice<name, PointGroup>>>::unpack(
     Concurrency& concurrency, int* buffer, int buffer_size, int& position) {
   concurrency.unpack(buffer, buffer_size, position, t_ij_file_name_);
   concurrency.unpack(buffer, buffer_size, position, U_ij_file_name_);
 }
 
-template <material_name_type name, typename PointGroup>
+template <models::material_name_type name, typename PointGroup>
 template <typename ReaderOrWriter>
-void ModelParameters<tight_binding_model<material_lattice<name, PointGroup>>>::readWrite(
+void ModelParameters<models::TightBindingModel<models::material_lattice<name, PointGroup>>>::readWrite(
     ReaderOrWriter& reader_or_writer) {
   try {
     reader_or_writer.open_group("material-model");

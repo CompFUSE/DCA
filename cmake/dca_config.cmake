@@ -72,19 +72,19 @@ set(DCA_LATTICE "square" CACHE STRING "Lattice type, options are: bilayer | squa
 set_property(CACHE DCA_LATTICE PROPERTY STRINGS bilayer square triangular)
 
 if (DCA_LATTICE STREQUAL "bilayer")
-  set(DCA_LATTICE_TYPE bilayer_lattice<PointGroup>)
+  set(DCA_LATTICE_TYPE dca::phys::models::bilayer_lattice<PointGroup>)
   set(DCA_LATTICE_INCLUDE
-    "phys_library/parameters/models/analytic_hamiltonians/lattices/2D_bilayer_lattice.h")
+    "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp")
 
 elseif (DCA_LATTICE STREQUAL "square")
-  set(DCA_LATTICE_TYPE square_lattice<PointGroup>)
+  set(DCA_LATTICE_TYPE dca::phys::models::square_lattice<PointGroup>)
   set(DCA_LATTICE_INCLUDE
-    "phys_library/parameters/models/analytic_hamiltonians/lattices/2D_square_lattice.h")
+    "dca/phys/models/analytic_hamiltonians/square_lattice.hpp")
 
 elseif (DCA_LATTICE STREQUAL "triangular")
-  set(DCA_LATTICE_TYPE triangular_lattice<PointGroup>)
+  set(DCA_LATTICE_TYPE dca::phys::models::triangular_lattice<PointGroup>)
   set(DCA_LATTICE_INCLUDE
-    "phys_library/parameters/models/analytic_Hamiltonians/lattices/2D_triangular_lattice.h")
+    "dca/phys/models/analytic_Hamiltonians/triangular_lattice.hpp")
 
 else()
   message(FATAL_ERROR "Please set DCA_LATTICE to a valid option: bilayer | square | triangular.")
@@ -95,8 +95,8 @@ set(DCA_MODEL "tight-binding" CACHE STRING "Model type, options are: tight-bindi
 set_property(CACHE DCA_MODEL PROPERTY STRINGS tight-binding)
 
 if (DCA_MODEL STREQUAL "tight-binding")
-  set(DCA_MODEL_TYPE tight_binding_model<Lattice>)
-  set(DCA_MODEL_INCLUDE "phys_library/parameters/models/tight_binding_model.h")
+  set(DCA_MODEL_TYPE dca::phys::models::TightBindingModel<Lattice>)
+  set(DCA_MODEL_INCLUDE "dca/phys/models/tight_binding_model.hpp")
 
 else()
   message(FATAL_ERROR "Please set DCA_MODEL to a valid option: tight-binding.")

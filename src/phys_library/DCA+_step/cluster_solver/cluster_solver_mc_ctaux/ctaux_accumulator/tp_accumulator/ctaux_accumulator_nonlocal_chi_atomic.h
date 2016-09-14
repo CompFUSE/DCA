@@ -15,9 +15,9 @@
 #include <complex>
 #include <stdexcept>
 
+#include "dca/phys/models/tight_binding_model.hpp"
 #include "comp_library/function_library/domains/special_domains/dmn_0.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/parameters/models/tight_binding_model.h"
 #include "phys_library/vertex_measurement_type.hpp"
 
 namespace DCA {
@@ -84,7 +84,8 @@ public:
 };
 
 template <class lattice_t>
-class accumulator_nonlocal_chi_atomic<tight_binding_model<lattice_t>, PARTICLE_HOLE_MAGNETIC> {
+class accumulator_nonlocal_chi_atomic<dca::phys::models::TightBindingModel<lattice_t>,
+                                      PARTICLE_HOLE_MAGNETIC> {
   const static int BANDS = lattice_t::BANDS;
 
 public:
