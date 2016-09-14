@@ -22,8 +22,9 @@
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_name.hpp"
 constexpr DCA::ClusterSolverName solver_name = @DCA_CLUSTER_SOLVER_NAME@;
 
-#include "phys_library/parameters/Parameters.h"
-using ParametersType = Parameters<Concurrency, Profiler, Model, void /*RandomNumberGenerator*/, solver_name>;
+#include "dca/phys/parameters/parameters.hpp"
+using ParametersType = dca::phys::params::Parameters<Concurrency, Profiler, Model,
+                                                     void /*RandomNumberGenerator*/, solver_name>;
 
 #include "phys_library/DCA+_data/DCA_data.h"
 using DcaData = DCA::DCA_data<ParametersType>;

@@ -139,30 +139,31 @@ N_TOOLS<device_t, parameters_type>::N_TOOLS(int id, parameters_type& parameters_
 
       CV_obj(CV_obj_ref),
 
-      exp_gamma_s("exp_gamma_s (N_TOOLS)", MAX_VERTEX_SINGLETS * parameters.get_K_PHANI()),
+      exp_gamma_s("exp_gamma_s (N_TOOLS)", MAX_VERTEX_SINGLETS * parameters.get_submatrix_size()),
       one_min_exp_gamma_s("one_min_exp_gamma_s (N_TOOLS)",
-                          MAX_VERTEX_SINGLETS * parameters.get_K_PHANI()),
+                          MAX_VERTEX_SINGLETS * parameters.get_submatrix_size()),
 
-      d_inv("d_inv (N_TOOLS)", MAX_VERTEX_SINGLETS * parameters.get_K_PHANI()),
+      d_inv("d_inv (N_TOOLS)", MAX_VERTEX_SINGLETS * parameters.get_submatrix_size()),
       exp_V_minus_one_val("exp_V_minus_one_val (N_TOOLS)",
-                          MAX_VERTEX_SINGLETS * parameters.get_K_PHANI()),
+                          MAX_VERTEX_SINGLETS * parameters.get_submatrix_size()),
 
       //     G                       ("G (N_TOOLS)"                       ,
-      //     MAX_VERTEX_SINGLETS*parameters.get_K_PHANI()),
+      //     MAX_VERTEX_SINGLETS*parameters.get_submatrix_size()),
       //     N_new_spins             ("N_new_spins (N_TOOLS)"             ,
-      //     MAX_VERTEX_SINGLETS*parameters.get_K_PHANI()),
+      //     MAX_VERTEX_SINGLETS*parameters.get_submatrix_size()),
       //     G0_times_exp_V_minus_one("G0_times_exp_V_minus_one (N_TOOLS)",
-      //     MAX_VERTEX_SINGLETS*parameters.get_K_PHANI())
+      //     MAX_VERTEX_SINGLETS*parameters.get_submatrix_size())
 
       G("G (N_TOOLS)", std::pair<int, int>(0, 0),
         std::pair<int, int>(parameters.get_initial_matrix_size(),
-                            MAX_VERTEX_SINGLETS * parameters.get_K_PHANI())),
+                            MAX_VERTEX_SINGLETS * parameters.get_submatrix_size())),
       N_new_spins("N_new_spins (N_TOOLS)", std::pair<int, int>(0, 0),
-                  std::pair<int, int>(MAX_VERTEX_SINGLETS * parameters.get_K_PHANI(),
+                  std::pair<int, int>(MAX_VERTEX_SINGLETS * parameters.get_submatrix_size(),
                                       parameters.get_initial_matrix_size())),
-      G0_times_exp_V_minus_one("G0_times_exp_V_minus_one (N_TOOLS)", std::pair<int, int>(0, 0),
-                               std::pair<int, int>(MAX_VERTEX_SINGLETS * parameters.get_K_PHANI(),
-                                                   parameters.get_initial_matrix_size())) {}
+      G0_times_exp_V_minus_one(
+          "G0_times_exp_V_minus_one (N_TOOLS)", std::pair<int, int>(0, 0),
+          std::pair<int, int>(MAX_VERTEX_SINGLETS * parameters.get_submatrix_size(),
+                              parameters.get_initial_matrix_size())) {}
 
 template <dca::linalg::DeviceType device_t, typename parameters_type>
 double N_TOOLS<device_t, parameters_type>::get_Gflop() {

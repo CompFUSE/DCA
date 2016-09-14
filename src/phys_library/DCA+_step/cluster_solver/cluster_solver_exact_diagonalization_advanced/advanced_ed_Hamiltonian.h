@@ -288,25 +288,21 @@ void fermionic_Hamiltonian<parameter_type, ed_options>::construct_Hamiltonians(b
   }
 
   for (int i = 0; i < Hilbert_spaces.size(); ++i) {
-    if (!parameters.do_sector_check() ||
-        (Hilbert_spaces[i].get_eigenvalues()[0] == parameters.get_occupation() &&
-         Hilbert_spaces[i].get_eigenvalues()[1] == parameters.get_magnetization())) {
-      int N = Hilbert_spaces[i].size();
-      Hamiltonians(i).resizeNoCopy(N);
+    int N = Hilbert_spaces[i].size();
+    Hamiltonians(i).resizeNoCopy(N);
 
-      matrix_type& H = Hamiltonians(i);
-      Hilbert_space_type& subspace = Hilbert_spaces[i];
+    matrix_type& H = Hamiltonians(i);
+    Hilbert_space_type& subspace = Hilbert_spaces[i];
 
-      for (int l1 = 0; l1 < N; ++l1)
-        for (int l0 = 0; l0 < N; ++l0)
-          H(l0, l1) = 0;
+    for (int l1 = 0; l1 < N; ++l1)
+      for (int l0 = 0; l0 < N; ++l0)
+        H(l0, l1) = 0;
 
-      add_V_to_Hamiltonian(N, H, subspace);
-      add_T_to_Hamiltonian(N, H, subspace);
+    add_V_to_Hamiltonian(N, H, subspace);
+    add_T_to_Hamiltonian(N, H, subspace);
 
-      if (interacting)
-        add_U_to_Hamiltonian(N, H, subspace);
-    }
+    if (interacting)
+      add_U_to_Hamiltonian(N, H, subspace);
   }
 }
 

@@ -90,15 +90,19 @@ N_MATRIX_TOOLS<dca::linalg::GPU, parameters_type>::N_MATRIX_TOOLS(int id,
       concurrency(parameters.get_concurrency()),
 
       identity("identity    N_MATRIX_TOOLS<dca::linalg::GPU>",
-               MAX_VERTEX_SINGLETS * parameters.get_K_PHANI()),
+               MAX_VERTEX_SINGLETS * parameters.get_submatrix_size()),
       permutation("permutation N_MATRIX_TOOLS<dca::linalg::GPU>",
-                  MAX_VERTEX_SINGLETS * parameters.get_K_PHANI()),
+                  MAX_VERTEX_SINGLETS * parameters.get_submatrix_size()),
 
-      tmp("tmp   N_MATRIX_TOOLS<dca::linalg::GPU>", MAX_VERTEX_SINGLETS * parameters.get_K_PHANI()),
-      exp_V("exp_V N_MATRIX_TOOLS<dca::linalg::GPU>", MAX_VERTEX_SINGLETS * parameters.get_K_PHANI()),
+      tmp("tmp   N_MATRIX_TOOLS<dca::linalg::GPU>",
+          MAX_VERTEX_SINGLETS * parameters.get_submatrix_size()),
+      exp_V("exp_V N_MATRIX_TOOLS<dca::linalg::GPU>",
+            MAX_VERTEX_SINGLETS * parameters.get_submatrix_size()),
 
-      d_ind("d_ind N_MATRIX_TOOLS<dca::linalg::GPU>", MAX_VERTEX_SINGLETS * parameters.get_K_PHANI()),
-      d_vec("d_vec N_MATRIX_TOOLS<dca::linalg::GPU>", MAX_VERTEX_SINGLETS * parameters.get_K_PHANI()) {
+      d_ind("d_ind N_MATRIX_TOOLS<dca::linalg::GPU>",
+            MAX_VERTEX_SINGLETS * parameters.get_submatrix_size()),
+      d_vec("d_vec N_MATRIX_TOOLS<dca::linalg::GPU>",
+            MAX_VERTEX_SINGLETS * parameters.get_submatrix_size()) {
   {
     identity.setThreadAndStreamId(thread_id, stream_id);
     permutation.setThreadAndStreamId(thread_id, stream_id);
@@ -111,9 +115,9 @@ N_MATRIX_TOOLS<dca::linalg::GPU, parameters_type>::N_MATRIX_TOOLS(int id,
   }
 
   {
-    std::vector<int> id_tmp(MAX_VERTEX_SINGLETS * parameters.get_K_PHANI());
+    std::vector<int> id_tmp(MAX_VERTEX_SINGLETS * parameters.get_submatrix_size());
 
-    for (int l = 0; l < MAX_VERTEX_SINGLETS * parameters.get_K_PHANI(); ++l)
+    for (int l = 0; l < MAX_VERTEX_SINGLETS * parameters.get_submatrix_size(); ++l)
       id_tmp[l] = l;
 
     identity.set(id_tmp);

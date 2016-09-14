@@ -1,0 +1,8 @@
+{
+    "SS-CT-HYB-solver": {
+        "Sigma-tail-cutoff": 42,
+        "steps-per-sweep": 1.23,
+        "swaps-per-sweep": 4.56,
+        "shifts-per-sweep": 7.89
+    }
+}

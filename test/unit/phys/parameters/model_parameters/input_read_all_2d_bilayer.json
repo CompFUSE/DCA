@@ -1,0 +1,11 @@
+{
+    "bilayer-model": {
+        "t": 10.,
+        "t-prime": 2.,
+        "tz": 3.,
+        "U": 40.,
+        "U-prime": 5.,
+        "V": 6.,
+        "V-prime": 7.
+    }
+}

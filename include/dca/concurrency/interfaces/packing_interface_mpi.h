@@ -63,19 +63,20 @@ public:
    ************************************/
 
   template <typename scalar_type>
-  void pack(int* buffer, int size, int& off_set, scalar_type& item);
+  void pack(int* buffer, int size, int& off_set, scalar_type item);
 
   template <typename scalar_type>
-  void pack(int* buffer, int size, int& off_set, std::basic_string<scalar_type>& str);
+  void pack(int* buffer, int size, int& off_set, const std::basic_string<scalar_type>& str);
 
   template <typename scalar_type>
-  void pack(int* buffer, int size, int& off_set, std::vector<scalar_type>& v);
+  void pack(int* buffer, int size, int& off_set, const std::vector<scalar_type>& v);
 
   template <typename scalar_type>
-  void pack(int* buffer, int size, int& off_set, std::vector<std::basic_string<scalar_type>>& v);
+  void pack(int* buffer, int size, int& off_set,
+            const std::vector<std::basic_string<scalar_type>>& v);
 
   template <typename scalar_type>
-  void pack(int* buffer, int size, int& off_set, std::vector<std::vector<scalar_type>>& v);
+  void pack(int* buffer, int size, int& off_set, const std::vector<std::vector<scalar_type>>& v);
 
   template <typename scalar_type, class dmn_type>
   void pack(int* buffer, int size, int& off_set, FUNC_LIB::function<scalar_type, dmn_type>& f);
@@ -236,8 +237,8 @@ void packing_interface<MPI_LIBRARY>::pack_or_unpack(bool packing, int* buffer, i
  ************************************/
 
 template <typename scalar_type>
-void packing_interface<MPI_LIBRARY>::pack(int* buffer, int size, int& off_set, scalar_type& item) {
-  scalar_type* tPtr(&item);
+void packing_interface<MPI_LIBRARY>::pack(int* buffer, int size, int& off_set, scalar_type item) {
+  const scalar_type* tPtr(&item);
 
   MPI_Pack(tPtr, type_map_interface<MPI_LIBRARY, scalar_type>::factor(),
            type_map_interface<MPI_LIBRARY, scalar_type>::value(), buffer, size, &off_set,
@@ -246,7 +247,7 @@ void packing_interface<MPI_LIBRARY>::pack(int* buffer, int size, int& off_set, s
 
 template <typename scalar_type>
 void packing_interface<MPI_LIBRARY>::pack(int* buffer, int size, int& off_set,
-                                          std::basic_string<scalar_type>& str) {
+                                          const std::basic_string<scalar_type>& str) {
   /*
   // pack the string's length
   int stringSize(str.size());
@@ -261,28 +262,26 @@ void packing_interface<MPI_LIBRARY>::pack(int* buffer, int size, int& off_set,
   int vectorSize(str.size());
   pack(buffer, size, off_set, vectorSize);
 
-  MPI_Pack(static_cast<scalar_type*>(&str[0]),
-           vectorSize * type_map_interface<MPI_LIBRARY, scalar_type>::factor(),
+  MPI_Pack(&str[0], vectorSize * type_map_interface<MPI_LIBRARY, scalar_type>::factor(),
            type_map_interface<MPI_LIBRARY, scalar_type>::value(), buffer, size, &off_set,
            grouping.get());
 }
 
 template <typename scalar_type>
 void packing_interface<MPI_LIBRARY>::pack(int* buffer, int size, int& off_set,
-                                          std::vector<scalar_type>& v) {
+                                          const std::vector<scalar_type>& v) {
   // Pack the vector length
   int vectorSize(v.size());
   pack(buffer, size, off_set, vectorSize);
 
-  MPI_Pack(static_cast<scalar_type*>(&v[0]),
-           vectorSize * type_map_interface<MPI_LIBRARY, scalar_type>::factor(),
+  MPI_Pack(&v[0], vectorSize * type_map_interface<MPI_LIBRARY, scalar_type>::factor(),
            type_map_interface<MPI_LIBRARY, scalar_type>::value(), buffer, size, &off_set,
            grouping.get());
 }
 
 template <typename scalar_type>
 void packing_interface<MPI_LIBRARY>::pack(int* buffer, int size, int& off_set,
-                                          std::vector<std::basic_string<scalar_type>>& v) {
+                                          const std::vector<std::basic_string<scalar_type>>& v) {
   std::vector<int> tmp_sizes(0);
   for (int i = 0; i < v.size(); i++)
     tmp_sizes.push_back(v[i].size());
@@ -304,7 +303,7 @@ void packing_interface<MPI_LIBRARY>::pack(int* buffer, int size, int& off_set,
 
 template <typename scalar_type>
 void packing_interface<MPI_LIBRARY>::pack(int* buffer, int size, int& off_set,
-                                          std::vector<std::vector<scalar_type>>& v) {
+                                          const std::vector<std::vector<scalar_type>>& v) {
   std::vector<scalar_type> tmp;
 
   tmp.push_back(v.size());

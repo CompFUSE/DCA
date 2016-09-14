@@ -1,0 +1,9 @@
+{
+    "2D-Hubbard-model": {
+        "t": 10.,
+        "t-prime": 2.,
+        "U": 3.,
+        "V": 4.,
+        "V-prime": 5.
+    }
+}

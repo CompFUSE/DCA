@@ -1,0 +1,26 @@
+{
+    "vertex-channel": {
+        "vertex-measurement-type": "PARTICLE_PARTICLE_SUPERCONDUCTING",
+        "q-channel": [3.14, -1.57],
+        "w-channel": 2,
+
+        "deconvolute-Gamma": "no",
+        "symmetrize-Gamma": "no",
+        
+        "lattice-mapping": {
+            "singular-value-sigma-cut-off": 1.3,
+            "singular-value-index-cut-off": 99
+        },
+        "lattice-solver": {
+            "diagonolize-folded-Gamma-chi_0": "true",
+            "BSE-cut-off-radius": 7.5
+        },
+        "options": {
+            "compute-chi": "yes",
+            "compute-chi_0": "yes",
+            "compute-eigenvalues": "no",
+            "compute-Pq-cluster": "yes",
+            "compute-Pq-lattice": "yes"
+        }
+    }
+}

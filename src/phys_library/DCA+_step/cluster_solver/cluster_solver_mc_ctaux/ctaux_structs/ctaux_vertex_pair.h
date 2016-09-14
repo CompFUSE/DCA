@@ -78,7 +78,7 @@ private:
   //     concurrency_type&   concurrency;
   rng_type& rng;
 
-  std::vector<int>& interacting_bands;
+  const std::vector<int>& interacting_bands;
   int BANDS;
 
   // physics-information

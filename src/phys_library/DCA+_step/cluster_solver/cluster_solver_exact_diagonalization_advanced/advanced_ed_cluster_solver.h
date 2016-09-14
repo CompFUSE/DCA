@@ -109,7 +109,7 @@ cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
     std::cout << "\n\n\n"
               << "Apply translation symmetry ..." << std::endl;
   }
-  Fock_obj.apply_translation_symmetry(parameters.get_ED_method());
+  Fock_obj.apply_translation_symmetry(parameters.get_ed_method());
 
   if (concurrency.id() == concurrency.first()) {
     std::cout << dca::util::print_time() << std::endl;
@@ -128,7 +128,7 @@ cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
   }
 #endif
 
-  if (parameters.do_orthogonality_check())
+  if (parameters.check_orthogonality_of_states())
     std::cout << "subspaces orthogonal: " << Fock_obj.check_orthogonality() << std::endl;
 }
 

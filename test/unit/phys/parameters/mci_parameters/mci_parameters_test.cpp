@@ -8,10 +8,11 @@
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// This file tests MCI_parameters.h.
+// This file tests MCI_parameters.hpp
+//
+// TODO: Add tests for get_buffer_size, pack, unpack and writing.
 
-#include "phys_library/parameters/parameters_specialization/templates/MCI_parameters.h"
-
+#include "dca/phys/parameters/mci_parameters.hpp"
 #include <algorithm>  // for std::sort and std::unique
 #include <fstream>
 #include <limits>
@@ -20,7 +21,7 @@
 #include "comp_library/IO_library/JSON/JSON.hpp"
 
 TEST(MciParametersTest, DefaultValues) {
-  MCI_parameters pars;
+  dca::phys::params::MciParameters pars;
 
   EXPECT_EQ("zero", pars.get_Sigma_file());
   EXPECT_EQ(20, pars.get_warm_up_sweeps());
@@ -36,10 +37,10 @@ TEST(MciParametersTest, DefaultValues) {
 
 TEST(MciParametersTest, ReadAll) {
   IO::reader<IO::JSON> reader;
-  MCI_parameters pars;
+  dca::phys::params::MciParameters pars;
 
   reader.open_file(DCA_SOURCE_DIR "/test/unit/phys/parameters/mci_parameters/input_read_all.json");
-  pars.read_write(reader);
+  pars.readWrite(reader);
   reader.close_file();
 
   EXPECT_EQ("sigma-file.hdf5", pars.get_Sigma_file());
@@ -54,15 +55,13 @@ TEST(MciParametersTest, ReadAll) {
   EXPECT_EQ(7, pars.get_nr_HTS_threads());
 }
 
-// TODO: Test for writing.
-// TEST(MciParametersTest, Write) {}
-
 TEST(MciParametersTest, ReadPositiveIntegerSeed) {
   IO::reader<IO::JSON> reader;
-  MCI_parameters pars;
+  dca::phys::params::MciParameters pars;
 
-  reader.open_file(DCA_SOURCE_DIR "/test/unit/phys/parameters/mci_parameters/input_pos_int_seed.json");
-  pars.read_write(reader);
+  reader.open_file(DCA_SOURCE_DIR
+                   "/test/unit/phys/parameters/mci_parameters/input_pos_int_seed.json");
+  pars.readWrite(reader);
   reader.close_file();
 
   EXPECT_EQ(42, pars.get_seed());
@@ -70,10 +69,11 @@ TEST(MciParametersTest, ReadPositiveIntegerSeed) {
 
 TEST(MciParametersTest, ReadNegativeIntegerSeed) {
   IO::reader<IO::JSON> reader;
-  MCI_parameters pars;
+  dca::phys::params::MciParameters pars;
 
-  reader.open_file(DCA_SOURCE_DIR "/test/unit/phys/parameters/mci_parameters/input_neg_int_seed.json");
-  pars.read_write(reader);
+  reader.open_file(DCA_SOURCE_DIR
+                   "/test/unit/phys/parameters/mci_parameters/input_neg_int_seed.json");
+  pars.readWrite(reader);
   reader.close_file();
 
   EXPECT_EQ(-1, pars.get_seed());
@@ -92,10 +92,10 @@ TEST(MciParametersTest, ReadTooLargeSeed) {
   input.close();
 
   IO::reader<IO::JSON> reader;
-  MCI_parameters pars;
+  dca::phys::params::MciParameters pars;
 
   reader.open_file("input_too_large_seed.json");
-  pars.read_write(reader);
+  pars.readWrite(reader);
   reader.close_file();
 
   EXPECT_EQ(max, pars.get_seed());
@@ -114,10 +114,10 @@ TEST(MciParametersTest, ReadTooSmallSeed) {
   input.close();
 
   IO::reader<IO::JSON> reader;
-  MCI_parameters pars;
+  dca::phys::params::MciParameters pars;
 
   reader.open_file("input_too_small_seed.json");
-  pars.read_write(reader);
+  pars.readWrite(reader);
   reader.close_file();
 
   EXPECT_EQ(min, pars.get_seed());
@@ -126,15 +126,16 @@ TEST(MciParametersTest, ReadTooSmallSeed) {
 TEST(MciParametersTest, RandomSeed) {
   // The input file contains the seeding option "random" instead of a number.
   IO::reader<IO::JSON> reader;
-  MCI_parameters pars;
+  dca::phys::params::MciParameters pars;
 
-  reader.open_file(DCA_SOURCE_DIR "/test/unit/phys/parameters/mci_parameters/input_random_seed.json");
+  reader.open_file(DCA_SOURCE_DIR
+                   "/test/unit/phys/parameters/mci_parameters/input_random_seed.json");
 
   std::vector<int> seeds;
   const int n_seeds = 5;
 
   for (int i = 0; i < n_seeds; i++) {
-    pars.read_write(reader);
+    pars.readWrite(reader);
     seeds.push_back(pars.get_seed());
   }
 
@@ -154,10 +155,11 @@ TEST(MciParametersTest, RandomSeed) {
 
 TEST(MciParametersTest, InvalidSeedingOption) {
   IO::reader<IO::JSON> reader;
-  MCI_parameters pars;
+  dca::phys::params::MciParameters pars;
 
-  reader.open_file(DCA_SOURCE_DIR "/test/unit/phys/parameters/mci_parameters/input_invalid_seeding_option.json");
-  pars.read_write(reader);
+  reader.open_file(DCA_SOURCE_DIR
+                   "/test/unit/phys/parameters/mci_parameters/input_invalid_seeding_option.json");
+  pars.readWrite(reader);
   reader.close_file();
 
   EXPECT_EQ(985456376, pars.get_seed());

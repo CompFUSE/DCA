@@ -296,7 +296,7 @@ template <class parameters_type>
 template <typename MOMS_type>
 void CV<parameters_type>::initialize(MOMS_type& MOMS) {
   BETA = parameters.get_beta();
-  K_CT_AUX = parameters.get_K_CT_AUX();
+  K_CT_AUX = parameters.get_K_parameter();
   BANDS = electron_band_domain::get_size();
   FULL_CLUSTER_SIZE = r_dmn_t::dmn_size();
 

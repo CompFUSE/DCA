@@ -1,0 +1,15 @@
+{
+    "CPE-parameters" : {
+        "do-CPE": "true",
+        "number-of-matsubara-freqencies": 128,
+        "smoothing-factor": 0.9,
+        "max-CPE-iterations": 200,
+        "max-CPE-error": 1.e-3,
+        "simulate-Gaussian-noise": "true",
+        "nr-of-samples": 10,
+        "simulated-stddev": 1.e-2,
+        "compute-free-spectrum": "true",
+        "compute-lattice-spectrum": "true",
+        "compute-cluster-spectrum": "true"
+    }
+}

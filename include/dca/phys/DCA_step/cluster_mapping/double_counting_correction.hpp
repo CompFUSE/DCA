@@ -71,7 +71,7 @@ double_counting_correction<parameters_type, MOMS_type>::double_counting_correcti
 
 template <typename parameters_type, typename MOMS_type>
 void double_counting_correction<parameters_type, MOMS_type>::initialize() {
-  std::vector<int>& interacting_bands = parameters.get_interacting_bands();
+  const std::vector<int>& interacting_bands = parameters.get_interacting_bands();
 
   for (int b_i_int = 0; b_i_int < interacting_bands.size(); b_i_int++) {
     int b_i = interacting_bands[b_i_int];
@@ -104,7 +104,7 @@ void double_counting_correction<parameters_type, MOMS_type>::initialize() {
 template <typename parameters_type, typename MOMS_type>
 void double_counting_correction<parameters_type, MOMS_type>::execute_before_solver() {
   if (parameters.get_double_counting_method() != "none") {
-    std::vector<int>& interacting_bands = parameters.get_interacting_bands();
+    const std::vector<int>& interacting_bands = parameters.get_interacting_bands();
 
     if (parameters.get_double_counting_method() == "constant-correction-with-U-correction" or
         parameters.get_double_counting_method() == "constant-correction-without-U-correction") {
@@ -121,7 +121,7 @@ void double_counting_correction<parameters_type, MOMS_type>::execute_before_solv
 template <typename parameters_type, typename MOMS_type>
 void double_counting_correction<parameters_type, MOMS_type>::execute_after_solver() {
   if (parameters.get_double_counting_method() != "none") {
-    std::vector<int>& interacting_bands = parameters.get_interacting_bands();
+    const std::vector<int>& interacting_bands = parameters.get_interacting_bands();
 
     if (parameters.get_double_counting_method() == "constant-correction-with-U-correction" or
         parameters.get_double_counting_method() == "constant-correction-without-U-correction") {

@@ -1,0 +1,6 @@
+{
+    "double-counting-parameters" : {
+        "double-counting-method" : "constant",
+        "double-counting-correction" : 42.1
+    }
+}

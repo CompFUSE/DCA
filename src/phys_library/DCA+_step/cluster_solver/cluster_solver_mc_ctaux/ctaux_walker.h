@@ -246,7 +246,7 @@ MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::MC_walker(
 
       CV_obj(parameters),
       ctaux_tools(MC_walker_data<CT_AUX_SOLVER, device_t, parameters_type>::MAX_VERTEX_SINGLETS *
-                  parameters.get_K_PHANI()),
+                  parameters.get_submatrix_size()),
 
       rng(rng_ref),
 
@@ -409,7 +409,7 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::do_sweep() 
     factor = parameters.get_number_of_sweeps_per_measurement();
 
   int nb_of_block_steps = 1 + floor(configuration.get_number_of_interacting_HS_spins() /
-                                    parameters.get_K_PHANI() * factor);
+                                    parameters.get_submatrix_size() * factor);
 
   for (int i = 0; i < nb_of_block_steps; i++)
     do_step();
@@ -600,10 +600,10 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::generate_de
   int number_of_delayed_spins = 0;
   if (is_thermalized()) {
     int new_size = configuration.size() / 4;
-    number_of_delayed_spins = std::min((new_size / 32 + 1) * 32, 2 * parameters.get_K_PHANI());
+    number_of_delayed_spins = std::min((new_size / 32 + 1) * 32, 2 * parameters.get_submatrix_size());
   }
   else
-    number_of_delayed_spins = 2 * parameters.get_K_PHANI();
+    number_of_delayed_spins = 2 * parameters.get_submatrix_size();
 
   for (int i = 0; i < number_of_delayed_spins; i++) {
     delayed_spin_struct delayed_spin;
@@ -1302,7 +1302,7 @@ template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_ty
 double MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::calculate_acceptace_ratio(
     double determinant_ratio, HS_vertex_move_type HS_current_move, double QMC_factor) {
   double N = number_of_interacting_spins;
-  double K = parameters.get_K_CT_AUX();
+  double K = parameters.get_K_parameter();
 
   double acceptance_ratio;
 
