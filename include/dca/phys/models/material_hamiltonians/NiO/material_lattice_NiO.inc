@@ -10,13 +10,7 @@
 //
 // Description
 
-#ifndef PHYS_LIBRARY_PARAMETERS_MODELS_MATERIAL_HAMILTONIANS_TEMPLATE_SPECIALIZATION_NIO_MATERIAL_LATTICE_NIO_H
-#define PHYS_LIBRARY_PARAMETERS_MODELS_MATERIAL_HAMILTONIANS_TEMPLATE_SPECIALIZATION_NIO_MATERIAL_LATTICE_NIO_H
-
-#include <array>
-#include "comp_library/IO_library/CSV/CSV.hpp"
-#include "phys_library/parameters/models/material_hamiltonians/material_lattice_template.h"
-
+// NiO symmetric
 template <typename point_group_type>
 class material_lattice<NiO_symmetric, point_group_type> {
 public:
@@ -196,8 +190,7 @@ std::complex<double> material_lattice<NiO_symmetric, point_group_type>::get_LDA_
   return H_LDA;
 }
 
-//-*-C++-*-
-
+// NiO unsymmetric
 template <typename point_group_type>
 class material_lattice<NiO_unsymmetric, point_group_type> {
 public:
@@ -370,5 +363,3 @@ std::complex<double> material_lattice<NiO_unsymmetric, point_group_type>::get_LD
 
   return H_LDA;
 }
-
-#endif  // PHYS_LIBRARY_PARAMETERS_MODELS_MATERIAL_HAMILTONIANS_TEMPLATE_SPECIALIZATION_NIO_MATERIAL_LATTICE_NIO_H

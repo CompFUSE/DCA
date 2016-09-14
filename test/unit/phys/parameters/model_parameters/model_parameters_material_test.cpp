@@ -19,8 +19,8 @@
 using PointGroup = D4;
 
 TEST(ModelParametersMaterialTest, DefaultValues) {
-  dca::phys::params::ModelParameters<
-      dca::phys::models::TightBindingModel<material_lattice<NiO_symmetric, PointGroup>>>
+  dca::phys::params::ModelParameters<dca::phys::models::TightBindingModel<
+      dca::phys::models::material_lattice<dca::phys::models::NiO_symmetric, PointGroup>>>
       pars;
 
   EXPECT_EQ("t_ij_file_name", pars.get_t_ij_file_name());
@@ -29,8 +29,8 @@ TEST(ModelParametersMaterialTest, DefaultValues) {
 
 TEST(ModelParametersMaterialTest, ReadAll) {
   IO::reader<IO::JSON> reader;
-  dca::phys::params::ModelParameters<
-      dca::phys::models::TightBindingModel<material_lattice<NiO_symmetric, PointGroup>>>
+  dca::phys::params::ModelParameters<dca::phys::models::TightBindingModel<
+      dca::phys::models::material_lattice<dca::phys::models::NiO_symmetric, PointGroup>>>
       pars;
 
   reader.open_file(DCA_SOURCE_DIR
@@ -43,8 +43,8 @@ TEST(ModelParametersMaterialTest, ReadAll) {
 }
 
 TEST(ModelParametersMaterialTest, Setter) {
-  dca::phys::params::ModelParameters<
-      dca::phys::models::TightBindingModel<material_lattice<NiO_symmetric, PointGroup>>>
+  dca::phys::params::ModelParameters<dca::phys::models::TightBindingModel<
+      dca::phys::models::material_lattice<dca::phys::models::NiO_symmetric, PointGroup>>>
       pars;
 
   pars.set_t_ij_file_name("t_ij_NiO.txt");

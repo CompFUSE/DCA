@@ -24,8 +24,8 @@
 #include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
 #include "dca/phys/models/analytic_hamiltonians/fourband_lattice.hpp"
 #include "dca/phys/models/analytic_hamiltonians/twoband_lattice.hpp"
+#include "dca/phys/models/material_hamiltonians/material_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
-#include "phys_library/parameters/models/material_hamiltonians/material_hamiltonians.hpp"
 
 namespace dca {
 namespace phys {
