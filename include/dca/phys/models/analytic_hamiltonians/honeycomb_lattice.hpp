@@ -11,20 +11,25 @@
 //   H_{i,j}(\vec{k}) &=& \delta_{\sigma_i,\sigma_j}...
 // \f}
 
-#ifndef PHYS_LIBRARY_PARAMETERS_MODELS_ANALYTIC_HAMILTONIANS_LATTICES_2D_HONEYCOMB_LATTICE_H
-#define PHYS_LIBRARY_PARAMETERS_MODELS_ANALYTIC_HAMILTONIANS_LATTICES_2D_HONEYCOMB_LATTICE_H
+#ifndef DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_HONEYCOMB_LATTICE_HPP
+#define DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_HONEYCOMB_LATTICE_HPP
 
 #include <cmath>
 #include <complex>
 #include <utility>
 #include <vector>
 
+#include "dca/phys/models/analytic_hamiltonians/cluster_shape_type.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "phys_library/domains/cluster/symmetries/point_groups/No_symmetry.h"
-#include "phys_library/parameters/models/analytic_hamiltonians/lattices/cluster_shape_type.hpp"
+
+namespace dca {
+namespace phys {
+namespace models {
+// dca::phys::models::
 
 template <typename DCA_point_group_type>
-class graphene_model {
+class HoneycombLattice {
 public:
   typedef no_symmetry<2> LDA_point_group;
   typedef DCA_point_group_type DCA_point_group;
@@ -59,7 +64,7 @@ public:
 };
 
 template <typename DCA_point_group_type>
-double* graphene_model<DCA_point_group_type>::initialize_r_DCA_basis() {
+double* HoneycombLattice<DCA_point_group_type>::initialize_r_DCA_basis() {
   static double* r_DCA = new double[4];
 
   r_DCA[0] = 1.5;
@@ -71,7 +76,7 @@ double* graphene_model<DCA_point_group_type>::initialize_r_DCA_basis() {
 }
 
 template <typename DCA_point_group_type>
-double* graphene_model<DCA_point_group_type>::initialize_k_DCA_basis() {
+double* HoneycombLattice<DCA_point_group_type>::initialize_k_DCA_basis() {
   static double* k_DCA = new double[4];
 
   k_DCA[0] = 2.09439466667;
@@ -83,7 +88,7 @@ double* graphene_model<DCA_point_group_type>::initialize_k_DCA_basis() {
 }
 
 template <typename DCA_point_group_type>
-double* graphene_model<DCA_point_group_type>::initialize_r_LDA_basis() {
+double* HoneycombLattice<DCA_point_group_type>::initialize_r_LDA_basis() {
   static double* r_LDA = new double[4];
 
   r_LDA[0] = 1. / 2.;
@@ -95,7 +100,7 @@ double* graphene_model<DCA_point_group_type>::initialize_r_LDA_basis() {
 }
 
 template <typename DCA_point_group_type>
-double* graphene_model<DCA_point_group_type>::initialize_k_LDA_basis() {
+double* HoneycombLattice<DCA_point_group_type>::initialize_k_LDA_basis() {
   static double* k_LDA = new double[4];
 
   k_LDA[0] = 4 * M_PI;
@@ -107,7 +112,7 @@ double* graphene_model<DCA_point_group_type>::initialize_k_LDA_basis() {
 }
 
 template <typename DCA_point_group_type>
-std::vector<int> graphene_model<DCA_point_group_type>::get_flavors() {
+std::vector<int> HoneycombLattice<DCA_point_group_type>::get_flavors() {
   std::vector<int> flavors(BANDS);
 
   flavors[0] = 0;
@@ -117,7 +122,7 @@ std::vector<int> graphene_model<DCA_point_group_type>::get_flavors() {
 }
 
 template <typename DCA_point_group_type>
-std::vector<std::vector<double>> graphene_model<DCA_point_group_type>::get_a_vectors() {
+std::vector<std::vector<double>> HoneycombLattice<DCA_point_group_type>::get_a_vectors() {
   std::vector<std::vector<double>> a_vecs(0);
 
   {
@@ -143,7 +148,7 @@ std::vector<std::vector<double>> graphene_model<DCA_point_group_type>::get_a_vec
 
 template <typename DCA_point_group_type>
 template <class domain, class parameters_type>
-void graphene_model<DCA_point_group_type>::initialize_H_interaction(
+void HoneycombLattice<DCA_point_group_type>::initialize_H_interaction(
     FUNC_LIB::function<double, domain>& H_interaction, parameters_type& parameters) {
   std::vector<std::vector<double>>& U_ij = parameters.get_U_ij();
 
@@ -152,7 +157,7 @@ void graphene_model<DCA_point_group_type>::initialize_H_interaction(
 }
 
 template <typename DCA_point_group_type>
-std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> graphene_model<
+std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> HoneycombLattice<
     DCA_point_group_type>::get_orbital_permutations() {
   std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> permutations(0);
 
@@ -169,7 +174,7 @@ std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> graphene_model<
 
 template <typename DCA_point_group_type>
 template <class domain>
-void graphene_model<DCA_point_group_type>::initialize_H_symmetry(
+void HoneycombLattice<DCA_point_group_type>::initialize_H_symmetry(
     FUNC_LIB::function<int, domain>& H_symmetries) {
   // e_up <==> e_dn symmetry
   //   for(int i=0; i<BANDS; i++){
@@ -193,7 +198,7 @@ void graphene_model<DCA_point_group_type>::initialize_H_symmetry(
 
 template <typename DCA_point_group_type>
 template <class parameters_type>
-std::complex<double> graphene_model<DCA_point_group_type>::get_LDA_Hamiltonians(
+std::complex<double> HoneycombLattice<DCA_point_group_type>::get_LDA_Hamiltonians(
     parameters_type& parameters, std::vector<double> k, int b1, int s1, int b2, int s2) {
   std::vector<std::vector<double>>& t_ij = parameters.get_t_ij();
 
@@ -226,4 +231,8 @@ std::complex<double> graphene_model<DCA_point_group_type>::get_LDA_Hamiltonians(
   return H_LDA;
 }
 
-#endif  // PHYS_LIBRARY_PARAMETERS_MODELS_ANALYTIC_HAMILTONIANS_LATTICES_2D_HONEYCOMB_LATTICE_H
+}  // models
+}  // phys
+}  // dca
+
+#endif  // DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_HONEYCOMB_LATTICE_HPP

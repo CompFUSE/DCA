@@ -11,7 +11,7 @@
 // Template specialization of model parameters for 2D 4-band model.
 
 template <typename PointGroup>
-class ModelParameters<dca::phys::models::TightBindingModel<fourband_lattice<PointGroup>>> {
+class ModelParameters<models::TightBindingModel<models::fourband_lattice<PointGroup>>> {
 public:
   ModelParameters()
       : ei0_(0.),
@@ -81,7 +81,7 @@ private:
 
 template <typename PointGroup>
 template <typename Concurrency>
-int ModelParameters<dca::phys::models::TightBindingModel<fourband_lattice<PointGroup>>>::getBufferSize(
+int ModelParameters<models::TightBindingModel<models::fourband_lattice<PointGroup>>>::getBufferSize(
     Concurrency& concurrency) const {
   int buffer_size = 0;
 
@@ -101,7 +101,7 @@ int ModelParameters<dca::phys::models::TightBindingModel<fourband_lattice<PointG
 
 template <typename PointGroup>
 template <typename Concurrency>
-void ModelParameters<dca::phys::models::TightBindingModel<fourband_lattice<PointGroup>>>::pack(
+void ModelParameters<models::TightBindingModel<models::fourband_lattice<PointGroup>>>::pack(
     Concurrency& concurrency, int* buffer, int buffer_size, int& position) const {
   concurrency.pack(buffer, buffer_size, position, ei0_);
   concurrency.pack(buffer, buffer_size, position, eb0_);
@@ -117,7 +117,7 @@ void ModelParameters<dca::phys::models::TightBindingModel<fourband_lattice<Point
 
 template <typename PointGroup>
 template <typename Concurrency>
-void ModelParameters<dca::phys::models::TightBindingModel<fourband_lattice<PointGroup>>>::unpack(
+void ModelParameters<models::TightBindingModel<models::fourband_lattice<PointGroup>>>::unpack(
     Concurrency& concurrency, int* buffer, int buffer_size, int& position) {
   concurrency.unpack(buffer, buffer_size, position, ei0_);
   concurrency.unpack(buffer, buffer_size, position, eb0_);
@@ -133,7 +133,7 @@ void ModelParameters<dca::phys::models::TightBindingModel<fourband_lattice<Point
 
 template <typename PointGroup>
 template <typename ReaderOrWriter>
-void ModelParameters<dca::phys::models::TightBindingModel<fourband_lattice<PointGroup>>>::readWrite(
+void ModelParameters<models::TightBindingModel<models::fourband_lattice<PointGroup>>>::readWrite(
     ReaderOrWriter& reader_or_writer) {
   try {
     reader_or_writer.open_group("fourband-model");

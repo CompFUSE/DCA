@@ -20,6 +20,7 @@
 #include "dca/config/haves_defines.hpp"
 #include "dca/concurrency/parallelization_pthreads.h"
 #include "dca/math/random/std_random_wrapper.hpp"
+#include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
 #include "dca/phys/parameters/parameters.hpp"
 #include "dca/testing/dca_mpi_test_environment.hpp"
@@ -39,7 +40,6 @@
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain.h"
-#include "phys_library/parameters/models/analytic_hamiltonians/lattices/2D_square_lattice.h"
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
@@ -54,7 +54,7 @@ TEST(dca_sp_DCAplus_pthread, Self_energy) {
 
   using RngType = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
   using DcaPointGroupType = D4;
-  using LatticeType = square_lattice<DcaPointGroupType>;
+  using LatticeType = dca::phys::models::square_lattice<DcaPointGroupType>;
   using ModelType = dca::phys::models::TightBindingModel<LatticeType>;
   using ParametersType =
       dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType,

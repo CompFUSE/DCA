@@ -21,10 +21,10 @@
 #include <stdexcept>
 #include <string>
 
+#include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
+#include "dca/phys/models/analytic_hamiltonians/fourband_lattice.hpp"
+#include "dca/phys/models/analytic_hamiltonians/twoband_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
-#include "phys_library/parameters/models/analytic_hamiltonians/lattices/2D_2band_lattice.h"
-#include "phys_library/parameters/models/analytic_hamiltonians/lattices/2D_4band_lattice.h"
-#include "phys_library/parameters/models/analytic_hamiltonians/lattices/2D_bilayer_lattice.h"
 #include "phys_library/parameters/models/material_hamiltonians/material_hamiltonians.hpp"
 
 namespace dca {
