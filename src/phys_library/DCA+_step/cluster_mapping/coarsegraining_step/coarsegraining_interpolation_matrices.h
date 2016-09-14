@@ -150,7 +150,7 @@ void interpolation_matrices<scalar_type, k_dmn, dmn_0<coarsegraining_domain<K_dm
         for (int i = 0; i < q_dmn::dmn_size(); i++)
           trafo_r_to_q(i, j) *= r_centered_dmn::parameter_type::get_weights()[j];
 
-      LIN_ALG::GEMM<dca::linalg::CPU>::execute(trafo_r_to_q, trafo_k_to_r, trafo_k_to_q);
+      dca::linalg::matrixop::gemm(trafo_r_to_q, trafo_k_to_r, trafo_k_to_q);
     }
 
     {
@@ -201,7 +201,7 @@ void interpolation_matrices<scalar_type, k_dmn, dmn_0<coarsegraining_domain<K_dm
         for (int i = 0; i < q_dmn::dmn_size(); i++)
           trafo_r_to_q(i, j) *= r_centered_dmn::parameter_type::get_weights()[j];
 
-      LIN_ALG::GEMM<dca::linalg::CPU>::execute(trafo_r_to_q, trafo_k_to_r, trafo_k_to_q);
+      dca::linalg::matrixop::gemm(trafo_r_to_q, trafo_k_to_r, trafo_k_to_q);
     }
 
     {

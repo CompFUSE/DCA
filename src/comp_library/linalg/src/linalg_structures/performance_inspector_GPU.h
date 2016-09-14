@@ -124,7 +124,7 @@ namespace LIN_ALG
     gettimeofday(&start,NULL);
 
     for(double i=0; i<N_ITERATIONS; ++i)
-      GEMM<GPU>::execute(data_ptr->a, A, B, data_ptr->b, C, thread_id, stream_id);
+      dca::linalg::matrixop::gemm(data_ptr->a, A, B, data_ptr->b, C, thread_id, stream_id);
 
     LIN_ALG::CUBLAS_THREAD_MANAGER<GPU>::synchronize_streams(thread_id, stream_id);
 

@@ -24,7 +24,7 @@ namespace LIN_ALG
 
 	    matrix<scalartype, CPU> A_At("A_At", std::pair<int,int>(M,M));
 
-	    GEMM<CPU>::execute('N', 'C', A, A, A_At);
+	    dca::linalg::matrixop::gemm('N', 'C', A, A, A_At);
 
 	    dca::linalg::Vector<scalartype, CPU> S ("S" , M);
 	    matrix<scalartype, CPU> V ("V" , std::pair<int,int>(M,M));
@@ -50,8 +50,8 @@ namespace LIN_ALG
 		}
 	    }
 	      
-	    GEMM<CPU>::execute('N', 'C', V, Vt  , A_At);
-	    GEMM<CPU>::execute('C', 'N', A, A_At, A_inv);	 
+	    dca::linalg::matrixop::gemm('N', 'C', V, Vt  , A_At);
+	    dca::linalg::matrixop::gemm('C', 'N', A, A_At, A_inv);	 
 	  }
 	else
 	  {
@@ -59,7 +59,7 @@ namespace LIN_ALG
 
 	    matrix<scalartype, CPU> At_A("At_A", std::pair<int,int>(N,N));
 
-	    LIN_ALG::GEMM<CPU>::execute('C', 'N', A, A, At_A);
+	    dca::linalg::matrixop::gemm('C', 'N', A, A, At_A);
 
 	    dca::linalg::Vector<scalartype, CPU> S ("S" , N);
 	    matrix<scalartype, CPU> V ("V" , std::pair<int,int>(N,N));
@@ -84,8 +84,8 @@ namespace LIN_ALG
 		}
 	    }
 
-	    GEMM<CPU>::execute('N', 'C', V   , Vt, At_A);
-	    GEMM<CPU>::execute('N', 'C', At_A, A , A_inv);	    
+	    dca::linalg::matrixop::gemm('N', 'C', V   , Vt, At_A);
+	    dca::linalg::matrixop::gemm('N', 'C', At_A, A , A_inv);	    
 	  }
       }
 
@@ -103,7 +103,7 @@ namespace LIN_ALG
 
 	    matrix<std::complex<scalartype>, CPU> A_At("A_At", std::pair<int,int>(M,M));
 
-	    GEMM<CPU>::execute('N', 'C', A, A, A_At);
+	    dca::linalg::matrixop::gemm('N', 'C', A, A, A_At);
 
 	    dca::linalg::Vector<scalartype, CPU> S ("S" , M);
 	    matrix<std::complex<scalartype>, CPU> V ("V" , std::pair<int,int>(M,M));
@@ -131,9 +131,9 @@ namespace LIN_ALG
 		}
 	    }
 
-	    GEMM<CPU>::execute('N', 'C', V, Vt, A_At);
+	    dca::linalg::matrixop::gemm('N', 'C', V, Vt, A_At);
 
-	    GEMM<CPU>::execute('C', 'N', A, A_At, A_inv);	    
+	    dca::linalg::matrixop::gemm('C', 'N', A, A_At, A_inv);	    
 	  }
 	else
 	  {
@@ -141,7 +141,7 @@ namespace LIN_ALG
 
 	    matrix<std::complex<scalartype>, CPU> At_A("At_A", std::pair<int,int>(N,N));
 
-	    LIN_ALG::GEMM<CPU>::execute('C', 'N', A, A, At_A);
+	    dca::linalg::matrixop::gemm('C', 'N', A, A, At_A);
 
 	    dca::linalg::Vector<scalartype, CPU> S ("S" , N);
 	    matrix<std::complex<scalartype>, CPU> V ("V" , std::pair<int,int>(N,N));
@@ -166,8 +166,8 @@ namespace LIN_ALG
 		}
 	    }
 
-	    GEMM<CPU>::execute('N', 'C', V   , Vt, At_A);
-	    GEMM<CPU>::execute('N', 'C', At_A, A , A_inv);	    
+	    dca::linalg::matrixop::gemm('N', 'C', V   , Vt, At_A);
+	    dca::linalg::matrixop::gemm('N', 'C', At_A, A , A_inv);	    
 	  }
       }
 

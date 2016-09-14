@@ -652,8 +652,8 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
         for (int i = 0; i < nu::dmn_size(); i++)
           M_matrix(i, j) = M_k_w_new(i, j, k_ind, w_ind);
 
-      LIN_ALG::GEMM<dca::linalg::CPU>::execute(G0_matrix, M_matrix, G0_M_matrix);
-      LIN_ALG::GEMM<dca::linalg::CPU>::execute(G0_M_matrix, G0_matrix, G_matrix);
+      dca::linalg::matrixop::gemm(G0_matrix, M_matrix, G0_M_matrix);
+      dca::linalg::matrixop::gemm(G0_M_matrix, G0_matrix, G_matrix);
 
       for (int j = 0; j < nu::dmn_size(); j++)
         for (int i = 0; i < nu::dmn_size(); i++)

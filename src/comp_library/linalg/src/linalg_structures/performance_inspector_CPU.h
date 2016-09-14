@@ -113,7 +113,7 @@ namespace LIN_ALG
     gettimeofday(&start,NULL);
 
     for(double i=0; i<N_ITERATIONS; ++i)
-      GEMM<CPU>::execute(data_ptr->a, A, B, data_ptr->b, C, 0, 0);
+      dca::linalg::matrixop::gemm(data_ptr->a, A, B, data_ptr->b, C, 0, 0);
 
     timeval end;
     gettimeofday(&end,NULL);

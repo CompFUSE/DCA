@@ -178,7 +178,7 @@ void SHRINK_TOOLS<device_t>::shrink_Gamma_matrix(configuration_type& full_config
       changed_spin_indices_e_spin.erase(changed_spin_indices_e_spin.begin() + i);
       changed_spin_values_e_spin.erase(changed_spin_values_e_spin.begin() + i);
 
-      Gamma.remove_row_and_column(i);
+      dca::linalg::matrixop::removeRowAndCol(Gamma, i);
     }
     else
       i++;
@@ -209,8 +209,7 @@ void SHRINK_TOOLS<device_t>::shrink_Gamma_matrix(configuration_type& full_config
       changed_spin_indices_e_spin.erase(changed_spin_indices_e_spin.begin() + i);
       changed_spin_values_e_spin.erase(changed_spin_values_e_spin.begin() + i);
 
-      // Gamma.remove_row_and_column(i);
-      LIN_ALG::REMOVE<device_t>::row_and_column(Gamma, i);
+      dca::linalg::matrixop::removeRowAndCol(Gamma, i);
     }
     else
       i++;

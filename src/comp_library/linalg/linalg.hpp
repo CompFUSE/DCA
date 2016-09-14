@@ -48,10 +48,6 @@
 #include "src/linalg_operations/LU_MATRIX_OPERATIONS_CPU.h"
 #include "src/linalg_operations/LU_MATRIX_OPERATIONS_GPU.h"
 
-#include "src/linalg_operations/REMOVE_tem.h"
-#include "src/linalg_operations/REMOVE_CPU.h"
-#include "src/linalg_operations/REMOVE_GPU.h"
-
 // BLAS 1
 #include "src/linalg_operations/BLAS_1_COPY_tem.h"
 #include "src/linalg_operations/BLAS_1_COPY_CPU.h"
@@ -64,10 +60,6 @@
 #include "src/linalg_operations/BLAS_1_SWAP_tem.h"
 #include "src/linalg_operations/BLAS_1_SWAP_CPU.h"
 #include "src/linalg_operations/BLAS_1_SWAP_GPU.h"
-
-// BLAS 3
-#include "src/linalg_operations/BLAS_3_TRSM_tem.h"
-#include "src/linalg_operations/BLAS_3_GEMM_tem.h"
 
 #include "src/linalg_operations/LASET_tem.h"
 #include "src/linalg_operations/LASET_CPU.h"

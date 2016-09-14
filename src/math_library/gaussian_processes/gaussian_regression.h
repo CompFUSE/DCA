@@ -118,7 +118,7 @@ void gaussian_regression<scalartype, lhs_dmn_t, rhs_dmn_t>::compute_A(double eps
 
   dca::linalg::Matrix<scalartype, dca::linalg::CPU> Xt_X("Xt_X", std::pair<int, int>(Nc, Nc));
 
-  LIN_ALG::GEMM<dca::linalg::CPU>::execute('C', 'N', X, X, Xt_X);
+  dca::linalg::matrixop::gemm('C', 'N', X, X, Xt_X);
 
   for (int j = 0; j < Nc; j++)
     for (int i = 0; i < Nc; i++)
@@ -126,7 +126,7 @@ void gaussian_regression<scalartype, lhs_dmn_t, rhs_dmn_t>::compute_A(double eps
 
   LIN_ALG::PSEUDO_INVERSE<dca::linalg::CPU>::execute(A, A_inv);
 
-  LIN_ALG::GEMM<dca::linalg::CPU>::execute('N', 'C', A_inv, X, A_inv_X);
+  dca::linalg::matrixop::gemm('N', 'C', A_inv, X, A_inv_X);
 }
 }
 

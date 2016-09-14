@@ -910,24 +910,20 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type,
 
       if (e_spin_HS_field_UP == e_UP) {
         Gamma_up_size -= 1;
-        CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::remove_row_and_column(Gamma_up_CPU,
-                                                                     Gamma_index_HS_field_UP);
+        dca::linalg::matrixop::removeRowAndCol(Gamma_up_CPU, Gamma_index_HS_field_UP);
       }
       else {
         Gamma_dn_size -= 1;
-        CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::remove_row_and_column(Gamma_dn_CPU,
-                                                                     Gamma_index_HS_field_UP);
+        dca::linalg::matrixop::removeRowAndCol(Gamma_dn_CPU, Gamma_index_HS_field_UP);
       }
 
       if (e_spin_HS_field_DN == e_UP) {
         Gamma_up_size -= 1;
-        CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::remove_row_and_column(Gamma_up_CPU,
-                                                                     Gamma_index_HS_field_DN);
+        dca::linalg::matrixop::removeRowAndCol(Gamma_up_CPU, Gamma_index_HS_field_DN);
       }
       else {
         Gamma_dn_size -= 1;
-        CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::remove_row_and_column(Gamma_dn_CPU,
-                                                                     Gamma_index_HS_field_DN);
+        dca::linalg::matrixop::removeRowAndCol(Gamma_dn_CPU, Gamma_index_HS_field_DN);
       }
     }
   }

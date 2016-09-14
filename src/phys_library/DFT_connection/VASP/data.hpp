@@ -675,7 +675,7 @@ void data<parameters_type>::check_bloch_hamiltonians() {
         for (int ib = 0; ib < b_dmft::dmn_size(); ib++)  // p1 and p2
           p_rhs(ib, io) = std::conj(p_lhs(io, ib));
 
-      LIN_ALG::GEMM<dca::linalg::CPU>::execute(p_lhs, p_rhs, p_lhs_times_p_rhs);
+      dca::linalg::matrixop::gemm(p_lhs, p_rhs, p_lhs_times_p_rhs);
 
       for (int ib = 0; ib < b_dmft::dmn_size(); ib++)
         for (int io = 0; io < o_dmft::dmn_size(); io++)
@@ -786,8 +786,8 @@ void data<parameters_type>::downfold_bloch_hamiltonians() {
         for (int ib = 0; ib < b_dmft::dmn_size(); ib++)
           H_k(ib, jb) = BlochHami(ik, ib, jb);
 
-      LIN_ALG::GEMM<dca::linalg::CPU>::execute(p_lhs, H_k, p_lhs_x_H_k);
-      LIN_ALG::GEMM<dca::linalg::CPU>::execute(p_lhs_x_H_k, p_rhs, p_lhs_x_H_k_x_p_rhs);
+      dca::linalg::matrixop::gemm(p_lhs, H_k, p_lhs_x_H_k);
+      dca::linalg::matrixop::gemm(p_lhs_x_H_k, p_rhs, p_lhs_x_H_k_x_p_rhs);
 
       for (int jo = 0; jo < o_dmft::dmn_size(); jo++)
         for (int io = 0; io < o_dmft::dmn_size(); io++)

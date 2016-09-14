@@ -42,9 +42,6 @@ public:
 
   inline static void set_to_identity(dca::linalg::Matrix<double, dca::linalg::CPU>& M, int index);
 
-  inline static void remove_row_and_column(dca::linalg::Matrix<double, dca::linalg::CPU>& M,
-                                           int index);
-
   // inline double solve_Gamma(int n, dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma_LU,
   // double
   // exp_delta_V);
@@ -133,11 +130,6 @@ void CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::set_to_identity(
   }
 
   M(index, index) = 1.;
-}
-
-void CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::remove_row_and_column(
-    dca::linalg::Matrix<double, dca::linalg::CPU>& M, int index) {
-  LIN_ALG::REMOVE<dca::linalg::CPU>::row_and_column(M, index);
 }
 
 bool CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::test_max_min(
