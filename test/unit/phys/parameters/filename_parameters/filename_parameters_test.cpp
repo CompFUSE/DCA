@@ -29,8 +29,8 @@ TEST(FilenameParametersTest, DefaultValues) {
   EXPECT_EQ("output_ED.json", pars.get_ED_output_file_name());
   EXPECT_EQ("output_CPE.json", pars.get_CPE_output_file_name());
   EXPECT_EQ("output_QMC.json", pars.get_QMC_output_file_name());
-  EXPECT_EQ(false, pars.dump_lattice_Self_energy());
-  EXPECT_EQ(false, pars.dump_cluster_Greens_functions());
+  EXPECT_FALSE(pars.dump_lattice_Self_energy());
+  EXPECT_FALSE(pars.dump_cluster_Greens_functions());
 }
 
 TEST(FilenameParametersTest, ReadAll) {
@@ -53,6 +53,6 @@ TEST(FilenameParametersTest, ReadAll) {
   EXPECT_EQ("output_ed_run1.json", pars.get_ED_output_file_name());
   EXPECT_EQ("output_cpe_run1.json", pars.get_CPE_output_file_name());
   EXPECT_EQ("output_qmc_run1.json", pars.get_QMC_output_file_name());
-  EXPECT_EQ(true, pars.dump_lattice_Self_energy());
-  EXPECT_EQ(true, pars.dump_cluster_Greens_functions());
+  EXPECT_TRUE(pars.dump_lattice_Self_energy());
+  EXPECT_TRUE(pars.dump_cluster_Greens_functions());
 }

@@ -22,7 +22,7 @@ TEST(EdSolverParametersTest, DefaultValues) {
   EXPECT_EQ("default", pars.get_ed_method());
   EXPECT_EQ(0, pars.get_occupation());
   EXPECT_EQ(0, pars.get_magnetization());
-  EXPECT_EQ(false, pars.check_orthogonality_of_states());
+  EXPECT_FALSE(pars.check_orthogonality_of_states());
 }
 
 TEST(EdSolverParametersTest, ReadAll) {
@@ -38,5 +38,5 @@ TEST(EdSolverParametersTest, ReadAll) {
   EXPECT_EQ("block-diagonal", pars.get_ed_method());
   EXPECT_EQ(1, pars.get_occupation());
   EXPECT_EQ(-1, pars.get_magnetization());
-  EXPECT_EQ(true, pars.check_orthogonality_of_states());
+  EXPECT_TRUE(pars.check_orthogonality_of_states());
 }

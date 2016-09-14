@@ -21,7 +21,7 @@ TEST(DcaParametersTest, DefaultValues) {
 
   std::vector<std::vector<int>> DCA_cluster_check{{0, 0}, {0, 0}};
 
-  EXPECT_EQ(false, pars.do_DCA_plus());
+  EXPECT_FALSE(pars.do_DCA_plus());
   EXPECT_EQ(std::vector<int>(0), pars.get_interacting_bands());
   EXPECT_EQ(1, pars.get_DCA_iterations());
   EXPECT_EQ(1.e-5, pars.get_DCA_accuracy());
@@ -30,13 +30,13 @@ TEST(DcaParametersTest, DefaultValues) {
   EXPECT_EQ(3, pars.get_k_mesh_refinement());
   EXPECT_EQ(0, pars.get_number_of_periods());
   EXPECT_EQ(3, pars.get_quadrature_rule());
-  EXPECT_EQ(true, pars.precompute_Hamiltonian());
+  EXPECT_TRUE(pars.precompute_Hamiltonian());
   EXPECT_EQ(1, pars.get_nr_coarsegraining_threads());
   EXPECT_EQ(0, pars.get_number_of_tail_frequencies());
   EXPECT_EQ(1.e-3, pars.get_phi_k_integration_accuracy());
-  EXPECT_EQ(false, pars.print_phi_k());
+  EXPECT_FALSE(pars.print_phi_k());
   EXPECT_EQ("wannier-interpolation", pars.get_interpolation_method());
-  EXPECT_EQ(false, pars.use_HTS_approximation());
+  EXPECT_FALSE(pars.use_HTS_approximation());
   EXPECT_EQ(1.e-2, pars.get_deconvolution_tolerance());
   EXPECT_EQ(16, pars.get_max_deconvolution_iterations());
 }
@@ -53,7 +53,7 @@ TEST(DcaParametersTest, ReadAll) {
   std::vector<int> interacting_bands_check{0, 1};
   std::vector<std::vector<int>> DCA_cluster_check{{4, 0}, {0, 4}};
 
-  EXPECT_EQ(true, pars.do_DCA_plus());
+  EXPECT_TRUE(pars.do_DCA_plus());
   EXPECT_EQ(interacting_bands_check, pars.get_interacting_bands());
   EXPECT_EQ(3, pars.get_DCA_iterations());
   EXPECT_EQ(1.e-6, pars.get_DCA_accuracy());
@@ -62,13 +62,13 @@ TEST(DcaParametersTest, ReadAll) {
   EXPECT_EQ(4, pars.get_k_mesh_refinement());
   EXPECT_EQ(2, pars.get_number_of_periods());
   EXPECT_EQ(2, pars.get_quadrature_rule());
-  EXPECT_EQ(false, pars.precompute_Hamiltonian());
+  EXPECT_FALSE(pars.precompute_Hamiltonian());
   EXPECT_EQ(8, pars.get_nr_coarsegraining_threads());
   EXPECT_EQ(10, pars.get_number_of_tail_frequencies());
   EXPECT_EQ(1.e-5, pars.get_phi_k_integration_accuracy());
-  EXPECT_EQ(true, pars.print_phi_k());
+  EXPECT_TRUE(pars.print_phi_k());
   EXPECT_EQ("some-method", pars.get_interpolation_method());
-  EXPECT_EQ(true, pars.use_HTS_approximation());
+  EXPECT_TRUE(pars.use_HTS_approximation());
   EXPECT_EQ(1.e-3, pars.get_deconvolution_tolerance());
   EXPECT_EQ(32, pars.get_max_deconvolution_iterations());
 

@@ -24,15 +24,15 @@ TEST(VertexParametersTest, DefaultValues) {
   EXPECT_EQ(0, pars.get_w_channel());
   EXPECT_EQ(0.5, pars.get_singular_value_cut_off());
   EXPECT_EQ(128, pars.get_singular_value_index_cut_off());
-  EXPECT_EQ(false, pars.do_diagonalization_on_folded_Gamma_chi_0());
+  EXPECT_FALSE(pars.do_diagonalization_on_folded_Gamma_chi_0());
   EXPECT_EQ(10., pars.get_BSE_cut_off_radius());
-  EXPECT_EQ(true, pars.do_deconvolution_of_Gamma());
-  EXPECT_EQ(true, pars.do_symmetrization_of_Gamma());
-  EXPECT_EQ(false, pars.compute_chi_0());
-  EXPECT_EQ(false, pars.compute_chi());
-  EXPECT_EQ(true, pars.compute_eigenvalues());
-  EXPECT_EQ(false, pars.compute_P_q_cluster());
-  EXPECT_EQ(false, pars.compute_P_q_lattice());
+  EXPECT_TRUE(pars.do_deconvolution_of_Gamma());
+  EXPECT_TRUE(pars.do_symmetrization_of_Gamma());
+  EXPECT_FALSE(pars.compute_chi_0());
+  EXPECT_FALSE(pars.compute_chi());
+  EXPECT_TRUE(pars.compute_eigenvalues());
+  EXPECT_FALSE(pars.compute_P_q_cluster());
+  EXPECT_FALSE(pars.compute_P_q_lattice());
 }
 
 TEST(VertexParametersTest, ReadAll) {
@@ -51,13 +51,13 @@ TEST(VertexParametersTest, ReadAll) {
   EXPECT_EQ(2, pars.get_w_channel());
   EXPECT_EQ(1.3, pars.get_singular_value_cut_off());
   EXPECT_EQ(99, pars.get_singular_value_index_cut_off());
-  EXPECT_EQ(true, pars.do_diagonalization_on_folded_Gamma_chi_0());
+  EXPECT_TRUE(pars.do_diagonalization_on_folded_Gamma_chi_0());
   EXPECT_EQ(7.5, pars.get_BSE_cut_off_radius());
-  EXPECT_EQ(false, pars.do_deconvolution_of_Gamma());
-  EXPECT_EQ(false, pars.do_symmetrization_of_Gamma());
-  EXPECT_EQ(true, pars.compute_chi_0());
-  EXPECT_EQ(true, pars.compute_chi());
-  EXPECT_EQ(false, pars.compute_eigenvalues());
-  EXPECT_EQ(true, pars.compute_P_q_cluster());
-  EXPECT_EQ(true, pars.compute_P_q_lattice());
+  EXPECT_FALSE(pars.do_deconvolution_of_Gamma());
+  EXPECT_FALSE(pars.do_symmetrization_of_Gamma());
+  EXPECT_TRUE(pars.compute_chi_0());
+  EXPECT_TRUE(pars.compute_chi());
+  EXPECT_FALSE(pars.compute_eigenvalues());
+  EXPECT_TRUE(pars.compute_P_q_cluster());
+  EXPECT_TRUE(pars.compute_P_q_lattice());
 }

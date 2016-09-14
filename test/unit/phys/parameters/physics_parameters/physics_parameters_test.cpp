@@ -19,7 +19,7 @@ TEST(PhysicsParametersTest, DefaultValues) {
   dca::phys::params::PhysicsParameters pars;
 
   EXPECT_EQ(1., pars.get_beta());
-  EXPECT_EQ(false, pars.adjust_chemical_potential());
+  EXPECT_FALSE(pars.adjust_chemical_potential());
   EXPECT_EQ(1., pars.get_density());
   EXPECT_EQ(0., pars.get_chemical_potential());
 }
@@ -34,7 +34,7 @@ TEST(PhysicsParametersTest, ReadAll) {
   reader.close_file();
 
   EXPECT_EQ(0.5, pars.get_beta());
-  EXPECT_EQ(true, pars.adjust_chemical_potential());
+  EXPECT_TRUE(pars.adjust_chemical_potential());
   EXPECT_EQ(0.9, pars.get_density());
   EXPECT_EQ(0.14, pars.get_chemical_potential());
 }

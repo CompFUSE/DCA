@@ -17,7 +17,7 @@
 
 TEST(EqualTimeParametersTest, DefaultValues) {
   dca::phys::params::EqualTimeParameters pars;
-  EXPECT_EQ(false, pars.do_equal_time_measurements());
+  EXPECT_FALSE(pars.do_equal_time_measurements());
 }
 
 TEST(EqualTimeParametersTest, ReadAll) {
@@ -29,5 +29,5 @@ TEST(EqualTimeParametersTest, ReadAll) {
   pars.readWrite(reader);
   reader.close_file();
 
-  EXPECT_EQ(true, pars.do_equal_time_measurements());
+  EXPECT_TRUE(pars.do_equal_time_measurements());
 }

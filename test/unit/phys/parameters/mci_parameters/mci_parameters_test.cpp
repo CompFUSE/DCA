@@ -27,7 +27,7 @@ TEST(MciParametersTest, DefaultValues) {
   EXPECT_EQ(20, pars.get_warm_up_sweeps());
   EXPECT_EQ(1., pars.get_number_of_sweeps_per_measurement());
   EXPECT_EQ(100, pars.get_number_of_measurements());
-  EXPECT_EQ(false, pars.adjust_self_energy_for_double_counting());
+  EXPECT_FALSE(pars.adjust_self_energy_for_double_counting());
   EXPECT_EQ(985456376, pars.get_seed());
   EXPECT_EQ(1, pars.get_nr_walkers());
   EXPECT_EQ(1, pars.get_nr_accumulators());
@@ -47,7 +47,7 @@ TEST(MciParametersTest, ReadAll) {
   EXPECT_EQ(99, pars.get_warm_up_sweeps());
   EXPECT_EQ(1.5, pars.get_number_of_sweeps_per_measurement());
   EXPECT_EQ(47, pars.get_number_of_measurements());
-  EXPECT_EQ(true, pars.adjust_self_energy_for_double_counting());
+  EXPECT_TRUE(pars.adjust_self_energy_for_double_counting());
   EXPECT_EQ(123, pars.get_seed());
   EXPECT_EQ(4, pars.get_nr_walkers());
   EXPECT_EQ(5, pars.get_nr_accumulators());

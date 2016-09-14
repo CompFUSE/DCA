@@ -18,17 +18,17 @@
 TEST(CpeParametersTest, DefaultValues) {
   dca::phys::params::CpeParameters pars;
 
-  EXPECT_EQ(false, pars.do_CPE());
+  EXPECT_FALSE(pars.do_CPE());
   EXPECT_EQ(64, pars.get_N_wn());
   EXPECT_EQ(1., pars.get_CPE_smoothing_factor());
   EXPECT_EQ(100, pars.get_max_CPE_iterations());
   EXPECT_EQ(0., pars.get_max_CPE_error());
-  EXPECT_EQ(false, pars.simulate_gaussian_noise());
+  EXPECT_FALSE(pars.simulate_gaussian_noise());
   EXPECT_EQ(1, pars.get_nr_of_CPE_samples());
   EXPECT_EQ(0., pars.get_simulated_CPE_stddev());
-  EXPECT_EQ(false, pars.compute_free_spectrum());
-  EXPECT_EQ(false, pars.compute_lattice_spectrum());
-  EXPECT_EQ(false, pars.compute_cluster_spectrum());
+  EXPECT_FALSE(pars.compute_free_spectrum());
+  EXPECT_FALSE(pars.compute_lattice_spectrum());
+  EXPECT_FALSE(pars.compute_cluster_spectrum());
 }
 
 TEST(CpeParametersTest, ReadAll) {
@@ -39,15 +39,15 @@ TEST(CpeParametersTest, ReadAll) {
   pars.readWrite(reader);
   reader.close_file();
 
-  EXPECT_EQ(true, pars.do_CPE());
+  EXPECT_TRUE(pars.do_CPE());
   EXPECT_EQ(128, pars.get_N_wn());
   EXPECT_EQ(0.9, pars.get_CPE_smoothing_factor());
   EXPECT_EQ(200, pars.get_max_CPE_iterations());
   EXPECT_EQ(1.e-3, pars.get_max_CPE_error());
-  EXPECT_EQ(true, pars.simulate_gaussian_noise());
+  EXPECT_TRUE(pars.simulate_gaussian_noise());
   EXPECT_EQ(10, pars.get_nr_of_CPE_samples());
   EXPECT_EQ(1.e-2, pars.get_simulated_CPE_stddev());
-  EXPECT_EQ(true, pars.compute_free_spectrum());
-  EXPECT_EQ(true, pars.compute_lattice_spectrum());
-  EXPECT_EQ(true, pars.compute_cluster_spectrum());
+  EXPECT_TRUE(pars.compute_free_spectrum());
+  EXPECT_TRUE(pars.compute_lattice_spectrum());
+  EXPECT_TRUE(pars.compute_cluster_spectrum());
 }
