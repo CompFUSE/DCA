@@ -110,9 +110,6 @@ posix_qmci_integrator<qmci_integrator_type>::posix_qmci_integrator(parameters_ty
       thread_task_handler_(nr_walkers, nr_accumulators),
 
       accumulators_queue() {
-  qmci_integrator_type::nb_measurements_ =
-      parameters.get_number_of_measurements() * parameters.get_nr_accumulators();
-
   if (nr_walkers < 1 || nr_accumulators < 1) {
     throw std::logic_error(
         "Both the number of walkers and the number of accumulators must be at least 1.");

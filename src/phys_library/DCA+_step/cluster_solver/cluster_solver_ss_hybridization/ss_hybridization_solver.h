@@ -133,8 +133,6 @@ protected:
 
   double total_time;
 
-  int nb_measurements_;
-
   rng_type rng;
   accumulator_type accumulator;
 
@@ -167,7 +165,6 @@ cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::cluster_solver(
       Sigma_new("Self-Energy-n-0-iteration"),
 
       DCA_iteration(-1) {
-  nb_measurements_ = parameters.get_number_of_measurements();
   concurrency << "\n\n\t SS CT-HYB Integrator is born \n\n";
 }
 
@@ -373,16 +370,17 @@ template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_error_bars() {
   concurrency << "\n\t\t computing the error-bars \n";
 
-  double sign = accumulator.get_sign() / double(nb_measurements_);
+  const int nb_measurements = accumulator.get_number_of_measurements();
+  double sign = accumulator.get_sign() / double(nb_measurements);
 
   FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>> G_r_w("G_r_w_tmp");
   FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>> GS_r_w("GS_r_w_tmp");
 
   for (int l = 0; l < G_r_w.size(); l++)
-    G_r_w(l) = accumulator.get_G_r_w()(l) / double(nb_measurements_ * sign);
+    G_r_w(l) = accumulator.get_G_r_w()(l) / double(nb_measurements * sign);
 
   for (int l = 0; l < GS_r_w.size(); l++)
-    GS_r_w(l) = accumulator.get_GS_r_w()(l) / double(nb_measurements_ * sign);
+    GS_r_w(l) = accumulator.get_GS_r_w()(l) / double(nb_measurements * sign);
 
   compute_Sigma_new(G_r_w, GS_r_w);
 
@@ -393,15 +391,17 @@ template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::sum_measurements() {
   concurrency << "\n\t\t sum measurements \n";
 
+  const int nb_measurements = accumulator.get_number_of_measurements();
+  
   // sum the sign
-  concurrency.sum_and_average(accumulator.get_sign(), nb_measurements_);
+  concurrency.sum_and_average(accumulator.get_sign(), nb_measurements);
 
   // sum G_r_w
-  concurrency.sum_and_average(accumulator.get_G_r_w(), nb_measurements_);
+  concurrency.sum_and_average(accumulator.get_G_r_w(), nb_measurements);
   accumulator.get_G_r_w() /= accumulator.get_sign();
 
   // sum GS_r_w
-  concurrency.sum_and_average(accumulator.get_GS_r_w(), nb_measurements_);
+  concurrency.sum_and_average(accumulator.get_GS_r_w(), nb_measurements);
   accumulator.get_GS_r_w() /= accumulator.get_sign();
 
   concurrency.sum(accumulator.get_visited_expansion_order_k());
