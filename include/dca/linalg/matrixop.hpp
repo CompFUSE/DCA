@@ -36,7 +36,7 @@ namespace linalg {
 namespace matrixop {
 // dca::linalg::matrixop::
 
-// Copies the jx-th column of mat_x to the jy-th column of mat_y.
+// Copies the jx-th column of mat_x into the jy-th column of mat_y.
 // In/Out: mat_y
 // Preconditions: mat_x.nrRows() == mat_y.nrRows(),
 //                0 <= jx < mat_x.nrCols(), 0 <= jy < mat_y.nrCols().
@@ -52,7 +52,7 @@ inline void copyCol(const Matrix<ScalarType, device_name>& mat_x, int jx,
                                      thread_id, stream_id);
 }
 
-// Copies the j_x[i]-th column of mat_x to the j_y[i]-th column of mat_y, for 0 <= i < j_x.size().
+// Copies the j_x[i]-th column of mat_x into the j_y[i]-th column of mat_y, for 0 <= i < j_x.size().
 // In/Out: mat_y
 // Preconditions: j_x.size() <= j_y.size(), mat_x.nrRows() == mat_y.nrRows()
 //                0 <= j_x[i] < mat_x.nrCols() for 0 <= i < j_x.size(),
@@ -78,7 +78,7 @@ inline void copyCols(const Matrix<ScalarType, GPU>& mat_x, const Vector<int, GPU
                                  mat_y.leadingDimension(), thread_id, stream_id);
 }
 
-// Copies the ix-th row of mat_x to the iy-th row of mat_y.
+// Copies the ix-th row of mat_x into the iy-th row of mat_y.
 // In/Out: mat_y
 // Preconditions: mat_x.nrCols() == mat_y.nrCols(),
 //                0 <= ix < mat_x.nrRows(), 0 <= iy < mat_y.nrRows().
@@ -95,7 +95,7 @@ inline void copyRow(const Matrix<ScalarType, device_name>& mat_x, int ix,
                                      stream_id);
 }
 
-// Copies the i_x[i]-th row of mat_x to the i_y[i]-th row of mat_y, for 0 <= i < i_x.size().
+// Copies the i_x[i]-th row of mat_x into the i_y[i]-th row of mat_y, for 0 <= i < i_x.size().
 // In/Out: mat_y
 // Preconditions: i_x.size() <= i_y.size(), mat_x.nrCols() == mat_y.nrCols()
 //                0 <= i_x[i] < mat_x.nrRows() for 0 <= i < i_x.size(),
@@ -124,8 +124,8 @@ inline void copyRows(const Matrix<ScalarType, GPU>& mat_x, const Vector<int, GPU
 }
 
 // Returns the difference of two matrices in terms of max_i,j(|a(i, j) - b(i, j)|).
-// If the difference is larger than the threshold a std::logig_error exception is thrown,
-// and if DNDEBUG is not defined each difference which exceed the threshold is printed.
+// If the difference is larger than the threshold a std::logic_error exception is thrown,
+// and if DNDEBUG is not defined each difference which exceeds the threshold is printed.
 // Preconditions: a.size() == b.size().
 template <typename ScalarType>
 auto difference(const Matrix<ScalarType, CPU>& a, const Matrix<ScalarType, CPU>& b,

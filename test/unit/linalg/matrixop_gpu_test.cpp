@@ -804,7 +804,7 @@ TEST(MatrixopGPUTest, SwapRow) {
       dca::linalg::matrixop::swapRow(a, i_1[i], i_2[i]);
 
     dca::linalg::matrixop::swapRows(dc, di_1, di_2);
-    
+
     dca::linalg::Matrix<double, dca::linalg::CPU> c(dc);
 
     for (int j = 0; j < a.nrCols(); ++j)
@@ -856,7 +856,7 @@ TEST(MatrixopGPUTest, SwapCol) {
       dca::linalg::matrixop::swapCol(a, j_1[j], j_2[j]);
 
     dca::linalg::matrixop::swapCols(dc, dj_1, dj_2);
-    
+
     dca::linalg::Matrix<double, dca::linalg::CPU> c(dc);
 
     for (int j = 0; j < a.nrCols(); ++j)
