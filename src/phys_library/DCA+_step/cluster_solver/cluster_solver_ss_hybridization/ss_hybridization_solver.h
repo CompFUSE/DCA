@@ -330,34 +330,27 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::measure(wa
   concurrency << "\n\t\t measuring has started \n\n";
 
   for (int i = 0; i < parameters.get_number_of_measurements(); i++) {
-    { walker.do_sweep(); }
+    walker.do_sweep();
 
-    {
-      //  accumulator.measure(walker);
+    accumulator.update_from(walker);
 
-      accumulator.update_from(walker);
-
-      accumulator.measure();
-    }
+    accumulator.measure();
 
     update_shell(i, parameters.get_number_of_measurements(), walker.get_configuration().size());
   }
 
-  {  // here we need to do a correction a la Andrey
+  // here we need to do a correction a la Andrey
 
-    /*
-      FUNC_LIB::function<double, nu> correction_to_GS;
+  //  FUNC_LIB::function<double, nu> correction_to_GS;
 
-      for(int s_ind=0; s_ind<s::dmn_size(); s_ind++)
-      for(int b_ind=0; b_ind<b::dmn_size(); b_ind++)
-      correction_to_GS(b_ind,s_ind) = 0//parameters.get_chemical_potential_DC()
-      + mu_DC(b_ind, s_ind)
-      + walker.mu_HALF(b_ind,s_ind)
-      + walker.a0(b_ind,s_ind);
-    */
+  // for(int s_ind=0; s_ind<s::dmn_size(); s_ind++)
+  // for(int b_ind=0; b_ind<b::dmn_size(); b_ind++)
+  // correction_to_GS(b_ind,s_ind) = 0//parameters.get_chemical_potential_DC()
+  // + mu_DC(b_ind, s_ind)
+  // + walker.mu_HALF(b_ind,s_ind)
+  // + walker.a0(b_ind,s_ind);
 
-    accumulator.finalize();
-  }
+  accumulator.finalize();
 
   concurrency << "\n\t\t measuring has ended \n\n";
 }
@@ -366,12 +359,10 @@ template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_ty
 void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::update_shell(int i, int N,
                                                                                    int k) {
   if (concurrency.id() == concurrency.first() && N > 10 && (i % (N / 10)) == 0) {
-    {
-      std::cout << std::scientific;
-      std::cout.precision(6);
+    std::cout << std::scientific;
+    std::cout.precision(6);
 
-      std::cout << "\t\t\t" << double(i) / double(N) * 100. << " % completed \t ";
-    }
+    std::cout << "\t\t\t" << double(i) / double(N) * 100. << " % completed \t ";
 
     std::cout << "\t <k> :" << k << " \t";
     std::cout << dca::util::print_time() << "\n";
@@ -402,19 +393,16 @@ template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::sum_measurements() {
   concurrency << "\n\t\t sum measurements \n";
 
-  {  // sum the sign
-    concurrency.sum_and_average(accumulator.get_sign(), nb_measurements_);
-  }
+  // sum the sign
+  concurrency.sum_and_average(accumulator.get_sign(), nb_measurements_);
 
-  {  // sum G_r_w
-    concurrency.sum_and_average(accumulator.get_G_r_w(), nb_measurements_);
-    accumulator.get_G_r_w() /= accumulator.get_sign();
-  }
+  // sum G_r_w
+  concurrency.sum_and_average(accumulator.get_G_r_w(), nb_measurements_);
+  accumulator.get_G_r_w() /= accumulator.get_sign();
 
-  {  // sum GS_r_w
-    concurrency.sum_and_average(accumulator.get_GS_r_w(), nb_measurements_);
-    accumulator.get_GS_r_w() /= accumulator.get_sign();
-  }
+  // sum GS_r_w
+  concurrency.sum_and_average(accumulator.get_GS_r_w(), nb_measurements_);
+  accumulator.get_GS_r_w() /= accumulator.get_sign();
 
   concurrency.sum(accumulator.get_visited_expansion_order_k());
 }
@@ -427,43 +415,41 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::symmetrize
 
   symmetrize::execute(accumulator.get_GS_r_w(), MOMS.H_symmetry);
 
-  {
-    std::vector<int> flavors = parameters_type::model_type::get_flavors();
-    assert(flavors.size() == b::dmn_size());
+  std::vector<int> flavors = parameters_type::model_type::get_flavors();
+  assert(flavors.size() == b::dmn_size());
 
-    FUNC_LIB::function<std::complex<double>, b> f_val;
-    FUNC_LIB::function<std::complex<double>, b> f_tot;
+  FUNC_LIB::function<std::complex<double>, b> f_val;
+  FUNC_LIB::function<std::complex<double>, b> f_tot;
 
-    for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++) {
-      for (int s_ind = 0; s_ind < s::dmn_size(); s_ind++) {
-        f_val = 0;
-        f_tot = 0;
+  for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++) {
+    for (int s_ind = 0; s_ind < s::dmn_size(); s_ind++) {
+      f_val = 0;
+      f_tot = 0;
 
-        for (int b_ind = 0; b_ind < b::dmn_size(); b_ind++) {
-          f_tot(flavors[b_ind]) += 1;
-          f_val(flavors[b_ind]) += accumulator.get_G_r_w()(b_ind, s_ind, b_ind, s_ind, 0, w_ind);
-        }
-
-        for (int b_ind = 0; b_ind < b::dmn_size(); b_ind++)
-          accumulator.get_G_r_w()(b_ind, s_ind, b_ind, s_ind, 0, w_ind) =
-              f_val(flavors[b_ind]) / f_tot(flavors[b_ind]);
+      for (int b_ind = 0; b_ind < b::dmn_size(); b_ind++) {
+        f_tot(flavors[b_ind]) += 1;
+        f_val(flavors[b_ind]) += accumulator.get_G_r_w()(b_ind, s_ind, b_ind, s_ind, 0, w_ind);
       }
+
+      for (int b_ind = 0; b_ind < b::dmn_size(); b_ind++)
+        accumulator.get_G_r_w()(b_ind, s_ind, b_ind, s_ind, 0, w_ind) =
+            f_val(flavors[b_ind]) / f_tot(flavors[b_ind]);
     }
+  }
 
-    for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++) {
-      for (int s_ind = 0; s_ind < s::dmn_size(); s_ind++) {
-        f_val = 0;
-        f_tot = 0;
+  for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++) {
+    for (int s_ind = 0; s_ind < s::dmn_size(); s_ind++) {
+      f_val = 0;
+      f_tot = 0;
 
-        for (int b_ind = 0; b_ind < b::dmn_size(); b_ind++) {
-          f_tot(flavors[b_ind]) += 1;
-          f_val(flavors[b_ind]) += accumulator.get_GS_r_w()(b_ind, s_ind, b_ind, s_ind, 0, w_ind);
-        }
-
-        for (int b_ind = 0; b_ind < b::dmn_size(); b_ind++)
-          accumulator.get_GS_r_w()(b_ind, s_ind, b_ind, s_ind, 0, w_ind) =
-              f_val(flavors[b_ind]) / f_tot(flavors[b_ind]);
+      for (int b_ind = 0; b_ind < b::dmn_size(); b_ind++) {
+        f_tot(flavors[b_ind]) += 1;
+        f_val(flavors[b_ind]) += accumulator.get_GS_r_w()(b_ind, s_ind, b_ind, s_ind, 0, w_ind);
       }
+
+      for (int b_ind = 0; b_ind < b::dmn_size(); b_ind++)
+        accumulator.get_GS_r_w()(b_ind, s_ind, b_ind, s_ind, 0, w_ind) =
+            f_val(flavors[b_ind]) / f_tot(flavors[b_ind]);
     }
   }
 }
@@ -483,13 +469,11 @@ double cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_
 
   int w_cutoff = find_w_cutoff();
 
-  {
-    // measure_Sigma();
+  // measure_Sigma();
 
-    compute_Sigma_new(accumulator.get_G_r_w(), accumulator.get_GS_r_w());
+  compute_Sigma_new(accumulator.get_G_r_w(), accumulator.get_GS_r_w());
 
-    symmetrize::execute(Sigma_new, MOMS.H_symmetry);
-  }
+  symmetrize::execute(Sigma_new, MOMS.H_symmetry);
 
   for (int b_ind = 0; b_ind < b::dmn_size(); b_ind++) {
     if (ss_hybridization_solver_routines_type::is_interacting_band(b_ind)) {

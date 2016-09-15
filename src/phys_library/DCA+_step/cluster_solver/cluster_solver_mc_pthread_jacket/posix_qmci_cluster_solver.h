@@ -193,7 +193,7 @@ double posix_qmci_integrator<qmci_integrator_type>::finalize(dca_info_struct_t& 
   profiler_type profiler(__FUNCTION__, "posix-MC-Integration", __LINE__);
   // Compute standard deviation.
   if (DCA_iteration == parameters.get_DCA_iterations() - 1)
-    // TODO expansive memory allocation  should be made optional
+    // TODO: Expensive memory allocation should be made optional.
     compute_error_bars();
   // Inter node average and following computations.
   double L2_Sigma_difference = qmci_integrator_type::finalize(dca_info_struct);
