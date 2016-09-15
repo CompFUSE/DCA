@@ -198,10 +198,6 @@ public:
   // Prints the properties of *this.
   void print_fingerprint() const;
 
-  // TODO: move to matrix operations
-  template <DeviceType rhs_device_name>
-  ScalarType difference(Matrix<ScalarType, rhs_device_name>& rhs, double diff_threshold = 1e-3) const;
-
 private:
   static std::pair<int, int> capacityMultipleOfBlockSize(std::pair<int, int> size);
   inline static size_t nrElements(std::pair<int, int> size) {
@@ -429,46 +425,6 @@ void Matrix<ScalarType, device_name>::copy_from(Matrix<ScalarType, rhs_device_na
     default:
       throw std::logic_error(__FUNCTION__);
   }
-}
-
-template <typename ScalarType, DeviceType device_name>
-template <DeviceType rhs_device_name>
-ScalarType Matrix<ScalarType, device_name>::difference(Matrix<ScalarType, rhs_device_name>& rhs,
-                                                       double diff_threshold) const {
-  if (size_ != rhs.size_) {
-    throw std::logic_error("different matrix size");
-  }
-
-  Matrix<ScalarType, CPU> cp_this(*this);
-  Matrix<ScalarType, CPU> cp_rhs(rhs);
-
-  auto max_diff = std::abs(ScalarType(0));
-
-  for (int j = 0; j < size_.second; ++j) {
-    for (int i = 0; i < size_.first; ++i) {
-      max_diff = std::max(max_diff, std::fabs(cp_this(i, j) - cp_rhs(i, j)));
-    }
-  }
-
-  if (std::fabs(max_diff) > diff_threshold) {
-#ifndef DNDEBUG
-    std::stringstream s;
-    for (int i = 0; i < size_.first; ++i) {
-      for (int j = 0; j < size_.second; ++j) {
-        if (std::fabs(cp_this(i, j) - cp_rhs(i, j)) <= diff_threshold)
-          s << 0. << "\t";
-        else
-          s << cp_this(i, j) - cp_rhs(i, j) << "\t";
-      }
-      s << "\n";
-    }
-    std::cout << s.str() << std::endl;
-#endif  // DNDEBUG
-
-    throw std::logic_error(__FUNCTION__);
-  }
-
-  return max_diff;
 }
 
 template <typename ScalarType, DeviceType device_name>

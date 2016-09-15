@@ -524,3 +524,371 @@ TEST(MatrixopGPUTest, RemoveRowCol) {
   }
   testing::destroyHandelAndStreams(0);
 }
+
+TEST(MatrixopGPUTest, CopyRow) {
+  testing::initializeHandelAndStreams(0);
+  std::pair<int, int> size2_a(4, 3);
+  std::pair<int, int> size2_b(6, 3);
+
+  dca::linalg::Vector<int, dca::linalg::CPU> i_sources(3);
+  i_sources[0] = 0;
+  i_sources[1] = 2;
+  i_sources[2] = 3;
+  dca::linalg::Vector<int, dca::linalg::GPU> di_sources(i_sources);
+
+  dca::linalg::Vector<int, dca::linalg::CPU> i_dests(4);
+  i_dests[0] = 2;
+  i_dests[1] = 5;
+  i_dests[2] = 3;
+  i_dests[3] = 4;
+  dca::linalg::Vector<int, dca::linalg::GPU> di_dests(i_dests);
+
+  auto val_a = [](int i, int j) { return 10 * i + j; };
+  auto val_b = [](int i, int j) { return 10 * i + j + 100; };
+  dca::linalg::Matrix<double, dca::linalg::CPU> a(size2_a);
+  testing::setMatrixElements(a, val_a);
+  dca::linalg::Matrix<double, dca::linalg::CPU> b(size2_b);
+  testing::setMatrixElements(b, val_b);
+
+  dca::linalg::Matrix<double, dca::linalg::GPU> da(a);
+  {
+    dca::linalg::Matrix<double, dca::linalg::GPU> dc(b);
+
+    for (int i = 0; i < i_sources.size(); ++i)
+      dca::linalg::matrixop::copyRow(da, i_sources[i], dc, i_dests[i]);
+
+    dca::linalg::Matrix<double, dca::linalg::CPU> c(dc);
+
+    for (int j = 0; j < a.nrCols(); ++j) {
+      for (int i = 0; i < i_sources.size(); ++i) {
+        EXPECT_EQ(a(i_sources[i], j), c(i_dests[i], j));
+        // set the checked elements to -1000 to simplify the check of the unchanged elements
+        c(i_dests[i], j) = -1000;
+      }
+      for (int i = 0; i < b.nrRows(); ++i)
+        if (c(i, j) != -1000)
+          EXPECT_EQ(b(i, j), c(i, j));
+    }
+  }
+  {
+    dca::linalg::Matrix<double, dca::linalg::GPU> dc(b);
+
+    dca::linalg::matrixop::copyRows(da, di_sources, dc, di_dests);
+
+    dca::linalg::Matrix<double, dca::linalg::CPU> c(dc);
+
+    for (int j = 0; j < a.nrCols(); ++j) {
+      for (int i = 0; i < i_sources.size(); ++i) {
+        EXPECT_EQ(a(i_sources[i], j), c(i_dests[i], j));
+        // set the checked elements to -1000 to simplify the check of the unchanged elements
+        c(i_dests[i], j) = -1000;
+      }
+      for (int i = 0; i < b.nrRows(); ++i)
+        if (c(i, j) != -1000)
+          EXPECT_EQ(b(i, j), c(i, j));
+    }
+  }
+  testing::destroyHandelAndStreams(0);
+}
+
+TEST(MatrixopGPUTest, CopyCol) {
+  testing::initializeHandelAndStreams(0);
+  std::pair<int, int> size2_a(3, 4);
+  std::pair<int, int> size2_b(3, 6);
+
+  dca::linalg::Vector<int, dca::linalg::CPU> j_sources(3);
+  j_sources[0] = 0;
+  j_sources[1] = 2;
+  j_sources[2] = 3;
+  dca::linalg::Vector<int, dca::linalg::GPU> dj_sources(j_sources);
+
+  dca::linalg::Vector<int, dca::linalg::CPU> j_dests(4);
+  j_dests[0] = 2;
+  j_dests[1] = 5;
+  j_dests[2] = 3;
+  j_dests[3] = 4;
+  dca::linalg::Vector<int, dca::linalg::GPU> dj_dests(j_dests);
+
+  auto val_a = [](int i, int j) { return 10 * i + j; };
+  auto val_b = [](int i, int j) { return 10 * i + j + 100; };
+  dca::linalg::Matrix<double, dca::linalg::CPU> a(size2_a);
+  testing::setMatrixElements(a, val_a);
+  dca::linalg::Matrix<double, dca::linalg::CPU> b(size2_b);
+  testing::setMatrixElements(b, val_b);
+
+  dca::linalg::Matrix<double, dca::linalg::GPU> da(a);
+
+  {
+    dca::linalg::Matrix<double, dca::linalg::GPU> dc(b);
+
+    for (int j = 0; j < j_sources.size(); ++j)
+      dca::linalg::matrixop::copyCol(da, j_sources[j], dc, j_dests[j]);
+
+    dca::linalg::Matrix<double, dca::linalg::CPU> c(dc);
+
+    for (int i = 0; i < a.nrRows(); ++i) {
+      for (int j = 0; j < j_sources.size(); ++j) {
+        EXPECT_EQ(a(i, j_sources[j]), c(i, j_dests[j]));
+        // set the checked elements to -1000 to simplify the check of the unchanged elements
+        c(i, j_dests[j]) = -1000;
+      }
+      for (int j = 0; j < b.nrCols(); ++j)
+        if (c(i, j) != -1000)
+          EXPECT_EQ(b(i, j), c(i, j));
+    }
+  }
+  {
+    dca::linalg::Matrix<double, dca::linalg::GPU> dc(b);
+
+    dca::linalg::matrixop::copyCols(da, dj_sources, dc, dj_dests);
+
+    dca::linalg::Matrix<double, dca::linalg::CPU> c(dc);
+
+    for (int i = 0; i < a.nrRows(); ++i) {
+      for (int j = 0; j < j_sources.size(); ++j) {
+        EXPECT_EQ(a(i, j_sources[j]), c(i, j_dests[j]));
+        // set the checked elements to -1000 to simplify the check of the unchanged elements
+        c(i, j_dests[j]) = -1000;
+      }
+      for (int j = 0; j < b.nrCols(); ++j)
+        if (c(i, j) != -1000)
+          EXPECT_EQ(b(i, j), c(i, j));
+    }
+  }
+  testing::destroyHandelAndStreams(0);
+}
+
+TEST(MatrixopGPUTest, ScaleRow) {
+  testing::initializeHandelAndStreams(0);
+  const double epsilon = std::numeric_limits<double>::epsilon();
+  std::pair<int, int> size2_a(4, 3);
+
+  dca::linalg::Vector<int, dca::linalg::CPU> is(3);
+  is[0] = 0;
+  is[1] = 2;
+  is[2] = 3;
+  dca::linalg::Vector<int, dca::linalg::GPU> dis(is);
+
+  dca::linalg::Vector<double, dca::linalg::CPU> vals(3);
+  vals[0] = 3.4;
+  vals[1] = -1.2;
+  vals[2] = 7.7;
+  dca::linalg::Vector<double, dca::linalg::GPU> dvals(vals);
+
+  auto val_a = [](int i, int j) { return 10 * i + j; };
+
+  dca::linalg::Matrix<double, dca::linalg::CPU> a(size2_a);
+  testing::setMatrixElements(a, val_a);
+
+  {
+    dca::linalg::Matrix<double, dca::linalg::GPU> dc(a);
+
+    for (int i = 0; i < is.size(); ++i)
+      dca::linalg::matrixop::scaleRow(dc, is[i], vals[i]);
+
+    dca::linalg::Matrix<double, dca::linalg::CPU> c(dc);
+
+    for (int j = 0; j < a.nrCols(); ++j) {
+      for (int i = 0; i < is.size(); ++i) {
+        EXPECT_NEAR(vals[i] * a(is[i], j), c(is[i], j), 10 * epsilon);
+        // set the checked elements to -1000 to simplify the check of the unchanged elements
+        c(is[i], j) = -1000;
+      }
+      for (int i = 0; i < a.nrRows(); ++i)
+        if (c(i, j) != -1000)
+          EXPECT_EQ(a(i, j), c(i, j));
+    }
+  }
+  {
+    dca::linalg::Matrix<double, dca::linalg::GPU> dc(a);
+
+    dca::linalg::matrixop::scaleRows(dc, dis, dvals);
+
+    dca::linalg::Matrix<double, dca::linalg::CPU> c(dc);
+
+    for (int j = 0; j < a.nrCols(); ++j) {
+      for (int i = 0; i < is.size(); ++i) {
+        EXPECT_NEAR(vals[i] * a(is[i], j), c(is[i], j), 10 * epsilon);
+        // set the checked elements to -1000 to simplify the check of the unchanged elements
+        c(is[i], j) = -1000;
+      }
+      for (int i = 0; i < a.nrRows(); ++i)
+        if (c(i, j) != -1000)
+          EXPECT_EQ(a(i, j), c(i, j));
+    }
+  }
+  testing::destroyHandelAndStreams(0);
+}
+
+TEST(MatrixopGPUTest, ScaleCol) {
+  testing::initializeHandelAndStreams(0);
+  const double epsilon = std::numeric_limits<double>::epsilon();
+  std::pair<int, int> size2_a(3, 4);
+
+  dca::linalg::Vector<int, dca::linalg::CPU> js(3);
+  js[0] = 0;
+  js[1] = 2;
+  js[2] = 3;
+
+  dca::linalg::Vector<double, dca::linalg::CPU> vals(3);
+  vals[0] = 3.4;
+  vals[1] = -1.2;
+  vals[2] = 7.7;
+
+  auto val_a = [](int i, int j) { return 10 * i + j; };
+
+  dca::linalg::Matrix<double, dca::linalg::CPU> a(size2_a);
+  testing::setMatrixElements(a, val_a);
+
+  {
+    dca::linalg::Matrix<double, dca::linalg::GPU> dc(a);
+
+    for (int j = 0; j < js.size(); ++j)
+      dca::linalg::matrixop::scaleCol(dc, js[j], vals[j]);
+
+    dca::linalg::Matrix<double, dca::linalg::CPU> c(dc);
+
+    for (int i = 0; i < a.nrRows(); ++i) {
+      for (int j = 0; j < js.size(); ++j) {
+        EXPECT_NEAR(vals[j] * a(i, js[j]), c(i, js[j]), 10 * epsilon);
+        // set the checked elements to -1000 to simplify the check of the unchanged elements
+        c(i, js[j]) = -1000;
+      }
+      for (int j = 0; j < a.nrCols(); ++j)
+        if (c(i, j) != -1000)
+          EXPECT_EQ(a(i, j), c(i, j));
+    }
+  }
+  testing::destroyHandelAndStreams(0);
+}
+
+TEST(MatrixopGPUTest, SwapRow) {
+  testing::initializeHandelAndStreams(0);
+  std::pair<int, int> size2_a(6, 3);
+
+  dca::linalg::Vector<int, dca::linalg::CPU> i_1(3);
+  i_1[0] = 0;
+  i_1[1] = 2;
+  i_1[2] = 3;
+  dca::linalg::Vector<int, dca::linalg::GPU> di_1(i_1);
+
+  dca::linalg::Vector<int, dca::linalg::CPU> i_2(3);
+  i_2[0] = 1;
+  i_2[1] = 5;
+  i_2[2] = 4;
+  dca::linalg::Vector<int, dca::linalg::GPU> di_2(i_2);
+
+  auto val_a = [](int i, int j) { return 10 * i + j; };
+
+  dca::linalg::Matrix<double, dca::linalg::CPU> a(size2_a);
+  testing::setMatrixElements(a, val_a);
+
+  {
+    dca::linalg::Matrix<double, dca::linalg::GPU> dc(a);
+
+    for (int i = 0; i < i_1.size(); ++i) {
+      dca::linalg::matrixop::swapRow(a, i_1[i], i_2[i]);
+      dca::linalg::matrixop::swapRow(dc, i_1[i], i_2[i]);
+    }
+
+    dca::linalg::Matrix<double, dca::linalg::CPU> c(dc);
+
+    for (int j = 0; j < a.nrCols(); ++j)
+      for (int i = 0; i < a.nrRows(); ++i)
+        EXPECT_EQ(a(i, j), c(i, j));
+  }
+  {
+    dca::linalg::Matrix<double, dca::linalg::GPU> dc(a);
+
+    for (int i = 0; i < i_1.size(); ++i)
+      dca::linalg::matrixop::swapRow(a, i_1[i], i_2[i]);
+
+    dca::linalg::matrixop::swapRows(dc, di_1, di_2);
+
+    dca::linalg::Matrix<double, dca::linalg::CPU> c(dc);
+
+    for (int j = 0; j < a.nrCols(); ++j)
+      for (int i = 0; i < a.nrRows(); ++i)
+        EXPECT_EQ(a(i, j), c(i, j));
+  }
+  testing::destroyHandelAndStreams(0);
+}
+
+TEST(MatrixopGPUTest, SwapCol) {
+  testing::initializeHandelAndStreams(0);
+  std::pair<int, int> size2_a(3, 6);
+
+  dca::linalg::Vector<int, dca::linalg::CPU> j_1(3);
+  j_1[0] = 0;
+  j_1[1] = 2;
+  j_1[2] = 3;
+  dca::linalg::Vector<int, dca::linalg::GPU> dj_1(j_1);
+
+  dca::linalg::Vector<int, dca::linalg::CPU> j_2(3);
+  j_2[0] = 1;
+  j_2[1] = 5;
+  j_2[2] = 4;
+  dca::linalg::Vector<int, dca::linalg::GPU> dj_2(j_2);
+
+  auto val_a = [](int i, int j) { return 10 * i + j; };
+
+  dca::linalg::Matrix<double, dca::linalg::CPU> a(size2_a);
+  testing::setMatrixElements(a, val_a);
+
+  {
+    dca::linalg::Matrix<double, dca::linalg::GPU> dc(a);
+
+    for (int j = 0; j < j_1.size(); ++j) {
+      dca::linalg::matrixop::swapCol(a, j_1[j], j_2[j]);
+      dca::linalg::matrixop::swapCol(dc, j_1[j], j_2[j]);
+    }
+
+    dca::linalg::Matrix<double, dca::linalg::CPU> c(dc);
+
+    for (int j = 0; j < a.nrCols(); ++j)
+      for (int i = 0; i < a.nrRows(); ++i)
+        EXPECT_EQ(a(i, j), c(i, j));
+  }
+  {
+    dca::linalg::Matrix<double, dca::linalg::GPU> dc(a);
+
+    for (int j = 0; j < j_1.size(); ++j)
+      dca::linalg::matrixop::swapCol(a, j_1[j], j_2[j]);
+
+    dca::linalg::matrixop::swapCols(dc, dj_1, dj_2);
+
+    dca::linalg::Matrix<double, dca::linalg::CPU> c(dc);
+
+    for (int j = 0; j < a.nrCols(); ++j)
+      for (int i = 0; i < a.nrRows(); ++i)
+        EXPECT_EQ(a(i, j), c(i, j));
+  }
+  testing::destroyHandelAndStreams(0);
+}
+
+TEST(MatrixopGPUTest, Difference) {
+  std::pair<int, int> size2_a(5, 4);
+  const double epsilon = std::numeric_limits<double>::epsilon();
+  double diff = .01;
+
+  auto val_a = [](int i, int j) { return 10 * i + j; };
+
+  dca::linalg::Matrix<double, dca::linalg::CPU> a(size2_a);
+  testing::setMatrixElements(a, val_a);
+  dca::linalg::Matrix<double, dca::linalg::GPU> da(a);
+
+  for (int sg : {1, -1})
+    for (int ia : {0, 1, 4})
+      for (int ja : {0, 2, 3}) {
+        dca::linalg::Matrix<double, dca::linalg::CPU> b(a);
+        b(ia, ja) += sg * diff;
+        double err = std::abs(epsilon * b(ia, ja));
+        dca::linalg::Matrix<double, dca::linalg::GPU> db(b);
+
+        EXPECT_NEAR(diff, dca::linalg::matrixop::difference(da, db, 2 * diff), err);
+        EXPECT_NEAR(diff, dca::linalg::matrixop::difference(da, db, diff + err), err);
+        auto diffcalc = dca::linalg::matrixop::difference(da, db, 2 * diff);
+        EXPECT_NEAR(diff, dca::linalg::matrixop::difference(da, db, diffcalc), err);
+        EXPECT_THROW(dca::linalg::matrixop::difference(da, db, diffcalc - err), std::logic_error);
+      }
+}

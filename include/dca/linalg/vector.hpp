@@ -147,13 +147,6 @@ public:
   // if new_size <= capacity().
   void resizeNoCopy(size_t new_size);
 
-  // TODO: move to vector operations.
-  template <DeviceType rhs_device_name>
-  ScalarType difference(Vector<ScalarType, rhs_device_name>& rhs_Vector) const;
-
-  // TODO: move to vector operations.
-  ScalarType difference(std::vector<ScalarType>& rhs_Vector) const;
-
   // Prints the values of the vector elements.
   void print();
 
@@ -375,44 +368,6 @@ void Vector<ScalarType, device_name>::resizeNoCopy(size_t new_size) {
   }
   else
     size_ = new_size;
-}
-
-template <typename ScalarType, DeviceType device_name>
-template <DeviceType rhs_device_name>
-ScalarType Vector<ScalarType, device_name>::difference(Vector<ScalarType, rhs_device_name>& rhs) const {
-  if (size_ != rhs.size())
-    throw std::logic_error(__FUNCTION__);
-
-  Vector<ScalarType, CPU> cp_this(*this);
-  Vector<ScalarType, CPU> cp_rhs(rhs);
-
-  ScalarType max_dif = 0;
-
-  for (int i = 0; i < size_; ++i)
-    max_dif = std::max(max_dif, std::fabs(cp_this[i] - cp_rhs[i]));
-
-  if (max_dif > 1.e-6)
-    throw std::logic_error(__FUNCTION__);
-
-  return max_dif;
-}
-
-template <typename ScalarType, DeviceType device_name>
-ScalarType Vector<ScalarType, device_name>::difference(std::vector<ScalarType>& rhs) const {
-  if (size_ != rhs.size())
-    throw std::logic_error(__FUNCTION__);
-
-  Vector<ScalarType, CPU> cp_this(*this);
-
-  ScalarType max_dif = 0;
-
-  for (int i = 0; i < size_; ++i)
-    max_dif = std::max(max_dif, std::fabs(cp_this[i] - rhs[i]));
-
-  if (std::fabs(max_dif) > 1.e-6)
-    throw std::logic_error(__FUNCTION__);
-
-  return max_dif;
 }
 
 template <typename ScalarType, DeviceType device_name>

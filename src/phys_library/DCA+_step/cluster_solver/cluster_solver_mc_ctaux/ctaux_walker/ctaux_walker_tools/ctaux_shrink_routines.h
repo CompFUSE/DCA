@@ -276,13 +276,13 @@ void SHRINK_TOOLS<device_t>::reorganize_configuration_test(
 
   /*
     for(size_t l=0; l<source_index_up.size(); ++l){
-    LIN_ALG::SWAP<device_t>::row_and_column(N_up , source_index_up[l], target_index_up[l]);
-    LIN_ALG::SWAP<device_t>::row_and_column(G0_up, source_index_up[l], target_index_up[l]);
+    dca::linalg::matrixop::swapRowAndCol(N_up , source_index_up[l], target_index_up[l]);
+    dca::linalg::matrixop::swapRowAndCol(G0_up, source_index_up[l], target_index_up[l]);
     }
 
     for(size_t l=0; l<source_index_dn.size(); ++l){
-    LIN_ALG::SWAP<device_t>::row_and_column(N_dn , source_index_dn[l], target_index_dn[l]);
-    LIN_ALG::SWAP<device_t>::row_and_column(G0_dn, source_index_dn[l], target_index_dn[l]);
+    dca::linalg::matrixop::swapRowAndCol(N_dn , source_index_dn[l], target_index_dn[l]);
+    dca::linalg::matrixop::swapRowAndCol(G0_dn, source_index_dn[l], target_index_dn[l]);
     }
   */
 }
@@ -333,8 +333,8 @@ void SHRINK_TOOLS<device_t>::reorganize_configuration_test(
   std::pair<int,int>& pair_living_spin =
   full_configuration[configuration_index_living_spin].get_configuration_e_spin_indices();
 
-  LIN_ALG::SWAP<device_t>::row_and_column(N , dead_spin, living_spin, thread_id, stream_id);
-  LIN_ALG::SWAP<device_t>::row_and_column(G0, dead_spin, living_spin, thread_id, stream_id);
+  dca::linalg::matrixop::swapRowAndCol(N , dead_spin, living_spin, thread_id, stream_id);
+  dca::linalg::matrixop::swapRowAndCol(G0, dead_spin, living_spin, thread_id, stream_id);
 
   swap(configuration_e_spin[dead_spin], configuration_e_spin[living_spin]);
 
@@ -413,8 +413,8 @@ void SHRINK_TOOLS<device_t>::swap_interacting_vertices_to_left(configuration_typ
       source_index.push_back(dead_spin);
       target_index.push_back(living_spin);
 
-      //            LIN_ALG::SWAP<device_t>::row_and_column(N , dead_spin, living_spin);
-      //            LIN_ALG::SWAP<device_t>::row_and_column(G0, dead_spin, living_spin);
+      // dca::linalg::matrixop::swapRowAndCol(N , dead_spin, living_spin);
+      // dca::linalg::matrixop::swapRowAndCol(G0, dead_spin, living_spin);
 
       std::swap(configuration_e_spin[dead_spin], configuration_e_spin[living_spin]);
 
@@ -490,8 +490,8 @@ void SHRINK_TOOLS<device_t>::swap_interacting_vertices_to_left(configuration_typ
   std::pair<int,int>& pair_living_spin =
   full_configuration[configuration_index_living_spin].get_configuration_e_spin_indices();
 
-  LIN_ALG::SWAP<device_t>::row_and_column(N , dead_spin, living_spin);
-  LIN_ALG::SWAP<device_t>::row_and_column(G0, dead_spin, living_spin);
+  dca::linalg::matrixop::swapRowAndCol(N , dead_spin, living_spin);
+  dca::linalg::matrixop::swapRowAndCol(G0, dead_spin, living_spin);
 
   swap(configuration_e_spin[dead_spin], configuration_e_spin[living_spin]);
 
@@ -568,8 +568,8 @@ void SHRINK_TOOLS<device_t>::swap_non_changed_vertices_to_left(configuration_typ
       source_index.push_back(dead_spin);
       target_index.push_back(living_spin);
 
-      //            LIN_ALG::SWAP<device_t>::row_and_column(N , dead_spin, living_spin);
-      //            LIN_ALG::SWAP<device_t>::row_and_column(G0, dead_spin, living_spin);
+      // dca::linalg::matrixop::swapRowAndCol(N , dead_spin, living_spin);
+      // dca::linalg::matrixop::swapRowAndCol(G0, dead_spin, living_spin);
 
       std::swap(configuration_e_spin[dead_spin], configuration_e_spin[living_spin]);
 

@@ -18,7 +18,10 @@
 #include <stdexcept>
 #include <vector>
 
-#include "comp_library/linalg/linalg.hpp"
+#include "dca/linalg/vector.hpp"
+#include "dca/linalg/matrix.hpp"
+#include "dca/linalg/matrixop.hpp"
+
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_shrink_routines/ctaux_shrink_routines_CPU.h"
 
 namespace DCA {
@@ -73,31 +76,31 @@ public:
       i_s_dn.set(source_index_dn, LIN_ALG::ASYNCHRONOUS);
       i_t_dn.set(target_index_dn, LIN_ALG::ASYNCHRONOUS);
 
-      LIN_ALG::SWAP<dca::linalg::GPU>::many_rows(N_up, i_s_up, i_t_up, thread_id, stream_id);
-      LIN_ALG::SWAP<dca::linalg::GPU>::many_cols(N_up, i_s_up, i_t_up, thread_id, stream_id);
+      dca::linalg::matrixop::swapRows(N_up, i_s_up, i_t_up, thread_id, stream_id);
+      dca::linalg::matrixop::swapCols(N_up, i_s_up, i_t_up, thread_id, stream_id);
 
-      LIN_ALG::SWAP<dca::linalg::GPU>::many_rows(G0_up, i_s_up, i_t_up, thread_id, stream_id);
-      LIN_ALG::SWAP<dca::linalg::GPU>::many_cols(G0_up, i_s_up, i_t_up, thread_id, stream_id);
+      dca::linalg::matrixop::swapRows(G0_up, i_s_up, i_t_up, thread_id, stream_id);
+      dca::linalg::matrixop::swapCols(G0_up, i_s_up, i_t_up, thread_id, stream_id);
 
-      LIN_ALG::SWAP<dca::linalg::GPU>::many_rows(N_dn, i_s_dn, i_t_dn, thread_id, stream_id);
-      LIN_ALG::SWAP<dca::linalg::GPU>::many_cols(N_dn, i_s_dn, i_t_dn, thread_id, stream_id);
+      dca::linalg::matrixop::swapRows(N_dn, i_s_dn, i_t_dn, thread_id, stream_id);
+      dca::linalg::matrixop::swapCols(N_dn, i_s_dn, i_t_dn, thread_id, stream_id);
 
-      LIN_ALG::SWAP<dca::linalg::GPU>::many_rows(G0_dn, i_s_dn, i_t_dn, thread_id, stream_id);
-      LIN_ALG::SWAP<dca::linalg::GPU>::many_cols(G0_dn, i_s_dn, i_t_dn, thread_id, stream_id);
+      dca::linalg::matrixop::swapRows(G0_dn, i_s_dn, i_t_dn, thread_id, stream_id);
+      dca::linalg::matrixop::swapCols(G0_dn, i_s_dn, i_t_dn, thread_id, stream_id);
     }
     else {
       for (size_t l = 0; l < source_index_up.size(); ++l) {
-        LIN_ALG::SWAP<dca::linalg::GPU>::row_and_column(N_up, source_index_up[l],
-                                                        target_index_up[l], thread_id, stream_id);
-        LIN_ALG::SWAP<dca::linalg::GPU>::row_and_column(G0_up, source_index_up[l],
-                                                        target_index_up[l], thread_id, stream_id);
+        dca::linalg::matrixop::swapRowAndCol(N_up, source_index_up[l], target_index_up[l],
+                                             thread_id, stream_id);
+        dca::linalg::matrixop::swapRowAndCol(G0_up, source_index_up[l], target_index_up[l],
+                                             thread_id, stream_id);
       }
 
       for (size_t l = 0; l < source_index_dn.size(); ++l) {
-        LIN_ALG::SWAP<dca::linalg::GPU>::row_and_column(N_dn, source_index_dn[l],
-                                                        target_index_dn[l], thread_id, stream_id);
-        LIN_ALG::SWAP<dca::linalg::GPU>::row_and_column(G0_dn, source_index_dn[l],
-                                                        target_index_dn[l], thread_id, stream_id);
+        dca::linalg::matrixop::swapRowAndCol(N_dn, source_index_dn[l], target_index_dn[l],
+                                             thread_id, stream_id);
+        dca::linalg::matrixop::swapRowAndCol(G0_dn, source_index_dn[l], target_index_dn[l],
+                                             thread_id, stream_id);
       }
     }
 
@@ -105,11 +108,11 @@ public:
     SHRINK_TOOLS_ALGORITHMS_CPU_obj.execute(source_index_up, target_index_up, N_up_CPU, G0_up_CPU,
                                             source_index_dn, target_index_dn, N_dn_CPU, G0_dn_CPU);
 
-    N_dn_CPU.difference(N_dn);
-    N_up_CPU.difference(N_up);
+    dca::linalg::matrixop::difference(N_dn_CPU, N_dn);
+    dca::linalg::matrixop::difference(N_up_CPU, N_up);
 
-    G0_dn_CPU.difference(G0_dn);
-    G0_up_CPU.difference(G0_up);
+    dca::linalg::matrixop::difference(G0_dn_CPU, G0_dn);
+    dca::linalg::matrixop::difference(G0_up_CPU, G0_up);
   }
 #endif  // DCA_WITH_QMC_BIT
 

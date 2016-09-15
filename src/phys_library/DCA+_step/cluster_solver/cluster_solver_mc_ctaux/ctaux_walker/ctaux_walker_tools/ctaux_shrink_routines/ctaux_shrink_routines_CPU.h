@@ -37,10 +37,9 @@ public:
     assert(N.nrCols() == G0.nrCols());
 
     for (size_t l = 0; l < source_index.size(); ++l) {
-      LIN_ALG::SWAP<dca::linalg::CPU>::row_and_column(N, source_index[l], target_index[l],
-                                                      thread_id, stream_id);
-      LIN_ALG::SWAP<dca::linalg::CPU>::row_and_column(G0, source_index[l], target_index[l],
-                                                      thread_id, stream_id);
+      dca::linalg::matrixop::swapRowAndCol(N, source_index[l], target_index[l], thread_id, stream_id);
+      dca::linalg::matrixop::swapRowAndCol(G0, source_index[l], target_index[l], thread_id,
+                                           stream_id);
     }
   }
 
@@ -57,20 +56,20 @@ public:
     assert(N_dn.size() == G0_dn.size());
 
     for (size_t l = 0; l < source_index_up.size(); ++l)
-      LIN_ALG::SWAP<dca::linalg::CPU>::row_and_column(N_up, source_index_up[l], target_index_up[l],
-                                                      thread_id, stream_id);
+      dca::linalg::matrixop::swapRowAndCol(N_up, source_index_up[l], target_index_up[l], thread_id,
+                                           stream_id);
 
     for (size_t l = 0; l < source_index_up.size(); ++l)
-      LIN_ALG::SWAP<dca::linalg::CPU>::row_and_column(G0_up, source_index_up[l], target_index_up[l],
-                                                      thread_id, stream_id);
+      dca::linalg::matrixop::swapRowAndCol(G0_up, source_index_up[l], target_index_up[l], thread_id,
+                                           stream_id);
 
     for (size_t l = 0; l < source_index_dn.size(); ++l)
-      LIN_ALG::SWAP<dca::linalg::CPU>::row_and_column(N_dn, source_index_dn[l], target_index_dn[l],
-                                                      thread_id, stream_id);
+      dca::linalg::matrixop::swapRowAndCol(N_dn, source_index_dn[l], target_index_dn[l], thread_id,
+                                           stream_id);
 
     for (size_t l = 0; l < source_index_dn.size(); ++l)
-      LIN_ALG::SWAP<dca::linalg::CPU>::row_and_column(G0_dn, source_index_dn[l], target_index_dn[l],
-                                                      thread_id, stream_id);
+      dca::linalg::matrixop::swapRowAndCol(G0_dn, source_index_dn[l], target_index_dn[l], thread_id,
+                                           stream_id);
   }
 
 private:

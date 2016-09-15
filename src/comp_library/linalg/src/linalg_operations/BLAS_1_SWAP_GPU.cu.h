@@ -5,46 +5,13 @@
 
 namespace LIN_ALG {
 
-  namespace GPU_KERNEL_SWAP {
+  namespace GPU_KERNEL {
 	
-    void dswap(int length, double* a, int inc_a, double* b, int inc_b)
-    {
-      cublasStatus_t status = cublasDswap(get_thread_handle(0), length, a, inc_a, b, inc_b);
-      
-      if(status != CUBLAS_STATUS_SUCCESS)
-	cublas_error_msg(status, __FUNCTION__, __FILE__, __LINE__);
-
-#ifdef DEBUG_CUDA
-      cuda_check_for_errors(__FUNCTION__, __FILE__, __LINE__);
-#endif
-    }
-
-    void dswap(int length, double* a, int inc_a, double* b, int inc_b, int id)
-    {
-      cublasStatus_t status = cublasDswap(get_thread_handle(id), length, a, inc_a, b, inc_b);
-      
-      if(status != CUBLAS_STATUS_SUCCESS)
-	cublas_error_msg(status, __FUNCTION__, __FILE__, __LINE__);
-
-#ifdef DEBUG_CUDA
-      cuda_check_for_errors(__FUNCTION__, __FILE__, __LINE__);
-#endif
-    }
-	
-
-    /*****************************************************
-     *****************************************************
-     ***
-     ***       EFFICIENT SWAP IMPLEMENTATION           ***     
-     ***
-     *****************************************************
-     *****************************************************/
-
     const static int BLOCK_SIZE_i = 32; // rows
     const static int BLOCK_SIZE_j = 8;  // cols
 
     __global__ void swap_rows_kernel(int A_r, int A_c, double* A_ptr, int A_LD, 
-				     int N_i, int* i_s_ptr, int* i_t_ptr)
+				     int N_i, const int* i_s_ptr, const int* i_t_ptr)
     {
       assert(blockDim.x == BLOCK_SIZE_i);
 
@@ -93,7 +60,7 @@ namespace LIN_ALG {
     }
 
     void swap_many_rows(int M_r, int M_c, double* M_ptr, int M_LD, 
-			int N_s, int* i_s_ptr, int* i_t_ptr,
+			int N_s, const int* i_s_ptr, const int* i_t_ptr,
 			int thread_id, int stream_id)
     {
       if(M_r>0 and M_c>0 and N_s>0)
@@ -122,7 +89,7 @@ namespace LIN_ALG {
     }		     
 
     __global__ void swap_cols_kernel(int A_r, int A_c, double* A_ptr, int A_LD, 
-				     int N_i, int* i_s_ptr, int* i_t_ptr)
+				     int N_i, const int* i_s_ptr, const int* i_t_ptr)
     {
       int I = threadIdx.x + blockIdx.x*BLOCK_SIZE_i;
 
@@ -150,7 +117,7 @@ namespace LIN_ALG {
     }
 
     void swap_many_cols(int M_r, int M_c, double* M_ptr, int M_LD, 
-			int N_s, int* i_s_ptr, int* i_t_ptr,
+			int N_s, const int* i_s_ptr, const int* i_t_ptr,
 			int thread_id, int stream_id)
     {
       if(M_r>0 and M_c>0 and N_s>0)

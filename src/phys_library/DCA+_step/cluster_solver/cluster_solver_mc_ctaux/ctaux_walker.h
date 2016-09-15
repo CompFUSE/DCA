@@ -524,8 +524,8 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type,
     std::cout << "\n\n\t G0-TOOLS \n\n";
     G0_CPU_tools_obj.build_G0_matrix(configuration, G0_up_CPU, e_UP);
     G0_CPU_tools_obj.build_G0_matrix(configuration, G0_dn_CPU, e_DN);
-    G0_up_CPU.difference(G0_up);
-    G0_dn_CPU.difference(G0_dn);
+    dca::linalg::matrixop::difference(G0_up_CPU, G0_up);
+    dca::linalg::matrixop::difference(G0_dn_CPU, G0_dn);
     }
   */
 
@@ -546,8 +546,8 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type,
     std::cout << "\n\n\t N-TOOLS : " << sign << "\t" << configuration.size() << "\n\n";
     N_CPU_tools_obj.build_N_matrix(configuration, N_up_CPU, G0_up_CPU, e_UP);
     N_CPU_tools_obj.build_N_matrix(configuration, N_dn_CPU, G0_dn_CPU, e_DN);
-    N_up_CPU.difference(N_up);
-    N_dn_CPU.difference(N_dn);
+    dca::linalg::matrixop::difference(N_up_CPU, N_up);
+    dca::linalg::matrixop::difference(N_dn_CPU, N_dn);
     }
   */
 
@@ -567,8 +567,8 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type,
     std::cout << "\n\n\t G-TOOLS\n\n";
     G_CPU_tools_obj.build_G_matrix(configuration, N_up_CPU, G0_up_CPU, G_up_CPU, e_UP);
     G_CPU_tools_obj.build_G_matrix(configuration, N_dn_CPU, G0_dn_CPU, G_dn_CPU, e_DN);
-    G_up_CPU.difference(G_up);
-    G_dn_CPU.difference(G_dn);
+    dca::linalg::matrixop::difference(G_up_CPU, G_up);
+    dca::linalg::matrixop::difference(G_dn_CPU, G_dn);
     }
   */
 

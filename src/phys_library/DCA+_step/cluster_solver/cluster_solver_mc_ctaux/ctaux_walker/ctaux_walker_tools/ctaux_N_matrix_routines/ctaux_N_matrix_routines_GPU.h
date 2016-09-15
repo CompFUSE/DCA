@@ -145,13 +145,7 @@ void N_MATRIX_TOOLS<dca::linalg::GPU, parameters_type>::scale_rows(
     dca::linalg::Matrix<double, dca::linalg::GPU>& N) {
   assert(permutation.size() == d_vec.size());
 
-  int N_i = permutation.size();
-  int N_c = N.nrCols();
-
-  int N_LD = N.leadingDimension();
-
-  LIN_ALG::SCALE<dca::linalg::GPU>::many_rows(N_c, N_i, permutation.ptr(), d_vec.ptr(), N.ptr(),
-                                              N_LD, thread_id, stream_id);
+  dca::linalg::matrixop::scaleRows(N, permutation, d_vec, thread_id, stream_id);
 }
 
 template <typename parameters_type>
@@ -168,15 +162,9 @@ void N_MATRIX_TOOLS<dca::linalg::GPU, parameters_type>::copy_rows(
     dca::linalg::Matrix<double, dca::linalg::GPU>& N_new_spins) {
   assert(N_new_spins.nrCols() == N.nrCols());
   assert(N_new_spins.nrRows() == permutation.size());
+  assert(permutation.size() <= identity.size());
 
-  int N_i = permutation.size();
-  int N_c = N.nrCols();
-
-  assert(N_i <= identity.size());
-
-  LIN_ALG::COPY<dca::linalg::GPU>::many_rows(N_c, N_i, permutation.ptr(), N.ptr(),
-                                             N.leadingDimension(), identity.ptr(), N_new_spins.ptr(),
-                                             N_new_spins.leadingDimension(), thread_id, stream_id);
+  dca::linalg::matrixop::copyRows(N, permutation, N_new_spins, identity, thread_id, stream_id);
 }
 
 template <typename parameters_type>
