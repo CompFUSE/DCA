@@ -28,6 +28,6 @@ add_compile_options(${DCA_WARNINGS} ${DCA_STD_FLAG} ${DCA_THREADING_FLAGS})
 
 # Set NVCC flags.
 if (DCA_HAVE_CUDA)
-  list(APPEND CUDA_NVCC_FLAGS -arch=${CUDA_GPU_ARCH} -Xcompiler -Wall -Xcompiler -Wextra
+  list(APPEND CUDA_NVCC_FLAGS -arch=${CUDA_GPU_ARCH} -std=c++11 -Xcompiler -Wall -Xcompiler -Wextra
     -Xcompiler -Wno-unused-parameter -Xcompiler -Wno-switch -Xcompiler ${DCA_THREADING_FLAGS})
 endif()
