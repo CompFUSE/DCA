@@ -79,6 +79,10 @@ public:
   template <typename dca_info_struct_t>
   double finalize(dca_info_struct_t& dca_info_struct);
 
+  // For testing purposes.
+  // Returns the function G_k_w before the average across mpi ranks is performed.
+  auto onNode_G_k_w();
+
 protected:
   void warm_up(walker_type& walker);
 
@@ -89,8 +93,8 @@ protected:
 
   void symmetrize_measurements();
 
-  void compute_error_bars(int Nb_measurements);
-  void sum_measurements(int Nb_measurements);
+  void compute_error_bars();
+  void sum_measurements();
 
   void compute_G_k_w_from_M_r_w();
 
@@ -215,36 +219,35 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
 
   accumulator.get_error_distribution() += walker.get_error_distribution();
 
-  symmetrize_measurements();
-
-  sum_measurements(parameters.get_number_of_measurements());
-
-  concurrency << "\n\t\t integration has ended \n";
+  concurrency << "\n\t\t on node integration has ended \n";
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 template <typename dca_info_struct_t>
 double cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::finalize(
     dca_info_struct_t& dca_info_struct) {
-  {  // Compute new Sigma
-    compute_G_k_w_from_M_r_w();
+  // Average measurements over nodes.
+  sum_measurements();
 
-    // FT<k_DCA,r_DCA>::execute(MOMS.G_k_w, MOMS.G_r_w);
-    math_algorithms::functional_transforms::TRANSFORM<k_DCA, r_DCA>::execute(MOMS.G_k_w, MOMS.G_r_w);
+  symmetrize_measurements();
+  // Compute new Sigma.
+  compute_G_k_w_from_M_r_w();
 
-    dca_info_struct.L2_Sigma_difference(DCA_iteration) = compute_S_k_w_from_G_k_w();
+  // FT<k_DCA,r_DCA>::execute(MOMS.G_k_w, MOMS.G_r_w);
+  math_algorithms::functional_transforms::TRANSFORM<k_DCA, r_DCA>::execute(MOMS.G_k_w, MOMS.G_r_w);
 
-    for (int i = 0; i < b::dmn_size() * s::dmn_size(); i++) {
-      for (int j = 0; j < k_DCA::dmn_size(); j++) {
-        std::vector<double> x;
-        for (int l = 0; l < w::dmn_size() / 4; l++)
-          x.push_back(real(MOMS.Sigma(i, i, j, l)));
+  dca_info_struct.L2_Sigma_difference(DCA_iteration) = compute_S_k_w_from_G_k_w();
 
-        dca_info_struct.Sigma_zero_moment(i, j, DCA_iteration) =
-            math_algorithms::statistical_methods<double>::mean(x);  // real(MOMS.Sigma(i,i,j,0));
-        dca_info_struct.standard_deviation(i, j, DCA_iteration) =
-            math_algorithms::statistical_methods<double>::standard_deviation(x);  //
-      }
+  for (int i = 0; i < b::dmn_size() * s::dmn_size(); i++) {
+    for (int j = 0; j < k_DCA::dmn_size(); j++) {
+      std::vector<double> x;
+      for (int l = 0; l < w::dmn_size() / 4; l++)
+        x.push_back(real(MOMS.Sigma(i, i, j, l)));
+
+      dca_info_struct.Sigma_zero_moment(i, j, DCA_iteration) =
+          math_algorithms::statistical_methods<double>::mean(x);  // real(MOMS.Sigma(i,i,j,0));
+      dca_info_struct.standard_deviation(i, j, DCA_iteration) =
+          math_algorithms::statistical_methods<double>::standard_deviation(x);  //
     }
   }
 
@@ -256,16 +259,14 @@ double cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_typ
       parameters.get_vertex_measurement_type() != NONE)
     MOMS.G4_k_k_w_w /= square(parameters.get_beta());
 
-  {
-    double total = 1.e-6, integral = 0;
+  double total = 1.e-6, integral = 0;
 
-    for (int l = 0; l < accumulator.get_visited_expansion_order_k().size(); l++) {
-      total += accumulator.get_visited_expansion_order_k()(l);
-      integral += accumulator.get_visited_expansion_order_k()(l) * l;
-    }
-
-    dca_info_struct.average_expansion_order(DCA_iteration) = integral / total;
+  for (int l = 0; l < accumulator.get_visited_expansion_order_k().size(); l++) {
+    total += accumulator.get_visited_expansion_order_k()(l);
+    integral += accumulator.get_visited_expansion_order_k()(l) * l;
   }
+
+  dca_info_struct.average_expansion_order(DCA_iteration) = integral / total;
 
   dca_info_struct.sign(DCA_iteration) = accumulator.get_sign();
 
@@ -369,63 +370,56 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
   }
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::compute_error_bars(
-    int Nb_measurements_per_node) {
-  if (DCA_iteration == parameters.get_DCA_iterations() - 1) {
-    {
-      if (concurrency.id() == 0)
-        std::cout << "\n\t\t compute-error-bars on Self-energy\t" << dca::util::print_time()
-                  << "\n\n";
+template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::compute_error_bars() {
+  if (concurrency.id() == 0)
+    std::cout << "\n\t\t compute-error-bars on Self-energy\t" << dca::util::print_time() << "\n\n";
 
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> G_k_w_new("G_k_w_new");
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> G_k_w_new("G_k_w_new");
 
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>> M_r_w_new("M_r_w_new");
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> M_k_w_new("M_k_w_new");
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>> M_r_w_new("M_r_w_new");
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> M_k_w_new("M_k_w_new");
 
-      double sign = accumulator.get_sign() / double(Nb_measurements_per_node);
+  const int nb_measurements = accumulator.get_number_of_measurements();
+  double sign = accumulator.get_sign() / double(nb_measurements);
 
-      for (int l = 0; l < accumulator.get_M_r_w().size(); l++)
-        M_r_w_new(l) = accumulator.get_M_r_w()(l) / double(Nb_measurements_per_node * sign);
+  for (int l = 0; l < accumulator.get_M_r_w().size(); l++)
+    M_r_w_new(l) = accumulator.get_M_r_w()(l) / double(nb_measurements * sign);
 
-      math_algorithms::functional_transforms::TRANSFORM<r_DCA, k_DCA>::execute(M_r_w_new, M_k_w_new);
+  math_algorithms::functional_transforms::TRANSFORM<r_DCA, k_DCA>::execute(M_r_w_new, M_k_w_new);
 
-      compute_G_k_w_new(M_k_w_new, G_k_w_new);
-      compute_S_k_w_new(G_k_w_new, Sigma_new);
+  compute_G_k_w_new(M_k_w_new, G_k_w_new);
+  compute_S_k_w_new(G_k_w_new, Sigma_new);
 
-      concurrency.average_and_compute_stddev(Sigma_new, MOMS.Sigma_stddev, 1);
-      concurrency.average_and_compute_stddev(G_k_w_new, MOMS.G_k_w_stddev, 1);
-    }
+  concurrency.average_and_compute_stddev(Sigma_new, MOMS.Sigma_stddev, 1);
+  concurrency.average_and_compute_stddev(G_k_w_new, MOMS.G_k_w_stddev, 1);
 
-    {  // sum G4
-      if (parameters.get_vertex_measurement_type() != NONE) {
-        if (concurrency.id() == 0)
-          std::cout << "\n\t\t compute-error-bars on G4\t" << dca::util::print_time() << "\n\n";
+  // sum G4
+  if (parameters.get_vertex_measurement_type() != NONE) {
+    if (concurrency.id() == 0)
+      std::cout << "\n\t\t compute-error-bars on G4\t" << dca::util::print_time() << "\n\n";
 
-        double sign = accumulator.get_sign() / double(Nb_measurements_per_node);
+    double sign = accumulator.get_sign() / double(nb_measurements);
 
-        for (int l = 0; l < MOMS.G4_k_k_w_w.size(); l++)
-          MOMS.G4_k_k_w_w(l) = accumulator.get_G4()(l) / double(Nb_measurements_per_node * sign);
+    for (int l = 0; l < MOMS.G4_k_k_w_w.size(); l++)
+      MOMS.G4_k_k_w_w(l) = accumulator.get_G4()(l) / double(nb_measurements * sign);
 
-        MOMS.G4_k_k_w_w /= square(parameters.get_beta());
+    MOMS.G4_k_k_w_w /= square(parameters.get_beta());
 
-        concurrency.average_and_compute_stddev(MOMS.G4_k_k_w_w, MOMS.G4_k_k_w_w_stddev, 1);
-      }
-    }
+    concurrency.average_and_compute_stddev(MOMS.G4_k_k_w_w, MOMS.G4_k_k_w_w_stddev, 1);
   }
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::sum_measurements(
-    int Nb_measurements) {
+template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::sum_measurements() {
+  const int nb_measurements = accumulator.get_number_of_measurements();
+
   if (concurrency.id() == 0)
     std::cout << "\n\t\t sum measurements \t" << dca::util::print_time() << "\n"
               << "\n\t\t\t QMC-time : " << total_time << " [sec]"
               << "\n\t\t\t Gflops   : " << accumulator.get_Gflop() / total_time << " [Gf]"
-              << "\n\t\t\t sign     : " << accumulator.get_sign() / double(Nb_measurements)
+              << "\n\t\t\t sign     : " << accumulator.get_sign() / double(nb_measurements)
               << " \n";
-
-  assert(accumulator.get_number_of_measurements() == Nb_measurements);
 
   {  // sum the flops
     profiler_type profiler("MC-time", "QMC-collectives", __LINE__);
@@ -439,43 +433,42 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
 
   {  // sum the sign
     profiler_type profiler("QMC-sign", "QMC-collectives", __LINE__);
-    concurrency.sum_and_average(accumulator.get_sign(), Nb_measurements);
+    concurrency.sum_and_average(accumulator.get_sign(), nb_measurements);
   }
 
-  {  // sum M_r_w
-    {
-      profiler_type profiler("QMC-self-energy", "QMC-collectives", __LINE__);
-      concurrency.sum_and_average(accumulator.get_K_r_t(), Nb_measurements);
-    }
-
-    {
-      profiler_type profiler("QMC-self-energy", "QMC-collectives", __LINE__);
-      concurrency.sum_and_average(accumulator.get_M_r_w(), Nb_measurements);
-    }
-
-    {
-      profiler_type profiler("QMC-self-energy", "QMC-collectives", __LINE__);
-      concurrency.sum_and_average(accumulator.get_M_r_w_squared(), Nb_measurements);
-    }
-
-    accumulator.get_K_r_t() /= accumulator.get_sign();          // sign;
-    accumulator.get_M_r_w() /= accumulator.get_sign();          // sign;
-    accumulator.get_M_r_w_squared() /= accumulator.get_sign();  // sign;
-
-    MOMS.K_r_t = accumulator.get_K_r_t();
+  // sum M_r_w
+  {
+    profiler_type profiler("QMC-self-energy", "QMC-collectives", __LINE__);
+    concurrency.sum_and_average(accumulator.get_K_r_t(), nb_measurements);
   }
+
+  {
+    profiler_type profiler("QMC-self-energy", "QMC-collectives", __LINE__);
+    concurrency.sum_and_average(accumulator.get_M_r_w(), nb_measurements);
+  }
+
+  {
+    profiler_type profiler("QMC-self-energy", "QMC-collectives", __LINE__);
+    concurrency.sum_and_average(accumulator.get_M_r_w_squared(), nb_measurements);
+  }
+
+  accumulator.get_K_r_t() /= accumulator.get_sign();          // sign;
+  accumulator.get_M_r_w() /= accumulator.get_sign();          // sign;
+  accumulator.get_M_r_w_squared() /= accumulator.get_sign();  // sign;
+
+  MOMS.K_r_t = accumulator.get_K_r_t();
 
   if (parameters.do_equal_time_measurements()) {
     profiler_type profiler("QMC-two-particle-Greens-function", "QMC-collectives", __LINE__);
-    concurrency.sum_and_average(accumulator.get_G_r_t(), Nb_measurements);
-    concurrency.sum_and_average(accumulator.get_G_r_t_stddev(), Nb_measurements);
+    concurrency.sum_and_average(accumulator.get_G_r_t(), nb_measurements);
+    concurrency.sum_and_average(accumulator.get_G_r_t_stddev(), nb_measurements);
 
     accumulator.get_G_r_t() /= (accumulator.get_sign());
-    accumulator.get_G_r_t_stddev() /= (accumulator.get_sign() * std::sqrt(Nb_measurements));
+    accumulator.get_G_r_t_stddev() /= (accumulator.get_sign() * std::sqrt(nb_measurements));
 
-    concurrency.sum_and_average(accumulator.get_charge_cluster_moment(), Nb_measurements);
-    concurrency.sum_and_average(accumulator.get_magnetic_cluster_moment(), Nb_measurements);
-    concurrency.sum_and_average(accumulator.get_dwave_pp_correlator(), Nb_measurements);
+    concurrency.sum_and_average(accumulator.get_charge_cluster_moment(), nb_measurements);
+    concurrency.sum_and_average(accumulator.get_magnetic_cluster_moment(), nb_measurements);
+    concurrency.sum_and_average(accumulator.get_dwave_pp_correlator(), nb_measurements);
 
     accumulator.get_charge_cluster_moment() /= (accumulator.get_sign());
     accumulator.get_magnetic_cluster_moment() /= (accumulator.get_sign());
@@ -488,18 +481,16 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
   if (parameters.get_vertex_measurement_type() != NONE) {
     {
       profiler_type profiler("QMC-two-particle-Greens-function", "QMC-collectives", __LINE__);
-      concurrency.sum_and_average(accumulator.get_G4(), Nb_measurements);
+      concurrency.sum_and_average(accumulator.get_G4(), nb_measurements);
     }
 
     for (int l = 0; l < MOMS.G4_k_k_w_w.size(); l++)
       MOMS.G4_k_k_w_w(l) = accumulator.get_G4()(l) / accumulator.get_sign();  // sign;
   }
 
-  {
-    concurrency.sum(accumulator.get_visited_expansion_order_k());
+  concurrency.sum(accumulator.get_visited_expansion_order_k());
 
-    concurrency.sum(accumulator.get_error_distribution());
-  }
+  concurrency.sum(accumulator.get_error_distribution());
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
@@ -549,10 +540,9 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type,
                               -1. / parameters.get_beta(), G0_times_M_matrix, matrix_dim,
                               G0_cluster_excluded_matrix, matrix_dim, 0., G_matrix, matrix_dim);
 
-      {  // G_matrix + G0_cluster_excluded_matrix --> G_matrix
-        for (int l = 0; l < matrix_size; l++)
-          G_matrix[l] = G_matrix[l] + G0_cluster_excluded_matrix[l];
-      }
+      // G_matrix + G0_cluster_excluded_matrix --> G_matrix
+      for (int l = 0; l < matrix_size; l++)
+        G_matrix[l] = G_matrix[l] + G0_cluster_excluded_matrix[l];
 
       memcpy(&MOMS.G_k_w(0, 0, 0, 0, k_ind, w_ind), G_matrix,
              sizeof(std::complex<double>) * matrix_size);
@@ -715,30 +705,28 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type,
                     MOMS_type>::set_non_interacting_bands_to_zero() {
-  /*
-  for(int w_ind=0; w_ind<w::dmn_size(); w_ind++){
-    for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++){
-      for(int l2=0; l2<b::dmn_size(); l2++){
-        for(int l1=0; l1<b::dmn_size(); l1++){
-
-          if( !(parameters.is_interacting_band()[l1] and
-                parameters.is_interacting_band()[l2]))
-            {
-              MOMS.Sigma(l1,0,l2,0,k_ind, w_ind) = 0.;
-              MOMS.Sigma(l1,1,l2,1,k_ind, w_ind) = 0.;
-            }
-        }
-      }
-    }
-  }
-
-  for(int w_ind=0; w_ind<w::dmn_size(); w_ind++)
-    for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++)
-      for(int l2=0; l2<2*b::dmn_size(); l2++)
-        for(int l1=0; l1<2*b::dmn_size(); l1++)
-          if( !(l1==l2 and parameters.is_interacting_band()[l1]) )
-            MOMS.Sigma(l1,l2,k_ind, w_ind) = 0.;
-  */
+  //  for(int w_ind=0; w_ind<w::dmn_size(); w_ind++){
+  //    for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++){
+  //      for(int l2=0; l2<b::dmn_size(); l2++){
+  //        for(int l1=0; l1<b::dmn_size(); l1++){
+  //
+  //          if( !(parameters.is_interacting_band()[l1] and
+  //                parameters.is_interacting_band()[l2]))
+  //            {
+  //              MOMS.Sigma(l1,0,l2,0,k_ind, w_ind) = 0.;
+  //              MOMS.Sigma(l1,1,l2,1,k_ind, w_ind) = 0.;
+  //            }
+  //        }
+  //      }
+  //    }
+  //  }
+  //
+  //  for(int w_ind=0; w_ind<w::dmn_size(); w_ind++)
+  //    for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++)
+  //      for(int l2=0; l2<2*b::dmn_size(); l2++)
+  //        for(int l1=0; l1<2*b::dmn_size(); l1++)
+  //          if( !(l1==l2 and parameters.is_interacting_band()[l1]) )
+  //            MOMS.Sigma(l1,l2,k_ind, w_ind) = 0.;
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
@@ -746,58 +734,54 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type,
                     MOMS_type>::adjust_self_energy_for_double_counting() {
   set_non_interacting_bands_to_zero();
 
-  /*
-  FUNC_LIB::function<double, nu> d_0;
-  for(int l1=0; l1<b::dmn_size()*s::dmn_size(); l1++)
-    for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++)
-      for(int w_ind=0; w_ind<32; w_ind++)
-        d_0(l1) += real(MOMS.Sigma(l1,l1,k_ind,w_ind));
-
-  d_0 /= double(32.*k_DCA::dmn_size());
-
-  for(int l1=0; l1<b::dmn_size()*s::dmn_size(); l1++)
-    for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++)
-      for(int w_ind=0; w_ind<w::dmn_size(); w_ind++)
-        MOMS.Sigma(l1,l1,k_ind,w_ind) -= d_0(l1);
-  */
-
-  /*
-  if(parameters.get_double_counting_method()=="constant")
-    {
-      std::vector<int>& interacting_bands = parameters.get_interacting_bands();
-
-      for(int w_ind=0; w_ind<w::dmn_size(); w_ind++)
-        for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++)
-          for(int s_ind=0; s_ind<s::dmn_size(); s_ind++)
-            for(int b_ind=0; b_ind<interacting_bands.size(); b_ind++)
-              MOMS.Sigma(interacting_bands[b_ind], s_ind,
-                         interacting_bands[b_ind], s_ind,
-                         k_ind                   , w_ind) -=
-  parameters.get_double_counting_correction();
-    }
-
-  if(parameters.get_double_counting_method()=="adaptive")
-    {
-      std::vector<int>& interacting_bands = parameters.get_interacting_bands();
-
-      for(int b_ind=0; b_ind<interacting_bands.size(); b_ind++)
-        for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++){
-          for(int s_ind=0; s_ind<s::dmn_size(); s_ind++){
-
-            double value = real(MOMS.Sigma(interacting_bands[b_ind], s_ind,
-                                           interacting_bands[b_ind], s_ind,
-                                           k_ind                   , 0));
-
-            for(int w_ind=0; w_ind<w::dmn_size(); w_ind++){
-
-              MOMS.Sigma(interacting_bands[b_ind], s_ind,
-                         interacting_bands[b_ind], s_ind,
-                         k_ind                   , w_ind) -= value;
-            }
-          }
-        }
-    }
-  */
+  //  FUNC_LIB::function<double, nu> d_0;
+  //  for(int l1=0; l1<b::dmn_size()*s::dmn_size(); l1++)
+  //    for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++)
+  //      for(int w_ind=0; w_ind<32; w_ind++)
+  //        d_0(l1) += real(MOMS.Sigma(l1,l1,k_ind,w_ind));
+  //
+  //  d_0 /= double(32.*k_DCA::dmn_size());
+  //
+  //  for(int l1=0; l1<b::dmn_size()*s::dmn_size(); l1++)
+  //    for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++)
+  //      for(int w_ind=0; w_ind<w::dmn_size(); w_ind++)
+  //        MOMS.Sigma(l1,l1,k_ind,w_ind) -= d_0(l1);
+  //
+  //  if(parameters.get_double_counting_method()=="constant")
+  //    {
+  //      std::vector<int>& interacting_bands = parameters.get_interacting_bands();
+  //
+  //      for(int w_ind=0; w_ind<w::dmn_size(); w_ind++)
+  //        for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++)
+  //          for(int s_ind=0; s_ind<s::dmn_size(); s_ind++)
+  //            for(int b_ind=0; b_ind<interacting_bands.size(); b_ind++)
+  //              MOMS.Sigma(interacting_bands[b_ind], s_ind,
+  //                         interacting_bands[b_ind], s_ind,
+  //                         k_ind                   , w_ind) -=
+  //  parameters.get_double_counting_correction();
+  //    }
+  //
+  //  if(parameters.get_double_counting_method()=="adaptive")
+  //    {
+  //      std::vector<int>& interacting_bands = parameters.get_interacting_bands();
+  //
+  //      for(int b_ind=0; b_ind<interacting_bands.size(); b_ind++)
+  //        for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++){
+  //          for(int s_ind=0; s_ind<s::dmn_size(); s_ind++){
+  //
+  //            double value = real(MOMS.Sigma(interacting_bands[b_ind], s_ind,
+  //                                           interacting_bands[b_ind], s_ind,
+  //                                           k_ind                   , 0));
+  //
+  //            for(int w_ind=0; w_ind<w::dmn_size(); w_ind++){
+  //
+  //              MOMS.Sigma(interacting_bands[b_ind], s_ind,
+  //                         interacting_bands[b_ind], s_ind,
+  //                         k_ind                   , w_ind) -= value;
+  //            }
+  //          }
+  //        }
+  //    }
 
   symmetrize::execute(MOMS.Sigma, MOMS.H_symmetry);
 }
@@ -842,6 +826,26 @@ double cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_typ
     std::cout << "\n\t\t |Sigma_QMC - Sigma_cg|_2 ~ " << L2_error << "\n\n";
   }
   return L2_error;
+}
+
+template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+auto cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::onNode_G_k_w() {
+  // INTERNAL: This somewhat duplicates compute_error_bars and might be modified.
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> G_k_w_new("G_k_w");
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>> M_r_w_new("M_r_w_new");
+  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> M_k_w_new("M_k_w_new");
+
+  const int nb_measurements = accumulator.get_number_of_measurements();
+  double sign = accumulator.get_sign() / double(nb_measurements);
+
+  for (int l = 0; l < accumulator.get_M_r_w().size(); l++)
+    M_r_w_new(l) = accumulator.get_M_r_w()(l) / double(nb_measurements * sign);
+
+  math_algorithms::functional_transforms::TRANSFORM<r_DCA, k_DCA>::execute(M_r_w_new, M_k_w_new);
+
+  compute_G_k_w_new(M_k_w_new, G_k_w_new);
+
+  return G_k_w_new;
 }
 
 }  // DCA
