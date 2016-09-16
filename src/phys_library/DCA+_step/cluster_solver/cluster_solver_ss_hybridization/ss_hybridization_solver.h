@@ -392,7 +392,7 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::sum_measur
   concurrency << "\n\t\t sum measurements \n";
 
   const int nb_measurements = accumulator.get_number_of_measurements();
-  
+
   // sum the sign
   concurrency.sum_and_average(accumulator.get_sign(), nb_measurements);
 

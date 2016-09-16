@@ -79,8 +79,8 @@ public:
   template <typename dca_info_struct_t>
   double finalize(dca_info_struct_t& dca_info_struct);
 
-  //  For testing purposes.
-  //  Returns the function G_k_w before the average across mpi ranks is performed.
+  // For testing purposes.
+  // Returns the function G_k_w before the average across mpi ranks is performed.
   auto onNode_G_k_w();
 
 protected:
