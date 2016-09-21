@@ -16,7 +16,7 @@
 #include "dca/concurrency/interfaces/collective_sum_interface.h"
 #include <mpi.h>
 #include "dca/concurrency/interfaces/type_map_interface_mpi.h"
-#include "dca/concurrency/interfaces/processor_grouping_interface_mpi.h"
+#include "dca/concurrency/mpi_concurrency/mpi_processor_grouping.hpp"
 
 namespace dca {
 namespace concurrency {
@@ -25,7 +25,7 @@ namespace concurrency {
 template <>
 class collective_sum_interface<MPI_LIBRARY> {
 public:
-  collective_sum_interface(processor_grouping<MPI_LIBRARY>& grouping_ref);
+  collective_sum_interface(MPIProcessorGrouping& grouping_ref);
   ~collective_sum_interface();
 
   template <typename scalar_type>
@@ -86,11 +86,10 @@ public:
                          FUNC_LIB::function<Scalar, CovDomain>& cov);
 
 private:
-  processor_grouping<MPI_LIBRARY>& grouping;
+  MPIProcessorGrouping& grouping;
 };
 
-collective_sum_interface<MPI_LIBRARY>::collective_sum_interface(
-    processor_grouping<MPI_LIBRARY>& grouping_ref)
+collective_sum_interface<MPI_LIBRARY>::collective_sum_interface(MPIProcessorGrouping& grouping_ref)
     : grouping(grouping_ref) {}
 
 collective_sum_interface<MPI_LIBRARY>::~collective_sum_interface() {}

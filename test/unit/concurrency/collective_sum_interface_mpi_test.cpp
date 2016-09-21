@@ -33,7 +33,7 @@ protected:
   int mpi_size_;
   int mpi_id_;
 
-  processor_grouping<MPI_LIBRARY> grouping_;
+  MPIProcessorGrouping grouping_;
   collective_sum_interface<MPI_LIBRARY> sum_interface_;
 };
 

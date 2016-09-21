@@ -15,7 +15,7 @@
 #include "dca/concurrency/interfaces/packing_interface.h"
 #include <mpi.h>
 #include "dca/concurrency/interfaces/type_map_interface_mpi.h"
-#include "dca/concurrency/interfaces/processor_grouping_interface_mpi.h"
+#include "dca/concurrency/mpi_concurrency/mpi_processor_grouping.hpp"
 
 namespace dca {
 namespace concurrency {
@@ -24,7 +24,7 @@ namespace concurrency {
 template <>
 class packing_interface<MPI_LIBRARY> {
 public:
-  packing_interface(processor_grouping<MPI_LIBRARY>& grouping_ref);
+  packing_interface(MPIProcessorGrouping& grouping_ref);
   ~packing_interface();
 
   /************************************
@@ -104,10 +104,10 @@ public:
   void unpack(int* buffer, int size, int& off_set, FUNC_LIB::function<scalar_type, dmn_type>& f);
 
 private:
-  processor_grouping<MPI_LIBRARY>& grouping;
+  MPIProcessorGrouping& grouping;
 };
 
-packing_interface<MPI_LIBRARY>::packing_interface(processor_grouping<MPI_LIBRARY>& grouping_ref)
+packing_interface<MPI_LIBRARY>::packing_interface(MPIProcessorGrouping& grouping_ref)
     : grouping(grouping_ref) {}
 
 packing_interface<MPI_LIBRARY>::~packing_interface() {}

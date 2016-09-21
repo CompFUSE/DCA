@@ -14,7 +14,7 @@
 
 #include "dca/concurrency/parallelization_template.h"
 #include <mpi.h>
-#include "dca/concurrency/interfaces/processor_grouping_interface_mpi.h"
+#include "dca/concurrency/mpi_concurrency/mpi_processor_grouping.hpp"
 #include "dca/concurrency/interfaces/packing_interface_mpi.h"
 #include "dca/concurrency/interfaces/collective_min_interface_mpi.h"
 #include "dca/concurrency/interfaces/collective_max_interface_mpi.h"
@@ -50,7 +50,7 @@ public:
   std::pair<int, int> get_bounds(domain_type& dmn);
 
 private:
-  processor_grouping<MPI_LIBRARY> group;
+  MPIProcessorGrouping group;
 };
 
 parallelization<MPI_LIBRARY>::parallelization(int argc, char* argv[])
