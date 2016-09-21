@@ -468,13 +468,16 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::compute_Gamma_lattice_3(
 
   if (parameters.do_symmetrization_of_Gamma()) {
     if (true) {
-      concurrency << "symmetrize Gamma_lattice according to the symmetry-group \n\n";
+      if (concurrency.id() == concurrency.first())
+        std::cout << "symmetrize Gamma_lattice according to the symmetry-group \n" << std::endl;
 
       symmetrize::execute(Gamma_lattice, parameters.get_q_channel_vec());
     }
 
     if (true) {
-      concurrency << "symmetrize Gamma_lattice according to diagrammatic symmetries \n\n";
+      if (concurrency.id() == concurrency.first())
+        std::cout << "symmetrize Gamma_lattice according to diagrammatic symmetries \n"
+                  << std::endl;
 
       diagrammatic_symmetries<parameters_type> diagrammatic_symmetries_obj(parameters);
 

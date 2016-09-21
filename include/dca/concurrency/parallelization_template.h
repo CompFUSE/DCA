@@ -13,7 +13,6 @@
 #define DCA_CONCURRENCY_PARALLELIZATION_TEMPLATE_H
 
 #include "dca/concurrency/concurrency_types.hpp"
-#include "dca/concurrency/interfaces/print_on_shell_interface.h"
 #include "dca/concurrency/interfaces/packing_interface.h"
 #include "dca/concurrency/interfaces/collective_sum_interface.h"
 
@@ -21,9 +20,7 @@ namespace dca {
 namespace concurrency {
 
 template <PARALLELIZATION_LIBRARY_NAMES LIBRARY>
-class parallelization : public print_on_shell_interface<LIBRARY>,
-                        public packing_interface<LIBRARY>,
-                        public collective_sum_interface<LIBRARY> {
+class parallelization : public packing_interface<LIBRARY>, public collective_sum_interface<LIBRARY> {
 public:
   parallelization(int argc, char* argv[]);
   ~parallelization();
@@ -50,9 +47,7 @@ private:
 
 template <PARALLELIZATION_LIBRARY_NAMES LIBRARY>
 parallelization<LIBRARY>::parallelization(int /*argc*/, char* /*argv*/ [])
-    : print_on_shell_interface<LIBRARY>(group),
-      packing_interface<LIBRARY>(group),
-      collective_sum_interface<LIBRARY>(group) {}
+    : packing_interface<LIBRARY>(group), collective_sum_interface<LIBRARY>(group) {}
 
 template <PARALLELIZATION_LIBRARY_NAMES LIBRARY>
 parallelization<LIBRARY>::~parallelization() {}

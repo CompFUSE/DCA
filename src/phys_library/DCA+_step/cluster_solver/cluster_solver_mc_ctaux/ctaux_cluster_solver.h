@@ -152,12 +152,14 @@ cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::clu
       Sigma_new("Self-Energy-n-0-iteration"),
 
       DCA_iteration(-1) {
-  concurrency << "\n\n\t CT-AUX Integrator is born \n\n";
+  if (concurrency.id() == concurrency.first())
+    std::cout << "\n\n\t CT-AUX Integrator is born \n" << std::endl;
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::~cluster_solver() {
-  concurrency << "\n\n\t CT-AUX Integrator has died \n\n";
+  if (concurrency.id() == concurrency.first())
+    std::cout << "\n\n\t CT-AUX Integrator has died \n" << std::endl;
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
@@ -190,7 +192,8 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::integrate() {
-  concurrency << "\n\t\t integration has started \n";
+  if (concurrency.id() == concurrency.first())
+    std::cout << "\n\t\t integration has started" << std::endl;
 
   walker_type walker(parameters, MOMS, rng, 0);
 
@@ -219,7 +222,8 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
 
   accumulator.get_error_distribution() += walker.get_error_distribution();
 
-  concurrency << "\n\t\t on node integration has ended \n";
+  if (concurrency.id() == concurrency.first())
+    std::cout << "\n\t\t on node integration has ended" << std::endl;
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
@@ -284,7 +288,8 @@ double cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_typ
       dca_info_struct.Gflop_per_mpi_task(DCA_iteration) /
       dca_info_struct.times_per_mpi_task(DCA_iteration);
 
-  concurrency << "\n\n\t CT-AUX Integrator has finalized \n\n";
+  if (concurrency.id() == concurrency.first())
+    std::cout << "\n\n\t CT-AUX Integrator has finalized \n" << std::endl;
 
   return dca_info_struct.L2_Sigma_difference(DCA_iteration);
 }
@@ -294,7 +299,8 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
     walker_type& walker) {
   profiler_type profiler("thermalization", "QMCI", __LINE__);
 
-  concurrency << "\n\t\t warm-up has started\n\n";
+  if (concurrency.id() == concurrency.first())
+    std::cout << "\n\t\t warm-up has started\n" << std::endl;
 
   for (int i = 0; i < parameters.get_warm_up_sweeps(); i++) {
     walker.do_sweep();
@@ -307,13 +313,15 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
 
   walker.is_thermalized() = true;
 
-  concurrency << "\n\t\t warm-up has ended\n\n";
+  if (concurrency.id() == concurrency.first())
+    std::cout << "\n\t\t warm-up has ended\n" << std::endl;
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::measure(
     walker_type& walker) {
-  concurrency << "\n\t\t measuring has started \n\n";
+  if (concurrency.id() == concurrency.first())
+    std::cout << "\n\t\t measuring has started \n" << std::endl;
 
   for (int i = 0; i < parameters.get_number_of_measurements(); i++) {
     {
@@ -335,7 +343,8 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
 
   accumulator.finalize();
 
-  concurrency << "\n\t\t measuring has ended \n\n";
+  if (concurrency.id() == concurrency.first())
+    std::cout << "\n\t\t measuring has ended \n" << std::endl;
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
