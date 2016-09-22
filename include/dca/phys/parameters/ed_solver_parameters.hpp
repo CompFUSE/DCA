@@ -8,8 +8,6 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
 // This class reads, stores, and writes the exact diagonalization solver parameters.
-//
-// TODO: Const correctness.
 
 #ifndef DCA_PHYS_PARAMETERS_ED_SOLVER_PARAMETERS_HPP
 #define DCA_PHYS_PARAMETERS_ED_SOLVER_PARAMETERS_HPP
@@ -32,11 +30,11 @@ public:
         check_orthogonality_of_states_("false") {}
 
   template <typename Concurrency>
-  int getBufferSize(Concurrency& concurrency) const;
+  int getBufferSize(const Concurrency& concurrency) const;
   template <typename Concurrency>
-  void pack(Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
+  void pack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
   template <typename Concurrency>
-  void unpack(Concurrency& concurrency, int* buffer, int buffer_size, int& position);
+  void unpack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position);
 
   template <typename ReaderOrWriter>
   void readWrite(ReaderOrWriter& reader_or_writer);
@@ -66,7 +64,7 @@ private:
 };
 
 template <typename Concurrency>
-int EdSolverParameters::getBufferSize(Concurrency& concurrency) const {
+int EdSolverParameters::getBufferSize(const Concurrency& concurrency) const {
   int buffer_size = 0;
 
   buffer_size += concurrency.get_buffer_size(eigenvalue_cut_off_);
@@ -79,7 +77,7 @@ int EdSolverParameters::getBufferSize(Concurrency& concurrency) const {
 }
 
 template <typename Concurrency>
-void EdSolverParameters::pack(Concurrency& concurrency, int* buffer, int buffer_size,
+void EdSolverParameters::pack(const Concurrency& concurrency, int* buffer, int buffer_size,
                               int& position) const {
   concurrency.pack(buffer, buffer_size, position, eigenvalue_cut_off_);
   concurrency.pack(buffer, buffer_size, position, ed_method_);
@@ -89,7 +87,7 @@ void EdSolverParameters::pack(Concurrency& concurrency, int* buffer, int buffer_
 }
 
 template <typename Concurrency>
-void EdSolverParameters::unpack(Concurrency& concurrency, int* buffer, int buffer_size,
+void EdSolverParameters::unpack(const Concurrency& concurrency, int* buffer, int buffer_size,
                                 int& position) {
   concurrency.unpack(buffer, buffer_size, position, eigenvalue_cut_off_);
   concurrency.unpack(buffer, buffer_size, position, ed_method_);

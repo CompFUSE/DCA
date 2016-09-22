@@ -8,8 +8,6 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
 // This class reads, stores, and writes the Monte Carlo Integration (MCI) parameters.
-//
-// TODO: Const correctness.
 
 #ifndef DCA_PHYS_PARAMETERS_MCI_PARAMETERS_HPP
 #define DCA_PHYS_PARAMETERS_MCI_PARAMETERS_HPP
@@ -40,11 +38,11 @@ public:
         nr_HTS_threads_(1) {}
 
   template <typename Concurrency>
-  int getBufferSize(Concurrency& concurrency) const;
+  int getBufferSize(const Concurrency& concurrency) const;
   template <typename Concurrency>
-  void pack(Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
+  void pack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
   template <typename Concurrency>
-  void unpack(Concurrency& concurrency, int* buffer, int buffer_size, int& position);
+  void unpack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position);
 
   template <typename ReaderOrWriter>
   void readWrite(ReaderOrWriter& reader_or_writer);
@@ -102,7 +100,7 @@ private:
 };
 
 template <typename Concurrency>
-int MciParameters::getBufferSize(Concurrency& concurrency) const {
+int MciParameters::getBufferSize(const Concurrency& concurrency) const {
   int buffer_size = 0;
 
   buffer_size += concurrency.get_buffer_size(Sigma_file_);
@@ -120,7 +118,8 @@ int MciParameters::getBufferSize(Concurrency& concurrency) const {
 }
 
 template <typename Concurrency>
-void MciParameters::pack(Concurrency& concurrency, int* buffer, int buffer_size, int& position) const {
+void MciParameters::pack(const Concurrency& concurrency, int* buffer, int buffer_size,
+                         int& position) const {
   concurrency.pack(buffer, buffer_size, position, Sigma_file_);
   concurrency.pack(buffer, buffer_size, position, warm_up_sweeps_);
   concurrency.pack(buffer, buffer_size, position, number_of_sweeps_per_measurement_);
@@ -134,7 +133,8 @@ void MciParameters::pack(Concurrency& concurrency, int* buffer, int buffer_size,
 }
 
 template <typename Concurrency>
-void MciParameters::unpack(Concurrency& concurrency, int* buffer, int buffer_size, int& position) {
+void MciParameters::unpack(const Concurrency& concurrency, int* buffer, int buffer_size,
+                           int& position) {
   concurrency.unpack(buffer, buffer_size, position, Sigma_file_);
   concurrency.unpack(buffer, buffer_size, position, warm_up_sweeps_);
   concurrency.unpack(buffer, buffer_size, position, number_of_sweeps_per_measurement_);

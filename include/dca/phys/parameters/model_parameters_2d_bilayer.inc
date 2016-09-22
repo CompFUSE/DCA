@@ -16,11 +16,11 @@ public:
       : t_(1.), t_prime_(0.), t_perp_(0.), U_(4.), U_prime_(0.), V_(0.), V_prime_(0.) {}
 
   template <typename Concurrency>
-  int getBufferSize(Concurrency& concurrency) const;
+  int getBufferSize(const Concurrency& concurrency) const;
   template <typename Concurrency>
-  void pack(Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
+  void pack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
   template <typename Concurrency>
-  void unpack(Concurrency& concurrency, int* buffer, int buffer_size, int& position);
+  void unpack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position);
 
   template <typename ReaderOrWriter>
   void readWrite(ReaderOrWriter& reader_or_writer);
@@ -60,7 +60,7 @@ private:
 template <typename PointGroup>
 template <typename Concurrency>
 int ModelParameters<models::TightBindingModel<models::bilayer_lattice<PointGroup>>>::getBufferSize(
-    Concurrency& concurrency) const {
+    const Concurrency& concurrency) const {
   int buffer_size = 0;
 
   buffer_size += concurrency.get_buffer_size(t_);
@@ -77,7 +77,7 @@ int ModelParameters<models::TightBindingModel<models::bilayer_lattice<PointGroup
 template <typename PointGroup>
 template <typename Concurrency>
 void ModelParameters<models::TightBindingModel<models::bilayer_lattice<PointGroup>>>::pack(
-    Concurrency& concurrency, int* buffer, int buffer_size, int& position) const {
+    const Concurrency& concurrency, int* buffer, int buffer_size, int& position) const {
   concurrency.pack(buffer, buffer_size, position, t_);
   concurrency.pack(buffer, buffer_size, position, t_prime_);
   concurrency.pack(buffer, buffer_size, position, t_perp_);
@@ -90,7 +90,7 @@ void ModelParameters<models::TightBindingModel<models::bilayer_lattice<PointGrou
 template <typename PointGroup>
 template <typename Concurrency>
 void ModelParameters<models::TightBindingModel<models::bilayer_lattice<PointGroup>>>::unpack(
-    Concurrency& concurrency, int* buffer, int buffer_size, int& position) {
+    const Concurrency& concurrency, int* buffer, int buffer_size, int& position) {
   concurrency.unpack(buffer, buffer_size, position, t_);
   concurrency.unpack(buffer, buffer_size, position, t_prime_);
   concurrency.unpack(buffer, buffer_size, position, t_perp_);

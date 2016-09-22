@@ -10,8 +10,7 @@
 //
 // This class reads, stores, and writes the vertex parameters.
 //
-// TODO: - Const correctness.
-//       - Move the computation of the 'exact' q-channel vector and its index outside of this class
+// TODO: - Move the computation of the 'exact' q-channel vector and its index outside of this class
 //         since the parameters classes should only read and write and not do any computation.
 //       - Fix typo in json key "diagonolize-folded-Gamma-chi_0".
 
@@ -41,11 +40,11 @@ public:
   VertexParameters();
 
   template <typename Concurrency>
-  int getBufferSize(Concurrency& concurrency) const;
+  int getBufferSize(const Concurrency& concurrency) const;
   template <typename Concurrency>
-  void pack(Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
+  void pack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
   template <typename Concurrency>
-  void unpack(Concurrency& concurrency, int* buffer, int buffer_size, int& position);
+  void unpack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position);
 
   template <typename ReaderOrWriter>
   void readWrite(ReaderOrWriter& reader_or_writer);
@@ -162,7 +161,7 @@ VertexParameters<lattice_dimension>::VertexParameters()
 
 template <int lattice_dimension>
 template <typename Concurrency>
-int VertexParameters<lattice_dimension>::getBufferSize(Concurrency& concurrency) const {
+int VertexParameters<lattice_dimension>::getBufferSize(const Concurrency& concurrency) const {
   int buffer_size = 0;
 
   buffer_size += concurrency.get_buffer_size(vertex_measurement_type_);
@@ -185,7 +184,7 @@ int VertexParameters<lattice_dimension>::getBufferSize(Concurrency& concurrency)
 
 template <int lattice_dimension>
 template <typename Concurrency>
-void VertexParameters<lattice_dimension>::pack(Concurrency& concurrency, int* buffer,
+void VertexParameters<lattice_dimension>::pack(const Concurrency& concurrency, int* buffer,
                                                int buffer_size, int& position) const {
   concurrency.pack(buffer, buffer_size, position, vertex_measurement_type_);
   concurrency.pack(buffer, buffer_size, position, q_channel_vec_input_);
@@ -205,7 +204,7 @@ void VertexParameters<lattice_dimension>::pack(Concurrency& concurrency, int* bu
 
 template <int lattice_dimension>
 template <typename Concurrency>
-void VertexParameters<lattice_dimension>::unpack(Concurrency& concurrency, int* buffer,
+void VertexParameters<lattice_dimension>::unpack(const Concurrency& concurrency, int* buffer,
                                                  int buffer_size, int& position) {
   concurrency.unpack(buffer, buffer_size, position, vertex_measurement_type_);
   concurrency.unpack(buffer, buffer_size, position, q_channel_vec_input_);

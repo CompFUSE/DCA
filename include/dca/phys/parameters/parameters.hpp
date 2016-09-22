@@ -10,6 +10,8 @@
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // This class manages the simulation parameters.
+//
+// TODO: Const correctness.
 
 #ifndef DCA_PHYS_PARAMETERS_PARAMETERS_HPP
 #define DCA_PHYS_PARAMETERS_PARAMETERS_HPP
@@ -137,9 +139,9 @@ public:
   void update_model();
   void update_domains();
 
-  int get_buffer_size(concurrency_type& concurrency) const;
-  void pack(concurrency_type& concurrency, int* buffer, int buffer_size, int& position) const;
-  void unpack(concurrency_type& concurrency, int* buffer, int buffer_size, int& position);
+  int get_buffer_size(const concurrency_type& concurrency) const;
+  void pack(const concurrency_type& concurrency, int* buffer, int buffer_size, int& position) const;
+  void unpack(const concurrency_type& concurrency, int* buffer, int buffer_size, int& position);
 
   concurrency_type& get_concurrency() {
     return concurrency_;
@@ -327,7 +329,7 @@ void Parameters<Concurrency, Profiler, Model, RandomNumberGenerator, solver_name
 template <typename Concurrency, typename Profiler, typename Model, typename RandomNumberGenerator,
           DCA::ClusterSolverName solver_name>
 int Parameters<Concurrency, Profiler, Model, RandomNumberGenerator, solver_name>::get_buffer_size(
-    Concurrency& concurrency) const {
+    const Concurrency& concurrency) const {
   int buffer_size = 0;
 
   buffer_size += FilenameParameters::getBufferSize(concurrency);
@@ -350,7 +352,7 @@ int Parameters<Concurrency, Profiler, Model, RandomNumberGenerator, solver_name>
 template <typename Concurrency, typename Profiler, typename Model, typename RandomNumberGenerator,
           DCA::ClusterSolverName solver_name>
 void Parameters<Concurrency, Profiler, Model, RandomNumberGenerator, solver_name>::pack(
-    Concurrency& concurrency, int* buffer, int buffer_size, int& position) const {
+    const Concurrency& concurrency, int* buffer, int buffer_size, int& position) const {
   FilenameParameters::pack(concurrency, buffer, buffer_size, position);
   PhysicsParameters::pack(concurrency, buffer, buffer_size, position);
   ModelParameters<Model>::pack(concurrency, buffer, buffer_size, position);
@@ -369,7 +371,7 @@ void Parameters<Concurrency, Profiler, Model, RandomNumberGenerator, solver_name
 template <typename Concurrency, typename Profiler, typename Model, typename RandomNumberGenerator,
           DCA::ClusterSolverName solver_name>
 void Parameters<Concurrency, Profiler, Model, RandomNumberGenerator, solver_name>::unpack(
-    Concurrency& concurrency, int* buffer, int buffer_size, int& position) {
+    const Concurrency& concurrency, int* buffer, int buffer_size, int& position) {
   FilenameParameters::unpack(concurrency, buffer, buffer_size, position);
   PhysicsParameters::unpack(concurrency, buffer, buffer_size, position);
   ModelParameters<Model>::unpack(concurrency, buffer, buffer_size, position);

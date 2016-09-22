@@ -8,8 +8,6 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
 // This class reads, stores, and writes the physics parameters.
-//
-// TODO: Const correctness.
 
 #ifndef DCA_PHYS_PARAMETERS_PHYSICS_PARAMETERS_HPP
 #define DCA_PHYS_PARAMETERS_PHYSICS_PARAMETERS_HPP
@@ -30,11 +28,11 @@ public:
       : beta_(1.), adjust_chemical_potential_("false"), density_(1.), chemical_potential_(0.) {}
 
   template <typename Concurrency>
-  int getBufferSize(Concurrency& concurrency) const;
+  int getBufferSize(const Concurrency& concurrency) const;
   template <typename Concurrency>
-  void pack(Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
+  void pack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
   template <typename Concurrency>
-  void unpack(Concurrency& concurrency, int* buffer, int buffer_size, int& position);
+  void unpack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position);
 
   template <typename ReaderOrWriter>
   void readWrite(ReaderOrWriter& reader_or_writer);
@@ -62,7 +60,7 @@ private:
 };
 
 template <typename Concurrency>
-int PhysicsParameters::getBufferSize(Concurrency& concurrency) const {
+int PhysicsParameters::getBufferSize(const Concurrency& concurrency) const {
   int buffer_size = 0;
 
   buffer_size += concurrency.get_buffer_size(beta_);
@@ -74,7 +72,7 @@ int PhysicsParameters::getBufferSize(Concurrency& concurrency) const {
 }
 
 template <typename Concurrency>
-void PhysicsParameters::pack(Concurrency& concurrency, int* buffer, int buffer_size,
+void PhysicsParameters::pack(const Concurrency& concurrency, int* buffer, int buffer_size,
                              int& position) const {
   concurrency.pack(buffer, buffer_size, position, beta_);
   concurrency.pack(buffer, buffer_size, position, adjust_chemical_potential_);
@@ -83,7 +81,8 @@ void PhysicsParameters::pack(Concurrency& concurrency, int* buffer, int buffer_s
 }
 
 template <typename Concurrency>
-void PhysicsParameters::unpack(Concurrency& concurrency, int* buffer, int buffer_size, int& position) {
+void PhysicsParameters::unpack(const Concurrency& concurrency, int* buffer, int buffer_size,
+                               int& position) {
   concurrency.unpack(buffer, buffer_size, position, beta_);
   concurrency.unpack(buffer, buffer_size, position, adjust_chemical_potential_);
   concurrency.unpack(buffer, buffer_size, position, density_);

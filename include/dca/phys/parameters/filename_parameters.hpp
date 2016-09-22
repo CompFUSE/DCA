@@ -8,8 +8,6 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
 // This class reads, stores, and writes the filename parameters.
-//
-// TODO: Const correctness.
 
 #ifndef DCA_PHYS_PARAMETERS_FILENAME_PARAMETERS_HPP
 #define DCA_PHYS_PARAMETERS_FILENAME_PARAMETERS_HPP
@@ -42,11 +40,11 @@ public:
         dump_cluster_Greens_functions_("false") {}
 
   template <typename Concurrency>
-  int getBufferSize(Concurrency& concurrency) const;
+  int getBufferSize(const Concurrency& concurrency) const;
   template <typename Concurrency>
-  void pack(Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
+  void pack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
   template <typename Concurrency>
-  void unpack(Concurrency& concurrency, int* buffer, int buffer_size, int& position);
+  void unpack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position);
 
   template <typename ReaderOrWriter>
   void readWrite(ReaderOrWriter& reader_or_writer);
@@ -117,7 +115,7 @@ private:
 };
 
 template <typename Concurrency>
-int FilenameParameters::getBufferSize(Concurrency& concurrency) const {
+int FilenameParameters::getBufferSize(const Concurrency& concurrency) const {
   int buffer_size = 0;
 
   buffer_size += concurrency.get_buffer_size(directory_);
@@ -137,7 +135,7 @@ int FilenameParameters::getBufferSize(Concurrency& concurrency) const {
 }
 
 template <typename Concurrency>
-void FilenameParameters::pack(Concurrency& concurrency, int* buffer, int buffer_size,
+void FilenameParameters::pack(const Concurrency& concurrency, int* buffer, int buffer_size,
                               int& position) const {
   concurrency.pack(buffer, buffer_size, position, directory_);
   concurrency.pack(buffer, buffer_size, position, output_format_);
@@ -154,7 +152,7 @@ void FilenameParameters::pack(Concurrency& concurrency, int* buffer, int buffer_
 }
 
 template <typename Concurrency>
-void FilenameParameters::unpack(Concurrency& concurrency, int* buffer, int buffer_size,
+void FilenameParameters::unpack(const Concurrency& concurrency, int* buffer, int buffer_size,
                                 int& position) {
   concurrency.unpack(buffer, buffer_size, position, directory_);
   concurrency.unpack(buffer, buffer_size, position, output_format_);
