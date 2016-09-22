@@ -14,11 +14,10 @@
 
 #include "dca/concurrency/parallelization_template.h"
 #include <mpi.h>
+#include "dca/concurrency/mpi_concurrency/mpi_collective_max.hpp"
 #include "dca/concurrency/mpi_concurrency/mpi_packing.hpp"
 #include "dca/concurrency/mpi_concurrency/mpi_processor_grouping.hpp"
-
 #include "dca/concurrency/interfaces/collective_min_interface_mpi.h"
-#include "dca/concurrency/interfaces/collective_max_interface_mpi.h"
 #include "dca/concurrency/interfaces/collective_sum_interface_mpi.h"
 
 namespace dca {
@@ -27,8 +26,8 @@ namespace concurrency {
 
 template <>
 class parallelization<MPI_LIBRARY> : public MPIPacking,
+                                     public MPICollectiveMax,
                                      public collective_min_interface<MPI_LIBRARY>,
-                                     public collective_max_interface<MPI_LIBRARY>,
                                      public collective_sum_interface<MPI_LIBRARY> {
 public:
   parallelization(int argc, char* argv[]);
@@ -56,8 +55,8 @@ private:
 
 parallelization<MPI_LIBRARY>::parallelization(int argc, char* argv[])
     : MPIPacking(group),
+      MPICollectiveMax(group),
       collective_min_interface<MPI_LIBRARY>(group),
-      collective_max_interface<MPI_LIBRARY>(group),
       collective_sum_interface<MPI_LIBRARY>(group) {
   MPI_Init(&argc, &argv);
   group.set();
