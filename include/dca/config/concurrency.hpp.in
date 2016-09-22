@@ -14,6 +14,6 @@
 #define DCA_CONFIG_CONCURRENCY_HPP
 
 #include "@DCA_CONCURRENCY_INCLUDE@"
-using Concurrency = dca::concurrency::parallelization<@DCA_CONCURRENCY_TYPE@>;
+using Concurrency = @DCA_CONCURRENCY_TYPE@;
 
 #endif  // DCA_CONFIG_CONCURRENCY_HPP

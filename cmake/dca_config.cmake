@@ -12,8 +12,8 @@ if (DCA_WITH_MPI)
     message(FATAL_ERROR "MPI not found but requested.")
   endif()
 
-  set(DCA_CONCURRENCY_TYPE "dca::concurrency::MPI_LIBRARY")
-  set(DCA_CONCURRENCY_INCLUDE "dca/concurrency/parallelization_mpi.h")
+  set(DCA_CONCURRENCY_TYPE "dca::concurrency::MPIConcurrency")
+  set(DCA_CONCURRENCY_INCLUDE "dca/concurrency/mpi_concurrency/mpi_concurrency.hpp")
 
 else()
   set(DCA_CONCURRENCY_TYPE "dca::concurrency::SERIAL_LIBRARY")
