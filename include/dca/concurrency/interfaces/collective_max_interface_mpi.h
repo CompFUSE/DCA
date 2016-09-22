@@ -14,8 +14,8 @@
 
 #include "dca/concurrency/interfaces/collective_max_interface.h"
 #include <mpi.h>
-#include "dca/concurrency/interfaces/type_map_interface_mpi.h"
 #include "dca/concurrency/mpi_concurrency/mpi_processor_grouping.hpp"
+#include "dca/concurrency/mpi_concurrency/mpi_type_map.hpp"
 
 namespace dca {
 namespace concurrency {
@@ -43,8 +43,8 @@ template <typename scalar_type>
 void collective_max_interface<MPI_LIBRARY>::max(scalar_type& value) {
   scalar_type result;
 
-  MPI_Allreduce(&value, &result, type_map_interface<MPI_LIBRARY, scalar_type>::factor(),
-                type_map_interface<MPI_LIBRARY, scalar_type>::value(), MPI_MAX, grouping.get());
+  MPI_Allreduce(&value, &result, MPITypeMap<scalar_type>::factor(),
+                MPITypeMap<scalar_type>::value(), MPI_MAX, grouping.get());
 
   value = result;
 }

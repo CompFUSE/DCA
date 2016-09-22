@@ -15,8 +15,8 @@
 
 #include "dca/concurrency/interfaces/collective_sum_interface.h"
 #include <mpi.h>
-#include "dca/concurrency/interfaces/type_map_interface_mpi.h"
 #include "dca/concurrency/mpi_concurrency/mpi_processor_grouping.hpp"
+#include "dca/concurrency/mpi_concurrency/mpi_type_map.hpp"
 
 namespace dca {
 namespace concurrency {
@@ -98,8 +98,8 @@ template <typename scalar_type>
 void collective_sum_interface<MPI_LIBRARY>::sum(scalar_type& value) {
   scalar_type result;
 
-  MPI_Allreduce(&value, &result, type_map_interface<MPI_LIBRARY, scalar_type>::factor(),
-                type_map_interface<MPI_LIBRARY, scalar_type>::value(), MPI_SUM, grouping.get());
+  MPI_Allreduce(&value, &result, MPITypeMap<scalar_type>::factor(),
+                MPITypeMap<scalar_type>::value(), MPI_SUM, grouping.get());
 
   value = result;
 }
@@ -108,9 +108,8 @@ template <typename scalar_type>
 void collective_sum_interface<MPI_LIBRARY>::sum(std::vector<scalar_type>& m) {
   std::vector<scalar_type> result(m.size(), scalar_type(0));
 
-  MPI_Allreduce(&(m[0]), &(result[0]),
-                type_map_interface<MPI_LIBRARY, scalar_type>::factor() * m.size(),
-                type_map_interface<MPI_LIBRARY, scalar_type>::value(), MPI_SUM, grouping.get());
+  MPI_Allreduce(&(m[0]), &(result[0]), MPITypeMap<scalar_type>::factor() * m.size(),
+                MPITypeMap<scalar_type>::value(), MPI_SUM, grouping.get());
 
   for (size_t i = 0; i < m.size(); i++)
     m[i] = result[i];
@@ -139,8 +138,8 @@ template <typename scalar_type, class domain>
 void collective_sum_interface<MPI_LIBRARY>::sum(FUNC_LIB::function<scalar_type, domain>& f) {
   FUNC_LIB::function<scalar_type, domain> F;
 
-  MPI_Allreduce(&f(0), &F(0), type_map_interface<MPI_LIBRARY, scalar_type>::factor() * f.size(),
-                type_map_interface<MPI_LIBRARY, scalar_type>::value(), MPI_SUM, grouping.get());
+  MPI_Allreduce(&f(0), &F(0), MPITypeMap<scalar_type>::factor() * f.size(),
+                MPITypeMap<scalar_type>::value(), MPI_SUM, grouping.get());
 
   for (int i = 0; i < F.size(); i++)
     f(i) = F(i);
@@ -177,17 +176,16 @@ void collective_sum_interface<MPI_LIBRARY>::sum(FUNC_LIB::function<std::vector<s
 template <typename scalar_type, class domain>
 void collective_sum_interface<MPI_LIBRARY>::sum(FUNC_LIB::function<scalar_type, domain>& f,
                                                 FUNC_LIB::function<scalar_type, domain>& f_target) {
-  MPI_Allreduce(&f(0), &f_target(0),
-                type_map_interface<MPI_LIBRARY, scalar_type>::factor() * f.size(),
-                type_map_interface<MPI_LIBRARY, scalar_type>::value(), MPI_SUM, grouping.get());
+  MPI_Allreduce(&f(0), &f_target(0), MPITypeMap<scalar_type>::factor() * f.size(),
+                MPITypeMap<scalar_type>::value(), MPI_SUM, grouping.get());
 }
 
 template <typename scalar_type>
 void collective_sum_interface<MPI_LIBRARY>::sum(linalg::Vector<scalar_type, linalg::CPU>& f) {
   linalg::Vector<scalar_type, linalg::CPU> F("F", f.size());
 
-  MPI_Allreduce(&f[0], &F[0], type_map_interface<MPI_LIBRARY, scalar_type>::factor() * f.size(),
-                type_map_interface<MPI_LIBRARY, scalar_type>::value(), MPI_SUM, grouping.get());
+  MPI_Allreduce(&f[0], &F[0], MPITypeMap<scalar_type>::factor() * f.size(),
+                MPITypeMap<scalar_type>::value(), MPI_SUM, grouping.get());
 
   for (int i = 0; i < F.size(); i++)
     f[i] = F[i];
@@ -207,8 +205,8 @@ void collective_sum_interface<MPI_LIBRARY>::sum(dca::linalg::Matrix<scalar_type,
   int Nr = f.capacity().first;
   int Nc = f.capacity().second;
 
-  MPI_Allreduce(&f(0, 0), &F(0, 0), type_map_interface<MPI_LIBRARY, scalar_type>::factor() * Nr * Nc,
-                type_map_interface<MPI_LIBRARY, scalar_type>::value(), MPI_SUM, grouping.get());
+  MPI_Allreduce(&f(0, 0), &F(0, 0), MPITypeMap<scalar_type>::factor() * Nr * Nc,
+                MPITypeMap<scalar_type>::value(), MPI_SUM, grouping.get());
 
   for (int j = 0; j < F.size().second; j++)
     for (int i = 0; i < F.size().first; i++)

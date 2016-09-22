@@ -6,13 +6,17 @@
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
+//         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// Description
+// This class maps C++ types to MPI types.
+//
+// TODO: Check the MPI types.
 
-#ifndef DCA_CONCURRENCY_INTERFACES_TYPE_MAP_INTERFACE_MPI_H
-#define DCA_CONCURRENCY_INTERFACES_TYPE_MAP_INTERFACE_MPI_H
+#ifndef DCA_PARALLEL_MPI_CONCURRENCY_MPI_TYPE_MAP_HPP
+#define DCA_PARALLEL_MPI_CONCURRENCY_MPI_TYPE_MAP_HPP
 
-#include "dca/concurrency/interfaces/type_map_interface.h"
+#include <complex>
+#include <cstdlib>
 #include <mpi.h>
 
 namespace dca {
@@ -20,9 +24,9 @@ namespace concurrency {
 // dca::concurrency::
 
 template <typename scalar_type>
-class type_map_interface<MPI_LIBRARY, scalar_type> {
+class MPITypeMap {
 public:
-  static size_t factor() {
+  static std::size_t factor() {
     return 1;
   }
 
@@ -32,9 +36,9 @@ public:
 };
 
 template <>
-class type_map_interface<MPI_LIBRARY, bool> {
+class MPITypeMap<bool> {
 public:
-  static size_t factor() {
+  static std::size_t factor() {
     return 1;
   }
 
@@ -44,9 +48,9 @@ public:
 };
 
 template <>
-class type_map_interface<MPI_LIBRARY, char> {
+class MPITypeMap<char> {
 public:
-  static size_t factor() {
+  static std::size_t factor() {
     return 1;
   }
 
@@ -56,9 +60,9 @@ public:
 };
 
 template <>
-class type_map_interface<MPI_LIBRARY, int> {
+class MPITypeMap<int> {
 public:
-  static size_t factor() {
+  static std::size_t factor() {
     return 1;
   }
 
@@ -68,9 +72,9 @@ public:
 };
 
 template <>
-class type_map_interface<MPI_LIBRARY, size_t> {
+class MPITypeMap<std::size_t> {
 public:
-  static size_t factor() {
+  static std::size_t factor() {
     return 1;
   }
 
@@ -80,9 +84,9 @@ public:
 };
 
 template <>
-class type_map_interface<MPI_LIBRARY, float> {
+class MPITypeMap<float> {
 public:
-  static size_t factor() {
+  static std::size_t factor() {
     return 1;
   }
 
@@ -92,9 +96,9 @@ public:
 };
 
 template <>
-class type_map_interface<MPI_LIBRARY, double> {
+class MPITypeMap<double> {
 public:
-  static size_t factor() {
+  static std::size_t factor() {
     return 1;
   }
 
@@ -104,9 +108,9 @@ public:
 };
 
 template <>
-class type_map_interface<MPI_LIBRARY, std::complex<float>> {
+class MPITypeMap<std::complex<float>> {
 public:
-  static size_t factor() {
+  static std::size_t factor() {
     return 2;
   }
 
@@ -116,9 +120,9 @@ public:
 };
 
 template <>
-class type_map_interface<MPI_LIBRARY, std::complex<double>> {
+class MPITypeMap<std::complex<double>> {
 public:
-  static size_t factor() {
+  static std::size_t factor() {
     return 2;
   }
 
@@ -130,4 +134,4 @@ public:
 }  // concurrency
 }  // dca
 
-#endif  // DCA_CONCURRENCY_INTERFACES_TYPE_MAP_INTERFACE_MPI_H
+#endif  // DCA_PARALLEL_MPI_CONCURRENCY_MPI_TYPE_MAP_HPP
