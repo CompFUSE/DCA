@@ -8,66 +8,59 @@
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //         Andrei Plamada (plamada@phys.ethz.ch)
 //
-// This file tests the collective sum interface for MPI.
+// This file tests mpi_collective_sum.hpp.
 
-#include <iostream>
+#include "dca/concurrency/mpi_concurrency/mpi_collective_sum.hpp"
+#include <complex>
 #include "gtest/gtest.h"
-
-#include "comp_library/function_library/include_function_library.h"
-#include "dca/concurrency/interfaces/collective_sum_interface_mpi.h"
 #include "dca/testing/minimalist_printer.hpp"
 
-namespace dca {
-namespace concurrency {
-namespace testing {
-// dca::concurrency::testing::
-
-class CollectiveSumInterfaceMpiTest : public ::testing::Test {
+class MPICollectiveSumTest : public ::testing::Test {
 protected:
-  CollectiveSumInterfaceMpiTest() : sum_interface_(grouping_) {
+  MPICollectiveSumTest() : sum_interface_(grouping_) {
     grouping_.set();
-    mpi_size_ = grouping_.get_Nr_threads();
-    mpi_id_ = grouping_.get_id();
+    size_ = grouping_.get_Nr_threads();
+    rank_ = grouping_.get_id();
   }
 
-  int mpi_size_;
-  int mpi_id_;
+  int size_;
+  int rank_;
 
-  MPIProcessorGrouping grouping_;
-  collective_sum_interface<MPI_LIBRARY> sum_interface_;
+  dca::concurrency::MPIProcessorGrouping grouping_;
+  dca::concurrency::MPICollectiveSum sum_interface_;
 };
 
-TEST_F(CollectiveSumInterfaceMpiTest, sumScalar) {
+TEST_F(MPICollectiveSumTest, SumScalar) {
   int scalar_test;
   int scalar_expected;
 
-  scalar_test = mpi_id_;
+  scalar_test = rank_;
   sum_interface_.sum(scalar_test);
 
-  scalar_expected = mpi_size_ * (mpi_size_ - 1) / 2;
+  scalar_expected = size_ * (size_ - 1) / 2;
 
   EXPECT_EQ(scalar_expected, scalar_test);
 }
 
-TEST_F(CollectiveSumInterfaceMpiTest, sumFunction) {
+TEST_F(MPICollectiveSumTest, SumFunction) {
   using TestDomain = dmn_0<dmn<2, int>>;
 
   FUNC_LIB::function<double, TestDomain> function_test("test");
   FUNC_LIB::function<double, TestDomain> function_expected("expected");
 
   for (int i = 0; i < function_test.size(); i++)
-    function_test(i) = i * mpi_id_;
+    function_test(i) = i * rank_;
 
   sum_interface_.sum(function_test);
 
   for (int i = 0; i < function_test.size(); i++)
-    function_expected(i) = i * mpi_size_ * (mpi_size_ - 1) / 2;
+    function_expected(i) = i * size_ * (size_ - 1) / 2;
 
   for (int i = 0; i < function_test.size(); i++)
     EXPECT_EQ(function_expected(i), function_test(i));
 }
 
-TEST_F(CollectiveSumInterfaceMpiTest, computeCovarianceScalar) {
+TEST_F(MPICollectiveSumTest, ComputeCovarianceScalar) {
   using FunctionDomain = dmn_0<dmn<4, int>>;
   using CovarianceDomain = dmn_variadic<FunctionDomain, FunctionDomain>;
 
@@ -78,11 +71,11 @@ TEST_F(CollectiveSumInterfaceMpiTest, computeCovarianceScalar) {
   FUNC_LIB::function<double, FunctionDomain> f_mean("f_mean");
 
   for (int i = 0; i < f.size(); i++) {
-    f(i) = i * mpi_id_;
+    f(i) = i * rank_;
     f_mean(i) = f(i);
   }
   sum_interface_.sum(f_mean);
-  f_mean /= mpi_size_;  // f_mean contains the mean of f
+  f_mean /= size_;  // f_mean contains the mean of f
 
   sum_interface_.computeCovariance(f, f_mean, covariance_test);
 
@@ -103,7 +96,7 @@ TEST_F(CollectiveSumInterfaceMpiTest, computeCovarianceScalar) {
     EXPECT_EQ(covariance_expected(i), covariance_test(i));
 }
 
-TEST_F(CollectiveSumInterfaceMpiTest, computeCovarianceComplex) {
+TEST_F(MPICollectiveSumTest, ComputeCovarianceComplex) {
   using FunctionDomain = dmn_0<dmn<2, int>>;
   using CovarianceDomain = dmn_variadic<dmn_0<dmn<4, int>>, dmn_0<dmn<4, int>>>;
 
@@ -114,12 +107,12 @@ TEST_F(CollectiveSumInterfaceMpiTest, computeCovarianceComplex) {
   FUNC_LIB::function<std::complex<double>, FunctionDomain> f_mean("f_mean");
 
   for (int i = 0; i < f.size(); i++) {
-    f(i) = std::complex<double>(mpi_id_ * i, mpi_id_ * (i + f.size()));
+    f(i) = std::complex<double>(rank_ * i, rank_ * (i + f.size()));
     f_mean(i) = f(i);
   }
 
   sum_interface_.sum(f_mean);
-  f_mean /= mpi_size_;  // f_mean contains the mean of f
+  f_mean /= size_;  // f_mean contains the mean of f
 
   sum_interface_.computeCovariance(f, f_mean, covariance_test);
 
@@ -140,16 +133,11 @@ TEST_F(CollectiveSumInterfaceMpiTest, computeCovarianceComplex) {
     EXPECT_EQ(covariance_expected(i), covariance_test(i));
 }
 
-}  // testing
-}  // concurrency
-}  // dca
-
 int main(int argc, char** argv) {
   int result = 0;
 
   MPI_Init(&argc, &argv);
-  int rank, size;
-  MPI_Comm_size(MPI_COMM_WORLD, &size);
+  int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
   ::testing::InitGoogleTest(&argc, argv);

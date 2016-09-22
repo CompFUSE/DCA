@@ -7,74 +7,74 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Andrei Plamada (plamada@phys.ethz.ch)
+//         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// Description
+// This class provides an interface to do collective sums and averages with MPI.
+// In addition, it can compute the covariance for FUNC_LIB::function.
 
-#ifndef DCA_CONCURRENCY_INTERFACES_COLLECTIVE_SUM_INTERFACE_MPI_H
-#define DCA_CONCURRENCY_INTERFACES_COLLECTIVE_SUM_INTERFACE_MPI_H
+#ifndef DCA_PARALLEL_MPI_CONCURRENCY_MPI_COLLECTIVE_SUM_HPP
+#define DCA_PARALLEL_MPI_CONCURRENCY_MPI_COLLECTIVE_SUM_HPP
 
-#include "dca/concurrency/interfaces/collective_sum_interface.h"
+#include <map>
+#include <string>
+#include <vector>
+
 #include <mpi.h>
+
 #include "dca/concurrency/mpi_concurrency/mpi_processor_grouping.hpp"
 #include "dca/concurrency/mpi_concurrency/mpi_type_map.hpp"
+#include "dca/linalg/matrix.hpp"
+#include "dca/linalg/vector.hpp"
+#include "comp_library/function_library/include_function_library.h"
 
 namespace dca {
 namespace concurrency {
 // dca::concurrency::
 
-template <>
-class collective_sum_interface<MPI_LIBRARY> {
+class MPICollectiveSum {
 public:
-  collective_sum_interface(MPIProcessorGrouping& grouping_ref);
-  ~collective_sum_interface();
+  MPICollectiveSum(const MPIProcessorGrouping& grouping) : grouping_(grouping) {}
 
   template <typename scalar_type>
-  void sum(scalar_type& value);
-
+  void sum(scalar_type& value) const;
   template <typename scalar_type>
-  void sum(std::vector<scalar_type>& m);
-
+  void sum(std::vector<scalar_type>& m) const;
   template <typename scalartype>
-  void sum(std::map<std::string, std::vector<scalartype>>& m);
-
+  void sum(std::map<std::string, std::vector<scalartype>>& m) const;
   template <typename scalar_type, class domain>
-  void sum(FUNC_LIB::function<scalar_type, domain>& f);
-
+  void sum(FUNC_LIB::function<scalar_type, domain>& f) const;
   template <typename scalar_type, class domain>
-  void sum(FUNC_LIB::function<scalar_type, domain>& f,
-           FUNC_LIB::function<scalar_type, domain>& f_target);
-
+  void sum(FUNC_LIB::function<scalar_type, domain>& f_in,
+           FUNC_LIB::function<scalar_type, domain>& f_out) const;
   template <typename scalar_type, class domain>
-  void sum(FUNC_LIB::function<std::vector<scalar_type>, domain>& f);
-
+  void sum(FUNC_LIB::function<std::vector<scalar_type>, domain>& f) const;
   template <typename scalar_type>
-  void sum(linalg::Vector<scalar_type, linalg::CPU>& f);
-
+  void sum(linalg::Vector<scalar_type, linalg::CPU>& f) const;
   template <typename scalar_type>
-  void sum(dca::linalg::Matrix<scalar_type, linalg::CPU>& f);
+  void sum(dca::linalg::Matrix<scalar_type, linalg::CPU>& f) const;
 
   template <typename some_type>
-  void sum_and_average(some_type& obj, int nr_meas_rank = 1);
+  void sum_and_average(some_type& obj, int nr_meas_rank = 1) const;
 
   template <typename scalar_type, class domain>
   void average_and_compute_stddev(FUNC_LIB::function<scalar_type, domain>& f_mean,
-                                  FUNC_LIB::function<scalar_type, domain>& f_stddev, size_t size);
-
+                                  FUNC_LIB::function<scalar_type, domain>& f_stddev,
+                                  size_t size) const;
   template <typename scalar_type, class domain>
   void average_and_compute_stddev(FUNC_LIB::function<std::complex<scalar_type>, domain>& f_mean,
                                   FUNC_LIB::function<std::complex<scalar_type>, domain>& f_stddev,
-                                  size_t size);
+                                  size_t size) const;
 
-  // Computes the covariance matrix of the measurements of the different nodes.
+  // Computes the covariance matrix of the measurements of the different mpi ranks.
   // In: f, f_estimated
   // Out: cov
   // TODO: const f, f_estimated
   template <typename Scalar, class Domain>
   void computeCovariance(FUNC_LIB::function<Scalar, Domain>& f,
                          FUNC_LIB::function<Scalar, Domain>& f_estimated,
-                         FUNC_LIB::function<Scalar, dmn_variadic<Domain, Domain>>& cov);
+                         FUNC_LIB::function<Scalar, dmn_variadic<Domain, Domain>>& cov) const;
 
-  // Computes the covariance matrix of complex measurements of the different nodes.
+  // Computes the covariance matrix of complex measurements of the different mpi ranks.
   // The real part and the imaginary part are treated independently, and cov represents
   // the covariance of the real vector [Re(f[0]), Re(f[1]), ..., Im(f[0]), Im(f[1]), ...].
   // In: f, f_estimated
@@ -83,40 +83,35 @@ public:
   template <typename Scalar, class Domain, class CovDomain>
   void computeCovariance(FUNC_LIB::function<std::complex<Scalar>, Domain>& f,
                          FUNC_LIB::function<std::complex<Scalar>, Domain>& f_estimated,
-                         FUNC_LIB::function<Scalar, CovDomain>& cov);
+                         FUNC_LIB::function<Scalar, CovDomain>& cov) const;
 
 private:
-  MPIProcessorGrouping& grouping;
+  const MPIProcessorGrouping& grouping_;
 };
 
-collective_sum_interface<MPI_LIBRARY>::collective_sum_interface(MPIProcessorGrouping& grouping_ref)
-    : grouping(grouping_ref) {}
-
-collective_sum_interface<MPI_LIBRARY>::~collective_sum_interface() {}
-
 template <typename scalar_type>
-void collective_sum_interface<MPI_LIBRARY>::sum(scalar_type& value) {
+void MPICollectiveSum::sum(scalar_type& value) const {
   scalar_type result;
 
   MPI_Allreduce(&value, &result, MPITypeMap<scalar_type>::factor(),
-                MPITypeMap<scalar_type>::value(), MPI_SUM, grouping.get());
+                MPITypeMap<scalar_type>::value(), MPI_SUM, grouping_.get());
 
   value = result;
 }
 
 template <typename scalar_type>
-void collective_sum_interface<MPI_LIBRARY>::sum(std::vector<scalar_type>& m) {
+void MPICollectiveSum::sum(std::vector<scalar_type>& m) const {
   std::vector<scalar_type> result(m.size(), scalar_type(0));
 
   MPI_Allreduce(&(m[0]), &(result[0]), MPITypeMap<scalar_type>::factor() * m.size(),
-                MPITypeMap<scalar_type>::value(), MPI_SUM, grouping.get());
+                MPITypeMap<scalar_type>::value(), MPI_SUM, grouping_.get());
 
   for (size_t i = 0; i < m.size(); i++)
     m[i] = result[i];
 }
 
 template <typename scalar_type>
-void collective_sum_interface<MPI_LIBRARY>::sum(std::map<std::string, std::vector<scalar_type>>& m) {
+void MPICollectiveSum::sum(std::map<std::string, std::vector<scalar_type>>& m) const {
   typedef typename std::map<std::string, std::vector<scalar_type>>::iterator iterator_type;
 
   iterator_type it = m.begin();
@@ -135,11 +130,11 @@ void collective_sum_interface<MPI_LIBRARY>::sum(std::map<std::string, std::vecto
 }
 
 template <typename scalar_type, class domain>
-void collective_sum_interface<MPI_LIBRARY>::sum(FUNC_LIB::function<scalar_type, domain>& f) {
+void MPICollectiveSum::sum(FUNC_LIB::function<scalar_type, domain>& f) const {
   FUNC_LIB::function<scalar_type, domain> F;
 
   MPI_Allreduce(&f(0), &F(0), MPITypeMap<scalar_type>::factor() * f.size(),
-                MPITypeMap<scalar_type>::value(), MPI_SUM, grouping.get());
+                MPITypeMap<scalar_type>::value(), MPI_SUM, grouping_.get());
 
   for (int i = 0; i < F.size(); i++)
     f(i) = F(i);
@@ -156,7 +151,7 @@ void collective_sum_interface<MPI_LIBRARY>::sum(FUNC_LIB::function<scalar_type, 
 }
 
 template <typename scalar_type, class domain>
-void collective_sum_interface<MPI_LIBRARY>::sum(FUNC_LIB::function<std::vector<scalar_type>, domain>& f) {
+void MPICollectiveSum::sum(FUNC_LIB::function<std::vector<scalar_type>, domain>& f) const {
   int Nr = f(0).size();
   int Nc = f.size();
 
@@ -174,18 +169,18 @@ void collective_sum_interface<MPI_LIBRARY>::sum(FUNC_LIB::function<std::vector<s
 }
 
 template <typename scalar_type, class domain>
-void collective_sum_interface<MPI_LIBRARY>::sum(FUNC_LIB::function<scalar_type, domain>& f,
-                                                FUNC_LIB::function<scalar_type, domain>& f_target) {
-  MPI_Allreduce(&f(0), &f_target(0), MPITypeMap<scalar_type>::factor() * f.size(),
-                MPITypeMap<scalar_type>::value(), MPI_SUM, grouping.get());
+void MPICollectiveSum::sum(FUNC_LIB::function<scalar_type, domain>& f_in,
+                           FUNC_LIB::function<scalar_type, domain>& f_out) const {
+  MPI_Allreduce(&f_in(0), &f_out(0), MPITypeMap<scalar_type>::factor() * f_in.size(),
+                MPITypeMap<scalar_type>::value(), MPI_SUM, grouping_.get());
 }
 
 template <typename scalar_type>
-void collective_sum_interface<MPI_LIBRARY>::sum(linalg::Vector<scalar_type, linalg::CPU>& f) {
+void MPICollectiveSum::sum(linalg::Vector<scalar_type, linalg::CPU>& f) const {
   linalg::Vector<scalar_type, linalg::CPU> F("F", f.size());
 
   MPI_Allreduce(&f[0], &F[0], MPITypeMap<scalar_type>::factor() * f.size(),
-                MPITypeMap<scalar_type>::value(), MPI_SUM, grouping.get());
+                MPITypeMap<scalar_type>::value(), MPI_SUM, grouping_.get());
 
   for (int i = 0; i < F.size(); i++)
     f[i] = F[i];
@@ -196,7 +191,7 @@ void collective_sum_interface<MPI_LIBRARY>::sum(linalg::Vector<scalar_type, lina
 }
 
 template <typename scalar_type>
-void collective_sum_interface<MPI_LIBRARY>::sum(dca::linalg::Matrix<scalar_type, linalg::CPU>& f) {
+void MPICollectiveSum::sum(dca::linalg::Matrix<scalar_type, linalg::CPU>& f) const {
   dca::linalg::Matrix<scalar_type, linalg::CPU> F("F", f.size(), f.capacity());
 
   assert(f.capacity().first == F.capacity().first);
@@ -206,7 +201,7 @@ void collective_sum_interface<MPI_LIBRARY>::sum(dca::linalg::Matrix<scalar_type,
   int Nc = f.capacity().second;
 
   MPI_Allreduce(&f(0, 0), &F(0, 0), MPITypeMap<scalar_type>::factor() * Nr * Nc,
-                MPITypeMap<scalar_type>::value(), MPI_SUM, grouping.get());
+                MPITypeMap<scalar_type>::value(), MPI_SUM, grouping_.get());
 
   for (int j = 0; j < F.size().second; j++)
     for (int i = 0; i < F.size().first; i++)
@@ -214,19 +209,19 @@ void collective_sum_interface<MPI_LIBRARY>::sum(dca::linalg::Matrix<scalar_type,
 }
 
 template <typename some_type>
-void collective_sum_interface<MPI_LIBRARY>::sum_and_average(some_type& obj, int nr_meas_rank) {
+void MPICollectiveSum::sum_and_average(some_type& obj, int nr_meas_rank) const {
   sum(obj);
 
-  double one_over_N = 1. / (nr_meas_rank * grouping.get_Nr_threads());
+  double one_over_N = 1. / (nr_meas_rank * grouping_.get_Nr_threads());
 
   obj *= one_over_N;
 }
 
 template <typename scalar_type, class domain>
-void collective_sum_interface<MPI_LIBRARY>::average_and_compute_stddev(
-    FUNC_LIB::function<scalar_type, domain>& f_mean,
-    FUNC_LIB::function<scalar_type, domain>& f_stddev, size_t size) {
-  scalar_type factor = 1. / (size * grouping.get_Nr_threads());
+void MPICollectiveSum::average_and_compute_stddev(FUNC_LIB::function<scalar_type, domain>& f_mean,
+                                                  FUNC_LIB::function<scalar_type, domain>& f_stddev,
+                                                  size_t size) const {
+  scalar_type factor = 1. / (size * grouping_.get_Nr_threads());
 
   FUNC_LIB::function<scalar_type, domain> f_sum("f-sum");
   FUNC_LIB::function<scalar_type, domain> f_diff("f-diff");
@@ -248,14 +243,14 @@ void collective_sum_interface<MPI_LIBRARY>::average_and_compute_stddev(
   for (int i = 0; i < f_sum.size(); i++)
     f_stddev(i) = std::sqrt(f_stddev(i));
 
-  f_stddev /= std::sqrt(grouping.get_Nr_threads());
+  f_stddev /= std::sqrt(grouping_.get_Nr_threads());
 }
 
 template <typename scalar_type, class domain>
-void collective_sum_interface<MPI_LIBRARY>::average_and_compute_stddev(
+void MPICollectiveSum::average_and_compute_stddev(
     FUNC_LIB::function<std::complex<scalar_type>, domain>& f_mean,
-    FUNC_LIB::function<std::complex<scalar_type>, domain>& f_stddev, size_t size) {
-  scalar_type factor = 1. / (size * grouping.get_Nr_threads());
+    FUNC_LIB::function<std::complex<scalar_type>, domain>& f_stddev, size_t size) const {
+  scalar_type factor = 1. / (size * grouping_.get_Nr_threads());
 
   FUNC_LIB::function<std::complex<scalar_type>, domain> f_sum("f-sum");
   FUNC_LIB::function<std::complex<scalar_type>, domain> f_diff("f-diff");
@@ -281,13 +276,13 @@ void collective_sum_interface<MPI_LIBRARY>::average_and_compute_stddev(
     f_stddev(i).imag(std::sqrt(imag(f_stddev(i))));
   }
 
-  f_stddev /= std::sqrt(grouping.get_Nr_threads());
+  f_stddev /= std::sqrt(grouping_.get_Nr_threads());
 }
 
 template <typename Scalar, class Domain>
-void collective_sum_interface<MPI_LIBRARY>::computeCovariance(
+void MPICollectiveSum::computeCovariance(
     FUNC_LIB::function<Scalar, Domain>& f, FUNC_LIB::function<Scalar, Domain>& f_estimated,
-    FUNC_LIB::function<Scalar, dmn_variadic<Domain, Domain>>& cov) {
+    FUNC_LIB::function<Scalar, dmn_variadic<Domain, Domain>>& cov) const {
   for (int i = 0; i < f.size(); i++)
     for (int j = 0; j < f.size(); j++)
       cov(i, j) = (f(i) - f_estimated(i)) * (f(j) - f_estimated(j));
@@ -296,10 +291,9 @@ void collective_sum_interface<MPI_LIBRARY>::computeCovariance(
 }
 
 template <typename Scalar, class Domain, class CovDomain>
-void collective_sum_interface<MPI_LIBRARY>::computeCovariance(
-    FUNC_LIB::function<std::complex<Scalar>, Domain>& f,
-    FUNC_LIB::function<std::complex<Scalar>, Domain>& f_estimated,
-    FUNC_LIB::function<Scalar, CovDomain>& cov) {
+void MPICollectiveSum::computeCovariance(FUNC_LIB::function<std::complex<Scalar>, Domain>& f,
+                                         FUNC_LIB::function<std::complex<Scalar>, Domain>& f_estimated,
+                                         FUNC_LIB::function<Scalar, CovDomain>& cov) const {
   assert(4 * f.size() * f.size() == cov.size());
 
   // Treat real and imaginary parts as independent entries
@@ -326,4 +320,4 @@ void collective_sum_interface<MPI_LIBRARY>::computeCovariance(
 }  // concurrency
 }  // dca
 
-#endif  // DCA_CONCURRENCY_INTERFACES_COLLECTIVE_SUM_INTERFACE_MPI_H
+#endif  // DCA_PARALLEL_MPI_CONCURRENCY_MPI_COLLECTIVE_SUM_HPP
