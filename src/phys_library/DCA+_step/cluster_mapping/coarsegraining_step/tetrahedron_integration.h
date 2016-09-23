@@ -17,6 +17,7 @@
 #include <stdexcept>
 #include <vector>
 
+#include "dca/concurrency/util/get_bounds.hpp"
 #include "dca/concurrency/parallelization_pthreads.h"
 #include "comp_library/function_library/include_function_library.h"
 #include "math_library/geometry_library/vector_operations/vector_operations.hpp"
@@ -283,9 +284,7 @@ void* tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_m
       (functions_ptr->G_int_vec[id]);
 
   tet_dmn_type tet_dmn;
-  std::pair<int, int> tet_bounds =
-      dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY>::get_bounds(id, nr_threads,
-                                                                                     tet_dmn);
+  std::pair<int, int> tet_bounds = dca::concurrency::util::getBounds(id, nr_threads, tet_dmn);
 
   for (int j = 0; j < nu::dmn_size(); j++)
     for (int i = 0; i < nu::dmn_size(); i++)
@@ -408,9 +407,7 @@ void* tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_m
       (functions_ptr->G_int_vec[id]);
 
   tet_dmn_type tet_dmn;
-  std::pair<int, int> tet_bounds =
-      dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY>::get_bounds(id, nr_threads,
-                                                                                     tet_dmn);
+  std::pair<int, int> tet_bounds = dca::concurrency::util::getBounds(id, nr_threads, tet_dmn);
 
   for (int j = 0; j < nu::dmn_size(); j++)
     for (int i = 0; i < nu::dmn_size(); i++)

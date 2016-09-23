@@ -19,6 +19,7 @@
 #include <iostream>
 #include <utility>
 
+#include "dca/concurrency/util/get_bounds.hpp"
 #include "dca/concurrency/parallelization_pthreads.h"
 #include "dca/util/print_time.hpp"
 #include "comp_library/function_library/include_function_library.h"
@@ -340,9 +341,7 @@ void* sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_2B(void*
   int nr_threads = data_ptr->nr_threads;
 
   k_dmn_t k_dmn;
-  std::pair<int, int> k_bounds =
-      dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY>::get_bounds(id, nr_threads,
-                                                                                     k_dmn);
+  std::pair<int, int> k_bounds = dca::concurrency::util::getBounds(id, nr_threads, k_dmn);
 
   for (int k_ind = k_bounds.first; k_ind < k_bounds.second; k_ind++) {
     double percentage = double(k_ind - k_bounds.first) / double(k_bounds.second - k_bounds.first);

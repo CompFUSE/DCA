@@ -25,6 +25,7 @@
 #include "dca/concurrency/mpi_concurrency/mpi_collective_sum.hpp"
 #include "dca/concurrency/mpi_concurrency/mpi_packing.hpp"
 #include "dca/concurrency/mpi_concurrency/mpi_processor_grouping.hpp"
+#include "dca/concurrency/util/get_bounds.hpp"
 
 namespace dca {
 namespace concurrency {
@@ -73,7 +74,9 @@ public:
 
   // TODO: Add const to function parameter 'dmn'.
   template <typename domain_type>
-  std::pair<int, int> get_bounds(domain_type& dmn) const;
+  std::pair<int, int> get_bounds(domain_type& dmn) const {
+    return util::getBounds(id(), number_of_processors(), dmn);
+  }
 
 private:
   MPIProcessorGrouping grouping_;
@@ -150,47 +153,6 @@ bool MPIConcurrency::broadcast_object(object_type& object, int root_id) const {
   }
 
   return true;
-}
-
-template <typename domain_type>
-std::pair<int, int> MPIConcurrency::get_bounds(domain_type& dmn) const {
-  long long size = static_cast<long long>(dmn.get_size());
-
-  long long bounds_first, bounds_second;
-
-  long long CPU_id = static_cast<long long>(id());
-  long long np = static_cast<long long>(number_of_processors());
-
-  if (np < size) {
-    bounds_first = (CPU_id * size) / np;
-    bounds_second = ((CPU_id + 1) * size) / np;
-  }
-  else {
-    if (CPU_id < size) {
-      bounds_first = CPU_id;
-      bounds_second = CPU_id + 1;
-    }
-    else {
-      bounds_first = -1;
-      bounds_second = -1;
-    }
-  }
-
-  std::pair<int, int> bounds(static_cast<int>(bounds_first), static_cast<int>(bounds_second));
-
-  if (!((bounds.first == -1 && bounds.second == -1) ||
-        (bounds.first >= 0 && bounds.second <= dmn.get_size() && bounds.first < bounds.second))) {
-    std::cout << "error in " << __PRETTY_FUNCTION__ << "\n\n";
-    std::cout << "CPU-id :: " << CPU_id << "\n";
-    std::cout << "np     :: " << np << "\n";
-
-    std::cout << "bounds.first  :: " << bounds.first << "\n";
-    std::cout << "bounds.second :: " << bounds.second << "\n";
-
-    throw std::logic_error(__FUNCTION__);
-  }
-
-  return bounds;
 }
 
 }  // concurrency

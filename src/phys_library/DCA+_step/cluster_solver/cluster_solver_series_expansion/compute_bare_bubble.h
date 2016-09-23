@@ -18,6 +18,7 @@
 #include <stdexcept>
 #include <utility>
 
+#include "dca/concurrency/util/get_bounds.hpp"
 #include "dca/concurrency/parallelization_pthreads.h"
 #include "dca/util/print_time.hpp"
 #include "comp_library/function_library/include_function_library.h"
@@ -226,9 +227,7 @@ void* compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded
   int nr_threads = data_ptr->nr_threads;
 
   k_dmn_t q_dmn;
-  std::pair<int, int> q_bounds =
-      dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY>::get_bounds(id, nr_threads,
-                                                                                     q_dmn);
+  std::pair<int, int> q_bounds = dca::concurrency::util::getBounds(id, nr_threads, q_dmn);
 
   for (int q_ind = q_bounds.first; q_ind < q_bounds.second; ++q_ind) {
     double percentage = double(q_ind - q_bounds.first) / double(q_bounds.second - q_bounds.first);
@@ -316,9 +315,7 @@ void* compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded
   int nr_threads = data_ptr->nr_threads;
 
   k_dmn_t q_dmn;
-  std::pair<int, int> q_bounds =
-      dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY>::get_bounds(id, nr_threads,
-                                                                                     q_dmn);
+  std::pair<int, int> q_bounds = dca::concurrency::util::getBounds(id, nr_threads, q_dmn);
 
   for (int q_ind = q_bounds.first; q_ind < q_bounds.second; ++q_ind) {
     double percentage = double(q_ind - q_bounds.first) / double(q_bounds.second - q_bounds.first);

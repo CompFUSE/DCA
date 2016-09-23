@@ -24,6 +24,7 @@
 #include <utility>
 #include <vector>
 
+#include "dca/concurrency/util/get_bounds.hpp"
 #include "dca/concurrency/parallelization_pthreads.h"
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/IO_library/IO.hpp"
@@ -360,9 +361,7 @@ void* continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dm
   dmn_2<b, s> nu_dmn;
   dmn_3<b, s, k_dmn_t> b_s_k_dmn;
 
-  std::pair<int, int> bounds =
-      dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY>::get_bounds(id, nr_threads,
-                                                                                     MPI_bounds);
+  std::pair<int, int> bounds = dca::concurrency::util::getBounds(id, nr_threads, MPI_bounds);
 
   int coor[3];
   for (int l = bounds.first; l < bounds.second; l++) {

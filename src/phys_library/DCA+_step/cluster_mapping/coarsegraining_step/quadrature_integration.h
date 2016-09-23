@@ -16,6 +16,7 @@
 #include <iostream>
 #include <stdexcept>
 
+#include "dca/concurrency/util/get_bounds.hpp"
 #include "dca/concurrency/parallelization_pthreads.h"
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/linalg/linalg.hpp"
@@ -150,9 +151,7 @@ void* quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G
       *(functions_ptr->G_q_ptr);
 
   q_dmn_t q_dmn;
-  std::pair<int, int> q_bounds =
-      dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY>::get_bounds(id, nr_threads,
-                                                                                     q_dmn);
+  std::pair<int, int> q_bounds = dca::concurrency::util::getBounds(id, nr_threads, q_dmn);
 
   {
     dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU> G_inv("G_inv", nu::dmn_size());
@@ -277,9 +276,7 @@ void* quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G
       *(functions_ptr->G_q_ptr);
 
   q_dmn_t q_dmn;
-  std::pair<int, int> q_bounds =
-      dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY>::get_bounds(id, nr_threads,
-                                                                                     q_dmn);
+  std::pair<int, int> q_bounds = dca::concurrency::util::getBounds(id, nr_threads, q_dmn);
 
   {
     dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU> H_m("H_m", nu::dmn_size());

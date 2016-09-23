@@ -1,2 +1,3 @@
 add_subdirectory(mpi_concurrency)
 add_subdirectory(no_concurrency)
+add_subdirectory(util)
