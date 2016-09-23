@@ -16,8 +16,8 @@ if (DCA_WITH_MPI)
   set(DCA_CONCURRENCY_INCLUDE "dca/concurrency/mpi_concurrency/mpi_concurrency.hpp")
 
 else()
-  set(DCA_CONCURRENCY_TYPE "dca::concurrency::SERIAL_LIBRARY")
-  set(DCA_CONCURRENCY_INCLUDE "dca/concurrency/parallelization_template.h")
+  set(DCA_CONCURRENCY_TYPE "dca::concurrency::NoConcurrency")
+  set(DCA_CONCURRENCY_INCLUDE "dca/concurrency/no_concurrency/no_concurrency.hpp")
 endif()
 
 configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/concurrency.hpp.in"
