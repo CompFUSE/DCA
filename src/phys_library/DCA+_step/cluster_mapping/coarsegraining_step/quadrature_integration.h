@@ -16,8 +16,8 @@
 #include <iostream>
 #include <stdexcept>
 
+#include "dca/concurrency/pthreading/pthreading.hpp"
 #include "dca/concurrency/util/get_bounds.hpp"
-#include "dca/concurrency/parallelization_pthreads.h"
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/linalg/linalg.hpp"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
@@ -124,7 +124,7 @@ void quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G_
   quadrature_integration_functions_obj.S_q_ptr = &S_q;
   quadrature_integration_functions_obj.G_q_ptr = &G_q;
 
-  dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY> parallelization_obj;
+  dca::concurrency::Pthreading parallelization_obj;
 
   parallelization_obj.execute(nr_threads, quadrature_integration_G_q_w_mt<scalar_type>,
                               (void*)&quadrature_integration_functions_obj);
@@ -135,11 +135,12 @@ template <typename scalar_type>
 void* quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G_q_w_mt(void* void_ptr) {
   typedef quadrature_integration_functions<scalar_type> quadrature_functions_type;
 
-  dca::concurrency::posix_data* data_ptr = static_cast<dca::concurrency::posix_data*>(void_ptr);
-  quadrature_functions_type* functions_ptr = static_cast<quadrature_functions_type*>(data_ptr->args);
+  dca::concurrency::Pthreading::PosixData* data_ptr =
+      static_cast<dca::concurrency::Pthreading::PosixData*>(void_ptr);
+  quadrature_functions_type* functions_ptr = static_cast<quadrature_functions_type*>(data_ptr->arg);
 
   int id = data_ptr->id;
-  int nr_threads = data_ptr->nr_threads;
+  int nr_threads = data_ptr->num_threads;
 
   FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& I_q =
       *(functions_ptr->I_q_ptr);
@@ -246,7 +247,7 @@ void quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G_
   quadrature_integration_functions_obj.H_q_ptr = &H_q;
   quadrature_integration_functions_obj.G_q_ptr = &G_q;
 
-  dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY> parallelization_obj;
+  dca::concurrency::Pthreading parallelization_obj;
 
   parallelization_obj.execute(nr_threads, quadrature_integration_G_q_t_mt<scalar_type>,
                               (void*)&quadrature_integration_functions_obj);
@@ -257,11 +258,12 @@ template <typename scalar_type>
 void* quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G_q_t_mt(void* void_ptr) {
   typedef quadrature_integration_functions<scalar_type> quadrature_functions_type;
 
-  dca::concurrency::posix_data* data_ptr = static_cast<dca::concurrency::posix_data*>(void_ptr);
-  quadrature_functions_type* functions_ptr = static_cast<quadrature_functions_type*>(data_ptr->args);
+  dca::concurrency::Pthreading::PosixData* data_ptr =
+      static_cast<dca::concurrency::Pthreading::PosixData*>(void_ptr);
+  quadrature_functions_type* functions_ptr = static_cast<quadrature_functions_type*>(data_ptr->arg);
 
   int id = data_ptr->id;
-  int nr_threads = data_ptr->nr_threads;
+  int nr_threads = data_ptr->num_threads;
 
   double beta = functions_ptr->beta;
 

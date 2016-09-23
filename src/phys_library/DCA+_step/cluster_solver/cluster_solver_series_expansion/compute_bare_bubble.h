@@ -18,8 +18,8 @@
 #include <stdexcept>
 #include <utility>
 
+#include "dca/concurrency/pthreading/pthreading.hpp"
 #include "dca/concurrency/util/get_bounds.hpp"
-#include "dca/concurrency/parallelization_pthreads.h"
 #include "dca/util/print_time.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
@@ -147,7 +147,7 @@ void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded_
 
     args.concurrency_ptr = &concurrency;
 
-    dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY> pthreads;
+    dca::concurrency::Pthreading pthreads;
     switch (channel_value) {
       case ph:
         pthreads.execute(nr_threads, threaded_execute_on_cluster_ph, (void*)&args);
@@ -212,8 +212,9 @@ void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::execute_o
 template <channel_type channel_value, class parameters_type, class k_dmn_t, class w_dmn_t>
 void* compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded_execute_on_cluster_ph(
     void* void_ptr) {
-  dca::concurrency::posix_data* data_ptr = static_cast<dca::concurrency::posix_data*>(void_ptr);
-  bubble_data* bubble_ptr = static_cast<bubble_data*>(data_ptr->args);
+  dca::concurrency::Pthreading::PosixData* data_ptr =
+      static_cast<dca::concurrency::Pthreading::PosixData*>(void_ptr);
+  bubble_data* bubble_ptr = static_cast<bubble_data*>(data_ptr->arg);
 
   G_function_type& G = *(bubble_ptr->G_ptr);
   function_type& chi = *(bubble_ptr->chi_ptr);
@@ -224,7 +225,7 @@ void* compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded
   std::pair<int, int> k_bounds = concurrency.get_bounds(k_dmn);
 
   int id = data_ptr->id;
-  int nr_threads = data_ptr->nr_threads;
+  int nr_threads = data_ptr->num_threads;
 
   k_dmn_t q_dmn;
   std::pair<int, int> q_bounds = dca::concurrency::util::getBounds(id, nr_threads, q_dmn);
@@ -300,8 +301,9 @@ void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::execute_o
 template <channel_type channel_value, class parameters_type, class k_dmn_t, class w_dmn_t>
 void* compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded_execute_on_cluster_pp(
     void* void_ptr) {
-  dca::concurrency::posix_data* data_ptr = static_cast<dca::concurrency::posix_data*>(void_ptr);
-  bubble_data* bubble_ptr = static_cast<bubble_data*>(data_ptr->args);
+  dca::concurrency::Pthreading::PosixData* data_ptr =
+      static_cast<dca::concurrency::Pthreading::PosixData*>(void_ptr);
+  bubble_data* bubble_ptr = static_cast<bubble_data*>(data_ptr->arg);
 
   G_function_type& G = *(bubble_ptr->G_ptr);
   function_type& chi = *(bubble_ptr->chi_ptr);
@@ -312,7 +314,7 @@ void* compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded
   std::pair<int, int> k_bounds = concurrency.get_bounds(k_dmn);
 
   int id = data_ptr->id;
-  int nr_threads = data_ptr->nr_threads;
+  int nr_threads = data_ptr->num_threads;
 
   k_dmn_t q_dmn;
   std::pair<int, int> q_bounds = dca::concurrency::util::getBounds(id, nr_threads, q_dmn);

@@ -17,8 +17,8 @@
 #include <stdexcept>
 #include <vector>
 
+#include "dca/concurrency/pthreading/pthreading.hpp"
 #include "dca/concurrency/util/get_bounds.hpp"
-#include "dca/concurrency/parallelization_pthreads.h"
 #include "comp_library/function_library/include_function_library.h"
 #include "math_library/geometry_library/vector_operations/vector_operations.hpp"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_domain.h"
@@ -169,7 +169,7 @@ void tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_mt
 
   // tetrahedron_integration_functions_obj.G_int_vec.resize(nr_threads, G_int);
 
-  dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY> parallelization_obj;
+  dca::concurrency::Pthreading parallelization_obj;
 
   switch (DIMENSION) {
     //       case 1:
@@ -270,12 +270,12 @@ template <typename scalar_type>
 void* tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_mt_2D(void* void_ptr) {
   typedef tetrahedron_integration_functions<scalar_type> tetrahedron_functions_type;
 
-  dca::concurrency::posix_data* data_ptr = static_cast<dca::concurrency::posix_data*>(void_ptr);
-  tetrahedron_functions_type* functions_ptr =
-      static_cast<tetrahedron_functions_type*>(data_ptr->args);
+  dca::concurrency::Pthreading::PosixData* data_ptr =
+      static_cast<dca::concurrency::Pthreading::PosixData*>(void_ptr);
+  tetrahedron_functions_type* functions_ptr = static_cast<tetrahedron_functions_type*>(data_ptr->arg);
 
   int id = data_ptr->id;
-  int nr_threads = data_ptr->nr_threads;
+  int nr_threads = data_ptr->num_threads;
 
   FUNC_LIB::function<scalar_type, tet_dmn_type>& w_tet = *(functions_ptr->w_tet_ptr);
   FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type>>& G_tet =
@@ -393,12 +393,12 @@ template <typename scalar_type>
 void* tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_mt_3D(void* void_ptr) {
   typedef tetrahedron_integration_functions<scalar_type> tetrahedron_functions_type;
 
-  dca::concurrency::posix_data* data_ptr = static_cast<dca::concurrency::posix_data*>(void_ptr);
-  tetrahedron_functions_type* functions_ptr =
-      static_cast<tetrahedron_functions_type*>(data_ptr->args);
+  dca::concurrency::Pthreading::PosixData* data_ptr =
+      static_cast<dca::concurrency::Pthreading::PosixData*>(void_ptr);
+  tetrahedron_functions_type* functions_ptr = static_cast<tetrahedron_functions_type*>(data_ptr->arg);
 
   int id = data_ptr->id;
-  int nr_threads = data_ptr->nr_threads;
+  int nr_threads = data_ptr->num_threads;
 
   FUNC_LIB::function<scalar_type, tet_dmn_type>& w_tet = *(functions_ptr->w_tet_ptr);
   FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type>>& G_tet =

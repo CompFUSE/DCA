@@ -19,8 +19,8 @@
 #include <iostream>
 #include <utility>
 
+#include "dca/concurrency/pthreading/pthreading.hpp"
 #include "dca/concurrency/util/get_bounds.hpp"
-#include "dca/concurrency/parallelization_pthreads.h"
 #include "dca/util/print_time.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/compute_bare_bubble.h"
@@ -282,7 +282,7 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_on_cluste
   }
 
   {
-    dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY> pthreads;
+    dca::concurrency::Pthreading pthreads;
 
     pthreads.execute(nr_threads, threaded_execute_2B, (void*)&args);
   }
@@ -323,8 +323,9 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_on_cluste
 
 template <class parameters_type, class k_dmn_t>
 void* sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_2B(void* void_ptr) {
-  dca::concurrency::posix_data* data_ptr = static_cast<dca::concurrency::posix_data*>(void_ptr);
-  sigma_perturbation_data* sigma_pert_ptr = static_cast<sigma_perturbation_data*>(data_ptr->args);
+  dca::concurrency::Pthreading::PosixData* data_ptr =
+      static_cast<dca::concurrency::Pthreading::PosixData*>(void_ptr);
+  sigma_perturbation_data* sigma_pert_ptr = static_cast<sigma_perturbation_data*>(data_ptr->arg);
 
   // U_function_type&   U   = *(sigma_pert_ptr->U_ptr);
 
@@ -338,7 +339,7 @@ void* sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_2B(void*
   std::pair<int, int> q_bounds = concurrency.get_bounds(q_dmn);
 
   int id = data_ptr->id;
-  int nr_threads = data_ptr->nr_threads;
+  int nr_threads = data_ptr->num_threads;
 
   k_dmn_t k_dmn;
   std::pair<int, int> k_bounds = dca::concurrency::util::getBounds(id, nr_threads, k_dmn);
