@@ -18,9 +18,9 @@
 #include <stdexcept>
 #include <string>
 
-#include "dca/phys/DCA_step/cluster_mapping/cluster_exclusion.hpp"
-#include "dca/phys/DCA_step/cluster_mapping/double_counting_correction.hpp"
-#include "dca/phys/DCA_step/cluster_mapping/update_chemical_potential.hpp"
+#include "dca/phys/dca_step/cluster_mapping/cluster_exclusion.hpp"
+#include "dca/phys/dca_step/cluster_mapping/double_counting_correction.hpp"
+#include "dca/phys/dca_step/cluster_mapping/update_chemical_potential.hpp"
 #include "dca/util/print_time.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/IO_library/IO.hpp"
