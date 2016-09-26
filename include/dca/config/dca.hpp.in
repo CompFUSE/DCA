@@ -16,6 +16,7 @@
 #include "dca/config/haves_defines.hpp"
 #include "dca/config/config_defines.hpp"
 #include "dca/config/concurrency.hpp"    // defines Concurrency
+#include "dca/config/threading.hpp"      // defines Threading
 #include "dca/config/lattice_model.hpp"  // defines Model
 #include "dca/config/profiler.hpp"       // defines Profiler
 #include "dca/config/rng.hpp"            // defines RandomNumberGenerator
@@ -25,8 +26,8 @@
 constexpr DCA::ClusterSolverName solver_name = @DCA_CLUSTER_SOLVER_NAME@;
 
 #include "dca/phys/parameters/parameters.hpp"
-using ParametersType =
-    dca::phys::params::Parameters<Concurrency, Profiler, Model, RandomNumberGenerator, solver_name>;
+using ParametersType = dca::phys::params::Parameters<Concurrency, Threading, Profiler, Model,
+                                                     RandomNumberGenerator, solver_name>;
 
 #include "phys_library/DCA+_data/DCA_data.h"
 using DcaData = DCA::DCA_data<ParametersType>;
@@ -35,6 +36,7 @@ using DcaData = DCA::DCA_data<ParametersType>;
 using ClusterSolverBaseType =
     DCA::cluster_solver<solver_name, walker_device, ParametersType, DcaData>;
 
+// TODO: Clean this up (remove #ifdef).
 #ifdef DCA_WITH_THREADED_SOLVER
 #include "$DCA_THREADED_SOLVER_INCLUDE@"
 using ClusterSolver = @DCA_THREADED_SOLVER_TYPE@;

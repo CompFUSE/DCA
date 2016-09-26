@@ -9,9 +9,8 @@
 //
 // This class reads, stores, and writes the Brillouin zone parameters.
 //
-// TODO: - This set of 'parameters' is usually not read from the input file but computed from
-//         compute_band_structure.
-//       - Const correctness.
+// TODO: This set of 'parameters' is usually not read from the input file but computed from
+//       compute_band_structure. This is why the getter function return non-const references.
 
 #ifndef DCA_PHYS_PARAMETERS_BRILLOUIN_ZONE_PARAMETERS_HPP
 #define DCA_PHYS_PARAMETERS_BRILLOUIN_ZONE_PARAMETERS_HPP
@@ -31,11 +30,11 @@ public:
       : coordinate_type_("absolute"), coordinate_names_(0), Brillouin_zone_vectors_(0) {}
 
   template <typename Concurrency>
-  int getBufferSize(Concurrency& concurrency) const;
+  int getBufferSize(const Concurrency& concurrency) const;
   template <typename Concurrency>
-  void pack(Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
+  void pack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
   template <typename Concurrency>
-  void unpack(Concurrency& concurrency, int* buffer, int buffer_size, int& position);
+  void unpack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position);
 
   template <typename ReaderOrWriter>
   void readWrite(ReaderOrWriter& reader_or_writer);
@@ -57,7 +56,7 @@ private:
 };
 
 template <typename Concurrency>
-int BrillouinZoneParameters::getBufferSize(Concurrency& concurrency) const {
+int BrillouinZoneParameters::getBufferSize(const Concurrency& concurrency) const {
   int buffer_size = 0;
 
   buffer_size += concurrency.get_buffer_size(coordinate_type_);
@@ -68,7 +67,7 @@ int BrillouinZoneParameters::getBufferSize(Concurrency& concurrency) const {
 }
 
 template <typename Concurrency>
-void BrillouinZoneParameters::pack(Concurrency& concurrency, int* buffer, int buffer_size,
+void BrillouinZoneParameters::pack(const Concurrency& concurrency, int* buffer, int buffer_size,
                                    int& position) const {
   concurrency.pack(buffer, buffer_size, position, coordinate_type_);
   concurrency.pack(buffer, buffer_size, position, coordinate_names_);
@@ -76,7 +75,7 @@ void BrillouinZoneParameters::pack(Concurrency& concurrency, int* buffer, int bu
 }
 
 template <typename Concurrency>
-void BrillouinZoneParameters::unpack(Concurrency& concurrency, int* buffer, int buffer_size,
+void BrillouinZoneParameters::unpack(const Concurrency& concurrency, int* buffer, int buffer_size,
                                      int& position) {
   concurrency.unpack(buffer, buffer_size, position, coordinate_type_);
   concurrency.unpack(buffer, buffer_size, position, coordinate_names_);

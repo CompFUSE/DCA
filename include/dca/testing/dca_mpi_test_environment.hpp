@@ -14,7 +14,7 @@
 
 #include <string>
 #include "gtest/gtest.h"
-#include "dca/concurrency/parallelization_mpi.h"
+#include "dca/parallel/mpi_concurrency/mpi_concurrency.hpp"
 
 namespace dca {
 namespace testing {
@@ -22,7 +22,7 @@ namespace testing {
 
 class DcaMpiTestEnvironment : public ::testing::Environment {
 public:
-  using ConcurrencyType = dca::concurrency::parallelization<dca::concurrency::MPI_LIBRARY>;
+  using ConcurrencyType = dca::parallel::MPIConcurrency;
 
   DcaMpiTestEnvironment(int argc, char* argv[], std::string file_name)
       : concurrency(argc, argv), input_file_name(file_name) {}

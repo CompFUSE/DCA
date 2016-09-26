@@ -8,8 +8,6 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
 // This class reads, stores, and writes the function parameters.
-//
-// TODO: Const correctness.
 
 #ifndef DCA_PHYS_PARAMETERS_FUNCTION_PARAMETERS_HPP
 #define DCA_PHYS_PARAMETERS_FUNCTION_PARAMETERS_HPP
@@ -45,11 +43,11 @@ public:
         tp_cluster_(0) {}
 
   template <typename Concurrency>
-  int getBufferSize(Concurrency& concurrency) const;
+  int getBufferSize(const Concurrency& concurrency) const;
   template <typename Concurrency>
-  void pack(Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
+  void pack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
   template <typename Concurrency>
-  void unpack(Concurrency& concurrency, int* buffer, int buffer_size, int& position);
+  void unpack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position);
 
   template <typename ReaderOrWriter>
   void readWrite(ReaderOrWriter& reader_or_writer);
@@ -118,7 +116,7 @@ private:
 };
 
 template <typename Concurrency>
-int FunctionParameters::getBufferSize(Concurrency& concurrency) const {
+int FunctionParameters::getBufferSize(const Concurrency& concurrency) const {
   int buffer_size = 0;
 
   buffer_size += concurrency.get_buffer_size(H_k_grid_size_);
@@ -142,7 +140,7 @@ int FunctionParameters::getBufferSize(Concurrency& concurrency) const {
 }
 
 template <typename Concurrency>
-void FunctionParameters::pack(Concurrency& concurrency, int* buffer, int buffer_size,
+void FunctionParameters::pack(const Concurrency& concurrency, int* buffer, int buffer_size,
                               int& position) const {
   concurrency.pack(buffer, buffer_size, position, H_k_grid_size_);
 
@@ -163,7 +161,7 @@ void FunctionParameters::pack(Concurrency& concurrency, int* buffer, int buffer_
 }
 
 template <typename Concurrency>
-void FunctionParameters::unpack(Concurrency& concurrency, int* buffer, int buffer_size,
+void FunctionParameters::unpack(const Concurrency& concurrency, int* buffer, int buffer_size,
                                 int& position) {
   concurrency.unpack(buffer, buffer_size, position, H_k_grid_size_);
 

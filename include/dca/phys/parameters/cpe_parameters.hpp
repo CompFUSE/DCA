@@ -8,8 +8,6 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
 // This class reads, stores, and writes the Continuous-pole-expansion (CPE) parameters.
-//
-// TODO: Const correctness.
 
 #ifndef DCA_PHYS_PARAMETERS_CPE_PARAMETERS_HPP
 #define DCA_PHYS_PARAMETERS_CPE_PARAMETERS_HPP
@@ -38,11 +36,11 @@ public:
         compute_cluster_spectrum_("false") {}
 
   template <typename Concurrency>
-  int getBufferSize(Concurrency& concurrency) const;
+  int getBufferSize(const Concurrency& concurrency) const;
   template <typename Concurrency>
-  void pack(Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
+  void pack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
   template <typename Concurrency>
-  void unpack(Concurrency& concurrency, int* buffer, int buffer_size, int& position);
+  void unpack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position);
 
   template <typename ReaderOrWriter>
   void readWrite(ReaderOrWriter& reader_or_writer);
@@ -96,7 +94,7 @@ private:
 };
 
 template <typename Concurrency>
-int CpeParameters::getBufferSize(Concurrency& concurrency) const {
+int CpeParameters::getBufferSize(const Concurrency& concurrency) const {
   int buffer_size = 0;
 
   buffer_size += concurrency.get_buffer_size(do_CPE_);
@@ -115,7 +113,8 @@ int CpeParameters::getBufferSize(Concurrency& concurrency) const {
 }
 
 template <typename Concurrency>
-void CpeParameters::pack(Concurrency& concurrency, int* buffer, int buffer_size, int& position) const {
+void CpeParameters::pack(const Concurrency& concurrency, int* buffer, int buffer_size,
+                         int& position) const {
   concurrency.pack(buffer, buffer_size, position, do_CPE_);
   concurrency.pack(buffer, buffer_size, position, N_wn_);
   concurrency.pack(buffer, buffer_size, position, CPE_smoothing_factor_);
@@ -130,7 +129,8 @@ void CpeParameters::pack(Concurrency& concurrency, int* buffer, int buffer_size,
 }
 
 template <typename Concurrency>
-void CpeParameters::unpack(Concurrency& concurrency, int* buffer, int buffer_size, int& position) {
+void CpeParameters::unpack(const Concurrency& concurrency, int* buffer, int buffer_size,
+                           int& position) {
   concurrency.unpack(buffer, buffer_size, position, do_CPE_);
   concurrency.unpack(buffer, buffer_size, position, N_wn_);
   concurrency.unpack(buffer, buffer_size, position, CPE_smoothing_factor_);

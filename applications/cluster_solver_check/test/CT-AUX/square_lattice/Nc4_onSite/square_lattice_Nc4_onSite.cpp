@@ -18,7 +18,7 @@
 
 #include "gtest/gtest.h"
 
-#include "dca/config/haves_defines.hpp"
+#include "dca/parallel/pthreading/pthreading.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
@@ -49,8 +49,9 @@ TEST(squareLattice_Nc4_onSite, Self_Energy) {
   using DcaPointGroupType = D4;
   using LatticeType = dca::phys::models::square_lattice<DcaPointGroupType>;
   using ModelType = dca::phys::models::TightBindingModel<LatticeType>;
+  using Threading = dca::parallel::Pthreading;
   using ParametersType =
-      dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType,
+      dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
                                     PROFILER::NullProfiler, ModelType, RngType, CT_AUX_CLUSTER_SOLVER>;
   using DcaDataType = DCA_data<ParametersType>;
   using QmcSolverType =

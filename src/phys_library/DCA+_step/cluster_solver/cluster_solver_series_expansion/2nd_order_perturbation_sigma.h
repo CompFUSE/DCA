@@ -19,7 +19,8 @@
 #include <iostream>
 #include <utility>
 
-#include "dca/concurrency/parallelization_pthreads.h"
+#include "dca/parallel/util/get_bounds.hpp"
+#include "dca/parallel/util/threading_data.hpp"
 #include "dca/util/print_time.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/compute_bare_bubble.h"
@@ -36,6 +37,7 @@ template <class parameters_type, class k_dmn_t>
 class sigma_perturbation<2, parameters_type, k_dmn_t> {
 public:
   using concurrency_type = typename parameters_type::concurrency_type;
+  using Threading = typename parameters_type::ThreadingType;
 
   using w = dmn_0<frequency_domain>;
   using w_VERTEX_BOSONIC = dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED_BOSONIC>>;
@@ -281,7 +283,7 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_on_cluste
   }
 
   {
-    dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY> pthreads;
+    Threading pthreads;
 
     pthreads.execute(nr_threads, threaded_execute_2B, (void*)&args);
   }
@@ -322,8 +324,8 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_on_cluste
 
 template <class parameters_type, class k_dmn_t>
 void* sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_2B(void* void_ptr) {
-  dca::concurrency::posix_data* data_ptr = static_cast<dca::concurrency::posix_data*>(void_ptr);
-  sigma_perturbation_data* sigma_pert_ptr = static_cast<sigma_perturbation_data*>(data_ptr->args);
+  dca::parallel::ThreadingData* data_ptr = static_cast<dca::parallel::ThreadingData*>(void_ptr);
+  sigma_perturbation_data* sigma_pert_ptr = static_cast<sigma_perturbation_data*>(data_ptr->arg);
 
   // U_function_type&   U   = *(sigma_pert_ptr->U_ptr);
 
@@ -337,12 +339,10 @@ void* sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_2B(void*
   std::pair<int, int> q_bounds = concurrency.get_bounds(q_dmn);
 
   int id = data_ptr->id;
-  int nr_threads = data_ptr->nr_threads;
+  int nr_threads = data_ptr->num_threads;
 
   k_dmn_t k_dmn;
-  std::pair<int, int> k_bounds =
-      dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY>::get_bounds(id, nr_threads,
-                                                                                     k_dmn);
+  std::pair<int, int> k_bounds = dca::parallel::util::getBounds(id, nr_threads, k_dmn);
 
   for (int k_ind = k_bounds.first; k_ind < k_bounds.second; k_ind++) {
     double percentage = double(k_ind - k_bounds.first) / double(k_bounds.second - k_bounds.first);

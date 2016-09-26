@@ -24,7 +24,8 @@
 #include <utility>
 #include <vector>
 
-#include "dca/concurrency/parallelization_pthreads.h"
+#include "dca/parallel/util/get_bounds.hpp"
+#include "dca/parallel/util/threading_data.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/IO_library/IO.hpp"
 #include "comp_library/linalg/linalg.hpp"
@@ -53,6 +54,7 @@ public:
 
   using profiler_type = typename parameters_type::profiler_type;
   using concurrency_type = typename parameters_type::concurrency_type;
+  using Threading = typename parameters_type::ThreadingType;
 
   using w = dmn_0<frequency_domain>;
   using w_IMAG = dmn_0<frequency_domain_imag_axis>;
@@ -324,7 +326,7 @@ void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn
       for (int l = 0; l < nr_threads; l++)
         CPE_data_vector[l].initialize(l, bounds, parameters, f_target, *this);
 
-      dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY> parallelization_obj;
+      Threading parallelization_obj;
 
       parallelization_obj.execute(nr_threads, threaded_analytical_continuation,
                                   (void*)&CPE_data_vector);
@@ -346,12 +348,12 @@ void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn
 template <class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
 void* continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t,
                                 WEIGHTED_GRADIENT_METHOD>::threaded_analytical_continuation(void* void_ptr) {
-  dca::concurrency::posix_data* data_ptr = static_cast<dca::concurrency::posix_data*>(void_ptr);
+  dca::parallel::ThreadingData* data_ptr = static_cast<dca::parallel::ThreadingData*>(void_ptr);
   std::vector<CPE_data_type>* CPE_data_vec_ptr =
-      static_cast<std::vector<CPE_data_type>*>(data_ptr->args);
+      static_cast<std::vector<CPE_data_type>*>(data_ptr->arg);
 
   int id = data_ptr->id;
-  int nr_threads = data_ptr->nr_threads;
+  int nr_threads = data_ptr->num_threads;
 
   std::vector<CPE_data_type>& CPE_data_vec = *(CPE_data_vec_ptr);
 
@@ -360,9 +362,7 @@ void* continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dm
   dmn_2<b, s> nu_dmn;
   dmn_3<b, s, k_dmn_t> b_s_k_dmn;
 
-  std::pair<int, int> bounds =
-      dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY>::get_bounds(id, nr_threads,
-                                                                                     MPI_bounds);
+  std::pair<int, int> bounds = dca::parallel::util::getBounds(id, nr_threads, MPI_bounds);
 
   int coor[3];
   for (int l = bounds.first; l < bounds.second; l++) {

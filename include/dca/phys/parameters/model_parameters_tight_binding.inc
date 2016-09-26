@@ -15,11 +15,11 @@ public:
   ModelParameters() : t_(1.), t_prime_(0.), U_(4.), V_(0.), V_prime_(0.) {}
 
   template <typename Concurrency>
-  int getBufferSize(Concurrency& concurrency) const;
+  int getBufferSize(const Concurrency& concurrency) const;
   template <typename Concurrency>
-  void pack(Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
+  void pack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
   template <typename Concurrency>
-  void unpack(Concurrency& concurrency, int* buffer, int buffer_size, int& position);
+  void unpack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position);
 
   template <typename ReaderOrWriter>
   void readWrite(ReaderOrWriter& reader_or_writer);
@@ -50,7 +50,8 @@ private:
 
 template <typename Lattice>
 template <typename Concurrency>
-int ModelParameters<models::TightBindingModel<Lattice>>::getBufferSize(Concurrency& concurrency) const {
+int ModelParameters<models::TightBindingModel<Lattice>>::getBufferSize(
+    const Concurrency& concurrency) const {
   int buffer_size = 0;
 
   buffer_size += concurrency.get_buffer_size(t_);
@@ -64,8 +65,9 @@ int ModelParameters<models::TightBindingModel<Lattice>>::getBufferSize(Concurren
 
 template <typename Lattice>
 template <typename Concurrency>
-void ModelParameters<models::TightBindingModel<Lattice>>::pack(Concurrency& concurrency, int* buffer,
-                                                               int buffer_size, int& position) const {
+void ModelParameters<models::TightBindingModel<Lattice>>::pack(const Concurrency& concurrency,
+                                                               int* buffer, int buffer_size,
+                                                               int& position) const {
   concurrency.pack(buffer, buffer_size, position, t_);
   concurrency.pack(buffer, buffer_size, position, t_prime_);
   concurrency.pack(buffer, buffer_size, position, U_);
@@ -75,7 +77,7 @@ void ModelParameters<models::TightBindingModel<Lattice>>::pack(Concurrency& conc
 
 template <typename Lattice>
 template <typename Concurrency>
-void ModelParameters<models::TightBindingModel<Lattice>>::unpack(Concurrency& concurrency,
+void ModelParameters<models::TightBindingModel<Lattice>>::unpack(const Concurrency& concurrency,
                                                                  int* buffer, int buffer_size,
                                                                  int& position) {
   concurrency.unpack(buffer, buffer_size, position, t_);

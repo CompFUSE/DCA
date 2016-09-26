@@ -8,8 +8,6 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
 // This class reads, stores, and writes the DCA parameters.
-//
-// TODO: Const correctness.
 
 #ifndef DCA_PHYS_PARAMETERS_DCA_PARAMETERS_HPP
 #define DCA_PHYS_PARAMETERS_DCA_PARAMETERS_HPP
@@ -49,11 +47,11 @@ public:
         max_deconvolution_iterations_(16) {}
 
   template <typename Concurrency>
-  int getBufferSize(Concurrency& concurrency) const;
+  int getBufferSize(const Concurrency& concurrency) const;
   template <typename Concurrency>
-  void pack(Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
+  void pack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
   template <typename Concurrency>
-  void unpack(Concurrency& concurrency, int* buffer, int buffer_size, int& position);
+  void unpack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position);
 
   template <typename ReaderOrWriter>
   void readWrite(ReaderOrWriter& reader_or_writer);
@@ -149,7 +147,7 @@ private:
 };
 
 template <typename Concurrency>
-int DcaParameters::getBufferSize(Concurrency& concurrency) const {
+int DcaParameters::getBufferSize(const Concurrency& concurrency) const {
   int buffer_size = 0;
 
   buffer_size += concurrency.get_buffer_size(do_DCA_plus_);
@@ -177,7 +175,8 @@ int DcaParameters::getBufferSize(Concurrency& concurrency) const {
 }
 
 template <typename Concurrency>
-void DcaParameters::pack(Concurrency& concurrency, int* buffer, int buffer_size, int& position) const {
+void DcaParameters::pack(const Concurrency& concurrency, int* buffer, int buffer_size,
+                         int& position) const {
   concurrency.pack(buffer, buffer_size, position, do_DCA_plus_);
   concurrency.pack(buffer, buffer_size, position, interacting_bands_);
   concurrency.pack(buffer, buffer_size, position, DCA_iterations_);
@@ -201,7 +200,8 @@ void DcaParameters::pack(Concurrency& concurrency, int* buffer, int buffer_size,
 }
 
 template <typename Concurrency>
-void DcaParameters::unpack(Concurrency& concurrency, int* buffer, int buffer_size, int& position) {
+void DcaParameters::unpack(const Concurrency& concurrency, int* buffer, int buffer_size,
+                           int& position) {
   concurrency.unpack(buffer, buffer_size, position, do_DCA_plus_);
   concurrency.unpack(buffer, buffer_size, position, interacting_bands_);
   concurrency.unpack(buffer, buffer_size, position, DCA_iterations_);

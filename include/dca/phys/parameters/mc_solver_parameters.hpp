@@ -11,8 +11,6 @@
 // This class reads, stores, and writes the Monte Carlo solver parameters.
 // It is templated on the MC solver name and only implemented when specialized for CT-AUX and
 // SS-CT-HYB.
-//
-// TODO: Const correctness.
 
 #ifndef DCA_PHYS_PARAMETERS_MC_SOLVER_PARAMETERS_HPP
 #define DCA_PHYS_PARAMETERS_MC_SOLVER_PARAMETERS_HPP
@@ -37,11 +35,11 @@ public:
   McSolverParameters() : submatrix_size_(128), initial_matrix_size_(128), K_parameter_(1.) {}
 
   template <typename Concurrency>
-  int getBufferSize(Concurrency& concurrency) const;
+  int getBufferSize(const Concurrency& concurrency) const;
   template <typename Concurrency>
-  void pack(Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
+  void pack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
   template <typename Concurrency>
-  void unpack(Concurrency& concurrency, int* buffer, int buffer_size, int& position);
+  void unpack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position);
 
   template <typename ReaderOrWriter>
   void readWrite(ReaderOrWriter& reader_or_writer);
@@ -63,7 +61,7 @@ private:
 };
 
 template <typename Concurrency>
-int McSolverParameters<DCA::CT_AUX_CLUSTER_SOLVER>::getBufferSize(Concurrency& concurrency) const {
+int McSolverParameters<DCA::CT_AUX_CLUSTER_SOLVER>::getBufferSize(const Concurrency& concurrency) const {
   int buffer_size = 0;
 
   buffer_size += concurrency.get_buffer_size(submatrix_size_);
@@ -74,7 +72,7 @@ int McSolverParameters<DCA::CT_AUX_CLUSTER_SOLVER>::getBufferSize(Concurrency& c
 }
 
 template <typename Concurrency>
-void McSolverParameters<DCA::CT_AUX_CLUSTER_SOLVER>::pack(Concurrency& concurrency, int* buffer,
+void McSolverParameters<DCA::CT_AUX_CLUSTER_SOLVER>::pack(const Concurrency& concurrency, int* buffer,
                                                           int buffer_size, int& position) const {
   concurrency.pack(buffer, buffer_size, position, submatrix_size_);
   concurrency.pack(buffer, buffer_size, position, initial_matrix_size_);
@@ -82,8 +80,9 @@ void McSolverParameters<DCA::CT_AUX_CLUSTER_SOLVER>::pack(Concurrency& concurren
 }
 
 template <typename Concurrency>
-void McSolverParameters<DCA::CT_AUX_CLUSTER_SOLVER>::unpack(Concurrency& concurrency, int* buffer,
-                                                            int buffer_size, int& position) {
+void McSolverParameters<DCA::CT_AUX_CLUSTER_SOLVER>::unpack(const Concurrency& concurrency,
+                                                            int* buffer, int buffer_size,
+                                                            int& position) {
   concurrency.unpack(buffer, buffer_size, position, submatrix_size_);
   concurrency.unpack(buffer, buffer_size, position, initial_matrix_size_);
   concurrency.unpack(buffer, buffer_size, position, K_parameter_);
@@ -127,11 +126,11 @@ public:
       : Sigma_tail_cutoff_(0), steps_per_sweep_(0.4), swaps_per_sweep_(0.1), shifts_per_sweep_(0.4) {}
 
   template <typename Concurrency>
-  int getBufferSize(Concurrency& concurrency) const;
+  int getBufferSize(const Concurrency& concurrency) const;
   template <typename Concurrency>
-  void pack(Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
+  void pack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
   template <typename Concurrency>
-  void unpack(Concurrency& concurrency, int* buffer, int buffer_size, int& position);
+  void unpack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position);
 
   template <typename ReaderOrWriter>
   void readWrite(ReaderOrWriter& reader_or_writer);
@@ -157,7 +156,7 @@ private:
 };
 
 template <typename Concurrency>
-int McSolverParameters<DCA::SS_CT_HYB>::getBufferSize(Concurrency& concurrency) const {
+int McSolverParameters<DCA::SS_CT_HYB>::getBufferSize(const Concurrency& concurrency) const {
   int buffer_size = 0;
 
   buffer_size += concurrency.get_buffer_size(Sigma_tail_cutoff_);
@@ -169,7 +168,7 @@ int McSolverParameters<DCA::SS_CT_HYB>::getBufferSize(Concurrency& concurrency) 
 }
 
 template <typename Concurrency>
-void McSolverParameters<DCA::SS_CT_HYB>::pack(Concurrency& concurrency, int* buffer,
+void McSolverParameters<DCA::SS_CT_HYB>::pack(const Concurrency& concurrency, int* buffer,
                                               int buffer_size, int& position) const {
   concurrency.pack(buffer, buffer_size, position, Sigma_tail_cutoff_);
   concurrency.pack(buffer, buffer_size, position, steps_per_sweep_);
@@ -178,7 +177,7 @@ void McSolverParameters<DCA::SS_CT_HYB>::pack(Concurrency& concurrency, int* buf
 }
 
 template <typename Concurrency>
-void McSolverParameters<DCA::SS_CT_HYB>::unpack(Concurrency& concurrency, int* buffer,
+void McSolverParameters<DCA::SS_CT_HYB>::unpack(const Concurrency& concurrency, int* buffer,
                                                 int buffer_size, int& position) {
   concurrency.unpack(buffer, buffer_size, position, Sigma_tail_cutoff_);
   concurrency.unpack(buffer, buffer_size, position, steps_per_sweep_);

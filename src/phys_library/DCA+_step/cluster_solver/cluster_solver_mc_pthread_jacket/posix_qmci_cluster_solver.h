@@ -148,7 +148,8 @@ template <class qmci_integrator_type>
 void posix_qmci_integrator<qmci_integrator_type>::integrate() {
   profiler_type profiler(__FUNCTION__, "posix-MC-Integration", __LINE__);
 
-  concurrency << "\n\t\t threaded QMC integration starts\n\n";
+  if (concurrency.id() == concurrency.first())
+    std::cout << "\n\t\t threaded QMC integration starts\n" << std::endl;
 
   std::vector<pthread_t> threads(nr_accumulators + nr_walkers);
   std::vector<std::pair<this_type*, int>> data(nr_accumulators + nr_walkers);
@@ -181,7 +182,8 @@ void posix_qmci_integrator<qmci_integrator_type>::integrate() {
     total_time = duration.sec + 1.e-6 * duration.usec;
   }
 
-  concurrency << "\n\t\t threaded QMC integration ends\n\n";
+  if (concurrency.id() == concurrency.first())
+    std::cout << "\n\t\t threaded QMC integration ends\n" << std::endl;
 }
 
 template <class qmci_integrator_type>
@@ -233,8 +235,10 @@ void* posix_qmci_integrator<qmci_integrator_type>::start_accumulator_static(void
 
 template <class qmci_integrator_type>
 void posix_qmci_integrator<qmci_integrator_type>::start_walker(int id) {
-  if (id == 0)
-    concurrency << "\n\t\t QMCI starts\n\n";
+  if (id == 0) {
+    if (concurrency.id() == concurrency.first())
+      std::cout << "\n\t\t QMCI starts\n" << std::endl;
+  }
 
   const int rng_index = thread_task_handler_.walkerIDToRngIndex(id);
   walker_type walker(parameters, MOMS, rng_vector[rng_index], id);
@@ -292,14 +296,18 @@ void posix_qmci_integrator<qmci_integrator_type>::start_walker(int id) {
   pthread_mutex_unlock(&mutex_numerical_error);
 #endif  // DCA_WITH_QMC_BIT
 
-  if (id == 0)
-    concurrency << "\n\t\t QMCI ends\n\n";
+  if (id == 0) {
+    if (concurrency.id() == concurrency.first())
+      std::cout << "\n\t\t QMCI ends\n" << std::endl;
+  }
 }
 
 template <class qmci_integrator_type>
 void posix_qmci_integrator<qmci_integrator_type>::warm_up(walker_type& walker, int id) {
-  if (id == 0)
-    concurrency << "\n\t\t warm-up starts\n\n";
+  if (id == 0) {
+    if (concurrency.id() == concurrency.first())
+      std::cout << "\n\t\t warm-up starts\n" << std::endl;
+  }
 
   for (int i = 0; i < parameters.get_warm_up_sweeps(); i++) {
     walker.do_sweep();
@@ -310,8 +318,10 @@ void posix_qmci_integrator<qmci_integrator_type>::warm_up(walker_type& walker, i
 
   walker.is_thermalized() = true;
 
-  if (id == 0)
-    concurrency << "\n\t\t warm-up ends\n\n";
+  if (id == 0) {
+    if (concurrency.id() == concurrency.first())
+      std::cout << "\n\t\t warm-up ends\n" << std::endl;
+  }
 }
 
 template <class qmci_integrator_type>

@@ -11,8 +11,6 @@
 // This class reads, stores, and writes the model paramters.
 // It is templated on the model type and only implemented when specialized for the 2D 2-band model,
 // 2D 4-band model, bilayer model, tight-binding model and material models.
-//
-// TODO: Const correctness.
 
 #ifndef DCA_PHYS_PARAMETERS_MODEL_PARAMETERS_HPP
 #define DCA_PHYS_PARAMETERS_MODEL_PARAMETERS_HPP

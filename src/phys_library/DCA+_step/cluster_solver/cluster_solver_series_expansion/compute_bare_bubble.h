@@ -18,7 +18,8 @@
 #include <stdexcept>
 #include <utility>
 
-#include "dca/concurrency/parallelization_pthreads.h"
+#include "dca/parallel/util/get_bounds.hpp"
+#include "dca/parallel/util/threading_data.hpp"
 #include "dca/util/print_time.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
@@ -38,6 +39,7 @@ class compute_bubble {
 public:
   using profiler_type = typename parameters_type::profiler_type;
   using concurrency_type = typename parameters_type::concurrency_type;
+  using Threading = typename parameters_type::ThreadingType;
 
   using w = dmn_0<frequency_domain>;
   using w_VERTEX_BOSONIC = dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED_BOSONIC>>;
@@ -146,7 +148,7 @@ void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded_
 
     args.concurrency_ptr = &concurrency;
 
-    dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY> pthreads;
+    Threading pthreads;
     switch (channel_value) {
       case ph:
         pthreads.execute(nr_threads, threaded_execute_on_cluster_ph, (void*)&args);
@@ -211,8 +213,8 @@ void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::execute_o
 template <channel_type channel_value, class parameters_type, class k_dmn_t, class w_dmn_t>
 void* compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded_execute_on_cluster_ph(
     void* void_ptr) {
-  dca::concurrency::posix_data* data_ptr = static_cast<dca::concurrency::posix_data*>(void_ptr);
-  bubble_data* bubble_ptr = static_cast<bubble_data*>(data_ptr->args);
+  dca::parallel::ThreadingData* data_ptr = static_cast<dca::parallel::ThreadingData*>(void_ptr);
+  bubble_data* bubble_ptr = static_cast<bubble_data*>(data_ptr->arg);
 
   G_function_type& G = *(bubble_ptr->G_ptr);
   function_type& chi = *(bubble_ptr->chi_ptr);
@@ -223,12 +225,10 @@ void* compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded
   std::pair<int, int> k_bounds = concurrency.get_bounds(k_dmn);
 
   int id = data_ptr->id;
-  int nr_threads = data_ptr->nr_threads;
+  int nr_threads = data_ptr->num_threads;
 
   k_dmn_t q_dmn;
-  std::pair<int, int> q_bounds =
-      dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY>::get_bounds(id, nr_threads,
-                                                                                     q_dmn);
+  std::pair<int, int> q_bounds = dca::parallel::util::getBounds(id, nr_threads, q_dmn);
 
   for (int q_ind = q_bounds.first; q_ind < q_bounds.second; ++q_ind) {
     double percentage = double(q_ind - q_bounds.first) / double(q_bounds.second - q_bounds.first);
@@ -301,8 +301,8 @@ void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::execute_o
 template <channel_type channel_value, class parameters_type, class k_dmn_t, class w_dmn_t>
 void* compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded_execute_on_cluster_pp(
     void* void_ptr) {
-  dca::concurrency::posix_data* data_ptr = static_cast<dca::concurrency::posix_data*>(void_ptr);
-  bubble_data* bubble_ptr = static_cast<bubble_data*>(data_ptr->args);
+  dca::parallel::ThreadingData* data_ptr = static_cast<dca::parallel::ThreadingData*>(void_ptr);
+  bubble_data* bubble_ptr = static_cast<bubble_data*>(data_ptr->arg);
 
   G_function_type& G = *(bubble_ptr->G_ptr);
   function_type& chi = *(bubble_ptr->chi_ptr);
@@ -313,12 +313,10 @@ void* compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded
   std::pair<int, int> k_bounds = concurrency.get_bounds(k_dmn);
 
   int id = data_ptr->id;
-  int nr_threads = data_ptr->nr_threads;
+  int nr_threads = data_ptr->num_threads;
 
   k_dmn_t q_dmn;
-  std::pair<int, int> q_bounds =
-      dca::concurrency::parallelization<dca::concurrency::POSIX_LIBRARY>::get_bounds(id, nr_threads,
-                                                                                     q_dmn);
+  std::pair<int, int> q_bounds = dca::parallel::util::getBounds(id, nr_threads, q_dmn);
 
   for (int q_ind = q_bounds.first; q_ind < q_bounds.second; ++q_ind) {
     double percentage = double(q_ind - q_bounds.first) / double(q_bounds.second - q_bounds.first);

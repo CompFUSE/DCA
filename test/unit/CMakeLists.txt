@@ -1,7 +1,7 @@
-add_subdirectory(concurrency)
 add_subdirectory(function)
 add_subdirectory(linalg)
 add_subdirectory(math/geometry)
 add_subdirectory(math/random)
+add_subdirectory(parallel)
 add_subdirectory(phys)
 add_subdirectory(util)

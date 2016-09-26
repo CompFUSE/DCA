@@ -165,12 +165,14 @@ cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::cluster_solver(
       Sigma_new("Self-Energy-n-0-iteration"),
 
       DCA_iteration(-1) {
-  concurrency << "\n\n\t SS CT-HYB Integrator is born \n\n";
+  if (concurrency.id() == concurrency.first())
+    std::cout << "\n\n\t SS CT-HYB Integrator is born \n" << std::endl;
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::~cluster_solver() {
-  concurrency << "\n\n\t SS CT-HYB Integrator has died \n\n";
+  if (concurrency.id() == concurrency.first())
+    std::cout << "\n\n\t SS CT-HYB Integrator has died \n" << std::endl;
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
@@ -235,7 +237,8 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::initialize
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::integrate() {
-  concurrency << "\n\t\t integration has started \n";
+  if (concurrency.id() == concurrency.first())
+    std::cout << "\n\t\t integration has started" << std::endl;
 
   walker_type walker(parameters, MOMS, rng);
 
@@ -245,7 +248,8 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::integrate(
 
   measure(walker);
 
-  concurrency << "\n\t\t on node integration has ended \n";
+  if (concurrency.id() == concurrency.first())
+    std::cout << "\n\t\t on node integration has ended" << std::endl;
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
@@ -302,14 +306,16 @@ double cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::finalize
 
   dca_info_struct.sign(DCA_iteration) = accumulator.get_sign();
 
-  concurrency << "\n\n\t SS CT-HYB Integrator has finalized \n\n";
+  if (concurrency.id() == concurrency.first())
+    std::cout << "\n\n\t SS CT-HYB Integrator has finalized \n" << std::endl;
 
   return dca_info_struct.L2_Sigma_difference(DCA_iteration);
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::warm_up(walker_type& walker) {
-  concurrency << "\n\t\t warm-up has started\n\n";
+  if (concurrency.id() == concurrency.first())
+    std::cout << "\n\t\t warm-up has started\n" << std::endl;
 
   for (int i = 0; i < parameters.get_warm_up_sweeps(); i++) {
     walker.do_sweep();
@@ -319,12 +325,14 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::warm_up(wa
 
   walker.is_thermalized() = true;
 
-  concurrency << "\n\t\t warm-up has ended\n\n";
+  if (concurrency.id() == concurrency.first())
+    std::cout << "\n\t\t warm-up has ended\n" << std::endl;
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::measure(walker_type& walker) {
-  concurrency << "\n\t\t measuring has started \n\n";
+  if (concurrency.id() == concurrency.first())
+    std::cout << "\n\t\t measuring has started \n" << std::endl;
 
   for (int i = 0; i < parameters.get_number_of_measurements(); i++) {
     walker.do_sweep();
@@ -349,7 +357,8 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::measure(wa
 
   accumulator.finalize();
 
-  concurrency << "\n\t\t measuring has ended \n\n";
+  if (concurrency.id() == concurrency.first())
+    std::cout << "\n\t\t measuring has ended \n" << std::endl;
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
@@ -368,7 +377,8 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::update_she
 
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_error_bars() {
-  concurrency << "\n\t\t computing the error-bars \n";
+  if (concurrency.id() == concurrency.first())
+    std::cout << "\n\t\t computing the error-bars" << std::endl;
 
   const int nb_measurements = accumulator.get_number_of_measurements();
   double sign = accumulator.get_sign() / double(nb_measurements);
@@ -389,7 +399,8 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_er
 
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::sum_measurements() {
-  concurrency << "\n\t\t sum measurements \n";
+  if (concurrency.id() == concurrency.first())
+    std::cout << "\n\t\t sum measurements" << std::endl;
 
   const int nb_measurements = accumulator.get_number_of_measurements();
 
@@ -409,7 +420,8 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::sum_measur
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::symmetrize_measurements() {
-  concurrency << "\n\t\t symmetrize measurements has started \n";
+  if (concurrency.id() == concurrency.first())
+    std::cout << "\n\t\t symmetrize measurements has started" << std::endl;
 
   symmetrize::execute(accumulator.get_G_r_w(), MOMS.H_symmetry);
 
