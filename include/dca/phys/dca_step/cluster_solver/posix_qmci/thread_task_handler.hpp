@@ -14,12 +14,12 @@
 // remaining threads are created in the end, e.g. for 4 walkers and 2 accumulators this means:
 // w, a, w, a, w, w.
 
-#ifndef DCA_PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_POSIX_QMCI_THREAD_TASK_HANDLER_HPP
-#define DCA_PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_POSIX_QMCI_THREAD_TASK_HANDLER_HPP
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_POSIX_QMCI_THREAD_TASK_HANDLER_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_POSIX_QMCI_THREAD_TASK_HANDLER_HPP
 
+#include <cassert>
 #include <string>
 #include <vector>
-#include <cassert>
 
 namespace dca {
 namespace phys {
@@ -56,4 +56,4 @@ private:
 }  // phys
 }  // dca
 
-#endif  // DCA_PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_POSIX_QMCI_THREAD_TASK_HANDLER_HPP
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_POSIX_QMCI_THREAD_TASK_HANDLER_HPP

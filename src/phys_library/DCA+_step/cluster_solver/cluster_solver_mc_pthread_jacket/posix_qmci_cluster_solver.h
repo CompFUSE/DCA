@@ -21,9 +21,11 @@
 #include <stdexcept>
 #include <vector>
 
-#include "dca/phys_library/DCA_step/cluster_solver/posix_qmci/thread_task_handler.hpp"
+#include "dca/phys/dca_step/cluster_solver/posix_qmci/thread_task_handler.hpp"
 #include "comp_library/profiler_library/events/time.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_pthread_jacket/posix_qmci_accumulator.h"
+
+using namespace dca::phys::solver;
 
 namespace DCA {
 
@@ -85,7 +87,7 @@ private:
   const int nr_walkers;
   const int nr_accumulators;
 
-  dca::phys::solver::ThreadTaskHandler thread_task_handler_;
+  ThreadTaskHandler thread_task_handler_;
 
   std::vector<random_number_generator> rng_vector;
 
