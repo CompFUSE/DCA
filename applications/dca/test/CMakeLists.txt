@@ -3,6 +3,7 @@
 dca_add_gtest(dca_sp_DCA+_mpi_test
   EXTENSIVE
   MPI MPI_NUMPROC 8
+  PTHREADS
   INCLUDE_DIRS ${DCA_INCLUDE_DIRS}
   LIBS ${DCA_LIBS})
 
@@ -10,6 +11,7 @@ dca_add_gtest(dca_sp_DCA+_mpi_cuda_test
   EXTENSIVE
   MPI MPI_NUMPROC 8
   CUDA
+  PTHREADS
   INCLUDE_DIRS ${DCA_INCLUDE_DIRS}
   LIBS ${DCA_LIBS})
 

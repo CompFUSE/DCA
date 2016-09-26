@@ -17,7 +17,6 @@
 #include <stdexcept>
 #include <vector>
 
-#include "dca/concurrency/pthreading/pthreading.hpp"
 #include "dca/concurrency/util/get_bounds.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "math_library/geometry_library/vector_operations/vector_operations.hpp"
@@ -40,6 +39,8 @@ public:
   using b = dmn_0<electron_band_domain>;
   using s = dmn_0<electron_spin_domain>;
   using nu = dmn_variadic<b, s>;  // orbital-spin index
+
+  using Threading = typename parameters_type::ThreadingType;
 
   const static int DIMENSION = K_dmn::parameter_type::DIMENSION;
 
@@ -169,7 +170,7 @@ void tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_mt
 
   // tetrahedron_integration_functions_obj.G_int_vec.resize(nr_threads, G_int);
 
-  dca::concurrency::Pthreading parallelization_obj;
+  Threading parallelization_obj;
 
   switch (DIMENSION) {
     //       case 1:
@@ -270,8 +271,7 @@ template <typename scalar_type>
 void* tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_mt_2D(void* void_ptr) {
   typedef tetrahedron_integration_functions<scalar_type> tetrahedron_functions_type;
 
-  dca::concurrency::Pthreading::PosixData* data_ptr =
-      static_cast<dca::concurrency::Pthreading::PosixData*>(void_ptr);
+  typename Threading::PosixData* data_ptr = static_cast<typename Threading::PosixData*>(void_ptr);
   tetrahedron_functions_type* functions_ptr = static_cast<tetrahedron_functions_type*>(data_ptr->arg);
 
   int id = data_ptr->id;
@@ -393,8 +393,7 @@ template <typename scalar_type>
 void* tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_mt_3D(void* void_ptr) {
   typedef tetrahedron_integration_functions<scalar_type> tetrahedron_functions_type;
 
-  dca::concurrency::Pthreading::PosixData* data_ptr =
-      static_cast<dca::concurrency::Pthreading::PosixData*>(void_ptr);
+  typename Threading::PosixData* data_ptr = static_cast<typename Threading::PosixData*>(void_ptr);
   tetrahedron_functions_type* functions_ptr = static_cast<tetrahedron_functions_type*>(data_ptr->arg);
 
   int id = data_ptr->id;

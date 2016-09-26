@@ -24,7 +24,6 @@
 #include <utility>
 #include <vector>
 
-#include "dca/concurrency/pthreading/pthreading.hpp"
 #include "dca/concurrency/util/get_bounds.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/IO_library/IO.hpp"
@@ -54,6 +53,7 @@ public:
 
   using profiler_type = typename parameters_type::profiler_type;
   using concurrency_type = typename parameters_type::concurrency_type;
+  using Threading = typename parameters_type::ThreadingType;
 
   using w = dmn_0<frequency_domain>;
   using w_IMAG = dmn_0<frequency_domain_imag_axis>;
@@ -325,7 +325,7 @@ void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn
       for (int l = 0; l < nr_threads; l++)
         CPE_data_vector[l].initialize(l, bounds, parameters, f_target, *this);
 
-      dca::concurrency::Pthreading parallelization_obj;
+      Threading parallelization_obj;
 
       parallelization_obj.execute(nr_threads, threaded_analytical_continuation,
                                   (void*)&CPE_data_vector);
@@ -347,8 +347,7 @@ void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn
 template <class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
 void* continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t,
                                 WEIGHTED_GRADIENT_METHOD>::threaded_analytical_continuation(void* void_ptr) {
-  dca::concurrency::Pthreading::PosixData* data_ptr =
-      static_cast<dca::concurrency::Pthreading::PosixData*>(void_ptr);
+  typename Threading::PosixData* data_ptr = static_cast<typename Threading::PosixData*>(void_ptr);
   std::vector<CPE_data_type>* CPE_data_vec_ptr =
       static_cast<std::vector<CPE_data_type>*>(data_ptr->arg);
 

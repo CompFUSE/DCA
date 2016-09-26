@@ -18,7 +18,6 @@
 #include <stdexcept>
 #include <utility>
 
-#include "dca/concurrency/pthreading/pthreading.hpp"
 #include "dca/concurrency/util/get_bounds.hpp"
 #include "dca/util/print_time.hpp"
 #include "comp_library/function_library/include_function_library.h"
@@ -39,6 +38,7 @@ class compute_bubble {
 public:
   using profiler_type = typename parameters_type::profiler_type;
   using concurrency_type = typename parameters_type::concurrency_type;
+  using Threading = typename parameters_type::ThreadingType;
 
   using w = dmn_0<frequency_domain>;
   using w_VERTEX_BOSONIC = dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED_BOSONIC>>;
@@ -147,7 +147,7 @@ void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded_
 
     args.concurrency_ptr = &concurrency;
 
-    dca::concurrency::Pthreading pthreads;
+    Threading pthreads;
     switch (channel_value) {
       case ph:
         pthreads.execute(nr_threads, threaded_execute_on_cluster_ph, (void*)&args);
@@ -212,8 +212,7 @@ void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::execute_o
 template <channel_type channel_value, class parameters_type, class k_dmn_t, class w_dmn_t>
 void* compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded_execute_on_cluster_ph(
     void* void_ptr) {
-  dca::concurrency::Pthreading::PosixData* data_ptr =
-      static_cast<dca::concurrency::Pthreading::PosixData*>(void_ptr);
+  typename Threading::PosixData* data_ptr = static_cast<typename Threading::PosixData*>(void_ptr);
   bubble_data* bubble_ptr = static_cast<bubble_data*>(data_ptr->arg);
 
   G_function_type& G = *(bubble_ptr->G_ptr);
@@ -301,8 +300,7 @@ void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::execute_o
 template <channel_type channel_value, class parameters_type, class k_dmn_t, class w_dmn_t>
 void* compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded_execute_on_cluster_pp(
     void* void_ptr) {
-  dca::concurrency::Pthreading::PosixData* data_ptr =
-      static_cast<dca::concurrency::Pthreading::PosixData*>(void_ptr);
+  typename Threading::PosixData* data_ptr = static_cast<typename Threading::PosixData*>(void_ptr);
   bubble_data* bubble_ptr = static_cast<bubble_data*>(data_ptr->arg);
 
   G_function_type& G = *(bubble_ptr->G_ptr);

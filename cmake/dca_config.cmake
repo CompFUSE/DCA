@@ -209,26 +209,37 @@ endif()
 
 ################################################################################
 # Select the threading library.
-# TODO: Implement HPX part including DCA_HPX.cmake.
-set(DCA_THREADING_LIBRARY "POSIX" CACHE STRING "Threading library, options are: POSIX | HPX.")
-set_property(CACHE DCA_THREADING_LIBRARY PROPERTY STRINGS POSIX HPX)
+# TODO: - Implement HPX part including DCA_HPX.cmake.
+#       - Implement STL support and make it default.
+set(DCA_THREADING_LIBRARY "POSIX" CACHE STRING "Threading library, options are: STL | POSIX | HPX | None.")
+set_property(CACHE DCA_THREADING_LIBRARY PROPERTY STRINGS STL POSIX HPX None)
 
-if (DCA_THREADING_LIBRARY STREQUAL POSIX)
+if (DCA_THREADING_LIBRARY STREQUAL STL)
+  message(FATAL_ERROR "No STL threads support yet.")
+
+elseif (DCA_THREADING_LIBRARY STREQUAL POSIX)
   if (NOT DCA_HAVE_PTHREADS)
     message(FATAL_ERROR "PThreads not found but requested.")
   endif()
 
-  dca_add_config_define(DCA_THREADING_LIBRARY POSIX_LIBRARY)
-  dca_add_config_define(DCA_THREADING_INCLUDE \"dca/concurrency/parallelization_pthreads.h\")
+  set(DCA_THREADING_TYPE dca::concurrency::Pthreading)
+  set(DCA_THREADING_INCLUDE "dca/concurrency/pthreading/pthreading.hpp")
+  
   set(DCA_THREADING_FLAGS -pthread CACHE STRING "Flags needed for threading.")
   mark_as_advanced(DCA_THREADING_FLAGS)
 
 elseif (DCA_THREADING_LIBRARY STREQUAL HPX)
   message(FATAL_ERROR "No HPX support yet.")
 
+elseif (DCA_THREADING_LIBRARY STREQUAL None)
+  message(FATAL_ERROR "'No threading library' is not yet supported.")
+  
 else()
-  message(FATAL_ERROR "Please set DCA_THREADING_LIBRARY to a valid option: POSIX | HPX.")
+  message(FATAL_ERROR "Please set DCA_THREADING_LIBRARY to a valid option: STL | POSIX | HPX | None.")
 endif()
+
+configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/threading.hpp.in"
+  "${CMAKE_BINARY_DIR}/include/dca/config/threading.hpp" @ONLY)
 
 ################################################################################
 # Use threaded cluster solver.

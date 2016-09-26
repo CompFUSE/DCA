@@ -19,7 +19,6 @@
 #include <iostream>
 #include <utility>
 
-#include "dca/concurrency/pthreading/pthreading.hpp"
 #include "dca/concurrency/util/get_bounds.hpp"
 #include "dca/util/print_time.hpp"
 #include "comp_library/function_library/include_function_library.h"
@@ -37,6 +36,7 @@ template <class parameters_type, class k_dmn_t>
 class sigma_perturbation<2, parameters_type, k_dmn_t> {
 public:
   using concurrency_type = typename parameters_type::concurrency_type;
+  using Threading = typename parameters_type::ThreadingType;
 
   using w = dmn_0<frequency_domain>;
   using w_VERTEX_BOSONIC = dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED_BOSONIC>>;
@@ -282,7 +282,7 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_on_cluste
   }
 
   {
-    dca::concurrency::Pthreading pthreads;
+    Threading pthreads;
 
     pthreads.execute(nr_threads, threaded_execute_2B, (void*)&args);
   }
@@ -323,8 +323,7 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_on_cluste
 
 template <class parameters_type, class k_dmn_t>
 void* sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_2B(void* void_ptr) {
-  dca::concurrency::Pthreading::PosixData* data_ptr =
-      static_cast<dca::concurrency::Pthreading::PosixData*>(void_ptr);
+  typename Threading::PosixData* data_ptr = static_cast<typename Threading::PosixData*>(void_ptr);
   sigma_perturbation_data* sigma_pert_ptr = static_cast<sigma_perturbation_data*>(data_ptr->arg);
 
   // U_function_type&   U   = *(sigma_pert_ptr->U_ptr);
