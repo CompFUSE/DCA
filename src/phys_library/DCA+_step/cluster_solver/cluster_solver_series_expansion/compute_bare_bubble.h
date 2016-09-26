@@ -19,6 +19,7 @@
 #include <utility>
 
 #include "dca/concurrency/util/get_bounds.hpp"
+#include "dca/concurrency/util/threading_data.hpp"
 #include "dca/util/print_time.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
@@ -212,7 +213,7 @@ void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::execute_o
 template <channel_type channel_value, class parameters_type, class k_dmn_t, class w_dmn_t>
 void* compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded_execute_on_cluster_ph(
     void* void_ptr) {
-  typename Threading::PosixData* data_ptr = static_cast<typename Threading::PosixData*>(void_ptr);
+  dca::concurrency::ThreadingData* data_ptr = static_cast<dca::concurrency::ThreadingData*>(void_ptr);
   bubble_data* bubble_ptr = static_cast<bubble_data*>(data_ptr->arg);
 
   G_function_type& G = *(bubble_ptr->G_ptr);
@@ -300,7 +301,7 @@ void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::execute_o
 template <channel_type channel_value, class parameters_type, class k_dmn_t, class w_dmn_t>
 void* compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded_execute_on_cluster_pp(
     void* void_ptr) {
-  typename Threading::PosixData* data_ptr = static_cast<typename Threading::PosixData*>(void_ptr);
+  dca::concurrency::ThreadingData* data_ptr = static_cast<dca::concurrency::ThreadingData*>(void_ptr);
   bubble_data* bubble_ptr = static_cast<bubble_data*>(data_ptr->arg);
 
   G_function_type& G = *(bubble_ptr->G_ptr);

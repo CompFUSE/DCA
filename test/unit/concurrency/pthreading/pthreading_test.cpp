@@ -13,8 +13,7 @@
 #include "gtest/gtest.h"
 
 void* start_routine(void* arg) {
-  dca::concurrency::Pthreading::PosixData* data_ptr =
-      static_cast<dca::concurrency::Pthreading::PosixData*>(arg);
+  dca::concurrency::ThreadingData* data_ptr = static_cast<dca::concurrency::ThreadingData*>(arg);
 
   const int id = static_cast<int>(data_ptr->id);
   const int num_threads = static_cast<int>(data_ptr->num_threads);

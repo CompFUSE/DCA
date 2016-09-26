@@ -17,6 +17,7 @@
 
 #include <vector>
 #include <pthread.h>
+#include "dca/concurrency/util/threading_data.hpp"
 
 namespace dca {
 namespace concurrency {
@@ -24,14 +25,6 @@ namespace concurrency {
 
 class Pthreading {
 public:
-  struct PosixData {
-    PosixData() : id(-1), num_threads(-1), arg(NULL) {}
-
-    int id;
-    int num_threads;
-    void* arg;
-  };
-
   Pthreading() : pthreads_(0), data_(0) {}
 
   void execute(int num_threads, void* (*start_routine)(void*), void* arg);
@@ -48,7 +41,7 @@ private:
   void join();
 
   std::vector<pthread_t> pthreads_;
-  std::vector<PosixData> data_;
+  std::vector<ThreadingData> data_;
 };
 
 // template <typename T>

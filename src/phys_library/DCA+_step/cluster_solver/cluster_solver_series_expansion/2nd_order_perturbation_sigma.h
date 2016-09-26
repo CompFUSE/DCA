@@ -20,6 +20,7 @@
 #include <utility>
 
 #include "dca/concurrency/util/get_bounds.hpp"
+#include "dca/concurrency/util/threading_data.hpp"
 #include "dca/util/print_time.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/compute_bare_bubble.h"
@@ -323,7 +324,7 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_on_cluste
 
 template <class parameters_type, class k_dmn_t>
 void* sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_2B(void* void_ptr) {
-  typename Threading::PosixData* data_ptr = static_cast<typename Threading::PosixData*>(void_ptr);
+  dca::concurrency::ThreadingData* data_ptr = static_cast<dca::concurrency::ThreadingData*>(void_ptr);
   sigma_perturbation_data* sigma_pert_ptr = static_cast<sigma_perturbation_data*>(data_ptr->arg);
 
   // U_function_type&   U   = *(sigma_pert_ptr->U_ptr);

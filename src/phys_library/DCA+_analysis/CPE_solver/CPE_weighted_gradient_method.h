@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "dca/concurrency/util/get_bounds.hpp"
+#include "dca/concurrency/util/threading_data.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/IO_library/IO.hpp"
 #include "comp_library/linalg/linalg.hpp"
@@ -347,7 +348,7 @@ void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn
 template <class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
 void* continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t,
                                 WEIGHTED_GRADIENT_METHOD>::threaded_analytical_continuation(void* void_ptr) {
-  typename Threading::PosixData* data_ptr = static_cast<typename Threading::PosixData*>(void_ptr);
+  dca::concurrency::ThreadingData* data_ptr = static_cast<dca::concurrency::ThreadingData*>(void_ptr);
   std::vector<CPE_data_type>* CPE_data_vec_ptr =
       static_cast<std::vector<CPE_data_type>*>(data_ptr->arg);
 
