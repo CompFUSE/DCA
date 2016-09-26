@@ -10,13 +10,13 @@
 //
 // This file implements get_bounds.hpp.
 
-#include "dca/concurrency/util/get_bounds.hpp"
+#include "dca/parallel/util/get_bounds.hpp"
 #include <cassert>
 
 namespace dca {
-namespace concurrency {
+namespace parallel {
 namespace util {
-// dca::concurrency::util::
+// dca::parallel::util::
 
 std::pair<int, int> getBounds(int id, int num_threads, const std::pair<int, int>& current_bounds) {
   assert(id >= 0 && id < num_threads);
@@ -36,5 +36,5 @@ std::pair<int, int> getBounds(int id, int num_threads, const std::pair<int, int>
 }
 
 }  // util
-}  // concurrency
+}  // parallel
 }  // dca

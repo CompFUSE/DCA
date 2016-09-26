@@ -24,8 +24,8 @@
 #include <utility>
 #include <vector>
 
-#include "dca/concurrency/util/get_bounds.hpp"
-#include "dca/concurrency/util/threading_data.hpp"
+#include "dca/parallel/util/get_bounds.hpp"
+#include "dca/parallel/util/threading_data.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/IO_library/IO.hpp"
 #include "comp_library/linalg/linalg.hpp"
@@ -348,7 +348,7 @@ void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn
 template <class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
 void* continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t,
                                 WEIGHTED_GRADIENT_METHOD>::threaded_analytical_continuation(void* void_ptr) {
-  dca::concurrency::ThreadingData* data_ptr = static_cast<dca::concurrency::ThreadingData*>(void_ptr);
+  dca::parallel::ThreadingData* data_ptr = static_cast<dca::parallel::ThreadingData*>(void_ptr);
   std::vector<CPE_data_type>* CPE_data_vec_ptr =
       static_cast<std::vector<CPE_data_type>*>(data_ptr->arg);
 
@@ -362,7 +362,7 @@ void* continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dm
   dmn_2<b, s> nu_dmn;
   dmn_3<b, s, k_dmn_t> b_s_k_dmn;
 
-  std::pair<int, int> bounds = dca::concurrency::util::getBounds(id, nr_threads, MPI_bounds);
+  std::pair<int, int> bounds = dca::parallel::util::getBounds(id, nr_threads, MPI_bounds);
 
   int coor[3];
   for (int l = bounds.first; l < bounds.second; l++) {

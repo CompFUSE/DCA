@@ -12,12 +12,12 @@ if (DCA_WITH_MPI)
     message(FATAL_ERROR "MPI not found but requested.")
   endif()
 
-  set(DCA_CONCURRENCY_TYPE "dca::concurrency::MPIConcurrency")
-  set(DCA_CONCURRENCY_INCLUDE "dca/concurrency/mpi_concurrency/mpi_concurrency.hpp")
+  set(DCA_CONCURRENCY_TYPE "dca::parallel::MPIConcurrency")
+  set(DCA_CONCURRENCY_INCLUDE "dca/parallel/mpi_concurrency/mpi_concurrency.hpp")
 
 else()
-  set(DCA_CONCURRENCY_TYPE "dca::concurrency::NoConcurrency")
-  set(DCA_CONCURRENCY_INCLUDE "dca/concurrency/no_concurrency/no_concurrency.hpp")
+  set(DCA_CONCURRENCY_TYPE "dca::parallel::NoConcurrency")
+  set(DCA_CONCURRENCY_INCLUDE "dca/parallel/no_concurrency/no_concurrency.hpp")
 endif()
 
 configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/concurrency.hpp.in"
@@ -222,8 +222,8 @@ elseif (DCA_THREADING_LIBRARY STREQUAL POSIX)
     message(FATAL_ERROR "PThreads not found but requested.")
   endif()
 
-  set(DCA_THREADING_TYPE dca::concurrency::Pthreading)
-  set(DCA_THREADING_INCLUDE "dca/concurrency/pthreading/pthreading.hpp")
+  set(DCA_THREADING_TYPE dca::parallel::Pthreading)
+  set(DCA_THREADING_INCLUDE "dca/parallel/pthreading/pthreading.hpp")
   
   set(DCA_THREADING_FLAGS -pthread CACHE STRING "Flags needed for threading.")
   mark_as_advanced(DCA_THREADING_FLAGS)

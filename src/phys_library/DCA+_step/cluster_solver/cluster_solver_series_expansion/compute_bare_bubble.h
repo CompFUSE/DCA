@@ -18,8 +18,8 @@
 #include <stdexcept>
 #include <utility>
 
-#include "dca/concurrency/util/get_bounds.hpp"
-#include "dca/concurrency/util/threading_data.hpp"
+#include "dca/parallel/util/get_bounds.hpp"
+#include "dca/parallel/util/threading_data.hpp"
 #include "dca/util/print_time.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
@@ -213,7 +213,7 @@ void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::execute_o
 template <channel_type channel_value, class parameters_type, class k_dmn_t, class w_dmn_t>
 void* compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded_execute_on_cluster_ph(
     void* void_ptr) {
-  dca::concurrency::ThreadingData* data_ptr = static_cast<dca::concurrency::ThreadingData*>(void_ptr);
+  dca::parallel::ThreadingData* data_ptr = static_cast<dca::parallel::ThreadingData*>(void_ptr);
   bubble_data* bubble_ptr = static_cast<bubble_data*>(data_ptr->arg);
 
   G_function_type& G = *(bubble_ptr->G_ptr);
@@ -228,7 +228,7 @@ void* compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded
   int nr_threads = data_ptr->num_threads;
 
   k_dmn_t q_dmn;
-  std::pair<int, int> q_bounds = dca::concurrency::util::getBounds(id, nr_threads, q_dmn);
+  std::pair<int, int> q_bounds = dca::parallel::util::getBounds(id, nr_threads, q_dmn);
 
   for (int q_ind = q_bounds.first; q_ind < q_bounds.second; ++q_ind) {
     double percentage = double(q_ind - q_bounds.first) / double(q_bounds.second - q_bounds.first);
@@ -301,7 +301,7 @@ void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::execute_o
 template <channel_type channel_value, class parameters_type, class k_dmn_t, class w_dmn_t>
 void* compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded_execute_on_cluster_pp(
     void* void_ptr) {
-  dca::concurrency::ThreadingData* data_ptr = static_cast<dca::concurrency::ThreadingData*>(void_ptr);
+  dca::parallel::ThreadingData* data_ptr = static_cast<dca::parallel::ThreadingData*>(void_ptr);
   bubble_data* bubble_ptr = static_cast<bubble_data*>(data_ptr->arg);
 
   G_function_type& G = *(bubble_ptr->G_ptr);
@@ -316,7 +316,7 @@ void* compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded
   int nr_threads = data_ptr->num_threads;
 
   k_dmn_t q_dmn;
-  std::pair<int, int> q_bounds = dca::concurrency::util::getBounds(id, nr_threads, q_dmn);
+  std::pair<int, int> q_bounds = dca::parallel::util::getBounds(id, nr_threads, q_dmn);
 
   for (int q_ind = q_bounds.first; q_ind < q_bounds.second; ++q_ind) {
     double percentage = double(q_ind - q_bounds.first) / double(q_bounds.second - q_bounds.first);

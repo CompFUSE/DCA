@@ -17,7 +17,7 @@
 
 #include "gtest/gtest.h"
 
-#include "dca/concurrency/pthreading/pthreading.hpp"
+#include "dca/parallel/pthreading/pthreading.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
@@ -48,7 +48,7 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
   using DcaPointGroupType = D4;
   using LatticeType = dca::phys::models::square_lattice<DcaPointGroupType>;
   using ModelType = dca::phys::models::TightBindingModel<LatticeType>;
-  using Threading = dca::concurrency::Pthreading;
+  using Threading = dca::parallel::Pthreading;
   using ParametersType =
       dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
                                     PROFILER::NullProfiler, ModelType, RngType, CT_AUX_CLUSTER_SOLVER>;

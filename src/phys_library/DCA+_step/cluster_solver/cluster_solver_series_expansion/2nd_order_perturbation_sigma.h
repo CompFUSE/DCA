@@ -19,8 +19,8 @@
 #include <iostream>
 #include <utility>
 
-#include "dca/concurrency/util/get_bounds.hpp"
-#include "dca/concurrency/util/threading_data.hpp"
+#include "dca/parallel/util/get_bounds.hpp"
+#include "dca/parallel/util/threading_data.hpp"
 #include "dca/util/print_time.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/compute_bare_bubble.h"
@@ -324,7 +324,7 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_on_cluste
 
 template <class parameters_type, class k_dmn_t>
 void* sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_2B(void* void_ptr) {
-  dca::concurrency::ThreadingData* data_ptr = static_cast<dca::concurrency::ThreadingData*>(void_ptr);
+  dca::parallel::ThreadingData* data_ptr = static_cast<dca::parallel::ThreadingData*>(void_ptr);
   sigma_perturbation_data* sigma_pert_ptr = static_cast<sigma_perturbation_data*>(data_ptr->arg);
 
   // U_function_type&   U   = *(sigma_pert_ptr->U_ptr);
@@ -342,7 +342,7 @@ void* sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_2B(void*
   int nr_threads = data_ptr->num_threads;
 
   k_dmn_t k_dmn;
-  std::pair<int, int> k_bounds = dca::concurrency::util::getBounds(id, nr_threads, k_dmn);
+  std::pair<int, int> k_bounds = dca::parallel::util::getBounds(id, nr_threads, k_dmn);
 
   for (int k_ind = k_bounds.first; k_ind < k_bounds.second; k_ind++) {
     double percentage = double(k_ind - k_bounds.first) / double(k_bounds.second - k_bounds.first);

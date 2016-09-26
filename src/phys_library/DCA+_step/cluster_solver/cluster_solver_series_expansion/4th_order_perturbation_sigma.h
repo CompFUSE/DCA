@@ -18,7 +18,7 @@
 #include <complex>
 #include <iostream>
 
-#include "dca/concurrency/thread_manager_sum.hpp"
+#include "dca/parallel/thread_manager_sum.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/compute_bare_bubble.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/compute_interaction.h"
@@ -412,7 +412,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4G(
   Sigma_4G = 0.;
 
   dmn_2<w_VERTEX_BOSONIC, k_dmn_t> dmn;
-  dca::concurrency::ThreadManagerSum<concurrency_t> sum_manager(concurrency);
+  dca::parallel::ThreadManagerSum<concurrency_t> sum_manager(concurrency);
 
   do {
     std::pair<int, int> bounds = sum_manager.get_bounds(dmn);
@@ -478,7 +478,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4H(
   Sigma_4H = 0.;
 
   dmn_2<w_VERTEX_BOSONIC, k_dmn_t> dmn;
-  dca::concurrency::ThreadManagerSum<concurrency_t> sum_manager(concurrency);
+  dca::parallel::ThreadManagerSum<concurrency_t> sum_manager(concurrency);
 
   do {
     std::pair<int, int> bounds = sum_manager.get_bounds(dmn);
@@ -608,7 +608,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4J(
       F;  // Calculating part independent of k
 
   dmn_2<w_VERTEX_BOSONIC, k_dmn_t> dmn;
-  dca::concurrency::ThreadManagerSum<concurrency_t> sum_manager(concurrency);
+  dca::parallel::ThreadManagerSum<concurrency_t> sum_manager(concurrency);
 
   do {
     std::pair<int, int> bounds = sum_manager.get_bounds(dmn);
@@ -695,7 +695,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4K(
       F;  // Calculating part independent of k
 
   dmn_2<w_VERTEX_BOSONIC, k_dmn_t> dmn;
-  dca::concurrency::ThreadManagerSum<concurrency_t> sum_manager(concurrency);
+  dca::parallel::ThreadManagerSum<concurrency_t> sum_manager(concurrency);
 
   do {
     std::pair<int, int> bounds = sum_manager.get_bounds(dmn);
@@ -782,7 +782,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4L(
       F;  // Calculating part independent of k
 
   dmn_2<w_VERTEX_BOSONIC, k_dmn_t> dmn;
-  dca::concurrency::ThreadManagerSum<concurrency_t> sum_manager(concurrency);
+  dca::parallel::ThreadManagerSum<concurrency_t> sum_manager(concurrency);
 
   do {
     std::pair<int, int> bounds = sum_manager.get_bounds(dmn);

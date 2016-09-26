@@ -10,11 +10,11 @@
 //
 // This file implements pthreading.hpp
 
-#include "dca/concurrency/pthreading/pthreading.hpp"
+#include "dca/parallel/pthreading/pthreading.hpp"
 
 namespace dca {
-namespace concurrency {
-// dca::concurrency::
+namespace parallel {
+// dca::parallel::
 
 void Pthreading::execute(int num_threads, void* (*start_routine)(void*), void* arg) {
   fork(num_threads, start_routine, arg);
@@ -41,5 +41,5 @@ void Pthreading::join() {
   pthreads_.resize(0);
 }
 
-}  // concurrency
+}  // parallel
 }  // dca

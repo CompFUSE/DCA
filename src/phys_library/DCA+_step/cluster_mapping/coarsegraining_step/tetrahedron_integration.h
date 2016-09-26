@@ -17,8 +17,8 @@
 #include <stdexcept>
 #include <vector>
 
-#include "dca/concurrency/util/get_bounds.hpp"
-#include "dca/concurrency/util/threading_data.hpp"
+#include "dca/parallel/util/get_bounds.hpp"
+#include "dca/parallel/util/threading_data.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "math_library/geometry_library/vector_operations/vector_operations.hpp"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_domain.h"
@@ -272,7 +272,7 @@ template <typename scalar_type>
 void* tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_mt_2D(void* void_ptr) {
   typedef tetrahedron_integration_functions<scalar_type> tetrahedron_functions_type;
 
-  dca::concurrency::ThreadingData* data_ptr = static_cast<dca::concurrency::ThreadingData*>(void_ptr);
+  dca::parallel::ThreadingData* data_ptr = static_cast<dca::parallel::ThreadingData*>(void_ptr);
   tetrahedron_functions_type* functions_ptr = static_cast<tetrahedron_functions_type*>(data_ptr->arg);
 
   int id = data_ptr->id;
@@ -285,7 +285,7 @@ void* tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_m
       (functions_ptr->G_int_vec[id]);
 
   tet_dmn_type tet_dmn;
-  std::pair<int, int> tet_bounds = dca::concurrency::util::getBounds(id, nr_threads, tet_dmn);
+  std::pair<int, int> tet_bounds = dca::parallel::util::getBounds(id, nr_threads, tet_dmn);
 
   for (int j = 0; j < nu::dmn_size(); j++)
     for (int i = 0; i < nu::dmn_size(); i++)
@@ -394,7 +394,7 @@ template <typename scalar_type>
 void* tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_mt_3D(void* void_ptr) {
   typedef tetrahedron_integration_functions<scalar_type> tetrahedron_functions_type;
 
-  dca::concurrency::ThreadingData* data_ptr = static_cast<dca::concurrency::ThreadingData*>(void_ptr);
+  dca::parallel::ThreadingData* data_ptr = static_cast<dca::parallel::ThreadingData*>(void_ptr);
   tetrahedron_functions_type* functions_ptr = static_cast<tetrahedron_functions_type*>(data_ptr->arg);
 
   int id = data_ptr->id;
@@ -407,7 +407,7 @@ void* tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_m
       (functions_ptr->G_int_vec[id]);
 
   tet_dmn_type tet_dmn;
-  std::pair<int, int> tet_bounds = dca::concurrency::util::getBounds(id, nr_threads, tet_dmn);
+  std::pair<int, int> tet_bounds = dca::parallel::util::getBounds(id, nr_threads, tet_dmn);
 
   for (int j = 0; j < nu::dmn_size(); j++)
     for (int i = 0; i < nu::dmn_size(); i++)
