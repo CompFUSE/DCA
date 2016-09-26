@@ -190,11 +190,9 @@ template <class qmci_integrator_type>
 template <typename dca_info_struct_t>
 double posix_qmci_integrator<qmci_integrator_type>::finalize(dca_info_struct_t& dca_info_struct) {
   profiler_type profiler(__FUNCTION__, "posix-MC-Integration", __LINE__);
-  // Compute standard deviation.
   if (DCA_iteration == parameters.get_DCA_iterations() - 1)
-    // TODO: Expensive memory allocation should be made optional.
     compute_error_bars();
-  // Inter node average and following computations.
+
   double L2_Sigma_difference = qmci_integrator_type::finalize(dca_info_struct);
 
   pthread_mutex_destroy(&mutex_print);

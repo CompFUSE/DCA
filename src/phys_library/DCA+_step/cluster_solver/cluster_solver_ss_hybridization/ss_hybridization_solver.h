@@ -106,7 +106,8 @@ protected:
 
   void compute_error_bars();
 
-  void sum_measurements();
+  // Sums/averages the quantities measured by the individual MPI ranks.
+  void collect_measurements();
 
   void compute_G_k_w();
 
@@ -256,9 +257,7 @@ template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_ty
 template <typename dca_info_struct_t>
 double cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::finalize(
     dca_info_struct_t& dca_info_struct) {
-  // Average measurements over nodes.
-  sum_measurements();
-
+  collect_measurements();
   symmetrize_measurements();
 
   compute_G_k_w();
@@ -398,9 +397,9 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_er
 }
 
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
-void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::sum_measurements() {
+void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::collect_measurements() {
   if (concurrency.id() == concurrency.first())
-    std::cout << "\n\t\t sum measurements" << std::endl;
+    std::cout << "\n\t\t Collect measurements" << std::endl;
 
   const int nb_measurements = accumulator.get_number_of_measurements();
 

@@ -79,8 +79,9 @@ public:
   template <typename dca_info_struct_t>
   double finalize(dca_info_struct_t& dca_info_struct);
 
+  // Returns the function G_k_w before the average across MPI ranks is performed.
   // For testing purposes.
-  // Returns the function G_k_w before the average across mpi ranks is performed.
+  // TODO: This method duplicates parts of compute_error_bars.
   auto onNode_G_k_w();
 
 protected:
@@ -94,7 +95,9 @@ protected:
   void symmetrize_measurements();
 
   void compute_error_bars();
-  void sum_measurements();
+
+  // Sums/averages the quantities measured by the individual MPI ranks.
+  void collect_measurements();
 
   void compute_G_k_w_from_M_r_w();
 
@@ -230,10 +233,9 @@ template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_ty
 template <typename dca_info_struct_t>
 double cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::finalize(
     dca_info_struct_t& dca_info_struct) {
-  // Average measurements over nodes.
-  sum_measurements();
-
+  collect_measurements();
   symmetrize_measurements();
+
   // Compute new Sigma.
   compute_G_k_w_from_M_r_w();
 
@@ -420,17 +422,17 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
 }
 
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
-void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::sum_measurements() {
+void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::collect_measurements() {
   const int nb_measurements = accumulator.get_number_of_measurements();
 
   if (concurrency.id() == 0)
-    std::cout << "\n\t\t sum measurements \t" << dca::util::print_time() << "\n"
+    std::cout << "\n\t\t Collect measurements \t" << dca::util::print_time() << "\n"
               << "\n\t\t\t QMC-time : " << total_time << " [sec]"
               << "\n\t\t\t Gflops   : " << accumulator.get_Gflop() / total_time << " [Gf]"
               << "\n\t\t\t sign     : " << accumulator.get_sign() / double(nb_measurements)
               << " \n";
 
-  {  // sum the flops
+  {
     profiler_type profiler("MC-time", "QMC-collectives", __LINE__);
     concurrency.sum(total_time);
   }
@@ -472,16 +474,16 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
     concurrency.sum_and_average(accumulator.get_G_r_t(), nb_measurements);
     concurrency.sum_and_average(accumulator.get_G_r_t_stddev(), nb_measurements);
 
-    accumulator.get_G_r_t() /= (accumulator.get_sign());
-    accumulator.get_G_r_t_stddev() /= (accumulator.get_sign() * std::sqrt(nb_measurements));
+    accumulator.get_G_r_t() /= accumulator.get_sign();
+    accumulator.get_G_r_t_stddev() /= accumulator.get_sign() * std::sqrt(nb_measurements);
 
     concurrency.sum_and_average(accumulator.get_charge_cluster_moment(), nb_measurements);
     concurrency.sum_and_average(accumulator.get_magnetic_cluster_moment(), nb_measurements);
     concurrency.sum_and_average(accumulator.get_dwave_pp_correlator(), nb_measurements);
 
-    accumulator.get_charge_cluster_moment() /= (accumulator.get_sign());
-    accumulator.get_magnetic_cluster_moment() /= (accumulator.get_sign());
-    accumulator.get_dwave_pp_correlator() /= (accumulator.get_sign());
+    accumulator.get_charge_cluster_moment() /= accumulator.get_sign();
+    accumulator.get_magnetic_cluster_moment() /= accumulator.get_sign();
+    accumulator.get_dwave_pp_correlator() /= accumulator.get_sign();
 
     MOMS.G_r_t = accumulator.get_G_r_t();
   }
@@ -839,7 +841,6 @@ double cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_typ
 
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 auto cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::onNode_G_k_w() {
-  // INTERNAL: This somewhat duplicates compute_error_bars and might be modified.
   FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> G_k_w_new("G_k_w");
   FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>> M_r_w_new("M_r_w_new");
   FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> M_k_w_new("M_k_w_new");
