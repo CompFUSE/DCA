@@ -130,11 +130,7 @@ install(DIRECTORY ${CMAKE_BINARY_DIR}/include/dca/config DESTINATION include/dca
 # Internal libraries
 # TODO: When the number of 'internal' libraries grows, we might want to combine these into a few big
 #       libraries; e.g. one for math, phys, etc.
-add_subdirectory(src/math/geometry/gaussian_quadrature)
-add_subdirectory(src/math/random)
-add_subdirectory(src/parallel)
-add_subdirectory(src/phys)
-add_subdirectory(src/util)
+add_subdirectory(src)
 
 if (DCA_HAVE_CUDA)
   add_subdirectory(src/DCA_GPU_routines)
