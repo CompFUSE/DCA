@@ -55,7 +55,7 @@ public:
   using coarsegraining_sp_type = DCA::coarsegraining_sp<parameters_type, k_DCA>;
   using lattice_map_sp_type = DCA::lattice_mapping_sp<parameters_type, k_DCA, k_HOST>;
   using update_chemical_potential_type =
-      DCA::update_chemical_potential<parameters_type, MOMS_type, coarsegraining_sp_type>;
+      update_chemical_potential<parameters_type, MOMS_type, coarsegraining_sp_type>;
   using HTS_solver_type =
       DCA::cluster_solver<DCA::HIGH_TEMPERATURE_SERIES, dca::linalg::CPU, parameters_type, MOMS_type>;
 
