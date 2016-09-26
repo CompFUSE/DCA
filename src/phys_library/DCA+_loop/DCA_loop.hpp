@@ -33,6 +33,8 @@
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
 
+using namespace dca::phys;
+
 namespace DCA {
 
 template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
@@ -48,7 +50,7 @@ public:
   using k_HOST = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, LATTICE_SP,
                                       MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
 
-  using cluster_exclusion_type = DCA::cluster_exclusion<parameters_type, MOMS_type>;
+  using cluster_exclusion_type = cluster_exclusion<parameters_type, MOMS_type>;
   using double_counting_correction_type = DCA::double_counting_correction<parameters_type, MOMS_type>;
   using coarsegraining_sp_type = DCA::coarsegraining_sp<parameters_type, k_DCA>;
   using lattice_map_sp_type = DCA::lattice_mapping_sp<parameters_type, k_DCA, k_HOST>;
