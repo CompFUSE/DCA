@@ -51,7 +51,7 @@ public:
                                       MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
 
   using cluster_exclusion_type = cluster_exclusion<parameters_type, MOMS_type>;
-  using double_counting_correction_type = DCA::double_counting_correction<parameters_type, MOMS_type>;
+  using double_counting_correction_type = double_counting_correction<parameters_type, MOMS_type>;
   using coarsegraining_sp_type = DCA::coarsegraining_sp<parameters_type, k_DCA>;
   using lattice_map_sp_type = DCA::lattice_mapping_sp<parameters_type, k_DCA, k_HOST>;
   using update_chemical_potential_type =

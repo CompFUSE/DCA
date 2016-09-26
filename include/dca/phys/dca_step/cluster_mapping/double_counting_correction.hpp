@@ -21,7 +21,9 @@
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain.h"
 
-namespace DCA {
+namespace dca {
+namespace phys {
+// dca::phys::
 
 template <typename parameters_type, typename MOMS_type>
 class double_counting_correction {
@@ -134,6 +136,8 @@ void double_counting_correction<parameters_type, MOMS_type>::execute_after_solve
     }
   }
 }
-}
+
+}  // phys
+}  // dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_DOUBLE_COUNTING_CORRECTION_HPP
