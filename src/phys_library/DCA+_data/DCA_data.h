@@ -21,7 +21,7 @@
 #include <utility>
 #include <vector>
 
-#include "dca/phys/DCA_algorithms/compute_band_structure.hpp"
+#include "dca/phys/dca_algorithms/compute_band_structure.hpp"
 #include "dca/util/print_time.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/linalg/linalg.hpp"
@@ -40,6 +40,8 @@
 #include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
 #include "phys_library/domains/time_and_frequency/time_domain.h"
 #include "phys_library/vertex_measurement_type.hpp"
+
+using namespace dca::phys;
 
 namespace DCA {
 

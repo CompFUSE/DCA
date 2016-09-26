@@ -6,6 +6,7 @@
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
+//         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // Description
 
@@ -16,14 +17,17 @@
 #include <string>
 #include <vector>
 
-#include "comp_library/linalg/linalg.hpp"
 #include "comp_library/function_library/include_function_library.h"
-
+#include "comp_library/linalg/linalg.hpp"
 #include "phys_library/domains/cluster/interpolation/wannier_interpolation/wannier_interpolation.hpp"
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
 #include "phys_library/domains/Quantum_domain/brillouin_zone_cut_domain.h"
+
+namespace dca {
+namespace phys {
+// dca::phys::
 
 class compute_band_structure {
 public:
@@ -39,7 +43,6 @@ public:
   static const int INTERPOLATION_POINTS_BAND_STRUCTURE =
       brillouin_zone_cut_domain_type::INTERPOLATION_POINTS;  // 101;
 
-public:
   template <typename K_dmn_t, typename parameter_type>
   static void execute(parameter_type& parameters,
                       FUNC_LIB::function<std::complex<double>, dmn_3<nu, nu, K_dmn_t>>& H_LDA,
@@ -50,6 +53,7 @@ private:
   static void construct_path(std::string coordinate_type, std::vector<std::vector<double>> path_vecs,
                              std::vector<std::vector<double>>& collection_k_vecs);
 
+  // TODO: Pass lattice_dimension as function parameter.
   template <int lattice_dimension>
   static void high_symmetry_line(std::vector<std::vector<double>>& collection_k_vecs);
 
@@ -154,254 +158,23 @@ void compute_band_structure::construct_path(std::string coordinate_type,
 }
 
 template <>
-void compute_band_structure::high_symmetry_line<1>(std::string& name,
-                                                   std::vector<std::vector<double>>& k_vecs) {
-  using DCA_k_cluster_type = cluster_domain<double, 1, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
-
-  name = "absolute";
-
-  std::vector<double>& b0 = DCA_k_cluster_type::get_super_basis_vectors()[0];
-
-  std::vector<double> k0(1);
-  std::vector<double> k1(2);
-
-  for (int i = 0; i < 1; i++) {
-    k0[i] = 0 * b0[i];        //+0.   *b1[i];
-    k1[i] = 1. / 2. * b0[i];  //+1./2.*b1[i];
-  }
-
-  k_vecs.resize(0);
-
-  k_vecs.push_back(k0);
-  k_vecs.push_back(k1);
-}
+void compute_band_structure::high_symmetry_line<1>(std::vector<std::vector<double>>& collection_k_vecs);
+template <>
+void compute_band_structure::high_symmetry_line<2>(std::vector<std::vector<double>>& collection_k_vecs);
+template <>
+void compute_band_structure::high_symmetry_line<3>(std::vector<std::vector<double>>& collection_k_vecs);
 
 template <>
-void compute_band_structure::high_symmetry_line<2>(std::string& name,
-                                                   std::vector<std::vector<double>>& k_vecs) {
-  using DCA_k_cluster_type = cluster_domain<double, 2, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
-
-  name = "absolute";
-
-  std::vector<double>& b0 = DCA_k_cluster_type::get_super_basis_vectors()[0];
-  std::vector<double>& b1 = DCA_k_cluster_type::get_super_basis_vectors()[1];
-
-  std::vector<double> k0(2);
-  std::vector<double> k1(2);
-  std::vector<double> k2(2);
-  std::vector<double> k3(2);
-
-  for (int i = 0; i < 2; i++) {
-    k0[i] = 0 * b0[i] + 0. * b1[i];
-    k1[i] = 1. / 2. * b0[i] + 1. / 2. * b1[i];
-    k2[i] = 1. / 2. * b0[i] + 0. * b1[i];
-    k3[i] = 0. * b0[i] + 1. / 2. * b1[i];
-  }
-
-  k_vecs.resize(0);
-
-  k_vecs.push_back(k0);
-  k_vecs.push_back(k1);
-  k_vecs.push_back(k2);
-  k_vecs.push_back(k3);
-  k_vecs.push_back(k0);
-}
-
+void compute_band_structure::high_symmetry_line<1>(std::string& name,
+                                                   std::vector<std::vector<double>>& k_vecs);
 template <>
 void compute_band_structure::high_symmetry_line<3>(std::string& name,
-                                                   std::vector<std::vector<double>>& k_vecs) {
-  using DCA_k_cluster_type = cluster_domain<double, 3, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
-
-  name = "absolute";
-
-  std::vector<double>& b0 = DCA_k_cluster_type::get_super_basis_vectors()[0];
-  std::vector<double>& b1 = DCA_k_cluster_type::get_super_basis_vectors()[1];
-  std::vector<double>& b2 = DCA_k_cluster_type::get_super_basis_vectors()[2];
-
-  std::vector<double> k0(3);
-  std::vector<double> k1(3);
-  std::vector<double> k2(3);
-  std::vector<double> k3(3);
-
-  for (int i = 0; i < 3; i++) {
-    k0[i] = 0 * b0[i] + 0. * b1[i] + 0. * b2[i];
-    k1[i] = 1. / 2. * b0[i] + 1. / 2. * b1[i] + 1. / 2. * b2[i];
-    k2[i] = 1. / 2. * b0[i] + 1. / 2. * b1[i] + 0. * b2[i];
-    k3[i] = 1. / 2. * b0[i] + 0. * b1[i] + 0. * b2[i];
-  }
-
-  k_vecs.resize(0);
-
-  k_vecs.push_back(k0);
-  k_vecs.push_back(k1);
-  k_vecs.push_back(k2);
-  k_vecs.push_back(k3);
-  k_vecs.push_back(k0);
-}
-
+                                                   std::vector<std::vector<double>>& k_vecs);
 template <>
-void compute_band_structure::high_symmetry_line<1>(std::vector<std::vector<double>>& collection_k_vecs) {
-  using DCA_k_cluster_type = cluster_domain<double, 1, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
+void compute_band_structure::high_symmetry_line<3>(std::string& name,
+                                                   std::vector<std::vector<double>>& k_vecs);
 
-  int Nb_interpolation = INTERPOLATION_POINTS_BAND_STRUCTURE;
-
-  std::vector<double>& b0 = DCA_k_cluster_type::get_super_basis_vectors()[0];
-
-  for (int l = 0; l < Nb_interpolation; l++) {
-    std::vector<double> k(1, 0);
-
-    k[0] = double(l) / double(Nb_interpolation) * b0[0];
-
-    collection_k_vecs.push_back(k);
-  }
-}
-
-template <>
-void compute_band_structure::high_symmetry_line<2>(std::vector<std::vector<double>>& collection_k_vecs) {
-  using DCA_k_cluster_type = cluster_domain<double, 2, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
-
-  int Nb_interpolation = INTERPOLATION_POINTS_BAND_STRUCTURE;
-
-  std::vector<double>& b0 = DCA_k_cluster_type::get_super_basis_vectors()[0];
-  std::vector<double>& b1 = DCA_k_cluster_type::get_super_basis_vectors()[1];
-
-  std::vector<double> k0(2);
-  std::vector<double> k1(2);
-  std::vector<double> k2(2);
-  std::vector<double> k3(2);
-  std::vector<double> k4(2);
-
-  for (int i = 0; i < 2; i++) {
-    k0[i] = 0 * b0[i] + 0. * b1[i];
-    k1[i] = 1. / 2. * b0[i] + 1. / 2. * b1[i];
-    k2[i] = 1. / 2. * b0[i] + 0. * b1[i];
-    k3[i] = 0. * b0[i] + 1. / 2. * b1[i];
-    k4[i] = 0. * b0[i] + 0. * b1[i];
-  }
-
-  for (int l = 0; l < Nb_interpolation; l++) {
-    std::vector<double> k(2, 0);
-
-    k[0] = (1. - double(l) / double(Nb_interpolation)) * k0[0] +
-           double(l) / double(Nb_interpolation) * k1[0];
-    k[1] = (1. - double(l) / double(Nb_interpolation)) * k0[1] +
-           double(l) / double(Nb_interpolation) * k1[1];
-
-    collection_k_vecs.push_back(k);
-  }
-
-  for (int l = 0; l < Nb_interpolation; l++) {
-    std::vector<double> k(2, 0);
-
-    k[0] = (1. - double(l) / double(Nb_interpolation)) * k1[0] +
-           double(l) / double(Nb_interpolation) * k2[0];
-    k[1] = (1. - double(l) / double(Nb_interpolation)) * k1[1] +
-           double(l) / double(Nb_interpolation) * k2[1];
-
-    collection_k_vecs.push_back(k);
-  }
-
-  for (int l = 0; l < Nb_interpolation; l++) {
-    std::vector<double> k(2, 0);
-
-    k[0] = (1. - double(l) / double(Nb_interpolation)) * k2[0] +
-           double(l) / double(Nb_interpolation) * k3[0];
-    k[1] = (1. - double(l) / double(Nb_interpolation)) * k2[1] +
-           double(l) / double(Nb_interpolation) * k3[1];
-
-    collection_k_vecs.push_back(k);
-  }
-
-  for (int l = 0; l < Nb_interpolation; l++) {
-    std::vector<double> k(2, 0);
-
-    k[0] = (1. - double(l) / double(Nb_interpolation)) * k3[0] +
-           double(l) / double(Nb_interpolation) * k4[0];
-    k[1] = (1. - double(l) / double(Nb_interpolation)) * k3[1] +
-           double(l) / double(Nb_interpolation) * k4[1];
-
-    collection_k_vecs.push_back(k);
-  }
-}
-
-template <>
-void compute_band_structure::high_symmetry_line<3>(std::vector<std::vector<double>>& collection_k_vecs) {
-  using DCA_k_cluster_type = cluster_domain<double, 3, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
-
-  int Nb_interpolation = INTERPOLATION_POINTS_BAND_STRUCTURE;
-  std::vector<double>& b0 = DCA_k_cluster_type::get_super_basis_vectors()[0];
-  std::vector<double>& b1 = DCA_k_cluster_type::get_super_basis_vectors()[1];
-  std::vector<double>& b2 = DCA_k_cluster_type::get_super_basis_vectors()[2];
-
-  std::vector<double> k0(3);
-  std::vector<double> k1(3);
-  std::vector<double> k2(3);
-  std::vector<double> k3(3);
-
-  std::vector<double> kA(3);
-  std::vector<double> kB(3);
-
-  for (int i = 0; i < 3; i++) {
-    k0[i] = 0 * b0[i] + 0. * b1[i] + 0. * b2[i];
-    k1[i] = 1. / 2. * b0[i] + 1. / 2. * b1[i] + 1. / 2. * b2[i];
-    k2[i] = 1. / 2. * b0[i] + 1. / 2. * b1[i] + 0. * b2[i];
-    k3[i] = 1. / 2. * b0[i] + 0. * b1[i] + 0. * b2[i];
-
-    kA[i] = -3. * b0[i] - 3. * b1[i] - 3. * b2[i];
-    kB[i] = 3. * b0[i] + 3. * b1[i] + 3. * b2[i];
-  }
-
-  for (int l = 0; l < Nb_interpolation; l++) {
-    std::vector<double> k(3, 0);
-
-    k[0] = (1. - double(l) / double(Nb_interpolation)) * k0[0] +
-           double(l) / double(Nb_interpolation) * k1[0];
-    k[1] = (1. - double(l) / double(Nb_interpolation)) * k0[1] +
-           double(l) / double(Nb_interpolation) * k1[1];
-    k[2] = (1. - double(l) / double(Nb_interpolation)) * k0[2] +
-           double(l) / double(Nb_interpolation) * k1[2];
-
-    collection_k_vecs.push_back(k);
-  }
-
-  for (int l = 0; l < Nb_interpolation; l++) {
-    std::vector<double> k(3, 0);
-
-    k[0] = (1. - double(l) / double(Nb_interpolation)) * k1[0] +
-           double(l) / double(Nb_interpolation) * k2[0];
-    k[1] = (1. - double(l) / double(Nb_interpolation)) * k1[1] +
-           double(l) / double(Nb_interpolation) * k2[1];
-    k[2] = (1. - double(l) / double(Nb_interpolation)) * k1[2] +
-           double(l) / double(Nb_interpolation) * k2[2];
-
-    collection_k_vecs.push_back(k);
-  }
-
-  for (int l = 0; l < Nb_interpolation; l++) {
-    std::vector<double> k(3, 0);
-
-    k[0] = (1. - double(l) / double(Nb_interpolation)) * k2[0] +
-           double(l) / double(Nb_interpolation) * k3[0];
-    k[1] = (1. - double(l) / double(Nb_interpolation)) * k2[1] +
-           double(l) / double(Nb_interpolation) * k3[1];
-    k[2] = (1. - double(l) / double(Nb_interpolation)) * k2[2] +
-           double(l) / double(Nb_interpolation) * k3[2];
-
-    collection_k_vecs.push_back(k);
-  }
-
-  for (int l = 0; l < Nb_interpolation; l++) {
-    std::vector<double> k(3, 0);
-
-    k[0] = (1. - double(l) / double(Nb_interpolation)) * k3[0] +
-           double(l) / double(Nb_interpolation) * k0[0];
-    k[1] = (1. - double(l) / double(Nb_interpolation)) * k3[1] +
-           double(l) / double(Nb_interpolation) * k0[1];
-    k[2] = (1. - double(l) / double(Nb_interpolation)) * k3[2] +
-           double(l) / double(Nb_interpolation) * k0[2];
-
-    collection_k_vecs.push_back(k);
-  }
-}
+}  // phys
+}  // dca
 
 #endif  // DCA_PHYS_DCA_ALGORITHMS_COMPUTE_BAND_STRUCTURE_HPP

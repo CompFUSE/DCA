@@ -18,7 +18,7 @@
 #include <stdexcept>
 #include <string>
 
-#include "dca/phys/DCA_algorithms/compute_band_structure.hpp"
+#include "dca/phys/dca_algorithms/compute_band_structure.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/IO_library/IO.hpp"
 #include "phys_library/DCA+_analysis/BSE_solver/BSE_cluster_solver.h"
@@ -30,6 +30,8 @@
 #include "phys_library/domains/Quantum_domain/Brillouin_zone_cut.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
+
+using namespace dca::phys;
 
 namespace DCA {
 template <class parameters_type, class MOMS_type>

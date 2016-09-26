@@ -133,6 +133,7 @@ install(DIRECTORY ${CMAKE_BINARY_DIR}/include/dca/config DESTINATION include/dca
 add_subdirectory(src/math/geometry/gaussian_quadrature)
 add_subdirectory(src/math/random)
 add_subdirectory(src/parallel)
+add_subdirectory(src/phys)
 add_subdirectory(src/phys_library/DCA_step/cluster_solver/posix_qmci)
 add_subdirectory(src/util)
 
@@ -143,7 +144,7 @@ endif()
 ################################################################################
 # Common definitions for building DCA++'s applications and tests.
 # Libraries
-set(DCA_LIBS ${DCA_EXTERNAL_LIBS} git_version modules posix_qmci gaussian_quadrature random parallel_util pthreading)
+set(DCA_LIBS ${DCA_EXTERNAL_LIBS} git_version modules posix_qmci gaussian_quadrature random parallel_util pthreading dca_algorithms)
 
 if (DCA_HAVE_CUDA)
   list(APPEND DCA_LIBS DCA_GPU_routines ${DCA_CUDA_LIBS})
