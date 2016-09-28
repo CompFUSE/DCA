@@ -7,10 +7,10 @@
 //
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// This file tests ignore_unused.hpp
+// This file tests ignore.hpp
 
 #include <vector>
-#include "dca/util/ignore_unused.hpp"
+#include "dca/util/ignore.hpp"
 #include "gtest/gtest.h"
 
 TEST(IgnoreUnusedTest, NoArguments) {
