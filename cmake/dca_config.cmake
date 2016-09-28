@@ -232,8 +232,9 @@ elseif (DCA_THREADING_LIBRARY STREQUAL HPX)
   message(FATAL_ERROR "No HPX support yet.")
 
 elseif (DCA_THREADING_LIBRARY STREQUAL None)
-  message(FATAL_ERROR "'No threading library' is not yet supported.")
-  
+  set(DCA_THREADING_TYPE dca::parallel::NoThreading)
+  set(DCA_THREADING_INCLUDE "dca/parallel/no_threading/no_threading.hpp")
+
 else()
   message(FATAL_ERROR "Please set DCA_THREADING_LIBRARY to a valid option: STL | POSIX | HPX | None.")
 endif()
