@@ -164,7 +164,11 @@ if (DCA_WITH_TESTS_FAST OR DCA_WITH_TESTS_EXTENSIVE OR DCA_WITH_TESTS_PERFORMANC
       (CMAKE_BUILD_TYPE STREQUAL "MinSizeRel"))
     message(WARNING "Tests are built with NDEBUG defined!")
   endif()
-  
+
+  if (DCA_WITH_TESTS_PERFORMANCE AND NOT (CMAKE_BUILD_TYPE STREQUAL "Release"))
+    message(WARNING "Performance tests are only built in Release mode.")
+  endif()
+
   add_subdirectory(${gtest_DIR} ${PROJECT_BINARY_DIR}/gtest)
 
   add_subdirectory(${PROJECT_SOURCE_DIR}/test)
