@@ -15,7 +15,9 @@
 #include <vector>
 #include "gtest/gtest.h"
 
+namespace dca {
 namespace testing {
+// dca::testing::
 
 void constructorTestBody(const int num_walkers, const int num_accumulators,
                          const std::vector<std::string>& expected_thread_tasks) {
@@ -43,55 +45,56 @@ void walkerIDToRngIndexTestBody(const int num_walkers, const int num_accumulator
 }
 
 }  // testing
+}  // dca
 
 TEST(ThreadTaskHandlerTest, Constructor) {
   // 0 walkers, 0 accumulators
   std::vector<std::string> expected = {};
-  testing::constructorTestBody(0, 0, expected);
+  dca::testing::constructorTestBody(0, 0, expected);
 
   // 1 walker, 0 accumulators
   expected = {"walker"};
-  testing::constructorTestBody(1, 0, expected);
+  dca::testing::constructorTestBody(1, 0, expected);
 
   // 0 walkers, 1 accumulator
   expected = {"accumulator"};
-  testing::constructorTestBody(0, 1, expected);
+  dca::testing::constructorTestBody(0, 1, expected);
 
   // 1 walker, 1 accumulator
   expected = {"walker", "accumulator"};
-  testing::constructorTestBody(1, 1, expected);
+  dca::testing::constructorTestBody(1, 1, expected);
 
   // 4 walkers, 2 accumulators
   expected = {"walker", "accumulator", "walker", "accumulator", "walker", "walker"};
-  testing::constructorTestBody(4, 2, expected);
+  dca::testing::constructorTestBody(4, 2, expected);
 
   // 2 walkers, 4 accumulators
   expected = {"walker", "accumulator", "walker", "accumulator", "accumulator", "accumulator"};
-  testing::constructorTestBody(2, 4, expected);
+  dca::testing::constructorTestBody(2, 4, expected);
 }
 
 TEST(ThreadTaskHandlertest, walkerIDToRngIndex) {
   // 0 walkers, 0 accumulators
-  testing::walkerIDToRngIndexTestBody(0, 0);
+  dca::testing::walkerIDToRngIndexTestBody(0, 0);
 
   // 1 walker, 0 accumulators
-  testing::walkerIDToRngIndexTestBody(1, 0);
+  dca::testing::walkerIDToRngIndexTestBody(1, 0);
 
   // 0 walkers, 1 accumulator
-  testing::walkerIDToRngIndexTestBody(0, 1);
+  dca::testing::walkerIDToRngIndexTestBody(0, 1);
 
   // 1 walker, 1 accumulator
-  testing::walkerIDToRngIndexTestBody(1, 1);
+  dca::testing::walkerIDToRngIndexTestBody(1, 1);
 
   // 4 walkers, 2 accumulators
-  testing::walkerIDToRngIndexTestBody(4, 2);
+  dca::testing::walkerIDToRngIndexTestBody(4, 2);
 
   // 2 walkers, 4 accumulators
-  testing::walkerIDToRngIndexTestBody(2, 4);
+  dca::testing::walkerIDToRngIndexTestBody(2, 4);
 }
 
-TEST(ThreadTaskHandlerDeathTest, walkerIDToRngIndex) {
 #ifndef NDEBUG
+TEST(ThreadTaskHandlerDeathTest, walkerIDToRngIndex) {
   dca::phys::solver::ThreadTaskHandler handler(4, 2);  // = w, a, w, a, w, w
 
   // Call with thread id that is out of bound.
@@ -101,5 +104,5 @@ TEST(ThreadTaskHandlerDeathTest, walkerIDToRngIndex) {
 
   // Call with thread id that belongs to an accumulator.
   EXPECT_DEATH(handler.walkerIDToRngIndex(3), "thread_tasks_.walker_id. == .walker.");
-#endif  // NDEBUG
 }
+#endif  // NDEBUG

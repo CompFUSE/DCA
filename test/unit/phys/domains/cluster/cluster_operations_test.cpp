@@ -14,11 +14,16 @@
 #include <algorithm>
 #include <iostream>
 #include <string>
-#include <vector>
 #include <utility>
+#include <vector>
+
+#include <gtest/gtest.h>
 
 #include "math_library/geometry_library/vector_operations/elementary_vector_operations.hpp"
-#include <gtest/gtest.h>
+
+namespace dca {
+namespace testing {
+// dca::testing::
 
 template <typename T>
 void printVectorSet(const std::vector<std::vector<T>>& vector_set,
@@ -35,6 +40,9 @@ void printVectorSet(const std::vector<std::vector<T>>& vector_set,
     std::cout << ")" << std::endl;
   }
 }
+
+}  // testing
+}  // dca
 
 class ClusterOperationsTest : public ::testing::Test {
 protected:
@@ -93,8 +101,8 @@ TEST_F(ClusterOperationsTest, index) {
   }
 }
 
-TEST_F(ClusterOperationsDeathTest, index) {
 #ifndef NDEBUG
+TEST_F(ClusterOperationsDeathTest, index) {
   // Unsorted set (PARALLELEPIPEDUM)
   std::vector<double> not_element{-42., 24.};
   EXPECT_DEATH(cluster_operations::index(not_element, unsorted_set_, PARALLELLEPIPEDUM),
@@ -104,8 +112,8 @@ TEST_F(ClusterOperationsDeathTest, index) {
   not_element = {-42., 24.};
   EXPECT_DEATH(cluster_operations::index(not_element, sorted_set_, BRILLOUIN_ZONE),
                "VECTOR_OPERATIONS::L2_NORM");
-#endif  // NDEBUG
 }
+#endif  // NDEBUG
 
 TEST_F(ClusterOperationsTest, translate_inside_cluster) {
   // Cluster vectors should be invariant.
