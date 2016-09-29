@@ -13,7 +13,7 @@
 #include <vector>
 #include "gtest/gtest.h"
 
-TEST(elementary_vector_operations, IS_LARGER_VECTOR) {
+TEST(ElementaryVectorOperationsTest, IsLargerVector) {
   std::vector<double> v1 = {0., 1.};
   std::vector<double> v2 = {0., 2.};
   std::vector<double> v3 = {1., 0.};
