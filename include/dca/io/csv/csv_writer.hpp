@@ -9,26 +9,26 @@
 //
 // Description
 
-#ifndef COMP_LIBRARY_IO_LIBRARY_CSV_CSV_WRITER_H
-#define COMP_LIBRARY_IO_LIBRARY_CSV_CSV_WRITER_H
-
-#include "comp_library/IO_library/template_writer.h"
+#ifndef DCA_IO_CSV_CSV_WRITER_HPP
+#define DCA_IO_CSV_CSV_WRITER_HPP
 
 #include <fstream>
 #include <string>
 #include <vector>
 
-namespace IO {
+namespace dca {
+namespace io {
+// dca::io::
 
-template <>
-class writer<IO::CSV> {
+class CSVWriter {
 public:
-  template <typename scalartype>
-  static void execute(std::string file_name, std::vector<std::vector<scalartype>>& data);
+  template <typename ScalarType>
+  static void execute(const std::string& file_name, const std::vector<std::vector<ScalarType>>& data);
 };
 
-template <typename scalartype>
-void writer<IO::CSV>::execute(std::string file_name, std::vector<std::vector<scalartype>>& data) {
+template <typename ScalarType>
+void CSVWriter::execute(const std::string& file_name,
+                        const std::vector<std::vector<ScalarType>>& data) {
   std::ofstream myfile;
   myfile.open(file_name.c_str());
 
@@ -45,6 +45,8 @@ void writer<IO::CSV>::execute(std::string file_name, std::vector<std::vector<sca
 
   myfile.close();
 }
-}
 
-#endif  // COMP_LIBRARY_IO_LIBRARY_CSV_CSV_WRITER_H
+}  // io
+}  // dca
+
+#endif  // DCA_IO_CSV_CSV_WRITER_HPP

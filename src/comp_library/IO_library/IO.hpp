@@ -8,13 +8,10 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
 // Description
-//
-// TODO: Cleanup CSV if necessary.
 
 #ifndef COMP_LIBRARY_IO_LIBRARY_IO_HPP
 #define COMP_LIBRARY_IO_LIBRARY_IO_HPP
 
-#include "CSV/CSV.hpp"
 #include "HDF5/HDF5.hpp"
 #include "JSON/JSON.hpp"
 

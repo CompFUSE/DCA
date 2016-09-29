@@ -124,7 +124,7 @@ void material_lattice<SrVO3, point_group_type>::initialize_H_interaction(
     FUNC_LIB::function<double, domain>& H_i, parameters_type& parameters) {
   std::vector<std::vector<double>> U;
 
-  IO::reader<IO::CSV>::execute(parameters.get_U_ij_file_name(), U);
+  io::CSVReader::execute(parameters.get_U_ij_file_name(), U);
 
   for (int i = 0; i < 2 * BANDS; i++)
     for (int j = 0; j < 2 * BANDS; j++)
@@ -170,7 +170,7 @@ std::vector<std::vector<double>>& material_lattice<SrVO3, point_group_type>::get
   static bool is_initialized = false;
 
   if (not is_initialized) {
-    IO::reader<IO::CSV>::execute(parameters.get_t_ij_file_name(), t_ij);
+    io::CSVReader::execute(parameters.get_t_ij_file_name(), t_ij);
 
     is_initialized = true;
 
