@@ -18,6 +18,7 @@
 #include <stdexcept>
 #include <string>
 
+#include "dca/io/json/json_writer.hpp"
 #include "dca/phys/dca_step/cluster_mapping/cluster_exclusion.hpp"
 #include "dca/phys/dca_step/cluster_mapping/double_counting_correction.hpp"
 #include "dca/phys/dca_step/cluster_mapping/update_chemical_potential.hpp"
@@ -155,43 +156,37 @@ void DCA_loop<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::read() {
 
 template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
 void DCA_loop<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::write() {
-  IO::FORMAT FORMAT = parameters.get_output_format();
-  std::string file_name = parameters.get_directory() + parameters.get_output_file_name();
+  const std::string& output_format = parameters.get_output_format();
+  const std::string& file_name = parameters.get_directory() + parameters.get_output_file_name();
 
   std::cout << "\n\n\t\t start writing " << file_name << "\t" << dca::util::print_time() << "\n\n";
 
-  switch (FORMAT) {
-    case IO::JSON: {
-      IO::writer<IO::JSON> writer;
-      {
-        writer.open_file(file_name);
+  if (output_format == "JSON") {
+    dca::io::JSONWriter writer;
+    writer.open_file(file_name);
 
-        parameters.write(writer);
-        MOMS.write(writer);
-        monte_carlo_integrator_.write(writer);
-        DCA_info_struct.write(writer);
+    parameters.write(writer);
+    MOMS.write(writer);
+    monte_carlo_integrator_.write(writer);
+    DCA_info_struct.write(writer);
 
-        writer.close_file();
-      }
-    } break;
-
-    case IO::HDF5: {
-      IO::writer<IO::HDF5> writer;
-      {
-        writer.open_file(file_name);
-
-        parameters.write(writer);
-        MOMS.write(writer);
-        monte_carlo_integrator_.write(writer);
-        DCA_info_struct.write(writer);
-
-        writer.close_file();
-      }
-    } break;
-
-    default:
-      throw std::logic_error(__FUNCTION__);
+    writer.close_file();
   }
+
+  else if (output_format == "HDF5") {
+    IO::writer<IO::HDF5> writer;
+    writer.open_file(file_name);
+
+    parameters.write(writer);
+    MOMS.write(writer);
+    monte_carlo_integrator_.write(writer);
+    DCA_info_struct.write(writer);
+
+    writer.close_file();
+  }
+
+  else
+    throw std::logic_error(__FUNCTION__);
 }
 
 template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>

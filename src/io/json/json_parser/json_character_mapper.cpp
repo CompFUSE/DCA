@@ -7,27 +7,13 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// This file implements json_character_mapper.hpp.
 
-#ifndef COMP_LIBRARY_IO_LIBRARY_JSON_JSON_PARSER_JSON_CHARACTER_MAPPER_H
-#define COMP_LIBRARY_IO_LIBRARY_JSON_JSON_PARSER_JSON_CHARACTER_MAPPER_H
+#include "dca/io/json/json_parser/json_character_mapper.hpp"
 
-#include <iostream>
-#include "comp_library/IO_library/JSON/JSON_PARSER/JSON_enumerations.h"
-
-namespace IO {
-namespace JSONPARSER {
-class JSON_character_mapper {
-public:
-  static JSON_character_class_type map_char_to_class(wchar_t widec);
-
-  static bool is_white_space(JSON_character_class_type& nextClass);
-
-  static wchar_t get_escaped_character(std::wistream& inputStream);
-
-private:
-  static JSON_character_class_type ascii_class[128];
-};
+namespace dca {
+namespace io {
+// dca::io::
 
 // This array maps the 128 ASCII characters into character classes.
 // The remaining Unicode characters should be mapped to C_ETC.
@@ -109,7 +95,6 @@ wchar_t JSON_character_mapper::get_escaped_character(std::wistream& inputStream)
           "JsonParser: Encountered an escapped character that was not recognized.");
   }
 }
-}
-}
 
-#endif  // COMP_LIBRARY_IO_LIBRARY_JSON_JSON_PARSER_JSON_CHARACTER_MAPPER_H
+}  // io
+}  // dca

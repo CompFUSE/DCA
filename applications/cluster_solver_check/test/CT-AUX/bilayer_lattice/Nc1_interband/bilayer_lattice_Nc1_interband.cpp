@@ -18,8 +18,9 @@
 
 #include "gtest/gtest.h"
 
-#include "dca/parallel/pthreading/pthreading.hpp"
+#include "dca/io/json/json_reader.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
+#include "dca/parallel/pthreading/pthreading.hpp"
 #include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
 #include "dca/phys/parameters/parameters.hpp"
@@ -29,7 +30,6 @@
 #include "dca/util/modules.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/IO_library/HDF5/HDF5.hpp"
-#include "comp_library/IO_library/JSON/JSON.hpp"
 #include "comp_library/profiler_library/profilers/null_profiler.hpp"
 #include "phys_library/DCA+_data/DCA_data.h"
 #include "phys_library/DCA+_loop/DCA_loop_data.hpp"
@@ -70,7 +70,7 @@ TEST(bilayerLattice_Nc1_interband, Self_Energy) {
   }
 
   ParametersType parameters(dca::util::GitVersion::string(), dca_test_env->concurrency);
-  parameters.read_input_and_broadcast<IO::reader<IO::JSON>>(dca_test_env->input_file_name);
+  parameters.read_input_and_broadcast<dca::io::JSONReader>(dca_test_env->input_file_name);
   parameters.update_model();
   parameters.update_domains();
 
@@ -79,7 +79,7 @@ TEST(bilayerLattice_Nc1_interband, Self_Energy) {
   DcaDataType dca_data_imag(parameters);
   dca_data_imag.initialize();
 
-  // Read and broadcast<IO::JSON> ED data
+  // Read and broadcast ED data.
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
     IO::reader<IO::HDF5> reader;
     reader.open_file(DCA_SOURCE_DIR

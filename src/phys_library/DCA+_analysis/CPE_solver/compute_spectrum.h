@@ -19,6 +19,7 @@
 #include <stdexcept>
 #include <string>
 
+#include "dca/io/json/json_writer.hpp"
 #include "dca/util/print_time.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/function_plotting/include_plotting.h"
@@ -35,6 +36,8 @@
 #include "phys_library/domains/time_and_frequency/frequency_domain_real_axis.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain_imag_axis.h"
 #include "phys_library/domains/time_and_frequency/time_domain.h"
+
+using namespace dca::phys;
 
 namespace DCA {
 
@@ -63,8 +66,8 @@ public:
   template <typename MOMS_imag_type, typename MOMS_real_type>
   void write(std::string file_name, MOMS_imag_type& MOMS_imag, MOMS_real_type& MOMS_real);
 
-  template <IO::FORMAT DATA_FORMAT>
-  void write(IO::writer<DATA_FORMAT>& writer);
+  template <typename Writer>
+  void write(Writer& writer);
 
   template <typename MOMS_imag_type, typename MOMS_real_type>
   void execute(MOMS_imag_type& MOMS_imag, MOMS_real_type& MOMS_real);
@@ -236,47 +239,41 @@ template <typename MOMS_imag_type, typename MOMS_real_type>
 void compute_spectrum<parameters_type, basis_function_t>::write(std::string file_name,
                                                                 MOMS_imag_type& /*MOMS_imag*/,
                                                                 MOMS_real_type& MOMS_real) {
-  IO::FORMAT FORMAT = parameters.get_output_format();
-
   std::cout << "\n\n\t\t start writing " << file_name << "\n\n";
 
-  switch (FORMAT) {
-    case IO::JSON: {
-      IO::writer<IO::JSON> writer;
-      {
-        writer.open_file(file_name);
+  const std::string& output_format = parameters.get_output_format();
 
-        parameters.write(writer);
-        MOMS_real.write(writer);
-        cpe_obj.write(writer);
-        this->write(writer);
+  if (output_format == "JSON") {
+    dca::io::JSONWriter writer;
+    writer.open_file(file_name);
 
-        writer.close_file();
-      }
-    } break;
+    parameters.write(writer);
+    MOMS_real.write(writer);
+    cpe_obj.write(writer);
+    this->write(writer);
 
-    case IO::HDF5: {
-      IO::writer<IO::HDF5> writer;
-      {
-        writer.open_file(file_name);
-
-        parameters.write(writer);
-        MOMS_real.write(writer);
-        cpe_obj.write(writer);
-        this->write(writer);
-
-        writer.close_file();
-      }
-    } break;
-
-    default:
-      throw std::logic_error(__FUNCTION__);
+    writer.close_file();
   }
+
+  else if (output_format == "HDF5") {
+    IO::writer<IO::HDF5> writer;
+    writer.open_file(file_name);
+
+    parameters.write(writer);
+    MOMS_real.write(writer);
+    cpe_obj.write(writer);
+    this->write(writer);
+
+    writer.close_file();
+  }
+
+  else
+    throw std::logic_error(__FUNCTION__);
 }
 
 template <class parameters_type, class basis_function_t>
-template <IO::FORMAT DATA_FORMAT>
-void compute_spectrum<parameters_type, basis_function_t>::write(IO::writer<DATA_FORMAT>& writer) {
+template <typename Writer>
+void compute_spectrum<parameters_type, basis_function_t>::write(Writer& writer) {
   writer.open_group("CPE-functions");
 
   writer.execute(error_function);

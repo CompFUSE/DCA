@@ -7,36 +7,14 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// This file implements json_mode_stack.hpp.
 
-#ifndef COMP_LIBRARY_IO_LIBRARY_JSON_JSON_PARSER_JSON_MODE_STACK_H
-#define COMP_LIBRARY_IO_LIBRARY_JSON_JSON_PARSER_JSON_MODE_STACK_H
-
+#include "dca/io/json/json_parser/json_mode_stack.hpp"
 #include <sstream>
-#include <string>
-#include <vector>
 
-#include "comp_library/IO_library/JSON/JSON_PARSER/JSON_enumerations.h"
-
-namespace IO {
-namespace JSONPARSER {
-class JSON_mode_stack {
-public:
-  JSON_mode_stack();
-
-  std::string modeName(JSON_mode_type m);
-
-  void push(JSON_mode_type mode);
-
-  void pop(JSON_mode_type expectedMode);
-
-  const JSON_mode_type& currentMode();
-
-public:
-  std::vector<JSON_mode_type> stack;
-};
-
-JSON_mode_stack::JSON_mode_stack() : stack(1, MODE_DONE) {}
+namespace dca {
+namespace io {
+// dca::io::
 
 std::string JSON_mode_stack::modeName(JSON_mode_type m) {
   switch (m) {
@@ -51,10 +29,6 @@ std::string JSON_mode_stack::modeName(JSON_mode_type m) {
     default:
       return "MODE_UNKNOWN";
   }
-}
-
-void JSON_mode_stack::push(JSON_mode_type mode) {
-  stack.push_back(mode);
 }
 
 void JSON_mode_stack::pop(JSON_mode_type expectedMode) {
@@ -77,10 +51,5 @@ void JSON_mode_stack::pop(JSON_mode_type expectedMode) {
   stack.pop_back();
 }
 
-const JSON_mode_type& JSON_mode_stack::currentMode() {
-  return stack.back();
-}
-}
-}
-
-#endif  // COMP_LIBRARY_IO_LIBRARY_JSON_JSON_PARSER_JSON_MODE_STACK_H
+}  // io
+}  // dca

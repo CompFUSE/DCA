@@ -13,6 +13,5 @@
 #define COMP_LIBRARY_IO_LIBRARY_IO_HPP
 
 #include "HDF5/HDF5.hpp"
-#include "JSON/JSON.hpp"
 
 #endif  // COMP_LIBRARY_IO_LIBRARY_IO_HPP

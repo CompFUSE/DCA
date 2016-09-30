@@ -9,19 +9,25 @@
 //
 // Description
 
-#ifndef COMP_LIBRARY_IO_LIBRARY_JSON_JSON_PARSER_JSON_PARSER_H
-#define COMP_LIBRARY_IO_LIBRARY_JSON_JSON_PARSER_JSON_PARSER_H
+#ifndef DCA_IO_JSON_JSON_PARSER_JSON_PARSER_HPP
+#define DCA_IO_JSON_JSON_PARSER_JSON_PARSER_HPP
 
 #include <cassert>
+#include <iostream>
+#include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
 
-#include "comp_library/IO_library/JSON/JSON_PARSER/JSON_character_mapper.h"
-#include "comp_library/IO_library/JSON/JSON_PARSER/JSON_mode_stack.h"
-#include "comp_library/IO_library/JSON/JSON_PARSER/parse_buffer.h"
-#include "comp_library/IO_library/JSON/JSON_PARSER/JSON_state_and_action_pair.h"
-#include "comp_library/IO_library/JSON/JSON_PARSER/JSON_translation_table.h"
+#include "dca/io/json/json_parser/json_character_mapper.hpp"
+#include "dca/io/json/json_parser/json_mode_stack.hpp"
+#include "dca/io/json/json_parser/json_translation_table.hpp"
+#include "dca/io/json/json_parser/parse_buffer.hpp"
+#include "dca/io/json/json_parser/state_and_action_pair.hpp"
 
-namespace IO {
-namespace JSONPARSER {
+namespace dca {
+namespace io {
+// dca::io::
 
 template <typename context_type>
 class JSON_parser : public JSON_character_mapper, public JSON_mode_stack {
@@ -358,7 +364,8 @@ std::pair<wchar_t, JSON_character_class_type> JSON_parser<context_type>::get_nex
 
   return result;
 }
-}
-}
 
-#endif  // COMP_LIBRARY_IO_LIBRARY_JSON_JSON_PARSER_JSON_PARSER_H
+}  // io
+}  // dca
+
+#endif  // DCA_IO_JSON_JSON_PARSER_JSON_PARSER_HPP

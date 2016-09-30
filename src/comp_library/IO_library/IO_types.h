@@ -13,7 +13,7 @@
 #define COMP_LIBRARY_IO_LIBRARY_IO_TYPES_H
 
 namespace IO {
-enum FORMAT { JSON, HDF5 };
+enum FORMAT { HDF5 };
 typedef FORMAT format_type;
 }
 

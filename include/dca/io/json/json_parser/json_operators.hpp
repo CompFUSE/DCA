@@ -9,74 +9,28 @@
 //
 // Description
 
-#ifndef COMP_LIBRARY_IO_LIBRARY_JSON_JSON_PARSER_JSON_OPERATORS_H
-#define COMP_LIBRARY_IO_LIBRARY_JSON_JSON_PARSER_JSON_OPERATORS_H
+#ifndef DCA_IO_JSON_JSON_PARSER_JSON_OPERATORS_HPP
+#define DCA_IO_JSON_JSON_PARSER_JSON_OPERATORS_HPP
 
 #include <complex>
+#include <map>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <vector>
 
-#include "comp_library/IO_library/JSON/JSON_PARSER/parse_buffer.h"
-#include "comp_library/IO_library/JSON/JSON_PARSER/what_ever.h"
+#include "dca/io/json/json_parser/parse_buffer.hpp"
+#include "dca/io/json/json_parser/whatever.hpp"
 
-namespace IO {
-namespace JSONPARSER {
-bool& operator<=(bool& lhs, const Whatever& w) {
-  switch (w.type) {
-    case WHATEVER_INTEGER:
+namespace dca {
+namespace io {
+// dca::io::
 
-      lhs = static_cast<bool>(w.whateverInteger);
-      return lhs;
-
-    case WHATEVER_BOOL:
-
-      lhs = w.whateverBool;
-      return lhs;
-
-    default:
-      throw std::logic_error(__FUNCTION__);
-  }
-}
-
-int& operator<=(int& lhs, const Whatever& w) {
-  switch (w.type) {
-    case WHATEVER_INTEGER: {
-      lhs = w.whateverInteger;
-      return lhs;
-    }
-
-    default: { throw std::logic_error(__FUNCTION__); }
-  }
-}
-
-float& operator<=(float& lhs, const Whatever& w) {
-  switch (w.type) {
-    case WHATEVER_INTEGER: {
-      lhs = static_cast<float>(w.whateverInteger);
-      return lhs;
-    }
-
-    case WHATEVER_DOUBLE: {
-      lhs = static_cast<float>(w.whateverDouble);
-      return lhs;
-    }
-
-    default: { throw std::logic_error(__FUNCTION__); }
-  }
-}
-
-double& operator<=(double& lhs, const Whatever& w) {
-  switch (w.type) {
-    case WHATEVER_INTEGER: {
-      lhs = static_cast<double>(w.whateverInteger);
-      return lhs;
-    }
-    case WHATEVER_DOUBLE: {
-      lhs = w.whateverDouble;
-      return lhs;
-    }
-
-    default: { throw std::logic_error(__FUNCTION__); }
-  }
-}
+bool& operator<=(bool& lhs, const Whatever& w);
+int& operator<=(int& lhs, const Whatever& w);
+float& operator<=(float& lhs, const Whatever& w);
+double& operator<=(double& lhs, const Whatever& w);
+std::string& operator<=(std::string& lhs, const Whatever& w);
 
 template <typename T>
 std::complex<T>& operator<=(std::complex<T>& lhs, const Whatever& w) {
@@ -88,17 +42,6 @@ std::complex<T>& operator<=(std::complex<T>& lhs, const Whatever& w) {
       v1 <= w.whateverVector[1];
       std::complex<T> result(v0, v1);
       lhs = result;
-      return lhs;
-    }
-
-    default: { throw std::logic_error(__FUNCTION__); }
-  }
-}
-
-std::string& operator<=(std::string& lhs, const Whatever& w) {
-  switch (w.type) {
-    case WHATEVER_STRING: {
-      lhs = std::string(w.valueString.begin(), w.valueString.end());
       return lhs;
     }
 
@@ -163,7 +106,7 @@ ParseBuffer& operator>>(ParseBuffer& buffer, T& value) {
   return buffer;
 }
 
-}  // JSONPARSER
-}  // IO
+}  // io
+}  // dca
 
-#endif  // COMP_LIBRARY_IO_LIBRARY_JSON_JSON_PARSER_JSON_OPERATORS_H
+#endif  // DCA_IO_JSON_JSON_PARSER_JSON_OPERATORS_HPP

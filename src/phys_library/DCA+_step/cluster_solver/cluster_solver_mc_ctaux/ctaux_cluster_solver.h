@@ -35,6 +35,8 @@
 #include "phys_library/domains/time_and_frequency/frequency_domain.h"
 #include "phys_library/vertex_measurement_type.hpp"
 
+using namespace dca::phys;
+
 namespace DCA {
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
@@ -69,8 +71,8 @@ public:
 
   ~cluster_solver();
 
-  template <IO::FORMAT DATA_FORMAT>
-  void write(IO::writer<DATA_FORMAT>& reader);
+  template <typename Writer>
+  void write(Writer& reader);
 
   void initialize(int dca_iteration);
 
@@ -166,9 +168,8 @@ cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::~cl
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-template <IO::FORMAT DATA_FORMAT>
-void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::write(
-    IO::writer<DATA_FORMAT>& writer) {
+template <typename Writer>
+void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::write(Writer& writer) {
   writer.open_group("CT-AUX-SOLVER-functions");
 
   writer.execute(Sigma_old);

@@ -9,35 +9,34 @@
 //
 // Description
 
-#ifndef COMP_LIBRARY_IO_LIBRARY_JSON_JSON_WRITER_H
-#define COMP_LIBRARY_IO_LIBRARY_JSON_JSON_WRITER_H
-
-#include "comp_library/IO_library/template_writer.h"
+#ifndef DCA_IO_JSON_JSON_WRITER_HPP
+#define DCA_IO_JSON_JSON_WRITER_HPP
 
 #include <complex>
-#include <fstream>
 #include <map>
 #include <stdexcept>
 #include <sstream>
 #include <string>
 #include <vector>
 
-#include "comp_library/IO_library/JSON/JSON_PARSER/what_ever.h"
-#include "comp_library/IO_library/JSON/JSON_PARSER/default_context.h"
+#include "dca/io/json/json_parser/json_context.hpp"
+#include "dca/io/json/json_parser/whatever.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/linalg/linalg.hpp"
 
-namespace IO {
-template <>
-class writer<IO::JSON> {
+namespace dca {
+namespace io {
+// dca::io::
+
+class JSONWriter {
 public:
   typedef std::stringstream file_type;
 
-  typedef JSONPARSER::Whatever JsonAccessor;
-  typedef JSONPARSER::JSON_context JsonDataType;
+  typedef Whatever JsonAccessor;
+  typedef JSON_context JsonDataType;
 
 public:
-  writer();
+  JSONWriter();
 
   bool is_reader() {
     return false;
@@ -113,76 +112,18 @@ private:
   std::vector<int> elements_in_group;
 };
 
-writer<IO::JSON>::writer() : file_name(""), path(""), elements_in_group(0) {
-  ss << std::fixed;
-  ss.precision(16);
-}
-
-std::stringstream& writer<IO::JSON>::open_file(std::string my_file_name, bool /*overwrite*/) {
-  file_name = my_file_name;
-
-  ss << "{\n";
-
-  elements_in_group.push_back(0);
-
-  return ss;
-}
-
-void writer<IO::JSON>::close_file() {
-  ss << "\n}";
-
-  {
-    std::ofstream of(&file_name[0]);
-
-    of << ss.str();
-
-    of.flush();
-    of.close();
-  }
-}
-
-void writer<IO::JSON>::open_group(std::string name) {
-  if (elements_in_group.back() != 0)
-    ss << ",\n\n";
-
-  ss << get_path() << "\"" << name << "\""
-     << " : \n";
-
-  ss << get_path() << "{\n";
-
-  elements_in_group.push_back(0);
-}
-
-void writer<IO::JSON>::close_group() {
-  elements_in_group.pop_back();
-
-  ss << "\n" << get_path() << "}";
-
-  elements_in_group.back() += 1;
-}
-
-std::string writer<IO::JSON>::get_path() {
-  std::stringstream ss;
-  for (size_t i = 0; i < elements_in_group.size(); i++)
-    ss << "\t";
-
-  return ss.str();
-}
-
 template <typename arbitrary_struct_t>
-void writer<IO::JSON>::to_file(arbitrary_struct_t& arbitrary_struct, std::string file_name) {
-  writer<IO::JSON> wr_obj;
+void JSONWriter::to_file(arbitrary_struct_t& arbitrary_struct, std::string file_name) {
+  JSONWriter wr_obj;
 
   wr_obj.open_file(file_name);
-
   arbitrary_struct.read_write(wr_obj);
-
   wr_obj.close_file();
 }
 
 template <typename scalartype>
-void writer<JSON>::execute(std::string name,
-                           scalartype& value)  //, file_type& ss), std::string path, bool is_ending)
+void JSONWriter::execute(std::string name,
+                         scalartype& value)  //, file_type& ss), std::string path, bool is_ending)
 {
   if (elements_in_group.back() != 0)
     ss << ",\n";
@@ -193,7 +134,7 @@ void writer<JSON>::execute(std::string name,
 }
 
 template <typename s_t_0, typename s_t_1>
-void writer<JSON>::execute(
+void JSONWriter::execute(
     std::string name,
     std::pair<s_t_0, s_t_1>& value)  //, file_type& ss), std::string path, bool is_ending)
 {
@@ -206,7 +147,7 @@ void writer<JSON>::execute(
 }
 
 template <typename scalartype>
-void writer<JSON>::execute(
+void JSONWriter::execute(
     std::string name,
     std::vector<scalartype>& value)  //, file_type& ss)//, std::string path, bool is_ending)
 {
@@ -228,7 +169,7 @@ void writer<JSON>::execute(
 }
 
 template <typename scalartype>
-void writer<JSON>::execute(std::string name, std::vector<std::vector<scalartype>>& value) {
+void JSONWriter::execute(std::string name, std::vector<std::vector<scalartype>>& value) {
   if (elements_in_group.back() != 0)
     ss << ",\n";
 
@@ -256,35 +197,8 @@ void writer<JSON>::execute(std::string name, std::vector<std::vector<scalartype>
   elements_in_group.back() += 1;
 }
 
-void writer<JSON>::execute(std::string name, std::string& value) {
-  if (elements_in_group.back() != 0)
-    ss << ",\n";
-
-  ss << get_path() << "\"" << name << "\" : \"" << value << "\"";
-
-  elements_in_group.back() += 1;
-}
-
-void writer<JSON>::execute(std::string name, std::vector<std::string>& value) {
-  if (elements_in_group.back() != 0)
-    ss << ",\n";
-
-  ss << get_path() << "\"" << name << "\" : [";
-
-  for (size_t i = 0; i < value.size(); i++) {
-    ss << "\"" << value[i] << "\"";
-
-    if (i == value.size() - 1)
-      ss << "]";
-    else
-      ss << ", ";
-  }
-
-  elements_in_group.back() += 1;
-}
-
 template <typename domain_type>
-void writer<IO::JSON>::execute(std::string name, dmn_0<domain_type>& dmn) {
+void JSONWriter::execute(std::string name, dmn_0<domain_type>& dmn) {
   open_group(name);
 
   execute("name", dmn.get_name());
@@ -297,14 +211,14 @@ void writer<IO::JSON>::execute(std::string name, dmn_0<domain_type>& dmn) {
 }
 
 template <typename scalar_type, typename domain_type>
-void writer<IO::JSON>::execute(FUNC_LIB::function<scalar_type, domain_type>& f) {
+void JSONWriter::execute(FUNC_LIB::function<scalar_type, domain_type>& f) {
   std::cout << "\t starts writing function : " << f.get_name() << "\n";
 
   execute(f.get_name(), f);
 }
 
 template <typename scalar_type, typename domain_type>
-void writer<IO::JSON>::execute(std::string name, FUNC_LIB::function<scalar_type, domain_type>& f) {
+void JSONWriter::execute(std::string name, FUNC_LIB::function<scalar_type, domain_type>& f) {
   open_group(name);
 
   execute("name", f.get_name());
@@ -351,15 +265,15 @@ void writer<IO::JSON>::execute(std::string name, FUNC_LIB::function<scalar_type,
 }
 
 template <typename scalar_type, typename domain_type>
-void writer<IO::JSON>::execute(FUNC_LIB::function<std::complex<scalar_type>, domain_type>& f) {
+void JSONWriter::execute(FUNC_LIB::function<std::complex<scalar_type>, domain_type>& f) {
   std::cout << "\t starts writing function : " << f.get_name() << "\n";
 
   execute(f.get_name(), f);
 }
 
 template <typename scalar_type, typename domain_type>
-void writer<IO::JSON>::execute(std::string name,
-                               FUNC_LIB::function<std::complex<scalar_type>, domain_type>& f) {
+void JSONWriter::execute(std::string name,
+                         FUNC_LIB::function<std::complex<scalar_type>, domain_type>& f) {
   open_group(name);
 
   execute("name", f.get_name());
@@ -406,8 +320,7 @@ void writer<IO::JSON>::execute(std::string name,
 }
 
 template <typename scalar_type>
-void writer<IO::JSON>::execute(std::string name,
-                               dca::linalg::Vector<scalar_type, dca::linalg::CPU>& V) {
+void JSONWriter::execute(std::string name, dca::linalg::Vector<scalar_type, dca::linalg::CPU>& V) {
   open_group(name);
 
   execute("name", V.get_name());
@@ -428,8 +341,8 @@ void writer<IO::JSON>::execute(std::string name,
 }
 
 template <typename scalar_type>
-void writer<IO::JSON>::execute(std::string name,
-                               dca::linalg::Vector<std::complex<scalar_type>, dca::linalg::CPU>& V) {
+void JSONWriter::execute(std::string name,
+                         dca::linalg::Vector<std::complex<scalar_type>, dca::linalg::CPU>& V) {
   open_group(name);
 
   execute("name", V.get_name());
@@ -454,8 +367,7 @@ void writer<IO::JSON>::execute(std::string name,
 }
 
 template <typename scalar_type>
-void writer<IO::JSON>::execute(std::string name,
-                               dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A) {
+void JSONWriter::execute(std::string name, dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A) {
   open_group(name);
 
   execute("name", A.get_name());
@@ -485,8 +397,8 @@ void writer<IO::JSON>::execute(std::string name,
 }
 
 template <typename scalar_type>
-void writer<IO::JSON>::execute(std::string name,
-                               dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU>& A) {
+void JSONWriter::execute(std::string name,
+                         dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU>& A) {
   open_group(name);
 
   execute("name", A.get_name());
@@ -532,20 +444,20 @@ void writer<IO::JSON>::execute(std::string name,
 }
 
 template <class stream_type>
-void writer<IO::JSON>::execute(stream_type& os, const JsonAccessor& w) {
+void JSONWriter::execute(stream_type& os, const JsonAccessor& w) {
   static int level = -1;
 
-  typedef typename std::map<std::wstring, JSONPARSER::Whatever>::const_iterator WhateverMapItr;
+  typedef typename std::map<std::wstring, Whatever>::const_iterator WhateverMapItr;
 
   switch (w.type) {
-    case JSONPARSER::WHATEVER_MAT: {
+    case WHATEVER_MAT: {
       std::string wfilename(w.filename.begin(), w.filename.end());
       os << "{ 'fileName': '" << wfilename << "'"
          << ", 'startPos': " << w.startPos << ", 'endPos': " << w.endPos << "}";
       break;
     }
 
-    case JSONPARSER::WHATEVER_MAP: {
+    case WHATEVER_MAP: {
       level += 1;
 
       os << "\n";
@@ -563,7 +475,7 @@ void writer<IO::JSON>::execute(stream_type& os, const JsonAccessor& w) {
 
         os << "\"" << key << "\" : ";  // << (*itr).second;
 
-        writer<IO::JSON>::execute(os, (*itr).second);
+        JSONWriter::execute(os, (*itr).second);
 
         if (int(w.whateverMap.size()) == index + 1)
           os << "";
@@ -583,10 +495,10 @@ void writer<IO::JSON>::execute(stream_type& os, const JsonAccessor& w) {
       break;
     }
 
-    case JSONPARSER::WHATEVER_VECTOR: {
+    case WHATEVER_VECTOR: {
       os << "[";
       for (size_t i = 0; i < w.whateverVector.size(); i++) {
-        writer<IO::JSON>::execute(os, w.whateverVector[i]);
+        JSONWriter::execute(os, w.whateverVector[i]);
         if (i < w.whateverVector.size() - 1)
           os << ", ";
       }
@@ -596,28 +508,28 @@ void writer<IO::JSON>::execute(stream_type& os, const JsonAccessor& w) {
       break;
     }
 
-    case JSONPARSER::WHATEVER_MATRIX:
+    case WHATEVER_MATRIX:
       os << "WHATEVER_MATRIX";
       break;
 
-    case JSONPARSER::WHATEVER_STRING: {
+    case WHATEVER_STRING: {
       const std::string tmp(w.valueString.begin(), w.valueString.end());
       os << "\"" << tmp << "\"";
     } break;
 
-    case JSONPARSER::WHATEVER_INTEGER:
+    case WHATEVER_INTEGER:
       os << w.whateverInteger;
       break;
 
-    case JSONPARSER::WHATEVER_DOUBLE:
+    case WHATEVER_DOUBLE:
       os << w.whateverDouble;
       break;
 
-    case JSONPARSER::WHATEVER_BOOL:
+    case WHATEVER_BOOL:
       os << w.whateverBool;
       break;
 
-    case JSONPARSER::WHATEVER_UNKNOWN:
+    case WHATEVER_UNKNOWN:
       os << "WHATEVER_UNKNOWN";
       break;
 
@@ -626,6 +538,7 @@ void writer<IO::JSON>::execute(stream_type& os, const JsonAccessor& w) {
   }
 }
 
-}  // IO
+}  // io
+}  // dca
 
-#endif  // COMP_LIBRARY_IO_LIBRARY_JSON_JSON_WRITER_H
+#endif  // DCA_IO_JSON_JSON_WRITER_HPP

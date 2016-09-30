@@ -21,6 +21,8 @@
 #include <utility>
 #include <vector>
 
+#include "dca/io/json/json_reader.hpp"
+#include "dca/io/json/json_writer.hpp"
 #include "dca/phys/dca_algorithms/compute_band_structure.hpp"
 #include "dca/util/print_time.hpp"
 #include "comp_library/function_library/include_function_library.h"
@@ -87,11 +89,11 @@ public:
 
   void write(std::string filename);
 
-  template <IO::FORMAT DATA_FORMAT>
-  void read(IO::reader<DATA_FORMAT>& reader);
+  template <typename Reader>
+  void read(Reader& reader);
 
-  template <IO::FORMAT DATA_FORMAT>
-  void write(IO::writer<DATA_FORMAT>& reader);
+  template <typename Writer>
+  void write(Writer& reader);
 
   void initialize();
 
@@ -238,32 +240,24 @@ void DCA_data<parameters_type>::read(std::string filename) {
     std::cout << "\n\n\t starts reading \n\n";
 
   if (concurrency.id() == concurrency.first()) {
-    IO::FORMAT FORMAT = parameters.get_output_format();
+    const std::string& output_format = parameters.get_output_format();
 
-    switch (FORMAT) {
-      case IO::JSON: {
-        IO::reader<IO::JSON> reader;
-
-        reader.open_file(filename);
-
-        this->read(reader);
-
-        reader.close_file();
-      } break;
-
-      case IO::HDF5: {
-        IO::reader<IO::HDF5> reader;
-
-        reader.open_file(filename);
-
-        this->read(reader);
-
-        reader.close_file();
-      } break;
-
-      default:
-        throw std::logic_error(__FUNCTION__);
+    if (output_format == "JSON") {
+      dca::io::JSONReader reader;
+      reader.open_file(filename);
+      this->read(reader);
+      reader.close_file();
     }
+
+    else if (output_format == "HDF5") {
+      IO::reader<IO::HDF5> reader;
+      reader.open_file(filename);
+      this->read(reader);
+      reader.close_file();
+    }
+
+    else
+      throw std::logic_error(__FUNCTION__);
   }
 
   concurrency.broadcast(parameters.get_chemical_potential());
@@ -280,8 +274,8 @@ void DCA_data<parameters_type>::read(std::string filename) {
 }
 
 template <class parameters_type>
-template <IO::FORMAT DATA_FORMAT>
-void DCA_data<parameters_type>::read(IO::reader<DATA_FORMAT>& reader) {
+template <typename Reader>
+void DCA_data<parameters_type>::read(Reader& reader) {
   std::string vertex_measurement = "NONE";
 
   {
@@ -326,43 +320,37 @@ void DCA_data<parameters_type>::read(IO::reader<DATA_FORMAT>& reader) {
 
 template <class parameters_type>
 void DCA_data<parameters_type>::write(std::string file_name) {
-  IO::FORMAT FORMAT = parameters.get_output_format();
-
   std::cout << "\n\n\t\t start writing " << file_name << "\n\n";
 
-  switch (FORMAT) {
-    case IO::JSON: {
-      IO::writer<IO::JSON> writer;
-      {
-        writer.open_file(file_name);
+  const std::string& output_format = parameters.get_output_format();
 
-        parameters.write(writer);
-        this->write(writer);
+  if (output_format == "JSON") {
+    dca::io::JSONWriter writer;
+    writer.open_file(file_name);
 
-        writer.close_file();
-      }
-    } break;
+    parameters.write(writer);
+    this->write(writer);
 
-    case IO::HDF5: {
-      IO::writer<IO::HDF5> writer;
-      {
-        writer.open_file(file_name);
-
-        parameters.write(writer);
-        this->write(writer);
-
-        writer.close_file();
-      }
-    } break;
-
-    default:
-      throw std::logic_error(__FUNCTION__);
+    writer.close_file();
   }
+
+  else if (output_format == "HDF5") {
+    IO::writer<IO::HDF5> writer;
+    writer.open_file(file_name);
+
+    parameters.write(writer);
+    this->write(writer);
+
+    writer.close_file();
+  }
+
+  else
+    throw std::logic_error(__FUNCTION__);
 }
 
 template <class parameters_type>
-template <IO::FORMAT DATA_FORMAT>
-void DCA_data<parameters_type>::write(IO::writer<DATA_FORMAT>& writer) {
+template <typename Writer>
+void DCA_data<parameters_type>::write(Writer& writer) {
   writer.open_group("functions");
 
   writer.execute(band_structure);

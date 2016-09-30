@@ -18,6 +18,7 @@
 #include <stdexcept>
 #include <string>
 
+#include "dca/io/json/json_writer.hpp"
 #include "dca/phys/dca_algorithms/compute_band_structure.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/IO_library/IO.hpp"
@@ -76,8 +77,8 @@ public:
 
   void write();
 
-  template <IO::FORMAT DATA_FORMAT>
-  void write(IO::writer<DATA_FORMAT>& reader);
+  template <typename Writer>
+  void write(Writer& write);
 
   template <class stream_type>
   void to_JSON(stream_type& ss);
@@ -243,45 +244,40 @@ BSE_solver<parameters_type, MOMS_type>::BSE_solver(parameters_type& parameters_r
 
 template <class parameters_type, class MOMS_type>
 void BSE_solver<parameters_type, MOMS_type>::write() {
-  IO::FORMAT FORMAT = parameters.get_output_format();
-  std::string file_name = parameters.get_directory() + parameters.get_susceptibilities_file_name();
+  const std::string& output_format = parameters.get_output_format();
+  const std::string& file_name =
+      parameters.get_directory() + parameters.get_susceptibilities_file_name();
 
   std::cout << "\n\n\t\t start writing " << file_name << "\n\n";
 
-  switch (FORMAT) {
-    case IO::JSON: {
-      IO::writer<IO::JSON> writer;
-      {
-        writer.open_file(file_name);
+  if (output_format == "JSON") {
+    dca::io::JSONWriter writer;
+    writer.open_file(file_name);
 
-        parameters.write(writer);
-        this->write(writer);
+    parameters.write(writer);
+    this->write(writer);
 
-        writer.close_file();
-      }
-    } break;
-
-    case IO::HDF5: {
-      IO::writer<IO::HDF5> writer;
-      {
-        writer.open_file(file_name);
-
-        parameters.write(writer);
-        // MOMS      .write(writer);
-        this->write(writer);
-
-        writer.close_file();
-      }
-    } break;
-
-    default:
-      throw std::logic_error(__FUNCTION__);
+    writer.close_file();
   }
+
+  else if (output_format == "HDF5") {
+    IO::writer<IO::HDF5> writer;
+    writer.open_file(file_name);
+
+    parameters.write(writer);
+    // MOMS.write(writer);
+    this->write(writer);
+
+    writer.close_file();
+  }
+
+  else
+    throw std::logic_error(__FUNCTION__);
 }
 
 template <class parameters_type, class MOMS_type>
-template <IO::FORMAT DATA_FORMAT>
-void BSE_solver<parameters_type, MOMS_type>::write(IO::writer<DATA_FORMAT>& writer) {
+template <typename Writer>
+void BSE_solver<parameters_type, MOMS_type>::write(Writer& writer) {
   writer.open_group("analysis-functions");
 
   {

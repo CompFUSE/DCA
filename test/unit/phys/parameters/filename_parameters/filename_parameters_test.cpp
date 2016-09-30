@@ -13,13 +13,13 @@
 
 #include "dca/phys/parameters/filename_parameters.hpp"
 #include "gtest/gtest.h"
-#include "comp_library/IO_library/JSON/JSON.hpp"
+#include "dca/io/json/json_reader.hpp"
 
 TEST(FilenameParametersTest, DefaultValues) {
   dca::phys::params::FilenameParameters pars;
 
   EXPECT_EQ("./", pars.get_directory());
-  EXPECT_EQ(IO::JSON, pars.get_output_format());
+  EXPECT_EQ("JSON", pars.get_output_format());
   EXPECT_EQ(".json", pars.get_file_extension());
   EXPECT_EQ("output.json", pars.get_output_file_name());
   EXPECT_EQ("prof_data.txt", pars.get_profiling_file_name());
@@ -34,7 +34,7 @@ TEST(FilenameParametersTest, DefaultValues) {
 }
 
 TEST(FilenameParametersTest, ReadAll) {
-  IO::reader<IO::JSON> reader;
+  dca::io::JSONReader reader;
   dca::phys::params::FilenameParameters pars;
 
   reader.open_file(DCA_SOURCE_DIR
@@ -43,7 +43,7 @@ TEST(FilenameParametersTest, ReadAll) {
   reader.close_file();
 
   EXPECT_EQ("./T=0.5", pars.get_directory());
-  EXPECT_EQ(IO::HDF5, pars.get_output_format());
+  EXPECT_EQ("HDF5", pars.get_output_format());
   EXPECT_EQ(".hdf5", pars.get_file_extension());
   EXPECT_EQ("output_run1.hdf5", pars.get_output_file_name());
   EXPECT_EQ("profiling_run1.txt", pars.get_profiling_file_name());

@@ -17,6 +17,7 @@
 
 #include "gtest/gtest.h"
 
+#include "dca/io/json/json_reader.hpp"
 #include "dca/parallel/pthreading/pthreading.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
@@ -27,7 +28,6 @@
 #include "dca/util/modules.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/IO_library/HDF5/HDF5.hpp"
-#include "comp_library/IO_library/JSON/JSON.hpp"
 #include "comp_library/profiler_library/profilers/null_profiler.hpp"
 #include "phys_library/DCA+_analysis/BSE_solver/BSE_solver.h"
 #include "phys_library/DCA+_data/DCA_data.h"
@@ -59,7 +59,7 @@ TEST(analysis_DCAplus_mpi, leading_eigenvalues) {
   }
 
   ParametersType parameters(dca::util::GitVersion::string(), dca_test_env->concurrency);
-  parameters.read_input_and_broadcast<IO::reader<IO::JSON>>(dca_test_env->input_file_name);
+  parameters.read_input_and_broadcast<dca::io::JSONReader>(dca_test_env->input_file_name);
   parameters.update_model();
   parameters.update_domains();
 

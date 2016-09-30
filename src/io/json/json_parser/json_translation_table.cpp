@@ -7,61 +7,13 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// This file implements json_translation_table.hpp.
 
-#ifndef COMP_LIBRARY_IO_LIBRARY_JSON_JSON_PARSER_JSON_TRANSLATION_TABLE_H
-#define COMP_LIBRARY_IO_LIBRARY_JSON_JSON_PARSER_JSON_TRANSLATION_TABLE_H
+#include "dca/io/json/json_parser/json_translation_table.hpp"
 
-#include <cassert>
-#include <stdexcept>
-
-#include "comp_library/IO_library/JSON/JSON_PARSER/JSON_character_mapper.h"
-#include "comp_library/IO_library/JSON/JSON_PARSER/JSON_enumerations.h"
-#include "comp_library/IO_library/JSON/JSON_PARSER/JSON_state_and_action_pair.h"
-
-namespace IO {
-namespace JSONPARSER {
-class JSON_translation_table : public JSON_character_mapper {
-public:
-  static state_and_action_pair get_state_and_action_pair(JSON_state_type& state,
-                                                         JSON_character_class_type& cls);
-
-private:
-  static bool check_state_and_class(JSON_state_type& state, JSON_character_class_type& cls);
-
-  static state_and_action_pair begin_object_or_array(JSON_character_class_type& cls);
-
-  static state_and_action_pair begin_value(JSON_character_class_type& cls);
-  static state_and_action_pair end_value(JSON_character_class_type& cls);
-
-  static state_and_action_pair begin_string(JSON_character_class_type& cls);
-  static state_and_action_pair read_string(JSON_character_class_type& cls);
-
-  static state_and_action_pair read_integer(JSON_character_class_type& cls);
-  static state_and_action_pair read_fraction(JSON_character_class_type& cls);
-
-  static state_and_action_pair begin_exponent(JSON_character_class_type& cls);
-  static state_and_action_pair read_exponent(JSON_character_class_type& cls);
-
-  static state_and_action_pair read_NULL(JSON_state_type& state, JSON_character_class_type& cls);
-
-  static state_and_action_pair read_false(JSON_state_type& state, JSON_character_class_type& cls);
-  static state_and_action_pair read_true(JSON_state_type& state, JSON_character_class_type& cls);
-
-  static state_and_action_pair read_array(JSON_state_type& state, JSON_character_class_type& cls);
-};
-
-bool JSON_translation_table::check_state_and_class(JSON_state_type& state,
-                                                   JSON_character_class_type& cls) {
-  if (!(state < NR_STATES) || !(cls < NR_CLASSES)) {
-    std::cout << "StateTranslationTable (" << state << " < " << NR_STATES << "," << cls << " < "
-              << NR_CLASSES << ")\n";
-    std::cout << "StateTranslationTable (" << name(state) << "," << name(cls) << ")\n";
-    throw std::logic_error(__FUNCTION__);
-  }
-
-  return true;
-}
+namespace dca {
+namespace io {
+// dca::io::
 
 state_and_action_pair JSON_translation_table::get_state_and_action_pair(
     JSON_state_type& state, JSON_character_class_type& cls) {
@@ -131,6 +83,18 @@ state_and_action_pair JSON_translation_table::get_state_and_action_pair(
                 << name(state) << "\n";
       throw std::logic_error(__FUNCTION__);
   }
+}
+
+bool JSON_translation_table::check_state_and_class(JSON_state_type& state,
+                                                   JSON_character_class_type& cls) {
+  if (!(state < NR_STATES) || !(cls < NR_CLASSES)) {
+    std::cout << "StateTranslationTable (" << state << " < " << NR_STATES << "," << cls << " < "
+              << NR_CLASSES << ")\n";
+    std::cout << "StateTranslationTable (" << name(state) << "," << name(cls) << ")\n";
+    throw std::logic_error(__FUNCTION__);
+  }
+
+  return true;
 }
 
 state_and_action_pair JSON_translation_table::begin_object_or_array(JSON_character_class_type& cls) {
@@ -453,7 +417,6 @@ state_and_action_pair JSON_translation_table::read_array(JSON_state_type& state,
       throw std::logic_error(__FUNCTION__);
   }
 }
-}
-}
 
-#endif  // COMP_LIBRARY_IO_LIBRARY_JSON_JSON_PARSER_JSON_TRANSLATION_TABLE_H
+}  // io
+}  // dca

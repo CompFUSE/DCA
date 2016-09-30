@@ -16,10 +16,10 @@
 #include <iostream>
 
 #include "dca/config/cluster_solver_check.hpp"
+#include "dca/io/json/json_reader.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 #include "comp_library/function_library/include_function_library.h"
-#include "comp_library/IO_library/JSON/JSON.hpp"
 #include "phys_library/DCA+_data/moms_w_real.hpp"
 #include "phys_library/DCA+_loop/DCA_loop_data.hpp"
 #include "phys_library/domains/cluster/cluster_domain.h"
@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
 
   // Create the parameters object from the input file.
   ParametersType parameters(dca::util::GitVersion::string(), concurrency);
-  parameters.read_input_and_broadcast<IO::reader<IO::JSON>>(input_file);
+  parameters.read_input_and_broadcast<dca::io::JSONReader>(input_file);
   parameters.update_model();
   parameters.update_domains();
 

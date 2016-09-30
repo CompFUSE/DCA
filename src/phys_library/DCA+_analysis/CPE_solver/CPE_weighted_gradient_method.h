@@ -24,6 +24,7 @@
 #include <utility>
 #include <vector>
 
+#include "dca/io/json/json_writer.hpp"
 #include "dca/parallel/util/get_bounds.hpp"
 #include "dca/parallel/util/threading_data.hpp"
 #include "comp_library/function_library/include_function_library.h"
@@ -36,6 +37,8 @@
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain_imag_axis.h"
+
+using namespace dca::phys;
 
 namespace DCA {
 template <class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
@@ -106,8 +109,9 @@ public:
 
   void write(std::string filename);
 
-  template <IO::FORMAT DATA_FORMAT>
-  void write(IO::writer<DATA_FORMAT>& reader);
+  // INTERNAL: No implementation.
+  template <typename Writer>
+  void write(Writer& reader);
 
 private:
   void initialize();
@@ -193,38 +197,32 @@ continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t, W
 template <class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
 void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t,
                                WEIGHTED_GRADIENT_METHOD>::write(std::string file_name) {
-  IO::FORMAT FORMAT = parameters.get_output_format();
-
   std::cout << "\n\n\t\t start writing " << file_name << "\n\n";
 
-  switch (FORMAT) {
-    case IO::JSON: {
-      IO::writer<IO::JSON> writer;
-      {
-        writer.open_file(file_name);
+  const std::string& output_format = parameters.get_output_format();
 
-        parameters.write(writer);
-        this->write(writer);
+  if (output_format == "JSON") {
+    dca::io::JSONWriter writer;
+    writer.open_file(file_name);
 
-        writer.close_file();
-      }
-    } break;
+    parameters.write(writer);
+    this->write(writer);
 
-    case IO::HDF5: {
-      IO::writer<IO::HDF5> writer;
-      {
-        writer.open_file(file_name);
-
-        parameters.write(writer);
-        this->write(writer);
-
-        writer.close_file();
-      }
-    } break;
-
-    default:
-      throw std::logic_error(__FUNCTION__);
+    writer.close_file();
   }
+
+  else if (output_format == "HDF5") {
+    IO::writer<IO::HDF5> writer;
+    writer.open_file(file_name);
+
+    parameters.write(writer);
+    this->write(writer);
+
+    writer.close_file();
+  }
+
+  else
+    throw std::logic_error(__FUNCTION__);
 }
 
 template <class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>

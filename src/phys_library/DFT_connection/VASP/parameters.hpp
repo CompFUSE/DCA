@@ -18,14 +18,17 @@
 #include <string>
 #include <vector>
 
+#include "dca/io/json/json_reader.hpp"
+#include "dca/io/json/json_writer.hpp"
 #include "comp_library/function_library/domains/special_domains/dmn_0.h"
-#include "comp_library/IO_library/JSON/JSON.hpp"
 #include "phys_library/DFT_connection/VASP/vasp_domains/dmft_band_domain.hpp"
 #include "phys_library/DFT_connection/VASP/vasp_domains/dmft_orbital_domain.hpp"
 #include "phys_library/DFT_connection/VASP/vasp_domains/vasp_band_domain.hpp"
 #include "phys_library/DFT_connection/VASP/vasp_domains/vasp_orbital_domain.hpp"
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/cluster/cluster_domain_initializer.h"
+
+using namespace dca;
 
 namespace DFT {
 namespace VASP {
@@ -236,7 +239,7 @@ void parameters<concurrency_t>::read_input(std::string file_name) {
     // file_names_parameters::get_input_file_name() = filename;
 
     {
-      IO::reader<IO::JSON> read_obj;
+      io::JSONReader read_obj;
 
       read_obj.open_file(file_name);
 
@@ -255,7 +258,7 @@ void parameters<concurrency_t>::read_input(std::string file_name) {
 
 template <class concurrency_t>
 void parameters<concurrency_t>::write_input(std::string file_name) {
-  IO::writer<IO::JSON> write_obj;
+  io::JSONWriter write_obj;
 
   write_obj.open_file(file_name);
 

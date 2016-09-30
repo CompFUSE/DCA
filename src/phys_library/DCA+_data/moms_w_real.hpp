@@ -17,12 +17,16 @@
 #include <stdexcept>
 #include <string>
 
+#include "dca/io/json/json_reader.hpp"
+#include "dca/io/json/json_writer.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/IO_library/IO.hpp"
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain_real_axis.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
+
+using namespace dca::phys;
 
 template <class parameters_type>
 class MOMS_w_real {
@@ -46,10 +50,10 @@ public:
   void read(std::string filename);
   void write(std::string filename);
 
-  template <IO::FORMAT DATA_FORMAT>
-  void read(IO::reader<DATA_FORMAT>& reader);
-  template <IO::FORMAT DATA_FORMAT>
-  void write(IO::writer<DATA_FORMAT>& writer);
+  template <typename Reader>
+  void read(Reader& reader);
+  template <typename Writer>
+  void write(Writer& writer);
 
 private:
   parameters_type& parameters;
@@ -113,32 +117,24 @@ void MOMS_w_real<parameters_type>::read(std::string filename) {
   if (concurrency.id() == concurrency.first()) {
     std::cout << "\n\n\t starts reading \n\n";
 
-    IO::FORMAT FORMAT = parameters.get_output_format();
+    const std::string& output_format = parameters.get_output_format();
 
-    switch (FORMAT) {
-      case IO::JSON: {
-        IO::reader<IO::JSON> reader;
-
-        reader.open_file(filename);
-
-        this->read(reader);
-
-        reader.close_file();
-      } break;
-
-      case IO::HDF5: {
-        IO::reader<IO::HDF5> reader;
-
-        reader.open_file(filename);
-
-        this->read(reader);
-
-        reader.close_file();
-      } break;
-
-      default:
-        throw std::logic_error(__FUNCTION__);
+    if (output_format == "JSON") {
+      dca::io::JSONReader reader;
+      reader.open_file(filename);
+      this->read(reader);
+      reader.close_file();
     }
+
+    else if (output_format == "HDF5") {
+      IO::reader<IO::HDF5> reader;
+      reader.open_file(filename);
+      this->read(reader);
+      reader.close_file();
+    }
+
+    else
+      throw std::logic_error(__FUNCTION__);
   }
 
   concurrency.broadcast_object(A_w);
@@ -157,8 +153,8 @@ void MOMS_w_real<parameters_type>::read(std::string filename) {
 }
 
 template <class parameters_type>
-template <IO::FORMAT DATA_FORMAT>
-void MOMS_w_real<parameters_type>::read(IO::reader<DATA_FORMAT>& reader) {
+template <typename Reader>
+void MOMS_w_real<parameters_type>::read(Reader& reader) {
   reader.open_group("spectral-functions");
 
   reader.execute(A_w);
@@ -183,38 +179,30 @@ void MOMS_w_real<parameters_type>::write(std::string filename) {
   if (concurrency.id() == concurrency.first()) {
     std::cout << "\n\n\t starts writing \n\n";
 
-    IO::FORMAT FORMAT = parameters.get_output_format();
+    const std::string& output_format = parameters.get_output_format();
 
-    switch (FORMAT) {
-      case IO::JSON: {
-        IO::writer<IO::JSON> writer;
-
-        writer.open_file(filename);
-
-        this->write(writer);
-
-        writer.close_file();
-      } break;
-
-      case IO::HDF5: {
-        IO::writer<IO::HDF5> writer;
-
-        writer.open_file(filename);
-
-        this->write(writer);
-
-        writer.close_file();
-      } break;
-
-      default:
-        throw std::logic_error(__FUNCTION__);
+    if (output_format == "JSON") {
+      dca::io::JSONWriter writer;
+      writer.open_file(filename);
+      this->write(writer);
+      writer.close_file();
     }
+
+    else if (output_format == "HDF5") {
+      IO::writer<IO::HDF5> writer;
+      writer.open_file(filename);
+      this->write(writer);
+      writer.close_file();
+    }
+
+    else
+      throw std::logic_error(__FUNCTION__);
   }
 }
 
 template <class parameters_type>
-template <IO::FORMAT DATA_FORMAT>
-void MOMS_w_real<parameters_type>::write(IO::writer<DATA_FORMAT>& writer) {
+template <typename Writer>
+void MOMS_w_real<parameters_type>::write(Writer& writer) {
   writer.open_group("spectral-functions");
 
   writer.execute(A_w);

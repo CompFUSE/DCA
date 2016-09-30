@@ -34,6 +34,8 @@
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain.h"
 
+using namespace dca::phys;
+
 namespace DCA {
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
@@ -83,11 +85,8 @@ public:
 
   void write(std::string filename);
 
-  template <IO::FORMAT DATA_FORMAT>
-  void read(IO::reader<DATA_FORMAT>& reader);
-
-  template <IO::FORMAT DATA_FORMAT>
-  void write(IO::writer<DATA_FORMAT>& reader);
+  template <typename Writer>
+  void write(Writer& writer);
 
   // For testing purposes:
   // TODO: Const correctness.
@@ -177,9 +176,8 @@ cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::~cluster_solver
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-template <IO::FORMAT DATA_FORMAT>
-void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::write(
-    IO::writer<DATA_FORMAT>& writer) {
+template <typename Writer>
+void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::write(Writer& writer) {
   writer.open_group("SS-HYB-SOLVER-functions");
 
   writer.execute(this->get_mu());
