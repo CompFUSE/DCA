@@ -23,12 +23,12 @@
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
 #include "dca/phys/parameters/parameters.hpp"
+#include "dca/profiling/null_profiler.hpp"
 #include "dca/testing/dca_mpi_test_environment.hpp"
 #include "dca/testing/minimalist_printer.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 #include "comp_library/function_library/include_function_library.h"
-#include "comp_library/profiler_library/profilers/null_profiler.hpp"
 #include "phys_library/DCA+_analysis/BSE_solver/BSE_solver.h"
 #include "phys_library/DCA+_data/DCA_data.h"
 #include "phys_library/domains/cluster/symmetries/point_groups/2D/2D_square.h"
@@ -44,7 +44,7 @@ TEST(analysis_DCAplus_mpi, leading_eigenvalues) {
   using Threading = dca::parallel::Pthreading;
   using ParametersType =
       dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
-                                    PROFILER::NullProfiler, ModelType, void /*RngType*/,
+                                    dca::profiling::NullProfiler, ModelType, void /*RngType*/,
                                     CT_AUX_CLUSTER_SOLVER>;
   using DcaDataType = DCA_data<ParametersType>;
 

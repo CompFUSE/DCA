@@ -9,32 +9,32 @@
 //
 // Description
 
-#ifndef COMP_LIBRARY_PROFILER_LIBRARY_PROFILERS_NULL_PROFILER_HPP
-#define COMP_LIBRARY_PROFILER_LIBRARY_PROFILERS_NULL_PROFILER_HPP
+#ifndef DCA_PROFILING_NULL_PROFILER_HPP
+#define DCA_PROFILING_NULL_PROFILER_HPP
 
 #include <string>
 
-namespace PROFILER {
+namespace dca {
+namespace profiling {
+// dca::profiling::
 
 class NullProfiler {
 public:
   NullProfiler(const char* /*functionName_*/, const char* /*fileName_*/, int /*line*/,
                bool /*bogusArgument*/ = true) {}
-
   NullProfiler(std::ostringstream& /*functionNameStrm*/, const char* /*fileName_*/, int /*line*/,
                bool /*bogusArgument*/ = true) {}
 
-  static void start_pthreading(int /*id*/) {}
-
-  static void stop_pthreading(int /*id*/) {}
-
   static void start() {}
-
   static void stop(std::string /*fileName*/) {}
-
   template <typename ParallelProcessingType>
   static void stop(const ParallelProcessingType& /*parallelProcessing*/, std::string /*fileName*/) {}
-};
-}
 
-#endif  // COMP_LIBRARY_PROFILER_LIBRARY_PROFILERS_NULL_PROFILER_HPP
+  static void start_pthreading(int /*id*/) {}
+  static void stop_pthreading(int /*id*/) {}
+};
+
+}  // profiling
+}  // dca
+
+#endif  // DCA_PROFILING_NULL_PROFILER_HPP

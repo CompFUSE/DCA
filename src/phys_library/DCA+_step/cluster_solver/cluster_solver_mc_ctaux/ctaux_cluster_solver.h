@@ -20,10 +20,10 @@
 #include <iostream>
 #include <vector>
 
+#include "dca/profiling/events/time.hpp"
 #include "dca/util/print_time.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/linalg/linalg.hpp"
-#include "comp_library/profiler_library/events/time.hpp"
 #include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
 #include "math_library/statistical_methods.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_accumulator.h"
@@ -204,20 +204,20 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
   walker.initialize();
 
   {
-    PROFILER::WallTime start_time;
+    dca::profiling::WallTime start_time;
 
     warm_up(walker);
 
-    PROFILER::WallTime mid_time;
+    dca::profiling::WallTime mid_time;
 
     measure(walker);
 
-    PROFILER::WallTime end_time;
+    dca::profiling::WallTime end_time;
 
-    PROFILER::Duration ther_time(mid_time, start_time);
-    PROFILER::Duration meas_time(end_time, mid_time);
+    dca::profiling::Duration ther_time(mid_time, start_time);
+    dca::profiling::Duration meas_time(end_time, mid_time);
 
-    PROFILER::Duration tot_time(end_time, start_time);
+    dca::profiling::Duration tot_time(end_time, start_time);
 
     thermalization_time = ther_time.sec + 1.e-6 * ther_time.usec;
     MC_integration_time = meas_time.sec + 1.e-6 * meas_time.usec;

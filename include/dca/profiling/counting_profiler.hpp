@@ -1,4 +1,3 @@
-//-*-C++-*-
 // Copyright (C) 2009-2016 ETH Zurich
 // Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
 // All rights reserved.
@@ -10,8 +9,8 @@
 //
 // Description
 
-#ifndef COMP_LIBRARY_PROFILER_LIBRARY_PROFILERS_COUNTING_PROFILER_HPP
-#define COMP_LIBRARY_PROFILER_LIBRARY_PROFILERS_COUNTING_PROFILER_HPP
+#ifndef DCA_PROFILING_COUNTING_PROFILER_HPP
+#define DCA_PROFILING_COUNTING_PROFILER_HPP
 
 #include <algorithm>
 #include <fstream>
@@ -20,13 +19,15 @@
 #include <string>
 #include <vector>
 
-namespace PROFILER {
+namespace dca {
+namespace profiling {
+// dca::profiling::
 
-template <typename time_event_type>
+template <typename Event>
 class CountingProfiler {
-  const static int NB_COUNTERS = time_event_type::NB_COUNTERS;
+  const static int NB_COUNTERS = Event::NB_COUNTERS;
 
-  typedef typename time_event_type::scalar_type scalar_type;
+  typedef typename Event::scalar_type scalar_type;
 
   typedef std::map<std::string, std::vector<scalar_type>> profiling_table_type;
   typedef typename profiling_table_type::iterator profiling_iterator_type;
@@ -82,7 +83,6 @@ private:
   static void get_counter_value(std::string counter_name, std::string function_name,
                                 counter_value_type& counter_value, bool average = false);
 
-private:
   const std::string functionName;
 
   int lineNumber;
@@ -90,22 +90,22 @@ private:
 
   bool finished;
 
-  time_event_type startEvent;
+  Event startEvent;
 
   std::vector<std::string> categories;
 
   bool using_GPU;
 };
 
-template <typename time_event_type>
-int CountingProfiler<time_event_type>::MAX_THREADS() {
+template <typename Event>
+int CountingProfiler<Event>::MAX_THREADS() {
   static int NB_THREADS = 32;
   return NB_THREADS;
 }
 
-template <typename time_event_type>
-CountingProfiler<time_event_type>::CountingProfiler(const char* function_name,
-                                                    const char* category_name, int line)
+template <typename Event>
+CountingProfiler<Event>::CountingProfiler(const char* function_name, const char* category_name,
+                                          int line)
     : functionName(function_name),
       lineNumber(line),
       thread_id(0),
@@ -115,9 +115,9 @@ CountingProfiler<time_event_type>::CountingProfiler(const char* function_name,
   assert(thread_id > -1 and thread_id < MAX_THREADS());
 }
 
-template <typename time_event_type>
-CountingProfiler<time_event_type>::CountingProfiler(const char* function_name,
-                                                    const char* category_name, int line, int id)
+template <typename Event>
+CountingProfiler<Event>::CountingProfiler(const char* function_name, const char* category_name,
+                                          int line, int id)
     : functionName(function_name),
       lineNumber(line),
       thread_id(1 + id),
@@ -127,14 +127,14 @@ CountingProfiler<time_event_type>::CountingProfiler(const char* function_name,
   assert(thread_id > -1 and thread_id < MAX_THREADS());
 }
 
-template <typename time_event_type>
-CountingProfiler<time_event_type>::~CountingProfiler() {
+template <typename Event>
+CountingProfiler<Event>::~CountingProfiler() {
   if (!finished)
     finish();
 }
 
-template <typename time_event_type>
-void CountingProfiler<time_event_type>::finish() {
+template <typename Event>
+void CountingProfiler<Event>::finish() {
   if (finished == true)
     return;  // already finished
 
@@ -143,28 +143,28 @@ void CountingProfiler<time_event_type>::finish() {
   finished = true;
 }
 
-template <typename time_event_type>
-typename CountingProfiler<time_event_type>::profiling_table_type& CountingProfiler<
-    time_event_type>::get_profiling_table(int thread_id) {
+template <typename Event>
+typename CountingProfiler<Event>::profiling_table_type& CountingProfiler<Event>::get_profiling_table(
+    int thread_id) {
   static std::vector<profiling_table_type> profiling_table(MAX_THREADS());
   return profiling_table[thread_id];
 }
 
-template <typename time_event_type>
-std::vector<std::string>& CountingProfiler<time_event_type>::get_categories(int thread_id) {
+template <typename Event>
+std::vector<std::string>& CountingProfiler<Event>::get_categories(int thread_id) {
   static std::vector<std::vector<std::string>> categories(MAX_THREADS());
   return categories[thread_id];
 }
 
-template <typename time_event_type>
-std::map<std::string, std::string>& CountingProfiler<time_event_type>::get_category_map(int thread_id) {
+template <typename Event>
+std::map<std::string, std::string>& CountingProfiler<Event>::get_category_map(int thread_id) {
   static std::vector<category_table_type> category_table(MAX_THREADS());
   return category_table[thread_id];
 }
 
-template <typename time_event_type>
-std::vector<typename CountingProfiler<time_event_type>::scalar_type>& CountingProfiler<
-    time_event_type>::start_running_counter(std::string name, std::string category, int thread_id) {
+template <typename Event>
+std::vector<typename CountingProfiler<Event>::scalar_type>& CountingProfiler<Event>::start_running_counter(
+    std::string name, std::string category, int thread_id) {
   size_t number_of_events = NB_COUNTERS;
 
   std::vector<scalar_type>& counts = get_profiling_table(thread_id)[name];
@@ -179,24 +179,24 @@ std::vector<typename CountingProfiler<time_event_type>::scalar_type>& CountingPr
   return counts;
 }
 
-template <typename time_event_type>
-void CountingProfiler<time_event_type>::start_pthreading(int id) {
-  time_event_type::start_pthreading(id + 1);
+template <typename Event>
+void CountingProfiler<Event>::start_pthreading(int id) {
+  Event::start_pthreading(id + 1);
 }
 
-template <typename time_event_type>
-void CountingProfiler<time_event_type>::stop_pthreading(int id) {
-  time_event_type::stop_pthreading(id + 1);
+template <typename Event>
+void CountingProfiler<Event>::stop_pthreading(int id) {
+  Event::stop_pthreading(id + 1);
 }
 
-template <typename time_event_type>
-void CountingProfiler<time_event_type>::start() {
-  time_event_type::start();
+template <typename Event>
+void CountingProfiler<Event>::start() {
+  Event::start();
 }
 
-template <typename time_event_type>
-void CountingProfiler<time_event_type>::stop(std::string file_name) {
-  time_event_type::stop();
+template <typename Event>
+void CountingProfiler<Event>::stop(std::string file_name) {
+  Event::stop();
 
   merge_profiling_table();
   merge_categories();
@@ -209,10 +209,10 @@ void CountingProfiler<time_event_type>::stop(std::string file_name) {
   }
 }
 
-template <typename time_event_type>
+template <typename Event>
 template <typename concurrency_type>
-void CountingProfiler<time_event_type>::stop(concurrency_type& concurrency, std::string file_name) {
-  time_event_type::stop();
+void CountingProfiler<Event>::stop(concurrency_type& concurrency, std::string file_name) {
+  Event::stop();
 
   merge_profiling_table();
   merge_categories();
@@ -229,9 +229,9 @@ void CountingProfiler<time_event_type>::stop(concurrency_type& concurrency, std:
   }
 }
 
-template <typename time_event_type>
-void CountingProfiler<time_event_type>::merge_profiling_table() {
-  size_t number_of_events = NB_COUNTERS;  // time_event_type::names().size();
+template <typename Event>
+void CountingProfiler<Event>::merge_profiling_table() {
+  size_t number_of_events = NB_COUNTERS;  // Event::names().size();
   profiling_table_type& profiling_table_0 = get_profiling_table(0);
 
   for (int id = 1; id < MAX_THREADS(); ++id) {
@@ -254,8 +254,8 @@ void CountingProfiler<time_event_type>::merge_profiling_table() {
   }
 }
 
-template <typename time_event_type>
-void CountingProfiler<time_event_type>::merge_categories() {
+template <typename Event>
+void CountingProfiler<Event>::merge_categories() {
   std::vector<std::string>& categories_0 = get_categories(0);
 
   for (int id = 1; id < MAX_THREADS(); ++id)
@@ -263,8 +263,8 @@ void CountingProfiler<time_event_type>::merge_categories() {
       categories_0.push_back(get_categories(id)[l]);
 }
 
-template <typename time_event_type>
-void CountingProfiler<time_event_type>::merge_categories_table() {
+template <typename Event>
+void CountingProfiler<Event>::merge_categories_table() {
   category_table_type& category_table_0 = get_category_map(0);
 
   for (int id = 1; id < MAX_THREADS(); ++id) {
@@ -279,8 +279,8 @@ void CountingProfiler<time_event_type>::merge_categories_table() {
   }
 }
 
-template <typename time_event_type>
-void CountingProfiler<time_event_type>::to_JSON(std::string fileName) {
+template <typename Event>
+void CountingProfiler<Event>::to_JSON(std::string fileName) {
   profiling_table_type& profiling_table = get_profiling_table();
 
   std::ofstream fileStream(fileName.c_str());
@@ -296,7 +296,7 @@ void CountingProfiler<time_event_type>::to_JSON(std::string fileName) {
 
     std::vector<scalar_type> counter_normalized = counters;
 
-    time_event_type::normalize(counter_normalized);
+    Event::normalize(counter_normalized);
 
     fileStream << "\"" << index << "\" : ";
     print_counter(fileStream, function_name, counter_normalized);
@@ -314,8 +314,8 @@ void CountingProfiler<time_event_type>::to_JSON(std::string fileName) {
   fileStream.close();
 }
 
-template <typename time_event_type>
-void CountingProfiler<time_event_type>::to_TSV(std::string fileName) {
+template <typename Event>
+void CountingProfiler<Event>::to_TSV(std::string fileName) {
   profiling_table_type& profiling_table = get_profiling_table();
 
   std::string file = fileName;
@@ -373,10 +373,10 @@ void CountingProfiler<time_event_type>::to_TSV(std::string fileName) {
   of.close();
 }
 
-template <typename time_event_type>
-void CountingProfiler<time_event_type>::print_counter(std::ostream& os, std::string name,
-                                                      std::vector<scalar_type>& counts) {
-  const std::vector<std::string> names = time_event_type::names();
+template <typename Event>
+void CountingProfiler<Event>::print_counter(std::ostream& os, std::string name,
+                                            std::vector<scalar_type>& counts) {
+  const std::vector<std::string> names = Event::names();
 
   os << "{\n";
 
@@ -394,6 +394,8 @@ void CountingProfiler<time_event_type>::print_counter(std::ostream& os, std::str
 
   os << "}";
 }
-}
 
-#endif  // COMP_LIBRARY_PROFILER_LIBRARY_PROFILERS_COUNTING_PROFILER_HPP
+}  // profiling
+}  // dca
+
+#endif  // DCA_PROFILING_COUNTING_PROFILER_HPP

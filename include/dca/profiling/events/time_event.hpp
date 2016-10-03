@@ -9,16 +9,18 @@
 //
 // Description
 
-#ifndef COMP_LIBRARY_PROFILER_LIBRARY_EVENTS_TIME_EVENTS_H
-#define COMP_LIBRARY_PROFILER_LIBRARY_EVENTS_TIME_EVENTS_H
+#ifndef DCA_PROFILING_EVENTS_TIME_EVENT_HPP
+#define DCA_PROFILING_EVENTS_TIME_EVENT_HPP
 
 #include <cassert>
 #include <string>
 #include <vector>
 
-#include "comp_library/profiler_library/events/time.hpp"
+#include "dca/profiling/events/time.hpp"
 
-namespace PROFILER {
+namespace dca {
+namespace profiling {
+// dca::profiling::
 
 template <typename scalartype>
 class time_event {
@@ -29,24 +31,20 @@ public:
 
   const static int NB_COUNTERS = NB_TIME_COUNTERS;
 
-public:
   time_event(std::vector<scalartype>& my_counter, int id);
 
   void end();
 
-  static void start();
+  static void start() {}
+  static void stop() {}
 
-  static void stop();
-
-  static void start_pthreading(int id);
-
-  static void stop_pthreading(int id);
+  static void start_pthreading(int /*id*/) {}
+  static void stop_pthreading(int /*id*/) {}
 
   static std::vector<std::string> names();
 
   static void normalize(std::vector<scalartype>& counters);
 
-private:
   void update_counter(std::vector<scalartype>& counters, Duration wallDuration,
                       Duration userDuration, Duration systemDuration);
 
@@ -135,17 +133,7 @@ std::vector<std::string> time_event<scalartype>::names() {
   return names;
 }
 
-template <typename scalartype>
-void time_event<scalartype>::start() {}
+}  // profiling
+}  // dca
 
-template <typename scalartype>
-void time_event<scalartype>::stop() {}
-
-template <typename scalartype>
-void time_event<scalartype>::start_pthreading(int /*id*/) {}
-
-template <typename scalartype>
-void time_event<scalartype>::stop_pthreading(int /*id*/) {}
-}
-
-#endif  // COMP_LIBRARY_PROFILER_LIBRARY_EVENTS_TIME_EVENTS_H
+#endif  // DCA_PROFILING_EVENTS_TIME_EVENT_HPP

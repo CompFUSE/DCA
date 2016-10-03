@@ -9,27 +9,30 @@
 //
 // Description
 
-#ifndef COMP_LIBRARY_PROFILER_LIBRARY_EVENTS_TIME_H
-#define COMP_LIBRARY_PROFILER_LIBRARY_EVENTS_TIME_H
-
-#include <sys/resource.h>
-#include <sys/time.h>
+#ifndef DCA_PROFILING_EVENTS_TIME_HPP
+#define DCA_PROFILING_EVENTS_TIME_HPP
 
 #include <stdexcept>
 #include <sstream>
 
-namespace PROFILER {
+#include <sys/resource.h>
+#include <sys/time.h>
+
+namespace dca {
+namespace profiling {
+// dca::profiling::
 
 class TimeBase {
 public:
-  long sec;
-  long usec;
   TimeBase(long s, long u) : sec(s), usec(u) {}
 
   static long oneMillion() {
     static long value(1000000);
     return value;
   }
+
+  long sec;
+  long usec;
 };
 
 class Time : public TimeBase {
@@ -149,10 +152,9 @@ public:
   }
 };
 
-Duration operator-(const Time& time, const Time& earlierTime) {
-  return Duration(time, earlierTime);
-}
+Duration operator-(const Time& time, const Time& earlierTime);
 
-}  // PROFILER
+}  // profiling
+}  // dca
 
-#endif  // COMP_LIBRARY_PROFILER_LIBRARY_EVENTS_TIME_H
+#endif  // DCA_PROFILING_EVENTS_TIME_HPP

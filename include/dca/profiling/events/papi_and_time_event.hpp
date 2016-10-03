@@ -8,17 +8,23 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
 // Description
+//
+// INTERNAL: Are Pthreads really required?
 
-#ifndef COMP_LIBRARY_PROFILER_LIBRARY_EVENTS_PAPI_EVENTS_H
-#define COMP_LIBRARY_PROFILER_LIBRARY_EVENTS_PAPI_EVENTS_H
+#ifndef DCA_PROFILING_EVENTS_PAPI_AND_TIME_EVENT_HPP
+#define DCA_PROFILING_EVENTS_PAPI_AND_TIME_EVENT_HPP
 
-#include <pthread.h>
 #include <string>
 #include <vector>
-#include <papi.h>
-#include "comp_library/profiler_library/events/time_events.h"
 
-namespace PROFILER {
+#include <papi.h>
+#include <pthread.h>
+
+#include "dca/profiling/events/time_event.hpp"
+
+namespace dca {
+namespace profiling {
+// dca::profiling::
 
 template <typename scalartype>
 class papi_and_time_event : public time_event<scalartype> {
@@ -293,6 +299,8 @@ std::vector<std::string> papi_and_time_event<scalartype>::names() {
 
   return names;
 }
-}
 
-#endif  // COMP_LIBRARY_PROFILER_LIBRARY_EVENTS_PAPI_EVENTS_H
+}  // profiling
+}  // dca
+
+#endif  // DCA_PROFILING_EVENTS_PAPI_AND_TIME_EVENT_HPP

@@ -22,7 +22,7 @@
 #include <vector>
 
 #include "dca/phys/dca_step/cluster_solver/posix_qmci/thread_task_handler.hpp"
-#include "comp_library/profiler_library/events/time.hpp"
+#include "dca/profiling/events/time.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_pthread_jacket/posix_qmci_accumulator.h"
 
 using namespace dca::phys::solver;
@@ -160,7 +160,7 @@ void posix_qmci_integrator<qmci_integrator_type>::integrate() {
     if (concurrency.id() == 0)
       thread_task_handler_.print();
 
-    PROFILER::WallTime start_time;
+    dca::profiling::WallTime start_time;
 
     for (int i = 0; i < nr_walkers + nr_accumulators; ++i) {
       data[i] = std::pair<this_type*, int>(this, i);
@@ -178,9 +178,9 @@ void posix_qmci_integrator<qmci_integrator_type>::integrate() {
       pthread_join(threads[i], &rc);
     }
 
-    PROFILER::WallTime end_time;
+    dca::profiling::WallTime end_time;
 
-    PROFILER::Duration duration(end_time, start_time);
+    dca::profiling::Duration duration(end_time, start_time);
     total_time = duration.sec + 1.e-6 * duration.usec;
   }
 

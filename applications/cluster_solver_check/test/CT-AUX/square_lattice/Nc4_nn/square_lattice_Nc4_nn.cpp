@@ -26,12 +26,12 @@
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
 #include "dca/phys/parameters/parameters.hpp"
+#include "dca/profiling/null_profiler.hpp"
 #include "dca/testing/dca_mpi_test_environment.hpp"
 #include "dca/testing/minimalist_printer.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 #include "comp_library/function_library/include_function_library.h"
-#include "comp_library/profiler_library/profilers/null_profiler.hpp"
 #include "phys_library/DCA+_data/DCA_data.h"
 #include "phys_library/DCA+_loop/DCA_loop_data.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_cluster_solver.h"
@@ -53,7 +53,8 @@ TEST(squareLattice_Nc4_nn, Self_Energy) {
   using Threading = dca::parallel::Pthreading;
   using ParametersType =
       dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
-                                    PROFILER::NullProfiler, ModelType, RngType, CT_AUX_CLUSTER_SOLVER>;
+                                    dca::profiling::NullProfiler, ModelType, RngType,
+                                    CT_AUX_CLUSTER_SOLVER>;
   using DcaDataType = DCA_data<ParametersType>;
   using QmcSolverType =
       cluster_solver<CT_AUX_CLUSTER_SOLVER, LIN_ALG::CPU, ParametersType, DcaDataType>;
