@@ -17,10 +17,11 @@
 #include <stdexcept>
 #include <string>
 
+#include "dca/io/hdf5/hdf5_reader.hpp"
+#include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/io/json/json_writer.hpp"
 #include "comp_library/function_library/include_function_library.h"
-#include "comp_library/IO_library/IO.hpp"
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain_real_axis.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
@@ -127,7 +128,7 @@ void MOMS_w_real<parameters_type>::read(std::string filename) {
     }
 
     else if (output_format == "HDF5") {
-      IO::reader<IO::HDF5> reader;
+      dca::io::HDF5Reader reader;
       reader.open_file(filename);
       this->read(reader);
       reader.close_file();
@@ -189,7 +190,7 @@ void MOMS_w_real<parameters_type>::write(std::string filename) {
     }
 
     else if (output_format == "HDF5") {
-      IO::writer<IO::HDF5> writer;
+      dca::io::HDF5Writer writer;
       writer.open_file(filename);
       this->write(writer);
       writer.close_file();

@@ -20,10 +20,10 @@
 #include <stdexcept>
 #include <string>
 
+#include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_writer.hpp"
 #include "dca/util/print_time.hpp"
 #include "comp_library/function_library/include_function_library.h"
-#include "comp_library/IO_library/IO.hpp"
 #include "comp_library/linalg/linalg_device_types.h"
 #include "phys_library/DCA+_data/DCA_data.h"
 #include "phys_library/DCA+_data/moms_w_real.hpp"
@@ -290,7 +290,7 @@ void cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_
   }
 
   else if (output_format == "HDF5") {
-    IO::writer<IO::HDF5> writer;
+    dca::io::HDF5Writer writer;
     writer.open_file(file_name);
 
     std::cout << "\n\n\t\t start writing parameters\n\n";

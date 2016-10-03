@@ -21,13 +21,14 @@
 #include <utility>
 #include <vector>
 
+#include "dca/io/hdf5/hdf5_reader.hpp"
+#include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/io/json/json_writer.hpp"
 #include "dca/phys/dca_algorithms/compute_band_structure.hpp"
 #include "dca/util/print_time.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/linalg/linalg.hpp"
-#include "comp_library/IO_library/IO.hpp"
 #include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
 #include "math_library/geometry_library/vector_operations/vector_operations.hpp"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_sp.h"
@@ -250,7 +251,7 @@ void DCA_data<parameters_type>::read(std::string filename) {
     }
 
     else if (output_format == "HDF5") {
-      IO::reader<IO::HDF5> reader;
+      dca::io::HDF5Reader reader;
       reader.open_file(filename);
       this->read(reader);
       reader.close_file();
@@ -335,7 +336,7 @@ void DCA_data<parameters_type>::write(std::string file_name) {
   }
 
   else if (output_format == "HDF5") {
-    IO::writer<IO::HDF5> writer;
+    dca::io::HDF5Writer writer;
     writer.open_file(file_name);
 
     parameters.write(writer);

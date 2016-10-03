@@ -19,11 +19,11 @@
 #include <stdexcept>
 #include <string>
 
+#include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_writer.hpp"
 #include "dca/util/print_time.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/function_plotting/include_plotting.h"
-#include "comp_library/IO_library/IO.hpp"
 #include "comp_library/linalg/linalg.hpp"
 #include "math_library/geometry_library/vector_operations/vector_operations.hpp"
 #include "math_library/static_functions.h"  // for gaussian_distribution
@@ -256,7 +256,7 @@ void compute_spectrum<parameters_type, basis_function_t>::write(std::string file
   }
 
   else if (output_format == "HDF5") {
-    IO::writer<IO::HDF5> writer;
+    dca::io::HDF5Writer writer;
     writer.open_file(file_name);
 
     parameters.write(writer);

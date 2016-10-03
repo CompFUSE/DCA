@@ -18,6 +18,7 @@
 
 #include "gtest/gtest.h"
 
+#include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/parallel/pthreading/pthreading.hpp"
@@ -29,7 +30,6 @@
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 #include "comp_library/function_library/include_function_library.h"
-#include "comp_library/IO_library/HDF5/HDF5.hpp"
 #include "comp_library/profiler_library/profilers/null_profiler.hpp"
 #include "phys_library/DCA+_data/DCA_data.h"
 #include "phys_library/DCA+_loop/DCA_loop.hpp"
@@ -101,7 +101,7 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
 
     // Read self-energy from check_data file.
     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> Sigma_check("Self_Energy");
-    IO::reader<IO::HDF5> reader;
+    dca::io::HDF5Reader reader;
     reader.open_file(DCA_SOURCE_DIR "/applications/dca/test/check_data.dca_sp_DCA+_mpi_test.hdf5");
     reader.open_group("functions");
     reader.execute(Sigma_check);

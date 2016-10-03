@@ -18,6 +18,8 @@
 
 #include "gtest/gtest.h"
 
+#include "dca/io/hdf5/hdf5_reader.hpp"
+#include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/parallel/pthreading/pthreading.hpp"
@@ -29,7 +31,6 @@
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 #include "comp_library/function_library/include_function_library.h"
-#include "comp_library/IO_library/HDF5/HDF5.hpp"
 #include "comp_library/profiler_library/profilers/null_profiler.hpp"
 #include "phys_library/DCA+_data/DCA_data.h"
 #include "phys_library/DCA+_loop/DCA_loop_data.hpp"
@@ -81,7 +82,7 @@ TEST(squareLattice_Nc4_onSite, Self_Energy) {
 
   // Read and broadcast ED data.
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
-    IO::reader<IO::HDF5> reader;
+    dca::io::HDF5Reader reader;
     reader.open_file(
         DCA_SOURCE_DIR
         "/applications/cluster_solver_check/test/CT-AUX/square_lattice/Nc4_onSite/data.ED.hdf5");
@@ -112,7 +113,7 @@ TEST(squareLattice_Nc4_onSite, Self_Energy) {
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
     FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> Sigma_QMC_check(
         "Self_Energy");
-    IO::reader<IO::HDF5> reader;
+    dca::io::HDF5Reader reader;
     reader.open_file(DCA_SOURCE_DIR
                      "/applications/cluster_solver_check/test/CT-AUX/square_lattice/Nc4_onSite/"
                      "check_data.QMC.hdf5");
@@ -137,7 +138,7 @@ TEST(squareLattice_Nc4_onSite, Self_Energy) {
   // Write results
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.last()) {
     std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is writing data " << std::endl;
-    IO::writer<IO::HDF5> writer;
+    dca::io::HDF5Writer writer;
     writer.open_file("output.hdf5");
     writer.open_group("functions");
     Sigma_QMC.get_name() = "Self_Energy";

@@ -24,11 +24,11 @@
 #include <utility>
 #include <vector>
 
+#include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_writer.hpp"
 #include "dca/parallel/util/get_bounds.hpp"
 #include "dca/parallel/util/threading_data.hpp"
 #include "comp_library/function_library/include_function_library.h"
-#include "comp_library/IO_library/IO.hpp"
 #include "comp_library/linalg/linalg.hpp"
 #include "phys_library/DCA+_analysis/CPE_solver/CPE_data.h"
 #include "phys_library/DCA+_step/symmetrization/symmetrize.h"
@@ -212,7 +212,7 @@ void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn
   }
 
   else if (output_format == "HDF5") {
-    IO::writer<IO::HDF5> writer;
+    dca::io::HDF5Writer writer;
     writer.open_file(file_name);
 
     parameters.write(writer);

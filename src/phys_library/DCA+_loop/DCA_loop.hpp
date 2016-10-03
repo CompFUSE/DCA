@@ -18,13 +18,13 @@
 #include <stdexcept>
 #include <string>
 
+#include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_writer.hpp"
 #include "dca/phys/dca_step/cluster_mapping/cluster_exclusion.hpp"
 #include "dca/phys/dca_step/cluster_mapping/double_counting_correction.hpp"
 #include "dca/phys/dca_step/cluster_mapping/update_chemical_potential.hpp"
 #include "dca/util/print_time.hpp"
 #include "comp_library/function_library/include_function_library.h"
-#include "comp_library/IO_library/IO.hpp"
 #include "phys_library/DCA+_loop/DCA_loop_data.hpp"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_sp.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/high_temperature_series_expansion_solver.h"
@@ -174,7 +174,7 @@ void DCA_loop<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::write() 
   }
 
   else if (output_format == "HDF5") {
-    IO::writer<IO::HDF5> writer;
+    dca::io::HDF5Writer writer;
     writer.open_file(file_name);
 
     parameters.write(writer);

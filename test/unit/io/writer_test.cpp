@@ -10,6 +10,7 @@
 // For the moment this file just tests the construction of the different types of writers.
 
 #include "dca/io/csv/csv_writer.hpp"
+#include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_writer.hpp"
 #include "gtest/gtest.h"
 #include "dca/util/ignore.hpp"
@@ -17,7 +18,7 @@
 template <typename T>
 class WriterTest : public ::testing::Test {};
 
-using WriterTypes = ::testing::Types<dca::io::CSVWriter, dca::io::JSONWriter>;
+using WriterTypes = ::testing::Types<dca::io::CSVWriter, dca::io::HDF5Writer, dca::io::JSONWriter>;
 TYPED_TEST_CASE(WriterTest, WriterTypes);
 
 TYPED_TEST(WriterTest, Constructor) {

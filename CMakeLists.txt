@@ -139,7 +139,17 @@ endif()
 ################################################################################
 # Common definitions for building DCA++'s applications and tests.
 # Libraries
-set(DCA_LIBS ${DCA_EXTERNAL_LIBS} git_version modules posix_qmci gaussian_quadrature random parallel_util pthreading dca_algorithms json_reader json_writer)
+set(DCA_LIBS
+  ${DCA_EXTERNAL_LIBS}
+  git_version modules
+  posix_qmci
+  gaussian_quadrature
+  random
+  parallel_util
+  pthreading
+  dca_algorithms
+  json_reader json_writer
+  hdf5_reader hdf5_writer)
 
 if (DCA_HAVE_CUDA)
   list(APPEND DCA_LIBS DCA_GPU_routines ${DCA_CUDA_LIBS})

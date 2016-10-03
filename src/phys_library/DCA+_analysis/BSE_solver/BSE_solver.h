@@ -18,10 +18,10 @@
 #include <stdexcept>
 #include <string>
 
+#include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_writer.hpp"
 #include "dca/phys/dca_algorithms/compute_band_structure.hpp"
 #include "comp_library/function_library/include_function_library.h"
-#include "comp_library/IO_library/IO.hpp"
 #include "phys_library/DCA+_analysis/BSE_solver/BSE_cluster_solver.h"
 #include "phys_library/DCA+_analysis/BSE_solver/BSE_lattice_solver.h"
 #include "phys_library/DCA+_step/symmetrization/diagrammatic_symmetries.h"
@@ -261,7 +261,7 @@ void BSE_solver<parameters_type, MOMS_type>::write() {
   }
 
   else if (output_format == "HDF5") {
-    IO::writer<IO::HDF5> writer;
+    dca::io::HDF5Writer writer;
     writer.open_file(file_name);
 
     parameters.write(writer);

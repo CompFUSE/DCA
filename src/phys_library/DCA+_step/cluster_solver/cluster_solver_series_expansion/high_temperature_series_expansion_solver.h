@@ -18,8 +18,8 @@
 #include <stdexcept>
 #include <string>
 
+#include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_writer.hpp"
-#include "comp_library/IO_library/IO.hpp"
 #include "comp_library/linalg/linalg_device_types.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/series_expansion_sigma.h"
 
@@ -118,7 +118,7 @@ void cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_typ
   }
 
   else if (output_format == "HDF5") {
-    IO::writer<IO::HDF5> writer;
+    dca::io::HDF5Writer writer;
     writer.open_file(file_name);
 
     parameters.write(writer);

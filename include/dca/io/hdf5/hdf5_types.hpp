@@ -9,14 +9,15 @@
 //
 // Description
 
-#ifndef COMP_LIBRARY_IO_LIBRARY_HDF5_HDF5_TYPES_H
-#define COMP_LIBRARY_IO_LIBRARY_HDF5_HDF5_TYPES_H
+#ifndef DCA_IO_HDF5_HDF5_TYPES_HPP
+#define DCA_IO_HDF5_HDF5_TYPES_HPP
 
 #include <complex>
-
 #include "H5Cpp.h"
 
-namespace IO {
+namespace dca {
+namespace io {
+// dca::io::
 
 template <typename HDF5_type>
 class HDF5_TYPE {};
@@ -164,6 +165,8 @@ public:
     return H5::PredType::NATIVE_DOUBLE;
   }
 };
-}
 
-#endif  // COMP_LIBRARY_IO_LIBRARY_HDF5_HDF5_TYPES_H
+}  // io
+}  // dca
+
+#endif  // DCA_IO_HDF5_HDF5_TYPES_HPP
