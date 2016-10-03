@@ -41,11 +41,9 @@ int convert<int, dmn_2<dmn_0<electron_band_domain>, dmn_0<electron_spin_domain>>
 
   if (std::is_same<dca::util::TypeAt<0, parameter_typelist>::type, electron_band_domain>::value) {
     return spo_function(band, electron_spin_domain::to_coordinate(e_spin));
-    // return spo_function(band, do_cast<int>::execute(e_spin));
   }
   else {
     return spo_function(electron_spin_domain::to_coordinate(e_spin), band);
-    // return spo_function(do_cast<int>::execute(e_spin), band);
   }
 }
 

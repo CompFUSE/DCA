@@ -150,7 +150,8 @@ set(DCA_LIBS
   dca_algorithms
   json_reader json_writer
   hdf5_reader hdf5_writer
-  profiling)
+  profiling
+  function)
 
 if (DCA_HAVE_CUDA)
   list(APPEND DCA_LIBS DCA_GPU_routines ${DCA_CUDA_LIBS})

@@ -15,14 +15,18 @@
 //       compiler dependent, the name of the domain would be compiler dependent, too. This would
 //       make writing tests a little harder.
 
-#ifndef COMP_LIBRARY_FUNCTION_LIBRARY_DOMAINS_SPECIAL_DOMAINS_DMN_H
-#define COMP_LIBRARY_FUNCTION_LIBRARY_DOMAINS_SPECIAL_DOMAINS_DMN_H
+#ifndef DCA_FUNCTION_DOMAINS_DMN_HPP
+#define DCA_FUNCTION_DOMAINS_DMN_HPP
 
 #include <stdexcept>
 #include <string>
 #include <vector>
 
 #include "dca/util/type_utils.hpp"  // for dca::util::type_name
+
+namespace dca {
+namespace func {
+// dca::func::
 
 template <int size, class element_t = int>
 class dmn {
@@ -62,4 +66,7 @@ private:
 template <int size, class element_t>
 std::vector<element_t> dmn<size, element_t>::elements_;
 
-#endif  // COMP_LIBRARY_FUNCTION_LIBRARY_DOMAINS_SPECIAL_DOMAINS_DMN_H
+}  // func
+}  // dca
+
+#endif  // DCA_FUNCTION_DOMAINS_DMN_HPP

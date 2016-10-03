@@ -376,7 +376,6 @@ void accumulator_nonlocal_G<parameters_type, MOMS_type>::compute_G2_k_k_w_w(
   std::complex<double> *G0_k_w_l_ptr, *G0_k_w_r_ptr;
   std::complex<scalar_type> *M_k_k_w_w_ptr, *G_k_k_w_w_ptr;
 
-  // int spin_index = do_cast<int>::execute(e_spin);
   int spin_index = electron_spin_domain::to_coordinate(e_spin);
 
   for (int i = 0; i < G2_k_k_w_w.size(); i++)

@@ -133,7 +133,6 @@ void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_t
 
   scalar_type one_div_two_beta = 1. / (2. * parameters.get_beta());
 
-  // int spin_index = do_cast<int>::execute(e_spin);
   int spin_index = electron_spin_domain::to_coordinate(e_spin);
 
   int r_ind, b_i, b_j, r_i, r_j;  //, s_i, s_j;

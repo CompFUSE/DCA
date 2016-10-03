@@ -24,14 +24,18 @@
 
 #include "dca/util/type_list.hpp"
 
+namespace dca {
+namespace func {
+// dca::func::
+
 // Forward declare these templates so we can use them in print functions.
 // TODO: Move the domain print type functions to the domain classes.
 template <typename Parameters>
 class dmn_0;
 template <typename... DomainList>
 class dmn_variadic;
+}  // func
 
-namespace dca {
 namespace util {
 // dca::util::
 
@@ -106,19 +110,19 @@ struct print_type {
 // dmn_0
 // It is actually the same as basic, but provided for future customization.
 template <typename Domain>
-struct print_type<dmn_0<Domain>> {
+struct print_type<func::dmn_0<Domain>> {
   static void print() {
     print(std::cout);
   }
   static void print(std::ostream& stream) {
-    stream << "\t" << type_name<dmn_0<Domain>>().c_str() << "\n";
+    stream << "\t" << type_name<func::dmn_0<Domain>>().c_str() << "\n";
   }
 };
 
 // dmn_variadic
 // Prints out all subdomains recursively in left-to-right order via pack expansion.
 template <typename... Domains>
-struct print_type<dmn_variadic<Domains...>> {
+struct print_type<func::dmn_variadic<Domains...>> {
   static void print() {
     print(std::cout);
   }
@@ -143,7 +147,7 @@ struct print_type<dca::util::Typelist<Domain, Domains...>> {
   }
   // Reuse dmn_variadic variant.
   static void print(std::ostream& s) {
-    print_type<dmn_variadic<Domain, Domains...>>::print(s);
+    print_type<func::dmn_variadic<Domain, Domains...>>::print(s);
   }
 
   static void to_JSON(std::ostream& s) {

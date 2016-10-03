@@ -15,6 +15,7 @@
 #include <iostream>
 
 #include "dca/util/type_list.hpp"
+#include "dca/function/domains/domain_type_operations.hpp"
 
 #include "comp_library/linalg/linalg.hpp"
 #include "comp_library/function_library/include_function_library.h"
@@ -29,7 +30,7 @@ struct TRANSFORM_DOMAINWISE {
   const static bool VERBOSE = false;
 
   using TRANSFORMED_DOMAIN =
-      typename dca::util::SWAP_FIRST<domain_input, type_input, type_output>::Result;
+      typename dca::func::SWAP_FIRST<domain_input, type_input, type_output>::Result;
 
   const static int CURR_DMN_INDEX =
       dca::util::IndexOf<type_input, typename domain_input::this_type>::value;

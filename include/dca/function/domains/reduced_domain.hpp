@@ -17,8 +17,8 @@
 //
 // TODO: This class can only be used with dmn_variadic when it's wrapped with dmn_0.
 
-#ifndef COMP_LIBRARY_FUNCTION_LIBRARY_DOMAINS_SPECIAL_DOMAINS_REDUCED_DOMAIN_HPP
-#define COMP_LIBRARY_FUNCTION_LIBRARY_DOMAINS_SPECIAL_DOMAINS_REDUCED_DOMAIN_HPP
+#ifndef DCA_FUNCTION_DOMAINS_REDUCED_DOMAIN_HPP
+#define DCA_FUNCTION_DOMAINS_REDUCED_DOMAIN_HPP
 
 #include <algorithm>  // for std::is_sorted
 #include <cassert>
@@ -26,7 +26,8 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include "comp_library/function_library/domains/special_domains/dmn_variadic.h"
+
+#include "dca/function/domains/dmn_variadic.hpp"
 
 namespace dca {
 namespace func {
@@ -132,4 +133,4 @@ class ReducedDomain<dmn_variadic<BaseDomain>>;
 }  // func
 }  // dca
 
-#endif  // COMP_LIBRARY_FUNCTION_LIBRARY_DOMAINS_SPECIAL_DOMAINS_REDUCED_DOMAIN_HPP
+#endif  // DCA_FUNCTION_DOMAINS_REDUCED_DOMAIN_HPP

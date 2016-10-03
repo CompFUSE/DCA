@@ -14,6 +14,7 @@
 
 #include <iostream>
 
+#include "dca/function/domains/domain_type_operations.hpp"
 #include "dca/util/type_list.hpp"
 
 #include "comp_library/linalg/linalg.hpp"
@@ -36,7 +37,7 @@ public:
       print_types(f_input, f_output);
 
     using TRANSFORMED_DOMAIN =
-        typename dca::util::SWAP_FIRST<domain_input, type_input, type_output>::Result;
+        typename dca::func::SWAP_FIRST<domain_input, type_input, type_output>::Result;
     dca::util::assert_same<TRANSFORMED_DOMAIN, domain_output>();
 
     TRANSFORM_DOMAINWISE<domain_input, domain_output, type_input, type_output>::execute_on_first(
@@ -52,7 +53,7 @@ public:
       print_types(f_input, f_output);
 
     using TRANSFORMED_DOMAIN =
-        typename dca::util::SWAP_FIRST<domain_input, type_input, type_output>::Result;
+        typename dca::func::SWAP_FIRST<domain_input, type_input, type_output>::Result;
     dca::util::assert_same<TRANSFORMED_DOMAIN, domain_output>();
 
     TRANSFORM_DOMAINWISE<domain_input, domain_output, type_input, type_output>::execute_on_first(
@@ -66,7 +67,7 @@ public:
       print_types(f_input, f_output);
 
     using TRANSFORMED_DOMAIN =
-        typename dca::util::SWAP_ALL<domain_input, type_input, type_output>::Result;
+        typename dca::func::SWAP_ALL<domain_input, type_input, type_output>::Result;
 
     dca::util::assert_same<TRANSFORMED_DOMAIN, domain_output>();
 
@@ -83,7 +84,7 @@ public:
       print_types(f_input, f_output);
 
     using TRANSFORMED_DOMAIN =
-        typename dca::util::SWAP_ALL<domain_input, type_input, type_output>::Result;
+        typename dca::func::SWAP_ALL<domain_input, type_input, type_output>::Result;
 
     dca::util::assert_same<TRANSFORMED_DOMAIN, domain_output>();
 
@@ -109,7 +110,7 @@ private:
       std::cout << "\n\n";
 
       using TRANSFORMED_DOMAIN =
-          typename dca::util::SWAP_ALL<domain_input, type_input, type_output>::Result;
+          typename dca::func::SWAP_ALL<domain_input, type_input, type_output>::Result;
 
       dca::util::print_type<typename TRANSFORMED_DOMAIN::this_type>::to_JSON(std::cout);
       std::cout << "\n\n";
@@ -126,7 +127,7 @@ private:
       std::cout << "\n\n";
 
       using TRANSFORMED_DOMAIN =
-          typename dca::util::SWAP_FIRST<domain_input, type_input, type_output>::Result;
+          typename dca::func::SWAP_FIRST<domain_input, type_input, type_output>::Result;
 
       dca::util::print_type<typename TRANSFORMED_DOMAIN::this_type>::to_JSON(std::cout);
       std::cout << "\n\n";
