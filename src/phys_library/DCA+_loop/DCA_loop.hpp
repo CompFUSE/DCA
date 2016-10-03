@@ -18,9 +18,9 @@
 #include <stdexcept>
 #include <string>
 
-#include "dca/phys/DCA_step/cluster_mapping/cluster_exclusion.hpp"
-#include "dca/phys/DCA_step/cluster_mapping/double_counting_correction.hpp"
-#include "dca/phys/DCA_step/cluster_mapping/update_chemical_potential.hpp"
+#include "dca/phys/dca_step/cluster_mapping/cluster_exclusion.hpp"
+#include "dca/phys/dca_step/cluster_mapping/double_counting_correction.hpp"
+#include "dca/phys/dca_step/cluster_mapping/update_chemical_potential.hpp"
 #include "dca/util/print_time.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/IO_library/IO.hpp"
@@ -32,6 +32,8 @@
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
+
+using namespace dca::phys;
 
 namespace DCA {
 
@@ -48,12 +50,12 @@ public:
   using k_HOST = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, LATTICE_SP,
                                       MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
 
-  using cluster_exclusion_type = DCA::cluster_exclusion<parameters_type, MOMS_type>;
-  using double_counting_correction_type = DCA::double_counting_correction<parameters_type, MOMS_type>;
+  using cluster_exclusion_type = cluster_exclusion<parameters_type, MOMS_type>;
+  using double_counting_correction_type = double_counting_correction<parameters_type, MOMS_type>;
   using coarsegraining_sp_type = DCA::coarsegraining_sp<parameters_type, k_DCA>;
   using lattice_map_sp_type = DCA::lattice_mapping_sp<parameters_type, k_DCA, k_HOST>;
   using update_chemical_potential_type =
-      DCA::update_chemical_potential<parameters_type, MOMS_type, coarsegraining_sp_type>;
+      update_chemical_potential<parameters_type, MOMS_type, coarsegraining_sp_type>;
   using HTS_solver_type =
       DCA::cluster_solver<DCA::HIGH_TEMPERATURE_SERIES, dca::linalg::CPU, parameters_type, MOMS_type>;
 

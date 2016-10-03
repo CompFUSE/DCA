@@ -9,8 +9,8 @@
 //
 // Testing environment for DCA++ tests that use MPI.
 
-#ifndef DCA_TESTING_MPI_TEST_ENVIRONMENT_HPP
-#define DCA_TESTING_MPI_TEST_ENVIRONMENT_HPP
+#ifndef DCA_TESTING_DCA_MPI_TEST_ENVIRONMENT_HPP
+#define DCA_TESTING_DCA_MPI_TEST_ENVIRONMENT_HPP
 
 #include <string>
 #include "gtest/gtest.h"
@@ -20,8 +20,7 @@ namespace dca {
 namespace testing {
 // dca::testing::
 
-class DcaMpiTestEnvironment : public ::testing::Environment {
-public:
+struct DcaMpiTestEnvironment : public ::testing::Environment {
   using ConcurrencyType = dca::parallel::MPIConcurrency;
 
   DcaMpiTestEnvironment(int argc, char* argv[], std::string file_name)
@@ -34,4 +33,4 @@ public:
 }  // testing
 }  // dca
 
-#endif  // DCA_TESTING_MPI_TEST_ENVIRONMENT_HPP
+#endif  // DCA_TESTING_DCA_MPI_TEST_ENVIRONMENT_HPP

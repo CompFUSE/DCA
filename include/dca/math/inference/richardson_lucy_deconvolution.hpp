@@ -20,14 +20,15 @@
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/linalg/linalg.hpp"
 
+namespace dca {
 namespace math {
 namespace inference {
-// math_algorithms::inference::
+// dca::math::inference::
 
 template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
-class Richardson_Lucy_deconvolution {
+class RichardsonLucyDeconvolution {
 public:
-  Richardson_Lucy_deconvolution(parameters_type& parameters_ref);
+  RichardsonLucyDeconvolution(parameters_type& parameters_ref);
 
   void execute(dca::linalg::Matrix<double, dca::linalg::CPU>& matrix,
                FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t>>& f_source,
@@ -62,7 +63,7 @@ private:
 };
 
 template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
-Richardson_Lucy_deconvolution<parameters_type, k_dmn_t, p_dmn_t>::Richardson_Lucy_deconvolution(
+RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::RichardsonLucyDeconvolution(
     parameters_type& parameters_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
@@ -76,7 +77,7 @@ Richardson_Lucy_deconvolution<parameters_type, k_dmn_t, p_dmn_t>::Richardson_Luc
       u_t_p_1("u_{t+1} (Richardson_Lucy_deconvolution)") {}
 
 template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
-void Richardson_Lucy_deconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
+void RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
     dca::linalg::Matrix<double, dca::linalg::CPU>& A,
     FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t>>& f_source,
     FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t>>& f_target) {
@@ -126,7 +127,7 @@ void Richardson_Lucy_deconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
 }
 
 template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
-void Richardson_Lucy_deconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
+void RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
     dca::linalg::Matrix<double, dca::linalg::CPU>& A,
     FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t>>& f_source,
     FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t>>& f_approx,
@@ -145,7 +146,7 @@ void Richardson_Lucy_deconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
 }
 
 template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
-void Richardson_Lucy_deconvolution<parameters_type, k_dmn_t, p_dmn_t>::initialize_matrices(
+void RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::initialize_matrices(
     FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t>>& f_source) {
   int nr_rows = k_dmn_t::dmn_size();
   int nr_cols = p_dmn_t::dmn_size();
@@ -174,7 +175,7 @@ void Richardson_Lucy_deconvolution<parameters_type, k_dmn_t, p_dmn_t>::initializ
 }
 
 template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
-void Richardson_Lucy_deconvolution<parameters_type, k_dmn_t, p_dmn_t>::initialize_errors(
+void RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::initialize_errors(
     FUNC_LIB::function<bool, p_dmn_t>& is_finished,
     FUNC_LIB::function<double, p_dmn_t>& error_function) {
   for (int j = 0; j < p_dmn_t::dmn_size(); j++) {
@@ -188,7 +189,7 @@ void Richardson_Lucy_deconvolution<parameters_type, k_dmn_t, p_dmn_t>::initializ
 }
 
 template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
-bool Richardson_Lucy_deconvolution<parameters_type, k_dmn_t, p_dmn_t>::update_f_target(
+bool RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::update_f_target(
     FUNC_LIB::function<bool, p_dmn_t>& is_finished,
     FUNC_LIB::function<double, p_dmn_t>& error_function,
     FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t>>& f_target) {
@@ -226,5 +227,6 @@ bool Richardson_Lucy_deconvolution<parameters_type, k_dmn_t, p_dmn_t>::update_f_
 
 }  // inference
 }  // math
+}  // dca
 
 #endif  // DCA_MATH_INFERENCE_RICHARDSON_LUCY_DECONVOLUTION_HPP
