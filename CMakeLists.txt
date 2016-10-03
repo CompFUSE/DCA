@@ -130,12 +130,7 @@ install(DIRECTORY ${CMAKE_BINARY_DIR}/include/dca/config DESTINATION include/dca
 # Internal libraries
 # TODO: When the number of 'internal' libraries grows, we might want to combine these into a few big
 #       libraries; e.g. one for math, phys, etc.
-add_subdirectory(src/linalg/util)
-add_subdirectory(src/math/geometry/gaussian_quadrature)
-add_subdirectory(src/math/random)
-add_subdirectory(src/parallel)
-add_subdirectory(src/phys_library/DCA_step/cluster_solver/posix_qmci)
-add_subdirectory(src/util)
+add_subdirectory(src)
 
 if (DCA_HAVE_CUDA)
   add_subdirectory(src/DCA_GPU_routines)
@@ -144,7 +139,7 @@ endif()
 ################################################################################
 # Common definitions for building DCA++'s applications and tests.
 # Libraries
-set(DCA_LIBS ${DCA_EXTERNAL_LIBS} git_version modules posix_qmci gaussian_quadrature random parallel_util pthreading)
+set(DCA_LIBS ${DCA_EXTERNAL_LIBS} git_version modules posix_qmci gaussian_quadrature random parallel_util pthreading dca_algorithms)
 
 if (DCA_HAVE_CUDA)
   list(APPEND DCA_LIBS DCA_GPU_routines cuda_utils ${DCA_CUDA_LIBS})
@@ -169,7 +164,11 @@ if (DCA_WITH_TESTS_FAST OR DCA_WITH_TESTS_EXTENSIVE OR DCA_WITH_TESTS_PERFORMANC
       (CMAKE_BUILD_TYPE STREQUAL "MinSizeRel"))
     message(WARNING "Tests are built with NDEBUG defined!")
   endif()
-  
+
+  if (DCA_WITH_TESTS_PERFORMANCE AND NOT (CMAKE_BUILD_TYPE STREQUAL "Release"))
+    message(WARNING "Performance tests are only built in Release mode.")
+  endif()
+
   add_subdirectory(${gtest_DIR} ${PROJECT_BINARY_DIR}/gtest)
 
   add_subdirectory(${PROJECT_SOURCE_DIR}/test)

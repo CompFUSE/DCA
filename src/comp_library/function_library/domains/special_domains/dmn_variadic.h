@@ -20,8 +20,8 @@
 #include <iterator>
 #include <algorithm>
 
-#include <dca/util/type_list.hpp>
-#include <dca/util/type_utils.hpp>
+#include "dca/util/ignore.hpp"
+#include "dca/util/type_list.hpp"
 #include "comp_library/function_library/domains/domain.h"
 
 //----------------------------------------------------------------------------
@@ -114,8 +114,9 @@ namespace detail
     template<typename T, typename F, std::size_t... Indices>
     void for_each(T&& t, F &&f, std::index_sequence<Indices...>)
     {
-        auto l = { (f(std::get<Indices>(t)), 0)... };
-        dca::util::ignore_returnvalues(l);
+      // We need to create this unused object to prevent a runtime error with GCC.
+      auto l = { (f(std::get<Indices>(t)), 0)... };
+      dca::util::ignoreUnused(l);
     }
 }
 
@@ -257,7 +258,7 @@ template <typename ...Args, std::size_t ...Is>
 void check_indices(const char* /*msg*/, const std::vector<int> &sizes, std::index_sequence<Is...>, Args &&... indices) {
 
     if (std::min({ (sizes[Is]-indices)... })<0) {
-        dca::util::ignore_returnvalues((std::cerr << "size " << sizes[Is] << " index " << indices << " ")... );
+        dca::util::ignoreReturnValues((std::cerr << "size " << sizes[Is] << " index " << indices << " ")... );
         std::cerr << " : Index too big error" << std::endl;
         std::copy(sizes.begin(), sizes.end(), std::ostream_iterator<int>(std::cerr, ","));
         throw std::runtime_error("Index too big error");

@@ -17,7 +17,7 @@
 #include <utility>
 #include <vector>
 
-#include "dca/util/ignore_unused.hpp"
+#include "dca/util/ignore.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/linalg/linalg.hpp"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"

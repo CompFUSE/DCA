@@ -16,13 +16,15 @@
 #include <algorithm>
 #include <complex>
 
-#include "dca/math/inference/Richardson_Lucy_deconvolution.hpp"
+#include "dca/math/inference/richardson_lucy_deconvolution.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "math_library/functional_transforms/basis_transforms/basis_transform.h"
 #include "phys_library/DCA+_step/lattice_mapping/deconvolution/deconvolution_routines.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
+
+using namespace dca;
 
 namespace DCA {
 
@@ -76,7 +78,7 @@ void deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(
   typedef dmn_0<dmn<2, int>> z;
   typedef dmn_5<z, b, b, s, w> p_dmn_t;
 
-  math::inference::Richardson_Lucy_deconvolution<parameters_type, target_k_dmn_t, p_dmn_t> RL_obj(
+  math::inference::RichardsonLucyDeconvolution<parameters_type, target_k_dmn_t, p_dmn_t> RL_obj(
       parameters);
 
   FUNC_LIB::function<double, dmn_2<target_k_dmn_t, p_dmn_t>> S_source("S_source");

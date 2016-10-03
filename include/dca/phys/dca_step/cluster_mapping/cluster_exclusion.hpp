@@ -24,7 +24,10 @@
 #include "phys_library/domains/time_and_frequency/frequency_domain.h"
 #include "phys_library/domains/time_and_frequency/time_domain.h"
 
-namespace DCA {
+namespace dca {
+namespace phys {
+// dca::phys::
+
 template <typename parameters_type, typename MOMS_type>
 class cluster_exclusion {
 public:
@@ -193,6 +196,8 @@ void cluster_exclusion<parameters_type, MOMS_type>::plot_G0_R_t_cluster_excluded
     plot_obj.showonscreen();
   }
 }
-}
+
+}  // phys
+}  // dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_CLUSTER_EXCLUSION_HPP

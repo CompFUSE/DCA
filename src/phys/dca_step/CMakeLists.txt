@@ -1,0 +1,1 @@
+add_subdirectory(cluster_solver/posix_qmci)

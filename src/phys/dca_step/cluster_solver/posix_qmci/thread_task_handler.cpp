@@ -6,8 +6,10 @@
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//
+// This file implements thread_task_handler.hpp.
 
-#include "dca/phys_library/DCA_step/cluster_solver/posix_qmci/thread_task_handler.hpp"
+#include "dca/phys/dca_step/cluster_solver/posix_qmci/thread_task_handler.hpp"
 #include <cassert>
 #include <iostream>
 

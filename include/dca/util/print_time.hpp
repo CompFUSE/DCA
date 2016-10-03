@@ -9,7 +9,8 @@
 //
 // This file provides a function that prints the current time.
 //
-// TODO: Make this file a source file?
+// TODO: - Split function declaration and definition?
+//       - Reimplement using std::chrono?
 
 #ifndef DCA_UTIL_PRINT_TIME_HPP
 #define DCA_UTIL_PRINT_TIME_HPP

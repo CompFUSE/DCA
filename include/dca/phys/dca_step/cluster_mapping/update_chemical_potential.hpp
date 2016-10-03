@@ -13,14 +13,13 @@
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_UPDATE_CHEMICAL_POTENTIAL_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_UPDATE_CHEMICAL_POTENTIAL_HPP
 
-#include "dca/util/print_time.hpp"
-
 #include <complex>
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
 #include <utility>
 
+#include "dca/util/print_time.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
 #include "phys_library/domains/cluster/cluster_domain.h"
@@ -29,7 +28,9 @@
 #include "phys_library/domains/time_and_frequency/frequency_domain.h"
 #include "phys_library/domains/time_and_frequency/time_domain.h"
 
-namespace DCA {
+namespace dca {
+namespace phys {
+// dca::phys::
 
 template <typename parameters_type, typename MOMS_type, typename coarsegraining_type>
 class update_chemical_potential {
@@ -345,6 +346,8 @@ void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>:
     std::cout << dca::util::print_time() << "\n";
   }
 }
-}
+
+}  // phys
+}  // dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_UPDATE_CHEMICAL_POTENTIAL_HPP
