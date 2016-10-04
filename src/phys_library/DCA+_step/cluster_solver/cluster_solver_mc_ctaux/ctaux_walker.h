@@ -282,24 +282,10 @@ MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::MC_walker(
               << "CT-AUX walker test"
               << "\n\n";
   }
-
-  LIN_ALG::CUBLAS_THREAD_MANAGER<device_t>::initialize(thread_id);
-
-  Gamma_up_CPU.setThreadAndStreamId(thread_id, 0);
-  Gamma_dn_CPU.setThreadAndStreamId(thread_id, 0);
-
-  stored_Gamma_up_CPU.setThreadAndStreamId(thread_id, 0);
-  stored_Gamma_dn_CPU.setThreadAndStreamId(thread_id, 0);
-
-  vertex_indixes.setThreadAndStreamId(thread_id, 0);
-  exp_V.setThreadAndStreamId(thread_id, 0);
-  exp_delta_V.setThreadAndStreamId(thread_id, 0);
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::~MC_walker() {
-  LIN_ALG::CUBLAS_THREAD_MANAGER<device_t>::finalize(thread_id);
-
   if (concurrency.id() == 0 and thread_id == 0) {
     std::cout << "\n\n\t"  //<< number_of_creations << "\t" << number_of_annihilations
               << "\t\t creations/annihilations : "
@@ -441,14 +427,11 @@ std::enable_if_t<dev_t == device_t && device_t != dca::linalg::CPU, void> MC_wal
     CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::download_from_device() {
   profiler_type profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
 
-  assert(Gamma_up_CPU.capacity() == Gamma_up.capacity());
-  assert(Gamma_dn_CPU.capacity() == Gamma_dn.capacity());
-
   read_Gamma_matrices(e_UP);
   read_Gamma_matrices(e_DN);
 
-  Gamma_up_CPU.copy_from(Gamma_up, LIN_ALG::ASYNCHRONOUS);
-  Gamma_dn_CPU.copy_from(Gamma_dn, LIN_ALG::ASYNCHRONOUS);
+  Gamma_up_CPU.set(Gamma_up, thread_id, stream_id);
+  Gamma_dn_CPU.set(Gamma_dn, thread_id, stream_id);
 }
 
 // In case Gamma_up and Gamma_down reside in the CPU memory, avoid the copies using swap.
@@ -475,11 +458,8 @@ std::enable_if_t<dev_t == device_t && device_t != dca::linalg::CPU, void> MC_wal
     CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::upload_to_device() {
   profiler_type profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
 
-  assert(Gamma_up_CPU.capacity() == Gamma_up.capacity());
-  assert(Gamma_dn_CPU.capacity() == Gamma_dn.capacity());
-
-  Gamma_up.copy_from(Gamma_up_CPU, LIN_ALG::ASYNCHRONOUS);
-  Gamma_dn.copy_from(Gamma_dn_CPU, LIN_ALG::ASYNCHRONOUS);
+  Gamma_up.set(Gamma_up_CPU, thread_id, stream_id);
+  Gamma_dn.set(Gamma_dn_CPU, thread_id, stream_id);
 }
 
 // In case Gamma_up and Gamma_down reside in the CPU memory, avoid the copies using swap.
@@ -766,9 +746,9 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::read_Gamma_
       }
     }
 
-    vertex_indixes.set(vertex_indixes_CPU, LIN_ALG::ASYNCHRONOUS);
-    exp_V.set(exp_V_CPU, LIN_ALG::ASYNCHRONOUS);
-    exp_delta_V.set(exp_delta_V_CPU, LIN_ALG::ASYNCHRONOUS);
+    vertex_indixes.set(vertex_indixes_CPU, thread_id, stream_id);
+    exp_V.set(exp_V_CPU, thread_id, stream_id);
+    exp_delta_V.set(exp_delta_V_CPU, thread_id, stream_id);
   }
 
   switch (e_spin) {
@@ -1122,8 +1102,8 @@ void MC_walker<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::apply_benne
   /*
     number_of_annihilations += 1;
 
-    stored_Gamma_up_CPU.copy_from(Gamma_up_CPU);
-    stored_Gamma_dn_CPU.copy_from(Gamma_dn_CPU);
+    stored_Gamma_up_CPU = Gamma_up_CPU;
+    stored_Gamma_dn_CPU = Gamma_dn_CPU;
 
     double ratio_HS_field_DN = 0;
     double ratio_HS_field_UP = 0;

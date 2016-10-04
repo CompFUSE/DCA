@@ -16,30 +16,19 @@
 #include <cassert>
 #include <cmath>
 #include <sstream>
+#include <iostream>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <utility>
 
 #include "dca/linalg/device_type.hpp"
+#include "dca/linalg/util/copy.hpp"
 #include "dca/linalg/util/memory.hpp"
-
-#include "comp_library/linalg/src/linalg_operations/copy_from_tem.h"
-#include "comp_library/linalg/src/linalg_operations/copy_from_CPU_CPU.h"
-#include "comp_library/linalg/src/linalg_operations/copy_from_CPU_GPU.h"
-#include "comp_library/linalg/src/linalg_operations/copy_from_GPU_CPU.h"
-#include "comp_library/linalg/src/linalg_operations/copy_from_GPU_GPU.h"
-#include "comp_library/linalg/src/linalg_structures/cublas_thread_manager_tem.h"
-#include "comp_library/linalg/src/linalg_structures/cublas_thread_manager_CPU.h"
-#include "comp_library/linalg/src/linalg_structures/cublas_thread_manager_GPU.h"
-#include "comp_library/linalg/src/linalg_operations/memory_management_CPU.h"
-#include "comp_library/linalg/src/linalg_operations/memory_management_GPU.h"
 
 namespace dca {
 namespace linalg {
 // dca::linalg::
-
-using namespace ::LIN_ALG;
 
 template <typename ScalarType, DeviceType device_name>
 class Matrix {
@@ -63,8 +52,6 @@ public:
   // Preconditions: capacity.first >= size.first, capacity.second >= size.second.
   Matrix(std::pair<int, int> size, std::pair<int, int> capacity);
   Matrix(std::string name, std::pair<int, int> size, std::pair<int, int> capacity);
-  Matrix(std::string name, std::pair<int, int> size, std::pair<int, int> capacity, int thread_id,
-         int stream_id);
 
   Matrix(const Matrix<ScalarType, device_name>& rhs);
 
@@ -96,19 +83,6 @@ public:
 
   const std::string& get_name() const {
     return name_;
-  }
-
-  // TODO: remove reference (needed to check for external changes)
-  const int& get_thread_id() const {
-    return thread_id_;
-  }
-  const int& get_stream_id() const {
-    return stream_id_;
-  }
-
-  void setThreadAndStreamId(int thread_id, int stream_id) {
-    thread_id_ = thread_id;
-    stream_id_ = stream_id;
   }
 
   // Returns the pointer to the (0,0)-th element.
@@ -183,20 +157,20 @@ public:
 
   void swap(Matrix<ScalarType, device_name>& rhs);
 
-  // Copies the value of rhs inside *this.
-  // rhs and *this must have the same size.
+  // Asynchronous assignement (copy with stream = getStream(thread_id, stream_id) + synchronization
+  // of stream
+  // Preconditions: 0 <= thread_id < DCA_MAX_THREADS,
+  //                0 <= stream_id < DCA_STREAMS_PER_THREADS.
   template <DeviceType rhs_device_name>
-  void copy_from(Matrix<ScalarType, rhs_device_name>& rhs);
-
-  // Copies the value of rhs inside *this.
-  // rhs and *this must have the same size.
-  template <DeviceType rhs_device_name>
-  void copy_from(Matrix<ScalarType, rhs_device_name>& rhs, copy_concurrency_type copy_t);
+  void set(const Matrix<ScalarType, rhs_device_name>& rhs, int thread_id, int stream_id);
 
   // Prints the values of the matrix elements.
-  void print() const;
+  template <DeviceType dn = device_name>
+  std::enable_if_t<device_name == CPU && dn == CPU, void> print() const;
+  template <DeviceType dn = device_name>
+  std::enable_if_t<device_name != CPU && dn == device_name, void> print() const;
   // Prints the properties of *this.
-  void print_fingerprint() const;
+  void printFingerprint() const;
 
 private:
   static std::pair<int, int> capacityMultipleOfBlockSize(std::pair<int, int> size);
@@ -254,17 +228,7 @@ Matrix<ScalarType, device_name>::Matrix(std::pair<int, int> size, std::pair<int,
 template <typename ScalarType, DeviceType device_name>
 Matrix<ScalarType, device_name>::Matrix(std::string str, std::pair<int, int> size,
                                         std::pair<int, int> capacity)
-    : Matrix(str, size, capacity, -1, -1) {}
-
-template <typename ScalarType, DeviceType device_name>
-Matrix<ScalarType, device_name>::Matrix(std::string str, std::pair<int, int> size,
-                                        std::pair<int, int> capacity, int thread_id, int stream_id)
-    : name_(str),
-      size_(size),
-      capacity_(capacityMultipleOfBlockSize(capacity)),
-      thread_id_(thread_id),
-      stream_id_(stream_id),
-      data_(nullptr) {
+    : name_(str), size_(size), capacity_(capacityMultipleOfBlockSize(capacity)), data_(nullptr) {
   assert(size_.first >= 0 && size_.second >= 0);
   assert(capacity.first >= 0 && capacity.second >= 0);
   assert(capacity.first >= size_.first && capacity.second >= size_.second);
@@ -276,31 +240,17 @@ Matrix<ScalarType, device_name>::Matrix(std::string str, std::pair<int, int> siz
 
 template <typename ScalarType, DeviceType device_name>
 Matrix<ScalarType, device_name>::Matrix(const Matrix<ScalarType, device_name>& rhs)
-    : name_(rhs.name_),
-      size_(rhs.size_),
-      capacity_(rhs.capacity_),
-      thread_id_(-1),
-      stream_id_(-1),
-      data_(nullptr) {
+    : name_(rhs.name_), size_(rhs.size_), capacity_(rhs.capacity_), data_(nullptr) {
   util::Memory<device_name>::allocate(data_, nrElements(capacity_));
-
-  COPY_FROM<device_name, device_name>::execute(rhs.data_, rhs.size_, rhs.capacity_, data_, size_,
-                                               capacity_);
+  util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
 }
 
 template <typename ScalarType, DeviceType device_name>
 template <DeviceType rhs_device_name>
 Matrix<ScalarType, device_name>::Matrix(const Matrix<ScalarType, rhs_device_name>& rhs)
-    : name_(rhs.name_),
-      size_(rhs.size_),
-      capacity_(rhs.capacity_),
-      thread_id_(-1),
-      stream_id_(-1),
-      data_(nullptr) {
+    : name_(rhs.name_), size_(rhs.size_), capacity_(rhs.capacity_), data_(nullptr) {
   util::Memory<device_name>::allocate(data_, nrElements(capacity_));
-
-  COPY_FROM<rhs_device_name, device_name>::execute(rhs.data_, rhs.size_, rhs.capacity_, data_,
-                                                   size_, capacity_);
+  util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
 }
 
 template <typename ScalarType, DeviceType device_name>
@@ -312,20 +262,16 @@ template <typename ScalarType, DeviceType device_name>
 void Matrix<ScalarType, device_name>::resize(std::pair<int, int> new_size) {
   assert(new_size.first >= 0 && new_size.second >= 0);
   if (new_size.first > capacity_.first || new_size.second > capacity_.second) {
-    // CUBLAS_THREAD_MANAGER<device_name>::synchronize_streams(thread_id_, stream_id_);
     std::pair<int, int> new_capacity = capacityMultipleOfBlockSize(new_size);
 
     ValueType* new_data = NULL;
     util::Memory<device_name>::allocate(new_data, nrElements(new_capacity));
-    COPY_FROM<device_name, device_name>::execute(data_, size_, capacity_, new_data, size_,
-                                                 new_capacity);
+    util::memoryCopy(new_data, new_capacity.first, data_, leadingDimension(), size_);
     util::Memory<device_name>::deallocate(data_);
 
     data_ = new_data;
     capacity_ = new_capacity;
     size_ = new_size;
-
-    // CUBLAS_THREAD_MANAGER<device_name>::synchronize_streams(thread_id_, stream_id_);
   }
   else {
     size_ = new_size;
@@ -335,13 +281,8 @@ void Matrix<ScalarType, device_name>::resize(std::pair<int, int> new_size) {
 template <typename ScalarType, DeviceType device_name>
 Matrix<ScalarType, device_name>& Matrix<ScalarType, device_name>::operator=(
     const Matrix<ScalarType, device_name>& rhs) {
-  name_ = rhs.name_;
   resizeNoCopy(rhs.size_);
-  thread_id_ = -1;
-  stream_id_ = -1;
-
-  COPY_FROM<device_name, device_name>::execute(rhs.data_, rhs.size_, rhs.capacity_, data_, size_,
-                                               capacity_);
+  util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
   return *this;
 }
 
@@ -349,28 +290,19 @@ template <typename ScalarType, DeviceType device_name>
 template <DeviceType rhs_device_name>
 Matrix<ScalarType, device_name>& Matrix<ScalarType, device_name>::operator=(
     const Matrix<ScalarType, rhs_device_name>& rhs) {
-  name_ = rhs.name_;
   resizeNoCopy(rhs.size_);
-  thread_id_ = -1;
-  stream_id_ = -1;
-
-  COPY_FROM<rhs_device_name, device_name>::execute(rhs.data_, rhs.size_, rhs.capacity_, data_,
-                                                   size_, capacity_);
+  util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
   return *this;
 }
 
 template <typename ScalarType, DeviceType device_name>
 void Matrix<ScalarType, device_name>::resizeNoCopy(std::pair<int, int> new_size) {
   if (new_size.first > capacity_.first || new_size.second > capacity_.second) {
-    // CUBLAS_THREAD_MANAGER<device_name>::synchronize_streams(thread_id_, stream_id_);
-
     size_ = new_size;
     capacity_ = capacityMultipleOfBlockSize(new_size);
 
     util::Memory<device_name>::deallocate(data_);
     util::Memory<device_name>::allocate(data_, nrElements(capacity_));
-
-    // CUBLAS_THREAD_MANAGER<device_name>::synchronize_streams(thread_id_, stream_id_);
   }
   else {
     size_ = new_size;
@@ -389,51 +321,42 @@ void Matrix<ScalarType, device_name>::swap(Matrix<ScalarType, device_name>& rhs)
 
 template <typename ScalarType, DeviceType device_name>
 template <DeviceType rhs_device_name>
-void Matrix<ScalarType, device_name>::copy_from(Matrix<ScalarType, rhs_device_name>& rhs) {
+void Matrix<ScalarType, device_name>::set(const Matrix<ScalarType, rhs_device_name>& rhs,
+                                          int thread_id, int stream_id) {
   resize(rhs.size_);
-
-  COPY_FROM<rhs_device_name, device_name>::execute(rhs.data_, rhs.size_, rhs.capacity_, data_,
-                                                   size_, capacity_);
+  util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_, thread_id,
+                   stream_id);
 }
 
 template <typename ScalarType, DeviceType device_name>
-template <DeviceType rhs_device_name>
-void Matrix<ScalarType, device_name>::copy_from(Matrix<ScalarType, rhs_device_name>& rhs,
-                                                copy_concurrency_type copy_t) {
-  const static DeviceType device_t =
-      LIN_ALG::CUBLAS_DEVICE_NAME<rhs_device_name, device_name>::device_t;
+template <DeviceType dn>
+std::enable_if_t<device_name == CPU && dn == CPU, void> Matrix<ScalarType, device_name>::print() const {
+  printFingerprint();
 
-  assert(thread_id_ > -1 and stream_id_ > -1);
+  std::stringstream ss;
+  ss.precision(6);
+  ss << std::scientific;
 
-  resize(rhs.size_);
-
-  switch (copy_t) {
-    case SYNCHRONOUS:
-      COPY_FROM<rhs_device_name, device_name>::execute(rhs.data_, rhs.size_, rhs.capacity_, data_,
-                                                       size_, capacity_);
-      break;
-
-    case ASYNCHRONOUS:
-      CUBLAS_THREAD_MANAGER<device_t>::synchronize_streams(thread_id_, stream_id_);
-
-      COPY_FROM<rhs_device_name, device_name>::execute(rhs.data_, rhs.size_, rhs.capacity_, data_,
-                                                       size_, capacity_, thread_id_, stream_id_);
-
-      CUBLAS_THREAD_MANAGER<device_t>::synchronize_streams(thread_id_, stream_id_);
-      break;
-
-    default:
-      throw std::logic_error(__FUNCTION__);
+  ss << "\n";
+  for (int i = 0; i < nrRows(); i++) {
+    for (int j = 0; j < nrCols(); j++)
+      ss << "\t" << operator()(i, j);
+    ss << "\n";
   }
+
+  std::cout << ss.str() << std::endl;
 }
 
 template <typename ScalarType, DeviceType device_name>
-void Matrix<ScalarType, device_name>::print() const {
-  MEMORY_MANAGEMENT<device_name>::print(data_, size_, capacity_);
+template <DeviceType dn>
+std::enable_if_t<device_name != CPU && dn == device_name, void> Matrix<ScalarType,
+                                                                       device_name>::print() const {
+  Matrix<ScalarType, CPU> copy(*this);
+  copy.print();
 }
 
 template <typename ScalarType, DeviceType device_name>
-void Matrix<ScalarType, device_name>::print_fingerprint() const {
+void Matrix<ScalarType, device_name>::printFingerprint() const {
   std::stringstream ss;
 
   ss << "\n";

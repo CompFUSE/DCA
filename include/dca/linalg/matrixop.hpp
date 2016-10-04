@@ -30,11 +30,14 @@
 #include "dca/linalg/vector.hpp"
 
 #include "comp_library/linalg/src/linalg_operations/GPUfunc.h"
+#include "comp_library/linalg/src/linalg_operations/memory_management_GPU.h"
 
 namespace dca {
 namespace linalg {
 namespace matrixop {
 // dca::linalg::matrixop::
+
+using namespace ::LIN_ALG;
 
 // Copies the jx-th column of mat_x into the jy-th column of mat_y.
 // In/Out: mat_y

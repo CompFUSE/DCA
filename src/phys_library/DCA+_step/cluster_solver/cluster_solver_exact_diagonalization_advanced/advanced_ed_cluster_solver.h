@@ -23,7 +23,7 @@
 #include "dca/util/print_time.hpp"
 #include "comp_library/function_library/include_function_library.h"
 #include "comp_library/IO_library/IO.hpp"
-#include "comp_library/linalg/linalg_device_types.h"
+#include "dca/linalg/device_type.hpp"
 #include "phys_library/DCA+_data/DCA_data.h"
 #include "phys_library/DCA+_data/moms_w_real.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Fock_space.h"

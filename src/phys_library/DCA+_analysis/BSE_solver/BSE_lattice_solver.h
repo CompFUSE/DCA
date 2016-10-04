@@ -831,7 +831,7 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::compute_folded_susceptibili
     for (int l = 0; l < M; l++)
       D_inv(l, l) = 1. / (1. - L[l]);
 
-    VL.copy_from(VR);
+    VL = VR;
     LIN_ALG::GEINV<dca::linalg::CPU>::execute(VL);
 
     dca::linalg::matrixop::gemm('N', 'N', VR, D_inv, VR_D_inv);

@@ -20,17 +20,13 @@ TEST(VectorGPUTest, Constructors) {
   size_t size = 3;
   size_t capacity = 11;
   std::string name("vector name");
-  int thread_id = 2;
-  int stream_id = 5;
 
   // Tests all the constructors.
   {
-    dca::linalg::Vector<float, dca::linalg::GPU> vec(name, size, capacity, thread_id, stream_id);
+    dca::linalg::Vector<float, dca::linalg::GPU> vec(name, size, capacity);
     ASSERT_EQ(name, vec.get_name());
     ASSERT_EQ(size, vec.size());
     ASSERT_LE(capacity, vec.capacity());
-    ASSERT_EQ(thread_id, vec.get_thread_id());
-    ASSERT_EQ(stream_id, vec.get_stream_id());
     ASSERT_NE(nullptr, vec.ptr());
     ASSERT_TRUE(testing::isDevicePointer(vec.ptr()));
   }
@@ -38,26 +34,18 @@ TEST(VectorGPUTest, Constructors) {
     dca::linalg::Vector<double, dca::linalg::GPU> vec;
     EXPECT_EQ(0, vec.size());
     EXPECT_LE(0, vec.capacity());
-    EXPECT_EQ(-1, vec.get_stream_id());
-    EXPECT_EQ(-1, vec.get_thread_id());
   }
   {
     dca::linalg::Vector<int, dca::linalg::GPU> vec(size);
     EXPECT_EQ(size, vec.size());
     EXPECT_LE(size, vec.capacity());
-    EXPECT_EQ(-1, vec.get_stream_id());
-    EXPECT_EQ(-1, vec.get_thread_id());
     EXPECT_NE(nullptr, vec.ptr());
     EXPECT_TRUE(testing::isDevicePointer(vec.ptr()));
   }
   {
-    // TODO: use complex, when MEMORY_MANAGEMENT is fixed.
-    // dca::linalg::Vector<std::complex<double>, dca::linalg::GPU> vec(size, capacity);
-    dca::linalg::Vector<double, dca::linalg::GPU> vec(size, capacity);
+    dca::linalg::Vector<std::complex<double>, dca::linalg::GPU> vec(size, capacity);
     EXPECT_EQ(size, vec.size());
     EXPECT_LE(capacity, vec.capacity());
-    EXPECT_EQ(-1, vec.get_stream_id());
-    EXPECT_EQ(-1, vec.get_thread_id());
     EXPECT_NE(nullptr, vec.ptr());
     EXPECT_TRUE(testing::isDevicePointer(vec.ptr()));
   }
@@ -66,28 +54,12 @@ TEST(VectorGPUTest, Constructors) {
     EXPECT_EQ(name, vec.get_name());
     EXPECT_EQ(0, vec.size());
     EXPECT_LE(0, vec.capacity());
-    EXPECT_EQ(-1, vec.get_stream_id());
-    EXPECT_EQ(-1, vec.get_thread_id());
   }
   {
     dca::linalg::Vector<int, dca::linalg::GPU> vec(name, size);
     EXPECT_EQ(name, vec.get_name());
     EXPECT_EQ(size, vec.size());
     EXPECT_LE(size, vec.capacity());
-    EXPECT_EQ(-1, vec.get_stream_id());
-    EXPECT_EQ(-1, vec.get_thread_id());
-    EXPECT_NE(nullptr, vec.ptr());
-    EXPECT_TRUE(testing::isDevicePointer(vec.ptr()));
-  }
-  {
-    // TODO: use complex, when MEMORY_MANAGEMENT is fixed.
-    // dca::linalg::Vector<std::complex<double>, dca::linalg::GPU> vec(name, size, capacity);
-    dca::linalg::Vector<double, dca::linalg::GPU> vec(name, size, capacity);
-    EXPECT_EQ(name, vec.get_name());
-    EXPECT_EQ(size, vec.size());
-    EXPECT_LE(capacity, vec.capacity());
-    EXPECT_EQ(-1, vec.get_stream_id());
-    EXPECT_EQ(-1, vec.get_thread_id());
     EXPECT_NE(nullptr, vec.ptr());
     EXPECT_TRUE(testing::isDevicePointer(vec.ptr()));
   }
@@ -144,7 +116,6 @@ TEST(VectorGPUTest, Assignement) {
     }
 
     vec_copy = vec;
-    EXPECT_EQ(vec.get_name(), vec_copy.get_name());
     EXPECT_EQ(vec.size(), vec_copy.size());
     EXPECT_EQ(capacity, vec_copy.capacity());
     EXPECT_EQ(old_ptr, vec_copy.ptr());
@@ -169,7 +140,6 @@ TEST(VectorGPUTest, Assignement) {
     }
 
     vec_copy = vec;
-    EXPECT_EQ(vec.get_name(), vec_copy.get_name());
     EXPECT_EQ(vec.size(), vec_copy.size());
     EXPECT_LE(vec.size(), vec_copy.capacity());
 
@@ -180,17 +150,66 @@ TEST(VectorGPUTest, Assignement) {
   }
 }
 
-// TODO: replace Long with Long, when MEMORY_MANAGEMENT is fixed.
-using Long = int;
+TEST(VectorGPUTest, Set) {
+  {
+    // Assign a vector that fits into the capacity.
+    size_t size = 4;
+
+    dca::linalg::Vector<float, dca::linalg::GPU> vec_copy(10);
+    auto old_ptr = vec_copy.ptr();
+    auto capacity = vec_copy.capacity();
+
+    dca::linalg::Vector<float, dca::linalg::GPU> vec("name", size);
+    // Set the elements.
+    for (int i = 0; i < vec.size(); ++i) {
+      float el = 3 * i - 2;
+      testing::setOnDevice(vec.ptr(i), el);
+    }
+
+    vec_copy.set(vec, 0, 1);
+    EXPECT_EQ(vec.size(), vec_copy.size());
+    EXPECT_EQ(capacity, vec_copy.capacity());
+    EXPECT_EQ(old_ptr, vec_copy.ptr());
+
+    for (int i = 0; i < vec.size(); ++i) {
+      EXPECT_EQ(testing::getFromDevice(vec.ptr(i)), testing::getFromDevice(vec_copy.ptr(i)));
+      EXPECT_NE(vec.ptr(i), vec_copy.ptr(i));
+    }
+  }
+  {
+    // Assign a vector that does not fit into the capacity.
+    dca::linalg::Vector<float, dca::linalg::GPU> vec_copy(10);
+    auto size = vec_copy.capacity();
+    ++size;
+
+    dca::linalg::Vector<float, dca::linalg::GPU> vec("name", size);
+
+    // Set the elements.
+    for (int i = 0; i < vec.size(); ++i) {
+      float el = 3 * i - 2;
+      testing::setOnDevice(vec.ptr(i), el);
+    }
+
+    vec_copy.set(vec, 0, 1);
+    EXPECT_EQ(vec.size(), vec_copy.size());
+    EXPECT_LE(vec.size(), vec_copy.capacity());
+
+    for (int i = 0; i < vec.size(); ++i) {
+      EXPECT_EQ(testing::getFromDevice(vec.ptr(i)), testing::getFromDevice(vec_copy.ptr(i)));
+      EXPECT_NE(vec.ptr(i), vec_copy.ptr(i));
+    }
+  }
+}
+
 TEST(VectorGPUTest, Resize) {
   {
     size_t size = 4;
 
-    dca::linalg::Vector<Long, dca::linalg::GPU> vec(size);
+    dca::linalg::Vector<long, dca::linalg::GPU> vec(size);
 
     // Set the elements.
     for (int i = 0; i < vec.size(); ++i) {
-      Long el = 1 + 3 * i;
+      long el = 1 + 3 * i;
       testing::setOnDevice(vec.ptr(i), el);
     }
 
@@ -205,19 +224,19 @@ TEST(VectorGPUTest, Resize) {
 
     // Check the value of the elements.
     for (int i = 0; i < size; ++i) {
-      Long el = 1 + 3 * i;
+      long el = 1 + 3 * i;
       EXPECT_EQ(el, testing::getFromDevice(vec.ptr(i)));
     }
   }
   {
     size_t size = 5;
 
-    dca::linalg::Vector<Long, dca::linalg::GPU> vec(size);
+    dca::linalg::Vector<long, dca::linalg::GPU> vec(size);
     auto old_ptr = vec.ptr();
     auto capacity = vec.capacity();
     // Set the elements.
     for (int i = 0; i < vec.size(); ++i) {
-      Long el = 1 + 3 * i;
+      long el = 1 + 3 * i;
       testing::setOnDevice(vec.ptr(i), el);
     }
 
@@ -230,19 +249,19 @@ TEST(VectorGPUTest, Resize) {
 
     // Check the value of the elements.
     for (int i = 0; i < vec.size(); ++i) {
-      Long el = 1 + 3 * i;
+      long el = 1 + 3 * i;
       EXPECT_EQ(el, testing::getFromDevice(vec.ptr(i)));
     }
   }
   {
     size_t size = 3;
 
-    dca::linalg::Vector<Long, dca::linalg::GPU> vec(size);
+    dca::linalg::Vector<long, dca::linalg::GPU> vec(size);
     auto old_ptr = vec.ptr();
     auto capacity = vec.capacity();
     // Set the elements.
     for (int i = 0; i < vec.size(); ++i) {
-      Long el = 1 + 3 * i;
+      long el = 1 + 3 * i;
       testing::setOnDevice(vec.ptr(i), el);
     }
 
@@ -256,7 +275,7 @@ TEST(VectorGPUTest, Resize) {
 
     // Check the value of the elements.
     for (int i = 0; i < size; ++i) {
-      Long el = 1 + 3 * i;
+      long el = 1 + 3 * i;
       EXPECT_EQ(el, testing::getFromDevice(vec.ptr(i)));
     }
   }
@@ -266,7 +285,7 @@ TEST(VectorGPUTest, ResizeNoCopy) {
   {
     size_t size = 4;
 
-    dca::linalg::Vector<Long, dca::linalg::GPU> vec(size);
+    dca::linalg::Vector<long, dca::linalg::GPU> vec(size);
 
     // Resize to capacity. No reallocation has to take place.
     auto old_ptr = vec.ptr();
@@ -280,7 +299,7 @@ TEST(VectorGPUTest, ResizeNoCopy) {
   {
     size_t size = 5;
 
-    dca::linalg::Vector<Long, dca::linalg::GPU> vec(size);
+    dca::linalg::Vector<long, dca::linalg::GPU> vec(size);
     auto old_ptr = vec.ptr();
     auto capacity = vec.capacity();
 
@@ -294,7 +313,7 @@ TEST(VectorGPUTest, ResizeNoCopy) {
   {
     size_t size = 3;
 
-    dca::linalg::Vector<Long, dca::linalg::GPU> vec(size);
+    dca::linalg::Vector<long, dca::linalg::GPU> vec(size);
     auto capacity = vec.capacity();
 
     // New size is larger than capacity.

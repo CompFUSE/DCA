@@ -14,16 +14,17 @@
 
 #include <cuda_runtime.h>
 #include "dca/linalg/matrix.hpp"
+#include "dca/linalg/util/error_cuda.hpp"
 
 namespace testing {
 template <typename ScalarType>
 cudaMemoryType PointerType(const ScalarType* ptr) {
   cudaPointerAttributes attributes;
-  // TODO: check return code.
   cudaError_t ret = cudaPointerGetAttributes(&attributes, reinterpret_cast<const void*>(ptr));
   // If the pointer is not managed by CUDA, assume it is a Host memory pointer.
   if (ret == cudaErrorInvalidValue)
     return cudaMemoryTypeHost;
+  checkRC(ret);
   return attributes.memoryType;
 }
 
@@ -38,15 +39,15 @@ bool isHostPointer(const ScalarType* ptr) {
 
 template <typename ScalarType>
 void setOnDevice(ScalarType* ptr, ScalarType value) {
-  // TODO: check return code.
-  cudaMemcpy(ptr, &value, sizeof(ScalarType), cudaMemcpyDefault);
+  cudaError_t ret = cudaMemcpy(ptr, &value, sizeof(ScalarType), cudaMemcpyDefault);
+  checkRC(ret);
 }
 
 template <typename ScalarType>
 ScalarType getFromDevice(const ScalarType* ptr) {
   ScalarType value;
-  // TODO: check return code.
-  cudaMemcpy(&value, ptr, sizeof(ScalarType), cudaMemcpyDefault);
+  cudaError_t ret = cudaMemcpy(&value, ptr, sizeof(ScalarType), cudaMemcpyDefault);
+  checkRC(ret);
   return value;
 }
 

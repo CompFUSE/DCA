@@ -113,12 +113,9 @@ namespace LIN_ALG
       for(int i=0; i<data_ptr->K; ++i)
         BC(i,j) = drand48();
 
-    matrix<scalartype, GPU> A(std::pair<int, int>(data_ptr->M, data_ptr->K));
-    matrix<scalartype, GPU> B(std::pair<int, int>(data_ptr->K, data_ptr->N));
+    matrix<scalartype, GPU> A(AC);
+    matrix<scalartype, GPU> B(BC);
     matrix<scalartype, GPU> C(std::pair<int, int>(data_ptr->M, data_ptr->N));
-
-    A.copy_from(AC);
-    B.copy_from(BC);
 
     timeval start;
     gettimeofday(&start,NULL);

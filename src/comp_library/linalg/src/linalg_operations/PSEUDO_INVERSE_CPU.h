@@ -36,7 +36,7 @@ namespace LIN_ALG
 	      
 	      GEEV<CPU>::execute('V', 'U', A_At, S, V);	      
 
-	      Vt.copy_from(V);
+	      Vt = V;
 	      
 	      for(int j=0; j<M; j++)
 		{
@@ -70,7 +70,7 @@ namespace LIN_ALG
 	      
 	      GEEV<CPU>::execute('V', 'U', At_A, S, V);
 	      
-	      Vt.copy_from(V);
+	      Vt = V;
 	      
 	      for(int j=0; j<N; j++)
 		{
@@ -114,7 +114,7 @@ namespace LIN_ALG
 
 	      GEEV<CPU>::execute('V', 'U', A_At, S, V);
 
-	      Vt.copy_from(V);
+	      Vt = V;
 	      
 	      for(int j=0; j<M; j++)
 		{
@@ -152,7 +152,7 @@ namespace LIN_ALG
 	      
 	      GEEV<CPU>::execute('V', 'U', At_A, S, V);
 	      
-	      Vt.copy_from(V);
+	      Vt = V;
 	      
 	      for(int j=0; j<N; j++)
 		{

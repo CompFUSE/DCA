@@ -277,8 +277,7 @@
      if( A.size().first !=  A.size().second)
        throw std::logic_error(__FUNCTION__);
 
-     matrix<std::complex<scalartype>, CPU> X;
-     X.copy_from(A);
+     matrix<std::complex<scalartype>, CPU> X(A);
 
      int N_A = A.size().first;
      int LDA = A.leadingDimension();
@@ -315,8 +314,7 @@
      if( A.size().first !=  A.size().second)
        throw std::logic_error(__FUNCTION__);
 
-     matrix<std::complex<scalartype>, CPU> X;
-     X.copy_from(A);
+     matrix<std::complex<scalartype>, CPU> X(A);
 
      int N_A = A.size().first;
      int LDA = A.leadingDimension();
@@ -361,7 +359,7 @@
        int N_A = A.size().first;
        int LDA = A.leadingDimension();
 
-       VR.copy_from(A);
+       VR = A;
 
        int LWORK  = -1;
        dca::linalg::Vector<scalartype, CPU> WORK (1);
@@ -394,7 +392,7 @@
        if( UPLO != 'U' and UPLO != 'L')
 	 throw std::logic_error(__FUNCTION__);
 
-       VR.copy_from(A);
+       VR = A;
 
        int N_A = VR.size().first;
        int LDA = VR.leadingDimension();
@@ -508,7 +506,7 @@
      if( UPLO != 'U' and UPLO != 'L')
        throw std::logic_error(__FUNCTION__);
 
-     V.copy_from(A);
+     V = A;
 
      int N   = V.size().first;
      int LDA = V.leadingDimension();
@@ -552,7 +550,7 @@
      if( UPLO != 'U' and UPLO != 'L')
        throw std::logic_error(__FUNCTION__);
 
-     V.copy_from(A);
+     V = A;
 
      int N   = V.size().first;
      int LDA = V.leadingDimension();

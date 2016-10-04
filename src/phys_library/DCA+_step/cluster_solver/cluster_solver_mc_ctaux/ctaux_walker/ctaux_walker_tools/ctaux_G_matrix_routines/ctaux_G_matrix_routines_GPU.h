@@ -68,27 +68,16 @@ public:
     assert(i_index.size() == is_Bennett.size());
     assert(i_index.size() == exp_Vj.size());
 
-    int S = i_index.size();
-
-    i_index_gpu.resize(S);
-    j_index_gpu.resize(S);
-    is_Bennett_gpu.resize(S);
-    exp_Vj_gpu.resize(S);
-
-    LIN_ALG::COPY_FROM<dca::linalg::CPU, dca::linalg::GPU>::execute(
-        i_index.ptr(), i_index_gpu.ptr(), i_index.size());
-    LIN_ALG::COPY_FROM<dca::linalg::CPU, dca::linalg::GPU>::execute(
-        j_index.ptr(), j_index_gpu.ptr(), j_index.size());
-    LIN_ALG::COPY_FROM<dca::linalg::CPU, dca::linalg::GPU>::execute(
-        is_Bennett.ptr(), is_Bennett_gpu.ptr(), is_Bennett.size());
-    LIN_ALG::COPY_FROM<dca::linalg::CPU, dca::linalg::GPU>::execute(exp_Vj.ptr(), exp_Vj_gpu.ptr(),
-                                                                    exp_Vj.size());
+    i_index_gpu = i_index;
+    j_index_gpu = j_index;
+    is_Bennett_gpu = is_Bennett;
+    exp_Vj_gpu = exp_Vj;
 
     int vertex_index = N.nrCols() - G_precomputed.nrCols();
 
     GPU_KERNELS_G_TOOLS::read_G_matrix_elements(
-        S, vertex_index, i_index_gpu.ptr(), j_index_gpu.ptr(), is_Bennett_gpu.ptr(),
-        exp_Vj_gpu.ptr(), N.ptr(), N.leadingDimension(), G_precomputed.ptr(),
+        i_index_gpu.size(), vertex_index, i_index_gpu.ptr(), j_index_gpu.ptr(),
+        is_Bennett_gpu.ptr(), exp_Vj_gpu.ptr(), N.ptr(), N.leadingDimension(), G_precomputed.ptr(),
         G_precomputed.leadingDimension(), result_ptr, incr);
   }
 

@@ -420,9 +420,6 @@ void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::update
 
   compute_M_v_v(HS_configuration_e_DN, walker.get_N(e_DN), M_e_DN, walker.get_thread_id(), 0);
   compute_M_v_v(HS_configuration_e_UP, walker.get_N(e_UP), M_e_UP, walker.get_thread_id(), 0);
-
-  // LIN_ALG::CUBLAS_THREAD_MANAGER<walker_type::walker_device_type>::synchronize_streams(walker.get_thread_id(),
-  // 0);
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
@@ -507,15 +504,7 @@ void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::comput
     dca::linalg::Matrix<double, dca::linalg::CPU>& M, int walker_thread_id, int walker_stream_id) {
   assert(int(configuration_e_spin.size()) == N.nrRows() && N.is_square());
 
-  M.resizeNoCopy(N.size());
-
-  {
-    LIN_ALG::COPY_FROM<dca::linalg::GPU, dca::linalg::CPU>::execute(N, M, walker_thread_id,
-                                                                    walker_stream_id);
-
-    LIN_ALG::CUBLAS_THREAD_MANAGER<dca::linalg::GPU>::synchronize_streams(walker_thread_id,
-                                                                          walker_stream_id);
-  }
+  M.set(N, walker_thread_id, walker_stream_id);
 
   // What happens if configuration_size = 0?
   int configuration_size = configuration_e_spin.size();

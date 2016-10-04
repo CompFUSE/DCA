@@ -131,7 +131,7 @@ void coordinate_transformation<scalar_type>::set_basis(scalar_type* basis) {
     for (int d0 = 0; d0 < DIMENSION; d0++)
       T(d0, d1) = basis[d0 + d1 * DIMENSION];
 
-  T_inv.copy_from(T);
+  T_inv = T;
 
   LIN_ALG::GEINV<dca::linalg::CPU>::execute(T_inv);
 }

@@ -19,7 +19,7 @@
 #include <string>
 
 #include "comp_library/IO_library/IO.hpp"
-#include "comp_library/linalg/linalg_device_types.h"
+#include "dca/linalg/device_type.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/series_expansion_sigma.h"
 
 namespace DCA {

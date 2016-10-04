@@ -15,30 +15,20 @@
 
 #include <cassert>
 #include <cmath>
+#include <iostream>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <vector>
 
 #include "dca/linalg/device_type.hpp"
+#include "dca/linalg/util/copy.hpp"
 #include "dca/linalg/util/memory.hpp"
-
-#include "comp_library/linalg/src/linalg_operations/copy_from_tem.h"
-#include "comp_library/linalg/src/linalg_operations/copy_from_CPU_CPU.h"
-#include "comp_library/linalg/src/linalg_operations/copy_from_CPU_GPU.h"
-#include "comp_library/linalg/src/linalg_operations/copy_from_GPU_CPU.h"
-#include "comp_library/linalg/src/linalg_operations/copy_from_GPU_GPU.h"
-#include "comp_library/linalg/src/linalg_structures/cublas_thread_manager_tem.h"
-#include "comp_library/linalg/src/linalg_structures/cublas_thread_manager_CPU.h"
-#include "comp_library/linalg/src/linalg_structures/cublas_thread_manager_GPU.h"
-#include "comp_library/linalg/src/linalg_operations/memory_management_CPU.h"
-#include "comp_library/linalg/src/linalg_operations/memory_management_GPU.h"
 
 namespace dca {
 namespace linalg {
 // dca::linalg::
-
-using namespace ::LIN_ALG;
 
 template <typename ScalarType, DeviceType device_name>
 class Vector {
@@ -55,7 +45,6 @@ public:
   // Preconditions: capacity >= size.
   Vector(size_t size, size_t capacity);
   Vector(std::string name, size_t size, size_t capacity);
-  Vector(std::string name, size_t size, size_t capacity, int thread_id, int stream_id);
 
   Vector(const Vector<ScalarType, device_name>& rhs);
 
@@ -68,6 +57,8 @@ public:
 
   template <DeviceType rhs_device_name>
   Vector<ScalarType, device_name>& operator=(const Vector<ScalarType, rhs_device_name>& rhs);
+
+  Vector<ScalarType, device_name>& operator=(const std::vector<ScalarType>& rhs);
 
   // Returns the i-th element of the vector.
   // Preconditions: 0 <= i < size().first.
@@ -87,27 +78,13 @@ public:
     return name_;
   }
 
-  int get_thread_id() const {
-    return thread_id_;
-  }
-  int get_stream_id() const {
-    return stream_id_;
-  }
-
-  void setThreadAndStreamId(int thread_id, int stream_id) {
-    thread_id_ = thread_id;
-    stream_id_ = stream_id;
-  }
-
-  // TODO: set functions will be modified after the copy routines are updated.
-  void set(std::vector<ScalarType>& rhs);
-  void set(std::vector<ScalarType>& rhs, copy_concurrency_type copy_t);
-
+  // Asynchronous assignement (copy with stream = getStream(thread_id, stream_id) + synchronization
+  // of stream
+  // Preconditions: 0 <= thread_id < DCA_MAX_THREADS,
+  //                0 <= stream_id < DCA_STREAMS_PER_THREADS.
+  void set(const std::vector<ScalarType>& rhs, int thread_id, int stream_id);
   template <DeviceType rhs_device_name>
-  void set(Vector<ScalarType, rhs_device_name>& rhs);
-
-  template <DeviceType rhs_device_name>
-  void set(Vector<ScalarType, rhs_device_name>& rhs, copy_concurrency_type copy_t);
+  void set(const Vector<ScalarType, rhs_device_name>& rhs, int thread_id, int stream_id);
 
   // Returns the pointer to the 0-th element of the vector.
   ValueType* ptr() {
@@ -148,16 +125,18 @@ public:
   void resizeNoCopy(size_t new_size);
 
   // Prints the values of the vector elements.
-  void print();
+  template <DeviceType dn = device_name>
+  std::enable_if_t<device_name == CPU && dn == CPU, void> print() const;
+  template <DeviceType dn = device_name>
+  std::enable_if_t<device_name != CPU && dn == device_name, void> print() const;
+  // Prints the properties of *this.
+  void printFingerprint() const;
 
 private:
   std::string name_;
 
   size_t size_;
   size_t capacity_;
-
-  int thread_id_;
-  int stream_id_;
 
   ValueType* data_;
 
@@ -166,36 +145,24 @@ private:
 };
 
 template <typename ScalarType, DeviceType device_name>
-Vector<ScalarType, device_name>::Vector() : Vector("unnamed Vector", 0, 64, -1, -1) {}
+Vector<ScalarType, device_name>::Vector() : Vector("unnamed Vector", 0, 64) {}
 
 template <typename ScalarType, DeviceType device_name>
-Vector<ScalarType, device_name>::Vector(std::string name) : Vector(name, 0, 64, -1, -1) {}
+Vector<ScalarType, device_name>::Vector(std::string name) : Vector(name, 0, 64) {}
 
 template <typename ScalarType, DeviceType device_name>
-Vector<ScalarType, device_name>::Vector(size_t size)
-    : Vector("unnamed Vector", size, size, -1, -1) {}
+Vector<ScalarType, device_name>::Vector(size_t size) : Vector("unnamed Vector", size, size) {}
 
 template <typename ScalarType, DeviceType device_name>
-Vector<ScalarType, device_name>::Vector(std::string name, size_t size)
-    : Vector(name, size, size, -1, -1) {}
+Vector<ScalarType, device_name>::Vector(std::string name, size_t size) : Vector(name, size, size) {}
 
 template <typename ScalarType, DeviceType device_name>
 Vector<ScalarType, device_name>::Vector(size_t size, size_t capacity)
-    : Vector("unnamed Vector", size, capacity, -1, -1) {}
+    : Vector("unnamed Vector", size, capacity) {}
 
 template <typename ScalarType, DeviceType device_name>
 Vector<ScalarType, device_name>::Vector(std::string name, size_t size, size_t capacity)
-    : Vector(name, size, capacity, -1, -1) {}
-
-template <typename ScalarType, DeviceType device_name>
-Vector<ScalarType, device_name>::Vector(std::string name, size_t size, size_t capacity,
-                                        int thread_id, int stream_id)
-    : name_(name),
-      size_(size),
-      capacity_(capacity),
-      thread_id_(thread_id),
-      stream_id_(stream_id),
-      data_(nullptr) {
+    : name_(name), size_(size), capacity_(capacity), data_(nullptr) {
   assert(capacity_ >= size_);
   util::Memory<device_name>::allocate(data_, capacity_);
   util::Memory<device_name>::setToZero(data_, capacity_);
@@ -203,29 +170,19 @@ Vector<ScalarType, device_name>::Vector(std::string name, size_t size, size_t ca
 
 template <typename ScalarType, DeviceType device_name>
 Vector<ScalarType, device_name>::Vector(const Vector<ScalarType, device_name>& rhs)
-    : name_(rhs.name_),
-      size_(rhs.size_),
-      capacity_(rhs.capacity_),
-      thread_id_(-1),
-      stream_id_(-1),
-      data_(nullptr) {
+    : name_(rhs.name_), size_(rhs.size_), capacity_(rhs.capacity_), data_(nullptr) {
   assert(capacity_ >= size_);
   util::Memory<device_name>::allocate(data_, capacity_);
-  COPY_FROM<device_name, device_name>::execute(rhs.data_, data_, size_);
+  util::memoryCopy(data_, rhs.data_, size_);
 }
 
 template <typename ScalarType, DeviceType device_name>
 template <DeviceType rhs_device_name>
 Vector<ScalarType, device_name>::Vector(const Vector<ScalarType, rhs_device_name>& rhs)
-    : name_(rhs.name_),
-      size_(rhs.size_),
-      capacity_(rhs.capacity_),
-      thread_id_(-1),
-      stream_id_(-1),
-      data_(nullptr) {
+    : name_(rhs.name_), size_(rhs.size_), capacity_(rhs.capacity_), data_(nullptr) {
   assert(capacity_ >= size_);
   util::Memory<device_name>::allocate(data_, capacity_);
-  COPY_FROM<rhs_device_name, device_name>::execute(rhs.data_, data_, size_);
+  util::memoryCopy(data_, rhs.data_, size_);
 }
 
 template <typename ScalarType, DeviceType device_name>
@@ -236,12 +193,9 @@ Vector<ScalarType, device_name>::~Vector() {
 template <typename ScalarType, DeviceType device_name>
 Vector<ScalarType, device_name>& Vector<ScalarType, device_name>::operator=(
     const Vector<ScalarType, device_name>& rhs) {
-  name_ = rhs.name_;
   resizeNoCopy(rhs.size_);
-  thread_id_ = -1;
-  stream_id_ = -1;
 
-  COPY_FROM<device_name, device_name>::execute(rhs.data_, data_, size_);
+  util::memoryCopy(data_, rhs.data_, size_);
   return *this;
 }
 
@@ -249,103 +203,49 @@ template <typename ScalarType, DeviceType device_name>
 template <DeviceType rhs_device_name>
 Vector<ScalarType, device_name>& Vector<ScalarType, device_name>::operator=(
     const Vector<ScalarType, rhs_device_name>& rhs) {
-  name_ = rhs.name_;
   resizeNoCopy(rhs.size_);
-  thread_id_ = -1;
-  stream_id_ = -1;
 
-  COPY_FROM<rhs_device_name, device_name>::execute(rhs.data_, data_, size_);
+  util::memoryCopy(data_, rhs.data_, size_);
   return *this;
 }
 
 template <typename ScalarType, DeviceType device_name>
-void Vector<ScalarType, device_name>::set(std::vector<ScalarType>& rhs) {
+Vector<ScalarType, device_name>& Vector<ScalarType, device_name>::operator=(
+    const std::vector<ScalarType>& rhs) {
   resizeNoCopy(rhs.size());
-  COPY_FROM<dca::linalg::CPU, device_name>::execute(&rhs[0], data_, size_);
+
+  util::memoryCopy(data_, &rhs[0], size_);
+  return *this;
 }
 
 template <typename ScalarType, DeviceType device_name>
-void Vector<ScalarType, device_name>::set(std::vector<ScalarType>& rhs, copy_concurrency_type copy_t) {
-  const static DeviceType device_t =
-      LIN_ALG::CUBLAS_DEVICE_NAME<dca::linalg::CPU, device_name>::device_t;
-
+void Vector<ScalarType, device_name>::set(const std::vector<ScalarType>& rhs, int thread_id,
+                                          int stream_id) {
   resizeNoCopy(rhs.size());
-  assert(thread_id_ > -1 and stream_id_ > -1);
-
-  switch (copy_t) {
-    case SYNCHRONOUS:
-      COPY_FROM<dca::linalg::CPU, device_name>::execute(&rhs[0], data_, size_);
-      break;
-
-    case ASYNCHRONOUS:
-
-      CUBLAS_THREAD_MANAGER<device_t>::synchronize_streams(thread_id_, stream_id_);
-
-      COPY_FROM<dca::linalg::CPU, device_name>::execute(&rhs[0], data_, size_, thread_id_,
-                                                        stream_id_);
-
-      CUBLAS_THREAD_MANAGER<device_t>::synchronize_streams(thread_id_, stream_id_);
-      break;
-
-    default:
-      throw std::logic_error(__FUNCTION__);
-  }
+  util::memoryCopy(data_, &rhs[0], size_, thread_id, stream_id);
 }
-
 template <typename ScalarType, DeviceType device_name>
 template <DeviceType rhs_device_name>
-void Vector<ScalarType, device_name>::set(Vector<ScalarType, rhs_device_name>& rhs) {
-  resizeNoCopy(rhs.size_);
-  COPY_FROM<rhs_device_name, device_name>::execute(rhs.data_, data_, size_);
-}
-
-template <typename ScalarType, DeviceType device_name>
-template <DeviceType rhs_device_name>
-void Vector<ScalarType, device_name>::set(Vector<ScalarType, rhs_device_name>& rhs,
-                                          copy_concurrency_type copy_t) {
-  const static DeviceType device_t =
-      LIN_ALG::CUBLAS_DEVICE_NAME<rhs_device_name, device_name>::device_t;
-
+void Vector<ScalarType, device_name>::set(const Vector<ScalarType, rhs_device_name>& rhs,
+                                          int thread_id, int stream_id) {
   resizeNoCopy(rhs.size());
-  assert(thread_id_ > -1 and stream_id_ > -1);
-
-  switch (copy_t) {
-    case SYNCHRONOUS:
-      COPY_FROM<rhs_device_name, device_name>::execute(rhs.data_, data_, size_);
-      break;
-
-    case ASYNCHRONOUS:
-      CUBLAS_THREAD_MANAGER<device_t>::synchronize_streams(thread_id_, stream_id_);
-
-      COPY_FROM<rhs_device_name, device_name>::execute(rhs.data_, data_, size_, thread_id_,
-                                                       stream_id_);
-
-      CUBLAS_THREAD_MANAGER<device_t>::synchronize_streams(thread_id_, stream_id_);
-      break;
-
-    default:
-      throw std::logic_error(__FUNCTION__);
-  }
+  util::memoryCopy(data_, rhs.data_, size_, thread_id, stream_id);
 }
 
 template <typename ScalarType, DeviceType device_name>
 void Vector<ScalarType, device_name>::resize(size_t new_size) {
   if (new_size > capacity_) {
-    // CUBLAS_THREAD_MANAGER<device_name>::synchronize_streams(thread_id, stream_id);
-
     int new_capacity = (new_size / 64 + 1) * 64;
 
     ValueType* new_data = nullptr;
 
     util::Memory<device_name>::allocate(new_data, new_capacity);
-    COPY_FROM<device_name, device_name>::execute(&data_[0], &new_data[0], size_);
+    util::memoryCopy(new_data, data_, size_);
     util::Memory<device_name>::deallocate(data_);
 
     data_ = new_data;
     capacity_ = new_capacity;
     size_ = new_size;
-
-    // CUBLAS_THREAD_MANAGER<device_name>::synchronize_streams(thread_id, stream_id);
   }
   else
     size_ = new_size;
@@ -354,8 +254,6 @@ void Vector<ScalarType, device_name>::resize(size_t new_size) {
 template <typename ScalarType, DeviceType device_name>
 void Vector<ScalarType, device_name>::resizeNoCopy(size_t new_size) {
   if (new_size > capacity_) {
-    // CUBLAS_THREAD_MANAGER<device_name>::synchronize_streams(thread_id, stream_id);
-
     int new_capacity = (new_size / 64 + 1) * 64;
 
     util::Memory<device_name>::deallocate(data_);
@@ -363,16 +261,47 @@ void Vector<ScalarType, device_name>::resizeNoCopy(size_t new_size) {
 
     capacity_ = new_capacity;
     size_ = new_size;
-
-    // CUBLAS_THREAD_MANAGER<device_name>::synchronize_streams(thread_id, stream_id);
   }
   else
     size_ = new_size;
 }
 
 template <typename ScalarType, DeviceType device_name>
-void Vector<ScalarType, device_name>::print() {
-  MEMORY_MANAGEMENT<device_name>::print(data_, size_, capacity_);
+template <DeviceType dn>
+std::enable_if_t<device_name == CPU && dn == CPU, void> Vector<ScalarType, device_name>::print() const {
+  printFingerprint();
+
+  std::stringstream ss;
+  ss.precision(6);
+  ss << std::scientific;
+
+  ss << "\n";
+  for (int i = 0; i < size_; i++)
+    ss << "\t" << operator[](i);
+  ss << "\n";
+
+  std::cout << ss.str() << std::endl;
+}
+
+template <typename ScalarType, DeviceType device_name>
+template <DeviceType dn>
+std::enable_if_t<device_name != CPU && dn == device_name, void> Vector<ScalarType,
+                                                                       device_name>::print() const {
+  Vector<ScalarType, CPU> copy(*this);
+  copy.print();
+}
+
+template <typename ScalarType, DeviceType device_name>
+void Vector<ScalarType, device_name>::printFingerprint() const {
+  std::stringstream ss;
+
+  ss << "\n";
+  ss << "    name: " << name_ << "\n";
+  ss << "    size: " << size_ << "\n";
+  ss << "    capacity: " << capacity_ << "\n";
+  ss << "    memory-size: " << capacity_ * sizeof(ScalarType) * 1.e-6 << "(Mbytes)\n";
+
+  std::cout << ss.str() << std::endl;
 }
 
 }  // linalg

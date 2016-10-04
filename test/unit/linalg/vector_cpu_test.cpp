@@ -19,40 +19,30 @@ TEST(VectorCPUTest, Constructors) {
   size_t size = 3;
   size_t capacity = 11;
   std::string name("vector name");
-  int thread_id = 2;
-  int stream_id = 5;
 
   // Tests all the constructors.
   {
-    dca::linalg::Vector<float, dca::linalg::CPU> vec(name, size, capacity, thread_id, stream_id);
+    dca::linalg::Vector<float, dca::linalg::CPU> vec(name, size, capacity);
     ASSERT_EQ(name, vec.get_name());
     ASSERT_EQ(size, vec.size());
     ASSERT_LE(capacity, vec.capacity());
-    ASSERT_EQ(thread_id, vec.get_thread_id());
-    ASSERT_EQ(stream_id, vec.get_stream_id());
     ASSERT_NE(nullptr, vec.ptr());
   }
   {
     dca::linalg::Vector<double, dca::linalg::CPU> vec;
     EXPECT_EQ(0, vec.size());
     EXPECT_LE(0, vec.capacity());
-    EXPECT_EQ(-1, vec.get_stream_id());
-    EXPECT_EQ(-1, vec.get_thread_id());
   }
   {
     dca::linalg::Vector<int, dca::linalg::CPU> vec(size);
     EXPECT_EQ(size, vec.size());
     EXPECT_LE(size, vec.capacity());
-    EXPECT_EQ(-1, vec.get_stream_id());
-    EXPECT_EQ(-1, vec.get_thread_id());
     EXPECT_NE(nullptr, vec.ptr());
   }
   {
     dca::linalg::Vector<std::complex<double>, dca::linalg::CPU> vec(size, capacity);
     EXPECT_EQ(size, vec.size());
     EXPECT_LE(capacity, vec.capacity());
-    EXPECT_EQ(-1, vec.get_stream_id());
-    EXPECT_EQ(-1, vec.get_thread_id());
     EXPECT_NE(nullptr, vec.ptr());
   }
   {
@@ -60,25 +50,12 @@ TEST(VectorCPUTest, Constructors) {
     EXPECT_EQ(name, vec.get_name());
     EXPECT_EQ(0, vec.size());
     EXPECT_LE(0, vec.capacity());
-    EXPECT_EQ(-1, vec.get_stream_id());
-    EXPECT_EQ(-1, vec.get_thread_id());
   }
   {
     dca::linalg::Vector<int, dca::linalg::CPU> vec(name, size);
     EXPECT_EQ(name, vec.get_name());
     EXPECT_EQ(size, vec.size());
     EXPECT_LE(size, vec.capacity());
-    EXPECT_EQ(-1, vec.get_stream_id());
-    EXPECT_EQ(-1, vec.get_thread_id());
-    EXPECT_NE(nullptr, vec.ptr());
-  }
-  {
-    dca::linalg::Vector<std::complex<double>, dca::linalg::CPU> vec(name, size, capacity);
-    EXPECT_EQ(name, vec.get_name());
-    EXPECT_EQ(size, vec.size());
-    EXPECT_LE(capacity, vec.capacity());
-    EXPECT_EQ(-1, vec.get_stream_id());
-    EXPECT_EQ(-1, vec.get_thread_id());
     EXPECT_NE(nullptr, vec.ptr());
   }
 }
@@ -152,7 +129,6 @@ TEST(VectorCPUTest, Assignement) {
     }
 
     vec_copy = vec;
-    EXPECT_EQ(vec.get_name(), vec_copy.get_name());
     EXPECT_EQ(vec.size(), vec_copy.size());
     EXPECT_EQ(capacity, vec_copy.capacity());
     EXPECT_EQ(old_ptr, vec_copy.ptr());
@@ -177,7 +153,57 @@ TEST(VectorCPUTest, Assignement) {
     }
 
     vec_copy = vec;
-    EXPECT_EQ(vec.get_name(), vec_copy.get_name());
+    EXPECT_EQ(vec.size(), vec_copy.size());
+    EXPECT_LE(vec.size(), vec_copy.capacity());
+
+    for (int i = 0; i < vec.size(); ++i) {
+      EXPECT_EQ(vec[i], vec_copy[i]);
+      EXPECT_NE(vec.ptr(i), vec_copy.ptr(i));
+    }
+  }
+}
+
+TEST(VectorCPUTest, Set) {
+  {
+    // Assign a vector that fits into the capacity.
+    size_t size = 4;
+
+    dca::linalg::Vector<float, dca::linalg::CPU> vec_copy(10);
+    auto old_ptr = vec_copy.ptr();
+    auto capacity = vec_copy.capacity();
+
+    dca::linalg::Vector<float, dca::linalg::CPU> vec("name", size);
+    // Set the elements.
+    for (int i = 0; i < vec.size(); ++i) {
+      float el = 3 * i - 2;
+      vec[i] = el;
+    }
+
+    vec_copy.set(vec, 0, 1);
+    EXPECT_EQ(vec.size(), vec_copy.size());
+    EXPECT_EQ(capacity, vec_copy.capacity());
+    EXPECT_EQ(old_ptr, vec_copy.ptr());
+
+    for (int i = 0; i < vec.size(); ++i) {
+      EXPECT_EQ(vec[i], vec_copy[i]);
+      EXPECT_NE(vec.ptr(i), vec_copy.ptr(i));
+    }
+  }
+  {
+    // Assign a vector that does not fit into the capacity.
+    dca::linalg::Vector<float, dca::linalg::CPU> vec_copy(10);
+    auto size = vec_copy.capacity();
+    ++size;
+
+    dca::linalg::Vector<float, dca::linalg::CPU> vec("name", size);
+
+    // Set the elements.
+    for (int i = 0; i < vec.size(); ++i) {
+      float el = 3 * i - 2;
+      vec[i] = el;
+    }
+
+    vec_copy.set(vec, 0, 1);
     EXPECT_EQ(vec.size(), vec_copy.size());
     EXPECT_LE(vec.size(), vec_copy.capacity());
 

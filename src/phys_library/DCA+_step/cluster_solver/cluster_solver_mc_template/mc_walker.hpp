@@ -12,7 +12,7 @@
 #ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_TEMPLATE_MC_WALKER_HPP
 #define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_TEMPLATE_MC_WALKER_HPP
 
-#include "comp_library/linalg/linalg_device_types.h"
+#include "dca/linalg/device_type.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_template/qmci_type.hpp"
 
 namespace DCA {

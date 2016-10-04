@@ -90,7 +90,7 @@ void gaussian_regression<scalartype, lhs_dmn_t, rhs_dmn_t>::execute(
 template <typename scalartype, typename lhs_dmn_t, typename rhs_dmn_t>
 void gaussian_regression<scalartype, lhs_dmn_t, rhs_dmn_t>::set_X(
     dca::linalg::Matrix<scalartype, dca::linalg::CPU>& X_ref) {
-  X.copy_from(X_ref);
+  X = X_ref;
 }
 
 // page 19, eqn 2.31, Rasmussen and Williams

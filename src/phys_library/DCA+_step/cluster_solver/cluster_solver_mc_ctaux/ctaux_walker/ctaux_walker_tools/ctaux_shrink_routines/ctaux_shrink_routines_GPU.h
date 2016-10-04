@@ -41,13 +41,7 @@ public:
         i_s_up("i_s_up SHRINK_TOOLS_ALGORITHMS<dca::linalg::GPU>", 512),
         i_t_up("i_t_up SHRINK_TOOLS_ALGORITHMS<dca::linalg::GPU>", 512),
 
-        SHRINK_TOOLS_ALGORITHMS_CPU_obj(id) {
-    i_s_dn.setThreadAndStreamId(thread_id, stream_id);
-    i_t_dn.setThreadAndStreamId(thread_id, stream_id);
-
-    i_s_up.setThreadAndStreamId(thread_id, stream_id);
-    i_t_up.setThreadAndStreamId(thread_id, stream_id);
-  }
+        SHRINK_TOOLS_ALGORITHMS_CPU_obj(id) {}
 
   void execute(std::vector<int>& source_index_up, std::vector<int>& target_index_up,
                dca::linalg::Matrix<double, dca::linalg::GPU>& N_up,
@@ -62,19 +56,19 @@ public:
     assert(N_dn.size() == G0_dn.size());
 
 #ifdef DCA_WITH_QMC_BIT
-    N_dn_CPU.copy_from(N_dn);
-    N_up_CPU.copy_from(N_up);
+    N_dn_CPU = N_dn;
+    N_up_CPU = N_up;
 
-    G0_dn_CPU.copy_from(G0_dn);
-    G0_up_CPU.copy_from(G0_up);
+    G0_dn_CPU = G0_dn;
+    G0_up_CPU = G0_up;
 #endif  // DCA_WITH_QMC_BIT
 
     if (true) {
-      i_s_up.set(source_index_up, LIN_ALG::ASYNCHRONOUS);
-      i_t_up.set(target_index_up, LIN_ALG::ASYNCHRONOUS);
+      i_s_up.set(source_index_up, thread_id, stream_id);
+      i_t_up.set(target_index_up, thread_id, stream_id);
 
-      i_s_dn.set(source_index_dn, LIN_ALG::ASYNCHRONOUS);
-      i_t_dn.set(target_index_dn, LIN_ALG::ASYNCHRONOUS);
+      i_s_dn.set(source_index_dn, thread_id, stream_id);
+      i_t_dn.set(target_index_dn, thread_id, stream_id);
 
       dca::linalg::matrixop::swapRows(N_up, i_s_up, i_t_up, thread_id, stream_id);
       dca::linalg::matrixop::swapCols(N_up, i_s_up, i_t_up, thread_id, stream_id);

@@ -98,7 +98,7 @@ public:
     matrix_type T_cpy("T", std::pair<int, int>(M, N));
 
     for (int l = 1; l < get_matrix_iterations(); l++) {
-      T_cpy.copy_from(T);
+      T_cpy = T;
 
       inner_product_dmn::initialize(l);
 

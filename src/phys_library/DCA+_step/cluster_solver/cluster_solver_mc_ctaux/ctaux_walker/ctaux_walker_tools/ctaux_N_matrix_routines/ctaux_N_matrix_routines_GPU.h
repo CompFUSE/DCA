@@ -103,25 +103,12 @@ N_MATRIX_TOOLS<dca::linalg::GPU, parameters_type>::N_MATRIX_TOOLS(int id,
             MAX_VERTEX_SINGLETS * parameters.get_submatrix_size()),
       d_vec("d_vec N_MATRIX_TOOLS<dca::linalg::GPU>",
             MAX_VERTEX_SINGLETS * parameters.get_submatrix_size()) {
-  {
-    identity.setThreadAndStreamId(thread_id, stream_id);
-    permutation.setThreadAndStreamId(thread_id, stream_id);
+  std::vector<int> id_tmp(MAX_VERTEX_SINGLETS * parameters.get_submatrix_size());
 
-    tmp.setThreadAndStreamId(thread_id, stream_id);
-    exp_V.setThreadAndStreamId(thread_id, stream_id);
+  for (int l = 0; l < MAX_VERTEX_SINGLETS * parameters.get_submatrix_size(); ++l)
+    id_tmp[l] = l;
 
-    d_ind.setThreadAndStreamId(thread_id, stream_id);
-    d_vec.setThreadAndStreamId(thread_id, stream_id);
-  }
-
-  {
-    std::vector<int> id_tmp(MAX_VERTEX_SINGLETS * parameters.get_submatrix_size());
-
-    for (int l = 0; l < MAX_VERTEX_SINGLETS * parameters.get_submatrix_size(); ++l)
-      id_tmp[l] = l;
-
-    identity.set(id_tmp);
-  }
+  identity = id_tmp;
 }
 
 template <typename parameters_type>
@@ -131,13 +118,13 @@ int* N_MATRIX_TOOLS<dca::linalg::GPU, parameters_type>::get_permutation() {
 
 template <typename parameters_type>
 void N_MATRIX_TOOLS<dca::linalg::GPU, parameters_type>::set_permutation(std::vector<int>& p) {
-  permutation.set(p, LIN_ALG::ASYNCHRONOUS);
+  permutation.set(p, thread_id, stream_id);
 }
 
 template <typename parameters_type>
 void N_MATRIX_TOOLS<dca::linalg::GPU, parameters_type>::set_d_vector(
     dca::linalg::Vector<double, dca::linalg::CPU>& d_inv) {
-  d_vec.set(d_inv, LIN_ALG::ASYNCHRONOUS);
+  d_vec.set(d_inv, thread_id, stream_id);
 }
 
 template <typename parameters_type>
@@ -151,7 +138,7 @@ void N_MATRIX_TOOLS<dca::linalg::GPU, parameters_type>::scale_rows(
 template <typename parameters_type>
 double* N_MATRIX_TOOLS<dca::linalg::GPU, parameters_type>::get_device_ptr(
     dca::linalg::Vector<double, dca::linalg::CPU>& v) {
-  tmp.set(v, LIN_ALG::ASYNCHRONOUS);
+  tmp.set(v, thread_id, stream_id);
 
   return tmp.ptr();
 }
@@ -172,7 +159,7 @@ void N_MATRIX_TOOLS<dca::linalg::GPU, parameters_type>::compute_G_cols(
     std::vector<double>& exp_V_CPU, dca::linalg::Matrix<double, dca::linalg::GPU>& N,
     dca::linalg::Matrix<double, dca::linalg::GPU>& G,
     dca::linalg::Matrix<double, dca::linalg::GPU>& G_cols) {
-  exp_V.set(exp_V_CPU, LIN_ALG::ASYNCHRONOUS);
+  exp_V.set(exp_V_CPU, thread_id, stream_id);
 
   assert(N.nrRows() == G.nrRows());
   assert(N.nrRows() == G_cols.nrRows());

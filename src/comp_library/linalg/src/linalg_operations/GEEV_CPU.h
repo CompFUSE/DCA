@@ -323,8 +323,7 @@ namespace LIN_ALG {
     if( A.size().first !=  A.size().second)
       throw std::logic_error(__FUNCTION__);
 
-    matrix<std::complex<scalartype>, CPU> X;
-    X.copy_from(A);
+    matrix<std::complex<scalartype>, CPU> X(A);
 
     int N_A = A.size().first;
     int LDA = A.leadingDimension();
@@ -364,8 +363,7 @@ namespace LIN_ALG {
     if( A.size().first !=  A.size().second)
       throw std::logic_error(__FUNCTION__);
 
-    matrix<std::complex<scalartype>, CPU> X;
-    X.copy_from(A);
+    matrix<std::complex<scalartype>, CPU> X(A);
 
     int N_A = A.size().first;
     int LDA = A.leadingDimension();
@@ -412,7 +410,7 @@ namespace LIN_ALG {
     int N_A = A.size().first;
     int LDA = A.leadingDimension();
 
-    VR.copy_from(A);
+    VR = A;
 
     if(false)
       {
@@ -462,7 +460,7 @@ namespace LIN_ALG {
     if( UPLO != 'U' and UPLO != 'L')
       throw std::logic_error(__FUNCTION__);
 
-    VR.copy_from(A);
+    VR = A;
 
     int N_A = VR.size().first;
     int LDA = VR.leadingDimension();
@@ -685,10 +683,9 @@ namespace LIN_ALG {
     if( UPLO != 'U' and UPLO != 'L')
       throw std::logic_error(__FUNCTION__);
 
-    matrix<scalartype, CPU> X;
+    matrix<scalartype, CPU> X(A);
 
-    X.copy_from(A);
-    V.copy_from(A);
+    V = A;
 
     int N_A = A.size().first;
 
@@ -742,10 +739,9 @@ namespace LIN_ALG {
     if( UPLO != 'U' and UPLO != 'L')
       throw std::logic_error(__FUNCTION__);
 
-    matrix<scalartype, CPU> X;
+    matrix<scalartype, CPU> X(A);
 
-    X.copy_from(A);
-    V.copy_from(A);
+    V = A;
 
     int N_A = A.size().first;
 
