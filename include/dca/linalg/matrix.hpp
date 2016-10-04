@@ -29,7 +29,6 @@
 #include "comp_library/linalg/src/linalg_operations/copy_from_CPU_GPU.h"
 #include "comp_library/linalg/src/linalg_operations/copy_from_GPU_CPU.h"
 #include "comp_library/linalg/src/linalg_operations/copy_from_GPU_GPU.h"
-#include "comp_library/linalg/src/matrix_scalartype.h"
 #include "comp_library/linalg/src/linalg_structures/cublas_thread_manager_tem.h"
 #include "comp_library/linalg/src/linalg_structures/cublas_thread_manager_CPU.h"
 #include "comp_library/linalg/src/linalg_structures/cublas_thread_manager_GPU.h"
@@ -46,7 +45,7 @@ template <typename ScalarType, DeviceType device_name>
 class Matrix {
 public:
   using ThisType = Matrix<ScalarType, device_name>;
-  using ValueType = typename MATRIX_SCALARTYPE<ScalarType, device_name>::new_scalartype;
+  using ValueType = ScalarType;
 
   Matrix();
   Matrix(std::string name);

@@ -28,8 +28,6 @@
 
 #include "linalg_device_types.h"
 
-#include "src/matrix_scalartype.h"
-
 #include "src/linalg_structures/cublas_thread_manager_tem.h"
 #include "src/linalg_structures/cublas_thread_manager_CPU.h"
 #include "src/linalg_structures/cublas_thread_manager_GPU.h"
