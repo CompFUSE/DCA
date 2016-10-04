@@ -272,7 +272,7 @@ Matrix<ScalarType, device_name>::Matrix(std::string str, std::pair<int, int> siz
   assert(capacity_.first >= capacity.first && capacity_.second >= capacity.second);
 
   util::Memory<device_name>::allocate(data_, nrElements(capacity_));
-  MEMORY_MANAGEMENT<device_name>::set_to_zero(data_, nrElements(capacity_));
+  util::Memory<device_name>::setToZero(data_, nrElements(capacity_));
 }
 
 template <typename ScalarType, DeviceType device_name>

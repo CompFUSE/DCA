@@ -199,7 +199,7 @@ Vector<ScalarType, device_name>::Vector(std::string name, size_t size, size_t ca
       data_(nullptr) {
   assert(capacity_ >= size_);
   util::Memory<device_name>::allocate(data_, capacity_);
-  MEMORY_MANAGEMENT<device_name>::set_to_zero(data_, capacity_);
+  util::Memory<device_name>::setToZero(data_, capacity_);
 }
 
 template <typename ScalarType, DeviceType device_name>

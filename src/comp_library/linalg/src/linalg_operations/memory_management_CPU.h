@@ -24,18 +24,6 @@ class MEMORY_MANAGEMENT<CPU> {
   public:
 
   template <typename scalartype>
-  inline static void set_to_zero(scalartype* ptr, int size) {
-    for (int l = 0; l < size; ++l)
-      ptr[l] = scalartype(0);
-  }
-
-  template <typename scalartype>
-  inline static void set_to_zero(scalartype* ptr, int LD, int size) {
-    for (int l = 0; l < size; ++l)
-      ptr[l * LD] = scalartype(0);
-  }
-
-  template <typename scalartype>
   static void print(const scalartype* ptr, int c_s, int g_s) {
     std::cout.precision(6);
     std::cout << std::scientific;

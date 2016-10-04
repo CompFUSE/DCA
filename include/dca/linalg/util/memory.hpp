@@ -7,13 +7,16 @@
 //
 // Author: Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //
-// This file providesmemory related utility:
-// - allocation, deallocation.
+// This file provides memory related utility:
+// - allocation, deallocation,
+// - setToZero.
 
 #ifndef DCA_LINALG_UTIL_MEMORY_HPP
 #define DCA_LINALG_UTIL_MEMORY_HPP
 
 #include <cassert>
+#include <complex>
+#include <cstring>
 #include "dca/linalg/device_type.hpp"
 
 #ifdef DCA_HAVE_CUDA
@@ -56,6 +59,19 @@ struct Memory<CPU> {
 #endif
     ptr = nullptr;
   }
+
+  // Sets the elements to 0. Only defined for arithmetic types and
+  // std::complex of aritmetic types.
+  template <typename ScalarType>
+  static std::enable_if_t<std::is_arithmetic<ScalarType>::value == true, void> setToZero(
+      ScalarType* ptr, size_t size) {
+    std::memset(ptr, 0, size * sizeof(ScalarType));
+  }
+  template <typename ScalarType>
+  static std::enable_if_t<std::is_arithmetic<ScalarType>::value == true, void> setToZero(
+      std::complex<ScalarType>* ptr, size_t size) {
+    std::memset(ptr, 0, size * sizeof(ScalarType));
+  }
 };
 
 #ifdef DCA_HAVE_CUDA
@@ -76,6 +92,19 @@ struct Memory<GPU> {
     checkRC(ret);
 
     ptr = nullptr;
+  }
+
+  // Sets the elements to 0. Only defined for arithmetic types and
+  // std::complex of aritmetic types.
+  template <typename ScalarType>
+  static std::enable_if_t<std::is_arithmetic<ScalarType>::value == true, void> setToZero(
+      ScalarType* ptr, size_t size) {
+    cudaMemset(ptr, 0, size * sizeof(ScalarType));
+  }
+  template <typename ScalarType>
+  static std::enable_if_t<std::is_arithmetic<ScalarType>::value == true, void> setToZero(
+      std::complex<ScalarType>* ptr, size_t size) {
+    cudaMemset(ptr, 0, size * sizeof(ScalarType));
   }
 };
 #endif  // DCA_HAVE_CUDA

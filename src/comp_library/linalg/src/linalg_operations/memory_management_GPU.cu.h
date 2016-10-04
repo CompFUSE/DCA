@@ -8,56 +8,6 @@ namespace LIN_ALG {
   namespace MEMORY_MANAGEMENT_ON_GPU {
 
     /***********************
-     ***    set-to zero
-     ***********************/
-    
-    template<typename scalartype>
-    __global__ void set_to_zero_kernel(scalartype* A, int LD, int N) 
-    { 
-      int I = threadIdx.x + blockIdx.x*blockDim.x;
-
-      if(I<N)
-	A[I*LD] = static_cast<scalartype>(0); 
-    } 
-    
-    template<typename scalartype>
-    void set_to_zero(scalartype* ptr, int LD, int m){
-	
-      int th = get_number_of_threads();
-      int bl = dca::util::ceilDiv(m, th);
-      
-      set_to_zero_kernel<<<bl, th>>>(ptr, LD, m);
-
-#ifdef DEBUG_CUDA
-       cuda_check_for_errors(__FUNCTION__, __FILE__, __LINE__);
-#endif
-    }
-
-    template void set_to_zero(bool  * ptr, int LD, int m);
-    template void set_to_zero(int   * ptr, int LD, int m);
-    template void set_to_zero(float * ptr, int LD, int m);
-    template void set_to_zero(double* ptr, int LD, int m);
-
-    template<typename scalartype>
-    void set_to_zero(scalartype* ptr, int m){
-	
-      int th = get_number_of_threads();
-      int bl = dca::util::ceilDiv(m, th);
-      
-      set_to_zero_kernel<<<bl, th>>>(ptr, 1, m);
-
-#ifdef DEBUG_CUDA
-       cuda_check_for_errors(__FUNCTION__, __FILE__, __LINE__);
-#endif
-    }
-
-    template void set_to_zero(bool  * ptr, int m);
-    template void set_to_zero(int   * ptr, int m);
-    template void set_to_zero(float * ptr, int m);
-    template void set_to_zero(double* ptr, int m);
-
-
-    /***********************
      ***    remove-row
      ***********************/
 

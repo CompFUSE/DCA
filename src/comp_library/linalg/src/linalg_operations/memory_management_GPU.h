@@ -23,11 +23,6 @@ namespace MEMORY_MANAGEMENT_ON_GPU {
 // LIN_ALG::MEMORY_MANAGEMENT_ON_GPU::
 
 template <typename scalartype>
-void set_to_zero(scalartype* ptr, int m);
-template <typename scalartype>
-void set_to_zero(scalartype* ptr, int LD, int m);
-
-template <typename scalartype>
 void remove_first_row(int m, int n, scalartype* A, int LDA);
 template <typename scalartype>
 void remove_first_col(int m, int n, scalartype* A, int LDA);
@@ -37,16 +32,6 @@ void remove_first_col(int m, int n, scalartype* A, int LDA);
 template <>
 class MEMORY_MANAGEMENT<GPU> {
 public:
-
-  template <typename scalartype>
-  static void set_to_zero(scalartype* ptr, int size) {
-    MEMORY_MANAGEMENT_ON_GPU::set_to_zero(ptr, size);
-  }
-
-  template <typename scalartype>
-  static void set_to_zero(scalartype* ptr, int LD, int size) {
-    MEMORY_MANAGEMENT_ON_GPU::set_to_zero(ptr, LD, size);
-  }
 
   template <typename scalartype>
   static void remove_first_row(int m, int n, scalartype* A, int LDA) {
