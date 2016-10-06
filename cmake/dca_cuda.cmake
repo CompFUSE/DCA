@@ -19,7 +19,9 @@ if (CUDA_FOUND)
 endif()
 
 # Find MAGMA.
-find_library(MAGMA_LIBRARY magma HINTS ${MAGMA_DIR}/lib)
+find_library(MAGMA_LIBRARY
+  NAMES libmagma.a magma
+  HINTS ${MAGMA_DIR}/lib)
 find_path(MAGMA_INCLUDE_DIR magma.h HINTS ${MAGMA_DIR}/include)
 mark_as_advanced(MAGMA_LIBRARY MAGMA_INCLUDE_DIR)
 
