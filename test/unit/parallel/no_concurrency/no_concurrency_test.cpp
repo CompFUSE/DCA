@@ -10,9 +10,11 @@
 // This file tests no_concurrency.hpp.
 
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
+
 #include "gtest/gtest.h"
-#include "comp_library/function_library/domains/special_domains/dmn.h"
-#include "comp_library/function_library/domains/special_domains/dmn_0.h"
+
+#include "dca/function/domains/dmn.hpp"
+#include "dca/function/domains/dmn_0.hpp"
 
 class NoConcurrencyTest : public ::testing::Test {
 protected:
@@ -44,7 +46,7 @@ TEST_F(NoConcurrencyTest, Broadcast) {
 }
 
 TEST_F(NoConcurrencyTest, GetBounds) {
-  using Domain = dmn_0<dmn<3, int>>;
+  using Domain = dca::func::dmn_0<dca::func::dmn<3, int>>;
   Domain dmn;
 
   std::pair<int, int> bounds = concurrency_.get_bounds(dmn);

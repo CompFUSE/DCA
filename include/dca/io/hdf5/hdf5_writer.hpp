@@ -19,8 +19,9 @@
 
 #include "H5Cpp.h"
 
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "dca/io/hdf5/hdf5_types.hpp"
-#include "comp_library/function_library/include_function_library.h"
 #include "comp_library/linalg/linalg.hpp"
 
 namespace dca {
@@ -73,19 +74,19 @@ public:
   void execute(std::string name, std::vector<std::vector<scalar_type>>& value);
 
   template <typename domain_type>
-  void execute(std::string name, dmn_0<domain_type>& dmn);
+  void execute(std::string name, func::dmn_0<domain_type>& dmn);
 
   template <typename scalar_type, typename domain_type>
-  void execute(FUNC_LIB::function<scalar_type, domain_type>& f);
+  void execute(func::function<scalar_type, domain_type>& f);
 
   template <typename scalar_type, typename domain_type>
-  void execute(FUNC_LIB::function<std::complex<scalar_type>, domain_type>& f);
+  void execute(func::function<std::complex<scalar_type>, domain_type>& f);
 
   template <typename scalar_type, typename domain_type>
-  void execute(std::string name, FUNC_LIB::function<scalar_type, domain_type>& f);
+  void execute(std::string name, func::function<scalar_type, domain_type>& f);
 
   template <typename scalar_type, typename domain_type>
-  void execute(std::string name, FUNC_LIB::function<std::complex<scalar_type>, domain_type>& f);
+  void execute(std::string name, func::function<std::complex<scalar_type>, domain_type>& f);
 
   template <typename scalar_type>
   void execute(std::string name, dca::linalg::Vector<scalar_type, dca::linalg::CPU>& A);
@@ -321,7 +322,7 @@ void HDF5Writer::execute(std::string name, std::vector<std::vector<scalar_type>>
 }
 
 template <typename domain_type>
-void HDF5Writer::execute(std::string name, dmn_0<domain_type>& dmn) {
+void HDF5Writer::execute(std::string name, func::dmn_0<domain_type>& dmn) {
   open_group(name);
 
   execute("name", dmn.get_name());
@@ -331,7 +332,7 @@ void HDF5Writer::execute(std::string name, dmn_0<domain_type>& dmn) {
 }
 
 template <typename scalar_type, typename domain_type>
-void HDF5Writer::execute(FUNC_LIB::function<scalar_type, domain_type>& f) {
+void HDF5Writer::execute(func::function<scalar_type, domain_type>& f) {
   if (f.size() == 0)
     return;
 
@@ -341,7 +342,7 @@ void HDF5Writer::execute(FUNC_LIB::function<scalar_type, domain_type>& f) {
 }
 
 template <typename scalar_type, typename domain_type>
-void HDF5Writer::execute(FUNC_LIB::function<std::complex<scalar_type>, domain_type>& f) {
+void HDF5Writer::execute(func::function<std::complex<scalar_type>, domain_type>& f) {
   if (f.size() == 0)
     return;
 
@@ -351,7 +352,7 @@ void HDF5Writer::execute(FUNC_LIB::function<std::complex<scalar_type>, domain_ty
 }
 
 template <typename scalar_type, typename domain_type>
-void HDF5Writer::execute(std::string name, FUNC_LIB::function<scalar_type, domain_type>& f) {
+void HDF5Writer::execute(std::string name, func::function<scalar_type, domain_type>& f) {
   if (f.size() == 0)
     return;
 
@@ -408,8 +409,7 @@ void HDF5Writer::execute(std::string name, FUNC_LIB::function<scalar_type, domai
 }
 
 template <typename scalar_type, typename domain_type>
-void HDF5Writer::execute(std::string name,
-                         FUNC_LIB::function<std::complex<scalar_type>, domain_type>& f) {
+void HDF5Writer::execute(std::string name, func::function<std::complex<scalar_type>, domain_type>& f) {
   if (f.size() == 0)
     return;
 

@@ -20,7 +20,8 @@
 #include <utility>
 #include <vector>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "comp_library/linalg/linalg.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Hamiltonian.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/overlap_matrix_element.h"
@@ -59,7 +60,7 @@ public:
   typedef Hilbert_space_phi_representation<parameter_type, ed_options> Hilbert_space_phi_representation_type;
   typedef psi_state<parameter_type, ed_options> psi_state_type;
 
-  typedef dmn_0<fermionic_Fock_space_type> fermionic_Fock_dmn_type;
+  typedef func::dmn_0<fermionic_Fock_space_type> fermionic_Fock_dmn_type;
   typedef operators<parameter_type, ed_options> fermionic_operators_type;
 
   typedef sparse_element<parameter_type, ed_options> sparse_element_type;
@@ -91,10 +92,10 @@ public:
 
   // void compute_all_creation_matrices();
 
-  FUNC_LIB::function<int, dmn_3<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type, b_s_r_dmn_type>>& get_creation_set_all() {
+  func::function<int, func::dmn_variadic<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type, b_s_r_dmn_type>>& get_creation_set_all() {
     return creation_set_all;
   }
-  FUNC_LIB::function<int, dmn_3<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type, b_s_r_dmn_type>>& get_annihilation_set_all() {
+  func::function<int, func::dmn_variadic<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type, b_s_r_dmn_type>>& get_annihilation_set_all() {
     return annihilation_set_all;
   }
 
@@ -114,16 +115,16 @@ private:
 
   // creation_set(i,j,l)
   // creation_set(i,j,b_i,s_i,r_i)
-  FUNC_LIB::function<int, dmn_3<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type, b_s_r_dmn_type>>
+  func::function<int, func::dmn_variadic<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type, b_s_r_dmn_type>>
       creation_set_all;
-  FUNC_LIB::function<std::vector<sparse_element_type>,
-                     dmn_3<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type, b_s_r_dmn_type>>
+  func::function<std::vector<sparse_element_type>,
+                 func::dmn_variadic<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type, b_s_r_dmn_type>>
       creation_set_nonzero_sparse;
 
-  FUNC_LIB::function<int, dmn_3<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type, b_s_r_dmn_type>>
+  func::function<int, func::dmn_variadic<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type, b_s_r_dmn_type>>
       annihilation_set_all;
-  FUNC_LIB::function<std::vector<sparse_element_type>,
-                     dmn_3<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type, b_s_r_dmn_type>>
+  func::function<std::vector<sparse_element_type>,
+                 func::dmn_variadic<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type, b_s_r_dmn_type>>
       annihilation_set_nonzero_sparse;
 
   matrix_type sparse_creation;  // <psi_i | c^\dagger| psi>
@@ -132,7 +133,7 @@ private:
   // matrix_type dense_creation;  // < V_i^\dagger  | c^\dagger| V_j  >
   matrix_type helper;
 
-  FUNC_LIB::function<complex_type, dmn_2<b_s_r_dmn_type, b_s_r_dmn_type>> overlap;
+  func::function<complex_type, func::dmn_variadic<b_s_r_dmn_type, b_s_r_dmn_type>> overlap;
 };
 
 template <typename parameter_type, typename ed_options>

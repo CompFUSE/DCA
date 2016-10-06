@@ -17,7 +17,8 @@
 
 #include "dca/linalg/matrix.hpp"
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_accumulator/tp_accumulator/ctaux_tp_nft.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_vertex_singleton.h"
@@ -42,22 +43,22 @@ public:
   typedef typename parameters_type::G4_w1_dmn_t w1_dmn_t;
   typedef typename parameters_type::G4_w2_dmn_t w2_dmn_t;
 
-  using w_VERTEX_EXTENDED = dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED>>;
-  using w_VERTEX_EXTENDED_POS = dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED_POSITIVE>>;
+  using w_VERTEX_EXTENDED = func::dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED>>;
+  using w_VERTEX_EXTENDED_POS = func::dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED_POSITIVE>>;
 
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
 
-  using r_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
-                                     REAL_SPACE, BRILLOUIN_ZONE>>;
-  using k_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
-                                     MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using r_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                           CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>>;
+  using k_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                           CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
   using r_dmn_t = r_DCA;
   using k_dmn_t = k_DCA;
 
-  typedef dmn_6<b, b, r_dmn_t, r_dmn_t, w1_dmn_t, w2_dmn_t> b_b_r_r_w_w_dmn_t;
-  typedef dmn_6<b, b, k_dmn_t, r_dmn_t, w1_dmn_t, w2_dmn_t> b_b_k_r_w_w_dmn_t;
-  typedef dmn_6<b, b, k_dmn_t, k_dmn_t, w1_dmn_t, w2_dmn_t> b_b_k_k_w_w_dmn_t;
+  typedef func::dmn_variadic<b, b, r_dmn_t, r_dmn_t, w1_dmn_t, w2_dmn_t> b_b_r_r_w_w_dmn_t;
+  typedef func::dmn_variadic<b, b, k_dmn_t, r_dmn_t, w1_dmn_t, w2_dmn_t> b_b_k_r_w_w_dmn_t;
+  typedef func::dmn_variadic<b, b, k_dmn_t, k_dmn_t, w1_dmn_t, w2_dmn_t> b_b_k_k_w_w_dmn_t;
 
   typedef vertex_singleton vertex_singleton_type;
 
@@ -84,14 +85,14 @@ public:
   /*!
    * \brief Get a reference to \f$G^{I}_{\uparrow}(k_1, k_2)\f$.
    */
-  FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& get_G_k_k_w_w_e_UP() {
+  func::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& get_G_k_k_w_w_e_UP() {
     return G2_k_k_w_w_e_UP;
   }
 
   /*!
    * \brief Get a reference to \f$G^{I}_{\downarrow}(k_1, k_2)\f$.
    */
-  FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& get_G_k_k_w_w_e_DN() {
+  func::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& get_G_k_k_w_w_e_DN() {
     return G2_k_k_w_w_e_DN;
   }
 
@@ -103,13 +104,13 @@ public:
 
 private:
   void FT_M_v_v_2_M_k_k_w_w(std::vector<vertex_singleton_type>& HS_configuration_e_spin,
-                            FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& M_k_k_w_w,
+                            func::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& M_k_k_w_w,
                             vertex_vertex_matrix_type& M_e_spin);
 
   void FT_M_v_v_2_M_k_k_w_w_test();
 
-  void compute_G2_k_k_w_w(FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& M_k_k_w_w,
-                          FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w,
+  void compute_G2_k_k_w_w(func::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& M_k_k_w_w,
+                          func::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w,
                           e_spin_states_type e_spin);
 
   void compute_G2_k_k_w_w_atomic(std::complex<double>* G0_k_w_l, std::complex<scalar_type>* M_k_w,
@@ -146,12 +147,12 @@ private:
   // QMC::cached_nft<2, scalar_type, r_dmn_t, w_VERTEX_EXTENDED, w_VERTEX_EXTENDED_POS> nft_obj;
   cached_nft<2, scalar_type, r_dmn_t, w_VERTEX_EXTENDED, w_VERTEX_EXTENDED_POS> nft_obj;
 
-  FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t> G2_k_k_w_w_e_UP;
-  FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t> G2_k_k_w_w_e_DN;
+  func::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t> G2_k_k_w_w_e_UP;
+  func::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t> G2_k_k_w_w_e_DN;
 
-  FUNC_LIB::function<std::complex<scalar_type>, b_b_r_r_w_w_dmn_t> M_r_r_w_w;
-  FUNC_LIB::function<std::complex<scalar_type>, b_b_k_r_w_w_dmn_t> M_k_r_w_w;
-  FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t> M_k_k_w_w;
+  func::function<std::complex<scalar_type>, b_b_r_r_w_w_dmn_t> M_r_r_w_w;
+  func::function<std::complex<scalar_type>, b_b_k_r_w_w_dmn_t> M_k_r_w_w;
+  func::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t> M_k_k_w_w;
 };
 
 template <class parameters_type, class MOMS_type>
@@ -234,7 +235,7 @@ void accumulator_nonlocal_G<parameters_type, MOMS_type>::execute(
 template <class parameters_type, class MOMS_type>
 void accumulator_nonlocal_G<parameters_type, MOMS_type>::FT_M_v_v_2_M_k_k_w_w(
     std::vector<vertex_singleton_type>& configuration_e_spin,
-    FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& M_k_k_w_w_e_spin,
+    func::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& M_k_k_w_w_e_spin,
     vertex_vertex_matrix_type& M_e_spin) {
   {
     profiler_t profiler("nonlocal-G-FT t --> w", "CT-AUX accumulator", __LINE__, thread_id);
@@ -268,21 +269,21 @@ void accumulator_nonlocal_G<parameters_type, MOMS_type>::FT_M_v_v_2_M_k_k_w_w_te
   cout << __FUNCTION__ << endl;
 
   {
-    typedef dmn_6<b,b,r_DCA,r_DCA,w1_dmn_t,w2_dmn_t> b_b_r_DCA_r_DCA_w_w_dmn_t;
-    typedef dmn_6<b,b,r_PCM,r_PCM,w1_dmn_t,w2_dmn_t> b_b_r_PCM_r_PCM_w_w_dmn_t;
+    typedef func::dmn_variadic<b,b,r_DCA,r_DCA,w1_dmn_t,w2_dmn_t> b_b_r_DCA_r_DCA_w_w_dmn_t;
+    typedef func::dmn_variadic<b,b,r_PCM,r_PCM,w1_dmn_t,w2_dmn_t> b_b_r_PCM_r_PCM_w_w_dmn_t;
 
-    typedef dmn_6<b,b,k_PCM,r_PCM,w1_dmn_t,w2_dmn_t> b_b_k_PCM_r_PCM_w_w_dmn_t;
+    typedef func::dmn_variadic<b,b,k_PCM,r_PCM,w1_dmn_t,w2_dmn_t> b_b_k_PCM_r_PCM_w_w_dmn_t;
 
-    typedef dmn_6<b,b,k_DCA,k_DCA,w1_dmn_t,w2_dmn_t> b_b_k_DCA_k_DCA_w_w_dmn_t;
-    typedef dmn_6<b,b,k_PCM,k_PCM,w1_dmn_t,w2_dmn_t> b_b_k_PCM_k_PCM_w_w_dmn_t;
+    typedef func::dmn_variadic<b,b,k_DCA,k_DCA,w1_dmn_t,w2_dmn_t> b_b_k_DCA_k_DCA_w_w_dmn_t;
+    typedef func::dmn_variadic<b,b,k_PCM,k_PCM,w1_dmn_t,w2_dmn_t> b_b_k_PCM_k_PCM_w_w_dmn_t;
 
-    FUNC_LIB::function<std::complex<scalar_type>, b_b_r_DCA_r_DCA_w_w_dmn_t> tmp_RR_1("tmp_RR_1");
-    FUNC_LIB::function<std::complex<scalar_type>, b_b_r_PCM_r_PCM_w_w_dmn_t> tmp_RR_2("tmp_RR_2");
+    func::function<std::complex<scalar_type>, b_b_r_DCA_r_DCA_w_w_dmn_t> tmp_RR_1("tmp_RR_1");
+    func::function<std::complex<scalar_type>, b_b_r_PCM_r_PCM_w_w_dmn_t> tmp_RR_2("tmp_RR_2");
 
-    FUNC_LIB::function<std::complex<scalar_type>, b_b_k_PCM_r_PCM_w_w_dmn_t> tmp_KR_2("tmp_KR_2");
+    func::function<std::complex<scalar_type>, b_b_k_PCM_r_PCM_w_w_dmn_t> tmp_KR_2("tmp_KR_2");
 
-    FUNC_LIB::function<std::complex<scalar_type>, b_b_k_DCA_k_DCA_w_w_dmn_t> tmp_KK_1("tmp_KK_1");
-    FUNC_LIB::function<std::complex<scalar_type>, b_b_k_PCM_k_PCM_w_w_dmn_t> tmp_KK_2("tmp_KK_2");
+    func::function<std::complex<scalar_type>, b_b_k_DCA_k_DCA_w_w_dmn_t> tmp_KK_1("tmp_KK_1");
+    func::function<std::complex<scalar_type>, b_b_k_PCM_k_PCM_w_w_dmn_t> tmp_KK_2("tmp_KK_2");
 
     for(int l=0; l<M_r_r_w_w.size(); l++)
       tmp_RR_1(l) = M_r_r_w_w(l);
@@ -370,8 +371,8 @@ k_PCM>::execute_on_all(tmp_RR_2, tmp_KK_2);
 
 template <class parameters_type, class MOMS_type>
 void accumulator_nonlocal_G<parameters_type, MOMS_type>::compute_G2_k_k_w_w(
-    FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& M_k_k_w_w,
-    FUNC_LIB::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w,
+    func::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& M_k_k_w_w,
+    func::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& G2_k_k_w_w,
     e_spin_states_type e_spin) {
   std::complex<double> *G0_k_w_l_ptr, *G0_k_w_r_ptr;
   std::complex<scalar_type> *M_k_k_w_w_ptr, *G_k_k_w_w_ptr;

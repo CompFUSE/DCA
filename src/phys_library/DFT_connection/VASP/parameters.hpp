@@ -18,9 +18,10 @@
 #include <string>
 #include <vector>
 
+#include "dca/function/domains/dmn_0.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/io/json/json_writer.hpp"
-#include "comp_library/function_library/domains/special_domains/dmn_0.h"
+
 #include "phys_library/DFT_connection/VASP/vasp_domains/dmft_band_domain.hpp"
 #include "phys_library/DFT_connection/VASP/vasp_domains/dmft_orbital_domain.hpp"
 #include "phys_library/DFT_connection/VASP/vasp_domains/vasp_band_domain.hpp"
@@ -38,14 +39,15 @@ template <class concurrency_t>
 class parameters {
   using concurrency_type = concurrency_t;
 
-  using k_vasp = dmn_0<cluster_domain<double, 3, VASP_LATTICE, MOMENTUM_SPACE, PARALLELLEPIPEDUM>>;
-  using r_vasp = dmn_0<cluster_domain<double, 3, VASP_LATTICE, REAL_SPACE, PARALLELLEPIPEDUM>>;
+  using k_vasp =
+      func::dmn_0<cluster_domain<double, 3, VASP_LATTICE, MOMENTUM_SPACE, PARALLELLEPIPEDUM>>;
+  using r_vasp = func::dmn_0<cluster_domain<double, 3, VASP_LATTICE, REAL_SPACE, PARALLELLEPIPEDUM>>;
 
-  using b_dmft = dmn_0<DFT::VASP::dmft_band_domain>;
-  using o_dmft = dmn_0<DFT::VASP::dmft_orbital_domain>;
+  using b_dmft = func::dmn_0<DFT::VASP::dmft_band_domain>;
+  using o_dmft = func::dmn_0<DFT::VASP::dmft_orbital_domain>;
 
-  using b_vasp = dmn_0<DFT::VASP::vasp_band_domain>;
-  using o_vasp = dmn_0<DFT::VASP::vasp_orbital_domain>;
+  using b_vasp = func::dmn_0<DFT::VASP::vasp_band_domain>;
+  using o_vasp = func::dmn_0<DFT::VASP::vasp_orbital_domain>;
 
 public:
   parameters(std::string version_stamp, concurrency_type& concurrency_obj);

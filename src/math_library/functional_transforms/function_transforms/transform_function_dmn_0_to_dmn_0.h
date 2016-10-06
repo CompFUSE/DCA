@@ -14,11 +14,11 @@
 
 #include <iostream>
 
-#include "dca/function/domains/domain_type_operations.hpp"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "dca/util/type_list.hpp"
 
 #include "comp_library/linalg/linalg.hpp"
-#include "comp_library/function_library/include_function_library.h"
 #include "math_library/functional_transforms/function_transforms/transform_function_domainwise.h"
 #include "math_library/functional_transforms/function_transforms/transform_function_template.h"
 
@@ -26,13 +26,13 @@ namespace math_algorithms {
 namespace functional_transforms {
 
 template <typename type_input, typename type_output>
-class TRANSFORM<dmn_0<type_input>, dmn_0<type_output>> {
+class TRANSFORM<func::dmn_0<type_input>, func::dmn_0<type_output>> {
   const static bool VERBOSE = false;
 
 public:
   template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-  static void execute(FUNC_LIB::function<scalartype_input, domain_input>& f_input,
-                      FUNC_LIB::function<scalartype_output, domain_output>& f_output) {
+  static void execute(func::function<scalartype_input, domain_input>& f_input,
+                      func::function<scalartype_output, domain_output>& f_output) {
     if (VERBOSE)
       print_types(f_input, f_output);
 
@@ -46,8 +46,8 @@ public:
 
   template <typename scalartype_input, class domain_input, typename scalartype_output,
             class domain_output, typename scalartype_T>
-  static void execute(FUNC_LIB::function<scalartype_input, domain_input>& f_input,
-                      FUNC_LIB::function<scalartype_output, domain_output>& f_output,
+  static void execute(func::function<scalartype_input, domain_input>& f_input,
+                      func::function<scalartype_output, domain_output>& f_output,
                       dca::linalg::Matrix<scalartype_T, dca::linalg::CPU>& T) {
     if (VERBOSE)
       print_types(f_input, f_output);
@@ -61,8 +61,8 @@ public:
   }
 
   template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-  static void execute_on_all(FUNC_LIB::function<scalartype_input, domain_input>& f_input,
-                             FUNC_LIB::function<scalartype_output, domain_output>& f_output) {
+  static void execute_on_all(func::function<scalartype_input, domain_input>& f_input,
+                             func::function<scalartype_output, domain_output>& f_output) {
     if (VERBOSE)
       print_types(f_input, f_output);
 
@@ -77,8 +77,8 @@ public:
 
   template <typename scalartype_input, class domain_input, typename scalartype_output,
             class domain_output, typename scalartype_T>
-  static void execute_on_all(FUNC_LIB::function<scalartype_input, domain_input>& f_input,
-                             FUNC_LIB::function<scalartype_output, domain_output>& f_output,
+  static void execute_on_all(func::function<scalartype_input, domain_input>& f_input,
+                             func::function<scalartype_output, domain_output>& f_output,
                              dca::linalg::Matrix<scalartype_T, dca::linalg::CPU>& T) {
     if (VERBOSE)
       print_types(f_input, f_output);
@@ -94,8 +94,8 @@ public:
 
 private:
   template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-  static void print_types(FUNC_LIB::function<scalartype_input, domain_input>& f_input,
-                          FUNC_LIB::function<scalartype_output, domain_output>& f_output,
+  static void print_types(func::function<scalartype_input, domain_input>& f_input,
+                          func::function<scalartype_output, domain_output>& f_output,
                           bool do_all_domains = false) {
     typedef typename domain_input::this_type type_list_input;
     typedef typename domain_output::this_type type_list_output;
@@ -118,7 +118,7 @@ private:
       dca::util::print_type<type_list_output>::to_JSON(std::cout);
       std::cout << "\n\n";
 
-      FUNC_LIB::function<scalartype_output, TRANSFORMED_DOMAIN> T;
+      func::function<scalartype_output, TRANSFORMED_DOMAIN> T;
       T.print_fingerprint();
       f_output.print_fingerprint();
     }
@@ -135,8 +135,8 @@ private:
       dca::util::print_type<type_list_output>::to_JSON(std::cout);
       std::cout << "\n\n";
 
-      FUNC_LIB::function<scalartype_output, TRANSFORMED_DOMAIN> T(
-          "FUNC_LIB::function<scalartype_output, TRANSFORMED_DOMAIN>");
+      func::function<scalartype_output, TRANSFORMED_DOMAIN> T(
+          "func::function<scalartype_output, TRANSFORMED_DOMAIN>");
 
       f_input.print_fingerprint();
       T.print_fingerprint();

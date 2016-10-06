@@ -17,6 +17,8 @@
 
 #include "gtest/gtest.h"
 
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/parallel/pthreading/pthreading.hpp"
@@ -28,7 +30,6 @@
 #include "dca/testing/minimalist_printer.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
-#include "comp_library/function_library/include_function_library.h"
 #include "phys_library/DCA+_analysis/BSE_solver/BSE_solver.h"
 #include "phys_library/DCA+_data/DCA_data.h"
 #include "phys_library/domains/cluster/symmetries/point_groups/2D/2D_square.h"
@@ -75,13 +76,13 @@ TEST(analysis_DCAplus_mpi, leading_eigenvalues) {
               << std::endl;
 
     const static int num_lambdas = 10;
-    using lambda_dmn_type = dmn_0<dmn<num_lambdas, int>>;
+    using lambda_dmn_type = dca::func::dmn_0<dca::func::dmn<num_lambdas, int>>;
 
-    FUNC_LIB::function<std::complex<double>, lambda_dmn_type>& leading_eigenvalues =
+    dca::func::function<std::complex<double>, lambda_dmn_type>& leading_eigenvalues =
         analysis_obj.get_leading_eigenvalues();
 
     // Read eigenvalues from check_data file.
-    FUNC_LIB::function<std::complex<double>, lambda_dmn_type> leading_eigenvalues_check(
+    dca::func::function<std::complex<double>, lambda_dmn_type> leading_eigenvalues_check(
         "leading-eigenvalues");
     dca::io::HDF5Reader reader;
     reader.open_file(DCA_SOURCE_DIR

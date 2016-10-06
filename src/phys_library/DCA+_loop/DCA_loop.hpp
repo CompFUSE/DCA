@@ -18,13 +18,13 @@
 #include <stdexcept>
 #include <string>
 
+#include "dca/function/domains.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_writer.hpp"
 #include "dca/phys/dca_step/cluster_mapping/cluster_exclusion.hpp"
 #include "dca/phys/dca_step/cluster_mapping/double_counting_correction.hpp"
 #include "dca/phys/dca_step/cluster_mapping/update_chemical_potential.hpp"
 #include "dca/util/print_time.hpp"
-#include "comp_library/function_library/include_function_library.h"
 #include "phys_library/DCA+_loop/DCA_loop_data.hpp"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_sp.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/high_temperature_series_expansion_solver.h"
@@ -44,12 +44,12 @@ public:
   using profiler_type = typename parameters_type::profiler_type;
   using concurrency_type = typename parameters_type::concurrency_type;
 
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using k_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
-                                     MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
-  using k_HOST = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, LATTICE_SP,
-                                      MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using k_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                           CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using k_HOST = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                            LATTICE_SP, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
 
   using cluster_exclusion_type = cluster_exclusion<parameters_type, MOMS_type>;
   using double_counting_correction_type = double_counting_correction<parameters_type, MOMS_type>;

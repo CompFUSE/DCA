@@ -16,8 +16,9 @@
 #include <algorithm>
 #include <complex>
 
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "dca/math/inference/richardson_lucy_deconvolution.hpp"
-#include "comp_library/function_library/include_function_library.h"
 #include "math_library/functional_transforms/basis_transforms/basis_transform.h"
 #include "phys_library/DCA+_step/lattice_mapping/deconvolution/deconvolution_routines.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
@@ -34,23 +35,24 @@ class deconvolution_sp
 public:
   using concurrency_type = typename parameters_type::concurrency_type;
 
-  using w = dmn_0<frequency_domain>;
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using w = func::dmn_0<frequency_domain>;
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
 public:
   deconvolution_sp(parameters_type& parameters_ref);
 
-  void execute(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, source_k_dmn_t, w>>& f_source,
-               FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w>>& Sigma_interp,
-               FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w>>& Sigma_deconv,
-               FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w>>& f_target);
+  void execute(
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, source_k_dmn_t, w>>& f_source,
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& Sigma_interp,
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& Sigma_deconv,
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_target);
 
 private:
-  void find_shift(
-      FUNC_LIB::function<std::complex<double>, dmn_3<b, b, w>>& shift,
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w>>& Sigma_interp);
+  void find_shift(func::function<std::complex<double>, func::dmn_variadic<b, b, w>>& shift,
+                  func::function<std::complex<double>,
+                                 func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& Sigma_interp);
 
 private:
   parameters_type& parameters;
@@ -67,23 +69,23 @@ deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::deconvolution
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 void deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, source_k_dmn_t, w>>& /*f_source*/,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w>>& f_interp,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w>>& f_approx,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w>>& f_target) {
-  FUNC_LIB::function<std::complex<double>, dmn_3<b, b, w>> shift;
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, source_k_dmn_t, w>>& /*f_source*/,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_interp,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_approx,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_target) {
+  func::function<std::complex<double>, func::dmn_variadic<b, b, w>> shift;
 
   find_shift(shift, f_interp);
 
-  typedef dmn_0<dmn<2, int>> z;
-  typedef dmn_5<z, b, b, s, w> p_dmn_t;
+  typedef func::dmn_0<func::dmn<2, int>> z;
+  typedef func::dmn_variadic<z, b, b, s, w> p_dmn_t;
 
   math::inference::RichardsonLucyDeconvolution<parameters_type, target_k_dmn_t, p_dmn_t> RL_obj(
       parameters);
 
-  FUNC_LIB::function<double, dmn_2<target_k_dmn_t, p_dmn_t>> S_source("S_source");
-  FUNC_LIB::function<double, dmn_2<target_k_dmn_t, p_dmn_t>> S_approx("S_approx");
-  FUNC_LIB::function<double, dmn_2<target_k_dmn_t, p_dmn_t>> S_target("S_target");
+  func::function<double, func::dmn_variadic<target_k_dmn_t, p_dmn_t>> S_source("S_source");
+  func::function<double, func::dmn_variadic<target_k_dmn_t, p_dmn_t>> S_approx("S_approx");
+  func::function<double, func::dmn_variadic<target_k_dmn_t, p_dmn_t>> S_target("S_target");
 
   for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++) {
     for (int k_ind = 0; k_ind < target_k_dmn_t::dmn_size(); k_ind++) {
@@ -141,8 +143,8 @@ void deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 void deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::find_shift(
-    FUNC_LIB::function<std::complex<double>, dmn_3<b, b, w>>& shift,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w>>& Sigma_interp) {
+    func::function<std::complex<double>, func::dmn_variadic<b, b, w>>& shift,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& Sigma_interp) {
   for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++) {
     for (int j = 0; j < b::dmn_size(); j++) {
       for (int i = 0; i < b::dmn_size(); i++) {

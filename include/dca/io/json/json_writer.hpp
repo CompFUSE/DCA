@@ -19,9 +19,10 @@
 #include <string>
 #include <vector>
 
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "dca/io/json/json_parser/json_context.hpp"
 #include "dca/io/json/json_parser/whatever.hpp"
-#include "comp_library/function_library/include_function_library.h"
 #include "comp_library/linalg/linalg.hpp"
 
 namespace dca {
@@ -73,19 +74,19 @@ public:
   void execute(std::string name, std::vector<std::string>& value);
 
   template <typename domain_type>
-  void execute(std::string name, dmn_0<domain_type>& dmn);
+  void execute(std::string name, func::dmn_0<domain_type>& dmn);
 
   template <typename scalar_type, typename domain_type>
-  void execute(FUNC_LIB::function<scalar_type, domain_type>& f);
+  void execute(func::function<scalar_type, domain_type>& f);
 
   template <typename scalar_type, typename domain_type>
-  void execute(std::string name, FUNC_LIB::function<scalar_type, domain_type>& f);
+  void execute(std::string name, func::function<scalar_type, domain_type>& f);
 
   template <typename scalar_type, typename domain_type>
-  void execute(FUNC_LIB::function<std::complex<scalar_type>, domain_type>& f);
+  void execute(func::function<std::complex<scalar_type>, domain_type>& f);
 
   template <typename scalar_type, typename domain_type>
-  void execute(std::string name, FUNC_LIB::function<std::complex<scalar_type>, domain_type>& f);
+  void execute(std::string name, func::function<std::complex<scalar_type>, domain_type>& f);
 
   template <typename scalar_type>
   void execute(std::string name, dca::linalg::Vector<scalar_type, dca::linalg::CPU>& A);
@@ -198,7 +199,7 @@ void JSONWriter::execute(std::string name, std::vector<std::vector<scalartype>>&
 }
 
 template <typename domain_type>
-void JSONWriter::execute(std::string name, dmn_0<domain_type>& dmn) {
+void JSONWriter::execute(std::string name, func::dmn_0<domain_type>& dmn) {
   open_group(name);
 
   execute("name", dmn.get_name());
@@ -211,14 +212,14 @@ void JSONWriter::execute(std::string name, dmn_0<domain_type>& dmn) {
 }
 
 template <typename scalar_type, typename domain_type>
-void JSONWriter::execute(FUNC_LIB::function<scalar_type, domain_type>& f) {
+void JSONWriter::execute(func::function<scalar_type, domain_type>& f) {
   std::cout << "\t starts writing function : " << f.get_name() << "\n";
 
   execute(f.get_name(), f);
 }
 
 template <typename scalar_type, typename domain_type>
-void JSONWriter::execute(std::string name, FUNC_LIB::function<scalar_type, domain_type>& f) {
+void JSONWriter::execute(std::string name, func::function<scalar_type, domain_type>& f) {
   open_group(name);
 
   execute("name", f.get_name());
@@ -265,15 +266,14 @@ void JSONWriter::execute(std::string name, FUNC_LIB::function<scalar_type, domai
 }
 
 template <typename scalar_type, typename domain_type>
-void JSONWriter::execute(FUNC_LIB::function<std::complex<scalar_type>, domain_type>& f) {
+void JSONWriter::execute(func::function<std::complex<scalar_type>, domain_type>& f) {
   std::cout << "\t starts writing function : " << f.get_name() << "\n";
 
   execute(f.get_name(), f);
 }
 
 template <typename scalar_type, typename domain_type>
-void JSONWriter::execute(std::string name,
-                         FUNC_LIB::function<std::complex<scalar_type>, domain_type>& f) {
+void JSONWriter::execute(std::string name, func::function<std::complex<scalar_type>, domain_type>& f) {
   open_group(name);
 
   execute("name", f.get_name());

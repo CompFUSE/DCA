@@ -19,8 +19,9 @@
 #include <stdexcept>
 #include <utility>
 
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "dca/util/print_time.hpp"
-#include "comp_library/function_library/include_function_library.h"
 #include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
@@ -37,19 +38,19 @@ class update_chemical_potential {
 public:
   using concurrency_type = typename parameters_type::concurrency_type;
 
-  using t = dmn_0<time_domain>;
-  using w = dmn_0<frequency_domain>;
+  using t = func::dmn_0<time_domain>;
+  using w = func::dmn_0<frequency_domain>;
 
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
   using DCA_r_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
                                             CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>;
-  using r_DCA = dmn_0<DCA_r_cluster_type>;
+  using r_DCA = func::dmn_0<DCA_r_cluster_type>;
   using DCA_k_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
                                             CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
-  using k_DCA = dmn_0<DCA_k_cluster_type>;
+  using k_DCA = func::dmn_0<DCA_k_cluster_type>;
 
 public:
   update_chemical_potential(parameters_type& parameters_ref, MOMS_type& MOMS_ref,
@@ -66,12 +67,12 @@ private:
 
                                     double n_lb, double n_ub);
 
-  void compute_density_correction(FUNC_LIB::function<double, nu>& result);
+  void compute_density_correction(func::function<double, nu>& result);
 
   void compute_density_coefficients(
-      FUNC_LIB::function<double, dmn_2<nu, k_DCA>>& A,
-      FUNC_LIB::function<double, dmn_2<nu, k_DCA>>& B,
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>>& G);
+      func::function<double, func::dmn_variadic<nu, k_DCA>>& A,
+      func::function<double, func::dmn_variadic<nu, k_DCA>>& B,
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& G);
 
   void search_bounds(double dens);
 
@@ -235,7 +236,7 @@ double update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type
 
   MOMS.G_k_w += MOMS.G0_k_w;
 
-  FUNC_LIB::function<double, nu> result;
+  func::function<double, nu> result;
   result = 0.0;
   compute_density_correction(result);
   double result_total = 0.0;
@@ -252,17 +253,17 @@ double update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type
  */
 template <typename parameters_type, typename MOMS_type, typename coarsegraining_type>
 void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>::compute_density_correction(
-    FUNC_LIB::function<double, nu>& result) {
+    func::function<double, nu>& result) {
   std::complex<double> I(0, 1);
 
   double N_k = k_DCA::dmn_size();
   double beta = parameters.get_beta();
 
-  FUNC_LIB::function<double, dmn_2<nu, k_DCA>> A;
-  FUNC_LIB::function<double, dmn_2<nu, k_DCA>> B;
+  func::function<double, func::dmn_variadic<nu, k_DCA>> A;
+  func::function<double, func::dmn_variadic<nu, k_DCA>> B;
 
-  FUNC_LIB::function<double, dmn_2<nu, k_DCA>> A0;
-  FUNC_LIB::function<double, dmn_2<nu, k_DCA>> B0;
+  func::function<double, func::dmn_variadic<nu, k_DCA>> A0;
+  func::function<double, func::dmn_variadic<nu, k_DCA>> B0;
 
   compute_density_coefficients(A, B, MOMS.G_k_w);
   compute_density_coefficients(A0, B0, MOMS.G0_k_w);
@@ -295,8 +296,9 @@ void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>:
 
 template <typename parameters_type, typename MOMS_type, typename coarsegraining_type>
 void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>::compute_density_coefficients(
-    FUNC_LIB::function<double, dmn_2<nu, k_DCA>>& A, FUNC_LIB::function<double, dmn_2<nu, k_DCA>>& B,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>>& G) {
+    func::function<double, func::dmn_variadic<nu, k_DCA>>& A,
+    func::function<double, func::dmn_variadic<nu, k_DCA>>& B,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& G) {
   A = 0;
   B = 0;
 

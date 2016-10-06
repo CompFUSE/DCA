@@ -19,10 +19,11 @@
 #include <iostream>
 #include <utility>
 
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "dca/parallel/util/get_bounds.hpp"
 #include "dca/parallel/util/threading_data.hpp"
 #include "dca/util/print_time.hpp"
-#include "comp_library/function_library/include_function_library.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/compute_bare_bubble.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/compute_interaction.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
@@ -39,11 +40,11 @@ public:
   using concurrency_type = typename parameters_type::concurrency_type;
   using Threading = typename parameters_type::ThreadingType;
 
-  using w = dmn_0<frequency_domain>;
-  using w_VERTEX_BOSONIC = dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED_BOSONIC>>;
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using w = func::dmn_0<frequency_domain>;
+  using w_VERTEX_BOSONIC = func::dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED_BOSONIC>>;
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
   using ph_bubble_t = compute_bubble<ph, parameters_type, k_dmn_t, w>;
   // INTERNAL: Shouldn't the template argument be pp instead of pp?
@@ -51,7 +52,8 @@ public:
 
   using chi_function_type = typename ph_bubble_t::function_type;
   using phi_function_type = typename pp_bubble_t::function_type;
-  using sp_function_type = FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, k_dmn_t, w>>;
+  using sp_function_type =
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>;
   using U_function_type = typename compute_interaction::function_type;
 
 public:
@@ -63,11 +65,13 @@ public:
     return Sigma;
   }
 
-  void execute_on_cluster(FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, k_dmn_t, w>>& G);
+  void execute_on_cluster(
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
   void threaded_execute_on_cluster(
-      FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, k_dmn_t, w>>& G);
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
 
-  // void execute_on_cluster_2(FUNC_LIB::function<std::complex<double>, dmn_variadic<nu,nu, k_dmn_t,
+  // void execute_on_cluster_2(func::function<std::complex<double>, func::dmn_variadic<nu,nu,
+  // k_dmn_t,
   // w> >&
   // G);
 
@@ -75,8 +79,8 @@ public:
   void write(Writer& writer);
 
 private:
-  void execute_2A(FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, k_dmn_t, w>>& G);
-  void execute_2B(FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, k_dmn_t, w>>& G);
+  void execute_2A(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
+  void execute_2B(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
 
   static void* threaded_execute_2B(void* data);
 
@@ -91,7 +95,7 @@ protected:
   chi_function_type& chi;
   phi_function_type& phi;
 
-  FUNC_LIB::function<std::complex<double>, dmn_variadic<b, b, k_dmn_t, w_VERTEX_BOSONIC>> U_chi_U;
+  func::function<std::complex<double>, func::dmn_variadic<b, b, k_dmn_t, w_VERTEX_BOSONIC>> U_chi_U;
 
   sp_function_type Sigma;
 
@@ -137,7 +141,7 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::write(Writer& /*writer*/) 
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<2, parameters_type, k_dmn_t>::execute_on_cluster(
-    FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
   if (concurrency.id() == 0)
     std::cout << __FUNCTION__ << std::endl;
 
@@ -177,7 +181,7 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::execute_on_cluster(
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<2, parameters_type, k_dmn_t>::execute_2A(
-    FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
   if (concurrency.id() == 0)
     std::cout << __FUNCTION__ << std::endl;
 
@@ -226,7 +230,7 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::execute_2A(
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<2, parameters_type, k_dmn_t>::execute_2B(
-    FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
   if (concurrency.id() == 0)
     std::cout << __FUNCTION__ << std::endl;
 
@@ -261,7 +265,7 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::execute_2B(
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_on_cluster(
-    FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
   if (concurrency.id() == 0)
     std::cout << "\n\n\t\t second-order Self-energy \n\n" << std::endl;
 

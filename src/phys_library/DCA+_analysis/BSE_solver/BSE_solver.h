@@ -18,10 +18,11 @@
 #include <stdexcept>
 #include <string>
 
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_writer.hpp"
 #include "dca/phys/dca_algorithms/compute_band_structure.hpp"
-#include "comp_library/function_library/include_function_library.h"
 #include "phys_library/DCA+_analysis/BSE_solver/BSE_cluster_solver.h"
 #include "phys_library/DCA+_analysis/BSE_solver/BSE_lattice_solver.h"
 #include "phys_library/DCA+_step/symmetrization/diagrammatic_symmetries.h"
@@ -44,33 +45,33 @@ public:
   using concurrency_t = typename parameters_type::concurrency_type;
 
   const static int N_LAMBDAS = 10;
-  using lambda_dmn_type = dmn_0<dmn<N_LAMBDAS, int>>;
+  using lambda_dmn_type = func::dmn_0<func::dmn<N_LAMBDAS, int>>;
 
   const static int N_HARMONICS = 3;
-  using harmonics_dmn_type = dmn_0<dmn<N_HARMONICS, int>>;
+  using harmonics_dmn_type = func::dmn_0<func::dmn<N_HARMONICS, int>>;
 
-  using w_VERTEX = dmn_0<DCA::vertex_frequency_domain<DCA::COMPACT>>;
+  using w_VERTEX = func::dmn_0<DCA::vertex_frequency_domain<DCA::COMPACT>>;
 
-  using b = dmn_0<electron_band_domain>;
-  using b_b = dmn_variadic<b, b>;
+  using b = func::dmn_0<electron_band_domain>;
+  using b_b = func::dmn_variadic<b, b>;
 
-  using k_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
-                                     MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
-  using k_LDA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, LATTICE_SP,
-                                     MOMENTUM_SPACE, PARALLELLEPIPEDUM>>;
-  using k_HOST = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, LATTICE_SP,
-                                      MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
-  using k_HOST_VERTEX = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                             LATTICE_TP, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
-  using k_dmn_cut_type = dmn_0<brillouin_zone_path_domain<SQUARE_2D_LATTICE>>;
+  using k_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                           CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using k_LDA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                           LATTICE_SP, MOMENTUM_SPACE, PARALLELLEPIPEDUM>>;
+  using k_HOST = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                            LATTICE_SP, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using k_HOST_VERTEX = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                                   LATTICE_TP, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using k_dmn_cut_type = func::dmn_0<brillouin_zone_path_domain<SQUARE_2D_LATTICE>>;
 
-  using cluster_eigenvector_dmn_t = dmn_variadic<b, b, k_DCA, w_VERTEX>;
-  using lattice_eigenvector_dmn_t = dmn_variadic<b, b, k_HOST_VERTEX, w_VERTEX>;
+  using cluster_eigenvector_dmn_t = func::dmn_variadic<b, b, k_DCA, w_VERTEX>;
+  using lattice_eigenvector_dmn_t = func::dmn_variadic<b, b, k_HOST_VERTEX, w_VERTEX>;
 
-  using DCA_matrix_dmn_t =
-      dmn_variadic<dmn_variadic<b, b, k_DCA, w_VERTEX>, dmn_variadic<b, b, k_DCA, w_VERTEX>>;
-  using HOST_matrix_dmn_t = dmn_variadic<dmn_variadic<b, b, k_HOST_VERTEX, w_VERTEX>,
-                                         dmn_variadic<b, b, k_HOST_VERTEX, w_VERTEX>>;
+  using DCA_matrix_dmn_t = func::dmn_variadic<func::dmn_variadic<b, b, k_DCA, w_VERTEX>,
+                                              func::dmn_variadic<b, b, k_DCA, w_VERTEX>>;
+  using HOST_matrix_dmn_t = func::dmn_variadic<func::dmn_variadic<b, b, k_HOST_VERTEX, w_VERTEX>,
+                                               func::dmn_variadic<b, b, k_HOST_VERTEX, w_VERTEX>>;
 
 public:
   BSE_solver(parameters_type& parameters, MOMS_type& MOMS);
@@ -88,7 +89,7 @@ public:
   void calculate_susceptibilities_1();
   void calculate_susceptibilities_2();
 
-  FUNC_LIB::function<std::complex<scalartype>, lambda_dmn_type>& get_leading_eigenvalues() {
+  func::function<std::complex<scalartype>, lambda_dmn_type>& get_leading_eigenvalues() {
     return BSE_lattice_solver_obj.get_leading_eigenvalues();
   };
 
@@ -134,46 +135,46 @@ private:
 
   diagrammatic_symmetries<parameters_type> diagrammatic_symmetries_obj;
 
-  FUNC_LIB::function<std::string, harmonics_dmn_type> wave_functions_names;
-  FUNC_LIB::function<std::complex<scalartype>, dmn_variadic<k_HOST_VERTEX, harmonics_dmn_type>> harmonics;
+  func::function<std::string, harmonics_dmn_type> wave_functions_names;
+  func::function<std::complex<scalartype>, func::dmn_variadic<k_HOST_VERTEX, harmonics_dmn_type>> harmonics;
 
-  FUNC_LIB::function<std::complex<double>, DCA_matrix_dmn_t> G4;
-  FUNC_LIB::function<std::complex<double>, DCA_matrix_dmn_t> G4_0;
+  func::function<std::complex<double>, DCA_matrix_dmn_t> G4;
+  func::function<std::complex<double>, DCA_matrix_dmn_t> G4_0;
 
-  FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t> Gamma_cluster;
-  FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t> Gamma_lattice;
+  func::function<std::complex<scalartype>, DCA_matrix_dmn_t> Gamma_cluster;
+  func::function<std::complex<scalartype>, HOST_matrix_dmn_t> Gamma_lattice;
 
-  FUNC_LIB::function<std::complex<double>, dmn_variadic<b_b, b_b, k_HOST_VERTEX, w_VERTEX>>
+  func::function<std::complex<double>, func::dmn_variadic<b_b, b_b, k_HOST_VERTEX, w_VERTEX>>
       chi_0_function;  //("phi");
 
-  FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t> chi;
-  FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t> chi_0;
+  func::function<std::complex<scalartype>, HOST_matrix_dmn_t> chi;
+  func::function<std::complex<scalartype>, HOST_matrix_dmn_t> chi_0;
 
-  FUNC_LIB::function<std::complex<scalartype>, dmn_0<dmn<1, int>>> chi_q;
+  func::function<std::complex<scalartype>, func::dmn_0<func::dmn<1, int>>> chi_q;
 
-  FUNC_LIB::function<std::complex<scalartype>, harmonics_dmn_type> P_q_cluster;
-  FUNC_LIB::function<std::complex<scalartype>, harmonics_dmn_type> P_q_lattice;
+  func::function<std::complex<scalartype>, harmonics_dmn_type> P_q_cluster;
+  func::function<std::complex<scalartype>, harmonics_dmn_type> P_q_lattice;
 
-  FUNC_LIB::function<std::complex<scalartype>, lambda_dmn_type> leading_eigenvalues;
-  FUNC_LIB::function<std::complex<scalartype>, lambda_dmn_type> leading_phi_t_chi_0_phi;
-  FUNC_LIB::function<std::complex<scalartype>, lambda_dmn_type> leading_phi_t_Gamma_phi;
+  func::function<std::complex<scalartype>, lambda_dmn_type> leading_eigenvalues;
+  func::function<std::complex<scalartype>, lambda_dmn_type> leading_phi_t_chi_0_phi;
+  func::function<std::complex<scalartype>, lambda_dmn_type> leading_phi_t_Gamma_phi;
 
-  FUNC_LIB::function<std::complex<scalartype>, dmn_variadic<lambda_dmn_type, harmonics_dmn_type>>
+  func::function<std::complex<scalartype>, func::dmn_variadic<lambda_dmn_type, harmonics_dmn_type>>
       leading_symmetries;
-  FUNC_LIB::function<std::complex<scalartype>, dmn_variadic<lambda_dmn_type, lattice_eigenvector_dmn_t>>
+  func::function<std::complex<scalartype>, func::dmn_variadic<lambda_dmn_type, lattice_eigenvector_dmn_t>>
       leading_eigenvectors;
 
-  FUNC_LIB::function<std::complex<scalartype>, k_dmn_cut_type> S_k_cut;
-  FUNC_LIB::function<std::complex<scalartype>, k_dmn_cut_type> a_k_cut;
+  func::function<std::complex<scalartype>, k_dmn_cut_type> S_k_cut;
+  func::function<std::complex<scalartype>, k_dmn_cut_type> a_k_cut;
 
-  FUNC_LIB::function<std::complex<scalartype>, dmn_variadic<lambda_dmn_type, cluster_eigenvector_dmn_t>>
+  func::function<std::complex<scalartype>, func::dmn_variadic<lambda_dmn_type, cluster_eigenvector_dmn_t>>
       leading_U_K;
-  FUNC_LIB::function<std::complex<scalartype>, dmn_variadic<lambda_dmn_type, cluster_eigenvector_dmn_t>>
+  func::function<std::complex<scalartype>, func::dmn_variadic<lambda_dmn_type, cluster_eigenvector_dmn_t>>
       leading_Vt_K;
 
-  FUNC_LIB::function<std::complex<scalartype>, dmn_variadic<lambda_dmn_type, lattice_eigenvector_dmn_t>>
+  func::function<std::complex<scalartype>, func::dmn_variadic<lambda_dmn_type, lattice_eigenvector_dmn_t>>
       leading_U_k;
-  FUNC_LIB::function<std::complex<scalartype>, dmn_variadic<lambda_dmn_type, lattice_eigenvector_dmn_t>>
+  func::function<std::complex<scalartype>, func::dmn_variadic<lambda_dmn_type, lattice_eigenvector_dmn_t>>
       leading_Vt_k;
 };
 

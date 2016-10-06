@@ -18,8 +18,9 @@
 
 #include "H5Cpp.h"
 
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "dca/io/hdf5/hdf5_types.hpp"
-#include "comp_library/function_library/include_function_library.h"
 #include "comp_library/linalg/linalg.hpp"
 
 namespace dca {
@@ -68,14 +69,15 @@ public:
 
   void execute(std::string name, std::vector<std::string>& value);
 
+  // TODO: Remove? (only thing that depends on domains.hpp)
   template <typename domain_type>
-  void execute(std::string /*name*/, dmn_0<domain_type>& /*dmn*/) {}
+  void execute(std::string /*name*/, func::dmn_0<domain_type>& /*dmn*/) {}
 
   template <typename scalartype, typename domain_type>
-  void execute(FUNC_LIB::function<scalartype, domain_type>& f);
+  void execute(func::function<scalartype, domain_type>& f);
 
   template <typename scalartype, typename domain_type>
-  void execute(std::string name, FUNC_LIB::function<scalartype, domain_type>& f);
+  void execute(std::string name, func::function<scalartype, domain_type>& f);
 
   template <typename scalar_type>
   void execute(std::string name, dca::linalg::Vector<scalar_type, dca::linalg::CPU>& A);
@@ -162,12 +164,12 @@ void HDF5Reader::execute(std::string name, std::vector<std::complex<scalar_type>
 }
 
 template <typename scalartype, typename domain_type>
-void HDF5Reader::execute(FUNC_LIB::function<scalartype, domain_type>& f) {
+void HDF5Reader::execute(func::function<scalartype, domain_type>& f) {
   execute(f.get_name(), f);
 }
 
 template <typename scalartype, typename domain_type>
-void HDF5Reader::execute(std::string name, FUNC_LIB::function<scalartype, domain_type>& f) {
+void HDF5Reader::execute(std::string name, func::function<scalartype, domain_type>& f) {
   std::cout << "\n\tstart reading function : " << name;
 
   try {

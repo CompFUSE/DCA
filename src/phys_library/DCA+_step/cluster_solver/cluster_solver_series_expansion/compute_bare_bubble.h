@@ -18,10 +18,11 @@
 #include <stdexcept>
 #include <utility>
 
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "dca/parallel/util/get_bounds.hpp"
 #include "dca/parallel/util/threading_data.hpp"
 #include "dca/util/print_time.hpp"
-#include "comp_library/function_library/include_function_library.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain.h"
@@ -41,18 +42,18 @@ public:
   using concurrency_type = typename parameters_type::concurrency_type;
   using Threading = typename parameters_type::ThreadingType;
 
-  using w = dmn_0<frequency_domain>;
-  using w_VERTEX_BOSONIC = dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED_BOSONIC>>;
+  using w = func::dmn_0<frequency_domain>;
+  using w_VERTEX_BOSONIC = func::dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED_BOSONIC>>;
 
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
-  using b_b = dmn_variadic<b, b>;
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
+  using b_b = func::dmn_variadic<b, b>;
 
   using G_function_type =
-      FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>;
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>;
   using function_type =
-      FUNC_LIB::function<std::complex<double>, dmn_variadic<b_b, b_b, k_dmn_t, w_VERTEX_BOSONIC>>;
+      func::function<std::complex<double>, func::dmn_variadic<b_b, b_b, k_dmn_t, w_VERTEX_BOSONIC>>;
 
 public:
   compute_bubble(parameters_type& parameters_ref);
@@ -83,7 +84,7 @@ private:
   concurrency_type& concurrency;
 
 protected:
-  FUNC_LIB::function<std::complex<double>, dmn_variadic<b_b, b_b, k_dmn_t, w_VERTEX_BOSONIC>> chi;
+  func::function<std::complex<double>, func::dmn_variadic<b_b, b_b, k_dmn_t, w_VERTEX_BOSONIC>> chi;
 
 private:
   struct bubble_data {

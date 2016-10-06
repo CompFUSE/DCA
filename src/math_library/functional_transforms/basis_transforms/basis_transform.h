@@ -14,6 +14,8 @@
 
 #include <string>
 
+#include "dca/function/domains/dmn_0.hpp"
+
 #include "math_library/functional_transforms/basis_transforms/basis_transformation_cd_to_cd.h"
 #include "math_library/functional_transforms/basis_transforms/basis_transformation_cd_to_dd.h"
 #include "math_library/functional_transforms/basis_transforms/basis_transformation_cd_to_ed.h"
@@ -22,7 +24,6 @@
 #include "math_library/functional_transforms/basis_transforms/basis_transformation_ed_to_dd.h"
 #include "math_library/functional_transforms/basis_transforms/basis_transformation_ed_to_ed.h"
 #include "math_library/functional_transforms/basis_transforms/basis_transformation_template.h"
-#include "comp_library/function_library/domains/special_domains/dmn_0.h"
 
 namespace math_algorithms {
 namespace functional_transforms {
@@ -54,7 +55,7 @@ public:
 };
 
 template <typename input_type, typename output_type>
-class basis_transform<dmn_0<input_type>, dmn_0<output_type>> {
+class basis_transform<func::dmn_0<input_type>, func::dmn_0<output_type>> {
 public:
   typedef typename input_type::dmn_specifications_type input_spec_dmn_type;
   typedef typename output_type::dmn_specifications_type output_spec_dmn_type;

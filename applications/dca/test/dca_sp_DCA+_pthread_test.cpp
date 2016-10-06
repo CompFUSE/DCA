@@ -17,6 +17,8 @@
 
 #include "gtest/gtest.h"
 
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
@@ -29,7 +31,6 @@
 #include "dca/testing/minimalist_printer.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
-#include "comp_library/function_library/include_function_library.h"
 #include "phys_library/DCA+_data/DCA_data.h"
 #include "phys_library/DCA+_loop/DCA_loop.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_cluster_solver.h"
@@ -66,12 +67,12 @@ TEST(dca_sp_DCAplus_pthread, Self_energy) {
   using ClusterSolverType = DCA::posix_qmci_integrator<ClusterSolverBaseType>;
   using DcaLoopType = DCA_loop<ParametersType, DcaDataType, ClusterSolverType>;
 
-  using w = dmn_0<frequency_domain>;
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
-  using k_DCA =
-      dmn_0<cluster_domain<double, LatticeType::DIMENSION, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using w = dca::func::dmn_0<frequency_domain>;
+  using b = dca::func::dmn_0<electron_band_domain>;
+  using s = dca::func::dmn_0<electron_spin_domain>;
+  using nu = dca::func::dmn_variadic<b, s>;  // orbital-spin index
+  using k_DCA = dca::func::dmn_0<
+      cluster_domain<double, LatticeType::DIMENSION, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
 
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
     std::cout << "\nDCA main starting.\n"
@@ -101,7 +102,8 @@ TEST(dca_sp_DCAplus_pthread, Self_energy) {
               << std::endl;
 
     // Read self-energy from check_data file.
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> Sigma_check("Self_Energy");
+    dca::func::function<std::complex<double>, dca::func::dmn_variadic<nu, nu, k_DCA, w>> Sigma_check(
+        "Self_Energy");
     dca::io::HDF5Reader reader;
     reader.open_file(DCA_SOURCE_DIR
                      "/applications/dca/test/check_data.dca_sp_DCA+_pthread_test.hdf5");

@@ -32,8 +32,8 @@ class vertex_pair {
 public:
   using rng_type = typename parameters_type::random_number_generator;
 
-  using r_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
-                                     REAL_SPACE, BRILLOUIN_ZONE>>;
+  using r_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                           CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>>;
   typedef r_DCA r_dmn_t;
   typedef typename r_dmn_t::parameter_type r_cluster_type;
 

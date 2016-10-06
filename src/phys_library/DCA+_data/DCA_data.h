@@ -21,13 +21,14 @@
 #include <utility>
 #include <vector>
 
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/io/json/json_writer.hpp"
 #include "dca/phys/dca_algorithms/compute_band_structure.hpp"
 #include "dca/util/print_time.hpp"
-#include "comp_library/function_library/include_function_library.h"
 #include "comp_library/linalg/linalg.hpp"
 #include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
 #include "math_library/geometry_library/vector_operations/vector_operations.hpp"
@@ -54,32 +55,32 @@ public:
   using profiler_type = typename parameters_type::profiler_type;
   using concurrency_type = typename parameters_type::concurrency_type;
 
-  using t = dmn_0<time_domain>;
-  using w = dmn_0<frequency_domain>;
+  using t = func::dmn_0<time_domain>;
+  using w = func::dmn_0<frequency_domain>;
   using compact_vertex_frequency_domain_type = DCA::vertex_frequency_domain<DCA::COMPACT>;
-  using w_VERTEX = dmn_0<compact_vertex_frequency_domain_type>;
+  using w_VERTEX = func::dmn_0<compact_vertex_frequency_domain_type>;
 
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
-  using nu_nu = dmn_variadic<nu, nu>;
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
+  using nu_nu = func::dmn_variadic<nu, nu>;
 
-  using r_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
-                                     REAL_SPACE, BRILLOUIN_ZONE>>;
+  using r_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                           CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>>;
   using DCA_k_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
                                             CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
-  using k_DCA = dmn_0<DCA_k_cluster_type>;
-  using r_HOST = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, LATTICE_SP,
-                                      REAL_SPACE, BRILLOUIN_ZONE>>;
-  using k_HOST = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, LATTICE_SP,
-                                      MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
-  using k_LDA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, LATTICE_SP,
-                                     MOMENTUM_SPACE, PARALLELLEPIPEDUM>>;
+  using k_DCA = func::dmn_0<DCA_k_cluster_type>;
+  using r_HOST = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                            LATTICE_SP, REAL_SPACE, BRILLOUIN_ZONE>>;
+  using k_HOST = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                            LATTICE_SP, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using k_LDA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                           LATTICE_SP, MOMENTUM_SPACE, PARALLELLEPIPEDUM>>;
 
-  using k_domain_cut_dmn_type = dmn_0<brillouin_zone_cut_domain<101>>;
-  using nu_k_cut = dmn_variadic<nu, k_domain_cut_dmn_type>;
+  using k_domain_cut_dmn_type = func::dmn_0<brillouin_zone_cut_domain<101>>;
+  using nu_k_cut = func::dmn_variadic<nu, k_domain_cut_dmn_type>;
 
-  using nu_nu_k_DCA_w = dmn_variadic<nu, nu, k_DCA, w>;
+  using nu_nu_k_DCA_w = func::dmn_variadic<nu, nu, k_DCA, w>;
 
   const static int DIMENSION = parameters_type::lattice_type::DIMENSION;
 
@@ -116,58 +117,59 @@ private:
   concurrency_type& concurrency;
 
 public:
-  FUNC_LIB::function<int, nu_nu> H_symmetry;
-  FUNC_LIB::function<double, dmn_3<nu, nu, r_DCA>> H_interactions;
+  func::function<int, nu_nu> H_symmetry;
+  func::function<double, func::dmn_variadic<nu, nu, r_DCA>> H_interactions;
 
-  FUNC_LIB::function<std::complex<double>, dmn_3<nu, nu, k_DCA>> H_DCA;
-  FUNC_LIB::function<std::complex<double>, dmn_3<nu, nu, k_HOST>> H_HOST;
-  FUNC_LIB::function<std::complex<double>, dmn_3<nu, nu, k_LDA>> H_LDA;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA>> H_DCA;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_HOST>> H_HOST;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_LDA>> H_LDA;
 
-  FUNC_LIB::function<double, nu_k_cut> band_structure;
+  func::function<double, nu_k_cut> band_structure;
 
-  FUNC_LIB::function<std::complex<double>, nu_k_cut> Sigma_band_structure;
+  func::function<std::complex<double>, nu_k_cut> Sigma_band_structure;
 
-  FUNC_LIB::function<std::complex<double>, nu_k_cut> Sigma_cluster_band_structure;
-  FUNC_LIB::function<std::complex<double>, nu_k_cut> Sigma_lattice_band_structure;
+  func::function<std::complex<double>, nu_k_cut> Sigma_cluster_band_structure;
+  func::function<std::complex<double>, nu_k_cut> Sigma_lattice_band_structure;
 
-  FUNC_LIB::function<std::complex<double>, nu_k_cut> Sigma_band_structure_interpolated;
-  FUNC_LIB::function<std::complex<double>, nu_k_cut> Sigma_band_structure_coarsegrained;
+  func::function<std::complex<double>, nu_k_cut> Sigma_band_structure_interpolated;
+  func::function<std::complex<double>, nu_k_cut> Sigma_band_structure_coarsegrained;
 
-  FUNC_LIB::function<std::complex<double>, dmn_3<nu, nu, k_HOST>> G_k;  //("Greens-k-lattice");
-  FUNC_LIB::function<std::complex<double>, dmn_3<nu, nu, k_HOST>> S_k;  //("Sigma-k-lattice");
-  FUNC_LIB::function<std::complex<double>, dmn_3<nu, nu, r_HOST>> S_r;  //("Sigma-r-lattice");
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_HOST>> G_k;  //("Greens-k-lattice");
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_HOST>> S_k;  //("Sigma-k-lattice");
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_HOST>> S_r;  //("Sigma-r-lattice");
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> Sigma;
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> Sigma_stddev;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>> Sigma;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>> Sigma_stddev;
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> Sigma_cluster;
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_HOST, w>> Sigma_lattice;
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_HOST, w>> Sigma_lattice_interpolated;
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_HOST, w>> Sigma_lattice_coarsegrained;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>> Sigma_cluster;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_HOST, w>> Sigma_lattice;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_HOST, w>> Sigma_lattice_interpolated;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_HOST, w>> Sigma_lattice_coarsegrained;
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> G_k_w;
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> G_k_w_stddev;
-  FUNC_LIB::function<double, dmn_4<nu, nu, k_DCA, t>> G_k_t;
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>> G_r_w;
-  FUNC_LIB::function<double, dmn_4<nu, nu, r_DCA, t>> G_r_t;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>> G_k_w;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>> G_k_w_stddev;
+  func::function<double, func::dmn_variadic<nu, nu, k_DCA, t>> G_k_t;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>> G_r_w;
+  func::function<double, func::dmn_variadic<nu, nu, r_DCA, t>> G_r_t;
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> G0_k_w;
-  FUNC_LIB::function<double, dmn_4<nu, nu, k_DCA, t>> G0_k_t;
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>> G0_r_w;
-  FUNC_LIB::function<double, dmn_4<nu, nu, r_DCA, t>> G0_r_t;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>> G0_k_w;
+  func::function<double, func::dmn_variadic<nu, nu, k_DCA, t>> G0_k_t;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>> G0_r_w;
+  func::function<double, func::dmn_variadic<nu, nu, r_DCA, t>> G0_r_t;
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> G0_k_w_cluster_excluded;
-  FUNC_LIB::function<double, dmn_4<nu, nu, k_DCA, t>> G0_k_t_cluster_excluded;
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>> G0_r_w_cluster_excluded;
-  FUNC_LIB::function<double, dmn_4<nu, nu, r_DCA, t>> G0_r_t_cluster_excluded;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>> G0_k_w_cluster_excluded;
+  func::function<double, func::dmn_variadic<nu, nu, k_DCA, t>> G0_k_t_cluster_excluded;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>> G0_r_w_cluster_excluded;
+  func::function<double, func::dmn_variadic<nu, nu, r_DCA, t>> G0_r_t_cluster_excluded;
 
-  FUNC_LIB::function<std::complex<double>, dmn_8<b, b, b, b, k_DCA, k_DCA, w_VERTEX, w_VERTEX>> G4_k_k_w_w;
-  FUNC_LIB::function<std::complex<double>, dmn_8<b, b, b, b, k_DCA, k_DCA, w_VERTEX, w_VERTEX>>
+  func::function<std::complex<double>, func::dmn_variadic<b, b, b, b, k_DCA, k_DCA, w_VERTEX, w_VERTEX>>
+      G4_k_k_w_w;
+  func::function<std::complex<double>, func::dmn_variadic<b, b, b, b, k_DCA, k_DCA, w_VERTEX, w_VERTEX>>
       G4_k_k_w_w_stddev;
 
-  FUNC_LIB::function<double, dmn_4<nu, nu, r_DCA, t>> K_r_t;
+  func::function<double, func::dmn_variadic<nu, nu, r_DCA, t>> K_r_t;
 
-  FUNC_LIB::function<double, nu> orbital_occupancy;
+  func::function<double, nu> orbital_occupancy;
 };
 
 template <class parameters_type>
@@ -372,9 +374,9 @@ void DCA_data<parameters_type>::write(Writer& writer) {
   if (!parameters.do_DCA_plus()) {  // Compute Sigma-r-DCA for the lowest frequency
                                     // via Fourier transformation of DCA cluster
                                     // Sigma.
-    FUNC_LIB::function<std::complex<double>, dmn_3<nu, nu, r_DCA>> S_r_DCA("Sigma-r-DCA");
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA>> S_r_DCA("Sigma-r-DCA");
 
-    FUNC_LIB::function<std::complex<double>, dmn_3<nu, nu, k_DCA>> S_k_DCA("Sigma-k-DCA");
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA>> S_k_DCA("Sigma-k-DCA");
     std::memcpy(&S_k_DCA(0), &Sigma(0, 0, 0, w::dmn_size() / 2),
                 sizeof(std::complex<double>) * std::pow(2 * b::dmn_size(), 2.) * k_DCA::dmn_size());
     math_algorithms::functional_transforms::TRANSFORM<k_DCA, r_DCA>::execute(S_k_DCA, S_r_DCA);
@@ -464,7 +466,7 @@ void DCA_data<parameters_type>::initialize_G0() {
     std::cout << "\t\t start coarsegraining G0_k_w " << dca::util::print_time() << "\n";
 
   {
-    FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w> Sigma_zero;
+    func::function<std::complex<double>, nu_nu_k_DCA_w> Sigma_zero;
     Sigma_zero = 0.;
 
     coarsegrain_obj.compute_G_K_w(H_HOST, Sigma_zero, G0_k_w);
@@ -578,7 +580,7 @@ void DCA_data<parameters_type>::compute_Sigma_bands() {
 
   Sigma_lattice_band_structure.reset();
   if (parameters.do_DCA_plus()) {
-    FUNC_LIB::function<std::complex<double>, dmn_2<nu, k_HOST>> S_k_dmn("S_k_dmn_s");
+    func::function<std::complex<double>, func::dmn_variadic<nu, k_HOST>> S_k_dmn("S_k_dmn_s");
 
     for (int b_ind = 0; b_ind < b::dmn_size(); ++b_ind)
       for (int s_ind = 0; s_ind < s::dmn_size(); ++s_ind)
@@ -592,7 +594,7 @@ void DCA_data<parameters_type>::compute_Sigma_bands() {
 
   Sigma_band_structure_interpolated.reset();
   if (true) {
-    FUNC_LIB::function<std::complex<double>, dmn_2<nu, k_HOST>> S_k_dmn("S_k_dmn_s");
+    func::function<std::complex<double>, func::dmn_variadic<nu, k_HOST>> S_k_dmn("S_k_dmn_s");
 
     for (int b_ind = 0; b_ind < b::dmn_size(); ++b_ind)
       for (int s_ind = 0; s_ind < s::dmn_size(); ++s_ind)
@@ -606,7 +608,7 @@ void DCA_data<parameters_type>::compute_Sigma_bands() {
 
   Sigma_band_structure_coarsegrained.reset();
   if (parameters.do_DCA_plus()) {
-    FUNC_LIB::function<std::complex<double>, dmn_2<nu, k_HOST>> S_k_dmn("S_k_dmn_s");
+    func::function<std::complex<double>, func::dmn_variadic<nu, k_HOST>> S_k_dmn("S_k_dmn_s");
 
     for (int b_ind = 0; b_ind < b::dmn_size(); ++b_ind)
       for (int s_ind = 0; s_ind < s::dmn_size(); ++s_ind)

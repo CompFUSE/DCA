@@ -16,7 +16,8 @@
 #include <vector>
 #include <stdexcept>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "math_library/geometry_library/vector_operations/vector_operations.hpp"
 #include "math_library/geometry_library/tetrahedron_mesh/facet.h"
 #include "math_library/geometry_library/tetrahedron_mesh/tetrahedron_mesh.h"
@@ -28,7 +29,7 @@ class tetrahedron_neighbour_domain {
 public:
   typedef tetrahedron_neighbour_domain this_type;
   typedef std::vector<double> element_type;
-  typedef dmn_0<cluster_type> cluster_dmn_t;
+  typedef func::dmn_0<cluster_type> cluster_dmn_t;
 
   const static int DIMENSION = cluster_type::DIMENSION;
 
@@ -43,7 +44,8 @@ public:
   }
 
   static int get_K_index(int K_ind, int n_ind) {
-    static FUNC_LIB::function<int, dmn_2<cluster_dmn_t, dmn_0<this_type>>>& f = initialize_function();
+    static func::function<int, func::dmn_variadic<cluster_dmn_t, func::dmn_0<this_type>>>& f =
+        initialize_function();
     return f(K_ind, n_ind);
   }
 
@@ -81,11 +83,11 @@ private:
     return elements;
   }
 
-  static FUNC_LIB::function<int, dmn_2<cluster_dmn_t, dmn_0<this_type>>>& initialize_function() {
+  static func::function<int, func::dmn_variadic<cluster_dmn_t, func::dmn_0<this_type>>>& initialize_function() {
     std::vector<element_type>& k_vecs = cluster_dmn_t::get_elements();
     std::vector<element_type>& n_vecs = this_type::get_elements();
 
-    static FUNC_LIB::function<int, dmn_2<cluster_dmn_t, dmn_0<this_type>>> f;
+    static func::function<int, func::dmn_variadic<cluster_dmn_t, func::dmn_0<this_type>>> f;
 
     for (int K_ind = 0; K_ind < cluster_dmn_t::dmn_size(); ++K_ind) {
       for (int n_ind = 0; n_ind < this_type::get_size(); ++n_ind) {

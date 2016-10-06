@@ -20,10 +20,11 @@
 #include <utility>
 #include <vector>
 
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/matrixop.hpp"
 
-#include "comp_library/function_library/include_function_library.h"
 #include "comp_library/linalg/linalg.hpp"
 #include "math_library/interpolation_library/akima_interpolation.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_solver_routines.h"
@@ -134,24 +135,24 @@ template <typename parameters_t, typename MOMS_t, typename configuration_t, type
 class ss_hybridization_walker_routines
     : public ss_hybridization_solver_routines<parameters_t, MOMS_t> {
 public:
-  using t = dmn_0<time_domain>;
-  using w = dmn_0<frequency_domain>;
+  using t = func::dmn_0<time_domain>;
+  using w = func::dmn_0<frequency_domain>;
 
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
-  using r_DCA = dmn_0<cluster_domain<double, parameters_t::lattice_type::DIMENSION, CLUSTER,
-                                     REAL_SPACE, BRILLOUIN_ZONE>>;
+  using r_DCA = func::dmn_0<cluster_domain<double, parameters_t::lattice_type::DIMENSION, CLUSTER,
+                                           REAL_SPACE, BRILLOUIN_ZONE>>;
   using r_dmn_t = r_DCA;
 
-  using nu_nu_r_DCA_t = dmn_variadic<nu, nu, r_DCA, t>;
+  using nu_nu_r_DCA_t = func::dmn_variadic<nu, nu, r_DCA, t>;
 
-  typedef dmn_0<time_domain_left_oriented> shifted_t;
-  typedef dmn_4<nu, nu, r_dmn_t, shifted_t> nu_nu_r_dmn_t_shifted_t;
+  typedef func::dmn_0<time_domain_left_oriented> shifted_t;
+  typedef func::dmn_variadic<nu, nu, r_dmn_t, shifted_t> nu_nu_r_dmn_t_shifted_t;
 
-  typedef dmn_0<dmn<4, int>> akima_dmn_t;
-  typedef dmn_5<akima_dmn_t, nu, nu, r_dmn_t, shifted_t> akima_nu_nu_r_dmn_t_shifted_t;
+  typedef func::dmn_0<func::dmn<4, int>> akima_dmn_t;
+  typedef func::dmn_variadic<akima_dmn_t, nu, nu, r_dmn_t, shifted_t> akima_nu_nu_r_dmn_t_shifted_t;
 
   typedef parameters_t parameters_type;
   typedef MOMS_t MOMS_type;
@@ -165,7 +166,7 @@ public:
                                    configuration_t& configuration_ref, rng_t& rng_ref);
 
   void initialize();
-  void initialize_akima_coefficients(FUNC_LIB::function<double, nu_nu_r_DCA_t>& F_r_t);
+  void initialize_akima_coefficients(func::function<double, nu_nu_r_DCA_t>& F_r_t);
 
   parameters_t& get_parameters() {
     return parameters;
@@ -273,7 +274,7 @@ private:
   rng_t& rng;
 
   nu_nu_r_dmn_t_shifted_t nu_nu_r_dmn_t_t_shifted_dmn;
-  FUNC_LIB::function<double, akima_nu_nu_r_dmn_t_shifted_t> akima_coefficients;
+  func::function<double, akima_nu_nu_r_dmn_t_shifted_t> akima_coefficients;
 };
 
 template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
@@ -297,7 +298,7 @@ void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng
 
 template <class parameters_t, class MOMS_t, typename configuration_t, typename rng_t>
 void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::initialize_akima_coefficients(
-    FUNC_LIB::function<double, nu_nu_r_DCA_t>& F_r_t) {
+    func::function<double, nu_nu_r_DCA_t>& F_r_t) {
   int size = t::dmn_size() / 2;
 
   math_algorithms::interpolation::akima_interpolation<double> ai_obj(size);

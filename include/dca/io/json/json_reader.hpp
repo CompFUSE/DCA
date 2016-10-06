@@ -18,10 +18,11 @@
 #include <string>
 #include <vector>
 
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "dca/io/json/json_parser/json_context.hpp"
 #include "dca/io/json/json_parser/json_parser.hpp"
 #include "dca/io/json/json_parser/whatever.hpp"
-#include "comp_library/function_library/include_function_library.h"
 #include "comp_library/linalg/linalg.hpp"
 
 namespace dca {
@@ -67,14 +68,15 @@ public:
   template <typename scalartype>
   void execute(std::string name, scalartype& value);
 
+  // TODO: Remove? (only thing that depends on domains.hpp)
   template <typename domain_type>
-  void execute(std::string /*name*/, dmn_0<domain_type>& /*dmn*/) {}
+  void execute(std::string /*name*/, func::dmn_0<domain_type>& /*dmn*/) {}
 
   template <typename scalartype, typename domain_type>
-  void execute(FUNC_LIB::function<scalartype, domain_type>& f);
+  void execute(func::function<scalartype, domain_type>& f);
 
   template <typename scalartype, typename domain_type>
-  void execute(std::string name, FUNC_LIB::function<scalartype, domain_type>& f);
+  void execute(std::string name, func::function<scalartype, domain_type>& f);
 
   template <typename scalar_type>
   void execute(std::string name, dca::linalg::Vector<scalar_type, dca::linalg::CPU>& A);
@@ -88,11 +90,11 @@ private:
                std::size_t index);
 
   template <typename scalartype, typename domain_type>
-  void execute(std::string name, FUNC_LIB::function<scalartype, domain_type>& f,
+  void execute(std::string name, func::function<scalartype, domain_type>& f,
                const JsonAccessor& current_result, std::size_t index);
 
   template <typename scalartype, typename domain_type>
-  void execute(std::string name, FUNC_LIB::function<std::complex<scalartype>, domain_type>& f,
+  void execute(std::string name, func::function<std::complex<scalartype>, domain_type>& f,
                const JsonAccessor& current_result, std::size_t index);
 
   template <typename scalar_type>
@@ -169,18 +171,18 @@ void JSONReader::execute(std::string name, scalartype& value, const JsonAccessor
 }
 
 template <typename scalartype, typename domain_type>
-void JSONReader::execute(FUNC_LIB::function<scalartype, domain_type>& f) {
+void JSONReader::execute(func::function<scalartype, domain_type>& f) {
   std::cout << "\t starts reading function : " << f.get_name() << "\n";
   execute(f.get_name(), f, parse_result, 0);
 }
 
 template <typename scalartype, typename domain_type>
-void JSONReader::execute(std::string name, FUNC_LIB::function<scalartype, domain_type>& f) {
+void JSONReader::execute(std::string name, func::function<scalartype, domain_type>& f) {
   execute(name, f, parse_result, 0);
 }
 
 template <typename scalartype, typename domain_type>
-void JSONReader::execute(std::string name, FUNC_LIB::function<scalartype, domain_type>& f,
+void JSONReader::execute(std::string name, func::function<scalartype, domain_type>& f,
                          const JsonAccessor& current_result, std::size_t index) {
   if (index == my_paths.size()) {
     std::vector<std::vector<scalartype>> value;
@@ -199,8 +201,7 @@ void JSONReader::execute(std::string name, FUNC_LIB::function<scalartype, domain
 }
 
 template <typename scalartype, typename domain_type>
-void JSONReader::execute(std::string name,
-                         FUNC_LIB::function<std::complex<scalartype>, domain_type>& f,
+void JSONReader::execute(std::string name, func::function<std::complex<scalartype>, domain_type>& f,
                          const JsonAccessor& current_result, std::size_t index) {
   const std::complex<scalartype> I(0, 1);
 

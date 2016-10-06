@@ -10,13 +10,15 @@
 // This file tests serial_collective_sum.hpp.
 
 #include "dca/parallel/no_concurrency/serial_collective_sum.hpp"
+
 #include "gtest/gtest.h"
-#include "comp_library/function_library/domains/special_domains/dmn.h"
-#include "comp_library/function_library/domains/special_domains/dmn_0.h"
+
+#include "dca/function/domains/dmn.hpp"
+#include "dca/function/domains/dmn_0.hpp"
 
 class SerialCollectiveSumTest : public ::testing::Test {
 protected:
-  using Domain = dmn_0<dmn<3, int>>;
+  using Domain = dca::func::dmn_0<dca::func::dmn<3, int>>;
   dca::parallel::SerialCollectiveSum sum_interface_;
 };
 
@@ -35,7 +37,7 @@ TEST_F(SerialCollectiveSumTest, Sum) {
   // std::map<std::string, std::vector>
 
   // function<Scalar, Domain>
-  FUNC_LIB::function<double, Domain> f;
+  dca::func::function<double, Domain> f;
   f(0) = 3.14;
   f(1) = 2.72;
   f(2) = 42.;
@@ -63,7 +65,7 @@ TEST_F(SerialCollectiveSumTest, SumAndAverage) {
   EXPECT_EQ(0.00157, d);
 
   // function<Scalar>
-  FUNC_LIB::function<double, Domain> f;
+  dca::func::function<double, Domain> f;
   f(0) = 3.14;
   f(1) = 2.72;
   f(2) = 42.;

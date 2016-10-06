@@ -23,7 +23,8 @@
 #include <utility>
 #include <vector>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "comp_library/linalg/linalg_device_types.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_solver_routines.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_type_definitions.h"
@@ -58,15 +59,15 @@ public:
   typedef typename MC_type_definitions<SS_CT_HYB, parameters_type, MOMS_type>::configuration_type
       configuration_type;
 
-  using t = dmn_0<time_domain>;
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
-  using r_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
-                                     REAL_SPACE, BRILLOUIN_ZONE>>;
-  using nu_nu_r_DCA_t = dmn_variadic<nu, nu, r_DCA, t>;
+  using t = func::dmn_0<time_domain>;
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
+  using r_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                           CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>>;
+  using nu_nu_r_DCA_t = func::dmn_variadic<nu, nu, r_DCA, t>;
 
-  typedef FUNC_LIB::function<vertex_vertex_matrix_type, nu> M_matrix_type;
+  typedef func::function<vertex_vertex_matrix_type, nu> M_matrix_type;
 
   typedef ss_hybridization_solver_routines<parameters_type, MOMS_type> ss_hybridization_solver_routines_type;
   typedef ss_hybridization_walker_routines<parameters_type, MOMS_type, configuration_type, rng_type>
@@ -87,7 +88,7 @@ public:
    *  \brief Initializes the configuration and sets \f$\mu_i = \frac12 \sum_j
    * \frac{U_{ij}+U_{ji}}{2}\f$.
    */
-  void initialize();  // FUNC_LIB::function<double, nu> mu_DC);
+  void initialize();  // func::function<double, nu> mu_DC);
 
   /*!
    *  \brief Returns if the configuration has gone through a warm-up sweep.
@@ -170,8 +171,8 @@ private:
   ss_hybridization_solver_routines_type ss_hybridization_solver_routines_obj;
   ss_hybridization_walker_routines_type ss_hybridization_walker_routines_obj;
 
-  FUNC_LIB::function<double, nu>& mu;
-  FUNC_LIB::function<double, nu_nu_r_DCA_t>& F_r_t;
+  func::function<double, nu>& mu;
+  func::function<double, nu_nu_r_DCA_t>& F_r_t;
 
   full_line_tools_t full_line_tools_obj;
   anti_segment_tools_t anti_segment_tools_obj;
@@ -179,7 +180,7 @@ private:
   shift_segment_tools_t shift_segment_tools_obj;
   swap_segment_tools_t swap_segment_tools_obj;
 
-  FUNC_LIB::function<vertex_vertex_matrix_type, nu> M;
+  func::function<vertex_vertex_matrix_type, nu> M;
 
   bool thermalized;
 

@@ -18,6 +18,8 @@
 
 #include "gtest/gtest.h"
 
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_reader.hpp"
@@ -31,7 +33,6 @@
 #include "dca/testing/minimalist_printer.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
-#include "comp_library/function_library/include_function_library.h"
 #include "phys_library/DCA+_data/DCA_data.h"
 #include "phys_library/DCA+_loop/DCA_loop_data.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_cluster_solver.h"
@@ -59,12 +60,12 @@ TEST(squareLattice_Nc4_onSite_plus_nn, Self_Energy) {
   using QmcSolverType =
       cluster_solver<CT_AUX_CLUSTER_SOLVER, LIN_ALG::CPU, ParametersType, DcaDataType>;
 
-  using w = dmn_0<frequency_domain>;
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
-  using k_DCA =
-      dmn_0<cluster_domain<double, LatticeType::DIMENSION, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using w = dca::func::dmn_0<frequency_domain>;
+  using b = dca::func::dmn_0<electron_band_domain>;
+  using s = dca::func::dmn_0<electron_spin_domain>;
+  using nu = dca::func::dmn_variadic<b, s>;  // orbital-spin index
+  using k_DCA = dca::func::dmn_0<
+      cluster_domain<double, LatticeType::DIMENSION, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
 
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
     dca::util::GitVersion::print();
@@ -98,7 +99,7 @@ TEST(squareLattice_Nc4_onSite_plus_nn, Self_Energy) {
   dca_test_env->concurrency.broadcast(dca_data_imag.G0_k_w_cluster_excluded);
   dca_test_env->concurrency.broadcast(dca_data_imag.G0_r_t_cluster_excluded);
 
-  // FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> >
+  // dca::func::function<std::complex<double>, dca::func::dmn_variadic<nu, nu, k_DCA, w> >
   //   Sigma_ED(dca_data_imag.Sigma);
 
   // Do one QMC iteration
@@ -107,12 +108,13 @@ TEST(squareLattice_Nc4_onSite_plus_nn, Self_Energy) {
   qmc_solver.integrate();
   qmc_solver.finalize(dca_loop_data);
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> Sigma_QMC(dca_data_imag.Sigma);
+  dca::func::function<std::complex<double>, dca::func::dmn_variadic<nu, nu, k_DCA, w>> Sigma_QMC(
+      dca_data_imag.Sigma);
 
   // Read QMC self-energy from check_data file and compare it with the newly
   // computed QMC self-energy.
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> Sigma_QMC_check(
+    dca::func::function<std::complex<double>, dca::func::dmn_variadic<nu, nu, k_DCA, w>> Sigma_QMC_check(
         "Self_Energy");
     dca::io::HDF5Reader reader;
     reader.open_file(DCA_SOURCE_DIR
@@ -142,7 +144,7 @@ TEST(squareLattice_Nc4_onSite_plus_nn, Self_Energy) {
     dca::io::HDF5Writer writer;
     writer.open_file("output.hdf5");
     writer.open_group("functions");
-    Sigma_QMC.get_name() = "Self_Energy";
+    Sigma_QMC.set_name("Self_Energy");
     writer.execute(Sigma_QMC);
     writer.close_group();
     writer.close_file();

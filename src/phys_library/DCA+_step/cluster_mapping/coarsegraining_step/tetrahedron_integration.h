@@ -17,9 +17,10 @@
 #include <stdexcept>
 #include <vector>
 
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "dca/parallel/util/get_bounds.hpp"
 #include "dca/parallel/util/threading_data.hpp"
-#include "comp_library/function_library/include_function_library.h"
 #include "math_library/geometry_library/vector_operations/vector_operations.hpp"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_domain.h"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/tetrahedron_integration_data.hpp"
@@ -34,12 +35,12 @@ class tetrahedron_integration {
 public:
   using k_cluster_type = typename K_dmn::parameter_type;
 
-  using tet_dmn_type = dmn_0<coarsegraining_domain<K_dmn, TETRAHEDRON_K>>;
-  using tet_0_dmn_type = dmn_0<coarsegraining_domain<K_dmn, TETRAHEDRON_ORIGIN>>;
+  using tet_dmn_type = func::dmn_0<coarsegraining_domain<K_dmn, TETRAHEDRON_K>>;
+  using tet_0_dmn_type = func::dmn_0<coarsegraining_domain<K_dmn, TETRAHEDRON_ORIGIN>>;
 
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
   using Threading = typename parameters_type::ThreadingType;
 
@@ -51,56 +52,62 @@ public:
 protected:
   template <typename scalar_type>
   void tetrahedron_integration_st(
-      FUNC_LIB::function<scalar_type, tet_dmn_type>& w_tet,
-      FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type>>& G_tet,
-      FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu>>& G_int);
+      func::function<scalar_type, tet_dmn_type>& w_tet,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, tet_dmn_type>>& G_tet,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu>>& G_int);
 
   template <typename scalar_type>
   void tetrahedron_integration_mt(
-      FUNC_LIB::function<scalar_type, tet_dmn_type>& w_tet,
-      FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type>>& G_tet,
-      FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu>>& G_int);
+      func::function<scalar_type, tet_dmn_type>& w_tet,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, tet_dmn_type>>& G_tet,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu>>& G_int);
 
   template <typename scalar_type>
   void tetrahedron_integration_st_1D(
-      FUNC_LIB::function<scalar_type, tet_dmn_type>& w_tet,
-      FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type>>& G_tet,
-      FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu>>& G_int);
+      func::function<scalar_type, tet_dmn_type>& w_tet,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, tet_dmn_type>>& G_tet,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu>>& G_int);
 
   //     template<typename scalar_type>
-  //     void tetrahedron_integration_mt_1D(FUNC_LIB::function<             scalar_type ,
+  //     void tetrahedron_integration_mt_1D(func::function<             scalar_type ,
   //     tet_dmn_type>&                 w_tet,
-  //                                        FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu,
+  //                                        func::function<std::complex<scalar_type>,
+  //                                        func::dmn_variadic<nu,
   //                                        nu, tet_dmn_type> >& G_tet,
-  //                                        FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu,
+  //                                        func::function<std::complex<scalar_type>,
+  //                                        func::dmn_variadic<nu,
   //                                        nu> >&               G_int);
 
   template <typename scalar_type>
   void tetrahedron_integration_st_2D(
-      FUNC_LIB::function<scalar_type, tet_dmn_type>& w_tet,
-      FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type>>& G_tet,
-      FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu>>& G_int);
+      func::function<scalar_type, tet_dmn_type>& w_tet,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, tet_dmn_type>>& G_tet,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu>>& G_int);
 
   //     template<typename scalar_type>
-  //     void tetrahedron_integration_mt_2D(FUNC_LIB::function<             scalar_type ,
+  //     void tetrahedron_integration_mt_2D(func::function<             scalar_type ,
   //     tet_dmn_type>&                 w_tet,
-  //                                        FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu,
+  //                                        func::function<std::complex<scalar_type>,
+  //                                        func::dmn_variadic<nu,
   //                                        nu, tet_dmn_type> >& G_tet,
-  //                                        FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu,
+  //                                        func::function<std::complex<scalar_type>,
+  //                                        func::dmn_variadic<nu,
   //                                        nu> >&              G_int);
 
   template <typename scalar_type>
   void tetrahedron_integration_st_3D(
-      FUNC_LIB::function<scalar_type, tet_dmn_type>& w_tet,
-      FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type>>& G_tet,
-      FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu>>& G_int);
+      func::function<scalar_type, tet_dmn_type>& w_tet,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, tet_dmn_type>>& G_tet,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu>>& G_int);
 
   //     template<typename scalar_type>
-  //     void tetrahedron_integration_mt_3D(FUNC_LIB::function<             scalar_type ,
+  //     void tetrahedron_integration_mt_3D(func::function<             scalar_type ,
   //     tet_dmn_type>&                 w_tet,
-  //                                        FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu,
+  //                                        func::function<std::complex<scalar_type>,
+  //                                        func::dmn_variadic<nu,
   //                                        nu, tet_dmn_type> >& G_tet,
-  //                                        FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu,
+  //                                        func::function<std::complex<scalar_type>,
+  //                                        func::dmn_variadic<nu,
   //                                        nu> >&               G_int);
 
   // private:
@@ -118,10 +125,10 @@ protected:
   struct tetrahedron_integration_functions {
     tetrahedron_integration_functions(int N) : w_tet_ptr(NULL), G_tet_ptr(NULL), G_int_vec(N) {}
 
-    FUNC_LIB::function<scalar_type, tet_dmn_type>* w_tet_ptr;
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type>>* G_tet_ptr;
+    func::function<scalar_type, tet_dmn_type>* w_tet_ptr;
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, tet_dmn_type>>* G_tet_ptr;
 
-    std::vector<FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu>>> G_int_vec;
+    std::vector<func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu>>> G_int_vec;
   };
 
 private:
@@ -135,9 +142,9 @@ tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration(paramet
 template <typename parameters_type, typename K_dmn>
 template <typename scalar_type>
 void tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_st(
-    FUNC_LIB::function<scalar_type, tet_dmn_type>& w_tet,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type>>& G_tet,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu>>& G_int) {
+    func::function<scalar_type, tet_dmn_type>& w_tet,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, tet_dmn_type>>& G_tet,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu>>& G_int) {
   switch (DIMENSION) {
     case 1:
       tetrahedron_integration_st_1D(w_tet, G_tet, G_int);
@@ -159,9 +166,9 @@ void tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_st
 template <typename parameters_type, typename K_dmn>
 template <typename scalar_type>
 void tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_mt(
-    FUNC_LIB::function<scalar_type, tet_dmn_type>& w_tet,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type>>& G_tet,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu>>& G_int) {
+    func::function<scalar_type, tet_dmn_type>& w_tet,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, tet_dmn_type>>& G_tet,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu>>& G_int) {
   int nr_threads = parameters.get_nr_coarsegraining_threads();
 
   tetrahedron_integration_functions<scalar_type> tetrahedron_integration_functions_obj(nr_threads);
@@ -206,14 +213,14 @@ void tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_mt
 template <typename parameters_type, typename K_dmn>
 template <typename scalar_type>
 void tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_st_1D(
-    FUNC_LIB::function<scalar_type, tet_dmn_type>& w_tet,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type>>& G_tet,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu>>& G_int) {
+    func::function<scalar_type, tet_dmn_type>& w_tet,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, tet_dmn_type>>& G_tet,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu>>& G_int) {
   for (int j = 0; j < nu::dmn_size(); j++)
     for (int i = 0; i < nu::dmn_size(); i++)
       G_int(i, j) = 0;
 
-  FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu>> G_tmp("G_tmp");
+  func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu>> G_tmp("G_tmp");
 
   tetrahedron_integration_data<scalar_type> data_obj(nu::dmn_size());
 
@@ -242,14 +249,14 @@ void* tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_m
 template <typename parameters_type, typename K_dmn>
 template <typename scalar_type>
 void tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_st_2D(
-    FUNC_LIB::function<scalar_type, tet_dmn_type>& w_tet,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type>>& G_tet,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu>>& G_int) {
+    func::function<scalar_type, tet_dmn_type>& w_tet,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, tet_dmn_type>>& G_tet,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu>>& G_int) {
   for (int j = 0; j < nu::dmn_size(); j++)
     for (int i = 0; i < nu::dmn_size(); i++)
       G_int(i, j) = 0;
 
-  FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu>> G_tmp("G_tmp");
+  func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu>> G_tmp("G_tmp");
 
   for (int tet_ind = 0; tet_ind < tet_dmn_type::dmn_size(); tet_ind += 3) {
     scalar_type volume = w_tet(tet_ind) + w_tet(tet_ind + 1) + w_tet(tet_ind + 2);
@@ -278,10 +285,10 @@ void* tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_m
   int id = data_ptr->id;
   int nr_threads = data_ptr->num_threads;
 
-  FUNC_LIB::function<scalar_type, tet_dmn_type>& w_tet = *(functions_ptr->w_tet_ptr);
-  FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type>>& G_tet =
+  func::function<scalar_type, tet_dmn_type>& w_tet = *(functions_ptr->w_tet_ptr);
+  func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, tet_dmn_type>>& G_tet =
       *(functions_ptr->G_tet_ptr);
-  FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu>>& G_int =
+  func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu>>& G_int =
       (functions_ptr->G_int_vec[id]);
 
   tet_dmn_type tet_dmn;
@@ -291,7 +298,7 @@ void* tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_m
     for (int i = 0; i < nu::dmn_size(); i++)
       G_int(i, j) = 0;
 
-  FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu>> G_tmp("G_tmp");
+  func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu>> G_tmp("G_tmp");
 
   tetrahedron_integration_data<scalar_type> data_obj(nu::dmn_size());
 
@@ -316,14 +323,14 @@ void* tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_m
 template <typename parameters_type, typename K_dmn>
 template <typename scalar_type>
 void tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_st_3D(
-    FUNC_LIB::function<scalar_type, tet_dmn_type>& w_tet,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type>>& G_tet,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu>>& G_int) {
+    func::function<scalar_type, tet_dmn_type>& w_tet,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, tet_dmn_type>>& G_tet,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu>>& G_int) {
   for (int j = 0; j < nu::dmn_size(); j++)
     for (int i = 0; i < nu::dmn_size(); i++)
       G_int(i, j) = 0;
 
-  FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu>> G_tmp("G_tmp");
+  func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu>> G_tmp("G_tmp");
 
   for (int tet_ind = 0; tet_ind < tet_dmn_type::dmn_size(); tet_ind += 4) {
     scalar_type volume =
@@ -400,10 +407,10 @@ void* tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_m
   int id = data_ptr->id;
   int nr_threads = data_ptr->num_threads;
 
-  FUNC_LIB::function<scalar_type, tet_dmn_type>& w_tet = *(functions_ptr->w_tet_ptr);
-  FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, tet_dmn_type>>& G_tet =
+  func::function<scalar_type, tet_dmn_type>& w_tet = *(functions_ptr->w_tet_ptr);
+  func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, tet_dmn_type>>& G_tet =
       *(functions_ptr->G_tet_ptr);
-  FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu>>& G_int =
+  func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu>>& G_int =
       (functions_ptr->G_int_vec[id]);
 
   tet_dmn_type tet_dmn;
@@ -413,7 +420,7 @@ void* tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_m
     for (int i = 0; i < nu::dmn_size(); i++)
       G_int(i, j) = 0;
 
-  FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu>> G_tmp("G_tmp");
+  func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu>> G_tmp("G_tmp");
 
   tetrahedron_integration_data<scalar_type> data_obj(nu::dmn_size());
 

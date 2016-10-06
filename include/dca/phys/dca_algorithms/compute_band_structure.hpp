@@ -17,7 +17,8 @@
 #include <string>
 #include <vector>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "comp_library/linalg/linalg.hpp"
 #include "phys_library/domains/cluster/interpolation/wannier_interpolation/wannier_interpolation.hpp"
 #include "phys_library/domains/cluster/cluster_domain.h"
@@ -31,13 +32,13 @@ namespace phys {
 
 class compute_band_structure {
 public:
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;
 
   using brillouin_zone_cut_domain_type = brillouin_zone_cut_domain<101>;
-  using k_domain_cut_dmn_type = dmn_0<brillouin_zone_cut_domain_type>;
-  using nu_k_cut = dmn_variadic<nu, k_domain_cut_dmn_type>;
+  using k_domain_cut_dmn_type = func::dmn_0<brillouin_zone_cut_domain_type>;
+  using nu_k_cut = func::dmn_variadic<nu, k_domain_cut_dmn_type>;
 
   // We give it a prime number such that it is positioned on an edge or corner of a patch.
   static const int INTERPOLATION_POINTS_BAND_STRUCTURE =
@@ -45,8 +46,8 @@ public:
 
   template <typename K_dmn_t, typename parameter_type>
   static void execute(parameter_type& parameters,
-                      FUNC_LIB::function<std::complex<double>, dmn_3<nu, nu, K_dmn_t>>& H_LDA,
-                      FUNC_LIB::function<double, nu_k_cut>& bands);
+                      func::function<std::complex<double>, func::dmn_variadic<nu, nu, K_dmn_t>>& H_LDA,
+                      func::function<double, nu_k_cut>& bands);
 
 private:
   template <int lattice_dimension>
@@ -64,8 +65,8 @@ private:
 template <typename K_dmn_t, typename parameter_type>
 void compute_band_structure::execute(
     parameter_type& parameters,
-    FUNC_LIB::function<std::complex<double>, dmn_3<nu, nu, K_dmn_t>>& H_LDA,
-    FUNC_LIB::function<double, nu_k_cut>& band_structure) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, K_dmn_t>>& H_LDA,
+    func::function<double, nu_k_cut>& band_structure) {
   std::vector<std::vector<double>> collection_k_vecs;
 
   {  // construct the path in the Brilluoin zone ...
@@ -83,7 +84,7 @@ void compute_band_structure::execute(
     band_structure.reset();
   }
 
-  FUNC_LIB::function<std::complex<double>, dmn_3<nu, nu, k_domain_cut_dmn_type>> H_k(
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_domain_cut_dmn_type>> H_k(
       "H_k_interpolated");
 
   {  // get H(k)

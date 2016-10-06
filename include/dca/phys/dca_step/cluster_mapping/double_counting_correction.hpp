@@ -15,7 +15,8 @@
 
 #include <vector>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
@@ -30,14 +31,14 @@ class double_counting_correction {
 public:
   using concurrency_type = typename parameters_type::concurrency_type;
 
-  using w = dmn_0<frequency_domain>;
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using w = func::dmn_0<frequency_domain>;
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
   using DCA_k_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
                                             CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
-  using k_DCA = dmn_0<DCA_k_cluster_type>;
+  using k_DCA = func::dmn_0<DCA_k_cluster_type>;
 
 public:
   double_counting_correction(parameters_type& parameters_ref, MOMS_type& MOMS_ref);
@@ -54,8 +55,8 @@ private:
 
   MOMS_type& MOMS;
 
-  FUNC_LIB::function<double, nu> mu_HALF;
-  FUNC_LIB::function<double, nu> DC;
+  func::function<double, nu> mu_HALF;
+  func::function<double, nu> DC;
 };
 
 template <typename parameters_type, typename MOMS_type>

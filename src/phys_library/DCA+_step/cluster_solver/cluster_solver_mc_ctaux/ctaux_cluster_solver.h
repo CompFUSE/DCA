@@ -20,9 +20,10 @@
 #include <iostream>
 #include <vector>
 
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "dca/profiling/events/time.hpp"
 #include "dca/util/print_time.hpp"
-#include "comp_library/function_library/include_function_library.h"
 #include "comp_library/linalg/linalg.hpp"
 #include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
 #include "math_library/statistical_methods.h"
@@ -54,17 +55,17 @@ public:
   typedef QMCI::MC_accumulator<QMCI::CT_AUX_SOLVER, dca::linalg::CPU, parameters_type, MOMS_type>
       accumulator_type;
 
-  using w = dmn_0<frequency_domain>;
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using w = func::dmn_0<frequency_domain>;
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
-  using r_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
-                                     REAL_SPACE, BRILLOUIN_ZONE>>;
-  using k_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
-                                     MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using r_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                           CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>>;
+  using k_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                           CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
 
-  using nu_nu_k_DCA_w = dmn_variadic<nu, nu, k_DCA, w>;
+  using nu_nu_k_DCA_w = func::dmn_variadic<nu, nu, k_DCA, w>;
 
 public:
   cluster_solver(parameters_type& parameters_ref, MOMS_type& MOMS_ref);
@@ -105,11 +106,13 @@ protected:
 
   double compute_S_k_w_from_G_k_w();
 
-  void compute_G_k_w_new(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>>& M_k_w_new,
-                         FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>>& G_k_w_new);
+  void compute_G_k_w_new(
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& M_k_w_new,
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& G_k_w_new);
 
-  void compute_S_k_w_new(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>>& G_k_w_new,
-                         FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>>& S_k_w_new);
+  void compute_S_k_w_new(
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& G_k_w_new,
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& S_k_w_new);
 
   void set_non_interacting_bands_to_zero();
 
@@ -131,8 +134,8 @@ protected:
 
   accumulator_type accumulator;
 
-  FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w> Sigma_old;
-  FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w> Sigma_new;
+  func::function<std::complex<double>, nu_nu_k_DCA_w> Sigma_old;
+  func::function<std::complex<double>, nu_nu_k_DCA_w> Sigma_new;
 
   int DCA_iteration;
 };
@@ -387,10 +390,10 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
   if (concurrency.id() == 0)
     std::cout << "\n\t\t compute-error-bars on Self-energy\t" << dca::util::print_time() << "\n\n";
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> G_k_w_new("G_k_w_new");
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>> G_k_w_new("G_k_w_new");
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>> M_r_w_new("M_r_w_new");
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> M_k_w_new("M_k_w_new");
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>> M_r_w_new("M_r_w_new");
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>> M_k_w_new("M_k_w_new");
 
   const int nb_measurements = accumulator.get_number_of_measurements();
   double sign = accumulator.get_sign() / double(nb_measurements);
@@ -634,8 +637,8 @@ double cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type,
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::compute_G_k_w_new(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>>& M_k_w_new,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>>& G_k_w_new) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& M_k_w_new,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& G_k_w_new) {
   //     if(concurrency.id()==0)
   //       std::cout << "\n\t\t compute-G_k_w_new\t" << dca::util::print_time() << "\n\n";
 
@@ -668,8 +671,8 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::compute_S_k_w_new(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>>& G_k_w_new,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>>& S_k_w_new) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& G_k_w_new,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& S_k_w_new) {
   //     if(concurrency.id()==0)
   //       std::cout << "\n\t\t start compute-S_k_w\t" << dca::util::print_time() << "\n\n";
 
@@ -746,7 +749,7 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type,
                     MOMS_type>::adjust_self_energy_for_double_counting() {
   set_non_interacting_bands_to_zero();
 
-  //  FUNC_LIB::function<double, nu> d_0;
+  //  func::function<double, nu> d_0;
   //  for(int l1=0; l1<b::dmn_size()*s::dmn_size(); l1++)
   //    for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++)
   //      for(int w_ind=0; w_ind<32; w_ind++)
@@ -842,9 +845,9 @@ double cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_typ
 
 template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
 auto cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::onNode_G_k_w() {
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> G_k_w_new("G_k_w");
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>> M_r_w_new("M_r_w_new");
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> M_k_w_new("M_k_w_new");
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>> G_k_w_new("G_k_w");
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>> M_r_w_new("M_r_w_new");
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>> M_k_w_new("M_k_w_new");
 
   const int nb_measurements = accumulator.get_number_of_measurements();
   double sign = accumulator.get_sign() / double(nb_measurements);

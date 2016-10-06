@@ -29,11 +29,11 @@ public:
   static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> get_orbital_permutations();
 
   template <class domain, class parameters_type>
-  static void initialize_H_interaction(FUNC_LIB::function<double, domain>& H_interaction,
+  static void initialize_H_interaction(func::function<double, domain>& H_interaction,
                                        parameters_type& parameters);
 
   template <class domain>
-  static void initialize_H_symmetry(FUNC_LIB::function<int, domain>& H_symmetry);
+  static void initialize_H_symmetry(func::function<int, domain>& H_symmetry);
 
   template <class parameters_type>
   static std::complex<double> get_LDA_Hamiltonians(parameters_type& parameters, std::vector<double> k,
@@ -111,7 +111,7 @@ std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> material_lattic
 template <typename point_group_type>
 template <class domain, class parameters_type>
 void material_lattice<NiO_symmetric, point_group_type>::initialize_H_interaction(
-    FUNC_LIB::function<double, domain>& H_i, parameters_type& parameters) {
+    func::function<double, domain>& H_i, parameters_type& parameters) {
   std::vector<std::vector<double>> U;
 
   io::CSVReader::execute(parameters.get_U_ij_file_name(), U);
@@ -124,7 +124,7 @@ void material_lattice<NiO_symmetric, point_group_type>::initialize_H_interaction
 template <typename point_group_type>
 template <class domain>
 void material_lattice<NiO_symmetric, point_group_type>::initialize_H_symmetry(
-    FUNC_LIB::function<int, domain>& H_symmetries) {
+    func::function<int, domain>& H_symmetries) {
   H_symmetries = -1;
 
   for (int s = 0; s < 2; s++)
@@ -209,11 +209,11 @@ public:
   static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> get_orbital_permutations();
 
   template <class domain, class parameters_type>
-  static void initialize_H_interaction(FUNC_LIB::function<double, domain>& H_interaction,
+  static void initialize_H_interaction(func::function<double, domain>& H_interaction,
                                        parameters_type& parameters);
 
   template <class domain>
-  static void initialize_H_symmetry(FUNC_LIB::function<int, domain>& H_symmetry);
+  static void initialize_H_symmetry(func::function<int, domain>& H_symmetry);
 
   template <class parameters_type>
   static std::complex<double> get_LDA_Hamiltonians(parameters_type& parameters, std::vector<double> k,
@@ -285,7 +285,7 @@ std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> material_lattic
 template <typename point_group_type>
 template <class domain, class parameters_type>
 void material_lattice<NiO_unsymmetric, point_group_type>::initialize_H_interaction(
-    FUNC_LIB::function<double, domain>& H_i, parameters_type& parameters) {
+    func::function<double, domain>& H_i, parameters_type& parameters) {
   std::vector<std::vector<double>> U;
 
   io::CSVReader::execute(parameters.get_U_ij_file_name(), U);
@@ -298,7 +298,7 @@ void material_lattice<NiO_unsymmetric, point_group_type>::initialize_H_interacti
 template <typename point_group_type>
 template <class domain>
 void material_lattice<NiO_unsymmetric, point_group_type>::initialize_H_symmetry(
-    FUNC_LIB::function<int, domain>& H_symmetries) {
+    func::function<int, domain>& H_symmetries) {
   H_symmetries = -1;
 
   for (int s = 0; s < 2; s++)

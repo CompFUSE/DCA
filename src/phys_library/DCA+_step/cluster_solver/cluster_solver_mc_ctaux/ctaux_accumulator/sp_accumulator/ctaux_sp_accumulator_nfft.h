@@ -19,7 +19,8 @@
 #include <complex>
 #include <vector>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "math_library/NFFT/dnfft_1D.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_vertex_singleton.h"
 #include "phys_library/domains/cluster/cluster_domain.h"
@@ -37,16 +38,16 @@ class MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_
 public:
   using vertex_singleton_type = vertex_singleton;
 
-  using t = dmn_0<time_domain>;
-  using w = dmn_0<frequency_domain>;
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
+  using t = func::dmn_0<time_domain>;
+  using w = func::dmn_0<frequency_domain>;
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
 
-  using r_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
-                                     REAL_SPACE, BRILLOUIN_ZONE>>;
+  using r_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                           CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>>;
 
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
-  using p_dmn_t = dmn_variadic<nu, nu, r_DCA>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
+  using p_dmn_t = func::dmn_variadic<nu, nu, r_DCA>;
 
   typedef typename parameters_type::profiler_type profiler_type;
   typedef typename parameters_type::concurrency_type concurrency_type;
@@ -57,15 +58,17 @@ public:
 public:
   MC_single_particle_accumulator(parameters_type& parameters_ref);
 
-  void initialize(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>>& M_r_w);
+  void initialize(func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& M_r_w);
 
-  void initialize(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>>& M_r_w,
-                  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>>& M_r_w_squared);
+  void initialize(
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& M_r_w,
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& M_r_w_squared);
 
   void finalize();
 
-  void finalize(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>>& M_r_w,
-                FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>>& M_r_w_squared);
+  void finalize(
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& M_r_w,
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& M_r_w_squared);
 
   template <class configuration_type, class vertex_vertex_matrix_type>
   void accumulate_M_r_w(configuration_type& configuration_e_spin, vertex_vertex_matrix_type& M,
@@ -73,13 +76,14 @@ public:
 
   template <class configuration_type>
   void accumulate_K_r_t(configuration_type& configuration,
-                        FUNC_LIB::function<double, dmn_4<nu, nu, r_DCA, t>>& K_r_t, double sign);
+                        func::function<double, func::dmn_variadic<nu, nu, r_DCA, t>>& K_r_t,
+                        double sign);
 
   int find_first_non_interacting_spin(std::vector<vertex_singleton_type>& configuration_e_spin);
 
-  void compute_M_r_w(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>>& M_r_w);
+  void compute_M_r_w(func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& M_r_w);
   void compute_M_r_w_square(
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>>& M_r_w_square);
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& M_r_w_square);
 
 private:
   parameters_type& parameters;
@@ -100,7 +104,7 @@ MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type,
 
 template <class parameters_type, class MOMS_type>
 void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::initialize(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>>& M_r_w) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& M_r_w) {
   cached_nfft_1D_M_r_w_obj.initialize();
 
   for (int i = 0; i < M_r_w.size(); i++)
@@ -109,8 +113,8 @@ void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_t
 
 template <class parameters_type, class MOMS_type>
 void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::initialize(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>>& M_r_w,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>>& M_r_w_squared) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& M_r_w,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& M_r_w_squared) {
   cached_nfft_1D_M_r_w_obj.initialize();
   cached_nfft_1D_M_r_w_squared_obj.initialize();
 
@@ -187,7 +191,7 @@ template <class parameters_type, class MOMS_type>
 template <class configuration_type>
 void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::accumulate_K_r_t(
     configuration_type& /*configuration*/,
-    FUNC_LIB::function<double, dmn_4<nu, nu, r_DCA, t>>& /*K_r_t*/, double /*sign*/) {
+    func::function<double, func::dmn_variadic<nu, nu, r_DCA, t>>& /*K_r_t*/, double /*sign*/) {
   // for next generation solver !!
 
   /*
@@ -239,8 +243,8 @@ int MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_ty
 
 template <class parameters_type, class MOMS_type>
 void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::compute_M_r_w(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>>& M_r_w) {
-  FUNC_LIB::function<std::complex<double>, dmn_2<w, p_dmn_t>> tmp("tmp M_r_w");
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& M_r_w) {
+  func::function<std::complex<double>, func::dmn_variadic<w, p_dmn_t>> tmp("tmp M_r_w");
   cached_nfft_1D_M_r_w_obj.finalize(tmp);
 
   for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++)
@@ -259,10 +263,10 @@ void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_t
 
 template <class parameters_type, class MOMS_type>
 void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>::finalize(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>>& M_r_w,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>>& M_r_w_squared) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& M_r_w,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& M_r_w_squared) {
   {
-    FUNC_LIB::function<std::complex<double>, dmn_2<w, p_dmn_t>> tmp("tmp M_r_w");
+    func::function<std::complex<double>, func::dmn_variadic<w, p_dmn_t>> tmp("tmp M_r_w");
     cached_nfft_1D_M_r_w_obj.finalize(tmp);
 
     for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++)
@@ -280,7 +284,7 @@ void MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_t
   }
 
   {
-    FUNC_LIB::function<std::complex<double>, dmn_2<w, p_dmn_t>> tmp("tmp M_r_w");
+    func::function<std::complex<double>, func::dmn_variadic<w, p_dmn_t>> tmp("tmp M_r_w");
     cached_nfft_1D_M_r_w_squared_obj.finalize(tmp);
 
     for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++)

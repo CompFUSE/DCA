@@ -62,8 +62,9 @@
 #include <stdexcept>
 #include <vector>
 
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "dca/util/print_time.hpp"
-#include "comp_library/function_library/include_function_library.h"
 #include "comp_library/linalg/linalg.hpp"
 #include "math_library/geometry_library/vector_operations/vector_operations.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/high_temperature_series_expansion_solver.h"
@@ -88,75 +89,75 @@ public:
   using concurrency_type = typename parameters_type::concurrency_type;
 
   const static int N_LAMBDAS = 10;
-  using lambda_dmn_type = dmn_0<dmn<N_LAMBDAS, int>>;
+  using lambda_dmn_type = func::dmn_0<func::dmn<N_LAMBDAS, int>>;
 
   const static int N_CUBIC = 3;
-  using cubic_harmonics_dmn_type = dmn_0<dmn<N_CUBIC, int>>;
+  using cubic_harmonics_dmn_type = func::dmn_0<func::dmn<N_CUBIC, int>>;
 
-  using w_VERTEX = dmn_0<DCA::vertex_frequency_domain<DCA::COMPACT>>;
-  using b = dmn_0<electron_band_domain>;
-  using b_b = dmn_variadic<b, b>;
+  using w_VERTEX = func::dmn_0<DCA::vertex_frequency_domain<DCA::COMPACT>>;
+  using b = func::dmn_0<electron_band_domain>;
+  using b_b = func::dmn_variadic<b, b>;
 
-  using k_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
-                                     MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
-  using k_HOST = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, LATTICE_SP,
-                                      MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
-  using k_HOST_VERTEX = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                             LATTICE_TP, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using k_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                           CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using k_HOST = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                            LATTICE_SP, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using k_HOST_VERTEX = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                                   LATTICE_TP, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
 
   using host_vertex_r_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
                                                     LATTICE_TP, REAL_SPACE, BRILLOUIN_ZONE>;
   using crystal_harmonics_expansion = centered_cluster_domain<host_vertex_r_cluster_type>;
-  using crystal_harmonics_expansion_dmn_t = dmn_0<crystal_harmonics_expansion>;
+  using crystal_harmonics_expansion_dmn_t = func::dmn_0<crystal_harmonics_expansion>;
 
-  using chi_vector_dmn_t = dmn_variadic<b, b, crystal_harmonics_expansion_dmn_t>;
+  using chi_vector_dmn_t = func::dmn_variadic<b, b, crystal_harmonics_expansion_dmn_t>;
 
-  using cluster_eigenvector_dmn_t = dmn_variadic<b, b, k_DCA, w_VERTEX>;
-  using lattice_eigenvector_dmn_t = dmn_variadic<b, b, k_HOST_VERTEX, w_VERTEX>;
-  using crystal_eigenvector_dmn_t = dmn_variadic<b, b, crystal_harmonics_expansion_dmn_t, w_VERTEX>;
-  using cubic_eigenvector_dmn_t = dmn_variadic<b, b, cubic_harmonics_dmn_type, w_VERTEX>;
+  using cluster_eigenvector_dmn_t = func::dmn_variadic<b, b, k_DCA, w_VERTEX>;
+  using lattice_eigenvector_dmn_t = func::dmn_variadic<b, b, k_HOST_VERTEX, w_VERTEX>;
+  using crystal_eigenvector_dmn_t =
+      func::dmn_variadic<b, b, crystal_harmonics_expansion_dmn_t, w_VERTEX>;
+  using cubic_eigenvector_dmn_t = func::dmn_variadic<b, b, cubic_harmonics_dmn_type, w_VERTEX>;
 
-  using DCA_matrix_dmn_t = dmn_variadic<cluster_eigenvector_dmn_t, cluster_eigenvector_dmn_t>;
-  using HOST_matrix_dmn_t = dmn_variadic<lattice_eigenvector_dmn_t, lattice_eigenvector_dmn_t>;
-  using crystal_matrix_dmn_t = dmn_variadic<crystal_eigenvector_dmn_t, crystal_eigenvector_dmn_t>;
+  using DCA_matrix_dmn_t = func::dmn_variadic<cluster_eigenvector_dmn_t, cluster_eigenvector_dmn_t>;
+  using HOST_matrix_dmn_t = func::dmn_variadic<lattice_eigenvector_dmn_t, lattice_eigenvector_dmn_t>;
+  using crystal_matrix_dmn_t =
+      func::dmn_variadic<crystal_eigenvector_dmn_t, crystal_eigenvector_dmn_t>;
 
 public:
   BSE_lattice_solver(parameters_type& parameters, MOMS_type& MOMS);
 
-  FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& get_Gamma_lattice() {
+  func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& get_Gamma_lattice() {
     return Gamma_lattice;
   }
 
   template <typename Writer>
   void write(Writer& writer);
 
-  void compute_chi_0_lattice(FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0);
+  void compute_chi_0_lattice(func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0);
 
-  void compute_Gamma_lattice_1(
-      FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t>& Gamma_cluster);
-  void compute_Gamma_lattice_3(
-      FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t>& Gamma_cluster);
+  void compute_Gamma_lattice_1(func::function<std::complex<scalartype>, DCA_matrix_dmn_t>& Gamma_cluster);
+  void compute_Gamma_lattice_3(func::function<std::complex<scalartype>, DCA_matrix_dmn_t>& Gamma_cluster);
 
   void diagonolize_Gamma_chi_0(
-      FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
-      FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice);
+      func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
+      func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice);
 
-  FUNC_LIB::function<std::complex<scalartype>, lambda_dmn_type>& get_leading_eigenvalues() {
+  func::function<std::complex<scalartype>, lambda_dmn_type>& get_leading_eigenvalues() {
     return leading_eigenvalues;
   };
 
 private:
   void initialize();
 
-  void set_chi_0_matrix(FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0);
+  void set_chi_0_matrix(func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0);
 
   void diagonolize_full_Gamma_chi_0_real(
-      FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
-      FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice);
+      func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
+      func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice);
 
   void diagonolize_full_Gamma_chi_0(
-      FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
-      FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice);
+      func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
+      func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice);
 
   void record_eigenvalues_and_eigenvectors(dca::linalg::Vector<scalartype, dca::linalg::CPU>& L,
                                            dca::linalg::Matrix<scalartype, dca::linalg::CPU>& VR);
@@ -167,8 +168,8 @@ private:
       dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& VR);
 
   void diagonolize_folded_Gamma_chi_0(
-      FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
-      FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice);
+      func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
+      func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice);
 
   void record_eigenvalues_and_folded_eigenvectors(
       dca::linalg::Vector<std::complex<scalartype>, dca::linalg::CPU>& L,
@@ -176,7 +177,7 @@ private:
       dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& VR);
 
   void compute_folded_susceptibility(
-      FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice,
+      func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice,
       dca::linalg::Vector<std::complex<scalartype>, dca::linalg::CPU>& L,
       dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& VL,
       dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& VR);
@@ -194,30 +195,31 @@ private:
 
   MOMS_type& MOMS;
 
-  FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t> Gamma_lattice;
-  FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t> Gamma_sym;
-  FUNC_LIB::function<std::complex<scalartype>, dmn_variadic<b_b, b_b, k_HOST_VERTEX, w_VERTEX>> chi_0_function;
+  func::function<std::complex<scalartype>, HOST_matrix_dmn_t> Gamma_lattice;
+  func::function<std::complex<scalartype>, HOST_matrix_dmn_t> Gamma_sym;
+  func::function<std::complex<scalartype>, func::dmn_variadic<b_b, b_b, k_HOST_VERTEX, w_VERTEX>>
+      chi_0_function;
 
-  FUNC_LIB::function<std::complex<scalartype>, lambda_dmn_type> leading_eigenvalues;
-  FUNC_LIB::function<std::complex<scalartype>, dmn_variadic<lambda_dmn_type, cubic_eigenvector_dmn_t>>
+  func::function<std::complex<scalartype>, lambda_dmn_type> leading_eigenvalues;
+  func::function<std::complex<scalartype>, func::dmn_variadic<lambda_dmn_type, cubic_eigenvector_dmn_t>>
       leading_symmetry_decomposition;
-  FUNC_LIB::function<std::complex<scalartype>, dmn_variadic<lambda_dmn_type, lattice_eigenvector_dmn_t>>
+  func::function<std::complex<scalartype>, func::dmn_variadic<lambda_dmn_type, lattice_eigenvector_dmn_t>>
       leading_eigenvectors;
 
-  FUNC_LIB::function<scalartype, lambda_dmn_type> leading_eigenvalues_real;
-  FUNC_LIB::function<scalartype, dmn_variadic<lambda_dmn_type, lattice_eigenvector_dmn_t>>
+  func::function<scalartype, lambda_dmn_type> leading_eigenvalues_real;
+  func::function<scalartype, func::dmn_variadic<lambda_dmn_type, lattice_eigenvector_dmn_t>>
       leading_eigenvectors_real;
 
-  FUNC_LIB::function<std::complex<scalartype>, dmn_variadic<chi_vector_dmn_t, chi_vector_dmn_t>> chi_q;
+  func::function<std::complex<scalartype>, func::dmn_variadic<chi_vector_dmn_t, chi_vector_dmn_t>> chi_q;
 
-  FUNC_LIB::function<std::complex<scalartype>,
-                     dmn_variadic<k_HOST_VERTEX, crystal_harmonics_expansion_dmn_t>>
+  func::function<std::complex<scalartype>,
+                 func::dmn_variadic<k_HOST_VERTEX, crystal_harmonics_expansion_dmn_t>>
       psi_k;
-  FUNC_LIB::function<std::complex<scalartype>,
-                     dmn_variadic<lattice_eigenvector_dmn_t, crystal_eigenvector_dmn_t>>
+  func::function<std::complex<scalartype>,
+                 func::dmn_variadic<lattice_eigenvector_dmn_t, crystal_eigenvector_dmn_t>>
       crystal_harmonics;
 
-  FUNC_LIB::function<std::complex<scalartype>, dmn_variadic<k_HOST_VERTEX, cubic_harmonics_dmn_type>>
+  func::function<std::complex<scalartype>, func::dmn_variadic<k_HOST_VERTEX, cubic_harmonics_dmn_type>>
       leading_symmetry_functions;
 };
 
@@ -372,7 +374,7 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::initialize() {
 // Peter's modify May 4
 template <class parameters_type, class MOMS_type>
 void BSE_lattice_solver<parameters_type, MOMS_type>::compute_chi_0_lattice(
-    FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0) {
+    func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0) {
   profiler_type prof(__FUNCTION__, "BSE_lattice_solver", __LINE__);
 
   if (concurrency.id() == concurrency.last())
@@ -432,7 +434,7 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::compute_chi_0_lattice(
 
 template <class parameters_type, class MOMS_type>
 void BSE_lattice_solver<parameters_type, MOMS_type>::set_chi_0_matrix(
-    FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0) {
+    func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0) {
   scalartype renorm = 1. / (parameters.get_beta() * k_HOST_VERTEX::dmn_size());
 
   for (int w_ind = 0; w_ind < w_VERTEX::dmn_size(); w_ind++)
@@ -449,7 +451,7 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::set_chi_0_matrix(
 
 template <class parameters_type, class MOMS_type>
 void BSE_lattice_solver<parameters_type, MOMS_type>::compute_Gamma_lattice_3(
-    FUNC_LIB::function<std::complex<scalartype>, DCA_matrix_dmn_t>& Gamma_cluster) {
+    func::function<std::complex<scalartype>, DCA_matrix_dmn_t>& Gamma_cluster) {
   profiler_type prof(__FUNCTION__, "BSE_lattice_solver", __LINE__);
 
   // Need following condition lines for regular DCA; otherwise execute(Gamma_cluster, Gamma_lattice)
@@ -488,8 +490,8 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::compute_Gamma_lattice_3(
 
 template <class parameters_type, class MOMS_type>
 void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_Gamma_chi_0(
-    FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
-    FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice) {
+    func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
+    func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice) {
   if (parameters.do_diagonalization_on_folded_Gamma_chi_0()) {
     diagonolize_folded_Gamma_chi_0(Gamma_lattice, chi_0_lattice);
   }
@@ -502,8 +504,8 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_Gamma_chi_0(
 
 template <class parameters_type, class MOMS_type>
 void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_full_Gamma_chi_0_real(
-    FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& /*Gamma_lattice*/,
-    FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice) {
+    func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& /*Gamma_lattice*/,
+    func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice) {
   profiler_type prof(__FUNCTION__, "BSE_lattice_solver", __LINE__);
 
   int N = lattice_eigenvector_dmn_t::dmn_size();
@@ -564,8 +566,8 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_full_Gamma_chi_
 
 template <class parameters_type, class MOMS_type>
 void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_full_Gamma_chi_0(
-    FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
-    FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice) {
+    func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
+    func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice) {
   profiler_type prof(__FUNCTION__, "BSE_lattice_solver", __LINE__);
 
   int N = lattice_eigenvector_dmn_t::dmn_size();
@@ -675,8 +677,8 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::record_eigenvalues_and_eige
 
 template <class parameters_type, class MOMS_type>
 void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_folded_Gamma_chi_0(
-    FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
-    FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice) {
+    func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
+    func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice) {
   if (concurrency.id() == concurrency.last())
     std::cout << __FUNCTION__ << std::endl;
 
@@ -812,7 +814,7 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::record_eigenvalues_and_fold
 
 template <class parameters_type, class MOMS_type>
 void BSE_lattice_solver<parameters_type, MOMS_type>::compute_folded_susceptibility(
-    FUNC_LIB::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice,
+    func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice,
     dca::linalg::Vector<std::complex<scalartype>, dca::linalg::CPU>& L,
     dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& VL,
     dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& VR) {
@@ -868,8 +870,8 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::compute_folded_susceptibili
   }
 
   {
-    FUNC_LIB::function<std::complex<scalartype>,
-                       dmn_variadic<crystal_eigenvector_dmn_t, crystal_eigenvector_dmn_t>>
+    func::function<std::complex<scalartype>,
+                   func::dmn_variadic<crystal_eigenvector_dmn_t, crystal_eigenvector_dmn_t>>
         chi_q_tmp("chi_q_tmp");
 
     {

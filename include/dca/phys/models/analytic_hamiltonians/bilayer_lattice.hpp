@@ -17,8 +17,8 @@
 #include <utility>
 #include <vector>
 
+#include "dca/function/function.hpp"
 #include "dca/phys/models/analytic_hamiltonians/cluster_shape_type.hpp"
-#include "comp_library/function_library/include_function_library.h"
 #include "phys_library/domains/cluster/symmetries/point_groups/No_symmetry.h"
 
 namespace dca {
@@ -62,14 +62,14 @@ public:
   static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> get_orbital_permutations();
 
   template <class domain, class parameters_type>
-  static void initialize_H_interaction(FUNC_LIB::function<double, domain>& H_interaction,
+  static void initialize_H_interaction(func::function<double, domain>& H_interaction,
                                        parameters_type& parameters);
 
   template <class domain>
-  static void initialize_H_symmetry(FUNC_LIB::function<int, domain>& H_symmetry);
+  static void initialize_H_symmetry(func::function<int, domain>& H_symmetry);
 
   template <class domain, class parameters_type>
-  static void initialize_H_LDA(FUNC_LIB::function<std::complex<double>, domain>& H_LDA,
+  static void initialize_H_LDA(func::function<std::complex<double>, domain>& H_LDA,
                                parameters_type& parameters);
 
   template <class parameters_type>
@@ -152,7 +152,7 @@ std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> bilayer_lattice
 template <typename point_group_type>
 template <class domain, class parameters_type>
 void bilayer_lattice<point_group_type>::initialize_H_interaction(
-    FUNC_LIB::function<double, domain>& H_interaction, parameters_type& parameters) {
+    func::function<double, domain>& H_interaction, parameters_type& parameters) {
   H_interaction = 0.;
 
   double U = parameters.get_U();
@@ -180,8 +180,7 @@ void bilayer_lattice<point_group_type>::initialize_H_interaction(
 
 template <typename point_group_type>
 template <class domain>
-void bilayer_lattice<point_group_type>::initialize_H_symmetry(
-    FUNC_LIB::function<int, domain>& H_symmetries) {
+void bilayer_lattice<point_group_type>::initialize_H_symmetry(func::function<int, domain>& H_symmetries) {
   H_symmetries = -1;
 
   H_symmetries(0, 0, 0, 0) = 0;
@@ -194,7 +193,7 @@ void bilayer_lattice<point_group_type>::initialize_H_symmetry(
 template <typename point_group_type>
 template <class domain, class parameters_type>
 void bilayer_lattice<point_group_type>::initialize_H_LDA(
-    FUNC_LIB::function<std::complex<double>, domain>& H_LDA, parameters_type& parameters) {
+    func::function<std::complex<double>, domain>& H_LDA, parameters_type& parameters) {
   typedef typename parameters_type::b b;
   typedef typename parameters_type::s s;
 

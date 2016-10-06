@@ -17,7 +17,8 @@
 #include <iostream>
 #include <vector>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Fock_space.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Greens_functions/sp_Greens_function_data.h"
@@ -65,14 +66,14 @@ public:
   typedef Fock_space<parameter_type, ed_options> fermionic_Fock_space_type;
   typedef Hilbert_space<parameter_type, ed_options> Hilbert_space_type;
 
-  typedef dmn_0<fermionic_Fock_space_type> fermionic_Fock_dmn_type;
+  typedef func::dmn_0<fermionic_Fock_space_type> fermionic_Fock_dmn_type;
 
   typedef sp_Greens_function_data<ed_options> sp_Greens_function_data_type;
 
-  using t = dmn_0<time_domain>;
-  using w = dmn_0<frequency_domain>;
-  using w_REAL = dmn_0<frequency_domain_real_axis>;
-  using w_VERTEX = dmn_0<DCA::vertex_frequency_domain<DCA::COMPACT>>;
+  using t = func::dmn_0<time_domain>;
+  using w = func::dmn_0<frequency_domain>;
+  using w_REAL = func::dmn_0<frequency_domain_real_axis>;
+  using w_VERTEX = func::dmn_0<DCA::vertex_frequency_domain<DCA::COMPACT>>;
 
 public:
   fermionic_sp_Greens_function(parameter_type& parameters_ref,
@@ -89,30 +90,30 @@ public:
 
   template <typename w_dmn>
   void compute_S_k_w(
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, k_dmn, w_dmn>>& G_k_w,
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, k_dmn, w_dmn>>& G0_k_w,
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, k_dmn, w_dmn>>& S_k_w);
+      func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, k_dmn, w_dmn>>& G_k_w,
+      func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, k_dmn, w_dmn>>& G0_k_w,
+      func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, k_dmn, w_dmn>>& S_k_w);
 
 private:
   /*!
    *  new functions ...
    */
   void compute_real_space_Greens_functions(
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w>>& G_r_w_im,
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL>>& G_r_w_re,
-      FUNC_LIB::function<double, dmn_4<nu_dmn, nu_dmn, r_dmn, t>>& G_r_t,
-      FUNC_LIB::function<complex_type, dmn_6<nu_dmn, nu_dmn, r_dmn, r_dmn, w_VERTEX, w_VERTEX>>&
+      func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, w>>& G_r_w_im,
+      func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, w_REAL>>& G_r_w_re,
+      func::function<double, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, t>>& G_r_t,
+      func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, r_dmn, w_VERTEX, w_VERTEX>>&
           G_nu_nu_r_r_w_w,
-      FUNC_LIB::function<complex_type, dmn_6<nu_dmn, nu_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>&
+      func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>&
           G_nu_nu_k_k_w_w);
 
   void renormalize_real_space_Greens_functions(
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w>>& G_r_w_im,
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL>>& G_r_w_re,
-      FUNC_LIB::function<double, dmn_4<nu_dmn, nu_dmn, r_dmn, t>>& G_r_t,
-      FUNC_LIB::function<complex_type, dmn_6<nu_dmn, nu_dmn, r_dmn, r_dmn, w_VERTEX, w_VERTEX>>&
+      func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, w>>& G_r_w_im,
+      func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, w_REAL>>& G_r_w_re,
+      func::function<double, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, t>>& G_r_t,
+      func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, r_dmn, w_VERTEX, w_VERTEX>>&
           G_nu_nu_r_r_w_w,
-      FUNC_LIB::function<complex_type, dmn_6<nu_dmn, nu_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>&
+      func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>&
           G_nu_nu_k_k_w_w);
 
   void compute_Greens_functions_ac_slow(std::vector<sp_Greens_function_data_type>& data_vec);  // ,
@@ -146,33 +147,33 @@ private:
    *  old functions ...
    */
   void compute_Greens_functions_main(
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w>>& G_r_w,
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL>>& G_r_w_real,
-      FUNC_LIB::function<double, dmn_4<nu_dmn, nu_dmn, r_dmn, t>>& G_r_t,
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, k_dmn, w>>& G_k_w,
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, k_dmn, w_REAL>>& G_k_w_real,
-      FUNC_LIB::function<double, dmn_4<nu_dmn, nu_dmn, k_dmn, t>>& G_k_t);
+      func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, w>>& G_r_w,
+      func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, w_REAL>>& G_r_w_real,
+      func::function<double, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, t>>& G_r_t,
+      func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, k_dmn, w>>& G_k_w,
+      func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, k_dmn, w_REAL>>& G_k_w_real,
+      func::function<double, func::dmn_variadic<nu_dmn, nu_dmn, k_dmn, t>>& G_k_t);
 
   void compute_Greens_functions_st(
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w>>& G_r_w,
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL>>& G_r_w_real,
-      FUNC_LIB::function<double, dmn_4<nu_dmn, nu_dmn, r_dmn, t>>& G_r_t);
+      func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, w>>& G_r_w,
+      func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, w_REAL>>& G_r_w_real,
+      func::function<double, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, t>>& G_r_t);
 
   void compute_Greens_functions_ac_translation(
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w>>& G_r_w,
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL>>& G_r_w_real,
-      FUNC_LIB::function<double, dmn_4<nu_dmn, nu_dmn, r_dmn, t>>& G_r_t);
+      func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, w>>& G_r_w,
+      func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, w_REAL>>& G_r_w_real,
+      func::function<double, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, t>>& G_r_t);
 
   void compute_Greens_functions_ca_translation(
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w>>& G_r_w,
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL>>& G_r_w_real,
-      FUNC_LIB::function<double, dmn_4<nu_dmn, nu_dmn, r_dmn, t>>& G_r_t);
+      func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, w>>& G_r_w,
+      func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, w_REAL>>& G_r_w_real,
+      func::function<double, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, t>>& G_r_t);
 
   void compute_sp_Greens_function(
       int nu_i, int nu_j, int delta_r, scalar_type E_0, scalar_type E_1, complex_type factor,
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w>>& G_r_w,
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL>>& G_r_w_real,
-      FUNC_LIB::function<double, dmn_4<nu_dmn, nu_dmn, r_dmn, t>>& G_r_t);
+      func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, w>>& G_r_w,
+      func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, w_REAL>>& G_r_w_real,
+      func::function<double, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, t>>& G_r_t);
 
 private:
   parameter_type& parameters;
@@ -183,24 +184,24 @@ private:
   fermionic_Hamiltonian_type& Hamiltonian;
   fermionic_overlap_type& overlap;
 
-  FUNC_LIB::function<vector_type, fermionic_Fock_dmn_type>& eigen_energies;
-  FUNC_LIB::function<matrix_type, fermionic_Fock_dmn_type>& eigen_states;
+  func::function<vector_type, fermionic_Fock_dmn_type>& eigen_energies;
+  func::function<matrix_type, fermionic_Fock_dmn_type>& eigen_states;
 
-  FUNC_LIB::function<int, dmn_3<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type, b_s_r_dmn_type>>&
-      creation_set_all;
-  FUNC_LIB::function<int, dmn_3<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type, b_s_r_dmn_type>>&
-      annihilation_set_all;
+  func::function<int, func::dmn_variadic<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type,
+                                         b_s_r_dmn_type>>& creation_set_all;
+  func::function<int, func::dmn_variadic<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type,
+                                         b_s_r_dmn_type>>& annihilation_set_all;
 
-  FUNC_LIB::function<int, dmn_2<r_dmn, r_dmn>> rj_minus_ri;
+  func::function<int, func::dmn_variadic<r_dmn, r_dmn>> rj_minus_ri;
 
-  FUNC_LIB::function<complex_type, dmn_6<nu_dmn, nu_dmn, r_dmn, r_dmn, w_VERTEX, w_VERTEX>>
+  func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, r_dmn, w_VERTEX, w_VERTEX>>
       G0_nonlocal_nu_nu_r_r_w_w;
-  FUNC_LIB::function<complex_type, dmn_6<nu_dmn, nu_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>
+  func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>
       G0_nonlocal_nu_nu_k_k_w_w;
 
-  FUNC_LIB::function<complex_type, dmn_6<nu_dmn, nu_dmn, r_dmn, r_dmn, w_VERTEX, w_VERTEX>>
+  func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, r_dmn, w_VERTEX, w_VERTEX>>
       G_nonlocal_nu_nu_r_r_w_w;
-  FUNC_LIB::function<complex_type, dmn_6<nu_dmn, nu_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>
+  func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>
       G_nonlocal_nu_nu_k_k_w_w;
 };
 
@@ -240,9 +241,9 @@ fermionic_sp_Greens_function<parameter_type, ed_options>::fermionic_sp_Greens_fu
 template <typename parameter_type, typename ed_options>
 template <typename w_dmn>
 void fermionic_sp_Greens_function<parameter_type, ed_options>::compute_S_k_w(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, k_dmn, w_dmn>>& G_k_w,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, k_dmn, w_dmn>>& G0_k_w,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, k_dmn, w_dmn>>& S_k_w) {
+    func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, k_dmn, w_dmn>>& G_k_w,
+    func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, k_dmn, w_dmn>>& G0_k_w,
+    func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, k_dmn, w_dmn>>& S_k_w) {
   if (concurrency.id() == 0)
     std::cout << "\n\t" << __FUNCTION__ << std::endl;
 
@@ -334,13 +335,13 @@ void fermionic_sp_Greens_function<parameter_type, ed_options>::compute_all_sp_fu
 
 template <typename parameter_type, typename ed_options>
 void fermionic_sp_Greens_function<parameter_type, ed_options>::compute_real_space_Greens_functions(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w>>& G_r_w_im,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL>>& G_r_w_re,
-    FUNC_LIB::function<double, dmn_4<nu_dmn, nu_dmn, r_dmn, t>>& G_r_t,
-    FUNC_LIB::function<complex_type,
-                       dmn_6<nu_dmn, nu_dmn, r_dmn, r_dmn, w_VERTEX, w_VERTEX>>& /*G_nu_nu_r_r_w_w*/,
-    FUNC_LIB::function<complex_type,
-                       dmn_6<nu_dmn, nu_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>& /*G_nu_nu_k_k_w_w*/) {
+    func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, w>>& G_r_w_im,
+    func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, w_REAL>>& G_r_w_re,
+    func::function<double, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, t>>& G_r_t,
+    func::function<complex_type,
+                   func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, r_dmn, w_VERTEX, w_VERTEX>>& /*G_nu_nu_r_r_w_w*/,
+    func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, k_dmn, k_dmn, w_VERTEX,
+                                                    w_VERTEX>>& /*G_nu_nu_k_k_w_w*/) {
   if (concurrency.id() == 0)
     std::cout << "\n\t" << __FUNCTION__ << std::endl;
 
@@ -382,11 +383,12 @@ void fermionic_sp_Greens_function<parameter_type, ed_options>::compute_real_spac
 
 template <typename parameter_type, typename ed_options>
 void fermionic_sp_Greens_function<parameter_type, ed_options>::renormalize_real_space_Greens_functions(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w>>& G_r_w_im,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL>>& G_r_w_re,
-    FUNC_LIB::function<double, dmn_4<nu_dmn, nu_dmn, r_dmn, t>>& G_r_t,
-    FUNC_LIB::function<complex_type, dmn_6<nu_dmn, nu_dmn, r_dmn, r_dmn, w_VERTEX, w_VERTEX>>& G_nu_nu_r_r_w_w,
-    FUNC_LIB::function<complex_type, dmn_6<nu_dmn, nu_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>&
+    func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, w>>& G_r_w_im,
+    func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, w_REAL>>& G_r_w_re,
+    func::function<double, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, t>>& G_r_t,
+    func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, r_dmn, w_VERTEX, w_VERTEX>>&
+        G_nu_nu_r_r_w_w,
+    func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>&
         G_nu_nu_k_k_w_w) {
   if (concurrency.id() == concurrency.first()) {
     std::cout << "\n\t" << __FUNCTION__ << std::endl;
@@ -487,9 +489,9 @@ void fermionic_sp_Greens_function<parameter_type, ed_options>::compute_Greens_fu
 template <typename parameter_type, typename ed_options>
 void fermionic_sp_Greens_function<parameter_type, ed_options>::compute_Greens_functions_ca_slow(
     std::vector<sp_Greens_function_data_type>& data_vec)  // ,
-//                                                                                                     FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w     > >& G_r_w,
-//                                                                                                     FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL> >& G_r_w_real,
-//                                                                                                     FUNC_LIB::function<             double , dmn_4<nu_dmn, nu_dmn, r_dmn, t     > >& G_r_t)
+//                                                                                                     func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, w     > >& G_r_w,
+//                                                                                                     func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, w_REAL> >& G_r_w_real,
+//                                                                                                     func::function<             double , func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, t     > >& G_r_t)
 {
   if (concurrency.id() == 0)
     std::cout << "\n\n\t" << __FUNCTION__ << "\n\n";

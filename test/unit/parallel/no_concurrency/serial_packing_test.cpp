@@ -10,10 +10,13 @@
 // This file tests serial_packing.hpp.
 
 #include "dca/parallel/no_concurrency/serial_packing.hpp"
+
 #include <cstdint>
+
 #include "gtest/gtest.h"
-#include "comp_library/function_library/domains/special_domains/dmn.h"
-#include "comp_library/function_library/domains/special_domains/dmn_0.h"
+
+#include "dca/function/domains/dmn.hpp"
+#include "dca/function/domains/dmn_0.hpp"
 
 TEST(SerialPackingTest, All) {
   dca::parallel::SerialPacking packing_interface;
@@ -31,7 +34,7 @@ TEST(SerialPackingTest, All) {
   EXPECT_EQ(40, packing_interface.get_buffer_size(v));  // 10*4 = 40
 
   // function
-  using Domain = dmn_0<dmn<3, int>>;
-  FUNC_LIB::function<int32_t, Domain> f;
+  using Domain = dca::func::dmn_0<dca::func::dmn<3, int>>;
+  dca::func::function<int32_t, Domain> f;
   EXPECT_EQ(12, packing_interface.get_buffer_size(f));  // 3*4 = 12
 }
