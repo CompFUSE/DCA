@@ -103,13 +103,13 @@ int* N_MATRIX_TOOLS<dca::linalg::CPU, parameters_type>::get_permutation() {
 
 template <typename parameters_type>
 void N_MATRIX_TOOLS<dca::linalg::CPU, parameters_type>::set_permutation(std::vector<int>& p) {
-  permutation.set(p);
+  permutation = p;
 }
 
 template <typename parameters_type>
 void N_MATRIX_TOOLS<dca::linalg::CPU, parameters_type>::set_d_vector(
     dca::linalg::Vector<double, dca::linalg::CPU>& d_inv) {
-  d_vec.set(d_inv);
+  d_vec = d_inv;
 }
 
 template <typename parameters_type>

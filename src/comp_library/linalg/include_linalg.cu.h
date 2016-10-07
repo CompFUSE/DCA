@@ -26,10 +26,6 @@
 
 #include "src/linalg_operations/memory_management_GPU.cu.h"
 
-#include "src/linalg_operations/copy_from_CPU_GPU.cu.h"
-#include "src/linalg_operations/copy_from_GPU_CPU.cu.h"
-#include "src/linalg_operations/copy_from_GPU_GPU.cu.h"
-
 // CUBLAS 1
 #include "src/linalg_operations/BLAS_1_SCALE_GPU.cu.h"
 #include "src/linalg_operations/BLAS_1_COPY_GPU.cu.h"

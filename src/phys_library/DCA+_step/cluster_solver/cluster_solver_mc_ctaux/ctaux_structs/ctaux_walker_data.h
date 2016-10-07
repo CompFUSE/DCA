@@ -69,22 +69,7 @@ MC_walker_data<CT_AUX_SOLVER, device_t, parameters_type>::MC_walker_data(paramet
                                MAX_VERTEX_SINGLETS * parameters.get_submatrix_size())),
       G_dn("G_dn", std::pair<int, int>(0, 0),
            std::pair<int, int>(parameters.get_initial_matrix_size(),
-                               MAX_VERTEX_SINGLETS * parameters.get_submatrix_size())) {
-  N_up.setThreadAndStreamId(thread_id, 0);
-  N_dn.setThreadAndStreamId(thread_id, 0);
-
-  G0_up.setThreadAndStreamId(thread_id, 0);
-  G0_dn.setThreadAndStreamId(thread_id, 0);
-
-  Gamma_up.setThreadAndStreamId(thread_id, 0);
-  Gamma_dn.setThreadAndStreamId(thread_id, 0);
-
-  stored_Gamma_up.setThreadAndStreamId(thread_id, 0);
-  stored_Gamma_dn.setThreadAndStreamId(thread_id, 0);
-
-  G_up.setThreadAndStreamId(thread_id, 0);
-  G_dn.setThreadAndStreamId(thread_id, 0);
-}
+                               MAX_VERTEX_SINGLETS * parameters.get_submatrix_size())) {}
 
 }  // QMCI
 }  // DCA

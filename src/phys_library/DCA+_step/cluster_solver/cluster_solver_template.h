@@ -14,7 +14,7 @@
 
 #include <string>
 
-#include "comp_library/linalg/linalg_device_types.h"
+#include "dca/linalg/device_type.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_name.hpp"
 
 namespace DCA {

@@ -20,7 +20,7 @@
 
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_writer.hpp"
-#include "comp_library/linalg/linalg_device_types.h"
+#include "dca/linalg/device_type.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/series_expansion_sigma.h"
 
 using namespace dca::phys;

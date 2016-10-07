@@ -24,8 +24,8 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/linalg/device_type.hpp"
 #include "dca/util/print_time.hpp"
-#include "comp_library/linalg/linalg_device_types.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_accumulator.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_solver_routines.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_walker.h"
@@ -374,7 +374,7 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::update_she
   }
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_error_bars() {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t computing the error-bars" << std::endl;
@@ -396,7 +396,7 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_er
   concurrency.average_and_compute_stddev(Sigma_new, MOMS.Sigma_stddev, 1);
 }
 
-template <LIN_ALG::device_type device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::collect_measurements() {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t Collect measurements" << std::endl;

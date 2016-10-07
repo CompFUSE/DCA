@@ -200,8 +200,6 @@ const typename ComplexType::value_type MatrixopComplexGPUTest<ComplexType>::epsi
 typedef ::testing::Types<std::complex<float>, std::complex<double>> ComplexFloatingPointTypes;
 TYPED_TEST_CASE(MatrixopComplexGPUTest, ComplexFloatingPointTypes);
 
-// TODO: Enable this test when MEMORY_MANAGEMENT if fixed
-/*
 TYPED_TEST(MatrixopComplexGPUTest, Gemm) {
   using ScalarType = TypeParam;
 
@@ -351,7 +349,6 @@ TYPED_TEST(MatrixopComplexGPUTest, Gemm) {
     }
   }
 }
-*/
 
 TYPED_TEST(MatrixopRealGPUTest, Trsm) {
   using ScalarType = TypeParam;
@@ -394,8 +391,6 @@ TYPED_TEST(MatrixopRealGPUTest, Trsm) {
   }
 }
 
-// TODO: Enable this test when MEMORY_MANAGEMENT if fixed
-/*
 TYPED_TEST(MatrixopComplexGPUTest, Trsm) {
   using ScalarType = TypeParam;
 
@@ -436,7 +431,7 @@ TYPED_TEST(MatrixopComplexGPUTest, Trsm) {
     }
   }
 }
-*/
+
 TEST(MatrixopGPUTest, RemoveRowCol) {
   testing::initializeHandlesAndStreams();
 

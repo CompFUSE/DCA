@@ -117,8 +117,7 @@ namespace LIN_ALG {
     if( JOBZ != 'N' and JOBZ != 'A')
       throw std::logic_error(__FUNCTION__);
     
-    matrix<scalartype, CPU> X;
-    X.copy_from(A);
+    matrix<scalartype, CPU> X(A);
     
     int M = X.size().first;
     int N = X.size().second;
@@ -178,8 +177,7 @@ namespace LIN_ALG {
     if( JOBZ != 'N' and JOBZ != 'A')
       throw std::logic_error(__FUNCTION__);
     
-    matrix<std::complex<scalartype>, CPU> X;
-    X.copy_from(A);
+    matrix<std::complex<scalartype>, CPU> X(A);
     
     int M = X.size().first;
     int N = X.size().second;

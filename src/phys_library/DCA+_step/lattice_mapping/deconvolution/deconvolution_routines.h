@@ -92,64 +92,57 @@ void deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::in
 
   symmetrize::execute(phi_r_symmetrized);
 
-  {
-    dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU>& T_k_to_r =
-        trafo_k_to_r_type::get_transformation_matrix();
-    dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU>& T_r_to_k =
-        trafo_r_to_k_type::get_transformation_matrix();
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU>& T_k_to_r =
+      trafo_k_to_r_type::get_transformation_matrix();
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU>& T_r_to_k =
+      trafo_r_to_k_type::get_transformation_matrix();
 
-    dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> T_k_to_r_scaled("T_k_to_r_scaled");
-    dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> T_k_to_k("T_k_to_r");
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> T_k_to_r_scaled("T_k_to_r_scaled");
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> T_k_to_k("T_k_to_r");
 
-    T_k_to_k.copy_from(T_k_to_r);  // resize the matrix;
+  T_k_to_k.resize(T_k_to_r.size());  // resize the matrix;
+  T_k_to_r_scaled = T_k_to_r;
 
-    {
-      T_k_to_r_scaled.copy_from(T_k_to_r);
+  for (int j = 0; j < target_k_dmn_t::dmn_size(); j++)
+    for (int i = 0; i < target_k_dmn_t::dmn_size(); i++)
+      T_k_to_r_scaled(i, j) *= phi_r(i);
 
-      for (int j = 0; j < target_k_dmn_t::dmn_size(); j++)
-        for (int i = 0; i < target_k_dmn_t::dmn_size(); i++)
-          T_k_to_r_scaled(i, j) *= phi_r(i);
+  dca::linalg::matrixop::gemm(T_r_to_k, T_k_to_r_scaled, T_k_to_k);
 
-      dca::linalg::matrixop::gemm(T_r_to_k, T_k_to_r_scaled, T_k_to_k);
+  for (int j = 0; j < target_k_dmn_t::dmn_size(); j++)
+    for (int i = 0; i < target_k_dmn_t::dmn_size(); i++)
+      T(i, j) = real(T_k_to_k(i, j));
 
-      for (int j = 0; j < target_k_dmn_t::dmn_size(); j++)
-        for (int i = 0; i < target_k_dmn_t::dmn_size(); i++)
-          T(i, j) = real(T_k_to_k(i, j));
+  for (int i = 0; i < target_k_dmn_t::dmn_size(); i++) {
+    double result = 0;
 
-      for (int i = 0; i < target_k_dmn_t::dmn_size(); i++) {
-        double result = 0;
+    for (int j = 0; j < target_k_dmn_t::dmn_size(); j++)
+      result += T(i, j);
 
-        for (int j = 0; j < target_k_dmn_t::dmn_size(); j++)
-          result += T(i, j);
+    for (int j = 0; j < target_k_dmn_t::dmn_size(); j++)
+      T(i, j) /= result;
+  }
 
-        for (int j = 0; j < target_k_dmn_t::dmn_size(); j++)
-          T(i, j) /= result;
-      }
-    }
+  T_k_to_r_scaled = T_k_to_r;
 
-    {
-      T_k_to_r_scaled.copy_from(T_k_to_r);
+  for (int j = 0; j < target_k_dmn_t::dmn_size(); j++)
+    for (int i = 0; i < target_k_dmn_t::dmn_size(); i++)
+      T_k_to_r_scaled(i, j) *= phi_r_symmetrized(i);
 
-      for (int j = 0; j < target_k_dmn_t::dmn_size(); j++)
-        for (int i = 0; i < target_k_dmn_t::dmn_size(); i++)
-          T_k_to_r_scaled(i, j) *= phi_r_symmetrized(i);
+  dca::linalg::matrixop::gemm(T_r_to_k, T_k_to_r_scaled, T_k_to_k);
 
-      dca::linalg::matrixop::gemm(T_r_to_k, T_k_to_r_scaled, T_k_to_k);
+  for (int j = 0; j < target_k_dmn_t::dmn_size(); j++)
+    for (int i = 0; i < target_k_dmn_t::dmn_size(); i++)
+      T_symmetrized(i, j) = real(T_k_to_k(i, j));
 
-      for (int j = 0; j < target_k_dmn_t::dmn_size(); j++)
-        for (int i = 0; i < target_k_dmn_t::dmn_size(); i++)
-          T_symmetrized(i, j) = real(T_k_to_k(i, j));
+  for (int i = 0; i < target_k_dmn_t::dmn_size(); i++) {
+    double result = 0;
 
-      for (int i = 0; i < target_k_dmn_t::dmn_size(); i++) {
-        double result = 0;
+    for (int j = 0; j < target_k_dmn_t::dmn_size(); j++)
+      result += T_symmetrized(i, j);
 
-        for (int j = 0; j < target_k_dmn_t::dmn_size(); j++)
-          result += T_symmetrized(i, j);
-
-        for (int j = 0; j < target_k_dmn_t::dmn_size(); j++)
-          T_symmetrized(i, j) /= result;
-      }
-    }
+    for (int j = 0; j < target_k_dmn_t::dmn_size(); j++)
+      T_symmetrized(i, j) /= result;
   }
 }
 
@@ -173,20 +166,18 @@ void deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::co
   dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> T_k_to_r_scaled("T_k_to_r_scaled");
   dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> T_k_to_k("T_k_to_r");
 
-  {
-    T_k_to_k.copy_from(T_k_to_r);
-    T_k_to_r_scaled.copy_from(T_k_to_r);
+  T_k_to_k.resize(T_k_to_r.size());
+  T_k_to_r_scaled = T_k_to_r;
 
-    for (int j = 0; j < target_k_dmn_t::dmn_size(); j++)
-      for (int i = 0; i < target_k_dmn_t::dmn_size(); i++)
-        T_k_to_r_scaled(i, j) *= phi_r_inv(i);
+  for (int j = 0; j < target_k_dmn_t::dmn_size(); j++)
+    for (int i = 0; i < target_k_dmn_t::dmn_size(); i++)
+      T_k_to_r_scaled(i, j) *= phi_r_inv(i);
 
-    dca::linalg::matrixop::gemm(T_r_to_k, T_k_to_r_scaled, T_k_to_k);
+  dca::linalg::matrixop::gemm(T_r_to_k, T_k_to_r_scaled, T_k_to_k);
 
-    for (int j = 0; j < target_k_dmn_t::dmn_size(); j++)
-      for (int i = 0; i < target_k_dmn_t::dmn_size(); i++)
-        T_eps(i, j) = real(T_k_to_k(i, j));
-  }
+  for (int j = 0; j < target_k_dmn_t::dmn_size(); j++)
+    for (int i = 0; i < target_k_dmn_t::dmn_size(); i++)
+      T_eps(i, j) = real(T_k_to_k(i, j));
 }
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
@@ -200,8 +191,7 @@ void deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::co
       trafo_r_to_k_type::get_transformation_matrix();
 
   dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> T_k_to_r_scaled("T_k_to_r_scaled");
-
-  T_k_to_r_scaled.copy_from(T_k_to_r);
+  T_k_to_r_scaled = T_k_to_r;
 
   for (int j = 0; j < target_k_dmn_t::dmn_size(); j++)
     for (int i = 0; i < target_k_dmn_t::dmn_size(); i++)

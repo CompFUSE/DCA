@@ -26,22 +26,13 @@
 
 #include "comp_library/blas_lapack_plans/blas_lapack_plans.hpp"
 
-#include "linalg_device_types.h"
-
-#include "src/matrix_scalartype.h"
+#include "comp_library/linalg/linalg_device_types.h"
 
 #include "src/linalg_structures/cublas_thread_manager_tem.h"
 #include "src/linalg_structures/cublas_thread_manager_CPU.h"
 #include "src/linalg_structures/cublas_thread_manager_GPU.h"
 
-#include "src/linalg_operations/copy_from_tem.h"
-#include "src/linalg_operations/copy_from_CPU_CPU.h"
-#include "src/linalg_operations/copy_from_CPU_GPU.h"
-#include "src/linalg_operations/copy_from_GPU_CPU.h"
-#include "src/linalg_operations/copy_from_GPU_GPU.h"
-
 #include "src/linalg_operations/memory_management_tem.h"
-#include "src/linalg_operations/memory_management_CPU.h"
 #include "src/linalg_operations/memory_management_GPU.h"
 
 #include "src/linalg_operations/LU_MATRIX_OPERATIONS.h"
