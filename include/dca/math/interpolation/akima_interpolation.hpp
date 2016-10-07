@@ -1,12 +1,25 @@
-//-*-C++-*-
-// Author:  Peter Staar
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (taa@zurich.ibm.com)
+//
+// This class implements Akima's interpolation method.
 
-#ifndef MATH_LIBRARY_INTERPOLATION_LIBRARY_AKIMA_INTERPOLATION_H
-#define MATH_LIBRARY_INTERPOLATION_LIBRARY_AKIMA_INTERPOLATION_H
+#ifndef DCA_MATH_INTERPOLATION_AKIMA_INTERPOLATION_HPP
+#define DCA_MATH_INTERPOLATION_AKIMA_INTERPOLATION_HPP
 
-namespace math_algorithms {
+#include <cassert>
+#include <cmath>
+#include <stdexcept>
+
+namespace dca {
+namespace math {
 namespace interpolation {
-// math_algorithms::interpolation::
+// dca::math::interpolation::
 
 template <typename scalartype>
 class akima_interpolation {
@@ -24,7 +37,6 @@ public:
 private:
   void compute_coefficients(scalartype* x_array, scalartype* y_array);
 
-private:
   int size;
 
   scalartype* X;
@@ -43,16 +55,16 @@ template <typename scalartype>
 akima_interpolation<scalartype>::akima_interpolation(int n)
     : size(n),
 
-      X(NULL),
-      Y(NULL),
+      X(nullptr),
+      Y(nullptr),
 
-      a(NULL),
-      b(NULL),
-      c(NULL),
-      d(NULL),
+      a(nullptr),
+      b(nullptr),
+      c(nullptr),
+      d(nullptr),
 
-      m(NULL),
-      _m(NULL) {
+      m(nullptr),
+      _m(nullptr) {
   X = new scalartype[size];
   Y = new scalartype[size];
 
@@ -66,44 +78,22 @@ akima_interpolation<scalartype>::akima_interpolation(int n)
 
 template <typename scalartype>
 akima_interpolation<scalartype>::~akima_interpolation() {
-  if (X != NULL)
+  if (X != nullptr)
     delete[] X;
-  if (Y != NULL)
+  if (Y != nullptr)
     delete[] Y;
 
-  if (a != NULL)
+  if (a != nullptr)
     delete[] a;
-  if (b != NULL)
+  if (b != nullptr)
     delete[] b;
-  if (c != NULL)
+  if (c != nullptr)
     delete[] c;
-  if (d != NULL)
+  if (d != nullptr)
     delete[] d;
 
-  if (_m != NULL)
+  if (_m != nullptr)
     delete[] _m;
-}
-
-template <typename scalartype>
-scalartype akima_interpolation<scalartype>::get_alpha(int l, int i) {
-  assert(i > -1 and i < size - 1);
-
-  switch (l) {
-    case 0:
-      return a[i];
-
-    case 1:
-      return b[i];
-
-    case 2:
-      return c[i];
-
-    case 3:
-      return d[i];
-
-    default:
-      throw std::logic_error(__FUNCTION__);
-  }
 }
 
 template <typename scalartype>
@@ -144,41 +134,6 @@ void akima_interpolation<scalartype>::initialize_periodic(scalartype* x_array, s
 }
 
 template <typename scalartype>
-void akima_interpolation<scalartype>::compute_coefficients(scalartype* x_array, scalartype* y_array) {
-  for (int i = 0; i < (size - 1); i++) {
-    a[i] = y_array[i];
-
-    const scalartype NE = std::fabs(m[i + 1] - m[i]) + fabs(m[i - 1] - m[i - 2]);
-
-    if (NE == 0.0) {
-      b[i] = m[i];
-      c[i] = 0.0;
-      d[i] = 0.0;
-    }
-    else {
-      const scalartype h_i = x_array[i + 1] - x_array[i];
-      const scalartype NE_next = std::fabs(m[i + 2] - m[i + 1]) + fabs(m[i] - m[i - 1]);
-      const scalartype alpha_i = std::fabs(m[i - 1] - m[i - 2]) / NE;
-
-      scalartype alpha_ip1;
-      scalartype tL_ip1;
-
-      if (NE_next == 0.0) {
-        tL_ip1 = m[i];
-      }
-      else {
-        alpha_ip1 = std::fabs(m[i] - m[i - 1]) / NE_next;
-        tL_ip1 = (1.0 - alpha_ip1) * m[i] + alpha_ip1 * m[i + 1];
-      }
-
-      b[i] = (1.0 - alpha_i) * m[i - 1] + alpha_i * m[i];
-      c[i] = (3.0 * m[i] - 2.0 * b[i] - tL_ip1) / h_i;
-      d[i] = (b[i] + tL_ip1 - 2.0 * m[i]) / (h_i * h_i);
-    }
-  }
-}
-
-template <typename scalartype>
 scalartype akima_interpolation<scalartype>::evaluate(scalartype x) {
   if (x < X[0] + 1.e-6)
     return Y[0];
@@ -203,7 +158,66 @@ scalartype akima_interpolation<scalartype>::evaluate(scalartype x) {
 
   return a0 + delx * (a1 + delx * (a2 + a3 * delx));
 }
-}  // interpolation
-}  // math_algorithms
 
-#endif  // MATH_LIBRARY_INTERPOLATION_LIBRARY_AKIMA_INTERPOLATION_H
+template <typename scalartype>
+scalartype akima_interpolation<scalartype>::get_alpha(int l, int i) {
+  assert(i > -1 and i < size - 1);
+
+  switch (l) {
+    case 0:
+      return a[i];
+
+    case 1:
+      return b[i];
+
+    case 2:
+      return c[i];
+
+    case 3:
+      return d[i];
+
+    default:
+      throw std::logic_error(__FUNCTION__);
+  }
+}
+
+template <typename scalartype>
+void akima_interpolation<scalartype>::compute_coefficients(scalartype* x_array, scalartype* y_array) {
+  for (int i = 0; i < (size - 1); i++) {
+    a[i] = y_array[i];
+
+    const scalartype NE = std::abs(m[i + 1] - m[i]) + fabs(m[i - 1] - m[i - 2]);
+
+    if (NE == 0.0) {
+      b[i] = m[i];
+      c[i] = 0.0;
+      d[i] = 0.0;
+    }
+    else {
+      const scalartype h_i = x_array[i + 1] - x_array[i];
+      const scalartype NE_next = std::abs(m[i + 2] - m[i + 1]) + fabs(m[i] - m[i - 1]);
+      const scalartype alpha_i = std::abs(m[i - 1] - m[i - 2]) / NE;
+
+      scalartype alpha_ip1;
+      scalartype tL_ip1;
+
+      if (NE_next == 0.0) {
+        tL_ip1 = m[i];
+      }
+      else {
+        alpha_ip1 = std::abs(m[i] - m[i - 1]) / NE_next;
+        tL_ip1 = (1.0 - alpha_ip1) * m[i] + alpha_ip1 * m[i + 1];
+      }
+
+      b[i] = (1.0 - alpha_i) * m[i - 1] + alpha_i * m[i];
+      c[i] = (3.0 * m[i] - 2.0 * b[i] - tL_ip1) / h_i;
+      d[i] = (b[i] + tL_ip1 - 2.0 * m[i]) / (h_i * h_i);
+    }
+  }
+}
+
+}  // interpolation
+}  // math
+}  // dca
+
+#endif  // DCA_MATH_INTERPOLATION_AKIMA_INTERPOLATION_HPP
