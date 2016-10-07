@@ -17,7 +17,8 @@
 
 #include <fftw3.h>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "math_library/NFFT/atomic_convolutions/nfft_atomic_convolutions.h"
 #include "math_library/NFFT/basis_functions/window_function_Gaussian.h"
 #include "math_library/NFFT/basis_functions/window_function_Kaiser.h"
@@ -48,20 +49,20 @@ public:
   // typedef gaussian_window_function window_function_t;
   typedef kaiser_bessel_function<1> window_function_t;
 
-  typedef dmn_0<nfft_linear_coefficients_domain> linear_coefficients_dmn_t;
-  typedef dmn_0<nfft_cubic_coefficients_domain> cubic_coefficients_dmn_t;
+  typedef func::dmn_0<nfft_linear_coefficients_domain> linear_coefficients_dmn_t;
+  typedef func::dmn_0<nfft_cubic_coefficients_domain> cubic_coefficients_dmn_t;
 
-  typedef dmn_0<nfft_oversampling_domain<this_type>> oversampling_dmn_t;
-  typedef dmn_0<nfft_window_sampling_domain<this_type>> window_sampling_dmn_t;
+  typedef func::dmn_0<nfft_oversampling_domain<this_type>> oversampling_dmn_t;
+  typedef func::dmn_0<nfft_window_sampling_domain<this_type>> window_sampling_dmn_t;
 
-  typedef dmn_0<nfft_time_domain<PADDED, this_type>> padded_time_dmn_t;
-  typedef dmn_0<nfft_time_domain<LEFT_ORIENTED, this_type>> left_oriented_time_dmn_t;
-  typedef dmn_0<nfft_time_domain<WINDOW_FUNCTION, this_type>> window_function_time_dmn_t;
+  typedef func::dmn_0<nfft_time_domain<PADDED, this_type>> padded_time_dmn_t;
+  typedef func::dmn_0<nfft_time_domain<LEFT_ORIENTED, this_type>> left_oriented_time_dmn_t;
+  typedef func::dmn_0<nfft_time_domain<WINDOW_FUNCTION, this_type>> window_function_time_dmn_t;
 
-  typedef dmn_variadic<oversampling_dmn_t, window_sampling_dmn_t> convolution_time_dmn_t;
+  typedef func::dmn_variadic<oversampling_dmn_t, window_sampling_dmn_t> convolution_time_dmn_t;
 
-  typedef dmn_variadic<padded_time_dmn_t, p_dmn_t> padded_time_p_dmn_t;
-  typedef dmn_variadic<left_oriented_time_dmn_t, p_dmn_t> left_oriented_time_p_dmn_t;
+  typedef func::dmn_variadic<padded_time_dmn_t, p_dmn_t> padded_time_p_dmn_t;
+  typedef func::dmn_variadic<left_oriented_time_dmn_t, p_dmn_t> left_oriented_time_p_dmn_t;
 
 public:
   dnfft_1D();
@@ -80,7 +81,8 @@ public:
   void accumulate_at(int* coor, scalartype t_val, scalartype f_val);
 
   template <typename other_scalartype>
-  void finalize(FUNC_LIB::function<std::complex<other_scalartype>, dmn_variadic<w_dmn_t, p_dmn_t>>& f_w);
+  void finalize(
+      func::function<std::complex<other_scalartype>, func::dmn_variadic<w_dmn_t, p_dmn_t>>& f_w);
 
 private:
   void convolute_to_f_tau_exact_test(int index, scalartype t_val, scalartype f_val);
@@ -98,7 +100,7 @@ private:
 
   template <typename other_scalartype>
   void FT_f_tau_to_f_w(
-      FUNC_LIB::function<std::complex<other_scalartype>, dmn_variadic<w_dmn_t, p_dmn_t>>& f_w);
+      func::function<std::complex<other_scalartype>, func::dmn_variadic<w_dmn_t, p_dmn_t>>& f_w);
 
 private:
   double SIGMA_WINDOW_SAMPLING;
@@ -107,34 +109,34 @@ private:
 
   p_dmn_t p_dmn_t_obj;
 
-  FUNC_LIB::function<scalartype, padded_time_dmn_t> tau;
-  FUNC_LIB::function<scalartype, window_function_time_dmn_t> fine_tau;
+  func::function<scalartype, padded_time_dmn_t> tau;
+  func::function<scalartype, window_function_time_dmn_t> fine_tau;
 
-  FUNC_LIB::function<scalartype, padded_time_p_dmn_t> f_tau;
-  FUNC_LIB::function<scalartype, oversampling_dmn_t> f_tmp;
+  func::function<scalartype, padded_time_p_dmn_t> f_tau;
+  func::function<scalartype, oversampling_dmn_t> f_tmp;
 
-  FUNC_LIB::function<scalartype, left_oriented_time_p_dmn_t> f_tau_left_oriented;
-  FUNC_LIB::function<std::complex<scalartype>, left_oriented_time_p_dmn_t> f_omega;
+  func::function<scalartype, left_oriented_time_p_dmn_t> f_tau_left_oriented;
+  func::function<std::complex<scalartype>, left_oriented_time_p_dmn_t> f_omega;
 
-  FUNC_LIB::function<scalartype, dmn_variadic<oversampling_dmn_t, window_sampling_dmn_t>>
+  func::function<scalartype, func::dmn_variadic<oversampling_dmn_t, window_sampling_dmn_t>>
       convolution_time_values;
-  FUNC_LIB::function<scalartype, dmn_variadic<oversampling_dmn_t, window_sampling_dmn_t>> window_function;
+  func::function<scalartype, func::dmn_variadic<oversampling_dmn_t, window_sampling_dmn_t>> window_function;
 
-  FUNC_LIB::function<scalartype,
-                     dmn_variadic<linear_coefficients_dmn_t, oversampling_dmn_t, window_sampling_dmn_t>>
+  func::function<scalartype,
+                 func::dmn_variadic<linear_coefficients_dmn_t, oversampling_dmn_t, window_sampling_dmn_t>>
       linear_convolution_matrices;
-  FUNC_LIB::function<scalartype,
-                     dmn_variadic<cubic_coefficients_dmn_t, oversampling_dmn_t, window_sampling_dmn_t>>
+  func::function<scalartype,
+                 func::dmn_variadic<cubic_coefficients_dmn_t, oversampling_dmn_t, window_sampling_dmn_t>>
       cubic_convolution_matrices;
 
-  FUNC_LIB::function<scalartype,
-                     dmn_variadic<oversampling_dmn_t, linear_coefficients_dmn_t, window_sampling_dmn_t>>
+  func::function<scalartype,
+                 func::dmn_variadic<oversampling_dmn_t, linear_coefficients_dmn_t, window_sampling_dmn_t>>
       linear_convolution_matrices_2;
-  FUNC_LIB::function<scalartype,
-                     dmn_variadic<oversampling_dmn_t, cubic_coefficients_dmn_t, window_sampling_dmn_t>>
+  func::function<scalartype,
+                 func::dmn_variadic<oversampling_dmn_t, cubic_coefficients_dmn_t, window_sampling_dmn_t>>
       cubic_convolution_matrices_2;
 
-  FUNC_LIB::function<scalartype, w_dmn_t> phi_wn;
+  func::function<scalartype, w_dmn_t> phi_wn;
 };
 
 template <typename scalartype, typename w_dmn_t, typename p_dmn_t>
@@ -345,7 +347,7 @@ inline void dnfft_1D<scalartype, w_dmn_t, p_dmn_t>::accumulate_at(int* coor, sca
 template <typename scalartype, typename w_dmn_t, typename p_dmn_t>
 template <typename other_scalartype>
 void dnfft_1D<scalartype, w_dmn_t, p_dmn_t>::finalize(
-    FUNC_LIB::function<std::complex<other_scalartype>, dmn_variadic<w_dmn_t, p_dmn_t>>& f_w) {
+    func::function<std::complex<other_scalartype>, func::dmn_variadic<w_dmn_t, p_dmn_t>>& f_w) {
   fold_time_domain_back();
 
   FT_f_tau_to_f_w(f_w);
@@ -619,7 +621,7 @@ void dnfft_1D<scalartype, w_dmn_t, p_dmn_t>::fold_time_domain_back() {
 template <typename scalartype, typename w_dmn_t, typename p_dmn_t>
 template <typename other_scalartype>
 void dnfft_1D<scalartype, w_dmn_t, p_dmn_t>::FT_f_tau_to_f_w(
-    FUNC_LIB::function<std::complex<other_scalartype>, dmn_variadic<w_dmn_t, p_dmn_t>>& f_w) {
+    func::function<std::complex<other_scalartype>, func::dmn_variadic<w_dmn_t, p_dmn_t>>& f_w) {
   int N = nfft_time_domain<LEFT_ORIENTED, this_type>::get_size();
 
   double* f_in = new double[N];

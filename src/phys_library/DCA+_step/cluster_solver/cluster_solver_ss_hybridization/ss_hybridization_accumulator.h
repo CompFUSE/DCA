@@ -16,7 +16,8 @@
 
 #include <complex>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "dca/linalg/device_type.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_domains/Feynman_expansion_order_domain.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_template/mc_accumulator_data.hpp"
@@ -49,17 +50,17 @@ public:
   typedef
       typename walker_type::ss_hybridization_walker_routines_type ss_hybridization_walker_routines_type;
 
-  using w = dmn_0<frequency_domain>;
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
-  using nu_nu = dmn_variadic<nu, nu>;
+  using w = func::dmn_0<frequency_domain>;
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
+  using nu_nu = func::dmn_variadic<nu, nu>;
 
-  using r_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
-                                     REAL_SPACE, BRILLOUIN_ZONE>>;
+  using r_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                           CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>>;
   typedef r_DCA r_dmn_t;
 
-  typedef dmn_3<nu, nu, r_dmn_t> p_dmn_t;
+  typedef func::dmn_variadic<nu, nu, r_dmn_t> p_dmn_t;
 
   typedef typename parameters_type::profiler_type profiler_type;
   typedef typename parameters_type::concurrency_type concurrency_type;
@@ -76,14 +77,14 @@ public:
   typedef typename MC_type_definitions<SS_CT_HYB, parameters_type, MOMS_type>::configuration_type
       configuration_type;
 
-  typedef FUNC_LIB::function<vertex_vertex_matrix_type, nu> M_matrix_type;
+  typedef func::function<vertex_vertex_matrix_type, nu> M_matrix_type;
 
 public:
   MC_accumulator(parameters_type& parameters_ref, MOMS_type& MOMS_ref, int id = 0);
 
   void initialize(int dca_iteration);
 
-  void finalize();  // FUNC_LIB::function<double, nu> mu_DC);
+  void finalize();  // func::function<double, nu> mu_DC);
 
   void measure(walker_type& walker);
 
@@ -94,31 +95,31 @@ public:
   // accumulator.
   void sum_to(this_type& other);
 
-  void compute_G_r_w(FUNC_LIB::function<double, nu> mu_DC);
+  void compute_G_r_w(func::function<double, nu> mu_DC);
 
   configuration_type& get_configuration() {
     return configuration;
   }
 
-  FUNC_LIB::function<double, dmn_0<Feynman_expansion_order_domain>>& get_visited_expansion_order_k() {
+  func::function<double, func::dmn_0<Feynman_expansion_order_domain>>& get_visited_expansion_order_k() {
     return visited_expansion_order_k;
   }
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w>>& get_G_r_w() {
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>>& get_G_r_w() {
     return G_r_w;
   }
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w>>& get_GS_r_w() {
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>>& get_GS_r_w() {
     return GS_r_w;
   }
 
   void accumulate_length(walker_type& walker);
   void accumulate_overlap(walker_type& walker);
 
-  FUNC_LIB::function<double, nu>& get_length() {
+  func::function<double, nu>& get_length() {
     return length;
   }
 
-  FUNC_LIB::function<double, nu_nu>& get_overlap() {
+  func::function<double, nu_nu>& get_overlap() {
     return overlap;
   }
 
@@ -142,15 +143,15 @@ protected:
   int thread_id;
 
   configuration_type configuration;
-  FUNC_LIB::function<vertex_vertex_matrix_type, nu> M_matrices;
+  func::function<vertex_vertex_matrix_type, nu> M_matrices;
 
-  FUNC_LIB::function<double, dmn_0<Feynman_expansion_order_domain>> visited_expansion_order_k;
+  func::function<double, func::dmn_0<Feynman_expansion_order_domain>> visited_expansion_order_k;
 
-  FUNC_LIB::function<double, nu> length;
-  FUNC_LIB::function<double, dmn_2<nu, nu>> overlap;
+  func::function<double, nu> length;
+  func::function<double, func::dmn_variadic<nu, nu>> overlap;
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w>> G_r_w;
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_dmn_t, w>> GS_r_w;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>> G_r_w;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>> GS_r_w;
 
   MC_single_particle_accumulator<SS_CT_HYB, NFFT, parameters_type, MOMS_type> single_particle_accumulator_obj;
 };
@@ -193,7 +194,7 @@ void MC_accumulator<SS_CT_HYB, device_t, parameters_type, MOMS_type>::initialize
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void MC_accumulator<SS_CT_HYB, device_t, parameters_type,
-                    MOMS_type>::finalize()  // FUNC_LIB::function<double, nu> mu_DC)
+                    MOMS_type>::finalize()  // func::function<double, nu> mu_DC)
 {
   single_particle_accumulator_obj.finalize(G_r_w, GS_r_w);
 }

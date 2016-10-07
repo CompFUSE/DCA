@@ -33,10 +33,10 @@ public:
     }
   }
 
-  // Initializes the Handels and set the stream of handle(id) with stream(id, 0)
+  // Initializes the handels and sets the stream of handle(id) with stream(id, 0)
   // for 0 <= id < max_threads.
-  template <size_t stream_per_thread>
-  HandleContainer(StreamContainer<max_threads, stream_per_thread>& stream_container)
+  template <size_t streams_per_thread>
+  HandleContainer(StreamContainer<max_threads, streams_per_thread>& stream_container)
       : HandleContainer() {
     for (size_t i = 0; i < handles_.size(); ++i)
       setStream(i, stream_container(i, 0));
@@ -59,7 +59,7 @@ public:
     return handles_[thread_id];
   }
 
-  // Sets the stream of the Handle associated with thread 'thread_id'.
+  // Sets the stream of the handle associated with thread 'thread_id'.
   // Preconditions: 0 <= thread_id < DCA_MAX_THREADS.
   void setStream(int thread_id, cudaStream_t stream) {
     cublasStatus_t ret = cublasSetStream(handles_[thread_id], stream);

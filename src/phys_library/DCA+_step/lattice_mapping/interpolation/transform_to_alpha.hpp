@@ -22,7 +22,8 @@
 #include <complex>
 #include <utility>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "comp_library/linalg/linalg.hpp"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
@@ -30,46 +31,48 @@
 namespace DCA {
 class transform_to_alpha {
 public:
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
 public:
   template <typename scalar_type, typename k_dmn_t>
-  void forward(scalar_type alpha, FUNC_LIB::function<std::complex<scalar_type>, k_dmn_t>& f_k,
-               FUNC_LIB::function<std::complex<scalar_type>, k_dmn_t>& alpha_k);
+  void forward(scalar_type alpha, func::function<std::complex<scalar_type>, k_dmn_t>& f_k,
+               func::function<std::complex<scalar_type>, k_dmn_t>& alpha_k);
 
   template <typename scalar_type, typename k_dmn_t>
-  void backward(scalar_type alpha, FUNC_LIB::function<std::complex<scalar_type>, k_dmn_t>& f_k,
-                FUNC_LIB::function<std::complex<scalar_type>, k_dmn_t>& alpha_k);
+  void backward(scalar_type alpha, func::function<std::complex<scalar_type>, k_dmn_t>& f_k,
+                func::function<std::complex<scalar_type>, k_dmn_t>& alpha_k);
 
   template <typename scalar_type, typename k_dmn_t>
-  static void forward(scalar_type alpha,
-                      FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn_t>>& f_k_w,
-                      FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn_t>>& alpha_k_w);
+  static void forward(
+      scalar_type alpha,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& f_k_w,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& alpha_k_w);
 
   template <typename scalar_type, typename k_dmn_t>
-  static void backward(scalar_type alpha,
-                       FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn_t>>& f_k_w,
-                       FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn_t>>& alpha_k_w);
+  static void backward(
+      scalar_type alpha,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& f_k_w,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& alpha_k_w);
 
   template <typename scalar_type, typename k_dmn_t, typename w_dmn_t>
   static void forward(
       scalar_type alpha,
-      FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& f_k_w,
-      FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& alpha_k_w);
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& f_k_w,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& alpha_k_w);
 
   template <typename scalar_type, typename k_dmn_t, typename w_dmn_t>
   static void backward(
       scalar_type alpha,
-      FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& f_k_w,
-      FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& alpha_k_w);
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& f_k_w,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& alpha_k_w);
 };
 
 template <typename scalar_type, typename k_dmn_t>
 void transform_to_alpha::forward(scalar_type alpha,
-                                 FUNC_LIB::function<std::complex<scalar_type>, k_dmn_t>& f_k,
-                                 FUNC_LIB::function<std::complex<scalar_type>, k_dmn_t>& alpha_k) {
+                                 func::function<std::complex<scalar_type>, k_dmn_t>& f_k,
+                                 func::function<std::complex<scalar_type>, k_dmn_t>& alpha_k) {
   std::complex<scalar_type> I(0., alpha);
 
   for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); k_ind++)
@@ -78,8 +81,8 @@ void transform_to_alpha::forward(scalar_type alpha,
 
 template <typename scalar_type, typename k_dmn_t>
 void transform_to_alpha::backward(scalar_type alpha,
-                                  FUNC_LIB::function<std::complex<scalar_type>, k_dmn_t>& f_k,
-                                  FUNC_LIB::function<std::complex<scalar_type>, k_dmn_t>& alpha_k) {
+                                  func::function<std::complex<scalar_type>, k_dmn_t>& f_k,
+                                  func::function<std::complex<scalar_type>, k_dmn_t>& alpha_k) {
   std::complex<scalar_type> I(0., alpha);
 
   for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); k_ind++)
@@ -88,8 +91,9 @@ void transform_to_alpha::backward(scalar_type alpha,
 
 template <typename scalar_type, typename k_dmn_t>
 void transform_to_alpha::forward(
-    scalar_type alpha, FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn_t>>& f_k_w,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn_t>>& alpha_k_w) {
+    scalar_type alpha,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& f_k_w,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& alpha_k_w) {
   std::complex<scalar_type> I(0., alpha);
 
   int N = nu::dmn_size();
@@ -117,8 +121,9 @@ void transform_to_alpha::forward(
 
 template <typename scalar_type, typename k_dmn_t>
 void transform_to_alpha::backward(
-    scalar_type alpha, FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn_t>>& f_k_w,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn_t>>& alpha_k_w) {
+    scalar_type alpha,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& f_k_w,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& alpha_k_w) {
   std::complex<scalar_type> I(0., alpha);
 
   int N = nu::dmn_size();
@@ -147,8 +152,8 @@ void transform_to_alpha::backward(
 template <typename scalar_type, typename k_dmn_t, typename w_dmn_t>
 void transform_to_alpha::forward(
     scalar_type alpha,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& f_k_w,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& alpha_k_w) {
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& f_k_w,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& alpha_k_w) {
   int N = nu::dmn_size();
 
   dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU> f_matrix(
@@ -181,8 +186,8 @@ void transform_to_alpha::forward(
 template <typename scalar_type, typename k_dmn_t, typename w_dmn_t>
 void transform_to_alpha::backward(
     scalar_type alpha,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& f_k_w,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& alpha_k_w) {
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& f_k_w,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& alpha_k_w) {
   int N = nu::dmn_size();
 
   dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU> f_matrix(

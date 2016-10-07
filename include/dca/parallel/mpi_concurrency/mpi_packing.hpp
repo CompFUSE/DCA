@@ -10,7 +10,7 @@
 //
 // This class provides an interface for packing and unpacking with MPI.
 //
-// TODO: Const correctness of get_buffer_size and pack with FUNC_LIB::function.
+// TODO: Const correctness of get_buffer_size and pack with func::function.
 
 #ifndef DCA_PARALLEL_MPI_CONCURRENCY_MPI_PACKING_HPP
 #define DCA_PARALLEL_MPI_CONCURRENCY_MPI_PACKING_HPP
@@ -18,9 +18,9 @@
 #include <string>
 #include <vector>
 #include <mpi.h>
+#include "dca/function/function.hpp"
 #include "dca/parallel/mpi_concurrency/mpi_processor_grouping.hpp"
 #include "dca/parallel/mpi_concurrency/mpi_type_map.hpp"
-#include "comp_library/function_library/include_function_library.h"
 
 namespace dca {
 namespace parallel {
@@ -41,7 +41,7 @@ public:
   template <typename scalar_type>
   int get_buffer_size(const std::vector<std::vector<scalar_type>>& v) const;
   template <typename scalar_type, class dmn_type>
-  int get_buffer_size(FUNC_LIB::function<scalar_type, dmn_type>& f) const;
+  int get_buffer_size(func::function<scalar_type, dmn_type>& f) const;
 
   // TODO: This function can't be made const correct. Can we remove it?
   template <typename object_type>
@@ -59,7 +59,7 @@ public:
   template <typename scalar_type>
   void pack(int* buffer, int size, int& off_set, const std::vector<std::vector<scalar_type>>& v) const;
   template <typename scalar_type, class dmn_type>
-  void pack(int* buffer, int size, int& off_set, FUNC_LIB::function<scalar_type, dmn_type>& f) const;
+  void pack(int* buffer, int size, int& off_set, func::function<scalar_type, dmn_type>& f) const;
 
   template <typename scalar_type>
   void unpack(int* buffer, int size, int& off_set, scalar_type& item) const;
@@ -73,7 +73,7 @@ public:
   template <typename scalar_type>
   void unpack(int* buffer, int size, int& off_set, std::vector<std::vector<scalar_type>>& v) const;
   template <typename scalar_type, class dmn_type>
-  void unpack(int* buffer, int size, int& off_set, FUNC_LIB::function<scalar_type, dmn_type>& f) const;
+  void unpack(int* buffer, int size, int& off_set, func::function<scalar_type, dmn_type>& f) const;
 
 private:
   const MPIProcessorGrouping& grouping_;
@@ -168,7 +168,7 @@ int MPIPacking::get_buffer_size(const std::vector<std::vector<scalar_type>>& v) 
 }
 
 template <typename scalar_type, class dmn_type>
-int MPIPacking::get_buffer_size(FUNC_LIB::function<scalar_type, dmn_type>& f) const {
+int MPIPacking::get_buffer_size(func::function<scalar_type, dmn_type>& f) const {
   int result = get_buffer_size(f.size());
 
   int count = f.size() * MPITypeMap<scalar_type>::factor();
@@ -271,7 +271,7 @@ void MPIPacking::pack(int* buffer, int size, int& off_set,
 
 template <typename scalar_type, class dmn_type>
 void MPIPacking::pack(int* buffer, int size, int& off_set,
-                      FUNC_LIB::function<scalar_type, dmn_type>& f) const {
+                      func::function<scalar_type, dmn_type>& f) const {
   // Pack the vector length
   int function_size(f.size());
   pack(buffer, size, off_set, function_size);
@@ -394,7 +394,7 @@ void MPIPacking::unpack(int* buffer, int size, int& off_set,
 
 template <typename scalar_type, class dmn_type>
 void MPIPacking::unpack(int* buffer, int size, int& off_set,
-                        FUNC_LIB::function<scalar_type, dmn_type>& f) const {
+                        func::function<scalar_type, dmn_type>& f) const {
   // UnPack the vector length
   int function_size(0);
   unpack(buffer, size, off_set, function_size);

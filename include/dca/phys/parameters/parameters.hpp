@@ -20,6 +20,7 @@
 #include <string>
 #include <vector>
 
+#include "dca/function/domains/dmn_0.hpp"
 #include "dca/phys/parameters/brillouin_zone_parameters.hpp"
 #include "dca/phys/parameters/cpe_parameters.hpp"
 #include "dca/phys/parameters/dca_parameters.hpp"
@@ -34,7 +35,6 @@
 #include "dca/phys/parameters/physics_parameters.hpp"
 #include "dca/phys/parameters/vertex_parameters.hpp"
 #include "dca/util/print_type.hpp"
-#include "comp_library/function_library/domains/special_domains/dmn_0.h"
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/cluster/cluster_domain_family.h"
 #include "phys_library/domains/cluster/cluster_domain_initializer.h"
@@ -78,34 +78,34 @@ public:
   using lattice_type = typename Model::lattice_type;
 
   // Time and frequency domains
-  using t = dmn_0<time_domain>;
-  using w = dmn_0<frequency_domain>;
-  using w_VERTEX_EXTENDED = dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED>>;
-  using w_VERTEX_EXTENDED_POS = dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED_POSITIVE>>;
+  using t = func::dmn_0<time_domain>;
+  using w = func::dmn_0<frequency_domain>;
+  using w_VERTEX_EXTENDED = func::dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED>>;
+  using w_VERTEX_EXTENDED_POS = func::dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED_POSITIVE>>;
 
   // DCA cluster domains
-  using r_DCA =
-      dmn_0<cluster_domain<double, Model::lattice_type::DIMENSION, CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>>;
-  using k_DCA =
-      dmn_0<cluster_domain<double, Model::lattice_type::DIMENSION, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using r_DCA = func::dmn_0<
+      cluster_domain<double, Model::lattice_type::DIMENSION, CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>>;
+  using k_DCA = func::dmn_0<
+      cluster_domain<double, Model::lattice_type::DIMENSION, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
 
   // Host cluster domains
-  using r_HOST =
-      dmn_0<cluster_domain<double, Model::lattice_type::DIMENSION, LATTICE_SP, REAL_SPACE, BRILLOUIN_ZONE>>;
-  using k_HOST = dmn_0<cluster_domain<double, Model::lattice_type::DIMENSION, LATTICE_SP,
-                                      MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using r_HOST = func::dmn_0<
+      cluster_domain<double, Model::lattice_type::DIMENSION, LATTICE_SP, REAL_SPACE, BRILLOUIN_ZONE>>;
+  using k_HOST = func::dmn_0<cluster_domain<double, Model::lattice_type::DIMENSION, LATTICE_SP,
+                                            MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
 
   // Host vertex cluster domains
-  using r_HOST_VERTEX =
-      dmn_0<cluster_domain<double, Model::lattice_type::DIMENSION, LATTICE_TP, REAL_SPACE, BRILLOUIN_ZONE>>;
-  using k_HOST_VERTEX = dmn_0<cluster_domain<double, Model::lattice_type::DIMENSION, LATTICE_TP,
-                                             MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using r_HOST_VERTEX = func::dmn_0<
+      cluster_domain<double, Model::lattice_type::DIMENSION, LATTICE_TP, REAL_SPACE, BRILLOUIN_ZONE>>;
+  using k_HOST_VERTEX = func::dmn_0<cluster_domain<double, Model::lattice_type::DIMENSION,
+                                                   LATTICE_TP, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
 
   // LDA cluster domains
-  using r_LDA =
-      dmn_0<cluster_domain<double, Model::lattice_type::DIMENSION, LATTICE_SP, REAL_SPACE, PARALLELLEPIPEDUM>>;
-  using k_LDA = dmn_0<cluster_domain<double, Model::lattice_type::DIMENSION, LATTICE_SP,
-                                     MOMENTUM_SPACE, PARALLELLEPIPEDUM>>;
+  using r_LDA = func::dmn_0<cluster_domain<double, Model::lattice_type::DIMENSION, LATTICE_SP,
+                                           REAL_SPACE, PARALLELLEPIPEDUM>>;
+  using k_LDA = func::dmn_0<cluster_domain<double, Model::lattice_type::DIMENSION, LATTICE_SP,
+                                           MOMENTUM_SPACE, PARALLELLEPIPEDUM>>;
 
   using DCA_cluster_family_type =
       cluster_domain_family<double, Model::lattice_type::DIMENSION, CLUSTER, BRILLOUIN_ZONE>;

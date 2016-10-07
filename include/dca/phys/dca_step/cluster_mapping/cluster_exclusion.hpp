@@ -14,7 +14,8 @@
 
 #include <complex>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "comp_library/function_plotting/include_plotting.h"
 #include "comp_library/linalg/linalg.hpp"
 #include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
@@ -34,19 +35,19 @@ public:
   using profiler_type = typename parameters_type::profiler_type;
   using concurrency_type = typename parameters_type::concurrency_type;
 
-  using t = dmn_0<time_domain>;
-  using w = dmn_0<frequency_domain>;
+  using t = func::dmn_0<time_domain>;
+  using w = func::dmn_0<frequency_domain>;
 
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
   using DCA_r_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
                                             CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>;
-  using r_DCA = dmn_0<DCA_r_cluster_type>;
+  using r_DCA = func::dmn_0<DCA_r_cluster_type>;
   using DCA_k_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
                                             CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
-  using k_DCA = dmn_0<DCA_k_cluster_type>;
+  using k_DCA = func::dmn_0<DCA_k_cluster_type>;
 
 public:
   cluster_exclusion(parameters_type& parameters_ref, MOMS_type& MOMS_ref);
@@ -155,7 +156,7 @@ void cluster_exclusion<parameters_type, MOMS_type>::compute_G0_R_t_cluster_exclu
 template <typename parameters_type, typename MOMS_type>
 void cluster_exclusion<parameters_type, MOMS_type>::plot_G0_R_t_cluster_excluded() {
   {
-    FUNC_LIB::function<float, t> tmp("G0_k_t");
+    func::function<float, t> tmp("G0_k_t");
 
     Gnuplot plot_obj("lines");
     for (int R_ind = 0; R_ind < r_DCA::dmn_size(); R_ind++) {
@@ -169,7 +170,7 @@ void cluster_exclusion<parameters_type, MOMS_type>::plot_G0_R_t_cluster_excluded
   }
 
   {
-    FUNC_LIB::function<float, t> tmp("G0_k_t_cluster_excluded");
+    func::function<float, t> tmp("G0_k_t_cluster_excluded");
 
     Gnuplot plot_obj("lines");
     for (int R_ind = 0; R_ind < r_DCA::dmn_size(); R_ind++) {
@@ -183,7 +184,7 @@ void cluster_exclusion<parameters_type, MOMS_type>::plot_G0_R_t_cluster_excluded
   }
 
   {
-    FUNC_LIB::function<float, t> tmp("G0_r_t");
+    func::function<float, t> tmp("G0_r_t");
 
     Gnuplot plot_obj("lines");
     for (int R_ind = 0; R_ind < r_DCA::dmn_size(); R_ind++) {

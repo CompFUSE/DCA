@@ -19,7 +19,8 @@
 #include <string>
 #include <vector>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "phys_library/DFT_connection/VASP/data.hpp"
 #include "phys_library/DFT_connection/VASP/vasp_domains/dmft_band_domain.hpp"
 #include "phys_library/DFT_connection/VASP/vasp_domains/dmft_orbital_domain.hpp"
@@ -34,13 +35,14 @@ namespace VASP {
 template <class parameters_type>
 class reader {
 public:
-  using k_vasp = dmn_0<cluster_domain<double, 3, VASP_LATTICE, MOMENTUM_SPACE, PARALLELLEPIPEDUM>>;
+  using k_vasp =
+      func::dmn_0<cluster_domain<double, 3, VASP_LATTICE, MOMENTUM_SPACE, PARALLELLEPIPEDUM>>;
 
-  using b_dmft = dmn_0<DFT::VASP::dmft_band_domain>;
-  using o_dmft = dmn_0<DFT::VASP::dmft_orbital_domain>;
+  using b_dmft = func::dmn_0<DFT::VASP::dmft_band_domain>;
+  using o_dmft = func::dmn_0<DFT::VASP::dmft_orbital_domain>;
 
-  using b_vasp = dmn_0<DFT::VASP::vasp_band_domain>;
-  using o_vasp = dmn_0<DFT::VASP::vasp_orbital_domain>;
+  using b_vasp = func::dmn_0<DFT::VASP::vasp_band_domain>;
+  using o_vasp = func::dmn_0<DFT::VASP::vasp_orbital_domain>;
 
 public:
   reader(parameters_type& parameters, data<parameters_type>& data);
@@ -54,29 +56,33 @@ private:
 
   data<parameters_type>& vasp_data;
 
-  FUNC_LIB::function<double, k_vasp>& kx;
-  FUNC_LIB::function<double, k_vasp>& ky;
-  FUNC_LIB::function<double, k_vasp>& kz;
+  func::function<double, k_vasp>& kx;
+  func::function<double, k_vasp>& ky;
+  func::function<double, k_vasp>& kz;
 
-  FUNC_LIB::function<double, dmn_2<k_vasp, b_vasp>>& band_e;
-  FUNC_LIB::function<double, dmn_2<k_vasp, b_vasp>>& band_o;
+  func::function<double, func::dmn_variadic<k_vasp, b_vasp>>& band_e;
+  func::function<double, func::dmn_variadic<k_vasp, b_vasp>>& band_o;
 
-  FUNC_LIB::function<double, dmn_3<k_vasp, b_vasp, o_vasp>>& proj_magni;  // proj_magni[nKpoints][nBands][nOrbi]
-  FUNC_LIB::function<double, dmn_3<k_vasp, b_vasp, o_vasp>>& proj_phaRe;  // proj_phaRe[nKpoints][nBands][nOrbi]
-  FUNC_LIB::function<double, dmn_3<k_vasp, b_vasp, o_vasp>>& proj_phaIm;  // proj_phaIm[nKpoints][nBands][nOrbi]
+  func::function<double, func::dmn_variadic<k_vasp, b_vasp, o_vasp>>& proj_magni;  // proj_magni[nKpoints][nBands][nOrbi]
+  func::function<double, func::dmn_variadic<k_vasp, b_vasp, o_vasp>>& proj_phaRe;  // proj_phaRe[nKpoints][nBands][nOrbi]
+  func::function<double, func::dmn_variadic<k_vasp, b_vasp, o_vasp>>& proj_phaIm;  // proj_phaIm[nKpoints][nBands][nOrbi]
 
-  FUNC_LIB::function<std::complex<double>, dmn_3<k_vasp, b_dmft, o_dmft>>& projector;
+  func::function<std::complex<double>, func::dmn_variadic<k_vasp, b_dmft, o_dmft>>& projector;
 
-  //       FUNC_LIB::function<double, dmn_3<k_vasp, b_dmft, o_dmft> >& projection_re; //
+  //       func::function<double, func::dmn_variadic<k_vasp, b_dmft, o_dmft> >& projection_re;
+  //       //
   //       projection_Re[nKpoints][nCorrBands][nCorrOrbis]
-  //       FUNC_LIB::function<double, dmn_3<k_vasp, b_dmft, o_dmft> >& projection_im; //
+  //       func::function<double, func::dmn_variadic<k_vasp, b_dmft, o_dmft> >& projection_im;
+  //       //
   //       projection_Im[nKpoints][nCorrBands][nCorrOrbis]
 
-  //       FUNC_LIB::function<double, dmn_3<k_vasp, b_dmft, b_dmft> >& BlochHami; //
+  //       func::function<double, func::dmn_variadic<k_vasp, b_dmft, b_dmft> >& BlochHami; //
   //       BlochHami[nKpoints][nCorrBands][nCorrBands]
-  //       FUNC_LIB::function<double, dmn_3<k_vasp, b_dmft, b_dmft> >& BlochHami_re;// dfBlochHamiRe
+  //       func::function<double, func::dmn_variadic<k_vasp, b_dmft, b_dmft> >& BlochHami_re;//
+  //       dfBlochHamiRe
   //       [nKpoints][nCorrOrbis][nCorrOrbis]
-  //       FUNC_LIB::function<double, dmn_3<k_vasp, b_dmft, b_dmft> >& BlochHami_im;// dfBlochHamiRe
+  //       func::function<double, func::dmn_variadic<k_vasp, b_dmft, b_dmft> >& BlochHami_im;//
+  //       dfBlochHamiRe
   //       [nKpoints][nCorrOrbis][nCorrOrbis]
 
   /*!

@@ -8,16 +8,16 @@
 // Author: Giovanni Balduzzi(gbalduzz@itp.phys.ethz.ch)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// This file tests dmn_0.h
+// This file tests dmn_0.hpp
 
-#include "comp_library/function_library/domains/special_domains/dmn_0.h"
+#include "dca/function/domains/dmn_0.hpp"
 #include "gtest/gtest.h"
-#include "comp_library/function_library/domains/special_domains/dmn.h"
+#include "dca/function/domains/dmn.hpp"
 
 TEST(Dmn0Test, GetName) {
-  using Domain1 = dmn_0<dmn<3, unsigned int>>;
-  EXPECT_EQ("dmn_0<dmn<3, unsigned int>>", Domain1::get_name());
+  using Domain1 = dca::func::dmn_0<dca::func::dmn<3, unsigned int>>;
+  EXPECT_EQ("dmn_0<dca::func::dmn<3, unsigned int>>", Domain1::get_name());
 
-  using Domain2 = dmn_0<dmn<42, double>>;
-  EXPECT_EQ("dmn_0<dmn<42, double>>", Domain2::get_name());
+  using Domain2 = dca::func::dmn_0<dca::func::dmn<42, double>>;
+  EXPECT_EQ("dmn_0<dca::func::dmn<42, double>>", Domain2::get_name());
 }

@@ -16,7 +16,8 @@
 #include <complex>
 #include <utility>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "comp_library/linalg/linalg.hpp"
 #include "math_library/functional_transforms/basis_transforms/basis_transform.h"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_sp.h"
@@ -31,7 +32,7 @@ public:
 
   using target_k_cluster_type = typename target_k_dmn_t::parameter_type;
   using target_r_cluster_type = typename target_k_cluster_type::dual_type;
-  using target_r_dmn_t = dmn_0<target_r_cluster_type>;
+  using target_r_dmn_t = func::dmn_0<target_r_cluster_type>;
   using trafo_k_to_r_type =
       math_algorithms::functional_transforms::basis_transform<target_k_dmn_t, target_r_dmn_t>;
   using trafo_r_to_k_type =
@@ -54,10 +55,10 @@ private:
   concurrency_type& concurrency;
 
 protected:
-  FUNC_LIB::function<double, target_r_dmn_t> phi_r;
-  FUNC_LIB::function<double, target_r_dmn_t> phi_r_symmetrized;
+  func::function<double, target_r_dmn_t> phi_r;
+  func::function<double, target_r_dmn_t> phi_r_symmetrized;
 
-  FUNC_LIB::function<double, target_r_dmn_t> phi_r_inv;
+  func::function<double, target_r_dmn_t> phi_r_inv;
 
   dca::linalg::Matrix<double, dca::linalg::CPU> T;
   dca::linalg::Matrix<double, dca::linalg::CPU> T_symmetrized;

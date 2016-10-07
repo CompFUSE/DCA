@@ -15,7 +15,8 @@
 #include <complex>
 #include <utility>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "comp_library/linalg/linalg.hpp"
 #include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
 #include "phys_library/DCA+_step/lattice_mapping/interpolation/interpolation_routines.h"
@@ -33,23 +34,23 @@ public:
   using concurrency_type = typename parameters_type::concurrency_type;
 
   using source_r_cluster_type = typename source_k_dmn::parameter_type::dual_type;
-  using r_centered_dmn = dmn_0<centered_cluster_domain<source_r_cluster_type>>;
+  using r_centered_dmn = func::dmn_0<centered_cluster_domain<source_r_cluster_type>>;
 
   using basis_function_type = math_algorithms::functional_transforms::basis_function<
       typename target_k_dmn::parameter_type, math_algorithms::KRONECKER_DELTA,
       typename source_k_dmn::parameter_type, math_algorithms::HERMITE_CUBIC_SPLINE>;
 
-  using b = dmn_0<electron_band_domain>;
+  using b = func::dmn_0<electron_band_domain>;
 
   using compact_vertex_frequency_domain_type = DCA::vertex_frequency_domain<DCA::COMPACT>;
-  using w_VERTEX = dmn_0<compact_vertex_frequency_domain_type>;
+  using w_VERTEX = func::dmn_0<compact_vertex_frequency_domain_type>;
 
   using DCA_k_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
                                             CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
-  using k_DCA = dmn_0<DCA_k_cluster_type>;
+  using k_DCA = func::dmn_0<DCA_k_cluster_type>;
   using host_vertex_k_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
                                                     LATTICE_TP, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
-  using k_HOST_VERTEX = dmn_0<host_vertex_k_cluster_type>;
+  using k_HOST_VERTEX = func::dmn_0<host_vertex_k_cluster_type>;
 
 public:
   interpolation_tp(parameters_type& parameters_ref);
@@ -58,12 +59,13 @@ public:
   void initialize_T_K_to_k(dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& T_K_to_k);
 
   template <typename scalartype>
-  void execute(FUNC_LIB::function<std::complex<scalartype>,
-                                  dmn_2<dmn_4<b, b, k_DCA, w_VERTEX>, dmn_4<b, b, k_DCA, w_VERTEX>>>&
-                   Gamma_cluster,
-               FUNC_LIB::function<std::complex<scalartype>,
-                                  dmn_2<dmn_4<b, b, k_HOST_VERTEX, w_VERTEX>,
-                                        dmn_4<b, b, k_HOST_VERTEX, w_VERTEX>>>& Gamma_lattice);
+  void execute(
+      func::function<std::complex<scalartype>,
+                     func::dmn_variadic<func::dmn_variadic<b, b, k_DCA, w_VERTEX>,
+                                        func::dmn_variadic<b, b, k_DCA, w_VERTEX>>>& Gamma_cluster,
+      func::function<std::complex<scalartype>,
+                     func::dmn_variadic<func::dmn_variadic<b, b, k_HOST_VERTEX, w_VERTEX>,
+                                        func::dmn_variadic<b, b, k_HOST_VERTEX, w_VERTEX>>>& Gamma_lattice);
 
 private:
   parameters_type& parameters;
@@ -95,11 +97,12 @@ void interpolation_tp<parameters_type, source_k_dmn, target_k_dmn>::initialize_T
 template <typename parameters_type, typename source_k_dmn, typename target_k_dmn>
 template <typename scalartype>
 void interpolation_tp<parameters_type, source_k_dmn, target_k_dmn>::execute(
-    FUNC_LIB::function<std::complex<scalartype>,
-                       dmn_2<dmn_4<b, b, k_DCA, w_VERTEX>, dmn_4<b, b, k_DCA, w_VERTEX>>>& Gamma_cluster,
-    FUNC_LIB::function<std::complex<scalartype>,
-                       dmn_2<dmn_4<b, b, k_HOST_VERTEX, w_VERTEX>, dmn_4<b, b, k_HOST_VERTEX, w_VERTEX>>>&
-        Gamma_lattice) {
+    func::function<std::complex<scalartype>,
+                   func::dmn_variadic<func::dmn_variadic<b, b, k_DCA, w_VERTEX>,
+                                      func::dmn_variadic<b, b, k_DCA, w_VERTEX>>>& Gamma_cluster,
+    func::function<std::complex<scalartype>,
+                   func::dmn_variadic<func::dmn_variadic<b, b, k_HOST_VERTEX, w_VERTEX>,
+                                      func::dmn_variadic<b, b, k_HOST_VERTEX, w_VERTEX>>>& Gamma_lattice) {
   dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> T_K_to_k("T_K_to_k");
 
   initialize_T_K_to_k(T_K_to_k);

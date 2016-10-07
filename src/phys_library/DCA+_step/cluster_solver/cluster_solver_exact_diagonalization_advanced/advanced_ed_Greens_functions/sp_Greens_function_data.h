@@ -16,7 +16,8 @@
 #include <complex>
 #include <iostream>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "phys_library/domains/time_and_frequency/frequency_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain_real_axis.h"
@@ -62,10 +63,10 @@ public:
 
   typedef sp_Greens_function_data<ed_options> this_type;
 
-  using t = dmn_0<time_domain>;
-  using w = dmn_0<frequency_domain>;
-  using w_REAL = dmn_0<frequency_domain_real_axis>;
-  using w_VERTEX = dmn_0<DCA::vertex_frequency_domain<DCA::COMPACT>>;
+  using t = func::dmn_0<time_domain>;
+  using w = func::dmn_0<frequency_domain>;
+  using w_REAL = func::dmn_0<frequency_domain_real_axis>;
+  using w_VERTEX = func::dmn_0<DCA::vertex_frequency_domain<DCA::COMPACT>>;
 
 public:
   sp_Greens_function_data();
@@ -80,14 +81,15 @@ public:
   template <typename parameter_type>
   void initialize(parameter_type& parameters);
 
-  void sum_to(FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w>>& G_r_w,
-              FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL>>& G_r_w_real,
-              FUNC_LIB::function<double, dmn_4<nu_dmn, nu_dmn, r_dmn, t>>& G_r_t);
+  void sum_to(
+      func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, w>>& G_r_w,
+      func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, w_REAL>>& G_r_w_real,
+      func::function<double, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, t>>& G_r_t);
 
   void sum_to(
-      FUNC_LIB::function<complex_type, dmn_6<nu_dmn, nu_dmn, r_dmn, r_dmn, w_VERTEX, w_VERTEX>>&
+      func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, r_dmn, w_VERTEX, w_VERTEX>>&
           G2_nonlocal_nu_nu_r_r_w_w,
-      FUNC_LIB::function<complex_type, dmn_6<nu_dmn, nu_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>&
+      func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>&
           G2_nonlocal_nu_nu_k_k_w_w);
 
 public:
@@ -122,21 +124,23 @@ public:
   matrix_type overlap_0;
   matrix_type overlap_1;
 
-  FUNC_LIB::function<scalar_type, t> tau;
-  FUNC_LIB::function<complex_type, w> w_im;
-  FUNC_LIB::function<complex_type, w_REAL> w_re;
+  func::function<scalar_type, t> tau;
+  func::function<complex_type, w> w_im;
+  func::function<complex_type, w_REAL> w_re;
 
-  FUNC_LIB::function<scalar_type, t> G_tau;
-  FUNC_LIB::function<complex_type, w> G_w_im;
-  FUNC_LIB::function<complex_type, w_REAL> G_w_re;
+  func::function<scalar_type, t> G_tau;
+  func::function<complex_type, w> G_w_im;
+  func::function<complex_type, w_REAL> G_w_re;
 
-  FUNC_LIB::function<complex_type, dmn_2<w, dmn_3<nu_dmn, nu_dmn, r_dmn>>> G_w_im__nu_nu_r;
-  FUNC_LIB::function<complex_type, dmn_2<w_REAL, dmn_3<nu_dmn, nu_dmn, r_dmn>>> G_w_re__nu_nu_r;
-  FUNC_LIB::function<scalar_type, dmn_2<t, dmn_3<nu_dmn, nu_dmn, r_dmn>>> G_tau__nu_nu_r;
+  func::function<complex_type, func::dmn_variadic<w, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn>>>
+      G_w_im__nu_nu_r;
+  func::function<complex_type, func::dmn_variadic<w_REAL, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn>>>
+      G_w_re__nu_nu_r;
+  func::function<scalar_type, func::dmn_variadic<t, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn>>> G_tau__nu_nu_r;
 
-  FUNC_LIB::function<complex_type, dmn_6<nu_dmn, nu_dmn, r_dmn, r_dmn, w_VERTEX, w_VERTEX>>
+  func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, r_dmn, w_VERTEX, w_VERTEX>>
       G2_nonlocal_nu_nu_r_r_w_w;
-  FUNC_LIB::function<complex_type, dmn_6<nu_dmn, nu_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>
+  func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>
       G2_nonlocal_nu_nu_k_k_w_w;
 };
 
@@ -205,9 +209,9 @@ void sp_Greens_function_data<ed_options>::set_indices(int l) {
 
 template <typename ed_options>
 void sp_Greens_function_data<ed_options>::sum_to(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w>>& G_r_w_im,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu_dmn, nu_dmn, r_dmn, w_REAL>>& G_r_w_re,
-    FUNC_LIB::function<double, dmn_4<nu_dmn, nu_dmn, r_dmn, t>>& G_r_t) {
+    func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, w>>& G_r_w_im,
+    func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, w_REAL>>& G_r_w_re,
+    func::function<double, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, t>>& G_r_t) {
   for (int ind = 0; ind < nu_nu_r_dmn_type::dmn_size(); ind++) {
     set_indices(ind);
 
@@ -226,8 +230,9 @@ void sp_Greens_function_data<ed_options>::sum_to(
 
 template <typename ed_options>
 void sp_Greens_function_data<ed_options>::sum_to(
-    FUNC_LIB::function<complex_type, dmn_6<nu_dmn, nu_dmn, r_dmn, r_dmn, w_VERTEX, w_VERTEX>>& G_nu_nu_r_r_w_w,
-    FUNC_LIB::function<complex_type, dmn_6<nu_dmn, nu_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>&
+    func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, r_dmn, w_VERTEX, w_VERTEX>>&
+        G_nu_nu_r_r_w_w,
+    func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>&
         G_nu_nu_k_k_w_w) {
   G_nu_nu_r_r_w_w += G2_nonlocal_nu_nu_r_r_w_w;
   G_nu_nu_k_k_w_w += G2_nonlocal_nu_nu_k_k_w_w;

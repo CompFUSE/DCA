@@ -12,8 +12,9 @@
 #ifndef PHYS_LIBRARY_DOMAINS_CLUSTER_INTERPOLATION_HSPLINE_INTERPOLATION_HSPLINE_INTERPOLATION_HPP
 #define PHYS_LIBRARY_DOMAINS_CLUSTER_INTERPOLATION_HSPLINE_INTERPOLATION_HSPLINE_INTERPOLATION_HPP
 
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "dca/util/type_list.hpp"
-#include "comp_library/function_library/include_function_library.h"
 #include "phys_library/domains/cluster/interpolation/hspline_interpolation/hspline_interpolation_domain_type.hpp"
 #include "phys_library/domains/cluster/interpolation/hspline_interpolation/hspline_interpolation_generic.hpp"
 
@@ -21,8 +22,8 @@ template <typename source_dmn_type, typename target_dmn_type>
 class hspline_interpolation {
 public:
   template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-  static void execute(FUNC_LIB::function<scalartype_input, domain_input>& f_input,
-                      FUNC_LIB::function<scalartype_output, domain_output>& f_output, double a) {
+  static void execute(func::function<scalartype_input, domain_input>& f_input,
+                      func::function<scalartype_output, domain_output>& f_output, double a) {
     typedef
         typename hspline_interpolation_domain_type<domain_input, source_dmn_type, target_dmn_type>::Result
             hspline_interpolation_domain;
@@ -43,11 +44,11 @@ public:
 };
 
 template <typename source_dmn_type, typename target_dmn_type>
-class hspline_interpolation<dmn_0<source_dmn_type>, dmn_0<target_dmn_type>> {
+class hspline_interpolation<func::dmn_0<source_dmn_type>, func::dmn_0<target_dmn_type>> {
 public:
   template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-  static void execute(FUNC_LIB::function<scalartype_input, domain_input>& f_input,
-                      FUNC_LIB::function<scalartype_output, domain_output>& f_output, double a) {
+  static void execute(func::function<scalartype_input, domain_input>& f_input,
+                      func::function<scalartype_output, domain_output>& f_output, double a) {
     hspline_interpolation<source_dmn_type, target_dmn_type>::execute(f_input, f_output, a);
   }
 };

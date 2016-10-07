@@ -17,7 +17,8 @@
 #include <utility>
 #include <vector>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "comp_library/linalg/linalg.hpp"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
@@ -29,14 +30,14 @@ namespace DCA {
 template <typename scalartype, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
 class CPE_data {
 public:
-  using alpha_dmn_t = dmn_0<basis_function_t>;
+  using alpha_dmn_t = func::dmn_0<basis_function_t>;
 
-  using w = dmn_0<frequency_domain>;
-  using w_IMAG = dmn_0<frequency_domain_imag_axis>;
+  using w = func::dmn_0<frequency_domain>;
+  using w_IMAG = func::dmn_0<frequency_domain_imag_axis>;
 
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
 public:
   CPE_data();
@@ -59,16 +60,16 @@ public:
   double max_error;
   double real_axis_off_set;
 
-  FUNC_LIB::function<std::complex<scalartype>, dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>* f_target_ptr;
+  func::function<std::complex<scalartype>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>* f_target_ptr;
 
-  FUNC_LIB::function<scalartype, dmn_3<nu, nu, k_dmn_t>>* Sigma_0_moment_ptr;
-  FUNC_LIB::function<scalartype, dmn_variadic<nu, nu, k_dmn_t, alpha_dmn_t>>* alpha_function_ptr;
-  FUNC_LIB::function<scalartype, dmn_3<nu, nu, k_dmn_t>>* error_function_ptr;
+  func::function<scalartype, func::dmn_variadic<nu, nu, k_dmn_t>>* Sigma_0_moment_ptr;
+  func::function<scalartype, func::dmn_variadic<nu, nu, k_dmn_t, alpha_dmn_t>>* alpha_function_ptr;
+  func::function<scalartype, func::dmn_variadic<nu, nu, k_dmn_t>>* error_function_ptr;
 
-  FUNC_LIB::function<std::complex<scalartype>, dmn_variadic<nu, nu, k_dmn_t, w>>* S_approx_ptr;
+  func::function<std::complex<scalartype>, func::dmn_variadic<nu, nu, k_dmn_t, w>>* S_approx_ptr;
 
-  FUNC_LIB::function<std::complex<scalartype>, dmn_variadic<nu, nu, k_dmn_t, w_IMAG>>* f_approx_ptr;
-  FUNC_LIB::function<std::complex<scalartype>, dmn_variadic<nu, nu, k_dmn_t, w_IMAG>>* f_measured_ptr;
+  func::function<std::complex<scalartype>, func::dmn_variadic<nu, nu, k_dmn_t, w_IMAG>>* f_approx_ptr;
+  func::function<std::complex<scalartype>, func::dmn_variadic<nu, nu, k_dmn_t, w_IMAG>>* f_measured_ptr;
 
   dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>* A_matrix_ptr;
 

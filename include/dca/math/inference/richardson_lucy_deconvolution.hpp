@@ -17,7 +17,8 @@
 #include <iostream>
 #include <utility>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "comp_library/linalg/linalg.hpp"
 
 namespace dca {
@@ -31,23 +32,23 @@ public:
   RichardsonLucyDeconvolution(parameters_type& parameters_ref);
 
   void execute(dca::linalg::Matrix<double, dca::linalg::CPU>& matrix,
-               FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t>>& f_source,
-               FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t>>& f_target);
+               func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_source,
+               func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_target);
 
   void execute(dca::linalg::Matrix<double, dca::linalg::CPU>& A,
-               FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t>>& f_source,
-               FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t>>& f_approx,
-               FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t>>& f_target);
+               func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_source,
+               func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_approx,
+               func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_target);
 
 private:
-  void initialize_matrices(FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t>>& f_source);
+  void initialize_matrices(func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_source);
 
-  void initialize_errors(FUNC_LIB::function<bool, p_dmn_t>& is_finished,
-                         FUNC_LIB::function<double, p_dmn_t>& error_function);
+  void initialize_errors(func::function<bool, p_dmn_t>& is_finished,
+                         func::function<double, p_dmn_t>& error_function);
 
-  bool update_f_target(FUNC_LIB::function<bool, p_dmn_t>& is_finished,
-                       FUNC_LIB::function<double, p_dmn_t>& error_function,
-                       FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t>>& f_target);
+  bool update_f_target(func::function<bool, p_dmn_t>& is_finished,
+                       func::function<double, p_dmn_t>& error_function,
+                       func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_target);
 
 private:
   parameters_type& parameters;
@@ -79,13 +80,13 @@ RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::RichardsonLucyDe
 template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
 void RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
     dca::linalg::Matrix<double, dca::linalg::CPU>& A,
-    FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t>>& f_source,
-    FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t>>& f_target) {
+    func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_source,
+    func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_target) {
   assert(A.size().first == k_dmn_t::dmn_size());
   assert(A.size().first == A.size().second);
 
-  FUNC_LIB::function<bool, p_dmn_t> is_finished("is_finished");
-  FUNC_LIB::function<double, p_dmn_t> error_function("error_function");
+  func::function<bool, p_dmn_t> is_finished("is_finished");
+  func::function<double, p_dmn_t> error_function("error_function");
 
   initialize_matrices(f_source);
 
@@ -129,9 +130,9 @@ void RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
 template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
 void RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
     dca::linalg::Matrix<double, dca::linalg::CPU>& A,
-    FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t>>& f_source,
-    FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t>>& f_approx,
-    FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t>>& f_target) {
+    func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_source,
+    func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_approx,
+    func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_target) {
   execute(A, f_source, f_target);
 
   for (int j = 0; j < p_dmn_t::dmn_size(); j++)
@@ -147,7 +148,7 @@ void RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
 
 template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
 void RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::initialize_matrices(
-    FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t>>& f_source) {
+    func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_source) {
   int nr_rows = k_dmn_t::dmn_size();
   int nr_cols = p_dmn_t::dmn_size();
 
@@ -176,8 +177,7 @@ void RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::initialize_
 
 template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
 void RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::initialize_errors(
-    FUNC_LIB::function<bool, p_dmn_t>& is_finished,
-    FUNC_LIB::function<double, p_dmn_t>& error_function) {
+    func::function<bool, p_dmn_t>& is_finished, func::function<double, p_dmn_t>& error_function) {
   for (int j = 0; j < p_dmn_t::dmn_size(); j++) {
     double error = 0;
     for (int i = 0; i < k_dmn_t::dmn_size(); i++)
@@ -190,9 +190,8 @@ void RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::initialize_
 
 template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
 bool RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::update_f_target(
-    FUNC_LIB::function<bool, p_dmn_t>& is_finished,
-    FUNC_LIB::function<double, p_dmn_t>& error_function,
-    FUNC_LIB::function<double, dmn_2<k_dmn_t, p_dmn_t>>& f_target) {
+    func::function<bool, p_dmn_t>& is_finished, func::function<double, p_dmn_t>& error_function,
+    func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_target) {
   bool all_are_finished = true;
 
   double epsilon = parameters.get_deconvolution_tolerance();

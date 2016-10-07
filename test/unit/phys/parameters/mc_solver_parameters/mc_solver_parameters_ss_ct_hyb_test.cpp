@@ -13,7 +13,7 @@
 
 #include "dca/phys/parameters/mc_solver_parameters.hpp"
 #include "gtest/gtest.h"
-#include "comp_library/IO_library/JSON/JSON.hpp"
+#include "dca/io/json/json_reader.hpp"
 
 TEST(McSolverParametersSsCtHybTest, DefaultValues) {
   dca::phys::params::McSolverParameters<DCA::SS_CT_HYB> pars;
@@ -25,7 +25,7 @@ TEST(McSolverParametersSsCtHybTest, DefaultValues) {
 }
 
 TEST(McSolverParametersSsCtHybTest, ReadAll) {
-  IO::reader<IO::JSON> reader;
+  dca::io::JSONReader reader;
   dca::phys::params::McSolverParameters<DCA::SS_CT_HYB> pars;
 
   reader.open_file(DCA_SOURCE_DIR

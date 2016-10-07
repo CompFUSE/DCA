@@ -43,10 +43,10 @@ TEST_F(MPICollectiveSumTest, SumScalar) {
 }
 
 TEST_F(MPICollectiveSumTest, SumFunction) {
-  using TestDomain = dmn_0<dmn<2, int>>;
+  using TestDomain = dca::func::dmn_0<dca::func::dmn<2, int>>;
 
-  FUNC_LIB::function<double, TestDomain> function_test("test");
-  FUNC_LIB::function<double, TestDomain> function_expected("expected");
+  dca::func::function<double, TestDomain> function_test("test");
+  dca::func::function<double, TestDomain> function_expected("expected");
 
   for (int i = 0; i < function_test.size(); i++)
     function_test(i) = i * rank_;
@@ -61,14 +61,14 @@ TEST_F(MPICollectiveSumTest, SumFunction) {
 }
 
 TEST_F(MPICollectiveSumTest, ComputeCovarianceScalar) {
-  using FunctionDomain = dmn_0<dmn<4, int>>;
-  using CovarianceDomain = dmn_variadic<FunctionDomain, FunctionDomain>;
+  using FunctionDomain = dca::func::dmn_0<dca::func::dmn<4, int>>;
+  using CovarianceDomain = dca::func::dmn_variadic<FunctionDomain, FunctionDomain>;
 
-  FUNC_LIB::function<double, CovarianceDomain> covariance_test("test");
-  FUNC_LIB::function<double, CovarianceDomain> covariance_expected("expected");
+  dca::func::function<double, CovarianceDomain> covariance_test("test");
+  dca::func::function<double, CovarianceDomain> covariance_expected("expected");
 
-  FUNC_LIB::function<double, FunctionDomain> f("f");
-  FUNC_LIB::function<double, FunctionDomain> f_mean("f_mean");
+  dca::func::function<double, FunctionDomain> f("f");
+  dca::func::function<double, FunctionDomain> f_mean("f_mean");
 
   for (int i = 0; i < f.size(); i++) {
     f(i) = i * rank_;
@@ -97,14 +97,15 @@ TEST_F(MPICollectiveSumTest, ComputeCovarianceScalar) {
 }
 
 TEST_F(MPICollectiveSumTest, ComputeCovarianceComplex) {
-  using FunctionDomain = dmn_0<dmn<2, int>>;
-  using CovarianceDomain = dmn_variadic<dmn_0<dmn<4, int>>, dmn_0<dmn<4, int>>>;
+  using FunctionDomain = dca::func::dmn_0<dca::func::dmn<2, int>>;
+  using CovarianceDomain = dca::func::dmn_variadic<dca::func::dmn_0<dca::func::dmn<4, int>>,
+                                                   dca::func::dmn_0<dca::func::dmn<4, int>>>;
 
-  FUNC_LIB::function<double, CovarianceDomain> covariance_test("test");
-  FUNC_LIB::function<double, CovarianceDomain> covariance_expected("expected");
+  dca::func::function<double, CovarianceDomain> covariance_test("test");
+  dca::func::function<double, CovarianceDomain> covariance_expected("expected");
 
-  FUNC_LIB::function<std::complex<double>, FunctionDomain> f("f");
-  FUNC_LIB::function<std::complex<double>, FunctionDomain> f_mean("f_mean");
+  dca::func::function<std::complex<double>, FunctionDomain> f("f");
+  dca::func::function<std::complex<double>, FunctionDomain> f_mean("f_mean");
 
   for (int i = 0; i < f.size(); i++) {
     f(i) = std::complex<double>(rank_ * i, rank_ * (i + f.size()));

@@ -20,9 +20,9 @@
 #include <string>
 #include <vector>
 
+#include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/vector.hpp"
-#include "comp_library/function_library/function.h"
 
 namespace dca {
 namespace parallel {
@@ -37,12 +37,12 @@ public:
   template <typename Scalar>
   void sum(std::map<std::string, std::vector<Scalar>>&) const {}
   template <typename Scalar, class Domain>
-  void sum(FUNC_LIB::function<Scalar, Domain>&) const {}
+  void sum(func::function<Scalar, Domain>&) const {}
   template <typename Scalar, class Domain>
-  void sum(FUNC_LIB::function<Scalar, Domain>& /*f_in*/,
-           FUNC_LIB::function<Scalar, Domain>& /*f_out*/) const {}
+  void sum(func::function<Scalar, Domain>& /*f_in*/, func::function<Scalar, Domain>& /*f_out*/) const {
+  }
   template <typename Scalar, class Domain>
-  void sum(FUNC_LIB::function<std::vector<Scalar>, Domain>&) const {}
+  void sum(func::function<std::vector<Scalar>, Domain>&) const {}
   template <typename Scalar>
   void sum(linalg::Vector<Scalar, linalg::CPU>&) const {}
   template <typename Scalar>

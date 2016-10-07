@@ -1,7 +1,11 @@
 ################################################################################
 # Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 #
-# Checks for external libraries and creates a global lists of them and the corresponding include paths.
+# Checks for external libraries and creates a global lists of them and the corresponding include
+# paths.
+# We explicitely search for static libraries because compute nodes cannot load shared libraries from
+# e.g. the project directory.
+#
 #
 # TODO: - Set DCA_HAVE_XXX to true after XXX was found?
 #       - Use static or shared libraries?
@@ -11,7 +15,9 @@ set(DCA_EXTERNAL_INCLUDE_DIRS "" CACHE INTERNAL "")
 
 ################################################################################
 # NFFT
-find_library(NFFT_LIBRARY nfft3 HINTS ${NFFT_DIR}/lib)
+find_library(NFFT_LIBRARY
+  NAMES libnfft3.a nfft3
+  HINTS ${NFFT_DIR}/lib)
 find_path(NFFT_INCLUDE_DIR nfft3.h HINTS ${NFFT_DIR}/include)
 
 mark_as_advanced(NFFT_LIBRARY NFFT_INCLUDE_DIR)
@@ -21,7 +27,9 @@ list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${NFFT_INCLUDE_DIR})
 
 ################################################################################
 # SPGLIB
-find_library(SPGLIB_LIBRARY symspg HINTS ${SPGLIB_DIR}/lib)
+find_library(SPGLIB_LIBRARY
+  NAMES libsymspg.a symspg
+  HINTS ${SPGLIB_DIR}/lib)
 find_path(SPGLIB_INCLUDE_DIR spglib.h HINTS ${SPGLIB_DIR}/include/spglib)
 
 mark_as_advanced(SPGLIB_LIBRARY SPGLIB_INCLUDE_DIR)

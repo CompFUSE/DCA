@@ -14,8 +14,8 @@
 
 #include <iostream>
 
+#include "dca/function/function.hpp"
 #include "comp_library/linalg/linalg.hpp"
-#include "comp_library/function_library/include_function_library.h"
 #include "math_library/functional_transforms/basis_transforms/basis_transforms.hpp"
 #include "math_library/functional_transforms/domain_transforms/transform_domain_template.h"
 #include "math_library/functional_transforms/domain_transforms/transformation_characteristics.h"
@@ -36,15 +36,15 @@ private:
 
 public:
   template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-  static void execute(FUNC_LIB::function<scalartype_input, domain_input>& f_input,
-                      FUNC_LIB::function<scalartype_output, domain_output>& f_output) {
+  static void execute(func::function<scalartype_input, domain_input>& f_input,
+                      func::function<scalartype_output, domain_output>& f_output) {
     default_execute(f_input, f_output);
   }
 
 private:
   template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-  static void default_execute(FUNC_LIB::function<scalartype_input, domain_input>& f_input,
-                              FUNC_LIB::function<scalartype_output, domain_output>& f_output) {
+  static void default_execute(func::function<scalartype_input, domain_input>& f_input,
+                              func::function<scalartype_output, domain_output>& f_output) {
     if (VERBOSE)
       std::cout << "\n\t default-transform (expansion -> continuous) " << DMN_INDEX << "  "
                 << type_input::get_name() << " --> " << type_output::get_name() << "\n\n";

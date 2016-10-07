@@ -7,7 +7,7 @@
 //
 // Author: Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //
-// This file tests the ceilDiv function
+// This file tests the ceilDiv function.
 
 #include "dca/util/integer_division.hpp"
 #include <vector>

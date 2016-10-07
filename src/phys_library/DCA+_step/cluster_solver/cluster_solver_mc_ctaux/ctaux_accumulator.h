@@ -21,9 +21,10 @@
 #include <fstream>
 #include <vector>
 
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
 
-#include "comp_library/function_library/include_function_library.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_accumulator/sp_accumulator/ctaux_sp_accumulator_nfft.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_accumulator/tp_accumulator/ctaux_accumulator_equal_time_operator.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_accumulator/tp_accumulator/ctaux_accumulator_nonlocal_G.h"
@@ -58,18 +59,18 @@ public:
   typedef vertex_pair<parameters_type> vertex_pair_type;
   typedef vertex_singleton vertex_singleton_type;
 
-  using t = dmn_0<time_domain>;
-  using w = dmn_0<frequency_domain>;
-  using w_VERTEX = dmn_0<DCA::vertex_frequency_domain<DCA::COMPACT>>;
+  using t = func::dmn_0<time_domain>;
+  using w = func::dmn_0<frequency_domain>;
+  using w_VERTEX = func::dmn_0<DCA::vertex_frequency_domain<DCA::COMPACT>>;
 
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
-  using r_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
-                                     REAL_SPACE, BRILLOUIN_ZONE>>;
-  using k_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
-                                     MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using r_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                           CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>>;
+  using k_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                           CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
   typedef r_DCA r_dmn_t;
   typedef k_DCA k_dmn_t;
 
@@ -98,50 +99,50 @@ public:
 
   std::vector<vertex_singleton_type>& get_configuration(e_spin_states_type e_spin = e_UP);
 
-  FUNC_LIB::function<double, dmn_0<numerical_error_domain>>& get_error_distribution() {
+  func::function<double, func::dmn_0<numerical_error_domain>>& get_error_distribution() {
     return error;
   }
 
-  FUNC_LIB::function<double, dmn_0<Feynman_expansion_order_domain>>& get_visited_expansion_order_k() {
+  func::function<double, func::dmn_0<Feynman_expansion_order_domain>>& get_visited_expansion_order_k() {
     return visited_expansion_order_k;
   }
 
   // equal time-measurements
-  FUNC_LIB::function<double, dmn_variadic<nu, nu, r_dmn_t, t>>& get_G_r_t() {
+  func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>>& get_G_r_t() {
     return G_r_t;
   }
-  FUNC_LIB::function<double, dmn_variadic<nu, nu, r_dmn_t, t>>& get_G_r_t_stddev() {
+  func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>>& get_G_r_t_stddev() {
     return G_r_t_stddev;
   }
 
-  FUNC_LIB::function<double, dmn_variadic<b, r_dmn_t>>& get_charge_cluster_moment() {
+  func::function<double, func::dmn_variadic<b, r_dmn_t>>& get_charge_cluster_moment() {
     return charge_cluster_moment;
   }
-  FUNC_LIB::function<double, dmn_variadic<b, r_dmn_t>>& get_magnetic_cluster_moment() {
+  func::function<double, func::dmn_variadic<b, r_dmn_t>>& get_magnetic_cluster_moment() {
     return magnetic_cluster_moment;
   }
-  FUNC_LIB::function<double, dmn_variadic<b, r_dmn_t>>& get_dwave_pp_correlator() {
+  func::function<double, func::dmn_variadic<b, r_dmn_t>>& get_dwave_pp_correlator() {
     return dwave_pp_correlator;
   }
 
   // sp-measurements
-  FUNC_LIB::function<double, dmn_variadic<nu, nu, r_dmn_t, t>>& get_K_r_t() {
+  func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>>& get_K_r_t() {
     return K_r_t;
   }
 
-  FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, r_dmn_t, w>>& get_M_r_w() {
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>>& get_M_r_w() {
     return M_r_w;
   }
-  FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, r_dmn_t, w>>& get_M_r_w_squared() {
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>>& get_M_r_w_squared() {
     return M_r_w_squared;
   }
 
-  FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, k_dmn_t, w>>& get_M_k_w() {
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& get_M_k_w() {
     return M_k_w;
   }
 
   // tp-measurements
-  FUNC_LIB::function<std::complex<double>, dmn_8<b, b, b, b, k_dmn_t, k_dmn_t, w_VERTEX, w_VERTEX>>& get_G4() {
+  func::function<std::complex<double>, func::dmn_variadic<b, b, b, b, k_dmn_t, k_dmn_t, w_VERTEX, w_VERTEX>>& get_G4() {
     return G4;
   }
 
@@ -196,31 +197,31 @@ protected:
   dca::linalg::Matrix<double, dca::linalg::CPU> M_e_UP;
   dca::linalg::Matrix<double, dca::linalg::CPU> M_e_DN;
 
-  FUNC_LIB::function<double, dmn_0<numerical_error_domain>> error;
-  FUNC_LIB::function<double, dmn_0<Feynman_expansion_order_domain>> visited_expansion_order_k;
+  func::function<double, func::dmn_0<numerical_error_domain>> error;
+  func::function<double, func::dmn_0<Feynman_expansion_order_domain>> visited_expansion_order_k;
 
-  FUNC_LIB::function<double, dmn_variadic<nu, nu, r_dmn_t, t>> K_r_t;
+  func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>> K_r_t;
 
-  FUNC_LIB::function<double, dmn_variadic<nu, nu, r_dmn_t, t>> G_r_t;
-  FUNC_LIB::function<double, dmn_variadic<nu, nu, r_dmn_t, t>> G_r_t_stddev;
+  func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>> G_r_t;
+  func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>> G_r_t_stddev;
 
-  FUNC_LIB::function<double, dmn_variadic<b, r_dmn_t>> charge_cluster_moment;
-  FUNC_LIB::function<double, dmn_variadic<b, r_dmn_t>> magnetic_cluster_moment;
-  FUNC_LIB::function<double, dmn_variadic<b, r_dmn_t>> dwave_pp_correlator;
+  func::function<double, func::dmn_variadic<b, r_dmn_t>> charge_cluster_moment;
+  func::function<double, func::dmn_variadic<b, r_dmn_t>> magnetic_cluster_moment;
+  func::function<double, func::dmn_variadic<b, r_dmn_t>> dwave_pp_correlator;
 
-  FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, r_dmn_t, w>> M_r_w;
-  FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, r_dmn_t, w>> M_r_w_squared;
-  FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, r_dmn_t, w>> M_r_w_stddev;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>> M_r_w;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>> M_r_w_squared;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>> M_r_w_stddev;
 
-  FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, k_dmn_t, w>> M_k_w;
-  FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, k_dmn_t, w>> M_k_w_stddev;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> M_k_w;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> M_k_w_stddev;
 
   MC_single_particle_accumulator<CT_AUX_SOLVER, NFFT, parameters_type, MOMS_type>
       single_particle_accumulator_obj;
 
   MC_two_particle_equal_time_accumulator<parameters_type, MOMS_type> MC_two_particle_equal_time_accumulator_obj;
 
-  FUNC_LIB::function<std::complex<double>, dmn_8<b, b, b, b, k_dmn_t, k_dmn_t, w_VERTEX, w_VERTEX>> G4;
+  func::function<std::complex<double>, func::dmn_variadic<b, b, b, b, k_dmn_t, k_dmn_t, w_VERTEX, w_VERTEX>> G4;
 
   CT_AUX_ACCUMULATION::accumulator_nonlocal_G<parameters_type, MOMS_type> accumulator_nonlocal_G_obj;
   CT_AUX_ACCUMULATION::accumulator_nonlocal_chi<parameters_type, MOMS_type> accumulator_nonlocal_chi_obj;

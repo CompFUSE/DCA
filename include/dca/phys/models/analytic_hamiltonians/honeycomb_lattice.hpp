@@ -19,8 +19,8 @@
 #include <utility>
 #include <vector>
 
+#include "dca/function/function.hpp"
 #include "dca/phys/models/analytic_hamiltonians/cluster_shape_type.hpp"
-#include "comp_library/function_library/include_function_library.h"
 #include "phys_library/domains/cluster/symmetries/point_groups/No_symmetry.h"
 
 namespace dca {
@@ -52,11 +52,11 @@ public:
   std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> get_orbital_permutations();
 
   template <class domain, class parameters_type>
-  static void initialize_H_interaction(FUNC_LIB::function<double, domain>& H_interaction,
+  static void initialize_H_interaction(func::function<double, domain>& H_interaction,
                                        parameters_type& parameters);
 
   template <class domain>
-  static void initialize_H_symmetry(FUNC_LIB::function<int, domain>& H_symmetry);
+  static void initialize_H_symmetry(func::function<int, domain>& H_symmetry);
 
   template <class parameters_type>
   static std::complex<double> get_LDA_Hamiltonians(parameters_type& parameters, std::vector<double> k,
@@ -149,7 +149,7 @@ std::vector<std::vector<double>> HoneycombLattice<DCA_point_group_type>::get_a_v
 template <typename DCA_point_group_type>
 template <class domain, class parameters_type>
 void HoneycombLattice<DCA_point_group_type>::initialize_H_interaction(
-    FUNC_LIB::function<double, domain>& H_interaction, parameters_type& parameters) {
+    func::function<double, domain>& H_interaction, parameters_type& parameters) {
   std::vector<std::vector<double>>& U_ij = parameters.get_U_ij();
 
   for (size_t i = 0; i < U_ij.size(); i++)
@@ -175,7 +175,7 @@ std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> HoneycombLattic
 template <typename DCA_point_group_type>
 template <class domain>
 void HoneycombLattice<DCA_point_group_type>::initialize_H_symmetry(
-    FUNC_LIB::function<int, domain>& H_symmetries) {
+    func::function<int, domain>& H_symmetries) {
   // e_up <==> e_dn symmetry
   //   for(int i=0; i<BANDS; i++){
   //     for(int j=0; j<BANDS; j++){

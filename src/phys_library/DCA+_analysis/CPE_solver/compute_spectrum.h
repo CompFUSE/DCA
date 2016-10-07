@@ -19,10 +19,12 @@
 #include <stdexcept>
 #include <string>
 
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
+#include "dca/io/hdf5/hdf5_writer.hpp"
+#include "dca/io/json/json_writer.hpp"
 #include "dca/util/print_time.hpp"
-#include "comp_library/function_library/include_function_library.h"
 #include "comp_library/function_plotting/include_plotting.h"
-#include "comp_library/IO_library/IO.hpp"
 #include "comp_library/linalg/linalg.hpp"
 #include "math_library/geometry_library/vector_operations/vector_operations.hpp"
 #include "math_library/static_functions.h"  // for gaussian_distribution
@@ -36,6 +38,8 @@
 #include "phys_library/domains/time_and_frequency/frequency_domain_imag_axis.h"
 #include "phys_library/domains/time_and_frequency/time_domain.h"
 
+using namespace dca::phys;
+
 namespace DCA {
 
 template <class parameters_type, class basis_function_t>
@@ -44,18 +48,18 @@ public:
   using concurrency_type = typename parameters_type::concurrency_type;
   using random_number_generator = typename parameters_type::random_number_generator;
 
-  using t = dmn_0<time_domain>;
-  using w = dmn_0<frequency_domain>;
-  using w_REAL = dmn_0<frequency_domain_real_axis>;
-  using w_IMAG = dmn_0<frequency_domain_imag_axis>;
+  using t = func::dmn_0<time_domain>;
+  using w = func::dmn_0<frequency_domain>;
+  using w_REAL = func::dmn_0<frequency_domain_real_axis>;
+  using w_IMAG = func::dmn_0<frequency_domain_imag_axis>;
 
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
-  using nu_nu = dmn_variadic<nu, nu>;
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
+  using nu_nu = func::dmn_variadic<nu, nu>;
 
-  using k_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
-                                     MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using k_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                           CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
 
 public:
   compute_spectrum(parameters_type& parameters);
@@ -63,8 +67,8 @@ public:
   template <typename MOMS_imag_type, typename MOMS_real_type>
   void write(std::string file_name, MOMS_imag_type& MOMS_imag, MOMS_real_type& MOMS_real);
 
-  template <IO::FORMAT DATA_FORMAT>
-  void write(IO::writer<DATA_FORMAT>& writer);
+  template <typename Writer>
+  void write(Writer& writer);
 
   template <typename MOMS_imag_type, typename MOMS_real_type>
   void execute(MOMS_imag_type& MOMS_imag, MOMS_real_type& MOMS_real);
@@ -80,91 +84,93 @@ private:
   void test_A_w_versus_G_t(MOMS_imag_type& MOMS_imag, MOMS_real_type& MOMS_real);
 
 private:
-  void generate_f_original(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>>& S_K_w);
+  void generate_f_original(
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& S_K_w);
 
   void generate_new_sample(
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>>& S_K_w_mean,
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>>& S_K_w_stddev,
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>>& S_K_w_sample);
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& S_K_w_mean,
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& S_K_w_stddev,
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& S_K_w_sample);
 
   template <typename k_dmn_t, typename w_imag_dmn_t, typename w_real_dmn_t>
   void perform_analytic_continuation(
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_imag_dmn_t>>& S_k_w_imag,
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_real_dmn_t>>& S_k_w_real);
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_imag_dmn_t>>& S_k_w_imag,
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_real_dmn_t>>& S_k_w_real);
 
   template <typename k_dmn_t, typename w_dmn_t>
   void compute_G_k_w_on_cluster(
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& G0_k_w,
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& Sigma,
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& G_k_w);
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& G0_k_w,
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& Sigma,
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& G_k_w);
 
   template <typename k_host_dmn_t, typename k_cluster_dmn_t, typename w_dmn_t>
   void compute_G_k_w_on_lattice(
-      FUNC_LIB::function<std::complex<double>, dmn_3<nu, nu, k_host_dmn_t>>& H_k,
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_cluster_dmn_t, w_dmn_t>>& Sigma,
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_cluster_dmn_t, w_dmn_t>>& G_k_w);
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_host_dmn_t>>& H_k,
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_cluster_dmn_t, w_dmn_t>>& Sigma,
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_cluster_dmn_t, w_dmn_t>>& G_k_w);
 
   template <typename k_dmn_t, typename w_dmn_t>
-  void compute_A_w(FUNC_LIB::function<double, w_dmn_t>& A_w,
-                   FUNC_LIB::function<double, dmn_3<b, s, w_dmn_t>>& A_nu_w,
-                   FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& G_k_w);
+  void compute_A_w(
+      func::function<double, w_dmn_t>& A_w,
+      func::function<double, func::dmn_variadic<b, s, w_dmn_t>>& A_nu_w,
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& G_k_w);
 
   template <typename k_dmn_t>
-  void compute_G_k_beta_over_2(FUNC_LIB::function<double, dmn_3<b, s, k_dmn_t>>& G_k_beta_over_2,
-                               FUNC_LIB::function<double, dmn_4<nu, nu, k_dmn_t, t>>& G_k_t);
+  void compute_G_k_beta_over_2(func::function<double, func::dmn_variadic<b, s, k_dmn_t>>& G_k_beta_over_2,
+                               func::function<double, func::dmn_variadic<nu, nu, k_dmn_t, t>>& G_k_t);
 
   template <typename k_dmn_t>
   void accumulate_integrated_A_k_div_cosh(
-      FUNC_LIB::function<double, dmn_3<b, s, k_dmn_t>>& integrated_A_k_div_cosh,
-      FUNC_LIB::function<double, dmn_3<b, s, k_dmn_t>>& integrated_A_k_div_cosh_stddev,
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_REAL>>& G_k_w);
+      func::function<double, func::dmn_variadic<b, s, k_dmn_t>>& integrated_A_k_div_cosh,
+      func::function<double, func::dmn_variadic<b, s, k_dmn_t>>& integrated_A_k_div_cosh_stddev,
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_REAL>>& G_k_w);
 
   template <typename scalar_type, typename dmn_type>
-  void accumulate(FUNC_LIB::function<scalar_type, dmn_type>& f,
-                  FUNC_LIB::function<scalar_type, dmn_type>& f_average,
-                  FUNC_LIB::function<scalar_type, dmn_type>& f_square);
+  void accumulate(func::function<scalar_type, dmn_type>& f,
+                  func::function<scalar_type, dmn_type>& f_average,
+                  func::function<scalar_type, dmn_type>& f_square);
 
   template <typename scalar_type, typename dmn_type>
-  void accumulate(FUNC_LIB::function<std::complex<scalar_type>, dmn_type>& f,
-                  FUNC_LIB::function<std::complex<scalar_type>, dmn_type>& f_average,
-                  FUNC_LIB::function<std::complex<scalar_type>, dmn_type>& f_square);
+  void accumulate(func::function<std::complex<scalar_type>, dmn_type>& f,
+                  func::function<std::complex<scalar_type>, dmn_type>& f_average,
+                  func::function<std::complex<scalar_type>, dmn_type>& f_square);
 
   template <typename k_dmn_t, typename w_dmn_t>
-  void accumulate_A_w(FUNC_LIB::function<double, w_dmn_t>& A_w,
-                      FUNC_LIB::function<double, w_dmn_t>& A_w_stddev,
-                      FUNC_LIB::function<double, dmn_3<b, s, w_dmn_t>>& A_nu_w,
-                      FUNC_LIB::function<double, dmn_3<b, s, w_dmn_t>>& A_nu_w_stddev,
-                      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& G_k_w);
+  void accumulate_A_w(
+      func::function<double, w_dmn_t>& A_w, func::function<double, w_dmn_t>& A_w_stddev,
+      func::function<double, func::dmn_variadic<b, s, w_dmn_t>>& A_nu_w,
+      func::function<double, func::dmn_variadic<b, s, w_dmn_t>>& A_nu_w_stddev,
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& G_k_w);
 
   template <typename k_dmn_t, typename w_dmn_t>
   void accumulate_f_K_w(
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& f_K_w_sample,
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& f_K_w_mean,
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& f_K_w_square);
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& f_K_w_sample,
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& f_K_w_mean,
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& f_K_w_square);
 
   template <typename scalar_type, typename dmn_type>
-  void compute_mean_and_stddev(int nb_sample, FUNC_LIB::function<scalar_type, dmn_type>& f_average,
-                               FUNC_LIB::function<scalar_type, dmn_type>& f_square);
+  void compute_mean_and_stddev(int nb_sample, func::function<scalar_type, dmn_type>& f_average,
+                               func::function<scalar_type, dmn_type>& f_square);
 
   template <typename scalar_type, typename dmn_type>
   void compute_mean_and_stddev(int nb_sample,
-                               FUNC_LIB::function<std::complex<scalar_type>, dmn_type>& f_average,
-                               FUNC_LIB::function<std::complex<scalar_type>, dmn_type>& f_square);
+                               func::function<std::complex<scalar_type>, dmn_type>& f_average,
+                               func::function<std::complex<scalar_type>, dmn_type>& f_square);
 
   template <typename w_dmn_t>
-  void compute_mean_and_stddev(int nb_samples, FUNC_LIB::function<double, w_dmn_t>& A_w,
-                               FUNC_LIB::function<double, w_dmn_t>& A_w_stddev);
+  void compute_mean_and_stddev(int nb_samples, func::function<double, w_dmn_t>& A_w,
+                               func::function<double, w_dmn_t>& A_w_stddev);
 
   template <typename w_dmn_t>
-  void compute_mean_and_stddev(int nb_samples,
-                               FUNC_LIB::function<double, dmn_3<b, s, w_dmn_t>>& A_nu_w,
-                               FUNC_LIB::function<double, dmn_3<b, s, w_dmn_t>>& A_nu_w_stddev);
+  void compute_mean_and_stddev(
+      int nb_samples, func::function<double, func::dmn_variadic<b, s, w_dmn_t>>& A_nu_w,
+      func::function<double, func::dmn_variadic<b, s, w_dmn_t>>& A_nu_w_stddev);
 
   template <typename k_dmn_t, typename w_dmn_t>
   void compute_mean_and_stddev(
       int nb_samples,
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& f_K_w_mean,
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& f_K_w_stddev);
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& f_K_w_mean,
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& f_K_w_stddev);
 
   template <typename MOMS_real_type>
   void print_check_sums(MOMS_real_type& MOMS_real);
@@ -177,27 +183,27 @@ private:
 
   continuous_pole_expansion<parameters_type, basis_function_t, k_DCA, w_REAL, WEIGHTED_GRADIENT_METHOD> cpe_obj;
 
-  FUNC_LIB::function<double, dmn_3<b, s, k_DCA>> G_k_beta_over_2;
-  FUNC_LIB::function<double, dmn_3<b, s, k_DCA>> integrated_A_k_div_cosh;
-  FUNC_LIB::function<double, dmn_3<b, s, k_DCA>> integrated_A_k_div_cosh_stddev;
+  func::function<double, func::dmn_variadic<b, s, k_DCA>> G_k_beta_over_2;
+  func::function<double, func::dmn_variadic<b, s, k_DCA>> integrated_A_k_div_cosh;
+  func::function<double, func::dmn_variadic<b, s, k_DCA>> integrated_A_k_div_cosh_stddev;
 
-  FUNC_LIB::function<double, dmn_3<b, s, k_DCA>> G0_k_beta_over_2;
-  FUNC_LIB::function<double, dmn_3<b, s, k_DCA>> integrated_A0_k_div_cosh;
-  FUNC_LIB::function<double, dmn_3<b, s, k_DCA>> integrated_A0_k_div_cosh_stddev;
+  func::function<double, func::dmn_variadic<b, s, k_DCA>> G0_k_beta_over_2;
+  func::function<double, func::dmn_variadic<b, s, k_DCA>> integrated_A0_k_div_cosh;
+  func::function<double, func::dmn_variadic<b, s, k_DCA>> integrated_A0_k_div_cosh_stddev;
 
-  FUNC_LIB::function<double, dmn_3<nu, nu, k_DCA>> error_function;
-  FUNC_LIB::function<double, dmn_3<nu, nu, k_DCA>> error_function_stddev;
+  func::function<double, func::dmn_variadic<nu, nu, k_DCA>> error_function;
+  func::function<double, func::dmn_variadic<nu, nu, k_DCA>> error_function_stddev;
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> S_approx;
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> S_approx_stddev;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>> S_approx;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>> S_approx_stddev;
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w_IMAG>> f_orig;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w_IMAG>> f_orig;
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w_IMAG>> f_approx;
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w_IMAG>> f_approx_stddev;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w_IMAG>> f_approx;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w_IMAG>> f_approx_stddev;
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w_IMAG>> f_measured;
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w_IMAG>> f_measured_stddev;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w_IMAG>> f_measured;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w_IMAG>> f_measured_stddev;
 };
 
 template <class parameters_type, class basis_function_t>
@@ -236,47 +242,41 @@ template <typename MOMS_imag_type, typename MOMS_real_type>
 void compute_spectrum<parameters_type, basis_function_t>::write(std::string file_name,
                                                                 MOMS_imag_type& /*MOMS_imag*/,
                                                                 MOMS_real_type& MOMS_real) {
-  IO::FORMAT FORMAT = parameters.get_output_format();
-
   std::cout << "\n\n\t\t start writing " << file_name << "\n\n";
 
-  switch (FORMAT) {
-    case IO::JSON: {
-      IO::writer<IO::JSON> writer;
-      {
-        writer.open_file(file_name);
+  const std::string& output_format = parameters.get_output_format();
 
-        parameters.write(writer);
-        MOMS_real.write(writer);
-        cpe_obj.write(writer);
-        this->write(writer);
+  if (output_format == "JSON") {
+    dca::io::JSONWriter writer;
+    writer.open_file(file_name);
 
-        writer.close_file();
-      }
-    } break;
+    parameters.write(writer);
+    MOMS_real.write(writer);
+    cpe_obj.write(writer);
+    this->write(writer);
 
-    case IO::HDF5: {
-      IO::writer<IO::HDF5> writer;
-      {
-        writer.open_file(file_name);
-
-        parameters.write(writer);
-        MOMS_real.write(writer);
-        cpe_obj.write(writer);
-        this->write(writer);
-
-        writer.close_file();
-      }
-    } break;
-
-    default:
-      throw std::logic_error(__FUNCTION__);
+    writer.close_file();
   }
+
+  else if (output_format == "HDF5") {
+    dca::io::HDF5Writer writer;
+    writer.open_file(file_name);
+
+    parameters.write(writer);
+    MOMS_real.write(writer);
+    cpe_obj.write(writer);
+    this->write(writer);
+
+    writer.close_file();
+  }
+
+  else
+    throw std::logic_error(__FUNCTION__);
 }
 
 template <class parameters_type, class basis_function_t>
-template <IO::FORMAT DATA_FORMAT>
-void compute_spectrum<parameters_type, basis_function_t>::write(IO::writer<DATA_FORMAT>& writer) {
+template <typename Writer>
+void compute_spectrum<parameters_type, basis_function_t>::write(Writer& writer) {
   writer.open_group("CPE-functions");
 
   writer.execute(error_function);
@@ -425,10 +425,10 @@ void compute_spectrum<parameters_type, basis_function_t>::execute_with_error_bar
   {
     double magnitude = parameters.get_simulated_CPE_stddev();
 
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> S_K_wi;
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w_REAL>> S_K_wr;
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>> S_K_wi;
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w_REAL>> S_K_wr;
 
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w_REAL>> G_K_wr;
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w_REAL>> G_K_wr;
 
     if (concurrency.id() == 0)
       std::cout << "\n\n";
@@ -530,7 +530,7 @@ void compute_spectrum<parameters_type, basis_function_t>::execute_with_error_bar
 
 template <class parameters_type, class basis_function_t>
 void compute_spectrum<parameters_type, basis_function_t>::generate_f_original(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>>& S_K_w) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& S_K_w) {
   for (int w_0 = 0; w_0 < w::dmn_size(); w_0++) {
     for (int w_1 = 0; w_1 < w_IMAG::dmn_size(); w_1++) {
       if (std::abs(w::get_elements()[w_0] - w_IMAG::get_elements()[w_1]) < 1.e-6) {
@@ -547,9 +547,9 @@ void compute_spectrum<parameters_type, basis_function_t>::generate_f_original(
 
 template <class parameters_type, class basis_function_t>
 void compute_spectrum<parameters_type, basis_function_t>::generate_new_sample(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>>& S_K_w_mean,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>>& S_K_w_stddev,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>>& S_K_w_sample) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& S_K_w_mean,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& S_K_w_stddev,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& S_K_w_sample) {
   for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++) {
     for (int k_ind = 0; k_ind < k_DCA::dmn_size(); k_ind++) {
       for (int b_j = 0; b_j < b::dmn_size(); b_j++) {
@@ -585,8 +585,8 @@ void compute_spectrum<parameters_type, basis_function_t>::generate_new_sample(
 template <class parameters_type, class basis_function_t>
 template <typename k_dmn_t, typename w_imag_dmn_t, typename w_real_dmn_t>
 void compute_spectrum<parameters_type, basis_function_t>::perform_analytic_continuation(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_imag_dmn_t>>& S_k_w_imag,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_real_dmn_t>>& S_k_w_real) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_imag_dmn_t>>& S_k_w_imag,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_real_dmn_t>>& S_k_w_real) {
   if (concurrency.id() == 0)
     std::cout << "\t\t start CPE (time = " << dca::util::print_time() << ") --> ";
 
@@ -609,9 +609,9 @@ void compute_spectrum<parameters_type, basis_function_t>::perform_analytic_conti
 template <class parameters_type, class basis_function_t>
 template <typename k_dmn_t, typename w_dmn_t>
 void compute_spectrum<parameters_type, basis_function_t>::compute_G_k_w_on_cluster(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& G0_k_w,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& Sigma,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& G_k_w) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& G0_k_w,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& Sigma,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& G_k_w) {
   if (concurrency.id() == 0)
     std::cout << "\t\t start AC on G_K_w (time = " << dca::util::print_time() << ") --> ";
 
@@ -659,9 +659,9 @@ void compute_spectrum<parameters_type, basis_function_t>::compute_G_k_w_on_clust
 template <class parameters_type, class basis_function_t>
 template <typename k_host_dmn_t, typename k_cluster_dmn_t, typename w_dmn_t>
 void compute_spectrum<parameters_type, basis_function_t>::compute_G_k_w_on_lattice(
-    FUNC_LIB::function<std::complex<double>, dmn_3<nu, nu, k_host_dmn_t>>& H_k,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_cluster_dmn_t, w_dmn_t>>& Sigma,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_cluster_dmn_t, w_dmn_t>>& G_k_w) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_host_dmn_t>>& H_k,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_cluster_dmn_t, w_dmn_t>>& Sigma,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_cluster_dmn_t, w_dmn_t>>& G_k_w) {
   if (concurrency.id() == 0)
     std::cout << "\t\t start TIM (time = " << dca::util::print_time() << ") --> ";
 
@@ -676,9 +676,9 @@ void compute_spectrum<parameters_type, basis_function_t>::compute_G_k_w_on_latti
 template <class parameters_type, class basis_function_t>
 template <typename k_dmn_t, typename w_dmn_t>
 void compute_spectrum<parameters_type, basis_function_t>::compute_A_w(
-    FUNC_LIB::function<double, w_dmn_t>& A_w,
-    FUNC_LIB::function<double, dmn_3<b, s, w_dmn_t>>& A_nu_w,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& G_k_w) {
+    func::function<double, w_dmn_t>& A_w,
+    func::function<double, func::dmn_variadic<b, s, w_dmn_t>>& A_nu_w,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& G_k_w) {
   A_w = 0;
   A_nu_w = 0;
 
@@ -700,8 +700,8 @@ void compute_spectrum<parameters_type, basis_function_t>::compute_A_w(
 template <class parameters_type, class basis_function_t>
 template <typename k_dmn_t>
 void compute_spectrum<parameters_type, basis_function_t>::compute_G_k_beta_over_2(
-    FUNC_LIB::function<double, dmn_3<b, s, k_dmn_t>>& G_k_beta_over_2,
-    FUNC_LIB::function<double, dmn_4<nu, nu, k_dmn_t, t>>& G_k_t) {
+    func::function<double, func::dmn_variadic<b, s, k_dmn_t>>& G_k_beta_over_2,
+    func::function<double, func::dmn_variadic<nu, nu, k_dmn_t, t>>& G_k_t) {
   int t_ind = 3. * t::dmn_size() / 4.;
   assert(std::abs(t::get_elements()[t_ind] - parameters.get_beta() / 2.) < 1.e-6);
 
@@ -715,9 +715,8 @@ void compute_spectrum<parameters_type, basis_function_t>::compute_G_k_beta_over_
 template <class parameters_type, class basis_function_t>
 template <typename scalar_type, typename dmn_type>
 void compute_spectrum<parameters_type, basis_function_t>::accumulate(
-    FUNC_LIB::function<scalar_type, dmn_type>& f,
-    FUNC_LIB::function<scalar_type, dmn_type>& f_average,
-    FUNC_LIB::function<scalar_type, dmn_type>& f_square) {
+    func::function<scalar_type, dmn_type>& f, func::function<scalar_type, dmn_type>& f_average,
+    func::function<scalar_type, dmn_type>& f_square) {
   for (int i = 0; i < f.size(); i++) {
     f_average(i) += f(i);
     f_square(i) += f(i) * f(i);
@@ -727,9 +726,9 @@ void compute_spectrum<parameters_type, basis_function_t>::accumulate(
 template <class parameters_type, class basis_function_t>
 template <typename scalar_type, typename dmn_type>
 void compute_spectrum<parameters_type, basis_function_t>::accumulate(
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_type>& f,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_type>& f_average,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_type>& f_square) {
+    func::function<std::complex<scalar_type>, dmn_type>& f,
+    func::function<std::complex<scalar_type>, dmn_type>& f_average,
+    func::function<std::complex<scalar_type>, dmn_type>& f_square) {
   for (int i = 0; i < f.size(); i++) {
     f_average(i) += f(i);
 
@@ -741,9 +740,9 @@ void compute_spectrum<parameters_type, basis_function_t>::accumulate(
 template <class parameters_type, class basis_function_t>
 template <typename k_dmn_t>
 void compute_spectrum<parameters_type, basis_function_t>::accumulate_integrated_A_k_div_cosh(
-    FUNC_LIB::function<double, dmn_3<b, s, k_dmn_t>>& int_A_k_div_cosh,
-    FUNC_LIB::function<double, dmn_3<b, s, k_dmn_t>>& int_A_k_div_cosh_stddev,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_REAL>>& G_k_w) {
+    func::function<double, func::dmn_variadic<b, s, k_dmn_t>>& int_A_k_div_cosh,
+    func::function<double, func::dmn_variadic<b, s, k_dmn_t>>& int_A_k_div_cosh_stddev,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_REAL>>& G_k_w) {
   double twoT = 2. / parameters.get_beta();
 
   double result = 0;
@@ -766,10 +765,10 @@ void compute_spectrum<parameters_type, basis_function_t>::accumulate_integrated_
 template <class parameters_type, class basis_function_t>
 template <typename k_dmn_t, typename w_dmn_t>
 void compute_spectrum<parameters_type, basis_function_t>::accumulate_A_w(
-    FUNC_LIB::function<double, w_dmn_t>& A_w, FUNC_LIB::function<double, w_dmn_t>& A_w_stddev,
-    FUNC_LIB::function<double, dmn_3<b, s, w_dmn_t>>& A_nu_w,
-    FUNC_LIB::function<double, dmn_3<b, s, w_dmn_t>>& A_nu_w_stddev,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& G_k_w) {
+    func::function<double, w_dmn_t>& A_w, func::function<double, w_dmn_t>& A_w_stddev,
+    func::function<double, func::dmn_variadic<b, s, w_dmn_t>>& A_nu_w,
+    func::function<double, func::dmn_variadic<b, s, w_dmn_t>>& A_nu_w_stddev,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& G_k_w) {
   for (int w_ind = 0; w_ind < w_REAL::dmn_size(); w_ind++) {
     double A_w_result = 0;
 
@@ -799,9 +798,9 @@ void compute_spectrum<parameters_type, basis_function_t>::accumulate_A_w(
 template <class parameters_type, class basis_function_t>
 template <typename k_dmn_t, typename w_dmn_t>
 void compute_spectrum<parameters_type, basis_function_t>::accumulate_f_K_w(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& f_K_w_sample,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& f_K_w_mean,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& f_K_w_square) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& f_K_w_sample,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& f_K_w_mean,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& f_K_w_square) {
   for (int i = 0; i < f_K_w_sample.size(); i++) {
     f_K_w_mean(i) += f_K_w_sample(i);
 
@@ -813,8 +812,8 @@ void compute_spectrum<parameters_type, basis_function_t>::accumulate_f_K_w(
 template <class parameters_type, class basis_function_t>
 template <typename scalar_type, typename dmn_type>
 void compute_spectrum<parameters_type, basis_function_t>::compute_mean_and_stddev(
-    int nb_samples, FUNC_LIB::function<scalar_type, dmn_type>& f_average,
-    FUNC_LIB::function<scalar_type, dmn_type>& f_square) {
+    int nb_samples, func::function<scalar_type, dmn_type>& f_average,
+    func::function<scalar_type, dmn_type>& f_square) {
   f_average /= scalar_type(nb_samples);
   f_square /= scalar_type(nb_samples);
 
@@ -825,8 +824,8 @@ void compute_spectrum<parameters_type, basis_function_t>::compute_mean_and_stdde
 template <class parameters_type, class basis_function_t>
 template <typename scalar_type, typename dmn_type>
 void compute_spectrum<parameters_type, basis_function_t>::compute_mean_and_stddev(
-    int nb_samples, FUNC_LIB::function<std::complex<scalar_type>, dmn_type>& f_average,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_type>& f_square) {
+    int nb_samples, func::function<std::complex<scalar_type>, dmn_type>& f_average,
+    func::function<std::complex<scalar_type>, dmn_type>& f_square) {
   f_average /= scalar_type(nb_samples);
   f_square /= scalar_type(nb_samples);
 
@@ -839,8 +838,8 @@ void compute_spectrum<parameters_type, basis_function_t>::compute_mean_and_stdde
 template <class parameters_type, class basis_function_t>
 template <typename w_dmn_t>
 void compute_spectrum<parameters_type, basis_function_t>::compute_mean_and_stddev(
-    int nb_samples, FUNC_LIB::function<double, w_dmn_t>& A_w,
-    FUNC_LIB::function<double, w_dmn_t>& A_w_stddev) {
+    int nb_samples, func::function<double, w_dmn_t>& A_w,
+    func::function<double, w_dmn_t>& A_w_stddev) {
   A_w /= double(nb_samples);
   A_w_stddev /= double(nb_samples);
 
@@ -851,8 +850,8 @@ void compute_spectrum<parameters_type, basis_function_t>::compute_mean_and_stdde
 template <class parameters_type, class basis_function_t>
 template <typename w_dmn_t>
 void compute_spectrum<parameters_type, basis_function_t>::compute_mean_and_stddev(
-    int nb_samples, FUNC_LIB::function<double, dmn_3<b, s, w_dmn_t>>& A_nu_w,
-    FUNC_LIB::function<double, dmn_3<b, s, w_dmn_t>>& A_nu_w_stddev) {
+    int nb_samples, func::function<double, func::dmn_variadic<b, s, w_dmn_t>>& A_nu_w,
+    func::function<double, func::dmn_variadic<b, s, w_dmn_t>>& A_nu_w_stddev) {
   A_nu_w /= double(nb_samples);
   A_nu_w_stddev /= double(nb_samples);
 
@@ -863,8 +862,9 @@ void compute_spectrum<parameters_type, basis_function_t>::compute_mean_and_stdde
 template <class parameters_type, class basis_function_t>
 template <typename k_dmn_t, typename w_dmn_t>
 void compute_spectrum<parameters_type, basis_function_t>::compute_mean_and_stddev(
-    int nb_samples, FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& f_K_w,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& f_K_w_stddev) {
+    int nb_samples,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& f_K_w,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& f_K_w_stddev) {
   f_K_w /= double(nb_samples);
   f_K_w_stddev /= double(nb_samples);
 

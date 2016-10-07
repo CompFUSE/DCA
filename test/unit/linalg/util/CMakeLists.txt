@@ -5,7 +5,7 @@ dca_add_gtest(check_RC_test
               CUDA
               LIBS ${DCA_LIBS})
 
-            dca_add_gtest(stream_handle_test
+dca_add_gtest(stream_handle_test
               GTEST_MAIN
               CUDA
               LIBS ${DCA_LIBS})

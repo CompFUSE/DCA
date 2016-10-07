@@ -21,7 +21,8 @@
 #include <string>
 #include <vector>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Fock_space.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Hilbert_spaces/Hilbert_space_phi_representation.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Hilbert_spaces/Hilbert_space_psi_representation.h"
@@ -111,34 +112,37 @@ public:
   typedef Hilbert_space_phi_representation<parameter_type, ed_options> Hilbert_space_phi_representation_type;
   typedef psi_state<parameter_type, ed_options> psi_state_type;
 
-  typedef dmn_0<fermionic_Fock_space_type> fermionic_Fock_dmn_type;
+  typedef func::dmn_0<fermionic_Fock_space_type> fermionic_Fock_dmn_type;
 
   typedef operators<parameter_type, ed_options> fermionic_operators_type;
 
-  using w_REAL = dmn_0<frequency_domain_real_axis>;
+  using w_REAL = func::dmn_0<frequency_domain_real_axis>;
 
 public:
   fermionic_Hamiltonian(parameter_type& parameters_ref);
 
   void initialize(
-      FUNC_LIB::function<std::complex<double>, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn>>& H_0,
-      FUNC_LIB::function<double, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn>>& H_i);
+      func::function<std::complex<double>,
+                     func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
+                                        func::dmn_variadic<b_dmn, s_dmn>, r_dmn>>& H_0,
+      func::function<double, func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
+                                                func::dmn_variadic<b_dmn, s_dmn>, r_dmn>>& H_i);
 
   void construct_Hamiltonians(bool interacting);
   void diagonalize_Hamiltonians_st();
   // void diagonalize_Hamiltonians_mt();
 
-  void set_spectrum(FUNC_LIB::function<double, w_REAL>& A_w);
+  void set_spectrum(func::function<double, w_REAL>& A_w);
   void print_spectrum();
 
   void print_Hamiltonian(const char* filename);
   void print_eigen_energies(const char* filename);
   void print_eigen_states(const char* filename);
 
-  FUNC_LIB::function<vector_type, fermionic_Fock_dmn_type>& get_eigen_energies() {
+  func::function<vector_type, fermionic_Fock_dmn_type>& get_eigen_energies() {
     return eigen_energies;
   }
-  FUNC_LIB::function<matrix_type, fermionic_Fock_dmn_type>& get_eigen_states() {
+  func::function<matrix_type, fermionic_Fock_dmn_type>& get_eigen_states() {
     return eigen_states;
   }
 
@@ -146,8 +150,11 @@ public:
 
 private:
   void initialize_t_ij_and_U_ij(
-      FUNC_LIB::function<std::complex<double>, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn>>& H_0,
-      FUNC_LIB::function<double, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn>>& H_i);
+      func::function<std::complex<double>,
+                     func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
+                                        func::dmn_variadic<b_dmn, s_dmn>, r_dmn>>& H_0,
+      func::function<double, func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
+                                                func::dmn_variadic<b_dmn, s_dmn>, r_dmn>>& H_i);
 
   void shift_the_energies();
 
@@ -171,10 +178,10 @@ private:
   std::vector<t_struct<complex_type>> t_ij;
   std::vector<U_struct<complex_type>> U_ij;
 
-  FUNC_LIB::function<matrix_type, fermionic_Fock_dmn_type> Hamiltonians;
+  func::function<matrix_type, fermionic_Fock_dmn_type> Hamiltonians;
 
-  FUNC_LIB::function<vector_type, fermionic_Fock_dmn_type> eigen_energies;
-  FUNC_LIB::function<matrix_type, fermionic_Fock_dmn_type> eigen_states;
+  func::function<vector_type, fermionic_Fock_dmn_type> eigen_energies;
+  func::function<matrix_type, fermionic_Fock_dmn_type> eigen_states;
 };
 
 template <typename parameter_type, typename ed_options>
@@ -209,15 +216,19 @@ double fermionic_Hamiltonian<parameter_type, ed_options>::get_Z() {
 
 template <typename parameter_type, typename ed_options>
 void fermionic_Hamiltonian<parameter_type, ed_options>::initialize(
-    FUNC_LIB::function<std::complex<double>, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn>>& H_0,
-    FUNC_LIB::function<double, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn>>& H_i) {
+    func::function<std::complex<double>, func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
+                                                            func::dmn_variadic<b_dmn, s_dmn>, r_dmn>>& H_0,
+    func::function<double, func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
+                                              func::dmn_variadic<b_dmn, s_dmn>, r_dmn>>& H_i) {
   initialize_t_ij_and_U_ij(H_0, H_i);
 }
 
 template <typename parameter_type, typename ed_options>
 void fermionic_Hamiltonian<parameter_type, ed_options>::initialize_t_ij_and_U_ij(
-    FUNC_LIB::function<std::complex<double>, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn>>& H_0,
-    FUNC_LIB::function<double, dmn_3<dmn_2<b_dmn, s_dmn>, dmn_2<b_dmn, s_dmn>, r_dmn>>& H_i) {
+    func::function<std::complex<double>, func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
+                                                            func::dmn_variadic<b_dmn, s_dmn>, r_dmn>>& H_0,
+    func::function<double, func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
+                                              func::dmn_variadic<b_dmn, s_dmn>, r_dmn>>& H_i) {
   {
     for (int r_j = 0; r_j < r_dmn::dmn_size(); r_j++) {
       for (int s_j = 0; s_j < s_dmn::dmn_size(); s_j++) {
@@ -667,7 +678,7 @@ void fermionic_Hamiltonian<parameter_type, ed_options>::print_spectrum() {
 
 template <typename parameter_type, typename ed_options>
 void fermionic_Hamiltonian<parameter_type, ed_options>::set_spectrum(
-    FUNC_LIB::function<double, w_REAL>& A_w) {
+    func::function<double, w_REAL>& A_w) {
   A_w = 0;
 
   std::vector<double>& w_elem = w_REAL::get_elements();

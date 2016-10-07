@@ -16,7 +16,8 @@
 #include <iostream>
 #include <vector>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "comp_library/function_plotting/include_plotting.h"
 #include "phys_library/DCA+_step/lattice_mapping/deconvolution/deconvolution_tp.h"
 #include "phys_library/DCA+_step/lattice_mapping/interpolation/interpolation_tp.h"
@@ -43,33 +44,33 @@ class lattice_mapping_tp {
 public:
   using concurrency_type = typename parameters_type::concurrency_type;
 
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
-  using w = dmn_0<frequency_domain>;
+  using w = func::dmn_0<frequency_domain>;
   using compact_vertex_frequency_domain_type = DCA::vertex_frequency_domain<DCA::COMPACT>;
-  using w_VERTEX = dmn_0<compact_vertex_frequency_domain_type>;
+  using w_VERTEX = func::dmn_0<compact_vertex_frequency_domain_type>;
 
-  using tmp_k_dmn_t = dmn_0<tmp_cluster_domain>;
-  using tmp_vector_dmn_t = dmn_4<b, b, tmp_k_dmn_t, w_VERTEX>;
-  using source_vector_dmn_t = dmn_4<b, b, source_k_dmn_t, w_VERTEX>;
-  using target_vector_dmn_t = dmn_4<b, b, target_k_dmn_t, w_VERTEX>;
+  using tmp_k_dmn_t = func::dmn_0<tmp_cluster_domain>;
+  using tmp_vector_dmn_t = func::dmn_variadic<b, b, tmp_k_dmn_t, w_VERTEX>;
+  using source_vector_dmn_t = func::dmn_variadic<b, b, source_k_dmn_t, w_VERTEX>;
+  using target_vector_dmn_t = func::dmn_variadic<b, b, target_k_dmn_t, w_VERTEX>;
 
 public:
   lattice_mapping_tp(parameters_type& parameters_ref);
 
   template <typename scalartype>
-  void execute(FUNC_LIB::function<std::complex<scalartype>,
-                                  dmn_2<source_vector_dmn_t, source_vector_dmn_t>>& f_source,
-               FUNC_LIB::function<std::complex<scalartype>,
-                                  dmn_2<target_vector_dmn_t, target_vector_dmn_t>>& f_target);
+  void execute(func::function<std::complex<scalartype>,
+                              func::dmn_variadic<source_vector_dmn_t, source_vector_dmn_t>>& f_source,
+               func::function<std::complex<scalartype>,
+                              func::dmn_variadic<target_vector_dmn_t, target_vector_dmn_t>>& f_target);
 
 private:
   void initialize();
 
   template <typename k_dmn_t>
-  void plot_function(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& f);
+  void plot_function(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& f);
 
 private:
   parameters_type& parameters;
@@ -91,10 +92,11 @@ lattice_mapping_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::lattice_map
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 template <typename scalartype>
 void lattice_mapping_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(
-    FUNC_LIB::function<std::complex<scalartype>, dmn_2<source_vector_dmn_t, source_vector_dmn_t>>& f_source,
-    FUNC_LIB::function<std::complex<scalartype>, dmn_2<target_vector_dmn_t, target_vector_dmn_t>>&
-        f_target) {
-  FUNC_LIB::function<std::complex<scalartype>, dmn_2<tmp_vector_dmn_t, tmp_vector_dmn_t>> f_interp(
+    func::function<std::complex<scalartype>,
+                   func::dmn_variadic<source_vector_dmn_t, source_vector_dmn_t>>& f_source,
+    func::function<std::complex<scalartype>,
+                   func::dmn_variadic<target_vector_dmn_t, target_vector_dmn_t>>& f_target) {
+  func::function<std::complex<scalartype>, func::dmn_variadic<tmp_vector_dmn_t, tmp_vector_dmn_t>> f_interp(
       "f_interp");
 
   {
@@ -118,7 +120,7 @@ void lattice_mapping_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execut
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 template <typename k_dmn_t>
 void lattice_mapping_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::plot_function(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& f) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& f) {
   std::vector<double> x(0);
   std::vector<double> y(0);
 

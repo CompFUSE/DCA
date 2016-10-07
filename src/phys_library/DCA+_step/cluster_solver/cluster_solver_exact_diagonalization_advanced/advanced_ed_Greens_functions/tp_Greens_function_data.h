@@ -13,7 +13,8 @@
 #ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_ADVANCED_ED_GREENS_FUNCTIONS_TP_GREENS_FUNCTION_DATA_H
 #define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_ADVANCED_ED_GREENS_FUNCTIONS_TP_GREENS_FUNCTION_DATA_H
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
 
 namespace DCA {
@@ -50,10 +51,10 @@ public:
 
   typedef tp_Greens_function_data<ed_options> this_type;
 
-  using w_VERTEX_EXTENDED = dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED>>;
+  using w_VERTEX_EXTENDED = func::dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED>>;
 
-  typedef dmn_2<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED> wm_wn_dmn_type;
-  typedef dmn_7<nu_dmn, nu_dmn, nu_dmn, nu_dmn, r_dmn, r_dmn, r_dmn> nu_nu_nu_nu_r_r_r_dmn_type;
+  typedef func::dmn_variadic<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED> wm_wn_dmn_type;
+  typedef func::dmn_variadic<nu_dmn, nu_dmn, nu_dmn, nu_dmn, r_dmn, r_dmn, r_dmn> nu_nu_nu_nu_r_r_r_dmn_type;
 
 public:
   tp_Greens_function_data();
@@ -65,9 +66,9 @@ public:
   template <typename parameter_type>
   void initialize(parameter_type& parameters);
 
-  void sum_to(
-      FUNC_LIB::function<complex_type, dmn_4<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, w_VERTEX_EXTENDED,
-                                             nu_nu_nu_nu_r_r_r_dmn_type>>& G_tp_ref);
+  void sum_to(func::function<complex_type,
+                             func::dmn_variadic<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, w_VERTEX_EXTENDED,
+                                                nu_nu_nu_nu_r_r_r_dmn_type>>& G_tp_ref);
 
 public:
   int b_i;
@@ -102,8 +103,8 @@ public:
   matrix_type overlap_2;
   matrix_type overlap_3;
 
-  FUNC_LIB::function<complex_type, dmn_4<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, w_VERTEX_EXTENDED,
-                                         nu_nu_nu_nu_r_r_r_dmn_type>>
+  func::function<complex_type, func::dmn_variadic<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED,
+                                                  w_VERTEX_EXTENDED, nu_nu_nu_nu_r_r_r_dmn_type>>
       G_tp;
 };
 
@@ -121,8 +122,8 @@ void tp_Greens_function_data<ed_options>::initialize(parameter_type& /*parameter
 
 template <typename ed_options>
 void tp_Greens_function_data<ed_options>::sum_to(
-    FUNC_LIB::function<complex_type, dmn_4<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, w_VERTEX_EXTENDED,
-                                           nu_nu_nu_nu_r_r_r_dmn_type>>& G_tp_ref) {
+    func::function<complex_type, func::dmn_variadic<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, w_VERTEX_EXTENDED,
+                                                    nu_nu_nu_nu_r_r_r_dmn_type>>& G_tp_ref) {
   G_tp_ref += G_tp;
 }
 

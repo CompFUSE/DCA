@@ -24,10 +24,12 @@
 #include <utility>
 #include <vector>
 
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
+#include "dca/io/hdf5/hdf5_writer.hpp"
+#include "dca/io/json/json_writer.hpp"
 #include "dca/parallel/util/get_bounds.hpp"
 #include "dca/parallel/util/threading_data.hpp"
-#include "comp_library/function_library/include_function_library.h"
-#include "comp_library/IO_library/IO.hpp"
 #include "comp_library/linalg/linalg.hpp"
 #include "phys_library/DCA+_analysis/CPE_solver/CPE_data.h"
 #include "phys_library/DCA+_step/symmetrization/symmetrize.h"
@@ -36,6 +38,8 @@
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain_imag_axis.h"
+
+using namespace dca::phys;
 
 namespace DCA {
 template <class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
@@ -56,23 +60,23 @@ public:
   using concurrency_type = typename parameters_type::concurrency_type;
   using Threading = typename parameters_type::ThreadingType;
 
-  using w = dmn_0<frequency_domain>;
-  using w_IMAG = dmn_0<frequency_domain_imag_axis>;
+  using w = func::dmn_0<frequency_domain>;
+  using w_IMAG = func::dmn_0<frequency_domain_imag_axis>;
 
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
-  using k_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
-                                     MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using k_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                           CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
 
-  using nu_nu_k_dmn = dmn_variadic<nu, nu, k_dmn_t>;
-  using nu_nu_k_dmn_w = dmn_variadic<nu, nu, k_dmn_t, w>;
-  using nu_nu_k_dmn_w_IMAG = dmn_variadic<nu, nu, k_dmn_t, w_IMAG>;
-  using nu_nu_k_DCA_w_IMAG = dmn_variadic<nu, nu, k_DCA, w_IMAG>;
+  using nu_nu_k_dmn = func::dmn_variadic<nu, nu, k_dmn_t>;
+  using nu_nu_k_dmn_w = func::dmn_variadic<nu, nu, k_dmn_t, w>;
+  using nu_nu_k_dmn_w_IMAG = func::dmn_variadic<nu, nu, k_dmn_t, w_IMAG>;
+  using nu_nu_k_DCA_w_IMAG = func::dmn_variadic<nu, nu, k_DCA, w_IMAG>;
 
-  using alpha_dmn_t = dmn_0<basis_function_t>;
-  using nu_nu_k_dmn_alpha_dmn = dmn_variadic<nu, nu, k_dmn_t, alpha_dmn_t>;
+  using alpha_dmn_t = func::dmn_0<basis_function_t>;
+  using nu_nu_k_dmn_alpha_dmn = func::dmn_variadic<nu, nu, k_dmn_t, alpha_dmn_t>;
 
   using CPE_data_type = CPE_data<scalartype, basis_function_t, k_dmn_t, w_dmn_t>;
 
@@ -81,33 +85,36 @@ public:
                             bool fixed_zero_moment = false, double zero_moment = 0,
                             bool fixed_first_moment = false, double first_moment = 1);
 
-  FUNC_LIB::function<scalartype, nu_nu_k_dmn>& get_error_function() {
+  func::function<scalartype, nu_nu_k_dmn>& get_error_function() {
     return error_function;
   }
 
-  FUNC_LIB::function<std::complex<scalartype>, nu_nu_k_dmn_w_IMAG>& get_f_approx() {
+  func::function<std::complex<scalartype>, nu_nu_k_dmn_w_IMAG>& get_f_approx() {
     return f_approx;
   }
-  FUNC_LIB::function<std::complex<scalartype>, nu_nu_k_dmn_w_IMAG>& get_f_measured() {
+  func::function<std::complex<scalartype>, nu_nu_k_dmn_w_IMAG>& get_f_measured() {
     return f_measured;
   }
 
-  FUNC_LIB::function<std::complex<scalartype>, nu_nu_k_dmn_w>& get_S_approx() {
+  func::function<std::complex<scalartype>, nu_nu_k_dmn_w>& get_S_approx() {
     return S_approx;
   }
 
-  void execute_st(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& f_source,
-                  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& f_target);
+  void execute_st(
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& f_source,
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& f_target);
 
-  void execute_mt(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& f_source,
-                  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& f_target);
+  void execute_mt(
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& f_source,
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& f_target);
 
   static void* threaded_analytical_continuation(void* void_ptr);
 
   void write(std::string filename);
 
-  template <IO::FORMAT DATA_FORMAT>
-  void write(IO::writer<DATA_FORMAT>& reader);
+  // INTERNAL: No implementation.
+  template <typename Writer>
+  void write(Writer& reader);
 
 private:
   void initialize();
@@ -150,14 +157,14 @@ private:
   concurrency_type& concurrency;
 
 public:
-  FUNC_LIB::function<scalartype, nu_nu_k_dmn> Sigma_0_moment;
-  FUNC_LIB::function<scalartype, nu_nu_k_dmn_alpha_dmn> alpha_function;
-  FUNC_LIB::function<scalartype, nu_nu_k_dmn> error_function;
+  func::function<scalartype, nu_nu_k_dmn> Sigma_0_moment;
+  func::function<scalartype, nu_nu_k_dmn_alpha_dmn> alpha_function;
+  func::function<scalartype, nu_nu_k_dmn> error_function;
 
-  FUNC_LIB::function<std::complex<scalartype>, nu_nu_k_dmn_w> S_approx;
+  func::function<std::complex<scalartype>, nu_nu_k_dmn_w> S_approx;
 
-  FUNC_LIB::function<std::complex<scalartype>, nu_nu_k_dmn_w_IMAG> f_approx;
-  FUNC_LIB::function<std::complex<scalartype>, nu_nu_k_dmn_w_IMAG> f_measured;
+  func::function<std::complex<scalartype>, nu_nu_k_dmn_w_IMAG> f_approx;
+  func::function<std::complex<scalartype>, nu_nu_k_dmn_w_IMAG> f_measured;
 
   dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> A_matrix;
 
@@ -193,38 +200,32 @@ continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t, W
 template <class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
 void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t,
                                WEIGHTED_GRADIENT_METHOD>::write(std::string file_name) {
-  IO::FORMAT FORMAT = parameters.get_output_format();
-
   std::cout << "\n\n\t\t start writing " << file_name << "\n\n";
 
-  switch (FORMAT) {
-    case IO::JSON: {
-      IO::writer<IO::JSON> writer;
-      {
-        writer.open_file(file_name);
+  const std::string& output_format = parameters.get_output_format();
 
-        parameters.write(writer);
-        this->write(writer);
+  if (output_format == "JSON") {
+    dca::io::JSONWriter writer;
+    writer.open_file(file_name);
 
-        writer.close_file();
-      }
-    } break;
+    parameters.write(writer);
+    this->write(writer);
 
-    case IO::HDF5: {
-      IO::writer<IO::HDF5> writer;
-      {
-        writer.open_file(file_name);
-
-        parameters.write(writer);
-        this->write(writer);
-
-        writer.close_file();
-      }
-    } break;
-
-    default:
-      throw std::logic_error(__FUNCTION__);
+    writer.close_file();
   }
+
+  else if (output_format == "HDF5") {
+    dca::io::HDF5Writer writer;
+    writer.open_file(file_name);
+
+    parameters.write(writer);
+    this->write(writer);
+
+    writer.close_file();
+  }
+
+  else
+    throw std::logic_error(__FUNCTION__);
 }
 
 template <class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
@@ -250,10 +251,9 @@ void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn
 }
 
 template <class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
-void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t,
-                               WEIGHTED_GRADIENT_METHOD>::
-    execute_st(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& f_source,
-               FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& f_target) {
+void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t, WEIGHTED_GRADIENT_METHOD>::execute_st(
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& f_source,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& f_target) {
   profiler_type profiler(__FUNCTION__, __FILE__, __LINE__);
 
   // initialize f-measured
@@ -282,10 +282,9 @@ void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn
 }
 
 template <class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
-void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t,
-                               WEIGHTED_GRADIENT_METHOD>::
-    execute_mt(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& f_source,
-               FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& f_target) {
+void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t, WEIGHTED_GRADIENT_METHOD>::execute_mt(
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& f_source,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& f_target) {
   profiler_type profiler(__FUNCTION__, __FILE__, __LINE__);
 
   {
@@ -313,7 +312,7 @@ void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn
   }
 
   {
-    dmn_3<b, s, k_dmn_t> b_s_k_dmn;
+    func::dmn_variadic<b, s, k_dmn_t> b_s_k_dmn;
     std::pair<int, int> bounds = concurrency.get_bounds(b_s_k_dmn);
 
     int nr_tasks = bounds.second - bounds.first;
@@ -359,8 +358,8 @@ void* continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dm
 
   std::pair<int, int> MPI_bounds = CPE_data_vec[id].bounds;
 
-  dmn_2<b, s> nu_dmn;
-  dmn_3<b, s, k_dmn_t> b_s_k_dmn;
+  func::dmn_variadic<b, s> nu_dmn;
+  func::dmn_variadic<b, s, k_dmn_t> b_s_k_dmn;
 
   std::pair<int, int> bounds = dca::parallel::util::getBounds(id, nr_threads, MPI_bounds);
 
@@ -389,7 +388,7 @@ template <class parameters_type, class basis_function_t, typename k_dmn_t, typen
 void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t,
                                WEIGHTED_GRADIENT_METHOD>::read_function_values(int nu_ind, int k_ind,
                                                                                CPE_data_type& CPE_data_obj) {
-  FUNC_LIB::function<std::complex<scalartype>, dmn_4<nu, nu, k_dmn_t, w_IMAG>>& f_measured_func =
+  func::function<std::complex<scalartype>, func::dmn_variadic<nu, nu, k_dmn_t, w_IMAG>>& f_measured_func =
       *(CPE_data_obj.f_measured_ptr);
 
   {  // read in the values on the imaginary axis.
@@ -410,11 +409,11 @@ void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn
                                                                                 CPE_data_type&
                                                                                     CPE_data_obj) {
   {
-    FUNC_LIB::function<scalartype, dmn_3<nu, nu, k_dmn_t>>& Sigma_0_func =
+    func::function<scalartype, func::dmn_variadic<nu, nu, k_dmn_t>>& Sigma_0_func =
         *(CPE_data_obj.Sigma_0_moment_ptr);
-    FUNC_LIB::function<scalartype, dmn_4<nu, nu, k_dmn_t, alpha_dmn_t>>& alpha_func =
+    func::function<scalartype, func::dmn_variadic<nu, nu, k_dmn_t, alpha_dmn_t>>& alpha_func =
         *(CPE_data_obj.alpha_function_ptr);
-    FUNC_LIB::function<scalartype, dmn_3<nu, nu, k_dmn_t>>& error_func =
+    func::function<scalartype, func::dmn_variadic<nu, nu, k_dmn_t>>& error_func =
         *(CPE_data_obj.error_function_ptr);
 
     Sigma_0_func(nu_ind, nu_ind, k_ind) = CPE_data_obj.Sigma_0;
@@ -429,7 +428,7 @@ void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn
     dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& A_matrix =
         *(CPE_data_obj.A_matrix_ptr);
 
-    FUNC_LIB::function<std::complex<scalartype>, nu_nu_k_DCA_w_IMAG>& f_approx_func =
+    func::function<std::complex<scalartype>, nu_nu_k_DCA_w_IMAG>& f_approx_func =
         *(CPE_data_obj.f_approx_ptr);
 
     for (int m_ind = 0; m_ind < w_IMAG::dmn_size(); m_ind++) {
@@ -443,7 +442,7 @@ void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn
   }
 
   {
-    FUNC_LIB::function<std::complex<scalartype>, dmn_4<nu, nu, k_dmn_t, w>>& S_approx_func =
+    func::function<std::complex<scalartype>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& S_approx_func =
         *(CPE_data_obj.S_approx_ptr);
 
     for (int w_ind = w::dmn_size() / 2; w_ind < w::dmn_size(); w_ind++) {
@@ -462,7 +461,7 @@ void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn
   }
 
   {
-    FUNC_LIB::function<std::complex<scalartype>, dmn_4<nu, nu, k_dmn_t, w_dmn_t>>& f_target_func =
+    func::function<std::complex<scalartype>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& f_target_func =
         *(CPE_data_obj.f_target_ptr);
 
     for (int w_ind = 0; w_ind < w_dmn_t::dmn_size(); w_ind++) {

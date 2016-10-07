@@ -22,9 +22,10 @@
 #include <string>
 #include <vector>
 
-#include "dca/util/print_time.hpp"
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "dca/linalg/device_type.hpp"
+#include "dca/util/print_time.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_accumulator.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_solver_routines.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_walker.h"
@@ -33,6 +34,8 @@
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain.h"
+
+using namespace dca::phys;
 
 namespace DCA {
 
@@ -54,16 +57,16 @@ public:
   typedef QMCI::MC_walker<QMCI::SS_CT_HYB, dca::linalg::CPU, parameters_type, MOMS_type> walker_type;
   typedef QMCI::MC_accumulator<QMCI::SS_CT_HYB, dca::linalg::CPU, parameters_type, MOMS_type> accumulator_type;
 
-  using w = dmn_0<frequency_domain>;
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
-  using r_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
-                                     REAL_SPACE, BRILLOUIN_ZONE>>;
-  using k_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
-                                     MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using w = func::dmn_0<frequency_domain>;
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
+  using r_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                           CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>>;
+  using k_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                           CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
 
-  using nu_nu_k_DCA_w = dmn_variadic<nu, nu, k_DCA, w>;
+  using nu_nu_k_DCA_w = func::dmn_variadic<nu, nu, k_DCA, w>;
 
   const static int MC_TYPE = SS_CT_HYB;
 
@@ -83,15 +86,12 @@ public:
 
   void write(std::string filename);
 
-  template <IO::FORMAT DATA_FORMAT>
-  void read(IO::reader<DATA_FORMAT>& reader);
-
-  template <IO::FORMAT DATA_FORMAT>
-  void write(IO::writer<DATA_FORMAT>& reader);
+  template <typename Writer>
+  void write(Writer& writer);
 
   // For testing purposes:
   // TODO: Const correctness.
-  FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, r_DCA, w>>& get_GS_r_w() {
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& get_GS_r_w() {
     return accumulator.get_GS_r_w();
   }
 
@@ -115,8 +115,9 @@ protected:
 
   void measure_Sigma();
 
-  void compute_Sigma_new(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>>& G_r_w,
-                         FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>>& GS_r_w);
+  void compute_Sigma_new(
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& G_r_w,
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& GS_r_w);
 
   int find_w_cutoff();
 
@@ -137,12 +138,12 @@ protected:
   rng_type rng;
   accumulator_type accumulator;
 
-  FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w> Sigma_old;
-  FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w> Sigma_new;
+  func::function<std::complex<double>, nu_nu_k_DCA_w> Sigma_old;
+  func::function<std::complex<double>, nu_nu_k_DCA_w> Sigma_new;
 
   int DCA_iteration;
 
-  FUNC_LIB::function<double, nu> mu_DC;
+  func::function<double, nu> mu_DC;
 };
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
@@ -177,9 +178,8 @@ cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::~cluster_solver
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-template <IO::FORMAT DATA_FORMAT>
-void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::write(
-    IO::writer<DATA_FORMAT>& writer) {
+template <typename Writer>
+void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::write(Writer& writer) {
   writer.open_group("SS-HYB-SOLVER-functions");
 
   writer.execute(this->get_mu());
@@ -218,11 +218,11 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::initialize
     ss.precision(6);
     ss << std::scientific;
 
-    FUNC_LIB::function<double, nu>& mu = this->get_mu();
-    FUNC_LIB::function<double, nu>& mu_half = this->get_mu_HALF();
+    func::function<double, nu>& mu = this->get_mu();
+    func::function<double, nu>& mu_half = this->get_mu_HALF();
 
-    FUNC_LIB::function<double, nu>& a0 = this->get_a0();
-    FUNC_LIB::function<double, nu>& a1 = this->get_a1();
+    func::function<double, nu>& a0 = this->get_a0();
+    func::function<double, nu>& a1 = this->get_a1();
 
     ss << "\n\n mu, mu_half, a0, a1\n\n";
     for (int s_ind = 0; s_ind < s::dmn_size(); s_ind++)
@@ -345,7 +345,7 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::measure(wa
 
   // here we need to do a correction a la Andrey
 
-  //  FUNC_LIB::function<double, nu> correction_to_GS;
+  //  func::function<double, nu> correction_to_GS;
 
   // for(int s_ind=0; s_ind<s::dmn_size(); s_ind++)
   // for(int b_ind=0; b_ind<b::dmn_size(); b_ind++)
@@ -382,8 +382,8 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_er
   const int nb_measurements = accumulator.get_number_of_measurements();
   double sign = accumulator.get_sign() / double(nb_measurements);
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>> G_r_w("G_r_w_tmp");
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>> GS_r_w("GS_r_w_tmp");
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>> G_r_w("G_r_w_tmp");
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>> GS_r_w("GS_r_w_tmp");
 
   for (int l = 0; l < G_r_w.size(); l++)
     G_r_w(l) = accumulator.get_G_r_w()(l) / double(nb_measurements * sign);
@@ -429,8 +429,8 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::symmetrize
   std::vector<int> flavors = parameters_type::model_type::get_flavors();
   assert(flavors.size() == b::dmn_size());
 
-  FUNC_LIB::function<std::complex<double>, b> f_val;
-  FUNC_LIB::function<std::complex<double>, b> f_tot;
+  func::function<std::complex<double>, b> f_val;
+  func::function<std::complex<double>, b> f_tot;
 
   for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++) {
     for (int s_ind = 0; s_ind < s::dmn_size(); s_ind++) {
@@ -525,11 +525,11 @@ double cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_Sigma_new(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>>& G_r_w,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, r_DCA, w>>& GS_r_w) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& G_r_w,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& GS_r_w) {
   Sigma_new = 0;
 
-  FUNC_LIB::function<double, nu>& mu_HALF = ss_hybridization_solver_routines_type::get_mu_HALF();
+  func::function<double, nu>& mu_HALF = ss_hybridization_solver_routines_type::get_mu_HALF();
 
   for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++)
     for (int s_ind = 0; s_ind < s::dmn_size(); s_ind++)

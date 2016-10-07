@@ -18,8 +18,9 @@
 #include <utility>
 #include <vector>
 
-#include "comp_library/function_library/domains/special_domains/dmn_0.h"
+#include "dca/function/domains/dmn_0.hpp"
 #include "dca/linalg/matrix.hpp"
+
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_vertex_singleton.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_G0_matrix_routines/G0_interpolation_template.hpp"
 #include "phys_library/domains/cluster/cluster_domain.h"
@@ -52,11 +53,11 @@ class G0_INTERPOLATION<dca::linalg::GPU, parameters_type>
     : public G0_INTERPOLATION_TEMPLATE<parameters_type> {
 public:
   using vertex_singleton_type = vertex_singleton;
-  using shifted_t = dmn_0<time_domain_left_oriented>;
-  using b = dmn_0<electron_band_domain>;
+  using shifted_t = func::dmn_0<time_domain_left_oriented>;
+  using b = func::dmn_0<electron_band_domain>;
 
-  using r_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
-                                     REAL_SPACE, BRILLOUIN_ZONE>>;
+  using r_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                           CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>>;
   using r_dmn_t = r_DCA;
 
   typedef typename parameters_type::concurrency_type concurrency_type;

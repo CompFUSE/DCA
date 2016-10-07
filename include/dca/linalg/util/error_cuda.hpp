@@ -24,8 +24,8 @@ namespace util {
 // dca::linalg::util::
 
 // Performs extra cuda code checking when debugging.
-// Remark: The macro checkErrorsCudaDebug has to be used in the code such that the
-// extra checks are disabled if DEBUG_CUDA is not defined.
+// Remark: Use the macro checkErrorsCudaDebug instead of the function in the code to avoid overhead
+// when DEBUG_CUDA is not defined.
 void checkErrorsCudaDebugInternal(std::string function_name, std::string file_name, int line);
 #ifdef DEBUG_CUDA
 #define checkErrorsCudaDebug() \
