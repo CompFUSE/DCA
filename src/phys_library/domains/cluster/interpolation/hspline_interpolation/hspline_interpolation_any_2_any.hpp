@@ -14,14 +14,14 @@
 
 #include <cstring>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/function.hpp"
 #include "phys_library/domains/cluster/interpolation/hspline_interpolation/hspline_interpolation_kernel.hpp"
 
 template <typename type_input, typename type_output, int dmn_number>
 struct hspline_interpolation_any_2_any {
   template <typename scalartype, typename dmn_type_1, typename dmn_type_2>
-  static void execute(FUNC_LIB::function<scalartype, dmn_type_1>& f_source,
-                      FUNC_LIB::function<scalartype, dmn_type_2>& f_target, double a) {
+  static void execute(func::function<scalartype, dmn_type_1>& f_source,
+                      func::function<scalartype, dmn_type_2>& f_target, double a) {
     int Nb_sbdms = f_source.signature();
     int Nb_elements = f_source.size();
 

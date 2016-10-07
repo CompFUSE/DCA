@@ -13,7 +13,6 @@
 
 #include "dca/phys/parameters/brillouin_zone_parameters.hpp"
 #include "gtest/gtest.h"
-#include "comp_library/IO_library/JSON/JSON.hpp"
 
 TEST(BrillouinZoneParametersTest, DefaultValues) {
   dca::phys::params::BrillouinZoneParameters pars;

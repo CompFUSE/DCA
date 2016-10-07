@@ -12,8 +12,9 @@
 #ifndef PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_INTERPOLATION_INTERPOLATION_ROUTINES_H
 #define PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_INTERPOLATION_INTERPOLATION_ROUTINES_H
 
-#include "comp_library/function_library/domains/special_domains/dmn_0.h"
-#include "comp_library/function_library/domains/special_domains/dmn_variadic.h"
+#include "dca/function/domains/dmn_0.hpp"
+#include "dca/function/domains/dmn_variadic.hpp"
+
 #include "phys_library/domains/cluster/centered_cluster_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
@@ -28,16 +29,16 @@ public:
   using concurrency_type = typename parameters_type::concurrency_type;
 
   using source_r_cluster_type = typename source_k_dmn::parameter_type::dual_type;
-  using r_centered_dmn = dmn_0<centered_cluster_domain<source_r_cluster_type>>;
+  using r_centered_dmn = func::dmn_0<centered_cluster_domain<source_r_cluster_type>>;
 
-  using w = dmn_0<frequency_domain>;
+  using w = func::dmn_0<frequency_domain>;
 
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
-  using nu_nu_r_centered = dmn_variadic<nu, nu, r_centered_dmn>;
-  using nu_nu_r_centered_w = dmn_variadic<nu, nu, r_centered_dmn, w>;
+  using nu_nu_r_centered = func::dmn_variadic<nu, nu, r_centered_dmn>;
+  using nu_nu_r_centered_w = func::dmn_variadic<nu, nu, r_centered_dmn, w>;
 
 public:
   interpolation_routines(parameters_type& parameters_ref);

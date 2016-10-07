@@ -33,7 +33,7 @@ public:
   // static void sum(const T& value, T& result, pthread_mutex_t& mutex);
   // // TODO: Add const to function parameter 'f'.
   // template <typename T, typename Domain>
-  // static void sum(FUNC_LIB::function<T, Domain>& f, FUNC_LIB::function<T, Domain>& f_result,
+  // static void sum(func::function<T, Domain>& f, func::function<T, Domain>& f_result,
   //                 pthread_mutex_t& mutex);
 
 private:
@@ -55,7 +55,7 @@ private:
 // }
 
 // template <typename T, typename Domain>
-// void Pthreading::sum(FUNC_LIB::function<T, Domain>& f, FUNC_LIB::function<T, Domain>& f_result,
+// void Pthreading::sum(func::function<T, Domain>& f, func::function<T, Domain>& f_result,
 //                      pthread_mutex_t& mutex) {
 //   pthread_mutex_lock(&mutex);
 

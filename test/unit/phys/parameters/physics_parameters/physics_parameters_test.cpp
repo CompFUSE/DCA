@@ -13,7 +13,7 @@
 
 #include "dca/phys/parameters/physics_parameters.hpp"
 #include "gtest/gtest.h"
-#include "comp_library/IO_library/JSON/JSON.hpp"
+#include "dca/io/json/json_reader.hpp"
 
 TEST(PhysicsParametersTest, DefaultValues) {
   dca::phys::params::PhysicsParameters pars;
@@ -25,7 +25,7 @@ TEST(PhysicsParametersTest, DefaultValues) {
 }
 
 TEST(PhysicsParametersTest, ReadAll) {
-  IO::reader<IO::JSON> reader;
+  dca::io::JSONReader reader;
   dca::phys::params::PhysicsParameters pars;
 
   reader.open_file(DCA_SOURCE_DIR

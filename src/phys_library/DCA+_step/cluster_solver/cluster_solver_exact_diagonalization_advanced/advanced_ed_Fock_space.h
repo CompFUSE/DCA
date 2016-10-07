@@ -19,7 +19,7 @@
 #include <string>
 #include <vector>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/function.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Hilbert_spaces/Hilbert_space_psi_representation.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_structures/psi_state.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_structures/psi_symmetry_operator.h"
@@ -329,7 +329,7 @@ void Fock_space<parameter_type, ed_options>::apply_rotation_symmetry(std::string
 
   std::vector<element_type>& Hilbert_spaces = get_elements();
 
-  FUNC_LIB::function<std::pair<int, int>, r_symmetry_matrix_dmn_t>& r_symmetry_matrix =
+  func::function<std::pair<int, int>, r_symmetry_matrix_dmn_t>& r_symmetry_matrix =
       r_symmetry_type::get_symmetry_matrix();
 
   int num_states = b_dmn::dmn_size() * s_dmn::dmn_size() * r_dmn::dmn_size();

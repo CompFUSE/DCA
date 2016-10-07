@@ -15,7 +15,8 @@
 #include <complex>
 #include <vector>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "comp_library/function_plotting/include_plotting.h"
 #include "phys_library/DCA+_step/lattice_mapping/deconvolution/deconvolution_sp.h"
 #include "phys_library/DCA+_step/lattice_mapping/interpolation/interpolation_sp.h"
@@ -31,39 +32,40 @@ class lattice_mapping_sp {
 public:
   using concurrency_type = typename parameters_type::concurrency_type;
 
-  using w = dmn_0<frequency_domain>;
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using w = func::dmn_0<frequency_domain>;
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
   using DCA_k_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
                                             CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
-  using k_DCA = dmn_0<DCA_k_cluster_type>;
+  using k_DCA = func::dmn_0<DCA_k_cluster_type>;
   using host_k_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
                                              LATTICE_SP, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
-  using k_HOST = dmn_0<host_k_cluster_type>;
+  using k_HOST = func::dmn_0<host_k_cluster_type>;
 
 public:
   lattice_mapping_sp(parameters_type& parameters_ref);
 
-  void execute(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, source_k_dmn_t, w>>& f_source,
-               FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w>>& Sigma_interp,
-               FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w>>& Sigma_deconv,
-               FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w>>& f_target);
+  void execute(
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, source_k_dmn_t, w>>& f_source,
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& Sigma_interp,
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& Sigma_deconv,
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_target);
 
   template <typename MOMS_type, typename HTS_solver_type, typename coarsegraining_sp_type>
   void execute_with_HTS_approximation(
       MOMS_type& HTS_MOMS, HTS_solver_type& HTS_solver, coarsegraining_sp_type& cluster_mapping_obj,
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, source_k_dmn_t, w>>& f_source,
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w>>& Sigma_interp,
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w>>& Sigma_deconv,
-      FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w>>& f_target);
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, source_k_dmn_t, w>>& f_source,
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& Sigma_interp,
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& Sigma_deconv,
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_target);
 
 private:
   void initialize();
 
   template <typename k_dmn_t>
-  void plot_function(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& f);
+  void plot_function(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& f);
 
 private:
   parameters_type& parameters;
@@ -72,10 +74,10 @@ private:
   interpolation_sp<parameters_type, source_k_dmn_t, target_k_dmn_t> interpolation_obj;
   deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t> deconvolution_obj;
 
-  FUNC_LIB::function<double, nu> Sigma_shift;
+  func::function<double, nu> Sigma_shift;
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> Sigma_cluster;
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_HOST, w>> Sigma_lattice;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>> Sigma_cluster;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_HOST, w>> Sigma_lattice;
 };
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
@@ -94,10 +96,10 @@ lattice_mapping_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::lattice_map
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 void lattice_mapping_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, source_k_dmn_t, w>>& f_source,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w>>& f_interp,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w>>& f_approx,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w>>& f_target) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, source_k_dmn_t, w>>& f_source,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_interp,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_approx,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_target) {
   symmetrize::execute(f_source);
 
   // plot_function(f_source);
@@ -119,10 +121,10 @@ template <typename parameters_type, typename source_k_dmn_t, typename target_k_d
 template <typename MOMS_type, typename HTS_solver_type, typename coarsegraining_sp_type>
 void lattice_mapping_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute_with_HTS_approximation(
     MOMS_type& HTS_MOMS, HTS_solver_type& HTS_solver, coarsegraining_sp_type& cluster_mapping_obj,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, source_k_dmn_t, w>>& f_source,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w>>& f_interp,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w>>& f_approx,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, target_k_dmn_t, w>>& f_target) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, source_k_dmn_t, w>>& f_source,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_interp,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_approx,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_target) {
   {
     HTS_solver.initialize(0);
 
@@ -160,7 +162,7 @@ void lattice_mapping_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execut
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 template <typename k_dmn_t>
 void lattice_mapping_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::plot_function(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& f) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& f) {
   std::vector<double> x(0);
   std::vector<double> y(0);
 

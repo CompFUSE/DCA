@@ -15,11 +15,12 @@
 #include <string>
 #include <iostream>
 
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "dca/config/cluster_solver_check.hpp"
+#include "dca/io/json/json_reader.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
-#include "comp_library/function_library/include_function_library.h"
-#include "comp_library/IO_library/JSON/JSON.hpp"
 #include "phys_library/DCA+_data/moms_w_real.hpp"
 #include "phys_library/DCA+_loop/DCA_loop_data.hpp"
 #include "phys_library/domains/cluster/cluster_domain.h"
@@ -35,12 +36,12 @@ int main(int argc, char** argv) {
 
   std::string input_file(argv[1]);
 
-  using w = dmn_0<frequency_domain>;
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using w = dca::func::dmn_0<frequency_domain>;
+  using b = dca::func::dmn_0<electron_band_domain>;
+  using s = dca::func::dmn_0<electron_spin_domain>;
+  using nu = dca::func::dmn_variadic<b, s>;  // orbital-spin index
   using k_DCA =
-      dmn_0<cluster_domain<double, Lattice::DIMENSION, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+      dca::func::dmn_0<cluster_domain<double, Lattice::DIMENSION, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
 
   Concurrency concurrency(argc, argv);
 
@@ -58,7 +59,7 @@ int main(int argc, char** argv) {
 
   // Create the parameters object from the input file.
   ParametersType parameters(dca::util::GitVersion::string(), concurrency);
-  parameters.read_input_and_broadcast<IO::reader<IO::JSON>>(input_file);
+  parameters.read_input_and_broadcast<dca::io::JSONReader>(input_file);
   parameters.update_model();
   parameters.update_domains();
 
@@ -78,7 +79,8 @@ int main(int argc, char** argv) {
   ed_solver.execute();
   ed_solver.finalize(dca_loop_data);
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> Sigma_ed(dca_data_imag.Sigma);
+  dca::func::function<std::complex<double>, dca::func::dmn_variadic<nu, nu, k_DCA, w>> Sigma_ed(
+      dca_data_imag.Sigma);
 
   if (concurrency.id() == concurrency.first()) {
     ed_solver.write(data_file_ed);
@@ -92,7 +94,8 @@ int main(int argc, char** argv) {
   qmc_solver.integrate();
   qmc_solver.finalize(dca_loop_data);
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> Sigma_qmc(dca_data_imag.Sigma);
+  dca::func::function<std::complex<double>, dca::func::dmn_variadic<nu, nu, k_DCA, w>> Sigma_qmc(
+      dca_data_imag.Sigma);
 
   if (concurrency.id() == concurrency.first()) {
     dca_data_imag.write(data_file_qmc);

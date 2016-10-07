@@ -20,7 +20,8 @@
 #include <iostream>
 #include <vector>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "comp_library/function_plotting/include_plotting.h"
 #include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
 #include "phys_library/domains/cluster/cluster_domain.h"
@@ -44,22 +45,22 @@ public:
   typedef typename parameters_type::profiler_type profiler_type;
   typedef typename parameters_type::concurrency_type concurrency_type;
 
-  using t = dmn_0<time_domain>;
-  using w = dmn_0<frequency_domain>;
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
+  using t = func::dmn_0<time_domain>;
+  using w = func::dmn_0<frequency_domain>;
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
 
   using DCA_k_cluster_type = cluster_domain<double, parameters_t::lattice_type::DIMENSION, CLUSTER,
                                             MOMENTUM_SPACE, BRILLOUIN_ZONE>;
-  using k_DCA = dmn_0<DCA_k_cluster_type>;
+  using k_DCA = func::dmn_0<DCA_k_cluster_type>;
   using DCA_r_cluster_type =
       cluster_domain<double, parameters_t::lattice_type::DIMENSION, CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>;
-  using r_DCA = dmn_0<DCA_r_cluster_type>;
+  using r_DCA = func::dmn_0<DCA_r_cluster_type>;
 
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
-  using nu_nu_r_DCA_t = dmn_variadic<nu, nu, r_DCA, t>;
-  using nu_nu_k_DCA_t = dmn_variadic<nu, nu, k_DCA, t>;
-  using nu_nu_k_DCA_w = dmn_variadic<nu, nu, k_DCA, w>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
+  using nu_nu_r_DCA_t = func::dmn_variadic<nu, nu, r_DCA, t>;
+  using nu_nu_k_DCA_t = func::dmn_variadic<nu, nu, k_DCA, t>;
+  using nu_nu_k_DCA_w = func::dmn_variadic<nu, nu, k_DCA, w>;
 
 public:
   ss_hybridization_solver_routines(parameters_t& parameters_ref, MOMS_t& MOMS_ref);
@@ -72,24 +73,24 @@ public:
 
   bool is_interacting_band(int b_ind);
 
-  FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& get_F_k_w() {
+  func::function<std::complex<double>, nu_nu_k_DCA_w>& get_F_k_w() {
     return F_k_w;
   }
-  FUNC_LIB::function<double, nu_nu_r_DCA_t>& get_F_r_t() {
+  func::function<double, nu_nu_r_DCA_t>& get_F_r_t() {
     return F_r_t;
   }
 
-  FUNC_LIB::function<double, nu>& get_mu() {
+  func::function<double, nu>& get_mu() {
     return mu;
   }
-  FUNC_LIB::function<double, nu>& get_mu_HALF() {
+  func::function<double, nu>& get_mu_HALF() {
     return mu_HALF;
   }
 
-  FUNC_LIB::function<double, nu>& get_a0() {
+  func::function<double, nu>& get_a0() {
     return a0;
   }
-  FUNC_LIB::function<double, nu>& get_a1() {
+  func::function<double, nu>& get_a1() {
     return a1;
   }
 
@@ -101,10 +102,10 @@ private:
   void construct_F_r_t();
 
   // high-frquency FT ...
-  void compute_moments(FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& f_source);
-  void add_moments(FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& f_source);
-  void subtract_moments(FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& f_source);
-  void compensate_for_moments(FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_t>& f_source);
+  void compute_moments(func::function<std::complex<double>, nu_nu_k_DCA_w>& f_source);
+  void add_moments(func::function<std::complex<double>, nu_nu_k_DCA_w>& f_source);
+  void subtract_moments(func::function<std::complex<double>, nu_nu_k_DCA_w>& f_source);
+  void compensate_for_moments(func::function<std::complex<double>, nu_nu_k_DCA_t>& f_source);
 
 private:
   parameters_type& parameters;
@@ -113,15 +114,15 @@ private:
 
   std::vector<bool> is_interacting_band_vector;
 
-  FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w> F_k_w;
-  FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_t> F_k_t;
-  FUNC_LIB::function<double, nu_nu_r_DCA_t> F_r_t;
+  func::function<std::complex<double>, nu_nu_k_DCA_w> F_k_w;
+  func::function<std::complex<double>, nu_nu_k_DCA_t> F_k_t;
+  func::function<double, nu_nu_r_DCA_t> F_r_t;
 
-  FUNC_LIB::function<double, nu> mu;
-  FUNC_LIB::function<double, nu> mu_HALF;
+  func::function<double, nu> mu;
+  func::function<double, nu> mu_HALF;
 
-  FUNC_LIB::function<double, nu> a0;
-  FUNC_LIB::function<double, nu> a1;
+  func::function<double, nu> a0;
+  func::function<double, nu> a1;
 };
 
 template <typename parameters_t, typename MOMS_t>
@@ -288,7 +289,7 @@ void ss_hybridization_solver_routines<parameters_t, MOMS_t>::construct_F_r_t() {
 
 template <typename parameters_t, typename MOMS_t>
 void ss_hybridization_solver_routines<parameters_t, MOMS_t>::compute_moments(
-    FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& /*f_source*/) {
+    func::function<std::complex<double>, nu_nu_k_DCA_w>& /*f_source*/) {
   int w_ind = 0;
   double w_val = w::get_elements()[w_ind];
 
@@ -300,7 +301,7 @@ void ss_hybridization_solver_routines<parameters_t, MOMS_t>::compute_moments(
 
 template <typename parameters_t, typename MOMS_t>
 void ss_hybridization_solver_routines<parameters_t, MOMS_t>::subtract_moments(
-    FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& f_source) {
+    func::function<std::complex<double>, nu_nu_k_DCA_w>& f_source) {
   for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++) {
     std::complex<double> w_val = std::complex<double>(0, w::get_elements()[w_ind]);
 
@@ -314,7 +315,7 @@ void ss_hybridization_solver_routines<parameters_t, MOMS_t>::subtract_moments(
 
 template <typename parameters_t, typename MOMS_t>
 void ss_hybridization_solver_routines<parameters_t, MOMS_t>::add_moments(
-    FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_w>& f_source) {
+    func::function<std::complex<double>, nu_nu_k_DCA_w>& f_source) {
   for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++) {
     std::complex<double> w_val = std::complex<double>(0, w::get_elements()[w_ind]);
 
@@ -328,7 +329,7 @@ void ss_hybridization_solver_routines<parameters_t, MOMS_t>::add_moments(
 
 template <typename parameters_t, typename MOMS_t>
 void ss_hybridization_solver_routines<parameters_t, MOMS_t>::compensate_for_moments(
-    FUNC_LIB::function<std::complex<double>, nu_nu_k_DCA_t>& f_source) {
+    func::function<std::complex<double>, nu_nu_k_DCA_t>& f_source) {
   for (int t_ind = 0; t_ind < t::dmn_size(); t_ind++) {
     double t_val = t::get_elements()[t_ind];
 

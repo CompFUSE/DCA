@@ -27,7 +27,7 @@ public:
 };
 
 template <typename cluster_type, typename point_group_type>
-class cluster_domain_symmetry_initializer<dmn_0<cluster_type>, point_group_type> {
+class cluster_domain_symmetry_initializer<func::dmn_0<cluster_type>, point_group_type> {
   typedef typename cluster_symmetry<cluster_type>::cluster_family_type cluster_family_type;
 
 public:

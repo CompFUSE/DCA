@@ -18,8 +18,9 @@
 #include <complex>
 #include <iostream>
 
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "dca/parallel/thread_manager_sum.hpp"
-#include "comp_library/function_library/include_function_library.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/compute_bare_bubble.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/compute_interaction.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
@@ -36,11 +37,11 @@ public:
   using profiler_t = typename parameters_type::profiler_type;
   using concurrency_t = typename parameters_type::concurrency_type;
 
-  using w = dmn_0<frequency_domain>;
-  using w_VERTEX_BOSONIC = dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED_BOSONIC>>;
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using w = func::dmn_0<frequency_domain>;
+  using w_VERTEX_BOSONIC = func::dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED_BOSONIC>>;
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
   using ph_bubble_t = compute_bubble<ph, parameters_type, k_dmn_t, w>;
   // INTERNAL: Shouldn't the template argument be pp instead of pp?
@@ -48,7 +49,8 @@ public:
 
   using chi_function_type = typename ph_bubble_t::function_type;
   using phi_function_type = typename pp_bubble_t::function_type;
-  using sp_function_type = FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, k_dmn_t, w>>;
+  using sp_function_type =
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>;
   using U_function_type = typename compute_interaction::function_type;
 
 public:
@@ -63,27 +65,28 @@ public:
   template <class stream_type>
   void to_JSON(stream_type& ss);
 
-  void execute_on_cluster(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& G,
-                          FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& Sigma_2);
+  void execute_on_cluster(
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G,
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& Sigma_2);
 
   template <typename Writer>
   void write(Writer& writer);
 
 private:
-  void execute_4A(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& G);
-  void execute_4C(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& G);
-  void execute_4D(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& G,
-                  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& Sigma_2);
-  void execute_4E(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& G,
-                  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& Sigma_2);
-  void execute_4F(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& G,
-                  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& Sigma_2);
-  void execute_4G(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& G);
-  void execute_4H(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& G);
-  void execute_4J_old(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& G);
-  void execute_4J(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& G);
-  void execute_4K(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& G);
-  void execute_4L(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& G);
+  void execute_4A(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
+  void execute_4C(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
+  void execute_4D(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G,
+                  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& Sigma_2);
+  void execute_4E(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G,
+                  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& Sigma_2);
+  void execute_4F(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G,
+                  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& Sigma_2);
+  void execute_4G(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
+  void execute_4H(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
+  void execute_4J_old(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
+  void execute_4J(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
+  void execute_4K(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
+  void execute_4L(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
 
   int subtract_freq_fb(int, int);  // boson-fermion
   int subtract_freq_bf(int, int);  // fermion-boson
@@ -100,17 +103,17 @@ protected:
   chi_function_type& chi;
   phi_function_type& phi;
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>> Sigma;
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>> Sigma_4A;
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>> Sigma_4C;
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>> Sigma_4D;
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>> Sigma_4E;
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>> Sigma_4F;
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>> Sigma_4G;
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>> Sigma_4H;
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>> Sigma_4J;
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>> Sigma_4K;
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>> Sigma_4L;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_4A;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_4C;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_4D;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_4E;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_4F;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_4G;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_4H;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_4J;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_4K;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_4L;
 };
 
 template <class parameters_type, class k_dmn_t>
@@ -185,8 +188,8 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::write(Writer& /*writer*/) 
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_on_cluster(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& G,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& Sigma_2) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& Sigma_2) {
   std::cout << __FUNCTION__ << std::endl;
 
   std::cout << "\t U : " << U(0, 0, 0, 1) << std::endl;
@@ -219,7 +222,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_on_cluster(
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4A(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& G) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
   profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
   std::cout << __FUNCTION__ << std::endl;
 
@@ -255,7 +258,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4A(
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4C(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& G) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
   profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
   std::cout << __FUNCTION__ << std::endl;
 
@@ -292,8 +295,8 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4C(
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4D(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& G,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& Sigma_2) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& Sigma_2) {
   profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
   std::cout << __FUNCTION__ << std::endl;
 
@@ -329,8 +332,8 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4D(
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4E(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& G,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& Sigma_2) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& Sigma_2) {
   profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
   std::cout << __FUNCTION__ << std::endl;
 
@@ -366,8 +369,8 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4E(
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4F(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& G,
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& Sigma_2) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& Sigma_2) {
   profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
   std::cout << __FUNCTION__ << std::endl;
 
@@ -403,7 +406,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4F(
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4G(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& G) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
   profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
   std::cout << __FUNCTION__ << std::endl;
 
@@ -411,7 +414,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4G(
 
   Sigma_4G = 0.;
 
-  dmn_2<w_VERTEX_BOSONIC, k_dmn_t> dmn;
+  func::dmn_variadic<w_VERTEX_BOSONIC, k_dmn_t> dmn;
   dca::parallel::ThreadManagerSum<concurrency_t> sum_manager(concurrency);
 
   do {
@@ -469,7 +472,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4G(
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4H(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& G) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
   profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
   std::cout << __FUNCTION__ << std::endl;
 
@@ -477,7 +480,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4H(
 
   Sigma_4H = 0.;
 
-  dmn_2<w_VERTEX_BOSONIC, k_dmn_t> dmn;
+  func::dmn_variadic<w_VERTEX_BOSONIC, k_dmn_t> dmn;
   dca::parallel::ThreadManagerSum<concurrency_t> sum_manager(concurrency);
 
   do {
@@ -536,7 +539,8 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4H(
 /*
   template<class parameters_type, class k_dmn_t>
   void sigma_perturbation<4, parameters_type,
-  k_dmn_t>::execute_4J_old(FUNC_LIB::function<std::complex<double>, dmn_4<nu,nu, k_dmn_t, w> >& G)
+  k_dmn_t>::execute_4J_old(func::function<std::complex<double>, func::dmn_variadic<nu,nu,
+  k_dmn_t, w> >& G)
   {
   std::cout << __FUNCTION__ << std::endl;
 
@@ -596,7 +600,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4H(
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4J(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& G) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
   profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
   std::cout << __FUNCTION__ << std::endl;
 
@@ -604,10 +608,10 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4J(
 
   Sigma_4J = 0.;
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_VERTEX_BOSONIC>>
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_VERTEX_BOSONIC>>
       F;  // Calculating part independent of k
 
-  dmn_2<w_VERTEX_BOSONIC, k_dmn_t> dmn;
+  func::dmn_variadic<w_VERTEX_BOSONIC, k_dmn_t> dmn;
   dca::parallel::ThreadManagerSum<concurrency_t> sum_manager(concurrency);
 
   do {
@@ -683,7 +687,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4J(
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4K(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& G) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
   profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
   std::cout << __FUNCTION__ << std::endl;
 
@@ -691,10 +695,10 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4K(
 
   Sigma_4K = 0.;
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_VERTEX_BOSONIC>>
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_VERTEX_BOSONIC>>
       F;  // Calculating part independent of k
 
-  dmn_2<w_VERTEX_BOSONIC, k_dmn_t> dmn;
+  func::dmn_variadic<w_VERTEX_BOSONIC, k_dmn_t> dmn;
   dca::parallel::ThreadManagerSum<concurrency_t> sum_manager(concurrency);
 
   do {
@@ -770,7 +774,7 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4K(
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4L(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& G) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
   profiler_t prof(__FUNCTION__, "SERIES EXPANSION", __LINE__);
   std::cout << __FUNCTION__ << std::endl;
 
@@ -778,10 +782,10 @@ void sigma_perturbation<4, parameters_type, k_dmn_t>::execute_4L(
 
   Sigma_4L = 0.;
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w_VERTEX_BOSONIC>>
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_VERTEX_BOSONIC>>
       F;  // Calculating part independent of k
 
-  dmn_2<w_VERTEX_BOSONIC, k_dmn_t> dmn;
+  func::dmn_variadic<w_VERTEX_BOSONIC, k_dmn_t> dmn;
   dca::parallel::ThreadManagerSum<concurrency_t> sum_manager(concurrency);
 
   do {

@@ -16,7 +16,8 @@
 
 #include <complex>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/compute_interaction.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
@@ -30,12 +31,12 @@ class sigma_perturbation<1, parameter_type, k_dmn_t> {
 public:
   using U_type = typename compute_interaction::function_type;
 
-  using w = dmn_0<frequency_domain>;
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using w = func::dmn_0<frequency_domain>;
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
-  typedef FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, k_dmn_t, w>> function_type;
+  typedef func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> function_type;
 
 public:
   sigma_perturbation(parameter_type& parameters_ref, compute_interaction& interaction_obj);
@@ -44,7 +45,7 @@ public:
     return Sigma;
   }
 
-  void execute_on_cluster(FUNC_LIB::function<double, nu>& occupancy);
+  void execute_on_cluster(func::function<double, nu>& occupancy);
 
   template <typename Writer>
   void write(Writer& writer);
@@ -54,8 +55,8 @@ protected:
 
   U_type& U;
 
-  FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu>> d_matrix;
-  FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, k_dmn_t, w>> Sigma;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu>> d_matrix;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma;
 };
 
 template <class parameter_type, class k_dmn_t>
@@ -74,7 +75,7 @@ void sigma_perturbation<1, parameter_type, k_dmn_t>::write(Writer& /*writer*/) {
 
 template <class parameter_type, class k_dmn_t>
 void sigma_perturbation<1, parameter_type, k_dmn_t>::execute_on_cluster(
-    FUNC_LIB::function<double, nu>& occupancy) {
+    func::function<double, nu>& occupancy) {
   Sigma = 0.;
 
   for (int w_ind = 0; w_ind < w::dmn_size(); ++w_ind) {

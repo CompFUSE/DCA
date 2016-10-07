@@ -16,8 +16,6 @@
 #include <stdexcept>
 #include <string>
 
-#include "comp_library/IO_library/IO_types.h"
-
 namespace dca {
 namespace phys {
 namespace params {
@@ -52,15 +50,10 @@ public:
   const std::string& get_directory() const {
     return directory_;
   }
-  IO::FORMAT get_output_format() const {
-    if (output_format_ == "HDF5")
-      return IO::HDF5;
-    else if (output_format_ == "JSON")
-      return IO::JSON;
-    else
-      throw std::logic_error(__FUNCTION__);
+  const std::string& get_output_format() const {
+    return output_format_;
   }
-  const std::string get_file_extension() const {
+  std::string get_file_extension() const {
     if (output_format_ == "HDF5")
       return ".hdf5";
     else if (output_format_ == "JSON")

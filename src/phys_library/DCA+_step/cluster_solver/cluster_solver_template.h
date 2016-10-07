@@ -14,7 +14,6 @@
 
 #include <string>
 
-#include "comp_library/IO_library/IO.hpp"
 #include "comp_library/linalg/linalg_device_types.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_name.hpp"
 
@@ -37,11 +36,11 @@ public:
 
   void write(std::string filename);
 
-  template <IO::FORMAT DATA_FORMAT>
-  void read(IO::reader<DATA_FORMAT>& reader);
+  template <typename Reader>
+  void read(Reader& reader);
 
-  template <IO::FORMAT DATA_FORMAT>
-  void write(IO::writer<DATA_FORMAT>& reader);
+  template <typename Writer>
+  void write(Writer& writer);
 };
 
 }  // DCA

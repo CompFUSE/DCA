@@ -38,30 +38,33 @@
 #include <utility>
 #include <vector>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "phys_library/domains/cluster/cluster_domain_symmetry.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 
 class symmetrize_two_particle_function {
 public:
-  using b = dmn_0<electron_band_domain>;
+  using b = func::dmn_0<electron_band_domain>;
 
 protected:
   template <typename scalartype, typename k_dmn_t, typename w_dmn_t>
   static void execute(
-      FUNC_LIB::function<scalartype, dmn_8<b, b, b, b, k_dmn_t, k_dmn_t, w_dmn_t, w_dmn_t>>& f,
+      func::function<scalartype, func::dmn_variadic<b, b, b, b, k_dmn_t, k_dmn_t, w_dmn_t, w_dmn_t>>& f,
       std::vector<double> Q, bool do_diff = false);
 
   template <typename scalartype, typename k_dmn_t, typename w_dmn_t>
   static void execute(
-      FUNC_LIB::function<scalartype,
-                         dmn_2<dmn_4<b, b, k_dmn_t, w_dmn_t>, dmn_4<b, b, k_dmn_t, w_dmn_t>>>& f,
+      func::function<scalartype, func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>,
+                                                    func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>>>& f,
       std::vector<double> Q, bool do_diff = false);
 
   template <typename scalartype, typename k_dmn_t, typename w_dmn_t>
-  static void execute(FUNC_LIB::function<scalartype, dmn_3<dmn_4<b, b, k_dmn_t, w_dmn_t>,
-                                                           dmn_4<b, b, k_dmn_t, w_dmn_t>, k_dmn_t>>& f,
-                      bool do_diff = false);
+  static void execute(
+      func::function<scalartype,
+                     func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>,
+                                        func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>, k_dmn_t>>& f,
+      bool do_diff = false);
 
 private:
   template <typename scalartype>
@@ -75,12 +78,14 @@ private:
 
   template <typename scalartype, typename k_dmn_t>
   static void execute(
-      FUNC_LIB::function<scalartype, dmn_2<dmn_3<b, b, k_dmn_t>, dmn_3<b, b, k_dmn_t>>>& f,
+      func::function<scalartype, func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t>,
+                                                    func::dmn_variadic<b, b, k_dmn_t>>>& f,
       std::vector<double> Q, bool do_diff = false);
 
   template <typename scalartype, typename k_dmn_t>
   static void execute(
-      FUNC_LIB::function<scalartype, dmn_3<dmn_3<b, b, k_dmn_t>, dmn_3<b, b, k_dmn_t>, k_dmn_t>>& f);
+      func::function<scalartype, func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t>,
+                                                    func::dmn_variadic<b, b, k_dmn_t>, k_dmn_t>>& f);
 };
 
 template <typename scalartype>
@@ -125,10 +130,12 @@ bool symmetrize_two_particle_function::Q_vector_is_invariant<k_dmn_t>::execute(i
 
 template <typename scalartype, typename k_dmn_t, typename w_dmn_t>
 void symmetrize_two_particle_function::execute(
-    FUNC_LIB::function<scalartype, dmn_8<b, b, b, b, k_dmn_t, k_dmn_t, w_dmn_t, w_dmn_t>>& f,
+    func::function<scalartype, func::dmn_variadic<b, b, b, b, k_dmn_t, k_dmn_t, w_dmn_t, w_dmn_t>>& f,
     std::vector<double> Q, bool do_diff) {
   {
-    FUNC_LIB::function<scalartype, dmn_2<dmn_3<b, b, k_dmn_t>, dmn_3<b, b, k_dmn_t>>> G2;
+    func::function<scalartype, func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t>,
+                                                  func::dmn_variadic<b, b, k_dmn_t>>>
+        G2;
 
     for (int w1 = 0; w1 < w_dmn_t::dmn_size(); w1++) {
       for (int w2 = 0; w2 < w_dmn_t::dmn_size(); w2++) {
@@ -159,10 +166,13 @@ void symmetrize_two_particle_function::execute(
 }
 template <typename scalartype, typename k_dmn_t, typename w_dmn_t>
 void symmetrize_two_particle_function::execute(
-    FUNC_LIB::function<scalartype, dmn_2<dmn_4<b, b, k_dmn_t, w_dmn_t>, dmn_4<b, b, k_dmn_t, w_dmn_t>>>& f,
+    func::function<scalartype, func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>,
+                                                  func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>>>& f,
     std::vector<double> Q, bool do_diff) {
   {
-    FUNC_LIB::function<scalartype, dmn_2<dmn_3<b, b, k_dmn_t>, dmn_3<b, b, k_dmn_t>>> G2;
+    func::function<scalartype, func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t>,
+                                                  func::dmn_variadic<b, b, k_dmn_t>>>
+        G2;
 
     for (int w1 = 0; w1 < w_dmn_t::dmn_size(); w1++) {
       for (int w2 = 0; w2 < w_dmn_t::dmn_size(); w2++) {
@@ -194,12 +204,14 @@ void symmetrize_two_particle_function::execute(
 
 template <typename scalartype, typename k_dmn_t, typename w_dmn_t>
 void symmetrize_two_particle_function::execute(
-    FUNC_LIB::function<scalartype,
-                       dmn_3<dmn_4<b, b, k_dmn_t, w_dmn_t>, dmn_4<b, b, k_dmn_t, w_dmn_t>, k_dmn_t>>& f,
+    func::function<scalartype, func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>,
+                                                  func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>, k_dmn_t>>& f,
     bool /*do_diff*/) {
   std::cout << __FUNCTION__ << std::endl;
 
-  FUNC_LIB::function<scalartype, dmn_3<dmn_3<b, b, k_dmn_t>, dmn_3<b, b, k_dmn_t>, k_dmn_t>> G2;
+  func::function<scalartype, func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t>,
+                                                func::dmn_variadic<b, b, k_dmn_t>, k_dmn_t>>
+      G2;
 
   for (int w1 = 0; w1 < w_dmn_t::dmn_size(); w1++) {
     for (int w2 = 0; w2 < w_dmn_t::dmn_size(); w2++) {
@@ -232,16 +244,20 @@ void symmetrize_two_particle_function::execute(
 
 template <typename scalartype, typename k_dmn_t>
 void symmetrize_two_particle_function::execute(
-    FUNC_LIB::function<scalartype, dmn_2<dmn_3<b, b, k_dmn_t>, dmn_3<b, b, k_dmn_t>>>& f,
+    func::function<scalartype, func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t>,
+                                                  func::dmn_variadic<b, b, k_dmn_t>>>& f,
     std::vector<double> Q, bool do_diff) {
   typedef typename k_dmn_t::parameter_type k_cluster_type;
 
   typedef typename cluster_symmetry<k_cluster_type>::sym_super_cell_dmn_t sym_super_cell_dmn_t;
 
-  static FUNC_LIB::function<std::pair<int, int>, dmn_2<dmn_2<k_dmn_t, b>, sym_super_cell_dmn_t>>&
+  static func::function<std::pair<int, int>,
+                        func::dmn_variadic<func::dmn_variadic<k_dmn_t, b>, sym_super_cell_dmn_t>>&
       k_symmetry_matrix = cluster_symmetry<k_cluster_type>::get_symmetry_matrix();
 
-  static FUNC_LIB::function<scalartype, dmn_2<dmn_3<b, b, k_dmn_t>, dmn_3<b, b, k_dmn_t>>> f_new;
+  static func::function<scalartype, func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t>,
+                                                       func::dmn_variadic<b, b, k_dmn_t>>>
+      f_new;
   f_new = scalartype(0.);
 
   double N_symmetries = 0;
@@ -289,15 +305,19 @@ void symmetrize_two_particle_function::execute(
 
 template <typename scalartype, typename k_dmn_t>
 void symmetrize_two_particle_function::execute(
-    FUNC_LIB::function<scalartype, dmn_3<dmn_3<b, b, k_dmn_t>, dmn_3<b, b, k_dmn_t>, k_dmn_t>>& f) {
+    func::function<scalartype, func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t>,
+                                                  func::dmn_variadic<b, b, k_dmn_t>, k_dmn_t>>& f) {
   typedef typename k_dmn_t::parameter_type k_cluster_type;
 
   typedef typename k_cluster_type::sym_super_cell_dmn_t sym_super_cell_dmn_t;
 
-  static FUNC_LIB::function<std::pair<int, int>, dmn_2<dmn_2<k_dmn_t, b>, sym_super_cell_dmn_t>>&
+  static func::function<std::pair<int, int>,
+                        func::dmn_variadic<func::dmn_variadic<k_dmn_t, b>, sym_super_cell_dmn_t>>&
       k_symmetry_matrix = cluster_symmetry<k_cluster_type>::get_symmetry_matrix();
 
-  static FUNC_LIB::function<scalartype, dmn_3<dmn_3<b, b, k_dmn_t>, dmn_3<b, b, k_dmn_t>, k_dmn_t>> f_new;
+  static func::function<scalartype, func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t>,
+                                                       func::dmn_variadic<b, b, k_dmn_t>, k_dmn_t>>
+      f_new;
   f_new = scalartype(0.);
 
   for (int S_ind = 0; S_ind < sym_super_cell_dmn_t::dmn_size(); ++S_ind) {

@@ -1,32 +1,32 @@
-"	dmn<1, double>"
+"	dca::func::dmn<1, double>"
 
-"	dmn<2, double>"
+"	dca::func::dmn<2, double>"
 
-"	dmn<4, double>"
+"	dca::func::dmn<4, double>"
 
-"	dmn<8, double>"
+"	dca::func::dmn<8, double>"
 
-"	dmn<8, double>"
+"	dca::func::dmn<8, double>"
 
-"	dmn<1, double>",
-"	dmn<2, double>"
+"	dca::func::dmn<1, double>",
+"	dca::func::dmn<2, double>"
 
-"	dmn<4, double>",
-"	dmn<8, double>"
+"	dca::func::dmn<4, double>",
+"	dca::func::dmn<8, double>"
 
-"	dmn<1, double>",
-"	dmn<2, double>",
-"	dmn<4, double>",
-"	dmn<8, double>"
+"	dca::func::dmn<1, double>",
+"	dca::func::dmn<2, double>",
+"	dca::func::dmn<4, double>",
+"	dca::func::dmn<8, double>"
 
-"	dmn<1, double>",
-"	dmn<2, double>",
-"	dmn<4, double>",
-"	dmn<8, double>",
-"	dmn<1, double>",
-"	dmn<2, double>",
-"	dmn<4, double>",
-"	dmn<8, double>",
-"	dmn<4, double>",
-"	dmn<8, double>"
+"	dca::func::dmn<1, double>",
+"	dca::func::dmn<2, double>",
+"	dca::func::dmn<4, double>",
+"	dca::func::dmn<8, double>",
+"	dca::func::dmn<1, double>",
+"	dca::func::dmn<2, double>",
+"	dca::func::dmn<4, double>",
+"	dca::func::dmn<8, double>",
+"	dca::func::dmn<4, double>",
+"	dca::func::dmn<8, double>"
 

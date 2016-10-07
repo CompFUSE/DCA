@@ -15,7 +15,8 @@
 
 #include <complex>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/1st_order_perturbation_sigma.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/2nd_order_perturbation_sigma.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/3rd_order_perturbation_sigma.h"
@@ -36,16 +37,17 @@ class series_expansion {
 public:
   using concurrency_type = typename parameters_type::concurrency_type;
 
-  using k_HOST = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, LATTICE_SP,
-                                      MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using k_HOST = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                            LATTICE_SP, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
   using k_dmn_t = k_HOST;
 
-  using w = dmn_0<frequency_domain>;
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using w = func::dmn_0<frequency_domain>;
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
-  using sigma_function_t = FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>;
+  using sigma_function_t =
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>;
 
 public:
   series_expansion(parameters_type& parameter_ref, MOMS_type& MOMS_ref);
@@ -67,7 +69,7 @@ private:
   concurrency_type& concurrency;
   MOMS_type& MOMS;
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>> Sigma;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma;
 
   compute_interaction interaction_obj;
 
@@ -108,7 +110,7 @@ void series_expansion<parameters_type, MOMS_type>::execute(bool /*do_not_adjust_
 
   compute_lattice_Greens_function_obj.execute();
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_HOST, w>>& G_k_w =
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_HOST, w>>& G_k_w =
       compute_lattice_Greens_function_obj.get_G_k_w();
 
   ph_bubble.threaded_execute_on_cluster(G_k_w);

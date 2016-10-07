@@ -16,7 +16,8 @@
 #include <bitset>
 #include <complex>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+
 #include "comp_library/linalg/linalg.hpp"
 
 #include "phys_library/domains/cluster/cluster_domain.h"
@@ -45,34 +46,34 @@ public:
   using matrix_type = dca::linalg::Matrix<complex_type, dca::linalg::CPU>;
   using int_matrix_type = dca::linalg::Matrix<int, dca::linalg::CPU>;
 
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
-  using nu_nu = dmn_variadic<nu, nu>;
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
+  using nu_nu = func::dmn_variadic<nu, nu>;
 
-  using r_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
-                                     REAL_SPACE, BRILLOUIN_ZONE>>;
-  using k_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
-                                     MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using r_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                           CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>>;
+  using k_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                           CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
 
   using b_dmn = b;
   using s_dmn = s;
   using r_dmn = r_DCA;
   using k_dmn = k_DCA;
 
-  using nu_dmn = dmn_variadic<b_dmn, s_dmn>;
-  using bs_dmn_type = dmn_variadic<b_dmn, s_dmn>;
+  using nu_dmn = func::dmn_variadic<b_dmn, s_dmn>;
+  using bs_dmn_type = func::dmn_variadic<b_dmn, s_dmn>;
 
-  using nu_r_dmn_type = dmn_variadic<nu_dmn, r_dmn>;
+  using nu_r_dmn_type = func::dmn_variadic<nu_dmn, r_dmn>;
 
-  using b_s_r = dmn_variadic<b_dmn, s_dmn, r_dmn>;
-  using bsr_dmn_type = dmn_variadic<b_dmn, s_dmn, r_dmn>;
+  using b_s_r = func::dmn_variadic<b_dmn, s_dmn, r_dmn>;
+  using bsr_dmn_type = func::dmn_variadic<b_dmn, s_dmn, r_dmn>;
 
-  using b_s_k = dmn_variadic<b_dmn, s_dmn, k_dmn>;
-  using bsk_dmn_type = dmn_variadic<b_dmn, s_dmn, k_dmn>;
+  using b_s_k = func::dmn_variadic<b_dmn, s_dmn, k_dmn>;
+  using bsk_dmn_type = func::dmn_variadic<b_dmn, s_dmn, k_dmn>;
 
-  using nu_nu_r_dmn_type = dmn_variadic<nu_dmn, nu_dmn, r_dmn>;
-  using nu_nu_k_dmn_type = dmn_variadic<nu_dmn, nu_dmn, k_dmn>;
+  using nu_nu_r_dmn_type = func::dmn_variadic<nu_dmn, nu_dmn, r_dmn>;
+  using nu_nu_k_dmn_type = func::dmn_variadic<nu_dmn, nu_dmn, k_dmn>;
 
 public:
   static scalar_type get_epsilon() {

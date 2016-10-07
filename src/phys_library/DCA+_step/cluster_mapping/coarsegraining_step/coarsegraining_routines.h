@@ -14,9 +14,10 @@
 
 #include <complex>
 
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "dca/math/geometry/gaussian_quadrature/gaussian_quadrature_domain.hpp"
 
-#include "comp_library/function_library/include_function_library.h"
 #include "comp_library/linalg/linalg.hpp"
 
 #include "math_library/geometry_library/tetrahedron_mesh/tetrahedron_mesh.h"
@@ -37,23 +38,23 @@ namespace DCA {
 
 template <typename scalar_type, typename k_dmn_t, typename q_dmn_t>
 struct coarsegraining_functions {
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
   int K_ind;
   int w_ind;
 
   scalar_type mu;
 
-  FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn_t>>* H_k;
-  FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn_t>>* A_k;
+  func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>* H_k;
+  func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>* A_k;
 
-  FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>> I_q;
-  FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>> H_q;
-  FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>> A_q;
-  FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>> S_q;
-  FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>> G_q;
+  func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>> I_q;
+  func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>> H_q;
+  func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>> A_q;
+  func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>> S_q;
+  func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>> G_q;
 };
 
 template <typename parameters_type, typename K_dmn>
@@ -63,21 +64,21 @@ public:
 
   using k_cluster_type = typename K_dmn::parameter_type;
 
-  using tetrahedron_dmn = dmn_0<math_algorithms::tetrahedron_mesh<K_dmn>>;
+  using tetrahedron_dmn = func::dmn_0<math_algorithms::tetrahedron_mesh<K_dmn>>;
   using quadrature_dmn = dca::math::gaussquad::gaussian_quadrature_domain<tetrahedron_dmn>;
 
-  using t = dmn_0<time_domain>;
-  using w = dmn_0<frequency_domain>;
-  using w_REAL = dmn_0<frequency_domain_real_axis>;
+  using t = func::dmn_0<time_domain>;
+  using w = func::dmn_0<frequency_domain>;
+  using w_REAL = func::dmn_0<frequency_domain_real_axis>;
 
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
-  using nu_nu = dmn_variadic<nu, nu>;
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
+  using nu_nu = func::dmn_variadic<nu, nu>;
 
   using DCA_k_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
                                             CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
-  using k_DCA = dmn_0<DCA_k_cluster_type>;
+  using k_DCA = func::dmn_0<DCA_k_cluster_type>;
 
   const static int DIMENSION = K_dmn::parameter_type::DIMENSION;
 
@@ -92,17 +93,17 @@ protected:
 
   template <typename scalar_type, typename k_dmn_t, typename q_dmn_t>
   void wannier_interpolation(
-      int K_ind, FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn_t>>& f_k,
-      FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& f_q);
+      int K_ind, func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& f_k,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& f_q);
 
   template <typename scalar_type, typename tmp_scalar_type, typename q_dmn_t>
   void compute_I_q(tmp_scalar_type value,
-                   FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& I_q);
+                   func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& I_q);
 
   template <typename scalar_type, typename k_dmn_t, typename q_dmn_t>
-  void compute_H_q(int K_ind,
-                   FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn_t>>& H_k,
-                   FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& H_q);
+  void compute_H_q(
+      int K_ind, func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& H_k,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& H_q);
 
   /***********************************************************************************
    ***
@@ -111,39 +112,44 @@ protected:
    ***********************************************************************************/
 
   template <typename scalar_type, typename q_dmn_t>
-  void compute_S_q(int K_ind, int w_ind,
-                   FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, k_DCA, w>>& S_K_w,
-                   FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& S_q);
+  void compute_S_q(
+      int K_ind, int w_ind,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_DCA, w>>& S_K_w,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& S_q);
 
   template <typename scalar_type, typename k_dmn_t, typename q_dmn_t>
-  void compute_G_q_w(int K_ind, int w_ind,
-                     FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn_t>>& H_k,
-                     FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, k_DCA, w>>& S_K,
-                     FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& I_q,
-                     FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& H_q,
-                     FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& S_q,
-                     FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& G_q);
+  void compute_G_q_w(
+      int K_ind, int w_ind,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& H_k,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_DCA, w>>& S_K,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& I_q,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& H_q,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& S_q,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& G_q);
 
   template <typename scalar_type, typename q_dmn_t>
-  void compute_S_q(int K_ind, int w_ind,
-                   FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, k_DCA, w_REAL>>& S_K_w,
-                   FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& S_q);
+  void compute_S_q(
+      int K_ind, int w_ind,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_DCA, w_REAL>>& S_K_w,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& S_q);
 
   template <typename scalar_type, typename k_dmn_t, typename q_dmn_t>
-  void compute_G_q_w(int K_ind, int w_ind,
-                     FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn_t>>& H_k,
-                     FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, k_DCA, w_REAL>>& S_K,
-                     FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& I_q,
-                     FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& H_q,
-                     FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& S_q,
-                     FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& G_q);
+  void compute_G_q_w(
+      int K_ind, int w_ind,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& H_k,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_DCA, w_REAL>>& S_K,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& I_q,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& H_q,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& S_q,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& G_q);
 
   template <typename scalar_type, typename k_dmn_t, typename q_dmn_t>
-  void compute_G_q_t(int K_ind, int t_ind,
-                     FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn_t>>& H_k,
-                     FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& I_q,
-                     FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& H_q,
-                     FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& G_q);
+  void compute_G_q_t(
+      int K_ind, int t_ind,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& H_k,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& I_q,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& H_q,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& G_q);
 
   /***********************************************************************************
    ***                                                                             ***
@@ -154,19 +160,20 @@ protected:
   template <typename scalar_type, typename k_dmn_t, typename q_dmn_t>
   void compute_S_q_from_A_k(
       int K_ind, int w_ind,
-      FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn_t>>& A_k,
-      FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& A_q,
-      FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& S_q);
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& A_k,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& A_q,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& S_q);
 
   template <typename scalar_type, typename k_dmn_t, typename q_dmn_t>
-  void compute_G_q_w(int K_ind, int w_ind,
-                     FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn_t>>& H_k,
-                     FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn_t>>& A_k,
-                     FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& I_q,
-                     FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& H_q,
-                     FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& A_q,
-                     FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& S_q,
-                     FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& G_q);
+  void compute_G_q_w(
+      int K_ind, int w_ind,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& H_k,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& A_k,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& I_q,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& H_q,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& A_q,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& S_q,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& G_q);
 
   template <typename scalar_type, typename k_dmn_t, typename q_dmn_t>
   void compute_G_q_w(
@@ -246,8 +253,8 @@ void coarsegraining_routines<parameters_type, K_dmn>::compute_gaussian_mesh(
 template <typename parameters_type, typename K_dmn>
 template <typename scalar_type, typename k_dmn_t, typename q_dmn_t>
 void coarsegraining_routines<parameters_type, K_dmn>::wannier_interpolation(
-    int K_ind, FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn_t>>& f_k,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& f_q) {
+    int K_ind, func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& f_k,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& f_q) {
   typedef interpolation_matrices<scalar_type, k_dmn_t, q_dmn_t> interpolation_matrices_type;
 
   if (not interpolation_matrices_type::is_initialized())
@@ -277,7 +284,7 @@ template <typename parameters_type, typename K_dmn>
 template <typename scalar_type, typename tmp_scalar_type, typename q_dmn_t>
 void coarsegraining_routines<parameters_type, K_dmn>::compute_I_q(
     tmp_scalar_type value,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& I_q) {
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& I_q) {
   for (int q_ind = 0; q_ind < q_dmn_t::dmn_size(); q_ind++)
     for (int j = 0; j < nu::dmn_size(); j++)
       for (int i = 0; i < nu::dmn_size(); i++)
@@ -287,8 +294,8 @@ void coarsegraining_routines<parameters_type, K_dmn>::compute_I_q(
 template <typename parameters_type, typename K_dmn>
 template <typename scalar_type, typename k_dmn_t, typename q_dmn_t>
 void coarsegraining_routines<parameters_type, K_dmn>::compute_H_q(
-    int K_ind, FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn_t>>& H_k,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& H_q) {
+    int K_ind, func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& H_k,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& H_q) {
   wannier_interpolation(K_ind, H_k, H_q);
 }
 
@@ -302,8 +309,8 @@ template <typename parameters_type, typename K_dmn>
 template <typename scalar_type, typename q_dmn_t>
 void coarsegraining_routines<parameters_type, K_dmn>::compute_S_q(
     int K_ind, int w_ind,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, k_DCA, w>>& S_K_w,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& S_q) {
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_DCA, w>>& S_K_w,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& S_q) {
   for (int q_ind = 0; q_ind < q_dmn_t::dmn_size(); q_ind++)
     for (int j = 0; j < nu::dmn_size(); j++)
       for (int i = 0; i < nu::dmn_size(); i++)
@@ -313,12 +320,13 @@ void coarsegraining_routines<parameters_type, K_dmn>::compute_S_q(
 template <typename parameters_type, typename K_dmn>
 template <typename scalar_type, typename k_dmn_t, typename q_dmn_t>
 void coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_w(
-    int K_ind, int w_ind, FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn_t>>& H_k,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, k_DCA, w>>& S_K,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& I_q,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& H_q,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& S_q,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& G_q) {
+    int K_ind, int w_ind,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& H_k,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_DCA, w>>& S_K,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& I_q,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& H_q,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& S_q,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& G_q) {
   {
     std::complex<scalar_type> i_wm_min_mu;
 
@@ -346,8 +354,8 @@ template <typename parameters_type, typename K_dmn>
 template <typename scalar_type, typename q_dmn_t>
 void coarsegraining_routines<parameters_type, K_dmn>::compute_S_q(
     int K_ind, int w_ind,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, k_DCA, w_REAL>>& S_K_w,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& S_q) {
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_DCA, w_REAL>>& S_K_w,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& S_q) {
   for (int q_ind = 0; q_ind < q_dmn_t::dmn_size(); q_ind++)
     for (int j = 0; j < nu::dmn_size(); j++)
       for (int i = 0; i < nu::dmn_size(); i++)
@@ -357,12 +365,13 @@ void coarsegraining_routines<parameters_type, K_dmn>::compute_S_q(
 template <typename parameters_type, typename K_dmn>
 template <typename scalar_type, typename k_dmn_t, typename q_dmn_t>
 void coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_w(
-    int K_ind, int w_ind, FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn_t>>& H_k,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, k_DCA, w_REAL>>& S_K,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& I_q,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& H_q,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& S_q,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& G_q) {
+    int K_ind, int w_ind,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& H_k,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_DCA, w_REAL>>& S_K,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& I_q,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& H_q,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& S_q,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& G_q) {
   {
     std::complex<scalar_type> i_wm_min_mu;
 
@@ -394,10 +403,11 @@ void coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_w(
 template <typename parameters_type, typename K_dmn>
 template <typename scalar_type, typename k_dmn_t, typename q_dmn_t>
 void coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_t(
-    int K_ind, int t_ind, FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn_t>>& H_k,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& I_q,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& H_q,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& G_q) {
+    int K_ind, int t_ind,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& H_k,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& I_q,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& H_q,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& G_q) {
   scalar_type f_val = 1;
   scalar_type t_val = t::get_elements()[t_ind];
   scalar_type beta = parameters.get_beta();
@@ -430,9 +440,10 @@ void coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_t(
 template <typename parameters_type, typename K_dmn>
 template <typename scalar_type, typename k_dmn_t, typename q_dmn_t>
 void coarsegraining_routines<parameters_type, K_dmn>::compute_S_q_from_A_k(
-    int K_ind, int w_ind, FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn_t>>& A_k,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& A_q,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& S_q) {
+    int K_ind, int w_ind,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& A_k,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& A_q,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& S_q) {
   wannier_interpolation(K_ind, A_k, A_q);
 
   scalar_type alpha = w::get_elements()[w_ind] > 0 ? 1 : -1;
@@ -443,13 +454,14 @@ void coarsegraining_routines<parameters_type, K_dmn>::compute_S_q_from_A_k(
 template <typename parameters_type, typename K_dmn>
 template <typename scalar_type, typename k_dmn_t, typename q_dmn_t>
 void coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_w(
-    int K_ind, int w_ind, FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn_t>>& H_k,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn_t>>& A_k,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& I_q,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& H_q,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& A_q,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& S_q,
-    FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, q_dmn_t>>& G_q) {
+    int K_ind, int w_ind,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& H_k,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& A_k,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& I_q,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& H_q,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& A_q,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& S_q,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& G_q) {
   {
     std::complex<scalar_type> i_wm_min_mu;
 

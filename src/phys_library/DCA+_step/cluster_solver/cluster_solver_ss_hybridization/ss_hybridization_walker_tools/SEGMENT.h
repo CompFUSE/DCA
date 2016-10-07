@@ -18,7 +18,8 @@
 #ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_WALKER_TOOLS_SEGMENT_H
 #define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_WALKER_TOOLS_SEGMENT_H
 
-#include "comp_library/function_library/domains/special_domains/dmn_0.h"
+#include "dca/function/domains/dmn_0.hpp"
+
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
 
@@ -31,8 +32,8 @@ public:
 
   typedef segment<configuration_t, parameters_t, MOMS_t, concurrency_t> THIS_TYPE;
 
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
 
 public:
   segment(configuration_t& configuration, parameters_t& parameters, MOMS_t& MOMS,

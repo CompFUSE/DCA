@@ -20,7 +20,8 @@
 #include <cmath>
 #include <utility>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_domains/HS_field_sign_domain.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_domains/HS_spin_domain.h"
 #include "phys_library/domains/cluster/cluster_domain.h"
@@ -34,23 +35,23 @@ namespace QMCI {
 template <typename parameters_type>
 class CV {
 public:
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
-  using r_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
-                                     REAL_SPACE, BRILLOUIN_ZONE>>;
+  using r_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                           CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>>;
   typedef r_DCA r_dmn_t;
 
   typedef HS_spin_domain HS_spin_domain_type;
   typedef HS_field_sign_domain HS_field_sign_domain_type;
 
-  typedef dmn_0<HS_spin_domain_type> HS_s;
-  typedef dmn_0<HS_field_sign_domain_type> HS_f;
+  typedef func::dmn_0<HS_spin_domain_type> HS_s;
+  typedef func::dmn_0<HS_field_sign_domain_type> HS_f;
 
-  typedef dmn_3<nu, nu, r_dmn_t> nu_nu_r_dmn_t;
-  typedef dmn_5<nu, nu, HS_s, HS_f, r_dmn_t> nu_nu_HS_s_HS_f_r_dmn_t;
-  typedef dmn_6<nu, nu, HS_s, HS_s, HS_f, r_dmn_t> nu_nu_HS_s_HS_s_HS_f_r_dmn_t;
+  typedef func::dmn_variadic<nu, nu, r_dmn_t> nu_nu_r_dmn_t;
+  typedef func::dmn_variadic<nu, nu, HS_s, HS_f, r_dmn_t> nu_nu_HS_s_HS_f_r_dmn_t;
+  typedef func::dmn_variadic<nu, nu, HS_s, HS_s, HS_f, r_dmn_t> nu_nu_HS_s_HS_s_HS_f_r_dmn_t;
 
 public:
   CV(parameters_type& parameters);
@@ -58,7 +59,7 @@ public:
   template <class stream_type>
   void to_JSON(stream_type& ss);
 
-  static FUNC_LIB::function<double, nu_nu_r_dmn_t>& get_H_interaction();
+  static func::function<double, nu_nu_r_dmn_t>& get_H_interaction();
 
   int nu_nu_HS_s_HS_f_r_DCA_dmn_index(int spin_orbital_1, int spin_orbital_2,
                                       HS_spin_states_type HS_spin, HS_field_sign_type HS_field_sign,
@@ -126,12 +127,12 @@ private:
 
   nu_nu_HS_s_HS_f_r_dmn_t nu_nu_HS_s_HS_f_r_dmn;
 
-  FUNC_LIB::function<double, nu_nu_r_dmn_t> H_interaction;
+  func::function<double, nu_nu_r_dmn_t> H_interaction;
 
-  FUNC_LIB::function<double, nu_nu_r_dmn_t> gamma_function;
-  FUNC_LIB::function<double, nu_nu_HS_s_HS_f_r_dmn_t> exp_V_function;
+  func::function<double, nu_nu_r_dmn_t> gamma_function;
+  func::function<double, nu_nu_HS_s_HS_f_r_dmn_t> exp_V_function;
 
-  FUNC_LIB::function<double, nu_nu_HS_s_HS_s_HS_f_r_dmn_t> exp_delta_V_function;
+  func::function<double, nu_nu_HS_s_HS_s_HS_f_r_dmn_t> exp_delta_V_function;
 };
 
 template <typename parameters_type>
@@ -160,9 +161,9 @@ void CV<parameters_type>::to_JSON(stream_type& ss) {
 }
 
 template <typename parameters_type>
-FUNC_LIB::function<double, typename CV<parameters_type>::nu_nu_r_dmn_t>& CV<
+func::function<double, typename CV<parameters_type>::nu_nu_r_dmn_t>& CV<
     parameters_type>::get_H_interaction() {
-  static FUNC_LIB::function<double, nu_nu_r_dmn_t> H;
+  static func::function<double, nu_nu_r_dmn_t> H;
   return H;
 }
 

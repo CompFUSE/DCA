@@ -10,15 +10,17 @@
 // This file tests get_bounds.hpp.
 
 #include "dca/parallel/util/get_bounds.hpp"
+
 #include "gtest/gtest.h"
-#include "comp_library/function_library/domains/special_domains/dmn.h"
-#include "comp_library/function_library/domains/special_domains/dmn_0.h"
+
+#include "dca/function/domains/dmn.hpp"
+#include "dca/function/domains/dmn_0.hpp"
 
 TEST(GetBoundsTest, Domain) {
   const int num_threads = 3;
 
   // number of threads < domain-size
-  using Domain1 = dmn_0<dmn<11, int>>;
+  using Domain1 = dca::func::dmn_0<dca::func::dmn<11, int>>;
   Domain1 dmn1;
 
   std::pair<int, int> bounds_0 = dca::parallel::util::getBounds(0, num_threads, dmn1);
@@ -34,7 +36,7 @@ TEST(GetBoundsTest, Domain) {
   EXPECT_EQ(11, bounds_2.second);
 
   // number of threads = domain-size
-  using Domain2 = dmn_0<dmn<3, int>>;
+  using Domain2 = dca::func::dmn_0<dca::func::dmn<3, int>>;
   Domain2 dmn2;
 
   bounds_0 = dca::parallel::util::getBounds(0, num_threads, dmn2);
@@ -50,7 +52,7 @@ TEST(GetBoundsTest, Domain) {
   EXPECT_EQ(3, bounds_2.second);
 
   // number of threads > domain-size
-  using Domain3 = dmn_0<dmn<2, int>>;
+  using Domain3 = dca::func::dmn_0<dca::func::dmn<2, int>>;
   Domain3 dmn3;
 
   bounds_0 = dca::parallel::util::getBounds(0, num_threads, dmn3);

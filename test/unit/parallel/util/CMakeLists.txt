@@ -2,4 +2,4 @@
 
 dca_add_gtest(get_bounds_test
   GTEST_MAIN
-  LIBS parallel_util)
+  LIBS function parallel_util)

@@ -18,12 +18,13 @@
 #include <stdexcept>
 #include <string>
 
+#include "dca/function/domains.hpp"
+#include "dca/io/hdf5/hdf5_writer.hpp"
+#include "dca/io/json/json_writer.hpp"
 #include "dca/phys/dca_step/cluster_mapping/cluster_exclusion.hpp"
 #include "dca/phys/dca_step/cluster_mapping/double_counting_correction.hpp"
 #include "dca/phys/dca_step/cluster_mapping/update_chemical_potential.hpp"
 #include "dca/util/print_time.hpp"
-#include "comp_library/function_library/include_function_library.h"
-#include "comp_library/IO_library/IO.hpp"
 #include "phys_library/DCA+_loop/DCA_loop_data.hpp"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_sp.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/high_temperature_series_expansion_solver.h"
@@ -43,12 +44,12 @@ public:
   using profiler_type = typename parameters_type::profiler_type;
   using concurrency_type = typename parameters_type::concurrency_type;
 
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using k_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
-                                     MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
-  using k_HOST = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, LATTICE_SP,
-                                      MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using k_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                           CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using k_HOST = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                            LATTICE_SP, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
 
   using cluster_exclusion_type = cluster_exclusion<parameters_type, MOMS_type>;
   using double_counting_correction_type = double_counting_correction<parameters_type, MOMS_type>;
@@ -155,43 +156,37 @@ void DCA_loop<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::read() {
 
 template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>
 void DCA_loop<parameters_type, MOMS_type, Monte_Carlo_Integrator_type>::write() {
-  IO::FORMAT FORMAT = parameters.get_output_format();
-  std::string file_name = parameters.get_directory() + parameters.get_output_file_name();
+  const std::string& output_format = parameters.get_output_format();
+  const std::string& file_name = parameters.get_directory() + parameters.get_output_file_name();
 
   std::cout << "\n\n\t\t start writing " << file_name << "\t" << dca::util::print_time() << "\n\n";
 
-  switch (FORMAT) {
-    case IO::JSON: {
-      IO::writer<IO::JSON> writer;
-      {
-        writer.open_file(file_name);
+  if (output_format == "JSON") {
+    dca::io::JSONWriter writer;
+    writer.open_file(file_name);
 
-        parameters.write(writer);
-        MOMS.write(writer);
-        monte_carlo_integrator_.write(writer);
-        DCA_info_struct.write(writer);
+    parameters.write(writer);
+    MOMS.write(writer);
+    monte_carlo_integrator_.write(writer);
+    DCA_info_struct.write(writer);
 
-        writer.close_file();
-      }
-    } break;
-
-    case IO::HDF5: {
-      IO::writer<IO::HDF5> writer;
-      {
-        writer.open_file(file_name);
-
-        parameters.write(writer);
-        MOMS.write(writer);
-        monte_carlo_integrator_.write(writer);
-        DCA_info_struct.write(writer);
-
-        writer.close_file();
-      }
-    } break;
-
-    default:
-      throw std::logic_error(__FUNCTION__);
+    writer.close_file();
   }
+
+  else if (output_format == "HDF5") {
+    dca::io::HDF5Writer writer;
+    writer.open_file(file_name);
+
+    parameters.write(writer);
+    MOMS.write(writer);
+    monte_carlo_integrator_.write(writer);
+    DCA_info_struct.write(writer);
+
+    writer.close_file();
+  }
+
+  else
+    throw std::logic_error(__FUNCTION__);
 }
 
 template <class parameters_type, class MOMS_type, class Monte_Carlo_Integrator_type>

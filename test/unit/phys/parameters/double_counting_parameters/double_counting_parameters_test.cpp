@@ -13,7 +13,7 @@
 
 #include "dca/phys/parameters/double_counting_parameters.hpp"
 #include "gtest/gtest.h"
-#include "comp_library/IO_library/JSON/JSON.hpp"
+#include "dca/io/json/json_reader.hpp"
 
 TEST(DoubleCountingParametersTest, DefaultValues) {
   dca::phys::params::DoubleCountingParameters pars;
@@ -23,7 +23,7 @@ TEST(DoubleCountingParametersTest, DefaultValues) {
 }
 
 TEST(DoubleCountingParametersTest, ReadAll) {
-  IO::reader<IO::JSON> reader;
+  dca::io::JSONReader reader;
   dca::phys::params::DoubleCountingParameters pars;
 
   reader.open_file(DCA_SOURCE_DIR

@@ -5,7 +5,9 @@
 
 set(DCA_HAVE_SPRNG FALSE CACHE INTERNAL "")
 
-find_library(SPRNG_LIBRARY sprng HINTS ${SPRNG_DIR}/lib)
+find_library(SPRNG_LIBRARY
+  NAMES libsprng.a sprng
+  HINTS ${SPRNG_DIR}/lib)
 find_path(SPRNG_INCLUDE_DIR sprng_cpp.h HINTS ${SPRNG_DIR}/include)
 
 mark_as_advanced(SPRNG_LIBRARY SPRNG_INCLUDE_DIR)

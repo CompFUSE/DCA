@@ -14,7 +14,7 @@
 
 #include "dca/phys/parameters/vertex_parameters.hpp"
 #include "gtest/gtest.h"
-#include "comp_library/IO_library/JSON/JSON.hpp"
+#include "dca/io/json/json_reader.hpp"
 
 TEST(VertexParametersTest, DefaultValues) {
   dca::phys::params::VertexParameters<2> pars;
@@ -36,7 +36,7 @@ TEST(VertexParametersTest, DefaultValues) {
 }
 
 TEST(VertexParametersTest, ReadAll) {
-  IO::reader<IO::JSON> reader;
+  dca::io::JSONReader reader;
   dca::phys::params::VertexParameters<2> pars;
 
   reader.open_file(DCA_SOURCE_DIR

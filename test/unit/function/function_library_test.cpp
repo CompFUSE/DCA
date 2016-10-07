@@ -9,6 +9,9 @@
 //
 // This file tests the function library.
 
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
+
 #include <cassert>
 #include <complex>
 #include <cstdio>
@@ -23,7 +26,10 @@
 
 #include "dca/util/type_list.hpp"
 #include "dca/util/type_utils.hpp"
-#include "comp_library/function_library/include_function_library.h"
+
+using dca::func::dmn;
+using dca::func::dmn_0;
+using dca::func::dmn_variadic;
 
 namespace dca {
 namespace testing {
@@ -62,23 +68,23 @@ typedef dmn_0<dmn<1, double>> test_domain_0a;
 typedef dmn_0<dmn<2, double>> test_domain_0b;
 typedef dmn_0<dmn<4, double>> test_domain_0c;
 typedef dmn_0<dmn<8, double>> test_domain_0d;
-typedef dmn_1<test_domain_0d> test_domain_1d;
-typedef dmn_2<test_domain_0a, test_domain_0b> test_domain_2a;
-typedef dmn_2<test_domain_0c, test_domain_0d> test_domain_2c;
-typedef dmn_2<test_domain_2a, test_domain_2c> test_domain_4a;
-typedef dmn_3<test_domain_4a, test_domain_4a, test_domain_2c> test_domain_16;
+typedef dmn_variadic<test_domain_0d> test_domain_1d;
+typedef dmn_variadic<test_domain_0a, test_domain_0b> test_domain_2a;
+typedef dmn_variadic<test_domain_0c, test_domain_0d> test_domain_2c;
+typedef dmn_variadic<test_domain_2a, test_domain_2c> test_domain_4a;
+typedef dmn_variadic<test_domain_4a, test_domain_4a, test_domain_2c> test_domain_16;
 
 typedef dmn_variadic<test_domain_0d> test_domain_0v;
 typedef dmn_variadic<test_domain_4a, test_domain_4a, test_domain_2c> test_domain_16v;
 
-FUNC_LIB::function<double, test_domain_0a> function_0a("test_domain_0a");
-FUNC_LIB::function<double, test_domain_0b> function_0b("test_domain_0b");
-FUNC_LIB::function<double, test_domain_0c> function_0c("test_domain_0c");
-FUNC_LIB::function<double, test_domain_0d> function_0d("test_domain_0d");
-FUNC_LIB::function<double, test_domain_1d> function_1d("test_domain_1d");
-FUNC_LIB::function<double, test_domain_2a> function_2a("test_domain_2a");
-FUNC_LIB::function<double, test_domain_4a> function_4a("test_domain_4a");
-FUNC_LIB::function<double, test_domain_16> function_16("test_domain_16");
+dca::func::function<double, test_domain_0a> function_0a("test_domain_0a");
+dca::func::function<double, test_domain_0b> function_0b("test_domain_0b");
+dca::func::function<double, test_domain_0c> function_0c("test_domain_0c");
+dca::func::function<double, test_domain_0d> function_0d("test_domain_0d");
+dca::func::function<double, test_domain_1d> function_1d("test_domain_1d");
+dca::func::function<double, test_domain_2a> function_2a("test_domain_2a");
+dca::func::function<double, test_domain_4a> function_4a("test_domain_4a");
+dca::func::function<double, test_domain_16> function_16("test_domain_16");
 
 test_domain_0v dummy;
 test_domain_16v dummy2;
@@ -87,8 +93,8 @@ template <typename T1>
 struct function_test {};
 
 template <int N, typename Dmn>
-struct function_test<FUNC_LIB::function<double, dmn<N, Dmn>>> {
-  typedef FUNC_LIB::function<double, dmn<N, Dmn>> fType;
+struct function_test<dca::func::function<double, dmn<N, Dmn>>> {
+  typedef dca::func::function<double, dmn<N, Dmn>> fType;
 
   function_test(fType& func) : f(func) {}
 
@@ -114,8 +120,8 @@ struct function_test<FUNC_LIB::function<double, dmn<N, Dmn>>> {
 };
 
 template <typename Domain>
-struct function_test<FUNC_LIB::function<double, Domain>> {
-  typedef FUNC_LIB::function<double, Domain> fType;
+struct function_test<dca::func::function<double, Domain>> {
+  typedef dca::func::function<double, Domain> fType;
   typedef typename fType::this_scalar_type scalartype;
   typedef Domain domainType;
   // typedef typename Domain::this_type sub_type;
@@ -236,7 +242,7 @@ struct function_test<FUNC_LIB::function<double, Domain>> {
     // typedef typename TypeAt<typename Domain::domain_typelist_0, 0>::Result dom_0;
     // std::cout << "Getting first subdomain "
     //           << "Type Id is " << typeid(dom_0).name() << std::endl;
-    // FUNC_LIB::function<double, dom_0> sub_function;
+    // dca::func::function<double, dom_0> sub_function;
     // function_test<decltype(sub_function)> sub_domain(sub_function);
     // sub_domain.check_1(1);
 

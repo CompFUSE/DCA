@@ -17,18 +17,19 @@
 
 #include "gtest/gtest.h"
 
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
+#include "dca/io/hdf5/hdf5_reader.hpp"
+#include "dca/io/json/json_reader.hpp"
 #include "dca/parallel/pthreading/pthreading.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
 #include "dca/phys/parameters/parameters.hpp"
+#include "dca/profiling/null_profiler.hpp"
 #include "dca/testing/dca_mpi_test_environment.hpp"
 #include "dca/testing/minimalist_printer.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
-#include "comp_library/function_library/include_function_library.h"
-#include "comp_library/IO_library/HDF5/HDF5.hpp"
-#include "comp_library/IO_library/JSON/JSON.hpp"
-#include "comp_library/profiler_library/profilers/null_profiler.hpp"
 #include "phys_library/DCA+_analysis/BSE_solver/BSE_solver.h"
 #include "phys_library/DCA+_data/DCA_data.h"
 #include "phys_library/domains/cluster/symmetries/point_groups/2D/2D_square.h"
@@ -44,7 +45,7 @@ TEST(analysis_DCAplus_mpi, leading_eigenvalues) {
   using Threading = dca::parallel::Pthreading;
   using ParametersType =
       dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
-                                    PROFILER::NullProfiler, ModelType, void /*RngType*/,
+                                    dca::profiling::NullProfiler, ModelType, void /*RngType*/,
                                     CT_AUX_CLUSTER_SOLVER>;
   using DcaDataType = DCA_data<ParametersType>;
 
@@ -59,7 +60,7 @@ TEST(analysis_DCAplus_mpi, leading_eigenvalues) {
   }
 
   ParametersType parameters(dca::util::GitVersion::string(), dca_test_env->concurrency);
-  parameters.read_input_and_broadcast<IO::reader<IO::JSON>>(dca_test_env->input_file_name);
+  parameters.read_input_and_broadcast<dca::io::JSONReader>(dca_test_env->input_file_name);
   parameters.update_model();
   parameters.update_domains();
 
@@ -75,15 +76,15 @@ TEST(analysis_DCAplus_mpi, leading_eigenvalues) {
               << std::endl;
 
     const static int num_lambdas = 10;
-    using lambda_dmn_type = dmn_0<dmn<num_lambdas, int>>;
+    using lambda_dmn_type = dca::func::dmn_0<dca::func::dmn<num_lambdas, int>>;
 
-    FUNC_LIB::function<std::complex<double>, lambda_dmn_type>& leading_eigenvalues =
+    dca::func::function<std::complex<double>, lambda_dmn_type>& leading_eigenvalues =
         analysis_obj.get_leading_eigenvalues();
 
     // Read eigenvalues from check_data file.
-    FUNC_LIB::function<std::complex<double>, lambda_dmn_type> leading_eigenvalues_check(
+    dca::func::function<std::complex<double>, lambda_dmn_type> leading_eigenvalues_check(
         "leading-eigenvalues");
-    IO::reader<IO::HDF5> reader;
+    dca::io::HDF5Reader reader;
     reader.open_file(DCA_SOURCE_DIR
                      "/applications/analysis/test/check_data.analysis_DCA+_mpi_test.hdf5");
     reader.open_group("analysis-functions");

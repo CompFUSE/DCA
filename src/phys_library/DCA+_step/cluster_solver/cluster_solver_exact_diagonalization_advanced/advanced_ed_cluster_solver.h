@@ -20,9 +20,11 @@
 #include <stdexcept>
 #include <string>
 
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
+#include "dca/io/hdf5/hdf5_writer.hpp"
+#include "dca/io/json/json_writer.hpp"
 #include "dca/util/print_time.hpp"
-#include "comp_library/function_library/include_function_library.h"
-#include "comp_library/IO_library/IO.hpp"
 #include "comp_library/linalg/linalg_device_types.h"
 #include "phys_library/DCA+_data/DCA_data.h"
 #include "phys_library/DCA+_data/moms_w_real.hpp"
@@ -34,6 +36,8 @@
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/overlap_matrix.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain_real_axis.h"
 #include "phys_library/vertex_measurement_type.hpp"
+
+using namespace dca::phys;
 
 namespace DCA {
 
@@ -50,7 +54,7 @@ public:
   using r_DCA = typename ed_options_type::r_DCA;
   using k_DCA = typename ed_options_type::k_DCA;
 
-  using w_REAL = dmn_0<frequency_domain_real_axis>;
+  using w_REAL = func::dmn_0<frequency_domain_real_axis>;
 
 public:
   cluster_solver(parameters_type& parameters_ref, MOMS_type& MOMS_ref,
@@ -135,7 +139,7 @@ cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::initialize(
     int /*dca_iteration*/) {
-  FUNC_LIB::function<std::complex<double>, dmn_3<nu, nu, r_DCA>> H_DCA;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA>> H_DCA;
 
   math_algorithms::functional_transforms::TRANSFORM<k_DCA, r_DCA>::execute(MOMS_imag.H_DCA, H_DCA);
 
@@ -266,55 +270,49 @@ void cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::write(
     std::string file_name) {
-  IO::FORMAT FORMAT = parameters.get_output_format();
-
   std::cout << "\n\n\t\t start writing " << file_name << "\n\n";
 
-  switch (FORMAT) {
-    case IO::JSON: {
-      IO::writer<IO::JSON> writer;
-      {
-        writer.open_file(file_name);
+  const std::string& output_format = parameters.get_output_format();
 
-        parameters.write(writer);
-        MOMS_imag.write(writer);
-        MOMS_real.write(writer);
+  if (output_format == "JSON") {
+    dca::io::JSONWriter writer;
+    writer.open_file(file_name);
 
-        if (parameters.get_vertex_measurement_type() != NONE) {
-          std::cout << "\n\n\t\t start writing tp-Greens-function\n\n";
-          tp_Greens_function_obj.write(writer);
-        }
+    parameters.write(writer);
+    MOMS_imag.write(writer);
+    MOMS_real.write(writer);
 
-        writer.close_file();
-      }
-    } break;
+    if (parameters.get_vertex_measurement_type() != NONE) {
+      std::cout << "\n\n\t\t start writing tp-Greens-function\n\n";
+      tp_Greens_function_obj.write(writer);
+    }
 
-    case IO::HDF5: {
-      IO::writer<IO::HDF5> writer;
-      {
-        writer.open_file(file_name);
-
-        std::cout << "\n\n\t\t start writing parameters\n\n";
-        parameters.write(writer);
-
-        std::cout << "\n\n\t\t start writing MOMS_imag\n\n";
-        MOMS_imag.write(writer);
-
-        std::cout << "\n\n\t\t start writing MOMS_real\n\n";
-        MOMS_real.write(writer);
-
-        if (parameters.get_vertex_measurement_type() != NONE) {
-          std::cout << "\n\n\t\t start writing tp-Greens-function\n\n";
-          tp_Greens_function_obj.write(writer);
-        }
-
-        writer.close_file();
-      }
-    } break;
-
-    default:
-      throw std::logic_error(__FUNCTION__);
+    writer.close_file();
   }
+
+  else if (output_format == "HDF5") {
+    dca::io::HDF5Writer writer;
+    writer.open_file(file_name);
+
+    std::cout << "\n\n\t\t start writing parameters\n\n";
+    parameters.write(writer);
+
+    std::cout << "\n\n\t\t start writing MOMS_imag\n\n";
+    MOMS_imag.write(writer);
+
+    std::cout << "\n\n\t\t start writing MOMS_real\n\n";
+    MOMS_real.write(writer);
+
+    if (parameters.get_vertex_measurement_type() != NONE) {
+      std::cout << "\n\n\t\t start writing tp-Greens-function\n\n";
+      tp_Greens_function_obj.write(writer);
+    }
+
+    writer.close_file();
+  }
+
+  else
+    throw std::logic_error(__FUNCTION__);
 }
 
 }  // DCA

@@ -18,7 +18,8 @@
 #include <complex>
 #include <iostream>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/compute_bare_bubble.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/compute_interaction.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
@@ -32,11 +33,11 @@ namespace SERIES_EXPANSION {
 template <class parameters_type, class k_dmn_t>
 class sigma_perturbation<3, parameters_type, k_dmn_t> {
 public:
-  using w = dmn_0<frequency_domain>;
-  using w_VERTEX_BOSONIC = dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED_BOSONIC>>;
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using w = func::dmn_0<frequency_domain>;
+  using w_VERTEX_BOSONIC = func::dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED_BOSONIC>>;
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
   using ph_bubble_t = compute_bubble<ph, parameters_type, k_dmn_t, w>;
   // INTERNAL: Shouldn't the template argument be pp instead of pp?
@@ -44,7 +45,8 @@ public:
 
   using chi_function_type = typename ph_bubble_t::function_type;
   using phi_function_type = typename pp_bubble_t::function_type;
-  using sp_function_type = FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, k_dmn_t, w>>;
+  using sp_function_type =
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>;
   using U_function_type = typename compute_interaction::function_type;
 
 public:
@@ -56,14 +58,15 @@ public:
     return Sigma;
   }
 
-  void execute_on_cluster(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& G);
+  void execute_on_cluster(
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
 
   template <typename Writer>
   void write(Writer& writer);
 
 private:
-  void execute_RPA(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& G);
-  void execute_VC(FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& G);
+  void execute_RPA(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
+  void execute_VC(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
 
   int subtract_freq_fb(int, int);
 
@@ -75,9 +78,9 @@ protected:
   chi_function_type& chi;
   phi_function_type& phi;
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>> Sigma;
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>> Sigma_RPA;
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>> Sigma_VC;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_RPA;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma_VC;
 };
 
 template <class parameters_type, class k_dmn_t>
@@ -102,7 +105,7 @@ void sigma_perturbation<3, parameters_type, k_dmn_t>::write(Writer& /*writer*/) 
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<3, parameters_type, k_dmn_t>::execute_on_cluster(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& G) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
   std::cout << __FUNCTION__ << std::endl;
 
   std::cout << "\t U : " << U(0, 0, 0, 1) << std::endl;
@@ -117,7 +120,7 @@ void sigma_perturbation<3, parameters_type, k_dmn_t>::execute_on_cluster(
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<3, parameters_type, k_dmn_t>::execute_RPA(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& G) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
   std::cout << __FUNCTION__ << std::endl;
 
   double U_value = U(0, 0, 0, 1);
@@ -149,7 +152,7 @@ void sigma_perturbation<3, parameters_type, k_dmn_t>::execute_RPA(
 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<3, parameters_type, k_dmn_t>::execute_VC(
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_dmn_t, w>>& G) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
   std::cout << __FUNCTION__ << std::endl;
 
   double U_value = U(0, 0, 0, 1);

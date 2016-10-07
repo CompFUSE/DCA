@@ -16,10 +16,11 @@
 
 #include <vector>
 
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/matrixop.hpp"
 
-#include "comp_library/function_library/include_function_library.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_auxilery_field_coefficients.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_hubbard_stratonovitch_configuration.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_vertex_singleton.h"
@@ -52,7 +53,7 @@ public:
 
   void initialize();
 
-  FUNC_LIB::function<double, dmn_0<numerical_error_domain>>& get_error_distribution();
+  func::function<double, func::dmn_0<numerical_error_domain>>& get_error_distribution();
 
   template <dca::linalg::DeviceType device_t>
   void check_G0_matrices(configuration_type& configuration,
@@ -97,7 +98,7 @@ private:
   dca::linalg::Matrix<double, dca::linalg::CPU> G_up_CPU;
   dca::linalg::Matrix<double, dca::linalg::CPU> G_dn_CPU;
 
-  FUNC_LIB::function<double, dmn_0<numerical_error_domain>> error;
+  func::function<double, func::dmn_0<numerical_error_domain>> error;
 };
 
 template <class parameters_type, class MOMS_type>
@@ -133,7 +134,7 @@ MC_walker_BIT<CT_AUX_SOLVER, parameters_type, MOMS_type>::~MC_walker_BIT() {
 }
 
 template <class parameters_type, class MOMS_type>
-FUNC_LIB::function<double, dmn_0<numerical_error_domain>>& MC_walker_BIT<
+func::function<double, func::dmn_0<numerical_error_domain>>& MC_walker_BIT<
     CT_AUX_SOLVER, parameters_type, MOMS_type>::get_error_distribution() {
   return error;
 }

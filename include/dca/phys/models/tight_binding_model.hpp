@@ -14,7 +14,8 @@
 
 #include <vector>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
@@ -28,10 +29,10 @@ template <typename Lattice>
 class TightBindingModel {
 public:
   using lattice_type = Lattice;
-  using k_LDA =
-      dmn_0<cluster_domain<double, Lattice::DIMENSION, LATTICE_SP, MOMENTUM_SPACE, PARALLELLEPIPEDUM>>;
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
+  using k_LDA = func::dmn_0<
+      cluster_domain<double, Lattice::DIMENSION, LATTICE_SP, MOMENTUM_SPACE, PARALLELLEPIPEDUM>>;
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
 
 public:
   // taken care off via parameters !
@@ -60,14 +61,14 @@ public:
   static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> get_orbital_permutations();
 
   template <class domain, class parameters_type>
-  static void initialize_H_interaction(FUNC_LIB::function<double, domain>& H_interaction,
+  static void initialize_H_interaction(func::function<double, domain>& H_interaction,
                                        parameters_type& parameters);
 
   template <class domain>
-  static void initialize_H_symmetries(FUNC_LIB::function<int, domain>& H_interactions_symmetries);
+  static void initialize_H_symmetries(func::function<int, domain>& H_interactions_symmetries);
 
   template <class domain, class parameters_type>
-  static void initialize_H_LDA(FUNC_LIB::function<std::complex<double>, domain>& H_LDA,
+  static void initialize_H_LDA(func::function<std::complex<double>, domain>& H_LDA,
                                parameters_type& parameters);
 
   template <class parameters_type>
@@ -129,21 +130,21 @@ std::vector<std::vector<double>> TightBindingModel<Lattice>::get_a_vectors() {
 
 template <typename Lattice>
 template <class domain, class parameters_type>
-void TightBindingModel<Lattice>::initialize_H_interaction(
-    FUNC_LIB::function<double, domain>& H_interaction, parameters_type& parameters) {
+void TightBindingModel<Lattice>::initialize_H_interaction(func::function<double, domain>& H_interaction,
+                                                          parameters_type& parameters) {
   Lattice::initialize_H_interaction(H_interaction, parameters);
 }
 
 template <typename Lattice>
 template <class domain>
-void TightBindingModel<Lattice>::initialize_H_symmetries(FUNC_LIB::function<int, domain>& H_symmetry) {
+void TightBindingModel<Lattice>::initialize_H_symmetries(func::function<int, domain>& H_symmetry) {
   Lattice::initialize_H_symmetry(H_symmetry);
 }
 
 template <typename Lattice>
 template <class domain, class parameters_type>
-void TightBindingModel<Lattice>::initialize_H_LDA(
-    FUNC_LIB::function<std::complex<double>, domain>& H_LDA, parameters_type& parameters) {
+void TightBindingModel<Lattice>::initialize_H_LDA(func::function<std::complex<double>, domain>& H_LDA,
+                                                  parameters_type& parameters) {
   std::vector<double> k;
 
   for (int k_ind = 0; k_ind < k_LDA::dmn_size(); k_ind++) {

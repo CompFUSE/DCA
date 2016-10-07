@@ -15,7 +15,9 @@
 #include <time.h>
 #include <vector>
 #include <stdexcept>
-#include "comp_library/function_library/include_function_library.h"
+
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "comp_library/function_plotting/include_plotting.h"
 #include "math_library/NFFT/dnfft_1D.h"
 
@@ -25,7 +27,7 @@ namespace NFFT {
 
 template <typename scalartype, typename t_dmn_t, typename w_dmn_t>
 class dnfft_1D_test {
-  typedef dmn_0<dmn<1, int>> p_dmn_t;
+  typedef func::dmn_0<func::dmn<1, int>> p_dmn_t;
 
 public:
   static void execute() {
@@ -41,9 +43,9 @@ public:
       f.push_back(exp(-2. * M_PI / delta * (t[l] - begin)));
     }
 
-    FUNC_LIB::function<std::complex<scalartype>, w_dmn_t> f_w_1("f_w_1");
-    FUNC_LIB::function<std::complex<scalartype>, w_dmn_t> f_w_2("f_w_2");
-    FUNC_LIB::function<std::complex<scalartype>, w_dmn_t> error("error");
+    func::function<std::complex<scalartype>, w_dmn_t> f_w_1("f_w_1");
+    func::function<std::complex<scalartype>, w_dmn_t> f_w_2("f_w_2");
+    func::function<std::complex<scalartype>, w_dmn_t> error("error");
 
     compute_f_w(t, f, f_w_1);
     compute_f_w_dnfft(t, f, f_w_2);
@@ -65,7 +67,7 @@ public:
 
 private:
   static void compute_f_w(std::vector<scalartype>& t, std::vector<scalartype>& f,
-                          FUNC_LIB::function<std::complex<scalartype>, w_dmn_t>& f_w) {
+                          func::function<std::complex<scalartype>, w_dmn_t>& f_w) {
     std::cout << __FUNCTION__ << std::endl;
 
     std::complex<scalartype> I(0, 1);
@@ -89,10 +91,10 @@ private:
   }
 
   static void compute_f_w_dnfft(std::vector<scalartype>& t, std::vector<scalartype>& f,
-                                FUNC_LIB::function<std::complex<scalartype>, w_dmn_t>& f_w) {
+                                func::function<std::complex<scalartype>, w_dmn_t>& f_w) {
     std::cout << __FUNCTION__ << std::endl;
 
-    FUNC_LIB::function<std::complex<scalartype>, dmn_2<w_dmn_t, p_dmn_t>> f_w_tmp;
+    func::function<std::complex<scalartype>, func::dmn_variadic<w_dmn_t, p_dmn_t>> f_w_tmp;
 
     dnfft_1D<scalartype, w_dmn_t, p_dmn_t> nfft_obj;
 

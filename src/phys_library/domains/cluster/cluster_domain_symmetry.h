@@ -12,7 +12,8 @@
 #ifndef PHYS_LIBRARY_DOMAINS_CLUSTER_CLUSTER_DOMAIN_SYMMETRY_H
 #define PHYS_LIBRARY_DOMAINS_CLUSTER_CLUSTER_DOMAIN_SYMMETRY_H
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/cluster/cluster_domain_family.h"
 #include "phys_library/domains/cluster/cluster_typedefs.hpp"
@@ -36,17 +37,17 @@ public:
   typedef cluster_domain<scalar_type, D, N, REPRESENTATION, S> this_type;
   typedef cluster_domain<scalar_type, D, N, DUAL_REPRESENTATION, S> dual_type;
 
-  typedef dmn_0<electron_band_domain> b_dmn_t;
-  typedef dmn_0<this_type> c_dmn_t;
+  typedef func::dmn_0<electron_band_domain> b_dmn_t;
+  typedef func::dmn_0<this_type> c_dmn_t;
 
-  typedef dmn_0<point_group_symmetry_domain<UNIT_CELL, cluster_family_type>> sym_unit_cell_dmn_t;
-  typedef dmn_0<point_group_symmetry_domain<SUPER_CELL, cluster_family_type>> sym_super_cell_dmn_t;
+  typedef func::dmn_0<point_group_symmetry_domain<UNIT_CELL, cluster_family_type>> sym_unit_cell_dmn_t;
+  typedef func::dmn_0<point_group_symmetry_domain<SUPER_CELL, cluster_family_type>> sym_super_cell_dmn_t;
 
-  typedef dmn_2<dmn_2<c_dmn_t, b_dmn_t>, sym_super_cell_dmn_t> symmetry_matrix_dmn_t;
+  typedef func::dmn_variadic<func::dmn_variadic<c_dmn_t, b_dmn_t>, sym_super_cell_dmn_t> symmetry_matrix_dmn_t;
 
 public:
-  static FUNC_LIB::function<std::pair<int, int>, symmetry_matrix_dmn_t>& get_symmetry_matrix() {
-    static FUNC_LIB::function<std::pair<int, int>, symmetry_matrix_dmn_t> symmetry_matrix(
+  static func::function<std::pair<int, int>, symmetry_matrix_dmn_t>& get_symmetry_matrix() {
+    static func::function<std::pair<int, int>, symmetry_matrix_dmn_t> symmetry_matrix(
         "symmetry_matrix_super_cell");
     return symmetry_matrix;
   }
