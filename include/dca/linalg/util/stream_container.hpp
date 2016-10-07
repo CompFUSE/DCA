@@ -22,7 +22,7 @@ namespace linalg {
 namespace util {
 // dca::linalg::util::
 
-template <size_t max_threads, size_t stream_per_thread>
+template <size_t max_threads, size_t streams_per_thread>
 class StreamContainer {
 public:
   StreamContainer() {
@@ -38,16 +38,16 @@ public:
     }
   }
 
-  StreamContainer(const StreamContainer<max_threads, stream_per_thread>&) = delete;
-  StreamContainer& operator=(const StreamContainer<max_threads, stream_per_thread>&) = delete;
+  StreamContainer(const StreamContainer<max_threads, streams_per_thread>&) = delete;
+  StreamContainer& operator=(const StreamContainer<max_threads, streams_per_thread>&) = delete;
 
   // Returns the 'stream_id'-th stream associated with thread 'thread_id'.
   // Preconditions: 0 <= thread_id < DCA_MAX_THREADS,
   //                0 <= stream_id < DCA_STREAMS_PER_THREADS.
   cudaStream_t operator()(int thread_id, int stream_id) {
     assert(thread_id >= 0 && static_cast<size_t>(thread_id) < max_threads);
-    assert(stream_id >= 0 && static_cast<size_t>(stream_id) < stream_per_thread);
-    return streams_[stream_id + stream_per_thread * thread_id];
+    assert(stream_id >= 0 && static_cast<size_t>(stream_id) < streams_per_thread);
+    return streams_[stream_id + streams_per_thread * thread_id];
   }
 
   // Synchronizes the 'stream_id'-th stream associated with thread 'thread_id'.
@@ -59,7 +59,7 @@ public:
   }
 
 private:
-  std::array<cudaStream_t, max_threads * stream_per_thread> streams_;
+  std::array<cudaStream_t, max_threads * streams_per_thread> streams_;
 };
 }  // util
 }  // linalg

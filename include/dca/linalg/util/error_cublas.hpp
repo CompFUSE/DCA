@@ -34,8 +34,8 @@ void printErrorMessage(cublasStatus_t error, std::string function_name, std::str
 
 // Prints an error message and throws a std::logic_error if the return code of a cuda function is
 // not CUBLAS_STATUS_SUCCESS.
-// This function can be invoked with the macros checkRC and checkRCMsg that automatically
-// include the function name, the filename, and the line to the function call.
+// This function can be invoked with the macros checkRC and checkRCMsg (defined in error_cuda.hpp)
+// that automatically include the function name, the filename, and the line to the function call.
 inline void checkRCInternal(cublasStatus_t return_code, std::string function_name,
                             std::string file_name, int line, std::string extra_error_string = "") {
   if (return_code != CUBLAS_STATUS_SUCCESS) {

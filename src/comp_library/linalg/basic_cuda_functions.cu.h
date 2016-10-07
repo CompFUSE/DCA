@@ -6,28 +6,27 @@
 #include <iostream>
 #include <cuda_runtime.h>
 
-cudaDeviceProp& get_device_properties()
-{
-    static bool           init=false;
-    static cudaDeviceProp prop;
+cudaDeviceProp& get_device_properties() {
+  static bool init = false;
+  static cudaDeviceProp prop;
 
-    if(!init){
-	int count;
+  if (!init) {
+    int count;
 
-	cudaGetDeviceCount(&count);
+    cudaGetDeviceCount(&count);
 
-	if(count<1)
-            throw std::logic_error(__FUNCTION__);
+    if (count < 1)
+      throw std::logic_error(__FUNCTION__);
 
-	cudaGetDeviceProperties(&prop, 0);
+    cudaGetDeviceProperties(&prop, 0);
 
-	init = true;
-    }
+    init = true;
+  }
 
-    return prop;
+  return prop;
 }
 
-int get_number_of_threads(){
+int get_number_of_threads() {
   const static int N_th = get_device_properties().maxThreadsPerBlock;
   return N_th;
 }

@@ -7,7 +7,7 @@
 //
 // Author: Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //
-// This file provides some macro definitions
+// This file provides some macro definitions.
 
 #ifndef DCA_LINALG_UTIL_DEF_HPP
 #define DCA_LINALG_UTIL_DEF_HPP

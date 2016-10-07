@@ -9,8 +9,8 @@
 //
 // This file provides cuda related utilities to device specs printing.
 
-#ifndef DCA_LINALG_UTIL_UTILCUDA_HPP
-#define DCA_LINALG_UTIL_UTILCUDA_HPP
+#ifndef DCA_LINALG_UTIL_UTIL_CUDA_HPP
+#define DCA_LINALG_UTIL_UTIL_CUDA_HPP
 
 #include <cuda_runtime.h>
 #include <string>
@@ -28,4 +28,4 @@ void printInfoDevices();
 }  // linalg
 }  // dca
 
-#endif  // DCA_LINALG_UTIL_UTILCUDA_HPP
+#endif  // DCA_LINALG_UTIL_UTIL_CUDA_HPP
