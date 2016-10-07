@@ -78,8 +78,8 @@ public:
     return name_;
   }
 
-  // Asynchronous assignement (copy with stream = getStream(thread_id, stream_id) + synchronization
-  // of stream
+  // Asynchronous assignement (copy with stream = getStream(thread_id, stream_id))
+  // + synchronization of stream
   // Preconditions: 0 <= thread_id < DCA_MAX_THREADS,
   //                0 <= stream_id < DCA_STREAMS_PER_THREADS.
   void set(const std::vector<ScalarType>& rhs, int thread_id, int stream_id);

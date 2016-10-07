@@ -70,7 +70,7 @@ struct Memory<CPU> {
   template <typename ScalarType>
   static std::enable_if_t<std::is_arithmetic<ScalarType>::value == true, void> setToZero(
       std::complex<ScalarType>* ptr, size_t size) {
-    std::memset(ptr, 0, size * sizeof(ScalarType));
+    std::memset(ptr, 0, size * sizeof(std::complex<ScalarType>));
   }
 };
 
@@ -104,7 +104,7 @@ struct Memory<GPU> {
   template <typename ScalarType>
   static std::enable_if_t<std::is_arithmetic<ScalarType>::value == true, void> setToZero(
       std::complex<ScalarType>* ptr, size_t size) {
-    cudaMemset(ptr, 0, size * sizeof(ScalarType));
+    cudaMemset(ptr, 0, size * sizeof(std::complex<ScalarType>));
   }
 };
 #endif  // DCA_HAVE_CUDA

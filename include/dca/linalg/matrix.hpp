@@ -157,8 +157,8 @@ public:
 
   void swap(Matrix<ScalarType, device_name>& rhs);
 
-  // Asynchronous assignement (copy with stream = getStream(thread_id, stream_id) + synchronization
-  // of stream
+  // Asynchronous assignement (copy with stream = getStream(thread_id, stream_id))
+  // + synchronization of stream
   // Preconditions: 0 <= thread_id < DCA_MAX_THREADS,
   //                0 <= stream_id < DCA_STREAMS_PER_THREADS.
   template <DeviceType rhs_device_name>
@@ -183,9 +183,6 @@ private:
 
   std::pair<int, int> size_;
   std::pair<int, int> capacity_;
-
-  int thread_id_;
-  int stream_id_;
 
   ValueType* data_;
 
@@ -315,8 +312,6 @@ void Matrix<ScalarType, device_name>::swap(Matrix<ScalarType, device_name>& rhs)
   std::swap(size_, rhs.size_);
   std::swap(capacity_, rhs.capacity_);
   std::swap(data_, rhs.data_);
-  std::swap(thread_id_, rhs.thread_id_);
-  std::swap(stream_id_, rhs.stream_id_);
 }
 
 template <typename ScalarType, DeviceType device_name>

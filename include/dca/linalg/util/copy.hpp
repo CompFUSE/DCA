@@ -75,7 +75,7 @@ void memoryCopyAsync(ScalarType* dest, int ld_dest, const ScalarType* src, int l
   checkRC(ret);
 }
 
-// Asynchronous 1D memory copy (stream = getStream(thread_id, stream_id)).
+// Asynchronous 1D memory copy (stream = getStream(thread_id, stream_id))
 // + synchronization of stream.
 // Preconditions: 0 <= thread_id < DCA_MAX_THREADS,
 template <typename ScalarType>
@@ -117,7 +117,7 @@ void memoryCopy(ScalarType* dest, int ld_dest, const ScalarType* src, int ld_src
   }
 }
 
-#endif
+#endif  // DCA_HAVE_CUDA
 
 }  // util
 }  // linalg
