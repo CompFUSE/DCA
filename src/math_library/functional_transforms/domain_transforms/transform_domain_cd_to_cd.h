@@ -14,7 +14,7 @@
 
 #include <iostream>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/function.hpp"
 #include "comp_library/linalg/linalg.hpp"
 #include "math_library/functional_transforms/basis_transforms/basis_transforms.hpp"
 #include "math_library/functional_transforms/domain_transforms/transform_domain_template.h"
@@ -37,16 +37,16 @@ private:
 
 public:
   template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-  static void execute(FUNC_LIB::function<scalartype_input, domain_input>& f_input,
-                      FUNC_LIB::function<scalartype_output, domain_output>& f_output);
+  static void execute(func::function<scalartype_input, domain_input>& f_input,
+                      func::function<scalartype_output, domain_output>& f_output);
 
   template <typename scalartype, class domain_input, class domain_output>
-  static void execute(FUNC_LIB::function<scalartype, domain_input>& f_input,
-                      FUNC_LIB::function<scalartype, domain_output>& f_output);
+  static void execute(func::function<scalartype, domain_input>& f_input,
+                      func::function<scalartype, domain_output>& f_output);
 
   template <typename scalartype, class domain_input, class domain_output>
-  static void execute(FUNC_LIB::function<std::complex<scalartype>, domain_input>& f_input,
-                      FUNC_LIB::function<std::complex<scalartype>, domain_output>& f_output);
+  static void execute(func::function<std::complex<scalartype>, domain_input>& f_input,
+                      func::function<std::complex<scalartype>, domain_output>& f_output);
 
 private:
   template <typename f_input_t, typename f_output_t>
@@ -57,8 +57,8 @@ private:
 template <typename type_input, typename type_output, int DMN_INDEX>
 template <typename scalartype, class domain_input, class domain_output>
 void TRANSFORM_DOMAIN<type_input, CONTINUOUS, type_output, CONTINUOUS, DMN_INDEX>::execute(
-    FUNC_LIB::function<scalartype, domain_input>& f_input,
-    FUNC_LIB::function<scalartype, domain_output>& f_output) {
+    func::function<scalartype, domain_input>& f_input,
+    func::function<scalartype, domain_output>& f_output) {
   if (VERBOSE)
     std::cout << "\n\t transform (continuous -> continuous) " << DMN_INDEX << "  "
               << type_input::get_name() << " --> " << type_output::get_name() << "\n\n";
@@ -89,8 +89,8 @@ void TRANSFORM_DOMAIN<type_input, CONTINUOUS, type_output, CONTINUOUS, DMN_INDEX
 template <typename type_input, typename type_output, int DMN_INDEX>
 template <typename scalartype, class domain_input, class domain_output>
 void TRANSFORM_DOMAIN<type_input, CONTINUOUS, type_output, CONTINUOUS, DMN_INDEX>::execute(
-    FUNC_LIB::function<std::complex<scalartype>, domain_input>& f_input,
-    FUNC_LIB::function<std::complex<scalartype>, domain_output>& f_output) {
+    func::function<std::complex<scalartype>, domain_input>& f_input,
+    func::function<std::complex<scalartype>, domain_output>& f_output) {
   if (VERBOSE)
     std::cout << "\n\t transform (continuous -> continuous) " << DMN_INDEX << "  "
               << type_input::get_name() << " --> " << type_output::get_name() << "\n\n";

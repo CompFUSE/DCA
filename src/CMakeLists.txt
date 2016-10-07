@@ -1,4 +1,7 @@
+add_subdirectory(function)
+add_subdirectory(io)
 add_subdirectory(math)
 add_subdirectory(parallel)
 add_subdirectory(phys)
+add_subdirectory(profiling)
 add_subdirectory(util)

@@ -19,9 +19,10 @@
 #include <iostream>
 #include <vector>
 
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "dca/util/print_time.hpp"
 
-#include "comp_library/function_library/include_function_library.h"
 #include "comp_library/function_plotting/include_plotting.h"
 // #include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Fock_space.h"
@@ -117,7 +118,7 @@ public:
 
   typedef typename ed_options::nu_nu_r_dmn_type nu_nu_r_dmn_type;
 
-  typedef dmn_7<nu_dmn, nu_dmn, nu_dmn, nu_dmn, r_dmn, r_dmn, r_dmn> nu_nu_nu_nu_r_r_r_dmn_type;
+  typedef func::dmn_variadic<nu_dmn, nu_dmn, nu_dmn, nu_dmn, r_dmn, r_dmn, r_dmn> nu_nu_nu_nu_r_r_r_dmn_type;
 
   typedef fermionic_Hamiltonian<parameter_type, ed_options> fermionic_Hamiltonian_type;
   typedef fermionic_overlap_matrices<parameter_type, ed_options> fermionic_overlap_type;
@@ -125,12 +126,12 @@ public:
   typedef Fock_space<parameter_type, ed_options> fermionic_Fock_space_type;
   typedef Hilbert_space<parameter_type, ed_options> Hilbert_space_type;
 
-  typedef dmn_0<fermionic_Fock_space_type> fermionic_Fock_dmn_type;
+  typedef func::dmn_0<fermionic_Fock_space_type> fermionic_Fock_dmn_type;
 
   typedef tp_Greens_function_data<ed_options> tp_Greens_function_data_type;
 
-  using w_VERTEX = dmn_0<DCA::vertex_frequency_domain<DCA::COMPACT>>;
-  using w_VERTEX_EXTENDED = dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED>>;
+  using w_VERTEX = func::dmn_0<DCA::vertex_frequency_domain<DCA::COMPACT>>;
+  using w_VERTEX_EXTENDED = func::dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED>>;
 
 public:
   fermionic_tp_Greens_function(parameter_type& parameters_ref,
@@ -143,15 +144,15 @@ public:
   void compute_two_particle_Greens_function(bool interacting);
 
   void compute_particle_particle_superconducting_A(
-      FUNC_LIB::function<complex_type,
-                         dmn_8<b_dmn, b_dmn, b_dmn, b_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>& G4);
+      func::function<complex_type, func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, k_dmn, k_dmn,
+                                                      w_VERTEX, w_VERTEX>>& G4);
   void compute_particle_particle_superconducting_B(
-      FUNC_LIB::function<complex_type,
-                         dmn_8<b_dmn, b_dmn, b_dmn, b_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>& G4);
+      func::function<complex_type, func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, k_dmn, k_dmn,
+                                                      w_VERTEX, w_VERTEX>>& G4);
 
   void compute_two_particle_Greens_function(
-      FUNC_LIB::function<complex_type, dmn_4<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, w_VERTEX_EXTENDED,
-                                             nu_nu_nu_nu_r_r_r_dmn_type>>& G_tp_ref);
+      func::function<complex_type, func::dmn_variadic<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, w_VERTEX_EXTENDED,
+                                                      nu_nu_nu_nu_r_r_r_dmn_type>>& G_tp_ref);
 
 private:
   template <typename value_type>
@@ -203,10 +204,11 @@ private:
   //                                                complex_type factor,
   //                                                tp_Greens_function_data_type& data);
 
-  //       void compute_particle_particle_superconducting(FUNC_LIB::function<complex_type,
-  //       dmn_4<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, bsk_dmn_type, bsk_dmn_type> >& G_nonlocal,
-  //                                                      FUNC_LIB::function<complex_type,
-  //                                                      dmn_8<b,b,b,b,k_dmn,k_dmn,w_VERTEX,w_VERTEX>
+  //       void compute_particle_particle_superconducting(func::function<complex_type,
+  //       func::dmn_variadic<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, bsk_dmn_type, bsk_dmn_type> >&
+  //       G_nonlocal,
+  //                                                      func::function<complex_type,
+  //                                                      func::dmn_variadic<b,b,b,b,k_dmn,k_dmn,w_VERTEX,w_VERTEX>
   //                                                      >&                            G4);
 
 private:
@@ -218,44 +220,52 @@ private:
   fermionic_Hamiltonian_type& Hamiltonian;
   fermionic_overlap_type& overlap;
 
-  FUNC_LIB::function<vector_type, fermionic_Fock_dmn_type>& eigen_energies;
-  FUNC_LIB::function<matrix_type, fermionic_Fock_dmn_type>& eigen_states;
+  func::function<vector_type, fermionic_Fock_dmn_type>& eigen_energies;
+  func::function<matrix_type, fermionic_Fock_dmn_type>& eigen_states;
 
-  FUNC_LIB::function<int, dmn_3<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type, b_s_r_dmn_type>>&
-      creation_set_all;
-  FUNC_LIB::function<int, dmn_3<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type, b_s_r_dmn_type>>&
-      annihilation_set_all;
+  func::function<int, func::dmn_variadic<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type,
+                                         b_s_r_dmn_type>>& creation_set_all;
+  func::function<int, func::dmn_variadic<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type,
+                                         b_s_r_dmn_type>>& annihilation_set_all;
 
-  FUNC_LIB::function<int, k_dmn> min_k_dmn_t;
-  FUNC_LIB::function<int, k_dmn> q_plus_;
-  FUNC_LIB::function<int, k_dmn> q_min_;
+  func::function<int, k_dmn> min_k_dmn_t;
+  func::function<int, k_dmn> q_plus_;
+  func::function<int, k_dmn> q_min_;
 
-  FUNC_LIB::function<int, w_VERTEX> min_w_vertex;
-  FUNC_LIB::function<int, w_VERTEX_EXTENDED> min_w_vertex_ext;
+  func::function<int, w_VERTEX> min_w_vertex;
+  func::function<int, w_VERTEX_EXTENDED> min_w_vertex_ext;
 
-  FUNC_LIB::function<int, w_VERTEX> w_vertex_2_w_vertex_ext;
+  func::function<int, w_VERTEX> w_vertex_2_w_vertex_ext;
 
-  FUNC_LIB::function<int, dmn_2<r_dmn, r_dmn>> rj_minus_ri;
+  func::function<int, func::dmn_variadic<r_dmn, r_dmn>> rj_minus_ri;
 
-  FUNC_LIB::function<complex_type, dmn_4<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, w_VERTEX_EXTENDED,
-                                         nu_nu_nu_nu_r_r_r_dmn_type>>
+  func::function<complex_type, func::dmn_variadic<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED,
+                                                  w_VERTEX_EXTENDED, nu_nu_nu_nu_r_r_r_dmn_type>>
       G_tp_non;
-  FUNC_LIB::function<complex_type, dmn_4<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, w_VERTEX_EXTENDED,
-                                         nu_nu_nu_nu_r_r_r_dmn_type>>
+  func::function<complex_type, func::dmn_variadic<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED,
+                                                  w_VERTEX_EXTENDED, nu_nu_nu_nu_r_r_r_dmn_type>>
       G_tp_int;
 
-  FUNC_LIB::function<complex_type, dmn_4<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, bsr_dmn_type, bsr_dmn_type>>
+  func::function<complex_type,
+                 func::dmn_variadic<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, bsr_dmn_type, bsr_dmn_type>>
       G_non_w_w_r_r_nonlocal;
-  FUNC_LIB::function<complex_type, dmn_4<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, bsk_dmn_type, bsk_dmn_type>>
+  func::function<complex_type,
+                 func::dmn_variadic<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, bsk_dmn_type, bsk_dmn_type>>
       G_non_w_w_k_k_nonlocal;
 
-  FUNC_LIB::function<complex_type, dmn_4<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, bsr_dmn_type, bsr_dmn_type>>
+  func::function<complex_type,
+                 func::dmn_variadic<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, bsr_dmn_type, bsr_dmn_type>>
       G_int_w_w_r_r_nonlocal;
-  FUNC_LIB::function<complex_type, dmn_4<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, bsk_dmn_type, bsk_dmn_type>>
+  func::function<complex_type,
+                 func::dmn_variadic<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, bsk_dmn_type, bsk_dmn_type>>
       G_int_w_w_k_k_nonlocal;
 
-  FUNC_LIB::function<complex_type, dmn_8<b_dmn, b_dmn, b_dmn, b_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>> G4_non;
-  FUNC_LIB::function<complex_type, dmn_8<b_dmn, b_dmn, b_dmn, b_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>> G4_int;
+  func::function<complex_type,
+                 func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>
+      G4_non;
+  func::function<complex_type,
+                 func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>
+      G4_int;
 };
 
 template <typename parameter_type, typename ed_options>
@@ -357,8 +367,8 @@ void fermionic_tp_Greens_function<parameter_type, ed_options>::write(Writer& wri
 */
 template <typename parameter_type, typename ed_options>
 void fermionic_tp_Greens_function<parameter_type, ed_options>::compute_particle_particle_superconducting_A(
-    FUNC_LIB::function<complex_type,
-                       dmn_8<b_dmn, b_dmn, b_dmn, b_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>& G4) {
+    func::function<complex_type,
+                   func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>& G4) {
   if (concurrency.id() == 0)
     std::cout << "\t" << __FUNCTION__ << std::endl;
 
@@ -484,8 +494,8 @@ void fermionic_tp_Greens_function<parameter_type, ed_options>::compute_particle_
 */
 template <typename parameter_type, typename ed_options>
 void fermionic_tp_Greens_function<parameter_type, ed_options>::compute_particle_particle_superconducting_B(
-    FUNC_LIB::function<complex_type,
-                       dmn_8<b_dmn, b_dmn, b_dmn, b_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>& G4) {
+    func::function<complex_type,
+                   func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>& G4) {
   if (concurrency.id() == 0)
     std::cout << "\n\n\t" << __FUNCTION__ << "\n\n";
 
@@ -611,8 +621,8 @@ void fermionic_tp_Greens_function<parameter_type, ed_options>::compute_two_parti
 
 template <typename parameter_type, typename ed_options>
 void fermionic_tp_Greens_function<parameter_type, ed_options>::compute_two_particle_Greens_function(
-    FUNC_LIB::function<complex_type, dmn_4<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, w_VERTEX_EXTENDED,
-                                           nu_nu_nu_nu_r_r_r_dmn_type>>& G_tp_ref) {
+    func::function<complex_type, func::dmn_variadic<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, w_VERTEX_EXTENDED,
+                                                    nu_nu_nu_nu_r_r_r_dmn_type>>& G_tp_ref) {
   if (concurrency.id() == 0)
     std::cout << "\t" << __FUNCTION__ << std::endl;
 

@@ -13,7 +13,7 @@
 
 #include "dca/phys/parameters/ed_solver_parameters.hpp"
 #include "gtest/gtest.h"
-#include "comp_library/IO_library/JSON/JSON.hpp"
+#include "dca/io/json/json_reader.hpp"
 
 TEST(EdSolverParametersTest, DefaultValues) {
   dca::phys::params::EdSolverParameters pars;
@@ -26,7 +26,7 @@ TEST(EdSolverParametersTest, DefaultValues) {
 }
 
 TEST(EdSolverParametersTest, ReadAll) {
-  IO::reader<IO::JSON> reader;
+  dca::io::JSONReader reader;
   dca::phys::params::EdSolverParameters pars;
 
   reader.open_file(DCA_SOURCE_DIR

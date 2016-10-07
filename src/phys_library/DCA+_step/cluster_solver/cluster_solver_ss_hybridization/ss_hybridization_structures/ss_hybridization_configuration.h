@@ -16,7 +16,8 @@
 #include <iostream>
 #include <vector>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_structures/ss_hybridization_vertex.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
@@ -28,9 +29,9 @@ public:
   using this_type = SS_CT_HYB_configuration;
   using orbital_configuration_type = std::vector<Hybridization_vertex>;
 
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
 public:
   SS_CT_HYB_configuration();
@@ -47,8 +48,8 @@ public:
   void print();
 
 private:
-  FUNC_LIB::function<orbital_configuration_type, nu> vertices;
-  FUNC_LIB::function<bool, nu> has_full_line;
+  func::function<orbital_configuration_type, nu> vertices;
+  func::function<bool, nu> has_full_line;
 
   int N_spin_orbitals;
 };

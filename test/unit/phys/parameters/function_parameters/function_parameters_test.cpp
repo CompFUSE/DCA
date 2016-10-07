@@ -13,7 +13,7 @@
 
 #include "dca/phys/parameters/function_parameters.hpp"
 #include "gtest/gtest.h"
-#include "comp_library/IO_library/JSON/JSON.hpp"
+#include "dca/io/json/json_reader.hpp"
 
 TEST(FunctionParametersTest, DefaultValues) {
   int lattice_dim = 2;
@@ -35,7 +35,7 @@ TEST(FunctionParametersTest, DefaultValues) {
 }
 
 TEST(FunctionParametersTest, ReadAll) {
-  IO::reader<IO::JSON> reader;
+  dca::io::JSONReader reader;
   int lattice_dim = 2;
   dca::phys::params::FunctionParameters pars(lattice_dim);
 

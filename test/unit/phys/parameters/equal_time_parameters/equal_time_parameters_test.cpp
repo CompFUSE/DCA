@@ -13,7 +13,7 @@
 
 #include "dca/phys/parameters/equal_time_parameters.hpp"
 #include "gtest/gtest.h"
-#include "comp_library/IO_library/JSON/JSON.hpp"
+#include "dca/io/json/json_reader.hpp"
 
 TEST(EqualTimeParametersTest, DefaultValues) {
   dca::phys::params::EqualTimeParameters pars;
@@ -21,7 +21,7 @@ TEST(EqualTimeParametersTest, DefaultValues) {
 }
 
 TEST(EqualTimeParametersTest, ReadAll) {
-  IO::reader<IO::JSON> reader;
+  dca::io::JSONReader reader;
   dca::phys::params::EqualTimeParameters pars;
 
   reader.open_file(DCA_SOURCE_DIR

@@ -39,7 +39,8 @@
 
 #include <complex>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "comp_library/linalg/linalg.hpp"
 #include "math_library/NFFT/dnfft_1D.h"
 #include "phys_library/domains/cluster/cluster_domain.h"
@@ -56,26 +57,26 @@ public:
   using concurrency_type = typename parameters_type::concurrency_type;
   using scalar_type = double;
 
-  using w = dmn_0<frequency_domain>;
+  using w = func::dmn_0<frequency_domain>;
 
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
-  using r_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
-                                     REAL_SPACE, BRILLOUIN_ZONE>>;
-  using k_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
-                                     MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using r_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                           CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>>;
+  using k_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                           CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
   using r_dmn_t = r_DCA;
   using k_dmn_t = k_DCA;
 
-  using p_dmn_t = dmn_variadic<nu, nu, r_dmn_t>;
+  using p_dmn_t = func::dmn_variadic<nu, nu, r_dmn_t>;
 
 public:
   MC_single_particle_accumulator(parameters_type& parameters_ref);
 
-  void initialize(FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, r_dmn_t, w>>& G_r_w,
-                  FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, r_dmn_t, w>>& GS_r_w);
+  void initialize(func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>>& G_r_w,
+                  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>>& GS_r_w);
 
   template <class walker_type, class H_type>
   void accumulate(walker_type& walker, H_type& H_interactions);
@@ -84,8 +85,8 @@ public:
   void accumulate(double current_sign, configuration_type& configuration,
                   M_matrices_type& M_matrices, H_type& H_interactions);
 
-  void finalize(FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, r_dmn_t, w>>& G_r_w,
-                FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, r_dmn_t, w>>& GS_r_w);
+  void finalize(func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>>& G_r_w,
+                func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>>& GS_r_w);
 
 private:
   template <class walker_type, class H_type>
@@ -121,8 +122,8 @@ MC_single_particle_accumulator<SS_CT_HYB, NFFT, parameters_type, base_cluster_ty
 
 template <class parameters_type, class base_cluster_type>
 void MC_single_particle_accumulator<SS_CT_HYB, NFFT, parameters_type, base_cluster_type>::initialize(
-    FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, r_dmn_t, w>>& G_r_w,
-    FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, r_dmn_t, w>>& GS_r_w) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>>& G_r_w,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>>& GS_r_w) {
   {
     cached_nfft_1D_G_obj.initialize();
     cached_nfft_1D_GS_obj.initialize();
@@ -134,12 +135,12 @@ void MC_single_particle_accumulator<SS_CT_HYB, NFFT, parameters_type, base_clust
 
 template <class parameters_type, class base_cluster_type>
 void MC_single_particle_accumulator<SS_CT_HYB, NFFT, parameters_type, base_cluster_type>::finalize(
-    FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, r_dmn_t, w>>& G_r_w,
-    FUNC_LIB::function<std::complex<double>, dmn_variadic<nu, nu, r_dmn_t, w>>& GS_r_w) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>>& G_r_w,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>>& GS_r_w) {
   double beta = parameters.get_beta();
 
   {
-    FUNC_LIB::function<std::complex<double>, dmn_variadic<w, p_dmn_t>> tmp("tmp G");
+    func::function<std::complex<double>, func::dmn_variadic<w, p_dmn_t>> tmp("tmp G");
 
     cached_nfft_1D_G_obj.finalize(tmp);
 
@@ -157,7 +158,7 @@ void MC_single_particle_accumulator<SS_CT_HYB, NFFT, parameters_type, base_clust
   }
 
   {
-    FUNC_LIB::function<std::complex<double>, dmn_variadic<w, p_dmn_t>> tmp("tmp GS");
+    func::function<std::complex<double>, func::dmn_variadic<w, p_dmn_t>> tmp("tmp GS");
 
     cached_nfft_1D_GS_obj.finalize(tmp);
 

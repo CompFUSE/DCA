@@ -12,7 +12,7 @@
 #ifndef MATH_LIBRARY_FUNCTIONAL_TRANSFORMS_DOMAIN_TRANSFORMS_TRANSFORM_DOMAIN_TEMPLATE_H
 #define MATH_LIBRARY_FUNCTIONAL_TRANSFORMS_DOMAIN_TRANSFORMS_TRANSFORM_DOMAIN_TEMPLATE_H
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/function.hpp"
 #include "math_library/functional_transforms/typedefs.hpp"
 
 namespace math_algorithms {
@@ -25,8 +25,8 @@ struct TRANSFORM_DOMAIN {
   const static bool VERBOSE = true;
 
   template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-  static void execute(FUNC_LIB::function<scalartype_input, domain_input>& f_input,
-                      FUNC_LIB::function<scalartype_output, domain_output>& f_output);
+  static void execute(func::function<scalartype_input, domain_input>& f_input,
+                      func::function<scalartype_output, domain_output>& f_output);
 };
 
 }  // functional_transforms

@@ -18,7 +18,7 @@
 #include <array>
 #include <vector>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
@@ -32,11 +32,11 @@ namespace models {
 template <typename parameters_type>
 class general_interaction {
 public:
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;
-  using r_DCA =
-      dmn_0<cluster_domain<double, parameters_type::lattice_dimension, CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>>;
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;
+  using r_DCA = func::dmn_0<
+      cluster_domain<double, parameters_type::lattice_dimension, CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>>;
 
   template <class vertex_pair_type, class rng_type, class H_interaction_type>
   static void set_vertex(vertex_pair_type& vertex, parameters_type& parameters, rng_type& rng,
@@ -47,8 +47,8 @@ private:
   static std::vector<int> make_correlated_orbitals(parameters_type& parameters,
                                                    H_interaction_type& H_interaction);
 
-  static dmn_6<b, s, b, s, r_DCA, r_DCA>& get_domain() {
-    static dmn_6<b, s, b, s, r_DCA, r_DCA> b_s_b_s_r_r_dmn;
+  static func::dmn_variadic<b, s, b, s, r_DCA, r_DCA>& get_domain() {
+    static func::dmn_variadic<b, s, b, s, r_DCA, r_DCA> b_s_b_s_r_r_dmn;
     return b_s_b_s_r_r_dmn;
   }
 };
@@ -75,9 +75,9 @@ void general_interaction<parameters_type>::set_vertex(vertex_pair_type& vertex,
   vertex.get_e_spins().first = electron_spin_domain::get_elements()[sub_ind[1]];
   vertex.get_e_spins().second = electron_spin_domain::get_elements()[sub_ind[3]];
 
-  vertex.get_spin_orbitals().first =
-      QMC::convert<int, nu>::spin_orbital(vertex.get_bands().first,
-                                          vertex.get_e_spins().first);  // nu = dmn_2<b,s>
+  vertex.get_spin_orbitals().first = QMC::convert<int, nu>::spin_orbital(
+      vertex.get_bands().first,
+      vertex.get_e_spins().first);  // nu = func::dmn_variadic<b,s>
   vertex.get_spin_orbitals().second =
       QMC::convert<int, nu>::spin_orbital(vertex.get_bands().second, vertex.get_e_spins().second);
 

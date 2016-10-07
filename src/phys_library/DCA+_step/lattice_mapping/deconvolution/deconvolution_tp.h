@@ -15,7 +15,8 @@
 #include <complex>
 #include <utility>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
 #include "phys_library/DCA+_step/lattice_mapping/deconvolution/deconvolution_routines.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
@@ -29,23 +30,24 @@ class deconvolution_tp
   using concurrency_type = typename parameters_type::concurrency_type;
 
   using compact_vertex_frequency_domain_type = DCA::vertex_frequency_domain<DCA::COMPACT>;
-  using w_VERTEX = dmn_0<compact_vertex_frequency_domain_type>;
-  using b = dmn_0<electron_band_domain>;
+  using w_VERTEX = func::dmn_0<compact_vertex_frequency_domain_type>;
+  using b = func::dmn_0<electron_band_domain>;
   using host_vertex_k_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
                                                     LATTICE_TP, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
-  using k_HOST_VERTEX = dmn_0<host_vertex_k_cluster_type>;
+  using k_HOST_VERTEX = func::dmn_0<host_vertex_k_cluster_type>;
 
 public:
   deconvolution_tp(parameters_type& parameters_ref);
 
   template <typename k_dmn_t, typename scalartype>
-  void execute(
-      FUNC_LIB::function<std::complex<scalartype>,
-                         dmn_2<dmn_4<b, b, k_dmn_t, w_VERTEX>, dmn_4<b, b, k_dmn_t, w_VERTEX>>>&
-          Gamma_lattice_interp,
-      FUNC_LIB::function<std::complex<scalartype>, dmn_2<dmn_4<b, b, target_k_dmn_t, w_VERTEX>,
-                                                         dmn_4<b, b, target_k_dmn_t, w_VERTEX>>>&
-          Gamma_lattice_deconv);
+  void execute(func::function<std::complex<scalartype>,
+                              func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t, w_VERTEX>,
+                                                 func::dmn_variadic<b, b, k_dmn_t, w_VERTEX>>>&
+                   Gamma_lattice_interp,
+               func::function<std::complex<scalartype>,
+                              func::dmn_variadic<func::dmn_variadic<b, b, target_k_dmn_t, w_VERTEX>,
+                                                 func::dmn_variadic<b, b, target_k_dmn_t, w_VERTEX>>>&
+                   Gamma_lattice_deconv);
 
 private:
   parameters_type& parameters;
@@ -63,11 +65,12 @@ deconvolution_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::deconvolution
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 template <typename k_dmn_t, typename scalartype>
 void deconvolution_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(
-    FUNC_LIB::function<std::complex<scalartype>,
-                       dmn_2<dmn_4<b, b, k_dmn_t, w_VERTEX>, dmn_4<b, b, k_dmn_t, w_VERTEX>>>&
-        Gamma_lattice_interp,
-    FUNC_LIB::function<std::complex<scalartype>, dmn_2<dmn_4<b, b, target_k_dmn_t, w_VERTEX>,
-                                                       dmn_4<b, b, target_k_dmn_t, w_VERTEX>>>&
+    func::function<std::complex<scalartype>,
+                   func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t, w_VERTEX>,
+                                      func::dmn_variadic<b, b, k_dmn_t, w_VERTEX>>>& Gamma_lattice_interp,
+    func::function<std::complex<scalartype>,
+                   func::dmn_variadic<func::dmn_variadic<b, b, target_k_dmn_t, w_VERTEX>,
+                                      func::dmn_variadic<b, b, target_k_dmn_t, w_VERTEX>>>&
         Gamma_lattice_deconv) {
   int N = k_HOST_VERTEX::dmn_size();
 

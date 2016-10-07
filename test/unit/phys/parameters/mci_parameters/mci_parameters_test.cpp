@@ -13,12 +13,15 @@
 // TODO: Add tests for get_buffer_size, pack, unpack and writing.
 
 #include "dca/phys/parameters/mci_parameters.hpp"
+
 #include <algorithm>  // for std::sort and std::unique
 #include <fstream>
 #include <limits>
 #include <vector>
+
 #include "gtest/gtest.h"
-#include "comp_library/IO_library/JSON/JSON.hpp"
+
+#include "dca/io/json/json_reader.hpp"
 
 TEST(MciParametersTest, DefaultValues) {
   dca::phys::params::MciParameters pars;
@@ -36,7 +39,7 @@ TEST(MciParametersTest, DefaultValues) {
 }
 
 TEST(MciParametersTest, ReadAll) {
-  IO::reader<IO::JSON> reader;
+  dca::io::JSONReader reader;
   dca::phys::params::MciParameters pars;
 
   reader.open_file(DCA_SOURCE_DIR "/test/unit/phys/parameters/mci_parameters/input_read_all.json");
@@ -56,7 +59,7 @@ TEST(MciParametersTest, ReadAll) {
 }
 
 TEST(MciParametersTest, ReadPositiveIntegerSeed) {
-  IO::reader<IO::JSON> reader;
+  dca::io::JSONReader reader;
   dca::phys::params::MciParameters pars;
 
   reader.open_file(DCA_SOURCE_DIR
@@ -68,7 +71,7 @@ TEST(MciParametersTest, ReadPositiveIntegerSeed) {
 }
 
 TEST(MciParametersTest, ReadNegativeIntegerSeed) {
-  IO::reader<IO::JSON> reader;
+  dca::io::JSONReader reader;
   dca::phys::params::MciParameters pars;
 
   reader.open_file(DCA_SOURCE_DIR
@@ -91,7 +94,7 @@ TEST(MciParametersTest, ReadTooLargeSeed) {
         << "}\n";
   input.close();
 
-  IO::reader<IO::JSON> reader;
+  dca::io::JSONReader reader;
   dca::phys::params::MciParameters pars;
 
   reader.open_file("input_too_large_seed.json");
@@ -113,7 +116,7 @@ TEST(MciParametersTest, ReadTooSmallSeed) {
         << "}\n";
   input.close();
 
-  IO::reader<IO::JSON> reader;
+  dca::io::JSONReader reader;
   dca::phys::params::MciParameters pars;
 
   reader.open_file("input_too_small_seed.json");
@@ -125,7 +128,7 @@ TEST(MciParametersTest, ReadTooSmallSeed) {
 
 TEST(MciParametersTest, RandomSeed) {
   // The input file contains the seeding option "random" instead of a number.
-  IO::reader<IO::JSON> reader;
+  dca::io::JSONReader reader;
   dca::phys::params::MciParameters pars;
 
   reader.open_file(DCA_SOURCE_DIR
@@ -154,7 +157,7 @@ TEST(MciParametersTest, RandomSeed) {
 }
 
 TEST(MciParametersTest, InvalidSeedingOption) {
-  IO::reader<IO::JSON> reader;
+  dca::io::JSONReader reader;
   dca::phys::params::MciParameters pars;
 
   reader.open_file(DCA_SOURCE_DIR

@@ -16,7 +16,8 @@
 #include <cstdlib>
 #include <string>
 #include <vector>
-#include "comp_library/function_library/function.h"
+
+#include "dca/function/function.hpp"
 
 namespace dca {
 namespace parallel {
@@ -37,7 +38,7 @@ public:
   }
   // TODO: Const correctness.
   template <typename T, class Domain>
-  std::size_t get_buffer_size(FUNC_LIB::function<T, Domain>& f) const {
+  std::size_t get_buffer_size(func::function<T, Domain>& f) const {
     return f.size() * sizeof(f(0));
   }
 };

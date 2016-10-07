@@ -18,8 +18,9 @@
 #include <iostream>
 #include <utility>
 
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "comp_library/linalg/linalg.hpp"
-#include "comp_library/function_library/include_function_library.h"
 #include "math_library/functional_transforms/basis_transforms/basis_transforms.hpp"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_names.hpp"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_domain.h"
@@ -29,12 +30,12 @@
 namespace DCA {
 
 template <typename scalar_type, typename k_dmn, typename K_dmn, COARSEGRAIN_DOMAIN_NAMES NAME>
-class interpolation_matrices<scalar_type, k_dmn, dmn_0<coarsegraining_domain<K_dmn, NAME>>> {
+class interpolation_matrices<scalar_type, k_dmn, func::dmn_0<coarsegraining_domain<K_dmn, NAME>>> {
 public:
   using r_dmn = typename k_dmn::parameter_type::dual_type;
 
-  using q_dmn = dmn_0<coarsegraining_domain<K_dmn, NAME>>;
-  using r_centered_dmn = dmn_0<centered_cluster_domain<r_dmn>>;
+  using q_dmn = func::dmn_0<coarsegraining_domain<K_dmn, NAME>>;
+  using r_centered_dmn = func::dmn_0<centered_cluster_domain<r_dmn>>;
 
   using trafo_k_to_r_type =
       math_algorithms::functional_transforms::basis_transform<k_dmn, r_centered_dmn>;
@@ -45,18 +46,18 @@ public:
   using matrix_type = dca::linalg::Matrix<scalar_type, dca::linalg::CPU>;
 
 public:
-  static FUNC_LIB::function<matrix_type, K_dmn>& get() {
+  static func::function<matrix_type, K_dmn>& get() {
     assert(is_initialized() == true);
 
-    static FUNC_LIB::function<matrix_type, K_dmn> k_to_q("k_to_q (" +
-                                                         q_dmn::parameter_type::get_name() + ")");
+    static func::function<matrix_type, K_dmn> k_to_q("k_to_q (" +
+                                                     q_dmn::parameter_type::get_name() + ")");
     return k_to_q;
   }
 
   static matrix_type& get(int k_ind) {
     assert(is_initialized() == true);
 
-    static FUNC_LIB::function<matrix_type, K_dmn>& k_to_q = get();
+    static func::function<matrix_type, K_dmn>& k_to_q = get();
     return k_to_q(k_ind);
   }
 
@@ -87,7 +88,7 @@ private:
 
 template <typename scalar_type, typename k_dmn, typename K_dmn, COARSEGRAIN_DOMAIN_NAMES NAME>
 template <typename concurrency_type>
-void interpolation_matrices<scalar_type, k_dmn, dmn_0<coarsegraining_domain<K_dmn, NAME>>>::resize_matrices(
+void interpolation_matrices<scalar_type, k_dmn, func::dmn_0<coarsegraining_domain<K_dmn, NAME>>>::resize_matrices(
     concurrency_type& concurrency) {
   if (concurrency.id() == 0)
     std::cout << "\n\n\t interpolation-matrices " << to_str(NAME) << " initialization started ... ";
@@ -109,7 +110,7 @@ void interpolation_matrices<scalar_type, k_dmn, dmn_0<coarsegraining_domain<K_dm
 
 template <typename scalar_type, typename k_dmn, typename K_dmn, COARSEGRAIN_DOMAIN_NAMES NAME>
 template <typename concurrency_type>
-void interpolation_matrices<scalar_type, k_dmn, dmn_0<coarsegraining_domain<K_dmn, NAME>>>::print_memory_used(
+void interpolation_matrices<scalar_type, k_dmn, func::dmn_0<coarsegraining_domain<K_dmn, NAME>>>::print_memory_used(
     concurrency_type& concurrency) {
   if (concurrency.id() == 0) {
     std::pair<int, int> capacity = get(0).capacity();
@@ -121,7 +122,7 @@ void interpolation_matrices<scalar_type, k_dmn, dmn_0<coarsegraining_domain<K_dm
 
 template <typename scalar_type, typename k_dmn, typename K_dmn, COARSEGRAIN_DOMAIN_NAMES NAME>
 template <typename concurrency_type>
-void interpolation_matrices<scalar_type, k_dmn, dmn_0<coarsegraining_domain<K_dmn, NAME>>>::initialize(
+void interpolation_matrices<scalar_type, k_dmn, func::dmn_0<coarsegraining_domain<K_dmn, NAME>>>::initialize(
     concurrency_type& concurrency) {
   assert(NAME == K or NAME == TETRAHEDRON_K);
 
@@ -172,7 +173,7 @@ void interpolation_matrices<scalar_type, k_dmn, dmn_0<coarsegraining_domain<K_dm
 
 template <typename scalar_type, typename k_dmn, typename K_dmn, COARSEGRAIN_DOMAIN_NAMES NAME>
 template <typename concurrency_type>
-void interpolation_matrices<scalar_type, k_dmn, dmn_0<coarsegraining_domain<K_dmn, NAME>>>::initialize(
+void interpolation_matrices<scalar_type, k_dmn, func::dmn_0<coarsegraining_domain<K_dmn, NAME>>>::initialize(
     concurrency_type& concurrency, int Q_ind) {
   assert(NAME == K_PLUS_Q or NAME == Q_MINUS_K);
 
@@ -223,14 +224,14 @@ void interpolation_matrices<scalar_type, k_dmn, dmn_0<coarsegraining_domain<K_dm
 
 template <typename scalar_type, typename k_dmn, typename K_dmn, COARSEGRAIN_DOMAIN_NAMES NAME>
 template <typename scalar_type_1, typename scalar_type_2>
-void interpolation_matrices<scalar_type, k_dmn, dmn_0<coarsegraining_domain<K_dmn, NAME>>>::cast(
+void interpolation_matrices<scalar_type, k_dmn, func::dmn_0<coarsegraining_domain<K_dmn, NAME>>>::cast(
     scalar_type_1& x, scalar_type_2& y) {
   x = y;
 }
 
 template <typename scalar_type, typename k_dmn, typename K_dmn, COARSEGRAIN_DOMAIN_NAMES NAME>
 template <typename scalar_type_1, typename scalar_type_2>
-void interpolation_matrices<scalar_type, k_dmn, dmn_0<coarsegraining_domain<K_dmn, NAME>>>::cast(
+void interpolation_matrices<scalar_type, k_dmn, func::dmn_0<coarsegraining_domain<K_dmn, NAME>>>::cast(
     scalar_type_1& x, std::complex<scalar_type_2>& y) {
   assert(std::abs(imag(y)) < 1.e-6);
   x = real(y);

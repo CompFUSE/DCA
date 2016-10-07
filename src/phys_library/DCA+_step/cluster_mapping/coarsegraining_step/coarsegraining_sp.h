@@ -17,9 +17,10 @@
 #include <sstream>
 #include <vector>
 
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "dca/math/geometry/gaussian_quadrature/gaussian_quadrature_domain.hpp"
 #include "dca/util/print_time.hpp"
-#include "comp_library/function_library/include_function_library.h"
 #include "math_library/geometry_library/tetrahedron_mesh/tetrahedron_mesh.h"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_interpolation_matrices.h"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_routines.h"
@@ -42,7 +43,7 @@ public:
   using k_cluster_type = typename K_dmn::parameter_type;
   using host_k_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
                                              LATTICE_SP, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
-  using k_HOST = dmn_0<host_k_cluster_type>;
+  using k_HOST = func::dmn_0<host_k_cluster_type>;
 
 #ifdef DCA_WITH_SINGLE_PRECISION_COARSEGRAINING
   using scalar_type = float;
@@ -51,23 +52,23 @@ public:
 #endif  // DCA_WITH_SINGLE_PRECISION_COARSEGRAINING
   using complex_type = std::complex<scalar_type>;
 
-  using tetrahedron_dmn = dmn_0<math_algorithms::tetrahedron_mesh<K_dmn>>;
+  using tetrahedron_dmn = func::dmn_0<math_algorithms::tetrahedron_mesh<K_dmn>>;
   using quadrature_dmn = dca::math::gaussquad::gaussian_quadrature_domain<tetrahedron_dmn>;
 
-  using q_dmn = dmn_0<coarsegraining_domain<K_dmn, K>>;
-  using q_0_dmn = dmn_0<coarsegraining_domain<K_dmn, ORIGIN>>;
-  using tet_dmn = dmn_0<coarsegraining_domain<K_dmn, TETRAHEDRON_K>>;
-  using tet_0_dmn = dmn_0<coarsegraining_domain<K_dmn, TETRAHEDRON_ORIGIN>>;
+  using q_dmn = func::dmn_0<coarsegraining_domain<K_dmn, K>>;
+  using q_0_dmn = func::dmn_0<coarsegraining_domain<K_dmn, ORIGIN>>;
+  using tet_dmn = func::dmn_0<coarsegraining_domain<K_dmn, TETRAHEDRON_K>>;
+  using tet_0_dmn = func::dmn_0<coarsegraining_domain<K_dmn, TETRAHEDRON_ORIGIN>>;
 
-  using t = dmn_0<time_domain>;
-  using w = dmn_0<frequency_domain>;
+  using t = func::dmn_0<time_domain>;
+  using w = func::dmn_0<frequency_domain>;
 
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
-  using nu_nu_q = dmn_variadic<nu, nu, q_dmn>;
-  using nu_nu_tet = dmn_variadic<nu, nu, tet_dmn>;
+  using nu_nu_q = func::dmn_variadic<nu, nu, q_dmn>;
+  using nu_nu_tet = func::dmn_variadic<nu, nu, tet_dmn>;
 
   const static int DIMENSION = K_dmn::parameter_type::DIMENSION;
 
@@ -79,10 +80,10 @@ public:
   void reset_fine_q_mesh(int recursion, int rule, int period);
 
   template <typename other_scalar_type, typename r_dmn>
-  void compute_phi_r(FUNC_LIB::function<other_scalar_type, r_dmn>& phi_r);
+  void compute_phi_r(func::function<other_scalar_type, r_dmn>& phi_r);
 
   template <typename other_scalar_type, typename r_dmn>
-  void print_phi_r_to_shell(FUNC_LIB::function<other_scalar_type, r_dmn>& phi_r);
+  void print_phi_r_to_shell(func::function<other_scalar_type, r_dmn>& phi_r);
 
   /*****************************************
    ***                                   ***
@@ -92,20 +93,20 @@ public:
 
   template <typename other_scalar_type>
   void compute_S_K_w(
-      FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w>>& S_k_w,
-      FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w>>& S_K_w);
+      func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, K_dmn, w>>& S_k_w,
+      func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, K_dmn, w>>& S_K_w);
 
   template <typename other_scalar_type, typename k_dmn>
   void compute_G_K_w(
-      FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn>>& H_0,
-      FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w>>& S_K_w,
-      FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w>>& G_K_w);
+      func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, k_dmn>>& H_0,
+      func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, K_dmn, w>>& S_K_w,
+      func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, K_dmn, w>>& G_K_w);
 
   template <typename other_scalar_type, typename k_dmn, typename w_dmn>
   void compute_G_K_w_with_TIM(
-      FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn>>& H_0,
-      FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn>>& S_K_w,
-      FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn>>& G_K_w);
+      func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, k_dmn>>& H_0,
+      func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, K_dmn, w_dmn>>& S_K_w,
+      func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, K_dmn, w_dmn>>& G_K_w);
 
   /*****************************************
    ***                                   ***
@@ -115,30 +116,31 @@ public:
 
   template <typename other_scalar_type, typename k_dmn>
   void compute_S_K_w(
-      FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w>>& S_k_w,
-      FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w>>& S_K_w);
+      func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, k_dmn, w>>& S_k_w,
+      func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, K_dmn, w>>& S_K_w);
 
   template <typename other_scalar_type, typename k_dmn>
   void compute_G_K_w(
-      FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn>>& H_0,
-      FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w>>& S_k_w,
-      FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w>>& G_K_w);
+      func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, k_dmn>>& H_0,
+      func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, k_dmn, w>>& S_k_w,
+      func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, K_dmn, w>>& G_K_w);
 
   template <typename other_scalar_type, typename k_dmn, typename w_dmn>
   void compute_G_K_w_with_TIM(
-      FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn>>& H_0,
-      FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w_dmn>>& S_K_w,
-      FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn>>& G_K_w);
+      func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, k_dmn>>& H_0,
+      func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, k_dmn, w_dmn>>& S_K_w,
+      func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, K_dmn, w_dmn>>& G_K_w);
 
   template <typename other_scalar_type, typename k_dmn>
-  void compute_G0_K_t(FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn>>& H_0,
-                      FUNC_LIB::function<other_scalar_type, dmn_4<nu, nu, K_dmn, t>>& G0_k_w);
+  void compute_G0_K_t(
+      func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, k_dmn>>& H_0,
+      func::function<other_scalar_type, func::dmn_variadic<nu, nu, K_dmn, t>>& G0_k_w);
 
 private:
   void update_shell(int i, int N);
 
   template <typename other_scalar_type, typename r_dmn>
-  void plot_phi_r(FUNC_LIB::function<other_scalar_type, r_dmn>& phi_r);
+  void plot_phi_r(func::function<other_scalar_type, r_dmn>& phi_r);
 
 private:
   parameters_type& parameters;
@@ -147,22 +149,22 @@ private:
   bool initialized;
 
   // tetrahedron q-points
-  FUNC_LIB::function<scalar_type, tet_dmn> w_tet;
+  func::function<scalar_type, tet_dmn> w_tet;
 
-  FUNC_LIB::function<std::complex<scalar_type>, nu_nu_tet> I_tet;
-  FUNC_LIB::function<std::complex<scalar_type>, nu_nu_tet> H_tet;
-  FUNC_LIB::function<std::complex<scalar_type>, nu_nu_tet> S_tet;
-  FUNC_LIB::function<std::complex<scalar_type>, nu_nu_tet> A_tet;
-  FUNC_LIB::function<std::complex<scalar_type>, nu_nu_tet> G_tet;
+  func::function<std::complex<scalar_type>, nu_nu_tet> I_tet;
+  func::function<std::complex<scalar_type>, nu_nu_tet> H_tet;
+  func::function<std::complex<scalar_type>, nu_nu_tet> S_tet;
+  func::function<std::complex<scalar_type>, nu_nu_tet> A_tet;
+  func::function<std::complex<scalar_type>, nu_nu_tet> G_tet;
 
   // gaussian q-points
-  FUNC_LIB::function<scalar_type, q_dmn> w_q;
+  func::function<scalar_type, q_dmn> w_q;
 
-  FUNC_LIB::function<std::complex<scalar_type>, nu_nu_q> I_q;
-  FUNC_LIB::function<std::complex<scalar_type>, nu_nu_q> H_q;
-  FUNC_LIB::function<std::complex<scalar_type>, nu_nu_q> S_q;
-  FUNC_LIB::function<std::complex<scalar_type>, nu_nu_q> A_q;
-  FUNC_LIB::function<std::complex<scalar_type>, nu_nu_q> G_q;
+  func::function<std::complex<scalar_type>, nu_nu_q> I_q;
+  func::function<std::complex<scalar_type>, nu_nu_q> H_q;
+  func::function<std::complex<scalar_type>, nu_nu_q> S_q;
+  func::function<std::complex<scalar_type>, nu_nu_q> A_q;
+  func::function<std::complex<scalar_type>, nu_nu_q> G_q;
 };
 
 template <typename parameters_type, typename K_dmn>
@@ -254,7 +256,7 @@ void coarsegraining_sp<parameters_type, K_dmn>::initialize() {
 template <typename parameters_type, typename K_dmn>
 template <typename other_scalar_type, typename r_dmn>
 void coarsegraining_sp<parameters_type, K_dmn>::plot_phi_r(
-    FUNC_LIB::function<other_scalar_type, r_dmn>& phi_r) {
+    func::function<other_scalar_type, r_dmn>& phi_r) {
   std::vector<double> x;
   std::vector<double> y;
 
@@ -274,7 +276,7 @@ void coarsegraining_sp<parameters_type, K_dmn>::plot_phi_r(
 template <typename parameters_type, typename K_dmn>
 template <typename other_scalar_type, typename r_dmn>
 void coarsegraining_sp<parameters_type, K_dmn>::compute_phi_r(
-    FUNC_LIB::function<other_scalar_type, r_dmn>& phi_r) {
+    func::function<other_scalar_type, r_dmn>& phi_r) {
   math_algorithms::tetrahedron_mesh<k_cluster_type> mesh(parameters.get_k_mesh_refinement());
 
   quadrature_dmn::translate_according_to_period(parameters.get_number_of_periods(), mesh);
@@ -316,7 +318,7 @@ void coarsegraining_sp<parameters_type, K_dmn>::compute_phi_r(
 template <typename parameters_type, typename K_dmn>
 template <typename other_scalar_type, typename r_dmn>
 void coarsegraining_sp<parameters_type, K_dmn>::print_phi_r_to_shell(
-    FUNC_LIB::function<other_scalar_type, r_dmn>& phi_r) {
+    func::function<other_scalar_type, r_dmn>& phi_r) {
   std::cout << "\n" << __FUNCTION__ << std::endl;
 
   math_algorithms::tetrahedron_mesh<k_cluster_type> mesh(parameters.get_k_mesh_refinement());
@@ -368,8 +370,8 @@ void coarsegraining_sp<parameters_type, K_dmn>::print_phi_r_to_shell(
 template <typename parameters_type, typename K_dmn>
 template <typename other_scalar_type>
 void coarsegraining_sp<parameters_type, K_dmn>::compute_S_K_w(
-    FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w>>& S_k_w,
-    FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w>>& S_K_w) {
+    func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, K_dmn, w>>& S_k_w,
+    func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, K_dmn, w>>& S_K_w) {
   for (int l = 0; l < S_k_w.size(); l++)
     S_K_w(l) = S_k_w(l);
 }
@@ -377,13 +379,13 @@ void coarsegraining_sp<parameters_type, K_dmn>::compute_S_K_w(
 template <typename parameters_type, typename K_dmn>
 template <typename other_scalar_type, typename k_dmn>
 void coarsegraining_sp<parameters_type, K_dmn>::compute_G_K_w(
-    FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn>>& H_0,
-    FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w>>& S_K_w,
-    FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w>>& G_K_w) {
+    func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, k_dmn>>& H_0,
+    func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, K_dmn, w>>& S_K_w,
+    func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, K_dmn, w>>& G_K_w) {
   // cout << "\n\n\n\t" << __FUNCTION__ << "\n\n\n";
 
-  FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn>> H_k("H_k");
-  FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, K_dmn, w>> S_K("S_K");
+  func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn>> H_k("H_k");
+  func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, K_dmn, w>> S_K("S_K");
 
   for (int l = 0; l < S_K_w.size(); l++)
     S_K(l) = S_K_w(l);
@@ -395,7 +397,7 @@ void coarsegraining_sp<parameters_type, K_dmn>::compute_G_K_w(
 
   G_K_w = 0.;
 
-  dmn_2<K_dmn, w> K_wm_dmn;
+  func::dmn_variadic<K_dmn, w> K_wm_dmn;
   std::pair<int, int> bounds = concurrency.get_bounds(K_wm_dmn);
 
   int coor[2];
@@ -424,11 +426,11 @@ void coarsegraining_sp<parameters_type, K_dmn>::compute_G_K_w(
 template <typename parameters_type, typename K_dmn>
 template <typename other_scalar_type, typename k_dmn, typename w_dmn>
 void coarsegraining_sp<parameters_type, K_dmn>::compute_G_K_w_with_TIM(
-    FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn>>& H_0,
-    FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn>>& S_K_w,
-    FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn>>& G_K_w) {
-  FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn>> H_k("H_k");
-  FUNC_LIB::function<std::complex<scalar_type>, dmn_4<nu, nu, K_dmn, w_dmn>> S_K("S_K");
+    func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, k_dmn>>& H_0,
+    func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, K_dmn, w_dmn>>& S_K_w,
+    func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, K_dmn, w_dmn>>& G_K_w) {
+  func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn>> H_k("H_k");
+  func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, K_dmn, w_dmn>> S_K("S_K");
 
   for (int l = 0; l < S_K_w.size(); l++)
     S_K(l) = S_K_w(l);
@@ -440,7 +442,7 @@ void coarsegraining_sp<parameters_type, K_dmn>::compute_G_K_w_with_TIM(
 
   G_K_w = 0.;
 
-  dmn_2<K_dmn, w_dmn> K_wm_dmn;
+  func::dmn_variadic<K_dmn, w_dmn> K_wm_dmn;
   std::pair<int, int> bounds = concurrency.get_bounds(K_wm_dmn);
 
   int coor[2];
@@ -450,7 +452,7 @@ void coarsegraining_sp<parameters_type, K_dmn>::compute_G_K_w_with_TIM(
     this->compute_G_q_w(coor[0], coor[1], H_k, S_K, I_tet, H_tet, S_tet, G_tet);
 
     {
-      FUNC_LIB::function<std::complex<scalar_type>, dmn_2<nu, nu>> G_int;
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu>> G_int;
 
       this->tetrahedron_integration_mt(w_tet, G_tet, G_int);
 
@@ -480,16 +482,17 @@ void coarsegraining_sp<parameters_type, K_dmn>::compute_G_K_w_with_TIM(
 template <typename parameters_type, typename K_dmn>
 template <typename other_scalar_type, typename k_dmn>
 void coarsegraining_sp<parameters_type, K_dmn>::compute_S_K_w(
-    FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w>>& S_k_w,
-    FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w>>& S_K_w) {
+    func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, k_dmn, w>>& S_k_w,
+    func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, K_dmn, w>>& S_K_w) {
   S_K_w = 0.;
 
-  FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn>> A_k("A_k");
-  FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w>> A_k_w("A_k_w");
+  func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn>> A_k("A_k");
+  func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, k_dmn, w>> A_k_w(
+      "A_k_w");
 
   transform_to_alpha::forward(1., S_k_w, A_k_w);
 
-  dmn_2<K_dmn, w> K_wm_dmn;
+  func::dmn_variadic<K_dmn, w> K_wm_dmn;
   std::pair<int, int> bounds = concurrency.get_bounds(K_wm_dmn);
 
   int coor[2];
@@ -523,15 +526,16 @@ void coarsegraining_sp<parameters_type, K_dmn>::compute_S_K_w(
 template <typename parameters_type, typename K_dmn>
 template <typename other_scalar_type, typename k_dmn>
 void coarsegraining_sp<parameters_type, K_dmn>::compute_G_K_w(
-    FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn>>& H_0,
-    FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w>>& S_k_w,
-    FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, K_dmn, w>>& G_K_w) {
+    func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, k_dmn>>& H_0,
+    func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, k_dmn, w>>& S_k_w,
+    func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, K_dmn, w>>& G_K_w) {
   G_K_w = 0.;
 
-  FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn>> H_k("H_k");
-  FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn>> A_k("A_k");
+  func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn>> H_k("H_k");
+  func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn>> A_k("A_k");
 
-  FUNC_LIB::function<std::complex<other_scalar_type>, dmn_4<nu, nu, k_dmn, w>> A_k_w("A_k_w");
+  func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, k_dmn, w>> A_k_w(
+      "A_k_w");
 
   transform_to_alpha::forward(1., S_k_w, A_k_w);
 
@@ -540,7 +544,7 @@ void coarsegraining_sp<parameters_type, K_dmn>::compute_G_K_w(
       for (int i = 0; i < nu::dmn_size(); i++)
         H_k(i, j, k_ind) = H_0(i, j, k_ind);
 
-  dmn_2<K_dmn, w> K_wm_dmn;
+  func::dmn_variadic<K_dmn, w> K_wm_dmn;
   std::pair<int, int> bounds = concurrency.get_bounds(K_wm_dmn);
 
   int coor[2];
@@ -574,9 +578,9 @@ void coarsegraining_sp<parameters_type, K_dmn>::compute_G_K_w(
 template <typename parameters_type, typename K_dmn>
 template <typename other_scalar_type, typename k_dmn>
 void coarsegraining_sp<parameters_type, K_dmn>::compute_G0_K_t(
-    FUNC_LIB::function<std::complex<other_scalar_type>, dmn_3<nu, nu, k_dmn>>& H_0,
-    FUNC_LIB::function<other_scalar_type, dmn_4<nu, nu, K_dmn, t>>& G_K_t) {
-  FUNC_LIB::function<std::complex<scalar_type>, dmn_3<nu, nu, k_dmn>> H_k("H_k");
+    func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, k_dmn>>& H_0,
+    func::function<other_scalar_type, func::dmn_variadic<nu, nu, K_dmn, t>>& G_K_t) {
+  func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn>> H_k("H_k");
 
   for (int k_ind = 0; k_ind < k_dmn::dmn_size(); k_ind++)
     for (int j = 0; j < nu::dmn_size(); j++)
@@ -585,7 +589,7 @@ void coarsegraining_sp<parameters_type, K_dmn>::compute_G0_K_t(
 
   G_K_t = 0.;
 
-  dmn_2<K_dmn, t> K_t_dmn;
+  func::dmn_variadic<K_dmn, t> K_t_dmn;
   std::pair<int, int> bounds = concurrency.get_bounds(K_t_dmn);
 
   int coor[2];

@@ -17,19 +17,20 @@
 
 #include "gtest/gtest.h"
 
-#include "dca/parallel/pthreading/pthreading.hpp"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
+#include "dca/io/hdf5/hdf5_reader.hpp"
+#include "dca/io/json/json_reader.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
+#include "dca/parallel/pthreading/pthreading.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
 #include "dca/phys/parameters/parameters.hpp"
+#include "dca/profiling/null_profiler.hpp"
 #include "dca/testing/dca_mpi_test_environment.hpp"
 #include "dca/testing/minimalist_printer.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
-#include "comp_library/function_library/include_function_library.h"
-#include "comp_library/IO_library/HDF5/HDF5.hpp"
-#include "comp_library/IO_library/JSON/JSON.hpp"
-#include "comp_library/profiler_library/profilers/null_profiler.hpp"
 #include "phys_library/DCA+_data/DCA_data.h"
 #include "phys_library/DCA+_loop/DCA_loop.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_cluster_solver.h"
@@ -51,18 +52,19 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
   using Threading = dca::parallel::Pthreading;
   using ParametersType =
       dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
-                                    PROFILER::NullProfiler, ModelType, RngType, CT_AUX_CLUSTER_SOLVER>;
+                                    dca::profiling::NullProfiler, ModelType, RngType,
+                                    CT_AUX_CLUSTER_SOLVER>;
   using DcaDataType = DCA_data<ParametersType>;
   using ClusterSolverType =
       cluster_solver<CT_AUX_CLUSTER_SOLVER, LIN_ALG::CPU, ParametersType, DcaDataType>;
   using DcaLoopType = DCA_loop<ParametersType, DcaDataType, ClusterSolverType>;
 
-  using w = dmn_0<frequency_domain>;
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
-  using k_DCA =
-      dmn_0<cluster_domain<double, LatticeType::DIMENSION, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using w = dca::func::dmn_0<frequency_domain>;
+  using b = dca::func::dmn_0<electron_band_domain>;
+  using s = dca::func::dmn_0<electron_spin_domain>;
+  using nu = dca::func::dmn_variadic<b, s>;  // orbital-spin index
+  using k_DCA = dca::func::dmn_0<
+      cluster_domain<double, LatticeType::DIMENSION, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
 
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
     std::cout << "\nDCA main starting.\n"
@@ -75,7 +77,7 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
   }
 
   ParametersType parameters(dca::util::GitVersion::string(), dca_test_env->concurrency);
-  parameters.read_input_and_broadcast<IO::reader<IO::JSON>>(dca_test_env->input_file_name);
+  parameters.read_input_and_broadcast<dca::io::JSONReader>(dca_test_env->input_file_name);
   parameters.update_model();
   parameters.update_domains();
 
@@ -92,8 +94,9 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
               << std::endl;
 
     // Read self-energy from check_data file.
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> Sigma_check("Self_Energy");
-    IO::reader<IO::HDF5> reader;
+    dca::func::function<std::complex<double>, dca::func::dmn_variadic<nu, nu, k_DCA, w>> Sigma_check(
+        "Self_Energy");
+    dca::io::HDF5Reader reader;
     reader.open_file(DCA_SOURCE_DIR "/applications/dca/test/check_data.dca_sp_DCA+_mpi_test.hdf5");
     reader.open_group("functions");
     reader.execute(Sigma_check);

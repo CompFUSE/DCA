@@ -13,7 +13,7 @@
 
 #include "dca/phys/parameters/cpe_parameters.hpp"
 #include "gtest/gtest.h"
-#include "comp_library/IO_library/JSON/JSON.hpp"
+#include "dca/io/json/json_reader.hpp"
 
 TEST(CpeParametersTest, DefaultValues) {
   dca::phys::params::CpeParameters pars;
@@ -32,7 +32,7 @@ TEST(CpeParametersTest, DefaultValues) {
 }
 
 TEST(CpeParametersTest, ReadAll) {
-  IO::reader<IO::JSON> reader;
+  dca::io::JSONReader reader;
   dca::phys::params::CpeParameters pars;
 
   reader.open_file(DCA_SOURCE_DIR "/test/unit/phys/parameters/cpe_parameters/input_read_all.json");

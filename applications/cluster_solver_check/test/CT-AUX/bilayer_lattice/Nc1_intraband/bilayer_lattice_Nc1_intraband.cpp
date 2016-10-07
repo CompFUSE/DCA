@@ -18,19 +18,21 @@
 
 #include "gtest/gtest.h"
 
-#include "dca/parallel/pthreading/pthreading.hpp"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
+#include "dca/io/hdf5/hdf5_reader.hpp"
+#include "dca/io/hdf5/hdf5_writer.hpp"
+#include "dca/io/json/json_reader.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
+#include "dca/parallel/pthreading/pthreading.hpp"
 #include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
 #include "dca/phys/parameters/parameters.hpp"
+#include "dca/profiling/null_profiler.hpp"
 #include "dca/testing/dca_mpi_test_environment.hpp"
 #include "dca/testing/minimalist_printer.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
-#include "comp_library/function_library/include_function_library.h"
-#include "comp_library/IO_library/HDF5/HDF5.hpp"
-#include "comp_library/IO_library/JSON/JSON.hpp"
-#include "comp_library/profiler_library/profilers/null_profiler.hpp"
 #include "phys_library/DCA+_data/DCA_data.h"
 #include "phys_library/DCA+_loop/DCA_loop_data.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_cluster_solver.h"
@@ -52,17 +54,18 @@ TEST(bilayerLattice_Nc1_intraband, Self_Energy) {
   using Threading = dca::parallel::Pthreading;
   using ParametersType =
       dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
-                                    PROFILER::NullProfiler, ModelType, RngType, CT_AUX_CLUSTER_SOLVER>;
+                                    dca::profiling::NullProfiler, ModelType, RngType,
+                                    CT_AUX_CLUSTER_SOLVER>;
   using DcaDataType = DCA_data<ParametersType>;
   using QmcSolverType =
       cluster_solver<CT_AUX_CLUSTER_SOLVER, LIN_ALG::CPU, ParametersType, DcaDataType>;
 
-  using w = dmn_0<frequency_domain>;
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
-  using k_DCA =
-      dmn_0<cluster_domain<double, LatticeType::DIMENSION, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using w = dca::func::dmn_0<frequency_domain>;
+  using b = dca::func::dmn_0<electron_band_domain>;
+  using s = dca::func::dmn_0<electron_spin_domain>;
+  using nu = dca::func::dmn_variadic<b, s>;  // orbital-spin index
+  using k_DCA = dca::func::dmn_0<
+      cluster_domain<double, LatticeType::DIMENSION, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
 
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
     dca::util::GitVersion::print();
@@ -70,7 +73,7 @@ TEST(bilayerLattice_Nc1_intraband, Self_Energy) {
   }
 
   ParametersType parameters(dca::util::GitVersion::string(), dca_test_env->concurrency);
-  parameters.read_input_and_broadcast<IO::reader<IO::JSON>>(dca_test_env->input_file_name);
+  parameters.read_input_and_broadcast<dca::io::JSONReader>(dca_test_env->input_file_name);
   parameters.update_model();
   parameters.update_domains();
 
@@ -79,9 +82,9 @@ TEST(bilayerLattice_Nc1_intraband, Self_Energy) {
   DcaDataType dca_data_imag(parameters);
   dca_data_imag.initialize();
 
-  // Read and broadcast<IO::JSON> ED data
+  // Read and broadcast ED data.
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
-    IO::reader<IO::HDF5> reader;
+    dca::io::HDF5Reader reader;
     reader.open_file(DCA_SOURCE_DIR
                      "/applications/cluster_solver_check/test/CT-AUX/bilayer_lattice/Nc1_interband/"
                      "data.ED.hdf5");
@@ -96,7 +99,7 @@ TEST(bilayerLattice_Nc1_intraband, Self_Energy) {
   dca_test_env->concurrency.broadcast(dca_data_imag.G0_k_w_cluster_excluded);
   dca_test_env->concurrency.broadcast(dca_data_imag.G0_r_t_cluster_excluded);
 
-  // FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w> >
+  // dca::func::function<std::complex<double>, dca::func::dmn_variadic<nu, nu, k_DCA, w> >
   //   Sigma_ED(dca_data_imag.Sigma);
 
   // Do one QMC iteration
@@ -105,14 +108,15 @@ TEST(bilayerLattice_Nc1_intraband, Self_Energy) {
   qmc_solver.integrate();
   qmc_solver.finalize(dca_loop_data);
 
-  FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> Sigma_QMC(dca_data_imag.Sigma);
+  dca::func::function<std::complex<double>, dca::func::dmn_variadic<nu, nu, k_DCA, w>> Sigma_QMC(
+      dca_data_imag.Sigma);
 
   // Read QMC self-energy from check_data file and compare it with the newly
   // computed QMC self-energy.
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
-    FUNC_LIB::function<std::complex<double>, dmn_4<nu, nu, k_DCA, w>> Sigma_QMC_check(
+    dca::func::function<std::complex<double>, dca::func::dmn_variadic<nu, nu, k_DCA, w>> Sigma_QMC_check(
         "Self_Energy");
-    IO::reader<IO::HDF5> reader;
+    dca::io::HDF5Reader reader;
     reader.open_file(DCA_SOURCE_DIR
                      "/applications/cluster_solver_check/test/CT-AUX/bilayer_lattice/Nc1_interband/"
                      "check_data.QMC.hdf5");
@@ -137,10 +141,10 @@ TEST(bilayerLattice_Nc1_intraband, Self_Energy) {
   // Write results
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.last()) {
     std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is writing data " << std::endl;
-    IO::writer<IO::HDF5> writer;
+    dca::io::HDF5Writer writer;
     writer.open_file("output.hdf5");
     writer.open_group("functions");
-    Sigma_QMC.get_name() = "Self_Energy";
+    Sigma_QMC.set_name("Self_Energy");
     writer.execute(Sigma_QMC);
     writer.close_group();
     writer.close_file();

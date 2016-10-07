@@ -13,7 +13,7 @@
 #define DCA_PHYS_MODELS_MATERIAL_HAMILTONIANS_MATERIAL_LATTICE_HPP
 
 #include <array>
-#include "comp_library/IO_library/CSV/CSV.hpp"
+#include "dca/io/csv/csv_reader.hpp"
 
 namespace dca {
 namespace phys {

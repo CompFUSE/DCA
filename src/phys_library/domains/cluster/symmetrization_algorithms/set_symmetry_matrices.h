@@ -15,7 +15,8 @@
 #include <stdexcept>
 #include <vector>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "math_library/geometry_library/vector_operations/vector_operations.hpp"
 #include "phys_library/domains/cluster/cluster_domain_symmetry.h"
 #include "phys_library/domains/cluster/cluster_operations.hpp"
@@ -32,16 +33,16 @@ class set_symmetry_matrices {
   typedef typename base_cluster_type::r_cluster_type r_cluster_type;
   typedef typename base_cluster_type::k_cluster_type k_cluster_type;
 
-  typedef dmn_0<r_cluster_type> r_dmn_t;
-  typedef dmn_0<k_cluster_type> k_dmn_t;
+  typedef func::dmn_0<r_cluster_type> r_dmn_t;
+  typedef func::dmn_0<k_cluster_type> k_dmn_t;
 
-  typedef dmn_0<electron_band_domain> b_dmn_t;
+  typedef func::dmn_0<electron_band_domain> b_dmn_t;
 
   typedef point_group_symmetry_domain<UNIT_CELL, base_cluster_type> sym_unit_cell_t;
   typedef point_group_symmetry_domain<SUPER_CELL, base_cluster_type> sym_super_cell_t;
 
-  typedef dmn_0<sym_unit_cell_t> sym_unit_cell_dmn_t;
-  typedef dmn_0<sym_super_cell_t> sym_super_cell_dmn_t;
+  typedef func::dmn_0<sym_unit_cell_t> sym_unit_cell_dmn_t;
+  typedef func::dmn_0<sym_super_cell_t> sym_super_cell_dmn_t;
 
 public:
   static void execute();
@@ -64,9 +65,11 @@ void set_symmetry_matrices<base_cluster_type>::execute() {
 
 template <class base_cluster_type>
 void set_symmetry_matrices<base_cluster_type>::set_r_symmetry_matrix() {
-  // FUNC_LIB::function<std::pair<int,int>, dmn_2< dmn_2<r_dmn_t,b_dmn_t>, sym_super_cell_dmn_t > >&
+  // func::function<std::pair<int,int>, func::dmn_variadic< func::dmn_variadic<r_dmn_t,b_dmn_t>,
+  // sym_super_cell_dmn_t > >&
   // symmetry_matrix = r_cluster_type::get_symmetry_matrix();
-  FUNC_LIB::function<std::pair<int, int>, dmn_2<dmn_2<r_dmn_t, b_dmn_t>, sym_super_cell_dmn_t>>&
+  func::function<std::pair<int, int>,
+                 func::dmn_variadic<func::dmn_variadic<r_dmn_t, b_dmn_t>, sym_super_cell_dmn_t>>&
       symmetry_matrix = cluster_symmetry<r_cluster_type>::get_symmetry_matrix();
 
   for (int i = 0; i < r_dmn_t::dmn_size(); ++i) {
@@ -137,11 +140,11 @@ void set_symmetry_matrices<base_cluster_type>::set_r_symmetry_matrix() {
 
 template <class base_cluster_type>
 void set_symmetry_matrices<base_cluster_type>::set_k_symmetry_matrix() {
-  FUNC_LIB::function<std::pair<int, int>,
-                     dmn_2<dmn_2<r_dmn_t, b_dmn_t>, sym_super_cell_dmn_t>>& r_symmetry_matrix =
+  func::function<std::pair<int, int>, func::dmn_variadic<func::dmn_variadic<r_dmn_t, b_dmn_t>,
+                                                         sym_super_cell_dmn_t>>& r_symmetry_matrix =
       cluster_symmetry<r_cluster_type>::get_symmetry_matrix();  // r_cluster_type::get_symmetry_matrix();
-  FUNC_LIB::function<std::pair<int, int>,
-                     dmn_2<dmn_2<k_dmn_t, b_dmn_t>, sym_super_cell_dmn_t>>& k_symmetry_matrix =
+  func::function<std::pair<int, int>, func::dmn_variadic<func::dmn_variadic<k_dmn_t, b_dmn_t>,
+                                                         sym_super_cell_dmn_t>>& k_symmetry_matrix =
       cluster_symmetry<k_cluster_type>::get_symmetry_matrix();  // k_cluster_type::get_symmetry_matrix();
 
   //   r_symmetry_matrix.print_fingerprint();
@@ -195,7 +198,8 @@ int set_symmetry_matrices<base_cluster_type>::find_k_index(std::vector<double> k
 template <class base_cluster_type>
 void set_symmetry_matrices<base_cluster_type>::print_on_shell() {
   if (true) {
-    FUNC_LIB::function<std::pair<int, int>, dmn_2<dmn_2<k_dmn_t, b_dmn_t>, sym_super_cell_dmn_t>>&
+    func::function<std::pair<int, int>,
+                   func::dmn_variadic<func::dmn_variadic<k_dmn_t, b_dmn_t>, sym_super_cell_dmn_t>>&
         symmetry_matrix = k_cluster_type::get_symmetry_matrix();
 
     for (int i = 0; i < k_dmn_t::dmn_size(); ++i) {
@@ -213,7 +217,8 @@ void set_symmetry_matrices<base_cluster_type>::print_on_shell() {
   }
 
   if (true) {
-    FUNC_LIB::function<std::pair<int, int>, dmn_2<dmn_2<r_dmn_t, b_dmn_t>, sym_super_cell_dmn_t>>&
+    func::function<std::pair<int, int>,
+                   func::dmn_variadic<func::dmn_variadic<r_dmn_t, b_dmn_t>, sym_super_cell_dmn_t>>&
         symmetry_matrix = r_cluster_type::get_symmetry_matrix();
 
     for (int i = 0; i < r_dmn_t::dmn_size(); ++i) {
@@ -231,9 +236,11 @@ void set_symmetry_matrices<base_cluster_type>::print_on_shell() {
   }
 
   if (true) {
-    FUNC_LIB::function<std::pair<int, int>, dmn_2<dmn_2<k_dmn_t, b_dmn_t>, sym_super_cell_dmn_t>>&
+    func::function<std::pair<int, int>,
+                   func::dmn_variadic<func::dmn_variadic<k_dmn_t, b_dmn_t>, sym_super_cell_dmn_t>>&
         k_symmetry_matrix = k_cluster_type::get_symmetry_matrix();
-    FUNC_LIB::function<std::pair<int, int>, dmn_2<dmn_2<r_dmn_t, b_dmn_t>, sym_super_cell_dmn_t>>&
+    func::function<std::pair<int, int>,
+                   func::dmn_variadic<func::dmn_variadic<r_dmn_t, b_dmn_t>, sym_super_cell_dmn_t>>&
         r_symmetry_matrix = r_cluster_type::get_symmetry_matrix();
 
     for (int i = 0; i < r_dmn_t::dmn_size(); ++i) {

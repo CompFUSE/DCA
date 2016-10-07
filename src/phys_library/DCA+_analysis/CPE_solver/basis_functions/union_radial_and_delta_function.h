@@ -17,7 +17,8 @@
 #include <complex>
 #include <vector>
 
-#include "comp_library/function_library/domains/special_domains/dmn_0.h"
+#include "dca/function/domains/dmn_0.hpp"
+
 #include "phys_library/domains/time_and_frequency/frequency_domain_real_axis.h"
 #include "phys_library/DCA+_analysis/CPE_solver/basis_functions/delta_function.hpp"
 #include "phys_library/DCA+_analysis/CPE_solver/basis_functions/radial_function.hpp"
@@ -25,7 +26,7 @@
 class union_radial_and_delta_function {
 public:
   using element_type = double;
-  using w_REAL = dmn_0<frequency_domain_real_axis>;
+  using w_REAL = func::dmn_0<frequency_domain_real_axis>;
 
 public:
   static int get_size();

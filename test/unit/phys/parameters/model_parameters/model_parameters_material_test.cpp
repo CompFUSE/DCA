@@ -13,7 +13,7 @@
 
 #include "dca/phys/parameters/model_parameters.hpp"
 #include "gtest/gtest.h"
-#include "comp_library/IO_library/JSON/JSON.hpp"
+#include "dca/io/json/json_reader.hpp"
 #include "phys_library/domains/cluster/symmetries/point_groups/2D/2D_square.h"
 
 using PointGroup = D4;
@@ -28,7 +28,7 @@ TEST(ModelParametersMaterialTest, DefaultValues) {
 }
 
 TEST(ModelParametersMaterialTest, ReadAll) {
-  IO::reader<IO::JSON> reader;
+  dca::io::JSONReader reader;
   dca::phys::params::ModelParameters<dca::phys::models::TightBindingModel<
       dca::phys::models::material_lattice<dca::phys::models::NiO_symmetric, PointGroup>>>
       pars;

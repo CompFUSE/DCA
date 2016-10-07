@@ -20,9 +20,12 @@
 
 #include <nfft3.h>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "phys_library/domains/cluster/cluster_typedefs.hpp"
 #include "phys_library/domains/cluster/cluster_domain.h"
+
+using namespace dca;
 
 // Empty template class declaration
 template <typename source_dmn_type, typename target_dmn_type>
@@ -38,10 +41,10 @@ class wannier_interpolation_kernel<cluster_domain<scalar_type, D, N, MOMENTUM_SP
   typedef typename k_cluster_type::dual_type source_r_cluster_type;
   typedef typename k_cluster_type::this_type source_k_cluster_type;
 
-  typedef dmn_0<source_r_cluster_type> source_r_dmn_t;
-  typedef dmn_0<source_k_cluster_type> source_k_dmn_t;
+  typedef func::dmn_0<source_r_cluster_type> source_r_dmn_t;
+  typedef func::dmn_0<source_k_cluster_type> source_k_dmn_t;
 
-  typedef dmn_0<target_dmn_type> target_k_dmn_t;
+  typedef func::dmn_0<target_dmn_type> target_k_dmn_t;
 
 public:
   wannier_interpolation_kernel();
@@ -89,19 +92,19 @@ private:
   };
 
 public:
-  typedef dmn_0<centered_r_cluster> centered_r_cluster_dmn_t;
+  typedef func::dmn_0<centered_r_cluster> centered_r_cluster_dmn_t;
 
 private:
   static bool INITIALIZED;
 
-  static FUNC_LIB::function<int, centered_r_cluster_dmn_t> lies_within_cutoff;
+  static func::function<int, centered_r_cluster_dmn_t> lies_within_cutoff;
 
   std::vector<int> grid_size;
 
   nfft_plan nfft_K_2_R;
   nfft_plan nfft_R_2_k;
 
-  FUNC_LIB::function<std::complex<double>, centered_r_cluster_dmn_t> F_R;
+  func::function<std::complex<double>, centered_r_cluster_dmn_t> F_R;
 };
 
 template <typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S, typename target_dmn_type>
@@ -109,7 +112,7 @@ bool wannier_interpolation_kernel<cluster_domain<scalar_type, D, N, MOMENTUM_SPA
                                   target_dmn_type>::INITIALIZED = false;
 
 template <typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S, typename target_dmn_type>
-FUNC_LIB::function<int, typename wannier_interpolation_kernel<cluster_domain<scalar_type, D, N, MOMENTUM_SPACE, S>, target_dmn_type>::centered_r_cluster_dmn_t> wannier_interpolation_kernel<
+func::function<int, typename wannier_interpolation_kernel<cluster_domain<scalar_type, D, N, MOMENTUM_SPACE, S>, target_dmn_type>::centered_r_cluster_dmn_t> wannier_interpolation_kernel<
     cluster_domain<scalar_type, D, N, MOMENTUM_SPACE, S>,
     target_dmn_type>::lies_within_cutoff("cutoff");
 
@@ -424,8 +427,8 @@ void wannier_interpolation_kernel<cluster_domain<scalar_type, D, N, MOMENTUM_SPA
 
 // Template specialization for source and target domains that include spin-orbital subdomains
 template <typename b_dmn_t, typename source_k_dmn_type, typename target_k_dmn_type>
-class wannier_interpolation_kernel<dmn_3<b_dmn_t, b_dmn_t, source_k_dmn_type>,
-                                   dmn_3<b_dmn_t, b_dmn_t, target_k_dmn_type>> {
+class wannier_interpolation_kernel<func::dmn_variadic<b_dmn_t, b_dmn_t, source_k_dmn_type>,
+                                   func::dmn_variadic<b_dmn_t, b_dmn_t, target_k_dmn_type>> {
   typedef typename source_k_dmn_type::parameter_type source_k_cluster_type;
   typedef typename target_k_dmn_type::parameter_type target_k_cluster_type;
 
@@ -438,10 +441,10 @@ class wannier_interpolation_kernel<dmn_3<b_dmn_t, b_dmn_t, source_k_dmn_type>,
   // wannier_interpolation_kernel_type;
 
   typedef typename wannier_interpolation_kernel_type::centered_r_cluster_dmn_t centered_r_dmn_t;
-  // typedef dmn_0<centered_r_LDA> centered_r_dmn_t;
+  // typedef func::dmn_0<centered_r_LDA> centered_r_dmn_t;
 
-  typedef dmn_3<b_dmn_t, b_dmn_t, source_k_dmn_type> input_dmn_t;
-  typedef dmn_3<b_dmn_t, b_dmn_t, target_k_dmn_type> output_dmn_t;
+  typedef func::dmn_variadic<b_dmn_t, b_dmn_t, source_k_dmn_type> input_dmn_t;
+  typedef func::dmn_variadic<b_dmn_t, b_dmn_t, target_k_dmn_type> output_dmn_t;
 
 public:
   wannier_interpolation_kernel();
@@ -450,37 +453,39 @@ public:
 
   void reset_functions();
 
-  void set(FUNC_LIB::function<std::complex<double>, input_dmn_t>& H_K);
-  void get(FUNC_LIB::function<std::complex<double>, output_dmn_t>& H_k);
+  void set(func::function<std::complex<double>, input_dmn_t>& H_K);
+  void get(func::function<std::complex<double>, output_dmn_t>& H_k);
 
 private:
   b_dmn_t dmn;
 
   wannier_interpolation_kernel_type wannier_kernel_object;
 
-  // FUNC_LIB::function<std::complex<double>, centered_r_dmn_t>  in;
-  FUNC_LIB::function<std::complex<double>, source_k_dmn_type> in;
-  FUNC_LIB::function<std::complex<double>, target_k_dmn_type> out;
+  // func::function<std::complex<double>, centered_r_dmn_t>  in;
+  func::function<std::complex<double>, source_k_dmn_type> in;
+  func::function<std::complex<double>, target_k_dmn_type> out;
 
-  FUNC_LIB::function<std::complex<double>, dmn_3<b_dmn_t, b_dmn_t, centered_r_dmn_t>> F_R;
+  func::function<std::complex<double>, func::dmn_variadic<b_dmn_t, b_dmn_t, centered_r_dmn_t>> F_R;
 };
 
 template <typename b_dmn_t, typename source_k_dmn_type, typename target_k_dmn_type>
-wannier_interpolation_kernel<dmn_3<b_dmn_t, b_dmn_t, source_k_dmn_type>,
-                             dmn_3<b_dmn_t, b_dmn_t, target_k_dmn_type>>::wannier_interpolation_kernel()
+wannier_interpolation_kernel<
+    func::dmn_variadic<b_dmn_t, b_dmn_t, source_k_dmn_type>,
+    func::dmn_variadic<b_dmn_t, b_dmn_t, target_k_dmn_type>>::wannier_interpolation_kernel()
     : wannier_kernel_object(),
 
       F_R("wannier_interpolation_kernel__F_r") {}
 
 template <typename b_dmn_t, typename source_k_dmn_type, typename target_k_dmn_type>
-void wannier_interpolation_kernel<dmn_3<b_dmn_t, b_dmn_t, source_k_dmn_type>,
-                                  dmn_3<b_dmn_t, b_dmn_t, target_k_dmn_type>>::reset() {
+void wannier_interpolation_kernel<func::dmn_variadic<b_dmn_t, b_dmn_t, source_k_dmn_type>,
+                                  func::dmn_variadic<b_dmn_t, b_dmn_t, target_k_dmn_type>>::reset() {
   wannier_kernel_object.reset_output();
 }
 
 template <typename b_dmn_t, typename source_k_dmn_type, typename target_k_dmn_type>
-void wannier_interpolation_kernel<dmn_3<b_dmn_t, b_dmn_t, source_k_dmn_type>,
-                                  dmn_3<b_dmn_t, b_dmn_t, target_k_dmn_type>>::reset_functions() {
+void wannier_interpolation_kernel<
+    func::dmn_variadic<b_dmn_t, b_dmn_t, source_k_dmn_type>,
+    func::dmn_variadic<b_dmn_t, b_dmn_t, target_k_dmn_type>>::reset_functions() {
   in.reset();
   out.reset();
 
@@ -488,9 +493,9 @@ void wannier_interpolation_kernel<dmn_3<b_dmn_t, b_dmn_t, source_k_dmn_type>,
 }
 
 template <typename b_dmn_t, typename source_k_dmn_type, typename target_k_dmn_type>
-void wannier_interpolation_kernel<dmn_3<b_dmn_t, b_dmn_t, source_k_dmn_type>,
-                                  dmn_3<b_dmn_t, b_dmn_t, target_k_dmn_type>>::
-    set(FUNC_LIB::function<std::complex<double>, input_dmn_t>& H_K) {
+void wannier_interpolation_kernel<func::dmn_variadic<b_dmn_t, b_dmn_t, source_k_dmn_type>,
+                                  func::dmn_variadic<b_dmn_t, b_dmn_t, target_k_dmn_type>>::
+    set(func::function<std::complex<double>, input_dmn_t>& H_K) {
   for (int i = 0; i < dmn.get_size(); ++i) {
     for (int j = 0; j < dmn.get_size(); ++j) {
       for (int k = 0; k < source_k_cluster_type::get_size(); ++k)
@@ -505,9 +510,9 @@ void wannier_interpolation_kernel<dmn_3<b_dmn_t, b_dmn_t, source_k_dmn_type>,
 }
 
 template <typename b_dmn_t, typename source_k_dmn_type, typename target_k_dmn_type>
-void wannier_interpolation_kernel<dmn_3<b_dmn_t, b_dmn_t, source_k_dmn_type>,
-                                  dmn_3<b_dmn_t, b_dmn_t, target_k_dmn_type>>::
-    get(FUNC_LIB::function<std::complex<double>, output_dmn_t>& H_k) {
+void wannier_interpolation_kernel<func::dmn_variadic<b_dmn_t, b_dmn_t, source_k_dmn_type>,
+                                  func::dmn_variadic<b_dmn_t, b_dmn_t, target_k_dmn_type>>::
+    get(func::function<std::complex<double>, output_dmn_t>& H_k) {
   for (int i = 0; i < dmn.get_size(); ++i) {
     for (int j = 0; j < dmn.get_size(); ++j) {
       for (int r = 0; r < centered_r_dmn_t::dmn_size(); ++r)

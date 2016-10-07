@@ -15,8 +15,9 @@
 
 #include <cmath>
 
-#include "comp_library/function_library/domains/special_domains/dmn_0.h"
-#include "comp_library/function_library/domains/special_domains/dmn_variadic.h"
+#include "dca/function/domains/dmn_0.hpp"
+#include "dca/function/domains/dmn_variadic.hpp"
+
 #include "comp_library/linalg/linalg.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_structures/ss_hybridization_vertex.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
@@ -36,9 +37,9 @@ public:
 
   typedef typename configuration_type::orbital_configuration_type orbital_configuration_type;
 
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
 public:
   swap_segment_tools(hybridization_routines_type& hybridization_routines_ref);

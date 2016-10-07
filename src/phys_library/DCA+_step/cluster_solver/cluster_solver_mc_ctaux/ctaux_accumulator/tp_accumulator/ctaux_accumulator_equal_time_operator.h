@@ -19,7 +19,9 @@
 #include <utility>
 #include <vector>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
+
 #include "comp_library/function_plotting/include_plotting.h"
 
 #include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
@@ -46,28 +48,28 @@ public:
   typedef typename parameters_type::profiler_type profiler_type;
   typedef typename parameters_type::concurrency_type concurrency_type;
 
-  using t = dmn_0<time_domain>;
-  using tp_time_pos_dmn_t = dmn_0<DCA::vertex_time_domain<DCA::TP_TIME_DOMAIN_POSITIVE>>;
+  using t = func::dmn_0<time_domain>;
+  using tp_time_pos_dmn_t = func::dmn_0<DCA::vertex_time_domain<DCA::TP_TIME_DOMAIN_POSITIVE>>;
   using t_VERTEX = tp_time_pos_dmn_t;
 
-  using b = dmn_0<electron_band_domain>;
-  using s = dmn_0<electron_spin_domain>;
-  using nu = dmn_variadic<b, s>;  // orbital-spin index
+  using b = func::dmn_0<electron_band_domain>;
+  using s = func::dmn_0<electron_spin_domain>;
+  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
-  using r_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
-                                     REAL_SPACE, BRILLOUIN_ZONE>>;
-  using k_DCA = dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION, CLUSTER,
-                                     MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using r_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                           CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>>;
+  using k_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+                                           CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
   using r_dmn_t = r_DCA;
   using k_dmn_t = k_DCA;
 
-  typedef dmn_variadic<b, r_dmn_t, t_VERTEX> b_r_t_VERTEX_dmn_t;
+  typedef func::dmn_variadic<b, r_dmn_t, t_VERTEX> b_r_t_VERTEX_dmn_t;
 
-  typedef dmn_0<time_domain_left_oriented> shifted_t;
-  typedef dmn_variadic<nu, nu, r_dmn_t, shifted_t> nu_nu_r_dmn_t_shifted_t;
+  typedef func::dmn_0<time_domain_left_oriented> shifted_t;
+  typedef func::dmn_variadic<nu, nu, r_dmn_t, shifted_t> nu_nu_r_dmn_t_shifted_t;
 
-  typedef dmn_0<dmn<4, int>> akima_dmn_t;
-  typedef dmn_variadic<akima_dmn_t, nu, nu, r_dmn_t, shifted_t> akima_nu_nu_r_dmn_t_shifted_t;
+  typedef func::dmn_0<func::dmn<4, int>> akima_dmn_t;
+  typedef func::dmn_variadic<akima_dmn_t, nu, nu, r_dmn_t, shifted_t> akima_nu_nu_r_dmn_t_shifted_t;
 
 public:
   MC_two_particle_equal_time_accumulator(parameters_type& parameters_ref, MOMS_type& MOMS_ref,
@@ -77,20 +79,20 @@ public:
 
   void finalize();
 
-  FUNC_LIB::function<double, dmn_variadic<nu, nu, r_dmn_t, t>>& get_G_r_t() {
+  func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>>& get_G_r_t() {
     return G_r_t;
   }
-  FUNC_LIB::function<double, dmn_variadic<nu, nu, r_dmn_t, t>>& get_G_r_t_stddev() {
+  func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>>& get_G_r_t_stddev() {
     return G_r_t_stddev;
   }
 
-  FUNC_LIB::function<double, dmn_variadic<b, r_dmn_t>>& get_charge_cluster_moment() {
+  func::function<double, func::dmn_variadic<b, r_dmn_t>>& get_charge_cluster_moment() {
     return charge_cluster_moment;
   }
-  FUNC_LIB::function<double, dmn_variadic<b, r_dmn_t>>& get_magnetic_cluster_moment() {
+  func::function<double, func::dmn_variadic<b, r_dmn_t>>& get_magnetic_cluster_moment() {
     return magnetic_cluster_moment;
   }
-  FUNC_LIB::function<double, dmn_variadic<b, r_dmn_t>>& get_dwave_pp_correlator() {
+  func::function<double, func::dmn_variadic<b, r_dmn_t>>& get_dwave_pp_correlator() {
     return dwave_pp_correlator;
   }
 
@@ -116,8 +118,8 @@ private:
   void initialize_G0_original();
   void test_G0_original();
 
-  void interpolate(FUNC_LIB::function<double, dmn_variadic<nu, nu, r_dmn_t, t>>& G_r_t,
-                   FUNC_LIB::function<double, dmn_variadic<nu, nu, r_dmn_t, t>>& G_r_t_stddev);
+  void interpolate(func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>>& G_r_t,
+                   func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>>& G_r_t_stddev);
 
   void plot_G_r_t();
 
@@ -157,30 +159,30 @@ private:
   b_r_t_VERTEX_dmn_t b_r_t_dmn;
   nu_nu_r_dmn_t_shifted_t nu_nu_r_dmn_t_t_shifted_dmn;
 
-  FUNC_LIB::function<double, akima_nu_nu_r_dmn_t_shifted_t> akima_coefficients;
+  func::function<double, akima_nu_nu_r_dmn_t_shifted_t> akima_coefficients;
 
   std::vector<singleton_operator> fixed_configuration;
   std::vector<singleton_operator> ctaux_configuration;
 
-  FUNC_LIB::function<
-      float, dmn_variadic<dmn_variadic<b, r_dmn_t, t_VERTEX>, dmn_variadic<b, r_dmn_t, t_VERTEX>>>
+  func::function<float, func::dmn_variadic<func::dmn_variadic<b, r_dmn_t, t_VERTEX>,
+                                           func::dmn_variadic<b, r_dmn_t, t_VERTEX>>>
       G0_sign_up;
-  FUNC_LIB::function<
-      float, dmn_variadic<dmn_variadic<b, r_dmn_t, t_VERTEX>, dmn_variadic<b, r_dmn_t, t_VERTEX>>>
+  func::function<float, func::dmn_variadic<func::dmn_variadic<b, r_dmn_t, t_VERTEX>,
+                                           func::dmn_variadic<b, r_dmn_t, t_VERTEX>>>
       G0_sign_dn;
 
-  FUNC_LIB::function<
-      int, dmn_variadic<dmn_variadic<b, r_dmn_t, t_VERTEX>, dmn_variadic<b, r_dmn_t, t_VERTEX>>>
+  func::function<int, func::dmn_variadic<func::dmn_variadic<b, r_dmn_t, t_VERTEX>,
+                                         func::dmn_variadic<b, r_dmn_t, t_VERTEX>>>
       G0_indices_up;
-  FUNC_LIB::function<
-      int, dmn_variadic<dmn_variadic<b, r_dmn_t, t_VERTEX>, dmn_variadic<b, r_dmn_t, t_VERTEX>>>
+  func::function<int, func::dmn_variadic<func::dmn_variadic<b, r_dmn_t, t_VERTEX>,
+                                         func::dmn_variadic<b, r_dmn_t, t_VERTEX>>>
       G0_indices_dn;
 
-  FUNC_LIB::function<
-      float, dmn_variadic<dmn_variadic<b, r_dmn_t, t_VERTEX>, dmn_variadic<b, r_dmn_t, t_VERTEX>>>
+  func::function<float, func::dmn_variadic<func::dmn_variadic<b, r_dmn_t, t_VERTEX>,
+                                           func::dmn_variadic<b, r_dmn_t, t_VERTEX>>>
       G0_integration_factor_up;
-  FUNC_LIB::function<
-      float, dmn_variadic<dmn_variadic<b, r_dmn_t, t_VERTEX>, dmn_variadic<b, r_dmn_t, t_VERTEX>>>
+  func::function<float, func::dmn_variadic<func::dmn_variadic<b, r_dmn_t, t_VERTEX>,
+                                           func::dmn_variadic<b, r_dmn_t, t_VERTEX>>>
       G0_integration_factor_dn;
 
   dca::linalg::Matrix<float, dca::linalg::CPU> G0_original_up;
@@ -204,26 +206,26 @@ private:
   dca::linalg::Matrix<float, dca::linalg::CPU> G0_M_G0_matrix_up;
   dca::linalg::Matrix<float, dca::linalg::CPU> G0_M_G0_matrix_dn;
 
-  FUNC_LIB::function<
-      float, dmn_variadic<dmn_variadic<b, r_dmn_t, t_VERTEX>, dmn_variadic<b, r_dmn_t, t_VERTEX>>>
+  func::function<float, func::dmn_variadic<func::dmn_variadic<b, r_dmn_t, t_VERTEX>,
+                                           func::dmn_variadic<b, r_dmn_t, t_VERTEX>>>
       G_r_t_dn;
-  FUNC_LIB::function<
-      float, dmn_variadic<dmn_variadic<b, r_dmn_t, t_VERTEX>, dmn_variadic<b, r_dmn_t, t_VERTEX>>>
+  func::function<float, func::dmn_variadic<func::dmn_variadic<b, r_dmn_t, t_VERTEX>,
+                                           func::dmn_variadic<b, r_dmn_t, t_VERTEX>>>
       G_r_t_up;
 
-  FUNC_LIB::function<double, dmn_variadic<nu, nu, r_dmn_t, t>> G_r_t;
-  FUNC_LIB::function<double, dmn_variadic<nu, nu, r_dmn_t, t>> G_r_t_stddev;
+  func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>> G_r_t;
+  func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>> G_r_t_stddev;
 
-  FUNC_LIB::function<double, dmn_variadic<nu, nu, r_dmn_t, t_VERTEX>> G_r_t_accumulated;
-  FUNC_LIB::function<double, dmn_variadic<nu, nu, r_dmn_t, t_VERTEX>> G_r_t_accumulated_squared;
+  func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t_VERTEX>> G_r_t_accumulated;
+  func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t_VERTEX>> G_r_t_accumulated_squared;
 
-  FUNC_LIB::function<double, dmn_variadic<b, r_dmn_t>> charge_cluster_moment;
-  FUNC_LIB::function<double, dmn_variadic<b, r_dmn_t>> magnetic_cluster_moment;
+  func::function<double, func::dmn_variadic<b, r_dmn_t>> charge_cluster_moment;
+  func::function<double, func::dmn_variadic<b, r_dmn_t>> magnetic_cluster_moment;
 
-  FUNC_LIB::function<double, k_dmn_t> dwave_k_factor;
-  FUNC_LIB::function<double, r_dmn_t> dwave_r_factor;
+  func::function<double, k_dmn_t> dwave_k_factor;
+  func::function<double, r_dmn_t> dwave_r_factor;
 
-  FUNC_LIB::function<double, dmn_variadic<b, r_dmn_t>> dwave_pp_correlator;
+  func::function<double, func::dmn_variadic<b, r_dmn_t>> dwave_pp_correlator;
 };
 
 template <class parameters_type, class MOMS_type>
@@ -404,7 +406,7 @@ void MC_two_particle_equal_time_accumulator<parameters_type, MOMS_type>::initial
   G0_original_dn.resizeNoCopy(
       std::pair<int, int>(b_r_t_VERTEX_dmn_t::dmn_size(), b_r_t_VERTEX_dmn_t::dmn_size()));
 
-  dmn_variadic<nu, nu, r_dmn_t, t_VERTEX> G_r_t_dmn;
+  func::dmn_variadic<nu, nu, r_dmn_t, t_VERTEX> G_r_t_dmn;
   for (int j = 0; j < b_r_t_VERTEX_dmn_t::dmn_size(); j++) {
     b_j = fixed_configuration[j].b_ind;
     r_j = fixed_configuration[j].r_ind;
@@ -532,8 +534,8 @@ void MC_two_particle_equal_time_accumulator<parameters_type, MOMS_type>::finaliz
 
 template <class parameters_type, class MOMS_type>
 void MC_two_particle_equal_time_accumulator<parameters_type, MOMS_type>::interpolate(
-    FUNC_LIB::function<double, dmn_variadic<nu, nu, r_dmn_t, t>>& G_r_t,
-    FUNC_LIB::function<double, dmn_variadic<nu, nu, r_dmn_t, t>>& G_r_t_stddev) {
+    func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>>& G_r_t,
+    func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>>& G_r_t_stddev) {
   int size = t_VERTEX::dmn_size();
 
   math_algorithms::interpolation::akima_interpolation<double> ai_obj(size);

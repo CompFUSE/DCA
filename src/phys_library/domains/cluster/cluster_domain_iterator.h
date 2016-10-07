@@ -145,7 +145,8 @@ void cluster_domain_iterator<cluster_domain<scalar_type, D, N, R, S>>::execute_2
             basis.push_back(vec_0);
             basis.push_back(vec_1);
 
-            cluster_domain_initializer<dmn_0<tmp_r_dmn>>::execute(r_dmn::get_basis(), basis, false);
+            cluster_domain_initializer<func::dmn_0<tmp_r_dmn>>::execute(r_dmn::get_basis(), basis,
+                                                                        false);
 
             std::vector<double> b_0 = tmp_r_dmn::get_super_basis_vectors()[0];
             std::vector<double> b_1 = tmp_r_dmn::get_super_basis_vectors()[1];

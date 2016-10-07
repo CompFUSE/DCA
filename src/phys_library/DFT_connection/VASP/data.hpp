@@ -19,7 +19,8 @@
 #include <stdexcept>
 #include <vector>
 
-#include "comp_library/function_library/include_function_library.h"
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
 #include "comp_library/function_plotting/include_plotting.h"
 #include "comp_library/linalg/linalg.hpp"
 #include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
@@ -66,19 +67,19 @@ public:
       cluster_domain<double, 3, VASP_LATTICE, MOMENTUM_SPACE, PARALLELLEPIPEDUM>;
   using vasp_r_cluster_type = cluster_domain<double, 3, VASP_LATTICE, REAL_SPACE, PARALLELLEPIPEDUM>;
 
-  using k_vasp = dmn_0<vasp_k_cluster_type>;
-  using r_vasp = dmn_0<vasp_r_cluster_type>;
+  using k_vasp = func::dmn_0<vasp_k_cluster_type>;
+  using r_vasp = func::dmn_0<vasp_r_cluster_type>;
 
-  using b_dmft = dmn_0<DFT::VASP::dmft_band_domain>;
-  using o_dmft = dmn_0<DFT::VASP::dmft_orbital_domain>;
+  using b_dmft = func::dmn_0<DFT::VASP::dmft_band_domain>;
+  using o_dmft = func::dmn_0<DFT::VASP::dmft_orbital_domain>;
 
-  using b_vasp = dmn_0<DFT::VASP::vasp_band_domain>;
-  using o_vasp = dmn_0<DFT::VASP::vasp_orbital_domain>;
+  using b_vasp = func::dmn_0<DFT::VASP::vasp_band_domain>;
+  using o_vasp = func::dmn_0<DFT::VASP::vasp_orbital_domain>;
 
-  using bz_cut = dmn_0<DFT::VASP::vasp_brillouin_zone_cut_domain>;
+  using bz_cut = func::dmn_0<DFT::VASP::vasp_brillouin_zone_cut_domain>;
 
   // typedef typename k_vasp::parameter_type::dual_type           vasp_r_cluster_type;
-  using vasp_r_centered_dmn = dmn_0<centered_cluster_domain<vasp_r_cluster_type>>;
+  using vasp_r_centered_dmn = func::dmn_0<centered_cluster_domain<vasp_r_cluster_type>>;
 
 public:
   data(parameters_type& parameters_ref);
@@ -103,57 +104,58 @@ public:
 public:
   parameters_type& parameters;
 
-  FUNC_LIB::function<double, k_vasp> kx;
-  FUNC_LIB::function<double, k_vasp> ky;
-  FUNC_LIB::function<double, k_vasp> kz;
+  func::function<double, k_vasp> kx;
+  func::function<double, k_vasp> ky;
+  func::function<double, k_vasp> kz;
 
-  FUNC_LIB::function<double, dmn_2<k_vasp, b_vasp>> band_e;
-  FUNC_LIB::function<double, dmn_2<k_vasp, b_vasp>> band_o;
+  func::function<double, func::dmn_variadic<k_vasp, b_vasp>> band_e;
+  func::function<double, func::dmn_variadic<k_vasp, b_vasp>> band_o;
 
-  FUNC_LIB::function<double, dmn_3<k_vasp, b_vasp, o_vasp>> proj_magni;  // proj_magni[nKpoints][nBands][nOrbi]
-  FUNC_LIB::function<double, dmn_3<k_vasp, b_vasp, o_vasp>> proj_phaRe;  // proj_phaRe[nKpoints][nBands][nOrbi]
-  FUNC_LIB::function<double, dmn_3<k_vasp, b_vasp, o_vasp>> proj_phaIm;  // proj_phaIm[nKpoints][nBands][nOrbi]
+  func::function<double, func::dmn_variadic<k_vasp, b_vasp, o_vasp>> proj_magni;  // proj_magni[nKpoints][nBands][nOrbi]
+  func::function<double, func::dmn_variadic<k_vasp, b_vasp, o_vasp>> proj_phaRe;  // proj_phaRe[nKpoints][nBands][nOrbi]
+  func::function<double, func::dmn_variadic<k_vasp, b_vasp, o_vasp>> proj_phaIm;  // proj_phaIm[nKpoints][nBands][nOrbi]
 
-  FUNC_LIB::function<double, dmn_3<k_vasp, b_dmft, o_dmft>>
+  func::function<double, func::dmn_variadic<k_vasp, b_dmft, o_dmft>>
       projection_re;  // projection_Re[nKpoints][nCorrBands][nCorrOrbis]
-  FUNC_LIB::function<double, dmn_3<k_vasp, b_dmft, o_dmft>>
+  func::function<double, func::dmn_variadic<k_vasp, b_dmft, o_dmft>>
       projection_im;  // projection_Im[nKpoints][nCorrBands][nCorrOrbis]
 
-  FUNC_LIB::function<std::complex<double>, dmn_3<k_vasp, b_dmft, o_dmft>> projector;
+  func::function<std::complex<double>, func::dmn_variadic<k_vasp, b_dmft, o_dmft>> projector;
 
-  FUNC_LIB::function<double, dmn_3<k_vasp, b_dmft, b_dmft>>
+  func::function<double, func::dmn_variadic<k_vasp, b_dmft, b_dmft>>
       BlochHami;  // BlochHami     [nKpoints][nCorrBands][nCorrBands]
 
-  FUNC_LIB::function<double, dmn_3<k_vasp, o_dmft, o_dmft>>
+  func::function<double, func::dmn_variadic<k_vasp, o_dmft, o_dmft>>
       dfBlochHami_re;  // dfBlochHamiRe  [nKpoints][nCorrOrbis][nCorrOrbis]
-  FUNC_LIB::function<double, dmn_3<k_vasp, o_dmft, o_dmft>>
+  func::function<double, func::dmn_variadic<k_vasp, o_dmft, o_dmft>>
       dfBlochHami_im;  // dfBlochHamiIm  [nKpoints][nCorrOrbis][nCorrOrbis]
 
-  FUNC_LIB::function<std::complex<double>, dmn_3<k_vasp, o_dmft, o_dmft>>
+  func::function<std::complex<double>, func::dmn_variadic<k_vasp, o_dmft, o_dmft>>
       H_0;  // BlochHami     [nKpoints][nCorrBands][nCorrBands]
 
-  // FUNC_LIB::function<double, dmn_3<k_vasp, b_dmft, b_dmft> > dfBlochHami_re;// dfBlochHamiRe
+  // func::function<double, func::dmn_variadic<k_vasp, b_dmft, b_dmft> > dfBlochHami_re;//
+  // dfBlochHamiRe
   // [nKpoints][nCorrOrbis][nCorrOrbis]
 
-  FUNC_LIB::function<double, dmn_2<o_dmft, b_dmft>>
+  func::function<double, func::dmn_variadic<o_dmft, b_dmft>>
       p1_re;  //[nCorrOrbis][nCorrBands];   // orbital x band
-  FUNC_LIB::function<double, dmn_2<o_dmft, b_dmft>> p1_im;  //[nCorrOrbis][nCorrBands];
+  func::function<double, func::dmn_variadic<o_dmft, b_dmft>> p1_im;  //[nCorrOrbis][nCorrBands];
 
-  FUNC_LIB::function<double, dmn_2<b_dmft, o_dmft>>
+  func::function<double, func::dmn_variadic<b_dmft, o_dmft>>
       p2_re;  //[nCorrBands][nCorrOrbis];   // band x orbital
-  FUNC_LIB::function<double, dmn_2<b_dmft, o_dmft>> p2_im;  //[nCorrBands][nCorrOrbis];
-  FUNC_LIB::function<double, dmn_2<b_dmft, o_dmft>> p3_re;  //[nCorrBands][nCorrOrbis];
-  FUNC_LIB::function<double, dmn_2<b_dmft, o_dmft>> p3_im;  //[nCorrBands][nCorrOrbis];
+  func::function<double, func::dmn_variadic<b_dmft, o_dmft>> p2_im;  //[nCorrBands][nCorrOrbis];
+  func::function<double, func::dmn_variadic<b_dmft, o_dmft>> p3_re;  //[nCorrBands][nCorrOrbis];
+  func::function<double, func::dmn_variadic<b_dmft, o_dmft>> p3_im;  //[nCorrBands][nCorrOrbis];
 
-  FUNC_LIB::function<double, dmn_2<b_dmft, b_dmft>>
+  func::function<double, func::dmn_variadic<b_dmft, b_dmft>>
       nn_re;  //[nCorrBands][nCorrBands];    // band x band
-  FUNC_LIB::function<double, dmn_2<b_dmft, b_dmft>> nn_im;  //[nCorrBands][nCorrBands];
+  func::function<double, func::dmn_variadic<b_dmft, b_dmft>> nn_im;  //[nCorrBands][nCorrBands];
 
-  FUNC_LIB::function<double, dmn_2<o_dmft, o_dmft>>
+  func::function<double, func::dmn_variadic<o_dmft, o_dmft>>
       oo_re;  //[nCorrOrbis][nCorrOrbis];    // obital x obital
-  FUNC_LIB::function<double, dmn_2<o_dmft, o_dmft>> oo_im;  //[nCorrOrbis][nCorrOrbis];
-  FUNC_LIB::function<double, dmn_2<o_dmft, o_dmft>> o_re;   //[nCorrOrbis][nCorrOrbis];
-  FUNC_LIB::function<double, dmn_2<o_dmft, o_dmft>> o_im;   //[nCorrOrbis][nCorrOrbis];
+  func::function<double, func::dmn_variadic<o_dmft, o_dmft>> oo_im;  //[nCorrOrbis][nCorrOrbis];
+  func::function<double, func::dmn_variadic<o_dmft, o_dmft>> o_re;   //[nCorrOrbis][nCorrOrbis];
+  func::function<double, func::dmn_variadic<o_dmft, o_dmft>> o_im;   //[nCorrOrbis][nCorrOrbis];
 
   //       std::vector<int>    vec_oi;
   //       std::vector<int>    vec_oj;
@@ -165,11 +167,11 @@ public:
 
   std::vector<t_ij_element> t_ij_vector;
 
-  FUNC_LIB::function<double, dmn_2<bz_cut, b_vasp>> E_0_vasp;
-  FUNC_LIB::function<double, dmn_2<bz_cut, o_dmft>> E_0_dmft;
+  func::function<double, func::dmn_variadic<bz_cut, b_vasp>> E_0_vasp;
+  func::function<double, func::dmn_variadic<bz_cut, o_dmft>> E_0_dmft;
 
-  FUNC_LIB::function<std::complex<double>, dmn_3<bz_cut, b_vasp, b_vasp>> H_0_vasp;
-  FUNC_LIB::function<std::complex<double>, dmn_3<bz_cut, o_dmft, o_dmft>> H_0_dmft;
+  func::function<std::complex<double>, func::dmn_variadic<bz_cut, b_vasp, b_vasp>> H_0_vasp;
+  func::function<std::complex<double>, func::dmn_variadic<bz_cut, o_dmft, o_dmft>> H_0_dmft;
 };
 
 template <class parameters_type>
@@ -433,7 +435,7 @@ void data<parameters_type>::compute_vasp_band_structure() {
 
   vasp_r_centered_dmn::parameter_type::initialize();
 
-  FUNC_LIB::function<double, dmn_2<vasp_r_centered_dmn, b_vasp>> tmp;
+  func::function<double, func::dmn_variadic<vasp_r_centered_dmn, b_vasp>> tmp;
 
   math_algorithms::functional_transforms::TRANSFORM<k_vasp, vasp_r_centered_dmn>::execute(band_e,
                                                                                           tmp);
@@ -495,7 +497,7 @@ void data<parameters_type>::compute_dmft_band_structure() {
 
   vasp_r_centered_dmn::parameter_type::initialize();
 
-  FUNC_LIB::function<double, dmn_3<vasp_r_centered_dmn, o_dmft, o_dmft>> tmp;
+  func::function<double, func::dmn_variadic<vasp_r_centered_dmn, o_dmft, o_dmft>> tmp;
 
   math_algorithms::functional_transforms::TRANSFORM<k_vasp, vasp_r_centered_dmn>::execute(H_0, tmp);
 

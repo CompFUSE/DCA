@@ -13,7 +13,7 @@
 
 #include "dca/phys/parameters/mc_solver_parameters.hpp"
 #include "gtest/gtest.h"
-#include "comp_library/IO_library/JSON/JSON.hpp"
+#include "dca/io/json/json_reader.hpp"
 
 TEST(McSolverParametersCtAuxTest, DefaultValues) {
   dca::phys::params::McSolverParameters<DCA::CT_AUX_CLUSTER_SOLVER> pars;
@@ -24,7 +24,7 @@ TEST(McSolverParametersCtAuxTest, DefaultValues) {
 }
 
 TEST(McSolverParametersCtAuxTest, ReadAll) {
-  IO::reader<IO::JSON> reader;
+  dca::io::JSONReader reader;
   dca::phys::params::McSolverParameters<DCA::CT_AUX_CLUSTER_SOLVER> pars;
 
   reader.open_file(DCA_SOURCE_DIR

@@ -17,8 +17,8 @@
 #include <string>
 #include <vector>
 
+#include "dca/function/domains/dmn_0.hpp"
 #include "dca/math/geometry/gaussian_quadrature/compute_weights_and_abscissas.hpp"
-#include "comp_library/function_library/domains/special_domains/dmn_0.h"
 #include "math_library/functional_transforms/domain_specifications/domain_specifications.hpp"
 #include "math_library/geometry_library/tetrahedron_mesh/tetrahedron_mesh.h"
 #include "math_library/functional_transforms/typedefs.hpp"
@@ -35,7 +35,7 @@ template <typename dmn_type>
 class gaussian_quadrature_domain {};
 
 template <typename cluster_type>
-class gaussian_quadrature_domain<dmn_0<tetrahedron_mesh<dmn_0<cluster_type>>>> {
+class gaussian_quadrature_domain<func::dmn_0<tetrahedron_mesh<func::dmn_0<cluster_type>>>> {
 public:
   const static int DIMENSION = cluster_type::DIMENSION;
 
@@ -76,39 +76,40 @@ public:
 };
 
 template <typename cluster_type>
-bool& gaussian_quadrature_domain<dmn_0<tetrahedron_mesh<dmn_0<cluster_type>>>>::is_initialized() {
+bool& gaussian_quadrature_domain<func::dmn_0<tetrahedron_mesh<func::dmn_0<cluster_type>>>>::is_initialized() {
   static bool initialized = false;
   return initialized;
 }
 
 template <typename cluster_type>
-int& gaussian_quadrature_domain<dmn_0<tetrahedron_mesh<dmn_0<cluster_type>>>>::get_size() {
+int& gaussian_quadrature_domain<func::dmn_0<tetrahedron_mesh<func::dmn_0<cluster_type>>>>::get_size() {
   static int size = 0;
   return size;
 }
 
 template <typename cluster_type>
-std::string& gaussian_quadrature_domain<dmn_0<tetrahedron_mesh<dmn_0<cluster_type>>>>::get_name() {
+std::string& gaussian_quadrature_domain<
+    func::dmn_0<tetrahedron_mesh<func::dmn_0<cluster_type>>>>::get_name() {
   static std::string name = "gaussian_quadrature_domain";
   return name;
 }
 
 template <typename cluster_type>
-std::vector<typename gaussian_quadrature_domain<dmn_0<tetrahedron_mesh<dmn_0<cluster_type>>>>::scalar_type>& gaussian_quadrature_domain<
-    dmn_0<tetrahedron_mesh<dmn_0<cluster_type>>>>::get_weights() {
+std::vector<typename gaussian_quadrature_domain<func::dmn_0<tetrahedron_mesh<func::dmn_0<cluster_type>>>>::scalar_type>& gaussian_quadrature_domain<
+    func::dmn_0<tetrahedron_mesh<func::dmn_0<cluster_type>>>>::get_weights() {
   static std::vector<scalar_type> weights(0);
   return weights;
 }
 
 template <typename cluster_type>
-std::vector<typename gaussian_quadrature_domain<dmn_0<tetrahedron_mesh<dmn_0<cluster_type>>>>::element_type>& gaussian_quadrature_domain<
-    dmn_0<tetrahedron_mesh<dmn_0<cluster_type>>>>::get_elements() {
+std::vector<typename gaussian_quadrature_domain<func::dmn_0<tetrahedron_mesh<func::dmn_0<cluster_type>>>>::element_type>& gaussian_quadrature_domain<
+    func::dmn_0<tetrahedron_mesh<func::dmn_0<cluster_type>>>>::get_elements() {
   static std::vector<element_type> elements(0);
   return elements;
 }
 
 template <typename cluster_type>
-void gaussian_quadrature_domain<dmn_0<tetrahedron_mesh<dmn_0<cluster_type>>>>::reset() {
+void gaussian_quadrature_domain<func::dmn_0<tetrahedron_mesh<func::dmn_0<cluster_type>>>>::reset() {
   get_size() = 0;
   get_name() = "";
 
@@ -118,8 +119,9 @@ void gaussian_quadrature_domain<dmn_0<tetrahedron_mesh<dmn_0<cluster_type>>>>::r
 }
 
 template <typename cluster_type>
-void gaussian_quadrature_domain<dmn_0<tetrahedron_mesh<dmn_0<cluster_type>>>>::initialize_Brillouin_zone(
-    int N_recursion, int rule) {
+void gaussian_quadrature_domain<
+    func::dmn_0<tetrahedron_mesh<func::dmn_0<cluster_type>>>>::initialize_Brillouin_zone(int N_recursion,
+                                                                                         int rule) {
   tetrahedron_mesh<cluster_type> mesh(N_recursion);
 
   if (rule < 0)
@@ -131,7 +133,7 @@ void gaussian_quadrature_domain<dmn_0<tetrahedron_mesh<dmn_0<cluster_type>>>>::i
 }
 
 template <typename cluster_type>
-void gaussian_quadrature_domain<dmn_0<tetrahedron_mesh<dmn_0<cluster_type>>>>::initialize_Brillouin_zone(
+void gaussian_quadrature_domain<func::dmn_0<tetrahedron_mesh<func::dmn_0<cluster_type>>>>::initialize_Brillouin_zone(
     int N_recursion, int rule, double period) {
   tetrahedron_mesh<cluster_type> mesh(N_recursion);
 
@@ -152,7 +154,7 @@ void gaussian_quadrature_domain<dmn_0<tetrahedron_mesh<dmn_0<cluster_type>>>>::i
 }
 
 template <typename cluster_type>
-void gaussian_quadrature_domain<dmn_0<tetrahedron_mesh<dmn_0<cluster_type>>>>::initialize_flat_mesh(
+void gaussian_quadrature_domain<func::dmn_0<tetrahedron_mesh<func::dmn_0<cluster_type>>>>::initialize_flat_mesh(
     tetrahedron_mesh<cluster_type>& mesh) {
   std::cout << __FUNCTION__ << std::endl;
 
@@ -175,7 +177,7 @@ void gaussian_quadrature_domain<dmn_0<tetrahedron_mesh<dmn_0<cluster_type>>>>::i
 }
 
 template <typename cluster_type>
-void gaussian_quadrature_domain<dmn_0<tetrahedron_mesh<dmn_0<cluster_type>>>>::initialize_gaussian_mesh(
+void gaussian_quadrature_domain<func::dmn_0<tetrahedron_mesh<func::dmn_0<cluster_type>>>>::initialize_gaussian_mesh(
     int rule, tetrahedron_mesh<cluster_type>& mesh) {
   std::vector<tetrahedron<DIMENSION>>& tets = mesh.get_tetrahedra();
 
@@ -184,8 +186,8 @@ void gaussian_quadrature_domain<dmn_0<tetrahedron_mesh<dmn_0<cluster_type>>>>::i
 }
 
 template <typename cluster_type>
-void gaussian_quadrature_domain<dmn_0<tetrahedron_mesh<dmn_0<cluster_type>>>>::translate_according_to_period(
-    double period, tetrahedron_mesh<cluster_type>& mesh) {
+void gaussian_quadrature_domain<func::dmn_0<tetrahedron_mesh<func::dmn_0<cluster_type>>>>::
+    translate_according_to_period(double period, tetrahedron_mesh<cluster_type>& mesh) {
   std::vector<double> cm(DIMENSION, 0.);
   std::vector<double> normal(DIMENSION, 0.);
 
@@ -207,7 +209,7 @@ void gaussian_quadrature_domain<dmn_0<tetrahedron_mesh<dmn_0<cluster_type>>>>::t
 }
 
 template <typename cluster_type>
-void gaussian_quadrature_domain<dmn_0<tetrahedron_mesh<dmn_0<cluster_type>>>>::initialize_elements(
+void gaussian_quadrature_domain<func::dmn_0<tetrahedron_mesh<func::dmn_0<cluster_type>>>>::initialize_elements(
     tetrahedron_mesh<cluster_type>& mesh) {
   get_weights().resize(0);
   get_elements().resize(0);
@@ -244,7 +246,7 @@ void gaussian_quadrature_domain<dmn_0<tetrahedron_mesh<dmn_0<cluster_type>>>>::i
 }
 
 template <typename cluster_type>
-void gaussian_quadrature_domain<dmn_0<tetrahedron_mesh<dmn_0<cluster_type>>>>::plot_tetrahedra(
+void gaussian_quadrature_domain<func::dmn_0<tetrahedron_mesh<func::dmn_0<cluster_type>>>>::plot_tetrahedra(
     tetrahedron_mesh<cluster_type>& mesh) {
   std::vector<tetrahedron<DIMENSION>>& tetrahedra = mesh.get_tetrahedra();
 
@@ -257,7 +259,7 @@ void gaussian_quadrature_domain<dmn_0<tetrahedron_mesh<dmn_0<cluster_type>>>>::p
 }
 
 template <typename cluster_type>
-void gaussian_quadrature_domain<dmn_0<tetrahedron_mesh<dmn_0<cluster_type>>>>::plot_q_vecs(
+void gaussian_quadrature_domain<func::dmn_0<tetrahedron_mesh<func::dmn_0<cluster_type>>>>::plot_q_vecs(
     tetrahedron_mesh<cluster_type>& mesh) {
   std::vector<tetrahedron<DIMENSION>>& tetrahedra = mesh.get_tetrahedra();
 
