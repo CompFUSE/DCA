@@ -39,13 +39,13 @@ namespace LIN_ALG {
 	  cuda_check_for_errors_bgn(__FUNCTION__, __FILE__, __LINE__);
 #endif
 
-	  int bl_x = get_number_of_blocks(Ni, BLOCK_SIZE_x);
-	  int bl_y = get_number_of_blocks(Nc, BLOCK_SIZE_y);
+	  int bl_x = dca::util::ceilDiv(Ni, BLOCK_SIZE_x);
+	  int bl_y = dca::util::ceilDiv(Nc, BLOCK_SIZE_y);
 	  
 	  dim3 threads(BLOCK_SIZE_x);
 	  dim3 blocks (bl_x, bl_y);
 
-	  cudaStream_t& stream_handle = LIN_ALG::get_stream_handle(thread_id, stream_id);
+	  cudaStream_t stream_handle = dca::linalg::util::getStream(thread_id, stream_id);
 	  
 	  many_rows_kernel<<<blocks, threads, 0, stream_handle>>>(Nc, Ni, r_i, alpha, A, LD);
 

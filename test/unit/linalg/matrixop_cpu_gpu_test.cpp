@@ -20,8 +20,6 @@
 #include "cpu_test_util.hpp"
 #include "gpu_test_util.hpp"
 
-#include "../src/comp_library/linalg/basic_cublas_functions.h"
-
 TEST(MatrixopCPUGPUTest, difference) {
   std::pair<int, int> size2_a(5, 4);
   const double epsilon = std::numeric_limits<double>::epsilon();

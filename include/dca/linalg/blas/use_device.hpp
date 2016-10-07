@@ -21,6 +21,7 @@
 #ifdef DCA_HAVE_CUDA
 #include "dca/linalg/blas/cublas1.hpp"
 #include "dca/linalg/blas/cublas3.hpp"
+#include "dca/linalg/util/handle_functions.hpp"
 #endif  // DCA_HAVE_CUDA
 
 namespace dca {
@@ -76,33 +77,32 @@ struct UseDevice<CPU> {
 };
 
 #ifdef DCA_HAVE_CUDA
-using LIN_ALG::get_thread_handle;
 
 template <>
 struct UseDevice<GPU> {
   // Level 1
   template <typename ScalarType>
   inline static void axpy(int n, ScalarType alpha, const ScalarType* x, int incx, ScalarType* y,
-                          int incy, int thread_id, int /*stream_id*/) {
-    cublas::axpy(get_thread_handle(thread_id), n, alpha, x, incx, y, incy);
+                          int incy, int thread_id, int stream_id) {
+    cublas::axpy(util::getHandle(thread_id, stream_id), n, alpha, x, incx, y, incy);
   }
 
   template <typename ScalarType>
   inline static void copy(int n, const ScalarType* x, int incx, ScalarType* y, int incy,
-                          int thread_id, int /*stream_id*/) {
-    cublas::copy(get_thread_handle(thread_id), n, x, incx, y, incy);
+                          int thread_id, int stream_id) {
+    cublas::copy(util::getHandle(thread_id, stream_id), n, x, incx, y, incy);
   }
 
   template <typename ScalarType>
   inline static void scal(int n, ScalarType alpha, ScalarType* x, int incx, int thread_id,
-                          int /*stream_id*/) {
-    cublas::scal(get_thread_handle(thread_id), n, alpha, x, incx);
+                          int stream_id) {
+    cublas::scal(util::getHandle(thread_id, stream_id), n, alpha, x, incx);
   }
 
   template <typename ScalarType>
   inline static void swap(int n, ScalarType* x, int incx, ScalarType* y, int incy, int thread_id,
-                          int /*stream_id*/) {
-    cublas::swap(get_thread_handle(thread_id), n, x, incx, y, incy);
+                          int stream_id) {
+    cublas::swap(util::getHandle(thread_id, stream_id), n, x, incx, y, incy);
   }
 
   // Level 3
@@ -110,16 +110,17 @@ struct UseDevice<GPU> {
   inline static void gemm(const char* transa, const char* transb, int m, int n, int k,
                           ScalarType alpha, const ScalarType* a, int lda, const ScalarType* b,
                           int ldb, ScalarType beta, ScalarType* c, int ldc, int thread_id,
-                          int /*stream_id*/) {
-    cublas::gemm(get_thread_handle(thread_id), transa, transb, m, n, k, alpha, a, lda, b, ldb, beta,
-                 c, ldc);
+                          int stream_id) {
+    cublas::gemm(util::getHandle(thread_id, stream_id), transa, transb, m, n, k, alpha, a, lda, b,
+                 ldb, beta, c, ldc);
   }
 
   template <typename ScalarType>
   inline static void trsm(const char* side, const char* uplo, const char* transa, const char* diag,
                           int m, int n, ScalarType alpha, const ScalarType* a, int lda,
-                          ScalarType* b, int ldb, int thread_id, int /*stream_id*/) {
-    cublas::trsm(get_thread_handle(thread_id), side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb);
+                          ScalarType* b, int ldb, int thread_id, int stream_id) {
+    cublas::trsm(util::getHandle(thread_id, stream_id), side, uplo, transa, diag, m, n, alpha, a,
+                 lda, b, ldb);
   }
 };
 #endif  // DCA_HAVE_CUDA

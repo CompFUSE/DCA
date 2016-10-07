@@ -311,7 +311,7 @@ namespace LIN_ALG {
     void set_to_zero(scalartype* ptr, int LD, int m){
 	
       int th = get_number_of_threads();
-      int bl = get_number_of_blocks (m);
+      int bl = dca::util::ceilDiv(m, th);
       
       set_to_zero_kernel<<<bl, th>>>(ptr, LD, m);
 
@@ -329,7 +329,7 @@ namespace LIN_ALG {
     void set_to_zero(scalartype* ptr, int m){
 	
       int th = get_number_of_threads();
-      int bl = get_number_of_blocks (m);
+      int bl = dca::util::ceilDiv(m, th);
       
       set_to_zero_kernel<<<bl, th>>>(ptr, 1, m);
 

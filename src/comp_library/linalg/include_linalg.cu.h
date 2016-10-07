@@ -7,21 +7,20 @@
 
 #include "linalg_device_types.h"
 
-#include "cuda.h"
 #include "cuda_runtime.h"
-#include "cuComplex.h"
-
-#include "cublas.h"
 #include "cublas_v2.h"
 
 #define HAVE_CUBLAS 1
 #include "magma.h"
 
-#include "basic_cuda_functions.cu.h"
-#include "basic_cublas_functions.cu.h"
+#include "dca/util/integer_division.hpp"
+#include "dca/linalg/util/error_cuda.hpp"
+#include "dca/linalg/util/error_cublas.hpp"
+#include "dca/linalg/util/handle_functions.hpp"
+#include "dca/linalg/util/stream_functions.hpp"
+#include "dca/linalg/util/util_cublas.hpp"
 
-//#include <thrust/host_vector.h>
-//#include <thrust/device_vector.h>
+#include "basic_cuda_functions.cu.h"
 
 #include <utility>
 

@@ -62,10 +62,10 @@ void compute_Gamma(double* Gamma, int Gamma_n, int Gamma_ld, double* N, int N_r,
 
     dim3 threads(number_of_threads, number_of_threads);
 
-    dim3 blocks(get_number_of_blocks(Gamma_n, number_of_threads),
-                get_number_of_blocks(Gamma_n, number_of_threads));
+    dim3 blocks(dca::util::ceilDiv(Gamma_n, number_of_threads),
+                dca::util::ceilDiv(Gamma_n, number_of_threads));
 
-    cudaStream_t& stream_handle = LIN_ALG::get_stream_handle(thread_id, stream_id);
+    cudaStream_t stream_handle = dca::linalg::util::getStream(thread_id, stream_id);
 
     compute_Gamma_kernel<<<blocks, threads, 0, stream_handle>>>(
         Gamma, Gamma_n, Gamma_ld, N, N_r, N_c, N_ld, G, G_r, G_c, G_ld, random_vertex_vector, exp_V,
