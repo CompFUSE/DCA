@@ -1,42 +1,55 @@
-//-*-C++-*-
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Peter Staar (taa@zurich.ibm.com)
+//
+// This class implements a Gaussian fit.
 
-#ifndef MATH_LIBRARY_GAUSSIAN_PROCESSES_GAUSSIAN_FIT_H
-#define MATH_LIBRARY_GAUSSIAN_PROCESSES_GAUSSIAN_FIT_H
+#ifndef DCA_MATH_GAUSSIAN_PROCESSES_GAUSSIAN_FIT_HPP
+#define DCA_MATH_GAUSSIAN_PROCESSES_GAUSSIAN_FIT_HPP
+
+#include "dca/linalg/matrix.hpp"
+#include "dca/linalg/matrixop.hpp"
 
 #include "comp_library/linalg/linalg.hpp"
-#include "covariance_function/covariance_function.h"
-#include "covariance_function/covariance_function_square_exponential.h"
-#include "covariance_function/covariance_function_periodic_square_exponential.h"
 
-namespace math_algorithms {
+namespace dca {
+namespace math {
+namespace gp {
+// dca::math::gp::
 
 template <typename scalar_type, typename K_dmn_t, typename k_dmn_t>
 class gaussian_fit {
-  const static int DIMENSION = K_dmn_t::parameter_type::DIMENSION;
-
+public:
   typedef typename K_dmn_t::parameter_type::element_type K_element_type;
   typedef typename k_dmn_t::parameter_type::element_type k_element_type;
 
-public:
-  typedef dca::linalg::Matrix<scalar_type, dca::linalg::CPU> matrix_type;
+  typedef linalg::Matrix<scalar_type, linalg::CPU> matrix_type;
 
-public:
   gaussian_fit();
-  ~gaussian_fit();
 
-  matrix_type& get_interpolation_matrix();
-  matrix_type& get_correlation_matrix();
+  matrix_type& get_interpolation_matrix() {
+    return interpolation_matrix;
+  }
+  matrix_type& get_correlation_matrix() {
+    return correlation_matrix;
+  }
 
   template <typename covariance_type>
   void initialize(covariance_type& covariance, double error);
 
+private:
   template <typename covariance_type>
   void initialize_interpolation_matrix(covariance_type& covariance, double error);
-
   template <typename covariance_type>
   void initialize_correlation_matrix(covariance_type& covariance, double error);
 
-private:
+  const static int DIMENSION = K_dmn_t::parameter_type::DIMENSION;
+
   std::vector<scalar_type> length_scale;
 
   matrix_type interpolation_matrix;
@@ -46,31 +59,14 @@ private:
 template <typename scalar_type, typename K_dmn_t, typename k_dmn_t>
 gaussian_fit<scalar_type, K_dmn_t, k_dmn_t>::gaussian_fit()
     : length_scale(DIMENSION, 1.),
-
       interpolation_matrix("interpolation_matrix"),
       correlation_matrix("correlation_matrix") {}
-
-template <typename scalar_type, typename K_dmn_t, typename k_dmn_t>
-gaussian_fit<scalar_type, K_dmn_t, k_dmn_t>::~gaussian_fit() {}
-
-template <typename scalar_type, typename K_dmn_t, typename k_dmn_t>
-dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& gaussian_fit<scalar_type, K_dmn_t,
-                                                                 k_dmn_t>::get_interpolation_matrix() {
-  return interpolation_matrix;
-}
-
-template <typename scalar_type, typename K_dmn_t, typename k_dmn_t>
-dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& gaussian_fit<scalar_type, K_dmn_t,
-                                                                 k_dmn_t>::get_correlation_matrix() {
-  return correlation_matrix;
-}
 
 template <typename scalar_type, typename K_dmn_t, typename k_dmn_t>
 template <typename covariance_type>
 void gaussian_fit<scalar_type, K_dmn_t, k_dmn_t>::initialize(covariance_type& covariance,
                                                              double error) {
   initialize_interpolation_matrix(covariance, error);
-
   initialize_correlation_matrix(covariance, error);
 }
 
@@ -83,7 +79,7 @@ void gaussian_fit<scalar_type, K_dmn_t, k_dmn_t>::initialize_interpolation_matri
 
   interpolation_matrix.resizeNoCopy(std::pair<int, int>(N_r, N_c));
 
-  dca::linalg::Matrix<scalar_type, dca::linalg::CPU> K_K("K_K", std::pair<int, int>(N_c, N_c));
+  linalg::Matrix<scalar_type, linalg::CPU> K_K("K_K", std::pair<int, int>(N_c, N_c));
 
   for (int i = 0; i < N_c; i++) {
     for (int j = 0; j < N_c; j++) {
@@ -100,13 +96,12 @@ void gaussian_fit<scalar_type, K_dmn_t, k_dmn_t>::initialize_interpolation_matri
     K_K(i, i) += error * error;
   }
 
-  dca::linalg::Matrix<scalar_type, dca::linalg::CPU> K_K_inv("K_K_inv",
-                                                             std::pair<int, int>(N_c, N_c));
+  linalg::Matrix<scalar_type, linalg::CPU> K_K_inv("K_K_inv", std::pair<int, int>(N_c, N_c));
 
-  LIN_ALG::PSEUDO_INVERSE<dca::linalg::CPU>::execute(K_K, K_K_inv);
+  LIN_ALG::PSEUDO_INVERSE<linalg::CPU>::execute(K_K, K_K_inv);
 
-  dca::linalg::Matrix<scalar_type, dca::linalg::CPU> interpolation_matrix_tmp(
-      "K_K_inv", std::pair<int, int>(N_r, N_c));
+  linalg::Matrix<scalar_type, linalg::CPU> interpolation_matrix_tmp("K_K_inv",
+                                                                    std::pair<int, int>(N_r, N_c));
 
   for (int i = 0; i < N_r; i++) {
     for (int j = 0; j < N_c; j++) {
@@ -123,7 +118,7 @@ void gaussian_fit<scalar_type, K_dmn_t, k_dmn_t>::initialize_interpolation_matri
     interpolation_matrix_tmp(i, i) += error * error;
   }
 
-  dca::linalg::matrixop::gemm('N', 'N', interpolation_matrix_tmp, K_K_inv, interpolation_matrix);
+  linalg::matrixop::gemm('N', 'N', interpolation_matrix_tmp, K_K_inv, interpolation_matrix);
 }
 
 template <typename scalar_type, typename K_dmn_t, typename k_dmn_t>
@@ -150,7 +145,7 @@ void gaussian_fit<scalar_type, K_dmn_t, k_dmn_t>::initialize_correlation_matrix(
     correlation_matrix(i, i) += error * error;
   }
 
-  dca::linalg::Matrix<scalar_type, dca::linalg::CPU> k_to_K("k_to_K", std::pair<int, int>(N_c, N_r));
+  linalg::Matrix<scalar_type, linalg::CPU> k_to_K("k_to_K", std::pair<int, int>(N_c, N_r));
 
   for (int i = 0; i < N_c; i++) {
     for (int j = 0; j < N_r; j++) {
@@ -167,10 +162,12 @@ void gaussian_fit<scalar_type, K_dmn_t, k_dmn_t>::initialize_correlation_matrix(
     k_to_K(i, i) += error * error;
   }
 
-  dca::linalg::matrixop::gemm('N', 'N', scalar_type(-1), interpolation_matrix, k_to_K,
-                              scalar_type(1), correlation_matrix);
+  linalg::matrixop::gemm('N', 'N', scalar_type(-1), interpolation_matrix, k_to_K, scalar_type(1),
+                         correlation_matrix);
 }
 
-}  // math_algorithm
+}  // gp
+}  // math
+}  // dca
 
-#endif  // MATH_LIBRARY_GAUSSIAN_PROCESSES_GAUSSIAN_FIT_H
+#endif  // DCA_MATH_GAUSSIAN_PROCESSES_GAUSSIAN_FIT_HPP
