@@ -13,6 +13,8 @@
 #define DCA_CONFIG_WALKER_DEVICE_HPP
 
 #include "dca/linalg/device_type.hpp"
+#include "dca/linalg/util/info_cuda.hpp"    // Declares printInfoDevices().
+#include "dca/linalg/util/util_cublas.hpp"  // Declares initializeMagma().
 
 constexpr dca::linalg::DeviceType walker_device = dca::linalg::GPU;
 

@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
               << std::endl;
 
 #ifdef DCA_WITH_CUDA
-    printInfoDevices();
+    dca::linalg::util::printInfoDevices();
 #endif  // DCA_WITH_CUDA
 
     dca::util::GitVersion::print();
@@ -62,7 +62,7 @@ int main(int argc, char** argv) {
   }
 
 #ifdef DCA_WITH_CUDA
-  initializeMagma();
+  dca::linalg::util::initializeMagma();
 #endif  // DCA_WITH_CUDA
 
   // Create the parameters object from the input file.
