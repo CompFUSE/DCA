@@ -252,6 +252,9 @@ configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/threading.hpp.in"
 option(DCA_WITH_THREADED_SOLVER "Use threaded cluster solver." ON)
 
 if (DCA_WITH_THREADED_SOLVER)
+
+  dca_add_config_define(DCA_WITH_THREADED_SOLVER)
+
   if (DCA_THREADING_LIBRARY STREQUAL POSIX)
     set(DCA_THREADED_SOLVER_TYPE DCA::posix_qmci_integrator<ClusterSolverBaseType>)
     set(DCA_THREADED_SOLVER_INCLUDE
