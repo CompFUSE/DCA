@@ -34,6 +34,8 @@ if (DCA_WITH_CUDA)
     message(FATAL_ERROR "CUDA or MAGMA not found but requested.")
   endif()
 
+  dca_add_config_define(DCA_WITH_CUDA)
+
   if (DCA_WITH_PINNED_HOST_MEMORY)
     dca_add_config_define(ENABLE_PINNED_MEMORY_ALLOCATION)
   endif()
