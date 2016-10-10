@@ -38,7 +38,7 @@ using ClusterSolverBaseType =
 
 // TODO: Clean this up (remove #ifdef).
 #ifdef DCA_WITH_THREADED_SOLVER
-#include "$DCA_THREADED_SOLVER_INCLUDE@"
+#include "@DCA_THREADED_SOLVER_INCLUDE@"
 using ClusterSolver = @DCA_THREADED_SOLVER_TYPE@;
 #else
 using ClusterSolver = ClusterSolverBaseType;
