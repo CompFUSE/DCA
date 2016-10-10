@@ -889,8 +889,8 @@ double continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_d
   for (int m = 0; m < w_IMAG::dmn_size(); m++)
     CPE_data_obj.f_wn_vec[m] = CPE_data_obj.F_wn_vec[m] - CPE_data_obj.Sigma_0;
 
-  LIN_ALG::GEMV<dca::linalg::CPU>::execute('N', PLUS_ONE, *(CPE_data_obj.A_matrix_ptr),
-                                           CPE_data_obj.alpha_vec_z, MIN_ONE, CPE_data_obj.f_wn_vec);
+  dca::linalg::matrixop::gemv('N', PLUS_ONE, *(CPE_data_obj.A_matrix_ptr), CPE_data_obj.alpha_vec_z,
+                              MIN_ONE, CPE_data_obj.f_wn_vec);
 
   scalartype L2_norm = 0;
   for (int l = 0; l < w_IMAG::dmn_size(); l++)
@@ -908,7 +908,7 @@ void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn
         dca::linalg::Matrix<scalartype, dca::linalg::CPU>& matrix) {
   profiler_type profiler(__FUNCTION__, __FILE__, __LINE__);
 
-  LIN_ALG::GEMV<dca::linalg::CPU>::execute('N', matrix, real_values, imag_values);
+  dca::linalg::matrixop::gemv('N', matrix, real_values, imag_values);
 }
 
 template <class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
@@ -920,7 +920,7 @@ void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn
         dca::linalg::Matrix<scalartype, dca::linalg::CPU>& matrix) {
   profiler_type profiler(__FUNCTION__, __FILE__, __LINE__);
 
-  LIN_ALG::GEMV<dca::linalg::CPU>::execute('T', matrix, imag_values, real_values);
+  dca::linalg::matrixop::gemv('T', matrix, imag_values, real_values);
 }
 }
 

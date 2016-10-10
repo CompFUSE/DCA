@@ -386,12 +386,48 @@ inline void swapRowAndCol(Matrix<ScalarType, device_name>& mat, int i1, int i2, 
   swapCol(mat, i1, i2, thread_id, stream_id);
 }
 
+// Performs the matrix-vector multiplication y <- alpha * op(a) * x + beta * y,
+// where op(X) = X if transX == 'N', op(X) = transposed(X) if transX == 'T', and
+// op(X) == conjugate_transposed(X) if transX == 'C' (X = a).
+// In/Out: y ('In' only if beta != 0)
+// Preconditions: transa should be one of the following: 'N', 'T' or 'C',
+//                a.nrRows() == y.size() if transa == 'N', a.nrCols() == y.size() otherwise,
+//                a.nrCols() == x.size() if transa == 'N', a.nrRows() == x.size() otherwise.
+template <typename ScalarType>
+void gemv(char transa, ScalarType alpha, const matrix<ScalarType, CPU>& a,
+          Vector<ScalarType, CPU>& x, ScalarType beta, Vector<ScalarType, CPU>& y) {
+  if (transa == 'N') {
+    assert(a.nrRows() == y.size());
+    assert(a.nrCols() == x.size());
+  }
+  else {
+    assert(a.nrRows() == x.size());
+    assert(a.nrCols() == y.size());
+  }
+
+  int lda = a.leadingDimension();
+
+  blas::gemv(&transa, a.nrRows(), a.nrCols(), alpha, a.ptr(), lda, x.ptr(), 1, beta, y.ptr(), 1);
+}
+
+// Performs the matrix-vector multiplication y <- alpha * op(a) * x + beta * y,
+// where op(X) = X if transX == 'N', op(X) = transposed(X) if transX == 'T', and
+// op(X) == conjugate_transposed(X) if transX == 'C' (X = a).
+// In/Out: y ('In' only if beta != 0)
+// Preconditions: transa should be one of the following: 'N', 'T' or 'C',
+//                a.nrRows() == y.size() if transa == 'N', a.nrCols() == y.size() otherwise,
+//                a.nrCols() == x.size() if transa == 'N', a.nrRows() == x.size() otherwise.
+template <typename ScalarType>
+void gemv(char transa, const matrix<ScalarType, CPU>& a, Vector<ScalarType, CPU>& x,
+          Vector<ScalarType, CPU>& y) {
+  gemv<ScalarType>(transa, 1., a, x, 0., y);
+}
+
 // Performs the matrix-matrix multiplication c <- alpha * op(a) * op(b) + beta * c,
 // where op(X) = X if transX == 'N', op(X) = transposed(X) if transX == 'T', and
 // op(X) == conjugate_transposed(X) if transX == 'C' (X = a, b).
 // In/Out: c ('In' only if beta != 0)
-// Preconditions: transa and transb should be one of the following: 'N', 'T' for real ScalarType
-//                or  'N', 'T', 'C' for complex ScalarType
+// Preconditions: transa and transb should be one of the following: 'N', 'T' or 'C',
 //                a.nrRows() == c.nrRows() if transa == 'N', a.nrCols() == c.nrRows() otherwise,
 //                b.nrCols() == c.nrCols() if transb == 'N', b.nrRows() == c.nrCols() otherwise,
 //                ka == kb, where ka = a.nrCols() if transa == 'N', ka = a.nrRows() otherwise and
@@ -453,8 +489,7 @@ inline void gemm(ScalarType alpha, const matrix<ScalarType, device_name>& a,
 // where op(X) = X if transX == 'N', op(X) = transposed(X) if transX == 'T', and
 // op(X) == conjugate_transposed(X) if transX == 'C' (X = a, b).
 // Out: c
-// Preconditions: transa and transb should be one of the following: 'N', 'T' for real ScalarType
-//                or  'N', 'T', 'C' for complex ScalarType
+// Preconditions: transa and transb should be one of the following: 'N', 'T' or 'C',
 //                a.nrRows() == c.nrRows() if transa == 'N', a.nrCols() == c.nrRows() otherwise,
 //                b.nrCols() == c.nrCols() if transb == 'N', b.nrRows() == c.nrCols() otherwise,
 //                ka == kb, where ka = a.nrCols() if transa == 'N', ka = a.nrRows() otherwise and

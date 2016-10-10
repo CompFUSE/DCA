@@ -30,6 +30,52 @@ std::complex<ScalarType> conjugate(std::complex<ScalarType> x) {
   return std::conj(x);
 }
 
+// Reference implementation of the matrix-vector multiplication
+// In/Out: c ('In' only if beta != 0)
+// Preconditions: transa should be one of the following: 'N', 'T' or 'C',
+//                a.nrRows() == y.size() if transa == 'N', a.nrCols() == y.size() otherwise,
+//                a.nrCols() == x.size() if transa == 'N', a.nrRows() == x.size() otherwise.
+// Remark: this implementation is inefficient.
+//         It should only be used for testing purpose with small matrices.
+template <typename ScalarType>
+void refGemv(char transa, ScalarType alpha,
+             const dca::linalg::Matrix<ScalarType, dca::linalg::CPU>& a,
+             const dca::linalg::Vector<ScalarType, dca::linalg::CPU>& x, ScalarType beta,
+             dca::linalg::Vector<ScalarType, dca::linalg::CPU>& y) {
+  // Set the values for transa equal 'N'.
+  int ma = a.nrRows();
+  int na = a.nrCols();
+
+  auto op_a = [transa, &a](int i, int j) {
+    switch (transa) {
+      case 'T':
+        return a(j, i);
+      case 'C':
+        return testing::conjugate(a(j, i));
+      default:
+        return a(i, j);
+    }
+  };
+
+  if (transa == 'T' || transa == 'C') {
+    ma = a.nrCols();
+    na = a.nrRows();
+  }
+  else if (transa != 'N') {
+    // transa is not 'N', 'T' or 'C'
+    throw std::logic_error("Wrong value for transa");
+  }
+
+  if (ma != y.size() || na != x.size())
+    throw std::logic_error("Wrong matrix sizes");
+
+  for (int i = 0; i < y.size(); ++i) {
+    y[i] *= beta;
+    for (int j = 0; j < x.size(); ++j)
+      y[i] += alpha * op_a(i, j) * x[j];
+  }
+}
+
 // Reference implementation of the matrix-matrix multiplication
 // In/Out: c ('In' only if beta != 0)
 // Preconditions: transa and transb should be one of the following: 'N', 'T', 'C',
@@ -115,6 +161,158 @@ const ScalarType MatrixopRealCPUTest<ScalarType>::epsilon = std::numeric_limits<
 
 typedef ::testing::Types<float, double> FloatingPointTypes;
 TYPED_TEST_CASE(MatrixopRealCPUTest, FloatingPointTypes);
+
+template <typename ComplexType>
+class MatrixopComplexCPUTest : public ::testing::Test {
+public:
+  static const typename ComplexType::value_type epsilon;
+};
+template <typename ComplexType>
+const typename ComplexType::value_type MatrixopComplexCPUTest<ComplexType>::epsilon =
+    std::numeric_limits<typename ComplexType::value_type>::epsilon();
+
+typedef ::testing::Types<std::complex<float>, std::complex<double>> ComplexFloatingPointTypes;
+TYPED_TEST_CASE(MatrixopComplexCPUTest, ComplexFloatingPointTypes);
+
+TYPED_TEST(MatrixopRealCPUTest, Gemv) {
+  using ScalarType = TypeParam;
+  auto val_a = [](int i, int j) { return 3 * i - 2 * j; };
+  auto val_x = [](int i) { return 4 * i; };
+  auto val_y = [](int i) { return 2 * i * i; };
+
+  int m = 2;
+  int n = 3;
+  std::pair<int, int> size_c(2, 3);
+
+  char trans_opts[] = {'N', 'T', 'C'};
+
+  for (auto transa : trans_opts) {
+    std::pair<int, int> size_a;
+    if (transa == 'N') {
+      size_a.first = m;
+      size_a.second = n;
+    }
+    else {
+      size_a.first = n;
+      size_a.second = m;
+    }
+
+    {
+      dca::linalg::Matrix<ScalarType, dca::linalg::CPU> a(size_a);
+      dca::linalg::Vector<ScalarType, dca::linalg::CPU> x(n);
+      dca::linalg::Vector<ScalarType, dca::linalg::CPU> y(m);
+
+      testing::setMatrixElements(a, val_a);
+      testing::setVectorElements(x, val_x);
+      testing::setVectorElements(y, val_y);
+
+      a.print();
+      x.print();
+      y.print();
+
+      dca::linalg::Vector<ScalarType, dca::linalg::CPU> yref(y);
+
+      testing::refGemv(transa, ScalarType(1), a, x, ScalarType(0), yref);
+      dca::linalg::matrixop::gemv(transa, a, x, y);
+
+      y.print();
+      yref.print();
+
+      for (int i = 0; i < y.size(); ++i) {
+        EXPECT_NEAR(yref[i], y[i], 500 * this->epsilon);
+      }
+    }
+    {
+      dca::linalg::Matrix<ScalarType, dca::linalg::CPU> a(size_a);
+      dca::linalg::Vector<ScalarType, dca::linalg::CPU> x(n);
+      dca::linalg::Vector<ScalarType, dca::linalg::CPU> y(m);
+
+      testing::setMatrixElements(a, val_a);
+      testing::setVectorElements(x, val_x);
+      testing::setVectorElements(y, val_y);
+
+      dca::linalg::Vector<ScalarType, dca::linalg::CPU> yref(y);
+
+      ScalarType alpha = .57;
+      ScalarType beta = -.712;
+
+      testing::refGemv(transa, alpha, a, x, beta, yref);
+      dca::linalg::matrixop::gemv(transa, alpha, a, x, beta, y);
+
+      y.print();
+      yref.print();
+
+      for (int i = 0; i < y.size(); ++i) {
+        EXPECT_NEAR(yref[i], y[i], 500 * this->epsilon);
+      }
+    }
+  }
+}
+
+TYPED_TEST(MatrixopComplexCPUTest, Gemv) {
+  using ScalarType = TypeParam;
+  auto val_a = [](int i, int j) { return ScalarType(3 * i - 2 * j, 1 - i * i + j); };
+  auto val_x = [](int i) { return ScalarType(i, 4 * i - 3 * i * i); };
+  auto val_y = [](int i) { return ScalarType(2 * i, 2 * i * i); };
+
+  int m = 2;
+  int n = 3;
+  std::pair<int, int> size_c(2, 3);
+
+  char trans_opts[] = {'N', 'T', 'C'};
+
+  for (auto transa : trans_opts) {
+    std::pair<int, int> size_a;
+    if (transa == 'N') {
+      size_a.first = m;
+      size_a.second = n;
+    }
+    else {
+      size_a.first = n;
+      size_a.second = m;
+    }
+
+    {
+      dca::linalg::Matrix<ScalarType, dca::linalg::CPU> a(size_a);
+      dca::linalg::Vector<ScalarType, dca::linalg::CPU> x(n);
+      dca::linalg::Vector<ScalarType, dca::linalg::CPU> y(m);
+
+      testing::setMatrixElements(a, val_a);
+      testing::setVectorElements(x, val_x);
+      testing::setVectorElements(y, val_y);
+
+      dca::linalg::Vector<ScalarType, dca::linalg::CPU> yref(y);
+
+      testing::refGemv(transa, ScalarType(1), a, x, ScalarType(0), yref);
+      dca::linalg::matrixop::gemv(transa, a, x, y);
+
+      for (int i = 0; i < y.size(); ++i) {
+        EXPECT_GE(500 * this->epsilon, std::abs(yref[i] - y[i]));
+      }
+    }
+    {
+      dca::linalg::Matrix<ScalarType, dca::linalg::CPU> a(size_a);
+      dca::linalg::Vector<ScalarType, dca::linalg::CPU> x(n);
+      dca::linalg::Vector<ScalarType, dca::linalg::CPU> y(m);
+
+      testing::setMatrixElements(a, val_a);
+      testing::setVectorElements(x, val_x);
+      testing::setVectorElements(y, val_y);
+
+      dca::linalg::Vector<ScalarType, dca::linalg::CPU> yref(y);
+
+      ScalarType alpha = .57;
+      ScalarType beta = -.712;
+
+      testing::refGemv(transa, alpha, a, x, beta, yref);
+      dca::linalg::matrixop::gemv(transa, alpha, a, x, beta, y);
+
+      for (int i = 0; i < y.size(); ++i) {
+        EXPECT_GE(500 * this->epsilon, std::abs(yref[i] - y[i]));
+      }
+    }
+  }
+}
 
 TYPED_TEST(MatrixopRealCPUTest, Gemm) {
   using ScalarType = TypeParam;
@@ -243,18 +441,6 @@ TYPED_TEST(MatrixopRealCPUTest, Gemm) {
     }
   }
 }
-
-template <typename ComplexType>
-class MatrixopComplexCPUTest : public ::testing::Test {
-public:
-  static const typename ComplexType::value_type epsilon;
-};
-template <typename ComplexType>
-const typename ComplexType::value_type MatrixopComplexCPUTest<ComplexType>::epsilon =
-    std::numeric_limits<typename ComplexType::value_type>::epsilon();
-
-typedef ::testing::Types<std::complex<float>, std::complex<double>> ComplexFloatingPointTypes;
-TYPED_TEST_CASE(MatrixopComplexCPUTest, ComplexFloatingPointTypes);
 
 TYPED_TEST(MatrixopComplexCPUTest, Gemm) {
   using ScalarType = TypeParam;
