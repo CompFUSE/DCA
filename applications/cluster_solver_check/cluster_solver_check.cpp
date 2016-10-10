@@ -53,9 +53,17 @@ int main(int argc, char** argv) {
               << "MPI-world set up: " << concurrency.number_of_processors() << " processes.\n"
               << std::endl;
 
+#ifdef DCA_WITH_CUDA
+    printInfoDevices();
+#endif  // DCA_WITH_CUDA
+
     dca::util::GitVersion::print();
     dca::util::Modules::print();
   }
+
+#ifdef DCA_WITH_CUDA
+  initializeMagma();
+#endif  // DCA_WITH_CUDA
 
   // Create the parameters object from the input file.
   ParametersType parameters(dca::util::GitVersion::string(), concurrency);
