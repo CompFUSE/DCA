@@ -410,10 +410,10 @@ void gemv(char transa, ScalarType alpha, const matrix<ScalarType, CPU>& a,
   blas::gemv(&transa, a.nrRows(), a.nrCols(), alpha, a.ptr(), lda, x.ptr(), 1, beta, y.ptr(), 1);
 }
 
-// Performs the matrix-vector multiplication y <- alpha * op(a) * x + beta * y,
+// Performs the matrix-vector multiplication y <- op(a) * x + y,
 // where op(X) = X if transX == 'N', op(X) = transposed(X) if transX == 'T', and
 // op(X) == conjugate_transposed(X) if transX == 'C' (X = a).
-// In/Out: y ('In' only if beta != 0)
+// Out: y
 // Preconditions: transa should be one of the following: 'N', 'T' or 'C',
 //                a.nrRows() == y.size() if transa == 'N', a.nrCols() == y.size() otherwise,
 //                a.nrCols() == x.size() if transa == 'N', a.nrRows() == x.size() otherwise.

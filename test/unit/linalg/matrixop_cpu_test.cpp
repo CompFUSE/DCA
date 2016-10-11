@@ -35,7 +35,7 @@ std::complex<ScalarType> conjugate(std::complex<ScalarType> x) {
 // Preconditions: transa should be one of the following: 'N', 'T' or 'C',
 //                a.nrRows() == y.size() if transa == 'N', a.nrCols() == y.size() otherwise,
 //                a.nrCols() == x.size() if transa == 'N', a.nrRows() == x.size() otherwise.
-// Remark: this implementation is inefficient.
+// Remark: This implementation is inefficient.
 //         It should only be used for testing purpose with small matrices.
 template <typename ScalarType>
 void refGemv(char transa, ScalarType alpha,
@@ -83,7 +83,7 @@ void refGemv(char transa, ScalarType alpha,
 //                b.nrCols() == c.nrCols() if transb == 'N', b.nrRows() == c.nrCols() otherwise,
 //                ka == kb, where ka = a.nrCols() if transa == 'N', ka = a.nrRows() otherwise and
 //                          kb = b.nrRows() if transb == 'N', kb = b.nrCols() otherwise.
-// Remark: this implementation is inefficient.
+// Remark: This implementation is inefficient.
 //         It should only be used for testing purpose with small matrices.
 template <typename ScalarTypeA, typename ScalarTypeB, typename ScalarTypeC>
 void refGemm(char transa, char transb, ScalarTypeC alpha,
