@@ -15,6 +15,7 @@
 #include <complex>
 #include <cublas_v2.h>
 
+#include "dca/linalg/util/cast_cuda.hpp"
 #include "dca/linalg/util/error_cublas.hpp"
 #include "dca/linalg/util/error_cuda.hpp"
 
@@ -36,16 +37,16 @@ inline void swap(cublasHandle_t handle, int n, double* x, int incx, double* y, i
 }
 inline void swap(cublasHandle_t handle, int n, std::complex<float>* x, int incx,
                  std::complex<float>* y, int incy) {
-  cuComplex* cu_x = reinterpret_cast<cuComplex*>(x);
-  cuComplex* cu_y = reinterpret_cast<cuComplex*>(y);
+  cuComplex* cu_x = util::castCudaComplex(x);
+  cuComplex* cu_y = util::castCudaComplex(y);
   cublasStatus_t status = cublasCswap(handle, n, cu_x, incx, cu_y, incy);
   checkRC(status);
   checkErrorsCudaDebug();
 }
 inline void swap(cublasHandle_t handle, int n, std::complex<double>* x, int incx,
                  std::complex<double>* y, int incy) {
-  cuDoubleComplex* cu_x = reinterpret_cast<cuDoubleComplex*>(x);
-  cuDoubleComplex* cu_y = reinterpret_cast<cuDoubleComplex*>(y);
+  cuDoubleComplex* cu_x = util::castCudaComplex(x);
+  cuDoubleComplex* cu_y = util::castCudaComplex(y);
   cublasStatus_t status = cublasZswap(handle, n, cu_x, incx, cu_y, incy);
   checkRC(status);
   checkErrorsCudaDebug();
@@ -63,16 +64,16 @@ inline void scal(cublasHandle_t handle, int n, double alpha, double* x, int incx
 }
 inline void scal(cublasHandle_t handle, int n, std::complex<float> alpha, std::complex<float>* x,
                  int incx) {
-  const cuComplex* cu_alpha = reinterpret_cast<const cuComplex*>(&alpha);
-  cuComplex* cu_x = reinterpret_cast<cuComplex*>(x);
+  const cuComplex* cu_alpha = util::castCudaComplex(alpha);
+  cuComplex* cu_x = util::castCudaComplex(x);
   cublasStatus_t status = cublasCscal(handle, n, cu_alpha, cu_x, incx);
   checkRC(status);
   checkErrorsCudaDebug();
 }
 inline void scal(cublasHandle_t handle, int n, std::complex<double> alpha, std::complex<double>* x,
                  int incx) {
-  const cuDoubleComplex* cu_alpha = reinterpret_cast<const cuDoubleComplex*>(&alpha);
-  cuDoubleComplex* cu_x = reinterpret_cast<cuDoubleComplex*>(x);
+  const cuDoubleComplex* cu_alpha = util::castCudaComplex(alpha);
+  cuDoubleComplex* cu_x = util::castCudaComplex(x);
   cublasStatus_t status = cublasZscal(handle, n, cu_alpha, cu_x, incx);
   checkRC(status);
   checkErrorsCudaDebug();
@@ -90,16 +91,16 @@ inline void copy(cublasHandle_t handle, int n, const double* x, int incx, double
 }
 inline void copy(cublasHandle_t handle, int n, const std::complex<float>* x, int incx,
                  std::complex<float>* y, int incy) {
-  const cuComplex* cu_x = reinterpret_cast<const cuComplex*>(x);
-  cuComplex* cu_y = reinterpret_cast<cuComplex*>(y);
+  const cuComplex* cu_x = util::castCudaComplex(x);
+  cuComplex* cu_y = util::castCudaComplex(y);
   cublasStatus_t status = cublasCcopy(handle, n, cu_x, incx, cu_y, incy);
   checkRC(status);
   checkErrorsCudaDebug();
 }
 inline void copy(cublasHandle_t handle, int n, const std::complex<double>* x, int incx,
                  std::complex<double>* y, int incy) {
-  const cuDoubleComplex* cu_x = reinterpret_cast<const cuDoubleComplex*>(x);
-  cuDoubleComplex* cu_y = reinterpret_cast<cuDoubleComplex*>(y);
+  const cuDoubleComplex* cu_x = util::castCudaComplex(x);
+  cuDoubleComplex* cu_y = util::castCudaComplex(y);
   cublasStatus_t status = cublasZcopy(handle, n, cu_x, incx, cu_y, incy);
   checkRC(status);
   checkErrorsCudaDebug();
@@ -119,18 +120,18 @@ inline void axpy(cublasHandle_t handle, int n, double alpha, const double* x, in
 }
 inline void axpy(cublasHandle_t handle, int n, std::complex<float> alpha,
                  const std::complex<float>* x, int incx, std::complex<float>* y, int incy) {
-  const cuComplex* cu_alpha = reinterpret_cast<const cuComplex*>(&alpha);
-  const cuComplex* cu_x = reinterpret_cast<const cuComplex*>(x);
-  cuComplex* cu_y = reinterpret_cast<cuComplex*>(y);
+  const cuComplex* cu_alpha = util::castCudaComplex(alpha);
+  const cuComplex* cu_x = util::castCudaComplex(x);
+  cuComplex* cu_y = util::castCudaComplex(y);
   cublasStatus_t status = cublasCaxpy(handle, n, cu_alpha, cu_x, incx, cu_y, incy);
   checkRC(status);
   checkErrorsCudaDebug();
 }
 inline void axpy(cublasHandle_t handle, int n, std::complex<double> alpha,
                  const std::complex<double>* x, int incx, std::complex<double>* y, int incy) {
-  const cuDoubleComplex* cu_alpha = reinterpret_cast<const cuDoubleComplex*>(&alpha);
-  const cuDoubleComplex* cu_x = reinterpret_cast<const cuDoubleComplex*>(x);
-  cuDoubleComplex* cu_y = reinterpret_cast<cuDoubleComplex*>(y);
+  const cuDoubleComplex* cu_alpha = util::castCudaComplex(alpha);
+  const cuDoubleComplex* cu_x = util::castCudaComplex(x);
+  cuDoubleComplex* cu_y = util::castCudaComplex(y);
   cublasStatus_t status = cublasZaxpy(handle, n, cu_alpha, cu_x, incx, cu_y, incy);
   checkRC(status);
   checkErrorsCudaDebug();
