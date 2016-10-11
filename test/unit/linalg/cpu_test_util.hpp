@@ -13,6 +13,7 @@
 #define DCA_TEST_UNIT_LINALG_CPU_TEST_UTIL_HPP
 
 #include "dca/linalg/matrix.hpp"
+#include "dca/linalg/vector.hpp"
 
 namespace testing {
 // The elements of the matrix will be set with mat(i, j) = func(i, j).
@@ -25,6 +26,17 @@ void setMatrixElements(dca::linalg::Matrix<ScalarType, dca::linalg::CPU>& mat, F
       ScalarType el(func(i, j));
       mat(i, j) = el;
     }
+}
+
+// The elements of the vector will be set with vec[i] = func(i).
+// In: func
+// Out: vec
+template <typename ScalarType, typename F>
+void setVectorElements(dca::linalg::Vector<ScalarType, dca::linalg::CPU>& vec, F& func) {
+  for (int i = 0; i < vec.size(); ++i) {
+    ScalarType el(func(i));
+    vec[i] = el;
+  }
 }
 }  // testing
 

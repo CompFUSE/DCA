@@ -24,7 +24,6 @@
 // LAPACK
 #include "comp_library/blas_lapack_plans/LAPACK/LAPACK_C_wrappers.h"
 #include "comp_library/blas_lapack_plans/LAPACK/geinv_plan.h"
-#include "comp_library/blas_lapack_plans/LAPACK/geqr_plans/geqr_plans_real.h"
 #include "comp_library/blas_lapack_plans/LAPACK/gesv_plan.h"
 
 #endif  // COMP_LIBRARY_BLAS_LAPACK_PLANS_BLAS_LAPACK_PLANS_HPP

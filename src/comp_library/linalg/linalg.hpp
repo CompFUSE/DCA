@@ -52,10 +52,6 @@
 #include "src/linalg_operations/BENNET_CPU.h"
 #include "src/linalg_operations/BENNET_GPU.h"
 
-#include "src/linalg_operations/GETRS_tem.h"
-#include "src/linalg_operations/GETRS_CPU.h"
-#include "src/linalg_operations/GETRS_GPU.h"
-
 #include "src/linalg_operations/GETRF_tem.h"
 #include "src/linalg_operations/GETRF_CPU.h"
 #include "src/linalg_operations/GETRF_GPU.h"
@@ -72,10 +68,6 @@
 
 #include "src/linalg_operations/GESV_tem.h"
 #include "src/linalg_operations/GESV_CPU.h"
-
-#include "src/linalg_operations/GESVD_tem.h"
-#include "src/linalg_operations/GESVD_CPU.h"
-#include "src/linalg_operations/GESVD_GPU.h"
 
 #include "src/linalg_operations/PSEUDO_INVERSE_tem.h"
 #include "src/linalg_operations/PSEUDO_INVERSE_CPU.h"
