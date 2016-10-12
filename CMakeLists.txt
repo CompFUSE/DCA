@@ -154,7 +154,7 @@ set(DCA_LIBS
   function)
 
 if (DCA_HAVE_CUDA)
-  list(APPEND DCA_LIBS DCA_GPU_routines lapack_kernels cuda_utils ${DCA_CUDA_LIBS})
+  list(APPEND DCA_LIBS DCA_GPU_routines lapack_kernels blas_kernels cuda_utils ${DCA_CUDA_LIBS})
 endif()
 
 # Includes

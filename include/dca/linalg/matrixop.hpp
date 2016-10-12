@@ -29,6 +29,10 @@
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/vector.hpp"
 
+#ifdef DCA_HAVE_CUDA
+#include "dca/linalg/blas/kernels_gpu.hpp"
+#endif
+
 #include "comp_library/linalg/src/linalg_operations/GPUfunc.h"
 #include "comp_library/linalg/src/linalg_operations/memory_management_GPU.h"
 
@@ -69,6 +73,7 @@ inline void copyCols(const Matrix<ScalarType, CPU>& mat_x, const Vector<int, CPU
   for (int ind_j = 0; ind_j < j_x.size(); ++ind_j)
     copyCol(mat_x, j_x[ind_j], mat_y, j_y[ind_j]);
 }
+#ifdef DCA_HAVE_CUDA
 template <typename ScalarType>
 inline void copyCols(const Matrix<ScalarType, GPU>& mat_x, const Vector<int, GPU>& j_x,
                      Matrix<ScalarType, GPU>& mat_y, const Vector<int, GPU>& j_y, int thread_id = 0,
@@ -76,10 +81,10 @@ inline void copyCols(const Matrix<ScalarType, GPU>& mat_x, const Vector<int, GPU
   assert(j_x.size() <= j_y.size());
   assert(mat_x.nrRows() == mat_y.nrRows());
 
-  GPU_KERNEL::many_column_copies(mat_x.nrRows(), j_x.size(), j_x.ptr(), mat_x.ptr(),
-                                 mat_x.leadingDimension(), j_y.ptr(), mat_y.ptr(),
-                                 mat_y.leadingDimension(), thread_id, stream_id);
+  blas::copyCols(mat_x.nrRows(), j_x.size(), j_x.ptr(), mat_x.ptr(), mat_x.leadingDimension(),
+                 j_y.ptr(), mat_y.ptr(), mat_y.leadingDimension(), thread_id, stream_id);
 }
+#endif  // DCA_HAVE_CUDA
 
 // Copies the ix-th row of mat_x into the iy-th row of mat_y.
 // In/Out: mat_y
@@ -114,6 +119,7 @@ inline void copyRows(const Matrix<ScalarType, CPU>& mat_x, const Vector<int, CPU
     for (int ind_i = 0; ind_i < i_x.size(); ++ind_i)
       mat_y(i_y[ind_i], j) = mat_x(i_x[ind_i], j);
 }
+#ifdef DCA_HAVE_CUDA
 template <typename ScalarType>
 inline void copyRows(const Matrix<ScalarType, GPU>& mat_x, const Vector<int, GPU>& i_x,
                      Matrix<ScalarType, GPU>& mat_y, const Vector<int, GPU>& i_y, int thread_id = 0,
@@ -121,10 +127,10 @@ inline void copyRows(const Matrix<ScalarType, GPU>& mat_x, const Vector<int, GPU
   assert(i_x.size() <= i_y.size());
   assert(mat_x.nrCols() == mat_y.nrCols());
 
-  GPU_KERNEL::many_row_copies(mat_x.nrCols(), i_x.size(), i_x.ptr(), mat_x.ptr(),
-                              mat_x.leadingDimension(), i_y.ptr(), mat_y.ptr(),
-                              mat_y.leadingDimension(), thread_id, stream_id);
+  blas::copyRows(mat_x.nrCols(), i_x.size(), i_x.ptr(), mat_x.ptr(), mat_x.leadingDimension(),
+                 i_y.ptr(), mat_y.ptr(), mat_y.leadingDimension(), thread_id, stream_id);
 }
+#endif  // DCA_HAVE_CUDA
 
 // Returns the difference of two matrices in terms of max_i,j(|a(i, j) - b(i, j)|).
 // If the difference is larger than the threshold a std::logic_error exception is thrown,
@@ -226,6 +232,7 @@ void removeCol(Matrix<ScalarType, CPU>& mat, int j) {
 
   mat.resize(std::make_pair(mat.nrRows(), mat.nrCols() - 1));
 }
+#ifdef DCA_HAVE_CUDA
 template <typename ScalarType>
 void removeCol(Matrix<ScalarType, GPU>& mat, int j) {
   assert(j >= 0 && j < mat.nrCols());
@@ -236,6 +243,7 @@ void removeCol(Matrix<ScalarType, GPU>& mat, int j) {
 
   mat.resize(std::make_pair(mat.nrRows(), mat.nrCols() - 1));
 }
+#endif  // DCA_HAVE_CUDA
 
 // Remove the i-th row. The data is moved accordingly.
 // In/Out: mat
@@ -250,6 +258,7 @@ void removeRow(Matrix<ScalarType, CPU>& mat, int i) {
 
   mat.resize(std::make_pair(mat.nrRows() - 1, mat.nrCols()));
 }
+#ifdef DCA_HAVE_CUDA
 template <typename ScalarType>
 void removeRow(Matrix<ScalarType, GPU>& mat, int i) {
   assert(i >= 0 && i < mat.nrRows());
@@ -260,6 +269,7 @@ void removeRow(Matrix<ScalarType, GPU>& mat, int i) {
 
   mat.resize(std::make_pair(mat.nrRows() - 1, mat.nrCols()));
 }
+#endif  // DCA_HAVE_CUDA
 
 // Remove the i-th row and the j-th column. The data is moved accordingly.
 // In/Out: mat
@@ -312,14 +322,16 @@ inline void scaleRows(Matrix<ScalarType, CPU>& mat, const Vector<int, CPU>& i,
     for (int ind = 0; ind < i.size(); ++ind)
       mat(i[ind], j) *= val[ind];
 }
+#ifdef DCA_HAVE_CUDA
 template <typename ScalarType>
 inline void scaleRows(Matrix<ScalarType, GPU>& mat, const Vector<int, GPU>& i,
                       const Vector<ScalarType, GPU>& val, int thread_id = 0, int stream_id = 0) {
   assert(i.size() == val.size());
 
-  GPU_KERNEL::scale_many_rows(mat.nrCols(), i.size(), i.ptr(), val.ptr(), mat.ptr(),
-                              mat.leadingDimension(), thread_id, stream_id);
+  blas::scaleRows(mat.nrCols(), i.size(), i.ptr(), val.ptr(), mat.ptr(), mat.leadingDimension(),
+                  thread_id, stream_id);
 }
+#endif  // DCA_HAVE_CUDA
 
 // Swaps the j1-th column with the j2-th column of mat.
 // In/Out: mat
@@ -340,6 +352,7 @@ inline void swapCol(Matrix<ScalarType, device_name>& mat, int j1, int j2, int th
 //                0 <= j_2[i] < mat.nrCols() for 0 <= i < j_1.size().
 //                j_1[i] != j_1[j] for i != j, j_2[i] != j_2[j] for i != j,
 //                j_1[i] != j_2[j] for all i, j.
+#ifdef DCA_HAVE_CUDA
 template <typename ScalarType>
 inline void swapCols(Matrix<ScalarType, GPU>& mat, const Vector<int, GPU>& j_1,
                      const Vector<int, GPU>& j_2, int thread_id = 0, int stream_id = 0) {
@@ -347,6 +360,7 @@ inline void swapCols(Matrix<ScalarType, GPU>& mat, const Vector<int, GPU>& j_1,
   LIN_ALG::GPU_KERNEL::swap_many_cols(mat.nrRows(), mat.nrCols(), mat.ptr(), mat.leadingDimension(),
                                       j_1.size(), j_1.ptr(), j_2.ptr(), thread_id, stream_id);
 }
+#endif  // DCA_HAVE_CUDA
 
 // Swaps the i1-th row with the i2-th row of mat.
 // In/Out: mat
@@ -367,6 +381,7 @@ inline void swapRow(Matrix<ScalarType, device_name>& mat, int i1, int i2, int th
 //                0 <= i_2[i] < mat.nrRows() for 0 <= i < i_1.size().
 //                i_1[i] != i_1[j] for i != j, i_2[i] != i_2[j] for i != j,
 //                i_1[i] != i_2[j] for all i, j.
+#ifdef DCA_HAVE_CUDA
 template <typename ScalarType>
 inline void swapRows(Matrix<ScalarType, GPU>& mat, const Vector<int, GPU>& i_1,
                      const Vector<int, GPU>& i_2, int thread_id = 0, int stream_id = 0) {
@@ -374,6 +389,7 @@ inline void swapRows(Matrix<ScalarType, GPU>& mat, const Vector<int, GPU>& i_1,
   LIN_ALG::GPU_KERNEL::swap_many_rows(mat.nrRows(), mat.nrCols(), mat.ptr(), mat.leadingDimension(),
                                       i_1.size(), i_1.ptr(), i_2.ptr(), thread_id, stream_id);
 }
+#endif  // DCA_HAVE_CUDA
 
 // Swaps the i1-th row with the i2-th row and the i1-th column with the i2-th column of mat.
 // In/Out: mat
