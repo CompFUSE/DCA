@@ -34,7 +34,6 @@
 #endif
 
 #include "comp_library/linalg/src/linalg_operations/GPUfunc.h"
-#include "comp_library/linalg/src/linalg_operations/memory_management_GPU.h"
 
 namespace dca {
 namespace linalg {
@@ -238,8 +237,7 @@ void removeCol(Matrix<ScalarType, GPU>& mat, int j) {
   assert(j >= 0 && j < mat.nrCols());
 
   if (mat.nrRows() > 0 && j < mat.nrCols() - 1)
-    LIN_ALG::MEMORY_MANAGEMENT<GPU>::remove_first_col(mat.nrRows(), mat.nrCols() - j, mat.ptr(0, j),
-                                                      mat.leadingDimension());
+    blas::moveLeft(mat.nrRows(), mat.nrCols() - j, mat.ptr(0, j), mat.leadingDimension());
 
   mat.resize(std::make_pair(mat.nrRows(), mat.nrCols() - 1));
 }
@@ -264,8 +262,7 @@ void removeRow(Matrix<ScalarType, GPU>& mat, int i) {
   assert(i >= 0 && i < mat.nrRows());
 
   if (mat.nrCols() > 0 && i < mat.nrRows() - 1)
-    LIN_ALG::MEMORY_MANAGEMENT<GPU>::remove_first_row(mat.nrRows() - i, mat.nrCols(), mat.ptr(i, 0),
-                                                      mat.leadingDimension());
+    blas::moveUp(mat.nrRows() - i, mat.nrCols(), mat.ptr(i, 0), mat.leadingDimension());
 
   mat.resize(std::make_pair(mat.nrRows() - 1, mat.nrCols()));
 }

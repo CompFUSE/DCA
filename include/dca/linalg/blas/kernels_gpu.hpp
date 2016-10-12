@@ -45,6 +45,22 @@ inline void copyCols(int col_size, int n_cols, const int* j_x, const std::comple
 }
 
 template <typename Type>
+void moveLeft(int m, int n, Type* a, int lda);
+template <typename Type>
+inline void moveLeft(int m, int n, std::complex<Type>* a, int lda) {
+  auto cu_a = util::castCudaComplex(a);
+  moveLeft(m, n, cu_a, lda);
+}
+
+template <typename Type>
+void moveUp(int m, int n, Type* a, int lda);
+template <typename Type>
+inline void moveUp(int m, int n, std::complex<Type>* a, int lda) {
+  auto cu_a = util::castCudaComplex(a);
+  moveUp(m, n, cu_a, lda);
+}
+
+template <typename Type>
 void scaleRows(int row_size, int n_rows, const int* i, const Type* alpha, Type* a, int lda,
                int thread_id, int stream_id);
 template <typename Type>

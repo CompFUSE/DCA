@@ -27,6 +27,8 @@ namespace kernels {
 
 constexpr int copy_block_size_x = 32;
 constexpr int copy_block_size_y = 8;
+constexpr int move_block_size_x = 32;
+constexpr int move_block_size_y = 8;
 constexpr int scale_block_size_x = 32;
 constexpr int scale_block_size_y = 8;
 
@@ -72,6 +74,59 @@ __global__ void copyCols(int col_size, int n_cols, const int* j_x, const Type* x
 }
 
 template <typename Type>
+__global__ void moveLeft(int m, int n, Type* a, int lda) {
+  assert(blockDim.y == 1);
+  assert(blockDim.z == 1);
+  assert(blockIdx.y == 0);
+  assert(blockIdx.z == 0);
+
+  int i = threadIdx.x + blockIdx.x * blockDim.x;
+
+  if (i < m) {
+    for (int j = 0; j < n - 1; ++j)
+      a[i + j * lda] = a[i + (j + 1) * lda];
+  }
+}
+
+template <typename Type>
+__global__ void moveUp(int m, int n, Type* a, int lda) {
+  assert(blockDim.x == move_block_size_x);
+  assert(blockDim.y == 1);
+  assert(blockDim.z == 1);
+  assert(blockIdx.x == 0);
+  assert(blockIdx.z == 0);
+
+  __shared__ Type work[move_block_size_x * move_block_size_y];
+  int ldw = move_block_size_x;
+
+  int idx = threadIdx.x;
+  int js = blockIdx.y * move_block_size_y;
+  int je = min(n, (blockIdx.y + 1) * move_block_size_y);
+
+  int jd = je - js;
+  a += lda * js;
+
+  int m_div = (m - 1) / blockDim.x * blockDim.x;
+
+  for (int i = 0; i < m_div; i += blockDim.x) {
+    for (int j = 0; j < jd; ++j)
+      work[idx + ldw * j] = a[i + 1 + idx + lda * j];
+    __syncthreads();
+    for (int j = 0; j < jd; ++j)
+      a[i + idx + lda * j] = work[idx + ldw * j];
+    __syncthreads();
+  }
+  int i = m_div;
+  if (i + idx < m - 1) {
+    for (int j = 0; j < jd; ++j)
+      work[idx + ldw * j] = a[i + 1 + idx + lda * j];
+    __syncthreads();
+    for (int j = 0; j < jd; ++j)
+      a[i + idx + lda * j] = work[idx + ldw * j];
+  }
+}
+
+template <typename Type>
 __global__ void scaleRows(int row_size, int n_rows, const int* i, const Type* alpha, Type* a,
                           int lda) {
   assert(blockDim.y == 1);
@@ -91,7 +146,7 @@ __global__ void scaleRows(int row_size, int n_rows, const int* i, const Type* al
       a[ia + j * lda] = a[ia + j * lda] * alpha[ind_i];
   }
 }
-}
+}  // kernels
 // dca::linalg::blas::
 
 template <typename Type>
@@ -145,6 +200,46 @@ template void copyCols(int col_size, int n_cols, const int* j_x, const cuComplex
                        const int* j_y, cuComplex* y, int ldy, int thread_id, int stream_id);
 template void copyCols(int col_size, int n_cols, const int* j_x, const cuDoubleComplex* x, int ldx,
                        const int* j_y, cuDoubleComplex* y, int ldy, int thread_id, int stream_id);
+
+template <typename Type>
+void moveLeft(int m, int n, Type* a, int lda) {
+  assert(lda >= m);
+
+  if (m > 0 && n > 1) {
+    checkErrorsCudaDebug();
+    int bl_x = dca::util::ceilDiv(m, kernels::move_block_size_x);
+
+    dim3 threads(kernels::move_block_size_x);
+    dim3 blocks(bl_x);
+
+    kernels::moveLeft<<<blocks, threads>>>(m, n, a, lda);
+    checkErrorsCudaDebug();
+  }
+}
+template void moveLeft(int m, int n, float* a, int lda);
+template void moveLeft(int m, int n, double* a, int lda);
+template void moveLeft(int m, int n, cuComplex* a, int lda);
+template void moveLeft(int m, int n, cuDoubleComplex* a, int lda);
+
+template <typename Type>
+void moveUp(int m, int n, Type* a, int lda) {
+  assert(lda >= m);
+
+  if (m > 1 && n > 0) {
+    checkErrorsCudaDebug();
+    int bl_y = dca::util::ceilDiv(n, kernels::move_block_size_y);
+
+    dim3 threads(kernels::move_block_size_x);
+    dim3 blocks(1, bl_y);
+
+    kernels::moveUp<<<blocks, threads>>>(m, n, a, lda);
+    checkErrorsCudaDebug();
+  }
+}
+template void moveUp(int m, int n, float* a, int lda);
+template void moveUp(int m, int n, double* a, int lda);
+template void moveUp(int m, int n, cuComplex* a, int lda);
+template void moveUp(int m, int n, cuDoubleComplex* a, int lda);
 
 template <typename Type>
 void scaleRows(int row_size, int n_rows, const int* i, const Type* alpha, Type* a, int lda,

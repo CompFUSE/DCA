@@ -325,6 +325,9 @@ TYPED_TEST(MatrixopComplexCPUTest, RemoveRowCol) {
     dca::linalg::Matrix<ScalarType, dca::linalg::CPU> mat_test(mat);
 
     dca::linalg::matrixop::removeRow(mat_test, ii);
+    EXPECT_EQ(mat.nrRows() - 1, mat_test.nrRows());
+    EXPECT_EQ(mat.nrCols(), mat_test.nrCols());
+
     for (int j = 0; j < mat.nrCols(); ++j) {
       for (int i = 0; i < ii; ++i)
         EXPECT_EQ(mat(i, j), mat_test(i, j));
@@ -336,6 +339,9 @@ TYPED_TEST(MatrixopComplexCPUTest, RemoveRowCol) {
     dca::linalg::Matrix<ScalarType, dca::linalg::CPU> mat_test(mat);
 
     dca::linalg::matrixop::removeCol(mat_test, jj);
+    EXPECT_EQ(mat.nrRows(), mat_test.nrRows());
+    EXPECT_EQ(mat.nrCols() - 1, mat_test.nrCols());
+
     for (int i = 0; i < mat.nrRows(); ++i) {
       for (int j = 0; j < jj; ++j)
         EXPECT_EQ(mat(i, j), mat_test(i, j));
@@ -348,6 +354,9 @@ TYPED_TEST(MatrixopComplexCPUTest, RemoveRowCol) {
       dca::linalg::Matrix<ScalarType, dca::linalg::CPU> mat_test(mat);
 
       dca::linalg::matrixop::removeRowAndCol(mat_test, ii, jj);
+      EXPECT_EQ(mat.nrRows() - 1, mat_test.nrRows());
+      EXPECT_EQ(mat.nrCols() - 1, mat_test.nrCols());
+
       for (int j = 0; j < jj; ++j) {
         for (int i = 0; i < ii; ++i)
           EXPECT_EQ(mat(i, j), mat_test(i, j));
@@ -366,6 +375,9 @@ TYPED_TEST(MatrixopComplexCPUTest, RemoveRowCol) {
     dca::linalg::Matrix<ScalarType, dca::linalg::CPU> mat_test(mat);
 
     dca::linalg::matrixop::removeRowAndCol(mat_test, ii);
+    EXPECT_EQ(mat.nrRows() - 1, mat_test.nrRows());
+    EXPECT_EQ(mat.nrCols() - 1, mat_test.nrCols());
+
     for (int j = 0; j < ii; ++j) {
       for (int i = 0; i < ii; ++i)
         EXPECT_EQ(mat(i, j), mat_test(i, j));

@@ -24,8 +24,6 @@
 
 #include <utility>
 
-#include "src/linalg_operations/memory_management_GPU.cu.h"
-
 // CUBLAS 1
 #include "src/linalg_operations/BLAS_1_SWAP_GPU.cu.h"
 

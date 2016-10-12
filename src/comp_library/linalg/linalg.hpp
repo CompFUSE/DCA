@@ -32,9 +32,6 @@
 #include "src/linalg_structures/cublas_thread_manager_CPU.h"
 #include "src/linalg_structures/cublas_thread_manager_GPU.h"
 
-#include "src/linalg_operations/memory_management_tem.h"
-#include "src/linalg_operations/memory_management_GPU.h"
-
 #include "src/linalg_operations/LU_MATRIX_OPERATIONS.h"
 #include "src/linalg_operations/LU_MATRIX_OPERATIONS_CPU.h"
 #include "src/linalg_operations/LU_MATRIX_OPERATIONS_GPU.h"

@@ -220,7 +220,7 @@ TYPED_TEST(MatrixopRealGPUTest, Trsm) {
 
 TYPED_TEST(MatrixopRealGPUTest, Laset) {
   using ScalarType = TypeParam;
-  std::pair<int, int> size(3, 5);
+  std::pair<int, int> size(41, 35);
   ScalarType diag = 3.4;
   ScalarType offdiag = -1.4;
 
@@ -239,16 +239,21 @@ TYPED_TEST(MatrixopRealGPUTest, Laset) {
     }
 }
 
-TEST(MatrixopGPUTest, RemoveRowCol) {
-  std::pair<int, int> size2(3, 4);
+TYPED_TEST(MatrixopRealGPUTest, RemoveRowCol) {
+  using ScalarType = TypeParam;
+  std::pair<int, int> size2(41, 35);
   auto val = [](int i, int j) { return 10 * i + j; };
-  dca::linalg::Matrix<double, dca::linalg::CPU> mat(size2);
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> mat(size2);
   testing::setMatrixElements(mat, val);
 
   for (int ii : {0, 1, size2.first - 1}) {
-    dca::linalg::Matrix<double, dca::linalg::GPU> dmat(mat);
+    dca::linalg::Matrix<ScalarType, dca::linalg::GPU> dmat(mat);
+
     dca::linalg::matrixop::removeRow(dmat, ii);
-    dca::linalg::Matrix<double, dca::linalg::CPU> mat_test(dmat);
+    EXPECT_EQ(mat.nrRows() - 1, dmat.nrRows());
+    EXPECT_EQ(mat.nrCols(), dmat.nrCols());
+
+    dca::linalg::Matrix<ScalarType, dca::linalg::CPU> mat_test(dmat);
 
     for (int j = 0; j < mat.nrCols(); ++j) {
       for (int i = 0; i < ii; ++i)
@@ -258,9 +263,13 @@ TEST(MatrixopGPUTest, RemoveRowCol) {
     }
   }
   for (int jj : {0, 1, size2.second - 1}) {
-    dca::linalg::Matrix<double, dca::linalg::GPU> dmat(mat);
+    dca::linalg::Matrix<ScalarType, dca::linalg::GPU> dmat(mat);
+
     dca::linalg::matrixop::removeCol(dmat, jj);
-    dca::linalg::Matrix<double, dca::linalg::CPU> mat_test(dmat);
+    EXPECT_EQ(mat.nrRows(), dmat.nrRows());
+    EXPECT_EQ(mat.nrCols() - 1, dmat.nrCols());
+
+    dca::linalg::Matrix<ScalarType, dca::linalg::CPU> mat_test(dmat);
 
     for (int i = 0; i < mat.nrRows(); ++i) {
       for (int j = 0; j < jj; ++j)
@@ -271,9 +280,13 @@ TEST(MatrixopGPUTest, RemoveRowCol) {
   }
   for (int ii : {0, 1, size2.first - 1}) {
     for (int jj : {0, 1, size2.second - 1}) {
-      dca::linalg::Matrix<double, dca::linalg::GPU> dmat(mat);
+      dca::linalg::Matrix<ScalarType, dca::linalg::GPU> dmat(mat);
+
       dca::linalg::matrixop::removeRowAndCol(dmat, ii, jj);
-      dca::linalg::Matrix<double, dca::linalg::CPU> mat_test(dmat);
+      EXPECT_EQ(mat.nrRows() - 1, dmat.nrRows());
+      EXPECT_EQ(mat.nrCols() - 1, dmat.nrCols());
+
+      dca::linalg::Matrix<ScalarType, dca::linalg::CPU> mat_test(dmat);
 
       for (int j = 0; j < jj; ++j) {
         for (int i = 0; i < ii; ++i)
@@ -290,9 +303,13 @@ TEST(MatrixopGPUTest, RemoveRowCol) {
     }
   }
   for (int ii : {0, 1, std::min(size2.first, size2.second) - 1}) {
-    dca::linalg::Matrix<double, dca::linalg::GPU> dmat(mat);
+    dca::linalg::Matrix<ScalarType, dca::linalg::GPU> dmat(mat);
+
     dca::linalg::matrixop::removeRowAndCol(dmat, ii);
-    dca::linalg::Matrix<double, dca::linalg::CPU> mat_test(dmat);
+    EXPECT_EQ(mat.nrRows() - 1, dmat.nrRows());
+    EXPECT_EQ(mat.nrCols() - 1, dmat.nrCols());
+
+    dca::linalg::Matrix<ScalarType, dca::linalg::CPU> mat_test(dmat);
 
     for (int j = 0; j < ii; ++j) {
       for (int i = 0; i < ii; ++i)
@@ -311,8 +328,8 @@ TEST(MatrixopGPUTest, RemoveRowCol) {
 
 TYPED_TEST(MatrixopRealGPUTest, CopyRow) {
   using ScalarType = TypeParam;
-  std::pair<int, int> size2_a(4, 3);
-  std::pair<int, int> size2_b(6, 3);
+  std::pair<int, int> size2_a(41, 35);
+  std::pair<int, int> size2_b(46, 35);
 
   dca::linalg::Vector<int, dca::linalg::CPU> i_sources(3);
   i_sources[0] = 0;
@@ -376,8 +393,8 @@ TYPED_TEST(MatrixopRealGPUTest, CopyRow) {
 
 TYPED_TEST(MatrixopRealGPUTest, CopyCol) {
   using ScalarType = TypeParam;
-  std::pair<int, int> size2_a(3, 4);
-  std::pair<int, int> size2_b(3, 6);
+  std::pair<int, int> size2_a(35, 34);
+  std::pair<int, int> size2_b(35, 36);
 
   dca::linalg::Vector<int, dca::linalg::CPU> j_sources(3);
   j_sources[0] = 0;
@@ -442,7 +459,7 @@ TYPED_TEST(MatrixopRealGPUTest, CopyCol) {
 
 TYPED_TEST(MatrixopRealGPUTest, ScaleRow) {
   using ScalarType = TypeParam;
-  std::pair<int, int> size2_a(4, 3);
+  std::pair<int, int> size2_a(41, 35);
 
   dca::linalg::Vector<int, dca::linalg::CPU> is(3);
   is[0] = 0;
@@ -502,7 +519,7 @@ TYPED_TEST(MatrixopRealGPUTest, ScaleRow) {
 
 TYPED_TEST(MatrixopRealGPUTest, ScaleCol) {
   using ScalarType = TypeParam;
-  std::pair<int, int> size2_a(3, 4);
+  std::pair<int, int> size2_a(31, 45);
 
   dca::linalg::Vector<int, dca::linalg::CPU> js(3);
   js[0] = 0;
@@ -541,7 +558,7 @@ TYPED_TEST(MatrixopRealGPUTest, ScaleCol) {
 }
 
 TEST(MatrixopGPUTest, SwapRow) {
-  std::pair<int, int> size2_a(6, 3);
+  std::pair<int, int> size2_a(41, 35);
 
   dca::linalg::Vector<int, dca::linalg::CPU> i_1(3);
   i_1[0] = 0;
@@ -591,7 +608,7 @@ TEST(MatrixopGPUTest, SwapRow) {
 }
 
 TEST(MatrixopGPUTest, SwapCol) {
-  std::pair<int, int> size2_a(3, 6);
+  std::pair<int, int> size2_a(41, 35);
 
   dca::linalg::Vector<int, dca::linalg::CPU> j_1(3);
   j_1[0] = 0;
