@@ -621,10 +621,9 @@ void compute_spectrum<parameters_type, basis_function_t>::compute_G_k_w_on_clust
 
   dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> S_times_G0_matrix("SxG0_matrix",
                                                                                 nu::dmn_size());
-
-  LIN_ALG::GEINV<dca::linalg::CPU>::plan<std::complex<double>> geinv_obj;
-
-  geinv_obj.initialize(S_times_G0_matrix);
+  // Allocate the work space for inverse only once.
+  dca::linalg::Vector<int, dca::linalg::CPU> ipiv;
+  dca::linalg::Vector<std::complex<double>, dca::linalg::CPU> work;
 
   for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); k_ind++) {
     for (int w_ind = 0; w_ind < w_dmn_t::dmn_size(); w_ind++) {
@@ -641,8 +640,7 @@ void compute_spectrum<parameters_type, basis_function_t>::compute_G_k_w_on_clust
       for (int i = 0; i < nu::dmn_size(); i++)
         S_times_G0_matrix(i, i) = 1. - S_times_G0_matrix(i, i);
 
-      // LIN_ALG::GEINV<dca::linalg::CPU>::execute(S_times_G0_matrix);
-      geinv_obj.execute(S_times_G0_matrix);
+      dca::linalg::matrixop::inverse(S_times_G0_matrix, ipiv, work);
 
       dca::linalg::matrixop::gemm(S_times_G0_matrix, G0_matrix, G_matrix);
 

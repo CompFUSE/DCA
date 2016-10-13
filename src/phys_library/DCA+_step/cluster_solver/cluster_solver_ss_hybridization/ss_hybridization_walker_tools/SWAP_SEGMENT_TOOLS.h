@@ -195,7 +195,7 @@ double swap_segment_tools<hybridization_routines_type>::construct_inverse(
       }
     */
 
-    LIN_ALG::GEINV<dca::linalg::CPU>::execute(M);
+    dca::linalg::matrixop::inverse(M);
 
     for (int i = 0; i < M.size().first; i++)
       det *= M(i, i);

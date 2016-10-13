@@ -26,7 +26,3 @@
 
 // own kernels
 #include "src/linalg_operations/GEMD_GPU.cu.h"
-
-// magma
-#include "src/linalg_operations/GETRF_GPU.cu.h"
-#include "src/linalg_operations/GETRI_GPU.cu.h"

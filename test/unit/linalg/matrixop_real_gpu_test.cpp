@@ -11,13 +11,15 @@
 
 #include "dca/linalg/matrixop.hpp"
 #include <complex>
+#include <limits>
 #include <stdexcept>
 #include <string>
 #include <utility>
 #include "gtest/gtest.h"
+#include "dca/linalg/blas/blas3.hpp"
 #include "dca/linalg/lapack/use_device.hpp"
 #include "dca/linalg/matrix.hpp"
-#include "dca/linalg/blas/blas3.hpp"
+#include "dca/linalg/util/util_cublas.hpp"
 #include "cpu_test_util.hpp"
 #include "gpu_test_util.hpp"
 
@@ -237,6 +239,32 @@ TYPED_TEST(MatrixopRealGPUTest, Laset) {
       else
         EXPECT_EQ(offdiag, a(i, j));
     }
+}
+
+TYPED_TEST(MatrixopRealGPUTest, Inverse) {
+  dca::linalg::util::initializeMagma();
+
+  using ScalarType = TypeParam;
+  int size = 6;
+  auto val = [](int i, int j) { return 10 * i + j * j / (i + 1); };
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> mat(size);
+  testing::setMatrixElements(mat, val);
+
+  dca::linalg::Matrix<ScalarType, dca::linalg::GPU> dinvmat(mat);
+  dca::linalg::matrixop::inverse(dinvmat);
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> invmat(dinvmat);
+
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> res(size);
+  dca::linalg::matrixop::gemm(mat, invmat, res);
+
+  for (int j = 0; j < mat.nrCols(); ++j) {
+    for (int i = 0; i < mat.nrRows(); ++i) {
+      if (i == j)
+        EXPECT_NEAR(1, res(i, j), 1000 * this->epsilon);
+      else
+        EXPECT_NEAR(0, res(i, j), 1000 * this->epsilon);
+    }
+  }
 }
 
 TYPED_TEST(MatrixopRealGPUTest, RemoveRowCol) {

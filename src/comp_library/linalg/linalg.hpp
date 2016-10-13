@@ -40,16 +40,6 @@
 #include "src/linalg_operations/BENNET_tem.h"
 #include "src/linalg_operations/BENNET_CPU.h"
 
-#include "src/linalg_operations/GETRF_tem.h"
-#include "src/linalg_operations/GETRF_CPU.h"
-#include "src/linalg_operations/GETRF_GPU.h"
-
-#include "src/linalg_operations/GETRI_tem.h"
-#include "src/linalg_operations/GETRI_CPU.h"
-#include "src/linalg_operations/GETRI_GPU.h"
-
-#include "src/linalg_operations/GEINV_tem.h"
-
 #include "src/linalg_operations/GEEV_tem.h"
 #include "src/linalg_operations/GEEV_CPU.h"
 

@@ -217,7 +217,7 @@ void N_TOOLS<device_t, parameters_type>::build_N_matrix(configuration_type& conf
                                                  N.leadingDimension() + 1, thread_id, stream_id);
   }
 
-  LIN_ALG::GEINV<device_t>::execute(N);
+  dca::linalg::matrixop::inverse(N);
 }
 
 /*!

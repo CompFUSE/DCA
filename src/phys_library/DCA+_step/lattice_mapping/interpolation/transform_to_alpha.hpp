@@ -100,7 +100,10 @@ void transform_to_alpha::forward(
 
   dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU> f_matrix(
       "f_matrix", std::pair<int, int>(N, N));
-  LIN_ALG::GEINV<dca::linalg::CPU>::plan<std::complex<scalar_type>> geinv_obj(f_matrix);
+
+  // Allocate the work space for inverse only once.
+  dca::linalg::Vector<int, dca::linalg::CPU> ipiv;
+  dca::linalg::Vector<std::complex<double>, dca::linalg::CPU> work;
 
   for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); k_ind++) {
     for (int j = 0; j < N; ++j)
@@ -110,8 +113,7 @@ void transform_to_alpha::forward(
     for (int i = 0; i < N; i++)
       f_matrix(i, i) -= I;
 
-    // LIN_ALG::GEINV<dca::linalg::CPU>::execute_on_Green_function_matrix(f_matrix);
-    geinv_obj.execute(f_matrix);
+    dca::linalg::matrixop::inverse(f_matrix, ipiv, work);
 
     for (int j = 0; j < N; ++j)
       for (int i = 0; i < N; ++i)
@@ -130,15 +132,17 @@ void transform_to_alpha::backward(
 
   dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU> f_matrix(
       "f_matrix", std::pair<int, int>(N, N));
-  LIN_ALG::GEINV<dca::linalg::CPU>::plan<std::complex<scalar_type>> geinv_obj(f_matrix);
+
+  // Allocate the work space for inverse only once.
+  dca::linalg::Vector<int, dca::linalg::CPU> ipiv;
+  dca::linalg::Vector<std::complex<double>, dca::linalg::CPU> work;
 
   for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); k_ind++) {
     for (int j = 0; j < N; ++j)
       for (int i = 0; i < N; ++i)
         f_matrix(i, j) = alpha_k_w(i, j, k_ind);
 
-    // LIN_ALG::GEINV<dca::linalg::CPU>::execute_on_Green_function_matrix(f_matrix);
-    geinv_obj.execute(f_matrix);
+    dca::linalg::matrixop::inverse(f_matrix, ipiv, work);
 
     for (int i = 0; i < N; i++)
       f_matrix(i, i) += I;
@@ -158,7 +162,10 @@ void transform_to_alpha::forward(
 
   dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU> f_matrix(
       "f_matrix", std::pair<int, int>(N, N));
-  LIN_ALG::GEINV<dca::linalg::CPU>::plan<std::complex<scalar_type>> geinv_obj(f_matrix);
+
+  // Allocate the work space for inverse only once.
+  dca::linalg::Vector<int, dca::linalg::CPU> ipiv;
+  dca::linalg::Vector<std::complex<double>, dca::linalg::CPU> work;
 
   for (int w_ind = 0; w_ind < w_dmn_t::dmn_size(); w_ind++) {
     scalar_type factor = w_dmn_t::get_elements()[w_ind] > 0 ? 1 : -1;
@@ -173,8 +180,7 @@ void transform_to_alpha::forward(
       for (int i = 0; i < N; i++)
         f_matrix(i, i) -= I;
 
-      // LIN_ALG::GEINV<dca::linalg::CPU>::execute_on_Green_function_matrix(f_matrix);
-      geinv_obj.execute(f_matrix);
+      dca::linalg::matrixop::inverse(f_matrix, ipiv, work);
 
       for (int j = 0; j < N; ++j)
         for (int i = 0; i < N; ++i)
@@ -192,7 +198,10 @@ void transform_to_alpha::backward(
 
   dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU> f_matrix(
       "f_matrix", std::pair<int, int>(N, N));
-  LIN_ALG::GEINV<dca::linalg::CPU>::plan<std::complex<scalar_type>> geinv_obj(f_matrix);
+
+  // Allocate the work space for inverse only once.
+  dca::linalg::Vector<int, dca::linalg::CPU> ipiv;
+  dca::linalg::Vector<std::complex<double>, dca::linalg::CPU> work;
 
   for (int w_ind = 0; w_ind < w_dmn_t::dmn_size(); w_ind++) {
     scalar_type factor = w_dmn_t::get_elements()[w_ind] > 0 ? 1 : -1;
@@ -204,8 +213,7 @@ void transform_to_alpha::backward(
         for (int i = 0; i < N; ++i)
           f_matrix(i, j) = alpha_k_w(i, j, k_ind, w_ind);
 
-      // LIN_ALG::GEINV<dca::linalg::CPU>::execute_on_Green_function_matrix(f_matrix);
-      geinv_obj.execute(f_matrix);
+      dca::linalg::matrixop::inverse(f_matrix, ipiv, work);
 
       for (int i = 0; i < N; i++)
         f_matrix(i, i) += I;

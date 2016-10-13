@@ -18,6 +18,8 @@
 #include <utility>
 #include <vector>
 
+#include "dca/linalg/lapack/inverse.hpp"
+
 #include "comp_library/linalg/linalg.hpp"
 #include "math_library/geometry_library/tetrahedron_mesh/tetrahedron/eigenvalue_degeneracy.hpp"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/tetrahedron_integration_data.hpp"
@@ -234,12 +236,10 @@ void tetrahedron_routines_inverse_matrix_function::execute(
   memcpy(data_obj.G_inv_0, G_0, sizeof(std::complex<scalartype>) * N * N);
   memcpy(data_obj.G_inv_1, G_1, sizeof(std::complex<scalartype>) * N * N);
 
-  LIN_ALG::GEINV<dca::linalg::CPU>::execute(N, data_obj.G_inv_0, data_obj.GEINV_IPIV,
-                                            data_obj.GEINV_WORK, data_obj.GEINV_LWORK, data_obj.INFO);
-  assert(LIN_ALG::GEINV<dca::linalg::CPU>::test(N, G_0, data_obj.G_inv_0));
-  LIN_ALG::GEINV<dca::linalg::CPU>::execute(N, data_obj.G_inv_1, data_obj.GEINV_IPIV,
-                                            data_obj.GEINV_WORK, data_obj.GEINV_LWORK, data_obj.INFO);
-  assert(LIN_ALG::GEINV<dca::linalg::CPU>::test(N, G_1, data_obj.G_inv_1));
+  dca::linalg::lapack::inverse(N, data_obj.G_inv_0, data_obj.inv_ipiv, data_obj.inv_work,
+                               data_obj.inv_lwork);
+  dca::linalg::lapack::inverse(N, data_obj.G_inv_1, data_obj.inv_ipiv, data_obj.inv_work,
+                               data_obj.inv_lwork);
 
   LIN_ALG::GEEV<dca::linalg::CPU>::execute(
       'N', 'V', N, data_obj.G_inv_0, N, data_obj.W_0, data_obj.VR_inv_0, N, data_obj.VR_0, N,
@@ -251,12 +251,10 @@ void tetrahedron_routines_inverse_matrix_function::execute(
   memcpy(data_obj.VR_inv_0, data_obj.VR_0, sizeof(std::complex<scalartype>) * N * N);
   memcpy(data_obj.VR_inv_1, data_obj.VR_1, sizeof(std::complex<scalartype>) * N * N);
 
-  LIN_ALG::GEINV<dca::linalg::CPU>::execute(N, data_obj.VR_inv_0, data_obj.GEINV_IPIV,
-                                            data_obj.GEINV_WORK, data_obj.GEINV_LWORK, data_obj.INFO);
-  assert(LIN_ALG::GEINV<dca::linalg::CPU>::test(N, data_obj.VR_0, data_obj.VR_inv_0));
-  LIN_ALG::GEINV<dca::linalg::CPU>::execute(N, data_obj.VR_inv_1, data_obj.GEINV_IPIV,
-                                            data_obj.GEINV_WORK, data_obj.GEINV_LWORK, data_obj.INFO);
-  assert(LIN_ALG::GEINV<dca::linalg::CPU>::test(N, data_obj.VR_1, data_obj.VR_inv_1));
+  dca::linalg::lapack::inverse(N, data_obj.VR_inv_0, data_obj.inv_ipiv, data_obj.inv_work,
+                               data_obj.inv_lwork);
+  dca::linalg::lapack::inverse(N, data_obj.VR_inv_1, data_obj.inv_ipiv, data_obj.inv_work,
+                               data_obj.inv_lwork);
 
   // integrate G-matrices
 
@@ -357,15 +355,12 @@ void tetrahedron_routines_inverse_matrix_function::execute(
   memcpy(data_obj.G_inv_1, G_1, sizeof(std::complex<scalartype>) * N * N);
   memcpy(data_obj.G_inv_2, G_2, sizeof(std::complex<scalartype>) * N * N);
 
-  LIN_ALG::GEINV<dca::linalg::CPU>::execute(N, data_obj.G_inv_0, data_obj.GEINV_IPIV,
-                                            data_obj.GEINV_WORK, data_obj.GEINV_LWORK, data_obj.INFO);
-  assert(LIN_ALG::GEINV<dca::linalg::CPU>::test(N, G_0, data_obj.G_inv_0));
-  LIN_ALG::GEINV<dca::linalg::CPU>::execute(N, data_obj.G_inv_1, data_obj.GEINV_IPIV,
-                                            data_obj.GEINV_WORK, data_obj.GEINV_LWORK, data_obj.INFO);
-  assert(LIN_ALG::GEINV<dca::linalg::CPU>::test(N, G_1, data_obj.G_inv_1));
-  LIN_ALG::GEINV<dca::linalg::CPU>::execute(N, data_obj.G_inv_2, data_obj.GEINV_IPIV,
-                                            data_obj.GEINV_WORK, data_obj.GEINV_LWORK, data_obj.INFO);
-  assert(LIN_ALG::GEINV<dca::linalg::CPU>::test(N, G_2, data_obj.G_inv_2));
+  dca::linalg::lapack::inverse(N, data_obj.G_inv_0, data_obj.inv_ipiv, data_obj.inv_work,
+                               data_obj.inv_lwork);
+  dca::linalg::lapack::inverse(N, data_obj.G_inv_1, data_obj.inv_ipiv, data_obj.inv_work,
+                               data_obj.inv_lwork);
+  dca::linalg::lapack::inverse(N, data_obj.G_inv_2, data_obj.inv_ipiv, data_obj.inv_work,
+                               data_obj.inv_lwork);
 
   LIN_ALG::GEEV<dca::linalg::CPU>::execute(
       'N', 'V', N, data_obj.G_inv_0, N, data_obj.W_0, data_obj.VR_inv_0, N, data_obj.VR_0, N,
@@ -381,15 +376,12 @@ void tetrahedron_routines_inverse_matrix_function::execute(
   memcpy(data_obj.VR_inv_1, data_obj.VR_1, sizeof(std::complex<scalartype>) * N * N);
   memcpy(data_obj.VR_inv_2, data_obj.VR_2, sizeof(std::complex<scalartype>) * N * N);
 
-  LIN_ALG::GEINV<dca::linalg::CPU>::execute(N, data_obj.VR_inv_0, data_obj.GEINV_IPIV,
-                                            data_obj.GEINV_WORK, data_obj.GEINV_LWORK, data_obj.INFO);
-  assert(LIN_ALG::GEINV<dca::linalg::CPU>::test(N, data_obj.VR_0, data_obj.VR_inv_0));
-  LIN_ALG::GEINV<dca::linalg::CPU>::execute(N, data_obj.VR_inv_1, data_obj.GEINV_IPIV,
-                                            data_obj.GEINV_WORK, data_obj.GEINV_LWORK, data_obj.INFO);
-  assert(LIN_ALG::GEINV<dca::linalg::CPU>::test(N, data_obj.VR_1, data_obj.VR_inv_1));
-  LIN_ALG::GEINV<dca::linalg::CPU>::execute(N, data_obj.VR_inv_2, data_obj.GEINV_IPIV,
-                                            data_obj.GEINV_WORK, data_obj.GEINV_LWORK, data_obj.INFO);
-  assert(LIN_ALG::GEINV<dca::linalg::CPU>::test(N, data_obj.VR_2, data_obj.VR_inv_2));
+  dca::linalg::lapack::inverse(N, data_obj.VR_inv_0, data_obj.inv_ipiv, data_obj.inv_work,
+                               data_obj.inv_lwork);
+  dca::linalg::lapack::inverse(N, data_obj.VR_inv_1, data_obj.inv_ipiv, data_obj.inv_work,
+                               data_obj.inv_lwork);
+  dca::linalg::lapack::inverse(N, data_obj.VR_inv_2, data_obj.inv_ipiv, data_obj.inv_work,
+                               data_obj.inv_lwork);
 
   for (int l = 0; l < N * N; l++)
     f_result[l] = 0;
@@ -645,18 +637,14 @@ void tetrahedron_routines_inverse_matrix_function::execute(
   memcpy(data_obj.G_inv_2, G_2, sizeof(std::complex<scalartype>) * N * N);
   memcpy(data_obj.G_inv_3, G_3, sizeof(std::complex<scalartype>) * N * N);
 
-  LIN_ALG::GEINV<dca::linalg::CPU>::execute(N, data_obj.G_inv_0, data_obj.GEINV_IPIV,
-                                            data_obj.GEINV_WORK, data_obj.GEINV_LWORK, data_obj.INFO);
-  assert(LIN_ALG::GEINV<dca::linalg::CPU>::test(N, G_0, data_obj.G_inv_0));
-  LIN_ALG::GEINV<dca::linalg::CPU>::execute(N, data_obj.G_inv_1, data_obj.GEINV_IPIV,
-                                            data_obj.GEINV_WORK, data_obj.GEINV_LWORK, data_obj.INFO);
-  assert(LIN_ALG::GEINV<dca::linalg::CPU>::test(N, G_1, data_obj.G_inv_1));
-  LIN_ALG::GEINV<dca::linalg::CPU>::execute(N, data_obj.G_inv_2, data_obj.GEINV_IPIV,
-                                            data_obj.GEINV_WORK, data_obj.GEINV_LWORK, data_obj.INFO);
-  assert(LIN_ALG::GEINV<dca::linalg::CPU>::test(N, G_2, data_obj.G_inv_2));
-  LIN_ALG::GEINV<dca::linalg::CPU>::execute(N, data_obj.G_inv_3, data_obj.GEINV_IPIV,
-                                            data_obj.GEINV_WORK, data_obj.GEINV_LWORK, data_obj.INFO);
-  assert(LIN_ALG::GEINV<dca::linalg::CPU>::test(N, G_3, data_obj.G_inv_3));
+  dca::linalg::lapack::inverse(N, data_obj.G_inv_0, data_obj.inv_ipiv, data_obj.inv_work,
+                               data_obj.inv_lwork);
+  dca::linalg::lapack::inverse(N, data_obj.G_inv_1, data_obj.inv_ipiv, data_obj.inv_work,
+                               data_obj.inv_lwork);
+  dca::linalg::lapack::inverse(N, data_obj.G_inv_2, data_obj.inv_ipiv, data_obj.inv_work,
+                               data_obj.inv_lwork);
+  dca::linalg::lapack::inverse(N, data_obj.G_inv_3, data_obj.inv_ipiv, data_obj.inv_work,
+                               data_obj.inv_lwork);
 
   // diagonolize the G-matrices
   LIN_ALG::GEEV<dca::linalg::CPU>::execute(
@@ -678,18 +666,14 @@ void tetrahedron_routines_inverse_matrix_function::execute(
   memcpy(data_obj.VR_inv_2, data_obj.VR_2, sizeof(std::complex<scalartype>) * N * N);
   memcpy(data_obj.VR_inv_3, data_obj.VR_3, sizeof(std::complex<scalartype>) * N * N);
 
-  LIN_ALG::GEINV<dca::linalg::CPU>::execute(N, data_obj.VR_inv_0, data_obj.GEINV_IPIV,
-                                            data_obj.GEINV_WORK, data_obj.GEINV_LWORK, data_obj.INFO);
-  assert(LIN_ALG::GEINV<dca::linalg::CPU>::test(N, data_obj.VR_0, data_obj.VR_inv_0));
-  LIN_ALG::GEINV<dca::linalg::CPU>::execute(N, data_obj.VR_inv_1, data_obj.GEINV_IPIV,
-                                            data_obj.GEINV_WORK, data_obj.GEINV_LWORK, data_obj.INFO);
-  assert(LIN_ALG::GEINV<dca::linalg::CPU>::test(N, data_obj.VR_1, data_obj.VR_inv_1));
-  LIN_ALG::GEINV<dca::linalg::CPU>::execute(N, data_obj.VR_inv_2, data_obj.GEINV_IPIV,
-                                            data_obj.GEINV_WORK, data_obj.GEINV_LWORK, data_obj.INFO);
-  assert(LIN_ALG::GEINV<dca::linalg::CPU>::test(N, data_obj.VR_2, data_obj.VR_inv_2));
-  LIN_ALG::GEINV<dca::linalg::CPU>::execute(N, data_obj.VR_inv_3, data_obj.GEINV_IPIV,
-                                            data_obj.GEINV_WORK, data_obj.GEINV_LWORK, data_obj.INFO);
-  assert(LIN_ALG::GEINV<dca::linalg::CPU>::test(N, data_obj.VR_3, data_obj.VR_inv_3));
+  dca::linalg::lapack::inverse(N, data_obj.VR_inv_0, data_obj.inv_ipiv, data_obj.inv_work,
+                               data_obj.inv_lwork);
+  dca::linalg::lapack::inverse(N, data_obj.VR_inv_1, data_obj.inv_ipiv, data_obj.inv_work,
+                               data_obj.inv_lwork);
+  dca::linalg::lapack::inverse(N, data_obj.VR_inv_2, data_obj.inv_ipiv, data_obj.inv_work,
+                               data_obj.inv_lwork);
+  dca::linalg::lapack::inverse(N, data_obj.VR_inv_3, data_obj.inv_ipiv, data_obj.inv_work,
+                               data_obj.inv_lwork);
 
   // integrate G-matrices
   for (int j = 0; j < N; j++)

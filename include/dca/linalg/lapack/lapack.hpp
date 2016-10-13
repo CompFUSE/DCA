@@ -24,6 +24,22 @@ void claset_(const char* uplo, const int* m, const int* n, const std::complex<fl
              const std::complex<float>* beta, std::complex<float>* a, const int* lda);
 void zlaset_(const char* uplo, const int* m, const int* n, const std::complex<double>* alpha,
              const std::complex<double>* beta, std::complex<double>* a, const int* lda);
+
+void sgetrf_(const int* m, const int* n, float* a, const int* lda, int* ipiv, int* info);
+void dgetrf_(const int* m, const int* n, double* a, const int* lda, int* ipiv, int* info);
+void cgetrf_(const int* m, const int* n, std::complex<float>* a, const int* lda, int* ipiv,
+             int* info);
+void zgetrf_(const int* m, const int* n, std::complex<double>* a, const int* lda, int* ipiv,
+             int* info);
+
+void sgetri_(const int* n, float* a, const int* lda, int* ipiv, float* work, const int* lwork,
+             int* info);
+void dgetri_(const int* n, double* a, const int* lda, int* ipiv, double* work, const int* lwork,
+             int* info);
+void cgetri_(const int* n, std::complex<float>* a, const int* lda, int* ipiv,
+             std::complex<float>* work, const int* lwork, int* info);
+void zgetri_(const int* n, std::complex<double>* a, const int* lda, int* ipiv,
+             std::complex<double>* work, const int* lwork, int* info);
 }
 
 // C++ wrappers
@@ -45,6 +61,34 @@ inline void laset(const char* uplo, int m, int n, std::complex<float> alpha,
 inline void laset(const char* uplo, int m, int n, std::complex<double> alpha,
                   std::complex<double> beta, std::complex<double>* a, int lda) {
   zlaset_(uplo, &m, &n, &alpha, &beta, a, &lda);
+}
+
+inline void getrf(int m, int n, float* a, int lda, int* ipiv, int* info) {
+  sgetrf_(&m, &n, a, &lda, ipiv, info);
+}
+inline void getrf(int m, int n, double* a, int lda, int* ipiv, int* info) {
+  dgetrf_(&m, &n, a, &lda, ipiv, info);
+}
+inline void getrf(int m, int n, std::complex<float>* a, int lda, int* ipiv, int* info) {
+  cgetrf_(&m, &n, a, &lda, ipiv, info);
+}
+inline void getrf(int m, int n, std::complex<double>* a, int lda, int* ipiv, int* info) {
+  zgetrf_(&m, &n, a, &lda, ipiv, info);
+}
+
+inline void getri(int n, float* a, int lda, int* ipiv, float* work, int lwork, int* info) {
+  sgetri_(&n, a, &lda, ipiv, work, &lwork, info);
+}
+inline void getri(int n, double* a, int lda, int* ipiv, double* work, int lwork, int* info) {
+  dgetri_(&n, a, &lda, ipiv, work, &lwork, info);
+}
+inline void getri(int n, std::complex<float>* a, int lda, int* ipiv, std::complex<float>* work,
+                  int lwork, int* info) {
+  cgetri_(&n, a, &lda, ipiv, work, &lwork, info);
+}
+inline void getri(int n, std::complex<double>* a, int lda, int* ipiv, std::complex<double>* work,
+                  int lwork, int* info) {
+  zgetri_(&n, a, &lda, ipiv, work, &lwork, info);
 }
 
 }  // lapack

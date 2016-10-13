@@ -12,6 +12,7 @@
 // - copyCol, copyRow, copyCols, copyRows
 // - difference
 // - insertCol, insertRow (for CPU matrices only)
+// - inverse,
 // - removeCol, removeRow, removeRowAndCol
 // - scaleCol, scaleRow, scaleRows
 // - swapCol, swapRow, swapRowAndCol
@@ -26,7 +27,10 @@
 #include <cstring>
 
 #include "dca/linalg/blas/use_device.hpp"
+#include "dca/linalg/lapack/use_device.hpp"
 #include "dca/linalg/matrix.hpp"
+#include "dca/linalg/util/util_lapack.hpp"
+#include "dca/linalg/util/util_matrixop.hpp"
 #include "dca/linalg/vector.hpp"
 
 #ifdef DCA_HAVE_CUDA
@@ -214,6 +218,43 @@ void insertRow(Matrix<ScalarType, CPU>& mat, int i) {
 
   for (int j = 0; j < mat.nrCols(); ++j)
     mat(i, j) = 0;
+}
+
+// Computes the inverse of the matrix using the LU factorization.
+// In/Out: mat
+// Out: ipiv, work
+// Preconditions: mat is a square matrix.
+// Postconditions: ipiv and work are resized to the needed dimension.
+template <typename ScalarType, DeviceType device_name>
+void inverse(Matrix<ScalarType, device_name>& mat, Vector<int, CPU>& ipiv,
+             Vector<ScalarType, device_name>& work) {
+  assert(mat.is_square());
+
+  ipiv.resize(mat.nrRows());
+  int info = 0;
+
+  lapack::UseDevice<device_name>::getrf(mat.nrRows(), mat.nrCols(), mat.ptr(),
+                                        mat.leadingDimension(), ipiv.ptr(), &info);
+  if (info != 0) {
+    std::cout << "Error: getrf retured info = " << info << std::endl;
+    throw std::logic_error(__FUNCTION__);
+  }
+  // Get optimal worksize.
+  int lwork = util::getInverseWorkSize(mat);
+  work.resize(lwork);
+
+  lapack::UseDevice<device_name>::getri(mat.nrRows(), mat.ptr(), mat.leadingDimension(), ipiv.ptr(),
+                                        work.ptr(), lwork, &info);
+  if (info != 0) {
+    std::cout << "Error: getri retured info = " << info << std::endl;
+    throw std::logic_error(__FUNCTION__);
+  }
+}
+template <typename ScalarType, DeviceType device_name>
+void inverse(Matrix<ScalarType, device_name>& mat) {
+  Vector<int, CPU> ipiv;
+  Vector<ScalarType, device_name> work;
+  inverse(mat, ipiv, work);
 }
 
 // Remove the j-th column. The data is moved accordingly.

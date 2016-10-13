@@ -92,7 +92,9 @@ void cluster_exclusion<parameters_type, MOMS_type>::compute_G0_K_w_cluster_exclu
                                                                            nu::dmn_size());
   dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G0_matrix("G0_matrix", nu::dmn_size());
 
-  LIN_ALG::GEINV<dca::linalg::CPU>::plan<std::complex<double>> geinv_obj(one_plus_S_G);
+  // Allocate the work space for inverse only once.
+  dca::linalg::Vector<int, dca::linalg::CPU> ipiv;
+  dca::linalg::Vector<std::complex<double>, dca::linalg::CPU> work;
 
   for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++) {
     for (int K_ind = 0; K_ind < k_DCA::dmn_size(); K_ind++) {
@@ -116,7 +118,7 @@ void cluster_exclusion<parameters_type, MOMS_type>::compute_G0_K_w_cluster_exclu
       for (int i = 0; i < nu::dmn_size(); i++)
         one_plus_S_G(i, i) += 1.;
 
-      geinv_obj.execute(one_plus_S_G);
+      dca::linalg::matrixop::inverse(one_plus_S_G, ipiv, work);
 
       for (int j = 0; j < nu::dmn_size(); j++)
         for (int i = 0; i < nu::dmn_size(); i++)

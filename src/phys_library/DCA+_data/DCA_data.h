@@ -521,7 +521,9 @@ void DCA_data<parameters_type>::compute_single_particle_properties() {
     dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> I_k("I_matrix", nu::dmn_size());
     dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G_inv("G_inv", nu::dmn_size());
 
-    LIN_ALG::GEINV<dca::linalg::CPU>::plan<std::complex<double>> geinv_obj(G_inv);
+    // Allocate the work space for inverse only once.
+    dca::linalg::Vector<int, dca::linalg::CPU> ipiv;
+    dca::linalg::Vector<std::complex<double>, dca::linalg::CPU> work;
 
     std::complex<double> i_wm_plus_mu;
 
@@ -536,7 +538,7 @@ void DCA_data<parameters_type>::compute_single_particle_properties() {
         for (int i = 0; i < nu::dmn_size(); i++)
           G_inv(i, j) = I_k(i, j) - H_HOST(i, j, k_ind) - Sigma_lattice(i, j, k_ind, w_ind);
 
-      geinv_obj.execute(G_inv);
+      dca::linalg::matrixop::inverse(G_inv, ipiv, work);
 
       for (int j = 0; j < nu::dmn_size(); j++)
         for (int i = 0; i < nu::dmn_size(); i++)

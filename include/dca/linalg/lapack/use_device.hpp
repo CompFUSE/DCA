@@ -18,6 +18,7 @@
 
 #ifdef DCA_HAVE_CUDA
 #include "dca/linalg/lapack/laset_gpu.hpp"
+#include "dca/linalg/lapack/magma.hpp"
 #endif  // DCA_HAVE_CUDA
 
 namespace dca {
@@ -36,6 +37,18 @@ struct UseDevice<CPU> {
                            int lda, int /*thread_id*/, int /*stream_id*/) {
     lapack::laset("A", m, n, offdiag, diag, a, lda);
   }
+
+  // Computational routines
+  template <typename ScalarType>
+  inline static void getrf(int m, int n, ScalarType* a, int lda, int* ipiv, int* info) {
+    lapack::getrf(m, n, a, lda, ipiv, info);
+  }
+
+  template <typename ScalarType>
+  inline static void getri(int n, ScalarType* a, int lda, int* ipiv, ScalarType* work, int lwork,
+                           int* info) {
+    lapack::getri(n, a, lda, ipiv, work, lwork, info);
+  }
 };
 
 #ifdef DCA_HAVE_CUDA
@@ -46,6 +59,18 @@ struct UseDevice<GPU> {
   inline static void laset(int m, int n, ScalarType offdiag, ScalarType diag, ScalarType* a,
                            int lda, int thread_id, int stream_id) {
     lapack::laset_gpu(m, n, offdiag, diag, a, lda, thread_id, stream_id);
+  }
+
+  // Computational routines
+  template <typename ScalarType>
+  inline static void getrf(int m, int n, ScalarType* a, int lda, int* ipiv, int* info) {
+    magma::getrf_gpu(m, n, a, lda, ipiv, info);
+  }
+
+  template <typename ScalarType>
+  inline static void getri(int n, ScalarType* a, int lda, int* ipiv, ScalarType* work, int lwork,
+                           int* info) {
+    magma::getri_gpu(n, a, lda, ipiv, work, lwork, info);
   }
 };
 #endif  // DCA_HAVE_CUDA
