@@ -16,29 +16,29 @@
 #define DCA_MATH_GEOMETRY_GAUSSIAN_QUADRATURE_COMPUTE_WEIGHTS_AND_ABSCISSAS_HPP
 
 #include "dca/math/geometry/gaussian_quadrature/simplex_gm_rule.hpp"
-#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron/tetrahedron.hpp"
+#include "dca/math/geometry/tetrahedron_mesh/tetrahedron.hpp"
 
 namespace dca {
 namespace math {
-namespace gaussquad {
-// dca::math::gaussquad::
+namespace geometry {
+// dca::math::geometry::
 
 // Empty template declaration
 template <int dimension>
-void computeWeightsAndAbscissas(const int rule, math_algorithms::tetrahedron<dimension>& tet);
+void computeWeightsAndAbscissas(const int rule, tetrahedron<dimension>& tet);
 
 // Template specializations
 // 1D
 template <>
-void computeWeightsAndAbscissas(const int rule, math_algorithms::tetrahedron<1>& tet);
+void computeWeightsAndAbscissas(const int rule, tetrahedron<1>& tet);
 // 2D
 template <>
-void computeWeightsAndAbscissas(const int rule, math_algorithms::tetrahedron<2>& tet);
+void computeWeightsAndAbscissas(const int rule, tetrahedron<2>& tet);
 // 3D
 template <>
-void computeWeightsAndAbscissas(const int rule, math_algorithms::tetrahedron<3>& tet);
+void computeWeightsAndAbscissas(const int rule, tetrahedron<3>& tet);
 
-}  // gaussquad
+}  // geometry
 }  // math
 }  // dca
 

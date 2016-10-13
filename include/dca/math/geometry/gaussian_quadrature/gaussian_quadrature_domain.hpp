@@ -19,17 +19,17 @@
 
 #include "dca/function/domains/dmn_0.hpp"
 #include "dca/math/geometry/gaussian_quadrature/compute_weights_and_abscissas.hpp"
+#include "dca/math/geometry/tetrahedron_mesh/tetrahedron_mesh.hpp"
 #include "math_library/functional_transforms/domain_specifications/domain_specifications.hpp"
-#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron_mesh.h"
 #include "math_library/functional_transforms/typedefs.hpp"
+
+// TODO: Remove when refactoring of namespaces is complete.
+using namespace math_algorithms;
 
 namespace dca {
 namespace math {
-namespace gaussquad {
-// dca::math::gaussquad::
-
-// TODO: Remove this when all namespaces are fixed.
-using namespace math_algorithms;
+namespace geometry {
+// dca::math::geometry::
 
 template <typename dmn_type>
 class gaussian_quadrature_domain {};
@@ -271,7 +271,7 @@ void gaussian_quadrature_domain<func::dmn_0<tetrahedron_mesh<func::dmn_0<cluster
   plot_obj.showonscreen();
 }
 
-}  // gaussquad
+}  // geometry
 }  // math
 }  // dca
 

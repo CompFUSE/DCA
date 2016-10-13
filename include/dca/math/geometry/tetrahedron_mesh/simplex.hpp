@@ -7,22 +7,26 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// This class represents a simplex (= edge-corner) of the Brillouin-zone. It is templated over the
-// dimension of k-space.
+// This class represents a simplex (= edge-corner) of the Brillouin zone. It is templated on the
+// dimension of the k-space.
 
-#ifndef MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_SIMPLEX_H
-#define MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_SIMPLEX_H
+#ifndef DCA_MATH_GEOMETRY_TETRAHEDRON_MESH_SIMPLEX_HPP
+#define DCA_MATH_GEOMETRY_TETRAHEDRON_MESH_SIMPLEX_HPP
 
 #include <vector>
 
-namespace math_algorithms {
+namespace dca {
+namespace math {
+namespace geometry {
+// dca::math::geometry::
 
 template <int dimension>
 struct simplex {
-public:
   std::vector<double> k_vec;
 };
 
-}  // math_algorithms
+}  // geometry
+}  // math
+}  // dca
 
-#endif  // MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_SIMPLEX_H
+#endif  // DCA_MATH_GEOMETRY_TETRAHEDRON_MESH_SIMPLEX_HPP

@@ -7,22 +7,25 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// This class constructs a tetrahedron mesh for the Brillouin-zone defined by the template argument
+// This class constructs a tetrahedron mesh for the Brillouin zone defined by the template parameter
 // cluster_type.
 
-#ifndef MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_MESH_H
-#define MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_MESH_H
+#ifndef DCA_MATH_GEOMETRY_TETRAHEDRON_MESH_TETRAHEDRON_MESH_HPP
+#define DCA_MATH_GEOMETRY_TETRAHEDRON_MESH_TETRAHEDRON_MESH_HPP
 
 #include <cassert>
 #include <iostream>
 #include <vector>
 
-#include "math_library/geometry_library/tetrahedron_mesh/facet.h"
-#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron/tetrahedron.hpp"
-#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron_mesh_initializer/tetrahedron_mesh_initializer.hpp"
-#include "math_library/geometry_library/tetrahedron_mesh/simplex.h"
+#include "dca/math/geometry/tetrahedron_mesh/facet.hpp"
+#include "dca/math/geometry/tetrahedron_mesh/simplex.hpp"
+#include "dca/math/geometry/tetrahedron_mesh/tetrahedron.hpp"
+#include "dca/math/geometry/tetrahedron_mesh/tetrahedron_mesh_initializer.hpp"
 
-namespace math_algorithms {
+namespace dca {
+namespace math {
+namespace geometry {
+// dca::math::geometry::
 
 template <typename cluster_type>
 class tetrahedron_mesh {
@@ -34,11 +37,16 @@ public:
   typedef facet<DIMENSION> facet_t;
   typedef std::vector<double> vector_t;
 
-public:
   tetrahedron_mesh(int n_recursion);
 
-  int size();
-  tetrahedron<DIMENSION>& operator[](int l);
+  int size() {
+    return tetrahedra.size();
+  }
+
+  tetrahedron<DIMENSION>& operator[](int l) {
+    assert(l > -1 and l < tetrahedra.size());
+    return tetrahedra[l];
+  }
 
   bool is_inside_volume(std::vector<double> k_vec);
 
@@ -48,16 +56,14 @@ public:
   std::vector<facet_t>& get_facets() {
     return facets;
   };
-
   std::vector<std::vector<double>>& get_mesh() {
     return mesh;
   };
-
   std::vector<tetrahedron<DIMENSION>>& get_tetrahedra() {
     return tetrahedra;
   };
 
-  void translate_simplices(std::vector<double> K);
+  void translate_simplices(const std::vector<double>& K);
 
   static void translate_mesh(std::vector<std::vector<double>>& centered_mesh,
                              std::vector<std::vector<double>>& translated_mesh,
@@ -66,8 +72,8 @@ public:
   bool check_consistency();
 
   void plot_simplices();
-  void plot_mesh_points();
   void plot_facets();
+  void plot_mesh_points();
   void plot_tetrahedra();
 
 private:
@@ -82,46 +88,11 @@ private:
 
 template <typename cluster_type>
 tetrahedron_mesh<cluster_type>::tetrahedron_mesh(int n_recursion)
-    : simplices(0),
-      facets(0),
-      mesh(0),
-      tetrahedra(0),
-
-      N_recursion(n_recursion) {
+    : simplices(0), facets(0), mesh(0), tetrahedra(0), N_recursion(n_recursion) {
   tetrahedron_mesh_initializer<DIMENSION, cluster_type> initializer(simplices, facets, mesh,
                                                                     tetrahedra, N_recursion);
-
   initializer.execute();
-
   assert(check_consistency());
-}
-
-template <typename cluster_type>
-int tetrahedron_mesh<cluster_type>::size() {
-  return tetrahedra.size();
-}
-
-template <typename cluster_type>
-typename tetrahedron_mesh<cluster_type>::tetrahedron_t& tetrahedron_mesh<cluster_type>::operator[](
-    int l) {
-  assert(l > -1 and l < tetrahedra.size());
-  return tetrahedra[l];
-}
-
-template <typename cluster_type>
-void tetrahedron_mesh<cluster_type>::translate_simplices(std::vector<double> K) {
-  for (std::size_t i = 0; i < simplices.size(); i++)
-    for (int j = 0; j < DIMENSION; j++)
-      simplices[i].k_vec[j] += K[j];
-}
-
-template <typename cluster_type>
-void tetrahedron_mesh<cluster_type>::translate_mesh(std::vector<std::vector<double>>& centered_mesh,
-                                                    std::vector<std::vector<double>>& translated_mesh,
-                                                    std::vector<double>& K) {
-  for (std::size_t i = 0; i < centered_mesh.size(); i++)
-    for (std::size_t j = 0; j < centered_mesh[i].size(); j++)
-      translated_mesh[i][j] = centered_mesh[i][j] + K[j];
 }
 
 template <typename cluster_type>
@@ -149,6 +120,22 @@ bool tetrahedron_mesh<cluster_type>::is_inside_volume(std::vector<double> k_vec)
   }
 
   return is_inside;
+}
+
+template <typename cluster_type>
+void tetrahedron_mesh<cluster_type>::translate_simplices(const std::vector<double>& K) {
+  for (std::size_t i = 0; i < simplices.size(); i++)
+    for (int j = 0; j < DIMENSION; j++)
+      simplices[i].k_vec[j] += K[j];
+}
+
+template <typename cluster_type>
+void tetrahedron_mesh<cluster_type>::translate_mesh(std::vector<std::vector<double>>& centered_mesh,
+                                                    std::vector<std::vector<double>>& translated_mesh,
+                                                    std::vector<double>& K) {
+  for (std::size_t i = 0; i < centered_mesh.size(); i++)
+    for (std::size_t j = 0; j < centered_mesh[i].size(); j++)
+      translated_mesh[i][j] = centered_mesh[i][j] + K[j];
 }
 
 template <typename cluster_type>
@@ -227,6 +214,8 @@ void tetrahedron_mesh<cluster_type>::plot_tetrahedra() {
   std::cout << "\n";
 }
 
-}  // math_algorithms
+}  // geometry
+}  // math
+}  // dca
 
-#endif  // MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_MESH_H
+#endif  // DCA_MATH_GEOMETRY_TETRAHEDRON_MESH_TETRAHEDRON_MESH_HPP

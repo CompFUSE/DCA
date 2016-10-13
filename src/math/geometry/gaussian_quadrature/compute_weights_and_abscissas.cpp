@@ -14,12 +14,12 @@
 
 namespace dca {
 namespace math {
-namespace gaussquad {
-// dca::math::gaussquad::
+namespace geometry {
+// dca::math::geometry::
 
 // 1D
 template <>
-void computeWeightsAndAbscissas(const int rule, math_algorithms::tetrahedron<1>& tet) {
+void computeWeightsAndAbscissas(const int rule, tetrahedron<1>& tet) {
   const int DIM = 1;
 
   tet.N_q = gm_rule_size(rule, DIM);
@@ -44,7 +44,7 @@ void computeWeightsAndAbscissas(const int rule, math_algorithms::tetrahedron<1>&
 
 // 2D
 template <>
-void computeWeightsAndAbscissas(const int rule, math_algorithms::tetrahedron<2>& tet) {
+void computeWeightsAndAbscissas(const int rule, tetrahedron<2>& tet) {
   const int DIM = 2;
 
   tet.N_q = gm_rule_size(rule, DIM);
@@ -68,7 +68,7 @@ void computeWeightsAndAbscissas(const int rule, math_algorithms::tetrahedron<2>&
 
 // 3D
 template <>
-void computeWeightsAndAbscissas(const int rule, math_algorithms::tetrahedron<3>& tet) {
+void computeWeightsAndAbscissas(const int rule, tetrahedron<3>& tet) {
   const int DIM = 3;
 
   tet.N_q = gm_rule_size(rule, DIM);
@@ -95,6 +95,6 @@ void computeWeightsAndAbscissas(const int rule, math_algorithms::tetrahedron<3>&
   delete[] q_vecs;
 }
 
-}  // gaussquad
+}  // geometry
 }  // math
 }  // dca

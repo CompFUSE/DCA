@@ -7,40 +7,18 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// This class represents a facet (= edge-surface) of the Brillouin-zone. It is templated over the
-// dimension of k-space.
+// This file implements facet.hpp.
 
-#ifndef MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_FACET_H
-#define MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_FACET_H
+#include "dca/math/geometry/tetrahedron_mesh/facet.hpp"
 
 #include <cassert>
 #include <cmath>
 #include <stdexcept>
-#include <vector>
 
-#include "math_library/geometry_library/tetrahedron_mesh/simplex.h"
-
-namespace math_algorithms {
-
-// Empty templace class declaration
-template <int DIMENSION>
-struct facet {};
-
-// Full template specialiaztion for 2D
-template <>
-struct facet<2> {
-public:
-  std::vector<int> index;
-
-  static void find_linear_parameters(int* coor, double* parameters,
-                                     std::vector<simplex<2>>& simplex_vector);
-
-  static bool is_facet(int* coor, std::vector<simplex<2>>& simplex_vector);
-
-  static bool is_facet(int* coor, std::vector<std::vector<double>>& vectors);
-
-  static bool equal(facet& f1, facet& f2, std::vector<simplex<2>>& simplex_vector);
-};
+namespace dca {
+namespace math {
+namespace geometry {
+// dca::math::geometry::
 
 void facet<2>::find_linear_parameters(int* coor, double* parameters,
                                       std::vector<simplex<2>>& simplex_vector) {
@@ -152,22 +130,6 @@ bool facet<2>::equal(facet& f1, facet& f2, std::vector<simplex<2>>& /*simplex_ve
   else
     return false;
 }
-
-// Full template specialiaztion for 3D
-template <>
-struct facet<3> {
-public:
-  std::vector<int> index;
-
-  static void find_linear_parameters(int* coor, double* parameters,
-                                     std::vector<simplex<3>>& simplex_vector);
-
-  static bool is_facet(int* coor, std::vector<simplex<3>>& simplex_vector);
-
-  static bool is_facet(int* coor, std::vector<std::vector<double>>& simplex_vector);
-
-  static bool equal(facet& f1, facet& f2, std::vector<simplex<3>>& simplex_vector);
-};
 
 void facet<3>::find_linear_parameters(int* coor, double* parameters,
                                       std::vector<simplex<3>>& simplex_vector) {
@@ -354,6 +316,6 @@ bool facet<3>::equal(facet& f1, facet& f2, std::vector<simplex<3>>& simplex_vect
   return are_equal;
 }
 
-}  // math_algorithms
-
-#endif  // MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_FACET_H
+}  // geometry
+}  // math
+}  // dca

@@ -11,17 +11,17 @@
 
 #include "dca/math/geometry/gaussian_quadrature/compute_weights_and_abscissas.hpp"
 #include "gtest/gtest.h"
-#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron/tetrahedron.hpp"
+#include "dca/math/geometry/tetrahedron_mesh/tetrahedron.hpp"
 
 TEST(ComputeWeightsAndAbscissasTest, 1DUnitSimplex) {
   // 1D unit simplex = line segment of length 1
-  math_algorithms::tetrahedron<1> tet;
+  dca::math::geometry::tetrahedron<1> tet;
   tet.vec_0 = {0.};
   tet.vec_1 = {1.};
 
   const int rule = 1;
 
-  dca::math::gaussquad::computeWeightsAndAbscissas(rule, tet);
+  dca::math::geometry::computeWeightsAndAbscissas(rule, tet);
 
   EXPECT_EQ(3, tet.N_q);
 
@@ -36,13 +36,13 @@ TEST(ComputeWeightsAndAbscissasTest, 1DUnitSimplex) {
 
 TEST(ComputeWeightsAndAbscissasTest, 1DTransformedSimplex) {
   // Transformed 1D simplex: unit simplex streched by a factor of 2 and shifted by 1
-  math_algorithms::tetrahedron<1> tet;
+  dca::math::geometry::tetrahedron<1> tet;
   tet.vec_0 = {1.};
   tet.vec_1 = {3.};
 
   const int rule = 1;
 
-  dca::math::gaussquad::computeWeightsAndAbscissas(rule, tet);
+  dca::math::geometry::computeWeightsAndAbscissas(rule, tet);
 
   EXPECT_EQ(3, tet.N_q);
 
@@ -57,14 +57,14 @@ TEST(ComputeWeightsAndAbscissasTest, 1DTransformedSimplex) {
 
 TEST(ComputeWeightsAndAbscissasTest, 2DUnitSimplex) {
   // 2D unit simplex = isosceles triangle of side length 1
-  math_algorithms::tetrahedron<2> tet;
+  dca::math::geometry::tetrahedron<2> tet;
   tet.vec_0 = {0., 0.};
   tet.vec_1 = {1., 0.};
   tet.vec_2 = {0., 1.};
 
   const int rule = 1;
 
-  dca::math::gaussquad::computeWeightsAndAbscissas(rule, tet);
+  dca::math::geometry::computeWeightsAndAbscissas(rule, tet);
 
   EXPECT_EQ(4, tet.N_q);
 
@@ -84,14 +84,14 @@ TEST(ComputeWeightsAndAbscissasTest, 2DUnitSimplex) {
 }
 
 TEST(ComputeWeightsAndAbscissasTest, 2DTransformedSimplex) {
-  math_algorithms::tetrahedron<2> tet;
+  dca::math::geometry::tetrahedron<2> tet;
   tet.vec_0 = {2., 1.};
   tet.vec_1 = {3., 4.};
   tet.vec_2 = {0., 3.};
 
   const int rule = 1;
 
-  dca::math::gaussquad::computeWeightsAndAbscissas(rule, tet);
+  dca::math::geometry::computeWeightsAndAbscissas(rule, tet);
 
   EXPECT_EQ(4, tet.N_q);
 
@@ -111,7 +111,7 @@ TEST(ComputeWeightsAndAbscissasTest, 2DTransformedSimplex) {
 }
 
 TEST(ComputeWeightsAndAbscissasTest, 3DUnitSimplex) {
-  math_algorithms::tetrahedron<3> tet;
+  dca::math::geometry::tetrahedron<3> tet;
   tet.vec_0 = {0., 0., 0.};
   tet.vec_1 = {1., 0., 0.};
   tet.vec_2 = {0., 1., 0.};
@@ -119,7 +119,7 @@ TEST(ComputeWeightsAndAbscissasTest, 3DUnitSimplex) {
 
   const int rule = 1;
 
-  dca::math::gaussquad::computeWeightsAndAbscissas(rule, tet);
+  dca::math::geometry::computeWeightsAndAbscissas(rule, tet);
 
   EXPECT_EQ(5, tet.N_q);
 
@@ -147,7 +147,7 @@ TEST(ComputeWeightsAndAbscissasTest, 3DUnitSimplex) {
 }
 
 TEST(ComputeWeightsAndAbscissasTest, 3DTransformedSimplex) {
-  math_algorithms::tetrahedron<3> tet;
+  dca::math::geometry::tetrahedron<3> tet;
   tet.vec_0 = {2., 1., 1.};
   tet.vec_1 = {3., 4., 0.};
   tet.vec_2 = {0., 4., 2.};
@@ -155,7 +155,7 @@ TEST(ComputeWeightsAndAbscissasTest, 3DTransformedSimplex) {
 
   const int rule = 1;
 
-  dca::math::gaussquad::computeWeightsAndAbscissas(rule, tet);
+  dca::math::geometry::computeWeightsAndAbscissas(rule, tet);
 
   EXPECT_EQ(5, tet.N_q);
 

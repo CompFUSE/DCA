@@ -9,23 +9,6 @@
 //
 // Full template specialization for a 2D tetrahedron.
 
-#ifndef MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_TETRAHEDRON_2D_H
-#define MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_TETRAHEDRON_2D_H
-
-#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron/eigenvalue_degeneracy.hpp"
-#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron/tetrahedron_template.h"
-
-#include <algorithm>
-#include <complex>
-#include <utility>
-#include <vector>
-
-#include "comp_library/function_plotting/include_plotting.h"
-#include "math_library/geometry_library/vector_operations/vector_operations.hpp"
-#include "math_library/static_functions.h"
-
-namespace math_algorithms {
-
 template <>
 struct tetrahedron<2> {
 public:
@@ -34,7 +17,7 @@ public:
 
   std::vector<double> compute_cm();
 
-  void translate(std::vector<double> q);
+  void translate(const std::vector<double>& q);
 
   void plot(Gnuplot& plot_obj);
   void plot_q_vecs(Gnuplot& plot_obj);
@@ -73,24 +56,27 @@ public:
   bool check_consistency(mesh_t& mesh);
 
   template <typename scalartype>
-  static scalartype compute_volume(scalartype* k0, scalartype* k1, scalartype* k2);
+  static scalartype compute_volume(scalartype* k0, scalartype* k1, scalartype* k2) {
+    return std::abs((k2[1] - k0[1]) * (k1[0] - k0[0]) - (k2[0] - k0[0]) * (k1[1] - k0[1])) / 2.;
+  }
 
 private:
   template <typename scalartype>
   scalartype integrate_matrix_element(scalartype* f, scalartype* e);
 
   template <typename scalartype>
-  eigenvalue_degeneracy find_degeneracy(scalartype* f, scalartype* e);
+  TetrahedronEigenvalueDegeneracy find_degeneracy(scalartype* f, scalartype* e);
 
   static bool pair_same(std::pair<std::complex<double>, std::complex<double>> const& x,
                         std::pair<std::complex<double>, std::complex<double>> const& y);
 
   template <typename scalartype>
-  scalartype integrate_matrix_element(eigenvalue_degeneracy degeneracy, scalartype* f, scalartype* e,
-                                      scalartype* e_2, scalartype* log_e, scalartype* log_min_e);
+  scalartype integrate_matrix_element(TetrahedronEigenvalueDegeneracy degeneracy, scalartype* f,
+                                      scalartype* e, scalartype* e_2, scalartype* log_e,
+                                      scalartype* log_min_e);
 
   template <typename scalartype>
-  eigenvalue_degeneracy find_degeneracy(int* f, scalartype* e);
+  TetrahedronEigenvalueDegeneracy find_degeneracy(int* f, scalartype* e);
 
   static bool pair_same_index(std::pair<std::complex<double>, int> const& x,
                               std::pair<std::complex<double>, int> const& y);
@@ -111,64 +97,6 @@ public:
   double* q_w;
   double* q_vecs;
 };
-
-tetrahedron<2>::tetrahedron() {
-  N_q = -1;
-
-  q_w = NULL;
-  q_vecs = NULL;
-}
-
-tetrahedron<2>::~tetrahedron() {
-  if (q_w != NULL)
-    delete[] q_w;
-
-  if (q_vecs != NULL)
-    delete[] q_vecs;
-}
-
-std::vector<double> tetrahedron<2>::compute_cm() {
-  std::vector<double> cm(2, 0);
-
-  cm[0] = (vec_0[0] + vec_1[0] + vec_2[0]) / 3.;
-  cm[1] = (vec_0[1] + vec_1[1] + vec_2[1]) / 3.;
-
-  return cm;
-}
-
-void tetrahedron<2>::translate(std::vector<double> k_point) {
-  assert(k_point.size() == 2);
-
-  for (int j = 0; j < 2; j++) {
-    vec_0[j] += k_point[j];
-    vec_1[j] += k_point[j];
-    vec_2[j] += k_point[j];
-  }
-
-  for (int i = 0; i < N_q; i++)
-    for (int j = 0; j < 2; j++)
-      q_vecs[j + i * 2] += k_point[j];
-}
-
-void tetrahedron<2>::plot(Gnuplot& plot_obj) {
-  SHOW::plot_line_2D(plot_obj, vec_0, vec_1);
-  SHOW::plot_line_2D(plot_obj, vec_1, vec_2);
-  SHOW::plot_line_2D(plot_obj, vec_2, vec_0);
-}
-
-void tetrahedron<2>::plot_q_vecs(Gnuplot& plot_obj) {
-  if (q_vecs != NULL) {
-    std::vector<double> x(N_q);
-    std::vector<double> y(N_q);
-
-    for (int i = 0; i < N_q; i++) {
-      x[i] = q_vecs[0 + i * 2];
-      y[i] = q_vecs[1 + i * 2];
-    }
-
-    plot_obj.plot_xy(x, y);
-  }
-}
 
 template <typename scalartype>
 void tetrahedron<2>::update_tetrahedron_domain(int& size, std::vector<scalartype>& weights,
@@ -263,7 +191,7 @@ void tetrahedron<2>::do_recursion(std::vector<tetrahedron<2>>& tetrahedra, mesh_
   tetrahedra.push_back(tet_01_12_20);
 }
 
-/*!
+/*
  *  We want to compute :
  *
  *  Integrate[Integrate[E^(I Rx *(K0x + (K1x - K0x) t1 + (K2x - K0x) t2) + I Ry *(K0y + (K1y - K0y)
@@ -420,10 +348,10 @@ void tetrahedron<2>::integrate_inverse_function(int size, std::vector<scalartype
 }
 
 template <typename scalartype>
-inline scalartype tetrahedron<2>::integrate_matrix_element(scalartype* f, scalartype* e) {
+scalartype tetrahedron<2>::integrate_matrix_element(scalartype* f, scalartype* e) {
   static scalartype r[2 + 1];
 
-  eigenvalue_degeneracy degeneracy = find_degeneracy(f, e);
+  TetrahedronEigenvalueDegeneracy degeneracy = find_degeneracy(f, e);
 
   switch (degeneracy) {
     case NO_DEGENERACY: {
@@ -476,7 +404,7 @@ inline scalartype tetrahedron<2>::integrate_matrix_element(scalartype* f, scalar
 }
 
 template <typename scalartype>
-inline eigenvalue_degeneracy tetrahedron<2>::find_degeneracy(scalartype* f, scalartype* e) {
+TetrahedronEigenvalueDegeneracy tetrahedron<2>::find_degeneracy(scalartype* f, scalartype* e) {
   static std::vector<std::pair<scalartype, scalartype>> vec(3);
 
   vec[0].first = e[0];
@@ -508,25 +436,11 @@ inline eigenvalue_degeneracy tetrahedron<2>::find_degeneracy(scalartype* f, scal
   throw std::logic_error(__FUNCTION__);
 }
 
-bool tetrahedron<2>::pair_same(std::pair<std::complex<double>, std::complex<double>> const& x,
-                               std::pair<std::complex<double>, std::complex<double>> const& y) {
-  double abs_x = abs(x.first);
-  double abs_y = abs(y.first);
-
-  if (abs_x < 1. && abs_y < 1.)
-    return abs(x.first - y.first) < 1.e-6;
-  else {
-    double MAX = abs_x > abs_y ? abs_x : abs_y;
-    return abs(x.first - y.first) < ((1.e-6) * MAX);
-  }
-}
-
 template <typename scalartype, typename mesh_t>
-inline void tetrahedron<2>::integrate_inverse_function_optimized(int size, std::vector<scalartype*> e,
-                                                                 std::vector<scalartype*> Vr,
-                                                                 std::vector<scalartype*> Vl,
-                                                                 mesh_t& /*mesh*/,
-                                                                 scalartype* f_result) {
+void tetrahedron<2>::integrate_inverse_function_optimized(int size, std::vector<scalartype*> e,
+                                                          std::vector<scalartype*> Vr,
+                                                          std::vector<scalartype*> Vl,
+                                                          mesh_t& /*mesh*/, scalartype* f_result) {
   static int index[3];
   static int perm[3];
 
@@ -546,7 +460,7 @@ inline void tetrahedron<2>::integrate_inverse_function_optimized(int size, std::
       index[t] = t;
     }
 
-    eigenvalue_degeneracy degeneracy = find_degeneracy(index, eigenvalues);
+    TetrahedronEigenvalueDegeneracy degeneracy = find_degeneracy(index, eigenvalues);
 
     for (int t = 0; t < 3; ++t)
       perm[index[t]] = t;
@@ -578,10 +492,9 @@ inline void tetrahedron<2>::integrate_inverse_function_optimized(int size, std::
 }
 
 template <typename scalartype>
-inline scalartype tetrahedron<2>::integrate_matrix_element(eigenvalue_degeneracy degeneracy,
-                                                           scalartype* f, scalartype* e,
-                                                           scalartype* e_2, scalartype* log_e,
-                                                           scalartype* log_min_e) {
+scalartype tetrahedron<2>::integrate_matrix_element(TetrahedronEigenvalueDegeneracy degeneracy,
+                                                    scalartype* f, scalartype* e, scalartype* e_2,
+                                                    scalartype* log_e, scalartype* log_min_e) {
   static scalartype r[2 + 1];
 
   switch (degeneracy) {
@@ -636,7 +549,7 @@ inline scalartype tetrahedron<2>::integrate_matrix_element(eigenvalue_degeneracy
 }
 
 template <typename scalartype>
-inline eigenvalue_degeneracy tetrahedron<2>::find_degeneracy(int* f, scalartype* e) {
+TetrahedronEigenvalueDegeneracy tetrahedron<2>::find_degeneracy(int* f, scalartype* e) {
   static std::vector<std::pair<scalartype, int>> vec(3);
 
   for (int l = 0; l < 3; ++l) {
@@ -673,24 +586,6 @@ inline eigenvalue_degeneracy tetrahedron<2>::find_degeneracy(int* f, scalartype*
   throw std::logic_error(__FUNCTION__);
 }
 
-bool tetrahedron<2>::pair_same_index(std::pair<std::complex<double>, int> const& x,
-                                     std::pair<std::complex<double>, int> const& y) {
-  double abs_x = abs(x.first);
-  double abs_y = abs(y.first);
-
-  if (abs_x < 1. && abs_y < 1.)
-    return abs(x.first - y.first) < 1.e-6;
-  else {
-    double MAX = abs_x > abs_y ? abs_x : abs_y;
-    return abs(x.first - y.first) < ((1.e-6) * MAX);
-  }
-}
-
-template <typename scalartype>
-scalartype tetrahedron<2>::compute_volume(scalartype* k0, scalartype* k1, scalartype* k2) {
-  return std::abs((k2[1] - k0[1]) * (k1[0] - k0[0]) - (k2[0] - k0[0]) * (k1[1] - k0[1])) / 2.;
-}
-
 template <typename mesh_t>
 bool tetrahedron<2>::check_consistency(mesh_t& mesh) {
   bool OK = true;
@@ -712,6 +607,3 @@ bool tetrahedron<2>::check_consistency(mesh_t& mesh) {
 
   return OK;
 }
-}  // math_algorithms
-
-#endif  // MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_TETRAHEDRON_2D_H

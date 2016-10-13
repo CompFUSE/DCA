@@ -144,6 +144,7 @@ set(DCA_LIBS
   git_version modules
   posix_qmci
   gaussian_quadrature
+  tetrahedron_mesh
   random
   parallel_util
   pthreading

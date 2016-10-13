@@ -9,24 +9,6 @@
 //
 // Full template specialization for a 3D tetrahedron.
 
-#ifndef MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_TETRAHEDRON_3D_H
-#define MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_TETRAHEDRON_3D_H
-
-#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron/eigenvalue_degeneracy.hpp"
-#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron/tetrahedron_template.h"
-
-#include <algorithm>
-#include <complex>
-#include <iostream>
-#include <utility>
-#include <vector>
-
-#include "comp_library/function_plotting/include_plotting.h"
-#include "math_library/geometry_library/vector_operations/vector_operations.hpp"
-#include "math_library/static_functions.h"
-
-namespace math_algorithms {
-
 template <>
 struct tetrahedron<3> {
 public:
@@ -35,10 +17,9 @@ public:
 
   std::vector<double> compute_cm();
 
-  void translate(std::vector<double> q);
+  void translate(const std::vector<double>& q);
 
   void plot(Gnuplot& plot_obj);
-  void plot_q_vecs(Gnuplot& plot_obj);
 
   template <typename scalartype>
   void update_gaussian_domain(int& size, std::vector<scalartype>& weights,
@@ -81,7 +62,7 @@ private:
   scalartype integrate_matrix_element(scalartype* f, scalartype* e);
 
   template <typename scalartype>
-  eigenvalue_degeneracy find_degeneracy(scalartype* f, scalartype* e);
+  TetrahedronEigenvalueDegeneracy find_degeneracy(scalartype* f, scalartype* e);
 
   static bool pair_same(std::pair<std::complex<double>, std::complex<double>> const& x,
                         std::pair<std::complex<double>, std::complex<double>> const& y);
@@ -103,57 +84,6 @@ public:
   double* q_w;
   double* q_vecs;
 };
-
-tetrahedron<3>::tetrahedron() {
-  N_q = -1;
-
-  q_w = NULL;
-  q_vecs = NULL;
-}
-
-tetrahedron<3>::~tetrahedron() {
-  if (q_w != NULL)
-    delete[] q_w;
-
-  if (q_vecs != NULL)
-    delete[] q_vecs;
-}
-
-void tetrahedron<3>::plot(Gnuplot& plot_obj) {
-  SHOW::plot_line_3D(plot_obj, vec_0, vec_1);
-  SHOW::plot_line_3D(plot_obj, vec_1, vec_2);
-  SHOW::plot_line_3D(plot_obj, vec_2, vec_3);
-  SHOW::plot_line_3D(plot_obj, vec_3, vec_0);
-  SHOW::plot_line_3D(plot_obj, vec_0, vec_2);
-  SHOW::plot_line_3D(plot_obj, vec_1, vec_3);
-}
-
-void tetrahedron<3>::plot_q_vecs(Gnuplot& /*plot_obj*/) {}
-
-std::vector<double> tetrahedron<3>::compute_cm() {
-  std::vector<double> cm(3, 0);
-
-  cm[0] = (vec_0[0] + vec_1[0] + vec_2[0] + vec_3[0]) / 4.;
-  cm[1] = (vec_0[1] + vec_1[1] + vec_2[1] + vec_3[1]) / 4.;
-  cm[2] = (vec_0[2] + vec_1[2] + vec_2[2] + vec_3[2]) / 4.;
-
-  return cm;
-}
-
-void tetrahedron<3>::translate(std::vector<double> k_point) {
-  assert(k_point.size() == 3);
-
-  for (int j = 0; j < 3; j++) {
-    vec_0[j] += k_point[j];
-    vec_1[j] += k_point[j];
-    vec_2[j] += k_point[j];
-    vec_3[j] += k_point[j];
-  }
-
-  for (int i = 0; i < N_q; i++)
-    for (int j = 0; j < 3; j++)
-      q_vecs[j + i * 3] += k_point[j];
-}
 
 template <typename scalartype>
 void tetrahedron<3>::update_tetrahedron_domain(int& size, std::vector<scalartype>& weights,
@@ -424,7 +354,7 @@ template <typename scalartype>
 scalartype tetrahedron<3>::integrate_matrix_element(scalartype* f, scalartype* e) {
   static scalartype r[3 + 1];
 
-  eigenvalue_degeneracy degeneracy = find_degeneracy(f, e);
+  TetrahedronEigenvalueDegeneracy degeneracy = find_degeneracy(f, e);
 
   switch (degeneracy) {
     case NO_DEGENERACY:
@@ -556,7 +486,7 @@ scalartype tetrahedron<3>::integrate_matrix_element(scalartype* f, scalartype* e
 }
 
 template <typename scalartype>
-eigenvalue_degeneracy tetrahedron<3>::find_degeneracy(scalartype* f, scalartype* e) {
+TetrahedronEigenvalueDegeneracy tetrahedron<3>::find_degeneracy(scalartype* f, scalartype* e) {
   static std::vector<std::pair<scalartype, scalartype>> vec(3 + 1);
 
   vec[0].first = e[0];
@@ -593,19 +523,6 @@ eigenvalue_degeneracy tetrahedron<3>::find_degeneracy(scalartype* f, scalartype*
     return FOURFOLD_DEGENERACY;
 
   throw std::logic_error(__FUNCTION__);
-}
-
-bool tetrahedron<3>::pair_same(std::pair<std::complex<double>, std::complex<double>> const& x,
-                               std::pair<std::complex<double>, std::complex<double>> const& y) {
-  double abs_x = norm(x.first);
-  double abs_y = norm(y.first);
-
-  if (abs_x < 1. && abs_y < 1.)
-    return norm(x.first - y.first) < 1.e-3;
-  else {
-    double MAX = abs_x > abs_y ? abs_x : abs_y;
-    return norm(x.first - y.first) < ((1.e-3) * MAX);
-  }
 }
 
 template <typename scalartype>
@@ -646,6 +563,3 @@ bool tetrahedron<3>::check_consistency(mesh_t& mesh) {
 
   return OK;
 }
-}
-
-#endif  // MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_TETRAHEDRON_3D_H

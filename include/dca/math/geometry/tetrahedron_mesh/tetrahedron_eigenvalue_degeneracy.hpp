@@ -7,14 +7,17 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// This header file defines the eigenvalue degeneracies.
+// This file defines the tetrahedron eigenvalue degeneracies.
 
-#ifndef MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_EIGENVALUE_DEGENERACY_HPP
-#define MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_EIGENVALUE_DEGENERACY_HPP
+#ifndef DCA_MATH_GEOMETRY_TETRAHEDRON_MESH_TETRAHEDRON_EIGENVALUE_DEGENERACY_HPP
+#define DCA_MATH_GEOMETRY_TETRAHEDRON_MESH_TETRAHEDRON_EIGENVALUE_DEGENERACY_HPP
 
-namespace math_algorithms {
+namespace dca {
+namespace math {
+namespace geometry {
+// dca::math::geometry::
 
-enum eigenvalue_degeneracy {
+enum TetrahedronEigenvalueDegeneracy {
   NO_DEGENERACY,
   TWOFOLD_DEGENERACY,
   THREEFOLD_DEGENERACY,
@@ -23,6 +26,8 @@ enum eigenvalue_degeneracy {
   FOURFOLD_DEGENERACY
 };
 
-}  // math_algorithms
+}  // geometry
+}  // math
+}  // dca
 
-#endif  // MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_EIGENVALUE_DEGENERACY_HPP
+#endif  // DCA_MATH_GEOMETRY_TETRAHEDRON_MESH_TETRAHEDRON_EIGENVALUE_DEGENERACY_HPP

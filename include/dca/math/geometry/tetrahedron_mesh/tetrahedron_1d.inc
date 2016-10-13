@@ -9,19 +9,6 @@
 //
 // Full template specialization for a 1D tetrahedron.
 
-#ifndef MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_TETRAHEDRON_1D_H
-#define MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_TETRAHEDRON_1D_H
-
-#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron/tetrahedron_template.h"
-
-#include <cassert>
-#include <cstdlib>
-#include <vector>
-
-#include "comp_library/function_plotting/include_plotting.h"
-
-namespace math_algorithms {
-
 template <>
 struct tetrahedron<1> {
 public:
@@ -30,7 +17,7 @@ public:
 
   std::vector<double> compute_cm();
 
-  void translate(std::vector<double> q);
+  void translate(const std::vector<double>& q);
 
   void plot(Gnuplot& plot_obj);
   void plot_q_vecs(Gnuplot& plot_obj);
@@ -61,66 +48,6 @@ public:
   double* q_w;
   double* q_vecs;
 };
-
-tetrahedron<1>::tetrahedron() {
-  N_q = -1;
-
-  q_w = NULL;
-  q_vecs = NULL;
-}
-
-tetrahedron<1>::~tetrahedron() {
-  if (q_w != NULL)
-    delete[] q_w;
-
-  if (q_vecs != NULL)
-    delete[] q_vecs;
-}
-
-std::vector<double> tetrahedron<1>::compute_cm() {
-  std::vector<double> cm(1, 0);
-
-  cm[0] = (vec_0[0] + vec_1[0]) / 2.;
-
-  return cm;
-}
-
-void tetrahedron<1>::translate(std::vector<double> k_point) {
-  assert(k_point.size() == 1);
-
-  for (int j = 0; j < 1; j++) {
-    vec_0[j] += k_point[j];
-    vec_1[j] += k_point[j];
-  }
-
-  for (int i = 0; i < N_q; i++)
-    for (int j = 0; j < 1; j++)
-      q_vecs[j + i * 1] += k_point[j];
-}
-
-void tetrahedron<1>::plot(Gnuplot& plot_obj) {
-  std::vector<double> x(2);
-  std::vector<double> y(2);
-
-  x[0] = vec_0[0];
-  y[0] = 0;
-  x[1] = vec_1[0];
-  y[1] = 0;
-
-  plot_obj.plot_xy(x, y);
-}
-
-void tetrahedron<1>::plot_q_vecs(Gnuplot& plot_obj) {
-  std::vector<double> x(N_q);
-  std::vector<double> y(N_q);
-
-  for (int i = 0; i < N_q; i++) {
-    x[i] = q_vecs[i];
-    y[i] = 0;
-  }
-
-  plot_obj.plot_xy(x, y);
-}
 
 template <typename mesh_t>
 void tetrahedron<1>::do_recursion(std::vector<tetrahedron<1>>& tetrahedra, mesh_t& mesh) {
@@ -160,6 +87,3 @@ void tetrahedron<1>::do_recursion(std::vector<tetrahedron<1>>& tetrahedra, mesh_
   tetrahedra.push_back(tet_l);
   tetrahedra.push_back(tet_r);
 }
-}
-
-#endif  // MATH_LIBRARY_GEOMETRY_LIBRARY_TETRAHEDRON_MESH_TETRAHEDRON_TETRAHEDRON_1D_H
