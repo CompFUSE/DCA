@@ -31,6 +31,8 @@ constexpr int move_block_size_x = 32;
 constexpr int move_block_size_y = 8;
 constexpr int scale_block_size_x = 32;
 constexpr int scale_block_size_y = 8;
+constexpr int swap_block_size_x = 32;
+constexpr int swap_block_size_y = 8;
 
 template <typename Type>
 __global__ void copyRows(int row_size, int n_rows, const int* i_x, const Type* x, int ldx,
@@ -144,6 +146,51 @@ __global__ void scaleRows(int row_size, int n_rows, const int* i, const Type* al
 
     for (int j = js; j < je; ++j)
       a[ia + j * lda] = a[ia + j * lda] * alpha[ind_i];
+  }
+}
+
+template <typename Type>
+__global__ void swapRows(int row_size, int n_rows, const int* i1, const int* i2, Type* a, int lda) {
+  assert(blockDim.y == 1);
+  assert(blockDim.z == 1);
+  assert(blockIdx.z == 0);
+
+  Type tmp;
+
+  int idx = threadIdx.x;
+  int ind_i = threadIdx.x + blockIdx.x * blockDim.x;
+
+  int js = blockIdx.y * swap_block_size_y;
+  int je = min(row_size, (blockIdx.y + 1) * swap_block_size_y);
+
+  if (ind_i < n_rows) {
+    for (int j = js; j < je; ++j) {
+      tmp = a[i1[ind_i] + j * lda];
+      a[i1[ind_i] + j * lda] = a[i2[ind_i] + j * lda];
+      a[i2[ind_i] + j * lda] = tmp;
+    }
+  }
+}
+
+template <typename Type>
+__global__ void swapCols(int col_size, int n_cols, const int* j1, const int* j2, Type* a, int lda) {
+  assert(blockDim.y == 1);
+  assert(blockDim.z == 1);
+  assert(blockIdx.z == 0);
+
+  Type tmp;
+
+  int i = threadIdx.x + blockIdx.x * blockDim.x;
+
+  int js = blockIdx.y * swap_block_size_y;
+  int je = min(n_cols, (blockIdx.y + 1) * swap_block_size_y);
+
+  if (i < col_size) {
+    for (int ind_j = js; ind_j < je; ++ind_j) {
+      tmp = a[i + j1[ind_j] * lda];
+      a[i + j1[ind_j] * lda] = a[i + j2[ind_j] * lda];
+      a[i + j2[ind_j] * lda] = tmp;
+    }
   }
 }
 }  // kernels
@@ -266,6 +313,58 @@ template void scaleRows(int row_size, int n_rows, const int* i, const cuComplex*
                         cuComplex* a, int lda, int thread_id, int stream_id);
 template void scaleRows(int row_size, int n_rows, const int* i, const cuDoubleComplex* alpha,
                         cuDoubleComplex* a, int lda, int thread_id, int stream_id);
+
+template <typename Type>
+void swapRows(int row_size, int n_rows, const int* i1, const int* i2, Type* a, int lda,
+              int thread_id, int stream_id) {
+  if (row_size > 0 && n_rows > 0) {
+    checkErrorsCudaDebug();
+    int bl_x = dca::util::ceilDiv(n_rows, kernels::swap_block_size_x);
+    int bl_y = dca::util::ceilDiv(row_size, kernels::swap_block_size_y);
+
+    dim3 threads(kernels::swap_block_size_x);
+    dim3 blocks(bl_x, bl_y);
+
+    cudaStream_t stream = dca::linalg::util::getStream(thread_id, stream_id);
+
+    kernels::swapRows<<<blocks, threads, 0, stream>>>(row_size, n_rows, i1, i2, a, lda);
+    checkErrorsCudaDebug();
+  }
+}
+template void swapRows(int row_size, int n_rows, const int* i1, const int* i2, float* a, int lda,
+                       int thread_id, int stream_id);
+template void swapRows(int row_size, int n_rows, const int* i1, const int* i2, double* a, int lda,
+                       int thread_id, int stream_id);
+template void swapRows(int row_size, int n_rows, const int* i1, const int* i2, cuComplex* a,
+                       int lda, int thread_id, int stream_id);
+template void swapRows(int row_size, int n_rows, const int* i1, const int* i2, cuDoubleComplex* a,
+                       int lda, int thread_id, int stream_id);
+
+template <typename Type>
+void swapCols(int col_size, int n_cols, const int* j1, const int* j2, Type* a, int lda,
+              int thread_id, int stream_id) {
+  if (col_size > 0 && n_cols > 0) {
+    checkErrorsCudaDebug();
+    int bl_x = dca::util::ceilDiv(col_size, kernels::swap_block_size_x);
+    int bl_y = dca::util::ceilDiv(n_cols, kernels::swap_block_size_y);
+
+    dim3 threads(kernels::swap_block_size_x);
+    dim3 blocks(bl_x, bl_y);
+
+    cudaStream_t stream = dca::linalg::util::getStream(thread_id, stream_id);
+
+    kernels::swapCols<<<blocks, threads, 0, stream>>>(col_size, n_cols, j1, j2, a, lda);
+    checkErrorsCudaDebug();
+  }
+}
+template void swapCols(int col_size, int n_cols, const int* j1, const int* j2, float* a, int lda,
+                       int thread_id, int stream_id);
+template void swapCols(int col_size, int n_cols, const int* j1, const int* j2, double* a, int lda,
+                       int thread_id, int stream_id);
+template void swapCols(int col_size, int n_cols, const int* j1, const int* j2, cuComplex* a,
+                       int lda, int thread_id, int stream_id);
+template void swapCols(int col_size, int n_cols, const int* j1, const int* j2, cuDoubleComplex* a,
+                       int lda, int thread_id, int stream_id);
 }  // blas
 }  // linalg
 }  // dca

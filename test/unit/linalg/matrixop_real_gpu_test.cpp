@@ -557,7 +557,8 @@ TYPED_TEST(MatrixopRealGPUTest, ScaleCol) {
   }
 }
 
-TEST(MatrixopGPUTest, SwapRow) {
+TYPED_TEST(MatrixopRealGPUTest, SwapRow) {
+  using ScalarType = TypeParam;
   std::pair<int, int> size2_a(41, 35);
 
   dca::linalg::Vector<int, dca::linalg::CPU> i_1(3);
@@ -574,32 +575,32 @@ TEST(MatrixopGPUTest, SwapRow) {
 
   auto val_a = [](int i, int j) { return 10 * i + j; };
 
-  dca::linalg::Matrix<double, dca::linalg::CPU> a(size2_a);
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> a(size2_a);
   testing::setMatrixElements(a, val_a);
 
   {
-    dca::linalg::Matrix<double, dca::linalg::GPU> dc(a);
+    dca::linalg::Matrix<ScalarType, dca::linalg::GPU> dc(a);
 
     for (int i = 0; i < i_1.size(); ++i) {
       dca::linalg::matrixop::swapRow(a, i_1[i], i_2[i]);
       dca::linalg::matrixop::swapRow(dc, i_1[i], i_2[i]);
     }
 
-    dca::linalg::Matrix<double, dca::linalg::CPU> c(dc);
+    dca::linalg::Matrix<ScalarType, dca::linalg::CPU> c(dc);
 
     for (int j = 0; j < a.nrCols(); ++j)
       for (int i = 0; i < a.nrRows(); ++i)
         EXPECT_EQ(a(i, j), c(i, j));
   }
   {
-    dca::linalg::Matrix<double, dca::linalg::GPU> dc(a);
+    dca::linalg::Matrix<ScalarType, dca::linalg::GPU> dc(a);
 
     for (int i = 0; i < i_1.size(); ++i)
       dca::linalg::matrixop::swapRow(a, i_1[i], i_2[i]);
 
     dca::linalg::matrixop::swapRows(dc, di_1, di_2);
 
-    dca::linalg::Matrix<double, dca::linalg::CPU> c(dc);
+    dca::linalg::Matrix<ScalarType, dca::linalg::CPU> c(dc);
 
     for (int j = 0; j < a.nrCols(); ++j)
       for (int i = 0; i < a.nrRows(); ++i)
@@ -607,7 +608,8 @@ TEST(MatrixopGPUTest, SwapRow) {
   }
 }
 
-TEST(MatrixopGPUTest, SwapCol) {
+TYPED_TEST(MatrixopRealGPUTest, SwapCol) {
+  using ScalarType = TypeParam;
   std::pair<int, int> size2_a(41, 35);
 
   dca::linalg::Vector<int, dca::linalg::CPU> j_1(3);
@@ -624,32 +626,32 @@ TEST(MatrixopGPUTest, SwapCol) {
 
   auto val_a = [](int i, int j) { return 10 * i + j; };
 
-  dca::linalg::Matrix<double, dca::linalg::CPU> a(size2_a);
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> a(size2_a);
   testing::setMatrixElements(a, val_a);
 
   {
-    dca::linalg::Matrix<double, dca::linalg::GPU> dc(a);
+    dca::linalg::Matrix<ScalarType, dca::linalg::GPU> dc(a);
 
     for (int j = 0; j < j_1.size(); ++j) {
       dca::linalg::matrixop::swapCol(a, j_1[j], j_2[j]);
       dca::linalg::matrixop::swapCol(dc, j_1[j], j_2[j]);
     }
 
-    dca::linalg::Matrix<double, dca::linalg::CPU> c(dc);
+    dca::linalg::Matrix<ScalarType, dca::linalg::CPU> c(dc);
 
     for (int j = 0; j < a.nrCols(); ++j)
       for (int i = 0; i < a.nrRows(); ++i)
         EXPECT_EQ(a(i, j), c(i, j));
   }
   {
-    dca::linalg::Matrix<double, dca::linalg::GPU> dc(a);
+    dca::linalg::Matrix<ScalarType, dca::linalg::GPU> dc(a);
 
     for (int j = 0; j < j_1.size(); ++j)
       dca::linalg::matrixop::swapCol(a, j_1[j], j_2[j]);
 
     dca::linalg::matrixop::swapCols(dc, dj_1, dj_2);
 
-    dca::linalg::Matrix<double, dca::linalg::CPU> c(dc);
+    dca::linalg::Matrix<ScalarType, dca::linalg::CPU> c(dc);
 
     for (int j = 0; j < a.nrCols(); ++j)
       for (int i = 0; i < a.nrRows(); ++i)

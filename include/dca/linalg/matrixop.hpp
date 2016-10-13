@@ -33,8 +33,6 @@
 #include "dca/linalg/blas/kernels_gpu.hpp"
 #endif
 
-#include "comp_library/linalg/src/linalg_operations/GPUfunc.h"
-
 namespace dca {
 namespace linalg {
 namespace matrixop {
@@ -354,8 +352,8 @@ template <typename ScalarType>
 inline void swapCols(Matrix<ScalarType, GPU>& mat, const Vector<int, GPU>& j_1,
                      const Vector<int, GPU>& j_2, int thread_id = 0, int stream_id = 0) {
   assert(j_1.size() <= j_2.size());
-  LIN_ALG::GPU_KERNEL::swap_many_cols(mat.nrRows(), mat.nrCols(), mat.ptr(), mat.leadingDimension(),
-                                      j_1.size(), j_1.ptr(), j_2.ptr(), thread_id, stream_id);
+  blas::swapCols(mat.nrRows(), j_1.size(), j_1.ptr(), j_2.ptr(), mat.ptr(), mat.leadingDimension(),
+                 thread_id, stream_id);
 }
 #endif  // DCA_HAVE_CUDA
 
@@ -383,8 +381,8 @@ template <typename ScalarType>
 inline void swapRows(Matrix<ScalarType, GPU>& mat, const Vector<int, GPU>& i_1,
                      const Vector<int, GPU>& i_2, int thread_id = 0, int stream_id = 0) {
   assert(i_1.size() == i_2.size());
-  LIN_ALG::GPU_KERNEL::swap_many_rows(mat.nrRows(), mat.nrCols(), mat.ptr(), mat.leadingDimension(),
-                                      i_1.size(), i_1.ptr(), i_2.ptr(), thread_id, stream_id);
+  blas::swapRows(mat.nrCols(), i_1.size(), i_1.ptr(), i_2.ptr(), mat.ptr(), mat.leadingDimension(),
+                 thread_id, stream_id);
 }
 #endif  // DCA_HAVE_CUDA
 

@@ -24,9 +24,6 @@
 
 #include <utility>
 
-// CUBLAS 1
-#include "src/linalg_operations/BLAS_1_SWAP_GPU.cu.h"
-
 // own kernels
 #include "src/linalg_operations/GEMD_GPU.cu.h"
 #include "src/linalg_operations/BENNET_GPU.cu.h"

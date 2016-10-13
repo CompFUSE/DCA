@@ -561,3 +561,105 @@ TYPED_TEST(MatrixopComplexGPUTest, ScaleCol) {
     }
   }
 }
+
+TYPED_TEST(MatrixopComplexGPUTest, SwapRow) {
+  using ScalarType = TypeParam;
+  std::pair<int, int> size2_a(41, 35);
+
+  dca::linalg::Vector<int, dca::linalg::CPU> i_1(3);
+  i_1[0] = 0;
+  i_1[1] = 2;
+  i_1[2] = 3;
+  dca::linalg::Vector<int, dca::linalg::GPU> di_1(i_1);
+
+  dca::linalg::Vector<int, dca::linalg::CPU> i_2(3);
+  i_2[0] = 1;
+  i_2[1] = 5;
+  i_2[2] = 4;
+  dca::linalg::Vector<int, dca::linalg::GPU> di_2(i_2);
+
+  auto val_a = [](int i, int j) { return ScalarType(1 + i * i + j, 10 * i + j); };
+
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> a(size2_a);
+  testing::setMatrixElements(a, val_a);
+
+  {
+    dca::linalg::Matrix<ScalarType, dca::linalg::GPU> dc(a);
+
+    for (int i = 0; i < i_1.size(); ++i) {
+      dca::linalg::matrixop::swapRow(a, i_1[i], i_2[i]);
+      dca::linalg::matrixop::swapRow(dc, i_1[i], i_2[i]);
+    }
+
+    dca::linalg::Matrix<ScalarType, dca::linalg::CPU> c(dc);
+
+    for (int j = 0; j < a.nrCols(); ++j)
+      for (int i = 0; i < a.nrRows(); ++i)
+        EXPECT_EQ(a(i, j), c(i, j));
+  }
+  {
+    dca::linalg::Matrix<ScalarType, dca::linalg::GPU> dc(a);
+
+    for (int i = 0; i < i_1.size(); ++i)
+      dca::linalg::matrixop::swapRow(a, i_1[i], i_2[i]);
+
+    dca::linalg::matrixop::swapRows(dc, di_1, di_2);
+
+    dca::linalg::Matrix<ScalarType, dca::linalg::CPU> c(dc);
+
+    for (int j = 0; j < a.nrCols(); ++j)
+      for (int i = 0; i < a.nrRows(); ++i)
+        EXPECT_EQ(a(i, j), c(i, j));
+  }
+}
+
+TYPED_TEST(MatrixopComplexGPUTest, SwapCol) {
+  using ScalarType = TypeParam;
+  std::pair<int, int> size2_a(41, 35);
+
+  dca::linalg::Vector<int, dca::linalg::CPU> j_1(3);
+  j_1[0] = 0;
+  j_1[1] = 2;
+  j_1[2] = 3;
+  dca::linalg::Vector<int, dca::linalg::GPU> dj_1(j_1);
+
+  dca::linalg::Vector<int, dca::linalg::CPU> j_2(3);
+  j_2[0] = 1;
+  j_2[1] = 5;
+  j_2[2] = 4;
+  dca::linalg::Vector<int, dca::linalg::GPU> dj_2(j_2);
+
+  auto val_a = [](int i, int j) { return ScalarType(1 + i * i + j, 10 * i + j); };
+
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> a(size2_a);
+  testing::setMatrixElements(a, val_a);
+
+  {
+    dca::linalg::Matrix<ScalarType, dca::linalg::GPU> dc(a);
+
+    for (int j = 0; j < j_1.size(); ++j) {
+      dca::linalg::matrixop::swapCol(a, j_1[j], j_2[j]);
+      dca::linalg::matrixop::swapCol(dc, j_1[j], j_2[j]);
+    }
+
+    dca::linalg::Matrix<ScalarType, dca::linalg::CPU> c(dc);
+
+    for (int j = 0; j < a.nrCols(); ++j)
+      for (int i = 0; i < a.nrRows(); ++i)
+        EXPECT_EQ(a(i, j), c(i, j));
+  }
+  {
+    dca::linalg::Matrix<ScalarType, dca::linalg::GPU> dc(a);
+
+    for (int j = 0; j < j_1.size(); ++j)
+      dca::linalg::matrixop::swapCol(a, j_1[j], j_2[j]);
+
+    dca::linalg::matrixop::swapCols(dc, dj_1, dj_2);
+
+    dca::linalg::Matrix<ScalarType, dca::linalg::CPU> c(dc);
+
+    for (int j = 0; j < a.nrCols(); ++j)
+      for (int i = 0; i < a.nrRows(); ++i)
+        EXPECT_EQ(a(i, j), c(i, j));
+  }
+}

@@ -71,6 +71,25 @@ inline void scaleRows(int row_size, int n_rows, const int* i, const std::complex
   scaleRows(row_size, n_rows, i, cu_alpha, cu_a, lda, thread_id, stream_id);
 }
 
+template <typename Type>
+void swapRows(int row_size, int n_rows, const int* i_1, const int* i_2, Type* a, int lda,
+              int thread_id, int stream_id);
+template <typename Type>
+inline void swapRows(int row_size, int n_rows, const int* i_1, const int* i_2,
+                     std::complex<Type>* a, int lda, int thread_id, int stream_id) {
+  auto cu_a = util::castCudaComplex(a);
+  swapRows(row_size, n_rows, i_1, i_2, cu_a, lda, thread_id, stream_id);
+}
+
+template <typename Type>
+void swapCols(int col_size, int n_cols, const int* j_1, const int* j_2, Type* a, int lda,
+              int thread_id, int stream_id);
+template <typename Type>
+inline void swapCols(int col_size, int n_cols, const int* j_1, const int* j_2,
+                     std::complex<Type>* a, int lda, int thread_id, int stream_id) {
+  auto cu_a = util::castCudaComplex(a);
+  swapCols(col_size, n_cols, j_1, j_2, cu_a, lda, thread_id, stream_id);
+}
 }  // blas
 }  // linalg
 }  // dca
