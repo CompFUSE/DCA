@@ -16,12 +16,15 @@
 #include <ios>
 #include <vector>
 
+#include "dca/math/util/vector_operations.hpp"
+
 #include "comp_library/linalg/linalg.hpp"
 #include "math_library/functional_transforms/domain_specifications/domain_specifications.hpp"
-#include "math_library/geometry_library/vector_operations/vector_operations.hpp"
 #include "math_library/functional_transforms/typedefs.hpp"
 #include "phys_library/domains/cluster/cluster_operations.hpp"
 #include "phys_library/domains/cluster/cluster_typedefs.hpp"
+
+using namespace dca;
 
 template <typename cluster_type>
 class cluster_symmetry {};
@@ -261,7 +264,7 @@ scalar_type& cluster_domain<scalar_type, D, N, R, S>::get_volume() {
 template <typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_REPRESENTATION R, CLUSTER_SHAPE S>
 int cluster_domain<scalar_type, D, N, R, S>::origin_index() {
   static int index = cluster_operations::origin_index(get_elements(), SHAPE);
-  assert(VECTOR_OPERATIONS::L2_NORM(get_elements()[index]) < 1.e-6);
+  assert(math::util::l2Norm2(get_elements()[index]) < 1.e-6);
   return index;
 }
 
@@ -379,9 +382,9 @@ void cluster_domain<scalar_type, D, N, R, S>::print(ss_type& ss) {
   if (NAME == CLUSTER) {
     for (int l = 0; l < get_size(); l++) {
       ss << "\t" << l << "\t|\t";
-      VECTOR_OPERATIONS::PRINT(get_elements()[l]);
+      math::util::print(get_elements()[l]);
       ss << "\t";
-      VECTOR_OPERATIONS::PRINT(dual_type::get_elements()[l]);
+      math::util::print(dual_type::get_elements()[l]);
       ss << "\n";
     }
     ss << "\n\n\t" << to_str(REPRESENTATION) << " k-space symmetries : \n\n";

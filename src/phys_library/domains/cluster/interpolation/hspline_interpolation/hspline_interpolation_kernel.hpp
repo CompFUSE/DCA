@@ -17,6 +17,7 @@
 #include <vector>
 
 #include "dca/math/geometry/tetrahedron_mesh/tetrahedron_neighbour_domain.hpp"
+#include "dca/math/util/vector_operations.hpp"
 
 #include "comp_library/linalg/linalg.hpp"
 #include "phys_library/domains/cluster/cluster_typedefs.hpp"
@@ -622,7 +623,7 @@ void hspline_interpolation_kernel<scalartype, cluster_domain<scalar_type, D, N, 
 
       int K_ind = extended_k_domain<source_k_dmn_t>::get_cluster_index(n_ind);
 
-      k_diff = VECTOR_OPERATIONS::SUBTRACT(k_vec, K_vec);
+      k_diff = math::util::subtract(k_vec, K_vec);
 
       interpolation_matrix[k_ind + target_k_dmn_t::get_size() * K_ind] +=
           evaluate_hermite_kernel_at(k_diff);
@@ -729,7 +730,7 @@ void hspline_interpolation_kernel<scalartype, cluster_domain<scalar_type, D, N, 
 
         K_vec = extended_k_dmn_t::get_elements()[k0_ind];
 
-        k_diff = VECTOR_OPERATIONS::SUBTRACT(k_vec, K_vec);
+        k_diff = math::util::subtract(k_vec, K_vec);
 
         interpolation_matrix[k_ind + N_k_target * K_ind] += evaluate_hermite_kernel_at(k_diff);
       }

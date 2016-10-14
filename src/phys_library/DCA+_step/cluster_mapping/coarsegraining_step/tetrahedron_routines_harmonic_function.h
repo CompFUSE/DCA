@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "dca/math/geometry/tetrahedron_mesh/tetrahedron.hpp"
+#include "dca/math/util/vector_operations.hpp"
 
 using namespace dca;
 
@@ -173,7 +174,7 @@ std::complex<double> tetrahedron_routines_harmonic_function::execute(
 
   std::complex<double> result(0., 0.);
 
-  if (std::abs(VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, r_vec)) < EPSILON) {
+  if (std::abs(math::util::innerProduct(r_vec, r_vec)) < EPSILON) {
     result.real(tetrahedron.volume);
     result.imag(0);
   }
@@ -191,13 +192,13 @@ std::complex<double> tetrahedron_routines_harmonic_function::execute(
       D2_min_D1[d] = D2[d] - D1[d];
     }
 
-    double dot_R_K0 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, K0);
-    double dot_R_D1 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D1);
-    double dot_R_D2 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D2);
+    double dot_R_K0 = math::util::innerProduct(r_vec, K0);
+    double dot_R_D1 = math::util::innerProduct(r_vec, D1);
+    double dot_R_D2 = math::util::innerProduct(r_vec, D2);
 
-    double dot_R_D2_min_D1 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D2_min_D1);
+    double dot_R_D2_min_D1 = math::util::innerProduct(r_vec, D2_min_D1);
 
-    double det = VECTOR_OPERATIONS::VOLUME(D1, D2);
+    double det = math::util::area(D1, D2);
     std::complex<double> phase = Cos(dot_R_K0) + I * Sin(dot_R_K0);
 
     if (std::abs(dot_R_D2_min_D1) > EPSILON) {
@@ -546,7 +547,7 @@ std::complex<double> tetrahedron_routines_harmonic_function::execute(
 
   std::complex<double> result(0., 0.);
 
-  if (std::abs(VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, r_vec)) < EPSILON) {
+  if (std::abs(math::util::innerProduct(r_vec, r_vec)) < EPSILON) {
     result.real(tetrahedron.volume);
     result.imag(0);
   }
@@ -571,17 +572,17 @@ std::complex<double> tetrahedron_routines_harmonic_function::execute(
       D1_min_D3[d] = D1[d] - D3[d];
     }
 
-    double dot_R_K0 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, K_0);
+    double dot_R_K0 = math::util::innerProduct(r_vec, K_0);
 
-    double dot_R_D1 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D1);
-    double dot_R_D2 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D2);
-    double dot_R_D3 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D3);
+    double dot_R_D1 = math::util::innerProduct(r_vec, D1);
+    double dot_R_D2 = math::util::innerProduct(r_vec, D2);
+    double dot_R_D3 = math::util::innerProduct(r_vec, D3);
 
-    double dot_R_D2_min_D1 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D2_min_D1);
-    double dot_R_D3_min_D2 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D3_min_D2);
-    double dot_R_D1_min_D3 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D1_min_D3);
+    double dot_R_D2_min_D1 = math::util::innerProduct(r_vec, D2_min_D1);
+    double dot_R_D3_min_D2 = math::util::innerProduct(r_vec, D3_min_D2);
+    double dot_R_D1_min_D3 = math::util::innerProduct(r_vec, D1_min_D3);
 
-    double det = VECTOR_OPERATIONS::VOLUME(D1, D2, D3);
+    double det = math::util::volume(D1, D2, D3);
     std::complex<double> phase = Cos(dot_R_K0) + I * Sin(dot_R_K0);
 
     if (std::abs(dot_R_D1) > EPSILON and std::abs(dot_R_D2) > EPSILON and
@@ -635,12 +636,12 @@ std::complex<double> tetrahedron_routines_harmonic_function::execute(
       }
       else {
         //                 cout << "\n\t start permuting\t";
-        //                 VECTOR_OPERATIONS::PRINT(r_vec);
+        //                 math::util::print(r_vec);
         //                 cout << "\n";
-        //                 VECTOR_OPERATIONS::PRINT(tetrahedron.vec_0);cout << "\n";
-        //                 VECTOR_OPERATIONS::PRINT(tetrahedron.vec_1);cout << "\n";
-        //                 VECTOR_OPERATIONS::PRINT(tetrahedron.vec_2);cout << "\n";
-        //                 VECTOR_OPERATIONS::PRINT(tetrahedron.vec_3);cout << "\n";
+        //                 math::util::print(tetrahedron.vec_0);cout << "\n";
+        //                 math::util::print(tetrahedron.vec_1);cout << "\n";
+        //                 math::util::print(tetrahedron.vec_2);cout << "\n";
+        //                 math::util::print(tetrahedron.vec_3);cout << "\n";
 
         math::geometry::tetrahedron<3> tetrahedron_new;
 

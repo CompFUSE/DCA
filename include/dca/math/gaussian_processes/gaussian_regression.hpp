@@ -18,9 +18,9 @@
 #include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/matrixop.hpp"
+#include "dca/math/util/vector_operations.hpp"
 
 #include "comp_library/linalg/linalg.hpp"
-#include "math_library/geometry_library/vector_operations/elementary_vector_operations.hpp"
 
 namespace dca {
 namespace math {
@@ -90,7 +90,7 @@ void gaussian_regression<scalartype, lhs_dmn_t, rhs_dmn_t>::compute_S(scalartype
       lhs_element_type x_i = lhs_dmn_t::get_elements()[i];
       lhs_element_type x_j = lhs_dmn_t::get_elements()[j];
 
-      S(i, j) += (s_f * s_f) * std::exp(-0.5 * VECTOR_OPERATIONS::L2_NORM(x_i, x_j) / (l * l));
+      S(i, j) += (s_f * s_f) * std::exp(-0.5 * math::util::distance2(x_i, x_j) / (l * l));
     }
 
     S(i, i) += sigma * sigma;

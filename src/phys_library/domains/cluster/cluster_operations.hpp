@@ -17,8 +17,11 @@
 #include <utility>
 #include <vector>
 
+#include "dca/math/util/vector_operations.hpp"
+
 #include "phys_library/domains/cluster/cluster_typedefs.hpp"
-#include "math_library/geometry_library/vector_operations/vector_operations.hpp"
+
+using namespace dca;
 
 class cluster_operations {
 public:
@@ -73,9 +76,9 @@ int cluster_operations::index(const std::vector<scalar_type>& element,
 
   switch (shape) {
     case BRILLOUIN_ZONE:  // the k-vectors in the brillouin zone are sorted according to
-                          // VECTOR_OPERATIONS::IS_LARGER_VECTOR !
+                          // math::util::isLessVector !
       index = lower_bound(elements.begin(), elements.end(), element,
-                          VECTOR_OPERATIONS::IS_LARGER_VECTOR<scalar_type>) -
+                          math::util::isLessVector<scalar_type>) -
               elements.begin();
       break;
 
@@ -89,16 +92,16 @@ int cluster_operations::index(const std::vector<scalar_type>& element,
 
   assert(index > -1 and index < elements.size());
 
-  if (VECTOR_OPERATIONS::L2_NORM(element, elements[index]) > 1.e-6) {
+  if (math::util::distance2(element, elements[index]) > 1.e-6) {
     std::cout << "\n\t " << __FUNCTION__ << "\t" << index << "\n";
-    VECTOR_OPERATIONS::PRINT(element);
+    math::util::print(element);
     std::cout << "\n";
-    VECTOR_OPERATIONS::PRINT(elements[index]);
+    math::util::print(elements[index]);
     std::cout << "\n";
     std::cout << "\n\n";
   }
 
-  assert(VECTOR_OPERATIONS::L2_NORM(element, elements[index]) < 1.e-6);
+  assert(math::util::distance2(element, elements[index]) < 1.e-6);
 
   return index;
 }
@@ -118,7 +121,7 @@ std::vector<scalar_type> cluster_operations::translate_inside_cluster(
     const std::vector<scalar_type>& r, const std::vector<std::vector<scalar_type>>& basis) {
   int DIMENSION = r.size();
 
-  std::vector<scalar_type> r_affine = VECTOR_OPERATIONS::COORDINATES(r, basis);
+  std::vector<scalar_type> r_affine = math::util::coordinates(r, basis);
 
   for (size_t d = 0; d < r.size(); d++) {
     while (r_affine[d] < -1.e-6) {
@@ -154,7 +157,7 @@ bool cluster_operations::test_translate_inside_cluster(
       k1 = elements[l];
       k2 = translate_inside_cluster(k1, basis);
 
-      if (VECTOR_OPERATIONS::L2_NORM(k1, k2) > 1.e-6) {
+      if (math::util::distance2(k1, k2) > 1.e-6) {
         throw std::logic_error(__FUNCTION__);
       }
     }
@@ -174,7 +177,7 @@ scalar_type cluster_operations::minimal_distance(std::vector<scalar_type> vec_0,
   vec_0 = translate_inside_cluster(vec_0, basis);
   vec_1 = translate_inside_cluster(vec_1, basis);
 
-  scalar_type MIN_DISTANCE = VECTOR_OPERATIONS::L2_NORM(vec_0, vec_1);
+  scalar_type MIN_DISTANCE = math::util::distance2(vec_0, vec_1);
 
   switch (DIMENSION) {
     case 1:
@@ -185,7 +188,7 @@ scalar_type cluster_operations::minimal_distance(std::vector<scalar_type> vec_0,
           vec[d] += (l0 * basis[0][d]);
         }
 
-        scalar_type distance = VECTOR_OPERATIONS::L2_NORM(vec, vec_1);
+        scalar_type distance = math::util::distance2(vec, vec_1);
 
         if (distance < MIN_DISTANCE) {
           MIN_DISTANCE = distance;
@@ -202,7 +205,7 @@ scalar_type cluster_operations::minimal_distance(std::vector<scalar_type> vec_0,
             vec[d] += (l0 * basis[0][d] + l1 * basis[1][d]);
           }
 
-          scalar_type distance = VECTOR_OPERATIONS::L2_NORM(vec, vec_1);
+          scalar_type distance = math::util::distance2(vec, vec_1);
 
           if (distance < MIN_DISTANCE) {
             MIN_DISTANCE = distance;
@@ -221,7 +224,7 @@ scalar_type cluster_operations::minimal_distance(std::vector<scalar_type> vec_0,
               vec[d] += (l0 * basis[0][d] + l1 * basis[1][d] + l2 * basis[2][d]);
             }
 
-            scalar_type distance = VECTOR_OPERATIONS::L2_NORM(vec, vec_1);
+            scalar_type distance = math::util::distance2(vec, vec_1);
 
             if (distance < MIN_DISTANCE) {
               MIN_DISTANCE = distance;
@@ -247,7 +250,7 @@ bool cluster_operations::is_minimal(const std::vector<scalar_type> R_vec,
 
   scalar_type MIN_DISTANCE = minimal_distance(origin, R_vec, basis);
 
-  bool minimal = VECTOR_OPERATIONS::L2_NORM(R_vec) > (MIN_DISTANCE + 1.e-6) ? false : true;
+  bool minimal = math::util::l2Norm2(R_vec) > (MIN_DISTANCE + 1.e-6) ? false : true;
 
   return minimal;
 }
@@ -279,7 +282,7 @@ std::vector<std::vector<scalar_type>> cluster_operations::equivalent_vectors(
         for (int d = 0; d < DIMENSION; d++)
           vec[d] += l0 * basis[0][d];
 
-        scalar_type distance = sqrt(VECTOR_OPERATIONS::L2_NORM(vec));
+        scalar_type distance = std::sqrt(math::util::l2Norm2(vec));
 
         if (distance > sqrt(MIN_DISTANCE) * ONE_MIN_EPS - EPS &&
             distance < sqrt(MIN_DISTANCE) * ONE_PLUS_EPS + EPS)
@@ -295,7 +298,7 @@ std::vector<std::vector<scalar_type>> cluster_operations::equivalent_vectors(
           for (int d = 0; d < DIMENSION; d++)
             vec[d] += (l0 * basis[0][d] + l1 * basis[1][d]);
 
-          scalar_type distance = sqrt(VECTOR_OPERATIONS::L2_NORM(vec));
+          scalar_type distance = std::sqrt(math::util::l2Norm2(vec));
 
           if (distance > sqrt(MIN_DISTANCE) * ONE_MIN_EPS - EPS &&
               distance < sqrt(MIN_DISTANCE) * ONE_PLUS_EPS + EPS)
@@ -313,7 +316,7 @@ std::vector<std::vector<scalar_type>> cluster_operations::equivalent_vectors(
             for (int d = 0; d < DIMENSION; d++)
               vec[d] += (l0 * basis[0][d] + l1 * basis[1][d] + l2 * basis[2][d]);
 
-            scalar_type distance = sqrt(VECTOR_OPERATIONS::L2_NORM(vec));
+            scalar_type distance = std::sqrt(math::util::l2Norm2(vec));
 
             if (distance > sqrt(MIN_DISTANCE) * ONE_MIN_EPS - EPS &&
                 distance < sqrt(MIN_DISTANCE) * ONE_PLUS_EPS + EPS)
@@ -327,8 +330,9 @@ std::vector<std::vector<scalar_type>> cluster_operations::equivalent_vectors(
       throw std::logic_error(__FUNCTION__);
   }
 
-  sort(r_min.begin(), r_min.end(), &VECTOR_OPERATIONS::SAME_VECTOR);
-  int vec_size = unique(r_min.begin(), r_min.end(), &VECTOR_OPERATIONS::SAME_VECTOR) - r_min.begin();
+  sort(r_min.begin(), r_min.end(), math::util::isSameVector<scalar_type>);
+  int vec_size =
+      unique(r_min.begin(), r_min.end(), math::util::isSameVector<scalar_type>) - r_min.begin();
 
   r_min.resize(vec_size);
 

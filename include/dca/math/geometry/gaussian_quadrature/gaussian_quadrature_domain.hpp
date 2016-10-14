@@ -20,6 +20,8 @@
 #include "dca/function/domains/dmn_0.hpp"
 #include "dca/math/geometry/gaussian_quadrature/compute_weights_and_abscissas.hpp"
 #include "dca/math/geometry/tetrahedron_mesh/tetrahedron_mesh.hpp"
+#include "dca/math/util/vector_operations.hpp"
+
 #include "math_library/functional_transforms/domain_specifications/domain_specifications.hpp"
 #include "math_library/functional_transforms/typedefs.hpp"
 
@@ -197,7 +199,7 @@ void gaussian_quadrature_domain<func::dmn_0<tetrahedron_mesh<func::dmn_0<cluster
     cm = tetrahedra[j].compute_cm();
     normal = tetrahedra[j].normal;
 
-    double x = VECTOR_OPERATIONS::DOT_PRODUCT(cm, normal) / VECTOR_OPERATIONS::L2_NORM(normal);
+    double x = math::util::innerProduct(cm, normal) / math::util::l2Norm2(normal);
     assert(x > -1.e-6 and x < 1. + 1.e-6);
 
     for (int d = 0; d < DIMENSION; d++)

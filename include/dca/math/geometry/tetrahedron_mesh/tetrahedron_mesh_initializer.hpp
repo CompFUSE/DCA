@@ -27,7 +27,7 @@ namespace geometry {
 #include "dca/math/geometry/tetrahedron_mesh/facet.hpp"
 #include "dca/math/geometry/tetrahedron_mesh/simplex.hpp"
 #include "dca/math/geometry/tetrahedron_mesh/tetrahedron.hpp"
-#include "math_library/geometry_library/vector_operations/vector_operations.hpp"
+#include "dca/math/util/vector_operations.hpp"
 
 //
 // Empty class template.
@@ -188,8 +188,8 @@ void tetrahedron_mesh_initializer<2, k_cluster_type>::make_convex_hull() {
 
     for (std::size_t B_ind = 0; B_ind < B_collection.size(); B_ind++) {
       for (std::size_t s_ind = 0; s_ind < simplices.size(); s_ind++) {
-        double diff_k_K = VECTOR_OPERATIONS::L2_NORM(simplices[s_ind].k_vec, K);
-        double diff_k_B = VECTOR_OPERATIONS::L2_NORM(simplices[s_ind].k_vec, B_collection[B_ind]);
+        double diff_k_K = math::util::distance2(simplices[s_ind].k_vec, K);
+        double diff_k_B = math::util::distance2(simplices[s_ind].k_vec, B_collection[B_ind]);
 
         if (diff_k_K > diff_k_B + 1.e-6) {
           simplices.erase(simplices.begin() + s_ind);
@@ -201,7 +201,7 @@ void tetrahedron_mesh_initializer<2, k_cluster_type>::make_convex_hull() {
     {
       for (std::size_t s_ind0 = 0; s_ind0 < simplices.size(); s_ind0++) {
         for (std::size_t s_ind1 = s_ind0 + 1; s_ind1 < simplices.size(); s_ind1++) {
-          if (VECTOR_OPERATIONS::L2_NORM(simplices[s_ind0].k_vec, simplices[s_ind1].k_vec) < 1.e-6) {
+          if (math::util::distance2(simplices[s_ind0].k_vec, simplices[s_ind1].k_vec) < 1.e-6) {
             simplices.erase(simplices.begin() + s_ind1);
             s_ind1--;
           }
@@ -415,8 +415,8 @@ void tetrahedron_mesh_initializer<3, k_cluster_type>::make_convex_hull() {
 
     for (std::size_t B_ind = 0; B_ind < B_collection.size(); B_ind++) {
       for (std::size_t s_ind = 0; s_ind < simplices.size(); s_ind++) {
-        double diff_k_K = VECTOR_OPERATIONS::L2_NORM(simplices[s_ind].k_vec, K);
-        double diff_k_B = VECTOR_OPERATIONS::L2_NORM(simplices[s_ind].k_vec, B_collection[B_ind]);
+        double diff_k_K = math::util::distance2(simplices[s_ind].k_vec, K);
+        double diff_k_B = math::util::distance2(simplices[s_ind].k_vec, B_collection[B_ind]);
 
         if (diff_k_K > diff_k_B + 1.e-6) {
           simplices.erase(simplices.begin() + s_ind);
@@ -429,7 +429,7 @@ void tetrahedron_mesh_initializer<3, k_cluster_type>::make_convex_hull() {
   {
     for (std::size_t s_ind0 = 0; s_ind0 < simplices.size(); s_ind0++) {
       for (std::size_t s_ind1 = s_ind0 + 1; s_ind1 < simplices.size(); s_ind1++) {
-        if (VECTOR_OPERATIONS::L2_NORM(simplices[s_ind0].k_vec, simplices[s_ind1].k_vec) < 1.e-6) {
+        if (math::util::distance2(simplices[s_ind0].k_vec, simplices[s_ind1].k_vec) < 1.e-6) {
           simplices.erase(simplices.begin() + s_ind1);
           s_ind1--;
         }

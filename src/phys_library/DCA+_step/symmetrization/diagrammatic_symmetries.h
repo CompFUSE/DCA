@@ -122,10 +122,13 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
-#include "math_library/geometry_library/vector_operations/vector_operations.hpp"
+#include "dca/math/util/vector_operations.hpp"
+
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/cluster/cluster_operations.hpp"
 #include "phys_library/vertex_measurement_type.hpp"
+
+using namespace dca;
 
 template <class parameters_type>
 class diagrammatic_symmetries {
@@ -223,7 +226,7 @@ void diagrammatic_symmetries<parameters_type>::execute(
     q_rec = cluster_operations::translate_inside_cluster(
         q_rec, k_dmn::parameter_type::get_super_basis_vectors());
 
-    if (VECTOR_OPERATIONS::L2_NORM(q_rec) < 1.e-6) {
+    if (math::util::l2Norm2(q_rec) < 1.e-6) {
       q_vector_is_invertible = true;
     }
     else {
@@ -242,7 +245,7 @@ void diagrammatic_symmetries<parameters_type>::execute(
     q_rec = cluster_operations::translate_inside_cluster(
         q_rec, k_dmn::parameter_type::get_super_basis_vectors());
 
-    if (VECTOR_OPERATIONS::L2_NORM(q_rec) < 1.e-6) {
+    if (math::util::l2Norm2(q_rec) < 1.e-6) {
       q_vector_is_reciprocal = true;
     }
     else {

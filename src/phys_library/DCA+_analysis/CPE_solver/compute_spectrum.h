@@ -23,10 +23,11 @@
 #include "dca/function/function.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_writer.hpp"
+#include "dca/math/util/vector_operations.hpp"
 #include "dca/util/print_time.hpp"
+
 #include "comp_library/function_plotting/include_plotting.h"
 #include "comp_library/linalg/linalg.hpp"
-#include "math_library/geometry_library/vector_operations/vector_operations.hpp"
 #include "math_library/static_functions.h"  // for gaussian_distribution
 #include "phys_library/DCA+_analysis/CPE_solver/CPE_weighted_gradient_method.h"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_sp.h"
@@ -881,7 +882,7 @@ void compute_spectrum<parameters_type, basis_function_t>::print_check_sums(MOMS_
     {
       std::cout << "\n\n\t integrated G0 and G : \n\n";
       for (int k_ind = 0; k_ind < k_DCA::dmn_size(); k_ind++) {
-        VECTOR_OPERATIONS::PRINT(k_DCA::get_elements()[k_ind]);
+        math::util::print(k_DCA::get_elements()[k_ind]);
 
         result = 0;
         for (int w_ind = 0; w_ind < w_REAL::dmn_size() - 1; w_ind++) {

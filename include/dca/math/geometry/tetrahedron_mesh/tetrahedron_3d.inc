@@ -543,19 +543,19 @@ template <typename mesh_t>
 bool tetrahedron<3>::check_consistency(mesh_t& mesh) {
   bool OK = true;
 
-  if (VECTOR_OPERATIONS::L2_NORM(mesh[index[0]], vec_0) > 1.e-6)
+  if (math::util::distance2(mesh[index[0]], vec_0) > 1.e-6)
     OK = false;
 
-  if (VECTOR_OPERATIONS::L2_NORM(mesh[index[1]], vec_1) > 1.e-6)
+  if (math::util::distance2(mesh[index[1]], vec_1) > 1.e-6)
     OK = false;
 
-  if (VECTOR_OPERATIONS::L2_NORM(mesh[index[2]], vec_2) > 1.e-6)
+  if (math::util::distance2(mesh[index[2]], vec_2) > 1.e-6)
     OK = false;
 
-  if (VECTOR_OPERATIONS::L2_NORM(mesh[index[3]], vec_3) > 1.e-6)
+  if (math::util::distance2(mesh[index[3]], vec_3) > 1.e-6)
     OK = false;
 
-  if (std::fabs(volume - compute_volume(&vec_0[0], &vec_1[0], &vec_2[0], &vec_3[0])) > 1.e-6)
+  if (std::abs(volume - compute_volume(&vec_0[0], &vec_1[0], &vec_2[0], &vec_3[0])) > 1.e-6)
     OK = false;
 
   if (!OK)

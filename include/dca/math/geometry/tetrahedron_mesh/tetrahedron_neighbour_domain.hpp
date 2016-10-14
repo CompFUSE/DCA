@@ -21,7 +21,7 @@
 #include "dca/function/function.hpp"
 #include "dca/math/geometry/tetrahedron_mesh/facet.hpp"
 #include "dca/math/geometry/tetrahedron_mesh/tetrahedron_mesh.hpp"
-#include "math_library/geometry_library/vector_operations/vector_operations.hpp"
+#include "dca/math/util/vector_operations.hpp"
 
 namespace dca {
 namespace math {
@@ -74,7 +74,7 @@ std::vector<typename tetrahedron_neighbour_domain<cluster_type>::element_type>& 
     std::vector<double> k(DIMENSION, 0.);
 
     for (std::size_t k_ind = 0; k_ind < tet_mesh.get_facets()[f_ind].index.size(); ++k_ind)
-      k = VECTOR_OPERATIONS::ADD(
+      k = math::util::add(
           k, tet_mesh.get_simplices()[tet_mesh.get_facets()[f_ind].index[k_ind]].k_vec);
 
     for (int d = 0; d < DIMENSION; d++)
@@ -105,13 +105,13 @@ func::function<int, func::dmn_variadic<typename tetrahedron_neighbour_domain<clu
     for (int n_ind = 0; n_ind < this_type::get_size(); ++n_ind) {
       std::vector<double> k(DIMENSION, 0.);
 
-      k = VECTOR_OPERATIONS::ADD(k_vecs[K_ind], n_vecs[n_ind]);
+      k = math::util::add(k_vecs[K_ind], n_vecs[n_ind]);
 
       k = cluster_type::back_inside_cluster(k);
 
       int index = -1;
       for (int l = 0; l < cluster_dmn_t::dmn_size(); ++l) {
-        if (VECTOR_OPERATIONS::L2_NORM(k, k_vecs[l]) < 1.e-6) {
+        if (math::util::distance2(k, k_vecs[l]) < 1.e-6) {
           index = l;
           break;
         }

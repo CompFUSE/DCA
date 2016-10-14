@@ -27,11 +27,12 @@
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/io/json/json_writer.hpp"
+#include "dca/math/util/vector_operations.hpp"
 #include "dca/phys/dca_algorithms/compute_band_structure.hpp"
 #include "dca/util/print_time.hpp"
+
 #include "comp_library/linalg/linalg.hpp"
 #include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
-#include "math_library/geometry_library/vector_operations/vector_operations.hpp"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_sp.h"
 #include "phys_library/DCA+_step/symmetrization/symmetrize.h"
 #include "phys_library/domains/cluster/cluster_domain.h"
@@ -643,7 +644,7 @@ void DCA_data<parameters_type>::print_Sigma_QMC_versus_Sigma_cg() {
     }
 
     for (int k_ind = 0; k_ind < k_DCA::dmn_size(); ++k_ind) {
-      VECTOR_OPERATIONS::PRINT(k_DCA::get_elements()[k_ind]);
+      math::util::print(k_DCA::get_elements()[k_ind]);
       std::cout << real(Sigma(0, 0, k_ind, w::dmn_size() / 2)) << "\t"
                 << imag(Sigma(0, 0, k_ind, w::dmn_size() / 2)) << "\t";
       std::cout << real(Sigma_cluster(0, 0, k_ind, w::dmn_size() / 2)) << "\t"

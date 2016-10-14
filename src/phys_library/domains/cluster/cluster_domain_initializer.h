@@ -16,9 +16,10 @@
 #include <vector>
 
 #include "dca/function/domains/dmn_0.hpp"
+#include "dca/math/util/coordinate_transformation.hpp"
+#include "dca/math/util/vector_operations.hpp"
 
 #include "comp_library/linalg/linalg.hpp"
-#include "math_library/geometry_library/vector_operations/vector_operations.hpp"
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/cluster/cluster_typedefs.hpp"
 
@@ -406,9 +407,9 @@ void cluster_domain_initializer<
     k_dmn::get_size() = k_dmn::get_elements().size();
 
     sort(r_dmn::get_elements().begin(), r_dmn::get_elements().end(),
-         VECTOR_OPERATIONS::IS_LARGER_VECTOR<scalar_type>);
+         math::util::isLessVector<scalar_type>);
     sort(k_dmn::get_elements().begin(), k_dmn::get_elements().end(),
-         VECTOR_OPERATIONS::IS_LARGER_VECTOR<scalar_type>);
+         math::util::isLessVector<scalar_type>);
   }
 }
 
@@ -459,7 +460,7 @@ void cluster_domain_initializer<func::dmn_0<cluster_domain<
 template <typename scalar_type, int DIMENSION, CLUSTER_NAMES NAME, CLUSTER_SHAPE SHAPE>
 void cluster_domain_initializer<func::dmn_0<cluster_domain<
     scalar_type, DIMENSION, NAME, REAL_SPACE, SHAPE>>>::initialize_elements_2D(scalar_type shift) {
-  VECTOR_OPERATIONS::coordinate_transformation<scalar_type> coordinate_trafo(2);
+  math::util::coordinate_transformation<scalar_type> coordinate_trafo(2);
 
   {
     coordinate_trafo.set_basis(k_dmn::get_super_basis());
@@ -519,7 +520,7 @@ void cluster_domain_initializer<func::dmn_0<cluster_domain<
 template <typename scalar_type, int DIMENSION, CLUSTER_NAMES NAME, CLUSTER_SHAPE SHAPE>
 void cluster_domain_initializer<func::dmn_0<cluster_domain<
     scalar_type, DIMENSION, NAME, REAL_SPACE, SHAPE>>>::initialize_elements_3D(scalar_type shift) {
-  VECTOR_OPERATIONS::coordinate_transformation<scalar_type> coordinate_trafo(3);
+  math::util::coordinate_transformation<scalar_type> coordinate_trafo(3);
 
   {
     coordinate_trafo.set_basis(k_dmn::get_super_basis());
@@ -774,21 +775,21 @@ void cluster_domain_initializer<
       break;
 
     case 2:
-      r_dmn::get_volume() = VECTOR_OPERATIONS::VOLUME(r_dmn::get_super_basis_vectors()[0],
-                                                      r_dmn::get_super_basis_vectors()[1]);
+      r_dmn::get_volume() =
+          math::util::area(r_dmn::get_super_basis_vectors()[0], r_dmn::get_super_basis_vectors()[1]);
 
-      k_dmn::get_volume() = VECTOR_OPERATIONS::VOLUME(k_dmn::get_super_basis_vectors()[0],
-                                                      k_dmn::get_super_basis_vectors()[1]);
+      k_dmn::get_volume() =
+          math::util::area(k_dmn::get_super_basis_vectors()[0], k_dmn::get_super_basis_vectors()[1]);
       break;
 
     case 3:
-      r_dmn::get_volume() = VECTOR_OPERATIONS::VOLUME(r_dmn::get_super_basis_vectors()[0],
-                                                      r_dmn::get_super_basis_vectors()[1],
-                                                      r_dmn::get_super_basis_vectors()[2]);
+      r_dmn::get_volume() = math::util::volume(r_dmn::get_super_basis_vectors()[0],
+                                               r_dmn::get_super_basis_vectors()[1],
+                                               r_dmn::get_super_basis_vectors()[2]);
 
-      k_dmn::get_volume() = VECTOR_OPERATIONS::VOLUME(k_dmn::get_super_basis_vectors()[0],
-                                                      k_dmn::get_super_basis_vectors()[1],
-                                                      k_dmn::get_super_basis_vectors()[2]);
+      k_dmn::get_volume() = math::util::volume(k_dmn::get_super_basis_vectors()[0],
+                                               k_dmn::get_super_basis_vectors()[1],
+                                               k_dmn::get_super_basis_vectors()[2]);
       break;
 
     default:

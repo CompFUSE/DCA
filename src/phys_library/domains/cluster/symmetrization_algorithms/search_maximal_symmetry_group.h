@@ -21,10 +21,13 @@
 #include <vector>
 
 #include "dca/util/type_list.hpp"
+#include "dca/math/util/vector_operations.hpp"
+
 #include "comp_library/linalg/linalg.hpp"
-#include "math_library/geometry_library/vector_operations/vector_operations.hpp"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/Quantum_domain/point_group_operation_dmn.h"
+
+using namespace dca;
 
 template <class base_cluster_type, class point_group,
           symmetry_group_level_type symmetry_group_level, int INDEX>
@@ -142,7 +145,7 @@ private:
 
       back_inside_cluster(&T_inv[0], &v[0], &v_c[0]);
 
-      if (VECTOR_OPERATIONS::L2_NORM(v_c) > 1.e-6)
+      if (math::util::l2Norm2(v_c) > 1.e-6)
         is_compatible = false;
     }
 
@@ -186,7 +189,7 @@ private:
           v[i] += symmetry_type::matrix()[i + DIMENSION * j] * v_c[j];
 
       for (int j = 0; j < Na; j++)
-        if (VECTOR_OPERATIONS::L2_NORM(v, b_dmn_t::get_elements()[j].a_vec) < 1.e-6 and
+        if (math::util::distance2(v, b_dmn_t::get_elements()[j].a_vec) < 1.e-6 and
             b_dmn_t::get_elements()[l].flavor == b_dmn_t::get_elements()[j].flavor)
           is_compatible = true;
     }

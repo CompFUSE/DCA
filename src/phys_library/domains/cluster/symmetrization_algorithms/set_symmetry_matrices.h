@@ -17,11 +17,14 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
-#include "math_library/geometry_library/vector_operations/vector_operations.hpp"
+#include "dca/math/util/vector_operations.hpp"
+
 #include "phys_library/domains/cluster/cluster_domain_symmetry.h"
 #include "phys_library/domains/cluster/cluster_operations.hpp"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/Quantum_domain/point_group_operation_dmn.h"
+
+using namespace dca;
 
 template <class base_cluster_type>
 class set_symmetry_matrices {
@@ -78,7 +81,7 @@ void set_symmetry_matrices<base_cluster_type>::set_r_symmetry_matrix() {
         symmetry_matrix(i, j, l) = std::pair<int, int>(-1, -1);
 
         std::vector<double> r_plus_a =
-            VECTOR_OPERATIONS::ADD(r_dmn_t::get_elements()[i], b_dmn_t::get_elements()[j].a_vec);
+            math::util::add(r_dmn_t::get_elements()[i], b_dmn_t::get_elements()[j].a_vec);
         std::vector<double> trafo_r_plus_a(DIMENSION, 0);
 
         sym_super_cell_dmn_t::get_elements()[l].transform(&r_plus_a[0], &trafo_r_plus_a[0]);
@@ -89,14 +92,14 @@ void set_symmetry_matrices<base_cluster_type>::set_r_symmetry_matrix() {
 
         for (int r_ind = 0; r_ind < r_dmn_t::dmn_size(); ++r_ind) {
           for (int b_ind = 0; b_ind < b_dmn_t::dmn_size(); ++b_ind) {
-            std::vector<double> rj_plus_aj = VECTOR_OPERATIONS::ADD(
-                r_dmn_t::get_elements()[r_ind], b_dmn_t::get_elements()[b_ind].a_vec);
+            std::vector<double> rj_plus_aj = math::util::add(r_dmn_t::get_elements()[r_ind],
+                                                             b_dmn_t::get_elements()[b_ind].a_vec);
 
             // rj_plus_aj = r_cluster_type::back_inside_cluster(rj_plus_aj);
             rj_plus_aj = cluster_operations::translate_inside_cluster(
                 rj_plus_aj, r_cluster_type::get_super_basis_vectors());
 
-            if (VECTOR_OPERATIONS::L2_NORM(rj_plus_aj, trafo_r_plus_a) < 1.e-6 and
+            if (math::util::distance2(rj_plus_aj, trafo_r_plus_a) < 1.e-6 and
                 b_dmn_t::get_elements()[j].flavor == b_dmn_t::get_elements()[b_ind].flavor)
               symmetry_matrix(i, j, l) = std::pair<int, int>(r_ind, b_ind);
           }
@@ -104,28 +107,28 @@ void set_symmetry_matrices<base_cluster_type>::set_r_symmetry_matrix() {
 
         if (symmetry_matrix(i, j, l).first == -1 or symmetry_matrix(i, j, l).second == -1) {
           std::vector<double> r_plus_a =
-              VECTOR_OPERATIONS::ADD(r_dmn_t::get_elements()[i], b_dmn_t::get_elements()[j].a_vec);
+              math::util::add(r_dmn_t::get_elements()[i], b_dmn_t::get_elements()[j].a_vec);
 
           std::vector<double> trafo_r_plus_a(DIMENSION, 0);
           std::vector<double> trafo_r_plus_a_in_cluster(DIMENSION, 0);
 
           sym_super_cell_dmn_t::get_elements()[l].transform(&r_plus_a[0], &trafo_r_plus_a[0]);
 
-          VECTOR_OPERATIONS::PRINT(r_plus_a);
+          math::util::print(r_plus_a);
           std::cout << "\t-->\t";
-          VECTOR_OPERATIONS::PRINT(trafo_r_plus_a);
+          math::util::print(trafo_r_plus_a);
           std::cout << "\t-->\t";
 
-          std::vector<double> r_affine = VECTOR_OPERATIONS::COORDINATES(
-              trafo_r_plus_a, r_cluster_type::get_super_basis_vectors());
+          std::vector<double> r_affine =
+              math::util::coordinates(trafo_r_plus_a, r_cluster_type::get_super_basis_vectors());
 
-          VECTOR_OPERATIONS::PRINT(r_affine);
+          math::util::print(r_affine);
           std::cout << "\t-->\t";
 
           trafo_r_plus_a_in_cluster = cluster_operations::translate_inside_cluster(
               trafo_r_plus_a, r_cluster_type::get_super_basis_vectors());
 
-          VECTOR_OPERATIONS::PRINT(trafo_r_plus_a_in_cluster);
+          math::util::print(trafo_r_plus_a_in_cluster);
           std::cout << "\n\n";
 
           sym_super_cell_dmn_t::get_elements()[l].to_JSON(std::cout);
@@ -176,7 +179,7 @@ int set_symmetry_matrices<base_cluster_type>::find_k_index(std::vector<double> k
     k = cluster_operations::translate_inside_cluster(k, k_cluster_type::get_super_basis_new());
 
     for(int k_ind=0; k_ind<k_dmn_t::dmn_size(); ++k_ind)
-    if(VECTOR_OPERATIONS::L2_NORM(k_dmn_t::get_elements()[k_ind], k)<1.e-6)
+    if(math::util::distance2(k_dmn_t::get_elements()[k_ind], k)<1.e-6)
     index = k_ind;
 
     if(index<0)
@@ -190,7 +193,7 @@ int set_symmetry_matrices<base_cluster_type>::find_k_index(std::vector<double> k
   int index = cluster_operations::index(k, k_cluster_type::get_elements(), base_cluster_type::SHAPE);
 
   assert(index > -1 and index < k_cluster_type::get_elements().size());
-  assert(VECTOR_OPERATIONS::L2_NORM(k_dmn_t::get_elements()[index], k) < 1.e-6);
+  assert(math::util::distance2(k_dmn_t::get_elements()[index], k) < 1.e-6);
 
   return index;
 }

@@ -16,10 +16,13 @@
 #include <iostream>
 #include <vector>
 
-#include "math_library/geometry_library/vector_operations/vector_operations.hpp"
+#include "dca/math/util/vector_operations.hpp"
+
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/cluster/cluster_domain_initializer.h"
 #include "phys_library/domains/cluster/cluster_typedefs.hpp"
+
+using namespace dca;
 
 template <typename cluster_type>
 class cluster_domain_iterator {};
@@ -77,9 +80,9 @@ private:
         if (i.pi_zero == j.pi_zero) {
           if (i.zero_pi == j.zero_pi) {
             if (i.vec_0 == j.vec_0)
-              return VECTOR_OPERATIONS::IS_LARGER_VECTOR(i.vec_1, j.vec_1);
+              return math::util::isLessVector(i.vec_1, j.vec_1);
             else
-              return VECTOR_OPERATIONS::IS_LARGER_VECTOR(i.vec_0, j.vec_0);
+              return math::util::isLessVector(i.vec_0, j.vec_0);
           }
           else
             return i.zero_pi > j.zero_pi;
@@ -213,8 +216,8 @@ bool cluster_domain_iterator<cluster_domain<scalar_type, D, N, R, S>>::find_anti
   zero_pi[1] = M_PI;
 
   for (int l = 0; l < tmp_k_dmn::get_size(); l++) {
-    double dif0 = VECTOR_OPERATIONS::NORM(pi_zero, tmp_k_dmn::get_elements()[l]);
-    double dif1 = VECTOR_OPERATIONS::NORM(zero_pi, tmp_k_dmn::get_elements()[l]);
+    double dif0 = math::util::distance(pi_zero, tmp_k_dmn::get_elements()[l]);
+    double dif1 = math::util::distance(zero_pi, tmp_k_dmn::get_elements()[l]);
 
     if (dif0 < 1.e-6 or dif1 < 1.e-6)
       contains = true;
@@ -232,7 +235,7 @@ bool cluster_domain_iterator<cluster_domain<scalar_type, D, N, R, S>>::find_pi_z
   pi_zero[0] = M_PI;
 
   for (int l = 0; l < tmp_k_dmn::get_size(); l++) {
-    double dif0 = VECTOR_OPERATIONS::NORM(pi_zero, tmp_k_dmn::get_elements()[l]);
+    double dif0 = math::util::distance(pi_zero, tmp_k_dmn::get_elements()[l]);
 
     if (dif0 < 1.e-6)
       contains = true;
@@ -250,7 +253,7 @@ bool cluster_domain_iterator<cluster_domain<scalar_type, D, N, R, S>>::find_zero
   zero_pi[1] = M_PI;
 
   for (int l = 0; l < tmp_k_dmn::get_size(); l++) {
-    double dif1 = VECTOR_OPERATIONS::NORM(zero_pi, tmp_k_dmn::get_elements()[l]);
+    double dif1 = math::util::distance(zero_pi, tmp_k_dmn::get_elements()[l]);
 
     if (dif1 < 1.e-6)
       contains = true;
