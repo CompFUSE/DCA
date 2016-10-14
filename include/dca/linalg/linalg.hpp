@@ -25,5 +25,8 @@
 #include "dca/linalg/blas/cublas3.hpp"
 #endif  // DCA_HAVE_CUDA
 
+#include "dca/linalg/lapack/lapack.hpp"
+
 // Device selector struct
 #include "dca/linalg/blas/use_device.hpp"
+#include "dca/linalg/lapack/use_device.hpp"

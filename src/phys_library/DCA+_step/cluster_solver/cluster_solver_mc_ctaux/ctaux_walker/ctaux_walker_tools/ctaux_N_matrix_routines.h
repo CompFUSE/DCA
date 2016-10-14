@@ -280,12 +280,10 @@ void N_TOOLS<device_t, parameters_type>::update_N_matrix(configuration_type& con
     int LD = N.leadingDimension();
 
     assert(N_r == N_c);
-    LIN_ALG::LASET<device_t>::set_zero(i, N_c - i, N.ptr(0, i), LD, thread_id, stream_id);
-    LIN_ALG::LASET<device_t>::set_unity(N_r - i, N_c - i, N.ptr(i, i), LD, thread_id, stream_id);
-    // dca::linalg::lapack::UseDevice<device_t>::laset("A", i, N_c - i, 0., 0., N.ptr(0, i), LD,
-    //                                                thread_id, stream_id);
-    // dca::linalg::lapack::UseDevice<device_t>::laset("A", N_r - i, N_c - i, 1., 0., N.ptr(i, i),
-    //                                                LD, thread_id, stream_id);
+    dca::linalg::lapack::UseDevice<device_t>::laset(i, N_c - i, 0., 0., N.ptr(0, i), LD, thread_id,
+                                                    stream_id);
+    dca::linalg::lapack::UseDevice<device_t>::laset(N_r - i, N_c - i, 0., 1., N.ptr(i, i), LD,
+                                                    thread_id, stream_id);
   }
 
   if (first_shuffled_vertex_index == configuration_size || first_non_interacting_vertex_index == 0)

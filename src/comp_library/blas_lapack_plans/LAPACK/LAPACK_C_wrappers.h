@@ -23,10 +23,6 @@ namespace LAPACK {
 
 extern "C" float slamch_(char* JOBZ);
 extern "C" double dlamch_(char* JOBZ);
-
-extern "C" void slaset_(char* UPLO, int* M, int* N, float* ALPHA, float* BETA, float* A, int* LDA);
-extern "C" void dlaset_(char* UPLO, int* M, int* N, double* ALPHA, double* BETA, double* A, int* LDA);
-
 // solve
 extern "C" void sgesv_(int*, int*, float*, int*, int*, float*, int*, int*);
 extern "C" void dgesv_(int*, int*, double*, int*, int*, double*, int*, int*);
