@@ -7,7 +7,7 @@
 //
 // Author: Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //
-// This file tests the matrix operations with the Matrix<CPU> class.
+// This file tests the matrix operations with the Matrix<CPU> class with complex element type.
 
 #include "dca/linalg/matrixop.hpp"
 #include <complex>

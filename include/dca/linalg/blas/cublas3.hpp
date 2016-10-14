@@ -7,7 +7,7 @@
 //
 // Author: Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //
-// This file provides the declaration of the BLAS level 3 routines and implements C++ wrappers.
+// This file provides the C++ wrappers for some of the level 3 CUBLAS functions.
 
 #ifndef DCA_LINALG_BLAS_CUBLAS3_HPP
 #define DCA_LINALG_BLAS_CUBLAS3_HPP

@@ -7,7 +7,7 @@
 //
 // Author: Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //
-// This file provides the implementation of the C++ wrappers for the CUBLAS level 1 functions.
+// This file provides the C++ wrappers for some of the level 1 CUBLAS functions.
 
 #ifndef DCA_LINALG_BLAS_CUBLAS1_HPP
 #define DCA_LINALG_BLAS_CUBLAS1_HPP
