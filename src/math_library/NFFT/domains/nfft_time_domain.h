@@ -18,7 +18,9 @@
 #include <string>
 #include <vector>
 
-#include "math_library/functional_transforms/domain_specifications/domain_specifications.hpp"
+#include "dca/math/function_transform/domain_specifications.hpp"
+
+using namespace dca::math;
 
 namespace math_algorithms {
 namespace NFFT {
@@ -57,7 +59,9 @@ public:
   typedef typename dnfft_type::scalar_type scalar_type;
   typedef typename dnfft_type::scalar_type element_type;
 
-  typedef domain_specifications<scalar_type, element_type, DISCRETE, KRONECKER_DELTA, PERIODIC, EQUIDISTANT>
+  typedef transform::domain_specifications<scalar_type, element_type, transform::DISCRETE,
+                                           transform::KRONECKER_DELTA, transform::PERIODIC,
+                                           transform::EQUIDISTANT>
       discrete_periodic_dmn_1D_type;
 
 public:

@@ -18,10 +18,13 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/math/function_transform/basis_transform/basis_transform.hpp"
+
 #include "comp_library/linalg/linalg.hpp"
-#include "math_library/functional_transforms/basis_transforms/basis_transform.h"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_sp.h"
 #include "phys_library/DCA+_step/symmetrization/symmetrize.h"
+
+using namespace dca;
 
 namespace DCA {
 
@@ -33,10 +36,8 @@ public:
   using target_k_cluster_type = typename target_k_dmn_t::parameter_type;
   using target_r_cluster_type = typename target_k_cluster_type::dual_type;
   using target_r_dmn_t = func::dmn_0<target_r_cluster_type>;
-  using trafo_k_to_r_type =
-      math_algorithms::functional_transforms::basis_transform<target_k_dmn_t, target_r_dmn_t>;
-  using trafo_r_to_k_type =
-      math_algorithms::functional_transforms::basis_transform<target_r_dmn_t, target_k_dmn_t>;
+  using trafo_k_to_r_type = math::transform::basis_transform<target_k_dmn_t, target_r_dmn_t>;
+  using trafo_r_to_k_type = math::transform::basis_transform<target_r_dmn_t, target_k_dmn_t>;
 
 public:
   deconvolution_routines(parameters_type& parameters_ref);

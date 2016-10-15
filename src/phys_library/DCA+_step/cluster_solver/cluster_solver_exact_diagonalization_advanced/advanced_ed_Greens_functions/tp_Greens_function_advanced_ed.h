@@ -24,7 +24,6 @@
 #include "dca/util/print_time.hpp"
 
 #include "comp_library/function_plotting/include_plotting.h"
-// #include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Fock_space.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Greens_functions/sp_Greens_function_data.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Greens_functions/tp_Greens_function_data.h"

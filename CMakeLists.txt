@@ -143,6 +143,7 @@ set(DCA_LIBS
   ${DCA_EXTERNAL_LIBS}
   git_version modules
   posix_qmci
+  function_transform
   gaussian_quadrature
   tetrahedron_mesh
   random

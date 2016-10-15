@@ -23,6 +23,7 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/math/function_transform/function_transform.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_reader.hpp"
@@ -32,7 +33,6 @@
 #include "dca/util/print_time.hpp"
 
 #include "comp_library/linalg/linalg.hpp"
-#include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_sp.h"
 #include "phys_library/DCA+_step/symmetrization/symmetrize.h"
 #include "phys_library/domains/cluster/cluster_domain.h"
@@ -380,7 +380,7 @@ void DCA_data<parameters_type>::write(Writer& writer) {
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA>> S_k_DCA("Sigma-k-DCA");
     std::memcpy(&S_k_DCA(0), &Sigma(0, 0, 0, w::dmn_size() / 2),
                 sizeof(std::complex<double>) * std::pow(2 * b::dmn_size(), 2.) * k_DCA::dmn_size());
-    math_algorithms::functional_transforms::TRANSFORM<k_DCA, r_DCA>::execute(S_k_DCA, S_r_DCA);
+    math::transform::FunctionTransform<k_DCA, r_DCA>::execute(S_k_DCA, S_r_DCA);
 
     writer.execute(S_r_DCA);
   }
@@ -489,8 +489,8 @@ void DCA_data<parameters_type>::initialize_G0() {
     std::cout << "\n\t\t FT G0_k_w, G0_k_t --> G0_r_w, G0_r_t " << dca::util::print_time() << "\n";
 
   {
-    math_algorithms::functional_transforms::TRANSFORM<k_DCA, r_DCA>::execute(G0_k_w, G0_r_w);
-    math_algorithms::functional_transforms::TRANSFORM<k_DCA, r_DCA>::execute(G0_k_t, G0_r_t);
+    math::transform::FunctionTransform<k_DCA, r_DCA>::execute(G0_k_w, G0_r_w);
+    math::transform::FunctionTransform<k_DCA, r_DCA>::execute(G0_k_t, G0_r_t);
 
     symmetrize::execute(G0_r_t, H_symmetry, true);
   }
@@ -513,7 +513,7 @@ void DCA_data<parameters_type>::compute_single_particle_properties() {
     std::memcpy(&S_k(0), &Sigma_lattice(0, 0, 0, w::dmn_size() / 2),
                 sizeof(std::complex<double>) * std::pow(2 * b::dmn_size(), 2.) * k_HOST::dmn_size());
 
-    math_algorithms::functional_transforms::TRANSFORM<k_HOST, r_HOST>::execute(S_k, S_r);
+    math::transform::FunctionTransform<k_HOST, r_HOST>::execute(S_k, S_r);
   }
 
   {

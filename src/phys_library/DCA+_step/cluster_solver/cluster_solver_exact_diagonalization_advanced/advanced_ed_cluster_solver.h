@@ -141,7 +141,7 @@ void cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_
     int /*dca_iteration*/) {
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA>> H_DCA;
 
-  math_algorithms::functional_transforms::TRANSFORM<k_DCA, r_DCA>::execute(MOMS_imag.H_DCA, H_DCA);
+  math::transform::FunctionTransform<k_DCA, r_DCA>::execute(MOMS_imag.H_DCA, H_DCA);
 
   Ham_obj.initialize(H_DCA, MOMS_imag.H_interactions);
 }

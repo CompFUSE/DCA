@@ -22,13 +22,16 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/math/function_transform/function_transform.hpp"
+
 #include "comp_library/function_plotting/include_plotting.h"
-#include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain.h"
 #include "phys_library/domains/time_and_frequency/time_domain.h"
+
+using namespace dca;
 
 namespace DCA {
 namespace QMCI {
@@ -278,13 +281,13 @@ void ss_hybridization_solver_routines<parameters_t, MOMS_t>::construct_F_r_t() {
 
   subtract_moments(F_k_w);
 
-  math_algorithms::functional_transforms::TRANSFORM<w, t>::execute(F_k_w, F_k_t);
+  math::transform::FunctionTransform<w, t>::execute(F_k_w, F_k_t);
 
   add_moments(F_k_w);
 
   compensate_for_moments(F_k_t);
 
-  math_algorithms::functional_transforms::TRANSFORM<k_DCA, r_DCA>::execute(F_k_t, F_r_t);
+  math::transform::FunctionTransform<k_DCA, r_DCA>::execute(F_k_t, F_r_t);
 }
 
 template <typename parameters_t, typename MOMS_t>

@@ -20,12 +20,15 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/math/function_transform/basis_transform/basis_transform.hpp"
+
 #include "comp_library/linalg/linalg.hpp"
-#include "math_library/functional_transforms/basis_transforms/basis_transforms.hpp"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_names.hpp"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_domain.h"
 #include "phys_library/DCA+_step/lattice_mapping/interpolation/interpolation_matrices.h"
 #include "phys_library/domains/cluster/centered_cluster_domain.h"
+
+using namespace dca;
 
 namespace DCA {
 
@@ -37,10 +40,8 @@ public:
   using q_dmn = func::dmn_0<coarsegraining_domain<K_dmn, NAME>>;
   using r_centered_dmn = func::dmn_0<centered_cluster_domain<r_dmn>>;
 
-  using trafo_k_to_r_type =
-      math_algorithms::functional_transforms::basis_transform<k_dmn, r_centered_dmn>;
-  using trafo_r_to_q_type =
-      math_algorithms::functional_transforms::basis_transform<r_centered_dmn, q_dmn>;
+  using trafo_k_to_r_type = math::transform::basis_transform<k_dmn, r_centered_dmn>;
+  using trafo_r_to_q_type = math::transform::basis_transform<r_centered_dmn, q_dmn>;
   using trafo_matrix_type = typename trafo_k_to_r_type::matrix_type;
 
   using matrix_type = dca::linalg::Matrix<scalar_type, dca::linalg::CPU>;

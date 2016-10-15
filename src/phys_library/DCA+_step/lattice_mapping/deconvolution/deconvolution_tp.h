@@ -17,10 +17,13 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
-#include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
+#include "dca/math/function_transform/function_transform.hpp"
+
 #include "phys_library/DCA+_step/lattice_mapping/deconvolution/deconvolution_routines.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
+
+using namespace dca;
 
 namespace DCA {
 
@@ -79,7 +82,7 @@ void deconvolution_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(
 
   this->compute_T_inv_matrix(parameters.get_singular_value_cut_off(), phi_inv);
 
-  math_algorithms::functional_transforms::TRANSFORM<k_dmn_t, target_k_dmn_t>::execute_on_all(
+  math::transform::FunctionTransform<k_dmn_t, target_k_dmn_t>::execute_on_all(
       Gamma_lattice_interp, Gamma_lattice_deconv, phi_inv);
 }
 }

@@ -17,8 +17,9 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/math/function_transform/function_transform.hpp"
 #include "dca/util/print_time.hpp"
-#include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
+
 #include "phys_library/DCA+_step/lattice_mapping/interpolation/interpolation_routines.h"
 #include "phys_library/DCA+_step/lattice_mapping/interpolation/transform_to_alpha.hpp"
 #include "phys_library/domains/cluster/centered_cluster_domain.h"
@@ -26,6 +27,8 @@
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain.h"
+
+using namespace dca;
 
 namespace DCA {
 
@@ -114,7 +117,7 @@ void interpolation_sp<parameters_type, source_k_dmn, target_k_dmn>::execute(
   func::function<std::complex<double>, nu_nu_r_centered_w> cluster_centered_function(
       "cluster_centered_function");
 
-  math_algorithms::functional_transforms::TRANSFORM<source_k_dmn, r_centered_dmn>::execute(
+  math::transform::FunctionTransform<source_k_dmn, r_centered_dmn>::execute(
       cluster_function, cluster_centered_function);
 
   for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++)
@@ -124,7 +127,7 @@ void interpolation_sp<parameters_type, source_k_dmn, target_k_dmn>::execute(
           cluster_centered_function(i, j, r_ind, w_ind) *=
               r_centered_dmn::parameter_type::get_weights()[r_ind];
 
-  math_algorithms::functional_transforms::TRANSFORM<r_centered_dmn, target_k_dmn>::execute(
+  math::transform::FunctionTransform<r_centered_dmn, target_k_dmn>::execute(
       cluster_centered_function, interp_function);
 }
 
@@ -137,7 +140,7 @@ void interpolation_sp<parameters_type, source_k_dmn, target_k_dmn>::execute(
   func::function<std::complex<double>, nu_nu_r_centered> cluster_centered_function(
       "cluster_centered_function");
 
-  math_algorithms::functional_transforms::TRANSFORM<source_k_dmn, r_centered_dmn>::execute(
+  math::transform::FunctionTransform<source_k_dmn, r_centered_dmn>::execute(
       cluster_function, cluster_centered_function);
 
   for (int r_ind = 0; r_ind < r_centered_dmn::dmn_size(); r_ind++)
@@ -146,7 +149,7 @@ void interpolation_sp<parameters_type, source_k_dmn, target_k_dmn>::execute(
         cluster_centered_function(i, j, r_ind) *=
             r_centered_dmn::parameter_type::get_weights()[r_ind];
 
-  math_algorithms::functional_transforms::TRANSFORM<r_centered_dmn, target_k_dmn>::execute(
+  math::transform::FunctionTransform<r_centered_dmn, target_k_dmn>::execute(
       cluster_centered_function, interp_function);
 }
 

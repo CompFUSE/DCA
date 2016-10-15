@@ -22,10 +22,11 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/math/function_transform/function_transform.hpp"
 #include "dca/profiling/events/time.hpp"
 #include "dca/util/print_time.hpp"
+
 #include "comp_library/linalg/linalg.hpp"
-#include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
 #include "math_library/statistical_methods.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_accumulator.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker.h"
@@ -36,6 +37,7 @@
 #include "phys_library/domains/time_and_frequency/frequency_domain.h"
 #include "phys_library/vertex_measurement_type.hpp"
 
+using namespace dca;
 using namespace dca::phys;
 
 namespace DCA {
@@ -244,7 +246,7 @@ double cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_typ
   compute_G_k_w_from_M_r_w();
 
   // FT<k_DCA,r_DCA>::execute(MOMS.G_k_w, MOMS.G_r_w);
-  math_algorithms::functional_transforms::TRANSFORM<k_DCA, r_DCA>::execute(MOMS.G_k_w, MOMS.G_r_w);
+  math::transform::FunctionTransform<k_DCA, r_DCA>::execute(MOMS.G_k_w, MOMS.G_r_w);
 
   dca_info_struct.L2_Sigma_difference(DCA_iteration) = compute_S_k_w_from_G_k_w();
 
@@ -401,7 +403,7 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
   for (int l = 0; l < accumulator.get_M_r_w().size(); l++)
     M_r_w_new(l) = accumulator.get_M_r_w()(l) / double(nb_measurements * sign);
 
-  math_algorithms::functional_transforms::TRANSFORM<r_DCA, k_DCA>::execute(M_r_w_new, M_k_w_new);
+  math::transform::FunctionTransform<r_DCA, k_DCA>::execute(M_r_w_new, M_k_w_new);
 
   compute_G_k_w_new(M_k_w_new, G_k_w_new);
   compute_S_k_w_new(G_k_w_new, Sigma_new);
@@ -522,8 +524,8 @@ template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_ty
 void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type,
                     MOMS_type>::compute_G_k_w_from_M_r_w() {
   // FT<r_DCA, k_DCA>::execute(accumulator.get_M_r_w(), accumulator.get_M_k_w());
-  math_algorithms::functional_transforms::TRANSFORM<r_DCA, k_DCA>::execute(accumulator.get_M_r_w(),
-                                                                           accumulator.get_M_k_w());
+  math::transform::FunctionTransform<r_DCA, k_DCA>::execute(accumulator.get_M_r_w(),
+                                                            accumulator.get_M_k_w());
 
   int matrix_size = b::dmn_size() * s::dmn_size() * b::dmn_size() * s::dmn_size();
   int matrix_dim = b::dmn_size() * s::dmn_size();
@@ -847,7 +849,7 @@ auto cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
   for (int l = 0; l < accumulator.get_M_r_w().size(); l++)
     M_r_w_new(l) = accumulator.get_M_r_w()(l) / double(nb_measurements * sign);
 
-  math_algorithms::functional_transforms::TRANSFORM<r_DCA, k_DCA>::execute(M_r_w_new, M_k_w_new);
+  math::transform::FunctionTransform<r_DCA, k_DCA>::execute(M_r_w_new, M_k_w_new);
 
   compute_G_k_w_new(M_k_w_new, G_k_w_new);
 

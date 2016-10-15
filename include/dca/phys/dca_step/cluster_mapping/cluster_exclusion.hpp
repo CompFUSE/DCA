@@ -16,9 +16,10 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/math/function_transform/function_transform.hpp"
+
 #include "comp_library/function_plotting/include_plotting.h"
 #include "comp_library/linalg/linalg.hpp"
-#include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
@@ -143,13 +144,13 @@ void cluster_exclusion<parameters_type, MOMS_type>::compute_G0_R_t_cluster_exclu
   MOMS.G0_k_w_cluster_excluded -= MOMS.G0_k_w;
 
   {
-    math_algorithms::functional_transforms::TRANSFORM<w, t>::execute(MOMS.G0_k_w_cluster_excluded,
-                                                                     MOMS.G0_k_t_cluster_excluded);
+    math::transform::FunctionTransform<w, t>::execute(MOMS.G0_k_w_cluster_excluded,
+                                                      MOMS.G0_k_t_cluster_excluded);
 
     MOMS.G0_k_t_cluster_excluded += MOMS.G0_k_t;
 
-    math_algorithms::functional_transforms::TRANSFORM<k_DCA, r_DCA>::execute(
-        MOMS.G0_k_t_cluster_excluded, MOMS.G0_r_t_cluster_excluded);
+    math::transform::FunctionTransform<k_DCA, r_DCA>::execute(MOMS.G0_k_t_cluster_excluded,
+                                                              MOMS.G0_r_t_cluster_excluded);
   }
 
   MOMS.G0_k_w_cluster_excluded += MOMS.G0_k_w;

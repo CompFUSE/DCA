@@ -19,7 +19,8 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
-#include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
+#include "dca/math/function_transform/function_transform.hpp"
+
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_accumulator/tp_accumulator/ctaux_tp_nft.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_vertex_singleton.h"
 #include "phys_library/domains/cluster/cluster_domain.h"
@@ -248,10 +249,8 @@ void accumulator_nonlocal_G<parameters_type, MOMS_type>::FT_M_v_v_2_M_k_k_w_w(
     profiler_t profiler("nonlocal-G-FT r --> k", "CT-AUX accumulator", __LINE__, thread_id);
 
     // FT<r_dmn_t, k_dmn_t>::execute(M_r_r_w_w, M_k_k_w_w_e_spin);
-    math_algorithms::functional_transforms::TRANSFORM<r_dmn_t, k_dmn_t>::execute(M_r_r_w_w,
-                                                                                 M_k_r_w_w);
-    math_algorithms::functional_transforms::TRANSFORM<r_dmn_t, k_dmn_t>::execute(M_k_r_w_w,
-                                                                                 M_k_k_w_w_e_spin);
+    math::transform::FunctionTransform<r_dmn_t, k_dmn_t>::execute(M_r_r_w_w, M_k_r_w_w);
+    math::transform::FunctionTransform<r_dmn_t, k_dmn_t>::execute(M_k_r_w_w, M_k_k_w_w_e_spin);
 
     // scalar_type  Nc        = scalar_type(base_cluster_type::get_cluster_size());
     scalar_type Nc = scalar_type(k_DCA::dmn_size());
@@ -308,10 +307,10 @@ void accumulator_nonlocal_G<parameters_type, MOMS_type>::FT_M_v_v_2_M_k_k_w_w_te
     {
       clock_t start = clock();
 
-      math_algorithms::functional_transforms::TRANSFORM<r_PCM, k_PCM>::execute(tmp_RR_2, tmp_KR_2);
-      math_algorithms::functional_transforms::TRANSFORM<r_PCM, k_PCM>::execute(tmp_KR_2, tmp_KK_2);
+      math::transform::FunctionTransform<r_PCM, k_PCM>::execute(tmp_RR_2, tmp_KR_2);
+      math::transform::FunctionTransform<r_PCM, k_PCM>::execute(tmp_KR_2, tmp_KK_2);
 
-      //      math_algorithms::functional_transforms::TRANSFORM<r_PCM,
+      //      math::transform::FunctionTransform<r_PCM,
 k_PCM>::execute_on_all(tmp_RR_2, tmp_KK_2);
 
       clock_t end = clock();

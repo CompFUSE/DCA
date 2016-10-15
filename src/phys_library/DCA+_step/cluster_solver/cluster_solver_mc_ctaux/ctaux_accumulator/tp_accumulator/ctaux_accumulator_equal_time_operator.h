@@ -21,11 +21,10 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/math/function_transform/function_transform.hpp"
 #include "dca/math/interpolation/akima_interpolation.hpp"
 
 #include "comp_library/function_plotting/include_plotting.h"
-
-#include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
 
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_vertex_singleton.h"
 #include "phys_library/domains/cluster/cluster_domain.h"
@@ -277,8 +276,7 @@ void MC_two_particle_equal_time_accumulator<parameters_type, MOMS_type>::initial
       dwave_k_factor(k_ind) =
           cos(k_dmn_t::get_elements()[k_ind][0]) - cos(k_dmn_t::get_elements()[k_ind][1]);
 
-    math_algorithms::functional_transforms::TRANSFORM<k_dmn_t, r_dmn_t>::execute(dwave_k_factor,
-                                                                                 dwave_r_factor);
+    math::transform::FunctionTransform<k_dmn_t, r_dmn_t>::execute(dwave_k_factor, dwave_r_factor);
 
     /*
     if(thread_id==0)
