@@ -7,20 +7,19 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
-//
 // \Delta \tau = \frac{1}{m*N_{varpi}*step}
 // \tau \in [\frac{-2}{m*N_{\varpi}}, ... , \frac{2}{m*N_{\varpi}}]
 
-#ifndef MATH_LIBRARY_NFFT_DOMAINS_NFFT_FINE_TIME_DOMAIN_H
-#define MATH_LIBRARY_NFFT_DOMAINS_NFFT_FINE_TIME_DOMAIN_H
+#ifndef DCA_MATH_NFFT_DOMAINS_NFFT_FINE_TIME_DOMAIN_HPP
+#define DCA_MATH_NFFT_DOMAINS_NFFT_FINE_TIME_DOMAIN_HPP
 
 #include <vector>
-#include "math_library/NFFT/domains/nfft_extended_time_domain.h"
+#include "dca/math/nfft/domains/nfft_extended_time_domain.hpp"
 
-namespace math_algorithms {
-namespace NFFT {
-// math_algorithms::NFFT::
+namespace dca {
+namespace math {
+namespace nfft {
+// dca::math::nfft::
 
 template <int oversampling, int step, typename w_dmn_t>
 struct nfft_fine_time_domain {
@@ -52,7 +51,8 @@ private:
   }
 };
 
-}  // NFFT
-}  // math_algorithm
+}  // nfft
+}  // math
+}  // dca
 
-#endif  // MATH_LIBRARY_NFFT_DOMAINS_NFFT_FINE_TIME_DOMAIN_H
+#endif  // DCA_MATH_NFFT_DOMAINS_NFFT_FINE_TIME_DOMAIN_HPP

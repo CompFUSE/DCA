@@ -7,41 +7,42 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// This class implements the 1D discrete NFFT using a FFTW library with the FFTW3 interface.
+// It does only 1 FT at the end of the accumulation if the error is not measured.
 
-#ifndef MATH_LIBRARY_NFFT_DNFFT_1D_H
-#define MATH_LIBRARY_NFFT_DNFFT_1D_H
+#ifndef DCA_MATH_NFFT_DNFFT_1D_HPP
+#define DCA_MATH_NFFT_DNFFT_1D_HPP
 
-#include <vector>
 #include <stdexcept>
+#include <vector>
 
 #include <fftw3.h>
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
-#include "math_library/NFFT/atomic_convolutions/nfft_atomic_convolutions.h"
-#include "math_library/NFFT/basis_functions/window_function_Gaussian.h"
-#include "math_library/NFFT/basis_functions/window_function_Kaiser.h"
-#include "math_library/NFFT/domains/domains.hpp"
+#include "dca/math/nfft/domains/domains.hpp"
+#include "dca/math/nfft/nfft_atomic_convolution.hpp"
+#include "dca/math/nfft/nfft_mode_names.hpp"
+#include "dca/math/nfft/window_functions/gaussian_window_function.hpp"
+#include "dca/math/nfft/window_functions/kaiser_bessel_function.hpp"
 
-namespace math_algorithms {
-namespace NFFT {
-// math_algorithms::NFFT::
+namespace dca {
+namespace math {
+namespace nfft {
+// dca::math::nfft::
 
-// Contains a templated class over the dimension to represent the cached nfft-plan
-// this class does only 1 FT, at the end of the accumulation if the error is not measured!
 template <typename scalartype, typename w_dmn_t, typename p_dmn_t>
 class dnfft_1D {
 public:
   typedef scalartype scalar_type;
   typedef dnfft_1D<scalartype, w_dmn_t, p_dmn_t> this_type;
 
-  const static NFFT_MODE_NAMES DEFAULT_NAME = CUBIC;
+  const static NfftModeNames DEFAULT_NAME = CUBIC;
 
   const static int DEFAULT_OVER_SAMPLING = 8;
   const static int DEFAULT_WINDOW_SAMPLING = 32;
 
-  const static NFFT_MODE_NAMES NAME = DEFAULT_NAME;
+  const static NfftModeNames NAME = DEFAULT_NAME;
 
   const static int OVER_SAMPLING = DEFAULT_OVER_SAMPLING;
   const static int WINDOW_SAMPLING = DEFAULT_WINDOW_SAMPLING;
@@ -64,15 +65,19 @@ public:
   typedef func::dmn_variadic<padded_time_dmn_t, p_dmn_t> padded_time_p_dmn_t;
   typedef func::dmn_variadic<left_oriented_time_dmn_t, p_dmn_t> left_oriented_time_p_dmn_t;
 
-public:
   dnfft_1D();
 
   void initialize();
 
-  int get_oversampling_factor();
-  int get_window_sampling_factor();
-
-  int get_maximum_frequency();
+  int get_oversampling_factor() {
+    return OVER_SAMPLING;
+  }
+  int get_window_sampling_factor() {
+    return WINDOW_SAMPLING;
+  }
+  int get_maximum_frequency() {
+    return w_dmn_t::dmn_size() / 2;
+  }
 
   void initialize_domains();
   void initialize_functions();
@@ -102,7 +107,6 @@ private:
   void FT_f_tau_to_f_w(
       func::function<std::complex<other_scalartype>, func::dmn_variadic<w_dmn_t, p_dmn_t>>& f_w);
 
-private:
   double SIGMA_WINDOW_SAMPLING;
 
   std::vector<int>& integer_wave_vectors;
@@ -165,23 +169,7 @@ dnfft_1D<scalartype, w_dmn_t, p_dmn_t>::dnfft_1D()
 
       phi_wn("phi_wn") {
   initialize_domains();
-
   initialize_functions();
-}
-
-template <typename scalartype, typename w_dmn_t, typename p_dmn_t>
-int dnfft_1D<scalartype, w_dmn_t, p_dmn_t>::get_oversampling_factor() {
-  return OVER_SAMPLING;
-}
-
-template <typename scalartype, typename w_dmn_t, typename p_dmn_t>
-int dnfft_1D<scalartype, w_dmn_t, p_dmn_t>::get_window_sampling_factor() {
-  return WINDOW_SAMPLING;
-}
-
-template <typename scalartype, typename w_dmn_t, typename p_dmn_t>
-int dnfft_1D<scalartype, w_dmn_t, p_dmn_t>::get_maximum_frequency() {
-  return w_dmn_t::dmn_size() / 2;
 }
 
 template <typename scalartype, typename w_dmn_t, typename p_dmn_t>
@@ -352,14 +340,6 @@ void dnfft_1D<scalartype, w_dmn_t, p_dmn_t>::finalize(
 
   FT_f_tau_to_f_w(f_w);
 }
-
-/*************************************************************
- **                                                         **
- **                                                         **
- **                  private functions                      **
- **                                                         **
- **                                                         **
- *************************************************************/
 
 template <typename scalartype, typename w_dmn_t, typename p_dmn_t>
 inline void dnfft_1D<scalartype, w_dmn_t, p_dmn_t>::convolute_to_f_tau_exact_test(int index,
@@ -668,7 +648,8 @@ void dnfft_1D<scalartype, w_dmn_t, p_dmn_t>::FT_f_tau_to_f_w(
   delete[] f_out;
 }
 
-}  // NFFT
-}  // math_algorithm
+}  // nfft
+}  // math
+}  // dca
 
-#endif  // MATH_LIBRARY_NFFT_DNFFT_1D_H
+#endif  // DCA_MATH_NFFT_DNFFT_1D_HPP

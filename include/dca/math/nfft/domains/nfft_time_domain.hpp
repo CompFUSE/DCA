@@ -7,51 +7,24 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
-//
 // \Delta \tau = \frac{1}{m*N_{varpi}*step}
 
-#ifndef MATH_LIBRARY_NFFT_DOMAINS_NFFT_TIME_DOMAIN_H
-#define MATH_LIBRARY_NFFT_DOMAINS_NFFT_TIME_DOMAIN_H
+#ifndef DCA_MATH_NFFT_DOMAINS_NFFT_TIME_DOMAIN_HPP
+#define DCA_MATH_NFFT_DOMAINS_NFFT_TIME_DOMAIN_HPP
 
 #include <stdexcept>
 #include <string>
 #include <vector>
 
 #include "dca/math/function_transform/domain_specifications.hpp"
+#include "dca/math/nfft/domains/nfft_time_domain_names.hpp"
 
-using namespace dca::math;
+namespace dca {
+namespace math {
+namespace nfft {
+// dca::math::nfft::
 
-namespace math_algorithms {
-namespace NFFT {
-// math_algorithms::NFFT::
-
-enum NFFT_TIME_DOMAIN_NAMES { LEFT_ORIENTED, PADDED, WINDOW_FUNCTION, FOLDED_WINDOW_FUNCTION };
-
-std::string to_str(NFFT_TIME_DOMAIN_NAMES NAME) {
-  switch (NAME) {
-    case LEFT_ORIENTED:
-      return "LEFT_ORIENTED";
-      break;
-
-    case PADDED:
-      return "PADDED";
-      break;
-
-    case WINDOW_FUNCTION:
-      return "WINDOW_FUNCTION";
-      break;
-
-    case FOLDED_WINDOW_FUNCTION:
-      return "FOLDED_WINDOW_FUNCTION";
-      break;
-
-    default:
-      throw std::logic_error(__FUNCTION__);
-  }
-}
-
-template <NFFT_TIME_DOMAIN_NAMES NAME, typename dnfft_type>
+template <NfftTimeDomainNames NAME, typename dnfft_type>
 class nfft_time_domain {
 public:
   const static int DIMENSION = 1;
@@ -64,50 +37,51 @@ public:
                                            transform::EQUIDISTANT>
       discrete_periodic_dmn_1D_type;
 
-public:
-  static bool& is_initialized();
+  static bool& is_initialized() {
+    static bool initialized = false;
+    return initialized;
+  }
 
-  static int& get_size();
-  static std::string get_name();
+  static int& get_size() {
+    static int size = 0;
+    return size;
+  }
 
-  static std::vector<element_type>& get_elements();
+  static std::string get_name() {
+    std::string name = "nfft_time_domain " + to_str(NAME);
+    return name;
+  }
 
-  inline static scalar_type& first_element();
+  static std::vector<element_type>& get_elements() {
+    static std::vector<element_type> elements(0);
+    return elements;
+  }
 
-  inline static scalar_type& get_delta();
-  inline static scalar_type& get_Delta();
+  static scalar_type& first_element();
 
-  inline static scalar_type& get_one_div_delta();
-  inline static scalar_type& get_one_div_Delta();
+  static scalar_type& get_delta() {
+    static scalar_type delta;
+    return delta;
+  }
+  static scalar_type& get_Delta() {
+    static scalar_type Delta;
+    return Delta;
+  }
+
+  static scalar_type& get_one_div_delta() {
+    static scalar_type one_div_delta;
+    return one_div_delta;
+  }
+
+  static scalar_type& get_one_div_Delta() {
+    static scalar_type one_div_Delta;
+    return one_div_Delta;
+  }
 
   static void initialize(dnfft_type& dnfft_obj);
 };
 
-template <NFFT_TIME_DOMAIN_NAMES NAME, typename dnfft_type>
-bool& nfft_time_domain<NAME, dnfft_type>::is_initialized() {
-  static bool initialized = false;
-  return initialized;
-}
-
-template <NFFT_TIME_DOMAIN_NAMES NAME, typename dnfft_type>
-int& nfft_time_domain<NAME, dnfft_type>::get_size() {
-  static int size = 0;
-  return size;
-}
-
-template <NFFT_TIME_DOMAIN_NAMES NAME, typename dnfft_type>
-std::string nfft_time_domain<NAME, dnfft_type>::get_name() {
-  std::string name = "nfft_time_domain " + to_str(NAME);
-  return name;
-}
-
-template <NFFT_TIME_DOMAIN_NAMES NAME, typename dnfft_type>
-std::vector<typename dnfft_type::scalar_type>& nfft_time_domain<NAME, dnfft_type>::get_elements() {
-  static std::vector<element_type> elements(0);
-  return elements;
-}
-
-template <NFFT_TIME_DOMAIN_NAMES NAME, typename dnfft_type>
+template <NfftTimeDomainNames NAME, typename dnfft_type>
 typename dnfft_type::scalar_type& nfft_time_domain<NAME, dnfft_type>::first_element() {
   switch (NAME) {
     case LEFT_ORIENTED: {
@@ -130,35 +104,11 @@ typename dnfft_type::scalar_type& nfft_time_domain<NAME, dnfft_type>::first_elem
   }
 }
 
-template <NFFT_TIME_DOMAIN_NAMES NAME, typename dnfft_type>
-typename dnfft_type::scalar_type& nfft_time_domain<NAME, dnfft_type>::get_delta() {
-  static scalar_type delta;
-  return delta;
-}
-
-template <NFFT_TIME_DOMAIN_NAMES NAME, typename dnfft_type>
-typename dnfft_type::scalar_type& nfft_time_domain<NAME, dnfft_type>::get_Delta() {
-  static scalar_type Delta;
-  return Delta;
-}
-
-template <NFFT_TIME_DOMAIN_NAMES NAME, typename dnfft_type>
-typename dnfft_type::scalar_type& nfft_time_domain<NAME, dnfft_type>::get_one_div_delta() {
-  static scalar_type one_div_delta;
-  return one_div_delta;
-}
-
-template <NFFT_TIME_DOMAIN_NAMES NAME, typename dnfft_type>
-typename dnfft_type::scalar_type& nfft_time_domain<NAME, dnfft_type>::get_one_div_Delta() {
-  static scalar_type one_div_Delta;
-  return one_div_Delta;
-}
-
 /*!
  *   \Delta = \frac{1}{OVER_SAMPLING*MAX_FREQUENCY}
  *   \delta = \frac{1}{OVER_SAMPLING*MAX_FREQUENCY}*\frac{1}{WINDOW_SAMPLING}
  */
-template <NFFT_TIME_DOMAIN_NAMES NAME, typename dnfft_type>
+template <NfftTimeDomainNames NAME, typename dnfft_type>
 void nfft_time_domain<NAME, dnfft_type>::initialize(dnfft_type& dnfft_obj) {
   if (not is_initialized()) {
     // cout << "\n\n\n\n\n\t\t " << __FUNCTION__ << " " << get_name() << "\n\n\n\n\n";
@@ -249,7 +199,8 @@ void nfft_time_domain<NAME, dnfft_type>::initialize(dnfft_type& dnfft_obj) {
   }
 }
 
-}  // NFFT
-}  // math_algorithm
+}  // nfft
+}  // math
+}  // dca
 
-#endif  // MATH_LIBRARY_NFFT_DOMAINS_NFFT_TIME_DOMAIN_H
+#endif  // DCA_MATH_NFFT_DOMAINS_NFFT_TIME_DOMAIN_HPP

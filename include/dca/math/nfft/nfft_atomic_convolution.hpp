@@ -7,16 +7,15 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// This file implements the atomic convolution for NFFT.
 
-#ifndef MATH_LIBRARY_NFFT_ATOMIC_CONVOLUTIONS_NFFT_ATOMIC_CONVOLUTIONS_H
-#define MATH_LIBRARY_NFFT_ATOMIC_CONVOLUTIONS_NFFT_ATOMIC_CONVOLUTIONS_H
+#ifndef DCA_MATH_NFFT_NFFT_ATOMIC_CONVOLUTION_HPP
+#define DCA_MATH_NFFT_NFFT_ATOMIC_CONVOLUTION_HPP
 
-namespace math_algorithms {
-namespace NFFT {
-// math_algorithms::NFFT::
-
-enum NFFT_MODE_NAMES { EXACT, LINEAR, CUBIC };
+namespace dca {
+namespace math {
+namespace nfft {
+// dca::math::nfft::
 
 template <int max_count, int count>
 struct nfft_atomic_convolution {
@@ -87,7 +86,8 @@ struct nfft_atomic_convolution<max_count, max_count> {
   inline static void execute_Mt_y_4(scalar_type* /*f*/, scalar_type* /*M*/, scalar_type* /*y*/) {}
 };
 
-}  // NFFT
-}  // math_algorithm
+}  // nfft
+}  // math
+}  // dca
 
-#endif  // MATH_LIBRARY_NFFT_ATOMIC_CONVOLUTIONS_NFFT_ATOMIC_CONVOLUTIONS_H
+#endif  // DCA_MATH_NFFT_NFFT_ATOMIC_CONVOLUTION_HPP

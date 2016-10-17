@@ -21,13 +21,16 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
-#include "math_library/NFFT/dnfft_1D.h"
+#include "dca/math/nfft/dnfft_1d.hpp"
+
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_vertex_singleton.h"
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain.h"
 #include "phys_library/domains/time_and_frequency/time_domain.h"
+
+using namespace dca;
 
 namespace DCA {
 namespace QMCI {
@@ -89,8 +92,8 @@ private:
   parameters_type& parameters;
   concurrency_type& concurrency;
 
-  math_algorithms::NFFT::dnfft_1D<double, w, p_dmn_t> cached_nfft_1D_M_r_w_obj;
-  math_algorithms::NFFT::dnfft_1D<double, w, p_dmn_t> cached_nfft_1D_M_r_w_squared_obj;
+  math::nfft::dnfft_1D<double, w, p_dmn_t> cached_nfft_1D_M_r_w_obj;
+  math::nfft::dnfft_1D<double, w, p_dmn_t> cached_nfft_1D_M_r_w_squared_obj;
 };
 
 template <class parameters_type, class MOMS_type>

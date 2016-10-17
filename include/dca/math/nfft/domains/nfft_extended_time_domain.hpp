@@ -7,19 +7,18 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
-//
 // \Delta \tau = \frac{1}{m*N_{\varpi}}
 // \tau \in [-0.5-2*m*\Delta\tau, ... , 0.5+2*m*\Delta\tau]
 
-#ifndef MATH_LIBRARY_NFFT_DOMAINS_NFFT_EXTENDED_TIME_DOMAIN_H
-#define MATH_LIBRARY_NFFT_DOMAINS_NFFT_EXTENDED_TIME_DOMAIN_H
+#ifndef DCA_MATH_NFFT_DOMAINS_NFFT_EXTENDED_TIME_DOMAIN_HPP
+#define DCA_MATH_NFFT_DOMAINS_NFFT_EXTENDED_TIME_DOMAIN_HPP
 
 #include <vector>
 
-namespace math_algorithms {
-namespace NFFT {
-// math_algorithms::NFFT::
+namespace dca {
+namespace math {
+namespace nfft {
+// dca::math::nfft::
 
 template <int oversampling, typename w_dmn_t>
 struct nfft_extended_time_domain {
@@ -47,7 +46,8 @@ private:
   }
 };
 
-}  // NFFT
-}  // math_algorithm
+}  // nfft
+}  // math
+}  // dca
 
-#endif  // MATH_LIBRARY_NFFT_DOMAINS_NFFT_EXTENDED_TIME_DOMAIN_H
+#endif  // DCA_MATH_NFFT_DOMAINS_NFFT_EXTENDED_TIME_DOMAIN_HPP

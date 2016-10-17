@@ -145,6 +145,7 @@ set(DCA_LIBS
   posix_qmci
   function_transform
   gaussian_quadrature
+  dca_nfft
   tetrahedron_mesh
   random
   parallel_util

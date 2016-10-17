@@ -7,23 +7,29 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// This file provides a class for testing dnfft_1d.hpp.
+//
+// TODO: Move to test dir and create proper (unit) test.
 
-#ifndef MATH_LIBRARY_NFFT_DNFFT_1D_TEST_H
-#define MATH_LIBRARY_NFFT_DNFFT_1D_TEST_H
+#ifndef DCA_MATH_NFFT_DNFFT_1D_TEST_HPP
+#define DCA_MATH_NFFT_DNFFT_1D_TEST_HPP
 
-#include <time.h>
-#include <vector>
+#include <cstdlib>
+#include <ctime>
+#include <iostream>
 #include <stdexcept>
+#include <vector>
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
-#include "comp_library/function_plotting/include_plotting.h"
-#include "math_library/NFFT/dnfft_1D.h"
+#include "dca/math/nfft/dnfft_1d.hpp"
 
-namespace math_algorithms {
-namespace NFFT {
-// math_algorithms::NFFT::
+#include "comp_library/function_plotting/include_plotting.h"
+
+namespace dca {
+namespace math {
+namespace nfft {
+// dca::math::nfft::
 
 template <typename scalartype, typename t_dmn_t, typename w_dmn_t>
 class dnfft_1D_test {
@@ -123,7 +129,9 @@ private:
     SHOW::execute(f_w);
   }
 };
-}
-}
 
-#endif  // MATH_LIBRARY_NFFT_DNFFT_1D_TEST_H
+}  // nfft
+}  // math
+}  // dca
+
+#endif  // DCA_MATH_NFFT_DNFFT_1D_TEST_HPP
