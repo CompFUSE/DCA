@@ -9,8 +9,12 @@
 //
 // This file defines the various types (channels) of vertex measurements.
 
-#ifndef PHYS_LIBRARY_VERTEX_MEASUREMENT_TYPE_HPP
-#define PHYS_LIBRARY_VERTEX_MEASUREMENT_TYPE_HPP
+#ifndef DCA_PHYS_VERTEX_MEASUREMENT_TYPE_HPP
+#define DCA_PHYS_VERTEX_MEASUREMENT_TYPE_HPP
+
+namespace dca {
+namespace phys {
+// dca::phys::
 
 enum VertexMeasurementType {
   NONE,
@@ -20,4 +24,7 @@ enum VertexMeasurementType {
   PARTICLE_PARTICLE_SUPERCONDUCTING
 };
 
-#endif  // PHYS_LIBRARY_VERTEX_MEASUREMENT_TYPE_HPP
+}  // phys
+}  // dca
+
+#endif  // DCA_PHYS_VERTEX_MEASUREMENT_TYPE_HPP

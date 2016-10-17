@@ -123,12 +123,13 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/math/util/vector_operations.hpp"
+#include "dca/phys/vertex_measurement_type.hpp"
 
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/cluster/cluster_operations.hpp"
-#include "phys_library/vertex_measurement_type.hpp"
 
 using namespace dca;
+using namespace dca::phys;
 
 template <class parameters_type>
 class diagrammatic_symmetries {

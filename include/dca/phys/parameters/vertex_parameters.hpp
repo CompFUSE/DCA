@@ -22,9 +22,10 @@
 #include <string>
 #include <vector>
 
+#include "dca/phys/vertex_measurement_type.hpp"
+
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/cluster/cluster_operations.hpp"
-#include "phys_library/vertex_measurement_type.hpp"
 
 namespace dca {
 namespace phys {

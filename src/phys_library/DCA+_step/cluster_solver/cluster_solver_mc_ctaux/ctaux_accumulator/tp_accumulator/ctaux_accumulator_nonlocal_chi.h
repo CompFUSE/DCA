@@ -56,10 +56,13 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/phys/vertex_measurement_type.hpp"
+
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
-#include "phys_library/vertex_measurement_type.hpp"
+
+using namespace dca::phys;
 
 namespace DCA {
 namespace QMCI {

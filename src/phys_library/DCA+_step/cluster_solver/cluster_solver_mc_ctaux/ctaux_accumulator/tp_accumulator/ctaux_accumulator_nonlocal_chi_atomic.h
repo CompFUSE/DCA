@@ -17,9 +17,11 @@
 
 #include "dca/function/domains/dmn_0.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
+#include "dca/phys/vertex_measurement_type.hpp"
 
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/vertex_measurement_type.hpp"
+
+using namespace dca::phys;
 
 namespace DCA {
 namespace QMCI {

@@ -21,6 +21,7 @@
 #include "dca/function/function.hpp"
 #include "dca/math/geometry/gaussian_quadrature/gaussian_quadrature_domain.hpp"
 #include "dca/math/geometry/tetrahedron_mesh/tetrahedron_mesh.hpp"
+#include "dca/phys/vertex_measurement_type.hpp"
 #include "dca/util/print_time.hpp"
 
 #include "comp_library/linalg/linalg.hpp"
@@ -30,9 +31,9 @@
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
-#include "phys_library/vertex_measurement_type.hpp"
 
 using namespace dca;
+using namespace dca::phys;
 
 namespace DCA {
 

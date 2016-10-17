@@ -24,6 +24,7 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
+#include "dca/phys/vertex_measurement_type.hpp"
 
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_accumulator/sp_accumulator/ctaux_sp_accumulator_nfft.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_accumulator/tp_accumulator/ctaux_accumulator_equal_time_operator.h"
@@ -41,7 +42,8 @@
 #include "phys_library/domains/time_and_frequency/frequency_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
 #include "phys_library/domains/time_and_frequency/time_domain.h"
-#include "phys_library/vertex_measurement_type.hpp"
+
+using namespace dca::phys;
 
 namespace DCA {
 namespace QMCI {
