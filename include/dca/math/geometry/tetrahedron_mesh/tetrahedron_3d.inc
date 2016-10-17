@@ -498,7 +498,7 @@ TetrahedronEigenvalueDegeneracy tetrahedron<3>::find_degeneracy(scalartype* f, s
   vec[3].first = e[3];
   vec[3].second = f[3];
 
-  std::stable_sort(vec.begin(), vec.end(), &pair_less);
+  std::stable_sort(vec.begin(), vec.end(), util::pairAbsGreater<scalartype, scalartype>);
   int degeneracy = unique(vec.begin(), vec.end(), tetrahedron<3>::pair_same) - vec.begin();
 
   e[0] = vec[0].first;

@@ -57,6 +57,7 @@
 #ifndef PHYS_LIBRARY_DCA_ANALYSIS_BSE_SOLVER_BSE_LATTICE_SOLVER_H
 #define PHYS_LIBRARY_DCA_ANALYSIS_BSE_SOLVER_BSE_LATTICE_SOLVER_H
 
+#include <algorithm>
 #include <complex>
 #include <iostream>
 #include <stdexcept>
@@ -64,6 +65,7 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/math/util/comparison_methods.hpp"
 #include "dca/math/util/vector_operations.hpp"
 #include "dca/util/print_time.hpp"
 #include "comp_library/linalg/linalg.hpp"
@@ -632,7 +634,7 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::record_eigenvalues_and_eige
     eigenvals_mod[i].second = i;
   }
 
-  stable_sort(eigenvals_mod.begin(), eigenvals_mod.end(), &real_pair_less);
+  std::stable_sort(eigenvals_mod.begin(), eigenvals_mod.end(), math::util::pairLess<scalartype, int>);
 
   for (int i = 0; i < N_LAMBDAS; i++) {
     int index = eigenvals_mod[i].second;
@@ -663,7 +665,8 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::record_eigenvalues_and_eige
     eigenvals[i].second = i;
   }
 
-  stable_sort(eigenvals.begin(), eigenvals.end(), &susceptibility_less_pairs);
+  stable_sort(eigenvals.begin(), eigenvals.end(),
+              math::util::susceptibilityPairGreater<scalartype, int>);
 
   for (int i = 0; i < N_LAMBDAS; i++) {
     int index = eigenvals[eigenvals.size() - 1 - i].second;
@@ -799,7 +802,8 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::record_eigenvalues_and_fold
     eigenvals[i].second = i;
   }
 
-  stable_sort(eigenvals.begin(), eigenvals.end(), &susceptibility_less_pairs);
+  stable_sort(eigenvals.begin(), eigenvals.end(),
+              math::util::susceptibilityPairGreater<scalartype, int>);
 
   for (int i = 0; i < N_LAMBDAS; i++) {
     int index = eigenvals[eigenvals.size() - 1 - i].second;

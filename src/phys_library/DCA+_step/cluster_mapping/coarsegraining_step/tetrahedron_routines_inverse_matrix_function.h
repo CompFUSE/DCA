@@ -72,10 +72,6 @@ private:
   static bool permutation_comp(matrix_element_struct<scalartype> const& x,
                                matrix_element_struct<scalartype> const& y);
 
-  template <typename scalartype>
-  static bool pair_less(std::pair<std::complex<scalartype>, std::complex<scalartype>> const& x,
-                        std::pair<std::complex<scalartype>, std::complex<scalartype>> const& y);
-
 public:
   // 1D
   template <typename scalartype>
@@ -214,13 +210,6 @@ template <typename scalartype>
 bool tetrahedron_routines_inverse_matrix_function::permutation_comp(
     matrix_element_struct<scalartype> const& x, matrix_element_struct<scalartype> const& y) {
   return x.i < y.i;
-}
-
-template <typename scalartype>
-bool tetrahedron_routines_inverse_matrix_function::pair_less(
-    std::pair<std::complex<scalartype>, std::complex<scalartype>> const& x,
-    std::pair<std::complex<scalartype>, std::complex<scalartype>> const& y) {
-  return std::abs(x.first) > std::abs(y.first);
 }
 
 /************************************

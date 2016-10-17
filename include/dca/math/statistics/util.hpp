@@ -43,7 +43,7 @@ std::enable_if_t<std::is_floating_point<T>::value, T> variance(const std::vector
   T result(0);
 
   for (std::size_t i = 0; i < vec.size(); i++)
-    result += square((vec[i] - m));
+    result += (vec[i] - m) * (vec[i] - m);
 
   return result / (T(vec.size() - 1));
 }

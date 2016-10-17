@@ -269,7 +269,7 @@ double cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_typ
 
   if (DCA_iteration == parameters.get_DCA_iterations() - 1 &&
       parameters.get_vertex_measurement_type() != NONE)
-    MOMS.G4_k_k_w_w /= square(parameters.get_beta());
+    MOMS.G4_k_k_w_w /= parameters.get_beta() * parameters.get_beta();
 
   double total = 1.e-6, integral = 0;
 
@@ -421,7 +421,7 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
     for (int l = 0; l < MOMS.G4_k_k_w_w.size(); l++)
       MOMS.G4_k_k_w_w(l) = accumulator.get_G4()(l) / double(nb_measurements * sign);
 
-    MOMS.G4_k_k_w_w /= square(parameters.get_beta());
+    MOMS.G4_k_k_w_w /= parameters.get_beta() * parameters.get_beta();
 
     concurrency.average_and_compute_stddev(MOMS.G4_k_k_w_w, MOMS.G4_k_k_w_w_stddev, 1);
   }
@@ -811,9 +811,9 @@ double cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_typ
   for (int w_ind = w::dmn_size() / 2; w_ind < w::dmn_size() / 2 + offset; w_ind++) {
     for (int k_ind = 0; k_ind < k_DCA::dmn_size(); k_ind++) {
       for (int l1 = 0; l1 < b::dmn_size() * s::dmn_size(); l1++) {
-        L2_norm += square(abs(MOMS.Sigma(l1, l1, k_ind, w_ind)));
-        diff_L2_norm +=
-            square(abs(MOMS.Sigma(l1, l1, k_ind, w_ind) - MOMS.Sigma_cluster(l1, l1, k_ind, w_ind)));
+        L2_norm += std::pow(std::abs(MOMS.Sigma(l1, l1, k_ind, w_ind)), 2);
+        diff_L2_norm += std::pow(
+            std::abs(MOMS.Sigma(l1, l1, k_ind, w_ind) - MOMS.Sigma_cluster(l1, l1, k_ind, w_ind)), 2);
       }
     }
   }

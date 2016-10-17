@@ -13,6 +13,8 @@
 #define PHYS_LIBRARY_DOMAINS_CLUSTER_INTERPOLATION_HSPLINE_INTERPOLATION_HSPLINE_INTERPOLATION_KERNEL_HPP
 
 #include <cassert>
+#include <cmath>
+#include <complex>  // for std::abs(std::complex)
 #include <stdexcept>
 #include <vector>
 
@@ -322,7 +324,7 @@ void hspline_interpolation_kernel<scalartype, cluster_domain<scalar_type, D, N, 
     bool col_is_zero = true;
 
     for (int i = 0; i < N_k_target; ++i)
-      if (abs_value(interpolation_matrix[i + j * N_k_target]) > 1.e-6)
+      if (std::abs(interpolation_matrix[i + j * N_k_target]) > 1.e-6)
         col_is_zero = false;
 
     if (not col_is_zero)
