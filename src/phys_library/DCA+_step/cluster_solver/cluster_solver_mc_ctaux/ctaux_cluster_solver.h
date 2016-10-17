@@ -23,11 +23,11 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/math/function_transform/function_transform.hpp"
+#include "dca/math/statistics/util.hpp"
 #include "dca/profiling/events/time.hpp"
 #include "dca/util/print_time.hpp"
 
 #include "comp_library/linalg/linalg.hpp"
-#include "math_library/statistical_methods.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_accumulator.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker.h"
 #include "phys_library/DCA+_step/symmetrization/symmetrize.h"
@@ -257,9 +257,9 @@ double cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_typ
         x.push_back(real(MOMS.Sigma(i, i, j, l)));
 
       dca_info_struct.Sigma_zero_moment(i, j, DCA_iteration) =
-          math_algorithms::statistical_methods<double>::mean(x);  // real(MOMS.Sigma(i,i,j,0));
+          math::statistics::util::mean(x);  // real(MOMS.Sigma(i,i,j,0));
       dca_info_struct.standard_deviation(i, j, DCA_iteration) =
-          math_algorithms::statistical_methods<double>::standard_deviation(x);  //
+          math::statistics::util::standard_deviation(x);
     }
   }
 
