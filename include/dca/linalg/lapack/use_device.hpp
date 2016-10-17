@@ -41,14 +41,13 @@ struct UseDevice<CPU> {
 
   // Computational routines
   template <typename ScalarType>
-  inline static void getrf(int m, int n, ScalarType* a, int lda, int* ipiv, int* info) {
-    lapack::getrf(m, n, a, lda, ipiv, info);
+  inline static void getrf(int m, int n, ScalarType* a, int lda, int* ipiv) {
+    lapack::getrf(m, n, a, lda, ipiv);
   }
 
   template <typename ScalarType>
-  inline static void getri(int n, ScalarType* a, int lda, int* ipiv, ScalarType* work, int lwork,
-                           int* info) {
-    lapack::getri(n, a, lda, ipiv, work, lwork, info);
+  inline static void getri(int n, ScalarType* a, int lda, int* ipiv, ScalarType* work, int lwork) {
+    lapack::getri(n, a, lda, ipiv, work, lwork);
   }
 
   // Custom routines
@@ -109,14 +108,13 @@ struct UseDevice<GPU> {
 
   // Computational routines
   template <typename ScalarType>
-  inline static void getrf(int m, int n, ScalarType* a, int lda, int* ipiv, int* info) {
-    magma::getrf_gpu(m, n, a, lda, ipiv, info);
+  inline static void getrf(int m, int n, ScalarType* a, int lda, int* ipiv) {
+    magma::getrf_gpu(m, n, a, lda, ipiv);
   }
 
   template <typename ScalarType>
-  inline static void getri(int n, ScalarType* a, int lda, int* ipiv, ScalarType* work, int lwork,
-                           int* info) {
-    magma::getri_gpu(n, a, lda, ipiv, work, lwork, info);
+  inline static void getri(int n, ScalarType* a, int lda, int* ipiv, ScalarType* work, int lwork) {
+    magma::getri_gpu(n, a, lda, ipiv, work, lwork);
   }
 
   template <typename ScalarType>

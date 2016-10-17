@@ -22,18 +22,8 @@ namespace lapack {
 // Computes the inverse using LU decomposition.
 template <typename Type>
 inline void inverse(int n, Type* a, int lda, int* ipiv, Type* work, int lwork) {
-  int info = 0;
-
-  getrf(n, n, a, lda, ipiv, info);
-  if (info != 0) {
-    std::cout << "Error: getrf retured info = " << info << std::endl;
-    throw std::logic_error(__FUNCTION__);
-  }
-  getri(n, a, lda, ipiv, work, lwork, info);
-  if (info != 0) {
-    std::cout << "Error: getri retured info = " << info << std::endl;
-    throw std::logic_error(__FUNCTION__);
-  }
+  getrf(n, n, a, lda, ipiv);
+  getri(n, a, lda, ipiv, work, lwork);
 }
 
 }  // lapack

@@ -13,7 +13,10 @@
 #define DCA_LINALG_UTIL_UTIL_LAPACK_HPP
 
 #include <complex>
+#include <iostream>
 #include <limits>
+#include <stdexcept>
+#include <sstream>
 
 namespace dca {
 namespace linalg {
@@ -31,6 +34,24 @@ inline int getWorkSize(double tmp) {
 template <typename Type>
 inline int getWorkSize(std::complex<Type> tmp) {
   return getWorkSize(tmp.real());
+}
+
+// Prints an error message and throws a std::logic_error if info in not zero
+// The macro provides the interface that automatically pass the function name, the filename, and
+// the line to the function call.
+#define checkLapackInfo(info) \
+  dca::linalg::lapack::util::checkLapackInfoInternal(info, __FUNCTION__, __FILE__, __LINE__)
+inline void checkLapackInfoInternal(int info, std::string function_name, std::string file_name,
+                                    int line) {
+  if (info != 0) {
+    std::stringstream s;
+    s << "Error in function: " << function_name << " (" << file_name << ":" << line << ")"
+      << "\n";
+    s << "The Lapack function returned info = " << info << std::endl;
+
+    std::cout << s.str() << std::endl;
+    throw std::logic_error(function_name);
+  }
 }
 
 }  // util
