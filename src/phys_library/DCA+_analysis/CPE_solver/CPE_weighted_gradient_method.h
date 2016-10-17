@@ -769,7 +769,7 @@ int continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_
     V(2, 1) = CPE_data_obj.x[index - 0];
     V(2, 2) = 1.;
 
-    LIN_ALG::GEINV<dca::linalg::CPU>::execute(V);
+    dca::linalg::matrixop::inverse(V);
 
     scalartype a = V(0, 0) * CPE_data_obj.y[index - 2] + V(0, 1) * CPE_data_obj.y[index - 1] +
                    V(0, 2) * CPE_data_obj.y[index - 0];
@@ -866,7 +866,7 @@ double continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_d
   V(2, 1) = CPE_data_obj.x[index - 0];
   V(2, 2) = 1.;
 
-  LIN_ALG::GEINV<dca::linalg::CPU>::execute(V);
+  dca::linalg::matrixop::inverse(V);
 
   scalartype a = V(0, 0) * CPE_data_obj.y[index - 2] + V(0, 1) * CPE_data_obj.y[index - 1] +
                  V(0, 2) * CPE_data_obj.y[index - 0];

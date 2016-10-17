@@ -11,6 +11,7 @@
 
 #include "dca/linalg/matrixop.hpp"
 #include <complex>
+#include <limits>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -309,6 +310,29 @@ TYPED_TEST(MatrixopRealCPUTest, InsertRowCol) {
         EXPECT_EQ(mat(i, j), mat_test(i, j + 1));
 
       EXPECT_EQ(0, mat_test(i, jj));
+    }
+  }
+}
+
+TYPED_TEST(MatrixopRealCPUTest, Inverse) {
+  using ScalarType = TypeParam;
+  int size = 6;
+  auto val = [](int i, int j) { return 10 * i + j * j / (i + 1); };
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> mat(size);
+  testing::setMatrixElements(mat, val);
+
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> invmat(mat);
+  dca::linalg::matrixop::inverse(invmat);
+
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> res(size);
+  dca::linalg::matrixop::gemm(mat, invmat, res);
+
+  for (int j = 0; j < mat.nrCols(); ++j) {
+    for (int i = 0; i < mat.nrRows(); ++i) {
+      if (i == j)
+        EXPECT_NEAR(1, res(i, j), 1000 * this->epsilon);
+      else
+        EXPECT_NEAR(0, res(i, j), 1000 * this->epsilon);
     }
   }
 }

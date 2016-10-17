@@ -676,37 +676,29 @@ void cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
   //     if(concurrency.id()==0)
   //       std::cout << "\n\t\t start compute-S_k_w\t" << dca::util::print_time() << "\n\n";
 
-  //     dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G_matrix ("G_matrix" ,
-  //     nu::dmn_size());
-  //     dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G0_matrix("G0_matrix",
-  //     nu::dmn_size());
-
   int N = nu::dmn_size();
 
-  std::complex<double>* G_matrix = new std::complex<double>[N * N];
-  std::complex<double>* G0_matrix = new std::complex<double>[N * N];
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G_matrix(N);
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G0_matrix(N);
 
   for (int k_ind = 0; k_ind < k_DCA::dmn_size(); k_ind++) {
     for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++) {
       for (int j = 0; j < nu::dmn_size(); j++)
         for (int i = 0; i < nu::dmn_size(); i++)
-          G0_matrix[i + j * N] = MOMS.G0_k_w_cluster_excluded(i, j, k_ind, w_ind);
+          G0_matrix(i, j) = MOMS.G0_k_w_cluster_excluded(i, j, k_ind, w_ind);
 
       for (int j = 0; j < nu::dmn_size(); j++)
         for (int i = 0; i < nu::dmn_size(); i++)
-          G_matrix[i + j * N] = G_k_w_new(i, j, k_ind, w_ind);
+          G_matrix(i, j) = G_k_w_new(i, j, k_ind, w_ind);
 
-      LIN_ALG::GEINV<dca::linalg::CPU>::execute(N, G0_matrix);
-      LIN_ALG::GEINV<dca::linalg::CPU>::execute(N, G_matrix);
+      dca::linalg::matrixop::inverse(G_matrix);
+      dca::linalg::matrixop::inverse(G0_matrix);
 
       for (int j = 0; j < nu::dmn_size(); j++)
         for (int i = 0; i < nu::dmn_size(); i++)
-          S_k_w_new(i, j, k_ind, w_ind) = G0_matrix[i + j * N] - G_matrix[i + j * N];
+          S_k_w_new(i, j, k_ind, w_ind) = G0_matrix(i, j) - G_matrix(i, j);
     }
   }
-
-  delete[] G_matrix;
-  delete[] G0_matrix;
 
   if (parameters.adjust_self_energy_for_double_counting())
     adjust_self_energy_for_double_counting();

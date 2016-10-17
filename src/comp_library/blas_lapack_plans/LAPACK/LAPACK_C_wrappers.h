@@ -31,19 +31,6 @@ extern "C" void cgesv_(int*, int*, std::complex<float>*, int*, int*, std::comple
 extern "C" void zgesv_(int*, int*, std::complex<double>*, int*, int*, std::complex<double>*, int*,
                        int*);
 
-// LU factorization
-
-extern "C" int sgetrf_(int* M, int* N, float* A, int* LDA, int* IPIV, int* INFO);
-extern "C" int dgetrf_(int* M, int* N, double* A, int* LDA, int* IPIV, int* INFO);
-extern "C" int cgetrf_(int* M, int* N, std::complex<float>* A, int* LDA, int* IPIV, int* INFO);
-extern "C" int zgetrf_(int* M, int* N, std::complex<double>* A, int* LDA, int* IPIV, int* INFO);
-
-extern "C" int sgetri_(int* N, float* A, int* LDA, int* IPIV, float* WORK, int* LWORK, int* INFO);
-extern "C" int dgetri_(int* N, double* A, int* LDA, int* IPIV, double* WORK, int* LWORK, int* INFO);
-extern "C" int cgetri_(int* N, std::complex<float>* A, int* LDA, int* IPIV,
-                       std::complex<float>* WORK, int* LWORK, int* INFO);
-extern "C" int zgetri_(int* N, std::complex<double>* A, int* LDA, int* IPIV,
-                       std::complex<double>* WORK, int* LWORK, int* INFO);
 // eigenvalue decomposition
 
 extern "C" void sgeev_(char* JOBVL, char* JOBVR, int* N, float* A, int* LDA, float* WR, float* WI,

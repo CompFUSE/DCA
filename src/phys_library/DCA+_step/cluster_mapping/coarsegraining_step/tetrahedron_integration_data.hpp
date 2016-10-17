@@ -46,12 +46,12 @@ public:
   std::complex<scalar_type>* W_2;
   std::complex<scalar_type>* W_3;
 
-  // GEINV
+  // inverse calculation workspaces
 
-  int GEINV_LWORK;
-  int* GEINV_IPIV;
+  int inv_lwork;
+  int* inv_ipiv;
 
-  std::complex<scalar_type>* GEINV_WORK;
+  std::complex<scalar_type>* inv_work;
 
   // GEEV
 
@@ -83,11 +83,11 @@ tetrahedron_integration_data<scalar_type>::tetrahedron_integration_data(int N)
       W_2(NULL),
       W_3(NULL),
 
-      // GEINV
+      // inverse calculation workspaces
 
-      GEINV_LWORK(-1),
-      GEINV_IPIV(NULL),
-      GEINV_WORK(NULL),
+      inv_lwork(-1),
+      inv_ipiv(NULL),
+      inv_work(NULL),
 
       // GEEV
 
@@ -115,12 +115,9 @@ tetrahedron_integration_data<scalar_type>::tetrahedron_integration_data(int N)
   W_2 = new std::complex<scalar_type>[N];
   W_3 = new std::complex<scalar_type>[N];
 
-  {  // GEINV
-    GEINV_LWORK = 128 * std::max(1, N);
-
-    GEINV_IPIV = new int[N];
-    GEINV_WORK = new std::complex<scalar_type>[GEINV_LWORK];
-  }
+  inv_lwork = 128 * std::max(1, N);
+  inv_ipiv = new int[N];
+  inv_work = new std::complex<scalar_type>[inv_lwork];
 
   {  // GEEV
     GEEV_LWORK = 128 * std::max(1, 2 * N - 1);
@@ -152,10 +149,8 @@ tetrahedron_integration_data<scalar_type>::~tetrahedron_integration_data() {
   delete[] W_2;
   delete[] W_3;
 
-  {  // GEINV
-    delete[] GEINV_IPIV;
-    delete[] GEINV_WORK;
-  }
+  delete[] inv_ipiv;
+  delete[] inv_work;
 
   {  // GEEV
     delete[] GEEV_RWORK;

@@ -157,7 +157,6 @@ __global__ void swapRows(int row_size, int n_rows, const int* i1, const int* i2,
 
   Type tmp;
 
-  int idx = threadIdx.x;
   int ind_i = threadIdx.x + blockIdx.x * blockDim.x;
 
   int js = blockIdx.y * swap_block_size_y;

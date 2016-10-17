@@ -59,7 +59,7 @@ void coordinate_transformation<scalar_type>::execute(scalar_type* v0, scalar_typ
   A(0, 1) = v1[0];
   A(1, 1) = v1[1];
 
-  LIN_ALG::GEINV<dca::linalg::CPU>::execute(A);
+  dca::linalg::matrixop::inverse(A);
 
   coor[0] = A(0, 0) * vec[0] + A(0, 1) * vec[1];
   coor[1] = A(1, 0) * vec[0] + A(1, 1) * vec[1];
@@ -96,7 +96,7 @@ void coordinate_transformation<scalar_type>::execute(scalar_type* v0, scalar_typ
   A(1, 2) = v2[1];
   A(2, 2) = v2[2];
 
-  LIN_ALG::GEINV<dca::linalg::CPU>::execute(A);
+  dca::linalg::matrixop::inverse(A);
 
   coor[0] = A(0, 0) * vec[0] + A(0, 1) * vec[1] + A(0, 2) * vec[2];
   coor[1] = A(1, 0) * vec[0] + A(1, 1) * vec[1] + A(1, 2) * vec[2];
@@ -133,7 +133,7 @@ void coordinate_transformation<scalar_type>::set_basis(scalar_type* basis) {
 
   T_inv = T;
 
-  LIN_ALG::GEINV<dca::linalg::CPU>::execute(T_inv);
+  dca::linalg::matrixop::inverse(T_inv);
 }
 
 template <typename scalar_type>

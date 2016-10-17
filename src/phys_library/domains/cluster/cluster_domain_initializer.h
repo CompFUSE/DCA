@@ -235,7 +235,7 @@ void cluster_domain_initializer<
       for (int d1 = 0; d1 < DIMENSION; d1++)
         k_dmn::get_inverse_super_basis()[d0 + d1 * DIMENSION] = A(d1, d0) / (2 * M_PI);
 
-    LIN_ALG::GEINV<dca::linalg::CPU>::execute(A);
+    dca::linalg::matrixop::inverse(A);
 
     //     for(int d0=0; d0<DIMENSION; d0++)
     //       for(int d1=0; d1<DIMENSION; d1++)
@@ -283,7 +283,7 @@ void cluster_domain_initializer<
       for (int d1 = 0; d1 < DIMENSION; d1++)
         k_dmn::get_inverse_basis()[d0 + d1 * DIMENSION] = A(d1, d0) / (2 * M_PI);
 
-    LIN_ALG::GEINV<dca::linalg::CPU>::execute(A);
+    dca::linalg::matrixop::inverse(A);
 
     //     for(int d0=0; d0<DIMENSION; d0++)
     //       for(int d1=0; d1<DIMENSION; d1++)

@@ -97,14 +97,17 @@ void quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G_
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& S_q,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& G_q) {
   dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU> G_inv("G_inv", nu::dmn_size());
-  LIN_ALG::GEINV<dca::linalg::CPU>::plan<std::complex<scalar_type>> geinv_obj(G_inv);
+
+  // Allocate the work space for inverse only once.
+  dca::linalg::Vector<int, dca::linalg::CPU> ipiv;
+  dca::linalg::Vector<std::complex<double>, dca::linalg::CPU> work;
 
   for (int q_ind = 0; q_ind < q_dmn_t::dmn_size(); q_ind++) {
     for (int j = 0; j < nu::dmn_size(); j++)
       for (int i = 0; i < nu::dmn_size(); i++)
         G_inv(i, j) = I_q(i, j, q_ind) - H_q(i, j, q_ind) - S_q(i, j, q_ind);
 
-    geinv_obj.execute(G_inv);
+    dca::linalg::matrixop::inverse(G_inv, ipiv, work);
 
     for (int j = 0; j < nu::dmn_size(); j++)
       for (int i = 0; i < nu::dmn_size(); i++)
@@ -160,14 +163,17 @@ void* quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G
 
   {
     dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU> G_inv("G_inv", nu::dmn_size());
-    LIN_ALG::GEINV<dca::linalg::CPU>::plan<std::complex<scalar_type>> geinv_obj(G_inv);
+
+    // Allocate the work space for inverse only once.
+    dca::linalg::Vector<int, dca::linalg::CPU> ipiv;
+    dca::linalg::Vector<std::complex<double>, dca::linalg::CPU> work;
 
     for (int q_ind = q_bounds.first; q_ind < q_bounds.second; q_ind += 1) {
       for (int j = 0; j < nu::dmn_size(); j++)
         for (int i = 0; i < nu::dmn_size(); i++)
           G_inv(i, j) = I_q(i, j, q_ind) - H_q(i, j, q_ind) - S_q(i, j, q_ind);
 
-      geinv_obj.execute(G_inv);
+      dca::linalg::matrixop::inverse(G_inv, ipiv, work);
 
       for (int j = 0; j < nu::dmn_size(); j++)
         for (int i = 0; i < nu::dmn_size(); i++)

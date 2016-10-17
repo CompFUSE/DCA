@@ -834,7 +834,7 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::compute_folded_susceptibili
       D_inv(l, l) = 1. / (1. - L[l]);
 
     VL = VR;
-    LIN_ALG::GEINV<dca::linalg::CPU>::execute(VL);
+    dca::linalg::matrixop::inverse(VL);
 
     dca::linalg::matrixop::gemm('N', 'N', VR, D_inv, VR_D_inv);
     dca::linalg::matrixop::gemm('N', 'N', VR_D_inv, VL, P_1_min_Gamma_chi_0_P);
