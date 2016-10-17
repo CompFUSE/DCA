@@ -20,10 +20,10 @@
 #include "dca/config/cluster_solver_check.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/phys/dca_data/dca_data_real_freq.hpp"
+#include "dca/phys/dca_loop/dca_loop_data.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 
-#include "phys_library/DCA+_loop/DCA_loop_data.hpp"
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
@@ -72,7 +72,7 @@ int main(int argc, char** argv) {
   parameters.update_model();
   parameters.update_domains();
 
-  DCA::DCA_loop_data<ParametersType> dca_loop_data;
+  dca::phys::DcaLoopData<ParametersType> dca_loop_data;
 
   // Create and initialize the DCA_data objects.
   DcaDataType dca_data_imag(parameters);

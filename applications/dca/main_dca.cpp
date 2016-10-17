@@ -60,7 +60,7 @@ int main(int argc, char** argv) {
   DcaDataType dca_data(parameters);
   dca_data.initialize();
 
-  DcaLoop dca_loop(parameters, dca_data, concurrency);
+  DcaLoopType dca_loop(parameters, dca_data, concurrency);
 
   {
     Profiler profiler(__FUNCTION__, __FILE__, __LINE__);

@@ -47,7 +47,4 @@ using ClusterSolver = @DCA_THREADED_SOLVER_TYPE@;
 using ClusterSolver = ClusterSolverBaseType;
 #endif  // DCA_WITH_THREADED_SOLVER
 
-#include "phys_library/DCA+_loop/DCA_loop.hpp"
-using DcaLoop = DCA::DCA_loop<ParametersType, DcaDataType, ClusterSolver>;
-
 #endif  // DCA_CONFIG_CONFIG_CLUSTER_SOLVER_CHECK_HPP

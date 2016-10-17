@@ -7,23 +7,27 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// This class contains physical and computational data of the DCA(+) loop.
 
-#ifndef PHYS_LIBRARY_DCA_LOOP_DCA_LOOP_DATA_HPP
-#define PHYS_LIBRARY_DCA_LOOP_DCA_LOOP_DATA_HPP
+#ifndef DCA_PHYS_DCA_LOOP_DCA_LOOP_DATA_HPP
+#define DCA_PHYS_DCA_LOOP_DCA_LOOP_DATA_HPP
 
 #include <complex>
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/Quantum_domain/DCA_iteration_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
 
-namespace DCA {
-template <typename Parameters>
-class DCA_loop_data {
+namespace dca {
+namespace phys {
+// dca::phys::
+
+template <typename ParametersType>
+class DcaLoopData {
 public:
   using expansion_dmn_t = func::dmn_0<func::dmn<32, int>>;
   using DCA_iteration_domain_type = func::dmn_0<DCA_iteration_domain>;
@@ -32,19 +36,14 @@ public:
   using s = func::dmn_0<electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
-  using k_DCA = func::dmn_0<cluster_domain<double, Parameters::lattice_type::DIMENSION, CLUSTER,
+  using k_DCA = func::dmn_0<cluster_domain<double, ParametersType::lattice_type::DIMENSION, CLUSTER,
                                            MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
 
-public:
-  DCA_loop_data();
-
-  template <typename Reader>
-  void read(Reader& reader);
+  DcaLoopData();
 
   template <typename Writer>
-  void write(Writer& reader);
+  void write(Writer& writer);
 
-public:
   func::function<double, DCA_iteration_domain_type> Gflop_per_mpi_task;
   func::function<double, DCA_iteration_domain_type> times_per_mpi_task;
 
@@ -74,8 +73,8 @@ public:
   func::function<double, DCA_iteration_domain_type> average_expansion_order;
 };
 
-template <typename Parameters>
-DCA_loop_data<Parameters>::DCA_loop_data()
+template <typename ParametersType>
+DcaLoopData<ParametersType>::DcaLoopData()
     : Gflop_per_mpi_task("Gflop_per_mpi_task"),
       times_per_mpi_task("times_per_mpi_task"),
 
@@ -101,9 +100,9 @@ DCA_loop_data<Parameters>::DCA_loop_data()
       chemical_potential("chemical-potential"),
       average_expansion_order("expansion_order") {}
 
-template <typename Parameters>
+template <typename ParametersType>
 template <typename Writer>
-void DCA_loop_data<Parameters>::write(Writer& writer) {
+void DcaLoopData<ParametersType>::write(Writer& writer) {
   writer.open_group("DCA-loop-functions");
 
   {
@@ -129,6 +128,8 @@ void DCA_loop_data<Parameters>::write(Writer& writer) {
 
   writer.close_group();
 }
-}
 
-#endif  // PHYS_LIBRARY_DCA_LOOP_DCA_LOOP_DATA_HPP
+}  // phys
+}  // dca
+
+#endif  // DCA_PHYS_DCA_LOOP_DCA_LOOP_DATA_HPP
