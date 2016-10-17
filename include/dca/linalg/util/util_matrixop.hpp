@@ -15,6 +15,7 @@
 #define DCA_LINALG_UTIL_UTIL_MATRIXOP_HPP
 
 #include <cassert>
+#include <stdexcept>
 
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/util/util_lapack.hpp"
