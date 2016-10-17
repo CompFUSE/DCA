@@ -655,6 +655,46 @@ static void gemm(char transa, char transb, Matrix<std::complex<ScalarType>, CPU>
       c(i, j) = std::complex<ScalarType>(c_re(i, j), c_im(i, j));
 }
 
+// Performs the matrix-matrix multiplication b <- a * D,
+// where d is a vector containing the diagonal elements of the matrix D.
+// Out: b
+// Preconditions: a.size() == b.size(), d.size() == a.nrCols().
+template <typename ScalarType, DeviceType device_name>
+inline void multiplyDiagonalLeft(const Vector<ScalarType, device_name>& d,
+                                 const Matrix<ScalarType, device_name>& a,
+                                 Matrix<ScalarType, device_name>& b, int thread_id = 0,
+                                 int stream_id = 0) {
+  lapack::UseDevice<device_name>::multiplyDiagonalLeft(a.nrRows(), a.nrCols(), d.ptr(), 1, a.ptr(),
+                                                       a.leadingDimension(), b.ptr(),
+                                                       b.leadingDimension(), thread_id, stream_id);
+}
+template <typename ScalarType>
+inline void multiplyDiagonalLeft(const Vector<ScalarType, CPU>& d, const Matrix<ScalarType, GPU>& a,
+                                 Matrix<ScalarType, GPU>& b, int thread_id = 0, int stream_id = 0) {
+  Vector<ScalarType, GPU> d_gpu(d);
+  multiplyDiagonalLeft(d_gpu, a, b, thread_id, stream_id);
+}
+
+// Performs the matrix-matrix multiplication b <- a * D,
+// where d is a vector containing the diagonal elements of the matrix D.
+// Out: b
+// Preconditions: a.size() == b.size(), d.size() == a.nrCols().
+template <typename ScalarType, DeviceType device_name>
+inline void multiplyDiagonalRight(const matrix<ScalarType, device_name>& a,
+                                  const Vector<ScalarType, device_name>& d,
+                                  Matrix<ScalarType, device_name>& b, int thread_id = 0,
+                                  int stream_id = 0) {
+  lapack::UseDevice<device_name>::multiplyDiagonalRight(a.nrRows(), a.nrCols(), a.ptr(),
+                                                        a.leadingDimension(), d.ptr(), 1, b.ptr(),
+                                                        b.leadingDimension(), thread_id, stream_id);
+}
+template <typename ScalarType>
+inline void multiplyDiagonalRight(const Matrix<ScalarType, GPU>& a, const Vector<ScalarType, CPU>& d,
+                                  Matrix<ScalarType, GPU>& b, int thread_id = 0, int stream_id = 0) {
+  Vector<ScalarType, GPU> d_gpu(d);
+  multiplyDiagonalRight(a, d_gpu, b, thread_id, stream_id);
+}
+
 }  // matrixop
 }  // linalg
 }  // dca

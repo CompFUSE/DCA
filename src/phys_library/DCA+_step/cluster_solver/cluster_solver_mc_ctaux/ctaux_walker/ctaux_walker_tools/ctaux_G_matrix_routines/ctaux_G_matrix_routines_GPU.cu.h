@@ -39,7 +39,6 @@ __global__ void read_G_matrix_kernel(int S, int vertex_index, int* i_index, int*
 void read_G_matrix_elements(int S, int vertex_index, int* i_ptr, int* j_ptr, bool* is_Bennett_ptr,
                             double* exp_Vj_ptr, double* N_ptr, int N_LD, double* G_ptr, int G_LD,
                             double* result_ptr, int incr) {
-  assert(S < get_number_of_threads());
   read_G_matrix_kernel<<<1, S>>>(S, vertex_index, i_ptr, j_ptr, is_Bennett_ptr, exp_Vj_ptr, N_ptr,
                                  N_LD, G_ptr, G_LD, result_ptr, incr);
 

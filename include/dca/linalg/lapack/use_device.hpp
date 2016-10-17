@@ -19,6 +19,7 @@
 #ifdef DCA_HAVE_CUDA
 #include "dca/linalg/lapack/laset_gpu.hpp"
 #include "dca/linalg/lapack/magma.hpp"
+#include "dca/linalg/lapack/multiply_diagonal_gpu.hpp"
 #endif  // DCA_HAVE_CUDA
 
 namespace dca {
@@ -49,6 +50,51 @@ struct UseDevice<CPU> {
                            int* info) {
     lapack::getri(n, a, lda, ipiv, work, lwork, info);
   }
+
+  // Custom routines
+
+  // Performs the matrix-matrix multiplication b <- d * a,
+  // where d is a diagonal matrix, which diagonal elements are given by d[0], d[inc_d],
+  // d[2*inc_d]...
+  // Out: b
+  // Preconditions: lda >= m, ldb >= m.
+  template <typename ScalarType>
+  static void multiplyDiagonalLeft(int m, int n, const ScalarType* d, int inc_d,
+                                   const ScalarType* a, int lda, ScalarType* b, int ldb,
+                                   int /*thread_id*/, int /*stream_id*/) {
+    assert(lda >= m);
+    assert(ldb >= m);
+
+    for (int j = 0; j < n; ++j) {
+      const ScalarType* aj = a + j * lda;
+      ScalarType* bj = b + j * ldb;
+
+      for (int i = 0; i < m; ++i)
+        bj[i] = aj[i] * d[i * inc_d];
+    }
+  }
+
+  // Performs the matrix-matrix multiplication b <- a * d,
+  // where d is a diagonal matrix, which diagonal elements are given by d[0], d[inc_d],
+  // d[2*inc_d]...
+  // Out: b
+  // Preconditions: lda >= m, ldb >= m.
+  template <typename ScalarType>
+  static void multiplyDiagonalRight(int m, int n, const ScalarType* a, int lda, const ScalarType* d,
+                                    int inc_d, ScalarType* b, int ldb, int /*thread_id*/,
+                                    int /*stream_id*/) {
+    assert(lda >= m);
+    assert(ldb >= m);
+
+    for (int j = 0; j < n; ++j) {
+      ScalarType dj = d[j * inc_d];
+      const ScalarType* aj = a + j * lda;
+      ScalarType* bj = b + j * ldb;
+
+      for (int i = 0; i < m; ++i)
+        bj[i] = aj[i] * dj;
+    }
+  }
 };
 
 #ifdef DCA_HAVE_CUDA
@@ -71,6 +117,20 @@ struct UseDevice<GPU> {
   inline static void getri(int n, ScalarType* a, int lda, int* ipiv, ScalarType* work, int lwork,
                            int* info) {
     magma::getri_gpu(n, a, lda, ipiv, work, lwork, info);
+  }
+
+  template <typename ScalarType>
+  inline static void multiplyDiagonalLeft(int m, int n, const ScalarType* d, int inc_d,
+                                          const ScalarType* a, int lda, ScalarType* b, int ldb,
+                                          int thread_id, int stream_id) {
+    lapack::multiplyDiagonalLeft_gpu(m, n, d, inc_d, a, lda, b, ldb, thread_id, stream_id);
+  }
+
+  template <typename ScalarType>
+  inline static void multiplyDiagonalRight(int m, int n, const ScalarType* a, int lda,
+                                           const ScalarType* d, int inc_d, ScalarType* b, int ldb,
+                                           int thread_id, int stream_id) {
+    lapack::multiplyDiagonalRight_gpu(m, n, a, lda, d, inc_d, b, ldb, thread_id, stream_id);
   }
 };
 #endif  // DCA_HAVE_CUDA

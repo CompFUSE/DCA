@@ -226,6 +226,39 @@ TYPED_TEST(MatrixopRealCPUTest, Gemm) {
   }
 }
 
+TYPED_TEST(MatrixopRealCPUTest, MultiplyDiagonal) {
+  using ScalarType = TypeParam;
+  std::pair<int, int> size_a(3, 5);
+  auto val_a = [](int i, int j) { return 3 * i - 2 * j; };
+  auto val_d = [](int i) { return 1 - i; };
+
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> a(size_a);
+  testing::setMatrixElements(a, val_a);
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> b(size_a);
+  {
+    dca::linalg::Vector<ScalarType, dca::linalg::CPU> d(a.nrRows());
+    testing::setVectorElements(d, val_d);
+
+    dca::linalg::matrixop::multiplyDiagonalLeft(d, a, b);
+
+    for (int j = 0; j < a.nrCols(); ++j)
+      for (int i = 0; i < a.nrRows(); ++i) {
+        EXPECT_NEAR(d[i] * a(i, j), b(i, j), 10 * this->epsilon);
+      }
+  }
+  {
+    dca::linalg::Vector<ScalarType, dca::linalg::CPU> d(a.nrCols());
+    testing::setVectorElements(d, val_d);
+
+    dca::linalg::matrixop::multiplyDiagonalRight(a, d, b);
+
+    for (int j = 0; j < a.nrCols(); ++j)
+      for (int i = 0; i < a.nrRows(); ++i) {
+        EXPECT_NEAR(d[j] * a(i, j), b(i, j), 10 * this->epsilon);
+      }
+  }
+}
+
 TYPED_TEST(MatrixopRealCPUTest, Trsm) {
   using ScalarType = TypeParam;
   auto val_a = [](int i, int j) { return 1 + 3 * i - 2 * j; };

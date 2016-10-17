@@ -189,7 +189,7 @@ protected:
 
   CV<parameters_type> CV_obj;
 
-  std::vector<double> exp_V_minus_one;
+  dca::linalg::Vector<double, dca::linalg::CPU> exp_V_minus_one;
 
   std::vector<vertex_singleton_type> HS_configuration_e_UP;
   std::vector<vertex_singleton_type> HS_configuration_e_DN;
@@ -240,7 +240,7 @@ MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::MC_accumula
 
       CV_obj(parameters),
 
-      exp_V_minus_one(64, 0),
+      exp_V_minus_one(64),
 
       //     HS_configuration(0),
 
@@ -489,7 +489,7 @@ void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::comput
   for (int i = 0; i < configuration_size; ++i)
     exp_V_minus_one[i] = CV_obj.exp_V(configuration_e_spin[i]) - 1.;
 
-  LIN_ALG::GEMD<dca::linalg::CPU>::execute(&exp_V_minus_one[0], N, M);
+  dca::linalg::matrixop::multiplyDiagonalLeft(exp_V_minus_one, N, M);
 }
 
 /*!
@@ -514,7 +514,7 @@ void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type, MOMS_type>::comput
   for (int i = 0; i < configuration_size; ++i)
     exp_V_minus_one[i] = CV_obj.exp_V(configuration_e_spin[i]) - 1.;
 
-  LIN_ALG::GEMD<dca::linalg::CPU>::execute(&exp_V_minus_one[0], M, M);
+  dca::linalg::matrixop::multiplyDiagonalLeft(exp_V_minus_one, M, M);
 }
 #endif  // DCA_HAVE_CUDA
 

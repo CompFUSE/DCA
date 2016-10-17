@@ -28,15 +28,7 @@
 
 #include "comp_library/linalg/linalg_device_types.h"
 
-#include "src/linalg_structures/cublas_thread_manager_tem.h"
-#include "src/linalg_structures/cublas_thread_manager_CPU.h"
-#include "src/linalg_structures/cublas_thread_manager_GPU.h"
-
 // LAPACK
-#include "src/linalg_operations/GEMD_tem.h"
-#include "src/linalg_operations/GEMD_CPU.h"
-#include "src/linalg_operations/GEMD_GPU.h"
-
 #include "src/linalg_operations/BENNET_tem.h"
 #include "src/linalg_operations/BENNET_CPU.h"
 
