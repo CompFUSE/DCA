@@ -41,6 +41,22 @@ void cgetri_(const int* n, std::complex<float>* a, const int* lda, int* ipiv,
              std::complex<float>* work, const int* lwork, int* info);
 void zgetri_(const int* n, std::complex<double>* a, const int* lda, int* ipiv,
              std::complex<double>* work, const int* lwork, int* info);
+
+void sgeev_(const char* job_vl, const char* job_vr, const int* n, float* a, const int* lda,
+            float* wr, float* wi, float* vl, const int* ldvl, float* vr, const int* ldvr,
+            float* work, const int* lwork, int* info);
+void dgeev_(const char* job_vl, const char* job_vr, const int* n, double* a, const int* lda,
+            double* wr, double* wi, double* vl, const int* ldvl, double* vr, const int* ldvr,
+            double* work, const int* lwork, int* info);
+
+void cgeev_(const char* job_vl, const char* job_vr, const int* n, std::complex<float>* a,
+            const int* lda, std::complex<float>* w, std::complex<float>* vl, const int* ldvl,
+            std::complex<float>* vr, const int* ldvr, std::complex<float>* work, const int* lwork,
+            float* rwork, int* info);
+void zgeev_(const char* job_vl, const char* job_vr, const int* n, std::complex<double>* a,
+            const int* lda, std::complex<double>* w, std::complex<double>* vl, const int* ldvl,
+            std::complex<double>* vr, const int* ldvr, std::complex<double>* work, const int* lwork,
+            double* rwork, int* info);
 }
 
 // C++ wrappers
@@ -105,6 +121,35 @@ inline void getri(int n, std::complex<double>* a, int lda, int* ipiv, std::compl
                   int lwork) {
   int info = 0;
   zgetri_(&n, a, &lda, ipiv, work, &lwork, &info);
+  checkLapackInfo(info);
+}
+
+inline void geev(const char* job_vl, const char* job_vr, int n, float* a, int lda, float* wr,
+                 float* wi, float* vl, int ldvl, float* vr, int ldvr, float* work, int lwork) {
+  int info = 0;
+  sgeev_(job_vl, job_vr, &n, a, &lda, wr, wi, vl, &ldvl, vr, &ldvr, work, &lwork, &info);
+  checkLapackInfo(info);
+}
+inline void geev(const char* job_vl, const char* job_vr, int n, double* a, int lda, double* wr,
+                 double* wi, double* vl, int ldvl, double* vr, int ldvr, double* work, int lwork) {
+  int info = 0;
+  dgeev_(job_vl, job_vr, &n, a, &lda, wr, wi, vl, &ldvl, vr, &ldvr, work, &lwork, &info);
+  checkLapackInfo(info);
+}
+
+inline void geev(const char* job_vl, const char* job_vr, int n, std::complex<float>* a, int lda,
+                 std::complex<float>* w, std::complex<float>* vl, int ldvl, std::complex<float>* vr,
+                 int ldvr, std::complex<float>* work, int lwork, float* rwork) {
+  int info = 0;
+  cgeev_(job_vl, job_vr, &n, a, &lda, w, vl, &ldvl, vr, &ldvr, work, &lwork, rwork, &info);
+  checkLapackInfo(info);
+}
+inline void geev(const char* job_vl, const char* job_vr, int n, std::complex<double>* a, int lda,
+                 std::complex<double>* w, std::complex<double>* vl, int ldvl,
+                 std::complex<double>* vr, int ldvr, std::complex<double>* work, int lwork,
+                 double* rwork) {
+  int info = 0;
+  zgeev_(job_vl, job_vr, &n, a, &lda, w, vl, &ldvl, vr, &ldvr, work, &lwork, rwork, &info);
   checkLapackInfo(info);
 }
 

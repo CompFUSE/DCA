@@ -294,6 +294,35 @@ TYPED_TEST(MatrixopComplexCPUTest, Trsm) {
   }
 }
 
+TYPED_TEST(MatrixopComplexCPUTest, Eigensolver) {
+  using ScalarType = TypeParam;
+  int size = 2;
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> mat(size);
+  mat(0, 0) = ScalarType(0, 2);
+  mat(0, 1) = ScalarType(0, 0);
+  mat(1, 0) = ScalarType(0, 1);
+  mat(1, 1) = ScalarType(0, 1);
+
+  dca::linalg::Vector<ScalarType, dca::linalg::CPU> w;
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> vl;
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> vr;
+
+  dca::linalg::matrixop::eigensolver('V', 'V', mat, w, vl, vr);
+  EXPECT_EQ(w.size(), size);
+  EXPECT_EQ(vl.size(), std::make_pair(size, size));
+  EXPECT_EQ(vr.size(), std::make_pair(size, size));
+
+  EXPECT_GE(100 * this->epsilon, std::abs(ScalarType(0, 1) - w[0]));
+  EXPECT_GE(100 * this->epsilon, std::abs(ScalarType(-1) - vl(0, 0) / vl(1, 0)));
+  EXPECT_GE(100 * this->epsilon, std::abs(vr(0, 0)));
+  EXPECT_GE(100 * this->epsilon, std::abs(ScalarType(1) - vr(1, 0)));
+
+  EXPECT_GE(100 * this->epsilon, std::abs(ScalarType(0, 2) - w[1]));
+  EXPECT_GE(100 * this->epsilon, std::abs(ScalarType(1) - vl(0, 1)));
+  EXPECT_GE(100 * this->epsilon, std::abs(vl(1, 1)));
+  EXPECT_GE(100 * this->epsilon, std::abs(ScalarType(1) - vr(0, 1) / vr(1, 1)));
+}
+
 TYPED_TEST(MatrixopComplexCPUTest, Laset) {
   using ScalarType = TypeParam;
   std::pair<int, int> size(3, 35);

@@ -33,22 +33,6 @@ extern "C" void zgesv_(int*, int*, std::complex<double>*, int*, int*, std::compl
 
 // eigenvalue decomposition
 
-extern "C" void sgeev_(char* JOBVL, char* JOBVR, int* N, float* A, int* LDA, float* WR, float* WI,
-                       float* VL, int* LDVL, float* VR, int* LDVR, float* WORK, int* LWORK,
-                       int* INFO);
-extern "C" void dgeev_(char* JOBVL, char* JOBVR, int* N, double* A, int* LDA, double* WR,
-                       double* WI, double* VL, int* LDVL, double* VR, int* LDVR, double* WORK,
-                       int* LWORK, int* INFO);
-
-extern "C" void cgeev_(char* JOBVL, char* JOBVR, int* N, std::complex<float>* A, int* LDA,
-                       std::complex<float>* W, std::complex<float>* VL, int* LDVL,
-                       std::complex<float>* VR, int* LDVR, std::complex<float>* WORK, int* LWORK,
-                       float* RWORK, int* INFO);
-extern "C" void zgeev_(char* JOBVL, char* JOBVR, int* N, std::complex<double>* A, int* LDA,
-                       std::complex<double>* W, std::complex<double>* VL, int* LDVL,
-                       std::complex<double>* VR, int* LDVR, std::complex<double>* WORK, int* LWORK,
-                       double* RWORK, int* INFO);
-
 extern "C" void ssyev_(char* JOBZ, char* UPLO, int* N, float* Matrix, int* LDA, float* eigenvalues,
                        float* WORK, int* LWORK, int* INFO);
 extern "C" void dsyev_(char* JOBZ, char* UPLO, int* N, double* Matrix, int* LDA,

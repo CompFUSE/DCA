@@ -49,6 +49,29 @@ int getInverseWorkSize(const Matrix<ScalarType, GPU>& mat) {
 }
 #endif  // DCA_HAVE_CUDA
 
+// Returns optimal lwork for the eigensolver.
+// In: mat
+template <typename ScalarType>
+int getEigensolverWorkSize(char jobvl, char jobvr, Matrix<ScalarType, CPU>& mat) {
+  assert(mat.is_square());
+
+  int ld = mat.nrRows();
+  ScalarType tmp;
+  lapack::geev(&jobvl, &jobvr, mat.nrRows(), mat.ptr(), mat.leadingDimension(), nullptr, nullptr,
+               nullptr, ld, nullptr, ld, &tmp, -1);
+  return lapack::util::getWorkSize(tmp);
+}
+template <typename ScalarType>
+int getEigensolverWorkSize(char jobvl, char jobvr, Matrix<std::complex<ScalarType>, CPU>& mat) {
+  assert(mat.is_square());
+
+  int ld = mat.nrRows();
+  std::complex<ScalarType> tmp;
+  lapack::geev(&jobvl, &jobvr, mat.nrRows(), mat.ptr(), mat.leadingDimension(), nullptr, nullptr,
+               ld, nullptr, ld, &tmp, -1, nullptr);
+  return lapack::util::getWorkSize(tmp);
+}
+
 }  // util
 }  // matrixop
 }  // linalg

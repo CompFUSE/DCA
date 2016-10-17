@@ -19,6 +19,7 @@
 // - swapCols, swapRows (for GPU matrices only)
 // - gemm
 // - trsm
+// - eigensolver (non-symmetric / symmetric / Hermitian)
 
 #ifndef DCA_LINALG_MATRIXOP_HPP
 #define DCA_LINALG_MATRIXOP_HPP
@@ -686,6 +687,85 @@ inline void multiplyDiagonalRight(const Matrix<ScalarType, GPU>& a, const Vector
   multiplyDiagonalRight(a, d_gpu, b, thread_id, stream_id);
 }
 
+// Computes the eigenvalue, the left eigenvectors (if jobvl == 'V')
+// and the right eigenvectors (if jobvr == 'V') of the real matrix a.
+// The real parts of the eigenvalues are stored in lambda_re, while the imaginary parts in
+// lambda_im.
+// If computed the left eigenvectors are stored in vl and the right eigenvectors in vr.
+// See sgeev, dgeev Lapack documentation for information about how the
+// eigenvectors are stored.
+// Out: lambda_re, lambda_im, vl, vr.
+// Precondition: jobvl == 'N' or jobvl == 'V',
+//               jobvr == 'N' or jobvr == 'V',
+//               a is a square matrix.
+// Postcondition: lambda_re, lambda_i, are resized, vl if jobvl == 'V', vr if jobvr == 'V' are
+// resized.
+template <typename ScalarType>
+void eigensolver(char jobvl, char jobvr, const Matrix<ScalarType, CPU>& a,
+                 Vector<ScalarType, CPU>& lambda_re, Vector<ScalarType, CPU>& lambda_im,
+                 Matrix<ScalarType, CPU>& vl, matrix<ScalarType, CPU>& vr) {
+  assert(a.is_square());
+
+  Matrix<ScalarType, CPU> a_copy(a);
+  lambda_re.resizeNoCopy(a_copy.nrRows());
+  lambda_im.resizeNoCopy(a_copy.nrRows());
+  int ldvl = 1;
+  int ldvr = 1;
+  if (jobvl == 'V' || jobvl == 'v') {
+    vl.resizeNoCopy(a_copy.size());
+    ldvl = vl.leadingDimension();
+  }
+  if (jobvr == 'V' || jobvr == 'v') {
+    vr.resizeNoCopy(a_copy.size());
+    ldvr = vr.leadingDimension();
+  }
+
+  // Get optimal worksize.
+  int lwork = util::getEigensolverWorkSize(jobvl, jobvr, a_copy);
+  dca::linalg::Vector<ScalarType, CPU> work(lwork);
+
+  lapack::geev(&jobvl, &jobvr, a_copy.nrRows(), a_copy.ptr(), a_copy.leadingDimension(),
+               lambda_re.ptr(), lambda_im.ptr(), vl.ptr(), ldvl, vr.ptr(), ldvr, work.ptr(),
+               work.size());
+}
+
+// Computes the eigenvalue, the left eigenvectors (if jobvl == 'V')
+// and the right eigenvectors (if jobvr == 'V') of the complex matrix a.
+// The eigenvalue are stored in lambda.
+// If computed the left eigenvectors are stored in vl and the right eigenvectors in vr.
+// Out: lambda, vl, vr.
+// Precondition: jobvl == 'N' or jobvl == 'V',
+//               jobvr == 'N' or jobvr == 'V',
+//               a is a square matrix.
+// Postcondition: lambda, is resized, vl if jobvl == 'V', vr if jobvr == 'V' are resized.
+template <typename ScalarType>
+void eigensolver(char jobvl, char jobvr, const Matrix<std::complex<ScalarType>, CPU>& a,
+                 Vector<std::complex<ScalarType>, CPU>& lambda,
+                 Matrix<std::complex<ScalarType>, CPU>& vl,
+                 matrix<std::complex<ScalarType>, CPU>& vr) {
+  assert(a.is_square());
+
+  Matrix<std::complex<ScalarType>, CPU> a_copy(a);
+  lambda.resizeNoCopy(a_copy.nrRows());
+  int ldvl = 1;
+  int ldvr = 1;
+  if (jobvl == 'V' || jobvl == 'v') {
+    vl.resizeNoCopy(a_copy.size());
+    ldvl = vl.leadingDimension();
+  }
+  if (jobvr == 'V' || jobvr == 'v') {
+    vr.resizeNoCopy(a_copy.size());
+    ldvr = vr.leadingDimension();
+  }
+
+  // Get optimal worksize.
+  int lwork = util::getEigensolverWorkSize(jobvl, jobvr, a_copy);
+  dca::linalg::Vector<std::complex<ScalarType>, CPU> work(lwork);
+  dca::linalg::Vector<ScalarType, CPU> rwork(2 * a_copy.nrRows());
+
+  lapack::geev(&jobvl, &jobvr, a_copy.nrRows(), a_copy.ptr(), a_copy.leadingDimension(),
+               lambda.ptr(), vl.ptr(), ldvl, vr.ptr(), ldvr, work.ptr(), work.size(), rwork.ptr());
+}
 }  // matrixop
 }  // linalg
 }  // dca

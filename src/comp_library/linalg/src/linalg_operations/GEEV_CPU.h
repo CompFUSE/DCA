@@ -11,25 +11,6 @@ namespace LIN_ALG {
   public:
 
     /**************************
-     ***   general matrix
-     **************************/
-
-    template<typename scalartype>
-    static void execute(char JOBVL, char JOBVR,
-                        matrix<scalartype, CPU>& A,
-                        dca::linalg::Vector<scalartype, CPU>& lambda_re,
-                        dca::linalg::Vector<scalartype, CPU>& lambda_im,
-                        matrix<scalartype, CPU>& VL,
-                        matrix<scalartype, CPU>& VR);
-
-    template<typename scalartype>
-    static void execute(char JOBVL, char JOBVR,
-                        matrix<std::complex<scalartype>, CPU>& A,
-                        dca::linalg::Vector<std::complex<scalartype>, CPU>& lambda,
-                        matrix<std::complex<scalartype>, CPU>& VL,
-                        matrix<std::complex<scalartype>, CPU>& VR);
-
-    /**************************
      ***   hermitian matrix
      **************************/
 
@@ -51,36 +32,6 @@ namespace LIN_ALG {
                                                   dca::linalg::Vector<scalartype, CPU>& lambda,
                                                   matrix<std::complex<scalartype>, CPU>& VR);
 
-    /*
-    template<typename scalartype>
-    class hermitian_plan
-    {
-    public:
-
-      hermitian_plan();
-      ~hermitian_plan();
-
-      void initialize(char JOBZ, char UPLO,
-		      matrix<scalartype, CPU>& A,
-		      dca::linalg::Vector<scalartype, CPU>& lambda_re,
-		      matrix<scalartype, CPU>& VR);
-
-      void execute(char JOBZ, char UPLO,
-		   matrix<scalartype, CPU>& A,
-		   dca::linalg::Vector<scalartype, CPU>& lambda_re,
-		   matrix<scalartype, CPU>& VR);
-
-    private:
-
-      bool initialzed;
-
-      int LIWORK;
-      dca::linalg::Vector<int, CPU> IWORK;
-
-      int LWORK;
-      dca::linalg::Vector<scalartype, CPU> WORK;      
-    };
-    */
 
     template<typename scalartype>
     class hermitian_plan
@@ -207,21 +158,6 @@ namespace LIN_ALG {
   public:
 
     /**************************
-     ***   GEEV-routines
-     **************************/
-
-    static void execute(char JOBVL, char JOBVR, int N, float*  A, int LDA, float*   WR, float*   WI, float* VL , int LDVL, float* VR , int LDVR, float* WORK , int LWORK, int INFO);
-    static void execute(char JOBVL, char JOBVR, int N, double* A, int LDA, double*  WR, double*  WI, double* VL, int LDVL, double* VR, int LDVR, double* WORK, int LWORK, int INFO);
-
-    static void execute(char JOBVL, char JOBVR, int N, std::complex<float>*  A, int LDA, std::complex<float>* W,
-                        std::complex<float>*  VL, int LDVL, std::complex<float>*  VR, int LDVR,
-                        std::complex<float>*  WORK, int LWORK, float*  RWORK, int INFO );
-
-    static void execute(char JOBVL, char JOBVR, int N, std::complex<double>* A, int LDA, std::complex<double>* W,
-                        std::complex<double>* VL, int LDVL, std::complex<double>* VR, int LDVR,
-                        std::complex<double>* WORK, int LWORK, double* RWORK, int INFO );
-
-    /**************************
      ***   HEEV-routines
      **************************/
 
@@ -299,95 +235,6 @@ namespace LIN_ALG {
                         double* W, std::complex<double>* Z, int LDZ, int* ISUPPZ,
                         std::complex<double>* WORK, int LWORK, double* RWORK, int LRWORK, int* IWORK, int LIWORK, int INFO );
   };
-
-  /**************************
-   ***
-   ***   GEEV-routines
-   ***
-   **************************/
-
-  template<typename scalartype>
-  void GEEV<CPU>::execute(char JOBVL, char JOBVR,
-                          matrix<scalartype, CPU>& A,
-                          dca::linalg::Vector<scalartype, CPU>& lambda_re,
-                          dca::linalg::Vector<scalartype, CPU>& lambda_im,
-                          matrix<scalartype, CPU>& VL,
-                          matrix<scalartype, CPU>& VR)
-  {
-    if( JOBVL != 'N' and JOBVL != 'V')
-      throw std::logic_error(__FUNCTION__);
-
-    if( JOBVR != 'N' and JOBVR != 'V')
-      throw std::logic_error(__FUNCTION__);
-
-    if( A.size().first !=  A.size().second)
-      throw std::logic_error(__FUNCTION__);
-
-    matrix<std::complex<scalartype>, CPU> X(A);
-
-    int N_A = A.size().first;
-    int LDA = A.leadingDimension();
-
-    int LDVL = VL.leadingDimension();
-    int LDVR = VR.leadingDimension();
-
-    int LWORK = -1;
-
-    int INFO = -1;
-
-    {
-      scalartype WORK;
-      execute(JOBVL, JOBVR, N_A, &X(0,0), LDA, &lambda_re(0), &lambda_im(0), &VL(0,0), LDVL, &VR(0,0), LDVR, &WORK, LWORK, INFO);
-
-      LWORK = WORK[0];
-    }
-
-    dca::linalg::Vector<scalartype, CPU> WORK(LWORK);
-
-    execute(JOBVL, JOBVR, N_A, &X(0,0), LDA, &lambda_re(0), &lambda_im(0), &VL(0,0), LDVL, &VR(0,0), LDVR, &WORK[0], LWORK, INFO);
-  }
-
-  template<typename scalartype>
-  void GEEV<CPU>::execute(char JOBVL, char JOBVR,
-                          matrix<std::complex<scalartype>, CPU>& A,
-                          dca::linalg::Vector<std::complex<scalartype>, CPU>& lambda,
-                          matrix<std::complex<scalartype>, CPU>& VL,
-                          matrix<std::complex<scalartype>, CPU>& VR)
-  {
-    if( JOBVL != 'N' and JOBVL != 'V')
-      throw std::logic_error(__FUNCTION__);
-
-    if( JOBVR != 'N' and JOBVR != 'V')
-      throw std::logic_error(__FUNCTION__);
-
-    if( A.size().first !=  A.size().second)
-      throw std::logic_error(__FUNCTION__);
-
-    matrix<std::complex<scalartype>, CPU> X(A);
-
-    int N_A = A.size().first;
-    int LDA = A.leadingDimension();
-
-    int LDVL = VL.leadingDimension();
-    int LDVR = VR.leadingDimension();
-
-    int LWORK = -1;
-
-    dca::linalg::Vector<scalartype, CPU> RWORK(2*N_A);
-
-    int INFO = -1;
-
-    {
-      std::complex<scalartype> WORK;
-      execute(JOBVL, JOBVR, N_A, &X(0,0), LDA, &lambda[0], &VL(0,0), LDVL, &VR(0,0), LDVR, &WORK, LWORK, &RWORK[0], INFO);
-
-      LWORK = real(WORK);
-    }
-
-    dca::linalg::Vector<std::complex<scalartype>, CPU> WORK(LWORK);
-
-    execute(JOBVL, JOBVR, N_A, &X(0,0), LDA, &lambda[0], &VL(0,0), LDVL, &VR(0,0), LDVR, &WORK[0], LWORK, &RWORK[0], INFO);
-  }
 
   /**************************
    ***
@@ -539,60 +386,6 @@ namespace LIN_ALG {
         execute(JOBZ, UPLO, A, lambda, VR);
       }
   }
-
-  /**************************
-   ***
-   ***   hermitian matrix
-   ***
-   **************************/
-
-  template<typename scalartype>
-  void GEEV<CPU>::execute_on_small_matrix(char JOBZ, char UPLO,
-                                          matrix<scalartype, CPU>& A,
-                                          dca::linalg::Vector<scalartype, CPU>& lambda,
-                                          matrix<scalartype, CPU>& VR)
-  {
-    int N = A.size().first;
-
-    switch(N)
-      {
-      case 1:
-        {
-          lambda[0] = A(0,0);
-
-          VR(0,0)   = 1.0;
-        }
-        break;
-
-      default:
-        execute(JOBZ, UPLO, A, lambda, VR);
-      }
-  }
-
-  template<typename scalartype>
-  void GEEV<CPU>::execute_on_small_matrix(char JOBZ, char UPLO,
-                                          matrix<std::complex<scalartype>, CPU>& A,
-                                          dca::linalg::Vector<scalartype, CPU>& lambda,
-                                          matrix<std::complex<scalartype>, CPU>& VR)
-  {
-    int N = A.size().first;
-
-    switch(N)
-      {
-      case 1:
-        {
-          lambda[0] = real(A(0,0));
-
-          real(VR(0,0)) = 1.0;
-          imag(VR(0,0)) = 0.0;
-        }
-        break;
-
-      default:
-        execute(JOBZ, UPLO, A, lambda, VR);
-      }
-  }
-
 
   /**************************
    ***
@@ -779,49 +572,6 @@ namespace LIN_ALG {
       }
 
     return M;
-  }
-
-
-  /**************************
-   ***
-   ***   GEEV LAPACK-routines
-   ***
-   **************************/
-
-  void GEEV<CPU>::execute(char JOBVL, char JOBVR, int N, float* A,  int LDA, float* WR, float* WI, float* VL, int LDVL, float* VR, int LDVR, float* WORK, int LWORK,int INFO )
-  {
-    LAPACK::sgeev_(&JOBVL, &JOBVR, &N, A, &LDA, WR, WI, VL, &LDVL, VR, &LDVR, WORK, &LWORK, &INFO);
-
-    if(INFO != 0)
-      throw std::logic_error(__FUNCTION__);
-  }
-
-  void GEEV<CPU>::execute(char JOBVL, char JOBVR, int N, double* A,  int LDA, double* WR, double* WI, double* VL, int LDVL, double* VR, int LDVR, double* WORK, int LWORK, int INFO )
-  {
-    LAPACK::dgeev_(&JOBVL, &JOBVR, &N, A, &LDA, WR, WI, VL, &LDVL, VR, &LDVR, WORK, &LWORK, &INFO);
-
-    if(INFO != 0)
-      throw std::logic_error(__FUNCTION__);
-  }
-
-  void GEEV<CPU>::execute(char JOBVL, char JOBVR, int N, std::complex<float>* A, int LDA, std::complex<float>* W,
-                          std::complex<float>* VL, int LDVL, std::complex<float>* VR, int LDVR,
-                          std::complex<float>* WORK, int LWORK, float* RWORK, int INFO)
-  {
-    LAPACK::cgeev_(&JOBVL, &JOBVR, &N, A, &LDA, W, VL, &LDVL, VR, &LDVR, WORK, &LWORK, RWORK, &INFO);
-
-    if(INFO != 0)
-      throw std::logic_error(__FUNCTION__);
-  }
-
-  void GEEV<CPU>::execute(char JOBVL, char JOBVR, int N, std::complex<double>* A, int LDA, std::complex<double>* W,
-                          std::complex<double>* VL, int LDVL, std::complex<double>* VR, int LDVR,
-                          std::complex<double>* WORK, int LWORK, double* RWORK, int INFO)
-  {
-    LAPACK::zgeev_(&JOBVL, &JOBVR, &N, A, &LDA, W, VL, &LDVL, VR, &LDVR, WORK, &LWORK, RWORK, &INFO);
-
-    if(INFO != 0)
-      throw std::logic_error(__FUNCTION__);
   }
 
   /**************************

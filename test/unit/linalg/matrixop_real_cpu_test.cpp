@@ -293,6 +293,39 @@ TYPED_TEST(MatrixopRealCPUTest, Trsm) {
   }
 }
 
+TYPED_TEST(MatrixopRealCPUTest, Eigensolver) {
+  using ScalarType = TypeParam;
+  int size = 2;
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> mat(size);
+  mat(0, 0) = 2.;
+  mat(0, 1) = 0.;
+  mat(1, 0) = 1.;
+  mat(1, 1) = 1.;
+
+  dca::linalg::Vector<ScalarType, dca::linalg::CPU> wr;
+  dca::linalg::Vector<ScalarType, dca::linalg::CPU> wi;
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> vl;
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> vr;
+
+  dca::linalg::matrixop::eigensolver('V', 'V', mat, wr, wi, vl, vr);
+  EXPECT_EQ(wr.size(), size);
+  EXPECT_EQ(wi.size(), size);
+  EXPECT_EQ(vl.size(), std::make_pair(size, size));
+  EXPECT_EQ(vr.size(), std::make_pair(size, size));
+
+  EXPECT_NEAR(1., wr[0], 100 * this->epsilon);
+  EXPECT_NEAR(0., wi[0], 100 * this->epsilon);
+  EXPECT_NEAR(-1, vl(0, 0) / vl(1, 0), 100 * this->epsilon);
+  EXPECT_NEAR(0., vr(0, 0), 100 * this->epsilon);
+  EXPECT_NEAR(1., vr(1, 0), 100 * this->epsilon);
+
+  EXPECT_NEAR(2., wr[1], 100 * this->epsilon);
+  EXPECT_NEAR(0., wi[1], 100 * this->epsilon);
+  EXPECT_NEAR(1., vl(0, 1), 100 * this->epsilon);
+  EXPECT_NEAR(0., vl(1, 1), 100 * this->epsilon);
+  EXPECT_NEAR(1., vr(0, 1) / vr(1, 1), 100 * this->epsilon);
+}
+
 TYPED_TEST(MatrixopRealCPUTest, Laset) {
   using ScalarType = TypeParam;
   std::pair<int, int> size(3, 5);

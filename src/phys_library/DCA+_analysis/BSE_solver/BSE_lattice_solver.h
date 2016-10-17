@@ -608,7 +608,7 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_full_Gamma_chi_
     dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> VR("VR (BSE_lattice_solver)", N);
     dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> VL("VL (BSE_lattice_solver)", N);
 
-    LIN_ALG::GEEV<dca::linalg::CPU>::execute('N', 'V', Gamma_chi_0, L, VL, VR);
+    dca::linalg::matrixop::eigensolver('N', 'V', Gamma_chi_0, L, VL, VR);
 
     if (concurrency.id() == concurrency.last())
       std::cout << " finished " << dca::util::print_time() << "\n";
@@ -773,7 +773,7 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_folded_Gamma_ch
     dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> VL("VL (BSE_lattice_solver)", M);
     dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> VR("VR (BSE_lattice_solver)", M);
 
-    LIN_ALG::GEEV<dca::linalg::CPU>::execute('N', 'V', Gamma_chi_0_crystal, L, VL, VR);
+    dca::linalg::matrixop::eigensolver('N', 'V', Gamma_chi_0_crystal, L, VL, VR);
 
     if (concurrency.id() == concurrency.last())
       std::cout << " finished " << dca::util::print_time() << "\n";

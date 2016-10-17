@@ -232,12 +232,12 @@ void tetrahedron_routines_inverse_matrix_function::execute(
   dca::linalg::lapack::inverse(N, data_obj.G_inv_1, data_obj.inv_ipiv, data_obj.inv_work,
                                data_obj.inv_lwork);
 
-  LIN_ALG::GEEV<dca::linalg::CPU>::execute(
-      'N', 'V', N, data_obj.G_inv_0, N, data_obj.W_0, data_obj.VR_inv_0, N, data_obj.VR_0, N,
-      data_obj.GEEV_WORK, data_obj.GEEV_LWORK, data_obj.GEEV_RWORK, data_obj.INFO);
-  LIN_ALG::GEEV<dca::linalg::CPU>::execute(
-      'N', 'V', N, data_obj.G_inv_1, N, data_obj.W_1, data_obj.VR_inv_1, N, data_obj.VR_1, N,
-      data_obj.GEEV_WORK, data_obj.GEEV_LWORK, data_obj.GEEV_RWORK, data_obj.INFO);
+  dca::linalg::lapack::geev("N", "V", N, data_obj.G_inv_0, N, data_obj.W_0, data_obj.VR_inv_0, N,
+                            data_obj.VR_0, N, data_obj.eig_work, data_obj.eig_lwork,
+                            data_obj.eig_rwork);
+  dca::linalg::lapack::geev("N", "V", N, data_obj.G_inv_1, N, data_obj.W_1, data_obj.VR_inv_1, N,
+                            data_obj.VR_1, N, data_obj.eig_work, data_obj.eig_lwork,
+                            data_obj.eig_rwork);
 
   memcpy(data_obj.VR_inv_0, data_obj.VR_0, sizeof(std::complex<scalartype>) * N * N);
   memcpy(data_obj.VR_inv_1, data_obj.VR_1, sizeof(std::complex<scalartype>) * N * N);
@@ -353,15 +353,15 @@ void tetrahedron_routines_inverse_matrix_function::execute(
   dca::linalg::lapack::inverse(N, data_obj.G_inv_2, data_obj.inv_ipiv, data_obj.inv_work,
                                data_obj.inv_lwork);
 
-  LIN_ALG::GEEV<dca::linalg::CPU>::execute(
-      'N', 'V', N, data_obj.G_inv_0, N, data_obj.W_0, data_obj.VR_inv_0, N, data_obj.VR_0, N,
-      data_obj.GEEV_WORK, data_obj.GEEV_LWORK, data_obj.GEEV_RWORK, data_obj.INFO);
-  LIN_ALG::GEEV<dca::linalg::CPU>::execute(
-      'N', 'V', N, data_obj.G_inv_1, N, data_obj.W_1, data_obj.VR_inv_1, N, data_obj.VR_1, N,
-      data_obj.GEEV_WORK, data_obj.GEEV_LWORK, data_obj.GEEV_RWORK, data_obj.INFO);
-  LIN_ALG::GEEV<dca::linalg::CPU>::execute(
-      'N', 'V', N, data_obj.G_inv_2, N, data_obj.W_2, data_obj.VR_inv_2, N, data_obj.VR_2, N,
-      data_obj.GEEV_WORK, data_obj.GEEV_LWORK, data_obj.GEEV_RWORK, data_obj.INFO);
+  dca::linalg::lapack::geev("N", "V", N, data_obj.G_inv_0, N, data_obj.W_0, data_obj.VR_inv_0, N,
+                            data_obj.VR_0, N, data_obj.eig_work, data_obj.eig_lwork,
+                            data_obj.eig_rwork);
+  dca::linalg::lapack::geev("N", "V", N, data_obj.G_inv_1, N, data_obj.W_1, data_obj.VR_inv_1, N,
+                            data_obj.VR_1, N, data_obj.eig_work, data_obj.eig_lwork,
+                            data_obj.eig_rwork);
+  dca::linalg::lapack::geev("N", "V", N, data_obj.G_inv_2, N, data_obj.W_2, data_obj.VR_inv_2, N,
+                            data_obj.VR_2, N, data_obj.eig_work, data_obj.eig_lwork,
+                            data_obj.eig_rwork);
 
   memcpy(data_obj.VR_inv_0, data_obj.VR_0, sizeof(std::complex<scalartype>) * N * N);
   memcpy(data_obj.VR_inv_1, data_obj.VR_1, sizeof(std::complex<scalartype>) * N * N);
@@ -638,18 +638,18 @@ void tetrahedron_routines_inverse_matrix_function::execute(
                                data_obj.inv_lwork);
 
   // diagonolize the G-matrices
-  LIN_ALG::GEEV<dca::linalg::CPU>::execute(
-      'N', 'V', N, data_obj.G_inv_0, N, data_obj.W_0, data_obj.VR_inv_0, N, data_obj.VR_0, N,
-      data_obj.GEEV_WORK, data_obj.GEEV_LWORK, data_obj.GEEV_RWORK, data_obj.INFO);
-  LIN_ALG::GEEV<dca::linalg::CPU>::execute(
-      'N', 'V', N, data_obj.G_inv_1, N, data_obj.W_1, data_obj.VR_inv_1, N, data_obj.VR_1, N,
-      data_obj.GEEV_WORK, data_obj.GEEV_LWORK, data_obj.GEEV_RWORK, data_obj.INFO);
-  LIN_ALG::GEEV<dca::linalg::CPU>::execute(
-      'N', 'V', N, data_obj.G_inv_2, N, data_obj.W_2, data_obj.VR_inv_2, N, data_obj.VR_2, N,
-      data_obj.GEEV_WORK, data_obj.GEEV_LWORK, data_obj.GEEV_RWORK, data_obj.INFO);
-  LIN_ALG::GEEV<dca::linalg::CPU>::execute(
-      'N', 'V', N, data_obj.G_inv_3, N, data_obj.W_3, data_obj.VR_inv_3, N, data_obj.VR_3, N,
-      data_obj.GEEV_WORK, data_obj.GEEV_LWORK, data_obj.GEEV_RWORK, data_obj.INFO);
+  dca::linalg::lapack::geev("N", "V", N, data_obj.G_inv_0, N, data_obj.W_0, data_obj.VR_inv_0, N,
+                            data_obj.VR_0, N, data_obj.eig_work, data_obj.eig_lwork,
+                            data_obj.eig_rwork);
+  dca::linalg::lapack::geev("N", "V", N, data_obj.G_inv_1, N, data_obj.W_1, data_obj.VR_inv_1, N,
+                            data_obj.VR_1, N, data_obj.eig_work, data_obj.eig_lwork,
+                            data_obj.eig_rwork);
+  dca::linalg::lapack::geev("N", "V", N, data_obj.G_inv_2, N, data_obj.W_2, data_obj.VR_inv_2, N,
+                            data_obj.VR_2, N, data_obj.eig_work, data_obj.eig_lwork,
+                            data_obj.eig_rwork);
+  dca::linalg::lapack::geev("N", "V", N, data_obj.G_inv_3, N, data_obj.W_3, data_obj.VR_inv_3, N,
+                            data_obj.VR_3, N, data_obj.eig_work, data_obj.eig_lwork,
+                            data_obj.eig_rwork);
 
   // obtain V^{-1}
   memcpy(data_obj.VR_inv_0, data_obj.VR_0, sizeof(std::complex<scalartype>) * N * N);
