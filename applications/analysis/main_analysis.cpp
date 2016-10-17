@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
   parameters.update_domains();
 
   // Create and initialize the DCA data object and read the output of the DCA(+) calculation.
-  DcaData dca_data(parameters);
+  DcaDataType dca_data(parameters);
   dca_data.initialize();
   dca_data.read(parameters.get_directory() + parameters.get_output_file_name());
 

@@ -25,6 +25,7 @@
 #include "dca/io/json/json_reader.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/parallel/pthreading/pthreading.hpp"
+#include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
 #include "dca/phys/parameters/parameters.hpp"
@@ -33,7 +34,6 @@
 #include "dca/testing/minimalist_printer.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
-#include "phys_library/DCA+_data/DCA_data.h"
 #include "phys_library/DCA+_loop/DCA_loop_data.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_cluster_solver.h"
 #include "phys_library/domains/cluster/symmetries/point_groups/2D/2D_square.h"
@@ -56,7 +56,7 @@ TEST(bilayerLattice_Nc1_intraband, Self_Energy) {
       dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
                                     dca::profiling::NullProfiler, ModelType, RngType,
                                     CT_AUX_CLUSTER_SOLVER>;
-  using DcaDataType = DCA_data<ParametersType>;
+  using DcaDataType = dca::phys::DcaData<ParametersType>;
   using QmcSolverType =
       cluster_solver<CT_AUX_CLUSTER_SOLVER, linalg::CPU, ParametersType, DcaDataType>;
 

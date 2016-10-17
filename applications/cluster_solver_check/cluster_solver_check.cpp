@@ -19,9 +19,10 @@
 #include "dca/function/function.hpp"
 #include "dca/config/cluster_solver_check.hpp"
 #include "dca/io/json/json_reader.hpp"
+#include "dca/phys/dca_data/dca_data_real_freq.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
-#include "phys_library/DCA+_data/moms_w_real.hpp"
+
 #include "phys_library/DCA+_loop/DCA_loop_data.hpp"
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
@@ -74,9 +75,9 @@ int main(int argc, char** argv) {
   DCA::DCA_loop_data<ParametersType> dca_loop_data;
 
   // Create and initialize the DCA_data objects.
-  DcaData dca_data_imag(parameters);
+  DcaDataType dca_data_imag(parameters);
   dca_data_imag.initialize();
-  MOMS_w_real<ParametersType> dca_data_real(parameters);
+  dca::phys::DcaDataRealFreq<ParametersType> dca_data_real(parameters);
 
   std::string data_file_ed = parameters.get_directory() + parameters.get_ED_output_file_name();
   std::string data_file_qmc = parameters.get_directory() + parameters.get_QMC_output_file_name();

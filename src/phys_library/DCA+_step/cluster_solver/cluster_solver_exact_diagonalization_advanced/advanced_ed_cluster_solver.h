@@ -24,12 +24,12 @@
 #include "dca/function/function.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_writer.hpp"
-#include "dca/util/print_time.hpp"
 #include "dca/linalg/device_type.hpp"
+#include "dca/phys/dca_data/dca_data.hpp"
+#include "dca/phys/dca_data/dca_data_real_freq.hpp"
 #include "dca/phys/vertex_measurement_type.hpp"
+#include "dca/util/print_time.hpp"
 
-#include "phys_library/DCA+_data/DCA_data.h"
-#include "phys_library/DCA+_data/moms_w_real.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Fock_space.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Hamiltonian.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Greens_functions/sp_Greens_function_advanced_ed.h"
@@ -45,8 +45,8 @@ namespace DCA {
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 class cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type> {
 public:
-  using MOMS_w_imag_type = DCA_data<parameters_type>;
-  using MOMS_w_real_type = MOMS_w_real<parameters_type>;
+  using MOMS_w_imag_type = DcaData<parameters_type>;
+  using MOMS_w_real_type = DcaDataRealFreq<parameters_type>;
 
   using ed_options_type = ADVANCED_EXACT_DIAGONALIZATION::advanced_ed_options<parameters_type>;
 

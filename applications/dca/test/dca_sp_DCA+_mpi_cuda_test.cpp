@@ -28,6 +28,7 @@
 #include "dca/parallel/pthreading/pthreading.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/parallel/pthreading/pthreading.hpp"
+#include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
 #include "dca/phys/parameters/parameters.hpp"
@@ -36,7 +37,6 @@
 #include "dca/testing/minimalist_printer.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
-#include "phys_library/DCA+_data/DCA_data.h"
 #include "phys_library/DCA+_loop/DCA_loop.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_cluster_solver.h"
 #include "phys_library/domains/cluster/symmetries/point_groups/2D/2D_square.h"
@@ -59,7 +59,7 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
       dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
                                     dca::profiling::NullProfiler, ModelType, RngType,
                                     CT_AUX_CLUSTER_SOLVER>;
-  using DcaDataType = DCA_data<ParametersType>;
+  using DcaDataType = dca::phys::DcaData<ParametersType>;
   using ClusterSolverType =
       cluster_solver<CT_AUX_CLUSTER_SOLVER, linalg::GPU, ParametersType, DcaDataType>;
   using DcaLoopType = DCA_loop<ParametersType, DcaDataType, ClusterSolverType>;

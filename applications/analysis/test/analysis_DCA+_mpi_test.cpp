@@ -22,6 +22,7 @@
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/parallel/pthreading/pthreading.hpp"
+#include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
 #include "dca/phys/parameters/parameters.hpp"
@@ -31,7 +32,6 @@
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 #include "phys_library/DCA+_analysis/BSE_solver/BSE_solver.h"
-#include "phys_library/DCA+_data/DCA_data.h"
 #include "phys_library/domains/cluster/symmetries/point_groups/2D/2D_square.h"
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
@@ -47,7 +47,7 @@ TEST(analysis_DCAplus_mpi, leading_eigenvalues) {
       dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
                                     dca::profiling::NullProfiler, ModelType, void /*RngType*/,
                                     CT_AUX_CLUSTER_SOLVER>;
-  using DcaDataType = DCA_data<ParametersType>;
+  using DcaDataType = dca::phys::DcaData<ParametersType>;
 
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
     std::cout << "Analysis starting.\n"

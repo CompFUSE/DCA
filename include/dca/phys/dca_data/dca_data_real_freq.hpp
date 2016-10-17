@@ -9,8 +9,8 @@
 //
 // This class contains all functions on the real frequency axis.
 
-#ifndef PHYS_LIBRARY_DCA_DATA_MOMS_W_REAL_HPP
-#define PHYS_LIBRARY_DCA_DATA_MOMS_W_REAL_HPP
+#ifndef DCA_PHYS_DCA_DATA_DCA_DATA_REAL_FREQ_HPP
+#define DCA_PHYS_DCA_DATA_DCA_DATA_REAL_FREQ_HPP
 
 #include <complex>
 #include <iostream>
@@ -23,15 +23,18 @@
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/io/json/json_writer.hpp"
+
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain_real_axis.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
 
-using namespace dca::phys;
+namespace dca {
+namespace phys {
+// dca::phys::
 
 template <class parameters_type>
-class MOMS_w_real {
+class DcaDataRealFreq {
 public:
   using concurrency_type = typename parameters_type::concurrency_type;
 
@@ -46,14 +49,13 @@ public:
   using k_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
                                            CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
 
-public:
-  MOMS_w_real(parameters_type& parameters_ref);
+  DcaDataRealFreq(parameters_type& parameters_ref);
 
   void read(std::string filename);
-  void write(std::string filename);
-
   template <typename Reader>
   void read(Reader& reader);
+
+  void write(std::string filename);
   template <typename Writer>
   void write(Writer& writer);
 
@@ -87,7 +89,7 @@ public:
 };
 
 template <class parameters_type>
-MOMS_w_real<parameters_type>::MOMS_w_real(parameters_type& parameters_ref)
+DcaDataRealFreq<parameters_type>::DcaDataRealFreq(parameters_type& parameters_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
 
@@ -115,7 +117,7 @@ MOMS_w_real<parameters_type>::MOMS_w_real(parameters_type& parameters_ref)
       G_r_w("cluster-greens-function-G_r_w-real-axis") {}
 
 template <class parameters_type>
-void MOMS_w_real<parameters_type>::read(std::string filename) {
+void DcaDataRealFreq<parameters_type>::read(std::string filename) {
   if (concurrency.id() == concurrency.first()) {
     std::cout << "\n\n\t starts reading \n\n";
 
@@ -156,7 +158,7 @@ void MOMS_w_real<parameters_type>::read(std::string filename) {
 
 template <class parameters_type>
 template <typename Reader>
-void MOMS_w_real<parameters_type>::read(Reader& reader) {
+void DcaDataRealFreq<parameters_type>::read(Reader& reader) {
   reader.open_group("spectral-functions");
 
   reader.execute(A_w);
@@ -177,7 +179,7 @@ void MOMS_w_real<parameters_type>::read(Reader& reader) {
 }
 
 template <class parameters_type>
-void MOMS_w_real<parameters_type>::write(std::string filename) {
+void DcaDataRealFreq<parameters_type>::write(std::string filename) {
   if (concurrency.id() == concurrency.first()) {
     std::cout << "\n\n\t starts writing \n\n";
 
@@ -204,7 +206,7 @@ void MOMS_w_real<parameters_type>::write(std::string filename) {
 
 template <class parameters_type>
 template <typename Writer>
-void MOMS_w_real<parameters_type>::write(Writer& writer) {
+void DcaDataRealFreq<parameters_type>::write(Writer& writer) {
   writer.open_group("spectral-functions");
 
   writer.execute(A_w);
@@ -233,38 +235,7 @@ void MOMS_w_real<parameters_type>::write(Writer& writer) {
   writer.close_group();
 }
 
-/*
-  template<class parameters_type>
-  template<class stream_type>
-  void MOMS_w_real<parameters_type>::to_JSON(stream_type& ss)
-  {
-  A_w .to_JSON(ss);
-  ss << ",\n";
+}  // phys
+}  // dca
 
-  A0_w.to_JSON(ss);
-  ss << ",\n";
-
-  E_w .to_JSON(ss);
-  ss << ",\n";
-
-  E0_w.to_JSON(ss);
-  ss << ",\n";
-
-  Sigma.to_JSON(ss);
-  ss << ",\n";
-
-  G0_k_w.to_JSON(ss);
-  ss << ",\n";
-
-  G_k_w.to_JSON(ss);
-  ss << ",\n";
-
-  G_r_w.to_JSON(ss);
-  ss << ",\n";
-
-  G0_r_w.to_JSON(ss);
-  ss << ",\n";
-  }
-*/
-
-#endif  // PHYS_LIBRARY_DCA_DATA_MOMS_W_REAL_HPP
+#endif  // DCA_PHYS_DCA_DATA_DCA_DATA_REAL_FREQ_HPP

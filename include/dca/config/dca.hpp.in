@@ -29,12 +29,12 @@ constexpr DCA::ClusterSolverName solver_name = @DCA_CLUSTER_SOLVER_NAME@;
 using ParametersType = dca::phys::params::Parameters<Concurrency, Threading, Profiler, Model,
                                                      RandomNumberGenerator, solver_name>;
 
-#include "phys_library/DCA+_data/DCA_data.h"
-using DcaData = DCA::DCA_data<ParametersType>;
+#include "dca/phys/dca_data/dca_data.hpp"
+using DcaDataType = dca::phys::DcaData<ParametersType>;
 
 #include "@DCA_CLUSTER_SOLVER_INCLUDE@"
 using ClusterSolverBaseType =
-    DCA::cluster_solver<solver_name, walker_device, ParametersType, DcaData>;
+    DCA::cluster_solver<solver_name, walker_device, ParametersType, DcaDataType>;
 
 // TODO: Clean this up (remove #ifdef).
 #ifdef DCA_WITH_THREADED_SOLVER
@@ -45,6 +45,6 @@ using ClusterSolver = ClusterSolverBaseType;
 #endif  // DCA_WITH_THREADED_SOLVER
 
 #include "phys_library/DCA+_loop/DCA_loop.hpp"
-using DcaLoop = DCA::DCA_loop<ParametersType, DcaData, ClusterSolver>;
+using DcaLoop = DCA::DCA_loop<ParametersType, DcaDataType, ClusterSolver>;
 
 #endif  // DCA_CONFIG_CONFIG_DCA_HPP

@@ -8,9 +8,11 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
 // This class contains all functions needed for the MOMS DCA calculation.
+//
+// TODO: Interpolate Sigma if \beta from file != \beta ?
 
-#ifndef PHYS_LIBRARY_DCA_DATA_DCA_DATA_H
-#define PHYS_LIBRARY_DCA_DATA_DCA_DATA_H
+#ifndef DCA_PHYS_DCA_DATA_DCA_DATA_HPP
+#define DCA_PHYS_DCA_DATA_DCA_DATA_HPP
 
 #include <algorithm>
 #include <complex>
@@ -30,6 +32,7 @@
 #include "dca/io/json/json_writer.hpp"
 #include "dca/math/util/vector_operations.hpp"
 #include "dca/phys/dca_algorithms/compute_band_structure.hpp"
+#include "dca/phys/vertex_measurement_type.hpp"
 #include "dca/util/print_time.hpp"
 
 #include "comp_library/linalg/linalg.hpp"
@@ -44,14 +47,13 @@
 #include "phys_library/domains/time_and_frequency/frequency_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
 #include "phys_library/domains/time_and_frequency/time_domain.h"
-#include "phys_library/vertex_measurement_type.hpp"
 
-using namespace dca::phys;
-
-namespace DCA {
+namespace dca {
+namespace phys {
+// dca::phys::
 
 template <class parameters_type>
-class DCA_data {
+class DcaData {
 public:
   using profiler_type = typename parameters_type::profiler_type;
   using concurrency_type = typename parameters_type::concurrency_type;
@@ -85,31 +87,23 @@ public:
 
   const static int DIMENSION = parameters_type::lattice_type::DIMENSION;
 
-public:
-  DCA_data(parameters_type& parameters_ref);
+  DcaData(parameters_type& parameters_ref);
 
   void read(std::string filename);
-
-  void write(std::string filename);
-
   template <typename Reader>
   void read(Reader& reader);
 
+  void write(std::string filename);
   template <typename Writer>
   void write(Writer& reader);
 
   void initialize();
-
   void initialize_H_0_and_H_i();
-
   void initialize_G0();
-
-  bool test_initialize_G0();
-
   void initialize_Sigma();
 
-  void compute_Sigma_bands();
   void compute_single_particle_properties();
+  void compute_Sigma_bands();
 
   void print_Sigma_QMC_versus_Sigma_cg();
 
@@ -174,7 +168,7 @@ public:
 };
 
 template <class parameters_type>
-DCA_data<parameters_type>::DCA_data(parameters_type& parameters_ref)
+DcaData<parameters_type>::DcaData(parameters_type& parameters_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
 
@@ -229,17 +223,12 @@ DCA_data<parameters_type>::DCA_data(parameters_type& parameters_ref)
 
       K_r_t("K_r_t"),
 
-      // visited_expansion_order_k("<k>"),
-
-      orbital_occupancy("orbital_occupancy")  //,
-
-// mu("chemical_potential_mu")
-{
+      orbital_occupancy("orbital_occupancy") {
   H_symmetry = -1;
 }
 
 template <class parameters_type>
-void DCA_data<parameters_type>::read(std::string filename) {
+void DcaData<parameters_type>::read(std::string filename) {
   if (concurrency.id() == 0)
     std::cout << "\n\n\t starts reading \n\n";
 
@@ -267,7 +256,7 @@ void DCA_data<parameters_type>::read(std::string filename) {
   concurrency.broadcast(parameters.get_chemical_potential());
 
   concurrency.broadcast_object(Sigma);
-  // to do: Interpolate Sigma if \beta from file != \beta ?
+
   if (parameters.do_CPE())
     concurrency.broadcast_object(G_k_t);
 
@@ -279,7 +268,7 @@ void DCA_data<parameters_type>::read(std::string filename) {
 
 template <class parameters_type>
 template <typename Reader>
-void DCA_data<parameters_type>::read(Reader& reader) {
+void DcaData<parameters_type>::read(Reader& reader) {
   std::string vertex_measurement = "NONE";
 
   {
@@ -323,7 +312,7 @@ void DCA_data<parameters_type>::read(Reader& reader) {
 }
 
 template <class parameters_type>
-void DCA_data<parameters_type>::write(std::string file_name) {
+void DcaData<parameters_type>::write(std::string file_name) {
   std::cout << "\n\n\t\t start writing " << file_name << "\n\n";
 
   const std::string& output_format = parameters.get_output_format();
@@ -354,7 +343,7 @@ void DCA_data<parameters_type>::write(std::string file_name) {
 
 template <class parameters_type>
 template <typename Writer>
-void DCA_data<parameters_type>::write(Writer& writer) {
+void DcaData<parameters_type>::write(Writer& writer) {
   writer.open_group("functions");
 
   writer.execute(band_structure);
@@ -426,21 +415,18 @@ void DCA_data<parameters_type>::write(Writer& writer) {
 }
 
 template <class parameters_type>
-void DCA_data<parameters_type>::initialize() {
+void DcaData<parameters_type>::initialize() {
   initialize_H_0_and_H_i();
-
   initialize_G0();
 }
 
 template <class parameters_type>
-void DCA_data<parameters_type>::initialize_H_0_and_H_i() {
+void DcaData<parameters_type>::initialize_H_0_and_H_i() {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t initialize H_0(k) and H_i " << dca::util::print_time() << "\n";
 
   parameters_type::model_type::initialize_H_LDA(H_LDA, parameters);
-
   parameters_type::model_type::initialize_H_interaction(H_interactions, parameters);
-
   parameters_type::model_type::initialize_H_symmetries(H_symmetry);
 
   {
@@ -455,7 +441,7 @@ void DCA_data<parameters_type>::initialize_H_0_and_H_i() {
 }
 
 template <class parameters_type>
-void DCA_data<parameters_type>::initialize_G0() {
+void DcaData<parameters_type>::initialize_G0() {
   profiler_type prof("initialize-G0", "input", __LINE__);
 
   if (concurrency.id() == 0)
@@ -483,7 +469,6 @@ void DCA_data<parameters_type>::initialize_G0() {
 
     symmetrize::execute(G0_k_t, H_symmetry, true);
   }
-  // test_initialize_G0();
 
   if (concurrency.id() == 0)
     std::cout << "\n\t\t FT G0_k_w, G0_k_t --> G0_r_w, G0_r_t " << dca::util::print_time() << "\n";
@@ -500,7 +485,7 @@ void DCA_data<parameters_type>::initialize_G0() {
 }
 
 template <class parameters_type>
-void DCA_data<parameters_type>::initialize_Sigma() {
+void DcaData<parameters_type>::initialize_Sigma() {
   profiler_type prof("initialize-Sigma", "input", __LINE__);
 
   if (parameters.get_Sigma_file() != "zero")
@@ -508,7 +493,7 @@ void DCA_data<parameters_type>::initialize_Sigma() {
 }
 
 template <class parameters_type>
-void DCA_data<parameters_type>::compute_single_particle_properties() {
+void DcaData<parameters_type>::compute_single_particle_properties() {
   {
     std::memcpy(&S_k(0), &Sigma_lattice(0, 0, 0, w::dmn_size() / 2),
                 sizeof(std::complex<double>) * std::pow(2 * b::dmn_size(), 2.) * k_HOST::dmn_size());
@@ -549,7 +534,7 @@ void DCA_data<parameters_type>::compute_single_particle_properties() {
 }
 
 template <class parameters_type>
-void DCA_data<parameters_type>::compute_Sigma_bands() {
+void DcaData<parameters_type>::compute_Sigma_bands() {
   {
     Sigma_band_structure.reset();
     Sigma_cluster_band_structure.reset();
@@ -625,7 +610,7 @@ void DCA_data<parameters_type>::compute_Sigma_bands() {
 }
 
 template <class parameters_type>
-void DCA_data<parameters_type>::print_Sigma_QMC_versus_Sigma_cg() {
+void DcaData<parameters_type>::print_Sigma_QMC_versus_Sigma_cg() {
   if (concurrency.id() == 0 /*and parameters.do_DCA_plus()*/) {
     if (DIMENSION == 2) {
       std::cout << "\n\n";
@@ -653,6 +638,8 @@ void DCA_data<parameters_type>::print_Sigma_QMC_versus_Sigma_cg() {
     std::cout << "\n\n";
   }
 }
-}
 
-#endif  // PHYS_LIBRARY_DCA_DATA_DCA_DATA_H
+}  // phys
+}  // dca
+
+#endif  // DCA_PHYS_DCA_DATA_DCA_DATA_HPP

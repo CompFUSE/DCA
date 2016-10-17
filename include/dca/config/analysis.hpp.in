@@ -27,10 +27,10 @@ constexpr DCA::ClusterSolverName solver_name = @DCA_CLUSTER_SOLVER_NAME@;
 using ParametersType = dca::phys::params::Parameters<Concurrency, Threading, Profiler, Model,
                                                      void /*RandomNumberGenerator*/, solver_name>;
 
-#include "phys_library/DCA+_data/DCA_data.h"
-using DcaData = DCA::DCA_data<ParametersType>;
+#include "dca/phys/dca_data/dca_data.hpp"
+using DcaDataType = dca::phys::DcaData<ParametersType>;
 
 #include "phys_library/DCA+_analysis/BSE_solver/BSE_solver.h"
-using BseSolver = DCA::BSE_solver<ParametersType, DcaData>;
+using BseSolver = DCA::BSE_solver<ParametersType, DcaDataType>;
 
 #endif  // DCA_CONFIG_CONFIG_ANALYSIS_HPP
