@@ -438,7 +438,7 @@ inline void swapRowAndCol(Matrix<ScalarType, device_name>& mat, int i1, int i2, 
 //                a.nrRows() == y.size() if transa == 'N', a.nrCols() == y.size() otherwise,
 //                a.nrCols() == x.size() if transa == 'N', a.nrRows() == x.size() otherwise.
 template <typename ScalarType>
-void gemv(char transa, ScalarType alpha, const matrix<ScalarType, CPU>& a,
+void gemv(char transa, ScalarType alpha, const Matrix<ScalarType, CPU>& a,
           Vector<ScalarType, CPU>& x, ScalarType beta, Vector<ScalarType, CPU>& y) {
   if (transa == 'N') {
     assert(a.nrRows() == y.size());
@@ -462,7 +462,7 @@ void gemv(char transa, ScalarType alpha, const matrix<ScalarType, CPU>& a,
 //                a.nrRows() == y.size() if transa == 'N', a.nrCols() == y.size() otherwise,
 //                a.nrCols() == x.size() if transa == 'N', a.nrRows() == x.size() otherwise.
 template <typename ScalarType>
-void gemv(char transa, const matrix<ScalarType, CPU>& a, Vector<ScalarType, CPU>& x,
+void gemv(char transa, const Matrix<ScalarType, CPU>& a, Vector<ScalarType, CPU>& x,
           Vector<ScalarType, CPU>& y) {
   gemv<ScalarType>(transa, 1., a, x, 0., y);
 }
@@ -477,9 +477,9 @@ void gemv(char transa, const matrix<ScalarType, CPU>& a, Vector<ScalarType, CPU>
 //                ka == kb, where ka = a.nrCols() if transa == 'N', ka = a.nrRows() otherwise and
 //                          kb = b.nrRows() if transb == 'N', kb = b.nrCols() otherwise.
 template <typename ScalarType, DeviceType device_name>
-void gemm(char transa, char transb, ScalarType alpha, const matrix<ScalarType, device_name>& a,
-          const matrix<ScalarType, device_name>& b, ScalarType beta,
-          matrix<ScalarType, device_name>& c, int thread_id = 0, int stream_id = 0) {
+void gemm(char transa, char transb, ScalarType alpha, const Matrix<ScalarType, device_name>& a,
+          const Matrix<ScalarType, device_name>& b, ScalarType beta,
+          Matrix<ScalarType, device_name>& c, int thread_id = 0, int stream_id = 0) {
   int m = c.nrRows();
   int n = c.nrCols();
   int k;
@@ -514,8 +514,8 @@ void gemm(char transa, char transb, ScalarType alpha, const matrix<ScalarType, d
 // Out: c
 // Preconditions: a.nrRows() == c.nrRows(), b.nrCols() == c.nrCols() and a.nrCols() == b.nrRows()
 template <typename ScalarType, DeviceType device_name>
-inline void gemm(const matrix<ScalarType, device_name>& a, const matrix<ScalarType, device_name>& b,
-                 matrix<ScalarType, device_name>& c, int thread_id = 0, int stream_id = 0) {
+inline void gemm(const Matrix<ScalarType, device_name>& a, const Matrix<ScalarType, device_name>& b,
+                 Matrix<ScalarType, device_name>& c, int thread_id = 0, int stream_id = 0) {
   gemm<ScalarType, device_name>('N', 'N', 1., a, b, 0., c, thread_id, stream_id);
 }
 
@@ -523,9 +523,9 @@ inline void gemm(const matrix<ScalarType, device_name>& a, const matrix<ScalarTy
 // In/Out: c ('In' only if beta != 0)
 // Preconditions: a.nrRows() == c.nrRows(), b.nrCols() == c.nrCols() and a.nrCols() == b.nrRows()
 template <typename ScalarType, DeviceType device_name>
-inline void gemm(ScalarType alpha, const matrix<ScalarType, device_name>& a,
-                 const matrix<ScalarType, device_name>& b, ScalarType beta,
-                 matrix<ScalarType, device_name>& c, int thread_id = 0, int stream_id = 0) {
+inline void gemm(ScalarType alpha, const Matrix<ScalarType, device_name>& a,
+                 const Matrix<ScalarType, device_name>& b, ScalarType beta,
+                 Matrix<ScalarType, device_name>& c, int thread_id = 0, int stream_id = 0) {
   gemm<ScalarType, device_name>('N', 'N', alpha, a, b, beta, c, thread_id, stream_id);
 }
 
@@ -539,8 +539,8 @@ inline void gemm(ScalarType alpha, const matrix<ScalarType, device_name>& a,
 //                ka == kb, where ka = a.nrCols() if transa == 'N', ka = a.nrRows() otherwise and
 //                          kb = b.nrRows() if transb == 'N', kb = b.nrCols() otherwise.
 template <typename ScalarType, DeviceType device_name>
-inline void gemm(char transa, char transb, const matrix<ScalarType, device_name>& a,
-                 const matrix<ScalarType, device_name>& b, matrix<ScalarType, device_name>& c,
+inline void gemm(char transa, char transb, const Matrix<ScalarType, device_name>& a,
+                 const Matrix<ScalarType, device_name>& b, Matrix<ScalarType, device_name>& c,
                  int thread_id = 0, int stream_id = 0) {
   gemm<ScalarType, device_name>(transa, transb, 1., a, b, 0., c, thread_id, stream_id);
 }
@@ -551,8 +551,8 @@ inline void gemm(char transa, char transb, const matrix<ScalarType, device_name>
 // In/Out: b
 // Preconditions: a.nrRows() == a.nrCols() , a.nrCols() == b.nrRows()
 template <typename ScalarType, DeviceType device_name>
-void trsm(char uplo, char diag, const matrix<ScalarType, device_name>& a,
-          matrix<ScalarType, device_name>& b, int thread_id = 0, int stream_id = 0) {
+void trsm(char uplo, char diag, const Matrix<ScalarType, device_name>& a,
+          Matrix<ScalarType, device_name>& b, int thread_id = 0, int stream_id = 0) {
   assert(uplo == 'U' or uplo == 'L');
   assert(diag == 'U' or diag == 'N');
   assert(a.nrRows() == a.nrCols());
@@ -580,9 +580,9 @@ void trsm(char uplo, char diag, const matrix<ScalarType, device_name>& a,
 template <typename ScalarType>
 void gemm(char transa, char transb, Matrix<ScalarType, CPU>& a,
           Matrix<std::complex<ScalarType>, CPU>& b, Matrix<std::complex<ScalarType>, CPU>& c) {
-  matrix<ScalarType, CPU> b_part(b.size());
-  matrix<ScalarType, CPU> c_re(c.size());
-  matrix<ScalarType, CPU> c_im(c.size());
+  Matrix<ScalarType, CPU> b_part(b.size());
+  Matrix<ScalarType, CPU> c_re(c.size());
+  Matrix<ScalarType, CPU> c_im(c.size());
 
   ScalarType sign = 1;
   if (transb == 'C') {
@@ -620,9 +620,9 @@ void gemm(char transa, char transb, Matrix<ScalarType, CPU>& a,
 template <typename ScalarType>
 static void gemm(char transa, char transb, Matrix<std::complex<ScalarType>, CPU>& a,
                  Matrix<ScalarType, CPU>& b, Matrix<std::complex<ScalarType>, CPU>& c) {
-  matrix<ScalarType, CPU> a_part(a.size());
-  matrix<ScalarType, CPU> c_re(c.size());
-  matrix<ScalarType, CPU> c_im(c.size());
+  Matrix<ScalarType, CPU> a_part(a.size());
+  Matrix<ScalarType, CPU> c_re(c.size());
+  Matrix<ScalarType, CPU> c_im(c.size());
 
   ScalarType sign = 1;
   if (transa == 'C') {
@@ -672,7 +672,7 @@ inline void multiplyDiagonalLeft(const Vector<ScalarType, CPU>& d, const Matrix<
 // Out: b
 // Preconditions: a.size() == b.size(), d.size() == a.nrCols().
 template <typename ScalarType, DeviceType device_name>
-inline void multiplyDiagonalRight(const matrix<ScalarType, device_name>& a,
+inline void multiplyDiagonalRight(const Matrix<ScalarType, device_name>& a,
                                   const Vector<ScalarType, device_name>& d,
                                   Matrix<ScalarType, device_name>& b, int thread_id = 0,
                                   int stream_id = 0) {
@@ -703,7 +703,7 @@ inline void multiplyDiagonalRight(const Matrix<ScalarType, GPU>& a, const Vector
 template <typename ScalarType>
 void eigensolver(char jobvl, char jobvr, const Matrix<ScalarType, CPU>& a,
                  Vector<ScalarType, CPU>& lambda_re, Vector<ScalarType, CPU>& lambda_im,
-                 Matrix<ScalarType, CPU>& vl, matrix<ScalarType, CPU>& vr) {
+                 Matrix<ScalarType, CPU>& vl, Matrix<ScalarType, CPU>& vr) {
   assert(a.is_square());
 
   Matrix<ScalarType, CPU> a_copy(a);
@@ -742,7 +742,7 @@ template <typename ScalarType>
 void eigensolver(char jobvl, char jobvr, const Matrix<std::complex<ScalarType>, CPU>& a,
                  Vector<std::complex<ScalarType>, CPU>& lambda,
                  Matrix<std::complex<ScalarType>, CPU>& vl,
-                 matrix<std::complex<ScalarType>, CPU>& vr) {
+                 Matrix<std::complex<ScalarType>, CPU>& vr) {
   assert(a.is_square());
 
   Matrix<std::complex<ScalarType>, CPU> a_copy(a);
