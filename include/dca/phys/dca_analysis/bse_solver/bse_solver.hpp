@@ -7,10 +7,10 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// This class computes susceptibilities by using the BseClusterSolver and BseLatticeSolver classes.
 
-#ifndef PHYS_LIBRARY_DCA_ANALYSIS_BSE_SOLVER_BSE_SOLVER_H
-#define PHYS_LIBRARY_DCA_ANALYSIS_BSE_SOLVER_BSE_SOLVER_H
+#ifndef DCA_PHYS_DCA_ANALYSIS_BSE_SOLVER_BSE_SOLVER_HPP
+#define DCA_PHYS_DCA_ANALYSIS_BSE_SOLVER_BSE_SOLVER_HPP
 
 #include <cmath>
 #include <complex>
@@ -23,8 +23,9 @@
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_writer.hpp"
 #include "dca/phys/dca_algorithms/compute_band_structure.hpp"
-#include "phys_library/DCA+_analysis/BSE_solver/BSE_cluster_solver.h"
-#include "phys_library/DCA+_analysis/BSE_solver/BSE_lattice_solver.h"
+#include "dca/phys/dca_analysis/bse_solver/bse_cluster_solver.hpp"
+#include "dca/phys/dca_analysis/bse_solver/bse_lattice_solver.hpp"
+
 #include "phys_library/DCA+_step/symmetrization/diagrammatic_symmetries.h"
 #include "phys_library/DCA+_step/symmetrization/symmetrize.h"
 #include "phys_library/domains/cluster/cluster_domain.h"
@@ -33,16 +34,18 @@
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
 
-using namespace dca::phys;
+namespace dca {
+namespace phys {
+namespace analysis {
+// dca::phys::analysis::
 
-namespace DCA {
-template <class parameters_type, class MOMS_type>
-class BSE_solver {
+template <typename ParametersType, typename DcaDataType>
+class BseSolver {
 public:
   using scalartype = double;
 
-  using profiler_t = typename parameters_type::profiler_type;
-  using concurrency_t = typename parameters_type::concurrency_type;
+  using profiler_t = typename ParametersType::profiler_type;
+  using concurrency_t = typename ParametersType::concurrency_type;
 
   const static int N_LAMBDAS = 10;
   using lambda_dmn_type = func::dmn_0<func::dmn<N_LAMBDAS, int>>;
@@ -55,13 +58,13 @@ public:
   using b = func::dmn_0<electron_band_domain>;
   using b_b = func::dmn_variadic<b, b>;
 
-  using k_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                           CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
-  using k_LDA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+  using k_DCA = func::dmn_0<cluster_domain<double, ParametersType::lattice_type::DIMENSION, CLUSTER,
+                                           MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using k_LDA = func::dmn_0<cluster_domain<double, ParametersType::lattice_type::DIMENSION,
                                            LATTICE_SP, MOMENTUM_SPACE, PARALLELLEPIPEDUM>>;
-  using k_HOST = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+  using k_HOST = func::dmn_0<cluster_domain<double, ParametersType::lattice_type::DIMENSION,
                                             LATTICE_SP, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
-  using k_HOST_VERTEX = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+  using k_HOST_VERTEX = func::dmn_0<cluster_domain<double, ParametersType::lattice_type::DIMENSION,
                                                    LATTICE_TP, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
   using k_dmn_cut_type = func::dmn_0<brillouin_zone_path_domain<SQUARE_2D_LATTICE>>;
 
@@ -73,20 +76,12 @@ public:
   using HOST_matrix_dmn_t = func::dmn_variadic<func::dmn_variadic<b, b, k_HOST_VERTEX, w_VERTEX>,
                                                func::dmn_variadic<b, b, k_HOST_VERTEX, w_VERTEX>>;
 
-public:
-  BSE_solver(parameters_type& parameters, MOMS_type& MOMS);
+  BseSolver(ParametersType& parameters, DcaDataType& MOMS);
 
   void write();
-
   template <typename Writer>
   void write(Writer& write);
 
-  template <class stream_type>
-  void to_JSON(stream_type& ss);
-
-  void calculate_cuts();
-
-  void calculate_susceptibilities_1();
   void calculate_susceptibilities_2();
 
   func::function<std::complex<scalartype>, lambda_dmn_type>& get_leading_eigenvalues() {
@@ -98,42 +93,18 @@ private:
 
   void apply_symmetries();
 
-  void load_the_matrices();
-
-  void compute_Gamma_cluster();
-
-  void compute_chi_0();
-  void compute_chi_0_2();
-
-  void compute_Gamma_lattice();
-
-  void diagonolize_Gamma_times_chi_0();
-
-  void diagonolize_Gamma_times_chi_0_general();
-
-  void diagonolize_Gamma_times_chi_0_symmetric_0();
-  void diagonolize_Gamma_times_chi_0_symmetric_1();
-
-  void compute_P_q_cluster();
-  void compute_P_q_lattice();
-
-  void find_harmonic_expansion();
-
-  void write_on_shell();
-
-private:
-  parameters_type& parameters;
+  ParametersType& parameters;
   concurrency_t& concurrency;
 
-  MOMS_type& MOMS;
+  DcaDataType& MOMS;
 
-  BSE_cluster_solver<parameters_type, MOMS_type> BSE_cluster_solver_obj;
-  BSE_lattice_solver<parameters_type, MOMS_type> BSE_lattice_solver_obj;
+  BseClusterSolver<ParametersType, DcaDataType> BSE_cluster_solver_obj;
+  BseLatticeSolver<ParametersType, DcaDataType> BSE_lattice_solver_obj;
 
   cluster_eigenvector_dmn_t cluster_eigenvector_dmn;
   lattice_eigenvector_dmn_t lattice_eigenvector_dmn;
 
-  diagrammatic_symmetries<parameters_type> diagrammatic_symmetries_obj;
+  diagrammatic_symmetries<ParametersType> diagrammatic_symmetries_obj;
 
   func::function<std::string, harmonics_dmn_type> wave_functions_names;
   func::function<std::complex<scalartype>, func::dmn_variadic<k_HOST_VERTEX, harmonics_dmn_type>> harmonics;
@@ -178,9 +149,9 @@ private:
       leading_Vt_k;
 };
 
-template <class parameters_type, class MOMS_type>
-BSE_solver<parameters_type, MOMS_type>::BSE_solver(parameters_type& parameters_ref,
-                                                   MOMS_type& MOMS_ref)
+template <typename ParametersType, typename DcaDataType>
+BseSolver<ParametersType, DcaDataType>::BseSolver(ParametersType& parameters_ref,
+                                                  DcaDataType& MOMS_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
 
@@ -192,7 +163,6 @@ BSE_solver<parameters_type, MOMS_type>::BSE_solver(parameters_type& parameters_r
       cluster_eigenvector_dmn(),
       lattice_eigenvector_dmn(),
 
-      // eigensystem_pln(lattice_eigenvector_dmn.get_size()),
       diagrammatic_symmetries_obj(parameters),
 
       harmonics("harmonics"),
@@ -243,8 +213,8 @@ BSE_solver<parameters_type, MOMS_type>::BSE_solver(parameters_type& parameters_r
   }
 }
 
-template <class parameters_type, class MOMS_type>
-void BSE_solver<parameters_type, MOMS_type>::write() {
+template <typename ParametersType, typename DcaDataType>
+void BseSolver<ParametersType, DcaDataType>::write() {
   const std::string& output_format = parameters.get_output_format();
   const std::string& file_name =
       parameters.get_directory() + parameters.get_susceptibilities_file_name();
@@ -276,9 +246,9 @@ void BSE_solver<parameters_type, MOMS_type>::write() {
     throw std::logic_error(__FUNCTION__);
 }
 
-template <class parameters_type, class MOMS_type>
+template <typename ParametersType, typename DcaDataType>
 template <typename Writer>
-void BSE_solver<parameters_type, MOMS_type>::write(Writer& writer) {
+void BseSolver<ParametersType, DcaDataType>::write(Writer& writer) {
   writer.open_group("analysis-functions");
 
   {
@@ -289,8 +259,8 @@ void BSE_solver<parameters_type, MOMS_type>::write(Writer& writer) {
   writer.close_group();
 }
 
-template <class parameters_type, class MOMS_type>
-void BSE_solver<parameters_type, MOMS_type>::initialize_wave_functions() {
+template <typename ParametersType, typename DcaDataType>
+void BseSolver<ParametersType, DcaDataType>::initialize_wave_functions() {
   wave_functions_names = "no-name";
 
   wave_functions_names(0) = "s-wave";
@@ -345,37 +315,25 @@ void BSE_solver<parameters_type, MOMS_type>::initialize_wave_functions() {
   }
 }
 
-template <class parameters_type, class MOMS_type>
-void BSE_solver<parameters_type, MOMS_type>::calculate_susceptibilities_2() {
+template <typename ParametersType, typename DcaDataType>
+void BseSolver<ParametersType, DcaDataType>::calculate_susceptibilities_2() {
   if (concurrency.id() == concurrency.last())
     std::cout << "\t" << __FUNCTION__ << std::endl;
 
-  if (true) {
-    BSE_cluster_solver_obj.compute_Gamma_cluster();
+  BSE_cluster_solver_obj.compute_Gamma_cluster();
 
-    Gamma_cluster = BSE_cluster_solver_obj.get_Gamma_matrix();
-  }
-  else {
-    apply_symmetries();
+  Gamma_cluster = BSE_cluster_solver_obj.get_Gamma_matrix();
 
-    load_the_matrices();
+  BSE_lattice_solver_obj.compute_Gamma_lattice_3(Gamma_cluster);
+  BSE_lattice_solver_obj.compute_chi_0_lattice(chi_0);
 
-    compute_Gamma_cluster();
-  }
+  Gamma_lattice = BSE_lattice_solver_obj.get_Gamma_lattice();
 
-  {
-    BSE_lattice_solver_obj.compute_Gamma_lattice_3(Gamma_cluster);
-
-    BSE_lattice_solver_obj.compute_chi_0_lattice(chi_0);
-
-    Gamma_lattice = BSE_lattice_solver_obj.get_Gamma_lattice();
-
-    BSE_lattice_solver_obj.diagonolize_Gamma_chi_0(Gamma_lattice, chi_0);
-  }
+  BSE_lattice_solver_obj.diagonalize_Gamma_chi_0(Gamma_lattice, chi_0);
 }
 
-template <class parameters_type, class MOMS_type>
-void BSE_solver<parameters_type, MOMS_type>::apply_symmetries() {
+template <typename ParametersType, typename DcaDataType>
+void BseSolver<ParametersType, DcaDataType>::apply_symmetries() {
   profiler_t prof(__FUNCTION__, __FILE__, __LINE__);
 
   if (concurrency.id() == concurrency.last())
@@ -386,6 +344,8 @@ void BSE_solver<parameters_type, MOMS_type>::apply_symmetries() {
   symmetrize::execute(MOMS.G_k_w, MOMS.H_symmetry);
 }
 
-}  // DCA
+}  // analysis
+}  // phys
+}  // dca
 
 #endif  // PHYS_LIBRARY_DCA_ANALYSIS_BSE_SOLVER_BSE_SOLVER_H

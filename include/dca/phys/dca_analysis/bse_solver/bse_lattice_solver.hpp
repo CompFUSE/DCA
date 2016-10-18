@@ -9,53 +9,54 @@
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //         Mi Jiang (jiangmi@itp.phys.ethz.ch)
 //
-// Description
+// This class computes the vertex function \Gamma on the lattice and determines the Bethe-Salpeter
+// eigenvalues and eigenvectors.
+//
+// TODO: Check and remove the following comment block and clean up the file.
+//
+// Modifications compared with BSE_lattice_solver_original.h
+// ==========================================================
+// BSE_lattice_solver_Peter1:
+// 1. N_LAMBDAS = 4096; 2. only symmetrize 5 leading eigenvalues
+// 2a. print out Gamma_lattice
+//
+// ==========================================================
+// BSE_lattice_solver_Peter2:
+// 3. comment out characterize_leading_eigenvectors()
+// 4. symmetrize Gamma_lattice (peoject away odd-frequency part)
+//
+// ==========================================================
+// BSE_lattice_solver_Peter3:
+// 5. use sqrt(chi0)*gamma*sqrt(chi0) instead of gamma*chi0
+//
+// ==========================================================
+// BSE_lattice_solver_Peter4:
+// 6. use real sqrt(chi0)*gamma*sqrt(chi0) symmetric matrix for particle-particle SC channel
+// 7. delete some useless routines
+// 8. always diagonalize full sqrt(chi0)*gamma*sqrt(chi0)
+// 9. For real symmetric matrix, do not symmetrize_leading_eigenvectors()
+// 10. print out Gamma_sym
+// 11. print out sigma_lattice(k,w)
+//
+// ==========================================================
+// BSE_lattice_solver_Peter5:
+// 12. only store N_LAMBDA leading eigenvalues and eigenvectors to decrease size of BSE.hdf5.
+// Maybe need all eigenpairs for susceptibility
+// this way do not need change N_LAMBDA for different cluster sizes for regular DCA, keep using
+// N_LAMBDAS = 10
+//
+// ==========================================================
+// BSE_lattice_solver_Peter6:
+// 13. only do lattice mapping for Gamma, chi0 and diagonalization done via python code
+// by comment out // BSE_lattice_solver_obj.diagonalize_Gamma_chi_0(Gamma_lattice, chi_0) in
+// BSE_solver.h
+// 14. move symmetrize Gamma_lattice for even-frequency part for Gamma_sym into
+// compute_Gamma_lattice_3,
+// instead of diagonalize_full_Gamma_chi_0
+// 15. only write Gamma and sigma_lattice data into hdf5
 
-/*
-  Modifications compared with BSE_lattice_solver_original.h
-  ==========================================================
-  BSE_lattice_solver_Peter1:
-  1. N_LAMBDAS = 4096; 2. only symmetrize 5 leading eigenvalues
-  2a. print out Gamma_lattice
-
-  ==========================================================
-  BSE_lattice_solver_Peter2:
-  3. comment out characterize_leading_eigenvectors()
-  4. symmetrize Gamma_lattice (peoject away odd-frequency part)
-
-  ==========================================================
-  BSE_lattice_solver_Peter3:
-  5. use sqrt(chi0)*gamma*sqrt(chi0) instead of gamma*chi0
-
-  ==========================================================
-  BSE_lattice_solver_Peter4:
-  6. use real sqrt(chi0)*gamma*sqrt(chi0) symmetric matrix for particle-particle SC channel
-  7. delete some useless routines
-  8. always diagonalize full sqrt(chi0)*gamma*sqrt(chi0)
-  9. For real symmetric matrix, do not symmetrize_leading_eigenvectors()
-  10. print out Gamma_sym
-  11. print out sigma_lattice(k,w)
-
-  ==========================================================
-  BSE_lattice_solver_Peter5:
-  12. only store N_LAMBDA leading eigenvalues and eigenvectors to decrease size of BSE.hdf5.
-  Maybe need all eigenpairs for susceptibility
-  this way do not need change N_LAMBDA for different cluster sizes for regular DCA, keep using
-  N_LAMBDAS = 10
-
-  ==========================================================
-  BSE_lattice_solver_Peter6:
-  13. only do lattice mapping for Gamma, chi0 and diagonalization done via python code
-  by comment out // BSE_lattice_solver_obj.diagonolize_Gamma_chi_0(Gamma_lattice, chi_0) in
-  BSE_solver.h
-  14. move symmetrize Gamma_lattice for even-frequency part for Gamma_sym into
-  compute_Gamma_lattice_3,
-  instead of diagonolize_full_Gamma_chi_0
-  15. only write Gamma and sigma_lattice data into hdf5
-*/
-
-#ifndef PHYS_LIBRARY_DCA_ANALYSIS_BSE_SOLVER_BSE_LATTICE_SOLVER_H
-#define PHYS_LIBRARY_DCA_ANALYSIS_BSE_SOLVER_BSE_LATTICE_SOLVER_H
+#ifndef DCA_PHYS_DCA_ANALYSIS_BSE_SOLVER_BSE_LATTICE_SOLVER_HPP
+#define DCA_PHYS_DCA_ANALYSIS_BSE_SOLVER_BSE_LATTICE_SOLVER_HPP
 
 #include <algorithm>
 #include <complex>
@@ -80,17 +81,18 @@
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
 
-using namespace dca;
+namespace dca {
+namespace phys {
+namespace analysis {
+// dca::phys::analysis::
 
-namespace DCA {
-
-template <class parameters_type, class MOMS_type>
-class BSE_lattice_solver {
+template <typename ParametersType, typename DcaDataType>
+class BseLatticeSolver {
 public:
   using scalartype = double;
 
-  using profiler_type = typename parameters_type::profiler_type;
-  using concurrency_type = typename parameters_type::concurrency_type;
+  using profiler_type = typename ParametersType::profiler_type;
+  using concurrency_type = typename ParametersType::concurrency_type;
 
   const static int N_LAMBDAS = 10;
   using lambda_dmn_type = func::dmn_0<func::dmn<N_LAMBDAS, int>>;
@@ -102,14 +104,14 @@ public:
   using b = func::dmn_0<electron_band_domain>;
   using b_b = func::dmn_variadic<b, b>;
 
-  using k_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                           CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
-  using k_HOST = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+  using k_DCA = func::dmn_0<cluster_domain<double, ParametersType::lattice_type::DIMENSION, CLUSTER,
+                                           MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using k_HOST = func::dmn_0<cluster_domain<double, ParametersType::lattice_type::DIMENSION,
                                             LATTICE_SP, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
-  using k_HOST_VERTEX = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+  using k_HOST_VERTEX = func::dmn_0<cluster_domain<double, ParametersType::lattice_type::DIMENSION,
                                                    LATTICE_TP, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
 
-  using host_vertex_r_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+  using host_vertex_r_cluster_type = cluster_domain<double, ParametersType::lattice_type::DIMENSION,
                                                     LATTICE_TP, REAL_SPACE, BRILLOUIN_ZONE>;
   using crystal_harmonics_expansion = centered_cluster_domain<host_vertex_r_cluster_type>;
   using crystal_harmonics_expansion_dmn_t = func::dmn_0<crystal_harmonics_expansion>;
@@ -127,8 +129,7 @@ public:
   using crystal_matrix_dmn_t =
       func::dmn_variadic<crystal_eigenvector_dmn_t, crystal_eigenvector_dmn_t>;
 
-public:
-  BSE_lattice_solver(parameters_type& parameters, MOMS_type& MOMS);
+  BseLatticeSolver(ParametersType& parameters, DcaDataType& MOMS);
 
   func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& get_Gamma_lattice() {
     return Gamma_lattice;
@@ -139,10 +140,9 @@ public:
 
   void compute_chi_0_lattice(func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0);
 
-  void compute_Gamma_lattice_1(func::function<std::complex<scalartype>, DCA_matrix_dmn_t>& Gamma_cluster);
   void compute_Gamma_lattice_3(func::function<std::complex<scalartype>, DCA_matrix_dmn_t>& Gamma_cluster);
 
-  void diagonolize_Gamma_chi_0(
+  void diagonalize_Gamma_chi_0(
       func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
       func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice);
 
@@ -155,11 +155,11 @@ private:
 
   void set_chi_0_matrix(func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0);
 
-  void diagonolize_full_Gamma_chi_0_real(
+  void diagonalize_full_Gamma_chi_0_real(
       func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
       func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice);
 
-  void diagonolize_full_Gamma_chi_0(
+  void diagonalize_full_Gamma_chi_0(
       func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
       func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice);
 
@@ -171,7 +171,7 @@ private:
       dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& VL,
       dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& VR);
 
-  void diagonolize_folded_Gamma_chi_0(
+  void diagonalize_folded_Gamma_chi_0(
       func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
       func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice);
 
@@ -193,11 +193,10 @@ private:
   void print_on_shell();
   void print_on_shell_ppSC();
 
-private:
-  parameters_type& parameters;
+  ParametersType& parameters;
   concurrency_type& concurrency;
 
-  MOMS_type& MOMS;
+  DcaDataType& MOMS;
 
   func::function<std::complex<scalartype>, HOST_matrix_dmn_t> Gamma_lattice;
   func::function<std::complex<scalartype>, HOST_matrix_dmn_t> Gamma_sym;
@@ -227,9 +226,9 @@ private:
       leading_symmetry_functions;
 };
 
-template <class parameters_type, class MOMS_type>
-BSE_lattice_solver<parameters_type, MOMS_type>::BSE_lattice_solver(parameters_type& parameters_ref,
-                                                                   MOMS_type& MOMS_ref)
+template <typename ParametersType, typename DcaDataType>
+BseLatticeSolver<ParametersType, DcaDataType>::BseLatticeSolver(ParametersType& parameters_ref,
+                                                                DcaDataType& MOMS_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
 
@@ -251,19 +250,13 @@ BSE_lattice_solver<parameters_type, MOMS_type>::BSE_lattice_solver(parameters_ty
       psi_k("psi_k"),
       crystal_harmonics("crystal_harmonics"),
 
-      leading_symmetry_functions("leading-symmetry-functions")
-//     leading_U_K("leading_U_K"),
-//     leading_Vt_K("leading_Vt_K"),
-
-//     leading_U_k("leading_U_k_interpolated"),
-//     leading_Vt_k("leading_Vt_k_interpolated")
-{
+      leading_symmetry_functions("leading-symmetry-functions") {
   initialize();
 }
 
-template <class parameters_type, class MOMS_type>
+template <typename ParametersType, typename DcaDataType>
 template <typename Writer>
-void BSE_lattice_solver<parameters_type, MOMS_type>::write(Writer& writer) {
+void BseLatticeSolver<ParametersType, DcaDataType>::write(Writer& writer) {
   if (true) {
     writer.execute(leading_eigenvalues);
     writer.execute(leading_eigenvectors);
@@ -284,8 +277,8 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::write(Writer& writer) {
   }
 }
 
-template <class parameters_type, class MOMS_type>
-void BSE_lattice_solver<parameters_type, MOMS_type>::initialize() {
+template <typename ParametersType, typename DcaDataType>
+void BseLatticeSolver<ParametersType, DcaDataType>::initialize() {
   {
     double r_cut_off = parameters.get_BSE_cut_off_radius();
 
@@ -376,21 +369,21 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::initialize() {
 }
 
 // Peter's modify May 4
-template <class parameters_type, class MOMS_type>
-void BSE_lattice_solver<parameters_type, MOMS_type>::compute_chi_0_lattice(
+template <typename ParametersType, typename DcaDataType>
+void BseLatticeSolver<ParametersType, DcaDataType>::compute_chi_0_lattice(
     func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0) {
-  profiler_type prof(__FUNCTION__, "BSE_lattice_solver", __LINE__);
+  profiler_type prof(__FUNCTION__, "BseLatticeSolver", __LINE__);
 
   if (concurrency.id() == concurrency.last())
     std::cout << "\t" << __FUNCTION__ << std::endl << std::endl;
 
   using HTS_solver_type =
-      DCA::cluster_solver<DCA::HIGH_TEMPERATURE_SERIES, dca::linalg::CPU, parameters_type, MOMS_type>;
+      DCA::cluster_solver<DCA::HIGH_TEMPERATURE_SERIES, dca::linalg::CPU, ParametersType, DcaDataType>;
 
-  using lattice_map_sp_type = DCA::lattice_mapping_sp<parameters_type, k_DCA, k_HOST>;
+  using lattice_map_sp_type = DCA::lattice_mapping_sp<ParametersType, k_DCA, k_HOST>;
 
-  using coarsegraining_sp_type = DCA::coarsegraining_sp<parameters_type, k_DCA>;
-  using coarsegraining_tp_type = DCA::coarsegraining_tp<parameters_type, k_HOST_VERTEX>;
+  using coarsegraining_sp_type = DCA::coarsegraining_sp<ParametersType, k_DCA>;
+  using coarsegraining_tp_type = DCA::coarsegraining_tp<ParametersType, k_HOST_VERTEX>;
 
   lattice_map_sp_type lattice_mapping_obj(parameters);
 
@@ -405,7 +398,7 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::compute_chi_0_lattice(
     if (parameters.use_HTS_approximation()) {
       coarsegraining_sp_type coarsegraining_sp_obj(parameters);
 
-      MOMS_type MOMS_HTS(parameters);
+      DcaDataType MOMS_HTS(parameters);
 
       MOMS_HTS.H_HOST = MOMS.H_HOST;
       MOMS_HTS.H_interactions = MOMS.H_interactions;
@@ -436,8 +429,8 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::compute_chi_0_lattice(
   }
 }
 
-template <class parameters_type, class MOMS_type>
-void BSE_lattice_solver<parameters_type, MOMS_type>::set_chi_0_matrix(
+template <typename ParametersType, typename DcaDataType>
+void BseLatticeSolver<ParametersType, DcaDataType>::set_chi_0_matrix(
     func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0) {
   scalartype renorm = 1. / (parameters.get_beta() * k_HOST_VERTEX::dmn_size());
 
@@ -453,10 +446,10 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::set_chi_0_matrix(
                   renorm * chi_0_function(n1, m1, n2, m2, K_ind, w_ind);
 }
 
-template <class parameters_type, class MOMS_type>
-void BSE_lattice_solver<parameters_type, MOMS_type>::compute_Gamma_lattice_3(
+template <typename ParametersType, typename DcaDataType>
+void BseLatticeSolver<ParametersType, DcaDataType>::compute_Gamma_lattice_3(
     func::function<std::complex<scalartype>, DCA_matrix_dmn_t>& Gamma_cluster) {
-  profiler_type prof(__FUNCTION__, "BSE_lattice_solver", __LINE__);
+  profiler_type prof(__FUNCTION__, "BseLatticeSolver", __LINE__);
 
   // Need following condition lines for regular DCA; otherwise execute(Gamma_cluster, Gamma_lattice)
   // still do SVD etc.
@@ -467,7 +460,7 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::compute_Gamma_lattice_3(
         Gamma_lattice(i, j) = Gamma_cluster(i, j);
   }
   else {
-    lattice_mapping_tp<parameters_type, k_DCA, k_HOST_VERTEX> lattice_map_tp_obj(parameters);
+    DCA::lattice_mapping_tp<ParametersType, k_DCA, k_HOST_VERTEX> lattice_map_tp_obj(parameters);
 
     lattice_map_tp_obj.execute(Gamma_cluster, Gamma_lattice);
   }
@@ -485,32 +478,32 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::compute_Gamma_lattice_3(
         std::cout << "symmetrize Gamma_lattice according to diagrammatic symmetries \n"
                   << std::endl;
 
-      diagrammatic_symmetries<parameters_type> diagrammatic_symmetries_obj(parameters);
+      diagrammatic_symmetries<ParametersType> diagrammatic_symmetries_obj(parameters);
 
       diagrammatic_symmetries_obj.execute(Gamma_lattice);
     }
   }
 }
 
-template <class parameters_type, class MOMS_type>
-void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_Gamma_chi_0(
+template <typename ParametersType, typename DcaDataType>
+void BseLatticeSolver<ParametersType, DcaDataType>::diagonalize_Gamma_chi_0(
     func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
     func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice) {
   if (parameters.do_diagonalization_on_folded_Gamma_chi_0()) {
-    diagonolize_folded_Gamma_chi_0(Gamma_lattice, chi_0_lattice);
+    diagonalize_folded_Gamma_chi_0(Gamma_lattice, chi_0_lattice);
   }
   else {
-    diagonolize_full_Gamma_chi_0(Gamma_lattice, chi_0_lattice);
+    diagonalize_full_Gamma_chi_0(Gamma_lattice, chi_0_lattice);
   }
 
   characterize_leading_eigenvectors();
 }
 
-template <class parameters_type, class MOMS_type>
-void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_full_Gamma_chi_0_real(
+template <typename ParametersType, typename DcaDataType>
+void BseLatticeSolver<ParametersType, DcaDataType>::diagonalize_full_Gamma_chi_0_real(
     func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& /*Gamma_lattice*/,
     func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice) {
-  profiler_type prof(__FUNCTION__, "BSE_lattice_solver", __LINE__);
+  profiler_type prof(__FUNCTION__, "BseLatticeSolver", __LINE__);
 
   int N = lattice_eigenvector_dmn_t::dmn_size();
 
@@ -549,9 +542,9 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_full_Gamma_chi_
       std::cout << "\n\n\t diagonalize Gamma_chi_0 in pp SC channel " << dca::util::print_time()
                 << " ...";
 
-    dca::linalg::Vector<scalartype, dca::linalg::CPU> L("L (BSE_lattice_solver)", N);
+    dca::linalg::Vector<scalartype, dca::linalg::CPU> L("L (BseLatticeSolver)", N);
 
-    dca::linalg::Matrix<scalartype, dca::linalg::CPU> VR("VR (BSE_lattice_solver)", N);
+    dca::linalg::Matrix<scalartype, dca::linalg::CPU> VR("VR (BseLatticeSolver)", N);
 
     dca::linalg::matrixop::eigensolverHermitian('V', 'U', chi_0_Gamma_chi_0, L, VR);
 
@@ -567,11 +560,11 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_full_Gamma_chi_
   }
 }
 
-template <class parameters_type, class MOMS_type>
-void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_full_Gamma_chi_0(
+template <typename ParametersType, typename DcaDataType>
+void BseLatticeSolver<ParametersType, DcaDataType>::diagonalize_full_Gamma_chi_0(
     func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
     func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice) {
-  profiler_type prof(__FUNCTION__, "BSE_lattice_solver", __LINE__);
+  profiler_type prof(__FUNCTION__, "BseLatticeSolver", __LINE__);
 
   int N = lattice_eigenvector_dmn_t::dmn_size();
 
@@ -602,10 +595,10 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_full_Gamma_chi_
     if (concurrency.id() == concurrency.last())
       std::cout << "\n\n\t diagonalize Gamma_chi_0 " << dca::util::print_time() << " ...";
 
-    dca::linalg::Vector<std::complex<scalartype>, dca::linalg::CPU> L("L (BSE_lattice_solver)", N);
+    dca::linalg::Vector<std::complex<scalartype>, dca::linalg::CPU> L("L (BseLatticeSolver)", N);
 
-    dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> VR("VR (BSE_lattice_solver)", N);
-    dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> VL("VL (BSE_lattice_solver)", N);
+    dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> VR("VR (BseLatticeSolver)", N);
+    dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> VL("VL (BseLatticeSolver)", N);
 
     dca::linalg::matrixop::eigensolver('N', 'V', Gamma_chi_0, L, VL, VR);
 
@@ -621,8 +614,8 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_full_Gamma_chi_
   }
 }
 
-template <class parameters_type, class MOMS_type>
-void BSE_lattice_solver<parameters_type, MOMS_type>::record_eigenvalues_and_eigenvectors(
+template <typename ParametersType, typename DcaDataType>
+void BseLatticeSolver<ParametersType, DcaDataType>::record_eigenvalues_and_eigenvectors(
     dca::linalg::Vector<scalartype, dca::linalg::CPU>& L,
     dca::linalg::Matrix<scalartype, dca::linalg::CPU>& VR) {
   int N = lattice_eigenvector_dmn_t::dmn_size();
@@ -649,8 +642,8 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::record_eigenvalues_and_eige
               << dca::util::print_time() << "\n";
 }
 
-template <class parameters_type, class MOMS_type>
-void BSE_lattice_solver<parameters_type, MOMS_type>::record_eigenvalues_and_eigenvectors(
+template <typename ParametersType, typename DcaDataType>
+void BseLatticeSolver<ParametersType, DcaDataType>::record_eigenvalues_and_eigenvectors(
     dca::linalg::Vector<std::complex<scalartype>, dca::linalg::CPU>& L,
     dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& /*VL*/,
     dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& VR) {
@@ -679,14 +672,14 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::record_eigenvalues_and_eige
   symmetrize_leading_eigenvectors();
 }
 
-template <class parameters_type, class MOMS_type>
-void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_folded_Gamma_chi_0(
+template <typename ParametersType, typename DcaDataType>
+void BseLatticeSolver<ParametersType, DcaDataType>::diagonalize_folded_Gamma_chi_0(
     func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
     func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice) {
   if (concurrency.id() == concurrency.last())
     std::cout << __FUNCTION__ << std::endl;
 
-  profiler_type prof(__FUNCTION__, "BSE_lattice_solver", __LINE__);
+  profiler_type prof(__FUNCTION__, "BseLatticeSolver", __LINE__);
   if (false) {
     if (concurrency.id() == concurrency.last())
       std::cout << "\n\n\t symmetrize Gamma_lattice for even-frequency part (only need to "
@@ -767,10 +760,10 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_folded_Gamma_ch
       std::cout << "\n\n\t diagonalize P_Gamma_chi_0_lattice_P " << dca::util::print_time()
                 << " ...";
 
-    dca::linalg::Vector<std::complex<scalartype>, dca::linalg::CPU> L("L (BSE_lattice_solver)", M);
+    dca::linalg::Vector<std::complex<scalartype>, dca::linalg::CPU> L("L (BseLatticeSolver)", M);
 
-    dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> VL("VL (BSE_lattice_solver)", M);
-    dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> VR("VR (BSE_lattice_solver)", M);
+    dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> VL("VL (BseLatticeSolver)", M);
+    dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> VR("VR (BseLatticeSolver)", M);
 
     dca::linalg::matrixop::eigensolver('N', 'V', Gamma_chi_0_crystal, L, VL, VR);
 
@@ -786,8 +779,8 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_folded_Gamma_ch
   }
 }
 
-template <class parameters_type, class MOMS_type>
-void BSE_lattice_solver<parameters_type, MOMS_type>::record_eigenvalues_and_folded_eigenvectors(
+template <typename ParametersType, typename DcaDataType>
+void BseLatticeSolver<ParametersType, DcaDataType>::record_eigenvalues_and_folded_eigenvectors(
     dca::linalg::Vector<std::complex<scalartype>, dca::linalg::CPU>& L,
     dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& /*VL*/,
     dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& VR) {
@@ -817,8 +810,8 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::record_eigenvalues_and_fold
   symmetrize_leading_eigenvectors();
 }
 
-template <class parameters_type, class MOMS_type>
-void BSE_lattice_solver<parameters_type, MOMS_type>::compute_folded_susceptibility(
+template <typename ParametersType, typename DcaDataType>
+void BseLatticeSolver<ParametersType, DcaDataType>::compute_folded_susceptibility(
     func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice,
     dca::linalg::Vector<std::complex<scalartype>, dca::linalg::CPU>& L,
     dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& VL,
@@ -922,8 +915,8 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::compute_folded_susceptibili
   }
 }
 
-template <class parameters_type, class MOMS_type>
-void BSE_lattice_solver<parameters_type, MOMS_type>::print_on_shell() {
+template <typename ParametersType, typename DcaDataType>
+void BseLatticeSolver<ParametersType, DcaDataType>::print_on_shell() {
   if (concurrency.id() == concurrency.last())
     std::cout << __FUNCTION__ << std::endl;
 
@@ -976,8 +969,8 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::print_on_shell() {
   }
 }
 
-template <class parameters_type, class MOMS_type>
-void BSE_lattice_solver<parameters_type, MOMS_type>::print_on_shell_ppSC() {
+template <typename ParametersType, typename DcaDataType>
+void BseLatticeSolver<ParametersType, DcaDataType>::print_on_shell_ppSC() {
   if (concurrency.id() == concurrency.last())
     std::cout << __FUNCTION__ << std::endl;
 
@@ -1024,9 +1017,9 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::print_on_shell_ppSC() {
   }
 }
 
-template <class parameters_type, class MOMS_type>
-void BSE_lattice_solver<parameters_type, MOMS_type>::symmetrize_leading_eigenvectors() {
-  profiler_type prof(__FUNCTION__, "BSE_lattice_solver", __LINE__);
+template <typename ParametersType, typename DcaDataType>
+void BseLatticeSolver<ParametersType, DcaDataType>::symmetrize_leading_eigenvectors() {
+  profiler_type prof(__FUNCTION__, "BseLatticeSolver", __LINE__);
 
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t" << __FUNCTION__ << " " << dca::util::print_time() << std::endl;
@@ -1068,9 +1061,9 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::symmetrize_leading_eigenvec
     std::cout << "\t" << __FUNCTION__ << " finished " << dca::util::print_time() << std::endl;
 }
 
-template <class parameters_type, class MOMS_type>
-void BSE_lattice_solver<parameters_type, MOMS_type>::characterize_leading_eigenvectors() {
-  profiler_type prof(__FUNCTION__, "BSE_lattice_solver", __LINE__);
+template <typename ParametersType, typename DcaDataType>
+void BseLatticeSolver<ParametersType, DcaDataType>::characterize_leading_eigenvectors() {
+  profiler_type prof(__FUNCTION__, "BseLatticeSolver", __LINE__);
 
   for (int n_lam = 0; n_lam < N_LAMBDAS; n_lam++) {
     for (int w_ind = 0; w_ind < w_VERTEX::dmn_size(); w_ind++) {
@@ -1102,6 +1095,8 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::characterize_leading_eigenv
   }
 }
 
-}  // DCA
+}  // analysis
+}  // phys
+}  // dca
 
-#endif  // PHYS_LIBRARY_DCA_ANALYSIS_BSE_SOLVER_BSE_LATTICE_SOLVER_H
+#endif  // DCA_PHYS_DCA_ANALYSIS_BSE_SOLVER_BSE_LATTICE_SOLVER_HPP

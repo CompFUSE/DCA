@@ -9,8 +9,13 @@
 //
 // This file defines the various minimization methods used for the CPE analytic continuation.
 
-#ifndef PHYS_LIBRARY_DCA_ANALYSIS_CPE_SOLVER_MINIMIZATION_METHOD_HPP
-#define PHYS_LIBRARY_DCA_ANALYSIS_CPE_SOLVER_MINIMIZATION_METHOD_HPP
+#ifndef DCA_PHYS_DCA_ANALYSIS_CPE_SOLVER_MINIMIZATION_METHOD_HPP
+#define DCA_PHYS_DCA_ANALYSIS_CPE_SOLVER_MINIMIZATION_METHOD_HPP
+
+namespace dca {
+namespace phys {
+namespace analysis {
+// dca::phys::analysis::
 
 enum MinimizationMethod {
   GRADIENT_METHOD,
@@ -19,4 +24,8 @@ enum MinimizationMethod {
   LEVMAR_LIBRARY
 };
 
-#endif  // PHYS_LIBRARY_DCA_ANALYSIS_CPE_SOLVER_MINIMIZATION_METHOD_HPP
+}  // analysis
+}  // phys
+}  // dca
+
+#endif  // DCA_PHYS_DCA_ANALYSIS_CPE_SOLVER_MINIMIZATION_METHOD_HPP

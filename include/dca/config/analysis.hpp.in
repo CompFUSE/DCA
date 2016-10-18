@@ -30,7 +30,7 @@ using ParametersType = dca::phys::params::Parameters<Concurrency, Threading, Pro
 #include "dca/phys/dca_data/dca_data.hpp"
 using DcaDataType = dca::phys::DcaData<ParametersType>;
 
-#include "phys_library/DCA+_analysis/BSE_solver/BSE_solver.h"
-using BseSolver = DCA::BSE_solver<ParametersType, DcaDataType>;
+#include "dca/phys/dca_analysis/bse_solver/bse_solver.hpp"
+using BseSolverType = dca::phys::analysis::BseSolver<ParametersType, DcaDataType>;
 
 #endif  // DCA_CONFIG_CONFIG_ANALYSIS_HPP

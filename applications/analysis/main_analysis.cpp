@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
 
   // Compute the susceptibility.
   if (parameters.get_vertex_measurement_type() != NONE) {
-    BseSolver analysis_obj(parameters, dca_data);
+    BseSolverType analysis_obj(parameters, dca_data);
     analysis_obj.calculate_susceptibilities_2();
 
     if (concurrency.id() == concurrency.last()) {

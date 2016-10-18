@@ -7,13 +7,11 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// This class implements a CPE analytic continuation using a weighted gradient method as the
-// minimization algorithm.
+// This class implemenents the continuous pole expansion method for solving the analytic continution
+// problem. It is templated on the minimization algorithm.
 
-#ifndef PHYS_LIBRARY_DCA_ANALYSIS_CPE_SOLVER_CPE_WEIGHTED_GRADIENT_METHOD_H
-#define PHYS_LIBRARY_DCA_ANALYSIS_CPE_SOLVER_CPE_WEIGHTED_GRADIENT_METHOD_H
-
-#include "phys_library/DCA+_analysis/CPE_solver/CPE_template.h"
+#ifndef DCA_PHYS_DCA_ANALYSIS_CPE_SOLVER_CONTINUOUS_POLE_EXPANSION_HPP
+#define DCA_PHYS_DCA_ANALYSIS_CPE_SOLVER_CONTINUOUS_POLE_EXPANSION_HPP
 
 #include <cassert>
 #include <cmath>
@@ -30,8 +28,10 @@
 #include "dca/io/json/json_writer.hpp"
 #include "dca/parallel/util/get_bounds.hpp"
 #include "dca/parallel/util/threading_data.hpp"
+#include "dca/phys/dca_analysis/cpe_solver/cpe_data.hpp"
+#include "dca/phys/dca_analysis/cpe_solver/minimization_method.hpp"
+
 #include "comp_library/linalg/linalg.hpp"
-#include "phys_library/DCA+_analysis/CPE_solver/CPE_data.h"
 #include "phys_library/DCA+_step/symmetrization/symmetrize.h"
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
@@ -39,9 +39,18 @@
 #include "phys_library/domains/time_and_frequency/frequency_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain_imag_axis.h"
 
-using namespace dca::phys;
+namespace dca {
+namespace phys {
+namespace analysis {
+// dca::phys::analysis::
 
-namespace DCA {
+// Empty class template.
+template <class parameters_type, class basis_function_t, class k_dmn_t, class w_dmn_t,
+          MinimizationMethod minimization_method_t>
+class continuous_pole_expansion {};
+
+// Specialization for a CPE analytic continuation using a weighted gradient method as the
+// minimization algorithm.
 template <class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
 class continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t,
                                 WEIGHTED_GRADIENT_METHOD> {
@@ -80,7 +89,6 @@ public:
 
   using CPE_data_type = CPE_data<scalartype, basis_function_t, k_dmn_t, w_dmn_t>;
 
-public:
   continuous_pole_expansion(parameters_type& parameters, concurrency_type& concurrency,
                             bool fixed_zero_moment = false, double zero_moment = 0,
                             bool fixed_first_moment = false, double first_moment = 1);
@@ -111,10 +119,6 @@ public:
   static void* threaded_analytical_continuation(void* void_ptr);
 
   void write(std::string filename);
-
-  // INTERNAL: No implementation.
-  template <typename Writer>
-  void write(Writer& reader);
 
 private:
   void initialize();
@@ -193,7 +197,6 @@ continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_t, W
       A_matrix_re("A_matrix_re"),
       A_matrix_im("A_matrix_im") {
   basis_function_t::initialize(parameters);
-
   initialize();
 }
 
@@ -922,6 +925,9 @@ void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn
 
   dca::linalg::matrixop::gemv('T', matrix, imag_values, real_values);
 }
-}
 
-#endif  // PHYS_LIBRARY_DCA_ANALYSIS_CPE_SOLVER_CPE_WEIGHTED_GRADIENT_METHOD_H
+}  // analysis
+}  // phys
+}  // dca
+
+#endif  // DCA_PHYS_DCA_ANALYSIS_CPE_SOLVER_CONTINUOUS_POLE_EXPANSION_HPP

@@ -9,8 +9,8 @@
 //
 // This class computes the spectrum using a CPE analytic continuation method.
 
-#ifndef PHYS_LIBRARY_DCA_ANALYSIS_CPE_SOLVER_COMPUTE_SPECTRUM_H
-#define PHYS_LIBRARY_DCA_ANALYSIS_CPE_SOLVER_COMPUTE_SPECTRUM_H
+#ifndef DCA_PHYS_DCA_ANALYSIS_CPE_SOLVER_COMPUTE_SPECTRUM_HPP
+#define DCA_PHYS_DCA_ANALYSIS_CPE_SOLVER_COMPUTE_SPECTRUM_HPP
 
 #include <cassert>
 #include <cmath>
@@ -25,11 +25,11 @@
 #include "dca/io/json/json_writer.hpp"
 #include "dca/math/statistics/gaussian_probability.hpp"
 #include "dca/math/util/vector_operations.hpp"
+#include "dca/phys/dca_analysis/cpe_solver/continuous_pole_expansion.hpp"
 #include "dca/util/print_time.hpp"
 
 #include "comp_library/function_plotting/include_plotting.h"
 #include "comp_library/linalg/linalg.hpp"
-#include "phys_library/DCA+_analysis/CPE_solver/CPE_weighted_gradient_method.h"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_sp.h"
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
@@ -39,10 +39,10 @@
 #include "phys_library/domains/time_and_frequency/frequency_domain_imag_axis.h"
 #include "phys_library/domains/time_and_frequency/time_domain.h"
 
-using namespace dca;
-using namespace dca::phys;
-
-namespace DCA {
+namespace dca {
+namespace phys {
+namespace analysis {
+// dca::phys::analysis::
 
 template <class parameters_type, class basis_function_t>
 class compute_spectrum {
@@ -63,12 +63,10 @@ public:
   using k_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
                                            CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
 
-public:
   compute_spectrum(parameters_type& parameters);
 
   template <typename MOMS_imag_type, typename MOMS_real_type>
   void write(std::string file_name, MOMS_imag_type& MOMS_imag, MOMS_real_type& MOMS_real);
-
   template <typename Writer>
   void write(Writer& writer);
 
@@ -85,7 +83,6 @@ private:
   template <typename MOMS_imag_type, typename MOMS_real_type>
   void test_A_w_versus_G_t(MOMS_imag_type& MOMS_imag, MOMS_real_type& MOMS_real);
 
-private:
   void generate_f_original(
       func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& S_K_w);
 
@@ -177,7 +174,6 @@ private:
   template <typename MOMS_real_type>
   void print_check_sums(MOMS_real_type& MOMS_real);
 
-private:
   parameters_type& parameters;
   concurrency_type& concurrency;
 
@@ -977,6 +973,9 @@ void compute_spectrum<parameters_type, basis_function_t>::test_A_w_versus_G_t(
     std::cout << "\n";
   }
 }
-}
 
-#endif  // PHYS_LIBRARY_DCA_ANALYSIS_CPE_SOLVER_COMPUTE_SPECTRUM_H
+}  // analysis
+}  // phys
+}  // dca
+
+#endif  // DCA_PHYS_DCA_ANALYSIS_CPE_SOLVER_COMPUTE_SPECTRUM_HPP

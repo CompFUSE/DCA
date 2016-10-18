@@ -7,10 +7,10 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// This class computes the vertex function \Gamma on the cluster.
 
-#ifndef PHYS_LIBRARY_DCA_ANALYSIS_BSE_SOLVER_BSE_CLUSTER_SOLVER_H
-#define PHYS_LIBRARY_DCA_ANALYSIS_BSE_SOLVER_BSE_CLUSTER_SOLVER_H
+#ifndef DCA_PHYS_DCA_ANALYSIS_BSE_SOLVER_BSE_CLUSTER_SOLVER_HPP
+#define DCA_PHYS_DCA_ANALYSIS_BSE_SOLVER_BSE_CLUSTER_SOLVER_HPP
 
 #include <complex>
 #include <iostream>
@@ -28,22 +28,23 @@
 #include "phys_library/domains/time_and_frequency/frequency_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
 
-using namespace dca::phys;
+namespace dca {
+namespace phys {
+namespace analysis {
+// dca::phys::analysis::
 
-namespace DCA {
-
-template <class parameters_type, class MOMS_type>
-class BSE_cluster_solver {
+template <typename ParametersType, typename DcaDataType>
+class BseClusterSolver {
 public:
   using scalartype = double;
 
-  using profiler_t = typename parameters_type::profiler_type;
-  using concurrency_t = typename parameters_type::concurrency_type;
+  using profiler_t = typename ParametersType::profiler_type;
+  using concurrency_t = typename ParametersType::concurrency_type;
 
   using w = func::dmn_0<frequency_domain>;
   using w_VERTEX = func::dmn_0<DCA::vertex_frequency_domain<DCA::COMPACT>>;
   using b = func::dmn_0<electron_band_domain>;
-  using DCA_k_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
+  using DCA_k_cluster_type = cluster_domain<double, ParametersType::lattice_type::DIMENSION,
                                             CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
   using k_DCA = func::dmn_0<DCA_k_cluster_type>;
 
@@ -51,8 +52,7 @@ public:
   using cluster_eigenvector_dmn_t = func::dmn_variadic<b, b, k_DCA, w_VERTEX>;
   using DCA_matrix_dmn_t = func::dmn_variadic<cluster_eigenvector_dmn_t, cluster_eigenvector_dmn_t>;
 
-public:
-  BSE_cluster_solver(parameters_type& parameters, MOMS_type& MOMS);
+  BseClusterSolver(ParametersType& parameters, DcaDataType& MOMS);
 
   template <typename Writer>
   void write(Writer& writer);
@@ -79,23 +79,22 @@ private:
   void solve_BSE_on_cluster(func::function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II,
                             func::function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II_0);
 
-private:
-  parameters_type& parameters;
+  ParametersType& parameters;
   concurrency_t& concurrency;
 
-  MOMS_type& MOMS;
+  DcaDataType& MOMS;
 
   cluster_eigenvector_dmn_t cluster_eigenvector_dmn;
 
-  diagrammatic_symmetries<parameters_type> diagrammatic_symmetries_obj;
+  diagrammatic_symmetries<ParametersType> diagrammatic_symmetries_obj;
 
   func::function<std::complex<scalartype>, DCA_matrix_dmn_t> Gamma_matrix;
   func::function<std::complex<double>, func::dmn_variadic<b_b, b_b, k_DCA, w_VERTEX>> G_II_0_function;
 };
 
-template <class parameters_type, class MOMS_type>
-BSE_cluster_solver<parameters_type, MOMS_type>::BSE_cluster_solver(parameters_type& parameters_ref,
-                                                                   MOMS_type& MOMS_ref)
+template <typename ParametersType, typename DcaDataType>
+BseClusterSolver<ParametersType, DcaDataType>::BseClusterSolver(ParametersType& parameters_ref,
+                                                                DcaDataType& MOMS_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
       MOMS(MOMS_ref),
@@ -107,14 +106,14 @@ BSE_cluster_solver<parameters_type, MOMS_type>::BSE_cluster_solver(parameters_ty
       Gamma_matrix("Gamma_matrix"),
       G_II_0_function("G_II_0_function") {}
 
-template <class parameters_type, class MOMS_type>
+template <typename ParametersType, typename DcaDataType>
 template <typename Writer>
-void BSE_cluster_solver<parameters_type, MOMS_type>::write(Writer& writer) {
+void BseClusterSolver<ParametersType, DcaDataType>::write(Writer& writer) {
   writer.execute(G_II_0_function);
 }
 
-template <class parameters_type, class MOMS_type>
-void BSE_cluster_solver<parameters_type, MOMS_type>::compute_Gamma_cluster() {
+template <typename ParametersType, typename DcaDataType>
+void BseClusterSolver<ParametersType, DcaDataType>::compute_Gamma_cluster() {
   func::function<std::complex<scalartype>, DCA_matrix_dmn_t> G_II("G_II");
   func::function<std::complex<scalartype>, DCA_matrix_dmn_t> G_II_0("G_II_0");
 
@@ -130,8 +129,8 @@ void BSE_cluster_solver<parameters_type, MOMS_type>::compute_Gamma_cluster() {
   solve_BSE_on_cluster(G_II, G_II_0);
 }
 
-template <class parameters_type, class MOMS_type>
-void BSE_cluster_solver<parameters_type, MOMS_type>::apply_symmetries_sp() {
+template <typename ParametersType, typename DcaDataType>
+void BseClusterSolver<ParametersType, DcaDataType>::apply_symmetries_sp() {
   if (concurrency.id() == concurrency.last())
     std::cout << "\t" << __FUNCTION__ << "\n\n";
 
@@ -142,8 +141,8 @@ void BSE_cluster_solver<parameters_type, MOMS_type>::apply_symmetries_sp() {
   symmetrize::execute(MOMS.G_k_w, MOMS.H_symmetry);
 }
 
-template <class parameters_type, class MOMS_type>
-void BSE_cluster_solver<parameters_type, MOMS_type>::apply_symmetries_tp(
+template <typename ParametersType, typename DcaDataType>
+void BseClusterSolver<ParametersType, DcaDataType>::apply_symmetries_tp(
     func::function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II,
     func::function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II_0) {
   if (concurrency.id() == concurrency.last())
@@ -163,7 +162,7 @@ void BSE_cluster_solver<parameters_type, MOMS_type>::apply_symmetries_tp(
         std::cout << "symmetrize Gamma_lattice according to diagrammatic symmetries \n"
                   << std::endl;
 
-      diagrammatic_symmetries<parameters_type> diagrammatic_symmetries_obj(parameters);
+      diagrammatic_symmetries<ParametersType> diagrammatic_symmetries_obj(parameters);
 
       diagrammatic_symmetries_obj.execute(G_II);
       diagrammatic_symmetries_obj.execute(G_II_0);
@@ -171,8 +170,8 @@ void BSE_cluster_solver<parameters_type, MOMS_type>::apply_symmetries_tp(
   }
 }
 
-template <class parameters_type, class MOMS_type>
-void BSE_cluster_solver<parameters_type, MOMS_type>::load_G_II(
+template <typename ParametersType, typename DcaDataType>
+void BseClusterSolver<ParametersType, DcaDataType>::load_G_II(
     func::function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II) {
   if (concurrency.id() == concurrency.last())
     std::cout << "\t" << __FUNCTION__ << "\n\n";
@@ -205,8 +204,8 @@ void BSE_cluster_solver<parameters_type, MOMS_type>::load_G_II(
   delete[] coor_2;
 }
 
-template <class parameters_type, class MOMS_type>
-void BSE_cluster_solver<parameters_type, MOMS_type>::load_G_II_0(
+template <typename ParametersType, typename DcaDataType>
+void BseClusterSolver<ParametersType, DcaDataType>::load_G_II_0(
     func::function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II_0) {
   if (concurrency.id() == concurrency.last())
     std::cout << "\t" << __FUNCTION__ << "\n\n";
@@ -282,8 +281,8 @@ void BSE_cluster_solver<parameters_type, MOMS_type>::load_G_II_0(
   }
 }
 
-template <class parameters_type, class MOMS_type>
-void BSE_cluster_solver<parameters_type, MOMS_type>::load_G_II_0_function(
+template <typename ParametersType, typename DcaDataType>
+void BseClusterSolver<ParametersType, DcaDataType>::load_G_II_0_function(
     func::function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II_0) {
   if (concurrency.id() == concurrency.last())
     std::cout << "\t" << __FUNCTION__ << "\n\n";
@@ -300,8 +299,8 @@ void BSE_cluster_solver<parameters_type, MOMS_type>::load_G_II_0_function(
                   G_II_0(n1, m1, K_ind, w_ind, n2, m2, K_ind, w_ind);
 }
 
-template <class parameters_type, class MOMS_type>
-void BSE_cluster_solver<parameters_type, MOMS_type>::solve_BSE_on_cluster(
+template <typename ParametersType, typename DcaDataType>
+void BseClusterSolver<ParametersType, DcaDataType>::solve_BSE_on_cluster(
     func::function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II,
     func::function<std::complex<scalartype>, DCA_matrix_dmn_t>& G_II_0) {
   if (concurrency.id() == concurrency.last())
@@ -332,6 +331,8 @@ void BSE_cluster_solver<parameters_type, MOMS_type>::solve_BSE_on_cluster(
       Gamma_matrix(i, j) = G4_0_inv(i, j) - G4_inv(i, j);
 }
 
-}  // DCA
+}  // analysis
+}  // phys
+}  // dca
 
-#endif  // PHYS_LIBRARY_DCA_ANALYSIS_BSE_SOLVER_BSE_CLUSTER_SOLVER_H
+#endif  // DCA_PHYS_DCA_ANALYSIS_BSE_SOLVER_BSE_CLUSTER_SOLVER_HPP
