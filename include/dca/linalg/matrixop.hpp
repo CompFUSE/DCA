@@ -230,13 +230,13 @@ void inverse(Matrix<ScalarType, device_name>& mat, Vector<int, CPU>& ipiv,
              Vector<ScalarType, device_name>& work) {
   assert(mat.is_square());
 
-  ipiv.resize(mat.nrRows());
+  ipiv.resizeNoCopy(mat.nrRows());
 
   lapack::UseDevice<device_name>::getrf(mat.nrRows(), mat.nrCols(), mat.ptr(),
                                         mat.leadingDimension(), ipiv.ptr());
   // Get optimal worksize.
   int lwork = util::getInverseWorkSize(mat);
-  work.resize(lwork);
+  work.resizeNoCopy(lwork);
 
   lapack::UseDevice<device_name>::getri(mat.nrRows(), mat.ptr(), mat.leadingDimension(), ipiv.ptr(),
                                         work.ptr(), lwork);
