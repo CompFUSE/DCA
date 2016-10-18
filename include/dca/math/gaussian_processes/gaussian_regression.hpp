@@ -100,7 +100,7 @@ void gaussian_regression<scalartype, lhs_dmn_t, rhs_dmn_t>::compute_S(scalartype
 // Rasmussen and Williams, p. 9.
 template <typename scalartype, typename lhs_dmn_t, typename rhs_dmn_t>
 void gaussian_regression<scalartype, lhs_dmn_t, rhs_dmn_t>::compute_A(double eps) {
-  LIN_ALG::PSEUDO_INVERSE<linalg::CPU>::execute(S, S_inv);
+  linalg::matrixop::pseudoInverse(S, S_inv);
 
   linalg::Matrix<scalartype, linalg::CPU> Xt_X("Xt_X", std::pair<int, int>(Nc, Nc));
 
@@ -110,7 +110,7 @@ void gaussian_regression<scalartype, lhs_dmn_t, rhs_dmn_t>::compute_A(double eps
     for (int i = 0; i < Nc; i++)
       A(i, j) = Xt_X(i, j) + S(i, j);
 
-  LIN_ALG::PSEUDO_INVERSE<linalg::CPU>::execute(A, A_inv);
+  linalg::matrixop::pseudoInverse(A, A_inv);
 
   linalg::matrixop::gemm('N', 'C', A_inv, X, A_inv_X);
 }

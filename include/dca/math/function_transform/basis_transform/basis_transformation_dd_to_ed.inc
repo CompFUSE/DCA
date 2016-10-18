@@ -67,6 +67,6 @@ public:
 
     matrix_type& T_inv = inverse_basis_transformation_type::get_transformation_matrix();
 
-    LIN_ALG::PSEUDO_INVERSE<dca::linalg::CPU>::execute(T_inv, T);
+    dca::linalg::matrixop::pseudoInverse(T_inv, T);
   }
 };

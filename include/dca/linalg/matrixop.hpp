@@ -12,7 +12,7 @@
 // - copyCol, copyRow, copyCols, copyRows
 // - difference
 // - insertCol, insertRow (for CPU matrices only)
-// - inverse,
+// - inverse
 // - removeCol, removeRow, removeRowAndCol
 // - scaleCol, scaleRow, scaleRows
 // - swapCol, swapRow, swapRowAndCol
@@ -20,6 +20,7 @@
 // - gemm
 // - trsm
 // - eigensolver (non-symmetric / symmetric / Hermitian)
+// - pseudoInverse
 
 #ifndef DCA_LINALG_MATRIXOP_HPP
 #define DCA_LINALG_MATRIXOP_HPP
@@ -854,6 +855,70 @@ void eigensolverGreensFunctionMatrix(char jobv, char uplo,
     return;
   }
   eigensolverHermitian(jobv, uplo, a, lambda, v);
+}
+
+// Computes the pseudo inverse of the matrix.
+// Out: a_inv
+// Postconditions: a_inv is resized to the needed dimension.
+template <typename ScalarType>
+void pseudoInverse(const Matrix<ScalarType, CPU>& a, Matrix<ScalarType, CPU>& a_inv,
+                   double eps = 1.e-6) {
+  int m = a.nrRows();
+  int n = a.nrCols();
+  a_inv.resizeNoCopy(std::make_pair(n, m));
+
+  using RealType = decltype(std::real(*a.ptr()));
+
+  if (m <= n) {
+    // a_inv = a'*inv(a*a')
+    // inv(a*a') = v*inv(lambda)*v', [lambda, v] = eig(a*a')
+
+    Matrix<ScalarType, CPU> a_at("A_At", m);
+    dca::linalg::matrixop::gemm('N', 'C', a, a, a_at);
+
+    dca::linalg::Vector<RealType, CPU> lambda("Lambda", m);
+    Matrix<ScalarType, CPU> v("V", m);
+
+    eigensolverHermitian('V', 'U', a_at, lambda, v);
+    Matrix<ScalarType, CPU> vt(v);
+
+    for (int j = 0; j < m; j++) {
+      ScalarType lambda_inv = 0;
+
+      if (lambda[j] > eps * lambda[m - 1])
+        lambda_inv = 1. / lambda[j];
+
+      scaleCol(v, j, lambda_inv);
+    }
+
+    gemm('N', 'C', v, vt, a_at);
+    gemm('C', 'N', a, a_at, a_inv);
+  }
+  else {
+    // a_inv = inv(a'*a)*a'
+    // inv(a'*a) = v*inv(lambda)*v', [lambda, v] = eig(a'*a)
+
+    Matrix<ScalarType, CPU> at_a("at_a", n);
+    dca::linalg::matrixop::gemm('C', 'N', a, a, at_a);
+
+    dca::linalg::Vector<RealType, CPU> lambda("Lambda", n);
+    Matrix<ScalarType, CPU> v("V", n);
+
+    eigensolverHermitian('V', 'U', at_a, lambda, v);
+    Matrix<ScalarType, CPU> vt(v);
+
+    for (int j = 0; j < n; j++) {
+      ScalarType lambda_inv = 0;
+
+      if (lambda[j] > eps * lambda[n - 1])
+        lambda_inv = 1. / lambda[j];
+
+      scaleCol(v, j, lambda_inv);
+    }
+
+    gemm('N', 'C', v, vt, at_a);
+    gemm('N', 'C', at_a, a, a_inv);
+  }
 }
 }  // matrixop
 }  // linalg

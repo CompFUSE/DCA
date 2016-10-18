@@ -98,7 +98,7 @@ void gaussian_fit<scalar_type, K_dmn_t, k_dmn_t>::initialize_interpolation_matri
 
   linalg::Matrix<scalar_type, linalg::CPU> K_K_inv("K_K_inv", std::pair<int, int>(N_c, N_c));
 
-  LIN_ALG::PSEUDO_INVERSE<linalg::CPU>::execute(K_K, K_K_inv);
+  linalg::matrixop::pseudoInverse(K_K, K_K_inv);
 
   linalg::Matrix<scalar_type, linalg::CPU> interpolation_matrix_tmp("K_K_inv",
                                                                     std::pair<int, int>(N_r, N_c));

@@ -35,9 +35,6 @@
 #include "src/linalg_operations/GESV_tem.h"
 #include "src/linalg_operations/GESV_CPU.h"
 
-#include "src/linalg_operations/PSEUDO_INVERSE_tem.h"
-#include "src/linalg_operations/PSEUDO_INVERSE_CPU.h"
-
 // Performance inspector
 #include "src/linalg_structures/performance_inspector_tem.h"
 #include "src/linalg_structures/performance_inspector_CPU.h"

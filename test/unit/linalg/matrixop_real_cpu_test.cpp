@@ -436,6 +436,69 @@ TYPED_TEST(MatrixopRealCPUTest, Inverse) {
   }
 }
 
+TYPED_TEST(MatrixopRealCPUTest, PseudoInverse) {
+  using ScalarType = TypeParam;
+  auto val = [](int i, int j) { return 10 * i + j * j / (i + 1); };
+  auto val0 = [](int, int) { return 0; };
+  {
+    std::pair<int, int> size(2, 3);
+    dca::linalg::Matrix<ScalarType, dca::linalg::CPU> mat(size);
+    dca::linalg::Matrix<ScalarType, dca::linalg::CPU> invmat;
+    dca::linalg::Matrix<ScalarType, dca::linalg::CPU> res(std::min(size.first, size.second));
+
+    testing::setMatrixElements(mat, val);
+    dca::linalg::matrixop::pseudoInverse(mat, invmat);
+    if (size.first <= size.second)
+      dca::linalg::matrixop::gemm(mat, invmat, res);
+    else
+      dca::linalg::matrixop::gemm(invmat, mat, res);
+
+    for (int j = 0; j < res.nrCols(); ++j) {
+      for (int i = 0; i < res.nrRows(); ++i) {
+        if (i == j)
+          EXPECT_NEAR(1, res(i, j), 1000 * this->epsilon);
+        else
+          EXPECT_NEAR(0, res(i, j), 1000 * this->epsilon);
+      }
+    }
+
+    // Check eigenvalue exclusion below threshold.
+    testing::setMatrixElements(mat, val0);
+    mat(0, 0) = 20.;
+    mat(1, 1) = .1;
+    dca::linalg::matrixop::pseudoInverse(mat, invmat, 1e-6);
+    if (size.first <= size.second)
+      dca::linalg::matrixop::gemm(mat, invmat, res);
+    else
+      dca::linalg::matrixop::gemm(invmat, mat, res);
+
+    for (int j = 0; j < res.nrCols(); ++j) {
+      for (int i = 0; i < res.nrRows(); ++i) {
+        if (i == j)
+          EXPECT_NEAR(1, res(i, j), 100 * this->epsilon);
+        else
+          EXPECT_NEAR(0, res(i, j), 100 * this->epsilon);
+      }
+    }
+
+    // Check eigenvalue exclusion above threshold.
+    dca::linalg::matrixop::pseudoInverse(mat, invmat, 3.9e-4);
+    if (size.first <= size.second)
+      dca::linalg::matrixop::gemm(mat, invmat, res);
+    else
+      dca::linalg::matrixop::gemm(invmat, mat, res);
+
+    for (int j = 0; j < res.nrCols(); ++j) {
+      for (int i = 0; i < res.nrRows(); ++i) {
+        if (i == j && i == 0)
+          EXPECT_NEAR(1, res(i, j), 100 * this->epsilon);
+        else
+          EXPECT_NEAR(0, res(i, j), 100 * this->epsilon);
+      }
+    }
+  }
+}
+
 TYPED_TEST(MatrixopRealCPUTest, RemoveRowCol) {
   using ScalarType = TypeParam;
   std::pair<int, int> size2(3, 4);
