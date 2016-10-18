@@ -556,7 +556,7 @@ double CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::apply_bennett_on_Gamma(
         c_ptr[i] += Gamma_LU(i, k) * Gamma_LU(k, k);
     }
 
-    LIN_ALG::BENNET<dca::linalg::CPU>::standard_Bennet(n, ld, &Gamma_LU(0, 0), c_ptr, r_ptr);
+    dca::linalg::lapack::standardBennet(n, ld, &Gamma_LU(0, 0), c_ptr, r_ptr);
   }
 
   {  // remove the row
@@ -580,7 +580,7 @@ double CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::apply_bennett_on_Gamma(
         r_ptr[i] += Gamma_LU(k, i) * Gamma_LU(i, i);
     }
 
-    LIN_ALG::BENNET<dca::linalg::CPU>::standard_Bennet(n, ld, &Gamma_LU(0, 0), c_ptr, r_ptr);
+    dca::linalg::lapack::standardBennet(n, ld, &Gamma_LU(0, 0), c_ptr, r_ptr);
   }
 
   double ratio = 1.;

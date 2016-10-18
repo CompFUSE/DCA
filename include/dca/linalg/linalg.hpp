@@ -19,14 +19,41 @@
 #include "dca/linalg/blas/blas2.hpp"
 #include "dca/linalg/blas/blas3.hpp"
 
+#include "dca/linalg/lapack/bennet_update.hpp"
+#include "dca/linalg/lapack/inverse.hpp"
+#include "dca/linalg/lapack/lapack.hpp"
+
 #ifdef DCA_HAVE_CUDA
 // CUBLAS
 #include "dca/linalg/blas/cublas1.hpp"
 #include "dca/linalg/blas/cublas3.hpp"
+#include "dca/linalg/blas/cublas_conversion_char_types.hpp"
+#include "dca/linalg/blas/kernels_gpu.hpp"
+
+#include "dca/linalg/lapack/laset_gpu.hpp"
+#include "dca/linalg/lapack/magma.hpp"
+#include "dca/linalg/lapack/multiply_diagonal_gpu.hpp"
 #endif  // DCA_HAVE_CUDA
 
-#include "dca/linalg/lapack/lapack.hpp"
-
 // Device selector struct
+#include "dca/linalg/device_type.hpp"
 #include "dca/linalg/blas/use_device.hpp"
 #include "dca/linalg/lapack/use_device.hpp"
+
+// Utils
+#include "dca/linalg/util/copy.hpp"
+#include "dca/linalg/util/def.hpp"
+#include "dca/linalg/util/memory.hpp"
+#include "dca/linalg/util/util_lapack.hpp"
+#include "dca/linalg/util/util_matrixop.hpp"
+#ifdef DCA_HAVE_CUDA
+#include "dca/linalg/util/cast_cuda.hpp"
+#include "dca/linalg/util/error_cublas.hpp"
+#include "dca/linalg/util/error_cuda.hpp"
+#include "dca/linalg/util/handle_container.hpp"
+#include "dca/linalg/util/handle_functions.hpp"
+#include "dca/linalg/util/info_cuda.hpp"
+#include "dca/linalg/util/stream_container.hpp"
+#include "dca/linalg/util/stream_functions.hpp"
+#include "dca/linalg/util/util_cublas.hpp"
+#endif  // DCA_HAVE_CUDA
