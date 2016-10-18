@@ -522,7 +522,7 @@ void data<parameters_type>::compute_dmft_band_structure() {
         for (int j = 0; j < o_dmft::dmn_size(); j++)
           H_mat(i, j) = H_0_dmft(l, i, j);
 
-      LIN_ALG::GEEV<dca::linalg::CPU>::execute('N', 'U', H_mat, L_vec, V_mat);
+      dca::linalg::matrixop::eigensolverHermitian('N', 'U', H_mat, L_vec, V_mat);
 
       for (int i = 0; i < o_dmft::dmn_size(); i++)
         E_0_dmft(l, i) = L_vec[i];

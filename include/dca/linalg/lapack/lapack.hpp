@@ -57,6 +57,18 @@ void zgeev_(const char* job_vl, const char* job_vr, const int* n, std::complex<d
             const int* lda, std::complex<double>* w, std::complex<double>* vl, const int* ldvl,
             std::complex<double>* vr, const int* ldvr, std::complex<double>* work, const int* lwork,
             double* rwork, int* info);
+
+void ssyevd_(const char* job_v, const char* uplo, const int* n, float* a, const int* lda, float* w,
+             float* work, const int* lwork, int* iwork, const int* liwork, int* info);
+void dsyevd_(const char* job_v, const char* uplo, const int* n, double* a, const int* lda,
+             double* w, double* work, const int* lwork, int* iwork, const int* liwork, int* info);
+
+void cheevd_(const char* job_v, const char* uplo, const int* n, std::complex<float>* a,
+             const int* lda, float* w, std::complex<float>* work, const int* lwork, float* rwork,
+             const int* lrwork, int* iwork, const int* liwork, int* info);
+void zheevd_(const char* job_v, const char* uplo, const int* n, std::complex<double>* a,
+             const int* lda, double* w, std::complex<double>* work, const int* lwork, double* rwork,
+             const int* lrwork, int* iwork, const int* liwork, int* info);
 }
 
 // C++ wrappers
@@ -150,6 +162,34 @@ inline void geev(const char* job_vl, const char* job_vr, int n, std::complex<dou
                  double* rwork) {
   int info = 0;
   zgeev_(job_vl, job_vr, &n, a, &lda, w, vl, &ldvl, vr, &ldvr, work, &lwork, rwork, &info);
+  checkLapackInfo(info);
+}
+
+inline void syevd(const char* job_v, const char* uplo, int n, float* a, int lda, float* w,
+                  float* work, int lwork, int* iwork, int liwork) {
+  int info = 0;
+  ssyevd_(job_v, uplo, &n, a, &lda, w, work, &lwork, iwork, &liwork, &info);
+  checkLapackInfo(info);
+}
+inline void syevd(const char* job_v, const char* uplo, int n, double* a, int lda, double* w,
+                  double* work, int lwork, int* iwork, int liwork) {
+  int info = 0;
+  dsyevd_(job_v, uplo, &n, a, &lda, w, work, &lwork, iwork, &liwork, &info);
+  checkLapackInfo(info);
+}
+
+inline void heevd(const char* job_v, const char* uplo, int n, std::complex<float>* a, int lda,
+                  float* w, std::complex<float>* work, int lwork, float* rwork, int lrwork,
+                  int* iwork, int liwork) {
+  int info = 0;
+  cheevd_(job_v, uplo, &n, a, &lda, w, work, &lwork, rwork, &lrwork, iwork, &liwork, &info);
+  checkLapackInfo(info);
+}
+inline void heevd(const char* job_v, const char* uplo, int n, std::complex<double>* a, int lda,
+                  double* w, std::complex<double>* work, int lwork, double* rwork, int lrwork,
+                  int* iwork, int liwork) {
+  int info = 0;
+  zheevd_(job_v, uplo, &n, a, &lda, w, work, &lwork, rwork, &lrwork, iwork, &liwork, &info);
   checkLapackInfo(info);
 }
 

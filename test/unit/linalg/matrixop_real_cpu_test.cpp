@@ -326,6 +326,39 @@ TYPED_TEST(MatrixopRealCPUTest, Eigensolver) {
   EXPECT_NEAR(1., vr(0, 1) / vr(1, 1), 100 * this->epsilon);
 }
 
+TYPED_TEST(MatrixopRealCPUTest, EigensolverSymmetric) {
+  using ScalarType = TypeParam;
+  int size = 2;
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> mat(size);
+  mat(0, 0) = 2.;
+  mat(0, 1) = 1.;
+  mat(1, 0) = 1.;
+  mat(1, 1) = 2.;
+
+  dca::linalg::Vector<ScalarType, dca::linalg::CPU> w;
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> v;
+
+  dca::linalg::matrixop::eigensolverSymmetric('V', 'U', mat, w, v);
+  EXPECT_EQ(w.size(), size);
+  EXPECT_EQ(v.size(), std::make_pair(size, size));
+
+  EXPECT_NEAR(1., w[0], 100 * this->epsilon);
+  EXPECT_NEAR(-1., v(0, 0) / v(1, 0), 100 * this->epsilon);
+
+  EXPECT_NEAR(3., w[1], 100 * this->epsilon);
+  EXPECT_NEAR(1., v(0, 1) / v(1, 1), 100 * this->epsilon);
+
+  dca::linalg::matrixop::eigensolverHermitian('V', 'U', mat, w, v);
+  EXPECT_EQ(w.size(), size);
+  EXPECT_EQ(v.size(), std::make_pair(size, size));
+
+  EXPECT_NEAR(1., w[0], 100 * this->epsilon);
+  EXPECT_NEAR(-1., v(0, 0) / v(1, 0), 100 * this->epsilon);
+
+  EXPECT_NEAR(3., w[1], 100 * this->epsilon);
+  EXPECT_NEAR(1., v(0, 1) / v(1, 1), 100 * this->epsilon);
+}
+
 TYPED_TEST(MatrixopRealCPUTest, Laset) {
   using ScalarType = TypeParam;
   std::pair<int, int> size(3, 5);

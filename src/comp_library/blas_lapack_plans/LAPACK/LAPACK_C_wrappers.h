@@ -31,64 +31,6 @@ extern "C" void cgesv_(int*, int*, std::complex<float>*, int*, int*, std::comple
 extern "C" void zgesv_(int*, int*, std::complex<double>*, int*, int*, std::complex<double>*, int*,
                        int*);
 
-// eigenvalue decomposition
-
-extern "C" void ssyev_(char* JOBZ, char* UPLO, int* N, float* Matrix, int* LDA, float* eigenvalues,
-                       float* WORK, int* LWORK, int* INFO);
-extern "C" void dsyev_(char* JOBZ, char* UPLO, int* N, double* Matrix, int* LDA,
-                       double* eigenvalues, double* WORK, int* LWORK, int* INFO);
-extern "C" void cheev_(char* jobz, char* uplo, int* n, std::complex<float>* a, int* lda, float* w,
-                       std::complex<float>* work, int* lwork, float* rwork, int* info);
-extern "C" void zheev_(char* jobz, char* uplo, int* n, std::complex<double>* a, int* lda, double* w,
-                       std::complex<double>* work, int* lwork, double* rwork, int* info);
-extern "C" void ssyevd_(char* JOBZ, char* UPLO, int* N, float* Matrix, int* LDA, float* eigenvalues,
-                        float* WORK, int* LWORK, int* IWORK, int* LIWORK, int* INFO);
-extern "C" void dsyevd_(char* JOBZ, char* UPLO, int* N, double* Matrix, int* LDA, double* eigenvalues,
-                        double* WORK, int* LWORK, int* IWORK, int* LIWORK, int* INFO);
-
-extern "C" void cheevd_(char* jobz, char* uplo, int* n, std::complex<float>* a, int* lda, float* w,
-                        std::complex<float>* work, int* lwork, float* rwork, int* LRWORK,
-                        int* IWORK, int* LIWORK, int* info);
-extern "C" void zheevd_(char* jobz, char* uplo, int* n, std::complex<double>* a, int* lda,
-                        double* w, std::complex<double>* work, int* lwork, double* rwork,
-                        int* LRWORK, int* IWORK, int* LIWORK, int* info);
-extern "C" void ssyevx_(char* JOBZ, char* RANGE, char* UPLO, int* N, float* A, int* LDA, float* VL,
-                        float* VU, int* IL, int* UL, float* ABSTOL, int* M, float* W, float* Z,
-                        int* LDZ, float* WORK, int* LWORK, int* IWORK, int* IFAIL, int* INFO);
-
-extern "C" void dsyevx_(char* JOBZ, char* RANGE, char* UPLO, int* N, double* A, int* LDA, double* VL,
-                        double* VU, int* IL, int* UL, double* ABSTOL, int* M, double* W, double* Z,
-                        int* LDZ, double* WORK, int* LWORK, int* IWORK, int* IFAIL, int* INFO);
-
-extern "C" void cheevx_(char* JOBZ, char* RANGE, char* UPLO, int* N, std::complex<float>* A,
-                        int* LDA, float* VL, float* VU, int* IL, int* UL, float* ABSTOL, int* M,
-                        float* W, std::complex<float>* Z, int* LDZ, std::complex<float>* WORK,
-                        int* LWORK, float* RWORK, int* LRWORK, int* IWORK, int* IFAIL, int* INFO);
-
-extern "C" void zheevx_(char* JOBZ, char* RANGE, char* UPLO, int* N, std::complex<double>* A,
-                        int* LDA, double* VL, double* VU, int* IL, int* UL, double* ABSTOL, int* M,
-                        double* W, std::complex<double>* Z, int* LDZ, std::complex<double>* WORK,
-                        int* LWORK, double* RWORK, int* LRWORK, int* IWORK, int* IFAIL, int* INFO);
-extern "C" void ssyevr_(char* JOBZ, char* RANGE, char* UPLO, int* N, float* A, int* LDA, float* VL,
-                        float* VU, int* IL, int* UL, float* ABSTOL, int* M, float* W, float* Z,
-                        int* LDZ, int* ISUPPZ, float* WORK, int* LWORK, int* IWORK, int* LIWORK,
-                        int* INFO);
-
-extern "C" void dsyevr_(char* JOBZ, char* RANGE, char* UPLO, int* N, double* A, int* LDA,
-                        double* VL, double* VU, int* IL, int* UL, double* ABSTOL, int* M, double* W,
-                        double* Z, int* LDZ, int* ISUPPZ, double* WORK, int* LWORK, int* IWORK,
-                        int* LIWORK, int* INFO);
-
-extern "C" void cheevr_(char* JOBZ, char* RANGE, char* UPLO, int* N, std::complex<float>* A, int* LDA,
-                        float* VL, float* VU, int* IL, int* UL, float* ABSTOL, int* M, float* W,
-                        std::complex<float>* Z, int* LDZ, int* ISUPPZ, std::complex<float>* WORK,
-                        int* LWORK, float* RWORK, int* LRWORK, int* IWORK, int* LIWORK, int* INFO);
-
-extern "C" void zheevr_(char* JOBZ, char* RANGE, char* UPLO, int* N, std::complex<double>* A,
-                        int* LDA, double* VL, double* VU, int* IL, int* UL, double* ABSTOL, int* M,
-                        double* W, std::complex<double>* Z, int* LDZ, int* ISUPPZ,
-                        std::complex<double>* WORK, int* LWORK, double* RWORK, int* LRWORK,
-                        int* IWORK, int* LIWORK, int* INFO);
 } /* namespace LAPACK */
 
 #endif  // PSIMAG_LAPACK_H

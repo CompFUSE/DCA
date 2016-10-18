@@ -553,8 +553,7 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::diagonolize_full_Gamma_chi_
 
     dca::linalg::Matrix<scalartype, dca::linalg::CPU> VR("VR (BSE_lattice_solver)", N);
 
-    LIN_ALG::GEEV<dca::linalg::CPU>::execute('V', 'U', chi_0_Gamma_chi_0, L,
-                                             VR);  // dsyev lapack routine
+    dca::linalg::matrixop::eigensolverHermitian('V', 'U', chi_0_Gamma_chi_0, L, VR);
 
     if (concurrency.id() == concurrency.last())
       std::cout << " finished " << dca::util::print_time() << "\n";

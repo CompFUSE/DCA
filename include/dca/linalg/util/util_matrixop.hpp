@@ -16,6 +16,7 @@
 
 #include <cassert>
 #include <stdexcept>
+#include <tuple>
 
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/util/util_lapack.hpp"
@@ -71,7 +72,34 @@ int getEigensolverWorkSize(char jobvl, char jobvr, Matrix<std::complex<ScalarTyp
                ld, nullptr, ld, &tmp, -1, nullptr);
   return lapack::util::getWorkSize(tmp);
 }
+// Returns optimal lwork and liwork for the symmetric eigensolver.
+// In: mat
+template <typename ScalarType>
+std::tuple<int, int> getEigensolverSymmetricWorkSize(char jobv, char uplo,
+                                                     Matrix<ScalarType, CPU>& mat) {
+  assert(mat.is_square());
 
+  ScalarType tmp1;
+  int tmp2;
+  lapack::syevd(&jobv, &uplo, mat.nrRows(), mat.ptr(), mat.leadingDimension(), nullptr, &tmp1, -1,
+                &tmp2, -1);
+  return std::make_tuple(lapack::util::getWorkSize(tmp1), tmp2);
+}
+
+// Returns optimal lwork and liwork for the symmetric eigensolver.
+// In: mat
+template <typename ScalarType>
+std::tuple<int, int, int> getEigensolverHermitianWorkSize(char jobv, char uplo,
+                                                          Matrix<std::complex<ScalarType>, CPU>& mat) {
+  assert(mat.is_square());
+
+  std::complex<ScalarType> tmp1;
+  ScalarType tmp2;
+  int tmp3;
+  lapack::heevd(&jobv, &uplo, mat.nrRows(), mat.ptr(), mat.leadingDimension(), nullptr, &tmp1, -1,
+                &tmp2, -1, &tmp3, -1);
+  return std::make_tuple(lapack::util::getWorkSize(tmp1), lapack::util::getWorkSize(tmp2), tmp3);
+}
 }  // util
 }  // matrixop
 }  // linalg

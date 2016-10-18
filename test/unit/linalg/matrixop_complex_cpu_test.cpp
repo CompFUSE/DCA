@@ -323,6 +323,29 @@ TYPED_TEST(MatrixopComplexCPUTest, Eigensolver) {
   EXPECT_GE(100 * this->epsilon, std::abs(ScalarType(1) - vr(0, 1) / vr(1, 1)));
 }
 
+TYPED_TEST(MatrixopComplexCPUTest, EigensolverHermitian) {
+  using ScalarType = TypeParam;
+  int size = 2;
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> mat(size);
+  mat(0, 0) = ScalarType(2, 0);
+  mat(0, 1) = ScalarType(0, 1);
+  mat(1, 0) = ScalarType(0, -1);
+  mat(1, 1) = ScalarType(2, 0);
+
+  dca::linalg::Vector<typename ScalarType::value_type, dca::linalg::CPU> w;
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> v;
+
+  dca::linalg::matrixop::eigensolverHermitian('V', 'U', mat, w, v);
+  EXPECT_EQ(w.size(), size);
+  EXPECT_EQ(v.size(), std::make_pair(size, size));
+
+  EXPECT_NEAR(1., w[0], 100 * this->epsilon);
+  EXPECT_GE(100 * this->epsilon, std::abs(ScalarType(0, -1) - v(0, 0) / v(1, 0)));
+
+  EXPECT_NEAR(3., w[1], 100 * this->epsilon);
+  EXPECT_GE(100 * this->epsilon, std::abs(ScalarType(0, 1) - v(0, 1) / v(1, 1)));
+}
+
 TYPED_TEST(MatrixopComplexCPUTest, Laset) {
   using ScalarType = TypeParam;
   std::pair<int, int> size(3, 35);

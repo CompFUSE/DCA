@@ -32,9 +32,6 @@
 #include "src/linalg_operations/BENNET_tem.h"
 #include "src/linalg_operations/BENNET_CPU.h"
 
-#include "src/linalg_operations/GEEV_tem.h"
-#include "src/linalg_operations/GEEV_CPU.h"
-
 #include "src/linalg_operations/GESV_tem.h"
 #include "src/linalg_operations/GESV_CPU.h"
 

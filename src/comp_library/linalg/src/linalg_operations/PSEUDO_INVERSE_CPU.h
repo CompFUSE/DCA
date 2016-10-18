@@ -34,7 +34,7 @@ namespace LIN_ALG
 	      // inv(A*A') = V*inv(D)*V';   [D, V] = eig(A*A')
 
 	      
-	      GEEV<CPU>::execute('V', 'U', A_At, S, V);	      
+              dca::linalg::matrixop::eigensolverHermitian('V', 'U', A_At, S, V);	      
 
 	      Vt = V;
 	      
@@ -68,7 +68,7 @@ namespace LIN_ALG
 	    {
 	      // inv(A'*A) = V*inv(D)*V';   [D, V] = eig(A'*A)	    
 	      
-	      GEEV<CPU>::execute('V', 'U', At_A, S, V);
+              dca::linalg::matrixop::eigensolverHermitian('V', 'U', At_A, S, V);
 	      
 	      Vt = V;
 	      
@@ -112,7 +112,7 @@ namespace LIN_ALG
 	    {
 	      // inv(A*A') = V*inv(D)*V';   [D, V] = eig(A*A')
 
-	      GEEV<CPU>::execute('V', 'U', A_At, S, V);
+              dca::linalg::matrixop::eigensolverHermitian('V', 'U', A_At, S, V);
 
 	      Vt = V;
 	      
@@ -150,7 +150,7 @@ namespace LIN_ALG
 	    {
 	      // inv(A'*A) = V*inv(D)*V';   [D, V] = eig(A'*A)	    
 	      
-	      GEEV<CPU>::execute('V', 'U', At_A, S, V);
+              dca::linalg::matrixop::eigensolverHermitian('V', 'U', At_A, S, V);
 	      
 	      Vt = V;
 	      

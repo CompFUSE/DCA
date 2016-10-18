@@ -26,6 +26,7 @@
 
 #include <cassert>
 #include <cstring>
+#include <tuple>
 
 #include "dca/linalg/blas/use_device.hpp"
 #include "dca/linalg/lapack/use_device.hpp"
@@ -765,6 +766,94 @@ void eigensolver(char jobvl, char jobvr, const Matrix<std::complex<ScalarType>, 
 
   lapack::geev(&jobvl, &jobvr, a_copy.nrRows(), a_copy.ptr(), a_copy.leadingDimension(),
                lambda.ptr(), vl.ptr(), ldvl, vr.ptr(), ldvr, work.ptr(), work.size(), rwork.ptr());
+}
+
+// Computes the eigenvalue, and the eigenvectors (if jobv == 'V') of the real symmetric matrix a.
+// if uplo == 'U' the upper triangular part of a is referenced, whereas
+// if uplo == 'L' the lower triangular part of a is referenced.
+// The eigenvalue are stored in lambda.
+// If computed the eigenvectors are stored in v.
+// Out: lambda, v
+// Precondition: jobv == 'N' or jobv == 'V',
+//               uplo == 'U' or uplo == 'L',
+//               a is a square matrix.
+// Postcondition: lambda, and v are resized.
+template <typename ScalarType>
+void eigensolverSymmetric(char jobv, char uplo, const Matrix<ScalarType, CPU>& a,
+                          Vector<ScalarType, CPU>& lambda, Matrix<ScalarType, CPU>& v) {
+  assert(a.is_square());
+
+  lambda.resizeNoCopy(a.nrRows());
+  v = a;
+
+  // Get optimal worksize.
+  auto lwork = util::getEigensolverSymmetricWorkSize(jobv, uplo, v);
+  dca::linalg::Vector<ScalarType, CPU> work(std::get<0>(lwork));
+  dca::linalg::Vector<int, CPU> iwork(std::get<1>(lwork));
+
+  lapack::syevd(&jobv, &uplo, v.nrRows(), v.ptr(), v.leadingDimension(), lambda.ptr(), work.ptr(),
+                work.size(), iwork.ptr(), iwork.size());
+}
+// For real types Hermitian and symmetric is the same.
+template <typename ScalarType>
+inline void eigensolverHermitian(char jobv, char uplo, const Matrix<ScalarType, CPU>& a,
+                                 Vector<ScalarType, CPU>& lambda, Matrix<ScalarType, CPU>& v) {
+  eigensolverSymmetric(jobv, uplo, a, lambda, v);
+}
+
+// Computes the eigenvalue, and the eigenvectors (if jobv == 'V') of the complex Hermitian matrix a.
+// if uplo == 'U' the upper triangular part of a is referenced, whereas
+// if uplo == 'L' the lower triangular part of a is referenced.
+// The eigenvalue are stored in lambda.
+// If computed the eigenvectors are stored in v.
+// Out: lambda, v
+// Precondition: jobv == 'N' or jobv == 'V',
+//               uplo == 'U' or uplo == 'L',
+//               a is a square matrix.
+// Postcondition: lambda, and v are resized.
+template <typename ScalarType>
+void eigensolverHermitian(char jobv, char uplo, const Matrix<std::complex<ScalarType>, CPU>& a,
+                          Vector<ScalarType, CPU>& lambda, Matrix<std::complex<ScalarType>, CPU>& v) {
+  assert(a.is_square());
+
+  lambda.resizeNoCopy(a.nrRows());
+  v = a;
+
+  // Get optimal worksize.
+  auto lwork = util::getEigensolverHermitianWorkSize(jobv, uplo, v);
+  dca::linalg::Vector<std::complex<ScalarType>, CPU> work(std::get<0>(lwork));
+  dca::linalg::Vector<ScalarType, CPU> rwork(std::get<1>(lwork));
+  dca::linalg::Vector<int, CPU> iwork(std::get<2>(lwork));
+
+  lapack::heevd(&jobv, &uplo, v.nrRows(), v.ptr(), v.leadingDimension(), lambda.ptr(), work.ptr(),
+                work.size(), rwork.ptr(), rwork.size(), iwork.ptr(), iwork.size());
+}
+
+template <typename ScalarType>
+void eigensolverGreensFunctionMatrix(char jobv, char uplo,
+                                     const Matrix<std::complex<ScalarType>, CPU>& a,
+                                     Vector<ScalarType, CPU>& lambda,
+                                     Matrix<std::complex<ScalarType>, CPU>& v) {
+  assert(a.is_square());
+  int n = a.nrRows();
+  assert(n % 2 == 0);
+
+  if (n == 2) {
+    lambda.resize(2);
+    v.resize(2);
+
+    assert(std::abs(std::imag(a(0, 0))) < 1.e-6);
+    assert(std::abs(std::imag(a(1, 1))) < 1.e-6);
+
+    lambda[0] = std::real(a(0, 0));
+    lambda[1] = std::real(a(1, 1));
+    v(0, 0) = 1.;
+    v(1, 0) = 0.;
+    v(0, 1) = 0.;
+    v(1, 1) = 1.;
+    return;
+  }
+  eigensolverHermitian(jobv, uplo, a, lambda, v);
 }
 }  // matrixop
 }  // linalg
