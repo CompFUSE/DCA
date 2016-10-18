@@ -581,43 +581,36 @@ double cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type,
   //     double L2_difference_norm = 0;
   //     double L2_Sigma_norm      = 0;
 
-  int matrix_size = b::dmn_size() * s::dmn_size() * b::dmn_size() * s::dmn_size();
   int matrix_dim = b::dmn_size() * s::dmn_size();
 
-  std::complex<double>* G_inverted_matrix = new std::complex<double>[matrix_size];
-  std::complex<double>* G0_cluster_excluded_inverted_matrix = new std::complex<double>[matrix_size];
-  std::complex<double>* Sigma_matrix = new std::complex<double>[matrix_size];
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G_inverted_matrix(matrix_dim);
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G0_cluster_excluded_inverted_matrix(
+      matrix_dim);
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> sigma_matrix(matrix_dim);
+
+  dca::linalg::Vector<int, dca::linalg::CPU> ipiv;
+  dca::linalg::Vector<std::complex<double>, dca::linalg::CPU> work;
 
   // Sigma = 1/G0 - 1/G
 
   for (int k_ind = 0; k_ind < k_DCA::dmn_size(); k_ind++) {
     for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++) {
-      memcpy(Sigma_matrix, &MOMS.Sigma(0, 0, 0, 0, k_ind, w_ind),
-             sizeof(std::complex<double>) * matrix_size);
+      dca::linalg::matrixop::copyArrayToMatrix(matrix_dim, matrix_dim,
+                                               &MOMS.G_k_w(0, 0, 0, 0, k_ind, w_ind), matrix_dim,
+                                               G_inverted_matrix);
+      dca::linalg::matrixop::inverse(G_inverted_matrix, ipiv, work);
 
-      {
-        invert_plan<std::complex<double>> invert_pln(matrix_dim);
-        memcpy(invert_pln.Matrix, &MOMS.G_k_w(0, 0, 0, 0, k_ind, w_ind),
-               sizeof(std::complex<double>) * matrix_size);
-        invert_pln.execute_plan();
-        memcpy(G_inverted_matrix, invert_pln.inverted_matrix,
-               sizeof(std::complex<double>) * matrix_size);
-      }
+      dca::linalg::matrixop::copyArrayToMatrix(
+          matrix_dim, matrix_dim, &MOMS.G0_k_w_cluster_excluded(0, 0, 0, 0, k_ind, w_ind),
+          matrix_dim, G0_cluster_excluded_inverted_matrix);
+      dca::linalg::matrixop::inverse(G0_cluster_excluded_inverted_matrix, ipiv, work);
 
-      {
-        invert_plan<std::complex<double>> invert_pln(matrix_dim);
-        memcpy(invert_pln.Matrix, &MOMS.G0_k_w_cluster_excluded(0, 0, 0, 0, k_ind, w_ind),
-               sizeof(std::complex<double>) * matrix_size);
-        invert_pln.execute_plan();
-        memcpy(G0_cluster_excluded_inverted_matrix, invert_pln.inverted_matrix,
-               sizeof(std::complex<double>) * matrix_size);
-      }
+      for (int j = 0; j < sigma_matrix.nrCols(); ++j)
+        for (int i = 0; i < sigma_matrix.nrRows(); ++i)
+          sigma_matrix(i, j) = G0_cluster_excluded_inverted_matrix(i, j) - G_inverted_matrix(i, j);
 
-      for (int l = 0; l < matrix_size; ++l)
-        Sigma_matrix[l] = (G0_cluster_excluded_inverted_matrix[l] - G_inverted_matrix[l]);
-
-      memcpy(&MOMS.Sigma(0, 0, 0, 0, k_ind, w_ind), Sigma_matrix,
-             sizeof(std::complex<double>) * matrix_size);
+      dca::linalg::matrixop::copyMatrixToArray(sigma_matrix, &MOMS.Sigma(0, 0, 0, 0, k_ind, w_ind),
+                                               matrix_dim);
     }
   }
 
@@ -629,10 +622,6 @@ double cluster_solver<CT_AUX_CLUSTER_SOLVER, device_t, parameters_type,
     adjust_self_energy_for_double_counting();
 
   double L2_norm = mix_self_energy(alpha);
-
-  delete[] G_inverted_matrix;
-  delete[] G0_cluster_excluded_inverted_matrix;
-  delete[] Sigma_matrix;
 
   return L2_norm;
 }

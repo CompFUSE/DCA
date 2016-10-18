@@ -47,6 +47,24 @@ namespace matrixop {
 
 using namespace ::LIN_ALG;
 
+// Copies the matrix mat in a.
+// Preconditions: lda >= mat.nrRows().
+template <typename ScalarType>
+inline void copyMatrixToArray(const Matrix<ScalarType, CPU>& mat, ScalarType* a, int lda) {
+  assert(lda >= mat.nrRows());
+  lapack::lacpy("A", mat.nrRows(), mat.nrCols(), mat.ptr(), mat.leadingDimension(), a, lda);
+}
+
+// Copies the m by n matrix stored in a to the matrix mat.
+// Preconditions: lda >= m.
+template <typename ScalarType>
+inline void copyArrayToMatrix(int m, int n, const ScalarType* a, int lda,
+                              Matrix<ScalarType, CPU>& mat) {
+  assert(lda >= m);
+  mat.resizeNoCopy(std::make_pair(m, n));
+  lapack::lacpy("A", mat.nrRows(), mat.nrCols(), a, lda, mat.ptr(), mat.leadingDimension());
+}
+
 // Copies the jx-th column of mat_x into the jy-th column of mat_y.
 // In/Out: mat_y
 // Preconditions: mat_x.nrRows() == mat_y.nrRows(),

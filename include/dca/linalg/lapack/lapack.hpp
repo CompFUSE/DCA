@@ -26,6 +26,15 @@ void claset_(const char* uplo, const int* m, const int* n, const std::complex<fl
 void zlaset_(const char* uplo, const int* m, const int* n, const std::complex<double>* alpha,
              const std::complex<double>* beta, std::complex<double>* a, const int* lda);
 
+void slacpy_(const char* uplo, const int* m, const int* n, const float* a, const int* lda, float* b,
+             const int* ldb);
+void dlacpy_(const char* uplo, const int* m, const int* n, const double* a, const int* lda,
+             double* b, const int* ldb);
+void clacpy_(const char* uplo, const int* m, const int* n, const std::complex<float>* a,
+             const int* lda, std::complex<float>* b, const int* ldb);
+void zlacpy_(const char* uplo, const int* m, const int* n, const std::complex<double>* a,
+             const int* lda, std::complex<double>* b, const int* ldb);
+
 void sgetrf_(const int* m, const int* n, float* a, const int* lda, int* ipiv, int* info);
 void dgetrf_(const int* m, const int* n, double* a, const int* lda, int* ipiv, int* info);
 void cgetrf_(const int* m, const int* n, std::complex<float>* a, const int* lda, int* ipiv,
@@ -90,6 +99,21 @@ inline void laset(const char* uplo, int m, int n, std::complex<float> alpha,
 inline void laset(const char* uplo, int m, int n, std::complex<double> alpha,
                   std::complex<double> beta, std::complex<double>* a, int lda) {
   zlaset_(uplo, &m, &n, &alpha, &beta, a, &lda);
+}
+
+inline void lacpy(const char* uplo, int m, int n, const float* a, int lda, float* b, int ldb) {
+  slacpy_(uplo, &m, &n, a, &lda, b, &ldb);
+}
+inline void lacpy(const char* uplo, int m, int n, const double* a, int lda, double* b, int ldb) {
+  dlacpy_(uplo, &m, &n, a, &lda, b, &ldb);
+}
+inline void lacpy(const char* uplo, int m, int n, const std::complex<float>* a, int lda,
+                  std::complex<float>* b, int ldb) {
+  clacpy_(uplo, &m, &n, a, &lda, b, &ldb);
+}
+inline void lacpy(const char* uplo, int m, int n, const std::complex<double>* a, int lda,
+                  std::complex<double>* b, int ldb) {
+  zlacpy_(uplo, &m, &n, a, &lda, b, &ldb);
 }
 
 inline void getrf(int m, int n, float* a, int lda, int* ipiv) {

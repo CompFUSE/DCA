@@ -313,27 +313,20 @@ void BSE_cluster_solver<parameters_type, MOMS_type>::solve_BSE_on_cluster(
 
   int N = cluster_eigenvector_dmn.get_size();
 
-  invert_plan<std::complex<scalartype>> invert_G4(N);
-  invert_plan<std::complex<scalartype>> invert_G4_0(N);
+  dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> G4_inv(N);
+  dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> G4_0_inv(N);
 
-  {
-    G_II *= renorm;
+  G_II *= renorm;
+  dca::linalg::matrixop::copyArrayToMatrix(N, N, &G_II(0), N, G4_inv);
+  dca::linalg::matrixop::inverse(G4_inv);
 
-    memcpy(&invert_G4.Matrix[0], &G_II(0), sizeof(std::complex<scalartype>) * N * N);
-    invert_G4.execute_plan();
-  }
-
-  {
-    G_II_0 *= renorm;
-
-    memcpy(&invert_G4_0.Matrix[0], &G_II_0(0), sizeof(std::complex<scalartype>) * N * N);
-    invert_G4_0.execute_plan();
-  }
+  G_II_0 *= renorm;
+  dca::linalg::matrixop::copyArrayToMatrix(N, N, &G_II_0(0), N, G4_0_inv);
+  dca::linalg::matrixop::inverse(G4_0_inv);
 
   for (int j = 0; j < N; j++)
     for (int i = 0; i < N; i++)
-      Gamma_matrix(i, j) =
-          (invert_G4_0.inverted_matrix[i + j * N] - invert_G4.inverted_matrix[i + j * N]);
+      Gamma_matrix(i, j) = G4_0_inv(i, j) - G4_inv(i, j);
 }
 
 }  // DCA
