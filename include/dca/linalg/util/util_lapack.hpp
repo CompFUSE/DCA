@@ -17,6 +17,7 @@
 #include <limits>
 #include <stdexcept>
 #include <sstream>
+#include "dca/linalg/util/lapack_exception.hpp"
 
 namespace dca {
 namespace linalg {
@@ -49,8 +50,7 @@ inline void checkLapackInfoInternal(int info, std::string function_name, std::st
       << "\n";
     s << "The Lapack function returned info = " << info << std::endl;
 
-    std::cout << s.str() << std::endl;
-    throw std::logic_error(function_name);
+    throw LapackException(s.str(), info);
   }
 }
 

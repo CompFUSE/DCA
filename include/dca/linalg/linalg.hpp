@@ -43,6 +43,7 @@
 // Utils
 #include "dca/linalg/util/copy.hpp"
 #include "dca/linalg/util/def.hpp"
+#include "dca/linalg/util/lapack_exception.hpp"
 #include "dca/linalg/util/memory.hpp"
 #include "dca/linalg/util/util_lapack.hpp"
 #include "dca/linalg/util/util_matrixop.hpp"
