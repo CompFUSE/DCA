@@ -35,6 +35,15 @@ void clacpy_(const char* uplo, const int* m, const int* n, const std::complex<fl
 void zlacpy_(const char* uplo, const int* m, const int* n, const std::complex<double>* a,
              const int* lda, std::complex<double>* b, const int* ldb);
 
+void sgesv_(const int* n, const int* nrhs, float* a, const int* lda, int* ipiv, float* b,
+            const int* ldb, int* info);
+void dgesv_(const int* n, const int* nrhs, double* a, const int* lda, int* ipiv, double* b,
+            const int* ldb, int* info);
+void cgesv_(const int* n, const int* nrhs, std::complex<float>* a, const int* lda, int* ipiv,
+            std::complex<float>* b, const int* ldb, int* info);
+void zgesv_(const int* n, const int* nrhs, std::complex<double>* a, const int* lda, int* ipiv,
+            std::complex<double>* b, const int* ldb, int* info);
+
 void sgetrf_(const int* m, const int* n, float* a, const int* lda, int* ipiv, int* info);
 void dgetrf_(const int* m, const int* n, double* a, const int* lda, int* ipiv, int* info);
 void cgetrf_(const int* m, const int* n, std::complex<float>* a, const int* lda, int* ipiv,
@@ -114,6 +123,29 @@ inline void lacpy(const char* uplo, int m, int n, const std::complex<float>* a, 
 inline void lacpy(const char* uplo, int m, int n, const std::complex<double>* a, int lda,
                   std::complex<double>* b, int ldb) {
   zlacpy_(uplo, &m, &n, a, &lda, b, &ldb);
+}
+
+inline void gesv(int n, int nrhs, float* a, int lda, int* ipiv, float* b, int ldb) {
+  int info = 0;
+  sgesv_(&n, &nrhs, a, &lda, ipiv, b, &ldb, &info);
+  checkLapackInfo(info);
+}
+inline void gesv(int n, int nrhs, double* a, int lda, int* ipiv, double* b, int ldb) {
+  int info = 0;
+  dgesv_(&n, &nrhs, a, &lda, ipiv, b, &ldb, &info);
+  checkLapackInfo(info);
+}
+inline void gesv(int n, int nrhs, std::complex<float>* a, int lda, int* ipiv,
+                 std::complex<float>* b, int ldb) {
+  int info = 0;
+  cgesv_(&n, &nrhs, a, &lda, ipiv, b, &ldb, &info);
+  checkLapackInfo(info);
+}
+inline void gesv(int n, int nrhs, std::complex<double>* a, int lda, int* ipiv,
+                 std::complex<double>* b, int ldb) {
+  int info = 0;
+  zgesv_(&n, &nrhs, a, &lda, ipiv, b, &ldb, &info);
+  checkLapackInfo(info);
 }
 
 inline void getrf(int m, int n, float* a, int lda, int* ipiv) {

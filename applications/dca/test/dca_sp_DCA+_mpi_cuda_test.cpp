@@ -61,7 +61,7 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
                                     CT_AUX_CLUSTER_SOLVER>;
   using DcaDataType = DCA_data<ParametersType>;
   using ClusterSolverType =
-      cluster_solver<CT_AUX_CLUSTER_SOLVER, LIN_ALG::GPU, ParametersType, DcaDataType>;
+      cluster_solver<CT_AUX_CLUSTER_SOLVER, linalg::GPU, ParametersType, DcaDataType>;
   using DcaLoopType = DCA_loop<ParametersType, DcaDataType, ClusterSolverType>;
 
   using w = dca::func::dmn_0<frequency_domain>;
