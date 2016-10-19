@@ -378,9 +378,4 @@ std::pair<int, int> Matrix<ScalarType, device_name>::capacityMultipleOfBlockSize
 }  // linalg
 }  // dca
 
-namespace LIN_ALG {
-template <typename ScalarType, dca::linalg::DeviceType device_name>
-using matrix = typename dca::linalg::Matrix<ScalarType, device_name>;
-}
-
 #endif  // DCA_LINALG_MATRIX_HPP

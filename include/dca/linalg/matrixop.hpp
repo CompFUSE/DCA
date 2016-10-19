@@ -45,8 +45,6 @@ namespace linalg {
 namespace matrixop {
 // dca::linalg::matrixop::
 
-using namespace ::LIN_ALG;
-
 // Copies the matrix mat in a.
 // Preconditions: lda >= mat.nrRows().
 template <typename ScalarType>
