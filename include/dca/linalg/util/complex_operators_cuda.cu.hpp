@@ -47,4 +47,4 @@ __device__ __host__ static __inline__ cuDoubleComplex operator/(const cuDoubleCo
 }  // linalg
 }  // dca
 
-#endif  // DCA_LINALG_UTIL_COMPLEX_OPERATORS_CUDA_HPP
+#endif  // DCA_LINALG_UTIL_COMPLEX_OPERATORS_CUDA_CU_HPP

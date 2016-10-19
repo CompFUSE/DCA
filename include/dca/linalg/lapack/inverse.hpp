@@ -42,4 +42,4 @@ inline void inverse(int n, Type* a, int lda) {
 }  // linalg
 }  // dca
 
-#endif  // DCA_LINALG_LAPACK_LAPACK_HPP
+#endif  // DCA_LINALG_LAPACK_INVERSE_HPP
