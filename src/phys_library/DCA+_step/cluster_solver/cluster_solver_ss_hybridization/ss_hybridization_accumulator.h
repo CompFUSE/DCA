@@ -219,7 +219,7 @@ void MC_accumulator<SS_CT_HYB, device_t, parameters_type, MOMS_type>::update_fro
   configuration.copy_from(walker.get_configuration());
 
   for (int l = 0; l < nu::dmn_size(); l++)
-    M_matrices(l).copy_from(walker.get_M_matrices()(l));
+    M_matrices(l) = walker.get_M_matrices()(l);
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>

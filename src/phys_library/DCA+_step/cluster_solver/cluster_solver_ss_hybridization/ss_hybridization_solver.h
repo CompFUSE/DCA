@@ -25,7 +25,9 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/linalg/device_type.hpp"
+#include "dca/math/function_transform/function_transform.hpp"
 #include "dca/util/print_time.hpp"
+
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_accumulator.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_solver_routines.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_walker.h"
@@ -35,6 +37,7 @@
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain.h"
 
+using namespace dca;
 using namespace dca::phys;
 
 namespace DCA {
@@ -262,7 +265,7 @@ double cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::finalize
 
   compute_G_k_w();
 
-  math_algorithms::functional_transforms::TRANSFORM<k_DCA, r_DCA>::execute(MOMS.G_k_w, MOMS.G_r_w);
+  math::transform::FunctionTransform<k_DCA, r_DCA>::execute(MOMS.G_k_w, MOMS.G_r_w);
 
   dca_info_struct.L2_Sigma_difference(DCA_iteration) = compute_S_k_w_from_G_k_w();
 
@@ -467,8 +470,7 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::symmetrize
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_G_k_w() {
-  math_algorithms::functional_transforms::TRANSFORM<r_DCA, k_DCA>::execute(accumulator.get_G_r_w(),
-                                                                           MOMS.G_k_w);
+  math::transform::FunctionTransform<r_DCA, k_DCA>::execute(accumulator.get_G_r_w(), MOMS.G_k_w);
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>

@@ -156,7 +156,7 @@ bool swap_segment_tools<hybridization_routines_type>::swap_orbitals(
     }
     else {
       vertex_vertex_matrix_type M_aux;
-      M_aux.copy_from(M(i));
+      M_aux = M(i);
       M(i).copy_from(M(j));
       M(j).copy_from(M_aux);
     }
