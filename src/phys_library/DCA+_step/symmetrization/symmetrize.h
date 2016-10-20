@@ -17,16 +17,19 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
+
 #include "phys_library/DCA+_step/symmetrization/symmetrize_single_particle_function.h"
 #include "phys_library/DCA+_step/symmetrization/symmetrize_two_particle_function.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
+
+using namespace dca::phys;
 
 class symmetrize : public symmetrize_single_particle_function,
                    public symmetrize_two_particle_function {
 public:
-  using b = func::dmn_0<electron_band_domain>;
-  using s = func::dmn_0<electron_spin_domain>;
+  using b = func::dmn_0<domains::electron_band_domain>;
+  using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
   using nu_nu = func::dmn_variadic<nu, nu>;
 

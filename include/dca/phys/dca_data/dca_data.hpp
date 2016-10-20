@@ -32,21 +32,22 @@
 #include "dca/io/json/json_writer.hpp"
 #include "dca/math/util/vector_operations.hpp"
 #include "dca/phys/dca_algorithms/compute_band_structure.hpp"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/cluster/cluster_operations.hpp"
+#include "dca/phys/domains/cluster/interpolation/hspline_interpolation/hspline_interpolation.hpp"
+#include "dca/phys/domains/cluster/interpolation/wannier_interpolation/wannier_interpolation.hpp"
+#include "dca/phys/domains/quantum/brillouin_zone_cut_domain.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/time_domain.hpp"
 #include "dca/phys/vertex_measurement_type.hpp"
 #include "dca/util/print_time.hpp"
 
 #include "comp_library/linalg/linalg.hpp"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_sp.h"
 #include "phys_library/DCA+_step/symmetrization/symmetrize.h"
-#include "phys_library/domains/cluster/cluster_domain.h"
-#include "phys_library/domains/cluster/interpolation/hspline_interpolation/hspline_interpolation.hpp"
-#include "phys_library/domains/cluster/interpolation/wannier_interpolation/wannier_interpolation.hpp"
-#include "phys_library/domains/Quantum_domain/brillouin_zone_cut_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
-#include "phys_library/domains/time_and_frequency/time_domain.h"
 
 namespace dca {
 namespace phys {
@@ -58,29 +59,34 @@ public:
   using profiler_type = typename parameters_type::profiler_type;
   using concurrency_type = typename parameters_type::concurrency_type;
 
-  using t = func::dmn_0<time_domain>;
-  using w = func::dmn_0<frequency_domain>;
-  using compact_vertex_frequency_domain_type = DCA::vertex_frequency_domain<DCA::COMPACT>;
+  using t = func::dmn_0<domains::time_domain>;
+  using w = func::dmn_0<domains::frequency_domain>;
+  using compact_vertex_frequency_domain_type = domains::vertex_frequency_domain<domains::COMPACT>;
   using w_VERTEX = func::dmn_0<compact_vertex_frequency_domain_type>;
 
-  using b = func::dmn_0<electron_band_domain>;
-  using s = func::dmn_0<electron_spin_domain>;
+  using b = func::dmn_0<domains::electron_band_domain>;
+  using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
   using nu_nu = func::dmn_variadic<nu, nu>;
 
-  using r_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                           CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>>;
-  using DCA_k_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                            CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
+  using r_DCA =
+      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
+                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
+  using DCA_k_cluster_type =
+      domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
+                              domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>;
   using k_DCA = func::dmn_0<DCA_k_cluster_type>;
-  using r_HOST = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                            LATTICE_SP, REAL_SPACE, BRILLOUIN_ZONE>>;
-  using k_HOST = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                            LATTICE_SP, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
-  using k_LDA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                           LATTICE_SP, MOMENTUM_SPACE, PARALLELLEPIPEDUM>>;
+  using r_HOST =
+      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::LATTICE_SP,
+                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
+  using k_HOST =
+      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::LATTICE_SP,
+                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
+  using k_LDA =
+      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::LATTICE_SP,
+                                          domains::MOMENTUM_SPACE, domains::PARALLELLEPIPEDUM>>;
 
-  using k_domain_cut_dmn_type = func::dmn_0<brillouin_zone_cut_domain<101>>;
+  using k_domain_cut_dmn_type = func::dmn_0<domains::brillouin_zone_cut_domain<101>>;
   using nu_k_cut = func::dmn_variadic<nu, k_domain_cut_dmn_type>;
 
   using nu_nu_k_DCA_w = func::dmn_variadic<nu, nu, k_DCA, w>;
@@ -430,8 +436,8 @@ void DcaData<parameters_type>::initialize_H_0_and_H_i() {
   parameters_type::model_type::initialize_H_symmetries(H_symmetry);
 
   {
-    wannier_interpolation<k_LDA, k_DCA>::execute(H_LDA, H_DCA);
-    wannier_interpolation<k_LDA, k_HOST>::execute(H_LDA, H_HOST);
+    domains::wannier_interpolation<k_LDA, k_DCA>::execute(H_LDA, H_DCA);
+    domains::wannier_interpolation<k_LDA, k_HOST>::execute(H_LDA, H_HOST);
 
     compute_band_structure::execute(parameters, H_LDA, band_structure);
   }
@@ -543,14 +549,14 @@ void DcaData<parameters_type>::compute_Sigma_bands() {
                                                             std::pair<double, int>(0, -1));
 
     for (int k_ind = 0; k_ind < k_domain_cut_dmn_type::dmn_size(); ++k_ind) {
-      std::vector<double> k_vec = cluster_operations::translate_inside_cluster(
+      std::vector<double> k_vec = domains::cluster_operations::translate_inside_cluster(
           k_domain_cut_dmn_type::get_elements()[k_ind],
           DCA_k_cluster_type::get_super_basis_vectors());
 
       for (int K_ind = 0; K_ind < k_DCA::dmn_size(); ++K_ind) {
         length_and_distance[K_ind].second = K_ind;
 
-        length_and_distance[K_ind].first = cluster_operations::minimal_distance(
+        length_and_distance[K_ind].first = domains::cluster_operations::minimal_distance(
             k_vec, k_DCA::get_elements()[K_ind], DCA_k_cluster_type::get_super_basis_vectors());
       }
 
@@ -576,7 +582,7 @@ void DcaData<parameters_type>::compute_Sigma_bands() {
           S_k_dmn(b_ind, s_ind, k_ind) =
               Sigma_lattice(b_ind, s_ind, b_ind, s_ind, k_ind, w::dmn_size() / 2);
 
-    hspline_interpolation<k_HOST, k_domain_cut_dmn_type>::execute(
+    domains::hspline_interpolation<k_HOST, k_domain_cut_dmn_type>::execute(
         S_k_dmn, Sigma_lattice_band_structure, -1. / 2.);
   }
 
@@ -590,7 +596,7 @@ void DcaData<parameters_type>::compute_Sigma_bands() {
           S_k_dmn(b_ind, s_ind, k_ind) =
               Sigma_lattice_interpolated(b_ind, s_ind, b_ind, s_ind, k_ind, w::dmn_size() / 2);
 
-    hspline_interpolation<k_HOST, k_domain_cut_dmn_type>::execute(
+    domains::hspline_interpolation<k_HOST, k_domain_cut_dmn_type>::execute(
         S_k_dmn, Sigma_band_structure_interpolated, -1. / 2.);
   }
 
@@ -604,7 +610,7 @@ void DcaData<parameters_type>::compute_Sigma_bands() {
           S_k_dmn(b_ind, s_ind, k_ind) =
               Sigma_lattice_coarsegrained(b_ind, s_ind, b_ind, s_ind, k_ind, w::dmn_size() / 2);
 
-    hspline_interpolation<k_HOST, k_domain_cut_dmn_type>::execute(
+    domains::hspline_interpolation<k_HOST, k_domain_cut_dmn_type>::execute(
         S_k_dmn, Sigma_band_structure_coarsegrained, -1. / 2.);
   }
 }

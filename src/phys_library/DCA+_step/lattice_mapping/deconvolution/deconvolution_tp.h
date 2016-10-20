@@ -18,12 +18,14 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/math/function_transform/function_transform.hpp"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 
 #include "phys_library/DCA+_step/lattice_mapping/deconvolution/deconvolution_routines.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
 
 using namespace dca;
+using namespace dca::phys;
 
 namespace DCA {
 
@@ -32,11 +34,12 @@ class deconvolution_tp
     : public deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t> {
   using concurrency_type = typename parameters_type::concurrency_type;
 
-  using compact_vertex_frequency_domain_type = DCA::vertex_frequency_domain<DCA::COMPACT>;
+  using compact_vertex_frequency_domain_type = domains::vertex_frequency_domain<domains::COMPACT>;
   using w_VERTEX = func::dmn_0<compact_vertex_frequency_domain_type>;
-  using b = func::dmn_0<electron_band_domain>;
-  using host_vertex_k_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                                    LATTICE_TP, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
+  using b = func::dmn_0<domains::electron_band_domain>;
+  using host_vertex_k_cluster_type =
+      domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::LATTICE_TP,
+                              domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>;
   using k_HOST_VERTEX = func::dmn_0<host_vertex_k_cluster_type>;
 
 public:

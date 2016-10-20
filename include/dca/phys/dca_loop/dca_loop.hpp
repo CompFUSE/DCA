@@ -25,15 +25,15 @@
 #include "dca/phys/dca_step/cluster_mapping/cluster_exclusion.hpp"
 #include "dca/phys/dca_step/cluster_mapping/double_counting_correction.hpp"
 #include "dca/phys/dca_step/cluster_mapping/update_chemical_potential.hpp"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/util/print_time.hpp"
 
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_sp.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/high_temperature_series_expansion_solver.h"
 #include "phys_library/DCA+_step/lattice_mapping/lattice_mapping_sp.h"
 #include "phys_library/DCA+_step/symmetrization/symmetrize.h"
-#include "phys_library/domains/cluster/cluster_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
 
 namespace dca {
 namespace phys {
@@ -45,12 +45,14 @@ public:
   using profiler_type = typename ParametersType::profiler_type;
   using concurrency_type = typename ParametersType::concurrency_type;
 
-  using b = func::dmn_0<electron_band_domain>;
-  using s = func::dmn_0<electron_spin_domain>;
-  using k_DCA = func::dmn_0<cluster_domain<double, ParametersType::lattice_type::DIMENSION, CLUSTER,
-                                           MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
-  using k_HOST = func::dmn_0<cluster_domain<double, ParametersType::lattice_type::DIMENSION,
-                                            LATTICE_SP, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using b = func::dmn_0<domains::electron_band_domain>;
+  using s = func::dmn_0<domains::electron_spin_domain>;
+  using k_DCA =
+      func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::CLUSTER,
+                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
+  using k_HOST =
+      func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::LATTICE_SP,
+                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
 
   using cluster_exclusion_type = cluster_exclusion<ParametersType, DcaDataType>;
   using double_counting_correction_type = double_counting_correction<ParametersType, DcaDataType>;

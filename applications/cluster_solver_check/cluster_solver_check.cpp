@@ -21,13 +21,12 @@
 #include "dca/io/json/json_reader.hpp"
 #include "dca/phys/dca_data/dca_data_real_freq.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
-
-#include "phys_library/domains/cluster/cluster_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain.h"
 
 int main(int argc, char** argv) {
   if (argc < 2) {
@@ -37,12 +36,13 @@ int main(int argc, char** argv) {
 
   std::string input_file(argv[1]);
 
-  using w = dca::func::dmn_0<frequency_domain>;
-  using b = dca::func::dmn_0<electron_band_domain>;
-  using s = dca::func::dmn_0<electron_spin_domain>;
+  using w = dca::func::dmn_0<dca::phys::domains::frequency_domain>;
+  using b = dca::func::dmn_0<dca::phys::domains::electron_band_domain>;
+  using s = dca::func::dmn_0<dca::phys::domains::electron_spin_domain>;
   using nu = dca::func::dmn_variadic<b, s>;  // orbital-spin index
-  using k_DCA =
-      dca::func::dmn_0<cluster_domain<double, Lattice::DIMENSION, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using k_DCA = dca::func::dmn_0<dca::phys::domains::cluster_domain<
+      double, Lattice::DIMENSION, dca::phys::domains::CLUSTER, dca::phys::domains::MOMENTUM_SPACE,
+      dca::phys::domains::BRILLOUIN_ZONE>>;
 
   Concurrency concurrency(argc, argv);
 

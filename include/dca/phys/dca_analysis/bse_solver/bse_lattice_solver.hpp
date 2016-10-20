@@ -66,9 +66,14 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 #include "dca/math/util/comparison_methods.hpp"
 #include "dca/math/util/vector_operations.hpp"
+#include "dca/phys/domains/cluster/centered_cluster_domain.hpp"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/util/print_time.hpp"
+
 #include "comp_library/linalg/linalg.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/high_temperature_series_expansion_solver.h"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_tp.h"
@@ -76,10 +81,6 @@
 #include "phys_library/DCA+_step/lattice_mapping/lattice_mapping_sp.h"
 #include "phys_library/DCA+_step/symmetrization/diagrammatic_symmetries.h"
 #include "phys_library/DCA+_step/symmetrization/symmetrize.h"
-#include "phys_library/domains/cluster/centered_cluster_domain.h"
-#include "phys_library/domains/cluster/cluster_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
 
 namespace dca {
 namespace phys {
@@ -100,20 +101,24 @@ public:
   const static int N_CUBIC = 3;
   using cubic_harmonics_dmn_type = func::dmn_0<func::dmn<N_CUBIC, int>>;
 
-  using w_VERTEX = func::dmn_0<DCA::vertex_frequency_domain<DCA::COMPACT>>;
-  using b = func::dmn_0<electron_band_domain>;
+  using w_VERTEX = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
+  using b = func::dmn_0<domains::electron_band_domain>;
   using b_b = func::dmn_variadic<b, b>;
 
-  using k_DCA = func::dmn_0<cluster_domain<double, ParametersType::lattice_type::DIMENSION, CLUSTER,
-                                           MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
-  using k_HOST = func::dmn_0<cluster_domain<double, ParametersType::lattice_type::DIMENSION,
-                                            LATTICE_SP, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
-  using k_HOST_VERTEX = func::dmn_0<cluster_domain<double, ParametersType::lattice_type::DIMENSION,
-                                                   LATTICE_TP, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using k_DCA =
+      func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::CLUSTER,
+                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
+  using k_HOST =
+      func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::LATTICE_SP,
+                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
+  using k_HOST_VERTEX =
+      func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::LATTICE_TP,
+                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
 
-  using host_vertex_r_cluster_type = cluster_domain<double, ParametersType::lattice_type::DIMENSION,
-                                                    LATTICE_TP, REAL_SPACE, BRILLOUIN_ZONE>;
-  using crystal_harmonics_expansion = centered_cluster_domain<host_vertex_r_cluster_type>;
+  using host_vertex_r_cluster_type =
+      domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::LATTICE_TP,
+                              domains::REAL_SPACE, domains::BRILLOUIN_ZONE>;
+  using crystal_harmonics_expansion = domains::centered_cluster_domain<host_vertex_r_cluster_type>;
   using crystal_harmonics_expansion_dmn_t = func::dmn_0<crystal_harmonics_expansion>;
 
   using chi_vector_dmn_t = func::dmn_variadic<b, b, crystal_harmonics_expansion_dmn_t>;

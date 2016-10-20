@@ -18,17 +18,18 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/math/function_transform/function_transform.hpp"
+#include "dca/phys/domains/cluster/centered_cluster_domain.hpp"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/util/print_time.hpp"
 
 #include "phys_library/DCA+_step/lattice_mapping/interpolation/interpolation_routines.h"
 #include "phys_library/DCA+_step/lattice_mapping/interpolation/transform_to_alpha.hpp"
-#include "phys_library/domains/cluster/centered_cluster_domain.h"
-#include "phys_library/domains/cluster/cluster_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain.h"
 
 using namespace dca;
+using namespace dca::phys;
 
 namespace DCA {
 
@@ -39,19 +40,21 @@ public:
   using concurrency_type = typename parameters_type::concurrency_type;
 
   using source_r_cluster_type = typename source_k_dmn::parameter_type::dual_type;
-  using r_centered_dmn = func::dmn_0<centered_cluster_domain<source_r_cluster_type>>;
+  using r_centered_dmn = func::dmn_0<domains::centered_cluster_domain<source_r_cluster_type>>;
 
-  using w = func::dmn_0<frequency_domain>;
+  using w = func::dmn_0<domains::frequency_domain>;
 
-  using b = func::dmn_0<electron_band_domain>;
-  using s = func::dmn_0<electron_spin_domain>;
+  using b = func::dmn_0<domains::electron_band_domain>;
+  using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
-  using DCA_k_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                            CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
+  using DCA_k_cluster_type =
+      domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
+                              domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>;
   using k_DCA = func::dmn_0<DCA_k_cluster_type>;
-  using host_k_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                             LATTICE_SP, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
+  using host_k_cluster_type =
+      domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::LATTICE_SP,
+                              domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>;
   using k_HOST = func::dmn_0<host_k_cluster_type>;
 
   using nu_nu_r_centered = func::dmn_variadic<nu, nu, r_centered_dmn>;

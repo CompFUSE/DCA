@@ -154,7 +154,11 @@ set(DCA_LIBS
   json_reader json_writer
   hdf5_reader hdf5_writer
   profiling
-  function)
+  function
+  convert_domains
+  cluster_domains
+  quantum_domains
+  time_and_frequency_domains)
 
 if (DCA_HAVE_CUDA)
   list(APPEND DCA_LIBS DCA_GPU_routines lapack_kernels blas_kernels cuda_utils ${DCA_CUDA_LIBS})

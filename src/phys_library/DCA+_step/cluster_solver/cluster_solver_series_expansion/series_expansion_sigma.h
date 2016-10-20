@@ -17,6 +17,11 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
+
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/1st_order_perturbation_sigma.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/2nd_order_perturbation_sigma.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/3rd_order_perturbation_sigma.h"
@@ -24,10 +29,8 @@
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/compute_bare_bubble.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/compute_interaction.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/compute_lattice_Greens_function.h"
-#include "phys_library/domains/cluster/cluster_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain.h"
+
+using namespace dca::phys;
 
 namespace DCA {
 namespace SERIES_EXPANSION {
@@ -37,13 +40,14 @@ class series_expansion {
 public:
   using concurrency_type = typename parameters_type::concurrency_type;
 
-  using k_HOST = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                            LATTICE_SP, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using k_HOST =
+      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::LATTICE_SP,
+                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
   using k_dmn_t = k_HOST;
 
-  using w = func::dmn_0<frequency_domain>;
-  using b = func::dmn_0<electron_band_domain>;
-  using s = func::dmn_0<electron_spin_domain>;
+  using w = func::dmn_0<domains::frequency_domain>;
+  using b = func::dmn_0<domains::electron_band_domain>;
+  using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
   using sigma_function_t =

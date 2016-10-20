@@ -21,15 +21,16 @@
 #include "dca/function/domains/dmn_0.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/io/json/json_writer.hpp"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/cluster/cluster_domain_initializer.hpp"
 
 #include "phys_library/DFT_connection/VASP/vasp_domains/dmft_band_domain.hpp"
 #include "phys_library/DFT_connection/VASP/vasp_domains/dmft_orbital_domain.hpp"
 #include "phys_library/DFT_connection/VASP/vasp_domains/vasp_band_domain.hpp"
 #include "phys_library/DFT_connection/VASP/vasp_domains/vasp_orbital_domain.hpp"
-#include "phys_library/domains/cluster/cluster_domain.h"
-#include "phys_library/domains/cluster/cluster_domain_initializer.h"
 
 using namespace dca;
+using namespace dca::phys;
 
 namespace DFT {
 namespace VASP {
@@ -40,8 +41,11 @@ class parameters {
   using concurrency_type = concurrency_t;
 
   using k_vasp =
-      func::dmn_0<cluster_domain<double, 3, VASP_LATTICE, MOMENTUM_SPACE, PARALLELLEPIPEDUM>>;
-  using r_vasp = func::dmn_0<cluster_domain<double, 3, VASP_LATTICE, REAL_SPACE, PARALLELLEPIPEDUM>>;
+      func::dmn_0<domains::cluster_domain<double, 3, domains::VASP_LATTICE, domains::MOMENTUM_SPACE,
+                                          domains::PARALLELLEPIPEDUM>>;
+  using r_vasp =
+      func::dmn_0<domains::cluster_domain<double, 3, domains::VASP_LATTICE, domains::REAL_SPACE,
+                                          domains::PARALLELLEPIPEDUM>>;
 
   using b_dmft = func::dmn_0<DFT::VASP::dmft_band_domain>;
   using o_dmft = func::dmn_0<DFT::VASP::dmft_orbital_domain>;
@@ -425,7 +429,7 @@ void parameters<concurrency_t>::update_domains() {
   b_vasp::parameter_type::initialize(*this);
   o_vasp::parameter_type::initialize(*this);
 
-  cluster_domain_initializer<r_vasp>::execute(a_lattice, K_grid);
+  domains::cluster_domain_initializer<r_vasp>::execute(a_lattice, K_grid);
 }
 
 }  // VASP

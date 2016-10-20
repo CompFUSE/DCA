@@ -16,7 +16,7 @@
 #include <string>
 #include <vector>
 
-#include "phys_library/domains/cluster/cluster_domain.h"
+#include "dca/phys/domains/cluster/cluster_specifications.hpp"
 
 namespace DFT {
 namespace VASP {
@@ -52,8 +52,9 @@ class vasp_brillouin_zone_cut_domain {
   const static int DIMENSION = 3;
 
 public:
-  typedef cluster_specifications<double, VASP_LATTICE, MOMENTUM_SPACE,
-                                 PARALLELLEPIPEDUM>::dmn_specifications_type dmn_specifications_type;
+  typedef domains::cluster_specifications<double, domains::VASP_LATTICE, domains::MOMENTUM_SPACE,
+                                          domains::PARALLELLEPIPEDUM>::dmn_specifications_type
+      dmn_specifications_type;
 
   typedef vasp_brillouin_zone_cut_domain this_type;
   typedef std::vector<double> element_type;

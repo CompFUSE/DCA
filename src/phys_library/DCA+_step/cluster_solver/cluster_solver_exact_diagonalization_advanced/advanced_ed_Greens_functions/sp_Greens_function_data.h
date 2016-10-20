@@ -18,10 +18,12 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
-#include "phys_library/domains/time_and_frequency/frequency_domain.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain_real_axis.h"
-#include "phys_library/domains/time_and_frequency/time_domain.h"
+#include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/frequency_domain_real_axis.hpp"
+#include "dca/phys/domains/time_and_frequency/time_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
+
+using namespace dca::phys;
 
 namespace DCA {
 namespace ADVANCED_EXACT_DIAGONALIZATION {
@@ -63,10 +65,10 @@ public:
 
   typedef sp_Greens_function_data<ed_options> this_type;
 
-  using t = func::dmn_0<time_domain>;
-  using w = func::dmn_0<frequency_domain>;
-  using w_REAL = func::dmn_0<frequency_domain_real_axis>;
-  using w_VERTEX = func::dmn_0<DCA::vertex_frequency_domain<DCA::COMPACT>>;
+  using t = func::dmn_0<domains::time_domain>;
+  using w = func::dmn_0<domains::frequency_domain>;
+  using w_REAL = func::dmn_0<domains::frequency_domain_real_axis>;
+  using w_VERTEX = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
 
 public:
   sp_Greens_function_data();

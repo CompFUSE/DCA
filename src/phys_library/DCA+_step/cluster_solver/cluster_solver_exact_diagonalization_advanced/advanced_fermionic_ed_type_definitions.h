@@ -17,12 +17,11 @@
 #include <complex>
 
 #include "dca/function/domains.hpp"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 
 #include "comp_library/linalg/linalg.hpp"
-
-#include "phys_library/domains/cluster/cluster_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
 
 namespace DCA {
 namespace ADVANCED_EXACT_DIAGONALIZATION {
@@ -46,15 +45,17 @@ public:
   using matrix_type = dca::linalg::Matrix<complex_type, dca::linalg::CPU>;
   using int_matrix_type = dca::linalg::Matrix<int, dca::linalg::CPU>;
 
-  using b = func::dmn_0<electron_band_domain>;
-  using s = func::dmn_0<electron_spin_domain>;
+  using b = func::dmn_0<domains::electron_band_domain>;
+  using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
   using nu_nu = func::dmn_variadic<nu, nu>;
 
-  using r_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                           CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>>;
-  using k_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                           CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using r_DCA =
+      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
+                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
+  using k_DCA =
+      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
+                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
 
   using b_dmn = b;
   using s_dmn = s;

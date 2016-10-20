@@ -18,15 +18,16 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/math/function_transform/function_transform.hpp"
+#include "dca/phys/domains/cluster/centered_cluster_domain.hpp"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 
 #include "comp_library/linalg/linalg.hpp"
 #include "phys_library/DCA+_step/lattice_mapping/interpolation/interpolation_routines.h"
-#include "phys_library/domains/cluster/centered_cluster_domain.h"
-#include "phys_library/domains/cluster/cluster_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
 
 using namespace dca;
+using namespace dca::phys;
 
 namespace DCA {
 
@@ -37,22 +38,24 @@ public:
   using concurrency_type = typename parameters_type::concurrency_type;
 
   using source_r_cluster_type = typename source_k_dmn::parameter_type::dual_type;
-  using r_centered_dmn = func::dmn_0<centered_cluster_domain<source_r_cluster_type>>;
+  using r_centered_dmn = func::dmn_0<domains::centered_cluster_domain<source_r_cluster_type>>;
 
   using basis_function_type = math::transform::basis_function<
       typename target_k_dmn::parameter_type, math::transform::KRONECKER_DELTA,
       typename source_k_dmn::parameter_type, math::transform::HERMITE_CUBIC_SPLINE>;
 
-  using b = func::dmn_0<electron_band_domain>;
+  using b = func::dmn_0<domains::electron_band_domain>;
 
-  using compact_vertex_frequency_domain_type = DCA::vertex_frequency_domain<DCA::COMPACT>;
+  using compact_vertex_frequency_domain_type = domains::vertex_frequency_domain<domains::COMPACT>;
   using w_VERTEX = func::dmn_0<compact_vertex_frequency_domain_type>;
 
-  using DCA_k_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                            CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
+  using DCA_k_cluster_type =
+      domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
+                              domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>;
   using k_DCA = func::dmn_0<DCA_k_cluster_type>;
-  using host_vertex_k_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                                    LATTICE_TP, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
+  using host_vertex_k_cluster_type =
+      domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::LATTICE_TP,
+                              domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>;
   using k_HOST_VERTEX = func::dmn_0<host_vertex_k_cluster_type>;
 
 public:

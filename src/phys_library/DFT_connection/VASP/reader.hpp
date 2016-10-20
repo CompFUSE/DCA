@@ -21,12 +21,15 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+
 #include "phys_library/DFT_connection/VASP/data.hpp"
 #include "phys_library/DFT_connection/VASP/vasp_domains/dmft_band_domain.hpp"
 #include "phys_library/DFT_connection/VASP/vasp_domains/dmft_orbital_domain.hpp"
 #include "phys_library/DFT_connection/VASP/vasp_domains/vasp_band_domain.hpp"
 #include "phys_library/DFT_connection/VASP/vasp_domains/vasp_orbital_domain.hpp"
-#include "phys_library/domains/cluster/cluster_domain.h"
+
+using namespace dca::phys;
 
 namespace DFT {
 namespace VASP {
@@ -36,7 +39,8 @@ template <class parameters_type>
 class reader {
 public:
   using k_vasp =
-      func::dmn_0<cluster_domain<double, 3, VASP_LATTICE, MOMENTUM_SPACE, PARALLELLEPIPEDUM>>;
+      func::dmn_0<domains::cluster_domain<double, 3, domains::VASP_LATTICE, domains::MOMENTUM_SPACE,
+                                          domains::PARALLELLEPIPEDUM>>;
 
   using b_dmft = func::dmn_0<DFT::VASP::dmft_band_domain>;
   using o_dmft = func::dmn_0<DFT::VASP::dmft_orbital_domain>;

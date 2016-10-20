@@ -16,11 +16,10 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
-
-#include "phys_library/domains/cluster/cluster_domain.h"
-#include "phys_library/domains/Quantum_domain/DCA_iteration_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/quantum/dca_iteration_domain.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 
 namespace dca {
 namespace phys {
@@ -30,14 +29,15 @@ template <typename ParametersType>
 class DcaLoopData {
 public:
   using expansion_dmn_t = func::dmn_0<func::dmn<32, int>>;
-  using DCA_iteration_domain_type = func::dmn_0<DCA_iteration_domain>;
+  using DCA_iteration_domain_type = func::dmn_0<domains::DCA_iteration_domain>;
 
-  using b = func::dmn_0<electron_band_domain>;
-  using s = func::dmn_0<electron_spin_domain>;
+  using b = func::dmn_0<domains::electron_band_domain>;
+  using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
-  using k_DCA = func::dmn_0<cluster_domain<double, ParametersType::lattice_type::DIMENSION, CLUSTER,
-                                           MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using k_DCA =
+      func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::CLUSTER,
+                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
 
   DcaLoopData();
 

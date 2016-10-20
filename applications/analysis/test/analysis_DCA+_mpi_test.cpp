@@ -24,6 +24,7 @@
 #include "dca/parallel/pthreading/pthreading.hpp"
 #include "dca/phys/dca_analysis/bse_solver/bse_solver.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
+#include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
 #include "dca/phys/parameters/parameters.hpp"
@@ -32,14 +33,13 @@
 #include "dca/testing/minimalist_printer.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
-#include "phys_library/domains/cluster/symmetries/point_groups/2D/2D_square.h"
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
 using namespace DCA;
 
 TEST(analysis_DCAplus_mpi, leading_eigenvalues) {
-  using DcaPointGroupType = D4;
+  using DcaPointGroupType = dca::phys::domains::D4;
   using LatticeType = dca::phys::models::square_lattice<DcaPointGroupType>;
   using ModelType = dca::phys::models::TightBindingModel<LatticeType>;
   using Threading = dca::parallel::Pthreading;

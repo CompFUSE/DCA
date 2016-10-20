@@ -21,16 +21,17 @@
 #include "dca/function/function.hpp"
 #include "dca/math/geometry/gaussian_quadrature/gaussian_quadrature_domain.hpp"
 #include "dca/math/geometry/tetrahedron_mesh/tetrahedron_mesh.hpp"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/cluster/cluster_operations.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 #include "dca/phys/vertex_measurement_type.hpp"
 #include "dca/util/print_time.hpp"
 
 #include "comp_library/linalg/linalg.hpp"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_interpolation_matrices.h"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_routines.h"
-#include "phys_library/domains/cluster/cluster_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
 
 using namespace dca;
 using namespace dca::phys;
@@ -45,11 +46,13 @@ public:
 
   using k_cluster_type = typename K_dmn::parameter_type;
 
-  using DCA_k_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                            CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
+  using DCA_k_cluster_type =
+      domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
+                              domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>;
   using k_DCA = func::dmn_0<DCA_k_cluster_type>;
-  using host_k_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                             LATTICE_SP, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
+  using host_k_cluster_type =
+      domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::LATTICE_SP,
+                              domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>;
   using k_HOST = func::dmn_0<host_k_cluster_type>;
 
   using scalar_type = double;
@@ -63,10 +66,10 @@ public:
   using q_plus_Q_dmn = func::dmn_0<coarsegraining_domain<K_dmn, K_PLUS_Q>>;
   using Q_min_q_dmn = func::dmn_0<coarsegraining_domain<K_dmn, Q_MINUS_K>>;
 
-  using w = func::dmn_0<frequency_domain>;
+  using w = func::dmn_0<domains::frequency_domain>;
 
-  using b = func::dmn_0<electron_band_domain>;
-  using s = func::dmn_0<electron_spin_domain>;
+  using b = func::dmn_0<domains::electron_band_domain>;
+  using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
   using b_b = func::dmn_variadic<b, b>;
 
@@ -234,8 +237,8 @@ void coarsegraining_tp<parameters_type, K_dmn>::execute(
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_HOST>>& H_k,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_DCA, w>>& Sigma,
     func::function<std::complex<scalar_type>, func::dmn_variadic<b_b, b_b, K_dmn, w_dmn_t>>& chi) {
-  int Q_ind = cluster_operations::index(parameters.get_q_channel_vec(), K_dmn::get_elements(),
-                                        K_dmn::parameter_type::SHAPE);
+  int Q_ind = domains::cluster_operations::index(
+      parameters.get_q_channel_vec(), K_dmn::get_elements(), K_dmn::parameter_type::SHAPE);
 
   switch (parameters.get_vertex_measurement_type()) {
     case PARTICLE_HOLE_CHARGE:
@@ -266,8 +269,8 @@ void coarsegraining_tp<parameters_type, K_dmn>::execute(
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_HOST>>& H_k,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_HOST, w>>& Sigma,
     func::function<std::complex<scalar_type>, func::dmn_variadic<b_b, b_b, K_dmn, w_dmn_t>>& chi) {
-  int Q_ind = cluster_operations::index(parameters.get_q_channel_vec(), K_dmn::get_elements(),
-                                        K_dmn::parameter_type::SHAPE);
+  int Q_ind = domains::cluster_operations::index(
+      parameters.get_q_channel_vec(), K_dmn::get_elements(), K_dmn::parameter_type::SHAPE);
 
   switch (parameters.get_vertex_measurement_type()) {
     case PARTICLE_HOLE_CHARGE:
@@ -375,8 +378,8 @@ void coarsegraining_tp<parameters_type, K_dmn>::compute_tp(
   // S_K_plus_Q_w(K) = S_K_w(K+Q)
   func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_DCA, w>> S_K_plus_Q_w;
 
-  int Q_ind = cluster_operations::index(parameters.get_q_channel_vec(), k_DCA::get_elements(),
-                                        k_DCA::parameter_type::SHAPE);
+  int Q_ind = domains::cluster_operations::index(
+      parameters.get_q_channel_vec(), k_DCA::get_elements(), k_DCA::parameter_type::SHAPE);
 
   for (int w_ind = 0; w_ind < w::dmn_size(); ++w_ind) {
     for (int k_ind = 0; k_ind < k_DCA::dmn_size(); ++k_ind) {
@@ -523,8 +526,8 @@ void coarsegraining_tp<parameters_type, K_dmn>::compute_phi(
   // S_Q_min_K_w(K) = S_K_w(Q-K)
   func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_DCA, w>> S_Q_min_K_w;
 
-  int Q_ind = cluster_operations::index(parameters.get_q_channel_vec(), k_DCA::get_elements(),
-                                        k_DCA::parameter_type::SHAPE);
+  int Q_ind = domains::cluster_operations::index(
+      parameters.get_q_channel_vec(), k_DCA::get_elements(), k_DCA::parameter_type::SHAPE);
 
   for (int w_ind = 0; w_ind < w::dmn_size(); ++w_ind) {
     for (int k_ind = 0; k_ind < k_DCA::dmn_size(); ++k_ind) {

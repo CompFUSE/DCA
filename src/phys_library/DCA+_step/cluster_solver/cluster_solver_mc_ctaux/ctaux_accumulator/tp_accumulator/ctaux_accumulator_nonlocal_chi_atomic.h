@@ -16,10 +16,9 @@
 #include <stdexcept>
 
 #include "dca/function/domains/dmn_0.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
 #include "dca/phys/vertex_measurement_type.hpp"
-
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 
 using namespace dca::phys;
 
@@ -34,7 +33,7 @@ class accumulator_nonlocal_chi_atomic {};
 template <class model_type>
 class accumulator_nonlocal_chi_atomic<model_type, PARTICLE_HOLE_MAGNETIC> {
 public:
-  using b = func::dmn_0<electron_band_domain>;
+  using b = func::dmn_0<domains::electron_band_domain>;
 
   template <typename scalartype>
   static inline void execute(std::complex<scalartype>* G2_DN_n1_m2_k1_k2_w1_w2,

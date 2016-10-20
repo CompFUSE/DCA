@@ -19,9 +19,10 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/util/ignore.hpp"
+
 #include "comp_library/linalg/linalg.hpp"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 
 namespace DCA {
 namespace QMCI {
@@ -49,7 +50,7 @@ public:
 template <int dimension, class scalar_type, class r_dmn_t, class w_vertex_dmn_t, class w_vertex_pos_dmn_t>
 class cached_nft {
 public:
-  using b = func::dmn_0<electron_band_domain>;
+  using b = func::dmn_0<domains::electron_band_domain>;
   using r_cluster_type = typename r_dmn_t::parameter_type;
 
   typedef func::dmn_variadic<b, r_dmn_t> b_r_dmn_t;

@@ -27,6 +27,7 @@
 #include "dca/linalg/device_type.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_data/dca_data_real_freq.hpp"
+#include "dca/phys/domains/time_and_frequency/frequency_domain_real_axis.hpp"
 #include "dca/phys/vertex_measurement_type.hpp"
 #include "dca/util/print_time.hpp"
 
@@ -36,7 +37,6 @@
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Greens_functions/tp_Greens_function_advanced_ed.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_fermionic_ed_type_definitions.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/overlap_matrix.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain_real_axis.h"
 
 using namespace dca::phys;
 
@@ -55,7 +55,7 @@ public:
   using r_DCA = typename ed_options_type::r_DCA;
   using k_DCA = typename ed_options_type::k_DCA;
 
-  using w_REAL = func::dmn_0<frequency_domain_real_axis>;
+  using w_REAL = func::dmn_0<domains::frequency_domain_real_axis>;
 
 public:
   cluster_solver(parameters_type& parameters_ref, MOMS_type& MOMS_ref,

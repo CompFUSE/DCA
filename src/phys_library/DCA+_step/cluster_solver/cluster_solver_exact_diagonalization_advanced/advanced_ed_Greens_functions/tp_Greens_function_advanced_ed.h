@@ -21,6 +21,7 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 #include "dca/util/print_time.hpp"
 
 #include "comp_library/function_plotting/include_plotting.h"
@@ -30,10 +31,8 @@
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Hamiltonian.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Hilbert_spaces/Hilbert_space_psi_representation.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/overlap_matrix.h"
-// #include "phys_library/domains/time_and_frequency/frequency_domain.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
-// #include "phys_library/domains/time_and_frequency/frequency_domain_real_axis.h"
-// #include "phys_library/domains/time_and_frequency/time_domain.h"
+
+using namespace dca::phys;
 
 namespace DCA {
 namespace ADVANCED_EXACT_DIAGONALIZATION {
@@ -129,8 +128,8 @@ public:
 
   typedef tp_Greens_function_data<ed_options> tp_Greens_function_data_type;
 
-  using w_VERTEX = func::dmn_0<DCA::vertex_frequency_domain<DCA::COMPACT>>;
-  using w_VERTEX_EXTENDED = func::dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED>>;
+  using w_VERTEX = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
+  using w_VERTEX_EXTENDED = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
 
 public:
   fermionic_tp_Greens_function(parameter_type& parameters_ref,

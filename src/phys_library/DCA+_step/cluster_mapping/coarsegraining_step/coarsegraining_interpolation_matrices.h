@@ -21,14 +21,15 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/math/function_transform/basis_transform/basis_transform.hpp"
+#include "dca/phys/domains/cluster/centered_cluster_domain.hpp"
 
 #include "comp_library/linalg/linalg.hpp"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_names.hpp"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_domain.h"
 #include "phys_library/DCA+_step/lattice_mapping/interpolation/interpolation_matrices.h"
-#include "phys_library/domains/cluster/centered_cluster_domain.h"
 
 using namespace dca;
+using namespace dca::phys;
 
 namespace DCA {
 
@@ -38,7 +39,7 @@ public:
   using r_dmn = typename k_dmn::parameter_type::dual_type;
 
   using q_dmn = func::dmn_0<coarsegraining_domain<K_dmn, NAME>>;
-  using r_centered_dmn = func::dmn_0<centered_cluster_domain<r_dmn>>;
+  using r_centered_dmn = func::dmn_0<domains::centered_cluster_domain<r_dmn>>;
 
   using trafo_k_to_r_type = math::transform::basis_transform<k_dmn, r_centered_dmn>;
   using trafo_r_to_q_type = math::transform::basis_transform<r_centered_dmn, q_dmn>;

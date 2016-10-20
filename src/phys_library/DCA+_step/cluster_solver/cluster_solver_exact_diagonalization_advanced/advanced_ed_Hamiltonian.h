@@ -23,12 +23,15 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/phys/domains/time_and_frequency/frequency_domain_real_axis.hpp"
+
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Fock_space.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Hilbert_spaces/Hilbert_space_phi_representation.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Hilbert_spaces/Hilbert_space_psi_representation.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_structures/psi_state.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_structures/phi_operators.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain_real_axis.h"
+
+using namespace dca::phys;
 
 namespace DCA {
 namespace ADVANCED_EXACT_DIAGONALIZATION {
@@ -116,7 +119,7 @@ public:
 
   typedef operators<parameter_type, ed_options> fermionic_operators_type;
 
-  using w_REAL = func::dmn_0<frequency_domain_real_axis>;
+  using w_REAL = func::dmn_0<domains::frequency_domain_real_axis>;
 
 public:
   fermionic_Hamiltonian(parameter_type& parameters_ref);

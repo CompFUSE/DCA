@@ -16,7 +16,7 @@
 #include <vector>
 
 #include "dca/function/function.hpp"
-#include "phys_library/domains/cluster/symmetries/point_groups/No_symmetry.h"
+#include "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp"
 
 namespace dca {
 namespace phys {
@@ -26,7 +26,7 @@ namespace models {
 template <typename DCA_point_group_type>
 class triangular_lattice {
 public:
-  typedef no_symmetry<2> LDA_point_group;
+  typedef domains::no_symmetry<2> LDA_point_group;
   typedef DCA_point_group_type DCA_point_group;
   const static int DIMENSION = 2;
   const static int BANDS = 1;

@@ -123,10 +123,9 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/math/util/vector_operations.hpp"
+#include "dca/phys/domains/cluster/cluster_operations.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/vertex_measurement_type.hpp"
-
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/cluster/cluster_operations.hpp"
 
 using namespace dca;
 using namespace dca::phys;
@@ -134,7 +133,7 @@ using namespace dca::phys;
 template <class parameters_type>
 class diagrammatic_symmetries {
 public:
-  using b = func::dmn_0<electron_band_domain>;
+  using b = func::dmn_0<domains::electron_band_domain>;
 
 public:
   diagrammatic_symmetries(parameters_type& parameters);
@@ -224,7 +223,7 @@ void diagrammatic_symmetries<parameters_type>::execute(
 
     for (size_t l = 0; l < q_rec.size(); ++l)
       q_rec[l] *= -1.;
-    q_rec = cluster_operations::translate_inside_cluster(
+    q_rec = domains::cluster_operations::translate_inside_cluster(
         q_rec, k_dmn::parameter_type::get_super_basis_vectors());
 
     if (math::util::l2Norm2(q_rec) < 1.e-6) {
@@ -243,7 +242,7 @@ void diagrammatic_symmetries<parameters_type>::execute(
     for (size_t l = 0; l < q_rec.size(); ++l)
       q_rec[l] *= 2;
 
-    q_rec = cluster_operations::translate_inside_cluster(
+    q_rec = domains::cluster_operations::translate_inside_cluster(
         q_rec, k_dmn::parameter_type::get_super_basis_vectors());
 
     if (math::util::l2Norm2(q_rec) < 1.e-6) {

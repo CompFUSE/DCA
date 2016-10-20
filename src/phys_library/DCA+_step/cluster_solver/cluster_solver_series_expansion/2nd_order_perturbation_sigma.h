@@ -23,13 +23,16 @@
 #include "dca/function/function.hpp"
 #include "dca/parallel/util/get_bounds.hpp"
 #include "dca/parallel/util/threading_data.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 #include "dca/util/print_time.hpp"
+
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/compute_bare_bubble.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/compute_interaction.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
+
+using namespace dca::phys;
 
 namespace DCA {
 namespace SERIES_EXPANSION {
@@ -40,10 +43,10 @@ public:
   using concurrency_type = typename parameters_type::concurrency_type;
   using Threading = typename parameters_type::ThreadingType;
 
-  using w = func::dmn_0<frequency_domain>;
-  using w_VERTEX_BOSONIC = func::dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED_BOSONIC>>;
-  using b = func::dmn_0<electron_band_domain>;
-  using s = func::dmn_0<electron_spin_domain>;
+  using w = func::dmn_0<domains::frequency_domain>;
+  using w_VERTEX_BOSONIC = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED_BOSONIC>>;
+  using b = func::dmn_0<domains::electron_band_domain>;
+  using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
   using ph_bubble_t = compute_bubble<ph, parameters_type, k_dmn_t, w>;

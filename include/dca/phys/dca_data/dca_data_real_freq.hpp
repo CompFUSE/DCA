@@ -23,11 +23,10 @@
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/io/json/json_writer.hpp"
-
-#include "phys_library/domains/cluster/cluster_domain.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain_real_axis.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/frequency_domain_real_axis.hpp"
 
 namespace dca {
 namespace phys {
@@ -38,16 +37,18 @@ class DcaDataRealFreq {
 public:
   using concurrency_type = typename parameters_type::concurrency_type;
 
-  using w_REAL = func::dmn_0<frequency_domain_real_axis>;
+  using w_REAL = func::dmn_0<domains::frequency_domain_real_axis>;
 
-  using b = func::dmn_0<electron_band_domain>;
-  using s = func::dmn_0<electron_spin_domain>;
+  using b = func::dmn_0<domains::electron_band_domain>;
+  using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
-  using r_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                           CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>>;
-  using k_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                           CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using r_DCA =
+      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
+                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
+  using k_DCA =
+      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
+                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
 
   DcaDataRealFreq(parameters_type& parameters_ref);
 

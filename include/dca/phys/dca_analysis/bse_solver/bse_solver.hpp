@@ -25,14 +25,14 @@
 #include "dca/phys/dca_algorithms/compute_band_structure.hpp"
 #include "dca/phys/dca_analysis/bse_solver/bse_cluster_solver.hpp"
 #include "dca/phys/dca_analysis/bse_solver/bse_lattice_solver.hpp"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/cluster/interpolation/wannier_interpolation/wannier_interpolation.hpp"
+#include "dca/phys/domains/quantum/brillouin_zone_path_domain.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 
 #include "phys_library/DCA+_step/symmetrization/diagrammatic_symmetries.h"
 #include "phys_library/DCA+_step/symmetrization/symmetrize.h"
-#include "phys_library/domains/cluster/cluster_domain.h"
-#include "phys_library/domains/cluster/interpolation/wannier_interpolation/wannier_interpolation.hpp"
-#include "phys_library/domains/Quantum_domain/Brillouin_zone_cut.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
 
 namespace dca {
 namespace phys {
@@ -53,20 +53,24 @@ public:
   const static int N_HARMONICS = 3;
   using harmonics_dmn_type = func::dmn_0<func::dmn<N_HARMONICS, int>>;
 
-  using w_VERTEX = func::dmn_0<DCA::vertex_frequency_domain<DCA::COMPACT>>;
+  using w_VERTEX = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
 
-  using b = func::dmn_0<electron_band_domain>;
+  using b = func::dmn_0<domains::electron_band_domain>;
   using b_b = func::dmn_variadic<b, b>;
 
-  using k_DCA = func::dmn_0<cluster_domain<double, ParametersType::lattice_type::DIMENSION, CLUSTER,
-                                           MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
-  using k_LDA = func::dmn_0<cluster_domain<double, ParametersType::lattice_type::DIMENSION,
-                                           LATTICE_SP, MOMENTUM_SPACE, PARALLELLEPIPEDUM>>;
-  using k_HOST = func::dmn_0<cluster_domain<double, ParametersType::lattice_type::DIMENSION,
-                                            LATTICE_SP, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
-  using k_HOST_VERTEX = func::dmn_0<cluster_domain<double, ParametersType::lattice_type::DIMENSION,
-                                                   LATTICE_TP, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
-  using k_dmn_cut_type = func::dmn_0<brillouin_zone_path_domain<SQUARE_2D_LATTICE>>;
+  using k_DCA =
+      func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::CLUSTER,
+                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
+  using k_LDA =
+      func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::LATTICE_SP,
+                                          domains::MOMENTUM_SPACE, domains::PARALLELLEPIPEDUM>>;
+  using k_HOST =
+      func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::LATTICE_SP,
+                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
+  using k_HOST_VERTEX =
+      func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::LATTICE_TP,
+                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
+  using k_dmn_cut_type = func::dmn_0<domains::brillouin_zone_path_domain<domains::SQUARE_2D_LATTICE>>;
 
   using cluster_eigenvector_dmn_t = func::dmn_variadic<b, b, k_DCA, w_VERTEX>;
   using lattice_eigenvector_dmn_t = func::dmn_variadic<b, b, k_HOST_VERTEX, w_VERTEX>;
@@ -203,8 +207,8 @@ BseSolver<ParametersType, DcaDataType>::BseSolver(ParametersType& parameters_ref
   {
     profiler_t prof("compute-H(k)", "input", __LINE__);
 
-    wannier_interpolation<k_LDA, k_DCA>::execute(MOMS.H_LDA, MOMS.H_DCA);
-    wannier_interpolation<k_LDA, k_HOST>::execute(MOMS.H_LDA, MOMS.H_HOST);
+    domains::wannier_interpolation<k_LDA, k_DCA>::execute(MOMS.H_LDA, MOMS.H_DCA);
+    domains::wannier_interpolation<k_LDA, k_HOST>::execute(MOMS.H_LDA, MOMS.H_HOST);
   }
 
   {

@@ -19,15 +19,18 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/linalg/device_type.hpp"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
+
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_domains/Feynman_expansion_order_domain.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_template/mc_accumulator_data.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_accumulator/sp_accumulator/Hybridization_accumulator_sp_nfft.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_solver_routines.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_walker.h"
-#include "phys_library/domains/cluster/cluster_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain.h"
+
+using namespace dca::phys;
 
 namespace DCA {
 namespace QMCI {
@@ -50,14 +53,15 @@ public:
   typedef
       typename walker_type::ss_hybridization_walker_routines_type ss_hybridization_walker_routines_type;
 
-  using w = func::dmn_0<frequency_domain>;
-  using b = func::dmn_0<electron_band_domain>;
-  using s = func::dmn_0<electron_spin_domain>;
+  using w = func::dmn_0<domains::frequency_domain>;
+  using b = func::dmn_0<domains::electron_band_domain>;
+  using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
   using nu_nu = func::dmn_variadic<nu, nu>;
 
-  using r_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                           CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>>;
+  using r_DCA =
+      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
+                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
   typedef r_DCA r_dmn_t;
 
   typedef func::dmn_variadic<nu, nu, r_dmn_t> p_dmn_t;

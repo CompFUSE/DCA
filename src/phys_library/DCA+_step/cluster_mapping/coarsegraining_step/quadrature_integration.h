@@ -20,17 +20,20 @@
 #include "dca/function/function.hpp"
 #include "dca/parallel/util/get_bounds.hpp"
 #include "dca/parallel/util/threading_data.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
+
 #include "comp_library/linalg/linalg.hpp"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
+
+using namespace dca::phys;
 
 namespace DCA {
 
 template <typename parameters_type, typename q_dmn_t>
 class quadrature_integration {
 public:
-  using b = func::dmn_0<electron_band_domain>;
-  using s = func::dmn_0<electron_spin_domain>;
+  using b = func::dmn_0<domains::electron_band_domain>;
+  using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;
 
   using Threading = typename parameters_type::ThreadingType;

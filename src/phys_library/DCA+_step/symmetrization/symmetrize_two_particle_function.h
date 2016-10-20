@@ -41,14 +41,16 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/math/util/vector_operations.hpp"
-#include "phys_library/domains/cluster/cluster_domain_symmetry.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
+#include "dca/phys/domains/cluster/cluster_operations.hpp"
+#include "dca/phys/domains/cluster/cluster_symmetry.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
 
 using namespace dca;
+using namespace dca::phys;
 
 class symmetrize_two_particle_function {
 public:
-  using b = func::dmn_0<electron_band_domain>;
+  using b = func::dmn_0<domains::electron_band_domain>;
 
 protected:
   template <typename scalartype, typename k_dmn_t, typename w_dmn_t>
@@ -103,7 +105,8 @@ bool symmetrize_two_particle_function::Q_vector_is_invariant<k_dmn_t>::execute(i
                                                                                std::vector<double> Q) {
   typedef typename k_dmn_t::parameter_type k_cluster_type;
   // typedef typename k_cluster_type::sym_super_cell_dmn_t sym_super_cell_dmn_t;
-  typedef typename cluster_symmetry<k_cluster_type>::sym_super_cell_dmn_t sym_super_cell_dmn_t;
+  typedef
+      typename domains::cluster_symmetry<k_cluster_type>::sym_super_cell_dmn_t sym_super_cell_dmn_t;
 
   int DIMENSION = Q.size();
 
@@ -116,7 +119,7 @@ bool symmetrize_two_particle_function::Q_vector_is_invariant<k_dmn_t>::execute(i
       q_rec[i] += O_ptr[i + DIMENSION * j] * Q[j];
 
   // q_rec = k_dmn_t::parameter_type::back_inside_cluster(q_rec);
-  q_rec = cluster_operations::translate_inside_cluster(
+  q_rec = domains::cluster_operations::translate_inside_cluster(
       q_rec, k_dmn_t::parameter_type::get_super_basis_vectors());
 
   q_rec = math::util::subtract(q_rec, Q);
@@ -252,11 +255,12 @@ void symmetrize_two_particle_function::execute(
     std::vector<double> Q, bool do_diff) {
   typedef typename k_dmn_t::parameter_type k_cluster_type;
 
-  typedef typename cluster_symmetry<k_cluster_type>::sym_super_cell_dmn_t sym_super_cell_dmn_t;
+  typedef
+      typename domains::cluster_symmetry<k_cluster_type>::sym_super_cell_dmn_t sym_super_cell_dmn_t;
 
   static func::function<std::pair<int, int>,
                         func::dmn_variadic<func::dmn_variadic<k_dmn_t, b>, sym_super_cell_dmn_t>>&
-      k_symmetry_matrix = cluster_symmetry<k_cluster_type>::get_symmetry_matrix();
+      k_symmetry_matrix = domains::cluster_symmetry<k_cluster_type>::get_symmetry_matrix();
 
   static func::function<scalartype, func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t>,
                                                        func::dmn_variadic<b, b, k_dmn_t>>>
@@ -316,7 +320,7 @@ void symmetrize_two_particle_function::execute(
 
   static func::function<std::pair<int, int>,
                         func::dmn_variadic<func::dmn_variadic<k_dmn_t, b>, sym_super_cell_dmn_t>>&
-      k_symmetry_matrix = cluster_symmetry<k_cluster_type>::get_symmetry_matrix();
+      k_symmetry_matrix = domains::cluster_symmetry<k_cluster_type>::get_symmetry_matrix();
 
   static func::function<scalartype, func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t>,
                                                        func::dmn_variadic<b, b, k_dmn_t>, k_dmn_t>>

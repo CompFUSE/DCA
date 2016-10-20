@@ -22,12 +22,12 @@
 #include "dca/math/util/vector_operations.hpp"
 #include "dca/parallel/util/get_bounds.hpp"
 #include "dca/parallel/util/threading_data.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_domain.h"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/tetrahedron_integration_data.hpp"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/tetrahedron_routines_inverse_matrix_function.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
 
 namespace DCA {
 
@@ -39,8 +39,8 @@ public:
   using tet_dmn_type = func::dmn_0<coarsegraining_domain<K_dmn, TETRAHEDRON_K>>;
   using tet_0_dmn_type = func::dmn_0<coarsegraining_domain<K_dmn, TETRAHEDRON_ORIGIN>>;
 
-  using b = func::dmn_0<electron_band_domain>;
-  using s = func::dmn_0<electron_spin_domain>;
+  using b = func::dmn_0<domains::electron_band_domain>;
+  using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
   using Threading = typename parameters_type::ThreadingType;

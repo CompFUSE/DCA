@@ -56,11 +56,10 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 #include "dca/phys/vertex_measurement_type.hpp"
-
-#include "phys_library/domains/cluster/cluster_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
 
 using namespace dca::phys;
 
@@ -72,16 +71,19 @@ namespace CT_AUX_ACCUMULATION {
 template <class parameters_type, class MOMS_type>
 class accumulator_nonlocal_chi {
 public:
-  using w_VERTEX = func::dmn_0<DCA::vertex_frequency_domain<DCA::COMPACT>>;
-  using w_VERTEX_EXTENDED = func::dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED>>;
-  using w_VERTEX_EXTENDED_POS = func::dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED_POSITIVE>>;
+  using w_VERTEX = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
+  using w_VERTEX_EXTENDED = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
+  using w_VERTEX_EXTENDED_POS =
+      func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED_POSITIVE>>;
 
-  using b = func::dmn_0<electron_band_domain>;
+  using b = func::dmn_0<domains::electron_band_domain>;
 
-  using r_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                           CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>>;
-  using k_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                           CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using r_DCA =
+      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
+                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
+  using k_DCA =
+      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
+                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
   typedef r_DCA r_dmn_t;
   typedef k_DCA k_dmn_t;
   typedef typename r_dmn_t::parameter_type r_cluster_type;

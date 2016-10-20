@@ -15,7 +15,7 @@
 #include <string>
 #include <vector>
 
-#include "phys_library/domains/cluster/cluster_domain.h"
+using namespace dca::phys;
 
 namespace DFT {
 namespace VASP {

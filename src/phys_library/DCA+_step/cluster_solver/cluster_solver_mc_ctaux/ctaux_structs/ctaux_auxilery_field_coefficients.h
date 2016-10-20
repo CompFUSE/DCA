@@ -22,11 +22,14 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
+
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_domains/HS_field_sign_domain.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_domains/HS_spin_domain.h"
-#include "phys_library/domains/cluster/cluster_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
+
+using namespace dca::phys;
 
 namespace DCA {
 namespace QMCI {
@@ -35,12 +38,13 @@ namespace QMCI {
 template <typename parameters_type>
 class CV {
 public:
-  using b = func::dmn_0<electron_band_domain>;
-  using s = func::dmn_0<electron_spin_domain>;
+  using b = func::dmn_0<domains::electron_band_domain>;
+  using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
-  using r_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                           CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>>;
+  using r_DCA =
+      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
+                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
   typedef r_DCA r_dmn_t;
 
   typedef HS_spin_domain HS_spin_domain_type;
@@ -298,7 +302,7 @@ template <typename MOMS_type>
 void CV<parameters_type>::initialize(MOMS_type& MOMS) {
   BETA = parameters.get_beta();
   K_CT_AUX = parameters.get_K_parameter();
-  BANDS = electron_band_domain::get_size();
+  BANDS = domains::electron_band_domain::get_size();
   FULL_CLUSTER_SIZE = r_dmn_t::dmn_size();
 
   H_interaction = MOMS.H_interactions;

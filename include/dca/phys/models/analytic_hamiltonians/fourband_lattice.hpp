@@ -19,8 +19,8 @@
 #include <vector>
 
 #include "dca/function/function.hpp"
+#include "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp"
 #include "dca/phys/models/analytic_hamiltonians/cluster_shape_type.hpp"
-#include "phys_library/domains/cluster/symmetries/point_groups/No_symmetry.h"
 
 namespace dca {
 namespace phys {
@@ -30,7 +30,7 @@ namespace models {
 template <typename point_group_type>
 class fourband_lattice {
 public:
-  typedef no_symmetry<2> LDA_point_group;
+  typedef domains::no_symmetry<2> LDA_point_group;
   typedef point_group_type DCA_point_group;
 
   const static ClusterShapeType DCA_cluster_shape = BETT_CLUSTER;

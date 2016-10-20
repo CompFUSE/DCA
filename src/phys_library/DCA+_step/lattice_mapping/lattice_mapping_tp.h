@@ -18,12 +18,16 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
+
 #include "comp_library/function_plotting/include_plotting.h"
 #include "phys_library/DCA+_step/lattice_mapping/deconvolution/deconvolution_tp.h"
 #include "phys_library/DCA+_step/lattice_mapping/interpolation/interpolation_tp.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
+
+using namespace dca::phys;
 
 namespace DCA {
 
@@ -44,12 +48,12 @@ class lattice_mapping_tp {
 public:
   using concurrency_type = typename parameters_type::concurrency_type;
 
-  using b = func::dmn_0<electron_band_domain>;
-  using s = func::dmn_0<electron_spin_domain>;
+  using b = func::dmn_0<domains::electron_band_domain>;
+  using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
-  using w = func::dmn_0<frequency_domain>;
-  using compact_vertex_frequency_domain_type = DCA::vertex_frequency_domain<DCA::COMPACT>;
+  using w = func::dmn_0<domains::frequency_domain>;
+  using compact_vertex_frequency_domain_type = domains::vertex_frequency_domain<domains::COMPACT>;
   using w_VERTEX = func::dmn_0<compact_vertex_frequency_domain_type>;
 
   using tmp_k_dmn_t = func::dmn_0<tmp_cluster_domain>;

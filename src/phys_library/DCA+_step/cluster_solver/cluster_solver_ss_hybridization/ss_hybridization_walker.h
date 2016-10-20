@@ -26,6 +26,11 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/linalg/device_type.hpp"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/time_domain.hpp"
+
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_solver_routines.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_type_definitions.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_walker_tools/ANTI_SEGMENT_TOOLS.h"
@@ -34,10 +39,8 @@
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_walker_tools/SHIFT_SEGMENT_TOOLS.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_walker_tools/SWAP_SEGMENT_TOOLS.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_walker_tools/ss_hybridization_walker_routines.h"
-#include "phys_library/domains/cluster/cluster_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
-#include "phys_library/domains/time_and_frequency/time_domain.h"
+
+using namespace dca::phys;
 
 namespace DCA {
 namespace QMCI {
@@ -59,12 +62,13 @@ public:
   typedef typename MC_type_definitions<SS_CT_HYB, parameters_type, MOMS_type>::configuration_type
       configuration_type;
 
-  using t = func::dmn_0<time_domain>;
-  using b = func::dmn_0<electron_band_domain>;
-  using s = func::dmn_0<electron_spin_domain>;
+  using t = func::dmn_0<domains::time_domain>;
+  using b = func::dmn_0<domains::electron_band_domain>;
+  using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
-  using r_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                           CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>>;
+  using r_DCA =
+      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
+                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
   using nu_nu_r_DCA_t = func::dmn_variadic<nu, nu, r_DCA, t>;
 
   typedef func::function<vertex_vertex_matrix_type, nu> M_matrix_type;

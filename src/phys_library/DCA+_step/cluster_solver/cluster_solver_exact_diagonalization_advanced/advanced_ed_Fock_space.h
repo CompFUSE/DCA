@@ -20,10 +20,14 @@
 #include <vector>
 
 #include "dca/function/function.hpp"
+#include "dca/phys/domains/cluster/cluster_operations.hpp"
+#include "dca/phys/domains/cluster/cluster_symmetry.hpp"
+
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Hilbert_spaces/Hilbert_space_psi_representation.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_structures/psi_state.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_structures/psi_symmetry_operator.h"
-#include "phys_library/domains/cluster/cluster_domain_symmetry.h"
+
+using namespace dca::phys;
 
 namespace DCA {
 namespace ADVANCED_EXACT_DIAGONALIZATION {
@@ -56,7 +60,7 @@ public:
 
   typedef typename r_dmn::parameter_type r_cluster_type;
 
-  typedef cluster_symmetry<r_cluster_type> r_symmetry_type;
+  typedef domains::cluster_symmetry<r_cluster_type> r_symmetry_type;
 
   typedef typename r_symmetry_type::symmetry_matrix_dmn_t r_symmetry_matrix_dmn_t;
 
@@ -254,9 +258,9 @@ void Fock_space<parameter_type, ed_options>::apply_translation_symmetry(std::str
 
   for (int k = 0; k < DIMENSION; ++k) {
     std::vector<double> basis_vec =
-        cluster_operations::translate_inside_cluster(basis[k], super_basis);
+        domains::cluster_operations::translate_inside_cluster(basis[k], super_basis);
 
-    index[k] = cluster_operations::index(basis_vec, elements, BRILLOUIN_ZONE);
+    index[k] = domains::cluster_operations::index(basis_vec, elements, domains::BRILLOUIN_ZONE);
 
     int Nc = elements.size();
 

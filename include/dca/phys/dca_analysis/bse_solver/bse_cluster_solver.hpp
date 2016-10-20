@@ -18,15 +18,15 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/quantum/e_spin_states.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 #include "dca/phys/vertex_measurement_type.hpp"
 
 #include "phys_library/DCA+_step/symmetrization/diagrammatic_symmetries.h"
 #include "phys_library/DCA+_step/symmetrization/symmetrize.h"
-#include "phys_library/domains/cluster/cluster_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
 
 namespace dca {
 namespace phys {
@@ -41,11 +41,12 @@ public:
   using profiler_t = typename ParametersType::profiler_type;
   using concurrency_t = typename ParametersType::concurrency_type;
 
-  using w = func::dmn_0<frequency_domain>;
-  using w_VERTEX = func::dmn_0<DCA::vertex_frequency_domain<DCA::COMPACT>>;
-  using b = func::dmn_0<electron_band_domain>;
-  using DCA_k_cluster_type = cluster_domain<double, ParametersType::lattice_type::DIMENSION,
-                                            CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
+  using w = func::dmn_0<domains::frequency_domain>;
+  using w_VERTEX = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
+  using b = func::dmn_0<domains::electron_band_domain>;
+  using DCA_k_cluster_type =
+      domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::CLUSTER,
+                              domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>;
   using k_DCA = func::dmn_0<DCA_k_cluster_type>;
 
   using b_b = func::dmn_variadic<b, b>;

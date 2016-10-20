@@ -18,8 +18,8 @@
 
 #include "dca/function/function.hpp"
 #include "dca/util/type_list.hpp"
-#include "phys_library/domains/cluster/cluster_operations.hpp"
-#include "phys_library/domains/cluster/symmetries/point_groups/No_symmetry.h"
+#include "dca/phys/domains/cluster/cluster_operations.hpp"
+#include "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp"
 
 namespace dca {
 namespace phys {
@@ -29,7 +29,7 @@ namespace models {
 template <typename point_group_type>
 class square_lattice {
 public:
-  typedef no_symmetry<2> LDA_point_group;
+  typedef domains::no_symmetry<2> LDA_point_group;
   typedef point_group_type DCA_point_group;
 
   const static int DIMENSION = 2;
@@ -128,8 +128,8 @@ void square_lattice<point_group_type>::initialize_H_interaction(
   std::vector<int> nn_index(DIMENSION);  // Indices of nearest neighbours w.r.t. origin.
   for (int d = 0; d < DIMENSION; ++d) {
     std::vector<double> basis_vec =
-        cluster_operations::translate_inside_cluster(basis[d], super_basis);
-    nn_index[d] = cluster_operations::index(basis_vec, elements, BRILLOUIN_ZONE);
+        domains::cluster_operations::translate_inside_cluster(basis[d], super_basis);
+    nn_index[d] = domains::cluster_operations::index(basis_vec, elements, domains::BRILLOUIN_ZONE);
   }
 
   // Nearest-neighbor opposite spin interaction

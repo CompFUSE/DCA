@@ -14,16 +14,16 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 
 namespace DCA {
 namespace SERIES_EXPANSION {
 
 class compute_interaction {
 public:
-  using b = func::dmn_0<electron_band_domain>;
-  using s = func::dmn_0<electron_spin_domain>;
+  using b = func::dmn_0<domains::electron_band_domain>;
+  using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
   using function_type = func::function<double, func::dmn_variadic<nu, nu>>;

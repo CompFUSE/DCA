@@ -23,18 +23,18 @@
 #include "dca/function/function.hpp"
 #include "dca/math/function_transform/function_transform.hpp"
 #include "dca/math/interpolation/akima_interpolation.hpp"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/time_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/time_domain_left_oriented.hpp"
+#include "dca/phys/domains/time_and_frequency/vertex_time_domain.hpp"
 
 #include "comp_library/function_plotting/include_plotting.h"
-
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_vertex_singleton.h"
-#include "phys_library/domains/cluster/cluster_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
-#include "phys_library/domains/time_and_frequency/time_domain.h"
-#include "phys_library/domains/time_and_frequency/time_domain_left_oriented.h"
-#include "phys_library/domains/time_and_frequency/vertex_time_domain.h"
 
 using namespace dca;
+using namespace dca::phys;
 
 namespace DCA {
 namespace QMCI {
@@ -49,24 +49,27 @@ public:
   typedef typename parameters_type::profiler_type profiler_type;
   typedef typename parameters_type::concurrency_type concurrency_type;
 
-  using t = func::dmn_0<time_domain>;
-  using tp_time_pos_dmn_t = func::dmn_0<DCA::vertex_time_domain<DCA::TP_TIME_DOMAIN_POSITIVE>>;
+  using t = func::dmn_0<domains::time_domain>;
+  using tp_time_pos_dmn_t =
+      func::dmn_0<domains::vertex_time_domain<domains::TP_TIME_DOMAIN_POSITIVE>>;
   using t_VERTEX = tp_time_pos_dmn_t;
 
-  using b = func::dmn_0<electron_band_domain>;
-  using s = func::dmn_0<electron_spin_domain>;
+  using b = func::dmn_0<domains::electron_band_domain>;
+  using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
-  using r_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                           CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>>;
-  using k_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                           CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using r_DCA =
+      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
+                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
+  using k_DCA =
+      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
+                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
   using r_dmn_t = r_DCA;
   using k_dmn_t = k_DCA;
 
   typedef func::dmn_variadic<b, r_dmn_t, t_VERTEX> b_r_t_VERTEX_dmn_t;
 
-  typedef func::dmn_0<time_domain_left_oriented> shifted_t;
+  typedef func::dmn_0<domains::time_domain_left_oriented> shifted_t;
   typedef func::dmn_variadic<nu, nu, r_dmn_t, shifted_t> nu_nu_r_dmn_t_shifted_t;
 
   typedef func::dmn_0<func::dmn<4, int>> akima_dmn_t;
@@ -779,7 +782,7 @@ template <class configuration_type>
 void MC_two_particle_equal_time_accumulator<parameters_type, MOMS_type>::compute_G0_matrix(
     e_spin_states e_spin, configuration_type& configuration,
     dca::linalg::Matrix<float, dca::linalg::CPU>& G0_matrix) {
-  int spin_index = electron_spin_domain::to_coordinate(e_spin);
+  int spin_index = domains::electron_spin_domain::to_coordinate(e_spin);
 
   int r_ind, b_i, b_j, r_i, r_j;    //, s_i, s_j;
   scalar_type t_i, t_j, delta_tau;  //, scaled_tau, f_tau;
@@ -811,7 +814,7 @@ template <class configuration_type>
 void MC_two_particle_equal_time_accumulator<parameters_type, MOMS_type>::compute_G0_matrix_left(
     e_spin_states e_spin, configuration_type& configuration,
     dca::linalg::Matrix<float, dca::linalg::CPU>& G0_matrix) {
-  int spin_index = electron_spin_domain::to_coordinate(e_spin);
+  int spin_index = domains::electron_spin_domain::to_coordinate(e_spin);
 
   int r_ind, b_i, b_j, r_i, r_j;    //, s_i, s_j;
   scalar_type t_i, t_j, delta_tau;  //, scaled_tau, f_tau;
@@ -843,7 +846,7 @@ template <class configuration_type>
 void MC_two_particle_equal_time_accumulator<parameters_type, MOMS_type>::compute_G0_matrix_right(
     e_spin_states e_spin, configuration_type& configuration,
     dca::linalg::Matrix<float, dca::linalg::CPU>& G0_matrix) {
-  int spin_index = electron_spin_domain::to_coordinate(e_spin);
+  int spin_index = domains::electron_spin_domain::to_coordinate(e_spin);
 
   int r_ind, b_i, b_j, r_i, r_j;    //, s_i, s_j;
   scalar_type t_i, t_j, delta_tau;  //, scaled_tau, f_tau;

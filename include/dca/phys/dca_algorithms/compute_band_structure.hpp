@@ -19,12 +19,13 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/cluster/interpolation/wannier_interpolation/wannier_interpolation.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
+#include "dca/phys/domains/quantum/brillouin_zone_cut_domain.hpp"
+
 #include "comp_library/linalg/linalg.hpp"
-#include "phys_library/domains/cluster/interpolation/wannier_interpolation/wannier_interpolation.hpp"
-#include "phys_library/domains/cluster/cluster_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
-#include "phys_library/domains/Quantum_domain/brillouin_zone_cut_domain.h"
 
 namespace dca {
 namespace phys {
@@ -32,11 +33,11 @@ namespace phys {
 
 class compute_band_structure {
 public:
-  using b = func::dmn_0<electron_band_domain>;
-  using s = func::dmn_0<electron_spin_domain>;
+  using b = func::dmn_0<domains::electron_band_domain>;
+  using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;
 
-  using brillouin_zone_cut_domain_type = brillouin_zone_cut_domain<101>;
+  using brillouin_zone_cut_domain_type = domains::brillouin_zone_cut_domain<101>;
   using k_domain_cut_dmn_type = func::dmn_0<brillouin_zone_cut_domain_type>;
   using nu_k_cut = func::dmn_variadic<nu, k_domain_cut_dmn_type>;
 
@@ -88,7 +89,7 @@ void compute_band_structure::execute(
       "H_k_interpolated");
 
   {  // get H(k)
-    wannier_interpolation<K_dmn_t, k_domain_cut_dmn_type>::execute(H_LDA, H_k);
+    domains::wannier_interpolation<K_dmn_t, k_domain_cut_dmn_type>::execute(H_LDA, H_k);
   }
 
   {  // compute the bands ...
@@ -116,7 +117,8 @@ void compute_band_structure::construct_path(std::string coordinate_type,
                                             std::vector<std::vector<double>> path_vecs,
                                             std::vector<std::vector<double>>& collection_k_vecs) {
   using DCA_k_cluster_type =
-      cluster_domain<double, lattice_dimension, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
+      domains::cluster_domain<double, lattice_dimension, domains::CLUSTER, domains::MOMENTUM_SPACE,
+                              domains::BRILLOUIN_ZONE>;
 
   int Nb_interpolation = INTERPOLATION_POINTS_BAND_STRUCTURE;
 

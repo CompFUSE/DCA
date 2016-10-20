@@ -15,9 +15,10 @@
 #include <cassert>
 #include <iostream>
 
+#include "dca/phys/domains/quantum/e_spin_states.hpp"
+
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_domains/HS_field_sign_domain.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_domains/HS_spin_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
 
 namespace DCA {
 namespace QMCI {

@@ -16,7 +16,7 @@ public:
   const static int DIMENSION = 2;
   const static int BANDS = 3;
 
-  typedef no_symmetry<DIMENSION> LDA_point_group;
+  typedef domains::no_symmetry<DIMENSION> LDA_point_group;
   typedef point_group_type DCA_point_group;
 
   static double* initialize_r_DCA_basis();

@@ -24,6 +24,13 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
+#include "dca/phys/domains/quantum/numerical_error_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/time_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 #include "dca/phys/vertex_measurement_type.hpp"
 
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_accumulator/sp_accumulator/ctaux_sp_accumulator_nfft.h"
@@ -35,13 +42,6 @@
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_vertex_pair.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_vertex_singleton.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_template/mc_accumulator_data.hpp"
-#include "phys_library/domains/cluster/cluster_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
-#include "phys_library/domains/Quantum_domain/numerical_error_domain.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
-#include "phys_library/domains/time_and_frequency/time_domain.h"
 
 using namespace dca::phys;
 
@@ -61,18 +61,20 @@ public:
   typedef vertex_pair<parameters_type> vertex_pair_type;
   typedef vertex_singleton vertex_singleton_type;
 
-  using t = func::dmn_0<time_domain>;
-  using w = func::dmn_0<frequency_domain>;
-  using w_VERTEX = func::dmn_0<DCA::vertex_frequency_domain<DCA::COMPACT>>;
+  using t = func::dmn_0<domains::time_domain>;
+  using w = func::dmn_0<domains::frequency_domain>;
+  using w_VERTEX = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
 
-  using b = func::dmn_0<electron_band_domain>;
-  using s = func::dmn_0<electron_spin_domain>;
+  using b = func::dmn_0<domains::electron_band_domain>;
+  using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
-  using r_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                           CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>>;
-  using k_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                           CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using r_DCA =
+      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
+                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
+  using k_DCA =
+      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
+                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
   typedef r_DCA r_dmn_t;
   typedef k_DCA k_dmn_t;
 
@@ -101,7 +103,7 @@ public:
 
   std::vector<vertex_singleton_type>& get_configuration(e_spin_states_type e_spin = e_UP);
 
-  func::function<double, func::dmn_0<numerical_error_domain>>& get_error_distribution() {
+  func::function<double, func::dmn_0<domains::numerical_error_domain>>& get_error_distribution() {
     return error;
   }
 
@@ -199,7 +201,7 @@ protected:
   dca::linalg::Matrix<double, dca::linalg::CPU> M_e_UP;
   dca::linalg::Matrix<double, dca::linalg::CPU> M_e_DN;
 
-  func::function<double, func::dmn_0<numerical_error_domain>> error;
+  func::function<double, func::dmn_0<domains::numerical_error_domain>> error;
   func::function<double, func::dmn_0<Feynman_expansion_order_domain>> visited_expansion_order_k;
 
   func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>> K_r_t;

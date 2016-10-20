@@ -18,29 +18,28 @@
 #include "dca/function/function.hpp"
 #include "dca/math/geometry/gaussian_quadrature/gaussian_quadrature_domain.hpp"
 #include "dca/math/geometry/tetrahedron_mesh/tetrahedron_mesh.hpp"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/frequency_domain_real_axis.hpp"
+#include "dca/phys/domains/time_and_frequency/time_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 
 #include "comp_library/linalg/linalg.hpp"
-
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_domain.h"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/quadrature_integration.h"
 #include "phys_library/DCA+_step/lattice_mapping/interpolation/interpolation_matrices.h"
 #include "phys_library/DCA+_step/lattice_mapping/interpolation/transform_to_alpha.hpp"
 
-#include "phys_library/domains/cluster/cluster_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain_real_axis.h"
-#include "phys_library/domains/time_and_frequency/time_domain.h"
-
 using namespace dca;
+using namespace dca::phys;
 
 namespace DCA {
 
 template <typename scalar_type, typename k_dmn_t, typename q_dmn_t>
 struct coarsegraining_functions {
-  using b = func::dmn_0<electron_band_domain>;
-  using s = func::dmn_0<electron_spin_domain>;
+  using b = func::dmn_0<domains::electron_band_domain>;
+  using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
   int K_ind;
@@ -68,17 +67,18 @@ public:
   using tetrahedron_dmn = func::dmn_0<math::geometry::tetrahedron_mesh<K_dmn>>;
   using quadrature_dmn = math::geometry::gaussian_quadrature_domain<tetrahedron_dmn>;
 
-  using t = func::dmn_0<time_domain>;
-  using w = func::dmn_0<frequency_domain>;
-  using w_REAL = func::dmn_0<frequency_domain_real_axis>;
+  using t = func::dmn_0<domains::time_domain>;
+  using w = func::dmn_0<domains::frequency_domain>;
+  using w_REAL = func::dmn_0<domains::frequency_domain_real_axis>;
 
-  using b = func::dmn_0<electron_band_domain>;
-  using s = func::dmn_0<electron_spin_domain>;
+  using b = func::dmn_0<domains::electron_band_domain>;
+  using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
   using nu_nu = func::dmn_variadic<nu, nu>;
 
-  using DCA_k_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                            CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
+  using DCA_k_cluster_type =
+      domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
+                              domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>;
   using k_DCA = func::dmn_0<DCA_k_cluster_type>;
 
   const static int DIMENSION = K_dmn::parameter_type::DIMENSION;

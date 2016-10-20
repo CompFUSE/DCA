@@ -20,6 +20,7 @@
 #include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/matrixop.hpp"
+#include "dca/phys/domains/quantum/numerical_error_domain.hpp"
 
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_auxilery_field_coefficients.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_hubbard_stratonovitch_configuration.h"
@@ -28,7 +29,6 @@
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_G0_matrix_routines/ctaux_G0_matrix_routines_CPU.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_G_matrix_routines.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_N_matrix_routines.h"
-#include "phys_library/domains/Quantum_domain/numerical_error_domain.h"
 
 namespace DCA {
 namespace QMCI {
@@ -53,7 +53,7 @@ public:
 
   void initialize();
 
-  func::function<double, func::dmn_0<numerical_error_domain>>& get_error_distribution();
+  func::function<double, func::dmn_0<domains::numerical_error_domain>>& get_error_distribution();
 
   template <dca::linalg::DeviceType device_t>
   void check_G0_matrices(configuration_type& configuration,
@@ -98,7 +98,7 @@ private:
   dca::linalg::Matrix<double, dca::linalg::CPU> G_up_CPU;
   dca::linalg::Matrix<double, dca::linalg::CPU> G_dn_CPU;
 
-  func::function<double, func::dmn_0<numerical_error_domain>> error;
+  func::function<double, func::dmn_0<domains::numerical_error_domain>> error;
 };
 
 template <class parameters_type, class MOMS_type>
@@ -134,7 +134,7 @@ MC_walker_BIT<CT_AUX_SOLVER, parameters_type, MOMS_type>::~MC_walker_BIT() {
 }
 
 template <class parameters_type, class MOMS_type>
-func::function<double, func::dmn_0<numerical_error_domain>>& MC_walker_BIT<
+func::function<double, func::dmn_0<domains::numerical_error_domain>>& MC_walker_BIT<
     CT_AUX_SOLVER, parameters_type, MOMS_type>::get_error_distribution() {
   return error;
 }
@@ -185,7 +185,7 @@ void MC_walker_BIT<CT_AUX_SOLVER, parameters_type, MOMS_type>::check_N_matrices(
   double err_up = difference(N_up_CPU, N_up);
   double err_dn = difference(N_dn_CPU, N_dn);
 
-  std::vector<double>& x = numerical_error_domain::get_elements();
+  std::vector<double>& x = domains::numerical_error_domain::get_elements();
   for (size_t l = 0; l < x.size() - 1; l++)
     if ((err_up > x[l] and err_up < x[l + 1]) or (err_dn > x[l] and err_dn < x[l + 1]))
       error(l) += 1;

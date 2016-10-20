@@ -15,7 +15,9 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
-#include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
+#include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
+
+using namespace dca::phys;
 
 namespace DCA {
 namespace ADVANCED_EXACT_DIAGONALIZATION {
@@ -51,7 +53,7 @@ public:
 
   typedef tp_Greens_function_data<ed_options> this_type;
 
-  using w_VERTEX_EXTENDED = func::dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED>>;
+  using w_VERTEX_EXTENDED = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
 
   typedef func::dmn_variadic<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED> wm_wn_dmn_type;
   typedef func::dmn_variadic<nu_dmn, nu_dmn, nu_dmn, nu_dmn, r_dmn, r_dmn, r_dmn> nu_nu_nu_nu_r_r_r_dmn_type;

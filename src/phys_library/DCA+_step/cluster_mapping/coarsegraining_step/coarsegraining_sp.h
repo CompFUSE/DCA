@@ -21,19 +21,21 @@
 #include "dca/function/function.hpp"
 #include "dca/math/geometry/gaussian_quadrature/gaussian_quadrature_domain.hpp"
 #include "dca/math/geometry/tetrahedron_mesh/tetrahedron_mesh.hpp"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/cluster/cluster_operations.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/time_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 #include "dca/util/print_time.hpp"
 
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_interpolation_matrices.h"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_routines.h"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/tetrahedron_integration.h"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/tetrahedron_routines_harmonic_function.h"
-#include "phys_library/domains/cluster/cluster_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
-#include "phys_library/domains/time_and_frequency/time_domain.h"
 
 using namespace dca;
+using namespace dca::phys;
 
 namespace DCA {
 
@@ -44,8 +46,9 @@ public:
   using concurrency_type = typename parameters_type::concurrency_type;
 
   using k_cluster_type = typename K_dmn::parameter_type;
-  using host_k_cluster_type = cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                             LATTICE_SP, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
+  using host_k_cluster_type =
+      domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::LATTICE_SP,
+                              domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>;
   using k_HOST = func::dmn_0<host_k_cluster_type>;
 
 #ifdef DCA_WITH_SINGLE_PRECISION_COARSEGRAINING
@@ -63,11 +66,11 @@ public:
   using tet_dmn = func::dmn_0<coarsegraining_domain<K_dmn, TETRAHEDRON_K>>;
   using tet_0_dmn = func::dmn_0<coarsegraining_domain<K_dmn, TETRAHEDRON_ORIGIN>>;
 
-  using t = func::dmn_0<time_domain>;
-  using w = func::dmn_0<frequency_domain>;
+  using t = func::dmn_0<domains::time_domain>;
+  using w = func::dmn_0<domains::frequency_domain>;
 
-  using b = func::dmn_0<electron_band_domain>;
-  using s = func::dmn_0<electron_spin_domain>;
+  using b = func::dmn_0<domains::electron_band_domain>;
+  using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
   using nu_nu_q = func::dmn_variadic<nu, nu, q_dmn>;
@@ -267,7 +270,7 @@ void coarsegraining_sp<parameters_type, K_dmn>::plot_phi_r(
   for (int r_ind = 0; r_ind < r_dmn::dmn_size(); r_ind++) {
     std::vector<double> r_vec = r_dmn::get_elements()[r_ind];
     std::vector<std::vector<double>> r_vecs =
-        cluster_operations::equivalent_vectors(r_vec, super_basis);
+        domains::cluster_operations::equivalent_vectors(r_vec, super_basis);
 
     x.push_back(std::sqrt(r_vecs[0][0] * r_vecs[0][0] + r_vecs[0][1] * r_vecs[0][1]));
     y.push_back((phi_r(r_ind)));
@@ -297,7 +300,7 @@ void coarsegraining_sp<parameters_type, K_dmn>::compute_phi_r(
     for (int l = bounds.first; l < bounds.second; l++) {
       std::vector<double> r_vec = r_dmn::get_elements()[l];
       std::vector<std::vector<double>> r_vecs =
-          cluster_operations::equivalent_vectors(r_vec, super_basis);
+          domains::cluster_operations::equivalent_vectors(r_vec, super_basis);
       for (int r_ind = 0; r_ind < r_vecs.size(); r_ind++)
         for (int tet_ind = 0; tet_ind < tetrahedra.size(); tet_ind++)
           phi_r(l) += std::real(tetrahedron_routines_harmonic_function::execute(

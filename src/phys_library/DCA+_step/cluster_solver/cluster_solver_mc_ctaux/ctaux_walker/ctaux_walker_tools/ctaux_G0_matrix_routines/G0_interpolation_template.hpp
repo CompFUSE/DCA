@@ -17,14 +17,14 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/math/interpolation/akima_interpolation.hpp"
-
-#include "phys_library/domains/cluster/cluster_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
-#include "phys_library/domains/time_and_frequency/time_domain.h"
-#include "phys_library/domains/time_and_frequency/time_domain_left_oriented.h"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/time_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/time_domain_left_oriented.hpp"
 
 using namespace dca;
+using namespace dca::phys;
 
 namespace DCA {
 namespace QMCI {
@@ -33,20 +33,21 @@ namespace QMCI {
 template <typename parameters_type>
 class G0_INTERPOLATION_TEMPLATE {
 public:
-  using t = func::dmn_0<time_domain>;
-  using b = func::dmn_0<electron_band_domain>;
-  using s = func::dmn_0<electron_spin_domain>;
+  using t = func::dmn_0<domains::time_domain>;
+  using b = func::dmn_0<domains::electron_band_domain>;
+  using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
-  using r_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                           CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>>;
+  using r_DCA =
+      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
+                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
   using r_dmn_t = r_DCA;
   typedef typename r_dmn_t::parameter_type r_cluster_type;
 
   typedef typename parameters_type::concurrency_type concurrency_type;
   typedef typename parameters_type::profiler_type profiler_t;
 
-  typedef func::dmn_0<time_domain_left_oriented> shifted_t;
+  typedef func::dmn_0<domains::time_domain_left_oriented> shifted_t;
   typedef func::dmn_variadic<nu, nu, r_dmn_t, shifted_t> nu_nu_r_dmn_t_shifted_t;
 
   typedef func::dmn_0<func::dmn<4, int>> akima_dmn_t;

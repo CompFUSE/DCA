@@ -45,26 +45,30 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
-#include "phys_library/domains/cluster/cluster_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain_real_axis.h"
-#include "phys_library/domains/time_and_frequency/time_domain.h"
+#include "dca/phys/domains/cluster/cluster_definitions.hpp"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/cluster/cluster_symmetry.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/frequency_domain_real_axis.hpp"
+#include "dca/phys/domains/time_and_frequency/time_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
+
+using namespace dca::phys;
 
 class symmetrize_single_particle_function {
 public:
-  using t = func::dmn_0<time_domain>;
-  using w = func::dmn_0<frequency_domain>;
-  using compact_vertex_frequency_domain_type = DCA::vertex_frequency_domain<DCA::COMPACT>;
+  using t = func::dmn_0<domains::time_domain>;
+  using w = func::dmn_0<domains::frequency_domain>;
+  using compact_vertex_frequency_domain_type = domains::vertex_frequency_domain<domains::COMPACT>;
   using w_VERTEX = func::dmn_0<compact_vertex_frequency_domain_type>;
-  using extended_vertex_frequency_domain_type = DCA::vertex_frequency_domain<DCA::EXTENDED>;
+  using extended_vertex_frequency_domain_type = domains::vertex_frequency_domain<domains::EXTENDED>;
   using w_VERTEX_EXTENDED = func::dmn_0<extended_vertex_frequency_domain_type>;
-  using w_REAL = func::dmn_0<frequency_domain_real_axis>;
+  using w_REAL = func::dmn_0<domains::frequency_domain_real_axis>;
 
-  using b = func::dmn_0<electron_band_domain>;
-  using s = func::dmn_0<electron_spin_domain>;
+  using b = func::dmn_0<domains::electron_band_domain>;
+  using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
 protected:
@@ -73,14 +77,19 @@ protected:
       func::function<scalartype, func::dmn_variadic<nu_dmn_t, nu_dmn_t, f_dmn_0, f_dmn_1>>& f,
       func::function<int, func::dmn_variadic<nu_dmn_t, nu_dmn_t>>& H_symmetry, bool do_diff = false);
 
-  template <typename scalartype, typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S>
+  template <typename scalartype, typename scalar_type, int D, domains::CLUSTER_NAMES N,
+            domains::CLUSTER_SHAPE S>
   static void execute(
-      func::function<scalartype, func::dmn_0<cluster_domain<scalar_type, D, N, REAL_SPACE, S>>>& f,
+      func::function<scalartype,
+                     func::dmn_0<domains::cluster_domain<scalar_type, D, N, domains::REAL_SPACE, S>>>& f,
       bool do_diff = false);
 
-  template <typename scalartype, typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S>
+  template <typename scalartype, typename scalar_type, int D, domains::CLUSTER_NAMES N,
+            domains::CLUSTER_SHAPE S>
   static void execute(
-      func::function<scalartype, func::dmn_0<cluster_domain<scalar_type, D, N, MOMENTUM_SPACE, S>>>& f,
+      func::function<
+          scalartype,
+          func::dmn_0<domains::cluster_domain<scalar_type, D, N, domains::MOMENTUM_SPACE, S>>>& f,
       bool do_diff = false);
 
   template <typename scalartype, typename f_dmn_0, typename f_dmn_1>
@@ -140,18 +149,20 @@ private:
   template <typename scalartype>
   static void execute(func::function<scalartype, w_VERTEX_EXTENDED>& f, bool do_diff = false);
 
-  template <typename scalartype, typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S>
+  template <typename scalartype, typename scalar_type, int D, domains::CLUSTER_NAMES N,
+            domains::CLUSTER_SHAPE S>
   static void execute(
-      func::function<
-          scalartype,
-          func::dmn_variadic<b, b, func::dmn_0<cluster_domain<scalar_type, D, N, REAL_SPACE, S>>>>& f,
+      func::function<scalartype,
+                     func::dmn_variadic<b, b, func::dmn_0<domains::cluster_domain<
+                                                  scalar_type, D, N, domains::REAL_SPACE, S>>>>& f,
       bool do_diff = false);
 
-  template <typename scalartype, typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S>
+  template <typename scalartype, typename scalar_type, int D, domains::CLUSTER_NAMES N,
+            domains::CLUSTER_SHAPE S>
   static void execute(
-      func::function<
-          scalartype,
-          func::dmn_variadic<b, b, func::dmn_0<cluster_domain<scalar_type, D, N, MOMENTUM_SPACE, S>>>>& f,
+      func::function<scalartype,
+                     func::dmn_variadic<b, b, func::dmn_0<domains::cluster_domain<
+                                                  scalar_type, D, N, domains::MOMENTUM_SPACE, S>>>>& f,
       bool do_diff = false);
 };
 
@@ -497,18 +508,21 @@ void symmetrize_single_particle_function::execute(func::function<scalartype, w_V
     difference(max, "w_VERTEX_EXTENDED-domain of the function : " + f.get_name() + "\n");
 }
 
-template <typename scalartype, typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S>
+template <typename scalartype, typename scalar_type, int D, domains::CLUSTER_NAMES N,
+          domains::CLUSTER_SHAPE S>
 void symmetrize_single_particle_function::execute(
-    func::function<scalartype, func::dmn_0<cluster_domain<scalar_type, D, N, REAL_SPACE, S>>>& f,
+    func::function<scalartype,
+                   func::dmn_0<domains::cluster_domain<scalar_type, D, N, domains::REAL_SPACE, S>>>& f,
     bool do_diff) {
-  typedef cluster_domain<scalar_type, D, N, REAL_SPACE, S> r_cluster_type;
+  typedef domains::cluster_domain<scalar_type, D, N, domains::REAL_SPACE, S> r_cluster_type;
   typedef func::dmn_0<r_cluster_type> r_dmn_t;
 
-  typedef typename cluster_symmetry<r_cluster_type>::sym_super_cell_dmn_t sym_super_cell_dmn_t;
+  typedef
+      typename domains::cluster_symmetry<r_cluster_type>::sym_super_cell_dmn_t sym_super_cell_dmn_t;
 
   static func::function<std::pair<int, int>,
                         func::dmn_variadic<func::dmn_variadic<r_dmn_t, b>, sym_super_cell_dmn_t>>&
-      r_symmetry_matrix = cluster_symmetry<r_cluster_type>::get_symmetry_matrix();
+      r_symmetry_matrix = domains::cluster_symmetry<r_cluster_type>::get_symmetry_matrix();
 
   static func::function<scalartype, r_dmn_t> f_new;
 
@@ -538,20 +552,22 @@ void symmetrize_single_particle_function::execute(
     difference(max, f.get_name(), "r-cluster-domain of the function : " + f.get_name() + "\n");
 }
 
-template <typename scalartype, typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S>
+template <typename scalartype, typename scalar_type, int D, domains::CLUSTER_NAMES N,
+          domains::CLUSTER_SHAPE S>
 void symmetrize_single_particle_function::execute(
-    func::function<
-        scalartype,
-        func::dmn_variadic<b, b, func::dmn_0<cluster_domain<scalar_type, D, N, REAL_SPACE, S>>>>& f,
+    func::function<scalartype,
+                   func::dmn_variadic<b, b, func::dmn_0<domains::cluster_domain<
+                                                scalar_type, D, N, domains::REAL_SPACE, S>>>>& f,
     bool do_diff) {
-  typedef cluster_domain<scalar_type, D, N, REAL_SPACE, S> r_cluster_type;
+  typedef domains::cluster_domain<scalar_type, D, N, domains::REAL_SPACE, S> r_cluster_type;
   typedef func::dmn_0<r_cluster_type> r_dmn_t;
 
-  typedef typename cluster_symmetry<r_cluster_type>::sym_super_cell_dmn_t sym_super_cell_dmn_t;
+  typedef
+      typename domains::cluster_symmetry<r_cluster_type>::sym_super_cell_dmn_t sym_super_cell_dmn_t;
 
   static func::function<std::pair<int, int>,
                         func::dmn_variadic<func::dmn_variadic<r_dmn_t, b>, sym_super_cell_dmn_t>>&
-      r_symmetry_matrix = cluster_symmetry<r_cluster_type>::get_symmetry_matrix();
+      r_symmetry_matrix = domains::cluster_symmetry<r_cluster_type>::get_symmetry_matrix();
 
   static func::function<scalartype, func::dmn_variadic<b, b, r_dmn_t>> f_new;
 
@@ -588,18 +604,21 @@ void symmetrize_single_particle_function::execute(
     difference(max, f.get_name(), "r-cluster-domain of the function : " + f.get_name() + "\n");
 }
 
-template <typename scalartype, typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S>
+template <typename scalartype, typename scalar_type, int D, domains::CLUSTER_NAMES N,
+          domains::CLUSTER_SHAPE S>
 void symmetrize_single_particle_function::execute(
-    func::function<scalartype, func::dmn_0<cluster_domain<scalar_type, D, N, MOMENTUM_SPACE, S>>>& f,
+    func::function<scalartype,
+                   func::dmn_0<domains::cluster_domain<scalar_type, D, N, domains::MOMENTUM_SPACE, S>>>& f,
     bool do_diff) {
-  typedef cluster_domain<scalar_type, D, N, MOMENTUM_SPACE, S> k_cluster_type;
+  typedef domains::cluster_domain<scalar_type, D, N, domains::MOMENTUM_SPACE, S> k_cluster_type;
   typedef func::dmn_0<k_cluster_type> k_dmn_t;
 
-  typedef typename cluster_symmetry<k_cluster_type>::sym_super_cell_dmn_t sym_super_cell_dmn_t;
+  typedef
+      typename domains::cluster_symmetry<k_cluster_type>::sym_super_cell_dmn_t sym_super_cell_dmn_t;
 
   static func::function<std::pair<int, int>,
                         func::dmn_variadic<func::dmn_variadic<k_dmn_t, b>, sym_super_cell_dmn_t>>&
-      k_symmetry_matrix = cluster_symmetry<k_cluster_type>::get_symmetry_matrix();
+      k_symmetry_matrix = domains::cluster_symmetry<k_cluster_type>::get_symmetry_matrix();
 
   static func::function<scalartype, k_dmn_t> f_new;
 
@@ -629,20 +648,22 @@ void symmetrize_single_particle_function::execute(
     difference(max, f.get_name(), "k-cluster-domain of the function : " + f.get_name() + "\n");
 }
 
-template <typename scalartype, typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S>
+template <typename scalartype, typename scalar_type, int D, domains::CLUSTER_NAMES N,
+          domains::CLUSTER_SHAPE S>
 void symmetrize_single_particle_function::execute(
-    func::function<
-        scalartype,
-        func::dmn_variadic<b, b, func::dmn_0<cluster_domain<scalar_type, D, N, MOMENTUM_SPACE, S>>>>& f,
+    func::function<scalartype,
+                   func::dmn_variadic<b, b, func::dmn_0<domains::cluster_domain<
+                                                scalar_type, D, N, domains::MOMENTUM_SPACE, S>>>>& f,
     bool do_diff) {
-  typedef cluster_domain<scalar_type, D, N, MOMENTUM_SPACE, S> k_cluster_type;
+  typedef domains::cluster_domain<scalar_type, D, N, domains::MOMENTUM_SPACE, S> k_cluster_type;
   typedef func::dmn_0<k_cluster_type> k_dmn_t;
 
-  typedef typename cluster_symmetry<k_cluster_type>::sym_super_cell_dmn_t sym_super_cell_dmn_t;
+  typedef
+      typename domains::cluster_symmetry<k_cluster_type>::sym_super_cell_dmn_t sym_super_cell_dmn_t;
 
   static func::function<std::pair<int, int>,
                         func::dmn_variadic<func::dmn_variadic<k_dmn_t, b>, sym_super_cell_dmn_t>>&
-      k_symmetry_matrix = cluster_symmetry<k_cluster_type>::get_symmetry_matrix();
+      k_symmetry_matrix = domains::cluster_symmetry<k_cluster_type>::get_symmetry_matrix();
 
   static func::function<scalartype, func::dmn_variadic<b, b, k_dmn_t>> f_new;
 

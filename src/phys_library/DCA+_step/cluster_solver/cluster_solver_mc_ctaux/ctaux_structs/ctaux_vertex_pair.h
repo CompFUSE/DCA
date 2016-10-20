@@ -18,10 +18,13 @@
 #include <utility>
 #include <vector>
 
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/models/general_interaction.hpp"
+
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_auxilery_field_coefficients.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_vertex_singleton.h"
-#include "phys_library/domains/cluster/cluster_domain.h"
+
+using namespace dca::phys;
 
 namespace DCA {
 namespace QMCI {
@@ -32,8 +35,9 @@ class vertex_pair {
 public:
   using rng_type = typename parameters_type::random_number_generator;
 
-  using r_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                           CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>>;
+  using r_DCA =
+      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
+                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
   typedef r_DCA r_dmn_t;
   typedef typename r_dmn_t::parameter_type r_cluster_type;
 

@@ -34,20 +34,21 @@
 #include "dca/phys/parameters/model_parameters.hpp"
 #include "dca/phys/parameters/physics_parameters.hpp"
 #include "dca/phys/parameters/vertex_parameters.hpp"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/cluster/cluster_domain_family.hpp"
+#include "dca/phys/domains/cluster/cluster_domain_initializer.hpp"
+#include "dca/phys/domains/cluster/cluster_domain_symmetry_initializer.hpp"
+#include "dca/phys/domains/quantum/dca_iteration_domain.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/quantum/numerical_error_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/frequency_domain_real_axis.hpp"
+#include "dca/phys/domains/time_and_frequency/frequency_domain_imag_axis.hpp"
+#include "dca/phys/domains/time_and_frequency/time_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/time_domain_left_oriented.hpp"
+#include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/vertex_time_domain.hpp"
 #include "dca/util/print_type.hpp"
-#include "phys_library/domains/cluster/cluster_domain.h"
-#include "phys_library/domains/cluster/cluster_domain_family.h"
-#include "phys_library/domains/cluster/cluster_domain_initializer.h"
-#include "phys_library/domains/cluster/cluster_domain_symmetry_initializer.h"
-#include "phys_library/domains/Quantum_domain/DCA_iteration_domain.h"
-#include "phys_library/domains/Quantum_domain/numerical_error_domain.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain_real_axis.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain_imag_axis.h"
-#include "phys_library/domains/time_and_frequency/time_domain.h"
-#include "phys_library/domains/time_and_frequency/time_domain_left_oriented.h"
-#include "phys_library/domains/time_and_frequency/vertex_time_domain.h"
 
 namespace dca {
 namespace phys {
@@ -78,41 +79,53 @@ public:
   using lattice_type = typename Model::lattice_type;
 
   // Time and frequency domains
-  using t = func::dmn_0<time_domain>;
-  using w = func::dmn_0<frequency_domain>;
-  using w_VERTEX_EXTENDED = func::dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED>>;
-  using w_VERTEX_EXTENDED_POS = func::dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED_POSITIVE>>;
+  using t = func::dmn_0<domains::time_domain>;
+  using w = func::dmn_0<domains::frequency_domain>;
+  using w_VERTEX_EXTENDED = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
+  using w_VERTEX_EXTENDED_POS =
+      func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED_POSITIVE>>;
 
   // DCA cluster domains
-  using r_DCA = func::dmn_0<
-      cluster_domain<double, Model::lattice_type::DIMENSION, CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>>;
-  using k_DCA = func::dmn_0<
-      cluster_domain<double, Model::lattice_type::DIMENSION, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using r_DCA =
+      func::dmn_0<domains::cluster_domain<double, Model::lattice_type::DIMENSION, domains::CLUSTER,
+                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
+  using k_DCA =
+      func::dmn_0<domains::cluster_domain<double, Model::lattice_type::DIMENSION, domains::CLUSTER,
+                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
 
   // Host cluster domains
-  using r_HOST = func::dmn_0<
-      cluster_domain<double, Model::lattice_type::DIMENSION, LATTICE_SP, REAL_SPACE, BRILLOUIN_ZONE>>;
-  using k_HOST = func::dmn_0<cluster_domain<double, Model::lattice_type::DIMENSION, LATTICE_SP,
-                                            MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using r_HOST =
+      func::dmn_0<domains::cluster_domain<double, Model::lattice_type::DIMENSION, domains::LATTICE_SP,
+                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
+  using k_HOST =
+      func::dmn_0<domains::cluster_domain<double, Model::lattice_type::DIMENSION, domains::LATTICE_SP,
+                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
 
   // Host vertex cluster domains
-  using r_HOST_VERTEX = func::dmn_0<
-      cluster_domain<double, Model::lattice_type::DIMENSION, LATTICE_TP, REAL_SPACE, BRILLOUIN_ZONE>>;
-  using k_HOST_VERTEX = func::dmn_0<cluster_domain<double, Model::lattice_type::DIMENSION,
-                                                   LATTICE_TP, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using r_HOST_VERTEX =
+      func::dmn_0<domains::cluster_domain<double, Model::lattice_type::DIMENSION, domains::LATTICE_TP,
+                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
+  using k_HOST_VERTEX =
+      func::dmn_0<domains::cluster_domain<double, Model::lattice_type::DIMENSION, domains::LATTICE_TP,
+                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
 
   // LDA cluster domains
-  using r_LDA = func::dmn_0<cluster_domain<double, Model::lattice_type::DIMENSION, LATTICE_SP,
-                                           REAL_SPACE, PARALLELLEPIPEDUM>>;
-  using k_LDA = func::dmn_0<cluster_domain<double, Model::lattice_type::DIMENSION, LATTICE_SP,
-                                           MOMENTUM_SPACE, PARALLELLEPIPEDUM>>;
+  using r_LDA =
+      func::dmn_0<domains::cluster_domain<double, Model::lattice_type::DIMENSION, domains::LATTICE_SP,
+                                          domains::REAL_SPACE, domains::PARALLELLEPIPEDUM>>;
+  using k_LDA =
+      func::dmn_0<domains::cluster_domain<double, Model::lattice_type::DIMENSION, domains::LATTICE_SP,
+                                          domains::MOMENTUM_SPACE, domains::PARALLELLEPIPEDUM>>;
 
   using DCA_cluster_family_type =
-      cluster_domain_family<double, Model::lattice_type::DIMENSION, CLUSTER, BRILLOUIN_ZONE>;
+      domains::cluster_domain_family<double, Model::lattice_type::DIMENSION, domains::CLUSTER,
+                                     domains::BRILLOUIN_ZONE>;
   using HOST_sp_cluster_family_type =
-      cluster_domain_family<double, Model::lattice_type::DIMENSION, LATTICE_SP, BRILLOUIN_ZONE>;
+      domains::cluster_domain_family<double, Model::lattice_type::DIMENSION, domains::LATTICE_SP,
+                                     domains::BRILLOUIN_ZONE>;
   using HOST_tp_cluster_family_type =
-      cluster_domain_family<double, Model::lattice_type::DIMENSION, LATTICE_TP, BRILLOUIN_ZONE>;
+      domains::cluster_domain_family<double, Model::lattice_type::DIMENSION, domains::LATTICE_TP,
+                                     domains::BRILLOUIN_ZONE>;
 
   constexpr static int lattice_dimension = Model::lattice_type::DIMENSION;
 
@@ -213,30 +226,30 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
   t::parameter_type::write(writer);
   w::parameter_type::write(writer);
 
-  DCA::vertex_frequency_domain<DCA::EXTENDED_BOSONIC>::write(writer);
+  domains::vertex_frequency_domain<domains::EXTENDED_BOSONIC>::write(writer);
 
-  DCA_iteration_domain::write(writer);
+  domains::DCA_iteration_domain::write(writer);
 
   if (VertexParameters<Model::DIMENSION>::get_vertex_measurement_type() != NONE) {
-    DCA::vertex_time_domain<DCA::SP_TIME_DOMAIN>::write(writer);
-    DCA::vertex_time_domain<DCA::TP_TIME_DOMAIN>::write(writer);
-    DCA::vertex_time_domain<DCA::SP_TIME_DOMAIN_POSITIVE>::write(writer);
-    DCA::vertex_time_domain<DCA::TP_TIME_DOMAIN_POSITIVE>::write(writer);
+    domains::vertex_time_domain<domains::SP_TIME_DOMAIN>::write(writer);
+    domains::vertex_time_domain<domains::TP_TIME_DOMAIN>::write(writer);
+    domains::vertex_time_domain<domains::SP_TIME_DOMAIN_POSITIVE>::write(writer);
+    domains::vertex_time_domain<domains::TP_TIME_DOMAIN_POSITIVE>::write(writer);
 
-    DCA::vertex_frequency_domain<DCA::COMPACT>::write(writer);
-    DCA::vertex_frequency_domain<DCA::EXTENDED>::write(writer);
+    domains::vertex_frequency_domain<domains::COMPACT>::write(writer);
+    domains::vertex_frequency_domain<domains::EXTENDED>::write(writer);
 
-    DCA::vertex_frequency_domain<DCA::COMPACT_POSITIVE>::write(writer);
-    DCA::vertex_frequency_domain<DCA::EXTENDED_POSITIVE>::write(writer);
+    domains::vertex_frequency_domain<domains::COMPACT_POSITIVE>::write(writer);
+    domains::vertex_frequency_domain<domains::EXTENDED_POSITIVE>::write(writer);
   }
 
   if (do_CPE()) {
-    frequency_domain_real_axis::write(writer);
-    frequency_domain_imag_axis::write(writer);
+    domains::frequency_domain_real_axis::write(writer);
+    domains::frequency_domain_imag_axis::write(writer);
   }
 
 #ifdef DCA_WITH_QMC_BIT
-  numerical_error_domain::write(writer);
+  domains::numerical_error_domain::write(writer);
 #endif  // DCA_WITH_QMC_BIT
 
   writer.close_group();
@@ -268,61 +281,64 @@ template <typename Concurrency, typename Threading, typename Profiler, typename 
           typename RandomNumberGenerator, DCA::ClusterSolverName solver_name>
 void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
                 solver_name>::update_domains() {
-  DCA_iteration_domain::initialize(*this);
-  electron_band_domain::initialize(*this, Model::BANDS, Model::get_flavors(), Model::get_a_vectors());
+  domains::DCA_iteration_domain::initialize(*this);
+  domains::electron_band_domain::initialize(*this, Model::BANDS, Model::get_flavors(),
+                                            Model::get_a_vectors());
 
   // time && frequency-domains
-  time_domain::initialize(*this);
-  time_domain_left_oriented::initialize(*this);
-  frequency_domain::initialize(*this);
-  frequency_domain_real_axis::initialize(*this);
-  frequency_domain_imag_axis::initialize(*this);
+  domains::time_domain::initialize(*this);
+  domains::time_domain_left_oriented::initialize(*this);
+  domains::frequency_domain::initialize(*this);
+  domains::frequency_domain_real_axis::initialize(*this);
+  domains::frequency_domain_imag_axis::initialize(*this);
 
-  DCA::vertex_time_domain<DCA::SP_TIME_DOMAIN>::initialize(*this);
-  DCA::vertex_time_domain<DCA::TP_TIME_DOMAIN>::initialize(*this);
-  DCA::vertex_time_domain<DCA::SP_TIME_DOMAIN_POSITIVE>::initialize(*this);
-  DCA::vertex_time_domain<DCA::TP_TIME_DOMAIN_POSITIVE>::initialize(*this);
+  domains::vertex_time_domain<domains::SP_TIME_DOMAIN>::initialize(*this);
+  domains::vertex_time_domain<domains::TP_TIME_DOMAIN>::initialize(*this);
+  domains::vertex_time_domain<domains::SP_TIME_DOMAIN_POSITIVE>::initialize(*this);
+  domains::vertex_time_domain<domains::TP_TIME_DOMAIN_POSITIVE>::initialize(*this);
 
-  DCA::vertex_frequency_domain<DCA::COMPACT>::initialize(*this);
-  DCA::vertex_frequency_domain<DCA::EXTENDED>::initialize(*this);
+  domains::vertex_frequency_domain<domains::COMPACT>::initialize(*this);
+  domains::vertex_frequency_domain<domains::EXTENDED>::initialize(*this);
 
-  DCA::vertex_frequency_domain<DCA::COMPACT_POSITIVE>::initialize(*this);
-  DCA::vertex_frequency_domain<DCA::EXTENDED_POSITIVE>::initialize(*this);
+  domains::vertex_frequency_domain<domains::COMPACT_POSITIVE>::initialize(*this);
+  domains::vertex_frequency_domain<domains::EXTENDED_POSITIVE>::initialize(*this);
 
-  DCA::vertex_frequency_domain<DCA::EXTENDED_BOSONIC>::initialize(*this);
+  domains::vertex_frequency_domain<domains::EXTENDED_BOSONIC>::initialize(*this);
 
   // DCA
-  cluster_domain_initializer<r_DCA>::execute(Model::get_r_DCA_basis(),
-                                             DcaParameters::get_DCA_cluster());
+  domains::cluster_domain_initializer<r_DCA>::execute(Model::get_r_DCA_basis(),
+                                                      DcaParameters::get_DCA_cluster());
 
-  cluster_domain_symmetry_initializer<r_DCA, typename Model::lattice_type::DCA_point_group>::execute();
+  domains::cluster_domain_symmetry_initializer<
+      r_DCA, typename Model::lattice_type::DCA_point_group>::execute();
 
   if (concurrency_.id() == concurrency_.last())
     k_DCA::parameter_type::print(std::cout);
 
   // host
-  cluster_domain_initializer<r_HOST>::execute(
+  domains::cluster_domain_initializer<r_HOST>::execute(
       Model::get_r_DCA_basis(),  // DCA_lattice_parameters_type::lattice_vectors(),
       FunctionParameters::get_sp_cluster());
 
-  cluster_domain_symmetry_initializer<r_HOST, typename Model::lattice_type::DCA_point_group>::execute();
+  domains::cluster_domain_symmetry_initializer<
+      r_HOST, typename Model::lattice_type::DCA_point_group>::execute();
 
   if (concurrency_.id() == concurrency_.last())
     k_HOST::parameter_type::print(std::cout);
 
   // host
-  cluster_domain_initializer<r_HOST_VERTEX>::execute(
+  domains::cluster_domain_initializer<r_HOST_VERTEX>::execute(
       Model::get_r_DCA_basis(),  // DCA_lattice_parameters_type::lattice_vectors(),
       FunctionParameters::get_tp_cluster());
 
-  cluster_domain_symmetry_initializer<r_HOST_VERTEX,
-                                      typename Model::lattice_type::DCA_point_group>::execute();
+  domains::cluster_domain_symmetry_initializer<
+      r_HOST_VERTEX, typename Model::lattice_type::DCA_point_group>::execute();
 
   if (concurrency_.id() == concurrency_.last())
     k_HOST_VERTEX::parameter_type::print(std::cout);
 
   // LDA
-  cluster_domain_initializer<r_LDA>::execute(
+  domains::cluster_domain_initializer<r_LDA>::execute(
       Model::get_r_DCA_basis(),  // DCA_lattice_parameters_type::lattice_vectors(),
       FunctionParameters::get_H_k_grid_size());
 

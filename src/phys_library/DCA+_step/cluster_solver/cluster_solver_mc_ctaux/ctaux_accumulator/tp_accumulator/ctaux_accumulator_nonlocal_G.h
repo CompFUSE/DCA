@@ -20,13 +20,15 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/math/function_transform/function_transform.hpp"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_accumulator/tp_accumulator/ctaux_tp_nft.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_vertex_singleton.h"
-#include "phys_library/domains/cluster/cluster_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
+
+using namespace dca::phys;
 
 namespace DCA {
 namespace QMCI {
@@ -44,16 +46,19 @@ public:
   typedef typename parameters_type::G4_w1_dmn_t w1_dmn_t;
   typedef typename parameters_type::G4_w2_dmn_t w2_dmn_t;
 
-  using w_VERTEX_EXTENDED = func::dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED>>;
-  using w_VERTEX_EXTENDED_POS = func::dmn_0<DCA::vertex_frequency_domain<DCA::EXTENDED_POSITIVE>>;
+  using w_VERTEX_EXTENDED = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
+  using w_VERTEX_EXTENDED_POS =
+      func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED_POSITIVE>>;
 
-  using b = func::dmn_0<electron_band_domain>;
-  using s = func::dmn_0<electron_spin_domain>;
+  using b = func::dmn_0<domains::electron_band_domain>;
+  using s = func::dmn_0<domains::electron_spin_domain>;
 
-  using r_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                           CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>>;
-  using k_DCA = func::dmn_0<cluster_domain<double, parameters_type::lattice_type::DIMENSION,
-                                           CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using r_DCA =
+      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
+                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
+  using k_DCA =
+      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
+                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
   using r_dmn_t = r_DCA;
   using k_dmn_t = k_DCA;
 
@@ -376,7 +381,7 @@ void accumulator_nonlocal_G<parameters_type, MOMS_type>::compute_G2_k_k_w_w(
   std::complex<double> *G0_k_w_l_ptr, *G0_k_w_r_ptr;
   std::complex<scalar_type> *M_k_k_w_w_ptr, *G_k_k_w_w_ptr;
 
-  int spin_index = electron_spin_domain::to_coordinate(e_spin);
+  int spin_index = domains::electron_spin_domain::to_coordinate(e_spin);
 
   for (int i = 0; i < G2_k_k_w_w.size(); i++)
     G2_k_k_w_w(i) = 0;

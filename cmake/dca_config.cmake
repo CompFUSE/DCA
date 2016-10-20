@@ -60,10 +60,10 @@ set_property(CACHE DCA_POINT_GROUP PROPERTY STRINGS C6 D4)
 
 if (DCA_POINT_GROUP STREQUAL "C6")
   set(DCA_POINT_GROUP_INCLUDE
-    "phys_library/domains/cluster/symmetries/point_groups/2D/2D_hexagonal.h")
+    "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_hexagonal.hpp")
 
 elseif (DCA_POINT_GROUP STREQUAL "D4")
-  set(DCA_POINT_GROUP_INCLUDE "phys_library/domains/cluster/symmetries/point_groups/2D/2D_square.h")
+  set(DCA_POINT_GROUP_INCLUDE "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp")
 
 else()
   message(FATAL_ERROR "Please set DCA_POINT_GROUP to a valid option: C6 | D4.")

@@ -22,19 +22,19 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/math/function_transform/function_transform.hpp"
+#include "dca/phys/domains/cluster/centered_cluster_domain.hpp"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
 
 #include "comp_library/function_plotting/include_plotting.h"
 #include "comp_library/linalg/linalg.hpp"
-
 #include "phys_library/DFT_connection/VASP/vasp_domains/dmft_band_domain.hpp"
 #include "phys_library/DFT_connection/VASP/vasp_domains/dmft_orbital_domain.hpp"
 #include "phys_library/DFT_connection/VASP/vasp_domains/vasp_band_domain.hpp"
 #include "phys_library/DFT_connection/VASP/vasp_domains/vasp_brillouin_zone_cut_domain.hpp"
 #include "phys_library/DFT_connection/VASP/vasp_domains/vasp_orbital_domain.hpp"
-#include "phys_library/domains/cluster/cluster_domain.h"
-#include "phys_library/domains/cluster/centered_cluster_domain.h"
 
 using namespace dca;
+using namespace dca::phys;
 
 namespace DFT {
 namespace VASP {
@@ -67,8 +67,11 @@ template <class parameters_type>
 class data {
 public:
   using vasp_k_cluster_type =
-      cluster_domain<double, 3, VASP_LATTICE, MOMENTUM_SPACE, PARALLELLEPIPEDUM>;
-  using vasp_r_cluster_type = cluster_domain<double, 3, VASP_LATTICE, REAL_SPACE, PARALLELLEPIPEDUM>;
+      domains::cluster_domain<double, 3, domains::VASP_LATTICE, domains::MOMENTUM_SPACE,
+                              domains::PARALLELLEPIPEDUM>;
+  using vasp_r_cluster_type =
+      domains::cluster_domain<double, 3, domains::VASP_LATTICE, domains::REAL_SPACE,
+                              domains::PARALLELLEPIPEDUM>;
 
   using k_vasp = func::dmn_0<vasp_k_cluster_type>;
   using r_vasp = func::dmn_0<vasp_r_cluster_type>;
@@ -82,7 +85,7 @@ public:
   using bz_cut = func::dmn_0<DFT::VASP::vasp_brillouin_zone_cut_domain>;
 
   // typedef typename k_vasp::parameter_type::dual_type           vasp_r_cluster_type;
-  using vasp_r_centered_dmn = func::dmn_0<centered_cluster_domain<vasp_r_cluster_type>>;
+  using vasp_r_centered_dmn = func::dmn_0<domains::centered_cluster_domain<vasp_r_cluster_type>>;
 
 public:
   data(parameters_type& parameters_ref);

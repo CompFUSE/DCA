@@ -19,8 +19,7 @@
 
 #include "dca/function/domains/dmn_0.hpp"
 #include "dca/math/util/sgn.hpp"
-
-#include "phys_library/domains/time_and_frequency/frequency_domain_real_axis.h"
+#include "dca/phys/domains/time_and_frequency/frequency_domain_real_axis.hpp"
 
 namespace dca {
 namespace phys {
@@ -30,7 +29,7 @@ namespace analysis {
 class RadialFunction {
 public:
   using element_type = double;
-  using w_REAL = func::dmn_0<frequency_domain_real_axis>;
+  using w_REAL = func::dmn_0<domains::frequency_domain_real_axis>;
 
   static int get_size() {
     return get_elements().size();
