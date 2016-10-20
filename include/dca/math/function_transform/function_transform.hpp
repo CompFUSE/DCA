@@ -7,7 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// This class transforms dcxa::func::function objects.
+// This class transforms dca::func::function objects.
 
 #ifndef DCA_MATH_FUNCTION_TRANSFORM_FUNCTION_TRANSFORM_HPP
 #define DCA_MATH_FUNCTION_TRANSFORM_FUNCTION_TRANSFORM_HPP
