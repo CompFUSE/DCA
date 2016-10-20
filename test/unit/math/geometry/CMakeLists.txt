@@ -1,2 +1,4 @@
+# math/geometry
+
 add_subdirectory(gaussian_quadrature)
-add_subdirectory(vector_operations)
+add_subdirectory(tetrahedron_mesh)

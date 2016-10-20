@@ -17,10 +17,9 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/math/geometry/gaussian_quadrature/gaussian_quadrature_domain.hpp"
+#include "dca/math/geometry/tetrahedron_mesh/tetrahedron_mesh.hpp"
 
 #include "comp_library/linalg/linalg.hpp"
-
-#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron_mesh.h"
 
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_domain.h"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/quadrature_integration.h"
@@ -33,6 +32,8 @@
 #include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain_real_axis.h"
 #include "phys_library/domains/time_and_frequency/time_domain.h"
+
+using namespace dca;
 
 namespace DCA {
 
@@ -64,8 +65,8 @@ public:
 
   using k_cluster_type = typename K_dmn::parameter_type;
 
-  using tetrahedron_dmn = func::dmn_0<math_algorithms::tetrahedron_mesh<K_dmn>>;
-  using quadrature_dmn = dca::math::gaussquad::gaussian_quadrature_domain<tetrahedron_dmn>;
+  using tetrahedron_dmn = func::dmn_0<math::geometry::tetrahedron_mesh<K_dmn>>;
+  using quadrature_dmn = math::geometry::gaussian_quadrature_domain<tetrahedron_dmn>;
 
   using t = func::dmn_0<time_domain>;
   using w = func::dmn_0<frequency_domain>;
@@ -191,7 +192,7 @@ coarsegraining_routines<parameters_type, K_dmn>::coarsegraining_routines(paramet
 template <typename parameters_type, typename K_dmn>
 void coarsegraining_routines<parameters_type, K_dmn>::compute_tetrahedron_mesh(int k_mesh_refinement,
                                                                                int number_of_periods) {
-  math_algorithms::tetrahedron_mesh<typename K_dmn::parameter_type> mesh(k_mesh_refinement);
+  math::geometry::tetrahedron_mesh<typename K_dmn::parameter_type> mesh(k_mesh_refinement);
 
   quadrature_dmn::translate_according_to_period(number_of_periods, mesh);
 

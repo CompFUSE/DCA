@@ -21,9 +21,10 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/math/function_transform/function_transform.hpp"
+
 #include "comp_library/function_plotting/include_plotting.h"
 #include "comp_library/linalg/linalg.hpp"
-#include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
 
 #include "phys_library/DFT_connection/VASP/vasp_domains/dmft_band_domain.hpp"
 #include "phys_library/DFT_connection/VASP/vasp_domains/dmft_orbital_domain.hpp"
@@ -32,6 +33,8 @@
 #include "phys_library/DFT_connection/VASP/vasp_domains/vasp_orbital_domain.hpp"
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/cluster/centered_cluster_domain.h"
+
+using namespace dca;
 
 namespace DFT {
 namespace VASP {
@@ -437,15 +440,13 @@ void data<parameters_type>::compute_vasp_band_structure() {
 
   func::function<double, func::dmn_variadic<vasp_r_centered_dmn, b_vasp>> tmp;
 
-  math_algorithms::functional_transforms::TRANSFORM<k_vasp, vasp_r_centered_dmn>::execute(band_e,
-                                                                                          tmp);
+  math::transform::FunctionTransform<k_vasp, vasp_r_centered_dmn>::execute(band_e, tmp);
 
   for (int j = 0; j < b_vasp::dmn_size(); j++)
     for (int r_ind = 0; r_ind < vasp_r_centered_dmn::dmn_size(); r_ind++)
       tmp(r_ind, j) *= vasp_r_centered_dmn::parameter_type::get_weights()[r_ind];
 
-  math_algorithms::functional_transforms::TRANSFORM<vasp_r_centered_dmn, bz_cut>::execute(tmp,
-                                                                                          E_0_vasp);
+  math::transform::FunctionTransform<vasp_r_centered_dmn, bz_cut>::execute(tmp, E_0_vasp);
 
   //       if(true)
   //         {
@@ -499,15 +500,14 @@ void data<parameters_type>::compute_dmft_band_structure() {
 
   func::function<double, func::dmn_variadic<vasp_r_centered_dmn, o_dmft, o_dmft>> tmp;
 
-  math_algorithms::functional_transforms::TRANSFORM<k_vasp, vasp_r_centered_dmn>::execute(H_0, tmp);
+  math::transform::FunctionTransform<k_vasp, vasp_r_centered_dmn>::execute(H_0, tmp);
 
   for (int j = 0; j < o_dmft::dmn_size(); j++)
     for (int i = 0; i < o_dmft::dmn_size(); i++)
       for (int r_ind = 0; r_ind < vasp_r_centered_dmn::dmn_size(); r_ind++)
         tmp(r_ind, i, j) *= vasp_r_centered_dmn::parameter_type::get_weights()[r_ind];
 
-  math_algorithms::functional_transforms::TRANSFORM<vasp_r_centered_dmn, bz_cut>::execute(tmp,
-                                                                                          H_0_dmft);
+  math::transform::FunctionTransform<vasp_r_centered_dmn, bz_cut>::execute(tmp, H_0_dmft);
 
   //       H_0_dmft.print_fingerprint();
 

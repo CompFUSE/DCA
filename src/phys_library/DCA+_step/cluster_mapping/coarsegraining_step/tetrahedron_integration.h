@@ -19,9 +19,10 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/math/util/vector_operations.hpp"
 #include "dca/parallel/util/get_bounds.hpp"
 #include "dca/parallel/util/threading_data.hpp"
-#include "math_library/geometry_library/vector_operations/vector_operations.hpp"
+
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_domain.h"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/tetrahedron_integration_data.hpp"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/tetrahedron_routines_inverse_matrix_function.h"
@@ -350,24 +351,24 @@ void tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_st
                tet_dmn_type::get_elements()[tet_ind + 0][d];
       }
 
-      if (abs(volume - VECTOR_OPERATIONS::VOLUME(x, y, z)) > 1.e-6) {
-        std::cout << tet_ind << "\t" << volume << "\t" << VECTOR_OPERATIONS::VOLUME(x, y, z) << "\n";
+      if (abs(volume - math::util::volume(x, y, z)) > 1.e-6) {
+        std::cout << tet_ind << "\t" << volume << "\t" << math::util::volume(x, y, z) << "\n";
 
-        VECTOR_OPERATIONS::PRINT(x);
+        math::util::print(x);
         std::cout << "\n";
-        VECTOR_OPERATIONS::PRINT(y);
+        math::util::print(y);
         std::cout << "\n";
-        VECTOR_OPERATIONS::PRINT(z);
+        math::util::print(z);
         std::cout << "\n";
         std::cout << "\n\n";
 
-        VECTOR_OPERATIONS::PRINT(tet_dmn_type::get_elements()[tet_ind + 0]);
+        math::util::print(tet_dmn_type::get_elements()[tet_ind + 0]);
         std::cout << "\t" << G_tet(0, 0, tet_ind + 0) << "\n";
-        VECTOR_OPERATIONS::PRINT(tet_dmn_type::get_elements()[tet_ind + 1]);
+        math::util::print(tet_dmn_type::get_elements()[tet_ind + 1]);
         std::cout << "\t" << G_tet(0, 0, tet_ind + 1) << "\n";
-        VECTOR_OPERATIONS::PRINT(tet_dmn_type::get_elements()[tet_ind + 2]);
+        math::util::print(tet_dmn_type::get_elements()[tet_ind + 2]);
         std::cout << "\t" << G_tet(0, 0, tet_ind + 2) << "\n";
-        VECTOR_OPERATIONS::PRINT(tet_dmn_type::get_elements()[tet_ind + 3]);
+        math::util::print(tet_dmn_type::get_elements()[tet_ind + 3]);
         std::cout << "\t" << G_tet(0, 0, tet_ind + 3) << "\n";
         std::cout << "\n\n";
 
@@ -443,23 +444,23 @@ void* tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_m
     tet_dmn_type::get_elements()[tet_ind+3][d]-tet_dmn_type::get_elements()[tet_ind+0][d];
       }
 
-      if(abs(volume-VECTOR_OPERATIONS::VOLUME(x,y,z)/6)>1.e-6)
+      if(abs(volume-math::util::volume(x,y,z)/6)>1.e-6)
         {
-          std::cout << tet_ind << "\t" << volume << "\t" << VECTOR_OPERATIONS::VOLUME(x,y,z) <<
+          std::cout << tet_ind << "\t" << volume << "\t" << math::util::volume(x,y,z) <<
     "\n";
 
-          VECTOR_OPERATIONS::PRINT(x); std::cout << "\n";
-          VECTOR_OPERATIONS::PRINT(y); std::cout << "\n";
-          VECTOR_OPERATIONS::PRINT(z); std::cout << "\n";
+          math::util::print(x); std::cout << "\n";
+          math::util::print(y); std::cout << "\n";
+          math::util::print(z); std::cout << "\n";
           std::cout << "\n\n";
 
-          VECTOR_OPERATIONS::PRINT(tet_dmn_type::get_elements()[tet_ind+0]); std::cout << "\t" <<
+          math::util::print(tet_dmn_type::get_elements()[tet_ind+0]); std::cout << "\t" <<
     G_tet(0,0,tet_ind+0) << "\n";
-          VECTOR_OPERATIONS::PRINT(tet_dmn_type::get_elements()[tet_ind+1]); std::cout << "\t" <<
+          math::util::print(tet_dmn_type::get_elements()[tet_ind+1]); std::cout << "\t" <<
     G_tet(0,0,tet_ind+1) << "\n";
-          VECTOR_OPERATIONS::PRINT(tet_dmn_type::get_elements()[tet_ind+2]); std::cout << "\t" <<
+          math::util::print(tet_dmn_type::get_elements()[tet_ind+2]); std::cout << "\t" <<
     G_tet(0,0,tet_ind+2) << "\n";
-          VECTOR_OPERATIONS::PRINT(tet_dmn_type::get_elements()[tet_ind+3]); std::cout << "\t" <<
+          math::util::print(tet_dmn_type::get_elements()[tet_ind+3]); std::cout << "\t" <<
     G_tet(0,0,tet_ind+3) << "\n";
           std::cout << "\n\n";
 

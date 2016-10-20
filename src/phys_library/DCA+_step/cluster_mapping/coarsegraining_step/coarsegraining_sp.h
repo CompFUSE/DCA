@@ -20,8 +20,9 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/math/geometry/gaussian_quadrature/gaussian_quadrature_domain.hpp"
+#include "dca/math/geometry/tetrahedron_mesh/tetrahedron_mesh.hpp"
 #include "dca/util/print_time.hpp"
-#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron_mesh.h"
+
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_interpolation_matrices.h"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_routines.h"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/tetrahedron_integration.h"
@@ -31,6 +32,8 @@
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
 #include "phys_library/domains/time_and_frequency/time_domain.h"
+
+using namespace dca;
 
 namespace DCA {
 
@@ -52,8 +55,8 @@ public:
 #endif  // DCA_WITH_SINGLE_PRECISION_COARSEGRAINING
   using complex_type = std::complex<scalar_type>;
 
-  using tetrahedron_dmn = func::dmn_0<math_algorithms::tetrahedron_mesh<K_dmn>>;
-  using quadrature_dmn = dca::math::gaussquad::gaussian_quadrature_domain<tetrahedron_dmn>;
+  using tetrahedron_dmn = func::dmn_0<math::geometry::tetrahedron_mesh<K_dmn>>;
+  using quadrature_dmn = math::geometry::gaussian_quadrature_domain<tetrahedron_dmn>;
 
   using q_dmn = func::dmn_0<coarsegraining_domain<K_dmn, K>>;
   using q_0_dmn = func::dmn_0<coarsegraining_domain<K_dmn, ORIGIN>>;
@@ -277,11 +280,11 @@ template <typename parameters_type, typename K_dmn>
 template <typename other_scalar_type, typename r_dmn>
 void coarsegraining_sp<parameters_type, K_dmn>::compute_phi_r(
     func::function<other_scalar_type, r_dmn>& phi_r) {
-  math_algorithms::tetrahedron_mesh<k_cluster_type> mesh(parameters.get_k_mesh_refinement());
+  math::geometry::tetrahedron_mesh<k_cluster_type> mesh(parameters.get_k_mesh_refinement());
 
   quadrature_dmn::translate_according_to_period(parameters.get_number_of_periods(), mesh);
 
-  std::vector<math_algorithms::tetrahedron<DIMENSION>>& tetrahedra = mesh.get_tetrahedra();
+  std::vector<math::geometry::tetrahedron<DIMENSION>>& tetrahedra = mesh.get_tetrahedra();
 
   {
     phi_r = 0.;
@@ -321,11 +324,11 @@ void coarsegraining_sp<parameters_type, K_dmn>::print_phi_r_to_shell(
     func::function<other_scalar_type, r_dmn>& phi_r) {
   std::cout << "\n" << __FUNCTION__ << std::endl;
 
-  math_algorithms::tetrahedron_mesh<k_cluster_type> mesh(parameters.get_k_mesh_refinement());
+  math::geometry::tetrahedron_mesh<k_cluster_type> mesh(parameters.get_k_mesh_refinement());
 
   quadrature_dmn::translate_according_to_period(parameters.get_number_of_periods(), mesh);
 
-  std::vector<math_algorithms::tetrahedron<DIMENSION>>& tetrahedra = mesh.get_tetrahedra();
+  std::vector<math::geometry::tetrahedron<DIMENSION>>& tetrahedra = mesh.get_tetrahedra();
 
   phi_r = 0.;
 

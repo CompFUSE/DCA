@@ -23,11 +23,12 @@
 #include "dca/function/function.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_writer.hpp"
+#include "dca/math/statistics/gaussian_probability.hpp"
+#include "dca/math/util/vector_operations.hpp"
 #include "dca/util/print_time.hpp"
+
 #include "comp_library/function_plotting/include_plotting.h"
 #include "comp_library/linalg/linalg.hpp"
-#include "math_library/geometry_library/vector_operations/vector_operations.hpp"
-#include "math_library/static_functions.h"  // for gaussian_distribution
 #include "phys_library/DCA+_analysis/CPE_solver/CPE_weighted_gradient_method.h"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_sp.h"
 #include "phys_library/domains/cluster/cluster_domain.h"
@@ -38,6 +39,7 @@
 #include "phys_library/domains/time_and_frequency/frequency_domain_imag_axis.h"
 #include "phys_library/domains/time_and_frequency/time_domain.h"
 
+using namespace dca;
 using namespace dca::phys;
 
 namespace DCA {
@@ -561,8 +563,9 @@ void compute_spectrum<parameters_type, basis_function_t>::generate_new_sample(
             std::complex<double> mean = S_K_w_mean(b_i, 0, b_j, 0, k_ind, w_ind);
             std::complex<double> stddev = S_K_w_stddev(b_i, 0, b_j, 0, k_ind, w_ind);
 
-            std::complex<double> error(gaussian_distribution(error_re, 0, real(stddev)),
-                                       gaussian_distribution(error_im, 0, imag(stddev)));
+            std::complex<double> error(
+                math::statistics::gauss::argTailProbability(error_re, 0, real(stddev)),
+                math::statistics::gauss::argTailProbability(error_im, 0, imag(stddev)));
 
             assert(error_re == error_re);
             assert(error_im == error_im);
@@ -881,7 +884,7 @@ void compute_spectrum<parameters_type, basis_function_t>::print_check_sums(MOMS_
     {
       std::cout << "\n\n\t integrated G0 and G : \n\n";
       for (int k_ind = 0; k_ind < k_DCA::dmn_size(); k_ind++) {
-        VECTOR_OPERATIONS::PRINT(k_DCA::get_elements()[k_ind]);
+        math::util::print(k_DCA::get_elements()[k_ind]);
 
         result = 0;
         for (int w_ind = 0; w_ind < w_REAL::dmn_size() - 1; w_ind++) {

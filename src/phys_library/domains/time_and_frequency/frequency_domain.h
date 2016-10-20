@@ -16,7 +16,9 @@
 #include <string>
 #include <vector>
 
-#include "math_library/functional_transforms/domain_specifications/domain_specifications.hpp"
+#include "dca/math/function_transform/domain_specifications.hpp"
+
+using namespace dca;
 
 class frequency_domain {
 public:
@@ -24,9 +26,9 @@ public:
 
   typedef double scalar_type;
   typedef double element_type;
-  
-  typedef math_algorithms::harmonic_dmn_1D_type dmn_specifications_type;
-  
+
+  typedef math::transform::harmonic_dmn_1D_type dmn_specifications_type;
+
 public:
   static int& get_size();
   static std::string get_name();

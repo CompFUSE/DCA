@@ -13,6 +13,8 @@
 #define DCA_FUNCTION_FUNCTION_HPP
 
 #include <cassert>
+#include <cmath>    // for std::abs
+#include <complex>  // for std::abs(std::complex)
 #include <iostream>
 #include <string>
 #include <vector>
@@ -339,7 +341,7 @@ void function<scalartype, domain>::operator*=(function<scalartype, domain>& f_ot
 template <typename scalartype, class domain>
 void function<scalartype, domain>::operator/=(function<scalartype, domain>& f_other) {
   for (int linind = 0; linind < Nb_elements; linind++) {
-    assert(ASSERT_NON_ZERO(f_other(linind)));
+    assert(std::abs(f_other(linind)) > 1.e-16);
     fnc_values[linind] /= f_other(linind);
   }
 }

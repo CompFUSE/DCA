@@ -613,10 +613,10 @@ void continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn
 
   double norm_gradient = 0;
   for (int n = 0; n < alpha_dmn_t::dmn_size(); n++)
-    norm_gradient += square(CPE_data_obj.gradient[n]);
+    norm_gradient += CPE_data_obj.gradient[n] * CPE_data_obj.gradient[n];
 
   for (int n = 0; n < alpha_dmn_t::dmn_size(); n++)
-    CPE_data_obj.gradient[n] /= sqrt(norm_gradient);
+    CPE_data_obj.gradient[n] /= std::sqrt(norm_gradient);
 }
 
 template <class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>
@@ -759,13 +759,13 @@ int continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_dmn_
   else {
     dca::linalg::Matrix<scalartype, dca::linalg::CPU> V(3);
 
-    V(0, 0) = square(CPE_data_obj.x[index - 2]);
+    V(0, 0) = CPE_data_obj.x[index - 2] * CPE_data_obj.x[index - 2];
     V(0, 1) = CPE_data_obj.x[index - 2];
     V(0, 2) = 1.;
-    V(1, 0) = square(CPE_data_obj.x[index - 1]);
+    V(1, 0) = CPE_data_obj.x[index - 1] * CPE_data_obj.x[index - 1];
     V(1, 1) = CPE_data_obj.x[index - 1];
     V(1, 2) = 1.;
-    V(2, 0) = square(CPE_data_obj.x[index - 0]);
+    V(2, 0) = CPE_data_obj.x[index - 0] * CPE_data_obj.x[index - 0];
     V(2, 1) = CPE_data_obj.x[index - 0];
     V(2, 2) = 1.;
 
@@ -856,13 +856,13 @@ double continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_d
 
   dca::linalg::Matrix<scalartype, dca::linalg::CPU> V(3);
 
-  V(0, 0) = square(CPE_data_obj.x[index - 2]);
+  V(0, 0) = CPE_data_obj.x[index - 2] * CPE_data_obj.x[index - 2];
   V(0, 1) = CPE_data_obj.x[index - 2];
   V(0, 2) = 1.;
-  V(1, 0) = square(CPE_data_obj.x[index - 1]);
+  V(1, 0) = CPE_data_obj.x[index - 1] * CPE_data_obj.x[index - 1];
   V(1, 1) = CPE_data_obj.x[index - 1];
   V(1, 2) = 1.;
-  V(2, 0) = square(CPE_data_obj.x[index - 0]);
+  V(2, 0) = CPE_data_obj.x[index - 0] * CPE_data_obj.x[index - 0];
   V(2, 1) = CPE_data_obj.x[index - 0];
   V(2, 2) = 1.;
 
@@ -896,7 +896,7 @@ double continuous_pole_expansion<parameters_type, basis_function_t, k_dmn_t, w_d
   for (int l = 0; l < w_IMAG::dmn_size(); l++)
     L2_norm += std::norm(CPE_data_obj.f_wn_vec[l]);
 
-  return sqrt(L2_norm / (w_IMAG::dmn_size()));
+  return std::sqrt(L2_norm / (w_IMAG::dmn_size()));
 }
 
 template <class parameters_type, class basis_function_t, typename k_dmn_t, typename w_dmn_t>

@@ -21,11 +21,10 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/math/function_transform/function_transform.hpp"
+#include "dca/math/interpolation/akima_interpolation.hpp"
 
 #include "comp_library/function_plotting/include_plotting.h"
-
-#include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
-#include "math_library/interpolation_library/akima_interpolation.h"
 
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_structs/ctaux_vertex_singleton.h"
 #include "phys_library/domains/cluster/cluster_domain.h"
@@ -34,6 +33,8 @@
 #include "phys_library/domains/time_and_frequency/time_domain.h"
 #include "phys_library/domains/time_and_frequency/time_domain_left_oriented.h"
 #include "phys_library/domains/time_and_frequency/vertex_time_domain.h"
+
+using namespace dca;
 
 namespace DCA {
 namespace QMCI {
@@ -275,8 +276,7 @@ void MC_two_particle_equal_time_accumulator<parameters_type, MOMS_type>::initial
       dwave_k_factor(k_ind) =
           cos(k_dmn_t::get_elements()[k_ind][0]) - cos(k_dmn_t::get_elements()[k_ind][1]);
 
-    math_algorithms::functional_transforms::TRANSFORM<k_dmn_t, r_dmn_t>::execute(dwave_k_factor,
-                                                                                 dwave_r_factor);
+    math::transform::FunctionTransform<k_dmn_t, r_dmn_t>::execute(dwave_k_factor, dwave_r_factor);
 
     /*
     if(thread_id==0)
@@ -329,7 +329,7 @@ template <class parameters_type, class MOMS_type>
 void MC_two_particle_equal_time_accumulator<parameters_type, MOMS_type>::initialize_akima_coefficients() {
   int size = t::dmn_size() / 2;
 
-  math_algorithms::interpolation::akima_interpolation<double> ai_obj(size);
+  math::interpolation::akima_interpolation<double> ai_obj(size);
 
   double* x = new double[size];
   double* y = new double[size];
@@ -538,7 +538,7 @@ void MC_two_particle_equal_time_accumulator<parameters_type, MOMS_type>::interpo
     func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>>& G_r_t_stddev) {
   int size = t_VERTEX::dmn_size();
 
-  math_algorithms::interpolation::akima_interpolation<double> ai_obj(size);
+  math::interpolation::akima_interpolation<double> ai_obj(size);
 
   double* x = new double[size];
   double* y = new double[size];

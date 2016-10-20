@@ -16,12 +16,15 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
-#include "math_library/interpolation_library/akima_interpolation.h"
+#include "dca/math/interpolation/akima_interpolation.hpp"
+
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
 #include "phys_library/domains/time_and_frequency/time_domain.h"
 #include "phys_library/domains/time_and_frequency/time_domain_left_oriented.h"
+
+using namespace dca;
 
 namespace DCA {
 namespace QMCI {
@@ -149,7 +152,7 @@ template <class MOMS_type>
 void G0_INTERPOLATION_TEMPLATE<parameters_type>::initialize_akima_coefficients(MOMS_type& MOMS) {
   int size = t::dmn_size() / 2;
 
-  math_algorithms::interpolation::akima_interpolation<double> ai_obj(size);
+  math::interpolation::akima_interpolation<double> ai_obj(size);
 
   double* x = new double[size];
   double* y = new double[size];

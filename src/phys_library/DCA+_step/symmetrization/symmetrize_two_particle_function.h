@@ -40,8 +40,11 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/math/util/vector_operations.hpp"
 #include "phys_library/domains/cluster/cluster_domain_symmetry.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
+
+using namespace dca;
 
 class symmetrize_two_particle_function {
 public:
@@ -116,11 +119,11 @@ bool symmetrize_two_particle_function::Q_vector_is_invariant<k_dmn_t>::execute(i
   q_rec = cluster_operations::translate_inside_cluster(
       q_rec, k_dmn_t::parameter_type::get_super_basis_vectors());
 
-  q_rec = VECTOR_OPERATIONS::SUBTRACT(q_rec, Q);
+  q_rec = math::util::subtract(q_rec, Q);
 
   bool result;
 
-  if (VECTOR_OPERATIONS::L2_NORM(q_rec) < 1.e-6)
+  if (math::util::l2Norm2(q_rec) < 1.e-6)
     result = true;
   else
     result = false;

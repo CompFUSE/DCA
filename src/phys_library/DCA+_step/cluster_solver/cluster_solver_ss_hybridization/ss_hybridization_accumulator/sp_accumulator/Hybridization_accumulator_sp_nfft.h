@@ -41,12 +41,15 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/math/nfft/dnfft_1d.hpp"
+
 #include "comp_library/linalg/linalg.hpp"
-#include "math_library/NFFT/dnfft_1D.h"
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain.h"
+
+using namespace dca;
 
 namespace DCA {
 namespace QMCI {
@@ -102,11 +105,11 @@ private:
 
   int N_spin_orbitals;
 
-  math_algorithms::NFFT::dnfft_1D<double, w, p_dmn_t> cached_nfft_1D_G_obj;
-  // math_algorithms::NFFT::dnfft_1D<double, w, p_dmn_t> cached_nfft_1D_G_squared_obj;
+  math::nfft::dnfft_1D<double, w, p_dmn_t> cached_nfft_1D_G_obj;
+  // math::nfft::dnfft_1D<double, w, p_dmn_t> cached_nfft_1D_G_squared_obj;
 
-  math_algorithms::NFFT::dnfft_1D<double, w, p_dmn_t> cached_nfft_1D_GS_obj;
-  // math_algorithms::NFFT::dnfft_1D<double, w, p_dmn_t> cached_nfft_1D_GS_squared_obj;
+  math::nfft::dnfft_1D<double, w, p_dmn_t> cached_nfft_1D_GS_obj;
+  // math::nfft::dnfft_1D<double, w, p_dmn_t> cached_nfft_1D_GS_squared_obj;
 };
 
 template <class parameters_type, class base_cluster_type>

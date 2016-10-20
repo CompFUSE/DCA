@@ -143,7 +143,10 @@ set(DCA_LIBS
   ${DCA_EXTERNAL_LIBS}
   git_version modules
   posix_qmci
+  function_transform
   gaussian_quadrature
+  dca_nfft
+  tetrahedron_mesh
   random
   parallel_util
   pthreading

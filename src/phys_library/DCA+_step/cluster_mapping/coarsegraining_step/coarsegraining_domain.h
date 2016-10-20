@@ -16,8 +16,11 @@
 #include <string>
 #include <vector>
 
-#include "math_library/functional_transforms/domain_specifications/domain_specifications.hpp"
+#include "dca/math/function_transform/domain_specifications.hpp"
+
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_names.hpp"
+
+using namespace dca;
 
 namespace DCA {
 template <typename K_dmn, COARSEGRAIN_DOMAIN_NAMES NAME>
@@ -28,9 +31,9 @@ public:
   typedef double scalar_type;
   typedef std::vector<double> element_type;
 
-  typedef math_algorithms::domain_specifications<
-      scalar_type, element_type, math_algorithms::DISCRETE, math_algorithms::KRONECKER_DELTA,
-      math_algorithms::INTERVAL, math_algorithms::EQUIDISTANT>
+  typedef math::transform::domain_specifications<
+      scalar_type, element_type, math::transform::DISCRETE, math::transform::KRONECKER_DELTA,
+      math::transform::INTERVAL, math::transform::EQUIDISTANT>
       dmn_specifications_type;
 
 public:

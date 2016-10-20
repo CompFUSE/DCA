@@ -13,14 +13,20 @@
 #define PHYS_LIBRARY_DOMAINS_CLUSTER_INTERPOLATION_HSPLINE_INTERPOLATION_HSPLINE_INTERPOLATION_KERNEL_HPP
 
 #include <cassert>
+#include <cmath>
+#include <complex>  // for std::abs(std::complex)
 #include <stdexcept>
 #include <vector>
 
+#include "dca/math/geometry/tetrahedron_mesh/tetrahedron_neighbour_domain.hpp"
+#include "dca/math/util/vector_operations.hpp"
+
 #include "comp_library/linalg/linalg.hpp"
-#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron_neighbour_domain.h"
 #include "phys_library/domains/cluster/cluster_typedefs.hpp"
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/cluster/interpolation/extended_k_domain.h"
+
+using namespace dca;
 
 // Empty template class declaration
 template <typename scalartype, typename source_dmn_type, typename target_dmn_type>
@@ -318,7 +324,7 @@ void hspline_interpolation_kernel<scalartype, cluster_domain<scalar_type, D, N, 
     bool col_is_zero = true;
 
     for (int i = 0; i < N_k_target; ++i)
-      if (abs_value(interpolation_matrix[i + j * N_k_target]) > 1.e-6)
+      if (std::abs(interpolation_matrix[i + j * N_k_target]) > 1.e-6)
         col_is_zero = false;
 
     if (not col_is_zero)
@@ -353,7 +359,7 @@ void hspline_interpolation_kernel<scalartype, cluster_domain<scalar_type, D, N, 
                                   target_k_dmn_t>::find_neighbours() {
   neighbours.resize(0);
 
-  neighbours = math_algorithms::tetrahedron_neighbour_domain<k_cluster_type>::get_elements();
+  neighbours = math::geometry::tetrahedron_neighbour_domain<k_cluster_type>::get_elements();
 }
 
 template <typename scalartype, typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S,
@@ -619,7 +625,7 @@ void hspline_interpolation_kernel<scalartype, cluster_domain<scalar_type, D, N, 
 
       int K_ind = extended_k_domain<source_k_dmn_t>::get_cluster_index(n_ind);
 
-      k_diff = VECTOR_OPERATIONS::SUBTRACT(k_vec, K_vec);
+      k_diff = math::util::subtract(k_vec, K_vec);
 
       interpolation_matrix[k_ind + target_k_dmn_t::get_size() * K_ind] +=
           evaluate_hermite_kernel_at(k_diff);
@@ -726,7 +732,7 @@ void hspline_interpolation_kernel<scalartype, cluster_domain<scalar_type, D, N, 
 
         K_vec = extended_k_dmn_t::get_elements()[k0_ind];
 
-        k_diff = VECTOR_OPERATIONS::SUBTRACT(k_vec, K_vec);
+        k_diff = math::util::subtract(k_vec, K_vec);
 
         interpolation_matrix[k_ind + N_k_target * K_ind] += evaluate_hermite_kernel_at(k_diff);
       }

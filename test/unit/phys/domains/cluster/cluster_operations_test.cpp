@@ -19,7 +19,7 @@
 
 #include <gtest/gtest.h>
 
-#include "math_library/geometry_library/vector_operations/elementary_vector_operations.hpp"
+#include "dca/math/util/vector_operations.hpp"
 
 namespace dca {
 namespace testing {
@@ -61,10 +61,10 @@ protected:
                             {4.712389, 1.570796}, {4.712389, 4.712389}},
         k_cluster_basis_{{1.570796, 1.570796}, {-1.570796, 1.570796}},
         k_cluster_super_basis_{{6.283185, -0.000000}, {0.000000, 6.283185}} {
-    std::sort(sorted_set_.begin(), sorted_set_.end(), VECTOR_OPERATIONS::IS_LARGER_VECTOR<double>);
+    std::sort(sorted_set_.begin(), sorted_set_.end(), dca::math::util::isLessVector<double>);
   }
   std::vector<std::vector<double>> unsorted_set_;  // = {{0., 1.}, {-1., 1.}, {0., 0.}, {1., 0.}}
-  // Vectors in the Brillouin zone are sorted according to VECTOR_OPERATIONS::IS_LARGER_VECTOR.
+  // Vectors in the Brillouin zone are sorted according to dca::math::util::isLessVector.
   std::vector<std::vector<double>> sorted_set_;  // = {{-1., 1.}, {0., 0.}, {0., 1.}, {1., 0.}}
 
   // 8-site cluster {2,2}, {-2, 2}
@@ -111,7 +111,7 @@ TEST_F(ClusterOperationsDeathTest, index) {
   // Sorted set (BRILLOUIN_ZONE)
   not_element = {-42., 24.};
   EXPECT_DEATH(cluster_operations::index(not_element, sorted_set_, BRILLOUIN_ZONE),
-               "VECTOR_OPERATIONS::L2_NORM");
+               "math::util::distance2");
 }
 #endif  // NDEBUG
 

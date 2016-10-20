@@ -17,7 +17,10 @@
 #include <complex>
 #include <vector>
 
-#include "math_library/geometry_library/tetrahedron_mesh/tetrahedron/tetrahedron.hpp"
+#include "dca/math/geometry/tetrahedron_mesh/tetrahedron.hpp"
+#include "dca/math/util/vector_operations.hpp"
+
+using namespace dca;
 
 namespace DCA {
 
@@ -25,14 +28,14 @@ class tetrahedron_routines_harmonic_function {
 public:
   // 1D
   static std::complex<double> execute(std::vector<double>& r_vec,
-                                      math_algorithms::tetrahedron<1>& tetrahedron);
+                                      math::geometry::tetrahedron<1>& tetrahedron);
   // 2D
   static std::complex<double> execute(std::vector<double>& r_vec,
-                                      math_algorithms::tetrahedron<2>& tetrahedron);
+                                      math::geometry::tetrahedron<2>& tetrahedron);
 
   // 3D
   static std::complex<double> execute(std::vector<double>& r_vec,
-                                      math_algorithms::tetrahedron<3>& tetrahedron);
+                                      math::geometry::tetrahedron<3>& tetrahedron);
 
 private:
   // general functionality:
@@ -46,16 +49,16 @@ private:
   static scalartype Cos(scalartype x);
 
   // 2D cases :
-  static void permute(math_algorithms::tetrahedron<2>& tetrahedron_new,
-                      math_algorithms::tetrahedron<2>& tetrahedron_old);
+  static void permute(math::geometry::tetrahedron<2>& tetrahedron_new,
+                      math::geometry::tetrahedron<2>& tetrahedron_old);
 
   static std::complex<double> case_2D(double dotRD1, double dotRD2, double dotRD2minD1);
   static std::complex<double> case_d1_2D(double dotRD1, double dotRD2, double dotRD2minD1);
   static std::complex<double> case_d2_2D(double dotRD1, double dotRD2, double dotRD2minD1);
 
   // 3D
-  static void permute(math_algorithms::tetrahedron<3>& tetrahedron_new,
-                      math_algorithms::tetrahedron<3>& tetrahedron_old);
+  static void permute(math::geometry::tetrahedron<3>& tetrahedron_new,
+                      math::geometry::tetrahedron<3>& tetrahedron_old);
 
   static std::complex<double> case_3D(double dotRD1, double dotRD2, double dotRD3,
                                       double dotRD2minD1, double dotRD3minD2, double dotRD1minD3);
@@ -104,7 +107,7 @@ scalartype tetrahedron_routines_harmonic_function::Cos(scalartype x) {
  ************************************/
 
 std::complex<double> tetrahedron_routines_harmonic_function::execute(
-    std::vector<double>& r_vec, math_algorithms::tetrahedron<1>& tetrahedron) {
+    std::vector<double>& r_vec, math::geometry::tetrahedron<1>& tetrahedron) {
   assert(r_vec.size() == 1);
 
   double r = r_vec[0];
@@ -163,7 +166,7 @@ std::complex<double> tetrahedron_routines_harmonic_function::execute(
  *
  */
 std::complex<double> tetrahedron_routines_harmonic_function::execute(
-    std::vector<double>& r_vec, math_algorithms::tetrahedron<2>& tetrahedron) {
+    std::vector<double>& r_vec, math::geometry::tetrahedron<2>& tetrahedron) {
   assert(r_vec.size() == 2);
 
   const static std::complex<double> I(0, 1);
@@ -171,7 +174,7 @@ std::complex<double> tetrahedron_routines_harmonic_function::execute(
 
   std::complex<double> result(0., 0.);
 
-  if (std::abs(VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, r_vec)) < EPSILON) {
+  if (std::abs(math::util::innerProduct(r_vec, r_vec)) < EPSILON) {
     result.real(tetrahedron.volume);
     result.imag(0);
   }
@@ -189,13 +192,13 @@ std::complex<double> tetrahedron_routines_harmonic_function::execute(
       D2_min_D1[d] = D2[d] - D1[d];
     }
 
-    double dot_R_K0 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, K0);
-    double dot_R_D1 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D1);
-    double dot_R_D2 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D2);
+    double dot_R_K0 = math::util::innerProduct(r_vec, K0);
+    double dot_R_D1 = math::util::innerProduct(r_vec, D1);
+    double dot_R_D2 = math::util::innerProduct(r_vec, D2);
 
-    double dot_R_D2_min_D1 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D2_min_D1);
+    double dot_R_D2_min_D1 = math::util::innerProduct(r_vec, D2_min_D1);
 
-    double det = VECTOR_OPERATIONS::VOLUME(D1, D2);
+    double det = math::util::area(D1, D2);
     std::complex<double> phase = Cos(dot_R_K0) + I * Sin(dot_R_K0);
 
     if (std::abs(dot_R_D2_min_D1) > EPSILON) {
@@ -211,7 +214,7 @@ std::complex<double> tetrahedron_routines_harmonic_function::execute(
     else
     //        if(abs(dot_R_D2_min_D1)<EPSILON)
     {
-      math_algorithms::tetrahedron<2> tetrahedron_new;
+      math::geometry::tetrahedron<2> tetrahedron_new;
 
       permute(tetrahedron_new, tetrahedron);
 
@@ -223,8 +226,8 @@ std::complex<double> tetrahedron_routines_harmonic_function::execute(
   return result;
 }
 
-void tetrahedron_routines_harmonic_function::permute(math_algorithms::tetrahedron<2>& tetrahedron_new,
-                                                     math_algorithms::tetrahedron<2>& tetrahedron_old) {
+void tetrahedron_routines_harmonic_function::permute(math::geometry::tetrahedron<2>& tetrahedron_new,
+                                                     math::geometry::tetrahedron<2>& tetrahedron_old) {
   tetrahedron_new.vec_1 = tetrahedron_old.vec_0;
   tetrahedron_new.vec_2 = tetrahedron_old.vec_1;
   tetrahedron_new.vec_0 = tetrahedron_old.vec_2;
@@ -308,8 +311,8 @@ std::complex<double> tetrahedron_routines_harmonic_function::case_d2_2D(double d
  ***
  ************************************/
 
-void tetrahedron_routines_harmonic_function::permute(math_algorithms::tetrahedron<3>& tetrahedron_new,
-                                                     math_algorithms::tetrahedron<3>& tetrahedron_old) {
+void tetrahedron_routines_harmonic_function::permute(math::geometry::tetrahedron<3>& tetrahedron_new,
+                                                     math::geometry::tetrahedron<3>& tetrahedron_old) {
   tetrahedron_new.vec_1 = tetrahedron_old.vec_0;
   tetrahedron_new.vec_2 = tetrahedron_old.vec_1;
   tetrahedron_new.vec_3 = tetrahedron_old.vec_2;
@@ -536,7 +539,7 @@ std::complex<double> tetrahedron_routines_harmonic_function::case_d3_d1_3D(
 }
 
 std::complex<double> tetrahedron_routines_harmonic_function::execute(
-    std::vector<double>& r_vec, math_algorithms::tetrahedron<3>& tetrahedron) {
+    std::vector<double>& r_vec, math::geometry::tetrahedron<3>& tetrahedron) {
   assert(r_vec.size() == 3);
 
   const static std::complex<double> I(0, 1);
@@ -544,7 +547,7 @@ std::complex<double> tetrahedron_routines_harmonic_function::execute(
 
   std::complex<double> result(0., 0.);
 
-  if (std::abs(VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, r_vec)) < EPSILON) {
+  if (std::abs(math::util::innerProduct(r_vec, r_vec)) < EPSILON) {
     result.real(tetrahedron.volume);
     result.imag(0);
   }
@@ -569,17 +572,17 @@ std::complex<double> tetrahedron_routines_harmonic_function::execute(
       D1_min_D3[d] = D1[d] - D3[d];
     }
 
-    double dot_R_K0 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, K_0);
+    double dot_R_K0 = math::util::innerProduct(r_vec, K_0);
 
-    double dot_R_D1 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D1);
-    double dot_R_D2 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D2);
-    double dot_R_D3 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D3);
+    double dot_R_D1 = math::util::innerProduct(r_vec, D1);
+    double dot_R_D2 = math::util::innerProduct(r_vec, D2);
+    double dot_R_D3 = math::util::innerProduct(r_vec, D3);
 
-    double dot_R_D2_min_D1 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D2_min_D1);
-    double dot_R_D3_min_D2 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D3_min_D2);
-    double dot_R_D1_min_D3 = VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, D1_min_D3);
+    double dot_R_D2_min_D1 = math::util::innerProduct(r_vec, D2_min_D1);
+    double dot_R_D3_min_D2 = math::util::innerProduct(r_vec, D3_min_D2);
+    double dot_R_D1_min_D3 = math::util::innerProduct(r_vec, D1_min_D3);
 
-    double det = VECTOR_OPERATIONS::VOLUME(D1, D2, D3);
+    double det = math::util::volume(D1, D2, D3);
     std::complex<double> phase = Cos(dot_R_K0) + I * Sin(dot_R_K0);
 
     if (std::abs(dot_R_D1) > EPSILON and std::abs(dot_R_D2) > EPSILON and
@@ -633,14 +636,14 @@ std::complex<double> tetrahedron_routines_harmonic_function::execute(
       }
       else {
         //                 cout << "\n\t start permuting\t";
-        //                 VECTOR_OPERATIONS::PRINT(r_vec);
+        //                 math::util::print(r_vec);
         //                 cout << "\n";
-        //                 VECTOR_OPERATIONS::PRINT(tetrahedron.vec_0);cout << "\n";
-        //                 VECTOR_OPERATIONS::PRINT(tetrahedron.vec_1);cout << "\n";
-        //                 VECTOR_OPERATIONS::PRINT(tetrahedron.vec_2);cout << "\n";
-        //                 VECTOR_OPERATIONS::PRINT(tetrahedron.vec_3);cout << "\n";
+        //                 math::util::print(tetrahedron.vec_0);cout << "\n";
+        //                 math::util::print(tetrahedron.vec_1);cout << "\n";
+        //                 math::util::print(tetrahedron.vec_2);cout << "\n";
+        //                 math::util::print(tetrahedron.vec_3);cout << "\n";
 
-        math_algorithms::tetrahedron<3> tetrahedron_new;
+        math::geometry::tetrahedron<3> tetrahedron_new;
 
         permute(tetrahedron_new, tetrahedron);
 

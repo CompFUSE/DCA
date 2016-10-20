@@ -155,7 +155,7 @@ std::vector<std::vector<double>>& material_lattice<CuO2, point_group_type>::get_
     cout << "\n\n";
     for(size_t i=0; i<128; i++){
       cout << "\t";
-      VECTOR_OPERATIONS::PRINT(t_ij[i]);
+      math::util::print(t_ij[i]);
       cout << "\n";
     }
     */

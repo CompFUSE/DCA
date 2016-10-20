@@ -15,8 +15,12 @@
 #include <string>
 #include <vector>
 
+#include "dca/math/util/vector_operations.hpp"
+
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/cluster/cluster_typedefs.hpp"
+
+using namespace dca;
 
 template <typename cluster_type>
 class centered_cluster_domain {};
@@ -161,7 +165,7 @@ scalar_type& centered_cluster_domain<cluster_domain<scalar_type, D, N, R, S>>::g
 template <typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_REPRESENTATION R, CLUSTER_SHAPE S>
 int centered_cluster_domain<cluster_domain<scalar_type, D, N, R, S>>::origin_index() {
   static int index = cluster_operations::origin_index(get_elements());
-  assert(VECTOR_OPERATIONS::L2_NORM(get_elements()[index]) < 1.e-6);
+  assert(math::util::l2Norm2(get_elements()[index]) < 1.e-6);
   return index;
 }
 
@@ -253,7 +257,7 @@ void centered_cluster_domain<cluster_domain<scalar_type, D, N, R, S>>::print(ss_
 
   for (int l = 0; l < get_size(); l++) {
     ss << "\t" << l << "\t";
-    VECTOR_OPERATIONS::PRINT(get_elements()[l]);
+    math::util::print(get_elements()[l]);
     ss << "\t" << get_weights()[l] << "\n";
   }
   ss << "\n";

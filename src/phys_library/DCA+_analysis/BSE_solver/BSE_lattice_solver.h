@@ -57,6 +57,7 @@
 #ifndef PHYS_LIBRARY_DCA_ANALYSIS_BSE_SOLVER_BSE_LATTICE_SOLVER_H
 #define PHYS_LIBRARY_DCA_ANALYSIS_BSE_SOLVER_BSE_LATTICE_SOLVER_H
 
+#include <algorithm>
 #include <complex>
 #include <iostream>
 #include <stdexcept>
@@ -64,9 +65,10 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/math/util/comparison_methods.hpp"
+#include "dca/math/util/vector_operations.hpp"
 #include "dca/util/print_time.hpp"
 #include "comp_library/linalg/linalg.hpp"
-#include "math_library/geometry_library/vector_operations/vector_operations.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/high_temperature_series_expansion_solver.h"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_tp.h"
 #include "phys_library/DCA+_step/lattice_mapping/lattice_mapping_tp.h"
@@ -77,6 +79,8 @@
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
+
+using namespace dca;
 
 namespace DCA {
 
@@ -290,10 +294,10 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::initialize() {
     std::vector<std::vector<double>> r_vecs(0);
 
     for (int l = 0; l < crystal_harmonics_expansion::get_size(); l++)
-      if (VECTOR_OPERATIONS::NORM(crystal_harmonics_expansion::get_elements()[l]) < r_cut_off)
+      if (math::util::l2Norm(crystal_harmonics_expansion::get_elements()[l]) < r_cut_off)
         r_vecs.push_back(crystal_harmonics_expansion::get_elements()[l]);
 
-    sort(r_vecs.begin(), r_vecs.end(), VECTOR_OPERATIONS::HAS_LARGER_NORM<double>);
+    sort(r_vecs.begin(), r_vecs.end(), math::util::hasSmallerNorm<double>);
 
     crystal_harmonics_expansion::get_size() = r_vecs.size();
     crystal_harmonics_expansion::get_elements() = r_vecs;
@@ -302,7 +306,7 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::initialize() {
       std::cout << "\n\n\t crystal-vectors : \n";
       for (int l = 0; l < crystal_harmonics_expansion::get_size(); l++) {
         std::cout << "\t" << l << "\t";
-        VECTOR_OPERATIONS::PRINT(crystal_harmonics_expansion::get_elements()[l]);
+        math::util::print(crystal_harmonics_expansion::get_elements()[l]);
         std::cout << std::endl;
       }
     }
@@ -319,7 +323,7 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::initialize() {
 
       for (int k_ind = 0; k_ind < k_HOST_VERTEX::dmn_size(); k_ind++)
         psi_k(k_ind, l) =
-            std::exp(I * VECTOR_OPERATIONS::DOT_PRODUCT(r_vec, k_HOST_VERTEX::get_elements()[k_ind])) /
+            std::exp(I * math::util::innerProduct(r_vec, k_HOST_VERTEX::get_elements()[k_ind])) /
             std::sqrt(double(k_HOST_VERTEX::dmn_size()));
 
       for (int w_ind = 0; w_ind < w_VERTEX::dmn_size(); w_ind++)
@@ -630,7 +634,7 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::record_eigenvalues_and_eige
     eigenvals_mod[i].second = i;
   }
 
-  stable_sort(eigenvals_mod.begin(), eigenvals_mod.end(), &real_pair_less);
+  std::stable_sort(eigenvals_mod.begin(), eigenvals_mod.end(), math::util::pairLess<scalartype, int>);
 
   for (int i = 0; i < N_LAMBDAS; i++) {
     int index = eigenvals_mod[i].second;
@@ -661,7 +665,8 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::record_eigenvalues_and_eige
     eigenvals[i].second = i;
   }
 
-  stable_sort(eigenvals.begin(), eigenvals.end(), &susceptibility_less_pairs);
+  stable_sort(eigenvals.begin(), eigenvals.end(),
+              math::util::susceptibilityPairGreater<scalartype, int>);
 
   for (int i = 0; i < N_LAMBDAS; i++) {
     int index = eigenvals[eigenvals.size() - 1 - i].second;
@@ -797,7 +802,8 @@ void BSE_lattice_solver<parameters_type, MOMS_type>::record_eigenvalues_and_fold
     eigenvals[i].second = i;
   }
 
-  stable_sort(eigenvals.begin(), eigenvals.end(), &susceptibility_less_pairs);
+  stable_sort(eigenvals.begin(), eigenvals.end(),
+              math::util::susceptibilityPairGreater<scalartype, int>);
 
   for (int i = 0; i < N_LAMBDAS; i++) {
     int index = eigenvals[eigenvals.size() - 1 - i].second;

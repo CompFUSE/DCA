@@ -17,13 +17,16 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/math/function_transform/function_transform.hpp"
+
 #include "comp_library/linalg/linalg.hpp"
-#include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
 #include "phys_library/DCA+_step/lattice_mapping/interpolation/interpolation_routines.h"
 #include "phys_library/domains/cluster/centered_cluster_domain.h"
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
+
+using namespace dca;
 
 namespace DCA {
 
@@ -36,9 +39,9 @@ public:
   using source_r_cluster_type = typename source_k_dmn::parameter_type::dual_type;
   using r_centered_dmn = func::dmn_0<centered_cluster_domain<source_r_cluster_type>>;
 
-  using basis_function_type = math_algorithms::functional_transforms::basis_function<
-      typename target_k_dmn::parameter_type, math_algorithms::KRONECKER_DELTA,
-      typename source_k_dmn::parameter_type, math_algorithms::HERMITE_CUBIC_SPLINE>;
+  using basis_function_type = math::transform::basis_function<
+      typename target_k_dmn::parameter_type, math::transform::KRONECKER_DELTA,
+      typename source_k_dmn::parameter_type, math::transform::HERMITE_CUBIC_SPLINE>;
 
   using b = func::dmn_0<electron_band_domain>;
 
@@ -107,8 +110,8 @@ void interpolation_tp<parameters_type, source_k_dmn, target_k_dmn>::execute(
 
   initialize_T_K_to_k(T_K_to_k);
 
-  math_algorithms::functional_transforms::TRANSFORM<k_DCA, k_HOST_VERTEX>::execute_on_all(
-      Gamma_cluster, Gamma_lattice, T_K_to_k);
+  math::transform::FunctionTransform<k_DCA, k_HOST_VERTEX>::execute_on_all(Gamma_cluster,
+                                                                           Gamma_lattice, T_K_to_k);
 }
 
 }  // DCA

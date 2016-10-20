@@ -16,12 +16,14 @@
 #include <ios>
 #include <vector>
 
+#include "dca/math/function_transform/domain_specifications.hpp"
+#include "dca/math/util/vector_operations.hpp"
+
 #include "comp_library/linalg/linalg.hpp"
-#include "math_library/functional_transforms/domain_specifications/domain_specifications.hpp"
-#include "math_library/geometry_library/vector_operations/vector_operations.hpp"
-#include "math_library/functional_transforms/typedefs.hpp"
 #include "phys_library/domains/cluster/cluster_operations.hpp"
 #include "phys_library/domains/cluster/cluster_typedefs.hpp"
+
+using namespace dca;
 
 template <typename cluster_type>
 class cluster_symmetry {};
@@ -44,81 +46,81 @@ struct cluster_specifications {};
 
 template <typename scalar_type, CLUSTER_SHAPE S>
 struct cluster_specifications<scalar_type, CLUSTER, MOMENTUM_SPACE, S> {
-  typedef math_algorithms::domain_specifications<
-      scalar_type, std::vector<scalar_type>, math_algorithms::DISCRETE,
-      math_algorithms::KRONECKER_DELTA, math_algorithms::PERIODIC, math_algorithms::EQUIDISTANT>
+  typedef math::transform::domain_specifications<
+      scalar_type, std::vector<scalar_type>, math::transform::DISCRETE,
+      math::transform::KRONECKER_DELTA, math::transform::PERIODIC, math::transform::EQUIDISTANT>
       dmn_specifications_type;
 };
 
 template <typename scalar_type, CLUSTER_SHAPE S>
 struct cluster_specifications<scalar_type, CLUSTER, REAL_SPACE, S> {
-  typedef math_algorithms::domain_specifications<
-      scalar_type, std::vector<scalar_type>, math_algorithms::EXPANSION, math_algorithms::HARMONICS,
-      math_algorithms::PERIODIC, math_algorithms::EQUIDISTANT>
+  typedef math::transform::domain_specifications<
+      scalar_type, std::vector<scalar_type>, math::transform::EXPANSION, math::transform::HARMONICS,
+      math::transform::PERIODIC, math::transform::EQUIDISTANT>
       dmn_specifications_type;
 };
 
 template <typename scalar_type, CLUSTER_SHAPE S>
 struct cluster_specifications<scalar_type, LATTICE_SP, MOMENTUM_SPACE, S> {
-  typedef math_algorithms::domain_specifications<
-      scalar_type, std::vector<scalar_type>, math_algorithms::DISCRETE,
-      math_algorithms::KRONECKER_DELTA, math_algorithms::PERIODIC, math_algorithms::EQUIDISTANT>
+  typedef math::transform::domain_specifications<
+      scalar_type, std::vector<scalar_type>, math::transform::DISCRETE,
+      math::transform::KRONECKER_DELTA, math::transform::PERIODIC, math::transform::EQUIDISTANT>
       dmn_specifications_type;
 };
 
 template <typename scalar_type, CLUSTER_SHAPE S>
 struct cluster_specifications<scalar_type, LATTICE_SP, REAL_SPACE, S> {
-  typedef math_algorithms::domain_specifications<
-      scalar_type, std::vector<scalar_type>, math_algorithms::EXPANSION, math_algorithms::HARMONICS,
-      math_algorithms::PERIODIC, math_algorithms::EQUIDISTANT>
+  typedef math::transform::domain_specifications<
+      scalar_type, std::vector<scalar_type>, math::transform::EXPANSION, math::transform::HARMONICS,
+      math::transform::PERIODIC, math::transform::EQUIDISTANT>
       dmn_specifications_type;
 };
 
 template <typename scalar_type, CLUSTER_SHAPE S>
 struct cluster_specifications<scalar_type, LATTICE_TP, MOMENTUM_SPACE, S> {
-  typedef math_algorithms::domain_specifications<
-      scalar_type, std::vector<scalar_type>, math_algorithms::DISCRETE,
-      math_algorithms::KRONECKER_DELTA, math_algorithms::PERIODIC, math_algorithms::EQUIDISTANT>
+  typedef math::transform::domain_specifications<
+      scalar_type, std::vector<scalar_type>, math::transform::DISCRETE,
+      math::transform::KRONECKER_DELTA, math::transform::PERIODIC, math::transform::EQUIDISTANT>
       dmn_specifications_type;
 };
 
 template <typename scalar_type, CLUSTER_SHAPE S>
 struct cluster_specifications<scalar_type, LATTICE_TP, REAL_SPACE, S> {
-  typedef math_algorithms::domain_specifications<
-      scalar_type, std::vector<scalar_type>, math_algorithms::EXPANSION, math_algorithms::HARMONICS,
-      math_algorithms::PERIODIC, math_algorithms::EQUIDISTANT>
+  typedef math::transform::domain_specifications<
+      scalar_type, std::vector<scalar_type>, math::transform::EXPANSION, math::transform::HARMONICS,
+      math::transform::PERIODIC, math::transform::EQUIDISTANT>
       dmn_specifications_type;
 };
 
 template <typename scalar_type, CLUSTER_SHAPE S>
 struct cluster_specifications<scalar_type, VASP_LATTICE, MOMENTUM_SPACE, S> {
-  typedef math_algorithms::domain_specifications<
-      scalar_type, std::vector<scalar_type>, math_algorithms::DISCRETE,
-      math_algorithms::KRONECKER_DELTA, math_algorithms::PERIODIC, math_algorithms::EQUIDISTANT>
+  typedef math::transform::domain_specifications<
+      scalar_type, std::vector<scalar_type>, math::transform::DISCRETE,
+      math::transform::KRONECKER_DELTA, math::transform::PERIODIC, math::transform::EQUIDISTANT>
       dmn_specifications_type;
 };
 
 template <typename scalar_type, CLUSTER_SHAPE S>
 struct cluster_specifications<scalar_type, VASP_LATTICE, REAL_SPACE, S> {
-  typedef math_algorithms::domain_specifications<
-      scalar_type, std::vector<scalar_type>, math_algorithms::EXPANSION, math_algorithms::HARMONICS,
-      math_algorithms::PERIODIC, math_algorithms::EQUIDISTANT>
+  typedef math::transform::domain_specifications<
+      scalar_type, std::vector<scalar_type>, math::transform::EXPANSION, math::transform::HARMONICS,
+      math::transform::PERIODIC, math::transform::EQUIDISTANT>
       dmn_specifications_type;
 };
 
 template <typename scalar_type, CLUSTER_SHAPE S>
 struct cluster_specifications<scalar_type, TMP_CLUSTER, MOMENTUM_SPACE, S> {
-  typedef math_algorithms::domain_specifications<
-      scalar_type, std::vector<scalar_type>, math_algorithms::DISCRETE,
-      math_algorithms::KRONECKER_DELTA, math_algorithms::PERIODIC, math_algorithms::EQUIDISTANT>
+  typedef math::transform::domain_specifications<
+      scalar_type, std::vector<scalar_type>, math::transform::DISCRETE,
+      math::transform::KRONECKER_DELTA, math::transform::PERIODIC, math::transform::EQUIDISTANT>
       dmn_specifications_type;
 };
 
 template <typename scalar_type, CLUSTER_SHAPE S>
 struct cluster_specifications<scalar_type, TMP_CLUSTER, REAL_SPACE, S> {
-  typedef math_algorithms::domain_specifications<
-      scalar_type, std::vector<scalar_type>, math_algorithms::EXPANSION, math_algorithms::HARMONICS,
-      math_algorithms::PERIODIC, math_algorithms::EQUIDISTANT>
+  typedef math::transform::domain_specifications<
+      scalar_type, std::vector<scalar_type>, math::transform::EXPANSION, math::transform::HARMONICS,
+      math::transform::PERIODIC, math::transform::EQUIDISTANT>
       dmn_specifications_type;
 };
 
@@ -261,7 +263,7 @@ scalar_type& cluster_domain<scalar_type, D, N, R, S>::get_volume() {
 template <typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_REPRESENTATION R, CLUSTER_SHAPE S>
 int cluster_domain<scalar_type, D, N, R, S>::origin_index() {
   static int index = cluster_operations::origin_index(get_elements(), SHAPE);
-  assert(VECTOR_OPERATIONS::L2_NORM(get_elements()[index]) < 1.e-6);
+  assert(math::util::l2Norm2(get_elements()[index]) < 1.e-6);
   return index;
 }
 
@@ -379,9 +381,9 @@ void cluster_domain<scalar_type, D, N, R, S>::print(ss_type& ss) {
   if (NAME == CLUSTER) {
     for (int l = 0; l < get_size(); l++) {
       ss << "\t" << l << "\t|\t";
-      VECTOR_OPERATIONS::PRINT(get_elements()[l]);
+      math::util::print(get_elements()[l]);
       ss << "\t";
-      VECTOR_OPERATIONS::PRINT(dual_type::get_elements()[l]);
+      math::util::print(dual_type::get_elements()[l]);
       ss << "\n";
     }
     ss << "\n\n\t" << to_str(REPRESENTATION) << " k-space symmetries : \n\n";

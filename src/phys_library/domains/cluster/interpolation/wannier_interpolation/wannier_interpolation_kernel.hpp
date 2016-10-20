@@ -22,6 +22,8 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/math/util/vector_operations.hpp"
+
 #include "phys_library/domains/cluster/cluster_typedefs.hpp"
 #include "phys_library/domains/cluster/cluster_domain.h"
 
@@ -219,10 +221,10 @@ void wannier_interpolation_kernel<cluster_domain<scalar_type, D, N, MOMENTUM_SPA
   for (int j = 0; j < source_k_dmn_t::dmn_size(); j++) {
     // collection_k_vecs_affine[j] =
     // source_k_cluster_type::get_affine_coordinate(collection_k_vecs[j]);
-    collection_k_vecs_affine[j] = VECTOR_OPERATIONS::COORDINATES(
+    collection_k_vecs_affine[j] = math::util::coordinates(
         collection_k_vecs[j], source_k_cluster_type::get_super_basis_vectors());
 
-    // VECTOR_OPERATIONS::PRINT(collection_k_vecs_affine[j]); cout<<endl;
+    // math::util::print(collection_k_vecs_affine[j]); cout<<endl;
   }
   // cout<<endl;
 
@@ -260,7 +262,7 @@ void wannier_interpolation_kernel<cluster_domain<scalar_type, D, N, MOMENTUM_SPA
                                                             std::vector<double>(DIMENSION, 0));
 
   for (int j = 0; j < target_k_dmn_t::dmn_size(); j++) {
-    collection_k_vecs_affine[j] = VECTOR_OPERATIONS::COORDINATES(
+    collection_k_vecs_affine[j] = math::util::coordinates(
         collection_k_vecs[j], source_k_cluster_type::get_super_basis_vectors());
   }
 
@@ -398,11 +400,10 @@ void wannier_interpolation_kernel<cluster_domain<scalar_type, D, N, MOMENTUM_SPA
 
     for (size_t l = 0; l < r_vecs.size(); l++) {
       std::vector<double> r_aff =
-          VECTOR_OPERATIONS::COORDINATES(r_vecs[l], source_r_cluster_type::get_basis_vectors());
+          math::util::coordinates(r_vecs[l], source_r_cluster_type::get_basis_vectors());
 
       for (int R_cen_ind = 0; R_cen_ind < centered_r_cluster_dmn_t::dmn_size(); R_cen_ind++)
-        if (VECTOR_OPERATIONS::L2_NORM(r_aff, centered_r_cluster_dmn_t::get_elements()[R_cen_ind]) <
-            1.e-3)
+        if (math::util::distance2(r_aff, centered_r_cluster_dmn_t::get_elements()[R_cen_ind]) < 1.e-3)
           lies_within_cutoff(R_cen_ind) += r_vecs.size();
     }
   }

@@ -19,7 +19,8 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
-#include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
+#include "dca/math/function_transform/function_transform.hpp"
+
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Fock_space.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Greens_functions/sp_Greens_function_data.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Hamiltonian.h"
@@ -29,6 +30,8 @@
 #include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
 #include "phys_library/domains/time_and_frequency/frequency_domain_real_axis.h"
 #include "phys_library/domains/time_and_frequency/time_domain.h"
+
+using namespace dca;
 
 namespace DCA {
 namespace ADVANCED_EXACT_DIAGONALIZATION {
@@ -311,12 +314,9 @@ void fermionic_sp_Greens_function<parameter_type, ed_options>::compute_all_sp_fu
     renormalize_real_space_Greens_functions(MOMS_imag.G_r_w, MOMS_real.G_r_w, MOMS_imag.G_r_t,
                                             G_nonlocal_nu_nu_r_r_w_w, G_nonlocal_nu_nu_k_k_w_w);
 
-    math_algorithms::functional_transforms::TRANSFORM<r_dmn, k_dmn>::execute(MOMS_imag.G_r_w,
-                                                                             MOMS_imag.G_k_w);
-    math_algorithms::functional_transforms::TRANSFORM<r_dmn, k_dmn>::execute(MOMS_real.G_r_w,
-                                                                             MOMS_real.G_k_w);
-    math_algorithms::functional_transforms::TRANSFORM<r_dmn, k_dmn>::execute(MOMS_imag.G_r_t,
-                                                                             MOMS_imag.G_k_t);
+    math::transform::FunctionTransform<r_dmn, k_dmn>::execute(MOMS_imag.G_r_w, MOMS_imag.G_k_w);
+    math::transform::FunctionTransform<r_dmn, k_dmn>::execute(MOMS_real.G_r_w, MOMS_real.G_k_w);
+    math::transform::FunctionTransform<r_dmn, k_dmn>::execute(MOMS_imag.G_r_t, MOMS_imag.G_k_t);
   }
   else {
     compute_real_space_Greens_functions(MOMS_imag.G0_r_w, MOMS_real.G0_r_w, MOMS_imag.G0_r_t,
@@ -324,12 +324,9 @@ void fermionic_sp_Greens_function<parameter_type, ed_options>::compute_all_sp_fu
     renormalize_real_space_Greens_functions(MOMS_imag.G0_r_w, MOMS_real.G0_r_w, MOMS_imag.G0_r_t,
                                             G0_nonlocal_nu_nu_r_r_w_w, G0_nonlocal_nu_nu_k_k_w_w);
 
-    math_algorithms::functional_transforms::TRANSFORM<r_dmn, k_dmn>::execute(MOMS_imag.G0_r_w,
-                                                                             MOMS_imag.G0_k_w);
-    math_algorithms::functional_transforms::TRANSFORM<r_dmn, k_dmn>::execute(MOMS_real.G0_r_w,
-                                                                             MOMS_real.G0_k_w);
-    math_algorithms::functional_transforms::TRANSFORM<r_dmn, k_dmn>::execute(MOMS_imag.G0_r_t,
-                                                                             MOMS_imag.G0_k_t);
+    math::transform::FunctionTransform<r_dmn, k_dmn>::execute(MOMS_imag.G0_r_w, MOMS_imag.G0_k_w);
+    math::transform::FunctionTransform<r_dmn, k_dmn>::execute(MOMS_real.G0_r_w, MOMS_real.G0_k_w);
+    math::transform::FunctionTransform<r_dmn, k_dmn>::execute(MOMS_imag.G0_r_t, MOMS_imag.G0_k_t);
   }
 }
 

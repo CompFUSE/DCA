@@ -534,8 +534,8 @@ void MC_accumulator<CT_AUX_SOLVER, device_t, parameters_type,
   single_particle_accumulator_obj.accumulate_M_r_w(HS_configuration_e_DN, M_e_DN, current_sign, e_DN);
   single_particle_accumulator_obj.accumulate_M_r_w(HS_configuration_e_UP, M_e_UP, current_sign, e_UP);
 
-  GFLOP += 2. * 8. * square(M_e_DN.size().first) * (1.e-9);
-  GFLOP += 2. * 8. * square(M_e_UP.size().first) * (1.e-9);
+  GFLOP += 2. * 8. * M_e_DN.size().first * M_e_DN.size().first * (1.e-9);
+  GFLOP += 2. * 8. * M_e_UP.size().first * M_e_UP.size().first * (1.e-9);
 }
 
 /*************************************************************

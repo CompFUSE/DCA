@@ -16,7 +16,9 @@
 #include <iostream>
 #include <vector>
 
-#include "math_library/geometry_library/vector_operations/vector_operations.hpp"
+#include "dca/math/util/vector_operations.hpp"
+
+using namespace dca;
 
 template <typename k_cluster_type>
 class extended_k_domain {
@@ -53,9 +55,9 @@ public:
       k_vec[d] = k[d];
     k_vec[DIMENSION] = -1;
 
-    int index = int(std::lower_bound(vecs.begin(), vecs.end(), k_vec,
-                                     VECTOR_OPERATIONS::IS_LARGER_VECTOR<double>) -
-                    vecs.begin());
+    int index =
+        int(std::lower_bound(vecs.begin(), vecs.end(), k_vec, math::util::isLessVector<double>) -
+            vecs.begin());
 
     index = vecs[index][DIMENSION];
 
@@ -68,11 +70,11 @@ public:
     if (index < 0 or index >= get_size())
       throw std::logic_error(__FUNCTION__);
 
-    if (VECTOR_OPERATIONS::L2_NORM(k, get_elements()[index]) > 1.e-6) {
+    if (math::util::distance2(k, get_elements()[index]) > 1.e-6) {
       std::cout << "\n\n";
-      VECTOR_OPERATIONS::PRINT(k);
+      math::util::print(k);
       std::cout << "\t<-->\t";
-      VECTOR_OPERATIONS::PRINT(get_elements()[index]);
+      math::util::print(get_elements()[index]);
       std::cout << "\n\n";
       throw std::logic_error(__FUNCTION__);
     }
@@ -95,8 +97,7 @@ private:
     for (size_t l = 0; l < sorted_elements.size(); l++)
       sorted_elements[l].push_back(l);
 
-    std::sort(sorted_elements.begin(), sorted_elements.end(),
-              VECTOR_OPERATIONS::IS_LARGER_VECTOR<double>);
+    std::sort(sorted_elements.begin(), sorted_elements.end(), math::util::isLessVector<double>);
 
     return sorted_elements;
   }

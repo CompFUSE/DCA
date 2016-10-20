@@ -18,8 +18,8 @@
 #include <vector>
 
 #include "dca/function/domains/dmn_0.hpp"
+#include "dca/math/util/sgn.hpp"
 
-#include "math_library/static_functions.h"  // for sgn
 #include "phys_library/domains/time_and_frequency/frequency_domain_real_axis.h"
 
 class radial_function {
@@ -52,8 +52,8 @@ void radial_function::initialize(parameters_type& parameters) {
   std::vector<double> elements = w_REAL::get_elements();
 
   for (size_t l = 0; l < elements.size(); l++) {
-    elements[l] = sgn(elements[l]) * square(std::fabs(elements[l]) / std::fabs(elements[0])) *
-                  std::fabs(elements[0]);
+    elements[l] = math::util::sgn(elements[l]) *
+                  std::pow(std::abs(elements[l]) / std::abs(elements[0]), 2) * std::abs(elements[0]);
   }
 
   get_elements() = elements;

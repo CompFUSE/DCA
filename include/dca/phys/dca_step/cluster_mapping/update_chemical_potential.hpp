@@ -21,8 +21,9 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/math/function_transform/function_transform.hpp"
 #include "dca/util/print_time.hpp"
-#include "math_library/functional_transforms/function_transforms/function_transforms.hpp"
+
 #include "phys_library/domains/cluster/cluster_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_band_domain.h"
 #include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
@@ -228,11 +229,11 @@ double update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type
 
   MOMS.G_k_w -= MOMS.G0_k_w;
 
-  math_algorithms::functional_transforms::TRANSFORM<w, t>::execute(MOMS.G_k_w, MOMS.G_k_t);
+  math::transform::FunctionTransform<w, t>::execute(MOMS.G_k_w, MOMS.G_k_t);
 
   MOMS.G_k_t += MOMS.G0_k_t;
 
-  math_algorithms::functional_transforms::TRANSFORM<k_DCA, r_DCA>::execute(MOMS.G_k_t, MOMS.G_r_t);
+  math::transform::FunctionTransform<k_DCA, r_DCA>::execute(MOMS.G_k_t, MOMS.G_r_t);
 
   MOMS.G_k_w += MOMS.G0_k_w;
 

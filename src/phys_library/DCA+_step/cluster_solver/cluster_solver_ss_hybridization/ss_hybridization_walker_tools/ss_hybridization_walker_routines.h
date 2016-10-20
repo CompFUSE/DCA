@@ -24,9 +24,9 @@
 #include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/matrixop.hpp"
+#include "dca/math/interpolation/akima_interpolation.hpp"
 
 #include "comp_library/linalg/linalg.hpp"
-#include "math_library/interpolation_library/akima_interpolation.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_solver_routines.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_structures/ss_hybridization_vertex.h"
 #include "phys_library/domains/cluster/cluster_domain.h"
@@ -36,6 +36,8 @@
 #include "phys_library/domains/time_and_frequency/frequency_domain_compact.h"
 #include "phys_library/domains/time_and_frequency/time_domain.h"
 #include "phys_library/domains/time_and_frequency/time_domain_left_oriented.h"
+
+using namespace dca;
 
 namespace DCA {
 namespace QMCI {
@@ -301,7 +303,7 @@ void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng
     func::function<double, nu_nu_r_DCA_t>& F_r_t) {
   int size = t::dmn_size() / 2;
 
-  math_algorithms::interpolation::akima_interpolation<double> ai_obj(size);
+  math::interpolation::akima_interpolation<double> ai_obj(size);
 
   double* x = new double[size];
   double* y = new double[size];
