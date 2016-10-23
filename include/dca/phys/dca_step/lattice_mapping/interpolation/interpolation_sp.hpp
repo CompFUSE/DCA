@@ -9,8 +9,8 @@
 //
 // This class computes the interpolated cluster self-energy using the alpha transformation.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_INTERPOLATION_INTERPOLATION_SP_H
-#define PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_INTERPOLATION_INTERPOLATION_SP_H
+#ifndef DCA_PHYS_DCA_STEP_LATTICE_MAPPING_INTERPOLATION_INTERPOLATION_SP_HPP
+#define DCA_PHYS_DCA_STEP_LATTICE_MAPPING_INTERPOLATION_INTERPOLATION_SP_HPP
 
 #include <complex>
 #include <iostream>
@@ -18,6 +18,8 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/math/function_transform/function_transform.hpp"
+#include "dca/phys/dca_step/lattice_mapping/interpolation/interpolation_routines.hpp"
+#include "dca/phys/dca_step/lattice_mapping/interpolation/transform_to_alpha.hpp"
 #include "dca/phys/domains/cluster/centered_cluster_domain.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
@@ -25,13 +27,10 @@
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/util/print_time.hpp"
 
-#include "phys_library/DCA+_step/lattice_mapping/interpolation/interpolation_routines.h"
-#include "phys_library/DCA+_step/lattice_mapping/interpolation/transform_to_alpha.hpp"
-
-using namespace dca;
-using namespace dca::phys;
-
-namespace DCA {
+namespace dca {
+namespace phys {
+namespace latticemapping {
+// dca::phys::latticemapping::
 
 template <typename parameters_type, typename source_k_dmn, typename target_k_dmn>
 class interpolation_sp : public interpolation_routines<parameters_type, source_k_dmn, target_k_dmn> {
@@ -156,6 +155,8 @@ void interpolation_sp<parameters_type, source_k_dmn, target_k_dmn>::execute(
       cluster_centered_function, interp_function);
 }
 
-}  // DCA
+}  // latticemapping
+}  // phys
+}  // dca
 
-#endif  // PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_INTERPOLATION_INTERPOLATION_SP_H
+#endif  // DCA_PHYS_DCA_STEP_LATTICE_MAPPING_INTERPOLATION_INTERPOLATION_SP_HPP

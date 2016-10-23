@@ -16,8 +16,8 @@
  *  \f}
  */
 
-#ifndef PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_INTERPOLATION_TRANSFORM_TO_ALPHA_HPP
-#define PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_INTERPOLATION_TRANSFORM_TO_ALPHA_HPP
+#ifndef DCA_PHYS_DCA_STEP_LATTICE_MAPPING_INTERPOLATION_TRANSFORM_TO_ALPHA_HPP
+#define DCA_PHYS_DCA_STEP_LATTICE_MAPPING_INTERPOLATION_TRANSFORM_TO_ALPHA_HPP
 
 #include <complex>
 #include <utility>
@@ -29,9 +29,11 @@
 
 #include "comp_library/linalg/linalg.hpp"
 
-using namespace dca::phys;
+namespace dca {
+namespace phys {
+namespace latticemapping {
+// dca::phys::latticemapping::
 
-namespace DCA {
 class transform_to_alpha {
 public:
   using b = func::dmn_0<domains::electron_band_domain>;
@@ -227,6 +229,9 @@ void transform_to_alpha::backward(
     }
   }
 }
-}
 
-#endif  // PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_INTERPOLATION_TRANSFORM_TO_ALPHA_HPP
+}  // latticemapping
+}  // phys
+}  // dca
+
+#endif  // DCA_PHYS_DCA_STEP_LATTICE_MAPPING_INTERPOLATION_TRANSFORM_TO_ALPHA_HPP

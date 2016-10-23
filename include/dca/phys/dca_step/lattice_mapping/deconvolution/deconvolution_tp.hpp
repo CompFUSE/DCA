@@ -9,8 +9,8 @@
 //
 // This class implements the deconvolution step of the lattice mapping for two-particle functions.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_DECONVOLUTION_TP_H
-#define PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_DECONVOLUTION_TP_H
+#ifndef DCA_PHYS_DCA_STEP_LATTICE_MAPPING_DECONVOLUTION_DECONVOLUTION_TP_HPP
+#define DCA_PHYS_DCA_STEP_LATTICE_MAPPING_DECONVOLUTION_DECONVOLUTION_TP_HPP
 
 #include <complex>
 #include <utility>
@@ -18,16 +18,15 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/math/function_transform/function_transform.hpp"
+#include "dca/phys/dca_step/lattice_mapping/deconvolution/deconvolution_routines.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 
-#include "phys_library/DCA+_step/lattice_mapping/deconvolution/deconvolution_routines.h"
-
-using namespace dca;
-using namespace dca::phys;
-
-namespace DCA {
+namespace dca {
+namespace phys {
+namespace latticemapping {
+// dca::phys::latticemapping::
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 class deconvolution_tp
@@ -88,6 +87,9 @@ void deconvolution_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(
   math::transform::FunctionTransform<k_dmn_t, target_k_dmn_t>::execute_on_all(
       Gamma_lattice_interp, Gamma_lattice_deconv, phi_inv);
 }
-}
 
-#endif  // PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_DECONVOLUTION_TP_H
+}  // latticemapping
+}  // phys
+}  // dca
+
+#endif  // DCA_PHYS_DCA_STEP_LATTICE_MAPPING_DECONVOLUTION_DECONVOLUTION_TP_HPP

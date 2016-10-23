@@ -26,12 +26,14 @@
 #include "comp_library/linalg/linalg.hpp"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_names.hpp"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_domain.h"
-#include "phys_library/DCA+_step/lattice_mapping/interpolation/interpolation_matrices.h"
 
 using namespace dca;
 using namespace dca::phys;
 
 namespace DCA {
+
+template <typename scalar_type, typename k_dmn, typename K_dmn>
+class interpolation_matrices {};
 
 template <typename scalar_type, typename k_dmn, typename K_dmn, COARSEGRAIN_DOMAIN_NAMES NAME>
 class interpolation_matrices<scalar_type, k_dmn, func::dmn_0<coarsegraining_domain<K_dmn, NAME>>> {

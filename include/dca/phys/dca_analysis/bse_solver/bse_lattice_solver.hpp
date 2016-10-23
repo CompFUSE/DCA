@@ -70,6 +70,8 @@
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 #include "dca/math/util/comparison_methods.hpp"
 #include "dca/math/util/vector_operations.hpp"
+#include "dca/phys/dca_step/lattice_mapping/lattice_mapping_sp.hpp"
+#include "dca/phys/dca_step/lattice_mapping/lattice_mapping_tp.hpp"
 #include "dca/phys/dca_step/symmetrization/diagrammatic_symmetries.hpp"
 #include "dca/phys/dca_step/symmetrization/symmetrize.hpp"
 #include "dca/phys/domains/cluster/centered_cluster_domain.hpp"
@@ -79,8 +81,6 @@
 #include "comp_library/linalg/linalg.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/high_temperature_series_expansion_solver.h"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_tp.h"
-#include "phys_library/DCA+_step/lattice_mapping/lattice_mapping_tp.h"
-#include "phys_library/DCA+_step/lattice_mapping/lattice_mapping_sp.h"
 
 namespace dca {
 namespace phys {
@@ -385,7 +385,7 @@ void BseLatticeSolver<ParametersType, DcaDataType>::compute_chi_0_lattice(
   using HTS_solver_type =
       DCA::cluster_solver<DCA::HIGH_TEMPERATURE_SERIES, dca::linalg::CPU, ParametersType, DcaDataType>;
 
-  using lattice_map_sp_type = DCA::lattice_mapping_sp<ParametersType, k_DCA, k_HOST>;
+  using lattice_map_sp_type = latticemapping::lattice_mapping_sp<ParametersType, k_DCA, k_HOST>;
 
   using coarsegraining_sp_type = DCA::coarsegraining_sp<ParametersType, k_DCA>;
   using coarsegraining_tp_type = DCA::coarsegraining_tp<ParametersType, k_HOST_VERTEX>;
@@ -465,7 +465,8 @@ void BseLatticeSolver<ParametersType, DcaDataType>::compute_Gamma_lattice_3(
         Gamma_lattice(i, j) = Gamma_cluster(i, j);
   }
   else {
-    DCA::lattice_mapping_tp<ParametersType, k_DCA, k_HOST_VERTEX> lattice_map_tp_obj(parameters);
+    latticemapping::lattice_mapping_tp<ParametersType, k_DCA, k_HOST_VERTEX> lattice_map_tp_obj(
+        parameters);
 
     lattice_map_tp_obj.execute(Gamma_cluster, Gamma_lattice);
   }

@@ -9,8 +9,8 @@
 //
 // This class computes the interpolated cluster vertex.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_INTERPOLATION_INTERPOLATION_TP_H
-#define PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_INTERPOLATION_INTERPOLATION_TP_H
+#ifndef DCA_PHYS_DCA_STEP_LATTICE_MAPPING_INTERPOLATION_INTERPOLATION_TP_HPP
+#define DCA_PHYS_DCA_STEP_LATTICE_MAPPING_INTERPOLATION_INTERPOLATION_TP_HPP
 
 #include <complex>
 #include <utility>
@@ -18,18 +18,18 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/math/function_transform/function_transform.hpp"
+#include "dca/phys/dca_step/lattice_mapping/interpolation/interpolation_routines.hpp"
 #include "dca/phys/domains/cluster/centered_cluster_domain.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 
 #include "comp_library/linalg/linalg.hpp"
-#include "phys_library/DCA+_step/lattice_mapping/interpolation/interpolation_routines.h"
 
-using namespace dca;
-using namespace dca::phys;
-
-namespace DCA {
+namespace dca {
+namespace phys {
+namespace latticemapping {
+// dca::phys::latticemapping::
 
 template <typename parameters_type, typename source_k_dmn, typename target_k_dmn>
 class interpolation_tp : public interpolation_routines<parameters_type, source_k_dmn, target_k_dmn> {
@@ -117,6 +117,8 @@ void interpolation_tp<parameters_type, source_k_dmn, target_k_dmn>::execute(
                                                                            Gamma_lattice, T_K_to_k);
 }
 
-}  // DCA
+}  // latticemapping
+}  // phys
+}  // dca
 
-#endif  // PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_INTERPOLATION_INTERPOLATION_TP_H
+#endif  // DCA_PHYS_DCA_STEP_LATTICE_MAPPING_INTERPOLATION_INTERPOLATION_TP_HPP

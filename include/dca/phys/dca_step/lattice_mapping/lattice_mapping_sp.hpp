@@ -9,26 +9,27 @@
 //
 // This class implements the lattice mapping for single-particle functions.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_LATTICE_MAPPING_SP_H
-#define PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_LATTICE_MAPPING_SP_H
+#ifndef DCA_PHYS_DCA_STEP_LATTICE_MAPPING_LATTICE_MAPPING_SP_HPP
+#define DCA_PHYS_DCA_STEP_LATTICE_MAPPING_LATTICE_MAPPING_SP_HPP
 
 #include <complex>
 #include <vector>
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/phys/dca_step/lattice_mapping/deconvolution/deconvolution_sp.hpp"
+#include "dca/phys/dca_step/lattice_mapping/interpolation/interpolation_sp.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 
 #include "comp_library/function_plotting/include_plotting.h"
-#include "phys_library/DCA+_step/lattice_mapping/deconvolution/deconvolution_sp.h"
-#include "phys_library/DCA+_step/lattice_mapping/interpolation/interpolation_sp.h"
 
-using namespace dca::phys;
-
-namespace DCA {
+namespace dca {
+namespace phys {
+namespace latticemapping {
+// dca::phys::latticemapping::
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 class lattice_mapping_sp {
@@ -67,8 +68,6 @@ public:
       func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_target);
 
 private:
-  void initialize();
-
   template <typename k_dmn_t>
   void plot_function(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& f);
 
@@ -185,6 +184,9 @@ void lattice_mapping_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::plot_f
   SHOW::heatmap(x, y, z_re, f.get_name());
   SHOW::heatmap(x, y, z_im, f.get_name());
 }
-}
 
-#endif  // PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_LATTICE_MAPPING_SP_H
+}  // latticemapping
+}  // phys
+}  // dca
+
+#endif  // DCA_PHYS_DCA_STEP_LATTICE_MAPPING_LATTICE_MAPPING_SP_HPP

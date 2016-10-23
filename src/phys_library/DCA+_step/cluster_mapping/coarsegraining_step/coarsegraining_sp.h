@@ -21,6 +21,7 @@
 #include "dca/function/function.hpp"
 #include "dca/math/geometry/gaussian_quadrature/gaussian_quadrature_domain.hpp"
 #include "dca/math/geometry/tetrahedron_mesh/tetrahedron_mesh.hpp"
+#include "dca/phys/dca_step/lattice_mapping/interpolation/transform_to_alpha.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/cluster/cluster_operations.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
@@ -496,7 +497,7 @@ void coarsegraining_sp<parameters_type, K_dmn>::compute_S_K_w(
   func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, k_dmn, w>> A_k_w(
       "A_k_w");
 
-  transform_to_alpha::forward(1., S_k_w, A_k_w);
+  latticemapping::transform_to_alpha::forward(1., S_k_w, A_k_w);
 
   func::dmn_variadic<K_dmn, w> K_wm_dmn;
   std::pair<int, int> bounds = concurrency.get_bounds(K_wm_dmn);
@@ -543,7 +544,7 @@ void coarsegraining_sp<parameters_type, K_dmn>::compute_G_K_w(
   func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, k_dmn, w>> A_k_w(
       "A_k_w");
 
-  transform_to_alpha::forward(1., S_k_w, A_k_w);
+  latticemapping::transform_to_alpha::forward(1., S_k_w, A_k_w);
 
   for (int k_ind = 0; k_ind < k_dmn::dmn_size(); k_ind++)
     for (int j = 0; j < nu::dmn_size(); j++)

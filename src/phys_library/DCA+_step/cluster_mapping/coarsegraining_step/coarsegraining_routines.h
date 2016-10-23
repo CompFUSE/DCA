@@ -18,6 +18,7 @@
 #include "dca/function/function.hpp"
 #include "dca/math/geometry/gaussian_quadrature/gaussian_quadrature_domain.hpp"
 #include "dca/math/geometry/tetrahedron_mesh/tetrahedron_mesh.hpp"
+#include "dca/phys/dca_step/lattice_mapping/interpolation/transform_to_alpha.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
@@ -28,8 +29,6 @@
 #include "comp_library/linalg/linalg.hpp"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_domain.h"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/quadrature_integration.h"
-#include "phys_library/DCA+_step/lattice_mapping/interpolation/interpolation_matrices.h"
-#include "phys_library/DCA+_step/lattice_mapping/interpolation/transform_to_alpha.hpp"
 
 using namespace dca;
 using namespace dca::phys;
@@ -449,7 +448,7 @@ void coarsegraining_routines<parameters_type, K_dmn>::compute_S_q_from_A_k(
 
   scalar_type alpha = w::get_elements()[w_ind] > 0 ? 1 : -1;
 
-  transform_to_alpha::backward(alpha, S_q, A_q);
+  latticemapping::transform_to_alpha::backward(alpha, S_q, A_q);
 }
 
 template <typename parameters_type, typename K_dmn>

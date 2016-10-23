@@ -7,10 +7,12 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// This class provides routines for the interpolation step.
+//
+// TODO: This class doesn't do anything except for providing type definitions.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_INTERPOLATION_INTERPOLATION_ROUTINES_H
-#define PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_INTERPOLATION_INTERPOLATION_ROUTINES_H
+#ifndef DCA_PHYS_DCA_STEP_LATTICE_MAPPING_INTERPOLATION_INTERPOLATION_ROUTINES_HPP
+#define DCA_PHYS_DCA_STEP_LATTICE_MAPPING_INTERPOLATION_INTERPOLATION_ROUTINES_HPP
 
 #include "dca/function/domains/dmn_0.hpp"
 #include "dca/function/domains/dmn_variadic.hpp"
@@ -19,9 +21,10 @@
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 
-using namespace dca::phys;
-
-namespace DCA {
+namespace dca {
+namespace phys {
+namespace latticemapping {
+// dca::phys::latticemapping::
 
 template <typename parameters_type, typename source_k_dmn, typename target_k_dmn>
 class interpolation_routines {
@@ -65,6 +68,9 @@ template <typename parameters_type, typename source_k_dmn, typename target_k_dmn
 void interpolation_routines<parameters_type, source_k_dmn, target_k_dmn>::initialize() {
   // gaussian_fit_obj.initialize_K_to_k(true, 1.e-3);
 }
-}
 
-#endif  // PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_INTERPOLATION_INTERPOLATION_ROUTINES_H
+}  // latticemapping
+}  // phys
+}  // dca
+
+#endif  // DCA_PHYS_DCA_STEP_LATTICE_MAPPING_INTERPOLATION_INTERPOLATION_ROUTINES_HPP

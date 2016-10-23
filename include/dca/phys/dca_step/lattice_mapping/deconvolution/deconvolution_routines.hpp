@@ -9,8 +9,8 @@
 //
 // This class provides routines for the deconvolution step.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_DECONVOLUTION_ROUTINES_H
-#define PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_DECONVOLUTION_ROUTINES_H
+#ifndef DCA_PHYS_DCA_STEP_LATTICE_MAPPING_DECONVOLUTION_DECONVOLUTION_ROUTINES_HPP
+#define DCA_PHYS_DCA_STEP_LATTICE_MAPPING_DECONVOLUTION_DECONVOLUTION_ROUTINES_HPP
 
 #include <cmath>
 #include <complex>
@@ -24,10 +24,10 @@
 #include "comp_library/linalg/linalg.hpp"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_sp.h"
 
-using namespace dca;
-using namespace dca::phys;
-
-namespace DCA {
+namespace dca {
+namespace phys {
+namespace latticemapping {
+// dca::phys::latticemapping::
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 class deconvolution_routines {
@@ -201,6 +201,9 @@ void deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::co
 
   dca::linalg::matrixop::gemm(T_r_to_k, T_k_to_r_scaled, T_eps);
 }
-}
 
-#endif  // PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_DECONVOLUTION_ROUTINES_H
+}  // latticemapping
+}  // phys
+}  // dca
+
+#endif  // DCA_PHYS_DCA_STEP_LATTICE_MAPPING_DECONVOLUTION_DECONVOLUTION_ROUTINES_HPP

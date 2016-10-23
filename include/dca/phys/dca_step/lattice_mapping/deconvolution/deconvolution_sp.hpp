@@ -10,8 +10,8 @@
 // This class implements the deconvolution step of the lattice mapping for single-particle
 // functions.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_DECONVOLUTION_SP_H
-#define PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_DECONVOLUTION_SP_H
+#ifndef DCA_PHYS_DCA_STEP_LATTICE_MAPPING_DECONVOLUTION_DECONVOLUTION_SP_HPP
+#define DCA_PHYS_DCA_STEP_LATTICE_MAPPING_DECONVOLUTION_DECONVOLUTION_SP_HPP
 
 #include <algorithm>
 #include <complex>
@@ -19,16 +19,15 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/math/inference/richardson_lucy_deconvolution.hpp"
+#include "dca/phys/dca_step/lattice_mapping/deconvolution/deconvolution_routines.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 
-#include "phys_library/DCA+_step/lattice_mapping/deconvolution/deconvolution_routines.h"
-
-using namespace dca;
-using namespace dca::phys;
-
-namespace DCA {
+namespace dca {
+namespace phys {
+namespace latticemapping {
+// dca::phys::latticemapping::
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 class deconvolution_sp
@@ -200,6 +199,9 @@ void deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::find_shi
     }
   }
 }
-}
 
-#endif  // PHYS_LIBRARY_DCA_STEP_LATTICE_MAPPING_DECONVOLUTION_SP_H
+}  // latticemapping
+}  // phys
+}  // dca
+
+#endif  // DCA_PHYS_DCA_STEP_LATTICE_MAPPING_DECONVOLUTION_DECONVOLUTION_SP_HPP
