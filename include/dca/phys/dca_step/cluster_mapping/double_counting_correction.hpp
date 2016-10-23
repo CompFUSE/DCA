@@ -24,7 +24,8 @@
 
 namespace dca {
 namespace phys {
-// dca::phys::
+namespace clustermapping {
+// dca::phys::clustermapping::
 
 template <typename parameters_type, typename MOMS_type>
 class double_counting_correction {
@@ -139,6 +140,7 @@ void double_counting_correction<parameters_type, MOMS_type>::execute_after_solve
   }
 }
 
+}  // clustermapping
 }  // phys
 }  // dca
 

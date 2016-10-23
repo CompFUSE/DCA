@@ -28,7 +28,8 @@
 
 namespace dca {
 namespace phys {
-// dca::phys::
+namespace clustermapping {
+// dca::phys::clustermapping::
 
 template <typename parameters_type, typename MOMS_type>
 class cluster_exclusion {
@@ -203,6 +204,7 @@ void cluster_exclusion<parameters_type, MOMS_type>::plot_G0_R_t_cluster_excluded
   }
 }
 
+}  // clustermapping
 }  // phys
 }  // dca
 

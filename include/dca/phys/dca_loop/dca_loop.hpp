@@ -54,12 +54,13 @@ public:
       func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::LATTICE_SP,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
 
-  using cluster_exclusion_type = cluster_exclusion<ParametersType, DcaDataType>;
-  using double_counting_correction_type = double_counting_correction<ParametersType, DcaDataType>;
+  using cluster_exclusion_type = clustermapping::cluster_exclusion<ParametersType, DcaDataType>;
+  using double_counting_correction_type =
+      clustermapping::double_counting_correction<ParametersType, DcaDataType>;
   using coarsegraining_sp_type = DCA::coarsegraining_sp<ParametersType, k_DCA>;
   using lattice_map_sp_type = latticemapping::lattice_mapping_sp<ParametersType, k_DCA, k_HOST>;
   using update_chemical_potential_type =
-      update_chemical_potential<ParametersType, DcaDataType, coarsegraining_sp_type>;
+      clustermapping::update_chemical_potential<ParametersType, DcaDataType, coarsegraining_sp_type>;
   using HTS_solver_type =
       DCA::cluster_solver<DCA::HIGH_TEMPERATURE_SERIES, dca::linalg::CPU, ParametersType, DcaDataType>;
 

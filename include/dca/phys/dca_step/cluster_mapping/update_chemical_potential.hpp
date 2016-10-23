@@ -31,7 +31,8 @@
 
 namespace dca {
 namespace phys {
-// dca::phys::
+namespace clustermapping {
+// dca::phys::clustermapping::
 
 template <typename parameters_type, typename MOMS_type, typename coarsegraining_type>
 class update_chemical_potential {
@@ -351,6 +352,7 @@ void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>:
   }
 }
 
+}  // clustermapping
 }  // phys
 }  // dca
 
