@@ -25,14 +25,13 @@
 #include "dca/phys/dca_algorithms/compute_band_structure.hpp"
 #include "dca/phys/dca_analysis/bse_solver/bse_cluster_solver.hpp"
 #include "dca/phys/dca_analysis/bse_solver/bse_lattice_solver.hpp"
+#include "dca/phys/dca_step/symmetrization/diagrammatic_symmetries.hpp"
+#include "dca/phys/dca_step/symmetrization/symmetrize.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/cluster/interpolation/wannier_interpolation/wannier_interpolation.hpp"
 #include "dca/phys/domains/quantum/brillouin_zone_path_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
-
-#include "phys_library/DCA+_step/symmetrization/diagrammatic_symmetries.h"
-#include "phys_library/DCA+_step/symmetrization/symmetrize.h"
 
 namespace dca {
 namespace phys {

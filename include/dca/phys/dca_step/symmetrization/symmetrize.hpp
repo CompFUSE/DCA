@@ -10,20 +10,21 @@
 // This class symmetrizes Greens functions according to cluster symmetries, matsubara frequencies
 // and band-index symmetries.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_SYMMETRIZATION_SYMMETRIZE_H
-#define PHYS_LIBRARY_DCA_STEP_SYMMETRIZATION_SYMMETRIZE_H
+#ifndef DCA_PHYS_DCA_STEP_SYMMETRIZATION_SYMMETRIZE_HPP
+#define DCA_PHYS_DCA_STEP_SYMMETRIZATION_SYMMETRIZE_HPP
 
 #include <vector>
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/phys/dca_step/symmetrization/symmetrize_single_particle_function.hpp"
+#include "dca/phys/dca_step/symmetrization/symmetrize_two_particle_function.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 
-#include "phys_library/DCA+_step/symmetrization/symmetrize_single_particle_function.h"
-#include "phys_library/DCA+_step/symmetrization/symmetrize_two_particle_function.h"
-
-using namespace dca::phys;
+namespace dca {
+namespace phys {
+// dca::phys::
 
 class symmetrize : public symmetrize_single_particle_function,
                    public symmetrize_two_particle_function {
@@ -33,7 +34,6 @@ public:
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
   using nu_nu = func::dmn_variadic<nu, nu>;
 
-public:
   template <typename scalartype, typename f_dmn_0>
   static void execute(func::function<scalartype, f_dmn_0>& f, bool do_diff = false);
 
@@ -142,4 +142,7 @@ void symmetrize::execute(
   symmetrize_two_particle_function::execute(f, do_diff);
 }
 
-#endif  // PHYS_LIBRARY_DCA_STEP_SYMMETRIZATION_SYMMETRIZE_H
+}  // phys
+}  // dca
+
+#endif  // DCA_PHYS_DCA_STEP_SYMMETRIZATION_SYMMETRIZE_HPP

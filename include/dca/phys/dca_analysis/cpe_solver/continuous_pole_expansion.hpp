@@ -30,6 +30,7 @@
 #include "dca/parallel/util/threading_data.hpp"
 #include "dca/phys/dca_analysis/cpe_solver/cpe_data.hpp"
 #include "dca/phys/dca_analysis/cpe_solver/minimization_method.hpp"
+#include "dca/phys/dca_step/symmetrization/symmetrize.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
@@ -37,7 +38,6 @@
 #include "dca/phys/domains/time_and_frequency/frequency_domain_imag_axis.hpp"
 
 #include "comp_library/linalg/linalg.hpp"
-#include "phys_library/DCA+_step/symmetrization/symmetrize.h"
 
 namespace dca {
 namespace phys {

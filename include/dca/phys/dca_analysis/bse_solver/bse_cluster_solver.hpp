@@ -18,15 +18,14 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/phys/dca_step/symmetrization/diagrammatic_symmetries.hpp"
+#include "dca/phys/dca_step/symmetrization/symmetrize.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/quantum/e_spin_states.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 #include "dca/phys/vertex_measurement_type.hpp"
-
-#include "phys_library/DCA+_step/symmetrization/diagrammatic_symmetries.h"
-#include "phys_library/DCA+_step/symmetrization/symmetrize.h"
 
 namespace dca {
 namespace phys {

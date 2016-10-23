@@ -33,8 +33,8 @@
  *   \f}
  */
 
-#ifndef PHYS_LIBRARY_DCA_STEP_SYMMETRIZATION_SYMMETRIZE_SINGLE_PARTICLE_FUNCTION_H
-#define PHYS_LIBRARY_DCA_STEP_SYMMETRIZATION_SYMMETRIZE_SINGLE_PARTICLE_FUNCTION_H
+#ifndef DCA_PHYS_DCA_STEP_SYMMETRIZATION_SYMMETRIZE_SINGLE_PARTICLE_FUNCTION_HPP
+#define DCA_PHYS_DCA_STEP_SYMMETRIZATION_SYMMETRIZE_SINGLE_PARTICLE_FUNCTION_HPP
 
 #include <cmath>
 #include <complex>
@@ -55,7 +55,9 @@
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 
-using namespace dca::phys;
+namespace dca {
+namespace phys {
+// dca::phys::
 
 class symmetrize_single_particle_function {
 public:
@@ -115,12 +117,6 @@ private:
   template <typename scalartype, typename f_dmn_0, typename f_dmn_1>
   static void symmetrize_over_electron_spin(
       func::function<scalartype, func::dmn_variadic<nu, nu, f_dmn_0, f_dmn_1>>& f, bool do_diff);
-
-  template <typename scalartype>
-  static scalartype conjugate(scalartype x);
-
-  template <typename scalartype, typename dmn_t>
-  static void execute(func::function<scalartype, dmn_t>& f, bool do_diff = false);
 
   template <typename scalartype>
   static void execute(func::function<scalartype, t>& f, bool do_diff = false);
@@ -301,16 +297,6 @@ void symmetrize_single_particle_function::symmetrize_over_electron_spin(
 }
 
 template <typename scalartype>
-scalartype symmetrize_single_particle_function::conjugate(scalartype x) {
-  return std::conj(x);
-}
-
-template <>
-double symmetrize_single_particle_function::conjugate(double x) {
-  return x;
-}
-
-template <typename scalartype>
 void symmetrize_single_particle_function::difference(scalartype val, std::string function_name,
                                                      std::string dmn_name) {
   if (std::abs(val) > 1.e-6) {
@@ -332,44 +318,20 @@ void symmetrize_single_particle_function::difference(scalartype val0, scalartype
 
 template <>
 void symmetrize_single_particle_function::difference(float val, std::string function_name,
-                                                     std::string dmn_name) {
-  if (std::abs(val) > 1.e-3) {
-    std::cout << "difference detected in : " << dmn_name << "\t" << function_name << "\t"
-              << std::abs(val) << "\n\n";
-    // throw std::logic_error(__PRETTY_FUNCTION__);
-  }
-}
+                                                     std::string dmn_name);
 
 template <>
 void symmetrize_single_particle_function::difference(float val0, float val1,
-                                                     std::string function_name, std::string dmn_name) {
-  if (std::abs(val0 - val1) > 1.e-3) {
-    std::cout << "difference detected in : " << dmn_name << "\t" << function_name << "\t"
-              << std::abs(val0 - val1) << "\n\n";
-    // throw std::logic_error(__PRETTY_FUNCTION__);
-  }
-}
+                                                     std::string function_name, std::string dmn_name);
 
 template <>
 void symmetrize_single_particle_function::difference(std::complex<float> val,
-                                                     std::string function_name, std::string dmn_name) {
-  if (abs(val) > 1.e-3) {
-    std::cout << "difference detected in : " << dmn_name << "\t" << function_name << "\t"
-              << abs(val) << "\n\n";
-    // throw std::logic_error(__PRETTY_FUNCTION__);
-  }
-}
+                                                     std::string function_name, std::string dmn_name);
 
 template <>
 void symmetrize_single_particle_function::difference(std::complex<float> val0,
                                                      std::complex<float> val1,
-                                                     std::string function_name, std::string dmn_name) {
-  if (abs(val0 - val1) > 1.e-3) {
-    std::cout << "difference detected in : " << dmn_name << "\t" << function_name << "\t"
-              << abs(val0 - val1) << "\n\n";
-    // throw std::logic_error(__PRETTY_FUNCTION__);
-  }
-}
+                                                     std::string function_name, std::string dmn_name);
 
 template <typename scalartype>
 void symmetrize_single_particle_function::execute(func::function<scalartype, t>& f, bool do_diff) {
@@ -422,12 +384,12 @@ template <typename scalartype>
 void symmetrize_single_particle_function::execute(func::function<scalartype, w>& f, bool do_diff) {
   double max = 0;
   for (int i = 0; i < w::dmn_size() / 2; i++) {
-    max = std::max(max, abs((f(i) - conjugate(f(w::dmn_size() - i - 1))) / 2.));
+    max = std::max(max, abs((f(i) - std::conj(f(w::dmn_size() - i - 1))) / 2.));
 
-    scalartype tmp = (f(i) + conjugate(f(w::dmn_size() - i - 1))) / 2.;
+    scalartype tmp = (f(i) + std::conj(f(w::dmn_size() - i - 1))) / 2.;
 
     f(i) = tmp;
-    f(w::dmn_size() - 1 - i) = conjugate(tmp);
+    f(w::dmn_size() - 1 - i) = std::conj(tmp);
   }
 
   if (do_diff)
@@ -447,10 +409,10 @@ void symmetrize_single_particle_function::execute(
         scalartype tmp_0 = f(b0, b1, w_ind);
         scalartype tmp_1 = f(b1, b0, w_0 - w_ind);
 
-        scalartype tmp = (tmp_0 + conjugate(tmp_1)) / 2.;
+        scalartype tmp = (tmp_0 + std::conj(tmp_1)) / 2.;
 
         f_new(b0, b1, w_ind) = tmp;
-        f_new(b1, b0, w_0 - w_ind) = conjugate(tmp);
+        f_new(b1, b0, w_0 - w_ind) = std::conj(tmp);
       }
     }
   }
@@ -479,12 +441,12 @@ void symmetrize_single_particle_function::execute(func::function<scalartype, w_V
                                                   bool do_diff) {
   double max = 0;
   for (int i = 0; i < w_VERTEX::dmn_size() / 2; i++) {
-    max = std::max(max, abs((f(i) - conjugate(f(w_VERTEX::dmn_size() - i - 1))) / 2.));
+    max = std::max(max, abs((f(i) - std::conj(f(w_VERTEX::dmn_size() - i - 1))) / 2.));
 
-    scalartype tmp = (f(i) + conjugate(f(w_VERTEX::dmn_size() - i - 1))) / 2.;
+    scalartype tmp = (f(i) + std::conj(f(w_VERTEX::dmn_size() - i - 1))) / 2.;
 
     f(i) = tmp;
-    f(w_VERTEX::dmn_size() - i - 1) = conjugate(tmp);
+    f(w_VERTEX::dmn_size() - i - 1) = std::conj(tmp);
   }
 
   if (do_diff)
@@ -496,12 +458,12 @@ void symmetrize_single_particle_function::execute(func::function<scalartype, w_V
                                                   bool do_diff) {
   double max = 0;
   for (int i = 0; i < w_VERTEX_EXTENDED::dmn_size() / 2; i++) {
-    max = std::max(max, abs((f(i) - conjugate(f(w_VERTEX_EXTENDED::dmn_size() - i - 1))) / 2.));
+    max = std::max(max, abs((f(i) - std::conj(f(w_VERTEX_EXTENDED::dmn_size() - i - 1))) / 2.));
 
-    scalartype tmp = (f(i) + conjugate(f(w_VERTEX_EXTENDED::dmn_size() - i - 1))) / 2.;
+    scalartype tmp = (f(i) + std::conj(f(w_VERTEX_EXTENDED::dmn_size() - i - 1))) / 2.;
 
     f(i) = tmp;
-    f(w_VERTEX_EXTENDED::dmn_size() - i - 1) = conjugate(tmp);
+    f(w_VERTEX_EXTENDED::dmn_size() - i - 1) = std::conj(tmp);
   }
 
   if (do_diff)
@@ -697,4 +659,7 @@ void symmetrize_single_particle_function::execute(
     difference(max, f.get_name(), "k-clusterdomain of the function : " + f.get_name() + "\n");
 }
 
-#endif  // PHYS_LIBRARY_DCA_STEP_SYMMETRIZATION_SYMMETRIZE_H
+}  // phys
+}  // dca
+
+#endif  // DCA_PHYS_DCA_STEP_SYMMETRIZATION_SYMMETRIZE_SINGLE_PARTICLE_FUNCTION_HPP

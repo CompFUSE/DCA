@@ -17,6 +17,9 @@
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 
+using namespace dca;
+using namespace dca::phys;
+
 namespace DCA {
 namespace SERIES_EXPANSION {
 

@@ -28,8 +28,8 @@
  *   \f}
  */
 
-#ifndef PHYS_LIBRARY_DCA_STEP_SYMMETRIZATION_SYMMETRIZE_TWO_PARTICLE_FUNCTION_H
-#define PHYS_LIBRARY_DCA_STEP_SYMMETRIZATION_SYMMETRIZE_TWO_PARTICLE_FUNCTION_H
+#ifndef DCA_PHYS_DCA_STEP_SYMMETRIZATION_SYMMETRIZE_TWO_PARTICLE_FUNCTION_HPP
+#define DCA_PHYS_DCA_STEP_SYMMETRIZATION_SYMMETRIZE_TWO_PARTICLE_FUNCTION_HPP
 
 #include <cassert>
 #include <cmath>
@@ -45,8 +45,9 @@
 #include "dca/phys/domains/cluster/cluster_symmetry.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 
-using namespace dca;
-using namespace dca::phys;
+namespace dca {
+namespace phys {
+// dca::phys::
 
 class symmetrize_two_particle_function {
 public:
@@ -93,47 +94,6 @@ private:
                                                     func::dmn_variadic<b, b, k_dmn_t>, k_dmn_t>>& f);
 };
 
-template <typename scalartype>
-void symmetrize_two_particle_function::difference(scalartype val0, scalartype val1) {
-  if (std::abs(val0 - val1) > 1.e-6) {
-    throw std::logic_error(__PRETTY_FUNCTION__);
-  }
-}
-
-template <typename k_dmn_t>
-bool symmetrize_two_particle_function::Q_vector_is_invariant<k_dmn_t>::execute(int S_ind,
-                                                                               std::vector<double> Q) {
-  typedef typename k_dmn_t::parameter_type k_cluster_type;
-  // typedef typename k_cluster_type::sym_super_cell_dmn_t sym_super_cell_dmn_t;
-  typedef
-      typename domains::cluster_symmetry<k_cluster_type>::sym_super_cell_dmn_t sym_super_cell_dmn_t;
-
-  int DIMENSION = Q.size();
-
-  double* O_ptr = sym_super_cell_dmn_t::get_elements()[S_ind].O;
-
-  std::vector<double> q_rec(DIMENSION, 0.);
-
-  for (int i = 0; i < DIMENSION; ++i)
-    for (int j = 0; j < DIMENSION; ++j)
-      q_rec[i] += O_ptr[i + DIMENSION * j] * Q[j];
-
-  // q_rec = k_dmn_t::parameter_type::back_inside_cluster(q_rec);
-  q_rec = domains::cluster_operations::translate_inside_cluster(
-      q_rec, k_dmn_t::parameter_type::get_super_basis_vectors());
-
-  q_rec = math::util::subtract(q_rec, Q);
-
-  bool result;
-
-  if (math::util::l2Norm2(q_rec) < 1.e-6)
-    result = true;
-  else
-    result = false;
-
-  return result;
-}
-
 template <typename scalartype, typename k_dmn_t, typename w_dmn_t>
 void symmetrize_two_particle_function::execute(
     func::function<scalartype, func::dmn_variadic<b, b, b, b, k_dmn_t, k_dmn_t, w_dmn_t, w_dmn_t>>& f,
@@ -170,6 +130,7 @@ void symmetrize_two_particle_function::execute(
     }
   }
 }
+
 template <typename scalartype, typename k_dmn_t, typename w_dmn_t>
 void symmetrize_two_particle_function::execute(
     func::function<scalartype, func::dmn_variadic<func::dmn_variadic<b, b, k_dmn_t, w_dmn_t>,
@@ -246,6 +207,47 @@ void symmetrize_two_particle_function::execute(
                     f(l1, l2, k1, w1, l3, l4, k2, w2, k3) = G2(l1, l2, k1, l3, l4, k2, k3);
     }
   }
+}
+
+template <typename scalartype>
+void symmetrize_two_particle_function::difference(scalartype val0, scalartype val1) {
+  if (std::abs(val0 - val1) > 1.e-6) {
+    throw std::logic_error(__PRETTY_FUNCTION__);
+  }
+}
+
+template <typename k_dmn_t>
+bool symmetrize_two_particle_function::Q_vector_is_invariant<k_dmn_t>::execute(int S_ind,
+                                                                               std::vector<double> Q) {
+  typedef typename k_dmn_t::parameter_type k_cluster_type;
+  // typedef typename k_cluster_type::sym_super_cell_dmn_t sym_super_cell_dmn_t;
+  typedef
+      typename domains::cluster_symmetry<k_cluster_type>::sym_super_cell_dmn_t sym_super_cell_dmn_t;
+
+  int DIMENSION = Q.size();
+
+  double* O_ptr = sym_super_cell_dmn_t::get_elements()[S_ind].O;
+
+  std::vector<double> q_rec(DIMENSION, 0.);
+
+  for (int i = 0; i < DIMENSION; ++i)
+    for (int j = 0; j < DIMENSION; ++j)
+      q_rec[i] += O_ptr[i + DIMENSION * j] * Q[j];
+
+  // q_rec = k_dmn_t::parameter_type::back_inside_cluster(q_rec);
+  q_rec = domains::cluster_operations::translate_inside_cluster(
+      q_rec, k_dmn_t::parameter_type::get_super_basis_vectors());
+
+  q_rec = math::util::subtract(q_rec, Q);
+
+  bool result;
+
+  if (math::util::l2Norm2(q_rec) < 1.e-6)
+    result = true;
+  else
+    result = false;
+
+  return result;
 }
 
 template <typename scalartype, typename k_dmn_t>
@@ -361,4 +363,7 @@ void symmetrize_two_particle_function::execute(
     f(ind) = f_new(ind);
 }
 
-#endif  // PHYS_LIBRARY_DCA_STEP_SYMMETRIZATION_SYMMETRIZE_TWO_PARTICLE_FUNCTION_H
+}  // phys
+}  // dca
+
+#endif  // DCA_PHYS_DCA_STEP_SYMMETRIZATION_SYMMETRIZE_TWO_PARTICLE_FUNCTION_HPP

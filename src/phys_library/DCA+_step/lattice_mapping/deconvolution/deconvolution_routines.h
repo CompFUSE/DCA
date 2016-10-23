@@ -19,12 +19,13 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/math/function_transform/basis_transform/basis_transform.hpp"
+#include "dca/phys/dca_step/symmetrization/symmetrize.hpp"
 
 #include "comp_library/linalg/linalg.hpp"
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_sp.h"
-#include "phys_library/DCA+_step/symmetrization/symmetrize.h"
 
 using namespace dca;
+using namespace dca::phys;
 
 namespace DCA {
 

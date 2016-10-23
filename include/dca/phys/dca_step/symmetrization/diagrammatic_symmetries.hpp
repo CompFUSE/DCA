@@ -113,8 +113,8 @@
  *   \f}
  */
 
-#ifndef PHYS_LIBRARY_DCA_STEP_SYMMETRIZATION_DIAGRAMMATIC_SYMMETRIES_H
-#define PHYS_LIBRARY_DCA_STEP_SYMMETRIZATION_DIAGRAMMATIC_SYMMETRIES_H
+#ifndef DCA_PHYS_DCA_STEP_SYMMETRIZATION_DIAGRAMMATIC_SYMMETRIES_HPP
+#define DCA_PHYS_DCA_STEP_SYMMETRIZATION_DIAGRAMMATIC_SYMMETRIES_HPP
 
 #include <complex>
 #include <stdexcept>
@@ -127,15 +127,15 @@
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/vertex_measurement_type.hpp"
 
-using namespace dca;
-using namespace dca::phys;
+namespace dca {
+namespace phys {
+// dca::phys::
 
 template <class parameters_type>
 class diagrammatic_symmetries {
 public:
   using b = func::dmn_0<domains::electron_band_domain>;
 
-public:
   diagrammatic_symmetries(parameters_type& parameters);
 
   template <typename scalartype, typename k_dmn, typename w_dmn>
@@ -189,7 +189,6 @@ private:
       func::function<scalartype, func::dmn_variadic<func::dmn_variadic<b, b, k_dmn, w_dmn>,
                                                     func::dmn_variadic<b, b, k_dmn, w_dmn>, k_dmn>>& G);
 
-private:
   parameters_type& parameters;
 
   int q_ind;
@@ -673,4 +672,7 @@ void diagrammatic_symmetries<parameters_type>::set_real(
   }
 }
 
-#endif  // PHYS_LIBRARY_DCA_STEP_SYMMETRIZATION_DIAGRAMMATIC_SYMMETRIES_H
+}  // phys
+}  // dca
+
+#endif  // DCA_PHYS_DCA_STEP_SYMMETRIZATION_DIAGRAMMATIC_SYMMETRIES_HPP

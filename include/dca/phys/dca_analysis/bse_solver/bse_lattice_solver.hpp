@@ -70,6 +70,8 @@
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 #include "dca/math/util/comparison_methods.hpp"
 #include "dca/math/util/vector_operations.hpp"
+#include "dca/phys/dca_step/symmetrization/diagrammatic_symmetries.hpp"
+#include "dca/phys/dca_step/symmetrization/symmetrize.hpp"
 #include "dca/phys/domains/cluster/centered_cluster_domain.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/util/print_time.hpp"
@@ -79,8 +81,6 @@
 #include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_tp.h"
 #include "phys_library/DCA+_step/lattice_mapping/lattice_mapping_tp.h"
 #include "phys_library/DCA+_step/lattice_mapping/lattice_mapping_sp.h"
-#include "phys_library/DCA+_step/symmetrization/diagrammatic_symmetries.h"
-#include "phys_library/DCA+_step/symmetrization/symmetrize.h"
 
 namespace dca {
 namespace phys {
