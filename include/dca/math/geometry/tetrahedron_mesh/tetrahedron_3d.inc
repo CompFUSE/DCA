@@ -21,6 +21,8 @@ public:
 
   void plot(Gnuplot& plot_obj);
 
+  void plot_q_vecs(Gnuplot& /*plot_obj*/) {}
+
   template <typename scalartype>
   void update_gaussian_domain(int& size, std::vector<scalartype>& weights,
                               std::vector<std::vector<scalartype>>& k_vecs);
