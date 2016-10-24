@@ -18,29 +18,29 @@ namespace dca {
 namespace linalg {
 // dca::linalg::
 
-__device__ __host__ static __inline__ cuComplex operator+(cuComplex a, cuComplex b) {
+__device__ __host__ static __inline__ cuComplex operator+(const cuComplex a, const cuComplex b) {
   return cuCaddf(a, b);
 }
-__device__ __host__ static __inline__ cuComplex operator-(cuComplex a, cuComplex b) {
+__device__ __host__ static __inline__ cuComplex operator-(const cuComplex a, const cuComplex b) {
   return cuCsubf(a, b);
 }
-__device__ __host__ static __inline__ cuComplex operator*(cuComplex a, cuComplex b) {
+__device__ __host__ static __inline__ cuComplex operator*(const cuComplex a, const cuComplex b) {
   return cuCmulf(a, b);
 }
-__device__ __host__ static __inline__ cuComplex operator/(cuComplex a, cuComplex b) {
+__device__ __host__ static __inline__ cuComplex operator/(const cuComplex a, const cuComplex b) {
   return cuCdivf(a, b);
 }
 
-__device__ __host__ static __inline__ cuDoubleComplex operator+(cuDoubleComplex a, cuDoubleComplex b) {
+__device__ __host__ static __inline__ cuDoubleComplex operator+(const cuDoubleComplex a, const cuDoubleComplex b) {
   return cuCadd(a, b);
 }
-__device__ __host__ static __inline__ cuDoubleComplex operator-(cuDoubleComplex a, cuDoubleComplex b) {
+__device__ __host__ static __inline__ cuDoubleComplex operator-(const cuDoubleComplex a, const cuDoubleComplex b) {
   return cuCsub(a, b);
 }
-__device__ __host__ static __inline__ cuDoubleComplex operator*(cuDoubleComplex a, cuDoubleComplex b) {
+__device__ __host__ static __inline__ cuDoubleComplex operator*(const cuDoubleComplex a, const cuDoubleComplex b) {
   return cuCmul(a, b);
 }
-__device__ __host__ static __inline__ cuDoubleComplex operator/(cuDoubleComplex a, cuDoubleComplex b) {
+__device__ __host__ static __inline__ cuDoubleComplex operator/(const cuDoubleComplex a, const cuDoubleComplex b) {
   return cuCdiv(a, b);
 }
 
