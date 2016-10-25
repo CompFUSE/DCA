@@ -250,44 +250,35 @@ void fermionic_sp_Greens_function<parameter_type, ed_options>::compute_S_k_w(
   if (concurrency.id() == 0)
     std::cout << "\n\t" << __FUNCTION__ << std::endl;
 
-  int matrix_size = b_dmn::dmn_size() * s_dmn::dmn_size() * b_dmn::dmn_size() * s_dmn::dmn_size();
   int matrix_dim = b_dmn::dmn_size() * s_dmn::dmn_size();
 
-  std::complex<double>* G_inverted_matrix = new std::complex<double>[matrix_size];
-  std::complex<double>* G0_cluster_excluded_inverted_matrix = new std::complex<double>[matrix_size];
-  std::complex<double>* Sigma_matrix = new std::complex<double>[matrix_size];
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G_inverted_matrix(matrix_dim);
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G0_cluster_excluded_inverted_matrix(
+      matrix_dim);
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> sigma_matrix(matrix_dim);
+
+  dca::linalg::Vector<int, dca::linalg::CPU> ipiv;
+  dca::linalg::Vector<std::complex<double>, dca::linalg::CPU> work;
 
   for (int k_ind = 0; k_ind < k_dmn::dmn_size(); k_ind++) {
     for (int w_ind = 0; w_ind < w_dmn::dmn_size(); w_ind++) {
-      {
-        invert_plan<std::complex<double>> invert_pln(matrix_dim);
-        memcpy(invert_pln.Matrix, &G_k_w(0, 0, 0, 0, k_ind, w_ind),
-               sizeof(std::complex<double>) * matrix_size);
-        invert_pln.execute_plan();
-        memcpy(G_inverted_matrix, invert_pln.inverted_matrix,
-               sizeof(std::complex<double>) * matrix_size);
-      }
+      dca::linalg::matrixop::copyArrayToMatrix(
+          matrix_dim, matrix_dim, &G_k_w(0, 0, 0, 0, k_ind, w_ind), matrix_dim, G_inverted_matrix);
+      dca::linalg::matrixop::inverse(G_inverted_matrix, ipiv, work);
 
-      {
-        invert_plan<std::complex<double>> invert_pln(matrix_dim);
-        memcpy(invert_pln.Matrix, &G0_k_w(0, 0, 0, 0, k_ind, w_ind),
-               sizeof(std::complex<double>) * matrix_size);
-        invert_pln.execute_plan();
-        memcpy(G0_cluster_excluded_inverted_matrix, invert_pln.inverted_matrix,
-               sizeof(std::complex<double>) * matrix_size);
-      }
+      dca::linalg::matrixop::copyArrayToMatrix(matrix_dim, matrix_dim,
+                                               &G0_k_w(0, 0, 0, 0, k_ind, w_ind), matrix_dim,
+                                               G0_cluster_excluded_inverted_matrix);
+      dca::linalg::matrixop::inverse(G0_cluster_excluded_inverted_matrix, ipiv, work);
 
-      for (int l = 0; l < matrix_size; ++l)
-        Sigma_matrix[l] = (G0_cluster_excluded_inverted_matrix[l] - G_inverted_matrix[l]);
+      for (int j = 0; j < sigma_matrix.nrCols(); ++j)
+        for (int i = 0; i < sigma_matrix.nrRows(); ++i)
+          sigma_matrix(i, j) = G0_cluster_excluded_inverted_matrix(i, j) - G_inverted_matrix(i, j);
 
-      memcpy(&S_k_w(0, 0, 0, 0, k_ind, w_ind), Sigma_matrix,
-             sizeof(std::complex<double>) * matrix_size);
+      dca::linalg::matrixop::copyMatrixToArray(sigma_matrix, &S_k_w(0, 0, 0, 0, k_ind, w_ind),
+                                               matrix_dim);
     }
   }
-
-  delete[] G_inverted_matrix;
-  delete[] G0_cluster_excluded_inverted_matrix;
-  delete[] Sigma_matrix;
 
   if (concurrency.id() == 0) {
     int N = 8;

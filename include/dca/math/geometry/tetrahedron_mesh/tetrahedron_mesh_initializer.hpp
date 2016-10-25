@@ -145,8 +145,6 @@ void tetrahedron_mesh_initializer<2, k_cluster_type>::make_convex_hull() {
   double* A = new double[2 * 2];
   double* B = new double[2];
 
-  solve_plan<double> slv_pln(2, 1);
-
   for (std::size_t l0 = 0; l0 < B_collection.size(); l0++) {
     for (std::size_t l1 = 0; l1 < B_collection.size(); l1++) {
       A[0 + 2 * 0] = B_collection[l0][0];
@@ -159,23 +157,27 @@ void tetrahedron_mesh_initializer<2, k_cluster_type>::make_convex_hull() {
       B[1] = B_collection[l1][0] * B_collection[l1][0] / 2. +
              B_collection[l1][1] * B_collection[l1][1] / 2.;
 
-      {
-        memcpy(slv_pln.matrix, A, sizeof(double) * 2 * 2);
-        memcpy(slv_pln.solved_matrix, B, sizeof(double) * 2);
+      try {
+        linalg::lapack::solve(2, A, 2, B);  // overwrites A with its LU factorization.
+      }
+      catch (linalg::lapack::util::LapackException e) {
+        if (e.info() < 0)
+          // Argument error: re-throw.
+          throw;
+        // A is singular.
+        continue;
+      }
 
-        slv_pln.execute_plan();
+      double det_A = A[0] * A[3];
 
-        double det_A = slv_pln.matrix[0] * slv_pln.matrix[3];
+      if (std::abs(det_A) > 1.e-6) {
+        simplex<DIMENSION> s;
+        s.k_vec.resize(2, 0);
 
-        if (std::fabs(det_A) > 1.e-6) {
-          simplex<DIMENSION> s;
-          s.k_vec.resize(2, 0);
+        s.k_vec[0] = B[0];
+        s.k_vec[1] = B[1];
 
-          s.k_vec[0] = slv_pln.solved_matrix[0];
-          s.k_vec[1] = slv_pln.solved_matrix[1];
-
-          simplices.push_back(s);
-        }
+        simplices.push_back(s);
       }
     }
   }
@@ -359,8 +361,6 @@ void tetrahedron_mesh_initializer<3, k_cluster_type>::make_convex_hull() {
   double* A = new double[3 * 3];
   double* B = new double[3];
 
-  solve_plan<double> slv_pln(3, 1);
-
   for (std::size_t l0 = 0; l0 < B_collection.size(); l0++) {
     for (std::size_t l1 = 0; l1 < B_collection.size(); l1++) {
       for (std::size_t l2 = 0; l2 < B_collection.size(); l2++) {
@@ -384,24 +384,28 @@ void tetrahedron_mesh_initializer<3, k_cluster_type>::make_convex_hull() {
                B_collection[l2][1] * B_collection[l2][1] / 2. +
                B_collection[l2][2] * B_collection[l2][2] / 2.;
 
-        {
-          memcpy(slv_pln.matrix, A, sizeof(double) * 9);
-          memcpy(slv_pln.solved_matrix, B, sizeof(double) * 3);
+        try {
+          linalg::lapack::solve(3, A, 3, B);  // overwrites A with its LU factorization.
+        }
+        catch (linalg::lapack::util::LapackException e) {
+          if (e.info() < 0)
+            // Argument error: re-throw.
+            throw;
+          // A is singular.
+          continue;
+        }
 
-          slv_pln.execute_plan();
+        double det_A = A[0] * A[4] * A[8];
 
-          double det_A = slv_pln.matrix[0] * slv_pln.matrix[4] * slv_pln.matrix[8];
+        if (std::abs(det_A) > 1.e-6) {
+          simplex<DIMENSION> s;
+          s.k_vec.resize(3, 0);
 
-          if (std::fabs(det_A) > 1.e-6) {
-            simplex<DIMENSION> s;
-            s.k_vec.resize(3, 0);
+          s.k_vec[0] = B[0];
+          s.k_vec[1] = B[1];
+          s.k_vec[2] = B[2];
 
-            s.k_vec[0] = slv_pln.solved_matrix[0];
-            s.k_vec[1] = slv_pln.solved_matrix[1];
-            s.k_vec[2] = slv_pln.solved_matrix[2];
-
-            simplices.push_back(s);
-          }
+          simplices.push_back(s);
         }
       }
     }

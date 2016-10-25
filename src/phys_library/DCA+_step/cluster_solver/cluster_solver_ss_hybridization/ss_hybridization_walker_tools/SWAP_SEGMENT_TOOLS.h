@@ -183,18 +183,6 @@ double swap_segment_tools<hybridization_routines_type>::construct_inverse(
   if (segments.size() > 0) {
     construct_matrix(M, beta, F, flavor_1, flavor_2);
 
-    /*
-      invert_plan<double> inv_pln(segments.size(), M.capacity());
-      memcpy(inv_pln.Matrix, &M(0,0), sizeof(double)*M.capacity()*M.capacity());
-      inv_pln.execute_plan();
-      memcpy( &M(0,0),
-      inv_pln.inverted_matrix,sizeof(double)*M.capacity()*M.capacity());
-
-      for(int i=0; i<M.size().first; i++){
-      det *= inv_pln.Matrix[i+M.leadingDimension()*i];
-      }
-    */
-
     dca::linalg::matrixop::inverse(M);
 
     for (int i = 0; i < M.size().first; i++)

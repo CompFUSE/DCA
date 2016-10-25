@@ -13,6 +13,7 @@
 #define DCA_LINALG_LAPACK_INVERSE_HPP
 
 #include <complex>
+#include "dca/linalg/lapack/lapack.hpp"
 
 namespace dca {
 namespace linalg {
@@ -20,24 +21,25 @@ namespace lapack {
 // dca::linalg::lapack::
 
 // Computes the inverse using LU decomposition.
+// Postcondition: The matrix a is overwritten by its inverse.
 template <typename Type>
 inline void inverse(int n, Type* a, int lda, int* ipiv, Type* work, int lwork) {
-  int info = 0;
+  getrf(n, n, a, lda, ipiv);
+  getri(n, a, lda, ipiv, work, lwork);
+}
+template <typename Type>
+inline void inverse(int n, Type* a, int lda) {
+  std::vector<int> ipiv(n);
+  Type tmp;
 
-  getrf(n, n, a, lda, ipiv, info);
-  if (info != 0) {
-    std::cout << "Error: getrf retured info = " << info << std::endl;
-    throw std::logic_error(__FUNCTION__);
-  }
-  getri(n, a, lda, ipiv, work, lwork, info);
-  if (info != 0) {
-    std::cout << "Error: getri retured info = " << info << std::endl;
-    throw std::logic_error(__FUNCTION__);
-  }
+  // Get optimal lwork.
+  getri(n, a, lda, &ipiv[0], &tmp, -1);
+  std::vector<Type> work(util::getWorkSize(tmp));
+  inverse(n, a, lda, &ipiv[0], &work[0], work.size());
 }
 
 }  // lapack
 }  // linalg
 }  // dca
 
-#endif  // DCA_LINALG_LAPACK_LAPACK_HPP
+#endif  // DCA_LINALG_LAPACK_INVERSE_HPP

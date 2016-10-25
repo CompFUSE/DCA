@@ -4,7 +4,11 @@
 // #define DEBUG_CUDA
 // #define cudaDeviceScheduleBlockingSync 0x04
 
-#include "comp_library/linalg/include_linalg.cu.h"
+#include "cuda_runtime.h"
+
+#include "dca/util/integer_division.hpp"
+#include "dca/linalg/util/error_cuda.hpp"
+#include "dca/linalg/util/stream_functions.hpp"
 
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_routines_GPU.cu.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_walker/ctaux_walker_tools/ctaux_G0_matrix_routines/ctaux_G0_matrix_routines_GPU.cu.h"

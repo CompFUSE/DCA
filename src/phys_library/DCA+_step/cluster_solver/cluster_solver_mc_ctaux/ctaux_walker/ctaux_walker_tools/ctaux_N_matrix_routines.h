@@ -201,21 +201,15 @@ void N_TOOLS<device_t, parameters_type>::build_N_matrix(configuration_type& conf
   for (int i = 0; i < configuration_size; ++i)
     exp_gamma_s[i] = CV_obj.exp_V(configuration_e_spin[i]);
 
-  {  // GEMD
-    for (int i = 0; i < configuration_size; ++i)
-      one_min_exp_gamma_s[i] = (1. - exp_gamma_s[i]);
+  for (int i = 0; i < configuration_size; ++i)
+    one_min_exp_gamma_s[i] = (1. - exp_gamma_s[i]);
 
-    LIN_ALG::GEMD<device_t>::execute(
-        G0, N_MATRIX_TOOLS<device_t, parameters_type>::get_device_ptr(one_min_exp_gamma_s), N,
-        thread_id, stream_id);
-  }
+  dca::linalg::matrixop::multiplyDiagonalRight(G0, one_min_exp_gamma_s, N, thread_id, stream_id);
 
-  {
-    double* exp_gamma_s_ptr = N_MATRIX_TOOLS<device_t, parameters_type>::get_device_ptr(exp_gamma_s);
+  double* exp_gamma_s_ptr = N_MATRIX_TOOLS<device_t, parameters_type>::get_device_ptr(exp_gamma_s);
 
-    dca::linalg::blas::UseDevice<device_t>::axpy(configuration_size, 1., exp_gamma_s_ptr, 1, N.ptr(),
-                                                 N.leadingDimension() + 1, thread_id, stream_id);
-  }
+  dca::linalg::blas::UseDevice<device_t>::axpy(configuration_size, 1., exp_gamma_s_ptr, 1, N.ptr(),
+                                               N.leadingDimension() + 1, thread_id, stream_id);
 
   dca::linalg::matrixop::inverse(N);
 }
@@ -304,11 +298,10 @@ void N_TOOLS<device_t, parameters_type>::update_N_matrix(configuration_type& con
     double* diagonal_matrix_ptr =
         N_MATRIX_TOOLS<device_t, parameters_type>::get_device_ptr(exp_V_minus_one_val);
 
-    LIN_ALG::GEMD<device_t>::execute(
-        size, &G0.ptr()[first_shuffled_vertex_index], G0.leadingDimension(), diagonal_matrix_ptr,
-        // N_MATRIX_TOOLS<device_t, parameters_type>::get_device_ptr(exp_V_minus_one_val),
-        G0_times_exp_V_minus_one.ptr(), G0_times_exp_V_minus_one.leadingDimension(), thread_id,
-        stream_id);
+    dca::linalg::lapack::UseDevice<device_t>::multiplyDiagonalRight(
+        size.first, size.second, &G0.ptr()[first_shuffled_vertex_index], G0.leadingDimension(),
+        diagonal_matrix_ptr, 1, G0_times_exp_V_minus_one.ptr(),
+        G0_times_exp_V_minus_one.leadingDimension(), thread_id, stream_id);
   }
 
   {  // G0_exp_V_minus_one * N

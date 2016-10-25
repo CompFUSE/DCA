@@ -71,13 +71,8 @@ private:
           throw std::logic_error(__FUNCTION__);
       }
 
-      {
-        invert_plan<double> invert_pln(DIMENSION);
-
-        std::memcpy(invert_pln.Matrix, &T[0], sizeof(double) * DIMENSION * DIMENSION);
-        invert_pln.execute_plan();
-        std::memcpy(&T_inv[0], invert_pln.inverted_matrix, sizeof(double) * DIMENSION * DIMENSION);
-      }
+      dca::linalg::lapack::lacpy("A", DIMENSION, DIMENSION, T, DIMENSION, T_inv, DIMENSION);
+      dca::linalg::lapack::inverse(DIMENSION, T_inv, DIMENSION);
     }
   };
 

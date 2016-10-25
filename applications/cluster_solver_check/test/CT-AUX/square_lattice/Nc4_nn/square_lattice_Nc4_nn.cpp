@@ -58,7 +58,7 @@ TEST(squareLattice_Nc4_nn, Self_Energy) {
                                     CT_AUX_CLUSTER_SOLVER>;
   using DcaDataType = DCA_data<ParametersType>;
   using QmcSolverType =
-      cluster_solver<CT_AUX_CLUSTER_SOLVER, LIN_ALG::CPU, ParametersType, DcaDataType>;
+      cluster_solver<CT_AUX_CLUSTER_SOLVER, linalg::CPU, ParametersType, DcaDataType>;
 
   using w = dca::func::dmn_0<frequency_domain>;
   using b = dca::func::dmn_0<electron_band_domain>;

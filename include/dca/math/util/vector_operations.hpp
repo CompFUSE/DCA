@@ -186,7 +186,7 @@ std::enable_if_t<std::is_floating_point<T>::value, std::vector<T>> coordinates(
   }
 
   std::vector<T> coord = r;
-  LIN_ALG::GESV<dca::linalg::CPU>::execute(n, &basis[0], &coord[0]);
+  linalg::lapack::solve(n, &basis[0], n, &coord[0]);
 
   return coord;
 }

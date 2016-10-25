@@ -207,9 +207,9 @@ void quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G_
           H_m(i, j) = H_q(i, j, q_ind) - I_q(i, j, q_ind);
 
       if (false)
-        LIN_ALG::GEEV<dca::linalg::CPU>::execute('V', 'U', H_m, L, V);
+        dca::linalg::matrixop::eigensolverHermitian('V', 'U', H_m, L, V);
       else
-        LIN_ALG::GEEV<dca::linalg::CPU>::execute_on_Greens_function_matrix('V', 'U', H_m, L, V);
+        dca::linalg::matrixop::eigensolverGreensFunctionMatrix('V', 'U', H_m, L, V);
 
       for (int i = 0; i < nu::dmn_size(); i++) {
         if (L[i] < 0)
@@ -303,9 +303,9 @@ void* quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G
           H_m(i, j) = H_q(i, j, q_ind) - I_q(i, j, q_ind);
 
       if (false)
-        LIN_ALG::GEEV<dca::linalg::CPU>::execute('V', 'U', H_m, L, V);
+        dca::linalg::matrixop::eigensolverHermitian('V', 'U', H_m, L, V);
       else
-        LIN_ALG::GEEV<dca::linalg::CPU>::execute_on_Greens_function_matrix('V', 'U', H_m, L, V);
+        dca::linalg::matrixop::eigensolverGreensFunctionMatrix('V', 'U', H_m, L, V);
 
       for (int i = 0; i < nu::dmn_size(); i++) {
         if (L[i] < 0)

@@ -370,16 +370,8 @@ void hspline_interpolation_kernel<scalartype, cluster_domain<scalar_type, D, N, 
     for (int d1 = 0; d1 < DIMENSION; ++d1)
       k_basis[d1 + d0 * DIMENSION] = source_k_dmn_t::get_super_basis_vectors()[d0][d1];
 
-  {
-    invert_plan<double> invert_pln(DIMENSION);
-    memcpy(invert_pln.Matrix, k_basis, sizeof(double) * DIMENSION * DIMENSION);
-    invert_pln.execute_plan();
-    memcpy(k_basis_inv, invert_pln.inverted_matrix, sizeof(double) * DIMENSION * DIMENSION);
-  }
-
-  for (int d0 = 0; d0 < DIMENSION; ++d0)
-    for (int d1 = 0; d1 < DIMENSION; ++d1)
-      k_basis[d1 + d0 * DIMENSION] = source_k_dmn_t::get_super_basis_vectors()[d0][d1];
+  dca::linalg::lapack::lacpy("A", DIMENSION, DIMENSION, k_basis, DIMENSION, k_basis_inv, DIMENSION);
+  dca::linalg::lapack::inverse(DIMENSION, k_basis_inv, DIMENSION);
 }
 
 template <typename scalartype, typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S,
@@ -390,16 +382,9 @@ void hspline_interpolation_kernel<scalartype, cluster_domain<scalar_type, D, N, 
     for (int d1 = 0; d1 < DIMENSION; ++d1)
       k_super_basis[d1 + d0 * DIMENSION] = source_k_dmn_t::get_basis_vectors()[d0][d1];
 
-  {
-    invert_plan<double> invert_pln(DIMENSION);
-    memcpy(invert_pln.Matrix, k_super_basis, sizeof(double) * DIMENSION * DIMENSION);
-    invert_pln.execute_plan();
-    memcpy(k_super_basis_inv, invert_pln.inverted_matrix, sizeof(double) * DIMENSION * DIMENSION);
-  }
-
-  for (int d0 = 0; d0 < DIMENSION; ++d0)
-    for (int d1 = 0; d1 < DIMENSION; ++d1)
-      k_super_basis[d1 + d0 * DIMENSION] = source_k_dmn_t::get_basis_vectors()[d0][d1];
+  dca::linalg::lapack::lacpy("A", DIMENSION, DIMENSION, k_super_basis, DIMENSION, k_super_basis_inv,
+                             DIMENSION);
+  dca::linalg::lapack::inverse(DIMENSION, k_super_basis_inv, DIMENSION);
 }
 
 template <typename scalartype, typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_SHAPE S,

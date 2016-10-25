@@ -102,7 +102,7 @@ void compute_band_structure::execute(
         for (int j = 0; j < nu::dmn_size(); j++)
           H_mat(i, j) = H_k(i, j, l);
 
-      LIN_ALG::GEEV<dca::linalg::CPU>::execute('N', 'U', H_mat, L_vec, V_mat);
+      dca::linalg::matrixop::eigensolverHermitian('N', 'U', H_mat, L_vec, V_mat);
 
       for (int i = 0; i < b::dmn_size(); i++)
         for (int j = 0; j < s::dmn_size(); j++)

@@ -29,9 +29,9 @@ void laset_gpu(int m, int n, Type offdiag, Type diag, Type* a, int lda, int thre
 template <typename Type>
 inline void laset_gpu(int m, int n, std::complex<Type> offdiag, std::complex<Type> diag,
                       std::complex<Type>* a, int lda, int thread_id, int stream_id) {
-  auto cu_offdiag = util::castCudaComplex(offdiag);
-  auto cu_diag = util::castCudaComplex(&diag);
-  auto cu_a = util::castCudaComplex(a);
+  auto cu_offdiag = linalg::util::castCudaComplex(offdiag);
+  auto cu_diag = linalg::util::castCudaComplex(&diag);
+  auto cu_a = linalg::util::castCudaComplex(a);
   laset_gpu(m, n, *cu_offdiag, *cu_diag, cu_a, lda, thread_id, stream_id);
 }
 

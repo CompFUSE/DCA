@@ -611,8 +611,8 @@ void fermionic_Hamiltonian<parameter_type, ed_options>::diagonalize_Hamiltonians
                   << ", \t size : " << N << ", \t time : ";
 
       int start = clock();
-      LIN_ALG::GEEV<dca::linalg::CPU>::execute('V', 'U', Hamiltonians(i), eigen_energies(i),
-                                               eigen_states(i));
+      dca::linalg::matrixop::eigensolverHermitian('V', 'U', Hamiltonians(i), eigen_energies(i),
+                                                  eigen_states(i));
       int end = clock();
 
       if (concurrency.id() == 0)

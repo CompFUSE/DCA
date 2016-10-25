@@ -182,6 +182,75 @@ TYPED_TEST(MatrixopRealGPUTest, Gemm) {
   }
 }
 
+TYPED_TEST(MatrixopRealGPUTest, MultiplyDiagonal) {
+  using ScalarType = TypeParam;
+  std::pair<int, int> size_a(37, 45);
+  auto val_a = [](int i, int j) { return 3 * i - 2 * j; };
+  auto val_d = [](int i) { return 1 - i; };
+
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> a(size_a);
+  testing::setMatrixElements(a, val_a);
+  dca::linalg::Matrix<ScalarType, dca::linalg::GPU> da(a);
+  {
+    dca::linalg::Vector<ScalarType, dca::linalg::CPU> d(a.nrRows());
+    testing::setVectorElements(d, val_d);
+    {
+      dca::linalg::Matrix<ScalarType, dca::linalg::GPU> db(size_a);
+
+      // Test CPU vector.
+      dca::linalg::matrixop::multiplyDiagonalLeft(d, da, db);
+      dca::linalg::Matrix<ScalarType, dca::linalg::CPU> b(db);
+
+      for (int j = 0; j < a.nrCols(); ++j)
+        for (int i = 0; i < a.nrRows(); ++i) {
+          EXPECT_NEAR(d[i] * a(i, j), b(i, j), 10 * this->epsilon);
+        }
+    }
+    {
+      dca::linalg::Vector<ScalarType, dca::linalg::GPU> dd(d);
+      dca::linalg::Matrix<ScalarType, dca::linalg::GPU> db(size_a);
+      // Test GPU vector.
+
+      dca::linalg::matrixop::multiplyDiagonalLeft(dd, da, db);
+      dca::linalg::Matrix<ScalarType, dca::linalg::CPU> b(db);
+
+      for (int j = 0; j < a.nrCols(); ++j)
+        for (int i = 0; i < a.nrRows(); ++i) {
+          EXPECT_NEAR(d[i] * a(i, j), b(i, j), 10 * this->epsilon);
+        }
+    }
+  }
+  {
+    dca::linalg::Vector<ScalarType, dca::linalg::CPU> d(a.nrCols());
+    testing::setVectorElements(d, val_d);
+    {
+      dca::linalg::Matrix<ScalarType, dca::linalg::GPU> db(size_a);
+
+      // Test CPU vector.
+      dca::linalg::matrixop::multiplyDiagonalRight(da, d, db);
+      dca::linalg::Matrix<ScalarType, dca::linalg::CPU> b(db);
+
+      for (int j = 0; j < a.nrCols(); ++j)
+        for (int i = 0; i < a.nrRows(); ++i) {
+          EXPECT_NEAR(d[j] * a(i, j), b(i, j), 10 * this->epsilon);
+        }
+    }
+    {
+      dca::linalg::Vector<ScalarType, dca::linalg::GPU> dd(d);
+      dca::linalg::Matrix<ScalarType, dca::linalg::GPU> db(size_a);
+      // Test GPU vector.
+
+      dca::linalg::matrixop::multiplyDiagonalRight(da, dd, db);
+      dca::linalg::Matrix<ScalarType, dca::linalg::CPU> b(db);
+
+      for (int j = 0; j < a.nrCols(); ++j)
+        for (int i = 0; i < a.nrRows(); ++i) {
+          EXPECT_NEAR(d[j] * a(i, j), b(i, j), 10 * this->epsilon);
+        }
+    }
+  }
+}
+
 TYPED_TEST(MatrixopRealGPUTest, Trsm) {
   using ScalarType = TypeParam;
   auto val_a = [](int i, int j) { return 1 + 3 * i - 2 * j; };

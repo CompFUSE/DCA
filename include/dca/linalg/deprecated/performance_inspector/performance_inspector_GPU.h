@@ -5,6 +5,9 @@
 
 #include <sys/time.h>
 
+#include "dca/linalg/util/handle_functions.hpp"
+#include "dca/linalg/util/stream_functions.hpp"
+
 namespace LIN_ALG
 {
   template<typename scalartype>
@@ -100,8 +103,6 @@ namespace LIN_ALG
     int thread_id = data_ptr->thread_id;
     int stream_id = 0;
 
-    LIN_ALG::CUBLAS_THREAD_MANAGER<GPU>::initialize(thread_id);
-
     matrix<scalartype, CPU> AC(std::pair<int, int>(data_ptr->M, data_ptr->K));
     matrix<scalartype, CPU> BC(std::pair<int, int>(data_ptr->K, data_ptr->N));
 
@@ -123,7 +124,7 @@ namespace LIN_ALG
     for(double i=0; i<N_ITERATIONS; ++i)
       dca::linalg::matrixop::gemm(data_ptr->a, A, B, data_ptr->b, C, thread_id, stream_id);
 
-    LIN_ALG::CUBLAS_THREAD_MANAGER<GPU>::synchronize_streams(thread_id, stream_id);
+    dca::linalg::util::syncStream(thread_id, stream_id);
 
     timeval end;
     gettimeofday(&end,NULL);
@@ -136,8 +137,6 @@ namespace LIN_ALG
     data_ptr->GFLOPS = double(2*(data_ptr->M)*(data_ptr->K)*(data_ptr->N)*N_ITERATIONS)/time*(1.e-9);
 
     //cout << "\n\t" << data_ptr->thread_id << "\t" << 2*(data_ptr->M)*(data_ptr->K)*(data_ptr->N)*100 << "\t" << time << "\t" <<  data_ptr->GFLOPS;
-
-    LIN_ALG::CUBLAS_THREAD_MANAGER<GPU>::finalize(thread_id);
 
     return 0;
   }

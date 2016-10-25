@@ -226,6 +226,39 @@ TYPED_TEST(MatrixopRealCPUTest, Gemm) {
   }
 }
 
+TYPED_TEST(MatrixopRealCPUTest, MultiplyDiagonal) {
+  using ScalarType = TypeParam;
+  std::pair<int, int> size_a(3, 5);
+  auto val_a = [](int i, int j) { return 3 * i - 2 * j; };
+  auto val_d = [](int i) { return 1 - i; };
+
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> a(size_a);
+  testing::setMatrixElements(a, val_a);
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> b(size_a);
+  {
+    dca::linalg::Vector<ScalarType, dca::linalg::CPU> d(a.nrRows());
+    testing::setVectorElements(d, val_d);
+
+    dca::linalg::matrixop::multiplyDiagonalLeft(d, a, b);
+
+    for (int j = 0; j < a.nrCols(); ++j)
+      for (int i = 0; i < a.nrRows(); ++i) {
+        EXPECT_NEAR(d[i] * a(i, j), b(i, j), 10 * this->epsilon);
+      }
+  }
+  {
+    dca::linalg::Vector<ScalarType, dca::linalg::CPU> d(a.nrCols());
+    testing::setVectorElements(d, val_d);
+
+    dca::linalg::matrixop::multiplyDiagonalRight(a, d, b);
+
+    for (int j = 0; j < a.nrCols(); ++j)
+      for (int i = 0; i < a.nrRows(); ++i) {
+        EXPECT_NEAR(d[j] * a(i, j), b(i, j), 10 * this->epsilon);
+      }
+  }
+}
+
 TYPED_TEST(MatrixopRealCPUTest, Trsm) {
   using ScalarType = TypeParam;
   auto val_a = [](int i, int j) { return 1 + 3 * i - 2 * j; };
@@ -258,6 +291,72 @@ TYPED_TEST(MatrixopRealCPUTest, Trsm) {
         }
     }
   }
+}
+
+TYPED_TEST(MatrixopRealCPUTest, Eigensolver) {
+  using ScalarType = TypeParam;
+  int size = 2;
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> mat(size);
+  mat(0, 0) = 2.;
+  mat(0, 1) = 0.;
+  mat(1, 0) = 1.;
+  mat(1, 1) = 1.;
+
+  dca::linalg::Vector<ScalarType, dca::linalg::CPU> wr;
+  dca::linalg::Vector<ScalarType, dca::linalg::CPU> wi;
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> vl;
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> vr;
+
+  dca::linalg::matrixop::eigensolver('V', 'V', mat, wr, wi, vl, vr);
+  EXPECT_EQ(wr.size(), size);
+  EXPECT_EQ(wi.size(), size);
+  EXPECT_EQ(vl.size(), std::make_pair(size, size));
+  EXPECT_EQ(vr.size(), std::make_pair(size, size));
+
+  EXPECT_NEAR(1., wr[0], 100 * this->epsilon);
+  EXPECT_NEAR(0., wi[0], 100 * this->epsilon);
+  EXPECT_NEAR(-1, vl(0, 0) / vl(1, 0), 100 * this->epsilon);
+  EXPECT_NEAR(0., vr(0, 0), 100 * this->epsilon);
+  EXPECT_NEAR(1., vr(1, 0), 100 * this->epsilon);
+
+  EXPECT_NEAR(2., wr[1], 100 * this->epsilon);
+  EXPECT_NEAR(0., wi[1], 100 * this->epsilon);
+  EXPECT_NEAR(1., vl(0, 1), 100 * this->epsilon);
+  EXPECT_NEAR(0., vl(1, 1), 100 * this->epsilon);
+  EXPECT_NEAR(1., vr(0, 1) / vr(1, 1), 100 * this->epsilon);
+}
+
+TYPED_TEST(MatrixopRealCPUTest, EigensolverSymmetric) {
+  using ScalarType = TypeParam;
+  int size = 2;
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> mat(size);
+  mat(0, 0) = 2.;
+  mat(0, 1) = 1.;
+  mat(1, 0) = 1.;
+  mat(1, 1) = 2.;
+
+  dca::linalg::Vector<ScalarType, dca::linalg::CPU> w;
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> v;
+
+  dca::linalg::matrixop::eigensolverSymmetric('V', 'U', mat, w, v);
+  EXPECT_EQ(w.size(), size);
+  EXPECT_EQ(v.size(), std::make_pair(size, size));
+
+  EXPECT_NEAR(1., w[0], 100 * this->epsilon);
+  EXPECT_NEAR(-1., v(0, 0) / v(1, 0), 100 * this->epsilon);
+
+  EXPECT_NEAR(3., w[1], 100 * this->epsilon);
+  EXPECT_NEAR(1., v(0, 1) / v(1, 1), 100 * this->epsilon);
+
+  dca::linalg::matrixop::eigensolverHermitian('V', 'U', mat, w, v);
+  EXPECT_EQ(w.size(), size);
+  EXPECT_EQ(v.size(), std::make_pair(size, size));
+
+  EXPECT_NEAR(1., w[0], 100 * this->epsilon);
+  EXPECT_NEAR(-1., v(0, 0) / v(1, 0), 100 * this->epsilon);
+
+  EXPECT_NEAR(3., w[1], 100 * this->epsilon);
+  EXPECT_NEAR(1., v(0, 1) / v(1, 1), 100 * this->epsilon);
 }
 
 TYPED_TEST(MatrixopRealCPUTest, Laset) {
@@ -333,6 +432,69 @@ TYPED_TEST(MatrixopRealCPUTest, Inverse) {
         EXPECT_NEAR(1, res(i, j), 1000 * this->epsilon);
       else
         EXPECT_NEAR(0, res(i, j), 1000 * this->epsilon);
+    }
+  }
+}
+
+TYPED_TEST(MatrixopRealCPUTest, PseudoInverse) {
+  using ScalarType = TypeParam;
+  auto val = [](int i, int j) { return 10 * i + j * j / (i + 1); };
+  auto val0 = [](int, int) { return 0; };
+  {
+    std::pair<int, int> size(2, 3);
+    dca::linalg::Matrix<ScalarType, dca::linalg::CPU> mat(size);
+    dca::linalg::Matrix<ScalarType, dca::linalg::CPU> invmat;
+    dca::linalg::Matrix<ScalarType, dca::linalg::CPU> res(std::min(size.first, size.second));
+
+    testing::setMatrixElements(mat, val);
+    dca::linalg::matrixop::pseudoInverse(mat, invmat);
+    if (size.first <= size.second)
+      dca::linalg::matrixop::gemm(mat, invmat, res);
+    else
+      dca::linalg::matrixop::gemm(invmat, mat, res);
+
+    for (int j = 0; j < res.nrCols(); ++j) {
+      for (int i = 0; i < res.nrRows(); ++i) {
+        if (i == j)
+          EXPECT_NEAR(1, res(i, j), 1000 * this->epsilon);
+        else
+          EXPECT_NEAR(0, res(i, j), 1000 * this->epsilon);
+      }
+    }
+
+    // Check eigenvalue exclusion below threshold.
+    testing::setMatrixElements(mat, val0);
+    mat(0, 0) = 20.;
+    mat(1, 1) = .1;
+    dca::linalg::matrixop::pseudoInverse(mat, invmat, 1e-6);
+    if (size.first <= size.second)
+      dca::linalg::matrixop::gemm(mat, invmat, res);
+    else
+      dca::linalg::matrixop::gemm(invmat, mat, res);
+
+    for (int j = 0; j < res.nrCols(); ++j) {
+      for (int i = 0; i < res.nrRows(); ++i) {
+        if (i == j)
+          EXPECT_NEAR(1, res(i, j), 100 * this->epsilon);
+        else
+          EXPECT_NEAR(0, res(i, j), 100 * this->epsilon);
+      }
+    }
+
+    // Check eigenvalue exclusion above threshold.
+    dca::linalg::matrixop::pseudoInverse(mat, invmat, 3.9e-4);
+    if (size.first <= size.second)
+      dca::linalg::matrixop::gemm(mat, invmat, res);
+    else
+      dca::linalg::matrixop::gemm(invmat, mat, res);
+
+    for (int j = 0; j < res.nrCols(); ++j) {
+      for (int i = 0; i < res.nrRows(); ++i) {
+        if (i == j && i == 0)
+          EXPECT_NEAR(1, res(i, j), 100 * this->epsilon);
+        else
+          EXPECT_NEAR(0, res(i, j), 100 * this->epsilon);
+      }
     }
   }
 }

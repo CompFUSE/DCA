@@ -227,6 +227,39 @@ TYPED_TEST(MatrixopComplexCPUTest, Gemm) {
   }
 }
 
+TYPED_TEST(MatrixopComplexCPUTest, MultiplyDiagonal) {
+  using ScalarType = TypeParam;
+  std::pair<int, int> size_a(3, 5);
+  auto val_a = [](int i, int j) { return ScalarType(3 * i - 2 * j, 1 - i * i + j); };
+  auto val_d = [](int i) { return ScalarType(i, 1 - i); };
+
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> a(size_a);
+  testing::setMatrixElements(a, val_a);
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> b(size_a);
+  {
+    dca::linalg::Vector<ScalarType, dca::linalg::CPU> d(a.nrRows());
+    testing::setVectorElements(d, val_d);
+
+    dca::linalg::matrixop::multiplyDiagonalLeft(d, a, b);
+
+    for (int j = 0; j < a.nrCols(); ++j)
+      for (int i = 0; i < a.nrRows(); ++i) {
+        EXPECT_GE(10 * this->epsilon, std::abs(b(i, j) - d[i] * a(i, j)));
+      }
+  }
+  {
+    dca::linalg::Vector<ScalarType, dca::linalg::CPU> d(a.nrCols());
+    testing::setVectorElements(d, val_d);
+
+    dca::linalg::matrixop::multiplyDiagonalRight(a, d, b);
+
+    for (int j = 0; j < a.nrCols(); ++j)
+      for (int i = 0; i < a.nrRows(); ++i) {
+        EXPECT_GE(10 * this->epsilon, std::abs(b(i, j) - d[j] * a(i, j)));
+      }
+  }
+}
+
 TYPED_TEST(MatrixopComplexCPUTest, Trsm) {
   using ScalarType = TypeParam;
   auto val_a = [](int i, int j) { return ScalarType(3 * i - 2 * j, 1 - i * i + j); };
@@ -259,6 +292,58 @@ TYPED_TEST(MatrixopComplexCPUTest, Trsm) {
         }
     }
   }
+}
+
+TYPED_TEST(MatrixopComplexCPUTest, Eigensolver) {
+  using ScalarType = TypeParam;
+  int size = 2;
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> mat(size);
+  mat(0, 0) = ScalarType(0, 2);
+  mat(0, 1) = ScalarType(0, 0);
+  mat(1, 0) = ScalarType(0, 1);
+  mat(1, 1) = ScalarType(0, 1);
+
+  dca::linalg::Vector<ScalarType, dca::linalg::CPU> w;
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> vl;
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> vr;
+
+  dca::linalg::matrixop::eigensolver('V', 'V', mat, w, vl, vr);
+  EXPECT_EQ(w.size(), size);
+  EXPECT_EQ(vl.size(), std::make_pair(size, size));
+  EXPECT_EQ(vr.size(), std::make_pair(size, size));
+
+  EXPECT_GE(100 * this->epsilon, std::abs(ScalarType(0, 1) - w[0]));
+  EXPECT_GE(100 * this->epsilon, std::abs(ScalarType(-1) - vl(0, 0) / vl(1, 0)));
+  EXPECT_GE(100 * this->epsilon, std::abs(vr(0, 0)));
+  EXPECT_GE(100 * this->epsilon, std::abs(ScalarType(1) - vr(1, 0)));
+
+  EXPECT_GE(100 * this->epsilon, std::abs(ScalarType(0, 2) - w[1]));
+  EXPECT_GE(100 * this->epsilon, std::abs(ScalarType(1) - vl(0, 1)));
+  EXPECT_GE(100 * this->epsilon, std::abs(vl(1, 1)));
+  EXPECT_GE(100 * this->epsilon, std::abs(ScalarType(1) - vr(0, 1) / vr(1, 1)));
+}
+
+TYPED_TEST(MatrixopComplexCPUTest, EigensolverHermitian) {
+  using ScalarType = TypeParam;
+  int size = 2;
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> mat(size);
+  mat(0, 0) = ScalarType(2, 0);
+  mat(0, 1) = ScalarType(0, 1);
+  mat(1, 0) = ScalarType(0, -1);
+  mat(1, 1) = ScalarType(2, 0);
+
+  dca::linalg::Vector<typename ScalarType::value_type, dca::linalg::CPU> w;
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> v;
+
+  dca::linalg::matrixop::eigensolverHermitian('V', 'U', mat, w, v);
+  EXPECT_EQ(w.size(), size);
+  EXPECT_EQ(v.size(), std::make_pair(size, size));
+
+  EXPECT_NEAR(1., w[0], 100 * this->epsilon);
+  EXPECT_GE(100 * this->epsilon, std::abs(ScalarType(0, -1) - v(0, 0) / v(1, 0)));
+
+  EXPECT_NEAR(3., w[1], 100 * this->epsilon);
+  EXPECT_GE(100 * this->epsilon, std::abs(ScalarType(0, 1) - v(0, 1) / v(1, 1)));
 }
 
 TYPED_TEST(MatrixopComplexCPUTest, Laset) {
@@ -334,6 +419,69 @@ TYPED_TEST(MatrixopComplexCPUTest, Inverse) {
         EXPECT_GE(2000 * this->epsilon, std::abs(ScalarType(1) - res(i, j)));
       else
         EXPECT_GE(2000 * this->epsilon, std::abs(res(i, j)));
+    }
+  }
+}
+
+TYPED_TEST(MatrixopComplexCPUTest, PseudoInverse) {
+  using ScalarType = TypeParam;
+  auto val = [](int i, int j) { return ScalarType(10 * i + j * j / (i + 1), 1 + i + j); };
+  auto val0 = [](int, int) { return 0; };
+  {
+    std::pair<int, int> size(2, 3);
+    dca::linalg::Matrix<ScalarType, dca::linalg::CPU> mat(size);
+    dca::linalg::Matrix<ScalarType, dca::linalg::CPU> invmat;
+    dca::linalg::Matrix<ScalarType, dca::linalg::CPU> res(std::min(size.first, size.second));
+
+    testing::setMatrixElements(mat, val);
+    dca::linalg::matrixop::pseudoInverse(mat, invmat);
+    if (size.first <= size.second)
+      dca::linalg::matrixop::gemm(mat, invmat, res);
+    else
+      dca::linalg::matrixop::gemm(invmat, mat, res);
+
+    for (int j = 0; j < res.nrCols(); ++j) {
+      for (int i = 0; i < res.nrRows(); ++i) {
+        if (i == j)
+          EXPECT_GE(2000 * this->epsilon, std::abs(ScalarType(1) - res(i, j)));
+        else
+          EXPECT_GE(2000 * this->epsilon, std::abs(res(i, j)));
+      }
+    }
+
+    // Check eigenvalue exclusion below threshold.
+    testing::setMatrixElements(mat, val0);
+    mat(0, 0) = ScalarType(20.);
+    mat(1, 1) = ScalarType(.1);
+    dca::linalg::matrixop::pseudoInverse(mat, invmat, 1e-6);
+    if (size.first <= size.second)
+      dca::linalg::matrixop::gemm(mat, invmat, res);
+    else
+      dca::linalg::matrixop::gemm(invmat, mat, res);
+
+    for (int j = 0; j < res.nrCols(); ++j) {
+      for (int i = 0; i < res.nrRows(); ++i) {
+        if (i == j)
+          EXPECT_GE(100 * this->epsilon, std::abs(ScalarType(1) - res(i, j)));
+        else
+          EXPECT_GE(100 * this->epsilon, std::abs(res(i, j)));
+      }
+    }
+
+    // Check eigenvalue exclusion above threshold.
+    dca::linalg::matrixop::pseudoInverse(mat, invmat, 3.9e-4);
+    if (size.first <= size.second)
+      dca::linalg::matrixop::gemm(mat, invmat, res);
+    else
+      dca::linalg::matrixop::gemm(invmat, mat, res);
+
+    for (int j = 0; j < res.nrCols(); ++j) {
+      for (int i = 0; i < res.nrRows(); ++i) {
+        if (i == j && i == 0)
+          EXPECT_GE(100 * this->epsilon, std::abs(ScalarType(1) - res(i, j)));
+        else
+          EXPECT_GE(100 * this->epsilon, std::abs(res(i, j)));
+      }
     }
   }
 }
