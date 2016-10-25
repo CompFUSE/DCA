@@ -159,7 +159,8 @@ set(DCA_LIBS
   cluster_domains
   quantum_domains
   time_and_frequency_domains
-  symmetrization)
+  symmetrization
+  coarsegraining)
 
 if (DCA_HAVE_CUDA)
   list(APPEND DCA_LIBS DCA_GPU_routines lapack_kernels blas_kernels cuda_utils ${DCA_CUDA_LIBS})

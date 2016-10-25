@@ -7,10 +7,10 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// This file provides the interpolation matrices for the coarsegraining.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_COARSEGRAINING_INTERPOLATION_MATRICES_H
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_COARSEGRAINING_INTERPOLATION_MATRICES_H
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_INTERPOLATION_MATRICES_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_INTERPOLATION_MATRICES_HPP
 
 #include <cassert>
 #include <cmath>
@@ -21,16 +21,16 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/math/function_transform/basis_transform/basis_transform.hpp"
+#include "dca/phys/dca_step/cluster_mapping/coarsegraining/coarsegrain_domain_names.hpp"
+#include "dca/phys/dca_step/cluster_mapping/coarsegraining/coarsegraining_domain.hpp"
 #include "dca/phys/domains/cluster/centered_cluster_domain.hpp"
 
 #include "comp_library/linalg/linalg.hpp"
-#include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_names.hpp"
-#include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_domain.h"
 
-using namespace dca;
-using namespace dca::phys;
-
-namespace DCA {
+namespace dca {
+namespace phys {
+namespace clustermapping {
+// dca::phys::clustermapping::
 
 template <typename scalar_type, typename k_dmn, typename K_dmn>
 class interpolation_matrices {};
@@ -52,7 +52,6 @@ public:
 public:
   static func::function<matrix_type, K_dmn>& get() {
     assert(is_initialized() == true);
-
     static func::function<matrix_type, K_dmn> k_to_q("k_to_q (" +
                                                      q_dmn::parameter_type::get_name() + ")");
     return k_to_q;
@@ -60,7 +59,6 @@ public:
 
   static matrix_type& get(int k_ind) {
     assert(is_initialized() == true);
-
     static func::function<matrix_type, K_dmn>& k_to_q = get();
     return k_to_q(k_ind);
   }
@@ -237,9 +235,12 @@ template <typename scalar_type, typename k_dmn, typename K_dmn, COARSEGRAIN_DOMA
 template <typename scalar_type_1, typename scalar_type_2>
 void interpolation_matrices<scalar_type, k_dmn, func::dmn_0<coarsegraining_domain<K_dmn, NAME>>>::cast(
     scalar_type_1& x, std::complex<scalar_type_2>& y) {
-  assert(std::abs(imag(y)) < 1.e-6);
-  x = real(y);
-}
+  assert(std::abs(std::imag(y)) < 1.e-6);
+  x = std::real(y);
 }
 
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_COARSEGRAINING_INTERPOLATION_MATRICES_H
+}  // clustermapping
+}  // phys
+}  // dca
+
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_INTERPOLATION_MATRICES_HPP

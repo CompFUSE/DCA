@@ -70,6 +70,8 @@
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 #include "dca/math/util/comparison_methods.hpp"
 #include "dca/math/util/vector_operations.hpp"
+#include "dca/phys/dca_step/cluster_mapping/coarsegraining/coarsegraining_sp.hpp"
+#include "dca/phys/dca_step/cluster_mapping/coarsegraining/coarsegraining_tp.hpp"
 #include "dca/phys/dca_step/lattice_mapping/lattice_mapping_sp.hpp"
 #include "dca/phys/dca_step/lattice_mapping/lattice_mapping_tp.hpp"
 #include "dca/phys/dca_step/symmetrization/diagrammatic_symmetries.hpp"
@@ -80,7 +82,6 @@
 
 #include "comp_library/linalg/linalg.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/high_temperature_series_expansion_solver.h"
-#include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_tp.h"
 
 namespace dca {
 namespace phys {
@@ -387,8 +388,8 @@ void BseLatticeSolver<ParametersType, DcaDataType>::compute_chi_0_lattice(
 
   using lattice_map_sp_type = latticemapping::lattice_mapping_sp<ParametersType, k_DCA, k_HOST>;
 
-  using coarsegraining_sp_type = DCA::coarsegraining_sp<ParametersType, k_DCA>;
-  using coarsegraining_tp_type = DCA::coarsegraining_tp<ParametersType, k_HOST_VERTEX>;
+  using coarsegraining_sp_type = clustermapping::coarsegraining_sp<ParametersType, k_DCA>;
+  using coarsegraining_tp_type = clustermapping::coarsegraining_tp<ParametersType, k_HOST_VERTEX>;
 
   lattice_map_sp_type lattice_mapping_obj(parameters);
 

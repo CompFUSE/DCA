@@ -7,12 +7,13 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// Tetrahedron routines: inverse matrix function.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_TETRAHEDRON_ROUTINES_INVERSE_MATRIX_FUNCTION_H
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_TETRAHEDRON_ROUTINES_INVERSE_MATRIX_FUNCTION_H
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_TETRAHEDRON_ROUTINES_INVERSE_MATRIX_FUNCTION_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_TETRAHEDRON_ROUTINES_INVERSE_MATRIX_FUNCTION_HPP
 
 #include <cassert>
+#include <cmath>
 #include <complex>
 #include <stdexcept>
 #include <utility>
@@ -20,13 +21,14 @@
 
 #include "dca/linalg/lapack/inverse.hpp"
 #include "dca/math/geometry/tetrahedron_mesh/tetrahedron_eigenvalue_degeneracy.hpp"
+#include "dca/phys/dca_step/cluster_mapping/coarsegraining/tetrahedron_integration_data.hpp"
 
 #include "comp_library/linalg/linalg.hpp"
-#include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/tetrahedron_integration_data.hpp"
 
-using namespace dca;
-
-namespace DCA {
+namespace dca {
+namespace phys {
+namespace clustermapping {
+// dca::phys::clustermapping::
 
 class tetrahedron_routines_inverse_matrix_function {
   inline static double EPSILON() {
@@ -46,17 +48,9 @@ class tetrahedron_routines_inverse_matrix_function {
   };
 
 private:
-  template <typename scalartype>
-  inline static scalartype Abs(scalartype& val);
-
-  template <typename scalartype>
-  inline static std::complex<scalartype> Abs(std::complex<scalartype>& val);
-
+  // TODO: Replace this method with a more efficient one.
   template <typename scalartype>
   inline static std::complex<scalartype> Power(std::complex<scalartype> val, int n);
-
-  template <typename scalartype>
-  inline static std::complex<scalartype> Log(std::complex<scalartype> val);
 
   template <typename scalartype>
   static bool are_equal(std::complex<scalartype> const& x, std::complex<scalartype> const& y);
@@ -132,17 +126,6 @@ private:
 };
 
 template <typename scalartype>
-scalartype tetrahedron_routines_inverse_matrix_function::Abs(scalartype& val) {
-  return std::abs(val);
-}
-
-template <typename scalartype>
-std::complex<scalartype> tetrahedron_routines_inverse_matrix_function::Abs(
-    std::complex<scalartype>& val) {
-  return std::abs(val);
-}
-
-template <typename scalartype>
 std::complex<scalartype> tetrahedron_routines_inverse_matrix_function::Power(
     std::complex<scalartype> val, int n) {
   switch (n) {
@@ -169,11 +152,6 @@ std::complex<scalartype> tetrahedron_routines_inverse_matrix_function::Power(
     default:
       return std::pow(val, n);
   }
-}
-
-template <typename scalartype>
-std::complex<scalartype> tetrahedron_routines_inverse_matrix_function::Log(std::complex<scalartype> val) {
-  return std::log(val);
 }
 
 template <typename scalartype>
@@ -294,8 +272,8 @@ std::complex<scalartype> tetrahedron_routines_inverse_matrix_function::integrate
 
   switch (degeneracy) {
     case math::geometry::NO_DEGENERACY: {
-      r[0] = (e0 - e1 - e1 * Log(-e0) + e1 * Log(-e1)) / Power(e0 - e1, 2);
-      r[1] = (-e0 + e1 + e0 * Log(-e0) - e0 * Log(-e1)) / Power(e0 - e1, 2);
+      r[0] = (e0 - e1 - e1 * std::log(-e0) + e1 * std::log(-e1)) / Power(e0 - e1, 2);
+      r[1] = (-e0 + e1 + e0 * std::log(-e0) - e0 * std::log(-e1)) / Power(e0 - e1, 2);
     } break;
 
     case math::geometry::TWOFOLD_DEGENERACY: {
@@ -412,9 +390,9 @@ void tetrahedron_routines_inverse_matrix_function::execute(
       vec[1].e = data_obj.W_1[l];
       vec[2].e = data_obj.W_2[l];
 
-      vec[0].log_min_e = Log(-vec[0].e);
-      vec[1].log_min_e = Log(-vec[1].e);
-      vec[2].log_min_e = Log(-vec[2].e);
+      vec[0].log_min_e = std::log(-vec[0].e);
+      vec[1].log_min_e = std::log(-vec[1].e);
+      vec[2].log_min_e = std::log(-vec[2].e);
 
       math::geometry::TetrahedronEigenvalueDegeneracy degeneracy = find_degeneracy_2D(vec);
 
@@ -463,32 +441,34 @@ std::complex<scalartype> tetrahedron_routines_inverse_matrix_function::integrate
       assert(not_equal(vec[1].e, vec[2].e));
       assert(not_equal(vec[2].e, vec[0].e));
 
-      r[0] = (-(e0 * (e1 - e2) * (-2. * e1 * e2 + e0 * (e1 + e2)) * Log(-e0)) +
-              Power(e1, 2) * Power(e0 - e2, 2) * Log(-e1) +
-              (e0 - e1) * (e0 * (e0 - e2) * (e1 - e2) + (-e0 + e1) * Power(e2, 2) * Log(-e2))) /
+      r[0] = (-(e0 * (e1 - e2) * (-2. * e1 * e2 + e0 * (e1 + e2)) * std::log(-e0)) +
+              Power(e1, 2) * Power(e0 - e2, 2) * std::log(-e1) +
+              (e0 - e1) * (e0 * (e0 - e2) * (e1 - e2) + (-e0 + e1) * Power(e2, 2) * std::log(-e2))) /
              (2. * Power(e0 - e1, 2) * Power(e0 - e2, 2) * (e1 - e2));
-      r[1] = (Power(e0, 2) * Power(e1 - e2, 2) * Log(-e0) +
+      r[1] = (Power(e0, 2) * Power(e1 - e2, 2) * std::log(-e0) +
               e1 * (e0 - e2) *
-                  (-((e0 - e1) * (e1 - e2)) - (e0 * e1 - 2. * e0 * e2 + e1 * e2) * Log(-e1)) -
-              Power(e0 - e1, 2) * Power(e2, 2) * Log(-e2)) /
+                  (-((e0 - e1) * (e1 - e2)) - (e0 * e1 - 2. * e0 * e2 + e1 * e2) * std::log(-e1)) -
+              Power(e0 - e1, 2) * Power(e2, 2) * std::log(-e2)) /
              (2. * Power(e0 - e1, 2) * (e0 - e2) * Power(e1 - e2, 2));
-      r[2] =
-          (Power(e0, 2) * Power(e1 - e2, 2) * Log(-e0) - Power(e1, 2) * Power(e0 - e2, 2) * Log(-e1) +
-           (-e0 + e1) * e2 * ((e0 - e2) * (-e1 + e2) + (-2. * e0 * e1 + (e0 + e1) * e2) * Log(-e2))) /
-          (2. * (e0 - e1) * Power(e0 - e2, 2) * Power(e1 - e2, 2));
+      r[2] = (Power(e0, 2) * Power(e1 - e2, 2) * std::log(-e0) -
+              Power(e1, 2) * Power(e0 - e2, 2) * std::log(-e1) +
+              (-e0 + e1) * e2 *
+                  ((e0 - e2) * (-e1 + e2) + (-2. * e0 * e1 + (e0 + e1) * e2) * std::log(-e2))) /
+             (2. * (e0 - e1) * Power(e0 - e2, 2) * Power(e1 - e2, 2));
     } break;
 
     case math::geometry::TWOFOLD_DEGENERACY: {
       assert(not_equal(vec[0].e, vec[1].e));
       assert(are_equal(vec[1].e, vec[2].e));
 
-      r[0] = (Power(e0, 2) - Power(e1, 2) - 2. * e0 * e1 * Log(-e0) + 2. * e0 * e1 * Log(-e1)) /
+      r[0] = (Power(e0, 2) - Power(e1, 2) - 2. * e0 * e1 * std::log(-e0) +
+              2. * e0 * e1 * std::log(-e1)) /
              (2. * Power(e0 - e1, 3));
       r[1] = -(3. * Power(e0, 2) - 4. * e0 * e1 + Power(e1, 2) +
-               2. * Power(e0, 2) * (-Log(-e0) + Log(-e1))) /
+               2. * Power(e0, 2) * (-std::log(-e0) + std::log(-e1))) /
              (4. * Power(e0 - e1, 3));
       r[2] = -(3. * Power(e0, 2) - 4. * e0 * e1 + Power(e1, 2) +
-               2. * Power(e0, 2) * (-Log(-e0) + Log(-e1))) /
+               2. * Power(e0, 2) * (-std::log(-e0) + std::log(-e1))) /
              (4. * Power(e0 - e1, 3));
     } break;
 
@@ -684,10 +664,10 @@ void tetrahedron_routines_inverse_matrix_function::execute(
     vec[2].e = data_obj.W_2[l];
     vec[3].e = data_obj.W_3[l];
 
-    vec[0].log_min_e = Log(-vec[0].e);
-    vec[1].log_min_e = Log(-vec[1].e);
-    vec[2].log_min_e = Log(-vec[2].e);
-    vec[3].log_min_e = Log(-vec[3].e);
+    vec[0].log_min_e = std::log(-vec[0].e);
+    vec[1].log_min_e = std::log(-vec[1].e);
+    vec[2].log_min_e = std::log(-vec[2].e);
+    vec[3].log_min_e = std::log(-vec[3].e);
 
     math::geometry::TetrahedronEigenvalueDegeneracy degeneracy = find_degeneracy_3D(vec);
 
@@ -1297,6 +1277,9 @@ math::geometry::TetrahedronEigenvalueDegeneracy tetrahedron_routines_inverse_mat
   throw std::logic_error(__FUNCTION__);
   return math::geometry::NO_DEGENERACY;
 }
-}
 
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_TETRAHEDRON_ROUTINES_INVERSE_MATRIX_FUNCTION_H
+}  // clustermapping
+}  // phys
+}  // dca
+
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_TETRAHEDRON_ROUTINES_INVERSE_MATRIX_FUNCTION_HPP

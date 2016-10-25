@@ -23,6 +23,7 @@
 #include "dca/io/json/json_writer.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
 #include "dca/phys/dca_step/cluster_mapping/cluster_exclusion.hpp"
+#include "dca/phys/dca_step/cluster_mapping/coarsegraining/coarsegraining_sp.hpp"
 #include "dca/phys/dca_step/cluster_mapping/double_counting_correction.hpp"
 #include "dca/phys/dca_step/cluster_mapping/update_chemical_potential.hpp"
 #include "dca/phys/dca_step/lattice_mapping/lattice_mapping_sp.hpp"
@@ -32,7 +33,6 @@
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/util/print_time.hpp"
 
-#include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_sp.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/high_temperature_series_expansion_solver.h"
 
 namespace dca {
@@ -57,7 +57,7 @@ public:
   using cluster_exclusion_type = clustermapping::cluster_exclusion<ParametersType, DcaDataType>;
   using double_counting_correction_type =
       clustermapping::double_counting_correction<ParametersType, DcaDataType>;
-  using coarsegraining_sp_type = DCA::coarsegraining_sp<ParametersType, k_DCA>;
+  using coarsegraining_sp_type = clustermapping::coarsegraining_sp<ParametersType, k_DCA>;
   using lattice_map_sp_type = latticemapping::lattice_mapping_sp<ParametersType, k_DCA, k_HOST>;
   using update_chemical_potential_type =
       clustermapping::update_chemical_potential<ParametersType, DcaDataType, coarsegraining_sp_type>;

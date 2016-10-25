@@ -19,10 +19,10 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/math/function_transform/basis_transform/basis_transform.hpp"
+#include "dca/phys/dca_step/cluster_mapping/coarsegraining/coarsegraining_sp.hpp"
 #include "dca/phys/dca_step/symmetrization/symmetrize.hpp"
 
 #include "comp_library/linalg/linalg.hpp"
-#include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_sp.h"
 
 namespace dca {
 namespace phys {
@@ -86,7 +86,7 @@ deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::deconvo
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 void deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::initialize() {
-  DCA::coarsegraining_sp<parameters_type, source_k_dmn_t> coarsegrain_obj(parameters);
+  clustermapping::coarsegraining_sp<parameters_type, source_k_dmn_t> coarsegrain_obj(parameters);
 
   coarsegrain_obj.compute_phi_r(phi_r);
 

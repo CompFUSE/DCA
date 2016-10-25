@@ -26,6 +26,7 @@
 #include "dca/math/statistics/gaussian_probability.hpp"
 #include "dca/math/util/vector_operations.hpp"
 #include "dca/phys/dca_analysis/cpe_solver/continuous_pole_expansion.hpp"
+#include "dca/phys/dca_step/cluster_mapping/coarsegraining/coarsegraining_sp.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
@@ -37,7 +38,6 @@
 
 #include "comp_library/function_plotting/include_plotting.h"
 #include "comp_library/linalg/linalg.hpp"
-#include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_sp.h"
 
 namespace dca {
 namespace phys {
@@ -663,7 +663,7 @@ void compute_spectrum<parameters_type, basis_function_t>::compute_G_k_w_on_latti
   if (concurrency.id() == 0)
     std::cout << "\t\t start TIM (time = " << dca::util::print_time() << ") --> ";
 
-  DCA::coarsegraining_sp<parameters_type, k_DCA> coarsegraining_sp_obj(parameters);
+  clustermapping::coarsegraining_sp<parameters_type, k_DCA> coarsegraining_sp_obj(parameters);
 
   coarsegraining_sp_obj.compute_G_K_w_with_TIM(H_k, Sigma, G_k_w);
 

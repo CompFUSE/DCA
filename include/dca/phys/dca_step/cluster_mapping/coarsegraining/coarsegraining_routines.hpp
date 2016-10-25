@@ -7,10 +7,10 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// This class provides routines for the coarsegraining.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_COARSEGRAINING_ROUTINES_H
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_COARSEGRAINING_ROUTINES_H
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_COARSEGRAINING_ROUTINES_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_COARSEGRAINING_ROUTINES_HPP
 
 #include <complex>
 
@@ -18,6 +18,9 @@
 #include "dca/function/function.hpp"
 #include "dca/math/geometry/gaussian_quadrature/gaussian_quadrature_domain.hpp"
 #include "dca/math/geometry/tetrahedron_mesh/tetrahedron_mesh.hpp"
+#include "dca/phys/dca_step/cluster_mapping/coarsegraining/coarsegraining_domain.hpp"
+#include "dca/phys/dca_step/cluster_mapping/coarsegraining/interpolation_matrices.hpp"
+#include "dca/phys/dca_step/cluster_mapping/coarsegraining/quadrature_integration.hpp"
 #include "dca/phys/dca_step/lattice_mapping/interpolation/transform_to_alpha.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
@@ -27,34 +30,11 @@
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 
 #include "comp_library/linalg/linalg.hpp"
-#include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_domain.h"
-#include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/quadrature_integration.h"
 
-using namespace dca;
-using namespace dca::phys;
-
-namespace DCA {
-
-template <typename scalar_type, typename k_dmn_t, typename q_dmn_t>
-struct coarsegraining_functions {
-  using b = func::dmn_0<domains::electron_band_domain>;
-  using s = func::dmn_0<domains::electron_spin_domain>;
-  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
-
-  int K_ind;
-  int w_ind;
-
-  scalar_type mu;
-
-  func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>* H_k;
-  func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>* A_k;
-
-  func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>> I_q;
-  func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>> H_q;
-  func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>> A_q;
-  func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>> S_q;
-  func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>> G_q;
-};
+namespace dca {
+namespace phys {
+namespace clustermapping {
+// dca::phys::clustermapping::
 
 template <typename parameters_type, typename K_dmn>
 class coarsegraining_routines {
@@ -174,10 +154,6 @@ protected:
       func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& A_q,
       func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& S_q,
       func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& G_q);
-
-  template <typename scalar_type, typename k_dmn_t, typename q_dmn_t>
-  void compute_G_q_w(
-      coarsegraining_functions<scalar_type, k_dmn_t, q_dmn_t>& coarsegraining_functions_ref);
 
 protected:
   parameters_type& parameters;
@@ -484,6 +460,9 @@ void coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_w(
     quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G_q_w_mt(
         nr_threads, I_q, H_q, S_q, G_q);
 }
-}
 
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_COARSEGRAINING_ROUTINES_H
+}  // clustermapping
+}  // phys
+}  // dca
+
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_COARSEGRAINING_ROUTINES_HPP

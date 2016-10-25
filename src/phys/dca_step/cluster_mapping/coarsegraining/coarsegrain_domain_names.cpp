@@ -8,26 +8,15 @@
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// This file defines the names of coarse-graining domains and provides a function to convert them
-// into strings.
+// This file implements coarsegrain_domain_names.hpp.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_COARSEGRAINING_NAMES_HPP
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_COARSEGRAINING_NAMES_HPP
-
+#include "dca/phys/dca_step/cluster_mapping/coarsegraining/coarsegrain_domain_names.hpp"
 #include <stdexcept>
-#include <string>
 
-namespace DCA {
-
-enum COARSEGRAIN_DOMAIN_NAMES {
-  ORIGIN,
-  Q_FINE,
-  K,
-  K_PLUS_Q,
-  Q_MINUS_K,
-  TETRAHEDRON_K,
-  TETRAHEDRON_ORIGIN
-};
+namespace dca {
+namespace phys {
+namespace clustermapping {
+// dca::phys::clustermapping::
 
 std::string to_str(COARSEGRAIN_DOMAIN_NAMES NAME) {
   switch (NAME) {
@@ -59,6 +48,6 @@ std::string to_str(COARSEGRAIN_DOMAIN_NAMES NAME) {
   return "???";
 }
 
-}  // DCA
-
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_COARSEGRAINING_NAMES_HPP
+}  // clustermapping
+}  // phys
+}  // dca

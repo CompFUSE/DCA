@@ -7,22 +7,23 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// This file provides the coarsegraining domain.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_COARSEGRAINING_DOMAIN_H
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_COARSEGRAINING_DOMAIN_H
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_COARSEGRAINING_DOMAIN_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_COARSEGRAINING_DOMAIN_HPP
 
 #include <stdexcept>
 #include <string>
 #include <vector>
 
 #include "dca/math/function_transform/domain_specifications.hpp"
+#include "dca/phys/dca_step/cluster_mapping/coarsegraining/coarsegrain_domain_names.hpp"
 
-#include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_names.hpp"
+namespace dca {
+namespace phys {
+namespace clustermapping {
+// dca::phys::clustermapping::
 
-using namespace dca;
-
-namespace DCA {
 template <typename K_dmn, COARSEGRAIN_DOMAIN_NAMES NAME>
 class coarsegraining_domain {
 public:
@@ -115,6 +116,9 @@ public:
     get_elements() = elements;
   }
 };
-}
 
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_COARSEGRAINING_DOMAIN_H
+}  // clustermapping
+}  // phys
+}  // dca
+
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_COARSEGRAINING_DOMAIN_HPP

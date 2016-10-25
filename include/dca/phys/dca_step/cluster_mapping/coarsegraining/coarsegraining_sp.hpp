@@ -7,10 +7,10 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// This class performs the coarsegraining of single-particle functions.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_COARSEGRAINING_SP_H
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_COARSEGRAINING_SP_H
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_COARSEGRAINING_SP_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_COARSEGRAINING_SP_HPP
 
 #include <complex>
 #include <iostream>
@@ -21,6 +21,10 @@
 #include "dca/function/function.hpp"
 #include "dca/math/geometry/gaussian_quadrature/gaussian_quadrature_domain.hpp"
 #include "dca/math/geometry/tetrahedron_mesh/tetrahedron_mesh.hpp"
+#include "dca/phys/dca_step/cluster_mapping/coarsegraining/coarsegraining_routines.hpp"
+#include "dca/phys/dca_step/cluster_mapping/coarsegraining/interpolation_matrices.hpp"
+#include "dca/phys/dca_step/cluster_mapping/coarsegraining/tetrahedron_integration.hpp"
+#include "dca/phys/dca_step/cluster_mapping/coarsegraining/tetrahedron_routines_harmonic_function.hpp"
 #include "dca/phys/dca_step/lattice_mapping/interpolation/transform_to_alpha.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/cluster/cluster_operations.hpp"
@@ -30,15 +34,10 @@
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 #include "dca/util/print_time.hpp"
 
-#include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_interpolation_matrices.h"
-#include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_routines.h"
-#include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/tetrahedron_integration.h"
-#include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/tetrahedron_routines_harmonic_function.h"
-
-using namespace dca;
-using namespace dca::phys;
-
-namespace DCA {
+namespace dca {
+namespace phys {
+namespace clustermapping {
+// dca::phys::clustermapping::
 
 template <typename parameters_type, typename K_dmn>
 class coarsegraining_sp : public coarsegraining_routines<parameters_type, K_dmn>,
@@ -83,8 +82,6 @@ public:
   coarsegraining_sp(parameters_type& parameters_ref);
 
   void initialize();
-
-  void reset_fine_q_mesh(int recursion, int rule, int period);
 
   template <typename other_scalar_type, typename r_dmn>
   void compute_phi_r(func::function<other_scalar_type, r_dmn>& phi_r);
@@ -131,12 +128,6 @@ public:
       func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, k_dmn>>& H_0,
       func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, k_dmn, w>>& S_k_w,
       func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, K_dmn, w>>& G_K_w);
-
-  template <typename other_scalar_type, typename k_dmn, typename w_dmn>
-  void compute_G_K_w_with_TIM(
-      func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, k_dmn>>& H_0,
-      func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, k_dmn, w_dmn>>& S_K_w,
-      func::function<std::complex<other_scalar_type>, func::dmn_variadic<nu, nu, K_dmn, w_dmn>>& G_K_w);
 
   template <typename other_scalar_type, typename k_dmn>
   void compute_G0_K_t(
@@ -621,6 +612,9 @@ void coarsegraining_sp<parameters_type, K_dmn>::compute_G0_K_t(
     G_K_t /= V_K;
   }
 }
-}  // DCA
 
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_COARSEGRAINING_SP_H
+}  // clustermapping
+}  // phys
+}  // dca
+
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_COARSEGRAINING_SP_HPP

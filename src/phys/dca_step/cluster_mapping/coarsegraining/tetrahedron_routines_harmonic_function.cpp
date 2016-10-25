@@ -7,98 +7,19 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// This file implements tetrahedron_routines_harmonic_function.hpp.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_TETRAHEDRON_ROUTINES_HARMONIC_FUNCTION_H
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_TETRAHEDRON_ROUTINES_HARMONIC_FUNCTION_H
+#include "dca/phys/dca_step/cluster_mapping/coarsegraining/tetrahedron_routines_harmonic_function.hpp"
 
 #include <cassert>
 #include <cmath>
-#include <complex>
-#include <vector>
 
-#include "dca/math/geometry/tetrahedron_mesh/tetrahedron.hpp"
 #include "dca/math/util/vector_operations.hpp"
 
-using namespace dca;
-
-namespace DCA {
-
-class tetrahedron_routines_harmonic_function {
-public:
-  // 1D
-  static std::complex<double> execute(std::vector<double>& r_vec,
-                                      math::geometry::tetrahedron<1>& tetrahedron);
-  // 2D
-  static std::complex<double> execute(std::vector<double>& r_vec,
-                                      math::geometry::tetrahedron<2>& tetrahedron);
-
-  // 3D
-  static std::complex<double> execute(std::vector<double>& r_vec,
-                                      math::geometry::tetrahedron<3>& tetrahedron);
-
-private:
-  // general functionality:
-  template <typename scalartype>
-  static scalartype Power(scalartype x, int n);
-
-  template <typename scalartype>
-  static scalartype Sin(scalartype x);
-
-  template <typename scalartype>
-  static scalartype Cos(scalartype x);
-
-  // 2D cases :
-  static void permute(math::geometry::tetrahedron<2>& tetrahedron_new,
-                      math::geometry::tetrahedron<2>& tetrahedron_old);
-
-  static std::complex<double> case_2D(double dotRD1, double dotRD2, double dotRD2minD1);
-  static std::complex<double> case_d1_2D(double dotRD1, double dotRD2, double dotRD2minD1);
-  static std::complex<double> case_d2_2D(double dotRD1, double dotRD2, double dotRD2minD1);
-
-  // 3D
-  static void permute(math::geometry::tetrahedron<3>& tetrahedron_new,
-                      math::geometry::tetrahedron<3>& tetrahedron_old);
-
-  static std::complex<double> case_3D(double dotRD1, double dotRD2, double dotRD3,
-                                      double dotRD2minD1, double dotRD3minD2, double dotRD1minD3);
-
-  static std::complex<double> case_d1_3D(double dotRD1, double dotRD2, double dotRD3,
-                                         double dotRD2minD1, double dotRD3minD2, double dotRD1minD3);
-
-  static std::complex<double> case_d2_3D(double dotRD1, double dotRD2, double dotRD3,
-                                         double dotRD2minD1, double dotRD3minD2, double dotRD1minD3);
-
-  static std::complex<double> case_d3_3D(double dotRD1, double dotRD2, double dotRD3,
-                                         double dotRD2minD1, double dotRD3minD2, double dotRD1minD3);
-
-  static std::complex<double> case_d1_d2_3D(double dotRD1, double dotRD2, double dotRD3,
-                                            double dotRD2minD1, double dotRD3minD2,
-                                            double dotRD1minD3);
-
-  static std::complex<double> case_d2_d3_3D(double dotRD1, double dotRD2, double dotRD3,
-                                            double dotRD2minD1, double dotRD3minD2,
-                                            double dotRD1minD3);
-
-  static std::complex<double> case_d3_d1_3D(double dotRD1, double dotRD2, double dotRD3,
-                                            double dotRD2minD1, double dotRD3minD2,
-                                            double dotRD1minD3);
-};
-
-template <typename scalartype>
-scalartype tetrahedron_routines_harmonic_function::Power(scalartype x, int n) {
-  return std::pow(x, n);
-}
-
-template <typename scalartype>
-scalartype tetrahedron_routines_harmonic_function::Sin(scalartype x) {
-  return std::sin(x);
-}
-
-template <typename scalartype>
-scalartype tetrahedron_routines_harmonic_function::Cos(scalartype x) {
-  return std::cos(x);
-}
+namespace dca {
+namespace phys {
+namespace clustermapping {
+// dca::phys::clustermapping::
 
 /************************************
  ***
@@ -125,8 +46,8 @@ std::complex<double> tetrahedron_routines_harmonic_function::execute(
     result.imag(0);
   }
   else {
-    result.real(-Sin(a0 * r) / r + Sin(a1 * r) / r);
-    result.imag(Cos(a0 * r) / r - Cos(a1 * r) / r);
+    result.real(-std::sin(a0 * r) / r + std::sin(a1 * r) / r);
+    result.imag(std::cos(a0 * r) / r - std::cos(a1 * r) / r);
   }
 
   return result;
@@ -199,7 +120,7 @@ std::complex<double> tetrahedron_routines_harmonic_function::execute(
     double dot_R_D2_min_D1 = math::util::innerProduct(r_vec, D2_min_D1);
 
     double det = math::util::area(D1, D2);
-    std::complex<double> phase = Cos(dot_R_K0) + I * Sin(dot_R_K0);
+    std::complex<double> phase = std::cos(dot_R_K0) + I * std::sin(dot_R_K0);
 
     if (std::abs(dot_R_D2_min_D1) > EPSILON) {
       if (std::abs(dot_R_D1) > EPSILON and std::abs(dot_R_D2) > EPSILON)
@@ -242,8 +163,8 @@ std::complex<double> tetrahedron_routines_harmonic_function::case_2D(double dotR
   std::complex<double> result(0., 0.);
 
   result.real(-(1 / (dotRD1 * dotRD2minD1)) + 1 / (dotRD2 * dotRD2minD1) +
-              Cos(dotRD1) / (dotRD1 * dotRD2minD1) - Cos(dotRD2) / (dotRD2 * dotRD2minD1));
-  result.imag(Sin(dotRD1) / (dotRD1 * dotRD2minD1) - Sin(dotRD2) / (dotRD2 * dotRD2minD1));
+              std::cos(dotRD1) / (dotRD1 * dotRD2minD1) - std::cos(dotRD2) / (dotRD2 * dotRD2minD1));
+  result.imag(std::sin(dotRD1) / (dotRD1 * dotRD2minD1) - std::sin(dotRD2) / (dotRD2 * dotRD2minD1));
 
   assert(real(result) == real(result));
   assert(imag(result) == imag(result));
@@ -260,8 +181,8 @@ std::complex<double> tetrahedron_routines_harmonic_function::case_d1_2D(double /
 
   std::complex<double> result(0., 0.);
 
-  result.real(1 / (dotRD2 * dotRD2minD1) - Cos(dotRD2) / (dotRD2 * dotRD2minD1));
-  result.imag(1 / dotRD2minD1 - Sin(dotRD2) / (dotRD2 * dotRD2minD1));
+  result.real(1 / (dotRD2 * dotRD2minD1) - std::cos(dotRD2) / (dotRD2 * dotRD2minD1));
+  result.imag(1 / dotRD2minD1 - std::sin(dotRD2) / (dotRD2 * dotRD2minD1));
 
   assert(real(result) == real(result));
   assert(imag(result) == imag(result));
@@ -278,8 +199,8 @@ std::complex<double> tetrahedron_routines_harmonic_function::case_d2_2D(double d
 
   std::complex<double> result(0., 0.);
 
-  result.real(-(1 / (dotRD1 * dotRD2minD1)) + Cos(dotRD1) / (dotRD1 * dotRD2minD1));
-  result.imag(-(1 / dotRD2minD1) + Sin(dotRD1) / (dotRD1 * dotRD2minD1));
+  result.real(-(1 / (dotRD1 * dotRD2minD1)) + std::cos(dotRD1) / (dotRD1 * dotRD2minD1));
+  result.imag(-(1 / dotRD2minD1) + std::sin(dotRD1) / (dotRD1 * dotRD2minD1));
 
   assert(real(result) == real(result));
   assert(imag(result) == imag(result));
@@ -298,8 +219,9 @@ std::complex<double> tetrahedron_routines_harmonic_function::case_d2_2D(double d
 
   std::complex<double> result(0., 0.);
 
-  real(result) = -Power(dotRD2,-2) + Cos(dotRD2)/Power(dotRD2,2) + Sin(dotRD2)/dotRD2;
-  imag(result) = -(Cos(dotRD2)/dotRD2) + Sin(dotRD2)/Power(dotRD2,2);
+  real(result) = -std::pow(dotRD2,-2) + std::cos(dotRD2)/std::pow(dotRD2,2) +
+  std::sin(dotRD2)/dotRD2;
+  imag(result) = -(std::cos(dotRD2)/dotRD2) + std::sin(dotRD2)/std::pow(dotRD2,2);
 
   return result;
   }
@@ -334,16 +256,16 @@ std::complex<double> tetrahedron_routines_harmonic_function::case_3D(double dotR
 
   std::complex<double> result(0., 0.);
 
-  result.real(-((dotRD2 * Sin(dotRD1)) / (dotRD1 * dotRD1minD3 * dotRD2minD1 * dotRD3minD2)) +
-              (dotRD3 * Sin(dotRD1)) / (dotRD1 * dotRD1minD3 * dotRD2minD1 * dotRD3minD2) +
-              Sin(dotRD2) / (dotRD2 * dotRD2minD1 * dotRD3minD2) +
-              Sin(dotRD3) / (dotRD1minD3 * dotRD3 * dotRD3minD2));
+  result.real(-((dotRD2 * std::sin(dotRD1)) / (dotRD1 * dotRD1minD3 * dotRD2minD1 * dotRD3minD2)) +
+              (dotRD3 * std::sin(dotRD1)) / (dotRD1 * dotRD1minD3 * dotRD2minD1 * dotRD3minD2) +
+              std::sin(dotRD2) / (dotRD2 * dotRD2minD1 * dotRD3minD2) +
+              std::sin(dotRD3) / (dotRD1minD3 * dotRD3 * dotRD3minD2));
 
   result.imag(-(1 / (dotRD1 * dotRD2 * dotRD3minD2)) + 1 / (dotRD1 * dotRD3 * dotRD3minD2) +
-              (dotRD2 * Cos(dotRD1)) / (dotRD1 * dotRD1minD3 * dotRD2minD1 * dotRD3minD2) -
-              (dotRD3 * Cos(dotRD1)) / (dotRD1 * dotRD1minD3 * dotRD2minD1 * dotRD3minD2) -
-              Cos(dotRD2) / (dotRD2 * dotRD2minD1 * dotRD3minD2) -
-              Cos(dotRD3) / (dotRD1minD3 * dotRD3 * dotRD3minD2));
+              (dotRD2 * std::cos(dotRD1)) / (dotRD1 * dotRD1minD3 * dotRD2minD1 * dotRD3minD2) -
+              (dotRD3 * std::cos(dotRD1)) / (dotRD1 * dotRD1minD3 * dotRD2minD1 * dotRD3minD2) -
+              std::cos(dotRD2) / (dotRD2 * dotRD2minD1 * dotRD3minD2) -
+              std::cos(dotRD3) / (dotRD1minD3 * dotRD3 * dotRD3minD2));
 
   assert(real(result) == real(result));
   assert(imag(result) == imag(result));
@@ -368,21 +290,21 @@ std::complex<double> tetrahedron_routines_harmonic_function::case_d1_3D(double /
 
   if (std::abs(dotRD3minD2) > 1.e-6) {
     result.real(-(1 / (dotRD2 * dotRD3minD2)) + 1 / (dotRD3 * dotRD3minD2) +
-                Sin(dotRD2) / (Power(dotRD2, 2) * dotRD3minD2) -
-                Sin(dotRD3) / (Power(dotRD3, 2) * dotRD3minD2));
+                std::sin(dotRD2) / (std::pow(dotRD2, 2) * dotRD3minD2) -
+                std::sin(dotRD3) / (std::pow(dotRD3, 2) * dotRD3minD2));
 
-    result.imag(1 / (Power(dotRD2, 2) * dotRD3minD2) - 1 / (Power(dotRD3, 2) * dotRD3minD2) -
-                Cos(dotRD2) / (Power(dotRD2, 2) * dotRD3minD2) +
-                Cos(dotRD3) / (Power(dotRD3, 2) * dotRD3minD2));
+    result.imag(1 / (std::pow(dotRD2, 2) * dotRD3minD2) - 1 / (std::pow(dotRD3, 2) * dotRD3minD2) -
+                std::cos(dotRD2) / (std::pow(dotRD2, 2) * dotRD3minD2) +
+                std::cos(dotRD3) / (std::pow(dotRD3, 2) * dotRD3minD2));
   }
   else {
     // cout << __FUNCTION__ << " needs implementation\n";
 
-    result.real(-Power(dotRD2, -2) - Cos(dotRD2) / Power(dotRD2, 2) +
-                (2 * Sin(dotRD2)) / Power(dotRD2, 3));
+    result.real(-std::pow(dotRD2, -2) - std::cos(dotRD2) / std::pow(dotRD2, 2) +
+                (2 * std::sin(dotRD2)) / std::pow(dotRD2, 3));
 
-    result.imag(2 / Power(dotRD2, 3) - (2 * Cos(dotRD2)) / Power(dotRD2, 3) -
-                Sin(dotRD2) / Power(dotRD2, 2));
+    result.imag(2 / std::pow(dotRD2, 3) - (2 * std::cos(dotRD2)) / std::pow(dotRD2, 3) -
+                std::sin(dotRD2) / std::pow(dotRD2, 2));
   }
 
   assert(real(result) == real(result));
@@ -406,21 +328,21 @@ std::complex<double> tetrahedron_routines_harmonic_function::case_d2_3D(
 
   if (std::abs(dotRD1minD3) > 1.e-6) {
     result.real(1 / (dotRD1 * dotRD1minD3) - 1 / (dotRD1minD3 * dotRD3) -
-                Sin(dotRD1) / (Power(dotRD1, 2) * dotRD1minD3) +
-                Sin(dotRD3) / (dotRD1minD3 * Power(dotRD3, 2)));
+                std::sin(dotRD1) / (std::pow(dotRD1, 2) * dotRD1minD3) +
+                std::sin(dotRD3) / (dotRD1minD3 * std::pow(dotRD3, 2)));
 
-    result.imag(-(1 / (Power(dotRD1, 2) * dotRD1minD3)) + 1 / (dotRD1minD3 * Power(dotRD3, 2)) +
-                Cos(dotRD1) / (Power(dotRD1, 2) * dotRD1minD3) -
-                Cos(dotRD3) / (dotRD1minD3 * Power(dotRD3, 2)));
+    result.imag(-(1 / (std::pow(dotRD1, 2) * dotRD1minD3)) + 1 / (dotRD1minD3 * std::pow(dotRD3, 2)) +
+                std::cos(dotRD1) / (std::pow(dotRD1, 2) * dotRD1minD3) -
+                std::cos(dotRD3) / (dotRD1minD3 * std::pow(dotRD3, 2)));
   }
   else {
     // cout << __FUNCTION__ << " needs implementation\n";
 
-    result.real(-Power(dotRD3, -2) - Cos(dotRD3) / Power(dotRD3, 2) +
-                (2 * Sin(dotRD3)) / Power(dotRD3, 3));
+    result.real(-std::pow(dotRD3, -2) - std::cos(dotRD3) / std::pow(dotRD3, 2) +
+                (2 * std::sin(dotRD3)) / std::pow(dotRD3, 3));
 
-    result.imag(2 / Power(dotRD3, 3) - (2 * Cos(dotRD3)) / Power(dotRD3, 3) -
-                Sin(dotRD3) / Power(dotRD3, 2));
+    result.imag(2 / std::pow(dotRD3, 3) - (2 * std::cos(dotRD3)) / std::pow(dotRD3, 3) -
+                std::sin(dotRD3) / std::pow(dotRD3, 2));
   }
 
   assert(real(result) == real(result));
@@ -446,21 +368,21 @@ std::complex<double> tetrahedron_routines_harmonic_function::case_d3_3D(double d
 
   if (std::abs(dotRD2minD1) > 1.e-6) {
     result.real(-(1 / (dotRD1 * dotRD2minD1)) + 1 / (dotRD2 * dotRD2minD1) +
-                Sin(dotRD1) / (Power(dotRD1, 2) * dotRD2minD1) -
-                Sin(dotRD2) / (Power(dotRD2, 2) * dotRD2minD1));
+                std::sin(dotRD1) / (std::pow(dotRD1, 2) * dotRD2minD1) -
+                std::sin(dotRD2) / (std::pow(dotRD2, 2) * dotRD2minD1));
 
-    result.imag(1 / (Power(dotRD1, 2) * dotRD2minD1) - 1 / (Power(dotRD2, 2) * dotRD2minD1) -
-                Cos(dotRD1) / (Power(dotRD1, 2) * dotRD2minD1) +
-                Cos(dotRD2) / (Power(dotRD2, 2) * dotRD2minD1));
+    result.imag(1 / (std::pow(dotRD1, 2) * dotRD2minD1) - 1 / (std::pow(dotRD2, 2) * dotRD2minD1) -
+                std::cos(dotRD1) / (std::pow(dotRD1, 2) * dotRD2minD1) +
+                std::cos(dotRD2) / (std::pow(dotRD2, 2) * dotRD2minD1));
   }
   else {
     // cout << __FUNCTION__ << " needs implementation\n";
 
-    result.real(-Power(dotRD1, -2) - Cos(dotRD1) / Power(dotRD1, 2) +
-                (2 * Sin(dotRD1)) / Power(dotRD1, 3));
+    result.real(-std::pow(dotRD1, -2) - std::cos(dotRD1) / std::pow(dotRD1, 2) +
+                (2 * std::sin(dotRD1)) / std::pow(dotRD1, 3));
 
-    result.imag(2 / Power(dotRD1, 3) - (2 * Cos(dotRD1)) / Power(dotRD1, 3) -
-                Sin(dotRD1) / Power(dotRD1, 2));
+    result.imag(2 / std::pow(dotRD1, 3) - (2 * std::cos(dotRD1)) / std::pow(dotRD1, 3) -
+                std::sin(dotRD1) / std::pow(dotRD1, 2));
   }
 
   assert(real(result) == real(result));
@@ -482,9 +404,9 @@ std::complex<double> tetrahedron_routines_harmonic_function::case_d1_d2_3D(
 
   std::complex<double> result(0., 0.);
 
-  result.real(Power(dotRD3, -2) - Sin(dotRD3) / Power(dotRD3, 3));
+  result.real(std::pow(dotRD3, -2) - std::sin(dotRD3) / std::pow(dotRD3, 3));
 
-  result.imag(-Power(dotRD3, -3) + 1 / (2. * dotRD3) + Cos(dotRD3) / Power(dotRD3, 3));
+  result.imag(-std::pow(dotRD3, -3) + 1 / (2. * dotRD3) + std::cos(dotRD3) / std::pow(dotRD3, 3));
 
   assert(real(result) == real(result));
   assert(imag(result) == imag(result));
@@ -505,9 +427,9 @@ std::complex<double> tetrahedron_routines_harmonic_function::case_d2_d3_3D(
 
   std::complex<double> result(0., 0.);
 
-  result.real(Power(dotRD1, -2) - Sin(dotRD1) / Power(dotRD1, 3));
+  result.real(std::pow(dotRD1, -2) - std::sin(dotRD1) / std::pow(dotRD1, 3));
 
-  result.imag(-Power(dotRD1, -3) + 1 / (2. * dotRD1) + Cos(dotRD1) / Power(dotRD1, 3));
+  result.imag(-std::pow(dotRD1, -3) + 1 / (2. * dotRD1) + std::cos(dotRD1) / std::pow(dotRD1, 3));
 
   assert(real(result) == real(result));
   assert(imag(result) == imag(result));
@@ -528,9 +450,9 @@ std::complex<double> tetrahedron_routines_harmonic_function::case_d3_d1_3D(
 
   std::complex<double> result(0., 0.);
 
-  result.real(Power(dotRD2, -2) - Sin(dotRD2) / Power(dotRD2, 3));
+  result.real(std::pow(dotRD2, -2) - std::sin(dotRD2) / std::pow(dotRD2, 3));
 
-  result.imag(-Power(dotRD2, -3) + 1 / (2. * dotRD2) + Cos(dotRD2) / Power(dotRD2, 3));
+  result.imag(-std::pow(dotRD2, -3) + 1 / (2. * dotRD2) + std::cos(dotRD2) / std::pow(dotRD2, 3));
 
   assert(real(result) == real(result));
   assert(imag(result) == imag(result));
@@ -583,7 +505,7 @@ std::complex<double> tetrahedron_routines_harmonic_function::execute(
     double dot_R_D1_min_D3 = math::util::innerProduct(r_vec, D1_min_D3);
 
     double det = math::util::volume(D1, D2, D3);
-    std::complex<double> phase = Cos(dot_R_K0) + I * Sin(dot_R_K0);
+    std::complex<double> phase = std::cos(dot_R_K0) + I * std::sin(dot_R_K0);
 
     if (std::abs(dot_R_D1) > EPSILON and std::abs(dot_R_D2) > EPSILON and
         std::abs(dot_R_D3) > EPSILON and std::abs(dot_R_D2_min_D1) > EPSILON and
@@ -657,6 +579,7 @@ std::complex<double> tetrahedron_routines_harmonic_function::execute(
 
   return result;
 }
-}
 
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_TETRAHEDRON_ROUTINES_HARMONIC_FUNCTION_H
+}  // clustermapping
+}  // phys
+}  // dca

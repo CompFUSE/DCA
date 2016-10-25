@@ -32,6 +32,7 @@
 #include "dca/io/json/json_writer.hpp"
 #include "dca/math/util/vector_operations.hpp"
 #include "dca/phys/dca_algorithms/compute_band_structure.hpp"
+#include "dca/phys/dca_step/cluster_mapping/coarsegraining/coarsegraining_sp.hpp"
 #include "dca/phys/dca_step/symmetrization/symmetrize.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/cluster/cluster_operations.hpp"
@@ -47,7 +48,6 @@
 #include "dca/util/print_time.hpp"
 
 #include "comp_library/linalg/linalg.hpp"
-#include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_sp.h"
 
 namespace dca {
 namespace phys {
@@ -453,7 +453,7 @@ void DcaData<parameters_type>::initialize_G0() {
   if (concurrency.id() == 0)
     std::cout << "\n\n\t initialize G0 " << dca::util::print_time() << "\n";
 
-  DCA::coarsegraining_sp<parameters_type, k_DCA> coarsegrain_obj(parameters);
+  clustermapping::coarsegraining_sp<parameters_type, k_DCA> coarsegrain_obj(parameters);
 
   if (concurrency.id() == 0)
     std::cout << "\t\t start coarsegraining G0_k_w " << dca::util::print_time() << "\n";

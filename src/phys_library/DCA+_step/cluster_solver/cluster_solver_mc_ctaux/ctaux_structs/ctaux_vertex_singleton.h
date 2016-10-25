@@ -20,6 +20,8 @@
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_domains/HS_field_sign_domain.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_domains/HS_spin_domain.h"
 
+using namespace dca::phys;
+
 namespace DCA {
 namespace QMCI {
 // DCA::QMCI::

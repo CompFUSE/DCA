@@ -7,10 +7,10 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// Tetrahedron integration class.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_TETRAHEDRON_INTEGRATION_HPP
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_TETRAHEDRON_INTEGRATION_HPP
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_TETRAHEDRON_INTEGRATION_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_TETRAHEDRON_INTEGRATION_HPP
 
 #include <complex>
 #include <iostream>
@@ -22,14 +22,16 @@
 #include "dca/math/util/vector_operations.hpp"
 #include "dca/parallel/util/get_bounds.hpp"
 #include "dca/parallel/util/threading_data.hpp"
+#include "dca/phys/dca_step/cluster_mapping/coarsegraining/coarsegraining_domain.hpp"
+#include "dca/phys/dca_step/cluster_mapping/coarsegraining/tetrahedron_integration_data.hpp"
+#include "dca/phys/dca_step/cluster_mapping/coarsegraining/tetrahedron_routines_inverse_matrix_function.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 
-#include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/coarsegraining_domain.h"
-#include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/tetrahedron_integration_data.hpp"
-#include "phys_library/DCA+_step/cluster_mapping/coarsegraining_step/tetrahedron_routines_inverse_matrix_function.h"
-
-namespace DCA {
+namespace dca {
+namespace phys {
+namespace clustermapping {
+// dca::phys::clustermapping::
 
 template <typename parameters_type, typename K_dmn>
 class tetrahedron_integration {
@@ -491,6 +493,9 @@ void* tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_m
 
   return 0;
 }
-}
 
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_TETRAHEDRON_INTEGRATION_HPP
+}  // clustermapping
+}  // phys
+}  // dca
+
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_TETRAHEDRON_INTEGRATION_HPP

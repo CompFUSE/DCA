@@ -7,15 +7,18 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// Helper class for the tetrahedron integration.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_TETRAHEDRON_INTEGRATION_DATA_HPP
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_TETRAHEDRON_INTEGRATION_DATA_HPP
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_TETRAHEDRON_INTEGRATION_DATA_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_TETRAHEDRON_INTEGRATION_DATA_HPP
 
 #include <algorithm>
 #include <complex>
 
-namespace DCA {
+namespace dca {
+namespace phys {
+namespace clustermapping {
+// dca::phys::clustermapping::
 
 template <typename scalar_type>
 class tetrahedron_integration_data {
@@ -145,6 +148,9 @@ tetrahedron_integration_data<scalar_type>::~tetrahedron_integration_data() {
   delete[] eig_rwork;
   delete[] eig_work;
 }
-}
 
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_STEP_TETRAHEDRON_INTEGRATION_DATA_HPP
+}  // clustermapping
+}  // phys
+}  // dca
+
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_TETRAHEDRON_INTEGRATION_DATA_HPP
