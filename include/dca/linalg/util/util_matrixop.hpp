@@ -86,7 +86,7 @@ std::tuple<int, int> getEigensolverSymmetricWorkSize(char jobv, char uplo,
   return std::make_tuple(lapack::util::getWorkSize(tmp1), tmp2);
 }
 
-// Returns optimal lwork and liwork for the symmetric eigensolver.
+// Returns optimal lwork and liwork for the Hermitian eigensolver.
 // In: mat
 template <typename ScalarType>
 std::tuple<int, int, int> getEigensolverHermitianWorkSize(char jobv, char uplo,

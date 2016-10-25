@@ -162,7 +162,7 @@ void tetrahedron_mesh_initializer<2, k_cluster_type>::make_convex_hull() {
       }
       catch (linalg::lapack::util::LapackException e) {
         if (e.info() < 0)
-          // Argumet error: re-throw.
+          // Argument error: re-throw.
           throw;
         // A is singular.
         continue;
@@ -389,7 +389,7 @@ void tetrahedron_mesh_initializer<3, k_cluster_type>::make_convex_hull() {
         }
         catch (linalg::lapack::util::LapackException e) {
           if (e.info() < 0)
-          // Argumet error: re-throw.
+            // Argument error: re-throw.
             throw;
           // A is singular.
           continue;

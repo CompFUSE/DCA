@@ -43,8 +43,8 @@ __global__ void multiplyDiagonalLeft(int m, int n, const Type* d, int inc_d, con
 }
 
 template <typename Type>
-__global__ void multiplyDiagonalRight(int m, int n, const Type* a, int lda, const Type* d, int inc_d,
-                                      Type* b, int ldb) {
+__global__ void multiplyDiagonalRight(int m, int n, const Type* a, int lda, const Type* d,
+                                      int inc_d, Type* b, int ldb) {
   // Work on a tile of size (blockDim.x x multiply_diag_block_size_y).
   int i = threadIdx.x + blockIdx.x * blockDim.x;
 

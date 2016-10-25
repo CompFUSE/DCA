@@ -665,10 +665,10 @@ static void gemm(char transa, char transb, Matrix<std::complex<ScalarType>, CPU>
       c(i, j) = std::complex<ScalarType>(c_re(i, j), c_im(i, j));
 }
 
-// Performs the matrix-matrix multiplication b <- a * D,
+// Performs the matrix-matrix multiplication b <- D * a,
 // where d is a vector containing the diagonal elements of the matrix D.
 // Out: b
-// Preconditions: a.size() == b.size(), d.size() == a.nrCols().
+// Preconditions: a.size() == b.size(), d.size() == a.nrRows().
 template <typename ScalarType, DeviceType device_name>
 inline void multiplyDiagonalLeft(const Vector<ScalarType, device_name>& d,
                                  const Matrix<ScalarType, device_name>& a,
@@ -705,7 +705,7 @@ inline void multiplyDiagonalRight(const Matrix<ScalarType, GPU>& a, const Vector
   multiplyDiagonalRight(a, d_gpu, b, thread_id, stream_id);
 }
 
-// Computes the eigenvalue, the left eigenvectors (if jobvl == 'V')
+// Computes the eigenvalues, the left eigenvectors (if jobvl == 'V')
 // and the right eigenvectors (if jobvr == 'V') of the real matrix a.
 // The real parts of the eigenvalues are stored in lambda_re, while the imaginary parts in
 // lambda_im.
@@ -747,9 +747,9 @@ void eigensolver(char jobvl, char jobvr, const Matrix<ScalarType, CPU>& a,
                work.size());
 }
 
-// Computes the eigenvalue, the left eigenvectors (if jobvl == 'V')
+// Computes the eigenvalues, the left eigenvectors (if jobvl == 'V')
 // and the right eigenvectors (if jobvr == 'V') of the complex matrix a.
-// The eigenvalue are stored in lambda.
+// The eigenvalues are stored in lambda.
 // If computed the left eigenvectors are stored in vl and the right eigenvectors in vr.
 // Out: lambda, vl, vr.
 // Precondition: jobvl == 'N' or jobvl == 'V',
@@ -785,10 +785,10 @@ void eigensolver(char jobvl, char jobvr, const Matrix<std::complex<ScalarType>, 
                lambda.ptr(), vl.ptr(), ldvl, vr.ptr(), ldvr, work.ptr(), work.size(), rwork.ptr());
 }
 
-// Computes the eigenvalue, and the eigenvectors (if jobv == 'V') of the real symmetric matrix a.
+// Computes the eigenvalues, and the eigenvectors (if jobv == 'V') of the real symmetric matrix a.
 // if uplo == 'U' the upper triangular part of a is referenced, whereas
 // if uplo == 'L' the lower triangular part of a is referenced.
-// The eigenvalue are stored in lambda.
+// The eigenvalues are stored in lambda.
 // If computed the eigenvectors are stored in v.
 // Out: lambda, v
 // Precondition: jobv == 'N' or jobv == 'V',
@@ -818,10 +818,11 @@ inline void eigensolverHermitian(char jobv, char uplo, const Matrix<ScalarType, 
   eigensolverSymmetric(jobv, uplo, a, lambda, v);
 }
 
-// Computes the eigenvalue, and the eigenvectors (if jobv == 'V') of the complex Hermitian matrix a.
+// Computes the eigenvalues, and the eigenvectors (if jobv == 'V')
+// of the complex Hermitian matrix a.
 // if uplo == 'U' the upper triangular part of a is referenced, whereas
 // if uplo == 'L' the lower triangular part of a is referenced.
-// The eigenvalue are stored in lambda.
+// The eigenvalues are stored in lambda.
 // If computed the eigenvectors are stored in v.
 // Out: lambda, v
 // Precondition: jobv == 'N' or jobv == 'V',

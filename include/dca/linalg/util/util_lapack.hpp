@@ -37,8 +37,8 @@ inline int getWorkSize(std::complex<Type> tmp) {
   return getWorkSize(tmp.real());
 }
 
-// Prints an error message and throws a std::logic_error if info in not zero
-// The macro provides the interface that automatically pass the function name, the filename, and
+// Prints an error message and throws a std::logic_error if info is not zero
+// The macro provides the interface that automatically passes the function name, the filename, and
 // the line to the function call.
 #define checkLapackInfo(info) \
   dca::linalg::lapack::util::checkLapackInfoInternal(info, __FUNCTION__, __FILE__, __LINE__)

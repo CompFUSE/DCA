@@ -31,16 +31,20 @@ __device__ __host__ static __inline__ cuComplex operator/(const cuComplex a, con
   return cuCdivf(a, b);
 }
 
-__device__ __host__ static __inline__ cuDoubleComplex operator+(const cuDoubleComplex a, const cuDoubleComplex b) {
+__device__ __host__ static __inline__ cuDoubleComplex operator+(const cuDoubleComplex a,
+                                                                const cuDoubleComplex b) {
   return cuCadd(a, b);
 }
-__device__ __host__ static __inline__ cuDoubleComplex operator-(const cuDoubleComplex a, const cuDoubleComplex b) {
+__device__ __host__ static __inline__ cuDoubleComplex operator-(const cuDoubleComplex a,
+                                                                const cuDoubleComplex b) {
   return cuCsub(a, b);
 }
-__device__ __host__ static __inline__ cuDoubleComplex operator*(const cuDoubleComplex a, const cuDoubleComplex b) {
+__device__ __host__ static __inline__ cuDoubleComplex operator*(const cuDoubleComplex a,
+                                                                const cuDoubleComplex b) {
   return cuCmul(a, b);
 }
-__device__ __host__ static __inline__ cuDoubleComplex operator/(const cuDoubleComplex a, const cuDoubleComplex b) {
+__device__ __host__ static __inline__ cuDoubleComplex operator/(const cuDoubleComplex a,
+                                                                const cuDoubleComplex b) {
   return cuCdiv(a, b);
 }
 
