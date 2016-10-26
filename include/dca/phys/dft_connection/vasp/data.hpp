@@ -8,11 +8,12 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Long Zhang
 //
-// Description
+// VASP data.
 
-#ifndef PHYS_LIBRARY_DFT_CONNECTION_VASP_DATA_HPP
-#define PHYS_LIBRARY_DFT_CONNECTION_VASP_DATA_HPP
+#ifndef DCA_PHYS_DFT_CONNECTION_VASP_DATA_HPP
+#define DCA_PHYS_DFT_CONNECTION_VASP_DATA_HPP
 
+#include <algorithm>
 #include <cmath>
 #include <complex>
 #include <iostream>
@@ -22,23 +23,23 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/math/function_transform/function_transform.hpp"
+#include "dca/phys/dft_connection/vasp/vasp_domains/dmft_band_domain.hpp"
+#include "dca/phys/dft_connection/vasp/vasp_domains/dmft_orbital_domain.hpp"
+#include "dca/phys/dft_connection/vasp/vasp_domains/vasp_band_domain.hpp"
+#include "dca/phys/dft_connection/vasp/vasp_domains/vasp_brillouin_zone_cut_domain.hpp"
+#include "dca/phys/dft_connection/vasp/vasp_domains/vasp_orbital_domain.hpp"
 #include "dca/phys/domains/cluster/centered_cluster_domain.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 
 #include "comp_library/function_plotting/include_plotting.h"
 #include "comp_library/linalg/linalg.hpp"
-#include "phys_library/DFT_connection/VASP/vasp_domains/dmft_band_domain.hpp"
-#include "phys_library/DFT_connection/VASP/vasp_domains/dmft_orbital_domain.hpp"
-#include "phys_library/DFT_connection/VASP/vasp_domains/vasp_band_domain.hpp"
-#include "phys_library/DFT_connection/VASP/vasp_domains/vasp_brillouin_zone_cut_domain.hpp"
-#include "phys_library/DFT_connection/VASP/vasp_domains/vasp_orbital_domain.hpp"
 
-using namespace dca;
-using namespace dca::phys;
-
-namespace DFT {
-namespace VASP {
-// DFT::VASP::
+namespace dca {
+namespace phys {
+namespace dft {
+namespace vasp {
+namespace detail {
+// dca::phys::dft::vasp::detail::
 
 struct t_ij_element {
   int oi;
@@ -48,8 +49,8 @@ struct t_ij_element {
   int dRy;
   int dRz;
 
-  //       double tijRe;
-  //       double tijIm;
+  // double tijRe;
+  // double tijIm;
 
   std::complex<double> value;
 
@@ -59,9 +60,12 @@ struct t_ij_element {
   }
 };
 
-bool operator<(const t_ij_element& lhs, const t_ij_element& rhs) {
-  return (abs(lhs.value) > abs(rhs.value));
+inline bool operator<(const t_ij_element& lhs, const t_ij_element& rhs) {
+  return (std::abs(lhs.value) > std::abs(rhs.value));
 }
+
+}  // detail
+// dca::phys::dft::vasp::
 
 template <class parameters_type>
 class data {
@@ -76,13 +80,13 @@ public:
   using k_vasp = func::dmn_0<vasp_k_cluster_type>;
   using r_vasp = func::dmn_0<vasp_r_cluster_type>;
 
-  using b_dmft = func::dmn_0<DFT::VASP::dmft_band_domain>;
-  using o_dmft = func::dmn_0<DFT::VASP::dmft_orbital_domain>;
+  using b_dmft = func::dmn_0<dmft_band_domain>;
+  using o_dmft = func::dmn_0<dmft_orbital_domain>;
 
-  using b_vasp = func::dmn_0<DFT::VASP::vasp_band_domain>;
-  using o_vasp = func::dmn_0<DFT::VASP::vasp_orbital_domain>;
+  using b_vasp = func::dmn_0<vasp_band_domain>;
+  using o_vasp = func::dmn_0<vasp_orbital_domain>;
 
-  using bz_cut = func::dmn_0<DFT::VASP::vasp_brillouin_zone_cut_domain>;
+  using bz_cut = func::dmn_0<vasp_brillouin_zone_cut_domain>;
 
   // typedef typename k_vasp::parameter_type::dual_type           vasp_r_cluster_type;
   using vasp_r_centered_dmn = func::dmn_0<domains::centered_cluster_domain<vasp_r_cluster_type>>;
@@ -171,7 +175,7 @@ public:
   //       std::vector<double> vec_tijRe;
   //       std::vector<double> vec_tijIm;
 
-  std::vector<t_ij_element> t_ij_vector;
+  std::vector<detail::t_ij_element> t_ij_vector;
 
   func::function<double, func::dmn_variadic<bz_cut, b_vasp>> E_0_vasp;
   func::function<double, func::dmn_variadic<bz_cut, o_dmft>> E_0_dmft;
@@ -851,7 +855,7 @@ void data<parameters_type>::construct_t_ij() {
             }
             tij = tij * KK;
 
-            t_ij_element t_ij;
+            detail::t_ij_element t_ij;
 
             t_ij.oi = (oi);
             t_ij.oj = (oj);
@@ -881,7 +885,9 @@ void data<parameters_type>::construct_t_ij() {
     t_ij_vector[l].print();
 }
 
-}  // VASP
-}  // DFT
+}  // vasp
+}  // dft
+}  // phys
+}  // dca
 
-#endif  // PHYS_LIBRARY_DFT_CONNECTION_VASP_DATA_HPP
+#endif  // DCA_PHYS_DFT_CONNECTION_VASP_DATA_HPP

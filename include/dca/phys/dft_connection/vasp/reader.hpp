@@ -8,10 +8,10 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Long Zhang
 //
-// Description
+// VASP reader.
 
-#ifndef PHYS_LIBRARY_DFT_CONNECTION_VASP_READER_HPP
-#define PHYS_LIBRARY_DFT_CONNECTION_VASP_READER_HPP
+#ifndef DCA_PHYS_DFT_CONNECTION_VASP_READER_HPP
+#define DCA_PHYS_DFT_CONNECTION_VASP_READER_HPP
 
 #include <complex>
 #include <fstream>
@@ -21,19 +21,18 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/phys/dft_connection/vasp/data.hpp"
+#include "dca/phys/dft_connection/vasp/vasp_domains/dmft_band_domain.hpp"
+#include "dca/phys/dft_connection/vasp/vasp_domains/dmft_orbital_domain.hpp"
+#include "dca/phys/dft_connection/vasp/vasp_domains/vasp_band_domain.hpp"
+#include "dca/phys/dft_connection/vasp/vasp_domains/vasp_orbital_domain.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 
-#include "phys_library/DFT_connection/VASP/data.hpp"
-#include "phys_library/DFT_connection/VASP/vasp_domains/dmft_band_domain.hpp"
-#include "phys_library/DFT_connection/VASP/vasp_domains/dmft_orbital_domain.hpp"
-#include "phys_library/DFT_connection/VASP/vasp_domains/vasp_band_domain.hpp"
-#include "phys_library/DFT_connection/VASP/vasp_domains/vasp_orbital_domain.hpp"
-
-using namespace dca::phys;
-
-namespace DFT {
-namespace VASP {
-// DFT::VASP::
+namespace dca {
+namespace phys {
+namespace dft {
+namespace vasp {
+// dca::phys::dft::vasp::
 
 template <class parameters_type>
 class reader {
@@ -42,11 +41,11 @@ public:
       func::dmn_0<domains::cluster_domain<double, 3, domains::VASP_LATTICE, domains::MOMENTUM_SPACE,
                                           domains::PARALLELLEPIPEDUM>>;
 
-  using b_dmft = func::dmn_0<DFT::VASP::dmft_band_domain>;
-  using o_dmft = func::dmn_0<DFT::VASP::dmft_orbital_domain>;
+  using b_dmft = func::dmn_0<dmft_band_domain>;
+  using o_dmft = func::dmn_0<dmft_orbital_domain>;
 
-  using b_vasp = func::dmn_0<DFT::VASP::vasp_band_domain>;
-  using o_vasp = func::dmn_0<DFT::VASP::vasp_orbital_domain>;
+  using b_vasp = func::dmn_0<vasp_band_domain>;
+  using o_vasp = func::dmn_0<vasp_orbital_domain>;
 
 public:
   reader(parameters_type& parameters, data<parameters_type>& data);
@@ -419,7 +418,9 @@ void reader<parameters_type>::execute() {
   }  // loop k-points
 }
 
-}  // VASP
-}  // DFT
+}  // vasp
+}  // dft
+}  // phys
+}  // dca
 
-#endif  // PHYS_LIBRARY_DFT_CONNECTION_VASP_READER_HPP
+#endif  // DCA_PHYS_DFT_CONNECTION_VASP_READER_HPP

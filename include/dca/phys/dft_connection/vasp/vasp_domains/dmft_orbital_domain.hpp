@@ -7,58 +7,45 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// DMFT orbital domain.
 
-#ifndef PHYS_LIBRARY_DFT_CONNECTION_VASP_VASP_DOMAINS_DMFT_ORBITAL_DOMAIN_HPP
-#define PHYS_LIBRARY_DFT_CONNECTION_VASP_VASP_DOMAINS_DMFT_ORBITAL_DOMAIN_HPP
+#ifndef DCA_PHYS_DFT_CONNECTION_VASP_VASP_DOMAINS_DMFT_ORBITAL_DOMAIN_HPP
+#define DCA_PHYS_DFT_CONNECTION_VASP_VASP_DOMAINS_DMFT_ORBITAL_DOMAIN_HPP
 
 #include <string>
 #include <vector>
 
-namespace DFT {
-namespace VASP {
-// DFT::VASP::
+namespace dca {
+namespace phys {
+namespace dft {
+namespace vasp {
+// dca::phys::dft::vasp::
 
 class dmft_orbital_domain {
 public:
   typedef int element_type;
 
-public:
-  static int& get_size();
-  static std::string get_name();
+  static int& get_size() {
+    static int size = 0;
+    return size;
+  }
 
-  static std::vector<element_type>& get_elements();
+  static std::string get_name() {
+    static std::string name = "dmft-orbital-domain";
+    return name;
+  }
 
-  template <typename Reader>
-  static void read(Reader& reader);
+  static std::vector<element_type>& get_elements() {
+    static std::vector<element_type> elements(get_size());
+    return elements;
+  }
 
   template <typename Writer>
   static void write(Writer& writer);
 
   template <typename parameters_type>
   static void initialize(parameters_type& parameters);
-
-  template <class stream_type>
-  static void to_JSON(stream_type& ss);
-
-private:
-  static std::vector<element_type>& initialize_elements();
 };
-
-int& dmft_orbital_domain::get_size() {
-  static int size = 0;
-  return size;
-}
-
-std::string dmft_orbital_domain::get_name() {
-  static std::string name = "dmft-orbital-domain";
-  return name;
-}
-
-std::vector<dmft_orbital_domain::element_type>& dmft_orbital_domain::get_elements() {
-  static std::vector<element_type> elements(get_size());
-  return elements;
-}
 
 template <typename Writer>
 void dmft_orbital_domain::write(Writer& writer) {
@@ -76,7 +63,9 @@ void dmft_orbital_domain::initialize(parameters_type& parameters) {
   }
 }
 
-}  // VASP
-}  // DFT
+}  // vasp
+}  // dft
+}  // phys
+}  // dca
 
-#endif  // PHYS_LIBRARY_DFT_CONNECTION_VASP_VASP_DOMAINS_DMFT_ORBITAL_DOMAIN_HPP
+#endif  // DCA_PHYS_DFT_CONNECTION_VASP_VASP_DOMAINS_DMFT_ORBITAL_DOMAIN_HPP

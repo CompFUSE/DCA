@@ -8,10 +8,10 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Long Zhang
 //
-// Description
+// VASP parameters.
 
-#ifndef PHYS_LIBRARY_DFT_CONNECTION_VASP_PARAMETERS_HPP
-#define PHYS_LIBRARY_DFT_CONNECTION_VASP_PARAMETERS_HPP
+#ifndef DCA_PHYS_DFT_CONNECTION_VASP_PARAMETERS_HPP
+#define DCA_PHYS_DFT_CONNECTION_VASP_PARAMETERS_HPP
 
 #include <iostream>
 #include <stdexcept>
@@ -21,20 +21,18 @@
 #include "dca/function/domains/dmn_0.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/io/json/json_writer.hpp"
+#include "dca/phys/dft_connection/vasp/vasp_domains/dmft_band_domain.hpp"
+#include "dca/phys/dft_connection/vasp/vasp_domains/dmft_orbital_domain.hpp"
+#include "dca/phys/dft_connection/vasp/vasp_domains/vasp_band_domain.hpp"
+#include "dca/phys/dft_connection/vasp/vasp_domains/vasp_orbital_domain.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_initializer.hpp"
 
-#include "phys_library/DFT_connection/VASP/vasp_domains/dmft_band_domain.hpp"
-#include "phys_library/DFT_connection/VASP/vasp_domains/dmft_orbital_domain.hpp"
-#include "phys_library/DFT_connection/VASP/vasp_domains/vasp_band_domain.hpp"
-#include "phys_library/DFT_connection/VASP/vasp_domains/vasp_orbital_domain.hpp"
-
-using namespace dca;
-using namespace dca::phys;
-
-namespace DFT {
-namespace VASP {
-// DFT::VASP::
+namespace dca {
+namespace phys {
+namespace dft {
+namespace vasp {
+// dca::phys::dft::vasp::
 
 template <class concurrency_t>
 class parameters {
@@ -47,22 +45,16 @@ class parameters {
       func::dmn_0<domains::cluster_domain<double, 3, domains::VASP_LATTICE, domains::REAL_SPACE,
                                           domains::PARALLELLEPIPEDUM>>;
 
-  using b_dmft = func::dmn_0<DFT::VASP::dmft_band_domain>;
-  using o_dmft = func::dmn_0<DFT::VASP::dmft_orbital_domain>;
+  using b_dmft = func::dmn_0<dmft_band_domain>;
+  using o_dmft = func::dmn_0<dmft_orbital_domain>;
 
-  using b_vasp = func::dmn_0<DFT::VASP::vasp_band_domain>;
-  using o_vasp = func::dmn_0<DFT::VASP::vasp_orbital_domain>;
+  using b_vasp = func::dmn_0<vasp_band_domain>;
+  using o_vasp = func::dmn_0<vasp_orbital_domain>;
 
 public:
   parameters(std::string version_stamp, concurrency_type& concurrency_obj);
 
   ~parameters();
-
-  template <typename Reader>
-  void read(Reader& reader);
-
-  template <typename Writer>
-  void write(Writer& writer);
 
   void read_input(std::string file_name);
 
@@ -73,13 +65,7 @@ public:
 
   void update_domains();
 
-  int get_buffer_size(concurrency_type& concurrency);
-  void pack(concurrency_type& concurrency, int* buffer, int buffer_size, int& position);
-  void unpack(concurrency_type& concurrency, int* buffer, int buffer_size, int& position);
-
   // get_functions
-  concurrency_type& get_concurrency();
-
   double get_epsilon() {
     return 1.e-6;
   }
@@ -432,7 +418,9 @@ void parameters<concurrency_t>::update_domains() {
   domains::cluster_domain_initializer<r_vasp>::execute(a_lattice, K_grid);
 }
 
-}  // VASP
-}  // DFT
+}  // vasp
+}  // dft
+}  // phys
+}  // dca
 
-#endif  // PHYS_LIBRARY_DFT_CONNECTION_VASP_PARAMETERS_HPP
+#endif  // DCA_PHYS_DFT_CONNECTION_VASP_PARAMETERS_HPP
