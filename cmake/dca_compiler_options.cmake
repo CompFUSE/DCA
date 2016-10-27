@@ -24,7 +24,8 @@ set(DCA_WARNINGS -Wall -Wextra -Wpedantic -Wno-sign-compare)
 set(DCA_STD_FLAG -std=c++14)
 
 # Set CXX flags.
-add_compile_options(${DCA_WARNINGS} ${DCA_STD_FLAG} ${DCA_THREADING_FLAGS})
+add_compile_options(${DCA_WARNINGS} ${DCA_THREADING_FLAGS})
+add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${DCA_STD_FLAG}>")
 
 # Set NVCC flags.
 if (DCA_HAVE_CUDA)

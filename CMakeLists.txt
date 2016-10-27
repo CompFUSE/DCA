@@ -131,6 +131,7 @@ install(DIRECTORY ${CMAKE_BINARY_DIR}/include/dca/config DESTINATION include/dca
 # TODO: When the number of 'internal' libraries grows, we might want to combine these into a few big
 #       libraries; e.g. one for math, phys, etc.
 add_subdirectory(src)
+add_subdirectory(libs)
 
 if (DCA_HAVE_CUDA)
   add_subdirectory(src/DCA_GPU_routines)
@@ -141,6 +142,7 @@ endif()
 # Libraries
 set(DCA_LIBS
   ${DCA_EXTERNAL_LIBS}
+  gnuplot_interface
   git_version modules
   ctaux
   posix_qmci
