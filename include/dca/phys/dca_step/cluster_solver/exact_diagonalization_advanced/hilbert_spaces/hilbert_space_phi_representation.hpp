@@ -8,21 +8,23 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// Description
+// This file provides a compact representation of the Hilbert space.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_ADVANCED_ED_HILBERT_SPACES_HILBERT_SPACE_PHI_REPRESENTATION_H
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_ADVANCED_ED_HILBERT_SPACES_HILBERT_SPACE_PHI_REPRESENTATION_H
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_HILBERT_SPACES_HILBERT_SPACE_PHI_REPRESENTATION_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_HILBERT_SPACES_HILBERT_SPACE_PHI_REPRESENTATION_HPP
 
 #include <algorithm>
 #include <cassert>
 #include <vector>
 
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_structures/phi_state.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_structures/psi_state.h"
+#include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/basis_states/phi_state.hpp"
+#include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/basis_states/psi_state.hpp"
 
-namespace DCA {
-namespace ADVANCED_EXACT_DIAGONALIZATION {
-// DCA::ADVANCED_EXACT_DIAGONALIZATION::
+namespace dca {
+namespace phys {
+namespace solver {
+namespace ed {
+// dca::phys::solver::ed::
 
 template <typename parameter_type, typename ed_options>  // N: size of bitset sequence
 class Hilbert_space_phi_representation {
@@ -143,7 +145,9 @@ int Hilbert_space_phi_representation<parameter_type, ed_options>::find(const phi
     return rep.size();
 }
 
-}  // ADVANCED_EXACT_DIAGONALIZATION
-}  // DCA
+}  // ed
+}  // solver
+}  // phys
+}  // dca
 
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_ADVANCED_ED_HILBERT_SPACES_HILBERT_SPACE_PHI_REPRESENTATION_H
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_HILBERT_SPACES_HILBERT_SPACE_PHI_REPRESENTATION_HPP

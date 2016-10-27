@@ -8,19 +8,21 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// Description
+// This file provides creation and annihilation operators for phi states.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_ADVANCED_ED_STRUCTURES_PHI_OPERATORS_H
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_ADVANCED_ED_STRUCTURES_PHI_OPERATORS_H
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_BASIS_STATES_PHI_FERMIONIC_OPERATORS_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_BASIS_STATES_PHI_FERMIONIC_OPERATORS_HPP
 
 #include <cassert>
 
-namespace DCA {
-namespace ADVANCED_EXACT_DIAGONALIZATION {
-// DCA::ADVANCED_EXACT_DIAGONALIZATION::
+namespace dca {
+namespace phys {
+namespace solver {
+namespace ed {
+// dca::phys::solver::ed::
 
 template <typename parameter_type, typename ed_options>  // N: size of bitset sequence
-class operators {
+class PhiFermionicOperators {
 public:
   typedef typename ed_options::int_type int_type;
   typedef typename ed_options::phi_type phi_type;
@@ -30,7 +32,8 @@ public:
 };
 
 template <typename parameter_type, typename ed_options>
-bool operators<parameter_type, ed_options>::create_at(int_type l, phi_type& phi, int& sign) {
+bool PhiFermionicOperators<parameter_type, ed_options>::create_at(int_type l, phi_type& phi,
+                                                                  int& sign) {
   int tmp_sgn = sign;
 
   if (phi.test(l)) {
@@ -62,7 +65,8 @@ bool operators<parameter_type, ed_options>::create_at(int_type l, phi_type& phi,
 }
 
 template <typename parameter_type, typename ed_options>
-bool operators<parameter_type, ed_options>::annihilate_at(int_type l, phi_type& phi, int& sign) {
+bool PhiFermionicOperators<parameter_type, ed_options>::annihilate_at(int_type l, phi_type& phi,
+                                                                      int& sign) {
   int tmp_sgn = sign;
 
   if (phi.test(l)) {
@@ -93,7 +97,9 @@ bool operators<parameter_type, ed_options>::annihilate_at(int_type l, phi_type& 
   }
 }
 
-}  // ADVANCED_EXACT_DIAGONALIZATION
-}  // DCA
+}  // ed
+}  // solver
+}  // phys
+}  // dca
 
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_ADVANCED_ED_STRUCTURES_PHI_OPERATORS_H
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_BASIS_STATES_PHI_FERMIONIC_OPERATORS_HPP

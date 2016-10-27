@@ -8,13 +8,10 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// Description
+// This file provides symmetry operations for psi states.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_ADVANCED_ED_STRUCTURES_PSI_SYMMETRY_OPERATOR_H
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_ADVANCED_ED_STRUCTURES_PSI_SYMMETRY_OPERATOR_H
-
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_structures/phi_operators.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_structures/psi_state.h"
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_BASIS_STATES_SYMMETRY_OPERATION_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_BASIS_STATES_SYMMETRY_OPERATION_HPP
 
 #include <cassert>
 #include <iostream>
@@ -22,9 +19,14 @@
 #include <string>
 #include <vector>
 
-namespace DCA {
-namespace ADVANCED_EXACT_DIAGONALIZATION {
-// DCA::ADVANCED_EXACT_DIAGONALIZATION::
+#include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/basis_states/phi_fermionic_operators.hpp"
+#include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/basis_states/psi_state.hpp"
+
+namespace dca {
+namespace phys {
+namespace solver {
+namespace ed {
+// dca::phys::solver::ed::
 
 template <typename parameter_type, typename ed_options>  // N: size of bitset sequence
 class symmetry_operation {
@@ -114,7 +116,7 @@ void symmetry_operation<parameter_type, ed_options>::execute(psi_state<parameter
 
     for (int j = permutation.size() - 1; j >= 0; --j) {
       if (Psi.get_phi(i)[j]) {
-        operators<parameter_type, ed_options>::create_at(permutation[j], phi_tmp, sign);
+        PhiFermionicOperators<parameter_type, ed_options>::create_at(permutation[j], phi_tmp, sign);
       }
     }
 
@@ -128,7 +130,9 @@ void symmetry_operation<parameter_type, ed_options>::execute(psi_state<parameter
   Psi.sort();
 }
 
-}  // ADVANCED_EXACT_DIAGONALIZATION
-}  // DCA
+}  // ed
+}  // solver
+}  // phys
+}  // dca
 
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_ADVANCED_ED_STRUCTURES_PSI_SYMMETRY_OPERATOR_H
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_BASIS_STATES_SYMMETRY_OPERATION_HPP

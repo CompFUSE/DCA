@@ -8,10 +8,10 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// Description
+// This class computes and stores creation and annihilation operator matrix elements.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_OVERLAP_MATRIX_H
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_OVERLAP_MATRIX_H
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_FERMIONIC_OVERLAP_MATRICES_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_FERMIONIC_OVERLAP_MATRICES_HPP
 
 #include <algorithm>
 #include <cassert>
@@ -22,13 +22,16 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
-#include "comp_library/linalg/linalg.hpp"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Hamiltonian.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/overlap_matrix_element.h"
+#include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/hamiltonian.hpp"
+#include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/overlap_matrix_element.hpp"
 
-namespace DCA {
-namespace ADVANCED_EXACT_DIAGONALIZATION {
-// DCA::ADVANCED_EXACT_DIAGONALIZATION::
+#include "comp_library/linalg/linalg.hpp"
+
+namespace dca {
+namespace phys {
+namespace solver {
+namespace ed {
+// dca::phys::solver::ed::
 
 template <typename parameter_type, typename ed_options>
 class fermionic_overlap_matrices {
@@ -51,7 +54,7 @@ public:
   typedef typename ed_options::nu_dmn nu_dmn;
   typedef typename ed_options::b_s_r b_s_r_dmn_type;
 
-  typedef fermionic_Hamiltonian<parameter_type, ed_options> fermionic_Hamiltonian_type;
+  typedef Hamiltonian<parameter_type, ed_options> fermionic_Hamiltonian_type;
 
   typedef typename ed_options::phi_type phi_type;
 
@@ -61,9 +64,9 @@ public:
   typedef psi_state<parameter_type, ed_options> psi_state_type;
 
   typedef func::dmn_0<fermionic_Fock_space_type> fermionic_Fock_dmn_type;
-  typedef operators<parameter_type, ed_options> fermionic_operators_type;
+  typedef PhiFermionicOperators<parameter_type, ed_options> fermionic_operators_type;
 
-  typedef sparse_element<parameter_type, ed_options> sparse_element_type;
+  typedef OverlapMatrixElement<parameter_type, ed_options> sparse_element_type;
 
 public:
   fermionic_overlap_matrices(parameter_type& parameters_ref,
@@ -111,7 +114,7 @@ private:
   parameter_type& parameters;
   concurrency_type& concurrency;
 
-  fermionic_Hamiltonian_type& Hamiltonian;
+  fermionic_Hamiltonian_type& hamiltonian;
 
   // creation_set(i,j,l)
   // creation_set(i,j,b_i,s_i,r_i)
@@ -142,7 +145,7 @@ fermionic_overlap_matrices<parameter_type, ed_options>::fermionic_overlap_matric
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
 
-      Hamiltonian(Hamiltonian_ref),
+      hamiltonian(Hamiltonian_ref),
 
       creation_set_all("creation_set_all"),
       creation_set_nonzero_sparse("createn_set_nonzero_sparse") {}
@@ -422,8 +425,8 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::compute_creation_ma
       std::pair<int, int>(Hilbert_spaces[HS_i].size(), Hilbert_spaces[HS_j].size()));
   helper.resizeNoCopy(std::pair<int, int>(Hilbert_spaces[HS_i].size(), Hilbert_spaces[HS_j].size()));
 
-  matrix_type& V_i = Hamiltonian.get_eigen_states()(HS_i);
-  matrix_type& V_j = Hamiltonian.get_eigen_states()(HS_j);
+  matrix_type& V_i = hamiltonian.get_eigen_states()(HS_i);
+  matrix_type& V_j = hamiltonian.get_eigen_states()(HS_j);
 
   dca::linalg::matrixop::gemm('N', 'N', sparse_creation, V_j, helper);
   dca::linalg::matrixop::gemm('C', 'N', V_i, helper, dense_creation);
@@ -440,8 +443,8 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::compute_creation_ma
       std::pair<int, int>(Hilbert_spaces[HS_i].size(), Hilbert_spaces[HS_j].size()));
   tmp.resizeNoCopy(std::pair<int, int>(Hilbert_spaces[HS_i].size(), Hilbert_spaces[HS_j].size()));
 
-  matrix_type& V_i = Hamiltonian.get_eigen_states()(HS_i);
-  matrix_type& V_j = Hamiltonian.get_eigen_states()(HS_j);
+  matrix_type& V_i = hamiltonian.get_eigen_states()(HS_i);
+  matrix_type& V_j = hamiltonian.get_eigen_states()(HS_j);
 
   {
     for (int j = 0; j < tmp.nrCols(); j++)
@@ -476,8 +479,8 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::compute_annihilatio
       std::pair<int, int>(Hilbert_spaces[HS_i].size(), Hilbert_spaces[HS_j].size()));
   helper.resizeNoCopy(std::pair<int, int>(Hilbert_spaces[HS_i].size(), Hilbert_spaces[HS_j].size()));
 
-  matrix_type& V_i = Hamiltonian.get_eigen_states()(HS_i);
-  matrix_type& V_j = Hamiltonian.get_eigen_states()(HS_j);
+  matrix_type& V_i = hamiltonian.get_eigen_states()(HS_i);
+  matrix_type& V_j = hamiltonian.get_eigen_states()(HS_j);
 
   dca::linalg::matrixop::gemm('N', 'N', sparse_annihilation, V_j, helper);
   dca::linalg::matrixop::gemm('C', 'N', V_i, helper, dense_annihilation);
@@ -494,8 +497,8 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::compute_annihilatio
       std::pair<int, int>(Hilbert_spaces[HS_i].size(), Hilbert_spaces[HS_j].size()));
   tmp.resizeNoCopy(std::pair<int, int>(Hilbert_spaces[HS_i].size(), Hilbert_spaces[HS_j].size()));
 
-  matrix_type& V_i = Hamiltonian.get_eigen_states()(HS_i);
-  matrix_type& V_j = Hamiltonian.get_eigen_states()(HS_j);
+  matrix_type& V_i = hamiltonian.get_eigen_states()(HS_i);
+  matrix_type& V_j = hamiltonian.get_eigen_states()(HS_j);
 
   {
     for (int j = 0; j < tmp.nrCols(); j++)
@@ -653,7 +656,9 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::merge(
   sparse_matrix.swap(merged_sparse_matrix);
 }
 
-}  // ADVANCED_EXACT_DIAGONALIZATION
-}  // DCA
+}  // ed
+}  // solver
+}  // phys
+}  // dca
 
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_OVERLAP_MATRIX_H
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_FERMIONIC_OVERLAP_MATRICES_HPP

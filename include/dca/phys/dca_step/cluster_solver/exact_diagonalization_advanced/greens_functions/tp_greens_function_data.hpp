@@ -8,20 +8,20 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// Description
+// This file provides a helper class for TpGreensFunction.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_ADVANCED_ED_GREENS_FUNCTIONS_TP_GREENS_FUNCTION_DATA_H
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_ADVANCED_ED_GREENS_FUNCTIONS_TP_GREENS_FUNCTION_DATA_H
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_GREENS_FUNCTIONS_TP_GREENS_FUNCTION_DATA_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_GREENS_FUNCTIONS_TP_GREENS_FUNCTION_DATA_HPP
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 
-using namespace dca::phys;
-
-namespace DCA {
-namespace ADVANCED_EXACT_DIAGONALIZATION {
-// DCA::ADVANCED_EXACT_DIAGONALIZATION::
+namespace dca {
+namespace phys {
+namespace solver {
+namespace ed {
+// dca::phys::solver::ed::
 
 template <typename ed_options>
 class tp_Greens_function_data {
@@ -129,7 +129,9 @@ void tp_Greens_function_data<ed_options>::sum_to(
   G_tp_ref += G_tp;
 }
 
-}  // ADVANCED_EXACT_DIAGONALIZATION
-}  // DCA
+}  // ed
+}  // solver
+}  // phys
+}  // dca
 
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_ADVANCED_ED_GREENS_FUNCTIONS_TP_GREENS_FUNCTION_DATA_H
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_GREENS_FUNCTIONS_TP_GREENS_FUNCTION_DATA_HPP

@@ -8,22 +8,26 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// Description
+// This file provides a single basis state of the occupation number basis.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_ADVANCED_ED_STRUCTURES_PHI_STATE_H
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_ADVANCED_ED_STRUCTURES_PHI_STATE_H
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_BASIS_STATES_PHI_STATE_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_BASIS_STATES_PHI_STATE_HPP
 
 #include <vector>
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_structures/phi_names.hpp"
+#include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/basis_states/phi_names.hpp"
 
-namespace DCA {
-namespace ADVANCED_EXACT_DIAGONALIZATION {
-// DCA::ADVANCED_EXACT_DIAGONALIZATION::
+namespace dca {
+namespace phys {
+namespace solver {
+namespace ed {
+// dca::phys::solver::ed::
 
+// Class template declaration
 template <typename parameter_type, typename ed_options,
           phi_names phi_name>  // N: size of bitset sequence
 struct phi_state {};
 
+// Phi singlet specialization
 template <typename parameter_type, typename ed_options>  // N: size of bitset sequence
 struct phi_state<parameter_type, ed_options, PHI_SINGLET> {
 public:
@@ -37,6 +41,7 @@ public:
   complex_type alpha;
 };
 
+// Phi multiplet specialization
 template <typename parameter_type, typename ed_options>  // N: size of bitset sequence
 struct phi_state<parameter_type, ed_options, PHI_MULTIPLET> {
 public:
@@ -75,7 +80,9 @@ void phi_state<parameter_type, ed_options, PHI_MULTIPLET>::sort() {
   alpha.swap(sorted_alpha);
 }
 
-}  // ADVANCED_EXACT_DIAGONALIZATION
-}  // DCA
+}  // ed
+}  // solver
+}  // phys
+}  // dca
 
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_ADVANCED_ED_STRUCTURES_PHI_STATE_H
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_BASIS_STATES_PHI_STATE_HPP

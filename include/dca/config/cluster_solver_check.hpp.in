@@ -32,9 +32,8 @@ using ParametersType = dca::phys::params::Parameters<Concurrency, Threading, Pro
 #include "dca/phys/dca_data/dca_data.hpp"
 using DcaDataType = dca::phys::DcaData<ParametersType>;
 
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_cluster_solver.h"
-using EdSolver =
-    DCA::cluster_solver<DCA::ADVANCED_ED_CLUSTER_SOLVER, walker_device, ParametersType, DcaDataType>;
+#include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/ed_cluster_solver.hpp"
+using EdSolver = dca::phys::solver::EDClusterSolver<walker_device, ParametersType, DcaDataType>;
 
 #include "@DCA_CLUSTER_SOLVER_INCLUDE@"
 using ClusterSolverBaseType =

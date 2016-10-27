@@ -8,10 +8,10 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// Description
+// This file provides type definitions and utility functions for the ED solver.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_ADVANCED_FERMIONIC_ED_TYPE_DEFINITIONS_H
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_ADVANCED_FERMIONIC_ED_TYPE_DEFINITIONS_H
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_OPTIONS_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_OPTIONS_HPP
 
 #include <bitset>
 #include <complex>
@@ -23,13 +23,14 @@
 
 #include "comp_library/linalg/linalg.hpp"
 
-namespace DCA {
-namespace ADVANCED_EXACT_DIAGONALIZATION {
-// DCA::ADVANCED_EXACT_DIAGONALIZATION::
+namespace dca {
+namespace phys {
+namespace solver {
+namespace ed {
+// dca::phys::solver::ed::
 
 template <typename parameters_type>
-struct advanced_ed_options {
-public:
+struct Options {
   const static std::size_t N = 8 * sizeof(std::size_t);
 
   using phi_type = std::bitset<N>;
@@ -76,13 +77,14 @@ public:
   using nu_nu_r_dmn_type = func::dmn_variadic<nu_dmn, nu_dmn, r_dmn>;
   using nu_nu_k_dmn_type = func::dmn_variadic<nu_dmn, nu_dmn, k_dmn>;
 
-public:
   static scalar_type get_epsilon() {
     return 1.e-3;
   }
 };
 
-}  // ADVANCED_EXACT_DIAGONALIZATION
-}  // DCA
+}  // ed
+}  // solver
+}  // phys
+}  // dca
 
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_ADVANCED_FERMIONIC_ED_TYPE_DEFINITIONS_H
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_OPTIONS_HPP

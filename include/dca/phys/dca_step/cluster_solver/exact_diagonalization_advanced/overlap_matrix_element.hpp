@@ -8,17 +8,20 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// Description
+// This file provides a helper class for fermionic_overlap_matrices to store the elements of the
+// sparse matrices.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_OVERLAP_MATRIX_ELEMENT_H
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_OVERLAP_MATRIX_ELEMENT_H
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_OVERLAP_MATRIX_ELEMENT_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_OVERLAP_MATRIX_ELEMENT_HPP
 
-namespace DCA {
-namespace ADVANCED_EXACT_DIAGONALIZATION {
-// DCA::ADVANCED_EXACT_DIAGONALIZATION::
+namespace dca {
+namespace phys {
+namespace solver {
+namespace ed {
+// dca::phys::solver::ed::
 
 template <typename parameter_type, typename ed_options>
-struct sparse_element {
+struct OverlapMatrixElement {
   typedef typename ed_options::scalar_type scalar_type;
   typedef typename ed_options::complex_type complex_type;
 
@@ -27,8 +30,8 @@ struct sparse_element {
 };
 
 template <typename parameter_type, typename ed_options>
-bool operator<(const sparse_element<parameter_type, ed_options /*b_dmn, s_dmn, r_dmn*/>& el_1,
-               const sparse_element<parameter_type, ed_options /*b_dmn, s_dmn, r_dmn*/>& el_2) {
+bool operator<(const OverlapMatrixElement<parameter_type, ed_options>& el_1,
+               const OverlapMatrixElement<parameter_type, ed_options>& el_2) {
   if (el_1.j < el_2.j)
     return true;
 
@@ -39,7 +42,9 @@ bool operator<(const sparse_element<parameter_type, ed_options /*b_dmn, s_dmn, r
     return false;
 }
 
-}  // ADVANCED_EXACT_DIAGONALIZATION
-}  // DCA
+}  // ed
+}  // solver
+}  // phys
+}  // dca
 
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_OVERLAP_MATRIX_ELEMENT_H
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_OVERLAP_MATRIX_ELEMENT_HPP

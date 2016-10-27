@@ -8,10 +8,10 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// Description
+// This class computes all two-particle functions.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_ADVANCED_ED_GREENS_FUNCTIONS_TP_GREENS_FUNCTION_ADVANCED_ED_H
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_ADVANCED_ED_GREENS_FUNCTIONS_TP_GREENS_FUNCTION_ADVANCED_ED_H
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_GREENS_FUNCTIONS_TP_GREENS_FUNCTION_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_GREENS_FUNCTIONS_TP_GREENS_FUNCTION_HPP
 
 #include <cassert>
 #include <cmath>
@@ -21,73 +21,26 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/fermionic_overlap_matrices.hpp"
+#include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/fock_space.hpp"
+#include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/greens_functions/c_operator.hpp"
+#include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/greens_functions/integration_volume.hpp"
+#include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/greens_functions/tp_greens_function_data.hpp"
+#include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/hamiltonian.hpp"
+#include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/hilbert_spaces/hilbert_space.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 #include "dca/util/print_time.hpp"
 
 #include "comp_library/function_plotting/include_plotting.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Fock_space.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Greens_functions/sp_Greens_function_data.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Greens_functions/tp_Greens_function_data.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Hamiltonian.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Hilbert_spaces/Hilbert_space_psi_representation.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/overlap_matrix.h"
 
-using namespace dca::phys;
-
-namespace DCA {
-namespace ADVANCED_EXACT_DIAGONALIZATION {
-// DCA::ADVANCED_EXACT_DIAGONALIZATION::
-
-template <typename scalar_type>
-struct integration_volume_3D {
-  bool is_converged;
-
-  scalar_type x0_l, x0_m, x0_u, x1_l, x1_m, x1_u, x2_l, x2_m, x2_u;
-
-  void do_recursion(std::vector<integration_volume_3D<scalar_type>>& /*vec*/) {
-    std::vector<integration_volume_3D<scalar_type>> vols(8);
-
-    int index = 0;
-    for (int l0 = 0; l0 < 2; l0++) {
-      for (int l1 = 0; l1 < 2; l1++) {
-        for (int l2 = 0; l2 < 2; l2++) {
-          integration_volume_3D<scalar_type>& volume = vols[index];
-
-          volume.x0_l = l0 == 0 ? x0_l : x0_m;
-          volume.x0_u = l0 == 0 ? x0_m : x0_u;
-
-          volume.x1_l = l1 == 0 ? x1_l : x1_m;
-          volume.x1_u = l1 == 0 ? x1_m : x1_u;
-
-          volume.x2_l = l2 == 0 ? x2_l : x2_m;
-          volume.x2_u = l2 == 0 ? x2_m : x2_u;
-
-          index += 1;
-        }
-      }
-    }
-
-    for (int l0 = 0; l0 < 8; l0++) {
-      integration_volume_3D<scalar_type>& volume = vols[l0];
-
-      volume.x0_m = (x0_l + x0_u) / 2.;
-      volume.x1_m = (x1_l + x1_u) / 2.;
-      volume.x2_m = (x2_l + x2_u) / 2.;
-    }
-  }
-};
-
-template <typename scalar_type>
-struct integration_volume_4D {
-  bool is_converged;
-
-  scalar_type x0_l, x0_m, x0_u, x1_l, x1_m, x1_u, x2_l, x2_m, x2_u, x3_l, x3_m, x3_u;
-
-  void do_recursion(std::vector<integration_volume_4D<scalar_type>>& /*vec*/) {}
-};
+namespace dca {
+namespace phys {
+namespace solver {
+namespace ed {
+// dca::phys::solver::ed::
 
 template <typename parameter_type, typename ed_options>
-class fermionic_tp_Greens_function {
+class TpGreensFunction {
 public:
   // typedef ED_type_definitions<parameter_type, b_dmn, s_dmn, r_dmn> ED_type_def;
 
@@ -118,7 +71,7 @@ public:
 
   typedef func::dmn_variadic<nu_dmn, nu_dmn, nu_dmn, nu_dmn, r_dmn, r_dmn, r_dmn> nu_nu_nu_nu_r_r_r_dmn_type;
 
-  typedef fermionic_Hamiltonian<parameter_type, ed_options> fermionic_Hamiltonian_type;
+  typedef Hamiltonian<parameter_type, ed_options> fermionic_Hamiltonian_type;
   typedef fermionic_overlap_matrices<parameter_type, ed_options> fermionic_overlap_type;
 
   typedef Fock_space<parameter_type, ed_options> fermionic_Fock_space_type;
@@ -132,9 +85,8 @@ public:
   using w_VERTEX_EXTENDED = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
 
 public:
-  fermionic_tp_Greens_function(parameter_type& parameters_ref,
-                               fermionic_Hamiltonian_type& Hamiltonian_ref,
-                               fermionic_overlap_type& overlap_ref);
+  TpGreensFunction(parameter_type& parameters_ref, fermionic_Hamiltonian_type& Hamiltonian_ref,
+                   fermionic_overlap_type& overlap_ref);
 
   template <typename Writer>
   void write(Writer& writer);
@@ -215,7 +167,7 @@ private:
 
   double CUT_OFF;
 
-  fermionic_Hamiltonian_type& Hamiltonian;
+  fermionic_Hamiltonian_type& hamiltonian;
   fermionic_overlap_type& overlap;
 
   func::function<vector_type, fermionic_Fock_dmn_type>& eigen_energies;
@@ -267,7 +219,7 @@ private:
 };
 
 template <typename parameter_type, typename ed_options>
-fermionic_tp_Greens_function<parameter_type, ed_options>::fermionic_tp_Greens_function(
+TpGreensFunction<parameter_type, ed_options>::TpGreensFunction(
     parameter_type& parameters_ref, fermionic_Hamiltonian_type& Hamiltonian_ref,
     fermionic_overlap_type& overlap_ref)
     : parameters(parameters_ref),
@@ -275,11 +227,11 @@ fermionic_tp_Greens_function<parameter_type, ed_options>::fermionic_tp_Greens_fu
 
       CUT_OFF(parameters.get_eigenvalue_cut_off()),
 
-      Hamiltonian(Hamiltonian_ref),
+      hamiltonian(Hamiltonian_ref),
       overlap(overlap_ref),
 
-      eigen_energies(Hamiltonian.get_eigen_energies()),
-      eigen_states(Hamiltonian.get_eigen_states()),
+      eigen_energies(hamiltonian.get_eigen_energies()),
+      eigen_states(hamiltonian.get_eigen_states()),
 
       creation_set_all(overlap.get_creation_set_all()),
       annihilation_set_all(overlap.get_annihilation_set_all()),
@@ -339,7 +291,7 @@ fermionic_tp_Greens_function<parameter_type, ed_options>::fermionic_tp_Greens_fu
 
 template <typename parameter_type, typename ed_options>
 template <typename Writer>
-void fermionic_tp_Greens_function<parameter_type, ed_options>::write(Writer& writer) {
+void TpGreensFunction<parameter_type, ed_options>::write(Writer& writer) {
   writer.open_group("fermionic-tp-Greens-function");
 
   writer.execute(G_tp_non);
@@ -364,7 +316,7 @@ void fermionic_tp_Greens_function<parameter_type, ed_options>::write(Writer& wri
 
 */
 template <typename parameter_type, typename ed_options>
-void fermionic_tp_Greens_function<parameter_type, ed_options>::compute_particle_particle_superconducting_A(
+void TpGreensFunction<parameter_type, ed_options>::compute_particle_particle_superconducting_A(
     func::function<complex_type,
                    func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>& G4) {
   if (concurrency.id() == 0)
@@ -491,7 +443,7 @@ void fermionic_tp_Greens_function<parameter_type, ed_options>::compute_particle_
 
 */
 template <typename parameter_type, typename ed_options>
-void fermionic_tp_Greens_function<parameter_type, ed_options>::compute_particle_particle_superconducting_B(
+void TpGreensFunction<parameter_type, ed_options>::compute_particle_particle_superconducting_B(
     func::function<complex_type,
                    func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>& G4) {
   if (concurrency.id() == 0)
@@ -602,7 +554,7 @@ void fermionic_tp_Greens_function<parameter_type, ed_options>::compute_particle_
 }
 
 template <typename parameter_type, typename ed_options>
-void fermionic_tp_Greens_function<parameter_type, ed_options>::compute_two_particle_Greens_function(
+void TpGreensFunction<parameter_type, ed_options>::compute_two_particle_Greens_function(
     bool /*interacting*/) {
   if (concurrency.id() == 0)
     std::cout << "\t" << __FUNCTION__ << std::endl;
@@ -618,7 +570,7 @@ void fermionic_tp_Greens_function<parameter_type, ed_options>::compute_two_parti
 }
 
 template <typename parameter_type, typename ed_options>
-void fermionic_tp_Greens_function<parameter_type, ed_options>::compute_two_particle_Greens_function(
+void TpGreensFunction<parameter_type, ed_options>::compute_two_particle_Greens_function(
     func::function<complex_type, func::dmn_variadic<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, w_VERTEX_EXTENDED,
                                                     nu_nu_nu_nu_r_r_r_dmn_type>>& G_tp_ref) {
   if (concurrency.id() == 0)
@@ -643,7 +595,7 @@ void fermionic_tp_Greens_function<parameter_type, ed_options>::compute_two_parti
   }
 
   {
-    scalar_type Z = Hamiltonian.get_Z();
+    scalar_type Z = hamiltonian.get_Z();
 
     G_tp_ref *= (1. / Z);
 
@@ -654,7 +606,7 @@ void fermionic_tp_Greens_function<parameter_type, ed_options>::compute_two_parti
 
 template <typename parameter_type, typename ed_options>
 template <typename value_type>
-value_type fermionic_tp_Greens_function<parameter_type, ed_options>::Power(value_type x, int n) {
+value_type TpGreensFunction<parameter_type, ed_options>::Power(value_type x, int n) {
   switch (n) {
     case 1:
       return x;
@@ -679,9 +631,8 @@ value_type fermionic_tp_Greens_function<parameter_type, ed_options>::Power(value
 }
 
 template <typename parameter_type, typename ed_options>
-int fermionic_tp_Greens_function<parameter_type, ed_options>::has_nonzero_overlap(int HS_i, int HS_j,
-                                                                                  bool is_creation,
-                                                                                  int bsr_ind) {
+int TpGreensFunction<parameter_type, ed_options>::has_nonzero_overlap(int HS_i, int HS_j,
+                                                                      bool is_creation, int bsr_ind) {
   if (is_creation)
     return creation_set_all(HS_i, HS_j, bsr_ind);
   else
@@ -689,8 +640,10 @@ int fermionic_tp_Greens_function<parameter_type, ed_options>::has_nonzero_overla
 }
 
 template <typename parameter_type, typename ed_options>
-void fermionic_tp_Greens_function<parameter_type, ed_options>::get_nonzero_overlap(
-    int HS_i, int HS_j, bool is_creation, int bsr_ind, matrix_type& matrix, matrix_type& tmp) {
+void TpGreensFunction<parameter_type, ed_options>::get_nonzero_overlap(int HS_i, int HS_j,
+                                                                       bool is_creation, int bsr_ind,
+                                                                       matrix_type& matrix,
+                                                                       matrix_type& tmp) {
   if (is_creation)
     overlap.compute_creation_matrix_fast(HS_i, HS_j, bsr_ind, matrix, tmp);
   else
@@ -698,7 +651,7 @@ void fermionic_tp_Greens_function<parameter_type, ed_options>::get_nonzero_overl
 }
 
 template <typename parameter_type, typename ed_options>
-void fermionic_tp_Greens_function<parameter_type, ed_options>::compute_tp_permutations_ph_channel(
+void TpGreensFunction<parameter_type, ed_options>::compute_tp_permutations_ph_channel(
     int bsr_0, int bsr_1, int bsr_2, int bsr_3, std::vector<std::vector<c_operator>>& tp_perms) {
   tp_perms.resize(0);
 
@@ -742,7 +695,7 @@ void fermionic_tp_Greens_function<parameter_type, ed_options>::compute_tp_permut
 }
 
 template <typename parameter_type, typename ed_options>
-void fermionic_tp_Greens_function<parameter_type, ed_options>::compute_tp_permutations_pp_channel(
+void TpGreensFunction<parameter_type, ed_options>::compute_tp_permutations_pp_channel(
     int bsr_0, int bsr_1, int bsr_2, int bsr_3, std::vector<std::vector<c_operator>>& tp_perms) {
   tp_perms.resize(0);
 
@@ -789,7 +742,7 @@ void fermionic_tp_Greens_function<parameter_type, ed_options>::compute_tp_permut
  *    \int_0^{\beta} dt_1 \int_0^{t_1} dt_2 \int_0^{t_2} dt_3 e^{i*(a_1*t1+a_2*t2+a_3*t3)}
  */
 template <typename parameter_type, typename ed_options>
-typename fermionic_tp_Greens_function<parameter_type, ed_options>::complex_type fermionic_tp_Greens_function<
+typename TpGreensFunction<parameter_type, ed_options>::complex_type TpGreensFunction<
     parameter_type, ed_options>::compute_phi_slow(scalar_type E_i, scalar_type E_j, scalar_type E_k,
                                                   scalar_type E_l, scalar_type w1, scalar_type w2,
                                                   scalar_type w3) {
@@ -920,7 +873,7 @@ typename fermionic_tp_Greens_function<parameter_type, ed_options>::complex_type 
 }
 
 template <typename parameter_type, typename ed_options>
-void fermionic_tp_Greens_function<parameter_type, ed_options>::compute_tp_Greens_function_slow(
+void TpGreensFunction<parameter_type, ed_options>::compute_tp_Greens_function_slow(
     int index, scalar_type E_i, scalar_type E_j, scalar_type E_k, scalar_type E_l,
     complex_type factor, std::vector<c_operator>& operators, tp_Greens_function_data_type& data) {
   int w[3];
@@ -949,8 +902,8 @@ void fermionic_tp_Greens_function<parameter_type, ed_options>::compute_tp_Greens
 
 // template<typename parameter_type, typename ed_options>
 // typename
-// fermionic_tp_Greens_function<parameter_type, ed_options>::complex_type
-// fermionic_tp_Greens_function<parameter_type, ed_options>::compute_phi_num(scalar_type E_i,
+// TpGreensFunction<parameter_type, ed_options>::complex_type
+// TpGreensFunction<parameter_type, ed_options>::compute_phi_num(scalar_type E_i,
 //                                                                           scalar_type E_j,
 //                                                                           scalar_type E_k,
 //                                                                           scalar_type E_l,
@@ -975,7 +928,7 @@ void fermionic_tp_Greens_function<parameter_type, ed_options>::compute_tp_Greens
 
 // H. Hafermann et al 2009 EPL 85 27007
 template <typename parameter_type, typename ed_options>
-void fermionic_tp_Greens_function<parameter_type, ed_options>::compute_tp_Greens_function(
+void TpGreensFunction<parameter_type, ed_options>::compute_tp_Greens_function(
     std::vector<tp_Greens_function_data_type>& data_vec) {
   // int w_nu = parameters.get_w_channel();
 
@@ -1097,7 +1050,9 @@ void fermionic_tp_Greens_function<parameter_type, ed_options>::compute_tp_Greens
   }
 }
 
-}  // ADVANCED_EXACT_DIAGONALIZATION
-}  // DCA
+}  // ed
+}  // solver
+}  // phys
+}  // dca
 
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_ADVANCED_ED_GREENS_FUNCTIONS_TP_GREENS_FUNCTION_ADVANCED_ED_H
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_GREENS_FUNCTIONS_TP_GREENS_FUNCTION_HPP

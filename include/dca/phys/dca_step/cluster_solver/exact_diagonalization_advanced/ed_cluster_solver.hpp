@@ -8,12 +8,10 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// Description
+// This file provides an exact diagonalization (ED) cluster solver.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_ADVANCED_ED_CLUSTER_SOLVER_H
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_ADVANCED_ED_CLUSTER_SOLVER_H
-
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_template.h"
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_ED_CLUSTER_SOLVER_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_ED_CLUSTER_SOLVER_HPP
 
 #include <cmath>
 #include <iostream>
@@ -27,28 +25,28 @@
 #include "dca/linalg/device_type.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_data/dca_data_real_freq.hpp"
+#include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/fermionic_overlap_matrices.hpp"
+#include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/fock_space.hpp"
+#include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/greens_functions/sp_greens_function.hpp"
+#include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/greens_functions/tp_greens_function.hpp"
+#include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/hamiltonian.hpp"
+#include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/options.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain_real_axis.hpp"
 #include "dca/phys/vertex_measurement_type.hpp"
 #include "dca/util/print_time.hpp"
 
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Fock_space.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Hamiltonian.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Greens_functions/sp_Greens_function_advanced_ed.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Greens_functions/tp_Greens_function_advanced_ed.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_fermionic_ed_type_definitions.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/overlap_matrix.h"
-
-using namespace dca::phys;
-
-namespace DCA {
+namespace dca {
+namespace phys {
+namespace solver {
+// dca::phys::solver::
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-class cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type> {
+class EDClusterSolver {
 public:
   using MOMS_w_imag_type = DcaData<parameters_type>;
   using MOMS_w_real_type = DcaDataRealFreq<parameters_type>;
 
-  using ed_options_type = ADVANCED_EXACT_DIAGONALIZATION::advanced_ed_options<parameters_type>;
+  using ed_options_type = ed::Options<parameters_type>;
 
   using b = typename ed_options_type::b;
   using nu = typename ed_options_type::nu;
@@ -58,8 +56,8 @@ public:
   using w_REAL = func::dmn_0<domains::frequency_domain_real_axis>;
 
 public:
-  cluster_solver(parameters_type& parameters_ref, MOMS_type& MOMS_ref,
-                 MOMS_w_real_type& MOMS_real_ref);
+  EDClusterSolver(parameters_type& parameters_ref, MOMS_type& MOMS_ref,
+                  MOMS_w_real_type& MOMS_real_ref);
 
   void initialize(int dca_iteration);
 
@@ -76,20 +74,15 @@ private:
   MOMS_type& MOMS_imag;
   MOMS_w_real_type& MOMS_real;
 
-  ADVANCED_EXACT_DIAGONALIZATION::Fock_space<parameters_type, ed_options_type> Fock_obj;
-
-  ADVANCED_EXACT_DIAGONALIZATION::fermionic_Hamiltonian<parameters_type, ed_options_type> Ham_obj;
-
-  ADVANCED_EXACT_DIAGONALIZATION::fermionic_overlap_matrices<parameters_type, ed_options_type> overlap_obj;
-
-  ADVANCED_EXACT_DIAGONALIZATION::fermionic_sp_Greens_function<parameters_type, ed_options_type>
-      sp_Greens_function_obj;
-  ADVANCED_EXACT_DIAGONALIZATION::fermionic_tp_Greens_function<parameters_type, ed_options_type>
-      tp_Greens_function_obj;
+  ed::Fock_space<parameters_type, ed_options_type> Fock_obj;
+  ed::Hamiltonian<parameters_type, ed_options_type> Ham_obj;
+  ed::fermionic_overlap_matrices<parameters_type, ed_options_type> overlap_obj;
+  ed::SpGreensFunction<parameters_type, ed_options_type> sp_Greens_function_obj;
+  ed::TpGreensFunction<parameters_type, ed_options_type> tp_Greens_function_obj;
 };
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::cluster_solver(
+EDClusterSolver<device_t, parameters_type, MOMS_type>::EDClusterSolver(
     parameters_type& parameters_ref, MOMS_type& MOMS_imag_ref, MOMS_w_real_type& MOMS_real_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
@@ -138,8 +131,7 @@ cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::initialize(
-    int /*dca_iteration*/) {
+void EDClusterSolver<device_t, parameters_type, MOMS_type>::initialize(int /*dca_iteration*/) {
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA>> H_DCA;
 
   math::transform::FunctionTransform<k_DCA, r_DCA>::execute(MOMS_imag.H_DCA, H_DCA);
@@ -148,7 +140,7 @@ void cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::execute() {
+void EDClusterSolver<device_t, parameters_type, MOMS_type>::execute() {
   if (concurrency.id() == concurrency.first()) {
     std::cout << "\n" << __FUNCTION__ << "\n" << std::endl;
   }
@@ -250,7 +242,7 @@ void cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 template <typename dca_info_struct_t>
-void cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::finalize(
+void EDClusterSolver<device_t, parameters_type, MOMS_type>::finalize(
     dca_info_struct_t& /*dca_info_struct*/) {
   for (int l = 0; l < MOMS_imag.G_r_w.size(); l++)
     MOMS_imag.Sigma_cluster(l) = MOMS_imag.Sigma(l);
@@ -269,8 +261,7 @@ void cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_type>::write(
-    std::string file_name) {
+void EDClusterSolver<device_t, parameters_type, MOMS_type>::write(std::string file_name) {
   std::cout << "\n\n\t\t start writing " << file_name << "\n\n";
 
   const std::string& output_format = parameters.get_output_format();
@@ -316,6 +307,8 @@ void cluster_solver<ADVANCED_ED_CLUSTER_SOLVER, device_t, parameters_type, MOMS_
     throw std::logic_error(__FUNCTION__);
 }
 
-}  // DCA
+}  // solver
+}  // phys
+}  // dca
 
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_ADVANCED_ED_CLUSTER_SOLVER_H
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_ED_CLUSTER_SOLVER_HPP

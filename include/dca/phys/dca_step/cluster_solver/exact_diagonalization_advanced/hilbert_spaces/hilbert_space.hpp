@@ -8,10 +8,10 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// Description
+// This class implements a fermionic Hilbert space.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_ADVANCED_ED_HILBERT_SPACES_HILBERT_SPACE_PSI_REPRESENTATION_H
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_ADVANCED_ED_HILBERT_SPACES_HILBERT_SPACE_PSI_REPRESENTATION_H
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_HILBERT_SPACES_HILBERT_SPACE_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_HILBERT_SPACES_HILBERT_SPACE_HPP
 
 #include <algorithm>
 #include <cmath>
@@ -19,13 +19,16 @@
 #include <string>
 #include <vector>
 
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_Hilbert_spaces/Hilbert_space_phi_representation.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_structures/psi_operations.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_exact_diagonalization_advanced/advanced_ed_structures/psi_state.h"
+#include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/basis_states/psi_operators.hpp"
+#include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/basis_states/psi_state.hpp"
+#include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/hilbert_spaces/hilbert_space_phi_representation.hpp"
 
-namespace DCA {
-namespace ADVANCED_EXACT_DIAGONALIZATION {
-// DCA::ADVANCED_EXACT_DIAGONALIZATION::
+namespace dca {
+namespace phys {
+namespace solver {
+namespace ed {
+// dca::phys::solver::ed::
+
 template <typename parameter_type, typename ed_options>  // N: size of bitset sequence
 class Hilbert_space {
 public:
@@ -190,7 +193,7 @@ typename std::vector<psi_state<parameter_type, ed_options>>::iterator Hilbert_sp
       std::lower_bound(psi_states.begin(), psi_states.end(), psi);
 
   while (it != psi_states.end() &&
-         !(DCA::ADVANCED_EXACT_DIAGONALIZATION::operator< <parameter_type, ed_options>(psi, *it))) {
+         !(ed::operator< <parameter_type, ed_options>(psi, *it))) {
     if (std::abs(abs(scalar_product<parameter_type, ed_options>(*it, psi)) - scalar_type(1.)) <
         ed_options::get_epsilon())  // 1.e-10)
       return it;
@@ -200,7 +203,9 @@ typename std::vector<psi_state<parameter_type, ed_options>>::iterator Hilbert_sp
   return psi_states.end();
 }
 
-}  // ADVANCED_EXACT_DIAGONALIZATION
-}  // DCA
+}  // ed
+}  // solver
+}  // phys
+}  // dca
 
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_ADVANCED_ED_HILBERT_SPACES_HILBERT_SPACE_PSI_REPRESENTATION_H
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_EXACT_DIAGONALIZATION_ADVANCED_HILBERT_SPACES_HILBERT_SPACE_HPP
