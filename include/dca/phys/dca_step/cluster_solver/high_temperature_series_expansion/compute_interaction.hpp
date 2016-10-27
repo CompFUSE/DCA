@@ -7,21 +7,21 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// This class implements the interaction matrix.
+// This class stores the interaction matrix.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SERIES_EXPANSION_COMPUTE_INTERACTION_H
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SERIES_EXPANSION_COMPUTE_INTERACTION_H
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_HIGH_TEMPERATURE_SERIES_EXPANSION_COMPUTE_INTERACTION_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_HIGH_TEMPERATURE_SERIES_EXPANSION_COMPUTE_INTERACTION_HPP
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 
-using namespace dca;
-using namespace dca::phys;
-
-namespace DCA {
-namespace SERIES_EXPANSION {
+namespace dca {
+namespace phys {
+namespace solver {
+namespace htseries {
+// dca::phys::solver::htseries::
 
 class compute_interaction {
 public:
@@ -55,7 +55,10 @@ public:
 protected:
   func::function<double, func::dmn_variadic<nu, nu>> U;
 };
-}
-}
 
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SERIES_EXPANSION_COMPUTE_INTERACTION_H
+}  // htseries
+}  // solver
+}  // phys
+}  // dca
+
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_HIGH_TEMPERATURE_SERIES_EXPANSION_COMPUTE_INTERACTION_HPP

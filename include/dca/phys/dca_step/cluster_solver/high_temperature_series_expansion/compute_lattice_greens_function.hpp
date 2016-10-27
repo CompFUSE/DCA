@@ -7,10 +7,10 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// This class computes the lattice Green's function.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SERIES_EXPANSION_COMPUTE_LATTICE_GREENS_FUNCTION_H
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SERIES_EXPANSION_COMPUTE_LATTICE_GREENS_FUNCTION_H
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_HIGH_TEMPERATURE_SERIES_EXPANSION_COMPUTE_LATTICE_GREENS_FUNCTION_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_HIGH_TEMPERATURE_SERIES_EXPANSION_COMPUTE_LATTICE_GREENS_FUNCTION_HPP
 
 #include <complex>
 
@@ -23,10 +23,11 @@
 
 #include "comp_library/linalg/linalg.hpp"
 
-using namespace dca::phys;
-
-namespace DCA {
-namespace SERIES_EXPANSION {
+namespace dca {
+namespace phys {
+namespace solver {
+namespace htseries {
+// dca::phys::solver::htseries::
 
 template <class parameters_type, class MOMS_type, class k_dmn_t, class w_dmn_t>
 class compute_lattice_Greens_function {
@@ -120,7 +121,10 @@ void compute_lattice_Greens_function<parameters_type, MOMS_type, k_dmn_t, w_dmn_
     }
   }
 }
-}
-}
 
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SERIES_EXPANSION_COMPUTE_LATTICE_GREENS_FUNCTION_H
+}  // htseries
+}  // solver
+}  // phys
+}  // dca
+
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_HIGH_TEMPERATURE_SERIES_EXPANSION_COMPUTE_LATTICE_GREENS_FUNCTION_HPP

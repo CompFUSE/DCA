@@ -206,7 +206,7 @@ elseif (DCA_CLUSTER_SOLVER STREQUAL "HTS")
   message(FATAL_ERROR "High temperature series expansion solver is not yet supported.")
   set(DCA_CLUSTER_SOLVER_NAME DCA::HIGH_TEMPERATURE_SERIES)
   set(DCA_CLUSTER_SOLVER_INCLUDE
-    "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/high_temperature_series_expansion_solver.h")
+    "dca/phys/dca_step/cluster_solver/high_temperature_series_expansion/high_temperature_series_expansion_solver.hpp")
 
 else()
   message(FATAL_ERROR "Please set DCA_CLUSTER_SOLVER to a valid option: CT-AUX | SS-CT-HYB | HTS.")

@@ -9,8 +9,8 @@
 //
 // This class computes the bubble in the particle-hole and particle-particle channel.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SERIES_EXPANSION_COMPUTE_BARE_BUBBLE_H
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SERIES_EXPANSION_COMPUTE_BARE_BUBBLE_H
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_HIGH_TEMPERATURE_SERIES_EXPANSION_COMPUTE_BUBBLE_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_HIGH_TEMPERATURE_SERIES_EXPANSION_COMPUTE_BUBBLE_HPP
 
 #include <cmath>
 #include <complex>
@@ -28,11 +28,11 @@
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 #include "dca/util/print_time.hpp"
 
-using namespace dca::phys;
-
-namespace DCA {
-
-namespace SERIES_EXPANSION {
+namespace dca {
+namespace phys {
+namespace solver {
+namespace htseries {
+// dca::phys::solver::htseries::
 
 enum channel { ph, pp };
 using channel_type = channel;
@@ -350,7 +350,10 @@ void* compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded
 
   return 0;
 }
-}
-}
 
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SERIES_EXPANSION_COMPUTE_BARE_BUBBLE_H
+}  // htseries
+}  // solver
+}  // phys
+}  // dca
+
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_HIGH_TEMPERATURE_SERIES_EXPANSION_COMPUTE_BUBBLE_HPP

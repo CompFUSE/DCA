@@ -26,14 +26,13 @@
 #include "dca/phys/dca_step/cluster_mapping/coarsegraining/coarsegraining_sp.hpp"
 #include "dca/phys/dca_step/cluster_mapping/double_counting_correction.hpp"
 #include "dca/phys/dca_step/cluster_mapping/update_chemical_potential.hpp"
+#include "dca/phys/dca_step/cluster_solver/high_temperature_series_expansion/high_temperature_series_expansion_solver.hpp"
 #include "dca/phys/dca_step/lattice_mapping/lattice_mapping_sp.hpp"
 #include "dca/phys/dca_step/symmetrization/symmetrize.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/util/print_time.hpp"
-
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/high_temperature_series_expansion_solver.h"
 
 namespace dca {
 namespace phys {
@@ -62,7 +61,7 @@ public:
   using update_chemical_potential_type =
       clustermapping::update_chemical_potential<ParametersType, DcaDataType, coarsegraining_sp_type>;
   using HTS_solver_type =
-      DCA::cluster_solver<DCA::HIGH_TEMPERATURE_SERIES, dca::linalg::CPU, ParametersType, DcaDataType>;
+      solver::HighTemperatureSeriesExpansionSolver<dca::linalg::CPU, ParametersType, DcaDataType>;
 
   DcaLoop(ParametersType& parameters_ref, DcaDataType& MOMS_ref, concurrency_type& concurrency_ref);
   ~DcaLoop();

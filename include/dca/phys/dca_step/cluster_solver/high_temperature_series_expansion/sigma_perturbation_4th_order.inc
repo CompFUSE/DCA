@@ -8,31 +8,7 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// This class computes the self-energy in fourth order.
-
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SERIES_EXPANSION_4TH_ORDER_PERTURBATION_SIGMA_H
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SERIES_EXPANSION_4TH_ORDER_PERTURBATION_SIGMA_H
-
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/template_perturbation_sigma.h"
-
-#include <complex>
-#include <iostream>
-
-#include "dca/function/domains.hpp"
-#include "dca/function/function.hpp"
-#include "dca/parallel/thread_manager_sum.hpp"
-#include "dca/phys/domains/quantum/electron_band_domain.hpp"
-#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
-#include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
-#include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
-
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/compute_bare_bubble.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/compute_interaction.h"
-
-using namespace dca::phys;
-
-namespace DCA {
-namespace SERIES_EXPANSION {
+// This class computes the fourth order term of the perturbation expansion of the self-energy.
 
 template <class parameters_type, class k_dmn_t>
 class sigma_perturbation<4, parameters_type, k_dmn_t> {
@@ -902,7 +878,3 @@ int sigma_perturbation<4, parameters_type, k_dmn_t>::add_freq_bf(int w1, int w2)
   int res = ((w_b + w_f) - 1 + w::dmn_size()) / 2;        // result is fermionic
   return res;
 }
-}
-}
-
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SERIES_EXPANSION_4TH_ORDER_PERTURBATION_SIGMA_H

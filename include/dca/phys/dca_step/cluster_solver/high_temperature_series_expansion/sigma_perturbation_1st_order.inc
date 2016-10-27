@@ -7,27 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// This class computes the self-energy in first order.
-
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SERIES_EXPANSION_1ST_ORDER_PERTURBATION_SIGMA_H
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SERIES_EXPANSION_1ST_ORDER_PERTURBATION_SIGMA_H
-
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/template_perturbation_sigma.h"
-
-#include <complex>
-
-#include "dca/function/domains.hpp"
-#include "dca/function/function.hpp"
-#include "dca/phys/domains/quantum/electron_band_domain.hpp"
-#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
-#include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
-
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/compute_interaction.h"
-
-using namespace dca::phys;
-
-namespace DCA {
-namespace SERIES_EXPANSION {
+// This class computes the first order term of the perturbation expansion of the self-energy.g
 
 template <class parameter_type, class k_dmn_t>
 class sigma_perturbation<1, parameter_type, k_dmn_t> {
@@ -51,7 +31,7 @@ public:
   void execute_on_cluster(func::function<double, nu>& occupancy);
 
   template <typename Writer>
-  void write(Writer& writer);
+  void write(Writer& /*writer*/) {}
 
 protected:
   parameter_type& parameters;
@@ -73,10 +53,6 @@ sigma_perturbation<1, parameter_type, k_dmn_t>::sigma_perturbation(parameter_typ
       Sigma("Sigma-1st-order") {}
 
 template <class parameter_type, class k_dmn_t>
-template <typename Writer>
-void sigma_perturbation<1, parameter_type, k_dmn_t>::write(Writer& /*writer*/) {}
-
-template <class parameter_type, class k_dmn_t>
 void sigma_perturbation<1, parameter_type, k_dmn_t>::execute_on_cluster(
     func::function<double, nu>& occupancy) {
   Sigma = 0.;
@@ -91,7 +67,3 @@ void sigma_perturbation<1, parameter_type, k_dmn_t>::execute_on_cluster(
     }
   }
 }
-}
-}
-
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SERIES_EXPANSION_1ST_ORDER_PERTURBATION_SIGMA_H

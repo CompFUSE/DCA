@@ -72,6 +72,7 @@
 #include "dca/math/util/vector_operations.hpp"
 #include "dca/phys/dca_step/cluster_mapping/coarsegraining/coarsegraining_sp.hpp"
 #include "dca/phys/dca_step/cluster_mapping/coarsegraining/coarsegraining_tp.hpp"
+#include "dca/phys/dca_step/cluster_solver/high_temperature_series_expansion/high_temperature_series_expansion_solver.hpp"
 #include "dca/phys/dca_step/lattice_mapping/lattice_mapping_sp.hpp"
 #include "dca/phys/dca_step/lattice_mapping/lattice_mapping_tp.hpp"
 #include "dca/phys/dca_step/symmetrization/diagrammatic_symmetries.hpp"
@@ -81,7 +82,6 @@
 #include "dca/util/print_time.hpp"
 
 #include "comp_library/linalg/linalg.hpp"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/high_temperature_series_expansion_solver.h"
 
 namespace dca {
 namespace phys {
@@ -384,7 +384,7 @@ void BseLatticeSolver<ParametersType, DcaDataType>::compute_chi_0_lattice(
     std::cout << "\t" << __FUNCTION__ << std::endl << std::endl;
 
   using HTS_solver_type =
-      DCA::cluster_solver<DCA::HIGH_TEMPERATURE_SERIES, dca::linalg::CPU, ParametersType, DcaDataType>;
+      solver::HighTemperatureSeriesExpansionSolver<dca::linalg::CPU, ParametersType, DcaDataType>;
 
   using lattice_map_sp_type = latticemapping::lattice_mapping_sp<ParametersType, k_DCA, k_HOST>;
 

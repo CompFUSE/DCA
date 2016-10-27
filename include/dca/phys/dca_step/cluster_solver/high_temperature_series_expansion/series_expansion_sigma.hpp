@@ -10,33 +10,30 @@
 //
 // This class computes the self-energy using a series expansion.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SERIES_EXPANSION_SERIES_EXPANSION_SIGMA_H
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SERIES_EXPANSION_SERIES_EXPANSION_SIGMA_H
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_HIGH_TEMPERATURE_SERIES_EXPANSION_SERIES_EXPANSION_SIGMA_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_HIGH_TEMPERATURE_SERIES_EXPANSION_SERIES_EXPANSION_SIGMA_HPP
 
 #include <complex>
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/phys/dca_step/cluster_solver/high_temperature_series_expansion/compute_bubble.hpp"
+#include "dca/phys/dca_step/cluster_solver/high_temperature_series_expansion/compute_interaction.hpp"
+#include "dca/phys/dca_step/cluster_solver/high_temperature_series_expansion/compute_lattice_Greens_function.hpp"
+#include "dca/phys/dca_step/cluster_solver/high_temperature_series_expansion/sigma_perturbation.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/1st_order_perturbation_sigma.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/2nd_order_perturbation_sigma.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/3rd_order_perturbation_sigma.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/4th_order_perturbation_sigma.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/compute_bare_bubble.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/compute_interaction.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/compute_lattice_Greens_function.h"
-
-using namespace dca::phys;
-
-namespace DCA {
-namespace SERIES_EXPANSION {
+namespace dca {
+namespace phys {
+namespace solver {
+namespace htseries {
+// dca::phys::solver::htseries::
 
 template <class parameters_type, class MOMS_type>
-class series_expansion {
+class SeriesExpansionSigma {
 public:
   using concurrency_type = typename parameters_type::concurrency_type;
 
@@ -54,7 +51,7 @@ public:
       func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>;
 
 public:
-  series_expansion(parameters_type& parameter_ref, MOMS_type& MOMS_ref);
+  SeriesExpansionSigma(parameters_type& parameter_ref, MOMS_type& MOMS_ref);
 
   template <class stream_type>
   void to_JSON(stream_type& ss);
@@ -87,8 +84,8 @@ private:
 };
 
 template <class parameters_type, class MOMS_type>
-series_expansion<parameters_type, MOMS_type>::series_expansion(parameters_type& parameters_ref,
-                                                               MOMS_type& MOMS_ref)
+SeriesExpansionSigma<parameters_type, MOMS_type>::SeriesExpansionSigma(parameters_type& parameters_ref,
+                                                                       MOMS_type& MOMS_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
       MOMS(MOMS_ref),
@@ -108,7 +105,7 @@ series_expansion<parameters_type, MOMS_type>::series_expansion(parameters_type& 
 }
 
 template <class parameters_type, class MOMS_type>
-void series_expansion<parameters_type, MOMS_type>::execute(bool /*do_not_adjust_mu*/) {
+void SeriesExpansionSigma<parameters_type, MOMS_type>::execute(bool /*do_not_adjust_mu*/) {
   compute_lattice_Greens_function<parameters_type, MOMS_type, k_dmn_t, w>
       compute_lattice_Greens_function_obj(parameters, MOMS);
 
@@ -153,7 +150,7 @@ void series_expansion<parameters_type, MOMS_type>::execute(bool /*do_not_adjust_
 
 template <class parameters_type, class MOMS_type>
 template <typename Writer>
-void series_expansion<parameters_type, MOMS_type>::write(Writer& writer) {
+void SeriesExpansionSigma<parameters_type, MOMS_type>::write(Writer& writer) {
   writer.execute(Sigma);
 
   ph_bubble.write(writer);
@@ -164,7 +161,10 @@ void series_expansion<parameters_type, MOMS_type>::write(Writer& writer) {
   sigma_perturbation_3_obj.write(writer);
   sigma_perturbation_4_obj.write(writer);
 }
-}
-}
 
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SERIES_EXPANSION_SERIES_EXPANSION_SIGMA_H
+}  // htseries
+}  // solver
+}  // phys
+}  // dca
+
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_HIGH_TEMPERATURE_SERIES_EXPANSION_SERIES_EXPANSION_SIGMA_HPP

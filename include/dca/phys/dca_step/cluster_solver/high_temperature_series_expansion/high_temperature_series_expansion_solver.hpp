@@ -9,10 +9,8 @@
 //
 // This class implements the high temperature series expansion solver.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SERIES_EXPANSION_HIGH_TEMPERATURE_SERIES_EXPANSION_SOLVER_H
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SERIES_EXPANSION_HIGH_TEMPERATURE_SERIES_EXPANSION_SOLVER_H
-
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_template.h"
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_HIGH_TEMPERATURE_SERIES_EXPANSION_HIGH_TEMPERATURE_SERIES_EXPANSION_SOLVER_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_HIGH_TEMPERATURE_SERIES_EXPANSION_HIGH_TEMPERATURE_SERIES_EXPANSION_SOLVER_HPP
 
 #include <iostream>
 #include <stdexcept>
@@ -21,16 +19,17 @@
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_writer.hpp"
 #include "dca/linalg/device_type.hpp"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_series_expansion/series_expansion_sigma.h"
+#include "dca/phys/dca_step/cluster_solver/high_temperature_series_expansion/series_expansion_sigma.hpp"
 
-using namespace dca::phys;
-
-namespace DCA {
+namespace dca {
+namespace phys {
+namespace solver {
+// dca::phys::solver::
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-class cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_type> {
+class HighTemperatureSeriesExpansionSolver {
 public:
-  cluster_solver(parameters_type& parameters_ref, MOMS_type& MOMS_ref);
+  HighTemperatureSeriesExpansionSolver(parameters_type& parameters_ref, MOMS_type& MOMS_ref);
 
   void initialize();
   void initialize(int dca_iteration);
@@ -54,13 +53,13 @@ private:
   parameters_type& parameters;
   MOMS_type& MOMS;
 
-  SERIES_EXPANSION::series_expansion<parameters_type, MOMS_type> series_exp_obj;
+  htseries::SeriesExpansionSigma<parameters_type, MOMS_type> series_exp_obj;
 
   int DCA_it;
 };
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_type>::cluster_solver(
+HighTemperatureSeriesExpansionSolver<device_t, parameters_type, MOMS_type>::HighTemperatureSeriesExpansionSolver(
     parameters_type& parameters_ref, MOMS_type& MOMS_ref)
     : parameters(parameters_ref),
       MOMS(MOMS_ref),
@@ -68,16 +67,16 @@ cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_type>::c
       series_exp_obj(parameters, MOMS) {}
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_type>::initialize() {}
+void HighTemperatureSeriesExpansionSolver<device_t, parameters_type, MOMS_type>::initialize() {}
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_type>::initialize(
+void HighTemperatureSeriesExpansionSolver<device_t, parameters_type, MOMS_type>::initialize(
     int dca_iteration) {
   DCA_it = dca_iteration;
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_type>::execute() {
+void HighTemperatureSeriesExpansionSolver<device_t, parameters_type, MOMS_type>::execute() {
   series_exp_obj.execute(false);
 
   // for(int i=0; i<MOMS.Sigma.size(); ++i)
@@ -90,17 +89,17 @@ void cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_typ
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_type>::finalize() {}
+void HighTemperatureSeriesExpansionSolver<device_t, parameters_type, MOMS_type>::finalize() {}
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 template <typename dca_info_struct_t>
-void cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_type>::finalize(
+void HighTemperatureSeriesExpansionSolver<device_t, parameters_type, MOMS_type>::finalize(
     dca_info_struct_t& /*dca_info_struct*/) {
   finalize();
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_type>::write(
+void HighTemperatureSeriesExpansionSolver<device_t, parameters_type, MOMS_type>::write(
     std::string file_name) {
   std::cout << "\n\n\t\t start writing " << file_name << "\n\n";
 
@@ -134,7 +133,7 @@ void cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_typ
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 template <typename Writer>
-void cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_type>::write(
+void HighTemperatureSeriesExpansionSolver<device_t, parameters_type, MOMS_type>::write(
     Writer& /*writer*/) {
   // writer.open_group("functions");
 
@@ -142,6 +141,9 @@ void cluster_solver<HIGH_TEMPERATURE_SERIES, device_t, parameters_type, MOMS_typ
 
   // writer.close_group();
 }
-}
 
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SERIES_EXPANSION_HIGH_TEMPERATURE_SERIES_EXPANSION_SOLVER_H
+}  // solver
+}  // phys
+}  // dca
+
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_HIGH_TEMPERATURE_SERIES_EXPANSION_HIGH_TEMPERATURE_SERIES_EXPANSION_SOLVER_HPP
