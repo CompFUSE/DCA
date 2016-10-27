@@ -6,35 +6,31 @@
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
+//         Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //
 // This file provides a function that prints the current time.
-//
-// TODO: - Split function declaration and definition?
-//       - Reimplement using std::chrono?
 
 #ifndef DCA_UTIL_PRINT_TIME_HPP
 #define DCA_UTIL_PRINT_TIME_HPP
 
+#include <chrono>
+#include <ctime>
+#include <iomanip>
+#include <sstream>
 #include <string>
 
 namespace dca {
 namespace util {
 // dca::util::
 
+template <typename clock = std::chrono::system_clock>
 std::string print_time() {
-  time_t rawtime;
-  struct tm* timeinfo;
+  std::stringstream s;
+  auto now = clock::to_time_t(clock::now());
+  s << std::put_time(std::localtime(&now), "%d-%m-%Y %H:%M:%S");
 
-  time(&rawtime);
-  timeinfo = localtime(&rawtime);
-
-  char buffer[80];
-  strftime(buffer, 80, "%d-%m-%Y %I:%M:%S", timeinfo);
-  std::string str(buffer);
-
-  return str;
+  return s.str();
 }
-
 }  // util
 }  // dca
 
