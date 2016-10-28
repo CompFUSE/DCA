@@ -27,6 +27,7 @@
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
@@ -40,8 +41,6 @@
 #include "dca/testing/minimalist_printer.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
-
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_cluster_solver.h"
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
@@ -59,7 +58,7 @@ TEST(bilayerLattice_Nc1_intra_plus_interband, Self_Energy) {
                                     CT_AUX_CLUSTER_SOLVER>;
   using DcaDataType = dca::phys::DcaData<ParametersType>;
   using QmcSolverType =
-      cluster_solver<CT_AUX_CLUSTER_SOLVER, linalg::CPU, ParametersType, DcaDataType>;
+      dca::phys::solver::CtauxClusterSolver<linalg::CPU, ParametersType, DcaDataType>;
 
   using w = dca::func::dmn_0<dca::phys::domains::frequency_domain>;
   using b = dca::func::dmn_0<dca::phys::domains::electron_band_domain>;

@@ -1,3 +1,3 @@
 add_subdirectory(cluster_mapping)
-add_subdirectory(cluster_solver/posix_qmci)
+add_subdirectory(cluster_solver)
 add_subdirectory(symmetrization)

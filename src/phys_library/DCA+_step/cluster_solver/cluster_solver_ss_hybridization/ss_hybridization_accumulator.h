@@ -19,18 +19,19 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/linalg/device_type.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctaux/domains/feynman_expansion_order_domain.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_domains/Feynman_expansion_order_domain.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_template/mc_accumulator_data.hpp"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_accumulator/sp_accumulator/Hybridization_accumulator_sp_nfft.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_solver_routines.h"
 #include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_walker.h"
 
 using namespace dca::phys;
+using namespace dca::phys::solver;
 
 namespace DCA {
 namespace QMCI {
@@ -105,7 +106,7 @@ public:
     return configuration;
   }
 
-  func::function<double, func::dmn_0<Feynman_expansion_order_domain>>& get_visited_expansion_order_k() {
+  func::function<double, func::dmn_0<ctaux::Feynman_expansion_order_domain>>& get_visited_expansion_order_k() {
     return visited_expansion_order_k;
   }
 
@@ -149,7 +150,7 @@ protected:
   configuration_type configuration;
   func::function<vertex_vertex_matrix_type, nu> M_matrices;
 
-  func::function<double, func::dmn_0<Feynman_expansion_order_domain>> visited_expansion_order_k;
+  func::function<double, func::dmn_0<ctaux::Feynman_expansion_order_domain>> visited_expansion_order_k;
 
   func::function<double, nu> length;
   func::function<double, func::dmn_variadic<nu, nu>> overlap;

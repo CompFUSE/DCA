@@ -33,8 +33,7 @@ using ParametersType = dca::phys::params::Parameters<Concurrency, Threading, Pro
 using DcaDataType = dca::phys::DcaData<ParametersType>;
 
 #include "@DCA_CLUSTER_SOLVER_INCLUDE@"
-using ClusterSolverBaseType =
-    DCA::cluster_solver<solver_name, walker_device, ParametersType, DcaDataType>;
+using ClusterSolverBaseType = @DCA_CLUSTER_SOLVER_TYPE@;
 
 // TODO: Clean this up (remove #ifdef).
 #ifdef DCA_WITH_THREADED_SOLVER
@@ -45,6 +44,6 @@ using ClusterSolver = ClusterSolverBaseType;
 #endif  // DCA_WITH_THREADED_SOLVER
 
 #include "dca/phys/dca_loop/dca_loop.hpp"
-using DcaLoopType = DcaLoop<ParametersType, DcaDataType, ClusterSolver>;
+using DcaLoopType = dca::phys::DcaLoop<ParametersType, DcaDataType, ClusterSolver>;
 
 #endif  // DCA_CONFIG_CONFIG_DCA_HPP

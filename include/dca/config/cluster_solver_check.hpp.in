@@ -36,8 +36,7 @@ using DcaDataType = dca::phys::DcaData<ParametersType>;
 using EdSolver = dca::phys::solver::EDClusterSolver<walker_device, ParametersType, DcaDataType>;
 
 #include "@DCA_CLUSTER_SOLVER_INCLUDE@"
-using ClusterSolverBaseType =
-    DCA::cluster_solver<solver_name, walker_device, ParametersType, DcaDataType>;
+using ClusterSolverBaseType = @DCA_CLUSTER_SOLVER_TYPE@;
 
 #ifdef DCA_WITH_THREADED_SOLVER
 #include "@DCA_THREADED_SOLVER_INCLUDE@"

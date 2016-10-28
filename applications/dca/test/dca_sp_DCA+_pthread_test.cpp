@@ -25,6 +25,7 @@
 #include "dca/parallel/pthreading/pthreading.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp"
 #include "dca/phys/dca_step/cluster_solver/posix_qmci/posix_qmci_cluster_solver.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
@@ -39,8 +40,6 @@
 #include "dca/testing/minimalist_printer.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
-
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_cluster_solver.h"
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
@@ -64,7 +63,7 @@ TEST(dca_sp_DCAplus_pthread, Self_energy) {
                                     CT_AUX_CLUSTER_SOLVER>;
   using DcaDataType = dca::phys::DcaData<ParametersType>;
   using ClusterSolverBaseType =
-      cluster_solver<CT_AUX_CLUSTER_SOLVER, linalg::CPU, ParametersType, DcaDataType>;
+      dca::phys::solver::CtauxClusterSolver<linalg::CPU, ParametersType, DcaDataType>;
   using ClusterSolverType = dca::phys::solver::PosixQmciClusterSolver<ClusterSolverBaseType>;
   using DcaLoopType = dca::phys::DcaLoop<ParametersType, DcaDataType, ClusterSolverType>;
 

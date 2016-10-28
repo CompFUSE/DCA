@@ -142,6 +142,7 @@ endif()
 set(DCA_LIBS
   ${DCA_EXTERNAL_LIBS}
   git_version modules
+  ctaux
   posix_qmci
   function_transform
   gaussian_quadrature
