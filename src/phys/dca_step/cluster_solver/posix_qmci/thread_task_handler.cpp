@@ -16,7 +16,8 @@
 namespace dca {
 namespace phys {
 namespace solver {
-// dca::phys::solver::
+namespace posixqmci {
+// dca::phys::solver::posixqmci::
 
 ThreadTaskHandler::ThreadTaskHandler(const int num_walkers, const int num_accumulators)
     : thread_tasks_(generateThreadTasksVec(num_walkers, num_accumulators)) {}
@@ -63,6 +64,7 @@ std::vector<std::string> ThreadTaskHandler::generateThreadTasksVec(const int num
   return thread_tasks;
 }
 
+}  // posixqmci
 }  // solver
 }  // phys
 }  // dca

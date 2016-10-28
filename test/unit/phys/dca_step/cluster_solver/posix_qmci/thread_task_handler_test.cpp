@@ -21,7 +21,7 @@ namespace testing {
 
 void constructorTestBody(const int num_walkers, const int num_accumulators,
                          const std::vector<std::string>& expected_thread_tasks) {
-  dca::phys::solver::ThreadTaskHandler handler(num_walkers, num_accumulators);
+  dca::phys::solver::posixqmci::ThreadTaskHandler handler(num_walkers, num_accumulators);
 
   EXPECT_EQ(expected_thread_tasks, handler.getThreadTasksVec());
 
@@ -31,7 +31,7 @@ void constructorTestBody(const int num_walkers, const int num_accumulators,
 }
 
 void walkerIDToRngIndexTestBody(const int num_walkers, const int num_accumulators) {
-  dca::phys::solver::ThreadTaskHandler handler(num_walkers, num_accumulators);
+  dca::phys::solver::posixqmci::ThreadTaskHandler handler(num_walkers, num_accumulators);
 
   std::vector<int> rng_indices;
   std::vector<int> expected(num_walkers);
@@ -95,7 +95,7 @@ TEST(ThreadTaskHandlertest, walkerIDToRngIndex) {
 
 #ifndef NDEBUG
 TEST(ThreadTaskHandlerDeathTest, walkerIDToRngIndex) {
-  dca::phys::solver::ThreadTaskHandler handler(4, 2);  // = w, a, w, a, w, w
+  dca::phys::solver::posixqmci::ThreadTaskHandler handler(4, 2);  // = w, a, w, a, w, w
 
   // Call with thread id that is out of bound.
   EXPECT_DEATH(handler.walkerIDToRngIndex(-1),

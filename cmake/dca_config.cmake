@@ -256,9 +256,9 @@ if (DCA_WITH_THREADED_SOLVER)
   dca_add_config_define(DCA_WITH_THREADED_SOLVER)
 
   if (DCA_THREADING_LIBRARY STREQUAL POSIX)
-    set(DCA_THREADED_SOLVER_TYPE DCA::posix_qmci_integrator<ClusterSolverBaseType>)
+    set(DCA_THREADED_SOLVER_TYPE dca::phys::solver::PosixQmciClusterSolver<ClusterSolverBaseType>)
     set(DCA_THREADED_SOLVER_INCLUDE
-      "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_pthread_jacket/posix_qmci_cluster_solver.h")
+      "dca/phys/dca_step/cluster_solver/posix_qmci/posix_qmci_cluster_solver.hpp")
 
   elseif (DCA_THREADING_LIBRARY STREQUAL HPX)
     set(DCA_THREADED_SOLVER_TYPE DCA::hpx_qmci_integrator<ClusterSolverBaseType>)

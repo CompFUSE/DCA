@@ -10,16 +10,19 @@
 //
 // A posix jacket that implements a MC accumulator independent of the MC method.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_PTHREAD_JACKET_POSIX_QMCI_ACCUMULATOR_H
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_PTHREAD_JACKET_POSIX_QMCI_ACCUMULATOR_H
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_POSIX_QMCI_POSIX_QMCI_ACCUMULATOR_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_POSIX_QMCI_POSIX_QMCI_ACCUMULATOR_HPP
 
 #include <pthread.h>
+
 #include <queue>
 #include <stdexcept>
 
-namespace DCA {
-namespace QMCI {
-// DCA::QMCI::
+namespace dca {
+namespace phys {
+namespace solver {
+namespace posixqmci {
+// dca::phys::solver::posixqmci::
 
 template <class qmci_accumulator_type>
 class posix_qmci_accumulator : protected qmci_accumulator_type {
@@ -158,7 +161,9 @@ void posix_qmci_accumulator<qmci_accumulator_type>::sum_to(qmci_accumulator_type
   pthread_mutex_unlock(&mutex_accumulator);
 }
 
-}  // QMCI
-}  // DCA
+}  // posixqmci
+}  // solver
+}  // phys
+}  // dca
 
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_MC_PTHREAD_JACKET_POSIX_QMCI_ACCUMULATOR_H
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_POSIX_QMCI_POSIX_QMCI_ACCUMULATOR_HPP

@@ -11,7 +11,7 @@
 // thread.
 // For performance reasons walker and accumulator threads should be created alternately, i.e.
 // walker, accumulator, w, a, w, a, ... . If the number of walkers and accumulators differ, the
-// remaining threads are created in the end, e.g. for 4 walkers and 2 accumulators this means:
+// remaining threads are created at the end, e.g. for 4 walkers and 2 accumulators this means:
 // w, a, w, a, w, w.
 
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_POSIX_QMCI_THREAD_TASK_HANDLER_HPP
@@ -24,7 +24,8 @@
 namespace dca {
 namespace phys {
 namespace solver {
-// dca::phys::solver::
+namespace posixqmci {
+// dca::phys::solver::posixqmci::
 
 class ThreadTaskHandler {
 public:
@@ -52,6 +53,7 @@ private:
   const std::vector<std::string> thread_tasks_;
 };
 
+}  // posixqmci
 }  // solver
 }  // phys
 }  // dca
