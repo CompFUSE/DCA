@@ -32,10 +32,8 @@
  * \f}
  */
 
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_ACCUMULATOR_SP_ACCUMULATOR_HYBRIDIZATION_ACCUMULATOR_SP_NFFT_H
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_ACCUMULATOR_SP_ACCUMULATOR_HYBRIDIZATION_ACCUMULATOR_SP_NFFT_H
-
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_template/mc_single_particle_accumulator.hpp"
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SS_CT_HYB_ACCUMULATOR_SP_SP_ACCUMULATOR_NFFT_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SS_CT_HYB_ACCUMULATOR_SP_SP_ACCUMULATOR_NFFT_HPP
 
 #include <complex>
 
@@ -49,14 +47,14 @@
 
 #include "comp_library/linalg/linalg.hpp"
 
-using namespace dca;
-using namespace dca::phys;
-
-namespace DCA {
-namespace QMCI {
+namespace dca {
+namespace phys {
+namespace solver {
+namespace cthyb {
+// dca::phys::solver::cthyb::
 
 template <class parameters_type, class base_cluster_type>
-class MC_single_particle_accumulator<SS_CT_HYB, NFFT, parameters_type, base_cluster_type> {
+class SpAccumulatorNfft {
 public:
   using concurrency_type = typename parameters_type::concurrency_type;
   using scalar_type = double;
@@ -79,13 +77,10 @@ public:
   using p_dmn_t = func::dmn_variadic<nu, nu, r_dmn_t>;
 
 public:
-  MC_single_particle_accumulator(parameters_type& parameters_ref);
+  SpAccumulatorNfft(parameters_type& parameters_ref);
 
   void initialize(func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>>& G_r_w,
                   func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>>& GS_r_w);
-
-  template <class walker_type, class H_type>
-  void accumulate(walker_type& walker, H_type& H_interactions);
 
   template <class configuration_type, class M_matrices_type, class H_type>
   void accumulate(double current_sign, configuration_type& configuration,
@@ -95,9 +90,6 @@ public:
                 func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>>& GS_r_w);
 
 private:
-  template <class walker_type, class H_type>
-  double compute_U_times_n(walker_type& walker, H_type& H_interactions, double t_start, int flavor);
-
   template <class configuration_type, class H_type>
   double compute_U_times_n_2(configuration_type& configuration, H_type& H_interactions,
                              double t_start, int flavor);
@@ -116,8 +108,7 @@ private:
 };
 
 template <class parameters_type, class base_cluster_type>
-MC_single_particle_accumulator<SS_CT_HYB, NFFT, parameters_type, base_cluster_type>::MC_single_particle_accumulator(
-    parameters_type& parameters_ref)
+SpAccumulatorNfft<parameters_type, base_cluster_type>::SpAccumulatorNfft(parameters_type& parameters_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
 
@@ -127,7 +118,7 @@ MC_single_particle_accumulator<SS_CT_HYB, NFFT, parameters_type, base_cluster_ty
       cached_nfft_1D_GS_obj() {}
 
 template <class parameters_type, class base_cluster_type>
-void MC_single_particle_accumulator<SS_CT_HYB, NFFT, parameters_type, base_cluster_type>::initialize(
+void SpAccumulatorNfft<parameters_type, base_cluster_type>::initialize(
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>>& G_r_w,
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>>& GS_r_w) {
   {
@@ -140,7 +131,7 @@ void MC_single_particle_accumulator<SS_CT_HYB, NFFT, parameters_type, base_clust
 }
 
 template <class parameters_type, class base_cluster_type>
-void MC_single_particle_accumulator<SS_CT_HYB, NFFT, parameters_type, base_cluster_type>::finalize(
+void SpAccumulatorNfft<parameters_type, base_cluster_type>::finalize(
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>>& G_r_w,
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>>& GS_r_w) {
   double beta = parameters.get_beta();
@@ -184,7 +175,7 @@ void MC_single_particle_accumulator<SS_CT_HYB, NFFT, parameters_type, base_clust
 
 template <class parameters_type, class base_cluster_type>
 template <class configuration_type, class M_matrices_type, class H_type>
-void MC_single_particle_accumulator<SS_CT_HYB, NFFT, parameters_type, base_cluster_type>::accumulate(
+void SpAccumulatorNfft<parameters_type, base_cluster_type>::accumulate(
     double current_sign, configuration_type& configuration, M_matrices_type& M_matrices,
     H_type& H_interactions) {
   typedef typename configuration_type::orbital_configuration_type orbital_configuration_type;
@@ -231,7 +222,7 @@ void MC_single_particle_accumulator<SS_CT_HYB, NFFT, parameters_type, base_clust
 
 template <class parameters_type, class base_cluster_type>
 template <class configuration_type, class H_type>
-double MC_single_particle_accumulator<SS_CT_HYB, NFFT, parameters_type, base_cluster_type>::compute_U_times_n_2(
+double SpAccumulatorNfft<parameters_type, base_cluster_type>::compute_U_times_n_2(
     configuration_type& configuration, H_type& H_interactions, double t_start, int flavor) {
   typedef typename configuration_type::orbital_configuration_type orbital_configuration_type;
 
@@ -263,7 +254,9 @@ double MC_single_particle_accumulator<SS_CT_HYB, NFFT, parameters_type, base_clu
   return U_times_n;
 }
 
-}  // QMCI
-}  // DCA
+}  // cthyb
+}  // solver
+}  // phys
+}  // dca
 
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_ACCUMULATOR_SP_ACCUMULATOR_HYBRIDIZATION_ACCUMULATOR_SP_NFFT_H
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SS_CT_HYB_ACCUMULATOR_SP_SP_ACCUMULATOR_NFFT_HPP

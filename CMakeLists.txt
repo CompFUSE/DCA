@@ -144,6 +144,7 @@ set(DCA_LIBS
   git_version modules
   ctaux
   posix_qmci
+  ss_ct_hyb
   function_transform
   gaussian_quadrature
   dca_nfft

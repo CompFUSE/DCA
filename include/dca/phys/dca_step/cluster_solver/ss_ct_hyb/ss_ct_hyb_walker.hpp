@@ -11,56 +11,49 @@
 //
 // This class organizes the MC walker in the SS CT-HYB QMC.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_WALKER_H
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_WALKER_H
-
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_template/mc_walker.hpp"
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SS_CT_HYB_SS_CT_HYB_WALKER_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SS_CT_HYB_SS_CT_HYB_WALKER_HPP
 
 #include <cmath>
 #include <iostream>
-#include <stdexcept>
 #include <sstream>
+#include <stdexcept>
 #include <utility>
 #include <vector>
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/linalg/device_type.hpp"
+#include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/ss_ct_hyb_typedefs.hpp"
+#include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/ss_hybridization_solver_routines.hpp"
+#include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/walker_tools/anti_segment_tools.hpp"
+#include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/walker_tools/full_line_tools.hpp"
+#include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/walker_tools/segment_tools.hpp"
+#include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/walker_tools/shift_segment_tools.hpp"
+#include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/walker_tools/ss_hybridization_walker_routines.hpp"
+#include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/walker_tools/swap_segment_tools.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
 
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_solver_routines.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_type_definitions.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_walker_tools/ANTI_SEGMENT_TOOLS.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_walker_tools/FULL_LINE_TOOLS.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_walker_tools/SEGMENT_TOOLS.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_walker_tools/SHIFT_SEGMENT_TOOLS.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_walker_tools/SWAP_SEGMENT_TOOLS.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_walker_tools/ss_hybridization_walker_routines.h"
-
-using namespace dca::phys;
-
-namespace DCA {
-namespace QMCI {
-// DCA::QMCI::
+namespace dca {
+namespace phys {
+namespace solver {
+namespace cthyb {
+// dca::phys::solver::cthyb::
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-class MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type> {
+class SsCtHybWalker {
 public:
   typedef typename parameters_type::random_number_generator rng_type;
 
-  typedef
-      typename MC_type_definitions<SS_CT_HYB, parameters_type, MOMS_type>::profiler_type profiler_type;
-  typedef
-      typename MC_type_definitions<SS_CT_HYB, parameters_type, MOMS_type>::concurrency_type concurrency_type;
+  typedef typename SsCtHybTypedefs<parameters_type, MOMS_type>::profiler_type profiler_type;
+  typedef typename SsCtHybTypedefs<parameters_type, MOMS_type>::concurrency_type concurrency_type;
 
-  typedef
-      typename MC_type_definitions<SS_CT_HYB, parameters_type, MOMS_type>::vertex_vertex_matrix_type
-          vertex_vertex_matrix_type;
-  typedef typename MC_type_definitions<SS_CT_HYB, parameters_type, MOMS_type>::configuration_type
-      configuration_type;
+  typedef typename SsCtHybTypedefs<parameters_type, MOMS_type>::vertex_vertex_matrix_type
+      vertex_vertex_matrix_type;
+  typedef typename SsCtHybTypedefs<parameters_type, MOMS_type>::configuration_type configuration_type;
 
   using t = func::dmn_0<domains::time_domain>;
   using b = func::dmn_0<domains::electron_band_domain>;
@@ -84,9 +77,9 @@ public:
   typedef swap_segment_tools<ss_hybridization_walker_routines_type> swap_segment_tools_t;
 
 public:
-  MC_walker(parameters_type& parameters_ref, MOMS_type& MOMS_ref, rng_type& rng_ref, int id = 0);
+  SsCtHybWalker(parameters_type& parameters_ref, MOMS_type& MOMS_ref, rng_type& rng_ref, int id = 0);
 
-  ~MC_walker();
+  ~SsCtHybWalker();
 
   /*!
    *  \brief Initializes the configuration and sets \f$\mu_i = \frac12 \sum_j
@@ -143,12 +136,6 @@ public:
     return ss_hybridization_walker_routines_obj;
   }
 
-  /*!
-   *  \brief Print the hybridization functions \f$F_k(w)\f$, \f$F_k(t)\f$ and \f$F_r(t)\f$.
-   */
-  template <class stream_type>
-  void to_JSON(stream_type& ss);
-
 private:
   void test_interpolation();
 
@@ -204,9 +191,9 @@ private:
 };
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::MC_walker(parameters_type& parameters_ref,
-                                                                      MOMS_type& MOMS_ref,
-                                                                      rng_type& rng_ref, int id)
+SsCtHybWalker<device_t, parameters_type, MOMS_type>::SsCtHybWalker(parameters_type& parameters_ref,
+                                                                   MOMS_type& MOMS_ref,
+                                                                   rng_type& rng_ref, int id)
     : parameters(parameters_ref),
       MOMS(MOMS_ref),
       concurrency(parameters.get_concurrency()),
@@ -236,7 +223,7 @@ MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::MC_walker(parameters
       sign(1) {}
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::~MC_walker() {
+SsCtHybWalker<device_t, parameters_type, MOMS_type>::~SsCtHybWalker() {
   if (concurrency.id() == 0 and thread_id == 0) {
     std::stringstream ss;
     ss << "\n\n\t\t walker died --> nb_successfull_updates/nb_updates : "
@@ -246,7 +233,7 @@ MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::~MC_walker() {
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::initialize() {
+void SsCtHybWalker<device_t, parameters_type, MOMS_type>::initialize() {
   ss_hybridization_solver_routines_obj.initialize_functions();
 
   ss_hybridization_walker_routines_obj.initialize_akima_coefficients(F_r_t);
@@ -282,7 +269,7 @@ void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::initialize() {
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::test_interpolation() {
+void SsCtHybWalker<device_t, parameters_type, MOMS_type>::test_interpolation() {
   std::cout << __FUNCTION__ << std::endl;
 
   SHOW::execute_on_bands(F_r_t);
@@ -324,7 +311,7 @@ void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::test_interpolat
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::do_sweep() {
+void SsCtHybWalker<device_t, parameters_type, MOMS_type>::do_sweep() {
   double factor = 1.;
   if (thermalized)
     factor = parameters.get_number_of_sweeps_per_measurement();
@@ -341,7 +328,7 @@ void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::do_sweep() {
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-int MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::get_random_interacting_flavor() {
+int SsCtHybWalker<device_t, parameters_type, MOMS_type>::get_random_interacting_flavor() {
   int spin = s::dmn_size() * rng();
   int int_band = parameters.get_interacting_bands().size() * rng();
 
@@ -349,7 +336,7 @@ int MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::get_random_inter
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::do_step() {
+void SsCtHybWalker<device_t, parameters_type, MOMS_type>::do_step() {
   double p = rng();
 
   int so_ind = get_random_interacting_flavor();
@@ -364,7 +351,7 @@ void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::do_step() {
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::do_insert_remove(int so_ind) {
+void SsCtHybWalker<device_t, parameters_type, MOMS_type>::do_insert_remove(int so_ind) {
   double rn = rng();
 
   if (configuration.get_vertices(so_ind).size() == 0) {
@@ -396,7 +383,7 @@ void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::do_insert_remov
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::insert_or_remove_full_line(int j) {
+void SsCtHybWalker<device_t, parameters_type, MOMS_type>::insert_or_remove_full_line(int j) {
   nb_updates += 1;
 
   bool succes = full_line_tools_obj.insert_or_remove(j, mu(j));
@@ -405,7 +392,7 @@ void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::insert_or_remov
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::insert_or_remove_anti_segment(int j) {
+void SsCtHybWalker<device_t, parameters_type, MOMS_type>::insert_or_remove_anti_segment(int j) {
   nb_updates += 1;
 
   bool succes;
@@ -418,7 +405,7 @@ void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::insert_or_remov
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::insert_or_remove_segment(int j) {
+void SsCtHybWalker<device_t, parameters_type, MOMS_type>::insert_or_remove_segment(int j) {
   nb_updates += 1;
 
   bool succes;
@@ -431,7 +418,7 @@ void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::insert_or_remov
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::shift_segment(int j) {
+void SsCtHybWalker<device_t, parameters_type, MOMS_type>::shift_segment(int j) {
   nb_updates += 1;
 
   bool succes;
@@ -444,7 +431,7 @@ void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::shift_segment(i
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::swap_random_orbitals() {
+void SsCtHybWalker<device_t, parameters_type, MOMS_type>::swap_random_orbitals() {
   nb_updates += 1;
 
   int i = get_random_interacting_flavor();
@@ -454,7 +441,9 @@ void MC_walker<SS_CT_HYB, device_t, parameters_type, MOMS_type>::swap_random_orb
   nb_successfull_updates += succes ? 1 : 0;
 }
 
-}  // QMCI
-}  // DCA
+}  // cthyb
+}  // solver
+}  // phys
+}  // dca
 
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_WALKER_H
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SS_CT_HYB_SS_CT_HYB_WALKER_HPP

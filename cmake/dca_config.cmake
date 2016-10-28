@@ -199,8 +199,9 @@ if (DCA_CLUSTER_SOLVER STREQUAL "CT-AUX")
 
 elseif (DCA_CLUSTER_SOLVER STREQUAL "SS-CT-HYB")
   set(DCA_CLUSTER_SOLVER_NAME DCA::SS_CT_HYB)
+  set(DCA_CLUSTER_SOLVER_TYPE "dca::phys::solver::SsCtHybClusterSolver<walker_device, ParametersType, DcaDataType>")
   set(DCA_CLUSTER_SOLVER_INCLUDE
-    "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_solver.h")
+    "dca/phys/dca_step/cluster_solver/ss_ct_hyb/ss_ct_hyb_cluster_solver.hpp")
 
 elseif (DCA_CLUSTER_SOLVER STREQUAL "HTS")
   # TODO: Remove this if HTS solver is fixed.

@@ -8,54 +8,17 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Bart Ydens
 //
-// This class organizes the configuration space in the single-site hybridization QMC.
+// This file implements ss_ct_hyb_configuration.hpp.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_STRUCTURES_SS_HYBRIDIZATION_CONFIGURATION_H
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_STRUCTURES_SS_HYBRIDIZATION_CONFIGURATION_H
+#include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/structures/ss_ct_hyb_configuration.hpp"
 
 #include <iostream>
-#include <vector>
 
-#include "dca/function/domains.hpp"
-#include "dca/function/function.hpp"
-#include "dca/phys/domains/quantum/electron_band_domain.hpp"
-#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
-
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_structures/ss_hybridization_vertex.h"
-
-using namespace dca::phys;
-
-namespace DCA {
-
-class SS_CT_HYB_configuration {
-public:
-  using this_type = SS_CT_HYB_configuration;
-  using orbital_configuration_type = std::vector<Hybridization_vertex>;
-
-  using b = func::dmn_0<domains::electron_band_domain>;
-  using s = func::dmn_0<domains::electron_spin_domain>;
-  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
-
-public:
-  SS_CT_HYB_configuration();
-
-  int size();
-
-  void initialize();
-
-  orbital_configuration_type& get_vertices(int i);
-  bool& get_full_line(int i);
-
-  void copy_from(this_type& other_configuration);
-
-  void print();
-
-private:
-  func::function<orbital_configuration_type, nu> vertices;
-  func::function<bool, nu> has_full_line;
-
-  int N_spin_orbitals;
-};
+namespace dca {
+namespace phys {
+namespace solver {
+namespace cthyb {
+// dca::phys::solver::cthyb::
 
 SS_CT_HYB_configuration::SS_CT_HYB_configuration()
     : vertices("SS_CT_HYB_vertices"), has_full_line("SS_CT_HYB_lines") {
@@ -80,14 +43,6 @@ void SS_CT_HYB_configuration::initialize() {
 
   for (int i = 0; i < vertices.size(); i++)
     vertices(i).resize(0);
-}
-
-std::vector<Hybridization_vertex>& SS_CT_HYB_configuration::get_vertices(int i) {
-  return vertices(i);
-}
-
-bool& SS_CT_HYB_configuration::get_full_line(int i) {
-  return has_full_line(i);
 }
 
 void SS_CT_HYB_configuration::copy_from(this_type& other_configuration) {
@@ -119,6 +74,7 @@ void SS_CT_HYB_configuration::print() {
   std::cout << "\n";
 }
 
-}  // DCA
-
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_STRUCTURES_SS_HYBRIDIZATION_CONFIGURATION_H
+}  // cthyb
+}  // solver
+}  // phys
+}  // dca

@@ -12,12 +12,11 @@
 // helper functions include the calculation of the determinant ratio and the computation of the new
 // hybridization matrix using sherman-morrison equations.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_WALKER_TOOLS_SS_HYBRIDIZATION_WALKER_ROUTINES_H
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_WALKER_TOOLS_SS_HYBRIDIZATION_WALKER_ROUTINES_H
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SS_CT_HYB_WALKER_TOOLS_SS_HYBRIDIZATION_WALKER_ROUTINES_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SS_CT_HYB_WALKER_TOOLS_SS_HYBRIDIZATION_WALKER_ROUTINES_HPP
 
 #include <cassert>
 #include <iostream>
-#include <utility>
 #include <vector>
 
 #include "dca/function/domains.hpp"
@@ -25,6 +24,9 @@
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/matrixop.hpp"
 #include "dca/math/interpolation/akima_interpolation.hpp"
+#include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/ss_hybridization_solver_routines.hpp"
+#include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/structures/hybridization_vertex.hpp"
+#include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/walker_tools/static_matrix_routines.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
@@ -33,105 +35,12 @@
 #include "dca/phys/domains/time_and_frequency/time_domain_left_oriented.hpp"
 
 #include "comp_library/linalg/linalg.hpp"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_solver_routines.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_structures/ss_hybridization_vertex.h"
 
-using namespace dca;
-using namespace dca::phys;
-
-namespace DCA {
-namespace QMCI {
-// DCA::QMCI::
-
-struct static_matrix_routines {
-  template <typename scalar_type>
-  static void cycle_column_forward(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M) {
-    assert(M.size().first == M.size().second);
-    assert(M.capacity().first == M.capacity().second);
-
-    std::pair<int, int> size = M.size();
-    std::pair<int, int> capacity = M.capacity();
-
-    scalar_type* tmp_column = new scalar_type[size.first];
-
-    for (int l = 0; l < size.first; l++)
-      tmp_column[l] = M(l, size.first - 1);
-
-    if ((size.first - 1) > 0)
-      memmove(&M(0, 1), &M(0, 0), sizeof(scalar_type) * capacity.first * (size.first - 1));
-
-    for (int l = 0; l < size.first; l++)
-      M(l, 0) = tmp_column[l];
-
-    delete[] tmp_column;
-  }
-
-  template <typename scalar_type>
-  static void cycle_column_backward(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M) {
-    assert(M.size().first == M.size().second);
-    assert(M.capacity().first == M.capacity().second);
-
-    std::pair<int, int> size = M.size();
-    std::pair<int, int> capacity = M.capacity();
-
-    scalar_type* tmp_column = new scalar_type[size.first];
-
-    for (int l = 0; l < size.first; l++)
-      tmp_column[l] = M(l, 0);
-
-    if ((size.first - 1) > 0)
-      memmove(&M(0, 0), &M(0, 1), sizeof(scalar_type) * capacity.first * (size.first - 1));
-
-    for (int l = 0; l < size.first; l++)
-      M(l, size.first - 1) = tmp_column[l];
-
-    delete[] tmp_column;
-  }
-
-  template <typename scalar_type>
-  static void cycle_row_forward(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M) {
-    assert(M.size().first == M.size().second);
-    assert(M.capacity().first == M.capacity().second);
-
-    std::pair<int, int> size = M.size();
-
-    scalar_type* tmp_row = new scalar_type[size.first];
-
-    for (int l = 0; l < size.first; l++)
-      tmp_row[l] = M(size.first - 1, l);
-
-    for (int l = 0; l < size.first; l++)
-      for (int row_i = size.first - 1; row_i > 0; row_i--)
-        M(row_i, l) = M(row_i - 1, l);
-
-    for (int l = 0; l < size.first; l++)
-      M(0, l) = tmp_row[l];
-
-    delete[] tmp_row;
-  }
-
-  template <typename scalar_type>
-  static void cycle_row_backward(dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& M) {
-    assert(M.size().first == M.size().second);
-    assert(M.capacity().first == M.capacity().second);
-
-    std::pair<int, int> size = M.size();
-
-    scalar_type* tmp_row = new scalar_type[size.first];
-
-    for (int l = 0; l < size.first; l++)
-      tmp_row[l] = M(0, l);
-
-    for (int l = 0; l < size.first; l++)
-      for (int row_i = 0; row_i < size.first - 1; row_i++)
-        M(row_i, l) = M(row_i + 1, l);
-
-    for (int l = 0; l < size.first; l++)
-      M(size.first - 1, l) = tmp_row[l];
-
-    delete[] tmp_row;
-  }
-};
+namespace dca {
+namespace phys {
+namespace solver {
+namespace cthyb {
+// dca::phys::solver::cthyb::
 
 template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
 class ss_hybridization_walker_routines
@@ -168,7 +77,7 @@ public:
   ss_hybridization_walker_routines(parameters_t& parameters_ref, MOMS_t& MOMS_ref,
                                    configuration_t& configuration_ref, rng_t& rng_ref);
 
-  void initialize();
+  void initialize() {}
   void initialize_akima_coefficients(func::function<double, nu_nu_r_DCA_t>& F_r_t);
 
   parameters_t& get_parameters() {
@@ -183,8 +92,6 @@ public:
   rng_t& get_rng() {
     return rng;
   }
-
-  // bool is_interacting_band(int b_ind);
 
   static int cycle(int i, int size);
 
@@ -220,21 +127,43 @@ public:
                          typename orbital_configuration_t::iterator& s_up,
                          typename orbital_configuration_t::iterator& s_down);
 
+  // Calculates the determinant ratio for inserting a new vertex. The determinant ratio is given by
+  // (A.10)
+  // \f{eqnarray*}{
+  // \frac{det(M^{k+1}_{\sigma})}{det(M^{k}_{\sigma})} = det(S - R M^k Q)
+  // \f}
+  // with\f$ S = F(\tau^n_{e} - \tau^n_{s})\f$,
+  // R a (1 x k)-vector with \f$R[i] =  F(\tau^n_{e} - \tau^i_{s})\f$,
+  // Q a (k x 1)-vector with \f$Q[i] =  F(\tau^i_{e} - \tau^n_{s})\f$.
   template <typename G, typename vertex_vertex_matrix_type, typename orbital_configuration_t>
   double det_rat_up(int this_flavor, Hybridization_vertex& new_segment, vertex_vertex_matrix_type& M,
                     orbital_configuration_t& segments_old, G& F, std::vector<double>& R,
                     std::vector<double>& Q, double& det_rat_sign, double& overlap);
 
+  // Calculates the new hybridization matrix for inserting a new vertex using sherman-morrison
+  // equations (A.4-9).
   template <typename G, typename vertex_vertex_matrix_type, typename orbital_configuration_t>
   void compute_M_up(int r, int s, vertex_vertex_matrix_type& M, orbital_configuration_t& segments_old,
                     G& F, std::vector<double>& Fs, std::vector<double>& Fe, double det_rat);
 
+  // Calculates the determinant ratio for removing a vertex.
   template <typename vertex_vertex_matrix_type, typename orbital_configuration_t>
   double det_rat_down(int r, int s, vertex_vertex_matrix_type& M,
                       orbital_configuration_t& segments_old, double& det_rat_sign);
 
+  // Calculates the new hybridization matrix for removing a vertex using sherman-morrison equations
+  // (A.4-9).
   template <typename vertex_vertex_matrix_type>
   void compute_M_down(int r, int s, vertex_vertex_matrix_type& M);
+
+  // Calculates the determinant ratio for shifting a vertex end point. (u is k-th unity vector)
+  // \f{eqnarray}{
+  // det_rat &=& 1 + v*A^{-1}*u \\
+  //         &=& 1 + (F_{new} - F_{old}) * A^{-1} *u \\
+  //         &=& 1 + F_{new} * A^{-1} *u -  F_{old} * A^{-1} *u = F_{new} * A^{-1} *u
+  // \f}
+  // \f$ F_{old} \f$ is k-th row of matrix A, and \f$A^{-1} *u\f$ is k_th column of \f$A^{-1}\f$ and
+  // thus \f$ F_{old} *A^{-1} *u\f$ is equal to 1. (\f$A A^{-1} = I\f$)
 
   template <typename G, typename vertex_vertex_matrix_type, typename orbital_configuration_t>
   double det_rat_shift_end(int this_flavor, Hybridization_vertex& new_segment, int k,
@@ -242,28 +171,42 @@ public:
                            G& F, std::vector<double>& R, std::vector<double>& Q,
                            double& det_rat_sign, double& overlap);
 
+  // Calculates the determinant ratio for shifting a vertex start point. (v is k-th unity vector)
+  // \f{eqnarray}{
+  // det_rat &=& 1 + v*A^{-1}*u \\
+  //         &=& 1 + v * A^{-1} *(F_{new} - F_{old})\\
+  //         &=& 1 + v * A^{-1} *F_{new} -  v * A^{-1} * F_{old} = v * A^{-1} *F_{new}
+  // \f}
+  // \f$ F_{old} \f$ is k-th column of matrix A, and \f$ v * A^{-1} \f$ is k_th row of \f$ A^{-1}
+  // \f$ and thus \f$ v * A^{-1} * F_{old} \f$ is equal to 1. (\f$A A^{-1} = I\f$)
   template <typename G, typename vertex_vertex_matrix_type, typename orbital_configuration_t>
   double det_rat_shift_start(int this_flavor, Hybridization_vertex& new_segment, int k,
                              vertex_vertex_matrix_type& M, orbital_configuration_t& segments_old,
                              G& F, std::vector<double>& R, std::vector<double>& Q,
                              double& det_rat_sign, double& overlap);
 
+  // Calculates the new hybridization matrix for shifting a vertex end point using sherman-morrison
+  // equations (A.4-9). Q_prime is actually -Q_prime
   template <typename vertex_vertex_matrix_type>
   void compute_M_shift_end(int k, vertex_vertex_matrix_type& M, std::vector<double>& Fs,
                            std::vector<double>& Fe, double det_rat);
 
+  // Calculates the new hybridization matrix for shifting a vertex start point using
+  // sherman-morrison equations (A.4-9). R_prime is actually -R_prime
   template <typename vertex_vertex_matrix_type>
   void compute_M_shift_start(int k, vertex_vertex_matrix_type& M, std::vector<double>& Fs,
                              std::vector<double>& Fe, double det_rat);
-
+  // Calculates Q' = -M*Q.
   template <typename vertex_vertex_matrix_type>
   void compute_Q_prime(std::vector<double>& Q, vertex_vertex_matrix_type& M,
                        std::vector<double>& Q_prime);
 
+  // Calculates R' = -R*M.
   template <typename vertex_vertex_matrix_type>
   void compute_R_prime(std::vector<double>& R, vertex_vertex_matrix_type& M,
                        std::vector<double>& R_prime);
 
+  // Calculates new M matrix M_new = Q'*R'*S'.
   template <typename vertex_vertex_matrix_type>
   void compute_M(std::vector<double>& Q_prime, std::vector<double>& R_prime, double S_prime,
                  vertex_vertex_matrix_type& M);
@@ -295,9 +238,6 @@ ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::
 
   initialize();
 }
-
-template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
-void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::initialize() {}
 
 template <class parameters_t, class MOMS_t, typename configuration_t, typename rng_t>
 void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::initialize_akima_coefficients(
@@ -537,19 +477,6 @@ void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng
   }
 }
 
-/*!
- * \ingroups  HYBRIDIZATION TOOLS
- *
- * \brief    Calculates the determinant ratio for inserting a new vertex. The determinant ratio is
- * given by (A.10)
- * \f{eqnarray*}{
- * \frac{det(M^{k+1}_{\sigma})}{det(M^{k}_{\sigma})} = det(S - R M^k Q)
- * \f}
- * with\f$ S = F(\tau^n_{e} - \tau^n_{s})\f$,
- * R a (1 x k)-vector with \f$R[i] =  F(\tau^n_{e} - \tau^i_{s})\f$,
- * Q a (k x 1)-vector with \f$Q[i] =  F(\tau^i_{e} - \tau^n_{s})\f$.
- *
- */
 template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
 template <typename Hybridization_function_t, typename vertex_vertex_matrix_type,
           typename orbital_configuration_t>
@@ -609,13 +536,6 @@ double ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, r
   return det_rat;
 }
 
-/*!
- * \ingroups  HYBRIDIZATION TOOLS
- *
- * \brief    Calculates the new hybridization matrix for inserting a new vertex using
- * sherman-morrison equations (A.4-9).
- *
- */
 template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
 template <typename Hybridization_function_t, typename vertex_vertex_matrix_type,
           typename orbital_configuration_t>
@@ -672,12 +592,6 @@ void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng
   M(r, s) = 1. / S_prime_inv;
 }
 
-/*!
- * \ingroups  HYBRIDIZATION TOOLS
- *
- * \brief    Calculates the determinant ratio for removing a vertex.
- *
- */
 template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
 template <typename vertex_vertex_matrix_type, typename orbital_configuration_t>
 double ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::det_rat_down(
@@ -704,13 +618,6 @@ double ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, r
   return det_rat;
 }
 
-/*!
- * \ingroups  HYBRIDIZATION TOOLS
- *
- * \brief    Calculates the new hybridization matrix for removing a vertex using sherman-morrison
- * equations (A.4-9).
- *
- */
 template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
 template <typename vertex_vertex_matrix_type>
 void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::compute_M_down(
@@ -745,20 +652,6 @@ void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng
     M.resize(0);
 }
 
-/*!
- * \ingroup  HYBRIDIZATION
- *
- * \brief    Calculates the determinant ratio for shifting a vertex end point. (u is k-th unity
- * vector)
- * \f{eqnarray}{
- * det_rat &=& 1 + v*A^{-1}*u\\
- *         &=& 1 + (F_{new} - F_{old}) * A^{-1} *u\\
- *         &=& 1 + F_{new} * A^{-1} *u -  F_{old} * A^{-1} *u = F_{new} * A^{-1} *u
- * \f}
- * \f$ F_{old} \f$ is k-th row of matrix A, and \f$A^{-1} *u\f$ is k_th column of \f$A^{-1}\f$ and
- * thus \f$ F_{old} *A^{-1} *u\f$ is equal to 1. (\f$A A^{-1} = I\f$)
- *
- */
 template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
 template <typename Hybridization_function_t, typename vertex_vertex_matrix_type,
           typename orbital_configuration_t>
@@ -811,20 +704,6 @@ double ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, r
   return det_rat;
 }
 
-/*!
- * \ingroup  HYBRIDIZATION
- *
- * \brief    Calculates the determinant ratio for shifting a vertex start point. (v is k-th unity
- * vector)
- * \f{eqnarray}{
- * det_rat &=& 1 + v*A^{-1}*u\\
- *         &=& 1 + v * A^{-1} *(F_{new} - F_{old})\\
- *         &=& 1 + v * A^{-1} *F_{new} -  v * A^{-1} * F_{old} = v * A^{-1} *F_{new}
- * \f}
- * \f$ F_{old} \f$ is k-th column of matrix A, and \f$ v * A^{-1} \f$ is k_th row of \f$ A^{-1} \f$
- * and thus \f$ v * A^{-1} * F_{old} \f$ is equal to 1. (\f$A A^{-1} = I\f$)
- *
- */
 template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
 template <typename Hybridization_function_t, typename vertex_vertex_matrix_type,
           typename orbital_configuration_t>
@@ -880,13 +759,6 @@ double ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, r
   return det_rat;
 }
 
-/*!
- * \ingroup  HYBRIDIZATION
- *
- * \brief    Calculates the new hybridization matrix for shifting a vertex end point using
- * sherman-morrison equations (A.4-9). Q_prime is actually -Q_prime
- *
- */
 template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
 template <typename vertex_vertex_matrix_type>
 void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::compute_M_shift_end(
@@ -906,13 +778,6 @@ void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng
   compute_M(Q_prime, R_prime, S_prime, M);
 }
 
-/*!
- * \ingroup  HYBRIDIZATION
- *
- * \brief    Calculates the new hybridization matrix for shifting a vertex start point using
- * sherman-morrison equations (A.4-9). R_prime is actually -R_prime
- *
- */
 template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
 template <typename vertex_vertex_matrix_type>
 void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::compute_M_shift_start(
@@ -932,12 +797,6 @@ void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng
   compute_M(Q_prime, R_prime, S_prime, M);
 }
 
-/*!
- * \ingroups  HYBRIDIZATION TOOLS
- *
- * \brief    Calculates Q' = -M*Q
- *
- */
 template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
 template <typename vertex_vertex_matrix_type>
 void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::compute_Q_prime(
@@ -946,12 +805,6 @@ void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng
                           &Q[0], 1, 0., &Q_prime[0], 1);
 }
 
-/*!
- * \ingroups  HYBRIDIZATION TOOLS
- *
- * \brief     Calculates R' = -R*M
- *
- */
 template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
 template <typename vertex_vertex_matrix_type>
 void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::compute_R_prime(
@@ -960,12 +813,6 @@ void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng
                           &R[0], 1, 0., &R_prime[0], 1);
 }
 
-/*!
- * \ingroups  HYBRIDIZATION TOOLS
- *
- * \brief    Calculates new M matrix M_new = Q'*R'*S'
- *
- */
 template <typename parameters_t, typename MOMS_t, typename configuration_t, typename rng_t>
 template <typename vertex_vertex_matrix_type>
 void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng_t>::compute_M(
@@ -977,7 +824,9 @@ void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng
   // &Q_prime[0], 1, &R_prime[0], 1, &M(0, 0), M.leadingDimension());
 }
 
-}  // QMCI
-}  // DCA
+}  // cthyb
+}  // solver
+}  // phys
+}  // dca
 
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_WALKER_TOOLS_SS_HYBRIDIZATION_WALKER_ROUTINES_H
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SS_CT_HYB_WALKER_TOOLS_SS_HYBRIDIZATION_WALKER_ROUTINES_HPP

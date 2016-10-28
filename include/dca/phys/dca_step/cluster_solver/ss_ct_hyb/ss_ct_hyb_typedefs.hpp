@@ -9,19 +9,20 @@
 //
 // This class defines common types for the Single-Site Hybridization Monte Carlo Integrator.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_TYPE_DEFINITIONS_H
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_TYPE_DEFINITIONS_H
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SS_CT_HYB_SS_CT_HYB_TYPEDEFS_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SS_CT_HYB_SS_CT_HYB_TYPEDEFS_HPP
 
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_template/mc_type_definitions.hpp"
-#include "comp_library/linalg/linalg.hpp"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_structures/ss_hybridization_configuration.h"
+#include "dca/linalg/matrix.hpp"
+#include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/structures/ss_ct_hyb_configuration.hpp"
 
-namespace DCA {
-namespace QMCI {
-// DCA::QMCI::
+namespace dca {
+namespace phys {
+namespace solver {
+namespace cthyb {
+// dca::phys::solver::cthyb::
 
 template <class parameters_type, class MOMS_type>
-class MC_type_definitions<SS_CT_HYB, parameters_type, MOMS_type> {
+class SsCtHybTypedefs {
 public:
   // Types that define the profiling.
   typedef typename parameters_type::concurrency_type concurrency_type;
@@ -37,7 +38,9 @@ public:
   typedef typename configuration_type::orbital_configuration_type orbital_configuration_type;
 };
 
-}  // QMCI
-}  // DCA
+}  // cthyb
+}  // solver
+}  // phys
+}  // dca
 
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_TYPE_DEFINITIONS_H
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SS_CT_HYB_SS_CT_HYB_TYPEDEFS_HPP

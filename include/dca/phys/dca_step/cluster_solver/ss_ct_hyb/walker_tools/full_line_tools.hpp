@@ -14,19 +14,21 @@
 //   W_{acc}(empty \rightarrow full) = min \left(1, \frac{W_{loc}(full)}{W_{loc}(empty)} \right)
 // \f}
 
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_WALKER_TOOLS_FULL_LINE_TOOLS_H
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_WALKER_TOOLS_FULL_LINE_TOOLS_H
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SS_CT_HYB_WALKER_TOOLS_FULL_LINE_TOOLS_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SS_CT_HYB_WALKER_TOOLS_FULL_LINE_TOOLS_HPP
 
-#include <cstdlib>
 #include <cmath>
+#include <cstdlib>
 
 #include "dca/function/domains/dmn_0.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 
-using namespace dca::phys;
-
-namespace DCA {
+namespace dca {
+namespace phys {
+namespace solver {
+namespace cthyb {
+// dca::phys::solver::cthyb::
 
 template <typename hybridization_routines_type>
 class full_line_tools {
@@ -151,6 +153,9 @@ double full_line_tools<hybridization_routines_type>::get_other_length_u(int j) {
   return otherlength_u;
 }
 
-}  // DCA
+}  // cthyb
+}  // solver
+}  // phys
+}  // dca
 
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_WALKER_TOOLS_FULL_LINE_TOOLS_H
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SS_CT_HYB_WALKER_TOOLS_FULL_LINE_TOOLS_HPP

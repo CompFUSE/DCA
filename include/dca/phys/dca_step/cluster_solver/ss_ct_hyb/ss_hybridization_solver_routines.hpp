@@ -9,12 +9,10 @@
 //         Peter Staar (taa@zurich.ibm.com)
 //         Andrei Plamada (plamada@itp.phys.ethz.ch)
 //
-// This class implements the helper functions for the insertion and removal of (anti-)segments. The
-// helper functions include the calculation of the determinant ratio and the computation of the new
-// hybridization matrix using sherman-morrison equations.
+// This class provides helper functions.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_SOLVER_ROUTINES_H
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_SOLVER_ROUTINES_H
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SS_CT_HYB_SS_HYBRIDIZATION_SOLVER_ROUTINES_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SS_CT_HYB_SS_HYBRIDIZATION_SOLVER_ROUTINES_HPP
 
 #include <complex>
 #include <iostream>
@@ -31,12 +29,11 @@
 
 #include "comp_library/function_plotting/include_plotting.h"
 
-using namespace dca;
-using namespace dca::phys;
-
-namespace DCA {
-namespace QMCI {
-// DCA::QMCI::
+namespace dca {
+namespace phys {
+namespace solver {
+namespace cthyb {
+// dca::phys::solver::cthyb::
 
 template <typename parameters_t, typename MOMS_t>
 class ss_hybridization_solver_routines {
@@ -348,7 +345,9 @@ void ss_hybridization_solver_routines<parameters_t, MOMS_t>::compensate_for_mome
   }
 }
 
-}  // QMCI
-}  // DCA
+}  // cthyb
+}  // solver
+}  // phys
+}  // dca
 
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_SOLVER_ROUTINES_H
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SS_CT_HYB_SS_HYBRIDIZATION_SOLVER_ROUTINES_HPP

@@ -10,10 +10,8 @@
 //
 // Single-site Monte Carlo integrator based on a hybridization expansion.
 
-#ifndef PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_SOLVER_H
-#define PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_SOLVER_H
-
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_template.h"
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SS_CT_HYB_SS_CT_HYB_CLUSTER_SOLVER_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SS_CT_HYB_SS_CT_HYB_CLUSTER_SOLVER_HPP
 
 #include <cassert>
 #include <complex>
@@ -26,6 +24,9 @@
 #include "dca/function/function.hpp"
 #include "dca/linalg/device_type.hpp"
 #include "dca/math/function_transform/function_transform.hpp"
+#include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/ss_ct_hyb_accumulator.hpp"
+#include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/ss_ct_hyb_walker.hpp"
+#include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/ss_hybridization_solver_routines.hpp"
 #include "dca/phys/dca_step/symmetrization/symmetrize.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
@@ -33,18 +34,16 @@
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/util/print_time.hpp"
 
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_accumulator.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_solver_routines.h"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_ss_hybridization/ss_hybridization_walker.h"
+#include "phys_library/DCA+_step/cluster_solver/cluster_solver_name.hpp"
 
-using namespace dca;
-using namespace dca::phys;
-
-namespace DCA {
+namespace dca {
+namespace phys {
+namespace solver {
+// dca::phys::solver::
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-class cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>
-    : public QMCI::ss_hybridization_solver_routines<parameters_type, MOMS_type> {
+class SsCtHybClusterSolver
+    : public cthyb::ss_hybridization_solver_routines<parameters_type, MOMS_type> {
 public:
   typedef MOMS_type this_MOMS_type;
   typedef parameters_type this_parameters_type;
@@ -54,11 +53,11 @@ public:
   typedef typename parameters_type::profiler_type profiler_type;
   typedef typename parameters_type::concurrency_type concurrency_type;
 
-  typedef QMCI::ss_hybridization_solver_routines<parameters_type, MOMS_type>
+  typedef cthyb::ss_hybridization_solver_routines<parameters_type, MOMS_type>
       ss_hybridization_solver_routines_type;
 
-  typedef QMCI::MC_walker<QMCI::SS_CT_HYB, dca::linalg::CPU, parameters_type, MOMS_type> walker_type;
-  typedef QMCI::MC_accumulator<QMCI::SS_CT_HYB, dca::linalg::CPU, parameters_type, MOMS_type> accumulator_type;
+  typedef cthyb::SsCtHybWalker<dca::linalg::CPU, parameters_type, MOMS_type> walker_type;
+  typedef cthyb::SsCtHybAccumulator<dca::linalg::CPU, parameters_type, MOMS_type> accumulator_type;
 
   using w = func::dmn_0<domains::frequency_domain>;
   using b = func::dmn_0<domains::electron_band_domain>;
@@ -73,12 +72,12 @@ public:
 
   using nu_nu_k_DCA_w = func::dmn_variadic<nu, nu, k_DCA, w>;
 
-  const static int MC_TYPE = SS_CT_HYB;
+  const static int MC_TYPE = DCA::SS_CT_HYB;
 
 public:
-  cluster_solver(parameters_type& parameters_ref, MOMS_type& MOMS_ref);
+  SsCtHybClusterSolver(parameters_type& parameters_ref, MOMS_type& MOMS_ref);
 
-  ~cluster_solver();
+  ~SsCtHybClusterSolver();
 
   void initialize(int dca_iteration);
 
@@ -87,14 +86,10 @@ public:
   template <typename dca_info_struct_t>
   double finalize(dca_info_struct_t& dca_info_struct);
 
-  void read(std::string filename);
-
-  void write(std::string filename);
-
   template <typename Writer>
   void write(Writer& writer);
 
-  // For testing purposes:
+  // For testing purposes.
   // TODO: Const correctness.
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& get_GS_r_w() {
     return accumulator.get_GS_r_w();
@@ -118,8 +113,6 @@ protected:
 
   double compute_S_k_w_from_G_k_w();
 
-  void measure_Sigma();
-
   void compute_Sigma_new(
       func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& G_r_w,
       func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& GS_r_w);
@@ -127,8 +120,6 @@ protected:
   int find_w_cutoff();
 
   void find_tail_of_Sigma(double& S0, double& S1, int b, int s, int k);
-
-  void adjust_self_energy_for_double_counting();
 
 protected:
   parameters_type& parameters;
@@ -152,9 +143,9 @@ protected:
 };
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::cluster_solver(
+SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::SsCtHybClusterSolver(
     parameters_type& parameters_ref, MOMS_type& MOMS_ref)
-    : QMCI::ss_hybridization_solver_routines<parameters_type, MOMS_type>(parameters_ref, MOMS_ref),
+    : cthyb::ss_hybridization_solver_routines<parameters_type, MOMS_type>(parameters_ref, MOMS_ref),
 
       parameters(parameters_ref),
       MOMS(MOMS_ref),
@@ -177,14 +168,14 @@ cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::cluster_solver(
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::~cluster_solver() {
+SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::~SsCtHybClusterSolver() {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t SS CT-HYB Integrator has died \n" << std::endl;
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 template <typename Writer>
-void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::write(Writer& writer) {
+void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::write(Writer& writer) {
   writer.open_group("SS-HYB-SOLVER-functions");
 
   writer.execute(this->get_mu());
@@ -205,7 +196,7 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::write(Writ
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::initialize(int dca_iteration) {
+void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::initialize(int dca_iteration) {
   if (concurrency.id() == 0)
     std::cout << "\n\n\t SS CT-HYB Integrator has started ( DCA-iteration : " << dca_iteration
               << ")\n\n";
@@ -242,7 +233,7 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::initialize
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::integrate() {
+void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::integrate() {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t integration has started" << std::endl;
 
@@ -260,7 +251,7 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::integrate(
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 template <typename dca_info_struct_t>
-double cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::finalize(
+double SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::finalize(
     dca_info_struct_t& dca_info_struct) {
   collect_measurements();
   symmetrize_measurements();
@@ -317,7 +308,7 @@ double cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::finalize
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::warm_up(walker_type& walker) {
+void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::warm_up(walker_type& walker) {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t warm-up has started\n" << std::endl;
 
@@ -334,7 +325,7 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::warm_up(wa
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::measure(walker_type& walker) {
+void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::measure(walker_type& walker) {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t measuring has started \n" << std::endl;
 
@@ -366,8 +357,7 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::measure(wa
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::update_shell(int i, int N,
-                                                                                   int k) {
+void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::update_shell(int i, int N, int k) {
   if (concurrency.id() == concurrency.first() && N > 10 && (i % (N / 10)) == 0) {
     std::cout << std::scientific;
     std::cout.precision(6);
@@ -380,7 +370,7 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::update_she
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_error_bars() {
+void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::compute_error_bars() {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t computing the error-bars" << std::endl;
 
@@ -402,7 +392,7 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_er
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::collect_measurements() {
+void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::collect_measurements() {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t Collect measurements" << std::endl;
 
@@ -423,7 +413,7 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::collect_me
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::symmetrize_measurements() {
+void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::symmetrize_measurements() {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t symmetrize measurements has started" << std::endl;
 
@@ -471,20 +461,18 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::symmetrize
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_G_k_w() {
+void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::compute_G_k_w() {
   math::transform::FunctionTransform<r_DCA, k_DCA>::execute(accumulator.get_G_r_w(), MOMS.G_k_w);
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-double cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_S_k_w_from_G_k_w() {
+double SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::compute_S_k_w_from_G_k_w() {
   double alpha = DCA_iteration > 0 ? parameters.get_DCA_mixing_factor() : 1;
 
   double L2_difference_norm = 1.e-6;
   double L2_Sigma_norm = 1.e-6;
 
   int w_cutoff = find_w_cutoff();
-
-  // measure_Sigma();
 
   compute_Sigma_new(accumulator.get_G_r_w(), accumulator.get_GS_r_w());
 
@@ -528,7 +516,7 @@ double cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_Sigma_new(
+void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::compute_Sigma_new(
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& G_r_w,
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& GS_r_w) {
   Sigma_new = 0;
@@ -551,7 +539,7 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::compute_Si
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-int cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::find_w_cutoff() {
+int SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::find_w_cutoff() {
   ;
   return std::max(
       1.0, std::min(parameters.get_Sigma_tail_cutoff() * parameters.get_beta() / (2.0 * M_PI) - 0.5,
@@ -559,8 +547,9 @@ int cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::find_w_cuto
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::find_tail_of_Sigma(
-    double& S0, double& S1, int b, int s, int k) {
+void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::find_tail_of_Sigma(double& S0,
+                                                                                    double& S1, int b,
+                                                                                    int s, int k) {
   int w_cutoff = find_w_cutoff();
   S0 = 0.0;
   S1 = 0.0;
@@ -570,6 +559,8 @@ void cluster_solver<SS_CT_HYB, device_t, parameters_type, MOMS_type>::find_tail_
        w::parameter_type::get_elements()[w::dmn_size() / 2 + w_cutoff - 1];
 }
 
-}  // DCA
+}  // solver
+}  // phys
+}  // dca
 
-#endif  // PHYS_LIBRARY_DCA_STEP_CLUSTER_SOLVER_CLUSTER_SOLVER_SS_HYBRIDIZATION_SS_HYBRIDIZATION_SOLVER_H
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SS_CT_HYB_SS_CT_HYB_CLUSTER_SOLVER_HPP
