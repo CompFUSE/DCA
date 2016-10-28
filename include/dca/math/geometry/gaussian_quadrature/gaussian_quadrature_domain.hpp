@@ -249,12 +249,10 @@ void gaussian_quadrature_domain<func::dmn_0<tetrahedron_mesh<func::dmn_0<cluster
     tetrahedron_mesh<cluster_type>& mesh) {
   std::vector<tetrahedron<DIMENSION>>& tetrahedra = mesh.get_tetrahedra();
 
-  Gnuplot plot_obj("lines");
+  dca::util::Plot plot("lines");
 
   for (size_t j = 0; j < tetrahedra.size(); j++)
-    tetrahedra[j].plot(plot_obj);
-
-  plot_obj.showonscreen();
+    tetrahedra[j].plot(plot);
 }
 
 template <typename cluster_type>
@@ -262,12 +260,10 @@ void gaussian_quadrature_domain<func::dmn_0<tetrahedron_mesh<func::dmn_0<cluster
     tetrahedron_mesh<cluster_type>& mesh) {
   std::vector<tetrahedron<DIMENSION>>& tetrahedra = mesh.get_tetrahedra();
 
-  Gnuplot plot_obj("points");
+  dca::util::Plot plot("points");
 
   for (size_t j = 0; j < tetrahedra.size(); j++)
-    tetrahedra[j].plot_q_vecs(plot_obj);
-
-  plot_obj.showonscreen();
+    tetrahedra[j].plot_q_vecs(plot);
 }
 
 }  // geometry

@@ -33,6 +33,7 @@
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
+#include "dca/util/plot.hpp"
 #include "dca/util/print_time.hpp"
 
 namespace dca {
@@ -261,10 +262,10 @@ double SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::finalize(
 
   dca_info_struct.L2_Sigma_difference(DCA_iteration) = compute_S_k_w_from_G_k_w();
 
-  // SHOW::execute_on_bands(accumulator.get_G_r_w());
-  // SHOW::execute_on_bands(accumulator.get_GS_r_w());
-  // SHOW::execute_on_bands(MOMS.G_k_w);
-  // SHOW::execute_on_bands(MOMS.Sigma);
+  // util::Plot::plotBandsLines(accumulator.get_G_r_w());
+  // util::Plot::plotBandsLines(accumulator.get_GS_r_w());
+  // util::Plot::plotBandsLines(MOMS.G_k_w);
+  // util::Plot::plotBandsLines(MOMS.Sigma);
 
   if (concurrency.id() == 0) {
     std::stringstream ss;

@@ -36,6 +36,7 @@
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
+#include "dca/util/plot.hpp"
 
 namespace dca {
 namespace phys {
@@ -272,7 +273,7 @@ template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_ty
 void SsCtHybWalker<device_t, parameters_type, MOMS_type>::test_interpolation() {
   std::cout << __FUNCTION__ << std::endl;
 
-  SHOW::execute_on_bands(F_r_t);
+  util::Plot::plotBandsLinesPoints(F_r_t);
 
   {
     double beta = parameters.get_beta();
@@ -302,7 +303,7 @@ void SsCtHybWalker<device_t, parameters_type, MOMS_type>::test_interpolation() {
           y.push_back(F_val);
         }
 
-        SHOW::plot_points(x, y);
+        util::Plot::plotPoints(x, y);
       }
     }
   }

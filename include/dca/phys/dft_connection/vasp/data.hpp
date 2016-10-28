@@ -30,8 +30,8 @@
 #include "dca/phys/dft_connection/vasp/vasp_domains/vasp_orbital_domain.hpp"
 #include "dca/phys/domains/cluster/centered_cluster_domain.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/util/plot.hpp"
 
-#include "comp_library/function_plotting/include_plotting.h"
 #include "comp_library/linalg/linalg.hpp"
 
 namespace dca {
@@ -354,7 +354,7 @@ void data<parameters_type>::construct_bloch_hamiltonians() {
 
   //       if(false)
   //         {
-  //           Gnuplot plot_obj;
+  //           dca::util::Plot plot("lines");
 
   //           for(int ib=0;  ib<parameters.get_nBands();  ib++ )
   //             {
@@ -367,7 +367,7 @@ void data<parameters_type>::construct_bloch_hamiltonians() {
   //                       y.push_back(band_e(ik,ib));
   //                     }
 
-  //                   SHOW::plot_points(plot_obj, x, y, "SrVO3", "lines");
+  //                   plot.plot(x, y, "SrVO3");
   //                 }
   //             }
   //         }
@@ -402,9 +402,9 @@ void data<parameters_type>::compute_band_structure() {
     int corrband_min = parameters.get_lower_index_of_chosen_bands();
     int corrband_max = parameters.get_upper_index_of_chosen_bands();
 
-    Gnuplot plot_obj;
+    dca::util::Plot plot;
 
-    // plot_obj.set_style("lines black");
+    plot.setStyle("lines");
 
     for (int ib = 0; ib < parameters.get_nBands(); ib++) {
       if (ib >= corrband_min && ib <= corrband_max) {
@@ -414,11 +414,11 @@ void data<parameters_type>::compute_band_structure() {
           y.push_back(E_0_vasp(ik, ib));
         }
 
-        SHOW::plot_points(plot_obj, x, y, "correlated-vasp-bands", "lines lc -1 lt 1 lw 4");
+        plot.plot("correlated-vasp-bands", "lines");
       }
     }
 
-    // plot_obj.set_style("points red");
+    plot.setStyle("points");
 
     for (int i = 0; i < o_dmft::dmn_size(); i++) {
       std::vector<double> x, y;
@@ -428,14 +428,8 @@ void data<parameters_type>::compute_band_structure() {
         y.push_back(E_0_dmft(ik, i));
       }
 
-      SHOW::plot_points(plot_obj, x, y, "dmft-lines", "lines lc 1 lt 3 lw 2");
+      plot.plot(x, y, "dmft-lines");
     }
-
-    // plot_obj.savetops("band-structure");
-
-    // TODO: Fix Gnuplot/plotting library such that these two lines compile.
-    // plot_obj.cmd("set terminal pdf");
-    // plot_obj.cmd("set output \"./pic.pdf\"");
   }
 }
 
@@ -457,7 +451,7 @@ void data<parameters_type>::compute_vasp_band_structure() {
 
   //       if(true)
   //         {
-  //           Gnuplot plot_obj;
+  //           dca::util::Plot plot("points");
 
   //           for(int ib=0; ib<parameters.get_nBands();  ib++ )
   //             {
@@ -470,7 +464,7 @@ void data<parameters_type>::compute_vasp_band_structure() {
   //                     y.push_back(E_0_vasp(ik,ib));
   //                   }
 
-  //                 SHOW::plot_points(plot_obj, x, y, "SrVO3", "vasp-bands");
+  //                 plot.plot(x, y, "SrVO3, vasp-bands");
   //               }
   //             }
   //         }
@@ -480,7 +474,7 @@ void data<parameters_type>::compute_vasp_band_structure() {
   //           int corrband_min = parameters.get_lower_index_of_chosen_bands();
   //           int corrband_max = parameters.get_upper_index_of_chosen_bands();
 
-  //           Gnuplot plot_obj;
+  //           dca::util::Plot plot("points");
 
   //           for(int ib=0; ib<parameters.get_nBands();  ib++ )
   //             {
@@ -493,7 +487,7 @@ void data<parameters_type>::compute_vasp_band_structure() {
   //                       y.push_back(E_0_vasp(ik,ib));
   //                     }
 
-  //                   SHOW::plot_points(plot_obj, x, y, "SrVO3", "correlated-vasp-bands");
+  //                   plot.plot(x, y, "SrVO3, correlated-vasp-bands");
   //                 }
   //             }
   //         }
@@ -538,7 +532,7 @@ void data<parameters_type>::compute_dmft_band_structure() {
 
   //       if(true)
   //         {
-  //           Gnuplot plot_obj;
+  //           dca::util::Plot plot;
 
   //           for(int i=0; i<o_dmft::dmn_size(); i++)
   //             {
@@ -550,7 +544,7 @@ void data<parameters_type>::compute_dmft_band_structure() {
   //                   y.push_back(E_0_vasp(ik,ib));
   //                 }
 
-  //               SHOW::plot_points(plot_obj, x, y, "SrVO3", "dmft-lines");
+  //               plot.plot(x, y, "SrVO3, dmft-lines");
   //             }
   //         }
 }

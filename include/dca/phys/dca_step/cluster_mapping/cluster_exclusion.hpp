@@ -22,8 +22,8 @@
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
+#include "dca/util/plot.hpp"
 
-#include "comp_library/function_plotting/include_plotting.h"
 #include "comp_library/linalg/linalg.hpp"
 
 namespace dca {
@@ -164,43 +164,37 @@ void cluster_exclusion<parameters_type, MOMS_type>::plot_G0_R_t_cluster_excluded
   {
     func::function<float, t> tmp("G0_k_t");
 
-    Gnuplot plot_obj("lines");
+    util::Plot plot("lines");
     for (int R_ind = 0; R_ind < r_DCA::dmn_size(); R_ind++) {
       for (int t_ind = 0; t_ind < t::dmn_size(); t_ind++)
         tmp(t_ind) = MOMS.G0_k_t(0, 0, R_ind, t_ind);
 
-      SHOW::execute(plot_obj, tmp);
+      plot.plot(tmp);
     }
-
-    plot_obj.showonscreen();
   }
 
   {
     func::function<float, t> tmp("G0_k_t_cluster_excluded");
 
-    Gnuplot plot_obj("lines");
+    util::Plot plot("lines");
     for (int R_ind = 0; R_ind < r_DCA::dmn_size(); R_ind++) {
       for (int t_ind = 0; t_ind < t::dmn_size(); t_ind++)
         tmp(t_ind) = MOMS.G0_k_t_cluster_excluded(0, 0, R_ind, t_ind);
 
-      SHOW::execute(plot_obj, tmp);
+      plot.plot(tmp);
     }
-
-    plot_obj.showonscreen();
   }
 
   {
     func::function<float, t> tmp("G0_r_t");
 
-    Gnuplot plot_obj("lines");
+    util::Plot plot("lines");
     for (int R_ind = 0; R_ind < r_DCA::dmn_size(); R_ind++) {
       for (int t_ind = 0; t_ind < t::dmn_size(); t_ind++)
         tmp(t_ind) = MOMS.G0_r_t_cluster_excluded(0, 0, R_ind, t_ind);
 
-      SHOW::execute(plot_obj, tmp);
+      plot.plot(tmp);
     }
-
-    plot_obj.showonscreen();
   }
 }
 

@@ -18,7 +18,7 @@
 #include <vector>
 
 #include "dca/linalg/matrix.hpp"
-#include "comp_library/function_plotting/include_plotting.h"
+#include "dca/util/plot.hpp"
 
 namespace dca {
 namespace math {
@@ -91,7 +91,7 @@ void covariance_function<SQUARED_EXPONENTIAL, k_dmn_t>::plot() const {
         z.push_back(execute(vec));
       }
 
-      SHOW::plot_points(x, z);
+      util::Plot::plotPoints(x, z);
     } break;
 
     default:
@@ -185,7 +185,7 @@ void covariance_function<PERIODIC_SQUARED_EXPONENTIAL, k_dmn_t>::plot() const {
         }
       }
 
-      SHOW::plot_points(x, z);
+      util::Plot::plotPoints(x, z);
     } break;
 
     case 2: {
@@ -203,7 +203,7 @@ void covariance_function<PERIODIC_SQUARED_EXPONENTIAL, k_dmn_t>::plot() const {
         }
       }
 
-      SHOW::heatmap(x, y, z);
+      util::Plot::heatMap(x, y, z);
     } break;
 
     default:

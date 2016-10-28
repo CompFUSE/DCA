@@ -30,8 +30,7 @@
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/hilbert_spaces/hilbert_space.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 #include "dca/util/print_time.hpp"
-
-#include "comp_library/function_plotting/include_plotting.h"
+#include "dca/util/plot.hpp"
 
 namespace dca {
 namespace phys {
@@ -410,7 +409,7 @@ void TpGreensFunction<parameter_type, ed_options>::compute_particle_particle_sup
         y.push_back(real(G4(0, 0, 0, 0, 0, 0, wn, wn)));
       }
 
-      SHOW::plot_points(x, y);
+      util::Plot::plotPoints(x, y);
     }
 
     {
@@ -420,7 +419,7 @@ void TpGreensFunction<parameter_type, ed_options>::compute_particle_particle_sup
         y.push_back(real(G4(0, 0, 0, 0, 0, 0, wn, w_VERTEX::dmn_size() - 1 - wn)));
       }
 
-      SHOW::plot_points(x, y);
+      util::Plot::plotPoints(x, y);
     }
   }
 
@@ -536,7 +535,7 @@ void TpGreensFunction<parameter_type, ed_options>::compute_particle_particle_sup
         y.push_back(real(G4(0, 0, 0, 0, 0, 0, wn, wn)));
       }
 
-      SHOW::plot_points(x, y);
+      util::Plot::plotPoints(x, y);
     }
 
     {
@@ -546,7 +545,7 @@ void TpGreensFunction<parameter_type, ed_options>::compute_particle_particle_sup
         y.push_back(real(G4(0, 0, 0, 0, 0, 0, wn, w_VERTEX::dmn_size() - 1 - wn)));
       }
 
-      SHOW::plot_points(x, y);
+      util::Plot::plotPoints(x, y);
     }
   }
 

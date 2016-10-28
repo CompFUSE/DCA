@@ -33,6 +33,7 @@
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 #include "dca/util/print_time.hpp"
+#include "dca/util/plot.hpp"
 
 namespace dca {
 namespace phys {
@@ -268,7 +269,7 @@ void coarsegraining_sp<parameters_type, K_dmn>::plot_phi_r(
     y.push_back((phi_r(r_ind)));
   }
 
-  SHOW::plot_points(x, y);
+  util::Plot::plotPoints(x, y);
 }
 
 template <typename parameters_type, typename K_dmn>

@@ -30,6 +30,7 @@
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 #include "dca/phys/vertex_measurement_type.hpp"
+#include "dca/util/plot.hpp"
 #include "dca/util/print_time.hpp"
 
 #include "comp_library/linalg/linalg.hpp"
@@ -300,7 +301,7 @@ template <typename w_dmn_t>
 void coarsegraining_tp<parameters_type, K_dmn>::plot(
     func::function<std::complex<scalar_type>, func::dmn_variadic<b_b, b_b, K_dmn, w_dmn_t>>& chi) {
   {
-    Gnuplot plot_obj;
+    util::Plot plot;
 
     func::function<scalar_type, w_dmn_t> phi_w("phi_w");
 
@@ -314,7 +315,7 @@ void coarsegraining_tp<parameters_type, K_dmn>::plot(
                 for (int w_ind = 0; w_ind < w_dmn_t::dmn_size(); w_ind++)
                   phi_w(w_ind) = real(chi(n1, n2, m1, m2, k_ind, w_ind));
 
-                SHOW::execute(plot_obj, phi_w);
+                plot.plotLinesPoints(phi_w);
               }
             }
           }
@@ -324,7 +325,7 @@ void coarsegraining_tp<parameters_type, K_dmn>::plot(
   }
 
   {
-    Gnuplot plot_obj;
+    util::Plot plot;
 
     func::function<scalar_type, w_dmn_t> phi_w("phi_w");
 
@@ -338,7 +339,7 @@ void coarsegraining_tp<parameters_type, K_dmn>::plot(
                 for (int w_ind = 0; w_ind < w_dmn_t::dmn_size(); w_ind++)
                   phi_w(w_ind) = imag(chi(n1, n2, m1, m2, k_ind, w_ind));
 
-                SHOW::execute(plot_obj, phi_w);
+                plot.plot(phi_w);
               }
             }
           }
@@ -358,7 +359,7 @@ void coarsegraining_tp<parameters_type, K_dmn>::plot(
       z.push_back(real(phi(0, 0, 0, 0, k_ind, w_dmn_t::dmn_size() / 2)));
     }
 
-    SHOW::heatmap(x, y, z);
+    util::Plot::heatMap(x, y, z);
   }
 }
 

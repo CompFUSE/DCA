@@ -23,8 +23,7 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/math/nfft/dnfft_1d.hpp"
-
-#include "comp_library/function_plotting/include_plotting.h"
+#include "dca/util/plot.hpp"
 
 namespace dca {
 namespace math {
@@ -59,12 +58,12 @@ public:
     for (int i = 0; i < w_dmn_t::dmn_size(); i++)
       error(i) = log10(abs(f_w_1(i) - f_w_2(i)));
 
-    SHOW::execute(error);
+    util::Plot::plotLinesPoints(error);
 
     for (int i = 0; i < w_dmn_t::dmn_size(); i++)
       error(i) = log10(abs(f_w_1(i) - f_w_2(i)) / (abs(f_w_1(i)) + 1.e-6));
 
-    SHOW::execute(error);
+    util::Plot::plotLinesPoints(error);
 
     std::cout << "\n\n\n\t STOP !!!!  \n\n\n" << std::endl;
 
@@ -93,7 +92,7 @@ private:
       std::cout << "\n\n\t time : " << double(t1 - t0) / double(CLOCKS_PER_SEC) << "\n";
     }
 
-    SHOW::execute(f_w);
+    util::Plot::plotLinesPoints(f_w);
   }
 
   static void compute_f_w_dnfft(std::vector<scalartype>& t, std::vector<scalartype>& f,
@@ -126,7 +125,7 @@ private:
     for (int i = 0; i < w_dmn_t::dmn_size(); i++)
       f_w(i) = f_w_tmp(i);
 
-    SHOW::execute(f_w);
+    util::Plot::plotLinesPoints(f_w);
   }
 };
 

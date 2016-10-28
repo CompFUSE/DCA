@@ -24,8 +24,7 @@
 #include "dca/math/geometry/tetrahedron_mesh/tetrahedron_eigenvalue_degeneracy.hpp"
 #include "dca/math/util/comparison_methods.hpp"
 #include "dca/math/util/vector_operations.hpp"
-
-#include "comp_library/function_plotting/include_plotting.h"
+#include "dca/util/plot.hpp"
 
 namespace dca {
 namespace math {

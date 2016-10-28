@@ -48,7 +48,7 @@ void tetrahedron<1>::translate(const std::vector<double>& k_point) {
       q_vecs[j + i * 1] += k_point[j];
 }
 
-void tetrahedron<1>::plot(Gnuplot& plot_obj) {
+void tetrahedron<1>::plot(::dca::util::Plot& plot) {
   std::vector<double> x(2);
   std::vector<double> y(2);
 
@@ -57,10 +57,10 @@ void tetrahedron<1>::plot(Gnuplot& plot_obj) {
   x[1] = vec_1[0];
   y[1] = 0;
 
-  plot_obj.plot_xy(x, y);
+  plot.plot(x, y);
 }
 
-void tetrahedron<1>::plot_q_vecs(Gnuplot& plot_obj) {
+void tetrahedron<1>::plot_q_vecs(::dca::util::Plot& plot) {
   std::vector<double> x(N_q);
   std::vector<double> y(N_q);
 
@@ -69,7 +69,7 @@ void tetrahedron<1>::plot_q_vecs(Gnuplot& plot_obj) {
     y[i] = 0;
   }
 
-  plot_obj.plot_xy(x, y);
+  plot.plot(x, y);
 }
 
 //
@@ -108,13 +108,13 @@ void tetrahedron<2>::translate(const std::vector<double>& k_point) {
       q_vecs[j + i * 2] += k_point[j];
 }
 
-void tetrahedron<2>::plot(Gnuplot& plot_obj) {
-  SHOW::plot_line_2D(plot_obj, vec_0, vec_1);
-  SHOW::plot_line_2D(plot_obj, vec_1, vec_2);
-  SHOW::plot_line_2D(plot_obj, vec_2, vec_0);
+void tetrahedron<2>::plot(::dca::util::Plot& plot) {
+  plot.plotLine2D(vec_0, vec_1);
+  plot.plotLine2D(vec_1, vec_2);
+  plot.plotLine2D(vec_2, vec_0);
 }
 
-void tetrahedron<2>::plot_q_vecs(Gnuplot& plot_obj) {
+void tetrahedron<2>::plot_q_vecs(::dca::util::Plot& plot) {
   if (q_vecs != nullptr) {
     std::vector<double> x(N_q);
     std::vector<double> y(N_q);
@@ -124,7 +124,7 @@ void tetrahedron<2>::plot_q_vecs(Gnuplot& plot_obj) {
       y[i] = q_vecs[1 + i * 2];
     }
 
-    plot_obj.plot_xy(x, y);
+    plot.plot(x, y);
   }
 }
 
@@ -192,13 +192,13 @@ void tetrahedron<3>::translate(const std::vector<double>& k_point) {
       q_vecs[j + i * 3] += k_point[j];
 }
 
-void tetrahedron<3>::plot(Gnuplot& plot_obj) {
-  SHOW::plot_line_3D(plot_obj, vec_0, vec_1);
-  SHOW::plot_line_3D(plot_obj, vec_1, vec_2);
-  SHOW::plot_line_3D(plot_obj, vec_2, vec_3);
-  SHOW::plot_line_3D(plot_obj, vec_3, vec_0);
-  SHOW::plot_line_3D(plot_obj, vec_0, vec_2);
-  SHOW::plot_line_3D(plot_obj, vec_1, vec_3);
+void tetrahedron<3>::plot(::dca::util::Plot& plot) {
+  plot.plotLine3D(vec_0, vec_1);
+  plot.plotLine3D(vec_1, vec_2);
+  plot.plotLine3D(vec_2, vec_3);
+  plot.plotLine3D(vec_3, vec_0);
+  plot.plotLine3D(vec_0, vec_2);
+  plot.plotLine3D(vec_1, vec_3);
 }
 
 bool tetrahedron<3>::pair_same(std::pair<std::complex<double>, std::complex<double>> const& x,

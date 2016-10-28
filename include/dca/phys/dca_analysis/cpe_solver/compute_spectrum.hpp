@@ -34,9 +34,9 @@
 #include "dca/phys/domains/time_and_frequency/frequency_domain_real_axis.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain_imag_axis.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
+#include "dca/util/plot.hpp"
 #include "dca/util/print_time.hpp"
 
-#include "comp_library/function_plotting/include_plotting.h"
 #include "comp_library/linalg/linalg.hpp"
 
 namespace dca {
@@ -329,8 +329,8 @@ void compute_spectrum<parameters_type, basis_function_t>::execute_without_error_
 
     compute_A_w(MOMS_real.A0_w, MOMS_real.A0_nu_w, MOMS_real.G0_k_w);
 
-    SHOW::execute(MOMS_real.A0_w);
-    SHOW::execute_on_bands(MOMS_real.A0_nu_w);
+    util::Plot::plotLinesPoints(MOMS_real.A0_w);
+    util::Plot::plotBandsLinesPoints(MOMS_real.A0_nu_w);
 
     compute_G_k_beta_over_2(G0_k_beta_over_2, MOMS_imag.G0_k_t);
 
@@ -362,8 +362,8 @@ void compute_spectrum<parameters_type, basis_function_t>::execute_without_error_
     }
 
     {
-      SHOW::execute(MOMS_real.A_w);
-      SHOW::execute_on_bands(MOMS_real.A_nu_w);
+      util::Plot::plotLinesPoints(MOMS_real.A_w);
+      util::Plot::plotBandsLinesPoints(MOMS_real.A_nu_w);
 
       print_check_sums(MOMS_real);
     }
@@ -407,9 +407,9 @@ void compute_spectrum<parameters_type, basis_function_t>::execute_with_error_bar
 
     compute_A_w(MOMS_real.A0_w, MOMS_real.A0_nu_w, MOMS_real.G0_k_w);
 
-    SHOW::execute(MOMS_real.A0_w);
-    SHOW::execute_on_bands(MOMS_real.A0_nu_w);
-    // SHOW::execute_on_bands(MOMS_real.G0_k_w);
+    util::Plot::plotLinesPoints(MOMS_real.A0_w);
+    util::Plot::plotBandsLinesPoints(MOMS_real.A0_nu_w);
+    // util::Plot::plotBandsLinesPoints(MOMS_real.G0_k_w);
 
     compute_G_k_beta_over_2(G0_k_beta_over_2, MOMS_imag.G0_k_t);
   }
@@ -505,7 +505,7 @@ void compute_spectrum<parameters_type, basis_function_t>::execute_with_error_bar
   }
 
   {
-    SHOW::plot_error_bars(MOMS_real.A_w, MOMS_real.A_w_stddev);
+    util::Plot::plotErrorBars(MOMS_real.A_w, MOMS_real.A_w_stddev);
 
     print_check_sums(MOMS_real);
 
@@ -541,7 +541,7 @@ void compute_spectrum<parameters_type, basis_function_t>::generate_f_original(
     }
   }
 
-  SHOW::execute(f_orig);
+  util::Plot::plotLinesPoints(f_orig);
 }
 
 template <class parameters_type, class basis_function_t>

@@ -24,8 +24,7 @@
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
-
-#include "comp_library/function_plotting/include_plotting.h"
+#include "dca/util/plot.hpp"
 
 namespace dca {
 namespace phys {
@@ -137,8 +136,8 @@ void lattice_mapping_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::plot_f
     z_im.push_back(std::imag(f(0, 0, k_ind, w::dmn_size() / 2)));
   }
 
-  SHOW::heatmap(x, y, z_re);
-  SHOW::heatmap(x, y, z_im);
+  util::Plot::heatMap(x, y, z_re);
+  util::Plot::heatMap(x, y, z_im);
 }
 
 }  // latticemapping

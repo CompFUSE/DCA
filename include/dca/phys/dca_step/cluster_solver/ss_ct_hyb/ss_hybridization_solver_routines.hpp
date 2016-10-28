@@ -26,8 +26,7 @@
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
-
-#include "comp_library/function_plotting/include_plotting.h"
+#include "dca/util/plot.hpp"
 
 namespace dca {
 namespace phys {
@@ -224,7 +223,7 @@ void ss_hybridization_solver_routines<parameters_t, MOMS_t>::initialize_hybridiz
   construct_F_k_w();
 
   if (SHOW_FUNCTIONS)
-    SHOW::execute_on_bands(F_k_w);
+    util::Plot::plotBandsLinesPoints(F_k_w);
 
   if (SHOW_FUNCTIONS)
     std::cout << "\n\t construct_F_r_t \n";
@@ -232,7 +231,7 @@ void ss_hybridization_solver_routines<parameters_t, MOMS_t>::initialize_hybridiz
   construct_F_r_t();
 
   if (SHOW_FUNCTIONS)
-    SHOW::execute_on_bands(F_r_t);
+    util::Plot::plotBandsLinesPoints(F_r_t);
 
   // assert(false);
 }
@@ -243,9 +242,9 @@ void ss_hybridization_solver_routines<parameters_t, MOMS_t>::construct_F_k_w() {
     std::cout << "\n\t " << __FUNCTION__ << " \n";
 
   if (SHOW_FUNCTIONS) {
-    SHOW::execute_on_bands(MOMS.G_k_w);
-    SHOW::execute_on_bands(MOMS.Sigma);
-    SHOW::execute_on_bands(MOMS.G0_k_w_cluster_excluded);
+    util::Plot::plotBandsLinesPoints(MOMS.G_k_w);
+    util::Plot::plotBandsLinesPoints(MOMS.Sigma);
+    util::Plot::plotBandsLinesPoints(MOMS.G0_k_w_cluster_excluded);
   }
 
   for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++) {
@@ -272,7 +271,7 @@ void ss_hybridization_solver_routines<parameters_t, MOMS_t>::construct_F_k_w() {
   }
 
   if (SHOW_FUNCTIONS)
-    SHOW::execute_on_bands(F_k_w);
+    util::Plot::plotBandsLinesPoints(F_k_w);
 }
 
 template <typename parameters_t, typename MOMS_t>
@@ -313,7 +312,7 @@ void ss_hybridization_solver_routines<parameters_t, MOMS_t>::subtract_moments(
   }
 
   //       if(SHOW_FUNCTIONS)
-  //         SHOW::execute_on_bands(f_source);
+  //         util::Plot::plotBandsLinesPoints(f_source);
 }
 
 template <typename parameters_t, typename MOMS_t>
@@ -327,7 +326,7 @@ void ss_hybridization_solver_routines<parameters_t, MOMS_t>::add_moments(
   }
 
   //       if(SHOW_FUNCTIONS)
-  //         SHOW::execute_on_bands(f_source);
+  //         util::Plot::plotBandsLinesPoints(f_source);
 }
 
 template <typename parameters_t, typename MOMS_t>

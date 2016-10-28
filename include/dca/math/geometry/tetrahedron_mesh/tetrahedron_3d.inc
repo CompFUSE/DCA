@@ -19,9 +19,9 @@ public:
 
   void translate(const std::vector<double>& q);
 
-  void plot(Gnuplot& plot_obj);
+  void plot(::dca::util::Plot& plot);
 
-  void plot_q_vecs(Gnuplot& /*plot_obj*/) {}
+  void plot_q_vecs(::dca::util::Plot& /*plot*/) {}
 
   template <typename scalartype>
   void update_gaussian_domain(int& size, std::vector<scalartype>& weights,

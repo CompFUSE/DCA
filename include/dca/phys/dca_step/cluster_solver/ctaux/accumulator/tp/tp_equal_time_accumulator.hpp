@@ -30,8 +30,7 @@
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain_left_oriented.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_time_domain.hpp"
-
-#include "comp_library/function_plotting/include_plotting.h"
+#include "dca/util/plot.hpp"
 
 namespace dca {
 namespace phys {
@@ -505,13 +504,13 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::test_G0_original() {
     std::cout << "\t" << t_VERTEX::get_elements()[i] << "\t" << G_r_t_accumulated(0, 0, 0, i) << "\n";
   std::cout << std::endl;
 
-  SHOW::execute(MOMS.G0_r_t_cluster_excluded);
+  util::Plot::plotLinesPoints(MOMS.G0_r_t_cluster_excluded);
 
-  SHOW::execute(G_r_t_accumulated);
+  util::Plot::plotLinesPoints(G_r_t_accumulated);
 
   interpolate(G_r_t, G_r_t_stddev);
 
-  SHOW::execute(G_r_t);
+  util::Plot::plotLinesPoints(G_r_t);
 
   G_r_t_accumulated = 0;
 
@@ -520,7 +519,7 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::test_G0_original() {
 
 template <class parameters_type, class MOMS_type>
 void TpEqualTimeAccumulator<parameters_type, MOMS_type>::finalize() {
-  // SHOW::execute(G_r_t_accumulated);
+  // util::Plot::plotLinesPoints(G_r_t_accumulated);
 
   for (int l = 0; l < G_r_t_accumulated_squared.size(); l++)
     G_r_t_accumulated_squared(l) =
@@ -528,7 +527,7 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::finalize() {
 
   interpolate(G_r_t, G_r_t_stddev);
 
-  // SHOW::execute(G_r_t);
+  // util::Plot::plotLinesPoints(G_r_t);
 }
 
 template <class parameters_type, class MOMS_type>
