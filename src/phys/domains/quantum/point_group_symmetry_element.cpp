@@ -11,6 +11,8 @@
 
 #include "dca/phys/domains/quantum/point_group_symmetry_element.hpp"
 
+#include <cstring>
+
 namespace dca {
 namespace phys {
 namespace domains {
@@ -27,8 +29,8 @@ point_group_symmetry_element::point_group_symmetry_element(int d)
   O = new double[DIMENSION * DIMENSION];
   t = new double[DIMENSION];
 
-  memset(t, 0, DIMENSION * sizeof(double));
-  memset(O, 0, DIMENSION * DIMENSION * sizeof(double));
+  std::memset(t, 0, DIMENSION * sizeof(double));
+  std::memset(O, 0, DIMENSION * DIMENSION * sizeof(double));
 
   for (int j = 0; j < DIMENSION; ++j)
     for (int i = 0; i < DIMENSION; ++i)
@@ -48,8 +50,8 @@ point_group_symmetry_element::point_group_symmetry_element(const point_group_sym
   O = new double[DIMENSION * DIMENSION];
   t = new double[DIMENSION];
 
-  memcpy(t, other.t, DIMENSION * sizeof(double));
-  memcpy(O, other.O, DIMENSION * DIMENSION * sizeof(double));
+  std::memcpy(t, other.t, DIMENSION * sizeof(double));
+  std::memcpy(O, other.O, DIMENSION * DIMENSION * sizeof(double));
 }
 
 point_group_symmetry_element::~point_group_symmetry_element() {
