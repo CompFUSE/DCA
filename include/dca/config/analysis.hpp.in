@@ -20,8 +20,8 @@
 #include "dca/config/lattice_model.hpp"  // defines Model
 #include "dca/config/profiler.hpp"       // defines Profiler
 
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_name.hpp"
-constexpr DCA::ClusterSolverName solver_name = @DCA_CLUSTER_SOLVER_NAME@;
+#include "dca/phys/dca_step/cluster_solver/cluster_solver_name.hpp"
+constexpr dca::phys::solver::ClusterSolverName solver_name = @DCA_CLUSTER_SOLVER_NAME@;
 
 #include "dca/phys/parameters/parameters.hpp"
 using ParametersType = dca::phys::params::Parameters<Concurrency, Threading, Profiler, Model,

@@ -46,7 +46,7 @@ TEST(analysis_DCAplus_mpi, leading_eigenvalues) {
   using ParametersType =
       dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
                                     dca::profiling::NullProfiler, ModelType, void /*RngType*/,
-                                    CT_AUX_CLUSTER_SOLVER>;
+                                    dca::phys::solver::CT_AUX>;
   using DcaDataType = dca::phys::DcaData<ParametersType>;
 
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {

@@ -192,13 +192,13 @@ set(DCA_CLUSTER_SOLVER "CT-AUX" CACHE STRING
 set_property(CACHE DCA_CLUSTER_SOLVER PROPERTY STRINGS CT-AUX SS-CT-HYB HTS)
 
 if (DCA_CLUSTER_SOLVER STREQUAL "CT-AUX")
-  set(DCA_CLUSTER_SOLVER_NAME DCA::CT_AUX_CLUSTER_SOLVER)
+  set(DCA_CLUSTER_SOLVER_NAME dca::phys::solver::CT_AUX)
   set(DCA_CLUSTER_SOLVER_TYPE "dca::phys::solver::CtauxClusterSolver<walker_device, ParametersType, DcaDataType>")
   set(DCA_CLUSTER_SOLVER_INCLUDE
     "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp")
 
 elseif (DCA_CLUSTER_SOLVER STREQUAL "SS-CT-HYB")
-  set(DCA_CLUSTER_SOLVER_NAME DCA::SS_CT_HYB)
+  set(DCA_CLUSTER_SOLVER_NAME dca::phys::solver::SS_CT_HYB)
   set(DCA_CLUSTER_SOLVER_TYPE "dca::phys::solver::SsCtHybClusterSolver<walker_device, ParametersType, DcaDataType>")
   set(DCA_CLUSTER_SOLVER_INCLUDE
     "dca/phys/dca_step/cluster_solver/ss_ct_hyb/ss_ct_hyb_cluster_solver.hpp")
@@ -206,7 +206,7 @@ elseif (DCA_CLUSTER_SOLVER STREQUAL "SS-CT-HYB")
 elseif (DCA_CLUSTER_SOLVER STREQUAL "HTS")
   # TODO: Remove this if HTS solver is fixed.
   message(FATAL_ERROR "High temperature series expansion solver is not yet supported.")
-  set(DCA_CLUSTER_SOLVER_NAME DCA::HIGH_TEMPERATURE_SERIES)
+  set(DCA_CLUSTER_SOLVER_NAME dca::phys::solver::HIGH_TEMPERATURE_SERIES)
   set(DCA_CLUSTER_SOLVER_INCLUDE
     "dca/phys/dca_step/cluster_solver/high_temperature_series_expansion/high_temperature_series_expansion_solver.hpp")
 

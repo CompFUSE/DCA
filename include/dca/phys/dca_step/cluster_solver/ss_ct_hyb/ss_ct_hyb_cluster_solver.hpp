@@ -24,6 +24,7 @@
 #include "dca/function/function.hpp"
 #include "dca/linalg/device_type.hpp"
 #include "dca/math/function_transform/function_transform.hpp"
+#include "dca/phys/dca_step/cluster_solver/cluster_solver_name.hpp"
 #include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/ss_ct_hyb_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/ss_ct_hyb_walker.hpp"
 #include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/ss_hybridization_solver_routines.hpp"
@@ -33,8 +34,6 @@
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/util/print_time.hpp"
-
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_name.hpp"
 
 namespace dca {
 namespace phys {
@@ -72,7 +71,7 @@ public:
 
   using nu_nu_k_DCA_w = func::dmn_variadic<nu, nu, k_DCA, w>;
 
-  const static int MC_TYPE = DCA::SS_CT_HYB;
+  const static int MC_TYPE = SS_CT_HYB;
 
 public:
   SsCtHybClusterSolver(parameters_type& parameters_ref, MOMS_type& MOMS_ref);
