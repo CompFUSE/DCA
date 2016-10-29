@@ -18,6 +18,7 @@
 #include "dca/function/function.hpp"
 #include "dca/linalg/device_type.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/domains/feynman_expansion_order_domain.hpp"
+#include "dca/phys/dca_step/cluster_solver/mc_accumulator_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/accumulator/sp/sp_accumulator_nfft.hpp"
 #include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/ss_ct_hyb_walker.hpp"
 #include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/ss_hybridization_solver_routines.hpp"
@@ -26,8 +27,6 @@
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_template/mc_accumulator_data.hpp"
-
 namespace dca {
 namespace phys {
 namespace solver {
@@ -35,7 +34,7 @@ namespace cthyb {
 // dca::phys::solver::cthyb::
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-class SsCtHybAccumulator : public DCA::QMCI::MC_accumulator_data,
+class SsCtHybAccumulator : public MC_accumulator_data,
                            public ss_hybridization_solver_routines<parameters_type, MOMS_type> {
 public:
   using this_type = SsCtHybAccumulator<device_t, parameters_type, MOMS_type>;
