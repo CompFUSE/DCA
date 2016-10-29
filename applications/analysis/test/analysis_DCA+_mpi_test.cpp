@@ -36,8 +36,6 @@
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
-using namespace DCA;
-
 TEST(analysis_DCAplus_mpi, leading_eigenvalues) {
   using DcaPointGroupType = dca::phys::domains::D4;
   using LatticeType = dca::phys::models::square_lattice<DcaPointGroupType>;

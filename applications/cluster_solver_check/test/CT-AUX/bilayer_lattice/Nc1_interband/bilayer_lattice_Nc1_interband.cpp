@@ -44,8 +44,6 @@
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
-using namespace DCA;
-
 TEST(bilayerLattice_Nc1_interband, Self_Energy) {
   using RngType = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
   using DcaPointGroupType = dca::phys::domains::D4;

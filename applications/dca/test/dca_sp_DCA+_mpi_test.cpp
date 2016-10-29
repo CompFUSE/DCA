@@ -42,8 +42,6 @@
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
-using namespace DCA;
-
 TEST(dca_sp_DCAplus_mpi, Self_energy) {
   using RngType = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
   using DcaPointGroupType = dca::phys::domains::D4;

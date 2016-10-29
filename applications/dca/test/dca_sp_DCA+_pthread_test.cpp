@@ -43,8 +43,6 @@
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
-using namespace DCA;
-
 TEST(dca_sp_DCAplus_pthread, Self_energy) {
 #ifdef ATTACH_DEBUG
   std::cout << "Please press <return> after attaching debugger" << std::endl;
