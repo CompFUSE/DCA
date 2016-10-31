@@ -12,8 +12,8 @@
 #ifndef DCA_PHYS_DOMAINS_CLUSTER_SYMMETRIES_POINT_GROUPS_2D_2D_HEXAGONAL_HPP
 #define DCA_PHYS_DOMAINS_CLUSTER_SYMMETRIES_POINT_GROUPS_2D_2D_HEXAGONAL_HPP
 
-#include "dca/phys/domains/cluster/symmetries/symmetry_operations/2d/Cn_2d.h"
-#include "dca/phys/domains/cluster/symmetries/symmetry_operations/2d/Sn_2d.h"
+#include "dca/phys/domains/cluster/symmetries/symmetry_operations/2d/Cn_2d.hpp"
+#include "dca/phys/domains/cluster/symmetries/symmetry_operations/2d/Sn_2d.hpp"
 #include "dca/util/type_list.hpp"
 
 namespace dca {

@@ -16,7 +16,7 @@
 #include "dca/function/domains/dmn_0.hpp"
 #include "dca/function/domains/dmn_variadic.hpp"
 // #include "dca/function/domains/domain.hpp"
-// #include "dca/function/domains/domain_type_operations.h"
+// #include "dca/function/domains/domain_type_operations.hpp"
 #include "dca/function/domains/reduced_domain.hpp"
 
 #endif  // DCA_FUNCTION_DOMAINS_HPP
