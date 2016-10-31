@@ -11,7 +11,7 @@
 // Template specialization for GPU.
 
 namespace nkernels {
-// dca::phys::solver::ctaux::nkernels
+// dca::phys::solver::ctaux::nkernels::
 
 void compute_G_cols(int N_i, int N_r, int N_c, int* p_ptr, double* exp_V_ptr, double* N_ptr,
                     int N_ld, double* G_ptr, int G_ld, double* G_cols_ptr, int G_cols_ld,
@@ -21,7 +21,7 @@ void compute_d_vector(int N_i, int* d_ind, double* d_ptr, int* p_ptr, double* N_
                       int thread_id, int stream_id);
 
 }  // nkernels
-/// dca::phys::solver::ctaux::
+// dca::phys::solver::ctaux::
 
 template <typename parameters_type>
 class N_MATRIX_TOOLS<dca::linalg::GPU, parameters_type> {
