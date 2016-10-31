@@ -45,12 +45,12 @@ public:
   CT_AUX_WALKER_TOOLS(int k_ph);
 
   static void compute_Gamma(dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma,
-                                   dca::linalg::Matrix<double, dca::linalg::CPU>& N,
-                                   dca::linalg::Matrix<double, dca::linalg::CPU>& G_precomputed,
-                                   dca::linalg::Vector<int, dca::linalg::CPU>& random_vertex_vector,
-                                   dca::linalg::Vector<double, dca::linalg::CPU>& exp_V,
-                                   dca::linalg::Vector<double, dca::linalg::CPU>& exp_delta_V,
-                                   int thread_id, int stream_id);
+                            dca::linalg::Matrix<double, dca::linalg::CPU>& N,
+                            dca::linalg::Matrix<double, dca::linalg::CPU>& G_precomputed,
+                            dca::linalg::Vector<int, dca::linalg::CPU>& random_vertex_vector,
+                            dca::linalg::Vector<double, dca::linalg::CPU>& exp_V,
+                            dca::linalg::Vector<double, dca::linalg::CPU>& exp_delta_V,
+                            int thread_id, int stream_id);
 
   static void set_to_identity(dca::linalg::Matrix<double, dca::linalg::CPU>& M, int index);
 
@@ -58,13 +58,12 @@ public:
   // double
   // exp_delta_V);
   double solve_Gamma(int n, dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma_LU,
-                            double exp_delta_V, double& max, double& min);
+                     double exp_delta_V, double& max, double& min);
   double solve_Gamma_blocked(int n, dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma_LU,
-                                    double exp_delta_V, double& max, double& min);
+                             double exp_delta_V, double& max, double& min);
 
-  double apply_bennett_on_Gamma(int k, int n,
-                                       dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma_LU,
-                                       double phani_gamma, double& max, double& min);
+  double apply_bennett_on_Gamma(int k, int n, dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma_LU,
+                                double phani_gamma, double& max, double& min);
 
 private:
   void solve_Gamma_slow(int n, dca::linalg::Matrix<double, dca::linalg::CPU>& Gamma_LU);
