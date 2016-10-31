@@ -104,7 +104,7 @@ void quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G_
 
   // Allocate the work space for inverse only once.
   dca::linalg::Vector<int, dca::linalg::CPU> ipiv;
-  dca::linalg::Vector<std::complex<double>, dca::linalg::CPU> work;
+  dca::linalg::Vector<std::complex<scalar_type>, dca::linalg::CPU> work;
 
   for (int q_ind = 0; q_ind < q_dmn_t::dmn_size(); q_ind++) {
     for (int j = 0; j < nu::dmn_size(); j++)
@@ -170,7 +170,7 @@ void* quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G
 
     // Allocate the work space for inverse only once.
     dca::linalg::Vector<int, dca::linalg::CPU> ipiv;
-    dca::linalg::Vector<std::complex<double>, dca::linalg::CPU> work;
+    dca::linalg::Vector<std::complex<scalar_type>, dca::linalg::CPU> work;
 
     for (int q_ind = q_bounds.first; q_ind < q_bounds.second; q_ind += 1) {
       for (int j = 0; j < nu::dmn_size(); j++)

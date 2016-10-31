@@ -140,7 +140,7 @@ void transform_to_alpha::backward(
 
   // Allocate the work space for inverse only once.
   dca::linalg::Vector<int, dca::linalg::CPU> ipiv;
-  dca::linalg::Vector<std::complex<double>, dca::linalg::CPU> work;
+  dca::linalg::Vector<std::complex<scalar_type>, dca::linalg::CPU> work;
 
   for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); k_ind++) {
     for (int j = 0; j < N; ++j)
