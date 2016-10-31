@@ -89,8 +89,8 @@ public:
 
     dca::linalg::matrixop::difference(G0_dn_CPU, G0_dn);
     dca::linalg::matrixop::difference(G0_up_CPU, G0_up);
-  }
 #endif  // DCA_WITH_QMC_BIT
+  }
 
 private:
   bool test_swap_vectors(std::vector<int>& source_index, std::vector<int>& target_index) {

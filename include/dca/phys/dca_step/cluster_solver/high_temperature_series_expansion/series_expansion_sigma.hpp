@@ -19,7 +19,7 @@
 #include "dca/function/function.hpp"
 #include "dca/phys/dca_step/cluster_solver/high_temperature_series_expansion/compute_bubble.hpp"
 #include "dca/phys/dca_step/cluster_solver/high_temperature_series_expansion/compute_interaction.hpp"
-#include "dca/phys/dca_step/cluster_solver/high_temperature_series_expansion/compute_lattice_Greens_function.hpp"
+#include "dca/phys/dca_step/cluster_solver/high_temperature_series_expansion/compute_lattice_greens_function.hpp"
 #include "dca/phys/dca_step/cluster_solver/high_temperature_series_expansion/sigma_perturbation.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"

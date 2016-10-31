@@ -158,8 +158,8 @@ public:
 
   // Calculates the determinant ratio for shifting a vertex end point. (u is k-th unity vector)
   // \f{eqnarray}{
-  // det_rat &=& 1 + v*A^{-1}*u \\
-  //         &=& 1 + (F_{new} - F_{old}) * A^{-1} *u \\
+  // det_rat &=& 1 + v*A^{-1}*u
+  //         &=& 1 + (F_{new} - F_{old}) * A^{-1} *u
   //         &=& 1 + F_{new} * A^{-1} *u -  F_{old} * A^{-1} *u = F_{new} * A^{-1} *u
   // \f}
   // \f$ F_{old} \f$ is k-th row of matrix A, and \f$A^{-1} *u\f$ is k_th column of \f$A^{-1}\f$ and
@@ -173,8 +173,8 @@ public:
 
   // Calculates the determinant ratio for shifting a vertex start point. (v is k-th unity vector)
   // \f{eqnarray}{
-  // det_rat &=& 1 + v*A^{-1}*u \\
-  //         &=& 1 + v * A^{-1} *(F_{new} - F_{old})\\
+  // det_rat &=& 1 + v*A^{-1}*u
+  //         &=& 1 + v * A^{-1} *(F_{new} - F_{old})
   //         &=& 1 + v * A^{-1} *F_{new} -  v * A^{-1} * F_{old} = v * A^{-1} *F_{new}
   // \f}
   // \f$ F_{old} \f$ is k-th column of matrix A, and \f$ v * A^{-1} \f$ is k_th row of \f$ A^{-1}
