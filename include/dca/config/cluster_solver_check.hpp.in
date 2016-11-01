@@ -10,8 +10,8 @@
 // This is a CMake generated header file.
 // It configures the cluster solver check by selecting type defintions.
 
-#ifndef DCA_CONFIG_CONFIG_CLUSTER_SOLVER_CHECK_HPP
-#define DCA_CONFIG_CONFIG_CLUSTER_SOLVER_CHECK_HPP
+#ifndef DCA_CONFIG_CLUSTER_SOLVER_CHECK_HPP
+#define DCA_CONFIG_CLUSTER_SOLVER_CHECK_HPP
 
 #include "dca/config/haves_defines.hpp"
 #include "dca/config/config_defines.hpp"
@@ -45,4 +45,4 @@ using ClusterSolver = @DCA_THREADED_SOLVER_TYPE@;
 using ClusterSolver = ClusterSolverBaseType;
 #endif  // DCA_WITH_THREADED_SOLVER
 
-#endif  // DCA_CONFIG_CONFIG_CLUSTER_SOLVER_CHECK_HPP
+#endif  // DCA_CONFIG_CLUSTER_SOLVER_CHECK_HPP

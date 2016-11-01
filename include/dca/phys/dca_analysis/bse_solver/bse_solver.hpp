@@ -351,4 +351,4 @@ void BseSolver<ParametersType, DcaDataType>::apply_symmetries() {
 }  // phys
 }  // dca
 
-#endif  // PHYS_LIBRARY_DCA_ANALYSIS_BSE_SOLVER_BSE_SOLVER_H
+#endif  // DCA_PHYS_DCA_ANALYSIS_BSE_SOLVER_BSE_SOLVER_HPP

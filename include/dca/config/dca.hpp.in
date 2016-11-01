@@ -10,8 +10,8 @@
 // This is a CMake generated header file.
 // It configures the DCA(+) calculation by selecting type defintions.
 
-#ifndef DCA_CONFIG_CONFIG_DCA_HPP
-#define DCA_CONFIG_CONFIG_DCA_HPP
+#ifndef DCA_CONFIG_DCA_HPP
+#define DCA_CONFIG_DCA_HPP
 
 #include "dca/config/haves_defines.hpp"
 #include "dca/config/config_defines.hpp"
@@ -46,4 +46,4 @@ using ClusterSolver = ClusterSolverBaseType;
 #include "dca/phys/dca_loop/dca_loop.hpp"
 using DcaLoopType = dca::phys::DcaLoop<ParametersType, DcaDataType, ClusterSolver>;
 
-#endif  // DCA_CONFIG_CONFIG_DCA_HPP
+#endif  // DCA_CONFIG_DCA_HPP

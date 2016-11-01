@@ -9,8 +9,8 @@
 //
 // This file provides an element of a point group symmetry.
 
-#ifndef DCA_DOMAINS_QUANTUM_POINT_GROUP_SYMMETRY_ELEMENT_HPP
-#define DCA_DOMAINS_QUANTUM_POINT_GROUP_SYMMETRY_ELEMENT_HPP
+#ifndef DCA_PHYS_DOMAINS_QUANTUM_POINT_GROUP_SYMMETRY_ELEMENT_HPP
+#define DCA_PHYS_DOMAINS_QUANTUM_POINT_GROUP_SYMMETRY_ELEMENT_HPP
 
 #include <complex>
 #include <vector>
@@ -98,4 +98,4 @@ void point_group_symmetry_element::to_JSON(stream_type& ss) {
 }  // phys
 }  // dca
 
-#endif  // DCA_DOMAINS_QUANTUM_POINT_GROUP_SYMMETRY_ELEMENT_HPP
+#endif  // DCA_PHYS_DOMAINS_QUANTUM_POINT_GROUP_SYMMETRY_ELEMENT_HPP
