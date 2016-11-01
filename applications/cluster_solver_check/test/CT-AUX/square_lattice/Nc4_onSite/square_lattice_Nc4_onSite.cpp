@@ -56,7 +56,7 @@ TEST(squareLattice_Nc4_onSite, Self_Energy) {
                                     dca::phys::solver::CT_AUX>;
   using DcaDataType = dca::phys::DcaData<ParametersType>;
   using QmcSolverType =
-      dca::phys::solver::CtauxClusterSolver<linalg::CPU, ParametersType, DcaDataType>;
+      dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, ParametersType, DcaDataType>;
 
   using w = dca::func::dmn_0<dca::phys::domains::frequency_domain>;
   using b = dca::func::dmn_0<dca::phys::domains::electron_band_domain>;

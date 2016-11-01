@@ -61,7 +61,7 @@ TEST(dca_sp_DCAplus_pthread, Self_energy) {
                                     dca::phys::solver::CT_AUX>;
   using DcaDataType = dca::phys::DcaData<ParametersType>;
   using ClusterSolverBaseType =
-      dca::phys::solver::CtauxClusterSolver<linalg::CPU, ParametersType, DcaDataType>;
+      dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, ParametersType, DcaDataType>;
   using ClusterSolverType = dca::phys::solver::PosixQmciClusterSolver<ClusterSolverBaseType>;
   using DcaLoopType = dca::phys::DcaLoop<ParametersType, DcaDataType, ClusterSolverType>;
 
