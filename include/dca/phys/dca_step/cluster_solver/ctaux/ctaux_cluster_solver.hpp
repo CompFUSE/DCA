@@ -8,6 +8,9 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
 // Cluster Monte Carlo integrator based on a continuous-time auxilary field (CT-AUX) expansion.
+//
+// TODO: Cleanup the computation of Sigma, error bars, etc. and have the same work flow independent
+//       of whether the pthread jacket (posix qmci) is used.
 
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_CTAUX_CLUSTER_SOLVER_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_CTAUX_CLUSTER_SOLVER_HPP
