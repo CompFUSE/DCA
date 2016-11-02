@@ -7,28 +7,33 @@
 //
 // Author: Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //
-// Description: This file provides a C++ wrapper for the gnuplot C interface.
-// TODO: const correcness for functions.
+// This file provides a C++ wrapper for the Gnuplot C interface.
+//
+// TODO: const correctness for dca::func::functions.
 
 #ifndef DCA_UTIL_PLOT_HPP
 #define DCA_UTIL_PLOT_HPP
 
+#include <cassert>
+#include <complex>
 #include <string>
+#include <utility>
 #include <vector>
-#include "dca/function/function.hpp"
-#include "dca/function/domains.hpp"
 
-#ifdef DCA_HAVE_GNUPLOT
+#include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
+
+#ifdef DCA_WITH_GNUPLOT
 extern "C" {
-#include "../libs/gnuplot_i-2.11/src/gnuplot_i.h"
+#include "gnuplot_i.h"
 }
-#endif  // DCA_HAVE_GNUPLOT
+#endif  // DCA_WITH_GNUPLOT
 
 namespace dca {
 namespace util {
 // dca::util::
 
-#ifdef DCA_HAVE_GNUPLOT
+#ifdef DCA_WITH_GNUPLOT
 class Plot {
 public:
   Plot(std::string style = "points") : gp_handle_(gnuplot_init()) {
@@ -237,6 +242,7 @@ public:
 private:
   gnuplot_ctrl* gp_handle_;
 };
+
 #else
 class Plot {
 public:
@@ -281,7 +287,8 @@ public:
   template <typename... Args>
   static void plotBandsLinesPoints(Args...) {}
 };
-#endif  // DCA_HAVE_GNUPLOT
+#endif  // DCA_WITH_GNUPLOT
+
 }  // util
 }  // dca
 

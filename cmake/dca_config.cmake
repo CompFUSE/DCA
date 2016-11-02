@@ -316,6 +316,16 @@ if (DCA_WITH_GNUPLOT)
   if (NOT DCA_HAVE_GNUPLOT)
     message(FATAL_ERROR "Gnuplot not found but requested.")
   endif()
+
+  dca_add_config_define(DCA_WITH_GNUPLOT)
+  
+  add_subdirectory(${PROJECT_SOURCE_DIR}/libs/gnuplot_i-2.11)
+  set(GNUPLOT_INTERFACE_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/libs/gnuplot_i-2.11/src)
+  set(GNUPLOT_INTERFACE_LIBRARY gnuplot_interface)
+
+else()
+  set(GNUPLOT_INTERFACE_INCLUDE_DIR "")
+  set(GNUPLOT_INTERFACE_LIBRARY "")
 endif()
 
 ################################################################################

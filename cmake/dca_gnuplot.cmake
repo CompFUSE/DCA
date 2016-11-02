@@ -9,5 +9,4 @@ find_package(Gnuplot)
 
 if (GNUPLOT_FOUND)
   set(DCA_HAVE_GNUPLOT TRUE CACHE INTERNAL "")
-  dca_add_haves_define(DCA_HAVE_GNUPLOT)
 endif()

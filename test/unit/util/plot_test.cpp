@@ -1,7 +1,23 @@
+// Copyright (C) 2009-2016 ETH Zurich
+// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// All rights reserved.
+//
+// See LICENSE.txt for terms of usage.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//
+// Author: Raffaele Solca' (rasolca@itp.phys.ethz.ch)
+//
+// This file tests the C++ wrapper for the Gnuplot C interface.
+
+// Defines DCA_WITH_GNUPLOT if Gnuplot is available and requested.
+// Needs to be included before plot.hpp.
+#include "dca/config/config_defines.hpp"
+
+#include "dca/util/plot.hpp"
+
 #include <complex>
 #include <numeric>
 #include <vector>
-#include "dca/util/plot.hpp"
 
 int main() {
   std::vector<double> x(5);
