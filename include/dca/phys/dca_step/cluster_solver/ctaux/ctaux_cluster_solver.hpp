@@ -406,8 +406,8 @@ void CtauxClusterSolver<device_t, parameters_type, MOMS_type>::compute_error_bar
   compute_G_k_w_new(M_k_w_new, G_k_w_new);
   compute_S_k_w_new(G_k_w_new, Sigma_new);
 
-  concurrency.average_and_compute_stddev(Sigma_new, MOMS.Sigma_stddev, 1);
-  concurrency.average_and_compute_stddev(G_k_w_new, MOMS.G_k_w_stddev, 1);
+  concurrency.average_and_compute_stddev(Sigma_new, MOMS.Sigma_stddev);
+  concurrency.average_and_compute_stddev(G_k_w_new, MOMS.G_k_w_stddev);
 
   // sum G4
   if (parameters.get_vertex_measurement_type() != NONE) {
@@ -421,7 +421,7 @@ void CtauxClusterSolver<device_t, parameters_type, MOMS_type>::compute_error_bar
 
     MOMS.G4_k_k_w_w /= parameters.get_beta() * parameters.get_beta();
 
-    concurrency.average_and_compute_stddev(MOMS.G4_k_k_w_w, MOMS.G4_k_k_w_w_stddev, 1);
+    concurrency.average_and_compute_stddev(MOMS.G4_k_k_w_w, MOMS.G4_k_k_w_w_stddev);
   }
 }
 

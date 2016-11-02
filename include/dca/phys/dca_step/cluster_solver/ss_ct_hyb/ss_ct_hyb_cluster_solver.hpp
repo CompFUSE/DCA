@@ -387,7 +387,7 @@ void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::compute_error_b
 
   compute_Sigma_new(G_r_w, GS_r_w);
 
-  concurrency.average_and_compute_stddev(Sigma_new, MOMS.Sigma_stddev, 1);
+  concurrency.average_and_compute_stddev(Sigma_new, MOMS.Sigma_stddev);
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
