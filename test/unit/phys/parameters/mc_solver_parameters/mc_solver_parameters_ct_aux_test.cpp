@@ -16,7 +16,7 @@
 #include "dca/io/json/json_reader.hpp"
 
 TEST(McSolverParametersCtAuxTest, DefaultValues) {
-  dca::phys::params::McSolverParameters<DCA::CT_AUX_CLUSTER_SOLVER> pars;
+  dca::phys::params::McSolverParameters<dca::phys::solver::CT_AUX> pars;
 
   EXPECT_EQ(128, pars.get_submatrix_size());
   EXPECT_EQ(128, pars.get_initial_matrix_size());
@@ -25,7 +25,7 @@ TEST(McSolverParametersCtAuxTest, DefaultValues) {
 
 TEST(McSolverParametersCtAuxTest, ReadAll) {
   dca::io::JSONReader reader;
-  dca::phys::params::McSolverParameters<DCA::CT_AUX_CLUSTER_SOLVER> pars;
+  dca::phys::params::McSolverParameters<dca::phys::solver::CT_AUX> pars;
 
   reader.open_file(DCA_SOURCE_DIR
                    "/test/unit/phys/parameters/mc_solver_parameters/input_read_all_ct_aux.json");

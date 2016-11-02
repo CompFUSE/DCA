@@ -10,8 +10,8 @@
 // This is a CMake generated header file.
 // It configures the DCA(+) calculation by selecting type defintions.
 
-#ifndef DCA_CONFIG_CONFIG_DCA_HPP
-#define DCA_CONFIG_CONFIG_DCA_HPP
+#ifndef DCA_CONFIG_DCA_HPP
+#define DCA_CONFIG_DCA_HPP
 
 #include "dca/config/haves_defines.hpp"
 #include "dca/config/config_defines.hpp"
@@ -22,19 +22,18 @@
 #include "dca/config/rng.hpp"            // defines RandomNumberGenerator
 #include "dca/config/walker_device.hpp"  // defines walker_device
 
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_name.hpp"
-constexpr DCA::ClusterSolverName solver_name = @DCA_CLUSTER_SOLVER_NAME@;
+#include "dca/phys/dca_step/cluster_solver/cluster_solver_name.hpp"
+constexpr dca::phys::solver::ClusterSolverName solver_name = @DCA_CLUSTER_SOLVER_NAME@;
 
 #include "dca/phys/parameters/parameters.hpp"
 using ParametersType = dca::phys::params::Parameters<Concurrency, Threading, Profiler, Model,
                                                      RandomNumberGenerator, solver_name>;
 
-#include "phys_library/DCA+_data/DCA_data.h"
-using DcaData = DCA::DCA_data<ParametersType>;
+#include "dca/phys/dca_data/dca_data.hpp"
+using DcaDataType = dca::phys::DcaData<ParametersType>;
 
 #include "@DCA_CLUSTER_SOLVER_INCLUDE@"
-using ClusterSolverBaseType =
-    DCA::cluster_solver<solver_name, walker_device, ParametersType, DcaData>;
+using ClusterSolverBaseType = @DCA_CLUSTER_SOLVER_TYPE@;
 
 // TODO: Clean this up (remove #ifdef).
 #ifdef DCA_WITH_THREADED_SOLVER
@@ -44,7 +43,7 @@ using ClusterSolver = @DCA_THREADED_SOLVER_TYPE@;
 using ClusterSolver = ClusterSolverBaseType;
 #endif  // DCA_WITH_THREADED_SOLVER
 
-#include "phys_library/DCA+_loop/DCA_loop.hpp"
-using DcaLoop = DCA::DCA_loop<ParametersType, DcaData, ClusterSolver>;
+#include "dca/phys/dca_loop/dca_loop.hpp"
+using DcaLoopType = dca::phys::DcaLoop<ParametersType, DcaDataType, ClusterSolver>;
 
-#endif  // DCA_CONFIG_CONFIG_DCA_HPP
+#endif  // DCA_CONFIG_DCA_HPP

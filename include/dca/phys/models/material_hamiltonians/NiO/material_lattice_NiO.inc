@@ -17,7 +17,7 @@ public:
   static constexpr int DIMENSION = 3;
   static constexpr int BANDS = 8;
 
-  typedef no_symmetry<DIMENSION> LDA_point_group;
+  typedef domains::no_symmetry<DIMENSION> LDA_point_group;
   typedef point_group_type DCA_point_group;
 
   static double* initialize_r_DCA_basis();
@@ -197,7 +197,7 @@ public:
   static constexpr int DIMENSION = 3;
   static constexpr int BANDS = 8;
 
-  typedef no_symmetry<DIMENSION> LDA_point_group;
+  typedef domains::no_symmetry<DIMENSION> LDA_point_group;
   typedef point_group_type DCA_point_group;
 
   static double* initialize_r_DCA_basis();

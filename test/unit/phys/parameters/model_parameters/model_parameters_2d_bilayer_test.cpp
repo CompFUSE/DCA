@@ -14,9 +14,9 @@
 #include "dca/phys/parameters/model_parameters.hpp"
 #include "gtest/gtest.h"
 #include "dca/io/json/json_reader.hpp"
-#include "phys_library/domains/cluster/symmetries/point_groups/2D/2D_square.h"
+#include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 
-using PointGroup = D4;
+using PointGroup = dca::phys::domains::D4;
 
 TEST(ModelParameters2dBilayerTest, DefaultValues) {
   dca::phys::params::ModelParameters<

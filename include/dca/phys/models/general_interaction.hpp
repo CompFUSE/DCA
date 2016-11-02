@@ -19,10 +19,10 @@
 #include <vector>
 
 #include "dca/function/domains.hpp"
-#include "phys_library/domains/cluster/cluster_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
-#include "phys_library/domains/convert_DCA_types_to_index.h"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/convert.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 
 namespace dca {
 namespace phys {
@@ -32,11 +32,12 @@ namespace models {
 template <typename parameters_type>
 class general_interaction {
 public:
-  using b = func::dmn_0<electron_band_domain>;
-  using s = func::dmn_0<electron_spin_domain>;
+  using b = func::dmn_0<domains::electron_band_domain>;
+  using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;
-  using r_DCA = func::dmn_0<
-      cluster_domain<double, parameters_type::lattice_dimension, CLUSTER, REAL_SPACE, BRILLOUIN_ZONE>>;
+  using r_DCA =
+      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_dimension, domains::CLUSTER,
+                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
 
   template <class vertex_pair_type, class rng_type, class H_interaction_type>
   static void set_vertex(vertex_pair_type& vertex, parameters_type& parameters, rng_type& rng,
@@ -72,14 +73,14 @@ void general_interaction<parameters_type>::set_vertex(vertex_pair_type& vertex,
   vertex.get_bands().first = parameters.get_interacting_bands()[sub_ind[0]];
   vertex.get_bands().second = parameters.get_interacting_bands()[sub_ind[2]];
 
-  vertex.get_e_spins().first = electron_spin_domain::get_elements()[sub_ind[1]];
-  vertex.get_e_spins().second = electron_spin_domain::get_elements()[sub_ind[3]];
+  vertex.get_e_spins().first = domains::electron_spin_domain::get_elements()[sub_ind[1]];
+  vertex.get_e_spins().second = domains::electron_spin_domain::get_elements()[sub_ind[3]];
 
-  vertex.get_spin_orbitals().first = QMC::convert<int, nu>::spin_orbital(
+  vertex.get_spin_orbitals().first = domains::convert<int, nu>::spin_orbital(
       vertex.get_bands().first,
       vertex.get_e_spins().first);  // nu = func::dmn_variadic<b,s>
-  vertex.get_spin_orbitals().second =
-      QMC::convert<int, nu>::spin_orbital(vertex.get_bands().second, vertex.get_e_spins().second);
+  vertex.get_spin_orbitals().second = domains::convert<int, nu>::spin_orbital(
+      vertex.get_bands().second, vertex.get_e_spins().second);
 
   vertex.get_r_sites().first = sub_ind[4];
   vertex.get_r_sites().second = sub_ind[5];

@@ -19,7 +19,7 @@
 TEST(VertexParametersTest, DefaultValues) {
   dca::phys::params::VertexParameters<2> pars;
 
-  EXPECT_EQ(NONE, pars.get_vertex_measurement_type());
+  EXPECT_EQ(dca::phys::NONE, pars.get_vertex_measurement_type());
   EXPECT_EQ(std::vector<double>(2, 0.), pars.get_q_channel_vec_input());
   EXPECT_EQ(0, pars.get_w_channel());
   EXPECT_EQ(0.5, pars.get_singular_value_cut_off());
@@ -46,7 +46,7 @@ TEST(VertexParametersTest, ReadAll) {
 
   std::vector<double> q_channel_vec_check{3.14, -1.57};
 
-  EXPECT_EQ(PARTICLE_PARTICLE_SUPERCONDUCTING, pars.get_vertex_measurement_type());
+  EXPECT_EQ(dca::phys::PARTICLE_PARTICLE_SUPERCONDUCTING, pars.get_vertex_measurement_type());
   EXPECT_EQ(q_channel_vec_check, pars.get_q_channel_vec_input());
   EXPECT_EQ(2, pars.get_w_channel());
   EXPECT_EQ(1.3, pars.get_singular_value_cut_off());

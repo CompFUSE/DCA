@@ -59,11 +59,10 @@ public:
 
   template <typename scalar_type, class domain>
   void average_and_compute_stddev(func::function<scalar_type, domain>& f_mean,
-                                  func::function<scalar_type, domain>& f_stddev, size_t size) const;
+                                  func::function<scalar_type, domain>& f_stddev) const;
   template <typename scalar_type, class domain>
   void average_and_compute_stddev(func::function<std::complex<scalar_type>, domain>& f_mean,
-                                  func::function<std::complex<scalar_type>, domain>& f_stddev,
-                                  size_t size) const;
+                                  func::function<std::complex<scalar_type>, domain>& f_stddev) const;
 
   // Computes the covariance matrix of the measurements of the different mpi ranks.
   // In: f, f_estimated
@@ -219,9 +218,8 @@ void MPICollectiveSum::sum_and_average(some_type& obj, int nr_meas_rank) const {
 
 template <typename scalar_type, class domain>
 void MPICollectiveSum::average_and_compute_stddev(func::function<scalar_type, domain>& f_mean,
-                                                  func::function<scalar_type, domain>& f_stddev,
-                                                  size_t size) const {
-  scalar_type factor = 1. / (size * grouping_.get_Nr_threads());
+                                                  func::function<scalar_type, domain>& f_stddev) const {
+  scalar_type factor = 1. / grouping_.get_Nr_threads();
 
   func::function<scalar_type, domain> f_sum("f-sum");
   func::function<scalar_type, domain> f_diff("f-diff");
@@ -249,8 +247,8 @@ void MPICollectiveSum::average_and_compute_stddev(func::function<scalar_type, do
 template <typename scalar_type, class domain>
 void MPICollectiveSum::average_and_compute_stddev(
     func::function<std::complex<scalar_type>, domain>& f_mean,
-    func::function<std::complex<scalar_type>, domain>& f_stddev, size_t size) const {
-  scalar_type factor = 1. / (size * grouping_.get_Nr_threads());
+    func::function<std::complex<scalar_type>, domain>& f_stddev) const {
+  scalar_type factor = 1. / grouping_.get_Nr_threads();
 
   func::function<std::complex<scalar_type>, domain> f_sum("f-sum");
   func::function<std::complex<scalar_type>, domain> f_diff("f-diff");

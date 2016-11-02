@@ -76,3 +76,22 @@ TEST_F(SerialCollectiveSumTest, SumAndAverage) {
   EXPECT_EQ(0.00136, f(1));
   EXPECT_EQ(0.021, f(2));
 }
+
+TEST_F(SerialCollectiveSumTest, AverageAndComputeStddev) {
+  dca::func::function<double, Domain> f;
+  f(0) = 3.14;
+  f(1) = 2.72;
+  f(2) = 42.;
+
+  dca::func::function<double, Domain> f_stddev;
+
+  sum_interface_.average_and_compute_stddev(f, f_stddev);
+
+  EXPECT_EQ(3.14, f(0));
+  EXPECT_EQ(2.72, f(1));
+  EXPECT_EQ(42., f(2));
+
+  EXPECT_EQ(0., f_stddev(0));
+  EXPECT_EQ(0., f_stddev(1));
+  EXPECT_EQ(0., f_stddev(2));
+}

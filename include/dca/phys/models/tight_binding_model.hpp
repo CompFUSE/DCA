@@ -16,9 +16,9 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
-#include "phys_library/domains/cluster/cluster_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 
 namespace dca {
 namespace phys {
@@ -29,10 +29,11 @@ template <typename Lattice>
 class TightBindingModel {
 public:
   using lattice_type = Lattice;
-  using k_LDA = func::dmn_0<
-      cluster_domain<double, Lattice::DIMENSION, LATTICE_SP, MOMENTUM_SPACE, PARALLELLEPIPEDUM>>;
-  using b = func::dmn_0<electron_band_domain>;
-  using s = func::dmn_0<electron_spin_domain>;
+  using k_LDA =
+      func::dmn_0<domains::cluster_domain<double, Lattice::DIMENSION, domains::LATTICE_SP,
+                                          domains::MOMENTUM_SPACE, domains::PARALLELLEPIPEDUM>>;
+  using b = func::dmn_0<domains::electron_band_domain>;
+  using s = func::dmn_0<domains::electron_spin_domain>;
 
 public:
   // taken care off via parameters !

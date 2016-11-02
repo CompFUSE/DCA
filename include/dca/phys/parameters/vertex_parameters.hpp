@@ -22,9 +22,9 @@
 #include <string>
 #include <vector>
 
-#include "phys_library/domains/cluster/cluster_domain.h"
-#include "phys_library/domains/cluster/cluster_operations.hpp"
-#include "phys_library/vertex_measurement_type.hpp"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/cluster/cluster_operations.hpp"
+#include "dca/phys/vertex_measurement_type.hpp"
 
 namespace dca {
 namespace phys {
@@ -35,7 +35,8 @@ template <int lattice_dimension>
 class VertexParameters {
 public:
   using DCA_k_cluster_type =
-      cluster_domain<double, lattice_dimension, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
+      domains::cluster_domain<double, lattice_dimension, domains::CLUSTER, domains::MOMENTUM_SPACE,
+                              domains::BRILLOUIN_ZONE>;
 
   VertexParameters();
 
@@ -59,14 +60,15 @@ public:
   // It assumes that the input q-channel vector's distance to the next k-cluster vector is smaller
   // than 10^-3.
   const std::vector<double>& get_q_channel_vec() const {
-    static const std::vector<double> q_channel_vec(cluster_operations::find_closest_cluster_vector(
-        q_channel_vec_input_, DCA_k_cluster_type::get_elements(),
-        DCA_k_cluster_type::get_super_basis_vectors(), 1.e-3));
+    static const std::vector<double> q_channel_vec(
+        domains::cluster_operations::find_closest_cluster_vector(
+            q_channel_vec_input_, DCA_k_cluster_type::get_elements(),
+            DCA_k_cluster_type::get_super_basis_vectors(), 1.e-3));
     return q_channel_vec;
   }
   // Returns the index of the 'exact' q-channel vector.
   const int& get_q_channel_ind() const {
-    static const int q_channel_ind(cluster_operations::index(
+    static const int q_channel_ind(domains::cluster_operations::index(
         get_q_channel_vec(), DCA_k_cluster_type::get_elements(), DCA_k_cluster_type::SHAPE));
     return q_channel_ind;
   }

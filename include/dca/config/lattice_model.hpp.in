@@ -14,7 +14,7 @@
 #define DCA_CONFIG_LATTICE_MODEL_HPP
 
 #include "@DCA_POINT_GROUP_INCLUDE@"
-using PointGroup = @DCA_POINT_GROUP@;
+using PointGroup = dca::phys::domains::@DCA_POINT_GROUP@;
 
 #include "@DCA_LATTICE_INCLUDE@"
 using Lattice = @DCA_LATTICE_TYPE@;

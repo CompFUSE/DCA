@@ -19,14 +19,14 @@
 #include "dca/function/function.hpp"
 #include "dca/config/cluster_solver_check.hpp"
 #include "dca/io/json/json_reader.hpp"
+#include "dca/phys/dca_data/dca_data_real_freq.hpp"
+#include "dca/phys/dca_loop/dca_loop_data.hpp"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
-#include "phys_library/DCA+_data/moms_w_real.hpp"
-#include "phys_library/DCA+_loop/DCA_loop_data.hpp"
-#include "phys_library/domains/cluster/cluster_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain.h"
 
 int main(int argc, char** argv) {
   if (argc < 2) {
@@ -36,12 +36,13 @@ int main(int argc, char** argv) {
 
   std::string input_file(argv[1]);
 
-  using w = dca::func::dmn_0<frequency_domain>;
-  using b = dca::func::dmn_0<electron_band_domain>;
-  using s = dca::func::dmn_0<electron_spin_domain>;
+  using w = dca::func::dmn_0<dca::phys::domains::frequency_domain>;
+  using b = dca::func::dmn_0<dca::phys::domains::electron_band_domain>;
+  using s = dca::func::dmn_0<dca::phys::domains::electron_spin_domain>;
   using nu = dca::func::dmn_variadic<b, s>;  // orbital-spin index
-  using k_DCA =
-      dca::func::dmn_0<cluster_domain<double, Lattice::DIMENSION, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using k_DCA = dca::func::dmn_0<dca::phys::domains::cluster_domain<
+      double, Lattice::DIMENSION, dca::phys::domains::CLUSTER, dca::phys::domains::MOMENTUM_SPACE,
+      dca::phys::domains::BRILLOUIN_ZONE>>;
 
   Concurrency concurrency(argc, argv);
 
@@ -71,12 +72,12 @@ int main(int argc, char** argv) {
   parameters.update_model();
   parameters.update_domains();
 
-  DCA::DCA_loop_data<ParametersType> dca_loop_data;
+  dca::phys::DcaLoopData<ParametersType> dca_loop_data;
 
   // Create and initialize the DCA_data objects.
-  DcaData dca_data_imag(parameters);
+  DcaDataType dca_data_imag(parameters);
   dca_data_imag.initialize();
-  MOMS_w_real<ParametersType> dca_data_real(parameters);
+  dca::phys::DcaDataRealFreq<ParametersType> dca_data_real(parameters);
 
   std::string data_file_ed = parameters.get_directory() + parameters.get_ED_output_file_name();
   std::string data_file_qmc = parameters.get_directory() + parameters.get_QMC_output_file_name();

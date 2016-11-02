@@ -17,7 +17,7 @@
 #include <vector>
 
 #include "dca/function/function.hpp"
-#include "phys_library/domains/cluster/symmetries/point_groups/No_symmetry.h"
+#include "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp"
 
 namespace dca {
 namespace phys {
@@ -27,7 +27,7 @@ namespace models {
 template <typename point_group_type>
 class cubic_lattice {
 public:
-  typedef no_symmetry<3> LDA_point_group;
+  typedef domains::no_symmetry<3> LDA_point_group;
   typedef point_group_type DCA_point_group;
 
   const static int DIMENSION = 3;

@@ -52,6 +52,12 @@ public:
   void sum_and_average(T& obj, int measurements) const {
     obj *= 1. / measurements;
   }
+
+  template <typename Scalar, typename Domain>
+  void average_and_compute_stddev(func::function<Scalar, Domain>& /*f_mean*/,
+                                  func::function<Scalar, Domain>& f_stddev) const {
+    f_stddev = Scalar(0);
+  }
 };
 
 }  // parallel

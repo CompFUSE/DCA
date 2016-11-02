@@ -10,8 +10,8 @@
 // This is a CMake generated header file.
 // It configures the DCA(+) analysis by selecting type defintions.
 
-#ifndef DCA_CONFIG_CONFIG_ANALYSIS_HPP
-#define DCA_CONFIG_CONFIG_ANALYSIS_HPP
+#ifndef DCA_CONFIG_ANALYSIS_HPP
+#define DCA_CONFIG_ANALYSIS_HPP
 
 #include "dca/config/haves_defines.hpp"
 #include "dca/config/config_defines.hpp"
@@ -20,17 +20,17 @@
 #include "dca/config/lattice_model.hpp"  // defines Model
 #include "dca/config/profiler.hpp"       // defines Profiler
 
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_name.hpp"
-constexpr DCA::ClusterSolverName solver_name = @DCA_CLUSTER_SOLVER_NAME@;
+#include "dca/phys/dca_step/cluster_solver/cluster_solver_name.hpp"
+constexpr dca::phys::solver::ClusterSolverName solver_name = @DCA_CLUSTER_SOLVER_NAME@;
 
 #include "dca/phys/parameters/parameters.hpp"
 using ParametersType = dca::phys::params::Parameters<Concurrency, Threading, Profiler, Model,
                                                      void /*RandomNumberGenerator*/, solver_name>;
 
-#include "phys_library/DCA+_data/DCA_data.h"
-using DcaData = DCA::DCA_data<ParametersType>;
+#include "dca/phys/dca_data/dca_data.hpp"
+using DcaDataType = dca::phys::DcaData<ParametersType>;
 
-#include "phys_library/DCA+_analysis/BSE_solver/BSE_solver.h"
-using BseSolver = DCA::BSE_solver<ParametersType, DcaData>;
+#include "dca/phys/dca_analysis/bse_solver/bse_solver.hpp"
+using BseSolverType = dca::phys::analysis::BseSolver<ParametersType, DcaDataType>;
 
-#endif  // DCA_CONFIG_CONFIG_ANALYSIS_HPP
+#endif  // DCA_CONFIG_ANALYSIS_HPP

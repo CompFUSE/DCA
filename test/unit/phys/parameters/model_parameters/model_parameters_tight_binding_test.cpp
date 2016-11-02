@@ -14,10 +14,10 @@
 #include "dca/phys/parameters/model_parameters.hpp"
 #include "gtest/gtest.h"
 #include "dca/io/json/json_reader.hpp"
+#include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
-#include "phys_library/domains/cluster/symmetries/point_groups/2D/2D_square.h"
 
-using PointGroup = D4;
+using PointGroup = dca::phys::domains::D4;
 using Lattice = dca::phys::models::square_lattice<PointGroup>;
 
 TEST(ModelParametersTightBindingTest, DefaultValues) {

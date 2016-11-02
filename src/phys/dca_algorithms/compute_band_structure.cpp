@@ -18,7 +18,9 @@ namespace phys {
 
 template <>
 void compute_band_structure::high_symmetry_line<1>(std::vector<std::vector<double>>& collection_k_vecs) {
-  using DCA_k_cluster_type = cluster_domain<double, 1, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
+  using DCA_k_cluster_type =
+      domains::cluster_domain<double, 1, domains::CLUSTER, domains::MOMENTUM_SPACE,
+                              domains::BRILLOUIN_ZONE>;
 
   int Nb_interpolation = INTERPOLATION_POINTS_BAND_STRUCTURE;
 
@@ -35,7 +37,9 @@ void compute_band_structure::high_symmetry_line<1>(std::vector<std::vector<doubl
 
 template <>
 void compute_band_structure::high_symmetry_line<2>(std::vector<std::vector<double>>& collection_k_vecs) {
-  using DCA_k_cluster_type = cluster_domain<double, 2, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
+  using DCA_k_cluster_type =
+      domains::cluster_domain<double, 2, domains::CLUSTER, domains::MOMENTUM_SPACE,
+                              domains::BRILLOUIN_ZONE>;
 
   int Nb_interpolation = INTERPOLATION_POINTS_BAND_STRUCTURE;
 
@@ -103,7 +107,9 @@ void compute_band_structure::high_symmetry_line<2>(std::vector<std::vector<doubl
 
 template <>
 void compute_band_structure::high_symmetry_line<3>(std::vector<std::vector<double>>& collection_k_vecs) {
-  using DCA_k_cluster_type = cluster_domain<double, 3, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
+  using DCA_k_cluster_type =
+      domains::cluster_domain<double, 3, domains::CLUSTER, domains::MOMENTUM_SPACE,
+                              domains::BRILLOUIN_ZONE>;
 
   int Nb_interpolation = INTERPOLATION_POINTS_BAND_STRUCTURE;
   std::vector<double>& b0 = DCA_k_cluster_type::get_super_basis_vectors()[0];
@@ -184,7 +190,9 @@ void compute_band_structure::high_symmetry_line<3>(std::vector<std::vector<doubl
 template <>
 void compute_band_structure::high_symmetry_line<1>(std::string& name,
                                                    std::vector<std::vector<double>>& k_vecs) {
-  using DCA_k_cluster_type = cluster_domain<double, 1, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
+  using DCA_k_cluster_type =
+      domains::cluster_domain<double, 1, domains::CLUSTER, domains::MOMENTUM_SPACE,
+                              domains::BRILLOUIN_ZONE>;
 
   name = "absolute";
 
@@ -207,7 +215,9 @@ void compute_band_structure::high_symmetry_line<1>(std::string& name,
 template <>
 void compute_band_structure::high_symmetry_line<2>(std::string& name,
                                                    std::vector<std::vector<double>>& k_vecs) {
-  using DCA_k_cluster_type = cluster_domain<double, 2, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
+  using DCA_k_cluster_type =
+      domains::cluster_domain<double, 2, domains::CLUSTER, domains::MOMENTUM_SPACE,
+                              domains::BRILLOUIN_ZONE>;
 
   name = "absolute";
 
@@ -238,7 +248,9 @@ void compute_band_structure::high_symmetry_line<2>(std::string& name,
 template <>
 void compute_band_structure::high_symmetry_line<3>(std::string& name,
                                                    std::vector<std::vector<double>>& k_vecs) {
-  using DCA_k_cluster_type = cluster_domain<double, 3, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>;
+  using DCA_k_cluster_type =
+      domains::cluster_domain<double, 3, domains::CLUSTER, domains::MOMENTUM_SPACE,
+                              domains::BRILLOUIN_ZONE>;
 
   name = "absolute";
 

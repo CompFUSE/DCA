@@ -57,10 +57,10 @@ int main(int argc, char** argv) {
   parameters.update_domains();
 
   // Create and initialize the DCA data object.
-  DcaData dca_data(parameters);
+  DcaDataType dca_data(parameters);
   dca_data.initialize();
 
-  DcaLoop dca_loop(parameters, dca_data, concurrency);
+  DcaLoopType dca_loop(parameters, dca_data, concurrency);
 
   {
     Profiler profiler(__FUNCTION__, __FILE__, __LINE__);

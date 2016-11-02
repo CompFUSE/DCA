@@ -25,6 +25,14 @@
 #include "dca/io/json/json_reader.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/parallel/pthreading/pthreading.hpp"
+#include "dca/phys/dca_data/dca_data.hpp"
+#include "dca/phys/dca_loop/dca_loop_data.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
 #include "dca/phys/parameters/parameters.hpp"
@@ -33,39 +41,30 @@
 #include "dca/testing/minimalist_printer.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
-#include "phys_library/DCA+_data/DCA_data.h"
-#include "phys_library/DCA+_loop/DCA_loop_data.hpp"
-#include "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_ctaux/ctaux_cluster_solver.h"
-#include "phys_library/domains/cluster/symmetries/point_groups/2D/2D_square.h"
-#include "phys_library/domains/cluster/cluster_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_band_domain.h"
-#include "phys_library/domains/Quantum_domain/electron_spin_domain.h"
-#include "phys_library/domains/time_and_frequency/frequency_domain.h"
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
-using namespace DCA;
-
 TEST(squareLattice_Nc4_nn, Self_Energy) {
   using RngType = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
-  using DcaPointGroupType = D4;
+  using DcaPointGroupType = dca::phys::domains::D4;
   using LatticeType = dca::phys::models::square_lattice<DcaPointGroupType>;
   using ModelType = dca::phys::models::TightBindingModel<LatticeType>;
   using Threading = dca::parallel::Pthreading;
   using ParametersType =
       dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
                                     dca::profiling::NullProfiler, ModelType, RngType,
-                                    CT_AUX_CLUSTER_SOLVER>;
-  using DcaDataType = DCA_data<ParametersType>;
+                                    dca::phys::solver::CT_AUX>;
+  using DcaDataType = dca::phys::DcaData<ParametersType>;
   using QmcSolverType =
-      cluster_solver<CT_AUX_CLUSTER_SOLVER, linalg::CPU, ParametersType, DcaDataType>;
+      dca::phys::solver::CtauxClusterSolver<linalg::CPU, ParametersType, DcaDataType>;
 
-  using w = dca::func::dmn_0<frequency_domain>;
-  using b = dca::func::dmn_0<electron_band_domain>;
-  using s = dca::func::dmn_0<electron_spin_domain>;
+  using w = dca::func::dmn_0<dca::phys::domains::frequency_domain>;
+  using b = dca::func::dmn_0<dca::phys::domains::electron_band_domain>;
+  using s = dca::func::dmn_0<dca::phys::domains::electron_spin_domain>;
   using nu = dca::func::dmn_variadic<b, s>;  // orbital-spin index
-  using k_DCA = dca::func::dmn_0<
-      cluster_domain<double, LatticeType::DIMENSION, CLUSTER, MOMENTUM_SPACE, BRILLOUIN_ZONE>>;
+  using k_DCA = dca::func::dmn_0<dca::phys::domains::cluster_domain<
+      double, LatticeType::DIMENSION, dca::phys::domains::CLUSTER,
+      dca::phys::domains::MOMENTUM_SPACE, dca::phys::domains::BRILLOUIN_ZONE>>;
 
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
     dca::util::GitVersion::print();
@@ -77,7 +76,7 @@ TEST(squareLattice_Nc4_nn, Self_Energy) {
   parameters.update_model();
   parameters.update_domains();
 
-  DCA_loop_data<ParametersType> dca_loop_data;
+  dca::phys::DcaLoopData<ParametersType> dca_loop_data;
 
   DcaDataType dca_data_imag(parameters);
   dca_data_imag.initialize();
