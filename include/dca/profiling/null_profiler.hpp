@@ -7,7 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// This file provides a Null profiler to turn off profiling.
 
 #ifndef DCA_PROFILING_NULL_PROFILER_HPP
 #define DCA_PROFILING_NULL_PROFILER_HPP

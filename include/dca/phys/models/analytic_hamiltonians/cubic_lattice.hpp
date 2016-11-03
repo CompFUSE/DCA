@@ -7,7 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// Cubic lattice.
 
 #ifndef DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_CUBIC_LATTICE_HPP
 #define DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_CUBIC_LATTICE_HPP

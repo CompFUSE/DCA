@@ -7,7 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// This class implements the Richardson Lucy deconvolution algorithm.
 
 #ifndef DCA_MATH_INFERENCE_RICHARDSON_LUCY_DECONVOLUTION_HPP
 #define DCA_MATH_INFERENCE_RICHARDSON_LUCY_DECONVOLUTION_HPP

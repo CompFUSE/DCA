@@ -7,7 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// Bilayer lattice.
 
 #ifndef DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_BILAYER_LATTICE_HPP
 #define DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_BILAYER_LATTICE_HPP

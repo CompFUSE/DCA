@@ -7,7 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// HDF5 reader.
 
 #ifndef DCA_IO_HDF5_HDF5_READER_HPP
 #define DCA_IO_HDF5_HDF5_READER_HPP

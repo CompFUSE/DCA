@@ -7,7 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// This file provides various enumerations for the JSON parser.
 
 #ifndef DCA_IO_JSON_JSON_PARSER_JSON_ENUMERATIONS_HPP
 #define DCA_IO_JSON_JSON_PARSER_JSON_ENUMERATIONS_HPP

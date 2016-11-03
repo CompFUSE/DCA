@@ -7,7 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// HDF5 types.
 
 #ifndef DCA_IO_HDF5_HDF5_TYPES_HPP
 #define DCA_IO_HDF5_HDF5_TYPES_HPP

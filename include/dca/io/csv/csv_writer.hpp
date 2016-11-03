@@ -7,7 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// CSV writer.
 
 #ifndef DCA_IO_CSV_CSV_WRITER_HPP
 #define DCA_IO_CSV_CSV_WRITER_HPP

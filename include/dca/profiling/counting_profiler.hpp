@@ -7,7 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// Counting profiler.
 
 #ifndef DCA_PROFILING_COUNTING_PROFILER_HPP
 #define DCA_PROFILING_COUNTING_PROFILER_HPP

@@ -8,7 +8,7 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Andrei Plamada (plamada@itp.phys.ethz.ch)
 //
-// Description
+// 2-band lattice.
 
 #ifndef DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_TWOBAND_LATTICE_HPP
 #define DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_TWOBAND_LATTICE_HPP

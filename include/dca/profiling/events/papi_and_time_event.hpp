@@ -7,7 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// PAPI and time event.
 //
 // INTERNAL: Are Pthreads really required?
 

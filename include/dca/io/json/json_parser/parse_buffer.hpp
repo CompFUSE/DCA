@@ -7,7 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// JSON parse buffer.
 
 #ifndef DCA_IO_JSON_JSON_PARSER_PARSE_BUFFER_HPP
 #define DCA_IO_JSON_JSON_PARSER_PARSE_BUFFER_HPP

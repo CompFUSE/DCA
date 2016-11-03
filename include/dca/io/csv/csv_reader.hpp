@@ -7,7 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// CSV reader.
 
 #ifndef DCA_IO_CSV_CSV_READER_HPP
 #define DCA_IO_CSV_CSV_READER_HPP

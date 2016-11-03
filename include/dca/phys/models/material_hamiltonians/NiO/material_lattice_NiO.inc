@@ -8,7 +8,7 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Andrei Plamada (plamada@itp.phys.ethz.ch)
 //
-// Description
+// Material lattice specialization for NiO.
 
 // NiO symmetric
 template <typename point_group_type>

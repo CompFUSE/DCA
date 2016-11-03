@@ -7,7 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// State and action pair for JSON parser.
 
 #ifndef DCA_IO_JSON_JSON_PARSER_STATE_AND_ACTION_PAIR_HPP
 #define DCA_IO_JSON_JSON_PARSER_STATE_AND_ACTION_PAIR_HPP

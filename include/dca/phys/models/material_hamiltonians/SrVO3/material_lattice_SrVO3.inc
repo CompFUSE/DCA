@@ -7,7 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// Material lattice specialization for SrVO3.
 
 template <typename point_group_type>
 class material_lattice<SrVO3, point_group_type> {

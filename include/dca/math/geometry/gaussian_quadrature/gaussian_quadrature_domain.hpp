@@ -7,7 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// Gaussian quadrature domain.
 
 #ifndef DCA_MATH_GEOMETRY_GAUSSIAN_QUADRATURE_GAUSSIAN_QUADRATURE_DOMAIN_HPP
 #define DCA_MATH_GEOMETRY_GAUSSIAN_QUADRATURE_GAUSSIAN_QUADRATURE_DOMAIN_HPP

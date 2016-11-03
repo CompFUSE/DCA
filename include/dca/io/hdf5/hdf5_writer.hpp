@@ -7,7 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// HDF5 writer.
 
 #ifndef DCA_IO_HDF5_HDF5_WRITER_HPP
 #define DCA_IO_HDF5_HDF5_WRITER_HPP

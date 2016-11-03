@@ -7,7 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// JSON context.
 
 #ifndef DCA_IO_JSON_JSON_PARSER_JSON_CONTEXT_HPP
 #define DCA_IO_JSON_JSON_PARSER_JSON_CONTEXT_HPP

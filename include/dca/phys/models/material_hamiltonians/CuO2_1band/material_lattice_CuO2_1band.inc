@@ -7,7 +7,7 @@
 //
 // Author: Andrei Plamada (plamada@itp.phys.ethz.ch)
 //
-// Description
+// Material lattice specialization for CuO2 1-band.
 
 template <typename point_group_type>
 class material_lattice<CuO2_1band, point_group_type> {

@@ -7,7 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// Whatever class.
 
 #ifndef DCA_IO_JSON_JSON_PARSER_WHATEVER_HPP
 #define DCA_IO_JSON_JSON_PARSER_WHATEVER_HPP

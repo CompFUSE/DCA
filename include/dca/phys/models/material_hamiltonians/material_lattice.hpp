@@ -7,7 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// This file provides a material lattice class that is templated on the material type.
 
 #ifndef DCA_PHYS_MODELS_MATERIAL_HAMILTONIANS_MATERIAL_LATTICE_HPP
 #define DCA_PHYS_MODELS_MATERIAL_HAMILTONIANS_MATERIAL_LATTICE_HPP

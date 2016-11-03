@@ -7,7 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// Domain base class.
 
 #ifndef DCA_FUNCTION_DOMAINS_DOMAIN_HPP
 #define DCA_FUNCTION_DOMAINS_DOMAIN_HPP

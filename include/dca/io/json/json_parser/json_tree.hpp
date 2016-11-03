@@ -7,7 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// JSON tree.
 
 #ifndef DCA_IO_JSON_JSON_PARSER_JSON_TREE_HPP
 #define DCA_IO_JSON_JSON_PARSER_JSON_TREE_HPP

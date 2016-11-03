@@ -7,7 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// JSON writer.
 
 #ifndef DCA_IO_JSON_JSON_WRITER_HPP
 #define DCA_IO_JSON_JSON_WRITER_HPP

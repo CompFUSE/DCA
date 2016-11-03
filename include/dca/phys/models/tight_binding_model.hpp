@@ -7,7 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// Tight binding model.
 
 #ifndef DCA_PHYS_MODELS_TIGHT_BINDING_MODEL_HPP
 #define DCA_PHYS_MODELS_TIGHT_BINDING_MODEL_HPP

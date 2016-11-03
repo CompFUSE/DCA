@@ -7,7 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// JSON character mapper.
 
 #ifndef DCA_IO_JSON_JSON_PARSER_JSON_CHARACTER_MAPPER_HPP
 #define DCA_IO_JSON_JSON_PARSER_JSON_CHARACTER_MAPPER_HPP

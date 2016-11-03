@@ -7,7 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// Time event.
 
 #ifndef DCA_PROFILING_EVENTS_TIME_EVENT_HPP
 #define DCA_PROFILING_EVENTS_TIME_EVENT_HPP

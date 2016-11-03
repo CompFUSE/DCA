@@ -7,7 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Description
+// JSON translation table.
 
 #ifndef DCA_IO_JSON_JSON_PARSER_JSON_TRANSLATION_TABLE_HPP
 #define DCA_IO_JSON_JSON_PARSER_JSON_TRANSLATION_TABLE_HPP

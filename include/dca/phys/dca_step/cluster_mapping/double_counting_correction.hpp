@@ -8,7 +8,7 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Andrei Plamada (plamada@itp.phys.ethz.ch)
 //
-// Description
+// This class perfoms the double counting correction.
 
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_DOUBLE_COUNTING_CORRECTION_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_DOUBLE_COUNTING_CORRECTION_HPP
