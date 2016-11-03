@@ -231,9 +231,7 @@ elseif (DCA_THREADING_LIBRARY STREQUAL POSIX)
 
   set(DCA_THREADING_TYPE dca::parallel::Pthreading)
   set(DCA_THREADING_INCLUDE "dca/parallel/pthreading/pthreading.hpp")
-  
-  set(DCA_THREADING_FLAGS -pthread CACHE STRING "Flags needed for threading.")
-  mark_as_advanced(DCA_THREADING_FLAGS)
+  set(DCA_THREADING_FLAGS -pthread CACHE STRING "Flags needed for threading." FORCE)
 
 elseif (DCA_THREADING_LIBRARY STREQUAL HPX)
   message(FATAL_ERROR "No HPX support yet.")
@@ -241,11 +239,13 @@ elseif (DCA_THREADING_LIBRARY STREQUAL HPX)
 elseif (DCA_THREADING_LIBRARY STREQUAL None)
   set(DCA_THREADING_TYPE dca::parallel::NoThreading)
   set(DCA_THREADING_INCLUDE "dca/parallel/no_threading/no_threading.hpp")
+  set(DCA_THREADING_FLAGS "" CACHE STRING "Flags needed for threading." FORCE)
 
 else()
   message(FATAL_ERROR "Please set DCA_THREADING_LIBRARY to a valid option: STL | POSIX | HPX | None.")
 endif()
 
+mark_as_advanced(DCA_THREADING_FLAGS)
 configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/threading.hpp.in"
   "${CMAKE_BINARY_DIR}/include/dca/config/threading.hpp" @ONLY)
 
