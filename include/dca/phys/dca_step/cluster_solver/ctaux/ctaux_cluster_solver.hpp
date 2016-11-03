@@ -23,6 +23,7 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/linalg/linalg.hpp"
 #include "dca/math/function_transform/function_transform.hpp"
 #include "dca/math/statistics/util.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_accumulator.hpp"
@@ -35,8 +36,6 @@
 #include "dca/phys/vertex_measurement_type.hpp"
 #include "dca/profiling/events/time.hpp"
 #include "dca/util/print_time.hpp"
-
-#include "comp_library/linalg/linalg.hpp"
 
 namespace dca {
 namespace phys {

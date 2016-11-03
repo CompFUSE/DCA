@@ -23,7 +23,8 @@
 #include "dca/io/json/json_parser/json_context.hpp"
 #include "dca/io/json/json_parser/json_parser.hpp"
 #include "dca/io/json/json_parser/whatever.hpp"
-#include "comp_library/linalg/linalg.hpp"
+#include "dca/linalg/matrix.hpp"
+#include "dca/linalg/vector.hpp"
 
 namespace dca {
 namespace io {

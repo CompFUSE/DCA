@@ -15,8 +15,6 @@
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/matrixop.hpp"
 
-#include "comp_library/linalg/linalg.hpp"
-
 namespace dca {
 namespace math {
 namespace gp {

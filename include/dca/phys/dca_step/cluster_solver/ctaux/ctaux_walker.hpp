@@ -17,6 +17,7 @@
 #include <stdexcept>
 #include <vector>
 
+#include "dca/linalg/linalg.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/domains/hs_vertex_move_domain.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/structs/ct_aux_hs_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/structs/ctaux_walker_data.hpp"
@@ -27,8 +28,6 @@
 #include "dca/phys/dca_step/cluster_solver/ctaux/walker/tools/n_tools.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/walker/tools/shrink_tools.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/walker/walker_bit.hpp"
-
-#include "comp_library/linalg/linalg.hpp"
 
 namespace dca {
 namespace phys {

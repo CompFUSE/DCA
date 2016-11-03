@@ -22,6 +22,7 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/linalg/linalg.hpp"
 #include "dca/math/function_transform/function_transform.hpp"
 #include "dca/phys/dft_connection/vasp/vasp_domains/dmft_band_domain.hpp"
 #include "dca/phys/dft_connection/vasp/vasp_domains/dmft_orbital_domain.hpp"
@@ -31,8 +32,6 @@
 #include "dca/phys/domains/cluster/centered_cluster_domain.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/util/plot.hpp"
-
-#include "comp_library/linalg/linalg.hpp"
 
 namespace dca {
 namespace phys {

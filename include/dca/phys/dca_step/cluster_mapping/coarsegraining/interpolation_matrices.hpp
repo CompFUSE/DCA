@@ -20,12 +20,12 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/linalg/matrix.hpp"
+#include "dca/linalg/matrixop.hpp"
 #include "dca/math/function_transform/basis_transform/basis_transform.hpp"
 #include "dca/phys/dca_step/cluster_mapping/coarsegraining/coarsegrain_domain_names.hpp"
 #include "dca/phys/dca_step/cluster_mapping/coarsegraining/coarsegraining_domain.hpp"
 #include "dca/phys/domains/cluster/centered_cluster_domain.hpp"
-
-#include "comp_library/linalg/linalg.hpp"
 
 namespace dca {
 namespace phys {

@@ -22,10 +22,9 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/linalg/matrixop.hpp"
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/hamiltonian.hpp"
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/overlap_matrix_element.hpp"
-
-#include "comp_library/linalg/linalg.hpp"
 
 namespace dca {
 namespace phys {

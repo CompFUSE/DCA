@@ -66,8 +66,7 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
-#include "dca/phys/domains/quantum/electron_band_domain.hpp"
-#include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
+#include "dca/linalg/linalg.hpp"
 #include "dca/math/util/comparison_methods.hpp"
 #include "dca/math/util/vector_operations.hpp"
 #include "dca/phys/dca_step/cluster_mapping/coarsegraining/coarsegraining_sp.hpp"
@@ -79,9 +78,9 @@
 #include "dca/phys/dca_step/symmetrization/symmetrize.hpp"
 #include "dca/phys/domains/cluster/centered_cluster_domain.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/quantum/electron_band_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 #include "dca/util/print_time.hpp"
-
-#include "comp_library/linalg/linalg.hpp"
 
 namespace dca {
 namespace phys {

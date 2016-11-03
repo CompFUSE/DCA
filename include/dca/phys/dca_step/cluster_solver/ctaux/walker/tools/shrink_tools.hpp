@@ -17,10 +17,9 @@
 #include <stdexcept>
 #include <vector>
 
+#include "dca/linalg/linalg.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/structs/vertex_singleton.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/walker/tools/shrink_tools_algorithms/shrink_tools_algorithms.hpp"
-
-#include "comp_library/linalg/linalg.hpp"
 
 namespace dca {
 namespace phys {

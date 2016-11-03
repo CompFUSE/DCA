@@ -19,7 +19,8 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
-#include "comp_library/linalg/linalg.hpp"
+#include "dca/linalg/matrix.hpp"
+#include "dca/linalg/vector.hpp"
 
 namespace dca {
 namespace math {

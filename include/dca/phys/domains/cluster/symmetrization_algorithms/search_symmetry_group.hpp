@@ -19,13 +19,12 @@
 #include <stdexcept>
 #include <vector>
 
+#include "dca/linalg/linalg.hpp"
 #include "dca/math/util/vector_operations.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/point_group_symmetry_domain.hpp"
 #include "dca/phys/domains/quantum/symmetry_group_level.hpp"
 #include "dca/util/type_list.hpp"
-
-#include "comp_library/linalg/linalg.hpp"
 
 namespace dca {
 namespace phys {

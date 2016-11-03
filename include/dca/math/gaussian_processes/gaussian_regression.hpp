@@ -20,8 +20,6 @@
 #include "dca/linalg/matrixop.hpp"
 #include "dca/math/util/vector_operations.hpp"
 
-#include "comp_library/linalg/linalg.hpp"
-
 namespace dca {
 namespace math {
 namespace gp {

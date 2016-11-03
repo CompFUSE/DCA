@@ -74,11 +74,6 @@ include(dca_cuda)  # Sets DCA_CUDA_LIBS.
 # For "dca/.../..." #includes.
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
-# For src includes, e.g. #include "phys_library/...".
-# Note that these includes should disappear over time since header files should be moved into
-# include/dca/.../ and included via #include "dca/.../...".
-include_directories(${PROJECT_SOURCE_DIR}/src)
-
 # Directory where dca/config/headers.hpp will be created.
 include_directories(${CMAKE_BINARY_DIR}/include)
 

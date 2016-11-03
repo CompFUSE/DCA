@@ -16,9 +16,7 @@
 #include <cassert>
 #include <vector>
 
-#include "dca/linalg/device_type.hpp"
-
-#include "comp_library/linalg/linalg.hpp"
+#include "dca/linalg/linalg.hpp"
 
 namespace dca {
 namespace phys {

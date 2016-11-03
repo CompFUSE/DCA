@@ -17,12 +17,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "dca/linalg/device_type.hpp"
-#include "dca/linalg/matrix.hpp"
-#include "dca/linalg/matrixop.hpp"
-#include "dca/linalg/vector.hpp"
-
-#include "comp_library/linalg/linalg.hpp"
+#include "dca/linalg/linalg.hpp"
 
 namespace dca {
 namespace phys {

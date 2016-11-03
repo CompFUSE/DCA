@@ -16,11 +16,10 @@
 
 #include "dca/function/domains/domain_type_operations.hpp"
 #include "dca/function/function.hpp"
+#include "dca/linalg/matrix.hpp"
 #include "dca/math/function_transform/domain_representations.hpp"
 #include "dca/math/function_transform/transform_domain.hpp"
 #include "dca/util/type_list.hpp"
-
-#include "comp_library/linalg/linalg.hpp"
 
 namespace dca {
 namespace math {

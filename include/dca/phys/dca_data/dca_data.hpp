@@ -25,11 +25,12 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
-#include "dca/math/function_transform/function_transform.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/io/json/json_writer.hpp"
+#include "dca/linalg/linalg.hpp"
+#include "dca/math/function_transform/function_transform.hpp"
 #include "dca/math/util/vector_operations.hpp"
 #include "dca/phys/dca_algorithms/compute_band_structure.hpp"
 #include "dca/phys/dca_step/cluster_mapping/coarsegraining/coarsegraining_sp.hpp"
@@ -46,8 +47,6 @@
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
 #include "dca/phys/vertex_measurement_type.hpp"
 #include "dca/util/print_time.hpp"
-
-#include "comp_library/linalg/linalg.hpp"
 
 namespace dca {
 namespace phys {

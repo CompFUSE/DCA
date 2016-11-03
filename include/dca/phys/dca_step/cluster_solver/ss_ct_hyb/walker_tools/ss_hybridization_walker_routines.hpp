@@ -21,8 +21,7 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
-#include "dca/linalg/matrix.hpp"
-#include "dca/linalg/matrixop.hpp"
+#include "dca/linalg/linalg.hpp"
 #include "dca/math/interpolation/akima_interpolation.hpp"
 #include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/ss_hybridization_solver_routines.hpp"
 #include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/structures/hybridization_vertex.hpp"
@@ -33,8 +32,6 @@
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain_left_oriented.hpp"
-
-#include "comp_library/linalg/linalg.hpp"
 
 namespace dca {
 namespace phys {

@@ -22,7 +22,8 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/io/hdf5/hdf5_types.hpp"
-#include "comp_library/linalg/linalg.hpp"
+#include "dca/linalg/matrix.hpp"
+#include "dca/linalg/vector.hpp"
 
 namespace dca {
 namespace io {

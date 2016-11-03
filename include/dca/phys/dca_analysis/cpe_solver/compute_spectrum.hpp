@@ -23,6 +23,7 @@
 #include "dca/function/function.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_writer.hpp"
+#include "dca/linalg/linalg.hpp"
 #include "dca/math/statistics/gaussian_probability.hpp"
 #include "dca/math/util/vector_operations.hpp"
 #include "dca/phys/dca_analysis/cpe_solver/continuous_pole_expansion.hpp"
@@ -36,8 +37,6 @@
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
 #include "dca/util/plot.hpp"
 #include "dca/util/print_time.hpp"
-
-#include "comp_library/linalg/linalg.hpp"
 
 namespace dca {
 namespace phys {

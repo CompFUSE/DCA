@@ -17,11 +17,10 @@
 #include <fftw3.h>
 
 #include "dca/function/function.hpp"
+#include "dca/linalg/linalg.hpp"
 #include "dca/math/function_transform/basis_transform/basis_transform.hpp"
 #include "dca/math/function_transform/domain_representations.hpp"
 #include "dca/math/function_transform/transform_domain_procedure.hpp"
-
-#include "comp_library/linalg/linalg.hpp"
 
 namespace dca {
 namespace math {

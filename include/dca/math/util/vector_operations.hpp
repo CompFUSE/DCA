@@ -20,7 +20,7 @@
 #include <type_traits>
 #include <vector>
 
-#include "comp_library/linalg/linalg.hpp"
+#include "dca/linalg/lapack/solve.hpp"
 
 namespace dca {
 namespace math {

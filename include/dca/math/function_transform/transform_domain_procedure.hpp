@@ -13,7 +13,7 @@
 #define DCA_MATH_FUNCTION_TRANSFORM_TRANSFORM_DOMAIN_PROCEDURE_HPP
 
 #include "dca/function/function.hpp"
-#include "comp_library/linalg/linalg.hpp"
+#include "dca/linalg/linalg.hpp"
 
 namespace dca {
 namespace math {

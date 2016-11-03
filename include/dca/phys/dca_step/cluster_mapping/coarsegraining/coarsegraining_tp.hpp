@@ -33,8 +33,6 @@
 #include "dca/util/plot.hpp"
 #include "dca/util/print_time.hpp"
 
-#include "comp_library/linalg/linalg.hpp"
-
 namespace dca {
 namespace phys {
 namespace clustermapping {
@@ -59,7 +57,6 @@ public:
 
   using scalar_type = double;
   using complex_type = std::complex<scalar_type>;
-  using matrix_type = dca::linalg::Matrix<scalar_type, dca::linalg::CPU>;
 
   using tetrahedron_dmn = func::dmn_0<math::geometry::tetrahedron_mesh<K_dmn>>;
   using quadrature_dmn = math::geometry::gaussian_quadrature_domain<tetrahedron_dmn>;

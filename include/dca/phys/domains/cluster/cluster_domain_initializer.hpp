@@ -16,12 +16,12 @@
 #include <vector>
 
 #include "dca/function/domains/dmn_0.hpp"
+#include "dca/linalg/matrix.hpp"
+#include "dca/linalg/matrixop.hpp"
 #include "dca/math/util/coordinate_transformation.hpp"
 #include "dca/math/util/vector_operations.hpp"
 #include "dca/phys/domains/cluster/cluster_definitions.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
-
-#include "comp_library/linalg/linalg.hpp"
 
 namespace dca {
 namespace phys {

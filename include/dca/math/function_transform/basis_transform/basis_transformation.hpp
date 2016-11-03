@@ -15,11 +15,10 @@
 #include <cassert>
 #include <string>
 
+#include "dca/linalg/linalg.hpp"
 #include "dca/math/function_transform/basis_function.hpp"
 #include "dca/math/function_transform/basis_transform/inner_product_domain.hpp"
 #include "dca/math/function_transform/domain_representations.hpp"
-
-#include "comp_library/linalg/linalg.hpp"
 
 namespace dca {
 namespace math {

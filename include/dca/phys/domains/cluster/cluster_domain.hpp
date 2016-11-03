@@ -16,13 +16,12 @@
 #include <ios>
 #include <vector>
 
+#include "dca/linalg/matrix.hpp"
 #include "dca/math/util/vector_operations.hpp"
 #include "dca/phys/domains/cluster/cluster_definitions.hpp"
 #include "dca/phys/domains/cluster/cluster_operations.hpp"
 #include "dca/phys/domains/cluster/cluster_specifications.hpp"
 #include "dca/phys/domains/cluster/dual_cluster.hpp"
-
-#include "comp_library/linalg/linalg.hpp"
 
 namespace dca {
 namespace phys {

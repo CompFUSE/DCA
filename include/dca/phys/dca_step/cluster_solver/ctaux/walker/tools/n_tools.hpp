@@ -35,11 +35,10 @@
 #include <utility>
 #include <vector>
 
+#include "dca/linalg/linalg.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/structs/cv.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/structs/vertex_singleton.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/walker/tools/n_matrix_tools/n_matrix_tools.hpp"
-
-#include "comp_library/linalg/linalg.hpp"
 
 namespace dca {
 namespace phys {

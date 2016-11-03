@@ -14,7 +14,8 @@
 #ifndef DCA_MATH_UTIL_COORDINATE_TRANSFORMATION_HPP
 #define DCA_MATH_UTIL_COORDINATE_TRANSFORMATION_HPP
 
-#include "comp_library/linalg/linalg.hpp"
+#include "dca/linalg/matrix.hpp"
+#include "dca/linalg/vector.hpp"
 
 namespace dca {
 namespace math {

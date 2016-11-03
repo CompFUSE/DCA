@@ -19,11 +19,9 @@
 #include <utility>
 #include <vector>
 
-#include "dca/linalg/lapack/inverse.hpp"
+#include "dca/linalg/linalg.hpp"
 #include "dca/math/geometry/tetrahedron_mesh/tetrahedron_eigenvalue_degeneracy.hpp"
 #include "dca/phys/dca_step/cluster_mapping/coarsegraining/tetrahedron_integration_data.hpp"
-
-#include "comp_library/linalg/linalg.hpp"
 
 namespace dca {
 namespace phys {

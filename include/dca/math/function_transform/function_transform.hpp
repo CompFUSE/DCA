@@ -16,10 +16,9 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/linalg/matrix.hpp"
 #include "dca/math/function_transform/domainwise_function_transform.hpp"
 #include "dca/util/type_list.hpp"
-
-#include "comp_library/linalg/linalg.hpp"
 
 namespace dca {
 namespace math {

@@ -18,13 +18,12 @@
 #include <stdexcept>
 #include <vector>
 
+#include "dca/linalg/linalg.hpp"
 #include "dca/math/geometry/tetrahedron_mesh/tetrahedron_neighbour_domain.hpp"
 #include "dca/math/util/vector_operations.hpp"
 #include "dca/phys/domains/cluster/cluster_definitions.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/cluster/interpolation/extended_k_domain.hpp"
-
-#include "comp_library/linalg/linalg.hpp"
 
 namespace dca {
 namespace phys {

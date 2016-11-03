@@ -17,11 +17,11 @@
 
 #include "dca/function/domains/dmn_0.hpp"
 #include "dca/function/domains/dmn_variadic.hpp"
+#include "dca/linalg/matrix.hpp"
+#include "dca/linalg/matrixop.hpp"
 #include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/structures/hybridization_vertex.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
-
-#include "comp_library/linalg/linalg.hpp"
 
 namespace dca {
 namespace phys {
