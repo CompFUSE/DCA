@@ -27,9 +27,17 @@ public:
   double get_t() const {
     return t_;
   }
+  void set_t(const double t) {
+    t_ = t;
+  }
+
   double get_t_prime() const {
     return t_prime_;
   }
+  void set_t_prime(const double t_prime) {
+    t_prime_ = t_prime;
+  }
+
   double get_U() const {
     return U_;
   }
