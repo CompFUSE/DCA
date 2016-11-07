@@ -65,6 +65,7 @@ public:
   std::complex<double>& get_F_r(int i);
 
 private:
+  // Checks whether the grid size is larger or equal to the size of the source-k-domain.
   void check_grid_sizes();
 
   void initialize_centered_r_cluster();
@@ -137,6 +138,7 @@ wannier_interpolation_kernel<cluster_domain<scalar_type, D, N, MOMENTUM_SPACE, S
   if (!INITIALIZED) {
     initialize_centered_r_cluster();
 
+    // Reset functions since their domain has changed.
     F_R.reset();
     lies_within_cutoff.reset();
 
