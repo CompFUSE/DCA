@@ -53,7 +53,10 @@ public:
           "The size of the passed elements doesn't match the size of the domain.");
     elements_ = elements;
   }
-  static const std::vector<element_t>& get_elements() {
+
+  // For the moment cannot return a const reference since dmn_0's get_elements only returns a
+  // non-const reference.
+  static std::vector<element_t>& get_elements() {
     if (elements_.size() != size)
       throw std::logic_error("Elements have not been set.");
     return elements_;
