@@ -13,11 +13,6 @@
 #ifndef DCA_MATH_GEOMETRY_TETRAHEDRON_MESH_TETRAHEDRON_MESH_INITIALIZER_HPP
 #define DCA_MATH_GEOMETRY_TETRAHEDRON_MESH_TETRAHEDRON_MESH_INITIALIZER_HPP
 
-namespace dca {
-namespace math {
-namespace geometry {
-// dca::math::geometry::
-
 #include <algorithm>
 #include <cassert>
 #include <cstdlib>
@@ -28,6 +23,11 @@ namespace geometry {
 #include "dca/math/geometry/tetrahedron_mesh/simplex.hpp"
 #include "dca/math/geometry/tetrahedron_mesh/tetrahedron.hpp"
 #include "dca/math/util/vector_operations.hpp"
+
+namespace dca {
+namespace math {
+namespace geometry {
+// dca::math::geometry::
 
 //
 // Empty class template.
