@@ -11,5 +11,3 @@ add_library(json STATIC
   json_parser/whatever.cpp
   json_reader.cpp
   json_writer.cpp)
-
-target_include_directories(json PUBLIC ${FFTW_INCLUDE_DIR})

@@ -1,7 +1,6 @@
 # CT-AUX
 
-add_library(ctaux
-  STATIC
+add_library(ctaux STATIC
   domains/feynman_expansion_order_domain.cpp
   domains/hs_field_sign_domain.cpp
   domains/hs_spin_domain.cpp
