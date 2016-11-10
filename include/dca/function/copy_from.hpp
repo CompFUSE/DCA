@@ -17,8 +17,6 @@
 #include <complex>
 #include <vector>
 
-#include <fftw3.h>
-
 namespace dca {
 namespace func {
 // dca::func::
@@ -89,13 +87,6 @@ struct copy_from<std::vector<whatever_t>> {
     for (int l = 0; l < size; l++) {
       whatever_l[l] = whatever_r[l];
     }
-  }
-};
-
-template <>
-struct copy_from<fftw_complex> {
-  static void execute(int size, fftw_complex* whatever_l, fftw_complex* whatever_r) {
-    std::memcpy(whatever_l, whatever_r, 2 * sizeof(double) * size);
   }
 };
 
