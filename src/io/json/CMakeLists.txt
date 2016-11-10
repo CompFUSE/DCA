@@ -11,15 +11,8 @@ SET(JSON_PARSER_SOURCES
   json_parser/json_translation_table.cpp
   json_parser/whatever.cpp)
 
-if (DCA_HAVE_MULDEFS)
-  add_library(json_reader STATIC json_reader.cpp ${JSON_PARSER_SOURCES})
-  add_library(json_writer STATIC json_writer.cpp ${JSON_PARSER_SOURCES})
-else()
-  add_library(json_reader SHARED json_reader.cpp ${JSON_PARSER_SOURCES})
-  add_library(json_writer SHARED json_writer.cpp ${JSON_PARSER_SOURCES})
-  target_link_libraries(json_reader ${LAPACK_LIBRARIES})
-  target_link_libraries(json_writer ${LAPACK_LIBRARIES})
-endif()
+add_library(json_reader STATIC json_reader.cpp ${JSON_PARSER_SOURCES})
+add_library(json_writer STATIC json_writer.cpp ${JSON_PARSER_SOURCES})
 
 target_include_directories(json_reader PUBLIC ${FFTW_INCLUDE_DIR})
 target_include_directories(json_writer PUBLIC ${FFTW_INCLUDE_DIR})
