@@ -151,8 +151,8 @@ set(DCA_LIBS
   parallel_util
   pthreading
   dca_algorithms
-  json_reader json_writer
-  hdf5_reader hdf5_writer
+  json
+  hdf5
   profiling
   function
   convert_domains
