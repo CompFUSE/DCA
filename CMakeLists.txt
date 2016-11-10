@@ -125,6 +125,7 @@ install(DIRECTORY ${CMAKE_BINARY_DIR}/include/dca/config DESTINATION include/dca
 # Internal libraries
 # TODO: When the number of 'internal' libraries grows, we might want to combine these into a few big
 #       libraries; e.g. one for math, phys, etc.
+add_subdirectory(libs/simplex_gm_rule)
 add_subdirectory(src)
 
 if (DCA_HAVE_CUDA)
@@ -137,6 +138,7 @@ endif()
 set(DCA_LIBS
   ${DCA_EXTERNAL_LIBS}
   ${GNUPLOT_INTERFACE_LIBRARY}
+  ${SIMPLEX_GM_RULE_LIBRARY}
   git_version modules
   ctaux
   posix_qmci
@@ -165,7 +167,7 @@ if (DCA_HAVE_CUDA)
 endif()
 
 # Includes
-set(DCA_INCLUDE_DIRS ${DCA_EXTERNAL_INCLUDE_DIRS} ${GNUPLOT_INTERFACE_INCLUDE_DIR})
+set(DCA_INCLUDE_DIRS ${DCA_EXTERNAL_INCLUDE_DIRS} ${GNUPLOT_INTERFACE_INCLUDE_DIR} ${SIMPLEX_GM_RULE_INCLUDE_DIR})
 
 ################################################################################
 # Testing
