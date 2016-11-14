@@ -13,13 +13,15 @@
 #define DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_BILAYER_LATTICE_HPP
 
 #include <cmath>
-#include <complex>
+#include <stdexcept>
 #include <utility>
 #include <vector>
 
+#include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp"
 #include "dca/phys/models/analytic_hamiltonians/cluster_shape_type.hpp"
+#include "dca/util/type_list.hpp"
 
 namespace dca {
 namespace phys {
@@ -37,18 +39,6 @@ public:
 
   const static int DIMENSION = 2;
   const static int BANDS = 2;
-
-public:
-  //   template<class parameters_type>
-  //   static void initialize(parameters_type& parameters);
-
-  //   static std::vector<int>& LDA_grid_size();
-
-  //   static double* get_r_DCA_basis();
-  //   static double* get_k_DCA_basis();
-
-  //   static double* get_r_LDA_basis();
-  //   static double* get_k_LDA_basis();
 
   static double* initialize_r_DCA_basis();
   static double* initialize_k_DCA_basis();
@@ -68,13 +58,12 @@ public:
   template <class domain>
   static void initialize_H_symmetry(func::function<int, domain>& H_symmetry);
 
-  template <class domain, class parameters_type>
-  static void initialize_H_LDA(func::function<std::complex<double>, domain>& H_LDA,
-                               parameters_type& parameters);
-
-  template <class parameters_type>
-  static std::complex<double> get_LDA_Hamiltonians(parameters_type& parameters, std::vector<double> k,
-                                                   int b1, int s1, int b2, int s2);
+  // Initializes the tight-binding (non-interacting) part of the momentum space Hamiltonian.
+  // Preconditions: The elements of KDmn are two-dimensional (access through index 0 and 1).
+  template <typename ParametersType, typename ScalarType, typename BandSpinDmn, typename KDmn>
+  static void initialize_H_0(
+      const ParametersType& parameters,
+      func::function<ScalarType, func::dmn_variadic<BandSpinDmn, BandSpinDmn, KDmn>>& H_0);
 };
 
 template <typename point_group_type>
@@ -191,50 +180,44 @@ void bilayer_lattice<point_group_type>::initialize_H_symmetry(func::function<int
 }
 
 template <typename point_group_type>
-template <class domain, class parameters_type>
-void bilayer_lattice<point_group_type>::initialize_H_LDA(
-    func::function<std::complex<double>, domain>& H_LDA, parameters_type& parameters) {
-  typedef typename parameters_type::b b;
-  typedef typename parameters_type::s s;
+template <typename ParametersType, typename ScalarType, typename BandSpinDmn, typename KDmn>
+void bilayer_lattice<point_group_type>::initialize_H_0(
+    const ParametersType& parameters,
+    func::function<ScalarType, func::dmn_variadic<BandSpinDmn, BandSpinDmn, KDmn>>& H_0) {
+  static_assert(util::Length<typename BandSpinDmn::this_type>::value == 2,
+                "BandSpinDmn has two subdomains, the band domain and the spin domain.");
 
-  typedef typename parameters_type::k_LDA k_LDA;
+  using BandDmn = typename util::TypeAt<0, typename BandSpinDmn::template domain_typelist<0>>::type;
+  using SpinDmn = typename util::TypeAt<0, typename BandSpinDmn::template domain_typelist<1>>::type;
 
-  std::vector<double> k;
+  if (BandDmn::get_size() != BANDS)
+    throw std::logic_error("Bilayer lattice has two bands.");
+  if (SpinDmn::get_size() != 2)
+    throw std::logic_error("Spin domain size must be 2.");
 
-  for (int k_ind = 0; k_ind < k_LDA::dmn_size(); k_ind++) {
-    k = k_LDA::parameter_type::get_elements()[k_ind];
+  const auto& k_vecs = KDmn::get_elements();
 
-    for (int b_ind1 = 0; b_ind1 < b::dmn_size(); b_ind1++)
-      for (int s_ind1 = 0; s_ind1 < s::dmn_size(); s_ind1++)
-        for (int b_ind2 = 0; b_ind2 < b::dmn_size(); b_ind2++)
-          for (int s_ind2 = 0; s_ind2 < s::dmn_size(); s_ind2++)
-            H_LDA(b_ind1, s_ind1, b_ind2, s_ind2, k_ind) =
-                get_LDA_Hamiltonians(parameters, k, b_ind1, s_ind1, b_ind2, s_ind2);
+  const auto t = parameters.get_t();
+  const auto t_prime = parameters.get_t_prime();
+  const auto t_perp = parameters.get_t_perp();
+
+  H_0 = ScalarType(0);
+
+  for (int k_ind = 0; k_ind < KDmn::dmn_size(); ++k_ind) {
+    const auto& k = k_vecs[k_ind];
+    const auto val =
+        -2. * t * (std::cos(k[0]) + std::cos(k[1])) - 4. * t_prime * std::cos(k[0]) * std::cos(k[1]);
+
+    H_0(0, 0, 0, 0, k_ind) = val;
+    H_0(0, 1, 0, 1, k_ind) = val;
+    H_0(1, 0, 1, 0, k_ind) = val;
+    H_0(1, 1, 1, 1, k_ind) = val;
+
+    H_0(0, 0, 1, 0, k_ind) = -t_perp;
+    H_0(0, 1, 1, 1, k_ind) = -t_perp;
+    H_0(1, 0, 0, 0, k_ind) = -t_perp;
+    H_0(1, 1, 0, 1, k_ind) = -t_perp;
   }
-}
-
-template <typename point_group_type>
-template <class parameters_type>
-std::complex<double> bilayer_lattice<point_group_type>::get_LDA_Hamiltonians(
-    parameters_type& parameters, std::vector<double> k, int b1, int s1, int b2, int s2) {
-  const static std::complex<double> I(0, 1);
-
-  double t = parameters.get_t();
-  double t_prime = parameters.get_t_prime();
-
-  double t_perp = parameters.get_t_perp();
-
-  std::complex<double> H_LDA = 0.;
-
-  if (s1 == s2) {
-    if (b1 == b2)
-      H_LDA += -2. * t * (cos(k[0]) + cos(k[1])) - 4. * t_prime * cos(k[0]) * cos(k[1]);
-
-    if (b1 != b2)
-      H_LDA += -t_perp;
-  }
-
-  return H_LDA;
 }
 
 }  // models
