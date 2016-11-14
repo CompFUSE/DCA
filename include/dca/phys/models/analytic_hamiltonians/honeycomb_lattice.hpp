@@ -10,6 +10,8 @@
 // \f{eqnarray}{
 //   H_{i,j}(\vec{k}) &=& \delta_{\sigma_i,\sigma_j}...
 // \f}
+//
+// TODO: Replace get_LDA_Hamiltonians with intialize_H_0 function (see e.g. square_lattice.hpp).
 
 #ifndef DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_HONEYCOMB_LATTICE_HPP
 #define DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_HONEYCOMB_LATTICE_HPP
