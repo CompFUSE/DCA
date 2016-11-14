@@ -7,4 +7,4 @@ else()
   target_link_libraries(dca_algorithms PRIVATE ${LAPACK_LIBRARIES})
 endif()
   
-target_include_directories(dca_algorithms PUBLIC ${FFTW_INCLUDE_DIR} ${NFFT_INCLUDE_DIR})
+target_include_directories(dca_algorithms PUBLIC ${FFTW_INCLUDE_DIR})
