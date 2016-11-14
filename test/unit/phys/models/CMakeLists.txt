@@ -1,3 +1,4 @@
 # Models
 
 add_subdirectory(analytic_hamiltonians)
+add_subdirectory(material_hamiltonians)
