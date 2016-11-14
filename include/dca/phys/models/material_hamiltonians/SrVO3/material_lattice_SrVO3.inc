@@ -8,6 +8,8 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
 // Material lattice specialization for SrVO3.
+//
+// TODO: Replace get_LDA_Hamiltonians with intialize_H_0 function (see material_lattice_NiO.inc).
 
 template <typename point_group_type>
 class material_lattice<SrVO3, point_group_type> {
