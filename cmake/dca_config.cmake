@@ -86,7 +86,7 @@ elseif (DCA_LATTICE STREQUAL "square")
 elseif (DCA_LATTICE STREQUAL "triangular")
   set(DCA_LATTICE_TYPE dca::phys::models::triangular_lattice<PointGroup>)
   set(DCA_LATTICE_INCLUDE
-    "dca/phys/models/analytic_Hamiltonians/triangular_lattice.hpp")
+    "dca/phys/models/analytic_hamiltonians/triangular_lattice.hpp")
 
 else()
   message(FATAL_ERROR "Please set DCA_LATTICE to a valid option: bilayer | square | triangular.")
