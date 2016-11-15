@@ -28,7 +28,6 @@
 #include "dca/phys/dca_step/symmetrization/diagrammatic_symmetries.hpp"
 #include "dca/phys/dca_step/symmetrization/symmetrize.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
-#include "dca/phys/domains/cluster/interpolation/wannier_interpolation/wannier_interpolation.hpp"
 #include "dca/phys/domains/quantum/brillouin_zone_path_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
@@ -206,13 +205,13 @@ BseSolver<ParametersType, DcaDataType>::BseSolver(ParametersType& parameters_ref
   {
     profiler_t prof("compute-H(k)", "input", __LINE__);
 
-    domains::wannier_interpolation<k_LDA, k_DCA>::execute(MOMS.H_LDA, MOMS.H_DCA);
-    domains::wannier_interpolation<k_LDA, k_HOST>::execute(MOMS.H_LDA, MOMS.H_HOST);
+    ParametersType::model_type::initialize_H_0(parameters, MOMS.H_DCA);
+    ParametersType::model_type::initialize_H_0(parameters, MOMS.H_HOST);
   }
 
   {
     profiler_t prof("compute-band-structure", "input", __LINE__);
-    compute_band_structure::execute(parameters, MOMS.H_LDA, MOMS.band_structure);
+    compute_band_structure::execute(parameters, MOMS.band_structure);
   }
 }
 
