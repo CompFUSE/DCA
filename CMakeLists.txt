@@ -136,10 +136,8 @@ endif()
 # Common definitions for building DCA++'s applications and tests.
 # Libraries
 set(DCA_LIBS
-  ${DCA_EXTERNAL_LIBS}
-  ${GNUPLOT_INTERFACE_LIBRARY}
-  ${SIMPLEX_GM_RULE_LIBRARY}
-  git_version modules
+  git_version
+  modules
   ctaux
   posix_qmci
   ss_ct_hyb
@@ -160,7 +158,10 @@ set(DCA_LIBS
   quantum_domains
   time_and_frequency_domains
   symmetrization
-  coarsegraining)
+  coarsegraining
+  ${DCA_EXTERNAL_LIBS}
+  ${GNUPLOT_INTERFACE_LIBRARY}
+  ${SIMPLEX_GM_RULE_LIBRARY})
 
 if (DCA_HAVE_CUDA)
   list(APPEND DCA_LIBS DCA_GPU_routines lapack_kernels blas_kernels cuda_utils ${DCA_CUDA_LIBS})
