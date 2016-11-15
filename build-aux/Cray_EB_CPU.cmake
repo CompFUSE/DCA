@@ -8,12 +8,10 @@
 # Location of external libraries
 # Since they have been installed with EasyBuild, we can use the corresponding environment variables
 # that are set by EB.
-set(NFFT_DIR $ENV{EBROOTNFFT} CACHE PATH "Path to NFFT installation directory.")
 set(SPGLIB_DIR $ENV{EBROOTSPGLIB} CACHE PATH "Path to spglib installation directory.")
 set(gtest_DIR $ENV{EBROOTGTEST} CACHE PATH "Path to Google Test.")
 set(SPRNG_DIR $ENV{EBROOTSPRNG} CACHE PATH "Path to SPRNG installation directory.")
 mark_as_advanced(
-  NFFT_DIR
   SPGLIB_DIR
   gtest_DIR
   SPRNG_DIR)

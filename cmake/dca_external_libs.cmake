@@ -14,18 +14,6 @@ set(DCA_EXTERNAL_LIBS "" CACHE INTERNAL "")
 set(DCA_EXTERNAL_INCLUDE_DIRS "" CACHE INTERNAL "")
 
 ################################################################################
-# NFFT
-find_library(NFFT_LIBRARY
-  NAMES libnfft3.a nfft3
-  HINTS ${NFFT_DIR}/lib)
-find_path(NFFT_INCLUDE_DIR nfft3.h HINTS ${NFFT_DIR}/include)
-
-mark_as_advanced(NFFT_LIBRARY NFFT_INCLUDE_DIR)
-
-list(APPEND DCA_EXTERNAL_LIBS ${NFFT_LIBRARY})
-list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${NFFT_INCLUDE_DIR})
-
-################################################################################
 # SPGLIB
 find_library(SPGLIB_LIBRARY
   NAMES libsymspg.a symspg

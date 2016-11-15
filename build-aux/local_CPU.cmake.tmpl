@@ -6,11 +6,6 @@
 
 # Location of external libraries
 #
-# NFFT: If the instructions in libs/README are followed, NFFT_DIR should be set to
-# "${CMAKE_CURRENT_LIST_DIR}/../libs".
-set(NFFT_DIR "/path/to/NFFT-installation"
-  CACHE PATH "Path to NFFT installation directory.")
-
 # spglib: If the instructions in libs/README are followed, SPGLIB_DIR should be set to
 # "${CMAKE_CURRENT_LIST_DIR}/../libs".
 set(SPGLIB_DIR "/path/to/spglib-installation"
@@ -33,7 +28,6 @@ set(FFTW_INCLUDE_DIR "/path/to/FFTW3-include-dir" CACHE PATH "Path to fftw3.h.")
 set(FFTW_LIBRARY "/path/to/FFTW3-library" CACHE FILEPATH "Path to FFTW3 library.")
 
 mark_as_advanced(
-  NFFT_DIR
   SPGLIB_DIR
   gtest_DIR
   SPRNG_DIR
