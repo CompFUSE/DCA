@@ -6,3 +6,4 @@ dca_add_gtest(print_type_test GTEST_MAIN)
 dca_add_gtest(plot_test
   INCLUDE_DIRS ${FFTW_INCLUDE_DIR} ${GNUPLOT_INTERFACE_INCLUDE_DIR}
   LIBS ${GNUPLOT_INTERFACE_LIBRARY})
+dca_add_gtest(print_time_test GTEST_MAIN)
