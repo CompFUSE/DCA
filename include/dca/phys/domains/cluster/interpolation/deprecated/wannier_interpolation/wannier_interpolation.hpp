@@ -28,35 +28,31 @@ class wannier_interpolation {
 public:
   template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
   static void execute(func::function<scalartype_input, domain_input>& f_input,
-                      func::function<scalartype_output, domain_output>& f_output);
+                      func::function<scalartype_output, domain_output>& f_output) {
+    typedef
+        typename wannier_interpolation_domain_type<domain_input, source_dmn_type, target_dmn_type>::Result
+            wannier_interpolation_domain;
+
+    typedef typename domain_output::this_type domain_output_list_type;
+    dca::util::assert_same<domain_output_list_type, wannier_interpolation_domain>();
+
+    typedef typename domain_input::this_type type_list_input;
+    typedef typename domain_output::this_type type_list_output;
+
+    // TODO: Move this static_assert to wannier_interpolation_domain_type?
+    static_assert(dca::util::IndexOf<source_dmn_type, type_list_input>::value > -1,
+                  "Type list error");
+
+    wannier_interpolation_generic<
+        type_list_input, type_list_output, source_dmn_type, target_dmn_type, 0,
+        dca::util::IndexOf<source_dmn_type, type_list_input>::value>::execute(f_input, f_output);
+  }
 };
-
-template <typename source_dmn_type, typename target_dmn_type>
-template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-void wannier_interpolation<source_dmn_type, target_dmn_type>::execute(
-    func::function<scalartype_input, domain_input>& f_input,
-    func::function<scalartype_output, domain_output>& f_output) {
-  typedef
-      typename wannier_interpolation_domain_type<domain_input, source_dmn_type, target_dmn_type>::Result
-          wannier_interpolation_domain;
-
-  typedef typename domain_output::this_type domain_output_list_type;
-  dca::util::assert_same<domain_output_list_type, wannier_interpolation_domain>();
-
-  typedef typename domain_input::this_type type_list_input;
-  typedef typename domain_output::this_type type_list_output;
-
-  static_assert(dca::util::IndexOf<source_dmn_type, type_list_input>::value > -1,
-                "Type list error");
-
-  wannier_interpolation_generic<
-      type_list_input, type_list_output, source_dmn_type, target_dmn_type, 0,
-      dca::util::IndexOf<source_dmn_type, type_list_input>::value>::execute(f_input, f_output);
-}
 
 template <typename source_dmn_type, typename target_dmn_type>
 class wannier_interpolation<func::dmn_0<source_dmn_type>, func::dmn_0<target_dmn_type>> {
 public:
+  // Strips dmn_0 off and calls execute of the wannier_interpolation class from above.
   template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
   static void execute(func::function<scalartype_input, domain_input>& f_input,
                       func::function<scalartype_output, domain_output>& f_output) {

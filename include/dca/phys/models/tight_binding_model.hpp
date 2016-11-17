@@ -16,7 +16,6 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
-#include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 
@@ -29,9 +28,6 @@ template <typename Lattice>
 class TightBindingModel {
 public:
   using lattice_type = Lattice;
-  using k_LDA =
-      func::dmn_0<domains::cluster_domain<double, Lattice::DIMENSION, domains::LATTICE_SP,
-                                          domains::MOMENTUM_SPACE, domains::PARALLELLEPIPEDUM>>;
   using b = func::dmn_0<domains::electron_band_domain>;
   using s = func::dmn_0<domains::electron_spin_domain>;
 
@@ -68,12 +64,13 @@ public:
   template <class domain>
   static void initialize_H_symmetries(func::function<int, domain>& H_interactions_symmetries);
 
-  template <class domain, class parameters_type>
-  static void initialize_H_LDA(func::function<std::complex<double>, domain>& H_LDA,
-                               parameters_type& parameters);
-
   template <class parameters_type>
-  static void initialize(parameters_type& parameters);
+  static void initialize(parameters_type& /*parameters*/) {}
+
+  template <typename ParametersType, typename FunctionType>
+  static void initialize_H_0(const ParametersType& parameters, FunctionType& H_0) {
+    Lattice::initialize_H_0(parameters, H_0);
+  }
 
 private:
   template <class parameters_type>
@@ -141,28 +138,6 @@ template <class domain>
 void TightBindingModel<Lattice>::initialize_H_symmetries(func::function<int, domain>& H_symmetry) {
   Lattice::initialize_H_symmetry(H_symmetry);
 }
-
-template <typename Lattice>
-template <class domain, class parameters_type>
-void TightBindingModel<Lattice>::initialize_H_LDA(func::function<std::complex<double>, domain>& H_LDA,
-                                                  parameters_type& parameters) {
-  std::vector<double> k;
-
-  for (int k_ind = 0; k_ind < k_LDA::dmn_size(); k_ind++) {
-    k = k_LDA::get_elements()[k_ind];
-
-    for (int b_ind1 = 0; b_ind1 < b::dmn_size(); b_ind1++)
-      for (int s_ind1 = 0; s_ind1 < s::dmn_size(); s_ind1++)
-        for (int b_ind2 = 0; b_ind2 < b::dmn_size(); b_ind2++)
-          for (int s_ind2 = 0; s_ind2 < s::dmn_size(); s_ind2++)
-            H_LDA(b_ind1, s_ind1, b_ind2, s_ind2, k_ind) =
-                Lattice::get_LDA_Hamiltonians(parameters, k, b_ind1, s_ind1, b_ind2, s_ind2);
-  }
-}
-
-template <typename Lattice>
-template <class parameters_type>
-void TightBindingModel<Lattice>::initialize(parameters_type& /*parameters*/) {}
 
 }  // models
 }  // phys

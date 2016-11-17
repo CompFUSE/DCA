@@ -9,6 +9,8 @@
 //         Andrei Plamada (plamada@itp.phys.ethz.ch)
 //
 // Material lattice specialization for NiO.
+//
+// TODO: Remove code duplication in the two NiO specializations (symmetric and unsymmetric).
 
 // NiO symmetric
 template <typename point_group_type>
@@ -35,9 +37,16 @@ public:
   template <class domain>
   static void initialize_H_symmetry(func::function<int, domain>& H_symmetry);
 
-  template <class parameters_type>
-  static std::complex<double> get_LDA_Hamiltonians(parameters_type& parameters, std::vector<double> k,
-                                                   int b1, int s1, int b2, int s2);
+  // Initializes the tight-binding (non-interacting) part of the momentum space Hamiltonian.
+  // Preconditions: The elements of KDmn are three-dimensional (access through index 0, 1, and 2).
+  template <typename ParametersType, typename ScalarType, typename BandSpinDmn, typename KDmn>
+  static void initialize_H_0(
+      const ParametersType& parameters,
+      func::function<ScalarType, func::dmn_variadic<BandSpinDmn, BandSpinDmn, KDmn>>& H_0);
+
+  static double latticeConstant() {
+    return a;
+  }
 
 private:
   template <class parameters_type>
@@ -150,44 +159,68 @@ std::vector<std::vector<double>>& material_lattice<NiO_symmetric, point_group_ty
 }
 
 template <typename point_group_type>
-template <class parameters_type>
-std::complex<double> material_lattice<NiO_symmetric, point_group_type>::get_LDA_Hamiltonians(
-    parameters_type& parameters, std::vector<double> k, int b1, int s1, int b2, int s2) {
+template <typename ParametersType, typename ScalarType, typename BandSpinDmn, typename KDmn>
+void material_lattice<NiO_symmetric, point_group_type>::initialize_H_0(
+    const ParametersType& parameters,
+    func::function<ScalarType, func::dmn_variadic<BandSpinDmn, BandSpinDmn, KDmn>>& H_0) {
+  static_assert(util::Length<typename BandSpinDmn::this_type>::value == 2,
+                "BandSpinDmn has two subdomains, the band domain and the spin domain.");
+
+  using BandDmn = typename util::TypeAt<0, typename BandSpinDmn::template domain_typelist<0>>::type;
+  using SpinDmn = typename util::TypeAt<0, typename BandSpinDmn::template domain_typelist<1>>::type;
+
+  if (BandDmn::get_size() != BANDS)
+    throw std::logic_error("NiO has 8 bands.");
+  if (SpinDmn::get_size() != 2)
+    throw std::logic_error("Spin domain size must be 2.");
+
   const static std::complex<double> I(0, 1);
 
+  const auto& k_vecs = KDmn::get_elements();
   double* r_LDA = initialize_r_LDA_basis();
 
   std::vector<std::vector<double>>& t_ij = get_t_ij(parameters);
 
-  std::complex<double> H_LDA = 0.;
+  H_0 = ScalarType(0);
 
-  if (s1 == s2) {
-    std::complex<double> val;
+  for (int k_ind = 0; k_ind < KDmn::dmn_size(); ++k_ind) {
+    const auto& k = k_vecs[k_ind];
 
-    for (size_t i = 0; i < t_ij.size(); i++) {
-      std::vector<double>& t = t_ij[i];
+    for (int s1 = 0; s1 < SpinDmn::dmn_size(); ++s1) {
+      for (int s2 = 0; s2 < SpinDmn::dmn_size(); ++s2) {
+        if (s1 == s2) {
+          for (int b1 = 0; b1 < BandDmn::dmn_size(); ++b1) {
+            for (int b2 = 0; b2 < BandDmn::dmn_size(); ++b2) {
+              std::complex<double> val;
 
-      assert(t.size() == 8);
+              for (std::size_t i = 0; i < t_ij.size(); i++) {
+                std::vector<double>& t = t_ij[i];
 
-      int b_i = t[0];
-      int b_j = t[1];
+                assert(t.size() == 8);
 
-      if (b_i == b1 and b_j == b2) {
-        double r_x = t[2] * r_LDA[0] + t[3] * r_LDA[3] + t[4] * r_LDA[6];
-        double r_y = t[2] * r_LDA[1] + t[3] * r_LDA[4] + t[4] * r_LDA[7];
-        double r_z = t[2] * r_LDA[2] + t[3] * r_LDA[5] + t[4] * r_LDA[8];
+                int b_i = t[0];
+                int b_j = t[1];
 
-        val.real(t[5]);
-        val.imag(t[6]);
+                if (b_i == b1 and b_j == b2) {
+                  double r_x = t[2] * r_LDA[0] + t[3] * r_LDA[3] + t[4] * r_LDA[6];
+                  double r_y = t[2] * r_LDA[1] + t[3] * r_LDA[4] + t[4] * r_LDA[7];
+                  double r_z = t[2] * r_LDA[2] + t[3] * r_LDA[5] + t[4] * r_LDA[8];
 
-        double multiplicity = t[7];
+                  val.real(t[5]);
+                  val.imag(t[6]);
 
-        H_LDA += val * std::exp(I * (k[0] * r_x + k[1] * r_y + k[2] * r_z)) / multiplicity;
+                  double multiplicity = t[7];
+
+                  H_0(b1, s1, b2, s2, k_ind) +=
+                      val * std::exp(I * (k[0] * r_x + k[1] * r_y + k[2] * r_z)) / multiplicity;
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
-
-  return H_LDA;
 }
 
 // NiO unsymmetric
@@ -215,9 +248,16 @@ public:
   template <class domain>
   static void initialize_H_symmetry(func::function<int, domain>& H_symmetry);
 
-  template <class parameters_type>
-  static std::complex<double> get_LDA_Hamiltonians(parameters_type& parameters, std::vector<double> k,
-                                                   int b1, int s1, int b2, int s2);
+  // Initializes the tight-binding (non-interacting) part of the momentum space Hamiltonian.
+  // Preconditions: The elements of KDmn are three-dimensional (access through index 0, 1, and 2).
+  template <typename ParametersType, typename ScalarType, typename BandSpinDmn, typename KDmn>
+  static void initialize_H_0(
+      const ParametersType& parameters,
+      func::function<ScalarType, func::dmn_variadic<BandSpinDmn, BandSpinDmn, KDmn>>& H_0);
+
+  static double latticeConstant() {
+    return a;
+  }
 
 private:
   template <class parameters_type>
@@ -324,42 +364,66 @@ std::vector<std::vector<double>>& material_lattice<NiO_unsymmetric, point_group_
 }
 
 template <typename point_group_type>
-template <class parameters_type>
-std::complex<double> material_lattice<NiO_unsymmetric, point_group_type>::get_LDA_Hamiltonians(
-    parameters_type& parameters, std::vector<double> k, int b1, int s1, int b2, int s2) {
+template <typename ParametersType, typename ScalarType, typename BandSpinDmn, typename KDmn>
+void material_lattice<NiO_unsymmetric, point_group_type>::initialize_H_0(
+    const ParametersType& parameters,
+    func::function<ScalarType, func::dmn_variadic<BandSpinDmn, BandSpinDmn, KDmn>>& H_0) {
+  static_assert(util::Length<typename BandSpinDmn::this_type>::value == 2,
+                "BandSpinDmn has two subdomains, the band domain and the spin domain.");
+
+  using BandDmn = typename util::TypeAt<0, typename BandSpinDmn::template domain_typelist<0>>::type;
+  using SpinDmn = typename util::TypeAt<0, typename BandSpinDmn::template domain_typelist<1>>::type;
+
+  if (BandDmn::get_size() != BANDS)
+    throw std::logic_error("NiO has 8 bands.");
+  if (SpinDmn::get_size() != 2)
+    throw std::logic_error("Spin domain size must be 2.");
+
   const static std::complex<double> I(0, 1);
 
+  const auto& k_vecs = KDmn::get_elements();
   double* r_LDA = initialize_r_LDA_basis();
 
   std::vector<std::vector<double>>& t_ij = get_t_ij(parameters);
 
-  std::complex<double> H_LDA = 0.;
+  H_0 = ScalarType(0);
 
-  if (s1 == s2) {
-    std::complex<double> val;
+  for (int k_ind = 0; k_ind < KDmn::dmn_size(); ++k_ind) {
+    const auto& k = k_vecs[k_ind];
 
-    for (size_t i = 0; i < t_ij.size(); i++) {
-      std::vector<double>& t = t_ij[i];
+    for (int s1 = 0; s1 < SpinDmn::dmn_size(); ++s1) {
+      for (int s2 = 0; s2 < SpinDmn::dmn_size(); ++s2) {
+        if (s1 == s2) {
+          for (int b1 = 0; b1 < BandDmn::dmn_size(); ++b1) {
+            for (int b2 = 0; b2 < BandDmn::dmn_size(); ++b2) {
+              std::complex<double> val;
 
-      assert(t.size() == 8);
+              for (std::size_t i = 0; i < t_ij.size(); i++) {
+                std::vector<double>& t = t_ij[i];
 
-      int b_i = t[0];
-      int b_j = t[1];
+                assert(t.size() == 8);
 
-      if (b_i == b1 and b_j == b2) {
-        double r_x = t[2] * r_LDA[0] + t[3] * r_LDA[3] + t[4] * r_LDA[6];
-        double r_y = t[2] * r_LDA[1] + t[3] * r_LDA[4] + t[4] * r_LDA[7];
-        double r_z = t[2] * r_LDA[2] + t[3] * r_LDA[5] + t[4] * r_LDA[8];
+                int b_i = t[0];
+                int b_j = t[1];
 
-        val.real(t[5]);
-        val.imag(t[6]);
+                if (b_i == b1 and b_j == b2) {
+                  double r_x = t[2] * r_LDA[0] + t[3] * r_LDA[3] + t[4] * r_LDA[6];
+                  double r_y = t[2] * r_LDA[1] + t[3] * r_LDA[4] + t[4] * r_LDA[7];
+                  double r_z = t[2] * r_LDA[2] + t[3] * r_LDA[5] + t[4] * r_LDA[8];
 
-        double multiplicity = t[7];
+                  val.real(t[5]);
+                  val.imag(t[6]);
 
-        H_LDA += val * std::exp(I * (k[0] * r_x + k[1] * r_y + k[2] * r_z)) / multiplicity;
+                  double multiplicity = t[7];
+
+                  H_0(b1, s1, b2, s2, k_ind) +=
+                      val * std::exp(I * (k[0] * r_x + k[1] * r_y + k[2] * r_z)) / multiplicity;
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
-
-  return H_LDA;
 }

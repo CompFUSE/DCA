@@ -143,7 +143,7 @@ set(DCA_LIBS
   ss_ct_hyb
   function_transform
   gaussian_quadrature
-  dca_nfft
+  nfft
   tetrahedron_mesh
   random
   parallel_util

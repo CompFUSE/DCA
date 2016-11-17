@@ -21,7 +21,6 @@
 #include "dca/function/function.hpp"
 #include "dca/linalg/linalg.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
-#include "dca/phys/domains/cluster/interpolation/wannier_interpolation/wannier_interpolation.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/quantum/brillouin_zone_cut_domain.hpp"
@@ -44,10 +43,10 @@ public:
   static const int INTERPOLATION_POINTS_BAND_STRUCTURE =
       brillouin_zone_cut_domain_type::INTERPOLATION_POINTS;  // 101;
 
-  template <typename K_dmn_t, typename parameter_type>
-  static void execute(parameter_type& parameters,
-                      func::function<std::complex<double>, func::dmn_variadic<nu, nu, K_dmn_t>>& H_LDA,
-                      func::function<double, nu_k_cut>& bands);
+  // Computes the band structure of the non-interacting Hamiltonian H_0.
+  // Note that the parameters object gets modified by this function!
+  template <typename ParametersType>
+  static void execute(ParametersType& parameters, func::function<double, nu_k_cut>& bands);
 
 private:
   template <int lattice_dimension>
@@ -62,52 +61,45 @@ private:
   static void high_symmetry_line(std::string& name, std::vector<std::vector<double>>& k_vecs);
 };
 
-template <typename K_dmn_t, typename parameter_type>
-void compute_band_structure::execute(
-    parameter_type& parameters,
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, K_dmn_t>>& H_LDA,
-    func::function<double, nu_k_cut>& band_structure) {
+template <typename ParametersType>
+void compute_band_structure::execute(ParametersType& parameters,
+                                     func::function<double, nu_k_cut>& band_structure) {
   std::vector<std::vector<double>> collection_k_vecs;
 
-  {  // construct the path in the Brilluoin zone ...
-    if (parameters.get_Brillouin_zone_vectors().size() == 0) {
-      high_symmetry_line<parameter_type::lattice_dimension>(
-          parameters.get_coordinate_type(), parameters.get_Brillouin_zone_vectors());
-    }
-
-    construct_path<parameter_type::lattice_dimension>(
-        parameters.get_coordinate_type(), parameters.get_Brillouin_zone_vectors(), collection_k_vecs);
-
-    brillouin_zone_cut_domain_type::get_size() = collection_k_vecs.size();
-    brillouin_zone_cut_domain_type::get_elements() = collection_k_vecs;
-
-    band_structure.reset();
+  // Construct the path in the Brilluoin zone.
+  if (parameters.get_Brillouin_zone_vectors().size() == 0) {
+    high_symmetry_line<ParametersType::lattice_dimension>(parameters.get_coordinate_type(),
+                                                          parameters.get_Brillouin_zone_vectors());
   }
 
+  construct_path<ParametersType::lattice_dimension>(
+      parameters.get_coordinate_type(), parameters.get_Brillouin_zone_vectors(), collection_k_vecs);
+
+  brillouin_zone_cut_domain_type::get_size() = collection_k_vecs.size();
+  brillouin_zone_cut_domain_type::get_elements() = collection_k_vecs;
+
+  band_structure.reset();
+
+  // Compute H(k).
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_domain_cut_dmn_type>> H_k(
-      "H_k_interpolated");
+      "H_k");
+  ParametersType::lattice_type::initialize_H_0(parameters, H_k);
 
-  {  // get H(k)
-    domains::wannier_interpolation<K_dmn_t, k_domain_cut_dmn_type>::execute(H_LDA, H_k);
-  }
+  // Compute the bands.
+  dca::linalg::Vector<double, dca::linalg::CPU> L_vec(nu::dmn_size());
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> H_mat(nu::dmn_size());
+  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> V_mat(nu::dmn_size());
 
-  {  // compute the bands ...
+  for (int l = 0; l < int(collection_k_vecs.size()); l++) {
+    for (int i = 0; i < nu::dmn_size(); i++)
+      for (int j = 0; j < nu::dmn_size(); j++)
+        H_mat(i, j) = H_k(i, j, l);
 
-    dca::linalg::Vector<double, dca::linalg::CPU> L_vec(nu::dmn_size());
-    dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> H_mat(nu::dmn_size());
-    dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> V_mat(nu::dmn_size());
+    dca::linalg::matrixop::eigensolverHermitian('N', 'U', H_mat, L_vec, V_mat);
 
-    for (int l = 0; l < int(collection_k_vecs.size()); l++) {
-      for (int i = 0; i < nu::dmn_size(); i++)
-        for (int j = 0; j < nu::dmn_size(); j++)
-          H_mat(i, j) = H_k(i, j, l);
-
-      dca::linalg::matrixop::eigensolverHermitian('N', 'U', H_mat, L_vec, V_mat);
-
-      for (int i = 0; i < b::dmn_size(); i++)
-        for (int j = 0; j < s::dmn_size(); j++)
-          band_structure(i, j, l) = L_vec[2 * i + j];
-    }
+    for (int i = 0; i < b::dmn_size(); i++)
+      for (int j = 0; j < s::dmn_size(); j++)
+        band_structure(i, j, l) = L_vec[2 * i + j];
   }
 }
 

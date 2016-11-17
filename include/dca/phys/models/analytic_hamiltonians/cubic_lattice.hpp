@@ -8,6 +8,8 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
 // Cubic lattice.
+//
+// TODO: Replace get_LDA_Hamiltonians with intialize_H_0 function (see e.g. square_lattice.hpp).
 
 #ifndef DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_CUBIC_LATTICE_HPP
 #define DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_CUBIC_LATTICE_HPP

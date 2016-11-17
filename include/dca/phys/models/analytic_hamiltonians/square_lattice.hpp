@@ -12,14 +12,15 @@
 #ifndef DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_SQUARE_LATTICE_HPP
 #define DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_SQUARE_LATTICE_HPP
 
-#include <complex>
+#include <stdexcept>
 #include <utility>
 #include <vector>
 
+#include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
-#include "dca/util/type_list.hpp"
 #include "dca/phys/domains/cluster/cluster_operations.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp"
+#include "dca/util/type_list.hpp"
 
 namespace dca {
 namespace phys {
@@ -36,7 +37,6 @@ public:
   const static int BANDS = 1;
 
   static double* initialize_r_DCA_basis();
-
   static double* initialize_r_LDA_basis();
 
   static std::vector<int> get_flavors();
@@ -51,9 +51,12 @@ public:
   template <class domain>
   static void initialize_H_symmetry(func::function<int, domain>& H_symmetry);
 
-  template <class parameters_type>
-  static std::complex<double> get_LDA_Hamiltonians(parameters_type& parameters, std::vector<double> k,
-                                                   int b1, int s1, int b2, int s2);
+  // Initializes the tight-binding (non-interacting) part of the momentum space Hamiltonian.
+  // Preconditions: The elements of KDmn are two-dimensional (access through index 0 and 1).
+  template <typename ParametersType, typename ScalarType, typename BandSpinDmn, typename KDmn>
+  static void initialize_H_0(
+      const ParametersType& parameters,
+      func::function<ScalarType, func::dmn_variadic<BandSpinDmn, BandSpinDmn, KDmn>>& H_0);
 };
 
 template <typename point_group_type>
@@ -164,18 +167,36 @@ void square_lattice<point_group_type>::initialize_H_symmetry(func::function<int,
 }
 
 template <typename point_group_type>
-template <class parameters_type>
-std::complex<double> square_lattice<point_group_type>::get_LDA_Hamiltonians(
-    parameters_type& parameters, std::vector<double> k, int b1, int s1, int b2, int s2) {
-  std::complex<double> H_LDA = 0.;
+template <typename ParametersType, typename ScalarType, typename BandSpinDmn, typename KDmn>
+void square_lattice<point_group_type>::initialize_H_0(
+    const ParametersType& parameters,
+    func::function<ScalarType, func::dmn_variadic<BandSpinDmn, BandSpinDmn, KDmn>>& H_0) {
+  static_assert(util::Length<typename BandSpinDmn::this_type>::value == 2,
+                "BandSpinDmn has two subdomains, the band domain and the spin domain.");
 
-  double t = parameters.get_t();
-  double t_prime = parameters.get_t_prime();
+  using BandDmn = typename util::TypeAt<0, typename BandSpinDmn::template domain_typelist<0>>::type;
+  using SpinDmn = typename util::TypeAt<0, typename BandSpinDmn::template domain_typelist<1>>::type;
 
-  if ((b1 == 0 && b2 == 0) && ((s1 == 0 && s2 == 0) || (s1 == 1 && s2 == 1)))
-    H_LDA = -2. * t * (cos(k[0]) + cos(k[1])) - 4. * t_prime * cos(k[0]) * cos(k[1]);
+  if (BandDmn::get_size() != BANDS)
+    throw std::logic_error("Square lattice has one band.");
+  if (SpinDmn::get_size() != 2)
+    throw std::logic_error("Spin domain size must be 2.");
 
-  return H_LDA;
+  const auto& k_vecs = KDmn::get_elements();
+
+  const auto t = parameters.get_t();
+  const auto t_prime = parameters.get_t_prime();
+
+  H_0 = ScalarType(0);
+
+  for (int k_ind = 0; k_ind < KDmn::dmn_size(); ++k_ind) {
+    const auto& k = k_vecs[k_ind];
+    const auto val =
+        -2. * t * (std::cos(k[0]) + std::cos(k[1])) - 4. * t_prime * std::cos(k[0]) * std::cos(k[1]);
+
+    H_0(0, 0, 0, 0, k_ind) = val;
+    H_0(0, 1, 0, 1, k_ind) = val;
+  }
 }
 
 }  // models

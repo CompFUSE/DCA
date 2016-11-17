@@ -38,7 +38,6 @@
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/cluster/cluster_operations.hpp"
 #include "dca/phys/domains/cluster/interpolation/hspline_interpolation/hspline_interpolation.hpp"
-#include "dca/phys/domains/cluster/interpolation/wannier_interpolation/wannier_interpolation.hpp"
 #include "dca/phys/domains/quantum/brillouin_zone_cut_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
@@ -81,9 +80,6 @@ public:
   using k_HOST =
       func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::LATTICE_SP,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
-  using k_LDA =
-      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::LATTICE_SP,
-                                          domains::MOMENTUM_SPACE, domains::PARALLELLEPIPEDUM>>;
 
   using k_domain_cut_dmn_type = func::dmn_0<domains::brillouin_zone_cut_domain<101>>;
   using nu_k_cut = func::dmn_variadic<nu, k_domain_cut_dmn_type>;
@@ -122,7 +118,6 @@ public:
 
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA>> H_DCA;
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_HOST>> H_HOST;
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_LDA>> H_LDA;
 
   func::function<double, nu_k_cut> band_structure;
 
@@ -182,7 +177,6 @@ DcaData<parameters_type>::DcaData(parameters_type& parameters_ref)
 
       H_DCA("H_DCA"),
       H_HOST("H_HOST"),
-      H_LDA("H_LDA"),
 
       band_structure("band-structure"),
 
@@ -430,16 +424,13 @@ void DcaData<parameters_type>::initialize_H_0_and_H_i() {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t initialize H_0(k) and H_i " << dca::util::print_time() << "\n";
 
-  parameters_type::model_type::initialize_H_LDA(H_LDA, parameters);
+  parameters_type::model_type::initialize_H_0(parameters, H_DCA);
+  parameters_type::model_type::initialize_H_0(parameters, H_HOST);
+
   parameters_type::model_type::initialize_H_interaction(H_interactions, parameters);
   parameters_type::model_type::initialize_H_symmetries(H_symmetry);
 
-  {
-    domains::wannier_interpolation<k_LDA, k_DCA>::execute(H_LDA, H_DCA);
-    domains::wannier_interpolation<k_LDA, k_HOST>::execute(H_LDA, H_HOST);
-
-    compute_band_structure::execute(parameters, H_LDA, band_structure);
-  }
+  compute_band_structure::execute(parameters, band_structure);
 
   if (concurrency.id() == concurrency.first())
     std::cout << "\t finished H_0(k) and H_i " << dca::util::print_time() << "\n";

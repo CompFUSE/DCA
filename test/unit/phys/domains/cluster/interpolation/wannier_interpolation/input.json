@@ -1,0 +1,40 @@
+{
+    "2D-Hubbard-model" :
+    {
+        "t"       : 1,
+        "t-prime" : 0.5
+    },
+
+    "DCA" :
+    {
+        "cluster" : [[4, 2],
+                     [0, 4]]
+    },
+
+     "function-parameters" :
+    {
+        "single-particle-functions" :
+        {
+            "H(k) grid-size"        : [10, 10],
+
+            "time-intervals"        : 128,
+            "fermionic-frequencies" : 256,
+
+            "bosonic-frequencies"   : 32,
+
+            "sp-cluster" : [[8, 8],
+                            [8,-8]]
+        },
+
+        "two-particle-functions" :
+        {
+            "time-intervals"        : 16,
+
+            "fermionic-frequencies" : 16,
+            "bosonic-frequencies"   : 16,
+
+            "tp-cluster" : [[8, 8],
+                            [8,-8]]
+        }
+    }
+}
