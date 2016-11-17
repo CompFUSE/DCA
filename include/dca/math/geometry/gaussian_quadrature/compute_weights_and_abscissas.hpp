@@ -15,7 +15,7 @@
 #ifndef DCA_MATH_GEOMETRY_GAUSSIAN_QUADRATURE_COMPUTE_WEIGHTS_AND_ABSCISSAS_HPP
 #define DCA_MATH_GEOMETRY_GAUSSIAN_QUADRATURE_COMPUTE_WEIGHTS_AND_ABSCISSAS_HPP
 
-#include "dca/math/geometry/gaussian_quadrature/simplex_gm_rule.hpp"
+#include "simplex_gm_rule.hpp"
 #include "dca/math/geometry/tetrahedron_mesh/tetrahedron.hpp"
 
 namespace dca {

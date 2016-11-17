@@ -7,7 +7,7 @@ add_custom_target(git_version_helper
   -DSCRIPT_BIN_DIR=${PROJECT_BINARY_DIR} -P ${PROJECT_SOURCE_DIR}/cmake/dca_git_version/rebuild.cmake
   WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
 
-add_library(git_version ${CMAKE_CURRENT_BINARY_DIR}/git_version.cpp)
+add_library(git_version STATIC ${CMAKE_CURRENT_BINARY_DIR}/git_version.cpp)
 add_dependencies(git_version git_version_helper)
 
 # Modules
@@ -16,5 +16,5 @@ add_custom_target(modules_helper
   -DSCRIPT_BIN_DIR=${PROJECT_BINARY_DIR} -P ${PROJECT_SOURCE_DIR}/cmake/dca_modules/rebuild.cmake
   WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
 
-add_library(modules ${CMAKE_CURRENT_BINARY_DIR}/modules.cpp)
+add_library(modules STATIC ${CMAKE_CURRENT_BINARY_DIR}/modules.cpp)
 add_dependencies(modules modules_helper)

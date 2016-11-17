@@ -8,13 +8,9 @@
 # Location of external libraries
 # Since they have been installed with EasyBuild, we can use the corresponding environment variables
 # that are set by EB.
-set(SPGLIB_DIR $ENV{EBROOTSPGLIB} CACHE PATH "Path to spglib installation directory.")
 set(gtest_DIR $ENV{EBROOTGTEST} CACHE PATH "Path to Google Test.")
 set(SPRNG_DIR $ENV{EBROOTSPRNG} CACHE PATH "Path to SPRNG installation directory.")
-mark_as_advanced(
-  SPGLIB_DIR
-  gtest_DIR
-  SPRNG_DIR)
+mark_as_advanced(gtest_DIR SPRNG_DIR)
 
 # The C++ compiler wrapper CC already adds the correct include paths for these libraries and
 # automatically links to them.

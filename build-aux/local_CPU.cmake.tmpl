@@ -6,11 +6,6 @@
 
 # Location of external libraries
 #
-# spglib: If the instructions in libs/README are followed, SPGLIB_DIR should be set to
-# "${CMAKE_CURRENT_LIST_DIR}/../libs".
-set(SPGLIB_DIR "/path/to/spglib-installation"
-  CACHE PATH "Path to spglib installation directory.")
-
 # SPRNG
 set(SPRNG_DIR "/path/to/SPRNG-installation"
   CACHE PATH "Path to SPRNG installation directory.")
@@ -27,11 +22,7 @@ set(HDF5_ROOT "/path/to/HDF5-installation" CACHE PATH "Path to HDF5 installation
 set(FFTW_INCLUDE_DIR "/path/to/FFTW3-include-dir" CACHE PATH "Path to fftw3.h.")
 set(FFTW_LIBRARY "/path/to/FFTW3-library" CACHE FILEPATH "Path to FFTW3 library.")
 
-mark_as_advanced(
-  SPGLIB_DIR
-  gtest_DIR
-  SPRNG_DIR
-  HDF5_ROOT)
+mark_as_advanced(gtest_DIR SPRNG_DIR HDF5_ROOT)
 
 # MPIEXEC stuff for executing parallel tests
 # Note: CXX and CC must be set as environment variables to the corresponding MPI C++ and C compiler

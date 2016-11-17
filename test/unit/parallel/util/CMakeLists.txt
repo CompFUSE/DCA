@@ -1,4 +1,4 @@
-# parallel/util's unit tests
+# parallel/util unit tests
 
 dca_add_gtest(get_bounds_test
   GTEST_MAIN

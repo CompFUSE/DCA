@@ -125,6 +125,7 @@ install(DIRECTORY ${CMAKE_BINARY_DIR}/include/dca/config DESTINATION include/dca
 # Internal libraries
 # TODO: When the number of 'internal' libraries grows, we might want to combine these into a few big
 #       libraries; e.g. one for math, phys, etc.
+add_subdirectory(libs/simplex_gm_rule)
 add_subdirectory(src)
 
 if (DCA_HAVE_CUDA)
@@ -135,9 +136,8 @@ endif()
 # Common definitions for building DCA++'s applications and tests.
 # Libraries
 set(DCA_LIBS
-  ${DCA_EXTERNAL_LIBS}
-  ${GNUPLOT_INTERFACE_LIBRARY}
-  git_version modules
+  git_version
+  modules
   ctaux
   posix_qmci
   ss_ct_hyb
@@ -149,8 +149,8 @@ set(DCA_LIBS
   parallel_util
   pthreading
   dca_algorithms
-  json_reader json_writer
-  hdf5_reader hdf5_writer
+  json
+  hdf5
   profiling
   function
   convert_domains
@@ -158,14 +158,17 @@ set(DCA_LIBS
   quantum_domains
   time_and_frequency_domains
   symmetrization
-  coarsegraining)
+  coarsegraining
+  ${DCA_EXTERNAL_LIBS}
+  ${GNUPLOT_INTERFACE_LIBRARY}
+  ${SIMPLEX_GM_RULE_LIBRARY})
 
 if (DCA_HAVE_CUDA)
   list(APPEND DCA_LIBS DCA_GPU_routines lapack_kernels blas_kernels cuda_utils ${DCA_CUDA_LIBS})
 endif()
 
 # Includes
-set(DCA_INCLUDE_DIRS ${DCA_EXTERNAL_INCLUDE_DIRS} ${GNUPLOT_INTERFACE_INCLUDE_DIR})
+set(DCA_INCLUDE_DIRS ${DCA_EXTERNAL_INCLUDE_DIRS} ${GNUPLOT_INTERFACE_INCLUDE_DIR} ${SIMPLEX_GM_RULE_INCLUDE_DIR})
 
 ################################################################################
 # Testing

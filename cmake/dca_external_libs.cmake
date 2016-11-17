@@ -14,18 +14,6 @@ set(DCA_EXTERNAL_LIBS "" CACHE INTERNAL "")
 set(DCA_EXTERNAL_INCLUDE_DIRS "" CACHE INTERNAL "")
 
 ################################################################################
-# SPGLIB
-find_library(SPGLIB_LIBRARY
-  NAMES libsymspg.a symspg
-  HINTS ${SPGLIB_DIR}/lib)
-find_path(SPGLIB_INCLUDE_DIR spglib.h HINTS ${SPGLIB_DIR}/include/spglib)
-
-mark_as_advanced(SPGLIB_LIBRARY SPGLIB_INCLUDE_DIR)
-
-list(APPEND DCA_EXTERNAL_LIBS ${SPGLIB_LIBRARY})
-list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${SPGLIB_INCLUDE_DIR})
-
-################################################################################
 # Lapack
 if (NOT DCA_HAVE_LAPACK)
   find_package(LAPACK REQUIRED)
