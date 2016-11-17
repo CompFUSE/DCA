@@ -7,6 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Raffaele Solca' (rasolca@itp.phys.ethz.ch)
+//         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // This file provides a function that prints the current time.
 
@@ -27,10 +28,17 @@ template <typename clock = std::chrono::system_clock>
 std::string print_time() {
   std::stringstream s;
   auto now = clock::to_time_t(clock::now());
-  s << std::put_time(std::localtime(&now), "%d-%m-%Y %H:%M:%S");
+
+  // std::put_time is only available for GCC >= 5.0. We use std:strftime instead.
+  // Reference:
+  // http://stackoverflow.com/questions/37421747/is-there-a-builtin-alternative-to-stdput-time-for-gcc-5.
+  char buffer[24];
+  if (0 < std::strftime(buffer, sizeof(buffer), "%d-%m-%Y %H:%M:%S", std::localtime(&now)))
+    s << buffer;
 
   return s.str();
 }
+
 }  // util
 }  // dca
 
