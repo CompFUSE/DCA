@@ -68,8 +68,9 @@ int getEigensolverWorkSize(char jobvl, char jobvr, Matrix<std::complex<ScalarTyp
 
   int ld = mat.nrRows();
   std::complex<ScalarType> tmp;
+  ScalarType tmp2;
   lapack::geev(&jobvl, &jobvr, mat.nrRows(), mat.ptr(), mat.leadingDimension(), nullptr, nullptr,
-               ld, nullptr, ld, &tmp, -1, nullptr);
+               ld, nullptr, ld, &tmp, -1, &tmp2);
   return lapack::util::getWorkSize(tmp);
 }
 // Returns optimal lwork and liwork for the symmetric eigensolver.
