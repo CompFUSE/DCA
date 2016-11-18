@@ -10,26 +10,6 @@
 // This class organizes the interpolation of \f$G^{0}\f$ towards the \f$G^{0}\f$-matrix.
 // Template specialization for GPU.
 
-namespace g0kernels {
-// dca::phys::solver::ctaux::g0kernels::
-
-void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, double beta, int Nc, int Nv, int* b, int* r,
-                                double* t, double* G0, std::pair<int, int> G0_cs,
-                                std::pair<int, int> G0_gs, double* r0_min_r1,
-                                std::pair<int, int> r0_min_r1_cs, std::pair<int, int> r0_min_r1_gs,
-                                double* alpha, std::pair<int, int> alpha_cs,
-                                std::pair<int, int> alpha_gs);
-
-void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, double beta, int Nc, int Nv, int* b, int* r,
-                                double* t, double* G0, std::pair<int, int> G0_cs,
-                                std::pair<int, int> G0_gs, double* r0_min_r1,
-                                std::pair<int, int> r0_min_r1_cs, std::pair<int, int> r0_min_r1_gs,
-                                double* alpha, std::pair<int, int> alpha_cs,
-                                std::pair<int, int> alpha_gs, int thread_id, int stream_id);
-
-}  // g0kernels
-// dca::phys::solver::ctaux::
-
 template <typename parameters_type>
 class G0_INTERPOLATION<dca::linalg::GPU, parameters_type>
     : public G0_INTERPOLATION_TEMPLATE<parameters_type> {

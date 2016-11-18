@@ -7,12 +7,12 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// GPU kernels for G-matrix tools.
+// This file implements g_matrix_tools_kernels.hpp.
 
-#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_WALKER_TOOLS_G_MATRIX_TOOLS_G_MATRIX_TOOLS_CU_HPP
-#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_WALKER_TOOLS_G_MATRIX_TOOLS_G_MATRIX_TOOLS_CU_HPP
-
+#include "dca/phys/dca_step/cluster_solver/ctaux/walker/tools/g_matrix_tools/g_matrix_tools_kernels.hpp"
 #include <cassert>
+#include "cuda_runtime.h"
+#include "dca/linalg/util/error_cuda.hpp"
 
 namespace dca {
 namespace phys {
@@ -44,9 +44,7 @@ void read_G_matrix_elements(int S, int vertex_index, int* i_ptr, int* j_ptr, boo
   read_G_matrix_kernel<<<1, S>>>(S, vertex_index, i_ptr, j_ptr, is_Bennett_ptr, exp_Vj_ptr, N_ptr,
                                  N_LD, G_ptr, G_LD, result_ptr, incr);
 
-#ifdef DEBUG_CUDA
-  cuda_check_for_errors(__FUNCTION__, __FILE__, __LINE__);
-#endif
+  checkErrorsCudaDebug();
 }
 
 __global__ void compute_row_on_Gamma_matrix_kernel(int row_index, int vertex_index, int* indices,
@@ -77,9 +75,7 @@ void compute_row_on_Gamma_matrix(int row_index, int S, int vertex_index, int* in
   compute_row_on_Gamma_matrix_kernel<<<S, 1>>>(row_index, vertex_index, indices, exp_V, N_ptr, LD_N,
                                                G_ptr, LD_G, row_ptr, incr);
 
-#ifdef DEBUG_CUDA
-  cuda_check_for_errors(__FUNCTION__, __FILE__, __LINE__);
-#endif
+  checkErrorsCudaDebug();
 }
 
 __global__ void compute_col_on_Gamma_matrix_kernel(int col_index, int vertex_index, int* indices,
@@ -112,9 +108,7 @@ void compute_col_on_Gamma_matrix(int col_index, int S, int vertex_index, int* in
   compute_col_on_Gamma_matrix_kernel<<<S, 1>>>(col_index, vertex_index, indices, exp_V, N_ptr, LD_N,
                                                G_ptr, LD_G, col_ptr, incr);
 
-#ifdef DEBUG_CUDA
-  cuda_check_for_errors(__FUNCTION__, __FILE__, __LINE__);
-#endif
+  checkErrorsCudaDebug();
 }
 
 }  // gkernels
@@ -122,5 +116,3 @@ void compute_col_on_Gamma_matrix(int col_index, int S, int vertex_index, int* in
 }  // solver
 }  // phys
 }  // dca
-
-#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_WALKER_TOOLS_G_MATRIX_TOOLS_G_MATRIX_TOOLS_CU_HPP

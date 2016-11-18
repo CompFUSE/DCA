@@ -7,13 +7,17 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// GPU kernels for G0 interpolation.
+// This file implements g0_interpolation_kernels.hpp.
 
-#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_WALKER_TOOLS_G0_INTERPOLATION_G0_INTERPOLATION_CU_HPP
-#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_WALKER_TOOLS_G0_INTERPOLATION_G0_INTERPOLATION_CU_HPP
+#include "dca/phys/dca_step/cluster_solver/ctaux/walker/tools/g0_interpolation/g0_interpolation_kernels.hpp"
 
 #include <cassert>
-#include <utility>
+
+#include "cuda_runtime.h"
+
+#include "dca/linalg/util/error_cuda.hpp"
+#include "dca/linalg/util/stream_functions.hpp"
+#include "dca/util/integer_division.hpp"
 
 namespace dca {
 namespace phys {
@@ -67,9 +71,7 @@ void interpolate_G0_matrix_on_GPU(int Nb, int Nr, int Nt, double beta, int Nv, i
                                   std::pair<int, int> G0_r_t_cs, std::pair<int, int> G0_r_t_gs,
                                   double* grad_G0_r_t, std::pair<int, int> grad_G0_r_t_cs,
                                   std::pair<int, int> grad_G0_r_t_gs) {
-#ifdef DEBUG_CUDA
-  cuda_check_for_errors_bgn(__FUNCTION__, __FILE__, __LINE__);
-#endif
+  checkErrorsCudaDebug();
 
   int Nr_t = 16;
   int Nr_b = dca::util::ceilDiv(Nv, Nr_t);
@@ -81,9 +83,7 @@ void interpolate_G0_matrix_on_GPU(int Nb, int Nr, int Nt, double beta, int Nv, i
                                             r0_min_r1, r0_min_r1_cs, r0_min_r1_gs, G0_r_t, G0_r_t_cs,
                                             G0_r_t_gs, grad_G0_r_t, grad_G0_r_t_cs, grad_G0_r_t_gs);
 
-#ifdef DEBUG_CUDA
-  cuda_check_for_errors_end(__FUNCTION__, __FILE__, __LINE__);
-#endif
+  checkErrorsCudaDebug();
 }
 
 /***********************************
@@ -432,9 +432,7 @@ void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, double beta, int Nc, int
   // assert(cuda_check_for_errors("init 2 interpolation_kernel"));
 
   if (Nv - Nc > 0 and Nv > 0) {
-#ifdef DEBUG_CUDA
-    cuda_check_for_errors_bgn(__FUNCTION__, __FILE__, __LINE__);
-#endif
+    checkErrorsCudaDebug();
 
     int bl_x = dca::util::ceilDiv(Nv, BLOCK_SIZE_x);
     int bl_y = dca::util::ceilDiv(Nv - Nc, BLOCK_SIZE_y);
@@ -445,15 +443,11 @@ void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, double beta, int Nc, int
     akima_interpolation_fat_column<<<blocks, threads>>>(Nb, Nr, Nt, beta, Nc, Nv, b, r, t, G0,
                                                         G0_cs, G0_gs, r0_min_r1, r0_min_r1_cs,
                                                         r0_min_r1_gs, alpha, alpha_cs, alpha_gs);
-#ifdef DEBUG_CUDA
-    cuda_check_for_errors_end(__FUNCTION__, __FILE__, __LINE__);
-#endif
+    checkErrorsCudaDebug();
   }
 
   if (Nv - Nc > 0 and Nc > 0) {
-#ifdef DEBUG_CUDA
-    cuda_check_for_errors_bgn(__FUNCTION__, __FILE__, __LINE__);
-#endif
+    checkErrorsCudaDebug();
 
     int bl_x = dca::util::ceilDiv(Nv - Nc, BLOCK_SIZE_x);
     int bl_y = dca::util::ceilDiv(Nc, BLOCK_SIZE_y);
@@ -465,9 +459,7 @@ void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, double beta, int Nc, int
                                                      G0_gs, r0_min_r1, r0_min_r1_cs, r0_min_r1_gs,
                                                      alpha, alpha_cs, alpha_gs);
 
-#ifdef DEBUG_CUDA
-    cuda_check_for_errors_end(__FUNCTION__, __FILE__, __LINE__);
-#endif
+    checkErrorsCudaDebug();
   }
 }
 
@@ -480,9 +472,7 @@ void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, double beta, int Nc, int
   // assert(cuda_check_for_errors("init 2 interpolation_kernel"));
 
   if (Nv - Nc > 0 and Nv > 0) {
-#ifdef DEBUG_CUDA
-    cuda_check_for_errors_bgn(__FUNCTION__, __FILE__, __LINE__);
-#endif
+    checkErrorsCudaDebug();
 
     int bl_x = dca::util::ceilDiv(Nv, BLOCK_SIZE_x);
     int bl_y = dca::util::ceilDiv(Nv - Nc, BLOCK_SIZE_y);
@@ -496,15 +486,11 @@ void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, double beta, int Nc, int
         Nb, Nr, Nt, beta, Nc, Nv, b, r, t, G0, G0_cs, G0_gs, r0_min_r1, r0_min_r1_cs, r0_min_r1_gs,
         alpha, alpha_cs, alpha_gs);
 
-#ifdef DEBUG_CUDA
-    cuda_check_for_errors_end(__FUNCTION__, __FILE__, __LINE__);
-#endif
+    checkErrorsCudaDebug();
   }
 
   if (Nv - Nc > 0 and Nc > 0) {
-#ifdef DEBUG_CUDA
-    cuda_check_for_errors_bgn(__FUNCTION__, __FILE__, __LINE__);
-#endif
+    checkErrorsCudaDebug();
 
     int bl_x = dca::util::ceilDiv(Nv - Nc, BLOCK_SIZE_x);
     int bl_y = dca::util::ceilDiv(Nc, BLOCK_SIZE_y);
@@ -518,9 +504,7 @@ void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, double beta, int Nc, int
         Nb, Nr, Nt, beta, Nc, Nv, b, r, t, G0, G0_cs, G0_gs, r0_min_r1, r0_min_r1_cs, r0_min_r1_gs,
         alpha, alpha_cs, alpha_gs);
 
-#ifdef DEBUG_CUDA
-    cuda_check_for_errors_end(__FUNCTION__, __FILE__, __LINE__);
-#endif
+    checkErrorsCudaDebug();
   }
 }
 
@@ -529,5 +513,3 @@ void akima_interpolation_on_GPU(int Nb, int Nr, int Nt, double beta, int Nc, int
 }  // solver
 }  // phys
 }  // dca
-
-#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_WALKER_TOOLS_G0_INTERPOLATION_G0_INTERPOLATION_CU_HPP

@@ -10,24 +10,6 @@
 // G-matrix tools class.
 // Template specialization for GPU.
 
-namespace gkernels {
-// dca::phys::solver::ctaux::gkernels::
-
-void read_G_matrix_elements(int S, int vertex_index, int* i_index, int* j_index, bool* is_Bennett,
-                            double* exp_Vj, double* N, int LD_N, double* G_precomputed, int LD_G,
-                            double* result_ptr, int incr);
-
-void compute_row_on_Gamma_matrix(int row_index, int S, int vertex_index, int* indices,
-                                 double* exp_V, double* N, int LD_N, double* G_precomputed,
-                                 int LD_G, double* row_ptr, int incr);
-
-void compute_col_on_Gamma_matrix(int row_index, int S, int vertex_index, int* indices,
-                                 double* exp_V, double* N, int LD_N, double* G_precomputed,
-                                 int LD_G, double* row_ptr, int incr);
-
-}  // gkernels
-// dca::phys::solve::ctaux::
-
 template <typename parameters_type>
 class G_MATRIX_TOOLS<dca::linalg::GPU, parameters_type> {
   const static int MAX_VERTEX_SINGLETS = 4;

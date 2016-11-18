@@ -7,12 +7,17 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// GPU kernels for N-matrix tools.
+// This file implements n_matrix_tools_kernels.hpp.
 
-#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_WALKER_TOOLS_N_MATRIX_TOOLS_N_MATRIX_TOOLS_CU_HPP
-#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_WALKER_TOOLS_N_MATRIX_TOOLS_N_MATRIX_TOOLS_CU_HPP
+#include "dca/phys/dca_step/cluster_solver/ctaux/walker/tools/n_matrix_tools/n_matrix_tools_kernels.hpp"
 
 #include <cassert>
+
+#include "cuda_runtime.h"
+
+#include "dca/linalg/util/error_cuda.hpp"
+#include "dca/linalg/util/stream_functions.hpp"
+#include "dca/util/integer_division.hpp"
 
 namespace dca {
 namespace phys {
@@ -70,9 +75,7 @@ void compute_G_cols(int N_i, int N_r, int N_c, int* p_ptr, double* exp_V_ptr, do
     compute_G_cols_kernel<<<blocks, threads, 0, stream_handle>>>(
         N_i, N_r, N_c, p_ptr, exp_V_ptr, N_ptr, N_ld, G_ptr, G_ld, G_cols_ptr, G_cols_ld);
 
-#ifdef DEBUG_CUDA
-    cuda_check_for_errors(__FUNCTION__, __FILE__, __LINE__);
-#endif
+    checkErrorsCudaDebug();
   }
 }
 
@@ -90,9 +93,7 @@ __global__ void compute_d_vector_kernel(int N_i, int* d_ind, double* d_ptr, int*
 void compute_d_vector(int N_i, int* d_ind, double* d_ptr, int* p_ptr, double* N_ptr, int N_ld,
                       int thread_id, int stream_id) {
   if (N_i > 0) {
-#ifdef DEBUG_CUDA
-    cuda_check_for_errors_bgn(__FUNCTION__, __FILE__, __LINE__);
-#endif
+    checkErrorsCudaDebug();
 
     int Nr_t = 32;
     int Nr_b = dca::util::ceilDiv(N_i, Nr_t);
@@ -105,9 +106,7 @@ void compute_d_vector(int N_i, int* d_ind, double* d_ptr, int* p_ptr, double* N_
     compute_d_vector_kernel<<<blocks, threads, 0, stream_handle>>>(N_i, d_ind, d_ptr, p_ptr, N_ptr,
                                                                    N_ld);
 
-#ifdef DEBUG_CUDA
-    cuda_check_for_errors_end(__FUNCTION__, __FILE__, __LINE__);
-#endif
+    checkErrorsCudaDebug();
   }
 }
 
@@ -116,5 +115,3 @@ void compute_d_vector(int N_i, int* d_ind, double* d_ptr, int* p_ptr, double* N_
 }  // solver
 }  // phys
 }  // dca
-
-#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_WALKER_TOOLS_N_MATRIX_TOOLS_N_MATRIX_TOOLS_CU_HPP
