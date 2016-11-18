@@ -106,17 +106,17 @@ function(dca_add_gtest name)
     ${gtest_SOURCE_DIR}/include
     ${DCA_ADD_GTEST_INCLUDE_DIRS})
 
-  # We need to execute tests for the GPU with srun/aprun.
-  if (DCA_ADD_GTEST_MPI OR DCA_ADD_GTEST_CUDA)
+  if (DCA_ADD_GTEST_MPI)
     if (NOT DEFINED DCA_ADD_GTEST_MPI_NUMPROC)
       set(DCA_ADD_GTEST_MPI_NUMPROC 1)
     endif()
 
     add_test(NAME ${name}
-      COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${DCA_ADD_GTEST_MPI_NUMPROC} "$<TARGET_FILE:${name}>")
+      COMMAND ${TEST_RUNNER} ${MPIEXEC_NUMPROC_FLAG} ${DCA_ADD_GTEST_MPI_NUMPROC} "$<TARGET_FILE:${name}>")
 
   else()
     add_test(NAME ${name}
-      COMMAND "$<TARGET_FILE:${name}>")
+      COMMAND ${TEST_RUNNER} "$<TARGET_FILE:${name}>")
   endif()
+
 endfunction()
