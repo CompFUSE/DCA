@@ -191,6 +191,14 @@ if (DCA_WITH_TESTS_FAST OR DCA_WITH_TESTS_EXTENSIVE OR DCA_WITH_TESTS_PERFORMANC
     message(WARNING "Performance tests are only built in Release mode.")
   endif()
 
+  if (DCA_HAVE_MPI AND NOT DEFINED TEST_RUNNER)
+    message(FATAL_ERROR "TEST_RUNNER needs to be set to the executable for running MPI programs, e.g. mpiexec, mpirun, aprun or srun.")
+  endif()
+  
+  if (DCA_HAVE_MPI AND NOT DEFINED MPIEXEC_NUMPROC_FLAG)
+    message(FATAL_ERROR "MPIEXEC_NUMPROC_FLAG needs to be set for running MPI tests.")
+  endif()
+
   add_subdirectory(${gtest_DIR} ${PROJECT_BINARY_DIR}/gtest)
 
   add_subdirectory(${PROJECT_SOURCE_DIR}/test)

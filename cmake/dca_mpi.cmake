@@ -21,10 +21,4 @@ check_cxx_source_compiles(
 if (CXX_SUPPORTS_MPI)
   set(DCA_HAVE_MPI TRUE CACHE INTERNAL "")
   dca_add_haves_define(DCA_HAVE_MPI)
-
-  # Check if MPIEXEC and MPI_NUMPROC_FLAG are set.
-  # They are needed to run some of the tests.
-  if (NOT MPIEXEC OR NOT MPIEXEC_NUMPROC_FLAG)
-    message(FATAL_ERROR "MPIEXEC and MPIEXEC_NUMPROC_FLAG must be set.")
-  endif()
 endif()

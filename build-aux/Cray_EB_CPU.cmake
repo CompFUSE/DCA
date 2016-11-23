@@ -18,9 +18,9 @@ set(DCA_HAVE_FFTW TRUE CACHE INTERNAL "")
 set(DCA_HAVE_HDF5 TRUE CACHE INTERNAL "")
 set(DCA_HAVE_LAPACK TRUE CACHE INTERNAL "")
 
-# MPIEXEC stuff for executing parallel tests
-# If the 'slurm' module is loaded, the command for running MPI programs is 'srun'. Otherwise, check
-# whether the 'alps' module is loaded and use 'aprun'.
+# Find the command to run an application, which we will call TEST_RUNNER.
+# If the 'slurm' module is loaded, the command is 'srun'. Otherwise, check whether the 'alps' module
+# is loaded and use 'aprun'.
 execute_process(COMMAND modulecmd bash list
   RESULT_VARIABLE res
   ERROR_VARIABLE module_list)
@@ -28,16 +28,16 @@ execute_process(COMMAND modulecmd bash list
 string(FIND ${module_list} "slurm" slurm_found)
 if (NOT (${slurm_found} EQUAL -1))
   # Use srun
-  set(MPIEXEC "srun"
-    CACHE FILEPATH "Executable for running MPI programs.")
+  set(TEST_RUNNER "srun"
+    CACHE FILEPATH "Command to run an application.")
 
 else()
   # Check for aprun
   string(FIND ${module_list} "alps" alps_found)
   if (NOT (${alps_found} EQUAL -1))
     # Use aprun
-    set(MPIEXEC "aprun"
-      CACHE FILEPATH "Executable for running MPI programs.")
+    set(TEST_RUNNER "aprun"
+      CACHE FILEPATH "Command to run an application.")
   else()
     message (FATAL_ERROR "Neither aprun nor srun command found.")
   endif()
@@ -45,5 +45,6 @@ else()
 endif()
 
 set(MPIEXEC_NUMPROC_FLAG "-n"
-  CACHE STRING "Flag used by MPI to specify the number of processes for MPIEXEC; the next option will be the number of processes.")
-mark_as_advanced(MPIEXEC MPIEXEC_NUMPROC_FLAG)
+  CACHE STRING "Flag used by TEST_RUNNER to specify the number of processes.")
+
+mark_as_advanced(TEST_RUNNER MPIEXEC_NUMPROC_FLAG)

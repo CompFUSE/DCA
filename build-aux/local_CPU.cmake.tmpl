@@ -24,10 +24,13 @@ set(FFTW_LIBRARY "/path/to/FFTW3-library" CACHE FILEPATH "Path to FFTW3 library.
 
 mark_as_advanced(gtest_DIR SPRNG_DIR HDF5_ROOT)
 
-# MPIEXEC stuff for executing parallel tests
-# Note: CXX and CC must be set as environment variables to the corresponding MPI C++ and C compiler
-#       wrappers before running cmake.
-set(MPIEXEC "/path/to/mpiexec/mpiexec" CACHE FILEPATH "Executable for running MPI programs.")
+# TEST_RUNNER must be set to the command to run an application.
+# In particular, if CXX and CC are MPI C++ and C compiler wrappers, it is the command that runs an
+# MPI application.
+set(TEST_RUNNER "/path/to/eg/mpiexec"
+  CACHE FILEPATH "Command to run an application.")
+
 set(MPIEXEC_NUMPROC_FLAG "-np"
-  CACHE STRING "Flag used by MPI to specify the number of processes for MPIEXEC; the next option will be the number of processes.")
-mark_as_advanced(MPIEXEC MPIEXEC_NUMPROC_FLAG)
+  CACHE STRING "Flag used by TEST_RUNNER to specify the number of processes.")
+
+mark_as_advanced(TEST_RUNNER MPIEXEC_NUMPROC_FLAG)
