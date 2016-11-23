@@ -229,7 +229,7 @@ int dmn_variadic<domain_list...>::operator()(Args&&... args) {
 template <typename... Args, std::size_t... Is>
 void check_indices(const char* /*msg*/, const std::vector<int>& sizes, std::index_sequence<Is...>,
                    Args&&... indices) {
-  if (std::min({(sizes[Is] - indices)...}) < 0) {
+  if (std::min({(sizes[Is] - indices)...}) <= 0) {
     dca::util::ignoreReturnValues(
         (std::cerr << "size " << sizes[Is] << " index " << indices << " ")...);
     std::cerr << " : Index too big error" << std::endl;
