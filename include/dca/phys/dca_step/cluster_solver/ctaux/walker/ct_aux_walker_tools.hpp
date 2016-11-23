@@ -17,6 +17,10 @@
 
 #include "dca/linalg/linalg.hpp"
 
+#ifdef DCA_HAVE_CUDA
+#include "dca/phys/dca_step/cluster_solver/ctaux/walker/ct_aux_walker_tools_kernels.hpp"
+#endif
+
 namespace dca {
 namespace phys {
 namespace solver {
@@ -83,16 +87,6 @@ private:
 //
 // Specialization for GPU
 //
-namespace walkerkernels {
-// dca::phys::solver::ctaux::walkerkernels::
-
-void compute_Gamma(double* Gamma, int Gamma_n, int Gamma_ld, double* N, int N_r, int N_c, int N_ld,
-                   double* G, int G_r, int G_c, int G_ld, int* random_vertex_vector, double* exp_V,
-                   double* exp_delta_V, int thread_id, int stream_id);
-
-}  // walkerkernels
-// dca::phys::solver::ctaux::
-
 template <>
 class CT_AUX_WALKER_TOOLS<dca::linalg::GPU> {
 public:

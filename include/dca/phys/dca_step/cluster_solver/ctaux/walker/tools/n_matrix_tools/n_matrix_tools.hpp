@@ -18,6 +18,10 @@
 
 #include "dca/linalg/linalg.hpp"
 
+#ifdef DCA_HAVE_CUDA
+#include "dca/phys/dca_step/cluster_solver/ctaux/walker/tools/n_matrix_tools/n_matrix_tools_kernels.hpp"
+#endif
+
 namespace dca {
 namespace phys {
 namespace solver {

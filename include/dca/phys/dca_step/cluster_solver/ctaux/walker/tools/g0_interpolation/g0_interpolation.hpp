@@ -26,6 +26,10 @@
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain_left_oriented.hpp"
 
+#ifdef DCA_HAVE_CUDA
+#include "dca/phys/dca_step/cluster_solver/ctaux/walker/tools/g0_interpolation/g0_interpolation_kernels.hpp"
+#endif
+
 namespace dca {
 namespace phys {
 namespace solver {

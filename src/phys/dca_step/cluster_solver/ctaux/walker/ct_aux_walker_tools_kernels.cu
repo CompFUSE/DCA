@@ -7,10 +7,15 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// GPU kernels for walker tools.
+// This file implements ct_aux_walker_tools_kernels.hpp.
 
-#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_WALKER_CT_AUX_WALKER_TOOLS_CU_HPP
-#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_WALKER_CT_AUX_WALKER_TOOLS_CU_HPP
+#include "dca/phys/dca_step/cluster_solver/ctaux/walker/ct_aux_walker_tools_kernels.hpp"
+
+#include "cuda_runtime.h"
+
+#include "dca/linalg/util/error_cuda.hpp"
+#include "dca/linalg/util/stream_functions.hpp"
+#include "dca/util/integer_division.hpp"
 
 namespace dca {
 namespace phys {
@@ -58,9 +63,7 @@ void compute_Gamma(double* Gamma, int Gamma_n, int Gamma_ld, double* N, int N_r,
   const int number_of_threads = 16;
 
   if (Gamma_n > 0) {
-#ifdef DEBUG_CUDA
-    cuda_check_for_errors_bgn(__FUNCTION__, __FILE__, __LINE__);
-#endif
+    checkErrorsCudaDebug();
 
     dim3 threads(number_of_threads, number_of_threads);
 
@@ -73,9 +76,7 @@ void compute_Gamma(double* Gamma, int Gamma_n, int Gamma_ld, double* N, int N_r,
         Gamma, Gamma_n, Gamma_ld, N, N_r, N_c, N_ld, G, G_r, G_c, G_ld, random_vertex_vector, exp_V,
         exp_delta_V);
 
-#ifdef DEBUG_CUDA
-    cuda_check_for_errors_end(__FUNCTION__, __FILE__, __LINE__);
-#endif
+    checkErrorsCudaDebug();
   }
 }
 
@@ -84,5 +85,3 @@ void compute_Gamma(double* Gamma, int Gamma_n, int Gamma_ld, double* N, int N_r,
 }  // solver
 }  // phys
 }  // dca
-
-#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_WALKER_CT_AUX_WALKER_TOOLS_CU_HPP
