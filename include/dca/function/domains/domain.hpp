@@ -25,40 +25,40 @@ public:
   void reset();
 
   // domain interface functions
-  int& get_size() {
+  const int& get_size() const {
     return size;
   }
 
-  std::vector<int>& get_branch_domain_sizes() {
+  const std::vector<int>& get_branch_domain_sizes() {
     return branch_domain_sizes;
   }
-  int get_Nb_branch_domains() {
+  int get_Nb_branch_domains() const {
     return branch_domain_sizes.size();
   }
-  int get_branch_size(int branch_index) {
+  int get_branch_size(int branch_index) const {
     return branch_domain_sizes[branch_index];
   }
 
-  std::vector<int>& get_leaf_domain_sizes() {
+  const std::vector<int>& get_leaf_domain_sizes() const {
     return leaf_domain_sizes;
   }
-  int get_Nb_leaf_domains() {
+  int get_Nb_leaf_domains() const {
     return leaf_domain_sizes.size();
   }
-  int get_subdomain_size(int subdomain_index) {
+  int get_subdomain_size(int subdomain_index) const {
     return leaf_domain_sizes[subdomain_index];
   }
 
-  std::vector<int>& get_leaf_domain_steps() {
+  const std::vector<int>& get_leaf_domain_steps() const {
     return leaf_domain_steps;
   }
-  std::vector<int>& get_branch_domain_steps() {
+  const std::vector<int>& get_branch_domain_steps() const {
     return branch_domain_steps;
   }
 
   // linind <--> subdomain_indices != branch_indices
-  void linind_2_subind(int linind, int* subind);
-  void subind_2_linind(int* subind, int& linind);
+  void linind_2_subind(int linind, int* subind) const;
+  void subind_2_linind(const int* subind, int& linind) const;
 
 protected:
   int size;

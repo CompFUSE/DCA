@@ -163,6 +163,17 @@ struct print_type<dca::util::Typelist<Domain, Domains...>> {
   }
 };
 
+// if_all
+// if_all::value is true only if all arguments are true.
+template <bool v1, bool... vs>
+struct if_all {
+  constexpr static bool value = v1 && if_all<vs...>::value;
+};
+template <bool v>
+struct if_all<v> {
+  constexpr static bool value = v;
+};
+
 }  // util
 }  // dca
 

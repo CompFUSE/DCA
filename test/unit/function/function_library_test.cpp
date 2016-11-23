@@ -297,6 +297,24 @@ TEST(Function, TestDomain4a) {
   }
 }
 
+TEST(Function, ConstCorrectness) {
+  using dca::func::function;
+  function<double, dca::testing::test_domain_2a> f2;
+  f2(0, 0) = 1;
+
+  const auto f2_const(f2);
+  EXPECT_EQ(1, f2_const(0, 0));
+  EXPECT_EQ(1, f2_const(0));
+  const int index[]{0,1};
+  EXPECT_EQ(0, f2_const(index));
+
+  const function<double, dca::testing::test_domain_0a> f1a;
+  EXPECT_EQ(0, f1a(0));
+
+  // Raw domains needs to be wrapped in dca::func::dmn_0
+  // Does not compile: const function<double, dca::func::dmn<1, double>> f1b;
+}
+
 TEST(Function, FillDomain) {
   ::testing::internal::TimeInMillis elapsed1(::testing::UnitTest::GetInstance()->elapsed_time());
 

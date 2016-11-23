@@ -59,20 +59,20 @@ public:
   // If sizeof(args) == sizeof(domains): calls index via branch domains.
   // If sizeof(args) == sizeof(leaf domains): calls index via leaf domains.
   template <typename... Args>
-  int operator()(Args&&... args);
+  int operator()(Args&&... args) const;
 
 protected:
   // Indexing operator: accesses elements of the domain via branches.
   // index_lookup is overloaded on std::integral_constant<bool, true>::type so that if
   // sizeof...(Args) == sizeof...(domain_list) then this is called.
   template <typename... Args>
-  int index_lookup(std::integral_constant<bool, true>::type, int branch_i0, Args... args);
+  int index_lookup(std::integral_constant<bool, true>::type, int branch_i0, Args... args) const;
 
   // Indexing operator: accesses elements of the domain via leaf domains.
   // index_lookup is overloaded on std::integral_constant<bool, true>::type so that if
   // sizeof...(Args) == sizeof...(domain_list) then this is called.
   template <typename... Args>
-  int index_lookup(std::integral_constant<bool, false>::type, int leaf_i0, Args... args);
+  int index_lookup(std::integral_constant<bool, false>::type, int leaf_i0, Args... args) const;
 
   // Gets the branch domain sizes for each of the domain template arguments.
   // Returns a vector of the sizes.
@@ -220,7 +220,7 @@ void dmn_variadic<domain_list...>::reset() {
 
 template <typename... domain_list>
 template <typename... Args>
-int dmn_variadic<domain_list...>::operator()(Args&&... args) {
+int dmn_variadic<domain_list...>::operator()(Args&&... args) const {
   static_assert(sizeof...(Args) >= sizeof...(domain_list), "not enough args");
   return index_lookup(std::integral_constant<bool, (sizeof...(Args) == sizeof...(domain_list))>(),
                       std::forward<Args>(args)...);
@@ -245,7 +245,7 @@ void check_indices(const char* /*msg*/, const std::vector<int>& sizes, std::inde
 template <typename... domain_list>
 template <typename... Args>
 int dmn_variadic<domain_list...>::index_lookup(std::integral_constant<bool, true>::type,
-                                               int branch_i0, Args... branch_indices) {
+                                               int branch_i0, Args... branch_indices) const{
   static_assert(sizeof...(Args) + 1 == sizeof...(domain_list), "not enough args");
 
   // Create an index sequence starting from 1, with length sizeof...(args)-1.
@@ -271,7 +271,7 @@ int dmn_variadic<domain_list...>::index_lookup(std::integral_constant<bool, true
 template <typename... domain_list>
 template <typename... Args>
 int dmn_variadic<domain_list...>::index_lookup(std::integral_constant<bool, false>::type,
-                                               int leaf_i0, Args... leaf_indices) {
+                                               int leaf_i0, Args... leaf_indices) const {
   // Create an index sequence starting from 1, with length sizeof...(args)-1.
   auto seq = detail::make_index_sequence_with_offset<1, sizeof...(Args)>();
   auto seq2 = std::make_index_sequence<sizeof...(Args) + 1>{};

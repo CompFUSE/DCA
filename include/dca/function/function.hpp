@@ -12,6 +12,7 @@
 #ifndef DCA_FUNCTION_FUNCTION_HPP
 #define DCA_FUNCTION_FUNCTION_HPP
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>    // for std::abs
 #include <complex>  // for std::abs(std::complex)
@@ -19,7 +20,6 @@
 #include <string>
 #include <vector>
 
-#include "dca/function/copy_from.hpp"
 #include "dca/function/scalar_cast.hpp"
 #include "dca/function/set_to_zero.hpp"
 #include "dca/util/type_utils.hpp"
@@ -35,7 +35,7 @@ public:
   typedef domain this_domain_type;
 
   function();
-  function(std::string name);
+  function(const std::string& name);
   function(const function<scalartype, domain>& other_one);
   // Destructive copy
   function(function<scalartype, domain>&& other_one);
@@ -44,68 +44,88 @@ public:
 
   void reset();
 
-  domain& get_domain() {
+  const domain& get_domain() const {
     return dmn;
   }
-  const std::string& get_name() {
+  const std::string& get_name() const {
     return name_;
   }
   void set_name(const std::string& name) {
     name_ = name;
   }
-  int signature() {
+  int signature() const {
     return Nb_sbdms;
   }
-  int size() {
+  int size() const {
     return Nb_elements;
   }
   // Returns the size of the subdomain with index 'index'.
   // Doesn't return function values!
-  int operator[](int index) {
+  int operator[](int index) const {
     return size_sbdm[index];
   }
 
   scalartype* values() {
     return fnc_values;
   }
-  scalartype* values() const {
+  const scalartype* values() const {
     return fnc_values;
   }
 
-  void linind_2_subind(int i, int*& subind);
-  void linind_2_subind(int linind, std::vector<int>& subind);
+  void linind_2_subind(int i, int*& subind) const;
+  void linind_2_subind(int linind, std::vector<int>& subind) const;
 
-  void subind_2_linind(int* subind, int& i);
+  void subind_2_linind(const int* subind, int& i) const;
+
   template <typename T>
-  int subind_2_linind(T i) {
+  int subind_2_linind(T i) const {
     static_assert(std::is_integral<T>::value, "Index i must be an integer.");
     assert(i >= 0 && i < Nb_elements);
     return i;
   }
   template <typename... Ts>
-  int subind_2_linind(Ts... indices) {
+  // Enable only if all arguments are integer.
+  // INTERNAL: This is done to prevent subind_to_linind(int*, int) to resolve to
+  //           subind_to_linind(int...) rather than subind_to_linind(const int*, int).
+  typename std::enable_if<dca::util::if_all<std::is_integral<Ts>::value...>::value, int>::type subind_2_linind(
+      Ts... indices) const {
     // We need to cast all indices to the same type for dmn_variadic.
     return dmn(static_cast<int>(indices)...);
   }
 
-  scalartype& operator()(int* subind);
+  scalartype& operator()(const int* subind);
+  const scalartype& operator()(const int* subind) const;
+
   template <typename T>
-  scalartype& operator()(T i) {
+  scalartype& operator()(const T i) {
     static_assert(std::is_integral<T>::value, "Index i must be an integer.");
     assert(i >= 0 && i < Nb_elements);
     return fnc_values[i];
   }
+
+  template <typename T>
+  const scalartype& operator()(const T i) const {
+    static_assert(std::is_integral<T>::value, "Index i must be an integer.");
+    assert(i >= 0 && i < Nb_elements);
+    return fnc_values[i];
+  }
+
   template <typename... Ts>
   scalartype& operator()(Ts... indices) {
     // We need to cast all indices to the same type for dmn_variadic.
     return fnc_values[dmn(static_cast<int>(indices)...)];
   }
 
-  function<scalartype, domain>& operator=(function<scalartype, domain>& f_other);
-  void operator+=(function<scalartype, domain>& f_other);
-  void operator-=(function<scalartype, domain>& f_other);
-  void operator*=(function<scalartype, domain>& f_other);
-  void operator/=(function<scalartype, domain>& f_other);
+  template <typename... Ts>
+  const scalartype& operator()(Ts... indices) const {
+    return fnc_values[dmn(static_cast<int>(indices)...)];
+  }
+
+  function<scalartype, domain>& operator=(const function<scalartype, domain>& f_other);
+  void operator+=(const function<scalartype, domain>& f_other);
+  void operator-=(const function<scalartype, domain>& f_other);
+  void operator*=(const function<scalartype, domain>& f_other);
+  void operator/=(const function<scalartype, domain>& f_other);
 
   template <typename new_scalartype>
   void operator=(new_scalartype c);
@@ -119,21 +139,21 @@ public:
   void operator/=(new_scalartype c);
 
   template <typename new_scalartype>
-  void slice(int sbdm_index, int* subind, new_scalartype* fnc_vals);
+  void slice(int sbdm_index, int* subind, new_scalartype* fnc_vals) const;
   template <typename new_scalartype>
-  void slice(int sbdm_index_1, int sbdm_index_2, int* subind, new_scalartype* fnc_vals);
+  void slice(int sbdm_index_1, int sbdm_index_2, int* subind, new_scalartype* fnc_vals) const;
   template <typename new_scalartype>
-  void distribute(int sbdm_index, int* subind, new_scalartype* fnc_vals);
+  void distribute(int sbdm_index, int* subind, const new_scalartype* fnc_vals);
   template <typename new_scalartype>
-  void distribute(int sbdm_index_1, int sbdm_index_2, int* subind, new_scalartype* fnc_vals);
+  void distribute(int sbdm_index_1, int sbdm_index_2, int* subind, const new_scalartype* fnc_vals);
 
   // Prints the function's metadata.
-  void print_fingerprint(std::ostream& stream = std::cout) /*const*/;
+  void print_fingerprint(std::ostream& stream = std::cout) const;
   // Prints the function's elements.
-  void print_elements(std::ostream& stream = std::cout) /*const*/;
+  void print_elements(std::ostream& stream = std::cout) const;
 
   template <typename concurrency_t>
-  int get_buffer_size(const concurrency_t& concurrency);
+  int get_buffer_size(const concurrency_t& concurrency) const;
   template <class concurrency_t>
   void pack(const concurrency_t& concurrency, int* buffer, int buffer_size, int& position);
   template <class concurrency_t>
@@ -147,7 +167,7 @@ private:
   int Nb_elements;
 
   int Nb_sbdms;
-  std::vector<int>& size_sbdm;
+  std::vector<int> size_sbdm;
   std::vector<int> step_sbdm;
 
   scalartype* fnc_values;
@@ -173,7 +193,7 @@ function<scalartype, domain>::function()
 }
 
 template <typename scalartype, class domain>
-function<scalartype, domain>::function(std::string fnc_name)
+function<scalartype, domain>::function(const std::string& fnc_name)
     : name_(fnc_name),
       function_type(__PRETTY_FUNCTION__),
       dmn(),
@@ -193,7 +213,7 @@ function<scalartype, domain>::function(std::string fnc_name)
 
 template <typename scalartype, class domain>
 function<scalartype, domain>::function(const function<scalartype, domain>& other_one)
-    : name_("no_name"),
+    : name_(other_one.name_),
       function_type(__PRETTY_FUNCTION__),
       dmn(),
       Nb_elements(dmn.get_size()),
@@ -206,12 +226,13 @@ function<scalartype, domain>::function(const function<scalartype, domain>& other
 
   fnc_values = new scalartype[Nb_elements];
 
-  copy_from<scalartype>::execute(Nb_elements, fnc_values, other_one.values());
+  // copy_from<scalartype>::execute(Nb_elements, fnc_values, other_one.values());
+  std::copy_n(other_one.fnc_values, Nb_elements, fnc_values);
 }
 
 template <typename scalartype, class domain>
 function<scalartype, domain>::function(function<scalartype, domain>&& other_one)
-    : name_("no_name"),
+    : name_(std::move(other_one.name_)),
       function_type(__PRETTY_FUNCTION__),
       dmn(),
       Nb_elements(dmn.get_size()),
@@ -255,7 +276,7 @@ void function<scalartype, domain>::reset() {
 }
 
 template <typename scalartype, class domain>
-void function<scalartype, domain>::linind_2_subind(int linind, int*& subind) {
+void function<scalartype, domain>::linind_2_subind(int linind, int*& subind) const {
   int tmp = linind;
   for (int i = 0; i < int(size_sbdm.size()); i++) {
     subind[i] = tmp % size_sbdm[i];
@@ -264,7 +285,7 @@ void function<scalartype, domain>::linind_2_subind(int linind, int*& subind) {
 }
 
 template <typename scalartype, class domain>
-void function<scalartype, domain>::linind_2_subind(int linind, std::vector<int>& subind) {
+void function<scalartype, domain>::linind_2_subind(int linind, std::vector<int>& subind) const {
   assert(int(subind.size()) == signature());
 
   int tmp = linind;
@@ -275,14 +296,23 @@ void function<scalartype, domain>::linind_2_subind(int linind, std::vector<int>&
 }
 
 template <typename scalartype, class domain>
-void function<scalartype, domain>::subind_2_linind(int* subind, int& linind) {
+void function<scalartype, domain>::subind_2_linind(const int* subind, int& linind) const {
   linind = 0;
   for (int i = 0; i < int(step_sbdm.size()); i++)
     linind += subind[i] * step_sbdm[i];
 }
 
 template <typename scalartype, class domain>
-scalartype& function<scalartype, domain>::operator()(int* subind) {
+scalartype& function<scalartype, domain>::operator()(const int* subind) {
+  int linind;
+  subind_2_linind(subind, linind);
+
+  assert(linind >= 0 && linind < Nb_elements);
+  return fnc_values[linind];
+}
+
+template <typename scalartype, class domain>
+const scalartype& function<scalartype, domain>::operator()(const int* subind) const {
   int linind;
   subind_2_linind(subind, linind);
 
@@ -292,15 +322,14 @@ scalartype& function<scalartype, domain>::operator()(int* subind) {
 
 template <typename scalartype, class domain>
 function<scalartype, domain>& function<scalartype, domain>::operator=(
-    function<scalartype, domain>& f_other) {
-  domain& dmn_other = f_other.get_domain();
+    const function<scalartype, domain>& f_other) {
+  const domain& dmn_other = f_other.get_domain();
+  name_ = f_other.name_;
 
   if (dmn.get_size() !=
       dmn_other.get_size())  // Domains were not initialized when function was created.
   {
-    dmn.get_size() = dmn_other.get_size();
-    dmn.get_branch_domain_sizes() = dmn_other.get_branch_domain_sizes();
-    dmn.get_leaf_domain_sizes() = dmn_other.get_leaf_domain_sizes();
+    dmn = dmn_other;
 
     for (int i = 0; i < Nb_sbdms; i++)
       size_sbdm[i] = dmn.get_subdomain_size(i);
@@ -316,31 +345,31 @@ function<scalartype, domain>& function<scalartype, domain>::operator=(
     fnc_values = new scalartype[Nb_elements];
   }
 
-  memcpy(fnc_values, f_other.values(), Nb_elements * sizeof(scalartype));
-
+  // memcpy(fnc_values, f_other.values(), Nb_elements * sizeof(scalartype));
+  std::copy_n(f_other.values(), Nb_elements, fnc_values);
   return *this;
 }
 
 template <typename scalartype, class domain>
-void function<scalartype, domain>::operator+=(function<scalartype, domain>& f_other) {
+void function<scalartype, domain>::operator+=(const function<scalartype, domain>& f_other) {
   for (int linind = 0; linind < Nb_elements; linind++)
     fnc_values[linind] += f_other(linind);
 }
 
 template <typename scalartype, class domain>
-void function<scalartype, domain>::operator-=(function<scalartype, domain>& f_other) {
+void function<scalartype, domain>::operator-=(const function<scalartype, domain>& f_other) {
   for (int linind = 0; linind < Nb_elements; linind++)
     fnc_values[linind] -= f_other(linind);
 }
 
 template <typename scalartype, class domain>
-void function<scalartype, domain>::operator*=(function<scalartype, domain>& f_other) {
+void function<scalartype, domain>::operator*=(const function<scalartype, domain>& f_other) {
   for (int linind = 0; linind < Nb_elements; linind++)
     fnc_values[linind] *= f_other(linind);
 }
 
 template <typename scalartype, class domain>
-void function<scalartype, domain>::operator/=(function<scalartype, domain>& f_other) {
+void function<scalartype, domain>::operator/=(const function<scalartype, domain>& f_other) {
   for (int linind = 0; linind < Nb_elements; linind++) {
     assert(std::abs(f_other(linind)) > 1.e-16);
     fnc_values[linind] /= f_other(linind);
@@ -394,7 +423,7 @@ void function<scalartype, domain>::operator/=(new_scalartype c) {
 
 template <typename scalartype, class domain>
 template <typename new_scalartype>
-void function<scalartype, domain>::slice(int sbdm_index, int* subind, new_scalartype* fnc_vals) {
+void function<scalartype, domain>::slice(int sbdm_index, int* subind, new_scalartype* fnc_vals) const {
   assert(sbdm_index >= 0);
   assert(sbdm_index < Nb_sbdms);
 
@@ -409,7 +438,7 @@ void function<scalartype, domain>::slice(int sbdm_index, int* subind, new_scalar
 template <typename scalartype, class domain>
 template <typename new_scalartype>
 void function<scalartype, domain>::slice(int sbdm_index_1, int sbdm_index_2, int* subind,
-                                         new_scalartype* fnc_vals) {
+                                         new_scalartype* fnc_vals) const {
   assert(sbdm_index_1 >= 0);
   assert(sbdm_index_2 >= 0);
   assert(sbdm_index_1 < Nb_sbdms);
@@ -442,7 +471,8 @@ void function<scalartype, domain>::slice(int sbdm_index_1, int sbdm_index_2, int
 
 template <typename scalartype, class domain>
 template <typename new_scalartype>
-void function<scalartype, domain>::distribute(int sbdm_index, int* subind, new_scalartype* fnc_vals) {
+void function<scalartype, domain>::distribute(int sbdm_index, int* subind,
+                                              const new_scalartype* fnc_vals) {
   assert(sbdm_index >= 0);
   assert(sbdm_index < Nb_sbdms);
 
@@ -457,7 +487,7 @@ void function<scalartype, domain>::distribute(int sbdm_index, int* subind, new_s
 template <typename scalartype, class domain>
 template <typename new_scalartype>
 void function<scalartype, domain>::distribute(int sbdm_index_1, int sbdm_index_2, int* subind,
-                                              new_scalartype* fnc_vals) {
+                                              const new_scalartype* fnc_vals) {
   assert(sbdm_index_1 >= 0);
   assert(sbdm_index_2 >= 0);
   assert(sbdm_index_1 < Nb_sbdms);
@@ -475,7 +505,7 @@ void function<scalartype, domain>::distribute(int sbdm_index_1, int sbdm_index_2
 }
 
 template <typename scalartype, class domain>
-void function<scalartype, domain>::print_fingerprint(std::ostream& stream) {
+void function<scalartype, domain>::print_fingerprint(std::ostream& stream) const {
   stream << "****************************************\n";
   stream << "function: " << name_ << "\n";
   stream << "****************************************\n";
@@ -485,7 +515,7 @@ void function<scalartype, domain>::print_fingerprint(std::ostream& stream) {
   stream << "\n";
 
   stream << "size of subdomains:";
-  for (int i = 0; i < Nb_sbdms; i++)
+  for (int i = 0; i < Nb_sbdms; ++i)
     stream << "  " << size_sbdm[i];
   stream << "\n";
 
@@ -495,13 +525,13 @@ void function<scalartype, domain>::print_fingerprint(std::ostream& stream) {
 }
 
 template <typename scalartype, class domain>
-void function<scalartype, domain>::print_elements(std::ostream& stream) /*const*/ {
+void function<scalartype, domain>::print_elements(std::ostream& stream) const {
   stream << "****************************************\n";
   stream << "function: " << name_ << "\n";
   stream << "****************************************\n";
 
   std::vector<int> subind(Nb_sbdms);
-  for (int lindex = 0; lindex < Nb_elements; lindex++) {
+  for (int lindex = 0; lindex < Nb_elements; ++lindex) {
     linind_2_subind(lindex, subind);
     for (int index : subind)
       stream << index << "\t";
@@ -513,7 +543,7 @@ void function<scalartype, domain>::print_elements(std::ostream& stream) /*const*
 
 template <typename scalartype, class domain>
 template <typename concurrency_t>
-int function<scalartype, domain>::get_buffer_size(const concurrency_t& concurrency) {
+int function<scalartype, domain>::get_buffer_size(const concurrency_t& concurrency) const {
   int result = 0;
   result += concurrency.get_buffer_size(*this);
   return result;
