@@ -41,10 +41,11 @@ public:
 
   // Initializes the tight-binding (non-interacting) part of the momentum space Hamiltonian.
   // Preconditions: The elements of KDmn are three-dimensional (access through index 0, 1, and 2).
-  template <typename ParametersType, typename ScalarType, typename BandSpinDmn, typename KDmn>
+  template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
   static void initialize_H_0(
       const ParametersType& parameters,
-      func::function<ScalarType, func::dmn_variadic<BandSpinDmn, BandSpinDmn, KDmn>>& H_0);
+      func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+                                                    func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0);
 
   static double latticeConstant() {
     return a;
@@ -168,19 +169,14 @@ std::vector<std::vector<double>>& material_lattice<NiO_symmetric, point_group_ty
 }
 
 template <typename point_group_type>
-template <typename ParametersType, typename ScalarType, typename BandSpinDmn, typename KDmn>
+template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
 void material_lattice<NiO_symmetric, point_group_type>::initialize_H_0(
     const ParametersType& parameters,
-    func::function<ScalarType, func::dmn_variadic<BandSpinDmn, BandSpinDmn, KDmn>>& H_0) {
-  static_assert(util::Length<typename BandSpinDmn::this_type>::value == 2,
-                "BandSpinDmn has two subdomains, the band domain and the spin domain.");
-
-  using BandDmn = typename util::TypeAt<0, typename BandSpinDmn::template domain_typelist<0>>::type;
-  using SpinDmn = typename util::TypeAt<0, typename BandSpinDmn::template domain_typelist<1>>::type;
-
-  if (BandDmn::get_size() != BANDS)
+    func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+                                                  func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0) {
+  if (BandDmn::dmn_size() != BANDS)
     throw std::logic_error("NiO has 8 bands.");
-  if (SpinDmn::get_size() != 2)
+  if (SpinDmn::dmn_size() != 2)
     throw std::logic_error("Spin domain size must be 2.");
 
   const static std::complex<double> I(0, 1);
@@ -261,10 +257,11 @@ public:
 
   // Initializes the tight-binding (non-interacting) part of the momentum space Hamiltonian.
   // Preconditions: The elements of KDmn are three-dimensional (access through index 0, 1, and 2).
-  template <typename ParametersType, typename ScalarType, typename BandSpinDmn, typename KDmn>
+  template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
   static void initialize_H_0(
       const ParametersType& parameters,
-      func::function<ScalarType, func::dmn_variadic<BandSpinDmn, BandSpinDmn, KDmn>>& H_0);
+      func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+                                                    func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0);
 
   static double latticeConstant() {
     return a;
@@ -382,19 +379,14 @@ std::vector<std::vector<double>>& material_lattice<NiO_unsymmetric, point_group_
 }
 
 template <typename point_group_type>
-template <typename ParametersType, typename ScalarType, typename BandSpinDmn, typename KDmn>
+template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
 void material_lattice<NiO_unsymmetric, point_group_type>::initialize_H_0(
     const ParametersType& parameters,
-    func::function<ScalarType, func::dmn_variadic<BandSpinDmn, BandSpinDmn, KDmn>>& H_0) {
-  static_assert(util::Length<typename BandSpinDmn::this_type>::value == 2,
-                "BandSpinDmn has two subdomains, the band domain and the spin domain.");
-
-  using BandDmn = typename util::TypeAt<0, typename BandSpinDmn::template domain_typelist<0>>::type;
-  using SpinDmn = typename util::TypeAt<0, typename BandSpinDmn::template domain_typelist<1>>::type;
-
-  if (BandDmn::get_size() != BANDS)
+    func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+                                                  func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0) {
+  if (BandDmn::dmn_size() != BANDS)
     throw std::logic_error("NiO has 8 bands.");
-  if (SpinDmn::get_size() != 2)
+  if (SpinDmn::dmn_size() != 2)
     throw std::logic_error("Spin domain size must be 2.");
 
   const static std::complex<double> I(0, 1);
