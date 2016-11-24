@@ -9,7 +9,9 @@
 //
 // Material lattice specialization for CuO2 1-band.
 //
-// TODO: Replace get_LDA_Hamiltonians with intialize_H_0 function (see material_lattice_NiO.inc).
+// TODO: - Replace get_LDA_Hamiltonians with intialize_H_0 function (see material_lattice_NiO.inc).
+//       - Use correct index of origin in initialize_H_interaction (see e.g.
+//         material_lattice_NiO.inc).
 
 template <typename point_group_type>
 class material_lattice<CuO2_1band, point_group_type> {
