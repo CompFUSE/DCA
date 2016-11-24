@@ -2,7 +2,7 @@
 
 dca_add_gtest(bilayer_lattice_test
   GTEST_MAIN
-  LIBS function)
+  LIBS function ${LAPACK_LIBRARIES})
 
 dca_add_gtest(square_lattice_test
   GTEST_MAIN
