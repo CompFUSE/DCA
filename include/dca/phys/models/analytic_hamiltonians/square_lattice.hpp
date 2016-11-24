@@ -44,9 +44,12 @@ public:
 
   static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> get_orbital_permutations();
 
-  template <class domain, class parameters_type>
-  static void initialize_H_interaction(func::function<double, domain>& H_interaction,
-                                       parameters_type& parameters);
+  // Initializes the interaction Hamiltonian in real space.
+  template <typename BandDmn, typename SpinDmn, typename RDmn, typename parameters_type>
+  static void initialize_H_interaction(
+      func::function<double, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+                                                func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
+      const parameters_type& parameters);
 
   template <class domain>
   static void initialize_H_symmetry(func::function<int, domain>& H_symmetry);
@@ -106,55 +109,58 @@ std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> square_lattice<
   return permutations;
 }
 
-// TODO: Add non-local interaction of same spins.
-//       Use V instead of U_prime?
 template <typename point_group_type>
-template <class domain, class parameters_type>
+template <typename BandDmn, typename SpinDmn, typename RDmn, typename parameters_type>
 void square_lattice<point_group_type>::initialize_H_interaction(
-    func::function<double, domain>& H_interaction, parameters_type& parameters) {
-  H_interaction = 0.;
+    func::function<double, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+                                              func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
+    const parameters_type& parameters) {
+  if (BandDmn::dmn_size() != BANDS)
+    throw std::logic_error("Square lattice has one band.");
+  if (SpinDmn::dmn_size() != 2)
+    throw std::logic_error("Spin domain size must be 2.");
 
-  // actually the same as DCA_r_cluster_type (see typedifinitions.h).
-  typedef
-      typename dca::util::TypeAt<0, typename domain::template domain_typelist<2>>::type DCA_r_cluster_t;
+  const int origin = RDmn::parameter_type::origin_index();
 
-  int DIMENSION = DCA_r_cluster_t::DIMENSION;
-  assert(DIMENSION == 2);
+  const std::vector<typename RDmn::parameter_type::element_type>& basis =
+      RDmn::parameter_type::get_basis_vectors();
+  const std::vector<typename RDmn::parameter_type::element_type>& super_basis =
+      RDmn::parameter_type::get_super_basis_vectors();
+  const std::vector<typename RDmn::parameter_type::element_type>& elements =
+      RDmn::parameter_type::get_elements();
 
-  int origin = DCA_r_cluster_t::origin_index();
+  assert(basis.size() == 2);
 
-  std::vector<typename DCA_r_cluster_t::element_type>& basis = DCA_r_cluster_t::get_basis_vectors();
-  std::vector<typename DCA_r_cluster_t::element_type>& super_basis =
-      DCA_r_cluster_t::get_super_basis_vectors();
-  std::vector<typename DCA_r_cluster_t::element_type>& elements = DCA_r_cluster_t::get_elements();
-
-  std::vector<int> nn_index(DIMENSION);  // Indices of nearest neighbours w.r.t. origin.
-  for (int d = 0; d < DIMENSION; ++d) {
+  // Compute indices of nearest neighbours w.r.t. origin.
+  std::vector<int> nn_index(2);  // There are two different nearest neighbour pairs.
+  for (int d = 0; d < 2; ++d) {
     std::vector<double> basis_vec =
         domains::cluster_operations::translate_inside_cluster(basis[d], super_basis);
     nn_index[d] = domains::cluster_operations::index(basis_vec, elements, domains::BRILLOUIN_ZONE);
   }
 
+  H_interaction = 0.;
+
   // Nearest-neighbor opposite spin interaction
-  double V = parameters.get_V();
-  H_interaction(0, 1, nn_index[0]) = V;
-  H_interaction(1, 0, nn_index[0]) = V;
-  H_interaction(0, 1, nn_index[1]) = V;
-  H_interaction(1, 0, nn_index[1]) = V;
+  const double V = parameters.get_V();
+  H_interaction(0, 0, 0, 1, nn_index[0]) = V;
+  H_interaction(0, 1, 0, 0, nn_index[0]) = V;
+  H_interaction(0, 0, 0, 1, nn_index[1]) = V;
+  H_interaction(0, 1, 0, 0, nn_index[1]) = V;
 
   // Nearest-neighbor same spin interaction
-  double V_prime = parameters.get_V_prime();
-  H_interaction(0, 0, nn_index[0]) = V_prime;
-  H_interaction(1, 1, nn_index[0]) = V_prime;
-  H_interaction(0, 0, nn_index[1]) = V_prime;
-  H_interaction(1, 1, nn_index[1]) = V_prime;
+  const double V_prime = parameters.get_V_prime();
+  H_interaction(0, 0, 0, 0, nn_index[0]) = V_prime;
+  H_interaction(0, 1, 0, 1, nn_index[0]) = V_prime;
+  H_interaction(0, 0, 0, 0, nn_index[1]) = V_prime;
+  H_interaction(0, 1, 0, 1, nn_index[1]) = V_prime;
 
   // On-site interaction
   // This has to be set last since for small clusters a nearest neighbor might
   // be the same site and therefore V would overwrite U.
-  double U = parameters.get_U();
-  H_interaction(0, 1, origin) = U;
-  H_interaction(1, 0, origin) = U;
+  const double U = parameters.get_U();
+  H_interaction(0, 0, 0, 1, origin) = U;
+  H_interaction(0, 1, 0, 0, origin) = U;
 }
 
 template <typename point_group_type>
