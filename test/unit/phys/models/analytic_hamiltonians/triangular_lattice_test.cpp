@@ -19,28 +19,30 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/cluster/cluster_domain_initializer.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_hexagonal.hpp"
 #include "dca/phys/parameters/model_parameters.hpp"
 
+using namespace dca;
+
 TEST(TriangularLatticeTest, Initialize_H_0) {
-  using PointGroup = dca::phys::domains::C6;
-  using Lattice = dca::phys::models::triangular_lattice<PointGroup>;
+  using PointGroup = phys::domains::C6;
+  using Lattice = phys::models::triangular_lattice<PointGroup>;
 
-  using BandDmn = dca::func::dmn<1, int>;
-  using SpinDmn = dca::func::dmn<2, int>;
-  using BandSpinDmn = dca::func::dmn_variadic<dca::func::dmn_0<BandDmn>, dca::func::dmn_0<SpinDmn>>;
+  using BandDmn = func::dmn<1, int>;
+  using SpinDmn = func::dmn<2, int>;
+  using BandSpinDmn = func::dmn_variadic<func::dmn_0<BandDmn>, func::dmn_0<SpinDmn>>;
 
-  using KDmn = dca::func::dmn<4, std::vector<double>>;
+  using KDmn = func::dmn<4, std::vector<double>>;
   KDmn::set_elements({{0., 0.},
                       {M_PI, -std::sin(M_PI / 3.) * 2. / 3. * M_PI},
                       {M_PI, std::sin(M_PI / 3.) * 2. / 3. * M_PI},
                       {2. * M_PI, 0.}});
 
-  dca::func::function<std::complex<double>,
-                      dca::func::dmn_variadic<BandSpinDmn, BandSpinDmn, dca::func::dmn_0<KDmn>>>
-      H_0;
+  func::function<std::complex<double>, func::dmn_variadic<BandSpinDmn, BandSpinDmn, func::dmn_0<KDmn>>> H_0;
 
-  dca::phys::params::ModelParameters<dca::phys::models::TightBindingModel<Lattice>> params;
+  phys::params::ModelParameters<phys::models::TightBindingModel<Lattice>> params;
   params.set_t(1.);
 
   Lattice::initialize_H_0(params, H_0);
@@ -70,4 +72,45 @@ TEST(TriangularLatticeTest, Initialize_H_0) {
   EXPECT_DOUBLE_EQ(2., H_0(0, 1, 0, 1, 2).real());
   EXPECT_DOUBLE_EQ(2., H_0(0, 0, 0, 0, 3).real());
   EXPECT_DOUBLE_EQ(2., H_0(0, 1, 0, 1, 3).real());
+}
+
+TEST(TriangularLatticeTest, Initialize_H_interaction) {
+  using PointGroup = phys::domains::C6;
+  using Lattice = phys::models::triangular_lattice<PointGroup>;
+
+  using BandDmn = func::dmn_0<func::dmn<1, int>>;
+  using SpinDmn = func::dmn_0<func::dmn<2, int>>;
+  using BandSpinDmn = func::dmn_variadic<BandDmn, SpinDmn>;
+
+  using r_DCA_ClusterType =
+      phys::domains::cluster_domain<double, Lattice::DIMENSION, phys::domains::CLUSTER,
+                                    phys::domains::REAL_SPACE, phys::domains::BRILLOUIN_ZONE>;
+  using r_DCA = func::dmn_0<r_DCA_ClusterType>;
+
+  const std::vector<std::vector<int>> DCA_cluster{{-2, 0}, {0, 2}};
+  phys::domains::cluster_domain_initializer<r_DCA>::execute(Lattice::initialize_r_DCA_basis(),
+                                                            DCA_cluster);
+
+  // Get index of origin and check it.
+  const int origin = r_DCA_ClusterType::origin_index();
+  ASSERT_DOUBLE_EQ(0., r_DCA::get_elements()[origin][0]);
+  ASSERT_DOUBLE_EQ(0., r_DCA::get_elements()[origin][1]);
+
+  func::function<double, func::dmn_variadic<BandSpinDmn, BandSpinDmn, r_DCA>> H_interaction;
+  phys::params::ModelParameters<phys::models::TightBindingModel<Lattice>> params;
+
+  // Check on-site interaction.
+  params.set_U(4);
+  params.set_V(0);
+  params.set_V_prime(0);
+
+  Lattice::initialize_H_interaction(H_interaction, params);
+
+  for (int r = 0; r < r_DCA::dmn_size(); ++r)
+    for (int s2 = 0; s2 < SpinDmn::dmn_size(); ++s2)
+      for (int s1 = 0; s1 < SpinDmn::dmn_size(); ++s1)
+        if (r == origin && s1 != s2)
+          EXPECT_DOUBLE_EQ(4., H_interaction(0, s1, 0, s2, r));
+        else
+          EXPECT_DOUBLE_EQ(0., H_interaction(0, s1, 0, s2, r));
 }
