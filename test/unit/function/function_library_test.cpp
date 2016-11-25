@@ -298,21 +298,43 @@ TEST(Function, TestDomain4a) {
 }
 
 TEST(Function, ConstCorrectness) {
-  using dca::func::function;
-  function<double, dca::testing::test_domain_2a> f2;
-  f2(0, 0) = 1;
+  using Function = dca::func::function<double, dca::testing::test_domain_2a>;
+  Function f("foo");
+  f(0, 0) = 1;
 
-  const auto f2_const(f2);
-  EXPECT_EQ(1, f2_const(0, 0));
-  EXPECT_EQ(1, f2_const(0));
-  const int index[]{0,1};
-  EXPECT_EQ(0, f2_const(index));
+  const auto f_const(f);
+  EXPECT_EQ(1, f_const(0, 0));
+  EXPECT_EQ(1, f_const(0));
+  EXPECT_EQ("foo", f.get_name());
+  const int index[]{0, 1};
+  EXPECT_EQ(0, f_const(index));
 
-  const function<double, dca::testing::test_domain_0a> f1a;
-  EXPECT_EQ(0, f1a(0));
+  const Function f2a("bar");
+  EXPECT_EQ(0, f2a(0));
+  Function f2b;
+  f2b = f2a;
+  // Assignment does not change the name.
+  EXPECT_EQ("no name", f2b.get_name());
+  // But note that the following statement is resolved as a call to the copy constructor.
+  Function f2c = f2a;
+  EXPECT_EQ("bar", f2c.get_name());
+}
 
-  // Raw domains needs to be wrapped in dca::func::dmn_0
-  // Does not compile: const function<double, dca::func::dmn<1, double>> f1b;
+TEST(Function, MoveConstructor) {
+  using Function = dca::func::function<int, dca::testing::test_domain_2a>;
+  Function f("foo");
+  f(0, 1) = 1;
+
+  Function f2(std::move(f));
+  EXPECT_EQ(1, f2(0, 1));
+  EXPECT_EQ(0, f.size());
+  EXPECT_EQ("foo", f2.get_name());
+
+  Function f3("bar");
+  f3 = std::move(f2);
+  EXPECT_EQ(1, f3(0, 1));
+  EXPECT_EQ(0, f2.size());
+  EXPECT_EQ("bar", f3.get_name());
 }
 
 TEST(Function, FillDomain) {

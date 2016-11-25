@@ -87,7 +87,7 @@ public:
   // Enable only if all arguments are integer.
   // INTERNAL: This is done to prevent subind_to_linind(int*, int) to resolve to
   //           subind_to_linind(int...) rather than subind_to_linind(const int*, int).
-  typename std::enable_if<dca::util::if_all<std::is_integral<Ts>::value...>::value, int>::type subind_2_linind(
+  std::enable_if_t<dca::util::if_all<std::is_integral<Ts>::value...>::value, int> subind_2_linind(
       Ts... indices) const {
     // We need to cast all indices to the same type for dmn_variadic.
     return dmn(static_cast<int>(indices)...);
@@ -121,7 +121,10 @@ public:
     return fnc_values[dmn(static_cast<int>(indices)...)];
   }
 
+  // Assignment operators copy (move) the function values, but not the name.
   function<scalartype, domain>& operator=(const function<scalartype, domain>& f_other);
+  function<scalartype, domain>& operator=(function<scalartype, domain>&& f_other);
+
   void operator+=(const function<scalartype, domain>& f_other);
   void operator-=(const function<scalartype, domain>& f_other);
   void operator*=(const function<scalartype, domain>& f_other);
@@ -167,30 +170,11 @@ private:
   int Nb_elements;
 
   int Nb_sbdms;
-  std::vector<int> size_sbdm;
-  std::vector<int> step_sbdm;
+  const std::vector<int>& size_sbdm;
+  const std::vector<int>& step_sbdm;
 
   scalartype* fnc_values;
 };
-
-template <typename scalartype, class domain>
-function<scalartype, domain>::function()
-    : name_("no name"),
-      function_type(__PRETTY_FUNCTION__),
-      dmn(),
-      Nb_elements(dmn.get_size()),
-      Nb_sbdms(dmn.get_leaf_domain_sizes().size()),
-      size_sbdm(dmn.get_leaf_domain_sizes()),
-      step_sbdm(Nb_sbdms, 1) {
-  for (int i = 0; i < Nb_sbdms; i++)
-    for (int j = 0; j < i; j++)
-      step_sbdm[i] *= dmn.get_subdomain_size(j);
-
-  fnc_values = new scalartype[Nb_elements];
-
-  for (int linind = 0; linind < Nb_elements; linind++)
-    set_to_zero::execute(fnc_values[linind]);
-}
 
 template <typename scalartype, class domain>
 function<scalartype, domain>::function(const std::string& fnc_name)
@@ -200,11 +184,7 @@ function<scalartype, domain>::function(const std::string& fnc_name)
       Nb_elements(dmn.get_size()),
       Nb_sbdms(dmn.get_leaf_domain_sizes().size()),
       size_sbdm(dmn.get_leaf_domain_sizes()),
-      step_sbdm(Nb_sbdms, 1) {
-  for (int i = 0; i < Nb_sbdms; i++)
-    for (int j = 0; j < i; j++)
-      step_sbdm[i] *= dmn.get_subdomain_size(j);
-
+      step_sbdm(dmn.get_leaf_domain_steps()) {
   fnc_values = new scalartype[Nb_elements];
 
   for (int linind = 0; linind < Nb_elements; linind++)
@@ -212,39 +192,34 @@ function<scalartype, domain>::function(const std::string& fnc_name)
 }
 
 template <typename scalartype, class domain>
+function<scalartype, domain>::function() : function("no name") {}
+
+template <typename scalartype, class domain>
 function<scalartype, domain>::function(const function<scalartype, domain>& other_one)
     : name_(other_one.name_),
       function_type(__PRETTY_FUNCTION__),
-      dmn(),
-      Nb_elements(dmn.get_size()),
-      Nb_sbdms(dmn.get_leaf_domain_sizes().size()),
+      dmn(other_one.dmn),
+      Nb_elements(other_one.Nb_elements),
+      Nb_sbdms(other_one.Nb_sbdms),
       size_sbdm(dmn.get_leaf_domain_sizes()),
-      step_sbdm(Nb_sbdms, 1) {
-  for (int i = 0; i < Nb_sbdms; i++)
-    for (int j = 0; j < i; j++)
-      step_sbdm[i] *= dmn.get_subdomain_size(j);
-
+      step_sbdm(dmn.get_leaf_domain_steps()) {
   fnc_values = new scalartype[Nb_elements];
-
-  // copy_from<scalartype>::execute(Nb_elements, fnc_values, other_one.values());
   std::copy_n(other_one.fnc_values, Nb_elements, fnc_values);
 }
 
+// Move contructor.
 template <typename scalartype, class domain>
 function<scalartype, domain>::function(function<scalartype, domain>&& other_one)
     : name_(std::move(other_one.name_)),
       function_type(__PRETTY_FUNCTION__),
-      dmn(),
-      Nb_elements(dmn.get_size()),
-      Nb_sbdms(dmn.get_leaf_domain_sizes().size()),
+      dmn(std::move(other_one.dmn)),
+      Nb_elements(other_one.Nb_elements),
+      Nb_sbdms(other_one.Nb_sbdms),
       size_sbdm(dmn.get_leaf_domain_sizes()),
-      step_sbdm(Nb_sbdms, 1) {
-  for (int i = 0; i < Nb_sbdms; i++)
-    for (int j = 0; j < i; j++)
-      step_sbdm[i] *= dmn.get_subdomain_size(j);
-
+      step_sbdm(dmn.get_leaf_domain_steps()) {
   fnc_values = other_one.fnc_values;
   other_one.fnc_values = nullptr;
+  other_one.Nb_elements = 0;
 }
 
 template <typename scalartype, class domain>
@@ -255,15 +230,6 @@ function<scalartype, domain>::~function() {
 template <typename scalartype, class domain>
 void function<scalartype, domain>::reset() {
   dmn.reset();
-
-  for (int i = 0; i < Nb_sbdms; i++)
-    size_sbdm[i] = dmn.get_subdomain_size(i);
-
-  for (int i = 0; i < Nb_sbdms; i++) {
-    step_sbdm[i] = 1;
-    for (int j = 0; j < i; j++)
-      step_sbdm[i] *= dmn.get_subdomain_size(j);
-  }
 
   Nb_sbdms = dmn.get_leaf_domain_sizes().size();
   Nb_elements = dmn.get_size();
@@ -324,29 +290,47 @@ template <typename scalartype, class domain>
 function<scalartype, domain>& function<scalartype, domain>::operator=(
     const function<scalartype, domain>& f_other) {
   const domain& dmn_other = f_other.get_domain();
-  name_ = f_other.name_;
 
   if (dmn.get_size() !=
       dmn_other.get_size())  // Domains were not initialized when function was created.
   {
     dmn = dmn_other;
 
-    for (int i = 0; i < Nb_sbdms; i++)
-      size_sbdm[i] = dmn.get_subdomain_size(i);
-
-    for (int i = 0; i < Nb_sbdms; i++)
-      for (int j = 0; j < i; j++)
-        step_sbdm[i] *= dmn.get_subdomain_size(j);
-
-    Nb_sbdms = dmn.get_leaf_domain_sizes().size();
-    Nb_elements = dmn.get_size();
+    Nb_sbdms = f_other.Nb_sbdms;
+    assert(Nb_sbdms == dmn.get_leaf_domain_sizes().size());
+    Nb_elements = f_other.Nb_elements;
+    assert(Nb_elements == dmn.get_size());
 
     delete[] fnc_values;
     fnc_values = new scalartype[Nb_elements];
   }
 
-  // memcpy(fnc_values, f_other.values(), Nb_elements * sizeof(scalartype));
   std::copy_n(f_other.values(), Nb_elements, fnc_values);
+  return *this;
+}
+
+// Move assignment.
+template <typename scalartype, class domain>
+function<scalartype, domain>& function<scalartype, domain>::operator=(
+    function<scalartype, domain>&& f_other) {
+  if (this != &f_other) {
+    domain& dmn_other = f_other.dmn;
+    if (dmn.get_size() !=
+        dmn_other.get_size())  // Domains were not initialized when function was created.
+    {
+      std::swap(dmn, dmn_other);
+
+      Nb_sbdms = f_other.Nb_sbdms;
+      assert(Nb_sbdms == dmn.get_leaf_domain_sizes().size());
+      Nb_elements = f_other.Nb_elements;
+      assert(Nb_elements == dmn.get_size());
+    }
+
+    delete[] fnc_values;
+    fnc_values = f_other.fnc_values;
+    f_other.fnc_values = nullptr;
+    f_other.Nb_elements = 0;
+  }
   return *this;
 }
 

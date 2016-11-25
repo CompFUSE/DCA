@@ -31,7 +31,6 @@ public:
 
   dmn_0();
 
-  void initialize();
   void reset();
 
   static int dmn_size() {
@@ -50,6 +49,9 @@ public:
   static void print_2_file(const char* filename) {
     parameters::print_2_file(filename);
   }
+
+protected:
+  void initialize();
 };
 
 template <typename parameters>
@@ -63,16 +65,13 @@ void dmn_0<parameters>::initialize() {
 
   branch_domain_sizes.push_back(parameters::get_size());
   leaf_domain_sizes.push_back(parameters::get_size());
+  leaf_domain_steps.push_back(1);
 }
 
 template <typename parameters>
 void dmn_0<parameters>::reset() {
   this->domain::reset();
-
-  size = parameters::get_size();
-
-  branch_domain_sizes.push_back(parameters::get_size());
-  leaf_domain_sizes.push_back(parameters::get_size());
+  dmn_0::initialize();
 }
 
 }  // func
