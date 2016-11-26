@@ -6,6 +6,7 @@
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: John Biddiscombe (john.biddiscombe@cscs.ch)
+//         Giovanni Balduzzi (gbalduzz@phys.ethz.ch)
 //
 // This file tests the function library.
 
@@ -26,6 +27,7 @@
 
 #include "dca/util/type_list.hpp"
 #include "dca/util/type_utils.hpp"
+#include "test/unit/function/variable_domain.hpp"
 
 using dca::func::dmn;
 using dca::func::dmn_0;
@@ -335,6 +337,22 @@ TEST(Function, MoveConstructor) {
   EXPECT_EQ(1, f3(0, 1));
   EXPECT_EQ(0, f2.size());
   EXPECT_EQ("bar", f3.get_name());
+}
+
+TEST(Function, Reset) {
+  using VarDmn = dca::func::testing::VariableDomain;
+  using Domain = dca::func::dmn_variadic<dca::testing::test_domain_0b, dca::func::dmn_0<VarDmn>>;
+
+  VarDmn::initialize(10);
+
+  dca::func::function<float, Domain> f;
+  EXPECT_EQ(2 * 10, f.size());
+
+  VarDmn::initialize(20);
+
+  EXPECT_EQ(2 * 10, f.size());
+  f.reset();
+  EXPECT_EQ(2 * 20, f.size());
 }
 
 TEST(Function, FillDomain) {
