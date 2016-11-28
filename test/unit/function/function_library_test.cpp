@@ -355,6 +355,26 @@ TEST(Function, Reset) {
   EXPECT_EQ(2 * 20, f.size());
 }
 
+TEST(SetToZero, SetToZero) {
+  struct MyStruct {
+    int a = -1;
+    int b = -1;
+  } mystruct;
+  std::complex<double> c(1, 1);
+  double d = 1;
+  unsigned short int i = 1;
+
+  dca::func::setToZero(mystruct);
+  dca::func::setToZero(c);
+  dca::func::setToZero(d);
+  dca::func::setToZero(i);
+
+  EXPECT_EQ(-1, mystruct.a);
+  EXPECT_EQ(std::complex<double>(0, 0), c);
+  EXPECT_EQ(0, d);
+  EXPECT_EQ(0, i);
+}
+
 TEST(Function, FillDomain) {
   ::testing::internal::TimeInMillis elapsed1(::testing::UnitTest::GetInstance()->elapsed_time());
 

@@ -188,7 +188,7 @@ function<scalartype, domain>::function(const std::string& fnc_name)
   fnc_values = new scalartype[Nb_elements];
 
   for (int linind = 0; linind < Nb_elements; linind++)
-    set_to_zero::execute(fnc_values[linind]);
+    setToZero(fnc_values[linind]);
 }
 
 template <typename scalartype, class domain>
@@ -238,7 +238,7 @@ void function<scalartype, domain>::reset() {
   fnc_values = new scalartype[Nb_elements];
 
   for (int linind = 0; linind < Nb_elements; linind++)
-    set_to_zero::execute(fnc_values[linind]);
+    setToZero(fnc_values[linind]);
 }
 
 template <typename scalartype, class domain>
