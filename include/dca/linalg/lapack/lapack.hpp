@@ -76,6 +76,8 @@ void zgeev_(const char* job_vl, const char* job_vr, const int* n, std::complex<d
             std::complex<double>* vr, const int* ldvr, std::complex<double>* work, const int* lwork,
             double* rwork, int* info);
 
+int  dpotrf_(const char* uplo, int* n, double* a, int* lda, int* info);
+
 void ssyevd_(const char* job_v, const char* uplo, const int* n, float* a, const int* lda, float* w,
              float* work, const int* lwork, int* iwork, const int* liwork, int* info);
 void dsyevd_(const char* job_v, const char* uplo, const int* n, double* a, const int* lda,
@@ -219,6 +221,13 @@ inline void geev(const char* job_vl, const char* job_vr, int n, std::complex<dou
   int info = 0;
   zgeev_(job_vl, job_vr, &n, a, &lda, w, vl, &ldvl, vr, &ldvr, work, &lwork, rwork, &info);
   checkLapackInfo(info);
+}
+
+inline int potrf(const char* uplo, int n, double* a, int lda){
+  int info = 0;
+  int res = dpotrf_(uplo, &n, a, &lda, &info);
+  checkLapackInfo(info);
+  return res;
 }
 
 inline void syevd(const char* job_v, const char* uplo, int n, float* a, int lda, float* w,
