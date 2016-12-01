@@ -6,6 +6,7 @@
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
+//         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // Time domain.
 
@@ -32,7 +33,7 @@ public:
 
   typedef math::transform::interval_dmn_1D_type dmn_specifications_type;
 
-  typedef time_domain parameter_type;  // --> used in the interpolation!
+  typedef time_domain parameter_type;  // Used in the interpolation.
 
   static int& get_size() {
     static int size = -1;
@@ -109,7 +110,7 @@ void time_domain::initialize(parameters_t& parameters) {
   }
 
   get_elements()[0] += 1.e-10;
-  get_elements()[get_size() / 2 - 1] -= 1.e-10;
+  get_elements()[get_size() - 1] -= 1.e-10;
   get_elements()[get_size() / 2] += 1.e-10;
   get_elements()[get_size() / 2 - 1] -= 1.e-10;
 }
