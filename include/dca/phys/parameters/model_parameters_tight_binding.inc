@@ -41,11 +41,22 @@ public:
   double get_U() const {
     return U_;
   }
+  void set_U(const double U) {
+    U_ = U;
+  }
+
   double get_V() const {
     return V_;
   }
+  void set_V(const double V) {
+    V_ = V;
+  }
+
   double get_V_prime() const {
     return V_prime_;
+  }
+  void set_V_prime(const double V_prime) {
+    V_prime_ = V_prime;
   }
 
 private:

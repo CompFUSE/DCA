@@ -51,19 +51,23 @@ public:
 
   static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> get_orbital_permutations();
 
-  template <class domain, class parameters_type>
-  static void initialize_H_interaction(func::function<double, domain>& H_interaction,
-                                       parameters_type& parameters);
+  // Initializes the interaction Hamiltonian in real space.
+  template <typename BandDmn, typename SpinDmn, typename RDmn, typename parameters_type>
+  static void initialize_H_interaction(
+      func::function<double, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+                                                func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
+      const parameters_type& parameters);
 
   template <class domain>
   static void initialize_H_symmetry(func::function<int, domain>& H_symmetry);
 
   // Initializes the tight-binding (non-interacting) part of the momentum space Hamiltonian.
   // Preconditions: The elements of KDmn are two-dimensional (access through index 0 and 1).
-  template <typename ParametersType, typename ScalarType, typename BandSpinDmn, typename KDmn>
+  template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
   static void initialize_H_0(
       const ParametersType& parameters,
-      func::function<ScalarType, func::dmn_variadic<BandSpinDmn, BandSpinDmn, KDmn>>& H_0);
+      func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+                                                    func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0);
 };
 
 template <typename point_group_type>
@@ -139,28 +143,36 @@ std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> bilayer_lattice
 }
 
 template <typename point_group_type>
-template <class domain, class parameters_type>
+template <typename BandDmn, typename SpinDmn, typename RDmn, typename parameters_type>
 void bilayer_lattice<point_group_type>::initialize_H_interaction(
-    func::function<double, domain>& H_interaction, parameters_type& parameters) {
+    func::function<double, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+                                              func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
+    const parameters_type& parameters) {
+  if (BandDmn::dmn_size() != BANDS)
+    throw std::logic_error("Bilayer lattice has two bands.");
+  if (SpinDmn::dmn_size() != 2)
+    throw std::logic_error("Spin domain size must be 2.");
+
+  const int origin = RDmn::parameter_type::origin_index();
+
+  const double U = parameters.get_U();              // Same band, opposite spin.
+  const double V = parameters.get_V();              // Different band, opposite spin.
+  const double V_prime = parameters.get_V_prime();  // Different band, same spin.
+
   H_interaction = 0.;
 
-  double U = parameters.get_U();
+  for (int b1 = 0; b1 < BANDS; b1++) {
+    for (int s1 = 0; s1 < 2; s1++) {
+      for (int b2 = 0; b2 < BANDS; b2++) {
+        for (int s2 = 0; s2 < 2; s2++) {
+          if (b1 == b2 && s1 != s2)
+            H_interaction(b1, s1, b2, s2, origin) = U;
 
-  double V = parameters.get_V();
-  double V_prime = parameters.get_V_prime();
+          if (b1 != b2 && s1 != s2)
+            H_interaction(b1, s1, b2, s2, origin) = V;
 
-  for (int b_ind1 = 0; b_ind1 < BANDS; b_ind1++) {
-    for (int s_ind1 = 0; s_ind1 < 2; s_ind1++) {
-      for (int b_ind2 = 0; b_ind2 < BANDS; b_ind2++) {
-        for (int s_ind2 = 0; s_ind2 < 2; s_ind2++) {
-          if (b_ind1 == b_ind2 and s_ind1 != s_ind2)
-            H_interaction(b_ind1, s_ind1, b_ind2, s_ind2, 0) = U;
-
-          if (b_ind1 != b_ind2 and s_ind1 != s_ind2)
-            H_interaction(b_ind1, s_ind1, b_ind2, s_ind2, 0) = V;
-
-          if (b_ind1 != b_ind2 and s_ind1 == s_ind2)
-            H_interaction(b_ind1, s_ind1, b_ind2, s_ind2, 0) = V_prime;
+          if (b1 != b2 && s1 == s2)
+            H_interaction(b1, s1, b2, s2, origin) = V_prime;
         }
       }
     }
@@ -180,19 +192,14 @@ void bilayer_lattice<point_group_type>::initialize_H_symmetry(func::function<int
 }
 
 template <typename point_group_type>
-template <typename ParametersType, typename ScalarType, typename BandSpinDmn, typename KDmn>
+template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
 void bilayer_lattice<point_group_type>::initialize_H_0(
     const ParametersType& parameters,
-    func::function<ScalarType, func::dmn_variadic<BandSpinDmn, BandSpinDmn, KDmn>>& H_0) {
-  static_assert(util::Length<typename BandSpinDmn::this_type>::value == 2,
-                "BandSpinDmn has two subdomains, the band domain and the spin domain.");
-
-  using BandDmn = typename util::TypeAt<0, typename BandSpinDmn::template domain_typelist<0>>::type;
-  using SpinDmn = typename util::TypeAt<0, typename BandSpinDmn::template domain_typelist<1>>::type;
-
-  if (BandDmn::get_size() != BANDS)
+    func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+                                                  func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0) {
+  if (BandDmn::dmn_size() != BANDS)
     throw std::logic_error("Bilayer lattice has two bands.");
-  if (SpinDmn::get_size() != 2)
+  if (SpinDmn::dmn_size() != 2)
     throw std::logic_error("Spin domain size must be 2.");
 
   const auto& k_vecs = KDmn::get_elements();

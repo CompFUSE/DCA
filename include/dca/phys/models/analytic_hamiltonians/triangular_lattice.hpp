@@ -31,29 +31,33 @@ class triangular_lattice {
 public:
   typedef domains::no_symmetry<2> LDA_point_group;
   typedef DCA_point_group_type DCA_point_group;
+
   const static int DIMENSION = 2;
   const static int BANDS = 1;
 
   static double* initialize_r_DCA_basis();
-
   static double* initialize_r_LDA_basis();
 
   static std::vector<int> get_flavors();
   static std::vector<std::vector<double>> get_a_vectors();
 
-  template <class domain, class parameters_type>
-  static void initialize_H_interaction(func::function<double, domain>& H_interaction,
-                                       parameters_type& parameters);
+  // Initializes the interaction Hamiltonian in real space.
+  template <typename BandDmn, typename SpinDmn, typename RDmn, typename parameters_type>
+  static void initialize_H_interaction(
+      func::function<double, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+                                                func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
+      const parameters_type& parameters);
 
   template <class domain>
   static void initialize_H_symmetry(func::function<int, domain>& H_symmetry);
 
   // Initializes the tight-binding (non-interacting) part of the momentum space Hamiltonian.
   // Preconditions: The elements of KDmn are two-dimensional (access through index 0 and 1).
-  template <typename ParametersType, typename ScalarType, typename BandSpinDmn, typename KDmn>
+  template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
   static void initialize_H_0(
       const ParametersType& parameters,
-      func::function<ScalarType, func::dmn_variadic<BandSpinDmn, BandSpinDmn, KDmn>>& H_0);
+      func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+                                                    func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0);
 };
 
 template <typename DCA_point_group_type>
@@ -67,17 +71,6 @@ double* triangular_lattice<DCA_point_group_type>::initialize_r_DCA_basis() {
 
   return r_DCA;
 }
-
-// template<typename DCA_point_group_type>
-// double* triangular_lattice<DCA_point_group_type>::initialize_k_DCA_basis()
-// {
-//   static double* k_DCA = new double[4];
-
-//   k_DCA[0] = 2*M_PI;  k_DCA[1] = 2*M_PI/sqrt(3.);
-//   k_DCA[2] = 2*M_PI;  k_DCA[3] = -2*M_PI/sqrt(3.);
-
-//   return k_DCA;
-// }
 
 template <typename DCA_point_group_type>
 double* triangular_lattice<DCA_point_group_type>::initialize_r_LDA_basis() {
@@ -107,16 +100,39 @@ std::vector<std::vector<double>> triangular_lattice<DCA_point_group_type>::get_a
   return a_vecs;
 }
 
-template <typename DCA_point_group_type>
-template <class domain, class parameters_type>
-void triangular_lattice<DCA_point_group_type>::initialize_H_interaction(
-    func::function<double, domain>& H_interaction, parameters_type& parameters) {
-  double U = parameters.get_U();
+template <typename point_group_type>
+template <typename BandDmn, typename SpinDmn, typename RDmn, typename parameters_type>
+void triangular_lattice<point_group_type>::initialize_H_interaction(
+    func::function<double, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+                                              func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>& H_interaction,
+    const parameters_type& parameters) {
+  if (BandDmn::dmn_size() != BANDS)
+    throw std::logic_error("Triangular lattice has one band.");
+  if (SpinDmn::dmn_size() != 2)
+    throw std::logic_error("Spin domain size must be 2.");
 
-  H_interaction(0, 0, 0) = 0;
-  H_interaction(0, 1, 0) = U;
-  H_interaction(1, 0, 0) = U;
-  H_interaction(1, 1, 0) = 0;
+  const int origin = RDmn::parameter_type::origin_index();
+
+  H_interaction = 0.;
+
+  // Nearest-neighbor opposite spin interaction
+  const double V = parameters.get_V();
+  if (V != 0.)
+    throw std::logic_error(
+        "Nearest-neighbor interaction is not implemented for the triangular lattice.");
+
+  // Nearest-neighbor same spin interaction
+  const double V_prime = parameters.get_V_prime();
+  if (V_prime != 0.)
+    throw std::logic_error(
+        "Nearest-neighbor interaction is not implemented for the triangular lattice.");
+
+  // On-site interaction
+  // If nearest-neighor interaction is turned on, on-site interaction has to be set last since for
+  // small clusters a nearest neighbor might be the same site and therefore V would overwrite U.
+  const double U = parameters.get_U();
+  H_interaction(0, 0, 0, 1, origin) = U;
+  H_interaction(0, 1, 0, 0, origin) = U;
 }
 
 template <typename DCA_point_group_type>
@@ -130,19 +146,14 @@ void triangular_lattice<DCA_point_group_type>::initialize_H_symmetry(
 }
 
 template <typename point_group_type>
-template <typename ParametersType, typename ScalarType, typename BandSpinDmn, typename KDmn>
+template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
 void triangular_lattice<point_group_type>::initialize_H_0(
     const ParametersType& parameters,
-    func::function<ScalarType, func::dmn_variadic<BandSpinDmn, BandSpinDmn, KDmn>>& H_0) {
-  static_assert(util::Length<typename BandSpinDmn::this_type>::value == 2,
-                "BandSpinDmn has two subdomains, the band domain and the spin domain.");
-
-  using BandDmn = typename util::TypeAt<0, typename BandSpinDmn::template domain_typelist<0>>::type;
-  using SpinDmn = typename util::TypeAt<0, typename BandSpinDmn::template domain_typelist<1>>::type;
-
-  if (BandDmn::get_size() != BANDS)
+    func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+                                                  func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0) {
+  if (BandDmn::dmn_size() != BANDS)
     throw std::logic_error("Triangular lattice has one band.");
-  if (SpinDmn::get_size() != 2)
+  if (SpinDmn::dmn_size() != 2)
     throw std::logic_error("Spin domain size must be 2.");
 
   const auto& k_vecs = KDmn::get_elements();

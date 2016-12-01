@@ -30,19 +30,22 @@ public:
 
   static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> get_orbital_permutations();
 
-  template <class domain, class parameters_type>
-  static void initialize_H_interaction(func::function<double, domain>& H_interaction,
-                                       parameters_type& parameters);
+  // Initializes the interaction Hamiltonian in real space.
+  template <typename BandSpinDmn, typename RDmn, typename parameters_type>
+  static void initialize_H_interaction(
+      func::function<double, func::dmn_variadic<BandSpinDmn, BandSpinDmn, RDmn>>& H_interaction,
+      const parameters_type& parameters);
 
   template <class domain>
   static void initialize_H_symmetry(func::function<int, domain>& H_symmetry);
 
   // Initializes the tight-binding (non-interacting) part of the momentum space Hamiltonian.
   // Preconditions: The elements of KDmn are three-dimensional (access through index 0, 1, and 2).
-  template <typename ParametersType, typename ScalarType, typename BandSpinDmn, typename KDmn>
+  template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
   static void initialize_H_0(
       const ParametersType& parameters,
-      func::function<ScalarType, func::dmn_variadic<BandSpinDmn, BandSpinDmn, KDmn>>& H_0);
+      func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+                                                    func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0);
 
   static double latticeConstant() {
     return a;
@@ -118,16 +121,23 @@ std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> material_lattic
 }
 
 template <typename point_group_type>
-template <class domain, class parameters_type>
+template <typename BandSpinDmn, typename RDmn, typename parameters_type>
 void material_lattice<NiO_symmetric, point_group_type>::initialize_H_interaction(
-    func::function<double, domain>& H_i, parameters_type& parameters) {
-  std::vector<std::vector<double>> U;
+    func::function<double, func::dmn_variadic<BandSpinDmn, BandSpinDmn, RDmn>>& H_interaction,
+    const parameters_type& parameters) {
+  if (BandSpinDmn::dmn_size() != 2 * BANDS)
+    throw std::logic_error("Band-spin domain size must be 8*2=16.");
 
+  const int origin = RDmn::parameter_type::origin_index();
+
+  std::vector<std::vector<double>> U;
   io::CSVReader::execute(parameters.get_U_ij_file_name(), U);
+
+  H_interaction = 0.;
 
   for (int i = 0; i < 2 * BANDS; i++)
     for (int j = 0; j < 2 * BANDS; j++)
-      H_i(i, j, 0) = U[i][j];
+      H_interaction(i, j, origin) = U[i][j];
 }
 
 template <typename point_group_type>
@@ -159,19 +169,14 @@ std::vector<std::vector<double>>& material_lattice<NiO_symmetric, point_group_ty
 }
 
 template <typename point_group_type>
-template <typename ParametersType, typename ScalarType, typename BandSpinDmn, typename KDmn>
+template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
 void material_lattice<NiO_symmetric, point_group_type>::initialize_H_0(
     const ParametersType& parameters,
-    func::function<ScalarType, func::dmn_variadic<BandSpinDmn, BandSpinDmn, KDmn>>& H_0) {
-  static_assert(util::Length<typename BandSpinDmn::this_type>::value == 2,
-                "BandSpinDmn has two subdomains, the band domain and the spin domain.");
-
-  using BandDmn = typename util::TypeAt<0, typename BandSpinDmn::template domain_typelist<0>>::type;
-  using SpinDmn = typename util::TypeAt<0, typename BandSpinDmn::template domain_typelist<1>>::type;
-
-  if (BandDmn::get_size() != BANDS)
+    func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+                                                  func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0) {
+  if (BandDmn::dmn_size() != BANDS)
     throw std::logic_error("NiO has 8 bands.");
-  if (SpinDmn::get_size() != 2)
+  if (SpinDmn::dmn_size() != 2)
     throw std::logic_error("Spin domain size must be 2.");
 
   const static std::complex<double> I(0, 1);
@@ -241,19 +246,22 @@ public:
 
   static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> get_orbital_permutations();
 
-  template <class domain, class parameters_type>
-  static void initialize_H_interaction(func::function<double, domain>& H_interaction,
-                                       parameters_type& parameters);
+  // Initializes the interaction Hamiltonian in real space.
+  template <typename BandSpinDmn, typename RDmn, typename parameters_type>
+  static void initialize_H_interaction(
+      func::function<double, func::dmn_variadic<BandSpinDmn, BandSpinDmn, RDmn>>& H_interaction,
+      const parameters_type& parameters);
 
   template <class domain>
   static void initialize_H_symmetry(func::function<int, domain>& H_symmetry);
 
   // Initializes the tight-binding (non-interacting) part of the momentum space Hamiltonian.
   // Preconditions: The elements of KDmn are three-dimensional (access through index 0, 1, and 2).
-  template <typename ParametersType, typename ScalarType, typename BandSpinDmn, typename KDmn>
+  template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
   static void initialize_H_0(
       const ParametersType& parameters,
-      func::function<ScalarType, func::dmn_variadic<BandSpinDmn, BandSpinDmn, KDmn>>& H_0);
+      func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+                                                    func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0);
 
   static double latticeConstant() {
     return a;
@@ -323,16 +331,23 @@ std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> material_lattic
 }
 
 template <typename point_group_type>
-template <class domain, class parameters_type>
+template <typename BandSpinDmn, typename RDmn, typename parameters_type>
 void material_lattice<NiO_unsymmetric, point_group_type>::initialize_H_interaction(
-    func::function<double, domain>& H_i, parameters_type& parameters) {
-  std::vector<std::vector<double>> U;
+    func::function<double, func::dmn_variadic<BandSpinDmn, BandSpinDmn, RDmn>>& H_interaction,
+    const parameters_type& parameters) {
+  if (BandSpinDmn::dmn_size() != 2 * BANDS)
+    throw std::logic_error("Band-spin domain size must be 8*2=16.");
 
+  const int origin = RDmn::parameter_type::origin_index();
+
+  std::vector<std::vector<double>> U;
   io::CSVReader::execute(parameters.get_U_ij_file_name(), U);
+
+  H_interaction = 0.;
 
   for (int i = 0; i < 2 * BANDS; i++)
     for (int j = 0; j < 2 * BANDS; j++)
-      H_i(i, j, 0) = U[i][j];
+      H_interaction(i, j, origin) = U[i][j];
 }
 
 template <typename point_group_type>
@@ -364,19 +379,14 @@ std::vector<std::vector<double>>& material_lattice<NiO_unsymmetric, point_group_
 }
 
 template <typename point_group_type>
-template <typename ParametersType, typename ScalarType, typename BandSpinDmn, typename KDmn>
+template <typename ParametersType, typename ScalarType, typename BandDmn, typename SpinDmn, typename KDmn>
 void material_lattice<NiO_unsymmetric, point_group_type>::initialize_H_0(
     const ParametersType& parameters,
-    func::function<ScalarType, func::dmn_variadic<BandSpinDmn, BandSpinDmn, KDmn>>& H_0) {
-  static_assert(util::Length<typename BandSpinDmn::this_type>::value == 2,
-                "BandSpinDmn has two subdomains, the band domain and the spin domain.");
-
-  using BandDmn = typename util::TypeAt<0, typename BandSpinDmn::template domain_typelist<0>>::type;
-  using SpinDmn = typename util::TypeAt<0, typename BandSpinDmn::template domain_typelist<1>>::type;
-
-  if (BandDmn::get_size() != BANDS)
+    func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+                                                  func::dmn_variadic<BandDmn, SpinDmn>, KDmn>>& H_0) {
+  if (BandDmn::dmn_size() != BANDS)
     throw std::logic_error("NiO has 8 bands.");
-  if (SpinDmn::get_size() != 2)
+  if (SpinDmn::dmn_size() != 2)
     throw std::logic_error("Spin domain size must be 2.");
 
   const static std::complex<double> I(0, 1);

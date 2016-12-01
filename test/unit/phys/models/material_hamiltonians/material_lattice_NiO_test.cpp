@@ -19,6 +19,8 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/phys/domains/cluster/cluster_domain_initializer.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp"
 #include "dca/phys/parameters/model_parameters.hpp"
 
@@ -45,22 +47,21 @@ typedef ::testing::Types<dca::testing::NiOSymmetricStruct, dca::testing::NiOUnsy
 TYPED_TEST_CASE(MaterialLatticeNiOTest, NiOTypes);
 
 TYPED_TEST(MaterialLatticeNiOTest, Initialize_H_0) {
-  using Lattice =
-      dca::phys::models::material_lattice<TypeParam::type, dca::phys::domains::no_symmetry<3>>;
+  using namespace dca;
 
-  using BandDmn = dca::func::dmn<8, int>;
-  using SpinDmn = dca::func::dmn<2, int>;
-  using BandSpinDmn = dca::func::dmn_variadic<dca::func::dmn_0<BandDmn>, dca::func::dmn_0<SpinDmn>>;
+  using Lattice = phys::models::material_lattice<TypeParam::type, phys::domains::no_symmetry<3>>;
 
-  using KDmn = dca::func::dmn<3, std::vector<double>>;
+  using BandDmn = func::dmn<8, int>;
+  using SpinDmn = func::dmn<2, int>;
+  using BandSpinDmn = func::dmn_variadic<func::dmn_0<BandDmn>, func::dmn_0<SpinDmn>>;
+
+  using KDmn = func::dmn<3, std::vector<double>>;
   const double a = Lattice::latticeConstant();
   KDmn::set_elements({{0., 0., 0.}, {0., M_PI / a, 0.}, {M_PI / a, M_PI / a, M_PI / a}});
 
-  dca::func::function<std::complex<double>,
-                      dca::func::dmn_variadic<BandSpinDmn, BandSpinDmn, dca::func::dmn_0<KDmn>>>
-      H_0;
+  func::function<std::complex<double>, func::dmn_variadic<BandSpinDmn, BandSpinDmn, func::dmn_0<KDmn>>> H_0;
 
-  dca::phys::params::ModelParameters<dca::phys::models::TightBindingModel<Lattice>> params;
+  phys::params::ModelParameters<phys::models::TightBindingModel<Lattice>> params;
   params.set_t_ij_file_name(DCA_SOURCE_DIR
                             "/include/dca/phys/models/material_hamiltonians/NiO/t_ij_NiO.txt");
 
@@ -86,4 +87,64 @@ TYPED_TEST(MaterialLatticeNiOTest, Initialize_H_0) {
   EXPECT_DOUBLE_EQ(-1.7838558854405486, H_0(0, 0, 0, 0, 0).real());
   EXPECT_DOUBLE_EQ(-4.452512149016615, H_0(5, 1, 5, 1, 2).real());
   EXPECT_DOUBLE_EQ(1.428376402198317, H_0(6, 1, 5, 1, 2).real());
+}
+
+TYPED_TEST(MaterialLatticeNiOTest, Initialize_H_interaction) {
+  using namespace dca;
+
+  using Lattice = phys::models::material_lattice<TypeParam::type, phys::domains::no_symmetry<3>>;
+
+  using BandDmn = func::dmn<8, int>;
+  using SpinDmn = func::dmn<2, int>;
+  using BandSpinDmn = func::dmn_variadic<func::dmn_0<BandDmn>, func::dmn_0<SpinDmn>>;
+
+  using r_DCA_ClusterType =
+      phys::domains::cluster_domain<double, Lattice::DIMENSION, phys::domains::CLUSTER,
+                                    phys::domains::REAL_SPACE, phys::domains::BRILLOUIN_ZONE>;
+  using r_DCA = func::dmn_0<r_DCA_ClusterType>;
+
+  const std::vector<std::vector<int>> DCA_cluster{{-2, 0, 0}, {0, -2, 0}, {0, 0, 2}};
+  phys::domains::cluster_domain_initializer<r_DCA>::execute(Lattice::initialize_r_DCA_basis(),
+                                                            DCA_cluster);
+
+  // Get index of origin and check it.
+  const int origin = r_DCA_ClusterType::origin_index();
+  ASSERT_DOUBLE_EQ(0., r_DCA::get_elements()[origin][0]);
+  ASSERT_DOUBLE_EQ(0., r_DCA::get_elements()[origin][1]);
+  ASSERT_DOUBLE_EQ(0., r_DCA::get_elements()[origin][2]);
+
+  func::function<double, func::dmn_variadic<BandSpinDmn, BandSpinDmn, r_DCA>> H_interaction;
+
+  phys::params::ModelParameters<phys::models::TightBindingModel<Lattice>> params;
+  params.set_U_ij_file_name(DCA_SOURCE_DIR
+                            "/include/dca/phys/models/material_hamiltonians/NiO/U_ij_NiO.txt");
+
+  Lattice::initialize_H_interaction(H_interaction, params);
+
+  // Check that the interaction is only on-site.
+  for (int r = 0; r < r_DCA::dmn_size(); ++r)
+    for (int s2 = 0; s2 < SpinDmn::dmn_size(); ++s2)
+      for (int b2 = 0; b2 < BandDmn::dmn_size(); ++b2)
+        for (int s1 = 0; s1 < SpinDmn::dmn_size(); ++s1)
+          for (int b1 = 0; b1 < BandDmn::dmn_size(); ++b1)
+            if (r != origin)
+              EXPECT_DOUBLE_EQ(0., H_interaction(b1, s1, b2, s2, r));
+
+  // Check that there is no self-interaction (i.e. the diagonal in band and spin is zero).
+  for (int s = 0; s < SpinDmn::dmn_size(); ++s)
+    for (int b = 0; b < BandDmn::dmn_size(); ++b)
+      EXPECT_DOUBLE_EQ(0., H_interaction(b, s, b, s, origin));
+
+  // Check that H_interaction is symmetric in band and spin (H_interaction is real).
+  for (int s2 = 0; s2 < SpinDmn::dmn_size(); ++s2)
+    for (int b2 = 0; b2 < BandDmn::dmn_size(); ++b2)
+      for (int s1 = 0; s1 < s2; ++s1)
+        for (int b1 = 0; b1 < b2; ++b1)
+          EXPECT_DOUBLE_EQ(H_interaction(b1, s1, b2, s2, origin),
+                           H_interaction(b2, s2, b1, s1, origin));
+
+  // Check some values.
+  EXPECT_DOUBLE_EQ(6.83, H_interaction(0, 0, 1, 0, origin));
+  EXPECT_DOUBLE_EQ(9.14, H_interaction(0, 0, 0, 1, origin));
+  EXPECT_DOUBLE_EQ(6.49, H_interaction(2, 0, 4, 0, origin));
 }

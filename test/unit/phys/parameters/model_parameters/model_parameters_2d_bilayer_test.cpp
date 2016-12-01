@@ -27,7 +27,6 @@ TEST(ModelParameters2dBilayerTest, DefaultValues) {
   EXPECT_EQ(0., pars.get_t_prime());
   EXPECT_EQ(0., pars.get_t_perp());
   EXPECT_EQ(4., pars.get_U());
-  EXPECT_EQ(0., pars.get_U_prime());
   EXPECT_EQ(0., pars.get_V());
   EXPECT_EQ(0., pars.get_V_prime());
 }
@@ -47,7 +46,6 @@ TEST(ModelParameters2dBilayerTest, ReadAll) {
   EXPECT_EQ(2., pars.get_t_prime());
   EXPECT_EQ(3., pars.get_t_perp());
   EXPECT_EQ(40., pars.get_U());
-  EXPECT_EQ(5., pars.get_U_prime());
   EXPECT_EQ(6., pars.get_V());
   EXPECT_EQ(7., pars.get_V_prime());
 }

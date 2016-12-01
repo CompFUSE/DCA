@@ -10,7 +10,8 @@
 //
 // 2-band lattice.
 //
-// TODO: Replace get_LDA_Hamiltonians with intialize_H_0 function (see e.g. square_lattice.hpp).
+// TODO: - Replace get_LDA_Hamiltonians with intialize_H_0 function (see e.g. square_lattice.hpp).
+//       - Use correct index of origin in initialize_H_interaction (see e.g. square_lattice.hpp).
 
 #ifndef DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_TWOBAND_LATTICE_HPP
 #define DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_TWOBAND_LATTICE_HPP
