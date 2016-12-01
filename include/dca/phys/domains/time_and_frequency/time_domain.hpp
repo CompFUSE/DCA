@@ -64,15 +64,15 @@ public:
   template <class stream_type>
   static void to_JSN(stream_type& ss);
 
+  static void initialize(const double beta, const int time_slices, const double eps = 1.e-10);
+
   template <typename parameters_t>
-  static void initialize(parameters_t& parameters);
+  static void initialize(const parameters_t& parameters) {
+    initialize(parameters.get_beta(), parameters.get_sp_time_intervals());
+  }
 
   static void initialize_integration_domain(int level, std::vector<scalar_type>& weights,
                                             std::vector<element_type>& elements);
-
-private:
-  static int time_slices;
-  static double beta;
 };
 
 template <typename Writer>
@@ -93,26 +93,6 @@ void time_domain::to_JSN(stream_type& ss) {
       ss << get_elements()[i] << ",\n";
 
   ss << "]\n";
-}
-
-template <typename parameters_t>
-void time_domain::initialize(parameters_t& parameters) {
-  time_slices = parameters.get_sp_time_intervals();
-  beta = parameters.get_beta();
-
-  get_size() = 2 * (parameters.get_sp_time_intervals() + 1);
-
-  get_elements().resize(get_size());
-
-  for (int i = 0; i < get_size() / 2; i++) {
-    get_elements()[i + get_size() / 2] = double(i) / (double(get_size()) / 2. - 1.) * beta;
-    get_elements()[i] = -beta + double(i) / (double(get_size()) / 2. - 1.) * beta;
-  }
-
-  get_elements()[0] += 1.e-10;
-  get_elements()[get_size() - 1] -= 1.e-10;
-  get_elements()[get_size() / 2] += 1.e-10;
-  get_elements()[get_size() / 2 - 1] -= 1.e-10;
 }
 
 }  // domains

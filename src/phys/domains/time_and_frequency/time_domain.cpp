@@ -17,8 +17,20 @@ namespace phys {
 namespace domains {
 // dca::phys::domains::
 
-int time_domain::time_slices = -1;
-double time_domain::beta = 0;
+void time_domain::initialize(const double beta, const int time_slices, const double eps) {
+  get_size() = 2 * (time_slices + 1);
+  get_elements().resize(get_size());
+
+  for (int i = 0; i < get_size() / 2; i++) {
+    get_elements()[i + get_size() / 2] = double(i) / (double(get_size()) / 2. - 1.) * beta;
+    get_elements()[i] = -beta + double(i) / (double(get_size()) / 2. - 1.) * beta;
+  }
+
+  get_elements()[0] += eps;
+  get_elements()[get_size() - 1] -= eps;
+  get_elements()[get_size() / 2] += eps;
+  get_elements()[get_size() / 2 - 1] -= eps;
+}
 
 void time_domain::initialize_integration_domain(int level, std::vector<scalar_type>& weights,
                                                 std::vector<element_type>& elements) {

@@ -22,10 +22,10 @@ public:
   MockParameters(const double beta, const int sp_time_intervals)
       : beta_(beta), sp_time_intervals_(sp_time_intervals) {}
 
-  double get_beta() {
+  double get_beta() const {
     return beta_;
   }
-  int get_sp_time_intervals() {
+  int get_sp_time_intervals() const {
     return sp_time_intervals_;
   }
 
