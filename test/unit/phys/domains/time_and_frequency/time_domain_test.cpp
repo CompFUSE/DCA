@@ -13,40 +13,49 @@
 #include <vector>
 #include <gtest/gtest.h>
 
-namespace dca {
-namespace testing {
-// dca::testing::
+using namespace dca::phys::domains;
 
-class MockParameters {
-public:
-  MockParameters(const double beta, const int sp_time_intervals)
-      : beta_(beta), sp_time_intervals_(sp_time_intervals) {}
-
-  double get_beta() const {
-    return beta_;
-  }
-  int get_sp_time_intervals() const {
-    return sp_time_intervals_;
-  }
-
-private:
-  const double beta_;
-  const int sp_time_intervals_;
-};
-
-}  // testing
-}  // dca
-
-TEST(TimeDomainTest, Initialize) {
+TEST(TimeDomainTest, Basic) {
   const double beta = 4.;
-  const int sp_time_intervals = 2;
+  const int time_slices = 2;
   const double eps = 1.e-10;
 
-  dca::testing::MockParameters params(beta, sp_time_intervals);
-  dca::phys::domains::time_domain::initialize(params);
+  const int level = 1;  // 2^level = 2 elements per time slice.
+  std::vector<double> weights;
+  std::vector<double> nodes;
 
-  EXPECT_EQ(2 * (sp_time_intervals + 1), dca::phys::domains::time_domain::get_size());
+  EXPECT_EQ("time-domain", time_domain::get_name());
+  EXPECT_FALSE(time_domain::is_initialized());
+  EXPECT_THROW(time_domain::initialize_integration_domain(level, weights, nodes), std::logic_error);
 
-  const std::vector<double> elements{-beta + eps, -beta / 2., -eps, eps, beta / 2., beta - eps};
-  EXPECT_EQ(elements, dca::phys::domains::time_domain::get_elements());
+  // Check initialization.
+  time_domain::initialize(beta, time_slices);
+
+  EXPECT_TRUE(time_domain::is_initialized());
+  EXPECT_EQ(6, time_domain::get_size());  // 6 = 2*(time_slices+1).
+
+  const std::vector<double> elements_check{-beta + eps, -beta / time_slices, -eps,
+                                           eps,         beta / time_slices,  beta - eps};
+  EXPECT_EQ(elements_check, time_domain::get_elements());
+
+  EXPECT_THROW(time_domain::initialize(beta, time_slices), std::logic_error);
+
+  // Check initialization of integration domain.
+  time_domain::initialize_integration_domain(level, weights, nodes);
+
+  EXPECT_EQ(weights.size(), nodes.size());
+  EXPECT_EQ(8, nodes.size());  // 8 = (elements.size()-2) * 2^level.
+
+  const std::vector<double> weights_check(8, beta);
+  const std::vector<double> nodes_check{-beta + eps,
+                                        (-beta + eps - beta / time_slices) / 2.,
+                                        -beta / time_slices,
+                                        (-beta / time_slices - eps) / 2.,
+                                        eps,
+                                        (eps + beta / time_slices) / 2.,
+                                        beta / time_slices,
+                                        (beta / time_slices + beta - eps) / 2.};
+
+  EXPECT_EQ(weights_check, weights);
+  EXPECT_EQ(nodes_check, nodes);
 }
