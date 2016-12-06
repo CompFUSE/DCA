@@ -3,6 +3,9 @@
 #
 # Checks for SPRNG and accordingly sets DCA_HAVE_SPRNG.
 
+set(SPRNG_DIR "" CACHE PATH "Path to SPRNG installation directory.")
+mark_as_advanced(SPRNG_DIR)
+
 set(DCA_HAVE_SPRNG FALSE CACHE INTERNAL "")
 
 find_library(SPRNG_LIBRARY
@@ -16,3 +19,4 @@ if (SPRNG_LIBRARY AND SPRNG_INCLUDE_DIR)
   set(DCA_HAVE_SPRNG TRUE CACHE INTERNAL "")
   dca_add_haves_define(DCA_HAVE_SPRNG)
 endif()
+

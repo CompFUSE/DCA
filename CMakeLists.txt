@@ -172,6 +172,10 @@ option(DCA_WITH_TESTS_FAST "Build DCA++'s fast tests." OFF)
 option(DCA_WITH_TESTS_EXTENSIVE "Build DCA++'s extensive tests." OFF)
 option(DCA_WITH_TESTS_PERFORMANCE "Build DCA++'s performance tests." OFF)
 
+set(TEST_RUNNER "" CACHE FILEPATH "Command to run an application.")
+set(MPIEXEC_NUMPROC_FLAG "" CACHE STRING "Flag used by TEST_RUNNER to specify the number of processes.")
+mark_as_advanced(TEST_RUNNER MPIEXEC_NUMPROC_FLAG)
+
 set(gtest_dir "${PROJECT_SOURCE_DIR}/libs/googletest-1.8.0" CACHE PATH "Path to Google Test.")
 mark_as_advanced(gtest_dir)
 
@@ -190,11 +194,11 @@ if (DCA_WITH_TESTS_FAST OR DCA_WITH_TESTS_EXTENSIVE OR DCA_WITH_TESTS_PERFORMANC
     message(WARNING "Performance tests are only built in Release mode.")
   endif()
 
-  if (DCA_HAVE_MPI AND NOT DEFINED TEST_RUNNER)
+  if (DCA_HAVE_MPI AND (TEST_RUNNER STREQUAL ""))
     message(FATAL_ERROR "TEST_RUNNER needs to be set to the executable for running MPI programs, e.g. mpiexec, mpirun, aprun or srun.")
   endif()
   
-  if (DCA_HAVE_MPI AND NOT DEFINED MPIEXEC_NUMPROC_FLAG)
+  if (DCA_HAVE_MPI AND (MPIEXEC_NUMPROC_FLAG STREQUAL ""))
     message(FATAL_ERROR "MPIEXEC_NUMPROC_FLAG needs to be set for running MPI tests.")
   endif()
 

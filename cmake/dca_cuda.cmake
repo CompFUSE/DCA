@@ -7,6 +7,8 @@ set(DCA_HAVE_CUDA FALSE CACHE INTERNAL "")
 set(DCA_HAVE_MAGMA FALSE CACHE INTERNAL "")
 set(DCA_CUDA_LIBS "" CACHE INTERNAL "")
 
+mark_as_advanced(MAGMA_DIR)
+
 # Find CUDA.
 find_package(CUDA)
 
