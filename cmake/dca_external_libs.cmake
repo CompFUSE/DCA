@@ -25,6 +25,8 @@ list(APPEND DCA_EXTERNAL_LIBS ${LAPACK_LIBRARIES})
 
 ################################################################################
 # HDF5
+set(HDF5_ROOT "" CACHE PATH "Path to HDF5 installation directory.")
+
 if (NOT DCA_HAVE_HDF5)
   # Find HDF5 by looking for a CMake configuration file (hdf5-1.10.x).
   find_package(HDF5 COMPONENTS C CXX NO_MODULE QUIET)
@@ -35,7 +37,7 @@ if (NOT DCA_HAVE_HDF5)
   endif()
 endif()
 
-mark_as_advanced(HDF5_CXX_INCLUDE_DIR HDF5_C_INCLUDE_DIR HDF5_DIR)
+mark_as_advanced(HDF5_ROOT HDF5_CXX_INCLUDE_DIR HDF5_C_INCLUDE_DIR HDF5_DIR)
 
 list(APPEND DCA_EXTERNAL_LIBS ${HDF5_LIBRARIES})
 list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${HDF5_INCLUDE_DIRS})
@@ -43,7 +45,7 @@ list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${HDF5_INCLUDE_DIRS})
 ################################################################################
 # FFTW
 set(FFTW_INCLUDE_DIR "" CACHE PATH "Path to fftw3.h.")
-set(FFTW_LIBRARY "" CACHE FILEPATH "Path to FFTW3 library.")
+set(FFTW_LIBRARY "" CACHE FILEPATH "FFTW3 library.")
 mark_as_advanced(FFTW_INCLUDE_DIR FFTW_LIBRARY)
 
 if (NOT DCA_HAVE_FFTW)

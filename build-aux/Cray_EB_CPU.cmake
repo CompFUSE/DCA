@@ -1,16 +1,12 @@
 # Initial cache list for Cray systems where the external libraries have been installed with
 # EasyBuild
 #
-# CPU version (no GPU support)
+# Multicore version (no GPU support)
 #
-# Usage: cmake -C path/to/this/file/Cray_EB_CPU.cmake ...
+# Usage: cmake -C /path/to/this/file [other options] /path/to/source/dir
 
-# Location of external libraries
-# Since they have been installed with EasyBuild, we can use the corresponding environment variables
-# that are set by EB.
-set(gtest_DIR $ENV{EBROOTGTEST} CACHE PATH "Path to Google Test.")
+# Location of SPRNG
 set(SPRNG_DIR $ENV{EBROOTSPRNG} CACHE PATH "Path to SPRNG installation directory.")
-mark_as_advanced(gtest_DIR SPRNG_DIR)
 
 # The C++ compiler wrapper CC already adds the correct include paths for these libraries and
 # automatically links to them.
@@ -46,5 +42,3 @@ endif()
 
 set(MPIEXEC_NUMPROC_FLAG "-n"
   CACHE STRING "Flag used by TEST_RUNNER to specify the number of processes.")
-
-mark_as_advanced(TEST_RUNNER MPIEXEC_NUMPROC_FLAG)
