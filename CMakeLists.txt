@@ -172,6 +172,9 @@ option(DCA_WITH_TESTS_FAST "Build DCA++'s fast tests." OFF)
 option(DCA_WITH_TESTS_EXTENSIVE "Build DCA++'s extensive tests." OFF)
 option(DCA_WITH_TESTS_PERFORMANCE "Build DCA++'s performance tests." OFF)
 
+set(gtest_dir "${PROJECT_SOURCE_DIR}/libs/googletest-1.8.0" CACHE PATH "Path to Google Test.")
+mark_as_advanced(gtest_dir)
+
 if (DCA_WITH_TESTS_FAST OR DCA_WITH_TESTS_EXTENSIVE OR DCA_WITH_TESTS_PERFORMANCE)
   include(dca_testing)
 
@@ -195,7 +198,7 @@ if (DCA_WITH_TESTS_FAST OR DCA_WITH_TESTS_EXTENSIVE OR DCA_WITH_TESTS_PERFORMANC
     message(FATAL_ERROR "MPIEXEC_NUMPROC_FLAG needs to be set for running MPI tests.")
   endif()
 
-  add_subdirectory(${gtest_DIR} ${PROJECT_BINARY_DIR}/gtest)
+  add_subdirectory(${gtest_dir})
 
   add_subdirectory(${PROJECT_SOURCE_DIR}/test)
   add_subdirectory(${PROJECT_SOURCE_DIR}/applications/analysis/test)
