@@ -9,6 +9,8 @@
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // This class computes the band structure.
+//
+// TODO: Write out Brillouin zone cut domain, which is initialized in this class.
 
 #ifndef DCA_PHYS_DCA_ALGORITHMS_COMPUTE_BAND_STRUCTURE_HPP
 #define DCA_PHYS_DCA_ALGORITHMS_COMPUTE_BAND_STRUCTURE_HPP
@@ -44,9 +46,8 @@ public:
       brillouin_zone_cut_domain_type::INTERPOLATION_POINTS;  // 101;
 
   // Computes the band structure of the non-interacting Hamiltonian H_0.
-  // Note that the parameters object gets modified by this function!
   template <typename ParametersType>
-  static void execute(ParametersType& parameters, func::function<double, nu_k_cut>& bands);
+  static void execute(const ParametersType& parameters, func::function<double, nu_k_cut>& bands);
 
 private:
   template <int lattice_dimension>
@@ -62,18 +63,17 @@ private:
 };
 
 template <typename ParametersType>
-void compute_band_structure::execute(ParametersType& parameters,
+void compute_band_structure::execute(const ParametersType& parameters,
                                      func::function<double, nu_k_cut>& band_structure) {
   std::vector<std::vector<double>> collection_k_vecs;
 
-  // Construct the path in the Brilluoin zone.
-  if (parameters.get_Brillouin_zone_vectors().size() == 0) {
-    high_symmetry_line<ParametersType::lattice_dimension>(parameters.get_coordinate_type(),
-                                                          parameters.get_Brillouin_zone_vectors());
-  }
+  std::string coordinate_type;
+  std::vector<std::vector<double>> brillouin_zone_vecs;
 
-  construct_path<ParametersType::lattice_dimension>(
-      parameters.get_coordinate_type(), parameters.get_Brillouin_zone_vectors(), collection_k_vecs);
+  // Construct the path in the Brilluoin zone.
+  high_symmetry_line<ParametersType::lattice_dimension>(coordinate_type, brillouin_zone_vecs);
+  construct_path<ParametersType::lattice_dimension>(coordinate_type, brillouin_zone_vecs,
+                                                    collection_k_vecs);
 
   brillouin_zone_cut_domain_type::get_size() = collection_k_vecs.size();
   brillouin_zone_cut_domain_type::get_elements() = collection_k_vecs;

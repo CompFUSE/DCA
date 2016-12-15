@@ -21,7 +21,6 @@
 #include <vector>
 
 #include "dca/function/domains/dmn_0.hpp"
-#include "dca/phys/parameters/brillouin_zone_parameters.hpp"
 #include "dca/phys/parameters/cpe_parameters.hpp"
 #include "dca/phys/parameters/dca_parameters.hpp"
 #include "dca/phys/parameters/double_counting_parameters.hpp"
@@ -68,7 +67,6 @@ class Parameters : public FilenameParameters,
                    public VertexParameters<Model::lattice_type::DIMENSION>,
                    public EqualTimeParameters,
                    public CpeParameters,
-                   public BrillouinZoneParameters,
                    public DoubleCountingParameters {
 public:
   using concurrency_type = Concurrency;
@@ -190,7 +188,6 @@ Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solve
       VertexParameters<Model::DIMENSION>(),
       EqualTimeParameters(),
       CpeParameters(),
-      BrillouinZoneParameters(),
 
       version_stamp_(make_python_readable(version_stamp)),
 
@@ -363,7 +360,6 @@ int Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
   buffer_size += VertexParameters<Model::DIMENSION>::getBufferSize(concurrency);
   buffer_size += EqualTimeParameters::getBufferSize(concurrency);
   buffer_size += CpeParameters::getBufferSize(concurrency);
-  buffer_size += BrillouinZoneParameters::getBufferSize(concurrency);
   buffer_size += DoubleCountingParameters::getBufferSize(concurrency);
 
   return buffer_size;
@@ -384,7 +380,6 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
   VertexParameters<Model::DIMENSION>::pack(concurrency, buffer, buffer_size, position);
   EqualTimeParameters::pack(concurrency, buffer, buffer_size, position);
   CpeParameters::pack(concurrency, buffer, buffer_size, position);
-  BrillouinZoneParameters::pack(concurrency, buffer, buffer_size, position);
   DoubleCountingParameters::pack(concurrency, buffer, buffer_size, position);
 }
 
@@ -403,7 +398,6 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
   VertexParameters<Model::DIMENSION>::unpack(concurrency, buffer, buffer_size, position);
   EqualTimeParameters::unpack(concurrency, buffer, buffer_size, position);
   CpeParameters::unpack(concurrency, buffer, buffer_size, position);
-  BrillouinZoneParameters::unpack(concurrency, buffer, buffer_size, position);
   DoubleCountingParameters::unpack(concurrency, buffer, buffer_size, position);
 }
 
@@ -435,7 +429,6 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
   EqualTimeParameters::readWrite(reader_or_writer);
   CpeParameters::readWrite(reader_or_writer);
   DoubleCountingParameters::readWrite(reader_or_writer);
-  BrillouinZoneParameters::readWrite(reader_or_writer);
 }
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
