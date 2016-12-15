@@ -256,9 +256,6 @@ void DcaData<parameters_type>::read(std::string filename) {
 
   concurrency.broadcast_object(Sigma);
 
-  if (parameters.do_CPE())
-    concurrency.broadcast_object(G_k_t);
-
   if (parameters.get_vertex_measurement_type() != NONE) {
     concurrency.broadcast_object(G_k_w);
     concurrency.broadcast_object(G4_k_k_w_w);
@@ -296,9 +293,6 @@ void DcaData<parameters_type>::read(Reader& reader) {
     reader.open_group("functions");
 
     reader.execute(Sigma);
-
-    if (parameters.do_CPE())
-      reader.execute(G_k_t);
 
     if (vertex_measurement != "NONE") {
       reader.execute(G_k_w);
@@ -380,8 +374,7 @@ void DcaData<parameters_type>::write(Writer& writer) {
     writer.execute(Sigma_lattice);
   }
 
-  if (parameters.do_CPE() or parameters.do_equal_time_measurements() or
-      parameters.dump_cluster_Greens_functions()) {
+  if (parameters.do_equal_time_measurements() or parameters.dump_cluster_Greens_functions()) {
     writer.execute(G_k_w);
     writer.execute(G_k_w_stddev);
     writer.execute(G_r_w);
@@ -400,8 +393,7 @@ void DcaData<parameters_type>::write(Writer& writer) {
   }
 
   if (parameters.get_vertex_measurement_type() != NONE) {
-    if (not(parameters.do_CPE() or parameters.do_equal_time_measurements() or
-            parameters.dump_cluster_Greens_functions())) {
+    if (not(parameters.do_equal_time_measurements() or parameters.dump_cluster_Greens_functions())) {
       writer.execute(G_k_w);
       writer.execute(G_k_w_stddev);
     }

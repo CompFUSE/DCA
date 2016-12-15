@@ -21,7 +21,6 @@
 #include <vector>
 
 #include "dca/function/domains/dmn_0.hpp"
-#include "dca/phys/parameters/cpe_parameters.hpp"
 #include "dca/phys/parameters/dca_parameters.hpp"
 #include "dca/phys/parameters/double_counting_parameters.hpp"
 #include "dca/phys/parameters/equal_time_parameters.hpp"
@@ -42,7 +41,6 @@
 #include "dca/phys/domains/quantum/numerical_error_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain_real_axis.hpp"
-#include "dca/phys/domains/time_and_frequency/frequency_domain_imag_axis.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain_left_oriented.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
@@ -66,7 +64,6 @@ class Parameters : public FilenameParameters,
                    public EdSolverParameters,
                    public VertexParameters<Model::lattice_type::DIMENSION>,
                    public EqualTimeParameters,
-                   public CpeParameters,
                    public DoubleCountingParameters {
 public:
   using concurrency_type = Concurrency;
@@ -187,7 +184,6 @@ Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solve
       McSolverParameters<solver_name>(),
       VertexParameters<Model::DIMENSION>(),
       EqualTimeParameters(),
-      CpeParameters(),
 
       version_stamp_(make_python_readable(version_stamp)),
 
@@ -240,10 +236,7 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
     domains::vertex_frequency_domain<domains::EXTENDED_POSITIVE>::write(writer);
   }
 
-  if (do_CPE()) {
-    domains::frequency_domain_real_axis::write(writer);
-    domains::frequency_domain_imag_axis::write(writer);
-  }
+  domains::frequency_domain_real_axis::write(writer);
 
 #ifdef DCA_WITH_QMC_BIT
   domains::numerical_error_domain::write(writer);
@@ -282,12 +275,11 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
   domains::electron_band_domain::initialize(*this, Model::BANDS, Model::get_flavors(),
                                             Model::get_a_vectors());
 
-  // time && frequency-domains
+  // time and frequency-domains
   domains::time_domain::initialize(*this);
   domains::time_domain_left_oriented::initialize(*this);
   domains::frequency_domain::initialize(*this);
   domains::frequency_domain_real_axis::initialize(*this);
-  domains::frequency_domain_imag_axis::initialize(*this);
 
   domains::vertex_time_domain<domains::SP_TIME_DOMAIN>::initialize(*this);
   domains::vertex_time_domain<domains::TP_TIME_DOMAIN>::initialize(*this);
@@ -359,7 +351,6 @@ int Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
   buffer_size += FunctionParameters::getBufferSize(concurrency);
   buffer_size += VertexParameters<Model::DIMENSION>::getBufferSize(concurrency);
   buffer_size += EqualTimeParameters::getBufferSize(concurrency);
-  buffer_size += CpeParameters::getBufferSize(concurrency);
   buffer_size += DoubleCountingParameters::getBufferSize(concurrency);
 
   return buffer_size;
@@ -379,7 +370,6 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
   FunctionParameters::pack(concurrency, buffer, buffer_size, position);
   VertexParameters<Model::DIMENSION>::pack(concurrency, buffer, buffer_size, position);
   EqualTimeParameters::pack(concurrency, buffer, buffer_size, position);
-  CpeParameters::pack(concurrency, buffer, buffer_size, position);
   DoubleCountingParameters::pack(concurrency, buffer, buffer_size, position);
 }
 
@@ -397,7 +387,6 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
   FunctionParameters::unpack(concurrency, buffer, buffer_size, position);
   VertexParameters<Model::DIMENSION>::unpack(concurrency, buffer, buffer_size, position);
   EqualTimeParameters::unpack(concurrency, buffer, buffer_size, position);
-  CpeParameters::unpack(concurrency, buffer, buffer_size, position);
   DoubleCountingParameters::unpack(concurrency, buffer, buffer_size, position);
 }
 
@@ -427,7 +416,6 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
   FunctionParameters::readWrite(reader_or_writer);
   VertexParameters<Model::DIMENSION>::readWrite(reader_or_writer);
   EqualTimeParameters::readWrite(reader_or_writer);
-  CpeParameters::readWrite(reader_or_writer);
   DoubleCountingParameters::readWrite(reader_or_writer);
 }
 

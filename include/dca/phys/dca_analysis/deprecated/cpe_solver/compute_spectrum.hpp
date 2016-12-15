@@ -8,6 +8,10 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
 // This class computes the spectrum using a CPE analytic continuation method.
+//
+// TODO: If the CPE solver gets reactivated, need to
+//       - write, read and broadcast G_k_t in DcaData,
+//       - initialize (and write) frequency_domain_imag_axis in Parameters.
 
 #ifndef DCA_PHYS_DCA_ANALYSIS_CPE_SOLVER_COMPUTE_SPECTRUM_HPP
 #define DCA_PHYS_DCA_ANALYSIS_CPE_SOLVER_COMPUTE_SPECTRUM_HPP
