@@ -7,7 +7,7 @@
 //
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// This class provides a function to set a vertex in the Monte Carlo solver.
+// This class provides a function to set a random vertex in the Monte Carlo solver.
 //
 // TODO: - Rename class.
 //       - Const correctness.
@@ -19,10 +19,8 @@
 #include <vector>
 
 #include "dca/function/domains.hpp"
-#include "dca/phys/domains/cluster/cluster_domain.hpp"
+#include "dca/function/function.hpp"
 #include "dca/phys/domains/convert.hpp"
-#include "dca/phys/domains/quantum/electron_band_domain.hpp"
-#include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 
 namespace dca {
 namespace phys {
@@ -32,76 +30,97 @@ namespace models {
 template <typename parameters_type>
 class general_interaction {
 public:
-  using b = func::dmn_0<domains::electron_band_domain>;
-  using s = func::dmn_0<domains::electron_spin_domain>;
-  using nu = func::dmn_variadic<b, s>;
-  using r_DCA =
-      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_dimension, domains::CLUSTER,
-                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
+  // Initializes a (CT-AUX) vertex pair with a random pair of correlated spin-orbitals i.e. two
+  // spin-orbitals with non-vanishing interaction.
+  template <typename vertex_pair_type, typename rng_type, typename ScalarType, typename BandDmn,
+            typename SpinDmn, typename RDmn>
+  static void set_vertex(
+      vertex_pair_type& vertex, const parameters_type& parameters, rng_type& rng,
+      func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+                                                    func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>&
+          H_interaction);
 
-  template <class vertex_pair_type, class rng_type, class H_interaction_type>
-  static void set_vertex(vertex_pair_type& vertex, parameters_type& parameters, rng_type& rng,
-                         H_interaction_type H_interaction);
+  // Creates and returns a vector of the linear indices of the correlated orbitals, i.e. pairs of
+  // spin-orbitals with non-vanishing interaction. The linear index is with respect to the product
+  // domain <band_1, spin_1, band_2, spin_2, site_1, site_2>.
+  // Only orbitals set as interacting in the parameters are considered.
+  template <typename ScalarType, typename BandDmn, typename SpinDmn, typename RDmn>
+  static std::vector<int> make_correlated_orbitals(
+      const parameters_type& parameters,
+      func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+                                                    func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>&
+          H_interaction);
 
 private:
-  template <class H_interaction_type>
-  static std::vector<int> make_correlated_orbitals(parameters_type& parameters,
-                                                   H_interaction_type& H_interaction);
-
-  static func::dmn_variadic<b, s, b, s, r_DCA, r_DCA>& get_domain() {
-    static func::dmn_variadic<b, s, b, s, r_DCA, r_DCA> b_s_b_s_r_r_dmn;
-    return b_s_b_s_r_r_dmn;
+  // Creates and returns an object (singleton) of type spin_orbital_pair_domain, which is a product
+  // domain of two band domains, two spin domains and two (real space) site domains.
+  // The order of the subdomains is chosen to be: band_1, spin_1, band_2, spin_2, site_1, site_2.
+  template <typename BandDmn, typename SpinDmn, typename RDmn>
+  static func::dmn_variadic<BandDmn, SpinDmn, BandDmn, SpinDmn, RDmn, RDmn>& get_spin_orbital_pair_domain() {
+    static func::dmn_variadic<BandDmn, SpinDmn, BandDmn, SpinDmn, RDmn, RDmn> spin_orbital_pair_domain;
+    return spin_orbital_pair_domain;
   }
 };
 
 template <typename parameters_type>
-template <class vertex_pair_type, class rng_type, class H_interaction_type>
-void general_interaction<parameters_type>::set_vertex(vertex_pair_type& vertex,
-                                                      parameters_type& parameters, rng_type& rng,
-                                                      H_interaction_type H_interaction) {
-  static std::vector<int> correlated_orbitals =
+template <typename vertex_pair_type, typename rng_type, typename ScalarType, typename BandDmn,
+          typename SpinDmn, typename RDmn>
+void general_interaction<parameters_type>::set_vertex(
+    vertex_pair_type& vertex, const parameters_type& parameters, rng_type& rng,
+    func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+                                                  func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>&
+        H_interaction) {
+  // Create the vector of correlated spin-orbitals once.
+  static const std::vector<int> correlated_orbitals =
       general_interaction<parameters_type>::make_correlated_orbitals(parameters, H_interaction);
 
-  // Get a random pair of correlated orbitals
+  // Get a random pair of correlated spin-orbitals.
   const int pos = rng() * correlated_orbitals.size();
   const int lin_ind = correlated_orbitals[pos];
 
   std::array<int, 6> sub_ind;  // [0]=b1, [1]=s1, [2]=b2, [3]=s2, [4]=r1, [5]=r2
-  get_domain().linind_2_subind(lin_ind, sub_ind.data());
+  get_spin_orbital_pair_domain<BandDmn, SpinDmn, RDmn>().linind_2_subind(lin_ind, sub_ind.data());
 
-  // Set the vertex properties
-  vertex.get_bands().first = parameters.get_interacting_bands()[sub_ind[0]];
-  vertex.get_bands().second = parameters.get_interacting_bands()[sub_ind[2]];
+  // Set the vertex properties.
+  vertex.get_bands().first = sub_ind[0];
+  vertex.get_bands().second = sub_ind[2];
 
-  vertex.get_e_spins().first = domains::electron_spin_domain::get_elements()[sub_ind[1]];
-  vertex.get_e_spins().second = domains::electron_spin_domain::get_elements()[sub_ind[3]];
+  vertex.get_e_spins().first = SpinDmn::get_elements()[sub_ind[1]];
+  vertex.get_e_spins().second = SpinDmn::get_elements()[sub_ind[3]];
 
-  vertex.get_spin_orbitals().first = domains::convert<int, nu>::spin_orbital(
-      vertex.get_bands().first,
-      vertex.get_e_spins().first);  // nu = func::dmn_variadic<b,s>
-  vertex.get_spin_orbitals().second = domains::convert<int, nu>::spin_orbital(
-      vertex.get_bands().second, vertex.get_e_spins().second);
+  vertex.get_spin_orbitals().first =
+      domains::convert<int, func::dmn_variadic<BandDmn, SpinDmn>>::spin_orbital(
+          vertex.get_bands().first, vertex.get_e_spins().first);
+  vertex.get_spin_orbitals().second =
+      domains::convert<int, func::dmn_variadic<BandDmn, SpinDmn>>::spin_orbital(
+          vertex.get_bands().second, vertex.get_e_spins().second);
 
   vertex.get_r_sites().first = sub_ind[4];
   vertex.get_r_sites().second = sub_ind[5];
 }
 
 template <typename parameters_type>
-template <class H_interaction_type>
+template <typename ScalarType, typename BandDmn, typename SpinDmn, typename RDmn>
 std::vector<int> general_interaction<parameters_type>::make_correlated_orbitals(
-    parameters_type& /*parameters*/, H_interaction_type& H_interaction) {
+    const parameters_type& parameters,
+    func::function<ScalarType, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
+                                                  func::dmn_variadic<BandDmn, SpinDmn>, RDmn>>&
+        H_interaction) {
   std::vector<int> correlated_orbitals;
 
-  for (int r_j = 0; r_j < r_DCA::dmn_size(); ++r_j) {
-    for (int r_i = 0; r_i < r_DCA::dmn_size(); ++r_i) {
-      int delta_r = r_DCA::parameter_type::subtract(r_j, r_i);  // delta_r = r_i - r_j
+  const std::vector<int>& interacting_orbitals = parameters.get_interacting_bands();
 
-      for (int s_j = 0; s_j < s::dmn_size(); ++s_j) {
-        for (int b_j = 0; b_j < b::dmn_size(); ++b_j) {
-          for (int s_i = 0; s_i < s::dmn_size(); ++s_i) {
-            for (int b_i = 0; b_i < b::dmn_size(); ++b_i) {
+  for (int r_j = 0; r_j < RDmn::dmn_size(); ++r_j) {
+    for (int r_i = 0; r_i < RDmn::dmn_size(); ++r_i) {
+      const int delta_r = RDmn::parameter_type::subtract(r_j, r_i);  // delta_r = r_i - r_j
+
+      for (int s_j = 0; s_j < SpinDmn::dmn_size(); ++s_j) {
+        for (auto b_j : interacting_orbitals) {
+          for (int s_i = 0; s_i < SpinDmn::dmn_size(); ++s_i) {
+            for (auto b_i : interacting_orbitals) {
               if (std::abs(H_interaction(b_i, s_i, b_j, s_j, delta_r)) > 1.e-3) {
-                int linear_index = get_domain()(b_i, s_i, b_j, s_j, r_i, r_j);
+                int linear_index = get_spin_orbital_pair_domain<BandDmn, SpinDmn, RDmn>()(
+                    b_i, s_i, b_j, s_j, r_i, r_j);
                 correlated_orbitals.push_back(linear_index);
               }
             }
@@ -110,6 +129,7 @@ std::vector<int> general_interaction<parameters_type>::make_correlated_orbitals(
       }
     }
   }
+
   return correlated_orbitals;
 }
 
