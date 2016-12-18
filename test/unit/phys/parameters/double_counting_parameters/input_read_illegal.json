@@ -1,0 +1,6 @@
+{
+    "double-counting": {
+        "method": "illegal-method",
+        "correction": 3.14
+    }
+}

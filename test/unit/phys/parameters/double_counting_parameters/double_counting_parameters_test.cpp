@@ -31,6 +31,16 @@ TEST(DoubleCountingParametersTest, ReadAll) {
   pars.readWrite(reader);
   reader.close_file();
 
-  EXPECT_EQ("constant", pars.get_double_counting_method());
-  EXPECT_EQ(42.1, pars.get_double_counting_correction());
+  EXPECT_EQ("constant-correction-with-U-correction", pars.get_double_counting_method());
+  EXPECT_EQ(4.2, pars.get_double_counting_correction());
+}
+
+TEST(DoubleCountingParametersTest, ReadIllegal) {
+  dca::io::JSONReader reader;
+  dca::phys::params::DoubleCountingParameters pars;
+
+  reader.open_file(DCA_SOURCE_DIR
+                   "/test/unit/phys/parameters/double_counting_parameters/input_read_illegal.json");
+  EXPECT_THROW(pars.readWrite(reader), std::logic_error);
+  reader.close_file();
 }
