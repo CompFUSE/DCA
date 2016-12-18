@@ -107,7 +107,7 @@ EDClusterSolver<device_t, parameters_type, MOMS_type>::EDClusterSolver(
     std::cout << "\n\n\n"
               << "Apply translation symmetry ..." << std::endl;
   }
-  Fock_obj.apply_translation_symmetry(parameters.get_ed_method());
+  Fock_obj.apply_translation_symmetry();
 
   if (concurrency.id() == concurrency.first()) {
     std::cout << dca::util::print_time() << std::endl;
@@ -125,9 +125,6 @@ EDClusterSolver<device_t, parameters_type, MOMS_type>::EDClusterSolver(
     Fock_obj.print_subspaces();
   }
 #endif
-
-  if (parameters.check_orthogonality_of_states())
-    std::cout << "subspaces orthogonal: " << Fock_obj.check_orthogonality() << std::endl;
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>

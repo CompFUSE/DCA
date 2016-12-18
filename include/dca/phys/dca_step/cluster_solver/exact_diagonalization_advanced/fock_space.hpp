@@ -79,7 +79,7 @@ public:
 
   void apply_rotation_symmetry(std::string symmetries, std::string ED_method);
 
-  void apply_translation_symmetry(std::string ED_method);
+  void apply_translation_symmetry(std::string ED_method = "default");
 
   bool check_orthogonality();
 
