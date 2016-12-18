@@ -378,7 +378,7 @@ template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_ty
 void CtauxWalker<device_t, parameters_type, MOMS_type>::do_sweep() {
   double factor = 1.;
   if (thermalized)
-    factor = parameters.get_number_of_sweeps_per_measurement();
+    factor = parameters.get_sweeps_per_measurement();
 
   int nb_of_block_steps = 1 + floor(configuration.get_number_of_interacting_HS_spins() /
                                     parameters.get_submatrix_size() * factor);

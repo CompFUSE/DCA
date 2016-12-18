@@ -329,14 +329,15 @@ void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::measure(walker_
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t measuring has started \n" << std::endl;
 
-  for (int i = 0; i < parameters.get_number_of_measurements(); i++) {
+  for (int i = 0; i < parameters.get_measurements_per_process_and_accumulator(); i++) {
     walker.do_sweep();
 
     accumulator.update_from(walker);
 
     accumulator.measure();
 
-    update_shell(i, parameters.get_number_of_measurements(), walker.get_configuration().size());
+    update_shell(i, parameters.get_measurements_per_process_and_accumulator(),
+                 walker.get_configuration().size());
   }
 
   // here we need to do a correction a la Andrey

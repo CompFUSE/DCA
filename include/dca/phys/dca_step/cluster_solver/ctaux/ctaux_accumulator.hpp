@@ -317,8 +317,8 @@ void CtauxAccumulator<device_t, parameters_type, MOMS_type>::finalize() {
 
     double factor =
         1. / std::sqrt(1 +
-                       concurrency.number_of_processors() * parameters.get_nr_accumulators() *
-                           parameters.get_number_of_measurements());
+                       concurrency.number_of_processors() * parameters.get_accumulators() *
+                           parameters.get_measurements_per_process_and_accumulator());
 
     M_r_w_stddev *= factor;
   }

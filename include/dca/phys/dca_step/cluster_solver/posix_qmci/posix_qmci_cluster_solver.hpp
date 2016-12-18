@@ -107,8 +107,8 @@ PosixQmciClusterSolver<qmci_integrator_type>::PosixQmciClusterSolver(parameters_
                                                                      MOMS_type& MOMS_ref)
     : qmci_integrator_type(parameters_ref, MOMS_ref),
 
-      nr_walkers(parameters.get_nr_walkers()),
-      nr_accumulators(parameters.get_nr_accumulators()),
+      nr_walkers(parameters.get_walkers()),
+      nr_accumulators(parameters.get_accumulators()),
 
       thread_task_handler_(nr_walkers, nr_accumulators),
 
@@ -331,7 +331,7 @@ void PosixQmciClusterSolver<qmci_integrator_type>::start_accumulator(int id) {
 
   accumulator_obj.initialize(DCA_iteration);
 
-  for (int i = 0; i < parameters.get_number_of_measurements(); ++i) {
+  for (int i = 0; i < parameters.get_measurements_per_process_and_accumulator(); ++i) {
     pthread_mutex_lock(&mutex_queue);
     accumulators_queue.push(&accumulator_obj);
     pthread_mutex_unlock(&mutex_queue);
@@ -344,7 +344,7 @@ void PosixQmciClusterSolver<qmci_integrator_type>::start_accumulator(int id) {
     {
       profiler_type profiler("posix-accumulator accumulating", "posix-MC-accumulator", __LINE__, id);
       if (id == 1)
-        this->update_shell(i, parameters.get_number_of_measurements(),
+        this->update_shell(i, parameters.get_measurements_per_process_and_accumulator(),
                            accumulator_obj.get_configuration().size());
 
       accumulator_obj.measure(mutex_queue, accumulators_queue);
