@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
   // Create and initialize the DCA data object and read the output of the DCA(+) calculation.
   DcaDataType dca_data(parameters);
   dca_data.initialize();
-  dca_data.read(parameters.get_directory() + parameters.get_output_file_name());
+  dca_data.read(parameters.get_directory() + parameters.get_filename_dca());
 
   // Compute the susceptibility.
   if (parameters.get_vertex_measurement_type() != dca::phys::NONE) {

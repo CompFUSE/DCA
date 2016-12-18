@@ -149,7 +149,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::read() {
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType>
 void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::write() {
   const std::string& output_format = parameters.get_output_format();
-  const std::string& file_name = parameters.get_directory() + parameters.get_output_file_name();
+  const std::string& file_name = parameters.get_directory() + parameters.get_filename_dca();
 
   std::cout << "\n\n\t\t start writing " << file_name << "\t" << dca::util::print_time() << "\n\n";
 

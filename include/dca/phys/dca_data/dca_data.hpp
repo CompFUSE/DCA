@@ -370,7 +370,7 @@ void DcaData<parameters_type>::write(Writer& writer) {
   writer.execute(Sigma);
   writer.execute(Sigma_stddev);
 
-  if (parameters.dump_lattice_Self_energy()) {
+  if (parameters.dump_lattice_self_energy()) {
     writer.execute(Sigma_lattice);
   }
 

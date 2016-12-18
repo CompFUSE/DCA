@@ -205,7 +205,7 @@ void CountingProfiler<Event>::stop(std::string file_name) {
   {
     to_JSON(file_name);
 
-    to_TSV(file_name);
+    // to_TSV(file_name);
   }
 }
 
@@ -225,7 +225,7 @@ void CountingProfiler<Event>::stop(concurrency_type& concurrency, std::string fi
   if (concurrency.id() == concurrency.last()) {
     to_JSON(file_name);
 
-    to_TSV(file_name);
+    // to_TSV(file_name);
   }
 }
 

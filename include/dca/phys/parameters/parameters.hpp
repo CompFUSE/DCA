@@ -25,11 +25,11 @@
 #include "dca/phys/parameters/double_counting_parameters.hpp"
 #include "dca/phys/parameters/equal_time_parameters.hpp"
 #include "dca/phys/parameters/ed_solver_parameters.hpp"
-#include "dca/phys/parameters/filename_parameters.hpp"
 #include "dca/phys/parameters/function_parameters.hpp"
 #include "dca/phys/parameters/mc_solver_parameters.hpp"
 #include "dca/phys/parameters/mci_parameters.hpp"
 #include "dca/phys/parameters/model_parameters.hpp"
+#include "dca/phys/parameters/output_parameters.hpp"
 #include "dca/phys/parameters/physics_parameters.hpp"
 #include "dca/phys/parameters/vertex_parameters.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
@@ -54,7 +54,7 @@ namespace params {
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
           typename RandomNumberGenerator, solver::ClusterSolverName solver_name>
-class Parameters : public FilenameParameters,
+class Parameters : public OutputParameters,
                    public PhysicsParameters,
                    public ModelParameters<Model>,
                    public DcaParameters,
@@ -175,7 +175,7 @@ template <typename Concurrency, typename Threading, typename Profiler, typename 
           typename RandomNumberGenerator, solver::ClusterSolverName solver_name>
 Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name>::Parameters(
     const std::string& version_stamp, concurrency_type& concurrency)
-    : FilenameParameters(),
+    : OutputParameters(),
       PhysicsParameters(),
       ModelParameters<Model>(),
       DcaParameters(Model::DIMENSION),
@@ -341,7 +341,7 @@ int Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
                solver_name>::get_buffer_size(const Concurrency& concurrency) const {
   int buffer_size = 0;
 
-  buffer_size += FilenameParameters::getBufferSize(concurrency);
+  buffer_size += OutputParameters::getBufferSize(concurrency);
   buffer_size += PhysicsParameters::getBufferSize(concurrency);
   buffer_size += ModelParameters<Model>::getBufferSize(concurrency);
   buffer_size += DcaParameters::getBufferSize(concurrency);
@@ -360,7 +360,7 @@ template <typename Concurrency, typename Threading, typename Profiler, typename 
           typename RandomNumberGenerator, solver::ClusterSolverName solver_name>
 void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name>::pack(
     const Concurrency& concurrency, int* buffer, int buffer_size, int& position) const {
-  FilenameParameters::pack(concurrency, buffer, buffer_size, position);
+  OutputParameters::pack(concurrency, buffer, buffer_size, position);
   PhysicsParameters::pack(concurrency, buffer, buffer_size, position);
   ModelParameters<Model>::pack(concurrency, buffer, buffer_size, position);
   DcaParameters::pack(concurrency, buffer, buffer_size, position);
@@ -377,7 +377,7 @@ template <typename Concurrency, typename Threading, typename Profiler, typename 
           typename RandomNumberGenerator, solver::ClusterSolverName solver_name>
 void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name>::unpack(
     const Concurrency& concurrency, int* buffer, int buffer_size, int& position) {
-  FilenameParameters::unpack(concurrency, buffer, buffer_size, position);
+  OutputParameters::unpack(concurrency, buffer, buffer_size, position);
   PhysicsParameters::unpack(concurrency, buffer, buffer_size, position);
   ModelParameters<Model>::unpack(concurrency, buffer, buffer_size, position);
   DcaParameters::unpack(concurrency, buffer, buffer_size, position);
@@ -406,7 +406,7 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
     reader_or_writer.execute("random-number-generator", RandomNumberGeneratorype_str);
   }
 
-  FilenameParameters::readWrite(reader_or_writer);
+  OutputParameters::readWrite(reader_or_writer);
   PhysicsParameters::readWrite(reader_or_writer);
   ModelParameters<Model>::readWrite(reader_or_writer);
   DcaParameters::readWrite(reader_or_writer);

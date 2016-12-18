@@ -64,7 +64,7 @@ TEST(analysis_DCAplus_mpi, leading_eigenvalues) {
 
   DcaDataType dca_data(parameters);
   dca_data.initialize();
-  dca_data.read(parameters.get_directory() + parameters.get_output_file_name());
+  dca_data.read(parameters.get_directory() + parameters.get_filename_dca());
 
   dca::phys::analysis::BseSolver<ParametersType, DcaDataType> analysis_obj(parameters, dca_data);
   analysis_obj.calculate_susceptibilities_2();

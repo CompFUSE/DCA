@@ -218,8 +218,7 @@ BseSolver<ParametersType, DcaDataType>::BseSolver(ParametersType& parameters_ref
 template <typename ParametersType, typename DcaDataType>
 void BseSolver<ParametersType, DcaDataType>::write() {
   const std::string& output_format = parameters.get_output_format();
-  const std::string& file_name =
-      parameters.get_directory() + parameters.get_susceptibilities_file_name();
+  const std::string& file_name = parameters.get_directory() + parameters.get_filename_analysis();
 
   std::cout << "\n\n\t\t start writing " << file_name << "\n\n";
 
