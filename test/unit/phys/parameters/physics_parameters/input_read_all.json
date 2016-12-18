@@ -1,8 +1,8 @@
 {
-    "physics-parameters": {
+    "physics": {
         "beta": 0.5,
-        "adjust-chemical-potential": "true",
         "density": 0.9,
-        "chemical-potential": 0.14
+        "chemical-potential": -0.4,
+        "adjust-chemical-potential": false
     }
 }
