@@ -18,10 +18,9 @@
 TEST(McSolverParametersSsCtHybTest, DefaultValues) {
   dca::phys::params::McSolverParameters<dca::phys::solver::SS_CT_HYB> pars;
 
-  EXPECT_EQ(0, pars.get_Sigma_tail_cutoff());
-  EXPECT_EQ(0.4, pars.get_steps_per_sweep());
-  EXPECT_EQ(0.1, pars.get_swaps_per_sweep());
-  EXPECT_EQ(0.4, pars.get_shifts_per_sweep());
+  EXPECT_EQ(0, pars.get_self_energy_tail_cutoff());
+  EXPECT_EQ(0.5, pars.get_steps_per_sweep());
+  EXPECT_EQ(0.5, pars.get_shifts_per_sweep());
 }
 
 TEST(McSolverParametersSsCtHybTest, ReadAll) {
@@ -33,8 +32,7 @@ TEST(McSolverParametersSsCtHybTest, ReadAll) {
   pars.readWrite(reader);
   reader.close_file();
 
-  EXPECT_EQ(42, pars.get_Sigma_tail_cutoff());
-  EXPECT_EQ(1.23, pars.get_steps_per_sweep());
-  EXPECT_EQ(4.56, pars.get_swaps_per_sweep());
-  EXPECT_EQ(7.89, pars.get_shifts_per_sweep());
+  EXPECT_EQ(10, pars.get_self_energy_tail_cutoff());
+  EXPECT_EQ(0.6, pars.get_steps_per_sweep());
+  EXPECT_EQ(0.4, pars.get_shifts_per_sweep());
 }

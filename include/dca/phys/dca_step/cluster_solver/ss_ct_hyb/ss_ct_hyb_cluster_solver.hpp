@@ -541,10 +541,10 @@ void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::compute_Sigma_n
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 int SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::find_w_cutoff() {
-  ;
   return std::max(
-      1.0, std::min(parameters.get_Sigma_tail_cutoff() * parameters.get_beta() / (2.0 * M_PI) - 0.5,
-                    1.0 * (w::dmn_size() / 2)));
+      1.0,
+      std::min(parameters.get_self_energy_tail_cutoff() * parameters.get_beta() / (2.0 * M_PI) - 0.5,
+               1.0 * (w::dmn_size() / 2)));
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>

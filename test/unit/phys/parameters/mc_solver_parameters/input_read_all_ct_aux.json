@@ -1,7 +1,7 @@
 {
-    "CT-AUX-solver": {
-        "submatrix-size": 42,
-        "initial-matrix-size": 63,
-        "K-parameter": 1.23
+    "CT-AUX": {
+        "expansion-parameter-K": 10.,
+        "initial-matrix-size": 64,
+        "submatrix-size": 32
     }
 }

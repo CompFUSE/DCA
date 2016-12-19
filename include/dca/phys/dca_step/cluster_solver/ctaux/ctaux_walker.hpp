@@ -1262,7 +1262,7 @@ template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_ty
 double CtauxWalker<device_t, parameters_type, MOMS_type>::calculate_acceptace_ratio(
     double determinant_ratio, HS_vertex_move_type HS_current_move, double QMC_factor) {
   double N = number_of_interacting_spins;
-  double K = parameters.get_K_parameter();
+  double K = parameters.get_expansion_parameter_K();
 
   double acceptance_ratio;
 
