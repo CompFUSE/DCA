@@ -264,7 +264,7 @@ double CtauxClusterSolver<device_t, parameters_type, MOMS_type>::finalize(
   }
 
   //     if(DCA_iteration == parameters.get_DCA_iterations()-1 &&
-  //     parameters.do_equal_time_measurements())
+  //     parameters.additional_time_measurements())
   //       MOMS.G_r_t =
 
   if (DCA_iteration == parameters.get_DCA_iterations() - 1 &&
@@ -472,7 +472,7 @@ void CtauxClusterSolver<device_t, parameters_type, MOMS_type>::collect_measureme
 
   MOMS.K_r_t = accumulator.get_K_r_t();
 
-  if (parameters.do_equal_time_measurements()) {
+  if (parameters.additional_time_measurements()) {
     profiler_type profiler("QMC-two-particle-Greens-function", "QMC-collectives", __LINE__);
     concurrency.sum_and_average(accumulator.get_G_r_t(), nb_measurements);
     concurrency.sum_and_average(accumulator.get_G_r_t_stddev(), nb_measurements);

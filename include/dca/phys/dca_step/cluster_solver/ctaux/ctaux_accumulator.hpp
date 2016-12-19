@@ -290,7 +290,7 @@ void CtauxAccumulator<device_t, parameters_type, MOMS_type>::initialize(int dca_
   for (int i = 0; i < M_k_w.size(); i++)
     M_k_w(i) = 0;
 
-  if (parameters.do_equal_time_measurements()) {
+  if (parameters.additional_time_measurements()) {
     G_r_t = 0.;
     G_r_t_stddev = 0.;
 
@@ -323,7 +323,7 @@ void CtauxAccumulator<device_t, parameters_type, MOMS_type>::finalize() {
     M_r_w_stddev *= factor;
   }
 
-  if (parameters.do_equal_time_measurements()) {
+  if (parameters.additional_time_measurements()) {
     MC_two_particle_equal_time_accumulator_obj.finalize();  // G_r_t, G_r_t_stddev);
 
     G_r_t = MC_two_particle_equal_time_accumulator_obj.get_G_r_t();
@@ -362,7 +362,7 @@ void CtauxAccumulator<device_t, parameters_type, MOMS_type>::write(Writer& write
   //       writer.execute(M_r_w);
   //       writer.execute(M_r_w_stddev);
 
-  if (parameters.do_equal_time_measurements()) {
+  if (parameters.additional_time_measurements()) {
     writer.execute(charge_cluster_moment);
     writer.execute(magnetic_cluster_moment);
     writer.execute(dwave_pp_correlator);
@@ -423,7 +423,8 @@ void CtauxAccumulator<device_t, parameters_type, MOMS_type>::measure() {
 
   accumulate_single_particle_quantities();
 
-  if (DCA_iteration == parameters.get_DCA_iterations() - 1 && parameters.do_equal_time_measurements())
+  if (DCA_iteration == parameters.get_DCA_iterations() - 1 &&
+      parameters.additional_time_measurements())
     accumulate_equal_time_quantities();
 
   if (DCA_iteration == parameters.get_DCA_iterations() - 1 &&

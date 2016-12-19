@@ -33,7 +33,10 @@ template <>
 class McSolverParameters<solver::CT_AUX> {
 public:
   McSolverParameters()
-      : expansion_parameter_K_(1.), initial_matrix_size_(128), submatrix_size_(64) {}
+      : expansion_parameter_K_(1.),
+        initial_matrix_size_(128),
+        submatrix_size_(64),
+        additional_time_measurements_(false) {}
 
   template <typename Concurrency>
   int getBufferSize(const Concurrency& concurrency) const;
@@ -54,11 +57,15 @@ public:
   int get_submatrix_size() const {
     return submatrix_size_;
   }
+  bool additional_time_measurements() const {
+    return additional_time_measurements_;
+  }
 
 private:
   double expansion_parameter_K_;
   int initial_matrix_size_;
   int submatrix_size_;
+  bool additional_time_measurements_;
 };
 
 template <typename Concurrency>
@@ -68,6 +75,7 @@ int McSolverParameters<solver::CT_AUX>::getBufferSize(const Concurrency& concurr
   buffer_size += concurrency.get_buffer_size(expansion_parameter_K_);
   buffer_size += concurrency.get_buffer_size(initial_matrix_size_);
   buffer_size += concurrency.get_buffer_size(submatrix_size_);
+  buffer_size += concurrency.get_buffer_size(additional_time_measurements_);
 
   return buffer_size;
 }
@@ -78,6 +86,7 @@ void McSolverParameters<solver::CT_AUX>::pack(const Concurrency& concurrency, in
   concurrency.pack(buffer, buffer_size, position, expansion_parameter_K_);
   concurrency.pack(buffer, buffer_size, position, initial_matrix_size_);
   concurrency.pack(buffer, buffer_size, position, submatrix_size_);
+  concurrency.pack(buffer, buffer_size, position, additional_time_measurements_);
 }
 
 template <typename Concurrency>
@@ -86,6 +95,7 @@ void McSolverParameters<solver::CT_AUX>::unpack(const Concurrency& concurrency, 
   concurrency.unpack(buffer, buffer_size, position, expansion_parameter_K_);
   concurrency.unpack(buffer, buffer_size, position, initial_matrix_size_);
   concurrency.unpack(buffer, buffer_size, position, submatrix_size_);
+  concurrency.pack(buffer, buffer_size, position, additional_time_measurements_);
 }
 
 // TODO: None of the open_group methods seem to throw.
@@ -106,6 +116,11 @@ void McSolverParameters<solver::CT_AUX>::readWrite(ReaderOrWriter& reader_or_wri
     }
     try {
       reader_or_writer.execute("submatrix-size", submatrix_size_);
+    }
+    catch (const std::exception& r_e) {
+    }
+    try {
+      reader_or_writer.execute("additional-time-measurements", additional_time_measurements_);
     }
     catch (const std::exception& r_e) {
     }

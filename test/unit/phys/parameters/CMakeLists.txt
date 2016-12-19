@@ -1,7 +1,6 @@
 add_subdirectory(dca_parameters)
 add_subdirectory(double_counting_parameters)
 add_subdirectory(ed_solver_parameters)
-add_subdirectory(equal_time_parameters)
 add_subdirectory(function_parameters)
 add_subdirectory(mc_solver_parameters)
 add_subdirectory(mci_parameters)

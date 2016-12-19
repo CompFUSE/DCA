@@ -23,7 +23,6 @@
 #include "dca/function/domains/dmn_0.hpp"
 #include "dca/phys/parameters/dca_parameters.hpp"
 #include "dca/phys/parameters/double_counting_parameters.hpp"
-#include "dca/phys/parameters/equal_time_parameters.hpp"
 #include "dca/phys/parameters/ed_solver_parameters.hpp"
 #include "dca/phys/parameters/function_parameters.hpp"
 #include "dca/phys/parameters/mc_solver_parameters.hpp"
@@ -63,7 +62,6 @@ class Parameters : public OutputParameters,
                    public McSolverParameters<solver_name>,
                    public EdSolverParameters,
                    public VertexParameters<Model::lattice_type::DIMENSION>,
-                   public EqualTimeParameters,
                    public DoubleCountingParameters {
 public:
   using concurrency_type = Concurrency;
@@ -183,7 +181,6 @@ Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solve
       MciParameters(),
       McSolverParameters<solver_name>(),
       VertexParameters<Model::DIMENSION>(),
-      EqualTimeParameters(),
 
       version_stamp_(make_python_readable(version_stamp)),
 
@@ -350,7 +347,6 @@ int Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
   buffer_size += EdSolverParameters::getBufferSize(concurrency);
   buffer_size += FunctionParameters::getBufferSize(concurrency);
   buffer_size += VertexParameters<Model::DIMENSION>::getBufferSize(concurrency);
-  buffer_size += EqualTimeParameters::getBufferSize(concurrency);
   buffer_size += DoubleCountingParameters::getBufferSize(concurrency);
 
   return buffer_size;
@@ -369,7 +365,6 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
   EdSolverParameters::pack(concurrency, buffer, buffer_size, position);
   FunctionParameters::pack(concurrency, buffer, buffer_size, position);
   VertexParameters<Model::DIMENSION>::pack(concurrency, buffer, buffer_size, position);
-  EqualTimeParameters::pack(concurrency, buffer, buffer_size, position);
   DoubleCountingParameters::pack(concurrency, buffer, buffer_size, position);
 }
 
@@ -386,7 +381,6 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
   EdSolverParameters::unpack(concurrency, buffer, buffer_size, position);
   FunctionParameters::unpack(concurrency, buffer, buffer_size, position);
   VertexParameters<Model::DIMENSION>::unpack(concurrency, buffer, buffer_size, position);
-  EqualTimeParameters::unpack(concurrency, buffer, buffer_size, position);
   DoubleCountingParameters::unpack(concurrency, buffer, buffer_size, position);
 }
 
@@ -415,7 +409,6 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
   EdSolverParameters::readWrite(reader_or_writer);
   FunctionParameters::readWrite(reader_or_writer);
   VertexParameters<Model::DIMENSION>::readWrite(reader_or_writer);
-  EqualTimeParameters::readWrite(reader_or_writer);
   DoubleCountingParameters::readWrite(reader_or_writer);
 }
 
