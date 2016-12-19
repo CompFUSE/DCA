@@ -7,12 +7,12 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Template specialization of model parameters for tight-binding model.
+// Template specialization of model parameters for the single-band Hubbard model.
 
 template <typename Lattice>
 class ModelParameters<models::TightBindingModel<Lattice>> {
 public:
-  ModelParameters() : t_(1.), t_prime_(0.), U_(4.), V_(0.), V_prime_(0.) {}
+  ModelParameters() : t_(0.), t_prime_(0.), U_(0.), V_(0.), V_prime_(0.) {}
 
   template <typename Concurrency>
   int getBufferSize(const Concurrency& concurrency) const;
@@ -110,7 +110,7 @@ template <typename Lattice>
 template <typename ReaderOrWriter>
 void ModelParameters<models::TightBindingModel<Lattice>>::readWrite(ReaderOrWriter& reader_or_writer) {
   try {
-    reader_or_writer.open_group("2D-Hubbard-model");
+    reader_or_writer.open_group("single-band-Hubbard-model");
 
     try {
       reader_or_writer.execute("t", t_);
@@ -141,7 +141,6 @@ void ModelParameters<models::TightBindingModel<Lattice>>::readWrite(ReaderOrWrit
     reader_or_writer.close_group();
   }
   catch (const std::exception& r_e) {
-    std::cout << "\nNo 2D-Hubbard-model parameters defined!\n" << std::endl;
-    throw std::logic_error(__PRETTY_FUNCTION__);
+    throw std::logic_error("Parameters group \"single-band-Hubbard-model\" is required.");
   }
 }

@@ -1,6 +1,6 @@
 {
     "material-model": {
-        "t_ij-filename": "t_ij.txt",
-        "U_ij-filename": "U_ij.txt"
+        "t_ij-filename": "NiO_t_ij.txt",
+        "U_ij-filename": "NiO_U_ij.txt"
     }
 }

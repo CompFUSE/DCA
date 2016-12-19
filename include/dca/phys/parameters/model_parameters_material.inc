@@ -12,7 +12,7 @@
 template <models::material_name_type name, typename PointGroup>
 class ModelParameters<models::TightBindingModel<models::material_lattice<name, PointGroup>>> {
 public:
-  ModelParameters() : t_ij_file_name_("t_ij_file_name"), U_ij_file_name_("U_ij_file_name") {}
+  ModelParameters() : t_ij_file_name_("t_ij.txt"), U_ij_file_name_("U_ij.txt") {}
 
   template <typename Concurrency>
   int getBufferSize(const Concurrency& concurrency) const;
@@ -84,14 +84,6 @@ void ModelParameters<models::TightBindingModel<models::material_lattice<name, Po
     reader_or_writer.close_group();
   }
   catch (const std::exception& r_e) {
-    std::cout << "\nNo material-model parameters defined!\n" << std::endl;
-    throw std::logic_error(__PRETTY_FUNCTION__);
+    throw std::logic_error("Parameters group \"material-model\" is required.");
   }
-
-  std::cout << "\n\n"
-            << "\tmaterial-model\n"
-            << "\t--------------\n"
-            << "\t\tt_ij-filename   : " << t_ij_file_name_ << "\n"
-            << "\t\tU_ij-filename   : " << U_ij_file_name_ << "\n"
-            << std::endl;
 }

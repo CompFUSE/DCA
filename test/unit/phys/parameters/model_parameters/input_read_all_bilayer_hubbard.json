@@ -1,0 +1,10 @@
+{
+    "bilayer-Hubbard-model": {
+        "t": 1.,
+        "t-prime": 0.5,
+        "t-perp": 0.2,
+        "U": 8.,
+        "V": 2.,
+        "V-prime": 2.
+    }
+}

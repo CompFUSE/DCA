@@ -7,12 +7,12 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
-// Template specialization of model parameters for 2D bilayer model.
+// Template specialization of model parameters for square lattice bilayer Hubbard model.
 
 template <typename PointGroup>
 class ModelParameters<models::TightBindingModel<models::bilayer_lattice<PointGroup>>> {
 public:
-  ModelParameters() : t_(1.), t_prime_(0.), t_perp_(0.), U_(4.), V_(0.), V_prime_(0.) {}
+  ModelParameters() : t_(0.), t_prime_(0.), t_perp_(0.), U_(0.), V_(0.), V_prime_(0.) {}
 
   template <typename Concurrency>
   int getBufferSize(const Concurrency& concurrency) const;
@@ -120,7 +120,7 @@ template <typename ReaderOrWriter>
 void ModelParameters<models::TightBindingModel<models::bilayer_lattice<PointGroup>>>::readWrite(
     ReaderOrWriter& reader_or_writer) {
   try {
-    reader_or_writer.open_group("bilayer-model");
+    reader_or_writer.open_group("bilayer-Hubbard-model");
 
     try {
       reader_or_writer.execute("t", t_);
@@ -133,7 +133,7 @@ void ModelParameters<models::TightBindingModel<models::bilayer_lattice<PointGrou
     catch (const std::exception& r_e) {
     }
     try {
-      reader_or_writer.execute("tz", t_perp_);
+      reader_or_writer.execute("t-perp", t_perp_);
     }
     catch (const std::exception& r_e) {
     }
@@ -156,19 +156,6 @@ void ModelParameters<models::TightBindingModel<models::bilayer_lattice<PointGrou
     reader_or_writer.close_group();
   }
   catch (const std::exception& r_e) {
-    std::cout << "\n No bilayer-model parameters defined!\n" << std::endl;
-    throw std::logic_error(__PRETTY_FUNCTION__);
+    throw std::logic_error("Parameters group \"bilayer-Hubbard-model\" is required.");
   }
-
-  std::cout << "\n\n"
-            << "\tbilayer-model : \n"
-            << "\t--------------- \n\n"
-            << "\t\t t  : " << t_ << "\n"
-            << "\t\t t' : " << t_prime_ << "\n"
-            << "\t\t tz : " << t_perp_ << "\n"
-            << "\t\t U  : " << U_ << "\n"
-            << "\t\t V  : " << V_ << "\n"
-            << "\t\t V' : " << V_prime_ << "\n"
-            << "\n"
-            << std::endl;
 }

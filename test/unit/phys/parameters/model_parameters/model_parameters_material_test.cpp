@@ -23,8 +23,8 @@ TEST(ModelParametersMaterialTest, DefaultValues) {
       dca::phys::models::material_lattice<dca::phys::models::NiO_symmetric, PointGroup>>>
       pars;
 
-  EXPECT_EQ("t_ij_file_name", pars.get_t_ij_file_name());
-  EXPECT_EQ("U_ij_file_name", pars.get_U_ij_file_name());
+  EXPECT_EQ("t_ij.txt", pars.get_t_ij_file_name());
+  EXPECT_EQ("U_ij.txt", pars.get_U_ij_file_name());
 }
 
 TEST(ModelParametersMaterialTest, ReadAll) {
@@ -38,8 +38,8 @@ TEST(ModelParametersMaterialTest, ReadAll) {
   pars.readWrite(reader);
   reader.close_file();
 
-  EXPECT_EQ("t_ij.txt", pars.get_t_ij_file_name());
-  EXPECT_EQ("U_ij.txt", pars.get_U_ij_file_name());
+  EXPECT_EQ("NiO_t_ij.txt", pars.get_t_ij_file_name());
+  EXPECT_EQ("NiO_U_ij.txt", pars.get_U_ij_file_name());
 }
 
 TEST(ModelParametersMaterialTest, Setter) {
@@ -47,9 +47,9 @@ TEST(ModelParametersMaterialTest, Setter) {
       dca::phys::models::material_lattice<dca::phys::models::NiO_symmetric, PointGroup>>>
       pars;
 
-  pars.set_t_ij_file_name("t_ij_NiO.txt");
-  pars.set_U_ij_file_name("U_ij_NiO.txt");
+  pars.set_t_ij_file_name("NiO_t_ij.txt");
+  pars.set_U_ij_file_name("NiO_U_ij.txt");
 
-  EXPECT_EQ("t_ij_NiO.txt", pars.get_t_ij_file_name());
-  EXPECT_EQ("U_ij_NiO.txt", pars.get_U_ij_file_name());
+  EXPECT_EQ("NiO_t_ij.txt", pars.get_t_ij_file_name());
+  EXPECT_EQ("NiO_U_ij.txt", pars.get_U_ij_file_name());
 }
