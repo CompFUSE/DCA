@@ -21,16 +21,17 @@
 #include <vector>
 
 #include "dca/function/domains/dmn_0.hpp"
+#include "dca/phys/parameters/analysis_parameters.hpp"
 #include "dca/phys/parameters/dca_parameters.hpp"
 #include "dca/phys/parameters/double_counting_parameters.hpp"
 #include "dca/phys/parameters/ed_solver_parameters.hpp"
-#include "dca/phys/parameters/function_parameters.hpp"
+#include "dca/phys/parameters/four_point_parameters.hpp"
 #include "dca/phys/parameters/mc_solver_parameters.hpp"
 #include "dca/phys/parameters/mci_parameters.hpp"
 #include "dca/phys/parameters/model_parameters.hpp"
 #include "dca/phys/parameters/output_parameters.hpp"
 #include "dca/phys/parameters/physics_parameters.hpp"
-#include "dca/phys/parameters/vertex_parameters.hpp"
+#include "dca/phys/parameters/real_frequency_mesh_parameters.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_family.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_initializer.hpp"
@@ -53,16 +54,17 @@ namespace params {
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
           typename RandomNumberGenerator, solver::ClusterSolverName solver_name>
-class Parameters : public OutputParameters,
-                   public PhysicsParameters,
-                   public ModelParameters<Model>,
+class Parameters : public AnalysisParameters,
                    public DcaParameters,
-                   public FunctionParameters,
-                   public MciParameters,
-                   public McSolverParameters<solver_name>,
+                   public DoubleCountingParameters,
                    public EdSolverParameters,
-                   public VertexParameters<Model::lattice_type::DIMENSION>,
-                   public DoubleCountingParameters {
+                   public FourPointParameters<Model::lattice_type::DIMENSION>,
+                   public McSolverParameters<solver_name>,
+                   public MciParameters,
+                   public ModelParameters<Model>,
+                   public OutputParameters,
+                   public PhysicsParameters,
+                   public RealFrequencyMeshParameters {
 public:
   using concurrency_type = Concurrency;
   using ThreadingType = Threading;
@@ -101,14 +103,6 @@ public:
   using k_HOST_VERTEX =
       func::dmn_0<domains::cluster_domain<double, Model::lattice_type::DIMENSION, domains::LATTICE_TP,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
-
-  // LDA cluster domains
-  using r_LDA =
-      func::dmn_0<domains::cluster_domain<double, Model::lattice_type::DIMENSION, domains::LATTICE_SP,
-                                          domains::REAL_SPACE, domains::PARALLELLEPIPEDUM>>;
-  using k_LDA =
-      func::dmn_0<domains::cluster_domain<double, Model::lattice_type::DIMENSION, domains::LATTICE_SP,
-                                          domains::MOMENTUM_SPACE, domains::PARALLELLEPIPEDUM>>;
 
   using DCA_cluster_family_type =
       domains::cluster_domain_family<double, Model::lattice_type::DIMENSION, domains::CLUSTER,
@@ -173,14 +167,17 @@ template <typename Concurrency, typename Threading, typename Profiler, typename 
           typename RandomNumberGenerator, solver::ClusterSolverName solver_name>
 Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name>::Parameters(
     const std::string& version_stamp, concurrency_type& concurrency)
-    : OutputParameters(),
-      PhysicsParameters(),
-      ModelParameters<Model>(),
-      DcaParameters(Model::DIMENSION),
-      FunctionParameters(Model::DIMENSION),
-      MciParameters(),
+    : AnalysisParameters(),
+      DcaParameters(),
+      DoubleCountingParameters(),
+      EdSolverParameters(),
+      FourPointParameters<Model::DIMENSION>(),
       McSolverParameters<solver_name>(),
-      VertexParameters<Model::DIMENSION>(),
+      MciParameters(),
+      ModelParameters<Model>(),
+      OutputParameters(),
+      PhysicsParameters(),
+      RealFrequencyMeshParameters(),
 
       version_stamp_(make_python_readable(version_stamp)),
 
@@ -220,7 +217,7 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
 
   domains::DCA_iteration_domain::write(writer);
 
-  if (VertexParameters<Model::DIMENSION>::get_vertex_measurement_type() != NONE) {
+  if (FourPointParameters<Model::DIMENSION>::get_four_point_type() != NONE) {
     domains::vertex_time_domain<domains::SP_TIME_DOMAIN>::write(writer);
     domains::vertex_time_domain<domains::TP_TIME_DOMAIN>::write(writer);
     domains::vertex_time_domain<domains::SP_TIME_DOMAIN_POSITIVE>::write(writer);
@@ -293,7 +290,7 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
 
   // DCA
   domains::cluster_domain_initializer<r_DCA>::execute(Model::get_r_DCA_basis(),
-                                                      DcaParameters::get_DCA_cluster());
+                                                      DcaParameters::get_cluster());
 
   domains::cluster_domain_symmetry_initializer<
       r_DCA, typename Model::lattice_type::DCA_point_group>::execute();
@@ -304,7 +301,7 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
   // host
   domains::cluster_domain_initializer<r_HOST>::execute(
       Model::get_r_DCA_basis(),  // DCA_lattice_parameters_type::lattice_vectors(),
-      FunctionParameters::get_sp_cluster());
+      DcaParameters::get_sp_host());
 
   domains::cluster_domain_symmetry_initializer<
       r_HOST, typename Model::lattice_type::DCA_point_group>::execute();
@@ -315,21 +312,13 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
   // host
   domains::cluster_domain_initializer<r_HOST_VERTEX>::execute(
       Model::get_r_DCA_basis(),  // DCA_lattice_parameters_type::lattice_vectors(),
-      FunctionParameters::get_tp_cluster());
+      DcaParameters::get_tp_host());
 
   domains::cluster_domain_symmetry_initializer<
       r_HOST_VERTEX, typename Model::lattice_type::DCA_point_group>::execute();
 
   if (concurrency_.id() == concurrency_.last())
     k_HOST_VERTEX::parameter_type::print(std::cout);
-
-  // LDA
-  domains::cluster_domain_initializer<r_LDA>::execute(
-      Model::get_r_DCA_basis(),  // DCA_lattice_parameters_type::lattice_vectors(),
-      FunctionParameters::get_H_k_grid_size());
-
-  if (concurrency_.id() == concurrency_.last())
-    k_LDA::parameter_type::print(std::cout);
 }
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
@@ -338,16 +327,17 @@ int Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
                solver_name>::get_buffer_size(const Concurrency& concurrency) const {
   int buffer_size = 0;
 
+  buffer_size += AnalysisParameters::getBufferSize(concurrency);
+  buffer_size += DcaParameters::getBufferSize(concurrency);
+  buffer_size += DoubleCountingParameters::getBufferSize(concurrency);
+  buffer_size += EdSolverParameters::getBufferSize(concurrency);
+  buffer_size += FourPointParameters<Model::DIMENSION>::getBufferSize(concurrency);
+  buffer_size += McSolverParameters<solver_name>::getBufferSize(concurrency);
+  buffer_size += MciParameters::getBufferSize(concurrency);
+  buffer_size += ModelParameters<Model>::getBufferSize(concurrency);
   buffer_size += OutputParameters::getBufferSize(concurrency);
   buffer_size += PhysicsParameters::getBufferSize(concurrency);
-  buffer_size += ModelParameters<Model>::getBufferSize(concurrency);
-  buffer_size += DcaParameters::getBufferSize(concurrency);
-  buffer_size += MciParameters::getBufferSize(concurrency);
-  buffer_size += McSolverParameters<solver_name>::getBufferSize(concurrency);
-  buffer_size += EdSolverParameters::getBufferSize(concurrency);
-  buffer_size += FunctionParameters::getBufferSize(concurrency);
-  buffer_size += VertexParameters<Model::DIMENSION>::getBufferSize(concurrency);
-  buffer_size += DoubleCountingParameters::getBufferSize(concurrency);
+  buffer_size += RealFrequencyMeshParameters::getBufferSize(concurrency);
 
   return buffer_size;
 }
@@ -356,32 +346,34 @@ template <typename Concurrency, typename Threading, typename Profiler, typename 
           typename RandomNumberGenerator, solver::ClusterSolverName solver_name>
 void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name>::pack(
     const Concurrency& concurrency, int* buffer, int buffer_size, int& position) const {
+  AnalysisParameters::pack(concurrency, buffer, buffer_size, position);
+  DcaParameters::pack(concurrency, buffer, buffer_size, position);
+  DoubleCountingParameters::pack(concurrency, buffer, buffer_size, position);
+  EdSolverParameters::pack(concurrency, buffer, buffer_size, position);
+  FourPointParameters<Model::DIMENSION>::pack(concurrency, buffer, buffer_size, position);
+  McSolverParameters<solver_name>::pack(concurrency, buffer, buffer_size, position);
+  MciParameters::pack(concurrency, buffer, buffer_size, position);
+  ModelParameters<Model>::pack(concurrency, buffer, buffer_size, position);
   OutputParameters::pack(concurrency, buffer, buffer_size, position);
   PhysicsParameters::pack(concurrency, buffer, buffer_size, position);
-  ModelParameters<Model>::pack(concurrency, buffer, buffer_size, position);
-  DcaParameters::pack(concurrency, buffer, buffer_size, position);
-  MciParameters::pack(concurrency, buffer, buffer_size, position);
-  McSolverParameters<solver_name>::pack(concurrency, buffer, buffer_size, position);
-  EdSolverParameters::pack(concurrency, buffer, buffer_size, position);
-  FunctionParameters::pack(concurrency, buffer, buffer_size, position);
-  VertexParameters<Model::DIMENSION>::pack(concurrency, buffer, buffer_size, position);
-  DoubleCountingParameters::pack(concurrency, buffer, buffer_size, position);
+  RealFrequencyMeshParameters::pack(concurrency, buffer, buffer_size, position);
 }
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
           typename RandomNumberGenerator, solver::ClusterSolverName solver_name>
 void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name>::unpack(
     const Concurrency& concurrency, int* buffer, int buffer_size, int& position) {
+  AnalysisParameters::unpack(concurrency, buffer, buffer_size, position);
+  DcaParameters::unpack(concurrency, buffer, buffer_size, position);
+  DoubleCountingParameters::unpack(concurrency, buffer, buffer_size, position);
+  EdSolverParameters::unpack(concurrency, buffer, buffer_size, position);
+  FourPointParameters<Model::DIMENSION>::unpack(concurrency, buffer, buffer_size, position);
+  McSolverParameters<solver_name>::unpack(concurrency, buffer, buffer_size, position);
+  MciParameters::unpack(concurrency, buffer, buffer_size, position);
+  ModelParameters<Model>::unpack(concurrency, buffer, buffer_size, position);
   OutputParameters::unpack(concurrency, buffer, buffer_size, position);
   PhysicsParameters::unpack(concurrency, buffer, buffer_size, position);
-  ModelParameters<Model>::unpack(concurrency, buffer, buffer_size, position);
-  DcaParameters::unpack(concurrency, buffer, buffer_size, position);
-  MciParameters::unpack(concurrency, buffer, buffer_size, position);
-  McSolverParameters<solver_name>::unpack(concurrency, buffer, buffer_size, position);
-  EdSolverParameters::unpack(concurrency, buffer, buffer_size, position);
-  FunctionParameters::unpack(concurrency, buffer, buffer_size, position);
-  VertexParameters<Model::DIMENSION>::unpack(concurrency, buffer, buffer_size, position);
-  DoubleCountingParameters::unpack(concurrency, buffer, buffer_size, position);
+  RealFrequencyMeshParameters::unpack(concurrency, buffer, buffer_size, position);
 }
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
@@ -400,16 +392,17 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
     reader_or_writer.execute("random-number-generator", RandomNumberGeneratorype_str);
   }
 
+  AnalysisParameters::readWrite(reader_or_writer);
+  DcaParameters::readWrite(reader_or_writer);
+  DoubleCountingParameters::readWrite(reader_or_writer);
+  EdSolverParameters::readWrite(reader_or_writer);
+  FourPointParameters<Model::DIMENSION>::readWrite(reader_or_writer);
+  McSolverParameters<solver_name>::readWrite(reader_or_writer);
+  MciParameters::readWrite(reader_or_writer);
+  ModelParameters<Model>::readWrite(reader_or_writer);
   OutputParameters::readWrite(reader_or_writer);
   PhysicsParameters::readWrite(reader_or_writer);
-  ModelParameters<Model>::readWrite(reader_or_writer);
-  DcaParameters::readWrite(reader_or_writer);
-  MciParameters::readWrite(reader_or_writer);
-  McSolverParameters<solver_name>::readWrite(reader_or_writer);
-  EdSolverParameters::readWrite(reader_or_writer);
-  FunctionParameters::readWrite(reader_or_writer);
-  VertexParameters<Model::DIMENSION>::readWrite(reader_or_writer);
-  DoubleCountingParameters::readWrite(reader_or_writer);
+  RealFrequencyMeshParameters::readWrite(reader_or_writer);
 }
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
