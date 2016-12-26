@@ -1,0 +1,9 @@
+{
+    "real-frequency-mesh": {
+        "min": -8,
+        "max": 8,
+        "frequencies": 64,
+        "imaginary-damping": 0.001
+    }
+}
+
