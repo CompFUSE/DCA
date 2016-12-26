@@ -1,29 +1,40 @@
 {
-    "DCA" : {
-        "do-DCA+": "true",
-        "interacting-bands": [0, 1],
-        "DCA-iterations": 3,
-        "DCA-accuracy": 1.e-6,
-        "DCA-mixing-factor": 0.5,
-        "cluster": [[ 4, 0],
-                    [ 0, 4]],
+    "DCA": {
+    	"initial-self-energy": "./T=0.5/dca.hdf5",
+        "iterations": 3,
+        "accuracy": 1.e-3,
+        "self-energy-mixing-factor": 0.5,
+        "interacting-orbitals": [0, 1, 2],
+
+	"grids": {
+            "cluster": [[2, 0],
+	    	        [0, 2]],
+	    "sp-host": [[20, 20],
+		        [20,-20]],
+	    "tp-host": [[8, 8],
+		        [8,-8]]
+	},
         
-        "cluster-mapping": {
-            "k-mesh-refinement": 4,
-            "number-of-periods": 2,
-            "quadrature-rule": 2,
-            "precompute-Hamiltonian": "false",
-            "number-of-threads": 8,
-            "number-of-tail-frequencies": 10,
-            "phi(k) integration accuracy": 1.e-5,
-            "print-phi(k)": "true"
-        },
+	"imaginary-time-and-frequency-meshes": {
+	    "sp-time-intervals": 64,
+	    "sp-fermionic-frequencies": 128
+	},
+	
+	"coarse-graining": {
+	    "k-mesh-recursion": 3,
+	    "periods": 2,
+	    "quadrature-rule": 2,
+	    "threads": 8,
+	    "tail-frequencies": 10,
+	    "HTS-approximation": true,
+	    "HTS-bosonic-frequencies": 16,
+	    "HTS-threads": 8
+	},
         
-        "lattice-mapping": {
-            "interpolation-method": "some-method",
-            "HTS-approximation": "true",
-            "deconvolution-tolerance": 1.e-3,
-            "max-deconvolution-iterations": 32
-        }
+	"DCA+": {
+	    "do-DCA+": true,
+	    "deconvolution-iterations": 32,
+	    "deconvolution-tolerance": 1.e-4
+	}
     }
 }
