@@ -3,6 +3,7 @@
         "expansion-parameter-K": 10.,
         "initial-matrix-size": 64,
         "submatrix-size": 32,
-        "additional-time-measurements": true
+        "additional-time-measurements": true,
+        "time-intervals-for-time-measurements": 128
     }
 }
