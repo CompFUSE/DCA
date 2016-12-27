@@ -24,7 +24,6 @@ TEST(FourPointParametersTest, DefaultValues) {
   EXPECT_EQ(dca::phys::NONE, pars.get_four_point_type());
   EXPECT_EQ(momentum_transfer_input_check, pars.get_four_point_momentum_transfer_input());
   EXPECT_EQ(0, pars.get_four_point_frequency_transfer());
-  EXPECT_EQ(0, pars.get_four_point_fermionic_frequencies());
 }
 
 TEST(FourPointParametersTest, ReadAll) {
@@ -41,5 +40,4 @@ TEST(FourPointParametersTest, ReadAll) {
   EXPECT_EQ(dca::phys::PARTICLE_PARTICLE_SUPERCONDUCTING, pars.get_four_point_type());
   EXPECT_EQ(momentum_transfer_input_check, pars.get_four_point_momentum_transfer_input());
   EXPECT_EQ(1, pars.get_four_point_frequency_transfer());
-  EXPECT_EQ(16, pars.get_four_point_fermionic_frequencies());
 }

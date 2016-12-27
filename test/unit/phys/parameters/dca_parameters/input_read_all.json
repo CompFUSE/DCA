@@ -5,21 +5,7 @@
         "accuracy": 1.e-3,
         "self-energy-mixing-factor": 0.5,
         "interacting-orbitals": [0, 1, 2],
-
-	"grids": {
-            "cluster": [[2, 0],
-	    	        [0, 2]],
-	    "sp-host": [[20, 20],
-		        [20,-20]],
-	    "tp-host": [[8, 8],
-		        [8,-8]]
-	},
-        
-	"imaginary-time-and-frequency-meshes": {
-	    "sp-time-intervals": 64,
-	    "sp-fermionic-frequencies": 128
-	},
-	
+        	
 	"coarse-graining": {
 	    "k-mesh-recursion": 3,
 	    "periods": 2,
@@ -27,7 +13,6 @@
 	    "threads": 8,
 	    "tail-frequencies": 10,
 	    "HTS-approximation": true,
-	    "HTS-bosonic-frequencies": 16,
 	    "HTS-threads": 8
 	},
         

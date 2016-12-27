@@ -39,8 +39,7 @@ public:
   FourPointParameters()
       : four_point_type_("NONE"),
         four_point_momentum_transfer_input_(lattice_dimension, 0.),
-        four_point_frequency_transfer_(0),
-        four_point_fermionic_frequencies_(0) {}
+        four_point_frequency_transfer_(0) {}
 
   template <typename Concurrency>
   int getBufferSize(const Concurrency& concurrency) const;
@@ -59,9 +58,6 @@ public:
   }
   int get_four_point_frequency_transfer() const {
     return four_point_frequency_transfer_;
-  }
-  int get_four_point_fermionic_frequencies() const {
-    return four_point_fermionic_frequencies_;
   }
   // Returns the 'exact' momentum transfer (q-vector), i.e. the DCA momentum space cluster vector
   // whose distance (L2 norm) to the input momentum transfer is minimal.
@@ -86,7 +82,6 @@ private:
   std::string four_point_type_;
   std::vector<double> four_point_momentum_transfer_input_;
   int four_point_frequency_transfer_;
-  int four_point_fermionic_frequencies_;
 };
 
 template <int lattice_dimension>
@@ -97,7 +92,6 @@ int FourPointParameters<lattice_dimension>::getBufferSize(const Concurrency& con
   buffer_size += concurrency.get_buffer_size(four_point_type_);
   buffer_size += concurrency.get_buffer_size(four_point_momentum_transfer_input_);
   buffer_size += concurrency.get_buffer_size(four_point_frequency_transfer_);
-  buffer_size += concurrency.get_buffer_size(four_point_fermionic_frequencies_);
 
   return buffer_size;
 }
@@ -109,7 +103,6 @@ void FourPointParameters<lattice_dimension>::pack(const Concurrency& concurrency
   concurrency.pack(buffer, buffer_size, position, four_point_type_);
   concurrency.pack(buffer, buffer_size, position, four_point_momentum_transfer_input_);
   concurrency.pack(buffer, buffer_size, position, four_point_frequency_transfer_);
-  concurrency.pack(buffer, buffer_size, position, four_point_fermionic_frequencies_);
 }
 
 template <int lattice_dimension>
@@ -119,7 +112,6 @@ void FourPointParameters<lattice_dimension>::unpack(const Concurrency& concurren
   concurrency.unpack(buffer, buffer_size, position, four_point_type_);
   concurrency.unpack(buffer, buffer_size, position, four_point_momentum_transfer_input_);
   concurrency.unpack(buffer, buffer_size, position, four_point_frequency_transfer_);
-  concurrency.unpack(buffer, buffer_size, position, four_point_fermionic_frequencies_);
 }
 
 template <int lattice_dimension>
@@ -140,11 +132,6 @@ void FourPointParameters<lattice_dimension>::readWrite(ReaderOrWriter& reader_or
     }
     try {
       reader_or_writer.execute("frequency-transfer", four_point_frequency_transfer_);
-    }
-    catch (const std::exception& r_e) {
-    }
-    try {
-      reader_or_writer.execute("fermionic-frequencies", four_point_fermionic_frequencies_);
     }
     catch (const std::exception& r_e) {
     }

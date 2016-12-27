@@ -31,20 +31,12 @@ public:
         self_energy_mixing_factor_(1.),
         interacting_orbitals_{0},
 
-        cluster_(0),
-        sp_host_(0),
-        tp_host_(0),
-
-        sp_time_intervals_(128),
-        sp_fermionic_frequencies_(256),
-
         k_mesh_recursion_(0),
         coarsegraining_periods_(0),
         quadrature_rule_(1),
         coarsegraining_threads_(1),
         tail_frequencies_(0),
         hts_approximation_(false),
-        hts_bosonic_frequencies_(32),
         hts_threads_(1),
 
         do_dca_plus_(false),
@@ -76,21 +68,6 @@ public:
   const std::vector<int>& get_interacting_orbitals() const {
     return interacting_orbitals_;
   }
-  const std::vector<std::vector<int>>& get_cluster() const {
-    return cluster_;
-  }
-  const std::vector<std::vector<int>>& get_sp_host() const {
-    return sp_host_;
-  }
-  const std::vector<std::vector<int>>& get_tp_host() const {
-    return tp_host_;
-  }
-  int get_sp_time_intervals() const {
-    return sp_time_intervals_;
-  }
-  int get_sp_fermionic_frequencies() const {
-    return sp_fermionic_frequencies_;
-  }
   int get_k_mesh_recursion() const {
     return k_mesh_recursion_;
   }
@@ -108,9 +85,6 @@ public:
   }
   bool hts_approximation() const {
     return hts_approximation_;
-  }
-  int get_hts_bosonic_frequencies() const {
-    return hts_bosonic_frequencies_;
   }
   int get_hts_threads() const {
     return hts_threads_;
@@ -132,15 +106,6 @@ private:
   double self_energy_mixing_factor_;
   std::vector<int> interacting_orbitals_;
 
-  // grids
-  std::vector<std::vector<int>> cluster_;
-  std::vector<std::vector<int>> sp_host_;
-  std::vector<std::vector<int>> tp_host_;
-
-  // imaginary time and frequency meshes
-  int sp_time_intervals_;
-  int sp_fermionic_frequencies_;
-
   // coarse-graining
   int k_mesh_recursion_;
   int coarsegraining_periods_;
@@ -148,7 +113,6 @@ private:
   int coarsegraining_threads_;
   int tail_frequencies_;
   bool hts_approximation_;
-  int hts_bosonic_frequencies_;
   int hts_threads_;
 
   // DCA+
@@ -166,23 +130,13 @@ int DcaParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(dca_accuracy_);
   buffer_size += concurrency.get_buffer_size(self_energy_mixing_factor_);
   buffer_size += concurrency.get_buffer_size(interacting_orbitals_);
-
-  buffer_size += concurrency.get_buffer_size(cluster_);
-  buffer_size += concurrency.get_buffer_size(sp_host_);
-  buffer_size += concurrency.get_buffer_size(tp_host_);
-
-  buffer_size += concurrency.get_buffer_size(sp_time_intervals_);
-  buffer_size += concurrency.get_buffer_size(sp_fermionic_frequencies_);
-
   buffer_size += concurrency.get_buffer_size(k_mesh_recursion_);
   buffer_size += concurrency.get_buffer_size(coarsegraining_periods_);
   buffer_size += concurrency.get_buffer_size(quadrature_rule_);
   buffer_size += concurrency.get_buffer_size(coarsegraining_threads_);
   buffer_size += concurrency.get_buffer_size(tail_frequencies_);
   buffer_size += concurrency.get_buffer_size(hts_approximation_);
-  buffer_size += concurrency.get_buffer_size(hts_bosonic_frequencies_);
   buffer_size += concurrency.get_buffer_size(hts_threads_);
-
   buffer_size += concurrency.get_buffer_size(do_dca_plus_);
   buffer_size += concurrency.get_buffer_size(deconvolution_iterations_);
   buffer_size += concurrency.get_buffer_size(deconvolution_tolerance_);
@@ -198,23 +152,13 @@ void DcaParameters::pack(const Concurrency& concurrency, int* buffer, int buffer
   concurrency.pack(buffer, buffer_size, position, dca_accuracy_);
   concurrency.pack(buffer, buffer_size, position, self_energy_mixing_factor_);
   concurrency.pack(buffer, buffer_size, position, interacting_orbitals_);
-
-  concurrency.pack(buffer, buffer_size, position, cluster_);
-  concurrency.pack(buffer, buffer_size, position, sp_host_);
-  concurrency.pack(buffer, buffer_size, position, tp_host_);
-
-  concurrency.pack(buffer, buffer_size, position, sp_time_intervals_);
-  concurrency.pack(buffer, buffer_size, position, sp_fermionic_frequencies_);
-
   concurrency.pack(buffer, buffer_size, position, k_mesh_recursion_);
   concurrency.pack(buffer, buffer_size, position, coarsegraining_periods_);
   concurrency.pack(buffer, buffer_size, position, quadrature_rule_);
   concurrency.pack(buffer, buffer_size, position, coarsegraining_threads_);
   concurrency.pack(buffer, buffer_size, position, tail_frequencies_);
   concurrency.pack(buffer, buffer_size, position, hts_approximation_);
-  concurrency.pack(buffer, buffer_size, position, hts_bosonic_frequencies_);
   concurrency.pack(buffer, buffer_size, position, hts_threads_);
-
   concurrency.pack(buffer, buffer_size, position, do_dca_plus_);
   concurrency.pack(buffer, buffer_size, position, deconvolution_iterations_);
   concurrency.pack(buffer, buffer_size, position, deconvolution_tolerance_);
@@ -228,23 +172,13 @@ void DcaParameters::unpack(const Concurrency& concurrency, int* buffer, int buff
   concurrency.unpack(buffer, buffer_size, position, dca_accuracy_);
   concurrency.unpack(buffer, buffer_size, position, self_energy_mixing_factor_);
   concurrency.unpack(buffer, buffer_size, position, interacting_orbitals_);
-
-  concurrency.unpack(buffer, buffer_size, position, cluster_);
-  concurrency.unpack(buffer, buffer_size, position, sp_host_);
-  concurrency.unpack(buffer, buffer_size, position, tp_host_);
-
-  concurrency.unpack(buffer, buffer_size, position, sp_time_intervals_);
-  concurrency.unpack(buffer, buffer_size, position, sp_fermionic_frequencies_);
-
   concurrency.unpack(buffer, buffer_size, position, k_mesh_recursion_);
   concurrency.unpack(buffer, buffer_size, position, coarsegraining_periods_);
   concurrency.unpack(buffer, buffer_size, position, quadrature_rule_);
   concurrency.unpack(buffer, buffer_size, position, coarsegraining_threads_);
   concurrency.unpack(buffer, buffer_size, position, tail_frequencies_);
   concurrency.unpack(buffer, buffer_size, position, hts_approximation_);
-  concurrency.unpack(buffer, buffer_size, position, hts_bosonic_frequencies_);
   concurrency.unpack(buffer, buffer_size, position, hts_threads_);
-
   concurrency.unpack(buffer, buffer_size, position, do_dca_plus_);
   concurrency.unpack(buffer, buffer_size, position, deconvolution_iterations_);
   concurrency.unpack(buffer, buffer_size, position, deconvolution_tolerance_);
@@ -282,54 +216,6 @@ void DcaParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     }
 
     try {
-      reader_or_writer.open_group("grids");
-
-      try {
-        reader_or_writer.execute("cluster", cluster_);
-      }
-      catch (const std::exception& r_e) {
-        throw std::logic_error("Parameter \"cluster\" is required.");
-      }
-
-      try {
-        reader_or_writer.execute("sp-host", sp_host_);
-      }
-      catch (const std::exception& r_e) {
-        throw std::logic_error("Parameter \"sp-host\" is required.");
-      }
-
-      try {
-        reader_or_writer.execute("tp-host", tp_host_);
-      }
-      catch (const std::exception& r_e) {
-      }
-
-      reader_or_writer.close_group();
-    }
-    catch (const std::exception& r_e) {
-    }
-
-    try {
-      reader_or_writer.open_group("imaginary-time-and-frequency-meshes");
-
-      try {
-        reader_or_writer.execute("sp-time-intervals", sp_time_intervals_);
-      }
-      catch (const std::exception& r_e) {
-      }
-
-      try {
-        reader_or_writer.execute("sp-fermionic-frequencies", sp_fermionic_frequencies_);
-      }
-      catch (const std::exception& r_e) {
-      }
-
-      reader_or_writer.close_group();
-    }
-    catch (const std::exception& r_e) {
-    }
-
-    try {
       reader_or_writer.open_group("coarse-graining");
 
       try {
@@ -359,11 +245,6 @@ void DcaParameters::readWrite(ReaderOrWriter& reader_or_writer) {
       }
       try {
         reader_or_writer.execute("HTS-approximation", hts_approximation_);
-      }
-      catch (const std::exception& r_e) {
-      }
-      try {
-        reader_or_writer.execute("HTS-bosonic-frequencies", hts_bosonic_frequencies_);
       }
       catch (const std::exception& r_e) {
       }

@@ -84,7 +84,7 @@ template <typename Concurrency>
 void AnalysisParameters::unpack(const Concurrency& concurrency, int* buffer, int buffer_size,
                                 int& position) {
   concurrency.unpack(buffer, buffer_size, position, symmetrize_Gamma_);
-  concurrency.umpack(buffer, buffer_size, position, Gamma_deconvolution_cut_off_);
+  concurrency.unpack(buffer, buffer_size, position, Gamma_deconvolution_cut_off_);
   concurrency.unpack(buffer, buffer_size, position, project_onto_crystal_harmonics_);
   concurrency.unpack(buffer, buffer_size, position, projection_cut_off_radius_);
 }
