@@ -169,7 +169,7 @@ Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solve
     const std::string& version_stamp, concurrency_type& concurrency)
     : AnalysisParameters(),
       DcaParameters(),
-      DomainsParameters(),
+      DomainsParameters(Model::DIMENSION),
       DoubleCountingParameters(),
       EdSolverParameters(),
       FourPointParameters<Model::DIMENSION>(),

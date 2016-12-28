@@ -78,12 +78,19 @@ void ModelParameters<models::TightBindingModel<models::material_lattice<name, Po
   try {
     reader_or_writer.open_group("material-model");
 
-    reader_or_writer.execute("t_ij-filename", t_ij_file_name_);
-    reader_or_writer.execute("U_ij-filename", U_ij_file_name_);
+    try {
+      reader_or_writer.execute("t_ij-filename", t_ij_file_name_);
+    }
+    catch (const std::exception& r_e) {
+    }
+    try {
+      reader_or_writer.execute("U_ij-filename", U_ij_file_name_);
+    }
+    catch (const std::exception& r_e) {
+    }
 
     reader_or_writer.close_group();
   }
   catch (const std::exception& r_e) {
-    throw std::logic_error("Parameters group \"material-model\" is required.");
   }
 }

@@ -35,7 +35,7 @@ public:
   McSolverParameters()
       : expansion_parameter_K_(1.),
         initial_matrix_size_(128),
-        submatrix_size_(64),
+        submatrix_size_(128),
         additional_time_measurements_(false) {}
 
   template <typename Concurrency>
@@ -128,7 +128,6 @@ void McSolverParameters<solver::CT_AUX>::readWrite(ReaderOrWriter& reader_or_wri
     reader_or_writer.close_group();
   }
   catch (const std::exception& r_e) {
-    throw std::logic_error("Parameters group \"CT-AUX\" is required..");
   }
 }
 
@@ -202,7 +201,6 @@ void McSolverParameters<solver::SS_CT_HYB>::readWrite(ReaderOrWriter& reader_or_
     }
     catch (const std::exception& r_e) {
     }
-
     try {
       reader_or_writer.execute("steps-per-sweep", steps_per_sweep_);
     }
@@ -217,7 +215,6 @@ void McSolverParameters<solver::SS_CT_HYB>::readWrite(ReaderOrWriter& reader_or_
     reader_or_writer.close_group();
   }
   catch (const std::exception& r_e) {
-    throw std::logic_error("Parameters group \"SS-CT-HYB\" is required..");
   }
 }
 

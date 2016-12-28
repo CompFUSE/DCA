@@ -116,7 +116,6 @@ void PhysicsParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     reader_or_writer.close_group();
   }
   catch (const std::exception& r_e) {
-    throw std::logic_error("Parameters group \"physics\" is required.");
   }
 }
 

@@ -20,7 +20,7 @@ TEST(McSolverParametersCtAuxTest, DefaultValues) {
 
   EXPECT_EQ(1., pars.get_expansion_parameter_K());
   EXPECT_EQ(128, pars.get_initial_matrix_size());
-  EXPECT_EQ(64, pars.get_submatrix_size());
+  EXPECT_EQ(128, pars.get_submatrix_size());
   EXPECT_FALSE(pars.additional_time_measurements());
 }
 
@@ -33,8 +33,8 @@ TEST(McSolverParametersCtAuxTest, ReadAll) {
   pars.readWrite(reader);
   reader.close_file();
 
-  EXPECT_EQ(10., pars.get_expansion_parameter_K());
+  EXPECT_EQ(2., pars.get_expansion_parameter_K());
   EXPECT_EQ(64, pars.get_initial_matrix_size());
-  EXPECT_EQ(32, pars.get_submatrix_size());
+  EXPECT_EQ(64, pars.get_submatrix_size());
   EXPECT_TRUE(pars.additional_time_measurements());
 }

@@ -139,13 +139,11 @@ void OutputParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     }
     catch (const std::exception& r_e) {
     }
-
     try {
       reader_or_writer.execute("output-format", output_format_);
     }
     catch (const std::exception& r_e) {
     }
-
     try {
       reader_or_writer.execute("filename-dca", filename_dca_);
     }
@@ -171,7 +169,6 @@ void OutputParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     }
     catch (const std::exception& r_e) {
     }
-
     try {
       reader_or_writer.execute("dump-lattice-self-energy", dump_lattice_self_energy_);
     }

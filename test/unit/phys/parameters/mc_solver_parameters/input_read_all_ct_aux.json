@@ -1,8 +1,8 @@
 {
     "CT-AUX": {
-        "expansion-parameter-K": 10.,
+        "expansion-parameter-K": 2.,
         "initial-matrix-size": 64,
-        "submatrix-size": 32,
+        "submatrix-size": 64,
         "additional-time-measurements": true
     }
 }

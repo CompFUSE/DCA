@@ -141,6 +141,5 @@ void ModelParameters<models::TightBindingModel<Lattice>>::readWrite(ReaderOrWrit
     reader_or_writer.close_group();
   }
   catch (const std::exception& r_e) {
-    throw std::logic_error("Parameters group \"single-band-Hubbard-model\" is required.");
   }
 }

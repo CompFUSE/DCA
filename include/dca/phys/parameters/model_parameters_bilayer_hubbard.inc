@@ -156,6 +156,5 @@ void ModelParameters<models::TightBindingModel<models::bilayer_lattice<PointGrou
     reader_or_writer.close_group();
   }
   catch (const std::exception& r_e) {
-    throw std::logic_error("Parameters group \"bilayer-Hubbard-model\" is required.");
   }
 }
