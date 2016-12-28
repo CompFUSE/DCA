@@ -17,7 +17,7 @@ using dca::parallel::MPITypeMap;
 
 TEST(MPITypeMapTest, All) {
   EXPECT_EQ(1, MPITypeMap<bool>::factor());
-  EXPECT_EQ(MPI_INT, MPITypeMap<bool>::value());
+  EXPECT_EQ(MPI_CXX_BOOL, MPITypeMap<bool>::value());
 
   EXPECT_EQ(1, MPITypeMap<char>::factor());
   EXPECT_EQ(MPI_CHAR, MPITypeMap<char>::value());
