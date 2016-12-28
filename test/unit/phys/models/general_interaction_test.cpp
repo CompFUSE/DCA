@@ -35,7 +35,7 @@ public:
   void set_interacting_orbitals(const std::vector<int>& interacting_orbitals) {
     interacting_orbitals_ = interacting_orbitals;
   }
-  const std::vector<int>& get_interacting_bands() const {
+  const std::vector<int>& get_interacting_orbitals() const {
     return interacting_orbitals_;
   }
 
