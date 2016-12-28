@@ -1,174 +1,77 @@
 {
-    "filename-parameters" :
-    {
-        "output-format"         : "HDF5",
-
-        "directory"             : "./",
-
-        "output-file"           : "input_data.analysis_DCA+_mpi_test.hdf5",
-        "profiling-file"        : "profiling.analysis_DCA+_mpi_test.hdf5",
-
-        "spectrum-file"         : "",
-        "susceptibilities-file" : "data.analysis_DCA+_mpi_test.hdf5"
+    "output": {
+	"directory": "./",
+	"output-format": "HDF5",
+	"filename-dca": "input_data.analysis_DCA+_mpi_test.hdf5",
+	"filename-analysis": "data.analysis_DCA+_mpi_test.hdf5"
     },
 
-    "physics-parameters" :
-    {
-        "beta"                      :  1,
-
-        "adjust-chemical-potential" : "true",
-        "density"                   :  0.900,
-        "chemical-potential"        :  0.0
+    "physics": {
+	"beta": 1.,
+	"density": 0.9,
+	"chemical-potential": 0.,
+	"adjust-chemical-potential": true
     },
 
-    "2D-Hubbard-model" :
-    {
-        "t"       : 1,
-        "t-prime" : 0,
-
-        "U"       : 4,
-        "U_prime" : 0
+    "single-band-Hubbard-model": {
+        "t": 1.,
+	"U": 4.
     },
 
-    "DCA" :
-    {
-        "do-DCA+" : "true",
-
-        "interacting-bands" : [0],
-        "DCA-iterations"    : 1,
-        "DCA-accuracy"      : 0.0001,
-        "DCA-mixing-factor" : 1,
-
-        "cluster" : [[2, 0],
-                     [0, 2]],
-
-        "cluster-mapping" :
-        {
-            "k-mesh-refinement" : 3,
-            "quadrature-rule"   : 1,
-            "number-of-periods" : 2,
-
-            "precompute-Hamiltonian"      : "true",
-            "phi(k) integration accuracy" : 0.001,
-
-            "print-phi"                   : "false"
-        },
-
-        "lattice-mapping" :
-        {
-            "interpolation-method" : "wannier-interpolation",
-            "HTS-approximation"    : "false",
-
-            "deconvolution-tolerance"      : 0.01,
-            "max-deconvolution-iterations" : 32
-        }
+    "DCA": {
+	"interacting-orbitals": [0],
+	
+	"coarse-graining": {
+	    "k-mesh-recursion": 3,
+	    "periods": 2,
+	    "quadrature-rule": 1,
+	    "threads": 1
+	},
+        
+	"DCA+": {
+	    "do-DCA+": true,
+	    "deconvolution-iterations": 32,
+	    "deconvolution-tolerance": 0.01
+	}
+    },
+    
+    "domains": {
+	"real-space-grids": {
+	    "cluster": [[2, 0],
+	    	        [0, 2]],
+	    "sp-host": [[8, 8],
+		        [8,-8]],
+	    "tp-host": [[4, 4],
+		        [4,-4]]
+	},
+        
+	"imaginary-time": {
+	    "sp-time-intervals": 128,
+	    "time-intervals-for-time-measurements": 16
+	},
+	
+	"imaginary-frequency": {
+	    "sp-fermionic-frequencies": 256,
+	    "four-point-fermionic-frequencies": 16
+	},
+        
+        "real-frequency": {
+            "min": -10,
+            "max": 10,
+            "frequencies": 128,
+            "imaginary-damping": 0.01
+    	}
     },
 
-    "Monte-Carlo-Integration" :
-    {
-        "Sigma-file" : "",
-
-        "warm-up-sweeps"         : 25,
-        "sweeps-per-measurement" : 4,
-        "measurements"           : 60,
-
-        "adaptive-double-counting" : "false",
-
-        "RNG-seed" : 685456376,
-
-        "MC-posix-parameters" :
-        {
-            "nr-walkers"       : 4,
-            "nr-accumulators"  : 12,
-            "additional-steps" : 0
-        }
+    "four-point": {
+	"type": "PARTICLE_PARTICLE_UP_DOWN",
+	"momentum-transfer": [0., 0.],
+	"frequency-transfer": 0
     },
 
-    "CT-AUX-solver" :
-    {
-        "submatrix-size"      : 64,
-        "initial-matrix-size" : 256,
-
-        "K-parameter"         : 1
-    },
-
-    "function-parameters" :
-    {
-        "single-particle-functions" :
-        {
-            "H(k) grid-size"        : [10, 10],
-
-            "time-intervals"        : 128,
-            "fermionic-frequencies" : 256,
-            "bosonic-frequencies"   : 32,
-
-            "sp-cluster" : [[8, 8],
-                            [8,-8]]
-        },
-
-        "two-particle-functions" :
-        {
-            "time-intervals"        : 16,
-
-            "fermionic-frequencies" : 16,
-            "bosonic-frequencies"   : 16,
-
-            "tp-cluster" : [[4, 4],
-                            [4,-4]]
-        },
-
-        "real-axis-functions" :
-        {
-            "lower-bound" : -10,
-            "upper-bound" :  10,
-
-            "nr-intervals" : 128,
-            "real-axis-off-set" : 0.01
-        }
-    },
-
-    "vertex-channel" :
-    {
-        "vertex-measurement-type" : "PARTICLE_PARTICLE_SUPERCONDUCTING",
-
-        "q-channel" : [0, 0],
-        "w-channel" : 0,
-
-        "deconvolute-Gamma" : "yes",
-        "symmetrize-Gamma"  : "yes",
-
-        "lattice-mapping" :
-        {
-            "singular-value-sigma-cut-off" : 0.5
-        },
-
-        "lattice-solver" :
-        {
-            "diagonolize-folded-Gamma-chi_0" : "false",
-            "BSE-cut-off-radius"             : 1.5
-        },
-
-        "options" :
-        {
-            "compute-chi"   : "no",
-            "compute-chi_0" : "no",
-
-            "compute-eigenvalues" : "yes",
-
-            "compute-Pq-cluster" : "no",
-            "compute-Pq-lattice" : "no"
-        }
-    },
-
-    "CPE-parameters" :
-    {
-        "do-CPE" : "false",
-
-        "max-CPE-iterations"             : 10000,
-        "number-of-matsubara-freqencies" : 64,
-
-        "compute-free-spectrum"    : "true",
-        "compute-lattice-spectrum" : "false",
-        "compute-cluster-spectrum" : "false"
+    "analysis": {
+	"symmetrize-Gamma": true,
+	"Gamma-deconvolution-cut-off": 0.5,
+	"project-onto-crystal-harmonics": false
     }
 }
