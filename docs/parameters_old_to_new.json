@@ -57,7 +57,7 @@
 	"output-CPE": removed,
 	"output-QMC": "filename-qmc",
 	"dump-lattice-self-energy": (boolean),
-	"dump-cluster-Greens-function": (boolean)
+	"dump-cluster-Greens-function": "dump-cluster-Greens-functions" (boolean)
     },
     
     "function-parameters": "domains" {

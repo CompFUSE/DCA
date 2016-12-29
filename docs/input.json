@@ -8,7 +8,7 @@
 	"filename-qmc": "qmc.hdf5",
 	"filename-profiling": "profiling.json",
 	"dump-lattice-self-energy": false,
-	"dump-cluster-Greens-function": true
+	"dump-cluster-Greens-functions": true
     },
 
     "physics": {

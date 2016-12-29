@@ -175,7 +175,7 @@ void OutputParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     catch (const std::exception& r_e) {
     }
     try {
-      reader_or_writer.execute("dump-cluster-Greens-function", dump_cluster_Greens_functions_);
+      reader_or_writer.execute("dump-cluster-Greens-functions", dump_cluster_Greens_functions_);
     }
     catch (const std::exception& r_e) {
     }
