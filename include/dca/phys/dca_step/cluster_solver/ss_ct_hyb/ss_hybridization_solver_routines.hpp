@@ -170,8 +170,8 @@ void ss_hybridization_solver_routines<parameters_t, MOMS_t>::initialize_interact
   for (int b_i = 0; b_i < b::dmn_size(); b_i++) {
     is_interacting_band_vector[b_i] = false;
 
-    for (int b_j = 0; b_j < parameters.get_interacting_bands().size(); b_j++)
-      if (parameters.get_interacting_bands()[b_j] == b_i)
+    for (int b_j = 0; b_j < parameters.get_interacting_orbitals().size(); b_j++)
+      if (parameters.get_interacting_orbitals()[b_j] == b_i)
         is_interacting_band_vector[b_i] = true;
   }
 }

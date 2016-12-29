@@ -45,8 +45,7 @@ public:
 
   using b = func::dmn_0<domains::electron_band_domain>;
 
-  using compact_vertex_frequency_domain_type = domains::vertex_frequency_domain<domains::COMPACT>;
-  using w_VERTEX = func::dmn_0<compact_vertex_frequency_domain_type>;
+  using w_VERTEX = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
 
   using DCA_k_cluster_type =
       domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,

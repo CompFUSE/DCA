@@ -33,8 +33,7 @@ class deconvolution_tp
     : public deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t> {
   using concurrency_type = typename parameters_type::concurrency_type;
 
-  using compact_vertex_frequency_domain_type = domains::vertex_frequency_domain<domains::COMPACT>;
-  using w_VERTEX = func::dmn_0<compact_vertex_frequency_domain_type>;
+  using w_VERTEX = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
   using b = func::dmn_0<domains::electron_band_domain>;
   using host_vertex_k_cluster_type =
       domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::LATTICE_TP,
@@ -82,7 +81,7 @@ void deconvolution_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(
   dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> phi_inv(
       "phi_inv", std::pair<int, int>(N, N));
 
-  this->compute_T_inv_matrix(parameters.get_singular_value_cut_off(), phi_inv);
+  this->compute_T_inv_matrix(parameters.get_Gamma_deconvolution_cut_off(), phi_inv);
 
   math::transform::FunctionTransform<k_dmn_t, target_k_dmn_t>::execute_on_all(
       Gamma_lattice_interp, Gamma_lattice_deconv, phi_inv);

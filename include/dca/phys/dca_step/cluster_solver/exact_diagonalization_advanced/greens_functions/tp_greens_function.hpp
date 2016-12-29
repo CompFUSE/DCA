@@ -261,7 +261,7 @@ TpGreensFunction<parameter_type, ed_options>::TpGreensFunction(
   }
 
   {
-    int q_channel = parameters.get_q_channel_ind();
+    int q_channel = parameters.get_four_point_momentum_transfer_index();
     int k0_index = k_dmn::parameter_type::origin_index();
 
     for (int l = 0; l < k_dmn::parameter_type::get_size(); l++) {
@@ -323,7 +323,7 @@ void TpGreensFunction<parameter_type, ed_options>::compute_particle_particle_sup
 
   G4 = 0;
 
-  int w_nu = parameters.get_w_channel();
+  int w_nu = parameters.get_four_point_frequency_transfer();
 
   if (concurrency.id() == 0)
     std::cout << "\tw_nu : " << w_nu << std::endl;
@@ -450,7 +450,7 @@ void TpGreensFunction<parameter_type, ed_options>::compute_particle_particle_sup
 
   G4 = 0;
 
-  int w_nu = parameters.get_w_channel();
+  int w_nu = parameters.get_four_point_frequency_transfer();
 
   std::cout << "\n\n\t w_nu : " << w_nu << "\n";
 
@@ -929,7 +929,7 @@ void TpGreensFunction<parameter_type, ed_options>::compute_tp_Greens_function_sl
 template <typename parameter_type, typename ed_options>
 void TpGreensFunction<parameter_type, ed_options>::compute_tp_Greens_function(
     std::vector<tp_Greens_function_data_type>& data_vec) {
-  // int w_nu = parameters.get_w_channel();
+  // int w_nu = parameters.get_four_point_frequency_transfer();
 
   int origin = k_dmn::parameter_type::origin_index();
 

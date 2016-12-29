@@ -59,8 +59,7 @@ public:
 
   using t = func::dmn_0<domains::time_domain>;
   using w = func::dmn_0<domains::frequency_domain>;
-  using compact_vertex_frequency_domain_type = domains::vertex_frequency_domain<domains::COMPACT>;
-  using w_VERTEX = func::dmn_0<compact_vertex_frequency_domain_type>;
+  using w_VERTEX = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
 
   using b = func::dmn_0<domains::electron_band_domain>;
   using s = func::dmn_0<domains::electron_spin_domain>;
@@ -256,7 +255,7 @@ void DcaData<parameters_type>::read(std::string filename) {
 
   concurrency.broadcast_object(Sigma);
 
-  if (parameters.get_vertex_measurement_type() != NONE) {
+  if (parameters.get_four_point_type() != NONE) {
     concurrency.broadcast_object(G_k_w);
     concurrency.broadcast_object(G4_k_k_w_w);
   }
@@ -341,7 +340,7 @@ void DcaData<parameters_type>::write(Writer& writer) {
 
   writer.execute(band_structure);
 
-  if (parameters.do_DCA_plus()) {
+  if (parameters.do_dca_plus()) {
     writer.execute(Sigma_band_structure);
     writer.execute(Sigma_cluster_band_structure);
     writer.execute(Sigma_lattice_band_structure);
@@ -354,7 +353,7 @@ void DcaData<parameters_type>::write(Writer& writer) {
     writer.execute(G_k);
   }
 
-  if (!parameters.do_DCA_plus()) {  // Compute Sigma-r-DCA for the lowest frequency
+  if (!parameters.do_dca_plus()) {  // Compute Sigma-r-DCA for the lowest frequency
                                     // via Fourier transformation of DCA cluster
                                     // Sigma.
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA>> S_r_DCA("Sigma-r-DCA");
@@ -374,7 +373,7 @@ void DcaData<parameters_type>::write(Writer& writer) {
     writer.execute(Sigma_lattice);
   }
 
-  if (parameters.do_equal_time_measurements() or parameters.dump_cluster_Greens_functions()) {
+  if (parameters.additional_time_measurements() or parameters.dump_cluster_Greens_functions()) {
     writer.execute(G_k_w);
     writer.execute(G_k_w_stddev);
     writer.execute(G_r_w);
@@ -392,8 +391,8 @@ void DcaData<parameters_type>::write(Writer& writer) {
     writer.execute(G0_r_t_cluster_excluded);
   }
 
-  if (parameters.get_vertex_measurement_type() != NONE) {
-    if (not(parameters.do_equal_time_measurements() or parameters.dump_cluster_Greens_functions())) {
+  if (parameters.get_four_point_type() != NONE) {
+    if (not(parameters.additional_time_measurements() or parameters.dump_cluster_Greens_functions())) {
       writer.execute(G_k_w);
       writer.execute(G_k_w_stddev);
     }
@@ -476,8 +475,8 @@ template <class parameters_type>
 void DcaData<parameters_type>::initialize_Sigma() {
   profiler_type prof("initialize-Sigma", "input", __LINE__);
 
-  if (parameters.get_Sigma_file() != "zero")
-    this->read(parameters.get_Sigma_file());
+  if (parameters.get_initial_self_energy() != "zero")
+    this->read(parameters.get_initial_self_energy());
 }
 
 template <class parameters_type>
@@ -555,7 +554,7 @@ void DcaData<parameters_type>::compute_Sigma_bands() {
   }
 
   Sigma_lattice_band_structure.reset();
-  if (parameters.do_DCA_plus()) {
+  if (parameters.do_dca_plus()) {
     func::function<std::complex<double>, func::dmn_variadic<nu, k_HOST>> S_k_dmn("S_k_dmn_s");
 
     for (int b_ind = 0; b_ind < b::dmn_size(); ++b_ind)
@@ -583,7 +582,7 @@ void DcaData<parameters_type>::compute_Sigma_bands() {
   }
 
   Sigma_band_structure_coarsegrained.reset();
-  if (parameters.do_DCA_plus()) {
+  if (parameters.do_dca_plus()) {
     func::function<std::complex<double>, func::dmn_variadic<nu, k_HOST>> S_k_dmn("S_k_dmn_s");
 
     for (int b_ind = 0; b_ind < b::dmn_size(); ++b_ind)
@@ -599,7 +598,7 @@ void DcaData<parameters_type>::compute_Sigma_bands() {
 
 template <class parameters_type>
 void DcaData<parameters_type>::print_Sigma_QMC_versus_Sigma_cg() {
-  if (concurrency.id() == 0 /*and parameters.do_DCA_plus()*/) {
+  if (concurrency.id() == 0 /*and parameters.do_dca_plus()*/) {
     if (DIMENSION == 2) {
       std::cout << "\n\n";
       std::cout << "        K-vectors             || Re[Sigma_QMC]   Im[Sigma_QMC]   Re[Sigma_cg]  "

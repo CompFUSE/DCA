@@ -193,7 +193,7 @@ template <class qmci_integrator_type>
 template <typename dca_info_struct_t>
 double PosixQmciClusterSolver<qmci_integrator_type>::finalize(dca_info_struct_t& dca_info_struct) {
   profiler_type profiler(__FUNCTION__, "posix-MC-Integration", __LINE__);
-  if (DCA_iteration == parameters.get_DCA_iterations() - 1)
+  if (DCA_iteration == parameters.get_dca_iterations() - 1)
     compute_error_bars();
 
   double L2_Sigma_difference = qmci_integrator_type::finalize(dca_info_struct);

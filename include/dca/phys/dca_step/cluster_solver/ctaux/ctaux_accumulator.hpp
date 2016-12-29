@@ -301,7 +301,7 @@ void CtauxAccumulator<device_t, parameters_type, MOMS_type>::initialize(int dca_
     MC_two_particle_equal_time_accumulator_obj.initialize();
   }
 
-  if (parameters.get_vertex_measurement_type() != NONE)
+  if (parameters.get_four_point_type() != NONE)
     accumulator_nonlocal_chi_obj.initialize();
 }
 
@@ -423,12 +423,11 @@ void CtauxAccumulator<device_t, parameters_type, MOMS_type>::measure() {
 
   accumulate_single_particle_quantities();
 
-  if (DCA_iteration == parameters.get_DCA_iterations() - 1 &&
+  if (DCA_iteration == parameters.get_dca_iterations() - 1 &&
       parameters.additional_time_measurements())
     accumulate_equal_time_quantities();
 
-  if (DCA_iteration == parameters.get_DCA_iterations() - 1 &&
-      parameters.get_vertex_measurement_type() != NONE)
+  if (DCA_iteration == parameters.get_dca_iterations() - 1 && parameters.get_four_point_type() != NONE)
     accumulate_two_particle_quantities();
 }
 

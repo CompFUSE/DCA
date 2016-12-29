@@ -48,9 +48,7 @@ public:
   typedef typename parameters_type::concurrency_type concurrency_type;
 
   using t = func::dmn_0<domains::time_domain>;
-  using tp_time_pos_dmn_t =
-      func::dmn_0<domains::vertex_time_domain<domains::TP_TIME_DOMAIN_POSITIVE>>;
-  using t_VERTEX = tp_time_pos_dmn_t;
+  using t_VERTEX = func::dmn_0<domains::vertex_time_domain<domains::TP_TIME_DOMAIN_POSITIVE>>;
 
   using b = func::dmn_0<domains::electron_band_domain>;
   using s = func::dmn_0<domains::electron_spin_domain>;

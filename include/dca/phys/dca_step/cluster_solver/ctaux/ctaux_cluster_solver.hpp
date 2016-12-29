@@ -263,12 +263,11 @@ double CtauxClusterSolver<device_t, parameters_type, MOMS_type>::finalize(
     }
   }
 
-  //     if(DCA_iteration == parameters.get_DCA_iterations()-1 &&
+  //     if(DCA_iteration == parameters.get_dca_iterations()-1 &&
   //     parameters.additional_time_measurements())
   //       MOMS.G_r_t =
 
-  if (DCA_iteration == parameters.get_DCA_iterations() - 1 &&
-      parameters.get_vertex_measurement_type() != NONE)
+  if (DCA_iteration == parameters.get_dca_iterations() - 1 && parameters.get_four_point_type() != NONE)
     MOMS.G4_k_k_w_w /= parameters.get_beta() * parameters.get_beta();
 
   double total = 1.e-6, integral = 0;
@@ -409,7 +408,7 @@ void CtauxClusterSolver<device_t, parameters_type, MOMS_type>::compute_error_bar
   concurrency.average_and_compute_stddev(G_k_w_new, MOMS.G_k_w_stddev);
 
   // sum G4
-  if (parameters.get_vertex_measurement_type() != NONE) {
+  if (parameters.get_four_point_type() != NONE) {
     if (concurrency.id() == 0)
       std::cout << "\n\t\t compute-error-bars on G4\t" << dca::util::print_time() << "\n\n";
 
@@ -492,7 +491,7 @@ void CtauxClusterSolver<device_t, parameters_type, MOMS_type>::collect_measureme
   }
 
   // sum G4
-  if (parameters.get_vertex_measurement_type() != NONE) {
+  if (parameters.get_four_point_type() != NONE) {
     {
       profiler_type profiler("QMC-two-particle-Greens-function", "QMC-collectives", __LINE__);
       concurrency.sum_and_average(accumulator.get_G4(), nb_measurements);
@@ -571,7 +570,7 @@ void CtauxClusterSolver<device_t, parameters_type, MOMS_type>::compute_G_k_w_fro
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 double CtauxClusterSolver<device_t, parameters_type, MOMS_type>::compute_S_k_w_from_G_k_w() {
-  static double alpha = parameters.get_DCA_mixing_factor();
+  static double alpha = parameters.get_self_energy_mixing_factor();
   //     double L2_difference_norm = 0;
   //     double L2_Sigma_norm      = 0;
 
@@ -739,7 +738,7 @@ void CtauxClusterSolver<device_t, parameters_type, MOMS_type>::adjust_self_energ
   //
   //  if(parameters.get_double_counting_method()=="constant")
   //    {
-  //      std::vector<int>& interacting_bands = parameters.get_interacting_bands();
+  //      std::vector<int>& interacting_bands = parameters.get_interacting_orbitals();
   //
   //      for(int w_ind=0; w_ind<w::dmn_size(); w_ind++)
   //        for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++)
@@ -753,7 +752,7 @@ void CtauxClusterSolver<device_t, parameters_type, MOMS_type>::adjust_self_energ
   //
   //  if(parameters.get_double_counting_method()=="adaptive")
   //    {
-  //      std::vector<int>& interacting_bands = parameters.get_interacting_bands();
+  //      std::vector<int>& interacting_bands = parameters.get_interacting_orbitals();
   //
   //      for(int b_ind=0; b_ind<interacting_bands.size(); b_ind++)
   //        for(int k_ind=0; k_ind<k_DCA::dmn_size(); k_ind++){

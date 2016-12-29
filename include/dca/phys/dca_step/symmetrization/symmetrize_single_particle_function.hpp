@@ -63,10 +63,8 @@ class symmetrize_single_particle_function {
 public:
   using t = func::dmn_0<domains::time_domain>;
   using w = func::dmn_0<domains::frequency_domain>;
-  using compact_vertex_frequency_domain_type = domains::vertex_frequency_domain<domains::COMPACT>;
-  using w_VERTEX = func::dmn_0<compact_vertex_frequency_domain_type>;
-  using extended_vertex_frequency_domain_type = domains::vertex_frequency_domain<domains::EXTENDED>;
-  using w_VERTEX_EXTENDED = func::dmn_0<extended_vertex_frequency_domain_type>;
+  using w_VERTEX = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
+  using w_VERTEX_EXTENDED = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
   using w_REAL = func::dmn_0<domains::frequency_domain_real_axis>;
 
   using b = func::dmn_0<domains::electron_band_domain>;

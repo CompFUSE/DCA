@@ -53,8 +53,7 @@ public:
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
   using w = func::dmn_0<domains::frequency_domain>;
-  using compact_vertex_frequency_domain_type = domains::vertex_frequency_domain<domains::COMPACT>;
-  using w_VERTEX = func::dmn_0<compact_vertex_frequency_domain_type>;
+  using w_VERTEX = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
 
   using tmp_k_dmn_t = func::dmn_0<tmp_cluster_domain>;
   using tmp_vector_dmn_t = func::dmn_variadic<b, b, tmp_k_dmn_t, w_VERTEX>;

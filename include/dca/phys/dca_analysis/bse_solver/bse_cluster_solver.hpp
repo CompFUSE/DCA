@@ -148,13 +148,13 @@ void BseClusterSolver<ParametersType, DcaDataType>::apply_symmetries_tp(
   if (concurrency.id() == concurrency.last())
     std::cout << "\t" << __FUNCTION__ << "\n\n";
 
-  if (parameters.do_symmetrization_of_Gamma()) {
+  if (parameters.symmetrize_Gamma()) {
     if (true) {
       if (concurrency.id() == concurrency.first())
         std::cout << "symmetrize Gamma_lattice according to the symmetry-group \n" << std::endl;
 
-      symmetrize::execute(G_II, parameters.get_q_channel_vec());
-      symmetrize::execute(G_II_0, parameters.get_q_channel_vec());
+      symmetrize::execute(G_II, parameters.get_four_point_momentum_transfer());
+      symmetrize::execute(G_II_0, parameters.get_four_point_momentum_transfer());
     }
 
     if (true) {
@@ -214,11 +214,11 @@ void BseClusterSolver<ParametersType, DcaDataType>::load_G_II_0(
 
   func::dmn_variadic<k_DCA, w_VERTEX> k_w_dmn;
 
-  int W = parameters.get_sp_fermionic_frequencies();
+  int W = parameters.get_sp_fermionic_frequencies();  // TODO: Replace using w::dmn_size().
   int W_vertex = w_VERTEX::dmn_size() / 2;
-  int q = parameters.get_q_channel_ind();
+  int q = parameters.get_four_point_momentum_transfer_index();
 
-  int w_nu = parameters.get_w_channel();
+  int w_nu = parameters.get_four_point_frequency_transfer();
 
   int coor[2];
 
@@ -236,7 +236,7 @@ void BseClusterSolver<ParametersType, DcaDataType>::load_G_II_0(
       for (int n2 = 0; n2 < b::dmn_size(); n2++) {
         for (int m1 = 0; m1 < b::dmn_size(); m1++) {
           for (int m2 = 0; m2 < b::dmn_size(); m2++) {
-            switch (parameters.get_vertex_measurement_type()) {
+            switch (parameters.get_four_point_type()) {
               case PARTICLE_HOLE_TRANSVERSE: {
                 G_II_0(n1, n2, k, w_vertex, m1, m2, k, w_vertex) =
                     -MOMS.G_k_w(n1, e_UP, m2, e_UP, k, w) *

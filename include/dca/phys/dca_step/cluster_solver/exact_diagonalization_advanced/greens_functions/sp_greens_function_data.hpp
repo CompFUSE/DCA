@@ -153,7 +153,7 @@ void sp_Greens_function_data<ed_options>::initialize(parameter_type& parameters)
 
   complex_type I(0, 1);
 
-  scalar_type off_set = parameters.get_real_frequencies_off_set();
+  scalar_type off_set = parameters.get_imaginary_damping();
 
   for (int t_i = t::dmn_size() / 2; t_i < t::dmn_size(); ++t_i) {
     tau(t_i) = t::get_elements()[t_i];

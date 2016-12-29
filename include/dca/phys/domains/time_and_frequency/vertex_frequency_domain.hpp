@@ -86,11 +86,11 @@ void vertex_frequency_domain<COMPACT>::initialize(parameters_t& parameters) {
   get_basis()[0] = (2. * M_PI) / parameters.get_beta();
   get_inverse_basis()[0] = parameters.get_beta() / (2. * M_PI);
 
-  get_size() = 2 * parameters.get_tp_fermionic_frequencies();  // wn_c();
+  get_size() = 2 * parameters.get_four_point_fermionic_frequencies();  // wn_c();
 
   get_elements().resize(get_size());
 
-  for (int l = 0; l < parameters.get_tp_fermionic_frequencies(); l++) {
+  for (int l = 0; l < parameters.get_four_point_fermionic_frequencies(); l++) {
     get_elements()[get_size() / 2 + l] = M_PI / parameters.get_beta() * (1 + 2 * l);
     get_elements()[get_size() / 2 - 1 - l] = -M_PI / parameters.get_beta() * (1 + 2 * l);
   }
@@ -116,11 +116,11 @@ void vertex_frequency_domain<COMPACT_POSITIVE>::initialize(parameters_t& paramet
   get_basis()[0] = (2. * M_PI) / parameters.get_beta();
   get_inverse_basis()[0] = parameters.get_beta() / (2. * M_PI);
 
-  get_size() = parameters.get_tp_fermionic_frequencies();  // wn_c();
+  get_size() = parameters.get_four_point_fermionic_frequencies();  // wn_c();
 
   get_elements().resize(get_size());
 
-  for (int l = 0; l < parameters.get_tp_fermionic_frequencies(); l++)
+  for (int l = 0; l < parameters.get_four_point_fermionic_frequencies(); l++)
     get_elements()[l] = M_PI / parameters.get_beta() * (1 + 2 * l);
 
   get_corresponding_frequency_domain_index().resize(get_size(), -1);
@@ -146,7 +146,8 @@ void vertex_frequency_domain<EXTENDED>::initialize(parameters_t& parameters) {
   get_basis()[0] = (2. * M_PI) / parameters.get_beta();
   get_inverse_basis()[0] = parameters.get_beta() / (2. * M_PI);
 
-  get_size() = 2 * (parameters.get_tp_fermionic_frequencies() + abs(parameters.get_w_channel()));
+  get_size() = 2 * (parameters.get_four_point_fermionic_frequencies() +
+                    abs(parameters.get_four_point_frequency_transfer()));
 
   get_elements().resize(get_size());
 
@@ -176,7 +177,8 @@ void vertex_frequency_domain<EXTENDED_POSITIVE>::initialize(parameters_t& parame
   get_basis()[0] = (2. * M_PI) / parameters.get_beta();
   get_inverse_basis()[0] = parameters.get_beta() / (2. * M_PI);
 
-  get_size() = parameters.get_tp_fermionic_frequencies() + abs(parameters.get_w_channel());
+  get_size() = parameters.get_four_point_fermionic_frequencies() +
+               abs(parameters.get_four_point_frequency_transfer());
 
   get_elements().resize(get_size());
 
@@ -206,7 +208,7 @@ void vertex_frequency_domain<EXTENDED_BOSONIC>::initialize(parameters_t& paramet
   get_basis()[0] = (2. * M_PI) / parameters.get_beta();
   get_inverse_basis()[0] = parameters.get_beta() / (2. * M_PI);
 
-  get_size() = 2 * parameters.get_sp_bosonic_frequencies() + 1;
+  get_size() = 2 * parameters.get_hts_bosonic_frequencies() + 1;
 
   get_elements().resize(get_size(), -2. * M_PI / parameters.get_beta() * int(get_size() / 2));
 

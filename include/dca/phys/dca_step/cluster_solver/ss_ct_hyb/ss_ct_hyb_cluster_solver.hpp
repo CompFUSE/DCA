@@ -468,7 +468,7 @@ void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::compute_G_k_w()
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 double SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::compute_S_k_w_from_G_k_w() {
-  double alpha = DCA_iteration > 0 ? parameters.get_DCA_mixing_factor() : 1;
+  double alpha = DCA_iteration > 0 ? parameters.get_self_energy_mixing_factor() : 1;
 
   double L2_difference_norm = 1.e-6;
   double L2_Sigma_norm = 1.e-6;

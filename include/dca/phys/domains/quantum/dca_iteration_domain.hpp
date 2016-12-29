@@ -54,7 +54,7 @@ private:
 
 template <typename parameters_type>
 void DCA_iteration_domain::initialize(parameters_type& parameters) {
-  get_size() = parameters.get_DCA_iterations();
+  get_size() = parameters.get_dca_iterations();
 }
 
 template <typename Writer>

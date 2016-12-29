@@ -285,7 +285,7 @@ void BseLatticeSolver<ParametersType, DcaDataType>::write(Writer& writer) {
 template <typename ParametersType, typename DcaDataType>
 void BseLatticeSolver<ParametersType, DcaDataType>::initialize() {
   {
-    double r_cut_off = parameters.get_BSE_cut_off_radius();
+    double r_cut_off = parameters.get_projection_cut_off_radius();
 
     crystal_harmonics_expansion::initialize();
 
@@ -397,10 +397,10 @@ void BseLatticeSolver<ParametersType, DcaDataType>::compute_chi_0_lattice(
 
   MOMS.Sigma_lattice = 0.;
 
-  if (parameters.do_DCA_plus()) {
+  if (parameters.do_dca_plus()) {
     // in case we do the analysis with the DCA+
 
-    if (parameters.use_HTS_approximation()) {
+    if (parameters.hts_approximation()) {
       coarsegraining_sp_type coarsegraining_sp_obj(parameters);
 
       DcaDataType MOMS_HTS(parameters);
@@ -458,7 +458,7 @@ void BseLatticeSolver<ParametersType, DcaDataType>::compute_Gamma_lattice_3(
 
   // Need following condition lines for regular DCA; otherwise execute(Gamma_cluster, Gamma_lattice)
   // still do SVD etc.
-  if (!parameters.do_DCA_plus()) {
+  if (!parameters.do_dca_plus()) {
     int N = lattice_eigenvector_dmn_t::dmn_size();
     for (int i = 0; i < N; i++)
       for (int j = 0; j < N; j++)
@@ -471,12 +471,12 @@ void BseLatticeSolver<ParametersType, DcaDataType>::compute_Gamma_lattice_3(
     lattice_map_tp_obj.execute(Gamma_cluster, Gamma_lattice);
   }
 
-  if (parameters.do_symmetrization_of_Gamma()) {
+  if (parameters.symmetrize_Gamma()) {
     if (true) {
       if (concurrency.id() == concurrency.first())
         std::cout << "symmetrize Gamma_lattice according to the symmetry-group \n" << std::endl;
 
-      symmetrize::execute(Gamma_lattice, parameters.get_q_channel_vec());
+      symmetrize::execute(Gamma_lattice, parameters.get_four_point_momentum_transfer());
     }
 
     if (true) {
@@ -495,7 +495,7 @@ template <typename ParametersType, typename DcaDataType>
 void BseLatticeSolver<ParametersType, DcaDataType>::diagonalize_Gamma_chi_0(
     func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
     func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice) {
-  if (parameters.do_diagonalization_on_folded_Gamma_chi_0()) {
+  if (parameters.project_onto_crystal_harmonics()) {
     diagonalize_folded_Gamma_chi_0(Gamma_lattice, chi_0_lattice);
   }
   else {
@@ -779,9 +779,6 @@ void BseLatticeSolver<ParametersType, DcaDataType>::diagonalize_folded_Gamma_chi
     record_eigenvalues_and_folded_eigenvectors(L, VL, VR);
 
     print_on_shell();
-
-    if (parameters.compute_P_q_lattice()) {
-    }
   }
 }
 

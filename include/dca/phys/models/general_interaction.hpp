@@ -108,7 +108,7 @@ std::vector<int> general_interaction<parameters_type>::make_correlated_orbitals(
         H_interaction) {
   std::vector<int> correlated_orbitals;
 
-  const std::vector<int>& interacting_orbitals = parameters.get_interacting_bands();
+  const std::vector<int>& interacting_orbitals = parameters.get_interacting_orbitals();
 
   for (int r_j = 0; r_j < RDmn::dmn_size(); ++r_j) {
     for (int r_i = 0; r_i < RDmn::dmn_size(); ++r_i) {

@@ -142,7 +142,7 @@ void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded_
   profiler_type profiler("threaded_execute_on_cluster compute-bubble", "HTS", __LINE__);
 
   {
-    int nr_threads = parameters.get_nr_HTS_threads();
+    int nr_threads = parameters.get_hts_threads();
 
     bubble_data args;
 
