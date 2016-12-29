@@ -108,7 +108,7 @@ namespace dca {
 						   m1,m2,k,w_vertex) = -2.*MOMS.G_k_w(n1, e_UP, m1, e_UP, k, w)*MOMS.G_k_w(n2, e_UP, m2, e_UP, k_plus_q, w+w_nu);
 		    break;
 		
-		  case PARTICLE_PARTICLE_SUPERCONDUCTING:
+		  case PARTICLE_PARTICLE_UP_DOWN:
 		    assert(std::fabs(w::get_elements()[w]+w::get_elements()[2*W-1-w]) < 1.e-6);
 
 		    analysis_ref.G4_0_b_k_w__b_k_w(n1,n2,k,w_vertex,
@@ -185,7 +185,7 @@ namespace dca {
 		      break;
 		    }
 
-		  case PARTICLE_PARTICLE_SUPERCONDUCTING:
+		  case PARTICLE_PARTICLE_UP_DOWN:
 		    {	
 		      double wn          = w::get_elements()[w];
 		      double w_nu_min_wn = w::get_elements()[w_nu+(2*W-1-w)];

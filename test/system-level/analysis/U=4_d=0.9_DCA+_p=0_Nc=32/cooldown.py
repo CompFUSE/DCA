@@ -18,7 +18,7 @@ Nc = 32  # See cluster_definitions
 vecx = [4, 4]
 vecy = [4,-4]
 
-channel = "PARTICLE_PARTICLE_SUPERCONDUCTING"
+channel = "PARTICLE_PARTICLE_UP_DOWN"
 qvec = [0, 0]
 
 sigma_cutoff = 0.5

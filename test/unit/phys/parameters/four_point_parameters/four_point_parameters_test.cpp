@@ -37,7 +37,7 @@ TEST(FourPointParametersTest, ReadAll) {
 
   std::vector<double> momentum_transfer_input_check{3.14, -1.57};
 
-  EXPECT_EQ(dca::phys::PARTICLE_PARTICLE_SUPERCONDUCTING, pars.get_four_point_type());
+  EXPECT_EQ(dca::phys::PARTICLE_PARTICLE_UP_DOWN, pars.get_four_point_type());
   EXPECT_EQ(momentum_transfer_input_check, pars.get_four_point_momentum_transfer_input());
   EXPECT_EQ(1, pars.get_four_point_frequency_transfer());
 }

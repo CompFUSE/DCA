@@ -7,24 +7,24 @@
 //
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// This file defines the various types (channels) of vertex measurements.
+// This file defines the types of four point functions.
 
-#ifndef DCA_PHYS_VERTEX_MEASUREMENT_TYPE_HPP
-#define DCA_PHYS_VERTEX_MEASUREMENT_TYPE_HPP
+#ifndef DCA_PHYS_FOUR_POINT_TYPE_HPP
+#define DCA_PHYS_FOUR_POINT_TYPE_HPP
 
 namespace dca {
 namespace phys {
 // dca::phys::
 
-enum VertexMeasurementType {
+enum FourPointType {
   NONE,
   PARTICLE_HOLE_TRANSVERSE,
   PARTICLE_HOLE_MAGNETIC,
   PARTICLE_HOLE_CHARGE,
-  PARTICLE_PARTICLE_SUPERCONDUCTING
+  PARTICLE_PARTICLE_UP_DOWN
 };
 
 }  // phys
 }  // dca
 
-#endif  // DCA_PHYS_VERTEX_MEASUREMENT_TYPE_HPP
+#endif  // DCA_PHYS_FOUR_POINT_TYPE_HPP

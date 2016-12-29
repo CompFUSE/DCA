@@ -29,7 +29,7 @@
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
-#include "dca/phys/vertex_measurement_type.hpp"
+#include "dca/phys/four_point_type.hpp"
 #include "dca/util/plot.hpp"
 #include "dca/util/print_time.hpp"
 
@@ -249,7 +249,7 @@ void coarsegraining_tp<parameters_type, K_dmn>::execute(
       compute_tp(H_k, Sigma, chi);
     } break;
 
-    case PARTICLE_PARTICLE_SUPERCONDUCTING: {
+    case PARTICLE_PARTICLE_UP_DOWN: {
       interpolation_matrices<scalar_type, k_HOST, q_dmn>::initialize(concurrency);
       interpolation_matrices<scalar_type, k_HOST, Q_min_q_dmn>::initialize(concurrency, Q_ind);
 
@@ -281,7 +281,7 @@ void coarsegraining_tp<parameters_type, K_dmn>::execute(
       compute_tp(H_k, Sigma, chi);
     } break;
 
-    case PARTICLE_PARTICLE_SUPERCONDUCTING: {
+    case PARTICLE_PARTICLE_UP_DOWN: {
       interpolation_matrices<scalar_type, k_HOST, q_dmn>::initialize(concurrency);
       interpolation_matrices<scalar_type, k_HOST, Q_min_q_dmn>::initialize(concurrency, Q_ind);
 
@@ -677,7 +677,7 @@ void coarsegraining_tp<parameters_type, K_dmn>::find_w1_and_w2(std::vector<doubl
       w2 = w1 + W_ind;
     } break;
 
-    case PARTICLE_PARTICLE_SUPERCONDUCTING: {
+    case PARTICLE_PARTICLE_UP_DOWN: {
       w2 = W_ind + (w::dmn_size() - 1 - w1);
       assert(std::abs(w::get_elements()[w1] + w::get_elements()[w::dmn_size() - 1 - w1]) < 1.e-6);
     } break;
@@ -713,7 +713,7 @@ void coarsegraining_tp<parameters_type, K_dmn>::compute_bubble(
                     G_q(n1, e_UP, m2, e_UP, q_ind) * G_q_plus_Q(n2, e_UP, m1, e_UP, q_ind);
                 break;
 
-              case PARTICLE_PARTICLE_SUPERCONDUCTING:
+              case PARTICLE_PARTICLE_UP_DOWN:
                 bubble(n1, n2, m1, m2, q_ind) +=
                     G_q(n1, e_UP, m1, e_UP, q_ind) * G_Q_min_q(n2, e_UP, m2, e_UP, q_ind);
                 break;
@@ -743,7 +743,7 @@ double coarsegraining_tp<parameters_type, K_dmn>::get_integration_factor() {
       return -2.;
       break;
 
-    case PARTICLE_PARTICLE_SUPERCONDUCTING:
+    case PARTICLE_PARTICLE_UP_DOWN:
       return 1;
       break;
 

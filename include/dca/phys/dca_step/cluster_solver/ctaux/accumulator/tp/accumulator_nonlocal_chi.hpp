@@ -59,7 +59,7 @@
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
-#include "dca/phys/vertex_measurement_type.hpp"
+#include "dca/phys/four_point_type.hpp"
 
 namespace dca {
 namespace phys {
@@ -290,7 +290,7 @@ void accumulator_nonlocal_chi<parameters_type, MOMS_type>::execute(scalar_type c
                                       nonlocal_G_obj.get_G_k_k_w_w_e_UP(), current_sign);
       break;
 
-    case PARTICLE_PARTICLE_SUPERCONDUCTING:
+    case PARTICLE_PARTICLE_UP_DOWN:
       accumulate_particle_particle_superconducting(
           nonlocal_G_obj.get_G_k_k_w_w_e_DN(), nonlocal_G_obj.get_G_k_k_w_w_e_UP(), current_sign);
       break;

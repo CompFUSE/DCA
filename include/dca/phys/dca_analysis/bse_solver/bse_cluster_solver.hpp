@@ -25,7 +25,7 @@
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
-#include "dca/phys/vertex_measurement_type.hpp"
+#include "dca/phys/four_point_type.hpp"
 
 namespace dca {
 namespace phys {
@@ -257,7 +257,7 @@ void BseClusterSolver<ParametersType, DcaDataType>::load_G_II_0(
                 break;
               }
 
-              case PARTICLE_PARTICLE_SUPERCONDUCTING: {
+              case PARTICLE_PARTICLE_UP_DOWN: {
                 double wn = w::get_elements()[w];
                 double w_nu_min_wn = w::get_elements()[w_nu + (2 * W - 1 - w)];
                 double beta = parameters.get_beta();

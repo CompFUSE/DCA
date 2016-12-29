@@ -125,7 +125,7 @@
 #include "dca/math/util/vector_operations.hpp"
 #include "dca/phys/domains/cluster/cluster_operations.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
-#include "dca/phys/vertex_measurement_type.hpp"
+#include "dca/phys/four_point_type.hpp"
 
 namespace dca {
 namespace phys {
@@ -265,7 +265,7 @@ void diagrammatic_symmetries<parameters_type>::execute(
         symmetrize_over_pi_rotations_ph(G);
         break;
 
-      case PARTICLE_PARTICLE_SUPERCONDUCTING:
+      case PARTICLE_PARTICLE_UP_DOWN:
         set_real(G);
         symmetrize_over_pi_rotations_pp(G);
         break;
@@ -296,7 +296,7 @@ void diagrammatic_symmetries<parameters_type>::execute(
       symmetrize_over_pi_rotations_ph(G);
       break;
 
-    case PARTICLE_PARTICLE_SUPERCONDUCTING:
+    case PARTICLE_PARTICLE_UP_DOWN:
       // set_real(G);
       symmetrize_over_pi_rotations_pp(G);
       break;

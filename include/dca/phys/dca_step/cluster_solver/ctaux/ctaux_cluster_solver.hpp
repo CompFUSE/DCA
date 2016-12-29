@@ -33,7 +33,7 @@
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
-#include "dca/phys/vertex_measurement_type.hpp"
+#include "dca/phys/four_point_type.hpp"
 #include "dca/profiling/events/time.hpp"
 #include "dca/util/print_time.hpp"
 

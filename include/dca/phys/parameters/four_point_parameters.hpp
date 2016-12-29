@@ -22,7 +22,7 @@
 
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/cluster/cluster_operations.hpp"
-#include "dca/phys/vertex_measurement_type.hpp"
+#include "dca/phys/four_point_type.hpp"
 
 namespace dca {
 namespace phys {
@@ -51,7 +51,7 @@ public:
   template <typename ReaderOrWriter>
   void readWrite(ReaderOrWriter& reader_or_writer);
 
-  VertexMeasurementType get_four_point_type() const;
+  FourPointType get_four_point_type() const;
 
   const std::vector<double>& get_four_point_momentum_transfer_input() const {
     return four_point_momentum_transfer_input_;
@@ -143,12 +143,12 @@ void FourPointParameters<lattice_dimension>::readWrite(ReaderOrWriter& reader_or
 }
 
 template <int lattice_dimension>
-VertexMeasurementType FourPointParameters<lattice_dimension>::get_four_point_type() const {
+FourPointType FourPointParameters<lattice_dimension>::get_four_point_type() const {
   if (four_point_type_ == "NONE")
     return NONE;
 
   else if (four_point_type_ == "PARTICLE_PARTICLE_UP_DOWN")
-    return PARTICLE_PARTICLE_SUPERCONDUCTING;
+    return PARTICLE_PARTICLE_UP_DOWN;
 
   else if (four_point_type_ == "PARTICLE_HOLE_TRANSVERSE")
     return PARTICLE_HOLE_TRANSVERSE;
