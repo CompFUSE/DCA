@@ -74,9 +74,9 @@ template <typename Concurrency>
 void PhysicsParameters::pack(const Concurrency& concurrency, int* buffer, int buffer_size,
                              int& position) const {
   concurrency.pack(buffer, buffer_size, position, beta_);
-  concurrency.pack(buffer, buffer_size, position, adjust_chemical_potential_);
   concurrency.pack(buffer, buffer_size, position, density_);
   concurrency.pack(buffer, buffer_size, position, chemical_potential_);
+  concurrency.pack(buffer, buffer_size, position, adjust_chemical_potential_);
 }
 
 template <typename Concurrency>
