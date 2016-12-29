@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
   dca_data.read(parameters.get_directory() + parameters.get_filename_dca());
 
   // Compute the susceptibility.
-  if (parameters.get_vertex_measurement_type() != dca::phys::NONE) {
+  if (parameters.get_four_point_type() != dca::phys::NONE) {
     BseSolverType analysis_obj(parameters, dca_data);
     analysis_obj.calculate_susceptibilities_2();
 
