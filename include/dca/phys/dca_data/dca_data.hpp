@@ -373,7 +373,7 @@ void DcaData<parameters_type>::write(Writer& writer) {
     writer.execute(Sigma_lattice);
   }
 
-  if (parameters.additional_time_measurements() or parameters.dump_cluster_Greens_functions()) {
+  if (parameters.dump_cluster_Greens_functions()) {
     writer.execute(G_k_w);
     writer.execute(G_k_w_stddev);
     writer.execute(G_r_w);
@@ -392,7 +392,7 @@ void DcaData<parameters_type>::write(Writer& writer) {
   }
 
   if (parameters.get_four_point_type() != NONE) {
-    if (not(parameters.additional_time_measurements() or parameters.dump_cluster_Greens_functions())) {
+    if (!(parameters.dump_cluster_Greens_functions())) {
       writer.execute(G_k_w);
       writer.execute(G_k_w_stddev);
     }
