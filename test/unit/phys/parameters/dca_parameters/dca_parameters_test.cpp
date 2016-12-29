@@ -28,11 +28,11 @@ TEST(DcaParametersTest, DefaultValues) {
   EXPECT_EQ(1, pars.get_quadrature_rule());
   EXPECT_EQ(1, pars.get_coarsegraining_threads());
   EXPECT_EQ(0, pars.get_tail_frequencies());
-  EXPECT_FALSE(pars.hts_approximation());
-  EXPECT_EQ(1, pars.get_hts_threads());
   EXPECT_FALSE(pars.do_dca_plus());
   EXPECT_EQ(16, pars.get_deconvolution_iterations());
   EXPECT_EQ(1.e-3, pars.get_deconvolution_tolerance());
+  EXPECT_FALSE(pars.hts_approximation());
+  EXPECT_EQ(1, pars.get_hts_threads());
 }
 
 TEST(DcaParametersTest, ReadAll) {
@@ -55,9 +55,9 @@ TEST(DcaParametersTest, ReadAll) {
   EXPECT_EQ(2, pars.get_quadrature_rule());
   EXPECT_EQ(8, pars.get_coarsegraining_threads());
   EXPECT_EQ(10, pars.get_tail_frequencies());
-  EXPECT_TRUE(pars.hts_approximation());
-  EXPECT_EQ(8, pars.get_hts_threads());
   EXPECT_TRUE(pars.do_dca_plus());
   EXPECT_EQ(32, pars.get_deconvolution_iterations());
   EXPECT_EQ(1.e-4, pars.get_deconvolution_tolerance());
+  EXPECT_TRUE(pars.hts_approximation());
+  EXPECT_EQ(8, pars.get_hts_threads());
 }

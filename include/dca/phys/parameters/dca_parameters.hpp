@@ -36,12 +36,12 @@ public:
         quadrature_rule_(1),
         coarsegraining_threads_(1),
         tail_frequencies_(0),
-        hts_approximation_(false),
-        hts_threads_(1),
 
         do_dca_plus_(false),
         deconvolution_iterations_(16),
-        deconvolution_tolerance_(1.e-3) {}
+        deconvolution_tolerance_(1.e-3),
+        hts_approximation_(false),
+        hts_threads_(1) {}
 
   template <typename Concurrency>
   int getBufferSize(const Concurrency& concurrency) const;
@@ -83,12 +83,6 @@ public:
   int get_tail_frequencies() const {
     return tail_frequencies_;
   }
-  bool hts_approximation() const {
-    return hts_approximation_;
-  }
-  int get_hts_threads() const {
-    return hts_threads_;
-  }
   bool do_dca_plus() const {
     return do_dca_plus_;
   }
@@ -97,6 +91,12 @@ public:
   }
   double get_deconvolution_tolerance() const {
     return deconvolution_tolerance_;
+  }
+  bool hts_approximation() const {
+    return hts_approximation_;
+  }
+  int get_hts_threads() const {
+    return hts_threads_;
   }
 
 private:
@@ -112,13 +112,13 @@ private:
   int quadrature_rule_;
   int coarsegraining_threads_;
   int tail_frequencies_;
-  bool hts_approximation_;
-  int hts_threads_;
 
   // DCA+
   bool do_dca_plus_;
   int deconvolution_iterations_;
   double deconvolution_tolerance_;
+  bool hts_approximation_;
+  int hts_threads_;
 };
 
 template <typename Concurrency>
@@ -135,11 +135,11 @@ int DcaParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(quadrature_rule_);
   buffer_size += concurrency.get_buffer_size(coarsegraining_threads_);
   buffer_size += concurrency.get_buffer_size(tail_frequencies_);
-  buffer_size += concurrency.get_buffer_size(hts_approximation_);
-  buffer_size += concurrency.get_buffer_size(hts_threads_);
   buffer_size += concurrency.get_buffer_size(do_dca_plus_);
   buffer_size += concurrency.get_buffer_size(deconvolution_iterations_);
   buffer_size += concurrency.get_buffer_size(deconvolution_tolerance_);
+  buffer_size += concurrency.get_buffer_size(hts_approximation_);
+  buffer_size += concurrency.get_buffer_size(hts_threads_);
 
   return buffer_size;
 }
@@ -157,11 +157,11 @@ void DcaParameters::pack(const Concurrency& concurrency, int* buffer, int buffer
   concurrency.pack(buffer, buffer_size, position, quadrature_rule_);
   concurrency.pack(buffer, buffer_size, position, coarsegraining_threads_);
   concurrency.pack(buffer, buffer_size, position, tail_frequencies_);
-  concurrency.pack(buffer, buffer_size, position, hts_approximation_);
-  concurrency.pack(buffer, buffer_size, position, hts_threads_);
   concurrency.pack(buffer, buffer_size, position, do_dca_plus_);
   concurrency.pack(buffer, buffer_size, position, deconvolution_iterations_);
   concurrency.pack(buffer, buffer_size, position, deconvolution_tolerance_);
+  concurrency.pack(buffer, buffer_size, position, hts_approximation_);
+  concurrency.pack(buffer, buffer_size, position, hts_threads_);
 }
 
 template <typename Concurrency>
@@ -177,11 +177,11 @@ void DcaParameters::unpack(const Concurrency& concurrency, int* buffer, int buff
   concurrency.unpack(buffer, buffer_size, position, quadrature_rule_);
   concurrency.unpack(buffer, buffer_size, position, coarsegraining_threads_);
   concurrency.unpack(buffer, buffer_size, position, tail_frequencies_);
-  concurrency.unpack(buffer, buffer_size, position, hts_approximation_);
-  concurrency.unpack(buffer, buffer_size, position, hts_threads_);
   concurrency.unpack(buffer, buffer_size, position, do_dca_plus_);
   concurrency.unpack(buffer, buffer_size, position, deconvolution_iterations_);
   concurrency.unpack(buffer, buffer_size, position, deconvolution_tolerance_);
+  concurrency.unpack(buffer, buffer_size, position, hts_approximation_);
+  concurrency.unpack(buffer, buffer_size, position, hts_threads_);
 }
 
 template <typename ReaderOrWriter>
@@ -243,16 +243,6 @@ void DcaParameters::readWrite(ReaderOrWriter& reader_or_writer) {
       }
       catch (const std::exception& r_e) {
       }
-      try {
-        reader_or_writer.execute("HTS-approximation", hts_approximation_);
-      }
-      catch (const std::exception& r_e) {
-      }
-      try {
-        reader_or_writer.execute("HTS-threads", hts_threads_);
-      }
-      catch (const std::exception& r_e) {
-      }
 
       reader_or_writer.close_group();
     }
@@ -274,6 +264,16 @@ void DcaParameters::readWrite(ReaderOrWriter& reader_or_writer) {
       }
       try {
         reader_or_writer.execute("deconvolution-tolerance", deconvolution_tolerance_);
+      }
+      catch (const std::exception& r_e) {
+      }
+      try {
+        reader_or_writer.execute("HTS-approximation", hts_approximation_);
+      }
+      catch (const std::exception& r_e) {
+      }
+      try {
+        reader_or_writer.execute("HTS-threads", hts_threads_);
       }
       catch (const std::exception& r_e) {
       }

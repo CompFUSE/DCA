@@ -11,15 +11,15 @@
 	    "periods": 2,
 	    "quadrature-rule": 2,
 	    "threads": 8,
-	    "tail-frequencies": 10,
-	    "HTS-approximation": true,
-	    "HTS-threads": 8
+	    "tail-frequencies": 10
 	},
         
 	"DCA+": {
 	    "do-DCA+": true,
 	    "deconvolution-iterations": 32,
-	    "deconvolution-tolerance": 1.e-4
+	    "deconvolution-tolerance": 1.e-4,
+            "HTS-approximation": true,
+	    "HTS-threads": 8
 	}
     }
 }
