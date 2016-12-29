@@ -85,7 +85,7 @@ TEST(bilayerLattice_Nc1_intraband, Self_Energy) {
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
     dca::io::HDF5Reader reader;
     reader.open_file(DCA_SOURCE_DIR
-                     "/applications/cluster_solver_check/test/CT-AUX/bilayer_lattice/Nc1_interband/"
+                     "/applications/cluster_solver_check/test/CT-AUX/bilayer_lattice/Nc1_intraband/"
                      "data.ED.hdf5");
     reader.open_group("functions");
     // reader.execute(dca_data_imag.Sigma);
@@ -103,7 +103,7 @@ TEST(bilayerLattice_Nc1_intraband, Self_Energy) {
 
   // Do one QMC iteration
   QmcSolverType qmc_solver(parameters, dca_data_imag);
-  qmc_solver.initialize(1);
+  qmc_solver.initialize(0);
   qmc_solver.integrate();
   qmc_solver.finalize(dca_loop_data);
 
@@ -117,7 +117,7 @@ TEST(bilayerLattice_Nc1_intraband, Self_Energy) {
         "Self_Energy");
     dca::io::HDF5Reader reader;
     reader.open_file(DCA_SOURCE_DIR
-                     "/applications/cluster_solver_check/test/CT-AUX/bilayer_lattice/Nc1_interband/"
+                     "/applications/cluster_solver_check/test/CT-AUX/bilayer_lattice/Nc1_intraband/"
                      "check_data.QMC.hdf5");
     reader.open_group("functions");
     reader.execute(Sigma_QMC_check);
@@ -158,8 +158,8 @@ int main(int argc, char** argv) {
   dca_test_env =
       new dca::testing::DcaMpiTestEnvironment(argc, argv, DCA_SOURCE_DIR
                                               "/applications/cluster_solver_check/test/"
-                                              "CT-AUX/bilayer_lattice/Nc1_interband/"
-                                              "input.bilayer_lattice_Nc1_interband.json");
+                                              "CT-AUX/bilayer_lattice/Nc1_intraband/"
+                                              "input.bilayer_lattice_Nc1_intraband.json");
   ::testing::AddGlobalTestEnvironment(dca_test_env);
 
   ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
