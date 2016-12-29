@@ -1,0 +1,171 @@
+{
+    "CPE-parameters" : deprecated
+    
+    "DCA" : {
+        "do-DCA+": (boolean) ("DCA"/"DCA+"),
+	"interacting-bands": "interacting-orbitals",
+	"DCA-iterations": "iterations",
+	"DCA-accuracy": "accuracy",
+	"DCA-mixing-factor": "self-energy-mixing-factor",
+	"cluster": ("domains"/"real-space-grids")
+        
+	"cluster-mapping": "coarse-graining" {
+	    "k-mesh-refinement": "k-mesh-recursion",
+	    "number-of-periods": "periods",
+	    "quadrature-rule": ,
+	    "precompute-Hamiltonian": removed,
+	    "number-of-threads": "threads",
+	    "number-of-tail-frequencies": "tail-frequencies",
+	    "phi(k) integration accuracy": removed,
+	    "print-phi(k)": removed
+	},
+        
+	"lattice-mapping": "DCA+" {
+	    "interpolation-method": removed,
+	    "HTS-approximation": (boolean),
+	    "deconvolution-tolerance": ,
+	    "max-deconvolution-iterations": "deconvolution-iterations",
+	}
+    },
+
+    "double-counting-parameters" : "double-counting" {
+	"double-counting-method" : "method",
+	"double-counting-correction" : "correction"
+    },
+    
+    "ED-solver-parameters" : "ED" {
+	"eigenvalue-cut-off": ,
+	"ED-method": removed,
+	"occupation": removed,
+	"magnetization": removed,
+	"check_orthogonality_of_states": removed
+    },
+
+    "equal-time-observables": removed {
+	"do-equal-time-measurements": "additional-time-measurements" (boolean) ("CT-AUX")
+    },
+    
+    "filename-parameters": "output" {
+	"directory": ,
+	"output-format": ,
+	"output-file": "filename-dca",
+    	"profiling-file": "filename-profiling",
+	"spectrum-file": removed,
+	"susceptibilities-file": "filename-analysis",
+	"plot-vertex-file": removed,
+	"output-ED": "filename-ed",
+	"output-CPE": removed,
+	"output-QMC": "filename-qmc",
+	"dump-lattice-self-energy": (boolean),
+	"dump-cluster-Greens-function": (boolean)
+    },
+    
+    "function-parameters": "domains" {
+	"single-particle-functions": {
+	    "H(k) grid-size": removed,
+	    "time-intervals": "sp-time-intervals" ("domains"/"imaginary-time"),
+	    "fermionic-frequencies": "sp-fermionic-frequencies" ("domains"/"imaginary-frequency"),
+	    "bosonic-frequencies": "HTS-bosonic-frequencies" ("domains"/"imaginary-frequency"),
+	    "sp-cluster": "sp-host" ("domains"/"real-space-grids")
+	},
+        
+	"two-particle-functions": {
+	    "time-intervals": "time-intervals-for-time-measurements" ("domains"/"imaginary-time"),
+	    "fermionic-frequencies": "four-point-fermionic-frequencies" ("domains"/"imaginary-frequency"),
+	    "bosonic-frequencies": removed,
+	    "tp-cluster": "tp-host" ("domains"/"real-space-grids")
+	},
+        
+	"real-axis-functions": {
+	    "lower-bound": "min" ("domains"/"real-frequency"),
+	    "upper-bound": "max" ("domains"/"real-frequency"),
+	    "nr-intervals": "frequencies" ("domains"/"real-frequency"),
+	    "real-axis-off-set": "imaginary-damping" ("domains"/"real-frequency")
+	}
+    },
+    
+    "CT-AUX-solver": "CT-AUX" {
+	"submatrix-size": ,
+	"initial-matrix-size": ,
+	"K-parameter": "expansion-parameter-K"
+    },
+    
+    "SS-CT-HYB-solver": "SS-CT-HYB" {
+	"Sigma-tail-cutoff": "self-energy-tail-cutoff",
+	"steps-per-sweep": ,
+	"swaps-per-sweep": removed,
+	"shifts-per-sweep":
+    },
+    
+    "Monte-Carlo-Integration": "Monte-Carlo-integration" {
+    	"Sigma-file": "initial-self-energy" ("DCA"),
+	"warm-up-sweeps": ,
+	"sweeps-per-measurement": ,
+	"measurements": "measurements-per-process-and-accumulator",
+	"adaptive-double-counting": removed,
+	"RNG-seed": "seed",
+
+        "MC-posix-parameters": "threaded-solver" {
+	    "nr-walkers": "walkers",
+	    "nr-accumulators": "accumulators",
+	    "additional-steps": ,
+	    "HTS-threads": ("DCA"/"DCA+")
+	}
+    },
+
+    "bilayer-model": "bilayer-Hubbard-model" {
+	"t": ,
+	"t-prime": ,
+	"tz": "t-perp",
+	"U": ,
+	"V": ,
+	"V-prime":
+    },
+
+    "material-model": {
+	"t_ij-filename": ,
+	"U_ij-filename": 
+    },
+    
+    "2D-Hubbard-model": "single-band-Hubbard-model" {
+        "t": ,
+	"t-prime": ,
+	"U": ,
+	"V": ,
+	"V-prime":
+    },
+
+    "physics-parameters": "physics" {
+	"beta":,
+	"adjust-chemical-potential": (boolean),
+	"density": ,
+	"chemical-potential":
+    },
+
+    "vertex-channel": replaced by "four-point" and "analysis" {
+	"vertex-measurement-type": "type" ("four-point"),
+	"q-channel": "momentum-transfer" ("four-point"),
+	"w-channel": "frequency-transfer" ("four-point"),
+	
+	"deconvolute-Gamma": removed,
+	"symmetrize-Gamma": (boolean) ("analysis"),
+	
+	"lattice-mapping": {
+	    "singular-value-sigma-cut-off": "Gamma-deconvolution-cut-off" ("analysis"),
+	    "singular-value-index-cut-off": removed
+	},
+
+	"lattice-solver": {
+	    "diagonolize-folded-Gamma-chi_0": "project-onto-crystal-harmonics" (boolean) ("analysis"),
+	    "BSE-cut-off-radius": "projection-cut-off-radius" ("analysis")
+	},
+
+	"options": removed {
+	    "compute-chi": "yes",
+	    "compute-chi_0": "yes",
+	    "compute-eigenvalues": "no",
+	    "compute-Pq-cluster": "yes",
+	    "compute-Pq-lattice": "yes"
+	}
+    }
+}
