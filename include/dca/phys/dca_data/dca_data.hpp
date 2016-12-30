@@ -264,13 +264,13 @@ void DcaData<parameters_type>::read(std::string filename) {
 template <class parameters_type>
 template <typename Reader>
 void DcaData<parameters_type>::read(Reader& reader) {
-  std::string vertex_measurement = "NONE";
+  std::string four_point_type = "NONE";
 
   {
     reader.open_group("parameters");
 
     {
-      reader.open_group("physics-parameters");
+      reader.open_group("physics");
 
       reader.execute("chemical-potential", parameters.get_chemical_potential());
 
@@ -278,9 +278,9 @@ void DcaData<parameters_type>::read(Reader& reader) {
     }
 
     {
-      reader.open_group("vertex-channel");
+      reader.open_group("four-point");
 
-      reader.execute("vertex-measurement-type", vertex_measurement);
+      reader.execute("type", four_point_type);
 
       reader.close_group();
     }
@@ -293,7 +293,7 @@ void DcaData<parameters_type>::read(Reader& reader) {
 
     reader.execute(Sigma);
 
-    if (vertex_measurement != "NONE") {
+    if (four_point_type != "NONE") {
       reader.execute(G_k_w);
 
       reader.execute(G4_k_k_w_w);
