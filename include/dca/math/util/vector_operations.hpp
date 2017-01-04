@@ -35,7 +35,6 @@ void print(const std::vector<T>& v) {
 
   for (std::size_t i = 0; i < v.size(); ++i)
     std::cout << v[i] << "\t";
-  std::cout << std::endl;
 }
 
 // Scales the vector v by the scalar a, i.e. computes and returns a new vector w with elements
