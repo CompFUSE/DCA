@@ -22,7 +22,7 @@ include(CMakeParseArguments)
 # The type of the test can be FAST, EXTENSIVE or PERFORMANCE (mutually exclusive options). If no
 # option is specified, the default is FAST.
 # MPI, PTHREADS or CUDA may be given to indicate that the test requires these libraries. MPI_NUMPROC
-# is the number of MPI processes to use for an test with MPI, the default value is 4.
+# is the number of MPI processes to use for an test with MPI, the default value is 1.
 function(dca_add_gtest name)
   set(options FAST EXTENSIVE PERFORMANCE GTEST_MAIN MPI PTHREADS CUDA)
   set(oneValueArgs MPI_NUMPROC)

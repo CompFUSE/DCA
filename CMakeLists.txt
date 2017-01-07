@@ -4,7 +4,7 @@
 #
 # CMake build script for DCA++
 
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.3)
 project(DCA++ C CXX)
 
 ################################################################################
@@ -47,49 +47,19 @@ dca_check_cxx_features(
   cxx_rvalue_references
   cxx_static_assert
   cxx_template_template_parameters
-  cxx_variadic_templates
-)
-
-################################################################################
-# Check for libraries and accordingly set DCA_HAVE_XXX variables.
-
-# SPRNG
-include(dca_sprng)
-
-# Gnuplot
-include(dca_gnuplot)
-
-# MPI
-include(dca_mpi)
-
-# Pthreads
-include(dca_pthreads)
-
-# CUDA
-include(dca_cuda)  # Sets DCA_CUDA_LIBS.
-
-################################################################################
-# Include dirs
-
-# For "dca/.../..." #includes.
-include_directories(${PROJECT_SOURCE_DIR}/include)
-
-# Directory where dca/config/headers.hpp will be created.
-include_directories(${CMAKE_BINARY_DIR}/include)
+  cxx_variadic_templates)
 
 ################################################################################
 # Modules: for reproducibility
 include(dca_modules/init)
-
 get_module_list(MODULE_LIST)
 
 configure_file("${PROJECT_SOURCE_DIR}/src/util/modules.cpp.in"
   "${PROJECT_BINARY_DIR}/src/util/modules.cpp" @ONLY)
 
 ################################################################################
-# Git Version: for reproducibility
+# Git version: for reproducibility
 include(dca_git_version/init)
-
 get_git_log(GIT_LOG)        # Executes 'git log -1'.
 get_git_status(GIT_STATUS)  # Executes 'git status --porcelain'.
 
@@ -110,10 +80,6 @@ include(dca_config)
 include(dca_compiler_options)
 
 ################################################################################
-# External libraries
-include(dca_external_libs)  # Sets DCA_EXTERNAL_LIBS and DCA_EXTERNAL_INCLUDE_DIRS.
-
-################################################################################
 # Generate preprocessor definitions header files.
 # Depends on dca_config.
 dca_write_config_definitions_file()
@@ -122,15 +88,23 @@ dca_write_haves_definitions_file()
 install(DIRECTORY ${CMAKE_BINARY_DIR}/include/dca/config DESTINATION include/dca)
 
 ################################################################################
-# Internal libraries
-# TODO: When the number of 'internal' libraries grows, we might want to combine these into a few big
-#       libraries; e.g. one for math, phys, etc.
-add_subdirectory(libs/simplex_gm_rule)
-add_subdirectory(src)
+# External libraries
+include(dca_external_libs)  # Sets DCA_EXTERNAL_LIBS and DCA_EXTERNAL_INCLUDE_DIRS.
 
 ################################################################################
-# Common definitions for building DCA++'s applications and tests.
+# Include directories
+# For "dca/.../..." #includes.
+include_directories(${PROJECT_SOURCE_DIR}/include)
+# Directory where dca/config/headers.hpp will be created.
+include_directories(${CMAKE_BINARY_DIR}/include)
+
+set(DCA_INCLUDE_DIRS
+  ${DCA_EXTERNAL_INCLUDE_DIRS})
+
+################################################################################
 # Libraries
+add_subdirectory(src)
+
 set(DCA_LIBS
   git_version
   modules
@@ -155,33 +129,31 @@ set(DCA_LIBS
   time_and_frequency_domains
   symmetrization
   coarsegraining
-  ${DCA_EXTERNAL_LIBS}
-  ${GNUPLOT_INTERFACE_LIBRARY}
-  ${SIMPLEX_GM_RULE_LIBRARY})
+  ${DCA_EXTERNAL_LIBS})
 
 if (DCA_HAVE_CUDA)
-  list(APPEND DCA_LIBS ctaux_walker_kernels lapack_kernels blas_kernels cuda_utils ${DCA_CUDA_LIBS})
+  list(APPEND DCA_LIBS
+    ctaux_walker_kernels
+    lapack_kernels
+    blas_kernels
+    cuda_utils
+    ${DCA_CUDA_LIBS})
 endif()
-
-# Includes
-set(DCA_INCLUDE_DIRS ${DCA_EXTERNAL_INCLUDE_DIRS} ${GNUPLOT_INTERFACE_INCLUDE_DIR} ${SIMPLEX_GM_RULE_INCLUDE_DIR})
 
 ################################################################################
 # Testing
 option(DCA_WITH_TESTS_FAST "Build DCA++'s fast tests." OFF)
 option(DCA_WITH_TESTS_EXTENSIVE "Build DCA++'s extensive tests." OFF)
-option(DCA_WITH_TESTS_PERFORMANCE "Build DCA++'s performance tests." OFF)
+option(DCA_WITH_TESTS_PERFORMANCE "Build DCA++'s performance tests. (only in release mode)" OFF)
 
-set(TEST_RUNNER "" CACHE FILEPATH "Command to run an application.")
-set(MPIEXEC_NUMPROC_FLAG "" CACHE STRING "Flag used by TEST_RUNNER to specify the number of processes.")
-mark_as_advanced(TEST_RUNNER MPIEXEC_NUMPROC_FLAG)
+set(TEST_RUNNER "" CACHE PATH "Command for executing (MPI) programs.")
+set(MPIEXEC_NUMPROC_FLAG "-n" CACHE STRING "Flag used by TEST_RUNNER to specify the number of processes.")
 
 set(gtest_dir "${PROJECT_SOURCE_DIR}/libs/googletest-1.8.0" CACHE PATH "Path to Google Test.")
 mark_as_advanced(gtest_dir)
 
 if (DCA_WITH_TESTS_FAST OR DCA_WITH_TESTS_EXTENSIVE OR DCA_WITH_TESTS_PERFORMANCE)
   include(dca_testing)
-
   enable_testing()
 
   if ((CMAKE_BUILD_TYPE STREQUAL "Release") OR
@@ -191,19 +163,14 @@ if (DCA_WITH_TESTS_FAST OR DCA_WITH_TESTS_EXTENSIVE OR DCA_WITH_TESTS_PERFORMANC
   endif()
 
   if (DCA_WITH_TESTS_PERFORMANCE AND NOT (CMAKE_BUILD_TYPE STREQUAL "Release"))
-    message(WARNING "Performance tests are only built in Release mode.")
+    message(WARNING "Performance tests are only built in release mode.")
   endif()
 
   if (DCA_HAVE_MPI AND (TEST_RUNNER STREQUAL ""))
-    message(FATAL_ERROR "TEST_RUNNER needs to be set to the executable for running MPI programs, e.g. mpiexec, mpirun, aprun or srun.")
+    message(FATAL_ERROR "TEST_RUNNER needs to be set to the command for executing MPI programs, e.g. mpiexec, mpirun, aprun or srun.")
   endif()
   
-  if (DCA_HAVE_MPI AND (MPIEXEC_NUMPROC_FLAG STREQUAL ""))
-    message(FATAL_ERROR "MPIEXEC_NUMPROC_FLAG needs to be set for running MPI tests.")
-  endif()
-
   add_subdirectory(${gtest_dir})
-
   add_subdirectory(${PROJECT_SOURCE_DIR}/test)
   add_subdirectory(${PROJECT_SOURCE_DIR}/applications/analysis/test)
   add_subdirectory(${PROJECT_SOURCE_DIR}/applications/cluster_solver_check/test)
