@@ -7,4 +7,4 @@
 set(DCA_HAVE_LAPACK TRUE CACHE INTERNAL "")
 
 # Use srun for executing the tests.
-set(TEST_RUNNER "srun" CACHE PATH "Command for executing (MPI) programs.")
+set(TEST_RUNNER "srun" CACHE STRING "Command for executing (MPI) programs.")

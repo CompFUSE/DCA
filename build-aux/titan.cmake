@@ -7,7 +7,7 @@
 set(DCA_HAVE_LAPACK TRUE CACHE INTERNAL "")
 
 # Use aprun for executing the tests.
-set(TEST_RUNNER "aprun" CACHE PATH "Command for executing (MPI) programs.")
+set(TEST_RUNNER "aprun" CACHE STRING "Command for executing (MPI) programs.")
 
 # Enable the GPU support.
 option(DCA_WITH_CUDA "Enable GPU support." ON)
