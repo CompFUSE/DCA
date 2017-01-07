@@ -2,8 +2,7 @@
     "output": {
 	"directory": "./",
 	"output-format": "HDF5",
-	"filename-dca": "input_data.analysis_DCA+_mpi_test.hdf5",
-	"filename-analysis": "data.analysis_DCA+_mpi_test.hdf5"
+	"filename-dca": "data.dca_tp_DCA+_mpi_test.hdf5"
     },
 
     "physics": {
@@ -19,6 +18,9 @@
     },
 
     "DCA": {
+	"initial-self-energy": "check_data.dca_sp_DCA+_mpi_test.hdf5",
+	"iterations": 1,
+	"self-energy-mixing-factor": 1,
 	"interacting-orbitals": [0],
 	
 	"coarse-graining": {
@@ -54,16 +56,23 @@
 	    "four-point-fermionic-frequencies": 16
 	}
     },
+
+    "Monte-Carlo-integration": {
+        "seed": 985456376,
+	"warm-up-sweeps": 20,
+    	"sweeps-per-measurement": 4.,
+	"measurements-per-process-and-accumulator": 100
+    },
+
+    "CT-AUX": {
+	"expansion-parameter-K": 1.,
+	"initial-matrix-size": 256,
+	"submatrix-size": 64
+    },
     
     "four-point": {
 	"type": "PARTICLE_PARTICLE_UP_DOWN",
 	"momentum-transfer": [0., 0.],
 	"frequency-transfer": 0
-    },
-
-    "analysis": {
-	"symmetrize-Gamma": true,
-	"Gamma-deconvolution-cut-off": 0.5,
-	"project-onto-crystal-harmonics": false
     }
 }
