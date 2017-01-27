@@ -60,6 +60,72 @@ TEST_F(MPICollectiveSumTest, SumFunction) {
     EXPECT_EQ(function_expected(i), function_test(i));
 }
 
+TEST_F(MPICollectiveSumTest, LeaveOneOutAverage) {
+  using TestDomain = dca::func::dmn_0<dca::func::dmn<2, int>>;
+  dca::func::function<double, TestDomain> f;
+
+  std::vector<double>values(size_);
+  double sum = 0.;
+  for(int i =0 ;i < size_; i++) {
+    values[i] = 10. + i;
+    sum += values[i];
+  }
+  f = values[rank_];
+  double scalar = values[rank_];
+
+  sum_interface_.leaveOneOutAvg(f);
+  sum_interface_.leaveOneOutAvg(scalar);
+  double expected = (sum - values[rank_]) / (size_-1);
+  for(int i =0; i < f.size(); i++)
+    EXPECT_NEAR(expected, f(i), 1e-10);
+  EXPECT_NEAR(expected, scalar, 1e-10);
+}
+
+TEST_F(MPICollectiveSumTest, JackKnifeTestReal) {
+  using TestDomain = dca::func::dmn_0<dca::func::dmn<2, int>>;
+  dca::func::function<double, TestDomain> f;
+
+  auto val = [](int rank){return rank + 10.;};
+  f = val(rank_);
+
+  sum_interface_.leaveOneOutAvg(f);
+
+  for(int i =0; i < f.size(); i++)
+    f(i) = std::pow(f(i), 3);
+
+  auto err = sum_interface_.jackKnifeError(f);
+
+  // Expected error computed with python.
+  const double expected = 473.7688;
+  for(int i =0; i < err.size(); i++)
+    EXPECT_NEAR(expected, err(i), 1e-3);
+
+
+}
+
+TEST_F(MPICollectiveSumTest, JackKnifeTestComplex){
+  using TestDomain = dca::func::dmn_0<dca::func::dmn<2, int>>;
+  dca::func::function<std::complex<double>, TestDomain> f_c;
+  auto val = [](int rank){return rank + 10.;};
+
+  for(int i =0; i < f_c.size(); i++) {
+    f_c(i).real(val(rank_));
+    f_c(i).imag(val(rank_));
+  }
+  sum_interface_.leaveOneOutAvg(f_c);
+  for(int i =0; i < f_c.size(); i++) {
+    f_c(i).real(std::pow(std::real(f_c(i)), 3));
+    f_c(i).imag(std::pow(std::imag(f_c(i)), 3));
+  }
+  auto err_c = sum_interface_.jackKnifeError(f_c);
+
+  const double expected = 473.7688;
+  for(int i =0; i < err_c.size(); i++) {
+    EXPECT_NEAR(expected, std::real(err_c(i)), 1e-3);
+    EXPECT_NEAR(expected, std::imag(err_c(i)), 1e-3);
+  }
+}
+
 TEST_F(MPICollectiveSumTest, ComputeCovarianceScalar) {
   using FunctionDomain = dca::func::dmn_0<dca::func::dmn<4, int>>;
   using CovarianceDomain = dca::func::dmn_variadic<FunctionDomain, FunctionDomain>;

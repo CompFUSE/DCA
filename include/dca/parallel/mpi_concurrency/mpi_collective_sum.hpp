@@ -8,6 +8,7 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Andrei Plamada (plamada@phys.ethz.ch)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // This class provides an interface to do collective sums and averages with MPI.
 // In addition, it can compute the covariance for func::function.
@@ -66,6 +67,26 @@ public:
   template <typename scalar_type, class domain>
   void average_and_compute_stddev(func::function<std::complex<scalar_type>, domain>& f_mean,
                                   func::function<std::complex<scalar_type>, domain>& f_stddev) const;
+
+  // Overwrites the values of f with its average across all other ranks.
+  // Does nothing if there is only one rank.
+  template <typename scalar_type, class domain>
+  void leaveOneOutAvg(func::function<scalar_type, domain>& f) const;
+  template <typename scalar_type>
+  void leaveOneOutAvg(scalar_type& s) const;
+
+  // Compute the jack knife variance as sqrt( (n-1)/n \sum_i (f_i - f_avg)^2 ), where f_i is the
+  // function value in the current rank.
+  // I/O : f_loo
+  // Returns: The jack knife error.
+  // Precondition: f_loo contains the estimation with one block of data left out.
+  // Postcondition: f_loo contains the average of the L.O.O. estimations.
+  template <typename scalar_type, class domain>
+  func::function<scalar_type, domain> jackKnifeError(func::function<scalar_type, domain>& f_loo) const;
+  // Compute error for real and imaginary part independently.
+  template <typename scalar_type, class domain>
+  func::function<std::complex<scalar_type>, domain> jackKnifeError(
+      func::function<std::complex<scalar_type>, domain>& f_loo) const;
 
   // Computes the covariance matrix of the measurements of the different mpi ranks.
   // In: f, f_estimated
@@ -223,6 +244,77 @@ void MPICollectiveSum::sum_and_average(const some_type& in, some_type& out,
   const double one_over_N = 1. / (nr_meas_rank * grouping_.get_Nr_threads());
 
   out *= one_over_N;
+}
+
+template <typename scalar_type>
+void MPICollectiveSum::leaveOneOutAvg(scalar_type& s) const {
+  if (grouping_.get_Nr_threads() == 1)  // no jack knife estimate is possible,
+    return;
+
+  scalar_type copy = s;
+  sum(s);
+  s = (s - copy) / (grouping_.get_Nr_threads() - 1);
+}
+
+template <typename scalar_type, class domain>
+void MPICollectiveSum::leaveOneOutAvg(func::function<scalar_type, domain>& f) const {
+  if (grouping_.get_Nr_threads() == 1)  // no jack knife estimate is possible,
+    return;
+
+  func::function<scalar_type, domain> f_copy(f);
+  sum(f_copy, f);
+  const double scale = 1. / (grouping_.get_Nr_threads() - 1);
+  for (int i = 0; i < f.size(); i++)
+    f(i) = scale * (f(i) - f_copy(i));
+}
+
+template <typename scalar_type, class domain>
+func::function<scalar_type, domain> MPICollectiveSum::jackKnifeError(
+    func::function<scalar_type, domain>& f_loo) const {
+  func::function<scalar_type, domain> f_avg(f_loo);
+  func::function<scalar_type, domain> err("Jack-Knife-error");
+
+  const int n = grouping_.get_Nr_threads();
+
+  if (n == 1)  // no jack knife estimate is possible,
+    return err;
+
+  sum_and_average(f_avg);
+  const double scale = double(n - 1) / double(n);
+  for (int i = 0; i < f_avg.size(); i++)
+    err(i) = (f_loo(i) - f_avg(i)) * (f_loo(i) - f_avg(i));
+
+  sum(err);
+
+  for (int i = 0; i < err.size(); i++)
+    err(i) = std::sqrt(scale * err(i));
+
+  f_loo = std::move(f_avg);
+  return err;
+}
+
+template <typename scalar_type, class domain>
+func::function<std::complex<scalar_type>, domain> MPICollectiveSum::jackKnifeError(
+    func::function<std::complex<scalar_type>, domain>& f_loo) const {
+  func::function<std::complex<scalar_type>, domain> f_avg(f_loo);
+  func::function<std::complex<scalar_type>, domain> err("Jack-Knife-error");
+
+  sum_and_average(f_avg);
+  const int n = grouping_.get_Nr_threads();
+  const double scale = double(n - 1) / double(n);
+  for (int i = 0; i < f_avg.size(); i++) {
+    err(i).real(real(f_loo(i) - f_avg(i)) * real(f_loo(i) - f_avg(i)));
+    err(i).imag(imag(f_loo(i) - f_avg(i)) * imag(f_loo(i) - f_avg(i)));
+  }
+  sum(err);
+
+  for (int i = 0; i < err.size(); i++) {
+    err(i).real(std::sqrt(scale * std::real(err(i))));
+    err(i).imag(std::sqrt(scale * std::imag(err(i))));
+  }
+
+  f_loo = std::move(f_avg);
+  return err;
 }
 
 template <typename scalar_type, class domain>
