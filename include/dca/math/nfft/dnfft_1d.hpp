@@ -32,21 +32,21 @@ namespace math {
 namespace nfft {
 // dca::math::nfft::
 
-template <typename scalartype, typename w_dmn_t, typename p_dmn_t>
+template <typename scalartype, typename w_dmn_t, typename p_dmn_t, int OVER_SAMPLING = 8>
 class Dnfft1D {
-public:
-  using scalar_type = scalartype;
-  using this_type = Dnfft1D<scalartype, w_dmn_t, p_dmn_t>;
-
+private:  // Constant parameters.
   // Change this parameter to affect the interpolation of the gaussian kernel.
   // If EXACT is selected the kernel is directly computed. Suggested value = CUBIC.
   constexpr static NfftModeNames NAME = CUBIC;
 
-  constexpr static int DEFAULT_OVER_SAMPLING = 8;
-  constexpr static int DEFAULT_WINDOW_SAMPLING = 32;
+  constexpr static int WINDOW_SAMPLING = 32;
   constexpr static double SIGMA_WINDOW_SAMPLING = 2;
 
-  Dnfft1D(int oversampling_factor = DEFAULT_OVER_SAMPLING);
+public:
+  using scalar_type = scalartype;
+  using this_type = Dnfft1D<scalartype, w_dmn_t, p_dmn_t>;
+
+  Dnfft1D();
 
   // Resets accumulated object to zero.
   void initialize();
@@ -75,9 +75,6 @@ public:
   }
 
 private:
-  const int over_sampling_ = DEFAULT_OVER_SAMPLING;
-  const int window_sampling_ = DEFAULT_WINDOW_SAMPLING;
-
   using window_function_t = kaiser_bessel_function<1>;
 
   using linear_coefficients_dmn_t = func::dmn_0<nfft_linear_coefficients_domain>;
@@ -98,11 +95,9 @@ private:
   void initialize_domains();
   void initialize_functions();
 
-  void convolute_to_f_tau_exact_test(int index, scalartype t_val, scalartype f_val);
-  void convolute_to_f_tau_fine_linear_interpolation_test(int index, scalartype t_val,
-                                                         scalartype f_val);
-  void convolute_to_f_tau_fine_cubic_interpolation_test(int index, scalartype t_val,
-                                                        scalartype f_val);
+  void convolute_to_f_tau_exact(int index, scalartype t_val, scalartype f_val);
+  void convolute_to_f_tau_fine_linear_interpolation(int index, scalartype t_val, scalartype f_val);
+  void convolute_to_f_tau_fine_cubic_interpolation(int index, scalartype t_val, scalartype f_val);
 
   void unroll_linear_interpolation_fast(int N, scalartype* f_tmp_ptr, scalartype* matrix_ptr,
                                         scalartype* y_ptr);
@@ -149,10 +144,9 @@ private:
   func::function<scalartype, w_dmn_t> phi_wn;
 };
 
-template <typename scalartype, typename w_dmn_t, typename p_dmn_t>
-Dnfft1D<scalartype, w_dmn_t, p_dmn_t>::Dnfft1D(int oversamplig_factor):
-    over_sampling_(oversamplig_factor == -1 ? DEFAULT_OVER_SAMPLING : oversamplig_factor),
-    integer_wave_vectors(w_dmn_t::parameter_type::get_integer_wave_vectors()),
+template <typename scalartype, typename w_dmn_t, typename p_dmn_t, int OVER_SAMPLING>
+Dnfft1D<scalartype, w_dmn_t, p_dmn_t, OVER_SAMPLING>::Dnfft1D()
+    : integer_wave_vectors(w_dmn_t::parameter_type::get_integer_wave_vectors()),
 
       tau("tau"),
       fine_tau("fine_tau"),
@@ -177,13 +171,13 @@ Dnfft1D<scalartype, w_dmn_t, p_dmn_t>::Dnfft1D(int oversamplig_factor):
   initialize_functions();
 }
 
-template <typename scalartype, typename w_dmn_t, typename p_dmn_t>
-void Dnfft1D<scalartype, w_dmn_t, p_dmn_t>::initialize() {
+template <typename scalartype, typename w_dmn_t, typename p_dmn_t, int OVER_SAMPLING>
+void Dnfft1D<scalartype, w_dmn_t, p_dmn_t, OVER_SAMPLING>::initialize() {
   f_tau = 0.;
 }
 
-template <typename scalartype, typename w_dmn_t, typename p_dmn_t>
-void Dnfft1D<scalartype, w_dmn_t, p_dmn_t>::initialize_domains() {
+template <typename scalartype, typename w_dmn_t, typename p_dmn_t, int OVER_SAMPLING>
+void Dnfft1D<scalartype, w_dmn_t, p_dmn_t, OVER_SAMPLING>::initialize_domains() {
   oversampling_dmn_t::parameter_type::initialize(*this);
   window_sampling_dmn_t::parameter_type::initialize(*this);
 
@@ -213,11 +207,11 @@ void Dnfft1D<scalartype, w_dmn_t, p_dmn_t>::initialize_domains() {
   }
 }
 
-template <typename scalartype, typename w_dmn_t, typename p_dmn_t>
-void Dnfft1D<scalartype, w_dmn_t, p_dmn_t>::initialize_functions() {
+template <typename scalartype, typename w_dmn_t, typename p_dmn_t, int OVER_SAMPLING>
+void Dnfft1D<scalartype, w_dmn_t, p_dmn_t, OVER_SAMPLING>::initialize_functions() {
   {
     window_function_t::n = padded_time_dmn_t::dmn_size();
-    window_function_t::m = over_sampling_;
+    window_function_t::m = OVER_SAMPLING;
 
     window_function_t::sigma = SIGMA_WINDOW_SAMPLING;
   }
@@ -288,22 +282,23 @@ void Dnfft1D<scalartype, w_dmn_t, p_dmn_t>::initialize_functions() {
   }
 }
 
-template <typename scalartype, typename w_dmn_t, typename p_dmn_t>
-inline void Dnfft1D<scalartype, w_dmn_t, p_dmn_t>::accumulate(int coor, scalartype t_val,
-                                                                 scalartype f_val) {
+template <typename scalartype, typename w_dmn_t, typename p_dmn_t, int OVER_SAMPLING>
+inline void Dnfft1D<scalartype, w_dmn_t, p_dmn_t, OVER_SAMPLING>::accumulate(int coor,
+                                                                             scalartype t_val,
+                                                                             scalartype f_val) {
   assert(t_val > -0.5 - 1.e-6 and t_val < 0.5 + 1.e-6);
 
   switch (NAME) {
     case EXACT:
-      convolute_to_f_tau_exact_test(coor, t_val, f_val);
+      convolute_to_f_tau_exact(coor, t_val, f_val);
       break;
 
     case LINEAR:
-      convolute_to_f_tau_fine_linear_interpolation_test(coor, t_val, f_val);
+      convolute_to_f_tau_fine_linear_interpolation(coor, t_val, f_val);
       break;
 
     case CUBIC:
-      convolute_to_f_tau_fine_cubic_interpolation_test(coor, t_val, f_val);
+      convolute_to_f_tau_fine_cubic_interpolation(coor, t_val, f_val);
       break;
 
     default:
@@ -311,9 +306,10 @@ inline void Dnfft1D<scalartype, w_dmn_t, p_dmn_t>::accumulate(int coor, scalarty
   }
 }
 
-template <typename scalartype, typename w_dmn_t, typename p_dmn_t>
-inline void Dnfft1D<scalartype, w_dmn_t, p_dmn_t>::accumulate(const int* coor, scalartype t_val,
-                                                                 scalartype f_val) {
+template <typename scalartype, typename w_dmn_t, typename p_dmn_t, int OVER_SAMPLING>
+inline void Dnfft1D<scalartype, w_dmn_t, p_dmn_t, OVER_SAMPLING>::accumulate(const int* coor,
+                                                                             scalartype t_val,
+                                                                             scalartype f_val) {
   assert(t_val > -0.5 - 1.e-6 and t_val < 0.5 + 1.e-6);
 
   int linind = 0;
@@ -321,15 +317,15 @@ inline void Dnfft1D<scalartype, w_dmn_t, p_dmn_t>::accumulate(const int* coor, s
 
   switch (NAME) {
     case EXACT:
-      convolute_to_f_tau_exact_test(linind, t_val, f_val);
+      convolute_to_f_tau_exact(linind, t_val, f_val);
       break;
 
     case LINEAR:
-      convolute_to_f_tau_fine_linear_interpolation_test(linind, t_val, f_val);
+      convolute_to_f_tau_fine_linear_interpolation(linind, t_val, f_val);
       break;
 
     case CUBIC:
-      convolute_to_f_tau_fine_cubic_interpolation_test(linind, t_val, f_val);
+      convolute_to_f_tau_fine_cubic_interpolation(linind, t_val, f_val);
       break;
 
     default:
@@ -337,19 +333,18 @@ inline void Dnfft1D<scalartype, w_dmn_t, p_dmn_t>::accumulate(const int* coor, s
   }
 }
 
-template <typename scalartype, typename w_dmn_t, typename p_dmn_t>
+template <typename scalartype, typename w_dmn_t, typename p_dmn_t, int OVER_SAMPLING>
 template <typename other_scalartype>
-void Dnfft1D<scalartype, w_dmn_t, p_dmn_t>::finalize(
+void Dnfft1D<scalartype, w_dmn_t, p_dmn_t, OVER_SAMPLING>::finalize(
     func::function<std::complex<other_scalartype>, func::dmn_variadic<w_dmn_t, p_dmn_t>>& f_w) {
   fold_time_domain_back();
 
   FT_f_tau_to_f_w(f_w);
 }
 
-template <typename scalartype, typename w_dmn_t, typename p_dmn_t>
-inline void Dnfft1D<scalartype, w_dmn_t, p_dmn_t>::convolute_to_f_tau_exact_test(int index,
-                                                                                 scalartype t_val,
-                                                                                 scalartype f_val) {
+template <typename scalartype, typename w_dmn_t, typename p_dmn_t, int OVER_SAMPLING>
+inline void Dnfft1D<scalartype, w_dmn_t, p_dmn_t, OVER_SAMPLING>::convolute_to_f_tau_exact(
+    int index, scalartype t_val, scalartype f_val) {
   assert(t_val > -0.5 - 1.e-6 and t_val < 0.5 + 1.e-6);
 
   const scalartype T_0 = padded_time_dmn_t::parameter_type::first_element();
@@ -357,13 +352,15 @@ inline void Dnfft1D<scalartype, w_dmn_t, p_dmn_t>::convolute_to_f_tau_exact_test
 
   int lambda_0 = (t_val - T_0) * one_div_Delta;
 
-  for (int l = -over_sampling_; l <= over_sampling_; l++)
+  for (int l = -OVER_SAMPLING; l <= OVER_SAMPLING; l++)
     f_tau(lambda_0 + l, index) += f_val * window_function_t::phi_t(tau(lambda_0 + l) - t_val);
 }
 
-template <typename scalartype, typename w_dmn_t, typename p_dmn_t>
-inline void Dnfft1D<scalartype, w_dmn_t, p_dmn_t>::convolute_to_f_tau_fine_linear_interpolation_test(
-    int index, scalartype t_val, scalartype f_val) {
+template <typename scalartype, typename w_dmn_t, typename p_dmn_t, int OVER_SAMPLING>
+inline void Dnfft1D<scalartype, w_dmn_t, p_dmn_t,
+                    OVER_SAMPLING>::convolute_to_f_tau_fine_linear_interpolation(int index,
+                                                                                 scalartype t_val,
+                                                                                 scalartype f_val) {
   assert(t_val > -0.5 - 1.e-6 and t_val < 0.5 + 1.e-6);
 
   const scalartype t_0 = window_function_time_dmn_t::parameter_type::first_element();
@@ -386,24 +383,24 @@ inline void Dnfft1D<scalartype, w_dmn_t, p_dmn_t>::convolute_to_f_tau_fine_linea
   y_ptr[0] = f_val;
   y_ptr[1] = f_val * diff_tau;
 
-  {
-    int tau_index = tau_0 - over_sampling_;
-    int delta_tau_index = tau_1 - over_sampling_ * window_sampling_;
+  int tau_index = tau_0 - OVER_SAMPLING;
+  int delta_tau_index = tau_1 - OVER_SAMPLING * WINDOW_SAMPLING;
 
-    int J = delta_tau_index % window_sampling_;
-    int I = (delta_tau_index - J) / window_sampling_;
-    assert(delta_tau_index == I * window_sampling_ + J);
+  int J = delta_tau_index % WINDOW_SAMPLING;
+  int I = (delta_tau_index - J) / WINDOW_SAMPLING;
+  assert(delta_tau_index == I * WINDOW_SAMPLING + J);
 
-    scalartype* f_tau_ptr = &f_tau(tau_index, index);
-    scalartype* matrix_ptr = &linear_convolution_matrices(0, I, J);
+  scalartype* f_tau_ptr = &f_tau(tau_index, index);
+  scalartype* matrix_ptr = &linear_convolution_matrices(0, I, J);
 
-    unroll_linear_interpolation_fast(2 * over_sampling_ + 1, f_tau_ptr, matrix_ptr, y_ptr);
-  }
+  nfft_atomic_convolution<2 * OVER_SAMPLING + 1, 0>::execute_linear(f_tau_ptr, matrix_ptr, y_ptr);
 }
 
-template <typename scalartype, typename w_dmn_t, typename p_dmn_t>
-inline void Dnfft1D<scalartype, w_dmn_t, p_dmn_t>::convolute_to_f_tau_fine_cubic_interpolation_test(
-    int index, scalartype t_val, scalartype f_val) {
+template <typename scalartype, typename w_dmn_t, typename p_dmn_t, int OVER_SAMPLING>
+inline void Dnfft1D<scalartype, w_dmn_t, p_dmn_t,
+                    OVER_SAMPLING>::convolute_to_f_tau_fine_cubic_interpolation(int index,
+                                                                                scalartype t_val,
+                                                                                scalartype f_val) {
   assert(t_val > -0.5 - 1.e-6 and t_val < 0.5 + 1.e-6);
 
   const scalartype t_0 = window_function_time_dmn_t::parameter_type::first_element();
@@ -437,148 +434,22 @@ inline void Dnfft1D<scalartype, w_dmn_t, p_dmn_t>::convolute_to_f_tau_fine_cubic
   y_ptr[3] = y_ptr[2] * diff_tau;
 
   {
-    int tau_index = tau_0 - over_sampling_;
-    int delta_tau_index = tau_1 - over_sampling_ * window_sampling_;
+    int tau_index = tau_0 - OVER_SAMPLING;
+    int delta_tau_index = tau_1 - OVER_SAMPLING * WINDOW_SAMPLING;
 
-    int J = delta_tau_index % window_sampling_;
-    int I = (delta_tau_index - J) / window_sampling_;
-    assert(delta_tau_index == I * window_sampling_ + J);
+    int J = delta_tau_index % WINDOW_SAMPLING;
+    int I = (delta_tau_index - J) / WINDOW_SAMPLING;
+    assert(delta_tau_index == I * WINDOW_SAMPLING + J);
 
     scalartype* f_tau_ptr = &f_tau(tau_index, index);
     scalartype* matrix_ptr = &cubic_convolution_matrices(0, I, J);
 
-    unroll_cubic_interpolation_fast(2 * over_sampling_ + 1, f_tau_ptr, matrix_ptr, y_ptr);
+    nfft_atomic_convolution<2 * OVER_SAMPLING + 1, 0>::execute_cubic(f_tau_ptr, matrix_ptr, y_ptr);
   }
 }
 
-template <typename scalartype, typename w_dmn_t, typename p_dmn_t>
-inline void Dnfft1D<scalartype, w_dmn_t, p_dmn_t>::unroll_linear_interpolation_fast(
-    int N, scalartype* f_tau_ptr, scalartype* matrix_ptr, scalartype* y_ptr) {
-  switch (N) {
-    case 0:
-      return;
-    case 1:
-      nfft_atomic_convolution<1, 0>::execute_linear(f_tau_ptr, matrix_ptr, y_ptr);
-      return;
-    case 2:
-      nfft_atomic_convolution<2, 0>::execute_linear(f_tau_ptr, matrix_ptr, y_ptr);
-      return;
-    case 3:
-      nfft_atomic_convolution<3, 0>::execute_linear(f_tau_ptr, matrix_ptr, y_ptr);
-      return;
-    case 4:
-      nfft_atomic_convolution<4, 0>::execute_linear(f_tau_ptr, matrix_ptr, y_ptr);
-      return;
-    case 5:
-      nfft_atomic_convolution<5, 0>::execute_linear(f_tau_ptr, matrix_ptr, y_ptr);
-      return;
-    case 6:
-      nfft_atomic_convolution<6, 0>::execute_linear(f_tau_ptr, matrix_ptr, y_ptr);
-      return;
-    case 7:
-      nfft_atomic_convolution<7, 0>::execute_linear(f_tau_ptr, matrix_ptr, y_ptr);
-      return;
-    case 8:
-      nfft_atomic_convolution<8, 0>::execute_linear(f_tau_ptr, matrix_ptr, y_ptr);
-      return;
-    case 9:
-      nfft_atomic_convolution<9, 0>::execute_linear(f_tau_ptr, matrix_ptr, y_ptr);
-      return;
-    case 10:
-      nfft_atomic_convolution<10, 0>::execute_linear(f_tau_ptr, matrix_ptr, y_ptr);
-      return;
-    case 11:
-      nfft_atomic_convolution<11, 0>::execute_linear(f_tau_ptr, matrix_ptr, y_ptr);
-      return;
-    case 12:
-      nfft_atomic_convolution<12, 0>::execute_linear(f_tau_ptr, matrix_ptr, y_ptr);
-      return;
-    case 13:
-      nfft_atomic_convolution<13, 0>::execute_linear(f_tau_ptr, matrix_ptr, y_ptr);
-      return;
-    case 14:
-      nfft_atomic_convolution<14, 0>::execute_linear(f_tau_ptr, matrix_ptr, y_ptr);
-      return;
-    case 15:
-      nfft_atomic_convolution<15, 0>::execute_linear(f_tau_ptr, matrix_ptr, y_ptr);
-      return;
-    case 16:
-      nfft_atomic_convolution<16, 0>::execute_linear(f_tau_ptr, matrix_ptr, y_ptr);
-      return;
-    case 17:
-      nfft_atomic_convolution<17, 0>::execute_linear(f_tau_ptr, matrix_ptr, y_ptr);
-      return;
-
-    default:
-      throw std::logic_error(__FUNCTION__);
-  }
-}
-
-template <typename scalartype, typename w_dmn_t, typename p_dmn_t>
-inline void Dnfft1D<scalartype, w_dmn_t, p_dmn_t>::unroll_cubic_interpolation_fast(
-    int N, scalartype* f_tau_ptr, scalartype* matrix_ptr, scalartype* y_ptr) {
-  switch (N) {
-    case 0:
-      return;
-    case 1:
-      nfft_atomic_convolution<1, 0>::execute_cubic(f_tau_ptr, matrix_ptr, y_ptr);
-      return;
-    case 2:
-      nfft_atomic_convolution<2, 0>::execute_cubic(f_tau_ptr, matrix_ptr, y_ptr);
-      return;
-    case 3:
-      nfft_atomic_convolution<3, 0>::execute_cubic(f_tau_ptr, matrix_ptr, y_ptr);
-      return;
-    case 4:
-      nfft_atomic_convolution<4, 0>::execute_cubic(f_tau_ptr, matrix_ptr, y_ptr);
-      return;
-    case 5:
-      nfft_atomic_convolution<5, 0>::execute_cubic(f_tau_ptr, matrix_ptr, y_ptr);
-      return;
-    case 6:
-      nfft_atomic_convolution<6, 0>::execute_cubic(f_tau_ptr, matrix_ptr, y_ptr);
-      return;
-    case 7:
-      nfft_atomic_convolution<7, 0>::execute_cubic(f_tau_ptr, matrix_ptr, y_ptr);
-      return;
-    case 8:
-      nfft_atomic_convolution<8, 0>::execute_cubic(f_tau_ptr, matrix_ptr, y_ptr);
-      return;
-    case 9:
-      nfft_atomic_convolution<9, 0>::execute_cubic(f_tau_ptr, matrix_ptr, y_ptr);
-      return;
-    case 10:
-      nfft_atomic_convolution<10, 0>::execute_cubic(f_tau_ptr, matrix_ptr, y_ptr);
-      return;
-    case 11:
-      nfft_atomic_convolution<11, 0>::execute_cubic(f_tau_ptr, matrix_ptr, y_ptr);
-      return;
-    case 12:
-      nfft_atomic_convolution<12, 0>::execute_cubic(f_tau_ptr, matrix_ptr, y_ptr);
-      return;
-    case 13:
-      nfft_atomic_convolution<13, 0>::execute_cubic(f_tau_ptr, matrix_ptr, y_ptr);
-      return;
-    case 14:
-      nfft_atomic_convolution<14, 0>::execute_cubic(f_tau_ptr, matrix_ptr, y_ptr);
-      return;
-    case 15:
-      nfft_atomic_convolution<15, 0>::execute_cubic(f_tau_ptr, matrix_ptr, y_ptr);
-      return;
-    case 16:
-      nfft_atomic_convolution<16, 0>::execute_cubic(f_tau_ptr, matrix_ptr, y_ptr);
-      return;
-    case 17:
-      nfft_atomic_convolution<17, 0>::execute_cubic(f_tau_ptr, matrix_ptr, y_ptr);
-      return;
-
-    default:
-      throw std::logic_error(__FUNCTION__);
-  }
-}
-
-template <typename scalartype, typename w_dmn_t, typename p_dmn_t>
-void Dnfft1D<scalartype, w_dmn_t, p_dmn_t>::fold_time_domain_back() {
+template <typename scalartype, typename w_dmn_t, typename p_dmn_t, int OVER_SAMPLING>
+void Dnfft1D<scalartype, w_dmn_t, p_dmn_t, OVER_SAMPLING>::fold_time_domain_back() {
   f_tau_left_oriented = 0;
 
   int N_padded = nfft_time_domain<PADDED, this_type>::get_size();
@@ -586,26 +457,26 @@ void Dnfft1D<scalartype, w_dmn_t, p_dmn_t>::fold_time_domain_back() {
 
   for (int p_ind = 0; p_ind < p_dmn_t::dmn_size(); p_ind++) {
     for (int t_ind = 0; t_ind < N_padded; t_ind++) {
-      if (t_ind < 2 * over_sampling_) {
-        f_tau_left_oriented(t_ind - 2 * over_sampling_ + N_left_oriented, p_ind) +=
+      if (t_ind < 2 * OVER_SAMPLING) {
+        f_tau_left_oriented(t_ind - 2 * OVER_SAMPLING + N_left_oriented, p_ind) +=
             f_tau(t_ind, p_ind);
       }
 
-      if (t_ind >= 2 * over_sampling_ and t_ind < N_padded - 2 * over_sampling_) {
-        f_tau_left_oriented(t_ind - 2 * over_sampling_, p_ind) += f_tau(t_ind, p_ind);
+      if (t_ind >= 2 * OVER_SAMPLING and t_ind < N_padded - 2 * OVER_SAMPLING) {
+        f_tau_left_oriented(t_ind - 2 * OVER_SAMPLING, p_ind) += f_tau(t_ind, p_ind);
       }
 
-      if (t_ind >= N_padded - 2 * over_sampling_) {
-        f_tau_left_oriented(t_ind - 2 * over_sampling_ - N_left_oriented, p_ind) +=
+      if (t_ind >= N_padded - 2 * OVER_SAMPLING) {
+        f_tau_left_oriented(t_ind - 2 * OVER_SAMPLING - N_left_oriented, p_ind) +=
             f_tau(t_ind, p_ind);
       }
     }
   }
 }
 
-template <typename scalartype, typename w_dmn_t, typename p_dmn_t>
+template <typename scalartype, typename w_dmn_t, typename p_dmn_t, int OVER_SAMPLING>
 template <typename other_scalartype>
-void Dnfft1D<scalartype, w_dmn_t, p_dmn_t>::FT_f_tau_to_f_w(
+void Dnfft1D<scalartype, w_dmn_t, p_dmn_t, OVER_SAMPLING>::FT_f_tau_to_f_w(
     func::function<std::complex<other_scalartype>, func::dmn_variadic<w_dmn_t, p_dmn_t>>& f_w) {
   int N = nfft_time_domain<LEFT_ORIENTED, this_type>::get_size();
 
