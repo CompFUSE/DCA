@@ -99,11 +99,11 @@ private:
 
   int N_spin_orbitals;
 
-  math::nfft::dnfft_1D<double, w, p_dmn_t> cached_nfft_1D_G_obj;
-  // math::nfft::dnfft_1D<double, w, p_dmn_t> cached_nfft_1D_G_squared_obj;
+  math::nfft::Dnfft1D<double, w, p_dmn_t> cached_nfft_1D_G_obj;
+  // math::nfft::Dnfft1D<double, w, p_dmn_t> cached_nfft_1D_G_squared_obj;
 
-  math::nfft::dnfft_1D<double, w, p_dmn_t> cached_nfft_1D_GS_obj;
-  // math::nfft::dnfft_1D<double, w, p_dmn_t> cached_nfft_1D_GS_squared_obj;
+  math::nfft::Dnfft1D<double, w, p_dmn_t> cached_nfft_1D_GS_obj;
+  // math::nfft::Dnfft1D<double, w, p_dmn_t> cached_nfft_1D_GS_squared_obj;
 };
 
 template <class parameters_type, class base_cluster_type>
@@ -211,8 +211,8 @@ void SpAccumulatorNfft<parameters_type, base_cluster_type>::accumulate(
 
         double scaled_tau = (t_i - t_j) * one_div_two_beta;
 
-        cached_nfft_1D_G_obj.accumulate_at(coor_nfft, scaled_tau, M_ind(j, i) * current_sign);
-        cached_nfft_1D_GS_obj.accumulate_at(coor_nfft, scaled_tau,
+        cached_nfft_1D_G_obj.accumulate(coor_nfft, scaled_tau, M_ind(j, i) * current_sign);
+        cached_nfft_1D_GS_obj.accumulate(coor_nfft, scaled_tau,
                                             U_times_n * M_ind(j, i) * current_sign);
       }
     }

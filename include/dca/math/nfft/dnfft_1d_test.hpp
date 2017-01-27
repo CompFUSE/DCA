@@ -112,7 +112,7 @@ private:
     {
       clock_t t0 = clock();
       for (int j = 0; j < t.size(); j++) {
-        nfft_obj.accumulate_at(0, t_vals[j], f[j]);
+        nfft_obj.accumulate(0, t_vals[j], f[j]);
       }
 
       clock_t t1 = clock();

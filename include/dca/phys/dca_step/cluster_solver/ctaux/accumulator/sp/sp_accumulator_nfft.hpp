@@ -88,8 +88,8 @@ private:
   parameters_type& parameters;
   concurrency_type& concurrency;
 
-  math::nfft::dnfft_1D<double, w, p_dmn_t> cached_nfft_1D_M_r_w_obj;
-  math::nfft::dnfft_1D<double, w, p_dmn_t> cached_nfft_1D_M_r_w_squared_obj;
+  math::nfft::Dnfft1D<double, w, p_dmn_t> cached_nfft_1D_M_r_w_obj;
+  math::nfft::Dnfft1D<double, w, p_dmn_t> cached_nfft_1D_M_r_w_squared_obj;
 };
 
 template <class parameters_type, class MOMS_type>
@@ -104,9 +104,9 @@ template <class parameters_type, class MOMS_type>
 void SpAccumulatorNfft<parameters_type, MOMS_type>::initialize(
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& M_r_w) {
   cached_nfft_1D_M_r_w_obj.initialize();
+  cached_nfft_1D_M_r_w_squared_obj.initialize();
 
-  for (int i = 0; i < M_r_w.size(); i++)
-    M_r_w(i) = 0;
+  M_r_w = 0;
 }
 
 template <class parameters_type, class MOMS_type>
@@ -116,11 +116,8 @@ void SpAccumulatorNfft<parameters_type, MOMS_type>::initialize(
   cached_nfft_1D_M_r_w_obj.initialize();
   cached_nfft_1D_M_r_w_squared_obj.initialize();
 
-  for (int i = 0; i < M_r_w.size(); i++)
-    M_r_w(i) = 0;
-
-  for (int i = 0; i < M_r_w_squared.size(); i++)
-    M_r_w_squared(i) = 0;
+  M_r_w = 0;
+  M_r_w_squared = 0;
 }
 
 template <class parameters_type, class MOMS_type>
@@ -176,8 +173,8 @@ void SpAccumulatorNfft<parameters_type, MOMS_type>::accumulate_M_r_w(
       assert(configuration_e_spin[i].get_HS_spin() != HS_ZERO &&
              configuration_e_spin[j].get_HS_spin() != HS_ZERO);
 
-      cached_nfft_1D_M_r_w_obj.accumulate_at(coor_nfft, scaled_tau, f_tau);
-      cached_nfft_1D_M_r_w_squared_obj.accumulate_at(coor_nfft, scaled_tau, f_tau * f_tau);
+      cached_nfft_1D_M_r_w_obj.accumulate(coor_nfft, scaled_tau, f_tau);
+      cached_nfft_1D_M_r_w_squared_obj.accumulate(coor_nfft, scaled_tau, f_tau * f_tau);
     }
   }
 }
