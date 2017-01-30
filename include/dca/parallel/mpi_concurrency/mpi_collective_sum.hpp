@@ -17,6 +17,7 @@
 
 #include <map>
 #include <string>
+#include <utility>  // std::move, std::swap
 #include <vector>
 
 #include <mpi.h>
@@ -45,17 +46,19 @@ public:
   template <typename scalar_type, class domain>
   void sum(func::function<scalar_type, domain>& f) const;
   template <typename scalar_type, class domain>
-  void sum(func::function<scalar_type, domain>& f_in,
+  void sum(const func::function<scalar_type, domain>& f_in,
            func::function<scalar_type, domain>& f_out) const;
   template <typename scalar_type, class domain>
   void sum(func::function<std::vector<scalar_type>, domain>& f) const;
   template <typename scalar_type>
-  void sum(linalg::Vector<scalar_type, linalg::CPU>& f) const;
+  void sum(linalg::Vector<scalar_type, linalg::CPU>& vec) const;
   template <typename scalar_type>
-  void sum(dca::linalg::Matrix<scalar_type, linalg::CPU>& f) const;
+  void sum(linalg::Matrix<scalar_type, linalg::CPU>& f) const;
 
   template <typename some_type>
   void sum_and_average(some_type& obj, int nr_meas_rank = 1) const;
+  template <typename some_type>
+  void sum_and_average(const some_type& in, some_type& out, int nr_meas_rank = 1) const;
 
   template <typename scalar_type, class domain>
   void average_and_compute_stddev(func::function<scalar_type, domain>& f_mean,
@@ -67,10 +70,9 @@ public:
   // Computes the covariance matrix of the measurements of the different mpi ranks.
   // In: f, f_estimated
   // Out: cov
-  // TODO: const f, f_estimated
   template <typename Scalar, class Domain>
-  void computeCovariance(func::function<Scalar, Domain>& f,
-                         func::function<Scalar, Domain>& f_estimated,
+  void computeCovariance(const func::function<Scalar, Domain>& f,
+                         const func::function<Scalar, Domain>& f_estimated,
                          func::function<Scalar, func::dmn_variadic<Domain, Domain>>& cov) const;
 
   // Computes the covariance matrix of complex measurements of the different mpi ranks.
@@ -78,10 +80,9 @@ public:
   // the covariance of the real vector [Re(f[0]), Re(f[1]), ..., Im(f[0]), Im(f[1]), ...].
   // In: f, f_estimated
   // Out: cov
-  // TODO: const f, f_estimated
   template <typename Scalar, class Domain, class CovDomain>
-  void computeCovariance(func::function<std::complex<Scalar>, Domain>& f,
-                         func::function<std::complex<Scalar>, Domain>& f_estimated,
+  void computeCovariance(const func::function<std::complex<Scalar>, Domain>& f,
+                         const func::function<std::complex<Scalar>, Domain>& f_estimated,
                          func::function<Scalar, CovDomain>& cov) const;
 
 private:
@@ -105,8 +106,7 @@ void MPICollectiveSum::sum(std::vector<scalar_type>& m) const {
   MPI_Allreduce(&(m[0]), &(result[0]), MPITypeMap<scalar_type>::factor() * m.size(),
                 MPITypeMap<scalar_type>::value(), MPI_SUM, grouping_.get());
 
-  for (size_t i = 0; i < m.size(); i++)
-    m[i] = result[i];
+  m = std::move(result);
 }
 
 template <typename scalar_type>
@@ -130,23 +130,28 @@ void MPICollectiveSum::sum(std::map<std::string, std::vector<scalar_type>>& m) c
 
 template <typename scalar_type, class domain>
 void MPICollectiveSum::sum(func::function<scalar_type, domain>& f) const {
-  func::function<scalar_type, domain> F;
+  func::function<scalar_type, domain> f_sum;
 
-  MPI_Allreduce(&f(0), &F(0), MPITypeMap<scalar_type>::factor() * f.size(),
+  // TODO: Use f.values() instead of &f(0) (same for f_sum).
+  MPI_Allreduce(&f(0), &f_sum(0), MPITypeMap<scalar_type>::factor() * f.size(),
                 MPITypeMap<scalar_type>::value(), MPI_SUM, grouping_.get());
 
-  for (int i = 0; i < F.size(); i++)
-    f(i) = F(i);
+  f = std::move(f_sum);
 
-  for (int i = 0; i < F.size(); i++) {
-    if (f(i) != f(i)) {
-      std::stringstream ss;
-      ss << i << "\t" << f.get_name() << "\n";
-      std::cout << ss.str();
-
-      throw std::logic_error(__FUNCTION__);
-    }
+#ifndef NDEBUG
+  for (int i = 0; i < f.size(); ++i) {
+    // INTERNAL: Cannot use std::isnan since scalar_type might be std::complex.
+    if (f(i) != f(i))
+      throw std::logic_error("Summation resulted in not-a-number (NaN) value.");
   }
+#endif  // NDEBUG
+}
+
+template <typename scalar_type, class domain>
+void MPICollectiveSum::sum(const func::function<scalar_type, domain>& f_in,
+                           func::function<scalar_type, domain>& f_out) const {
+  MPI_Allreduce(&f_in(0), &f_out(0), MPITypeMap<scalar_type>::factor() * f_in.size(),
+                MPITypeMap<scalar_type>::value(), MPI_SUM, grouping_.get());
 }
 
 template <typename scalar_type, class domain>
@@ -154,7 +159,7 @@ void MPICollectiveSum::sum(func::function<std::vector<scalar_type>, domain>& f) 
   int Nr = f(0).size();
   int Nc = f.size();
 
-  dca::linalg::Matrix<scalar_type, linalg::CPU> M("M", std::pair<int, int>(Nr, Nc));
+  linalg::Matrix<scalar_type, linalg::CPU> M("M", std::pair<int, int>(Nr, Nc));
 
   for (int j = 0; j < Nc; j++)
     for (int i = 0; i < Nr; i++)
@@ -167,31 +172,25 @@ void MPICollectiveSum::sum(func::function<std::vector<scalar_type>, domain>& f) 
       f(j)[i] = M(i, j);
 }
 
-template <typename scalar_type, class domain>
-void MPICollectiveSum::sum(func::function<scalar_type, domain>& f_in,
-                           func::function<scalar_type, domain>& f_out) const {
-  MPI_Allreduce(&f_in(0), &f_out(0), MPITypeMap<scalar_type>::factor() * f_in.size(),
+template <typename scalar_type>
+void MPICollectiveSum::sum(linalg::Vector<scalar_type, linalg::CPU>& vec) const {
+  linalg::Vector<scalar_type, linalg::CPU> vec_sum("vec_sum", vec.size());
+
+  MPI_Allreduce(&vec[0], &vec_sum[0], MPITypeMap<scalar_type>::factor() * vec.size(),
                 MPITypeMap<scalar_type>::value(), MPI_SUM, grouping_.get());
+
+  vec = vec_sum;
+
+#ifndef NDEBUG
+  for (int i = 0; i < vec.size(); ++i)
+    if (vec[i] != vec[i])
+      throw std::logic_error("Summation resulted in not-a-number (NaN) value.");
+#endif  // NDEBUG
 }
 
 template <typename scalar_type>
-void MPICollectiveSum::sum(linalg::Vector<scalar_type, linalg::CPU>& f) const {
-  linalg::Vector<scalar_type, linalg::CPU> F("F", f.size());
-
-  MPI_Allreduce(&f[0], &F[0], MPITypeMap<scalar_type>::factor() * f.size(),
-                MPITypeMap<scalar_type>::value(), MPI_SUM, grouping_.get());
-
-  for (int i = 0; i < F.size(); i++)
-    f[i] = F[i];
-
-  for (int i = 0; i < F.size(); i++)
-    if (f[i] != f[i])
-      throw std::logic_error(__FUNCTION__);
-}
-
-template <typename scalar_type>
-void MPICollectiveSum::sum(dca::linalg::Matrix<scalar_type, linalg::CPU>& f) const {
-  dca::linalg::Matrix<scalar_type, linalg::CPU> F("F", f.size(), f.capacity());
+void MPICollectiveSum::sum(linalg::Matrix<scalar_type, linalg::CPU>& f) const {
+  linalg::Matrix<scalar_type, linalg::CPU> F("F", f.size(), f.capacity());
 
   assert(f.capacity().first == F.capacity().first);
   assert(f.capacity().second == F.capacity().second);
@@ -208,12 +207,22 @@ void MPICollectiveSum::sum(dca::linalg::Matrix<scalar_type, linalg::CPU>& f) con
 }
 
 template <typename some_type>
-void MPICollectiveSum::sum_and_average(some_type& obj, int nr_meas_rank) const {
+void MPICollectiveSum::sum_and_average(some_type& obj, const int nr_meas_rank) const {
   sum(obj);
 
-  double one_over_N = 1. / (nr_meas_rank * grouping_.get_Nr_threads());
+  const double one_over_N = 1. / (nr_meas_rank * grouping_.get_Nr_threads());
 
   obj *= one_over_N;
+}
+
+template <typename some_type>
+void MPICollectiveSum::sum_and_average(const some_type& in, some_type& out,
+                                       const int nr_meas_rank) const {
+  sum(in, out);
+
+  const double one_over_N = 1. / (nr_meas_rank * grouping_.get_Nr_threads());
+
+  out *= one_over_N;
 }
 
 template <typename scalar_type, class domain>
@@ -279,7 +288,7 @@ void MPICollectiveSum::average_and_compute_stddev(
 
 template <typename Scalar, class Domain>
 void MPICollectiveSum::computeCovariance(
-    func::function<Scalar, Domain>& f, func::function<Scalar, Domain>& f_estimated,
+    const func::function<Scalar, Domain>& f, const func::function<Scalar, Domain>& f_estimated,
     func::function<Scalar, func::dmn_variadic<Domain, Domain>>& cov) const {
   for (int i = 0; i < f.size(); i++)
     for (int j = 0; j < f.size(); j++)
@@ -289,8 +298,8 @@ void MPICollectiveSum::computeCovariance(
 }
 
 template <typename Scalar, class Domain, class CovDomain>
-void MPICollectiveSum::computeCovariance(func::function<std::complex<Scalar>, Domain>& f,
-                                         func::function<std::complex<Scalar>, Domain>& f_estimated,
+void MPICollectiveSum::computeCovariance(const func::function<std::complex<Scalar>, Domain>& f,
+                                         const func::function<std::complex<Scalar>, Domain>& f_estimated,
                                          func::function<Scalar, CovDomain>& cov) const {
   assert(4 * f.size() * f.size() == cov.size());
 
