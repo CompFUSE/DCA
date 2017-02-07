@@ -65,8 +65,12 @@ public:
   template <typename Writer>
   static void write(Writer& writer);
 
+  static void initialize(double beta, int n_frequencies);
+
   template <typename parameters_t>
-  static void initialize(parameters_t& parameters);
+  static void initialize(parameters_t& parameters){
+    initialize(parameters.get_beta(), parameters.get_sp_fermionic_frequencies());
+  }
 };
 
 template <typename Writer>
@@ -76,19 +80,18 @@ void frequency_domain::write(Writer& writer) {
   writer.close_group();
 }
 
-template <typename parameters_t>
-void frequency_domain::initialize(parameters_t& parameters) {
-  get_basis()[0] = (2. * M_PI) / parameters.get_beta();
-  get_inverse_basis()[0] = parameters.get_beta() / (2. * M_PI);
+void frequency_domain::initialize(double beta, int n_frequencies) {
+  get_basis()[0] = (2. * M_PI) / beta;
+  get_inverse_basis()[0] = beta / (2. * M_PI);
 
-  get_size() = 2 * parameters.get_sp_fermionic_frequencies();
+  get_size() = 2 * n_frequencies;
 
   get_elements().resize(get_size());
   get_integer_wave_vectors().resize(get_size());
 
-  for (int l = 0; l < parameters.get_sp_fermionic_frequencies(); l++) {
-    get_elements()[get_size() / 2 + 0 + l] = M_PI / parameters.get_beta() * (1 + 2 * l);
-    get_elements()[get_size() / 2 - 1 - l] = -M_PI / parameters.get_beta() * (1 + 2 * l);
+  for (int l = 0; l < n_frequencies; l++) {
+    get_elements()[get_size() / 2 + 0 + l] = M_PI / beta * (1 + 2 * l);
+    get_elements()[get_size() / 2 - 1 - l] = -M_PI / beta * (1 + 2 * l);
 
     get_integer_wave_vectors()[get_size() / 2 + 0 + l] = (1 + 2 * l);
     get_integer_wave_vectors()[get_size() / 2 - 1 - l] = -(1 + 2 * l);
