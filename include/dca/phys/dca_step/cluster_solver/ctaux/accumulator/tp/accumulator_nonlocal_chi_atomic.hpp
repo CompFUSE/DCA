@@ -18,7 +18,7 @@
 #include "dca/function/domains/dmn_0.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
-#include "dca/phys/vertex_measurement_type.hpp"
+#include "dca/phys/four_point_type.hpp"
 
 namespace dca {
 namespace phys {
@@ -29,7 +29,7 @@ namespace ctaux {
 //
 // Empty class template.
 //
-template <class model_type, VertexMeasurementType vertex_measurement>
+template <class model_type, FourPointType four_point>
 class accumulator_nonlocal_chi_atomic {};
 
 //
@@ -161,7 +161,7 @@ class accumulator_nonlocal_chi_atomic<model_type, PARTICLE_HOLE_CHARGE> {
 // Specialization for particle-hole-superconducting channel.
 //
 template <class model_type>
-class accumulator_nonlocal_chi_atomic<model_type, PARTICLE_PARTICLE_SUPERCONDUCTING> {
+class accumulator_nonlocal_chi_atomic<model_type, PARTICLE_PARTICLE_UP_DOWN> {
   inline void execute() {
     throw std::logic_error(__FUNCTION__);
   }

@@ -1,21 +1,14 @@
 {
-    "Monte-Carlo-Integration": {
-        "Sigma-file": "sigma-file.hdf5",
-        
-        "warm-up-sweeps": 99,
-        "sweeps-per-measurement": 1.5,
-        "measurements": 47,
+    "Monte-Carlo-integration": {
+        "seed": 42,
+        "warm-up-sweeps": 40,
+        "sweeps-per-measurement": 2.5,
+        "measurements-per-process-and-accumulator": 200,
 
-        "adaptive-double-counting": "true",
-
-        "RNG-seed": 123,
-
-        "MC-posix-parameters": {
-            "nr-walkers": 4,
-            "nr-accumulators": 5,
-            "additional-steps": 6,
-            
-            "HTS-threads": 7
+        "threaded-solver": {
+            "walkers": 3,
+            "accumulators": 5,
+            "additional-steps": 1
         }
     }
 }

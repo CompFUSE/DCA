@@ -59,9 +59,6 @@ public:
   using k_DCA =
       func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::CLUSTER,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
-  using k_LDA =
-      func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::LATTICE_SP,
-                                          domains::MOMENTUM_SPACE, domains::PARALLELLEPIPEDUM>>;
   using k_HOST =
       func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::LATTICE_SP,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
@@ -218,8 +215,7 @@ BseSolver<ParametersType, DcaDataType>::BseSolver(ParametersType& parameters_ref
 template <typename ParametersType, typename DcaDataType>
 void BseSolver<ParametersType, DcaDataType>::write() {
   const std::string& output_format = parameters.get_output_format();
-  const std::string& file_name =
-      parameters.get_directory() + parameters.get_susceptibilities_file_name();
+  const std::string& file_name = parameters.get_directory() + parameters.get_filename_analysis();
 
   std::cout << "\n\n\t\t start writing " << file_name << "\n\n";
 

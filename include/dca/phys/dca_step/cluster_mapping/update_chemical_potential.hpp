@@ -224,7 +224,7 @@ void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>:
 
 template <typename parameters_type, typename MOMS_type, typename coarsegraining_type>
 double update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>::compute_density() {
-  if (parameters.do_DCA_plus())
+  if (parameters.do_dca_plus())
     coarsegraining.compute_G_K_w(MOMS.H_HOST, MOMS.Sigma_lattice, MOMS.G_k_w);
   else
     coarsegraining.compute_G_K_w(MOMS.H_HOST, MOMS.Sigma, MOMS.G_k_w);
@@ -305,7 +305,7 @@ void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>:
   A = 0;
   B = 0;
 
-  int nb_wm = parameters.get_number_of_tail_frequencies();
+  int nb_wm = parameters.get_tail_frequencies();
 
   if (nb_wm > 0) {
     for (int k_i = 0; k_i < k_DCA::dmn_size(); k_i++) {

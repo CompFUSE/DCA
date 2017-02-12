@@ -142,14 +142,14 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::~DcaLoop() {
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType>
 void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::read() {
-  if (parameters.get_Sigma_file() != "zero")
-    MOMS.read(parameters.get_Sigma_file());
+  if (parameters.get_initial_self_energy() != "zero")
+    MOMS.read(parameters.get_initial_self_energy());
 }
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType>
 void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::write() {
   const std::string& output_format = parameters.get_output_format();
-  const std::string& file_name = parameters.get_directory() + parameters.get_output_file_name();
+  const std::string& file_name = parameters.get_directory() + parameters.get_filename_dca();
 
   std::cout << "\n\n\t\t start writing " << file_name << "\t" << dca::util::print_time() << "\n\n";
 
@@ -183,7 +183,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::write() {
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType>
 void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::initialize() {
-  if (parameters.get_Sigma_file() != "zero") {
+  if (parameters.get_initial_self_energy() != "zero") {
     MOMS.initialize_Sigma();
     perform_lattice_mapping();
   }
@@ -191,7 +191,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::initialize() {
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType>
 void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::execute() {
-  for (int i = 0; i < parameters.get_DCA_iterations(); i++) {
+  for (int i = 0; i < parameters.get_dca_iterations(); i++) {
     adjust_chemical_potential();
 
     perform_cluster_mapping();
@@ -210,7 +210,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::execute() {
     update_DCA_loop_data_functions(i);
 
     if (L2_Sigma_difference <
-        parameters.get_DCA_accuracy())  // set the acquired accuracy on |Sigma_QMC - Sigma_cg|
+        parameters.get_dca_accuracy())  // set the acquired accuracy on |Sigma_QMC - Sigma_cg|
       break;
   }
 }
@@ -242,7 +242,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::perform_cluster_map
 
   profiler_type profiler("coarsegrain-Selfenergy", "DCA", __LINE__);
 
-  if (parameters.do_DCA_plus())
+  if (parameters.do_dca_plus())
     cluster_mapping_obj.compute_S_K_w(MOMS.Sigma_lattice, MOMS.Sigma_cluster);
   else
     MOMS.Sigma_cluster = MOMS.Sigma;
@@ -259,7 +259,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::perform_cluster_map
 
   profiler_type profiler("coarsegrain-Greens-function", "DCA", __LINE__);
 
-  if (parameters.do_DCA_plus())
+  if (parameters.do_dca_plus())
     cluster_mapping_obj.compute_G_K_w(MOMS.H_HOST, MOMS.Sigma_lattice, MOMS.G_k_w);
   else
     cluster_mapping_obj.compute_G_K_w(MOMS.H_HOST, MOMS.Sigma, MOMS.G_k_w);
@@ -314,8 +314,8 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::perform_lattice_map
   if (concurrency.id() == 0)
     std::cout << "\n\t\t lattice-mapping " << dca::util::print_time();
 
-  if (parameters.do_DCA_plus()) {
-    if (parameters.use_HTS_approximation()) {
+  if (parameters.do_dca_plus()) {
+    if (parameters.hts_approximation()) {
       DcaDataType MOMS_HTS(parameters);
 
       MOMS_HTS.H_HOST = MOMS.H_HOST;
@@ -353,6 +353,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::update_DCA_loop_dat
 
   for (int l1 = 0; l1 < b::dmn_size() * s::dmn_size(); l1++)
     for (int k_ind = 0; k_ind < k_DCA::dmn_size(); k_ind++)
+      // TODO: Use t::dmn_size() instead of parameters.get_sp_time_intervals().
       DCA_info_struct.A_k(l1, k_ind, i) =
           MOMS.G_k_t(l1, l1, k_ind, parameters.get_sp_time_intervals() / 2) *
           parameters.get_beta() / M_PI;

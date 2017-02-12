@@ -108,7 +108,7 @@ void vertex_time_domain<SP_TIME_DOMAIN>::initialize(parameters_t& parameters) {
   get_elements()[0] += 1.e-10;
   get_elements()[get_size() / 2 - 1] -= 1.e-10;
   get_elements()[get_size() / 2] += 1.e-10;
-  get_elements()[get_size() / 2 - 1] -= 1.e-10;
+  get_elements()[get_size() / 2 - 1] -= 1.e-10;  // TODO: Typo? (see time_domain.hpp)
 }
 
 template <>
@@ -184,10 +184,10 @@ void vertex_time_domain<SP_TIME_DOMAIN_LEFT_ORIENTED_POSITIVE>::initialize(param
 template <>
 template <typename parameters_t>
 void vertex_time_domain<TP_TIME_DOMAIN>::initialize(parameters_t& parameters) {
-  int time_slices = parameters.get_tp_time_intervals();
+  int time_slices = parameters.get_time_intervals_for_time_measurements();
   double beta = parameters.get_beta();
 
-  get_size() = 2 * (parameters.get_tp_time_intervals() + 1);
+  get_size() = 2 * (parameters.get_time_intervals_for_time_measurements() + 1);
 
   get_basis()[0] = beta / double(time_slices);
   get_inverse_basis()[0] = double(time_slices) / beta;
@@ -205,13 +205,13 @@ void vertex_time_domain<TP_TIME_DOMAIN>::initialize(parameters_t& parameters) {
   get_elements()[0] += 1.e-10;
   get_elements()[get_size() / 2 - 1] -= 1.e-10;
   get_elements()[get_size() / 2] += 1.e-10;
-  get_elements()[get_size() / 2 - 1] -= 1.e-10;
+  get_elements()[get_size() / 2 - 1] -= 1.e-10;  // TODO: Typo?
 }
 
 template <>
 template <typename parameters_t>
 void vertex_time_domain<TP_TIME_DOMAIN_POSITIVE>::initialize(parameters_t& parameters) {
-  int time_slices = parameters.get_tp_time_intervals();
+  int time_slices = parameters.get_time_intervals_for_time_measurements();
   double beta = parameters.get_beta();
 
   get_size() = time_slices + 1;

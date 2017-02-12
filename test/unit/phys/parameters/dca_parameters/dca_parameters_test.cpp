@@ -16,62 +16,48 @@
 #include "dca/io/json/json_reader.hpp"
 
 TEST(DcaParametersTest, DefaultValues) {
-  int lattice_dim = 2;
-  dca::phys::params::DcaParameters pars(lattice_dim);
+  dca::phys::params::DcaParameters pars;
 
-  std::vector<std::vector<int>> DCA_cluster_check{{0, 0}, {0, 0}};
-
-  EXPECT_FALSE(pars.do_DCA_plus());
-  EXPECT_EQ(std::vector<int>(0), pars.get_interacting_bands());
-  EXPECT_EQ(1, pars.get_DCA_iterations());
-  EXPECT_EQ(1.e-5, pars.get_DCA_accuracy());
-  EXPECT_EQ(1., pars.get_DCA_mixing_factor());
-  EXPECT_EQ(DCA_cluster_check, pars.get_DCA_cluster());
-  EXPECT_EQ(3, pars.get_k_mesh_refinement());
-  EXPECT_EQ(0, pars.get_number_of_periods());
-  EXPECT_EQ(3, pars.get_quadrature_rule());
-  EXPECT_TRUE(pars.precompute_Hamiltonian());
-  EXPECT_EQ(1, pars.get_nr_coarsegraining_threads());
-  EXPECT_EQ(0, pars.get_number_of_tail_frequencies());
-  EXPECT_EQ(1.e-3, pars.get_phi_k_integration_accuracy());
-  EXPECT_FALSE(pars.print_phi_k());
-  EXPECT_EQ("wannier-interpolation", pars.get_interpolation_method());
-  EXPECT_FALSE(pars.use_HTS_approximation());
-  EXPECT_EQ(1.e-2, pars.get_deconvolution_tolerance());
-  EXPECT_EQ(16, pars.get_max_deconvolution_iterations());
+  EXPECT_EQ("zero", pars.get_initial_self_energy());
+  EXPECT_EQ(1, pars.get_dca_iterations());
+  EXPECT_EQ(0., pars.get_dca_accuracy());
+  EXPECT_EQ(1., pars.get_self_energy_mixing_factor());
+  EXPECT_EQ(std::vector<int>{0}, pars.get_interacting_orbitals());
+  EXPECT_EQ(0, pars.get_k_mesh_recursion());
+  EXPECT_EQ(0, pars.get_coarsegraining_periods());
+  EXPECT_EQ(1, pars.get_quadrature_rule());
+  EXPECT_EQ(1, pars.get_coarsegraining_threads());
+  EXPECT_EQ(0, pars.get_tail_frequencies());
+  EXPECT_FALSE(pars.do_dca_plus());
+  EXPECT_EQ(16, pars.get_deconvolution_iterations());
+  EXPECT_EQ(1.e-3, pars.get_deconvolution_tolerance());
+  EXPECT_FALSE(pars.hts_approximation());
+  EXPECT_EQ(1, pars.get_hts_threads());
 }
 
 TEST(DcaParametersTest, ReadAll) {
   dca::io::JSONReader reader;
-  int lattice_dim = 2;
-  dca::phys::params::DcaParameters pars(lattice_dim);
+  dca::phys::params::DcaParameters pars;
 
   reader.open_file(DCA_SOURCE_DIR "/test/unit/phys/parameters/dca_parameters/input_read_all.json");
   pars.readWrite(reader);
   reader.close_file();
 
-  std::vector<int> interacting_bands_check{0, 1};
-  std::vector<std::vector<int>> DCA_cluster_check{{4, 0}, {0, 4}};
+  std::vector<int> interacting_orbitals_check{0, 1, 2};
 
-  EXPECT_TRUE(pars.do_DCA_plus());
-  EXPECT_EQ(interacting_bands_check, pars.get_interacting_bands());
-  EXPECT_EQ(3, pars.get_DCA_iterations());
-  EXPECT_EQ(1.e-6, pars.get_DCA_accuracy());
-  EXPECT_EQ(0.5, pars.get_DCA_mixing_factor());
-  EXPECT_EQ(DCA_cluster_check, pars.get_DCA_cluster());
-  EXPECT_EQ(4, pars.get_k_mesh_refinement());
-  EXPECT_EQ(2, pars.get_number_of_periods());
+  EXPECT_EQ("./T=0.5/dca.hdf5", pars.get_initial_self_energy());
+  EXPECT_EQ(3, pars.get_dca_iterations());
+  EXPECT_EQ(1.e-3, pars.get_dca_accuracy());
+  EXPECT_EQ(0.5, pars.get_self_energy_mixing_factor());
+  EXPECT_EQ(interacting_orbitals_check, pars.get_interacting_orbitals());
+  EXPECT_EQ(3, pars.get_k_mesh_recursion());
+  EXPECT_EQ(2, pars.get_coarsegraining_periods());
   EXPECT_EQ(2, pars.get_quadrature_rule());
-  EXPECT_FALSE(pars.precompute_Hamiltonian());
-  EXPECT_EQ(8, pars.get_nr_coarsegraining_threads());
-  EXPECT_EQ(10, pars.get_number_of_tail_frequencies());
-  EXPECT_EQ(1.e-5, pars.get_phi_k_integration_accuracy());
-  EXPECT_TRUE(pars.print_phi_k());
-  EXPECT_EQ("some-method", pars.get_interpolation_method());
-  EXPECT_TRUE(pars.use_HTS_approximation());
-  EXPECT_EQ(1.e-3, pars.get_deconvolution_tolerance());
-  EXPECT_EQ(32, pars.get_max_deconvolution_iterations());
-
-  EXPECT_TRUE(pars.is_an_interacting_band(1));
-  EXPECT_FALSE(pars.is_an_interacting_band(3));
+  EXPECT_EQ(8, pars.get_coarsegraining_threads());
+  EXPECT_EQ(10, pars.get_tail_frequencies());
+  EXPECT_TRUE(pars.do_dca_plus());
+  EXPECT_EQ(32, pars.get_deconvolution_iterations());
+  EXPECT_EQ(1.e-4, pars.get_deconvolution_tolerance());
+  EXPECT_TRUE(pars.hts_approximation());
+  EXPECT_EQ(8, pars.get_hts_threads());
 }

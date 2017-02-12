@@ -73,15 +73,15 @@ void DoubleCountingParameters::unpack(const Concurrency& concurrency, int* buffe
 template <typename ReaderOrWriter>
 void DoubleCountingParameters::readWrite(ReaderOrWriter& reader_or_writer) {
   try {
-    reader_or_writer.open_group("double-counting-parameters");
+    reader_or_writer.open_group("double-counting");
 
     try {
-      reader_or_writer.execute("double-counting-method", double_counting_method_);
+      reader_or_writer.execute("method", double_counting_method_);
     }
     catch (const std::exception& r_e) {
     }
     try {
-      reader_or_writer.execute("double-counting-correction", double_counting_correction_);
+      reader_or_writer.execute("correction", double_counting_correction_);
     }
     catch (const std::exception& r_e) {
     }
@@ -89,6 +89,14 @@ void DoubleCountingParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     reader_or_writer.close_group();
   }
   catch (const std::exception& r_e) {
+  }
+
+  // Check read values.
+  if (reader_or_writer.is_reader()) {
+    if (!(double_counting_method_ == "none" ||
+          double_counting_method_ == "constant-correction-without-U-correction" ||
+          double_counting_method_ == "constant-correction-with-U-correction"))
+      throw std::logic_error("Illegal value for double-counting method.");
   }
 }
 

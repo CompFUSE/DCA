@@ -12,7 +12,7 @@
 template <models::material_name_type name, typename PointGroup>
 class ModelParameters<models::TightBindingModel<models::material_lattice<name, PointGroup>>> {
 public:
-  ModelParameters() : t_ij_file_name_("t_ij_file_name"), U_ij_file_name_("U_ij_file_name") {}
+  ModelParameters() : t_ij_file_name_("t_ij.txt"), U_ij_file_name_("U_ij.txt") {}
 
   template <typename Concurrency>
   int getBufferSize(const Concurrency& concurrency) const;
@@ -78,20 +78,19 @@ void ModelParameters<models::TightBindingModel<models::material_lattice<name, Po
   try {
     reader_or_writer.open_group("material-model");
 
-    reader_or_writer.execute("t_ij-filename", t_ij_file_name_);
-    reader_or_writer.execute("U_ij-filename", U_ij_file_name_);
+    try {
+      reader_or_writer.execute("t_ij-filename", t_ij_file_name_);
+    }
+    catch (const std::exception& r_e) {
+    }
+    try {
+      reader_or_writer.execute("U_ij-filename", U_ij_file_name_);
+    }
+    catch (const std::exception& r_e) {
+    }
 
     reader_or_writer.close_group();
   }
   catch (const std::exception& r_e) {
-    std::cout << "\nNo material-model parameters defined!\n" << std::endl;
-    throw std::logic_error(__PRETTY_FUNCTION__);
   }
-
-  std::cout << "\n\n"
-            << "\tmaterial-model\n"
-            << "\t--------------\n"
-            << "\t\tt_ij-filename   : " << t_ij_file_name_ << "\n"
-            << "\t\tU_ij-filename   : " << U_ij_file_name_ << "\n"
-            << std::endl;
 }

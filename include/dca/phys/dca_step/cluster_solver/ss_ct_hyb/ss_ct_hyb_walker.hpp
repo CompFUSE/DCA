@@ -315,7 +315,7 @@ template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_ty
 void SsCtHybWalker<device_t, parameters_type, MOMS_type>::do_sweep() {
   double factor = 1.;
   if (thermalized)
-    factor = parameters.get_number_of_sweeps_per_measurement();
+    factor = parameters.get_sweeps_per_measurement();
 
   int nr_of_segments = std::max(16, configuration.size());
 
@@ -331,9 +331,9 @@ void SsCtHybWalker<device_t, parameters_type, MOMS_type>::do_sweep() {
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 int SsCtHybWalker<device_t, parameters_type, MOMS_type>::get_random_interacting_flavor() {
   int spin = s::dmn_size() * rng();
-  int int_band = parameters.get_interacting_bands().size() * rng();
+  int int_band = parameters.get_interacting_orbitals().size() * rng();
 
-  return parameters.get_interacting_bands()[int_band] + spin * b::dmn_size();
+  return parameters.get_interacting_orbitals()[int_band] + spin * b::dmn_size();
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>

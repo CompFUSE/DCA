@@ -125,7 +125,7 @@
 #include "dca/math/util/vector_operations.hpp"
 #include "dca/phys/domains/cluster/cluster_operations.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
-#include "dca/phys/vertex_measurement_type.hpp"
+#include "dca/phys/four_point_type.hpp"
 
 namespace dca {
 namespace phys {
@@ -202,8 +202,8 @@ template <class parameters_type>
 diagrammatic_symmetries<parameters_type>::diagrammatic_symmetries(parameters_type& parameters_ref)
     : parameters(parameters_ref),
 
-      q_ind(parameters.get_q_channel_ind()),
-      q_vec(parameters.get_q_channel_vec()),
+      q_ind(parameters.get_four_point_momentum_transfer_index()),
+      q_vec(parameters.get_four_point_momentum_transfer()),
 
       q_vector_is_invertible(false),
       q_vector_is_reciprocal(false) {}
@@ -252,7 +252,7 @@ void diagrammatic_symmetries<parameters_type>::execute(
       // cout << "\n\t q_vec is NOT reciprocal !!! \n\n";
     }
 
-    switch (parameters.get_vertex_measurement_type()) {
+    switch (parameters.get_four_point_type()) {
       case PARTICLE_HOLE_TRANSVERSE:
         symmetrize_over_pi_rotations_ph(G);
         break;
@@ -265,7 +265,7 @@ void diagrammatic_symmetries<parameters_type>::execute(
         symmetrize_over_pi_rotations_ph(G);
         break;
 
-      case PARTICLE_PARTICLE_SUPERCONDUCTING:
+      case PARTICLE_PARTICLE_UP_DOWN:
         set_real(G);
         symmetrize_over_pi_rotations_pp(G);
         break;
@@ -283,7 +283,7 @@ void diagrammatic_symmetries<parameters_type>::execute(
                                                   func::dmn_variadic<b, b, k_dmn, w_dmn>, k_dmn>>& G) {
   symmetrize_over_matsubara_frequencies(G);
 
-  switch (parameters.get_vertex_measurement_type()) {
+  switch (parameters.get_four_point_type()) {
     case PARTICLE_HOLE_TRANSVERSE:
       symmetrize_over_pi_rotations_ph(G);
       break;
@@ -296,7 +296,7 @@ void diagrammatic_symmetries<parameters_type>::execute(
       symmetrize_over_pi_rotations_ph(G);
       break;
 
-    case PARTICLE_PARTICLE_SUPERCONDUCTING:
+    case PARTICLE_PARTICLE_UP_DOWN:
       // set_real(G);
       symmetrize_over_pi_rotations_pp(G);
       break;
@@ -357,7 +357,7 @@ void diagrammatic_symmetries<parameters_type>::symmetrize_over_matsubara_frequen
   if (b::dmn_size() > 1)
     throw std::logic_error(__FUNCTION__);
 
-  if (parameters.get_w_channel() == 0) {
+  if (parameters.get_four_point_frequency_transfer() == 0) {
     for (int nu_1 = 0; nu_1 < b::dmn_size(); nu_1++) {
       for (int nu_2 = 0; nu_2 < b::dmn_size(); nu_2++) {
         for (int k1 = 0; k1 < k_dmn::dmn_size(); k1++) {

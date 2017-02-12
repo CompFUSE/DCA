@@ -250,20 +250,37 @@ void tetrahedron_mesh_initializer<2, k_cluster_type>::find_facets() {
 
 template <class k_cluster_type>
 void tetrahedron_mesh_initializer<2, k_cluster_type>::make_mesh_points() {
+  // Initial mesh = [origin, simplex_1, simplex_2, ...]
+  // Note that the indices of the simplices are shifted by +1 w.r.t. to the simplices vector.
+  // Add origin.
   mesh.resize(1, std::vector<double>(DIMENSION, 0.));
 
+  // Add simplices.
   for (std::size_t l = 0; l < simplices.size(); l++)
     mesh.push_back(simplices[l].k_vec);
 
+  // Create tetrahedra formed by connecting the facets to the origin.
   for (std::size_t l = 0; l < facets.size(); l++) {
     tetrahedron<DIMENSION> tet;
 
     {
-      tet.index[0] = 0;
-      tet.index[1] = facets[l].index[0] + 1;
-      tet.index[2] = facets[l].index[1] + 1;
+      // Compute the positions of the three vectors defining the tetrahedron in the mesh vector.
+      // Note that tet.index corresponds to the mesh vector, while facets[l].index corresponds to
+      // simplices vector.
+      tet.index[0] = 0;                       // Position of the origin in the mesh vector.
+      tet.index[1] = facets[l].index[0] + 1;  // Position of the first simplex defining the facet.
+      tet.index[2] = facets[l].index[1] + 1;  // Position of second simplex defining the facet.
+
+      // Set the three vectors.
+      tet.vec_0 = mesh[tet.index[0]];
+      tet.vec_1 = mesh[tet.index[1]];
+      tet.vec_2 = mesh[tet.index[2]];
+
+      // Compute the volume of tetrahedron.
+      tet.volume = tet.compute_volume(&tet.vec_0[0], &tet.vec_1[0], &tet.vec_2[0]);
     }
 
+    // Compute the normal.
     {
       std::vector<double> normal(DIMENSION, 0.);
 
@@ -486,14 +503,19 @@ void tetrahedron_mesh_initializer<3, k_cluster_type>::find_facets() {
   }
 }
 
+// TODO: Test
 template <class k_cluster_type>
 void tetrahedron_mesh_initializer<3, k_cluster_type>::make_mesh_points() {
   assert(DIMENSION == 3);
 
   std::vector<int>::iterator result_i, result_j;
 
+  // Initial mesh = [origin, centroid of facet 1, centroid of facet 2, ..., simplex 1, simplex 2,
+  // ...].
+  // Add origin.
   mesh.resize(1, std::vector<double>(3, 0.));
 
+  // Add centroids of facets.
   for (std::size_t l = 0; l < facets.size(); l++) {
     std::vector<double> k(3, 0.);
 
@@ -506,9 +528,11 @@ void tetrahedron_mesh_initializer<3, k_cluster_type>::make_mesh_points() {
     mesh.push_back(k);
   }
 
+  // Add simplices.
   for (std::size_t l = 0; l < simplices.size(); l++)
     mesh.push_back(simplices[l].k_vec);
 
+  // Add tetrahedra formed by an edge of a facet, its centroid and the origin.
   for (std::size_t l = 0; l < facets.size(); l++) {
     for (std::size_t i = 0; i < facets[l].index.size(); i++) {
       for (std::size_t j = i + 1; j < facets[l].index.size(); j++) {
@@ -530,12 +554,23 @@ void tetrahedron_mesh_initializer<3, k_cluster_type>::make_mesh_points() {
           tetrahedron<DIMENSION> tet;
 
           {
-            tet.index[0] = 0;
-            tet.index[1] = l + 1;
+            tet.index[0] = 0;      // Position of the origin in mesh vector.
+            tet.index[1] = l + 1;  // Position of centroid of current facet.
+            // Position of first simplex defining the current edge of the facet.
             tet.index[2] = facets[l].index[i] + 1 + facets.size();
+            // Position of second simplex defining the current edge of the facet.
             tet.index[3] = facets[l].index[j] + 1 + facets.size();
+
+            tet.vec_0 = mesh[tet.index[0]];
+            tet.vec_1 = mesh[tet.index[1]];
+            tet.vec_2 = mesh[tet.index[2]];
+            tet.vec_3 = mesh[tet.index[3]];
+
+            tet.volume =
+                tet.compute_volume(&tet.vec_0[0], &tet.vec_1[0], &tet.vec_2[0], &tet.vec_3[0]);
           }
 
+          // Compute the normal.
           {
             std::vector<double> normal(3, 0.);
 
@@ -552,6 +587,8 @@ void tetrahedron_mesh_initializer<3, k_cluster_type>::make_mesh_points() {
       }
     }
   }
+
+  std::cout << "tetrahedra.size()" << tetrahedra.size() << std::endl;
 
   tetrahedra.reserve(int(tetrahedra.size()) * int(std::pow(8., N_recursion)));
   tetrahedra.reserve(int(4 * tetrahedra.size()) * int(std::pow(2., N_recursion)));

@@ -329,14 +329,15 @@ void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::measure(walker_
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t measuring has started \n" << std::endl;
 
-  for (int i = 0; i < parameters.get_number_of_measurements(); i++) {
+  for (int i = 0; i < parameters.get_measurements_per_process_and_accumulator(); i++) {
     walker.do_sweep();
 
     accumulator.update_from(walker);
 
     accumulator.measure();
 
-    update_shell(i, parameters.get_number_of_measurements(), walker.get_configuration().size());
+    update_shell(i, parameters.get_measurements_per_process_and_accumulator(),
+                 walker.get_configuration().size());
   }
 
   // here we need to do a correction a la Andrey
@@ -467,7 +468,7 @@ void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::compute_G_k_w()
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 double SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::compute_S_k_w_from_G_k_w() {
-  double alpha = DCA_iteration > 0 ? parameters.get_DCA_mixing_factor() : 1;
+  double alpha = DCA_iteration > 0 ? parameters.get_self_energy_mixing_factor() : 1;
 
   double L2_difference_norm = 1.e-6;
   double L2_Sigma_norm = 1.e-6;
@@ -540,10 +541,10 @@ void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::compute_Sigma_n
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 int SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::find_w_cutoff() {
-  ;
   return std::max(
-      1.0, std::min(parameters.get_Sigma_tail_cutoff() * parameters.get_beta() / (2.0 * M_PI) - 0.5,
-                    1.0 * (w::dmn_size() / 2)));
+      1.0,
+      std::min(parameters.get_self_energy_tail_cutoff() * parameters.get_beta() / (2.0 * M_PI) - 0.5,
+               1.0 * (w::dmn_size() / 2)));
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>

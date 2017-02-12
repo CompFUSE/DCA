@@ -26,16 +26,14 @@
 TEST(MciParametersTest, DefaultValues) {
   dca::phys::params::MciParameters pars;
 
-  EXPECT_EQ("zero", pars.get_Sigma_file());
-  EXPECT_EQ(20, pars.get_warm_up_sweeps());
-  EXPECT_EQ(1., pars.get_number_of_sweeps_per_measurement());
-  EXPECT_EQ(100, pars.get_number_of_measurements());
-  EXPECT_FALSE(pars.adjust_self_energy_for_double_counting());
   EXPECT_EQ(985456376, pars.get_seed());
-  EXPECT_EQ(1, pars.get_nr_walkers());
-  EXPECT_EQ(1, pars.get_nr_accumulators());
-  EXPECT_EQ(1, pars.get_additional_steps());
-  EXPECT_EQ(1, pars.get_nr_HTS_threads());
+  EXPECT_EQ(20, pars.get_warm_up_sweeps());
+  EXPECT_EQ(1., pars.get_sweeps_per_measurement());
+  EXPECT_EQ(100, pars.get_measurements_per_process_and_accumulator());
+  EXPECT_EQ(1, pars.get_walkers());
+  EXPECT_EQ(1, pars.get_accumulators());
+  EXPECT_EQ(0, pars.get_additional_steps());
+  EXPECT_FALSE(pars.adjust_self_energy_for_double_counting());
 }
 
 TEST(MciParametersTest, ReadAll) {
@@ -46,16 +44,13 @@ TEST(MciParametersTest, ReadAll) {
   pars.readWrite(reader);
   reader.close_file();
 
-  EXPECT_EQ("sigma-file.hdf5", pars.get_Sigma_file());
-  EXPECT_EQ(99, pars.get_warm_up_sweeps());
-  EXPECT_EQ(1.5, pars.get_number_of_sweeps_per_measurement());
-  EXPECT_EQ(47, pars.get_number_of_measurements());
-  EXPECT_TRUE(pars.adjust_self_energy_for_double_counting());
-  EXPECT_EQ(123, pars.get_seed());
-  EXPECT_EQ(4, pars.get_nr_walkers());
-  EXPECT_EQ(5, pars.get_nr_accumulators());
-  EXPECT_EQ(6, pars.get_additional_steps());
-  EXPECT_EQ(7, pars.get_nr_HTS_threads());
+  EXPECT_EQ(42, pars.get_seed());
+  EXPECT_EQ(40, pars.get_warm_up_sweeps());
+  EXPECT_EQ(2.5, pars.get_sweeps_per_measurement());
+  EXPECT_EQ(200, pars.get_measurements_per_process_and_accumulator());
+  EXPECT_EQ(3, pars.get_walkers());
+  EXPECT_EQ(5, pars.get_accumulators());
+  EXPECT_EQ(1, pars.get_additional_steps());
 }
 
 TEST(MciParametersTest, ReadPositiveIntegerSeed) {
@@ -88,8 +83,8 @@ TEST(MciParametersTest, ReadTooLargeSeed) {
   std::ofstream input;
   input.open("input_too_large_seed.json");
   input << "{\n"
-        << "    \"Monte-Carlo-Integration\": {\n"
-        << "        \"RNG-seed\": " << max << "0\n"  // Writes max * 10.
+        << "    \"Monte-Carlo-integration\": {\n"
+        << "        \"seed\": " << max << "0\n"  // Writes max * 10.
         << "    }\n"
         << "}\n";
   input.close();
@@ -110,8 +105,8 @@ TEST(MciParametersTest, ReadTooSmallSeed) {
   std::ofstream input;
   input.open("input_too_small_seed.json");
   input << "{\n"
-        << "    \"Monte-Carlo-Integration\": {\n"
-        << "        \"RNG-seed\": " << min << "0\n"  // Writes min * 10.
+        << "    \"Monte-Carlo-integration\": {\n"
+        << "        \"seed\": " << min << "0\n"  // Writes min * 10.
         << "    }\n"
         << "}\n";
   input.close();

@@ -247,7 +247,7 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_on_cluste
 
   //       std::cout << "\t U : " << U(0,0,0,1) << std::endl;
 
-  int nr_threads = parameters.get_nr_HTS_threads();
+  int nr_threads = parameters.get_hts_threads();
 
   sigma_perturbation_data args;
   {

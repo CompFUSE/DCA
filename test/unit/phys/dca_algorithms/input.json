@@ -1,12 +1,6 @@
-{
-    "2D-Hubbard-model" :
-    {
-        "t"       : 1
-    },
-
-    "DCA" :
-    {
-        "cluster" : [[4, 2],
-                     [0, 4]]
+{	
+    "single-band-Hubbard-model": {
+        "t": 1,
+        "t-prime": 0.5
     }
 }

@@ -1,0 +1,6 @@
+{
+    "four-point": {
+        "type": "PARTICLE_PARTICLE_UP_DOWN",
+        "momentum-transfer": [3.14, -1.57],
+        "frequency-transfer": 1
+}

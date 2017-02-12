@@ -172,7 +172,7 @@ void tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_mt
     func::function<scalar_type, tet_dmn_type>& w_tet,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, tet_dmn_type>>& G_tet,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu>>& G_int) {
-  int nr_threads = parameters.get_nr_coarsegraining_threads();
+  int nr_threads = parameters.get_coarsegraining_threads();
 
   tetrahedron_integration_functions<scalar_type> tetrahedron_integration_functions_obj(nr_threads);
 

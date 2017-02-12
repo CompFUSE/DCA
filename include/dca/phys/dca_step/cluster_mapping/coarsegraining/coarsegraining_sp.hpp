@@ -217,11 +217,11 @@ void coarsegraining_sp<parameters_type, K_dmn>::update_shell(int i, int N) {
 template <typename parameters_type, typename K_dmn>
 void coarsegraining_sp<parameters_type, K_dmn>::initialize() {
   {
-    this->compute_tetrahedron_mesh(parameters.get_k_mesh_refinement(),
-                                   parameters.get_number_of_periods());
+    this->compute_tetrahedron_mesh(parameters.get_k_mesh_recursion(),
+                                   parameters.get_coarsegraining_periods());
 
-    this->compute_gaussian_mesh(parameters.get_k_mesh_refinement(), parameters.get_quadrature_rule(),
-                                parameters.get_number_of_periods());
+    this->compute_gaussian_mesh(parameters.get_k_mesh_recursion(), parameters.get_quadrature_rule(),
+                                parameters.get_coarsegraining_periods());
   }
 
   {
@@ -276,9 +276,9 @@ template <typename parameters_type, typename K_dmn>
 template <typename other_scalar_type, typename r_dmn>
 void coarsegraining_sp<parameters_type, K_dmn>::compute_phi_r(
     func::function<other_scalar_type, r_dmn>& phi_r) {
-  math::geometry::tetrahedron_mesh<k_cluster_type> mesh(parameters.get_k_mesh_refinement());
+  math::geometry::tetrahedron_mesh<k_cluster_type> mesh(parameters.get_k_mesh_recursion());
 
-  quadrature_dmn::translate_according_to_period(parameters.get_number_of_periods(), mesh);
+  quadrature_dmn::translate_according_to_period(parameters.get_coarsegraining_periods(), mesh);
 
   std::vector<math::geometry::tetrahedron<DIMENSION>>& tetrahedra = mesh.get_tetrahedra();
 
@@ -320,9 +320,9 @@ void coarsegraining_sp<parameters_type, K_dmn>::print_phi_r_to_shell(
     func::function<other_scalar_type, r_dmn>& phi_r) {
   std::cout << "\n" << __FUNCTION__ << std::endl;
 
-  math::geometry::tetrahedron_mesh<k_cluster_type> mesh(parameters.get_k_mesh_refinement());
+  math::geometry::tetrahedron_mesh<k_cluster_type> mesh(parameters.get_k_mesh_recursion());
 
-  quadrature_dmn::translate_according_to_period(parameters.get_number_of_periods(), mesh);
+  quadrature_dmn::translate_according_to_period(parameters.get_coarsegraining_periods(), mesh);
 
   std::vector<math::geometry::tetrahedron<DIMENSION>>& tetrahedra = mesh.get_tetrahedra();
 

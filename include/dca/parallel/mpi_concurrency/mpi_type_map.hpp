@@ -43,7 +43,7 @@ public:
   }
 
   static MPI_Datatype value() {
-    return MPI_INT;
+    return MPI_CXX_BOOL;
   }
 };
 

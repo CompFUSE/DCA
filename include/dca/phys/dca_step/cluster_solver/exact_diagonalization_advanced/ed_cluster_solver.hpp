@@ -32,7 +32,7 @@
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/hamiltonian.hpp"
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/options.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain_real_axis.hpp"
-#include "dca/phys/vertex_measurement_type.hpp"
+#include "dca/phys/four_point_type.hpp"
 #include "dca/util/print_time.hpp"
 
 namespace dca {
@@ -107,7 +107,7 @@ EDClusterSolver<device_t, parameters_type, MOMS_type>::EDClusterSolver(
     std::cout << "\n\n\n"
               << "Apply translation symmetry ..." << std::endl;
   }
-  Fock_obj.apply_translation_symmetry(parameters.get_ed_method());
+  Fock_obj.apply_translation_symmetry();
 
   if (concurrency.id() == concurrency.first()) {
     std::cout << dca::util::print_time() << std::endl;
@@ -125,9 +125,6 @@ EDClusterSolver<device_t, parameters_type, MOMS_type>::EDClusterSolver(
     Fock_obj.print_subspaces();
   }
 #endif
-
-  if (parameters.check_orthogonality_of_states())
-    std::cout << "subspaces orthogonal: " << Fock_obj.check_orthogonality() << std::endl;
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
@@ -172,7 +169,7 @@ void EDClusterSolver<device_t, parameters_type, MOMS_type>::execute() {
 
     sp_Greens_function_obj.compute_all_sp_functions_slow(MOMS_imag, MOMS_real, false);
 
-    if (parameters.get_vertex_measurement_type() != NONE) {
+    if (parameters.get_four_point_type() != NONE) {
       if (concurrency.id() == concurrency.first()) {
         std::cout << "\n" << dca::util::print_time() << "\n" << std::endl;
       }
@@ -202,7 +199,7 @@ void EDClusterSolver<device_t, parameters_type, MOMS_type>::execute() {
 
   sp_Greens_function_obj.compute_all_sp_functions_slow(MOMS_imag, MOMS_real, true);
 
-  if (parameters.get_vertex_measurement_type() != NONE) {
+  if (parameters.get_four_point_type() != NONE) {
     if (concurrency.id() == concurrency.first()) {
       std::cout << "\n" << dca::util::print_time() << "\n" << std::endl;
     }
@@ -274,7 +271,7 @@ void EDClusterSolver<device_t, parameters_type, MOMS_type>::write(std::string fi
     MOMS_imag.write(writer);
     MOMS_real.write(writer);
 
-    if (parameters.get_vertex_measurement_type() != NONE) {
+    if (parameters.get_four_point_type() != NONE) {
       std::cout << "\n\n\t\t start writing tp-Greens-function\n\n";
       tp_Greens_function_obj.write(writer);
     }
@@ -295,7 +292,7 @@ void EDClusterSolver<device_t, parameters_type, MOMS_type>::write(std::string fi
     std::cout << "\n\n\t\t start writing MOMS_real\n\n";
     MOMS_real.write(writer);
 
-    if (parameters.get_vertex_measurement_type() != NONE) {
+    if (parameters.get_four_point_type() != NONE) {
       std::cout << "\n\n\t\t start writing tp-Greens-function\n\n";
       tp_Greens_function_obj.write(writer);
     }

@@ -1,139 +1,59 @@
 {
-    "filename-parameters" :
-    {
-        "output-format"         : "HDF5",
-
-        "output-ED"  : "output__ED.hdf5",
-        "output-QMC" : "output_QMC.hdf5",
-
-        "dump-cluster-Greens-function": "true"
+    "output": {
+	"directory": "./",
+	"output-format": "HDF5",
+	"filename-ed": "ed.hdf5",
+	"filename-qmc": "qmc.hdf5",
+	"dump-cluster-Greens-function": true
     },
 
-    "physics-parameters" :
-    {
-        "beta"                      :  5,
-
-        "adjust-chemical-potential" : "false",
-        "density"                   :  1.0,
-        "chemical-potential"        : -0.0
+    "physics": {
+	"beta": 5.,
+	"density": 1.0,
+	"chemical-potential": 0.
     },
 
-    "bilayer-model" :
-    {
-        "t"       : 1,
-        "tz"      : 1,
-
-        "U"       : 4,
-
-        "V"       : 0,
-        "V-prime" : 0
+    "bilayer-Hubbard-model": {
+	"t": 1.,
+	"t-perp": 1.,
+        "U": 4.
     },
 
-    "DCA" :
-    {
-        "do-DCA+" : "false",
-
-        "interacting-bands" : [0, 1],
-        "DCA-iterations"    : 2,
-        "DCA-mixing-factor" : 1.0,
-
-        "cluster" : [[ 1, 0],
-                     [ 0, 1]],
-
-        "cluster-mapping" :
-        {
-           "k-mesh-refinement" : 2,
-           "quadrature-rule"   : 0,
-           "number-of-periods" : 0,
-
-           "precompute-Hamiltonian"      : "true",
-           "phi(k) integration accuracy" : 0.01,
-
-           "print-phi"                   : "false"
-        },
-
-        "lattice-mapping" :
-        {
-           "interpolation-method"         : "wannier-interpolation",
-
-           "deconvolution-tolerance"      : 0.01,
-           "max-deconvolution-iterations" : 16
-        }
+    "DCA": {
+	"iterations": 1,
+	"self-energy-mixing-factor": 1.,
+	"interacting-orbitals": [0, 1]
+    },
+    
+    "domains": {
+	"real-space-grids": {
+	    "cluster": [[1, 0],
+	    	        [0, 1]]
+	},
+        
+	"imaginary-time": {
+	    "sp-time-intervals": 512
+	},
+	
+	"imaginary-frequency": {
+	    "sp-fermionic-frequencies": 512
+	}
     },
 
-    "Monte-Carlo-Integration" :
-    {
-        "Sigma-file" : "zero",
-
-        "warm-up-sweeps"         : 10,
-        "sweeps-per-measurement" : 10,
-        "measurements"           : 5000,
-
-        "adaptive-double-counting" : "false",
-
-        "RNG-seed" : 985456376,
-
-        "MC-posix-parameters" :
-        {
-            "nr-walkers"       : 2,
-            "nr-accumulators"  : 2,
-            "additional-steps" : 0
-        }
+    "Monte-Carlo-integration": {
+        "seed": 985456376,
+	"warm-up-sweeps": 10,
+    	"sweeps-per-measurement": 10.,
+	"measurements-per-process-and-accumulator": 5000
     },
 
-    "CT-AUX-solver" :
-    {
-        "submatrix-size"      : 1,
-        "initial-matrix-size" : 64,
-
-        "K-parameter"         : 10
+    "CT-AUX": {
+	"expansion-parameter-K": 10.,
+	"initial-matrix-size": 64,
+	"submatrix-size": 1
     },
 
-    "ED-solver-parameters" :
-    {
-        "occupation"         : 2,
-        "magnetization"      : 0,
-        "eigenvalue-cut-off" : 0.000001
-    },
-
-    "function-parameters" :
-    {
-        "single-particle-functions" :
-        {
-            "H(k) grid-size"        : [8, 8],
-
-            "time-intervals"        : 512,
-
-            "fermionic-frequencies" : 512,
-            "bosonic-frequencies"   : 128,
-
-            "sp-cluster" : [[8, 8],
-                            [8,-8]]
-        },
-
-        "two-particle-functions" :
-        {
-            "time-intervals"        : 32,
-
-            "fermionic-frequencies" : 4,
-            "bosonic-frequencies"   : 16,
-
-            "tp-cluster" : [[8, 8],
-                            [8,-8]]
-        },
-
-        "real-axis-functions" :
-        {
-            "lower-bound" : -10,
-            "upper-bound" :  10,
-
-            "nr-intervals" : 256,
-            "real-axis-off-set" : 0.01
-        }
-     },
-
-    "equal-time-observables" :
-    {
-        "do-equal-time-measurements" : "false"
+    "ED": {
+	"eigenvalue-cut-off": 1.e-6
     }
 }

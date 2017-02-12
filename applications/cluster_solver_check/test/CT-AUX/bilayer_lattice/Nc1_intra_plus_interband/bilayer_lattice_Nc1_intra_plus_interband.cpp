@@ -84,9 +84,10 @@ TEST(bilayerLattice_Nc1_intra_plus_interband, Self_Energy) {
   // Read and broadcast ED data.
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
     dca::io::HDF5Reader reader;
-    reader.open_file(DCA_SOURCE_DIR
-                     "/applications/cluster_solver_check/test/CT-AUX/bilayer_lattice/Nc1_interband/"
-                     "data.ED.hdf5");
+    reader.open_file(
+        DCA_SOURCE_DIR
+        "/applications/cluster_solver_check/test/CT-AUX/bilayer_lattice/Nc1_intra_plus_interband/"
+        "data.ED.hdf5");
     reader.open_group("functions");
     // reader.execute(dca_data_imag.Sigma);
     reader.execute(dca_data_imag.G0_k_w_cluster_excluded);
@@ -103,7 +104,7 @@ TEST(bilayerLattice_Nc1_intra_plus_interband, Self_Energy) {
 
   // Do one QMC iteration
   QmcSolverType qmc_solver(parameters, dca_data_imag);
-  qmc_solver.initialize(1);
+  qmc_solver.initialize(0);
   qmc_solver.integrate();
   qmc_solver.finalize(dca_loop_data);
 
@@ -116,9 +117,10 @@ TEST(bilayerLattice_Nc1_intra_plus_interband, Self_Energy) {
     dca::func::function<std::complex<double>, dca::func::dmn_variadic<nu, nu, k_DCA, w>> Sigma_QMC_check(
         "Self_Energy");
     dca::io::HDF5Reader reader;
-    reader.open_file(DCA_SOURCE_DIR
-                     "/applications/cluster_solver_check/test/CT-AUX/bilayer_lattice/Nc1_interband/"
-                     "check_data.QMC.hdf5");
+    reader.open_file(
+        DCA_SOURCE_DIR
+        "/applications/cluster_solver_check/test/CT-AUX/bilayer_lattice/Nc1_intra_plus_interband/"
+        "check_data.QMC.hdf5");
     reader.open_group("functions");
     reader.execute(Sigma_QMC_check);
     reader.close_file();
@@ -156,11 +158,11 @@ int main(int argc, char** argv) {
 
   ::testing::InitGoogleTest(&argc, argv);
 
-  dca_test_env =
-      new dca::testing::DcaMpiTestEnvironment(argc, argv, DCA_SOURCE_DIR
-                                              "/applications/cluster_solver_check/test/"
-                                              "CT-AUX/bilayer_lattice/Nc1_interband/"
-                                              "input.bilayer_lattice_Nc1_interband.json");
+  dca_test_env = new dca::testing::DcaMpiTestEnvironment(
+      argc, argv, DCA_SOURCE_DIR
+      "/applications/cluster_solver_check/test/"
+      "CT-AUX/bilayer_lattice/Nc1_intra_plus_interband/"
+      "input.bilayer_lattice_Nc1_intra_plus_interband.json");
   ::testing::AddGlobalTestEnvironment(dca_test_env);
 
   ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();

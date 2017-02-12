@@ -59,7 +59,7 @@
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
-#include "dca/phys/vertex_measurement_type.hpp"
+#include "dca/phys/four_point_type.hpp"
 
 namespace dca {
 namespace phys {
@@ -219,7 +219,7 @@ accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulator_nonlocal_chi(
       w_vertex_2_w_vertex_ext("w_vertex_2_w_vertex_ext"),
 
       w_vertex_ext_2_w_vertex_ext_pos("w_vertex_ext_2_w_vertex_ext_pos") {
-  int q_channel = parameters.get_q_channel_ind();
+  int q_channel = parameters.get_four_point_momentum_transfer_index();
   // int k0_index  = k_cluster_type::get_k_0_index();
   int k0_index = k_cluster_type::origin_index();
 
@@ -274,7 +274,7 @@ void accumulator_nonlocal_chi<parameters_type, MOMS_type>::execute(scalar_type c
                                                                    nonlocal_G_t& nonlocal_G_obj) {
   profiler_t profiler("compute nonlocal-chi", "CT-AUX accumulator", __LINE__, thread_id);
 
-  switch (parameters.get_vertex_measurement_type()) {
+  switch (parameters.get_four_point_type()) {
     case PARTICLE_HOLE_TRANSVERSE:
       accumulate_particle_hole_transverse(nonlocal_G_obj.get_G_k_k_w_w_e_DN(),
                                           nonlocal_G_obj.get_G_k_k_w_w_e_UP(), current_sign);
@@ -290,7 +290,7 @@ void accumulator_nonlocal_chi<parameters_type, MOMS_type>::execute(scalar_type c
                                       nonlocal_G_obj.get_G_k_k_w_w_e_UP(), current_sign);
       break;
 
-    case PARTICLE_PARTICLE_SUPERCONDUCTING:
+    case PARTICLE_PARTICLE_UP_DOWN:
       accumulate_particle_particle_superconducting(
           nonlocal_G_obj.get_G_k_k_w_w_e_DN(), nonlocal_G_obj.get_G_k_k_w_w_e_UP(), current_sign);
       break;
@@ -384,7 +384,7 @@ void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_h
 
   scalar_type sign_div_2 = scalar_type(sign) / 2.;
 
-  int w_nu = parameters.get_w_channel();
+  int w_nu = parameters.get_four_point_frequency_transfer();
 
   for (int w2 = 0; w2 < w_VERTEX::dmn_size(); w2++) {
     int w2_ext = w_vertex_2_w_vertex_ext(w2);
@@ -470,7 +470,7 @@ void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_h
 
   scalar_type sign_div_2 = scalar_type(sign) / 2.;
 
-  int w_nu = parameters.get_w_channel();
+  int w_nu = parameters.get_four_point_frequency_transfer();
 
   for (int w2 = 0; w2 < w_VERTEX::dmn_size(); w2++) {
     int w2_ext = w_vertex_2_w_vertex_ext(w2);
@@ -599,7 +599,7 @@ void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_h
       G2_DN_n1_m1_k1_k1_plus_q_w1_w1, G2_UP_n1_m1_k1_k1_plus_q_w1_w1,
       G2_DN_n2_m2_k2_plus_q_k2_w2_w2, G2_UP_n2_m2_k2_plus_q_k2_w2_w2, G4_val;
 
-  int w_nu = parameters.get_w_channel();
+  int w_nu = parameters.get_four_point_frequency_transfer();
 
   scalar_type sign_div_2 = scalar_type(sign) / 2.;
 
@@ -678,7 +678,7 @@ void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_p
       G2_UP_n2_m2_q_min_k1_q_min_k2_min_w1_min_w2, G2_DN_n2_m2_q_min_k1_q_min_k2_min_w1_min_w2,
       G4_val;
 
-  int w_nu = parameters.get_w_channel();
+  int w_nu = parameters.get_four_point_frequency_transfer();
 
   scalar_type sign_div_2 = sign / 2.;
 

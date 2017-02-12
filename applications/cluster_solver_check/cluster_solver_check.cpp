@@ -79,8 +79,8 @@ int main(int argc, char** argv) {
   dca_data_imag.initialize();
   dca::phys::DcaDataRealFreq<ParametersType> dca_data_real(parameters);
 
-  std::string data_file_ed = parameters.get_directory() + parameters.get_ED_output_file_name();
-  std::string data_file_qmc = parameters.get_directory() + parameters.get_QMC_output_file_name();
+  std::string data_file_ed = parameters.get_directory() + parameters.get_filename_ed();
+  std::string data_file_qmc = parameters.get_directory() + parameters.get_filename_qmc();
 
   // ED solver
   EdSolver ed_solver(parameters, dca_data_imag, dca_data_real);
@@ -146,7 +146,7 @@ int main(int argc, char** argv) {
               << "\n|(Sigma_ED - Sigma_QMC)/Sigma_ED|_inf = " << max_relative_diff << std::endl;
   }
 
-  Profiler::stop(concurrency, parameters.get_profiling_file_name());
+  Profiler::stop(concurrency, parameters.get_filename_profiling());
 
   if (concurrency.id() == concurrency.first())
     std::cout << "\nCluster-solver-check ending.\n" << std::endl;

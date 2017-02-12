@@ -11,7 +11,7 @@ Nc    = ["32"]
 temp  = [0.1, 0.08, 0.06, 0.05, 0.045, 0.04, 0.035, 0.03, 0.025, 0.02]
 hubbard_u = ["4"]
 dens  =["0.900"]
-ch   = "PARTICLE_PARTICLE_SUPERCONDUCTING"
+ch   = "PARTICLE_PARTICLE_UP_DOWN"
 
 index  = ["16"]
 sigma  = ["0.5"]

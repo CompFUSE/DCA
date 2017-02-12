@@ -49,9 +49,8 @@ TEST(ComputeBandStructureTest, Execute) {
   ConcurrencyType concurrency(0, nullptr);
 
   ParametersType parameters("", concurrency);
-  parameters.read_input_and_broadcast<io::JSONReader>(
-      DCA_SOURCE_DIR
-      "/test/unit/phys/domains/cluster/interpolation/wannier_interpolation/input.json");
+  parameters.read_input_and_broadcast<io::JSONReader>(DCA_SOURCE_DIR
+                                                      "/test/unit/phys/dca_algorithms/input.json");
   parameters.update_model();
   parameters.update_domains();
 

@@ -69,7 +69,7 @@ void frequency_domain_real_axis::to_JSON(stream_type& ss) {
 
 template <typename parameters_t>
 void frequency_domain_real_axis::initialize(parameters_t& parameters) {
-  int N = parameters.get_number_of_real_frequencies();
+  int N = parameters.get_real_frequencies();
 
   double min = parameters.get_min_real_frequency();
   double max = parameters.get_max_real_frequency();

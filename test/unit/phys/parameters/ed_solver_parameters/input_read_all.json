@@ -1,9 +1,5 @@
 {
-    "ED-solver-parameters" : {
-        "eigenvalue-cut-off": 1.e-8,
-        "ED-method": "block-diagonal",
-        "occupation": 1,
-        "magnetization": -1,
-        "check_orthogonality_of_states": "true"
+    "ED": {
+        "eigenvalue-cut-off": 1.e-4
     }
 }

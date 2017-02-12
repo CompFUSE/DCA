@@ -115,7 +115,7 @@ vertex_pair<parameters_type>::vertex_pair(parameters_type& parameters_ref, rng_t
       rng(rng_ref),
       //     concurrency(parameters.get_concurrency()),
 
-      interacting_bands(parameters_ref.get_interacting_bands()),
+      interacting_bands(parameters_ref.get_interacting_orbitals()),
       BANDS(interacting_bands.size()),
 
       bands(0, 0),

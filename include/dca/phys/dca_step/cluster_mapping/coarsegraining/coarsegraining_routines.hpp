@@ -315,7 +315,7 @@ void coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_w(
 
   compute_S_q(K_ind, w_ind, S_K, S_q);
 
-  int nr_threads = parameters.get_nr_coarsegraining_threads();
+  int nr_threads = parameters.get_coarsegraining_threads();
 
   if (nr_threads == 1)
     quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G_q_w_st(I_q, H_q, S_q,
@@ -351,7 +351,7 @@ void coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_w(
     std::complex<scalar_type> i_wm_min_mu;
 
     i_wm_min_mu.real(w_REAL::get_elements()[w_ind] + parameters.get_chemical_potential());
-    i_wm_min_mu.imag(parameters.get_real_frequencies_off_set());
+    i_wm_min_mu.imag(parameters.get_imaginary_damping());
 
     compute_I_q(i_wm_min_mu, I_q);
   }
@@ -360,7 +360,7 @@ void coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_w(
 
   compute_S_q(K_ind, w_ind, S_K, S_q);
 
-  int nr_threads = parameters.get_nr_coarsegraining_threads();
+  int nr_threads = parameters.get_coarsegraining_threads();
 
   if (nr_threads == 1)
     quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G_q_w_st(I_q, H_q, S_q,
@@ -396,7 +396,7 @@ void coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_t(
 
   G_q = 0.;
 
-  int nr_threads = parameters.get_nr_coarsegraining_threads();
+  int nr_threads = parameters.get_coarsegraining_threads();
 
   if (nr_threads == 1)
     quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G_q_t_st(
@@ -450,7 +450,7 @@ void coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_w(
 
   compute_S_q_from_A_k(K_ind, w_ind, A_k, A_q, S_q);
 
-  int nr_threads = parameters.get_nr_coarsegraining_threads();
+  int nr_threads = parameters.get_coarsegraining_threads();
 
   if (nr_threads == 1)
     quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G_q_w_st(I_q, H_q, S_q,
