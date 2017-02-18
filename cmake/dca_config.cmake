@@ -150,39 +150,37 @@ configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/profiler.hpp.in"
 
 ################################################################################
 # Select the random number generator.
-# TODO: Remove SPRNG and Ranq2 and add option 'custom'.
 set(DCA_RNG "std::ranlux48_base" CACHE STRING
-  "Random number generator, options are: std::ranlux48_base | std::ranlux48 | std::mt19937_64 | SPRNG_LFG | SPRNG_MLFG | Ranq2.")
+  "Random number generator, options are: std::ranlux48_base | std::ranlux48 | std::mt19937_64 | custom.")
 set_property(CACHE DCA_RNG
-  PROPERTY STRINGS std::ranlux48_base std::ranlux48 std::mt19937_64 SPRNG_LFG SPRNG_MLFG Ranq2)
+  PROPERTY STRINGS std::ranlux48_base std::ranlux48 std::mt19937_64 custom)
 
 if (DCA_RNG STREQUAL "std::ranlux48_base")
   set(DCA_RNG_TYPE dca::math::random::StdRandomWrapper<std::ranlux48_base>)
   set(DCA_RNG_INCLUDE "dca/math/random/std_random_wrapper.hpp")
+  set(DCA_RNG_LIBRARY random)
 
 elseif (DCA_RNG STREQUAL "std::ranlux48")
   set(DCA_RNG_TYPE dca::math::random::StdRandomWrapper<std::ranlux48>)
   set(DCA_RNG_INCLUDE "dca/math/random/std_random_wrapper.hpp")
+  set(DCA_RNG_LIBRARY random)
 
 elseif (DCA_RNG STREQUAL "std::mt19937_64")
   set(DCA_RNG_TYPE dca::math::random::StdRandomWrapper<std::mt19937_64>)
   set(DCA_RNG_INCLUDE "dca/math/random/std_random_wrapper.hpp")
+  set(DCA_RNG_LIBRARY random)
 
-elseif (DCA_RNG STREQUAL "SPRNG_LFG")
-  set(DCA_RNG_TYPE dca::math::random::SprngWrapper<dca::math::random::LFG>)
-  set(DCA_RNG_INCLUDE "dca/math/random/sprng_wrapper.hpp")
-
-elseif (DCA_RNG STREQUAL "SPRNG_MLFG")
-  set(DCA_RNG_TYPE dca::math::random::SprngWrapper<dca::math::random::MLFG>)
-  set(DCA_RNG_INCLUDE "dca/math/random/sprng_wrapper.hpp")
-
-elseif (DCA_RNG STREQUAL "Ranq2")
-  set(DCA_RNG_TYPE dca::math::random::Ranq2)
-  set(DCA_RNG_INCLUDE "dca/math/random/ranq2.hpp")
-
+elseif (DCA_RNG STREQUAL "custom")
+  if (NOT (DCA_RNG_CLASS AND EXISTS ${DCA_RNG_HEADER}))
+    message(FATAL_ERROR
+      "DCA_RNG_CLASS and DCA_RNG_HEADER must be set with the -D option, if 'custom' is chosen as RNG.")
+  endif()
+  set(DCA_RNG_TYPE ${DCA_RNG_CLASS})
+  set(DCA_RNG_INCLUDE ${DCA_RNG_HEADER})
+  
 else()
   message(FATAL_ERROR "Please set DCA_RNG to a valid option: std::ranlux48_base | std::ranlux48 |
-                       std::mt19937_64 | SPRNG_LFG | SPRNG_MLFG | Ranq2.")
+                       std::mt19937_64 | custom.")
 endif()
 
 configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/rng.hpp.in"

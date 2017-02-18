@@ -115,7 +115,7 @@ set(DCA_LIBS
   gaussian_quadrature
   nfft
   tetrahedron_mesh
-  random
+  ${DCA_RNG_LIBRARY}
   parallel_util
   pthreading
   dca_algorithms
