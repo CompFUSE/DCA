@@ -1,12 +1,5 @@
 DCA++ is built on top of the following open source libraries:
 
-## JsonCpp
-
-A C++ library for interacting with JSON.  
-Baptiste Lepilleur, Public Domain.  
-[https://github.com/open-source-parsers/jsoncpp](https://github.com/open-source-parsers/jsoncpp)
-
-
 ## gnuplot_i
 
 A Gnuplot C interface.  
@@ -19,6 +12,22 @@ N. Devillard, Public Domain.
 A C++ testing framework.  
 Google Inc., BSD 3-Clause License.  
 [https://github.com/google/googletest](https://github.com/google/googletest)
+
+
+## JsonCpp
+
+A C++ library for interacting with JSON.  
+Baptiste Lepilleur, Public Domain.  
+[https://github.com/open-source-parsers/jsoncpp](https://github.com/open-source-parsers/jsoncpp)
+
+
+## MurmurHash3
+
+A C++ library for hash functions.  
+Austin Appleby, Public Domain.  
+[https://github.com/aappleby/smhasher](https://github.com/aappleby/smhasher)  
+Modified by David Stafford's Mixer parameters "Mix13".  
+[http://zimbry.blogspot.ch/2011/09/better-bit-mixing-improving-on.html](http://zimbry.blogspot.ch/2011/09/better-bit-mixing-improving-on.html)
 
 
 ## SIMPLEX_GM_RULE
