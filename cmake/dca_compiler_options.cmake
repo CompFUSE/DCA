@@ -4,7 +4,7 @@
 # Compiler options and tweaks
 #
 # TODO: - Use target_compile_options().
-#       - Use set_property(TARGET target PROPERTY CXX_STANDARD 11) instead of -std=c++11.
+#       - Use set_property(TARGET target PROPERTY CXX_STANDARD 14) instead of -std=c++14.
 
 # Check for --allow-multiple-definition linker flag.
 # References: https://cmake.org/pipermail/cmake/2011-July/045525.html
@@ -23,12 +23,18 @@ set(DCA_WARNINGS -Wall -Wextra -Wpedantic -Wno-sign-compare)
 # Languange standard
 set(DCA_STD_FLAG -std=c++14)
 
-# Set CXX flags.
+# Set C and CXX flags.
 add_compile_options(${DCA_WARNINGS} ${DCA_THREADING_FLAGS})
 add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${DCA_STD_FLAG}>")
 
 # Set NVCC flags.
 if (DCA_HAVE_CUDA)
-  list(APPEND CUDA_NVCC_FLAGS -arch=${CUDA_GPU_ARCH} -std=c++11 -Xcompiler -Wall -Xcompiler -Wextra
-    -Xcompiler -Wno-unused-parameter -Xcompiler -Wno-switch -Xcompiler ${DCA_THREADING_FLAGS})
+  list(APPEND CUDA_NVCC_FLAGS
+    -arch=${CUDA_GPU_ARCH}
+    -std=c++11
+    -Xcompiler -Wall
+    -Xcompiler -Wextra
+    -Xcompiler -Wno-unused-parameter
+    -Xcompiler -Wno-switch
+    -Xcompiler ${DCA_THREADING_FLAGS})
 endif()

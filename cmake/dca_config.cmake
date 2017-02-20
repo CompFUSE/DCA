@@ -8,6 +8,7 @@
 option(DCA_WITH_MPI "Enable MPI." ON)
 
 if (DCA_WITH_MPI)
+  include(dca_mpi)
   if (NOT DCA_HAVE_MPI)
     message(FATAL_ERROR "MPI not found but requested.")
   endif()
@@ -26,20 +27,22 @@ configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/concurrency.hpp.in"
 ################################################################################
 # Enable CUDA.
 option(DCA_WITH_CUDA "Enable GPU support." OFF)
-option(DCA_WITH_PINNED_HOST_MEMORY "Enable pinned host memory." OFF)
-mark_as_advanced(DCA_WITH_PINNED_HOST_MEMORY)
 
 if (DCA_WITH_CUDA)
+  include(dca_cuda)
   if (NOT DCA_HAVE_CUDA)
     message(FATAL_ERROR "CUDA or MAGMA not found but requested.")
   endif()
 
   dca_add_config_define(DCA_WITH_CUDA)
 
+  # Enable pinned host memory.
+  option(DCA_WITH_PINNED_HOST_MEMORY "Enable pinned host memory." OFF)
+  mark_as_advanced(DCA_WITH_PINNED_HOST_MEMORY)
   if (DCA_WITH_PINNED_HOST_MEMORY)
     dca_add_config_define(ENABLE_PINNED_MEMORY_ALLOCATION)
   endif()
-
+  
   # Copy walker device config file for GPU.
   configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/walker_device_gpu.hpp"
     "${CMAKE_BINARY_DIR}/include/dca/config/walker_device.hpp")
@@ -138,7 +141,6 @@ endif()
 
 option(DCA_WITH_AUTOTUNING "Enable auto-tuning. Needs a profiler type other than 'None'." OFF)
 mark_as_advanced(DCA_WITH_AUTOTUNING)
-
 if (DCA_WITH_AUTOTUNING AND NOT(DCA_PROFILER_TYPE STREQUAL "None"))
   dca_add_config_define(DCA_WITH_AUTOTUNING)
 endif()
@@ -149,37 +151,36 @@ configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/profiler.hpp.in"
 ################################################################################
 # Select the random number generator.
 set(DCA_RNG "std::ranlux48_base" CACHE STRING
-  "Random number generator, options are: std::ranlux48_base | std::ranlux48 | std::mt19937_64 | SPRNG_LFG | SPRNG_MLFG | Ranq2.")
+  "Random number generator, options are: std::ranlux48_base | std::ranlux48 | std::mt19937_64 | custom.")
 set_property(CACHE DCA_RNG
-  PROPERTY STRINGS std::ranlux48_base std::ranlux48 std::mt19937_64 SPRNG_LFG SPRNG_MLFG Ranq2)
+  PROPERTY STRINGS std::ranlux48_base std::ranlux48 std::mt19937_64 custom)
 
 if (DCA_RNG STREQUAL "std::ranlux48_base")
   set(DCA_RNG_TYPE dca::math::random::StdRandomWrapper<std::ranlux48_base>)
   set(DCA_RNG_INCLUDE "dca/math/random/std_random_wrapper.hpp")
+  set(DCA_RNG_LIBRARY random)
 
 elseif (DCA_RNG STREQUAL "std::ranlux48")
   set(DCA_RNG_TYPE dca::math::random::StdRandomWrapper<std::ranlux48>)
   set(DCA_RNG_INCLUDE "dca/math/random/std_random_wrapper.hpp")
+  set(DCA_RNG_LIBRARY random)
 
 elseif (DCA_RNG STREQUAL "std::mt19937_64")
   set(DCA_RNG_TYPE dca::math::random::StdRandomWrapper<std::mt19937_64>)
   set(DCA_RNG_INCLUDE "dca/math/random/std_random_wrapper.hpp")
+  set(DCA_RNG_LIBRARY random)
 
-elseif (DCA_RNG STREQUAL "SPRNG_LFG")
-  set(DCA_RNG_TYPE dca::math::random::SprngWrapper<dca::math::random::LFG>)
-  set(DCA_RNG_INCLUDE "dca/math/random/sprng_wrapper.hpp")
-
-elseif (DCA_RNG STREQUAL "SPRNG_MLFG")
-  set(DCA_RNG_TYPE dca::math::random::SprngWrapper<dca::math::random::MLFG>)
-  set(DCA_RNG_INCLUDE "dca/math/random/sprng_wrapper.hpp")
-
-elseif (DCA_RNG STREQUAL "Ranq2")
-  set(DCA_RNG_TYPE dca::math::random::Ranq2)
-  set(DCA_RNG_INCLUDE "dca/math/random/ranq2.hpp")
-
+elseif (DCA_RNG STREQUAL "custom")
+  if (NOT (DCA_RNG_CLASS AND EXISTS ${DCA_RNG_HEADER}))
+    message(FATAL_ERROR
+      "DCA_RNG_CLASS and DCA_RNG_HEADER must be set with the -D option, if 'custom' is chosen as RNG.")
+  endif()
+  set(DCA_RNG_TYPE ${DCA_RNG_CLASS})
+  set(DCA_RNG_INCLUDE ${DCA_RNG_HEADER})
+  
 else()
   message(FATAL_ERROR "Please set DCA_RNG to a valid option: std::ranlux48_base | std::ranlux48 |
-                       std::mt19937_64 | SPRNG_LFG | SPRNG_MLFG | Ranq2.")
+                       std::mt19937_64 | custom.")
 endif()
 
 configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/rng.hpp.in"
@@ -188,8 +189,8 @@ configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/rng.hpp.in"
 ################################################################################
 # Select the cluster solver.
 set(DCA_CLUSTER_SOLVER "CT-AUX" CACHE STRING
-  "Choose the cluster solver, options are: CT-AUX | SS-CT-HYB | HTS.")
-set_property(CACHE DCA_CLUSTER_SOLVER PROPERTY STRINGS CT-AUX SS-CT-HYB HTS)
+  "The cluster solver for the DCA(+) loop. Options are: CT-AUX | SS-CT-HYB.")
+set_property(CACHE DCA_CLUSTER_SOLVER PROPERTY STRINGS CT-AUX SS-CT-HYB)
 
 if (DCA_CLUSTER_SOLVER STREQUAL "CT-AUX")
   set(DCA_CLUSTER_SOLVER_NAME dca::phys::solver::CT_AUX)
@@ -203,58 +204,55 @@ elseif (DCA_CLUSTER_SOLVER STREQUAL "SS-CT-HYB")
   set(DCA_CLUSTER_SOLVER_INCLUDE
     "dca/phys/dca_step/cluster_solver/ss_ct_hyb/ss_ct_hyb_cluster_solver.hpp")
 
-elseif (DCA_CLUSTER_SOLVER STREQUAL "HTS")
-  # TODO: Remove this if HTS solver is fixed.
-  message(FATAL_ERROR "High temperature series expansion solver is not yet supported.")
-  set(DCA_CLUSTER_SOLVER_NAME dca::phys::solver::HIGH_TEMPERATURE_SERIES)
-  set(DCA_CLUSTER_SOLVER_INCLUDE
-    "dca/phys/dca_step/cluster_solver/high_temperature_series_expansion/high_temperature_series_expansion_solver.hpp")
+# elseif (DCA_CLUSTER_SOLVER STREQUAL "HTS")
+#   set(DCA_CLUSTER_SOLVER_NAME dca::phys::solver::HIGH_TEMPERATURE_SERIES)
+#   set(DCA_CLUSTER_SOLVER_INCLUDE
+#     "dca/phys/dca_step/cluster_solver/high_temperature_series_expansion/high_temperature_series_expansion_solver.hpp")
 
 else()
-  message(FATAL_ERROR "Please set DCA_CLUSTER_SOLVER to a valid option: CT-AUX | SS-CT-HYB | HTS.")
+  message(FATAL_ERROR "Please set DCA_CLUSTER_SOLVER to a valid option: CT-AUX | SS-CT-HYB.")
 endif()
 
 ################################################################################
 # Select the threading library.
 # TODO: - Implement HPX part including DCA_HPX.cmake.
 #       - Implement STL support and make it default.
-set(DCA_THREADING_LIBRARY "POSIX" CACHE STRING "Threading library, options are: STL | POSIX | HPX | None.")
-set_property(CACHE DCA_THREADING_LIBRARY PROPERTY STRINGS STL POSIX HPX None)
+set(DCA_THREADING_LIBRARY "POSIX" CACHE STRING "Threading library, options are: POSIX | None.")
+set_property(CACHE DCA_THREADING_LIBRARY PROPERTY STRINGS POSIX None)
 
-if (DCA_THREADING_LIBRARY STREQUAL STL)
-  message(FATAL_ERROR "No STL threads support yet.")
-
-elseif (DCA_THREADING_LIBRARY STREQUAL POSIX)
+if (DCA_THREADING_LIBRARY STREQUAL POSIX)
+  include(dca_pthreads)
   if (NOT DCA_HAVE_PTHREADS)
-    message(FATAL_ERROR "PThreads not found but requested.")
+    message(FATAL_ERROR "POXIS thread library (Pthreads) not found but requested.")
   endif()
 
   set(DCA_THREADING_TYPE dca::parallel::Pthreading)
   set(DCA_THREADING_INCLUDE "dca/parallel/pthreading/pthreading.hpp")
-  set(DCA_THREADING_FLAGS -pthread CACHE STRING "Flags needed for threading." FORCE)
-
-elseif (DCA_THREADING_LIBRARY STREQUAL HPX)
-  message(FATAL_ERROR "No HPX support yet.")
+  set(DCA_THREADING_FLAGS -pthread CACHE INTERNAL "Flags needed for threading." FORCE)
 
 elseif (DCA_THREADING_LIBRARY STREQUAL None)
   set(DCA_THREADING_TYPE dca::parallel::NoThreading)
   set(DCA_THREADING_INCLUDE "dca/parallel/no_threading/no_threading.hpp")
-  set(DCA_THREADING_FLAGS "" CACHE STRING "Flags needed for threading." FORCE)
+  set(DCA_THREADING_FLAGS "" CACHE INTERNAL "Flags needed for threading." FORCE)
 
+# elseif (DCA_THREADING_LIBRARY STREQUAL STL)
+#   message(FATAL_ERROR "No STL threads support yet.")
+
+# elseif (DCA_THREADING_LIBRARY STREQUAL HPX)
+#   message(FATAL_ERROR "No HPX support yet.")
+  
 else()
-  message(FATAL_ERROR "Please set DCA_THREADING_LIBRARY to a valid option: STL | POSIX | HPX | None.")
+  message(FATAL_ERROR "Please set DCA_THREADING_LIBRARY to a valid option: POSIX | None.")
 endif()
 
-mark_as_advanced(DCA_THREADING_FLAGS)
 configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/threading.hpp.in"
   "${CMAKE_BINARY_DIR}/include/dca/config/threading.hpp" @ONLY)
 
 ################################################################################
 # Use threaded cluster solver.
-option(DCA_WITH_THREADED_SOLVER "Use threaded cluster solver." ON)
+option(DCA_WITH_THREADED_SOLVER "Use multiple walker and accumulator threads in the cluster solver." ON)
 
 if (DCA_WITH_THREADED_SOLVER)
-
   dca_add_config_define(DCA_WITH_THREADED_SOLVER)
 
   if (DCA_THREADING_LIBRARY STREQUAL POSIX)
@@ -262,10 +260,10 @@ if (DCA_WITH_THREADED_SOLVER)
     set(DCA_THREADED_SOLVER_INCLUDE
       "dca/phys/dca_step/cluster_solver/posix_qmci/posix_qmci_cluster_solver.hpp")
 
-  elseif (DCA_THREADING_LIBRARY STREQUAL HPX)
-    set(DCA_THREADED_SOLVER_TYPE DCA::hpx_qmci_integrator<ClusterSolverBaseType>)
-    set(DCA_THREADED_SOLVER_INCLUDE
-      "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_hpx_jacket/hpx_qmci_cluster_solver.h")
+  # elseif (DCA_THREADING_LIBRARY STREQUAL HPX)
+  #   set(DCA_THREADED_SOLVER_TYPE DCA::hpx_qmci_integrator<ClusterSolverBaseType>)
+  #   set(DCA_THREADED_SOLVER_INCLUDE
+  #     "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_hpx_jacket/hpx_qmci_cluster_solver.h")
 
   else()
     message(FATAL_ERROR "Need a threading library to use a threaded cluster solver.")
@@ -310,9 +308,10 @@ endif()
 
 ################################################################################
 # Gnuplot
-option(DCA_WITH_GNUPLOT "Enable gnuplot." OFF)
+option(DCA_WITH_GNUPLOT "Enable Gnuplot." OFF)
 
 if (DCA_WITH_GNUPLOT)
+  include(dca_gnuplot)
   if (NOT DCA_HAVE_GNUPLOT)
     message(FATAL_ERROR "Gnuplot not found but requested.")
   endif()
@@ -320,12 +319,12 @@ if (DCA_WITH_GNUPLOT)
   dca_add_config_define(DCA_WITH_GNUPLOT)
   
   add_subdirectory(${PROJECT_SOURCE_DIR}/libs/gnuplot_i-2.11)
-  set(GNUPLOT_INTERFACE_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/libs/gnuplot_i-2.11/src)
-  set(GNUPLOT_INTERFACE_LIBRARY gnuplot_interface)
+  set(GNUPLOT_INTERFACE_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/libs/gnuplot_i-2.11/src" CACHE INTERNAL "" FORCE)
+  set(GNUPLOT_INTERFACE_LIBRARY "gnuplot_interface" CACHE INTERNAL "" FORCE)
 
 else()
-  set(GNUPLOT_INTERFACE_INCLUDE_DIR "")
-  set(GNUPLOT_INTERFACE_LIBRARY "")
+  set(GNUPLOT_INTERFACE_INCLUDE_DIR "" CACHE INTERNAL "" FORCE)
+  set(GNUPLOT_INTERFACE_LIBRARY "" CACHE INTERNAL "" FORCE)
 endif()
 
 ################################################################################

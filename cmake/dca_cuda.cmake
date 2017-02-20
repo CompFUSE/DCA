@@ -2,15 +2,17 @@
 # Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 #
 # Checks for CUDA and MAGMA and accordingly sets DCA_HAVE_CUDA and DCA_HAVE_MAGMA.
+# In addition, set DCA_CUDA_LIBS.
+
+set(CUDA_GPU_ARCH "sm_60" CACHE STRING "Name of the *real* architecture to build for.")
+set(MAGMA_DIR "" CACHE PATH "Path to the MAGMA installation directory. Hint for CMake to find MAGMA.")
 
 set(DCA_HAVE_CUDA FALSE CACHE INTERNAL "")
 set(DCA_HAVE_MAGMA FALSE CACHE INTERNAL "")
 set(DCA_CUDA_LIBS "" CACHE INTERNAL "")
 
-mark_as_advanced(MAGMA_DIR)
-
 # Find CUDA.
-find_package(CUDA)
+find_package(CUDA REQUIRED)
 
 if (CUDA_FOUND)
   # set(DCA_HAVE_CUDA TRUE CACHE INTERNAL "")
@@ -30,9 +32,6 @@ mark_as_advanced(MAGMA_LIBRARY MAGMA_INCLUDE_DIR)
 if (MAGMA_LIBRARY AND MAGMA_INCLUDE_DIR)
   set(DCA_HAVE_MAGMA TRUE CACHE INTERNAL "")
   dca_add_haves_define(DCA_HAVE_MAGMA)
-
-  # INTERNAL: When MAGMA is not required anymore for all the GPU code, we could remove/modify the
-  #           next two lines.
   list(APPEND DCA_CUDA_LIBS ${MAGMA_LIBRARY})
   CUDA_INCLUDE_DIRECTORIES(${MAGMA_INCLUDE_DIR})
 endif()
