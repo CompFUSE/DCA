@@ -329,6 +329,12 @@ void BseClusterSolver<ParametersType, DcaDataType>::solve_BSE_on_cluster(
   for (int j = 0; j < N; j++)
     for (int i = 0; i < N; i++)
       Gamma_matrix(i, j) = G4_0_inv(i, j) - G4_inv(i, j);
+
+  // if (concurrency.id() == concurrency.last())
+  //   std::cout << "symmetrize Gamma_cluster" << std::endl;
+
+  // symmetrize::execute(Gamma_cluster, MOMS.H_symmetry, parameters.get_q_vector(), false);
+  // diagrammatic_symmetries_obj.execute(Gamma_cluster);
 }
 
 }  // analysis

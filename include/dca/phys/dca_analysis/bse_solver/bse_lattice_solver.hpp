@@ -432,6 +432,23 @@ void BseLatticeSolver<ParametersType, DcaDataType>::compute_chi_0_lattice(
     coarsegraining_tp_obj.execute(MOMS.H_HOST, MOMS.Sigma, chi_0_function);
     set_chi_0_matrix(chi_0);
   }
+
+  // scalartype renorm = 1. / (parameters.get_beta() * k_HOST_VERTEX::dmn_size());
+
+  // for (int w_ind = 0; w_ind < w_VERTEX::dmn_size(); w_ind++)
+  //   for (int K_ind = 0; K_ind < k_HOST_VERTEX::dmn_size(); K_ind++)
+
+  //     for (int m2 = 0; m2 < b::dmn_size(); m2++)
+  //       for (int n2 = 0; n2 < b::dmn_size(); n2++)
+
+  //         for (int m1 = 0; m1 < b::dmn_size(); m1++)
+  //           for (int n1 = 0; n1 < b::dmn_size(); n1++)
+  //             chi_0(n1, m1, K_ind, w_ind, n2, m2, K_ind, w_ind) =
+  //                 renorm * chi_0_function(n1, m1, n2, m2, K_ind, w_ind);
+
+  // if (concurrency.id() == concurrency.last())
+  //   std::cout << "\n\nsymmetrize chi_0_lattice according to the symmetry-group\n" << std::endl;
+  // symmetrize::execute(chi_0, parameters.get_q_vector());
 }
 
 template <typename ParametersType, typename DcaDataType>
@@ -471,12 +488,36 @@ void BseLatticeSolver<ParametersType, DcaDataType>::compute_Gamma_lattice_3(
     lattice_map_tp_obj.execute(Gamma_cluster, Gamma_lattice);
   }
 
+  if (false) {
+    if (concurrency.id() == concurrency.last())
+      std::cout << "\n\n\t symmetrize Gamma_lattice for even-frequency part (only need to "
+                   "symmetrize w2 argument in Gamma(k1,w1,k2,w2)), then compute "
+                   "Gamma_chi_0_lattice "
+                << dca::util::print_time() << " ...";
+
+    for (int w2 = 0; w2 < w_VERTEX::dmn_size(); w2++)
+      for (int K2 = 0; K2 < k_HOST_VERTEX::dmn_size(); K2++)
+        for (int m2 = 0; m2 < b::dmn_size(); m2++)
+          for (int n2 = 0; n2 < b::dmn_size(); n2++)
+
+            for (int w1 = 0; w1 < w_VERTEX::dmn_size(); w1++)
+              for (int K1 = 0; K1 < k_HOST_VERTEX::dmn_size(); K1++)
+                for (int m1 = 0; m1 < b::dmn_size(); m1++)
+                  for (int n1 = 0; n1 < b::dmn_size(); n1++) {
+                    Gamma_sym(n1, m1, K1, w1, n2, m2, K2, w2) =
+                        0.5 *
+                        (Gamma_lattice(n1, m1, K1, w1, n2, m2, K2, w2) +
+                         Gamma_lattice(n1, m1, K1, w1, n2, m2, K2, w_VERTEX::dmn_size() - 1 - w2));
+                  }
+  }
+
   if (parameters.symmetrize_Gamma()) {
     if (true) {
       if (concurrency.id() == concurrency.first())
         std::cout << "symmetrize Gamma_lattice according to the symmetry-group \n" << std::endl;
 
       symmetrize::execute(Gamma_lattice, parameters.get_four_point_momentum_transfer());
+      // symmetrize::execute(Gamma_sym, parameters.get_q_vector());
     }
 
     if (true) {
@@ -487,6 +528,7 @@ void BseLatticeSolver<ParametersType, DcaDataType>::compute_Gamma_lattice_3(
       diagrammatic_symmetries<ParametersType> diagrammatic_symmetries_obj(parameters);
 
       diagrammatic_symmetries_obj.execute(Gamma_lattice);
+      // diagrammatic_symmetries_obj.execute(Gamma_symm);
     }
   }
 }
@@ -632,6 +674,9 @@ void BseLatticeSolver<ParametersType, DcaDataType>::record_eigenvalues_and_eigen
     eigenvals_mod[i].second = i;
   }
 
+  // sort the eigenvalues by (eig_re-1)**2 + eig_im**2 (ascending order)
+  // see src/math_library/static_functions.h for new added real_pair_less
+  // replacing original susceptibility_less_pairs
   std::stable_sort(eigenvals_mod.begin(), eigenvals_mod.end(), math::util::pairLess<scalartype, int>);
 
   for (int i = 0; i < N_LAMBDAS; i++) {
@@ -646,6 +691,8 @@ void BseLatticeSolver<ParametersType, DcaDataType>::record_eigenvalues_and_eigen
   if (concurrency.id() == concurrency.last())
     std::cout << "\n\n\t recording eigenvalues and eigenvectors finished! "
               << dca::util::print_time() << "\n";
+
+  //  symmetrize_leading_eigenvectors();
 }
 
 template <typename ParametersType, typename DcaDataType>
@@ -686,28 +733,6 @@ void BseLatticeSolver<ParametersType, DcaDataType>::diagonalize_folded_Gamma_chi
     std::cout << __FUNCTION__ << std::endl;
 
   profiler_type prof(__FUNCTION__, "BseLatticeSolver", __LINE__);
-  if (false) {
-    if (concurrency.id() == concurrency.last())
-      std::cout << "\n\n\t symmetrize Gamma_lattice for even-frequency part (only need to "
-                   "symmetrize w2 argument in Gamma(k1,w1,k2,w2)), then compute "
-                   "Gamma_chi_0_lattice "
-                << dca::util::print_time() << " ...";
-
-    for (int w2 = 0; w2 < w_VERTEX::dmn_size(); w2++)
-      for (int K2 = 0; K2 < k_HOST_VERTEX::dmn_size(); K2++)
-        for (int m2 = 0; m2 < b::dmn_size(); m2++)
-          for (int n2 = 0; n2 < b::dmn_size(); n2++)
-
-            for (int w1 = 0; w1 < w_VERTEX::dmn_size(); w1++)
-              for (int K1 = 0; K1 < k_HOST_VERTEX::dmn_size(); K1++)
-                for (int m1 = 0; m1 < b::dmn_size(); m1++)
-                  for (int n1 = 0; n1 < b::dmn_size(); n1++) {
-                    Gamma_sym(n1, m1, K1, w1, n2, m2, K2, w2) =
-                        0.5 *
-                        (Gamma_lattice(n1, m1, K1, w1, n2, m2, K2, w2) +
-                         Gamma_lattice(n1, m1, K1, w1, n2, m2, K2, w_VERTEX::dmn_size() - 1 - w2));
-                  }
-  }
 
   int N = lattice_eigenvector_dmn_t::dmn_size();
   int M = crystal_eigenvector_dmn_t::dmn_size();

@@ -66,6 +66,8 @@ public:
       func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::LATTICE_TP,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
   using k_dmn_cut_type = func::dmn_0<domains::brillouin_zone_path_domain<domains::SQUARE_2D_LATTICE>>;
+  // using k_dmn_cut_type =
+  //     func::dmn_0<domains::brillouin_zone_path_domain<domains::FERMI_SURFACE_SQUARE_2D_LATTICE>>;
 
   using cluster_eigenvector_dmn_t = func::dmn_variadic<b, b, k_DCA, w_VERTEX>;
   using lattice_eigenvector_dmn_t = func::dmn_variadic<b, b, k_HOST_VERTEX, w_VERTEX>;
@@ -224,6 +226,7 @@ void BseSolver<ParametersType, DcaDataType>::write() {
     writer.open_file(file_name);
 
     parameters.write(writer);
+    // MOMS.write(writer);
     this->write(writer);
 
     writer.close_file();
@@ -264,6 +267,9 @@ void BseSolver<ParametersType, DcaDataType>::initialize_wave_functions() {
   wave_functions_names(0) = "s-wave";
   wave_functions_names(1) = "p-wave";
   wave_functions_names(2) = "d-wave";
+
+  // wave_functions_names(1) = "cos(kx)+cos(ky)";
+  // wave_functions_names(2) = "cos(kx)-cos(ky)";
 
   {  // s-wave
     std::complex<scalartype> norm_psi = 0;
