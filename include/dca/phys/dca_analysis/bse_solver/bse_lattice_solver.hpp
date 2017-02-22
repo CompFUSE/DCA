@@ -464,6 +464,12 @@ void BseLatticeSolver<ParametersType, DcaDataType>::compute_Gamma_lattice_3(
                          Gamma_lattice(n1, m1, K1, w1, n2, m2, K2, w_VERTEX::dmn_size() - 1 - w2));
                   }
   }
+  else {
+    int N = lattice_eigenvector_dmn_t::dmn_size();
+    for (int i = 0; i < N; i++)
+      for (int j = 0; j < N; j++)
+        Gamma_sym(i, j) = Gamma_lattice(i, j);
+  }
 
   if (parameters.symmetrize_Gamma()) {
     if (true) {
@@ -655,11 +661,10 @@ void BseLatticeSolver<ParametersType, DcaDataType>::record_eigenvalues_and_eigen
     dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& /*VL*/,
     dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& VR) {
   int N = lattice_eigenvector_dmn_t::dmn_size();
-  int M = crystal_eigenvector_dmn_t::dmn_size();
 
-  std::vector<std::pair<std::complex<scalartype>, int>> eigenvals(M);
+  std::vector<std::pair<std::complex<scalartype>, int>> eigenvals(N);
 
-  for (int i = 0; i < M; i++) {
+  for (int i = 0; i < N; i++) {
     eigenvals[i].first = L[i];
     eigenvals[i].second = i;
   }
