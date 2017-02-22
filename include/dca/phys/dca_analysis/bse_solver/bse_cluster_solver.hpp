@@ -43,12 +43,10 @@ public:
   using w = func::dmn_0<domains::frequency_domain>;
   using w_VERTEX = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
   using b = func::dmn_0<domains::electron_band_domain>;
-  using DCA_k_cluster_type =
-      domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::CLUSTER,
-                              domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>;
-  using k_DCA = func::dmn_0<DCA_k_cluster_type>;
+  using k_DCA =
+      func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::CLUSTER,
+                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
 
-  using b_b = func::dmn_variadic<b, b>;
   using cluster_eigenvector_dmn_t = func::dmn_variadic<b, b, k_DCA, w_VERTEX>;
   using DCA_matrix_dmn_t = func::dmn_variadic<cluster_eigenvector_dmn_t, cluster_eigenvector_dmn_t>;
 
@@ -61,9 +59,6 @@ public:
 
   func::function<std::complex<scalartype>, DCA_matrix_dmn_t>& get_Gamma_matrix() {
     return Gamma_matrix;
-  }
-  func::function<std::complex<double>, func::dmn_variadic<b_b, b_b, k_DCA, w_VERTEX>>& get_G_II_0_function() {
-    return G_II_0_function;
   }
 
 private:
@@ -89,7 +84,7 @@ private:
   diagrammatic_symmetries<ParametersType> diagrammatic_symmetries_obj;
 
   func::function<std::complex<scalartype>, DCA_matrix_dmn_t> Gamma_matrix;
-  func::function<std::complex<double>, func::dmn_variadic<b_b, b_b, k_DCA, w_VERTEX>> G_II_0_function;
+  func::function<std::complex<double>, func::dmn_variadic<b, b, b, b, k_DCA, w_VERTEX>> G_II_0_function;
 };
 
 template <typename ParametersType, typename DcaDataType>
@@ -333,7 +328,7 @@ void BseClusterSolver<ParametersType, DcaDataType>::solve_BSE_on_cluster(
   // if (concurrency.id() == concurrency.last())
   //   std::cout << "symmetrize Gamma_cluster" << std::endl;
 
-  // symmetrize::execute(Gamma_cluster, MOMS.H_symmetry, parameters.get_q_vector(), false);
+  // symmetrize::execute(Gamma_cluster, parameters.get_four_point_momentum_transfer());
   // diagrammatic_symmetries_obj.execute(Gamma_cluster);
 }
 
