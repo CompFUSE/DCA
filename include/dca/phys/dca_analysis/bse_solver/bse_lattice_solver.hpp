@@ -11,49 +11,6 @@
 //
 // This class computes the vertex function \Gamma on the lattice and determines the Bethe-Salpeter
 // eigenvalues and eigenvectors.
-//
-// TODO: Check and remove the following comment block and clean up the file.
-//
-// Modifications compared with BSE_lattice_solver_original.h
-// ==========================================================
-// BSE_lattice_solver_Peter1:
-// 1. N_LAMBDAS = 4096; 2. only symmetrize 5 leading eigenvalues
-// 2a. print out Gamma_lattice
-//
-// ==========================================================
-// BSE_lattice_solver_Peter2:
-// 3. comment out characterize_leading_eigenvectors()
-// 4. symmetrize Gamma_lattice (peoject away odd-frequency part)
-//
-// ==========================================================
-// BSE_lattice_solver_Peter3:
-// 5. use sqrt(chi0)*gamma*sqrt(chi0) instead of gamma*chi0
-//
-// ==========================================================
-// BSE_lattice_solver_Peter4:
-// 6. use real sqrt(chi0)*gamma*sqrt(chi0) symmetric matrix for particle-particle SC channel
-// 7. delete some useless routines
-// 8. always diagonalize full sqrt(chi0)*gamma*sqrt(chi0)
-// 9. For real symmetric matrix, do not symmetrize_leading_eigenvectors()
-// 10. print out Gamma_sym
-// 11. print out sigma_lattice(k,w)
-//
-// ==========================================================
-// BSE_lattice_solver_Peter5:
-// 12. only store N_LAMBDA leading eigenvalues and eigenvectors to decrease size of BSE.hdf5.
-// Maybe need all eigenpairs for susceptibility
-// this way do not need change N_LAMBDA for different cluster sizes for regular DCA, keep using
-// N_LAMBDAS = 10
-//
-// ==========================================================
-// BSE_lattice_solver_Peter6:
-// 13. only do lattice mapping for Gamma, chi0 and diagonalization done via python code
-// by comment out // BSE_lattice_solver_obj.diagonalize_Gamma_chi_0(Gamma_lattice, chi_0) in
-// BSE_solver.h
-// 14. move symmetrize Gamma_lattice for even-frequency part for Gamma_sym into
-// compute_Gamma_lattice_3,
-// instead of diagonalize_full_Gamma_chi_0
-// 15. only write Gamma and sigma_lattice data into hdf5
 
 #ifndef DCA_PHYS_DCA_ANALYSIS_BSE_SOLVER_BSE_LATTICE_SOLVER_HPP
 #define DCA_PHYS_DCA_ANALYSIS_BSE_SOLVER_BSE_LATTICE_SOLVER_HPP
@@ -131,8 +88,6 @@ public:
 
   using DCA_matrix_dmn_t = func::dmn_variadic<cluster_eigenvector_dmn_t, cluster_eigenvector_dmn_t>;
   using HOST_matrix_dmn_t = func::dmn_variadic<lattice_eigenvector_dmn_t, lattice_eigenvector_dmn_t>;
-  using crystal_matrix_dmn_t =
-      func::dmn_variadic<crystal_eigenvector_dmn_t, crystal_eigenvector_dmn_t>;
 
   BseLatticeSolver(ParametersType& parameters, DcaDataType& MOMS);
 
@@ -373,7 +328,6 @@ void BseLatticeSolver<ParametersType, DcaDataType>::initialize() {
   }
 }
 
-// Peter's modify May 4
 template <typename ParametersType, typename DcaDataType>
 void BseLatticeSolver<ParametersType, DcaDataType>::compute_chi_0_lattice(
     func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0) {
@@ -448,7 +402,7 @@ void BseLatticeSolver<ParametersType, DcaDataType>::compute_chi_0_lattice(
 
   // if (concurrency.id() == concurrency.last())
   //   std::cout << "\n\nsymmetrize chi_0_lattice according to the symmetry-group\n" << std::endl;
-  // symmetrize::execute(chi_0, parameters.get_q_vector());
+  // symmetrize::execute(chi_0, parameters.get_four_point_momentum_transfer());
 }
 
 template <typename ParametersType, typename DcaDataType>
@@ -517,7 +471,7 @@ void BseLatticeSolver<ParametersType, DcaDataType>::compute_Gamma_lattice_3(
         std::cout << "symmetrize Gamma_lattice according to the symmetry-group \n" << std::endl;
 
       symmetrize::execute(Gamma_lattice, parameters.get_four_point_momentum_transfer());
-      // symmetrize::execute(Gamma_sym, parameters.get_q_vector());
+      // symmetrize::execute(Gamma_sym, parameters.get_four_point_momentum_transfer());
     }
 
     if (true) {
@@ -1003,7 +957,6 @@ void BseLatticeSolver<ParametersType, DcaDataType>::print_on_shell_ppSC() {
     std::cout << __FUNCTION__ << std::endl;
 
   int N = k_HOST_VERTEX::dmn_size();
-  //  std::cout << "\t N=" << k_HOST_VERTEX::dmn_size() << "\n";
 
   if (concurrency.id() == concurrency.last()) {
     std::cout.precision(6);
