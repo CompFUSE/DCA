@@ -933,7 +933,7 @@ void BseLatticeSolver<ParametersType, DcaDataType>::print_on_shell_ppSC() {
     std::cout << std::scientific;
     std::cout << "\n\n\t\t 10 leading eigenvalues : ( T=" << 1. / parameters.get_beta() << " )\n\n";
     for (int i = 0; i < N_LAMBDAS; i++)
-      std::cout << "\t" << i << "\t[" << leading_eigenvalues_real(i) << "]\n";
+      std::cout << "\t" << i << "\t[" << leading_eigenvalues(i).real() << "]\n";
 
     {
       int ind0pi = 0;
@@ -958,8 +958,8 @@ void BseLatticeSolver<ParametersType, DcaDataType>::print_on_shell_ppSC() {
       for (int i = 0; i < N_LAMBDAS; i++) {
         for (int w = 0; w < w_VERTEX::dmn_size(); w++) {
           std::cout << i << "   " << w_VERTEX::get_elements()[w] << "   "
-                    << leading_eigenvectors_real(i, 0, 0, ind0pi, w) << "   "
-                    << leading_eigenvectors_real(i, 0, 0, indpi0, w) << "\n";
+                    << leading_eigenvectors(i, 0, 0, ind0pi, w).real() << "   "
+                    << leading_eigenvectors(i, 0, 0, indpi0, w).real() << "\n";
         }
         std::cout << "----------------------------------------------------------------------"
                   << "\n";
