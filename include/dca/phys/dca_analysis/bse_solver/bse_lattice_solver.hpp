@@ -16,6 +16,7 @@
 #define DCA_PHYS_DCA_ANALYSIS_BSE_SOLVER_BSE_LATTICE_SOLVER_HPP
 
 #include <algorithm>
+#include <cassert>
 #include <complex>
 #include <iostream>
 #include <stdexcept>
@@ -116,10 +117,9 @@ private:
 
   void set_chi_0_matrix(func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0);
 
-  void diagonalize_full_Gamma_chi_0_real(
-      func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
-      func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice);
-
+  void diagonalizeGammaChi0Symmetric(
+      /*const*/ func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
+      /*const*/ func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice);
   void diagonalizeGammaChi0Full(
       /*const*/ func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
       /*const*/ func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice);
@@ -465,12 +465,12 @@ void BseLatticeSolver<ParametersType, DcaDataType>::diagonalizeGammaChi0(
   }
   else {
 #ifndef DCA_ANALYSIS_TEST_WITH_FULL_DIAGONALIZATION
-    // Diagonalize the symmetric matrix \sqrt{\chi_0}*\Gamma*\sqrt{\chi_0}.
+    // Diagonalize the symmetric matrix \sqrt{\chi_0}\Gamma\sqrt{\chi_0}.
     // The origin in momentum space has always index = 0.
     if (parameters.get_four_point_type() == PARTICLE_PARTICLE_UP_DOWN &&
         parameters.get_four_point_momentum_transfer_index() == 0 &&
-        parameters.get_four_point_frequency_transfer == 0) {
-      diagonalize_full_Gamma_chi_0_real(Gamma_lattice, chi_0_lattice);
+        parameters.get_four_point_frequency_transfer() == 0) {
+      diagonalizeGammaChi0Symmetric(Gamma_lattice, chi_0_lattice);
     }
     else
 #endif  // DCA_ANALYSIS_TEST_WITH_FULL_DIAGONALIZATION
@@ -480,64 +480,64 @@ void BseLatticeSolver<ParametersType, DcaDataType>::diagonalizeGammaChi0(
 }
 
 template <typename ParametersType, typename DcaDataType>
-void BseLatticeSolver<ParametersType, DcaDataType>::diagonalize_full_Gamma_chi_0_real(
-    func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& /*Gamma_lattice*/,
-    func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice) {
+void BseLatticeSolver<ParametersType, DcaDataType>::diagonalizeGammaChi0Symmetric(
+    /*const*/ func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
+    /*const*/ func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice) {
   profiler_type prof(__FUNCTION__, "BseLatticeSolver", __LINE__);
 
-  int N = lattice_eigenvector_dmn_t::dmn_size();
+  if (concurrency.id() == concurrency.first())
+    std::cout << "\n" << __FUNCTION__ << std::endl;
 
-  dca::linalg::Matrix<scalartype, dca::linalg::CPU> chi_0_Gamma_chi_0("chi_0_Gamma_chi_0", N);
-  dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> chi_0_Gamma_chi_0_temp(
-      "chi_0_Gamma_chi_0_temp", N);
-  dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> chi_0_Gamma("chi_0_Gamma", N);
-  dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> Gamma("Gamma", N);
-  dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU> chi_0("chi_0", N);
+  const int N = lattice_eigenvector_dmn_t::dmn_size();
 
-  {
-    if (concurrency.id() == concurrency.last())
-      std::cout << "\n\n\t compute Gamma_chi_0_lattice " << dca::util::print_time() << " ...";
+  linalg::Matrix<std::complex<scalartype>, linalg::CPU> Gamma("Gamma", N);
+  linalg::Matrix<std::complex<scalartype>, linalg::CPU> chi_0("chi_0",
+                                                              N);  // Actually \sqrt{\chi_0}.
+  linalg::Matrix<std::complex<scalartype>, linalg::CPU> chi_0_Gamma("chi_0_Gamma", N);
+  linalg::Matrix<std::complex<scalartype>, linalg::CPU> chi_0_Gamma_chi_0_complex(
+      "chi_0_Gamma_chi_0_complex", N);
+  linalg::Matrix<scalartype, linalg::CPU> chi_0_Gamma_chi_0_real("chi_0_Gamma_chi_0_real", N);
 
-    for (int j = 0; j < N; j++)
-      for (int i = 0; i < N; i++)
-        Gamma(i, j) = Gamma_sym(i, j);
+  if (concurrency.id() == concurrency.first())
+    std::cout << "Compute sqrt{chi_0}*Gamma*sqrt{chi_0}: " << util::print_time() << std::endl;
 
-    for (int j = 0; j < N; j++)
-      for (int i = 0; i < N; i++)
-        chi_0(i, j) = sqrt(chi_0_lattice(i, j));
+  // Copy functions into matrices.
+  for (int j = 0; j < N; j++)
+    for (int i = 0; i < N; i++)
+      Gamma(i, j) = Gamma_lattice(i, j);
 
-    dca::linalg::matrixop::gemm(chi_0, Gamma, chi_0_Gamma);
-    dca::linalg::matrixop::gemm(chi_0_Gamma, chi_0, chi_0_Gamma_chi_0_temp);
+  for (int j = 0; j < N; j++)
+    for (int i = 0; i < N; i++)
+      chi_0(i, j) = std::sqrt(chi_0_lattice(i, j));
 
-    for (int j = 0; j < N; j++)
-      for (int i = 0; i < N; i++)
-        chi_0_Gamma_chi_0(i, j) = real(chi_0_Gamma_chi_0_temp(i, j));
+  // Compute \sqrt{\chi_0}\Gamma\sqrt{\chi_0}.
+  linalg::matrixop::gemm(chi_0, Gamma, chi_0_Gamma);
+  linalg::matrixop::gemm(chi_0_Gamma, chi_0, chi_0_Gamma_chi_0_complex);
 
-    if (concurrency.id() == concurrency.last())
-      std::cout << " finished " << dca::util::print_time() << "\n";
+  // \sqrt{\chi_0}\Gamma\sqrt{\chi_0} is real.
+  for (int j = 0; j < N; j++)
+    for (int i = 0; i < N; i++) {
+      assert(std::imag(chi_0_Gamma_chi_0_complex(i, j)) < 1.e-6);
+      chi_0_Gamma_chi_0_real(i, j) = std::real(chi_0_Gamma_chi_0_complex(i, j));
+    }
+
+  if (concurrency.id() == concurrency.first()) {
+    std::cout << "Finished: " << util::print_time() << std::endl;
+    std::cout << "Diagonalize sqrt{chi_0}*Gamma*sqrt{chi_0}: " << util::print_time() << std::endl;
   }
 
-  {
-    if (concurrency.id() == concurrency.last())
-      std::cout << "\n\n\t diagonalize Gamma_chi_0 in pp SC channel " << dca::util::print_time()
-                << " ...";
+  linalg::Vector<scalartype, linalg::CPU> L("L (BseLatticeSolver)", N);
+  linalg::Matrix<scalartype, linalg::CPU> VR("VR (BseLatticeSolver)", N);
 
-    dca::linalg::Vector<scalartype, dca::linalg::CPU> L("L (BseLatticeSolver)", N);
+  // Diagonalize the real and symmetric matrix \sqrt{\chi_0}\Gamma\sqrt{\chi_0}.
+  linalg::matrixop::eigensolverHermitian('V', 'U', chi_0_Gamma_chi_0_real, L, VR);
 
-    dca::linalg::Matrix<scalartype, dca::linalg::CPU> VR("VR (BseLatticeSolver)", N);
+  if (concurrency.id() == concurrency.first())
+    std::cout << "Finished: " << util::print_time() << std::endl;
 
-    dca::linalg::matrixop::eigensolverHermitian('V', 'U', chi_0_Gamma_chi_0, L, VR);
-
-    if (concurrency.id() == concurrency.last())
-      std::cout << " finished " << dca::util::print_time() << "\n";
-
-    record_eigenvalues_and_eigenvectors(L, VR);
-
-    print_on_shell_ppSC();
-
-    if (concurrency.id() == concurrency.last())
-      std::cout << " finished " << dca::util::print_time() << "\n";
-  }
+  // Some post-processing.
+  record_eigenvalues_and_eigenvectors(L, VR);
+  print_on_shell_ppSC();
 }
 
 template <typename ParametersType, typename DcaDataType>
@@ -567,18 +567,19 @@ void BseLatticeSolver<ParametersType, DcaDataType>::diagonalizeGammaChi0Full(
     for (int i = 0; i < N; i++)
       chi_0(i, j) = chi_0_lattice(i, j);
 
-  // Compute \Gamma*\chi_0.
+  // Compute \Gamma\chi_0.
   linalg::matrixop::gemm(Gamma, chi_0, Gamma_chi_0);
 
   if (concurrency.id() == concurrency.first()) {
     std::cout << "Finished: " << util::print_time() << std::endl;
     std::cout << "Diagonalize Gamma*chi_0: " << util::print_time() << std::endl;
   }
+
   linalg::Vector<std::complex<scalartype>, linalg::CPU> L("L (BseLatticeSolver)", N);
   linalg::Matrix<std::complex<scalartype>, linalg::CPU> VR("VR (BseLatticeSolver)", N);
   linalg::Matrix<std::complex<scalartype>, linalg::CPU> VL("VL (BseLatticeSolver)", N);
 
-  // Diagonalize \Gamma*\chi_0.
+  // Diagonalize \Gamma\chi_0.
   linalg::matrixop::eigensolver('N', 'V', Gamma_chi_0, L, VL, VR);
 
   if (concurrency.id() == concurrency.first())
