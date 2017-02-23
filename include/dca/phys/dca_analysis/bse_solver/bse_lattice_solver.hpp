@@ -124,8 +124,8 @@ private:
       /*const*/ func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
       /*const*/ func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice);
 
-  void record_eigenvalues_and_eigenvectors(dca::linalg::Vector<scalartype, dca::linalg::CPU>& L,
-                                           dca::linalg::Matrix<scalartype, dca::linalg::CPU>& VR);
+  void recordEigenvaluesAndEigenvectors(const linalg::Vector<scalartype, linalg::CPU>& L,
+                                        const linalg::Matrix<scalartype, linalg::CPU>& VR);
 
   void recordEigenvaluesAndEigenvectors(
       const linalg::Vector<std::complex<scalartype>, linalg::CPU>& L,
@@ -536,7 +536,7 @@ void BseLatticeSolver<ParametersType, DcaDataType>::diagonalizeGammaChi0Symmetri
     std::cout << "Finished: " << util::print_time() << std::endl;
 
   // Some post-processing.
-  record_eigenvalues_and_eigenvectors(L, VR);
+  recordEigenvaluesAndEigenvectors(L, VR);
   print_on_shell_ppSC();
 }
 
@@ -591,36 +591,29 @@ void BseLatticeSolver<ParametersType, DcaDataType>::diagonalizeGammaChi0Full(
 }
 
 template <typename ParametersType, typename DcaDataType>
-void BseLatticeSolver<ParametersType, DcaDataType>::record_eigenvalues_and_eigenvectors(
-    dca::linalg::Vector<scalartype, dca::linalg::CPU>& L,
-    dca::linalg::Matrix<scalartype, dca::linalg::CPU>& VR) {
-  int N = lattice_eigenvector_dmn_t::dmn_size();
-  std::vector<std::pair<scalartype, int>> eigenvals_mod(N);
+void BseLatticeSolver<ParametersType, DcaDataType>::recordEigenvaluesAndEigenvectors(
+    const linalg::Vector<scalartype, linalg::CPU>& L,
+    const linalg::Matrix<scalartype, linalg::CPU>& VR) {
+  const int N = lattice_eigenvector_dmn_t::dmn_size();
 
+  // Store all eigenvalues together with their index in the vector L.
+  std::vector<std::pair<scalartype, int>> evals_index(N);
   for (int i = 0; i < N; i++) {
-    eigenvals_mod[i].first = std::abs(L[i] - 1.);
-    eigenvals_mod[i].second = i;
+    evals_index[i].first = L[i];
+    evals_index[i].second = i;
   }
 
-  // sort the eigenvalues by (eig_re-1)**2 + eig_im**2 (ascending order)
-  // see src/math_library/static_functions.h for new added real_pair_less
-  // replacing original susceptibility_less_pairs
-  std::stable_sort(eigenvals_mod.begin(), eigenvals_mod.end(), math::util::pairLess<scalartype, int>);
+  // Sort the eigenvalues according to their distance to 1 (closest first).
+  std::stable_sort(evals_index.begin(), evals_index.end(), math::util::susceptibilityPairLess<scalartype, int>);
 
   for (int i = 0; i < N_LAMBDAS; i++) {
-    int index = eigenvals_mod[i].second;
+    int index = evals_index[i].second;
 
-    leading_eigenvalues_real(i) = L[index];
+    leading_eigenvalues(i) = L[index];
 
     for (int j = 0; j < N; j++)
-      leading_eigenvectors_real(i, j) = VR(j, index);
+      leading_eigenvectors(i, j) = VR(j, index);
   }
-
-  if (concurrency.id() == concurrency.last())
-    std::cout << "\n\n\t recording eigenvalues and eigenvectors finished! "
-              << dca::util::print_time() << "\n";
-
-  //  symmetrize_leading_eigenvectors();
 }
 
 template <typename ParametersType, typename DcaDataType>
