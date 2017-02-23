@@ -288,32 +288,35 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
 
   domains::vertex_frequency_domain<domains::EXTENDED_BOSONIC>::initialize(*this);
 
-  // DCA
+  // DCA cluster
   domains::cluster_domain_initializer<r_DCA>::execute(Model::get_r_DCA_basis(),
                                                       DomainsParameters::get_cluster());
-
   domains::cluster_domain_symmetry_initializer<
       r_DCA, typename Model::lattice_type::DCA_point_group>::execute();
 
   if (concurrency_.id() == concurrency_.last())
     k_DCA::parameter_type::print(std::cout);
 
-  // host
-  domains::cluster_domain_initializer<r_HOST>::execute(
-      Model::get_r_DCA_basis(),  // DCA_lattice_parameters_type::lattice_vectors(),
-      DomainsParameters::get_sp_host());
-
+  // Host grid for single-particle functions ((sp-)lattice)
+  domains::cluster_domain_initializer<r_HOST>::execute(Model::get_r_DCA_basis(),
+                                                       DomainsParameters::get_sp_host());
   domains::cluster_domain_symmetry_initializer<
       r_HOST, typename Model::lattice_type::DCA_point_group>::execute();
 
   if (concurrency_.id() == concurrency_.last())
     k_HOST::parameter_type::print(std::cout);
 
-  // host
-  domains::cluster_domain_initializer<r_HOST_VERTEX>::execute(
-      Model::get_r_DCA_basis(),  // DCA_lattice_parameters_type::lattice_vectors(),
-      DomainsParameters::get_tp_host());
-
+  // Host grid for two-particle functions (tp-lattice)
+  if (do_dca_plus()) {
+    domains::cluster_domain_initializer<r_HOST_VERTEX>::execute(Model::get_r_DCA_basis(),
+                                                                DomainsParameters::get_tp_host());
+  }
+  // Set equal to DCA cluster, if standard DCA is used.
+  // In this way, we can keep the BseLatticeSolver general.
+  else {
+    domains::cluster_domain_initializer<r_HOST_VERTEX>::execute(Model::get_r_DCA_basis(),
+                                                                DomainsParameters::get_cluster());
+  }
   domains::cluster_domain_symmetry_initializer<
       r_HOST_VERTEX, typename Model::lattice_type::DCA_point_group>::execute();
 
