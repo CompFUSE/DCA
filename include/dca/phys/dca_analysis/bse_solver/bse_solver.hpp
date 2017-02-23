@@ -242,7 +242,7 @@ void BseSolver<ParametersType, DcaDataType>::calculate_susceptibilities_2() {
   BSE_cluster_solver_obj.compute_Gamma_cluster();
   Gamma_cluster = BSE_cluster_solver_obj.get_Gamma_matrix();
 
-  BSE_lattice_solver_obj.compute_Gamma_lattice_3(Gamma_cluster);
+  BSE_lattice_solver_obj.computeGammaLattice(Gamma_cluster);
   BSE_lattice_solver_obj.compute_chi_0_lattice(chi_0);
   Gamma_lattice = BSE_lattice_solver_obj.get_Gamma_lattice();
 

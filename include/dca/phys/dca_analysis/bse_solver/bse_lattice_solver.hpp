@@ -100,7 +100,7 @@ public:
 
   void compute_chi_0_lattice(func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0);
 
-  void compute_Gamma_lattice_3(func::function<std::complex<scalartype>, DCA_matrix_dmn_t>& Gamma_cluster);
+  void computeGammaLattice(func::function<std::complex<scalartype>, DCA_matrix_dmn_t>& Gamma_cluster);
 
   void diagonalize_Gamma_chi_0(
       func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
@@ -423,73 +423,35 @@ void BseLatticeSolver<ParametersType, DcaDataType>::set_chi_0_matrix(
 }
 
 template <typename ParametersType, typename DcaDataType>
-void BseLatticeSolver<ParametersType, DcaDataType>::compute_Gamma_lattice_3(
+void BseLatticeSolver<ParametersType, DcaDataType>::computeGammaLattice(
     func::function<std::complex<scalartype>, DCA_matrix_dmn_t>& Gamma_cluster) {
   profiler_type prof(__FUNCTION__, "BseLatticeSolver", __LINE__);
 
-  // Need following condition lines for regular DCA; otherwise execute(Gamma_cluster, Gamma_lattice)
-  // still do SVD etc.
-  if (!parameters.do_dca_plus()) {
-    int N = lattice_eigenvector_dmn_t::dmn_size();
-    for (int i = 0; i < N; i++)
-      for (int j = 0; j < N; j++)
-        Gamma_lattice(i, j) = Gamma_cluster(i, j);
-  }
-  else {
+  if (concurrency.id() == concurrency.first())
+    std::cout << "\n" << __FUNCTION__ << std::endl;
+  
+  // DCA+: Compute Gamma_lattice from an interpolation of Gamma_cluster followed by a deconvolution.
+  if (parameters.do_dca_plus()) {
     latticemapping::lattice_mapping_tp<ParametersType, k_DCA, k_HOST_VERTEX> lattice_map_tp_obj(
         parameters);
-
     lattice_map_tp_obj.execute(Gamma_cluster, Gamma_lattice);
   }
-
-  if (false) {
-    if (concurrency.id() == concurrency.last())
-      std::cout << "\n\n\t symmetrize Gamma_lattice for even-frequency part (only need to "
-                   "symmetrize w2 argument in Gamma(k1,w1,k2,w2)), then compute "
-                   "Gamma_chi_0_lattice "
-                << dca::util::print_time() << " ...";
-
-    for (int w2 = 0; w2 < w_VERTEX::dmn_size(); w2++)
-      for (int K2 = 0; K2 < k_HOST_VERTEX::dmn_size(); K2++)
-        for (int m2 = 0; m2 < b::dmn_size(); m2++)
-          for (int n2 = 0; n2 < b::dmn_size(); n2++)
-
-            for (int w1 = 0; w1 < w_VERTEX::dmn_size(); w1++)
-              for (int K1 = 0; K1 < k_HOST_VERTEX::dmn_size(); K1++)
-                for (int m1 = 0; m1 < b::dmn_size(); m1++)
-                  for (int n1 = 0; n1 < b::dmn_size(); n1++) {
-                    Gamma_sym(n1, m1, K1, w1, n2, m2, K2, w2) =
-                        0.5 *
-                        (Gamma_lattice(n1, m1, K1, w1, n2, m2, K2, w2) +
-                         Gamma_lattice(n1, m1, K1, w1, n2, m2, K2, w_VERTEX::dmn_size() - 1 - w2));
-                  }
-  }
+  // (Standard) DCA: Simply copy Gamma_cluster.
   else {
-    int N = lattice_eigenvector_dmn_t::dmn_size();
-    for (int i = 0; i < N; i++)
-      for (int j = 0; j < N; j++)
-        Gamma_sym(i, j) = Gamma_lattice(i, j);
+    assert(Gamma_lattice.size() == Gamma_cluster.size());
+    for (std::size_t i = 0; i < Gamma_cluster.size(); ++i)
+      Gamma_lattice(i) = Gamma_cluster(i);
   }
 
   if (parameters.symmetrize_Gamma()) {
-    if (true) {
-      if (concurrency.id() == concurrency.first())
-        std::cout << "symmetrize Gamma_lattice according to the symmetry-group \n" << std::endl;
+    if (concurrency.id() == concurrency.first())
+      std::cout << "Symmetrize Gamma_lattice according to the symmetry group." << std::endl;
+    symmetrize::execute(Gamma_lattice, parameters.get_four_point_momentum_transfer());
 
-      symmetrize::execute(Gamma_lattice, parameters.get_four_point_momentum_transfer());
-      // symmetrize::execute(Gamma_sym, parameters.get_four_point_momentum_transfer());
-    }
-
-    if (true) {
-      if (concurrency.id() == concurrency.first())
-        std::cout << "symmetrize Gamma_lattice according to diagrammatic symmetries \n"
-                  << std::endl;
-
-      diagrammatic_symmetries<ParametersType> diagrammatic_symmetries_obj(parameters);
-
-      diagrammatic_symmetries_obj.execute(Gamma_lattice);
-      // diagrammatic_symmetries_obj.execute(Gamma_symm);
-    }
+    if (concurrency.id() == concurrency.first())
+      std::cout << "Symmetrize Gamma_lattice according to diagrammatic symmetries." << std::endl;
+    diagrammatic_symmetries<ParametersType> diagrammatic_symmetries_obj(parameters);
+    diagrammatic_symmetries_obj.execute(Gamma_lattice);
   }
 }
 
