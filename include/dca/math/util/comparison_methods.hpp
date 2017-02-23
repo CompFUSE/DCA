@@ -32,12 +32,6 @@ bool pairAbsGreater(const std::pair<T1, T2>& x, const std::pair<T1, T2>& y) {
   return std::abs(x.first) > std::abs(y.first);
 }
 
-template <typename T1, typename T2>
-bool susceptibilityPairGreater(const std::pair<std::complex<T1>, T2>& x,
-                               const std::pair<std::complex<T1>, T2>& y) {
-  return std::abs(x.first - 1.) > std::abs(y.first - 1.);
-}
-
 // Returns true, if x.first is closer to 1 than y.first, otherwise returns false.
 // Used in BseLatticeSolver to sort the eigenvalues.
 template <typename T1, typename T2>

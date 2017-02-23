@@ -604,7 +604,8 @@ void BseLatticeSolver<ParametersType, DcaDataType>::recordEigenvaluesAndEigenvec
   }
 
   // Sort the eigenvalues according to their distance to 1 (closest first).
-  std::stable_sort(evals_index.begin(), evals_index.end(), math::util::susceptibilityPairLess<scalartype, int>);
+  std::stable_sort(evals_index.begin(), evals_index.end(),
+                   math::util::susceptibilityPairLess<scalartype, int>);
 
   for (int i = 0; i < N_LAMBDAS; i++) {
     int index = evals_index[i].second;
@@ -630,14 +631,14 @@ void BseLatticeSolver<ParametersType, DcaDataType>::recordEigenvaluesAndEigenvec
     evals_index[i].second = i;
   }
 
-  // Sort the eigenvalues according to their distance to 1 (closest last).
+  // Sort the eigenvalues according to their distance to 1 (closest first).
   std::stable_sort(evals_index.begin(), evals_index.end(),
-                   math::util::susceptibilityPairGreater<scalartype, int>);
+                   math::util::susceptibilityPairLess<std::complex<scalartype>, int>);
 
   // Copy the leading eigenvalues, i.e. those that are the closest to 1, and the corresponding
   // eigenvectors.
   for (int i = 0; i < N_LAMBDAS; i++) {
-    int index = evals_index[evals_index.size() - 1 - i].second;
+    int index = evals_index[i].second;
 
     leading_eigenvalues(i) = L[index];
 
@@ -746,10 +747,10 @@ void BseLatticeSolver<ParametersType, DcaDataType>::record_eigenvalues_and_folde
   }
 
   stable_sort(eigenvals.begin(), eigenvals.end(),
-              math::util::susceptibilityPairGreater<scalartype, int>);
+              math::util::susceptibilityPairLess<std::complex<scalartype>, int>);
 
   for (int i = 0; i < N_LAMBDAS; i++) {
-    int index = eigenvals[eigenvals.size() - 1 - i].second;
+    int index = eigenvals[i].second;
 
     leading_eigenvalues(i) = L[index];
 
