@@ -12,6 +12,7 @@
 #ifndef DCA_MATH_FUNCTION_TRANSFORM_TRANSFORM_DOMAIN_HPP
 #define DCA_MATH_FUNCTION_TRANSFORM_TRANSFORM_DOMAIN_HPP
 
+#include <complex>
 #include <iostream>
 
 #include <fftw3.h>
@@ -50,27 +51,27 @@ private:
 
 public:
   template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-  static void execute(func::function<scalartype_input, domain_input>& f_input,
+  static void execute(const func::function<scalartype_input, domain_input>& f_input,
                       func::function<scalartype_output, domain_output>& f_output);
 
   template <typename scalartype, class domain_input, class domain_output>
-  static void execute(func::function<scalartype, domain_input>& f_input,
+  static void execute(const func::function<scalartype, domain_input>& f_input,
                       func::function<scalartype, domain_output>& f_output);
 
   template <typename scalartype, class domain_input, class domain_output>
-  static void execute(func::function<std::complex<scalartype>, domain_input>& f_input,
+  static void execute(const func::function<std::complex<scalartype>, domain_input>& f_input,
                       func::function<std::complex<scalartype>, domain_output>& f_output);
 
 private:
   template <typename f_input_t, typename f_output_t>
-  static void characterize_transformation(f_input_t& f_input, f_output_t& f_output, int& M, int& K,
-                                          int& N, int& P);
+  static void characterize_transformation(const f_input_t& f_input, const f_output_t& f_output,
+                                          int& M, int& K, int& N, int& P);
 };
 
 template <typename type_input, typename type_output, int DMN_INDEX>
 template <typename scalartype, class domain_input, class domain_output>
 void TRANSFORM_DOMAIN<type_input, CONTINUOUS, type_output, CONTINUOUS, DMN_INDEX>::execute(
-    func::function<scalartype, domain_input>& f_input,
+    const func::function<scalartype, domain_input>& f_input,
     func::function<scalartype, domain_output>& f_output) {
   if (VERBOSE)
     std::cout << "\n\t transform (continuous -> continuous) " << DMN_INDEX << "  "
@@ -102,7 +103,7 @@ void TRANSFORM_DOMAIN<type_input, CONTINUOUS, type_output, CONTINUOUS, DMN_INDEX
 template <typename type_input, typename type_output, int DMN_INDEX>
 template <typename scalartype, class domain_input, class domain_output>
 void TRANSFORM_DOMAIN<type_input, CONTINUOUS, type_output, CONTINUOUS, DMN_INDEX>::execute(
-    func::function<std::complex<scalartype>, domain_input>& f_input,
+    const func::function<std::complex<scalartype>, domain_input>& f_input,
     func::function<std::complex<scalartype>, domain_output>& f_output) {
   if (VERBOSE)
     std::cout << "\n\t transform (continuous -> continuous) " << DMN_INDEX << "  "
@@ -158,10 +159,8 @@ void TRANSFORM_DOMAIN<type_input, CONTINUOUS, type_output, CONTINUOUS, DMN_INDEX
 
 template <typename type_input, typename type_output, int DMN_INDEX>
 template <typename f_input_t, typename f_output_t>
-void TRANSFORM_DOMAIN<type_input, CONTINUOUS, type_output, CONTINUOUS,
-                      DMN_INDEX>::characterize_transformation(f_input_t& f_input,
-                                                              f_output_t& f_output, int& M, int& K,
-                                                              int& N, int& P) {
+void TRANSFORM_DOMAIN<type_input, CONTINUOUS, type_output, CONTINUOUS, DMN_INDEX>::characterize_transformation(
+    const f_input_t& f_input, const f_output_t& f_output, int& M, int& K, int& N, int& P) {
   M = 1;
   for (int l = 0; l < DMN_INDEX; l++)
     M *= f_input[l];
@@ -188,14 +187,14 @@ private:
 
 public:
   template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-  static void execute(func::function<scalartype_input, domain_input>& f_input,
+  static void execute(const func::function<scalartype_input, domain_input>& f_input,
                       func::function<scalartype_output, domain_output>& f_output) {
     default_execute(f_input, f_output);
   }
 
 private:
   template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-  static void default_execute(func::function<scalartype_input, domain_input>& f_input,
+  static void default_execute(const func::function<scalartype_input, domain_input>& f_input,
                               func::function<scalartype_output, domain_output>& f_output) {
     if (VERBOSE)
       std::cout << "\n\t default-transform (continuous -> expansion) " << DMN_INDEX << "  "
@@ -224,7 +223,7 @@ private:
 
 public:
   template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-  static void execute(func::function<scalartype_input, domain_input>& f_input,
+  static void execute(const func::function<scalartype_input, domain_input>& f_input,
                       func::function<scalartype_output, domain_output>& f_output) {
     default_execute(f_input, f_output);
   }
@@ -258,14 +257,14 @@ private:
   }
 
   template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-  static void fftw_harmonics_execute(func::function<scalartype_input, domain_input>& f_input,
+  static void fftw_harmonics_execute(const func::function<scalartype_input, domain_input>& f_input,
                                      func::function<scalartype_output, domain_output>& f_output,
-                                     bool renorm);
+                                     const bool renorm);
 
   template <typename scalartype, class domain_input, class domain_output>
-  static void fftw_harmonics_execute(func::function<std::complex<scalartype>, domain_input>& f_input,
-                                     func::function<std::complex<scalartype>, domain_output>& f_output,
-                                     bool renorm) {
+  static void fftw_harmonics_execute(
+      const func::function<std::complex<scalartype>, domain_input>& f_input,
+      func::function<std::complex<scalartype>, domain_output>& f_output, const bool renorm) {
     assert(type_input::dmn_specifications_type::DIMENSION ==
            type_output::dmn_specifications_type::DIMENSION);
 
@@ -340,7 +339,7 @@ private:
   }
 
   template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-  static void default_execute(func::function<scalartype_input, domain_input>& f_input,
+  static void default_execute(const func::function<scalartype_input, domain_input>& f_input,
                               func::function<scalartype_output, domain_output>& f_output) {
     if (VERBOSE)
       std::cout << "\n default-transform (discrete -> expansion) " << DMN_INDEX << "  "
@@ -366,14 +365,14 @@ private:
 
 public:
   template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-  static void execute(func::function<scalartype_input, domain_input>& f_input,
+  static void execute(const func::function<scalartype_input, domain_input>& f_input,
                       func::function<scalartype_output, domain_output>& f_output) {
     default_execute(f_input, f_output);
   }
 
 private:
   template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-  static void default_execute(func::function<scalartype_input, domain_input>& f_input,
+  static void default_execute(const func::function<scalartype_input, domain_input>& f_input,
                               func::function<scalartype_output, domain_output>& f_output) {
     if (VERBOSE)
       std::cout << "\n\t default-transform (expansion -> continuous) " << DMN_INDEX << "  "
@@ -402,7 +401,7 @@ private:
 
 public:
   template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-  static void execute(func::function<scalartype_input, domain_input>& f_input,
+  static void execute(const func::function<scalartype_input, domain_input>& f_input,
                       func::function<scalartype_output, domain_output>& f_output) {
     default_execute(f_input, f_output);
   }
@@ -434,12 +433,13 @@ private:
   }
 
   template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-  static void fftw_harmonics_execute(func::function<scalartype_input, domain_input>& f_input,
+  static void fftw_harmonics_execute(const func::function<scalartype_input, domain_input>& f_input,
                                      func::function<scalartype_output, domain_output>& f_output);
 
   template <typename scalartype, class domain_input, class domain_output>
-  static void fftw_harmonics_execute(func::function<std::complex<scalartype>, domain_input>& f_input,
-                                     func::function<std::complex<scalartype>, domain_output>& f_output) {
+  static void fftw_harmonics_execute(
+      const func::function<std::complex<scalartype>, domain_input>& f_input,
+      func::function<std::complex<scalartype>, domain_output>& f_output) {
     assert(type_input::dmn_specifications_type::DIMENSION ==
            type_output::dmn_specifications_type::DIMENSION);
 
@@ -506,7 +506,7 @@ private:
   }
 
   template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-  static void fftw_cosine_execute(func::function<scalartype_input, domain_input>& /*f_input*/,
+  static void fftw_cosine_execute(const func::function<scalartype_input, domain_input>& /*f_input*/,
                                   func::function<scalartype_output, domain_output>& /*f_output*/) {
     if (VERBOSE)
       std::cout << "\n\t fftw-cosine-transform (expansion -> discrete) " << DMN_INDEX << "  "
@@ -514,7 +514,7 @@ private:
   }
 
   template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-  static void fftw_sine_execute(func::function<scalartype_input, domain_input>& /*f_input*/,
+  static void fftw_sine_execute(const func::function<scalartype_input, domain_input>& /*f_input*/,
                                 func::function<scalartype_output, domain_output>& /*f_output*/) {
     if (VERBOSE)
       std::cout << "\n\t fftw-sine-transform (expansion -> discrete) " << DMN_INDEX << "  "
@@ -522,7 +522,7 @@ private:
   }
 
   template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-  static void default_execute(func::function<scalartype_input, domain_input>& f_input,
+  static void default_execute(const func::function<scalartype_input, domain_input>& f_input,
                               func::function<scalartype_output, domain_output>& f_output) {
     if (VERBOSE)
       std::cout << "\n\t default-transform (expansion -> discrete) " << DMN_INDEX << "  "
@@ -548,14 +548,14 @@ private:
 
 public:
   template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-  static void execute(func::function<scalartype_input, domain_input>& f_input,
+  static void execute(const func::function<scalartype_input, domain_input>& f_input,
                       func::function<scalartype_output, domain_output>& f_output) {
     default_execute(f_input, f_output);
   }
 
 private:
   template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-  static void default_execute(func::function<scalartype_input, domain_input>& f_input,
+  static void default_execute(const func::function<scalartype_input, domain_input>& f_input,
                               func::function<scalartype_output, domain_output>& f_output) {
     if (VERBOSE)
       std::cout << "\n\t default-transform (continuous -> expansion) " << DMN_INDEX << "  "

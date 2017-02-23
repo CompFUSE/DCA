@@ -36,7 +36,7 @@ class FunctionTransform<func::dmn_0<type_input>, func::dmn_0<type_output>> {
 
 public:
   template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-  static void execute(func::function<scalartype_input, domain_input>& f_input,
+  static void execute(const func::function<scalartype_input, domain_input>& f_input,
                       func::function<scalartype_output, domain_output>& f_output) {
     if (VERBOSE)
       print_types(f_input, f_output);
@@ -51,9 +51,9 @@ public:
 
   template <typename scalartype_input, class domain_input, typename scalartype_output,
             class domain_output, typename scalartype_T>
-  static void execute(func::function<scalartype_input, domain_input>& f_input,
+  static void execute(const func::function<scalartype_input, domain_input>& f_input,
                       func::function<scalartype_output, domain_output>& f_output,
-                      dca::linalg::Matrix<scalartype_T, dca::linalg::CPU>& T) {
+                      const linalg::Matrix<scalartype_T, linalg::CPU>& T) {
     if (VERBOSE)
       print_types(f_input, f_output);
 
@@ -66,7 +66,7 @@ public:
   }
 
   template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-  static void execute_on_all(func::function<scalartype_input, domain_input>& f_input,
+  static void execute_on_all(const func::function<scalartype_input, domain_input>& f_input,
                              func::function<scalartype_output, domain_output>& f_output) {
     if (VERBOSE)
       print_types(f_input, f_output);
@@ -82,9 +82,9 @@ public:
 
   template <typename scalartype_input, class domain_input, typename scalartype_output,
             class domain_output, typename scalartype_T>
-  static void execute_on_all(func::function<scalartype_input, domain_input>& f_input,
+  static void execute_on_all(const func::function<scalartype_input, domain_input>& f_input,
                              func::function<scalartype_output, domain_output>& f_output,
-                             dca::linalg::Matrix<scalartype_T, dca::linalg::CPU>& T) {
+                             const linalg::Matrix<scalartype_T, linalg::CPU>& T) {
     if (VERBOSE)
       print_types(f_input, f_output);
 
@@ -99,9 +99,9 @@ public:
 
 private:
   template <typename scalartype_input, class domain_input, typename scalartype_output, class domain_output>
-  static void print_types(func::function<scalartype_input, domain_input>& f_input,
-                          func::function<scalartype_output, domain_output>& f_output,
-                          bool do_all_domains = false) {
+  static void print_types(const func::function<scalartype_input, domain_input>& f_input,
+                          const func::function<scalartype_output, domain_output>& f_output,
+                          const bool do_all_domains = false) {
     typedef typename domain_input::this_type type_list_input;
     typedef typename domain_output::this_type type_list_output;
 
