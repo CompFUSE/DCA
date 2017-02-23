@@ -160,7 +160,6 @@ private:
   DcaDataType& MOMS;
 
   func::function<std::complex<scalartype>, HOST_matrix_dmn_t> Gamma_lattice;
-  func::function<std::complex<scalartype>, HOST_matrix_dmn_t> Gamma_sym;
   func::function<std::complex<scalartype>, func::dmn_variadic<b_b, b_b, k_HOST_VERTEX, w_VERTEX>>
       chi_0_function;
 
@@ -169,10 +168,6 @@ private:
       leading_symmetry_decomposition;
   func::function<std::complex<scalartype>, func::dmn_variadic<lambda_dmn_type, lattice_eigenvector_dmn_t>>
       leading_eigenvectors;
-
-  func::function<scalartype, lambda_dmn_type> leading_eigenvalues_real;
-  func::function<scalartype, func::dmn_variadic<lambda_dmn_type, lattice_eigenvector_dmn_t>>
-      leading_eigenvectors_real;
 
   func::function<std::complex<scalartype>, func::dmn_variadic<chi_vector_dmn_t, chi_vector_dmn_t>> chi_q;
 
@@ -196,15 +191,11 @@ BseLatticeSolver<ParametersType, DcaDataType>::BseLatticeSolver(ParametersType& 
       MOMS(MOMS_ref),
 
       Gamma_lattice("Gamma_lattice"),
-      Gamma_sym("Gamma_sym"),
       chi_0_function("chi-0-function"),
 
       leading_eigenvalues("leading-eigenvalues"),
       leading_symmetry_decomposition("leading-symmetry-decomposition"),
       leading_eigenvectors("leading-eigenvectors"),
-
-      leading_eigenvalues_real("leading-eigenvalues-real"),
-      leading_eigenvectors_real("leading-eigenvectors-real"),
 
       chi_q("chi(q)"),
 
@@ -218,24 +209,14 @@ BseLatticeSolver<ParametersType, DcaDataType>::BseLatticeSolver(ParametersType& 
 template <typename ParametersType, typename DcaDataType>
 template <typename Writer>
 void BseLatticeSolver<ParametersType, DcaDataType>::write(Writer& writer) {
-  if (true) {
-    writer.execute(leading_eigenvalues);
-    writer.execute(leading_eigenvectors);
+  writer.execute(leading_eigenvalues);
+  writer.execute(leading_eigenvectors);
 
-    writer.execute(leading_symmetry_decomposition);
-    writer.execute(leading_symmetry_functions);
+  writer.execute(leading_symmetry_decomposition);
+  writer.execute(leading_symmetry_functions);
 
-    writer.execute(Gamma_lattice);
-    writer.execute(chi_0_function);
-  }
-
-  else {
-    writer.execute(leading_eigenvalues_real);
-    writer.execute(leading_eigenvectors_real);
-
-    writer.execute(Gamma_sym);
-    writer.execute(chi_0_function);
-  }
+  writer.execute(Gamma_lattice);
+  writer.execute(chi_0_function);
 }
 
 template <typename ParametersType, typename DcaDataType>
