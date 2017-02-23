@@ -127,10 +127,10 @@ private:
   void record_eigenvalues_and_eigenvectors(dca::linalg::Vector<scalartype, dca::linalg::CPU>& L,
                                            dca::linalg::Matrix<scalartype, dca::linalg::CPU>& VR);
 
-  void record_eigenvalues_and_eigenvectors(
-      dca::linalg::Vector<std::complex<scalartype>, dca::linalg::CPU>& L,
-      dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& VL,
-      dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& VR);
+  void recordEigenvaluesAndEigenvectors(
+      const linalg::Vector<std::complex<scalartype>, linalg::CPU>& L,
+      const linalg::Matrix<std::complex<scalartype>, linalg::CPU>& VL,
+      const linalg::Matrix<std::complex<scalartype>, linalg::CPU>& VR);
 
   void diagonalize_folded_Gamma_chi_0(
       func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
@@ -586,7 +586,7 @@ void BseLatticeSolver<ParametersType, DcaDataType>::diagonalizeGammaChi0Full(
     std::cout << "Finished: " << util::print_time() << std::endl;
 
   // Some post-processing.
-  record_eigenvalues_and_eigenvectors(L, VL, VR);
+  recordEigenvaluesAndEigenvectors(L, VL, VR);
   print_on_shell();
 }
 
@@ -624,24 +624,27 @@ void BseLatticeSolver<ParametersType, DcaDataType>::record_eigenvalues_and_eigen
 }
 
 template <typename ParametersType, typename DcaDataType>
-void BseLatticeSolver<ParametersType, DcaDataType>::record_eigenvalues_and_eigenvectors(
-    dca::linalg::Vector<std::complex<scalartype>, dca::linalg::CPU>& L,
-    dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& /*VL*/,
-    dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& VR) {
-  int N = lattice_eigenvector_dmn_t::dmn_size();
+void BseLatticeSolver<ParametersType, DcaDataType>::recordEigenvaluesAndEigenvectors(
+    const linalg::Vector<std::complex<scalartype>, linalg::CPU>& L,
+    const linalg::Matrix<std::complex<scalartype>, linalg::CPU>& /*VL*/,
+    const linalg::Matrix<std::complex<scalartype>, linalg::CPU>& VR) {
+  const int N = lattice_eigenvector_dmn_t::dmn_size();
 
-  std::vector<std::pair<std::complex<scalartype>, int>> eigenvals(N);
-
+  // Store all eigenvalues together with their index in the vector L.
+  std::vector<std::pair<std::complex<scalartype>, int>> evals_index(N);
   for (int i = 0; i < N; i++) {
-    eigenvals[i].first = L[i];
-    eigenvals[i].second = i;
+    evals_index[i].first = L[i];
+    evals_index[i].second = i;
   }
 
-  stable_sort(eigenvals.begin(), eigenvals.end(),
-              math::util::susceptibilityPairGreater<scalartype, int>);
+  // Sort the eigenvalues according to their distance to 1 (closest last).
+  std::stable_sort(evals_index.begin(), evals_index.end(),
+                   math::util::susceptibilityPairGreater<scalartype, int>);
 
+  // Copy the leading eigenvalues, i.e. those that are the closest to 1, and the corresponding
+  // eigenvectors.
   for (int i = 0; i < N_LAMBDAS; i++) {
-    int index = eigenvals[eigenvals.size() - 1 - i].second;
+    int index = evals_index[evals_index.size() - 1 - i].second;
 
     leading_eigenvalues(i) = L[index];
 
