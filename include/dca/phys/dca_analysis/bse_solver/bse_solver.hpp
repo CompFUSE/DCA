@@ -246,7 +246,7 @@ void BseSolver<ParametersType, DcaDataType>::calculate_susceptibilities_2() {
   BSE_lattice_solver_obj.compute_chi_0_lattice(chi_0);
   Gamma_lattice = BSE_lattice_solver_obj.get_Gamma_lattice();
 
-  BSE_lattice_solver_obj.diagonalize_Gamma_chi_0(Gamma_lattice, chi_0);
+  BSE_lattice_solver_obj.diagonalizeGammaChi0(Gamma_lattice, chi_0);
 }
 
 }  // analysis

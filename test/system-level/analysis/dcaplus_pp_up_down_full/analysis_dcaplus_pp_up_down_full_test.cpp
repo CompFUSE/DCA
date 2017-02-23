@@ -16,6 +16,8 @@
 // - diagonalization of full \Gamma*\chi_0 matrix,
 // - tight-binding model on 2D square lattice.
 
+#define DCA_ANALYSIS_TEST_WITH_FULL_DIAGONALIZATION
+
 #include <iostream>
 #include <string>
 #include <utility>

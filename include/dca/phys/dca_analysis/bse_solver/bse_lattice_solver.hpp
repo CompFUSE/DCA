@@ -102,9 +102,8 @@ public:
 
   void computeGammaLattice(func::function<std::complex<scalartype>, DCA_matrix_dmn_t>& Gamma_cluster);
 
-  void diagonalize_Gamma_chi_0(
-      func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
-      func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice);
+  void diagonalizeGammaChi0(func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
+                            func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice);
 
   func::function<std::complex<scalartype>, lambda_dmn_type>& get_leading_eigenvalues() {
     return leading_eigenvalues;
@@ -429,7 +428,7 @@ void BseLatticeSolver<ParametersType, DcaDataType>::computeGammaLattice(
 
   if (concurrency.id() == concurrency.first())
     std::cout << "\n" << __FUNCTION__ << std::endl;
-  
+
   // DCA+: Compute Gamma_lattice from an interpolation of Gamma_cluster followed by a deconvolution.
   if (parameters.do_dca_plus()) {
     latticemapping::lattice_mapping_tp<ParametersType, k_DCA, k_HOST_VERTEX> lattice_map_tp_obj(
@@ -456,16 +455,25 @@ void BseLatticeSolver<ParametersType, DcaDataType>::computeGammaLattice(
 }
 
 template <typename ParametersType, typename DcaDataType>
-void BseLatticeSolver<ParametersType, DcaDataType>::diagonalize_Gamma_chi_0(
+void BseLatticeSolver<ParametersType, DcaDataType>::diagonalizeGammaChi0(
     func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
     func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice) {
   if (parameters.project_onto_crystal_harmonics()) {
     diagonalize_folded_Gamma_chi_0(Gamma_lattice, chi_0_lattice);
   }
   else {
-    diagonalize_full_Gamma_chi_0(Gamma_lattice, chi_0_lattice);
+#ifndef DCA_ANALYSIS_TEST_WITH_FULL_DIAGONALIZATION
+    // Diagonalize the symmetric matrix \sqrt{\chi_0}*\Gamma*\sqrt{\chi_0}.
+    // The origin in momentum space has always index = 0.
+    if (parameters.get_four_point_type() == PARTICLE_PARTICLE_UP_DOWN &&
+        parameters.get_four_point_momentum_transfer_index() == 0 &&
+        parameters.get_four_point_frequency_transfer == 0) {
+      diagonalize_full_Gamma_chi_0_real(Gamma_lattice, chi_0_lattice);
+    }
+    else
+#endif  // DCA_ANALYSIS_TEST_WITH_FULL_DIAGONALIZATION
+      diagonalize_full_Gamma_chi_0(Gamma_lattice, chi_0_lattice);
   }
-
   characterize_leading_eigenvectors();
 }
 
