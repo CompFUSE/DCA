@@ -55,8 +55,8 @@ public:
   static constexpr int num_evals = 10;
   using LeadingEigDmn = func::dmn_0<func::dmn<num_evals, int>>;
 
-  const static int N_CUBIC = 3;
-  using cubic_harmonics_dmn_type = func::dmn_0<func::dmn<N_CUBIC, int>>;
+  const static int num_harmonics = 3;
+  using CubicHarmonicsDmn = func::dmn_0<func::dmn<num_harmonics, int>>;
 
   using w_VERTEX = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
   using b = func::dmn_0<domains::electron_band_domain>;
@@ -83,7 +83,7 @@ public:
   using LatticeEigenvectorDmn = func::dmn_variadic<b, b, k_HOST_VERTEX, w_VERTEX>;
   using crystal_eigenvector_dmn_t =
       func::dmn_variadic<b, b, crystal_harmonics_expansion_dmn_t, w_VERTEX>;
-  using cubic_eigenvector_dmn_t = func::dmn_variadic<b, b, cubic_harmonics_dmn_type, w_VERTEX>;
+  using CubicHarmonicsEigenvectorDmn = func::dmn_variadic<b, b, CubicHarmonicsDmn, w_VERTEX>;
 
   using HOST_matrix_dmn_t = func::dmn_variadic<LatticeEigenvectorDmn, LatticeEigenvectorDmn>;
 
@@ -107,7 +107,7 @@ public:
   auto& get_leading_symmetry_decomposition() /*const*/ {
     return leading_symmetry_decomposition;
   };
-  
+
 private:
   void initialize();
 
@@ -128,11 +128,11 @@ private:
       dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::CPU>& VL,
       dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::CPU>& VR);
 
-  // Multiply the eigenvectors with a phase such that they become symmetric in the Matsubara
+  // Multiplies the eigenvectors with a phase such that they become symmetric in the Matsubara
   // frequency, i.e. g(\omega_n) = g^*(-omega_n).
   void symmetrizeLeadingEigenvectors();
-
-  void characterize_leading_eigenvectors();
+  // Computes the overlap of the leading eigenvectors with the cubic harmonics.
+  void characterizeLeadingEigenvectors();
 
   void print_on_shell();
   void print_on_shell_ppSC();
@@ -148,7 +148,7 @@ private:
   func::function<std::complex<ScalarType>, HOST_matrix_dmn_t> chi_0_lattice_matrix;
 
   func::function<std::complex<ScalarType>, LeadingEigDmn> leading_eigenvalues;
-  func::function<std::complex<ScalarType>, func::dmn_variadic<LeadingEigDmn, cubic_eigenvector_dmn_t>>
+  func::function<std::complex<ScalarType>, func::dmn_variadic<LeadingEigDmn, CubicHarmonicsEigenvectorDmn>>
       leading_symmetry_decomposition;
   func::function<std::complex<ScalarType>, func::dmn_variadic<LeadingEigDmn, LatticeEigenvectorDmn>>
       leading_eigenvectors;
@@ -162,7 +162,7 @@ private:
                  func::dmn_variadic<LatticeEigenvectorDmn, crystal_eigenvector_dmn_t>>
       crystal_harmonics;
 
-  func::function<std::complex<ScalarType>, func::dmn_variadic<k_HOST_VERTEX, cubic_harmonics_dmn_type>>
+  func::function<std::complex<ScalarType>, func::dmn_variadic<k_HOST_VERTEX, CubicHarmonicsDmn>>
       leading_symmetry_functions;
 };
 
@@ -258,7 +258,7 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::initialize() {
     leading_symmetry_functions.reset();
     leading_symmetry_decomposition.reset();
 
-    for (int l = 0; l < cubic_harmonics_dmn_type::dmn_size(); l++) {
+    for (int l = 0; l < CubicHarmonicsDmn::dmn_size(); l++) {
       std::complex<double> norm = 0;
 
       for (int k_ind = 0; k_ind < k_HOST_VERTEX::dmn_size(); k_ind++) {
@@ -414,7 +414,7 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::diagonalizeGamma
 #endif  // DCA_ANALYSIS_TEST_WITH_FULL_DIAGONALIZATION
       diagonalizeGammaChi0Full();
   }
-  characterize_leading_eigenvectors();
+  characterizeLeadingEigenvectors();
 }
 
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
@@ -917,32 +917,32 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::symmetrizeLeadin
 }
 
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
-void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::characterize_leading_eigenvectors() {
+void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::characterizeLeadingEigenvectors() {
   profiler_type prof(__FUNCTION__, "BseLatticeSolver", __LINE__);
 
-  for (int n_lam = 0; n_lam < num_evals; n_lam++) {
-    for (int w_ind = 0; w_ind < w_VERTEX::dmn_size(); w_ind++) {
-      for (int m_ind = 0; m_ind < b::dmn_size(); m_ind++) {
-        for (int n_ind = 0; n_ind < b::dmn_size(); n_ind++) {
-          for (int n_cub = 0; n_cub < N_CUBIC; n_cub++) {
+  if (concurrency.id() == concurrency.first())
+    std::cout << "\n" << __FUNCTION__ << std::endl;
+
+  for (int ev = 0; ev < num_evals; ev++) {
+    for (int w = 0; w < w_VERTEX::dmn_size(); w++) {
+      for (int b2 = 0; b2 < b::dmn_size(); b2++) {
+        for (int b1 = 0; b1 < b::dmn_size(); b1++) {
+          for (int harmonic = 0; harmonic < num_harmonics; harmonic++) {
             std::complex<ScalarType> scal_prod = 0;
+            std::complex<ScalarType> norm_ev_k = 0;
+            std::complex<ScalarType> norm_harmonic_k = 0;
 
-            std::complex<ScalarType> norm_phi = 0;
-            std::complex<ScalarType> norm_psi = 0;
+            for (int k = 0; k < k_HOST_VERTEX::dmn_size(); k++) {
+              const auto ev_k_val = leading_eigenvectors(ev, b1, b2, k, w);
+              const auto harmonic_k_val = leading_symmetry_functions(k, harmonic);
 
-            for (int k_ind = 0; k_ind < k_HOST_VERTEX::dmn_size(); k_ind++) {
-              std::complex<ScalarType> phi_k_val =
-                  leading_eigenvectors(n_lam, m_ind, n_ind, k_ind, w_ind);
-              std::complex<ScalarType> psi_k_val = leading_symmetry_functions(k_ind, n_cub);
-
-              scal_prod += conj(psi_k_val) * phi_k_val;
-
-              norm_phi += conj(phi_k_val) * phi_k_val;
-              norm_psi += conj(psi_k_val) * psi_k_val;
+              scal_prod += conj(harmonic_k_val) * ev_k_val;
+              norm_ev_k += conj(ev_k_val) * ev_k_val;
+              norm_harmonic_k += conj(harmonic_k_val) * harmonic_k_val;
             }
 
-            leading_symmetry_decomposition(n_lam, m_ind, n_ind, n_cub, w_ind) =
-                scal_prod / std::sqrt(1.e-16 + norm_phi * norm_psi);
+            leading_symmetry_decomposition(ev, b1, b2, harmonic, w) =
+                scal_prod / std::sqrt(1.e-16 + norm_ev_k * norm_harmonic_k);
           }
         }
       }
