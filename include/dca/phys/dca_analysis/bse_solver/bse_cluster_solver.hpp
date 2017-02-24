@@ -57,8 +57,8 @@ public:
 
   void compute_Gamma_cluster();
 
-  func::function<std::complex<scalartype>, DCA_matrix_dmn_t>& get_Gamma_matrix() {
-    return Gamma_matrix;
+  /*const*/ func::function<std::complex<scalartype>, DCA_matrix_dmn_t>& get_Gamma_cluster() /*const*/ {
+    return Gamma_cluster;
   }
 
 private:
@@ -83,7 +83,7 @@ private:
 
   diagrammatic_symmetries<ParametersType> diagrammatic_symmetries_obj;
 
-  func::function<std::complex<scalartype>, DCA_matrix_dmn_t> Gamma_matrix;
+  func::function<std::complex<scalartype>, DCA_matrix_dmn_t> Gamma_cluster;
   func::function<std::complex<double>, func::dmn_variadic<b, b, b, b, k_DCA, w_VERTEX>> G_II_0_function;
 };
 
@@ -98,7 +98,7 @@ BseClusterSolver<ParametersType, DcaDataType>::BseClusterSolver(ParametersType& 
 
       diagrammatic_symmetries_obj(parameters),
 
-      Gamma_matrix("Gamma_matrix"),
+      Gamma_cluster("Gamma_cluster"),
       G_II_0_function("G_II_0_function") {}
 
 template <typename ParametersType, typename DcaDataType>
@@ -323,7 +323,7 @@ void BseClusterSolver<ParametersType, DcaDataType>::solve_BSE_on_cluster(
 
   for (int j = 0; j < N; j++)
     for (int i = 0; i < N; i++)
-      Gamma_matrix(i, j) = G4_0_inv(i, j) - G4_inv(i, j);
+      Gamma_cluster(i, j) = G4_0_inv(i, j) - G4_inv(i, j);
 
   // if (concurrency.id() == concurrency.last())
   //   std::cout << "symmetrize Gamma_cluster" << std::endl;

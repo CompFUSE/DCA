@@ -74,10 +74,10 @@ public:
 
   void calculate_susceptibilities_2();
 
-  /*const*/ func::function<std::complex<scalartype>, LeadingEigDmn>& get_leading_eigenvalues() {
+  /*const*/ func::function<std::complex<scalartype>, LeadingEigDmn>& get_leading_eigenvalues() /*const*/ {
     return BSE_lattice_solver_obj.get_leading_eigenvalues();
   };
-  /*const*/ func::function<std::complex<scalartype>, func::dmn_variadic<LeadingEigDmn, LatticeEigenvectorDmn>>& get_leading_eigenvectors() {
+  /*const*/ func::function<std::complex<scalartype>, func::dmn_variadic<LeadingEigDmn, LatticeEigenvectorDmn>>& get_leading_eigenvectors() /*const*/ {
     return BSE_lattice_solver_obj.get_leading_eigenvectors();
   };
 
@@ -95,7 +95,6 @@ private:
   func::function<std::string, harmonics_dmn_type> wave_functions_names;
   func::function<std::complex<scalartype>, func::dmn_variadic<k_HOST_VERTEX, harmonics_dmn_type>> harmonics;
 
-  func::function<std::complex<scalartype>, DCA_matrix_dmn_t> Gamma_cluster;
   func::function<std::complex<scalartype>, HOST_matrix_dmn_t> Gamma_lattice;
 
   func::function<std::complex<scalartype>, HOST_matrix_dmn_t> chi_0;
@@ -115,7 +114,6 @@ BseSolver<ParametersType, DcaDataType>::BseSolver(ParametersType& parameters_ref
       wave_functions_names("wave-functions-names"),
       harmonics("harmonics"),
 
-      Gamma_cluster("Gamma_cluster"),
       Gamma_lattice("Gamma_lattice"),
 
       chi_0("chi_0") {
@@ -245,9 +243,8 @@ void BseSolver<ParametersType, DcaDataType>::calculate_susceptibilities_2() {
     std::cout << "\t" << __FUNCTION__ << std::endl;
 
   BSE_cluster_solver_obj.compute_Gamma_cluster();
-  Gamma_cluster = BSE_cluster_solver_obj.get_Gamma_matrix();
 
-  BSE_lattice_solver_obj.computeGammaLattice(Gamma_cluster);
+  BSE_lattice_solver_obj.computeGammaLattice(BSE_cluster_solver_obj.get_Gamma_cluster());
   BSE_lattice_solver_obj.compute_chi_0_lattice(chi_0);
   Gamma_lattice = BSE_lattice_solver_obj.get_Gamma_lattice();
 
