@@ -113,13 +113,9 @@ private:
   void diagonalizeGammaChi0Full();
   void diagonalize_folded_Gamma_chi_0();
 
-  void recordEigenvaluesAndEigenvectors(const linalg::Vector<ScalarType, linalg::CPU>& L,
-                                        const linalg::Matrix<ScalarType, linalg::CPU>& VR);
-
-  void recordEigenvaluesAndEigenvectors(
-      const linalg::Vector<std::complex<ScalarType>, linalg::CPU>& L,
-      const linalg::Matrix<std::complex<ScalarType>, linalg::CPU>& VL,
-      const linalg::Matrix<std::complex<ScalarType>, linalg::CPU>& VR);
+  template <typename EvElementType>  // Element type of eigenvalues and eigenvectors.
+  void recordEigenvaluesAndEigenvectors(const linalg::Vector<EvElementType, linalg::CPU>& L,
+                                        const linalg::Matrix<EvElementType, linalg::CPU>& VR);
   void record_eigenvalues_and_folded_eigenvectors(
       dca::linalg::Vector<std::complex<ScalarType>, dca::linalg::CPU>& L,
       dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::CPU>& VL,
@@ -518,67 +514,43 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::diagonalizeGamma
     std::cout << "Finished: " << util::print_time() << std::endl;
 
   // Some post-processing.
-  recordEigenvaluesAndEigenvectors(L, VL, VR);
+  recordEigenvaluesAndEigenvectors(L, VR);
+  symmetrize_leading_eigenvectors();
+
   print_on_shell();
 }
 
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
+template <typename EvElementType>
 void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::recordEigenvaluesAndEigenvectors(
-    const linalg::Vector<ScalarType, linalg::CPU>& L,
-    const linalg::Matrix<ScalarType, linalg::CPU>& VR) {
-  const int N = LatticeEigenvectorDmn::dmn_size();
+    const linalg::Vector<EvElementType, linalg::CPU>& l,
+    const linalg::Matrix<EvElementType, linalg::CPU>& vr) {
+  assert(vr.is_square());
+  assert(l.size() == vr.size().first);
 
-  // Store all eigenvalues together with their index in the vector L.
-  std::vector<std::pair<ScalarType, int>> evals_index(N);
-  for (int i = 0; i < N; i++) {
-    evals_index[i].first = L[i];
+  const int size = l.size();
+
+  // Store all eigenvalues together with their index in the vector l.
+  std::vector<std::pair<EvElementType, int>> evals_index(size);
+  for (int i = 0; i < size; i++) {
+    evals_index[i].first = l[i];
     evals_index[i].second = i;
   }
 
   // Sort the eigenvalues according to their distance to 1 (closest first).
   std::stable_sort(evals_index.begin(), evals_index.end(),
-                   math::util::susceptibilityPairLess<ScalarType, int>);
-
-  for (int i = 0; i < num_evals; i++) {
-    int index = evals_index[i].second;
-
-    leading_eigenvalues(i) = L[index];
-
-    for (int j = 0; j < N; j++)
-      leading_eigenvectors(i, j) = VR(j, index);
-  }
-}
-
-template <typename ParametersType, typename DcaDataType, typename ScalarType>
-void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::recordEigenvaluesAndEigenvectors(
-    const linalg::Vector<std::complex<ScalarType>, linalg::CPU>& L,
-    const linalg::Matrix<std::complex<ScalarType>, linalg::CPU>& /*VL*/,
-    const linalg::Matrix<std::complex<ScalarType>, linalg::CPU>& VR) {
-  const int N = LatticeEigenvectorDmn::dmn_size();
-
-  // Store all eigenvalues together with their index in the vector L.
-  std::vector<std::pair<std::complex<ScalarType>, int>> evals_index(N);
-  for (int i = 0; i < N; i++) {
-    evals_index[i].first = L[i];
-    evals_index[i].second = i;
-  }
-
-  // Sort the eigenvalues according to their distance to 1 (closest first).
-  std::stable_sort(evals_index.begin(), evals_index.end(),
-                   math::util::susceptibilityPairLess<std::complex<ScalarType>, int>);
+                   math::util::susceptibilityPairLess<EvElementType, int>);
 
   // Copy the leading eigenvalues, i.e. those that are the closest to 1, and the corresponding
   // eigenvectors.
   for (int i = 0; i < num_evals; i++) {
     int index = evals_index[i].second;
 
-    leading_eigenvalues(i) = L[index];
+    leading_eigenvalues(i) = l[index];
 
-    for (int j = 0; j < N; j++)
-      leading_eigenvectors(i, j) = VR(j, index);
+    for (int j = 0; j < size; j++)
+      leading_eigenvectors(i, j) = vr(j, index);
   }
-
-  symmetrize_leading_eigenvectors();
 }
 
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
