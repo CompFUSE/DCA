@@ -43,8 +43,8 @@ public:
   using ProfilerType = typename ParametersType::profiler_type;
   using ConcurrencyType = typename ParametersType::concurrency_type;
 
-  using BseClusterSolverType = BseClusterSolver<ParametersType, DcaDataType>;
-  using BseLatticeSolverType = BseLatticeSolver<ParametersType, DcaDataType>;
+  using BseClusterSolverType = BseClusterSolver<ParametersType, DcaDataType, ScalarType>;
+  using BseLatticeSolverType = BseLatticeSolver<ParametersType, DcaDataType, ScalarType>;
   using LeadingEigDmn = typename BseLatticeSolverType::LeadingEigDmn;
   using LatticeEigenvectorDmn = typename BseLatticeSolverType::LatticeEigenvectorDmn;
 
