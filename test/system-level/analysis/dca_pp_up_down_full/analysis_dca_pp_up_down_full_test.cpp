@@ -49,7 +49,6 @@ TEST(AnalysisDCAParticleParticleUpDownFullTest, LeadingEigenvalues) {
       phys::params::Parameters<ConcurrencyType, parallel::NoThreading, profiling::NullProfiler,
                                ModelType, void /*RngType*/, phys::solver::CT_AUX>;
   using DcaDataType = phys::DcaData<ParametersType>;
-
   using BseSolverType = phys::analysis::BseSolver<ParametersType, DcaDataType>;
   using LatticeEigenvectorDmn = typename BseSolverType::LatticeEigenvectorDmn;
   using LeadingEigDmn = typename BseSolverType::LeadingEigDmn;

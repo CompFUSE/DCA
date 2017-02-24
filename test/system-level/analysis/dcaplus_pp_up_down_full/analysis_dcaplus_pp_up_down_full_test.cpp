@@ -49,6 +49,9 @@ TEST(AnalysisDCAplusParticleParticleUpDownFullTest, LeadingEigenvalues) {
       phys::params::Parameters<ConcurrencyType, parallel::NoThreading, profiling::NullProfiler,
                                ModelType, void /*RngType*/, phys::solver::CT_AUX>;
   using DcaDataType = phys::DcaData<ParametersType>;
+  using BseSolverType = phys::analysis::BseSolver<ParametersType, DcaDataType>;
+  using LatticeEigenvectorDmn = typename BseSolverType::LatticeEigenvectorDmn;
+  using LeadingEigDmn = typename BseSolverType::LeadingEigDmn;
 
   std::cout << "Analysis test starting.\n" << std::endl;
 
@@ -64,30 +67,38 @@ TEST(AnalysisDCAplusParticleParticleUpDownFullTest, LeadingEigenvalues) {
   dca_data.initialize();
   dca_data.read(static_cast<std::string>(DCA_SOURCE_DIR "/test/system-level/analysis/dca_tp.hdf5"));
 
-  phys::analysis::BseSolver<ParametersType, DcaDataType> analysis_obj(parameters, dca_data);
+  BseSolverType analysis_obj(parameters, dca_data);
   analysis_obj.calculate_susceptibilities_2();
 
   std::cout << "\nChecking data.\n" << std::endl;
 
-  const static int num_lambdas = 10;
-  using lambda_dmn_type = func::dmn_0<func::dmn<num_lambdas, int>>;
-
-  func::function<std::complex<double>, lambda_dmn_type>& leading_eigenvalues =
+  /*const*/ func::function<std::complex<double>, LeadingEigDmn>& leading_eigenvalues =
       analysis_obj.get_leading_eigenvalues();
+  /*const*/ func::function<std::complex<double>,
+                           func::dmn_variadic<LeadingEigDmn, LatticeEigenvectorDmn>>& leading_eigenvectors =
+      analysis_obj.get_leading_eigenvectors();
 
-  // Read eigenvalues from check_data file.
-  func::function<std::complex<double>, lambda_dmn_type> leading_eigenvalues_check(
+  // Read eigenvalues and eigenvectors from check.hdf5.
+  func::function<std::complex<double>, LeadingEigDmn> leading_eigenvalues_check(
       "leading-eigenvalues");
+  func::function<std::complex<double>, func::dmn_variadic<LeadingEigDmn, LatticeEigenvectorDmn>>
+      leading_eigenvectors_check("leading-eigenvectors");
   io::HDF5Reader reader;
   reader.open_file(DCA_SOURCE_DIR "/test/system-level/analysis/dcaplus_pp_up_down_full/check.hdf5");
   reader.open_group("analysis-functions");
   reader.execute(leading_eigenvalues_check);
+  reader.execute(leading_eigenvectors_check);
   reader.close_file();
 
-  // Compare the computed eigenvalues with the expected result.
-  for (int i = 0; i < lambda_dmn_type::dmn_size(); ++i) {
+  // Compare the computed eigenvalues and eigenvectors with the expected result.
+  for (int i = 0; i < LeadingEigDmn::dmn_size(); ++i) {
     EXPECT_NEAR(leading_eigenvalues_check(i).real(), leading_eigenvalues(i).real(), 1.e-14);
     EXPECT_NEAR(leading_eigenvalues_check(i).imag(), leading_eigenvalues(i).imag(), 1.e-14);
+
+    for (int j = 0; j < LatticeEigenvectorDmn::dmn_size(); ++j) {
+      EXPECT_NEAR(leading_eigenvectors_check(i, j).real(), leading_eigenvectors(i, j).real(), 1.e-14);
+      EXPECT_NEAR(leading_eigenvectors_check(i, j).imag(), leading_eigenvectors(i, j).imag(), 1.e-14);
+    }
   }
 
   std::cout << "\nWriting data.\n" << std::endl;
