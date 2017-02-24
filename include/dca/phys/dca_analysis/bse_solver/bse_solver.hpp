@@ -69,6 +69,9 @@ public:
   auto& get_leading_eigenvectors() /*const*/ {
     return bse_lattice_solver_.get_leading_eigenvectors();
   };
+  auto& get_leading_symmetry_decomposition() /*const*/ {
+    return bse_lattice_solver_.get_leading_symmetry_decomposition();
+  };
 
 private:
   // TODO: Cleanup.

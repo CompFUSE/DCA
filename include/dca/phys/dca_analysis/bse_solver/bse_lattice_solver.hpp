@@ -104,7 +104,10 @@ public:
   auto& get_leading_eigenvectors() /*const*/ {
     return leading_eigenvectors;
   };
-
+  auto& get_leading_symmetry_decomposition() /*const*/ {
+    return leading_symmetry_decomposition;
+  };
+  
 private:
   void initialize();
 
