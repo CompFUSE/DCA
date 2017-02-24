@@ -126,7 +126,10 @@ private:
       dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::CPU>& VL,
       dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::CPU>& VR);
 
-  void symmetrize_leading_eigenvectors();
+  // Multiply the eigenvectors with a phase such that they become symmetric in the Matsubara
+  // frequency, i.e. g(\omega_n) = g^*(-omega_n).
+  void symmetrizeLeadingEigenvectors();
+
   void characterize_leading_eigenvectors();
 
   void print_on_shell();
@@ -515,7 +518,7 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::diagonalizeGamma
 
   // Some post-processing.
   recordEigenvaluesAndEigenvectors(L, VR);
-  symmetrize_leading_eigenvectors();
+  symmetrizeLeadingEigenvectors();
 
   print_on_shell();
 }
@@ -661,7 +664,7 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::record_eigenvalu
         leading_eigenvectors(i, j) += crystal_harmonics(j, l) * VR(l, index);
   }
 
-  symmetrize_leading_eigenvectors();
+  symmetrizeLeadingEigenvectors();
 }
 
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
@@ -870,47 +873,44 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::print_on_shell_p
 }
 
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
-void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::symmetrize_leading_eigenvectors() {
+void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::symmetrizeLeadingEigenvectors() {
   profiler_type prof(__FUNCTION__, "BseLatticeSolver", __LINE__);
 
   if (concurrency.id() == concurrency.first())
-    std::cout << "\n\n\t" << __FUNCTION__ << " " << dca::util::print_time() << std::endl;
-
-  int N = LatticeEigenvectorDmn::dmn_size();
-  ;
+    std::cout << "\n" << __FUNCTION__ << std::endl;
 
   for (int i = 0; i < num_evals; i++) {
-    ScalarType N_phases = 1.e4;
+    const int num_phases = 1000;
+    std::complex<ScalarType> phase_min = 0;
+    ScalarType diff_min = 1.e6;  // Initialize with some big number.
 
-    std::complex<ScalarType> alpha_min = 0;
-    ScalarType norm = 1.e6;
+    // Find the phase that minizes \sum |g(\omega_)-g^*(-\omega_n)|, where the sum runs over the two
+    // band indices, momentum, and half of the Matsubara frequencies.
+    for (int l = 0; l < num_phases; l++) {
+      const std::complex<ScalarType> phase(std::cos((2. * M_PI * l) / num_phases),
+                                           std::sin((2. * M_PI * l) / num_phases));
+      ScalarType diff = 0;
 
-    for (int l = 0; l < N_phases; l++) {
-      std::complex<ScalarType> alpha =
-          std::complex<ScalarType>(cos(2. * M_PI * l / N_phases), sin(2. * M_PI * l / N_phases));
+      for (int w = 0; w < w_VERTEX::dmn_size() / 2; w++)
+        for (int k = 0; k < k_HOST_VERTEX::dmn_size(); k++)
+          for (int b2 = 0; b2 < b::dmn_size(); b2++)
+            for (int b1 = 0; b1 < b::dmn_size(); b1++)
+              diff += std::abs(
+                  phase * leading_eigenvectors(i, b1, b2, k, w) -
+                  conj(phase * leading_eigenvectors(i, b1, b2, k, w_VERTEX::dmn_size() - 1 - w)));
 
-      ScalarType result = 0;
-
-      for (int w1 = 0; w1 < w_VERTEX::dmn_size() / 2; w1++)
-        for (int K1 = 0; K1 < k_HOST_VERTEX::dmn_size(); K1++)
-          for (int m1 = 0; m1 < b::dmn_size(); m1++)
-            for (int n1 = 0; n1 < b::dmn_size(); n1++)
-              result += std::abs(
-                  alpha * leading_eigenvectors(i, n1, m1, K1, w1) -
-                  conj(alpha * leading_eigenvectors(i, n1, m1, K1, w_VERTEX::dmn_size() - 1 - w1)));
-
-      if (result < norm) {
-        norm = result;
-        alpha_min = alpha;
+      if (diff < diff_min) {
+        diff_min = diff;
+        phase_min = phase;
       }
     }
 
-    for (int l = 0; l < N; l++)
-      leading_eigenvectors(i, l) *= alpha_min;
-  }
+    if (diff_min > 1.e-3)
+      std::logic_error("No phase found to symmetrize eigenvector.");
 
-  if (concurrency.id() == concurrency.last())
-    std::cout << "\t" << __FUNCTION__ << " finished " << dca::util::print_time() << std::endl;
+    for (int j = 0; j < LatticeEigenvectorDmn::dmn_size(); j++)
+      leading_eigenvectors(i, j) *= phase_min;
+  }
 }
 
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
