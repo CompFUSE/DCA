@@ -52,18 +52,15 @@ int main(int argc, char** argv) {
   dca_data.initialize();
   dca_data.read(parameters.get_directory() + parameters.get_filename_dca());
 
-  // Compute the susceptibility.
-  if (parameters.get_four_point_type() != dca::phys::NONE) {
-    BseSolverType analysis_obj(parameters, dca_data);
-    analysis_obj.calculateSusceptibilities();
+  BseSolverType bse_solver(parameters, dca_data);
+  bse_solver.calculateSusceptibilities();
 
-    if (concurrency.id() == concurrency.last()) {
-      std::cout << "\nProcessor " << concurrency.id() << " is writing data " << std::endl;
-      analysis_obj.write();
-    }
+  if (concurrency.id() == concurrency.first()) {
+    std::cout << "\nProcessor " << concurrency.id() << " is writing data " << std::endl;
+    bse_solver.write();
   }
 
-  if (concurrency.id() == concurrency.last())
+  if (concurrency.id() == concurrency.first())
     std::cout << "\nDCA(+) analysis ending.\n" << std::endl;
 
   return 0;
