@@ -50,8 +50,6 @@ TEST(AnalysisDCAplusParticleParticleUpDownFullTest, LeadingEigenvalues) {
                                ModelType, void /*RngType*/, phys::solver::CT_AUX>;
   using DcaDataType = phys::DcaData<ParametersType>;
   using BseSolverType = phys::analysis::BseSolver<ParametersType, DcaDataType>;
-  using LatticeEigenvectorDmn = typename BseSolverType::LatticeEigenvectorDmn;
-  using LeadingEigDmn = typename BseSolverType::LeadingEigDmn;
 
   std::cout << "Analysis test starting.\n" << std::endl;
 
@@ -67,42 +65,49 @@ TEST(AnalysisDCAplusParticleParticleUpDownFullTest, LeadingEigenvalues) {
   dca_data.initialize();
   dca_data.read(static_cast<std::string>(DCA_SOURCE_DIR "/test/system-level/analysis/dca_tp.hdf5"));
 
-  BseSolverType analysis_obj(parameters, dca_data);
-  analysis_obj.calculateSusceptibilities();
+  BseSolverType bse_solver(parameters, dca_data);
+  bse_solver.calculateSusceptibilities();
 
   std::cout << "\nChecking data.\n" << std::endl;
 
-  /*const*/ func::function<std::complex<double>, LeadingEigDmn>& leading_eigenvalues =
-      analysis_obj.get_leading_eigenvalues();
-  /*const*/ func::function<std::complex<double>,
-                           func::dmn_variadic<LeadingEigDmn, LatticeEigenvectorDmn>>& leading_eigenvectors =
-      analysis_obj.get_leading_eigenvectors();
+  auto& leading_eigenvalues = bse_solver.get_leading_eigenvalues();
+  auto& leading_eigenvectors = bse_solver.get_leading_eigenvectors();
+  auto& leading_symmetry_decomposition = bse_solver.get_leading_symmetry_decomposition();
 
-  // Read eigenvalues and eigenvectors from check.hdf5.
-  func::function<std::complex<double>, LeadingEigDmn> leading_eigenvalues_check(
-      "leading-eigenvalues");
-  func::function<std::complex<double>, func::dmn_variadic<LeadingEigDmn, LatticeEigenvectorDmn>>
+  // Read eigenvalues, eigenvectors, and symmetry decomposition from check.hdf5.
+  std::remove_const<std::remove_reference<decltype(leading_eigenvalues)>::type>::type
+      leading_eigenvalues_check("leading-eigenvalues");
+  std::remove_const<std::remove_reference<decltype(leading_eigenvectors)>::type>::type
       leading_eigenvectors_check("leading-eigenvectors");
+  std::remove_const<std::remove_reference<decltype(leading_symmetry_decomposition)>::type>::type
+      leading_symmetry_decomposition_check("leading-symmetry-decomposition");
   io::HDF5Reader reader;
   reader.open_file(DCA_SOURCE_DIR "/test/system-level/analysis/dcaplus_pp_up_down_full/check.hdf5");
   reader.open_group("analysis-functions");
   reader.execute(leading_eigenvalues_check);
   reader.execute(leading_eigenvectors_check);
+  reader.execute(leading_symmetry_decomposition_check);
   reader.close_file();
 
-  // Compare the computed eigenvalues and eigenvectors with the expected result.
-  for (int i = 0; i < LeadingEigDmn::dmn_size(); ++i) {
+  // Compare the computed eigenvalues, eigenvectors, and symmetry decomposition with the expected
+  // result.
+  for (int i = 0; i < leading_eigenvalues.size(); ++i) {
     EXPECT_NEAR(leading_eigenvalues_check(i).real(), leading_eigenvalues(i).real(), 1.e-14);
     EXPECT_NEAR(leading_eigenvalues_check(i).imag(), leading_eigenvalues(i).imag(), 1.e-14);
-
-    for (int j = 0; j < LatticeEigenvectorDmn::dmn_size(); ++j) {
-      EXPECT_NEAR(leading_eigenvectors_check(i, j).real(), leading_eigenvectors(i, j).real(), 1.e-14);
-      EXPECT_NEAR(leading_eigenvectors_check(i, j).imag(), leading_eigenvectors(i, j).imag(), 1.e-14);
-    }
+  }
+  for (int i = 0; i < leading_eigenvectors.size(); ++i) {
+    EXPECT_NEAR(leading_eigenvectors_check(i).real(), leading_eigenvectors(i).real(), 1.e-14);
+    EXPECT_NEAR(leading_eigenvectors_check(i).imag(), leading_eigenvectors(i).imag(), 1.e-14);
+  }
+  for (int i = 0; i < leading_symmetry_decomposition.size(); ++i) {
+    EXPECT_NEAR(leading_symmetry_decomposition_check(i).real(),
+                leading_symmetry_decomposition(i).real(), 1.e-14);
+    EXPECT_NEAR(leading_symmetry_decomposition_check(i).imag(),
+                leading_symmetry_decomposition(i).imag(), 1.e-14);
   }
 
   std::cout << "\nWriting data.\n" << std::endl;
-  analysis_obj.write();
+  bse_solver.write();
 
   std::cout << "\nAnalysis test ending." << std::endl;
 }
