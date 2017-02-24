@@ -67,7 +67,7 @@ TEST(analysis_DCAplus_mpi, leading_eigenvalues) {
   dca_data.read(parameters.get_directory() + parameters.get_filename_dca());
 
   dca::phys::analysis::BseSolver<ParametersType, DcaDataType> analysis_obj(parameters, dca_data);
-  analysis_obj.calculate_susceptibilities_2();
+  analysis_obj.calculateSusceptibilities();
 
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
     std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is checking data "

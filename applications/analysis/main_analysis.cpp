@@ -55,7 +55,7 @@ int main(int argc, char** argv) {
   // Compute the susceptibility.
   if (parameters.get_four_point_type() != dca::phys::NONE) {
     BseSolverType analysis_obj(parameters, dca_data);
-    analysis_obj.calculate_susceptibilities_2();
+    analysis_obj.calculateSusceptibilities();
 
     if (concurrency.id() == concurrency.last()) {
       std::cout << "\nProcessor " << concurrency.id() << " is writing data " << std::endl;
