@@ -43,9 +43,6 @@ public:
   using profiler_t = typename ParametersType::profiler_type;
   using concurrency_t = typename ParametersType::concurrency_type;
 
-  const static int N_LAMBDAS = 10;
-  using lambda_dmn_type = func::dmn_0<func::dmn<N_LAMBDAS, int>>;
-
   const static int N_HARMONICS = 3;
   using harmonics_dmn_type = func::dmn_0<func::dmn<N_HARMONICS, int>>;
 
@@ -72,8 +69,14 @@ public:
 
   void calculate_susceptibilities_2();
 
-  func::function<std::complex<scalartype>, lambda_dmn_type>& get_leading_eigenvalues() {
+  template <typename LeadingEigDmn>
+  /*const*/ func::function<std::complex<scalartype>, LeadingEigDmn>& get_leading_eigenvalues() {
     return BSE_lattice_solver_obj.get_leading_eigenvalues();
+  };
+
+  template <typename LeadingEigDmn, typename LatticeEigenvectorDmn>
+  /*const*/ func::function<std::complex<scalartype>, func::dmn_variadic<LeadingEigDmn, LatticeEigenvectorDmn>>& get_leading_eigenvectors() {
+    return BSE_lattice_solver_obj.get_leading_eigenvectors();
   };
 
 private:

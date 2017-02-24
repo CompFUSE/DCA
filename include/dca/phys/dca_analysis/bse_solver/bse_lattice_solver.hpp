@@ -108,8 +108,12 @@ public:
       /*const*/ func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& Gamma_lattice,
       /*const*/ func::function<std::complex<scalartype>, HOST_matrix_dmn_t>& chi_0_lattice);
 
-  func::function<std::complex<scalartype>, lambda_dmn_type>& get_leading_eigenvalues() {
+  /*const*/ func::function<std::complex<scalartype>, lambda_dmn_type>& get_leading_eigenvalues() {
     return leading_eigenvalues;
+  };
+
+  /*const*/ func::function<std::complex<scalartype>, func::dmn_variadic<lambda_dmn_type, lattice_eigenvector_dmn_t>>& get_leading_eigenvectors() {
+    return leading_eigenvectors;
   };
 
 private:
