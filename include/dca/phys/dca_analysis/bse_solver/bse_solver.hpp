@@ -10,7 +10,7 @@
 //
 // This class computes susceptibilities using the Bethe-Salpeter equation (BSE).
 //
-// TODO: Add descriptions to methods.
+// TODO: Add descriptions to (public) methods.
 
 #ifndef DCA_PHYS_DCA_ANALYSIS_BSE_SOLVER_BSE_SOLVER_HPP
 #define DCA_PHYS_DCA_ANALYSIS_BSE_SOLVER_BSE_SOLVER_HPP
@@ -63,10 +63,10 @@ public:
 
   void calculateSusceptibilities();
 
-  /*const*/ func::function<std::complex<ScalarType>, LeadingEigDmn>& get_leading_eigenvalues() /*const*/ {
+  auto& get_leading_eigenvalues() /*const*/ {
     return bse_lattice_solver_.get_leading_eigenvalues();
   };
-  /*const*/ func::function<std::complex<ScalarType>, func::dmn_variadic<LeadingEigDmn, LatticeEigenvectorDmn>>& get_leading_eigenvectors() /*const*/ {
+  auto& get_leading_eigenvectors() /*const*/ {
     return bse_lattice_solver_.get_leading_eigenvectors();
   };
 

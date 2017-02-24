@@ -80,13 +80,11 @@ public:
 
   using chi_vector_dmn_t = func::dmn_variadic<b, b, crystal_harmonics_expansion_dmn_t>;
 
-  using cluster_eigenvector_dmn_t = func::dmn_variadic<b, b, k_DCA, w_VERTEX>;
   using LatticeEigenvectorDmn = func::dmn_variadic<b, b, k_HOST_VERTEX, w_VERTEX>;
   using crystal_eigenvector_dmn_t =
       func::dmn_variadic<b, b, crystal_harmonics_expansion_dmn_t, w_VERTEX>;
   using cubic_eigenvector_dmn_t = func::dmn_variadic<b, b, cubic_harmonics_dmn_type, w_VERTEX>;
 
-  using DCA_matrix_dmn_t = func::dmn_variadic<cluster_eigenvector_dmn_t, cluster_eigenvector_dmn_t>;
   using HOST_matrix_dmn_t = func::dmn_variadic<LatticeEigenvectorDmn, LatticeEigenvectorDmn>;
 
   BseLatticeSolver(ParametersType& parameters, DcaDataType& MOMS);
@@ -95,14 +93,15 @@ public:
   void write(Writer& writer);
 
   void computeChi0Lattice();
+  template <typename ClusterMatrixDmn>
   void computeGammaLattice(
-      /*const*/ func::function<std::complex<ScalarType>, DCA_matrix_dmn_t>& Gamma_cluster);
+      /*const*/ func::function<std::complex<ScalarType>, ClusterMatrixDmn>& Gamma_cluster);
   void diagonalizeGammaChi0();
 
-  /*const*/ func::function<std::complex<ScalarType>, LeadingEigDmn>& get_leading_eigenvalues() /*const*/ {
+  auto& get_leading_eigenvalues() /*const*/ {
     return leading_eigenvalues;
   };
-  /*const*/ func::function<std::complex<ScalarType>, func::dmn_variadic<LeadingEigDmn, LatticeEigenvectorDmn>>& get_leading_eigenvectors() /*const*/ {
+  auto& get_leading_eigenvectors() /*const*/ {
     return leading_eigenvectors;
   };
 
@@ -361,8 +360,9 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::computeChi0Latti
 }
 
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
+template <typename ClusterMatrixDmn>
 void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::computeGammaLattice(
-    /*const*/ func::function<std::complex<ScalarType>, DCA_matrix_dmn_t>& Gamma_cluster) {
+    /*const*/ func::function<std::complex<ScalarType>, ClusterMatrixDmn>& Gamma_cluster) {
   profiler_type prof(__FUNCTION__, "BseLatticeSolver", __LINE__);
 
   if (concurrency.id() == concurrency.first())

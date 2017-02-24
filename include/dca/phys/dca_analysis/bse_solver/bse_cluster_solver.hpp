@@ -55,7 +55,7 @@ public:
 
   void compute_Gamma_cluster();
 
-  /*const*/ func::function<std::complex<ScalarType>, DCA_matrix_dmn_t>& get_Gamma_cluster() /*const*/ {
+  auto& get_Gamma_cluster() /*const*/ {
     return Gamma_cluster;
   }
 
