@@ -43,6 +43,11 @@ public:
   using profiler_t = typename ParametersType::profiler_type;
   using concurrency_t = typename ParametersType::concurrency_type;
 
+  using BseClusterSolverType = BseClusterSolver<ParametersType, DcaDataType>;
+  using BseLatticeSolverType = BseLatticeSolver<ParametersType, DcaDataType>;
+  using LeadingEigDmn = typename BseLatticeSolverType::LeadingEigDmn;
+  using LatticeEigenvectorDmn = typename BseLatticeSolverType::LatticeEigenvectorDmn;
+
   const static int N_HARMONICS = 3;
   using harmonics_dmn_type = func::dmn_0<func::dmn<N_HARMONICS, int>>;
 
@@ -69,12 +74,9 @@ public:
 
   void calculate_susceptibilities_2();
 
-  template <typename LeadingEigDmn>
   /*const*/ func::function<std::complex<scalartype>, LeadingEigDmn>& get_leading_eigenvalues() {
     return BSE_lattice_solver_obj.get_leading_eigenvalues();
   };
-
-  template <typename LeadingEigDmn, typename LatticeEigenvectorDmn>
   /*const*/ func::function<std::complex<scalartype>, func::dmn_variadic<LeadingEigDmn, LatticeEigenvectorDmn>>& get_leading_eigenvectors() {
     return BSE_lattice_solver_obj.get_leading_eigenvectors();
   };
@@ -87,8 +89,8 @@ private:
 
   DcaDataType& MOMS;
 
-  BseClusterSolver<ParametersType, DcaDataType> BSE_cluster_solver_obj;
-  BseLatticeSolver<ParametersType, DcaDataType> BSE_lattice_solver_obj;
+  BseClusterSolverType BSE_cluster_solver_obj;
+  BseLatticeSolverType BSE_lattice_solver_obj;
 
   func::function<std::string, harmonics_dmn_type> wave_functions_names;
   func::function<std::complex<scalartype>, func::dmn_variadic<k_HOST_VERTEX, harmonics_dmn_type>> harmonics;

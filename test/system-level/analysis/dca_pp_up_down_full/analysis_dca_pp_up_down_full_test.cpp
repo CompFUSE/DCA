@@ -50,14 +50,9 @@ TEST(AnalysisDCAParticleParticleUpDownFullTest, LeadingEigenvalues) {
                                ModelType, void /*RngType*/, phys::solver::CT_AUX>;
   using DcaDataType = phys::DcaData<ParametersType>;
 
-  using FourPointFermionicFreqDmn =
-      func::dmn_0<phys::domains::vertex_frequency_domain<phys::domains::COMPACT>>;
-  using BandDmn = func::dmn_0<phys::domains::electron_band_domain>;
-  using TpHostKDmn = func::dmn_0<phys::domains::cluster_domain<
-      double, ParametersType::lattice_type::DIMENSION, phys::domains::LATTICE_TP,
-      phys::domains::MOMENTUM_SPACE, phys::domains::BRILLOUIN_ZONE>>;
-  using LatticeEigenvectorDmn =
-      func::dmn_variadic<BandDmn, BandDmn, TpHostKDmn, FourPointFermionicFreqDmn>;
+  using BseSolverType = phys::analysis::BseSolver<ParametersType, DcaDataType>;
+  using LatticeEigenvectorDmn = typename BseSolverType::LatticeEigenvectorDmn;
+  using LeadingEigDmn = typename BseSolverType::LeadingEigDmn;
 
   std::cout << "Analysis test starting.\n" << std::endl;
 
@@ -73,19 +68,16 @@ TEST(AnalysisDCAParticleParticleUpDownFullTest, LeadingEigenvalues) {
   dca_data.initialize();
   dca_data.read(static_cast<std::string>(DCA_SOURCE_DIR "/test/system-level/analysis/dca_tp.hdf5"));
 
-  phys::analysis::BseSolver<ParametersType, DcaDataType> analysis_obj(parameters, dca_data);
+  BseSolverType analysis_obj(parameters, dca_data);
   analysis_obj.calculate_susceptibilities_2();
 
   std::cout << "\nChecking data.\n" << std::endl;
 
-  const static int num_evals = 10;
-  using LeadingEigDmn = func::dmn_0<func::dmn<num_evals, int>>;
-
   /*const*/ func::function<std::complex<double>, LeadingEigDmn>& leading_eigenvalues =
-      analysis_obj.get_leading_eigenvalues<LeadingEigDmn>();
+      analysis_obj.get_leading_eigenvalues();
   /*const*/ func::function<std::complex<double>,
                            func::dmn_variadic<LeadingEigDmn, LatticeEigenvectorDmn>>& leading_eigenvectors =
-      analysis_obj.get_leading_eigenvectors<LeadingEigDmn, LatticeEigenvectorDmn>();
+      analysis_obj.get_leading_eigenvectors();
 
   // Read eigenvalues and eigenvectors from check.hdf5.
   func::function<std::complex<double>, LeadingEigDmn> leading_eigenvalues_check(
