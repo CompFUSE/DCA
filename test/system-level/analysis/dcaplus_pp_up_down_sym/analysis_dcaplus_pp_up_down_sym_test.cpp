@@ -90,18 +90,20 @@ TEST(AnalysisDCAplusParticleParticleUpDownSymmetricTest, LeadingEigenvalues) {
   // Compare the computed eigenvalues, eigenvectors, and symmetry decomposition with the expected
   // result.
   for (int i = 0; i < leading_eigenvalues.size(); ++i) {
-    EXPECT_NEAR(leading_eigenvalues_check(i).real(), leading_eigenvalues(i).real(), 1.e-14);
-    EXPECT_NEAR(leading_eigenvalues_check(i).imag(), leading_eigenvalues(i).imag(), 1.e-14);
+    EXPECT_NEAR(leading_eigenvalues_check(i).real(), leading_eigenvalues(i).real(), 1.e-12);
+    EXPECT_NEAR(leading_eigenvalues_check(i).imag(), leading_eigenvalues(i).imag(), 1.e-12);
   }
   for (int i = 0; i < leading_eigenvectors.size(); ++i) {
-    EXPECT_NEAR(leading_eigenvectors_check(i).real(), leading_eigenvectors(i).real(), 1.e-14);
-    EXPECT_NEAR(leading_eigenvectors_check(i).imag(), leading_eigenvectors(i).imag(), 1.e-14);
+    EXPECT_NEAR(std::abs(leading_eigenvectors_check(i).real()),
+                std::abs(leading_eigenvectors(i).real()), 1.e-12);
+    EXPECT_NEAR(std::abs(leading_eigenvectors_check(i).imag()),
+                std::abs(leading_eigenvectors(i).imag()), 1.e-12);
   }
   for (int i = 0; i < leading_symmetry_decomposition.size(); ++i) {
-    EXPECT_NEAR(leading_symmetry_decomposition_check(i).real(),
-                leading_symmetry_decomposition(i).real(), 1.e-14);
-    EXPECT_NEAR(leading_symmetry_decomposition_check(i).imag(),
-                leading_symmetry_decomposition(i).imag(), 1.e-14);
+    EXPECT_NEAR(std::abs(leading_symmetry_decomposition_check(i).real()),
+                std::abs(leading_symmetry_decomposition(i).real()), 1.e-10);
+    EXPECT_NEAR(std::abs(leading_symmetry_decomposition_check(i).imag()),
+                std::abs(leading_symmetry_decomposition(i).imag()), 1.e-10);
   }
 
   std::cout << "\nWriting data.\n" << std::endl;
