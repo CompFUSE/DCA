@@ -24,7 +24,7 @@
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
-#include "dca/parallel/pthreading/pthreading.hpp"
+#include "dca/parallel/no_threading/no_threading.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp"
@@ -49,7 +49,7 @@ TEST(bilayerLattice_Nc1_interband, Self_Energy) {
   using DcaPointGroupType = dca::phys::domains::D4;
   using LatticeType = dca::phys::models::bilayer_lattice<DcaPointGroupType>;
   using ModelType = dca::phys::models::TightBindingModel<LatticeType>;
-  using Threading = dca::parallel::Pthreading;
+  using Threading = dca::parallel::NoThreading;
   using ParametersType =
       dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
                                     dca::profiling::NullProfiler, ModelType, RngType,
