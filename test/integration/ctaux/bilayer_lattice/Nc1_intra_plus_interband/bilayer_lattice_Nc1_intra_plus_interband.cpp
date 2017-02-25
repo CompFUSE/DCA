@@ -8,7 +8,7 @@
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // No-change test for CT-AUX.
-// Square lattice with only on-site interaction.
+// Bilayer lattice with intra- and interband interaction.
 
 #define DCA_WITH_REDUCED_VERTEX_FUNCTION
 
@@ -23,8 +23,8 @@
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_reader.hpp"
-#include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/parallel/pthreading/pthreading.hpp"
+#include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp"
@@ -33,7 +33,7 @@
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
-#include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
+#include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
 #include "dca/phys/parameters/parameters.hpp"
 #include "dca/profiling/null_profiler.hpp"
@@ -44,10 +44,10 @@
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
-TEST(squareLattice_Nc4_onSite, Self_Energy) {
+TEST(bilayerLattice_Nc1_intra_plus_interband, Self_Energy) {
   using RngType = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
   using DcaPointGroupType = dca::phys::domains::D4;
-  using LatticeType = dca::phys::models::square_lattice<DcaPointGroupType>;
+  using LatticeType = dca::phys::models::bilayer_lattice<DcaPointGroupType>;
   using ModelType = dca::phys::models::TightBindingModel<LatticeType>;
   using Threading = dca::parallel::Pthreading;
   using ParametersType =
@@ -86,7 +86,7 @@ TEST(squareLattice_Nc4_onSite, Self_Energy) {
     dca::io::HDF5Reader reader;
     reader.open_file(
         DCA_SOURCE_DIR
-        "/applications/cluster_solver_check/test/CT-AUX/square_lattice/Nc4_onSite/data.ED.hdf5");
+        "/test/integration/ctaux/bilayer_lattice/Nc1_intra_plus_interband/data.ED.hdf5");
     reader.open_group("functions");
     // reader.execute(dca_data_imag.Sigma);
     reader.execute(dca_data_imag.G0_k_w_cluster_excluded);
@@ -116,9 +116,9 @@ TEST(squareLattice_Nc4_onSite, Self_Energy) {
     dca::func::function<std::complex<double>, dca::func::dmn_variadic<nu, nu, k_DCA, w>> Sigma_QMC_check(
         "Self_Energy");
     dca::io::HDF5Reader reader;
-    reader.open_file(DCA_SOURCE_DIR
-                     "/applications/cluster_solver_check/test/CT-AUX/square_lattice/Nc4_onSite/"
-                     "check_data.QMC.hdf5");
+    reader.open_file(
+        DCA_SOURCE_DIR
+        "/test/integration/ctaux/bilayer_lattice/Nc1_intra_plus_interband/check_data.QMC.hdf5");
     reader.open_group("functions");
     reader.execute(Sigma_QMC_check);
     reader.close_file();
@@ -156,10 +156,10 @@ int main(int argc, char** argv) {
 
   ::testing::InitGoogleTest(&argc, argv);
 
-  dca_test_env = new dca::testing::DcaMpiTestEnvironment(argc, argv, DCA_SOURCE_DIR
-                                                         "/applications/cluster_solver_check/test/"
-                                                         "CT-AUX/square_lattice/Nc4_onSite/"
-                                                         "input.square_lattice_Nc4_onSite.json");
+  dca_test_env = new dca::testing::DcaMpiTestEnvironment(
+      argc, argv, DCA_SOURCE_DIR
+      "/test/integration/ctaux/bilayer_lattice/Nc1_intra_plus_interband/"
+      "input.bilayer_lattice_Nc1_intra_plus_interband.json");
   ::testing::AddGlobalTestEnvironment(dca_test_env);
 
   ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();

@@ -85,8 +85,7 @@ TEST(squareLattice_Nc4onSite_plus_nn, Self_Energy) {
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
     dca::io::HDF5Reader reader;
     reader.open_file(DCA_SOURCE_DIR
-                     "/applications/cluster_solver_check/test/CT-AUX/square_lattice/"
-                     "Nc4_onSite_plus_nn/data.ED.hdf5");
+                     "/test/integration/ctaux/square_lattice/Nc4_onSite_plus_nn/data.ED.hdf5");
     reader.open_group("functions");
     // reader.execute(dca_data_imag.Sigma);
     reader.execute(dca_data_imag.G0_k_w_cluster_excluded);
@@ -116,9 +115,9 @@ TEST(squareLattice_Nc4onSite_plus_nn, Self_Energy) {
     dca::func::function<std::complex<double>, dca::func::dmn_variadic<nu, nu, k_DCA, w>> Sigma_QMC_check(
         "Self_Energy");
     dca::io::HDF5Reader reader;
-    reader.open_file(DCA_SOURCE_DIR
-                     "/applications/cluster_solver_check/test/CT-AUX/square_lattice/"
-                     "Nc4_onSite_plus_nn/check_data.QMC.hdf5");
+    reader.open_file(
+        DCA_SOURCE_DIR
+        "/test/integration/ctaux/square_lattice/Nc4_onSite_plus_nn/check_data.QMC.hdf5");
     reader.open_group("functions");
     reader.execute(Sigma_QMC_check);
     reader.close_file();
@@ -156,11 +155,10 @@ int main(int argc, char** argv) {
 
   ::testing::InitGoogleTest(&argc, argv);
 
-  dca_test_env =
-      new dca::testing::DcaMpiTestEnvironment(argc, argv, DCA_SOURCE_DIR
-                                              "/applications/cluster_solver_check/test/"
-                                              "CT-AUX/square_lattice/Nc4_onSite_plus_nn/"
-                                              "input.square_lattice_Nc4_onSite_plus_nn.json");
+  dca_test_env = new dca::testing::DcaMpiTestEnvironment(
+      argc, argv, DCA_SOURCE_DIR
+      "/test/integration/ctaux/square_lattice/Nc4_onSite_plus_nn/"
+      "input.square_lattice_Nc4_onSite_plus_nn.json");
   ::testing::AddGlobalTestEnvironment(dca_test_env);
 
   ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
