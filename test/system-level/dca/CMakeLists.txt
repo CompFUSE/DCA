@@ -1,5 +1,3 @@
-# DCA(+) calculation system-level tests
-
 dca_add_gtest(dca_sp_DCA+_mpi_test
   EXTENSIVE
   MPI MPI_NUMPROC 8
