@@ -144,7 +144,7 @@ endif()
 # Testing
 option(DCA_WITH_TESTS_FAST "Build DCA++'s fast tests." OFF)
 option(DCA_WITH_TESTS_EXTENSIVE "Build DCA++'s extensive tests." OFF)
-option(DCA_WITH_TESTS_PERFORMANCE "Build DCA++'s performance tests. (only in release mode)" OFF)
+option(DCA_WITH_TESTS_PERFORMANCE "Build DCA++'s performance tests. (Only in Release mode.)" OFF)
 
 set(TEST_RUNNER "" CACHE STRING "Command for executing (MPI) programs.")
 set(MPIEXEC_NUMPROC_FLAG "-n" CACHE STRING "Flag used by TEST_RUNNER to specify the number of processes.")
@@ -156,9 +156,10 @@ if (DCA_WITH_TESTS_FAST OR DCA_WITH_TESTS_EXTENSIVE OR DCA_WITH_TESTS_PERFORMANC
   include(dca_testing)
   enable_testing()
 
-  if ((CMAKE_BUILD_TYPE STREQUAL "Release") OR
-      (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo") OR
-      (CMAKE_BUILD_TYPE STREQUAL "MinSizeRel"))
+  if (((CMAKE_BUILD_TYPE STREQUAL "Release") OR
+       (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo") OR
+       (CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")) AND
+       (DCA_WITH_TESTS_FAST OR DCA_WITH_TESTS_EXTENSIVE))
     message(WARNING "Tests are built with NDEBUG defined!")
   endif()
 
