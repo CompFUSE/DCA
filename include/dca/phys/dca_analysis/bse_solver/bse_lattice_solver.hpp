@@ -525,6 +525,9 @@ template <typename EvElementType>
 void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::recordEigenvaluesAndEigenvectors(
     const linalg::Vector<EvElementType, linalg::CPU>& l,
     const linalg::Matrix<EvElementType, linalg::CPU>& vr) {
+  if (concurrency.id() == concurrency.first())
+    std::cout << "\n" << __FUNCTION__ << std::endl;
+
   assert(vr.is_square());
   assert(l.size() == vr.size().first);
 
