@@ -22,6 +22,7 @@
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
+#include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/parallel/pthreading/pthreading.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop.hpp"
@@ -36,12 +37,9 @@
 #include "dca/phys/models/tight_binding_model.hpp"
 #include "dca/phys/parameters/parameters.hpp"
 #include "dca/profiling/null_profiler.hpp"
-#include "dca/testing/dca_mpi_test_environment.hpp"
 #include "dca/testing/minimalist_printer.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
-
-dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
 TEST(dca_sp_DCAplus_pthread, Self_energy) {
 #ifdef ATTACH_DEBUG
@@ -55,10 +53,10 @@ TEST(dca_sp_DCAplus_pthread, Self_energy) {
   using LatticeType = dca::phys::models::square_lattice<DcaPointGroupType>;
   using ModelType = dca::phys::models::TightBindingModel<LatticeType>;
   using Threading = dca::parallel::Pthreading;
+  using Concurrency = dca::parallel::NoConcurrency;
   using ParametersType =
-      dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
-                                    dca::profiling::NullProfiler, ModelType, RngType,
-                                    dca::phys::solver::CT_AUX>;
+      dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler, ModelType,
+                                    RngType, dca::phys::solver::CT_AUX>;
   using DcaDataType = dca::phys::DcaData<ParametersType>;
   using ClusterSolverBaseType =
       dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, ParametersType, DcaDataType>;
@@ -73,83 +71,55 @@ TEST(dca_sp_DCAplus_pthread, Self_energy) {
       double, LatticeType::DIMENSION, dca::phys::domains::CLUSTER,
       dca::phys::domains::MOMENTUM_SPACE, dca::phys::domains::BRILLOUIN_ZONE>>;
 
-  if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
-    std::cout << "\nDCA main starting.\n"
-              << "MPI-world set up: " << dca_test_env->concurrency.number_of_processors()
-              << " processes.\n"
-              << std::endl;
+  Concurrency concurrency(0, nullptr);
 
-    dca::util::GitVersion::print();
-    dca::util::Modules::print();
-  }
+  std::cout << "DCA+ calculation starting.\n" << std::endl;
 
-  ParametersType parameters(dca::util::GitVersion::string(), dca_test_env->concurrency);
-  parameters.read_input_and_broadcast<dca::io::JSONReader>(dca_test_env->input_file_name);
+  dca::util::GitVersion::print();
+  dca::util::Modules::print();
+
+  ParametersType parameters(dca::util::GitVersion::string(), concurrency);
+  parameters.read_input_and_broadcast<dca::io::JSONReader>(
+      DCA_SOURCE_DIR "/test/system-level/dca/input.dca_sp_DCA+_pthread_test.json");
   parameters.update_model();
   parameters.update_domains();
 
   DcaDataType dca_data(parameters);
   dca_data.initialize();
 
-  DcaLoopType dca_loop(parameters, dca_data, dca_test_env->concurrency);
+  DcaLoopType dca_loop(parameters, dca_data, concurrency);
   dca_loop.initialize();
   dca_loop.execute();
   dca_loop.finalize();
 
-  if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
-    std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is checking data "
-              << std::endl;
+  std::cout << "\nChecking data.\n" << std::endl;
 
-    // Read self-energy from check_data file.
-    dca::func::function<std::complex<double>, dca::func::dmn_variadic<nu, nu, k_DCA, w>> Sigma_check(
-        "Self_Energy");
-    dca::io::HDF5Reader reader;
-    reader.open_file(DCA_SOURCE_DIR
-                     "/test/system-level/dca/check_data.dca_sp_DCA+_pthread_test.hdf5");
-    reader.open_group("functions");
-    reader.execute(Sigma_check);
-    reader.close_file();
+  // Read self-energy from check_data file.
+  dca::func::function<std::complex<double>, dca::func::dmn_variadic<nu, nu, k_DCA, w>> Sigma_check(
+      "Self_Energy");
+  dca::io::HDF5Reader reader;
+  reader.open_file(DCA_SOURCE_DIR
+                   "/test/system-level/dca/check_data.dca_sp_DCA+_pthread_test.hdf5");
+  reader.open_group("functions");
+  reader.execute(Sigma_check);
+  reader.close_file();
 
-    // Compare the computed self-energy with the expected result.
-    for (int w_ind = 0; w_ind < w::dmn_size(); ++w_ind) {
-      for (int k_ind = 0; k_ind < k_DCA::dmn_size(); ++k_ind) {
-        for (int nu_ind_2 = 0; nu_ind_2 < nu::dmn_size(); ++nu_ind_2) {
-          for (int nu_ind_1 = 0; nu_ind_1 < nu::dmn_size(); ++nu_ind_1) {
-            EXPECT_NEAR(Sigma_check(nu_ind_1, nu_ind_2, k_ind, w_ind).real(),
-                        dca_data.Sigma(nu_ind_1, nu_ind_2, k_ind, w_ind).real(), 1.e-12);
-            EXPECT_NEAR(Sigma_check(nu_ind_1, nu_ind_2, k_ind, w_ind).imag(),
-                        dca_data.Sigma(nu_ind_1, nu_ind_2, k_ind, w_ind).imag(), 1.e-12);
-          }
+  // Compare the computed self-energy with the expected result.
+  for (int w_ind = 0; w_ind < w::dmn_size(); ++w_ind) {
+    for (int k_ind = 0; k_ind < k_DCA::dmn_size(); ++k_ind) {
+      for (int nu_ind_2 = 0; nu_ind_2 < nu::dmn_size(); ++nu_ind_2) {
+        for (int nu_ind_1 = 0; nu_ind_1 < nu::dmn_size(); ++nu_ind_1) {
+          EXPECT_NEAR(Sigma_check(nu_ind_1, nu_ind_2, k_ind, w_ind).real(),
+                      dca_data.Sigma(nu_ind_1, nu_ind_2, k_ind, w_ind).real(), 1.e-12);
+          EXPECT_NEAR(Sigma_check(nu_ind_1, nu_ind_2, k_ind, w_ind).imag(),
+                      dca_data.Sigma(nu_ind_1, nu_ind_2, k_ind, w_ind).imag(), 1.e-12);
         }
       }
     }
   }
 
-  if (dca_test_env->concurrency.id() == dca_test_env->concurrency.last()) {
-    std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is writing data " << std::endl;
-    dca_loop.write();
+  std::cout << "\nWriting data." << std::endl;
+  dca_loop.write();
 
-    std::cout << "\nDCA main ending.\n" << std::endl;
-  }
-}
-
-int main(int argc, char** argv) {
-  int result = 0;
-
-  ::testing::InitGoogleTest(&argc, argv);
-
-  dca_test_env = new dca::testing::DcaMpiTestEnvironment(
-      argc, argv, DCA_SOURCE_DIR "/test/system-level/dca/input.dca_sp_DCA+_pthread_test.json");
-  ::testing::AddGlobalTestEnvironment(dca_test_env);
-
-  ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
-
-  if (dca_test_env->concurrency.id() != 0) {
-    delete listeners.Release(listeners.default_result_printer());
-    listeners.Append(new dca::testing::MinimalistPrinter);
-  }
-
-  result = RUN_ALL_TESTS();
-
-  return result;
+  std::cout << "\nDCA+ calculation ending." << std::endl;
 }

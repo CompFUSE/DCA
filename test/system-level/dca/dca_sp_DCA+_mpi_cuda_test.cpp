@@ -25,9 +25,7 @@
 #include "dca/linalg/util/info_cuda.hpp"
 #include "dca/linalg/util/util_cublas.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
-#include "dca/parallel/pthreading/pthreading.hpp"
-#include "dca/math/random/std_random_wrapper.hpp"
-#include "dca/parallel/pthreading/pthreading.hpp"
+#include "dca/parallel/no_threading/no_threading.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp"
@@ -52,7 +50,7 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
   using DcaPointGroupType = dca::phys::domains::D4;
   using LatticeType = dca::phys::models::square_lattice<DcaPointGroupType>;
   using ModelType = dca::phys::models::TightBindingModel<LatticeType>;
-  using Threading = dca::parallel::Pthreading;
+  using Threading = dca::parallel::NoThreading;
   using ParametersType =
       dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
                                     dca::profiling::NullProfiler, ModelType, RngType,
