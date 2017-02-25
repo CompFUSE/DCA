@@ -105,7 +105,7 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
     dca::func::function<std::complex<double>, dca::func::dmn_variadic<nu, nu, k_DCA, w>> Sigma_check(
         "Self_Energy");
     dca::io::HDF5Reader reader;
-    reader.open_file(DCA_SOURCE_DIR "/applications/dca/test/check_data.dca_sp_DCA+_mpi_test.hdf5");
+    reader.open_file(DCA_SOURCE_DIR "/test/system-level/dca/check_data.dca_sp_DCA+_mpi_test.hdf5");
     reader.open_group("functions");
     reader.execute(Sigma_check);
     reader.close_file();
@@ -139,7 +139,7 @@ int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
   dca_test_env = new dca::testing::DcaMpiTestEnvironment(
-      argc, argv, DCA_SOURCE_DIR "/applications/dca/test/input.dca_sp_DCA+_mpi_test.json");
+      argc, argv, DCA_SOURCE_DIR "/test/system-level/dca/input.dca_sp_DCA+_mpi_test.json");
   ::testing::AddGlobalTestEnvironment(dca_test_env);
 
   ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();
