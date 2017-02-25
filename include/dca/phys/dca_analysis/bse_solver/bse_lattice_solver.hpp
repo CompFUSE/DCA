@@ -133,9 +133,8 @@ private:
   void symmetrizeLeadingEigenvectors();
   // Computes the overlap of the leading eigenvectors with the cubic harmonics.
   void characterizeLeadingEigenvectors();
-
-  void print_on_shell();
-  void print_on_shell_ppSC();
+  // Prints the leading eigenvalues and some info about the corresponding eigenvectors on the shell.
+  void printOnShell();
 
   ParametersType& parameters;
   concurrency_type& concurrency;
@@ -414,7 +413,9 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::diagonalizeGamma
 #endif  // DCA_ANALYSIS_TEST_WITH_FULL_DIAGONALIZATION
       diagonalizeGammaChi0Full();
   }
+
   characterizeLeadingEigenvectors();
+  printOnShell();
 }
 
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
@@ -473,7 +474,6 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::diagonalizeGamma
 
   // Some post-processing.
   recordEigenvaluesAndEigenvectors(L, VR);
-  print_on_shell_ppSC();
 }
 
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
@@ -522,8 +522,6 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::diagonalizeGamma
   // Some post-processing.
   recordEigenvaluesAndEigenvectors(L, VR);
   symmetrizeLeadingEigenvectors();
-
-  print_on_shell();
 }
 
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
@@ -634,8 +632,6 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::diagonalize_fold
       std::cout << " finished " << dca::util::print_time() << "\n";
 
     record_eigenvalues_and_folded_eigenvectors(L, VL, VR);
-
-    print_on_shell();
   }
 }
 
@@ -775,103 +771,83 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::compute_folded_s
 }
 
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
-void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::print_on_shell() {
-  if (concurrency.id() == concurrency.last())
-    std::cout << __FUNCTION__ << std::endl;
+void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::printOnShell() {
+  if (concurrency.id() == concurrency.first())
+    std::cout << "\n" << __FUNCTION__ << std::endl;
 
-  int N = k_HOST_VERTEX::dmn_size();
-  int M = crystal_harmonics_expansion_dmn_t::dmn_size();
+  if (concurrency.id() == concurrency.first()) {
+    // Print leading eigenvalues.
+    std::cout << std::setprecision(3) << std::scientific;
+    std::cout << "\n\tLeading eigenvalues (T=" << 1. / parameters.get_beta() << "):\n\n";
 
-  if (concurrency.id() == concurrency.last()) {
-    std::cout.precision(6);
-    std::cout << std::scientific;
-
-    {
-      std::cout << "\n\n\t\t leading eigenvalues : ( T=" << 1. / parameters.get_beta() << " )\n\n";
-      for (int i = 0; i < num_evals; i++)
-        std::cout << "\t" << i << "\t[" << real(leading_eigenvalues(i)) << ", "
-                  << imag(leading_eigenvalues(i)) << "]\n";
-    }
-
-    {
-      std::cout << "\n\n\t\t leading eigenvectors : \n\n";
-
-      {
-        std::cout << "\t" << -1 << "\t[ " << 0. << ", " << 0. << "]";
-        for (int i = 0; i < num_evals; i++)
-          std::cout << "\t[ " << real(leading_eigenvalues(i)) << ", "
-                    << imag(leading_eigenvalues(i)) << "]";
-        std::cout << "\n\t========================================\n";
-      }
-
-      for (int l = 0; l < M; l++) {
-        std::cout << "\t" << l << "\t[ " << crystal_harmonics_expansion::get_elements()[l][0]
-                  << ", " << crystal_harmonics_expansion::get_elements()[l][1] << "]";
-
-        for (int i = 0; i < num_evals; i++) {
-          std::complex<ScalarType> result = 0;
-          std::complex<ScalarType> norm = 0;
-
-          for (int j = 0; j < N; j++) {
-            result += conj(psi_k(j, l)) * leading_eigenvectors(i, 0, 0, j, w_VERTEX::dmn_size() / 2);
-            norm += conj(leading_eigenvectors(i, 0, 0, j, w_VERTEX::dmn_size() / 2)) *
-                    leading_eigenvectors(i, 0, 0, j, w_VERTEX::dmn_size() / 2);
-          }
-
-          std::cout << "\t[ " << real(result / std::sqrt(real(norm) + 1.e-16)) << ", "
-                    << imag(result / std::sqrt(real(norm) + 1.e-16)) << "]";
-        }
-
-        std::cout << "\n";
-      }
-    }
-  }
-}
-
-template <typename ParametersType, typename DcaDataType, typename ScalarType>
-void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::print_on_shell_ppSC() {
-  if (concurrency.id() == concurrency.last())
-    std::cout << __FUNCTION__ << std::endl;
-
-  int N = k_HOST_VERTEX::dmn_size();
-
-  if (concurrency.id() == concurrency.last()) {
-    std::cout.precision(6);
-    std::cout << std::scientific;
-    std::cout << "\n\n\t\t 10 leading eigenvalues : ( T=" << 1. / parameters.get_beta() << " )\n\n";
     for (int i = 0; i < num_evals; i++)
-      std::cout << "\t" << i << "\t[" << leading_eigenvalues(i).real() << "]\n";
+      std::cout << "\t" << std::noshowpos << i << std::showpos << "\t["
+                << leading_eigenvalues(i).real() << ", " << leading_eigenvalues(i).imag() << "]\n";
 
-    {
-      int ind0pi = 0;
-      int indpi0 = 0;
-      // record the index for k=[0,pi] and [pi,0]
-      for (int k_ind = 0; k_ind < N; k_ind++) {
-        double kx = k_HOST_VERTEX::get_elements()[k_ind][0];
-        double ky = k_HOST_VERTEX::get_elements()[k_ind][1];
-        if (std::abs(kx) < 1.e-3 && std::abs(ky - 3.141592) < 1.e-3) {
-          ind0pi = k_ind;
-        }
-        if (std::abs(ky) < 1.e-3 && std::abs(kx - 3.141592) < 1.e-3) {
-          indpi0 = k_ind;
-        }
-      }
+    // Print overlap of leading eigenvectors with crystal harmonics.
+    std::cout << "\n\n\tOverlap of leading eigenvectors (b1 = b2 = 0, omega_n = pi/beta) with "
+                 "crystal harmonics:"
+              << "\n\t(rows: crystal vectors, columns: eigenvalues)\n\n\t";
+    std::cout << std::noshowpos;
+    for (int i = 0; i < num_evals; i++)
+      std::cout << "\t\t\t" << i;
 
-      std::cout << "\n\n\t\t Phi_(:,k) for 10 leading eigenvectors: \n\n";
-      std::cout << "  w         k=[" << k_HOST_VERTEX::get_elements()[ind0pi][0] << ", "
-                << k_HOST_VERTEX::get_elements()[ind0pi][1] << "]         k=["
-                << k_HOST_VERTEX::get_elements()[indpi0][0] << ", "
-                << k_HOST_VERTEX::get_elements()[indpi0][1] << "] \n\n";
+    std::cout << "\n\t============================================================================="
+                 "================================================================================="
+                 "================================================================================="
+                 "=====================\n";
+
+    for (int l = 0; l < crystal_harmonics_expansion_dmn_t::dmn_size(); l++) {
+      std::cout << "\t" << std::noshowpos << l;
+      std::cout << std::showpos << std::setprecision(1) << std::fixed << "\t["
+                << crystal_harmonics_expansion::get_elements()[l][0] << ", "
+                << crystal_harmonics_expansion::get_elements()[l][1] << "]";
+
+      std::cout << std::setprecision(1) << std::scientific;
+
       for (int i = 0; i < num_evals; i++) {
-        for (int w = 0; w < w_VERTEX::dmn_size(); w++) {
-          std::cout << i << "   " << w_VERTEX::get_elements()[w] << "   "
-                    << leading_eigenvectors(i, 0, 0, ind0pi, w).real() << "   "
-                    << leading_eigenvectors(i, 0, 0, indpi0, w).real() << "\n";
+        std::complex<ScalarType> scal_prod = 0;
+        std::complex<ScalarType> norm = 0;
+
+        for (int j = 0; j < k_HOST_VERTEX::dmn_size(); j++) {
+          scal_prod += conj(psi_k(j, l)) * leading_eigenvectors(i, 0, 0, j, w_VERTEX::dmn_size() / 2);
+          norm += conj(leading_eigenvectors(i, 0, 0, j, w_VERTEX::dmn_size() / 2)) *
+                  leading_eigenvectors(i, 0, 0, j, w_VERTEX::dmn_size() / 2);
         }
-        std::cout << "----------------------------------------------------------------------"
-                  << "\n";
+        assert(std::abs(norm.imag()) < 1.e-3);
+        const std::complex<ScalarType> result = scal_prod / std::sqrt(norm.real() + 1.e-16);
+
+        std::cout << "\t[" << result.real() << ", " << result.imag() << "]";
       }
+      std::cout << "\n";
     }
+
+    // Print overlap of leading eigenvectors with cubic harmonics (leading symmetry decomposition).
+    std::cout << "\n\n\tOverlap of leading eigenvectors (b1 = 0, b2 = 0, omega_n = pi/beta) with "
+                 "cubic harmonics:"
+              << "\n\t(rows: cubic harmonics, colums: eigenvalues)\n\n\t";
+    std::cout << std::noshowpos;
+    for (int i = 0; i < num_evals; i++)
+      std::cout << "\t\t\t" << i;
+
+    std::cout << "\n\t============================================================================="
+                 "================================================================================="
+                 "================================================================================="
+                 "=====================\n";
+
+    for (int harmonic = 0; harmonic < num_harmonics; ++harmonic) {
+      std::cout << "\t" << std::noshowpos << harmonic << "\t\t" << std::showpos;
+
+      for (int i = 0; i < num_evals; ++i) {
+        std::cout << "\t["
+                  << leading_symmetry_decomposition(i, 0, 0, harmonic, w_VERTEX::dmn_size() / 2).real()
+                  << ", "
+                  << leading_symmetry_decomposition(i, 0, 0, harmonic, w_VERTEX::dmn_size() / 2).imag()
+                  << "]";
+      }
+      std::cout << "\n";
+    }
+    std::cout << std::endl;
   }
 }
 
