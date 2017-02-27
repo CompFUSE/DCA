@@ -351,10 +351,6 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::computeChi0Latti
               chi_0_lattice_matrix(n1, m1, K_ind, w_ind, n2, m2, K_ind, w_ind) =
                   chi_0_lattice(n1, m1, n2, m2, K_ind, w_ind);
             }
-
-  // if (concurrency.id() == concurrency.first())
-  //   std::cout << "Symmetrize \chi_{0,lattice} according to the symmetry group." << std::endl;
-  // symmetrize::execute(chi_0_lattice_matrix, parameters.get_four_point_momentum_transfer());
 }
 
 template <typename ParametersType, typename DcaDataType, typename ScalarType>

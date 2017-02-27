@@ -322,12 +322,6 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::solve_BSE_on_clu
   for (int j = 0; j < N; j++)
     for (int i = 0; i < N; i++)
       Gamma_cluster(i, j) = G4_0_inv(i, j) - G4_inv(i, j);
-
-  // if (concurrency.id() == concurrency.last())
-  //   std::cout << "symmetrize Gamma_cluster" << std::endl;
-
-  // symmetrize::execute(Gamma_cluster, parameters.get_four_point_momentum_transfer());
-  // diagrammatic_symmetries_obj.execute(Gamma_cluster);
 }
 
 }  // analysis
