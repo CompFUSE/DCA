@@ -1,0 +1,4 @@
+add_subdirectory(dca_pp_up_down_full)
+add_subdirectory(dca_pp_up_down_sym)
+add_subdirectory(dcaplus_pp_up_down_full)
+add_subdirectory(dcaplus_pp_up_down_sym)

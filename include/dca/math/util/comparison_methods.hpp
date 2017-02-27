@@ -22,12 +22,7 @@ namespace util {
 // dca::math::util::
 
 template <typename T1, typename T2>
-bool pairLess(const std::pair<T1, T2>& x, const std::pair<T1, T2>& y) {
-  return x.first < y.first;
-}
-
-template <typename T1, typename T2>
-bool ComplexPairLess(const std::pair<std::complex<T1>, T2>& x,
+bool complexPairLess(const std::pair<std::complex<T1>, T2>& x,
                      const std::pair<std::complex<T1>, T2>& y) {
   return x.first.real() < y.first.real();
 }
@@ -37,10 +32,11 @@ bool pairAbsGreater(const std::pair<T1, T2>& x, const std::pair<T1, T2>& y) {
   return std::abs(x.first) > std::abs(y.first);
 }
 
+// Returns true, if x.first is closer to 1 than y.first, otherwise returns false.
+// Used in BseLatticeSolver to sort the eigenvalues.
 template <typename T1, typename T2>
-bool susceptibilityPairGreater(const std::pair<std::complex<T1>, T2>& x,
-                               const std::pair<std::complex<T1>, T2>& y) {
-  return std::abs(x.first - 1.) > std::abs(y.first - 1.);
+bool susceptibilityPairLess(const std::pair<T1, T2>& x, const std::pair<T1, T2>& y) {
+  return std::abs(x.first - 1.) < std::abs(y.first - 1.);
 }
 
 }  // util
