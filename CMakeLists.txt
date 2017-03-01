@@ -117,7 +117,7 @@ set(DCA_LIBS
   tetrahedron_mesh
   ${DCA_RNG_LIBRARY}
   parallel_util
-  pthreading
+  ${DCA_THREADING_LIB}
   dca_algorithms
   json
   hdf5

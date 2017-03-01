@@ -217,6 +217,10 @@ endif()
 # Select the threading library.
 # TODO: - Implement HPX part including DCA_HPX.cmake.
 #       - Implement STL support and make it default.
+#
+# Note the difference between the CMake variables
+# - DCA_THREADING_LIBRARY: CMake option for the user to choose the threading library,
+# - DCA_THREADING_LIB: the actual library to link against.
 set(DCA_THREADING_LIBRARY "POSIX" CACHE STRING "Threading library, options are: POSIX | None.")
 set_property(CACHE DCA_THREADING_LIBRARY PROPERTY STRINGS POSIX None)
 
@@ -229,11 +233,13 @@ if (DCA_THREADING_LIBRARY STREQUAL POSIX)
   set(DCA_THREADING_TYPE dca::parallel::Pthreading)
   set(DCA_THREADING_INCLUDE "dca/parallel/pthreading/pthreading.hpp")
   set(DCA_THREADING_FLAGS -pthread CACHE INTERNAL "Flags needed for threading." FORCE)
+  set(DCA_THREADING_LIB pthreading)
 
 elseif (DCA_THREADING_LIBRARY STREQUAL None)
   set(DCA_THREADING_TYPE dca::parallel::NoThreading)
   set(DCA_THREADING_INCLUDE "dca/parallel/no_threading/no_threading.hpp")
   set(DCA_THREADING_FLAGS "" CACHE INTERNAL "Flags needed for threading." FORCE)
+  set(DCA_THREADING_LIB "")
 
 # elseif (DCA_THREADING_LIBRARY STREQUAL STL)
 #   message(FATAL_ERROR "No STL threads support yet.")
