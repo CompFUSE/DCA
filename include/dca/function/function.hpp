@@ -139,7 +139,9 @@ public:
   template <typename new_scalartype>
   void operator*=(new_scalartype c);
   template <typename new_scalartype>
-  void operator/=(new_scalartype c);
+  void operator/=(new_scalartype );
+
+  bool operator==(const function<scalartype, domain>& f_other) const;
 
   template <typename new_scalartype>
   void slice(int sbdm_index, int* subind, new_scalartype* fnc_vals) const;
@@ -403,6 +405,16 @@ void function<scalartype, domain>::operator/=(new_scalartype c) {
 
   for (int linind = 0; linind < Nb_elements; linind++)
     fnc_values[linind] /= c_new;
+}
+
+template <typename scalartype, class domain>
+bool function<scalartype, domain>::operator==(const function<scalartype, domain>& f_other) const{
+  assert(size() == f_other.size());
+  for(int i = 0; i < Nb_elements; i++)
+    if(f_other(i) != fnc_values[i])
+      return false;
+
+  return true;
 }
 
 template <typename scalartype, class domain>
