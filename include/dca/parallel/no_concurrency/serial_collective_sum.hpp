@@ -53,6 +53,20 @@ public:
     obj *= 1. / measurements;
   }
 
+  template <typename scalar_type, class domain>
+  void leaveOneOutAvg(func::function<scalar_type, domain>&) const {}
+  template <typename scalar_type>
+  void leaveOneOutAvg(scalar_type&) const {}
+  template <typename scalar_type, class domain>
+  func::function<scalar_type, domain> jackKnifeError(func::function<scalar_type, domain>&) const {
+    return func::function<scalar_type, domain>();
+  }
+  template <typename scalar_type, class domain>
+  func::function<std::complex<scalar_type>, domain> jackKnifeError(
+      func::function<std::complex<scalar_type>, domain>&) const {
+    return func::function<std::complex<scalar_type>, domain>();
+  }
+
   template <typename Scalar, typename Domain>
   void average_and_compute_stddev(func::function<Scalar, Domain>& /*f_mean*/,
                                   func::function<Scalar, Domain>& f_stddev) const {
