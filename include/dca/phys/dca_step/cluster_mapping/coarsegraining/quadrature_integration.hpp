@@ -29,14 +29,12 @@ namespace phys {
 namespace clustermapping {
 // dca::phys::clustermapping::
 
-template <typename parameters_type, typename q_dmn_t>
+template <typename Threading, typename q_dmn_t>
 class quadrature_integration {
 public:
   using b = func::dmn_0<domains::electron_band_domain>;
   using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;
-
-  using Threading = typename parameters_type::ThreadingType;
 
 public:
   template <typename scalar_type>
@@ -92,9 +90,9 @@ private:
   };
 };
 
-template <typename parameters_type, typename q_dmn_t>
+template <typename Threading, typename q_dmn_t>
 template <typename scalar_type>
-void quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G_q_w_st(
+void quadrature_integration<Threading, q_dmn_t>::quadrature_integration_G_q_w_st(
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& I_q,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& H_q,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& S_q,
@@ -118,9 +116,9 @@ void quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G_
   }
 }
 
-template <typename parameters_type, typename q_dmn_t>
+template <typename Threading, typename q_dmn_t>
 template <typename scalar_type>
-void quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G_q_w_mt(
+void quadrature_integration<Threading, q_dmn_t>::quadrature_integration_G_q_w_mt(
     int nr_threads,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& I_q,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& H_q,
@@ -141,9 +139,9 @@ void quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G_
                               (void*)&quadrature_integration_functions_obj);
 }
 
-template <typename parameters_type, typename q_dmn_t>
+template <typename Threading, typename q_dmn_t>
 template <typename scalar_type>
-void* quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G_q_w_mt(void* void_ptr) {
+void* quadrature_integration<Threading, q_dmn_t>::quadrature_integration_G_q_w_mt(void* void_ptr) {
   typedef quadrature_integration_functions<scalar_type> quadrature_functions_type;
 
   dca::parallel::ThreadingData* data_ptr = static_cast<dca::parallel::ThreadingData*>(void_ptr);
@@ -187,9 +185,9 @@ void* quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G
   return 0;
 }
 
-template <typename parameters_type, typename q_dmn_t>
+template <typename Threading, typename q_dmn_t>
 template <typename scalar_type>
-void quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G_q_t_st(
+void quadrature_integration<Threading, q_dmn_t>::quadrature_integration_G_q_t_st(
     scalar_type beta, scalar_type f_val, scalar_type t_val,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& I_q,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& H_q,
@@ -240,9 +238,9 @@ void quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G_
   }
 }
 
-template <typename parameters_type, typename q_dmn_t>
+template <typename Threading, typename q_dmn_t>
 template <typename scalar_type>
-void quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G_q_t_mt(
+void quadrature_integration<Threading, q_dmn_t>::quadrature_integration_G_q_t_mt(
     int nr_threads, scalar_type beta, scalar_type f_val, scalar_type t_val,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& I_q,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& H_q,
@@ -266,9 +264,9 @@ void quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G_
                               (void*)&quadrature_integration_functions_obj);
 }
 
-template <typename parameters_type, typename q_dmn_t>
+template <typename Threading, typename q_dmn_t>
 template <typename scalar_type>
-void* quadrature_integration<parameters_type, q_dmn_t>::quadrature_integration_G_q_t_mt(void* void_ptr) {
+void* quadrature_integration<Threading, q_dmn_t>::quadrature_integration_G_q_t_mt(void* void_ptr) {
   typedef quadrature_integration_functions<scalar_type> quadrature_functions_type;
 
   dca::parallel::ThreadingData* data_ptr = static_cast<dca::parallel::ThreadingData*>(void_ptr);
