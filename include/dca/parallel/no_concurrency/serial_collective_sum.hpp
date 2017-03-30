@@ -58,12 +58,13 @@ public:
   template <typename scalar_type>
   void leaveOneOutAvg(scalar_type&) const {}
   template <typename scalar_type, class domain>
-  func::function<scalar_type, domain> jackKnifeError(func::function<scalar_type, domain>&) const {
+  func::function<scalar_type, domain> jackKnifeError(func::function<scalar_type, domain>&,
+                                                     bool /*average*/ = false) const {
     return func::function<scalar_type, domain>();
   }
   template <typename scalar_type, class domain>
   func::function<std::complex<scalar_type>, domain> jackKnifeError(
-      func::function<std::complex<scalar_type>, domain>&) const {
+      func::function<std::complex<scalar_type>, domain>&, bool /*average*/ = false) const {
     return func::function<std::complex<scalar_type>, domain>();
   }
 

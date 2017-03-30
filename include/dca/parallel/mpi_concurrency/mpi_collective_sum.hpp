@@ -79,14 +79,17 @@ public:
   // function value in the current rank.
   // I/O : f_loo
   // Returns: The jack knife error.
-  // Precondition: f_loo contains the estimation with one block of data left out.
-  // Postcondition: f_loo contains the average of the L.O.O. estimations.
+  // Precondition: f_loo contains the estimation with one block of data
+  // left out.
+  // Postcondition: if overwite_average == true, f_loo contains the average of the L.O.O.
+  // estimations.
   template <typename scalar_type, class domain>
-  func::function<scalar_type, domain> jackKnifeError(func::function<scalar_type, domain>& f_loo) const;
-  // Compute error for real and imaginary part independently.
+  func::function<scalar_type, domain> jackKnifeError(func::function<scalar_type, domain>& f_loo,
+                                                     bool overwrite_average = true) const;
+  // Same as above. Computes the error for real and imaginary part independently.
   template <typename scalar_type, class domain>
   func::function<std::complex<scalar_type>, domain> jackKnifeError(
-      func::function<std::complex<scalar_type>, domain>& f_loo) const;
+      func::function<std::complex<scalar_type>, domain>& f_loo, bool overwrite_average = true) const;
 
   // Computes the covariance matrix of the measurements of the different mpi ranks.
   // In: f, f_estimated
@@ -270,7 +273,7 @@ void MPICollectiveSum::leaveOneOutAvg(func::function<scalar_type, domain>& f) co
 
 template <typename scalar_type, class domain>
 func::function<scalar_type, domain> MPICollectiveSum::jackKnifeError(
-    func::function<scalar_type, domain>& f_loo) const {
+    func::function<scalar_type, domain>& f_loo, bool overwrite_average) const {
   func::function<scalar_type, domain> f_avg(f_loo);
   func::function<scalar_type, domain> err("Jack-Knife-error");
 
@@ -289,13 +292,14 @@ func::function<scalar_type, domain> MPICollectiveSum::jackKnifeError(
   for (int i = 0; i < err.size(); i++)
     err(i) = std::sqrt(scale * err(i));
 
-  f_loo = std::move(f_avg);
+  if (overwrite_average)
+    f_loo = std::move(f_avg);
   return err;
 }
 
 template <typename scalar_type, class domain>
 func::function<std::complex<scalar_type>, domain> MPICollectiveSum::jackKnifeError(
-    func::function<std::complex<scalar_type>, domain>& f_loo) const {
+    func::function<std::complex<scalar_type>, domain>& f_loo, bool overwrite_average) const {
   func::function<std::complex<scalar_type>, domain> f_avg(f_loo);
   func::function<std::complex<scalar_type>, domain> err("Jack-Knife-error");
 
@@ -313,7 +317,8 @@ func::function<std::complex<scalar_type>, domain> MPICollectiveSum::jackKnifeErr
     err(i).imag(std::sqrt(scale * std::imag(err(i))));
   }
 
-  f_loo = std::move(f_avg);
+  if (overwrite_average)
+    f_loo = std::move(f_avg);
   return err;
 }
 
