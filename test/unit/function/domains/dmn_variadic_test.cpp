@@ -14,6 +14,8 @@
 #include "dca/function/domains/dmn.hpp"
 #include "dca/function/domains/dmn_0.hpp"
 
+#ifndef NDEBUG
+
 TEST(DmnVariadicTest, CheckIndices) {
   using dca::func::dmn_0;
   using dca::func::dmn;
@@ -40,3 +42,5 @@ TEST(DmnVariadicTest, CheckIndices) {
   EXPECT_THROW(test_dmn(1, -1, 0), std::runtime_error);
   EXPECT_THROW(test_dmn(0, 2, -3), std::runtime_error);
 }
+
+#endif  // NDEBUG
