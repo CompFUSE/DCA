@@ -197,7 +197,7 @@ void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::write(Writer& w
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::initialize(int dca_iteration) {
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t SS CT-HYB Integrator has started ( DCA-iteration : " << dca_iteration
               << ")\n\n";
 
@@ -209,7 +209,7 @@ void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::initialize(int 
 
   accumulator.initialize(dca_iteration);
 
-  if (concurrency.id() == 0) {
+  if (concurrency.id() == concurrency.first()) {
     std::stringstream ss;
     ss.precision(6);
     ss << std::scientific;
@@ -267,7 +267,7 @@ double SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::finalize(
   // util::Plot::plotBandsLines(MOMS.G_k_w);
   // util::Plot::plotBandsLines(MOMS.Sigma);
 
-  if (concurrency.id() == 0) {
+  if (concurrency.id() == concurrency.first()) {
     std::stringstream ss;
     ss.precision(6);
     ss << std::scientific;

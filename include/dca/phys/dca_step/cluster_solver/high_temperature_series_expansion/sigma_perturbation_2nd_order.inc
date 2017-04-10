@@ -118,7 +118,7 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::write(Writer& /*writer*/) 
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<2, parameters_type, k_dmn_t>::execute_on_cluster(
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << __FUNCTION__ << std::endl;
 
   // cout << "\t U : " << U(0,0,0,1) << endl;
@@ -158,7 +158,7 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::execute_on_cluster(
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<2, parameters_type, k_dmn_t>::execute_2A(
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << __FUNCTION__ << std::endl;
 
   double U_value = U(0, 0, 0, 1);
@@ -207,7 +207,7 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::execute_2A(
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<2, parameters_type, k_dmn_t>::execute_2B(
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << __FUNCTION__ << std::endl;
 
   double U_value = U(0, 0, 0, 1);
@@ -242,7 +242,7 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::execute_2B(
 template <class parameters_type, class k_dmn_t>
 void sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_on_cluster(
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G) {
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t\t second-order Self-energy \n\n" << std::endl;
 
   //       std::cout << "\t U : " << U(0,0,0,1) << std::endl;
@@ -327,7 +327,7 @@ void* sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_2B(void*
   for (int k_ind = k_bounds.first; k_ind < k_bounds.second; k_ind++) {
     double percentage = double(k_ind - k_bounds.first) / double(k_bounds.second - k_bounds.first);
 
-    if (concurrency.id() == 0 and id == 0 and (int(100 * percentage) % 10 == 0))
+    if (concurrency.id() == concurrency.first() and id == 0 and (int(100 * percentage) % 10 == 0))
       std::cout << "\t" << int(100 * percentage) << " % finished\t" << dca::util::print_time()
                 << "\n";
 

@@ -170,7 +170,7 @@ void MC_single_particle_accumulator<SS_CT_HYB, LEGENDRE, parameters_type, base_c
   concurrency.sum_and_average(G_r_l, parameters.get_measurements_per_process_and_accumulator());
   concurrency.sum_and_average(GS_r_l, parameters.get_measurements_per_process_and_accumulator());
 
-  if (concurrency.id() == 0) {
+  if (concurrency.id() == concurrency.first()) {
     for (int l = 0; l < legendre_dmn_t::dmn_size(); l++) {
       cout << "\t" << l;
       for (int r_ind = 0; r_ind < r_dmn_t::dmn_size(); r_ind++) {

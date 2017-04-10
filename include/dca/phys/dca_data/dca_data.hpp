@@ -227,7 +227,7 @@ DcaData<parameters_type>::DcaData(parameters_type& parameters_ref)
 
 template <class parameters_type>
 void DcaData<parameters_type>::read(std::string filename) {
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t starts reading \n\n";
 
   if (concurrency.id() == concurrency.first()) {
@@ -431,12 +431,12 @@ template <class parameters_type>
 void DcaData<parameters_type>::initialize_G0() {
   profiler_type prof("initialize-G0", "input", __LINE__);
 
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t initialize G0 " << dca::util::print_time() << "\n";
 
   clustermapping::coarsegraining_sp<parameters_type, k_DCA> coarsegrain_obj(parameters);
 
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\t\t start coarsegraining G0_k_w " << dca::util::print_time() << "\n";
 
   {
@@ -448,7 +448,7 @@ void DcaData<parameters_type>::initialize_G0() {
     symmetrize::execute(G0_k_w, H_symmetry, true);
   }
 
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\t\t start coarsegraining G0_k_t " << dca::util::print_time() << "\n";
 
   {
@@ -457,7 +457,7 @@ void DcaData<parameters_type>::initialize_G0() {
     symmetrize::execute(G0_k_t, H_symmetry, true);
   }
 
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t FT G0_k_w, G0_k_t --> G0_r_w, G0_r_t " << dca::util::print_time() << "\n";
 
   {
@@ -467,7 +467,7 @@ void DcaData<parameters_type>::initialize_G0() {
     symmetrize::execute(G0_r_t, H_symmetry, true);
   }
 
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\t finished G0 " << dca::util::print_time();
 }
 
@@ -598,7 +598,7 @@ void DcaData<parameters_type>::compute_Sigma_bands() {
 
 template <class parameters_type>
 void DcaData<parameters_type>::print_Sigma_QMC_versus_Sigma_cg() {
-  if (concurrency.id() == 0 /*and parameters.do_dca_plus()*/) {
+  if (concurrency.id() == concurrency.first() /*and parameters.do_dca_plus()*/) {
     if (DIMENSION == 2) {
       std::cout << "\n\n";
       std::cout << "        K-vectors             || Re[Sigma_QMC]   Im[Sigma_QMC]   Re[Sigma_cg]  "

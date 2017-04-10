@@ -295,7 +295,7 @@ void Hamiltonian<parameter_type, ed_options>::initialize_t_ij_and_U_ij(
 
 template <typename parameter_type, typename ed_options>
 void Hamiltonian<parameter_type, ed_options>::construct_Hamiltonians(bool interacting) {
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\n\t" << __FUNCTION__ << std::endl;
 
   std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
@@ -593,7 +593,7 @@ bool Hamiltonian<parameter_type, ed_options>::check_block_structure(int N, matri
 
 template <typename parameter_type, typename ed_options>
 void Hamiltonian<parameter_type, ed_options>::diagonalize_Hamiltonians_st() {
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\n\t" << __FUNCTION__ << "\n\n";
 
   int start = clock();
@@ -612,7 +612,7 @@ void Hamiltonian<parameter_type, ed_options>::diagonalize_Hamiltonians_st() {
     eigen_states(i).resizeNoCopy(N);
 
     {
-      if (concurrency.id() == 0)
+      if (concurrency.id() == concurrency.first())
         std::cout << "\t N_occ : " << Hilbert_space_evals[0] << ", Sz : " << Hilbert_space_evals[1]
                   << ", \t size : " << N << ", \t time : ";
 
@@ -621,14 +621,14 @@ void Hamiltonian<parameter_type, ed_options>::diagonalize_Hamiltonians_st() {
                                                   eigen_states(i));
       int end = clock();
 
-      if (concurrency.id() == 0)
+      if (concurrency.id() == concurrency.first())
         std::cout << double(end - start) / double(CLOCKS_PER_SEC) << "\n";
     }
   }
 
   int end = clock();
 
-  if (concurrency.id() == 0) {
+  if (concurrency.id() == concurrency.first()) {
     std::cout << "\n\t" << __FUNCTION__
               << "\t total time : " << double(end - start) / double(CLOCKS_PER_SEC) << "\n\n";
 
@@ -655,7 +655,7 @@ void Hamiltonian<parameter_type, ed_options>::print_spectrum() {
     for (int n = 0; n < Hilbert_spaces[i].size(); n++)
       E_MAX = E_MAX < eigen_energies(i)[n] ? eigen_energies(i)[n] : E_MAX;
 
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\n\t E_min : " << E_MIN << "\t E_max : " << E_MAX << "\n\n";
 
   if (E_MAX - E_MIN > 1.e-2) {
@@ -671,7 +671,7 @@ void Hamiltonian<parameter_type, ed_options>::print_spectrum() {
       for (int n = 0; n < Hilbert_spaces[i].size(); n++)
         y[int((eigen_energies(i)[n] - E_MIN) / delta)] += 1;
 
-    if (concurrency.id() == 0) {
+    if (concurrency.id() == concurrency.first()) {
       std::cout << "\n\t distribution of the energies : \n\n";
       for (int l = 0; l < N_BINS; l++)
         std::cout << "\t" << E_MIN + delta / 2. + l * delta << "\t"
@@ -731,7 +731,7 @@ void Hamiltonian<parameter_type, ed_options>::shift_the_energies() {
       for (int n = 0; n < Hilbert_spaces[i].size(); n++)
         total_of_eigenvalues += 1;
 
-    if (concurrency.id() == 0)
+    if (concurrency.id() == concurrency.first())
       std::cout << "\n\n\t number of eigenvalues exp(-beta*lambda) > CUT_OFF: "
                 << number_of_eigenvalues << ", " << total_of_eigenvalues << "\n\n";
   }

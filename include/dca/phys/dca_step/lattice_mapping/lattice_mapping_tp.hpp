@@ -101,14 +101,14 @@ void lattice_mapping_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execut
       "f_interp");
 
   {
-    if (concurrency.id() == 0)
+    if (concurrency.id() == concurrency.first())
       std::cout << "\n\n start tp-interpolation of Gamma \n\n";
 
     interpolation_obj.execute(f_source, f_target);
   }
 
   {
-    if (concurrency.id() == 0)
+    if (concurrency.id() == concurrency.first())
       std::cout << "\n\n start tp-deconvolution of Gamma \n\n";
 
     for (int i = 0; i < f_target.size(); i++)

@@ -318,14 +318,14 @@ template <typename parameter_type, typename ed_options>
 void TpGreensFunction<parameter_type, ed_options>::compute_particle_particle_superconducting_A(
     func::function<complex_type,
                    func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>& G4) {
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\t" << __FUNCTION__ << std::endl;
 
   G4 = 0;
 
   int w_nu = parameters.get_four_point_frequency_transfer();
 
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\tw_nu : " << w_nu << std::endl;
 
   for (int b_0 = 0; b_0 < b_dmn::dmn_size(); b_0++) {
@@ -365,7 +365,7 @@ void TpGreensFunction<parameter_type, ed_options>::compute_particle_particle_sup
     }
   }
 
-  if (concurrency.id() == 0) {
+  if (concurrency.id() == concurrency.first()) {
     std::cout << "\n";
     std::cout << 0.0 << "\t\t";
     for (int wn = 0; wn < w_VERTEX::dmn_size(); wn++)
@@ -445,7 +445,7 @@ template <typename parameter_type, typename ed_options>
 void TpGreensFunction<parameter_type, ed_options>::compute_particle_particle_superconducting_B(
     func::function<complex_type,
                    func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>& G4) {
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t" << __FUNCTION__ << "\n\n";
 
   G4 = 0;
@@ -555,7 +555,7 @@ void TpGreensFunction<parameter_type, ed_options>::compute_particle_particle_sup
 template <typename parameter_type, typename ed_options>
 void TpGreensFunction<parameter_type, ed_options>::compute_two_particle_Greens_function(
     bool /*interacting*/) {
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\t" << __FUNCTION__ << std::endl;
 
   G_tp_int = 0;
@@ -572,7 +572,7 @@ template <typename parameter_type, typename ed_options>
 void TpGreensFunction<parameter_type, ed_options>::compute_two_particle_Greens_function(
     func::function<complex_type, func::dmn_variadic<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, w_VERTEX_EXTENDED,
                                                     nu_nu_nu_nu_r_r_r_dmn_type>>& G_tp_ref) {
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\t" << __FUNCTION__ << std::endl;
 
   G_tp_ref = 0;

@@ -151,7 +151,7 @@ fermionic_overlap_matrices<parameter_type, ed_options>::fermionic_overlap_matric
 
 template <typename parameter_type, typename ed_options>
 void fermionic_overlap_matrices<parameter_type, ed_options>::construct_creation_set_all() {
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\n\t" << __FUNCTION__ << std::endl;
 
   std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
@@ -197,7 +197,7 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::construct_creation_
 
 template <typename parameter_type, typename ed_options>
 void fermionic_overlap_matrices<parameter_type, ed_options>::construct_annihilation_set_all() {
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\n\t" << __FUNCTION__ << std::endl;
 
   std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
@@ -243,7 +243,7 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::construct_annihilat
 
 template <typename parameter_type, typename ed_options>
 void fermionic_overlap_matrices<parameter_type, ed_options>::construct_creation_set_nonzero_sparse() {
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\n\t" << __FUNCTION__ << std::endl;
 
   std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
@@ -309,7 +309,7 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::construct_creation_
 
 template <typename parameter_type, typename ed_options>
 void fermionic_overlap_matrices<parameter_type, ed_options>::construct_annihilation_set_nonzero_sparse() {
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\n\t" << __FUNCTION__ << std::endl;
 
   std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();

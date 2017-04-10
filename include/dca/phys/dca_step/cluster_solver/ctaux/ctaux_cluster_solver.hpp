@@ -194,7 +194,7 @@ void CtauxClusterSolver<device_t, parameters_type, MOMS_type>::initialize(int dc
 
   accumulator.initialize(DCA_iteration);
 
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t CT-AUX Integrator has initialized (DCA-iteration : " << dca_iteration
               << ")\n\n";
 }
@@ -385,7 +385,7 @@ void CtauxClusterSolver<device_t, parameters_type, MOMS_type>::update_shell(int 
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void CtauxClusterSolver<device_t, parameters_type, MOMS_type>::compute_error_bars() {
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t compute-error-bars on Self-energy\t" << dca::util::print_time() << "\n\n";
 
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>> G_k_w_new("G_k_w_new");
@@ -409,7 +409,7 @@ void CtauxClusterSolver<device_t, parameters_type, MOMS_type>::compute_error_bar
 
   // sum G4
   if (parameters.get_four_point_type() != NONE) {
-    if (concurrency.id() == 0)
+    if (concurrency.id() == concurrency.first())
       std::cout << "\n\t\t compute-error-bars on G4\t" << dca::util::print_time() << "\n\n";
 
     double sign = accumulator.get_sign() / double(nb_measurements);
@@ -427,7 +427,7 @@ template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_ty
 void CtauxClusterSolver<device_t, parameters_type, MOMS_type>::collect_measurements() {
   const int nb_measurements = accumulator.get_number_of_measurements();
 
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t Collect measurements \t" << dca::util::print_time() << "\n"
               << "\n\t\t\t QMC-time : " << total_time << " [sec]"
               << "\n\t\t\t Gflops   : " << accumulator.get_Gflop() / total_time << " [Gf]"
@@ -508,7 +508,7 @@ void CtauxClusterSolver<device_t, parameters_type, MOMS_type>::collect_measureme
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void CtauxClusterSolver<device_t, parameters_type, MOMS_type>::symmetrize_measurements() {
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t symmetrize measurements has started \t" << dca::util::print_time() << "\n";
 
   symmetrize::execute(accumulator.get_M_r_w(), MOMS.H_symmetry);

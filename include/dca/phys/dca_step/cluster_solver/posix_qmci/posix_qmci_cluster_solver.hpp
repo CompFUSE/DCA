@@ -158,7 +158,7 @@ void PosixQmciClusterSolver<qmci_integrator_type>::integrate() {
   std::vector<std::pair<this_type*, int>> data(nr_accumulators + nr_walkers);
 
   {
-    if (concurrency.id() == 0)
+    if (concurrency.id() == concurrency.first())
       thread_task_handler_.print();
 
     dca::profiling::WallTime start_time;

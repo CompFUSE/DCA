@@ -237,7 +237,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::perform_cluster_map
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType>
 void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::perform_cluster_mapping_self_energy() {
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t coarsegrain-Selfenergy " << dca::util::print_time();
 
   profiler_type profiler("coarsegrain-Selfenergy", "DCA", __LINE__);
@@ -254,7 +254,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::perform_cluster_map
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType>
 void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::perform_cluster_mapping_Greens_function() {
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t coarsegrain-Greens-function " << dca::util::print_time();
 
   profiler_type profiler("coarsegrain-Greens-function", "DCA", __LINE__);
@@ -279,7 +279,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::adjust_impurity_sel
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType>
 void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::perform_cluster_exclusion_step() {
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t cluster-exclusion-step " << dca::util::print_time();
 
   profiler_type profiler("cluster-exclusion-step", "DCA", __LINE__);
@@ -311,7 +311,7 @@ template <typename ParametersType, typename DcaDataType, typename MCIntegratorTy
 void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::perform_lattice_mapping() {
   profiler_type profiler("lattice-mapping", "DCA", __LINE__);
 
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t lattice-mapping " << dca::util::print_time();
 
   if (parameters.do_dca_plus()) {
@@ -339,7 +339,7 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::update_DCA_loop_dat
   DCA_info_struct.density(i) = update_chemical_potential_obj.compute_density();
   DCA_info_struct.chemical_potential(i) = parameters.get_chemical_potential();
 
-  if (concurrency.id() == 0) {
+  if (concurrency.id() == concurrency.first()) {
     std::cout << "\n\n\t\t\t total-density : " << DCA_info_struct.density(i)
               << "\t (time : " << dca::util::print_time() << ")\n\n";
   }
