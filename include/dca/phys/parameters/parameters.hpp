@@ -294,7 +294,7 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
   domains::cluster_domain_symmetry_initializer<
       r_DCA, typename Model::lattice_type::DCA_point_group>::execute();
 
-  if (concurrency_.id() == concurrency_.last())
+  if (concurrency_.id() == concurrency_.first())
     k_DCA::parameter_type::print(std::cout);
 
   // Host grid for single-particle functions ((sp-)lattice)
@@ -303,7 +303,7 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
   domains::cluster_domain_symmetry_initializer<
       r_HOST, typename Model::lattice_type::DCA_point_group>::execute();
 
-  if (concurrency_.id() == concurrency_.last())
+  if (concurrency_.id() == concurrency_.first())
     k_HOST::parameter_type::print(std::cout);
 
   // Host grid for two-particle functions (tp-lattice)
@@ -320,7 +320,7 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
   domains::cluster_domain_symmetry_initializer<
       r_HOST_VERTEX, typename Model::lattice_type::DCA_point_group>::execute();
 
-  if (concurrency_.id() == concurrency_.last())
+  if (concurrency_.id() == concurrency_.first())
     k_HOST_VERTEX::parameter_type::print(std::cout);
 }
 

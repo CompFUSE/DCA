@@ -135,7 +135,7 @@ TEST(squareLattice_Nc4_nn, Self_Energy) {
   }
 
   // Write results
-  if (dca_test_env->concurrency.id() == dca_test_env->concurrency.last()) {
+  if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
     std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is writing data " << std::endl;
     dca::io::HDF5Writer writer;
     writer.open_file("output.hdf5");

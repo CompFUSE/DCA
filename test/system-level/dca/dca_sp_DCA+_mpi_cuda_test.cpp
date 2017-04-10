@@ -123,7 +123,7 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
     }
   }
 
-  if (dca_test_env->concurrency.id() == dca_test_env->concurrency.last()) {
+  if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
     std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is writing data " << std::endl;
     dca_loop.write();
 

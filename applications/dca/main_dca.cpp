@@ -72,7 +72,7 @@ int main(int argc, char** argv) {
 
   Profiler::stop(concurrency, parameters.get_filename_profiling());
 
-  if (concurrency.id() == concurrency.last()) {
+  if (concurrency.id() == concurrency.first()) {
     std::cout << "\nProcessor " << concurrency.id() << " is writing data " << std::endl;
     dca_loop.write();
 

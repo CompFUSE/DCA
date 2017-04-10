@@ -222,7 +222,7 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::initialize() {
     crystal_harmonics_expansion::get_size() = r_vecs.size();
     crystal_harmonics_expansion::get_elements() = r_vecs;
 
-    if (concurrency.id() == concurrency.last()) {
+    if (concurrency.id() == concurrency.first()) {
       std::cout << "\n\n\t crystal-vectors : \n";
       for (int l = 0; l < crystal_harmonics_expansion::get_size(); l++) {
         std::cout << "\t" << l << "\t";
@@ -554,7 +554,7 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::recordEigenvalue
 
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
 void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::diagonalize_folded_Gamma_chi_0() {
-  if (concurrency.id() == concurrency.last())
+  if (concurrency.id() == concurrency.first())
     std::cout << __FUNCTION__ << std::endl;
 
   profiler_type prof(__FUNCTION__, "BseLatticeSolver", __LINE__);
@@ -570,7 +570,7 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::diagonalize_fold
         "Gamma_chi_0", N);
 
     {
-      if (concurrency.id() == concurrency.last())
+      if (concurrency.id() == concurrency.first())
         std::cout << "\n\n\t compute Gamma_chi_0_lattice " << dca::util::print_time() << " ...";
 
       dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::CPU> Gamma("Gamma", N);
@@ -586,12 +586,12 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::diagonalize_fold
 
       dca::linalg::matrixop::gemm(Gamma, chi_0, Gamma_chi_0_lattice);
 
-      if (concurrency.id() == concurrency.last())
+      if (concurrency.id() == concurrency.first())
         std::cout << " finished " << dca::util::print_time() << "\n";
     }
 
     {
-      if (concurrency.id() == concurrency.last())
+      if (concurrency.id() == concurrency.first())
         std::cout << "\n\n\t compute P_Gamma_chi_0_lattice_P " << dca::util::print_time() << " ...";
 
       dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::CPU> P("P",
@@ -606,13 +606,13 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::diagonalize_fold
       dca::linalg::matrixop::gemm('N', 'N', Gamma_chi_0_lattice, P, tmp);
       dca::linalg::matrixop::gemm('C', 'N', P, tmp, Gamma_chi_0_crystal);
 
-      if (concurrency.id() == concurrency.last())
+      if (concurrency.id() == concurrency.first())
         std::cout << " finished " << dca::util::print_time() << "\n";
     }
   }
 
   {
-    if (concurrency.id() == concurrency.last())
+    if (concurrency.id() == concurrency.first())
       std::cout << "\n\n\t diagonalize P_Gamma_chi_0_lattice_P " << dca::util::print_time()
                 << " ...";
 
@@ -623,7 +623,7 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::diagonalize_fold
 
     dca::linalg::matrixop::eigensolver('N', 'V', Gamma_chi_0_crystal, L, VL, VR);
 
-    if (concurrency.id() == concurrency.last())
+    if (concurrency.id() == concurrency.first())
       std::cout << " finished " << dca::util::print_time() << "\n";
 
     record_eigenvalues_and_folded_eigenvectors(L, VL, VR);
@@ -672,7 +672,7 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::compute_folded_s
   dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::CPU> P_1_min_Gamma_chi_0_P(
       "P_1_min_Gamma_chi_0_P", M);
   {
-    if (concurrency.id() == concurrency.last())
+    if (concurrency.id() == concurrency.first())
       std::cout << "\n\n\t invert VR  " << dca::util::print_time() << " ...";
 
     dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::CPU> D_inv("D_inv", M);
@@ -687,13 +687,13 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::compute_folded_s
     dca::linalg::matrixop::gemm('N', 'N', VR, D_inv, VR_D_inv);
     dca::linalg::matrixop::gemm('N', 'N', VR_D_inv, VL, P_1_min_Gamma_chi_0_P);
 
-    if (concurrency.id() == concurrency.last())
+    if (concurrency.id() == concurrency.first())
       std::cout << " finished " << dca::util::print_time() << "\n";
   }
 
   dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::CPU> P_chi_0_P("P_chi_0_P", M);
   {
-    if (concurrency.id() == concurrency.last())
+    if (concurrency.id() == concurrency.first())
       std::cout << "\n\n\t compute P_chi_0_P " << dca::util::print_time() << " ...";
 
     dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::CPU> chi_0("chi_0", N);
@@ -713,7 +713,7 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::compute_folded_s
     dca::linalg::matrixop::gemm('N', 'N', chi_0, P, tmp);
     dca::linalg::matrixop::gemm('C', 'N', P, tmp, P_chi_0_P);
 
-    if (concurrency.id() == concurrency.last())
+    if (concurrency.id() == concurrency.first())
       std::cout << " finished " << dca::util::print_time() << "\n";
   }
 
@@ -746,7 +746,7 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::compute_folded_s
                     chi_q(n1, m1, K1, n2, m2, K2) += chi_q_tmp(n1, m1, K1, w1, n2, m2, K2, w2);
   }
 
-  if (concurrency.id() == concurrency.last()) {
+  if (concurrency.id() == concurrency.first()) {
     std::cout << "\n\n\t real(chi_q) \n\n";
     for (int i = 0; i < M; i++) {
       for (int j = 0; j < M; j++)
