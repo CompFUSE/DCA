@@ -69,8 +69,8 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
       dca::phys::domains::MOMENTUM_SPACE, dca::phys::domains::BRILLOUIN_ZONE>>;
 
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
-    std::cout << "\nDCA main starting.\n"
-              << "MPI-world set up: " << dca_test_env->concurrency.number_of_processors()
+    std::cout << "\nDCA(+) calculation starting: " << dca::util::print_time()
+              << "\nMPI-world set up: " << dca_test_env->concurrency.number_of_processors()
               << " processes.\n"
               << std::endl;
 
@@ -124,10 +124,10 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
   }
 
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
-    std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is writing data " << std::endl;
+    std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is writing data." << std::endl;
     dca_loop.write();
 
-    std::cout << "\nDCA main ending.\n" << std::endl;
+    std::cout << "\nDCA(+) calculation ending: " << dca::util::print_time() << std::endl;
   }
 }
 

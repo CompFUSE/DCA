@@ -73,7 +73,7 @@ TEST(dca_sp_DCAplus_pthread, Self_energy) {
 
   Concurrency concurrency(0, nullptr);
 
-  std::cout << "DCA+ calculation starting.\n" << std::endl;
+  std::cout << "\nDCA(+) calculation starting: " << dca::util::print_time() << "\n" << std::endl;
 
   dca::util::GitVersion::print();
   dca::util::Modules::print();
@@ -121,5 +121,5 @@ TEST(dca_sp_DCAplus_pthread, Self_energy) {
   std::cout << "\nWriting data." << std::endl;
   dca_loop.write();
 
-  std::cout << "\nDCA+ calculation ending." << std::endl;
+  std::cout << "\nDCA(+) calculation ending: " << dca::util::print_time() << std::endl;
 }

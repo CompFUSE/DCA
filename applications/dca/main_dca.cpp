@@ -34,8 +34,8 @@ int main(int argc, char** argv) {
 
   // Print some info.
   if (concurrency.id() == concurrency.first()) {
-    std::cout << "\nDCA(+) calculation starting.\n"
-              << "MPI-world set up: " << concurrency.number_of_processors() << " processes.\n"
+    std::cout << "\nDCA(+) calculation starting: " << dca::util::print_time()
+              << "\nMPI-world set up: " << concurrency.number_of_processors() << " processes.\n"
               << std::endl;
 
 #ifdef DCA_WITH_CUDA
@@ -73,10 +73,10 @@ int main(int argc, char** argv) {
   Profiler::stop(concurrency, parameters.get_filename_profiling());
 
   if (concurrency.id() == concurrency.first()) {
-    std::cout << "\nProcessor " << concurrency.id() << " is writing data " << std::endl;
+    std::cout << "\nProcessor " << concurrency.id() << " is writing data." << std::endl;
     dca_loop.write();
 
-    std::cout << "\nDCA(+) calculation ending.\n" << std::endl;
+    std::cout << "\nDCA(+) calculation ending: " << dca::util::print_time() << std::endl;
   }
 
   return 0;

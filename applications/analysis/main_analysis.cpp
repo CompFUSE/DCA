@@ -33,8 +33,8 @@ int main(int argc, char** argv) {
 
   // Print some info.
   if (concurrency.id() == concurrency.first()) {
-    std::cout << "\nDCA(+) analysis starting.\n"
-              << "MPI-world set up: " << concurrency.number_of_processors() << " processes.\n"
+    std::cout << "\nDCA(+) analysis starting: " << dca::util::print_time()
+              << "\nMPI-world set up: " << concurrency.number_of_processors() << " processes.\n"
               << std::endl;
 
     dca::util::GitVersion::print();
@@ -56,12 +56,11 @@ int main(int argc, char** argv) {
   bse_solver.calculateSusceptibilities();
 
   if (concurrency.id() == concurrency.first()) {
-    std::cout << "\nProcessor " << concurrency.id() << " is writing data " << std::endl;
+    std::cout << "\nProcessor " << concurrency.id() << " is writing data." << std::endl;
     bse_solver.write();
-  }
 
-  if (concurrency.id() == concurrency.first())
-    std::cout << "\nDCA(+) analysis ending.\n" << std::endl;
+    std::cout << "\nDCA(+) analysis ending: " << dca::util::print_time() << std::endl;
+  }
 
   return 0;
 }
