@@ -234,8 +234,9 @@ void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::initialize(int 
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::integrate() {
-  if (concurrency.id() == concurrency.first())
-    std::cout << "\n\t\t integration has started" << std::endl;
+  if (concurrency.id() == concurrency.first()) {
+    std::cout << "QMC integration has started: " << dca::util::print_time() << std::endl;
+  }
 
   walker_type walker(parameters, MOMS, rng);
 
@@ -245,8 +246,13 @@ void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::integrate() {
 
   measure(walker);
 
-  if (concurrency.id() == concurrency.first())
-    std::cout << "\n\t\t on node integration has ended" << std::endl;
+  if (concurrency.id() == concurrency.first()) {
+    std::cout << "On-node integration has ended: " << dca::util::print_time()
+              << "\n\nTotal number of measurements: "
+              << concurrency.number_of_processors() *
+                     parameters.get_measurements_per_process_and_accumulator()
+              << std::endl;
+  }
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
