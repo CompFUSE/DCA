@@ -17,6 +17,7 @@
 
 #include "gtest/gtest.h"
 
+#include "dca/config/cmake_options.hpp"
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
@@ -73,10 +74,18 @@ TEST(dca_sp_DCAplus_pthread, Self_energy) {
 
   Concurrency concurrency(0, nullptr);
 
-  std::cout << "\nDCA(+) calculation starting: " << dca::util::print_time() << "\n" << std::endl;
-
   dca::util::GitVersion::print();
   dca::util::Modules::print();
+  dca::config::CMakeOptions::print();
+
+  std::cout << "\n"
+            << "********************************************************************************\n"
+            << "**********                     DCA(+) Calculation                     **********\n"
+            << "********************************************************************************\n"
+            << "\n"
+            << "Start time : " << dca::util::print_time() << "\n"
+            << "\n"
+            << std::endl;
 
   ParametersType parameters(dca::util::GitVersion::string(), concurrency);
   parameters.read_input_and_broadcast<dca::io::JSONReader>(
@@ -121,5 +130,5 @@ TEST(dca_sp_DCAplus_pthread, Self_energy) {
   std::cout << "\nWriting data." << std::endl;
   dca_loop.write();
 
-  std::cout << "\nDCA(+) calculation ending: " << dca::util::print_time() << std::endl;
+  std::cout << "\nFinish time: " << dca::util::print_time() << "\n" << std::endl;
 }
