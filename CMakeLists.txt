@@ -108,6 +108,7 @@ add_subdirectory(src)
 set(DCA_LIBS
   git_version
   modules
+  cmake_options
   ctaux
   posix_qmci
   ss_ct_hyb
@@ -178,3 +179,8 @@ endif()
 ################################################################################
 # Build applications.
 add_subdirectory(applications)
+
+###############################################################################
+# Generate a .cpp file with DCA++'s CMake options and their values.
+configure_file("${PROJECT_SOURCE_DIR}/src/config/cmake_options.cpp.in"
+  "${PROJECT_BINARY_DIR}/src/config/cmake_options.cpp" @ONLY)
