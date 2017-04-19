@@ -77,8 +77,6 @@ public:
 public:
   SsCtHybClusterSolver(parameters_type& parameters_ref, MOMS_type& MOMS_ref);
 
-  ~SsCtHybClusterSolver();
-
   void initialize(int dca_iteration);
 
   void integrate();
@@ -165,12 +163,6 @@ SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::SsCtHybClusterSolver
       DCA_iteration(-1) {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t SS CT-HYB Integrator is born \n" << std::endl;
-}
-
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::~SsCtHybClusterSolver() {
-  if (concurrency.id() == concurrency.first())
-    std::cout << "\n\n\t SS CT-HYB Integrator has died \n" << std::endl;
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>

@@ -73,8 +73,6 @@ public:
 public:
   CtauxClusterSolver(parameters_type& parameters_ref, MOMS_type& MOMS_ref);
 
-  ~CtauxClusterSolver();
-
   template <typename Writer>
   void write(Writer& reader);
 
@@ -165,12 +163,6 @@ CtauxClusterSolver<device_t, parameters_type, MOMS_type>::CtauxClusterSolver(
       DCA_iteration(-1) {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t CT-AUX Integrator is born \n" << std::endl;
-}
-
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-CtauxClusterSolver<device_t, parameters_type, MOMS_type>::~CtauxClusterSolver() {
-  if (concurrency.id() == concurrency.first())
-    std::cout << "\n\n\t CT-AUX Integrator has died \n" << std::endl;
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>

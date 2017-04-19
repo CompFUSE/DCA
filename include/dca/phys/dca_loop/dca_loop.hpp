@@ -64,7 +64,6 @@ public:
       solver::HighTemperatureSeriesExpansionSolver<dca::linalg::CPU, ParametersType, DcaDataType>;
 
   DcaLoop(ParametersType& parameters_ref, DcaDataType& MOMS_ref, concurrency_type& concurrency_ref);
-  ~DcaLoop();
 
   void read();
   void write();
@@ -131,13 +130,6 @@ DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::DcaLoop(ParametersType& 
       monte_carlo_integrator_(parameters_ref, MOMS_ref) {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t" << __FUNCTION__ << " has started \t" << dca::util::print_time() << "\n\n";
-}
-
-template <typename ParametersType, typename DcaDataType, typename MCIntegratorType>
-DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::~DcaLoop() {
-  if (concurrency.id() == concurrency.first())
-    std::cout << "\n\n\t" << __FUNCTION__ << " has finished \t" << dca::util::print_time()
-              << "\n\n";
 }
 
 template <typename ParametersType, typename DcaDataType, typename MCIntegratorType>
