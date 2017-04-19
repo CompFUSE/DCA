@@ -20,13 +20,12 @@ namespace util {
 const std::string Modules::module_list = "@MODULE_LIST@";
 
 void Modules::print() {
-  std::cout << "\n\n"
+  std::cout << "\n"
             << "********************************************************************************\n"
             << "**********                          Modules                           **********\n"
             << "********************************************************************************\n"
             << "\n"
-            << Modules::module_list << "\n"
-            << std::endl;
+            << Modules::module_list << std::endl;
 }
 
 std::string Modules::string() {

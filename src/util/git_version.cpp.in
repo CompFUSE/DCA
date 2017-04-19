@@ -21,7 +21,7 @@ const std::string GitVersion::git_log = "@GIT_LOG@";
 const std::string GitVersion::git_status = "@GIT_STATUS@";
 
 void GitVersion::print() {
-  std::cout << "\n\n"
+  std::cout << "\n"
             << "********************************************************************************\n"
             << "**********                        Git Version                         **********\n"
             << "********************************************************************************\n"
@@ -29,8 +29,7 @@ void GitVersion::print() {
             << "Last commit:\n"
             << GitVersion::git_log << "\n"
             << "Working tree:\n"
-            << GitVersion::git_status << "\n"
-            << std::endl;
+            << GitVersion::git_status << std::endl;
 }
 
 std::string GitVersion::string() {
