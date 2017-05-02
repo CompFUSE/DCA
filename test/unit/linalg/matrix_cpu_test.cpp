@@ -574,3 +574,15 @@ TEST(MatrixCPUTest, ResizeNoCopyValue) {
     EXPECT_LE(new_size, mat.capacity().second);
   }
 }
+
+TEST(MatrixCPUTest, ResizeShrinkAndEnlarge) {
+  dca::linalg::Matrix<int, dca::linalg::CPU> mat(std::make_pair(30, 34));
+  const auto old_size = mat.size();
+  auto el_value = [](int i, int j) { return 100 * i + j; };
+  testing::setMatrixElements(mat, el_value);
+
+  mat.resize(std::make_pair(34, 30));
+  for (int j = 0; j < std::min(mat.nrCols(), old_size.second); ++j)
+    for (int i = 0; i < std::min(mat.nrRows(), old_size.first); ++i)
+      EXPECT_EQ(el_value(i, j), mat(i, j));
+}
