@@ -134,7 +134,7 @@ void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::execute_o
 template <channel_type channel_value, class parameters_type, class k_dmn_t, class w_dmn_t>
 void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded_execute_on_cluster(
     G_function_type& G) {
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t\t"
               << "threaded_execute_on_cluster compute-bubble"
               << "\n\n";
@@ -179,7 +179,7 @@ template <channel_type channel_value, class parameters_type, class k_dmn_t, clas
 void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::execute_on_cluster_ph(
     G_function_type& G) {
   // cout << __FUNCTION__ << endl;
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t\t ph-buble \n\n" << std::endl;
 
   chi.get_name() = "ph-bubble";
@@ -236,7 +236,7 @@ void* compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded
   for (int q_ind = q_bounds.first; q_ind < q_bounds.second; ++q_ind) {
     double percentage = double(q_ind - q_bounds.first) / double(q_bounds.second - q_bounds.first);
 
-    if (concurrency.id() == 0 and id == 0 and (int(100 * percentage) % 10 == 0))
+    if (concurrency.id() == concurrency.first() and id == 0 and (int(100 * percentage) % 10 == 0))
       std::cout << "\t" << int(100 * percentage) << " % finished\t" << dca::util::print_time()
                 << "\n";
 
@@ -267,7 +267,7 @@ template <channel_type channel_value, class parameters_type, class k_dmn_t, clas
 void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::execute_on_cluster_pp(
     G_function_type& G) {
   // cout << __FUNCTION__ << endl;
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t\t pp-buble \n\n" << std::endl;
 
   chi.get_name() = "pp-bubble";
@@ -324,7 +324,7 @@ void* compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded
   for (int q_ind = q_bounds.first; q_ind < q_bounds.second; ++q_ind) {
     double percentage = double(q_ind - q_bounds.first) / double(q_bounds.second - q_bounds.first);
 
-    if (concurrency.id() == 0 and id == 0 and (int(100 * percentage) % 10 == 0))
+    if (concurrency.id() == concurrency.first() and id == 0 and (int(100 * percentage) % 10 == 0))
       std::cout << "\t" << int(100 * percentage) << " % finished\t" << dca::util::print_time()
                 << "\n";
 

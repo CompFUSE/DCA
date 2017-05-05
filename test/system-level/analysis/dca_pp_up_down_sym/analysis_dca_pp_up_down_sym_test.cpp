@@ -49,7 +49,7 @@ TEST(AnalysisDCAParticleParticleUpDownSymmetricTest, LeadingEigenvalues) {
   using DcaDataType = phys::DcaData<ParametersType>;
   using BseSolverType = phys::analysis::BseSolver<ParametersType, DcaDataType>;
 
-  std::cout << "Analysis test starting.\n" << std::endl;
+  std::cout << "Analysis test starting: " << dca::util::print_time() << "\n" << std::endl;
 
   ConcurrencyType concurrency(0, nullptr);
 
@@ -109,5 +109,5 @@ TEST(AnalysisDCAParticleParticleUpDownSymmetricTest, LeadingEigenvalues) {
   std::cout << "\nWriting data.\n" << std::endl;
   bse_solver.write();
 
-  std::cout << "\nAnalysis test ending." << std::endl;
+  std::cout << "\nAnalysis test ending: " << dca::util::print_time() << std::endl;
 }

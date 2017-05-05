@@ -512,7 +512,7 @@ void coarsegraining_tp<parameters_type, K_dmn>::compute_phi(
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_HOST>>& H_k,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_DCA, w>>& S_K_w,
     func::function<std::complex<scalar_type>, func::dmn_variadic<b_b, b_b, K_dmn, w_dmn_t>>& phi) {
-  if (concurrency.id() == concurrency.last())
+  if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t start " << __FUNCTION__ << " ... " << dca::util::print_time();
 
   assert(k_DCA::get_elements() == K_dmn::get_elements());
@@ -590,7 +590,7 @@ void coarsegraining_tp<parameters_type, K_dmn>::compute_phi(
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_HOST>>& H_k,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_HOST, w>>& S_k_w,
     func::function<std::complex<scalar_type>, func::dmn_variadic<b_b, b_b, K_dmn, w_dmn_t>>& phi) {
-  if (concurrency.id() == concurrency.last())
+  if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t start " << __FUNCTION__ << " ... " << dca::util::print_time();
 
   phi = 0.;
@@ -655,7 +655,7 @@ void coarsegraining_tp<parameters_type, K_dmn>::compute_phi(
     phi /= V_K;
   }
 
-  if (concurrency.id() == concurrency.last())
+  if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t end  ... " << dca::util::print_time();
 }
 

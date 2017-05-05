@@ -105,7 +105,7 @@ template <typename parameters_type, typename MOMS_type, typename coarsegraining_
 void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>::execute() {
   double dens = compute_density();
 
-  if (concurrency.id() == 0) {
+  if (concurrency.id() == concurrency.first()) {
     std::cout.precision(6);
     std::cout << std::scientific;
 
@@ -132,7 +132,7 @@ void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>:
     dens = compute_density();
 
     if (std::abs(dens - parameters.get_density()) < 1.e-3) {
-      if (concurrency.id() == 0) {
+      if (concurrency.id() == concurrency.first()) {
         std::cout.precision(6);
         std::cout << std::scientific;
 
@@ -341,7 +341,7 @@ void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>:
 
 template <typename parameters_type, typename MOMS_type, typename coarsegraining_type>
 void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>::print_bounds() {
-  if (concurrency.id() == 0) {
+  if (concurrency.id() == concurrency.first()) {
     std::cout.precision(6);
     std::cout << std::scientific;
 

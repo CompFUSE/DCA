@@ -123,7 +123,7 @@ void RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
       for (int i = 0; i < k_dmn_t::dmn_size(); i++)
         f_target(i, j) = u_t(i, j);
 
-  if (concurrency.id() == 0) {
+  if (concurrency.id() == concurrency.first()) {
     std::cout << "\n\n\t\t Richardson-Lucy deconvolution: " << l << " iterations" << std::endl;
   }
 }

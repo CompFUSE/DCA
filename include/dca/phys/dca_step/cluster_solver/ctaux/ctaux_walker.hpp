@@ -1209,7 +1209,7 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::clean_up_the_configurati
   // #ifdef DCA_WITH_QMC_BIT
   //   check_N_matrices(configuration, G0_up, G0_dn, N_up, N_dn);
 
-  //   if (concurrency.id() == 0) {
+  //   if (concurrency.id() == concurrency.first()) {
   //     std::cout << "\t\t <k>               = " <<
   //     configuration.get_number_of_interacting_HS_spins()
   //               << std::endl;

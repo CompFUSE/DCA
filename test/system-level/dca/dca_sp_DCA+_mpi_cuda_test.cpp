@@ -18,6 +18,7 @@
 
 #include "gtest/gtest.h"
 
+#include "dca/config/cmake_options.hpp"
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
@@ -69,15 +70,23 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
       dca::phys::domains::MOMENTUM_SPACE, dca::phys::domains::BRILLOUIN_ZONE>>;
 
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
-    std::cout << "\nDCA main starting.\n"
-              << "MPI-world set up: " << dca_test_env->concurrency.number_of_processors()
-              << " processes.\n"
-              << std::endl;
+    dca::util::GitVersion::print();
+    dca::util::Modules::print();
+    dca::config::CMakeOptions::print();
 
     dca::linalg::util::printInfoDevices();
 
-    dca::util::GitVersion::print();
-    dca::util::Modules::print();
+    std::cout
+        << "\n"
+        << "********************************************************************************\n"
+        << "**********                     DCA(+) Calculation                     **********\n"
+        << "********************************************************************************\n"
+        << "\n"
+        << "Start time : " << dca::util::print_time() << "\n"
+        << "\n"
+        << "MPI-world set up: " << dca_test_env->concurrency.number_of_processors() << " processes."
+        << "\n"
+        << std::endl;
   }
 
   dca::linalg::util::initializeMagma();
@@ -123,11 +132,11 @@ TEST(dca_sp_DCAplus_mpi, Self_energy) {
     }
   }
 
-  if (dca_test_env->concurrency.id() == dca_test_env->concurrency.last()) {
-    std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is writing data " << std::endl;
+  if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
+    std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is writing data." << std::endl;
     dca_loop.write();
 
-    std::cout << "\nDCA main ending.\n" << std::endl;
+    std::cout << "\nFinish time: " << dca::util::print_time() << "\n" << std::endl;
   }
 }
 

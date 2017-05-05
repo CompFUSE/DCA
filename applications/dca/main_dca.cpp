@@ -15,6 +15,7 @@
 #include <iostream>
 
 // Defines Concurrency, ParametersType, DcaData, DcaLoop, and Profiler.
+#include "dca/config/cmake_options.hpp"
 #include "dca/config/dca.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/util/git_version.hpp"
@@ -34,16 +35,25 @@ int main(int argc, char** argv) {
 
   // Print some info.
   if (concurrency.id() == concurrency.first()) {
-    std::cout << "\nDCA(+) calculation starting.\n"
-              << "MPI-world set up: " << concurrency.number_of_processors() << " processes.\n"
-              << std::endl;
+    dca::util::GitVersion::print();
+    dca::util::Modules::print();
+    dca::config::CMakeOptions::print();
 
 #ifdef DCA_WITH_CUDA
     dca::linalg::util::printInfoDevices();
 #endif  // DCA_WITH_CUDA
 
-    dca::util::GitVersion::print();
-    dca::util::Modules::print();
+    std::cout
+        << "\n"
+        << "********************************************************************************\n"
+        << "**********                     DCA(+) Calculation                     **********\n"
+        << "********************************************************************************\n"
+        << "\n"
+        << "Start time : " << dca::util::print_time() << "\n"
+        << "\n"
+        << "MPI-world set up: " << concurrency.number_of_processors() << " processes."
+        << "\n"
+        << std::endl;
   }
 
 #ifdef DCA_WITH_CUDA
@@ -72,11 +82,11 @@ int main(int argc, char** argv) {
 
   Profiler::stop(concurrency, parameters.get_filename_profiling());
 
-  if (concurrency.id() == concurrency.last()) {
-    std::cout << "\nProcessor " << concurrency.id() << " is writing data " << std::endl;
+  if (concurrency.id() == concurrency.first()) {
+    std::cout << "\nProcessor " << concurrency.id() << " is writing data." << std::endl;
     dca_loop.write();
 
-    std::cout << "\nDCA(+) calculation ending.\n" << std::endl;
+    std::cout << "\nFinish time: " << dca::util::print_time() << "\n" << std::endl;
   }
 
   return 0;

@@ -92,7 +92,7 @@ template <typename scalar_type, typename k_dmn, typename K_dmn, COARSEGRAIN_DOMA
 template <typename concurrency_type>
 void interpolation_matrices<scalar_type, k_dmn, func::dmn_0<coarsegraining_domain<K_dmn, NAME>>>::resize_matrices(
     concurrency_type& concurrency) {
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t interpolation-matrices " << to_str(NAME) << " initialization started ... ";
 
   is_initialized() = true;
@@ -114,7 +114,7 @@ template <typename scalar_type, typename k_dmn, typename K_dmn, COARSEGRAIN_DOMA
 template <typename concurrency_type>
 void interpolation_matrices<scalar_type, k_dmn, func::dmn_0<coarsegraining_domain<K_dmn, NAME>>>::print_memory_used(
     concurrency_type& concurrency) {
-  if (concurrency.id() == 0) {
+  if (concurrency.id() == concurrency.first()) {
     std::pair<int, int> capacity = get(0).capacity();
     std::cout << " stopped ( "
               << sizeof(scalar_type) * capacity.first * capacity.second * 1.e-6 * K_dmn::dmn_size()

@@ -246,7 +246,7 @@ void SpGreensFunction<parameter_type, ed_options>::compute_S_k_w(
     func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, k_dmn, w_dmn>>& G_k_w,
     func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, k_dmn, w_dmn>>& G0_k_w,
     func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, k_dmn, w_dmn>>& S_k_w) {
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\n\t" << __FUNCTION__ << std::endl;
 
   int matrix_dim = b_dmn::dmn_size() * s_dmn::dmn_size();
@@ -279,7 +279,7 @@ void SpGreensFunction<parameter_type, ed_options>::compute_S_k_w(
     }
   }
 
-  if (concurrency.id() == 0) {
+  if (concurrency.id() == concurrency.first()) {
     int N = 8;
 
     std::cout << "\n\t Sigma\n\n";
@@ -329,7 +329,7 @@ void SpGreensFunction<parameter_type, ed_options>::compute_real_space_Greens_fun
                    func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, r_dmn, w_VERTEX, w_VERTEX>>& /*G_nu_nu_r_r_w_w*/,
     func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, k_dmn, k_dmn, w_VERTEX,
                                                     w_VERTEX>>& /*G_nu_nu_k_k_w_w*/) {
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\n\t" << __FUNCTION__ << std::endl;
 
   G_r_w_im = 0;
@@ -363,7 +363,7 @@ void SpGreensFunction<parameter_type, ed_options>::compute_real_space_Greens_fun
 
   int end = clock();
 
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\t" << __FUNCTION__
               << " total time : " << double(end - start) / double(CLOCKS_PER_SEC) << std::endl;
 }
@@ -480,7 +480,7 @@ void SpGreensFunction<parameter_type, ed_options>::compute_Greens_functions_ca_s
 //                                                                                                     func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, w_REAL> >& G_r_w_real,
 //                                                                                                     func::function<             double , func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, t     > >& G_r_t)
 {
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t" << __FUNCTION__ << "\n\n";
 
   std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
@@ -690,7 +690,7 @@ void SpGreensFunction<parameter_type, ed_options>::compute_sp_Greens_function_sl
 template <typename parameter_type, typename ed_options>
 void SpGreensFunction<parameter_type, ed_options>::compute_Greens_functions_slow(
     std::vector<sp_Greens_function_data_type>& data_vec) {
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\t" << __FUNCTION__ << std::endl;
   ;
 

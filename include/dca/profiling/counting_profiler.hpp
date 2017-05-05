@@ -222,7 +222,7 @@ void CountingProfiler<Event>::stop(concurrency_type& concurrency, std::string fi
 
   concurrency.sum(profiling_table);
 
-  if (concurrency.id() == concurrency.last()) {
+  if (concurrency.id() == concurrency.first()) {
     to_JSON(file_name);
 
     // to_TSV(file_name);

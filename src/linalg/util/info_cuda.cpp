@@ -26,7 +26,12 @@ void printInfoDevices() {
   cudaGetDeviceCount(&nr_devices);
 
   std::stringstream s;
-  s << "CUDA found " << nr_devices << " devices."
+  s << "\n"
+    << "********************************************************************************\n"
+    << "**********                            CUDA                            **********\n"
+    << "********************************************************************************\n"
+    << "\n"
+    << "CUDA found " << nr_devices << " devices."
     << "\n";
 
   for (int i = 0; i < nr_devices; ++i) {

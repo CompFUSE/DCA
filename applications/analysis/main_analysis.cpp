@@ -16,7 +16,7 @@
 
 // Defines Concurrency, ParametersType, DcaData, and BseSolver.
 #include "dca/config/analysis.hpp"
-
+#include "dca/config/cmake_options.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
@@ -33,12 +33,21 @@ int main(int argc, char** argv) {
 
   // Print some info.
   if (concurrency.id() == concurrency.first()) {
-    std::cout << "\nDCA(+) analysis starting.\n"
-              << "MPI-world set up: " << concurrency.number_of_processors() << " processes.\n"
-              << std::endl;
-
     dca::util::GitVersion::print();
     dca::util::Modules::print();
+    dca::config::CMakeOptions::print();
+
+    std::cout
+        << "\n"
+        << "********************************************************************************\n"
+        << "**********                      DCA(+) Analysis                       **********\n"
+        << "********************************************************************************\n"
+        << "\n"
+        << "Start time : " << dca::util::print_time() << "\n"
+        << "\n"
+        << "MPI-world set up: " << concurrency.number_of_processors() << " processes."
+        << "\n"
+        << std::endl;
   }
 
   // Create the parameters object from the input file.
@@ -56,12 +65,11 @@ int main(int argc, char** argv) {
   bse_solver.calculateSusceptibilities();
 
   if (concurrency.id() == concurrency.first()) {
-    std::cout << "\nProcessor " << concurrency.id() << " is writing data " << std::endl;
+    std::cout << "\nProcessor " << concurrency.id() << " is writing data." << std::endl;
     bse_solver.write();
-  }
 
-  if (concurrency.id() == concurrency.first())
-    std::cout << "\nDCA(+) analysis ending.\n" << std::endl;
+    std::cout << "\nFinish time: " << dca::util::print_time() << "\n" << std::endl;
+  }
 
   return 0;
 }

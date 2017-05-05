@@ -15,9 +15,10 @@
 #include <string>
 #include <iostream>
 
+#include "dca/config/cluster_solver_check.hpp"
+#include "dca/config/cmake_options.hpp"
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
-#include "dca/config/cluster_solver_check.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/phys/dca_data/dca_data_real_freq.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
@@ -50,16 +51,25 @@ int main(int argc, char** argv) {
 
   // Print some info.
   if (concurrency.id() == concurrency.first()) {
-    std::cout << "\nCluster-solver-check starting.\n"
-              << "MPI-world set up: " << concurrency.number_of_processors() << " processes.\n"
-              << std::endl;
+    dca::util::GitVersion::print();
+    dca::util::Modules::print();
+    dca::config::CMakeOptions::print();
 
 #ifdef DCA_WITH_CUDA
     dca::linalg::util::printInfoDevices();
 #endif  // DCA_WITH_CUDA
 
-    dca::util::GitVersion::print();
-    dca::util::Modules::print();
+    std::cout
+        << "\n"
+        << "********************************************************************************\n"
+        << "**********                    Cluster Solver Check                    **********\n"
+        << "********************************************************************************\n"
+        << "\n"
+        << "Start time : " << dca::util::print_time() << "\n"
+        << "\n"
+        << "MPI-world set up: " << concurrency.number_of_processors() << " processes."
+        << "\n"
+        << std::endl;
   }
 
 #ifdef DCA_WITH_CUDA
@@ -148,8 +158,9 @@ int main(int argc, char** argv) {
 
   Profiler::stop(concurrency, parameters.get_filename_profiling());
 
-  if (concurrency.id() == concurrency.first())
-    std::cout << "\nCluster-solver-check ending.\n" << std::endl;
+  if (concurrency.id() == concurrency.first()) {
+    std::cout << "\nFinish time: " << dca::util::print_time() << "\n" << std::endl;
+  }
 
   return 0;
 }

@@ -322,7 +322,7 @@ template <class parameters_type, class basis_function_t>
 template <typename MOMS_imag_type, typename MOMS_real_type>
 void compute_spectrum<parameters_type, basis_function_t>::execute_without_error_bars(
     MOMS_imag_type& MOMS_imag, MOMS_real_type& MOMS_real) {
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t start analytic-continuation without error-bars (time = "
               << dca::util::print_time() << ")\n";
 
@@ -432,17 +432,17 @@ void compute_spectrum<parameters_type, basis_function_t>::execute_with_error_bar
 
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w_REAL>> G_K_wr;
 
-    if (concurrency.id() == 0)
+    if (concurrency.id() == concurrency.first())
       std::cout << "\n\n";
 
     for (int l = 0; l < nb_samples; l++) {
-      if (concurrency.id() == 0)
+      if (concurrency.id() == concurrency.first())
         std::cout << "\t start analytic-continuation on sample = " << l
                   << " (time = " << dca::util::print_time() << ")\n";
 
       {  // generate a new sample that is equal for each MPI-task!
 
-        if (concurrency.id() == 0) {
+        if (concurrency.id() == concurrency.first()) {
           // MOMS_imag.Sigma_stddev = magnitude;
 
           // uniform error
@@ -487,7 +487,7 @@ void compute_spectrum<parameters_type, basis_function_t>::execute_with_error_bar
         accumulate_f_K_w(G_K_wr, MOMS_real.G_k_w, MOMS_real.G_k_w_stddev);
       }
 
-      if (concurrency.id() == 0)
+      if (concurrency.id() == concurrency.first())
         std::cout << "\n";
     }
   }
@@ -590,7 +590,7 @@ template <typename k_dmn_t, typename w_imag_dmn_t, typename w_real_dmn_t>
 void compute_spectrum<parameters_type, basis_function_t>::perform_analytic_continuation(
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_imag_dmn_t>>& S_k_w_imag,
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_real_dmn_t>>& S_k_w_real) {
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\t\t start CPE (time = " << dca::util::print_time() << ") --> ";
 
   // cpe_obj.execute_st(S_k_w_imag, S_k_w_real);
@@ -605,7 +605,7 @@ void compute_spectrum<parameters_type, basis_function_t>::perform_analytic_conti
     accumulate_f_K_w(cpe_obj.get_f_measured(), f_measured, f_measured_stddev);
   }
 
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << " (time = " << dca::util::print_time() << ")\n";
 }
 
@@ -615,7 +615,7 @@ void compute_spectrum<parameters_type, basis_function_t>::compute_G_k_w_on_clust
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& G0_k_w,
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& Sigma,
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& G_k_w) {
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\t\t start AC on G_K_w (time = " << dca::util::print_time() << ") --> ";
 
   dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G_matrix("G-matrix", nu::dmn_size());
@@ -653,7 +653,7 @@ void compute_spectrum<parameters_type, basis_function_t>::compute_G_k_w_on_clust
     }
   }
 
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << " (time = " << dca::util::print_time() << ")\n";
 }
 
@@ -663,14 +663,14 @@ void compute_spectrum<parameters_type, basis_function_t>::compute_G_k_w_on_latti
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_host_dmn_t>>& H_k,
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_cluster_dmn_t, w_dmn_t>>& Sigma,
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_cluster_dmn_t, w_dmn_t>>& G_k_w) {
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << "\t\t start TIM (time = " << dca::util::print_time() << ") --> ";
 
   clustermapping::coarsegraining_sp<parameters_type, k_DCA> coarsegraining_sp_obj(parameters);
 
   coarsegraining_sp_obj.compute_G_K_w_with_TIM(H_k, Sigma, G_k_w);
 
-  if (concurrency.id() == 0)
+  if (concurrency.id() == concurrency.first())
     std::cout << " (time = " << dca::util::print_time() << ")\n";
 }
 
@@ -878,7 +878,7 @@ void compute_spectrum<parameters_type, basis_function_t>::compute_mean_and_stdde
 template <class parameters_type, class basis_function_t>
 template <typename MOMS_real_type>
 void compute_spectrum<parameters_type, basis_function_t>::print_check_sums(MOMS_real_type& MOMS_real) {
-  if (concurrency.id() == 0) {
+  if (concurrency.id() == concurrency.first()) {
     double result = 0;
 
     {

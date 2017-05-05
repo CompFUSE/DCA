@@ -151,14 +151,16 @@ template <class qmci_integrator_type>
 void PosixQmciClusterSolver<qmci_integrator_type>::integrate() {
   profiler_type profiler(__FUNCTION__, "posix-MC-Integration", __LINE__);
 
-  if (concurrency.id() == concurrency.first())
-    std::cout << "\n\t\t threaded QMC integration starts\n" << std::endl;
+  if (concurrency.id() == concurrency.first()) {
+    std::cout << "Threaded QMC integration has started: " << dca::util::print_time() << "\n"
+              << std::endl;
+  }
 
   std::vector<pthread_t> threads(nr_accumulators + nr_walkers);
   std::vector<std::pair<this_type*, int>> data(nr_accumulators + nr_walkers);
 
   {
-    if (concurrency.id() == 0)
+    if (concurrency.id() == concurrency.first())
       thread_task_handler_.print();
 
     dca::profiling::WallTime start_time;
@@ -185,8 +187,13 @@ void PosixQmciClusterSolver<qmci_integrator_type>::integrate() {
     total_time = duration.sec + 1.e-6 * duration.usec;
   }
 
-  if (concurrency.id() == concurrency.first())
-    std::cout << "\n\t\t threaded QMC integration ends\n" << std::endl;
+  if (concurrency.id() == concurrency.first()) {
+    std::cout << "Threaded on-node integration has ended: " << dca::util::print_time()
+              << "\n\nTotal number of measurements: "
+              << concurrency.number_of_processors() *
+                     parameters.get_measurements_per_process_and_accumulator() * nr_accumulators
+              << std::endl;
+  }
 }
 
 template <class qmci_integrator_type>
