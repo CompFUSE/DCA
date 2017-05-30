@@ -91,10 +91,14 @@ TEST(TriangularLatticeTest, Initialize_H_interaction) {
   phys::domains::cluster_domain_initializer<r_DCA>::execute(Lattice::initialize_r_DCA_basis(),
                                                             DCA_cluster);
 
-  // Get index of origin and check it.
-  const int origin = r_DCA_ClusterType::origin_index();
-  ASSERT_DOUBLE_EQ(0., r_DCA::get_elements()[origin][0]);
-  ASSERT_DOUBLE_EQ(0., r_DCA::get_elements()[origin][1]);
+  // Index of the origin (0,0).
+  const int origin = 2;
+
+  // Indices of nearest neighbors. There are three different nearest neighbor pairs.
+  std::vector<int> nn_index(3);
+  nn_index[0] = 0;  // Index of basis vector a1 translated inside the cluster.
+  nn_index[1] = 3;  // Index of basis vector a2 translated inside the cluster.
+  nn_index[2] = 1;  // Index of a1+a2 translated inside the cluster.
 
   func::function<double, func::dmn_variadic<BandSpinDmn, BandSpinDmn, r_DCA>> H_interaction;
   phys::params::ModelParameters<phys::models::TightBindingModel<Lattice>> params;
@@ -111,6 +115,36 @@ TEST(TriangularLatticeTest, Initialize_H_interaction) {
       for (int s1 = 0; s1 < SpinDmn::dmn_size(); ++s1)
         if (r == origin && s1 != s2)
           EXPECT_DOUBLE_EQ(4., H_interaction(0, s1, 0, s2, r));
+        else
+          EXPECT_DOUBLE_EQ(0., H_interaction(0, s1, 0, s2, r));
+
+  // Check nearest-neighbor opposite spin interaction.
+  params.set_U(0);
+  params.set_V(2);
+  params.set_V_prime(0);
+
+  Lattice::initialize_H_interaction(H_interaction, params);
+
+  for (int r = 0; r < r_DCA::dmn_size(); ++r)
+    for (int s2 = 0; s2 < SpinDmn::dmn_size(); ++s2)
+      for (int s1 = 0; s1 < SpinDmn::dmn_size(); ++s1)
+        if (std::find(nn_index.begin(), nn_index.end(), r) != nn_index.end() && s1 != s2)
+          EXPECT_DOUBLE_EQ(2., H_interaction(0, s1, 0, s2, r));
+        else
+          EXPECT_DOUBLE_EQ(0., H_interaction(0, s1, 0, s2, r));
+
+  // Check nearest-neighbor same spin interaction.
+  params.set_U(0);
+  params.set_V(0);
+  params.set_V_prime(1);
+
+  Lattice::initialize_H_interaction(H_interaction, params);
+
+  for (int r = 0; r < r_DCA::dmn_size(); ++r)
+    for (int s2 = 0; s2 < SpinDmn::dmn_size(); ++s2)
+      for (int s1 = 0; s1 < SpinDmn::dmn_size(); ++s1)
+        if (std::find(nn_index.begin(), nn_index.end(), r) != nn_index.end() && s1 == s2)
+          EXPECT_DOUBLE_EQ(1., H_interaction(0, s1, 0, s2, r));
         else
           EXPECT_DOUBLE_EQ(0., H_interaction(0, s1, 0, s2, r));
 }

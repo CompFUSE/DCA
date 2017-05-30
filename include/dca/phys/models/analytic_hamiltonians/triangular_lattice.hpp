@@ -18,6 +18,7 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/phys/domains/cluster/cluster_operations.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp"
 #include "dca/util/type_list.hpp"
 
@@ -113,23 +114,52 @@ void triangular_lattice<point_group_type>::initialize_H_interaction(
 
   const int origin = RDmn::parameter_type::origin_index();
 
+  const std::vector<typename RDmn::parameter_type::element_type>& basis =
+      RDmn::parameter_type::get_basis_vectors();
+  const std::vector<typename RDmn::parameter_type::element_type>& super_basis =
+      RDmn::parameter_type::get_super_basis_vectors();
+  const std::vector<typename RDmn::parameter_type::element_type>& elements =
+      RDmn::parameter_type::get_elements();
+
+  assert(basis.size() == 2);
+
+  // Compute indices of nearest neighbors (nn) w.r.t. origin.
+  // There are three different nearest neighbor pairs: along the basis vector a1, along the basis
+  // vector a2, and along their sum a1+a2.
+  std::vector<typename RDmn::parameter_type::element_type> nn_vec(3);
+  nn_vec[0] = basis[0];
+  nn_vec[1] = basis[1];
+  nn_vec[2] = basis[0];
+  nn_vec[2][0] += basis[1][0];
+  nn_vec[2][1] += basis[1][1];
+
+  std::vector<int> nn_index;
+  for (const auto& vec : nn_vec) {
+    std::vector<double> nn_vec_translated =
+        domains::cluster_operations::translate_inside_cluster(vec, super_basis);
+    nn_index.push_back(
+        domains::cluster_operations::index(nn_vec_translated, elements, domains::BRILLOUIN_ZONE));
+  }
+
   H_interaction = 0.;
 
   // Nearest-neighbor opposite spin interaction
   const double V = parameters.get_V();
-  if (V != 0.)
-    throw std::logic_error(
-        "Nearest-neighbor interaction is not implemented for the triangular lattice.");
+  for (auto index : nn_index) {
+    H_interaction(0, 0, 0, 1, index) = V;
+    H_interaction(0, 1, 0, 0, index) = V;
+  }
 
   // Nearest-neighbor same spin interaction
   const double V_prime = parameters.get_V_prime();
-  if (V_prime != 0.)
-    throw std::logic_error(
-        "Nearest-neighbor interaction is not implemented for the triangular lattice.");
+  for (auto index : nn_index) {
+    H_interaction(0, 0, 0, 0, index) = V_prime;
+    H_interaction(0, 1, 0, 1, index) = V_prime;
+  }
 
   // On-site interaction
-  // If nearest-neighor interaction is turned on, on-site interaction has to be set last since for
-  // small clusters a nearest neighbor might be the same site and therefore V would overwrite U.
+  // This has to be set last since for small clusters a nearest neighbor might
+  // be the same site and therefore V would overwrite U.
   const double U = parameters.get_U();
   H_interaction(0, 0, 0, 1, origin) = U;
   H_interaction(0, 1, 0, 0, origin) = U;
