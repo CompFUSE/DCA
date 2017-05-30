@@ -132,29 +132,32 @@ void square_lattice<point_group_type>::initialize_H_interaction(
 
   assert(basis.size() == 2);
 
-  // Compute indices of nearest neighbours w.r.t. origin.
-  std::vector<int> nn_index(2);  // There are two different nearest neighbour pairs.
-  for (int d = 0; d < 2; ++d) {
-    std::vector<double> basis_vec =
-        domains::cluster_operations::translate_inside_cluster(basis[d], super_basis);
-    nn_index[d] = domains::cluster_operations::index(basis_vec, elements, domains::BRILLOUIN_ZONE);
+  // Compute indices of nearest neighbors (nn) w.r.t. origin.
+  // There are two different nearest neighbor pairs: along the basis vector a1 and along the basis
+  // vector a2.
+  std::vector<int> nn_index;
+  for (const auto& vec : basis) {
+    std::vector<double> basis_vec_translated =
+        domains::cluster_operations::translate_inside_cluster(vec, super_basis);
+    nn_index.push_back(domains::cluster_operations::index(basis_vec_translated, elements,
+                                                          domains::BRILLOUIN_ZONE));
   }
 
   H_interaction = 0.;
 
   // Nearest-neighbor opposite spin interaction
   const double V = parameters.get_V();
-  H_interaction(0, 0, 0, 1, nn_index[0]) = V;
-  H_interaction(0, 1, 0, 0, nn_index[0]) = V;
-  H_interaction(0, 0, 0, 1, nn_index[1]) = V;
-  H_interaction(0, 1, 0, 0, nn_index[1]) = V;
+  for (auto index : nn_index) {
+    H_interaction(0, 0, 0, 1, index) = V;
+    H_interaction(0, 1, 0, 0, index) = V;
+  }
 
   // Nearest-neighbor same spin interaction
   const double V_prime = parameters.get_V_prime();
-  H_interaction(0, 0, 0, 0, nn_index[0]) = V_prime;
-  H_interaction(0, 1, 0, 1, nn_index[0]) = V_prime;
-  H_interaction(0, 0, 0, 0, nn_index[1]) = V_prime;
-  H_interaction(0, 1, 0, 1, nn_index[1]) = V_prime;
+  for (auto index : nn_index) {
+    H_interaction(0, 0, 0, 0, index) = V_prime;
+    H_interaction(0, 1, 0, 1, index) = V_prime;
+  }
 
   // On-site interaction
   // This has to be set last since for small clusters a nearest neighbor might
