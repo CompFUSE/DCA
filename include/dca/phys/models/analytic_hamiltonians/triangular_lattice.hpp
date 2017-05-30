@@ -6,6 +6,7 @@
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
+//         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // Triangular lattice.
 
@@ -18,9 +19,8 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
-#include "dca/phys/domains/cluster/cluster_operations.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp"
-#include "dca/util/type_list.hpp"
+#include "dca/phys/models/analytic_hamiltonians/util.hpp"
 
 namespace dca {
 namespace phys {
@@ -42,7 +42,7 @@ public:
   static std::vector<int> get_flavors();
   static std::vector<std::vector<double>> get_a_vectors();
 
-  // Initializes the interaction Hamiltonian in real space.
+  // Initializes the interaction part of the real space Hubbard Hamiltonian.
   template <typename BandDmn, typename SpinDmn, typename RDmn, typename parameters_type>
   static void initialize_H_interaction(
       func::function<double, func::dmn_variadic<func::dmn_variadic<BandDmn, SpinDmn>,
@@ -65,10 +65,10 @@ template <typename DCA_point_group_type>
 double* triangular_lattice<DCA_point_group_type>::initialize_r_DCA_basis() {
   static double* r_DCA = new double[4];
 
-  r_DCA[0] = cos(M_PI / 3.);
-  r_DCA[1] = sin(M_PI / 3.);
-  r_DCA[2] = cos(-M_PI / 3.);
-  r_DCA[3] = sin(-M_PI / 3.);
+  r_DCA[0] = std::cos(M_PI / 3.);
+  r_DCA[1] = std::sin(M_PI / 3.);
+  r_DCA[2] = std::cos(-M_PI / 3.);
+  r_DCA[3] = std::sin(-M_PI / 3.);
 
   return r_DCA;
 }
@@ -77,10 +77,10 @@ template <typename DCA_point_group_type>
 double* triangular_lattice<DCA_point_group_type>::initialize_r_LDA_basis() {
   static double* r_LDA = new double[4];
 
-  r_LDA[0] = cos(M_PI / 3.);
-  r_LDA[1] = sin(M_PI / 3.);
-  r_LDA[2] = cos(-M_PI / 3.);
-  r_LDA[3] = sin(-M_PI / 3.);
+  r_LDA[0] = std::cos(M_PI / 3.);
+  r_LDA[1] = std::sin(M_PI / 3.);
+  r_LDA[2] = std::cos(-M_PI / 3.);
+  r_LDA[3] = std::sin(-M_PI / 3.);
 
   return r_LDA;
 }
@@ -112,20 +112,13 @@ void triangular_lattice<point_group_type>::initialize_H_interaction(
   if (SpinDmn::dmn_size() != 2)
     throw std::logic_error("Spin domain size must be 2.");
 
-  const int origin = RDmn::parameter_type::origin_index();
-
   const std::vector<typename RDmn::parameter_type::element_type>& basis =
       RDmn::parameter_type::get_basis_vectors();
-  const std::vector<typename RDmn::parameter_type::element_type>& super_basis =
-      RDmn::parameter_type::get_super_basis_vectors();
-  const std::vector<typename RDmn::parameter_type::element_type>& elements =
-      RDmn::parameter_type::get_elements();
 
   assert(basis.size() == 2);
 
-  // Compute indices of nearest neighbors (nn) w.r.t. origin.
-  // There are three different nearest neighbor pairs: along the basis vector a1, along the basis
-  // vector a2, and along their sum a1+a2.
+  // There are three different nearest neighbor (nn) pairs: along the basis vector a1, along the
+  // basis vector a2, and along their sum a1+a2.
   std::vector<typename RDmn::parameter_type::element_type> nn_vec(3);
   nn_vec[0] = basis[0];
   nn_vec[1] = basis[1];
@@ -133,36 +126,7 @@ void triangular_lattice<point_group_type>::initialize_H_interaction(
   nn_vec[2][0] += basis[1][0];
   nn_vec[2][1] += basis[1][1];
 
-  std::vector<int> nn_index;
-  for (const auto& vec : nn_vec) {
-    std::vector<double> nn_vec_translated =
-        domains::cluster_operations::translate_inside_cluster(vec, super_basis);
-    nn_index.push_back(
-        domains::cluster_operations::index(nn_vec_translated, elements, domains::BRILLOUIN_ZONE));
-  }
-
-  H_interaction = 0.;
-
-  // Nearest-neighbor opposite spin interaction
-  const double V = parameters.get_V();
-  for (auto index : nn_index) {
-    H_interaction(0, 0, 0, 1, index) = V;
-    H_interaction(0, 1, 0, 0, index) = V;
-  }
-
-  // Nearest-neighbor same spin interaction
-  const double V_prime = parameters.get_V_prime();
-  for (auto index : nn_index) {
-    H_interaction(0, 0, 0, 0, index) = V_prime;
-    H_interaction(0, 1, 0, 1, index) = V_prime;
-  }
-
-  // On-site interaction
-  // This has to be set last since for small clusters a nearest neighbor might
-  // be the same site and therefore V would overwrite U.
-  const double U = parameters.get_U();
-  H_interaction(0, 0, 0, 1, origin) = U;
-  H_interaction(0, 1, 0, 0, origin) = U;
+  util::initializeSingleBandHint(parameters, nn_vec, H_interaction);
 }
 
 template <typename DCA_point_group_type>
