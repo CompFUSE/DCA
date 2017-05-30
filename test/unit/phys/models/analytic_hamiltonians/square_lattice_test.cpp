@@ -89,33 +89,13 @@ TEST(SquareLatticeTest, Initialize_H_interaction) {
   phys::domains::cluster_domain_initializer<r_DCA>::execute(Lattice::initialize_r_DCA_basis(),
                                                             DCA_cluster);
 
-  // Get index of origin and check it.
-  const int origin = r_DCA_ClusterType::origin_index();
-  ASSERT_DOUBLE_EQ(0., r_DCA::get_elements()[origin][0]);
-  ASSERT_DOUBLE_EQ(0., r_DCA::get_elements()[origin][1]);
+  // Index of the origin (0,0).
+  const int origin = 2;
 
-  std::vector<typename r_DCA_ClusterType::element_type>& basis =
-      r_DCA_ClusterType::get_basis_vectors();
-  std::vector<typename r_DCA_ClusterType::element_type>& super_basis =
-      r_DCA_ClusterType::get_super_basis_vectors();
-  std::vector<typename r_DCA_ClusterType::element_type>& elements = r_DCA_ClusterType::get_elements();
-
-  // Check that the super_basis is equal to the input (DCA_cluster).
-  ASSERT_EQ(-2., super_basis[0][0]);
-  ASSERT_EQ(0., super_basis[0][1]);
-  ASSERT_EQ(0., super_basis[1][0]);
-  ASSERT_EQ(2., super_basis[1][1]);
-
-  ASSERT_EQ(2, basis.size());
-
-  // Compute indices of nearest neighbours w.r.t. origin.
-  std::vector<int> nn_index(2);  // There are two different nearest neighbour pairs.
-  for (int d = 0; d < 2; ++d) {
-    std::vector<double> basis_vec =
-        phys::domains::cluster_operations::translate_inside_cluster(basis[d], super_basis);
-    nn_index[d] =
-        phys::domains::cluster_operations::index(basis_vec, elements, phys::domains::BRILLOUIN_ZONE);
-  }
+  // Indices of nearest neighbors. There are two different nearest neighbor pairs.
+  std::vector<int> nn_index(2);
+  nn_index[0] = 0;  // Index of basis vector a1 translated inside the cluster.
+  nn_index[1] = 3;  // Index of basis vector a2 translated inside the cluster.
 
   func::function<double, func::dmn_variadic<BandSpinDmn, BandSpinDmn, r_DCA>> H_interaction;
   phys::params::ModelParameters<phys::models::TightBindingModel<Lattice>> params;
