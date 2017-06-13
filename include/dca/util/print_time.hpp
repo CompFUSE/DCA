@@ -9,7 +9,7 @@
 //         Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// This file provides a function that prints the current time.
+// This file provides functions to print the current time.
 
 #ifndef DCA_UTIL_PRINT_TIME_HPP
 #define DCA_UTIL_PRINT_TIME_HPP
@@ -24,10 +24,11 @@ namespace dca {
 namespace util {
 // dca::util::
 
-template <typename clock = std::chrono::system_clock>
-std::string print_time() {
+// Converts the date and time information of 'time_point' to the format dd-mm-yyy hh:mm:ss.
+template <typename Clock = std::chrono::system_clock>
+std::string print_time(const std::chrono::time_point<Clock>& time_point) {
   std::stringstream s;
-  auto now = clock::to_time_t(clock::now());
+  const auto now = Clock::to_time_t(time_point);
 
   // std::put_time is only available for GCC >= 5.0. We use std:strftime instead.
   // Reference:
@@ -37,6 +38,12 @@ std::string print_time() {
     s << buffer;
 
   return s.str();
+}
+
+// Returns a string of the current time in the format dd-mm-yyy hh:mm:ss.
+template <typename Clock = std::chrono::system_clock>
+std::string print_time() {
+  return print_time(Clock::now());
 }
 
 }  // util
