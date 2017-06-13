@@ -124,7 +124,7 @@ TEST_F(ComputeFreeGreensFunctionTest, SquareLattice) {
     EXPECT_DOUBLE_EQ(0., G0_k_w(0, 0, 1, wn).real());
   }
 
-  // Check some values.
+  // Check some system specific values of G0.
   EXPECT_DOUBLE_EQ(0.15462161453970907, G0_k_w(0, 0, 0, 1).real());
   EXPECT_DOUBLE_EQ(0.12143953208103569, G0_k_w(0, 0, 0, 1).imag());
   EXPECT_DOUBLE_EQ(0., G0_k_w(0, 0, 1, 0).real());
@@ -174,7 +174,7 @@ TEST_F(ComputeFreeGreensFunctionTest, SquareLattice) {
   // Check that G_0(\vec{0, \pi}, \tau<0) = const.
   EXPECT_DOUBLE_EQ(G0_k_t(0, 0, 1, 0), G0_k_t(0, 0, 1, 1));
 
-  // Check some values
+  // Check some system specific values of G0.
   EXPECT_DOUBLE_EQ(0.13290111441703986, G0_k_t(0, 0, 0, 1));
   EXPECT_DOUBLE_EQ(0.5, G0_k_t(0, 0, 1, 0));
   EXPECT_DOUBLE_EQ(-0.5, G0_k_t(0, 0, 2, 2));
@@ -254,7 +254,7 @@ TEST_F(ComputeFreeGreensFunctionTest, BilayerLattice) {
     }
   }
 
-  // Check some values.
+  // Check some system specific values of G0.
   EXPECT_DOUBLE_EQ(0.009714500128141767, G0_k_w(0, 0, 0, 0, 0, 0).real());
   EXPECT_DOUBLE_EQ(0.104025451807396321, G0_k_w(0, 0, 0, 0, 0, 0).imag());
   EXPECT_DOUBLE_EQ(0.065415914352591892, G0_k_w(0, 0, 0, 0, 0, 2).real());
@@ -309,7 +309,7 @@ TEST_F(ComputeFreeGreensFunctionTest, BilayerLattice) {
     }
   }
 
-  // Check some values
+  // Check some system specific values of G0.
   EXPECT_DOUBLE_EQ(0.32754383092096884, G0_k_t(0, 0, 0, 0, 0, 0));
   EXPECT_DOUBLE_EQ(-0.417899194649848038, G0_k_t(0, 0, 0, 0, 0, 3));
 
