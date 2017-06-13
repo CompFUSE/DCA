@@ -13,9 +13,13 @@
 #include <thread>
 #include "gtest/gtest.h"
 
-TEST(TimerTest, SimpleTest) {
+TEST(TimerTest, PrintingThread) {
   dca::util::Timer timer("sleep-for-1ms");
 
   using namespace std::chrono_literals;
   std::this_thread::sleep_for(1ms);
+}
+
+TEST(TimerTest, SilentThread) {
+  dca::util::Timer timer("sleep-for-1ms", false);
 }

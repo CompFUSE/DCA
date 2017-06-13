@@ -21,14 +21,21 @@ namespace util {
 
 class Timer {
 public:
-  // Prints the current time.
-  Timer(const std::string& name);
+  // Prints the current time, if output = true.
+  // Does nothing otherwise.
+  Timer(const std::string& name, bool output = true);
 
-  // Prints the current time and the time passed since construction.
+  Timer(const Timer&) = delete;
+  Timer& operator=(const Timer&) = delete;
+
+  // Prints the current time and the time passed since construction, if the timer was constructed
+  // with output = true.
+  // Does nothing otherwise.
   ~Timer();
 
 private:
   const std::string name_;
+  const bool output_;
   const std::chrono::time_point<std::chrono::system_clock> start_;
 };
 

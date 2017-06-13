@@ -21,18 +21,22 @@ namespace dca {
 namespace util {
 // dca::util::
 
-Timer::Timer(const std::string& name) : name_(name), start_(std::chrono::system_clock::now()) {
-  std::cout << name_ << " start:    " << print_time(start_) << std::endl;
+Timer::Timer(const std::string& name, const bool output)
+    : name_(name), output_(output), start_(std::chrono::system_clock::now()) {
+  if (output_)
+    std::cout << name_ << " start:    " << print_time(start_) << std::endl;
 }
 
 Timer::~Timer() {
-  const auto end(std::chrono::system_clock::now());
-  const std::chrono::duration<double> elapsed_seconds(end - start_);
+  if (output_) {
+    const auto end(std::chrono::system_clock::now());
+    const std::chrono::duration<double> elapsed_seconds(end - start_);
 
-  std::cout << name_ << " end:      " << print_time(end) << "\n"
-            << name_ << " duration: " << elapsed_seconds.count() << " s"
-            << "\n"
-            << std::endl;
+    std::cout << name_ << " end:      " << print_time(end) << "\n"
+              << name_ << " duration: " << elapsed_seconds.count() << " s"
+              << "\n"
+              << std::endl;
+  }
 }
 
 }  // util
