@@ -45,7 +45,7 @@
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
 #include "dca/phys/four_point_type.hpp"
-#include "dca/util/print_time.hpp"
+#include "dca/util/timer.hpp"
 
 namespace dca {
 namespace phys {
@@ -412,8 +412,7 @@ void DcaData<parameters_type>::initialize() {
 
 template <class parameters_type>
 void DcaData<parameters_type>::initialize_H_0_and_H_i() {
-  if (concurrency.id() == concurrency.first())
-    std::cout << "\n\n\t initialize H_0(k) and H_i " << dca::util::print_time() << "\n";
+  util::Timer("H_0 and H_int initialization", concurrency.id() == concurrency.first());
 
   parameters_type::model_type::initialize_H_0(parameters, H_DCA);
   parameters_type::model_type::initialize_H_0(parameters, H_HOST);
@@ -422,17 +421,13 @@ void DcaData<parameters_type>::initialize_H_0_and_H_i() {
   parameters_type::model_type::initialize_H_symmetries(H_symmetry);
 
   compute_band_structure::execute(parameters, band_structure);
-
-  if (concurrency.id() == concurrency.first())
-    std::cout << "\t finished H_0(k) and H_i " << dca::util::print_time() << "\n";
 }
 
 template <class parameters_type>
 void DcaData<parameters_type>::initialize_G0() {
   profiler_type prof(__FUNCTION__, "DcaData", __LINE__);
 
-  if (concurrency.id() == concurrency.first())
-    std::cout << "\nInitialize G0's: " << dca::util::print_time() << std::endl;
+  util::Timer("G_0 initialization", concurrency.id() == concurrency.first());
 
   // Compute G0_k_w.
   compute_G0_k_w(H_DCA, parameters.get_chemical_potential(), G0_k_w);
@@ -449,9 +444,6 @@ void DcaData<parameters_type>::initialize_G0() {
   // Compute G0_r_t.
   math::transform::FunctionTransform<k_DCA, r_DCA>::execute(G0_k_t, G0_r_t);
   symmetrize::execute(G0_r_t, H_symmetry, true);
-
-  if (concurrency.id() == concurrency.first())
-    std::cout << "Finished: " << dca::util::print_time() << std::endl;
 }
 
 template <class parameters_type>
