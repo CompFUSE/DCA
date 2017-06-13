@@ -10,12 +10,8 @@
 // This file implements timer.hpp.
 
 #include "dca/util/timer.hpp"
-
 #include "dca/util/print_time.hpp"
-
-#include <ctime>
 #include <iostream>
-#include <sstream>
 
 namespace dca {
 namespace util {
