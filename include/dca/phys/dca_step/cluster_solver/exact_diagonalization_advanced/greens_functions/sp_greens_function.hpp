@@ -189,10 +189,10 @@ private:
   func::function<vector_type, fermionic_Fock_dmn_type>& eigen_energies;
   func::function<matrix_type, fermionic_Fock_dmn_type>& eigen_states;
 
-  func::function<int, func::dmn_variadic<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type,
-                                         b_s_r_dmn_type>>& creation_set_all;
-  func::function<int, func::dmn_variadic<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type,
-                                         b_s_r_dmn_type>>& annihilation_set_all;
+  func::function<int, func::dmn_variadic<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type, b_s_r_dmn_type>>&
+      creation_set_all;
+  func::function<int, func::dmn_variadic<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type, b_s_r_dmn_type>>&
+      annihilation_set_all;
 
   func::function<int, func::dmn_variadic<r_dmn, r_dmn>> rj_minus_ri;
 
@@ -279,11 +279,12 @@ void SpGreensFunction<parameter_type, ed_options>::compute_S_k_w(
     }
   }
 
+  // Print out the low Matsubara frequency values of the self-energy.
   if (concurrency.id() == concurrency.first()) {
-    int N = 8;
+    int freqs = std::min(8, w_dmn::dmn_size() / 2);
 
     std::cout << "\n\t Sigma\n\n";
-    for (int w_i = w_dmn::dmn_size() / 2 - N; w_i < w_dmn::dmn_size() / 2 + N; w_i++) {
+    for (int w_i = w_dmn::dmn_size() / 2 - freqs; w_i < w_dmn::dmn_size() / 2 + freqs; w_i++) {
       std::cout << w_dmn::get_elements()[w_i] << "\t";
       for (int k_i = 0; k_i < k_dmn::dmn_size(); k_i++)
         std::cout << real(S_k_w(0, 0, 0, 0, k_i, w_i)) << "\t" << imag(S_k_w(0, 0, 0, 0, k_i, w_i))
