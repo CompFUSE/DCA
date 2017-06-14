@@ -23,6 +23,7 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/linalg/matrixop.hpp"
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/basis_states/psi_state.hpp"
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/basis_states/phi_fermionic_operators.hpp"
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/fock_space.hpp"
@@ -128,11 +129,11 @@ public:
   Hamiltonian(parameter_type& parameters_ref);
 
   void initialize(
-      func::function<std::complex<double>,
-                     func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
-                                        func::dmn_variadic<b_dmn, s_dmn>, r_dmn>>& H_0,
-      func::function<double, func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
-                                                func::dmn_variadic<b_dmn, s_dmn>, r_dmn>>& H_i);
+      /*const*/ func::function<std::complex<double>,
+                               func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
+                                                  func::dmn_variadic<b_dmn, s_dmn>, r_dmn>>& H_0,
+      /*const*/ func::function<double, func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
+                                                          func::dmn_variadic<b_dmn, s_dmn>, r_dmn>>& H_int);
 
   void construct_Hamiltonians(bool interacting);
   void diagonalize_Hamiltonians_st();
@@ -145,6 +146,10 @@ public:
   void print_eigen_energies(const char* filename);
   void print_eigen_states(const char* filename);
 
+  const auto& get_Hamiltonian(int i) /*const*/ {
+    return Hamiltonians(i);
+  }
+
   func::function<vector_type, fermionic_Fock_dmn_type>& get_eigen_energies() {
     return eigen_energies;
   }
@@ -156,11 +161,11 @@ public:
 
 private:
   void initialize_t_ij_and_U_ij(
-      func::function<std::complex<double>,
-                     func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
-                                        func::dmn_variadic<b_dmn, s_dmn>, r_dmn>>& H_0,
-      func::function<double, func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
-                                                func::dmn_variadic<b_dmn, s_dmn>, r_dmn>>& H_i);
+      /*const*/ func::function<std::complex<double>,
+                               func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
+                                                  func::dmn_variadic<b_dmn, s_dmn>, r_dmn>>& H_0,
+      /*const*/ func::function<double, func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
+                                                          func::dmn_variadic<b_dmn, s_dmn>, r_dmn>>& H_int);
 
   void shift_the_energies();
 
@@ -168,9 +173,9 @@ private:
   void add_T_to_Hamiltonian(int N, matrix_type& H, Hilbert_space_type& subspace);
   void add_U_to_Hamiltonian(int N, matrix_type& H, Hilbert_space_type& subspace);
 
-  void add_V_to_Hamiltonian_old(int N, matrix_type& H, Hilbert_space_type& subspace);
-  void add_T_to_Hamiltonian_old(int N, matrix_type& H, Hilbert_space_type& subspace);
-  void add_U_to_Hamiltonian_old(int N, matrix_type& H, Hilbert_space_type& subspace);
+  // void add_V_to_Hamiltonian_old(int N, matrix_type& H, Hilbert_space_type& subspace);
+  // void add_T_to_Hamiltonian_old(int N, matrix_type& H, Hilbert_space_type& subspace);
+  // void add_U_to_Hamiltonian_old(int N, matrix_type& H, Hilbert_space_type& subspace);
 
   bool check_block_structure(int N, matrix_type& H, Hilbert_space_type& subspace);
 
@@ -222,19 +227,21 @@ double Hamiltonian<parameter_type, ed_options>::get_Z() {
 
 template <typename parameter_type, typename ed_options>
 void Hamiltonian<parameter_type, ed_options>::initialize(
-    func::function<std::complex<double>, func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
-                                                            func::dmn_variadic<b_dmn, s_dmn>, r_dmn>>& H_0,
-    func::function<double, func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
-                                              func::dmn_variadic<b_dmn, s_dmn>, r_dmn>>& H_i) {
-  initialize_t_ij_and_U_ij(H_0, H_i);
+    /*const*/ func::function<std::complex<double>,
+                             func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
+                                                func::dmn_variadic<b_dmn, s_dmn>, r_dmn>>& H_0,
+    /*const*/ func::function<double, func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
+                                                        func::dmn_variadic<b_dmn, s_dmn>, r_dmn>>& H_int) {
+  initialize_t_ij_and_U_ij(H_0, H_int);
 }
 
 template <typename parameter_type, typename ed_options>
 void Hamiltonian<parameter_type, ed_options>::initialize_t_ij_and_U_ij(
-    func::function<std::complex<double>, func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
-                                                            func::dmn_variadic<b_dmn, s_dmn>, r_dmn>>& H_0,
-    func::function<double, func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
-                                              func::dmn_variadic<b_dmn, s_dmn>, r_dmn>>& H_i) {
+    /*const*/ func::function<std::complex<double>,
+                             func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
+                                                func::dmn_variadic<b_dmn, s_dmn>, r_dmn>>& H_0,
+    /*const*/ func::function<double, func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
+                                                        func::dmn_variadic<b_dmn, s_dmn>, r_dmn>>& H_int) {
   {
     for (int r_j = 0; r_j < r_dmn::dmn_size(); r_j++) {
       for (int s_j = 0; s_j < s_dmn::dmn_size(); s_j++) {
@@ -267,21 +274,18 @@ void Hamiltonian<parameter_type, ed_options>::initialize_t_ij_and_U_ij(
                 t_obj.lhs = b_i + b_dmn::dmn_size() * (s_i + s_dmn::dmn_size() * r_i);
                 t_obj.rhs = b_j + b_dmn::dmn_size() * (s_j + s_dmn::dmn_size() * r_j);
 
-                if (true)
-                  t_obj.value = real(H_0(b_i, s_i, b_j, s_j, delta_r) / 2.);  // ???: factor 1/2?
-                else
-                  t_obj.value = real(H_0(b_i, s_i, b_j, s_j, delta_r) / 1.);  // ???: factor 1/2?
+                t_obj.value = H_0(b_i, s_i, b_j, s_j, delta_r);
 
                 t_ij.push_back(t_obj);
               }
 
-              if (std::abs(H_i(b_i, s_i, b_j, s_j, delta_r)) > 1.e-3) {
+              if (std::abs(H_int(b_i, s_i, b_j, s_j, delta_r)) > 1.e-3) {
                 detail::U_struct<complex_type> U_obj;
 
                 U_obj.lhs = b_i + b_dmn::dmn_size() * (s_i + s_dmn::dmn_size() * r_i);
                 U_obj.rhs = b_j + b_dmn::dmn_size() * (s_j + s_dmn::dmn_size() * r_j);
 
-                U_obj.value = H_i(b_i, s_i, b_j, s_j, delta_r) / 2.;
+                U_obj.value = H_int(b_i, s_i, b_j, s_j, delta_r) / 2.;
 
                 U_ij.push_back(U_obj);
               }
@@ -300,9 +304,7 @@ void Hamiltonian<parameter_type, ed_options>::construct_Hamiltonians(bool intera
 
   std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
-  if (true) {
-    Hamiltonians.reset();
-  }
+  Hamiltonians.reset();
 
   for (int i = 0; i < Hilbert_spaces.size(); ++i) {
     int N = Hilbert_spaces[i].size();
@@ -320,28 +322,6 @@ void Hamiltonian<parameter_type, ed_options>::construct_Hamiltonians(bool intera
 
     if (interacting)
       add_U_to_Hamiltonian(N, H, subspace);
-  }
-}
-
-template <typename parameter_type, typename ed_options>
-void Hamiltonian<parameter_type, ed_options>::add_V_to_Hamiltonian_old(int N, matrix_type& H,
-                                                                       Hilbert_space_type& subspace) {
-  for (int state_f = 0; state_f < N; ++state_f) {
-    psi_state_type& Psi_f = subspace.get_element(state_f);
-    for (int state_i = 0; state_i < N; ++state_i) {
-      psi_state_type& Psi_i = subspace.get_element(state_i);
-
-      for (int k_f = 0; k_f < Psi_f.size(); ++k_f) {
-        for (int k_i = 0; k_i < Psi_i.size(); ++k_i) {
-          if (Psi_f.phis[k_f] == Psi_i.phis[k_i]) {
-            for (size_t l = 0; l < V_i.size(); ++l) {
-              H(state_f, state_i) += V_i[l].value * conj(Psi_f.coefficients[k_f]) *
-                                     Psi_i.coefficients[k_i] * (1. * Psi_i.phis[k_i][V_i[l].index]);
-            }
-          }
-        }
-      }
-    }
   }
 }
 
@@ -365,50 +345,6 @@ void Hamiltonian<parameter_type, ed_options>::add_V_to_Hamiltonian(int /*N*/, ma
         for (int c = 0; c < column_index.size(); ++c) {
           for (int r = 0; r < row_index.size(); ++r) {
             H(row_index[r], column_index[c]) += conj(row_alpha[r]) * column_alpha[c] * V_i[l].value;
-          }
-        }
-      }
-    }
-  }
-}
-
-template <typename parameter_type, typename ed_options>
-void Hamiltonian<parameter_type, ed_options>::add_T_to_Hamiltonian_old(int N, matrix_type& H,
-                                                                       Hilbert_space_type& subspace) {
-  for (int state_f = 0; state_f < N; ++state_f) {
-    psi_state_type& Psi_f = subspace.get_element(state_f);
-    for (int state_i = 0; state_i < N; ++state_i) {
-      psi_state_type& Psi_i = subspace.get_element(state_i);
-
-      for (int k_f = 0; k_f < Psi_f.size(); ++k_f) {
-        for (int k_i = 0; k_i < Psi_i.size(); ++k_i) {
-          if (possible_hopping(Psi_i.phis[k_i], Psi_f.phis[k_f])) {
-            for (size_t l = 0; l < t_ij.size(); l++) {
-              if (Psi_i.phis[k_i][t_ij[l].rhs] == 1 and Psi_i.phis[k_i][t_ij[l].lhs] == 0 and
-                  Psi_f.phis[k_f][t_ij[l].rhs] == 0 and Psi_f.phis[k_f][t_ij[l].lhs] == 1) {
-                scalar_type phase = 1.;
-                phi_type phi_new = Psi_i.phis[k_i];
-
-                {
-                  for (int d = 0; d < t_ij[l].rhs; d++)
-                    if (phi_new[d] == 1)
-                      phase *= scalar_type(-1.);
-
-                  phi_new[t_ij[l].rhs] = 0;
-                }
-
-                {
-                  for (int d = 0; d < t_ij[l].lhs; d++)
-                    if (phi_new[d] == 1)
-                      phase *= scalar_type(-1.);
-
-                  phi_new[t_ij[l].lhs] = 1;
-                }
-
-                H(state_f, state_i) +=
-                    phase * conj(Psi_f.coefficients[k_f]) * Psi_i.coefficients[k_i] * t_ij[l].value;
-              }
-            }
           }
         }
       }
@@ -444,33 +380,6 @@ void Hamiltonian<parameter_type, ed_options>::add_T_to_Hamiltonian(int /*N*/, ma
             }
           }
         }
-      }
-    }
-  }
-}
-
-template <typename parameter_type, typename ed_options>
-void Hamiltonian<parameter_type, ed_options>::add_U_to_Hamiltonian_old(int N, matrix_type& H,
-                                                                       Hilbert_space_type& subspace) {
-  for (int state = 0; state < N; ++state) {
-    psi_state_type& Psi = subspace.get_element(state);
-
-    for (int k = 0; k < Psi.size(); ++k) {
-      for (int l = 0; l < U_ij.size(); ++l) {
-        H(state, state) +=
-            U_ij[l].value / scalar_type(4.) * conj(Psi.coefficients[k]) * Psi.coefficients[k];
-
-        if (abs(Psi.phis[k][U_ij[l].lhs] - scalar_type(1.)) < 1.e-3)
-          H(state, state) -=
-              U_ij[l].value / scalar_type(2.) * conj(Psi.coefficients[k]) * Psi.coefficients[k];
-
-        if (abs(Psi.phis[k][U_ij[l].rhs] - scalar_type(1.)) < 1.e-3)
-          H(state, state) -=
-              U_ij[l].value / scalar_type(2.) * conj(Psi.coefficients[k]) * Psi.coefficients[k];
-
-        if (abs(Psi.phis[k][U_ij[l].lhs] - scalar_type(1.)) < 1.e-3 and
-            abs(Psi.phis[k][U_ij[l].rhs] - scalar_type(1.)) < 1.e-3)
-          H(state, state) += U_ij[l].value * conj(Psi.coefficients[k]) * Psi.coefficients[k];
       }
     }
   }
@@ -571,6 +480,106 @@ void Hamiltonian<parameter_type, ed_options>::add_U_to_Hamiltonian(int N, matrix
   for (int state = 0; state < N; ++state)
     H(state, state) += U_ij_sum;
 }
+
+// Simple reference implementations
+//
+// template <typename parameter_type, typename ed_options>
+// void Hamiltonian<parameter_type, ed_options>::add_V_to_Hamiltonian_old(int N, matrix_type& H,
+//                                                                        Hilbert_space_type&
+//                                                                        subspace) {
+//   for (int state_f = 0; state_f < N; ++state_f) {
+//     psi_state_type& Psi_f = subspace.get_element(state_f);
+//     for (int state_i = 0; state_i < N; ++state_i) {
+//       psi_state_type& Psi_i = subspace.get_element(state_i);
+
+//       for (int k_f = 0; k_f < Psi_f.size(); ++k_f) {
+//         for (int k_i = 0; k_i < Psi_i.size(); ++k_i) {
+//           if (Psi_f.phis[k_f] == Psi_i.phis[k_i]) {
+//             for (size_t l = 0; l < V_i.size(); ++l) {
+//               H(state_f, state_i) += V_i[l].value * conj(Psi_f.coefficients[k_f]) *
+//                                      Psi_i.coefficients[k_i] * (1. *
+//                                      Psi_i.phis[k_i][V_i[l].index]);
+//             }
+//           }
+//         }
+//       }
+//     }
+//   }
+// }
+//
+// template <typename parameter_type, typename ed_options>
+// void Hamiltonian<parameter_type, ed_options>::add_T_to_Hamiltonian_old(int N, matrix_type& H,
+//                                                                        Hilbert_space_type&
+//                                                                        subspace) {
+//   for (int state_f = 0; state_f < N; ++state_f) {
+//     psi_state_type& Psi_f = subspace.get_element(state_f);
+//     for (int state_i = 0; state_i < N; ++state_i) {
+//       psi_state_type& Psi_i = subspace.get_element(state_i);
+
+//       for (int k_f = 0; k_f < Psi_f.size(); ++k_f) {
+//         for (int k_i = 0; k_i < Psi_i.size(); ++k_i) {
+//           if (possible_hopping(Psi_i.phis[k_i], Psi_f.phis[k_f])) {
+//             for (size_t l = 0; l < t_ij.size(); l++) {
+//               if (Psi_i.phis[k_i][t_ij[l].rhs] == 1 and Psi_i.phis[k_i][t_ij[l].lhs] == 0 and
+//                   Psi_f.phis[k_f][t_ij[l].rhs] == 0 and Psi_f.phis[k_f][t_ij[l].lhs] == 1) {
+//                 scalar_type phase = 1.;
+//                 phi_type phi_new = Psi_i.phis[k_i];
+
+//                 {
+//                   for (int d = 0; d < t_ij[l].rhs; d++)
+//                     if (phi_new[d] == 1)
+//                       phase *= scalar_type(-1.);
+
+//                   phi_new[t_ij[l].rhs] = 0;
+//                 }
+
+//                 {
+//                   for (int d = 0; d < t_ij[l].lhs; d++)
+//                     if (phi_new[d] == 1)
+//                       phase *= scalar_type(-1.);
+
+//                   phi_new[t_ij[l].lhs] = 1;
+//                 }
+
+//                 H(state_f, state_i) +=
+//                     phase * conj(Psi_f.coefficients[k_f]) * Psi_i.coefficients[k_i] *
+//                     t_ij[l].value;
+//               }
+//             }
+//           }
+//         }
+//       }
+//     }
+//   }
+// }
+//
+// template <typename parameter_type, typename ed_options>
+// void Hamiltonian<parameter_type, ed_options>::add_U_to_Hamiltonian_old(int N, matrix_type& H,
+//                                                                        Hilbert_space_type&
+//                                                                        subspace) {
+//   for (int state = 0; state < N; ++state) {
+//     psi_state_type& Psi = subspace.get_element(state);
+
+//     for (int k = 0; k < Psi.size(); ++k) {
+//       for (int l = 0; l < U_ij.size(); ++l) {
+//         H(state, state) +=
+//             U_ij[l].value / scalar_type(4.) * conj(Psi.coefficients[k]) * Psi.coefficients[k];
+
+//         if (abs(Psi.phis[k][U_ij[l].lhs] - scalar_type(1.)) < 1.e-3)
+//           H(state, state) -=
+//               U_ij[l].value / scalar_type(2.) * conj(Psi.coefficients[k]) * Psi.coefficients[k];
+
+//         if (abs(Psi.phis[k][U_ij[l].rhs] - scalar_type(1.)) < 1.e-3)
+//           H(state, state) -=
+//               U_ij[l].value / scalar_type(2.) * conj(Psi.coefficients[k]) * Psi.coefficients[k];
+
+//         if (abs(Psi.phis[k][U_ij[l].lhs] - scalar_type(1.)) < 1.e-3 and
+//             abs(Psi.phis[k][U_ij[l].rhs] - scalar_type(1.)) < 1.e-3)
+//           H(state, state) += U_ij[l].value * conj(Psi.coefficients[k]) * Psi.coefficients[k];
+//       }
+//     }
+//   }
+// }
 
 template <typename parameter_type, typename ed_options>
 bool Hamiltonian<parameter_type, ed_options>::check_block_structure(int N, matrix_type& H,
