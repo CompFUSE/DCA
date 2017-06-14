@@ -18,3 +18,6 @@ add_custom_target(modules_helper
 
 add_library(modules STATIC ${CMAKE_CURRENT_BINARY_DIR}/modules.cpp)
 add_dependencies(modules modules_helper)
+
+# Timer
+add_library(timer STATIC timer.cpp)

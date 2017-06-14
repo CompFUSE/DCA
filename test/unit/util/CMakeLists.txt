@@ -7,3 +7,4 @@ dca_add_gtest(plot_test
   INCLUDE_DIRS ${GNUPLOT_INTERFACE_INCLUDE_DIR}
   LIBS ${GNUPLOT_INTERFACE_LIBRARY})
 dca_add_gtest(print_time_test GTEST_MAIN)
+dca_add_gtest(timer_test GTEST_MAIN LIBS timer)

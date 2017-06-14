@@ -108,6 +108,7 @@ add_subdirectory(src)
 set(DCA_LIBS
   git_version
   modules
+  timer
   cmake_options
   ctaux
   posix_qmci
