@@ -1,103 +1,88 @@
-
-
-function : test_domain_0a
-*********************************
-# subdomains        : 1
+****************************************
+function: test_domain_0a
+****************************************
+# subdomains: 1
 	dca::func::dmn_0<dca::func::dmn<1, double> >
-size of subdomains  : 
-1	
-memory step         : 
-1	
-# elements          : 1
-# size              : 8e-06 (mega-bytes)
-*********************************
 
+size of subdomains:  1
+# elements: 1
+memory: 7.62939e-06 megabytes
+****************************************
 
-function : test_domain_0b
-*********************************
-# subdomains        : 1
+****************************************
+function: test_domain_0b
+****************************************
+# subdomains: 1
 	dca::func::dmn_0<dca::func::dmn<2, double> >
-size of subdomains  : 
-2	
-memory step         : 
-1	
-# elements          : 2
-# size              : 1.6e-05 (mega-bytes)
-*********************************
 
+size of subdomains:  2
+# elements: 2
+memory: 1.52588e-05 megabytes
+****************************************
 
-function : test_domain_0c
-*********************************
-# subdomains        : 1
+****************************************
+function: test_domain_0c
+****************************************
+# subdomains: 1
 	dca::func::dmn_0<dca::func::dmn<4, double> >
-size of subdomains  : 
-4	
-memory step         : 
-1	
-# elements          : 4
-# size              : 3.2e-05 (mega-bytes)
-*********************************
 
+size of subdomains:  4
+# elements: 4
+memory: 3.05176e-05 megabytes
+****************************************
 
-function : test_domain_0d
-*********************************
-# subdomains        : 1
+****************************************
+function: test_domain_0d
+****************************************
+# subdomains: 1
 	dca::func::dmn_0<dca::func::dmn<8, double> >
-size of subdomains  : 
-8	
-memory step         : 
-1	
-# elements          : 8
-# size              : 6.4e-05 (mega-bytes)
-*********************************
 
+size of subdomains:  8
+# elements: 8
+memory: 6.10352e-05 megabytes
+****************************************
 
-function : test_domain_1d
-*********************************
-# subdomains        : 1
+****************************************
+function: test_domain_1d
+****************************************
+# subdomains: 1
 	dca::func::dmn_0<dca::func::dmn<8, double> >
-size of subdomains  : 
-8	
-memory step         : 
-1	
-# elements          : 8
-# size              : 6.4e-05 (mega-bytes)
-*********************************
 
+size of subdomains:  8
+# elements: 8
+memory: 6.10352e-05 megabytes
+****************************************
 
-function : test_domain_2a
-*********************************
-# subdomains        : 2
+****************************************
+function: test_domain_2a
+****************************************
+# subdomains: 2
 	dca::func::dmn_0<dca::func::dmn<1, double> >
 	dca::func::dmn_0<dca::func::dmn<2, double> >
-size of subdomains  : 
-1	2	
-memory step         : 
-1	1	
-# elements          : 2
-# size              : 1.6e-05 (mega-bytes)
-*********************************
 
+size of subdomains:  1  2
+# elements: 2
+memory: 1.52588e-05 megabytes
+****************************************
 
-function : test_domain_4a
-*********************************
-# subdomains        : 4
+****************************************
+function: test_domain_4a
+****************************************
+# subdomains: 4
 	dca::func::dmn_0<dca::func::dmn<1, double> >
 	dca::func::dmn_0<dca::func::dmn<2, double> >
 	dca::func::dmn_0<dca::func::dmn<4, double> >
 	dca::func::dmn_0<dca::func::dmn<8, double> >
-size of subdomains  : 
-1	2	4	8	
-memory step         : 
-1	1	2	8	
-# elements          : 64
-# size              : 0.000512 (mega-bytes)
-*********************************
 
+size of subdomains:  1  2  4  8
+# elements: 64
+memory: 0.000488281 megabytes
+****************************************
 
-function : test_domain_16
-*********************************
-# subdomains        : 10
+****************************************
+function: test_domain_16
+****************************************
+# subdomains: 10
 	dca::func::dmn_0<dca::func::dmn<1, double> >
 	dca::func::dmn_0<dca::func::dmn<2, double> >
 	dca::func::dmn_0<dca::func::dmn<4, double> >
@@ -108,10 +93,9 @@ function : test_domain_16
 	dca::func::dmn_0<dca::func::dmn<8, double> >
 	dca::func::dmn_0<dca::func::dmn<4, double> >
 	dca::func::dmn_0<dca::func::dmn<8, double> >
-size of subdomains  : 
-1	2	4	8	1	2	4	8	4	8	
-memory step         : 
-1	1	2	8	64	64	128	512	4096	16384	
-# elements          : 131072
-# size              : 1.04858 (mega-bytes)
-*********************************
+
+size of subdomains:  1  2  4  8  1  2  4  8  4  8
+# elements: 131072
+memory: 1 megabytes
+****************************************
+

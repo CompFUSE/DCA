@@ -127,9 +127,10 @@ public:
   template <typename new_scalartype>
   void distribute(int sbdm_index_1, int sbdm_index_2, int* subind, new_scalartype* fnc_vals);
 
-  void print_fingerprint(std::ostream& stream);
-  void print_fingerprint();
-  void print_2_file(const char* file_name);
+  // Prints the function's metadata.
+  void print_fingerprint(std::ostream& stream = std::cout) /*const*/;
+   // Prints the function's elements.
+  void print_elements(std::ostream& stream = std::cout) /*const*/;
 
   template <typename concurrency_t>
   int get_buffer_size(const concurrency_t& concurrency);
@@ -475,33 +476,37 @@ void function<scalartype, domain>::distribute(int sbdm_index_1, int sbdm_index_2
 
 template <typename scalartype, class domain>
 void function<scalartype, domain>::print_fingerprint(std::ostream& stream) {
-  stream << std::endl << std::endl << "function : " << name_ << std::endl;
+  stream << "****************************************";
+  stream << "\nfunction: " << name_;
+  stream << "\n****************************************";
 
-  stream << "*********************************" << std::endl;
-
-  stream << "# subdomains        : " << Nb_sbdms << std::endl;
-
+  stream << "\n# subdomains: " << Nb_sbdms << "\n";
   dca::util::print_type<domain>::print(stream);
 
-  stream << "size of subdomains  : " << std::endl;
+  stream << "\nsize of subdomains:";
   for (int i = 0; i < Nb_sbdms; i++)
-    stream << size_sbdm[i] << "\t";
-  stream << std::endl;
+    stream << "  " << size_sbdm[i];
 
-  stream << "memory step         : " << std::endl;
-  for (int i = 0; i < Nb_sbdms; i++)
-    stream << step_sbdm[i] << "\t";
-  stream << std::endl;
-
-  stream << "# elements          : " << Nb_elements << std::endl;
-  stream << "# size              : " << Nb_elements * sizeof(scalartype) * (1.e-6)
-         << " (mega-bytes)" << std::endl;
-  stream << "*********************************" << std::endl;
+  stream << "\n# elements: " << Nb_elements;
+  stream << "\nmemory: " << Nb_elements * sizeof(scalartype) / (1024. * 1024.) << " megabytes";
+  stream << "\n****************************************\n" << std::endl;
 }
 
 template <typename scalartype, class domain>
-void function<scalartype, domain>::print_fingerprint() {
-  print_fingerprint(std::cout);
+void function<scalartype, domain>::print_elements(std::ostream& stream) /*const*/ {
+  stream << "****************************************";
+  stream << "\nfunction: " << name_;
+  stream << "\n****************************************\n";
+
+  std::vector<int> subind(Nb_sbdms);
+  for (int lindex = 0; lindex < Nb_elements; lindex++) {
+    linind_2_subind(lindex, subind);
+    for (int index : subind)
+      stream << index << "\t";
+    stream << " \t" << fnc_values[lindex] << "\n";
+  }
+
+  stream << "****************************************\n" << std::endl;
 }
 
 template <typename scalartype, class domain>
