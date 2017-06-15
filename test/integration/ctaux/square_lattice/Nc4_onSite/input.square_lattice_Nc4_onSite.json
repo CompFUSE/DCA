@@ -4,7 +4,7 @@
 	"output-format": "HDF5",
 	"filename-ed": "ed.hdf5",
 	"filename-qmc": "qmc.hdf5",
-	"dump-cluster-Greens-function": true
+	"dump-cluster-Greens-functions": true
     },
 
     "physics": {
