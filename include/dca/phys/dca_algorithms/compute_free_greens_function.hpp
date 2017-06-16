@@ -24,12 +24,12 @@ namespace dca {
 namespace phys {
 // dca::phys::
 
-// Computes the free Green's function G_0(\vec{k}, i\omega_n) for a dispersion relation
-// \epsilon_\vec{k} that is a matrix in orbital-spin space.
+// Computes the free Matsubara Green's function G_0(\vec{k}, i\omega_n) from the non-interacting
+// Hamiltonian H_0(\vec{k}).
 template <typename Scalar, typename OrbitalSpinDmn, typename KDmn, typename MatsubaraFreqDmn>
 void compute_G0_k_w(
     /*const*/ func::function<std::complex<Scalar>,
-                             func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn>>& eps_k,
+                             func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn>>& H0_k,
     const Scalar mu,
     func::function<std::complex<Scalar>,
                    func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn, MatsubaraFreqDmn>>& G0_k_w) {
@@ -56,7 +56,7 @@ void compute_G0_k_w(
     g = 0.;
 
     clustermapping::quadrature_integration<KDmn, OrbitalSpinDmn>::quadrature_integration_G_q_w_st(
-        i_omega_n_plus_mu, eps_k, zero, g);
+        i_omega_n_plus_mu, H0_k, zero, g);
 
     for (int k = 0; k < KDmn::dmn_size(); ++k) {
       for (int n = 0; n < OrbitalSpinDmn::dmn_size(); ++n) {
@@ -68,12 +68,12 @@ void compute_G0_k_w(
   }
 }
 
-// Computes the free Green's function G_0(\vec{k}, \tau) for a dispersion relation \epsilon_\vec{k}
-// that is a matrix in orbital-spin space.
+// Computes the free imaginary time Green's function G_0(\vec{k}, \tau) from the non-interacting
+// Hamiltonian H_0(\vec{k}).
 template <typename Scalar, typename OrbitalSpinDmn, typename KDmn, typename ImagTimeDmn>
 void compute_G0_k_t(
     /*const*/ func::function<std::complex<Scalar>,
-                             func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn>>& eps_k,
+                             func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn>>& H0_k,
     const Scalar mu, const Scalar beta,
     func::function<Scalar, func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn, ImagTimeDmn>>& G0_k_t) {
   // Diagonal \mu function.
@@ -100,7 +100,7 @@ void compute_G0_k_t(
     g = 0.;
 
     clustermapping::quadrature_integration<KDmn, OrbitalSpinDmn>::quadrature_integration_G_q_t_st(
-        beta, sign, tau, mu_function, eps_k, g);
+        beta, sign, tau, mu_function, H0_k, g);
 
     for (int k = 0; k < KDmn::dmn_size(); ++k) {
       for (int n = 0; n < OrbitalSpinDmn::dmn_size(); ++n) {

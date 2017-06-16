@@ -48,9 +48,9 @@ TEST(WannierInterpolationTest, TightBindingHamiltonianSquareLattice) {
       phys::domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, phys::domains::CLUSTER,
                                     phys::domains::MOMENTUM_SPACE, phys::domains::BRILLOUIN_ZONE>>;
   // Defined by input parameter "H(k) grid-size".
-  using k_LDA = func::dmn_0<phys::domains::cluster_domain<
-      double, ParametersType::lattice_type::DIMENSION, phys::domains::LATTICE_SP,
-      phys::domains::MOMENTUM_SPACE, phys::domains::PARALLELLEPIPEDUM>>;
+  using k_LDA = func::dmn_0<
+      phys::domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, phys::domains::LATTICE_SP,
+                                    phys::domains::MOMENTUM_SPACE, phys::domains::PARALLELLEPIPEDUM>>;
 
   ConcurrencyType concurrency(0, nullptr);
 
@@ -62,7 +62,7 @@ TEST(WannierInterpolationTest, TightBindingHamiltonianSquareLattice) {
   parameters.update_domains();
 
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA>> H_DCA_interpolated;
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA>> H_DCA_dispersion;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA>> H_DCA_direct;
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_LDA>> H_LDA;
 
   phys::models::square_lattice<PointGroup>::initialize_H_0(parameters, H_LDA);
@@ -70,8 +70,8 @@ TEST(WannierInterpolationTest, TightBindingHamiltonianSquareLattice) {
   // Compute H_DCA by interpolating H_LDA.
   phys::domains::wannier_interpolation<k_LDA, k_DCA>::execute(H_LDA, H_DCA_interpolated);
 
-  // Compute H_DCA directly from the dispersion relation.
-  phys::models::square_lattice<PointGroup>::initialize_H_0(parameters, H_DCA_dispersion);
+  // Directly compute H_DCA.
+  phys::models::square_lattice<PointGroup>::initialize_H_0(parameters, H_DCA_direct);
 
   for (int b1 = 0; b1 < b::dmn_size(); ++b1)
     for (int s1 = 0; s1 < s::dmn_size(); ++s1)
@@ -79,8 +79,8 @@ TEST(WannierInterpolationTest, TightBindingHamiltonianSquareLattice) {
         for (int s2 = 0; s2 < s::dmn_size(); ++s2)
           for (int k = 0; k < k_DCA::dmn_size(); ++k) {
             EXPECT_NEAR(H_DCA_interpolated(b1, s1, b2, s2, k).real(),
-                        H_DCA_dispersion(b1, s1, b2, s2, k).real(), 1.e-13);
+                        H_DCA_direct(b1, s1, b2, s2, k).real(), 1.e-13);
             EXPECT_NEAR(H_DCA_interpolated(b1, s1, b2, s2, k).imag(),
-                        H_DCA_dispersion(b1, s1, b2, s2, k).imag(), 1.e-13);
+                        H_DCA_direct(b1, s1, b2, s2, k).imag(), 1.e-13);
           }
 }

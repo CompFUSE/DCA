@@ -53,7 +53,7 @@ protected:
   static constexpr double beta = 1.;  // inverse temperature
 };
 
-// Test for a square lattice with diagonal dispersion relation.
+// Test for a square lattice with diagonal (in orbital-spin space) non-interacting Hamiltonian H_0.
 TEST_F(ComputeFreeGreensFunctionTest, SquareLattice) {
   using Lattice = phys::models::square_lattice<PointGroup>;
   using OrbitalDmn = func::dmn<1, int>;  // 1 orbital
@@ -181,7 +181,8 @@ TEST_F(ComputeFreeGreensFunctionTest, SquareLattice) {
   EXPECT_DOUBLE_EQ(-0.98201379003790845, G0_k_t(0, 0, 3, 2));
 }
 
-// Test for a bilayer lattice with off-diagonal elements in the dispersion relation.
+// Test for a bilayer lattice with off-diagonal elements (in orbital-spin space) in the
+// non-interacting Hamiltonian H_0.
 TEST_F(ComputeFreeGreensFunctionTest, BilayerLattice) {
   using Lattice = phys::models::bilayer_lattice<PointGroup>;
   using OrbitalDmn = func::dmn<2, int>;  // 2 orbitals
