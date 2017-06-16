@@ -23,6 +23,7 @@ TEST(DcaParametersTest, DefaultValues) {
   EXPECT_EQ(0., pars.get_dca_accuracy());
   EXPECT_EQ(1., pars.get_self_energy_mixing_factor());
   EXPECT_EQ(std::vector<int>{0}, pars.get_interacting_orbitals());
+  EXPECT_FALSE(pars.do_finite_size_qmc());
   EXPECT_EQ(0, pars.get_k_mesh_recursion());
   EXPECT_EQ(0, pars.get_coarsegraining_periods());
   EXPECT_EQ(1, pars.get_quadrature_rule());
@@ -50,6 +51,7 @@ TEST(DcaParametersTest, ReadAll) {
   EXPECT_EQ(1.e-3, pars.get_dca_accuracy());
   EXPECT_EQ(0.5, pars.get_self_energy_mixing_factor());
   EXPECT_EQ(interacting_orbitals_check, pars.get_interacting_orbitals());
+  EXPECT_TRUE(pars.do_finite_size_qmc());
   EXPECT_EQ(3, pars.get_k_mesh_recursion());
   EXPECT_EQ(2, pars.get_coarsegraining_periods());
   EXPECT_EQ(2, pars.get_quadrature_rule());

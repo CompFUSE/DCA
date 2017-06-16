@@ -5,7 +5,9 @@
         "accuracy": 1.e-3,
         "self-energy-mixing-factor": 0.5,
         "interacting-orbitals": [0, 1, 2],
-        	
+
+        "do-finite-size-QMC": true,
+        
 	"coarse-graining": {
 	    "k-mesh-recursion": 3,
 	    "periods": 2,
