@@ -28,6 +28,7 @@
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
+#include "dca/phys/dca_algorithms/compute_greens_function.hpp"
 #include "dca/util/print_time.hpp"
 
 namespace dca {
@@ -226,8 +227,10 @@ void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>:
 
 template <typename parameters_type, typename MOMS_type, typename coarsegraining_type>
 double update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>::compute_density() {
-  // TODO: Add finite-size support.
-  if (parameters.do_dca_plus())
+  if (parameters.do_finite_size_qmc())
+    compute_G_k_w(MOMS.H_DCA, MOMS.Sigma, parameters.get_chemical_potential(), concurrency,
+                  MOMS.G_k_w);
+  else if (parameters.do_dca_plus())
     coarsegraining.compute_G_K_w(MOMS.H_HOST, MOMS.Sigma_lattice, MOMS.G_k_w);
   else
     coarsegraining.compute_G_K_w(MOMS.H_HOST, MOMS.Sigma, MOMS.G_k_w);

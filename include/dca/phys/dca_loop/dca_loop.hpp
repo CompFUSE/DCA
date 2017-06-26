@@ -21,6 +21,7 @@
 #include "dca/function/domains.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_writer.hpp"
+#include "dca/phys/dca_algorithms/compute_greens_function.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
 #include "dca/phys/dca_step/cluster_mapping/cluster_exclusion.hpp"
 #include "dca/phys/dca_step/cluster_mapping/coarsegraining/coarsegraining_sp.hpp"
@@ -251,8 +252,14 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::perform_cluster_map
 
   profiler_type profiler("coarsegrain-Greens-function", "DCA", __LINE__);
 
-  if (parameters.do_dca_plus())
+  // Finite-size QMC
+  if (parameters.do_finite_size_qmc())
+    compute_G_k_w(MOMS.H_DCA, MOMS.Sigma, parameters.get_chemical_potential(), concurrency,
+                  MOMS.G_k_w);
+  // DCA+
+  else if (parameters.do_dca_plus())
     cluster_mapping_obj.compute_G_K_w(MOMS.H_HOST, MOMS.Sigma_lattice, MOMS.G_k_w);
+  // Standard DCA
   else
     cluster_mapping_obj.compute_G_K_w(MOMS.H_HOST, MOMS.Sigma, MOMS.G_k_w);
 

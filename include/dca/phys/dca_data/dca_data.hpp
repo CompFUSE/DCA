@@ -353,9 +353,8 @@ void DcaData<parameters_type>::write(Writer& writer) {
     writer.execute(G_k);
   }
 
-  if (!parameters.do_dca_plus()) {  // Compute Sigma-r-DCA for the lowest frequency
-                                    // via Fourier transformation of DCA cluster
-                                    // Sigma.
+  else {
+    // Compute Sigma-r-DCA for the lowest frequency via Fourier transformation of DCA cluster Sigma.
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA>> S_r_DCA("Sigma-r-DCA");
 
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA>> S_k_DCA("Sigma-k-DCA");

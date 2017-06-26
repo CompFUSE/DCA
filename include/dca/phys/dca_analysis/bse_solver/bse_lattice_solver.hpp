@@ -295,6 +295,7 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::initialize() {
   }
 }
 
+// TODO: Add finite-size support?
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
 void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::computeChi0Lattice() {
   profiler_type prof(__FUNCTION__, "BseLatticeSolver", __LINE__);
