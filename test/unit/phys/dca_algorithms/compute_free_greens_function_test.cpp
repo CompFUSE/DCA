@@ -19,9 +19,11 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 #include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
+#include "dca/phys/models/tight_binding_model.hpp"
 #include "dca/phys/parameters/model_parameters.hpp"
 
 using namespace dca;
@@ -32,6 +34,8 @@ protected:
   using SpinDmn = func::dmn<2, int>;
   using MatsubaraFreqDmn = func::dmn<4, double>;  // Matsubara frequency domain with 4 elements.
   using ImagTimeDmn = func::dmn<5, double>;       // Imaginary time domain with 5 elements.
+
+  ComputeFreeGreensFunctionTest() : concurrency_(0, nullptr) {}
 
   static void SetUpTestCase() {
     std::vector<double> freqs(4);
@@ -51,17 +55,20 @@ protected:
   }
 
   static constexpr double beta = 1.;  // inverse temperature
+
+  const parallel::NoConcurrency concurrency_;
 };
 
-// Test for a square lattice with diagonal (in orbital-spin space) non-interacting Hamiltonian H_0.
+// Test for a 2x2 square lattice with diagonal (in orbital-spin space) non-interacting Hamiltonian
+// H_0.
 TEST_F(ComputeFreeGreensFunctionTest, SquareLattice) {
   using Lattice = phys::models::square_lattice<PointGroup>;
   using OrbitalDmn = func::dmn<1, int>;  // 1 orbital
   using OrbitalSpinDmn = func::dmn_variadic<func::dmn_0<OrbitalDmn>, func::dmn_0<SpinDmn>>;
 
-  // Momentum space domain for 2x2 square-lattice
+  // Momentum space domain of the 2x2 square lattice
   using KDmn = func::dmn<4, std::vector<double>>;
-  std::vector<std::vector<double>> k_vecs{{0., 0.}, {0., M_PI}, {M_PI, 0.}, {M_PI, M_PI}};
+  const std::vector<std::vector<double>> k_vecs{{0., 0.}, {0., M_PI}, {M_PI, 0.}, {M_PI, M_PI}};
   KDmn::set_elements(k_vecs);
 
   phys::params::ModelParameters<phys::models::TightBindingModel<Lattice>> params;
@@ -70,7 +77,6 @@ TEST_F(ComputeFreeGreensFunctionTest, SquareLattice) {
   func::function<std::complex<double>,
                  func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, func::dmn_0<KDmn>>>
       H_0;
-
   Lattice::initialize_H_0(params, H_0);
 
   const double mu = 0.;  // chemical potential
@@ -82,7 +88,7 @@ TEST_F(ComputeFreeGreensFunctionTest, SquareLattice) {
                                                           func::dmn_0<MatsubaraFreqDmn>>>
       G0_k_w;
 
-  phys::compute_G0_k_w(H_0, mu, G0_k_w);
+  phys::compute_G0_k_w(H_0, mu, concurrency_, G0_k_w);
 
   // Check spin symmetry and that off-diagonal elements vanish.
   for (int wn = 0; wn < MatsubaraFreqDmn::get_size(); ++wn) {
@@ -181,16 +187,16 @@ TEST_F(ComputeFreeGreensFunctionTest, SquareLattice) {
   EXPECT_DOUBLE_EQ(-0.98201379003790845, G0_k_t(0, 0, 3, 2));
 }
 
-// Test for a bilayer lattice with off-diagonal elements (in orbital-spin space) in the
+// Test for a single-site bilayer lattice with off-diagonal elements (in orbital-spin space) in the
 // non-interacting Hamiltonian H_0.
 TEST_F(ComputeFreeGreensFunctionTest, BilayerLattice) {
   using Lattice = phys::models::bilayer_lattice<PointGroup>;
   using OrbitalDmn = func::dmn<2, int>;  // 2 orbitals
   using OrbitalSpinDmn = func::dmn_variadic<func::dmn_0<OrbitalDmn>, func::dmn_0<SpinDmn>>;
 
-  // Momentum space domain for single-site bilayer-lattice
+  // Momentum space domain of the single-site bilayer lattice
   using KDmn = func::dmn<1, std::vector<double>>;
-  std::vector<std::vector<double>> k_vecs{{0., 0.}};
+  const std::vector<std::vector<double>> k_vecs{{0., 0.}};
   KDmn::set_elements(k_vecs);
 
   phys::params::ModelParameters<phys::models::TightBindingModel<Lattice>> params;
@@ -199,7 +205,6 @@ TEST_F(ComputeFreeGreensFunctionTest, BilayerLattice) {
   func::function<std::complex<double>,
                  func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, func::dmn_0<KDmn>>>
       H_0;
-
   Lattice::initialize_H_0(params, H_0);
 
   const double mu = 0.9;  // chemical potential
@@ -211,7 +216,7 @@ TEST_F(ComputeFreeGreensFunctionTest, BilayerLattice) {
                                                           func::dmn_0<MatsubaraFreqDmn>>>
       G0_k_w;
 
-  phys::compute_G0_k_w(H_0, mu, G0_k_w);
+  phys::compute_G0_k_w(H_0, mu, concurrency_, G0_k_w);
 
   // Check spin symmetry and that off-diagonal (in spin) elements vanish.
   for (int wn = 0; wn < MatsubaraFreqDmn::get_size(); ++wn) {

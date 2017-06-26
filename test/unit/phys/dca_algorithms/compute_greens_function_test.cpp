@@ -83,7 +83,7 @@ TEST_F(ComputeGreensFunctionTest, SquareLatticeNoninteracting) {
   const double mu = 0.9;  // chemical potential
 
   // Vanishing self-energy: G = G_0.
-  phys::compute_G0_k_w(H0_k, mu, G0_k_w);
+  phys::compute_G0_k_w(H0_k, mu, concurrency_, G0_k_w);
   phys::compute_G_k_w(H0_k, S_k_w, mu, concurrency_, G_k_w);
 
   for (int i = 0; i < G_k_w.size(); ++i) {
@@ -128,7 +128,7 @@ TEST_F(ComputeGreensFunctionTest, BilayerLattice) {
   //
   // Vanishing self-energy: G = G_0
   //
-  phys::compute_G0_k_w(H0_k, mu, G0_k_w);
+  phys::compute_G0_k_w(H0_k, mu, concurrency_, G0_k_w);
   phys::compute_G_k_w(H0_k, S_k_w, mu, concurrency_, G_k_w);
 
   for (int i = 0; i < G_k_w.size(); ++i) {
