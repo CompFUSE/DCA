@@ -6,7 +6,7 @@ function: test_domain_0a
 
 size of subdomains:  1
 # elements: 1
-memory: 7.62939e-06 megabytes
+memory: 7.62939e-06 MiB
 ****************************************
 
 ****************************************
@@ -17,7 +17,7 @@ function: test_domain_0b
 
 size of subdomains:  2
 # elements: 2
-memory: 1.52588e-05 megabytes
+memory: 1.52588e-05 MiB
 ****************************************
 
 ****************************************
@@ -28,7 +28,7 @@ function: test_domain_0c
 
 size of subdomains:  4
 # elements: 4
-memory: 3.05176e-05 megabytes
+memory: 3.05176e-05 MiB
 ****************************************
 
 ****************************************
@@ -39,7 +39,7 @@ function: test_domain_0d
 
 size of subdomains:  8
 # elements: 8
-memory: 6.10352e-05 megabytes
+memory: 6.10352e-05 MiB
 ****************************************
 
 ****************************************
@@ -50,7 +50,7 @@ function: test_domain_1d
 
 size of subdomains:  8
 # elements: 8
-memory: 6.10352e-05 megabytes
+memory: 6.10352e-05 MiB
 ****************************************
 
 ****************************************
@@ -62,7 +62,7 @@ function: test_domain_2a
 
 size of subdomains:  1  2
 # elements: 2
-memory: 1.52588e-05 megabytes
+memory: 1.52588e-05 MiB
 ****************************************
 
 ****************************************
@@ -76,7 +76,7 @@ function: test_domain_4a
 
 size of subdomains:  1  2  4  8
 # elements: 64
-memory: 0.000488281 megabytes
+memory: 0.000488281 MiB
 ****************************************
 
 ****************************************
@@ -96,6 +96,6 @@ function: test_domain_16
 
 size of subdomains:  1  2  4  8  1  2  4  8  4  8
 # elements: 131072
-memory: 1 megabytes
+memory: 1 MiB
 ****************************************
 

@@ -129,7 +129,7 @@ public:
 
   // Prints the function's metadata.
   void print_fingerprint(std::ostream& stream = std::cout) /*const*/;
-   // Prints the function's elements.
+  // Prints the function's elements.
   void print_elements(std::ostream& stream = std::cout) /*const*/;
 
   template <typename concurrency_t>
@@ -476,27 +476,29 @@ void function<scalartype, domain>::distribute(int sbdm_index_1, int sbdm_index_2
 
 template <typename scalartype, class domain>
 void function<scalartype, domain>::print_fingerprint(std::ostream& stream) {
-  stream << "****************************************";
-  stream << "\nfunction: " << name_;
-  stream << "\n****************************************";
+  stream << "****************************************\n";
+  stream << "function: " << name_ << "\n";
+  stream << "****************************************\n";
 
-  stream << "\n# subdomains: " << Nb_sbdms << "\n";
+  stream << "# subdomains: " << Nb_sbdms << "\n";
   dca::util::print_type<domain>::print(stream);
+  stream << "\n";
 
-  stream << "\nsize of subdomains:";
+  stream << "size of subdomains:";
   for (int i = 0; i < Nb_sbdms; i++)
     stream << "  " << size_sbdm[i];
+  stream << "\n";
 
-  stream << "\n# elements: " << Nb_elements;
-  stream << "\nmemory: " << Nb_elements * sizeof(scalartype) / (1024. * 1024.) << " megabytes";
-  stream << "\n****************************************\n" << std::endl;
+  stream << "# elements: " << Nb_elements << "\n";
+  stream << "memory: " << Nb_elements * sizeof(scalartype) / (1024. * 1024.) << " MiB\n";
+  stream << "****************************************\n" << std::endl;
 }
 
 template <typename scalartype, class domain>
 void function<scalartype, domain>::print_elements(std::ostream& stream) /*const*/ {
-  stream << "****************************************";
-  stream << "\nfunction: " << name_;
-  stream << "\n****************************************\n";
+  stream << "****************************************\n";
+  stream << "function: " << name_ << "\n";
+  stream << "****************************************\n";
 
   std::vector<int> subind(Nb_sbdms);
   for (int lindex = 0; lindex < Nb_elements; lindex++) {
