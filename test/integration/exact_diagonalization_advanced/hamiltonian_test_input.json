@@ -1,0 +1,12 @@
+{
+    "physics": {
+        "chemical-potential": -2.5
+    },
+    
+    "domains": {
+        "real-space-grids": {
+            "cluster": [[2, 0],
+                        [0, 1]]
+        }
+    }
+}

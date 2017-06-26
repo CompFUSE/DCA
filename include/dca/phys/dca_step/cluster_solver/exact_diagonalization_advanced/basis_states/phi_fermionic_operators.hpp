@@ -31,67 +31,89 @@ public:
   static bool annihilate_at(int_type l, phi_type& phi, int& sign);
 };
 
+// Modifies the state 'phi' by creating an electron in the l-th spin-orbital.
+// Changes the overall sign of the state, if required by the fermionic algebra.
 template <typename parameter_type, typename ed_options>
 bool PhiFermionicOperators<parameter_type, ed_options>::create_at(int_type l, phi_type& phi,
                                                                   int& sign) {
-  int tmp_sgn = sign;
-
+  // Spin-orbital already occupied.
   if (phi.test(l)) {
     return false;
   }
+
   else {
+    // Create electron in l-th spin-orbital.
     phi.set(l);
 
+// Compute the new sign the easy (slow) way.
+#ifndef NDEBUG
+    int new_sgn = sign;
+    for (int i = 0; i < l; ++i) {
+      if (phi[i])
+        new_sgn *= -1;
+    }
+#endif  // NDEBUG
+
+    // Determine whether there is a sign change in the elegant (fast) way.
     if (l != 0) {
       int_type tmp = (1 << l) - 1;
+      phi_type mask(tmp);  // = 00...0011...11,
+                           // where the first 0 (from the right) is at l-th position.
 
-      phi_type mask(tmp);
-
+      // Determines the parity of the number of 1's in phi before the l-th position:
+      // odd --> change_sign = true
+      // even --> change_sign = false.
       bool change_sign = ((phi & mask).count()) & 1;
 
       if (change_sign)
         sign *= -1;
     }
 
-    for (int i = 0; i < l; ++i) {
-      if (phi[i])
-        tmp_sgn *= -1;
-    }
-
-    assert(tmp_sgn == sign);
+    assert(new_sgn == sign);
 
     return true;
   }
 }
 
+// Modifies the state 'phi' by annihilating the electron in the l-th spin-orbital.
+// Changes the overall sign of the state, if required by the fermionic algebra.
 template <typename parameter_type, typename ed_options>
 bool PhiFermionicOperators<parameter_type, ed_options>::annihilate_at(int_type l, phi_type& phi,
                                                                       int& sign) {
-  int tmp_sgn = sign;
-
   if (phi.test(l)) {
+    // Annihilate the electron in the l-th spin-oribital.
     phi.reset(l);
 
+// Compute the new sign the easy (slow) way.
+#ifndef NDEBUG
+    int new_sgn = sign;
+    for (int i = 0; i < l; ++i) {
+      if (phi[i])
+        new_sgn *= -1;
+    }
+#endif  // NDEBUG
+
+    // Determine whether there is a sign change in the elegant (fast) way.
     if (l != 0) {
       int_type tmp = (1 << l) - 1;
+      phi_type mask(tmp);  // = 00...0011...11,
+                           // where the first 0 (from the right) is at l-th position.
 
-      phi_type mask(tmp);
-
+      // Determines the parity of the number of 1's in phi before the l-th position:
+      // odd --> change_sign = true
+      // even --> change_sign = false.
       bool change_sign = ((phi & mask).count()) & 1;
 
       if (change_sign)
         sign *= -1;
     }
 
-    for (int i = 0; i < l; ++i) {
-      if (phi[i])
-        tmp_sgn *= -1;
-    }
-
-    assert(tmp_sgn == sign);
+    assert(new_sgn == sign);
 
     return true;
   }
+
+  // Spin-orbital not occupied.
   else {
     return false;
   }

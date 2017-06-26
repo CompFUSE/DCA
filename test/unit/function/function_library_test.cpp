@@ -205,8 +205,7 @@ struct function_test<dca::func::function<double, Domain>> {
               << dca::util::Length<dca::util::Append<test_list, test_list2>::type>::value
               << std::endl;
     std::cout << "Testing Typelist Append/Index "
-              << dca::util::mp_index_of<const float*,
-                                        dca::util::mp_append<test_list, test_list2>::type>::value
+              << dca::util::mp_index_of<const float*, dca::util::mp_append<test_list, test_list2>::type>::value
               << std::endl;
     std::cout << "Testing Typelist Append/Index "
               << dca::util::IndexOf<const float*, dca::util::Append<test_list, test_list2>::type>::value
@@ -333,6 +332,15 @@ TEST(Function, FingerPrint) {
   dca::testing::function_16.print_fingerprint(result);
 
   EXPECT_TRUE(dca::testing::compare_to_file(DCA_SOURCE_DIR "/test/unit/function/fingerprint.txt",
+                                            result.str()));
+}
+
+TEST(Function, PrintElements) {
+  std::stringstream result;
+
+  dca::testing::function_4a.print_elements(result);
+
+  EXPECT_TRUE(dca::testing::compare_to_file(DCA_SOURCE_DIR "/test/unit/function/print_elements.txt",
                                             result.str()));
 }
 
