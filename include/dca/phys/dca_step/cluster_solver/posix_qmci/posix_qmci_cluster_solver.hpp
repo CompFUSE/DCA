@@ -24,6 +24,7 @@
 #include "dca/phys/dca_step/cluster_solver/posix_qmci/posix_qmci_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/posix_qmci/thread_task_handler.hpp"
 #include "dca/profiling/events/time.hpp"
+#include "dca/util/print_time.hpp"
 
 namespace dca {
 namespace phys {
