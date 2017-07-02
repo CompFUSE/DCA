@@ -50,7 +50,7 @@ public:
     parameters::print_2_file(filename);
   }
 
-protected:
+private:
   void initialize();
 };
 
@@ -65,6 +65,7 @@ void dmn_0<parameters>::initialize() {
 
   branch_domain_sizes.push_back(parameters::get_size());
   leaf_domain_sizes.push_back(parameters::get_size());
+  branch_domain_steps.push_back(1);
   leaf_domain_steps.push_back(1);
 }
 
