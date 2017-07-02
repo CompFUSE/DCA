@@ -47,7 +47,7 @@ void domain::linind_2_subind(int linind, int* subind) const {
   assert(linind == 0);
 }
 
-void domain::subind_2_linind(const int* subind, int& linind) const {
+void domain::subind_2_linind(const int* const subind, int& linind) const {
   linind = 0;
 
   for (int i = leaf_domain_sizes.size() - 1; i >= 0; i--) {

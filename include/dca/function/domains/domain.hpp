@@ -25,17 +25,17 @@ public:
   void reset();
 
   // domain interface functions
-  const int& get_size() const {
+  int get_size() const {
     return size;
   }
 
-  const std::vector<int>& get_branch_domain_sizes() {
+  const std::vector<int>& get_branch_domain_sizes() const {
     return branch_domain_sizes;
   }
   int get_Nb_branch_domains() const {
     return branch_domain_sizes.size();
   }
-  int get_branch_size(int branch_index) const {
+  int get_branch_size(const int branch_index) const {
     return branch_domain_sizes[branch_index];
   }
 
@@ -45,7 +45,7 @@ public:
   int get_Nb_leaf_domains() const {
     return leaf_domain_sizes.size();
   }
-  int get_subdomain_size(int subdomain_index) const {
+  int get_subdomain_size(const int subdomain_index) const {
     return leaf_domain_sizes[subdomain_index];
   }
 
