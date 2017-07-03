@@ -41,42 +41,43 @@ public:
 
 public:
   template <typename scalar_type, typename k_dmn_t>
-  void forward(scalar_type alpha, func::function<std::complex<scalar_type>, k_dmn_t>& f_k,
-               func::function<std::complex<scalar_type>, k_dmn_t>& alpha_k);
+  void forward(scalar_type alpha, const func::function<std::complex<scalar_type>, k_dmn_t>& f_k,
+               func::function<std::complex<scalar_type>, k_dmn_t>& alpha_k) const;
 
   template <typename scalar_type, typename k_dmn_t>
   void backward(scalar_type alpha, func::function<std::complex<scalar_type>, k_dmn_t>& f_k,
-                func::function<std::complex<scalar_type>, k_dmn_t>& alpha_k);
+                const func::function<std::complex<scalar_type>, k_dmn_t>& alpha_k) const;
 
   template <typename scalar_type, typename k_dmn_t>
   static void forward(
       scalar_type alpha,
-      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& f_k_w,
+      const func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& f_k_w,
       func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& alpha_k_w);
 
   template <typename scalar_type, typename k_dmn_t>
   static void backward(
       scalar_type alpha,
       func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& f_k_w,
-      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& alpha_k_w);
+      const func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& alpha_k_w);
 
   template <typename scalar_type, typename k_dmn_t, typename w_dmn_t>
   static void forward(
       scalar_type alpha,
-      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& f_k_w,
+      const func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& f_k_w,
       func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& alpha_k_w);
 
   template <typename scalar_type, typename k_dmn_t, typename w_dmn_t>
   static void backward(
       scalar_type alpha,
       func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& f_k_w,
-      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& alpha_k_w);
+      const func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>&
+          alpha_k_w);
 };
 
 template <typename scalar_type, typename k_dmn_t>
-void transform_to_alpha::forward(scalar_type alpha,
-                                 func::function<std::complex<scalar_type>, k_dmn_t>& f_k,
-                                 func::function<std::complex<scalar_type>, k_dmn_t>& alpha_k) {
+void transform_to_alpha::forward(const scalar_type alpha,
+                                 const func::function<std::complex<scalar_type>, k_dmn_t>& f_k,
+                                 func::function<std::complex<scalar_type>, k_dmn_t>& alpha_k) const {
   std::complex<scalar_type> I(0., alpha);
 
   for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); k_ind++)
@@ -84,9 +85,9 @@ void transform_to_alpha::forward(scalar_type alpha,
 }
 
 template <typename scalar_type, typename k_dmn_t>
-void transform_to_alpha::backward(scalar_type alpha,
-                                  func::function<std::complex<scalar_type>, k_dmn_t>& f_k,
-                                  func::function<std::complex<scalar_type>, k_dmn_t>& alpha_k) {
+void transform_to_alpha::backward(
+    const scalar_type alpha, func::function<std::complex<scalar_type>, k_dmn_t>& f_k,
+    const func::function<std::complex<scalar_type>, k_dmn_t>& alpha_k) const {
   std::complex<scalar_type> I(0., alpha);
 
   for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); k_ind++)
@@ -95,19 +96,19 @@ void transform_to_alpha::backward(scalar_type alpha,
 
 template <typename scalar_type, typename k_dmn_t>
 void transform_to_alpha::forward(
-    scalar_type alpha,
-    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& f_k_w,
+    const scalar_type alpha,
+    const func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& f_k_w,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& alpha_k_w) {
   std::complex<scalar_type> I(0., alpha);
 
   int N = nu::dmn_size();
 
-  dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU> f_matrix(
-      "f_matrix", std::pair<int, int>(N, N));
+  linalg::Matrix<std::complex<scalar_type>, linalg::CPU> f_matrix("f_matrix",
+                                                                  std::pair<int, int>(N, N));
 
   // Allocate the work space for inverse only once.
-  dca::linalg::Vector<int, dca::linalg::CPU> ipiv;
-  dca::linalg::Vector<std::complex<double>, dca::linalg::CPU> work;
+  linalg::Vector<int, linalg::CPU> ipiv;
+  linalg::Vector<std::complex<double>, linalg::CPU> work;
 
   for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); k_ind++) {
     for (int j = 0; j < N; ++j)
@@ -117,7 +118,7 @@ void transform_to_alpha::forward(
     for (int i = 0; i < N; i++)
       f_matrix(i, i) -= I;
 
-    dca::linalg::matrixop::inverse(f_matrix, ipiv, work);
+    linalg::matrixop::inverse(f_matrix, ipiv, work);
 
     for (int j = 0; j < N; ++j)
       for (int i = 0; i < N; ++i)
@@ -127,26 +128,26 @@ void transform_to_alpha::forward(
 
 template <typename scalar_type, typename k_dmn_t>
 void transform_to_alpha::backward(
-    scalar_type alpha,
+    const scalar_type alpha,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& f_k_w,
-    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& alpha_k_w) {
+    const func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& alpha_k_w) {
   std::complex<scalar_type> I(0., alpha);
 
   int N = nu::dmn_size();
 
-  dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU> f_matrix(
-      "f_matrix", std::pair<int, int>(N, N));
+  linalg::Matrix<std::complex<scalar_type>, linalg::CPU> f_matrix("f_matrix",
+                                                                  std::pair<int, int>(N, N));
 
   // Allocate the work space for inverse only once.
-  dca::linalg::Vector<int, dca::linalg::CPU> ipiv;
-  dca::linalg::Vector<std::complex<scalar_type>, dca::linalg::CPU> work;
+  linalg::Vector<int, linalg::CPU> ipiv;
+  linalg::Vector<std::complex<scalar_type>, linalg::CPU> work;
 
   for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); k_ind++) {
     for (int j = 0; j < N; ++j)
       for (int i = 0; i < N; ++i)
         f_matrix(i, j) = alpha_k_w(i, j, k_ind);
 
-    dca::linalg::matrixop::inverse(f_matrix, ipiv, work);
+    linalg::matrixop::inverse(f_matrix, ipiv, work);
 
     for (int i = 0; i < N; i++)
       f_matrix(i, i) += I;
@@ -159,17 +160,17 @@ void transform_to_alpha::backward(
 
 template <typename scalar_type, typename k_dmn_t, typename w_dmn_t>
 void transform_to_alpha::forward(
-    scalar_type alpha,
-    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& f_k_w,
+    const scalar_type alpha,
+    const func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& f_k_w,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& alpha_k_w) {
   int N = nu::dmn_size();
 
-  dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU> f_matrix(
-      "f_matrix", std::pair<int, int>(N, N));
+  linalg::Matrix<std::complex<scalar_type>, linalg::CPU> f_matrix("f_matrix",
+                                                                  std::pair<int, int>(N, N));
 
   // Allocate the work space for inverse only once.
-  dca::linalg::Vector<int, dca::linalg::CPU> ipiv;
-  dca::linalg::Vector<std::complex<double>, dca::linalg::CPU> work;
+  linalg::Vector<int, linalg::CPU> ipiv;
+  linalg::Vector<std::complex<double>, linalg::CPU> work;
 
   for (int w_ind = 0; w_ind < w_dmn_t::dmn_size(); w_ind++) {
     scalar_type factor = w_dmn_t::get_elements()[w_ind] > 0 ? 1 : -1;
@@ -184,7 +185,7 @@ void transform_to_alpha::forward(
       for (int i = 0; i < N; i++)
         f_matrix(i, i) -= I;
 
-      dca::linalg::matrixop::inverse(f_matrix, ipiv, work);
+      linalg::matrixop::inverse(f_matrix, ipiv, work);
 
       for (int j = 0; j < N; ++j)
         for (int i = 0; i < N; ++i)
@@ -195,17 +196,18 @@ void transform_to_alpha::forward(
 
 template <typename scalar_type, typename k_dmn_t, typename w_dmn_t>
 void transform_to_alpha::backward(
-    scalar_type alpha,
+    const scalar_type alpha,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& f_k_w,
-    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& alpha_k_w) {
+    const func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>&
+        alpha_k_w) {
   int N = nu::dmn_size();
 
-  dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU> f_matrix(
-      "f_matrix", std::pair<int, int>(N, N));
+  linalg::Matrix<std::complex<scalar_type>, linalg::CPU> f_matrix("f_matrix",
+                                                                  std::pair<int, int>(N, N));
 
   // Allocate the work space for inverse only once.
-  dca::linalg::Vector<int, dca::linalg::CPU> ipiv;
-  dca::linalg::Vector<std::complex<double>, dca::linalg::CPU> work;
+  linalg::Vector<int, linalg::CPU> ipiv;
+  linalg::Vector<std::complex<double>, linalg::CPU> work;
 
   for (int w_ind = 0; w_ind < w_dmn_t::dmn_size(); w_ind++) {
     scalar_type factor = w_dmn_t::get_elements()[w_ind] > 0 ? 1 : -1;
@@ -217,7 +219,7 @@ void transform_to_alpha::backward(
         for (int i = 0; i < N; ++i)
           f_matrix(i, j) = alpha_k_w(i, j, k_ind, w_ind);
 
-      dca::linalg::matrixop::inverse(f_matrix, ipiv, work);
+      linalg::matrixop::inverse(f_matrix, ipiv, work);
 
       for (int i = 0; i < N; i++)
         f_matrix(i, i) += I;

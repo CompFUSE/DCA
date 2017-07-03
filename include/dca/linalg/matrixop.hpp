@@ -457,7 +457,7 @@ inline void swapRowAndCol(Matrix<ScalarType, device_name>& mat, int i1, int i2, 
 //                a.nrCols() == x.size() if transa == 'N', a.nrRows() == x.size() otherwise.
 template <typename ScalarType>
 void gemv(char transa, ScalarType alpha, const Matrix<ScalarType, CPU>& a,
-          Vector<ScalarType, CPU>& x, ScalarType beta, Vector<ScalarType, CPU>& y) {
+          const Vector<ScalarType, CPU>& x, ScalarType beta, Vector<ScalarType, CPU>& y) {
   if (transa == 'N') {
     assert(a.nrRows() == y.size());
     assert(a.nrCols() == x.size());
@@ -480,7 +480,7 @@ void gemv(char transa, ScalarType alpha, const Matrix<ScalarType, CPU>& a,
 //                a.nrRows() == y.size() if transa == 'N', a.nrCols() == y.size() otherwise,
 //                a.nrCols() == x.size() if transa == 'N', a.nrRows() == x.size() otherwise.
 template <typename ScalarType>
-void gemv(char transa, const Matrix<ScalarType, CPU>& a, Vector<ScalarType, CPU>& x,
+void gemv(char transa, const Matrix<ScalarType, CPU>& a, const Vector<ScalarType, CPU>& x,
           Vector<ScalarType, CPU>& y) {
   gemv<ScalarType>(transa, 1., a, x, 0., y);
 }

@@ -45,7 +45,7 @@ struct DomainwiseFunctionTransform {
   const static DOMAIN_REPRESENTATIONS DMN_REP_RHS = output_specs_type::DOMAIN_REPRESENTATION;
 
   template <typename scalartype_input, typename scalartype_output>
-  static void execute_on_first(func::function<scalartype_input, domain_input>& f_input,
+  static void execute_on_first(const func::function<scalartype_input, domain_input>& f_input,
                                func::function<scalartype_output, domain_output>& f_output) {
     if (VERBOSE)
       std::cout << "\n\n\t" << __FUNCTION__ << "\t" << f_input.get_name() << " --> "
@@ -58,9 +58,9 @@ struct DomainwiseFunctionTransform {
   }
 
   template <typename scalartype_input, typename scalartype_output, typename scalartype_T>
-  static void execute_on_first(func::function<scalartype_input, domain_input>& f_input,
+  static void execute_on_first(const func::function<scalartype_input, domain_input>& f_input,
                                func::function<scalartype_output, domain_output>& f_output,
-                               dca::linalg::Matrix<scalartype_T, dca::linalg::CPU>& T) {
+                               const linalg::Matrix<scalartype_T, linalg::CPU>& T) {
     if (VERBOSE)
       std::cout << "\n\n\t" << __FUNCTION__ << "\t" << f_input.get_name() << " --> "
                 << f_output.get_name() << "\n\n";
@@ -71,7 +71,7 @@ struct DomainwiseFunctionTransform {
   }
 
   template <typename scalartype_input, typename scalartype_output>
-  static void execute_on_all(func::function<scalartype_input, domain_input>& f_input,
+  static void execute_on_all(const func::function<scalartype_input, domain_input>& f_input,
                              func::function<scalartype_output, domain_output>& f_output) {
     if (VERBOSE) {
       std::cout << "\n\n\t" << __FUNCTION__ << "\t" << f_input.get_name() << " --> "
@@ -107,15 +107,15 @@ struct DomainwiseFunctionTransform {
         f_output_new.print_fingerprint();
       }
 
-      DomainwiseFunctionTransform<TRANSFORMED_DOMAIN, domain_output, type_input,
-                                  type_output>::execute_on_all(f_output_new, f_output);
+      DomainwiseFunctionTransform<TRANSFORMED_DOMAIN, domain_output, type_input, type_output>::execute_on_all(
+          f_output_new, f_output);
     }
   }
 
   template <typename scalartype_input, typename scalartype_output, typename scalartype_T>
-  static void execute_on_all(func::function<scalartype_input, domain_input>& f_input,
+  static void execute_on_all(const func::function<scalartype_input, domain_input>& f_input,
                              func::function<scalartype_output, domain_output>& f_output,
-                             dca::linalg::Matrix<scalartype_T, dca::linalg::CPU>& T) {
+                             const linalg::Matrix<scalartype_T, linalg::CPU>& T) {
     if (VERBOSE) {
       std::cout << "\n\n\t" << __FUNCTION__ << "\t" << f_input.get_name() << " --> "
                 << f_output.get_name() << "\n\n";
@@ -149,8 +149,8 @@ struct DomainwiseFunctionTransform {
         f_output_new.print_fingerprint();
       }
 
-      DomainwiseFunctionTransform<TRANSFORMED_DOMAIN, domain_output, type_input,
-                                  type_output>::execute_on_all(f_output_new, f_output, T);
+      DomainwiseFunctionTransform<TRANSFORMED_DOMAIN, domain_output, type_input, type_output>::execute_on_all(
+          f_output_new, f_output, T);
     }
   }
 };

@@ -21,7 +21,7 @@ JSONWriter::JSONWriter() : file_name(""), path(""), elements_in_group(0) {
   ss.precision(16);
 }
 
-std::stringstream& JSONWriter::open_file(std::string my_file_name, bool /*overwrite*/) {
+std::stringstream& JSONWriter::open_file(const std::string& my_file_name, const bool /*overwrite*/) {
   file_name = my_file_name;
 
   ss << "{\n";
@@ -42,7 +42,7 @@ void JSONWriter::close_file() {
   of.close();
 }
 
-void JSONWriter::open_group(std::string name) {
+void JSONWriter::open_group(const std::string& name) {
   if (elements_in_group.back() != 0)
     ss << ",\n\n";
 
@@ -70,7 +70,7 @@ std::string JSONWriter::get_path() {
   return ss.str();
 }
 
-void JSONWriter::execute(std::string name, std::string& value) {
+void JSONWriter::execute(const std::string& name, const std::string& value) {
   if (elements_in_group.back() != 0)
     ss << ",\n";
 
@@ -79,7 +79,7 @@ void JSONWriter::execute(std::string name, std::string& value) {
   elements_in_group.back() += 1;
 }
 
-void JSONWriter::execute(std::string name, std::vector<std::string>& value) {
+void JSONWriter::execute(const std::string& name, const std::vector<std::string>& value) {
   if (elements_in_group.back() != 0)
     ss << ",\n";
 

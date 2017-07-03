@@ -7,69 +7,36 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Bart Ydens
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// This class assures that all functions with a scalartype of float, double, std::complex<float>, or
-// std::complex<double> are initialized to zero.
-// Functions with a different 'scalartype' are not initialized.
+// This class assures that all functions with a scalar or complex type are initialized to zero.
+// Functions with a different type are not initialized.
 //
-// TODO: Rewrite/remove with rewriting of function class.
+// INTERNAL: Require operator=(const scalartype&) for function's template parameter scalartype and
+//           remove this file?
 
 #ifndef DCA_FUNCTION_SET_TO_ZERO_HPP
 #define DCA_FUNCTION_SET_TO_ZERO_HPP
 
 #include <complex>
+#include <type_traits>
 
 namespace dca {
 namespace func {
 // dca::func::
 
-struct set_to_zero {
-  template <class whatever_t>
-  static void execute(whatever_t& whatever);
-};
-
-template <class whatever_t>
-inline void set_to_zero::execute(whatever_t& /*whatever*/) {}
-
-template <>
-inline void set_to_zero::execute(short& whatever) {
-  whatever = 0;
+template <class T>
+inline void setToZero(std::complex<T>& whatever) {
+  whatever = T(0);
 }
 
-template <>
-inline void set_to_zero::execute(int& whatever) {
-  whatever = 0;
+template <class T>
+inline std::enable_if_t<std::is_scalar<T>::value, void> setToZero(T& whatever) {
+  whatever = T(0);
 }
 
-template <>
-inline void set_to_zero::execute(long& whatever) {
-  whatever = 0;
-}
-
-template <>
-inline void set_to_zero::execute(size_t& whatever) {
-  whatever = 0;
-}
-
-template <>
-inline void set_to_zero::execute(float& whatever) {
-  whatever = 0.;
-}
-
-template <>
-inline void set_to_zero::execute(double& whatever) {
-  whatever = 0.;
-}
-
-template <>
-inline void set_to_zero::execute(std::complex<float>& whatever) {
-  whatever = 0.;
-}
-
-template <>
-inline void set_to_zero::execute(std::complex<double>& whatever) {
-  whatever = 0.;
-}
+template <class T>
+inline std::enable_if_t<not std::is_scalar<T>::value, void> setToZero(T& /*whatever*/) {}
 
 }  // func
 }  // dca

@@ -36,7 +36,7 @@ void domain::reset() {
   branch_domain_steps.resize(0);
 }
 
-void domain::linind_2_subind(int linind, int* subind) {
+void domain::linind_2_subind(int linind, int* subind) const {
   assert(linind >= 0 && linind < size);
 
   for (std::size_t i = 0; i < leaf_domain_sizes.size(); i++) {
@@ -47,7 +47,7 @@ void domain::linind_2_subind(int linind, int* subind) {
   assert(linind == 0);
 }
 
-void domain::subind_2_linind(int* subind, int& linind) {
+void domain::subind_2_linind(const int* const subind, int& linind) const {
   linind = 0;
 
   for (int i = leaf_domain_sizes.size() - 1; i >= 0; i--) {

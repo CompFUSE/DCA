@@ -40,66 +40,69 @@ public:
 public:
   JSONWriter();
 
-  bool is_reader() {
+  bool is_reader() const {
     return false;
   }
-  bool is_writer() {
+  bool is_writer() const {
     return true;
   }
 
-  file_type& open_file(std::string file_name_ref, bool overwrite = true);
+  file_type& open_file(const std::string& file_name_ref, bool overwrite = true);
   void close_file();
 
-  void open_group(std::string new_path);
+  void open_group(const std::string& new_path);
   void close_group();
 
   std::string get_path();
 
   template <typename arbitrary_struct_t>
-  static void to_file(arbitrary_struct_t& arbitrary_struct, std::string file_name);
+  static void to_file(arbitrary_struct_t& arbitrary_struct, const std::string& file_name);
 
   template <typename scalartype>
-  void execute(std::string name, scalartype& value);
+  void execute(const std::string& name, const scalartype& value);
 
   template <typename s_t_0, typename s_t_1>
-  void execute(std::string name, std::pair<s_t_0, s_t_1>& value);
+  void execute(const std::string& name, const std::pair<s_t_0, s_t_1>& value);
 
   template <typename scalartype>
-  void execute(std::string name, std::vector<scalartype>& value);
+  void execute(const std::string& name, const std::vector<scalartype>& value);
 
   template <typename scalartype>
-  void execute(std::string name, std::vector<std::vector<scalartype>>& value);
+  void execute(const std::string& name, const std::vector<std::vector<scalartype>>& value);
 
-  void execute(std::string name, std::string& value);
+  void execute(const std::string& name, const std::string& value);
 
-  void execute(std::string name, std::vector<std::string>& value);
+  void execute(const std::string& name, const std::vector<std::string>& value);
 
   template <typename domain_type>
-  void execute(std::string name, func::dmn_0<domain_type>& dmn);
+  void execute(const std::string& name, const func::dmn_0<domain_type>& dmn);
 
   template <typename scalar_type, typename domain_type>
-  void execute(func::function<scalar_type, domain_type>& f);
+  void execute(const func::function<scalar_type, domain_type>& f);
 
   template <typename scalar_type, typename domain_type>
-  void execute(std::string name, func::function<scalar_type, domain_type>& f);
+  void execute(const std::string& name, const func::function<scalar_type, domain_type>& f);
 
   template <typename scalar_type, typename domain_type>
-  void execute(func::function<std::complex<scalar_type>, domain_type>& f);
+  void execute(const func::function<std::complex<scalar_type>, domain_type>& f);
 
   template <typename scalar_type, typename domain_type>
-  void execute(std::string name, func::function<std::complex<scalar_type>, domain_type>& f);
+  void execute(const std::string& name,
+               const func::function<std::complex<scalar_type>, domain_type>& f);
 
   template <typename scalar_type>
-  void execute(std::string name, dca::linalg::Vector<scalar_type, dca::linalg::CPU>& A);
+  void execute(const std::string& name, const linalg::Vector<scalar_type, linalg::CPU>& V);
 
   template <typename scalar_type>
-  void execute(std::string name, dca::linalg::Vector<std::complex<scalar_type>, dca::linalg::CPU>& A);
+  void execute(const std::string& name,
+               const linalg::Vector<std::complex<scalar_type>, linalg::CPU>& V);
 
   template <typename scalar_type>
-  void execute(std::string name, dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A);
+  void execute(const std::string& name, const linalg::Matrix<scalar_type, linalg::CPU>& A);
 
   template <typename scalar_type>
-  void execute(std::string name, dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU>& A);
+  void execute(const std::string& name,
+               const linalg::Matrix<std::complex<scalar_type>, linalg::CPU>& A);
 
   template <class stream_type>
   static void execute(stream_type& ss, const JsonAccessor& parseResult);
@@ -115,7 +118,7 @@ private:
 };
 
 template <typename arbitrary_struct_t>
-void JSONWriter::to_file(arbitrary_struct_t& arbitrary_struct, std::string file_name) {
+void JSONWriter::to_file(arbitrary_struct_t& arbitrary_struct, const std::string& file_name) {
   JSONWriter wr_obj;
 
   wr_obj.open_file(file_name);
@@ -124,8 +127,9 @@ void JSONWriter::to_file(arbitrary_struct_t& arbitrary_struct, std::string file_
 }
 
 template <typename scalartype>
-void JSONWriter::execute(std::string name,
-                         scalartype& value)  //, file_type& ss), std::string path, bool is_ending)
+void JSONWriter::execute(
+    const std::string& name,
+    const scalartype& value)  //, file_type& ss), std::string path, bool is_ending)
 {
   if (elements_in_group.back() != 0)
     ss << ",\n";
@@ -137,8 +141,8 @@ void JSONWriter::execute(std::string name,
 
 template <typename s_t_0, typename s_t_1>
 void JSONWriter::execute(
-    std::string name,
-    std::pair<s_t_0, s_t_1>& value)  //, file_type& ss), std::string path, bool is_ending)
+    const std::string& name,
+    const std::pair<s_t_0, s_t_1>& value)  //, file_type& ss), std::string path, bool is_ending)
 {
   if (elements_in_group.back() != 0)
     ss << ",\n";
@@ -150,8 +154,8 @@ void JSONWriter::execute(
 
 template <typename scalartype>
 void JSONWriter::execute(
-    std::string name,
-    std::vector<scalartype>& value)  //, file_type& ss)//, std::string path, bool is_ending)
+    const std::string& name,
+    const std::vector<scalartype>& value)  //, file_type& ss)//, std::string path, bool is_ending)
 {
   if (elements_in_group.back() != 0)
     ss << ",\n";
@@ -171,7 +175,7 @@ void JSONWriter::execute(
 }
 
 template <typename scalartype>
-void JSONWriter::execute(std::string name, std::vector<std::vector<scalartype>>& value) {
+void JSONWriter::execute(const std::string& name, const std::vector<std::vector<scalartype>>& value) {
   if (elements_in_group.back() != 0)
     ss << ",\n";
 
@@ -200,7 +204,7 @@ void JSONWriter::execute(std::string name, std::vector<std::vector<scalartype>>&
 }
 
 template <typename domain_type>
-void JSONWriter::execute(std::string name, func::dmn_0<domain_type>& dmn) {
+void JSONWriter::execute(const std::string& name, const func::dmn_0<domain_type>& dmn) {
   open_group(name);
 
   execute("name", dmn.get_name());
@@ -213,14 +217,14 @@ void JSONWriter::execute(std::string name, func::dmn_0<domain_type>& dmn) {
 }
 
 template <typename scalar_type, typename domain_type>
-void JSONWriter::execute(func::function<scalar_type, domain_type>& f) {
+void JSONWriter::execute(const func::function<scalar_type, domain_type>& f) {
   std::cout << "\t starts writing function : " << f.get_name() << "\n";
 
   execute(f.get_name(), f);
 }
 
 template <typename scalar_type, typename domain_type>
-void JSONWriter::execute(std::string name, func::function<scalar_type, domain_type>& f) {
+void JSONWriter::execute(const std::string& name, const func::function<scalar_type, domain_type>& f) {
   open_group(name);
 
   execute("name", f.get_name());
@@ -267,14 +271,15 @@ void JSONWriter::execute(std::string name, func::function<scalar_type, domain_ty
 }
 
 template <typename scalar_type, typename domain_type>
-void JSONWriter::execute(func::function<std::complex<scalar_type>, domain_type>& f) {
+void JSONWriter::execute(const func::function<std::complex<scalar_type>, domain_type>& f) {
   std::cout << "\t starts writing function : " << f.get_name() << "\n";
 
   execute(f.get_name(), f);
 }
 
 template <typename scalar_type, typename domain_type>
-void JSONWriter::execute(std::string name, func::function<std::complex<scalar_type>, domain_type>& f) {
+void JSONWriter::execute(const std::string& name,
+                         const func::function<std::complex<scalar_type>, domain_type>& f) {
   open_group(name);
 
   execute("name", f.get_name());
@@ -321,7 +326,7 @@ void JSONWriter::execute(std::string name, func::function<std::complex<scalar_ty
 }
 
 template <typename scalar_type>
-void JSONWriter::execute(std::string name, dca::linalg::Vector<scalar_type, dca::linalg::CPU>& V) {
+void JSONWriter::execute(const std::string& name, const linalg::Vector<scalar_type, linalg::CPU>& V) {
   open_group(name);
 
   execute("name", V.get_name());
@@ -342,8 +347,8 @@ void JSONWriter::execute(std::string name, dca::linalg::Vector<scalar_type, dca:
 }
 
 template <typename scalar_type>
-void JSONWriter::execute(std::string name,
-                         dca::linalg::Vector<std::complex<scalar_type>, dca::linalg::CPU>& V) {
+void JSONWriter::execute(const std::string& name,
+                         const linalg::Vector<std::complex<scalar_type>, linalg::CPU>& V) {
   open_group(name);
 
   execute("name", V.get_name());
@@ -368,7 +373,7 @@ void JSONWriter::execute(std::string name,
 }
 
 template <typename scalar_type>
-void JSONWriter::execute(std::string name, dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A) {
+void JSONWriter::execute(const std::string& name, const linalg::Matrix<scalar_type, linalg::CPU>& A) {
   open_group(name);
 
   execute("name", A.get_name());
@@ -398,8 +403,8 @@ void JSONWriter::execute(std::string name, dca::linalg::Matrix<scalar_type, dca:
 }
 
 template <typename scalar_type>
-void JSONWriter::execute(std::string name,
-                         dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU>& A) {
+void JSONWriter::execute(const std::string& name,
+                         const linalg::Matrix<std::complex<scalar_type>, linalg::CPU>& A) {
   open_group(name);
 
   execute("name", A.get_name());

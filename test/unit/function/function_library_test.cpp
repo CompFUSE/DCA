@@ -6,8 +6,13 @@
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: John Biddiscombe (john.biddiscombe@cscs.ch)
+//         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//         Giovanni Balduzzi (gbalduzz@phys.ethz.ch)
 //
 // This file tests the function library.
+//
+// TODO: Move domains-only tests to separate files and rename this file to function_test.cpp and the
+//       test cases to FunctionTest.
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
@@ -20,6 +25,7 @@
 #include <iostream>
 #include <map>
 #include <sstream>
+#include <utility>
 #include <vector>
 
 #include "gtest/gtest.h"
@@ -369,4 +375,267 @@ TEST(Function, to_JSON) {
 
   EXPECT_TRUE(
       dca::testing::compare_to_file(DCA_SOURCE_DIR "/test/unit/function/json.txt", result.str()));
+}
+
+TEST(FunctionTest, DefaultConstructor) {
+  // Default name
+  dca::func::function<double, dca::testing::test_domain_2a> f1;
+
+  EXPECT_EQ("no-name", f1.get_name());
+  EXPECT_EQ(2, f1.signature());
+  EXPECT_EQ(2, f1.size());
+
+  for (int linind = 0; linind < f1.size(); ++linind)
+    EXPECT_EQ(0., f1(linind));
+
+  // Custom name
+  const std::string name = "my-function";
+  dca::func::function<double, dca::testing::test_domain_4a> f2(name);
+
+  EXPECT_EQ(name, f2.get_name());
+  EXPECT_EQ(4, f2.signature());
+  EXPECT_EQ(64, f2.size());
+
+  for (int linind = 0; linind < f2.size(); ++linind)
+    EXPECT_EQ(0., f2(linind));
+}
+
+TEST(FunctionTest, CopyConstructor) {
+  using FunctionType = dca::func::function<double, dca::testing::test_domain_2a>;
+
+  FunctionType f1("original");
+  f1(0) = 3.14;
+  f1(1) = 2.72;
+
+  // Default name
+  FunctionType f2(f1);
+
+  EXPECT_EQ("no-name", f2.get_name());
+  EXPECT_EQ(f1.signature(), f2.signature());
+  EXPECT_EQ(f1.size(), f2.size());
+
+  for (int linind = 0; linind < f2.size(); ++linind)
+    EXPECT_EQ(f1(linind), f2(linind));
+
+  // Custom name
+  FunctionType f3(f1, "copied");
+
+  EXPECT_EQ("copied", f3.get_name());
+  EXPECT_EQ(f1.signature(), f3.signature());
+  EXPECT_EQ(f1.size(), f3.size());
+
+  for (int linind = 0; linind < f3.size(); ++linind)
+    EXPECT_EQ(f1(linind), f3(linind));
+}
+
+TEST(FunctionTest, MoveConstructor) {
+  using FunctionType = dca::func::function<double, dca::testing::test_domain_2a>;
+
+  FunctionType f1("original");
+  f1(0) = 3.14;
+  f1(1) = 2.72;
+
+  // Default name
+  FunctionType f1_copy(f1);
+  FunctionType f2(std::move(f1_copy));
+
+  EXPECT_EQ("no-name", f2.get_name());
+  EXPECT_EQ(f1.signature(), f2.signature());
+  EXPECT_EQ(f1.size(), f2.size());
+  EXPECT_EQ(0, f1_copy.size());
+
+  for (int linind = 0; linind < f2.size(); ++linind)
+    EXPECT_EQ(f1(linind), f2(linind));
+
+  // Custom name
+  FunctionType f1_copy_2(f1);
+  FunctionType f3(std::move(f1_copy_2), "moved");
+
+  EXPECT_EQ("moved", f3.get_name());
+  EXPECT_EQ(f1.signature(), f3.signature());
+  EXPECT_EQ(f1.size(), f3.size());
+  EXPECT_EQ(0, f1_copy_2.size());
+
+  for (int linind = 0; linind < f3.size(); ++linind)
+    EXPECT_EQ(f1(linind), f3(linind));
+}
+
+TEST(FunctionTest, CopyAssignment) {
+  using FunctionType = dca::func::function<double, dca::testing::test_domain_2a>;
+
+  FunctionType f1("original");
+  f1(0) = 3.14;
+  f1(1) = 2.72;
+
+  // Self-assignment
+  f1 = f1;
+  EXPECT_EQ("original", f1.get_name());
+  EXPECT_EQ(2, f1.signature());
+  EXPECT_EQ(2, f1.size());
+
+  EXPECT_EQ(3.14, f1(0));
+  EXPECT_EQ(2.72, f1(1));
+
+  // Other assigment
+  FunctionType f2("f2-assigned");
+  f2 = f1;
+
+  EXPECT_EQ("f2-assigned", f2.get_name());
+  EXPECT_EQ(f1.signature(), f2.signature());
+  EXPECT_EQ(f1.size(), f2.size());
+
+  for (int linind = 0; linind < f2.size(); ++linind)
+    EXPECT_EQ(f1(linind), f2(linind));
+
+  // Assignment chain
+  FunctionType f3("f3-assigned");
+  FunctionType f4("f4-assigned");
+  f3 = f4 = f1;
+
+  EXPECT_EQ("f3-assigned", f3.get_name());
+  EXPECT_EQ("f4-assigned", f4.get_name());
+  EXPECT_EQ(f1.signature(), f3.signature());
+  EXPECT_EQ(f1.signature(), f4.signature());
+  EXPECT_EQ(f1.size(), f3.size());
+  EXPECT_EQ(f1.size(), f4.size());
+
+  for (int linind = 0; linind < f3.size(); ++linind) {
+    EXPECT_EQ(f1(linind), f3(linind));
+    EXPECT_EQ(f1(linind), f4(linind));
+  }
+}
+
+TEST(FunctionTest, MoveAssignment) {
+  using FunctionType = dca::func::function<double, dca::testing::test_domain_2a>;
+
+  FunctionType f1("original");
+  f1(0) = 3.14;
+  f1(1) = 2.72;
+
+  // Self-assignment
+  f1 = std::move(f1);
+  EXPECT_EQ("original", f1.get_name());
+  EXPECT_EQ(2, f1.signature());
+  EXPECT_EQ(2, f1.size());
+
+  EXPECT_EQ(3.14, f1(0));
+  EXPECT_EQ(2.72, f1(1));
+
+  // Other assigment
+  FunctionType f1_copy(f1);
+  FunctionType f2("f2-assigned");
+  f2 = std::move(f1_copy);
+
+  EXPECT_EQ("f2-assigned", f2.get_name());
+  EXPECT_EQ(f1.signature(), f2.signature());
+  EXPECT_EQ(f1.size(), f2.size());
+  EXPECT_EQ(0, f1_copy.size());
+
+  for (int linind = 0; linind < f2.size(); ++linind)
+    EXPECT_EQ(f1(linind), f2(linind));
+
+  // Assignment chain
+  FunctionType f1_copy_2(f1);
+  FunctionType f3("f3-assigned");
+  FunctionType f4("f4-assigned");
+  f3 = f4 = std::move(f1_copy_2);
+
+  EXPECT_EQ("f3-assigned", f3.get_name());
+  EXPECT_EQ("f4-assigned", f4.get_name());
+  EXPECT_EQ(f1.signature(), f3.signature());
+  EXPECT_EQ(f1.signature(), f4.signature());
+  EXPECT_EQ(f1.size(), f3.size());
+  EXPECT_EQ(f1.size(), f4.size());
+  EXPECT_EQ(0, f1_copy_2.size());
+
+  for (int linind = 0; linind < f3.size(); ++linind) {
+    EXPECT_EQ(f1(linind), f3(linind));
+    EXPECT_EQ(f1(linind), f4(linind));
+  }
+}
+
+namespace dca {
+namespace testing {
+// dca::testing::
+
+// Domain class with changeable size.
+// Only for testing of the function class's reset method.
+class VariableDmn {
+public:
+  using element_type = void;
+  static void initialize(const int size) {
+    size_ = size;
+  }
+  static int get_size() {
+    return size_;
+  }
+
+private:
+  static int size_;
+};
+
+int VariableDmn::size_ = 0;
+
+}  // testing
+}  // dca
+
+TEST(FunctionTest, Reset) {
+  // Size of test_domain_0b = 2.
+  using Domain =
+      dca::func::dmn_variadic<dca::testing::test_domain_0b, dca::func::dmn_0<dca::testing::VariableDmn>>;
+
+  dca::testing::VariableDmn::initialize(3);
+
+  dca::func::function<double, Domain> f;
+  for (int i = 0; i < f.size(); ++i)
+    f(i) = i;
+
+  EXPECT_EQ(6, f.size());
+
+  // Reinitialize with larger size.
+  dca::testing::VariableDmn::initialize(10);
+
+  EXPECT_EQ(6, f.size());
+
+  f.reset();
+
+  EXPECT_EQ(20, f.size());
+  for (int i = 0; i < f.size(); ++i)
+    EXPECT_EQ(0., f(i));
+
+  // Set elements again to non-default (0) values.
+  for (int i = 0; i < f.size(); ++i)
+    f(i) = i + 3.14;
+
+  // Reinitialize with smaller size.
+  dca::testing::VariableDmn::initialize(4);
+
+  EXPECT_EQ(20, f.size());
+
+  f.reset();
+
+  EXPECT_EQ(8, f.size());
+  for (int i = 0; i < f.size(); ++i)
+    EXPECT_EQ(0., f(i));
+}
+
+TEST(FunctionTest, ComparisonOperatorEqual) {
+  using FunctionType = dca::func::function<double, dca::testing::test_domain_2a>;
+
+  FunctionType f1("f1");
+  f1(0) = 3.14;
+  f1(1) = 2.72;
+
+  FunctionType f2("f2");
+  f2(0) = 3.14;
+  f2(1) = 2.72;
+
+  FunctionType f3("f3");
+  f3(0) = 3.14;
+  f3(1) = 9.9;
+
+  EXPECT_TRUE(f1 == f1);
+  EXPECT_TRUE(f1 == f2);
+  EXPECT_TRUE(f2 == f1);
+  EXPECT_FALSE(f1 == f3);
 }
