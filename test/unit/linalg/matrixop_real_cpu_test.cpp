@@ -578,6 +578,50 @@ TYPED_TEST(MatrixopRealCPUTest, RemoveRowCol) {
   }
 }
 
+TEST(MatrixopRealCPUTest, RemoveCols) {
+  dca::linalg::Matrix<int, dca::linalg::CPU> mat(4), mat_test(std::make_pair(4, 2));
+  for (int i = 0; i < mat.nrRows(); i++)
+    for (int j = 0; j < mat.nrCols(); j++)
+      mat(i, j) = 10 * i + j;
+
+  mat_test(0, 0) = 0, mat_test(0, 1) = 3;
+  mat_test(1, 0) = 10, mat_test(1, 1) = 13;
+  mat_test(2, 0) = 20, mat_test(2, 1) = 23;
+  mat_test(3, 0) = 30, mat_test(3, 1) = 33;
+
+  dca::linalg::matrixop::removeCols(mat, 1, 2);
+
+  EXPECT_EQ(mat, mat_test);
+}
+
+TEST(MatrixopRealCPUTest, RemoveRows) {
+  dca::linalg::Matrix<int, dca::linalg::CPU> mat(4), mat_test(std::make_pair(2, 4));
+  for (int i = 0; i < mat.nrRows(); i++)
+    for (int j = 0; j < mat.nrCols(); j++)
+      mat(i, j) = 10 * i + j;
+
+  mat_test(0, 0) = 0, mat_test(0, 1) = 1, mat_test(0, 2) = 2, mat_test(0, 3) = 3;
+  mat_test(1, 0) = 30, mat_test(1, 1) = 31, mat_test(1, 2) = 32, mat_test(1, 3) = 33;
+
+  dca::linalg::matrixop::removeRows(mat, 1, 2);
+
+  EXPECT_EQ(mat, mat_test);
+}
+
+TEST(MatrixopRealCPUTest, RemoveRowsandColumns) {
+  dca::linalg::Matrix<int, dca::linalg::CPU> mat(4), mat_test(2);
+  for (int i = 0; i < mat.nrRows(); i++)
+    for (int j = 0; j < mat.nrCols(); j++)
+      mat(i, j) = 10 * i + j;
+
+  mat_test(0, 0) = 0, mat_test(0, 1) = 1;
+  mat_test(1, 0) = 10, mat_test(1, 1) = 11;
+
+  dca::linalg::matrixop::removeRowsAndColmuns(mat, 2, 3);
+
+  EXPECT_EQ(mat, mat_test);
+}
+
 TYPED_TEST(MatrixopRealCPUTest, CopyRow) {
   using ScalarType = TypeParam;
   std::pair<int, int> size2_a(4, 3);
