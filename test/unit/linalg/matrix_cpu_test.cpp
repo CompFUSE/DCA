@@ -122,6 +122,30 @@ TEST(MatrixCPUTest, Properties) {
   }
 }
 
+TEST(MatrixCPUTest, Equality) {
+  dca::linalg::Matrix<int, dca::linalg::CPU> mat1(std::make_pair(2, 2));
+  dca::linalg::Matrix<int, dca::linalg::CPU> mat2(std::make_pair(2, 2));
+  dca::linalg::Matrix<int, dca::linalg::CPU> mat3(std::make_pair(2, 3));
+
+  auto fillFunc = [](int i, int j) { return 10 * i + j; };
+  testing::setMatrixElements(mat1, fillFunc);
+  testing::setMatrixElements(mat2, fillFunc);
+  testing::setMatrixElements(mat3, fillFunc);
+  mat2(0, 1) = -1;
+
+  EXPECT_NE(mat1, mat2);
+  EXPECT_NE(mat1, mat3);
+
+  mat3 = mat1;
+  EXPECT_EQ(mat1, mat3);
+
+  mat1.resize(std::make_pair(0, 2));
+  mat3.resize(std::make_pair(3, 0));
+  // Both matrices have now zero elements.
+  EXPECT_TRUE(mat1 == mat3);
+  EXPECT_FALSE(mat1 != mat3);
+}
+
 TEST(MatrixCPUTest, ElementPointers) {
   // Check if the pointers are computed correctly.
   std::pair<int, int> size2(5, 3);

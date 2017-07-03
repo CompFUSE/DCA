@@ -65,6 +65,13 @@ public:
   template <DeviceType rhs_device_name>
   Matrix<ScalarType, device_name>& operator=(const Matrix<ScalarType, rhs_device_name>& rhs);
 
+  // Check for equality (inequality) of size and matrix elements. Capacity and name are ignored.
+  // Special case: a null matrix is equal to any other null matrix.
+  template <DeviceType device = device_name>
+  bool operator==(std::enable_if_t<device == CPU, const Matrix<ScalarType, device>&> other) const;
+  template <DeviceType device = device_name>
+  bool operator!=(std::enable_if_t<device == CPU, const Matrix<ScalarType, device>&> other) const;
+
   // Returns the (i,j)-th element of the matrix.
   // Preconditions: 0 <= i < size().first, 0 <= j < size().second.
   // This method is available only if device_name == CPU.
@@ -290,6 +297,28 @@ Matrix<ScalarType, device_name>& Matrix<ScalarType, device_name>::operator=(
   resizeNoCopy(rhs.size_);
   util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
   return *this;
+}
+
+template <typename ScalarType, DeviceType device_name>
+template <DeviceType device>
+bool Matrix<ScalarType, device_name>::operator==(
+    std::enable_if_t<device == CPU, const Matrix<ScalarType, device>&> other) const {
+  if (nrRows() != other.nrRows() or nrCols() != other.nrCols())
+    return nrRows() * nrCols() == 0 and other.nrRows() * other.nrCols() == 0;
+
+  for (int j = 0; j < nrCols(); j++)
+    for (int i = 0; i < nrRows(); i++)
+      if ((*this)(i, j) != other(i, j))
+        return false;
+
+  return true;
+}
+
+template <typename ScalarType, DeviceType device_name>
+template <DeviceType device>
+bool Matrix<ScalarType, device_name>::operator!=(
+    std::enable_if_t<device == CPU, const Matrix<ScalarType, device>&> other) const {
+  return not(*this == other);
 }
 
 template <typename ScalarType, DeviceType device_name>
