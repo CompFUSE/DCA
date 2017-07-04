@@ -127,17 +127,23 @@ TEST(MatrixCPUTest, Equality) {
   dca::linalg::Matrix<int, dca::linalg::CPU> mat2(std::make_pair(2, 2));
   dca::linalg::Matrix<int, dca::linalg::CPU> mat3(std::make_pair(2, 3));
 
-  auto fillFunc = [](int i, int j) { return 10 * i + j; };
-  testing::setMatrixElements(mat1, fillFunc);
-  testing::setMatrixElements(mat2, fillFunc);
-  testing::setMatrixElements(mat3, fillFunc);
+  auto fill_func = [](int i, int j) { return 10 * i + j; };
+  testing::setMatrixElements(mat1, fill_func);
+  testing::setMatrixElements(mat2, fill_func);
+  testing::setMatrixElements(mat3, fill_func);
   mat2(0, 1) = -1;
 
-  EXPECT_NE(mat1, mat2);
-  EXPECT_NE(mat1, mat3);
+  EXPECT_TRUE(mat1 != mat2);
+  EXPECT_FALSE(mat1 == mat2);
+  EXPECT_TRUE(mat1 != mat3);
+  EXPECT_FALSE(mat1 == mat3);
 
+  mat1.set_name("A name.");
   mat3 = mat1;
-  EXPECT_EQ(mat1, mat3);
+  mat3.set_name("Another name.");
+
+  EXPECT_TRUE(mat1 == mat3);
+  EXPECT_FALSE(mat1 != mat3);
 
   mat1.resize(std::make_pair(0, 2));
   mat3.resize(std::make_pair(3, 0));

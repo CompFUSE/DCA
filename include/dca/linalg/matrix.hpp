@@ -309,8 +309,8 @@ bool Matrix<ScalarType, device_name>::operator==(
   if (nrRows() != other.nrRows() or nrCols() != other.nrCols())
     return nrRows() * nrCols() == 0 and other.nrRows() * other.nrCols() == 0;
 
-  for (int j = 0; j < nrCols(); j++)
-    for (int i = 0; i < nrRows(); i++)
+  for (int j = 0; j < nrCols(); ++j)
+    for (int i = 0; i < nrRows(); ++i)
       if ((*this)(i, j) != other(i, j))
         return false;
 
@@ -365,8 +365,8 @@ std::enable_if_t<device_name == CPU && dn == CPU, void> Matrix<ScalarType, devic
   ss << std::scientific;
 
   ss << "\n";
-  for (int i = 0; i < nrRows(); i++) {
-    for (int j = 0; j < nrCols(); j++)
+  for (int i = 0; i < nrRows(); ++i) {
+    for (int j = 0; j < nrCols(); ++j)
       ss << "\t" << operator()(i, j);
     ss << "\n";
   }

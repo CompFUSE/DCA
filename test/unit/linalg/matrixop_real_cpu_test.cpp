@@ -579,10 +579,11 @@ TYPED_TEST(MatrixopRealCPUTest, RemoveRowCol) {
 }
 
 TEST(MatrixopRealCPUTest, RemoveCols) {
-  dca::linalg::Matrix<int, dca::linalg::CPU> mat(4), mat_test(std::make_pair(4, 2));
-  for (int i = 0; i < mat.nrRows(); i++)
-    for (int j = 0; j < mat.nrCols(); j++)
-      mat(i, j) = 10 * i + j;
+  dca::linalg::Matrix<int, dca::linalg::CPU> mat(4);
+  dca::linalg::Matrix<int, dca::linalg::CPU> mat_test(std::make_pair(4, 2));
+
+  auto fill_func = [](int i, int j) { return 10 * i + j; };
+  testing::setMatrixElements(mat, fill_func);
 
   mat_test(0, 0) = 0, mat_test(0, 1) = 3;
   mat_test(1, 0) = 10, mat_test(1, 1) = 13;
@@ -590,15 +591,19 @@ TEST(MatrixopRealCPUTest, RemoveCols) {
   mat_test(3, 0) = 30, mat_test(3, 1) = 33;
 
   dca::linalg::matrixop::removeCols(mat, 1, 2);
-
   EXPECT_EQ(mat, mat_test);
+
+  dca::linalg::Matrix<int, dca::linalg::CPU> null_matrix(0);
+  dca::linalg::matrixop::removeCols(mat, 0, mat.nrCols() - 1);
+  EXPECT_EQ(null_matrix, mat);
 }
 
 TEST(MatrixopRealCPUTest, RemoveRows) {
-  dca::linalg::Matrix<int, dca::linalg::CPU> mat(4), mat_test(std::make_pair(2, 4));
-  for (int i = 0; i < mat.nrRows(); i++)
-    for (int j = 0; j < mat.nrCols(); j++)
-      mat(i, j) = 10 * i + j;
+  dca::linalg::Matrix<int, dca::linalg::CPU> mat(4);
+  dca::linalg::Matrix<int, dca::linalg::CPU> mat_test(std::make_pair(2, 4));
+
+  auto fill_func = [](int i, int j) { return 10 * i + j; };
+  testing::setMatrixElements(mat, fill_func);
 
   mat_test(0, 0) = 0, mat_test(0, 1) = 1, mat_test(0, 2) = 2, mat_test(0, 3) = 3;
   mat_test(1, 0) = 30, mat_test(1, 1) = 31, mat_test(1, 2) = 32, mat_test(1, 3) = 33;
@@ -606,13 +611,18 @@ TEST(MatrixopRealCPUTest, RemoveRows) {
   dca::linalg::matrixop::removeRows(mat, 1, 2);
 
   EXPECT_EQ(mat, mat_test);
+
+  dca::linalg::Matrix<int, dca::linalg::CPU> null_matrix(0);
+  dca::linalg::matrixop::removeRows(mat, 0, mat.nrRows() - 1);
+  EXPECT_EQ(mat, null_matrix);
 }
 
 TEST(MatrixopRealCPUTest, RemoveRowsandColumns) {
-  dca::linalg::Matrix<int, dca::linalg::CPU> mat(4), mat_test(2);
-  for (int i = 0; i < mat.nrRows(); i++)
-    for (int j = 0; j < mat.nrCols(); j++)
-      mat(i, j) = 10 * i + j;
+  dca::linalg::Matrix<int, dca::linalg::CPU> mat(4);
+  dca::linalg::Matrix<int, dca::linalg::CPU> mat_test(2);
+
+  auto fill_func = [](int i, int j) { return 10 * i + j; };
+  testing::setMatrixElements(mat, fill_func);
 
   mat_test(0, 0) = 0, mat_test(0, 1) = 1;
   mat_test(1, 0) = 10, mat_test(1, 1) = 11;

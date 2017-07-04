@@ -303,9 +303,9 @@ void removeCols(Matrix<ScalarType, CPU>& mat, int first, int last) {
   const int m = mat.nrCols();
   assert(last < m and last >= first and first >= 0);
 
-  // TODO: try if iterative copy of just the matrix elements is faster.
   if (n > 0 and last < m - 1)
-    std::copy(mat.ptr(0, last + 1), mat.ptr(n - 1, m - 1) + 1, mat.ptr(0, first));
+    std::memmove(mat.ptr(0, first), mat.ptr(0, last + 1),
+                 mat.leadingDimension() * (m - last) * sizeof(ScalarType));
 
   mat.resize(std::make_pair(n, m - n_removed));
 }
@@ -346,10 +346,9 @@ void removeRows(Matrix<ScalarType, CPU>& mat, int first, int last) {
   const int m = mat.nrCols();
   assert(last < n and last >= first and first >= 0);
 
-  // TODO: try if iterative copy of just the matrix elements is faster.
   if (last < n - 1)
-    for (int j = 0; j < m; j++)
-      std::copy(mat.ptr(last + 1, j), mat.ptr(n - 1, j) + 1, mat.ptr(first, j));
+    for (int j = 0; j < m; ++j)
+      std::memmove(mat.ptr(first, j), mat.ptr(last + 1, j), (n - last) * sizeof(ScalarType));
 
   mat.resize(std::make_pair(n - n_removed, m));
 }
