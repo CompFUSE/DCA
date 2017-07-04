@@ -319,12 +319,12 @@ TEST(MatrixGPUTest, Swap) {
   auto mat2_ptr = mat2.ptr();
 
   mat1.swap(mat2);
-  EXPECT_EQ(mat1_name, mat2.get_name());
+  EXPECT_EQ(mat1_name, mat1.get_name());
   EXPECT_EQ(mat1_size, mat2.size());
   EXPECT_EQ(mat1_capacity, mat2.capacity());
   EXPECT_EQ(mat1_ptr, mat2.ptr());
 
-  EXPECT_EQ(mat2_name, mat1.get_name());
+  EXPECT_EQ(mat2_name, mat2.get_name());
   EXPECT_EQ(mat2_size, mat1.size());
   EXPECT_EQ(mat2_capacity, mat1.capacity());
   EXPECT_EQ(mat2_ptr, mat1.ptr());

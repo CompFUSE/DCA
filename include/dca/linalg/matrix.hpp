@@ -188,7 +188,10 @@ public:
   // if new_size.first <= capacity().first and new_size.second <= capacity().second.
   void resizeNoCopy(std::pair<int, int> new_size);
 
+  // Swaps matrix shapes and entries. Do not swap names.
   void swap(Matrix<ScalarType, device_name>& rhs);
+  // Performs a matrix swap plus a swap of the names.
+  void swapWithName(Matrix<ScalarType, device_name>& rhs);
 
   // Asynchronous assignement (copy with stream = getStream(thread_id, stream_id))
   // + synchronization of stream
@@ -385,10 +388,15 @@ void Matrix<ScalarType, device_name>::resizeNoCopy(std::pair<int, int> new_size)
 
 template <typename ScalarType, DeviceType device_name>
 void Matrix<ScalarType, device_name>::swap(Matrix<ScalarType, device_name>& rhs) {
-  std::swap(name_, rhs.name_);
   std::swap(size_, rhs.size_);
   std::swap(capacity_, rhs.capacity_);
   std::swap(data_, rhs.data_);
+}
+
+template <typename ScalarType, DeviceType device_name>
+void Matrix<ScalarType, device_name>::swapWithName(Matrix<ScalarType, device_name>& rhs) {
+  std::swap(name_, rhs.name_);
+  swap(rhs);
 }
 
 template <typename ScalarType, DeviceType device_name>
