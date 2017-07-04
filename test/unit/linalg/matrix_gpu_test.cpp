@@ -152,7 +152,7 @@ TEST(MatrixGPUTest, CopyConstructor) {
   auto el_value = [](int i, int j) { return 3 * i - 2 * j; };
   testing::setMatrixElements(mat, el_value);
 
-  dca::linalg::Matrix<float, dca::linalg::GPU> mat_copy(mat);
+  dca::linalg::Matrix<float, dca::linalg::GPU> mat_copy(mat, mat.get_name());
   EXPECT_EQ(mat.get_name(), mat_copy.get_name());
   EXPECT_EQ(mat.size(), mat_copy.size());
   EXPECT_LE(mat.size().first, mat_copy.capacity().first);

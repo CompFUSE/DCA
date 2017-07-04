@@ -198,22 +198,23 @@ TEST(MatrixCPUTest, ElementAccess) {
 
 TEST(MatrixCPUTest, CopyConstructor) {
   std::pair<int, int> size2(2, 3);
-
-  dca::linalg::Matrix<float, dca::linalg::CPU> mat("name", size2);
+  using MatrixType = dca::linalg::Matrix<float, dca::linalg::CPU>;
+  MatrixType mat("name", size2);
   auto el_value = [](int i, int j) { return 3 * i - 2 * j; };
   testing::setMatrixElements(mat, el_value);
 
-  dca::linalg::Matrix<float, dca::linalg::CPU> mat_copy(mat);
-  EXPECT_EQ(mat.get_name(), mat_copy.get_name());
-  EXPECT_EQ(mat.size(), mat_copy.size());
+  MatrixType mat_copy(mat);
+  EXPECT_EQ(mat, mat_copy);
+  // The name is not copied.
+  EXPECT_EQ(MatrixType::get_default_name(), mat_copy.get_name());
   EXPECT_LE(mat.size().first, mat_copy.capacity().first);
   EXPECT_LE(mat.size().second, mat_copy.capacity().second);
 
-  for (int j = 0; j < mat.nrCols(); ++j)
-    for (int i = 0; i < mat.nrRows(); ++i) {
-      EXPECT_EQ(mat(i, j), mat_copy(i, j));
-      EXPECT_NE(mat.ptr(i, j), mat_copy.ptr(i, j));
-    }
+  EXPECT_NE(mat.ptr(), mat_copy.ptr());
+
+  MatrixType mat_copy2(mat, mat.get_name());
+  EXPECT_EQ(mat, mat_copy2);
+  EXPECT_EQ(mat.get_name(), mat_copy2.get_name());
 }
 
 TEST(MatrixCPUTest, Assignement) {
