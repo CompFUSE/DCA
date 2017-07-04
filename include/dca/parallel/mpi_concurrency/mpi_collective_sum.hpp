@@ -68,28 +68,34 @@ public:
   void average_and_compute_stddev(func::function<std::complex<scalar_type>, domain>& f_mean,
                                   func::function<std::complex<scalar_type>, domain>& f_stddev) const;
 
-  // Overwrites the values of f with its average across all other ranks.
-  // Does nothing if there is only one rank.
-  template <typename scalar_type, class domain>
-  void leaveOneOutAvg(func::function<scalar_type, domain>& f) const;
-  template <typename scalar_type>
-  void leaveOneOutAvg(scalar_type& s) const;
+  // Computes the average of s over all ranks excluding the local value and stores the result back
+  // in s.
+  // Does nothing, if there is only one rank.
+  // In/Out: s
+  template <typename Scalar>
+  void leaveOneOutAvg(Scalar& s) const;
+  // Element-wise implementation for dca::func::function.
+  // In/Out: f
+  template <typename Scalar, class Domain>
+  void leaveOneOutAvg(func::function<Scalar, Domain>& f) const;
 
-  // Compute the jack knife variance as sqrt( (n-1)/n \sum_i (f_i - f_avg)^2 ), where f_i is the
-  // function value in the current rank.
-  // I/O : f_loo
-  // Returns: The jack knife error.
-  // Precondition: f_loo contains the estimation with one block of data
-  // left out.
-  // Postcondition: if overwite_average == true, f_loo contains the average of the L.O.O.
-  // estimations.
-  template <typename scalar_type, class domain>
-  func::function<scalar_type, domain> jackKnifeError(func::function<scalar_type, domain>& f_loo,
-                                                     bool overwrite_average = true) const;
-  // Same as above. Computes the error for real and imaginary part independently.
-  template <typename scalar_type, class domain>
-  func::function<std::complex<scalar_type>, domain> jackKnifeError(
-      func::function<std::complex<scalar_type>, domain>& f_loo, bool overwrite_average = true) const;
+  // Computes and returns the element-wise jackknife error
+  // \Delta f_{jack} = \sqrt( (n-1)/n \sum_i^n (f_i - f_avg)^2 ),
+  // where f_i is the i-th jackknife estimate of f and f_avg is the average of all f_i's.
+  // Returns zero for all elements, if there is only one rank.
+  // In/Out: f_i
+  // In (optional): overwrite (default = true)
+  // Preconditions: Each rank holds a unique precomputed jackknife estimate f_i.
+  // Postconditions: If overwrite == true, the jackknife estimate f_i is overwritten with the
+  //                 average f_avg; else f_i stays unchanged.
+  template <typename Scalar, class Domain>
+  func::function<Scalar, Domain> jackknifeError(func::function<Scalar, Domain>& f_i,
+                                                bool overwrite = true) const;
+  // Implementation for std::complex.
+  // Real and imaginary parts are treated independently.
+  template <typename Scalar, class Domain>
+  func::function<std::complex<Scalar>, Domain> jackknifeError(
+      func::function<std::complex<Scalar>, Domain>& f_i, bool overwrite = true) const;
 
   // Computes the covariance matrix of the measurements of the different mpi ranks.
   // In: f, f_estimated
@@ -249,76 +255,87 @@ void MPICollectiveSum::sum_and_average(const some_type& in, some_type& out,
   out *= one_over_N;
 }
 
-template <typename scalar_type>
-void MPICollectiveSum::leaveOneOutAvg(scalar_type& s) const {
-  if (grouping_.get_Nr_threads() == 1)  // no jack knife estimate is possible,
+template <typename Scalar>
+void MPICollectiveSum::leaveOneOutAvg(Scalar& s) const {
+  if (grouping_.get_Nr_threads() == 1)
     return;
 
-  scalar_type copy = s;
+  const Scalar s_local(s);
   sum(s);
-  s = (s - copy) / (grouping_.get_Nr_threads() - 1);
+  s = (s - s_local) / (grouping_.get_Nr_threads() - 1);
 }
 
-template <typename scalar_type, class domain>
-void MPICollectiveSum::leaveOneOutAvg(func::function<scalar_type, domain>& f) const {
-  if (grouping_.get_Nr_threads() == 1)  // no jack knife estimate is possible,
+template <typename Scalar, class Domain>
+void MPICollectiveSum::leaveOneOutAvg(func::function<Scalar, Domain>& f) const {
+  if (grouping_.get_Nr_threads() == 1)
     return;
 
-  func::function<scalar_type, domain> f_copy(f);
-  sum(f_copy, f);
+  const func::function<Scalar, Domain> f_local(f);
+  sum(f_local, f);
+
   const double scale = 1. / (grouping_.get_Nr_threads() - 1);
-  for (int i = 0; i < f.size(); i++)
-    f(i) = scale * (f(i) - f_copy(i));
+  for (int i = 0; i < f.size(); ++i)
+    f(i) = scale * (f(i) - f_local(i));
 }
 
-template <typename scalar_type, class domain>
-func::function<scalar_type, domain> MPICollectiveSum::jackKnifeError(
-    func::function<scalar_type, domain>& f_loo, bool overwrite_average) const {
-  func::function<scalar_type, domain> f_avg(f_loo);
-  func::function<scalar_type, domain> err("Jack-Knife-error");
+template <typename Scalar, class Domain>
+func::function<Scalar, Domain> MPICollectiveSum::jackknifeError(func::function<Scalar, Domain>& f_i,
+                                                                const bool overwrite) const {
+  func::function<Scalar, Domain> err("jackknife-error");
 
   const int n = grouping_.get_Nr_threads();
 
-  if (n == 1)  // no jack knife estimate is possible,
+  if (n == 1)  // No jackknife procedure possible.
     return err;
 
-  sum_and_average(f_avg);
-  const double scale = double(n - 1) / double(n);
-  for (int i = 0; i < f_avg.size(); i++)
-    err(i) = (f_loo(i) - f_avg(i)) * (f_loo(i) - f_avg(i));
+  func::function<Scalar, Domain> f_avg("f_avg");
+  sum_and_average(f_i, f_avg);
+
+  for (int k = 0; k < f_avg.size(); ++k)
+    err(k) = (f_i(k) - f_avg(k)) * (f_i(k) - f_avg(k));
 
   sum(err);
 
-  for (int i = 0; i < err.size(); i++)
-    err(i) = std::sqrt(scale * err(i));
+  const double scale = double(n - 1) / double(n);
+  for (int k = 0; k < err.size(); ++k)
+    err(k) = std::sqrt(scale * err(k));
 
-  if (overwrite_average)
-    f_loo = std::move(f_avg);
+  if (overwrite)
+    f_i = std::move(f_avg);
+
   return err;
 }
 
-template <typename scalar_type, class domain>
-func::function<std::complex<scalar_type>, domain> MPICollectiveSum::jackKnifeError(
-    func::function<std::complex<scalar_type>, domain>& f_loo, bool overwrite_average) const {
-  func::function<std::complex<scalar_type>, domain> f_avg(f_loo);
-  func::function<std::complex<scalar_type>, domain> err("Jack-Knife-error");
+template <typename Scalar, class Domain>
+func::function<std::complex<Scalar>, Domain> MPICollectiveSum::jackknifeError(
+    func::function<std::complex<Scalar>, Domain>& f_i, const bool overwrite) const {
+  func::function<std::complex<Scalar>, Domain> err("jackknife-error");
 
-  sum_and_average(f_avg);
   const int n = grouping_.get_Nr_threads();
-  const double scale = double(n - 1) / double(n);
-  for (int i = 0; i < f_avg.size(); i++) {
-    err(i).real(real(f_loo(i) - f_avg(i)) * real(f_loo(i) - f_avg(i)));
-    err(i).imag(imag(f_loo(i) - f_avg(i)) * imag(f_loo(i) - f_avg(i)));
+
+  if (n == 1)  // No jackknife procedure possible.
+    return err;
+
+  func::function<std::complex<Scalar>, Domain> f_avg("f_avg");
+  sum_and_average(f_i, f_avg);
+
+  for (int k = 0; k < f_avg.size(); ++k) {
+    const auto diff = f_i(k) - f_avg(k);
+    err(k).real(diff.real() * diff.real());
+    err(k).imag(diff.imag() * diff.imag());
   }
+
   sum(err);
 
-  for (int i = 0; i < err.size(); i++) {
-    err(i).real(std::sqrt(scale * std::real(err(i))));
-    err(i).imag(std::sqrt(scale * std::imag(err(i))));
+  const double scale = double(n - 1) / double(n);
+  for (int k = 0; k < err.size(); ++k) {
+    err(k).real(std::sqrt(scale * err(k).real()));
+    err(k).imag(std::sqrt(scale * err(k).imag()));
   }
 
-  if (overwrite_average)
-    f_loo = std::move(f_avg);
+  if (overwrite)
+    f_i = std::move(f_avg);
+
   return err;
 }
 
