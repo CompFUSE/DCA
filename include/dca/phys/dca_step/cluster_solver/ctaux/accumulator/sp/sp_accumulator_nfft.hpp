@@ -59,12 +59,9 @@ public:
 public:
   SpAccumulatorNfft(parameters_type& parameters_ref);
 
-  void initialize(func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& M_r_w);
+  void initialize();
 
-  void initialize(
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& M_r_w,
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& M_r_w_squared);
-
+  // TODO: Remove?
   void finalize() {}
 
   void finalize(
@@ -82,6 +79,7 @@ public:
 
   int find_first_non_interacting_spin(std::vector<vertex_singleton_type>& configuration_e_spin);
 
+  // TODO: Deprecated since replaced by finalize(M_r_w, M_r_w_squared)?
   void compute_M_r_w(func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& M_r_w);
 
 private:
@@ -101,23 +99,9 @@ SpAccumulatorNfft<parameters_type, MOMS_type>::SpAccumulatorNfft(parameters_type
       cached_nfft_1D_M_r_w_squared_obj() {}
 
 template <class parameters_type, class MOMS_type>
-void SpAccumulatorNfft<parameters_type, MOMS_type>::initialize(
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& M_r_w) {
+void SpAccumulatorNfft<parameters_type, MOMS_type>::initialize() {
   cached_nfft_1D_M_r_w_obj.initialize();
   cached_nfft_1D_M_r_w_squared_obj.initialize();
-
-  M_r_w = 0;
-}
-
-template <class parameters_type, class MOMS_type>
-void SpAccumulatorNfft<parameters_type, MOMS_type>::initialize(
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& M_r_w,
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& M_r_w_squared) {
-  cached_nfft_1D_M_r_w_obj.initialize();
-  cached_nfft_1D_M_r_w_squared_obj.initialize();
-
-  M_r_w = 0;
-  M_r_w_squared = 0;
 }
 
 template <class parameters_type, class MOMS_type>
@@ -248,7 +232,6 @@ void SpAccumulatorNfft<parameters_type, MOMS_type>::compute_M_r_w(
               M_r_w(b1_ind, s1_ind, b2_ind, s2_ind, r_ind, w_ind) =
                   tmp(w_ind, b1_ind, s1_ind, b2_ind, s2_ind, r_ind);
 
-  // double one_div_n_sites = 1./double(base_cluster_type::get_cluster_size());
   double one_div_n_sites = 1. / double(r_DCA::dmn_size());
   M_r_w *= one_div_n_sites;
 }
@@ -270,7 +253,6 @@ void SpAccumulatorNfft<parameters_type, MOMS_type>::finalize(
                 M_r_w(b1_ind, s1_ind, b2_ind, s2_ind, r_ind, w_ind) =
                     tmp(w_ind, b1_ind, s1_ind, b2_ind, s2_ind, r_ind);
 
-    // double one_div_n_sites = 1./double(base_cluster_type::get_cluster_size());
     double one_div_n_sites = 1. / double(r_DCA::dmn_size());
     M_r_w *= one_div_n_sites;
   }
@@ -288,7 +270,6 @@ void SpAccumulatorNfft<parameters_type, MOMS_type>::finalize(
                 M_r_w_squared(b1_ind, s1_ind, b2_ind, s2_ind, r_ind, w_ind) =
                     tmp(w_ind, b1_ind, s1_ind, b2_ind, s2_ind, r_ind);
 
-    // double one_div_n_sites = 1./double(base_cluster_type::get_cluster_size());
     double one_div_n_sites = 1. / double(r_DCA::dmn_size());
     M_r_w_squared *= one_div_n_sites;
   }
