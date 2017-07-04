@@ -91,6 +91,9 @@ public:
   const std::string& get_name() const {
     return name_;
   }
+  void set_name(const std::string& new_name) {
+    name_ = new_name;
+  }
 
   // Returns the pointer to the (0,0)-th element.
   ValueType* ptr() {
