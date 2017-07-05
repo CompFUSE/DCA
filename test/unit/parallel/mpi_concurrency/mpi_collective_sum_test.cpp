@@ -7,12 +7,18 @@
 //
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //         Andrei Plamada (plamada@phys.ethz.ch)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // This file tests mpi_collective_sum.hpp.
 
 #include "dca/parallel/mpi_concurrency/mpi_collective_sum.hpp"
+
+#include <cmath>
 #include <complex>
+#include <vector>
+
 #include "gtest/gtest.h"
+
 #include "dca/testing/minimalist_printer.hpp"
 
 class MPICollectiveSumTest : public ::testing::Test {
@@ -58,6 +64,136 @@ TEST_F(MPICollectiveSumTest, SumFunction) {
 
   for (int i = 0; i < function_test.size(); i++)
     EXPECT_EQ(function_expected(i), function_test(i));
+}
+
+TEST_F(MPICollectiveSumTest, LeaveOneOutAvg) {
+  std::vector<double> values(size_);
+  double sum = 0.;
+  for (int i = 0; i < size_; ++i) {
+    values[i] = 3.14 + i;
+    sum += values[i];
+  }
+
+  // Expected result
+  const double expected = (sum - values[rank_]) / double(size_ - 1);
+
+  // Check scalar version.
+  double scalar = values[rank_];
+  sum_interface_.leaveOneOutAvg(scalar);
+  EXPECT_DOUBLE_EQ(expected, scalar);
+
+  // Check dca::func::function version.
+  using TestDomain = dca::func::dmn_0<dca::func::dmn<2, int>>;
+  dca::func::function<double, TestDomain> f;
+  f(0) = values[rank_];
+  f(1) = 0.;
+
+  sum_interface_.leaveOneOutAvg(f);
+
+  EXPECT_DOUBLE_EQ(expected, f(0));
+  EXPECT_EQ(0., f(1));
+}
+
+TEST_F(MPICollectiveSumTest, JackknifeErrorReal) {
+  using TestDomain = dca::func::dmn_0<dca::func::dmn<2, int>>;
+  using FunctionType = dca::func::function<double, TestDomain>;
+
+  FunctionType f;
+
+  // Trivial case
+  // All jackknife estimates are identical: jackknife error = 0
+  f(0) = 3.14;
+  f(1) = 2.72;
+
+  auto err_trivial = sum_interface_.jackknifeError(f);
+
+  EXPECT_EQ(0., err_trivial(0));
+  EXPECT_EQ(0., err_trivial(1));
+
+  // Non-trivial case
+  const double d = 42.1;
+  f(0) = rank_;
+  f(1) = d;
+
+  const FunctionType f_copy(f);
+
+  FunctionType err_expected;
+  err_expected(0) = std::sqrt(double(size_ - 1) / double(size_) * 2 * 21);
+  err_expected(1) = 0.;
+
+  // Do not overwrite the jackknife estimates with their average.
+  auto err_no_overwriting = sum_interface_.jackknifeError(f, false);
+
+  EXPECT_EQ(f_copy(0), f(0));
+  EXPECT_EQ(f_copy(1), f(1));
+
+  EXPECT_DOUBLE_EQ(err_expected(0), err_no_overwriting(0));
+  EXPECT_EQ(err_expected(1), err_no_overwriting(1));
+
+  // Overwrite the jackknife estimates with their average.
+  auto err_overwriting = sum_interface_.jackknifeError(f, true);
+
+  const double rank_avg = double(size_ - 1) / 2.;
+
+  EXPECT_EQ(rank_avg, f(0));
+  EXPECT_EQ(d, f(1));
+
+  EXPECT_DOUBLE_EQ(err_expected(0), err_overwriting(0));
+  EXPECT_EQ(err_expected(1), err_overwriting(1));
+}
+
+TEST_F(MPICollectiveSumTest, JackknifeErrorComplex) {
+  using TestDomain = dca::func::dmn_0<dca::func::dmn<2, int>>;
+  using FunctionType = dca::func::function<std::complex<double>, TestDomain>;
+
+  FunctionType f;
+
+  // Trivial case
+  // All jackknife estimates are identical: jackknife error = 0
+  f(0) = std::complex<double>(3.14, 1.2);
+  f(1) = std::complex<double>(2.72, 3.4);
+
+  auto err_trivial = sum_interface_.jackknifeError(f);
+
+  EXPECT_EQ(0., err_trivial(0));
+  EXPECT_EQ(0., err_trivial(1));
+
+  // Non-trivial case
+  const double d = 42.1;
+  const double r = 1.4;
+  f(0) = std::complex<double>(rank_, rank_ + r);
+  f(1) = std::complex<double>(rank_, d);
+
+  const FunctionType f_copy(f);
+
+  FunctionType err_expected;
+  const double err_tmp = std::sqrt(double(size_ - 1) / double(size_) * 2 * 21);
+  err_expected(0) = std::complex<double>(err_tmp, err_tmp);
+  err_expected(1) = std::complex<double>(err_tmp, 0.);
+
+  // Do not overwrite the jackknife estimates with their average.
+  auto err_no_overwriting = sum_interface_.jackknifeError(f, false);
+
+  EXPECT_EQ(f_copy(0), f(0));
+  EXPECT_EQ(f_copy(1), f(1));
+
+  EXPECT_DOUBLE_EQ(err_expected(0).real(), err_no_overwriting(0).real());
+  EXPECT_DOUBLE_EQ(err_expected(0).imag(), err_no_overwriting(0).imag());
+  EXPECT_DOUBLE_EQ(err_expected(1).real(), err_no_overwriting(1).real());
+  EXPECT_EQ(err_expected(1).imag(), err_no_overwriting(1).imag());
+
+  // Overwrite the jackknife estimates with their average.
+  auto err_overwriting = sum_interface_.jackknifeError(f, true);
+
+  const double rank_avg = double(size_ - 1) / 2.;
+
+  EXPECT_EQ(std::complex<double>(rank_avg, rank_avg + r), f(0));
+  EXPECT_EQ(std::complex<double>(rank_avg, d), f(1));
+
+  EXPECT_DOUBLE_EQ(err_expected(0).real(), err_overwriting(0).real());
+  EXPECT_DOUBLE_EQ(err_expected(0).imag(), err_overwriting(0).imag());
+  EXPECT_DOUBLE_EQ(err_expected(1).real(), err_overwriting(1).real());
+  EXPECT_EQ(err_expected(1).imag(), err_overwriting(1).imag());
 }
 
 TEST_F(MPICollectiveSumTest, ComputeCovarianceScalar) {

@@ -8,6 +8,7 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Andrei Plamada (plamada@phys.ethz.ch)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // This class provides an interface to do collective sums and averages with MPI.
 // In addition, it can compute the covariance for func::function.
@@ -66,6 +67,35 @@ public:
   template <typename scalar_type, class domain>
   void average_and_compute_stddev(func::function<std::complex<scalar_type>, domain>& f_mean,
                                   func::function<std::complex<scalar_type>, domain>& f_stddev) const;
+
+  // Computes the average of s over all ranks excluding the local value and stores the result back
+  // in s.
+  // Does nothing, if there is only one rank.
+  // In/Out: s
+  template <typename Scalar>
+  void leaveOneOutAvg(Scalar& s) const;
+  // Element-wise implementation for dca::func::function.
+  // In/Out: f
+  template <typename Scalar, class Domain>
+  void leaveOneOutAvg(func::function<Scalar, Domain>& f) const;
+
+  // Computes and returns the element-wise jackknife error
+  // \Delta f_{jack} = \sqrt( (n-1)/n \sum_i^n (f_i - f_avg)^2 ),
+  // where f_i is the i-th jackknife estimate of f and f_avg is the average of all f_i's.
+  // Returns zero for all elements, if there is only one rank.
+  // In/Out: f_i
+  // In (optional): overwrite (default = true)
+  // Preconditions: Each rank holds a unique precomputed jackknife estimate f_i.
+  // Postconditions: If overwrite == true, the jackknife estimate f_i is overwritten with the
+  //                 average f_avg; else f_i stays unchanged.
+  template <typename Scalar, class Domain>
+  func::function<Scalar, Domain> jackknifeError(func::function<Scalar, Domain>& f_i,
+                                                bool overwrite = true) const;
+  // Implementation for std::complex.
+  // Real and imaginary parts are treated independently.
+  template <typename Scalar, class Domain>
+  func::function<std::complex<Scalar>, Domain> jackknifeError(
+      func::function<std::complex<Scalar>, Domain>& f_i, bool overwrite = true) const;
 
   // Computes the covariance matrix of the measurements of the different mpi ranks.
   // In: f, f_estimated
@@ -223,6 +253,90 @@ void MPICollectiveSum::sum_and_average(const some_type& in, some_type& out,
   const double one_over_N = 1. / (nr_meas_rank * grouping_.get_Nr_threads());
 
   out *= one_over_N;
+}
+
+template <typename Scalar>
+void MPICollectiveSum::leaveOneOutAvg(Scalar& s) const {
+  if (grouping_.get_Nr_threads() == 1)
+    return;
+
+  const Scalar s_local(s);
+  sum(s);
+  s = (s - s_local) / (grouping_.get_Nr_threads() - 1);
+}
+
+template <typename Scalar, class Domain>
+void MPICollectiveSum::leaveOneOutAvg(func::function<Scalar, Domain>& f) const {
+  if (grouping_.get_Nr_threads() == 1)
+    return;
+
+  const func::function<Scalar, Domain> f_local(f);
+  sum(f_local, f);
+
+  const double scale = 1. / (grouping_.get_Nr_threads() - 1);
+  for (int i = 0; i < f.size(); ++i)
+    f(i) = scale * (f(i) - f_local(i));
+}
+
+template <typename Scalar, class Domain>
+func::function<Scalar, Domain> MPICollectiveSum::jackknifeError(func::function<Scalar, Domain>& f_i,
+                                                                const bool overwrite) const {
+  func::function<Scalar, Domain> err("jackknife-error");
+
+  const int n = grouping_.get_Nr_threads();
+
+  if (n == 1)  // No jackknife procedure possible.
+    return err;
+
+  func::function<Scalar, Domain> f_avg("f_avg");
+  sum_and_average(f_i, f_avg);
+
+  for (int k = 0; k < f_avg.size(); ++k)
+    err(k) = (f_i(k) - f_avg(k)) * (f_i(k) - f_avg(k));
+
+  sum(err);
+
+  const double scale = double(n - 1) / double(n);
+  for (int k = 0; k < err.size(); ++k)
+    err(k) = std::sqrt(scale * err(k));
+
+  if (overwrite)
+    f_i = std::move(f_avg);
+
+  return err;
+}
+
+template <typename Scalar, class Domain>
+func::function<std::complex<Scalar>, Domain> MPICollectiveSum::jackknifeError(
+    func::function<std::complex<Scalar>, Domain>& f_i, const bool overwrite) const {
+  func::function<std::complex<Scalar>, Domain> err("jackknife-error");
+
+  const int n = grouping_.get_Nr_threads();
+
+  if (n == 1)  // No jackknife procedure possible.
+    return err;
+
+  func::function<std::complex<Scalar>, Domain> f_avg("f_avg");
+  sum_and_average(f_i, f_avg);
+
+  for (int k = 0; k < f_avg.size(); ++k) {
+    const auto diff = f_i(k) - f_avg(k);
+    err(k).real(diff.real() * diff.real());
+    err(k).imag(diff.imag() * diff.imag());
+  }
+
+  sum(err);
+
+  const double scale = double(n - 1) / double(n);
+  for (int k = 0; k < err.size(); ++k) {
+    err(k).real(std::sqrt(scale * err(k).real()));
+    err(k).imag(std::sqrt(scale * err(k).imag()));
+  }
+
+  if (overwrite)
+    f_i = std::move(f_avg);
+
+  return err;
 }
 
 template <typename scalar_type, class domain>

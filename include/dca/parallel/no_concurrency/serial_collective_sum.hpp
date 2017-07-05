@@ -7,6 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // This class provides a (fake) interface to do "collective" sums and averages in serial execution.
 // All the summing methods are empty since summing the result of ONE process, of course,  doesn't
@@ -51,6 +52,22 @@ public:
   template <typename T>
   void sum_and_average(T& obj, int measurements) const {
     obj *= 1. / measurements;
+  }
+
+  template <typename Scalar>
+  void leaveOneOutAvg(Scalar&) const {}
+  template <typename Scalar, class Domain>
+  void leaveOneOutAvg(func::function<Scalar, Domain>&) const {}
+
+  template <typename Scalar, class Domain>
+  func::function<Scalar, Domain> jackknifeError(func::function<Scalar, Domain>&,
+                                                const bool = true) const {
+    return func::function<Scalar, Domain>();
+  }
+  template <typename Scalar, class Domain>
+  func::function<std::complex<Scalar>, Domain> jackknifeError(
+      func::function<std::complex<Scalar>, Domain>&, const bool = true) const {
+    return func::function<std::complex<Scalar>, Domain>();
   }
 
   template <typename Scalar, typename Domain>
