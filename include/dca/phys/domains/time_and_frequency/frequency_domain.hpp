@@ -65,12 +65,23 @@ public:
   template <typename Writer>
   static void write(Writer& writer);
 
-  static void initialize(double beta, int n_frequencies);
+  // Initializes the elements of the  frequency domain with n_positive_frq Matsubara frequencies,
+  // and the same amount of negative frequencies, i.e.
+  // [-\pi / beta (2 * n_positive_frq - 1), ..., -\pi / beta, \pi / beta, ...,
+  // \pi / beta (2 * n_positive_frq - 1)]
+  static void initialize(double beta, int n_positive_frq);
 
   template <typename parameters_t>
-  static void initialize(parameters_t& parameters){
+  static void initialize(parameters_t& parameters) {
     initialize(parameters.get_beta(), parameters.get_sp_fermionic_frequencies());
   }
+
+  static bool is_initialized() {
+    return initialized_;
+  }
+
+private:
+  static bool initialized_;
 };
 
 template <typename Writer>
@@ -78,24 +89,6 @@ void frequency_domain::write(Writer& writer) {
   writer.open_group(get_name());
   writer.execute("elements", get_elements());
   writer.close_group();
-}
-
-void frequency_domain::initialize(double beta, int n_frequencies) {
-  get_basis()[0] = (2. * M_PI) / beta;
-  get_inverse_basis()[0] = beta / (2. * M_PI);
-
-  get_size() = 2 * n_frequencies;
-
-  get_elements().resize(get_size());
-  get_integer_wave_vectors().resize(get_size());
-
-  for (int l = 0; l < n_frequencies; l++) {
-    get_elements()[get_size() / 2 + 0 + l] = M_PI / beta * (1 + 2 * l);
-    get_elements()[get_size() / 2 - 1 - l] = -M_PI / beta * (1 + 2 * l);
-
-    get_integer_wave_vectors()[get_size() / 2 + 0 + l] = (1 + 2 * l);
-    get_integer_wave_vectors()[get_size() / 2 - 1 - l] = -(1 + 2 * l);
-  }
 }
 
 }  // domains
