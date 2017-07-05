@@ -374,7 +374,7 @@ inline void removeRowAndCol(Matrix<ScalarType, device_name>& mat, int i) {
 // In/Out: mat
 // Preconditions: 0 <= first, last < min(mat.nrRows(), mat.nrCols()).
 template <typename ScalarType>
-void removeRowsAndColmuns(Matrix<ScalarType, CPU>& mat, int first, int last) {
+void removeRowsAndCols(Matrix<ScalarType, CPU>& mat, int first, int last) {
   removeCols(mat, first, last);
   removeRows(mat, first, last);
 }

@@ -627,7 +627,7 @@ TEST(MatrixopRealCPUTest, RemoveRowsandColumns) {
   mat_test(0, 0) = 0, mat_test(0, 1) = 1;
   mat_test(1, 0) = 10, mat_test(1, 1) = 11;
 
-  dca::linalg::matrixop::removeRowsAndColmuns(mat, 2, 3);
+  dca::linalg::matrixop::removeRowsAndCols(mat, 2, 3);
 
   EXPECT_EQ(mat, mat_test);
 }
