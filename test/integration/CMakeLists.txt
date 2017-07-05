@@ -1,2 +1,3 @@
 add_subdirectory(ctaux)
 add_subdirectory(exact_diagonalization_advanced)
+add_subdirectory(nfft)
