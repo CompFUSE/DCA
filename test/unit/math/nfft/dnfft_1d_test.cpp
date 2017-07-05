@@ -7,112 +7,141 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Giovanni Balduzzi (gbalduzz@gitp.phys.ethz.ch)
+//         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// This file tests the delayed non uniform fast fourier transform implemented in dnfft_1d.hpp.
+// Integration tests for the Dnfft1D class.
 
-#include "gtest/gtest.h"
 #include "dca/math/nfft/dnfft_1d.hpp"
 
-#include <cstdlib>
-#include <ctime>
-#include <iostream>
-#include <stdexcept>
+#include <algorithm>  // std::max
+#include <cmath>
+#include <complex>
 #include <vector>
+
+#include "gtest/gtest.h"
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
-#include "dca/math/random/random.hpp"
-#include "dca/phys/domains/time_and_frequency/time_domain.hpp"
+#include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
-//#include "dca/util/plot.hpp"
+#include "dca/phys/domains/time_and_frequency/time_domain.hpp"
 
 using dca::func::function;
-using Tdmn = dca::func::dmn_0<dca::phys::domains::time_domain>;
-using Wdmn = dca::func::dmn_0<dca::phys::domains::frequency_domain>;
-using ParsDmn = dca::func::dmn_0<dca::func::dmn<1, int>>;
+using dca::func::dmn_variadic;
 
-void computeF_w_dnfft(const std::vector<double>& t, const std::vector<double>& f,
-                      function<std::complex<double>, Wdmn>& f_w);
-void computeF_w_direct(const std::vector<double>& t, const std::vector<double>& f,
-                       function<std::complex<double>, Wdmn>& f_w);
+using TimeDmn = dca::func::dmn_0<dca::phys::domains::time_domain>;
+using FreqDmn = dca::func::dmn_0<dca::phys::domains::frequency_domain>;
 
-TEST(Dnfft, TransformTest) {
+// Represents all non-transformed domains.
+using OtherDmn = dca::func::dmn_0<dca::func::dmn<1, int>>;
+
+template <typename DnfftType>
+void computeWithDnfft(const std::vector<double>& t, const std::vector<double>& f,
+                      DnfftType& dnfft_obj,
+                      function<std::complex<double>, dmn_variadic<FreqDmn, OtherDmn>>& f_w);
+void computeWithDft(const std::vector<double>& t, const std::vector<double>& f,
+                    function<std::complex<double>, FreqDmn>& f_w);
+
+TEST(Dnfft1DTest, CubicInterpolation) {
+  // Initialize time and frequency domains.
+  const double beta = 10.;
+  const int time_slices = 100;
+  const int positive_frequencies = time_slices - 2;
+
+  dca::phys::domains::time_domain::initialize(beta, time_slices, 1.e-16);
+  dca::phys::domains::frequency_domain::initialize(beta, positive_frequencies);
+
+  // Prepare random samples.
   dca::math::random::StdRandomWrapper<std::ranlux48_base> rng(0, 1, 0);
+  const int samples = 1e4;
 
-  const double beta = 10;
-  const int n_t = 100;
-  const int n_w = n_t - 2;
-  const int n_samples = 1.e4;
+  std::vector<double> t(samples);
+  std::vector<double> f(samples);
 
-  dca::phys::domains::time_domain::initialize(beta, n_t, 1e-10);
-  dca::phys::domains::frequency_domain::initialize(beta, n_w);
+  const double begin = TimeDmn::get_elements().front();
+  const double delta = TimeDmn::get_elements().back() - TimeDmn::get_elements().front();
 
-  const double begin = Tdmn::get_elements().front();
-  const double delta = (Tdmn::get_elements().back() - Tdmn::get_elements().front());
-
-  std::vector<double> t(0);
-  std::vector<double> f(0);
-  for (int l = 0; l < n_samples; l++) {
-    t.push_back(begin + rng() * delta);
-    f.push_back(exp(-2. * M_PI / delta * (t[l] - begin)));
+  for (int l = 0; l < samples; ++l) {
+    const double t_val = begin + rng() * delta;
+    t[l] = t_val;
+    f[l] = std::exp(-2. * M_PI / delta * (t_val - begin));
   }
 
-  function<std::complex<double>, Wdmn> f_w_1("f_w_1");
-  function<std::complex<double>, Wdmn> f_w_2("f_w_2");
+  // Compute f(w) using the discrete Fourier transform (DFT).
+  function<std::complex<double>, FreqDmn> f_w_dft("f_w_dft");
+  computeWithDft(t, f, f_w_dft);
 
-  computeF_w_direct(t, f, f_w_1);
-  computeF_w_dnfft(t, f, f_w_2);
+  // Compute f(w) using the delayed-NFFT algorithm.
+  constexpr int oversampling = 8;
+  dca::math::nfft::Dnfft1D<double, FreqDmn, OtherDmn, oversampling, dca::math::nfft::CUBIC> dnfft_obj;
 
-  double max_error = 0;
-  double avg_error = 0;
+  function<std::complex<double>, dmn_variadic<FreqDmn, OtherDmn>> f_w_dnfft("f_w_dnfft");
+  computeWithDnfft(t, f, dnfft_obj, f_w_dnfft);
 
-  for (int i = 0; i < Wdmn::dmn_size(); i++) {
-    const double err = abs(f_w_1(i) - f_w_2(i)) / (abs(f_w_1(i)) + 1.e-6);
-    max_error = std::max(max_error, err);
-    avg_error += err;
+  // Check errors.
+  double f_w_dft_l1 = 0.;
+  double f_w_dft_l2 = 0.;
+  double f_w_dft_linf = 0.;
+
+  double l1_error = 0.;
+  double l2_error = 0.;
+  double linf_error = 0.;
+
+  for (int w_ind = 0; w_ind < FreqDmn::dmn_size(); w_ind++) {
+    const double f_w_dft_abs = std::abs(f_w_dft(w_ind));
+    f_w_dft_l1 += f_w_dft_abs;
+    f_w_dft_l2 += f_w_dft_abs * f_w_dft_abs;
+    f_w_dft_linf = std::max(f_w_dft_linf, f_w_dft_abs);
+
+    const double err = std::abs(f_w_dft(w_ind) - f_w_dnfft(w_ind, 0));
+    l1_error += err;
+    l2_error += err * err;
+    linf_error = std::max(linf_error, err);
   }
-  avg_error /= Wdmn::dmn_size();
 
-  EXPECT_GE(1e-8, avg_error);
-  EXPECT_GE(1e-6, max_error);
+  l1_error /= f_w_dft_l1;
+  l2_error = std::sqrt(l2_error / f_w_dft_l2);
+  linf_error /= f_w_dft_linf;
 
-//util::Plot::plotLinesPoints(error);
+  // std::cout << "l1_error = " << l1_error << std::endl;
+  // std::cout << "l2_error = " << l2_error << std::endl;
+  // std::cout << "linf_error = " << linf_error << std::endl;
+
+  EXPECT_LT(l1_error, 1.e-9);
+  EXPECT_LT(l2_error, 1.e-9);
+  EXPECT_LT(linf_error, 1.e-9);
 }
 
-void computeF_w_dnfft(const std::vector<double>& t, const std::vector<double>& f,
-                      function<std::complex<double>, Wdmn>& f_w) {
+template <typename DnfftType>
+void computeWithDnfft(const std::vector<double>& t, const std::vector<double>& f,
+                      DnfftType& dnfft_obj,
+                      function<std::complex<double>, dmn_variadic<FreqDmn, OtherDmn>>& f_w) {
+  dnfft_obj.initialize();
 
-  function<std::complex<double>, dca::func::dmn_variadic<Wdmn, ParsDmn>> f_w_tmp;
+  const double begin = TimeDmn::get_elements().front();
+  const double delta = TimeDmn::get_elements().back() - TimeDmn::get_elements().front();
 
-  dca::math::nfft::Dnfft1D<double, Wdmn, ParsDmn> nfft_obj;
+  for (int t_ind = 0; t_ind < t.size(); ++t_ind) {
+    // Transform the time point to the interval [-0.5, 0.5].
+    const double scaled_t = (t[t_ind] - begin) / delta - 0.5;
+    dnfft_obj.accumulate(0, scaled_t, f[t_ind]);
+  }
 
-  const double begin = Tdmn::get_elements().front();
-  const double delta = (Tdmn::get_elements().back() - Tdmn::get_elements().front());
-
-  for (int j = 0; j < t.size(); j++){
-    const double scaled_t = (t[j] - begin) /  delta - 0.5;
-    nfft_obj.accumulate(0, scaled_t, f[j]);
-    }
-
-  nfft_obj.finalize(f_w_tmp);
-
-  for (int i = 0; i < Wdmn::dmn_size(); i++)
-    f_w(i) = f_w_tmp(i);
-
-  // util::Plot::plotLinesPoints(f_w);
+  dnfft_obj.finalize(f_w);
 }
 
-void computeF_w_direct(const std::vector<double>& t, const std::vector<double>& f,
-                       function<std::complex<double>, Wdmn>& f_w) {
-  std::complex<double> I(0, 1);
+void computeWithDft(const std::vector<double>& t, const std::vector<double>& f,
+                    function<std::complex<double>, FreqDmn>& f_w) {
+  const std::complex<double> i(0, 1);
 
-  for (int j = 0; j < t.size(); j++)
-    for (int i = 0; i < Wdmn::dmn_size(); i++) {
-      const double t_val = t[j];
-      const double w_val = Wdmn::get_elements()[i];
+  f_w = 0.;
 
-      f_w(i) += f[j] * std::exp(I * t_val * w_val);
+  for (int t_ind = 0; t_ind < t.size(); ++t_ind) {
+    for (int w_ind = 0; w_ind < FreqDmn::dmn_size(); ++w_ind) {
+      const double t_val = t[t_ind];
+      const double w_val = FreqDmn::get_elements()[w_ind];
+
+      f_w(w_ind) += f[t_ind] * std::exp(i * t_val * w_val);
     }
-
- // util::Plot::plotLinesPoints(f_w);
+  }
 }
