@@ -129,7 +129,7 @@ TEST(MatrixCPUTest, Properties) {
   }
 }
 
-TEST(MatrixCPUTest, Equality) {
+TEST(MatrixCPUTest, ComparisonOperators) {
   dca::linalg::Matrix<int, dca::linalg::CPU> mat1(std::make_pair(2, 2));
   dca::linalg::Matrix<int, dca::linalg::CPU> mat2(std::make_pair(2, 2));
   dca::linalg::Matrix<int, dca::linalg::CPU> mat3(std::make_pair(2, 3));
@@ -140,8 +140,10 @@ TEST(MatrixCPUTest, Equality) {
   testing::setMatrixElements(mat3, fill_func);
   mat2(0, 1) = -1;
 
+  // Matrices with different elements are not equal.
   EXPECT_TRUE(mat1 != mat2);
   EXPECT_FALSE(mat1 == mat2);
+  // Matrices with different shapes are not equal.
   EXPECT_TRUE(mat1 != mat3);
   EXPECT_FALSE(mat1 == mat3);
 
@@ -149,12 +151,13 @@ TEST(MatrixCPUTest, Equality) {
   mat3 = mat1;
   mat3.set_name("Another name.");
 
+  // Matrices with different names but same shape and elements are considered equal.
   EXPECT_TRUE(mat1 == mat3);
   EXPECT_FALSE(mat1 != mat3);
 
+  // Matrices with no elements are considered equal.
   mat1.resize(std::make_pair(0, 2));
   mat3.resize(std::make_pair(3, 0));
-  // Both matrices have now zero elements.
   EXPECT_TRUE(mat1 == mat3);
   EXPECT_FALSE(mat1 != mat3);
 }

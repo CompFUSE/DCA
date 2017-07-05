@@ -65,12 +65,16 @@ public:
   template <DeviceType rhs_device_name>
   Matrix<ScalarType, device_name>& operator=(const Matrix<ScalarType, rhs_device_name>& rhs);
 
-  // Check for equality (inequality) of size and matrix elements. Capacity and name are ignored.
-  // Special case: a null matrix is equal to any other null matrix.
+  // Returns true if this is equal to other, false otherwise.
+  // Two matrices are equal, if they have the same size and contain the same elements. Name and
+  // capacity are ignored.
+  // Special case: two matrices without elements are equal.
   template <DeviceType dn = device_name>
   bool operator==(
       std::enable_if_t<device_name == CPU and dn == CPU, const Matrix<ScalarType, dn>&> other) const;
   template <DeviceType dn = device_name>
+  // Returns true if this is not equal to other, false otherwise.
+  // See description of operator== for the definition of equality.
   bool operator!=(
       std::enable_if_t<device_name == CPU and dn == CPU, const Matrix<ScalarType, dn>&> other) const;
 
