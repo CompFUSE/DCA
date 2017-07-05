@@ -305,7 +305,7 @@ void removeCols(Matrix<ScalarType, CPU>& mat, int first, int last) {
 
   if (n > 0 and last < m - 1)
     std::memmove(mat.ptr(0, first), mat.ptr(0, last + 1),
-                 mat.leadingDimension() * (m - last) * sizeof(ScalarType));
+                 mat.leadingDimension() * (m - last - 1) * sizeof(ScalarType));
 
   mat.resize(std::make_pair(n, m - n_removed));
 }
@@ -348,7 +348,7 @@ void removeRows(Matrix<ScalarType, CPU>& mat, int first, int last) {
 
   if (last < n - 1)
     for (int j = 0; j < m; ++j)
-      std::memmove(mat.ptr(first, j), mat.ptr(last + 1, j), (n - last) * sizeof(ScalarType));
+      std::memmove(mat.ptr(first, j), mat.ptr(last + 1, j), (n - last - 1) * sizeof(ScalarType));
 
   mat.resize(std::make_pair(n - n_removed, m));
 }

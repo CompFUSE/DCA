@@ -99,6 +99,13 @@ TEST(MatrixCPUTest, Constructors) {
   }
 }
 
+TEST(MatrixCPUTest, Name) {
+  dca::linalg::Matrix<short, dca::linalg::CPU> mat("First name.");
+  EXPECT_EQ("First name.", mat.get_name());
+  mat.set_name("Second name.");
+  EXPECT_EQ("Second name.", mat.get_name());
+}
+
 TEST(MatrixCPUTest, Properties) {
   {
     std::pair<int, int> size2(3, 5);

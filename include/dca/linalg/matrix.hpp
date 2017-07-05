@@ -67,10 +67,12 @@ public:
 
   // Check for equality (inequality) of size and matrix elements. Capacity and name are ignored.
   // Special case: a null matrix is equal to any other null matrix.
-  template <DeviceType device = device_name>
-  bool operator==(std::enable_if_t<device == CPU, const Matrix<ScalarType, device>&> other) const;
-  template <DeviceType device = device_name>
-  bool operator!=(std::enable_if_t<device == CPU, const Matrix<ScalarType, device>&> other) const;
+  template <DeviceType dn = device_name>
+  bool operator==(
+      std::enable_if_t<device_name == CPU and dn == CPU, const Matrix<ScalarType, dn>&> other) const;
+  template <DeviceType dn = device_name>
+  bool operator!=(
+      std::enable_if_t<device_name == CPU and dn == CPU, const Matrix<ScalarType, dn>&> other) const;
 
   // Returns the (i,j)-th element of the matrix.
   // Preconditions: 0 <= i < size().first, 0 <= j < size().second.
@@ -303,10 +305,10 @@ Matrix<ScalarType, device_name>& Matrix<ScalarType, device_name>::operator=(
 }
 
 template <typename ScalarType, DeviceType device_name>
-template <DeviceType device>
+template <DeviceType dn>
 bool Matrix<ScalarType, device_name>::operator==(
-    std::enable_if_t<device == CPU, const Matrix<ScalarType, device>&> other) const {
-  if (nrRows() != other.nrRows() or nrCols() != other.nrCols())
+    std::enable_if_t<device_name == CPU and dn == CPU, const Matrix<ScalarType, dn>&> other) const {
+  if (size() != other.size())
     return nrRows() * nrCols() == 0 and other.nrRows() * other.nrCols() == 0;
 
   for (int j = 0; j < nrCols(); ++j)
@@ -318,9 +320,9 @@ bool Matrix<ScalarType, device_name>::operator==(
 }
 
 template <typename ScalarType, DeviceType device_name>
-template <DeviceType device>
+template <DeviceType dn>
 bool Matrix<ScalarType, device_name>::operator!=(
-    std::enable_if_t<device == CPU, const Matrix<ScalarType, device>&> other) const {
+    std::enable_if_t<device_name == CPU and dn == CPU, const Matrix<ScalarType, dn>&> other) const {
   return not(*this == other);
 }
 
