@@ -65,6 +65,19 @@ public:
   template <DeviceType rhs_device_name>
   Matrix<ScalarType, device_name>& operator=(const Matrix<ScalarType, rhs_device_name>& rhs);
 
+  // Returns true if this is equal to other, false otherwise.
+  // Two matrices are equal, if they have the same size and contain the same elements. Name and
+  // capacity are ignored.
+  // Special case: two matrices without elements are equal.
+  template <DeviceType dn = device_name>
+  bool operator==(
+      std::enable_if_t<device_name == CPU and dn == CPU, const Matrix<ScalarType, dn>&> other) const;
+  template <DeviceType dn = device_name>
+  // Returns true if this is not equal to other, false otherwise.
+  // See description of operator== for the definition of equality.
+  bool operator!=(
+      std::enable_if_t<device_name == CPU and dn == CPU, const Matrix<ScalarType, dn>&> other) const;
+
   // Returns the (i,j)-th element of the matrix.
   // Preconditions: 0 <= i < size().first, 0 <= j < size().second.
   // This method is available only if device_name == CPU.
@@ -83,6 +96,9 @@ public:
 
   const std::string& get_name() const {
     return name_;
+  }
+  void set_name(const std::string& new_name) {
+    name_ = new_name;
   }
 
   // Returns the pointer to the (0,0)-th element.
@@ -293,6 +309,28 @@ Matrix<ScalarType, device_name>& Matrix<ScalarType, device_name>::operator=(
 }
 
 template <typename ScalarType, DeviceType device_name>
+template <DeviceType dn>
+bool Matrix<ScalarType, device_name>::operator==(
+    std::enable_if_t<device_name == CPU and dn == CPU, const Matrix<ScalarType, dn>&> other) const {
+  if (size() != other.size())
+    return nrRows() * nrCols() == 0 and other.nrRows() * other.nrCols() == 0;
+
+  for (int j = 0; j < nrCols(); ++j)
+    for (int i = 0; i < nrRows(); ++i)
+      if ((*this)(i, j) != other(i, j))
+        return false;
+
+  return true;
+}
+
+template <typename ScalarType, DeviceType device_name>
+template <DeviceType dn>
+bool Matrix<ScalarType, device_name>::operator!=(
+    std::enable_if_t<device_name == CPU and dn == CPU, const Matrix<ScalarType, dn>&> other) const {
+  return not(*this == other);
+}
+
+template <typename ScalarType, DeviceType device_name>
 void Matrix<ScalarType, device_name>::resizeNoCopy(std::pair<int, int> new_size) {
   if (new_size.first > capacity_.first || new_size.second > capacity_.second) {
     size_ = new_size;
@@ -333,8 +371,8 @@ std::enable_if_t<device_name == CPU && dn == CPU, void> Matrix<ScalarType, devic
   ss << std::scientific;
 
   ss << "\n";
-  for (int i = 0; i < nrRows(); i++) {
-    for (int j = 0; j < nrCols(); j++)
+  for (int i = 0; i < nrRows(); ++i) {
+    for (int j = 0; j < nrCols(); ++j)
       ss << "\t" << operator()(i, j);
     ss << "\n";
   }

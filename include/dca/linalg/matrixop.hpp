@@ -13,7 +13,7 @@
 // - difference
 // - insertCol, insertRow (for CPU matrices only)
 // - inverse
-// - removeCol, removeRow, removeRowAndCol
+// - removeCol, removeCols, removeRow, removeRows, removeRowAndCol, removeRowAndCols
 // - scaleCol, scaleRow, scaleRows
 // - swapCol, swapRow, swapRowAndCol
 // - swapCols, swapRows (for GPU matrices only)
@@ -280,6 +280,7 @@ void removeCol(Matrix<ScalarType, CPU>& mat, int j) {
 
   mat.resize(std::make_pair(mat.nrRows(), mat.nrCols() - 1));
 }
+
 #ifdef DCA_HAVE_CUDA
 template <typename ScalarType>
 void removeCol(Matrix<ScalarType, GPU>& mat, int j) {
@@ -291,6 +292,23 @@ void removeCol(Matrix<ScalarType, GPU>& mat, int j) {
   mat.resize(std::make_pair(mat.nrRows(), mat.nrCols() - 1));
 }
 #endif  // DCA_HAVE_CUDA
+
+// Remove columns in range [first, last]. The data is moved accordingly.
+// In/Out: mat
+// Preconditions: 0 <= first, last < mat.nrCols().
+template <typename ScalarType>
+void removeCols(Matrix<ScalarType, CPU>& mat, int first, int last) {
+  const int n_removed = last - first + 1;
+  const int n = mat.nrRows();
+  const int m = mat.nrCols();
+  assert(last < m and last >= first and first >= 0);
+
+  if (n > 0 and last < m - 1)
+    std::memmove(mat.ptr(0, first), mat.ptr(0, last + 1),
+                 mat.leadingDimension() * (m - last - 1) * sizeof(ScalarType));
+
+  mat.resize(std::make_pair(n, m - n_removed));
+}
 
 // Remove the i-th row. The data is moved accordingly.
 // In/Out: mat
@@ -305,6 +323,7 @@ void removeRow(Matrix<ScalarType, CPU>& mat, int i) {
 
   mat.resize(std::make_pair(mat.nrRows() - 1, mat.nrCols()));
 }
+
 #ifdef DCA_HAVE_CUDA
 template <typename ScalarType>
 void removeRow(Matrix<ScalarType, GPU>& mat, int i) {
@@ -316,6 +335,23 @@ void removeRow(Matrix<ScalarType, GPU>& mat, int i) {
   mat.resize(std::make_pair(mat.nrRows() - 1, mat.nrCols()));
 }
 #endif  // DCA_HAVE_CUDA
+
+// Remove rows in range [first, last]. The data is moved accordingly.
+// In/Out: mat
+// Preconditions: 0 <= first, last < mat.nrRows().
+template <typename ScalarType>
+void removeRows(Matrix<ScalarType, CPU>& mat, int first, int last) {
+  const int n_removed = last - first + 1;
+  const int n = mat.nrRows();
+  const int m = mat.nrCols();
+  assert(last < n and last >= first and first >= 0);
+
+  if (last < n - 1)
+    for (int j = 0; j < m; ++j)
+      std::memmove(mat.ptr(first, j), mat.ptr(last + 1, j), (n - last - 1) * sizeof(ScalarType));
+
+  mat.resize(std::make_pair(n - n_removed, m));
+}
 
 // Remove the i-th row and the j-th column. The data is moved accordingly.
 // In/Out: mat
@@ -332,6 +368,15 @@ inline void removeRowAndCol(Matrix<ScalarType, device_name>& mat, int i, int j) 
 template <typename ScalarType, DeviceType device_name>
 inline void removeRowAndCol(Matrix<ScalarType, device_name>& mat, int i) {
   removeRowAndCol(mat, i, i);
+}
+
+// Remove rows and columns in range [first, last]. The data is moved accordingly.
+// In/Out: mat
+// Preconditions: 0 <= first, last < min(mat.nrRows(), mat.nrCols()).
+template <typename ScalarType>
+void removeRowsAndCols(Matrix<ScalarType, CPU>& mat, int first, int last) {
+  removeCols(mat, first, last);
+  removeRows(mat, first, last);
 }
 
 // Scales the j-th column of mat by val.

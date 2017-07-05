@@ -99,6 +99,13 @@ TEST(MatrixCPUTest, Constructors) {
   }
 }
 
+TEST(MatrixCPUTest, Name) {
+  dca::linalg::Matrix<short, dca::linalg::CPU> mat("First name.");
+  EXPECT_EQ("First name.", mat.get_name());
+  mat.set_name("Second name.");
+  EXPECT_EQ("Second name.", mat.get_name());
+}
+
 TEST(MatrixCPUTest, Properties) {
   {
     std::pair<int, int> size2(3, 5);
@@ -120,6 +127,39 @@ TEST(MatrixCPUTest, Properties) {
     EXPECT_EQ(size2.second, mat.nrCols());
     EXPECT_EQ(mat.capacity().first, mat.leadingDimension());
   }
+}
+
+TEST(MatrixCPUTest, ComparisonOperators) {
+  dca::linalg::Matrix<int, dca::linalg::CPU> mat1(std::make_pair(2, 2));
+  dca::linalg::Matrix<int, dca::linalg::CPU> mat2(std::make_pair(2, 2));
+  dca::linalg::Matrix<int, dca::linalg::CPU> mat3(std::make_pair(2, 3));
+
+  auto fill_func = [](int i, int j) { return 10 * i + j; };
+  testing::setMatrixElements(mat1, fill_func);
+  testing::setMatrixElements(mat2, fill_func);
+  testing::setMatrixElements(mat3, fill_func);
+  mat2(0, 1) = -1;
+
+  // Matrices with different elements are not equal.
+  EXPECT_TRUE(mat1 != mat2);
+  EXPECT_FALSE(mat1 == mat2);
+  // Matrices with different shapes are not equal.
+  EXPECT_TRUE(mat1 != mat3);
+  EXPECT_FALSE(mat1 == mat3);
+
+  mat1.set_name("A name.");
+  mat3 = mat1;
+  mat3.set_name("Another name.");
+
+  // Matrices with different names but same shape and elements are considered equal.
+  EXPECT_TRUE(mat1 == mat3);
+  EXPECT_FALSE(mat1 != mat3);
+
+  // Matrices with no elements are considered equal.
+  mat1.resize(std::make_pair(0, 2));
+  mat3.resize(std::make_pair(3, 0));
+  EXPECT_TRUE(mat1 == mat3);
+  EXPECT_FALSE(mat1 != mat3);
 }
 
 TEST(MatrixCPUTest, ElementPointers) {

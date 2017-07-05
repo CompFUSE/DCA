@@ -18,6 +18,7 @@
 #include <complex>
 #include <cstring>
 #include "dca/linalg/device_type.hpp"
+#include "dca/util/ignore.hpp"
 
 #ifdef DCA_HAVE_CUDA
 #include <cuda_runtime.h>
@@ -44,7 +45,7 @@ struct Memory<CPU> {
                         std::to_string(sizeof(ScalarType)));
     checkErrorsCudaDebug();
 #else
-    posix_memalign((void**)&ptr, 128, size * sizeof(ScalarType));
+    dca::util::ignoreUnused(posix_memalign((void**)&ptr, 128, size * sizeof(ScalarType)));
 #endif
   }
 
