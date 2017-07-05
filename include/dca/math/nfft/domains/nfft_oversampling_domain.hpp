@@ -43,7 +43,7 @@ public:
   }
 
   static void initialize(dnfft_type& dnfft_obj) {
-    get_size() = 4 * dnfft_obj.getOversamplingFactor();
+    get_size() = 4 * dnfft_obj.get_oversampling();
   }
 };
 
