@@ -6,13 +6,16 @@
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
+//         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// Frequency domain.
+// This class parametrizes the fermionic Matsubara frequency domain.
+//
+// TODO: Use private data members and proper getter methods instead of singletons (see
+//       time_domain.hpp).
 
 #ifndef DCA_PHYS_DOMAINS_TIME_AND_FREQUENCY_FREQUENCY_DOMAIN_HPP
 #define DCA_PHYS_DOMAINS_TIME_AND_FREQUENCY_FREQUENCY_DOMAIN_HPP
 
-#include <cmath>
 #include <string>
 #include <vector>
 
@@ -25,12 +28,17 @@ namespace domains {
 
 class frequency_domain {
 public:
-  const static int DIMENSION = 1;
+  static constexpr int DIMENSION = 1;
 
-  typedef double scalar_type;
-  typedef double element_type;
+  using scalar_type = double;
+  using element_type = double;
 
-  typedef math::transform::harmonic_dmn_1D_type dmn_specifications_type;
+  // Needed in function transform.
+  using dmn_specifications_type = math::transform::harmonic_dmn_1D_type;
+
+  static bool is_initialized() {
+    return initialized_;
+  }
 
   static int& get_size() {
     static int size;
@@ -65,19 +73,15 @@ public:
   template <typename Writer>
   static void write(Writer& writer);
 
-  // Initializes the elements of the  frequency domain with n_positive_frq Matsubara frequencies,
-  // and the same amount of negative frequencies, i.e.
-  // [-\pi / beta (2 * n_positive_frq - 1), ..., -\pi / beta, \pi / beta, ...,
-  // \pi / beta (2 * n_positive_frq - 1)]
-  static void initialize(double beta, int n_positive_frq);
+  // Initializes the elements of the domain with the first num_freqs positive and the first
+  // num_freqs negative fermionic Matsubara frequencies using the following order,
+  // [-(2*num_freqs-1)*\pi/beta, ..., -\pi/beta, \pi/beta, ..., (2*num_freqs-1)*\pi/beta] .
+  static void initialize(double beta, int num_freqs);
 
-  template <typename parameters_t>
-  static void initialize(parameters_t& parameters) {
+  // Calls the previous initialize method with arguments taken from the parameters object.
+  template <typename ParametersType>
+  static void initialize(const ParametersType& parameters) {
     initialize(parameters.get_beta(), parameters.get_sp_fermionic_frequencies());
-  }
-
-  static bool is_initialized() {
-    return initialized_;
   }
 
 private:

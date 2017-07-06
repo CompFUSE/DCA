@@ -10,6 +10,8 @@
 // This file implements frequency_domain.hpp.
 
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
+
+#include <cmath>  // M_PI
 #include <stdexcept>
 
 namespace dca {
@@ -19,19 +21,19 @@ namespace domains {
 
 bool frequency_domain::initialized_ = false;
 
-void frequency_domain::initialize(const double beta, const int n_positive_frq) {
+void frequency_domain::initialize(const double beta, const int num_freqs) {
   if (initialized_)
-    throw(std::logic_error("Frequency domain was already initialzed"));
+    throw std::logic_error("frequency_domain has already been initialzed.");
 
   get_basis()[0] = (2. * M_PI) / beta;
   get_inverse_basis()[0] = beta / (2. * M_PI);
 
-  get_size() = 2 * n_positive_frq;
+  get_size() = 2 * num_freqs;
 
   get_elements().resize(get_size());
   get_integer_wave_vectors().resize(get_size());
 
-  for (int l = 0; l < n_positive_frq; ++l) {
+  for (int l = 0; l < num_freqs; ++l) {
     get_elements()[get_size() / 2 + 0 + l] = M_PI / beta * (1 + 2 * l);
     get_elements()[get_size() / 2 - 1 - l] = -M_PI / beta * (1 + 2 * l);
 
