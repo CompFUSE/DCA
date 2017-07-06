@@ -344,7 +344,12 @@ TEST(MatrixCPUTest, ResizePair) {
       }
   }
   {
-    std::pair<int, int> size2(5, 2);
+    // We create a matrix with (padding_col + 1) colums,
+    // where padding_col is the column capacity of a (1, 1) matrix.
+    // In this way the column capacity decreases when we resize the matrix to 1 column.
+    int padding_col =
+        dca::linalg::Matrix<long, dca::linalg::CPU>(std::make_pair(1, 1)).capacity().second;
+    std::pair<int, int> size2(5, padding_col + 1);
 
     dca::linalg::Matrix<long, dca::linalg::CPU> mat(size2);
     auto old_ptr = mat.ptr();
@@ -352,7 +357,8 @@ TEST(MatrixCPUTest, ResizePair) {
     auto el_value = [](int i, int j) { return 1 + 3 * i - 2 * j; };
     testing::setMatrixElements(mat, el_value);
 
-    // New number of rows is larger than capacity().first.
+    // The new number of rows is larger than capacity().first.
+    // The number of columns is shrinking and the new column capacity will be smaller.
     // Reallocation has to take place.
     auto new_size = std::make_pair(capacity.first + 1, 1);
     mat.resize(new_size);
@@ -369,7 +375,12 @@ TEST(MatrixCPUTest, ResizePair) {
       }
   }
   {
-    std::pair<int, int> size2(5, 2);
+    // We create a matrix with (padding_row + 1) colums,
+    // where padding_row is the row capacity of a (1, 1) matrix.
+    // In this way the row capacity decreases when we resize the matrix to 1 row.
+    int padding_row =
+        dca::linalg::Matrix<long, dca::linalg::CPU>(std::make_pair(1, 1)).capacity().first;
+    std::pair<int, int> size2(padding_row + 1, 2);
 
     dca::linalg::Matrix<long, dca::linalg::CPU> mat(size2);
     auto old_ptr = mat.ptr();
@@ -377,7 +388,8 @@ TEST(MatrixCPUTest, ResizePair) {
     auto el_value = [](int i, int j) { return 1 + 3 * i - 2 * j; };
     testing::setMatrixElements(mat, el_value);
 
-    // New number of columns is larger than capacity().second.
+    // The new number of columns is larger than capacity().second.
+    // The number of rows is shrinking and the new row capacity will be smaller.
     // Reallocation has to take place.
     auto new_size = std::make_pair(1, capacity.second + 1);
     mat.resize(new_size);
@@ -467,20 +479,6 @@ TEST(MatrixCPUTest, ResizeValue) {
         long el = el_value(i, j);
         EXPECT_EQ(el, mat(i, j));
       }
-  }
-  // One dimension is increased, while the other is shrinked.
-  {
-    dca::linalg::Matrix<int, dca::linalg::CPU> mat(std::make_pair(30, 34));
-    const auto old_size = mat.size();
-    auto el_value = [](int i, int j) { return 100 * i + j; };
-    testing::setMatrixElements(mat, el_value);
-
-    mat.resize(std::make_pair(34, 30));
-    EXPECT_LE(mat.size().first, mat.capacity().first);
-    EXPECT_LE(mat.size().second, mat.capacity().second);
-    for (int j = 0; j < std::min(mat.nrCols(), old_size.second); ++j)
-      for (int i = 0; i < std::min(mat.nrRows(), old_size.first); ++i)
-        EXPECT_EQ(el_value(i, j), mat(i, j));
   }
 }
 

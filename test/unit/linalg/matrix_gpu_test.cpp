@@ -333,7 +333,12 @@ TEST(MatrixGPUTest, ResizePair) {
       }
   }
   {
-    std::pair<int, int> size2(5, 2);
+    // We create a matrix with (padding_col + 1) colums,
+    // where padding_col is the column capacity of a (1, 1) matrix.
+    // In this way the column capacity decreases when we resize the matrix to 1 column.
+    int padding_col =
+        dca::linalg::Matrix<long, dca::linalg::GPU>(std::make_pair(1, 1)).capacity().second;
+    std::pair<int, int> size2(5, padding_col + 1);
 
     dca::linalg::Matrix<long, dca::linalg::GPU> mat(size2);
     auto old_ptr = mat.ptr();
@@ -341,7 +346,8 @@ TEST(MatrixGPUTest, ResizePair) {
     auto el_value = [](int i, int j) { return 1 + 3 * i - 2 * j; };
     testing::setMatrixElements(mat, el_value);
 
-    // New number of rows is larger than capacity().first.
+    // The new number of rows is larger than capacity().first.
+    // The number of columns is shrinking and the new column capacity will be smaller.
     // Reallocation has to take place.
     auto new_size = std::make_pair(capacity.first + 1, 1);
     mat.resize(new_size);
@@ -349,6 +355,7 @@ TEST(MatrixGPUTest, ResizePair) {
     EXPECT_LE(new_size.first, mat.capacity().first);
     EXPECT_LE(new_size.second, mat.capacity().second);
     EXPECT_NE(old_ptr, mat.ptr());
+    EXPECT_TRUE(testing::isDevicePointer(mat.ptr()));
 
     // Check the value of the elements.
     for (int j = 0; j < 1; ++j)
@@ -358,7 +365,12 @@ TEST(MatrixGPUTest, ResizePair) {
       }
   }
   {
-    std::pair<int, int> size2(5, 2);
+    // We create a matrix with (padding_row + 1) colums,
+    // where padding_row is the row capacity of a (1, 1) matrix.
+    // In this way the row capacity decreases when we resize the matrix to 1 row.
+    int padding_row =
+        dca::linalg::Matrix<long, dca::linalg::GPU>(std::make_pair(1, 1)).capacity().first;
+    std::pair<int, int> size2(padding_row + 1, 2);
 
     dca::linalg::Matrix<long, dca::linalg::GPU> mat(size2);
     auto old_ptr = mat.ptr();
@@ -366,7 +378,8 @@ TEST(MatrixGPUTest, ResizePair) {
     auto el_value = [](int i, int j) { return 1 + 3 * i - 2 * j; };
     testing::setMatrixElements(mat, el_value);
 
-    // New number of columns is larger than capacity().second.
+    // The new number of columns is larger than capacity().second.
+    // The number of rows is shrinking and the new row capacity will be smaller.
     // Reallocation has to take place.
     auto new_size = std::make_pair(1, capacity.second + 1);
     mat.resize(new_size);
@@ -374,6 +387,7 @@ TEST(MatrixGPUTest, ResizePair) {
     EXPECT_LE(new_size.first, mat.capacity().first);
     EXPECT_LE(new_size.second, mat.capacity().second);
     EXPECT_NE(old_ptr, mat.ptr());
+    EXPECT_TRUE(testing::isDevicePointer(mat.ptr()));
 
     // Check the value of the elements.
     for (int j = 0; j < size2.second; ++j)
@@ -449,6 +463,7 @@ TEST(MatrixGPUTest, ResizeValue) {
     EXPECT_LE(new_size, mat.capacity().first);
     EXPECT_LE(new_size, mat.capacity().second);
     EXPECT_NE(old_ptr, mat.ptr());
+    EXPECT_TRUE(testing::isDevicePointer(mat.ptr()));
 
     // Check the value of the elements.
     for (int j = 0; j < size2.second; ++j)
