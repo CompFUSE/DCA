@@ -76,7 +76,7 @@ private:
   void compute_density_coefficients(
       func::function<double, func::dmn_variadic<nu, k_DCA>>& A,
       func::function<double, func::dmn_variadic<nu, k_DCA>>& B,
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& G);
+      const func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& G);
 
   // Determines initial lower and upper bounds of the chemical potential.
   void search_bounds(double dens);
@@ -307,7 +307,7 @@ template <typename parameters_type, typename MOMS_type, typename coarsegraining_
 void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>::compute_density_coefficients(
     func::function<double, func::dmn_variadic<nu, k_DCA>>& A,
     func::function<double, func::dmn_variadic<nu, k_DCA>>& B,
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& G) {
+    const func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& G) {
   A = 0;
   B = 0;
 

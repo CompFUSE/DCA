@@ -31,10 +31,10 @@ namespace phys {
 template <typename Scalar, typename OrbitalSpinDmn, typename KDmn, typename MatsubaraFreqDmn,
           typename ConcurrencyType>
 void compute_G_k_w(
-    /*const*/ func::function<std::complex<Scalar>,
-                             func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn>>& H0_k,
-    /*const*/ func::function<std::complex<Scalar>, func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn,
-                                                                      KDmn, MatsubaraFreqDmn>>& S_k_w,
+    const func::function<std::complex<Scalar>,
+                         func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn>>& H0_k,
+    const func::function<std::complex<Scalar>,
+                         func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn, MatsubaraFreqDmn>>& S_k_w,
     const Scalar mu, const ConcurrencyType& concurrency,
     func::function<std::complex<Scalar>,
                    func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn, MatsubaraFreqDmn>>& G_k_w) {
@@ -46,7 +46,7 @@ void compute_G_k_w(
   const std::complex<Scalar> i(0., 1.);
 
   // Distribute the work amongst the processes.
-  func::dmn_variadic<KDmn, MatsubaraFreqDmn> k_w_dmn_obj;
+  const func::dmn_variadic<KDmn, MatsubaraFreqDmn> k_w_dmn_obj;
   const std::pair<int, int> bounds = concurrency.get_bounds(k_w_dmn_obj);
   int coor[2];
 

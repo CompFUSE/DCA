@@ -28,14 +28,14 @@ namespace phys {
 template <typename Scalar, typename OrbitalSpinDmn, typename KDmn, typename MatsubaraFreqDmn,
           typename ConcurrencyType>
 void compute_G0_k_w(
-    /*const*/ func::function<std::complex<Scalar>,
-                             func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn>>& H0_k,
+    const func::function<std::complex<Scalar>,
+                         func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn>>& H0_k,
     const Scalar mu, const ConcurrencyType& concurrency,
     func::function<std::complex<Scalar>,
                    func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn, MatsubaraFreqDmn>>& G0_k_w) {
   // Call compute_G_k_w with vanishing self-energy.
-  /*const*/ func::function<std::complex<Scalar>,
-                           func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn, MatsubaraFreqDmn>>
+  const func::function<std::complex<Scalar>,
+                       func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn, MatsubaraFreqDmn>>
       zero;
   compute_G_k_w(H0_k, zero, mu, concurrency, G0_k_w);
 }
@@ -44,8 +44,8 @@ void compute_G0_k_w(
 // Hamiltonian H_0(\vec{k}).
 template <typename Scalar, typename OrbitalSpinDmn, typename KDmn, typename ImagTimeDmn>
 void compute_G0_k_t(
-    /*const*/ func::function<std::complex<Scalar>,
-                             func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn>>& H0_k,
+    const func::function<std::complex<Scalar>,
+                         func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn>>& H0_k,
     const Scalar mu, const Scalar beta,
     func::function<Scalar, func::dmn_variadic<OrbitalSpinDmn, OrbitalSpinDmn, KDmn, ImagTimeDmn>>& G0_k_t) {
   // Diagonal \mu function.
