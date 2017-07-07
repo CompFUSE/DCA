@@ -21,6 +21,7 @@
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_QUADRATURE_INTEGRATION_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_QUADRATURE_INTEGRATION_HPP
 
+#include <cmath>  // std::exp, std::isnan
 #include <complex>
 #include <iostream>
 #include <stdexcept>
@@ -246,13 +247,16 @@ void quadrature_integration<IntegrationDmn, OtherDmn, Threading>::quadrature_int
       else
         G_t[i] = f_val * std::exp(-L[i] * t_val) / (std::exp(-L[i] * beta) + 1.);
 
-      if (G_t[i] != G_t[i]) {
-        std::cout << "\n\t warning in compute_G_q_t --> G_t[i] : " << G_t[i] << "\n";
-        std::cout << "\n\tL[i] : " << L[i] << "\n";
-        std::cout << "\n\tbeta : " << beta << "\n";
-        std::cout << "\n\ttau  : " << t_val << "\n";
-        std::cout << "\n\tstd::exp(L[i]*beta)  : " << std::exp(L[i] * beta) << "\n";
-        std::cout << "\n\tstd::exp(L[i]*(beta-t_val)) : " << std::exp(L[i] * (beta - t_val)) << "\n";
+      if (std::isnan(G_t[i])) {
+        std::cout << "\n"
+                  << "\tWarning in " << __FUNCTION__ << ": G_t[i] = " << G_t[i] << "\n"
+                  << "\n"
+                  << "\tL[i] = " << L[i] << "\n"
+                  << "\tbeta = " << beta << "\n"
+                  << "\ttau = " << t_val << "\n"
+                  << "\tstd::exp(L[i]*beta) = " << std::exp(L[i] * beta) << "\n"
+                  << "\tstd::exp(L[i]*(beta-t_val)) = " << std::exp(L[i] * (beta - t_val)) << "\n"
+                  << std::endl;
 
         throw std::logic_error(__FUNCTION__);
       }
@@ -344,13 +348,16 @@ void* quadrature_integration<IntegrationDmn, OtherDmn, Threading>::quadrature_in
       else
         G_t[i] = f_val * std::exp(-L[i] * t_val) / (std::exp(-L[i] * beta) + 1.);
 
-      if (G_t[i] != G_t[i]) {
-        std::cout << "\n\t warning in compute_G_q_t --> G_t[i] : " << G_t[i] << "\n";
-        std::cout << "\n\tL[i] : " << L[i] << "\n";
-        std::cout << "\n\tbeta : " << beta << "\n";
-        std::cout << "\n\ttau  : " << t_val << "\n";
-        std::cout << "\n\tstd::exp(L[i]*beta)  : " << std::exp(L[i] * beta) << "\n";
-        std::cout << "\n\tstd::exp(L[i]*(beta-t_val)) : " << std::exp(L[i] * (beta - t_val)) << "\n";
+      if (std::isnan(G_t[i])) {
+        std::cout << "\n"
+                  << "\tWarning in " << __FUNCTION__ << ": G_t[i] = " << G_t[i] << "\n"
+                  << "\n"
+                  << "\tL[i] = " << L[i] << "\n"
+                  << "\tbeta = " << beta << "\n"
+                  << "\ttau = " << t_val << "\n"
+                  << "\tstd::exp(L[i]*beta) = " << std::exp(L[i] * beta) << "\n"
+                  << "\tstd::exp(L[i]*(beta-t_val)) = " << std::exp(L[i] * (beta - t_val)) << "\n"
+                  << std::endl;
 
         throw std::logic_error(__FUNCTION__);
       }
