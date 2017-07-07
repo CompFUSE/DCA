@@ -238,10 +238,7 @@ void quadrature_integration<IntegrationDmn, OtherDmn, Threading>::quadrature_int
       for (int i = 0; i < OtherDmn::dmn_size(); ++i)
         H_m(i, j) = H_q(i, j, q_ind) - I_q(i, j, q_ind);
 
-    if (false)
-      linalg::matrixop::eigensolverHermitian('V', 'U', H_m, L, V);
-    else
-      linalg::matrixop::eigensolverGreensFunctionMatrix('V', 'U', H_m, L, V);
+    linalg::matrixop::eigensolverGreensFunctionMatrix('V', 'U', H_m, L, V);
 
     for (int i = 0; i < OtherDmn::dmn_size(); ++i) {
       if (L[i] < 0)
@@ -339,10 +336,7 @@ void* quadrature_integration<IntegrationDmn, OtherDmn, Threading>::quadrature_in
       for (int i = 0; i < OtherDmn::dmn_size(); ++i)
         H_m(i, j) = H_q(i, j, q_ind) - I_q(i, j, q_ind);
 
-    if (false)
-      linalg::matrixop::eigensolverHermitian('V', 'U', H_m, L, V);
-    else
-      linalg::matrixop::eigensolverGreensFunctionMatrix('V', 'U', H_m, L, V);
+    linalg::matrixop::eigensolverGreensFunctionMatrix('V', 'U', H_m, L, V);
 
     for (int i = 0; i < OtherDmn::dmn_size(); ++i) {
       if (L[i] < 0)
