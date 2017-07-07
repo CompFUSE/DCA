@@ -6,8 +6,8 @@
         "self-energy-mixing-factor": 0.5,
         "interacting-orbitals": [0, 1, 2],
 
-        "do-finite-size-QMC": true,
-        
+        "do-finite-size-QMC": false,
+
 	"coarse-graining": {
 	    "k-mesh-recursion": 3,
 	    "periods": 2,
@@ -15,7 +15,7 @@
 	    "threads": 8,
 	    "tail-frequencies": 10
 	},
-        
+
 	"DCA+": {
 	    "do-DCA+": true,
 	    "deconvolution-iterations": 32,
