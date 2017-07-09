@@ -20,28 +20,28 @@
 
 using dca::phys::domains::frequency_domain;
 
-TEST(FrequencyDomainTest, Basic) {
+TEST(FrequencyDomainTest, Full) {
   const double beta = 2.4;
   const int num_freqs = 3;
 
+  const std::vector<int> indices_expected{-5, -3, -1, 1, 3, 5};
   const std::vector<double> elements_expected{-5 * M_PI / beta, -3 * M_PI / beta, -M_PI / beta,
                                               M_PI / beta,      3 * M_PI / beta,  5 * M_PI / beta};
-  const std::vector<int> integer_wave_vectors_expected{-5, -3, -1, 1, 3, 5};
 
   EXPECT_FALSE(frequency_domain::is_initialized());
+  EXPECT_EQ("frequency-domain", frequency_domain::get_name());
+  EXPECT_DEBUG_DEATH(frequency_domain::get_size(), "initialized_");
+  EXPECT_DEBUG_DEATH(frequency_domain::get_elements(), "initialized_");
+  EXPECT_DEBUG_DEATH(frequency_domain::get_indices(), "initialized_");
 
   frequency_domain::initialize(beta, num_freqs);
 
   EXPECT_TRUE(frequency_domain::is_initialized());
-  EXPECT_EQ(2 * num_freqs, frequency_domain::get_size());
   EXPECT_EQ("frequency-domain", frequency_domain::get_name());
-
+  EXPECT_EQ(2 * num_freqs, frequency_domain::get_size());
   EXPECT_EQ(elements_expected, frequency_domain::get_elements());
-  EXPECT_EQ(integer_wave_vectors_expected, frequency_domain::get_integer_wave_vectors());
+  EXPECT_EQ(indices_expected, frequency_domain::get_indices());
 
-  EXPECT_EQ(2.*M_PI/beta, frequency_domain::get_basis()[0]);
-  EXPECT_EQ(beta/(2.*M_PI), frequency_domain::get_inverse_basis()[0]);
-
-  // The frequency domain can only be initialized once.
-  EXPECT_THROW(frequency_domain::initialize(1, 1), std::logic_error);
+  // The domain can only be initialized once.
+  EXPECT_THROW(frequency_domain::initialize(0.9, 10), std::logic_error);
 }

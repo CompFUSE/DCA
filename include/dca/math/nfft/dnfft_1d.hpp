@@ -114,7 +114,7 @@ private:
   void FT_f_tau_to_f_w(
       func::function<std::complex<other_scalartype>, func::dmn_variadic<w_dmn_t, p_dmn_t>>& f_w);
 
-  std::vector<int>& integer_wave_vectors;
+  const std::vector<int>& matsubara_freq_indices_;
 
   p_dmn_t p_dmn_t_obj;
 
@@ -150,7 +150,7 @@ private:
 
 template <typename scalartype, typename w_dmn_t, typename p_dmn_t, int oversampling, NfftModeNames mode>
 Dnfft1D<scalartype, w_dmn_t, p_dmn_t, oversampling, mode>::Dnfft1D()
-    : integer_wave_vectors(w_dmn_t::parameter_type::get_integer_wave_vectors()),
+    : matsubara_freq_indices_(w_dmn_t::parameter_type::get_indices()),
 
       tau("tau"),
       fine_tau("fine_tau"),
@@ -279,10 +279,10 @@ void Dnfft1D<scalartype, w_dmn_t, p_dmn_t, oversampling, mode>::initialize_funct
   }
 
   {
-    assert(w_dmn_t::dmn_size() == integer_wave_vectors.size());
+    assert(w_dmn_t::dmn_size() == matsubara_freq_indices_.size());
 
     for (int l = 0; l < w_dmn_t::dmn_size(); l++)
-      phi_wn(l) = window_function_t::phi_wn(integer_wave_vectors[l]);
+      phi_wn(l) = window_function_t::phi_wn(matsubara_freq_indices_[l]);
   }
 }
 
@@ -488,7 +488,7 @@ void Dnfft1D<scalartype, w_dmn_t, p_dmn_t, oversampling, mode>::FT_f_tau_to_f_w(
   std::vector<int> w_indices(0);
   for (int w_ind = 0; w_ind < w_dmn_t::dmn_size(); w_ind++) {
     for (int t_ind = 0; t_ind < N; t_ind++) {
-      if (integer_wave_vectors[w_ind] == t_ind or integer_wave_vectors[w_ind] + N == t_ind) {
+      if (matsubara_freq_indices_[w_ind] == t_ind or matsubara_freq_indices_[w_ind] + N == t_ind) {
         w_indices.push_back(t_ind);
         break;
       }

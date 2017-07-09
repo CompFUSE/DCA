@@ -9,13 +9,12 @@
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // This class parametrizes the fermionic Matsubara frequency domain.
-//
-// TODO: Use private data members and proper getter methods instead of singletons (see
-//       time_domain.hpp).
 
 #ifndef DCA_PHYS_DOMAINS_TIME_AND_FREQUENCY_FREQUENCY_DOMAIN_HPP
 #define DCA_PHYS_DOMAINS_TIME_AND_FREQUENCY_FREQUENCY_DOMAIN_HPP
 
+#include <cassert>
+#include <cstdlib>  // std::size_t
 #include <string>
 #include <vector>
 
@@ -28,10 +27,10 @@ namespace domains {
 
 class frequency_domain {
 public:
-  static constexpr int DIMENSION = 1;
+  static constexpr int dimension = 1;
 
-  using scalar_type = double;
-  using element_type = double;
+  using ScalarType = double;
+  using element_type = ScalarType;
 
   // Needed in function transform.
   using dmn_specifications_type = math::transform::harmonic_dmn_1D_type;
@@ -40,43 +39,36 @@ public:
     return initialized_;
   }
 
-  static int& get_size() {
-    static int size;
-    return size;
+  static const std::string& get_name() {
+    return name_;
   }
 
-  static std::string get_name() {
-    static std::string name = "frequency-domain";
-    return name;
+  static std::size_t get_size() {
+    assert(initialized_);
+    return elements_.size();
   }
 
-  static scalar_type* get_basis() {
-    static scalar_type basis[DIMENSION];
-    return basis;
+  // TODO: Add const qualifier when rest of the code is fixed.
+  static /*const*/ std::vector<element_type>& get_elements() {
+    assert(initialized_);
+    return elements_;
   }
 
-  static scalar_type* get_inverse_basis() {
-    static scalar_type inv_basis[DIMENSION];
-    return inv_basis;
-  }
-
-  static std::vector<double>& get_elements() {
-    static std::vector<double> elements;
-    return elements;
-  }
-
-  static std::vector<int>& get_integer_wave_vectors() {
-    static std::vector<int> elements;
-    return elements;
+  // Returns the Matsubara frequency indices of the elements.
+  static const std::vector<int>& get_indices() {
+    assert(initialized_);
+    return indices_;
   }
 
   template <typename Writer>
   static void write(Writer& writer);
 
   // Initializes the elements of the domain with the first num_freqs positive and the first
-  // num_freqs negative fermionic Matsubara frequencies using the following order,
-  // [-(2*num_freqs-1)*\pi/beta, ..., -\pi/beta, \pi/beta, ..., (2*num_freqs-1)*\pi/beta] .
-  static void initialize(double beta, int num_freqs);
+  // num_freqs negative fermionic Matsubara frequencies. The elements are sorted w.r.t the Matsubara
+  // frequency index in increasing order,
+  // [-(2*num_freqs-1)*\pi/beta, -(2*num_freqs-3)*\pi/beta, ..., -\pi/beta, \pi/beta, ...,
+  // (2*num_freqs-1)*\pi/beta] .
+  static void initialize(ScalarType beta, int num_freqs);
 
   // Calls the previous initialize method with arguments taken from the parameters object.
   template <typename ParametersType>
@@ -86,12 +78,16 @@ public:
 
 private:
   static bool initialized_;
+  const static std::string name_;
+  static std::vector<element_type> elements_;
+  static std::vector<int> indices_;
 };
 
 template <typename Writer>
 void frequency_domain::write(Writer& writer) {
-  writer.open_group(get_name());
-  writer.execute("elements", get_elements());
+  writer.open_group(name_);
+  writer.execute("elements", elements_);
+  writer.execute("indices", indices_);
   writer.close_group();
 }
 

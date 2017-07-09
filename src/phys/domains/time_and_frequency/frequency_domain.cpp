@@ -6,6 +6,7 @@
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // This file implements frequency_domain.hpp.
 
@@ -20,25 +21,27 @@ namespace domains {
 // dca::phys::domains::
 
 bool frequency_domain::initialized_ = false;
+const std::string frequency_domain::name_ = "frequency-domain";
+std::vector<frequency_domain::element_type> frequency_domain::elements_;
+std::vector<int> frequency_domain::indices_;
 
-void frequency_domain::initialize(const double beta, const int num_freqs) {
+void frequency_domain::initialize(const ScalarType beta, const int num_freqs) {
   if (initialized_)
     throw std::logic_error("frequency_domain has already been initialzed.");
 
-  get_basis()[0] = (2. * M_PI) / beta;
-  get_inverse_basis()[0] = beta / (2. * M_PI);
+  const int size = 2 * num_freqs;
 
-  get_size() = 2 * num_freqs;
-
-  get_elements().resize(get_size());
-  get_integer_wave_vectors().resize(get_size());
+  indices_.resize(size);
+  elements_.resize(size);
 
   for (int l = 0; l < num_freqs; ++l) {
-    get_elements()[get_size() / 2 + 0 + l] = M_PI / beta * (1 + 2 * l);
-    get_elements()[get_size() / 2 - 1 - l] = -M_PI / beta * (1 + 2 * l);
+    const int index = 2 * l + 1;
 
-    get_integer_wave_vectors()[get_size() / 2 + 0 + l] = (1 + 2 * l);
-    get_integer_wave_vectors()[get_size() / 2 - 1 - l] = -(1 + 2 * l);
+    indices_[size / 2 + 0 + l] = index;
+    indices_[size / 2 - 1 - l] = -index;
+
+    elements_[size / 2 + 0 + l] = index * M_PI / beta;
+    elements_[size / 2 - 1 - l] = -index * M_PI / beta;
   }
 
   initialized_ = true;
