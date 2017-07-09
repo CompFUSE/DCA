@@ -57,7 +57,10 @@ public:
 
   bool& is_thermalized();
 
+  // Does one sweep, if the walker is not yet thermalized (warm-up).
+  // Otherwise, does multiple sweeps, according to the input parameter "sweeps-per-measurement".
   void do_sweep();
+
   void do_step();
 
   dca::linalg::Matrix<double, device_t>& get_N(e_spin_states_type e_spin);
@@ -376,14 +379,13 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::initialize() {
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void CtauxWalker<device_t, parameters_type, MOMS_type>::do_sweep() {
-  int factor = 1;
-  if (thermalized)
-    factor = parameters.get_sweeps_per_measurement();
+  const int sweeps_per_measurement = thermalized ? parameters.get_sweeps_per_measurement() : 1;
 
-  int nb_of_block_steps = 1 + floor(configuration.get_number_of_interacting_HS_spins() /
-                                    parameters.get_submatrix_size() * factor);
+  const int submatrix_steps = configuration.get_number_of_interacting_HS_spins() /
+                                  parameters.get_submatrix_size() * sweeps_per_measurement +
+                              1;
 
-  for (int i = 0; i < nb_of_block_steps; i++)
+  for (int i = 0; i < submatrix_steps; ++i)
     do_step();
 }
 
