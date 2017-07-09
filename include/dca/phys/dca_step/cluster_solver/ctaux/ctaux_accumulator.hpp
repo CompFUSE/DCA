@@ -285,6 +285,8 @@ void CtauxAccumulator<device_t, parameters_type, MOMS_type>::initialize(int dca_
 
   single_particle_accumulator_obj.initialize();
 
+  M_r_w = 0.;
+  M_r_w_squared = 0.;
   K_r_t = 0.;
 
   for (int i = 0; i < M_k_w.size(); i++)
