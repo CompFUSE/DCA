@@ -28,6 +28,7 @@
 #include "dca/phys/dca_step/cluster_solver/ctaux/walker/tools/n_tools.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/walker/tools/shrink_tools.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/walker/walker_bit.hpp"
+#include "dca/phys/dca_step/cluster_solver/util/accumulator.hpp"
 
 namespace dca {
 namespace phys {
@@ -221,6 +222,8 @@ private:
   bool Bennett;
 
   int sign;
+
+  util::Accumulator<int> warm_up_expansion_order_;
 };
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
@@ -268,7 +271,9 @@ CtauxWalker<device_t, parameters_type, MOMS_type>::CtauxWalker(parameters_type& 
 
       thermalized(false),
       Bennett(false),
-      sign(1) {
+      sign(1),
+
+      warm_up_expansion_order_() {
   if (concurrency.id() == 0 and thread_id == 0) {
     std::cout << "\n\n"
               << "\t\t"
@@ -406,6 +411,9 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::do_step() {
   update_N_matrix_with_Gamma_matrix();
 
   clean_up_the_configuration();
+
+  if (!thermalized)
+    warm_up_expansion_order_.addSample(configuration.get_number_of_interacting_HS_spins());
 }
 
 // In case Gamma_up and Gamma_down do not reside in the CPU memory, copy them.
