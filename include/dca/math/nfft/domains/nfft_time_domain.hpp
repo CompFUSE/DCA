@@ -115,9 +115,9 @@ void nfft_time_domain<NAME, dnfft_type>::initialize(dnfft_type& dnfft_obj) {
 
     is_initialized() = true;
 
-    const int OVER_SAMPLING = dnfft_obj.get_oversampling_factor();
-    const int MAX_FREQUENCY = dnfft_obj.get_maximum_frequency();
-    const int WINDOW_SAMPLING = dnfft_obj.get_window_sampling_factor();
+    const int OVER_SAMPLING = dnfft_obj.get_oversampling();
+    const int MAX_FREQUENCY = dnfft_obj.maximumFrequency();
+    const int WINDOW_SAMPLING = dnfft_obj.get_window_sampling();
 
     scalar_type Delta = 1. / scalar_type(OVER_SAMPLING * MAX_FREQUENCY);
     scalar_type delta = 1. / scalar_type(OVER_SAMPLING * MAX_FREQUENCY * WINDOW_SAMPLING);

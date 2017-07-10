@@ -6,13 +6,15 @@
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
+//         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// Frequency domain.
+// This class parametrizes the fermionic Matsubara frequency domain.
 
 #ifndef DCA_PHYS_DOMAINS_TIME_AND_FREQUENCY_FREQUENCY_DOMAIN_HPP
 #define DCA_PHYS_DOMAINS_TIME_AND_FREQUENCY_FREQUENCY_DOMAIN_HPP
 
-#include <cmath>
+#include <cassert>
+#include <cstdlib>  // std::size_t
 #include <string>
 #include <vector>
 
@@ -25,74 +27,68 @@ namespace domains {
 
 class frequency_domain {
 public:
-  const static int DIMENSION = 1;
+  static constexpr int dimension = 1;
 
-  typedef double scalar_type;
-  typedef double element_type;
+  using ScalarType = double;
+  using element_type = ScalarType;
 
-  typedef math::transform::harmonic_dmn_1D_type dmn_specifications_type;
+  // Needed in function transform.
+  using dmn_specifications_type = math::transform::harmonic_dmn_1D_type;
 
-  static int& get_size() {
-    static int size;
-    return size;
+  static bool is_initialized() {
+    return initialized_;
   }
 
-  static std::string get_name() {
-    static std::string name = "frequency-domain";
-    return name;
+  static const std::string& get_name() {
+    return name_;
   }
 
-  static scalar_type* get_basis() {
-    static scalar_type basis[DIMENSION];
-    return basis;
+  static std::size_t get_size() {
+    assert(initialized_);
+    return elements_.size();
   }
 
-  static scalar_type* get_inverse_basis() {
-    static scalar_type inv_basis[DIMENSION];
-    return inv_basis;
+  // TODO: Add const qualifier when rest of the code is fixed.
+  static /*const*/ std::vector<element_type>& get_elements() {
+    assert(initialized_);
+    return elements_;
   }
 
-  static std::vector<double>& get_elements() {
-    static std::vector<double> elements;
-    return elements;
-  }
-
-  static std::vector<int>& get_integer_wave_vectors() {
-    static std::vector<int> elements;
-    return elements;
+  // Returns the Matsubara frequency indices of the elements.
+  static const std::vector<int>& get_indices() {
+    assert(initialized_);
+    return indices_;
   }
 
   template <typename Writer>
   static void write(Writer& writer);
 
-  template <typename parameters_t>
-  static void initialize(parameters_t& parameters);
+  // Initializes the elements of the domain with the first num_freqs positive and the first
+  // num_freqs negative fermionic Matsubara frequencies. The elements are sorted w.r.t the Matsubara
+  // frequency index in increasing order,
+  // [-(2*num_freqs-1)*\pi/beta, -(2*num_freqs-3)*\pi/beta, ..., -\pi/beta, \pi/beta, ...,
+  // (2*num_freqs-1)*\pi/beta] .
+  static void initialize(ScalarType beta, int num_freqs);
+
+  // Calls the previous initialize method with arguments taken from the parameters object.
+  template <typename ParametersType>
+  static void initialize(const ParametersType& parameters) {
+    initialize(parameters.get_beta(), parameters.get_sp_fermionic_frequencies());
+  }
+
+private:
+  static bool initialized_;
+  const static std::string name_;
+  static std::vector<element_type> elements_;
+  static std::vector<int> indices_;
 };
 
 template <typename Writer>
 void frequency_domain::write(Writer& writer) {
-  writer.open_group(get_name());
-  writer.execute("elements", get_elements());
+  writer.open_group(name_);
+  writer.execute("elements", elements_);
+  writer.execute("indices", indices_);
   writer.close_group();
-}
-
-template <typename parameters_t>
-void frequency_domain::initialize(parameters_t& parameters) {
-  get_basis()[0] = (2. * M_PI) / parameters.get_beta();
-  get_inverse_basis()[0] = parameters.get_beta() / (2. * M_PI);
-
-  get_size() = 2 * parameters.get_sp_fermionic_frequencies();
-
-  get_elements().resize(get_size());
-  get_integer_wave_vectors().resize(get_size());
-
-  for (int l = 0; l < parameters.get_sp_fermionic_frequencies(); l++) {
-    get_elements()[get_size() / 2 + 0 + l] = M_PI / parameters.get_beta() * (1 + 2 * l);
-    get_elements()[get_size() / 2 - 1 - l] = -M_PI / parameters.get_beta() * (1 + 2 * l);
-
-    get_integer_wave_vectors()[get_size() / 2 + 0 + l] = (1 + 2 * l);
-    get_integer_wave_vectors()[get_size() / 2 - 1 - l] = -(1 + 2 * l);
-  }
 }
 
 }  // domains

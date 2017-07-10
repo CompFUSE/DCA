@@ -97,7 +97,7 @@ void vertex_frequency_domain<COMPACT>::initialize(parameters_t& parameters) {
 
   get_corresponding_frequency_domain_index().resize(get_size(), -1);
 
-  std::vector<double>& wn = frequency_domain::get_elements();
+  const std::vector<double>& wn = frequency_domain::get_elements();
 
   for (int i = 0; i < get_size(); i++)
     for (size_t j = 0; j < wn.size(); j++)
@@ -125,7 +125,7 @@ void vertex_frequency_domain<COMPACT_POSITIVE>::initialize(parameters_t& paramet
 
   get_corresponding_frequency_domain_index().resize(get_size(), -1);
 
-  std::vector<double>& wn = frequency_domain::get_elements();
+  const std::vector<double>& wn = frequency_domain::get_elements();
 
   for (int i = 0; i < get_size(); i++)
     for (size_t j = 0; j < wn.size(); j++)
@@ -158,7 +158,7 @@ void vertex_frequency_domain<EXTENDED>::initialize(parameters_t& parameters) {
 
   get_corresponding_frequency_domain_index().resize(get_size(), -1);
 
-  std::vector<double>& wn = frequency_domain::get_elements();
+  const std::vector<double>& wn = frequency_domain::get_elements();
 
   for (int i = 0; i < get_size(); i++)
     for (size_t j = 0; j < wn.size(); j++)
@@ -187,7 +187,7 @@ void vertex_frequency_domain<EXTENDED_POSITIVE>::initialize(parameters_t& parame
 
   get_corresponding_frequency_domain_index().resize(get_size(), -1);
 
-  std::vector<double>& wn = frequency_domain::get_elements();
+  const std::vector<double>& wn = frequency_domain::get_elements();
 
   for (int i = 0; i < get_size(); i++)
     for (size_t j = 0; j < wn.size(); j++)

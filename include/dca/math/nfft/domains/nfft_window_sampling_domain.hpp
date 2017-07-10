@@ -43,7 +43,7 @@ public:
   }
 
   static void initialize(dnfft_type& dnfft_obj) {
-    get_size() = dnfft_obj.get_window_sampling_factor();
+    get_size() = dnfft_obj.get_window_sampling();
   }
 };
 

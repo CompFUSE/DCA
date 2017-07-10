@@ -283,8 +283,10 @@ void CtauxAccumulator<device_t, parameters_type, MOMS_type>::initialize(int dca_
   for (int i = 0; i < visited_expansion_order_k.size(); i++)
     visited_expansion_order_k(i) = 0;
 
-  single_particle_accumulator_obj.initialize(M_r_w, M_r_w_squared);
+  single_particle_accumulator_obj.initialize();
 
+  M_r_w = 0.;
+  M_r_w_squared = 0.;
   K_r_t = 0.;
 
   for (int i = 0; i < M_k_w.size(); i++)
