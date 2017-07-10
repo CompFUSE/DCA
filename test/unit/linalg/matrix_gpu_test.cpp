@@ -165,6 +165,25 @@ TEST(MatrixGPUTest, CopyConstructor) {
     }
 }
 
+TEST(MatrixGPUTest, MoveConstructor) {
+  using MatrixType = dca::linalg::Matrix<double, dca::linalg::GPU>;
+  MatrixType mat("matrix name", 4);
+  auto el_value = [](int i, int j) { return 3.14 * i - 2.5 * j; };
+  testing::setMatrixElements(mat, el_value);
+  MatrixType mat_copy(mat);
+
+  MatrixType thief(std::move(mat), "thief matrix");
+  EXPECT_EQ("thief matrix", thief.get_name());
+
+  for (int j = 0; j < mat.nrCols(); ++j)
+    for (int i = 0; i < mat.nrRows(); ++i)
+      EXPECT_EQ(testing::getFromDevice(mat_copy.ptr(i, j)), testing::getFromDevice(thief.ptr(i, j)));
+
+  // The original matrix is left without a valid state.
+  EXPECT_EQ(nullptr, mat.ptr());
+  EXPECT_DEBUG_DEATH(mat.ptr(0, 1), "Assertion .* failed.");
+}
+
 TEST(MatrixGPUTest, Assignement) {
   {
     // Assign a matrix that fits into the capacity.
@@ -210,6 +229,33 @@ TEST(MatrixGPUTest, Assignement) {
         EXPECT_NE(mat.ptr(i, j), mat_copy.ptr(i, j));
       }
   }
+}
+
+TEST(MatrixGPUTest, MoveAssignement) {
+  using MatrixType = dca::linalg::Matrix<float, dca::linalg::GPU>;
+  MatrixType mat("matrix name", std::make_pair(2, 5));
+  auto el_value = [](int i, int j) { return 3 * i + 2 * j; };
+  testing::setMatrixElements(mat, el_value);
+  MatrixType mat_copy(mat);
+
+  MatrixType thief;
+  thief = std::move(mat);
+
+  EXPECT_EQ(MatrixType::get_default_name(), thief.get_name());
+  EXPECT_EQ(nullptr, mat.ptr());
+
+  for (int j = 0; j < mat_copy.nrCols(); ++j)
+    for (int i = 0; i < mat_copy.nrRows(); ++i)
+      EXPECT_EQ(testing::getFromDevice(mat_copy.ptr(i, j)), testing::getFromDevice(thief.ptr(i, j)));
+
+  // Test chain assignment
+  MatrixType another_copy;
+  another_copy = mat = std::move(thief);
+
+  for (int j = 0; j < mat_copy.nrCols(); ++j)
+    for (int i = 0; i < mat_copy.nrRows(); ++i)
+      EXPECT_EQ(testing::getFromDevice(mat_copy.ptr(i, j)),
+                testing::getFromDevice(another_copy.ptr(i, j)));
 }
 
 TEST(MatrixGPUTest, Set) {

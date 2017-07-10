@@ -217,6 +217,21 @@ TEST(MatrixCPUTest, CopyConstructor) {
   EXPECT_EQ(mat.get_name(), mat_copy2.get_name());
 }
 
+TEST(MatrixCPUTest, MoveConstructor) {
+  using MatrixType = dca::linalg::Matrix<double, dca::linalg::CPU>;
+  MatrixType mat("matrix name", 4);
+  auto el_value = [](int i, int j) { return 3.14 * i - 2.5 * j; };
+  testing::setMatrixElements(mat, el_value);
+  MatrixType mat_copy(mat);
+
+  MatrixType mat_thief(std::move(mat), "thief matrix");
+  EXPECT_EQ(mat_copy, mat_thief);
+  EXPECT_EQ("thief matrix", mat_thief.get_name());
+  // The original matrix is left without a valid state.
+  EXPECT_EQ(nullptr, mat.ptr());
+  EXPECT_DEBUG_DEATH(mat(0, 1), "Assertion .* failed.");
+}
+
 TEST(MatrixCPUTest, Assignement) {
   {
     // Assign a matrix that fits into the capacity.
@@ -262,6 +277,27 @@ TEST(MatrixCPUTest, Assignement) {
         EXPECT_NE(mat.ptr(i, j), mat_copy.ptr(i, j));
       }
   }
+}
+
+TEST(MatrixCPUTest, MoveAssignement) {
+  using MatrixType = dca::linalg::Matrix<short, dca::linalg::CPU>;
+  MatrixType mat("matrix name", std::make_pair(2, 5));
+  auto el_value = [](int i, int j) { return 3 * i + 2 * j; };
+  testing::setMatrixElements(mat, el_value);
+  MatrixType mat_copy(mat);
+
+  MatrixType thief;
+  thief = std::move(mat);
+
+  EXPECT_EQ(mat_copy, thief);
+  EXPECT_EQ(MatrixType::get_default_name(), thief.get_name());
+  EXPECT_EQ(nullptr, mat.ptr());
+
+  // Test chain assignment
+  MatrixType another_copy;
+  another_copy = mat = std::move(thief);
+
+  EXPECT_EQ(mat_copy, another_copy);
 }
 
 TEST(MatrixCPUTest, Set) {

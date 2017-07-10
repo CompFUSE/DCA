@@ -52,9 +52,12 @@ public:
   Matrix(std::pair<int, int> size, std::pair<int, int> capacity);
   Matrix(std::string name, std::pair<int, int> size, std::pair<int, int> capacity);
 
-  // Copy constructor:
+  // Copy and move constructor:
   // Capacity, size and matrix elements are copied. Name is ignored.
   Matrix(const Matrix<ScalarType, device_name>& rhs, const std::string& = default_name_);
+  // Note: usage of the rhs matrix after it is used for a move construction results in undefined
+  // behaviour.
+  Matrix(Matrix<ScalarType, device_name>&& rhs, const std::string& = default_name_);
 
   // Copy constructor from a different device.
   template <DeviceType rhs_device_name>
@@ -65,6 +68,8 @@ public:
   // Assignment operators:
   // Copy size, capacity and  matrix entries but not the name.
   Matrix<ScalarType, device_name>& operator=(const Matrix<ScalarType, device_name>& rhs);
+  // Note: after a move assignment usage the rhs matrix will result in undefined behaviour.
+  Matrix<ScalarType, device_name>& operator=(Matrix<ScalarType, device_name>&& rhs);
 
   // Copy from a different device.
   template <DeviceType rhs_device_name>
@@ -90,6 +95,7 @@ public:
   std::enable_if_t<device_name == CPU && dn == CPU, ScalarType&> operator()(int i, int j) {
     assert(i >= 0 && i < size_.first);
     assert(j >= 0 && j < size_.second);
+    assert(data_ != nullptr);
     return data_[i + j * leadingDimension()];
   }
   template <DeviceType dn = device_name>
@@ -123,11 +129,13 @@ public:
   ValueType* ptr(int i, int j) {
     assert(i >= 0 && i < size_.first);
     assert(j >= 0 && j < size_.second);
+    assert(data_ != nullptr);
     return data_ + i + j * leadingDimension();
   }
   const ValueType* ptr(int i, int j) const {
     assert(i >= 0 && i < size_.first);
     assert(j >= 0 && j < size_.second);
+    assert(data_ != nullptr);
     return data_ + i + j * leadingDimension();
   }
 
@@ -269,6 +277,12 @@ Matrix<ScalarType, device_name>::Matrix(const Matrix<ScalarType, device_name>& r
 }
 
 template <typename ScalarType, DeviceType device_name>
+Matrix<ScalarType, device_name>::Matrix(Matrix<ScalarType, device_name>&& rhs, const std::string& name)
+    : name_(name), size_(rhs.size_), capacity_(rhs.capacity_), data_(rhs.data_) {
+  rhs.data_ = nullptr;
+}
+
+template <typename ScalarType, DeviceType device_name>
 template <DeviceType rhs_device_name>
 Matrix<ScalarType, device_name>::Matrix(const Matrix<ScalarType, rhs_device_name>& rhs,
                                         const std::string& name)
@@ -309,6 +323,18 @@ Matrix<ScalarType, device_name>& Matrix<ScalarType, device_name>::operator=(
     const Matrix<ScalarType, device_name>& rhs) {
   resizeNoCopy(rhs.size_);
   util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
+  return *this;
+}
+
+template <typename ScalarType, DeviceType device_name>
+Matrix<ScalarType, device_name>& Matrix<ScalarType, device_name>::operator=(
+    Matrix<ScalarType, device_name>&& rhs) {
+  if (this != &rhs) {
+    size_ = rhs.size_;
+    capacity_ = rhs.capacity_;
+    data_ = rhs.data_;
+    rhs.data_ = nullptr;
+  }
   return *this;
 }
 
