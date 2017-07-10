@@ -21,6 +21,7 @@
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_QUADRATURE_INTEGRATION_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_COARSEGRAINING_QUADRATURE_INTEGRATION_HPP
 
+#include <cmath>  // std::exp, std::isnan
 #include <complex>
 #include <iostream>
 #include <stdexcept>
@@ -41,34 +42,44 @@ class quadrature_integration {
 public:
   template <typename scalar_type>
   static void quadrature_integration_G_q_w_st(
-      func::function<std::complex<scalar_type>, func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& I_q,
-      func::function<std::complex<scalar_type>, func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& H_q,
-      func::function<std::complex<scalar_type>, func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& S_q,
+      const func::function<std::complex<scalar_type>,
+                           func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& I_q,
+      const func::function<std::complex<scalar_type>,
+                           func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& H_q,
+      const func::function<std::complex<scalar_type>,
+                           func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& S_q,
       func::function<std::complex<scalar_type>,
                      func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& G_q);
 
   template <typename scalar_type>
   static void quadrature_integration_G_q_w_mt(
-      int nr_threads, func::function<std::complex<scalar_type>,
-                                     func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& I_q,
-      func::function<std::complex<scalar_type>, func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& H_q,
-      func::function<std::complex<scalar_type>, func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& S_q,
+      int nr_threads,
+      const func::function<std::complex<scalar_type>,
+                           func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& I_q,
+      const func::function<std::complex<scalar_type>,
+                           func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& H_q,
+      const func::function<std::complex<scalar_type>,
+                           func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& S_q,
       func::function<std::complex<scalar_type>,
                      func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& G_q);
 
   template <typename scalar_type>
   static void quadrature_integration_G_q_t_st(
       scalar_type beta, scalar_type f_val, scalar_type t_val,
-      func::function<std::complex<scalar_type>, func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& I_q,
-      func::function<std::complex<scalar_type>, func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& H_q,
+      const func::function<std::complex<scalar_type>,
+                           func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& I_q,
+      const func::function<std::complex<scalar_type>,
+                           func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& H_q,
       func::function<std::complex<scalar_type>,
                      func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& G_q);
 
   template <typename scalar_type>
   static void quadrature_integration_G_q_t_mt(
       int nr_threads, scalar_type beta, scalar_type f_val, scalar_type t_val,
-      func::function<std::complex<scalar_type>, func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& I_q,
-      func::function<std::complex<scalar_type>, func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& H_q,
+      const func::function<std::complex<scalar_type>,
+                           func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& I_q,
+      const func::function<std::complex<scalar_type>,
+                           func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& H_q,
       func::function<std::complex<scalar_type>,
                      func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& G_q);
 
@@ -89,9 +100,12 @@ private:
     scalar_type f_val;
     scalar_type t_val;
 
-    func::function<std::complex<scalar_type>, func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>* I_q_ptr;
-    func::function<std::complex<scalar_type>, func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>* H_q_ptr;
-    func::function<std::complex<scalar_type>, func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>* S_q_ptr;
+    const func::function<std::complex<scalar_type>,
+                         func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>* I_q_ptr;
+    const func::function<std::complex<scalar_type>,
+                         func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>* H_q_ptr;
+    const func::function<std::complex<scalar_type>,
+                         func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>* S_q_ptr;
     func::function<std::complex<scalar_type>, func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>* G_q_ptr;
   };
 };
@@ -99,26 +113,28 @@ private:
 template <typename IntegrationDmn, typename OtherDmn, typename Threading>
 template <typename scalar_type>
 void quadrature_integration<IntegrationDmn, OtherDmn, Threading>::quadrature_integration_G_q_w_st(
-    func::function<std::complex<scalar_type>, func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& I_q,
-    func::function<std::complex<scalar_type>, func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& H_q,
-    func::function<std::complex<scalar_type>, func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& S_q,
+    const func::function<std::complex<scalar_type>,
+                         func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& I_q,
+    const func::function<std::complex<scalar_type>,
+                         func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& H_q,
+    const func::function<std::complex<scalar_type>,
+                         func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& S_q,
     func::function<std::complex<scalar_type>, func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& G_q) {
-  dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU> G_inv("G_inv",
-                                                                         OtherDmn::dmn_size());
+  linalg::Matrix<std::complex<scalar_type>, linalg::CPU> G_inv("G_inv", OtherDmn::dmn_size());
 
   // Allocate the work space for inverse only once.
-  dca::linalg::Vector<int, dca::linalg::CPU> ipiv;
-  dca::linalg::Vector<std::complex<scalar_type>, dca::linalg::CPU> work;
+  linalg::Vector<int, linalg::CPU> ipiv;
+  linalg::Vector<std::complex<scalar_type>, linalg::CPU> work;
 
-  for (int q_ind = 0; q_ind < IntegrationDmn::dmn_size(); q_ind++) {
-    for (int j = 0; j < OtherDmn::dmn_size(); j++)
-      for (int i = 0; i < OtherDmn::dmn_size(); i++)
+  for (int q_ind = 0; q_ind < IntegrationDmn::dmn_size(); ++q_ind) {
+    for (int j = 0; j < OtherDmn::dmn_size(); ++j)
+      for (int i = 0; i < OtherDmn::dmn_size(); ++i)
         G_inv(i, j) = I_q(i, j, q_ind) - H_q(i, j, q_ind) - S_q(i, j, q_ind);
 
-    dca::linalg::matrixop::inverse(G_inv, ipiv, work);
+    linalg::matrixop::inverse(G_inv, ipiv, work);
 
-    for (int j = 0; j < OtherDmn::dmn_size(); j++)
-      for (int i = 0; i < OtherDmn::dmn_size(); i++)
+    for (int j = 0; j < OtherDmn::dmn_size(); ++j)
+      for (int i = 0; i < OtherDmn::dmn_size(); ++i)
         G_q(i, j, q_ind) = G_inv(i, j);
   }
 }
@@ -126,10 +142,13 @@ void quadrature_integration<IntegrationDmn, OtherDmn, Threading>::quadrature_int
 template <typename IntegrationDmn, typename OtherDmn, typename Threading>
 template <typename scalar_type>
 void quadrature_integration<IntegrationDmn, OtherDmn, Threading>::quadrature_integration_G_q_w_mt(
-    int nr_threads,
-    func::function<std::complex<scalar_type>, func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& I_q,
-    func::function<std::complex<scalar_type>, func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& H_q,
-    func::function<std::complex<scalar_type>, func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& S_q,
+    const int nr_threads,
+    const func::function<std::complex<scalar_type>,
+                         func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& I_q,
+    const func::function<std::complex<scalar_type>,
+                         func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& H_q,
+    const func::function<std::complex<scalar_type>,
+                         func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& S_q,
     func::function<std::complex<scalar_type>, func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& G_q) {
   G_q = 0.;
 
@@ -150,45 +169,48 @@ template <typename IntegrationDmn, typename OtherDmn, typename Threading>
 template <typename scalar_type>
 void* quadrature_integration<IntegrationDmn, OtherDmn, Threading>::quadrature_integration_G_q_w_mt(
     void* void_ptr) {
-  typedef quadrature_integration_functions<scalar_type> quadrature_functions_type;
+  using quadrature_functions_type = quadrature_integration_functions<scalar_type>;
 
-  dca::parallel::ThreadingData* data_ptr = static_cast<dca::parallel::ThreadingData*>(void_ptr);
-  quadrature_functions_type* functions_ptr = static_cast<quadrature_functions_type*>(data_ptr->arg);
+  const parallel::ThreadingData* const data_ptr =
+      static_cast<const parallel::ThreadingData*>(void_ptr);
 
-  int id = data_ptr->id;
-  int nr_threads = data_ptr->num_threads;
+  const quadrature_functions_type* const functions_ptr =
+      static_cast<const quadrature_functions_type*>(data_ptr->arg);
 
-  func::function<std::complex<scalar_type>, func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& I_q =
+  const int id = data_ptr->id;
+  const int nr_threads = data_ptr->num_threads;
+
+  const func::function<std::complex<scalar_type>,
+                       func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& I_q =
       *(functions_ptr->I_q_ptr);
-  func::function<std::complex<scalar_type>, func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& H_q =
+  const func::function<std::complex<scalar_type>,
+                       func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& H_q =
       *(functions_ptr->H_q_ptr);
-  func::function<std::complex<scalar_type>, func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& S_q =
+  const func::function<std::complex<scalar_type>,
+                       func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& S_q =
       *(functions_ptr->S_q_ptr);
   func::function<std::complex<scalar_type>, func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& G_q =
       *(functions_ptr->G_q_ptr);
 
-  IntegrationDmn q_dmn;
-  std::pair<int, int> q_bounds = dca::parallel::util::getBounds(id, nr_threads, q_dmn);
+  const IntegrationDmn q_dmn;
+  const std::pair<int, int> q_bounds = parallel::util::getBounds(id, nr_threads, q_dmn);
 
-  {
-    dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU> G_inv("G_inv",
-                                                                           OtherDmn::dmn_size());
+  linalg::Matrix<std::complex<scalar_type>, linalg::CPU> G_inv("G_inv", OtherDmn::dmn_size());
 
-    // Allocate the work space for inverse only once.
-    dca::linalg::Vector<int, dca::linalg::CPU> ipiv;
-    dca::linalg::Vector<std::complex<scalar_type>, dca::linalg::CPU> work;
+  // Allocate the work space for inverse only once.
+  linalg::Vector<int, linalg::CPU> ipiv;
+  linalg::Vector<std::complex<scalar_type>, linalg::CPU> work;
 
-    for (int q_ind = q_bounds.first; q_ind < q_bounds.second; q_ind += 1) {
-      for (int j = 0; j < OtherDmn::dmn_size(); j++)
-        for (int i = 0; i < OtherDmn::dmn_size(); i++)
-          G_inv(i, j) = I_q(i, j, q_ind) - H_q(i, j, q_ind) - S_q(i, j, q_ind);
+  for (int q_ind = q_bounds.first; q_ind < q_bounds.second; ++q_ind) {
+    for (int j = 0; j < OtherDmn::dmn_size(); ++j)
+      for (int i = 0; i < OtherDmn::dmn_size(); ++i)
+        G_inv(i, j) = I_q(i, j, q_ind) - H_q(i, j, q_ind) - S_q(i, j, q_ind);
 
-      dca::linalg::matrixop::inverse(G_inv, ipiv, work);
+    linalg::matrixop::inverse(G_inv, ipiv, work);
 
-      for (int j = 0; j < OtherDmn::dmn_size(); j++)
-        for (int i = 0; i < OtherDmn::dmn_size(); i++)
-          G_q(i, j, q_ind) = G_inv(i, j);
-    }
+    for (int j = 0; j < OtherDmn::dmn_size(); ++j)
+      for (int i = 0; i < OtherDmn::dmn_size(); ++i)
+        G_q(i, j, q_ind) = G_inv(i, j);
   }
 
   return 0;
@@ -197,62 +219,63 @@ void* quadrature_integration<IntegrationDmn, OtherDmn, Threading>::quadrature_in
 template <typename IntegrationDmn, typename OtherDmn, typename Threading>
 template <typename scalar_type>
 void quadrature_integration<IntegrationDmn, OtherDmn, Threading>::quadrature_integration_G_q_t_st(
-    scalar_type beta, scalar_type f_val, scalar_type t_val,
-    func::function<std::complex<scalar_type>, func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& I_q,
-    func::function<std::complex<scalar_type>, func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& H_q,
+    const scalar_type beta, const scalar_type f_val, const scalar_type t_val,
+    const func::function<std::complex<scalar_type>,
+                         func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& I_q,
+    const func::function<std::complex<scalar_type>,
+                         func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& H_q,
     func::function<std::complex<scalar_type>, func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& G_q) {
   G_q = 0.;
 
-  {
-    dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU> H_m("H_m", OtherDmn::dmn_size());
+  linalg::Matrix<std::complex<scalar_type>, linalg::CPU> H_m("H_m", OtherDmn::dmn_size());
 
-    dca::linalg::Vector<scalar_type, dca::linalg::CPU> L("e_l", OtherDmn::dmn_size());
-    dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU> V("V_l", OtherDmn::dmn_size());
+  linalg::Vector<scalar_type, linalg::CPU> L("e_l", OtherDmn::dmn_size());
+  linalg::Matrix<std::complex<scalar_type>, linalg::CPU> V("V_l", OtherDmn::dmn_size());
 
-    dca::linalg::Vector<scalar_type, dca::linalg::CPU> G_t("e_l", OtherDmn::dmn_size());
+  linalg::Vector<scalar_type, linalg::CPU> G_t("e_l", OtherDmn::dmn_size());
 
-    for (int q_ind = 0; q_ind < IntegrationDmn::dmn_size(); q_ind++) {
-      for (int j = 0; j < OtherDmn::dmn_size(); j++)
-        for (int i = 0; i < OtherDmn::dmn_size(); i++)
-          H_m(i, j) = H_q(i, j, q_ind) - I_q(i, j, q_ind);
+  for (int q_ind = 0; q_ind < IntegrationDmn::dmn_size(); ++q_ind) {
+    for (int j = 0; j < OtherDmn::dmn_size(); ++j)
+      for (int i = 0; i < OtherDmn::dmn_size(); ++i)
+        H_m(i, j) = H_q(i, j, q_ind) - I_q(i, j, q_ind);
 
-      if (false)
-        dca::linalg::matrixop::eigensolverHermitian('V', 'U', H_m, L, V);
+    linalg::matrixop::eigensolverGreensFunctionMatrix('V', 'U', H_m, L, V);
+
+    for (int i = 0; i < OtherDmn::dmn_size(); ++i) {
+      if (L[i] < 0)
+        G_t[i] = f_val * std::exp(L[i] * (beta - t_val)) / (std::exp(L[i] * beta) + 1.);
       else
-        dca::linalg::matrixop::eigensolverGreensFunctionMatrix('V', 'U', H_m, L, V);
+        G_t[i] = f_val * std::exp(-L[i] * t_val) / (std::exp(-L[i] * beta) + 1.);
 
-      for (int i = 0; i < OtherDmn::dmn_size(); i++) {
-        if (L[i] < 0)
-          G_t[i] = f_val * std::exp(L[i] * (beta - t_val)) / (std::exp(L[i] * beta) + 1.);
-        else
-          G_t[i] = f_val * std::exp(-L[i] * t_val) / (std::exp(-L[i] * beta) + 1.);
+      if (std::isnan(G_t[i])) {
+        std::cout << "\n"
+                  << "\tWarning in " << __FUNCTION__ << ": G_t[i] = " << G_t[i] << "\n"
+                  << "\n"
+                  << "\tL[i] = " << L[i] << "\n"
+                  << "\tbeta = " << beta << "\n"
+                  << "\ttau = " << t_val << "\n"
+                  << "\tstd::exp(L[i]*beta) = " << std::exp(L[i] * beta) << "\n"
+                  << "\tstd::exp(L[i]*(beta-t_val)) = " << std::exp(L[i] * (beta - t_val)) << "\n"
+                  << std::endl;
 
-        if (G_t[i] != G_t[i]) {
-          std::cout << "\n\t warning in compute_G_q_t --> G_t[i] : " << G_t[i] << "\n";
-          std::cout << "\n\tL[i] : " << L[i] << "\n";
-          std::cout << "\n\tbeta : " << beta << "\n";
-          std::cout << "\n\ttau  : " << t_val << "\n";
-          std::cout << "\n\tstd::exp(L[i]*beta)  : " << std::exp(L[i] * beta) << "\n";
-          std::cout << "\n\tstd::exp(L[i]*(beta-t_val)) : " << std::exp(L[i] * (beta - t_val))
-                    << "\n";
-
-          throw std::logic_error(__FUNCTION__);
-        }
+        throw std::logic_error(__FUNCTION__);
       }
-      for (int j = 0; j < OtherDmn::dmn_size(); j++)
-        for (int i = 0; i < OtherDmn::dmn_size(); i++)
-          for (int l = 0; l < OtherDmn::dmn_size(); l++)
-            G_q(i, j, q_ind) += V(i, l) * G_t[l] * conj(V(j, l));  // G_t[l]*real(conj(V(l,i))*V(l,j));
     }
+    for (int j = 0; j < OtherDmn::dmn_size(); ++j)
+      for (int i = 0; i < OtherDmn::dmn_size(); ++i)
+        for (int l = 0; l < OtherDmn::dmn_size(); ++l)
+          G_q(i, j, q_ind) += V(i, l) * G_t[l] * conj(V(j, l));  // G_t[l]*real(conj(V(l,i))*V(l,j));
   }
 }
 
 template <typename IntegrationDmn, typename OtherDmn, typename Threading>
 template <typename scalar_type>
 void quadrature_integration<IntegrationDmn, OtherDmn, Threading>::quadrature_integration_G_q_t_mt(
-    int nr_threads, scalar_type beta, scalar_type f_val, scalar_type t_val,
-    func::function<std::complex<scalar_type>, func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& I_q,
-    func::function<std::complex<scalar_type>, func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& H_q,
+    const int nr_threads, const scalar_type beta, const scalar_type f_val, const scalar_type t_val,
+    const func::function<std::complex<scalar_type>,
+                         func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& I_q,
+    const func::function<std::complex<scalar_type>,
+                         func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& H_q,
     func::function<std::complex<scalar_type>, func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& G_q) {
   G_q = 0.;
 
@@ -277,71 +300,73 @@ template <typename IntegrationDmn, typename OtherDmn, typename Threading>
 template <typename scalar_type>
 void* quadrature_integration<IntegrationDmn, OtherDmn, Threading>::quadrature_integration_G_q_t_mt(
     void* void_ptr) {
-  typedef quadrature_integration_functions<scalar_type> quadrature_functions_type;
+  using quadrature_functions_type = quadrature_integration_functions<scalar_type>;
 
-  dca::parallel::ThreadingData* data_ptr = static_cast<dca::parallel::ThreadingData*>(void_ptr);
-  quadrature_functions_type* functions_ptr = static_cast<quadrature_functions_type*>(data_ptr->arg);
+  const parallel::ThreadingData* const data_ptr =
+      static_cast<const parallel::ThreadingData*>(void_ptr);
 
-  int id = data_ptr->id;
-  int nr_threads = data_ptr->num_threads;
+  const quadrature_functions_type* const functions_ptr =
+      static_cast<const quadrature_functions_type*>(data_ptr->arg);
 
-  double beta = functions_ptr->beta;
+  const int id = data_ptr->id;
+  const int nr_threads = data_ptr->num_threads;
 
-  double t_val = functions_ptr->t_val;
-  double f_val = functions_ptr->f_val;
+  const double beta = functions_ptr->beta;
 
-  func::function<std::complex<scalar_type>, func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& I_q =
+  const double t_val = functions_ptr->t_val;
+  const double f_val = functions_ptr->f_val;
+
+  const func::function<std::complex<scalar_type>,
+                       func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& I_q =
       *(functions_ptr->I_q_ptr);
-  func::function<std::complex<scalar_type>, func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& H_q =
+  const func::function<std::complex<scalar_type>,
+                       func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& H_q =
       *(functions_ptr->H_q_ptr);
   func::function<std::complex<scalar_type>, func::dmn_variadic<OtherDmn, OtherDmn, IntegrationDmn>>& G_q =
       *(functions_ptr->G_q_ptr);
 
-  IntegrationDmn q_dmn;
-  std::pair<int, int> q_bounds = dca::parallel::util::getBounds(id, nr_threads, q_dmn);
+  const IntegrationDmn q_dmn;
+  const std::pair<int, int> q_bounds = parallel::util::getBounds(id, nr_threads, q_dmn);
 
-  {
-    dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU> H_m("H_m", OtherDmn::dmn_size());
+  linalg::Matrix<std::complex<scalar_type>, linalg::CPU> H_m("H_m", OtherDmn::dmn_size());
 
-    dca::linalg::Vector<scalar_type, dca::linalg::CPU> L("e_l", OtherDmn::dmn_size());
-    dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU> V("V_l", OtherDmn::dmn_size());
+  linalg::Vector<scalar_type, linalg::CPU> L("e_l", OtherDmn::dmn_size());
+  linalg::Matrix<std::complex<scalar_type>, linalg::CPU> V("V_l", OtherDmn::dmn_size());
 
-    dca::linalg::Vector<scalar_type, dca::linalg::CPU> G_t("e_l", OtherDmn::dmn_size());
+  linalg::Vector<scalar_type, linalg::CPU> G_t("e_l", OtherDmn::dmn_size());
 
-    for (int q_ind = q_bounds.first; q_ind < q_bounds.second; q_ind += 1) {
-      for (int j = 0; j < OtherDmn::dmn_size(); j++)
-        for (int i = 0; i < OtherDmn::dmn_size(); i++)
-          H_m(i, j) = H_q(i, j, q_ind) - I_q(i, j, q_ind);
+  for (int q_ind = q_bounds.first; q_ind < q_bounds.second; ++q_ind) {
+    for (int j = 0; j < OtherDmn::dmn_size(); ++j)
+      for (int i = 0; i < OtherDmn::dmn_size(); ++i)
+        H_m(i, j) = H_q(i, j, q_ind) - I_q(i, j, q_ind);
 
-      if (false)
-        dca::linalg::matrixop::eigensolverHermitian('V', 'U', H_m, L, V);
+    linalg::matrixop::eigensolverGreensFunctionMatrix('V', 'U', H_m, L, V);
+
+    for (int i = 0; i < OtherDmn::dmn_size(); ++i) {
+      if (L[i] < 0)
+        G_t[i] = f_val * std::exp(L[i] * (beta - t_val)) / (std::exp(L[i] * beta) + 1.);
       else
-        dca::linalg::matrixop::eigensolverGreensFunctionMatrix('V', 'U', H_m, L, V);
+        G_t[i] = f_val * std::exp(-L[i] * t_val) / (std::exp(-L[i] * beta) + 1.);
 
-      for (int i = 0; i < OtherDmn::dmn_size(); i++) {
-        if (L[i] < 0)
-          G_t[i] = f_val * std::exp(L[i] * (beta - t_val)) / (std::exp(L[i] * beta) + 1.);
-        else
-          G_t[i] = f_val * std::exp(-L[i] * t_val) / (std::exp(-L[i] * beta) + 1.);
+      if (std::isnan(G_t[i])) {
+        std::cout << "\n"
+                  << "\tWarning in " << __FUNCTION__ << ": G_t[i] = " << G_t[i] << "\n"
+                  << "\n"
+                  << "\tL[i] = " << L[i] << "\n"
+                  << "\tbeta = " << beta << "\n"
+                  << "\ttau = " << t_val << "\n"
+                  << "\tstd::exp(L[i]*beta) = " << std::exp(L[i] * beta) << "\n"
+                  << "\tstd::exp(L[i]*(beta-t_val)) = " << std::exp(L[i] * (beta - t_val)) << "\n"
+                  << std::endl;
 
-        if (G_t[i] != G_t[i]) {
-          std::cout << "\n\t warning in compute_G_q_t --> G_t[i] : " << G_t[i] << "\n";
-          std::cout << "\n\tL[i] : " << L[i] << "\n";
-          std::cout << "\n\tbeta : " << beta << "\n";
-          std::cout << "\n\ttau  : " << t_val << "\n";
-          std::cout << "\n\tstd::exp(L[i]*beta)  : " << std::exp(L[i] * beta) << "\n";
-          std::cout << "\n\tstd::exp(L[i]*(beta-t_val)) : " << std::exp(L[i] * (beta - t_val))
-                    << "\n";
-
-          throw std::logic_error(__FUNCTION__);
-        }
+        throw std::logic_error(__FUNCTION__);
       }
-
-      for (int j = 0; j < OtherDmn::dmn_size(); j++)
-        for (int i = 0; i < OtherDmn::dmn_size(); i++)
-          for (int l = 0; l < OtherDmn::dmn_size(); l++)
-            G_q(i, j, q_ind) += V(i, l) * G_t[l] * conj(V(j, l));
     }
+
+    for (int j = 0; j < OtherDmn::dmn_size(); ++j)
+      for (int i = 0; i < OtherDmn::dmn_size(); ++i)
+        for (int l = 0; l < OtherDmn::dmn_size(); ++l)
+          G_q(i, j, q_ind) += V(i, l) * G_t[l] * conj(V(j, l));
   }
 
   return 0;

@@ -8,3 +8,7 @@ dca_add_gtest(compute_band_structure_test
 dca_add_gtest(compute_free_greens_function_test
   GTEST_MAIN
   LIBS function ${LAPACK_LIBRARIES})
+
+dca_add_gtest(compute_greens_function_test
+  GTEST_MAIN
+  LIBS function ${LAPACK_LIBRARIES})

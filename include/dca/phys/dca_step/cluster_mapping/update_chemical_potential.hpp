@@ -8,13 +8,14 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Andrei Plamada (plamada@itp.phys.ethz.ch)
 //
-// This class updates the chemical potential.
+// Using the regula falsi method this class determines the value of the chemical potential that
+// produces the target electron density.
 
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_UPDATE_CHEMICAL_POTENTIAL_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_MAPPING_UPDATE_CHEMICAL_POTENTIAL_HPP
 
-#include <complex>
 #include <cmath>
+#include <complex>
 #include <iostream>
 #include <stdexcept>
 #include <utility>
@@ -27,6 +28,7 @@
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
+#include "dca/phys/dca_algorithms/compute_greens_function.hpp"
 #include "dca/util/print_time.hpp"
 
 namespace dca {
@@ -59,26 +61,28 @@ public:
   update_chemical_potential(parameters_type& parameters_ref, MOMS_type& MOMS_ref,
                             coarsegraining_type& coarsegraining_ref);
 
+  // Executes the search for the new value of the chemical potential.
   void execute();
 
+  // Computes the current electron density.
   double compute_density();
 
 private:
-  double get_new_chemical_potential(double d_0,
-
-                                    double mu_lb, double mu_ub,
-
-                                    double n_lb, double n_ub);
+  // Computes the new estimate for the chemical potential within the regula falsi method.
+  double get_new_chemical_potential(double d_0, double mu_lb, double mu_ub, double n_lb, double n_ub);
 
   void compute_density_correction(func::function<double, nu>& result);
 
   void compute_density_coefficients(
       func::function<double, func::dmn_variadic<nu, k_DCA>>& A,
       func::function<double, func::dmn_variadic<nu, k_DCA>>& B,
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& G);
+      const func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& G);
 
+  // Determines initial lower and upper bounds of the chemical potential.
   void search_bounds(double dens);
 
+  // Prints the current upper and lower bounds of the chemical potential and the corresponding
+  // densities.
   void print_bounds();
 
 private:
@@ -113,17 +117,20 @@ void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>:
               << " (" << dens << ")\n\n";
   }
 
+  // Current value is good enough, return.
   if (std::abs(dens - parameters.get_density()) < 1.e-3)
     return;
 
   search_bounds(dens);
 
   while (true) {
-    double d_0 = parameters.get_density();
+    double d_0 = parameters.get_density();  // desired density
 
+    // Lower and upper bound of the chemical potential
     double mu_lb = lower_bound.first;
     double mu_ub = upper_bound.first;
 
+    // Densities corresponding to lower and upper bounds
     double n_lb = lower_bound.second;
     double n_ub = upper_bound.second;
 
@@ -131,6 +138,7 @@ void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>:
 
     dens = compute_density();
 
+    // Stop.
     if (std::abs(dens - parameters.get_density()) < 1.e-3) {
       if (concurrency.id() == concurrency.first()) {
         std::cout.precision(6);
@@ -142,6 +150,8 @@ void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>:
 
       break;
     }
+
+    // Continue.
     else {
       if (dens < parameters.get_density()) {
         lower_bound.first = parameters.get_chemical_potential();
@@ -158,22 +168,15 @@ void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>:
 }
 
 template <typename parameters_type, typename MOMS_type, typename coarsegraining_type>
-double update_chemical_potential<parameters_type, MOMS_type,
-                                 coarsegraining_type>::get_new_chemical_potential(double d_0,
-
-                                                                                  double mu_lb,
-                                                                                  double mu_ub,
-
-                                                                                  double n_lb,
-                                                                                  double n_ub) {
-  double new_mu = (mu_ub - mu_lb) / (n_ub - n_lb) * (d_0 - n_lb) + mu_lb;
-  return new_mu;
+double update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>::get_new_chemical_potential(
+    const double d_0, const double mu_lb, const double mu_ub, const double n_lb, const double n_ub) {
+  return (mu_ub - mu_lb) / (n_ub - n_lb) * (d_0 - n_lb) + mu_lb;
 }
 
 template <typename parameters_type, typename MOMS_type, typename coarsegraining_type>
 void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>::search_bounds(
     double dens) {
-  double factor = 2;
+  const double factor = 2;
   double delta = 0.1;
 
   if (dens < parameters.get_density()) {
@@ -224,7 +227,10 @@ void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>:
 
 template <typename parameters_type, typename MOMS_type, typename coarsegraining_type>
 double update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>::compute_density() {
-  if (parameters.do_dca_plus())
+  if (parameters.do_finite_size_qmc())
+    compute_G_k_w(MOMS.H_DCA, MOMS.Sigma, parameters.get_chemical_potential(), concurrency,
+                  MOMS.G_k_w);
+  else if (parameters.do_dca_plus())
     coarsegraining.compute_G_K_w(MOMS.H_HOST, MOMS.Sigma_lattice, MOMS.G_k_w);
   else
     coarsegraining.compute_G_K_w(MOMS.H_HOST, MOMS.Sigma, MOMS.G_k_w);
@@ -301,11 +307,11 @@ template <typename parameters_type, typename MOMS_type, typename coarsegraining_
 void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>::compute_density_coefficients(
     func::function<double, func::dmn_variadic<nu, k_DCA>>& A,
     func::function<double, func::dmn_variadic<nu, k_DCA>>& B,
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& G) {
+    const func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& G) {
   A = 0;
   B = 0;
 
-  int nb_wm = parameters.get_tail_frequencies();
+  const int nb_wm = parameters.get_tail_frequencies();
 
   if (nb_wm > 0) {
     for (int k_i = 0; k_i < k_DCA::dmn_size(); k_i++) {
@@ -323,15 +329,15 @@ void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>:
     B /= nb_wm;
 
     if (nb_wm == 1) {
-      std::complex<double> I(0, 1);
+      const std::complex<double> I(0, 1);
 
       for (int k_i = 0; k_i < k_DCA::dmn_size(); k_i++) {
         for (int nu_i = 0; nu_i < nu::dmn_size(); nu_i++) {
           int w_i = w::dmn_size() - 1;
           double wm = w::get_elements()[w_i];
 
-          if (abs((G(nu_i, nu_i, k_i, w_i)) -
-                  1. / (I * wm + A(nu_i, k_i) + B(nu_i, k_i) / (I * wm))) > 1.e-12)
+          if (std::abs((G(nu_i, nu_i, k_i, w_i)) -
+                       1. / (I * wm + A(nu_i, k_i) + B(nu_i, k_i) / (I * wm))) > 1.e-12)
             throw std::logic_error(__FUNCTION__);
         }
       }

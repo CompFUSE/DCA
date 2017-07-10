@@ -1,0 +1,9 @@
+{
+    "DCA": {
+        "do-finite-size-QMC": true,
+
+	"DCA+": {
+	    "do-DCA+": true
+	}
+    }
+}
