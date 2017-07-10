@@ -21,7 +21,7 @@
     basicstyle=\small\ttfamily,
     keywordstyle=\bf\color{DarkBlue},
     commentstyle=\color{magenta},
-    otherkeywords={Type,Type1,Type2,Type3},
+    otherkeywords={Type,Type1,Type2,Type3,constexpr},
     keepspaces=true,
     showspaces=true,
 }
@@ -107,7 +107,19 @@ Class data members names follows the convention of variable names with a trailin
 
 \subsection{Function Names}
 
-Function names should start with a lowercase character and should have a capital letter for each new word. Underscores (\inlinecode{_}) are not allowed.
+Function names should start with a lowercase character and should have a capital letter for each new word.
+Underscores (\inlinecode{_}) are not allowed.
+
+The only exception to this rule are getter and setter methods for class data members.
+They follow the naming convention \inlinecode{set_variable} and \inlinecode{get_variable}, respectively (see~\ref{subsec:class_format}).
+
+\subsection{Lambda Expressions}
+
+Named lambda expressions follow the naming convention for variables:
+
+\begin{lstlisting}[showspaces=false]
+auto my_lambda = [](int i) { return i + 4; };
+\end{lstlisting}
 
 \subsection{Macro Names}
 
@@ -130,7 +142,7 @@ Example:
 \begin{lstlisting}
 // Updates foo and computes bar using in_1 .. in_5.
 // In: in_3, in_5
-// InOut: foo
+// In/Out: foo
 // Out: bar
 void computeFooBar(Type in_1, const Type& in_2, Type& in_3,
                    const Type* in_4, Type* in_5, Type& foo,
@@ -229,23 +241,61 @@ Each file should contain an empty line at the end of the file (Some editors add 
 
 Indentation consists of 2 spaces. Don't use tabs in the code.
 
+\subsection{Variable Declarations and Definitions}
+
+\begin{itemize}
+
+\item Avoid to declare multiple variables in the same declaration, especially if they are not fundamental types:
+
+\begin{lstlisting}[showspaces=false]
+int x, y;                        // Not recommended.
+Matrix a("my-matrix"), b(size);  // Disallowed.
+
+// Preferred way.
+int x;
+int y;
+Matrix a("my-matrix");
+Matrix b(10);
+\end{lstlisting}
+
+\item Use the following order for keywords and modifiers in  variable declarations:
+
+\begin{lstlisting}[showspaces=false]
+// General type
+[static] [const/constexpr] Type variable_name;
+
+// Pointer
+[static] [const] Type* [const] variable_name;
+
+// Integer
+// int is optional, if a signedness or size modifier is present.
+[static] [const/constexpr] [signedness] [size] int variable_name;
+
+// Examples:
+static const Matrix a(10);
+const double* const d(3.14);
+constexpr unsigned long l(42);
+\end{lstlisting}
+
+\end{itemize}
+
 \subsection{Function Declarations and Definitions}
 
 The return type should be in the same line as the function name, and the parameters should be on the same line unless they don't fit in it.
 Add the parameters name also in the declaration of a function and avoid
 \begin{lstlisting}
-Type Function(Type1, Type2, Type3);
+Type function(Type1, Type2, Type3);
 \end{lstlisting}
 In function declarations comment the unused parameter names. \\(E.g. \inlinecode{Type /* unused_parameter_name */})
 
 Examples:
 \begin{lstlisting}
-Type Class::Function(Type1 par1, Type2 par2) {
+Type Class::function(Type1 par1, Type2 par2) {
   statement;
   ...
 }
 
-Type LongNameClass::LongNameFunction(Type1 par1, Type2 par2
+Type LongNameClass::longNameFunction(Type1 par1, Type2 par2
                                      Type3 par3) {
   statement;
   ...
@@ -364,6 +414,7 @@ while (condition);
 The preprocessor directives are not indented. The hash is the first character of the line.
 
 \subsection{Class Format}
+\label{subsec:class_format}
 
 Public, protected and private keywords are not indented.
 
@@ -377,10 +428,10 @@ public:
   void function();
   void emptyFunction() {}
 
-  void setVar(int var) {
+  void set_var(const int var) {
     var_ = var;
   }
-  int getVar() const {
+  int get_var() const {
     return var_;
   }
 
@@ -451,6 +502,79 @@ void foo();
 }  // ns5
 }  // ns4
 }  // ns1
+\end{lstlisting}
+
+
+\section{Other C++ Features}
+
+\subsection{Pre-increment and pre-decrement}
+
+Use the pre-increment (pre-decrement) operator when a variable is incremented (decremented) and the value of the expression is not used.
+In particular, use the pre-increment (pre-decrement) operator for loop counters:
+
+\begin{lstlisting}[showspaces=false]
+for (int i = 0; i < N; ++i) {
+  doSomething();
+}
+\end{lstlisting}
+
+The post-increment and post-decrement operators create an unnecessary copy, that the compiler cannot optimize away in the case of iterators or other classes with overloaded increment and decrement operators.
+
+\subsection{Alternative Operator Representations}
+
+Alternative representations of operators and other tokens such as \inlinecode{and}, \inlinecode{or}, and \inlinecode{not} instead of \inlinecode{&&}, \inlinecode{||}, and \inlinecode{!} are not allowed.
+For the reason of consistency, the far more common primary tokens should always be used.
+
+\subsection{Use of const}
+
+\begin{itemize}
+
+\item Add the \inlinecode{const} qualifier to all function parameters that are not modified in the function body.
+For parameters passed by value, only add the keyword in the function definition.
+
+\begin{lstlisting}[showspaces=false]
+// Declaration
+int computeFoo(int bar, const Matrix& m) {
+
+// Definition
+int computeFoo(const int bar, const Matrix& m) {
+  int foo = 42;
+
+  // Compute foo without changing bar or m.
+  // ...
+	
+  return foo;
+}
+\end{lstlisting}
+
+\end{itemize}
+
+\subsection{In-class member initialization}
+
+In-class member initialization is recommended for members that are \emph{always} initialized with the same value to avoid code duplication.
+In all other cases it is disallowed.
+
+\begin{lstlisting}[showspaces=false]
+std::string getNameFromId(const int id);
+
+class Customer {
+public:
+  Customer(const std::string& name = "Doe",
+           const std::string& address = default_address_)
+    : name_(name), address_(address) {}
+  Customer(const int id,
+           const std::string& address = default_address_)
+    : name_(getNameFromId(id)), address_(address) {}
+
+private:
+  static const std::string default_address_;
+
+  std::string name_;
+  std::string address_;
+  int num_orders_ = 0;
+};
+
+const std::string Customer::default_address_ = "Zurich";
 \end{lstlisting}
 
 \end{document}
