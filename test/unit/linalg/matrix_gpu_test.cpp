@@ -152,8 +152,8 @@ TEST(MatrixGPUTest, CopyConstructor) {
   auto el_value = [](int i, int j) { return 3 * i - 2 * j; };
   testing::setMatrixElements(mat, el_value);
 
-  dca::linalg::Matrix<float, dca::linalg::GPU> mat_copy(mat, mat.get_name());
-  EXPECT_EQ(mat.get_name(), mat_copy.get_name());
+  dca::linalg::Matrix<float, dca::linalg::GPU> mat_copy(mat, "another name");
+  EXPECT_EQ("another name", mat_copy.get_name());
   EXPECT_EQ(mat.size(), mat_copy.size());
   EXPECT_LE(mat.size().first, mat_copy.capacity().first);
   EXPECT_LE(mat.size().second, mat_copy.capacity().second);
@@ -241,9 +241,9 @@ TEST(MatrixGPUTest, MoveAssignement) {
   MatrixType thief;
   thief = std::move(mat);
 
-  EXPECT_EQ(MatrixType::get_default_name(), thief.get_name());
   EXPECT_EQ(nullptr, mat.ptr());
 
+  EXPECT_EQ(mat_copy.size(), thief.size());
   for (int j = 0; j < mat_copy.nrCols(); ++j)
     for (int i = 0; i < mat_copy.nrRows(); ++i)
       EXPECT_EQ(testing::getFromDevice(mat_copy.ptr(i, j)), testing::getFromDevice(thief.ptr(i, j)));

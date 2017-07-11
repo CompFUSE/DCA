@@ -67,8 +67,7 @@ TEST(MatrixCPUGPUTest, Constructors) {
   testing::setMatrixElements(mat, el_value);
 
   dca::linalg::Matrix<float, dca::linalg::GPU> mat_copy(mat);
-  const std::string default_name = dca::linalg::Matrix<float, dca::linalg::CPU>::get_default_name();
-  ASSERT_EQ(default_name, mat_copy.get_name());
+
   ASSERT_EQ(mat.size(), mat_copy.size());
   ASSERT_LE(mat.size().first, mat_copy.capacity().first);
   ASSERT_LE(mat.size().second, mat_copy.capacity().second);

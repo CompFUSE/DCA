@@ -52,26 +52,31 @@ public:
   Matrix(std::pair<int, int> size, std::pair<int, int> capacity);
   Matrix(std::string name, std::pair<int, int> size, std::pair<int, int> capacity);
 
-  // Copy and move constructor:
-  // Capacity, size and matrix elements are copied. Name is ignored.
-  Matrix(const Matrix<ScalarType, device_name>& rhs, const std::string& = default_name_);
-  // Note: usage of the rhs matrix after it is used for a move construction results in undefined
-  // behaviour.
+  // Copy constructor:
+  // Constructs a matrix with the the provided name and a copy of capacity, size, elements.
+  Matrix(const Matrix<ScalarType, device_name>& rhs, const std::string& name = default_name_);
+  // Move constructor:
+  // Constructs a matrix with the provided name and a copy of capacity and size. The elements are
+  // moved.
+  // Postcondition: usage of rhs is undefined behaviour.
   Matrix(Matrix<ScalarType, device_name>&& rhs, const std::string& = default_name_);
 
-  // Copy constructor from a different device.
+  // Constructs a matrix on the device device_name from a copy of a matrix on rhs_device_name. See
+  // copy constructor for a definition of copy.
   template <DeviceType rhs_device_name>
   Matrix(const Matrix<ScalarType, rhs_device_name>& rhs, const std::string& = default_name_);
 
   ~Matrix();
 
-  // Assignment operators:
-  // Copy size, capacity and  matrix entries but not the name.
+  // Assignment operator:
+  // Copies size, capacity and entries but not the name.
   Matrix<ScalarType, device_name>& operator=(const Matrix<ScalarType, device_name>& rhs);
-  // Note: after a move assignment usage the rhs matrix will result in undefined behaviour.
+  // Move assignment:
+  // Copies size, capacity and moves the entries. The name is unchanged.
+  // Postcondition: usage of rhs is undefined behaviour.
   Matrix<ScalarType, device_name>& operator=(Matrix<ScalarType, device_name>&& rhs);
 
-  // Copy from a different device.
+  // Copies size and entries of a matrix located on a different device.
   template <DeviceType rhs_device_name>
   Matrix<ScalarType, device_name>& operator=(const Matrix<ScalarType, rhs_device_name>& rhs);
 
@@ -110,10 +115,6 @@ public:
   }
   void set_name(const std::string& new_name) {
     name_ = new_name;
-  }
-
-  static const std::string& get_default_name() {
-    return default_name_;
   }
 
   // Returns the pointer to the (0,0)-th element.
