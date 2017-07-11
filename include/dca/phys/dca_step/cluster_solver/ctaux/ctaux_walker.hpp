@@ -386,9 +386,15 @@ template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_ty
 void CtauxWalker<device_t, parameters_type, MOMS_type>::do_sweep() {
   const int sweeps_per_measurement = thermalized ? parameters.get_sweeps_per_measurement() : 1;
 
-  const int submatrix_steps = configuration.get_number_of_interacting_HS_spins() /
-                                  parameters.get_submatrix_size() * sweeps_per_measurement +
-                              1;
+  // Do at least one step per sweep.
+  const int steps_per_sweep =
+      warm_up_expansion_order_.count() > 0 && warm_up_expansion_order_.mean() > 1.
+          ? warm_up_expansion_order_.mean()
+          : 1;
+
+  // Do at least one submatrix step.
+  const int submatrix_steps =
+      std::max(int(sweeps_per_measurement * steps_per_sweep) / parameters.get_submatrix_size(), 1);
 
   for (int i = 0; i < submatrix_steps; ++i)
     do_step();
