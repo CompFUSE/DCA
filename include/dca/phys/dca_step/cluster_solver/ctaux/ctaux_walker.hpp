@@ -552,27 +552,23 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::add_non_interacting_spin
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void CtauxWalker<device_t, parameters_type, MOMS_type>::generate_delayed_spins() {
-  // std::cout << __FUNCTION__ << "\n";
-
   profiler_type profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
 
   delayed_spins.resize(0);
 
-  int N_c = 0;
-  int N_a = 0;
+  int num_creations = 0;
+  int num_annihilations = 0;
 
-  int N_s = configuration.size();
-  int N_i = configuration.get_number_of_interacting_HS_spins();
+  const int num_spins = configuration.size();
+  const int num_interacting_spins = configuration.get_number_of_interacting_HS_spins();
+  const int num_noninteracting_spins = num_spins - num_interacting_spins;
 
-  int number_of_delayed_spins = 0;
-  if (is_thermalized()) {
-    int new_size = configuration.size() / 4;
-    number_of_delayed_spins = std::min((new_size / 32 + 1) * 32, 2 * parameters.get_submatrix_size());
-  }
-  else
-    number_of_delayed_spins = 2 * parameters.get_submatrix_size();
+  const int new_size = ((num_spins / 4) / 32 + 1) * 32;  // INTERNAL: Why divide by 4?
+  const int max_num_delayed_spins = thermalized
+                                        ? std::min(2 * parameters.get_submatrix_size(), new_size)
+                                        : 2 * parameters.get_submatrix_size();
 
-  for (int i = 0; i < number_of_delayed_spins; i++) {
+  for (int i = 0; i < max_num_delayed_spins; ++i) {
     delayed_spin_struct delayed_spin;
 
     delayed_spin.is_accepted_move = false;
@@ -588,7 +584,7 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::generate_delayed_spins()
         delayed_spin.new_HS_spin_value = get_new_spin_value(delayed_spin.HS_current_move);
 
         has_already_been_chosen = false;
-        for (size_t l = 0; l < delayed_spins.size(); ++l)
+        for (std::size_t l = 0; l < delayed_spins.size(); ++l)
           if (delayed_spin.random_vertex_ind == delayed_spins[l].random_vertex_ind)
             has_already_been_chosen = true;
       }
@@ -598,29 +594,25 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::generate_delayed_spins()
       delayed_spins.push_back(delayed_spin);
 
       if (delayed_spin.HS_current_move == CREATION)
-        N_c += 1;
+        ++num_creations;
 
       if (delayed_spin.HS_current_move == ANNIHILATION)
-        N_a += 1;
+        ++num_annihilations;
 
-      if ((N_c == N_s - N_i) or (N_a == N_i and N_i > 0))
+      if ((num_creations == num_noninteracting_spins) ||
+          (num_interacting_spins > 0 && num_annihilations == num_interacting_spins))
         break;
     }
   }
 
-  //       int Gamma_index_HS_field_DN = 0;
-  //       int Gamma_index_HS_field_UP = 0;
-
   int Gamma_dn_size = 0;
   int Gamma_up_size = 0;
 
-  for (size_t i = 0; i < delayed_spins.size(); ++i) {
-    // std::cout << "\t" << i << "\t";
-
+  for (std::size_t i = 0; i < delayed_spins.size(); ++i) {
     delayed_spins[i].delayed_spin_index = i;
 
-    int random_vertex_ind = delayed_spins[i].random_vertex_ind;
-    HS_spin_states_type new_HS_spin_value = delayed_spins[i].new_HS_spin_value;
+    const int random_vertex_ind = delayed_spins[i].random_vertex_ind;
+    const HS_spin_states_type new_HS_spin_value = delayed_spins[i].new_HS_spin_value;
 
     delayed_spins[i].QMC_factor =
         CV_obj.get_QMC_factor(configuration[random_vertex_ind], new_HS_spin_value);
@@ -634,15 +626,9 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::generate_delayed_spins()
         configuration[random_vertex_ind].get_configuration_e_spin_indices().second;
 
     if (delayed_spins[i].e_spin_HS_field_DN == e_UP) {
-      // std::cout << "\t" << "e_UP" << "\t" << Gamma_up_size << "\t|\t";
+      delayed_spins[i].Gamma_index_HS_field_DN = Gamma_up_size++;
 
-      //               delayed_spins[i].Gamma_index_HS_field_DN = Gamma_index_HS_field_DN;
-      //               Gamma_index_HS_field_DN += 1;
-
-      delayed_spins[i].Gamma_index_HS_field_DN = Gamma_up_size;
-      Gamma_up_size += 1;
-
-      vertex_singleton_type& v_j =
+      const vertex_singleton_type& v_j =
           configuration.get(e_UP)[delayed_spins[i].configuration_e_spin_index_HS_field_DN];
 
       delayed_spins[i].exp_V_HS_field_DN = CV_obj.exp_V(v_j);
@@ -650,16 +636,11 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::generate_delayed_spins()
       delayed_spins[i].exp_minus_delta_V_HS_field_DN =
           CV_obj.exp_minus_delta_V(v_j, new_HS_spin_value);
     }
+
     else {
-      // std::cout << "\t" << "e_DN" << "\t" << Gamma_dn_size << "\t|\t";
+      delayed_spins[i].Gamma_index_HS_field_DN = Gamma_dn_size++;
 
-      //               delayed_spins[i].Gamma_index_HS_field_DN = Gamma_index_HS_field_DN;
-      //               Gamma_index_HS_field_DN += 1;
-
-      delayed_spins[i].Gamma_index_HS_field_DN = Gamma_dn_size;
-      Gamma_dn_size += 1;
-
-      vertex_singleton_type& v_j =
+      const vertex_singleton_type& v_j =
           configuration.get(e_DN)[delayed_spins[i].configuration_e_spin_index_HS_field_DN];
 
       delayed_spins[i].exp_V_HS_field_DN = CV_obj.exp_V(v_j);
@@ -669,15 +650,9 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::generate_delayed_spins()
     }
 
     if (delayed_spins[i].e_spin_HS_field_UP == e_UP) {
-      // std::cout << "\t" << "e_UP" << "\t" << Gamma_up_size;
+      delayed_spins[i].Gamma_index_HS_field_UP = Gamma_up_size++;
 
-      //               delayed_spins[i].Gamma_index_HS_field_UP = Gamma_index_HS_field_UP;
-      //               Gamma_index_HS_field_UP += 1;
-
-      delayed_spins[i].Gamma_index_HS_field_UP = Gamma_up_size;
-      Gamma_up_size += 1;
-
-      vertex_singleton_type& v_j =
+      const vertex_singleton_type& v_j =
           configuration.get(e_UP)[delayed_spins[i].configuration_e_spin_index_HS_field_UP];
 
       delayed_spins[i].exp_V_HS_field_UP = CV_obj.exp_V(v_j);
@@ -685,16 +660,11 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::generate_delayed_spins()
       delayed_spins[i].exp_minus_delta_V_HS_field_UP =
           CV_obj.exp_minus_delta_V(v_j, new_HS_spin_value);
     }
+
     else {
-      // std::cout << "\t" << "e_DN" << "\t" << Gamma_dn_size;
+      delayed_spins[i].Gamma_index_HS_field_UP = Gamma_dn_size++;
 
-      //               delayed_spins[i].Gamma_index_HS_field_UP = Gamma_index_HS_field_UP;
-      //               Gamma_index_HS_field_UP += 1;
-
-      delayed_spins[i].Gamma_index_HS_field_UP = Gamma_dn_size;
-      Gamma_dn_size += 1;
-
-      vertex_singleton_type& v_j =
+      const vertex_singleton_type& v_j =
           configuration.get(e_DN)[delayed_spins[i].configuration_e_spin_index_HS_field_UP];
 
       delayed_spins[i].exp_V_HS_field_UP = CV_obj.exp_V(v_j);
@@ -702,8 +672,6 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::generate_delayed_spins()
       delayed_spins[i].exp_minus_delta_V_HS_field_UP =
           CV_obj.exp_minus_delta_V(v_j, new_HS_spin_value);
     }
-
-    // std::cout << "\n";
   }
 }
 
