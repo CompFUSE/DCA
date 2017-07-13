@@ -439,7 +439,6 @@ TEST(FunctionTest, MoveConstructor) {
 
   EXPECT_EQ(f1.signature(), f2.signature());
   EXPECT_EQ(f1.size(), f2.size());
-  EXPECT_EQ(0, f1_copy.size());
 
   for (int linind = 0; linind < f2.size(); ++linind)
     EXPECT_EQ(f1(linind), f2(linind));
@@ -451,7 +450,6 @@ TEST(FunctionTest, MoveConstructor) {
   EXPECT_EQ("moved", f3.get_name());
   EXPECT_EQ(f1.signature(), f3.signature());
   EXPECT_EQ(f1.size(), f3.size());
-  EXPECT_EQ(0, f1_copy_2.size());
 
   for (int linind = 0; linind < f3.size(); ++linind)
     EXPECT_EQ(f1(linind), f3(linind));
@@ -514,7 +512,6 @@ TEST(FunctionTest, MoveAssignment) {
   EXPECT_EQ("f2-assigned", f2.get_name());
   EXPECT_EQ(f1.signature(), f2.signature());
   EXPECT_EQ(f1.size(), f2.size());
-  EXPECT_EQ(0, f1_copy.size());
 
   for (int linind = 0; linind < f2.size(); ++linind)
     EXPECT_EQ(f1(linind), f2(linind));
@@ -575,7 +572,7 @@ TEST(FunctionTest, Reset) {
   for (int i = 0; i < f.size(); ++i)
     EXPECT_EQ(0., f(i));
 
-  // Set elements again to non-default (0) values.
+  // Set elements again to non-default (non-zero) values.
   for (int i = 0; i < f.size(); ++i)
     f(i) = i + 3.14;
 
