@@ -59,20 +59,22 @@ public:
   // Constructs the function with the name name and the elements of other using move semantics.
   // Precondition: The other function has been resetted, if the domain had been initialized after
   //               the other function's construction.
+  // Postcondition: The other function is in a non-specified state.
   function(function<scalartype, domain>&& other, const std::string& name = default_name_);
 
   // Copy assignment operator
-  // Replaces the function's elements with a copy of the elements of other. The function's name is
-  // unchanged.
+  // Replaces the function's elements with a copy of the elements of other.
   // Precondition: The other function has been resetted, if the domain had been initialized after
   //               the other function's construction.
+  // Postcondition: The function's name is unchanged.
   function<scalartype, domain>& operator=(const function<scalartype, domain>& other);
 
   // Move assignment operator
-  // Replaces the function's elements with those of other using move semantics. The function's name
-  // is unchanged.
+  // Replaces the function's elements with those of other using move semantics.
   // Precondition: The other function has been resetted, if the domain had been initialized after
   //               the other function's construction.
+  // Postconditions: The function's name is unchanged.
+  //                 The other function is in a non-specified state.
   function<scalartype, domain>& operator=(function<scalartype, domain>&& other);
 
   ~function();
