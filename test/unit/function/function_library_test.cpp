@@ -476,7 +476,7 @@ TEST(FunctionTest, CopyAssignment) {
   EXPECT_EQ(3.14, f1(0));
   EXPECT_EQ(2.72, f1(1));
 
-  // Other assigment
+  // Other assignment
   FunctionType f2("f2-assigned");
   f2 = f1;
 
@@ -487,22 +487,10 @@ TEST(FunctionTest, CopyAssignment) {
   for (int linind = 0; linind < f2.size(); ++linind)
     EXPECT_EQ(f1(linind), f2(linind));
 
-  // Assignment chain
+  // Check the return type of the copy assignment operator.
   FunctionType f3("f3-assigned");
-  FunctionType f4("f4-assigned");
-  f3 = f4 = f1;
-
-  EXPECT_EQ("f3-assigned", f3.get_name());
-  EXPECT_EQ("f4-assigned", f4.get_name());
-  EXPECT_EQ(f1.signature(), f3.signature());
-  EXPECT_EQ(f1.signature(), f4.signature());
-  EXPECT_EQ(f1.size(), f3.size());
-  EXPECT_EQ(f1.size(), f4.size());
-
-  for (int linind = 0; linind < f3.size(); ++linind) {
-    EXPECT_EQ(f1(linind), f3(linind));
-    EXPECT_EQ(f1(linind), f4(linind));
-  }
+  const FunctionType* const ptr_f3 = &f3;
+  EXPECT_EQ(ptr_f3, &(f3 = f1));
 }
 
 TEST(FunctionTest, MoveAssignment) {
@@ -521,7 +509,7 @@ TEST(FunctionTest, MoveAssignment) {
   EXPECT_EQ(3.14, f1(0));
   EXPECT_EQ(2.72, f1(1));
 
-  // Other assigment
+  // Other assignment
   FunctionType f1_copy(f1);
   FunctionType f2("f2-assigned");
   f2 = std::move(f1_copy);
@@ -534,24 +522,11 @@ TEST(FunctionTest, MoveAssignment) {
   for (int linind = 0; linind < f2.size(); ++linind)
     EXPECT_EQ(f1(linind), f2(linind));
 
-  // Assignment chain
+  // Check the return type of the move assignment operator.
   FunctionType f1_copy_2(f1);
   FunctionType f3("f3-assigned");
-  FunctionType f4("f4-assigned");
-  f3 = f4 = std::move(f1_copy_2);
-
-  EXPECT_EQ("f3-assigned", f3.get_name());
-  EXPECT_EQ("f4-assigned", f4.get_name());
-  EXPECT_EQ(f1.signature(), f3.signature());
-  EXPECT_EQ(f1.signature(), f4.signature());
-  EXPECT_EQ(f1.size(), f3.size());
-  EXPECT_EQ(f1.size(), f4.size());
-  EXPECT_EQ(0, f1_copy_2.size());
-
-  for (int linind = 0; linind < f3.size(); ++linind) {
-    EXPECT_EQ(f1(linind), f3(linind));
-    EXPECT_EQ(f1(linind), f4(linind));
-  }
+  const FunctionType* const ptr_f3 = &f3;
+  EXPECT_EQ(ptr_f3, &(f3 = std::move(f1)));
 }
 
 namespace dca {
