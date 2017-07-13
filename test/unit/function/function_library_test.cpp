@@ -381,7 +381,6 @@ TEST(FunctionTest, DefaultConstructor) {
   // Default name
   dca::func::function<double, dca::testing::test_domain_2a> f1;
 
-  EXPECT_EQ("no-name", f1.get_name());
   EXPECT_EQ(2, f1.signature());
   EXPECT_EQ(2, f1.size());
 
@@ -410,7 +409,6 @@ TEST(FunctionTest, CopyConstructor) {
   // Default name
   FunctionType f2(f1);
 
-  EXPECT_EQ("no-name", f2.get_name());
   EXPECT_EQ(f1.signature(), f2.signature());
   EXPECT_EQ(f1.size(), f2.size());
 
@@ -439,7 +437,6 @@ TEST(FunctionTest, MoveConstructor) {
   FunctionType f1_copy(f1);
   FunctionType f2(std::move(f1_copy));
 
-  EXPECT_EQ("no-name", f2.get_name());
   EXPECT_EQ(f1.signature(), f2.signature());
   EXPECT_EQ(f1.size(), f2.size());
   EXPECT_EQ(0, f1_copy.size());
