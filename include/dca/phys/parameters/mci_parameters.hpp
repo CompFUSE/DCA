@@ -28,7 +28,7 @@ public:
   MciParameters()
       : seed_(default_seed),
         warm_up_sweeps_(20),
-        sweeps_per_measurement_(1.),
+        sweeps_per_measurement_(1),
         measurements_per_process_and_accumulator_(100),
         walkers_(1),
         accumulators_(1),
@@ -51,7 +51,7 @@ public:
   int get_warm_up_sweeps() const {
     return warm_up_sweeps_;
   }
-  double get_sweeps_per_measurement() const {
+  int get_sweeps_per_measurement() const {
     return sweeps_per_measurement_;
   }
   int get_measurements_per_process_and_accumulator() const {
@@ -81,7 +81,7 @@ private:
 
   int seed_;
   int warm_up_sweeps_;
-  double sweeps_per_measurement_;
+  int sweeps_per_measurement_;
   int measurements_per_process_and_accumulator_;
   int walkers_;
   int accumulators_;
