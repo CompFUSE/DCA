@@ -479,17 +479,23 @@ template <class parameters_type>
 int CT_AUX_HS_configuration<parameters_type>::get_random_noninteracting_vertex() {
   assert(current_Nb_of_creatable_spins > 0);
 
+  // Find the first non-interacting spin from the left.
   int vertex_index = 0;
-  while (!configuration[vertex_index]
-              .is_creatable())  // --> find the first non-interacting spin from the left
-    vertex_index++;
+  while (!configuration[vertex_index].is_creatable())
+    ++vertex_index;
 
   assert(vertex_index < size());
   assert(!configuration[vertex_index].is_Bennett());
 
-  // make sure we do not try to propose again the same spin !!
+  // Make sure that this spin won't be proposed again for insertion.
   configuration[vertex_index].is_creatable() = false;
   current_Nb_of_creatable_spins -= 1;
+
+  // However, this "virtual" interacting spin is eligble for removal.
+  // INTERNAL: CtauxWalker::generate_delayed_spins unmarks all "virtual" interacting spins as
+  //           annihilatable after all delayed spins have been generated.
+  configuration[vertex_index].is_annihilatable() = true;
+  current_Nb_of_annihilatable_spins += 1;
 
   return vertex_index;
 }
