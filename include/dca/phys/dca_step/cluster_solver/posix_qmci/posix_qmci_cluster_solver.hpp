@@ -290,11 +290,13 @@ void PosixQmciClusterSolver<qmci_integrator_type>::start_walker(int id) {
           break;
         }
 
-        for (int i = 0; i < parameters.get_additional_steps(); ++i) {
-          // std::cout << "\twalker " << id << " is doing some additional steps !!\n";
-          profiler_type profiler("additional steps", "posix-MC-walker", __LINE__, id);
-          walker.do_step();
-        }
+        // INTERNAL: Additional steps violate the requirement of a fixed number of steps per
+        //           measurement.
+        // for (int i = 0; i < parameters.get_additional_steps(); ++i) {
+        //   // std::cout << "Walker " << id << " is doing some additional steps." << std::endl;
+        //   profiler_type profiler("additional steps", "posix-MC-walker", __LINE__, id);
+        //   walker.do_step();
+        // }
       }
     }
   }
