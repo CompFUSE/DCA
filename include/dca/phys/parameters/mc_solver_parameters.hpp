@@ -34,6 +34,7 @@ class McSolverParameters<solver::CT_AUX> {
 public:
   McSolverParameters()
       : expansion_parameter_K_(1.),
+        initial_configuration_size_(10),
         initial_matrix_size_(128),
         submatrix_size_(128),
         additional_time_measurements_(false) {}
@@ -51,6 +52,9 @@ public:
   double get_expansion_parameter_K() const {
     return expansion_parameter_K_;
   }
+  int get_initial_configuration_size() const {
+    return initial_configuration_size_;
+  }
   int get_initial_matrix_size() const {
     return initial_matrix_size_;
   }
@@ -63,6 +67,7 @@ public:
 
 private:
   double expansion_parameter_K_;
+  int initial_configuration_size_;
   int initial_matrix_size_;
   int submatrix_size_;
   bool additional_time_measurements_;
@@ -73,6 +78,7 @@ int McSolverParameters<solver::CT_AUX>::getBufferSize(const Concurrency& concurr
   int buffer_size = 0;
 
   buffer_size += concurrency.get_buffer_size(expansion_parameter_K_);
+  buffer_size += concurrency.get_buffer_size(initial_configuration_size_);
   buffer_size += concurrency.get_buffer_size(initial_matrix_size_);
   buffer_size += concurrency.get_buffer_size(submatrix_size_);
   buffer_size += concurrency.get_buffer_size(additional_time_measurements_);
@@ -84,6 +90,7 @@ template <typename Concurrency>
 void McSolverParameters<solver::CT_AUX>::pack(const Concurrency& concurrency, int* buffer,
                                               int buffer_size, int& position) const {
   concurrency.pack(buffer, buffer_size, position, expansion_parameter_K_);
+  concurrency.pack(buffer, buffer_size, position, initial_configuration_size_);
   concurrency.pack(buffer, buffer_size, position, initial_matrix_size_);
   concurrency.pack(buffer, buffer_size, position, submatrix_size_);
   concurrency.pack(buffer, buffer_size, position, additional_time_measurements_);
@@ -93,6 +100,7 @@ template <typename Concurrency>
 void McSolverParameters<solver::CT_AUX>::unpack(const Concurrency& concurrency, int* buffer,
                                                 int buffer_size, int& position) {
   concurrency.unpack(buffer, buffer_size, position, expansion_parameter_K_);
+  concurrency.unpack(buffer, buffer_size, position, initial_configuration_size_);
   concurrency.unpack(buffer, buffer_size, position, initial_matrix_size_);
   concurrency.unpack(buffer, buffer_size, position, submatrix_size_);
   concurrency.unpack(buffer, buffer_size, position, additional_time_measurements_);
@@ -106,6 +114,11 @@ void McSolverParameters<solver::CT_AUX>::readWrite(ReaderOrWriter& reader_or_wri
 
     try {
       reader_or_writer.execute("expansion-parameter-K", expansion_parameter_K_);
+    }
+    catch (const std::exception& r_e) {
+    }
+    try {
+      reader_or_writer.execute("initial-configuration-size", initial_configuration_size_);
     }
     catch (const std::exception& r_e) {
     }
