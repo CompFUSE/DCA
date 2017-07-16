@@ -47,6 +47,8 @@ public:
   std::vector<vertex_singleton_type>& get(e_spin_states_type e_spin_type);
 
   void reset();
+
+  // Creates an initial configuration with 'initial-configuration-size' random interacting vertices.
   void initialize();
   void shuffle_noninteracting_vertices();
   void update_configuration_e_spin(vertex_pair_type& vertex_pair);
@@ -190,21 +192,13 @@ template <class parameters_type>
 void CT_AUX_HS_configuration<parameters_type>::initialize() {
   reset();
 
-  for (int i = 0; i < parameters.get_submatrix_size(); i++) {
+  for (int i = 0; i < parameters.get_initial_configuration_size(); ++i) {
     vertex_pair_type vertex(parameters, rng, configuration.size(), configuration_e_DN.size(),
                             configuration_e_UP.size());
+    vertex.set_random_interacting();
 
+    ++current_Nb_of_annihilatable_spins;
     configuration.push_back(vertex);
-
-    if (i < 0) {
-      configuration[i].set_random_interacting();
-      current_Nb_of_annihilatable_spins++;
-    }
-    else {
-      configuration[i].set_random_noninteracting();
-      current_Nb_of_creatable_spins++;
-    }
-
     update_configuration_e_spin(configuration.back());
   }
 }
