@@ -83,6 +83,16 @@ public:
   bool assert_counters();
   bool assert_consistency();
 
+  // Unmarks the vertex vertex_index as annihilatable.
+  // PRECONDITION: The vertex vertex_index is marked as annihilatable.
+  // INTERNAL: This is a temporary helper method to unmark all "virtual" interacting vertices. See
+  //           generate_delayed_spins in ctaux_walker.hpp.
+  void unmarkAsAnnihilatable(const int vertex_index) {
+    assert(configuration[vertex_index].is_annihilatable() == true);
+    configuration[vertex_index].is_annihilatable() = false;
+    --current_Nb_of_annihilatable_spins;
+  }
+
 private:
   parameters_type& parameters;
   rng_type& rng;
