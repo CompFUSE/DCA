@@ -62,7 +62,9 @@ public:
   // Otherwise, does multiple sweeps, according to the input parameter "sweeps-per-measurement".
   void do_sweep();
 
-  void do_step();
+  // Does one submatrix step.
+  // In/Out: single_spin_updates_left
+  void do_step(int& single_spin_updates_left);
 
   dca::linalg::Matrix<double, device_t>& get_N(e_spin_states_type e_spin);
   configuration_type& get_configuration();
@@ -78,7 +80,8 @@ public:
 private:
   void add_non_interacting_spins_to_configuration();
 
-  void generate_delayed_spins();
+  void generate_delayed_spins(int& single_spin_updates_left);
+
   void read_Gamma_matrices(e_spin_states e_spin);
   void compute_Gamma_matrices();
 
@@ -109,7 +112,9 @@ private:
   void clean_up_the_configuration();
 
   HS_vertex_move_type get_new_HS_move();
+  // INTERNAL: Unused.
   int get_new_vertex_index(HS_vertex_move_type HS_current_move);
+  // INTERNAL: Unused.
   HS_spin_states_type get_new_spin_value(HS_vertex_move_type HS_current_move);
 
   double calculate_acceptace_ratio(double ratio, HS_vertex_move_type HS_current_move,
@@ -218,6 +223,8 @@ private:
   int number_of_creations;
   int number_of_annihilations;
 
+  bool annihilation_proposal_aborted_;
+
   bool thermalized;
   bool Bennett;
 
@@ -268,6 +275,8 @@ CtauxWalker<device_t, parameters_type, MOMS_type>::CtauxWalker(parameters_type& 
       random_vertex_vector(0),
       HS_current_move_vector(0),
       new_HS_spin_value_vector(0),
+
+      annihilation_proposal_aborted_(false),
 
       thermalized(false),
       Bennett(false),
@@ -338,6 +347,8 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::initialize() {
   number_of_creations = 0;
   number_of_annihilations = 0;
 
+  annihilation_proposal_aborted_ = false;
+
   sign = 1;
 
   CV_obj.initialize(MOMS);
@@ -386,26 +397,27 @@ template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_ty
 void CtauxWalker<device_t, parameters_type, MOMS_type>::do_sweep() {
   const int sweeps_per_measurement = thermalized ? parameters.get_sweeps_per_measurement() : 1;
 
-  // Do at least one step per sweep.
-  const int steps_per_sweep =
+  // Do at least one single spin update per sweep.
+  const int single_spin_updates_per_sweep =
       warm_up_expansion_order_.count() > 0 && warm_up_expansion_order_.mean() > 1.
           ? warm_up_expansion_order_.mean()
           : 1;
 
-  // Do at least one submatrix step.
-  const int submatrix_steps =
-      std::max(int(sweeps_per_measurement * steps_per_sweep) / parameters.get_submatrix_size(), 1);
+  int single_spin_updates_left = single_spin_updates_per_sweep * sweeps_per_measurement;
 
-  for (int i = 0; i < submatrix_steps; ++i)
-    do_step();
+  while (single_spin_updates_left > 0) {
+    do_step(single_spin_updates_left);
+  }
+
+  assert(single_spin_updates_left == 0);
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void CtauxWalker<device_t, parameters_type, MOMS_type>::do_step() {
+void CtauxWalker<device_t, parameters_type, MOMS_type>::do_step(int& single_spin_updates_left) {
   add_non_interacting_spins_to_configuration();
 
   {
-    generate_delayed_spins();
+    generate_delayed_spins(single_spin_updates_left);
 
     download_from_device();
 
@@ -565,24 +577,25 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::add_non_interacting_spin
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void CtauxWalker<device_t, parameters_type, MOMS_type>::generate_delayed_spins() {
+void CtauxWalker<device_t, parameters_type, MOMS_type>::generate_delayed_spins(
+    int& single_spin_updates_left) {
   profiler_type profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
+
+  assert(single_spin_updates_left > 0);
+
+  const int single_spin_updates_left_start = single_spin_updates_left;
+
+  // For large enough configuration sizes the average number of delayed spins is 2x submatrix size
+  // as we add 'submatrix size' many non-interacting spins to the configuration in the beginning.
+  const int max_num_delayed_spins = 3 * parameters.get_submatrix_size();
 
   delayed_spins.resize(0);
 
   int num_creations = 0;
   int num_annihilations = 0;
+  int num_statics = 0;
 
-  const int num_spins = configuration.size();
-  const int num_interacting_spins = configuration.get_number_of_interacting_HS_spins();
-  const int num_noninteracting_spins = num_spins - num_interacting_spins;
-
-  const int new_size = ((num_spins / 4) / 32 + 1) * 32;  // INTERNAL: Why divide by 4?
-  const int max_num_delayed_spins = thermalized
-                                        ? std::min(2 * parameters.get_submatrix_size(), new_size)
-                                        : 2 * parameters.get_submatrix_size();
-
-  for (int i = 0; i < max_num_delayed_spins; ++i) {
+  do {
     delayed_spin_struct delayed_spin;
 
     delayed_spin.is_accepted_move = false;
@@ -590,34 +603,56 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::generate_delayed_spins()
 
     delayed_spin.HS_current_move = get_new_HS_move();
 
-    if (delayed_spin.HS_current_move != STATIC) {
-      bool has_already_been_chosen = true;
+    if (delayed_spin.HS_current_move == ANNIHILATION) {
+      delayed_spin.random_vertex_ind = configuration.get_random_interacting_vertex();
+      delayed_spin.new_HS_spin_value = HS_ZERO;
 
-      while (has_already_been_chosen) {
-        delayed_spin.random_vertex_ind = get_new_vertex_index(delayed_spin.HS_current_move);
-        delayed_spin.new_HS_spin_value = get_new_spin_value(delayed_spin.HS_current_move);
-
-        has_already_been_chosen = false;
-        for (std::size_t l = 0; l < delayed_spins.size(); ++l)
-          if (delayed_spin.random_vertex_ind == delayed_spins[l].random_vertex_ind)
-            has_already_been_chosen = true;
+      // Check whether the spin has already been changed, i.e. it has already been proposed for
+      // removal, if it is an interacting spin, or it is a "virtual" interacting spin
+      // (= non-interacting spin proposed for insertion).
+      // If we encounter such a spin, we stop. The aborted annihilation proposal is then done in the
+      // next submatrix step.
+      for (const auto& other_spin : delayed_spins) {
+        if (delayed_spin.random_vertex_ind == other_spin.random_vertex_ind) {
+          annihilation_proposal_aborted_ = true;
+          break;
+        }
       }
 
-      assert(!has_already_been_chosen);
+      if (!annihilation_proposal_aborted_) {
+        delayed_spins.push_back(delayed_spin);
+        ++num_annihilations;
+        --single_spin_updates_left;
+      }
+    }
+
+    else if (delayed_spin.HS_current_move == CREATION) {
+      delayed_spin.random_vertex_ind = configuration.get_random_noninteracting_vertex();
+      delayed_spin.new_HS_spin_value = rng() > 0.5 ? HS_UP : HS_DN;
 
       delayed_spins.push_back(delayed_spin);
-
-      if (delayed_spin.HS_current_move == CREATION)
-        ++num_creations;
-
-      if (delayed_spin.HS_current_move == ANNIHILATION)
-        ++num_annihilations;
-
-      if ((num_creations == num_noninteracting_spins) ||
-          (num_interacting_spins > 0 && num_annihilations == num_interacting_spins))
-        break;
+      ++num_creations;
+      --single_spin_updates_left;
     }
-  }
+
+    else {
+      assert(delayed_spin.HS_current_move == STATIC);
+      ++num_statics;
+      --single_spin_updates_left;
+    }
+
+  } while (!annihilation_proposal_aborted_ && configuration.get_number_of_creatable_HS_spins() > 0 &&
+           single_spin_updates_left > 0 && delayed_spins.size() < max_num_delayed_spins);
+
+  assert(single_spin_updates_left_start - single_spin_updates_left ==
+         num_creations + num_annihilations + num_statics);
+
+  // We need to unmark all "virtual" interacting spins, that we have temporarily marked as
+  // annihilatable in CT_AUX_HS_configuration::get_random_noninteracting_vertex().
+  // TODO: Eliminate the need to mark and unmark these spins.
+  for (const auto& spin : delayed_spins)
+    if (spin.HS_current_move == CREATION)
+      configuration.unmarkAsAnnihilatable(spin.random_vertex_ind);
 
   int Gamma_dn_size = 0;
   int Gamma_up_size = 0;
@@ -1210,14 +1245,28 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::clean_up_the_configurati
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 HS_vertex_move_type CtauxWalker<device_t, parameters_type, MOMS_type>::get_new_HS_move() {
-  if (rng() > 0.5) {
-    return CREATION;
+  // Do the aborted annihilation proposal.
+  if (annihilation_proposal_aborted_) {
+    annihilation_proposal_aborted_ = false;
+
+    if (configuration.get_number_of_interacting_HS_spins() == 0)
+      return STATIC;
+
+    else
+      return ANNIHILATION;
   }
 
-  if (configuration.get_number_of_interacting_HS_spins() == 0)
-    return STATIC;
+  else {
+    if (rng() > 0.5) {
+      return CREATION;
+    }
 
-  return ANNIHILATION;
+    else if (configuration.get_number_of_interacting_HS_spins() == 0)
+      return STATIC;
+
+    else
+      return ANNIHILATION;
+  }
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
