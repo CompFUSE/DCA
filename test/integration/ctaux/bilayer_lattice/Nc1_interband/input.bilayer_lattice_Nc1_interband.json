@@ -50,7 +50,8 @@
 
     "CT-AUX": {
 	"expansion-parameter-K": 10.,
-	"initial-matrix-size": 64,
+        "initial-configuration-size": 10,
+        "initial-matrix-size": 64,
 	"submatrix-size": 1
     },
 
