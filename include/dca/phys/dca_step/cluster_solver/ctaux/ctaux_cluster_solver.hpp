@@ -206,9 +206,19 @@ void CtauxClusterSolver<device_t, parameters_type, MOMS_type>::integrate() {
 
     warm_up(walker);
 
+    std::cout << "warm-up expansion order: " << walker.warmUpExpansionOrderMean() << std::endl;
+    std::cout << "rng(): " << rng() << std::endl;
+    std::cout << "# single spin updates: " << walker.get_total_num_single_spin_updates() << std::endl;
+    std::cout << "# delayed spins: " << walker.get_total_num_delayed_spins() << std::endl;
+
     dca::profiling::WallTime mid_time;
 
     measure(walker);
+
+    std::cout << "warm-up expansion order: " << walker.warmUpExpansionOrderMean() << std::endl;
+    std::cout << "rng(): " << rng() << std::endl;
+    std::cout << "# single spin updates: " << walker.get_total_num_single_spin_updates() << std::endl;
+    std::cout << "# delayed spins: " << walker.get_total_num_delayed_spins() << std::endl;
 
     dca::profiling::WallTime end_time;
 

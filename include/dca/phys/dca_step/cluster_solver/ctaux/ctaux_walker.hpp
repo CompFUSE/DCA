@@ -77,6 +77,18 @@ public:
   template <class stream_type>
   void to_JSON(stream_type& /*ss*/) {}
 
+  int warmUpExpansionOrderMean() {
+    assert(warm_up_expansion_order_.count() > 0);
+    return warm_up_expansion_order_.mean();
+  }
+
+  int get_total_num_single_spin_updates() {
+    return total_num_single_spin_updates_;
+  }
+  int get_total_num_delayed_spins() {
+    return total_num_delayed_spins_;
+  }
+
 private:
   void add_non_interacting_spins_to_configuration();
 
@@ -231,6 +243,9 @@ private:
   int sign;
 
   util::Accumulator<int> warm_up_expansion_order_;
+
+  int total_num_single_spin_updates_;
+  int total_num_delayed_spins_;
 };
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
@@ -282,7 +297,10 @@ CtauxWalker<device_t, parameters_type, MOMS_type>::CtauxWalker(parameters_type& 
       Bennett(false),
       sign(1),
 
-      warm_up_expansion_order_() {
+      warm_up_expansion_order_(),
+
+      total_num_single_spin_updates_(0),
+      total_num_delayed_spins_(0) {
   if (concurrency.id() == 0 and thread_id == 0) {
     std::cout << "\n\n"
               << "\t\t"
@@ -357,6 +375,9 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::initialize() {
   // configuration.print();
 
   is_thermalized() = false;
+
+  total_num_single_spin_updates_ = 0;
+  total_num_delayed_spins_ = 0;
 
   {
     // std::cout << "\n\n\t G0-TOOLS \n\n";
@@ -653,6 +674,9 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::generate_delayed_spins(
   for (const auto& spin : delayed_spins)
     if (spin.HS_current_move == CREATION)
       configuration.unmarkAsAnnihilatable(spin.random_vertex_ind);
+
+  total_num_single_spin_updates_ += num_creations + num_annihilations + num_statics;
+  total_num_delayed_spins_ += delayed_spins.size();
 
   int Gamma_dn_size = 0;
   int Gamma_up_size = 0;
