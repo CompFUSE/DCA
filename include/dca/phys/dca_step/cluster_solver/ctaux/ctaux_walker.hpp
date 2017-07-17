@@ -379,6 +379,8 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::initialize() {
   total_num_single_spin_updates_ = 0;
   total_num_delayed_spins_ = 0;
 
+  // TODO: Reset warm-up expansion order?
+
   {
     // std::cout << "\n\n\t G0-TOOLS \n\n";
 
@@ -604,6 +606,7 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::generate_delayed_spins(
 
   assert(single_spin_updates_left > 0);
 
+  // TODO: This variable is unused in release mode.
   const int single_spin_updates_left_start = single_spin_updates_left;
 
   // For large enough configuration sizes the average number of delayed spins is 2x submatrix size
