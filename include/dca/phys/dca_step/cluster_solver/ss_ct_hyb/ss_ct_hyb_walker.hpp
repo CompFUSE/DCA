@@ -313,7 +313,7 @@ void SsCtHybWalker<device_t, parameters_type, MOMS_type>::test_interpolation() {
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void SsCtHybWalker<device_t, parameters_type, MOMS_type>::do_sweep() {
-  double factor = 1.;
+  int factor = 1;
   if (thermalized)
     factor = parameters.get_sweeps_per_measurement();
 

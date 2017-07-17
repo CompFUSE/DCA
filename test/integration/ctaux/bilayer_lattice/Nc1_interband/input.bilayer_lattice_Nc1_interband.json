@@ -44,7 +44,7 @@
     "Monte-Carlo-integration": {
         "seed": 985456376,
 	"warm-up-sweeps": 10,
-    	"sweeps-per-measurement": 20.,
+        "sweeps-per-measurement": 20,
 	"measurements-per-process-and-accumulator": 1000
     },
 
