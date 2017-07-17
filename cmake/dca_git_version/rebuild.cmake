@@ -19,6 +19,8 @@ execute_process(
 set(GIT_LOG "${out}")
 # Replace newlines with characters "\n" for use in std::string.
 string(REPLACE "\n" "\\n" GIT_LOG "${GIT_LOG}")
+# Escape double quotes within the string literals.
+string(REPLACE "\"" "\\\"" GIT_LOG "${GIT_LOG}")
 
 set(LOG_CHANGED FALSE)
 
@@ -46,6 +48,7 @@ execute_process(
 
 set(GIT_STATUS "${out}")
 string(REPLACE "\n" "\\n" GIT_STATUS "${GIT_STATUS}")
+string(REPLACE "\"" "\\\"" GIT_STATUS "${GIT_STATUS}")
 
 if(GIT_STATUS)
   message(WARNING "Working tree is dirty. Run git status for details.")

@@ -14,6 +14,7 @@ function(get_git_log _git_log)
 
   file(WRITE "${PROJECT_BINARY_DIR}/src/util/git_log.txt" "${out}")
   string(REPLACE "\n" "\\n" out "${out}")
+  string(REPLACE "\"" "\\\"" out "${out}")
   set(${_git_log} "${out}" PARENT_SCOPE)
 endfunction()
 
@@ -28,5 +29,6 @@ function(get_git_status _git_status)
 
   file(WRITE "${PROJECT_BINARY_DIR}/src/util/git_status.txt" "${out}")
   string(REPLACE "\n" "\\n" out "${out}")
+  string(REPLACE "\"" "\\\"" out "${out}")
   set(${_git_status} "${out}" PARENT_SCOPE)
 endfunction()
