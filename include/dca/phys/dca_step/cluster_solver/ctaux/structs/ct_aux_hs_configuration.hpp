@@ -13,6 +13,7 @@
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_STRUCTS_CT_AUX_HS_CONFIGURATION_HPP
 
 #include <cassert>
+#include <cstdint>  // uint64_t
 #include <iostream>
 #include <stdexcept>
 #include <vector>
@@ -113,6 +114,8 @@ private:
 
   std::vector<int> changed_spin_indices_e_DN;  // = { changed_spin_indices of configuration_e_DN}
   std::vector<HS_spin_states_type> changed_spin_values_e_DN;
+
+  uint64_t next_vertex_id_;
 };
 
 template <class parameters_type>
@@ -121,7 +124,7 @@ CT_AUX_HS_configuration<parameters_type>::CT_AUX_HS_configuration(parameters_typ
     : parameters(parameters_ref),
       rng(rng_ref),
 
-      configuration(0, vertex_pair_type(parameters, rng, -1, -1, -1)),
+      configuration(),
 
       configuration_e_UP(0),
       configuration_e_DN(0),
@@ -136,7 +139,9 @@ CT_AUX_HS_configuration<parameters_type>::CT_AUX_HS_configuration(parameters_typ
       changed_spin_values_e_UP(0),
 
       changed_spin_indices_e_DN(0),
-      changed_spin_values_e_DN(0) {}
+      changed_spin_values_e_DN(0),
+
+      next_vertex_id_(0) {}
 
 template <class parameters_type>
 int CT_AUX_HS_configuration<parameters_type>::size() {
@@ -196,6 +201,8 @@ void CT_AUX_HS_configuration<parameters_type>::reset() {
 
   changed_spin_indices_e_DN.clear();
   changed_spin_values_e_DN.clear();
+
+  next_vertex_id_ = 0;
 }
 
 template <class parameters_type>
@@ -204,7 +211,7 @@ void CT_AUX_HS_configuration<parameters_type>::initialize() {
 
   for (int i = 0; i < parameters.get_initial_configuration_size(); ++i) {
     vertex_pair_type vertex(parameters, rng, configuration.size(), configuration_e_DN.size(),
-                            configuration_e_UP.size());
+                            configuration_e_UP.size(), next_vertex_id_++);
     vertex.set_random_interacting();
 
     ++current_Nb_of_annihilatable_spins;
@@ -231,7 +238,7 @@ void CT_AUX_HS_configuration<parameters_type>::shuffle_noninteracting_vertices()
   // add npn-interacting-spins
   while (current_Nb_of_creatable_spins < parameters.get_submatrix_size()) {
     vertex_pair_type vertex(parameters, rng, configuration.size(), configuration_e_DN.size(),
-                            configuration_e_UP.size());
+                            configuration_e_UP.size(), next_vertex_id_++);
 
     vertex.set_random_noninteracting();
 
