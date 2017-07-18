@@ -30,6 +30,11 @@ TEST(AccumulatorTest, FloatingPointType) {
   EXPECT_EQ(num_samples, acc.count());
   EXPECT_EQ(45, acc.sum());
   EXPECT_EQ(4.5, acc.mean());
+
+  acc.reset();
+  EXPECT_EQ(0, acc.count());
+  EXPECT_EQ(0., acc.sum());
+  EXPECT_THROW(acc.mean(), std::logic_error);
 }
 
 TEST(AccumulatorTest, IntegerType) {
@@ -46,6 +51,11 @@ TEST(AccumulatorTest, IntegerType) {
   EXPECT_EQ(num_samples, acc.count());
   EXPECT_EQ(45, acc.sum());
   EXPECT_EQ(4.5, acc.mean());
+
+  acc.reset();
+  EXPECT_EQ(0, acc.count());
+  EXPECT_EQ(0, acc.sum());
+  EXPECT_THROW(acc.mean(), std::logic_error);
 }
 
 TEST(AccumulatorTest, ComplexType) {
@@ -62,4 +72,9 @@ TEST(AccumulatorTest, ComplexType) {
   EXPECT_EQ(num_samples, acc.count());
   EXPECT_EQ(std::complex<float>(45, 145), acc.sum());
   EXPECT_EQ(std::complex<float>(4.5, 14.5), acc.mean());
+
+  acc.reset();
+  EXPECT_EQ(0, acc.count());
+  EXPECT_EQ(std::complex<float>(0.), acc.sum());
+  EXPECT_THROW(acc.mean(), std::logic_error);
 }

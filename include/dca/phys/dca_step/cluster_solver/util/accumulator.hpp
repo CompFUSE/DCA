@@ -76,12 +76,17 @@ public:
   }
 
   // Returns the current sample mean.
-  // Preconditions: addSample has been called at least once.
+  // Preconditions: addSample has been called at least once after construction or last reset.
   MeanType mean() const {
     if (count_ == 0)
       throw std::logic_error("Empty sample has no mean.");
 
     return MeanType(sum_) / MeanType(count_);
+  }
+
+  void reset() {
+    count_ = {};
+    sum_ = {};
   }
 
 private:
