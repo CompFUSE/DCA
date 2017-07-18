@@ -8,6 +8,11 @@
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // This class implements a generic Monte Carlo accumulator.
+//
+// The template parameter T of Accumulator must either be
+// - a floating point type (std::is_floating_point<T>::value == true),
+// - an integer type (std::is_integral<T>::value == true),
+// - or a valid specialization of std::complex.
 
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_UTIL_ACCUMULATOR_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_UTIL_ACCUMULATOR_HPP
