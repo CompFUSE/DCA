@@ -55,7 +55,7 @@ class Accumulator {
   using CountType = std::size_t;
 
 public:
-  Accumulator() : count_(0), sum_(SampleType(0)) {}
+  Accumulator() : count_{}, sum_{} {}
 
   void addSample(const SampleType& sample) {
     sum_ += sample;
