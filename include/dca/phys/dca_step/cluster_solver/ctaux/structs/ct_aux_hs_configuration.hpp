@@ -94,6 +94,10 @@ public:
     --current_Nb_of_annihilatable_spins;
   }
 
+  // Returns the position of the vertex with ID vertex_id or the size of the configuration if no
+  // such vertex is found.
+  std::size_t find(uint64_t vertex_id) const;
+
 private:
   parameters_type& parameters;
   rng_type& rng;
@@ -830,6 +834,15 @@ void CT_AUX_HS_configuration<parameters_type>::print(e_spin_states_type e_spin) 
   ss << std::endl << std::endl;
 
   std::cout << ss.str();
+}
+
+template <class parameters_type>
+std::size_t CT_AUX_HS_configuration<parameters_type>::find(const uint64_t vertex_id) const {
+  auto it = std::find_if(
+      configuration.begin(), configuration.end(),
+      [vertex_id](const vertex_pair_type& vertex) -> bool { return vertex.get_id() == vertex_id; });
+
+  return it - configuration.begin();
 }
 
 }  // ctaux
