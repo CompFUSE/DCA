@@ -12,7 +12,8 @@
 // The template parameter T of Accumulator must either be
 // - a floating point type (std::is_floating_point<T>::value == true),
 // - an integer type (std::is_integral<T>::value == true),
-// - or a valid specialization of std::complex.
+// - or one of the floating point specializations of std::complex, i.e. std::complex<float>,
+//   std::complex<double>, or std::complex<long double>.
 
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_UTIL_ACCUMULATOR_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_UTIL_ACCUMULATOR_HPP
