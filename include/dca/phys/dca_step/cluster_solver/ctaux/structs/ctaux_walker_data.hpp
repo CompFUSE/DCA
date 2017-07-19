@@ -58,18 +58,20 @@ CtauxWalkerData<device_t, parameters_type>::CtauxWalkerData(parameters_type& par
       G0_up("G0_up", 0, parameters.get_initial_matrix_size()),
       G0_dn("G0_dn", 0, parameters.get_initial_matrix_size()),
 
-      Gamma_up("Gamma_up", 0, MAX_VERTEX_SINGLETS * parameters.get_submatrix_size()),
-      Gamma_dn("Gamma_dn", 0, MAX_VERTEX_SINGLETS * parameters.get_submatrix_size()),
+      Gamma_up("Gamma_up", 0, MAX_VERTEX_SINGLETS * parameters.get_max_submatrix_size()),
+      Gamma_dn("Gamma_dn", 0, MAX_VERTEX_SINGLETS * parameters.get_max_submatrix_size()),
 
-      stored_Gamma_up("stored_Gamma_up", 0, MAX_VERTEX_SINGLETS * parameters.get_submatrix_size()),
-      stored_Gamma_dn("stored_Gamma_dn", 0, MAX_VERTEX_SINGLETS * parameters.get_submatrix_size()),
+      stored_Gamma_up("stored_Gamma_up", 0,
+                      MAX_VERTEX_SINGLETS * parameters.get_max_submatrix_size()),
+      stored_Gamma_dn("stored_Gamma_dn", 0,
+                      MAX_VERTEX_SINGLETS * parameters.get_max_submatrix_size()),
 
       G_up("G_up", std::pair<int, int>(0, 0),
            std::pair<int, int>(parameters.get_initial_matrix_size(),
-                               MAX_VERTEX_SINGLETS * parameters.get_submatrix_size())),
+                               MAX_VERTEX_SINGLETS * parameters.get_max_submatrix_size())),
       G_dn("G_dn", std::pair<int, int>(0, 0),
            std::pair<int, int>(parameters.get_initial_matrix_size(),
-                               MAX_VERTEX_SINGLETS * parameters.get_submatrix_size())) {}
+                               MAX_VERTEX_SINGLETS * parameters.get_max_submatrix_size())) {}
 
 }  // ctaux
 }  // solver

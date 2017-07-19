@@ -266,7 +266,7 @@ CtauxWalker<device_t, parameters_type, MOMS_type>::CtauxWalker(parameters_type& 
 
       CV_obj(parameters),
       ctaux_tools(CtauxWalkerData<device_t, parameters_type>::MAX_VERTEX_SINGLETS *
-                  parameters.get_submatrix_size()),
+                  parameters.get_max_submatrix_size()),
 
       rng(rng_ref),
 
@@ -610,7 +610,7 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::generate_delayed_spins(
 
   assert(single_spin_updates_left > 0);
 
-  const int max_num_delayed_spins = parameters.get_submatrix_size();
+  const int max_num_delayed_spins = parameters.get_max_submatrix_size();
 
   delayed_spins.resize(0);
 

@@ -61,12 +61,12 @@ N_MATRIX_TOOLS<dca::linalg::CPU, parameters_type>::N_MATRIX_TOOLS(int id,
       parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
 
-      identity(MAX_VERTEX_SINGLETS * parameters.get_submatrix_size()),
-      permutation(MAX_VERTEX_SINGLETS * parameters.get_submatrix_size()),
+      identity(MAX_VERTEX_SINGLETS * parameters.get_max_submatrix_size()),
+      permutation(MAX_VERTEX_SINGLETS * parameters.get_max_submatrix_size()),
 
-      exp_V(MAX_VERTEX_SINGLETS * parameters.get_submatrix_size()),
-      d_vec(MAX_VERTEX_SINGLETS * parameters.get_submatrix_size()) {
-  for (int l = 0; l < MAX_VERTEX_SINGLETS * parameters.get_submatrix_size(); ++l)
+      exp_V(MAX_VERTEX_SINGLETS * parameters.get_max_submatrix_size()),
+      d_vec(MAX_VERTEX_SINGLETS * parameters.get_max_submatrix_size()) {
+  for (int l = 0; l < MAX_VERTEX_SINGLETS * parameters.get_max_submatrix_size(); ++l)
     identity[l] = l;
 }
 

@@ -65,6 +65,6 @@
 	"expansion-parameter-K": 1.,
         "initial-configuration-size": 10,
 	"initial-matrix-size": 256,
-	"submatrix-size": 64
+	"max-submatrix-size": 64
     }
 }

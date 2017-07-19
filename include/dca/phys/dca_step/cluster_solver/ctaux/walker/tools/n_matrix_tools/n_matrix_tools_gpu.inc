@@ -64,22 +64,22 @@ N_MATRIX_TOOLS<dca::linalg::GPU, parameters_type>::N_MATRIX_TOOLS(int id,
       concurrency(parameters.get_concurrency()),
 
       identity("identity    N_MATRIX_TOOLS<dca::linalg::GPU>",
-               MAX_VERTEX_SINGLETS * parameters.get_submatrix_size()),
+               MAX_VERTEX_SINGLETS * parameters.get_max_submatrix_size()),
       permutation("permutation N_MATRIX_TOOLS<dca::linalg::GPU>",
-                  MAX_VERTEX_SINGLETS * parameters.get_submatrix_size()),
+                  MAX_VERTEX_SINGLETS * parameters.get_max_submatrix_size()),
 
       tmp("tmp   N_MATRIX_TOOLS<dca::linalg::GPU>",
-          MAX_VERTEX_SINGLETS * parameters.get_submatrix_size()),
+          MAX_VERTEX_SINGLETS * parameters.get_max_submatrix_size()),
       exp_V("exp_V N_MATRIX_TOOLS<dca::linalg::GPU>",
-            MAX_VERTEX_SINGLETS * parameters.get_submatrix_size()),
+            MAX_VERTEX_SINGLETS * parameters.get_max_submatrix_size()),
 
       d_ind("d_ind N_MATRIX_TOOLS<dca::linalg::GPU>",
-            MAX_VERTEX_SINGLETS * parameters.get_submatrix_size()),
+            MAX_VERTEX_SINGLETS * parameters.get_max_submatrix_size()),
       d_vec("d_vec N_MATRIX_TOOLS<dca::linalg::GPU>",
-            MAX_VERTEX_SINGLETS * parameters.get_submatrix_size()) {
-  std::vector<int> id_tmp(MAX_VERTEX_SINGLETS * parameters.get_submatrix_size());
+            MAX_VERTEX_SINGLETS * parameters.get_max_submatrix_size()) {
+  std::vector<int> id_tmp(MAX_VERTEX_SINGLETS * parameters.get_max_submatrix_size());
 
-  for (int l = 0; l < MAX_VERTEX_SINGLETS * parameters.get_submatrix_size(); ++l)
+  for (int l = 0; l < MAX_VERTEX_SINGLETS * parameters.get_max_submatrix_size(); ++l)
     id_tmp[l] = l;
 
   identity = id_tmp;

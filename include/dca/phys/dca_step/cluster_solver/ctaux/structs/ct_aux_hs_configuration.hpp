@@ -148,7 +148,7 @@ CT_AUX_HS_configuration<parameters_type>::CT_AUX_HS_configuration(parameters_typ
       changed_spin_values_e_DN(0),
 
       // Rounding up ensures a value >= 1.
-      max_num_noninteracting_spins_((parameters.get_submatrix_size() + 1) / 2),
+      max_num_noninteracting_spins_((parameters.get_max_submatrix_size() + 1) / 2),
 
       next_vertex_id_(0) {}
 

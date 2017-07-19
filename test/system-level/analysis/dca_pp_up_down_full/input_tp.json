@@ -73,7 +73,7 @@
 	"expansion-parameter-K": 150.,
         "initial-configuration-size": 10,
 	"initial-matrix-size": 64,
-	"submatrix-size": 16,
+	"max-submatrix-size": 16,
 	"additional-time-measurements": false
     },
 

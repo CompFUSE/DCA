@@ -85,7 +85,7 @@
     },
     
     "CT-AUX-solver": "CT-AUX" {
-	"submatrix-size": ,
+	"submatrix-size": "max-submatrix-size",
 	"initial-matrix-size": ,
 	"K-parameter": "expansion-parameter-K"
     },
