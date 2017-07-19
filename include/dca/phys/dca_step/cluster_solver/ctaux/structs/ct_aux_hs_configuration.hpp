@@ -119,6 +119,8 @@ private:
   std::vector<int> changed_spin_indices_e_DN;  // = { changed_spin_indices of configuration_e_DN}
   std::vector<HS_spin_states_type> changed_spin_values_e_DN;
 
+  const int max_num_noninteracting_spins_;
+
   uint64_t next_vertex_id_;
 };
 
@@ -144,6 +146,9 @@ CT_AUX_HS_configuration<parameters_type>::CT_AUX_HS_configuration(parameters_typ
 
       changed_spin_indices_e_DN(0),
       changed_spin_values_e_DN(0),
+
+      // Rounding up ensures a value >= 1.
+      max_num_noninteracting_spins_((parameters.get_submatrix_size() + 1) / 2),
 
       next_vertex_id_(0) {}
 
@@ -239,8 +244,8 @@ void CT_AUX_HS_configuration<parameters_type>::shuffle_noninteracting_vertices()
     assert(configuration[i].is_annihilatable() != configuration[i].is_creatable());
   }
 
-  // add npn-interacting-spins
-  while (current_Nb_of_creatable_spins < parameters.get_submatrix_size()) {
+  // Add non-interacting spins.
+  while (current_Nb_of_creatable_spins < max_num_noninteracting_spins_) {
     vertex_pair_type vertex(parameters, rng, configuration.size(), configuration_e_DN.size(),
                             configuration_e_UP.size(), next_vertex_id_++);
 

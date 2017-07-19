@@ -610,12 +610,7 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::generate_delayed_spins(
 
   assert(single_spin_updates_left > 0);
 
-  // For large enough configuration sizes the average number of delayed spins is 2x submatrix size
-  // as we add 'submatrix size' many non-interacting spins to the configuration in the beginning.
-  // TODO: We are restricted to this upper limit by CT_AUX_WALKER_TOOLS, which allocates vectors of
-  //       size CtauxWalkerData::MAX_VERTEX_SINGLETS (= 4) * parameters.get_submatrix_size().
-  //       The additional factor of 2 is required, if we study models with same spin interaction.
-  const int max_num_delayed_spins = 2 * parameters.get_submatrix_size();
+  const int max_num_delayed_spins = parameters.get_submatrix_size();
 
   delayed_spins.resize(0);
 

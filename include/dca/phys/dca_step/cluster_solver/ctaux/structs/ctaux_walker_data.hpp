@@ -25,7 +25,7 @@ namespace ctaux {
 template <dca::linalg::DeviceType device_t, typename parameters_type>
 class CtauxWalkerData {
 protected:
-  const static int MAX_VERTEX_SINGLETS = 4;
+  const static int MAX_VERTEX_SINGLETS = 2;
 
 public:
   CtauxWalkerData(parameters_type& parameters, int id);
