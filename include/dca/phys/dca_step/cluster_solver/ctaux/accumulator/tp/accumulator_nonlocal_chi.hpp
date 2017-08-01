@@ -135,13 +135,13 @@ private:
       std::complex<scalar_type>& G2_up_result);
 
   void F(int n1, int m1, int k1, int k2, int w1, int w2,
-         func::function<std::complex<scalar_type>,
-                        func::dmn_variadic<b, b, k_dmn_t, k_dmn_t, w_VERTEX_EXTENDED_POS,
-                                           w_VERTEX_EXTENDED>>& G2_dn,
+         func::function<
+             std::complex<scalar_type>,
+             func::dmn_variadic<b, b, k_dmn_t, k_dmn_t, w_VERTEX_EXTENDED_POS, w_VERTEX_EXTENDED>>& G2_dn,
          std::complex<scalar_type>& G2_dn_result,
-         func::function<std::complex<scalar_type>,
-                        func::dmn_variadic<b, b, k_dmn_t, k_dmn_t, w_VERTEX_EXTENDED_POS,
-                                           w_VERTEX_EXTENDED>>& G2_up,
+         func::function<
+             std::complex<scalar_type>,
+             func::dmn_variadic<b, b, k_dmn_t, k_dmn_t, w_VERTEX_EXTENDED_POS, w_VERTEX_EXTENDED>>& G2_up,
          std::complex<scalar_type>& G2_up_result);
 
   void accumulate_particle_hole_transverse(
@@ -342,13 +342,11 @@ inline void accumulator_nonlocal_chi<parameters_type, MOMS_type>::F(
 template <class parameters_type, class MOMS_type>
 inline void accumulator_nonlocal_chi<parameters_type, MOMS_type>::F(
     int n1, int m1, int k1, int k2, int w1, int w2,
-    func::function<
-        std::complex<scalar_type>,
-        func::dmn_variadic<b, b, k_dmn_t, k_dmn_t, w_VERTEX_EXTENDED_POS, w_VERTEX_EXTENDED>>& G2_dn,
+    func::function<std::complex<scalar_type>,
+                   func::dmn_variadic<b, b, k_dmn_t, k_dmn_t, w_VERTEX_EXTENDED_POS, w_VERTEX_EXTENDED>>& G2_dn,
     std::complex<scalar_type>& G2_dn_result,
-    func::function<
-        std::complex<scalar_type>,
-        func::dmn_variadic<b, b, k_dmn_t, k_dmn_t, w_VERTEX_EXTENDED_POS, w_VERTEX_EXTENDED>>& G2_up,
+    func::function<std::complex<scalar_type>,
+                   func::dmn_variadic<b, b, k_dmn_t, k_dmn_t, w_VERTEX_EXTENDED_POS, w_VERTEX_EXTENDED>>& G2_up,
     std::complex<scalar_type>& G2_up_result) {
   if (w1 < w_VERTEX_EXTENDED_POS_dmn_size) {
     int lin_ind = b_b_k_k_w_pos_w_full_dmn(n1, m1, min_k_dmn_t(k1), min_k_dmn_t(k2),
@@ -638,12 +636,12 @@ void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_h
                   F(n2, m2, k2_plus_q, k2, w2_ext_plus_w_nu, w2_ext, G2_k_k_w_w_e_DN,
                     G2_DN_n2_m2_k2_plus_q_k2_w2_w2, G2_k_k_w_w_e_UP, G2_UP_n2_m2_k2_plus_q_k2_w2_w2);
 
-                  G4 = -(G2_DN_n1_m2_k1_k2_w1_w2 * G2_DN_n2_m1_k2_plus_q_k1_plus_q_w2_w1 +
-                         G2_UP_n1_m2_k1_k2_w1_w2 * G2_UP_n2_m1_k2_plus_q_k1_plus_q_w2_w1)
+                  G4_val = -(G2_DN_n1_m2_k1_k2_w1_w2 * G2_DN_n2_m1_k2_plus_q_k1_plus_q_w2_w1 +
+                             G2_UP_n1_m2_k1_k2_w1_w2 * G2_UP_n2_m1_k2_plus_q_k1_plus_q_w2_w1)
 
-                       +
-                       (G2_UP_n1_m1_k1_k1_plus_q_w1_w1 + G2_DN_n1_m1_k1_k1_plus_q_w1_w1) *
-                           (G2_UP_n2_m2_k2_plus_q_k2_w2_w2 + G2_DN_n2_m2_k2_plus_q_k2_w2_w2);
+                           +
+                           (G2_UP_n1_m1_k1_k1_plus_q_w1_w1 + G2_DN_n1_m1_k1_k1_plus_q_w1_w1) *
+                               (G2_UP_n2_m2_k2_plus_q_k2_w2_w2 + G2_DN_n2_m2_k2_plus_q_k2_w2_w2);
 
                   /*
                     G4 = - (G2_k_k_w_w_e_DN(n1, m2, k1, k2, w1, w2) * G2_k_k_w_w_e_DN(n2, m1,
