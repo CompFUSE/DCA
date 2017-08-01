@@ -41,7 +41,7 @@ public:
   template <typename scalar_type>
   int get_buffer_size(const std::vector<std::vector<scalar_type>>& v) const;
   template <typename scalar_type, class dmn_type>
-  int get_buffer_size(func::function<scalar_type, dmn_type>& f) const;
+  int get_buffer_size(const func::function<scalar_type, dmn_type>& f) const;
 
   // TODO: This function can't be made const correct. Can we remove it?
   template <typename object_type>
@@ -168,7 +168,7 @@ int MPIPacking::get_buffer_size(const std::vector<std::vector<scalar_type>>& v) 
 }
 
 template <typename scalar_type, class dmn_type>
-int MPIPacking::get_buffer_size(func::function<scalar_type, dmn_type>& f) const {
+int MPIPacking::get_buffer_size(const func::function<scalar_type, dmn_type>& f) const {
   int result = get_buffer_size(f.size());
 
   int count = f.size() * MPITypeMap<scalar_type>::factor();
