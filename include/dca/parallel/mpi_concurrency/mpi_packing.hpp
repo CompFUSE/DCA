@@ -9,8 +9,6 @@
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // This class provides an interface for packing and unpacking with MPI.
-//
-// TODO: Const correctness of get_buffer_size and pack with func::function.
 
 #ifndef DCA_PARALLEL_MPI_CONCURRENCY_MPI_PACKING_HPP
 #define DCA_PARALLEL_MPI_CONCURRENCY_MPI_PACKING_HPP
@@ -59,7 +57,7 @@ public:
   template <typename scalar_type>
   void pack(int* buffer, int size, int& off_set, const std::vector<std::vector<scalar_type>>& v) const;
   template <typename scalar_type, class dmn_type>
-  void pack(int* buffer, int size, int& off_set, func::function<scalar_type, dmn_type>& f) const;
+  void pack(int* buffer, int size, int& off_set, const func::function<scalar_type, dmn_type>& f) const;
 
   template <typename scalar_type>
   void unpack(int* buffer, int size, int& off_set, scalar_type& item) const;
@@ -271,12 +269,12 @@ void MPIPacking::pack(int* buffer, int size, int& off_set,
 
 template <typename scalar_type, class dmn_type>
 void MPIPacking::pack(int* buffer, int size, int& off_set,
-                      func::function<scalar_type, dmn_type>& f) const {
+                      const func::function<scalar_type, dmn_type>& f) const {
   // Pack the vector length
   int function_size(f.size());
   pack(buffer, size, off_set, function_size);
 
-  MPI_Pack(static_cast<scalar_type*>(&f(0)), function_size * MPITypeMap<scalar_type>::factor(),
+  MPI_Pack(f.values(), function_size * MPITypeMap<scalar_type>::factor(),
            MPITypeMap<scalar_type>::value(), buffer, size, &off_set, grouping_.get());
 }
 
