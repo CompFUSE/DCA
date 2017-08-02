@@ -398,9 +398,8 @@ void MPIPacking::unpack(int* buffer, int size, int& off_set,
   unpack(buffer, size, off_set, function_size);
 
   // UnPack the vector
-  MPI_Unpack(buffer, size, &off_set, static_cast<scalar_type*>(&f(0)),
-             MPITypeMap<scalar_type>::factor() * function_size, MPITypeMap<scalar_type>::value(),
-             grouping_.get());
+  MPI_Unpack(buffer, size, &off_set, f.values(), MPITypeMap<scalar_type>::factor() * function_size,
+             MPITypeMap<scalar_type>::value(), grouping_.get());
 }
 
 }  // parallel
