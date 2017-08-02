@@ -23,17 +23,10 @@ namespace dca {
 namespace parallel {
 // dca::parallel::
 
+// Empty class template that causes a compile error when a type without template specialization is
+// used.
 template <typename scalar_type>
-class MPITypeMap {
-public:
-  static std::size_t factor() {
-    return 1;
-  }
-
-  static MPI_Datatype value() {
-    return MPI_PACKED;
-  }
-};
+class MPITypeMap {};
 
 template <>
 class MPITypeMap<bool> {

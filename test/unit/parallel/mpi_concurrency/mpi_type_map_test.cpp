@@ -39,13 +39,4 @@ TEST(MPITypeMapTest, All) {
 
   EXPECT_EQ(2, MPITypeMap<std::complex<double>>::factor());
   EXPECT_EQ(MPI_DOUBLE, MPITypeMap<std::complex<double>>::value());
-
-  // Type without template specialization.
-  struct MyStruct {
-    int i;
-    double d;
-  };
-
-  EXPECT_EQ(1, MPITypeMap<MyStruct>::factor());
-  EXPECT_EQ(MPI_PACKED, MPITypeMap<MyStruct>::value());
 }
