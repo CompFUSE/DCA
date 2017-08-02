@@ -22,6 +22,7 @@ TEST(McSolverParametersCtAuxTest, DefaultValues) {
   EXPECT_EQ(10, pars.get_initial_configuration_size());
   EXPECT_EQ(128, pars.get_initial_matrix_size());
   EXPECT_EQ(128, pars.get_max_submatrix_size());
+  EXPECT_FALSE(pars.neglect_bennett_updates());
   EXPECT_FALSE(pars.additional_time_measurements());
 }
 
@@ -38,5 +39,6 @@ TEST(McSolverParametersCtAuxTest, ReadAll) {
   EXPECT_EQ(100, pars.get_initial_configuration_size());
   EXPECT_EQ(64, pars.get_initial_matrix_size());
   EXPECT_EQ(64, pars.get_max_submatrix_size());
+  EXPECT_TRUE(pars.neglect_bennett_updates());
   EXPECT_TRUE(pars.additional_time_measurements());
 }
