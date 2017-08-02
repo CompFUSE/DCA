@@ -9,6 +9,9 @@
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // This class provides a simple interface to the standard Message Passing Interface (MPI).
+//
+// TODO: Change the type of the buffers to avoid overallocation of memory (minimum size of int is
+//       2 bytes).
 
 #ifndef DCA_PARALLEL_MPI_CONCURRENCY_MPI_CONCURRENCY_HPP
 #define DCA_PARALLEL_MPI_CONCURRENCY_MPI_CONCURRENCY_HPP

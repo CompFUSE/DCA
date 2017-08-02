@@ -9,6 +9,8 @@
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // This class provides an interface for packing and unpacking with MPI.
+//
+// TODO: Change return type of get_buffer_size to std::size_t.
 
 #ifndef DCA_PARALLEL_MPI_CONCURRENCY_MPI_PACKING_HPP
 #define DCA_PARALLEL_MPI_CONCURRENCY_MPI_PACKING_HPP
@@ -31,7 +33,7 @@ public:
   template <typename scalar_type>
   int get_buffer_size(scalar_type item) const;
   template <typename scalar_type>
-  int get_buffer_size(std::basic_string<scalar_type> str) const;
+  int get_buffer_size(const std::basic_string<scalar_type>& str) const;
   template <typename scalar_type>
   int get_buffer_size(const std::vector<scalar_type>& v) const;
   template <typename scalar_type>
@@ -40,10 +42,6 @@ public:
   int get_buffer_size(const std::vector<std::vector<scalar_type>>& v) const;
   template <typename scalar_type, class dmn_type>
   int get_buffer_size(const func::function<scalar_type, dmn_type>& f) const;
-
-  // TODO: This function can't be made const correct. Can we remove it?
-  template <typename object_type>
-  void pack_or_unpack(bool packing, int* buffer, int size, int& off_set, object_type& object) const;
 
   template <typename scalar_type>
   void pack(int* buffer, int size, int& off_set, scalar_type item) const;
@@ -88,7 +86,7 @@ int MPIPacking::get_buffer_size(scalar_type /*item*/) const {
 }
 
 template <typename scalar_type>
-int MPIPacking::get_buffer_size(std::basic_string<scalar_type> str) const {
+int MPIPacking::get_buffer_size(const std::basic_string<scalar_type>& str) const {
   /*
     int result = get_buffer_size(str.size());
 
@@ -179,15 +177,6 @@ int MPIPacking::get_buffer_size(const func::function<scalar_type, dmn_type>& f) 
   }
 
   return result;
-}
-
-template <typename object_type>
-void MPIPacking::pack_or_unpack(bool packing, int* buffer, int size, int& off_set,
-                                object_type& item) const {
-  if (packing)
-    pack(buffer, size, off_set, item);
-  else
-    unpack(buffer, size, off_set, item);
 }
 
 template <typename scalar_type>
