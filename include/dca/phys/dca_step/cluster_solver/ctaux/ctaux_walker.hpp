@@ -82,10 +82,15 @@ private:
   void add_non_interacting_spins_to_configuration();
 
   void generate_delayed_spins(int& single_spin_updates_left);
-  // Generates delayed single spin updates.
-  // Returns the total number of proposed single spin updates including 'static' steps.
-  // Aborts when a Bennett spin is proposed for removal.
+
+  // Generate delayed single spin updates.
+  // Return the total number of proposed single spin updates including 'static' steps.
+  //
+  // Version that aborts when a Bennett spin is proposed for removal.
   int generateDelayedSpinsAbortAtBennett(int single_spin_updates_left);
+  // Version that neglects Bennett updates.
+  int generateDelayedSpinsNeglectBennett(int single_spin_updates_left);
+
   void finalizeDelayedSpins();
 
   void read_Gamma_matrices(e_spin_states e_spin);
@@ -605,7 +610,9 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::generate_delayed_spins(
   assert(single_spin_updates_left > 0);
 
   const auto single_spin_updates_proposed =
-      generateDelayedSpinsAbortAtBennett(single_spin_updates_left);
+      parameters.neglect_bennett_updates()
+          ? generateDelayedSpinsNeglectBennett(single_spin_updates_left)
+          : generateDelayedSpinsAbortAtBennett(single_spin_updates_left);
 
   single_spin_updates_left -= single_spin_updates_proposed;
 
@@ -703,7 +710,7 @@ int CtauxWalker<device_t, parameters_type, MOMS_type>::generateDelayedSpinsAbort
     }
 
     else if (delayed_spin.HS_current_move == CREATION) {
-      delayed_spin.random_vertex_ind = configuration.get_random_noninteracting_vertex();
+      delayed_spin.random_vertex_ind = configuration.get_random_noninteracting_vertex(true);
       delayed_spin.new_HS_spin_value = rng() > 0.5 ? HS_UP : HS_DN;
 
       delayed_spins.push_back(delayed_spin);
@@ -724,6 +731,74 @@ int CtauxWalker<device_t, parameters_type, MOMS_type>::generateDelayedSpinsAbort
   for (const auto& spin : delayed_spins)
     if (spin.HS_current_move == CREATION)
       configuration.unmarkAsAnnihilatable(spin.random_vertex_ind);
+
+  assert(single_spin_updates_proposed == num_creations + num_annihilations + num_statics);
+
+  return single_spin_updates_proposed;
+}
+
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
+int CtauxWalker<device_t, parameters_type, MOMS_type>::generateDelayedSpinsNeglectBennett(
+    const int single_spin_updates_left) {
+  assert(single_spin_updates_left > 0);
+
+  const int max_num_delayed_spins = parameters.get_max_submatrix_size();
+
+  delayed_spins.resize(0);
+
+  int num_creations = 0;
+  int num_annihilations = 0;
+  int num_statics = 0;
+  int single_spin_updates_proposed = 0;
+
+  const auto num_interacting_spins_initial = configuration.get_number_of_interacting_HS_spins();
+
+  while (configuration.get_number_of_creatable_HS_spins() > 0 &&
+         (num_interacting_spins_initial == 0 ||
+          configuration.get_number_of_interacting_HS_spins() > 0) &&
+         single_spin_updates_proposed < single_spin_updates_left &&
+         delayed_spins.size() < max_num_delayed_spins) {
+    delayed_spin_struct delayed_spin;
+    delayed_spin.is_accepted_move = false;
+    delayed_spin.is_a_bennett_spin = false;
+    delayed_spin.HS_current_move = get_new_HS_move();
+
+    if (delayed_spin.HS_current_move == ANNIHILATION) {
+      delayed_spin.new_HS_spin_value = HS_ZERO;
+
+      bool has_already_been_chosen = true;
+
+      while (has_already_been_chosen) {
+        delayed_spin.random_vertex_ind = configuration.get_random_interacting_vertex();
+        has_already_been_chosen = false;
+
+        for (const auto& other_spin : delayed_spins)
+          if (delayed_spin.random_vertex_ind == other_spin.random_vertex_ind) {
+            has_already_been_chosen = true;
+            break;
+          }
+      }
+
+      delayed_spins.push_back(delayed_spin);
+      ++num_annihilations;
+      ++single_spin_updates_proposed;
+    }
+
+    else if (delayed_spin.HS_current_move == CREATION) {
+      delayed_spin.random_vertex_ind = configuration.get_random_noninteracting_vertex(false);
+      delayed_spin.new_HS_spin_value = rng() > 0.5 ? HS_UP : HS_DN;
+
+      delayed_spins.push_back(delayed_spin);
+      ++num_creations;
+      ++single_spin_updates_proposed;
+    }
+
+    else {
+      assert(delayed_spin.HS_current_move == STATIC);
+      ++num_statics;
+      ++single_spin_updates_proposed;
+    }
+  }
 
   assert(single_spin_updates_proposed == num_creations + num_annihilations + num_statics);
 
