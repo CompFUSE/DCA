@@ -626,7 +626,8 @@ int CtauxWalker<device_t, parameters_type, MOMS_type>::generateDelayedSpinsAbort
     const int single_spin_updates_todo) {
   assert(single_spin_updates_todo > 0);
 
-  const int max_num_delayed_spins = parameters.get_max_submatrix_size();
+  const auto max_num_delayed_spins = parameters.get_max_submatrix_size();
+  const auto num_non_interacting_spins_initial = configuration.get_number_of_creatable_HS_spins();
 
   delayed_spins.resize(0);
 
@@ -677,7 +678,7 @@ int CtauxWalker<device_t, parameters_type, MOMS_type>::generateDelayedSpinsAbort
   }
 
   // Generate more delayed spins.
-  while (!annihilation_proposal_aborted_ && configuration.get_number_of_creatable_HS_spins() > 0 &&
+  while (!annihilation_proposal_aborted_ && num_creations < num_non_interacting_spins_initial &&
          single_spin_updates_proposed < single_spin_updates_todo &&
          delayed_spins.size() < max_num_delayed_spins) {
     delayed_spin_struct delayed_spin;
