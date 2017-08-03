@@ -64,8 +64,8 @@ public:
   void do_sweep();
 
   // Does one submatrix step.
-  // In/Out: single_spin_updates_left
-  void do_step(int& single_spin_updates_left);
+  // In/Out: single_spin_updates_todo
+  void do_step(int& single_spin_updates_todo);
 
   dca::linalg::Matrix<double, device_t>& get_N(e_spin_states_type e_spin);
   configuration_type& get_configuration();
@@ -81,15 +81,15 @@ public:
 private:
   void add_non_interacting_spins_to_configuration();
 
-  void generate_delayed_spins(int& single_spin_updates_left);
+  void generate_delayed_spins(int& single_spin_updates_todo);
 
   // Generate delayed single spin updates.
   // Return the total number of proposed single spin updates including 'static' steps.
   //
   // Version that aborts when a Bennett spin is proposed for removal.
-  int generateDelayedSpinsAbortAtBennett(int single_spin_updates_left);
+  int generateDelayedSpinsAbortAtBennett(int single_spin_updates_todo);
   // Version that neglects Bennett updates.
-  int generateDelayedSpinsNeglectBennett(int single_spin_updates_left);
+  int generateDelayedSpinsNeglectBennett(int single_spin_updates_todo);
 
   void finalizeDelayedSpins();
 
@@ -429,21 +429,21 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::do_sweep() {
           ? warm_up_expansion_order_.mean()
           : 1;
 
-  int single_spin_updates_left = single_spin_updates_per_sweep * sweeps_per_measurement;
+  int single_spin_updates_todo = single_spin_updates_per_sweep * sweeps_per_measurement;
 
-  while (single_spin_updates_left > 0) {
-    do_step(single_spin_updates_left);
+  while (single_spin_updates_todo > 0) {
+    do_step(single_spin_updates_todo);
   }
 
-  assert(single_spin_updates_left == 0);
+  assert(single_spin_updates_todo == 0);
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void CtauxWalker<device_t, parameters_type, MOMS_type>::do_step(int& single_spin_updates_left) {
+void CtauxWalker<device_t, parameters_type, MOMS_type>::do_step(int& single_spin_updates_todo) {
   add_non_interacting_spins_to_configuration();
 
   {
-    generate_delayed_spins(single_spin_updates_left);
+    generate_delayed_spins(single_spin_updates_todo);
 
     download_from_device();
 
@@ -604,17 +604,17 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::add_non_interacting_spin
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void CtauxWalker<device_t, parameters_type, MOMS_type>::generate_delayed_spins(
-    int& single_spin_updates_left) {
+    int& single_spin_updates_todo) {
   profiler_type profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
 
-  assert(single_spin_updates_left > 0);
+  assert(single_spin_updates_todo > 0);
 
   const auto single_spin_updates_proposed =
       parameters.neglect_bennett_updates()
-          ? generateDelayedSpinsNeglectBennett(single_spin_updates_left)
-          : generateDelayedSpinsAbortAtBennett(single_spin_updates_left);
+          ? generateDelayedSpinsNeglectBennett(single_spin_updates_todo)
+          : generateDelayedSpinsAbortAtBennett(single_spin_updates_todo);
 
-  single_spin_updates_left -= single_spin_updates_proposed;
+  single_spin_updates_todo -= single_spin_updates_proposed;
 
   num_delayed_spins_.addSample(delayed_spins.size());
 
@@ -623,8 +623,8 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::generate_delayed_spins(
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 int CtauxWalker<device_t, parameters_type, MOMS_type>::generateDelayedSpinsAbortAtBennett(
-    const int single_spin_updates_left) {
-  assert(single_spin_updates_left > 0);
+    const int single_spin_updates_todo) {
+  assert(single_spin_updates_todo > 0);
 
   const int max_num_delayed_spins = parameters.get_max_submatrix_size();
 
@@ -678,7 +678,7 @@ int CtauxWalker<device_t, parameters_type, MOMS_type>::generateDelayedSpinsAbort
 
   // Generate more delayed spins.
   while (!annihilation_proposal_aborted_ && configuration.get_number_of_creatable_HS_spins() > 0 &&
-         single_spin_updates_proposed < single_spin_updates_left &&
+         single_spin_updates_proposed < single_spin_updates_todo &&
          delayed_spins.size() < max_num_delayed_spins) {
     delayed_spin_struct delayed_spin;
     delayed_spin.is_accepted_move = false;
@@ -739,8 +739,8 @@ int CtauxWalker<device_t, parameters_type, MOMS_type>::generateDelayedSpinsAbort
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 int CtauxWalker<device_t, parameters_type, MOMS_type>::generateDelayedSpinsNeglectBennett(
-    const int single_spin_updates_left) {
-  assert(single_spin_updates_left > 0);
+    const int single_spin_updates_todo) {
+  assert(single_spin_updates_todo > 0);
 
   const int max_num_delayed_spins = parameters.get_max_submatrix_size();
 
@@ -756,7 +756,7 @@ int CtauxWalker<device_t, parameters_type, MOMS_type>::generateDelayedSpinsNegle
   while (configuration.get_number_of_creatable_HS_spins() > 0 &&
          (num_interacting_spins_initial == 0 ||
           configuration.get_number_of_interacting_HS_spins() > 0) &&
-         single_spin_updates_proposed < single_spin_updates_left &&
+         single_spin_updates_proposed < single_spin_updates_todo &&
          delayed_spins.size() < max_num_delayed_spins) {
     delayed_spin_struct delayed_spin;
     delayed_spin.is_accepted_move = false;
