@@ -86,8 +86,8 @@ public:
 
   // Unmarks the vertex vertex_index as annihilatable.
   // PRECONDITION: The vertex vertex_index is marked as annihilatable.
-  // INTERNAL: This is a temporary helper method to unmark all "virtual" interacting vertices. See
-  //           generate_delayed_spins in ctaux_walker.hpp.
+  // INTERNAL: This is a helper method to unmark all 'virtual' interacting vertices used by
+  //           CtauxWalker::generateDelayedSpinsAbortAtBennett.
   void unmarkAsAnnihilatable(const int vertex_index) {
     assert(configuration[vertex_index].is_annihilatable() == true);
     configuration[vertex_index].is_annihilatable() = false;
@@ -507,9 +507,9 @@ int CT_AUX_HS_configuration<parameters_type>::get_random_noninteracting_vertex()
   configuration[vertex_index].is_creatable() = false;
   current_Nb_of_creatable_spins -= 1;
 
-  // However, this "virtual" interacting spin is eligble for removal.
-  // INTERNAL: CtauxWalker::generate_delayed_spins unmarks all "virtual" interacting spins as
-  //           annihilatable after all delayed spins have been generated.
+  // However, this 'virtual' interacting spin is eligble for removal.
+  // INTERNAL: CtauxWalker::generateDelayedSpinsAbortAtBennett unmarks all 'virtual' interacting
+  //           spins as annihilatable when all delayed spins have been generated.
   configuration[vertex_index].is_annihilatable() = true;
   current_Nb_of_annihilatable_spins += 1;
 
