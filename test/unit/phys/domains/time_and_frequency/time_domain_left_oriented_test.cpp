@@ -25,7 +25,7 @@ TEST(TimeDomainLeftOriented, Basic) {
   const double beta = 4.;
   const int time_slices = 2;
   const double eps = 1.e-10;
-  time_domain::initialize(beta, time_slices);
+  time_domain::initialize(beta, time_slices, eps);
 
   // Check initialization of time_domain_left_oriented.
   time_domain_left_oriented::initialize();
