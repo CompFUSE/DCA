@@ -108,7 +108,7 @@
         "MC-posix-parameters": "threaded-solver" {
 	    "nr-walkers": "walkers",
 	    "nr-accumulators": "accumulators",
-	    "additional-steps": ,
+	    "additional-steps": DEPRECATED,
 	    "HTS-threads": ("DCA"/"DCA+")
 	}
     },

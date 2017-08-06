@@ -8,6 +8,8 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
 // This class reads, stores, and writes the Monte Carlo Integration (MCI) parameters.
+//
+// TODO: Remove "additional-steps" parameter.
 
 #ifndef DCA_PHYS_PARAMETERS_MCI_PARAMETERS_HPP
 #define DCA_PHYS_PARAMETERS_MCI_PARAMETERS_HPP

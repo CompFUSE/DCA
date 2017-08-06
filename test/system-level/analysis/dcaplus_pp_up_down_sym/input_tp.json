@@ -73,8 +73,7 @@
         
     	"threaded-solver": {
             "walkers": 8,
-            "accumulators": 14,
-	    "additional-steps": 0
+            "accumulators": 14
 	}
     },
 
