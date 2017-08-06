@@ -52,7 +52,7 @@ TEST(Dnfft1DTest, CubicInterpolation) {
   dca::phys::domains::frequency_domain::initialize(beta, positive_frequencies);
 
   // Prepare random samples.
-  dca::math::random::StdRandomWrapper<std::ranlux48_base> rng(0, 1, 0);
+  dca::math::random::StdRandomWrapper<std::mt19937_64> rng(0, 1, 0);
   const int samples = 1e4;
 
   std::vector<double> t(samples);

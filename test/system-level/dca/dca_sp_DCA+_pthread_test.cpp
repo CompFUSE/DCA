@@ -49,7 +49,7 @@ TEST(dca_sp_DCAplus_pthread, Self_energy) {
   std::cin >> c;
 #endif  // ATTACH_DEBUG
 
-  using RngType = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
+  using RngType = dca::math::random::StdRandomWrapper<std::mt19937_64>;
   using DcaPointGroupType = dca::phys::domains::D4;
   using LatticeType = dca::phys::models::square_lattice<DcaPointGroupType>;
   using ModelType = dca::phys::models::TightBindingModel<LatticeType>;
