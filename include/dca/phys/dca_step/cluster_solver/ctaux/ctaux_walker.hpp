@@ -14,6 +14,7 @@
 
 #include <cassert>
 #include <cstdint>  // uint64_t
+#include <cstdlib>  // std::size_t
 #include <cmath>
 #include <stdexcept>
 #include <vector>
@@ -60,10 +61,13 @@ public:
   bool& is_thermalized();
 
   // Does one sweep, if the walker is not yet thermalized (warm-up).
-  // Otherwise, does multiple sweeps, according to the input parameter "sweeps-per-measurement".
+  // Otherwise, does multiple sweeps according to the input parameter "sweeps-per-measurement".
   void do_sweep();
 
-  // Does one submatrix step.
+  // Does one submatrix step of at most single_spin_updates_todo single spin updates.
+  // Precondition: single_spin_updates_todo > 0
+  // Postcondition: single_spin_updates_todo has been updated according to the executed submatrix
+  //                update.
   // In/Out: single_spin_updates_todo
   void do_step(int& single_spin_updates_todo);
 
@@ -83,9 +87,8 @@ private:
 
   void generate_delayed_spins(int& single_spin_updates_todo);
 
-  // Generate delayed single spin updates.
-  // Return the total number of proposed single spin updates including 'static' steps.
-  //
+  // Generates delayed single spin updates.
+  // Returns the total number of proposed single spin updates including "static" steps.
   // Version that aborts when a Bennett spin is proposed for removal.
   int generateDelayedSpinsAbortAtBennett(int single_spin_updates_todo);
   // Version that neglects Bennett updates.
@@ -371,7 +374,7 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::initialize() {
   number_of_annihilations = 0;
 
   annihilation_proposal_aborted_ = false;
-  aborted_vertex_id_ = 0;
+  // aborted_vertex_id_ = 0;
 
   sign = 1;
 
@@ -421,15 +424,15 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::initialize() {
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void CtauxWalker<device_t, parameters_type, MOMS_type>::do_sweep() {
-  const int sweeps_per_measurement = thermalized ? parameters.get_sweeps_per_measurement() : 1;
+  const int sweeps_per_measurement{thermalized ? parameters.get_sweeps_per_measurement() : 1};
 
   // Do at least one single spin update per sweep.
-  const int single_spin_updates_per_sweep =
-      warm_up_expansion_order_.count() > 0 && warm_up_expansion_order_.mean() > 1.
-          ? warm_up_expansion_order_.mean()
-          : 1;
+  const int single_spin_updates_per_sweep{warm_up_expansion_order_.count() > 0 &&
+                                                  warm_up_expansion_order_.mean() > 1.
+                                              ? static_cast<int>(warm_up_expansion_order_.mean())
+                                              : 1};
 
-  int single_spin_updates_todo = single_spin_updates_per_sweep * sweeps_per_measurement;
+  int single_spin_updates_todo{single_spin_updates_per_sweep * sweeps_per_measurement};
 
   while (single_spin_updates_todo > 0) {
     do_step(single_spin_updates_todo);
@@ -615,6 +618,7 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::generate_delayed_spins(
           : generateDelayedSpinsAbortAtBennett(single_spin_updates_todo);
 
   single_spin_updates_todo -= single_spin_updates_proposed;
+  assert(single_spin_updates_todo >= 0);
 
   num_delayed_spins_.addSample(delayed_spins.size());
 

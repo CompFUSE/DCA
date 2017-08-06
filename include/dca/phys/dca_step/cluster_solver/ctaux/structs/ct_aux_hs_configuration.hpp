@@ -14,6 +14,7 @@
 
 #include <cassert>
 #include <cstdint>  // uint64_t
+#include <cstdlib>  // std::size_t
 #include <iostream>
 #include <stdexcept>
 #include <vector>
@@ -49,7 +50,8 @@ public:
 
   void reset();
 
-  // Creates an initial configuration with 'initial-configuration-size' random interacting vertices.
+  // Creates an initial configuration with "initial-configuration-size" (input parameter) random
+  // interacting vertices.
   void initialize();
   void shuffle_noninteracting_vertices();
   void update_configuration_e_spin(vertex_pair_type& vertex_pair);
@@ -74,6 +76,10 @@ public:
   int get_number_of_creatable_HS_spins();
 
   int get_random_interacting_vertex();
+
+  // Returns the index of a random non-interacting vertex.
+  // If mark_annihilatable = true, marks this vertex as annihilatable such that it can be chosen in
+  // a later annihilation proposal.
   int get_random_noninteracting_vertex(bool mark_annihilatable);
 
   // debug tools
@@ -85,9 +91,9 @@ public:
   bool assert_consistency();
 
   // Unmarks the vertex vertex_index as annihilatable.
-  // PRECONDITION: The vertex vertex_index is marked as annihilatable.
-  // INTERNAL: This is a helper method to unmark all 'virtual' interacting vertices used by
-  //           CtauxWalker::generateDelayedSpinsAbortAtBennett.
+  // Precondition: The vertex vertex_index is marked as annihilatable.
+  // INTERNAL: This is a helper method to unmark all "virtual" interacting vertices, that have
+  //           temporarily been marked as annihilatable by get_random_noninteracting_vertex.
   void unmarkAsAnnihilatable(const int vertex_index) {
     assert(configuration[vertex_index].is_annihilatable() == true);
     configuration[vertex_index].is_annihilatable() = false;
@@ -248,12 +254,10 @@ void CT_AUX_HS_configuration<parameters_type>::shuffle_noninteracting_vertices()
   while (current_Nb_of_creatable_spins < max_num_noninteracting_spins_) {
     vertex_pair_type vertex(parameters, rng, configuration.size(), configuration_e_DN.size(),
                             configuration_e_UP.size(), next_vertex_id_++);
-
     vertex.set_random_noninteracting();
 
+    ++current_Nb_of_creatable_spins;
     configuration.push_back(vertex);
-    current_Nb_of_creatable_spins += 1;
-
     update_configuration_e_spin(configuration.back());
   }
 
@@ -503,16 +507,16 @@ int CT_AUX_HS_configuration<parameters_type>::get_random_noninteracting_vertex(b
   assert(vertex_index < size());
   assert(!configuration[vertex_index].is_Bennett());
 
-  // Make sure that this spin won't be proposed again for insertion.
+  // Make sure that this spin will not be proposed for insertion again.
   configuration[vertex_index].is_creatable() = false;
-  current_Nb_of_creatable_spins -= 1;
+  --current_Nb_of_creatable_spins;
 
   if (mark_annihilatable) {
-    // However, this 'virtual' interacting spin is eligble for removal.
-    // INTERNAL: CtauxWalker::generateDelayedSpinsAbortAtBennett unmarks all 'virtual' interacting
+    // However, this "virtual" interacting spin is eligible for removal.
+    // INTERNAL: CtauxWalker::generateDelayedSpinsAbortAtBennett unmarks the "virtual" interacting
     //           spins as annihilatable when all delayed spins have been generated.
     configuration[vertex_index].is_annihilatable() = true;
-    current_Nb_of_annihilatable_spins += 1;
+    ++current_Nb_of_annihilatable_spins;
   }
 
   return vertex_index;
