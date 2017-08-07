@@ -2,6 +2,7 @@
 #
 #SBATCH --job-name="DCA++_APPLICATION_U=HUBBARDU_d=DENS_Nc=SIZE"
 #SBATCH --nodes=NODES
+#SBATCH --ntasks-per-core=2
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=24
 #SBATCH --time=WALLTIME

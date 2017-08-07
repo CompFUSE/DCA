@@ -1,7 +1,8 @@
 #!/bin/bash
 
 mpirun=
-# export OMP_NUM_THREADS=1
+
+# export OMP_NUM_THREADS=8
 
 date
 

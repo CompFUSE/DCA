@@ -1,8 +1,8 @@
 # Creates directories, input files and batch scripts for a cooldown, i.e. a series of dca/analysis
 # runs with gradually decreased temperature.
 # By default this script and the provided template input files (input_sp.json.in and
-# input_sp.json.in) are configured for the single-band Hubbard model with on-site Coulomb repulsion
-# (U) and simulations in the grand-canonical ensemble with fixed density.
+# input_sp.json.in) are configured for the single-band Hubbard model with on-site Coulomb
+# repulsion U and simulations in the grand-canonical ensemble with fixed density d.
 #
 # See https://github.com/eth-cscs/dca_ethz/wiki/Running for details on how to use this script.
 #
