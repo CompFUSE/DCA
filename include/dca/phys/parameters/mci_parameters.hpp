@@ -59,6 +59,9 @@ public:
   int get_measurements_per_process_and_accumulator() const {
     return measurements_per_process_and_accumulator_;
   }
+  void set_measurements_per_process_and_accumulator(const int measurements) {
+    measurements_per_process_and_accumulator_ = measurements;
+  }
   int get_walkers() const {
     return walkers_;
   }

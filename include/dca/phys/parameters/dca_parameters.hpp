@@ -61,6 +61,9 @@ public:
   int get_dca_iterations() const {
     return dca_iterations_;
   }
+  void set_dca_iterations(const int iterations) {
+    dca_iterations_ = iterations;
+  }
   double get_dca_accuracy() const {
     return dca_accuracy_;
   }
