@@ -443,6 +443,12 @@ void DcaData<parameters_type>::initialize_G0() {
   // Compute G0_r_t.
   math::transform::FunctionTransform<k_DCA, r_DCA>::execute(G0_k_t, G0_r_t);
   symmetrize::execute(G0_r_t, H_symmetry, true);
+
+  // Initialize the cluster excluded Green's function to the value of G0.
+  G0_k_w_cluster_excluded = G0_k_w;
+  G0_k_t_cluster_excluded = G0_k_t;
+  G0_r_w_cluster_excluded = G0_r_w;
+  G0_r_t_cluster_excluded = G0_r_t;
 }
 
 template <class parameters_type>
