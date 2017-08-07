@@ -21,8 +21,8 @@
         },
 
         "real-frequency": {
-            "min": -8,
-            "max": 8,
+            "min": -8.,
+            "max": 8.,
             "frequencies": 128,
             "imaginary-damping": 0.001
         }
