@@ -1,86 +1,90 @@
 {
     "output": {
-	"directory": "./T=CURRENT_TEMP/",
-	"output-format": "HDF5",
-	"filename-dca": "dca_sp.hdf5",
-	"dump-lattice-self-energy": false,
-	"dump-cluster-Greens-functions": false
+        "directory": "./T=CURRENT_TEMP/",
+        "output-format": "HDF5",
+        "filename-dca": "dca_sp.hdf5",
+        "filename-profiling": "profiling.json",
+        "dump-lattice-self-energy": false,
+        "dump-cluster-Greens-functions": false
     },
 
     "physics": {
-	"beta": BETA,
-	"density": DENS,
-	"chemical-potential": 0.,
-	"adjust-chemical-potential": true
+        "beta": BETA,
+        "density": DENS,
+        "chemical-potential": 0.,
+        "adjust-chemical-potential": true
     },
 
     "single-band-Hubbard-model": {
         "t": 1.,
-	"U": HUBBARDU
+        "U": HUBBARDU
     },
 
     "DCA": {
-	"initial-self-energy": "./T=PREVIOUS_TEMP/dca_sp.hdf5",
-	"iterations": ITERS,
-	"accuracy": 0.,
-	"self-energy-mixing-factor": 0.75,
-	"interacting-orbitals": [0],
-	
-	"coarse-graining": {
-	    "k-mesh-recursion": 3,
-	    "periods": 0,
-	    "quadrature-rule": 1,
-	    "threads": 1,
-	    "tail-frequencies": 0
-	},
-        
-	"DCA+": {
-	    "do-DCA+": DO_DCA_PLUS,
-	    "deconvolution-iterations": 16,
-	    "deconvolution-tolerance": 1.e-3,
+        "initial-self-energy": "./T=PREVIOUS_TEMP/dca_sp.hdf5",
+        "iterations": ITERS,
+        "accuracy": 0.,
+        "self-energy-mixing-factor": 0.75,
+        "interacting-orbitals": [0],
+
+        "do-finite-size-QMC": false,
+
+        "coarse-graining": {
+            "k-mesh-recursion": 3,
+            "periods": 0,
+            "quadrature-rule": 1,
+            "threads": 1,
+            "tail-frequencies": 0
+        },
+
+        "DCA+": {
+            "do-DCA+": DO_DCA_PLUS,
+            "deconvolution-iterations": 16,
+            "deconvolution-tolerance": 1.e-3,
             "HTS-approximation": false,
             "HTS-threads": 1
-	}
+        }
     },
-    
+
     "domains": {
-	"real-space-grids": {
-	    "cluster": [VEC1,
-	    	        VEC2],
-	    "sp-host": [[10, 10],
-		        [10,-10]],
-	    "tp-host": [[2, 0],
-		        [0, 2]]
-	},
-        
-	"imaginary-time": {
-	    "sp-time-intervals": 128,
-	    "time-intervals-for-time-measurements": 16
-	},
-	
-	"imaginary-frequency": {
-	    "sp-fermionic-frequencies": 256,
+        "real-space-grids": {
+            "cluster": [VEC1,
+                        VEC2],
+            "sp-host": [[10, 10],
+                        [10,-10]],
+            "tp-host": [[2, 0],
+                        [0, 2]]
+        },
+
+        "imaginary-time": {
+            "sp-time-intervals": 128,
+            "time-intervals-for-time-measurements": 16
+        },
+
+        "imaginary-frequency": {
+            "sp-fermionic-frequencies": 256,
             "HTS-bosonic-frequencies": 32
-	}
+        }
     },
 
     "Monte-Carlo-integration": {
         "seed": 985456376,
-	"warm-up-sweeps": 25,
-    	"sweeps-per-measurement": 1.,
-	"measurements-per-process-and-accumulator": 400,
-        
-    	"threaded-solver": {
+        "warm-up-sweeps": 20,
+        "sweeps-per-measurement": 1.,
+        "measurements-per-process-and-accumulator": 400,
+
+        "threaded-solver": {
             "walkers": 8,
-            "accumulators": 14,
-	    "additional-steps": 0
-	}
+            "accumulators": 14
+        }
     },
 
     "CT-AUX": {
-	"expansion-parameter-K": 150.,
-	"initial-matrix-size": 64,
-	"submatrix-size": 16,
-	"additional-time-measurements": false
+        "expansion-parameter-K": 150.,
+        "initial-configuration-size": 10,
+        "initial-matrix-size": 64,
+        "max-submatrix-size": 64,
+        "neglect-Bennett-updates": false,
+        "additional-time-measurements": false
     }
 }
