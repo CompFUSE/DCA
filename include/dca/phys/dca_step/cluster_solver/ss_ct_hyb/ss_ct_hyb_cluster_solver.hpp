@@ -88,10 +88,8 @@ public:
   void write(Writer& writer);
 
   // For testing purposes.
-  // TODO: Const correctness.
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& get_GS_r_w() {
-    return accumulator.get_GS_r_w();
-  }
+  auto onNode_GS_r_w();
+  auto onNode_G_k_w();
 
 protected:
   void warm_up(walker_type& walker);
@@ -556,6 +554,21 @@ void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::find_tail_of_Si
   S0 = real(Sigma_new(b, s, b, s, k, w::dmn_size() / 2 + w_cutoff - 1));
   S1 = imag(Sigma_new(b, s, b, s, k, w::dmn_size() / 2 + w_cutoff - 1)) *
        w::parameter_type::get_elements()[w::dmn_size() / 2 + w_cutoff - 1];
+}
+
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
+auto SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::onNode_GS_r_w() {
+    auto GS_r_w = accumulator.get_GS_r_w();
+    GS_r_w /= accumulator.get_sign();
+    return GS_r_w;
+}
+
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
+auto SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::onNode_G_k_w() {
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>> G_k_w;
+  math::transform::FunctionTransform<r_DCA, k_DCA>::execute(accumulator.get_G_r_w(), G_k_w);
+  G_k_w /= accumulator.get_sign();
+  return G_k_w;
 }
 
 }  // solver
