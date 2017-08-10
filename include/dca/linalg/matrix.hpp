@@ -52,31 +52,30 @@ public:
   Matrix(std::pair<int, int> size, std::pair<int, int> capacity);
   Matrix(const std::string& name, std::pair<int, int> size, std::pair<int, int> capacity);
 
-  // Copy constructor:
-  // Constructs a matrix with the the provided name and a copy of capacity, size, elements.
+  // Copy and move constructor:
+  // Constructs a matrix with name name, size rhs.size() and a copy of the elements of rhs.
   Matrix(const Matrix<ScalarType, device_name>& rhs, const std::string& name = default_name_);
-  // Move constructor:
-  // Constructs a matrix with the provided name and a copy of capacity and size. The elements are
-  // moved.
-  // Postcondition: usage of rhs is undefined behaviour.
+  // Constructs a matrix with name name, size rhs.size(). The elements of rhs are moved.
+  // Postcondition: rhs is empty.
   Matrix(Matrix<ScalarType, device_name>&& rhs, const std::string& = default_name_);
 
-  // Constructs a matrix on the device device_name from a copy of a matrix on rhs_device_name. See
-  // copy constructor for a definition of copy.
+  // Contructs a matrix with name name, size rhs.size() and a copy of the elements of rhs, where rhs
+  // elements are stored on a different device.
   template <DeviceType rhs_device_name>
   Matrix(const Matrix<ScalarType, rhs_device_name>& rhs, const std::string& = default_name_);
 
   ~Matrix();
 
-  // Assignment operator:
-  // Copies size, capacity and entries but not the name.
+  // Assignment operators:
+  // Resizes the matrix to rhs.size() and copy the elements of rhs.
+  // Postcondition: The name of the matrix is unchanged.
   Matrix<ScalarType, device_name>& operator=(const Matrix<ScalarType, device_name>& rhs);
-  // Move assignment:
-  // Copies size, capacity and moves the entries. The name is unchanged.
-  // Postcondition: usage of rhs is undefined behaviour.
+  // Resizes the matrix to rhs.size() and move the elements of rhs.
+  // Postcondition: The name of the matrix is unchanged; rhs is empty.
   Matrix<ScalarType, device_name>& operator=(Matrix<ScalarType, device_name>&& rhs);
 
-  // Copies size and entries of a matrix located on a different device.
+  // Resizes the matrix to rhs.size() and copy the elements, stored on a different device, of rhs.
+  // Postcondition: The name of the matrix is unchanged.
   template <DeviceType rhs_device_name>
   Matrix<ScalarType, device_name>& operator=(const Matrix<ScalarType, rhs_device_name>& rhs);
 
@@ -100,7 +99,6 @@ public:
   std::enable_if_t<device_name == CPU && dn == CPU, ScalarType&> operator()(int i, int j) {
     assert(i >= 0 && i < size_.first);
     assert(j >= 0 && j < size_.second);
-    assert(data_ != nullptr);
     return data_[i + j * leadingDimension()];
   }
   template <DeviceType dn = device_name>
@@ -130,13 +128,11 @@ public:
   ValueType* ptr(int i, int j) {
     assert(i >= 0 && i < size_.first);
     assert(j >= 0 && j < size_.second);
-    assert(data_ != nullptr);
     return data_ + i + j * leadingDimension();
   }
   const ValueType* ptr(int i, int j) const {
     assert(i >= 0 && i < size_.first);
     assert(j >= 0 && j < size_.second);
-    assert(data_ != nullptr);
     return data_ + i + j * leadingDimension();
   }
 
@@ -283,6 +279,8 @@ Matrix<ScalarType, device_name>::Matrix(const Matrix<ScalarType, device_name>& r
 template <typename ScalarType, DeviceType device_name>
 Matrix<ScalarType, device_name>::Matrix(Matrix<ScalarType, device_name>&& rhs, const std::string& name)
     : name_(name), size_(rhs.size_), capacity_(rhs.capacity_), data_(rhs.data_) {
+  rhs.capacity_ = std::make_pair(0, 0);
+  rhs.size_ = std::make_pair(0, 0);
   rhs.data_ = nullptr;
 }
 
@@ -336,8 +334,9 @@ Matrix<ScalarType, device_name>& Matrix<ScalarType, device_name>::operator=(
   if (this != &rhs) {
     size_ = rhs.size_;
     capacity_ = rhs.capacity_;
-    data_ = rhs.data_;
-    rhs.data_ = nullptr;
+    rhs.capacity_ = std::make_pair(0, 0);
+    rhs.size_ = std::make_pair(0, 0);
+    std::swap(data_, rhs.data_);
   }
   return *this;
 }

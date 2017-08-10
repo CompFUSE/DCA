@@ -179,9 +179,8 @@ TEST(MatrixGPUTest, MoveConstructor) {
     for (int i = 0; i < mat.nrRows(); ++i)
       EXPECT_EQ(testing::getFromDevice(mat_copy.ptr(i, j)), testing::getFromDevice(thief.ptr(i, j)));
 
-  // The original matrix is left without a valid state.
-  EXPECT_EQ(nullptr, mat.ptr());
-  EXPECT_DEBUG_DEATH(mat.ptr(0, 1), "Assertion .* failed.");
+  // The original matrix is empty.
+  EXPECT_EQ(0, mat.nrRows());
 }
 
 TEST(MatrixGPUTest, Assignement) {
@@ -238,15 +237,18 @@ TEST(MatrixGPUTest, MoveAssignement) {
   testing::setMatrixElements(mat, el_value);
   MatrixType mat_copy(mat);
 
-  MatrixType thief;
+  MatrixType thief("thief name");
   thief = std::move(mat);
 
-  EXPECT_EQ(nullptr, mat.ptr());
+  EXPECT_EQ("thief name", thief.get_name());
 
   EXPECT_EQ(mat_copy.size(), thief.size());
   for (int j = 0; j < mat_copy.nrCols(); ++j)
     for (int i = 0; i < mat_copy.nrRows(); ++i)
       EXPECT_EQ(testing::getFromDevice(mat_copy.ptr(i, j)), testing::getFromDevice(thief.ptr(i, j)));
+
+  // mat is now empty.
+  EXPECT_EQ(0, mat.nrRows());
 
   // Test chain assignment
   MatrixType another_copy;
@@ -325,6 +327,31 @@ TEST(MatrixGPUTest, Swap) {
   EXPECT_EQ(mat1_ptr, mat2.ptr());
 
   EXPECT_EQ(mat2_name, mat2.get_name());
+  EXPECT_EQ(mat2_size, mat1.size());
+  EXPECT_EQ(mat2_capacity, mat1.capacity());
+  EXPECT_EQ(mat2_ptr, mat1.ptr());
+}
+
+TEST(MatrixCPUTest, SwapWithName) {
+  std::string mat1_name = "name 1";
+  std::pair<int, int> mat1_size(7, 8);
+  dca::linalg::Matrix<float, dca::linalg::GPU> mat1(mat1_name, mat1_size);
+  auto mat1_capacity = mat1.capacity();
+  auto mat1_ptr = mat1.ptr();
+
+  std::string mat2_name = "name 2";
+  std::pair<int, int> mat2_size(2, 128);
+  dca::linalg::Matrix<float, dca::linalg::GPU> mat2(mat2_name, mat2_size);
+  auto mat2_capacity = mat2.capacity();
+  auto mat2_ptr = mat2.ptr();
+
+  mat1.swapWithName(mat2);
+  EXPECT_EQ(mat1_name, mat2.get_name());
+  EXPECT_EQ(mat1_size, mat2.size());
+  EXPECT_EQ(mat1_capacity, mat2.capacity());
+  EXPECT_EQ(mat1_ptr, mat2.ptr());
+
+  EXPECT_EQ(mat2_name, mat1.get_name());
   EXPECT_EQ(mat2_size, mat1.size());
   EXPECT_EQ(mat2_capacity, mat1.capacity());
   EXPECT_EQ(mat2_ptr, mat1.ptr());

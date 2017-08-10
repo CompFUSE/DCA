@@ -222,9 +222,9 @@ TEST(MatrixCPUTest, MoveConstructor) {
   MatrixType mat_thief(std::move(mat), "thief matrix");
   EXPECT_EQ(mat_copy, mat_thief);
   EXPECT_EQ("thief matrix", mat_thief.get_name());
-  // The original matrix is left without a valid state.
-  EXPECT_EQ(nullptr, mat.ptr());
-  EXPECT_DEBUG_DEATH(mat(0, 1), "Assertion .* failed.");
+  // The original matrix is now empty.
+  EXPECT_EQ(0, mat.nrRows());
+  EXPECT_DEBUG_DEATH(mat(0, 0), "Assertion .* failed.");
 }
 
 TEST(MatrixCPUTest, Assignement) {
@@ -281,11 +281,12 @@ TEST(MatrixCPUTest, MoveAssignement) {
   testing::setMatrixElements(mat, el_value);
   MatrixType mat_copy(mat);
 
-  MatrixType thief;
+  MatrixType thief("thief name");
   thief = std::move(mat);
 
   EXPECT_EQ(mat_copy, thief);
-  EXPECT_EQ(nullptr, mat.ptr());
+  EXPECT_EQ("thief name", thief.get_name());
+  EXPECT_EQ(0, mat.nrRows());
 
   // Test chain assignment
   MatrixType another_copy;
