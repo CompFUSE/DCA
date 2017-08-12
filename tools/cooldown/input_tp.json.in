@@ -71,21 +71,21 @@
 
     "Monte-Carlo-integration": {
         "seed": 985456376,
-        "warm-up-sweeps": 20,
+        "warm-up-sweeps": 100,
         "sweeps-per-measurement": 4.,
-        "measurements-per-process-and-accumulator": 400,
+        "measurements-per-process-and-accumulator": 1000,
 
         "threaded-solver": {
-            "walkers": 8,
-            "accumulators": 14
+            "walkers": 3,
+            "accumulators": 5
         }
     },
 
     "CT-AUX": {
-        "expansion-parameter-K": 150.,
+        "expansion-parameter-K": 1.,
         "initial-configuration-size": 10,
-        "initial-matrix-size": 64,
-        "max-submatrix-size": 64,
+        "initial-matrix-size": 16,
+        "max-submatrix-size": 16,
         "neglect-Bennett-updates": false,
         "additional-time-measurements": false
     },
