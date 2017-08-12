@@ -1,11 +1,11 @@
 #!/bin/bash -l
 #
 #SBATCH --job-name="DCA++_APPLICATION_U=HUBBARDU_d=DENS_Nc=SIZE"
-#SBATCH --nodes=NODES
+#SBATCH --nodes=1
 #SBATCH --ntasks-per-core=2
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=24
-#SBATCH --time=WALLTIME
+#SBATCH --time=01:00:00
 #SBATCH --constraint=gpu
 #SBATCH --output=out.APPLICATION_U=HUBBARDU_d=DENS_Nc=SIZE.%j.txt
 #SBATCH --error=err.APPLICATION_U=HUBBARDU_d=DENS_Nc=SIZE.%j.txt

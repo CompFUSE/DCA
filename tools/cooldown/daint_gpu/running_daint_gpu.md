@@ -1,16 +1,16 @@
 # Piz Daint (GPU) cooldown and running instructions
 
-**Required modifications** in <tt>cooldown.py</tt>:
+1. Set `"walkers"` and `"accumulators"` in `input_sp.json.in` and `input_tp.json.in` such that **walkers + accumulators = 22**, e.g.:
 
-	batch_tmpl = "job_daint_gpu.slm"  # Add path if necessary.
-	run_command = "srun -n $SLURM_NTASKS --ntasks-per-core=$SLURM_NTASKS_PER_CORE --ntasks-per-node=$SLURM_NTASKS_PER_NODE -c $SLURM_CPUS_PER_TASK"
+        "walkers": 8
+        "accumulators": 14
 
-Specify **resources** (number of nodes and walltime) in <tt>cooldown.py</tt>:
+2. **Required modifications** in <tt>cooldown.py</tt>:
 
-	nodes = ...
-	walltime = ...
+    * `batch_tmpl = "job_daint_gpu.slm"` (Add path if necessary.)
+    * `run_command_dca = "srun -n $SLURM_NTASKS --ntasks-per-core=$SLURM_NTASKS_PER_CORE --ntasks-per-node=$SLURM_NTASKS_PER_NODE -c $SLURM_CPUS_PER_TASK"`
 
-On Piz Daint (GPU) we recommend using **1 MPI task per node**, setting **OMP\_NUM\_THREADS = 12**, and running **22 threads** in the Monte Carlo solver to leave space for the OS. Accordingly, `"walkers"` and `"accumulators"` need to be set in `input_sp.json.in` and `input_tp.json.in` such that **walkers + accumulators = 22**, e.g.
-
-	"walkers": 8
-	"accumulators": 14
+3. Specify **resources**, i.e. number of nodes and walltime, in the generated batch scripts before submitting them:
+    
+        #SBATCH --nodes= ...
+        #SBATCH --time= ...
