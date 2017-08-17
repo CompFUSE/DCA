@@ -250,14 +250,9 @@ TEST(MatrixGPUTest, MoveAssignement) {
   // mat is now empty.
   EXPECT_EQ(0, mat.nrRows());
 
-  // Test chain assignment
-  MatrixType another_copy;
-  another_copy = mat = std::move(thief);
-
-  for (int j = 0; j < mat_copy.nrCols(); ++j)
-    for (int i = 0; i < mat_copy.nrRows(); ++i)
-      EXPECT_EQ(testing::getFromDevice(mat_copy.ptr(i, j)),
-                testing::getFromDevice(another_copy.ptr(i, j)));
+  // Test return value.
+  const MatrixType* const mat_ptr = &mat;
+  EXPECT_EQ(mat_ptr, &(mat = std::move(thief)));
 }
 
 TEST(MatrixGPUTest, Set) {

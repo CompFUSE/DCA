@@ -56,7 +56,7 @@ public:
   // Constructs a matrix with name name, size rhs.size() and a copy of the elements of rhs.
   Matrix(const Matrix<ScalarType, device_name>& rhs, const std::string& name = default_name_);
   // Constructs a matrix with name name, size rhs.size(). The elements of rhs are moved.
-  // Postcondition: rhs is empty.
+  // Postcondition: rhs is a (0 x 0) matrix.
   Matrix(Matrix<ScalarType, device_name>&& rhs, const std::string& = default_name_);
 
   // Contructs a matrix with name name, size rhs.size() and a copy of the elements of rhs, where rhs
@@ -71,7 +71,7 @@ public:
   // Postcondition: The name of the matrix is unchanged.
   Matrix<ScalarType, device_name>& operator=(const Matrix<ScalarType, device_name>& rhs);
   // Resizes the matrix to rhs.size() and move the elements of rhs.
-  // Postcondition: The name of the matrix is unchanged; rhs is empty.
+  // Postcondition: The name of the matrix is unchanged; rhs is a (0 x 0) matrix.
   Matrix<ScalarType, device_name>& operator=(Matrix<ScalarType, device_name>&& rhs);
 
   // Resizes the matrix to rhs.size() and copy the elements, stored on a different device, of rhs.
@@ -185,9 +185,9 @@ public:
   // if new_size.first <= capacity().first and new_size.second <= capacity().second.
   void resizeNoCopy(std::pair<int, int> new_size);
 
-  // Swaps matrix shapes and entries. Do not swap names.
+  // Swaps the contents of the matrix except the name with those of rhs.
   void swap(Matrix<ScalarType, device_name>& rhs);
-  // Performs a matrix swap plus a swap of the names.
+  // Swaps the contents of the matrix, included the name, with those of rhs.
   void swapWithName(Matrix<ScalarType, device_name>& rhs);
 
   // Asynchronous assignement (copy with stream = getStream(thread_id, stream_id))

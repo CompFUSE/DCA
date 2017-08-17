@@ -288,11 +288,9 @@ TEST(MatrixCPUTest, MoveAssignement) {
   EXPECT_EQ("thief name", thief.get_name());
   EXPECT_EQ(0, mat.nrRows());
 
-  // Test chain assignment
-  MatrixType another_copy;
-  another_copy = mat = std::move(thief);
-
-  EXPECT_EQ(mat_copy, another_copy);
+  // Test return value.
+  const MatrixType* const mat_ptr = &mat;
+  EXPECT_EQ(mat_ptr, &(mat = std::move(thief)));
 }
 
 TEST(MatrixCPUTest, Set) {
