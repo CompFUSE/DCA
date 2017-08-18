@@ -41,9 +41,9 @@ public:
   template <typename Concurrency>
   int getBufferSize(const Concurrency& concurrency) const;
   template <typename Concurrency>
-  void pack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
+  void pack(const Concurrency& concurrency, char* buffer, int buffer_size, int& position) const;
   template <typename Concurrency>
-  void unpack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position);
+  void unpack(const Concurrency& concurrency, char* buffer, int buffer_size, int& position);
 
   template <typename ReaderOrWriter>
   void readWrite(ReaderOrWriter& reader_or_writer);
@@ -81,7 +81,7 @@ int McSolverParameters<solver::CT_AUX>::getBufferSize(const Concurrency& concurr
 }
 
 template <typename Concurrency>
-void McSolverParameters<solver::CT_AUX>::pack(const Concurrency& concurrency, int* buffer,
+void McSolverParameters<solver::CT_AUX>::pack(const Concurrency& concurrency, char* buffer,
                                               int buffer_size, int& position) const {
   concurrency.pack(buffer, buffer_size, position, expansion_parameter_K_);
   concurrency.pack(buffer, buffer_size, position, initial_matrix_size_);
@@ -90,7 +90,7 @@ void McSolverParameters<solver::CT_AUX>::pack(const Concurrency& concurrency, in
 }
 
 template <typename Concurrency>
-void McSolverParameters<solver::CT_AUX>::unpack(const Concurrency& concurrency, int* buffer,
+void McSolverParameters<solver::CT_AUX>::unpack(const Concurrency& concurrency, char* buffer,
                                                 int buffer_size, int& position) {
   concurrency.unpack(buffer, buffer_size, position, expansion_parameter_K_);
   concurrency.unpack(buffer, buffer_size, position, initial_matrix_size_);
@@ -141,9 +141,9 @@ public:
   template <typename Concurrency>
   int getBufferSize(const Concurrency& concurrency) const;
   template <typename Concurrency>
-  void pack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
+  void pack(const Concurrency& concurrency, char* buffer, int buffer_size, int& position) const;
   template <typename Concurrency>
-  void unpack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position);
+  void unpack(const Concurrency& concurrency, char* buffer, int buffer_size, int& position);
 
   template <typename ReaderOrWriter>
   void readWrite(ReaderOrWriter& reader_or_writer);
@@ -176,7 +176,7 @@ int McSolverParameters<solver::SS_CT_HYB>::getBufferSize(const Concurrency& conc
 }
 
 template <typename Concurrency>
-void McSolverParameters<solver::SS_CT_HYB>::pack(const Concurrency& concurrency, int* buffer,
+void McSolverParameters<solver::SS_CT_HYB>::pack(const Concurrency& concurrency, char* buffer,
                                                  int buffer_size, int& position) const {
   concurrency.pack(buffer, buffer_size, position, self_energy_tail_cutoff_);
   concurrency.pack(buffer, buffer_size, position, steps_per_sweep_);
@@ -184,7 +184,7 @@ void McSolverParameters<solver::SS_CT_HYB>::pack(const Concurrency& concurrency,
 }
 
 template <typename Concurrency>
-void McSolverParameters<solver::SS_CT_HYB>::unpack(const Concurrency& concurrency, int* buffer,
+void McSolverParameters<solver::SS_CT_HYB>::unpack(const Concurrency& concurrency, char* buffer,
                                                    int buffer_size, int& position) {
   concurrency.unpack(buffer, buffer_size, position, self_energy_tail_cutoff_);
   concurrency.unpack(buffer, buffer_size, position, steps_per_sweep_);

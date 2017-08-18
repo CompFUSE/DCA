@@ -162,8 +162,7 @@ template <typename scalar_type, class domain>
 void MPICollectiveSum::sum(func::function<scalar_type, domain>& f) const {
   func::function<scalar_type, domain> f_sum;
 
-  // TODO: Use f.values() instead of &f(0) (same for f_sum).
-  MPI_Allreduce(&f(0), &f_sum(0), MPITypeMap<scalar_type>::factor() * f.size(),
+  MPI_Allreduce(f.values(), f_sum.values(), MPITypeMap<scalar_type>::factor() * f.size(),
                 MPITypeMap<scalar_type>::value(), MPI_SUM, grouping_.get());
 
   f = std::move(f_sum);
@@ -180,7 +179,7 @@ void MPICollectiveSum::sum(func::function<scalar_type, domain>& f) const {
 template <typename scalar_type, class domain>
 void MPICollectiveSum::sum(const func::function<scalar_type, domain>& f_in,
                            func::function<scalar_type, domain>& f_out) const {
-  MPI_Allreduce(&f_in(0), &f_out(0), MPITypeMap<scalar_type>::factor() * f_in.size(),
+  MPI_Allreduce(f_in.values(), f_out.values(), MPITypeMap<scalar_type>::factor() * f_in.size(),
                 MPITypeMap<scalar_type>::value(), MPI_SUM, grouping_.get());
 }
 

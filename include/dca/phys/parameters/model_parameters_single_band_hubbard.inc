@@ -17,9 +17,9 @@ public:
   template <typename Concurrency>
   int getBufferSize(const Concurrency& concurrency) const;
   template <typename Concurrency>
-  void pack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
+  void pack(const Concurrency& concurrency, char* buffer, int buffer_size, int& position) const;
   template <typename Concurrency>
-  void unpack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position);
+  void unpack(const Concurrency& concurrency, char* buffer, int buffer_size, int& position);
 
   template <typename ReaderOrWriter>
   void readWrite(ReaderOrWriter& reader_or_writer);
@@ -85,7 +85,7 @@ int ModelParameters<models::TightBindingModel<Lattice>>::getBufferSize(
 template <typename Lattice>
 template <typename Concurrency>
 void ModelParameters<models::TightBindingModel<Lattice>>::pack(const Concurrency& concurrency,
-                                                               int* buffer, int buffer_size,
+                                                               char* buffer, int buffer_size,
                                                                int& position) const {
   concurrency.pack(buffer, buffer_size, position, t_);
   concurrency.pack(buffer, buffer_size, position, t_prime_);
@@ -97,7 +97,7 @@ void ModelParameters<models::TightBindingModel<Lattice>>::pack(const Concurrency
 template <typename Lattice>
 template <typename Concurrency>
 void ModelParameters<models::TightBindingModel<Lattice>>::unpack(const Concurrency& concurrency,
-                                                                 int* buffer, int buffer_size,
+                                                                 char* buffer, int buffer_size,
                                                                  int& position) {
   concurrency.unpack(buffer, buffer_size, position, t_);
   concurrency.unpack(buffer, buffer_size, position, t_prime_);

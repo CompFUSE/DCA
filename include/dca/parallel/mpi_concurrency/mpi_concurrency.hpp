@@ -93,7 +93,7 @@ bool MPIConcurrency::broadcast(object_type& object, int root_id) const {
 
     MPI_Bcast(&bufferSize, 1, MPI_INT, root_id, grouping_.get());
 
-    int* buffer = new int[bufferSize];
+    char* buffer = new char[bufferSize];
 
     this->pack(buffer, bufferSize, position, object);
 
@@ -106,7 +106,7 @@ bool MPIConcurrency::broadcast(object_type& object, int root_id) const {
 
     MPI_Bcast(&bufferSize, 1, MPI_INT, root_id, grouping_.get());
 
-    int* buffer = new int[bufferSize];
+    char* buffer = new char[bufferSize];
 
     // receive packed message
     MPI_Bcast(buffer, bufferSize, MPI_PACKED, root_id, grouping_.get());
@@ -130,7 +130,7 @@ bool MPIConcurrency::broadcast_object(object_type& object, int root_id) const {
 
     MPI_Bcast(&buffer_size, 1, MPI_INT, root_id, grouping_.get());
 
-    int* buffer = new int[buffer_size];
+    char* buffer = new char[buffer_size];
 
     int off_set = 0;
     object.pack(*this, buffer, buffer_size, off_set);
@@ -142,7 +142,7 @@ bool MPIConcurrency::broadcast_object(object_type& object, int root_id) const {
   else {
     MPI_Bcast(&buffer_size, 1, MPI_INT, root_id, grouping_.get());
 
-    int* buffer = new int[buffer_size];
+    char* buffer = new char[buffer_size];
 
     MPI_Bcast(buffer, buffer_size, MPI_PACKED, root_id, grouping_.get());
 

@@ -9,8 +9,6 @@
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // This class provides an interface for packing and unpacking with MPI.
-//
-// TODO: Const correctness of get_buffer_size and pack with func::function.
 
 #ifndef DCA_PARALLEL_MPI_CONCURRENCY_MPI_PACKING_HPP
 #define DCA_PARALLEL_MPI_CONCURRENCY_MPI_PACKING_HPP
@@ -33,7 +31,7 @@ public:
   template <typename scalar_type>
   int get_buffer_size(scalar_type item) const;
   template <typename scalar_type>
-  int get_buffer_size(std::basic_string<scalar_type> str) const;
+  int get_buffer_size(const std::basic_string<scalar_type>& str) const;
   template <typename scalar_type>
   int get_buffer_size(const std::vector<scalar_type>& v) const;
   template <typename scalar_type>
@@ -41,39 +39,37 @@ public:
   template <typename scalar_type>
   int get_buffer_size(const std::vector<std::vector<scalar_type>>& v) const;
   template <typename scalar_type, class dmn_type>
-  int get_buffer_size(func::function<scalar_type, dmn_type>& f) const;
-
-  // TODO: This function can't be made const correct. Can we remove it?
-  template <typename object_type>
-  void pack_or_unpack(bool packing, int* buffer, int size, int& off_set, object_type& object) const;
+  int get_buffer_size(const func::function<scalar_type, dmn_type>& f) const;
 
   template <typename scalar_type>
-  void pack(int* buffer, int size, int& off_set, scalar_type item) const;
+  void pack(char* buffer, int size, int& off_set, scalar_type item) const;
   template <typename scalar_type>
-  void pack(int* buffer, int size, int& off_set, const std::basic_string<scalar_type>& str) const;
+  void pack(char* buffer, int size, int& off_set, const std::basic_string<scalar_type>& str) const;
   template <typename scalar_type>
-  void pack(int* buffer, int size, int& off_set, const std::vector<scalar_type>& v) const;
+  void pack(char* buffer, int size, int& off_set, const std::vector<scalar_type>& v) const;
   template <typename scalar_type>
-  void pack(int* buffer, int size, int& off_set,
+  void pack(char* buffer, int size, int& off_set,
             const std::vector<std::basic_string<scalar_type>>& v) const;
   template <typename scalar_type>
-  void pack(int* buffer, int size, int& off_set, const std::vector<std::vector<scalar_type>>& v) const;
+  void pack(char* buffer, int size, int& off_set,
+            const std::vector<std::vector<scalar_type>>& v) const;
   template <typename scalar_type, class dmn_type>
-  void pack(int* buffer, int size, int& off_set, func::function<scalar_type, dmn_type>& f) const;
+  void pack(char* buffer, int size, int& off_set,
+            const func::function<scalar_type, dmn_type>& f) const;
 
   template <typename scalar_type>
-  void unpack(int* buffer, int size, int& off_set, scalar_type& item) const;
+  void unpack(char* buffer, int size, int& off_set, scalar_type& item) const;
   template <typename scalar_type>
-  void unpack(int* buffer, int size, int& off_set, std::basic_string<scalar_type>& str) const;
+  void unpack(char* buffer, int size, int& off_set, std::basic_string<scalar_type>& str) const;
   template <typename scalar_type>
-  void unpack(int* buffer, int size, int& off_set, std::vector<scalar_type>& v) const;
+  void unpack(char* buffer, int size, int& off_set, std::vector<scalar_type>& v) const;
   template <typename scalar_type>
-  void unpack(int* buffer, int size, int& off_set,
+  void unpack(char* buffer, int size, int& off_set,
               std::vector<std::basic_string<scalar_type>>& v) const;
   template <typename scalar_type>
-  void unpack(int* buffer, int size, int& off_set, std::vector<std::vector<scalar_type>>& v) const;
+  void unpack(char* buffer, int size, int& off_set, std::vector<std::vector<scalar_type>>& v) const;
   template <typename scalar_type, class dmn_type>
-  void unpack(int* buffer, int size, int& off_set, func::function<scalar_type, dmn_type>& f) const;
+  void unpack(char* buffer, int size, int& off_set, func::function<scalar_type, dmn_type>& f) const;
 
 private:
   const MPIProcessorGrouping& grouping_;
@@ -90,7 +86,7 @@ int MPIPacking::get_buffer_size(scalar_type /*item*/) const {
 }
 
 template <typename scalar_type>
-int MPIPacking::get_buffer_size(std::basic_string<scalar_type> str) const {
+int MPIPacking::get_buffer_size(const std::basic_string<scalar_type>& str) const {
   /*
     int result = get_buffer_size(str.size());
 
@@ -168,7 +164,7 @@ int MPIPacking::get_buffer_size(const std::vector<std::vector<scalar_type>>& v) 
 }
 
 template <typename scalar_type, class dmn_type>
-int MPIPacking::get_buffer_size(func::function<scalar_type, dmn_type>& f) const {
+int MPIPacking::get_buffer_size(const func::function<scalar_type, dmn_type>& f) const {
   int result = get_buffer_size(f.size());
 
   int count = f.size() * MPITypeMap<scalar_type>::factor();
@@ -183,17 +179,8 @@ int MPIPacking::get_buffer_size(func::function<scalar_type, dmn_type>& f) const 
   return result;
 }
 
-template <typename object_type>
-void MPIPacking::pack_or_unpack(bool packing, int* buffer, int size, int& off_set,
-                                object_type& item) const {
-  if (packing)
-    pack(buffer, size, off_set, item);
-  else
-    unpack(buffer, size, off_set, item);
-}
-
 template <typename scalar_type>
-void MPIPacking::pack(int* buffer, int size, int& off_set, scalar_type item) const {
+void MPIPacking::pack(char* buffer, int size, int& off_set, scalar_type item) const {
   const scalar_type* tPtr(&item);
 
   MPI_Pack(tPtr, MPITypeMap<scalar_type>::factor(), MPITypeMap<scalar_type>::value(), buffer, size,
@@ -201,7 +188,7 @@ void MPIPacking::pack(int* buffer, int size, int& off_set, scalar_type item) con
 }
 
 template <typename scalar_type>
-void MPIPacking::pack(int* buffer, int size, int& off_set,
+void MPIPacking::pack(char* buffer, int size, int& off_set,
                       const std::basic_string<scalar_type>& str) const {
   /*
   // pack the string's length
@@ -222,7 +209,7 @@ void MPIPacking::pack(int* buffer, int size, int& off_set,
 }
 
 template <typename scalar_type>
-void MPIPacking::pack(int* buffer, int size, int& off_set, const std::vector<scalar_type>& v) const {
+void MPIPacking::pack(char* buffer, int size, int& off_set, const std::vector<scalar_type>& v) const {
   // Pack the vector length
   int vectorSize(v.size());
   pack(buffer, size, off_set, vectorSize);
@@ -232,7 +219,7 @@ void MPIPacking::pack(int* buffer, int size, int& off_set, const std::vector<sca
 }
 
 template <typename scalar_type>
-void MPIPacking::pack(int* buffer, int size, int& off_set,
+void MPIPacking::pack(char* buffer, int size, int& off_set,
                       const std::vector<std::basic_string<scalar_type>>& v) const {
   std::vector<int> tmp_sizes(0);
   for (int i = 0; i < v.size(); i++)
@@ -254,7 +241,7 @@ void MPIPacking::pack(int* buffer, int size, int& off_set,
 }
 
 template <typename scalar_type>
-void MPIPacking::pack(int* buffer, int size, int& off_set,
+void MPIPacking::pack(char* buffer, int size, int& off_set,
                       const std::vector<std::vector<scalar_type>>& v) const {
   std::vector<scalar_type> tmp;
 
@@ -270,18 +257,18 @@ void MPIPacking::pack(int* buffer, int size, int& off_set,
 }
 
 template <typename scalar_type, class dmn_type>
-void MPIPacking::pack(int* buffer, int size, int& off_set,
-                      func::function<scalar_type, dmn_type>& f) const {
+void MPIPacking::pack(char* buffer, int size, int& off_set,
+                      const func::function<scalar_type, dmn_type>& f) const {
   // Pack the vector length
   int function_size(f.size());
   pack(buffer, size, off_set, function_size);
 
-  MPI_Pack(static_cast<scalar_type*>(&f(0)), function_size * MPITypeMap<scalar_type>::factor(),
+  MPI_Pack(f.values(), function_size * MPITypeMap<scalar_type>::factor(),
            MPITypeMap<scalar_type>::value(), buffer, size, &off_set, grouping_.get());
 }
 
 template <typename scalar_type>
-void MPIPacking::unpack(int* buffer, int size, int& off_set, scalar_type& item) const {
+void MPIPacking::unpack(char* buffer, int size, int& off_set, scalar_type& item) const {
   scalar_type tmp;
 
   MPI_Unpack(buffer, size, &off_set, &tmp, MPITypeMap<scalar_type>::factor(),
@@ -291,7 +278,7 @@ void MPIPacking::unpack(int* buffer, int size, int& off_set, scalar_type& item) 
 }
 
 template <typename scalar_type>
-void MPIPacking::unpack(int* buffer, int size, int& off_set,
+void MPIPacking::unpack(char* buffer, int size, int& off_set,
                         std::basic_string<scalar_type>& str) const {
   /*
   // Unpack the string length
@@ -325,7 +312,7 @@ void MPIPacking::unpack(int* buffer, int size, int& off_set,
 }
 
 template <typename scalar_type>
-void MPIPacking::unpack(int* buffer, int size, int& off_set, std::vector<scalar_type>& v) const {
+void MPIPacking::unpack(char* buffer, int size, int& off_set, std::vector<scalar_type>& v) const {
   // UnPack the vector length
   int vectorSize(0);
   unpack(buffer, size, off_set, vectorSize);
@@ -339,7 +326,7 @@ void MPIPacking::unpack(int* buffer, int size, int& off_set, std::vector<scalar_
 }
 
 template <typename scalar_type>
-void MPIPacking::unpack(int* buffer, int size, int& off_set,
+void MPIPacking::unpack(char* buffer, int size, int& off_set,
                         std::vector<std::basic_string<scalar_type>>& v) const {
   int v_size;
 
@@ -371,7 +358,7 @@ void MPIPacking::unpack(int* buffer, int size, int& off_set,
 }
 
 template <typename scalar_type>
-void MPIPacking::unpack(int* buffer, int size, int& off_set,
+void MPIPacking::unpack(char* buffer, int size, int& off_set,
                         std::vector<std::vector<scalar_type>>& v) const {
   std::vector<scalar_type> tmp;
 
@@ -393,16 +380,15 @@ void MPIPacking::unpack(int* buffer, int size, int& off_set,
 }
 
 template <typename scalar_type, class dmn_type>
-void MPIPacking::unpack(int* buffer, int size, int& off_set,
+void MPIPacking::unpack(char* buffer, int size, int& off_set,
                         func::function<scalar_type, dmn_type>& f) const {
   // UnPack the vector length
   int function_size(0);
   unpack(buffer, size, off_set, function_size);
 
   // UnPack the vector
-  MPI_Unpack(buffer, size, &off_set, static_cast<scalar_type*>(&f(0)),
-             MPITypeMap<scalar_type>::factor() * function_size, MPITypeMap<scalar_type>::value(),
-             grouping_.get());
+  MPI_Unpack(buffer, size, &off_set, f.values(), MPITypeMap<scalar_type>::factor() * function_size,
+             MPITypeMap<scalar_type>::value(), grouping_.get());
 }
 
 }  // parallel

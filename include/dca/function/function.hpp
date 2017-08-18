@@ -225,10 +225,10 @@ public:
   template <typename concurrency_t>
   int get_buffer_size(const concurrency_t& concurrency) const;
   template <class concurrency_t>
-  void pack(const concurrency_t& concurrency, int* buffer, int buffer_size, int& position) const;
-  // TODO: Make parameter buffer const correct (const int* const buffer).
+  void pack(const concurrency_t& concurrency, char* buffer, int buffer_size, int& position) const;
+  // TODO: Make parameter buffer const correct (const char* const buffer).
   template <class concurrency_t>
-  void unpack(const concurrency_t& concurrency, int* buffer, int buffer_size, int& position);
+  void unpack(const concurrency_t& concurrency, char* buffer, int buffer_size, int& position);
 
 private:
   std::string name_;
@@ -624,14 +624,14 @@ int function<scalartype, domain>::get_buffer_size(const concurrency_t& concurren
 
 template <typename scalartype, class domain>
 template <class concurrency_t>
-void function<scalartype, domain>::pack(const concurrency_t& concurrency, int* buffer,
+void function<scalartype, domain>::pack(const concurrency_t& concurrency, char* buffer,
                                         const int buffer_size, int& position) const {
   concurrency.pack(buffer, buffer_size, position, *this);
 }
 
 template <typename scalartype, class domain>
 template <class concurrency_t>
-void function<scalartype, domain>::unpack(const concurrency_t& concurrency, int* buffer,
+void function<scalartype, domain>::unpack(const concurrency_t& concurrency, char* buffer,
                                           const int buffer_size, int& position) {
   concurrency.unpack(buffer, buffer_size, position, *this);
 }
