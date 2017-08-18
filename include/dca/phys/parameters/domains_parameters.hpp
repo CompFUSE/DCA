@@ -47,9 +47,9 @@ public:
   template <typename Concurrency>
   int getBufferSize(const Concurrency& concurrency) const;
   template <typename Concurrency>
-  void pack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
+  void pack(const Concurrency& concurrency, char* buffer, int buffer_size, int& position) const;
   template <typename Concurrency>
-  void unpack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position);
+  void unpack(const Concurrency& concurrency, char* buffer, int buffer_size, int& position);
 
   template <typename ReaderOrWriter>
   void readWrite(ReaderOrWriter& reader_or_writer);
@@ -130,7 +130,7 @@ int DomainsParameters::getBufferSize(const Concurrency& concurrency) const {
 }
 
 template <typename Concurrency>
-void DomainsParameters::pack(const Concurrency& concurrency, int* buffer, int buffer_size,
+void DomainsParameters::pack(const Concurrency& concurrency, char* buffer, int buffer_size,
                              int& position) const {
   concurrency.pack(buffer, buffer_size, position, cluster_);
   concurrency.pack(buffer, buffer_size, position, sp_host_);
@@ -147,7 +147,7 @@ void DomainsParameters::pack(const Concurrency& concurrency, int* buffer, int bu
 }
 
 template <typename Concurrency>
-void DomainsParameters::unpack(const Concurrency& concurrency, int* buffer, int buffer_size,
+void DomainsParameters::unpack(const Concurrency& concurrency, char* buffer, int buffer_size,
                                int& position) {
   concurrency.unpack(buffer, buffer_size, position, cluster_);
   concurrency.unpack(buffer, buffer_size, position, sp_host_);

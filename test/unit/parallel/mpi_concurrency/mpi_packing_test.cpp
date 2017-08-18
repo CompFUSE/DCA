@@ -54,7 +54,7 @@ TEST(MPIPackingTest, PackAndUnpackFunction) {
   dca::func::function<double, TestDomain> f_non_const(f, "non-const-function");
 
   const auto buffer_size_non_const = packing.get_buffer_size(f_non_const);
-  int* buffer_non_const = new int[buffer_size_non_const];
+  char* buffer_non_const = new char[buffer_size_non_const];
   int offset_non_const = 0;
 
   packing.pack(buffer_non_const, buffer_size_non_const, offset_non_const, f_non_const);
@@ -78,7 +78,7 @@ TEST(MPIPackingTest, PackAndUnpackFunction) {
   const dca::func::function<double, TestDomain> f_const(f, "const-function");
 
   const auto buffer_size_const = packing.get_buffer_size(f_const);
-  int* buffer_const = new int[buffer_size_const];
+  char* buffer_const = new char[buffer_size_const];
   int offset_const = 0;
 
   packing.pack(buffer_const, buffer_size_const, offset_const, f_const);

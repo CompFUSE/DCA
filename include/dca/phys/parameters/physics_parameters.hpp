@@ -29,9 +29,9 @@ public:
   template <typename Concurrency>
   int getBufferSize(const Concurrency& concurrency) const;
   template <typename Concurrency>
-  void pack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
+  void pack(const Concurrency& concurrency, char* buffer, int buffer_size, int& position) const;
   template <typename Concurrency>
-  void unpack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position);
+  void unpack(const Concurrency& concurrency, char* buffer, int buffer_size, int& position);
 
   template <typename ReaderOrWriter>
   void readWrite(ReaderOrWriter& reader_or_writer);
@@ -71,7 +71,7 @@ int PhysicsParameters::getBufferSize(const Concurrency& concurrency) const {
 }
 
 template <typename Concurrency>
-void PhysicsParameters::pack(const Concurrency& concurrency, int* buffer, int buffer_size,
+void PhysicsParameters::pack(const Concurrency& concurrency, char* buffer, int buffer_size,
                              int& position) const {
   concurrency.pack(buffer, buffer_size, position, beta_);
   concurrency.pack(buffer, buffer_size, position, density_);
@@ -80,7 +80,7 @@ void PhysicsParameters::pack(const Concurrency& concurrency, int* buffer, int bu
 }
 
 template <typename Concurrency>
-void PhysicsParameters::unpack(const Concurrency& concurrency, int* buffer, int buffer_size,
+void PhysicsParameters::unpack(const Concurrency& concurrency, char* buffer, int buffer_size,
                                int& position) {
   concurrency.unpack(buffer, buffer_size, position, beta_);
   concurrency.unpack(buffer, buffer_size, position, density_);

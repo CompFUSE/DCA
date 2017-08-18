@@ -28,9 +28,9 @@ public:
   template <typename Concurrency>
   int getBufferSize(const Concurrency& concurrency) const;
   template <typename Concurrency>
-  void pack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
+  void pack(const Concurrency& concurrency, char* buffer, int buffer_size, int& position) const;
   template <typename Concurrency>
-  void unpack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position);
+  void unpack(const Concurrency& concurrency, char* buffer, int buffer_size, int& position);
 
   template <typename ReaderOrWriter>
   void readWrite(ReaderOrWriter& reader_or_writer);
@@ -102,7 +102,7 @@ int ModelParameters<models::TightBindingModel<models::fourband_lattice<PointGrou
 template <typename PointGroup>
 template <typename Concurrency>
 void ModelParameters<models::TightBindingModel<models::fourband_lattice<PointGroup>>>::pack(
-    const Concurrency& concurrency, int* buffer, int buffer_size, int& position) const {
+    const Concurrency& concurrency, char* buffer, int buffer_size, int& position) const {
   concurrency.pack(buffer, buffer_size, position, ei0_);
   concurrency.pack(buffer, buffer_size, position, eb0_);
   concurrency.pack(buffer, buffer_size, position, t0_);
@@ -118,7 +118,7 @@ void ModelParameters<models::TightBindingModel<models::fourband_lattice<PointGro
 template <typename PointGroup>
 template <typename Concurrency>
 void ModelParameters<models::TightBindingModel<models::fourband_lattice<PointGroup>>>::unpack(
-    const Concurrency& concurrency, int* buffer, int buffer_size, int& position) {
+    const Concurrency& concurrency, char* buffer, int buffer_size, int& position) {
   concurrency.unpack(buffer, buffer_size, position, ei0_);
   concurrency.unpack(buffer, buffer_size, position, eb0_);
   concurrency.unpack(buffer, buffer_size, position, t0_);

@@ -27,9 +27,9 @@ public:
   template <typename Concurrency>
   int getBufferSize(const Concurrency& concurrency) const;
   template <typename Concurrency>
-  void pack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
+  void pack(const Concurrency& concurrency, char* buffer, int buffer_size, int& position) const;
   template <typename Concurrency>
-  void unpack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position);
+  void unpack(const Concurrency& concurrency, char* buffer, int buffer_size, int& position);
 
   template <typename ReaderOrWriter>
   void readWrite(ReaderOrWriter& reader_or_writer);
@@ -57,14 +57,14 @@ int DoubleCountingParameters::getBufferSize(const Concurrency& concurrency) cons
 }
 
 template <typename Concurrency>
-void DoubleCountingParameters::pack(const Concurrency& concurrency, int* buffer, int buffer_size,
+void DoubleCountingParameters::pack(const Concurrency& concurrency, char* buffer, int buffer_size,
                                     int& position) const {
   concurrency.pack(buffer, buffer_size, position, double_counting_method_);
   concurrency.pack(buffer, buffer_size, position, double_counting_correction_);
 }
 
 template <typename Concurrency>
-void DoubleCountingParameters::unpack(const Concurrency& concurrency, int* buffer, int buffer_size,
+void DoubleCountingParameters::unpack(const Concurrency& concurrency, char* buffer, int buffer_size,
                                       int& position) {
   concurrency.unpack(buffer, buffer_size, position, double_counting_method_);
   concurrency.unpack(buffer, buffer_size, position, double_counting_correction_);

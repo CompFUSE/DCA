@@ -9,9 +9,6 @@
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // This class provides a simple interface to the standard Message Passing Interface (MPI).
-//
-// TODO: Change the type of the buffers to avoid overallocation of memory (minimum size of int is
-//       2 bytes).
 
 #ifndef DCA_PARALLEL_MPI_CONCURRENCY_MPI_CONCURRENCY_HPP
 #define DCA_PARALLEL_MPI_CONCURRENCY_MPI_CONCURRENCY_HPP
@@ -96,7 +93,7 @@ bool MPIConcurrency::broadcast(object_type& object, int root_id) const {
 
     MPI_Bcast(&bufferSize, 1, MPI_INT, root_id, grouping_.get());
 
-    int* buffer = new int[bufferSize];
+    char* buffer = new char[bufferSize];
 
     this->pack(buffer, bufferSize, position, object);
 
@@ -109,7 +106,7 @@ bool MPIConcurrency::broadcast(object_type& object, int root_id) const {
 
     MPI_Bcast(&bufferSize, 1, MPI_INT, root_id, grouping_.get());
 
-    int* buffer = new int[bufferSize];
+    char* buffer = new char[bufferSize];
 
     // receive packed message
     MPI_Bcast(buffer, bufferSize, MPI_PACKED, root_id, grouping_.get());
@@ -133,7 +130,7 @@ bool MPIConcurrency::broadcast_object(object_type& object, int root_id) const {
 
     MPI_Bcast(&buffer_size, 1, MPI_INT, root_id, grouping_.get());
 
-    int* buffer = new int[buffer_size];
+    char* buffer = new char[buffer_size];
 
     int off_set = 0;
     object.pack(*this, buffer, buffer_size, off_set);
@@ -145,7 +142,7 @@ bool MPIConcurrency::broadcast_object(object_type& object, int root_id) const {
   else {
     MPI_Bcast(&buffer_size, 1, MPI_INT, root_id, grouping_.get());
 
-    int* buffer = new int[buffer_size];
+    char* buffer = new char[buffer_size];
 
     MPI_Bcast(buffer, buffer_size, MPI_PACKED, root_id, grouping_.get());
 

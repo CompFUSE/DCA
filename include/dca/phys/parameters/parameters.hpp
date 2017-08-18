@@ -141,8 +141,8 @@ public:
   void update_domains();
 
   int get_buffer_size(const concurrency_type& concurrency) const;
-  void pack(const concurrency_type& concurrency, int* buffer, int buffer_size, int& position) const;
-  void unpack(const concurrency_type& concurrency, int* buffer, int buffer_size, int& position);
+  void pack(const concurrency_type& concurrency, char* buffer, int buffer_size, int& position) const;
+  void unpack(const concurrency_type& concurrency, char* buffer, int buffer_size, int& position);
 
   concurrency_type& get_concurrency() {
     return concurrency_;
@@ -348,7 +348,7 @@ int Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
           typename RandomNumberGenerator, solver::ClusterSolverName solver_name>
 void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name>::pack(
-    const Concurrency& concurrency, int* buffer, int buffer_size, int& position) const {
+    const Concurrency& concurrency, char* buffer, int buffer_size, int& position) const {
   AnalysisParameters::pack(concurrency, buffer, buffer_size, position);
   DcaParameters::pack(concurrency, buffer, buffer_size, position);
   DomainsParameters::pack(concurrency, buffer, buffer_size, position);
@@ -365,7 +365,7 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
           typename RandomNumberGenerator, solver::ClusterSolverName solver_name>
 void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name>::unpack(
-    const Concurrency& concurrency, int* buffer, int buffer_size, int& position) {
+    const Concurrency& concurrency, char* buffer, int buffer_size, int& position) {
   AnalysisParameters::unpack(concurrency, buffer, buffer_size, position);
   DcaParameters::unpack(concurrency, buffer, buffer_size, position);
   DomainsParameters::unpack(concurrency, buffer, buffer_size, position);

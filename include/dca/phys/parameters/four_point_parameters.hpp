@@ -44,9 +44,9 @@ public:
   template <typename Concurrency>
   int getBufferSize(const Concurrency& concurrency) const;
   template <typename Concurrency>
-  void pack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position) const;
+  void pack(const Concurrency& concurrency, char* buffer, int buffer_size, int& position) const;
   template <typename Concurrency>
-  void unpack(const Concurrency& concurrency, int* buffer, int buffer_size, int& position);
+  void unpack(const Concurrency& concurrency, char* buffer, int buffer_size, int& position);
 
   template <typename ReaderOrWriter>
   void readWrite(ReaderOrWriter& reader_or_writer);
@@ -98,7 +98,7 @@ int FourPointParameters<lattice_dimension>::getBufferSize(const Concurrency& con
 
 template <int lattice_dimension>
 template <typename Concurrency>
-void FourPointParameters<lattice_dimension>::pack(const Concurrency& concurrency, int* buffer,
+void FourPointParameters<lattice_dimension>::pack(const Concurrency& concurrency, char* buffer,
                                                   int buffer_size, int& position) const {
   concurrency.pack(buffer, buffer_size, position, four_point_type_);
   concurrency.pack(buffer, buffer_size, position, four_point_momentum_transfer_input_);
@@ -107,7 +107,7 @@ void FourPointParameters<lattice_dimension>::pack(const Concurrency& concurrency
 
 template <int lattice_dimension>
 template <typename Concurrency>
-void FourPointParameters<lattice_dimension>::unpack(const Concurrency& concurrency, int* buffer,
+void FourPointParameters<lattice_dimension>::unpack(const Concurrency& concurrency, char* buffer,
                                                     int buffer_size, int& position) {
   concurrency.unpack(buffer, buffer_size, position, four_point_type_);
   concurrency.unpack(buffer, buffer_size, position, four_point_momentum_transfer_input_);
