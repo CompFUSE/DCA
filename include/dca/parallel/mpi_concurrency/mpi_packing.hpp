@@ -9,8 +9,6 @@
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // This class provides an interface for packing and unpacking with MPI.
-//
-// TODO: Change return type of get_buffer_size to std::size_t.
 
 #ifndef DCA_PARALLEL_MPI_CONCURRENCY_MPI_PACKING_HPP
 #define DCA_PARALLEL_MPI_CONCURRENCY_MPI_PACKING_HPP
