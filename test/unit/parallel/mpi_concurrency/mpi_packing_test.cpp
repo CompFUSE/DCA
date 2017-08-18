@@ -12,6 +12,8 @@
 
 #include "dca/parallel/mpi_concurrency/mpi_packing.hpp"
 
+#include <cstring>  // std::memcpy
+
 #include "gtest/gtest.h"
 
 #include "dca/function/domains.hpp"
@@ -46,13 +48,20 @@ TEST(MPIPackingTest, PackAndUnpackFunction) {
     EXPECT_EQ(f(i), f_non_const(i));
 
   dca::func::function<double, TestDomain> f_unpacked("unpacked");
-  int offset_unpack = 0;
 
-  packing.unpack(buffer_non_const, buffer_size_non_const, offset_unpack, f_unpacked);
+  // Use a copy of the buffer in unpack to detect if pack has written out of bounds.
+  char* buffer_non_const_copy = new char[buffer_size_non_const];
+  std::memcpy(buffer_non_const_copy, buffer_non_const, buffer_size_non_const);
+
+  int offset_unpack = 0;
+  packing.unpack(buffer_non_const_copy, buffer_size_non_const, offset_unpack, f_unpacked);
 
   EXPECT_EQ(buffer_size_non_const, offset_unpack);
   for (std::size_t i = 0; i < f.size(); ++i)
     EXPECT_EQ(f(i), f_unpacked(i));
+
+  delete[] buffer_non_const;
+  delete[] buffer_non_const_copy;
 
   //
   // Const function
@@ -67,12 +76,18 @@ TEST(MPIPackingTest, PackAndUnpackFunction) {
 
   EXPECT_EQ(buffer_size_const, offset_const);
 
+  char* buffer_const_copy = new char[buffer_size_const];
+  std::memcpy(buffer_const_copy, buffer_const, buffer_size_const);
+
   offset_unpack = 0;
-  packing.unpack(buffer_const, buffer_size_const, offset_unpack, f_unpacked);
+  packing.unpack(buffer_const_copy, buffer_size_const, offset_unpack, f_unpacked);
 
   EXPECT_EQ(buffer_size_const, offset_unpack);
   for (std::size_t i = 0; i < f_const.size(); ++i)
     EXPECT_EQ(f_const(i), f_unpacked(i));
+
+  delete[] buffer_const;
+  delete[] buffer_const_copy;
 }
 
 int main(int argc, char** argv) {
