@@ -312,17 +312,21 @@ CtauxWalker<device_t, parameters_type, MOMS_type>::CtauxWalker(parameters_type& 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 CtauxWalker<device_t, parameters_type, MOMS_type>::~CtauxWalker() {
   if (concurrency.id() == 0 && thread_id == 0) {
+    // std::defaultfloat is only supported by GCC 5 or later.
+    std::cout.unsetf(std::ios_base::floatfield);
+
     std::cout << "\n"
               << "Walker: process ID = 0, thread ID = 0\n"
               << "-------------------------------------------\n"
-              << "average expansion order of warm-up: " << std::defaultfloat
-              << warm_up_expansion_order_.mean() << "\n"
+              << "average expansion order of warm-up: " << warm_up_expansion_order_.mean() << "\n"
               << "average number of delayed spins: " << num_delayed_spins_.mean() << "\n"
               << "# creations / # annihilations: "
               << static_cast<double>(number_of_creations) /
                      static_cast<double>(number_of_annihilations)
               << "\n"
-              << std::scientific << std::endl;
+              << std::endl;
+
+    std::cout << std::scientific;
   }
 }
 
