@@ -15,6 +15,10 @@ option(DCA_WITH_CUDA "Enable GPU support." ON)
 # Compile for Kepler compute architecture.
 set(CUDA_GPU_ARCH "sm_35" CACHE STRING "Name of the *real* architecture to build for.")
 
+# Set the path to the CUDA toolkit since CMake cannot find it.
+set(CUDA_TOOLKIT_ROOT_DIR "/opt/nvidia/cudatoolkit7.5/7.5.18-1.0502.10743.2.1"
+  CACHE PATH "Path to the CUDA Toolkit." FORCE)
+
 # For the GPU support we also need MAGMA.
 # MAGMA has been installed with EasyBuild.
 set(MAGMA_DIR $ENV{EBROOTMAGMA} CACHE PATH
