@@ -332,11 +332,13 @@ template <typename ScalarType, DeviceType device_name>
 Matrix<ScalarType, device_name>& Matrix<ScalarType, device_name>::operator=(
     Matrix<ScalarType, device_name>&& rhs) {
   if (this != &rhs) {
+    util::Memory<device_name>::deallocate(data_);
+    data_ = rhs.data_;
     size_ = rhs.size_;
     capacity_ = rhs.capacity_;
+    rhs.data_ = nullptr;
     rhs.capacity_ = std::make_pair(0, 0);
     rhs.size_ = std::make_pair(0, 0);
-    std::swap(data_, rhs.data_);
   }
   return *this;
 }
