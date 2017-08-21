@@ -1,64 +1,64 @@
 {
     "output": {
-	"directory": "./",
-	"output-format": "HDF5",
-	"filename-dca": "data.dca_sp_DCA+_pthread_test.hdf5"
+        "directory": "./",
+        "output-format": "HDF5",
+        "filename-dca": "data.dca_sp_DCA+_pthread_test.hdf5"
     },
 
     "physics": {
-	"beta": 1.,
-	"density": 0.9,
-	"chemical-potential": 0.,
-	"adjust-chemical-potential": true
+        "beta": 1.,
+        "density": 0.9,
+        "chemical-potential": 0.,
+        "adjust-chemical-potential": true
     },
 
     "single-band-Hubbard-model": {
         "t": 1.,
-	"U": 4.
+        "U": 4.
     },
 
     "DCA": {
-	"initial-self-energy": "zero",
-	"iterations": 3,
-	"self-energy-mixing-factor": 0.75,
-	"interacting-orbitals": [0],
-	
-	"coarse-graining": {
-	    "k-mesh-recursion": 3,
-	    "periods": 2,
-	    "quadrature-rule": 1,
-	    "threads": 1
-	},
-        
-	"DCA+": {
-	    "do-DCA+": true,
-	    "deconvolution-iterations": 16,
-	    "deconvolution-tolerance": 0.01
-	}
+        "initial-self-energy": "zero",
+        "iterations": 3,
+        "self-energy-mixing-factor": 0.75,
+        "interacting-orbitals": [0],
+
+        "coarse-graining": {
+            "k-mesh-recursion": 3,
+            "periods": 2,
+            "quadrature-rule": 1,
+            "threads": 1
+        },
+
+        "DCA+": {
+            "do-DCA+": true,
+            "deconvolution-iterations": 16,
+            "deconvolution-tolerance": 0.01
+        }
     },
-    
+
     "domains": {
-	"real-space-grids": {
-	    "cluster": [[2, 0],
-	    	        [0, 2]],
-	    "sp-host": [[8, 8],
-		        [8,-8]]
-	},
-        
-	"imaginary-time": {
-	    "sp-time-intervals": 128
-	},
-	
-	"imaginary-frequency": {
-	    "sp-fermionic-frequencies": 256
-	}
+        "real-space-grids": {
+            "cluster": [[2, 0],
+                        [0, 2]],
+            "sp-host": [[8, 8],
+                        [8,-8]]
+        },
+
+        "imaginary-time": {
+            "sp-time-intervals": 128
+        },
+
+        "imaginary-frequency": {
+            "sp-fermionic-frequencies": 256
+        }
     },
 
     "Monte-Carlo-integration": {
         "seed": 985456376,
-	"warm-up-sweeps": 20,
+        "warm-up-sweeps": 20,
         "sweeps-per-measurement": 1,
-	"measurements-per-process-and-accumulator": 100,
+        "measurements-per-process-and-accumulator": 100,
 
         "threaded-solver": {
             "walkers": 1,
@@ -67,9 +67,9 @@
     },
 
     "CT-AUX": {
-	"expansion-parameter-K": 1.,
+        "expansion-parameter-K": 1.,
         "initial-configuration-size": 10,
-	"initial-matrix-size": 256,
-	"max-submatrix-size": 64
+        "initial-matrix-size": 256,
+        "max-submatrix-size": 64
     }
 }

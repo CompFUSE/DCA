@@ -3,10 +3,10 @@
         "expansion-parameter-K": 2.,
         "initial-configuration-size": 100,
         "initial-matrix-size": 64,
-        
+
         "max-submatrix-size": 64,
         "neglect-Bennett-updates": true,
-        
+
         "additional-time-measurements": true
     }
 }
