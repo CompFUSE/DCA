@@ -1,6 +1,6 @@
 {
     "DCA": {
-    	"initial-self-energy": "./T=0.5/dca.hdf5",
+        "initial-self-energy": "./T=0.5/dca.hdf5",
         "iterations": 3,
         "accuracy": 1.e-3,
         "self-energy-mixing-factor": 0.5,
@@ -8,20 +8,20 @@
 
         "do-finite-size-QMC": false,
 
-	"coarse-graining": {
-	    "k-mesh-recursion": 3,
-	    "periods": 2,
-	    "quadrature-rule": 2,
-	    "threads": 8,
-	    "tail-frequencies": 10
-	},
+        "coarse-graining": {
+            "k-mesh-recursion": 3,
+            "periods": 2,
+            "quadrature-rule": 2,
+            "threads": 8,
+            "tail-frequencies": 10
+        },
 
-	"DCA+": {
-	    "do-DCA+": true,
-	    "deconvolution-iterations": 32,
-	    "deconvolution-tolerance": 1.e-4,
+        "DCA+": {
+            "do-DCA+": true,
+            "deconvolution-iterations": 32,
+            "deconvolution-tolerance": 1.e-4,
             "HTS-approximation": true,
-	    "HTS-threads": 8
-	}
+            "HTS-threads": 8
+        }
     }
 }

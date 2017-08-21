@@ -17,7 +17,7 @@
 template <typename Generator>
 class RandomTest : public ::testing::Test {};
 
-using Generators = ::testing::Types<dca::math::random::StdRandomWrapper<std::ranlux48_base>>;
+using Generators = ::testing::Types<dca::math::random::StdRandomWrapper<std::mt19937_64>>;
 
 TYPED_TEST_CASE(RandomTest, Generators);
 

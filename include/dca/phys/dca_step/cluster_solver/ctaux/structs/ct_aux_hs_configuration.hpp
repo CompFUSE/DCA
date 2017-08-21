@@ -13,6 +13,8 @@
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_STRUCTS_CT_AUX_HS_CONFIGURATION_HPP
 
 #include <cassert>
+#include <cstdint>  // uint64_t
+#include <cstdlib>  // std::size_t
 #include <iostream>
 #include <stdexcept>
 #include <vector>
@@ -47,6 +49,9 @@ public:
   std::vector<vertex_singleton_type>& get(e_spin_states_type e_spin_type);
 
   void reset();
+
+  // Creates an initial configuration with "initial-configuration-size" (input parameter) random
+  // interacting vertices.
   void initialize();
   void shuffle_noninteracting_vertices();
   void update_configuration_e_spin(vertex_pair_type& vertex_pair);
@@ -71,7 +76,11 @@ public:
   int get_number_of_creatable_HS_spins();
 
   int get_random_interacting_vertex();
-  int get_random_noninteracting_vertex();
+
+  // Returns the index of a random non-interacting vertex.
+  // If mark_annihilatable = true, marks this vertex as annihilatable such that it can be chosen in
+  // a later annihilation proposal.
+  int get_random_noninteracting_vertex(bool mark_annihilatable);
 
   // debug tools
   void print();
@@ -80,6 +89,20 @@ public:
   bool assert_block_form(e_spin_states_type e_spin_type);  // [non-shuffled-spin | shuffled-spins]
   bool assert_counters();
   bool assert_consistency();
+
+  // Unmarks the vertex vertex_index as annihilatable.
+  // Precondition: The vertex vertex_index is marked as annihilatable.
+  // INTERNAL: This is a helper method to unmark all "virtual" interacting vertices, that have
+  //           temporarily been marked as annihilatable by get_random_noninteracting_vertex.
+  void unmarkAsAnnihilatable(const int vertex_index) {
+    assert(configuration[vertex_index].is_annihilatable() == true);
+    configuration[vertex_index].is_annihilatable() = false;
+    --current_Nb_of_annihilatable_spins;
+  }
+
+  // Returns the position of the vertex with ID vertex_id or the size of the configuration if no
+  // such vertex is found.
+  std::size_t find(uint64_t vertex_id) const;
 
 private:
   parameters_type& parameters;
@@ -101,6 +124,10 @@ private:
 
   std::vector<int> changed_spin_indices_e_DN;  // = { changed_spin_indices of configuration_e_DN}
   std::vector<HS_spin_states_type> changed_spin_values_e_DN;
+
+  const int max_num_noninteracting_spins_;
+
+  uint64_t next_vertex_id_;
 };
 
 template <class parameters_type>
@@ -109,7 +136,7 @@ CT_AUX_HS_configuration<parameters_type>::CT_AUX_HS_configuration(parameters_typ
     : parameters(parameters_ref),
       rng(rng_ref),
 
-      configuration(0, vertex_pair_type(parameters, rng, -1, -1, -1)),
+      configuration(),
 
       configuration_e_UP(0),
       configuration_e_DN(0),
@@ -124,7 +151,12 @@ CT_AUX_HS_configuration<parameters_type>::CT_AUX_HS_configuration(parameters_typ
       changed_spin_values_e_UP(0),
 
       changed_spin_indices_e_DN(0),
-      changed_spin_values_e_DN(0) {}
+      changed_spin_values_e_DN(0),
+
+      // Rounding up ensures a value >= 1.
+      max_num_noninteracting_spins_((parameters.get_max_submatrix_size() + 1) / 2),
+
+      next_vertex_id_(0) {}
 
 template <class parameters_type>
 int CT_AUX_HS_configuration<parameters_type>::size() {
@@ -184,27 +216,21 @@ void CT_AUX_HS_configuration<parameters_type>::reset() {
 
   changed_spin_indices_e_DN.clear();
   changed_spin_values_e_DN.clear();
+
+  next_vertex_id_ = 0;
 }
 
 template <class parameters_type>
 void CT_AUX_HS_configuration<parameters_type>::initialize() {
   reset();
 
-  for (int i = 0; i < parameters.get_submatrix_size(); i++) {
+  for (int i = 0; i < parameters.get_initial_configuration_size(); ++i) {
     vertex_pair_type vertex(parameters, rng, configuration.size(), configuration_e_DN.size(),
-                            configuration_e_UP.size());
+                            configuration_e_UP.size(), next_vertex_id_++);
+    vertex.set_random_interacting();
 
+    ++current_Nb_of_annihilatable_spins;
     configuration.push_back(vertex);
-
-    if (i < 0) {
-      configuration[i].set_random_interacting();
-      current_Nb_of_annihilatable_spins++;
-    }
-    else {
-      configuration[i].set_random_noninteracting();
-      current_Nb_of_creatable_spins++;
-    }
-
     update_configuration_e_spin(configuration.back());
   }
 }
@@ -224,16 +250,14 @@ void CT_AUX_HS_configuration<parameters_type>::shuffle_noninteracting_vertices()
     assert(configuration[i].is_annihilatable() != configuration[i].is_creatable());
   }
 
-  // add npn-interacting-spins
-  while (current_Nb_of_creatable_spins < parameters.get_submatrix_size()) {
+  // Add non-interacting spins.
+  while (current_Nb_of_creatable_spins < max_num_noninteracting_spins_) {
     vertex_pair_type vertex(parameters, rng, configuration.size(), configuration_e_DN.size(),
-                            configuration_e_UP.size());
-
+                            configuration_e_UP.size(), next_vertex_id_++);
     vertex.set_random_noninteracting();
 
+    ++current_Nb_of_creatable_spins;
     configuration.push_back(vertex);
-    current_Nb_of_creatable_spins += 1;
-
     update_configuration_e_spin(configuration.back());
   }
 
@@ -472,20 +496,28 @@ int CT_AUX_HS_configuration<parameters_type>::get_random_interacting_vertex() {
 }
 
 template <class parameters_type>
-int CT_AUX_HS_configuration<parameters_type>::get_random_noninteracting_vertex() {
+int CT_AUX_HS_configuration<parameters_type>::get_random_noninteracting_vertex(bool mark_annihilatable) {
   assert(current_Nb_of_creatable_spins > 0);
 
+  // Find the first non-interacting spin from the left.
   int vertex_index = 0;
-  while (!configuration[vertex_index]
-              .is_creatable())  // --> find the first non-interacting spin from the left
-    vertex_index++;
+  while (!configuration[vertex_index].is_creatable())
+    ++vertex_index;
 
   assert(vertex_index < size());
   assert(!configuration[vertex_index].is_Bennett());
 
-  // make sure we do not try to propose again the same spin !!
+  // Make sure that this spin will not be proposed for insertion again.
   configuration[vertex_index].is_creatable() = false;
-  current_Nb_of_creatable_spins -= 1;
+  --current_Nb_of_creatable_spins;
+
+  if (mark_annihilatable) {
+    // However, this "virtual" interacting spin is eligible for removal.
+    // INTERNAL: CtauxWalker::generateDelayedSpinsAbortAtBennett unmarks the "virtual" interacting
+    //           spins as annihilatable when all delayed spins have been generated.
+    configuration[vertex_index].is_annihilatable() = true;
+    ++current_Nb_of_annihilatable_spins;
+  }
 
   return vertex_index;
 }
@@ -813,6 +845,15 @@ void CT_AUX_HS_configuration<parameters_type>::print(e_spin_states_type e_spin) 
   ss << std::endl << std::endl;
 
   std::cout << ss.str();
+}
+
+template <class parameters_type>
+std::size_t CT_AUX_HS_configuration<parameters_type>::find(const uint64_t vertex_id) const {
+  auto it = std::find_if(
+      configuration.begin(), configuration.end(),
+      [vertex_id](const vertex_pair_type& vertex) -> bool { return vertex.get_id() == vertex_id; });
+
+  return it - configuration.begin();
 }
 
 }  // ctaux

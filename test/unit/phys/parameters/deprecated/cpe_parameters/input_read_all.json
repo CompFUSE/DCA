@@ -1,5 +1,5 @@
 {
-    "CPE-parameters" : {
+    "CPE-parameters": {
         "do-CPE": "true",
         "number-of-matsubara-freqencies": 128,
         "smoothing-factor": 0.9,

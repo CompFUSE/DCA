@@ -24,10 +24,10 @@ public:
         parameters(parameters_ref),
         concurrency(parameters.get_concurrency()),
 
-        i_index_gpu(0, MAX_VERTEX_SINGLETS * parameters_ref.get_submatrix_size()),
-        j_index_gpu(0, MAX_VERTEX_SINGLETS * parameters_ref.get_submatrix_size()),
-        is_Bennett_gpu(0, MAX_VERTEX_SINGLETS * parameters_ref.get_submatrix_size()),
-        exp_Vj_gpu(0, MAX_VERTEX_SINGLETS * parameters_ref.get_submatrix_size()) {}
+        i_index_gpu(0, MAX_VERTEX_SINGLETS * parameters_ref.get_max_submatrix_size()),
+        j_index_gpu(0, MAX_VERTEX_SINGLETS * parameters_ref.get_max_submatrix_size()),
+        is_Bennett_gpu(0, MAX_VERTEX_SINGLETS * parameters_ref.get_max_submatrix_size()),
+        exp_Vj_gpu(0, MAX_VERTEX_SINGLETS * parameters_ref.get_max_submatrix_size()) {}
 
   void read_G_matrix_elements(dca::linalg::Vector<int, dca::linalg::CPU>& i_index,
                               dca::linalg::Vector<int, dca::linalg::CPU>& j_index,

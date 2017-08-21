@@ -150,23 +150,18 @@ configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/profiler.hpp.in"
 
 ################################################################################
 # Select the random number generator.
-set(DCA_RNG "std::ranlux48_base" CACHE STRING
-  "Random number generator, options are: std::ranlux48_base | std::ranlux48 | std::mt19937_64 | custom.")
+set(DCA_RNG "std::mt19937_64" CACHE STRING
+  "Random number generator, options are: std::mt19937_64 | std::ranlux48 | custom.")
 set_property(CACHE DCA_RNG
-  PROPERTY STRINGS std::ranlux48_base std::ranlux48 std::mt19937_64 custom)
+  PROPERTY STRINGS std::mt19937_64 std::ranlux48 custom)
 
-if (DCA_RNG STREQUAL "std::ranlux48_base")
-  set(DCA_RNG_TYPE dca::math::random::StdRandomWrapper<std::ranlux48_base>)
+if (DCA_RNG STREQUAL "std::mt19937_64")
+  set(DCA_RNG_TYPE dca::math::random::StdRandomWrapper<std::mt19937_64>)
   set(DCA_RNG_INCLUDE "dca/math/random/std_random_wrapper.hpp")
   set(DCA_RNG_LIBRARY random)
 
 elseif (DCA_RNG STREQUAL "std::ranlux48")
   set(DCA_RNG_TYPE dca::math::random::StdRandomWrapper<std::ranlux48>)
-  set(DCA_RNG_INCLUDE "dca/math/random/std_random_wrapper.hpp")
-  set(DCA_RNG_LIBRARY random)
-
-elseif (DCA_RNG STREQUAL "std::mt19937_64")
-  set(DCA_RNG_TYPE dca::math::random::StdRandomWrapper<std::mt19937_64>)
   set(DCA_RNG_INCLUDE "dca/math/random/std_random_wrapper.hpp")
   set(DCA_RNG_LIBRARY random)
 
@@ -179,8 +174,7 @@ elseif (DCA_RNG STREQUAL "custom")
   set(DCA_RNG_INCLUDE ${DCA_RNG_HEADER})
   
 else()
-  message(FATAL_ERROR "Please set DCA_RNG to a valid option: std::ranlux48_base | std::ranlux48 |
-                       std::mt19937_64 | custom.")
+  message(FATAL_ERROR "Please set DCA_RNG to a valid option: std::mt19937_64 | std::ranlux48 | custom.")
 endif()
 
 configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/rng.hpp.in"

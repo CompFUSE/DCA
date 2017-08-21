@@ -15,6 +15,7 @@
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTAUX_STRUCTS_VERTEX_PAIR_HPP
 
 #include <cassert>
+#include <cstdint>  // uint64_t
 #include <utility>
 #include <vector>
 
@@ -45,9 +46,13 @@ public:
 
 public:
   vertex_pair(parameters_type& parameters_ref, rng_type& rng_ref, int configuration_index_in,
-              int configuration_e_DN_index_in, int configuration_e_UP_index_in);
+              int configuration_e_DN_index_in, int configuration_e_UP_index_in, uint64_t id);
 
   this_type& operator=(const this_type& other_vertex_pair);
+
+  uint64_t get_id() const {
+    return id_;
+  }
 
   vertex_singleton_type first();
   vertex_singleton_type second();
@@ -81,6 +86,8 @@ private:
   //     concurrency_type&   concurrency;
   rng_type& rng;
 
+  uint64_t id_;
+
   const std::vector<int>& interacting_bands;
   int BANDS;
 
@@ -110,10 +117,12 @@ template <class parameters_type>
 vertex_pair<parameters_type>::vertex_pair(parameters_type& parameters_ref, rng_type& rng_ref,
                                           int configuration_index_in,
                                           int /*configuration_e_DN_index_in*/,
-                                          int /*configuration_e_UP_index_in*/)
+                                          int /*configuration_e_UP_index_in*/, uint64_t id)
     : parameters(parameters_ref),
       rng(rng_ref),
       //     concurrency(parameters.get_concurrency()),
+
+      id_(id),
 
       interacting_bands(parameters_ref.get_interacting_orbitals()),
       BANDS(interacting_bands.size()),
@@ -142,6 +151,8 @@ template <class parameters_type>
 vertex_pair<parameters_type>& vertex_pair<parameters_type>::operator=(
     const vertex_pair<parameters_type>& other_vertex_pair)  // --> necessary for push_back
 {
+  id_ = other_vertex_pair.id_;
+
   bands = other_vertex_pair.bands;
   e_spins = other_vertex_pair.e_spins;
   spin_orbitals = other_vertex_pair.spin_orbitals;

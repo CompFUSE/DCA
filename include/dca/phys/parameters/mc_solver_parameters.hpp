@@ -34,8 +34,10 @@ class McSolverParameters<solver::CT_AUX> {
 public:
   McSolverParameters()
       : expansion_parameter_K_(1.),
+        initial_configuration_size_(10),
         initial_matrix_size_(128),
-        submatrix_size_(128),
+        max_submatrix_size_(128),
+        neglect_bennett_updates_(false),
         additional_time_measurements_(false) {}
 
   template <typename Concurrency>
@@ -51,11 +53,17 @@ public:
   double get_expansion_parameter_K() const {
     return expansion_parameter_K_;
   }
+  int get_initial_configuration_size() const {
+    return initial_configuration_size_;
+  }
   int get_initial_matrix_size() const {
     return initial_matrix_size_;
   }
-  int get_submatrix_size() const {
-    return submatrix_size_;
+  int get_max_submatrix_size() const {
+    return max_submatrix_size_;
+  }
+  bool neglect_bennett_updates() const {
+    return neglect_bennett_updates_;
   }
   bool additional_time_measurements() const {
     return additional_time_measurements_;
@@ -63,8 +71,10 @@ public:
 
 private:
   double expansion_parameter_K_;
+  int initial_configuration_size_;
   int initial_matrix_size_;
-  int submatrix_size_;
+  int max_submatrix_size_;
+  bool neglect_bennett_updates_;
   bool additional_time_measurements_;
 };
 
@@ -73,8 +83,10 @@ int McSolverParameters<solver::CT_AUX>::getBufferSize(const Concurrency& concurr
   int buffer_size = 0;
 
   buffer_size += concurrency.get_buffer_size(expansion_parameter_K_);
+  buffer_size += concurrency.get_buffer_size(initial_configuration_size_);
   buffer_size += concurrency.get_buffer_size(initial_matrix_size_);
-  buffer_size += concurrency.get_buffer_size(submatrix_size_);
+  buffer_size += concurrency.get_buffer_size(max_submatrix_size_);
+  buffer_size += concurrency.get_buffer_size(neglect_bennett_updates_);
   buffer_size += concurrency.get_buffer_size(additional_time_measurements_);
 
   return buffer_size;
@@ -84,8 +96,10 @@ template <typename Concurrency>
 void McSolverParameters<solver::CT_AUX>::pack(const Concurrency& concurrency, char* buffer,
                                               int buffer_size, int& position) const {
   concurrency.pack(buffer, buffer_size, position, expansion_parameter_K_);
+  concurrency.pack(buffer, buffer_size, position, initial_configuration_size_);
   concurrency.pack(buffer, buffer_size, position, initial_matrix_size_);
-  concurrency.pack(buffer, buffer_size, position, submatrix_size_);
+  concurrency.pack(buffer, buffer_size, position, max_submatrix_size_);
+  concurrency.pack(buffer, buffer_size, position, neglect_bennett_updates_);
   concurrency.pack(buffer, buffer_size, position, additional_time_measurements_);
 }
 
@@ -93,8 +107,10 @@ template <typename Concurrency>
 void McSolverParameters<solver::CT_AUX>::unpack(const Concurrency& concurrency, char* buffer,
                                                 int buffer_size, int& position) {
   concurrency.unpack(buffer, buffer_size, position, expansion_parameter_K_);
+  concurrency.unpack(buffer, buffer_size, position, initial_configuration_size_);
   concurrency.unpack(buffer, buffer_size, position, initial_matrix_size_);
-  concurrency.unpack(buffer, buffer_size, position, submatrix_size_);
+  concurrency.unpack(buffer, buffer_size, position, max_submatrix_size_);
+  concurrency.unpack(buffer, buffer_size, position, neglect_bennett_updates_);
   concurrency.unpack(buffer, buffer_size, position, additional_time_measurements_);
 }
 
@@ -110,12 +126,22 @@ void McSolverParameters<solver::CT_AUX>::readWrite(ReaderOrWriter& reader_or_wri
     catch (const std::exception& r_e) {
     }
     try {
+      reader_or_writer.execute("initial-configuration-size", initial_configuration_size_);
+    }
+    catch (const std::exception& r_e) {
+    }
+    try {
       reader_or_writer.execute("initial-matrix-size", initial_matrix_size_);
     }
     catch (const std::exception& r_e) {
     }
     try {
-      reader_or_writer.execute("submatrix-size", submatrix_size_);
+      reader_or_writer.execute("max-submatrix-size", max_submatrix_size_);
+    }
+    catch (const std::exception& r_e) {
+    }
+    try {
+      reader_or_writer.execute("neglect-Bennett-updates", neglect_bennett_updates_);
     }
     catch (const std::exception& r_e) {
     }

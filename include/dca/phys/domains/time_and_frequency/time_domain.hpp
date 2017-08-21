@@ -71,7 +71,7 @@ public:
   // where step = beta/time_slices.
   // Note that the boundaries and the two zeros are shifted by a small number 'eps'.
   static void initialize(const scalar_type beta, const int time_slices,
-                         const scalar_type eps = 1.e-10);
+                         const scalar_type eps = 1.e-16);
 
   // Calls the previous initialize method with arguments taken from the parameters object.
   template <typename parameters_t>
