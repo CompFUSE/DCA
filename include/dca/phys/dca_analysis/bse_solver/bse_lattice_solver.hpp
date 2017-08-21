@@ -777,14 +777,14 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::printOnShell() {
     std::cout << "\n\tLeading eigenvalues (T=" << 1. / parameters.get_beta() << "):\n\n";
 
     for (int i = 0; i < num_evals; i++)
-      std::cout << "\t" << std::noshowpos << i << std::showpos << "\t["
-                << leading_eigenvalues(i).real() << ", " << leading_eigenvalues(i).imag() << "]\n";
+      std::cout << "\t" << i << "\t[" << leading_eigenvalues(i).real() << ", "
+                << leading_eigenvalues(i).imag() << "]\n";
 
     // Print overlap of leading eigenvectors with crystal harmonics.
     std::cout << "\n\n\tOverlap of leading eigenvectors (b1 = b2 = 0, omega_n = pi/beta) with "
-                 "crystal harmonics:"
-              << "\n\t(rows: crystal vectors, columns: eigenvalues)\n\n\t";
-    std::cout << std::noshowpos;
+                 "crystal harmonics:\n"
+              << "\t(rows: crystal vectors, columns: eigenvalues)\n\n\t";
+
     for (int i = 0; i < num_evals; i++)
       std::cout << "\t\t\t" << i;
 
@@ -794,12 +794,11 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::printOnShell() {
                  "=====================\n";
 
     for (int l = 0; l < crystal_harmonics_expansion_dmn_t::dmn_size(); l++) {
-      std::cout << "\t" << std::noshowpos << l;
-      std::cout << std::showpos << std::setprecision(1) << std::fixed << "\t["
-                << crystal_harmonics_expansion::get_elements()[l][0] << ", "
+      std::cout << "\t" << l;
+      std::cout << std::showpos << std::setprecision(1) << std::fixed;
+      std::cout << "\t[" << crystal_harmonics_expansion::get_elements()[l][0] << ", "
                 << crystal_harmonics_expansion::get_elements()[l][1] << "]";
-
-      std::cout << std::setprecision(1) << std::scientific;
+      std::cout << std::noshowpos << std::scientific;
 
       for (int i = 0; i < num_evals; i++) {
         std::complex<ScalarType> scal_prod = 0;
@@ -820,9 +819,8 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::printOnShell() {
 
     // Print overlap of leading eigenvectors with cubic harmonics (leading symmetry decomposition).
     std::cout << "\n\n\tOverlap of leading eigenvectors (b1 = 0, b2 = 0, omega_n = pi/beta) with "
-                 "cubic harmonics:"
-              << "\n\t(rows: cubic harmonics, colums: eigenvalues)\n\n\t";
-    std::cout << std::noshowpos;
+                 "cubic harmonics:\n"
+              << "\t(rows: cubic harmonics, colums: eigenvalues)\n\n\t";
     for (int i = 0; i < num_evals; i++)
       std::cout << "\t\t\t" << i;
 
@@ -832,7 +830,7 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::printOnShell() {
                  "=====================\n";
 
     for (int harmonic = 0; harmonic < num_harmonics; ++harmonic) {
-      std::cout << "\t" << std::noshowpos << harmonic << "\t\t" << std::showpos;
+      std::cout << "\t" << harmonic << "\t\t";
 
       for (int i = 0; i < num_evals; ++i) {
         std::cout << "\t["
@@ -843,7 +841,7 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::printOnShell() {
       }
       std::cout << "\n";
     }
-    std::cout << std::endl;
+    std::cout << std::setprecision(6) << std::endl;
   }
 }
 
