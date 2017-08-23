@@ -223,8 +223,7 @@ TEST(MatrixCPUTest, MoveConstructor) {
   EXPECT_EQ(mat_copy, mat_thief);
   EXPECT_EQ("thief matrix", mat_thief.get_name());
   // The original matrix is now empty.
-  EXPECT_EQ(0, mat.nrRows());
-  EXPECT_DEBUG_DEATH(mat(0, 0), "Assertion .* failed.");
+  EXPECT_EQ(std::make_pair(0, 0), mat.size());
 }
 
 TEST(MatrixCPUTest, Assignement) {
@@ -286,7 +285,7 @@ TEST(MatrixCPUTest, MoveAssignement) {
 
   EXPECT_EQ(mat_copy, thief);
   EXPECT_EQ("thief name", thief.get_name());
-  EXPECT_EQ(0, mat.nrRows());
+  EXPECT_EQ(std::make_pair(0, 0), mat.size());
 
   // Test return value.
   const MatrixType* const mat_ptr = &mat;

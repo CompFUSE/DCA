@@ -180,7 +180,7 @@ TEST(MatrixGPUTest, MoveConstructor) {
       EXPECT_EQ(testing::getFromDevice(mat_copy.ptr(i, j)), testing::getFromDevice(thief.ptr(i, j)));
 
   // The original matrix is empty.
-  EXPECT_EQ(0, mat.nrRows());
+  EXPECT_EQ(std::make_pair(0, 0), mat.size());
 }
 
 TEST(MatrixGPUTest, Assignement) {
@@ -248,7 +248,7 @@ TEST(MatrixGPUTest, MoveAssignement) {
       EXPECT_EQ(testing::getFromDevice(mat_copy.ptr(i, j)), testing::getFromDevice(thief.ptr(i, j)));
 
   // mat is now empty.
-  EXPECT_EQ(0, mat.nrRows());
+  EXPECT_EQ(std::make_pair(0, 0), mat.size());
 
   // Test return value.
   const MatrixType* const mat_ptr = &mat;
