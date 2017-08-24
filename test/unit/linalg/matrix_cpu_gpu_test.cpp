@@ -67,24 +67,20 @@ TEST(MatrixCPUGPUTest, Constructors) {
   testing::setMatrixElements(mat, el_value);
 
   dca::linalg::Matrix<float, dca::linalg::GPU> mat_copy(mat);
-  ASSERT_EQ(mat.get_name(), mat_copy.get_name());
+
   ASSERT_EQ(mat.size(), mat_copy.size());
   ASSERT_LE(mat.size().first, mat_copy.capacity().first);
   ASSERT_LE(mat.size().second, mat_copy.capacity().second);
   ASSERT_TRUE(testing::isDevicePointer(mat_copy.ptr()));
 
-  dca::linalg::Matrix<float, dca::linalg::CPU> mat_copy_copy(mat_copy);
-  EXPECT_EQ(mat.get_name(), mat_copy_copy.get_name());
+  dca::linalg::Matrix<float, dca::linalg::CPU> mat_copy_copy(mat_copy, "another name");
+  EXPECT_EQ("another name", mat_copy_copy.get_name());
   EXPECT_EQ(mat.size(), mat_copy_copy.size());
   EXPECT_LE(mat.size().first, mat_copy_copy.capacity().first);
   EXPECT_LE(mat.size().second, mat_copy_copy.capacity().second);
   EXPECT_TRUE(testing::isHostPointer(mat_copy_copy.ptr()));
 
-  for (int j = 0; j < mat.nrCols(); ++j)
-    for (int i = 0; i < mat.nrRows(); ++i) {
-      EXPECT_EQ(mat(i, j), mat_copy_copy(i, j));
-      EXPECT_NE(mat.ptr(i, j), mat_copy_copy.ptr(i, j));
-    }
+  EXPECT_EQ(mat, mat_copy_copy);
 }
 
 TEST(MatrixCPUGPUTest, Assignement) {

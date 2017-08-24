@@ -152,8 +152,8 @@ TEST(MatrixGPUTest, CopyConstructor) {
   auto el_value = [](int i, int j) { return 3 * i - 2 * j; };
   testing::setMatrixElements(mat, el_value);
 
-  dca::linalg::Matrix<float, dca::linalg::GPU> mat_copy(mat);
-  EXPECT_EQ(mat.get_name(), mat_copy.get_name());
+  dca::linalg::Matrix<float, dca::linalg::GPU> mat_copy(mat, "another name");
+  EXPECT_EQ("another name", mat_copy.get_name());
   EXPECT_EQ(mat.size(), mat_copy.size());
   EXPECT_LE(mat.size().first, mat_copy.capacity().first);
   EXPECT_LE(mat.size().second, mat_copy.capacity().second);
@@ -163,6 +163,24 @@ TEST(MatrixGPUTest, CopyConstructor) {
       EXPECT_EQ(testing::getFromDevice(mat.ptr(i, j)), testing::getFromDevice(mat_copy.ptr(i, j)));
       EXPECT_NE(mat.ptr(i, j), mat_copy.ptr(i, j));
     }
+}
+
+TEST(MatrixGPUTest, MoveConstructor) {
+  using MatrixType = dca::linalg::Matrix<double, dca::linalg::GPU>;
+  MatrixType mat("matrix name", 4);
+  auto el_value = [](int i, int j) { return 3.14 * i - 2.5 * j; };
+  testing::setMatrixElements(mat, el_value);
+  MatrixType mat_copy(mat);
+
+  MatrixType thief(std::move(mat), "thief matrix");
+  EXPECT_EQ("thief matrix", thief.get_name());
+
+  for (int j = 0; j < mat.nrCols(); ++j)
+    for (int i = 0; i < mat.nrRows(); ++i)
+      EXPECT_EQ(testing::getFromDevice(mat_copy.ptr(i, j)), testing::getFromDevice(thief.ptr(i, j)));
+
+  // The original matrix is empty.
+  EXPECT_EQ(std::make_pair(0, 0), mat.size());
 }
 
 TEST(MatrixGPUTest, Assignement) {
@@ -210,6 +228,31 @@ TEST(MatrixGPUTest, Assignement) {
         EXPECT_NE(mat.ptr(i, j), mat_copy.ptr(i, j));
       }
   }
+}
+
+TEST(MatrixGPUTest, MoveAssignement) {
+  using MatrixType = dca::linalg::Matrix<float, dca::linalg::GPU>;
+  MatrixType mat("matrix name", std::make_pair(2, 5));
+  auto el_value = [](int i, int j) { return 3 * i + 2 * j; };
+  testing::setMatrixElements(mat, el_value);
+  MatrixType mat_copy(mat);
+
+  MatrixType thief("thief name");
+  thief = std::move(mat);
+
+  EXPECT_EQ("thief name", thief.get_name());
+
+  EXPECT_EQ(mat_copy.size(), thief.size());
+  for (int j = 0; j < mat_copy.nrCols(); ++j)
+    for (int i = 0; i < mat_copy.nrRows(); ++i)
+      EXPECT_EQ(testing::getFromDevice(mat_copy.ptr(i, j)), testing::getFromDevice(thief.ptr(i, j)));
+
+  // mat is now empty.
+  EXPECT_EQ(std::make_pair(0, 0), mat.size());
+
+  // Test return value.
+  const MatrixType* const mat_ptr = &mat;
+  EXPECT_EQ(mat_ptr, &(mat = std::move(thief)));
 }
 
 TEST(MatrixGPUTest, Set) {
@@ -273,6 +316,31 @@ TEST(MatrixGPUTest, Swap) {
   auto mat2_ptr = mat2.ptr();
 
   mat1.swap(mat2);
+  EXPECT_EQ(mat1_name, mat1.get_name());
+  EXPECT_EQ(mat1_size, mat2.size());
+  EXPECT_EQ(mat1_capacity, mat2.capacity());
+  EXPECT_EQ(mat1_ptr, mat2.ptr());
+
+  EXPECT_EQ(mat2_name, mat2.get_name());
+  EXPECT_EQ(mat2_size, mat1.size());
+  EXPECT_EQ(mat2_capacity, mat1.capacity());
+  EXPECT_EQ(mat2_ptr, mat1.ptr());
+}
+
+TEST(MatrixCPUTest, SwapWithName) {
+  std::string mat1_name = "name 1";
+  std::pair<int, int> mat1_size(7, 8);
+  dca::linalg::Matrix<float, dca::linalg::GPU> mat1(mat1_name, mat1_size);
+  auto mat1_capacity = mat1.capacity();
+  auto mat1_ptr = mat1.ptr();
+
+  std::string mat2_name = "name 2";
+  std::pair<int, int> mat2_size(2, 128);
+  dca::linalg::Matrix<float, dca::linalg::GPU> mat2(mat2_name, mat2_size);
+  auto mat2_capacity = mat2.capacity();
+  auto mat2_ptr = mat2.ptr();
+
+  mat1.swapWithName(mat2);
   EXPECT_EQ(mat1_name, mat2.get_name());
   EXPECT_EQ(mat1_size, mat2.size());
   EXPECT_EQ(mat1_capacity, mat2.capacity());

@@ -36,32 +36,46 @@ public:
   using ThisType = Matrix<ScalarType, device_name>;
   using ValueType = ScalarType;
 
-  Matrix();
-  Matrix(std::string name);
+  Matrix(const std::string& name = default_name_);
 
   Matrix(int size);
-  Matrix(std::string name, int size);
+  Matrix(const std::string& name, int size);
 
   // Preconditions: capacity >= size.
   Matrix(int size, int capacity);
-  Matrix(std::string name, int size, int capacity);
+  Matrix(const std::string& name, int size, int capacity);
 
   Matrix(std::pair<int, int> size);
-  Matrix(std::string name, std::pair<int, int> size);
+  Matrix(const std::string& name, std::pair<int, int> size);
 
   // Preconditions: capacity.first >= size.first, capacity.second >= size.second.
   Matrix(std::pair<int, int> size, std::pair<int, int> capacity);
-  Matrix(std::string name, std::pair<int, int> size, std::pair<int, int> capacity);
+  Matrix(const std::string& name, std::pair<int, int> size, std::pair<int, int> capacity);
 
-  Matrix(const Matrix<ScalarType, device_name>& rhs);
+  // Copy and move constructor:
+  // Constructs a matrix with name name, size rhs.size() and a copy of the elements of rhs.
+  Matrix(const Matrix<ScalarType, device_name>& rhs, const std::string& name = default_name_);
+  // Constructs a matrix with name name, size rhs.size(). The elements of rhs are moved.
+  // Postcondition: rhs is a (0 x 0) matrix.
+  Matrix(Matrix<ScalarType, device_name>&& rhs, const std::string& = default_name_);
 
+  // Contructs a matrix with name name, size rhs.size() and a copy of the elements of rhs, where rhs
+  // elements are stored on a different device.
   template <DeviceType rhs_device_name>
-  Matrix(const Matrix<ScalarType, rhs_device_name>& rhs);
+  Matrix(const Matrix<ScalarType, rhs_device_name>& rhs, const std::string& = default_name_);
 
   ~Matrix();
 
+  // Assignment operators:
+  // Resizes the matrix to rhs.size() and copy the elements of rhs.
+  // Postcondition: The name of the matrix is unchanged.
   Matrix<ScalarType, device_name>& operator=(const Matrix<ScalarType, device_name>& rhs);
+  // Resizes the matrix to rhs.size() and move the elements of rhs.
+  // Postcondition: The name of the matrix is unchanged; rhs is a (0 x 0) matrix.
+  Matrix<ScalarType, device_name>& operator=(Matrix<ScalarType, device_name>&& rhs);
 
+  // Resizes the matrix to rhs.size() and copy the elements, stored on a different device, of rhs.
+  // Postcondition: The name of the matrix is unchanged.
   template <DeviceType rhs_device_name>
   Matrix<ScalarType, device_name>& operator=(const Matrix<ScalarType, rhs_device_name>& rhs);
 
@@ -171,7 +185,10 @@ public:
   // if new_size.first <= capacity().first and new_size.second <= capacity().second.
   void resizeNoCopy(std::pair<int, int> new_size);
 
+  // Swaps the contents of the matrix except the name with those of rhs.
   void swap(Matrix<ScalarType, device_name>& rhs);
+  // Swaps the contents of the matrix, included the name, with those of rhs.
+  void swapWithName(Matrix<ScalarType, device_name>& rhs);
 
   // Asynchronous assignement (copy with stream = getStream(thread_id, stream_id))
   // + synchronization of stream
@@ -193,55 +210,55 @@ private:
   inline static size_t nrElements(std::pair<int, int> size) {
     return static_cast<size_t>(size.first) * static_cast<size_t>(size.second);
   }
-  const static int block_size_ = 32;
+  static constexpr int block_size_ = 32;
+  static const std::string default_name_;
 
   std::string name_;
 
   std::pair<int, int> size_;
   std::pair<int, int> capacity_;
 
-  ValueType* data_;
+  ValueType* data_ = nullptr;
 
   template <class ScalarType2, DeviceType device_name2>
   friend class dca::linalg::Matrix;
 };
+template <typename ScalarType, DeviceType device_name>
+const std::string Matrix<ScalarType, device_name>::default_name_ = "no-name";
 
 template <typename ScalarType, DeviceType device_name>
-Matrix<ScalarType, device_name>::Matrix() : Matrix(0) {}
-
-template <typename ScalarType, DeviceType device_name>
-Matrix<ScalarType, device_name>::Matrix(std::string str) : Matrix(str, 0) {}
+Matrix<ScalarType, device_name>::Matrix(const std::string& name) : Matrix(name, 0) {}
 
 template <typename ScalarType, DeviceType device_name>
 Matrix<ScalarType, device_name>::Matrix(int size) : Matrix(std::make_pair(size, size)) {}
 
 template <typename ScalarType, DeviceType device_name>
-Matrix<ScalarType, device_name>::Matrix(std::string str, int size)
-    : Matrix(str, std::make_pair(size, size)) {}
+Matrix<ScalarType, device_name>::Matrix(const std::string& name, int size)
+    : Matrix(name, std::make_pair(size, size)) {}
 
 template <typename ScalarType, DeviceType device_name>
 Matrix<ScalarType, device_name>::Matrix(int size, int capacity)
     : Matrix(std::make_pair(size, size), std::make_pair(capacity, capacity)) {}
 
 template <typename ScalarType, DeviceType device_name>
-Matrix<ScalarType, device_name>::Matrix(std::string str, int size, int capacity)
-    : Matrix(str, std::make_pair(size, size), std::make_pair(capacity, capacity)) {}
+Matrix<ScalarType, device_name>::Matrix(const std::string& name, int size, int capacity)
+    : Matrix(name, std::make_pair(size, size), std::make_pair(capacity, capacity)) {}
 
 template <typename ScalarType, DeviceType device_name>
 Matrix<ScalarType, device_name>::Matrix(std::pair<int, int> size) : Matrix(size, size) {}
 
 template <typename ScalarType, DeviceType device_name>
-Matrix<ScalarType, device_name>::Matrix(std::string str, std::pair<int, int> size)
-    : Matrix(str, size, size) {}
+Matrix<ScalarType, device_name>::Matrix(const std::string& name, std::pair<int, int> size)
+    : Matrix(name, size, size) {}
 
 template <typename ScalarType, DeviceType device_name>
 Matrix<ScalarType, device_name>::Matrix(std::pair<int, int> size, std::pair<int, int> capacity)
-    : Matrix("unnamed matrix", size, capacity) {}
+    : Matrix(default_name_, size, capacity) {}
 
 template <typename ScalarType, DeviceType device_name>
-Matrix<ScalarType, device_name>::Matrix(std::string str, std::pair<int, int> size,
+Matrix<ScalarType, device_name>::Matrix(const std::string& name, std::pair<int, int> size,
                                         std::pair<int, int> capacity)
-    : name_(str), size_(size), capacity_(capacityMultipleOfBlockSize(capacity)), data_(nullptr) {
+    : name_(name), size_(size), capacity_(capacityMultipleOfBlockSize(capacity)) {
   assert(size_.first >= 0 && size_.second >= 0);
   assert(capacity.first >= 0 && capacity.second >= 0);
   assert(capacity.first >= size_.first && capacity.second >= size_.second);
@@ -252,16 +269,26 @@ Matrix<ScalarType, device_name>::Matrix(std::string str, std::pair<int, int> siz
 }
 
 template <typename ScalarType, DeviceType device_name>
-Matrix<ScalarType, device_name>::Matrix(const Matrix<ScalarType, device_name>& rhs)
-    : name_(rhs.name_), size_(rhs.size_), capacity_(rhs.capacity_), data_(nullptr) {
+Matrix<ScalarType, device_name>::Matrix(const Matrix<ScalarType, device_name>& rhs,
+                                        const std::string& name)
+    : name_(name), size_(rhs.size_), capacity_(rhs.capacity_) {
   util::Memory<device_name>::allocate(data_, nrElements(capacity_));
   util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
 }
 
 template <typename ScalarType, DeviceType device_name>
+Matrix<ScalarType, device_name>::Matrix(Matrix<ScalarType, device_name>&& rhs, const std::string& name)
+    : name_(name), size_(rhs.size_), capacity_(rhs.capacity_), data_(rhs.data_) {
+  rhs.capacity_ = std::make_pair(0, 0);
+  rhs.size_ = std::make_pair(0, 0);
+  rhs.data_ = nullptr;
+}
+
+template <typename ScalarType, DeviceType device_name>
 template <DeviceType rhs_device_name>
-Matrix<ScalarType, device_name>::Matrix(const Matrix<ScalarType, rhs_device_name>& rhs)
-    : name_(rhs.name_), size_(rhs.size_), capacity_(rhs.capacity_), data_(nullptr) {
+Matrix<ScalarType, device_name>::Matrix(const Matrix<ScalarType, rhs_device_name>& rhs,
+                                        const std::string& name)
+    : name_(name), size_(rhs.size_), capacity_(rhs.capacity_) {
   util::Memory<device_name>::allocate(data_, nrElements(capacity_));
   util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
 }
@@ -298,6 +325,21 @@ Matrix<ScalarType, device_name>& Matrix<ScalarType, device_name>::operator=(
     const Matrix<ScalarType, device_name>& rhs) {
   resizeNoCopy(rhs.size_);
   util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
+  return *this;
+}
+
+template <typename ScalarType, DeviceType device_name>
+Matrix<ScalarType, device_name>& Matrix<ScalarType, device_name>::operator=(
+    Matrix<ScalarType, device_name>&& rhs) {
+  if (this != &rhs) {
+    util::Memory<device_name>::deallocate(data_);
+    data_ = rhs.data_;
+    size_ = rhs.size_;
+    capacity_ = rhs.capacity_;
+    rhs.data_ = nullptr;
+    rhs.capacity_ = std::make_pair(0, 0);
+    rhs.size_ = std::make_pair(0, 0);
+  }
   return *this;
 }
 
@@ -348,10 +390,15 @@ void Matrix<ScalarType, device_name>::resizeNoCopy(std::pair<int, int> new_size)
 
 template <typename ScalarType, DeviceType device_name>
 void Matrix<ScalarType, device_name>::swap(Matrix<ScalarType, device_name>& rhs) {
-  std::swap(name_, rhs.name_);
   std::swap(size_, rhs.size_);
   std::swap(capacity_, rhs.capacity_);
   std::swap(data_, rhs.data_);
+}
+
+template <typename ScalarType, DeviceType device_name>
+void Matrix<ScalarType, device_name>::swapWithName(Matrix<ScalarType, device_name>& rhs) {
+  std::swap(name_, rhs.name_);
+  swap(rhs);
 }
 
 template <typename ScalarType, DeviceType device_name>
