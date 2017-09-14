@@ -380,7 +380,7 @@ TYPED_TEST(MatrixopRealCPUTest, Laset) {
 
 TYPED_TEST(MatrixopRealCPUTest, InsertRowCol) {
   using ScalarType = TypeParam;
-  std::pair<int, int> size2(3, 4);
+  std::pair<int, int> size2(31, 31);
   auto val = [](int i, int j) { return 10 * i + j; };
   dca::linalg::Matrix<ScalarType, dca::linalg::CPU> mat(size2);
   testing::setMatrixElements(mat, val);
