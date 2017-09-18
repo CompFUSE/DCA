@@ -15,10 +15,6 @@ option(DCA_WITH_CUDA "Enable GPU support." ON)
 # Compile for Tesla compute architecture.
 # set(CUDA_GPU_ARCH "sm_60" CACHE STRING "Name of the *real* architecture to build for.")  # default
 
-# Set the path to the CUDA toolkit since CMake cannot find it.
-set(CUDA_TOOLKIT_ROOT_DIR "/opt/nvidia/cudatoolkit8.0/8.0.54_2.2.8_ga620558-2.1"
-  CACHE PATH "Path to the CUDA Toolkit." FORCE)
-
 # For the GPU support we also need MAGMA.
 # MAGMA has been installed with EasyBuild.
 set(MAGMA_DIR $ENV{EBROOTMAGMA} CACHE PATH
