@@ -215,7 +215,7 @@ void insertCol(Matrix<ScalarType, CPU>& mat, int j) {
 
   if (mat.nrRows() > 0 && j < mat.nrCols() - 1)
     memmove(mat.ptr(0, j + 1), mat.ptr(0, j),
-            sizeof(ScalarType) * (mat.nrCols() - j) * mat.leadingDimension());
+            sizeof(ScalarType) * (mat.nrCols() - 1 - j) * mat.leadingDimension());
 
   for (int i = 0; i < mat.nrRows(); ++i)
     mat(i, j) = 0;
@@ -233,7 +233,7 @@ void insertRow(Matrix<ScalarType, CPU>& mat, int i) {
 
   if (i < mat.nrRows() - 1)
     for (int j = 0; j < mat.nrCols(); ++j)
-      memmove(mat.ptr(i + 1, j), mat.ptr(i, j), sizeof(ScalarType) * (mat.nrRows() - i));
+      memmove(mat.ptr(i + 1, j), mat.ptr(i, j), sizeof(ScalarType) * (mat.nrRows() - 1 - i));
 
   for (int j = 0; j < mat.nrCols(); ++j)
     mat(i, j) = 0;
