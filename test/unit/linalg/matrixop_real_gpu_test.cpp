@@ -329,9 +329,9 @@ TYPED_TEST(MatrixopRealGPUTest, Inverse) {
   for (int j = 0; j < mat.nrCols(); ++j) {
     for (int i = 0; i < mat.nrRows(); ++i) {
       if (i == j)
-        EXPECT_NEAR(1, res(i, j), 1000 * this->epsilon);
+        EXPECT_NEAR(1, res(i, j), 2000 * this->epsilon);
       else
-        EXPECT_NEAR(0, res(i, j), 1000 * this->epsilon);
+        EXPECT_NEAR(0, res(i, j), 2000 * this->epsilon);
     }
   }
 }
