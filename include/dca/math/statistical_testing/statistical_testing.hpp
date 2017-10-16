@@ -25,7 +25,7 @@ namespace math {
 
 class StatisticalTesting {
 public:
-  // Creates the test and store f: the observed average, f_expected, and the covariance of f.
+  // Creates the test and stores f: the observed average, f_expected, and the covariance of f.
   // In: f, f_expected, covariance
   template <typename Domain>
   StatisticalTesting(const func::function<double, Domain>& f,
@@ -39,7 +39,7 @@ public:
   // In/Out: indices
   void discardIndices(std::vector<int>& indices);
 
-  // Perform the test. The returned pvalue is the probability of obtaining
+  // Performs the test. The returned pvalue is the probability of obtaining
   // more extreme data then the observation. The stored covariance is destroyed.
   // In: known_covariance : true if the covariance is from a reference run, false if it is computed
   //                        with the empirical data.
@@ -49,9 +49,9 @@ public:
   // Returns              : The p-value
   double computePValue(bool known_covariance, int n_samples, bool allow_fast = false);
 
-  // Print to a file the pvalue and the normalized samples, for further analysis.
+  // Prints to a file the pvalue and the normalized samples, for further analysis.
   void printInfo(const std::string& filename, bool append = false) const;
-  // Return the number of degrees of freedom used in the test.
+  // Returns the number of degrees of freedom used in the test.
   int get_dof() const {
     return dof_;
   }

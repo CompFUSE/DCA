@@ -55,8 +55,24 @@ void StatisticalTesting::computeFastMahalanobisDistanceSquared() {
   // step 1)
   dof_ = df_.size();
   std::vector<double> cov_copy(cov_);
+  double l_inf = 0;
+  for (double entry : cov_copy)
+    l_inf = std::max(l_inf, std::abs(entry));
+
   try {
-    dca::linalg::lapack::potrf("L", dof_, &(cov_copy[0]), dof_);
+    const char lower = 'L';
+    dca::linalg::lapack::potrf(&lower, dof_, &(cov_copy[0]), dof_);
+    // Check conditioning of the decomposed matrix.
+    std::vector<double> work(3 * dof_);
+    std::vector<int> iwork(dof_);
+    const double inverse_cond_num = dca::linalg::lapack::pocon(&lower, dof_, &(cov_copy[0]), dof_,
+                                                               l_inf, work.data(), iwork.data());
+    const double threshold = 1e-10;
+    if (inverse_cond_num < threshold) {
+      std::cerr << "Warning: the covariance matrix is ill conditioned. Condition number: "
+                << 1. / inverse_cond_num << "\nComputing Mahalanobis distance in the eigenbases.\n";
+      return computeMahalanobisDistanceSquared();
+    }
   }
   catch (dca::linalg::lapack::util::LapackException& /*err*/) {
     std::cerr << "Warning: Factorization could not be completed. Computing Mahalanobis distance in "

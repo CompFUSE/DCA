@@ -71,39 +71,7 @@ TEST(ProbabilityDistributions, FCdf) {
   EXPECT_THROW(dca::math::fCdf(1, 1, 0), std::logic_error);
 }
 
-TEST(StatisticalTesting, ComputePvalue1) {
-  // Singular covariance matrix.
-  using Domain = dmn_0<dmn<4, int>>;
-  function<double, Domain> f(""), f0("");
-  f0 = 0;
-  f(0) = 0.1;
-  f(1) = 0.1;
-  f(2) = 0.15;
-  f(3) = 0.2;
-
-  function<double, dmn_variadic<Domain, Domain>> cov("");
-  cov(0, 0) = 0.1, cov(0, 1) = 0.1, cov(0, 2) = 0.1, cov(0, 3) = 0.1;
-  cov(1, 1) = 0.1, cov(1, 2) = 0.1, cov(1, 3) = 0.1;
-  cov(2, 2) = 0.2, cov(2, 3) = 0.05;
-  cov(3, 3) = 0.3;
-  writeLT(cov);
-
-  // Result obtained with python.
-  const double d2 = 0.21428571428571425;
-  const int n = 5;
-  const double expected_pval = 1. - dca::math::chi2Cdf(n * d2, 3);
-  StatisticalTesting test1(f, f0, cov);
-  StatisticalTesting test2(test1);
-
-  EXPECT_NEAR(expected_pval, test1.computePValue(true, n, false), tolerance);
-  // As the covariance is singular setting allow_fast to true does not modify the computation.
-  EXPECT_NEAR(expected_pval, test2.computePValue(true, n, true), tolerance);
-
-  EXPECT_EQ(3, test1.get_dof());
-  EXPECT_EQ(3, test2.get_dof());
-}
-
-TEST(StatisticalTesting, ComputePValue2) {
+TEST(StatisticalTesting, ComputePValue1) {
   // Non singular covariance matrix.
   using Domain = dmn_0<dmn<3>>;
   function<double, Domain> f(""), f0("");
@@ -121,13 +89,48 @@ TEST(StatisticalTesting, ComputePValue2) {
 
   StatisticalTesting test1(f, f0, cov);
   StatisticalTesting test2(test1);
+  // Result obtained with a straightforward computation in Python.
   const double d2 = 0.21428571428571425;
   const int n = 5;
   const double expected_pval = 1. - dca::math::fCdf((n - 3.) / 3. * d2, 3, n - 3);
-  EXPECT_NEAR(expected_pval, test2.computePValue(false, n, false), tolerance);
-  // Performs the test with a faster implementation.
-  EXPECT_NEAR(expected_pval, test1.computePValue(false, n, true), tolerance);
+  EXPECT_NEAR(expected_pval, test1.computePValue(false, n, false), tolerance);
   EXPECT_EQ(3, test1.get_dof());
+  // Performs the test with a faster implementation.
+  EXPECT_NEAR(expected_pval, test2.computePValue(false, n, true), tolerance);
+  EXPECT_EQ(3, test2.get_dof());
+}
+
+TEST(StatisticalTesting, ComputePvalue2) {
+  // Singular covariance matrix.
+  using Domain = dmn_0<dmn<4, int>>;
+  function<double, Domain> f(""), f0("");
+  f0 = 0;
+  f(0) = 0.1;
+  f(1) = 0.1;
+  f(2) = 0.15;
+  f(3) = 0.2;
+
+  function<double, dmn_variadic<Domain, Domain>> cov("");
+  cov(0, 0) = 0.1, cov(0, 1) = 0.1, cov(0, 2) = 0.1, cov(0, 3) = 0.1;
+  cov(1, 1) = 0.1, cov(1, 2) = 0.1, cov(1, 3) = 0.1;
+  cov(2, 2) = 0.2, cov(2, 3) = 0.05;
+  cov(3, 3) = 0.3;
+  writeLT(cov);
+
+  // Once the first row and column is removed, the Mahalanobis distance is the same as the previous
+  // test.
+  const double d2 = 0.21428571428571425;
+  const int n = 5;
+  const double expected_pval = 1. - dca::math::chi2Cdf(n * d2, 3);
+  StatisticalTesting test1(f, f0, cov);
+  StatisticalTesting test2(test1);
+
+  EXPECT_NEAR(expected_pval, test1.computePValue(true, n, false), tolerance);
+  // As the covariance is singular setting the fast computation reverts to the default one.
+  EXPECT_NEAR(expected_pval, test2.computePValue(true, n, true), tolerance);
+
+  EXPECT_EQ(3, test1.get_dof());
+  EXPECT_EQ(3, test2.get_dof());
 }
 
 TEST(StatisticalTesting, SelectIndices1) {
