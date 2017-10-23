@@ -27,6 +27,8 @@ TEST(OutputParametersTest, DefaultValues) {
   EXPECT_EQ("profiling.json", pars.get_filename_profiling());
   EXPECT_FALSE(pars.dump_lattice_self_energy());
   EXPECT_FALSE(pars.dump_cluster_Greens_functions());
+  EXPECT_FALSE(pars.dump_Gamma_lattice());
+  EXPECT_FALSE(pars.dump_chi_0_lattice());
 }
 
 TEST(OutputParametersTest, ReadAll) {
@@ -49,4 +51,6 @@ TEST(OutputParametersTest, ReadAll) {
   EXPECT_EQ("profiling_run1.json", pars.get_filename_profiling());
   EXPECT_TRUE(pars.dump_lattice_self_energy());
   EXPECT_TRUE(pars.dump_cluster_Greens_functions());
+  EXPECT_TRUE(pars.dump_Gamma_lattice());
+  EXPECT_TRUE(pars.dump_chi_0_lattice());
 }

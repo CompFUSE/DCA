@@ -32,7 +32,9 @@ public:
         filename_qmc_("qmc.hdf5"),
         filename_profiling_("profiling.json"),
         dump_lattice_self_energy_(false),
-        dump_cluster_Greens_functions_(false) {}
+        dump_cluster_Greens_functions_(false),
+        dump_Gamma_lattice_(false),
+        dump_chi_0_lattice_(false) {}
 
   template <typename Concurrency>
   int getBufferSize(const Concurrency& concurrency) const;
@@ -71,6 +73,12 @@ public:
   bool dump_cluster_Greens_functions() const {
     return dump_cluster_Greens_functions_;
   }
+  bool dump_Gamma_lattice() const {
+    return dump_Gamma_lattice_;
+  }
+  bool dump_chi_0_lattice() const {
+    return dump_chi_0_lattice_;
+  }
 
 private:
   std::string directory_;
@@ -82,6 +90,8 @@ private:
   std::string filename_profiling_;
   bool dump_lattice_self_energy_;
   bool dump_cluster_Greens_functions_;
+  bool dump_Gamma_lattice_;
+  bool dump_chi_0_lattice_;
 };
 
 template <typename Concurrency>
@@ -97,6 +107,8 @@ int OutputParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(filename_profiling_);
   buffer_size += concurrency.get_buffer_size(dump_lattice_self_energy_);
   buffer_size += concurrency.get_buffer_size(dump_cluster_Greens_functions_);
+  buffer_size += concurrency.get_buffer_size(dump_Gamma_lattice_);
+  buffer_size += concurrency.get_buffer_size(dump_chi_0_lattice_);
 
   return buffer_size;
 }
@@ -113,6 +125,8 @@ void OutputParameters::pack(const Concurrency& concurrency, char* buffer, int bu
   concurrency.pack(buffer, buffer_size, position, filename_profiling_);
   concurrency.pack(buffer, buffer_size, position, dump_lattice_self_energy_);
   concurrency.pack(buffer, buffer_size, position, dump_cluster_Greens_functions_);
+  concurrency.pack(buffer, buffer_size, position, dump_Gamma_lattice_);
+  concurrency.pack(buffer, buffer_size, position, dump_chi_0_lattice_);
 }
 
 template <typename Concurrency>
@@ -127,6 +141,8 @@ void OutputParameters::unpack(const Concurrency& concurrency, char* buffer, int 
   concurrency.unpack(buffer, buffer_size, position, filename_profiling_);
   concurrency.unpack(buffer, buffer_size, position, dump_lattice_self_energy_);
   concurrency.unpack(buffer, buffer_size, position, dump_cluster_Greens_functions_);
+  concurrency.unpack(buffer, buffer_size, position, dump_Gamma_lattice_);
+  concurrency.unpack(buffer, buffer_size, position, dump_chi_0_lattice_);
 }
 
 template <typename ReaderOrWriter>
@@ -176,6 +192,16 @@ void OutputParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     }
     try {
       reader_or_writer.execute("dump-cluster-Greens-functions", dump_cluster_Greens_functions_);
+    }
+    catch (const std::exception& r_e) {
+    }
+    try {
+      reader_or_writer.execute("dump-Gamma-lattice", dump_Gamma_lattice_);
+    }
+    catch (const std::exception& r_e) {
+    }
+    try {
+      reader_or_writer.execute("dump-chi_0-lattice", dump_chi_0_lattice_);
     }
     catch (const std::exception& r_e) {
     }
