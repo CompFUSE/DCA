@@ -13,6 +13,7 @@
 #define DCA_LINALG_LAPACK_LAPACK_HPP
 
 #include <complex>
+#include <vector>
 #include <dca/linalg/util/util_lapack.hpp>
 
 // Declaration of the LAPACK functions. Do not use them in the code but use the provided wrappers.
@@ -76,7 +77,10 @@ void zgeev_(const char* job_vl, const char* job_vr, const int* n, std::complex<d
             std::complex<double>* vr, const int* ldvr, std::complex<double>* work, const int* lwork,
             double* rwork, int* info);
 
-int  dpotrf_(const char* uplo, int* n, double* a, int* lda, int* info);
+int dpotrf_(const char* uplo, int* n, double* a, int* lda, int* info);
+
+void dpocon_(const char* uplo, const int* n, const double* a, const int* lda, const double* norm,
+             double* rcond, double* work, int* iwork, int* info);
 
 void ssyevd_(const char* job_v, const char* uplo, const int* n, float* a, const int* lda, float* w,
              float* work, const int* lwork, int* iwork, const int* liwork, int* info);
@@ -223,11 +227,26 @@ inline void geev(const char* job_vl, const char* job_vr, int n, std::complex<dou
   checkLapackInfo(info);
 }
 
-inline int potrf(const char* uplo, int n, double* a, int lda){
+inline int potrf(const char* uplo, int n, double* a, int lda) {
   int info = 0;
   int res = dpotrf_(uplo, &n, a, &lda, &info);
   checkLapackInfo(info);
   return res;
+}
+
+inline double popcon(const char* uplo, int n, const double* a, int lda, double norm, double* work,
+                     int* iwork) {
+  double cond;
+  int info = 0;
+  dpocon_(uplo, &n, a, &lda, &norm, &cond, work, iwork, &info);
+  checkLapackInfo(info);
+  return cond;
+}
+
+inline double popcon(const char* uplo, int n, const double* a, int lda, double norm) {
+  std::vector<double> work(3 * n);
+  std::vector<int> iwork(n);
+  return popcon(uplo, n, a, lda, norm, work.data(), iwork.data());
 }
 
 inline void syevd(const char* job_v, const char* uplo, int n, float* a, int lda, float* w,
