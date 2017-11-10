@@ -112,7 +112,7 @@ func::function<double, SigmaCutDomain<SpaceDmn>> cutFrequency(
 }
 template <typename Scalar, class... Domains>
 func::function<Scalar, func::dmn_variadic<details::Bdmn, Domains...>> bandDiagonal(
-    func::function<Scalar, func::dmn_variadic<details::Bdmn, details::Bdmn, Domains...>>&& f){
+    func::function<Scalar, func::dmn_variadic<details::Bdmn, details::Bdmn, Domains...>>&& f) {
   return bandDiagonal(f);
 }
 
