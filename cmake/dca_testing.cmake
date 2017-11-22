@@ -15,7 +15,6 @@ include(CMakeParseArguments)
 #               [MPI [MPI_NUMPROC procs]]
 #               [PTHREADS]
 #               [CUDA]
-#               [MAGMA]
 #               [INCLUDE_DIRS dir1 [dir2 ...]]
 #               [SOURCES src1 [src2 ...]]
 #               [LIBS lib1 [lib2 ...]])
@@ -27,7 +26,7 @@ include(CMakeParseArguments)
 # MPI, PTHREADS or CUDA may be given to indicate that the test requires these libraries. MPI_NUMPROC
 # is the number of MPI processes to use for an test with MPI, the default value is 1.
 function(dca_add_gtest name)
-  set(options FAST EXTENSIVE VALIDATION PERFORMANCE STATISTICAL GTEST_MAIN MPI PTHREADS CUDA MAGMA)
+  set(options FAST EXTENSIVE VALIDATION PERFORMANCE STATISTICAL GTEST_MAIN MPI PTHREADS CUDA)
   set(oneValueArgs MPI_NUMPROC)
   set(multiValueArgs INCLUDE_DIRS SOURCES LIBS)
   cmake_parse_arguments(DCA_ADD_GTEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
