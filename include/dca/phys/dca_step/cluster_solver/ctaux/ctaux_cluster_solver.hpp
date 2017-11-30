@@ -87,7 +87,7 @@ public:
   // Returns the function G(k,w) without averaging across MPI ranks.
   // Precondition: this->finalize has not been called.
   // TODO: This method duplicates parts of compute_error_bars.
-  auto onNode_G_k_w();
+  auto onNode_G_k_w() const;
 
 protected:
   void warm_up(walker_type& walker);
@@ -110,7 +110,7 @@ protected:
 
   void compute_G_k_w_new(
       func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& M_k_w_new,
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& G_k_w_new);
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& G_k_w_new) const;
 
   void compute_S_k_w_new(
       func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& G_k_w_new,
@@ -621,7 +621,7 @@ double CtauxClusterSolver<device_t, parameters_type, MOMS_type>::compute_S_k_w_f
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void CtauxClusterSolver<device_t, parameters_type, MOMS_type>::compute_G_k_w_new(
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& M_k_w_new,
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& G_k_w_new) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& G_k_w_new) const {
   //     if(concurrency.id()==0)
   //       std::cout << "\n\t\t compute-G_k_w_new\t" << dca::util::print_time() << "\n\n";
 
@@ -816,7 +816,7 @@ double CtauxClusterSolver<device_t, parameters_type, MOMS_type>::mix_self_energy
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-auto CtauxClusterSolver<device_t, parameters_type, MOMS_type>::onNode_G_k_w() {
+auto CtauxClusterSolver<device_t, parameters_type, MOMS_type>::onNode_G_k_w() const {
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>> G_k_w_new("G_k_w");
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>> M_r_w_new("M_r_w_new");
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>> M_k_w_new("M_k_w_new");

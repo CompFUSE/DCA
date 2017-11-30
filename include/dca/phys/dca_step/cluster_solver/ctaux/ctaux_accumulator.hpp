@@ -130,7 +130,10 @@ public:
     return K_r_t;
   }
 
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>>& get_M_r_w() {
+  const auto& get_M_r_w() const {
+    return M_r_w;
+  }
+  auto& get_M_r_w() {
     return M_r_w;
   }
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>>& get_M_r_w_squared() {

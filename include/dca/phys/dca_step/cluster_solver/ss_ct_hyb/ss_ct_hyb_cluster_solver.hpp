@@ -90,10 +90,10 @@ public:
   // For testing purposes.
   // Returns the function G(k,w) without averaging across MPI ranks.
   // Precondition: this->finalize has not been called.
-  auto onNode_G_k_w();
+  auto onNode_G_k_w() const;
   // Returns the product of G(r,w) with the Self Energy without averaging across MPI ranks.
   // Precondition: this->finalize has not been called.
-  auto onNode_GS_r_w();
+  auto onNode_GS_r_w() const;
 
 protected:
   void warm_up(walker_type& walker);
@@ -561,14 +561,14 @@ void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::find_tail_of_Si
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-auto SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::onNode_GS_r_w() {
+auto SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::onNode_GS_r_w() const {
   auto GS_r_w = accumulator.get_GS_r_w();
   GS_r_w /= accumulator.get_sign();
   return GS_r_w;
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-auto SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::onNode_G_k_w() {
+auto SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::onNode_G_k_w() const {
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>> G_k_w;
   math::transform::FunctionTransform<r_DCA, k_DCA>::execute(accumulator.get_G_r_w(), G_k_w);
   G_k_w /= accumulator.get_sign();
