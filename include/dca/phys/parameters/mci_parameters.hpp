@@ -14,6 +14,7 @@
 #ifndef DCA_PHYS_PARAMETERS_MCI_PARAMETERS_HPP
 #define DCA_PHYS_PARAMETERS_MCI_PARAMETERS_HPP
 
+#include <cassert>
 #include <iostream>
 #include <limits>
 #include <random>
@@ -60,6 +61,7 @@ public:
     return measurements_per_process_and_accumulator_;
   }
   void set_measurements_per_process_and_accumulator(const int measurements) {
+    assert(measurements >= 0);
     measurements_per_process_and_accumulator_ = measurements;
   }
   int get_walkers() const {
