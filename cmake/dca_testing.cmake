@@ -77,10 +77,8 @@ function(dca_add_gtest name)
     endif()
   endif()
 
-  if (DCA_ADD_GTEST_STATISTICAL)
-    if (NOT DCA_WITH_STATISTICAL_TESTING)
-      return()
-    endif()
+  if (DCA_ADD_GTEST_STATISTICAL AND NOT DCA_WITH_STATISTICAL_TESTS)
+    return()
   endif()
 
   # Only build the test if the required libraries are available.
