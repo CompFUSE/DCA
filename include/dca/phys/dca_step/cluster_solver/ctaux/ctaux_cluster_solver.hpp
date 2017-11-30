@@ -83,8 +83,9 @@ public:
   template <typename dca_info_struct_t>
   double finalize(dca_info_struct_t& dca_info_struct);
 
-  // Returns the function G_k_w before the average across MPI ranks is performed.
   // For testing purposes.
+  // Returns the function G(k,w) without averaging across MPI ranks.
+  // Precondition: this->finalize has not been called.
   // TODO: This method duplicates parts of compute_error_bars.
   auto onNode_G_k_w();
 
