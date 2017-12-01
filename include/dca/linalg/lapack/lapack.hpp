@@ -76,10 +76,10 @@ void zgeev_(const char* job_vl, const char* job_vr, const int* n, std::complex<d
             std::complex<double>* vr, const int* ldvr, std::complex<double>* work, const int* lwork,
             double* rwork, int* info);
 
-int spotrf_(const char* uplo, int* n, float* a, int* lda, int* info);
-int dpotrf_(const char* uplo, int* n, double* a, int* lda, int* info);
-int cpotrf_(const char* uplo, int* n, std::complex<float>* a, int* lda, int* info);
-int zpotrf_(const char* uplo, int* n, std::complex<double>* a, int* lda, int* info);
+int spotrf_(const char* uplo, const int* n, float* a, const int* lda, int* info);
+int dpotrf_(const char* uplo, const int* n, double* a, const int* lda, int* info);
+int cpotrf_(const char* uplo, const int* n, std::complex<float>* a, const int* lda, int* info);
+int zpotrf_(const char* uplo, const int* n, std::complex<double>* a, const int* lda, int* info);
 
 void spocon_(const char* uplo, const int* n, const float* a, const int* lda, const float* norm,
              float* rcond, float* work, int* iwork, int* info);
