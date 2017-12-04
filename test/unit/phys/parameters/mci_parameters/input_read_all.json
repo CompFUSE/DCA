@@ -8,7 +8,8 @@
 
         "threaded-solver": {
             "walkers": 3,
-            "accumulators": 5
+            "accumulators": 5,
+            "shared-walk-and-accumulation-thread": true
         }
     }
 }

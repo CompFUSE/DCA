@@ -35,6 +35,7 @@ public:
         measurements_per_process_(100),
         walkers_(1),
         accumulators_(1),
+        shared_walk_and_accumulation_thread_(false),
         adjust_self_energy_for_double_counting_(false),
         error_computation_type_(0) {}
 
@@ -70,10 +71,12 @@ public:
   int get_accumulators() const {
     return accumulators_;
   }
+  bool shared_walk_and_accumulation_thread() const {
+    return shared_walk_and_accumulation_thread_;
+  }
   bool adjust_self_energy_for_double_counting() const {
     return adjust_self_energy_for_double_counting_;
   }
-
   ErrorComputationType get_error_computation_type() const {
     return ErrorComputationType(error_computation_type_);
   }
@@ -93,6 +96,7 @@ private:
   int measurements_per_process_;
   int walkers_;
   int accumulators_;
+  bool shared_walk_and_accumulation_thread_;
   bool adjust_self_energy_for_double_counting_;
   int error_computation_type_;
 };
@@ -107,6 +111,7 @@ int MciParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(measurements_per_process_);
   buffer_size += concurrency.get_buffer_size(walkers_);
   buffer_size += concurrency.get_buffer_size(accumulators_);
+  buffer_size += concurrency.get_buffer_size(shared_walk_and_accumulation_thread_);
   buffer_size += concurrency.get_buffer_size(adjust_self_energy_for_double_counting_);
   buffer_size += concurrency.get_buffer_size(error_computation_type_);
 
@@ -122,6 +127,7 @@ void MciParameters::pack(const Concurrency& concurrency, char* buffer, int buffe
   concurrency.pack(buffer, buffer_size, position, measurements_per_process_);
   concurrency.pack(buffer, buffer_size, position, walkers_);
   concurrency.pack(buffer, buffer_size, position, accumulators_);
+  concurrency.pack(buffer, buffer_size, position, shared_walk_and_accumulation_thread_);
   concurrency.pack(buffer, buffer_size, position, adjust_self_energy_for_double_counting_);
   concurrency.pack(buffer, buffer_size, position, error_computation_type_);
 }
@@ -135,6 +141,7 @@ void MciParameters::unpack(const Concurrency& concurrency, char* buffer, int buf
   concurrency.unpack(buffer, buffer_size, position, measurements_per_process_);
   concurrency.unpack(buffer, buffer_size, position, walkers_);
   concurrency.unpack(buffer, buffer_size, position, accumulators_);
+  concurrency.unpack(buffer, buffer_size, position, shared_walk_and_accumulation_thread_);
   concurrency.unpack(buffer, buffer_size, position, adjust_self_energy_for_double_counting_);
   concurrency.unpack(buffer, buffer_size, position, error_computation_type_);
 }
@@ -188,9 +195,19 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     }
     catch (const std::exception& r_e) {
     }
+
+    // Read error computation type.
+    std::string error_type = "NONE";
+    try {
+      reader_or_writer.execute("error-computation-type", error_type);
+    }
+    catch (const std::exception& r_e) {
+    }
+    error_computation_type_ = static_cast<int>(readErrorComputationType(error_type));
+
+    // Read arguments for threaded solver.
     try {
       reader_or_writer.open_group("threaded-solver");
-
       try {
         reader_or_writer.execute("walkers", walkers_);
       }
@@ -201,19 +218,18 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
       }
       catch (const std::exception& r_e) {
       }
-      std::string error_type = "NONE";
       try {
-        reader_or_writer.execute("error-computation-type", error_type);
+        reader_or_writer.execute("shared-walk-and-accumulation-thread",
+                                 shared_walk_and_accumulation_thread_);
       }
       catch (const std::exception& r_e) {
       }
-      error_computation_type_ = static_cast<int>(readErrorComputationType(error_type));
-
       reader_or_writer.close_group();
     }
     catch (const std::exception& r_e) {
     }
 
+    // Read measurements-per-process or measurements-per-process-per-accumulator.
     try {
       reader_or_writer.execute("measurements-per-process", measurements_per_process_);
     }
