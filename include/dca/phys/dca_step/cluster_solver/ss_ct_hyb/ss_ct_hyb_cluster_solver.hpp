@@ -89,11 +89,11 @@ public:
 
   // For testing purposes.
   // Returns the function G(k,w) without averaging across MPI ranks.
-  // Precondition: this->finalize has not been called.
-  auto onNode_G_k_w() const;
-  // Returns the product of G(r,w) with the Self Energy without averaging across MPI ranks.
-  // Precondition: this->finalize has not been called.
-  auto onNode_GS_r_w() const;
+  // Note: if the user wishes to retrieve the function non averaged across ranks,
+  // this method must be called before finalize.
+  auto compute_G_k_w() const;
+  // Same as before but returns the product of the Self Energy with G(r,w).
+  auto compute_GS_r_w() const;
 
 protected:
   void warm_up(walker_type& walker);
@@ -108,8 +108,6 @@ protected:
 
   // Sums/averages the quantities measured by the individual MPI ranks.
   void collect_measurements();
-
-  void compute_G_k_w();
 
   double compute_S_k_w_from_G_k_w();
 
@@ -140,6 +138,9 @@ protected:
   int DCA_iteration;
 
   func::function<double, nu> mu_DC;
+
+private:
+  bool averaged_ = false;
 };
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
@@ -162,7 +163,8 @@ SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::SsCtHybClusterSolver
       Sigma_old("Self-Energy-n-1-iteration"),
       Sigma_new("Self-Energy-n-0-iteration"),
 
-      DCA_iteration(-1) {
+      DCA_iteration(-1),
+      averaged_(false){
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t SS CT-HYB Integrator is born \n" << std::endl;
 }
@@ -256,7 +258,7 @@ double SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::finalize(
   collect_measurements();
   symmetrize_measurements();
 
-  compute_G_k_w();
+  math::transform::FunctionTransform<r_DCA, k_DCA>::execute(accumulator.get_G_r_w(), MOMS.G_k_w);
 
   math::transform::FunctionTransform<k_DCA, r_DCA>::execute(MOMS.G_k_w, MOMS.G_r_w);
 
@@ -411,6 +413,7 @@ void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::collect_measure
   accumulator.get_GS_r_w() /= accumulator.get_sign();
 
   concurrency.sum(accumulator.get_visited_expansion_order_k());
+  averaged_ = true;
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
@@ -459,11 +462,6 @@ void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::symmetrize_meas
             f_val(flavors[b_ind]) / f_tot(flavors[b_ind]);
     }
   }
-}
-
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::compute_G_k_w() {
-  math::transform::FunctionTransform<r_DCA, k_DCA>::execute(accumulator.get_G_r_w(), MOMS.G_k_w);
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
@@ -561,17 +559,19 @@ void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::find_tail_of_Si
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-auto SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::onNode_GS_r_w() const {
+auto SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::compute_GS_r_w() const {
   auto GS_r_w = accumulator.get_GS_r_w();
-  GS_r_w /= accumulator.get_sign();
+  if(not averaged_)
+    GS_r_w /= accumulator.get_sign();
   return GS_r_w;
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-auto SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::onNode_G_k_w() const {
+auto SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::compute_G_k_w() const {
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>> G_k_w;
   math::transform::FunctionTransform<r_DCA, k_DCA>::execute(accumulator.get_G_r_w(), G_k_w);
-  G_k_w /= accumulator.get_sign();
+  if(not averaged_)
+    G_k_w /= accumulator.get_sign();
   return G_k_w;
 }
 

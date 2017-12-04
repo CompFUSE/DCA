@@ -85,9 +85,9 @@ public:
 
   // For testing purposes.
   // Returns the function G(k,w) without averaging across MPI ranks.
-  // Precondition: this->finalize has not been called.
-  // TODO: This method duplicates parts of compute_error_bars.
-  auto onNode_G_k_w() const;
+  // Note: if the user wishes to retrieve the function non averaged across ranks,
+  // this method must be called before finalize.
+  auto compute_G_k_w() const;
 
 protected:
   void warm_up(walker_type& walker);
@@ -140,6 +140,9 @@ protected:
   func::function<std::complex<double>, nu_nu_k_DCA_w> Sigma_new;
 
   int DCA_iteration;
+
+private:
+  bool averaged_;
 };
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
@@ -161,7 +164,8 @@ CtauxClusterSolver<device_t, parameters_type, MOMS_type>::CtauxClusterSolver(
       Sigma_old("Self-Energy-n-1-iteration"),
       Sigma_new("Self-Energy-n-0-iteration"),
 
-      DCA_iteration(-1) {
+      DCA_iteration(-1),
+      averaged_(false) {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t CT-AUX Integrator is born \n" << std::endl;
 }
@@ -503,6 +507,8 @@ void CtauxClusterSolver<device_t, parameters_type, MOMS_type>::collect_measureme
   concurrency.sum(accumulator.get_visited_expansion_order_k());
 
   concurrency.sum(accumulator.get_error_distribution());
+
+  averaged_ = true;
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
@@ -816,16 +822,15 @@ double CtauxClusterSolver<device_t, parameters_type, MOMS_type>::mix_self_energy
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-auto CtauxClusterSolver<device_t, parameters_type, MOMS_type>::onNode_G_k_w() const {
+auto CtauxClusterSolver<device_t, parameters_type, MOMS_type>::compute_G_k_w() const {
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>> G_k_w_new("G_k_w");
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>> M_r_w_new("M_r_w_new");
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>> M_k_w_new("M_k_w_new");
 
-  const int nb_measurements = accumulator.get_number_of_measurements();
-  double sign = accumulator.get_sign() / double(nb_measurements);
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>> M_r_w_new(
+      accumulator.get_M_r_w());
 
-  for (int l = 0; l < accumulator.get_M_r_w().size(); l++)
-    M_r_w_new(l) = accumulator.get_M_r_w()(l) / double(nb_measurements * sign);
+  if (not averaged_)
+    M_r_w_new /= (double)accumulator.get_sign();
 
   math::transform::FunctionTransform<r_DCA, k_DCA>::execute(M_r_w_new, M_k_w_new);
 
