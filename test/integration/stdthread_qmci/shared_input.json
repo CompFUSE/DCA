@@ -32,14 +32,13 @@
     }
   },
 
-
   "CT-AUX" : {
     "expansion-parameter-K": 5.,
-    "initial-configuration-size": 8,
+    "initial-matrix-size": 16,
     "max-submatrix-size": 4
   },
 
-  "DCA": {
+    "DCA": {
     "iterations": 1,
     "self-energy-mixing-factor": 1.,
     "interacting-orbitals": [0]
@@ -49,12 +48,12 @@
   {
     "warm-up-sweeps"         : 100,
     "sweeps-per-measurement" : 1,
-    "measurements-per-process-and-accumulator"  : 1000,
+    "measurements-per-process"           : 400,
 
     "threaded-solver" : {
-      "walkers": 1,
+      "walkers": 4,
       "accumulators": 4,
-      "shared-walk-and-accumulation-thread": false
+      "shared-walk-and-accumulation-thread": true
     },
 
     "seed" : 0

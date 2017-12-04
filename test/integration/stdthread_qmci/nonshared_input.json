@@ -33,15 +33,10 @@
   },
 
 
-
   "CT-AUX" : {
     "expansion-parameter-K": 5.,
-    "initial-matrix-size": 16,
+    "initial-configuration-size": 8,
     "max-submatrix-size": 4
-  },
-
-  "ED": {
-    "eigenvalue-cut-off": 1.e-8
   },
 
   "DCA": {
@@ -54,12 +49,12 @@
   {
     "warm-up-sweeps"         : 100,
     "sweeps-per-measurement" : 1,
-    "measurements-per-process-and-accumulator"           : 100,
+    "measurements-per-process"  : 4000,
 
     "threaded-solver" : {
-      "walkers": 4,
+      "walkers": 1,
       "accumulators": 4,
-      "shared-walk-and-accumulation-thread": true
+      "shared-walk-and-accumulation-thread": false
     },
 
     "seed" : 0

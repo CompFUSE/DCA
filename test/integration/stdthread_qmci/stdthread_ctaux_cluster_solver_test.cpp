@@ -22,7 +22,7 @@
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp"
-#include "dca/phys/dca_step/cluster_solver/posix_qmci/posix_qmci_cluster_solver.hpp"
+#include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_cluster_solver.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
@@ -36,7 +36,7 @@
 
 constexpr bool UPDATE_RESULTS = false;
 
-const std::string input_dir = DCA_SOURCE_DIR "/test/integration/posix_qmci/";
+const std::string input_dir = DCA_SOURCE_DIR "/test/integration/stdthread_qmci/";
 
 using Concurrency = dca::parallel::NoConcurrency;
 using RngType = dca::math::random::StdRandomWrapper<std::mt19937_64>;
@@ -47,7 +47,7 @@ using Parameters = dca::phys::params::Parameters<Concurrency, Threading, dca::pr
                                                  Model, RngType, dca::phys::solver::CT_AUX>;
 using Data = dca::phys::DcaData<Parameters>;
 using BaseSolver = dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, Parameters, Data>;
-using QmcSolver = dca::phys::solver::PosixQmciClusterSolver<BaseSolver>;
+using QmcSolver = dca::phys::solver::StdThreadQmciClusterSolver<BaseSolver>;
 
 void performTest(const std::string& input, const std::string& output) {
   static bool update_model = true;
@@ -80,7 +80,6 @@ void performTest(const std::string& input, const std::string& output) {
   if (not UPDATE_RESULTS) {
     // Read and confront with previous run.
     if (concurrency.id() == 0) {
-      //      typeof(data.G_k_w) G_k_w_check(data.G_k_w.get_name());
       auto G_k_w_check = data.G_k_w;
       G_k_w_check.set_name(data.G_k_w.get_name());
       dca::io::HDF5Reader reader;
@@ -111,7 +110,6 @@ void performTest(const std::string& input, const std::string& output) {
   performTest("nonshared_input", "ctaux_nonshared_ouput_data.hdf5");
 }
 
-// TODO: enable if shared thread is merged. Remove otherwise.
-//TEST(PosixCtauxClusterSolverTest, Shared) {
-//  performTest("shared_input", "ctaux_shared_ouput_data.hdf5");
-//}
+TEST(PosixCtauxClusterSolverTest, Shared) {
+  performTest("shared_input", "ctaux_shared_ouput_data.hdf5");
+}

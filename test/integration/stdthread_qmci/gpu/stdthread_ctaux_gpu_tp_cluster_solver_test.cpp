@@ -37,7 +37,7 @@
 
 constexpr bool UPDATE_RESULTS = false;
 
-const std::string input_dir = DCA_SOURCE_DIR "/test/integration/stdthread_qmci/";
+const std::string input_dir = DCA_SOURCE_DIR "/test/integration/stdthread_qmci/gpu/";
 
 using Concurrency = dca::parallel::NoConcurrency;
 using RngType = dca::math::random::StdRandomWrapper<std::mt19937_64>;
