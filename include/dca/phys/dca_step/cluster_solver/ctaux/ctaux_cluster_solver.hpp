@@ -84,9 +84,7 @@ public:
   double finalize(dca_info_struct_t& dca_info_struct);
 
   // For testing purposes.
-  // Returns the function G(k,w) without averaging across MPI ranks.
-  // Note: if the user wishes to retrieve the function non averaged across ranks,
-  // this method must be called before finalize.
+  // Returns the local value of the function G(k,w) without averaging across MPI ranks.
   auto compute_G_k_w() const;
 
 protected:

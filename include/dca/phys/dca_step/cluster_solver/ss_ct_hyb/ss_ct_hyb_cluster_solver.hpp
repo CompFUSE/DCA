@@ -88,11 +88,10 @@ public:
   void write(Writer& writer);
 
   // For testing purposes.
-  // Returns the function G(k,w) without averaging across MPI ranks.
-  // Note: if the user wishes to retrieve the function non averaged across ranks,
-  // this method must be called before finalize.
+  // Returns the local value of the function G(k,w) without averaging across MPI ranks.
   auto compute_G_k_w() const;
-  // Same as before but returns the product of the Self Energy with G(r,w).
+  // Returns the local value of the product of the Self Energy with G(r,w) without averaging across
+  // MPI ranks.
   auto compute_GS_r_w() const;
 
 protected:
