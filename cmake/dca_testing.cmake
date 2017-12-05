@@ -20,8 +20,8 @@ include(CMakeParseArguments)
 #               [LIBS lib1 [lib2 ...]])
 #
 # Adds a test called 'name', the source is assumed to be 'name.cpp'.
-# The type of the test can be FAST, EXTENSIVE, VALIDATION or PERFORMANCE
-# (mutually exclusive options). If no option is specified, the default is FAST.
+# The type of the test can be FAST, EXTENSIVE, VALIDATION or PERFORMANCE (mutually exclusive
+# options). If no option is specified, the default is FAST.
 # The test can be additionally marked as STATISTICAL if the result is not deterministic.
 # MPI, PTHREADS or CUDA may be given to indicate that the test requires these libraries. MPI_NUMPROC
 # is the number of MPI processes to use for an test with MPI, the default value is 1.
