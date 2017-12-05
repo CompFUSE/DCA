@@ -829,7 +829,7 @@ auto CtauxClusterSolver<device_t, parameters_type, MOMS_type>::compute_G_k_w() c
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>> M_r_w_new(
       accumulator.get_M_r_w());
 
-  if (not averaged_)
+  if (!averaged_)
     M_r_w_new /= (double)accumulator.get_sign();
 
   math::transform::FunctionTransform<r_DCA, k_DCA>::execute(M_r_w_new, M_k_w_new);

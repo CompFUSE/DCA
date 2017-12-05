@@ -164,7 +164,7 @@ SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::SsCtHybClusterSolver
       Sigma_new("Self-Energy-n-0-iteration"),
 
       DCA_iteration(-1),
-      averaged_(false){
+      averaged_(false) {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t SS CT-HYB Integrator is born \n" << std::endl;
 }
@@ -561,7 +561,7 @@ void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::find_tail_of_Si
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 auto SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::compute_GS_r_w() const {
   auto GS_r_w = accumulator.get_GS_r_w();
-  if(not averaged_)
+  if (!averaged_)
     GS_r_w /= accumulator.get_sign();
   return GS_r_w;
 }
@@ -570,7 +570,7 @@ template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_ty
 auto SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::compute_G_k_w() const {
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>> G_k_w;
   math::transform::FunctionTransform<r_DCA, k_DCA>::execute(accumulator.get_G_r_w(), G_k_w);
-  if(not averaged_)
+  if (!averaged_)
     G_k_w /= accumulator.get_sign();
   return G_k_w;
 }
