@@ -101,6 +101,8 @@ public:
   const auto& get_G_r_w() const {
     return G_r_w;
   }
+
+  // TODO: Remove getter methods that return a non-const reference.
   auto& get_G_r_w() {
     return G_r_w;
   }

@@ -89,10 +89,12 @@ public:
 
   // For testing purposes.
   // Returns the local value of the function G(k,w) without averaging across MPI ranks.
-  auto compute_G_k_w() const;
+  // Precondition: the accumulator data has not been averaged, i.e. finalize() has not been called.
+  auto local_G_k_w() const;
   // Returns the local value of the product of the Self Energy with G(r,w) without averaging across
   // MPI ranks.
-  auto compute_GS_r_w() const;
+  // Precondition: the accumulator data has not been averaged.
+  auto local_GS_r_w() const;
 
 protected:
   void warm_up(walker_type& walker);
@@ -558,19 +560,24 @@ void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::find_tail_of_Si
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-auto SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::compute_GS_r_w() const {
+auto SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::local_GS_r_w() const {
+  if (averaged_)
+    throw std::logic_error("The local data was already averaged.");
+
   auto GS_r_w = accumulator.get_GS_r_w();
-  if (!averaged_)
-    GS_r_w /= accumulator.get_sign();
+  GS_r_w /= accumulator.get_sign();
   return GS_r_w;
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-auto SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::compute_G_k_w() const {
+auto SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::local_G_k_w() const {
+  if (averaged_)
+    throw std::logic_error("The local data was already averaged.");
+
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>> G_k_w;
   math::transform::FunctionTransform<r_DCA, k_DCA>::execute(accumulator.get_G_r_w(), G_k_w);
-  if (!averaged_)
-    G_k_w /= accumulator.get_sign();
+
+  G_k_w /= accumulator.get_sign();
   return G_k_w;
 }
 
