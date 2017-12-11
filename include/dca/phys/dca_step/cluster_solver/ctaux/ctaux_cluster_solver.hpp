@@ -85,7 +85,8 @@ public:
 
   // For testing purposes.
   // Returns the local value of the function G(k,w) without averaging across MPI ranks.
-  auto compute_G_k_w() const;
+  // Precondition: the accumulator data has not been averaged, i.e. finalize() has not been called.
+  auto local_G_k_w() const;
 
 protected:
   void warm_up(walker_type& walker);
@@ -820,15 +821,17 @@ double CtauxClusterSolver<device_t, parameters_type, MOMS_type>::mix_self_energy
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-auto CtauxClusterSolver<device_t, parameters_type, MOMS_type>::compute_G_k_w() const {
+auto CtauxClusterSolver<device_t, parameters_type, MOMS_type>::local_G_k_w() const {
+  if (averaged_)
+    throw std::logic_error("The local data was already averaged.");
+
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>> G_k_w_new("G_k_w");
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>> M_k_w_new("M_k_w_new");
 
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>> M_r_w_new(
       accumulator.get_M_r_w());
 
-  if (!averaged_)
-    M_r_w_new /= (double)accumulator.get_sign();
+  M_r_w_new /= (double)accumulator.get_sign();
 
   math::transform::FunctionTransform<r_DCA, k_DCA>::execute(M_r_w_new, M_k_w_new);
 
