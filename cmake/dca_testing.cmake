@@ -10,7 +10,6 @@ include(CMakeParseArguments)
 #
 # dca_add_gtest(name
 #               [FAST | EXTENSIVE | VALIDATION | PERFORMANCE]
-#               [STATISTICAL]
 #               [GTEST_MAIN]
 #               [MPI [MPI_NUMPROC procs]]
 #               [PTHREADS]
@@ -22,11 +21,10 @@ include(CMakeParseArguments)
 # Adds a test called 'name', the source is assumed to be 'name.cpp'.
 # The type of the test can be FAST, EXTENSIVE, VALIDATION or PERFORMANCE (mutually exclusive
 # options). If no option is specified, the default is FAST.
-# The test can be additionally marked as STATISTICAL if the result is not deterministic.
 # MPI, PTHREADS or CUDA may be given to indicate that the test requires these libraries. MPI_NUMPROC
 # is the number of MPI processes to use for an test with MPI, the default value is 1.
 function(dca_add_gtest name)
-  set(options FAST EXTENSIVE VALIDATION PERFORMANCE STATISTICAL GTEST_MAIN MPI PTHREADS CUDA)
+  set(options FAST EXTENSIVE VALIDATION PERFORMANCE GTEST_MAIN MPI PTHREADS CUDA)
   set(oneValueArgs MPI_NUMPROC)
   set(multiValueArgs INCLUDE_DIRS SOURCES LIBS)
   cmake_parse_arguments(DCA_ADD_GTEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
@@ -41,7 +39,6 @@ function(dca_add_gtest name)
     message(FATAL_ERROR "Incorrect use of dca_add_gtest.\n
                          dca_add_gtest(name\n
                                        [FAST | EXTENSIVE | VALIDATION | PERFORMANCE]\n
-                                       [STATISTICAL]\n
                                        [GTEST_MAIN]\n
                                        [MPI [MPI_NUMPROC procs]]\n
                                        [PTHREADS]\n
@@ -75,10 +72,6 @@ function(dca_add_gtest name)
     if (NOT DCA_WITH_TESTS_FAST)
       return()
     endif()
-  endif()
-
-  if (DCA_ADD_GTEST_STATISTICAL AND NOT DCA_WITH_TESTS_STATISTICAL)
-    return()
   endif()
 
   # Only build the test if the required libraries are available.

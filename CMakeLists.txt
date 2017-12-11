@@ -148,7 +148,6 @@ option(DCA_WITH_TESTS_FAST "Build DCA++'s fast tests." OFF)
 option(DCA_WITH_TESTS_EXTENSIVE "Build DCA++'s extensive tests." OFF)
 option(DCA_WITH_TESTS_PERFORMANCE "Build DCA++'s performance tests. (Only in Release mode.)" OFF)
 option(DCA_WITH_TESTS_VALIDATION  "Build DCA++'s validation tests." OFF)
-option(DCA_WITH_TESTS_STATISTICAL "Enable the subset of non-deterministic tests." ON)
 
 set(TEST_RUNNER "" CACHE STRING "Command for executing (MPI) programs.")
 set(MPIEXEC_NUMPROC_FLAG "-n" CACHE STRING "Flag used by TEST_RUNNER to specify the number of processes.")
