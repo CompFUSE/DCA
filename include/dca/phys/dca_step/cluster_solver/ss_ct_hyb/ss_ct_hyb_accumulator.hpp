@@ -98,10 +98,18 @@ public:
     return visited_expansion_order_k;
   }
 
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>>& get_G_r_w() {
+  const auto& get_G_r_w() const {
     return G_r_w;
   }
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>>& get_GS_r_w() {
+  // TODO: Remove getter methods that return a non-const reference.
+  auto& get_G_r_w() {
+    return G_r_w;
+  }
+
+  const auto& get_GS_r_w() const {
+    return GS_r_w;
+  }
+  auto& get_GS_r_w() {
     return GS_r_w;
   }
 

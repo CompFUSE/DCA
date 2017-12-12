@@ -22,7 +22,7 @@ namespace dca {
 namespace linalg {
 namespace lapack {
 namespace util {
-// dca::linalg::util::
+// dca::linalg::lapack::util::
 
 class LapackException : public std::runtime_error {
 public:

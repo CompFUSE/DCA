@@ -23,10 +23,16 @@ public:
     return GFLOP;
   }
 
+  double get_sign() const {
+    return accumulated_sign;
+  }
   double& get_sign() {
     return accumulated_sign;
   }
 
+  double get_number_of_measurements() const {
+    return number_of_measurements;
+  }
   double& get_number_of_measurements() {
     return number_of_measurements;
   }

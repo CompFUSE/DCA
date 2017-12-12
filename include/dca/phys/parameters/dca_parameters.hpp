@@ -12,6 +12,7 @@
 #ifndef DCA_PHYS_PARAMETERS_DCA_PARAMETERS_HPP
 #define DCA_PHYS_PARAMETERS_DCA_PARAMETERS_HPP
 
+#include <cassert>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -60,6 +61,10 @@ public:
   }
   int get_dca_iterations() const {
     return dca_iterations_;
+  }
+  void set_dca_iterations(const int iterations) {
+    assert(iterations > 0);
+    dca_iterations_ = iterations;
   }
   double get_dca_accuracy() const {
     return dca_accuracy_;
