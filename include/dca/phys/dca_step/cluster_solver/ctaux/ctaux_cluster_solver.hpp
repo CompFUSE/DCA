@@ -190,6 +190,8 @@ void CtauxClusterSolver<device_t, parameters_type, MOMS_type>::initialize(int dc
 
   accumulator.initialize(DCA_iteration);
 
+  averaged_ = false;
+
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t CT-AUX Integrator has initialized (DCA-iteration : " << dca_iteration
               << ")\n\n";

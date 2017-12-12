@@ -206,6 +206,8 @@ void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::initialize(int 
 
   accumulator.initialize(dca_iteration);
 
+  averaged_ = false;
+
   if (concurrency.id() == concurrency.first()) {
     std::stringstream ss;
     ss.precision(6);
