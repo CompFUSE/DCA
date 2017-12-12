@@ -19,6 +19,7 @@
 #include <cmath>
 #include <complex>
 #include <iostream>
+#include <stdexcept>
 #include <vector>
 
 #include "dca/function/domains.hpp"
@@ -83,9 +84,10 @@ public:
   template <typename dca_info_struct_t>
   double finalize(dca_info_struct_t& dca_info_struct);
 
+  // Computes and returns the local value of the Green's function G(k, \omega), i.e. without
+  // averaging it across processes.
   // For testing purposes.
-  // Returns the local value of the function G(k,w) without averaging across MPI ranks.
-  // Precondition: the accumulator data has not been averaged, i.e. finalize() has not been called.
+  // Precondition: The accumulator data has not been averaged, i.e. finalize has not been called.
   auto local_G_k_w() const;
 
 protected:
@@ -827,13 +829,12 @@ auto CtauxClusterSolver<device_t, parameters_type, MOMS_type>::local_G_k_w() con
   if (averaged_)
     throw std::logic_error("The local data was already averaged.");
 
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>> G_k_w_new("G_k_w");
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>> G_k_w_new("G_k_w_new");
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>> M_k_w_new("M_k_w_new");
-
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>> M_r_w_new(
-      accumulator.get_M_r_w());
+      accumulator.get_M_r_w(), "M_r_w_new");
 
-  M_r_w_new /= (double)accumulator.get_sign();
+  M_r_w_new /= accumulator.get_sign();
 
   math::transform::FunctionTransform<r_DCA, k_DCA>::execute(M_r_w_new, M_k_w_new);
 

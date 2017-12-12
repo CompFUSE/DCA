@@ -17,6 +17,7 @@
 #include <complex>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -87,13 +88,16 @@ public:
   template <typename Writer>
   void write(Writer& writer);
 
+  // Computes and returns the local value of the Green's function G(k, \omega), i.e. without
+  // averaging it across processes.
   // For testing purposes.
-  // Returns the local value of the function G(k,w) without averaging across MPI ranks.
-  // Precondition: the accumulator data has not been averaged, i.e. finalize() has not been called.
+  // Precondition: The accumulator data has not been averaged, i.e. finalize has not been called.
   auto local_G_k_w() const;
-  // Returns the local value of the product of the Self Energy with G(r,w) without averaging across
-  // MPI ranks.
-  // Precondition: the accumulator data has not been averaged.
+
+  // Computes and returns the local value of the product of the Green's function G(r, \omega) and
+  // the self-energy \Sigma(r, \omega), i.e. without averaging it across processes.
+  // For testing purposes.
+  // Precondition: The accumulator data has not been averaged, i.e. finalize has not been called.
   auto local_GS_r_w() const;
 
 protected:
@@ -141,7 +145,7 @@ protected:
   func::function<double, nu> mu_DC;
 
 private:
-  bool averaged_ = false;
+  bool averaged_;
 };
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
@@ -562,25 +566,26 @@ void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::find_tail_of_Si
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-auto SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::local_GS_r_w() const {
-  if (averaged_)
-    throw std::logic_error("The local data was already averaged.");
-
-  auto GS_r_w = accumulator.get_GS_r_w();
-  GS_r_w /= accumulator.get_sign();
-  return GS_r_w;
-}
-
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 auto SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::local_G_k_w() const {
   if (averaged_)
     throw std::logic_error("The local data was already averaged.");
 
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>> G_k_w;
   math::transform::FunctionTransform<r_DCA, k_DCA>::execute(accumulator.get_G_r_w(), G_k_w);
-
   G_k_w /= accumulator.get_sign();
+
   return G_k_w;
+}
+
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
+auto SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::local_GS_r_w() const {
+  if (averaged_)
+    throw std::logic_error("The local data was already averaged.");
+
+  auto GS_r_w = accumulator.get_GS_r_w();
+  GS_r_w /= accumulator.get_sign();
+
+  return GS_r_w;
 }
 
 }  // solver

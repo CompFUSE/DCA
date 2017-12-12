@@ -23,10 +23,10 @@ public:
     return GFLOP;
   }
 
-  double& get_sign() {
+  double get_sign() const {
     return accumulated_sign;
   }
-  double get_sign() const {
+  double& get_sign() {
     return accumulated_sign;
   }
 
