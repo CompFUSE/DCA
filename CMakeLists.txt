@@ -147,6 +147,7 @@ endif()
 option(DCA_WITH_TESTS_FAST "Build DCA++'s fast tests." OFF)
 option(DCA_WITH_TESTS_EXTENSIVE "Build DCA++'s extensive tests." OFF)
 option(DCA_WITH_TESTS_PERFORMANCE "Build DCA++'s performance tests. (Only in Release mode.)" OFF)
+option(DCA_WITH_TESTS_VALIDATION  "Build DCA++'s validation tests." OFF)
 
 set(TEST_RUNNER "" CACHE STRING "Command for executing (MPI) programs.")
 set(MPIEXEC_NUMPROC_FLAG "-n" CACHE STRING "Flag used by TEST_RUNNER to specify the number of processes.")
@@ -172,7 +173,7 @@ if (DCA_WITH_TESTS_FAST OR DCA_WITH_TESTS_EXTENSIVE OR DCA_WITH_TESTS_PERFORMANC
   if (DCA_HAVE_MPI AND (TEST_RUNNER STREQUAL ""))
     message(FATAL_ERROR "TEST_RUNNER needs to be set to the command for executing MPI programs, e.g. mpiexec, mpirun, aprun or srun.")
   endif()
-  
+
   add_subdirectory(${gtest_dir})
   add_subdirectory(${PROJECT_SOURCE_DIR}/test)
 endif()

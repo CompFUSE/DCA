@@ -9,7 +9,7 @@ include(CMakeParseArguments)
 # Adds a test written with Google Test.
 #
 # dca_add_gtest(name
-#               [FAST | EXTENSIVE | PERFORMANCE]
+#               [FAST | EXTENSIVE | VALIDATION | PERFORMANCE]
 #               [GTEST_MAIN]
 #               [MPI [MPI_NUMPROC procs]]
 #               [PTHREADS]
@@ -19,12 +19,12 @@ include(CMakeParseArguments)
 #               [LIBS lib1 [lib2 ...]])
 #
 # Adds a test called 'name', the source is assumed to be 'name.cpp'.
-# The type of the test can be FAST, EXTENSIVE or PERFORMANCE (mutually exclusive options). If no
-# option is specified, the default is FAST.
+# The type of the test can be FAST, EXTENSIVE, VALIDATION or PERFORMANCE (mutually exclusive
+# options). If no option is specified, the default is FAST.
 # MPI, PTHREADS or CUDA may be given to indicate that the test requires these libraries. MPI_NUMPROC
 # is the number of MPI processes to use for an test with MPI, the default value is 1.
 function(dca_add_gtest name)
-  set(options FAST EXTENSIVE PERFORMANCE GTEST_MAIN MPI PTHREADS CUDA)
+  set(options FAST EXTENSIVE VALIDATION PERFORMANCE GTEST_MAIN MPI PTHREADS CUDA)
   set(oneValueArgs MPI_NUMPROC)
   set(multiValueArgs INCLUDE_DIRS SOURCES LIBS)
   cmake_parse_arguments(DCA_ADD_GTEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
@@ -32,11 +32,14 @@ function(dca_add_gtest name)
   # FAST, EXTENSIVE and PERFORMANCE are mutually exclusive.
   if ((DCA_ADD_GTEST_FAST AND DCA_ADD_GTEST_EXTENSIVE) OR
       (DCA_ADD_GTEST_FAST AND DCA_ADD_GTEST_PERFORMANCE) OR
-      (DCA_ADD_GTEST_EXTENSIVE AND DCA_ADD_GTEST_PERFORMANCE))
+      (DCA_ADD_GTEST_EXTENSIVE AND DCA_ADD_GTEST_PERFORMANCE) OR
+      (DCA_ADD_GTEST_VALIDATION AND DCA_ADD_GTEST_FAST) OR
+      (DCA_ADD_GTEST_VALIDATION AND DCA_ADD_GTEST_EXTENSIVE) OR
+      (DCA_ADD_GTEST_VALIDATION AND DCA_ADD_GTEST_PERFORMANCE))
     message(FATAL_ERROR "Incorrect use of dca_add_gtest.\n
                          dca_add_gtest(name\n
-                                       [FAST | EXTENSIVE | PERFORMANCE]\n
-                                       [GTEST_MAIN]
+                                       [FAST | EXTENSIVE | VALIDATION | PERFORMANCE]\n
+                                       [GTEST_MAIN]\n
                                        [MPI [MPI_NUMPROC procs]]\n
                                        [PTHREADS]\n
                                        [CUDA]\n
@@ -54,12 +57,17 @@ function(dca_add_gtest name)
     if (NOT (CMAKE_BUILD_TYPE STREQUAL "Release"))
       return ()
     endif()
-    
+
   elseif (DCA_ADD_GTEST_EXTENSIVE)
     if (NOT DCA_WITH_TESTS_EXTENSIVE)
       return()
     endif()
-    
+
+  elseif (DCA_ADD_GTEST_VALIDATION)
+    if (NOT DCA_WITH_TESTS_VALIDATION)
+      return()
+    endif()
+
   else()  # Default is FAST.
     if (NOT DCA_WITH_TESTS_FAST)
       return()
@@ -74,7 +82,7 @@ function(dca_add_gtest name)
   if (DCA_ADD_GTEST_PTHREADS AND NOT DCA_HAVE_PTHREADS)
     return()
   endif()
-  
+
   if (DCA_ADD_GTEST_CUDA AND NOT DCA_HAVE_CUDA)
     return()
   endif()
@@ -96,12 +104,12 @@ function(dca_add_gtest name)
   if (DCA_ADD_GTEST_PTHREADS)
     target_compile_definitions(${name} PRIVATE DCA_HAVE_PTHREADS)
   endif()
-  
+
   if (DCA_ADD_GTEST_CUDA)
     target_compile_definitions(${name} PRIVATE DCA_HAVE_CUDA)
     cuda_add_cublas_to_target(${name})
   endif()
-  
+
   target_include_directories(${name} PRIVATE
     ${gtest_SOURCE_DIR}/include
     ${DCA_ADD_GTEST_INCLUDE_DIRS})
