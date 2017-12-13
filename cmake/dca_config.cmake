@@ -227,7 +227,7 @@ if (DCA_THREADING_LIBRARY STREQUAL POSIX)
   set(DCA_THREADING_TYPE dca::parallel::Pthreading)
   set(DCA_THREADING_INCLUDE "dca/parallel/pthreading/pthreading.hpp")
   set(DCA_THREADING_FLAGS -pthread CACHE INTERNAL "Flags needed for threading." FORCE)
-  set(DCA_THREADING_LIB pthreading)
+  set(DCA_THREADING_LIB pthreading pthread)
 
 elseif (DCA_THREADING_LIBRARY STREQUAL None)
   set(DCA_THREADING_TYPE dca::parallel::NoThreading)
