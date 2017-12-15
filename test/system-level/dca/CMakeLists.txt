@@ -11,7 +11,7 @@ dca_add_gtest(dca_sp_DCA+_mpi_cuda_test
   INCLUDE_DIRS ${DCA_INCLUDE_DIRS}
   LIBS ${DCA_LIBS})
 
-dca_add_gtest(dca_sp_DCA+_pthread_test
+dca_add_gtest(dca_sp_DCA+_thread_test
   GTEST_MAIN
   EXTENSIVE
   PTHREADS

@@ -9,19 +9,18 @@
 //         Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// A posix MC integrator that implements a threaded MC integration independent of the MC method.
+// A std::thread MC integrator that implements a threaded MC integration independent of the MC method.
 
-#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_POSIX_QMCI_POSIX_QMCI_CLUSTER_SOLVER_HPP
-#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_POSIX_QMCI_POSIX_QMCI_CLUSTER_SOLVER_HPP
-
-#include <pthread.h>
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_STDTHREAD_QMCI_STDTHREAD_QMCI_CLUSTER_SOLVER_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_STDTHREAD_QMCI_STDTHREAD_QMCI_CLUSTER_SOLVER_HPP
 
 #include <iostream>
 #include <queue>
 #include <stdexcept>
 #include <vector>
+#include <thread>
 
-#include "dca/phys/dca_step/cluster_solver/posix_qmci/posix_qmci_accumulator.hpp"
+#include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/thread_task_handler.hpp"
 #include "dca/profiling/events/time.hpp"
 #include "dca/util/print_time.hpp"
@@ -32,7 +31,7 @@ namespace solver {
 // dca::phys::solver::
 
 template <class qmci_integrator_type>
-class PosixQmciClusterSolver : public qmci_integrator_type {
+class StdThreadQmciClusterSolver : public qmci_integrator_type {
   typedef typename qmci_integrator_type::this_MOMS_type MOMS_type;
   typedef typename qmci_integrator_type::this_parameters_type parameters_type;
 
@@ -44,11 +43,11 @@ class PosixQmciClusterSolver : public qmci_integrator_type {
   typedef typename qmci_integrator_type::walker_type walker_type;
   typedef typename qmci_integrator_type::accumulator_type accumulator_type;
 
-  typedef PosixQmciClusterSolver<qmci_integrator_type> this_type;
-  typedef posixqmci::posix_qmci_accumulator<accumulator_type> posix_accumulator_type;
+  typedef StdThreadQmciClusterSolver<qmci_integrator_type> this_type;
+  typedef stdthreadqmci::stdthread_qmci_accumulator<accumulator_type> stdthread_accumulator_type;
 
 public:
-  PosixQmciClusterSolver(parameters_type& parameters_ref, MOMS_type& MOMS_ref);
+  StdThreadQmciClusterSolver(parameters_type& parameters_ref, MOMS_type& MOMS_ref);
 
   template <typename Writer>
   void write(Writer& reader);
@@ -93,18 +92,17 @@ private:
 
   std::vector<random_number_generator> rng_vector;
 
-  std::queue<posix_accumulator_type*> accumulators_queue;
+  std::queue<stdthread_accumulator_type*> accumulators_queue;
 
-  pthread_mutex_t mutex_print;
-  pthread_mutex_t mutex_merge;
-  pthread_mutex_t mutex_queue;
-  pthread_mutex_t mutex_acc_finished;
-
-  pthread_mutex_t mutex_numerical_error;
+  std::mutex mutex_print;
+  std::mutex mutex_merge;
+  std::mutex mutex_queue;
+  std::mutex mutex_acc_finished;
+  std::mutex mutex_numerical_error;
 };
 
 template <class qmci_integrator_type>
-PosixQmciClusterSolver<qmci_integrator_type>::PosixQmciClusterSolver(parameters_type& parameters_ref,
+StdThreadQmciClusterSolver<qmci_integrator_type>::StdThreadQmciClusterSolver(parameters_type& parameters_ref,
                                                                      MOMS_type& MOMS_ref)
     : qmci_integrator_type(parameters_ref, MOMS_ref),
 
@@ -127,37 +125,32 @@ PosixQmciClusterSolver<qmci_integrator_type>::PosixQmciClusterSolver(parameters_
 
 template <class qmci_integrator_type>
 template <typename Writer>
-void PosixQmciClusterSolver<qmci_integrator_type>::write(Writer& writer) {
+void StdThreadQmciClusterSolver<qmci_integrator_type>::write(Writer& writer) {
   qmci_integrator_type::write(writer);
   // accumulator.write(writer);
 }
 
 template <class qmci_integrator_type>
-void PosixQmciClusterSolver<qmci_integrator_type>::initialize(int dca_iteration) {
-  profiler_type profiler(__FUNCTION__, "posix-MC-Integration", __LINE__);
+void StdThreadQmciClusterSolver<qmci_integrator_type>::initialize(int dca_iteration)
+{
+  profiler_type profiler(__FUNCTION__, "stdthread-MC-Integration", __LINE__);
 
   qmci_integrator_type::initialize(dca_iteration);
 
   acc_finished = 0;
-
-  pthread_mutex_init(&mutex_print, NULL);
-  pthread_mutex_init(&mutex_merge, NULL);
-  pthread_mutex_init(&mutex_queue, NULL);
-
-  pthread_mutex_init(&mutex_acc_finished, NULL);
-  pthread_mutex_init(&mutex_numerical_error, NULL);
 }
 
 template <class qmci_integrator_type>
-void PosixQmciClusterSolver<qmci_integrator_type>::integrate() {
-  profiler_type profiler(__FUNCTION__, "posix-MC-Integration", __LINE__);
+void StdThreadQmciClusterSolver<qmci_integrator_type>::integrate()
+{
+  profiler_type profiler(__FUNCTION__, "stdthread-MC-Integration", __LINE__);
 
   if (concurrency.id() == concurrency.first()) {
     std::cout << "Threaded QMC integration has started: " << dca::util::print_time() << "\n"
               << std::endl;
   }
 
-  std::vector<pthread_t> threads(nr_accumulators + nr_walkers);
+  std::vector<std::thread> threads;
   std::vector<std::pair<this_type*, int>> data(nr_accumulators + nr_walkers);
 
   {
@@ -170,16 +163,15 @@ void PosixQmciClusterSolver<qmci_integrator_type>::integrate() {
       data[i] = std::pair<this_type*, int>(this, i);
 
       if (thread_task_handler_.getTask(i) == "walker")
-        pthread_create(&threads[i], NULL, start_walker_static, &data[i]);
+        threads.push_back( std::thread(start_walker_static, &data[i]));
       else if (thread_task_handler_.getTask(i) == "accumulator")
-        pthread_create(&threads[i], NULL, start_accumulator_static, &data[i]);
+        threads.push_back( std::thread(start_accumulator_static, &data[i]));
       else
         throw std::logic_error("Thread is neither a walker nor an accumulator.");
     }
 
-    void* rc;
     for (int i = 0; i < nr_walkers + nr_accumulators; ++i) {
-      pthread_join(threads[i], &rc);
+      threads[i].join();
     }
 
     dca::profiling::WallTime end_time;
@@ -199,25 +191,17 @@ void PosixQmciClusterSolver<qmci_integrator_type>::integrate() {
 
 template <class qmci_integrator_type>
 template <typename dca_info_struct_t>
-double PosixQmciClusterSolver<qmci_integrator_type>::finalize(dca_info_struct_t& dca_info_struct) {
-  profiler_type profiler(__FUNCTION__, "posix-MC-Integration", __LINE__);
+double StdThreadQmciClusterSolver<qmci_integrator_type>::finalize(dca_info_struct_t& dca_info_struct) {
+  profiler_type profiler(__FUNCTION__, "stdthread-MC-Integration", __LINE__);
   if (DCA_iteration == parameters.get_dca_iterations() - 1)
     compute_error_bars();
 
   double L2_Sigma_difference = qmci_integrator_type::finalize(dca_info_struct);
-
-  pthread_mutex_destroy(&mutex_print);
-  pthread_mutex_destroy(&mutex_merge);
-  pthread_mutex_destroy(&mutex_queue);
-
-  pthread_mutex_destroy(&mutex_acc_finished);
-  pthread_mutex_destroy(&mutex_numerical_error);
-
   return L2_Sigma_difference;
 }
 
 template <class qmci_integrator_type>
-void* PosixQmciClusterSolver<qmci_integrator_type>::start_walker_static(void* arg) {
+void* StdThreadQmciClusterSolver<qmci_integrator_type>::start_walker_static(void* arg) {
   std::pair<this_type*, int>* data = reinterpret_cast<std::pair<this_type*, int>*>(arg);
 
   profiler_type::start_pthreading(data->second);
@@ -230,7 +214,7 @@ void* PosixQmciClusterSolver<qmci_integrator_type>::start_walker_static(void* ar
 }
 
 template <class qmci_integrator_type>
-void* PosixQmciClusterSolver<qmci_integrator_type>::start_accumulator_static(void* arg) {
+void* StdThreadQmciClusterSolver<qmci_integrator_type>::start_accumulator_static(void* arg) {
   std::pair<this_type*, int>* data = reinterpret_cast<std::pair<this_type*, int>*>(arg);
 
   profiler_type::start_pthreading(data->second);
@@ -243,7 +227,7 @@ void* PosixQmciClusterSolver<qmci_integrator_type>::start_accumulator_static(voi
 }
 
 template <class qmci_integrator_type>
-void PosixQmciClusterSolver<qmci_integrator_type>::start_walker(int id) {
+void StdThreadQmciClusterSolver<qmci_integrator_type>::start_walker(int id) {
   if (id == 0) {
     if (concurrency.id() == concurrency.first())
       std::cout << "\n\t\t QMCI starts\n" << std::endl;
@@ -255,33 +239,31 @@ void PosixQmciClusterSolver<qmci_integrator_type>::start_walker(int id) {
   walker.initialize();
 
   {
-    profiler_type profiler("thermalization", "posix-MC-walker", __LINE__, id);
+    profiler_type profiler("thermalization", "stdthread-MC-walker", __LINE__, id);
     warm_up(walker, id);
   }
 
-  posix_accumulator_type* acc_ptr(NULL);
+  stdthread_accumulator_type* acc_ptr(NULL);
 
   while (acc_finished < nr_accumulators) {
     {
-      profiler_type profiler("posix-MC-walker updating", "posix-MC-walker", __LINE__, id);
+      profiler_type profiler("stdthread-MC-walker updating", "stdthread-MC-walker", __LINE__, id);
       walker.do_sweep();
     }
 
     {
-      profiler_type profiler("posix-MC-walker waiting", "posix-MC-walker", __LINE__, id);
+      profiler_type profiler("stdthread-MC-walker waiting", "stdthread-MC-walker", __LINE__, id);
 
       while (acc_finished < nr_accumulators) {
         acc_ptr = NULL;
 
         {  // checking for available accumulators
-          pthread_mutex_lock(&mutex_queue);
+          std::unique_lock<std::mutex>(mutex_queue);
 
           if (!accumulators_queue.empty()) {
             acc_ptr = accumulators_queue.front();
             accumulators_queue.pop();
           }
-
-          pthread_mutex_unlock(&mutex_queue);
         }
 
         if (acc_ptr != NULL) {
@@ -294,7 +276,7 @@ void PosixQmciClusterSolver<qmci_integrator_type>::start_walker(int id) {
         //           measurement.
         // for (int i = 0; i < parameters.get_additional_steps(); ++i) {
         //   // std::cout << "Walker " << id << " is doing some additional steps." << std::endl;
-        //   profiler_type profiler("additional steps", "posix-MC-walker", __LINE__, id);
+        //   profiler_type profiler("additional steps", "stdthread-MC-walker", __LINE__, id);
         //   walker.do_step();
         // }
       }
@@ -314,7 +296,7 @@ void PosixQmciClusterSolver<qmci_integrator_type>::start_walker(int id) {
 }
 
 template <class qmci_integrator_type>
-void PosixQmciClusterSolver<qmci_integrator_type>::warm_up(walker_type& walker, int id) {
+void StdThreadQmciClusterSolver<qmci_integrator_type>::warm_up(walker_type& walker, int id) {
   if (id == 0) {
     if (concurrency.id() == concurrency.first())
       std::cout << "\n\t\t warm-up starts\n" << std::endl;
@@ -336,23 +318,25 @@ void PosixQmciClusterSolver<qmci_integrator_type>::warm_up(walker_type& walker, 
 }
 
 template <class qmci_integrator_type>
-void PosixQmciClusterSolver<qmci_integrator_type>::start_accumulator(int id) {
-  posix_accumulator_type accumulator_obj(parameters, MOMS, id);
+void StdThreadQmciClusterSolver<qmci_integrator_type>::start_accumulator(int id) {
+  stdthread_accumulator_type accumulator_obj(parameters, MOMS, id);
 
   accumulator_obj.initialize(DCA_iteration);
 
-  for (int i = 0; i < parameters.get_measurements_per_process_and_accumulator(); ++i) {
-    pthread_mutex_lock(&mutex_queue);
-    accumulators_queue.push(&accumulator_obj);
-    pthread_mutex_unlock(&mutex_queue);
+  for (int i = 0; i < parameters.get_measurements_per_process_and_accumulator(); ++i)
+  {
+    {
+      std::lock_guard<std::mutex> lock(mutex_queue);
+      accumulators_queue.push(&accumulator_obj);
+    }
 
     {
-      profiler_type profiler("posix-accumulator waiting", "posix-MC-accumulator", __LINE__, id);
+      profiler_type profiler("stdthread-accumulator waiting", "stdthread-MC-accumulator", __LINE__, id);
       accumulator_obj.wait_for_qmci_walker();
     }
 
     {
-      profiler_type profiler("posix-accumulator accumulating", "posix-MC-accumulator", __LINE__, id);
+      profiler_type profiler("stdthread-accumulator accumulating", "stdthread-MC-accumulator", __LINE__, id);
       if (id == 1)
         this->update_shell(i, parameters.get_measurements_per_process_and_accumulator(),
                            accumulator_obj.get_configuration().size());
@@ -362,12 +346,9 @@ void PosixQmciClusterSolver<qmci_integrator_type>::start_accumulator(int id) {
   }
 
   {
-    pthread_mutex_lock(&mutex_merge);
-
+    std::lock_guard<std::mutex> lock(mutex_merge);
     acc_finished++;
     accumulator_obj.sum_to(accumulator);
-
-    pthread_mutex_unlock(&mutex_merge);
   }
 }
 
@@ -375,4 +356,4 @@ void PosixQmciClusterSolver<qmci_integrator_type>::start_accumulator(int id) {
 }  // phys
 }  // dca
 
-#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_POSIX_QMCI_POSIX_QMCI_CLUSTER_SOLVER_HPP
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_STDTHREAD_QMCI_STDTHREAD_QMCI_CLUSTER_SOLVER_HPP

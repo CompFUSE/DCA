@@ -42,7 +42,7 @@ if (DCA_WITH_CUDA)
   if (DCA_WITH_PINNED_HOST_MEMORY)
     dca_add_config_define(ENABLE_PINNED_MEMORY_ALLOCATION)
   endif()
-  
+
   # Copy walker device config file for GPU.
   configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/walker_device_gpu.hpp"
     "${CMAKE_BINARY_DIR}/include/dca/config/walker_device.hpp")
@@ -172,7 +172,7 @@ elseif (DCA_RNG STREQUAL "custom")
   endif()
   set(DCA_RNG_TYPE ${DCA_RNG_CLASS})
   set(DCA_RNG_INCLUDE ${DCA_RNG_HEADER})
-  
+
 else()
   message(FATAL_ERROR "Please set DCA_RNG to a valid option: std::mt19937_64 | std::ranlux48 | custom.")
 endif()
@@ -215,8 +215,9 @@ endif()
 # Note the difference between the CMake variables
 # - DCA_THREADING_LIBRARY: CMake option for the user to choose the threading library,
 # - DCA_THREADING_LIB: the actual library to link against.
-set(DCA_THREADING_LIBRARY "POSIX" CACHE STRING "Threading library, options are: POSIX | None.")
-set_property(CACHE DCA_THREADING_LIBRARY PROPERTY STRINGS POSIX None)
+set(DCA_THREADING_LIBRARY "POSIX" CACHE STRING
+  "Threading library, options are: POSIX | stdthread | None.")
+set_property(CACHE DCA_THREADING_LIBRARY PROPERTY STRINGS POSIX stdthread None)
 
 if (DCA_THREADING_LIBRARY STREQUAL POSIX)
   include(dca_pthreads)
@@ -226,8 +227,14 @@ if (DCA_THREADING_LIBRARY STREQUAL POSIX)
 
   set(DCA_THREADING_TYPE dca::parallel::Pthreading)
   set(DCA_THREADING_INCLUDE "dca/parallel/pthreading/pthreading.hpp")
-  set(DCA_THREADING_FLAGS -pthread CACHE INTERNAL "Flags needed for threading." FORCE)
+  set(DCA_THREADING_FLAGS "-pthread" CACHE INTERNAL "Flags needed for threading." FORCE)
   set(DCA_THREADING_LIB pthreading pthread)
+
+elseif (DCA_THREADING_LIBRARY STREQUAL stdthread)
+  set(DCA_THREADING_TYPE dca::parallel::stdthread)
+  set(DCA_THREADING_INCLUDE "dca/parallel/stdthread/stdthread.hpp")
+  set(DCA_THREADING_FLAGS "-pthread" CACHE INTERNAL "Flags needed for threading." FORCE)
+  set(DCA_THREADING_LIB "pthread")
 
 elseif (DCA_THREADING_LIBRARY STREQUAL None)
   set(DCA_THREADING_TYPE dca::parallel::NoThreading)
@@ -240,7 +247,7 @@ elseif (DCA_THREADING_LIBRARY STREQUAL None)
 
 # elseif (DCA_THREADING_LIBRARY STREQUAL HPX)
 #   message(FATAL_ERROR "No HPX support yet.")
-  
+
 else()
   message(FATAL_ERROR "Please set DCA_THREADING_LIBRARY to a valid option: POSIX | None.")
 endif()
@@ -259,6 +266,11 @@ if (DCA_WITH_THREADED_SOLVER)
     set(DCA_THREADED_SOLVER_TYPE dca::phys::solver::PosixQmciClusterSolver<ClusterSolverBaseType>)
     set(DCA_THREADED_SOLVER_INCLUDE
       "dca/phys/dca_step/cluster_solver/posix_qmci/posix_qmci_cluster_solver.hpp")
+
+  elseif (DCA_THREADING_LIBRARY STREQUAL stdthread)
+    set(DCA_THREADED_SOLVER_TYPE dca::phys::solver::StdThreadQmciClusterSolver<ClusterSolverBaseType>)
+    set(DCA_THREADED_SOLVER_INCLUDE
+      "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_cluster_solver.hpp")
 
   # elseif (DCA_THREADING_LIBRARY STREQUAL HPX)
   #   set(DCA_THREADED_SOLVER_TYPE DCA::hpx_qmci_integrator<ClusterSolverBaseType>)
@@ -317,7 +329,7 @@ if (DCA_WITH_GNUPLOT)
   endif()
 
   dca_add_config_define(DCA_WITH_GNUPLOT)
-  
+
   add_subdirectory(${PROJECT_SOURCE_DIR}/libs/gnuplot_i-2.11)
   set(GNUPLOT_INTERFACE_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/libs/gnuplot_i-2.11/src" CACHE INTERNAL "" FORCE)
   set(GNUPLOT_INTERFACE_LIBRARY "gnuplot_interface" CACHE INTERNAL "" FORCE)

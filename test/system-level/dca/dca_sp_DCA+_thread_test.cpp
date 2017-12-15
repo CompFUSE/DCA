@@ -24,11 +24,15 @@
 #include "dca/io/json/json_reader.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
-#include "dca/parallel/pthreading/pthreading.hpp"
+#include "dca/config/threading.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp"
+#if DCA_THREADING_LIBRARY==POSIX
 #include "dca/phys/dca_step/cluster_solver/posix_qmci/posix_qmci_cluster_solver.hpp"
+#elif DCA_THREADING_LIBRARY==stdthread
+#include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_cluster_solver.hpp"
+#endif
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
@@ -53,7 +57,6 @@ TEST(dca_sp_DCAplus_pthread, Self_energy) {
   using DcaPointGroupType = dca::phys::domains::D4;
   using LatticeType = dca::phys::models::square_lattice<DcaPointGroupType>;
   using ModelType = dca::phys::models::TightBindingModel<LatticeType>;
-  using Threading = dca::parallel::Pthreading;
   using Concurrency = dca::parallel::NoConcurrency;
   using ParametersType =
       dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler, ModelType,
@@ -89,7 +92,7 @@ TEST(dca_sp_DCAplus_pthread, Self_energy) {
 
   ParametersType parameters(dca::util::GitVersion::string(), concurrency);
   parameters.read_input_and_broadcast<dca::io::JSONReader>(
-      DCA_SOURCE_DIR "/test/system-level/dca/input.dca_sp_DCA+_pthread_test.json");
+      DCA_SOURCE_DIR "/test/system-level/dca/input.dca_sp_DCA+_thread_test.json");
   parameters.update_model();
   parameters.update_domains();
 
@@ -108,7 +111,7 @@ TEST(dca_sp_DCAplus_pthread, Self_energy) {
       "Self_Energy");
   dca::io::HDF5Reader reader;
   reader.open_file(DCA_SOURCE_DIR
-                   "/test/system-level/dca/check_data.dca_sp_DCA+_pthread_test.hdf5");
+                   "/test/system-level/dca/check_data.dca_sp_DCA+_thread_test.hdf5");
   reader.open_group("functions");
   reader.execute(Sigma_check);
   reader.close_file();
