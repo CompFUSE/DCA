@@ -120,11 +120,12 @@ function(dca_add_gtest name)
     endif()
 
     add_test(NAME ${name}
-      COMMAND ${TEST_RUNNER} ${MPIEXEC_NUMPROC_FLAG} ${DCA_ADD_GTEST_MPI_NUMPROC} "$<TARGET_FILE:${name}>")
+             COMMAND ${TEST_RUNNER} ${MPIEXEC_NUMPROC_FLAG} ${DCA_ADD_GTEST_MPI_NUMPROC}
+                     ${MPIEXEC_PREFLAGS} "$<TARGET_FILE:${name}>")
 
   else()
     add_test(NAME ${name}
-      COMMAND ${TEST_RUNNER} "$<TARGET_FILE:${name}>")
+             COMMAND ${TEST_RUNNER} ${MPIEXEC_PREFLAGS} "$<TARGET_FILE:${name}>")
   endif()
 
 endfunction()
