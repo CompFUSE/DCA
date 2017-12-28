@@ -94,10 +94,10 @@ def prepare_input_file(filename, T_ind):
 batch_str_dca = ''
 batch_str_analysis = ''
 
-print ('Generating directories and input files:')
+print('Generating directories and input files:')
 
 for T_ind, T in enumerate(temps):
-    print ('T = ' + str(T))
+    print('T = ' + str(T))
 
     # Create directory.
     cmd = 'mkdir T=' + str(T)
@@ -141,7 +141,7 @@ _, extension = os.path.splitext(batch_tmpl)
 
 # Generate the dca batch script.
 batch_name_dca = 'job.dca_U=' + str(U) + '_d=' + str(d) + '_Nc=' + str(Nc) + extension
-print ('\nGenerating the dca batch script: ' + batch_name_dca)
+print('\nGenerating the dca batch script: ' + batch_name_dca)
 file = open(batch_tmpl, 'r')
 text_dca = file.read()
 file.close()
@@ -158,7 +158,7 @@ file.close()
 
 # Generate the analysis batch script.
 batch_name_analysis = 'job.analysis_U=' + str(U) + '_d=' + str(d) + '_Nc=' + str(Nc) + extension
-print ('Generating the analysis batch script: ' + batch_name_analysis)
+print('Generating the analysis batch script: ' + batch_name_analysis)
 file = open(batch_tmpl, 'r')
 text_analysis = file.read()
 file.close()

@@ -9,7 +9,7 @@ import sys
 
 # Helper function
 def print_name(name):
-    print (name)
+    print(name)
 
 # Get the filename from the command line.
 filename = sys.argv[1]

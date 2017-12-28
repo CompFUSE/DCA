@@ -20,9 +20,9 @@ import sys
 # Uses a fit function of the form eigval(T) = p0/(T-p1)^p2.
 # The transition temperature Tc is then given by Tc = p1^(1/p0) + p1.
 def computeTransitionTemp(T, eigval):
-    print ('\nTemperature/eigenvalue pairs for fit:')
+    print('\nTemperature/eigenvalue pairs for fit:')
     for T_ind, T_val in enumerate(T):
-        print (str(T_val) + '\t' + str(eigval[T_ind]))
+        print(str(T_val) + '\t' + str(eigval[T_ind]))
 
     fitfunc = lambda p, x: p[0] / pow((x-p[1]), p[2])  # Target function
     errfunc = lambda p, x, y: fitfunc(p, x) - y        # Distance to the target function
@@ -31,7 +31,7 @@ def computeTransitionTemp(T, eigval):
     p, success = optimize.leastsq(errfunc, p0[:], args=(T, eigval))
 
     Tc = pow(p[0], 1./p[2]) + p[1]
-    print ('\nTc = ' + '{0:.3g}'.format(Tc))
+    print('\nTc = ' + '{0:.3g}'.format(Tc))
 
     T_fine = np.linspace(T[0], T[-1], 100)
     l_fine = fitfunc(p, T_fine)
@@ -53,7 +53,7 @@ for d in dirs:
     if (os.path.isfile(filename)):
         T.append(float(d[2:]))
 
-        print ('Reading ' + filename)
+        print('Reading ' + filename)
         data = h5py.File(filename,'r')
 
         # Store real part of leading eigenvalue (imaginary part = 0).
@@ -68,7 +68,7 @@ Tc, T_fine, eigval_fine = computeTransitionTemp(T, eigval)
 
 # Plot temperature dependence of leading eigenvalue.
 filename = 'eigval_vs_temp.pdf'
-print ('\nPlotting temperature dependence of leading eigenvalue: ' + filename)
+print('\nPlotting temperature dependence of leading eigenvalue: ' + filename)
 
 xmin = T_fine[0]-0.005
 xmax = T_fine[-1]+0.005

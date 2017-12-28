@@ -18,18 +18,18 @@ data = h5py.File(filename,'r')
 
 # Fermionic Matsubara frequency mesh
 wn = data['domains/vertex-frequency-domain (COMPACT)/elements'] [:]
-# print (wn)
+# print(wn)
 
 # Eigenvector momentum grid
 k = data['domains/LATTICE_TP/MOMENTUM_SPACE/elements/data'][:]
-# print (k)
+# print(k)
 
 # Eigenvectors of leading eigenvalues
 # shape: [wn, k, b2, b1, ev_index, real/imag],
 #        where ev_index labels the eigenvectors of the 10 leading eigenvalues.
 #        ev_index = 0 corresponds to the largest eigenvalue.
 eigenvecs = data['analysis-functions/leading-eigenvectors/data'][:]
-# print (eigenvecs.shape)
+# print(eigenvecs.shape)
 
 # Parameters for plot
 # Band and eigenvalue indices
