@@ -201,7 +201,7 @@ void OutputParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     catch (const std::exception& r_e) {
     }
     try {
-      reader_or_writer.execute("dump-chi_0-lattice", dump_chi_0_lattice_);
+      reader_or_writer.execute("dump-chi-0-lattice", dump_chi_0_lattice_);
     }
     catch (const std::exception& r_e) {
     }
