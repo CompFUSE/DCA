@@ -1,11 +1,9 @@
 {
     "output": {
-        "directory": "./",
+        "directory": "./T=CURRENT_TEMP/",
         "output-format": "HDF5",
-        "filename-dca": "dca.hdf5",
+        "filename-dca": "dca_tp.hdf5",
         "filename-analysis": "analysis.hdf5",
-        "filename-ed": "ed.hdf5",
-        "filename-qmc": "qmc.hdf5",
         "filename-profiling": "profiling.json",
         "dump-lattice-self-energy": false,
         "dump-cluster-Greens-functions": false,
@@ -14,36 +12,19 @@
     },
 
     "physics": {
-        "beta": 1.,
-        "density": 1.,
+        "beta": BETA,
+        "density": DENS,
         "chemical-potential": 0.,
         "adjust-chemical-potential": true
     },
 
     "single-band-Hubbard-model": {
-        "t": 0.,
-        "t-prime": 0.,
-        "U": 0.,
-        "V": 0.,
-        "V-prime": 0.
-    },
-
-    "bilayer-Hubbard-model": {
-        "t": 0.,
-        "t-prime": 0.,
-        "t-perp": 0.,
-        "U": 0.,
-        "V": 0.,
-        "V-prime": 0.
-    },
-
-    "material-model": {
-        "t_ij-filename": "t_ij.txt",
-        "U_ij-filename": "U_ij.txt"
+        "t": 1.,
+        "U": HUBBARDU
     },
 
     "DCA": {
-        "initial-self-energy": "zero",
+        "initial-self-energy": "./T=CURRENT_TEMP/dca_sp.hdf5",
         "iterations": 1,
         "accuracy": 0.,
         "self-energy-mixing-factor": 1.,
@@ -52,7 +33,7 @@
         "do-finite-size-QMC": false,
 
         "coarse-graining": {
-            "k-mesh-recursion": 0,
+            "k-mesh-recursion": 3,
             "periods": 0,
             "quadrature-rule": 1,
             "threads": 1,
@@ -60,7 +41,7 @@
         },
 
         "DCA+": {
-            "do-DCA+": false,
+            "do-DCA+": DO_DCA_PLUS,
             "deconvolution-iterations": 16,
             "deconvolution-tolerance": 1.e-3,
             "HTS-approximation": false,
@@ -70,62 +51,49 @@
 
     "domains": {
         "real-space-grids": {
-            "cluster": [[1, 0],
-                        [0, 1]],
-            "sp-host": [[1, 0],
-                        [0, 1]],
-            "tp-host": [[1, 0],
-                        [0, 1]]
+            "cluster": [VEC1,
+                        VEC2],
+            "sp-host": [[10, 10],
+                        [10,-10]],
+            "tp-host": [[2, 0],
+                        [0, 2]]
         },
 
         "imaginary-time": {
             "sp-time-intervals": 128,
-            "time-intervals-for-time-measurements": 1
+            "time-intervals-for-time-measurements": 16
         },
 
         "imaginary-frequency": {
             "sp-fermionic-frequencies": 256,
-            "HTS-bosonic-frequencies": 0,
-            "four-point-fermionic-frequencies": 1
-        },
-
-        "real-frequency": {
-            "min": -10.,
-            "max": 10.,
-            "frequencies": 3,
-            "imaginary-damping": 0.01
+            "HTS-bosonic-frequencies": 32,
+            "four-point-fermionic-frequencies": 16
         }
     },
 
     "Monte-Carlo-integration": {
         "seed": 985456376,
-        "warm-up-sweeps": 20,
-        "sweeps-per-measurement": 1,
-        "measurements-per-process-and-accumulator": 100,
+        "warm-up-sweeps": 100,
+        "sweeps-per-measurement": 4,
+        "measurements-per-process-and-accumulator": 1000,
 
         "threaded-solver": {
-            "walkers": 1,
-            "accumulators": 1
+            "walkers": 3,
+            "accumulators": 5
         }
     },
 
     "CT-AUX": {
         "expansion-parameter-K": 1.,
         "initial-configuration-size": 10,
-        "initial-matrix-size": 128,
-        "max-submatrix-size": 128,
+        "initial-matrix-size": 16,
+        "max-submatrix-size": 16,
         "neglect-Bennett-updates": false,
         "additional-time-measurements": false
     },
 
-    "SS-CT-HYB": {
-        "self-energy-tail-cutoff": 0,
-        "steps-per-sweep": 0.5,
-        "shifts-per-sweep": 0.5
-    },
-
     "four-point": {
-        "type": "NONE",
+        "type": "PARTICLE_PARTICLE_UP_DOWN",
         "momentum-transfer": [0., 0.],
         "frequency-transfer": 0
     },
@@ -135,14 +103,5 @@
         "Gamma-deconvolution-cut-off": 0.5,
         "project-onto-crystal-harmonics": false,
         "projection-cut-off-radius": 1.5
-    },
-
-    "ED": {
-        "eigenvalue-cut-off": 1.e-6
-    },
-
-    "double-counting": {
-        "method" : "none",
-        "correction" : 0.
     }
 }
