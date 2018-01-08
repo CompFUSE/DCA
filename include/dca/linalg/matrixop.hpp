@@ -154,7 +154,7 @@ inline void copyRows(const Matrix<ScalarType, GPU>& mat_x, const Vector<int, GPU
 
 // Returns the difference of two matrices in terms of max_i,j(|a(i, j) - b(i, j)|).
 // If the difference is larger than the threshold a std::logic_error exception is thrown,
-// and if DNDEBUG is not defined each difference which exceeds the threshold is printed.
+// and if NDEBUG is not defined each difference which exceeds the threshold is printed.
 // Preconditions: a.size() == b.size().
 template <typename ScalarType>
 auto difference(const Matrix<ScalarType, CPU>& a, const Matrix<ScalarType, CPU>& b,
@@ -170,7 +170,7 @@ auto difference(const Matrix<ScalarType, CPU>& a, const Matrix<ScalarType, CPU>&
   }
 
   if (max_diff > diff_threshold) {
-#ifndef DNDEBUG
+#ifndef NDEBUG
     std::stringstream s;
     for (int i = 0; i < a.nrRows(); ++i) {
       for (int j = 0; j < a.nrCols(); ++j) {
@@ -183,7 +183,7 @@ auto difference(const Matrix<ScalarType, CPU>& a, const Matrix<ScalarType, CPU>&
     }
     s << std::endl;
     std::cout << s.str();
-#endif  // DNDEBUG
+#endif  // NDEBUG
 
     throw std::logic_error(__FUNCTION__);
   }
