@@ -151,6 +151,8 @@ option(DCA_WITH_TESTS_VALIDATION  "Build DCA++'s validation tests." OFF)
 
 set(TEST_RUNNER "" CACHE STRING "Command for executing (MPI) programs.")
 set(MPIEXEC_NUMPROC_FLAG "-n" CACHE STRING "Flag used by TEST_RUNNER to specify the number of processes.")
+set(MPIEXEC_PREFLAGS "" CACHE STRING "Flags to pass to TEST_RUNNER directly before the executable to run.")
+separate_arguments(MPIEXEC_PREFLAGS UNIX_COMMAND ${MPIEXEC_PREFLAGS})
 
 set(gtest_dir "${PROJECT_SOURCE_DIR}/libs/googletest-1.8.0" CACHE PATH "Path to Google Test.")
 mark_as_advanced(gtest_dir)
