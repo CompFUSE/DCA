@@ -200,8 +200,12 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::write(Writer& wr
   writer.execute(leading_symmetry_decomposition);
   writer.execute(leading_symmetry_functions);
 
-  writer.execute(Gamma_lattice);
-  writer.execute(chi_0_lattice);
+  if (parameters.dump_Gamma_lattice()) {
+    writer.execute(Gamma_lattice);
+  }
+  if (parameters.dump_chi_0_lattice()) {
+    writer.execute(chi_0_lattice);
+  }
 }
 
 template <typename ParametersType, typename DcaDataType, typename ScalarType>

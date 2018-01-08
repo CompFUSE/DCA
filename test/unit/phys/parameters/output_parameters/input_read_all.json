@@ -8,6 +8,8 @@
         "filename-qmc": "qmc.json",
         "filename-profiling": "profiling_run1.json",
         "dump-lattice-self-energy": true,
-        "dump-cluster-Greens-functions": true
+        "dump-cluster-Greens-functions": true,
+        "dump-Gamma-lattice": true,
+        "dump-chi-0-lattice": true
     }
 }
