@@ -14,8 +14,8 @@
 // remaining threads are created at the end, e.g. for 4 walkers and 2 accumulators this means:
 // w, a, w, a, w, w.
 
-#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_QMCI_THREAD_TASK_HANDLER_HPP
-#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_QMCI_THREAD_TASK_HANDLER_HPP
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_THREAD_TASK_HANDLER_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_THREAD_TASK_HANDLER_HPP
 
 #include <cassert>
 #include <string>
@@ -66,8 +66,7 @@ public:
 
 private:
   static std::vector<std::string> generateThreadTasksVec(const int num_walkers,
-                                                         const int num_accumulators)
-  {
+                                                         const int num_accumulators) {
     std::vector<std::string> thread_tasks(num_walkers + num_accumulators, "undefined");
     const int min_num_walkers_num_accumulators = std::min(num_walkers, num_accumulators);
 
@@ -88,8 +87,8 @@ private:
   const std::vector<std::string> thread_tasks_;
 };
 
-}  // solver
-}  // phys
-}  // dca
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_QMCI_THREAD_TASK_HANDLER_HPP

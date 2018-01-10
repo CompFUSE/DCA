@@ -26,39 +26,37 @@ class stdthread {
 public:
   stdthread() : threads_(0), data_(0) {}
 
-  void execute(int num_threads, void* (*start_routine)(void*), void* arg)
-  {
-      fork(num_threads, start_routine, arg);
-      join();
+  void execute(int num_threads, void* (*start_routine)(void*), void* arg) {
+    fork(num_threads, start_routine, arg);
+    join();
   }
 
 private:
-  void fork(int num_threads, void* (*start_routine)(void*), void* arg)
-  {
-      threads_.clear();
-      data_.resize(num_threads);
+  void fork(int num_threads, void* (*start_routine)(void*), void* arg) {
+    threads_.clear();
+    data_.resize(num_threads);
 
-      for (int id = 0; id < num_threads; id++) {
-        data_[id].id = id;
-        data_[id].num_threads = num_threads;
-        data_[id].arg = arg;
-        //
-        threads_.push_back(std::thread(start_routine, (void*)(&data_[id])));
-      }
+    for (int id = 0; id < num_threads; id++) {
+      data_[id].id = id;
+      data_[id].num_threads = num_threads;
+      data_[id].arg = arg;
+      //
+      threads_.push_back(std::thread(start_routine, (void*)(&data_[id])));
+    }
   }
 
   void join() {
-      for (int id = 0; id < threads_.size(); id++) {
-        threads_[id].join();
-      }
-      threads_.clear();
+    for (int id = 0; id < threads_.size(); id++) {
+      threads_[id].join();
+    }
+    threads_.clear();
   }
 
-  std::vector<std::thread>   threads_;
+  std::vector<std::thread> threads_;
   std::vector<ThreadingData> data_;
 };
 
-}  // parallel
-}  // dca
+}  // namespace parallel
+}  // namespace dca
 
-#endif  // DCA_PARALLEL_stdthread_stdthread_HPP
+#endif  // DCA_PARALLEL_STDTHREAD_STDTHREAD_HPP

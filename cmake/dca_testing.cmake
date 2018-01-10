@@ -24,7 +24,7 @@ include(CMakeParseArguments)
 # MPI, PTHREADS or CUDA may be given to indicate that the test requires these libraries. MPI_NUMPROC
 # is the number of MPI processes to use for an test with MPI, the default value is 1.
 function(dca_add_gtest name)
-  set(options FAST EXTENSIVE VALIDATION PERFORMANCE GTEST_MAIN MPI PTHREADS CUDA)
+  set(options FAST EXTENSIVE VALIDATION PERFORMANCE GTEST_MAIN MPI PTHREADS STDTHREAD CUDA)
   set(oneValueArgs MPI_NUMPROC)
   set(multiValueArgs INCLUDE_DIRS SOURCES LIBS)
   cmake_parse_arguments(DCA_ADD_GTEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
@@ -42,6 +42,7 @@ function(dca_add_gtest name)
                                        [GTEST_MAIN]\n
                                        [MPI [MPI_NUMPROC procs]]\n
                                        [PTHREADS]\n
+                                       [STDTHREAD]\n
                                        [CUDA]\n
                                        [INCLUDE_DIRS dir1 [dir2 ...]]\n
                                        [SOURCES src1 [src2 ...]]\n
@@ -79,8 +80,17 @@ function(dca_add_gtest name)
     return()
   endif()
 
-  if (DCA_ADD_GTEST_PTHREADS AND NOT DCA_HAVE_PTHREADS)
-    return()
+  # don't run tests unless the threading model matches the one intended
+  if(DCA_ADD_GTEST_PTHREADS OR DCA_ADD_GTEST_STDTHREAD)
+    set(test_valid_ 0)
+    if (DCA_ADD_GTEST_PTHREADS AND (DCA_THREADING_LIBRARY STREQUAL POSIX))
+      set(test_valid_ 1)
+    elseif (DCA_ADD_GTEST_STDTHREAD AND (DCA_THREADING_LIBRARY STREQUAL STDTHREAD))
+      set(test_valid_ 1)
+    endif()
+    if (NOT test_valid_)
+      return()
+    endif()
   endif()
 
   if (DCA_ADD_GTEST_CUDA AND NOT DCA_HAVE_CUDA)

@@ -28,11 +28,15 @@
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp"
-#if DCA_THREADING_LIBRARY==POSIX
+
+#if DCA_THREADING_LIBRARY == THREADING_POSIX
 #include "dca/phys/dca_step/cluster_solver/posix_qmci/posix_qmci_cluster_solver.hpp"
-#elif DCA_THREADING_LIBRARY==stdthread
+#elif DCA_THREADING_LIBRARY == THREADING_STDTHREAD
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_cluster_solver.hpp"
+#else
+#error "This test is only for threaded solvers"
 #endif
+
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
@@ -64,7 +68,13 @@ TEST(dca_sp_DCAplus_pthread, Self_energy) {
   using DcaDataType = dca::phys::DcaData<ParametersType>;
   using ClusterSolverBaseType =
       dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, ParametersType, DcaDataType>;
+
+#if DCA_THREADING_LIBRARY == THREADING_POSIX
   using ClusterSolverType = dca::phys::solver::PosixQmciClusterSolver<ClusterSolverBaseType>;
+#elif DCA_THREADING_LIBRARY == THREADING_STDTHREAD
+  using ClusterSolverType = dca::phys::solver::StdThreadQmciClusterSolver<ClusterSolverBaseType>;
+#endif
+
   using DcaLoopType = dca::phys::DcaLoop<ParametersType, DcaDataType, ClusterSolverType>;
 
   using w = dca::func::dmn_0<dca::phys::domains::frequency_domain>;

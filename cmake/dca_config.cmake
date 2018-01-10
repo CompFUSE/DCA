@@ -216,13 +216,13 @@ endif()
 # - DCA_THREADING_LIBRARY: CMake option for the user to choose the threading library,
 # - DCA_THREADING_LIB: the actual library to link against.
 set(DCA_THREADING_LIBRARY "POSIX" CACHE STRING
-  "Threading library, options are: POSIX | stdthread | None.")
-set_property(CACHE DCA_THREADING_LIBRARY PROPERTY STRINGS POSIX stdthread None)
+  "Threading library, options are: POSIX | STDTHREAD | NONE")
+set_property(CACHE DCA_THREADING_LIBRARY PROPERTY STRINGS POSIX STDTHREAD NONE)
 
 if (DCA_THREADING_LIBRARY STREQUAL POSIX)
   include(dca_pthreads)
   if (NOT DCA_HAVE_PTHREADS)
-    message(FATAL_ERROR "POXIS thread library (Pthreads) not found but requested.")
+    message(FATAL_ERROR "POSIX thread library (Pthreads) not found but requested.")
   endif()
 
   set(DCA_THREADING_TYPE dca::parallel::Pthreading)
@@ -230,23 +230,17 @@ if (DCA_THREADING_LIBRARY STREQUAL POSIX)
   set(DCA_THREADING_FLAGS "-pthread" CACHE INTERNAL "Flags needed for threading." FORCE)
   set(DCA_THREADING_LIB pthreading pthread)
 
-elseif (DCA_THREADING_LIBRARY STREQUAL stdthread)
+elseif (DCA_THREADING_LIBRARY STREQUAL STDTHREAD)
   set(DCA_THREADING_TYPE dca::parallel::stdthread)
   set(DCA_THREADING_INCLUDE "dca/parallel/stdthread/stdthread.hpp")
   set(DCA_THREADING_FLAGS "-pthread" CACHE INTERNAL "Flags needed for threading." FORCE)
   set(DCA_THREADING_LIB "pthread")
 
-elseif (DCA_THREADING_LIBRARY STREQUAL None)
+elseif (DCA_THREADING_LIBRARY STREQUAL NONE)
   set(DCA_THREADING_TYPE dca::parallel::NoThreading)
   set(DCA_THREADING_INCLUDE "dca/parallel/no_threading/no_threading.hpp")
   set(DCA_THREADING_FLAGS "" CACHE INTERNAL "Flags needed for threading." FORCE)
   set(DCA_THREADING_LIB "")
-
-# elseif (DCA_THREADING_LIBRARY STREQUAL STL)
-#   message(FATAL_ERROR "No STL threads support yet.")
-
-# elseif (DCA_THREADING_LIBRARY STREQUAL HPX)
-#   message(FATAL_ERROR "No HPX support yet.")
 
 else()
   message(FATAL_ERROR "Please set DCA_THREADING_LIBRARY to a valid option: POSIX | None.")
@@ -267,15 +261,10 @@ if (DCA_WITH_THREADED_SOLVER)
     set(DCA_THREADED_SOLVER_INCLUDE
       "dca/phys/dca_step/cluster_solver/posix_qmci/posix_qmci_cluster_solver.hpp")
 
-  elseif (DCA_THREADING_LIBRARY STREQUAL stdthread)
+  elseif (DCA_THREADING_LIBRARY STREQUAL STDTHREAD)
     set(DCA_THREADED_SOLVER_TYPE dca::phys::solver::StdThreadQmciClusterSolver<ClusterSolverBaseType>)
     set(DCA_THREADED_SOLVER_INCLUDE
       "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_cluster_solver.hpp")
-
-  # elseif (DCA_THREADING_LIBRARY STREQUAL HPX)
-  #   set(DCA_THREADED_SOLVER_TYPE DCA::hpx_qmci_integrator<ClusterSolverBaseType>)
-  #   set(DCA_THREADED_SOLVER_INCLUDE
-  #     "phys_library/DCA+_step/cluster_solver/cluster_solver_mc_hpx_jacket/hpx_qmci_cluster_solver.h")
 
   else()
     message(FATAL_ERROR "Need a threading library to use a threaded cluster solver.")
