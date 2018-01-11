@@ -46,6 +46,8 @@ class StdThreadQmciClusterSolver : public qmci_integrator_type {
   typedef StdThreadQmciClusterSolver<qmci_integrator_type> this_type;
   typedef stdthreadqmci::stdthread_qmci_accumulator<accumulator_type> stdthread_accumulator_type;
 
+  typedef std::pair<this_type*, int> pair_type ;
+
 public:
   StdThreadQmciClusterSolver(parameters_type& parameters_ref, MOMS_type& MOMS_ref);
 
@@ -60,8 +62,8 @@ public:
   double finalize(dca_info_struct_t& dca_info_struct);
 
 private:
-  static void* start_walker_static(void* arg);
-  static void* start_accumulator_static(void* arg);
+  static void* start_walker_static(pair_type data);
+  static void* start_accumulator_static(pair_type data);
 
   void start_walker(int id);
   void start_accumulator(int id);
@@ -151,7 +153,7 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::integrate()
   }
 
   std::vector<std::thread> threads;
-  std::vector<std::pair<this_type*, int>> data(nr_accumulators + nr_walkers);
+  std::vector<pair_type> data;
 
   {
     if (concurrency.id() == concurrency.first())
@@ -160,12 +162,12 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::integrate()
     dca::profiling::WallTime start_time;
 
     for (int i = 0; i < nr_walkers + nr_accumulators; ++i) {
-      data[i] = std::pair<this_type*, int>(this, i);
+      data.push_back(std::make_pair(this, i));
 
       if (thread_task_handler_.getTask(i) == "walker")
-        threads.push_back( std::thread(start_walker_static, &data[i]));
+        threads.push_back( std::thread(start_walker_static, data.back()));
       else if (thread_task_handler_.getTask(i) == "accumulator")
-        threads.push_back( std::thread(start_accumulator_static, &data[i]));
+        threads.push_back( std::thread(start_accumulator_static, data.back()));
       else
         throw std::logic_error("Thread is neither a walker nor an accumulator.");
     }
@@ -201,27 +203,25 @@ double StdThreadQmciClusterSolver<qmci_integrator_type>::finalize(dca_info_struc
 }
 
 template <class qmci_integrator_type>
-void* StdThreadQmciClusterSolver<qmci_integrator_type>::start_walker_static(void* arg) {
-  std::pair<this_type*, int>* data = reinterpret_cast<std::pair<this_type*, int>*>(arg);
+void* StdThreadQmciClusterSolver<qmci_integrator_type>::start_walker_static(pair_type data) {
 
-  profiler_type::start_pthreading(data->second);
+  profiler_type::start_pthreading(data.second);
 
-  data->first->start_walker(data->second);
+  data.first->start_walker(data.second);
 
-  profiler_type::stop_pthreading(data->second);
+  profiler_type::stop_pthreading(data.second);
 
   return NULL;
 }
 
 template <class qmci_integrator_type>
-void* StdThreadQmciClusterSolver<qmci_integrator_type>::start_accumulator_static(void* arg) {
-  std::pair<this_type*, int>* data = reinterpret_cast<std::pair<this_type*, int>*>(arg);
+void* StdThreadQmciClusterSolver<qmci_integrator_type>::start_accumulator_static(pair_type data) {
 
-  profiler_type::start_pthreading(data->second);
+  profiler_type::start_pthreading(data.second);
 
-  data->first->start_accumulator(data->second);
+  data.first->start_accumulator(data.second);
 
-  profiler_type::stop_pthreading(data->second);
+  profiler_type::stop_pthreading(data.second);
 
   return NULL;
 }
