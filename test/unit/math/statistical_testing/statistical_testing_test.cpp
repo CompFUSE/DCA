@@ -211,7 +211,11 @@ TEST(StatisticalTesting, BigDifference) {
   const int n_samples = 10;
 
   StatisticalTesting stat_test(f_wrong, f0, cov);
+  StatisticalTesting stat_test_fast(f_wrong, f0, cov);
   EXPECT_GE(0.05, stat_test.computePValue(true, n_samples));
+
+  EXPECT_NEAR(stat_test.computePValue(true, n_samples),
+              stat_test_fast.computePValue(true, n_samples, true), 1e-10);
 }
 
 template <class Domain>
