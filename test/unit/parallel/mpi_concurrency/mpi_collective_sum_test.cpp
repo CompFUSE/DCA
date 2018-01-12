@@ -272,18 +272,18 @@ TEST_F(MPICollectiveSumTest, ComputeCovarianceComplex) {
 
 TEST_F(MPICollectiveSumTest, AvgNormalizedMomenta) {
   using FunctionDomain = dca::func::dmn_0<dca::func::dmn<2, int>>;
-  const std::vector<int> orders{3,4};
+  const std::vector<int> orders{3, 4};
 
   dca::func::function<double, FunctionDomain> f("f");
   std::vector<double> momenta(orders.size());
 
   for (int i = 0; i < f.size(); i++) {
-    f(i) = rank_ * (i+1);
+    f(i) = rank_ * (i + 1);
   }
 
   momenta = sum_interface_.avgNormalizedMomenta(f, orders);
-// Expected values obtained with python
-  EXPECT_EQ(0., momenta[0]);
+  // Expected values obtained with python
+  EXPECT_NEAR(0., momenta[0], 1e-8);
   EXPECT_NEAR(1.76190476, momenta[1], 1e-8);
 }
 

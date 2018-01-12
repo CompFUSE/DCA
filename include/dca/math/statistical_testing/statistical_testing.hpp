@@ -92,6 +92,8 @@ StatisticalTesting::StatisticalTesting(
   for (auto i = 0; i < Domain::dmn_size(); ++i)
     df_[i] = f(i) - f_expected(i);
   std::copy_n(&covariance(0), covariance.size(), cov_.begin());
+
+  dof_ = f.size();
 }
 
 }  // math

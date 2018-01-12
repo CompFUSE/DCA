@@ -168,30 +168,37 @@ TEST(StatisticalTesting, SelectIndices2) {
   function<double, Domain> f(""), f0("");
   function<double, dmn_variadic<Domain, Domain>> cov("");
   StatisticalTesting test(f, f0, cov, 0);
+  EXPECT_EQ(3, test.get_dof());
 
   std::vector<int> illegal_indices{0, -1, 2};
   EXPECT_THROW(test.selectIndices(illegal_indices), std::out_of_range);
   EXPECT_THROW(test.discardIndices(illegal_indices), std::out_of_range);
+  // Upon throw, these methods leave the object unaltered.
+  EXPECT_EQ(3, test.get_dof());
 
   std::vector<int> illegal_indices2{5, 1, 2};
   EXPECT_THROW(test.selectIndices(illegal_indices2), std::out_of_range);
   EXPECT_THROW(test.discardIndices(illegal_indices2), std::out_of_range);
+  EXPECT_EQ(3, test.get_dof());
 
   std::vector<int> redundant_indices{0, 1, 0, 2};
   EXPECT_NO_THROW(test.selectIndices(redundant_indices));
   const std::vector<int> expected{0, 1, 2};
   EXPECT_EQ(expected, redundant_indices);
+  EXPECT_EQ(3, test.get_dof());
 
   // empty tests are not allowed.
   StatisticalTesting test2(f, f0, cov, 0);
   std::vector<int> all_indices{0, 1, 2};
+  std::vector<int> no_index{};
   EXPECT_THROW(test.discardIndices(all_indices), std::logic_error);
+  EXPECT_THROW(test.selectIndices(no_index), std::logic_error);
 }
 
 TEST(StatisticalTesting, BigDifference) {
   // If the difference between f and f0 is large the pvalue must be close to zero.
   using Domain = dmn_0<dmn<2>>;
-  function<double, Domain> f_ok(""), f_wrong(""), f0("");
+  function<double, Domain> f_wrong(""), f0("");
   f_wrong(0) = 0.5;
   f_wrong(1) = -0.1;
   f0(0) = 0.1;
