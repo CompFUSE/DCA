@@ -451,34 +451,32 @@ std::vector<Scalar> MPICollectiveSum::avgNormalizedMomenta(const func::function<
                                                            const std::vector<int>& orders) const {
   func::function<Scalar, Domain> avg(f);
   sum_and_average(avg);
-  std::vector<std::vector<Scalar>> momenta(orders.size(), std::vector<Scalar>(f.size()));
+  linalg::Matrix<Scalar, linalg::CPU> momenta(std::make_pair(orders.size(), f.size()));
   std::vector<Scalar> var2(f.size());
 
   for (std::size_t i = 0; i < f.size(); i++) {
     const Scalar diff = f(i) - avg(i);
-    for (std::size_t j = 0; j < orders.size(); j++) {
-      momenta[j][i] = std::pow(diff, orders[j]);
-      var2[i] = std::pow(diff, 2);
-    }
+    var2[i] = diff * diff;
+    for (std::size_t j = 0; j < orders.size(); j++)
+      momenta(j, i) = std::pow(diff, orders[j]);
   }
 
-  for (std::size_t i = 0; i < orders.size(); i++)
-    sum(momenta[i]);
+  sum(momenta);
   sum(var2);
 
   // Divide by n and normalize the momenta by sigma^order, then average.
-  std::vector<Scalar> sum(orders.size(), 0);
+  std::vector<Scalar> momenta_avg(orders.size(), 0);
   const int n = grouping_.get_Nr_threads();
   for (std::size_t i = 0; i < f.size(); i++) {
     const Scalar var = std::sqrt(var2[i] / n);
     for (std::size_t j = 0; j < orders.size(); j++)
-      sum[j] += std::abs(momenta[j][i]) / (n * std::pow(var, orders[j]));
+      momenta_avg[j] += std::abs(momenta(j, i)) / (n * std::pow(var, orders[j]));
   }
 
   for (std::size_t i = 0; i < orders.size(); i++)
-    sum[i] /= f.size();
+    momenta_avg[i] /= f.size();
 
-  return sum;
+  return momenta_avg;
 }
 
 }  // parallel

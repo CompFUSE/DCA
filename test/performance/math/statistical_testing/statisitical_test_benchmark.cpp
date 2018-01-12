@@ -65,9 +65,8 @@ int main() {
 
 void makePositive(Covariance& cov) {
   Covariance result("");
-  char op1('N'), op2('T');
   int n = cov[0];
 
-  dca::linalg::blas::gemm(&op1, &op2, n, n, n, 1., &cov(0), n, &cov(0), n, 0., &result(0), n);
+  dca::linalg::blas::gemm("N", "T", n, n, n, 1., &cov(0), n, &cov(0), n, 0., &result(0), n);
   cov = result;
 }

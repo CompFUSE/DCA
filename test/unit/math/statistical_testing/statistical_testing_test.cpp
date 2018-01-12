@@ -150,7 +150,7 @@ TEST(StatisticalTesting, SelectIndices1) {
 
   const double d2 = 2. * 0.9 / 0.99;
   const double expected = 1. - dca::math::chi2Cdf(d2, indices.size());
-  EXPECT_NEAR(test.computePValue(true, 1), expected, 1e-10);
+  EXPECT_NEAR(expected, test.computePValue(true, 1), 1e-10);
   const std::vector<int> new_indices{0, 1};
   EXPECT_EQ(new_indices, indices);
   EXPECT_EQ(2, test.get_dof());
@@ -189,7 +189,7 @@ TEST(StatisticalTesting, SelectIndices2) {
 }
 
 TEST(StatisticalTesting, BigDifference) {
-  // If the difference between f and f0 is large the pvale must be close to zero.
+  // If the difference between f and f0 is large the pvalue must be close to zero.
   using Domain = dmn_0<dmn<2>>;
   function<double, Domain> f_ok(""), f_wrong(""), f0("");
   f_wrong(0) = 0.5;

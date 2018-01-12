@@ -75,10 +75,7 @@ FunctionSamples generateSamples() {
     for (int i = 0; i < SampleDmn::dmn_size(); ++i)
       cov_sqrt(i, j) = uniform_distro(rng) + (i == j) * 1.;
   // Make sure that the covariance is positive definite.
-  const char id = 'N';
-  const char tr = 'T';
-  dca::linalg::matrixop::gemm(id, tr, cov_sqrt, cov_sqrt, true_cov);
-
+  dca::linalg::matrixop::gemm('N', 'T', cov_sqrt, cov_sqrt, true_cov);
   //  true_cov.print();
 
   std::vector<double> sample(SampleDmn::dmn_size());
@@ -86,7 +83,7 @@ FunctionSamples generateSamples() {
     for (int i = 0; i < SampleDmn::dmn_size(); ++i)
       sample[i] = gauss_distro(rng);
     // samples[i] <- true_cov * sample
-    dca::linalg::blas::gemv(&id, SampleDmn::dmn_size(), SampleDmn::dmn_size(), 1., true_cov.ptr(),
+    dca::linalg::blas::gemv("N", SampleDmn::dmn_size(), SampleDmn::dmn_size(), 1., true_cov.ptr(),
                             true_cov.leadingDimension(), sample.data(), 1, 0.,
                             &samples(0, sample_id), 1);
   }

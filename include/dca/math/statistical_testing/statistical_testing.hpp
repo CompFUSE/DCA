@@ -32,10 +32,17 @@ public:
                      const func::function<double, Domain>& f_expected,
                      const func::function<double, dca::func::dmn_variadic<Domain, Domain>>& covariance,
                      bool verbose = 0);
-  // Only the selected indices are tested. Indices will be reordered.
+
+  // Only the selected indices are tested. Indices will be reordered and pruned of duplicates.
+  // Note: The indices associated with each degree of freedom will be reset. Therefore multiple
+  // calls with the same input remove different degrees of freedom.
   // In/Out: indices
   void selectIndices(std::vector<int>& indices);
-  // Discard the selected indices. Indices will be reordered.
+
+  // All the selected indices expect the selected ones are tested. Indices will be reordered and
+  // pruned of duplicates.
+  // Note: The indices associated with each degree of freedom will be reset. Therefore multiple
+  // calls with the same input different degrees of freedom.
   // In/Out: indices
   void discardIndices(std::vector<int>& indices);
 

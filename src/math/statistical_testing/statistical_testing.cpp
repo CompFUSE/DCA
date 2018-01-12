@@ -39,7 +39,8 @@ double StatisticalTesting::computePValue(bool known_expected_covariance, int n_s
   if (known_expected_covariance == true)
     pvalue_ = 1 - chi2Cdf(distance_ * n_samples, dof_);
   else
-    pvalue_ = 1 - fCdf(distance_ * (double)(n_samples - dof_) / (double)dof_, dof_, n_samples - dof_);
+    pvalue_ = 1 - fCdf(distance_ * static_cast<double>(n_samples - dof_) / static_cast<double>(dof_),
+                       dof_, n_samples - dof_);
 
   return pvalue_;
 }
@@ -60,12 +61,11 @@ void StatisticalTesting::computeFastMahalanobisDistanceSquared() {
     l_inf = std::max(l_inf, std::abs(entry));
 
   try {
-    const char lower = 'L';
-    dca::linalg::lapack::potrf(&lower, dof_, &(cov_copy[0]), dof_);
+    dca::linalg::lapack::potrf("L", dof_, &(cov_copy[0]), dof_);
     // Check conditioning of the decomposed matrix.
     std::vector<double> work(3 * dof_);
     std::vector<int> iwork(dof_);
-    const double inverse_cond_num = dca::linalg::lapack::pocon(&lower, dof_, &(cov_copy[0]), dof_,
+    const double inverse_cond_num = dca::linalg::lapack::pocon("L", dof_, &(cov_copy[0]), dof_,
                                                                l_inf, work.data(), iwork.data());
     const double threshold = 1e-10;
     if (inverse_cond_num < threshold) {
@@ -101,10 +101,9 @@ void StatisticalTesting::computeMahalanobisDistanceSquared() {
     linalg::lapack::syevd("V", "U", n, &cov_[0], n, &eigenvalues[0], &d_workplace[0], d_worksize,
                           &i_workplace[0], i_worksize);
   }
-  char trsp = 'T';
   std::vector<double> df_primed(n);
   // compute df in the eigenbase.
-  dca::linalg::blas::gemv(&trsp, n, n, 1., &cov_[0], n, &df_[0], 1, 0., &df_primed[0], 1);
+  dca::linalg::blas::gemv("T", n, n, 1., &cov_[0], n, &df_[0], 1, 0., &df_primed[0], 1);
   double result = 0;
   dof_ = 0;
   const double leading = eigenvalues[n - 1];
@@ -131,21 +130,20 @@ void StatisticalTesting::selectIndices(std::vector<int>& indices) {
   std::sort(indices.begin(), indices.end());
   auto end = std::unique(indices.begin(), indices.end());
 
-  using std::size_t;
-  const size_t new_size = end - indices.begin();
+  const std::size_t new_size = end - indices.begin();
   indices.resize(new_size);
-  if (not indices.size())
+  if (!new_size)
     throw(std::logic_error("Test is empty."));
   if (indices[0] < 0 or indices.back() > df_.size())
     throw(std::out_of_range("Index out of bounds."));
+  if (new_size == df_.size())
+    return;
 
   std::vector<double> new_df(new_size), new_cov(new_size * new_size);
-  size_t i(0), j(0);
-  for (auto it1 = indices.begin(); it1 < end; ++it1, ++i) {
-    new_df[i] = df_[*it1];
-    j = 0;
-    for (auto it2 = indices.begin(); it2 < end; ++it2, ++j)
-      new_cov[i * new_size + j] = cov_[(*it1) * df_.size() + (*it2)];
+  for (std::size_t i = 0; i < new_size; ++i) {
+    new_df[i] = df_[indices[i]];
+    for (std::size_t j = 0; j < new_size; ++j)
+      new_cov[i * new_size + j] = cov_[(indices[i]) * df_.size() + indices[j]];
   }
 
   std::swap(new_df, df_);
@@ -157,6 +155,9 @@ void StatisticalTesting::discardIndices(std::vector<int>& indices) {
   auto end = std::unique(indices.begin(), indices.end());
   const size_t new_size = end - indices.begin();
   indices.resize(new_size);
+
+  if (!indices.size())
+    return;
   if (indices[0] < 0 or indices.back() > df_.size())
     throw(std::out_of_range("Index out of bounds."));
 
@@ -194,8 +195,7 @@ constexpr double tolerance = 1e-9;
 constexpr double tiny = 1e-290;
 
 // Regularized lower incomplete gamma function, by series expansion.
-// Based on
-// https://github.com/lh3/samtools/blob/6bbe1609e10f27796e5bf29ac3207bb2e35ceac8/bcftools/kfunc.c
+// Based on the implementation of the function `_kf_gammap` of `htslib 1.3`.
 double incLGamma(double s, double z) {
   double sum, x;
   int k;
@@ -212,6 +212,7 @@ double incLGamma(double s, double z) {
 }
 
 // Regularized upper incomplete gamma function, by continued fraction
+// Based on the implementation of the function `_kf_gammaq` of `htslib 1.3`.
 static double incUGamma(double s, double z) {
   int k;
   double C, D, f;
@@ -241,8 +242,7 @@ static double incUGamma(double s, double z) {
 }
 
 // Regularized lower incomplete beta function, by series expansion.
-// Based on
-// https://github.com/lh3/samtools/blob/6bbe1609e10f27796e5bf29ac3207bb2e35ceac8/bcftools/kfunc.c
+// Based on the implementation of the function `kf_betai` of `htslib 1.3`.
 static double incLBeta(double a, double b, double x) {
   if (x > (a + 1.) / (a + b + 2.))  // the series expansion works only if x << 1
     return 1 - incLBeta(b, a, 1 - x);
