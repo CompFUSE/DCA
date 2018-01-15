@@ -9,7 +9,7 @@
 //
 // This file tests accumulator.hpp.
 
-#include "dca/phys/dca_step/cluster_solver/util/accumulator.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/util/accumulator.hpp"
 
 #include <complex>
 #include <stdexcept>

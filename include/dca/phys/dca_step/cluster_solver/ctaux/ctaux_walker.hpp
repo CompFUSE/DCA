@@ -30,7 +30,7 @@
 #include "dca/phys/dca_step/cluster_solver/ctaux/walker/tools/n_tools.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/walker/tools/shrink_tools.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/walker/walker_bit.hpp"
-#include "dca/phys/dca_step/cluster_solver/util/accumulator.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/util/accumulator.hpp"
 
 namespace dca {
 namespace phys {

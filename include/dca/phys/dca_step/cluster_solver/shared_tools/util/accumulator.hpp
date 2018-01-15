@@ -15,8 +15,8 @@
 // - or one of the floating point specializations of std::complex, i.e. std::complex<float>,
 //   std::complex<double>, or std::complex<long double>.
 
-#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_UTIL_ACCUMULATOR_HPP
-#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_UTIL_ACCUMULATOR_HPP
+#ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_UTIL_ACCUMULATOR_HPP
+#define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_UTIL_ACCUMULATOR_HPP
 
 #include <cstdlib>  // std::size_t
 #include <complex>
@@ -100,4 +100,4 @@ private:
 }  // phys
 }  // dca
 
-#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_UTIL_ACCUMULATOR_HPP
+#endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_UTIL_ACCUMULATOR_HPP
