@@ -34,29 +34,35 @@
 \tableofcontents
 
 \section{Files}
-Each file should contain the header included in \inlinecode{HEADER.TXT}, and the author of the file.
-The header should also provide a description of the content of the file.
-If you make significant changes to a file consider adding your name to the author list.
+Each file should start with the header provided in \inlinecode{misc/HEADER}.
+Specify the author(s) and add a description of the content of the file.
+If you make significant changes to an existing file, add yourself to the list of authors in the header.
 
 \subsection{File organization}
-Each class should be defined a different file, whose name is the class name where the upper case letters are replaced with a underscore (\inlinecode{_}) and the lower case letter.i (Exception: if the upper case letter is the first letter, no underscore is prepended).
+Each class should be defined in a separate file whose name is the class name with upper case letters replaced by an underscore (\inlinecode{_}) and the corresponding lower case letter.
+(Exception: If the upper case letter is the first letter, no underscore is prepended).
 
-Header files should be placed in \verb|include/dca/|, source files in \verb|src/|. Tests should be placed in \verb|test/unit/|, \verb|test/integration/|, \verb|test/system-level/| or \verb|test/performance/| according to their type. \verb|include/dca/|, \verb|src/| and \verb|test/unit/| should have the same tree structure.
+Header files should be placed in \verb|include/dca/|, source files in \verb|src/|.
+Tests should be placed according to their type in \verb|test/unit/|, \verb|test/integration/|, \verb|test/system-level/| and \verb|test/performance/|, respectively.
+\verb|include/dca/|, \verb|src/| and \verb|test/unit/| should have the same tree structure.
 
 \subsection{File Names}
-Filenames should be all lowercase and can include numbers and underscores (\inlinecode{_}). Uppercase are allowed for abbreviations and chemical compounds.
+Filenames should be all lowercase and can include numbers and underscores (\inlinecode{_}).
+Uppercase letters are allowed for abbreviations and chemical compounds.
 Header files use the extension \verb|.hpp|, while source files use the extension \verb|.cpp|.
 
-The filenames of the tests are composed by the filename of the object tested and the suffix \inlinecode{_test} is appended.
-The filename of fake objects used in tests are composed by the prefix \inlinecode{mock_} and the filename of the object that is replaced.
+The filenames of tests are composed by the filename of the object tested and the suffix \inlinecode{_test}.
+The filenames of \emph{fake} and \emph{mock} objects used in tests are composed by the prefixes \inlinecode{fake_} and \inlinecode{mock_}, respectively, and the filename of the object that is imitated.
 
 \subsection{Header files}
-All header files should be self-contained. This means that each header can be included without defining anything special.
+All header files should be self-contained.
+This means that each header can be included without defining anything special.
 In particular each header file should include all the headers needed and have \inlinecode{\#define} guards to prevent multiple inclusion.
 
 If a template or inline function is declared in a \verb|.hpp| file, the function has to be defined in the same file.
 
-The symbol name of the \inlinecode{\#define} guards should be \inlinecode{PATH_FILENAME_HPP}, where \inlinecode{PATH} is based on the \verb|include| directory. For example, the file\\ \verb|dca_ethz/include/dca/foo/bar.hpp| should have the following guard:
+The symbol name of the \inlinecode{\#define} guards should be \inlinecode{PATH_FILENAME_HPP}, where \inlinecode{PATH} is based on the \verb|include| directory.
+For example, the file\\ \verb|DCA/include/dca/foo/bar.hpp| should have the following guard:
 
 \begin{lstlisting}
 #ifndef DCA_FOO_BAR_HPP
@@ -66,7 +72,8 @@ The symbol name of the \inlinecode{\#define} guards should be \inlinecode{PATH_F
 \end{lstlisting}
 
 \subsection{Includes}
-Header files should be included with the full path based on the \verb|include| directory. For example, the file \verb|dca_ethz/include/dca/foo/bar.hpp| should be included as
+Header files should be included with the full path based on the \verb|include| directory.
+For example, the file \verb|DCA/include/dca/foo/bar.hpp| should be included as
 \begin{lstlisting}
 #include "dca/foo/bar.hpp"
 \end{lstlisting}
@@ -75,10 +82,10 @@ Even if the included file is located in the same directory as the including file
 For readability it is suggested to use the standard order of includes:
 \begin{enumerate}
 	\item Related header
-	\item C library
-	\item C++ library
-	\item Other libraries' .h
-	\item Your project's .h
+	\item C library headers
+	\item C++ library headers
+	\item Other libraries' headers
+	\item DCA++ headers
 \end{enumerate}
 In each section the included files should be sorted in alphabetical order.
 \section{Naming}
@@ -87,7 +94,8 @@ The names should be as descriptive as possible.
 
 \subsection{Type and Class Names}
 
-Type and class names should start with an uppercase character and should have a capital letter for each new word. Underscores (\inlinecode{_}) are not allowed.
+Type and class names should start with a capital letter and have a capital letter for each new word.
+Underscores (\inlinecode{_}) are not allowed.
 
 The \inlinecode{using} syntax is preferred to \inlinecode{typedef} for type definitions.
 
@@ -99,15 +107,22 @@ Namespace names should be one word, lowercase.
 
 \subsubsection{Variable Names}
 
-Variable names should contain only lowercase characters and underscores (\inlinecode{_}). The underscore is not allowed as first or last character.
+Variable names should contain only lowercase characters and underscores (\inlinecode{_}).
+The underscore is not allowed as first or last character.
 
 \subsubsection{Class Data Members}
 
 Class data members names follows the convention of variable names with a trailing underscore (\inlinecode{_}).
 
+\subsection{Physics Functions and Domains}
+
+In order to be consistent with the usual mathematical notation, variables and types representing physics functions and domains are allowed to deviate from the conventions defined above.
+
+TODO: Fix convention for domains.
+
 \subsection{Function Names}
 
-Function names should start with a lowercase character and should have a capital letter for each new word.
+Function names should start with a lowercase character and have a capital letter for each new word.
 Underscores (\inlinecode{_}) are not allowed.
 
 The only exception to this rule are getter and setter methods for class data members.
@@ -123,17 +138,31 @@ auto my_lambda = [](int i) { return i + 4; };
 
 \subsection{Macro Names}
 
-Macro names should be all uppercase and can include underscores (\inlinecode{_}). The underscore is not allowed as first or last character.
+Macro names should be all uppercase and can include underscores (\inlinecode{_}).
+The underscore is not allowed as first or last character.
+
+\subsection{Test Case and Test Names}
+
+Test case and test names should start with a capital letter and have a capital letter for each new word.
+\emph{Test case} names should end with \inlinecode{Test}.
+
+\begin{lstlisting}[showspaces=false]
+TEST(MatrixCPUTest, ElementAccess) {
+    ...
+}
+\end{lstlisting}
+
 
 \section{Comments}
 
 \subsection{Comment Style}
 
-Use the \inlinecode{// Comment} syntax. The \inlinecode{/* ... */} syntax is allowed only for unused variables in function declarations.
+Use the \inlinecode{// Comment} syntax.
+The \inlinecode{/* ... */} syntax is allowed only for unused variables in function declarations.
 
 \subsection{Function Comments}
 
-Each function, whose name does not fully describe the operations performed should have comments that describe what the function does.
+Each function whose name does not fully describe the operations performed should have a comment block that describes what the function does.
 
 For function parameters whose type is non-const reference or pointer to non-const memory,
 it should be specified if they are input (In:), output (Out:) or input-output parameters (InOut:).
@@ -155,14 +184,15 @@ No comments, since the name should be self-descriptive.
 
 \subsection{Class Comments}
 
-Every class should have a short description of what it is and what is does.
+Every class should have a short description (in the header of the file) of what it is and what is does.
 Comments for public class member functions follow the same rules as general function comments.
 Comments for private members are allowed, but not mandatory.
 
 \subsection{Implementation Comments}
 
 Tricky, complicated or important code blocks should have comments before them.
-Line comments should be separated from the code by 2 spaces. If multiple subsequent lines have a comment they should be aligned.
+Line comments should be separated from the code by 2 spaces.
+If multiple subsequent lines have a comment they should be aligned.
 
 Example:
 \begin{lstlisting}
@@ -173,7 +203,7 @@ longerstatement;  // Two spaces between code and comment.
 If you modify a piece of code, also adapt the comments that belong to it if necessary.
 
 \subsection{Comments excluded in releases}
-
+[TODO: Review this section.]\\
 Comments formatted as \inlinecode{// TODO: Comment}, \inlinecode{// INTERNAL: Comment} and \inlinecode{// REVIEW: Comment} are removed in the releases.
 
 \subsection{Punctuation, Spelling and Grammar}
@@ -186,7 +216,8 @@ Use the provided clang-format style to format \verb|.hpp| and \verb|.cpp| files.
 
 \subsection{Line Length}
 
-The length of each line of your code should, in principle, be at most 100 characters. This limit can be exceeded by few characters in special cases.
+The length of each line of your code should, in principle, be at most \emph{100} characters.
+This limit can be exceeded by few characters in special cases.
 
 \subsection{Scopes}
 
@@ -210,11 +241,12 @@ The one space external padding is not allowed in the following cases:
 
 \subsubsection{Binary Operators}
 
-The assignment operator should always have spaces around it. Other operators may have spaces around them, but is not mandatory.
+The assignment operator should always have spaces around it.
+Other operators may have spaces around them, but it is not mandatory.
 
 \subsubsection{Unary Operators}
 
-Do not put any space between the unary operator and their argument.
+Do not put any space between an unary operator and their argument.
 
 \subsubsection{Types}
 
@@ -223,8 +255,8 @@ The angle brackets of the templates should not have any external and internal pa
 
 Examples:
 \begin{lstlisting}
-type* var;
-type& var;
+Type* var;
+Type& var;
 
 Class1<Class2<type1>> object;  // OK with C++11, does not
                                // compile with C++03.
@@ -232,20 +264,22 @@ Class1<Class2<type1>> object;  // OK with C++11, does not
 
 \subsection{Vertical Spacing}
 
-Use empty lines when it helps the readability of the code, but do not use too many.
+Use empty lines when it helps to improve the readability of the code, but do not use too many.
 Do not use empty lines after a brace which opens a scope,
 or before a brace which closes a scope.
-Each file should contain an empty line at the end of the file (Some editors add an empty line automatically, some do not) .
+Each file should contain an empty line at the end of the file.
+Some editors add an empty line automatically, some do not.
 
 \subsection{Indentation}
 
-Indentation consists of 2 spaces. Don't use tabs in the code.
+Indentation consists of 2 spaces.
+Do not use tabs in the code.
 
 \subsection{Variable Declarations and Definitions}
 
 \begin{itemize}
 
-\item Avoid to declare multiple variables in the same declaration, especially if they are not fundamental types:
+\item Avoid declaring multiple variables in the same declaration, especially if they are not fundamental types:
 
 \begin{lstlisting}[showspaces=false]
 int x, y;                        // Not recommended.
@@ -281,12 +315,14 @@ constexpr unsigned long l(42);
 
 \subsection{Function Declarations and Definitions}
 
-The return type should be in the same line as the function name, and the parameters should be on the same line unless they don't fit in it.
-Add the parameters name also in the declaration of a function and avoid
+The return type should be on the same line as the function name.
+Parameters should be on the same line, too, unless they do not fit on it.
+Include the parameter names also in the declaration of a function, i.e. avoid
 \begin{lstlisting}
 Type function(Type1, Type2, Type3);
 \end{lstlisting}
-In function declarations comment the unused parameter names. \\(E.g. \inlinecode{Type /* unused_parameter_name */})
+In function declarations comment the unused parameter names,\\
+\inlinecode{Type /* unused_parameter_name */}
 
 Examples:
 \begin{lstlisting}
@@ -307,7 +343,7 @@ Type LongNameClass::longNameFunction(Type1 par1, Type2 par2
 
 In case of a long list of parameters prefer
 \begin{lstlisting}
-Type LongNameClass::LongNameFunction(
+Type LongNameClass::longNameFunction(
     Type1 long_name_par1, Type2 long_name_par2,Type3 par3) {
   statement;
   ...
@@ -315,7 +351,7 @@ Type LongNameClass::LongNameFunction(
 \end{lstlisting}
 to
 \begin{lstlisting}
-Type LongNameClass::LongNameFunction(Type1 long_name_par1,
+Type LongNameClass::longNameFunction(Type1 long_name_par1,
                                      Type2 long_name_par2,
                                      Type3 par3) {
   statement;
@@ -325,18 +361,18 @@ Type LongNameClass::LongNameFunction(Type1 long_name_par1,
 
 \subsection{Function Calls}
 
-Write the call all on a single line, if the length of the line doesn't exceed the maximum limit.
-If not possible, wrap the arguments at the parenthesis, or start the arguments on a new line using 4 spaces indent.
+Write the call on a single line if the length of the line does not exceed the maximum limit.
+If it does, wrap the arguments at the parenthesis or start the arguments on a new line using 4 spaces indent.
 Use the method which uses the smaller amount of lines.
 
 Examples:
 \begin{lstlisting}
-Function(par1, par2, par3);
+function(par1, par2, par3);
 
-Function(par1, par2,
+function(par1, par2,
          par3);
 
-Function(
+function(
     par1, par2, par3);
 \end{lstlisting}
 
@@ -364,7 +400,7 @@ else {
 
 Switch statements should always have a default case.
 
-Example
+Example:
 \begin{lstlisting}
 switch (var) {
   case 0:
@@ -411,12 +447,13 @@ while (condition);
 
 \subsection{Preprocessor Directives}
 
-The preprocessor directives are not indented. The hash is the first character of the line.
+The preprocessor directives are not indented.
+The hash is the first character of the line.
 
 \subsection{Class Format}
 \label{subsec:class_format}
 
-Public, protected and private keywords are not indented.
+\inlinecode{public}, \inlinecode{protected} and \inlinecode{private} keywords are not indented.
 
 Example:
 \begin{lstlisting}
@@ -459,7 +496,7 @@ Foo::Foo(int var)
   statement;
 }
 
-// If the initializer list occupies more lines
+// If the initializer list occupies more lines,
 // they are aligned in the following way:
 Foo::Foo(int var)
     : some_var_(var),
@@ -475,15 +512,17 @@ Foo::Foo(int var)
 \subsection{Namespace Formatting}
 
 The content of namespaces is not indented.
-If nested namespaces are used a comment with the full namespace is required after each set of namespace declaration,
-and when a namespace is closed a comment should indicate which namespace is closed.
+A comment should indicate when a namespace is closed.
+If nested namespaces are used, a comment with the full namespace is required after opening a set of namespaces or an inner namespace.
 
-Example:
+Examples:
 \begin{lstlisting}
 namespace ns{
 void foo();
-}
+}  // ns
+\end{lstlisting}
 
+\begin{lstlisting}
 namespace ns1{
 namespace ns2{
 // ns1::ns2::
