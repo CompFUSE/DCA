@@ -840,3 +840,89 @@ TYPED_TEST(MatrixopComplexCPUTest, SwapCol) {
     }
   }
 }
+
+TEST(MatrixopComplexCPUTest, multiply) {
+  auto val_a = [](int i, int j) { return std::complex<double>(1 + i + j, 10 * j * i); };
+  auto val_b = [](int i, int j) { return std::complex<double>(i - j, j * j); };
+
+  using RealMatrix = dca::linalg::Matrix<double, dca::linalg::CPU>;
+  using CmplMatrix = dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU>;
+
+  CmplMatrix a(std::make_pair(5, 5));
+  CmplMatrix b(std::make_pair(5, 5));
+  CmplMatrix c(std::make_pair(5, 5));
+
+  testing::setMatrixElements(a, val_a);
+  testing::setMatrixElements(b, val_b);
+
+  std::array<RealMatrix, 2> a_split{RealMatrix(a.size()), RealMatrix(a.size())};
+  std::array<RealMatrix, 2> b_split{RealMatrix(b.size()), RealMatrix(b.size())};
+  std::array<RealMatrix, 2> c_split{RealMatrix(c.size()), RealMatrix(c.size())};
+
+  auto split_real_imag = [](const CmplMatrix& m, std::array<RealMatrix, 2>& m_split) {
+    for (int j = 0; j < m.nrCols(); ++j)
+      for (int i = 0; i < m.nrRows(); ++i) {
+        m_split[0](i, j) = m(i, j).real();
+        m_split[1](i, j) = m(i, j).imag();
+      }
+  };
+  split_real_imag(a, a_split);
+  split_real_imag(b, b_split);
+
+  std::array<RealMatrix, 5> work_space;
+  for (char transa : {'N', 'T', 'C'})
+    for (char transb : {'N', 'T', 'C'}) {
+      // Compute result with direct multiplication.
+      dca::linalg::matrixop::gemm(transa, transb, a, b, c);
+      // compute with 3M algorithm,
+      dca::linalg::matrixop::multiply(transa, transb, a_split, b_split, c_split, work_space);
+      // Confront.
+      for (int j = 0; j < c.nrCols(); ++j)
+        for (int i = 0; i < c.nrRows(); ++i) {
+          EXPECT_DOUBLE_EQ(c(i, j).real(), c_split[0](i, j));
+          EXPECT_DOUBLE_EQ(c(i, j).imag(), c_split[1](i, j));
+        }
+    }
+}
+
+TEST(MatrixopComplexCPUTest, multiplyRealArg) {
+  auto val_a = [](int i, int j) { return std::complex<double>(i + j * i, -0.6 * j); };
+  auto val_b = [](int i, int j) { return std::complex<double>(i - 2. * j, 0.); };
+
+  using RealMatrix = dca::linalg::Matrix<double, dca::linalg::CPU>;
+  using CmplMatrix = dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU>;
+
+  CmplMatrix a(std::make_pair(7, 7));
+  CmplMatrix b(std::make_pair(7, 7));
+  CmplMatrix c(std::make_pair(7, 7));
+
+  testing::setMatrixElements(a, val_a);
+  testing::setMatrixElements(b, val_b);
+
+  std::array<RealMatrix, 2> a_split{RealMatrix(a.size()), RealMatrix(a.size())};
+  RealMatrix b_re(b.size());
+  std::array<RealMatrix, 2> c_split{RealMatrix(c.size()), RealMatrix(c.size())};
+
+  for (int j = 0; j < a.nrCols(); ++j)
+    for (int i = 0; i < a.nrRows(); ++i) {
+      a_split[0](i, j) = a(i, j).real();
+      a_split[1](i, j) = a(i, j).imag();
+    }
+  for (int j = 0; j < b.nrCols(); ++j)
+    for (int i = 0; i < b.nrRows(); ++i)
+      b_re(i, j) = b(i, j).real();
+
+  for (char transa : {'N', 'T'})
+    for (char transb : {'N', 'T'}) {
+      // Compute result with direct multiplication.
+      dca::linalg::matrixop::gemm(transa, transb, a, b, c);
+      // compute with 3M algorithm,
+      dca::linalg::matrixop::multiply(transa, transb, a_split, b_re, c_split);
+      // Confront.
+      for (int j = 0; j < c.nrCols(); ++j)
+        for (int i = 0; i < c.nrRows(); ++i) {
+          EXPECT_DOUBLE_EQ(c(i, j).real(), c_split[0](i, j));
+          EXPECT_DOUBLE_EQ(c(i, j).imag(), c_split[1](i, j));
+        }
+    }
+}
