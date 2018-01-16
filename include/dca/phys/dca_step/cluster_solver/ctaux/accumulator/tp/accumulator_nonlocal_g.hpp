@@ -20,7 +20,6 @@
 #include "dca/linalg/matrix.hpp"
 #include "dca/math/function_transform/function_transform.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/accumulator/tp/cached_nft.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctaux/structs/vertex_singleton.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
@@ -63,8 +62,6 @@ public:
   typedef func::dmn_variadic<b, b, k_dmn_t, r_dmn_t, w1_dmn_t, w2_dmn_t> b_b_k_r_w_w_dmn_t;
   typedef func::dmn_variadic<b, b, k_dmn_t, k_dmn_t, w1_dmn_t, w2_dmn_t> b_b_k_k_w_w_dmn_t;
 
-  typedef vertex_singleton vertex_singleton_type;
-
   typedef dca::linalg::Matrix<double, dca::linalg::CPU> vertex_vertex_matrix_type;
 
 public:
@@ -80,9 +77,10 @@ public:
    * \brief Compute the nonlocal single particle Greens-function \f$G^{I}_{\sigma}(k_1, k_2)\f$,
    * from the M-matrices.
    */
-  void execute(std::vector<vertex_singleton_type>& HS_configuration_e_UP,
+  template<class Configuration>
+  void execute(Configuration& HS_configuration_e_UP,
                vertex_vertex_matrix_type& M_e_UP,
-               std::vector<vertex_singleton_type>& HS_configuration_e_DN,
+               Configuration& HS_configuration_e_DN,
                vertex_vertex_matrix_type& M_e_DN);
 
   /*!
@@ -100,7 +98,8 @@ public:
   }
 
 private:
-  void FT_M_v_v_2_M_k_k_w_w(std::vector<vertex_singleton_type>& HS_configuration_e_spin,
+  template<class Configuration>
+  void FT_M_v_v_2_M_k_k_w_w(Configuration& HS_configuration_e_spin,
                             func::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& M_k_k_w_w,
                             vertex_vertex_matrix_type& M_e_spin);
 
@@ -197,9 +196,10 @@ void accumulator_nonlocal_G<parameters_type, MOMS_type>::initialize() {
 }
 
 template <class parameters_type, class MOMS_type>
+template<class Configuration>
 void accumulator_nonlocal_G<parameters_type, MOMS_type>::execute(
-    std::vector<vertex_singleton_type>& HS_configuration_e_UP, vertex_vertex_matrix_type& M_e_UP,
-    std::vector<vertex_singleton_type>& HS_configuration_e_DN, vertex_vertex_matrix_type& M_e_DN) {
+    Configuration& HS_configuration_e_UP, vertex_vertex_matrix_type& M_e_UP,
+    Configuration& HS_configuration_e_DN, vertex_vertex_matrix_type& M_e_DN) {
   profiler_t profiler("compute nonlocal-G from M-matrix", "CT-AUX accumulator", __LINE__, thread_id);
 
   { // e_UP
@@ -227,8 +227,9 @@ void accumulator_nonlocal_G<parameters_type, MOMS_type>::execute(
 }
 
 template <class parameters_type, class MOMS_type>
+template<class Configuration>
 void accumulator_nonlocal_G<parameters_type, MOMS_type>::FT_M_v_v_2_M_k_k_w_w(
-    std::vector<vertex_singleton_type>& configuration_e_spin,
+    Configuration& configuration_e_spin,
     func::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& M_k_k_w_w_e_spin,
     vertex_vertex_matrix_type& M_e_spin) {
   {
