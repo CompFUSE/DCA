@@ -111,7 +111,7 @@ set(DCA_LIBS
   timer
   cmake_options
   ctaux
-  posix_qmci
+  ${DCA_THREADING_LIB}
   ss_ct_hyb
   function_transform
   gaussian_quadrature
@@ -119,7 +119,6 @@ set(DCA_LIBS
   tetrahedron_mesh
   ${DCA_RNG_LIBRARY}
   parallel_util
-  ${DCA_THREADING_LIB}
   dca_algorithms
   json
   hdf5

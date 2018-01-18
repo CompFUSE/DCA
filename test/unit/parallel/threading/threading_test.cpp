@@ -9,7 +9,7 @@
 //
 // This file tests pthreading.hpp.
 
-#include "dca/parallel/pthreading/pthreading.hpp"
+#include "dca/config/threading.hpp"
 #include "gtest/gtest.h"
 
 void* start_routine(void* arg) {
@@ -27,7 +27,7 @@ void* start_routine(void* arg) {
 }
 
 TEST(PthreadingTest, Execute) {
-  dca::parallel::Pthreading threading;
+  Threading threading;
 
   const int num_threads = 4;
   std::vector<int> vec{0, 10, 20, 30};

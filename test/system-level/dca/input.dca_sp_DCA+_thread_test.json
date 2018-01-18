@@ -2,7 +2,7 @@
     "output": {
         "directory": "./",
         "output-format": "HDF5",
-        "filename-dca": "data.dca_sp_DCA+_pthread_test.hdf5"
+        "filename-dca": "data.dca_sp_DCA+_thread_test.hdf5"
     },
 
     "physics": {
