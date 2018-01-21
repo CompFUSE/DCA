@@ -243,7 +243,7 @@ elseif (DCA_THREADING_LIBRARY STREQUAL NONE)
   set(DCA_THREADING_LIB "")
 
 else()
-  message(FATAL_ERROR "Please set DCA_THREADING_LIBRARY to a valid option: POSIX | None.")
+  message(FATAL_ERROR "Please set DCA_THREADING_LIBRARY to a valid option: POSIX | STDTHREAD | NONE.")
 endif()
 
 configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/threading.hpp.in"
