@@ -37,6 +37,7 @@ public:
   // Note: The indices associated with each degree of freedom will be reset. Therefore multiple
   // calls with the same input remove different degrees of freedom.
   // In/Out: indices
+  // Precondition: all elements of indices are in [0, get_dof()).
   void selectIndices(std::vector<int>& indices);
 
   // All the selected indices expect the selected ones are tested. Indices will be reordered and
@@ -44,6 +45,7 @@ public:
   // Note: The indices associated with each degree of freedom will be reset. Therefore multiple
   // calls with the same input different degrees of freedom.
   // In/Out: indices
+  // Precondition: all elements of indices are in [0, get_dof()).
   void discardIndices(std::vector<int>& indices);
 
   // Performs the test. The returned pvalue is the probability of obtaining

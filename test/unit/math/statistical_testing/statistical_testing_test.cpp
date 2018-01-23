@@ -145,6 +145,7 @@ TEST(StatisticalTesting, SelectIndices1) {
 
   std::vector<int> indices{1, 0};
   StatisticalTesting test(f, f0, cov, 0);
+  EXPECT_EQ(3, test.get_dof());
   // Test only the first two indices.
   test.selectIndices(indices);
 
@@ -167,32 +168,47 @@ TEST(StatisticalTesting, SelectIndices2) {
   using Domain = dmn_0<dmn<3>>;
   function<double, Domain> f(""), f0("");
   function<double, dmn_variadic<Domain, Domain>> cov("");
-  StatisticalTesting test(f, f0, cov, 0);
-  EXPECT_EQ(3, test.get_dof());
 
   std::vector<int> illegal_indices{0, -1, 2};
-  EXPECT_THROW(test.selectIndices(illegal_indices), std::out_of_range);
-  EXPECT_THROW(test.discardIndices(illegal_indices), std::out_of_range);
-  // Upon throw, these methods leave the object unaltered.
-  EXPECT_EQ(3, test.get_dof());
+  {
+    StatisticalTesting test(f, f0, cov);
+    EXPECT_THROW(test.selectIndices(illegal_indices), std::out_of_range);
+  }
+  {
+    StatisticalTesting test(f, f0, cov);
+    EXPECT_THROW(test.discardIndices(illegal_indices), std::out_of_range);
+  }
 
   std::vector<int> illegal_indices2{5, 1, 2};
-  EXPECT_THROW(test.selectIndices(illegal_indices2), std::out_of_range);
-  EXPECT_THROW(test.discardIndices(illegal_indices2), std::out_of_range);
-  EXPECT_EQ(3, test.get_dof());
+  {
+    StatisticalTesting test(f, f0, cov);
+    EXPECT_THROW(test.selectIndices(illegal_indices2), std::out_of_range);
+  }
+  {
+    StatisticalTesting test(f, f0, cov);
+    EXPECT_THROW(test.discardIndices(illegal_indices2), std::out_of_range);
+  }
 
-  std::vector<int> redundant_indices{0, 1, 0, 2};
-  EXPECT_NO_THROW(test.selectIndices(redundant_indices));
-  const std::vector<int> expected{0, 1, 2};
-  EXPECT_EQ(expected, redundant_indices);
-  EXPECT_EQ(3, test.get_dof());
+  {
+    StatisticalTesting test(f, f0, cov);
+    std::vector<int> redundant_indices{0, 1, 0, 2};
+    EXPECT_NO_THROW(test.selectIndices(redundant_indices));
+    const std::vector<int> expected{0, 1, 2};
+    EXPECT_EQ(expected, redundant_indices);
+    EXPECT_EQ(3, test.get_dof());
+  }
 
   // empty tests are not allowed.
-  StatisticalTesting test2(f, f0, cov, 0);
   std::vector<int> all_indices{0, 1, 2};
   std::vector<int> no_index{};
-  EXPECT_THROW(test.discardIndices(all_indices), std::logic_error);
-  EXPECT_THROW(test.selectIndices(no_index), std::logic_error);
+  {
+    StatisticalTesting test(f, f0, cov);
+    EXPECT_THROW(test.discardIndices(all_indices), std::logic_error);
+  }
+  {
+    StatisticalTesting test(f, f0, cov);
+    EXPECT_THROW(test.selectIndices(no_index), std::logic_error);
+  }
 }
 
 TEST(StatisticalTesting, BigDifference) {

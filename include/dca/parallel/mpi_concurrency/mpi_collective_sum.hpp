@@ -473,8 +473,8 @@ std::vector<Scalar> MPICollectiveSum::avgNormalizedMomenta(const func::function<
       momenta_avg[j] += std::abs(momenta(j, i)) / (n * std::pow(var, orders[j]));
   }
 
-  for (std::size_t i = 0; i < orders.size(); i++)
-    momenta_avg[i] /= f.size();
+  for (std::size_t j = 0; j < orders.size(); j++)
+    momenta_avg[j] /= f.size();
 
   return momenta_avg;
 }
