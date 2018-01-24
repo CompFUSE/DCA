@@ -199,7 +199,7 @@ void compute_band_structure::high_symmetry_line<1>(std::string& name,
   std::vector<double>& b0 = DCA_k_cluster_type::get_super_basis_vectors()[0];
 
   std::vector<double> k0(1);
-  std::vector<double> k1(2);
+  std::vector<double> k1(1);
 
   for (int i = 0; i < 1; i++) {
     k0[i] = 0 * b0[i];        //+0.   *b1[i];
