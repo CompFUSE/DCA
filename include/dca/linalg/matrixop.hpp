@@ -540,10 +540,11 @@ void gemv(char transa, const Matrix<ScalarType, CPU>& a, const Vector<ScalarType
 //                b.nrCols() == c.nrCols() if transb == 'N', b.nrRows() == c.nrCols() otherwise,
 //                ka == kb, where ka = a.nrCols() if transa == 'N', ka = a.nrRows() otherwise and
 //                          kb = b.nrRows() if transb == 'N', kb = b.nrCols() otherwise.
-template <typename ScalarType, DeviceType device_name>
-void gemm(char transa, char transb, ScalarType alpha, const Matrix<ScalarType, device_name>& a,
-          const Matrix<ScalarType, device_name>& b, ScalarType beta,
-          Matrix<ScalarType, device_name>& c, int thread_id = 0, int stream_id = 0) {
+template <typename ScalarType, DeviceType device_name, template <typename, DeviceType> class MatrixA,
+          template <typename, DeviceType> class MatrixB, template <typename, DeviceType> class MatrixC>
+void gemm(char transa, char transb, ScalarType alpha, const MatrixA<ScalarType, device_name>& a,
+          const MatrixB<ScalarType, device_name>& b, ScalarType beta,
+          MatrixC<ScalarType, device_name>& c, int thread_id = 0, int stream_id = 0) {
   int m = c.nrRows();
   int n = c.nrCols();
   int k;
@@ -577,19 +578,21 @@ void gemm(char transa, char transb, ScalarType alpha, const Matrix<ScalarType, d
 // Performs the matrix-matrix multiplication c <- a * b
 // Out: c
 // Preconditions: a.nrRows() == c.nrRows(), b.nrCols() == c.nrCols() and a.nrCols() == b.nrRows()
-template <typename ScalarType, DeviceType device_name>
-inline void gemm(const Matrix<ScalarType, device_name>& a, const Matrix<ScalarType, device_name>& b,
-                 Matrix<ScalarType, device_name>& c, int thread_id = 0, int stream_id = 0) {
+template <typename ScalarType, DeviceType device_name, template <typename, DeviceType> class MatrixA,
+          template <typename, DeviceType> class MatrixB, template <typename, DeviceType> class MatrixC>
+inline void gemm(const MatrixA<ScalarType, device_name>& a, const MatrixB<ScalarType, device_name>& b,
+                 MatrixC<ScalarType, device_name>& c, int thread_id = 0, int stream_id = 0) {
   gemm<ScalarType, device_name>('N', 'N', 1., a, b, 0., c, thread_id, stream_id);
 }
 
 // Performs the matrix-matrix multiplication c <- alpha * a * b + beta * c,
 // In/Out: c ('In' only if beta != 0)
 // Preconditions: a.nrRows() == c.nrRows(), b.nrCols() == c.nrCols() and a.nrCols() == b.nrRows()
-template <typename ScalarType, DeviceType device_name>
-inline void gemm(ScalarType alpha, const Matrix<ScalarType, device_name>& a,
-                 const Matrix<ScalarType, device_name>& b, ScalarType beta,
-                 Matrix<ScalarType, device_name>& c, int thread_id = 0, int stream_id = 0) {
+template <typename ScalarType, DeviceType device_name, template <typename, DeviceType> class MatrixA,
+          template <typename, DeviceType> class MatrixB, template <typename, DeviceType> class MatrixC>
+inline void gemm(ScalarType alpha, const MatrixA<ScalarType, device_name>& a,
+                 const MatrixB<ScalarType, device_name>& b, ScalarType beta,
+                 MatrixC<ScalarType, device_name>& c, int thread_id = 0, int stream_id = 0) {
   gemm<ScalarType, device_name>('N', 'N', alpha, a, b, beta, c, thread_id, stream_id);
 }
 
@@ -714,7 +717,7 @@ static void gemm(char transa, char transb, Matrix<std::complex<ScalarType>, CPU>
 // Performs the matrix-matrix multiplication c = op(a) * op(b), where each matrix is split in real
 // and imaginary part. This is implemented with 3 real matrix-matrix multiplications.
 // Out: c
-// Preconditions: transa and transb should be one of the following: 'N', 'T',
+// Preconditions: transa and transb should be one of the following: 'N', 'T', 'C'.
 //                a[0].size == a[1].size()
 //                b[0].size == b[1].size()
 //                c[0].size == c[1].size()
@@ -725,8 +728,7 @@ static void gemm(char transa, char transb, Matrix<std::complex<ScalarType>, CPU>
 //                ka == kb, where ka = a[0].nrCols() if transa == 'N', ka = a[0].nrRows() otherwise
 //                and kb = b[0].nrRows() if transb == 'N', kb = b[0].nrCols() otherwise.
 template <typename ScalarType>
-void multiply(char transa, char transb,
-              const std::array<Matrix<ScalarType, CPU>, 2>& a,
+void multiply(char transa, char transb, const std::array<Matrix<ScalarType, CPU>, 2>& a,
               const std::array<Matrix<ScalarType, CPU>, 2>& b,
               std::array<Matrix<ScalarType, CPU>, 2>& c,
               std::array<Matrix<ScalarType, CPU>, 5>& work) {
@@ -783,11 +785,10 @@ void multiply(const std::array<Matrix<ScalarType, CPU>, 2>& a,
 //                ka == kb, where ka = a[0].nrCols() if transa == 'N', ka = a[0].nrRows() otherwise
 //                and kb = b.nrRows() if transb == 'N', kb = b.nrCols() otherwise.
 template <typename ScalarType, DeviceType device_name>
-void multiply(char transa, const char transb,
-              const std::array<Matrix<ScalarType, device_name>, 2>& a,
+void multiply(char transa, char transb, const std::array<Matrix<ScalarType, device_name>, 2>& a,
               const Matrix<ScalarType, device_name>& b,
               std::array<Matrix<ScalarType, device_name>, 2>& c) {
-  assert(transa == 'N' || transa == 'T'  || transa == 'C');
+  assert(transa == 'N' || transa == 'T' || transa == 'C');
   assert(transb == 'N' || transb == 'T');
   assert(a[0].size() == a[1].size());
   assert(c[0].size() == c[1].size());
@@ -817,7 +818,7 @@ void multiply(const std::array<Matrix<ScalarType, device_name>, 2>& a,
 //                ka == kb, where ka = a.nrCols() if transa == 'N', ka = a.nrRows() otherwise
 //                and kb = b.[0]nrRows() if transb == 'N', kb = b.[0]nrCols() otherwise.
 template <typename ScalarType, DeviceType device_name>
-void multiply(const char transa, const char transb, const Matrix<ScalarType, device_name>& a,
+void multiply(char transa, char transb, const Matrix<ScalarType, device_name>& a,
               const std::array<Matrix<ScalarType, device_name>, 2>& b,
               std::array<Matrix<ScalarType, device_name>, 2>& c) {
   assert(transa == 'N' || transa == 'T');
