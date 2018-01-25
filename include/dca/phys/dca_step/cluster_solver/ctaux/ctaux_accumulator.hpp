@@ -126,10 +126,6 @@ public:
   }
 
   // sp-measurements
-  func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>>& get_K_r_t() {
-    return K_r_t;
-  }
-
   const auto& get_M_r_w() const {
     return M_r_w;
   }
@@ -200,8 +196,6 @@ protected:
   func::function<double, func::dmn_0<domains::numerical_error_domain>> error;
   func::function<double, func::dmn_0<Feynman_expansion_order_domain>> visited_expansion_order_k;
 
-  func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>> K_r_t;
-
   func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>> G_r_t;
   func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>> G_r_t_stddev;
 
@@ -252,8 +246,6 @@ CtauxAccumulator<device_t, parameters_type, MOMS_type>::CtauxAccumulator(
       error("numerical-error-distribution-of-N-matrices"),
       visited_expansion_order_k("<k>"),
 
-      K_r_t("K_r_t"),
-
       G_r_t("G_r_t_measured"),
       G_r_t_stddev("G_r_t_stddev"),
 
@@ -292,7 +284,6 @@ void CtauxAccumulator<device_t, parameters_type, MOMS_type>::initialize(int dca_
 
   M_r_w = 0.;
   M_r_w_squared = 0.;
-  K_r_t = 0.;
 
   for (int i = 0; i < M_k_w.size(); i++)
     M_k_w(i) = 0;
@@ -528,8 +519,6 @@ template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_ty
 void CtauxAccumulator<device_t, parameters_type, MOMS_type>::accumulate_single_particle_quantities() {
   profiler_type profiler("sp-accumulation", "CT-AUX accumulator", __LINE__, thread_id);
 
-  single_particle_accumulator_obj.accumulate_K_r_t(HS_configuration_e_DN, K_r_t, current_sign);
-
   single_particle_accumulator_obj.accumulate_M_r_w(HS_configuration_e_DN, M_e_DN, current_sign, e_DN);
   single_particle_accumulator_obj.accumulate_M_r_w(HS_configuration_e_UP, M_e_UP, current_sign, e_UP);
 
@@ -616,9 +605,6 @@ void CtauxAccumulator<device_t, parameters_type, MOMS_type>::sum_to(this_type& o
   }
 
   {  // sp-measurements
-    for (int i = 0; i < K_r_t.size(); i++)
-      other.get_K_r_t()(i) += K_r_t(i);
-
     for (int i = 0; i < M_r_w.size(); i++)
       other.get_M_r_w()(i) += M_r_w(i);
 

@@ -42,11 +42,11 @@ namespace phys {
 namespace solver {
 // dca::phys::solver::
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 class SsCtHybClusterSolver
-    : public cthyb::ss_hybridization_solver_routines<parameters_type, MOMS_type> {
+    : public cthyb::ss_hybridization_solver_routines<parameters_type, Data> {
 public:
-  typedef MOMS_type this_MOMS_type;
+  using DataType =  Data;
   typedef parameters_type this_parameters_type;
 
   typedef typename parameters_type::random_number_generator rng_type;
@@ -54,11 +54,11 @@ public:
   typedef typename parameters_type::profiler_type profiler_type;
   typedef typename parameters_type::concurrency_type concurrency_type;
 
-  typedef cthyb::ss_hybridization_solver_routines<parameters_type, MOMS_type>
+  typedef cthyb::ss_hybridization_solver_routines<parameters_type, Data>
       ss_hybridization_solver_routines_type;
 
-  typedef cthyb::SsCtHybWalker<dca::linalg::CPU, parameters_type, MOMS_type> walker_type;
-  typedef cthyb::SsCtHybAccumulator<dca::linalg::CPU, parameters_type, MOMS_type> accumulator_type;
+  typedef cthyb::SsCtHybWalker<dca::linalg::CPU, parameters_type, Data> walker_type;
+  typedef cthyb::SsCtHybAccumulator<dca::linalg::CPU, parameters_type, Data> accumulator_type;
 
   using w = func::dmn_0<domains::frequency_domain>;
   using b = func::dmn_0<domains::electron_band_domain>;
@@ -76,7 +76,7 @@ public:
   const static int MC_TYPE = SS_CT_HYB;
 
 public:
-  SsCtHybClusterSolver(parameters_type& parameters_ref, MOMS_type& MOMS_ref);
+  SsCtHybClusterSolver(parameters_type& parameters_ref, Data& MOMS_ref);
 
   void initialize(int dca_iteration);
 
@@ -126,7 +126,7 @@ protected:
 
 protected:
   parameters_type& parameters;
-  MOMS_type& MOMS;
+  Data& data_;
   concurrency_type& concurrency;
 
   double thermalization_time;
@@ -148,13 +148,13 @@ private:
   bool averaged_;
 };
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::SsCtHybClusterSolver(
-    parameters_type& parameters_ref, MOMS_type& MOMS_ref)
-    : cthyb::ss_hybridization_solver_routines<parameters_type, MOMS_type>(parameters_ref, MOMS_ref),
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+SsCtHybClusterSolver<device_t, parameters_type, Data>::SsCtHybClusterSolver(
+    parameters_type& parameters_ref, Data& data_ref)
+    : cthyb::ss_hybridization_solver_routines<parameters_type, Data>(parameters_ref, data_ref),
 
       parameters(parameters_ref),
-      MOMS(MOMS_ref),
+      data_(data_ref),
       concurrency(parameters.get_concurrency()),
 
       thermalization_time(0),
@@ -163,7 +163,7 @@ SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::SsCtHybClusterSolver
       total_time(0),
 
       rng(concurrency.id(), concurrency.number_of_processors(), parameters.get_seed()),
-      accumulator(parameters, MOMS),
+      accumulator(parameters, data_),
 
       Sigma_old("Self-Energy-n-1-iteration"),
       Sigma_new("Self-Energy-n-0-iteration"),
@@ -174,9 +174,9 @@ SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::SsCtHybClusterSolver
     std::cout << "\n\n\t SS CT-HYB Integrator is born \n" << std::endl;
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 template <typename Writer>
-void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::write(Writer& writer) {
+void SsCtHybClusterSolver<device_t, parameters_type, Data>::write(Writer& writer) {
   writer.open_group("SS-HYB-SOLVER-functions");
 
   writer.execute(this->get_mu());
@@ -196,15 +196,15 @@ void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::write(Writer& w
   writer.close_group();
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::initialize(int dca_iteration) {
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+void SsCtHybClusterSolver<device_t, parameters_type, Data>::initialize(int dca_iteration) {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t SS CT-HYB Integrator has started ( DCA-iteration : " << dca_iteration
               << ")\n\n";
 
   DCA_iteration = dca_iteration;
 
-  Sigma_old = MOMS.Sigma_cluster;
+  Sigma_old = data_.Sigma_cluster;
 
   ss_hybridization_solver_routines_type::initialize_functions();
 
@@ -235,13 +235,13 @@ void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::initialize(int 
   }
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::integrate() {
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+void SsCtHybClusterSolver<device_t, parameters_type, Data>::integrate() {
   if (concurrency.id() == concurrency.first()) {
     std::cout << "QMC integration has started: " << dca::util::print_time() << std::endl;
   }
 
-  walker_type walker(parameters, MOMS, rng);
+  walker_type walker(parameters, data_, rng);
 
   walker.initialize();
 
@@ -258,23 +258,23 @@ void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::integrate() {
   }
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 template <typename dca_info_struct_t>
-double SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::finalize(
+double SsCtHybClusterSolver<device_t, parameters_type, Data>::finalize(
     dca_info_struct_t& dca_info_struct) {
   collect_measurements();
   symmetrize_measurements();
 
-  math::transform::FunctionTransform<r_DCA, k_DCA>::execute(accumulator.get_G_r_w(), MOMS.G_k_w);
+  math::transform::FunctionTransform<r_DCA, k_DCA>::execute(accumulator.get_G_r_w(), data_.G_k_w);
 
-  math::transform::FunctionTransform<k_DCA, r_DCA>::execute(MOMS.G_k_w, MOMS.G_r_w);
+  math::transform::FunctionTransform<k_DCA, r_DCA>::execute(data_.G_k_w, data_.G_r_w);
 
   dca_info_struct.L2_Sigma_difference(DCA_iteration) = compute_S_k_w_from_G_k_w();
 
   // util::Plot::plotBandsLines(accumulator.get_G_r_w());
   // util::Plot::plotBandsLines(accumulator.get_GS_r_w());
-  // util::Plot::plotBandsLines(MOMS.G_k_w);
-  // util::Plot::plotBandsLines(MOMS.Sigma);
+  // util::Plot::plotBandsLines(data_.G_k_w);
+  // util::Plot::plotBandsLines(data_.Sigma);
 
   if (concurrency.id() == concurrency.first()) {
     std::stringstream ss;
@@ -286,7 +286,7 @@ double SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::finalize(
       for (int b_ind = 0; b_ind < b::dmn_size(); b_ind++) {
         double result = 0;
         for (int w_ind = 0; w_ind < 50; w_ind++)
-          result += real(MOMS.Sigma(b_ind, s_ind, b_ind, s_ind, 0, w_ind)) / 50.;
+          result += real(data_.Sigma(b_ind, s_ind, b_ind, s_ind, 0, w_ind)) / 50.;
 
         ss << b_ind << "\t" << s_ind << "\t" << result << "\n";
       }
@@ -298,7 +298,7 @@ double SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::finalize(
 
   for (int i = 0; i < b::dmn_size() * s::dmn_size(); i++)
     for (int j = 0; j < k_DCA::dmn_size(); j++)
-      dca_info_struct.Sigma_zero_moment(i, j, DCA_iteration) = real(MOMS.Sigma(i, i, j, 0));
+      dca_info_struct.Sigma_zero_moment(i, j, DCA_iteration) = real(data_.Sigma(i, i, j, 0));
 
   double total = 1.e-6, integral = 0;
   for (int l = 0; l < accumulator.get_visited_expansion_order_k().size(); l++) {
@@ -316,8 +316,8 @@ double SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::finalize(
   return dca_info_struct.L2_Sigma_difference(DCA_iteration);
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::warm_up(walker_type& walker) {
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+void SsCtHybClusterSolver<device_t, parameters_type, Data>::warm_up(walker_type& walker) {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t warm-up has started\n" << std::endl;
 
@@ -333,8 +333,8 @@ void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::warm_up(walker_
     std::cout << "\n\t\t warm-up has ended\n" << std::endl;
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::measure(walker_type& walker) {
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+void SsCtHybClusterSolver<device_t, parameters_type, Data>::measure(walker_type& walker) {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t measuring has started \n" << std::endl;
 
@@ -366,8 +366,8 @@ void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::measure(walker_
     std::cout << "\n\t\t measuring has ended \n" << std::endl;
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::update_shell(int i, int N, int k) {
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+void SsCtHybClusterSolver<device_t, parameters_type, Data>::update_shell(int i, int N, int k) {
   if (concurrency.id() == concurrency.first() && N > 10 && (i % (N / 10)) == 0) {
     std::cout << std::scientific;
     std::cout.precision(6);
@@ -379,8 +379,8 @@ void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::update_shell(in
   }
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::compute_error_bars() {
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+void SsCtHybClusterSolver<device_t, parameters_type, Data>::compute_error_bars() {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t computing the error-bars" << std::endl;
 
@@ -398,11 +398,11 @@ void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::compute_error_b
 
   compute_Sigma_new(G_r_w, GS_r_w);
 
-  concurrency.average_and_compute_stddev(Sigma_new, MOMS.Sigma_stddev);
+  concurrency.average_and_compute_stddev(Sigma_new, data_.get_Sigma_stddev());
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::collect_measurements() {
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+void SsCtHybClusterSolver<device_t, parameters_type, Data>::collect_measurements() {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t Collect measurements" << std::endl;
 
@@ -423,14 +423,14 @@ void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::collect_measure
   averaged_ = true;
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::symmetrize_measurements() {
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+void SsCtHybClusterSolver<device_t, parameters_type, Data>::symmetrize_measurements() {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t symmetrize measurements has started" << std::endl;
 
-  symmetrize::execute(accumulator.get_G_r_w(), MOMS.H_symmetry);
+  symmetrize::execute(accumulator.get_G_r_w(), data_.H_symmetry);
 
-  symmetrize::execute(accumulator.get_GS_r_w(), MOMS.H_symmetry);
+  symmetrize::execute(accumulator.get_GS_r_w(), data_.H_symmetry);
 
   std::vector<int> flavors = parameters_type::model_type::get_flavors();
   assert(flavors.size() == b::dmn_size());
@@ -471,8 +471,8 @@ void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::symmetrize_meas
   }
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-double SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::compute_S_k_w_from_G_k_w() {
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+double SsCtHybClusterSolver<device_t, parameters_type, Data>::compute_S_k_w_from_G_k_w() {
   double alpha = DCA_iteration > 0 ? parameters.get_self_energy_mixing_factor() : 1;
 
   double L2_difference_norm = 1.e-6;
@@ -482,7 +482,7 @@ double SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::compute_S_k_w
 
   compute_Sigma_new(accumulator.get_G_r_w(), accumulator.get_GS_r_w());
 
-  symmetrize::execute(Sigma_new, MOMS.H_symmetry);
+  symmetrize::execute(Sigma_new, data_.H_symmetry);
 
   for (int b_ind = 0; b_ind < b::dmn_size(); b_ind++) {
     if (ss_hybridization_solver_routines_type::is_interacting_band(b_ind)) {
@@ -505,7 +505,7 @@ double SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::compute_S_k_w
               L2_difference_norm += imag(old_sigma - new_sigma) * imag(old_sigma - new_sigma);
             }
 
-            MOMS.Sigma(b_ind, s_ind, b_ind, s_ind, k_ind, w_ind) =
+            data_.Sigma(b_ind, s_ind, b_ind, s_ind, k_ind, w_ind) =
                 alpha * (new_sigma) + (1 - alpha) * old_sigma;
           }
         }
@@ -513,7 +513,7 @@ double SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::compute_S_k_w
     }
   }
 
-  symmetrize::execute(MOMS.Sigma, MOMS.H_symmetry);
+  symmetrize::execute(data_.Sigma, data_.H_symmetry);
 
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t |Sigma_old-Sigma_new| : " << L2_difference_norm / L2_Sigma_norm << std::endl;
@@ -521,8 +521,8 @@ double SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::compute_S_k_w
   return L2_difference_norm / L2_Sigma_norm;
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::compute_Sigma_new(
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+void SsCtHybClusterSolver<device_t, parameters_type, Data>::compute_Sigma_new(
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& G_r_w,
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& GS_r_w) {
   Sigma_new = 0;
@@ -544,16 +544,16 @@ void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::compute_Sigma_n
           Sigma_new(b_ind, s_ind, b_ind, s_ind, 0, w_ind) -= (mu_HALF(b_ind, s_ind));
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-int SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::find_w_cutoff() {
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+int SsCtHybClusterSolver<device_t, parameters_type, Data>::find_w_cutoff() {
   return std::max(
       1.0,
       std::min(parameters.get_self_energy_tail_cutoff() * parameters.get_beta() / (2.0 * M_PI) - 0.5,
                1.0 * (w::dmn_size() / 2)));
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::find_tail_of_Sigma(double& S0,
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+void SsCtHybClusterSolver<device_t, parameters_type, Data>::find_tail_of_Sigma(double& S0,
                                                                                     double& S1, int b,
                                                                                     int s, int k) {
   int w_cutoff = find_w_cutoff();
@@ -565,8 +565,8 @@ void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::find_tail_of_Si
        w::parameter_type::get_elements()[w::dmn_size() / 2 + w_cutoff - 1];
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-auto SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::local_G_k_w() const {
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+auto SsCtHybClusterSolver<device_t, parameters_type, Data>::local_G_k_w() const {
   if (averaged_)
     throw std::logic_error("The local data was already averaged.");
 
@@ -577,8 +577,8 @@ auto SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::local_G_k_w() c
   return G_k_w;
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-auto SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::local_GS_r_w() const {
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+auto SsCtHybClusterSolver<device_t, parameters_type, Data>::local_GS_r_w() const {
   if (averaged_)
     throw std::logic_error("The local data was already averaged.");
 
