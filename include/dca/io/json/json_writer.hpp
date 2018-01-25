@@ -104,6 +104,9 @@ public:
   void execute(const std::string& name,
                const linalg::Matrix<std::complex<scalar_type>, linalg::CPU>& A);
 
+  template <class T>
+  void execute(const std::unique_ptr<T>& obj);
+
   template <class stream_type>
   static void execute(stream_type& ss, const JsonAccessor& parseResult);
 
@@ -447,6 +450,12 @@ void JSONWriter::execute(const std::string& name,
   close_group();
 
   elements_in_group.back() += 1;
+}
+
+template <class T>
+void JSONWriter::execute(const std::unique_ptr<T>& obj) {
+  if (obj)
+    execute(*obj);
 }
 
 template <class stream_type>

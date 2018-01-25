@@ -13,6 +13,7 @@
 #define DCA_IO_HDF5_HDF5_WRITER_HPP
 
 #include <complex>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -100,6 +101,9 @@ public:
 
   template <typename scalar_type>
   void execute(std::string name, dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU>& A);
+
+  template<class T>
+  void execute(const std::unique_ptr<T>& obj);
 
 private:
   bool fexists(const char* filename);
@@ -613,6 +617,12 @@ void HDF5Writer::execute(std::string name,
   delete dataspace;
 
   close_group();
+}
+
+template<class T>
+void HDF5Writer::execute(const std::unique_ptr<T>& obj){
+  if(obj)
+    execute(*obj);
 }
 
 }  // io
