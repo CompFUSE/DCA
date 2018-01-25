@@ -130,6 +130,15 @@ public:
   typedef w_VERTEX_EXTENDED G4_w2_dmn_t;
 #endif  // DCA_WITH_REDUCED_VERTEX_FUNCTION
 
+  // Typedefs for solvers.
+  using Tdmn = t;
+  using WDmn = w;
+  using SDmn = func::dmn_0<domains::electron_spin_domain>;
+  using BDmn = func::dmn_0<domains::electron_band_domain>;
+  using Nu = func::dmn_variadic<BDmn, SDmn>;
+  using RDmn = r_DCA;
+  using KDmn = k_DCA;
+
   Parameters(const std::string& version_stamp, concurrency_type& concurrency);
 
   template <typename Writer>
