@@ -46,7 +46,7 @@ namespace math {
 namespace nfft {
 // dca::math::nfft::
 
-template <int DIMENSION>
+template <class Dnfft>
 class kaiser_bessel_function {
 public:
   static int n;
@@ -71,15 +71,15 @@ private:
   static double besselI0(double x);
 };
 
-template <int DIMENSION>
-int kaiser_bessel_function<DIMENSION>::n = 1;
-template <int DIMENSION>
-int kaiser_bessel_function<DIMENSION>::m = 1;
-template <int DIMENSION>
-double kaiser_bessel_function<DIMENSION>::sigma = 1;
+template <class Dnfft>
+int kaiser_bessel_function<Dnfft>::n = 1;
+template <class Dnfft>
+int kaiser_bessel_function<Dnfft>::m = 1;
+template <class Dnfft>
+double kaiser_bessel_function<Dnfft>::sigma = 1;
 
-template <int DIMENSION>
-double kaiser_bessel_function<DIMENSION>::phi_t(double x) {
+template <class Dnfft>
+double kaiser_bessel_function<Dnfft>::phi_t(double x) {
   double result(0);
   double val = m * m - n * n * x * x;
 
@@ -101,8 +101,8 @@ double kaiser_bessel_function<DIMENSION>::phi_t(double x) {
   return result / renorm_factor();
 }
 
-template <int DIMENSION>
-double kaiser_bessel_function<DIMENSION>::d_phi_t(double x) {
+template <class Dnfft>
+double kaiser_bessel_function<Dnfft>::d_phi_t(double x) {
   double result(0);
   double val = m * m - n * n * x * x;
 
@@ -128,8 +128,8 @@ double kaiser_bessel_function<DIMENSION>::d_phi_t(double x) {
   return result / renorm_factor();
 }
 
-template <int DIMENSION>
-double kaiser_bessel_function<DIMENSION>::phi_wn(int wn) {
+template <class Dnfft>
+double kaiser_bessel_function<Dnfft>::phi_wn(int wn) {
   if (std::pow(wn, 2) < std::pow(n * (1. - 1. / (2. * sigma)), 2))
     return 1. / double(n) *
            besselI0(m * std::sqrt(std::pow(b_val(), 2) -
@@ -139,8 +139,8 @@ double kaiser_bessel_function<DIMENSION>::phi_wn(int wn) {
     throw std::logic_error(__FUNCTION__);
 }
 
-template <int DIMENSION>
-double kaiser_bessel_function<DIMENSION>::besselI0(double x) {
+template <class Dnfft>
+double kaiser_bessel_function<Dnfft>::besselI0(double x) {
   double result = 0.;
 
   double sq_x_div_two = x * x / (2. * 2.);
@@ -171,8 +171,8 @@ double kaiser_bessel_function<DIMENSION>::besselI0(double x) {
   return result;
 }
 
-template <int DIMENSION>
-void kaiser_bessel_function<DIMENSION>::test_besselI0() {
+template <class Dnfft>
+void kaiser_bessel_function<Dnfft>::test_besselI0() {
   for (int l = -m * b_val(); l <= m * b_val(); l++) {
     double x = l;
     std::cout << x << "\t" << besselI0(x) << "\n";
