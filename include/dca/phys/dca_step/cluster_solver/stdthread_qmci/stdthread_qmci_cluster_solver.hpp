@@ -19,6 +19,7 @@
 #include <stdexcept>
 #include <vector>
 #include <thread>
+#include <atomic>
 
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/thread_task_handler.hpp"
@@ -85,7 +86,7 @@ private:
 
   using qmci_integrator_type::accumulator;
 
-  int acc_finished;
+  std::atomic<int> acc_finished;
 
   const int nr_walkers;
   const int nr_accumulators;

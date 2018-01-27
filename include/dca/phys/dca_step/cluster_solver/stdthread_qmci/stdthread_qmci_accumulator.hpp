@@ -18,6 +18,7 @@
 #include <condition_variable>
 #include <queue>
 #include <stdexcept>
+#include <atomic>
 
 namespace dca {
 namespace phys {
@@ -65,7 +66,7 @@ private:
   using qmci_accumulator_type::parameters;
 
   int thread_id;
-  bool measuring;
+  std::atomic<bool> measuring;
   std::condition_variable start_measuring;
   std::mutex mutex_accumulator;
 };
@@ -98,7 +99,7 @@ void stdthread_qmci_accumulator<qmci_accumulator_type>::update_from(walker_type&
 template <class qmci_accumulator_type>
 void stdthread_qmci_accumulator<qmci_accumulator_type>::wait_for_qmci_walker() {
   std::unique_lock<std::mutex> lock(mutex_accumulator);
-  start_measuring.wait(lock, [this]() { return measuring; });
+  start_measuring.wait(lock, [this]() { return measuring==true; });
 }
 
 template <class qmci_accumulator_type>
