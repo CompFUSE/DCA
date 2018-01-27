@@ -122,9 +122,6 @@ if (DCA_PROFILER STREQUAL "Counting")
   set(DCA_PROFILER_INCLUDE "dca/profiling/counting_profiler.hpp")
 
 elseif (DCA_PROFILER STREQUAL "PAPI")
-  if (NOT DCA_HAVE_PTHREADS)
-    message(FATAL_ERROR "PAPI profiling requires Pthreads.")
-  endif()
   # TODO: Replace long long with std::size_t?
   set(DCA_PROFILING_EVENT_TYPE "dca::profiling::papi_and_time_event<long long>")  # Need quotes because of space in 'long long'.
   set(DCA_PROFILING_EVENT_INCLUDE "dca/profiling/events/papi_and_time_event.hpp")
@@ -215,22 +212,11 @@ endif()
 # Note the difference between the CMake variables
 # - DCA_THREADING_LIBRARY: CMake option for the user to choose the threading library,
 # - DCA_THREADING_LIB: the actual library to link against.
-set(DCA_THREADING_LIBRARY "POSIX" CACHE STRING
-  "Threading library, options are: POSIX | STDTHREAD | NONE")
-set_property(CACHE DCA_THREADING_LIBRARY PROPERTY STRINGS POSIX STDTHREAD NONE)
+set(DCA_THREADING_LIBRARY "STDTHREAD" CACHE STRING
+  "Threading library, options are: STDTHREAD | NONE")
+set_property(CACHE DCA_THREADING_LIBRARY PROPERTY STRINGS STDTHREAD NONE)
 
-if (DCA_THREADING_LIBRARY STREQUAL POSIX)
-  include(dca_pthreads)
-  if (NOT DCA_HAVE_PTHREADS)
-    message(FATAL_ERROR "POSIX thread library (Pthreads) not found but requested.")
-  endif()
-
-  set(DCA_THREADING_TYPE dca::parallel::Pthreading)
-  set(DCA_THREADING_INCLUDE "dca/parallel/pthreading/pthreading.hpp")
-  set(DCA_THREADING_FLAGS "-pthread" CACHE INTERNAL "Flags needed for threading." FORCE)
-  set(DCA_THREADING_LIB pthreading pthread)
-
-elseif (DCA_THREADING_LIBRARY STREQUAL STDTHREAD)
+if (DCA_THREADING_LIBRARY STREQUAL STDTHREAD)
   set(DCA_THREADING_TYPE dca::parallel::stdthread)
   set(DCA_THREADING_INCLUDE "dca/parallel/stdthread/stdthread.hpp")
   set(DCA_THREADING_FLAGS "-pthread" CACHE INTERNAL "Flags needed for threading." FORCE)
@@ -243,7 +229,7 @@ elseif (DCA_THREADING_LIBRARY STREQUAL NONE)
   set(DCA_THREADING_LIB "")
 
 else()
-  message(FATAL_ERROR "Please set DCA_THREADING_LIBRARY to a valid option: POSIX | STDTHREAD | NONE.")
+  message(FATAL_ERROR "Please set DCA_THREADING_LIBRARY to a valid option: STDTHREAD | NONE.")
 endif()
 
 configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/threading.hpp.in"
@@ -256,12 +242,7 @@ option(DCA_WITH_THREADED_SOLVER "Use multiple walker and accumulator threads in 
 if (DCA_WITH_THREADED_SOLVER)
   dca_add_config_define(DCA_WITH_THREADED_SOLVER)
 
-  if (DCA_THREADING_LIBRARY STREQUAL POSIX)
-    set(DCA_THREADED_SOLVER_TYPE dca::phys::solver::PosixQmciClusterSolver<ClusterSolverBaseType>)
-    set(DCA_THREADED_SOLVER_INCLUDE
-      "dca/phys/dca_step/cluster_solver/posix_qmci/posix_qmci_cluster_solver.hpp")
-
-  elseif (DCA_THREADING_LIBRARY STREQUAL STDTHREAD)
+  if (DCA_THREADING_LIBRARY STREQUAL STDTHREAD)
     set(DCA_THREADED_SOLVER_TYPE dca::phys::solver::StdThreadQmciClusterSolver<ClusterSolverBaseType>)
     set(DCA_THREADED_SOLVER_INCLUDE
       "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_cluster_solver.hpp")

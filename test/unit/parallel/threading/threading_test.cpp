@@ -7,7 +7,7 @@
 //
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// This file tests pthreading.hpp.
+// This file tests threading.hpp.
 
 #include "dca/config/threading.hpp"
 #include "gtest/gtest.h"
@@ -26,7 +26,7 @@ void* start_routine(void* arg) {
   return 0;
 }
 
-TEST(PthreadingTest, Execute) {
+TEST(ThreadingTest, Execute) {
   Threading threading;
 
   const int num_threads = 4;

@@ -2,5 +2,5 @@
 
 dca_add_gtest(threading_test
   GTEST_MAIN
-  PTHREADS STDTHREAD
+  STDTHREAD
   LIBS ${DCA_THREADING_LIB})

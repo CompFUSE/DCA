@@ -7,7 +7,7 @@
 //
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// No-change test for a DCA+ calculation using the pthreaded CT-AUX cluster solver.
+// No-change test for a DCA+ calculation using the threaded CT-AUX cluster solver.
 // It runs a simulation of a tight-binding model on 2D square lattice.
 
 #define DCA_WITH_REDUCED_VERTEX_FUNCTION
@@ -29,9 +29,7 @@
 #include "dca/phys/dca_loop/dca_loop.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp"
 
-#if DCA_THREADING_LIBRARY == THREADING_POSIX
-#include "dca/phys/dca_step/cluster_solver/posix_qmci/posix_qmci_cluster_solver.hpp"
-#elif DCA_THREADING_LIBRARY == THREADING_STDTHREAD
+#if DCA_THREADING_LIBRARY == THREADING_STDTHREAD
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_cluster_solver.hpp"
 #else
 #error "This test is only for threaded solvers"
@@ -50,7 +48,7 @@
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 
-TEST(dca_sp_DCAplus_pthread, Self_energy) {
+TEST(dca_sp_DCAplus_thread, Self_energy) {
 #ifdef ATTACH_DEBUG
   std::cout << "Please press <return> after attaching debugger" << std::endl;
   char c;
@@ -69,9 +67,7 @@ TEST(dca_sp_DCAplus_pthread, Self_energy) {
   using ClusterSolverBaseType =
       dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, ParametersType, DcaDataType>;
 
-#if DCA_THREADING_LIBRARY == THREADING_POSIX
-  using ClusterSolverType = dca::phys::solver::PosixQmciClusterSolver<ClusterSolverBaseType>;
-#elif DCA_THREADING_LIBRARY == THREADING_STDTHREAD
+#if DCA_THREADING_LIBRARY == THREADING_STDTHREAD
   using ClusterSolverType = dca::phys::solver::StdThreadQmciClusterSolver<ClusterSolverBaseType>;
 #endif
 
