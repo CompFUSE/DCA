@@ -189,12 +189,13 @@ void twoband_chain<point_group_type>::initialize_H_0(
 
   for (int k_ind = 0; k_ind < KDmn::dmn_size(); ++k_ind) {
     const auto& k = k_vecs[k_ind];
-    const ScalarType val =
-        -2. * t[0] * (1. + std::exp(ScalarType(0, 2 * k[0]));
+    ScalarType val(0);
+    for(int d = 0; d < DIMENSION; ++d)
+      val += -2*t[d] * std::cos(k[d]);
 
     for (int s = 0; s < 2; ++s) {
       H_0(0, s, 1, s, k_ind) = val;
-      H_0(1, s, 0, s, k_ind) = std::conj(val);
+      H_0(1, s, 0, s, k_ind) = val;
     }
   }
 }
