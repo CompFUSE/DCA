@@ -1,4 +1,10 @@
 {
+  "output": {
+    "directory": "./",
+    "output-format": "HDF5",
+    "dump-cluster-Greens-functions" : true
+  },
+
   "physics": {
     "beta"                      :  1.,
     "chemical-potential"        : 0.
@@ -13,7 +19,7 @@
 
   "domains": {
     "real-space-grids": {
-      "cluster": [[2, 0], [0,1]],
+      "cluster": [[6, 0], [0,1]],
       "sp-host": [[40, 0], [0,20]]
     },
 
