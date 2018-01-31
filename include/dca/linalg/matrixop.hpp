@@ -11,6 +11,7 @@
 // This file provides the matrix interface for the following matrix operations:
 // - copyCol, copyRow, copyCols, copyRows
 // - difference
+// - real
 // - insertCol, insertRow (for CPU matrices only)
 // - inverse
 // - removeCol, removeCols, removeRow, removeRows, removeRowAndCol, removeRowAndCols
@@ -202,6 +203,18 @@ auto difference(const Matrix<ScalarType, device_name_a>& a,
                 const Matrix<ScalarType, device_name_b>& b, double diff_threshold = 1e-3) {
   Matrix<ScalarType, CPU> cp_b(b);
   return difference(a, cp_b, diff_threshold);
+}
+
+// Returns the real part of a matrix.
+// In: a
+// TODO test.
+template <typename ScalarType>
+Matrix<ScalarType, CPU> real(const Matrix<std::complex<ScalarType>, CPU>& a) {
+  Matrix<ScalarType, CPU> a_re(a.size());
+  for (int j = 0; j < a.nrCols(); ++j)
+    for (int i = 0; i < a.nrRows(); ++i)
+      a_re(i, j) = std::real(a(i, j));
+  return a_re;
 }
 
 // Insert a column at position j. The data is moved accordingly.
