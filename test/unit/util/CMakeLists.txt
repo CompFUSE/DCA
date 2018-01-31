@@ -8,4 +8,4 @@ dca_add_gtest(plot_test
   LIBS ${GNUPLOT_INTERFACE_LIBRARY})
 dca_add_gtest(print_time_test GTEST_MAIN)
 dca_add_gtest(timer_test GTEST_MAIN LIBS timer)
-dca_add_gtest(if_all_test GTEST_MAIN)
+dca_add_gtest(pack_opertions_test GTEST_MAIN)

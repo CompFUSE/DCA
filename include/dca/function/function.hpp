@@ -29,7 +29,7 @@
 
 #include "dca/function/scalar_cast.hpp"
 #include "dca/function/set_to_zero.hpp"
-#include "dca/util/if_all.hpp"
+#include "dca/util/pack_operations.hpp"
 #include "dca/util/type_utils.hpp"
 
 namespace dca {
