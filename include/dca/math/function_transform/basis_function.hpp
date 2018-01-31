@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "dca/math/function_transform/basis_expansions.hpp"
+#include "dca/math/function_transform/vector_operations.hpp"
 #include "dca/math/function_transform/hermite_splines/hermite_cubic_spline.hpp"
 #include "dca/math/function_transform/hermite_splines/hermite_spline.hpp"
 
@@ -99,15 +100,6 @@ public:
 
   static f_scalar_type execute(int i, int j);
   static f_scalar_type execute(lhs_element_type& lh_elem, rhs_element_type& rh_elem);
-
-private:
-  template <typename scalartype>
-  static scalartype dot_prod(scalartype x, scalartype y) {
-    return x * y;
-  }
-
-  template <typename scalartype>
-  static scalartype dot_prod(std::vector<scalartype> x, std::vector<scalartype> y);
 };
 
 //
@@ -128,16 +120,8 @@ public:
   typedef std::complex<lhs_scalar_type> f_scalar_type;
 
   static f_scalar_type execute(int i, int j);
+
   static f_scalar_type execute(lhs_element_type& lh_elem, rhs_element_type& rh_elem);
-
-private:
-  template <typename scalartype>
-  static scalartype dot_prod(scalartype x, scalartype y) {
-    return x * y;
-  }
-
-  template <typename scalartype>
-  static scalartype dot_prod(std::vector<scalartype> x, std::vector<scalartype> y);
 };
 
 //
@@ -219,19 +203,9 @@ typename basis_function<lhs_dmn_type, KRONECKER_DELTA, rhs_dmn_type, HARMONICS>:
                                                                      rhs_element_type& rh_elem) {
   const static f_scalar_type I(0, 1);
 
-  f_scalar_type phase = dot_prod(lh_elem, rh_elem);
+  f_scalar_type phase = details::dot_prod(lh_elem, rh_elem);
 
   return std::exp(I * phase);
-}
-
-template <typename lhs_dmn_type, typename rhs_dmn_type>
-template <typename scalartype>
-scalartype basis_function<lhs_dmn_type, KRONECKER_DELTA, rhs_dmn_type, HARMONICS>::dot_prod(
-    std::vector<scalartype> x, std::vector<scalartype> y) {
-  scalartype result = 0;
-  for (size_t l = 0; l < x.size(); l++)
-    result += x[l] * y[l];
-  return result;
 }
 
 //
@@ -249,20 +223,10 @@ typename basis_function<lhs_dmn_type, HERMITE_CUBIC_SPLINE, rhs_dmn_type, HARMON
                                                                           rhs_element_type& rh_elem) {
   const static f_scalar_type I(0, 1);
 
-  f_scalar_type phase = dot_prod(lh_elem, rh_elem);
+  f_scalar_type phase = details::dot_prod(lh_elem, rh_elem);
 
   // return std::exp(I*phase)/lhs_dmn_type::get_volume();
   return std::exp(-I * phase) / lhs_dmn_type::get_volume();
-}
-
-template <typename lhs_dmn_type, typename rhs_dmn_type>
-template <typename scalartype>
-scalartype basis_function<lhs_dmn_type, HERMITE_CUBIC_SPLINE, rhs_dmn_type, HARMONICS>::dot_prod(
-    std::vector<scalartype> x, std::vector<scalartype> y) {
-  scalartype result = 0;
-  for (size_t l = 0; l < x.size(); l++)
-    result += x[l] * y[l];
-  return result;
 }
 
 }  // transform
