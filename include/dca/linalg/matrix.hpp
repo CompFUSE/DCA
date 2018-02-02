@@ -456,8 +456,12 @@ std::pair<int, int> Matrix<ScalarType, device_name>::capacityMultipleOfBlockSize
   assert(size.first >= 0);
   assert(size.second >= 0);
 
-  size.first = (size.first + block_size_ - 1) / block_size_ * block_size_;
-  size.second = (size.second + block_size_ - 1) / block_size_ * block_size_;
+  auto get_new_size = [=](const int size) {
+    return size <= 16 ? size : (size + block_size_ - 1) / block_size_ * block_size_;
+  };
+
+  size.first = get_new_size(size.first);
+  size.second = get_new_size(size.second);
 
   return size;
 }
