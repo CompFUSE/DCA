@@ -38,6 +38,22 @@ TEST(FunctionUtilsTest, Difference) {
   f3 = 1.;
 
   EXPECT_THROW(dca::func::utils::difference(f1, f3), std::logic_error);
+
+  Function<4, float> f_float;
+  for (int i = 0; i < f_float.size(); ++i)
+    f_float(i) = f2(i);
+  auto diff2 = dca::func::utils::difference(f2, f_float);
+  EXPECT_NEAR(0., diff2.l2, 1e-7);
+
+  // Test with different complex types
+  Function<4, std::complex<float>> f_c;
+  Function<4, std::complex<double>> f_z;
+  for (int i = 0; i < f_c.size(); ++i) {
+    f_c(i) = std::complex<float>(i, i * i);
+    f_z(i) = std::complex<double>(i, i * i);
+  }
+  auto diff3 = dca::func::utils::difference(f_c, f_z);
+  EXPECT_NEAR(0., diff3.l2, 5e-7);
 }
 
 TEST(FunctionUtilsTest, Complex) {
