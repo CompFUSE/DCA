@@ -74,8 +74,8 @@ public:
   using lattice_type = typename Model::lattice_type;
 
   // Time and frequency domains
-  using t = func::dmn_0<domains::time_domain>;
-  using w = func::dmn_0<domains::frequency_domain>;
+  using TDmn = func::dmn_0<domains::time_domain>;
+  using WDmn = func::dmn_0<domains::frequency_domain>;
   using w_VERTEX_EXTENDED = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
   using w_VERTEX_EXTENDED_POS =
       func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED_POSITIVE>>;
@@ -131,8 +131,6 @@ public:
 #endif  // DCA_WITH_REDUCED_VERTEX_FUNCTION
 
   // Typedefs for solvers.
-  using Tdmn = t;
-  using WDmn = w;
   using SDmn = func::dmn_0<domains::electron_spin_domain>;
   using BDmn = func::dmn_0<domains::electron_band_domain>;
   using Nu = func::dmn_variadic<BDmn, SDmn>;
@@ -219,8 +217,8 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
   HOST_sp_cluster_family_type::write(writer);
   HOST_tp_cluster_family_type::write(writer);
 
-  t::parameter_type::write(writer);
-  w::parameter_type::write(writer);
+  TDmn::parameter_type::write(writer);
+  WDmn::parameter_type::write(writer);
 
   domains::vertex_frequency_domain<domains::EXTENDED_BOSONIC>::write(writer);
 
