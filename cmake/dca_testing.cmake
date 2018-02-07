@@ -116,7 +116,12 @@ function(dca_add_gtest name)
   endif()
 
   if (DCA_ADD_GTEST_CUDA)
+    target_include_directories(${name} PRIVATE ${CUDA_TOOLKIT_INCLUDE})
+    target_link_libraries(${name} ${LAPACK_LIBRARIES};${DCA_CUDA_LIBS})
     target_compile_definitions(${name} PRIVATE DCA_HAVE_CUDA)
+    if(DCA_HAVE_MAGMA)
+      target_compile_definitions(${name} PRIVATE DCA_HAVE_MAGMA)
+    endif()
     cuda_add_cublas_to_target(${name})
   endif()
 
