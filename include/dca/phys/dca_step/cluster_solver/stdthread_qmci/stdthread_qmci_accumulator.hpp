@@ -5,24 +5,25 @@
 // See LICENSE.txt for terms of usage.
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
-// Author: Peter Staar (taa@zurich.ibm.com)
-//         Raffaele Solca' (rasolca@itp.phys.ethz.ch)
+// Author: John Biddiscombe (john.biddiscombe@cscs.ch)
 //
 // A std::thread jacket that implements a MC accumulator independent of the MC method.
 
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_STDTHREAD_QMCI_STDTHREAD_QMCI_ACCUMULATOR_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_STDTHREAD_QMCI_STDTHREAD_QMCI_ACCUMULATOR_HPP
 
-#include <thread>
-#include <mutex>
+#include <atomic>
 #include <condition_variable>
+#include <mutex>
 #include <queue>
 #include <stdexcept>
+#include <thread>
 
 namespace dca {
 namespace phys {
 namespace solver {
 namespace stdthreadqmci {
+// dca::phys::solver::stdthreadqmci::
 
 template <class qmci_accumulator_type>
 class stdthread_qmci_accumulator : protected qmci_accumulator_type {
@@ -65,7 +66,7 @@ private:
   using qmci_accumulator_type::parameters;
 
   int thread_id;
-  bool measuring;
+  std::atomic<bool> measuring;
   std::condition_variable start_measuring;
   std::mutex mutex_accumulator;
 };
@@ -98,13 +99,12 @@ void stdthread_qmci_accumulator<qmci_accumulator_type>::update_from(walker_type&
 template <class qmci_accumulator_type>
 void stdthread_qmci_accumulator<qmci_accumulator_type>::wait_for_qmci_walker() {
   std::unique_lock<std::mutex> lock(mutex_accumulator);
-  start_measuring.wait(lock, [this]() { return measuring; });
+  start_measuring.wait(lock, [this]() { return measuring == true; });
 }
 
 template <class qmci_accumulator_type>
 void stdthread_qmci_accumulator<qmci_accumulator_type>::measure(
-    std::mutex& /*mutex_queue*/, std::queue<this_type*>& /*accumulators_queue*/)
-{
+    std::mutex& /*mutex_queue*/, std::queue<this_type*>& /*accumulators_queue*/) {
   std::unique_lock<std::mutex> lock(mutex_accumulator);
   qmci_accumulator_type::measure();
   measuring = false;
@@ -116,9 +116,9 @@ void stdthread_qmci_accumulator<qmci_accumulator_type>::sum_to(qmci_accumulator_
   qmci_accumulator_type::sum_to(other);
 }
 
-}  // namespace stdthreadqmci
-}  // namespace solver
-}  // namespace phys
-}  // namespace dca
+}  // stdthreadqmci
+}  // solver
+}  // phys
+}  // dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_STDTHREAD_QMCI_STDTHREAD_QMCI_ACCUMULATOR_HPP
