@@ -13,8 +13,6 @@
 
 #include "gtest/gtest.h"
 
-std::string test_folder = DCA_SOURCE_DIR "/test/unit/math/statistical_testing/";
-
 TEST(FunctionCutTest, FrequencyCut) {
   // Initialize the physics domains.
   const int n_b = 2, n_k = 4, n_frq = 8;
@@ -29,14 +27,16 @@ TEST(FunctionCutTest, FrequencyCut) {
   dca::func::function<std::complex<double>, dca::math::util::SigmaDomain<Kdmn>> sigma;
   const int n_spin_band_sqr = 4 * n_b * n_b;
   EXPECT_EQ(n_spin_band_sqr * n_k * 2 * n_frq, sigma.size());
-  for (int k = 0; k < n_k; ++k) {
-    int frq_val = -n_frq;
-    for (int w = 0; w < 2 * n_frq; ++w) {
-      sigma(0, 0, 0, 0, k, w) = std::complex<double>(k, frq_val);
+  int frq_val = -n_frq;
+  for (int w = 0; w < 2 * n_frq; ++w) {
+    for (int k = 0; k < n_k; ++k)
+      for (int b2 = 0; b2 < n_b; ++b2)
+        for (int b1 = 0; b1 < n_b; ++b1) {
+          sigma(b1, 0, b2, 0, k, w) = std::complex<double>(k + b1 + b2, frq_val);
+        }
+    ++frq_val;
+    if (frq_val == 0)
       ++frq_val;
-      if (frq_val == 0)
-        ++frq_val;
-    }
   }
 
   const int n_frq_kept = 2;
@@ -45,12 +45,14 @@ TEST(FunctionCutTest, FrequencyCut) {
   auto sigma_cut = dca::math::util::cutFrequency(sigma, n_frq_kept);
   EXPECT_EQ(n_b * n_b * n_k * 2 * n_frq_kept, sigma_cut.size());
 
-  for (int k = 0; k < n_k; ++k)
+  for (int re_im = 0; re_im < 2; ++re_im)
     for (int w = 0; w < n_frq_kept; ++w)
-      for (int re_im = 0; re_im < 2; ++re_im) {
-        const double expected = re_im == 0 ? k : w + 1;
-        EXPECT_DOUBLE_EQ(expected, sigma_cut(0, 0, k, w, re_im));
-      }
+      for (int k = 0; k < n_k; ++k)
+        for (int b2 = 0; b2 < n_b; ++b2)
+          for (int b1 = 0; b1 < n_b; ++b1) {
+            const double expected = re_im == 0 ? k + b1 + b2 : w + 1;
+            EXPECT_DOUBLE_EQ(expected, sigma_cut(b1, b2, k, w, re_im));
+          }
 }
 
 TEST(FunctionCutTest, BandDiagonal) {

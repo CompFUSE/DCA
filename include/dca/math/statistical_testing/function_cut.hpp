@@ -104,7 +104,7 @@ func::function<Scalar, func::dmn_variadic<details::Bdmn, Domains...>> bandDiagon
   return result;
 }
 
-// r-valued argument versions.
+// r-value reference argument versions.
 template <class SpaceDmn>
 func::function<double, SigmaCutDomain<SpaceDmn>> cutFrequency(
     func::function<Complex, SigmaDomain<SpaceDmn>>&& f, const int n_w) {
