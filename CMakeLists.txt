@@ -121,7 +121,7 @@ set(DCA_LIBS
   parallel_util
   dca_algorithms
   json
-  hdf5
+  dca_hdf5
   profiling
   function
   convert_domains
