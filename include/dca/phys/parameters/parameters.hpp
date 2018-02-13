@@ -388,13 +388,12 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
     reader_or_writer.execute("date", date_);
     reader_or_writer.execute("time", time_);
     reader_or_writer.execute("compiler", compiler_);
-
     // TODO: Remove this redundant object that is only needed since the execute function of reader
     //       types expects an l-value.
     std::string RandomNumberGeneratorype_str = dca::util::Type<RandomNumberGenerator>::print();
     reader_or_writer.execute("random-number-generator", RandomNumberGeneratorype_str);
   }
-
+  //Concurrency::readWrite(reader_or_writer);
   AnalysisParameters::readWrite(reader_or_writer);
   DcaParameters::readWrite(reader_or_writer);
   DomainsParameters::readWrite(reader_or_writer);

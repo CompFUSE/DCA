@@ -15,8 +15,10 @@
 #ifndef DCA_PARALLEL_STDTHREAD_STDTHREAD_HPP
 #define DCA_PARALLEL_STDTHREAD_STDTHREAD_HPP
 
+#include <iostream>
 #include <vector>
 #include <thread>
+
 #include "dca/parallel/util/threading_data.hpp"
 
 namespace dca {
@@ -31,7 +33,11 @@ public:
     join();
   }
 
+  template <typename ReaderOrWriter>
+  void readWrite(ReaderOrWriter& reader_or_writer);
+  friend std::ostream& operator<< (std::ostream&, stdthread const &);
 private:
+  static constexpr char concurrency_type_str[] = "std Threading Concurrency";
   void fork(int num_threads, void* (*start_routine)(void*), void* arg) {
     threads_.clear();
     data_.resize(num_threads);
@@ -56,6 +62,26 @@ private:
   std::vector<ThreadingData> data_;
 };
 
+template <typename ReaderOrWriter>
+void stdthread::readWrite(ReaderOrWriter& reader_or_writer) {
+  try {
+    reader_or_writer.open_group("concurrency");
+    try {
+      reader_or_writer.execute("type", concurrency_type_str);
+    }
+    catch (const std::exception& r_e) {
+    }
+    try {
+      reader_or_writer.execute("number_of_std_threads", threads_.size());
+    }
+    catch (const std::exception& r_e) {
+    }
+    reader_or_writer.close_group();
+  }
+  catch (const std::exception& r_e) {
+  }  
+}
+    
 }  // namespace parallel
 }  // namespace dca
 

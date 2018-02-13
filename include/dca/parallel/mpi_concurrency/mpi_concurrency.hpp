@@ -78,7 +78,11 @@ public:
     return util::getBounds(id(), number_of_processors(), dmn);
   }
 
+  template <typename ReaderOrWriter>
+  void readWrite(ReaderOrWriter& reader_or_writer);
+  friend std::ostream& operator << (std::ostream&, const MPIConcurrency&);  
 private:
+  constexpr static char concurrency_type_str[] = "MPI Concurrency";
   MPIProcessorGrouping grouping_;
 };
 
@@ -155,6 +159,37 @@ bool MPIConcurrency::broadcast_object(object_type& object, int root_id) const {
   return true;
 }
 
+template <typename ReaderOrWriter>
+void MPIConcurrency::readWrite(ReaderOrWriter& reader_or_writer) {
+  try {
+    reader_or_writer.open_group("concurrency");
+    try {
+      reader_or_writer.execute("type", concurrency_type_str);
+    }
+    catch (const std::exception& r_e) {
+    }
+    try {
+      reader_or_writer.execute("number_of_processors", number_of_processors());
+    }
+    catch (const std::exception& r_e) {
+    }
+    try {
+      reader_or_writer.execute("grouping.first", first());
+    }
+    catch (const std::exception& r_e) {
+    }
+    try {
+      reader_or_writer.execute("grouping.last", last());
+    }
+    catch (const std::exception& r_e) {
+    }    
+    reader_or_writer.close_group();
+  }
+  catch (const std::exception& r_e) {
+  }
+}
+
+  
 }  // parallel
 }  // dca
 
