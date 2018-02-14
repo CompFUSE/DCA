@@ -126,13 +126,13 @@ public:
   // Returns the pointer to the (i,j)-th element.
   // Preconditions: 0 <= i < size().first, 0 <= j < size().second.
   ValueType* ptr(int i, int j) {
-    assert(i >= 0 && i < size_.first);
-    assert(j >= 0 && j < size_.second);
+    assert(i >= 0 && i <= size_.first);
+    assert(j >= 0 && j <= size_.second);
     return data_ + i + j * leadingDimension();
   }
   const ValueType* ptr(int i, int j) const {
-    assert(i >= 0 && i < size_.first);
-    assert(j >= 0 && j < size_.second);
+    assert(i >= 0 && i <= size_.first);
+    assert(j >= 0 && j <= size_.second);
     return data_ + i + j * leadingDimension();
   }
 
