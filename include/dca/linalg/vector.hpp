@@ -78,13 +78,21 @@ public:
     return name_;
   }
 
-  // Asynchronous assignement (copy with stream = getStream(thread_id, stream_id))
+  // Asynchronous assignment (copy with stream = getStream(thread_id, stream_id))
   // + synchronization of stream
   // Preconditions: 0 <= thread_id < DCA_MAX_THREADS,
   //                0 <= stream_id < DCA_STREAMS_PER_THREADS.
   void set(const std::vector<ScalarType>& rhs, int thread_id, int stream_id);
   template <DeviceType rhs_device_name>
   void set(const Vector<ScalarType, rhs_device_name>& rhs, int thread_id, int stream_id);
+
+#ifdef DCA_HAVE_CUDA
+  template <class Allocator>
+  // Asynchronous assignment.
+  void setAsync(const std::vector<ScalarType, Allocator>& rhs, cudaStream_t stream);
+  template <DeviceType rhs_device>
+  void setAsync(const Vector<ScalarType, rhs_device>& rhs, cudaStream_t stream);
+#endif  // DCA_HAVE_CUDA
 
   // Returns the pointer to the 0-th element of the vector.
   ValueType* ptr() {
@@ -224,6 +232,25 @@ void Vector<ScalarType, device_name>::set(const std::vector<ScalarType>& rhs, in
   resizeNoCopy(rhs.size());
   util::memoryCopy(data_, &rhs[0], size_, thread_id, stream_id);
 }
+
+#ifdef DCA_HAVE_CUDA
+template <typename ScalarType, DeviceType device_name>
+template <class Allocator>
+void Vector<ScalarType, device_name>::setAsync(const std::vector<ScalarType, Allocator>& rhs,
+                                               const cudaStream_t stream) {
+  resizeNoCopy(rhs.size());
+  util::memoryCopyAsync(data_, rhs.data(), size_, stream);
+}
+
+template <typename ScalarType, DeviceType device_name>
+template <DeviceType rhs_device>
+void Vector<ScalarType, device_name>::setAsync(const Vector<ScalarType, rhs_device>& rhs,
+                                               const cudaStream_t stream) {
+  resizeNoCopy(rhs.size());
+  util::memoryCopyAsync(data_, rhs.ptr(), size_, stream);
+}
+#endif  // DCA_HAVE_CUDA
+
 template <typename ScalarType, DeviceType device_name>
 template <DeviceType rhs_device_name>
 void Vector<ScalarType, device_name>::set(const Vector<ScalarType, rhs_device_name>& rhs,
