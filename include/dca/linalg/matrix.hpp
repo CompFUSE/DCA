@@ -190,12 +190,18 @@ public:
   // Swaps the contents of the matrix, included the name, with those of rhs.
   void swapWithName(Matrix<ScalarType, device_name>& rhs);
 
-  // Asynchronous assignement (copy with stream = getStream(thread_id, stream_id))
+  // Asynchronous assignment (copy with stream = getStream(thread_id, stream_id))
   // + synchronization of stream
   // Preconditions: 0 <= thread_id < DCA_MAX_THREADS,
   //                0 <= stream_id < DCA_STREAMS_PER_THREADS.
   template <DeviceType rhs_device_name>
   void set(const Matrix<ScalarType, rhs_device_name>& rhs, int thread_id, int stream_id);
+
+#ifdef DCA_HAVE_CUDA
+  // Asynchronous assignment.
+  template <DeviceType rhs_device_name>
+  void setAsync(const Matrix<ScalarType, rhs_device_name>& rhs, cudaStream_t stream);
+#endif  // DCA_HAVE_CUDA
 
   // Prints the values of the matrix elements.
   template <DeviceType dn = device_name>
@@ -410,6 +416,16 @@ void Matrix<ScalarType, device_name>::set(const Matrix<ScalarType, rhs_device_na
                    stream_id);
 }
 
+#ifdef DCA_HAVE_CUDA
+template <typename ScalarType, DeviceType device_name>
+template <DeviceType rhs_device_name>
+void Matrix<ScalarType, device_name>::setAsync(const Matrix<ScalarType, rhs_device_name>& rhs,
+                                               const cudaStream_t stream) {
+  resizeNoCopy(rhs.size_);
+  util::memoryCopyAsync(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_, stream);
+}
+#endif  // DCA_HAVE_CUDA
+
 template <typename ScalarType, DeviceType device_name>
 template <DeviceType dn>
 std::enable_if_t<device_name == CPU && dn == CPU, void> Matrix<ScalarType, device_name>::print() const {
@@ -433,7 +449,7 @@ template <typename ScalarType, DeviceType device_name>
 template <DeviceType dn>
 std::enable_if_t<device_name != CPU && dn == device_name, void> Matrix<ScalarType,
                                                                        device_name>::print() const {
-  Matrix<ScalarType, CPU> copy(*this);
+  Matrix<ScalarType, CPU> copy(*this, name_);
   copy.print();
 }
 
