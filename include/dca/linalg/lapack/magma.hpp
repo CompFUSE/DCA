@@ -161,6 +161,49 @@ inline void magmablas_gemm_vbatched(const char transa, const char transb, int* n
   checkErrorsCudaDebug();
 }
 
+inline void magmablas_gemm_batched(const char transa, const char transb, const int n, const int m,
+                                   const int k, const float alpha, const float* const* a,
+                                   const int lda, const float* const* b, const int ldb,
+                                   const float beta, float** c, const int ldc,
+                                   const int batch_count, magma_queue_t& queue) {
+  magmablas_sgemm_batched(toMagmaTrans(transa), toMagmaTrans(transb), n, m, k, alpha, a, lda, b,
+                          ldb, beta, c, ldc, batch_count, queue);
+  checkErrorsCudaDebug();
+}
+inline void magmablas_gemm_batched(const char transa, const char transb, const int n, const int m,
+                                   const int k, const double alpha, const double* const* a,
+                                   const int lda, const double* const* b, const int ldb,
+                                   const double beta, double** c, const int ldc,
+                                   const int batch_count, const magma_queue_t& queue) {
+  magmablas_dgemm_batched(toMagmaTrans(transa), toMagmaTrans(transb), n, m, k, alpha, a, lda, b,
+                          ldb, beta, c, ldc, batch_count, queue);
+  checkErrorsCudaDebug();
+}
+inline void magmablas_gemm_batched(const char transa, const char transb, const int n, const int m,
+                                   const int k, const std::complex<float> alpha,
+                                   const std::complex<float>* const* a, const int lda,
+                                   const std::complex<float>* const* b, const int ldb,
+                                   const std::complex<float> beta, std::complex<float>** c,
+                                   const int ldc, const int batch_count, const magma_queue_t& queue) {
+  using util::castCudaComplex;
+  magmablas_cgemm_batched(toMagmaTrans(transa), toMagmaTrans(transb), n, m, k,
+                          *castCudaComplex(alpha), castCudaComplex(a), lda, castCudaComplex(b), ldb,
+                          *castCudaComplex(beta), castCudaComplex(c), ldc, batch_count, queue);
+  checkErrorsCudaDebug();
+}
+inline void magmablas_gemm_batched(const char transa, const char transb, const int n, const int m,
+                                   const int k, const std::complex<double> alpha,
+                                   const std::complex<double>* const* a, const int lda,
+                                   const std::complex<double>* const* b, const int ldb,
+                                   const std::complex<double> beta, std::complex<double>** c,
+                                   const int ldc, const int batch_count, const magma_queue_t& queue) {
+  using util::castCudaComplex;
+  magmablas_zgemm_batched(toMagmaTrans(transa), toMagmaTrans(transb), n, m, k,
+                          *castCudaComplex(alpha), castCudaComplex(a), lda, castCudaComplex(b), ldb,
+                          *castCudaComplex(beta), castCudaComplex(c), ldc, batch_count, queue);
+  checkErrorsCudaDebug();
+}
+
 template <typename Type>
 int get_getri_nb(int n);
 template <>
