@@ -125,10 +125,10 @@ TEST(bilayerLattice_Nc1_interband, Self_Energy) {
       for (int k_ind = 0; k_ind < k_DCA::dmn_size(); ++k_ind) {
         for (int nu_ind_2 = 0; nu_ind_2 < nu::dmn_size(); ++nu_ind_2) {
           for (int nu_ind_1 = 0; nu_ind_1 < nu::dmn_size(); ++nu_ind_1) {
-            EXPECT_NEAR(Sigma_QMC_check(nu_ind_1, nu_ind_2, k_ind, w_ind).real(),
-                        Sigma_QMC(nu_ind_1, nu_ind_2, k_ind, w_ind).real(), 1.e-12);
-            EXPECT_NEAR(Sigma_QMC_check(nu_ind_1, nu_ind_2, k_ind, w_ind).imag(),
-                        Sigma_QMC(nu_ind_1, nu_ind_2, k_ind, w_ind).imag(), 1.e-12);
+	    EXPECT_NEAR(Sigma_QMC_check(nu_ind_1, nu_ind_2, k_ind, w_ind).real(),
+			Sigma_QMC(nu_ind_1, nu_ind_2, k_ind, w_ind).real(), 1.e-12);
+	    EXPECT_NEAR(Sigma_QMC_check(nu_ind_1, nu_ind_2, k_ind, w_ind).imag(),
+			Sigma_QMC(nu_ind_1, nu_ind_2, k_ind, w_ind).imag(), 1.e-12);
           }
         }
       }
@@ -139,13 +139,13 @@ TEST(bilayerLattice_Nc1_interband, Self_Energy) {
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
     std::cout << "\nProcessor " << dca_test_env->concurrency.id() << " is writing data " << std::endl;
     {
-	using namespace dca;
-	using namespace parallel;
-	std::cout << '\n' << dca_test_env->concurrency << '\n';
+      using namespace dca;
+      using namespace parallel;
+      std::cout << '\n' << dca_test_env->concurrency << '\n';
     }
     dca::io::HDF5Writer writer;
     writer.open_file("output.hdf5");
-    writer.open_group("functions");
+    writer.open_rgoup("functions");
     Sigma_QMC.set_name("Self_Energy");
     writer.execute(Sigma_QMC);
     writer.close_group();
