@@ -49,7 +49,6 @@
 #include "dca/phys/models/traits.hpp"
 #include "dca/util/timer.hpp"
 
-
 namespace dca {
 namespace phys {
 // dca::phys::
@@ -57,12 +56,12 @@ namespace phys {
 template <class Parameters>
 class DcaData {
 public:
-
   using profiler_type = typename Parameters::profiler_type;
 
   using Concurrency = typename Parameters::concurrency_type;
   using Lattice = typename Parameters::lattice_type;
   constexpr static int DIMENSION = Lattice::DIMENSION;
+  using TpAccumulatorScalar = typename Parameters::MC_measurement_scalar_type;
 
 private:
   using TDmn = func::dmn_0<domains::time_domain>;
@@ -85,13 +84,6 @@ private:
 
   using NuKCutDmn = func::dmn_variadic<NuDmn, KCutDmn>;
   using NuNuKWDmn = func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>;
-
-  using SpGreensFunction =
-      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>>;
-  using TpGreensFunction =
-      func::function<std::complex<double>,
-                     func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KClusterDmn, KClusterDmn, WVertexDmn, WVertexDmn>>;
-
 
 public:
   DcaData(Parameters& parameters_ref);
@@ -158,14 +150,22 @@ public:
   func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>> G0_r_w;
   func::function<double, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>> G0_r_t;
 
-  func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>> G0_k_w_cluster_excluded;
+  func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>>
+      G0_k_w_cluster_excluded;
   func::function<double, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, TDmn>> G0_k_t_cluster_excluded;
-  func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>> G0_r_w_cluster_excluded;
+  func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>>
+      G0_r_w_cluster_excluded;
   func::function<double, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>> G0_r_t_cluster_excluded;
 
   func::function<double, NuDmn> orbital_occupancy;
 
 public:  // Optional members getters.
+  using SpGreensFunction =
+      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>>;
+  using TpGreensFunction = func::function<
+      std::complex<TpAccumulatorScalar>,
+      func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KClusterDmn, KClusterDmn, WVertexDmn, WVertexDmn>>;
+
   auto& get_G_k_w_error() {
     if (not G_k_w_err_)
       G_k_w_err_.reset(new SpGreensFunction("G_k_w-error"));
@@ -208,7 +208,9 @@ public:  // Optional members getters.
               "non_density_interaction"));
     return *non_density_interactions_;
   }
-  bool has_non_density_interactions() const {return (bool)non_density_interactions_;}
+  bool has_non_density_interactions() const {
+    return (bool)non_density_interactions_;
+  }
 
 private:  // Optional members.
   std::unique_ptr<SpGreensFunction> G_k_w_err_;
@@ -407,7 +409,8 @@ void DcaData<Parameters>::write(Writer& writer) {
     func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn>> S_k_DCA(
         "Sigma-k-DCA");
     std::memcpy(&S_k_DCA(0), &Sigma(0, 0, 0, WDmn::dmn_size() / 2),
-                sizeof(std::complex<double>) * std::pow(2 * BDmn::dmn_size(), 2.) * KClusterDmn::dmn_size());
+                sizeof(std::complex<double>) * std::pow(2 * BDmn::dmn_size(), 2.) *
+                    KClusterDmn::dmn_size());
     math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(S_k_DCA, S_r_DCA);
 
     writer.execute(S_r_DCA);
@@ -466,7 +469,7 @@ void DcaData<Parameters>::initialize_H_0_and_H_i() {
 
   Parameters::model_type::initialize_H_interaction(H_interactions, parameters_);
 
-    if (models::has_non_density_interaction<Lattice>::value) {
+  if (models::has_non_density_interaction<Lattice>::value) {
     models::initializeNonDensityInteraction<Lattice>(get_non_density_interactions(), parameters_);
   }
 
