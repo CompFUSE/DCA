@@ -649,3 +649,12 @@ TEST(MatrixGPUTest, ResizeNoCopyValue) {
     EXPECT_TRUE(testing::isDevicePointer(mat.ptr()));
   }
 }
+
+TEST(MatrixGPUTest, Clear) {
+  dca::linalg::Matrix<float, dca::linalg::GPU> mat(42);
+
+  EXPECT_EQ(std::make_pair(42, 42), mat.size());
+  mat.clear();
+  EXPECT_EQ(std::make_pair(0, 0), mat.size());
+  EXPECT_EQ(std::make_pair(0, 0), mat.capacity());
+}

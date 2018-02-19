@@ -212,3 +212,22 @@ TEST(MatrixCPUGPUTest, Set) {
       }
   }
 }
+
+TEST(MatrixCPUGPUTest, SetAsync) {
+  dca::linalg::Matrix<int, dca::linalg::CPU> mat(std::make_pair(32, 30));
+  dca::linalg::Matrix<int, dca::linalg::GPU> mat_copy;
+  dca::linalg::Matrix<int, dca::linalg::CPU> mat_copy_copy;
+
+  auto el_value = [](int i, int j) { return 3 * i - 2 * j; };
+  testing::setMatrixElements(mat, el_value);
+  cudaStream_t stream;
+  cudaStreamCreate(&stream);
+
+  mat_copy.setAsync(mat, stream);
+  mat_copy_copy.setAsync(mat_copy, stream);
+  cudaStreamSynchronize(stream);
+
+  EXPECT_EQ(mat, mat_copy_copy);
+
+  cudaStreamDestroy(stream);
+}

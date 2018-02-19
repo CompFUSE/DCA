@@ -185,6 +185,9 @@ public:
   // if new_size.first <= capacity().first and new_size.second <= capacity().second.
   void resizeNoCopy(std::pair<int, int> new_size);
 
+  // Releases the memory allocated by *this and sets size and capacity to zero.
+  void clear();
+
   // Swaps the contents of the matrix except the name with those of rhs.
   void swap(Matrix<ScalarType, device_name>& rhs);
   // Swaps the contents of the matrix, included the name, with those of rhs.
@@ -392,6 +395,12 @@ void Matrix<ScalarType, device_name>::resizeNoCopy(std::pair<int, int> new_size)
   else {
     size_ = new_size;
   }
+}
+
+template <typename ScalarType, DeviceType device_name>
+void Matrix<ScalarType, device_name>::clear() {
+  util::Memory<device_name>::deallocate(data_);
+  size_ = capacity_ = std::make_pair(0, 0);
 }
 
 template <typename ScalarType, DeviceType device_name>

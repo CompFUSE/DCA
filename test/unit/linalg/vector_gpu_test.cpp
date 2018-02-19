@@ -324,3 +324,12 @@ TEST(VectorGPUTest, ResizeNoCopy) {
     EXPECT_LE(new_size, vec.capacity());
   }
 }
+
+TEST(VectorGPUTest, Clear) {
+  dca::linalg::Vector<double, dca::linalg::GPU> vec(42);
+
+  EXPECT_EQ(42, vec.size());
+  vec.clear();
+  EXPECT_EQ(0, vec.size());
+  EXPECT_EQ(0, vec.capacity());
+}

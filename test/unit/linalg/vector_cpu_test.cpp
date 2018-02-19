@@ -337,3 +337,12 @@ TEST(VectorCPUTest, ResizeNoCopy) {
     EXPECT_LE(new_size, vec.capacity());
   }
 }
+
+TEST(VectorCPUTest, Clear) {
+  dca::linalg::Vector<double, dca::linalg::CPU> vec(42);
+
+  EXPECT_EQ(42, vec.size());
+  vec.clear();
+  EXPECT_EQ(0, vec.size());
+  EXPECT_EQ(0, vec.capacity());
+}

@@ -680,3 +680,12 @@ TEST(MatrixCPUTest, ResizeNoCopyValue) {
     EXPECT_LE(new_size, mat.capacity().second);
   }
 }
+
+TEST(MatrixCPUTest, Clear) {
+  dca::linalg::Matrix<float, dca::linalg::CPU> mat(42);
+
+  EXPECT_EQ(std::make_pair(42, 42), mat.size());
+  mat.clear();
+  EXPECT_EQ(std::make_pair(0, 0), mat.size());
+  EXPECT_EQ(std::make_pair(0, 0), mat.capacity());
+}

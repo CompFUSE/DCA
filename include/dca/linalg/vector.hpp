@@ -132,6 +132,9 @@ public:
   // if new_size <= capacity().
   void resizeNoCopy(size_t new_size);
 
+  // Releases the memory allocated by *this and sets size and capacity to zero
+  void clear();
+
   // Prints the values of the vector elements.
   template <DeviceType dn = device_name>
   std::enable_if_t<device_name == CPU && dn == CPU, void> print() const;
@@ -291,6 +294,12 @@ void Vector<ScalarType, device_name>::resizeNoCopy(size_t new_size) {
   }
   else
     size_ = new_size;
+}
+
+template <typename ScalarType, DeviceType device_name>
+void Vector<ScalarType, device_name>::clear() {
+  util::Memory<device_name>::deallocate(data_);
+  size_ = capacity_ = 0;
 }
 
 template <typename ScalarType, DeviceType device_name>
