@@ -76,45 +76,47 @@ public:
   // Time and frequency domains
   using TDmn = func::dmn_0<domains::time_domain>;
   using WDmn = func::dmn_0<domains::frequency_domain>;
-  using w_VERTEX_EXTENDED = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
-  using w_VERTEX_EXTENDED_POS =
+  using WTpExtDmn = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
+  using WTpExtPosDmn =
       func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED_POSITIVE>>;
 
   // DCA cluster domains
-  using r_DCA =
+  using RClusterDmn =
       func::dmn_0<domains::cluster_domain<double, Model::lattice_type::DIMENSION, domains::CLUSTER,
                                           domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
-  using k_DCA =
+  using KClusterDmn =
       func::dmn_0<domains::cluster_domain<double, Model::lattice_type::DIMENSION, domains::CLUSTER,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
 
   // Host cluster domains
-  using r_HOST =
+  using RSpHostDmn =
       func::dmn_0<domains::cluster_domain<double, Model::lattice_type::DIMENSION, domains::LATTICE_SP,
                                           domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
-  using k_HOST =
+  using KSpHostDmn =
       func::dmn_0<domains::cluster_domain<double, Model::lattice_type::DIMENSION, domains::LATTICE_SP,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
 
   // Host vertex cluster domains
-  using r_HOST_VERTEX =
+  using RTpHostDmn =
       func::dmn_0<domains::cluster_domain<double, Model::lattice_type::DIMENSION, domains::LATTICE_TP,
                                           domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
-  using k_HOST_VERTEX =
+  using KTpHostDmn =
       func::dmn_0<domains::cluster_domain<double, Model::lattice_type::DIMENSION, domains::LATTICE_TP,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
 
-  using DCA_cluster_family_type =
+  using DcaClusterFamily =
       domains::cluster_domain_family<double, Model::lattice_type::DIMENSION, domains::CLUSTER,
                                      domains::BRILLOUIN_ZONE>;
-  using HOST_sp_cluster_family_type =
+  using HostSpClusterFamily =
       domains::cluster_domain_family<double, Model::lattice_type::DIMENSION, domains::LATTICE_SP,
                                      domains::BRILLOUIN_ZONE>;
-  using HOST_tp_cluster_family_type =
+  using HostTpClusterFamily =
       domains::cluster_domain_family<double, Model::lattice_type::DIMENSION, domains::LATTICE_TP,
                                      domains::BRILLOUIN_ZONE>;
 
   constexpr static int lattice_dimension = Model::lattice_type::DIMENSION;
+
+  constexpr static int bands = Model::lattice_type::BANDS;
 
 #ifdef DCA_WITH_SINGLE_PRECISION_MEASUREMENTS
   typedef float MC_measurement_scalar_type;
@@ -123,19 +125,12 @@ public:
 #endif  // DCA_WITH_SINGLE_PRECISION_MEASUREMENTS
 
 #ifdef DCA_WITH_REDUCED_VERTEX_FUNCTION
-  typedef w_VERTEX_EXTENDED_POS G4_w1_dmn_t;
-  typedef w_VERTEX_EXTENDED G4_w2_dmn_t;
+  typedef WTpExtPosDmn G4_w1_dmn_t;
+  typedef WTpExtDmn G4_w2_dmn_t;
 #else
-  typedef w_VERTEX_EXTENDED G4_w1_dmn_t;
-  typedef w_VERTEX_EXTENDED G4_w2_dmn_t;
+  typedef WTpExtDmn G4_w1_dmn_t;
+  typedef WTpExtDmn G4_w2_dmn_t;
 #endif  // DCA_WITH_REDUCED_VERTEX_FUNCTION
-
-  // Typedefs for solvers.
-  using SDmn = func::dmn_0<domains::electron_spin_domain>;
-  using BDmn = func::dmn_0<domains::electron_band_domain>;
-  using Nu = func::dmn_variadic<BDmn, SDmn>;
-  using RDmn = r_DCA;
-  using KDmn = k_DCA;
 
   Parameters(const std::string& version_stamp, concurrency_type& concurrency);
 
@@ -213,9 +208,9 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
 
   writer.open_group("domains");
 
-  DCA_cluster_family_type::write(writer);
-  HOST_sp_cluster_family_type::write(writer);
-  HOST_tp_cluster_family_type::write(writer);
+  DcaClusterFamily::write(writer);
+  HostSpClusterFamily::write(writer);
+  HostTpClusterFamily::write(writer);
 
   TDmn::parameter_type::write(writer);
   WDmn::parameter_type::write(writer);
@@ -296,39 +291,39 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator,
   domains::vertex_frequency_domain<domains::EXTENDED_BOSONIC>::initialize(*this);
 
   // DCA cluster
-  domains::cluster_domain_initializer<r_DCA>::execute(Model::get_r_DCA_basis(),
+  domains::cluster_domain_initializer<RClusterDmn>::execute(Model::get_r_DCA_basis(),
                                                       DomainsParameters::get_cluster());
   domains::cluster_domain_symmetry_initializer<
-      r_DCA, typename Model::lattice_type::DCA_point_group>::execute();
+      RClusterDmn, typename Model::lattice_type::DCA_point_group>::execute();
 
   if (concurrency_.id() == concurrency_.first())
-    k_DCA::parameter_type::print(std::cout);
+    KClusterDmn::parameter_type::print(std::cout);
 
   // Host grid for single-particle functions ((sp-)lattice)
-  domains::cluster_domain_initializer<r_HOST>::execute(Model::get_r_DCA_basis(),
+  domains::cluster_domain_initializer<RSpHostDmn>::execute(Model::get_r_DCA_basis(),
                                                        DomainsParameters::get_sp_host());
   domains::cluster_domain_symmetry_initializer<
-      r_HOST, typename Model::lattice_type::DCA_point_group>::execute();
+      RSpHostDmn, typename Model::lattice_type::DCA_point_group>::execute();
 
   if (concurrency_.id() == concurrency_.first())
-    k_HOST::parameter_type::print(std::cout);
+    KSpHostDmn::parameter_type::print(std::cout);
 
   // Host grid for two-particle functions (tp-lattice)
   if (do_dca_plus()) {
-    domains::cluster_domain_initializer<r_HOST_VERTEX>::execute(Model::get_r_DCA_basis(),
+    domains::cluster_domain_initializer<RTpHostDmn>::execute(Model::get_r_DCA_basis(),
                                                                 DomainsParameters::get_tp_host());
   }
   // Set equal to DCA cluster, if standard DCA is used.
   // In this way, we can keep the BseLatticeSolver general.
   else {
-    domains::cluster_domain_initializer<r_HOST_VERTEX>::execute(Model::get_r_DCA_basis(),
+    domains::cluster_domain_initializer<RTpHostDmn>::execute(Model::get_r_DCA_basis(),
                                                                 DomainsParameters::get_cluster());
   }
   domains::cluster_domain_symmetry_initializer<
-      r_HOST_VERTEX, typename Model::lattice_type::DCA_point_group>::execute();
+      RTpHostDmn, typename Model::lattice_type::DCA_point_group>::execute();
 
   if (concurrency_.id() == concurrency_.first())
-    k_HOST_VERTEX::parameter_type::print(std::cout);
+    KTpHostDmn::parameter_type::print(std::cout);
 }
 
 template <typename Concurrency, typename Threading, typename Profiler, typename Model,
