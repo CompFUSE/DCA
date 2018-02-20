@@ -108,6 +108,9 @@ public:
   void execute(const std::string& name,
 	       const std::unique_ptr<T>& obj);
 
+  template <class T>
+  void execute(const std::unique_ptr<T>& obj);
+
   template <class stream_type>
   static void execute(stream_type& ss, const JsonAccessor& parseResult);
 
@@ -458,6 +461,12 @@ void JSONWriter::execute(const std::string& name,
 			 const std::unique_ptr<T>& obj) {
   if (obj)
     execute(name, *obj);
+}
+
+template <class T>
+void JSONWriter::execute(const std::unique_ptr<T>& obj) {
+  if (obj)
+    execute(*obj);
 }
 
 template <class stream_type>
