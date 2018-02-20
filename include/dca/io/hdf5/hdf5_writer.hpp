@@ -103,7 +103,7 @@ public:
   void execute(std::string name, dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU>& A);
 
   template<class T>
-  void execute(const std::unique_ptr<T>& obj);
+  void execute(const std::string& name, const std::unique_ptr<T>& obj);
 
 private:
   bool fexists(const char* filename);
@@ -620,9 +620,10 @@ void HDF5Writer::execute(std::string name,
 }
 
 template<class T>
-void HDF5Writer::execute(const std::unique_ptr<T>& obj){
+void HDF5Writer::execute(const std::string& name,
+			 const std::unique_ptr<T>& obj){
   if(obj)
-    execute(*obj);
+    execute(name, *obj);
 }
 
 }  // io

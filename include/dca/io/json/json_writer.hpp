@@ -105,7 +105,8 @@ public:
                const linalg::Matrix<std::complex<scalar_type>, linalg::CPU>& A);
 
   template <class T>
-  void execute(const std::unique_ptr<T>& obj);
+  void execute(const std::string& name,
+	       const std::unique_ptr<T>& obj);
 
   template <class stream_type>
   static void execute(stream_type& ss, const JsonAccessor& parseResult);
@@ -453,9 +454,10 @@ void JSONWriter::execute(const std::string& name,
 }
 
 template <class T>
-void JSONWriter::execute(const std::unique_ptr<T>& obj) {
+void JSONWriter::execute(const std::string& name,
+			 const std::unique_ptr<T>& obj) {
   if (obj)
-    execute(*obj);
+    execute(name, *obj);
 }
 
 template <class stream_type>
@@ -463,7 +465,6 @@ void JSONWriter::execute(stream_type& os, const JsonAccessor& w) {
   static int level = -1;
 
   typedef typename std::map<std::wstring, Whatever>::const_iterator WhateverMapItr;
-
   switch (w.type) {
     case WHATEVER_MAT: {
       std::string wfilename(w.filename.begin(), w.filename.end());
