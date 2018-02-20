@@ -23,7 +23,7 @@
 #include "dca/phys/dca_step/cluster_solver/ctaux/structs/vertex_singleton.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/models/general_interaction.hpp"
-#include "dca/phys/parameters/cluster_domain_aliases.hpp"
+#include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 
 namespace dca {
 namespace phys {

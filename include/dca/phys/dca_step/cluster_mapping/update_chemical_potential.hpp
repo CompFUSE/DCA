@@ -29,7 +29,7 @@
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
 #include "dca/phys/dca_algorithms/compute_greens_function.hpp"
-#include "dca/phys/parameters/cluster_domain_aliases.hpp"
+#include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 #include "dca/util/print_time.hpp"
 
 namespace dca {

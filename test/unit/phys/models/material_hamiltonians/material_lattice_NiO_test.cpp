@@ -22,7 +22,7 @@
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_initializer.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp"
-#include "dca/phys/parameters/cluster_domain_aliases.hpp"
+#include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 #include "dca/phys/parameters/model_parameters.hpp"
 
 // Helper structs since we can only template tests on types.

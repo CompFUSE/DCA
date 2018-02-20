@@ -29,7 +29,7 @@
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/hamiltonian.hpp"
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/hilbert_spaces/hilbert_space.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
-#include "dca/phys/parameters/cluster_domain_aliases.hpp"
+#include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 #include "dca/util/print_time.hpp"
 #include "dca/util/plot.hpp"
 

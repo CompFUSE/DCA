@@ -22,7 +22,7 @@
 
 #include "dca/function/domains/dmn_0.hpp"
 #include "dca/phys/parameters/analysis_parameters.hpp"
-#include "dca/phys/parameters/cluster_domain_aliases.hpp"
+#include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 #include "dca/phys/parameters/dca_parameters.hpp"
 #include "dca/phys/parameters/domains_parameters.hpp"
 #include "dca/phys/parameters/double_counting_parameters.hpp"

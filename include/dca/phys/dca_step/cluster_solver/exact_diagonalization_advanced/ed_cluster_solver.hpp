@@ -33,7 +33,7 @@
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/options.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain_real_axis.hpp"
 #include "dca/phys/four_point_type.hpp"
-#include "dca/phys/parameters/cluster_domain_aliases.hpp"
+#include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 #include "dca/util/print_time.hpp"
 
 namespace dca {

@@ -25,7 +25,7 @@
 #include "dca/linalg/matrixop.hpp"
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/hamiltonian.hpp"
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/overlap_matrix_element.hpp"
-#include "dca/phys/parameters/cluster_domain_aliases.hpp"
+#include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 
 namespace dca {
 namespace phys {
