@@ -22,6 +22,7 @@
 
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/basis_states/phi_comparison_operators.hpp"
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/basis_states/phi_state.hpp"
+#include "dca/phys/parameters/cluster_domain_aliases.hpp"
 
 namespace dca {
 namespace phys {
@@ -29,7 +30,7 @@ namespace solver {
 namespace ed {
 // dca::phys::solver::ed::
 
-template <typename parameter_type, typename ed_options>  // N: size of bitset sequence
+template <typename parameters_type, typename ed_options>  // N: size of bitset sequence
 class psi_state {
 public:
   typedef typename ed_options::scalar_type scalar_type;
@@ -37,21 +38,23 @@ public:
 
   typedef typename ed_options::b_dmn b_dmn;
   typedef typename ed_options::s_dmn s_dmn;
-  typedef typename ed_options::r_dmn r_dmn;
-  typedef typename ed_options::k_dmn k_dmn;
 
+  using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
+  using RClusterDmn = typename CDA::RClusterDmn;
+  using KClusterDmn = typename CDA::KClusterDmn;
+    
   typedef typename ed_options::phi_type phi_type;
 
 public:
   // Construct state from integer
   psi_state(const int& s);
 
-  psi_state(const phi_state<parameter_type, ed_options, PHI_SINGLET>& phi_obj_);
+  psi_state(const phi_state<parameters_type, ed_options, PHI_SINGLET>& phi_obj_);
 
   // Contruct eigenstate of symmetry operation O with eigenvalue 'eigenvalue'
   template <class symmetry_operation>
   psi_state(const complex_type eigenvalue, const int order, symmetry_operation& Op,
-            const psi_state<parameter_type, ed_options>& phi0, int k);
+            const psi_state<parameters_type, ed_options>& phi0, int k);
 
   void print() const;
 
@@ -71,18 +74,18 @@ public:
   void normalize();
   void sort();
 
-  std::vector<phi_state<parameter_type, ed_options, PHI_SINGLET>>& get_phi_obj() {
+  std::vector<phi_state<parameters_type, ed_options, PHI_SINGLET>>& get_phi_obj() {
     return phi_obj;
   }
-  std::vector<phi_state<parameter_type, ed_options, PHI_SINGLET>> get_phi_obj() const {
+  std::vector<phi_state<parameters_type, ed_options, PHI_SINGLET>> get_phi_obj() const {
     return phi_obj;
   }
 
-  phi_state<parameter_type, ed_options, PHI_SINGLET>& get_phi_obj(int i) {
+  phi_state<parameters_type, ed_options, PHI_SINGLET>& get_phi_obj(int i) {
     assert(i >= 0 && i < size());
     return phi_obj[i];
   }
-  phi_state<parameter_type, ed_options, PHI_SINGLET> get_phi_obj(int i) const {
+  phi_state<parameters_type, ed_options, PHI_SINGLET> get_phi_obj(int i) const {
     assert(i >= 0 && i < size());
     return phi_obj[i];
   }
@@ -122,35 +125,35 @@ public:
 private:
   bool marker;
 
-  std::vector<phi_state<parameter_type, ed_options, PHI_SINGLET>> phi_obj;
+  std::vector<phi_state<parameters_type, ed_options, PHI_SINGLET>> phi_obj;
 
   std::vector<complex_type> eigenvalues;
 };
 
-template <typename parameter_type, typename ed_options>
-psi_state<parameter_type, ed_options>::psi_state(const int& s) : marker(false) {
-  phi_state<parameter_type, ed_options, PHI_SINGLET> tmp;
+template <typename parameters_type, typename ed_options>
+psi_state<parameters_type, ed_options>::psi_state(const int& s) : marker(false) {
+  phi_state<parameters_type, ed_options, PHI_SINGLET> tmp;
   tmp.phi = phi_type(s);
   tmp.alpha = complex_type(1.);
   phi_obj.push_back(tmp);
 }
 
-template <typename parameter_type, typename ed_options>
-psi_state<parameter_type, ed_options>::psi_state(
-    const phi_state<parameter_type, ed_options, PHI_SINGLET>& phi_obj_)
+template <typename parameters_type, typename ed_options>
+psi_state<parameters_type, ed_options>::psi_state(
+    const phi_state<parameters_type, ed_options, PHI_SINGLET>& phi_obj_)
     : phi_obj(1, phi_obj_) {}
 
-template <typename parameter_type, typename ed_options>
+template <typename parameters_type, typename ed_options>
 template <class symmetry_operation>
-psi_state<parameter_type, ed_options>::psi_state(const complex_type eigenvalue, const int order,
+psi_state<parameters_type, ed_options>::psi_state(const complex_type eigenvalue, const int order,
                                                  symmetry_operation& Op,
-                                                 const psi_state<parameter_type, ed_options>& phi0,
+                                                 const psi_state<parameters_type, ed_options>& phi0,
                                                  int /*k*/)
     : marker(false), eigenvalues(phi0.get_eigenvalues()) {
   eigenvalues.push_back(eigenvalue);
 
   for (int l = 0; l < phi0.size(); ++l) {
-    psi_state<parameter_type, ed_options> phi_tmp(phi0.get_phi_obj(l));
+    psi_state<parameters_type, ed_options> phi_tmp(phi0.get_phi_obj(l));
 
     phi_tmp.get_alpha(0) /= sqrt(order);
 
@@ -169,9 +172,9 @@ psi_state<parameter_type, ed_options>::psi_state(const complex_type eigenvalue, 
   sort();
 }
 
-template <typename parameter_type, typename ed_options>
-void psi_state<parameter_type, ed_options>::print() const {
-  int num_states = b_dmn::dmn_size() * s_dmn::dmn_size() * r_dmn::dmn_size();
+template <typename parameters_type, typename ed_options>
+void psi_state<parameters_type, ed_options>::print() const {
+  int num_states = b_dmn::dmn_size() * s_dmn::dmn_size() * RClusterDmn::dmn_size();
 
   for (int i = 0; i < size(); ++i) {
     std::cout << "\t" << i << " ( " << marker << ") : ";
@@ -184,16 +187,16 @@ void psi_state<parameter_type, ed_options>::print() const {
   std::cout << "\n";
 }
 
-template <typename parameter_type, typename ed_options>
-int psi_state<parameter_type, ed_options>::occupation_number() const {
+template <typename parameters_type, typename ed_options>
+int psi_state<parameters_type, ed_options>::occupation_number() const {
   return phi_obj[0].phi.count();
 }
 
-template <typename parameter_type, typename ed_options>
-int psi_state<parameter_type, ed_options>::magnetization() const {
+template <typename parameters_type, typename ed_options>
+int psi_state<parameters_type, ed_options>::magnetization() const {
   phi_type mask_up(0);
 
-  for (int r = r_dmn::dmn_size() - 1; r >= 0; --r) {
+  for (int r = RClusterDmn::dmn_size() - 1; r >= 0; --r) {
     for (int s = s_dmn::dmn_size() - 1; s >= 0; --s) {
       for (int b = b_dmn::dmn_size() - 1; b >= 0; --b) {
         mask_up <<= 1;
@@ -212,7 +215,7 @@ int psi_state<parameter_type, ed_options>::magnetization() const {
 
   int tmp_mag = 0;
   int index = 0;
-  for (int r = 0; r < r_dmn::dmn_size(); ++r) {
+  for (int r = 0; r < RClusterDmn::dmn_size(); ++r) {
     for (int i = 0; i < s_dmn::dmn_size(); ++i) {
       for (int j = 0; j < b_dmn::dmn_size(); ++j) {
         if (i == 0 and phi_obj[0].phi[index] == 1)
@@ -230,11 +233,11 @@ int psi_state<parameter_type, ed_options>::magnetization() const {
   return mag;
 }
 
-template <typename parameter_type, typename ed_options>
-void psi_state<parameter_type, ed_options>::simplify() {
-  std::vector<phi_state<parameter_type, ed_options, PHI_SINGLET>> simplified_phi_obj;
+template <typename parameters_type, typename ed_options>
+void psi_state<parameters_type, ed_options>::simplify() {
+  std::vector<phi_state<parameters_type, ed_options, PHI_SINGLET>> simplified_phi_obj;
 
-  std::vector<phi_state<parameter_type, ed_options, PHI_SINGLET>> new_phi_obj;
+  std::vector<phi_state<parameters_type, ed_options, PHI_SINGLET>> new_phi_obj;
 
   for (int i = 0; i < size(); ++i) {
     int index = 0;
@@ -258,8 +261,8 @@ void psi_state<parameter_type, ed_options>::simplify() {
   phi_obj.swap(new_phi_obj);
 }
 
-template <typename parameter_type, typename ed_options>
-void psi_state<parameter_type, ed_options>::normalize() {
+template <typename parameters_type, typename ed_options>
+void psi_state<parameters_type, ed_options>::normalize() {
   complex_type tmp = scalar_product(*this, *this);
 
   assert(std::abs(tmp.imag()) < ed_options::get_epsilon() && tmp.real() >= 0);
@@ -271,8 +274,8 @@ void psi_state<parameter_type, ed_options>::normalize() {
   }
 }
 
-template <typename parameter_type, typename ed_options>
-void psi_state<parameter_type, ed_options>::sort() {
+template <typename parameters_type, typename ed_options>
+void psi_state<parameters_type, ed_options>::sort() {
   std::sort(phi_obj.begin(), phi_obj.end());
 }
 

@@ -21,6 +21,7 @@
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain_left_oriented.hpp"
+#include "dca/phys/parameters/cluster_domain_aliases.hpp"
 
 namespace dca {
 namespace phys {
@@ -36,10 +37,10 @@ public:
   using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
-  using r_DCA =
-      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
-                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
-  using r_dmn_t = r_DCA;
+  using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
+  using RClusterDmn = typename CDA::RClusterDmn;
+
+  using r_dmn_t = RClusterDmn;
   typedef typename r_dmn_t::parameter_type r_cluster_type;
 
   typedef typename parameters_type::concurrency_type concurrency_type;

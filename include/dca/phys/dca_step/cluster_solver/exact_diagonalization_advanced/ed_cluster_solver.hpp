@@ -33,6 +33,7 @@
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/options.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain_real_axis.hpp"
 #include "dca/phys/four_point_type.hpp"
+#include "dca/phys/parameters/cluster_domain_aliases.hpp"
 #include "dca/util/print_time.hpp"
 
 namespace dca {
@@ -50,8 +51,10 @@ public:
 
   using b = typename ed_options_type::b;
   using nu = typename ed_options_type::nu;
-  using r_DCA = typename ed_options_type::r_DCA;
-  using k_DCA = typename ed_options_type::k_DCA;
+
+  using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
+  using RClusterDmn = typename CDA::RClusterDmn;
+  using KClusterDmn = typename CDA::KClusterDmn;
 
   using w_REAL = func::dmn_0<domains::frequency_domain_real_axis>;
 
@@ -129,9 +132,9 @@ EDClusterSolver<device_t, parameters_type, MOMS_type>::EDClusterSolver(
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void EDClusterSolver<device_t, parameters_type, MOMS_type>::initialize(int /*dca_iteration*/) {
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA>> H_DCA;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, RClusterDmn>> H_DCA;
 
-  math::transform::FunctionTransform<k_DCA, r_DCA>::execute(MOMS_imag.H_DCA, H_DCA);
+  math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(MOMS_imag.H_DCA, H_DCA);
 
   Ham_obj.initialize(H_DCA, MOMS_imag.H_interactions);
 }
@@ -212,18 +215,18 @@ void EDClusterSolver<device_t, parameters_type, MOMS_type>::execute() {
 
   MOMS_real.A_w = 0;
   for (int l = 0; l < w_REAL::dmn_size(); l++)
-    for (int j = 0; j < k_DCA::dmn_size(); j++)
+    for (int j = 0; j < KClusterDmn::dmn_size(); j++)
       for (int i = 0; i < 2 * b::dmn_size(); i++)
         MOMS_real.A_w(l) -= imag(MOMS_real.G_k_w(i, i, j, l));
 
   MOMS_real.A0_w = 0;
   for (int l = 0; l < w_REAL::dmn_size(); l++)
-    for (int j = 0; j < k_DCA::dmn_size(); j++)
+    for (int j = 0; j < KClusterDmn::dmn_size(); j++)
       for (int i = 0; i < 2 * b::dmn_size(); i++)
         MOMS_real.A0_w(l) -= imag(MOMS_real.G0_k_w(i, i, j, l));
 
-  MOMS_real.A_w *= 1. / double(M_PI * k_DCA::dmn_size() * 2 * b::dmn_size());
-  MOMS_real.A0_w *= 1. / double(M_PI * k_DCA::dmn_size() * 2 * b::dmn_size());
+  MOMS_real.A_w *= 1. / double(M_PI * KClusterDmn::dmn_size() * 2 * b::dmn_size());
+  MOMS_real.A0_w *= 1. / double(M_PI * KClusterDmn::dmn_size() * 2 * b::dmn_size());
 
   if (concurrency.id() == concurrency.first()) {
     std::cout << "\n" << dca::util::print_time() << std::endl;

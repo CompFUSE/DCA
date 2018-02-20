@@ -22,6 +22,7 @@
 
 #include "dca/function/domains/dmn_0.hpp"
 #include "dca/phys/parameters/analysis_parameters.hpp"
+#include "dca/phys/parameters/cluster_domain_aliases.hpp"
 #include "dca/phys/parameters/dca_parameters.hpp"
 #include "dca/phys/parameters/domains_parameters.hpp"
 #include "dca/phys/parameters/double_counting_parameters.hpp"
@@ -80,41 +81,23 @@ public:
   using WTpExtPosDmn =
       func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED_POSITIVE>>;
 
+  constexpr static int lattice_dimension = Model::lattice_type::DIMENSION;
+  using CDA = ClusterDomainAliases<lattice_dimension>;
   // DCA cluster domains
-  using RClusterDmn =
-      func::dmn_0<domains::cluster_domain<double, Model::lattice_type::DIMENSION, domains::CLUSTER,
-                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
-  using KClusterDmn =
-      func::dmn_0<domains::cluster_domain<double, Model::lattice_type::DIMENSION, domains::CLUSTER,
-                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
+  using RClusterDmn = typename CDA::RClusterDmn;
+  using KClusterDmn = typename CDA::KClusterDmn;
 
   // Host cluster domains
-  using RSpHostDmn =
-      func::dmn_0<domains::cluster_domain<double, Model::lattice_type::DIMENSION, domains::LATTICE_SP,
-                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
-  using KSpHostDmn =
-      func::dmn_0<domains::cluster_domain<double, Model::lattice_type::DIMENSION, domains::LATTICE_SP,
-                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
+  using RSpHostDmn = typename CDA::RSpHostDmn;
+  using KSpHostDmn = typename CDA::KSpHostDmn;
 
   // Host vertex cluster domains
-  using RTpHostDmn =
-      func::dmn_0<domains::cluster_domain<double, Model::lattice_type::DIMENSION, domains::LATTICE_TP,
-                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
-  using KTpHostDmn =
-      func::dmn_0<domains::cluster_domain<double, Model::lattice_type::DIMENSION, domains::LATTICE_TP,
-                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
+  using RTpHostDmn = typename CDA::RTpHostDmn;
+  using KTpHostDmn = typename CDA::KTpHostDmn;
 
-  using DcaClusterFamily =
-      domains::cluster_domain_family<double, Model::lattice_type::DIMENSION, domains::CLUSTER,
-                                     domains::BRILLOUIN_ZONE>;
-  using HostSpClusterFamily =
-      domains::cluster_domain_family<double, Model::lattice_type::DIMENSION, domains::LATTICE_SP,
-                                     domains::BRILLOUIN_ZONE>;
-  using HostTpClusterFamily =
-      domains::cluster_domain_family<double, Model::lattice_type::DIMENSION, domains::LATTICE_TP,
-                                     domains::BRILLOUIN_ZONE>;
-
-  constexpr static int lattice_dimension = Model::lattice_type::DIMENSION;
+  using DcaClusterFamily = typename CDA::DcaClusterFamily;
+  using HostSpClusterFamily = typename CDA::HostSpClusterFamily;
+  using HostTpClusterFamily = typename CDA::HostTpClusterFamily;
 
   constexpr static int bands = Model::lattice_type::BANDS;
 

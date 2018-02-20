@@ -50,19 +50,14 @@ public:
   using b = func::dmn_0<domains::electron_band_domain>;
   using s = func::dmn_0<domains::electron_spin_domain>;
 
-  using DCA_k_cluster_type =
-      domains::cluster_domain<double, parameters_t::lattice_type::DIMENSION, domains::CLUSTER,
-                              domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>;
-  using k_DCA = func::dmn_0<DCA_k_cluster_type>;
-  using DCA_r_cluster_type =
-      domains::cluster_domain<double, parameters_t::lattice_type::DIMENSION, domains::CLUSTER,
-                              domains::REAL_SPACE, domains::BRILLOUIN_ZONE>;
-  using r_DCA = func::dmn_0<DCA_r_cluster_type>;
+  using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
+  using RClusterDmn = typename CDA::RClusterDmn;
+  using KClusterDmn = typename CDA::KClusterDmn;
 
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
-  using nu_nu_r_DCA_t = func::dmn_variadic<nu, nu, r_DCA, t>;
-  using nu_nu_k_DCA_t = func::dmn_variadic<nu, nu, k_DCA, t>;
-  using nu_nu_k_DCA_w = func::dmn_variadic<nu, nu, k_DCA, w>;
+  using nu_nu_r_DCA_t = func::dmn_variadic<nu, nu, RClusterDmn t>;
+  using nu_nu_k_DCA_t = func::dmn_variadic<nu, nu, KClusterDmn, t>;
+  using nu_nu_k_DCA_w = func::dmn_variadic<nu, nu, KClusterDmn, w>;
 
 public:
   ss_hybridization_solver_routines(parameters_t& parameters_ref, MOMS_t& MOMS_ref);
@@ -286,7 +281,7 @@ void ss_hybridization_solver_routines<parameters_t, MOMS_t>::construct_F_r_t() {
 
   compensate_for_moments(F_k_t);
 
-  math::transform::FunctionTransform<k_DCA, r_DCA>::execute(F_k_t, F_r_t);
+  math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(F_k_t, F_r_t);
 }
 
 template <typename parameters_t, typename MOMS_t>

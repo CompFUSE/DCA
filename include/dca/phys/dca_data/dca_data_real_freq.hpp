@@ -27,6 +27,7 @@
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain_real_axis.hpp"
+#include "dca/phys/parameters/cluster_domain_aliases.hpp"
 
 namespace dca {
 namespace phys {
@@ -43,12 +44,9 @@ public:
   using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
-  using r_DCA =
-      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
-                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
-  using k_DCA =
-      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
-                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
+  using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
+  using RClusterDmn = typename CDA::RClusterDmn;
+  using KClusterDmn = typename CDA::KClusterDmn;
 
   DcaDataRealFreq(parameters_type& parameters_ref);
 
@@ -77,16 +75,16 @@ public:
   func::function<double, w_REAL> E_w;
   func::function<double, w_REAL> E0_w;
 
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w_REAL>> Sigma;
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w_REAL>> Sigma_stddev;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, KClusterDmn, w_REAL>> Sigma;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, KClusterDmn, w_REAL>> Sigma_stddev;
 
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w_REAL>> G0_k_w;
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w_REAL>> G0_r_w;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, KClusterDmn, w_REAL>> G0_k_w;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, RClusterDmn, w_REAL>> G0_r_w;
 
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w_REAL>> G_k_w;
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w_REAL>> G_k_w_stddev;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, KClusterDmn, w_REAL>> G_k_w;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, KClusterDmn, w_REAL>> G_k_w_stddev;
 
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w_REAL>> G_r_w;
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, RClusterDmn, w_REAL>> G_r_w;
 };
 
 template <class parameters_type>

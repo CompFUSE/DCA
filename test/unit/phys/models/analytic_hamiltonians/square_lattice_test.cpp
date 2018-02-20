@@ -22,6 +22,7 @@
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_initializer.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
+#include "dca/phys/parameters/cluster_domain_aliases.hpp"
 #include "dca/phys/parameters/model_parameters.hpp"
 
 using namespace dca;
@@ -80,13 +81,11 @@ TEST(SquareLatticeTest, Initialize_H_interaction) {
   using SpinDmn = func::dmn_0<func::dmn<2, int>>;
   using BandSpinDmn = func::dmn_variadic<BandDmn, SpinDmn>;
 
-  using r_DCA_ClusterType =
-      phys::domains::cluster_domain<double, Lattice::DIMENSION, phys::domains::CLUSTER,
-                                    phys::domains::REAL_SPACE, phys::domains::BRILLOUIN_ZONE>;
-  using r_DCA = func::dmn_0<r_DCA_ClusterType>;
+  using CDA = phys::ClusterDomainAliases<Lattice::DIMENSION>;
+  using RClusterDmn= typename CDA::RClusterDmn;
 
   const std::vector<std::vector<int>> DCA_cluster{{-2, 0}, {0, 2}};
-  phys::domains::cluster_domain_initializer<r_DCA>::execute(Lattice::initialize_r_DCA_basis(),
+  phys::domains::cluster_domain_initializer<RClusterDmn>::execute(Lattice::initialize_r_DCA_basis(),
                                                             DCA_cluster);
 
   // Index of the origin (0,0).
@@ -97,7 +96,7 @@ TEST(SquareLatticeTest, Initialize_H_interaction) {
   nn_index[0] = 0;  // Index of basis vector a1 translated inside the cluster.
   nn_index[1] = 3;  // Index of basis vector a2 translated inside the cluster.
 
-  func::function<double, func::dmn_variadic<BandSpinDmn, BandSpinDmn, r_DCA>> H_interaction;
+  func::function<double, func::dmn_variadic<BandSpinDmn, BandSpinDmn, RClusterDmn>> H_interaction;
   phys::params::ModelParameters<phys::models::TightBindingModel<Lattice>> params;
 
   // Check on-site interaction.
@@ -107,7 +106,7 @@ TEST(SquareLatticeTest, Initialize_H_interaction) {
 
   Lattice::initialize_H_interaction(H_interaction, params);
 
-  for (int r = 0; r < r_DCA::dmn_size(); ++r)
+  for (int r = 0; r < RClusterDmn::dmn_size(); ++r)
     for (int s2 = 0; s2 < SpinDmn::dmn_size(); ++s2)
       for (int s1 = 0; s1 < SpinDmn::dmn_size(); ++s1)
         if (r == origin && s1 != s2)
@@ -122,7 +121,7 @@ TEST(SquareLatticeTest, Initialize_H_interaction) {
 
   Lattice::initialize_H_interaction(H_interaction, params);
 
-  for (int r = 0; r < r_DCA::dmn_size(); ++r)
+  for (int r = 0; r < RClusterDmn::dmn_size(); ++r)
     for (int s2 = 0; s2 < SpinDmn::dmn_size(); ++s2)
       for (int s1 = 0; s1 < SpinDmn::dmn_size(); ++s1)
         if (std::find(nn_index.begin(), nn_index.end(), r) != nn_index.end() && s1 != s2)
@@ -137,7 +136,7 @@ TEST(SquareLatticeTest, Initialize_H_interaction) {
 
   Lattice::initialize_H_interaction(H_interaction, params);
 
-  for (int r = 0; r < r_DCA::dmn_size(); ++r)
+  for (int r = 0; r < RClusterDmn::dmn_size(); ++r)
     for (int s2 = 0; s2 < SpinDmn::dmn_size(); ++s2)
       for (int s1 = 0; s1 < SpinDmn::dmn_size(); ++s1)
         if (std::find(nn_index.begin(), nn_index.end(), r) != nn_index.end() && s1 == s2)

@@ -21,6 +21,7 @@
 
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/basis_states/phi_fermionic_operators.hpp"
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/basis_states/psi_state.hpp"
+#include "dca/phys/parameters/cluster_domain_aliases.hpp"
 
 namespace dca {
 namespace phys {
@@ -28,13 +29,15 @@ namespace solver {
 namespace ed {
 // dca::phys::solver::ed::
 
-template <typename parameter_type, typename ed_options>  // N: size of bitset sequence
+template <typename parameters_type, typename ed_options>  // N: size of bitset sequence
 class symmetry_operation {
 public:
   typedef typename ed_options::b_dmn b_dmn;
   typedef typename ed_options::s_dmn s_dmn;
-  typedef typename ed_options::r_dmn r_dmn;
-  typedef typename ed_options::k_dmn k_dmn;
+
+  using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
+  using RClusterDmn = typename CDA::RClusterDmn;
+  using KClusterDmn = typename CDA::KClusterDmn;
 
 public:
   symmetry_operation();
@@ -44,7 +47,7 @@ public:
   // Initialize with vector containing permutation of bits corresponding to symmetry operation
   void initialize(const std::vector<int>& permutation_vector);
 
-  void execute(psi_state<parameter_type, ed_options>& Psi, bool change_coeffs = true);
+  void execute(psi_state<parameters_type, ed_options>& Psi, bool change_coeffs = true);
 
   int get_order() {
     return order;
@@ -60,11 +63,11 @@ private:
   std::vector<int> permutation;
 };
 
-template <typename parameter_type, typename ed_options>
-symmetry_operation<parameter_type, ed_options>::symmetry_operation() {}
+template <typename parameters_type, typename ed_options>
+symmetry_operation<parameters_type, ed_options>::symmetry_operation() {}
 
-template <typename parameter_type, typename ed_options>
-void symmetry_operation<parameter_type, ed_options>::print() {
+template <typename parameters_type, typename ed_options>
+void symmetry_operation<parameters_type, ed_options>::print() {
   std::stringstream ss;
 
   ss << "\n\n\t symmetry \n\n";
@@ -76,10 +79,10 @@ void symmetry_operation<parameter_type, ed_options>::print() {
   std::cout << ss.str();
 }
 
-template <typename parameter_type, typename ed_options>
-void symmetry_operation<parameter_type, ed_options>::initialize(
+template <typename parameters_type, typename ed_options>
+void symmetry_operation<parameters_type, ed_options>::initialize(
     const std::vector<int>& permutation_vector) {
-  assert(permutation_vector.size() == b_dmn::dmn_size() * s_dmn::dmn_size() * r_dmn::dmn_size());
+  assert(permutation_vector.size() == b_dmn::dmn_size() * s_dmn::dmn_size() * RClusterDmn::dmn_size());
 
   permutation = permutation_vector;
 
@@ -104,19 +107,19 @@ void symmetry_operation<parameter_type, ed_options>::initialize(
   } while (test_permuted != test);
 }
 
-template <typename parameter_type, typename ed_options>
-void symmetry_operation<parameter_type, ed_options>::execute(psi_state<parameter_type, ed_options>& Psi,
+template <typename parameters_type, typename ed_options>
+void symmetry_operation<parameters_type, ed_options>::execute(psi_state<parameters_type, ed_options>& Psi,
                                                              bool change_coeffs) {
   // int sign  = 1;
 
   for (int i = 0; i < Psi.size(); ++i) {
-    typename psi_state<parameter_type, ed_options>::phi_type phi_tmp(0);
+    typename psi_state<parameters_type, ed_options>::phi_type phi_tmp(0);
 
     int sign = 1;
 
     for (int j = permutation.size() - 1; j >= 0; --j) {
       if (Psi.get_phi(i)[j]) {
-        PhiFermionicOperators<parameter_type, ed_options>::create_at(permutation[j], phi_tmp, sign);
+        PhiFermionicOperators<parameters_type, ed_options>::create_at(permutation[j], phi_tmp, sign);
       }
     }
 

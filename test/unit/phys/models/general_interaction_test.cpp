@@ -19,6 +19,7 @@
 #include "dca/phys/domains/cluster/cluster_domain_initializer.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 #include "dca/phys/models/analytic_hamiltonians/bilayer_lattice.hpp"
+#include "dca/phys/parameters/cluster_domain_aliases.hpp"
 #include "dca/phys/parameters/model_parameters.hpp"
 
 using namespace dca;
@@ -51,13 +52,11 @@ TEST(GeneralInteractionTest, MakeCorrelatedOrbitals) {
   using SpinDmn = func::dmn_0<func::dmn<2, int>>;
   using BandSpinDmn = func::dmn_variadic<BandDmn, SpinDmn>;
 
-  using r_DCA_ClusterType =
-      phys::domains::cluster_domain<double, Lattice::DIMENSION, phys::domains::CLUSTER,
-                                    phys::domains::REAL_SPACE, phys::domains::BRILLOUIN_ZONE>;
-  using r_DCA = func::dmn_0<r_DCA_ClusterType>;
+  using CDA = phys::ClusterDomainAliases<Lattice::DIMENSION>;
+  using RClusterDmn= typename CDA::RClusterDmn;
 
   const std::vector<std::vector<int>> DCA_cluster{{1, 0}, {0, 1}};
-  phys::domains::cluster_domain_initializer<r_DCA>::execute(Lattice::initialize_r_DCA_basis(),
+  phys::domains::cluster_domain_initializer<RClusterDmn>::execute(Lattice::initialize_r_DCA_basis(),
                                                             DCA_cluster);
 
   using ParametersType = FakeParameters<Lattice>;
@@ -66,7 +65,7 @@ TEST(GeneralInteractionTest, MakeCorrelatedOrbitals) {
   params.set_V(2);
   params.set_V_prime(1);
 
-  func::function<double, func::dmn_variadic<BandSpinDmn, BandSpinDmn, r_DCA>> H_interaction;
+  func::function<double, func::dmn_variadic<BandSpinDmn, BandSpinDmn, RClusterDmn>> H_interaction;
   Lattice::initialize_H_interaction(H_interaction, params);
 
   // Both orbitals are interacting.

@@ -22,6 +22,7 @@
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_initializer.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
+#include "dca/phys/parameters/cluster_domain_aliases.hpp"
 #include "dca/phys/parameters/model_parameters.hpp"
 
 using namespace dca;
@@ -105,21 +106,20 @@ TEST(BilayerLatticeTest, Initialize_H_interaction) {
   using SpinDmn = func::dmn_0<func::dmn<2, int>>;
   using BandSpinDmn = func::dmn_variadic<BandDmn, SpinDmn>;
 
-  using r_DCA_ClusterType =
-      phys::domains::cluster_domain<double, Lattice::DIMENSION, phys::domains::CLUSTER,
-                                    phys::domains::REAL_SPACE, phys::domains::BRILLOUIN_ZONE>;
-  using r_DCA = func::dmn_0<r_DCA_ClusterType>;
+  using CDA = phys::ClusterDomainAliases<Lattice::DIMENSION>;
+  using RClusterType = typename CDA::RClusterType;
+  using RClusterDmn = typename CDA::RClusterDmn;
 
   const std::vector<std::vector<int>> DCA_cluster{{-2, 0}, {0, 2}};
-  phys::domains::cluster_domain_initializer<r_DCA>::execute(Lattice::initialize_r_DCA_basis(),
+  phys::domains::cluster_domain_initializer<RClusterDmn>::execute(Lattice::initialize_r_DCA_basis(),
                                                             DCA_cluster);
 
   // Get index of origin and check it.
-  const int origin = r_DCA_ClusterType::origin_index();
-  ASSERT_DOUBLE_EQ(0., r_DCA::get_elements()[origin][0]);
-  ASSERT_DOUBLE_EQ(0., r_DCA::get_elements()[origin][1]);
+  const int origin = RClusterType::origin_index();
+  ASSERT_DOUBLE_EQ(0., RClusterDmn::get_elements()[origin][0]);
+  ASSERT_DOUBLE_EQ(0., RClusterDmn::get_elements()[origin][1]);
 
-  func::function<double, func::dmn_variadic<BandSpinDmn, BandSpinDmn, r_DCA>> H_interaction;
+  func::function<double, func::dmn_variadic<BandSpinDmn, BandSpinDmn, RClusterDmn>> H_interaction;
   phys::params::ModelParameters<phys::models::TightBindingModel<Lattice>> params;
 
   // Check same band, opposite spin interaction.
@@ -129,7 +129,7 @@ TEST(BilayerLatticeTest, Initialize_H_interaction) {
 
   Lattice::initialize_H_interaction(H_interaction, params);
 
-  for (int r = 0; r < r_DCA::dmn_size(); ++r)
+  for (int r = 0; r < RClusterDmn::dmn_size(); ++r)
     for (int s2 = 0; s2 < SpinDmn::dmn_size(); ++s2)
       for (int b2 = 0; b2 < BandDmn::dmn_size(); ++b2)
         for (int s1 = 0; s1 < SpinDmn::dmn_size(); ++s1)
@@ -146,7 +146,7 @@ TEST(BilayerLatticeTest, Initialize_H_interaction) {
 
   Lattice::initialize_H_interaction(H_interaction, params);
 
-  for (int r = 0; r < r_DCA::dmn_size(); ++r)
+  for (int r = 0; r < RClusterDmn::dmn_size(); ++r)
     for (int s2 = 0; s2 < SpinDmn::dmn_size(); ++s2)
       for (int b2 = 0; b2 < BandDmn::dmn_size(); ++b2)
         for (int s1 = 0; s1 < SpinDmn::dmn_size(); ++s1)
@@ -163,7 +163,7 @@ TEST(BilayerLatticeTest, Initialize_H_interaction) {
 
   Lattice::initialize_H_interaction(H_interaction, params);
 
-  for (int r = 0; r < r_DCA::dmn_size(); ++r)
+  for (int r = 0; r < RClusterDmn::dmn_size(); ++r)
     for (int s2 = 0; s2 < SpinDmn::dmn_size(); ++s2)
       for (int b2 = 0; b2 < BandDmn::dmn_size(); ++b2)
         for (int s1 = 0; s1 < SpinDmn::dmn_size(); ++s1)

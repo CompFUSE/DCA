@@ -23,6 +23,7 @@
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
+#include "dca/phys/parameters/cluster_domain_aliases.hpp"
 #include "dca/util/plot.hpp"
 
 namespace dca {
@@ -43,14 +44,9 @@ public:
   using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
-  using DCA_r_cluster_type =
-      domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
-                              domains::REAL_SPACE, domains::BRILLOUIN_ZONE>;
-  using r_DCA = func::dmn_0<DCA_r_cluster_type>;
-  using DCA_k_cluster_type =
-      domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
-                              domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>;
-  using k_DCA = func::dmn_0<DCA_k_cluster_type>;
+  using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
+  using RClusterDmn = typename CDA::RClusterDmn;
+  using KClusterDmn = typename CDA::KClusterDmn;
 
 public:
   cluster_exclusion(parameters_type& parameters_ref, MOMS_type& MOMS_ref);
@@ -100,7 +96,7 @@ void cluster_exclusion<parameters_type, MOMS_type>::compute_G0_K_w_cluster_exclu
   dca::linalg::Vector<std::complex<double>, dca::linalg::CPU> work;
 
   for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++) {
-    for (int K_ind = 0; K_ind < k_DCA::dmn_size(); K_ind++) {
+    for (int K_ind = 0; K_ind < KClusterDmn::dmn_size(); K_ind++) {
       for (int j = 0; j < nu::dmn_size(); j++)
         for (int i = 0; i < nu::dmn_size(); i++)
           G_matrix(i, j) = MOMS.G_k_w(i, j, K_ind, w_ind);
@@ -151,7 +147,7 @@ void cluster_exclusion<parameters_type, MOMS_type>::compute_G0_R_t_cluster_exclu
 
     MOMS.G0_k_t_cluster_excluded += MOMS.G0_k_t;
 
-    math::transform::FunctionTransform<k_DCA, r_DCA>::execute(MOMS.G0_k_t_cluster_excluded,
+    math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(MOMS.G0_k_t_cluster_excluded,
                                                               MOMS.G0_r_t_cluster_excluded);
   }
 
@@ -164,7 +160,7 @@ void cluster_exclusion<parameters_type, MOMS_type>::plot_G0_R_t_cluster_excluded
     func::function<float, t> tmp("G0_k_t");
 
     util::Plot plot("lines");
-    for (int R_ind = 0; R_ind < r_DCA::dmn_size(); R_ind++) {
+    for (int R_ind = 0; R_ind < RClusterDmn::dmn_size(); R_ind++) {
       for (int t_ind = 0; t_ind < t::dmn_size(); t_ind++)
         tmp(t_ind) = MOMS.G0_k_t(0, 0, R_ind, t_ind);
 
@@ -176,7 +172,7 @@ void cluster_exclusion<parameters_type, MOMS_type>::plot_G0_R_t_cluster_excluded
     func::function<float, t> tmp("G0_k_t_cluster_excluded");
 
     util::Plot plot("lines");
-    for (int R_ind = 0; R_ind < r_DCA::dmn_size(); R_ind++) {
+    for (int R_ind = 0; R_ind < RClusterDmn::dmn_size(); R_ind++) {
       for (int t_ind = 0; t_ind < t::dmn_size(); t_ind++)
         tmp(t_ind) = MOMS.G0_k_t_cluster_excluded(0, 0, R_ind, t_ind);
 
@@ -188,7 +184,7 @@ void cluster_exclusion<parameters_type, MOMS_type>::plot_G0_R_t_cluster_excluded
     func::function<float, t> tmp("G0_r_t");
 
     util::Plot plot("lines");
-    for (int R_ind = 0; R_ind < r_DCA::dmn_size(); R_ind++) {
+    for (int R_ind = 0; R_ind < RClusterDmn::dmn_size(); R_ind++) {
       for (int t_ind = 0; t_ind < t::dmn_size(); t_ind++)
         tmp(t_ind) = MOMS.G0_r_t_cluster_excluded(0, 0, R_ind, t_ind);
 

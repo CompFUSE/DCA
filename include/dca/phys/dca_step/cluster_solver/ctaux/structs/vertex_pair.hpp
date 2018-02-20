@@ -23,6 +23,7 @@
 #include "dca/phys/dca_step/cluster_solver/ctaux/structs/vertex_singleton.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/models/general_interaction.hpp"
+#include "dca/phys/parameters/cluster_domain_aliases.hpp"
 
 namespace dca {
 namespace phys {
@@ -35,10 +36,10 @@ class vertex_pair {
 public:
   using rng_type = typename parameters_type::random_number_generator;
 
-  using r_DCA =
-      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
-                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
-  typedef r_DCA r_dmn_t;
+  using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
+  using RClusterDmn = typename CDA::RClusterDmn;
+
+  typedef RClusterDmn r_dmn_t;
   typedef typename r_dmn_t::parameter_type r_cluster_type;
 
   typedef vertex_singleton vertex_singleton_type;

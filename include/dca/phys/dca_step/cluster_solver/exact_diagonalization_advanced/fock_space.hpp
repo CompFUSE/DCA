@@ -25,6 +25,7 @@
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/hilbert_spaces/hilbert_space.hpp"
 #include "dca/phys/domains/cluster/cluster_operations.hpp"
 #include "dca/phys/domains/cluster/cluster_symmetry.hpp"
+#include "dca/phys/parameters/cluster_domain_aliases.hpp"
 
 namespace dca {
 namespace phys {
@@ -32,14 +33,16 @@ namespace solver {
 namespace ed {
 // dca::phys::solver::ed::
 
-template <typename parameter_type, typename ed_options>  // N: size of bitset sequence
+template <typename parameters_type, typename ed_options>  // N: size of bitset sequence
 class Fock_space {
 public:
   typedef typename ed_options::b_dmn b_dmn;
   typedef typename ed_options::s_dmn s_dmn;
-  typedef typename ed_options::r_dmn r_dmn;
-  typedef typename ed_options::k_dmn k_dmn;
 
+  using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
+  using RClusterDmn = typename CDA::RClusterDmn;
+  using KClusterDmn = typename CDA::KClusterDmn;
+    
   typedef typename ed_options::profiler_t profiler_t;
   typedef typename ed_options::concurrency_type concurrency_type;
 
@@ -54,10 +57,10 @@ public:
   typedef typename ed_options::nu_dmn nu_dmn;
   typedef typename ed_options::b_s_r b_s_r_dmn_type;
 
-  typedef Hilbert_space<parameter_type, ed_options> element_type;
-  typedef Fock_space<parameter_type, ed_options> this_type;
+  typedef Hilbert_space<parameters_type, ed_options> element_type;
+  typedef Fock_space<parameters_type, ed_options> this_type;
 
-  typedef typename r_dmn::parameter_type r_cluster_type;
+  typedef typename RClusterDmn::parameter_type r_cluster_type;
 
   typedef domains::cluster_symmetry<r_cluster_type> r_symmetry_type;
 
@@ -142,7 +145,7 @@ template <typename parameter_type, typename ed_options>
 void Fock_space<parameter_type, ed_options>::initialize_without_symmetry() {
   std::vector<element_type>& Hilbert_spaces = get_elements();
 
-  int_type num_fermionic_states = b_dmn::dmn_size() * s_dmn::dmn_size() * r_dmn::dmn_size();
+  int_type num_fermionic_states = b_dmn::dmn_size() * s_dmn::dmn_size() * RClusterDmn::dmn_size();
   int_type num_fock_states = 1ul << num_fermionic_states;
 
   std::vector<std::string> names;
@@ -165,7 +168,7 @@ template <typename parameter_type, typename ed_options>
 void Fock_space<parameter_type, ed_options>::initialize_with_occupation_symmetry() {
   std::vector<element_type>& Hilbert_spaces = get_elements();
 
-  int_type N_occ_max = b_dmn::dmn_size() * s_dmn::dmn_size() * r_dmn::dmn_size();
+  int_type N_occ_max = b_dmn::dmn_size() * s_dmn::dmn_size() * RClusterDmn::dmn_size();
 
   for (int_type N_occ = 0; N_occ <= N_occ_max; ++N_occ) {
     std::vector<std::string> names;
@@ -190,7 +193,7 @@ template <typename parameter_type, typename ed_options>
 void Fock_space<parameter_type, ed_options>::apply_magnetization_symmetry() {
   std::vector<element_type>& Hilbert_spaces = get_elements();
 
-  int_type N_occ_max = b_dmn::dmn_size() * s_dmn::dmn_size() * r_dmn::dmn_size();
+  int_type N_occ_max = b_dmn::dmn_size() * s_dmn::dmn_size() * RClusterDmn::dmn_size();
 
   for (int_type N_occ = 0; N_occ <= N_occ_max; ++N_occ) {
     element_type HS(*Hilbert_spaces.begin());
@@ -237,7 +240,7 @@ void Fock_space<parameter_type, ed_options>::apply_translation_symmetry(std::str
 
   std::vector<element_type>& Hilbert_spaces = get_elements();
 
-  int num_states = b_dmn::dmn_size() * s_dmn::dmn_size() * r_dmn::dmn_size();
+  int num_states = b_dmn::dmn_size() * s_dmn::dmn_size() * RClusterDmn::dmn_size();
 
   int DIMENSION = r_cluster_type::DIMENSION;
 
@@ -271,7 +274,7 @@ void Fock_space<parameter_type, ed_options>::apply_translation_symmetry(std::str
     std::vector<int> permutation_vector(num_states);
 
     int idx = 0;
-    for (int r = 0; r < r_dmn::dmn_size(); ++r) {
+    for (int r = 0; r < RClusterDmn::dmn_size(); ++r) {
       for (int s = 0; s < s_dmn::dmn_size(); ++s) {
         for (int b = 0; b < b_dmn::dmn_size(); ++b) {
           permutation_vector[idx] =
@@ -335,7 +338,7 @@ void Fock_space<parameter_type, ed_options>::apply_rotation_symmetry(std::string
   func::function<std::pair<int, int>, r_symmetry_matrix_dmn_t>& r_symmetry_matrix =
       r_symmetry_type::get_symmetry_matrix();
 
-  int num_states = b_dmn::dmn_size() * s_dmn::dmn_size() * r_dmn::dmn_size();
+  int num_states = b_dmn::dmn_size() * s_dmn::dmn_size() * RClusterDmn::dmn_size();
 
   std::vector<std::vector<int>> applied_symmetries;
 
@@ -349,7 +352,7 @@ void Fock_space<parameter_type, ed_options>::apply_rotation_symmetry(std::string
     std::vector<int> permutation_vector(num_states);
 
     int index = 0;
-    for (int r = 0; r < r_dmn::dmn_size(); ++r) {
+    for (int r = 0; r < RClusterDmn::dmn_size(); ++r) {
       for (int s = 0; s < s_dmn::dmn_size(); ++s) {
         for (int b = 0; b < b_dmn::dmn_size(); ++b) {
           permutation_vector[index] =

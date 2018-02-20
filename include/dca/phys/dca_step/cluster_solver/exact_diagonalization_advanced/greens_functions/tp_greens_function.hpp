@@ -29,6 +29,7 @@
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/hamiltonian.hpp"
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/hilbert_spaces/hilbert_space.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
+#include "dca/phys/parameters/cluster_domain_aliases.hpp"
 #include "dca/util/print_time.hpp"
 #include "dca/util/plot.hpp"
 
@@ -38,15 +39,16 @@ namespace solver {
 namespace ed {
 // dca::phys::solver::ed::
 
-template <typename parameter_type, typename ed_options>
+template <typename parameters_type, typename ed_options>
 class TpGreensFunction {
 public:
-  // typedef ED_type_definitions<parameter_type, b_dmn, s_dmn, r_dmn> ED_type_def;
+  // typedef ED_type_definitions<parameters_type, b_dmn, s_dmn, RClusterDmn> ED_type_def;
 
   typedef typename ed_options::b_dmn b_dmn;
   typedef typename ed_options::s_dmn s_dmn;
-  typedef typename ed_options::r_dmn r_dmn;
-  typedef typename ed_options::k_dmn k_dmn;
+  using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
+  using RClusterDmn = typename CDA::RClusterDmn;
+  using KClusterDmn = typename CDA::KClusterDmn;
 
   typedef typename ed_options::profiler_t profiler_t;
   typedef typename ed_options::concurrency_type concurrency_type;
@@ -68,13 +70,13 @@ public:
 
   typedef typename ed_options::nu_nu_r_dmn_type nu_nu_r_dmn_type;
 
-  typedef func::dmn_variadic<nu_dmn, nu_dmn, nu_dmn, nu_dmn, r_dmn, r_dmn, r_dmn> nu_nu_nu_nu_r_r_r_dmn_type;
+  typedef func::dmn_variadic<nu_dmn, nu_dmn, nu_dmn, nu_dmn, RClusterDmn, RClusterDmn, RClusterDmn> nu_nu_nu_nu_r_r_r_dmn_type;
 
-  typedef Hamiltonian<parameter_type, ed_options> fermionic_Hamiltonian_type;
-  typedef fermionic_overlap_matrices<parameter_type, ed_options> fermionic_overlap_type;
+  typedef Hamiltonian<parameters_type, ed_options> fermionic_Hamiltonian_type;
+  typedef fermionic_overlap_matrices<parameters_type, ed_options> fermionic_overlap_type;
 
-  typedef Fock_space<parameter_type, ed_options> fermionic_Fock_space_type;
-  typedef Hilbert_space<parameter_type, ed_options> Hilbert_space_type;
+  typedef Fock_space<parameters_type, ed_options> fermionic_Fock_space_type;
+  typedef Hilbert_space<parameters_type, ed_options> Hilbert_space_type;
 
   typedef func::dmn_0<fermionic_Fock_space_type> fermionic_Fock_dmn_type;
 
@@ -84,7 +86,7 @@ public:
   using w_VERTEX_EXTENDED = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
 
 public:
-  TpGreensFunction(parameter_type& parameters_ref, fermionic_Hamiltonian_type& Hamiltonian_ref,
+  TpGreensFunction(parameters_type& parameters_ref, fermionic_Hamiltonian_type& Hamiltonian_ref,
                    fermionic_overlap_type& overlap_ref);
 
   template <typename Writer>
@@ -93,10 +95,10 @@ public:
   void compute_two_particle_Greens_function(bool interacting);
 
   void compute_particle_particle_superconducting_A(
-      func::function<complex_type, func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, k_dmn, k_dmn,
+      func::function<complex_type, func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, KClusterDmn, KClusterDmn,
                                                       w_VERTEX, w_VERTEX>>& G4);
   void compute_particle_particle_superconducting_B(
-      func::function<complex_type, func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, k_dmn, k_dmn,
+      func::function<complex_type, func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, KClusterDmn, KClusterDmn,
                                                       w_VERTEX, w_VERTEX>>& G4);
 
   void compute_two_particle_Greens_function(
@@ -157,11 +159,11 @@ private:
   //       func::dmn_variadic<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, bsk_dmn_type, bsk_dmn_type> >&
   //       G_nonlocal,
   //                                                      func::function<complex_type,
-  //                                                      func::dmn_variadic<b,b,b,b,k_dmn,k_dmn,w_VERTEX,w_VERTEX>
+  //                                                      func::dmn_variadic<b,b,b,b,KClusterDmn,KClusterDmn,w_VERTEX,w_VERTEX>
   //                                                      >&                            G4);
 
 private:
-  parameter_type& parameters;
+  parameters_type& parameters;
   concurrency_type& concurrency;
 
   double CUT_OFF;
@@ -177,16 +179,16 @@ private:
   func::function<int, func::dmn_variadic<fermionic_Fock_dmn_type, fermionic_Fock_dmn_type,
                                          b_s_r_dmn_type>>& annihilation_set_all;
 
-  func::function<int, k_dmn> min_k_dmn_t;
-  func::function<int, k_dmn> q_plus_;
-  func::function<int, k_dmn> q_min_;
+  func::function<int, KClusterDmn> min_k_dmn_t;
+  func::function<int, KClusterDmn> q_plus_;
+  func::function<int, KClusterDmn> q_min_;
 
   func::function<int, w_VERTEX> min_w_vertex;
   func::function<int, w_VERTEX_EXTENDED> min_w_vertex_ext;
 
   func::function<int, w_VERTEX> w_vertex_2_w_vertex_ext;
 
-  func::function<int, func::dmn_variadic<r_dmn, r_dmn>> rj_minus_ri;
+  func::function<int, func::dmn_variadic<RClusterDmn, RClusterDmn>> rj_minus_ri;
 
   func::function<complex_type, func::dmn_variadic<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED,
                                                   w_VERTEX_EXTENDED, nu_nu_nu_nu_r_r_r_dmn_type>>
@@ -210,16 +212,16 @@ private:
       G_int_w_w_k_k_nonlocal;
 
   func::function<complex_type,
-                 func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>
+                 func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, KClusterDmn, KClusterDmn, w_VERTEX, w_VERTEX>>
       G4_non;
   func::function<complex_type,
-                 func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>
+                 func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, KClusterDmn, KClusterDmn, w_VERTEX, w_VERTEX>>
       G4_int;
 };
 
-template <typename parameter_type, typename ed_options>
-TpGreensFunction<parameter_type, ed_options>::TpGreensFunction(
-    parameter_type& parameters_ref, fermionic_Hamiltonian_type& Hamiltonian_ref,
+template <typename parameters_type, typename ed_options>
+TpGreensFunction<parameters_type, ed_options>::TpGreensFunction(
+    parameters_type& parameters_ref, fermionic_Hamiltonian_type& Hamiltonian_ref,
     fermionic_overlap_type& overlap_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
@@ -255,20 +257,20 @@ TpGreensFunction<parameter_type, ed_options>::TpGreensFunction(
       G_int_w_w_r_r_nonlocal("G_int_w_w_r_r_nonlocal"),
       G_int_w_w_k_k_nonlocal("G_int_w_w_r_r_nonlocal") {
   {
-    for (int ri = 0; ri < r_dmn::dmn_size(); ri++)
-      for (int rj = 0; rj < r_dmn::dmn_size(); rj++)
-        rj_minus_ri(ri, rj) = r_dmn::parameter_type::subtract(ri, rj);
+    for (int ri = 0; ri < RClusterDmn::dmn_size(); ri++)
+      for (int rj = 0; rj < RClusterDmn::dmn_size(); rj++)
+        rj_minus_ri(ri, rj) = RClusterDmn::parameter_type::subtract(ri, rj);
   }
 
   {
     int q_channel = parameters.get_four_point_momentum_transfer_index();
-    int k0_index = k_dmn::parameter_type::origin_index();
+    int k0_index = KClusterDmn::parameter_type::origin_index();
 
-    for (int l = 0; l < k_dmn::parameter_type::get_size(); l++) {
-      min_k_dmn_t(l) = k_dmn::parameter_type::subtract(l, k0_index);
+    for (int l = 0; l < KClusterDmn::parameter_type::get_size(); l++) {
+      min_k_dmn_t(l) = KClusterDmn::parameter_type::subtract(l, k0_index);
 
-      q_plus_(l) = k_dmn::parameter_type::add(l, q_channel);
-      q_min_(l) = k_dmn::parameter_type::subtract(l, q_channel);
+      q_plus_(l) = KClusterDmn::parameter_type::add(l, q_channel);
+      q_min_(l) = KClusterDmn::parameter_type::subtract(l, q_channel);
     }
   }
 
@@ -288,9 +290,9 @@ TpGreensFunction<parameter_type, ed_options>::TpGreensFunction(
   }
 }
 
-template <typename parameter_type, typename ed_options>
+template <typename parameters_type, typename ed_options>
 template <typename Writer>
-void TpGreensFunction<parameter_type, ed_options>::write(Writer& writer) {
+void TpGreensFunction<parameters_type, ed_options>::write(Writer& writer) {
   writer.open_group("fermionic-tp-Greens-function");
 
   writer.execute(G_tp_non);
@@ -314,10 +316,10 @@ void TpGreensFunction<parameter_type, ed_options>::write(Writer& writer) {
   nu =
 
 */
-template <typename parameter_type, typename ed_options>
-void TpGreensFunction<parameter_type, ed_options>::compute_particle_particle_superconducting_A(
+template <typename parameters_type, typename ed_options>
+void TpGreensFunction<parameters_type, ed_options>::compute_particle_particle_superconducting_A(
     func::function<complex_type,
-                   func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>& G4) {
+                   func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, KClusterDmn, KClusterDmn, w_VERTEX, w_VERTEX>>& G4) {
   if (concurrency.id() == concurrency.first())
     std::cout << "\t" << __FUNCTION__ << std::endl;
 
@@ -332,9 +334,9 @@ void TpGreensFunction<parameter_type, ed_options>::compute_particle_particle_sup
     for (int b_1 = 0; b_1 < b_dmn::dmn_size(); b_1++) {
       for (int b_2 = 0; b_2 < b_dmn::dmn_size(); b_2++) {
         for (int b_3 = 0; b_3 < b_dmn::dmn_size(); b_3++) {
-          for (int r_0 = 0; r_0 < r_dmn::dmn_size(); r_0++) {
-            for (int r_1 = 0; r_1 < r_dmn::dmn_size(); r_1++) {
-              for (int r_2 = 0; r_2 < r_dmn::dmn_size(); r_2++) {
+          for (int r_0 = 0; r_0 < RClusterDmn::dmn_size(); r_0++) {
+            for (int r_1 = 0; r_1 < RClusterDmn::dmn_size(); r_1++) {
+              for (int r_2 = 0; r_2 < RClusterDmn::dmn_size(); r_2++) {
                 for (int wn = 0; wn < w_VERTEX::dmn_size(); wn++) {
                   int wn_ext = w_vertex_2_w_vertex_ext(wn);
                   assert(std::abs(w_VERTEX::get_elements()[wn] -
@@ -441,10 +443,10 @@ void TpGreensFunction<parameter_type, ed_options>::compute_particle_particle_sup
   nu =
 
 */
-template <typename parameter_type, typename ed_options>
-void TpGreensFunction<parameter_type, ed_options>::compute_particle_particle_superconducting_B(
+template <typename parameters_type, typename ed_options>
+void TpGreensFunction<parameters_type, ed_options>::compute_particle_particle_superconducting_B(
     func::function<complex_type,
-                   func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>& G4) {
+                   func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, KClusterDmn, KClusterDmn, w_VERTEX, w_VERTEX>>& G4) {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t" << __FUNCTION__ << "\n\n";
 
@@ -458,9 +460,9 @@ void TpGreensFunction<parameter_type, ed_options>::compute_particle_particle_sup
     for (int b_1 = 0; b_1 < b_dmn::dmn_size(); b_1++) {
       for (int b_2 = 0; b_2 < b_dmn::dmn_size(); b_2++) {
         for (int b_3 = 0; b_3 < b_dmn::dmn_size(); b_3++) {
-          for (int r_0 = 0; r_0 < r_dmn::dmn_size(); r_0++) {
-            for (int r_1 = 0; r_1 < r_dmn::dmn_size(); r_1++) {
-              for (int r_2 = 0; r_2 < r_dmn::dmn_size(); r_2++) {
+          for (int r_0 = 0; r_0 < RClusterDmn::dmn_size(); r_0++) {
+            for (int r_1 = 0; r_1 < RClusterDmn::dmn_size(); r_1++) {
+              for (int r_2 = 0; r_2 < RClusterDmn::dmn_size(); r_2++) {
                 for (int wn = 0; wn < w_VERTEX::dmn_size(); wn++) {
                   int wn_ext = w_vertex_2_w_vertex_ext(wn);
                   assert(std::abs(w_VERTEX::get_elements()[wn] -
@@ -552,8 +554,8 @@ void TpGreensFunction<parameter_type, ed_options>::compute_particle_particle_sup
   assert(false);
 }
 
-template <typename parameter_type, typename ed_options>
-void TpGreensFunction<parameter_type, ed_options>::compute_two_particle_Greens_function(
+template <typename parameters_type, typename ed_options>
+void TpGreensFunction<parameters_type, ed_options>::compute_two_particle_Greens_function(
     bool /*interacting*/) {
   if (concurrency.id() == concurrency.first())
     std::cout << "\t" << __FUNCTION__ << std::endl;
@@ -568,8 +570,8 @@ void TpGreensFunction<parameter_type, ed_options>::compute_two_particle_Greens_f
   //         compute_two_particle_Greens_function(G_tp_non);
 }
 
-template <typename parameter_type, typename ed_options>
-void TpGreensFunction<parameter_type, ed_options>::compute_two_particle_Greens_function(
+template <typename parameters_type, typename ed_options>
+void TpGreensFunction<parameters_type, ed_options>::compute_two_particle_Greens_function(
     func::function<complex_type, func::dmn_variadic<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, w_VERTEX_EXTENDED,
                                                     nu_nu_nu_nu_r_r_r_dmn_type>>& G_tp_ref) {
   if (concurrency.id() == concurrency.first())
@@ -603,9 +605,9 @@ void TpGreensFunction<parameter_type, ed_options>::compute_two_particle_Greens_f
   }
 }
 
-template <typename parameter_type, typename ed_options>
+template <typename parameters_type, typename ed_options>
 template <typename value_type>
-value_type TpGreensFunction<parameter_type, ed_options>::Power(value_type x, int n) {
+value_type TpGreensFunction<parameters_type, ed_options>::Power(value_type x, int n) {
   switch (n) {
     case 1:
       return x;
@@ -629,8 +631,8 @@ value_type TpGreensFunction<parameter_type, ed_options>::Power(value_type x, int
   }
 }
 
-template <typename parameter_type, typename ed_options>
-int TpGreensFunction<parameter_type, ed_options>::has_nonzero_overlap(int HS_i, int HS_j,
+template <typename parameters_type, typename ed_options>
+int TpGreensFunction<parameters_type, ed_options>::has_nonzero_overlap(int HS_i, int HS_j,
                                                                       bool is_creation, int bsr_ind) {
   if (is_creation)
     return creation_set_all(HS_i, HS_j, bsr_ind);
@@ -638,8 +640,8 @@ int TpGreensFunction<parameter_type, ed_options>::has_nonzero_overlap(int HS_i, 
     return annihilation_set_all(HS_i, HS_j, bsr_ind);
 }
 
-template <typename parameter_type, typename ed_options>
-void TpGreensFunction<parameter_type, ed_options>::get_nonzero_overlap(int HS_i, int HS_j,
+template <typename parameters_type, typename ed_options>
+void TpGreensFunction<parameters_type, ed_options>::get_nonzero_overlap(int HS_i, int HS_j,
                                                                        bool is_creation, int bsr_ind,
                                                                        matrix_type& matrix,
                                                                        matrix_type& tmp) {
@@ -649,8 +651,8 @@ void TpGreensFunction<parameter_type, ed_options>::get_nonzero_overlap(int HS_i,
     overlap.compute_annihilation_matrix_fast(HS_i, HS_j, bsr_ind, matrix, tmp);
 }
 
-template <typename parameter_type, typename ed_options>
-void TpGreensFunction<parameter_type, ed_options>::compute_tp_permutations_ph_channel(
+template <typename parameters_type, typename ed_options>
+void TpGreensFunction<parameters_type, ed_options>::compute_tp_permutations_ph_channel(
     int bsr_0, int bsr_1, int bsr_2, int bsr_3, std::vector<std::vector<c_operator>>& tp_perms) {
   tp_perms.resize(0);
 
@@ -693,8 +695,8 @@ void TpGreensFunction<parameter_type, ed_options>::compute_tp_permutations_ph_ch
   }
 }
 
-template <typename parameter_type, typename ed_options>
-void TpGreensFunction<parameter_type, ed_options>::compute_tp_permutations_pp_channel(
+template <typename parameters_type, typename ed_options>
+void TpGreensFunction<parameters_type, ed_options>::compute_tp_permutations_pp_channel(
     int bsr_0, int bsr_1, int bsr_2, int bsr_3, std::vector<std::vector<c_operator>>& tp_perms) {
   tp_perms.resize(0);
 
@@ -740,9 +742,9 @@ void TpGreensFunction<parameter_type, ed_options>::compute_tp_permutations_pp_ch
 /*!
  *    \int_0^{\beta} dt_1 \int_0^{t_1} dt_2 \int_0^{t_2} dt_3 e^{i*(a_1*t1+a_2*t2+a_3*t3)}
  */
-template <typename parameter_type, typename ed_options>
-typename TpGreensFunction<parameter_type, ed_options>::complex_type TpGreensFunction<
-    parameter_type, ed_options>::compute_phi_slow(scalar_type E_i, scalar_type E_j, scalar_type E_k,
+template <typename parameters_type, typename ed_options>
+typename TpGreensFunction<parameters_type, ed_options>::complex_type TpGreensFunction<
+    parameters_type, ed_options>::compute_phi_slow(scalar_type E_i, scalar_type E_j, scalar_type E_k,
                                                   scalar_type E_l, scalar_type w1, scalar_type w2,
                                                   scalar_type w3) {
   bool do_regular = true;
@@ -871,8 +873,8 @@ typename TpGreensFunction<parameter_type, ed_options>::complex_type TpGreensFunc
   return result;
 }
 
-template <typename parameter_type, typename ed_options>
-void TpGreensFunction<parameter_type, ed_options>::compute_tp_Greens_function_slow(
+template <typename parameters_type, typename ed_options>
+void TpGreensFunction<parameters_type, ed_options>::compute_tp_Greens_function_slow(
     int index, scalar_type E_i, scalar_type E_j, scalar_type E_k, scalar_type E_l,
     complex_type factor, std::vector<c_operator>& operators, tp_Greens_function_data_type& data) {
   int w[3];
@@ -899,10 +901,10 @@ void TpGreensFunction<parameter_type, ed_options>::compute_tp_Greens_function_sl
   }
 }
 
-// template<typename parameter_type, typename ed_options>
+// template<typename parameters_type, typename ed_options>
 // typename
-// TpGreensFunction<parameter_type, ed_options>::complex_type
-// TpGreensFunction<parameter_type, ed_options>::compute_phi_num(scalar_type E_i,
+// TpGreensFunction<parameters_type, ed_options>::complex_type
+// TpGreensFunction<parameters_type, ed_options>::compute_phi_num(scalar_type E_i,
 //                                                                           scalar_type E_j,
 //                                                                           scalar_type E_k,
 //                                                                           scalar_type E_l,
@@ -926,12 +928,12 @@ void TpGreensFunction<parameter_type, ed_options>::compute_tp_Greens_function_sl
 // }
 
 // H. Hafermann et al 2009 EPL 85 27007
-template <typename parameter_type, typename ed_options>
-void TpGreensFunction<parameter_type, ed_options>::compute_tp_Greens_function(
+template <typename parameters_type, typename ed_options>
+void TpGreensFunction<parameters_type, ed_options>::compute_tp_Greens_function(
     std::vector<tp_Greens_function_data_type>& data_vec) {
   // int w_nu = parameters.get_four_point_frequency_transfer();
 
-  int origin = k_dmn::parameter_type::origin_index();
+  int origin = KClusterDmn::parameter_type::origin_index();
 
   std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
@@ -951,10 +953,10 @@ void TpGreensFunction<parameter_type, ed_options>::compute_tp_Greens_function(
             for (int nu_1 = 0; nu_1 < nu_dmn::dmn_size(); nu_1++) {
               for (int nu_2 = 0; nu_2 < nu_dmn::dmn_size(); nu_2++) {
                 for (int nu_3 = 0; nu_3 < nu_dmn::dmn_size(); nu_3++) {
-                  for (int r_0 = 0; r_0 < r_dmn::dmn_size(); r_0++) {
-                    for (int r_1 = 0; r_1 < r_dmn::dmn_size(); r_1++) {
-                      for (int r_2 = 0; r_2 < r_dmn::dmn_size(); r_2++) {
-                        // for(int r_3=0; r_3<r_dmn::dmn_size(); r_3++){
+                  for (int r_0 = 0; r_0 < RClusterDmn::dmn_size(); r_0++) {
+                    for (int r_1 = 0; r_1 < RClusterDmn::dmn_size(); r_1++) {
+                      for (int r_2 = 0; r_2 < RClusterDmn::dmn_size(); r_2++) {
+                        // for(int r_3=0; r_3<RClusterDmn::dmn_size(); r_3++){
 
                         int r_3 = origin;
 

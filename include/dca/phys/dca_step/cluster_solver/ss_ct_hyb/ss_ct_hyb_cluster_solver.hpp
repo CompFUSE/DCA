@@ -34,6 +34,7 @@
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
+#include "dca/phys/parameters/cluster_domain_aliases.hpp"
 #include "dca/util/plot.hpp"
 #include "dca/util/print_time.hpp"
 
@@ -64,14 +65,12 @@ public:
   using b = func::dmn_0<domains::electron_band_domain>;
   using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
-  using r_DCA =
-      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
-                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
-  using k_DCA =
-      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
-                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
 
-  using nu_nu_k_DCA_w = func::dmn_variadic<nu, nu, k_DCA, w>;
+  using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
+  using RClusterDmn = typename CDA::RClusterDmn;
+  using KClusterDmn = typename CDA::KClusterDmn;
+
+  using nu_nu_k_DCA_w = func::dmn_variadic<nu, nu, KClusterDmn, w>;
 
   const static int MC_TYPE = SS_CT_HYB;
 
@@ -117,8 +116,8 @@ protected:
   double compute_S_k_w_from_G_k_w();
 
   void compute_Sigma_new(
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& G_r_w,
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& GS_r_w);
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, RClusterDmn w>>& G_r_w,
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, RClusterDmn w>>& GS_r_w);
 
   int find_w_cutoff();
 
@@ -265,9 +264,9 @@ double SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::finalize(
   collect_measurements();
   symmetrize_measurements();
 
-  math::transform::FunctionTransform<r_DCA, k_DCA>::execute(accumulator.get_G_r_w(), MOMS.G_k_w);
+  math::transform::FunctionTransform<RClusterDmn KClusterDmn>::execute(accumulator.get_G_r_w(), MOMS.G_k_w);
 
-  math::transform::FunctionTransform<k_DCA, r_DCA>::execute(MOMS.G_k_w, MOMS.G_r_w);
+  math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(MOMS.G_k_w, MOMS.G_r_w);
 
   dca_info_struct.L2_Sigma_difference(DCA_iteration) = compute_S_k_w_from_G_k_w();
 
@@ -297,7 +296,7 @@ double SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::finalize(
   }
 
   for (int i = 0; i < b::dmn_size() * s::dmn_size(); i++)
-    for (int j = 0; j < k_DCA::dmn_size(); j++)
+    for (int j = 0; j < KClusterDmn::dmn_size(); j++)
       dca_info_struct.Sigma_zero_moment(i, j, DCA_iteration) = real(MOMS.Sigma(i, i, j, 0));
 
   double total = 1.e-6, integral = 0;
@@ -387,8 +386,8 @@ void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::compute_error_b
   const int nb_measurements = accumulator.get_number_of_measurements();
   double sign = accumulator.get_sign() / double(nb_measurements);
 
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>> G_r_w("G_r_w_tmp");
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>> GS_r_w("GS_r_w_tmp");
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, RClusterDmn w>> G_r_w("G_r_w_tmp");
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, RClusterDmn w>> GS_r_w("GS_r_w_tmp");
 
   for (int l = 0; l < G_r_w.size(); l++)
     G_r_w(l) = accumulator.get_G_r_w()(l) / double(nb_measurements * sign);
@@ -487,7 +486,7 @@ double SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::compute_S_k_w
   for (int b_ind = 0; b_ind < b::dmn_size(); b_ind++) {
     if (ss_hybridization_solver_routines_type::is_interacting_band(b_ind)) {
       for (int s_ind = 0; s_ind < s::dmn_size(); s_ind++) {
-        for (int k_ind = 0; k_ind < k_DCA::dmn_size(); k_ind++) {
+        for (int k_ind = 0; k_ind < KClusterDmn::dmn_size(); k_ind++) {
           double Sigma_0, Sigma_1;
           find_tail_of_Sigma(Sigma_0, Sigma_1, b_ind, s_ind, k_ind);
           for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++) {
@@ -523,8 +522,8 @@ double SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::compute_S_k_w
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::compute_Sigma_new(
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& G_r_w,
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& GS_r_w) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, RClusterDmn w>>& G_r_w,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, RClusterDmn w>>& GS_r_w) {
   Sigma_new = 0;
 
   func::function<double, nu>& mu_HALF = ss_hybridization_solver_routines_type::get_mu_HALF();
@@ -570,8 +569,8 @@ auto SsCtHybClusterSolver<device_t, parameters_type, MOMS_type>::local_G_k_w() c
   if (averaged_)
     throw std::logic_error("The local data was already averaged.");
 
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>> G_k_w;
-  math::transform::FunctionTransform<r_DCA, k_DCA>::execute(accumulator.get_G_r_w(), G_k_w);
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, KClusterDmn, w>> G_k_w;
+  math::transform::FunctionTransform<RClusterDmn KClusterDmn>::execute(accumulator.get_G_r_w(), G_k_w);
   G_k_w /= accumulator.get_sign();
 
   return G_k_w;
