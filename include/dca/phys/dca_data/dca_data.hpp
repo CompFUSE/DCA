@@ -415,7 +415,7 @@ void DcaData<Parameters>::write(Writer& writer) {
   }
 
   writer.execute(Sigma);
-  writer.execute("Sigma Error", Sigma_err_);
+  writer.execute(Sigma_err_);
 
   if (parameters_.dump_lattice_self_energy()) {
     writer.execute(Sigma_lattice);
@@ -423,7 +423,7 @@ void DcaData<Parameters>::write(Writer& writer) {
 
   if (parameters_.dump_cluster_Greens_functions()) {
     writer.execute(G_k_w);
-    writer.execute("G_k_w_err", G_k_w_err_);
+    writer.execute(G_k_w_err_);
     writer.execute(G_r_w);
     writer.execute(G_k_t);
     writer.execute(G_r_t);
@@ -442,11 +442,11 @@ void DcaData<Parameters>::write(Writer& writer) {
   if (parameters_.get_four_point_type() != NONE) {
     if (!(parameters_.dump_cluster_Greens_functions())) {
       writer.execute(G_k_w);
-      writer.execute("G_k_w_err", G_k_w_err_);
+      writer.execute(G_k_w_err_);
     }
 
-    writer.execute("G4_k_k_w_w", G4_k_k_w_w_);
-    writer.execute("G4_k_k_w_w_err", G4_k_k_w_w_err_);
+    writer.execute(G4_k_k_w_w_);
+    writer.execute(G4_k_k_w_w_err_);
   }
 
   writer.close_group();
