@@ -72,11 +72,6 @@ public:
   void accumulate_M_r_w(configuration_type& configuration_e_spin, vertex_vertex_matrix_type& M,
                         double sign, e_spin_states e_spin);
 
-  template <class configuration_type>
-  void accumulate_K_r_t(configuration_type& configuration,
-                        func::function<double, func::dmn_variadic<nu, nu, RClusterDmn, t>>& K_r_t,
-                        double sign);
-
   int find_first_non_interacting_spin(std::vector<vertex_singleton_type>& configuration_e_spin);
 
   // TODO: Deprecated since replaced by finalize(M_r_w, M_r_w_squared)?
@@ -161,44 +156,6 @@ void SpAccumulatorNfft<parameters_type, MOMS_type>::accumulate_M_r_w(
       cached_nfft_1D_M_r_w_squared_obj.accumulate(coor_nfft, scaled_tau, f_tau * f_tau);
     }
   }
-}
-
-template <class parameters_type, class MOMS_type>
-template <class configuration_type>
-void SpAccumulatorNfft<parameters_type, MOMS_type>::accumulate_K_r_t(
-    configuration_type& /*configuration*/,
-    func::function<double, func::dmn_variadic<nu, nu, RClusterDmn, t>>& /*K_r_t*/, double /*sign*/) {
-  // for next generation solver !!
-
-  /*
-    typedef vertex_singleton<base_cluster_type> vertex_singleton_type;
-
-    double delta_tau = 2.*parameters.get_beta()/(t::dmn_size()-2);
-
-    for(int j=0; j<configuration.size(); j++)
-    {
-    vertex_singleton_type& vertex = configuration[j];
-
-    //      int b_0   = vertex.get_band();
-    //      int s_0   = vertex.get_e_spin();
-
-    //      int b_1   = vertex.get_band();
-    //      int s_1   = vertex.get_e_spin();
-
-    int r_ind = vertex.get_r_site();
-    int t_ind = t::dmn_size()/2+(vertex.get_tau()/delta_tau);
-
-    if(t_ind<0 or t_ind>=t::dmn_size())
-    t_ind = 0;
-
-    double f_tau = 0.;
-    if(vertex.get_HS_spin() != HS_ZERO)
-    f_tau = 1.;
-
-    K_r_t(0, 0, 0, 0, r_ind, t_ind) += sign*f_tau;
-    K_r_t(0, 1, 0, 1, r_ind, t_ind) += sign*f_tau;
-    }
-  */
 }
 
 template <class parameters_type, class MOMS_type>

@@ -34,18 +34,18 @@ namespace solver {
 namespace cthyb {
 // dca::phys::solver::cthyb::
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 class SsCtHybAccumulator : public MC_accumulator_data,
-                           public ss_hybridization_solver_routines<parameters_type, MOMS_type> {
+                           public ss_hybridization_solver_routines<parameters_type, Data> {
 public:
-  using this_type = SsCtHybAccumulator<device_t, parameters_type, MOMS_type>;
+  using this_type = SsCtHybAccumulator<device_t, parameters_type, Data>;
 
   typedef parameters_type my_parameters_type;
-  typedef MOMS_type my_MOMS_type;
+  using DataType = Data;
 
-  typedef SsCtHybWalker<device_t, parameters_type, MOMS_type> walker_type;
+  typedef SsCtHybWalker<device_t, parameters_type, Data> walker_type;
 
-  typedef ss_hybridization_solver_routines<parameters_type, MOMS_type> ss_hybridization_solver_routines_type;
+  typedef ss_hybridization_solver_routines<parameters_type, Data> ss_hybridization_solver_routines_type;
 
   typedef
       typename walker_type::ss_hybridization_walker_routines_type ss_hybridization_walker_routines_type;
@@ -69,17 +69,17 @@ public:
 
   typedef double scalar_type;
 
-  typedef typename SsCtHybTypedefs<parameters_type, MOMS_type>::vertex_vertex_matrix_type
-      vertex_vertex_matrix_type;
-  typedef typename SsCtHybTypedefs<parameters_type, MOMS_type>::orbital_configuration_type
-      orbital_configuration_type;
+  typedef
+      typename SsCtHybTypedefs<parameters_type, Data>::vertex_vertex_matrix_type vertex_vertex_matrix_type;
+  typedef
+      typename SsCtHybTypedefs<parameters_type, Data>::orbital_configuration_type orbital_configuration_type;
 
-  typedef typename SsCtHybTypedefs<parameters_type, MOMS_type>::configuration_type configuration_type;
+  typedef typename SsCtHybTypedefs<parameters_type, Data>::configuration_type configuration_type;
 
   typedef func::function<vertex_vertex_matrix_type, nu> M_matrix_type;
 
 public:
-  SsCtHybAccumulator(parameters_type& parameters_ref, MOMS_type& MOMS_ref, int id = 0);
+  SsCtHybAccumulator(parameters_type& parameters_ref, Data& data_ref, int id = 0);
 
   void initialize(int dca_iteration);
 
@@ -140,7 +140,7 @@ protected:
   using MC_accumulator_data::accumulated_sign;
 
   parameters_type& parameters;
-  MOMS_type& MOMS;
+  Data& data_;
   concurrency_type& concurrency;
 
   int thread_id;
@@ -156,16 +156,16 @@ protected:
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>> G_r_w;
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>> GS_r_w;
 
-  SpAccumulatorNfft<parameters_type, MOMS_type> single_particle_accumulator_obj;
+  SpAccumulatorNfft<parameters_type, Data> single_particle_accumulator_obj;
 };
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-SsCtHybAccumulator<device_t, parameters_type, MOMS_type>::SsCtHybAccumulator(
-    parameters_type& parameters_ref, MOMS_type& MOMS_ref, int id)
-    : ss_hybridization_solver_routines<parameters_type, MOMS_type>(parameters_ref, MOMS_ref),
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+SsCtHybAccumulator<device_t, parameters_type, Data>::SsCtHybAccumulator(parameters_type& parameters_ref,
+                                                                        Data& data_ref, int id)
+    : ss_hybridization_solver_routines<parameters_type, Data>(parameters_ref, data_ref),
 
       parameters(parameters_ref),
-      MOMS(MOMS_ref),
+      data_(data_ref),
       concurrency(parameters.get_concurrency()),
 
       thread_id(id),
@@ -183,8 +183,8 @@ SsCtHybAccumulator<device_t, parameters_type, MOMS_type>::SsCtHybAccumulator(
 
       single_particle_accumulator_obj(parameters) {}
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void SsCtHybAccumulator<device_t, parameters_type, MOMS_type>::initialize(int dca_iteration) {
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+void SsCtHybAccumulator<device_t, parameters_type, Data>::initialize(int dca_iteration) {
   MC_accumulator_data::initialize(dca_iteration);
 
   visited_expansion_order_k = 0;
@@ -195,16 +195,16 @@ void SsCtHybAccumulator<device_t, parameters_type, MOMS_type>::initialize(int dc
   overlap = 0;
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 void SsCtHybAccumulator<device_t, parameters_type,
-                        MOMS_type>::finalize()  // func::function<double, nu> mu_DC)
+                        Data>::finalize()  // func::function<double, nu> mu_DC)
 {
   single_particle_accumulator_obj.finalize(G_r_w, GS_r_w);
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 template <typename Writer>
-void SsCtHybAccumulator<device_t, parameters_type, MOMS_type>::write(Writer& writer) {
+void SsCtHybAccumulator<device_t, parameters_type, Data>::write(Writer& writer) {
   writer.execute(G_r_w);
   writer.execute(GS_r_w);
 }
@@ -215,8 +215,8 @@ void SsCtHybAccumulator<device_t, parameters_type, MOMS_type>::write(Writer& wri
  **                                                         **
  *************************************************************/
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void SsCtHybAccumulator<device_t, parameters_type, MOMS_type>::update_from(walker_type& walker) {
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+void SsCtHybAccumulator<device_t, parameters_type, Data>::update_from(walker_type& walker) {
   current_sign = walker.get_sign();
 
   configuration.copy_from(walker.get_configuration());
@@ -225,8 +225,8 @@ void SsCtHybAccumulator<device_t, parameters_type, MOMS_type>::update_from(walke
     M_matrices(l) = walker.get_M_matrices()(l);
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void SsCtHybAccumulator<device_t, parameters_type, MOMS_type>::measure() {
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+void SsCtHybAccumulator<device_t, parameters_type, Data>::measure() {
   number_of_measurements += 1;
   accumulated_sign += current_sign;
 
@@ -235,11 +235,11 @@ void SsCtHybAccumulator<device_t, parameters_type, MOMS_type>::measure() {
     visited_expansion_order_k(k) += 1;
 
   single_particle_accumulator_obj.accumulate(current_sign, configuration, M_matrices,
-                                             MOMS.H_interactions);
+                                             data_.H_interactions);
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void SsCtHybAccumulator<device_t, parameters_type, MOMS_type>::accumulate_length(walker_type& walker) {
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+void SsCtHybAccumulator<device_t, parameters_type, Data>::accumulate_length(walker_type& walker) {
   ss_hybridization_walker_routines_type& hybridization_routines =
       walker.get_ss_hybridization_walker_routines();
 
@@ -252,8 +252,8 @@ void SsCtHybAccumulator<device_t, parameters_type, MOMS_type>::accumulate_length
   }
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void SsCtHybAccumulator<device_t, parameters_type, MOMS_type>::accumulate_overlap(walker_type& walker) {
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+void SsCtHybAccumulator<device_t, parameters_type, Data>::accumulate_overlap(walker_type& walker) {
   ss_hybridization_walker_routines_type& hybridization_routines =
       walker.get_ss_hybridization_walker_routines();
 
@@ -279,8 +279,8 @@ void SsCtHybAccumulator<device_t, parameters_type, MOMS_type>::accumulate_overla
   }
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void SsCtHybAccumulator<device_t, parameters_type, MOMS_type>::sum_to(this_type& other) {
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+void SsCtHybAccumulator<device_t, parameters_type, Data>::sum_to(this_type& other) {
   finalize();
 
   other.get_sign() += get_sign();

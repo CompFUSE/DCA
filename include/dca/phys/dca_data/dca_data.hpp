@@ -46,6 +46,7 @@
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
 #include "dca/phys/four_point_type.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
+#include "dca/phys/models/traits.hpp"
 #include "dca/util/timer.hpp"
 
 
@@ -53,36 +54,47 @@ namespace dca {
 namespace phys {
 // dca::phys::
 
-template <class parameters_type>
+template <class Parameters>
 class DcaData {
 public:
-  constexpr static int DIMENSION = parameters_type::lattice_type::DIMENSION;
 
-  using profiler_type = typename parameters_type::profiler_type;
-  using concurrency_type = typename parameters_type::concurrency_type;
+  using profiler_type = typename Parameters::profiler_type;
+
+  using Concurrency = typename Parameters::concurrency_type;
+  using Lattice = typename Parameters::lattice_type;
+  constexpr static int DIMENSION = Lattice::DIMENSION;
+
+private:
+  using TDmn = func::dmn_0<domains::time_domain>;
+  using WDmn = func::dmn_0<domains::frequency_domain>;
+  using WVertexDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
+
+  using BDmn = func::dmn_0<domains::electron_band_domain>;
+  using SDmn = func::dmn_0<domains::electron_spin_domain>;
+  using NuDmn = func::dmn_variadic<BDmn, SDmn>;  // orbital-spin index
+  using NuNuDmn = func::dmn_variadic<NuDmn, NuDmn>;
 
   using CDA = ClusterDomainAliases<DIMENSION>;
   using RClusterDmn = typename CDA::RClusterDmn;
   using KClusterType = typename CDA::KClusterType;
   using KClusterDmn = typename CDA::KClusterDmn;
-  using r_HOST = typename CDA::RSpHostDmn;
-  using k_HOST = typename CDA::KSpHostDmn;
+  using RHostDmn = typename CDA::RSpHostDmn;
+  using KHostDmn = typename CDA::KSpHostDmn;
 
-  using t = func::dmn_0<domains::time_domain>;
-  using w = func::dmn_0<domains::frequency_domain>;
-  using w_VERTEX = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
-  using b = func::dmn_0<domains::electron_band_domain>;
-  using s = func::dmn_0<domains::electron_spin_domain>;
-  using nu = func::dmn_variadic<b, s>;  // orbital-spin index
-  using nu_nu = func::dmn_variadic<nu, nu>;
+  using KCutDmn = func::dmn_0<domains::brillouin_zone_cut_domain<101>>;
 
-  using k_domain_cut_dmn_type = func::dmn_0<domains::brillouin_zone_cut_domain<101>>;
-  using nu_k_cut = func::dmn_variadic<nu, k_domain_cut_dmn_type>;
+  using NuKCutDmn = func::dmn_variadic<NuDmn, KCutDmn>;
+  using NuNuKWDmn = func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>;
 
-  using nu_nu_k_DCA_w = func::dmn_variadic<nu, nu, KClusterDmn, w>;
+  using SpGreensFunction =
+      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>>;
+  using TpGreensFunction =
+      func::function<std::complex<double>,
+                     func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KClusterDmn, KClusterDmn, WVertexDmn, WVertexDmn>>;
 
 
-  DcaData(parameters_type& parameters_ref);
+public:
+  DcaData(Parameters& parameters_ref);
 
   void read(std::string filename);
   template <typename Reader>
@@ -103,68 +115,114 @@ public:
   void print_Sigma_QMC_versus_Sigma_cg();
 
 private:
-  parameters_type& parameters;
-  concurrency_type& concurrency;
+  Parameters& parameters_;
+  Concurrency& concurrency_;
 
 public:
-  func::function<int, nu_nu> H_symmetry;
-  func::function<double, func::dmn_variadic<nu, nu, RClusterDmn>> H_interactions;
+  func::function<int, NuNuDmn> H_symmetry;
+  func::function<double, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn>> H_interactions;
 
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, KClusterDmn>> H_DCA;
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_HOST>> H_HOST;
+  func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn>> H_DCA;
+  func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KHostDmn>> H_HOST;
 
-  func::function<double, nu_k_cut> band_structure;
+  func::function<double, NuKCutDmn> band_structure;
 
-  func::function<std::complex<double>, nu_k_cut> Sigma_band_structure;
+  func::function<std::complex<double>, NuKCutDmn> Sigma_band_structure;
 
-  func::function<std::complex<double>, nu_k_cut> Sigma_cluster_band_structure;
-  func::function<std::complex<double>, nu_k_cut> Sigma_lattice_band_structure;
+  func::function<std::complex<double>, NuKCutDmn> Sigma_cluster_band_structure;
+  func::function<std::complex<double>, NuKCutDmn> Sigma_lattice_band_structure;
 
-  func::function<std::complex<double>, nu_k_cut> Sigma_band_structure_interpolated;
-  func::function<std::complex<double>, nu_k_cut> Sigma_band_structure_coarsegrained;
+  func::function<std::complex<double>, NuKCutDmn> Sigma_band_structure_interpolated;
+  func::function<std::complex<double>, NuKCutDmn> Sigma_band_structure_coarsegrained;
 
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_HOST>> G_k;  //("Greens-k-lattice");
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_HOST>> S_k;  //("Sigma-k-lattice");
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_HOST>> S_r;  //("Sigma-r-lattice");
+  func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KHostDmn>> G_k;  //("Greens-k-lattice");
+  func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KHostDmn>> S_k;  //("Sigma-k-lattice");
+  func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RHostDmn>> S_r;  //("Sigma-r-lattice");
 
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, KClusterDmn, w>> Sigma;
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, KClusterDmn, w>> Sigma_stddev;
+  func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>> Sigma;
 
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, KClusterDmn, w>> Sigma_cluster;
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_HOST, w>> Sigma_lattice;
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_HOST, w>> Sigma_lattice_interpolated;
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_HOST, w>> Sigma_lattice_coarsegrained;
+  func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>> Sigma_cluster;
+  func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KHostDmn, WDmn>> Sigma_lattice;
+  func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KHostDmn, WDmn>>
+      Sigma_lattice_interpolated;
+  func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KHostDmn, WDmn>>
+      Sigma_lattice_coarsegrained;
 
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, KClusterDmn, w>> G_k_w;
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, KClusterDmn, w>> G_k_w_stddev;
-  func::function<double, func::dmn_variadic<nu, nu, KClusterDmn, t>> G_k_t;
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, RClusterDmn, w>> G_r_w;
-  func::function<double, func::dmn_variadic<nu, nu, RClusterDmn, t>> G_r_t;
+  func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>> G_k_w;
+  func::function<double, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, TDmn>> G_k_t;
+  func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>> G_r_w;
+  func::function<double, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>> G_r_t;
 
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, KClusterDmn, w>> G0_k_w;
-  func::function<double, func::dmn_variadic<nu, nu, KClusterDmn, t>> G0_k_t;
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, RClusterDmn, w>> G0_r_w;
-  func::function<double, func::dmn_variadic<nu, nu, RClusterDmn, t>> G0_r_t;
+  func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>> G0_k_w;
+  func::function<double, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, TDmn>> G0_k_t;
+  func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>> G0_r_w;
+  func::function<double, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>> G0_r_t;
 
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, KClusterDmn, w>> G0_k_w_cluster_excluded;
-  func::function<double, func::dmn_variadic<nu, nu, KClusterDmn, t>> G0_k_t_cluster_excluded;
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, RClusterDmn, w>> G0_r_w_cluster_excluded;
-  func::function<double, func::dmn_variadic<nu, nu, RClusterDmn, t>> G0_r_t_cluster_excluded;
+  func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>> G0_k_w_cluster_excluded;
+  func::function<double, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, TDmn>> G0_k_t_cluster_excluded;
+  func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>> G0_r_w_cluster_excluded;
+  func::function<double, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>> G0_r_t_cluster_excluded;
 
-  func::function<std::complex<double>, func::dmn_variadic<b, b, b, b, KClusterDmn, KClusterDmn, w_VERTEX, w_VERTEX>>
-      G4_k_k_w_w;
-  func::function<std::complex<double>, func::dmn_variadic<b, b, b, b, KClusterDmn, KClusterDmn, w_VERTEX, w_VERTEX>>
-      G4_k_k_w_w_stddev;
+  func::function<double, NuDmn> orbital_occupancy;
 
-  func::function<double, func::dmn_variadic<nu, nu, RClusterDmn, t>> K_r_t;
+public:  // Optional members getters.
+  auto& get_G_k_w_error() {
+    if (not G_k_w_err_)
+      G_k_w_err_.reset(new SpGreensFunction("G_k_w-error"));
+    return *G_k_w_err_;
+  }
+  auto& get_G_k_w_stdv() {
+    if (not G_k_w_err_)
+      G_k_w_err_.reset(new SpGreensFunction("cluster_greens_function_G_k_w-stddev"));
+    return *G_k_w_err_;
+  }
+  auto& get_Sigma_stdv() {
+    if (not Sigma_err_)
+      Sigma_err_.reset(new SpGreensFunction("Self_Energy-stddev"));
+    return *Sigma_err_;
+  }
+  auto& get_Sigma_error() {
+    if (not Sigma_err_)
+      Sigma_err_.reset(new SpGreensFunction("Self_Energy-error"));
+    return *Sigma_err_;
+  }
+  auto& get_G4_k_k_w_w() {
+    if (not G4_k_k_w_w_)
+      G4_k_k_w_w_.reset(new TpGreensFunction("G4_k_k_w_w"));
+    return *G4_k_k_w_w_;
+  }
+  auto& get_G4_k_k_w_w_error() {
+    if (not G4_k_k_w_w_err_)
+      G4_k_k_w_w_err_.reset(new TpGreensFunction("G4_k_k_w_w-error"));
+    return *G4_k_k_w_w_err_;
+  }
+  auto& get_G4_k_k_w_w_stdv() {
+    if (not G4_k_k_w_w_err_)
+      G4_k_k_w_w_err_.reset(new TpGreensFunction("G4_k_k_w_w-stddev"));
+    return *G4_k_k_w_w_err_;
+  }
+  auto& get_non_density_interactions() {
+    if (not non_density_interactions_)
+      non_density_interactions_.reset(
+          new func::function<double, func::dmn_variadic<NuDmn, NuDmn, NuDmn, NuDmn, RClusterDmn>>(
+              "non_density_interaction"));
+    return *non_density_interactions_;
+  }
+  bool has_non_density_interactions() const {return (bool)non_density_interactions_;}
 
-  func::function<double, nu> orbital_occupancy;
+private:  // Optional members.
+  std::unique_ptr<SpGreensFunction> G_k_w_err_;
+  std::unique_ptr<SpGreensFunction> Sigma_err_;
+  std::unique_ptr<TpGreensFunction> G4_k_k_w_w_;
+  std::unique_ptr<TpGreensFunction> G4_k_k_w_w_err_;
+  std::unique_ptr<func::function<double, func::dmn_variadic<NuDmn, NuDmn, NuDmn, NuDmn, RClusterDmn>>>
+      non_density_interactions_;
 };
 
-template <class parameters_type>
-DcaData<parameters_type>::DcaData(parameters_type& parameters_ref)
-    : parameters(parameters_ref),
-      concurrency(parameters.get_concurrency()),
+template <class Parameters>
+DcaData<Parameters>::DcaData(Parameters& parameters_ref)
+    : parameters_(parameters_ref),
+      concurrency_(parameters_.get_concurrency()),
 
       H_symmetry("H_symmetry"),
       H_interactions("interaction-matrix"),
@@ -187,7 +245,6 @@ DcaData<parameters_type>::DcaData(parameters_type& parameters_ref)
       S_r("Sigma-r-lattice"),
 
       Sigma("Self_Energy"),
-      Sigma_stddev("Self_Energy-stddev"),
 
       Sigma_cluster("Self-Energy-cluster"),
       Sigma_lattice("Self-energy-lattice"),
@@ -196,7 +253,6 @@ DcaData<parameters_type>::DcaData(parameters_type& parameters_ref)
       Sigma_lattice_coarsegrained("Sigma_lattice_coarsegrained"),
 
       G_k_w("cluster_greens_function_G_k_w"),
-      G_k_w_stddev("cluster_greens_function_G_k_w-stddev"),
       G_k_t("cluster_greens_function_G_k_t"),
       G_r_w("cluster_greens_function_G_r_w"),
       G_r_t("cluster_greens_function_G_r_t"),
@@ -211,22 +267,17 @@ DcaData<parameters_type>::DcaData(parameters_type& parameters_ref)
       G0_r_w_cluster_excluded("cluster_excluded_greens_function_G0_r_w"),
       G0_r_t_cluster_excluded("cluster_excluded_greens_function_G0_r_t"),
 
-      G4_k_k_w_w("G4_k_k_w_w"),
-      G4_k_k_w_w_stddev("G4_k_k_w_w-stddev"),
-
-      K_r_t("K_r_t"),
-
       orbital_occupancy("orbital_occupancy") {
   H_symmetry = -1;
 }
 
-template <class parameters_type>
-void DcaData<parameters_type>::read(std::string filename) {
-  if (concurrency.id() == concurrency.first())
+template <class Parameters>
+void DcaData<Parameters>::read(std::string filename) {
+  if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\n\t starts reading \n\n";
 
-  if (concurrency.id() == concurrency.first()) {
-    const std::string& output_format = parameters.get_output_format();
+  if (concurrency_.id() == concurrency_.first()) {
+    const std::string& output_format = parameters_.get_output_format();
 
     if (output_format == "JSON") {
       dca::io::JSONReader reader;
@@ -246,19 +297,19 @@ void DcaData<parameters_type>::read(std::string filename) {
       throw std::logic_error(__FUNCTION__);
   }
 
-  concurrency.broadcast(parameters.get_chemical_potential());
+  concurrency_.broadcast(parameters_.get_chemical_potential());
 
-  concurrency.broadcast_object(Sigma);
+  concurrency_.broadcast_object(Sigma);
 
-  if (parameters.get_four_point_type() != NONE) {
-    concurrency.broadcast_object(G_k_w);
-    concurrency.broadcast_object(G4_k_k_w_w);
+  if (parameters_.get_four_point_type() != NONE) {
+    concurrency_.broadcast_object(G_k_w);
+    concurrency_.broadcast_object(get_G4_k_k_w_w());
   }
 }
 
-template <class parameters_type>
+template <class Parameters>
 template <typename Reader>
-void DcaData<parameters_type>::read(Reader& reader) {
+void DcaData<Parameters>::read(Reader& reader) {
   std::string four_point_type = "NONE";
 
   {
@@ -267,7 +318,7 @@ void DcaData<parameters_type>::read(Reader& reader) {
     {
       reader.open_group("physics");
 
-      reader.execute("chemical-potential", parameters.get_chemical_potential());
+      reader.execute("chemical-potential", parameters_.get_chemical_potential());
 
       reader.close_group();
     }
@@ -291,24 +342,24 @@ void DcaData<parameters_type>::read(Reader& reader) {
     if (four_point_type != "NONE") {
       reader.execute(G_k_w);
 
-      reader.execute(G4_k_k_w_w);
+      reader.execute(get_G4_k_k_w_w());
     }
 
     reader.close_group();
   }
 }
 
-template <class parameters_type>
-void DcaData<parameters_type>::write(std::string file_name) {
+template <class Parameters>
+void DcaData<Parameters>::write(std::string file_name) {
   std::cout << "\n\n\t\t start writing " << file_name << "\n\n";
 
-  const std::string& output_format = parameters.get_output_format();
+  const std::string& output_format = parameters_.get_output_format();
 
   if (output_format == "JSON") {
     dca::io::JSONWriter writer;
     writer.open_file(file_name);
 
-    parameters.write(writer);
+    parameters_.write(writer);
     this->write(writer);
 
     writer.close_file();
@@ -318,7 +369,7 @@ void DcaData<parameters_type>::write(std::string file_name) {
     dca::io::HDF5Writer writer;
     writer.open_file(file_name);
 
-    parameters.write(writer);
+    parameters_.write(writer);
     this->write(writer);
 
     writer.close_file();
@@ -328,14 +379,14 @@ void DcaData<parameters_type>::write(std::string file_name) {
     throw std::logic_error(__FUNCTION__);
 }
 
-template <class parameters_type>
+template <class Parameters>
 template <typename Writer>
-void DcaData<parameters_type>::write(Writer& writer) {
+void DcaData<Parameters>::write(Writer& writer) {
   writer.open_group("functions");
 
   writer.execute(band_structure);
 
-  if (parameters.do_dca_plus()) {
+  if (parameters_.do_dca_plus()) {
     writer.execute(Sigma_band_structure);
     writer.execute(Sigma_cluster_band_structure);
     writer.execute(Sigma_lattice_band_structure);
@@ -350,26 +401,28 @@ void DcaData<parameters_type>::write(Writer& writer) {
 
   else {
     // Compute Sigma-r-DCA for the lowest frequency via Fourier transformation of DCA cluster Sigma.
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, RClusterDmn>> S_r_DCA("Sigma-r-DCA");
+    func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn>> S_r_DCA(
+        "Sigma-r-DCA");
 
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, KClusterDmn>> S_k_DCA("Sigma-k-DCA");
-    std::memcpy(&S_k_DCA(0), &Sigma(0, 0, 0, w::dmn_size() / 2),
-                sizeof(std::complex<double>) * std::pow(2 * b::dmn_size(), 2.) * KClusterDmn::dmn_size());
+    func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn>> S_k_DCA(
+        "Sigma-k-DCA");
+    std::memcpy(&S_k_DCA(0), &Sigma(0, 0, 0, WDmn::dmn_size() / 2),
+                sizeof(std::complex<double>) * std::pow(2 * BDmn::dmn_size(), 2.) * KClusterDmn::dmn_size());
     math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(S_k_DCA, S_r_DCA);
 
     writer.execute(S_r_DCA);
   }
 
   writer.execute(Sigma);
-  writer.execute(Sigma_stddev);
+  writer.execute(Sigma_err_);
 
-  if (parameters.dump_lattice_self_energy()) {
+  if (parameters_.dump_lattice_self_energy()) {
     writer.execute(Sigma_lattice);
   }
 
-  if (parameters.dump_cluster_Greens_functions()) {
+  if (parameters_.dump_cluster_Greens_functions()) {
     writer.execute(G_k_w);
-    writer.execute(G_k_w_stddev);
+    writer.execute(G_k_w_err_);
     writer.execute(G_r_w);
     writer.execute(G_k_t);
     writer.execute(G_r_t);
@@ -385,50 +438,55 @@ void DcaData<parameters_type>::write(Writer& writer) {
     writer.execute(G0_r_t_cluster_excluded);
   }
 
-  if (parameters.get_four_point_type() != NONE) {
-    if (!(parameters.dump_cluster_Greens_functions())) {
+  if (parameters_.get_four_point_type() != NONE) {
+    if (!(parameters_.dump_cluster_Greens_functions())) {
       writer.execute(G_k_w);
-      writer.execute(G_k_w_stddev);
+      writer.execute(G_k_w_err_);
     }
 
-    writer.execute(G4_k_k_w_w);
-    writer.execute(G4_k_k_w_w_stddev);
+    writer.execute(G4_k_k_w_w_);
+    writer.execute(G4_k_k_w_w_err_);
   }
 
   writer.close_group();
 }
 
-template <class parameters_type>
-void DcaData<parameters_type>::initialize() {
+template <class Parameters>
+void DcaData<Parameters>::initialize() {
   initialize_H_0_and_H_i();
   initialize_G0();
 }
 
-template <class parameters_type>
-void DcaData<parameters_type>::initialize_H_0_and_H_i() {
-  util::Timer("H_0 and H_int initialization", concurrency.id() == concurrency.first());
+template <class Parameters>
+void DcaData<Parameters>::initialize_H_0_and_H_i() {
+  util::Timer("H_0 and H_int initialization", concurrency_.id() == concurrency_.first());
 
-  parameters_type::model_type::initialize_H_0(parameters, H_DCA);
-  parameters_type::model_type::initialize_H_0(parameters, H_HOST);
+  Parameters::model_type::initialize_H_0(parameters_, H_DCA);
+  Parameters::model_type::initialize_H_0(parameters_, H_HOST);
 
-  parameters_type::model_type::initialize_H_interaction(H_interactions, parameters);
-  parameters_type::model_type::initialize_H_symmetries(H_symmetry);
+  Parameters::model_type::initialize_H_interaction(H_interactions, parameters_);
 
-  compute_band_structure::execute(parameters, band_structure);
+    if (models::has_non_density_interaction<Lattice>::value) {
+    models::initializeNonDensityInteraction<Lattice>(get_non_density_interactions(), parameters_);
+  }
+
+  Parameters::model_type::initialize_H_symmetries(H_symmetry);
+
+  compute_band_structure::execute(parameters_, band_structure);
 }
 
-template <class parameters_type>
-void DcaData<parameters_type>::initialize_G0() {
+template <class Parameters>
+void DcaData<Parameters>::initialize_G0() {
   profiler_type prof(__FUNCTION__, "DcaData", __LINE__);
 
-  util::Timer("G_0 initialization", concurrency.id() == concurrency.first());
+  util::Timer("G_0 initialization", concurrency_.id() == concurrency_.first());
 
   // Compute G0_k_w.
-  compute_G0_k_w(H_DCA, parameters.get_chemical_potential(), concurrency, G0_k_w);
+  compute_G0_k_w(H_DCA, parameters_.get_chemical_potential(), concurrency_, G0_k_w);
   symmetrize::execute(G0_k_w, H_symmetry, true);
 
   // Compute G0_k_t.
-  compute_G0_k_t(H_DCA, parameters.get_chemical_potential(), parameters.get_beta(), G0_k_t);
+  compute_G0_k_t(H_DCA, parameters_.get_chemical_potential(), parameters_.get_beta(), G0_k_t);
   symmetrize::execute(G0_k_t, H_symmetry, true);
 
   // Compute G0_r_w.
@@ -447,28 +505,29 @@ void DcaData<parameters_type>::initialize_G0() {
   G0_r_t_cluster_excluded = G0_r_t;
 }
 
-template <class parameters_type>
-void DcaData<parameters_type>::initialize_Sigma() {
+template <class Parameters>
+void DcaData<Parameters>::initialize_Sigma() {
   profiler_type prof("initialize-Sigma", "input", __LINE__);
 
-  if (parameters.get_initial_self_energy() != "zero")
-    this->read(parameters.get_initial_self_energy());
+  if (parameters_.get_initial_self_energy() != "zero")
+    this->read(parameters_.get_initial_self_energy());
 }
 
-template <class parameters_type>
-void DcaData<parameters_type>::compute_single_particle_properties() {
+template <class Parameters>
+void DcaData<Parameters>::compute_single_particle_properties() {
   {
-    std::memcpy(&S_k(0), &Sigma_lattice(0, 0, 0, w::dmn_size() / 2),
-                sizeof(std::complex<double>) * std::pow(2 * b::dmn_size(), 2.) * k_HOST::dmn_size());
+    std::memcpy(
+        &S_k(0), &Sigma_lattice(0, 0, 0, WDmn::dmn_size() / 2),
+        sizeof(std::complex<double>) * std::pow(2 * BDmn::dmn_size(), 2.) * KHostDmn::dmn_size());
 
-    math::transform::FunctionTransform<k_HOST, r_HOST>::execute(S_k, S_r);
+    math::transform::FunctionTransform<KHostDmn, RHostDmn>::execute(S_k, S_r);
   }
 
   {
-    int w_ind = w::dmn_size() / 2;
+    int w_ind = WDmn::dmn_size() / 2;
 
-    dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> I_k("I_matrix", nu::dmn_size());
-    dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G_inv("G_inv", nu::dmn_size());
+    dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> I_k("I_matrix", NuDmn::dmn_size());
+    dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G_inv("G_inv", NuDmn::dmn_size());
 
     // Allocate the work space for inverse only once.
     dca::linalg::Vector<int, dca::linalg::CPU> ipiv;
@@ -476,28 +535,28 @@ void DcaData<parameters_type>::compute_single_particle_properties() {
 
     std::complex<double> i_wm_plus_mu;
 
-    i_wm_plus_mu.real(parameters.get_chemical_potential());
-    i_wm_plus_mu.imag(w::get_elements()[w_ind]);
+    i_wm_plus_mu.real(parameters_.get_chemical_potential());
+    i_wm_plus_mu.imag(WDmn::get_elements()[w_ind]);
 
-    for (int i = 0; i < nu::dmn_size(); i++)
+    for (int i = 0; i < NuDmn::dmn_size(); i++)
       I_k(i, i) = i_wm_plus_mu;
 
-    for (int k_ind = 0; k_ind < k_HOST::dmn_size(); k_ind++) {
-      for (int j = 0; j < nu::dmn_size(); j++)
-        for (int i = 0; i < nu::dmn_size(); i++)
+    for (int k_ind = 0; k_ind < KHostDmn::dmn_size(); k_ind++) {
+      for (int j = 0; j < NuDmn::dmn_size(); j++)
+        for (int i = 0; i < NuDmn::dmn_size(); i++)
           G_inv(i, j) = I_k(i, j) - H_HOST(i, j, k_ind) - Sigma_lattice(i, j, k_ind, w_ind);
 
       dca::linalg::matrixop::inverse(G_inv, ipiv, work);
 
-      for (int j = 0; j < nu::dmn_size(); j++)
-        for (int i = 0; i < nu::dmn_size(); i++)
+      for (int j = 0; j < NuDmn::dmn_size(); j++)
+        for (int i = 0; i < NuDmn::dmn_size(); i++)
           G_k(i, j, k_ind) = G_inv(i, j);
     }
   }
 }
 
-template <class parameters_type>
-void DcaData<parameters_type>::compute_Sigma_bands() {
+template <class Parameters>
+void DcaData<Parameters>::compute_Sigma_bands() {
   {
     Sigma_band_structure.reset();
     Sigma_cluster_band_structure.reset();
@@ -505,10 +564,9 @@ void DcaData<parameters_type>::compute_Sigma_bands() {
     std::vector<std::pair<double, int>> length_and_distance(KClusterDmn::dmn_size(),
                                                             std::pair<double, int>(0, -1));
 
-    for (int k_ind = 0; k_ind < k_domain_cut_dmn_type::dmn_size(); ++k_ind) {
+    for (int k_ind = 0; k_ind < KCutDmn::dmn_size(); ++k_ind) {
       std::vector<double> k_vec = domains::cluster_operations::translate_inside_cluster(
-          k_domain_cut_dmn_type::get_elements()[k_ind],
-          KClusterType::get_super_basis_vectors());
+          KCutDmn::get_elements()[k_ind], KClusterType::get_super_basis_vectors());
 
       for (int K_ind = 0; K_ind < KClusterDmn::dmn_size(); ++K_ind) {
         length_and_distance[K_ind].second = K_ind;
@@ -521,60 +579,59 @@ void DcaData<parameters_type>::compute_Sigma_bands() {
 
       int result_ind = length_and_distance[0].second;
 
-      for (int nu_ind = 0; nu_ind < 2 * b::dmn_size(); ++nu_ind) {
-        Sigma_band_structure(nu_ind, k_ind) = Sigma(nu_ind, nu_ind, result_ind, w::dmn_size() / 2);
+      for (int nu_ind = 0; nu_ind < 2 * BDmn::dmn_size(); ++nu_ind) {
+        Sigma_band_structure(nu_ind, k_ind) = Sigma(nu_ind, nu_ind, result_ind, WDmn::dmn_size() / 2);
         Sigma_cluster_band_structure(nu_ind, k_ind) =
-            Sigma_cluster(nu_ind, nu_ind, result_ind, w::dmn_size() / 2);
+            Sigma_cluster(nu_ind, nu_ind, result_ind, WDmn::dmn_size() / 2);
       }
     }
   }
 
   Sigma_lattice_band_structure.reset();
-  if (parameters.do_dca_plus()) {
-    func::function<std::complex<double>, func::dmn_variadic<nu, k_HOST>> S_k_dmn("S_k_dmn_s");
+  if (parameters_.do_dca_plus()) {
+    func::function<std::complex<double>, func::dmn_variadic<NuDmn, KHostDmn>> S_k_dmn("S_k_dmn_s");
 
-    for (int b_ind = 0; b_ind < b::dmn_size(); ++b_ind)
-      for (int s_ind = 0; s_ind < s::dmn_size(); ++s_ind)
-        for (int k_ind = 0; k_ind < k_HOST::dmn_size(); ++k_ind)
+    for (int b_ind = 0; b_ind < BDmn::dmn_size(); ++b_ind)
+      for (int s_ind = 0; s_ind < SDmn::dmn_size(); ++s_ind)
+        for (int k_ind = 0; k_ind < KHostDmn::dmn_size(); ++k_ind)
           S_k_dmn(b_ind, s_ind, k_ind) =
-              Sigma_lattice(b_ind, s_ind, b_ind, s_ind, k_ind, w::dmn_size() / 2);
+              Sigma_lattice(b_ind, s_ind, b_ind, s_ind, k_ind, WDmn::dmn_size() / 2);
 
-    domains::hspline_interpolation<k_HOST, k_domain_cut_dmn_type>::execute(
+    domains::hspline_interpolation<KHostDmn, KCutDmn>::execute(
         S_k_dmn, Sigma_lattice_band_structure, -1. / 2.);
   }
 
   Sigma_band_structure_interpolated.reset();
-  if (true) {
-    func::function<std::complex<double>, func::dmn_variadic<nu, k_HOST>> S_k_dmn("S_k_dmn_s");
 
-    for (int b_ind = 0; b_ind < b::dmn_size(); ++b_ind)
-      for (int s_ind = 0; s_ind < s::dmn_size(); ++s_ind)
-        for (int k_ind = 0; k_ind < k_HOST::dmn_size(); ++k_ind)
-          S_k_dmn(b_ind, s_ind, k_ind) =
-              Sigma_lattice_interpolated(b_ind, s_ind, b_ind, s_ind, k_ind, w::dmn_size() / 2);
+  func::function<std::complex<double>, func::dmn_variadic<NuDmn, KHostDmn>> S_k_dmn("S_k_dmn_s");
 
-    domains::hspline_interpolation<k_HOST, k_domain_cut_dmn_type>::execute(
-        S_k_dmn, Sigma_band_structure_interpolated, -1. / 2.);
-  }
+  for (int b_ind = 0; b_ind < BDmn::dmn_size(); ++b_ind)
+    for (int s_ind = 0; s_ind < SDmn::dmn_size(); ++s_ind)
+      for (int k_ind = 0; k_ind < KHostDmn::dmn_size(); ++k_ind)
+        S_k_dmn(b_ind, s_ind, k_ind) =
+            Sigma_lattice_interpolated(b_ind, s_ind, b_ind, s_ind, k_ind, WDmn::dmn_size() / 2);
+
+  domains::hspline_interpolation<KHostDmn, KCutDmn>::execute(
+      S_k_dmn, Sigma_band_structure_interpolated, -1. / 2.);
 
   Sigma_band_structure_coarsegrained.reset();
-  if (parameters.do_dca_plus()) {
-    func::function<std::complex<double>, func::dmn_variadic<nu, k_HOST>> S_k_dmn("S_k_dmn_s");
+  if (parameters_.do_dca_plus()) {
+    func::function<std::complex<double>, func::dmn_variadic<NuDmn, KHostDmn>> S_k_dmn("S_k_dmn_s");
 
-    for (int b_ind = 0; b_ind < b::dmn_size(); ++b_ind)
-      for (int s_ind = 0; s_ind < s::dmn_size(); ++s_ind)
-        for (int k_ind = 0; k_ind < k_HOST::dmn_size(); ++k_ind)
+    for (int b_ind = 0; b_ind < BDmn::dmn_size(); ++b_ind)
+      for (int s_ind = 0; s_ind < SDmn::dmn_size(); ++s_ind)
+        for (int k_ind = 0; k_ind < KHostDmn::dmn_size(); ++k_ind)
           S_k_dmn(b_ind, s_ind, k_ind) =
-              Sigma_lattice_coarsegrained(b_ind, s_ind, b_ind, s_ind, k_ind, w::dmn_size() / 2);
+              Sigma_lattice_coarsegrained(b_ind, s_ind, b_ind, s_ind, k_ind, WDmn::dmn_size() / 2);
 
-    domains::hspline_interpolation<k_HOST, k_domain_cut_dmn_type>::execute(
+    domains::hspline_interpolation<KHostDmn, KCutDmn>::execute(
         S_k_dmn, Sigma_band_structure_coarsegrained, -1. / 2.);
   }
 }
 
-template <class parameters_type>
-void DcaData<parameters_type>::print_Sigma_QMC_versus_Sigma_cg() {
-  if (concurrency.id() == concurrency.first() /*and parameters.do_dca_plus()*/) {
+template <class Parameters>
+void DcaData<Parameters>::print_Sigma_QMC_versus_Sigma_cg() {
+  if (concurrency_.id() == concurrency_.first() /*and parameters_.do_dca_plus()*/) {
     if (DIMENSION == 2) {
       std::cout << "\n\n";
       std::cout << "        K-vectors             || Re[Sigma_QMC]   Im[Sigma_QMC]   Re[Sigma_cg]  "
@@ -593,10 +650,10 @@ void DcaData<parameters_type>::print_Sigma_QMC_versus_Sigma_cg() {
 
     for (int k_ind = 0; k_ind < KClusterDmn::dmn_size(); ++k_ind) {
       math::util::print(KClusterDmn::get_elements()[k_ind]);
-      std::cout << real(Sigma(0, 0, k_ind, w::dmn_size() / 2)) << "\t"
-                << imag(Sigma(0, 0, k_ind, w::dmn_size() / 2)) << "\t";
-      std::cout << real(Sigma_cluster(0, 0, k_ind, w::dmn_size() / 2)) << "\t"
-                << imag(Sigma_cluster(0, 0, k_ind, w::dmn_size() / 2)) << "\n";
+      std::cout << real(Sigma(0, 0, k_ind, WDmn::dmn_size() / 2)) << "\t"
+                << imag(Sigma(0, 0, k_ind, WDmn::dmn_size() / 2)) << "\t";
+      std::cout << real(Sigma_cluster(0, 0, k_ind, WDmn::dmn_size() / 2)) << "\t"
+                << imag(Sigma_cluster(0, 0, k_ind, WDmn::dmn_size() / 2)) << "\n";
     }
     std::cout << "\n\n";
   }

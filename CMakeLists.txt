@@ -20,6 +20,9 @@ endif()
 # Include CMake scripts from cmake directory.
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
+  enable_testing()
+  include(CTest)
+
 ################################################################################
 # Load global variables to store preprocessor definitions.
 include(dca_defines)
@@ -121,7 +124,7 @@ set(DCA_LIBS
   parallel_util
   dca_algorithms
   json
-  hdf5
+  dca_hdf5
   profiling
   function
   convert_domains
@@ -158,7 +161,6 @@ mark_as_advanced(gtest_dir)
 
 if (DCA_WITH_TESTS_FAST OR DCA_WITH_TESTS_EXTENSIVE OR DCA_WITH_TESTS_PERFORMANCE)
   include(dca_testing)
-  enable_testing()
 
   if (((CMAKE_BUILD_TYPE STREQUAL "Release") OR
        (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo") OR
