@@ -279,14 +279,14 @@ void DcaData<Parameters>::read(std::string filename) {
   if (concurrency_.id() == concurrency_.first()) {
     const std::string& output_format = parameters_.get_output_format();
 
-    if (output_format == "JSON") {
+    if (output_format == static_cast<const std::string>("JSON")) {
       dca::io::JSONReader reader;
       reader.open_file(filename);
       this->read(reader);
       reader.close_file();
     }
 
-    else if (output_format == "HDF5") {
+    else if (output_format == static_cast<const std::string>("HDF5")) {
       dca::io::HDF5Reader reader;
       reader.open_file(filename);
       this->read(reader);
@@ -339,7 +339,7 @@ void DcaData<Parameters>::read(Reader& reader) {
 
     reader.execute(Sigma);
 
-    if (four_point_type != "NONE") {
+    if (four_point_type != static_cast<const std::string>("NONE")) {
       reader.execute(G_k_w);
 
       reader.execute(get_G4_k_k_w_w());
@@ -355,7 +355,7 @@ void DcaData<Parameters>::write(std::string file_name) {
 
   const std::string& output_format = parameters_.get_output_format();
 
-  if (output_format == "JSON") {
+  if (output_format == static_cast<const std::string>("JSON")) {
     dca::io::JSONWriter writer;
     writer.open_file(file_name);
 
@@ -365,7 +365,7 @@ void DcaData<Parameters>::write(std::string file_name) {
     writer.close_file();
   }
 
-  else if (output_format == "HDF5") {
+  else if (output_format == static_cast<const std::string>("HDF5")) {
     dca::io::HDF5Writer writer;
     writer.open_file(file_name);
 

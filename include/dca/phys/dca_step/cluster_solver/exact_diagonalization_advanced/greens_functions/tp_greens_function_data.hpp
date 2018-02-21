@@ -93,7 +93,7 @@ public:
   int bsr_j;
 
   bs_dmn_type bs_dmn;
-  bsr_dmn_type bsRClusterDmn;
+  bsr_dmn_type bsr_dmn;
 
   nu_r_dmn_type nu_r_dmn;
   nu_nu_r_dmn_type nu_nu_r_dmn;
