@@ -46,13 +46,13 @@ namespace solver {
 namespace ctaux {
 // dca::phys::solver::ctaux::
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 class CtauxAccumulator : public MC_accumulator_data {
 public:
-  using this_type = CtauxAccumulator<device_t, parameters_type, MOMS_type>;
+  using this_type = CtauxAccumulator<device_t, parameters_type, Data>;
+  using DataType = Data;
 
   typedef parameters_type my_parameters_type;
-  typedef MOMS_type my_MOMS_type;
 
   typedef vertex_pair<parameters_type> vertex_pair_type;
   typedef vertex_singleton vertex_singleton_type;
@@ -79,7 +79,7 @@ public:
 
   typedef CT_AUX_HS_configuration<parameters_type> configuration_type;
 
-  CtauxAccumulator(parameters_type& parameters_ref, MOMS_type& MOMS_ref, int id);
+  CtauxAccumulator(parameters_type& parameters_ref, Data& data_ref, int id);
 
   template <typename Writer>
   void write(Writer& writer);
@@ -126,10 +126,6 @@ public:
   }
 
   // sp-measurements
-  func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>>& get_K_r_t() {
-    return K_r_t;
-  }
-
   const auto& get_M_r_w() const {
     return M_r_w;
   }
@@ -174,7 +170,7 @@ private:
 
 protected:
   parameters_type& parameters;
-  MOMS_type& MOMS;
+  Data& data_;
   concurrency_type& concurrency;
 
   int thread_id;
@@ -200,8 +196,6 @@ protected:
   func::function<double, func::dmn_0<domains::numerical_error_domain>> error;
   func::function<double, func::dmn_0<Feynman_expansion_order_domain>> visited_expansion_order_k;
 
-  func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>> K_r_t;
-
   func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>> G_r_t;
   func::function<double, func::dmn_variadic<nu, nu, r_dmn_t, t>> G_r_t_stddev;
 
@@ -216,23 +210,23 @@ protected:
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> M_k_w;
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> M_k_w_stddev;
 
-  ctaux::SpAccumulatorNfft<parameters_type, MOMS_type> single_particle_accumulator_obj;
+  ctaux::SpAccumulatorNfft<parameters_type, Data> single_particle_accumulator_obj;
 
-  ctaux::TpEqualTimeAccumulator<parameters_type, MOMS_type> MC_two_particle_equal_time_accumulator_obj;
+  ctaux::TpEqualTimeAccumulator<parameters_type, Data> MC_two_particle_equal_time_accumulator_obj;
 
   func::function<std::complex<double>, func::dmn_variadic<b, b, b, b, k_dmn_t, k_dmn_t, w_VERTEX, w_VERTEX>> G4;
 
-  accumulator_nonlocal_G<parameters_type, MOMS_type> accumulator_nonlocal_G_obj;
-  accumulator_nonlocal_chi<parameters_type, MOMS_type> accumulator_nonlocal_chi_obj;
+  accumulator_nonlocal_G<parameters_type, Data> accumulator_nonlocal_G_obj;
+  accumulator_nonlocal_chi<parameters_type, Data> accumulator_nonlocal_chi_obj;
 };
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-CtauxAccumulator<device_t, parameters_type, MOMS_type>::CtauxAccumulator(
-    parameters_type& parameters_ref, MOMS_type& MOMS_ref, int id)
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+CtauxAccumulator<device_t, parameters_type, Data>::CtauxAccumulator(parameters_type& parameters_ref,
+                                                                    Data& data_ref, int id)
     : MC_accumulator_data(),
 
       parameters(parameters_ref),
-      MOMS(MOMS_ref),
+      data_(data_ref),
       concurrency(parameters.get_concurrency()),
 
       thread_id(id),
@@ -252,8 +246,6 @@ CtauxAccumulator<device_t, parameters_type, MOMS_type>::CtauxAccumulator(
       error("numerical-error-distribution-of-N-matrices"),
       visited_expansion_order_k("<k>"),
 
-      K_r_t("K_r_t"),
-
       G_r_t("G_r_t_measured"),
       G_r_t_stddev("G_r_t_stddev"),
 
@@ -270,20 +262,20 @@ CtauxAccumulator<device_t, parameters_type, MOMS_type>::CtauxAccumulator(
 
       single_particle_accumulator_obj(parameters),
 
-      MC_two_particle_equal_time_accumulator_obj(parameters, MOMS, id),
+      MC_two_particle_equal_time_accumulator_obj(parameters, data_, id),
 
       G4("two_particle_function"),
 
-      accumulator_nonlocal_G_obj(parameters, MOMS, id),
-      accumulator_nonlocal_chi_obj(parameters, MOMS, id, G4) {}
+      accumulator_nonlocal_G_obj(parameters, data_, id),
+      accumulator_nonlocal_chi_obj(parameters, data_, id, G4) {}
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void CtauxAccumulator<device_t, parameters_type, MOMS_type>::initialize(int dca_iteration) {
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+void CtauxAccumulator<device_t, parameters_type, Data>::initialize(int dca_iteration) {
   profiler_type profiler(__FUNCTION__, "CT-AUX accumulator", __LINE__, thread_id);
 
   MC_accumulator_data::initialize(dca_iteration);
 
-  CV_obj.initialize(MOMS);
+  CV_obj.initialize(data_);
 
   for (int i = 0; i < visited_expansion_order_k.size(); i++)
     visited_expansion_order_k(i) = 0;
@@ -292,7 +284,6 @@ void CtauxAccumulator<device_t, parameters_type, MOMS_type>::initialize(int dca_
 
   M_r_w = 0.;
   M_r_w_squared = 0.;
-  K_r_t = 0.;
 
   for (int i = 0; i < M_k_w.size(); i++)
     M_k_w(i) = 0;
@@ -312,8 +303,8 @@ void CtauxAccumulator<device_t, parameters_type, MOMS_type>::initialize(int dca_
     accumulator_nonlocal_chi_obj.initialize();
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void CtauxAccumulator<device_t, parameters_type, MOMS_type>::finalize() {
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+void CtauxAccumulator<device_t, parameters_type, Data>::finalize() {
   profiler_type profiler(__FUNCTION__, "CT-AUX accumulator", __LINE__, thread_id);
 
   single_particle_accumulator_obj.finalize(M_r_w, M_r_w_squared);
@@ -346,8 +337,8 @@ void CtauxAccumulator<device_t, parameters_type, MOMS_type>::finalize() {
   //       single_particle_accumulator_obj.compute_M_r_w(M_r_w);
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-std::vector<vertex_singleton>& CtauxAccumulator<device_t, parameters_type, MOMS_type>::get_configuration(
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+std::vector<vertex_singleton>& CtauxAccumulator<device_t, parameters_type, Data>::get_configuration(
     e_spin_states_type e_spin) {
   if (e_spin == e_UP)
     return HS_configuration_e_UP;
@@ -355,9 +346,9 @@ std::vector<vertex_singleton>& CtauxAccumulator<device_t, parameters_type, MOMS_
     return HS_configuration_e_DN;
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 template <typename Writer>
-void CtauxAccumulator<device_t, parameters_type, MOMS_type>::write(Writer& writer) {
+void CtauxAccumulator<device_t, parameters_type, Data>::write(Writer& writer) {
 //       writer.open_group("CT-AUX-SOLVER-functions");
 
 #ifdef DCA_WITH_QMC_BIT
@@ -388,9 +379,9 @@ void CtauxAccumulator<device_t, parameters_type, MOMS_type>::write(Writer& write
  *    M_{i,j} &=& (e^{V_i}-1) N_{i,j}
  *   \f}
  */
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 template <typename walker_type>
-void CtauxAccumulator<device_t, parameters_type, MOMS_type>::update_from(walker_type& walker) {
+void CtauxAccumulator<device_t, parameters_type, Data>::update_from(walker_type& walker) {
   profiler_type profiler("update from", "CT-AUX accumulator", __LINE__, thread_id);
 
   GFLOP += walker.get_Gflop();
@@ -423,8 +414,8 @@ void CtauxAccumulator<device_t, parameters_type, MOMS_type>::update_from(walker_
   compute_M_v_v(HS_configuration_e_UP, walker.get_N(e_UP), M_e_UP, walker.get_thread_id(), 0);
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void CtauxAccumulator<device_t, parameters_type, MOMS_type>::measure() {
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+void CtauxAccumulator<device_t, parameters_type, Data>::measure() {
   number_of_measurements += 1;
   accumulated_sign += current_sign;
 
@@ -450,8 +441,8 @@ void CtauxAccumulator<device_t, parameters_type, MOMS_type>::measure() {
  *  and the Linf-Norm, i.e. \f$\max_{i=1}^N \left|x_i\right|\f$ of the standard deviation and of the
  * error.
  */
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void CtauxAccumulator<device_t, parameters_type, MOMS_type>::store_standard_deviation(
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+void CtauxAccumulator<device_t, parameters_type, Data>::store_standard_deviation(
     int nr_measurements, std::ofstream& points_file, std::ofstream& norm_file) {
   single_particle_accumulator_obj.store_standard_deviation(nr_measurements, points_file, norm_file);
 }
@@ -460,8 +451,8 @@ void CtauxAccumulator<device_t, parameters_type, MOMS_type>::store_standard_devi
  *  \brief Update the sum of the squares of the measurements of the single particle accumulator.
  *         It has to be called after each measurement.
  */
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void CtauxAccumulator<device_t, parameters_type, MOMS_type>::update_sum_squares() {
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+void CtauxAccumulator<device_t, parameters_type, Data>::update_sum_squares() {
   single_particle_accumulator_obj.update_sum_squares();
 }
 #endif
@@ -471,8 +462,8 @@ void CtauxAccumulator<device_t, parameters_type, MOMS_type>::update_sum_squares(
  *    M_{i,j} &=& (e^{V_i}-1) N_{i,j} \nonumber
  *   \f}
  */
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void CtauxAccumulator<device_t, parameters_type, MOMS_type>::compute_M_v_v(
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+void CtauxAccumulator<device_t, parameters_type, Data>::compute_M_v_v(
     std::vector<vertex_singleton_type>& configuration_e_spin,
     dca::linalg::Matrix<double, dca::linalg::CPU>& N,
     dca::linalg::Matrix<double, dca::linalg::CPU>& M, int /*walker_thread_id*/,
@@ -498,8 +489,8 @@ void CtauxAccumulator<device_t, parameters_type, MOMS_type>::compute_M_v_v(
  *   \f}
  */
 #ifdef DCA_HAVE_CUDA
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void CtauxAccumulator<device_t, parameters_type, MOMS_type>::compute_M_v_v(
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+void CtauxAccumulator<device_t, parameters_type, Data>::compute_M_v_v(
     std::vector<vertex_singleton_type>& configuration_e_spin,
     dca::linalg::Matrix<double, dca::linalg::GPU>& N,
     dca::linalg::Matrix<double, dca::linalg::CPU>& M, int walker_thread_id, int walker_stream_id) {
@@ -524,11 +515,9 @@ void CtauxAccumulator<device_t, parameters_type, MOMS_type>::compute_M_v_v(
  **                                                         **
  *************************************************************/
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void CtauxAccumulator<device_t, parameters_type, MOMS_type>::accumulate_single_particle_quantities() {
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+void CtauxAccumulator<device_t, parameters_type, Data>::accumulate_single_particle_quantities() {
   profiler_type profiler("sp-accumulation", "CT-AUX accumulator", __LINE__, thread_id);
-
-  single_particle_accumulator_obj.accumulate_K_r_t(HS_configuration_e_DN, K_r_t, current_sign);
 
   single_particle_accumulator_obj.accumulate_M_r_w(HS_configuration_e_DN, M_e_DN, current_sign, e_DN);
   single_particle_accumulator_obj.accumulate_M_r_w(HS_configuration_e_UP, M_e_UP, current_sign, e_UP);
@@ -543,8 +532,8 @@ void CtauxAccumulator<device_t, parameters_type, MOMS_type>::accumulate_single_p
  **                                                         **
  *************************************************************/
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void CtauxAccumulator<device_t, parameters_type, MOMS_type>::accumulate_equal_time_quantities() {
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+void CtauxAccumulator<device_t, parameters_type, Data>::accumulate_equal_time_quantities() {
   profiler_type profiler("equal-time-measurements", "CT-AUX accumulator", __LINE__, thread_id);
 
   MC_two_particle_equal_time_accumulator_obj.compute_G_r_t(HS_configuration_e_DN, M_e_DN,
@@ -565,8 +554,8 @@ void CtauxAccumulator<device_t, parameters_type, MOMS_type>::accumulate_equal_ti
  **                                                         **
  *************************************************************/
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void CtauxAccumulator<device_t, parameters_type, MOMS_type>::accumulate_two_particle_quantities() {
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+void CtauxAccumulator<device_t, parameters_type, Data>::accumulate_two_particle_quantities() {
   {
     profiler_type profiler("tp-accumulation nonlocal G", "CT-AUX accumulator", __LINE__, thread_id);
 
@@ -581,8 +570,8 @@ void CtauxAccumulator<device_t, parameters_type, MOMS_type>::accumulate_two_part
   }
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void CtauxAccumulator<device_t, parameters_type, MOMS_type>::sum_to(this_type& other) {
+template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+void CtauxAccumulator<device_t, parameters_type, Data>::sum_to(this_type& other) {
   finalize();
 
   other.get_Gflop() += get_Gflop();
@@ -616,9 +605,6 @@ void CtauxAccumulator<device_t, parameters_type, MOMS_type>::sum_to(this_type& o
   }
 
   {  // sp-measurements
-    for (int i = 0; i < K_r_t.size(); i++)
-      other.get_K_r_t()(i) += K_r_t(i);
-
     for (int i = 0; i < M_r_w.size(); i++)
       other.get_M_r_w()(i) += M_r_w(i);
 

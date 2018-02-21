@@ -259,7 +259,7 @@ accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulator_nonlocal_chi(
 
 template <class parameters_type, class MOMS_type>
 void accumulator_nonlocal_chi<parameters_type, MOMS_type>::initialize() {
-  MOMS.G4_k_k_w_w = 0.;
+  MOMS.get_G4_k_k_w_w() = 0.;
 }
 
 template <class parameters_type, class MOMS_type>

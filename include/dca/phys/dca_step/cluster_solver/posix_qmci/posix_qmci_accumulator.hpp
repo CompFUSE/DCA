@@ -27,12 +27,12 @@ namespace posixqmci {
 template <class qmci_accumulator_type>
 class posix_qmci_accumulator : protected qmci_accumulator_type {
   typedef typename qmci_accumulator_type::my_parameters_type parameters_type;
-  typedef typename qmci_accumulator_type::my_MOMS_type MOMS_type;
+  using Data = typename qmci_accumulator_type::DataType;
 
   typedef posix_qmci_accumulator<qmci_accumulator_type> this_type;
 
 public:
-  posix_qmci_accumulator(parameters_type& parameters_ref, MOMS_type& MOMS_ref, int id);
+  posix_qmci_accumulator(parameters_type& parameters_ref, Data& data_ref, int id);
 
   ~posix_qmci_accumulator();
 
@@ -62,15 +62,12 @@ protected:
 
 private:
   using qmci_accumulator_type::parameters;
-  using qmci_accumulator_type::MOMS;
 
   /*
       using qmci_accumulator_type::HS_configuration_e_UP;
       using qmci_accumulator_type::HS_configuration_e_DN;
 
       using qmci_accumulator_type::visited_expansion_order_k;
-
-      using qmci_accumulator_type::K_r_t;
 
       using qmci_accumulator_type::G_r_t;
       using qmci_accumulator_type::G_r_t_stddev;
@@ -95,8 +92,8 @@ private:
 
 template <class qmci_accumulator_type>
 posix_qmci_accumulator<qmci_accumulator_type>::posix_qmci_accumulator(parameters_type& parameters_ref,
-                                                                      MOMS_type& MOMS_ref, int id)
-    : qmci_accumulator_type(parameters_ref, MOMS_ref, id), thread_id(id), measuring(false) {
+                                                                      Data& data_ref, int id)
+    : qmci_accumulator_type(parameters_ref, data_ref, id), thread_id(id), measuring(false) {
   pthread_cond_init(&start_measuring, NULL);
   pthread_mutex_init(&mutex_accumulator, NULL);
 }
