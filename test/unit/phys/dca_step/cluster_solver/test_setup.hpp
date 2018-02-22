@@ -58,7 +58,7 @@ struct G0Setup : public ::testing::Test {
   using NuDmn = func::dmn_variadic<BDmn, SDmn>;
   using WDmn = func::dmn_0<phys::domains::frequency_domain>;
 
-   Concurrency concurrency;
+  Concurrency concurrency;
   Parameters parameters;
   std::unique_ptr<Data> data;
   //  phys::solver::ctint::InteractionVertices interaction_vertices;
@@ -70,12 +70,15 @@ struct G0Setup : public ::testing::Test {
 
     parameters.template read_input_and_broadcast<io::JSONReader>(inputs_directory + "input.json");
 
-    parameters.update_model();
-    parameters.update_domains();
+    static bool model_initialized = false;
+    if (!model_initialized) {
+      parameters.update_model();
+      parameters.update_domains();
+      model_initialized = true;
+    }
 
     data.reset(new Data(parameters));
     data->initialize();
-
     //    interaction_vertices.initializeFromHamiltonian(data->H_interactions);
     //    if (data->has_non_density_interactions())
     //      interaction_vertices.initializeFromNonDensityHamiltonian(data->get_non_density_interactions());

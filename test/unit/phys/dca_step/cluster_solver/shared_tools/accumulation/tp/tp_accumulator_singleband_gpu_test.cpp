@@ -7,10 +7,9 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// This file implements a no-change test for the two point accumulation of a mock configuration.
+// This file implements a no-change test for the two particles accumulation on the GPU.
 
-#include "dca/phys/dca_step/cluster_solver/ctaux/accumulator/tp/accumulator_nonlocal_chi.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctaux/accumulator/tp/accumulator_nonlocal_g.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu.hpp"
 
 #include <array>
 #include "gtest/gtest.h"
@@ -21,16 +20,20 @@
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
 
-constexpr bool UPDATE_RESULTS = false;
-
 struct ConfigElement {
   double get_tau() const {
     return tau_;
   }
-  double get_band() const {
+  double get_left_band() const {
     return band_;
   }
-  double get_r_site() const {
+  double get_right_band() const {
+    return band_;
+  }
+  double get_left_site() const {
+    return r_;
+  }
+  double get_right_site() const {
     return r_;
   }
 
@@ -41,15 +44,17 @@ struct ConfigElement {
 using Configuration = std::array<std::vector<ConfigElement>, 2>;
 using MatrixPair = std::array<dca::linalg::Matrix<double, dca::linalg::CPU>, 2>;
 
-using G0Setup = typename dca::testing::G0Setup<dca::testing::LatticeBilayer>;
+using G0Setup = typename dca::testing::G0Setup<dca::testing::LatticeSquare>;
 const std::string input_dir =
-    DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/";
+    DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/";
 
 void prepareRandomConfig(Configuration& config, MatrixPair& M, std::array<int, 2> n);
 std::string toString(dca::phys::FourPointType);
 
 TEST_F(G0Setup, Accumulate) {
-  const std::array<int, 2> n{18, 22};
+  dca::linalg::util::initializeMagma();
+
+  const std::array<int, 2> n{31, 28};
   MatrixPair M;
   Configuration config;
   prepareRandomConfig(config, M, n);
@@ -59,45 +64,25 @@ TEST_F(G0Setup, Accumulate) {
   auto& G4 = data.get_G4_k_k_w_w();
   auto G4_check(G4);
 
-  dca::phys::solver::ctaux::accumulator_nonlocal_G<G0Setup::Parameters, G0Setup::Data> nonlocal_G_obj(
-      parameters, data, 0);
-  dca::phys::solver::ctaux::accumulator_nonlocal_chi<G0Setup::Parameters, G0Setup::Data> nonlocal_chi_obj(
-      parameters, data, 0, G4);
-
-  dca::io::HDF5Writer writer;
-  dca::io::HDF5Reader reader;
-
-  if(UPDATE_RESULTS)
-    writer.open_file("G4_result.hdf5");
-  else
-    reader.open_file(input_dir + "G4_result.hdf5");
-
   for (const dca::phys::FourPointType type :
        {dca::phys::PARTICLE_HOLE_TRANSVERSE, dca::phys::PARTICLE_HOLE_MAGNETIC,
         dca::phys::PARTICLE_HOLE_CHARGE, dca::phys::PARTICLE_PARTICLE_UP_DOWN}) {
-    G4 = 0;
     parameters.set_four_point_type(type);
-
-    nonlocal_G_obj.execute(config[0], M[0], config[1], M[1]);
     const int sign = 1;
-    nonlocal_chi_obj.execute(sign, nonlocal_G_obj);
 
-    if(UPDATE_RESULTS) {
-      G4.set_name("G4_" + toString(type));
-      writer.execute(G4);
-    }
-    else{
-      G4_check.set_name("G4_" + toString(type));
-      reader.execute(G4_check);
-      const auto diff = dca::func::utils::difference(G4, G4_check);
-      EXPECT_GT(1e-8, diff.l_inf);
-    }
+    dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::CPU> accumulatorHost(
+        data.G0_k_w_cluster_excluded, parameters);
+    accumulatorHost.accumulate(M, config, sign);
+
+    dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::GPU> accumulator(
+        data.G0_k_w_cluster_excluded, parameters);
+    accumulator.accumulate(M, config, sign);
+    accumulator.finalize();
+
+    const auto diff = dca::func::utils::difference(accumulatorHost.get_sign_times_G4(),
+                                                   accumulator.get_sign_times_G4());
+    EXPECT_GT(5e-7, diff.l_inf);
   }
-
-  if(UPDATE_RESULTS)
-    writer.close_file();
-  else
-    reader.close_file();
 }
 
 void prepareRandomConfig(Configuration& config, MatrixPair& M, const std::array<int, 2> ns) {
@@ -125,19 +110,19 @@ std::string toString(dca::phys::FourPointType type) {
     case dca::phys::NONE:
       return "none";
 
-   case dca::phys::PARTICLE_PARTICLE_UP_DOWN:
-     return "pp_up_down";
+    case dca::phys::PARTICLE_PARTICLE_UP_DOWN:
+      return "pp_up_down";
 
-   case dca::phys::PARTICLE_HOLE_TRANSVERSE:
-     return "ph_transverse";
+    case dca::phys::PARTICLE_HOLE_TRANSVERSE:
+      return "ph_transverse";
 
-   case dca::phys::PARTICLE_HOLE_MAGNETIC:
-     return "ph_magnetic";
+    case dca::phys::PARTICLE_HOLE_MAGNETIC:
+      return "ph_magnetic";
 
-   case dca::phys::PARTICLE_HOLE_CHARGE:
-     return "ph_charge";
+    case dca::phys::PARTICLE_HOLE_CHARGE:
+      return "ph_charge";
 
-   default:
-     throw std::logic_error("type not valid.");
+    default:
+      throw std::logic_error("type not valid.");
   }
 }

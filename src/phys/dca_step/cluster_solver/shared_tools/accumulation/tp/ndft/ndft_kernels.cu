@@ -101,11 +101,11 @@ __global__ void rearrangeOutputKernel(const int nw, const int no, const int nb,
   if (id_i >= n_rows || id_j >= n_cols)
     return;
 
-  auto get_indices = [nb, no](const int id, const int nw, int& b, int& r, int& w) {
-    const int orbital = id / nw;
-    w = id % nw;
-    r = orbital / nb;
-    b = orbital % nb;
+  auto get_indices = [nb](int id, const int nw, int& b, int& r, int& w) {
+    r = id / (nw * nb);
+    id -= r * nw * nb;
+    b = id / nw;
+    w = id - b * nw;
   };
   int w1, w2, b1, b2, r1, r2;
 
