@@ -148,6 +148,7 @@ if (DCA_HAVE_CUDA)
     cuda_utils) 
   list(APPEND DCA_LIBS
     ctaux_walker_kernels
+    mc_tools_kernels
     lapack_kernels
     blas_kernels
     ${DCA_CUDA_LIBS})
