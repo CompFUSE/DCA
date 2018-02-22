@@ -17,10 +17,10 @@ public:
   using vertex_singleton_type = vertex_singleton;
   using shifted_t = func::dmn_0<domains::time_domain_left_oriented>;
 
-  using r_DCA =
-      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
-                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
-  using r_dmn_t = r_DCA;
+  using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
+  using RClusterDmn = typename CDA::RClusterDmn;
+
+  using r_dmn_t = RClusterDmn;
   using r_cluster_type = typename r_dmn_t::parameter_type;
 
   typedef typename parameters_type::concurrency_type concurrency_type;

@@ -60,6 +60,7 @@
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 #include "dca/phys/four_point_type.hpp"
+#include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 
 namespace dca {
 namespace phys {
@@ -77,14 +78,13 @@ public:
 
   using b = func::dmn_0<domains::electron_band_domain>;
 
-  using r_DCA =
-      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
-                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
-  using k_DCA =
-      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
-                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
-  typedef r_DCA r_dmn_t;
-  typedef k_DCA k_dmn_t;
+  using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
+  using RClusterDmn = typename CDA::RClusterDmn;
+  using KClusterDmn = typename CDA::KClusterDmn;
+
+  // This needs shifted to new aliases
+  typedef RClusterDmn r_dmn_t;
+  typedef KClusterDmn k_dmn_t;
   typedef typename r_dmn_t::parameter_type r_cluster_type;
   typedef typename k_dmn_t::parameter_type k_cluster_type;
 
