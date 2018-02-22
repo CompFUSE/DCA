@@ -93,8 +93,8 @@ public:
 
   typedef typename parameters_type::MC_measurement_scalar_type scalar_type;
 
-  typedef typename parameters_type::G4_w1_dmn_t w1_dmn_t;
-  typedef typename parameters_type::G4_w2_dmn_t w2_dmn_t;
+  typedef typename parameters_type::WTpExtPosDmn w1_dmn_t;
+  typedef typename parameters_type::WTpExtDmn w2_dmn_t;
 
   typedef func::dmn_variadic<b, b, r_dmn_t, r_dmn_t, w1_dmn_t, w2_dmn_t> b_b_r_r_w_w_dmn_t;
   typedef func::dmn_variadic<b, b, k_dmn_t, k_dmn_t, w1_dmn_t, w2_dmn_t> b_b_k_k_w_w_dmn_t;
@@ -135,13 +135,13 @@ private:
       std::complex<scalar_type>& G2_up_result);
 
   void F(int n1, int m1, int k1, int k2, int w1, int w2,
-         func::function<
-             std::complex<scalar_type>,
-             func::dmn_variadic<b, b, k_dmn_t, k_dmn_t, w_VERTEX_EXTENDED_POS, w_VERTEX_EXTENDED>>& G2_dn,
+         func::function<std::complex<scalar_type>,
+                        func::dmn_variadic<b, b, k_dmn_t, k_dmn_t, w_VERTEX_EXTENDED_POS,
+                                           w_VERTEX_EXTENDED>>& G2_dn,
          std::complex<scalar_type>& G2_dn_result,
-         func::function<
-             std::complex<scalar_type>,
-             func::dmn_variadic<b, b, k_dmn_t, k_dmn_t, w_VERTEX_EXTENDED_POS, w_VERTEX_EXTENDED>>& G2_up,
+         func::function<std::complex<scalar_type>,
+                        func::dmn_variadic<b, b, k_dmn_t, k_dmn_t, w_VERTEX_EXTENDED_POS,
+                                           w_VERTEX_EXTENDED>>& G2_up,
          std::complex<scalar_type>& G2_up_result);
 
   void accumulate_particle_hole_transverse(
@@ -342,11 +342,13 @@ inline void accumulator_nonlocal_chi<parameters_type, MOMS_type>::F(
 template <class parameters_type, class MOMS_type>
 inline void accumulator_nonlocal_chi<parameters_type, MOMS_type>::F(
     int n1, int m1, int k1, int k2, int w1, int w2,
-    func::function<std::complex<scalar_type>,
-                   func::dmn_variadic<b, b, k_dmn_t, k_dmn_t, w_VERTEX_EXTENDED_POS, w_VERTEX_EXTENDED>>& G2_dn,
+    func::function<
+        std::complex<scalar_type>,
+        func::dmn_variadic<b, b, k_dmn_t, k_dmn_t, w_VERTEX_EXTENDED_POS, w_VERTEX_EXTENDED>>& G2_dn,
     std::complex<scalar_type>& G2_dn_result,
-    func::function<std::complex<scalar_type>,
-                   func::dmn_variadic<b, b, k_dmn_t, k_dmn_t, w_VERTEX_EXTENDED_POS, w_VERTEX_EXTENDED>>& G2_up,
+    func::function<
+        std::complex<scalar_type>,
+        func::dmn_variadic<b, b, k_dmn_t, k_dmn_t, w_VERTEX_EXTENDED_POS, w_VERTEX_EXTENDED>>& G2_up,
     std::complex<scalar_type>& G2_up_result) {
   if (w1 < w_VERTEX_EXTENDED_POS_dmn_size) {
     int lin_ind = b_b_k_k_w_pos_w_full_dmn(n1, m1, min_k_dmn_t(k1), min_k_dmn_t(k2),

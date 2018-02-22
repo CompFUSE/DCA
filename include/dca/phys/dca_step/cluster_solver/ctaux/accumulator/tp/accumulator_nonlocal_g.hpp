@@ -26,7 +26,6 @@
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 
-
 namespace dca {
 namespace phys {
 namespace solver {
@@ -41,8 +40,8 @@ public:
 
   typedef typename parameters_type::MC_measurement_scalar_type scalar_type;
 
-  typedef typename parameters_type::G4_w1_dmn_t w1_dmn_t;
-  typedef typename parameters_type::G4_w2_dmn_t w2_dmn_t;
+  typedef typename parameters_type::WTpExtPosDmn w1_dmn_t;
+  typedef typename parameters_type::WTpExtDmn w2_dmn_t;
 
   using w_VERTEX_EXTENDED = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
   using w_VERTEX_EXTENDED_POS =
@@ -77,11 +76,9 @@ public:
    * \brief Compute the nonlocal single particle Greens-function \f$G^{I}_{\sigma}(k_1, k_2)\f$,
    * from the M-matrices.
    */
-  template<class Configuration>
-  void execute(Configuration& HS_configuration_e_UP,
-               vertex_vertex_matrix_type& M_e_UP,
-               Configuration& HS_configuration_e_DN,
-               vertex_vertex_matrix_type& M_e_DN);
+  template <class Configuration>
+  void execute(Configuration& HS_configuration_e_UP, vertex_vertex_matrix_type& M_e_UP,
+               Configuration& HS_configuration_e_DN, vertex_vertex_matrix_type& M_e_DN);
 
   /*!
    * \brief Get a reference to \f$G^{I}_{\uparrow}(k_1, k_2)\f$.
@@ -98,7 +95,7 @@ public:
   }
 
 private:
-  template<class Configuration>
+  template <class Configuration>
   void FT_M_v_v_2_M_k_k_w_w(Configuration& HS_configuration_e_spin,
                             func::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& M_k_k_w_w,
                             vertex_vertex_matrix_type& M_e_spin);
@@ -196,10 +193,11 @@ void accumulator_nonlocal_G<parameters_type, MOMS_type>::initialize() {
 }
 
 template <class parameters_type, class MOMS_type>
-template<class Configuration>
-void accumulator_nonlocal_G<parameters_type, MOMS_type>::execute(
-    Configuration& HS_configuration_e_UP, vertex_vertex_matrix_type& M_e_UP,
-    Configuration& HS_configuration_e_DN, vertex_vertex_matrix_type& M_e_DN) {
+template <class Configuration>
+void accumulator_nonlocal_G<parameters_type, MOMS_type>::execute(Configuration& HS_configuration_e_UP,
+                                                                 vertex_vertex_matrix_type& M_e_UP,
+                                                                 Configuration& HS_configuration_e_DN,
+                                                                 vertex_vertex_matrix_type& M_e_DN) {
   profiler_t profiler("compute nonlocal-G from M-matrix", "CT-AUX accumulator", __LINE__, thread_id);
 
   { // e_UP
@@ -227,7 +225,7 @@ void accumulator_nonlocal_G<parameters_type, MOMS_type>::execute(
 }
 
 template <class parameters_type, class MOMS_type>
-template<class Configuration>
+template <class Configuration>
 void accumulator_nonlocal_G<parameters_type, MOMS_type>::FT_M_v_v_2_M_k_k_w_w(
     Configuration& configuration_e_spin,
     func::function<std::complex<scalar_type>, b_b_k_k_w_w_dmn_t>& M_k_k_w_w_e_spin,
@@ -262,12 +260,14 @@ void accumulator_nonlocal_G<parameters_type, MOMS_type>::FT_M_v_v_2_M_k_k_w_w_te
   cout << __FUNCTION__ << endl;
 
   {
-    typedef func::dmn_variadic<b,b,RClusterDmn,RClusterDmnw1_dmn_t,w2_dmn_t> b_b_r_DCA_r_DCA_w_w_dmn_t;
+    typedef func::dmn_variadic<b,b,RClusterDmn,RClusterDmnw1_dmn_t,w2_dmn_t>
+b_b_r_DCA_r_DCA_w_w_dmn_t;
     typedef func::dmn_variadic<b,b,r_PCM,r_PCM,w1_dmn_t,w2_dmn_t> b_b_r_PCM_r_PCM_w_w_dmn_t;
 
     typedef func::dmn_variadic<b,b,k_PCM,r_PCM,w1_dmn_t,w2_dmn_t> b_b_k_PCM_r_PCM_w_w_dmn_t;
 
-    typedef func::dmn_variadic<b,b,KClusterDmn,KClusterDmn,w1_dmn_t,w2_dmn_t> b_b_k_DCA_k_DCA_w_w_dmn_t;
+    typedef func::dmn_variadic<b,b,KClusterDmn,KClusterDmn,w1_dmn_t,w2_dmn_t>
+b_b_k_DCA_k_DCA_w_w_dmn_t;
     typedef func::dmn_variadic<b,b,k_PCM,k_PCM,w1_dmn_t,w2_dmn_t> b_b_k_PCM_k_PCM_w_w_dmn_t;
 
     func::function<std::complex<scalar_type>, b_b_r_DCA_r_DCA_w_w_dmn_t> tmp_RR_1("tmp_RR_1");
