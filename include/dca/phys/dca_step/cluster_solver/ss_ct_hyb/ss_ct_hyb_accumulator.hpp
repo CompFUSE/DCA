@@ -286,16 +286,11 @@ void SsCtHybAccumulator<device_t, parameters_type, Data>::sum_to(this_type& othe
   other.get_sign() += get_sign();
   other.get_number_of_measurements() += get_number_of_measurements();
 
-  for (int i = 0; i < visited_expansion_order_k.size(); i++)
-    other.get_visited_expansion_order_k()(i) += visited_expansion_order_k(i);
+  other.get_visited_expansion_order_k() += visited_expansion_order_k;
 
-  {  // sp-measurements
-    for (int i = 0; i < G_r_w.size(); i++)
-      other.get_G_r_w()(i) += G_r_w(i);
-
-    for (int i = 0; i < GS_r_w.size(); i++)
-      other.get_GS_r_w()(i) += GS_r_w(i);
-  }
+  // sp-measurements
+  other.get_G_r_w() += G_r_w;
+  other.get_GS_r_w() += GS_r_w;
 }
 
 }  // cthyb
