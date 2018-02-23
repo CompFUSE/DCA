@@ -108,11 +108,7 @@ TEST_F(G0Setup, SumToAndFinalize) {
   accumulator1.accumulate(M1, config1, sign);
   accumulator2.accumulate(M2, config2, sign);
   accumulator1.sumTo(accumulator_sum);
-  // accumulator1 is invalid after having been summed to accumulator_sum.
-  EXPECT_THROW(accumulator1.accumulate(M1, config1, sign), std::logic_error);
-  EXPECT_THROW(accumulator_sum.accumulate(M1, config1, sign), std::logic_error);
   accumulator2.sumTo(accumulator_sum);
-  EXPECT_THROW(accumulator2.get_sign_times_G4(), std::logic_error);
   accumulator_sum.finalize();
 
   // Reset the G4 on the GPU to zero.

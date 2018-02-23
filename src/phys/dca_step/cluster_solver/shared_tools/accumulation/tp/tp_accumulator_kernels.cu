@@ -18,6 +18,7 @@
 
 #include "dca/util/integer_division.hpp"
 #include "dca/linalg/util/cast_cuda.hpp"
+#include "dca/linalg/util/atomic_add_cuda.cu.hpp"
 #include "dca/linalg/util/complex_operators_cuda.cu.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/g4_helper.cuh"
 

@@ -143,7 +143,8 @@ __global__ void updateG4PHMagneticMultibandKernel(
     contribution += (Ga * Gb) * factor;
   }
 
-  G4[helper.g4Index(b1, b2, b3, b4, k1, k2, w1, w2)] += contribution;
+  auto* const result = G4 + helper.g4Index(b1, b2, b3, b4, k1, k2, w1, w2);
+  dca::linalg::atomicAdd(result, contribution);
 }
 
 template <typename Real>

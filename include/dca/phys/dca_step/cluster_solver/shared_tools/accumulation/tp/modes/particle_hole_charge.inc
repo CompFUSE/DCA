@@ -72,7 +72,8 @@ __global__ void updateG4PHChargeSinglebandKernel(CudaComplex<Real>* __restrict__
     contribution += (Ga * Gb) * factor;
   }
 
-  G4[helper.g4Index(k1, k2, w1, w2)] += contribution;
+  auto* result = G4 + helper.g4Index(k1, k2, w1, w2);
+  dca::linalg::atomicAdd(result, contribution);
 }
 
 template <typename Real>
@@ -143,7 +144,8 @@ __global__ void updateG4PHChargeMultibandKernel(
     contribution += (Ga * Gb) * factor;
   }
 
-  G4[helper.g4Index(b1, b2, b3, b4, k1, k2, w1, w2)] += contribution;
+  auto* result = G4 + helper.g4Index(b1, b2, b3, b4, k1, k2, w1, w2);
+  dca::linalg::atomicAdd(result, contribution);
 }
 
 template <typename Real>

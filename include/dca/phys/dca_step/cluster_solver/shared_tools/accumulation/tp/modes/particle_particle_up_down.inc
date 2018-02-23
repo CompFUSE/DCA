@@ -50,7 +50,9 @@ __global__ void updateG4PPUpDownSinglebandKernel(CudaComplex<Real>* __restrict__
   const CudaComplex<Real> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
   const CudaComplex<Real> Gb_2 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
 
-  G4[helper.g4Index(k1, k2, w1, w2)] += (Ga_1 * Gb_1 + Ga_2 * Gb_2) * factor;
+  const CudaComplex<Real> contribution = (Ga_1 * Gb_1 + Ga_2 * Gb_2) * factor;
+  CudaComplex<Real>* result = G4 + helper.g4Index(k1, k2, w1, w2);
+  dca::linalg::atomicAdd(result, contribution);
 }
 
 template <typename Real>
@@ -101,7 +103,9 @@ __global__ void updateG4PPUpDownMultibandKernel(CudaComplex<Real>* __restrict__ 
   const CudaComplex<Real> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
   const CudaComplex<Real> Gb_2 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
 
-  G4[helper.g4Index(b1, b3, b2, b4, k1, k2, w1, w2)] += (Ga_1 * Gb_1 + Ga_2 * Gb_2) * factor;
+  const CudaComplex<Real> contribution = (Ga_1 * Gb_1 + Ga_2 * Gb_2) * factor;
+  CudaComplex<Real>* result_ptr =  G4 + helper.g4Index(b1, b3, b2, b4, k1, k2, w1, w2);
+  dca::linalg::atomicAdd(result_ptr, contribution);
 }
 
 template <typename Real>
