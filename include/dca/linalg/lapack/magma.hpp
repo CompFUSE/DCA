@@ -16,6 +16,7 @@
 #include <complex>
 #include <magma.h>
 
+#include "dca/linalg/lapack/lapack.hpp"
 #include "dca/linalg/util/cast_cuda.hpp"
 #include "dca/linalg/util/error_cuda.hpp"
 
