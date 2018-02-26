@@ -25,7 +25,7 @@ class WriterTest : public ::testing::Test {
 };
 
 // dca::io::CSVWriter, dca::io::HDF5Writer, 
-using WriterTypes = ::testing::Types<dca::io::HDF5Writer, dca::io::JSONWriter>;
+using WriterTypes = ::testing::Types<dca::io::HDF5Writer, dca::io::JSONWriter, dca::io::CSVWriter>;
 TYPED_TEST_CASE(WriterTest, WriterTypes);
 
 TYPED_TEST(WriterTest, Constructor) {
