@@ -42,7 +42,7 @@ TYPED_TEST(WriterTest, Unique_Ptr) {
   writer.open_file("test_file_" + type_string + "_" + test_name);
   writer.open_group("writer_test");
   
-  std::unique_ptr<std::vector<float>> up_vec{new std::vector<float>({1.0,2.0,3.0})};
+  std::unique_ptr<std::vector<float>> up_vec{new std::vector<float>({1.0,2.0,3.0,4.0})};
   
   writer.execute("test_unique_ptr_to_vector", up_vec);
   std::unique_ptr<std::vector<float>> up_vec_null;
