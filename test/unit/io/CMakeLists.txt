@@ -6,4 +6,5 @@ dca_add_gtest(reader_test
 
 dca_add_gtest(writer_test
   GTEST_MAIN
+  MPI 1
   LIBS dca_hdf5 json ${HDF5_LIBRARIES})
