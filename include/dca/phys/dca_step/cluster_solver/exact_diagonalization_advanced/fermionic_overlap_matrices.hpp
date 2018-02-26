@@ -25,6 +25,7 @@
 #include "dca/linalg/matrixop.hpp"
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/hamiltonian.hpp"
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/overlap_matrix_element.hpp"
+#include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 
 namespace dca {
 namespace phys {
@@ -32,14 +33,16 @@ namespace solver {
 namespace ed {
 // dca::phys::solver::ed::
 
-template <typename parameter_type, typename ed_options>
+template <typename parameters_type, typename ed_options>
 class fermionic_overlap_matrices {
 public:
   typedef typename ed_options::b_dmn b_dmn;
   typedef typename ed_options::s_dmn s_dmn;
-  typedef typename ed_options::r_dmn r_dmn;
-  typedef typename ed_options::k_dmn k_dmn;
 
+  using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
+  using RClusterDmn = typename CDA::RClusterDmn;
+  using KClusterDmn = typename CDA::KClusterDmn;
+    
   typedef typename ed_options::profiler_t profiler_t;
   typedef typename ed_options::concurrency_type concurrency_type;
 
@@ -53,22 +56,22 @@ public:
   typedef typename ed_options::nu_dmn nu_dmn;
   typedef typename ed_options::b_s_r b_s_r_dmn_type;
 
-  typedef Hamiltonian<parameter_type, ed_options> fermionic_Hamiltonian_type;
+  typedef Hamiltonian<parameters_type, ed_options> fermionic_Hamiltonian_type;
 
   typedef typename ed_options::phi_type phi_type;
 
-  typedef Fock_space<parameter_type, ed_options> fermionic_Fock_space_type;
-  typedef Hilbert_space<parameter_type, ed_options> Hilbert_space_type;
-  typedef Hilbert_space_phi_representation<parameter_type, ed_options> Hilbert_space_phi_representation_type;
-  typedef psi_state<parameter_type, ed_options> psi_state_type;
+  typedef Fock_space<parameters_type, ed_options> fermionic_Fock_space_type;
+  typedef Hilbert_space<parameters_type, ed_options> Hilbert_space_type;
+  typedef Hilbert_space_phi_representation<parameters_type, ed_options> Hilbert_space_phi_representation_type;
+  typedef psi_state<parameters_type, ed_options> psi_state_type;
 
   typedef func::dmn_0<fermionic_Fock_space_type> fermionic_Fock_dmn_type;
-  typedef PhiFermionicOperators<parameter_type, ed_options> fermionic_operators_type;
+  typedef PhiFermionicOperators<parameters_type, ed_options> fermionic_operators_type;
 
-  typedef OverlapMatrixElement<parameter_type, ed_options> sparse_element_type;
+  typedef OverlapMatrixElement<parameters_type, ed_options> sparse_element_type;
 
 public:
-  fermionic_overlap_matrices(parameter_type& parameters_ref,
+  fermionic_overlap_matrices(parameters_type& parameters_ref,
                              fermionic_Hamiltonian_type& Hamiltonian_ref);
 
   void construct_creation_set_all();
@@ -110,7 +113,7 @@ private:
   void merge(std::vector<sparse_element_type>& sparse_matrix);
 
 private:
-  parameter_type& parameters;
+  parameters_type& parameters;
   concurrency_type& concurrency;
 
   fermionic_Hamiltonian_type& hamiltonian;
@@ -138,9 +141,9 @@ private:
   func::function<complex_type, func::dmn_variadic<b_s_r_dmn_type, b_s_r_dmn_type>> overlap;
 };
 
-template <typename parameter_type, typename ed_options>
-fermionic_overlap_matrices<parameter_type, ed_options>::fermionic_overlap_matrices(
-    parameter_type& parameters_ref, fermionic_Hamiltonian_type& Hamiltonian_ref)
+template <typename parameters_type, typename ed_options>
+fermionic_overlap_matrices<parameters_type, ed_options>::fermionic_overlap_matrices(
+    parameters_type& parameters_ref, fermionic_Hamiltonian_type& Hamiltonian_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
 
@@ -149,8 +152,8 @@ fermionic_overlap_matrices<parameter_type, ed_options>::fermionic_overlap_matric
       creation_set_all("creation_set_all"),
       creation_set_nonzero_sparse("createn_set_nonzero_sparse") {}
 
-template <typename parameter_type, typename ed_options>
-void fermionic_overlap_matrices<parameter_type, ed_options>::construct_creation_set_all() {
+template <typename parameters_type, typename ed_options>
+void fermionic_overlap_matrices<parameters_type, ed_options>::construct_creation_set_all() {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t" << __FUNCTION__ << std::endl;
 
@@ -172,7 +175,7 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::construct_creation_
   for (int j = 0; j < Hilbert_spaces.size(); ++j) {
     for (int i = 0; i < Hilbert_spaces.size(); ++i) {
       if (Hilbert_spaces[i].get_occupation() == Hilbert_spaces[j].get_occupation() + 1) {
-        for (int r = 0; r < r_dmn::dmn_size(); ++r) {
+        for (int r = 0; r < RClusterDmn::dmn_size(); ++r) {
           for (int s = 0; s < s_dmn::dmn_size(); ++s) {
             if (Hilbert_spaces[i].get_magnetization() ==
                 Hilbert_spaces[j].get_magnetization() + Sz[s]) {
@@ -195,8 +198,8 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::construct_creation_
   }
 }
 
-template <typename parameter_type, typename ed_options>
-void fermionic_overlap_matrices<parameter_type, ed_options>::construct_annihilation_set_all() {
+template <typename parameters_type, typename ed_options>
+void fermionic_overlap_matrices<parameters_type, ed_options>::construct_annihilation_set_all() {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t" << __FUNCTION__ << std::endl;
 
@@ -218,7 +221,7 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::construct_annihilat
   for (int j = 0; j < Hilbert_spaces.size(); ++j) {
     for (int i = 0; i < Hilbert_spaces.size(); ++i) {
       if (Hilbert_spaces[i].get_occupation() == Hilbert_spaces[j].get_occupation() - 1) {
-        for (int r = 0; r < r_dmn::dmn_size(); ++r) {
+        for (int r = 0; r < RClusterDmn::dmn_size(); ++r) {
           for (int s = 0; s < s_dmn::dmn_size(); ++s) {
             if (Hilbert_spaces[i].get_magnetization() ==
                 Hilbert_spaces[j].get_magnetization() - Sz[s]) {
@@ -241,8 +244,8 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::construct_annihilat
   }
 }
 
-template <typename parameter_type, typename ed_options>
-void fermionic_overlap_matrices<parameter_type, ed_options>::construct_creation_set_nonzero_sparse() {
+template <typename parameters_type, typename ed_options>
+void fermionic_overlap_matrices<parameters_type, ed_options>::construct_creation_set_nonzero_sparse() {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t" << __FUNCTION__ << std::endl;
 
@@ -307,8 +310,8 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::construct_creation_
   }
 }
 
-template <typename parameter_type, typename ed_options>
-void fermionic_overlap_matrices<parameter_type, ed_options>::construct_annihilation_set_nonzero_sparse() {
+template <typename parameters_type, typename ed_options>
+void fermionic_overlap_matrices<parameters_type, ed_options>::construct_annihilation_set_nonzero_sparse() {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t" << __FUNCTION__ << std::endl;
 
@@ -373,8 +376,8 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::construct_annihilat
   }
 }
 
-template <typename parameter_type, typename ed_options>
-void fermionic_overlap_matrices<parameter_type, ed_options>::compute_sparse_creation(int HS_i,
+template <typename parameters_type, typename ed_options>
+void fermionic_overlap_matrices<parameters_type, ed_options>::compute_sparse_creation(int HS_i,
                                                                                      int HS_j,
                                                                                      int b_s_r) {
   std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
@@ -393,8 +396,8 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::compute_sparse_crea
   }
 }
 
-template <typename parameter_type, typename ed_options>
-void fermionic_overlap_matrices<parameter_type, ed_options>::compute_sparse_annihilation(int HS_i,
+template <typename parameters_type, typename ed_options>
+void fermionic_overlap_matrices<parameters_type, ed_options>::compute_sparse_annihilation(int HS_i,
                                                                                          int HS_j,
                                                                                          int b_s_r) {
   std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
@@ -413,8 +416,8 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::compute_sparse_anni
   }
 }
 
-template <typename parameter_type, typename ed_options>
-void fermionic_overlap_matrices<parameter_type, ed_options>::compute_creation_matrix(
+template <typename parameters_type, typename ed_options>
+void fermionic_overlap_matrices<parameters_type, ed_options>::compute_creation_matrix(
     int HS_i, int HS_j, int b_s_r, matrix_type& dense_creation) {
   std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
@@ -431,8 +434,8 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::compute_creation_ma
   dca::linalg::matrixop::gemm('C', 'N', V_i, helper, dense_creation);
 }
 
-template <typename parameter_type, typename ed_options>
-void fermionic_overlap_matrices<parameter_type, ed_options>::compute_creation_matrix_fast(
+template <typename parameters_type, typename ed_options>
+void fermionic_overlap_matrices<parameters_type, ed_options>::compute_creation_matrix_fast(
     int HS_i, int HS_j, int b_s_r, matrix_type& dense_creation, matrix_type& tmp) {
   //  std::cout << "\n\n\t" << __FUNCTION__ << "\n\n";
 
@@ -467,8 +470,8 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::compute_creation_ma
   dca::linalg::matrixop::gemm('C', 'N', V_i, tmp, dense_creation);
 }
 
-template <typename parameter_type, typename ed_options>
-void fermionic_overlap_matrices<parameter_type, ed_options>::compute_annihilation_matrix(
+template <typename parameters_type, typename ed_options>
+void fermionic_overlap_matrices<parameters_type, ed_options>::compute_annihilation_matrix(
     int HS_i, int HS_j, int b_s_r, matrix_type& dense_annihilation) {
   std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
@@ -485,8 +488,8 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::compute_annihilatio
   dca::linalg::matrixop::gemm('C', 'N', V_i, helper, dense_annihilation);
 }
 
-template <typename parameter_type, typename ed_options>
-void fermionic_overlap_matrices<parameter_type, ed_options>::compute_annihilation_matrix_fast(
+template <typename parameters_type, typename ed_options>
+void fermionic_overlap_matrices<parameters_type, ed_options>::compute_annihilation_matrix_fast(
     int HS_i, int HS_j, int b_s_r, matrix_type& dense_annihilation, matrix_type& tmp) {
   //   std::cout << "\n\n\t" << __FUNCTION__ << "\n\n";
 
@@ -521,8 +524,8 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::compute_annihilatio
   dca::linalg::matrixop::gemm('C', 'N', V_i, tmp, dense_annihilation);
 }
 
-template <typename parameter_type, typename ed_options>
-bool fermionic_overlap_matrices<parameter_type, ed_options>::check_hermitianess() {
+template <typename parameters_type, typename ed_options>
+bool fermionic_overlap_matrices<parameters_type, ed_options>::check_hermitianess() {
   std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
   matrix_type creation;
@@ -548,8 +551,8 @@ bool fermionic_overlap_matrices<parameter_type, ed_options>::check_hermitianess(
   return true;
 }
 
-template <typename parameter_type, typename ed_options>
-void fermionic_overlap_matrices<parameter_type, ed_options>::compute_overlap(int HS_n, int HS_m) {
+template <typename parameters_type, typename ed_options>
+void fermionic_overlap_matrices<parameters_type, ed_options>::compute_overlap(int HS_n, int HS_m) {
   std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
   matrix_type annihilation_nu;
@@ -570,8 +573,8 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::compute_overlap(int
       }
 }
 
-template <typename parameter_type, typename ed_options>
-void fermionic_overlap_matrices<parameter_type, ed_options>::print_overlap(const char* filename,
+template <typename parameters_type, typename ed_options>
+void fermionic_overlap_matrices<parameters_type, ed_options>::print_overlap(const char* filename,
                                                                            int HS_n, int HS_m) {
   std::cout << "Print overlap of Hilbert-spaces #" << HS_n << " and #" << HS_m << std::endl;
 
@@ -589,8 +592,8 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::print_overlap(const
   data.close();
 }
 
-template <typename parameter_type, typename ed_options>
-void fermionic_overlap_matrices<parameter_type, ed_options>::print_creation_matrix(const char* filename) {
+template <typename parameters_type, typename ed_options>
+void fermionic_overlap_matrices<parameters_type, ed_options>::print_creation_matrix(const char* filename) {
   std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
   int HS_0 = 0;
@@ -630,14 +633,14 @@ void fermionic_overlap_matrices<parameter_type, ed_options>::print_creation_matr
   data.close();
 }
 
-template <typename parameter_type, typename ed_options>
-void fermionic_overlap_matrices<parameter_type, ed_options>::sort(
+template <typename parameters_type, typename ed_options>
+void fermionic_overlap_matrices<parameters_type, ed_options>::sort(
     std::vector<sparse_element_type>& sparse_matrix) {
   std::sort(sparse_matrix.begin(), sparse_matrix.end());
 }
 
-template <typename parameter_type, typename ed_options>
-void fermionic_overlap_matrices<parameter_type, ed_options>::merge(
+template <typename parameters_type, typename ed_options>
+void fermionic_overlap_matrices<parameters_type, ed_options>::merge(
     std::vector<sparse_element_type>& sparse_matrix) {
   std::vector<sparse_element_type> merged_sparse_matrix;
 
