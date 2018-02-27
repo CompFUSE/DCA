@@ -128,14 +128,18 @@ function(dca_add_gtest name)
     if (NOT DEFINED DCA_ADD_GTEST_MPI_NUMPROC)
       set(DCA_ADD_GTEST_MPI_NUMPROC 1)
     endif()
-
+    message( STATUS "Adding Test ${name} with ${DCA_ADD_GTEST_MPI_NUMPROC} processes" )
+    message( STATUS "COMMAND ${TEST_RUNNER} ${MPIEXEC_NUMPROC_FLAG} ${DCA_ADD_GTEST_MPI_NUMPROC}
+                     ${MPIEXEC_PREFLAGS} $<TARGET_FILE:${name}>" )
     add_test(NAME ${name}
              COMMAND ${TEST_RUNNER} ${MPIEXEC_NUMPROC_FLAG} ${DCA_ADD_GTEST_MPI_NUMPROC}
                      ${MPIEXEC_PREFLAGS} "$<TARGET_FILE:${name}>")
 
   else()
+    message( STATUS "Adding Test ${name} that should be serial")
+    message( STATUS "COMMAND $<TARGET_FILE:${name}>" )
     add_test(NAME ${name}
-             COMMAND ${TEST_RUNNER} ${MPIEXEC_PREFLAGS} "$<TARGET_FILE:${name}>")
+             COMMAND "$<TARGET_FILE:${name}>")
   endif()
 
 endfunction()
