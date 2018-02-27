@@ -25,7 +25,7 @@ class WriterTest : public ::testing::Test {
 };
 
 // dca::io::CSVWriter, dca::io::HDF5Writer, 
-using WriterTypes = ::testing::Types<dca::io::HDF5Writer, dca::io::JSONWriter, dca::io::CSVWriter>;
+using WriterTypes = ::testing::Types<dca::io::HDF5Writer, dca::io::JSONWriter>; //, dca::io::CSVWriter>;
 TYPED_TEST_CASE(WriterTest, WriterTypes);
 
 TYPED_TEST(WriterTest, Constructor) {
@@ -39,7 +39,7 @@ TYPED_TEST(WriterTest, Unique_Ptr) {
   std::string type_string(::testing::UnitTest::GetInstance()
 			  ->current_test_info()->type_param());
   
-  writer.open_file("test_file_" + type_string + "_" + test_name);
+  writer.open_file("/tmp/test_file_" + type_string + "_" + test_name);
   writer.open_group("writer_test");
   
   std::unique_ptr<std::vector<float>> up_vec{new std::vector<float>({1.0,2.0,3.0,4.0})};
