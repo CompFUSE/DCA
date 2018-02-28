@@ -145,7 +145,7 @@ TEST(Ni0, GS) {
     function<double, CovarianceDomain> cov("Covariance");
     dca_test_env->concurrency.computeCovariance(GS_measured, GS_avg, cov);
     if (id == dca_test_env->concurrency.last()) {
-      std::cout << "Processor " << id << " is  writing the covariance\n";
+      std::cout << "Processor " << id << " is writing the covariance\n";
       dca::io::HDF5Writer writer;
       writer.open_file("NiO_test_covariance_output.hdf5");
       writer.open_group("functions");
@@ -162,16 +162,16 @@ TEST(Ni0, GS) {
     }
   }
 
-  // write  integrator output
-  //  DCA::DCA_loop_data<TestParameters> loop_data;
-  //  solver.finalize(loop_data);
-  //  if (id == 0) {
-  //    std::cout << "\nProcessor " << id << " is writing data " << std::endl;
-  //    IO::writer<IO::HDF5> writer;
-  //    writer.open_file("NiO_test_output.hdf5");
-  //    solver.write(writer);
-  //    writer.close_file();
-  //  }
+  // Uncomment to write integrator output.
+  // dca::phys::DcaLoopData<TestParameters> loop_data;
+  // solver.finalize(loop_data);
+  // if (id == 0) {
+  //   std::cout << "\nProcessor " << id << " is writing data " << std::endl;
+  //   IO::writer<IO::HDF5> writer;
+  //   writer.open_file("NiO_test_output.hdf5");
+  //   solver.write(writer);
+  //   writer.close_file();
+  // }
 }
 
 int main(int argc, char** argv) {

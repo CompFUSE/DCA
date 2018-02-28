@@ -84,19 +84,18 @@ TEST(CtauxSquareLatticeValidationTest, GreensFunction) {
     EXPECT_LT(p_value_default, p_value);
   }
 
-  // write  integrator output
-  // INTERNAL: do we need it?
-  //  dca::phys::DcaLoopData<ParametersType> loop_data;
-  //  qmc_solver.finalize(loop_data);
-  //  if (id == 0) {
-  //    std::cout << "\nProcessor " << id << " is writing data " << std::endl;
-  //    dca::io::HDF5Writer writer;
-  //    writer.open_file("ctaux_square_results.hdf5");
-  //    writer.open_group("functions");
-  //    writer.execute(data.G_k_w);
-  //    writer.close_group();
-  //    writer.close_file();
-  //  }
+  // Uncomment to write integrator output.
+  // dca::phys::DcaLoopData<ParametersType> loop_data;
+  // qmc_solver.finalize(loop_data);
+  // if (id == 0) {
+  //   std::cout << "\nProcessor " << id << " is writing data " << std::endl;
+  //   dca::io::HDF5Writer writer;
+  //   writer.open_file("ctaux_square_results.hdf5");
+  //   writer.open_group("functions");
+  //   writer.execute(data.G_k_w);
+  //   writer.close_group();
+  //   writer.close_file();
+  // }
 }
 
 int main(int argc, char** argv) {

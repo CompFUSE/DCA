@@ -76,12 +76,12 @@ TEST(CtauxSquareLatticeVerificationTest, GreensFunction) {
     EXPECT_LT(p_value_default, p_value);
   }
 
-  // If many MPI ranks where used store  covariance  and mean for future testing.
+  // If many MPI ranks where used store covariance and mean for future testing.
   if (number_of_samples > G_k_w_measured.size()) {
     function<double, CovarianceDomain> covariance_measured("G_k_w_covariance");
     dca_test_env->concurrency.computeCovariance(G_on_node, G_k_w_measured, covariance_measured);
     if (id == dca_test_env->concurrency.last()) {
-      std::cout << "\nProcessor " << id << " is writing  the covariance" << std::endl;
+      std::cout << "\nProcessor " << id << " is writing the covariance" << std::endl;
       dca::io::HDF5Writer writer;
       writer.open_file("verification_covariance_output.hdf5");
       writer.open_group("functions");
@@ -99,19 +99,18 @@ TEST(CtauxSquareLatticeVerificationTest, GreensFunction) {
     }
   }
 
-  // write  integrator output
-  // INTERNAL: do we need it?
-  //  dca::phys::DcaLoopData<ParametersType> loop_data;
-  //  qmc_solver.finalize(loop_data);
-  //  if (id == 0) {
-  //    std::cout << "\nProcessor " << id << " is writing data " << std::endl;
-  //    dca::io::HDF5Writer writer;
-  //    writer.open_file("verification_solver_output.hdf5");
-  //    writer.open_group("functions");
-  //    qmc_solver.write(writer);
-  //    writer.close_group();
-  //    writer.close_file();
-  //  }
+  // Uncomment to write integrator output.
+  // dca::phys::DcaLoopData<ParametersType> loop_data;
+  // qmc_solver.finalize(loop_data);
+  // if (id == 0) {
+  //   std::cout << "\nProcessor " << id << " is writing data " << std::endl;
+  //   dca::io::HDF5Writer writer;
+  //   writer.open_file("verification_solver_output.hdf5");
+  //   writer.open_group("functions");
+  //   qmc_solver.write(writer);
+  //   writer.close_group();
+  //   writer.close_file();
+  // }
 }
 
 int main(int argc, char** argv) {
