@@ -38,22 +38,22 @@ __device__ __host__ static __inline__ cuComplex operator-(cuComplex a) {
 __device__ __host__ static __inline__ cuComplex operator*(const cuComplex a, const float b) {
   return make_cuComplex(a.x * b, a.y * b);
 }
-__device__ __host__ static __inline__ cuComplex operator*=(
-    cuComplex& a, const cuComplex b) {
+__device__ __host__ static __inline__ cuComplex operator*(const float a, const cuComplex b) {
+  return make_cuComplex(a * b.x, a * b.y);
+}
+__device__ __host__ static __inline__ cuComplex operator*=(cuComplex& a, const cuComplex b) {
   a = a * b;
   return a;
 }
-__device__ __host__ static __inline__ cuComplex operator+=(
-    cuComplex& a, const cuComplex b) {
+__device__ __host__ static __inline__ cuComplex operator+=(cuComplex& a, const cuComplex b) {
   a = a + b;
   return a;
 }
-__device__ __host__ static __inline__ cuComplex operator-=(
-    cuComplex& a, const cuComplex b) {
+__device__ __host__ static __inline__ cuComplex operator-=(cuComplex& a, const cuComplex b) {
   a = a - b;
   return a;
 }
-__device__ __host__ static __inline__ cuComplex conj(cuComplex a){
+__device__ __host__ static __inline__ cuComplex conj(cuComplex a) {
   a.y = -a.y;
   return a;
 }
@@ -84,22 +84,26 @@ __device__ __host__ static __inline__ cuDoubleComplex operator*(const cuDoubleCo
                                                                 const double b) {
   return make_cuDoubleComplex(a.x * b, a.y * b);
 }
-__device__ __host__ static __inline__ cuDoubleComplex operator*=(
-    cuDoubleComplex& a, const cuDoubleComplex b) {
+__device__ __host__ static __inline__ cuDoubleComplex operator*(const double a,
+                                                                const cuDoubleComplex b) {
+  return make_cuDoubleComplex(a * b.x, a * b.y);
+}
+__device__ __host__ static __inline__ cuDoubleComplex operator*=(cuDoubleComplex& a,
+                                                                 const cuDoubleComplex b) {
   a = a * b;
   return a;
 }
-__device__ __host__ static __inline__ cuDoubleComplex operator+=(
-    cuDoubleComplex& a, const cuDoubleComplex b) {
+__device__ __host__ static __inline__ cuDoubleComplex operator+=(cuDoubleComplex& a,
+                                                                 const cuDoubleComplex b) {
   a = a + b;
   return a;
 }
-__device__ __host__ static __inline__ cuDoubleComplex operator-=(
-    cuDoubleComplex& a, const cuDoubleComplex b) {
+__device__ __host__ static __inline__ cuDoubleComplex operator-=(cuDoubleComplex& a,
+                                                                 const cuDoubleComplex b) {
   a = a - b;
   return a;
 }
-__device__ __host__ static __inline__ cuDoubleComplex conj(cuDoubleComplex a){
+__device__ __host__ static __inline__ cuDoubleComplex conj(cuDoubleComplex a) {
   a.y = -a.y;
   return a;
 }
