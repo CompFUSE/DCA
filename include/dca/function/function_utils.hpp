@@ -17,6 +17,7 @@
 
 #include <cmath>
 #include <complex>
+#include <limits>
 #include <stdexcept>
 
 #include "dca/function/function.hpp"
@@ -30,7 +31,7 @@ struct Difference {
   double l1, l2, l_inf;
 };
 
-// Returns the l1, l2, and l_inf relative difference between f1 and f2.
+// Returns the l1, l2, and l_inf norms of |f1 - f2| / |f1|.
 template <typename Scalartype, class Dmn1, class Dmn2>
 Difference difference(const function<Scalartype, Dmn1>& f1, const function<Scalartype, Dmn2>& f2) {
   if (f1.size() != f2.size())
@@ -69,20 +70,22 @@ function<std::complex<Scalartype>, Dmn> complex(const function<Scalartype, Dmn>&
   function<std::complex<Scalartype>, Dmn> f_cmplx;
 
   for (int i = 0; i < f_cmplx.size(); ++i)
-    f_cmplx(i) = std::complex<Scalartype>(f(i), 0);
+    f_cmplx(i) = std::complex<Scalartype>(f(i));
 
   return f_cmplx;
 }
 
-// Discard the imaginary part of f. If check_imaginary is true, and the arguments has a non zero
-// imaginary part, it throws.
+// Returns a real function whose elements are the real part of the elements of f.
+// Throws a std::logic_error if check_imaginary is true, and any of the arguments has a non zero,
+// up to rounding errors, imaginary part.
 template <typename Scalartype, class Dmn>
 function<Scalartype, Dmn> real(const function<std::complex<Scalartype>, Dmn>& f,
                                const bool check_imaginary = false) {
   function<Scalartype, Dmn> f_real;
 
+  const Scalartype epsilon = 10 * std::numeric_limits<Scalartype>::epsilon();
   for (int i = 0; i < f_real.size(); ++i) {
-    if (check_imaginary and std::abs(f(i).imag()) > 1e-10)
+    if (check_imaginary and std::abs(f(i).imag()) > epsilon)
       throw(std::logic_error("The function is not real."));
     f_real(i) = f(i).real();
   }

@@ -155,6 +155,8 @@ int main(int argc, char** argv) {
 
     if (p_val != -1)
       std::cout << "\n***\nThe p-value is " << p_val << "\n***\n";
+    else
+      std::cout << "\n***\nStatistical test aborted.\n***\n";
   }
 
   Profiler::stop(concurrency, parameters.get_filename_profiling());
