@@ -14,6 +14,8 @@ dca_add_gtest(vector_gpu_test
 
 dca_add_gtest(matrix_cpu_test GTEST_MAIN)
 
+dca_add_gtest(matrix_view_test GTEST_MAIN)
+
 dca_add_gtest(matrix_cpu_gpu_test
               GTEST_MAIN
               CUDA
