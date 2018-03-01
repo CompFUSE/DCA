@@ -26,7 +26,7 @@ namespace linalg {
 namespace util {
 // dca::linalg::util::
 
-template <typename Scalar>
+template <typename ScalarType>
 class MagmaBatchedGemm {
 public:
   // Creates a plan for a batched gemm.
@@ -36,157 +36,79 @@ public:
   MagmaBatchedGemm(int size, magma_queue_t queue);
 
   // Allocates the memory for the arguments of `size` multiplications.
-  void resize(int size);
+  void reserve(int size);
 
-  // Transfer the arguments to the device and performs the batched gemm of matrices of equal size.
+  // This methods sets the argument for a single gemm operation.
   // See the documentation of the MAGMA library for a description of the arguments.
-  void executeBatched(char transa, char transb, int n, int m, int k, Scalar alpha, Scalar beta,
-                      int lda, int ldb, int ldc);
-  // Transfer the arguments to the device and performs the batched gemm of matrices of unequal size.
-  void executeVBatched(char transa = 'N', char transb = 'N');
+  void addGemm(const ScalarType* a, const ScalarType* b, ScalarType* c);
 
-  // Synchronizes the copy of the arguments to the device before reusing the object for a new
-  // batched operation.
+  // Transfers the arguments to the device and performs the batched gemm of matrices of equal size.
+  // See the documentation of the MAGMA library for a description of the arguments.
+  void execute(char transa, char transb, int n, int m, int k, ScalarType alpha, ScalarType beta,
+               int lda, int ldb, int ldc);
+
+  // Synchronizes the copy of the arguments to the device and clears the arguments of the batched
+  // gemm before reusing the object for a new batched operation.
   void synchronizeCopy();
 
-  // This methods set the argument for a single gemm operation relative to the index idx.
-  // set_lda, set_ldb, set_ldc, set_n, set_k and set_m beeds to be called only before executeVGemm.
-  // See the documentation of the MAGMA library for a description of the arguments.
-  inline void set_a(int idx, const Scalar* a);
-  inline void set_b(int idx, const Scalar* b);
-  inline void set_c(int idx, Scalar* c);
-  inline void set_lda(int idx, int lda);
-  inline void set_ldb(int idx, int ldb);
-  inline void set_ldc(int idx, int ldc);
-  inline void set_n(int idx, int n);
-  inline void set_m(int idx, int m);
-  inline void set_k(int idx, int k);
-
 private:
-  int n_batched_;
   magma_queue_t queue_;
   const cudaStream_t stream_;
   CudaEvent copied_;
 
-  linalg::util::HostVector<const Scalar *> a_ptr_, b_ptr_;
-  linalg::util::HostVector<Scalar*> c_ptr_;
-  linalg::util::HostVector<int> n_, m_, k_, lda_, ldb_, ldc_;
+  linalg::util::HostVector<const ScalarType *> a_ptr_, b_ptr_;
+  linalg::util::HostVector<ScalarType*> c_ptr_;
 
-  linalg::Vector<const Scalar *, linalg::GPU> a_ptr_dev_, b_ptr_dev_;
-  linalg::Vector<Scalar*, linalg::GPU> c_ptr_dev_;
-  linalg::Vector<int, linalg::GPU> n_dev_, m_dev_, k_dev_, lda_dev_, ldc_dev_, ldb_dev_;
+  linalg::Vector<const ScalarType *, linalg::GPU> a_ptr_dev_, b_ptr_dev_;
+  linalg::Vector<ScalarType*, linalg::GPU> c_ptr_dev_;
 };
 
-template <typename Scalar>
-MagmaBatchedGemm<Scalar>::MagmaBatchedGemm(magma_queue_t queue)
-    : n_batched_(0), queue_(queue), stream_(magma_queue_get_cuda_stream(queue_)) {}
+template <typename ScalarType>
+MagmaBatchedGemm<ScalarType>::MagmaBatchedGemm(magma_queue_t queue)
+    : queue_(queue), stream_(magma_queue_get_cuda_stream(queue_)) {}
 
-template <typename Scalar>
-MagmaBatchedGemm<Scalar>::MagmaBatchedGemm(const int size, magma_queue_t queue)
+template <typename ScalarType>
+MagmaBatchedGemm<ScalarType>::MagmaBatchedGemm(const int size, magma_queue_t queue)
     : MagmaBatchedGemm(queue) {
-  resize(size);
+  reserve(size);
 }
 
-template <typename Scalar>
-void MagmaBatchedGemm<Scalar>::resize(int size) {
-  a_ptr_.resize(size), b_ptr_.resize(size), c_ptr_.resize(size);
-  n_.resize(size + 1), m_.resize(size + 1), k_.resize(size + 1);
-  lda_.resize(size + 1), ldb_.resize(size + 1), ldc_.resize(size + 1);
-
-  n_batched_ = size;
+template <typename ScalarType>
+void MagmaBatchedGemm<ScalarType>::reserve(int size) {
+  a_ptr_.reserve(size), b_ptr_.reserve(size), c_ptr_.reserve(size);
 }
 
-template <typename Scalar>
-void MagmaBatchedGemm<Scalar>::executeVBatched(const char transa, const char transb) {
-  a_ptr_dev_.setAsync(a_ptr_, stream_);
-  b_ptr_dev_.setAsync(b_ptr_, stream_);
-  c_ptr_dev_.setAsync(c_ptr_, stream_);
-  lda_dev_.setAsync(lda_, stream_);
-  ldb_dev_.setAsync(ldb_, stream_);
-  ldc_dev_.setAsync(ldc_, stream_);
-  n_dev_.setAsync(n_, stream_);
-  k_dev_.setAsync(k_, stream_);
-  m_dev_.setAsync(m_, stream_);
-  copied_.record(stream_);
+template <typename ScalarType>
+void MagmaBatchedGemm<ScalarType>::synchronizeCopy() {
+  copied_.block();
 
-  magma::magmablas_gemm_vbatched(transa, transb, n_dev_.ptr(), m_dev_.ptr(), k_dev_.ptr(), Scalar(1),
-                                 a_ptr_dev_.ptr(), lda_dev_.ptr(), b_ptr_dev_.ptr(), ldb_dev_.ptr(),
-                                 Scalar(0), c_ptr_dev_.ptr(), ldc_dev_.ptr(), n_batched_, queue_);
-  assert(cudaPeekAtLastError() == cudaSuccess);
+  a_ptr_.resize(0);
+  b_ptr_.resize(0);
+  c_ptr_.resize(0);
 }
 
-template <typename Scalar>
-void MagmaBatchedGemm<Scalar>::executeBatched(const char transa, const char transb, const int n,
-                                              const int m, const int k, const Scalar alpha,
-                                              const Scalar beta, const int lda, const int ldb,
-                                              const int ldc) {
+template <typename ScalarType>
+void MagmaBatchedGemm<ScalarType>::addGemm(const ScalarType* a, const ScalarType* b, ScalarType* c) {
+  a_ptr_.push_back(a);
+  b_ptr_.push_back(b);
+  c_ptr_.push_back(c);
+}
+
+template <typename ScalarType>
+void MagmaBatchedGemm<ScalarType>::execute(const char transa, const char transb, const int n,
+                                           const int m, const int k, const ScalarType alpha,
+                                           const ScalarType beta, const int lda, const int ldb,
+                                           const int ldc) {
   a_ptr_dev_.setAsync(a_ptr_, stream_);
   b_ptr_dev_.setAsync(b_ptr_, stream_);
   c_ptr_dev_.setAsync(c_ptr_, stream_);
   copied_.record(stream_);
+
+  const int n_batched = a_ptr_.size();
   magma::magmablas_gemm_batched(transa, transb, n, m, k, alpha, a_ptr_dev_.ptr(), lda,
-                                b_ptr_dev_.ptr(), ldb, beta, c_ptr_dev_.ptr(), ldc, n_batched_,
+                                b_ptr_dev_.ptr(), ldb, beta, c_ptr_dev_.ptr(), ldc, n_batched,
                                 queue_);
   assert(cudaPeekAtLastError() == cudaSuccess);
-}
-
-template <typename Scalar>
-void MagmaBatchedGemm<Scalar>::synchronizeCopy() {
-  copied_.block();
-}
-
-template <typename Scalar>
-void MagmaBatchedGemm<Scalar>::set_a(const int idx, const Scalar* a) {
-  assert(0 <= idx && idx < n_batched_);
-  a_ptr_[idx] = a;
-}
-
-template <typename Scalar>
-void MagmaBatchedGemm<Scalar>::set_b(const int idx, const Scalar* b) {
-  assert(0 <= idx && idx < n_batched_);
-  b_ptr_[idx] = b;
-}
-
-template <typename Scalar>
-void MagmaBatchedGemm<Scalar>::set_c(const int idx, Scalar* c) {
-  assert(0 <= idx && idx < n_batched_);
-  c_ptr_[idx] = c;
-}
-
-template <typename Scalar>
-void MagmaBatchedGemm<Scalar>::set_lda(const int idx, const int lda) {
-  assert(0 <= idx && idx < n_batched_);
-  lda_[idx] = lda;
-}
-
-template <typename Scalar>
-void MagmaBatchedGemm<Scalar>::set_ldb(const int idx, const int ldb) {
-  assert(0 <= idx && idx < n_batched_);
-  ldb_[idx] = ldb;
-}
-
-template <typename Scalar>
-void MagmaBatchedGemm<Scalar>::set_ldc(const int idx, const int ldc) {
-  assert(0 <= idx && idx < n_batched_);
-  ldc_[idx] = ldc;
-}
-
-template <typename Scalar>
-void MagmaBatchedGemm<Scalar>::set_n(const int idx, const int n) {
-  assert(0 <= idx && idx < n_batched_);
-  n_[idx] = n;
-}
-
-template <typename Scalar>
-void MagmaBatchedGemm<Scalar>::set_m(const int idx, const int m) {
-  assert(0 <= idx && idx < n_batched_);
-  m_[idx] = m;
-}
-
-template <typename Scalar>
-void MagmaBatchedGemm<Scalar>::set_k(const int idx, const int k) {
-  assert(0 <= idx && idx < n_batched_);
-  k_[idx] = k;
 }
 
 }  // util

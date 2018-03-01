@@ -7,9 +7,11 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// This file tests magma_batched_gemm.hpp.
+// This file tests the wrappers to batched gemm operations provided by magma_batched_gemm.hpp and
+// magma_vbatched_gemm.hpp.
 
 #include "dca/linalg/util/magma_batched_gemm.hpp"
+#include "dca/linalg/util/magma_vbatched_gemm.hpp"
 
 #include "gtest/gtest.h"
 
@@ -45,24 +47,15 @@ TEST(MagmaBatchedGemmTest, Batched) {
 
   dca::linalg::util::MagmaQueue queue;
   dca::linalg::util::MagmaBatchedGemm<float> plan(queue);
+  plan.reserve(2);
 
-  plan.resize(2);
-
-  plan.set_a(0, a1_dev.ptr());
-  plan.set_a(1, a2_dev.ptr());
-  plan.set_b(0, b1_dev.ptr());
-  plan.set_b(1, b2_dev.ptr());
-  plan.set_c(0, c1_dev.ptr());
-  plan.set_c(1, c2_dev.ptr());
-
-  // Only two multiplications are expected.
-  EXPECT_DEBUG_DEATH(plan.set_a(2, a1.ptr()), ".*");
+  plan.addGemm(a1_dev.ptr(), b1_dev.ptr(), c1_dev.ptr());
+  plan.addGemm(a2_dev.ptr(), b2_dev.ptr(), c2_dev.ptr());
 
   const float alpha = 1.;
   const float beta = 0;
-  plan.executeBatched('N', 'N', c1_dev.nrRows(), c2_dev.nrCols(), a1_dev.nrCols(), alpha, beta,
-                      a1_dev.leadingDimension(), b1_dev.leadingDimension(),
-                      c1_dev.leadingDimension());
+  plan.execute('N', 'N', c1_dev.nrRows(), c2_dev.nrCols(), a1_dev.nrCols(), alpha, beta,
+               a1_dev.leadingDimension(), b1_dev.leadingDimension(), c1_dev.leadingDimension());
 
   dca::linalg::Matrix<float, dca::linalg::CPU> c1(c1_dev), c2(c2_dev);
 
@@ -103,25 +96,14 @@ TEST(MagmaBatchedGemmTest, VBatched) {
   dca::linalg::Matrix<double, dca::linalg::GPU> c1_dev(3), c2_dev(4);
 
   dca::linalg::util::MagmaQueue queue;
-  dca::linalg::util::MagmaBatchedGemm<double> plan(2, queue);
+  dca::linalg::util::MagmaVBatchedGemm<double> plan(2, queue);
 
-  plan.set_a(0, a1_dev.ptr());
-  plan.set_a(1, a2_dev.ptr());
-  plan.set_lda(0, a1_dev.leadingDimension());
-  plan.set_lda(1, a2_dev.leadingDimension());
-  plan.set_b(0, b1_dev.ptr());
-  plan.set_b(1, b2_dev.ptr());
-  plan.set_ldb(0, b1_dev.leadingDimension());
-  plan.set_ldb(1, b2_dev.leadingDimension());
-  plan.set_c(0, c1_dev.ptr());
-  plan.set_c(1, c2_dev.ptr());
-  plan.set_ldc(0, c1_dev.leadingDimension());
-  plan.set_ldc(1, c2_dev.leadingDimension());
+  plan.addGemm(3, 3, 3, a1_dev.ptr(), a1_dev.leadingDimension(), b1_dev.ptr(),
+               b1_dev.leadingDimension(), c1_dev.ptr(), c1_dev.leadingDimension());
+  plan.addGemm(4, 4, 4, a2_dev.ptr(), a2_dev.leadingDimension(), b2_dev.ptr(),
+               b2_dev.leadingDimension(), c2_dev.ptr(), c2_dev.leadingDimension());
 
-  plan.set_n(0, 3), plan.set_m(0, 3), plan.set_k(0, 3);
-  plan.set_n(1, 4), plan.set_m(1, 4), plan.set_k(1, 4);
-
-  plan.executeVBatched('T', 'N');
+  plan.execute('T', 'N');
 
   dca::linalg::Matrix<double, dca::linalg::CPU> c1(c1_dev), c2(c2_dev);
 
