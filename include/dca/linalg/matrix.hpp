@@ -123,8 +123,9 @@ public:
     return data_;
   }
 
-  // Returns the pointer to the (i,j)-th element.
-  // Preconditions: 0 <= i < size().first, 0 <= j < size().second.
+  // Returns the pointer to the (i,j)-th element i < size().first and 0 < j < size().second, or
+  // a pointer past the end of the range if i == size().first or j == size().second.
+  // Preconditions: 0 <= i <= size().first, 0 <= j <= size().second.
   ValueType* ptr(int i, int j) {
     assert(i >= 0 && i <= size_.first);
     assert(j >= 0 && j <= size_.second);
