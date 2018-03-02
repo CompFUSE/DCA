@@ -145,7 +145,7 @@ TEST(bilayerLattice_Nc1_interband, Self_Energy) {
     }
     dca::io::HDF5Writer writer;
     writer.open_file("output.hdf5");
-    writer.open_rgoup("functions");
+    writer.open_group("functions");
     Sigma_QMC.set_name("Self_Energy");
     writer.execute(Sigma_QMC);
     writer.close_group();
