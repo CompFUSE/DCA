@@ -420,8 +420,7 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::compute_error_bars() {
 
     double sign = accumulator.get_sign() / double(nb_measurements);
 
-    auto& G4 = data_.get_G4_k_k_w_w();
-    G4 = accumulator.get_sign_times_G4();
+    auto G4 = accumulator.get_sign_times_G4();
     G4 /= parameters.get_beta() * parameters.get_beta() * nb_measurements * sign;
 
     concurrency.average_and_compute_stddev(G4, data_.get_G4_k_k_w_w_stdv());
