@@ -56,7 +56,7 @@ public:
   typedef typename parameters_type::concurrency_type concurrency_type;
 
   typedef ctaux::CtauxWalker<device_t, parameters_type, Data> walker_type;
-  typedef ctaux::CtauxAccumulator<dca::linalg::CPU, parameters_type, Data> accumulator_type;
+  typedef ctaux::CtauxAccumulator<device_t, parameters_type, Data> accumulator_type;
 
   using w = func::dmn_0<domains::frequency_domain>;
   using b = func::dmn_0<domains::electron_band_domain>;

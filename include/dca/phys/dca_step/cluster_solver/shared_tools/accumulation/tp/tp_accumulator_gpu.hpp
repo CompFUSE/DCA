@@ -60,7 +60,7 @@ public:
   // In: configs: stores the walker's configuration for each spin sector.
   // In: sign: sign of the configuration.
   template <class Configuration, class Scalar>
-  void accumulate(const std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>& M_pair,
+  double accumulate(const std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>& M_pair,
                   const std::array<Configuration, 2>& configs, int sign);
 
   // Downloads the accumulation result to the host.
@@ -205,7 +205,7 @@ void TpAccumulator<Parameters, linalg::GPU>::initializeG4Helpers() {
 
 template <class Parameters>
 template <class Configuration, class Scalar>
-void TpAccumulator<Parameters, linalg::GPU>::accumulate(
+double TpAccumulator<Parameters, linalg::GPU>::accumulate(
     const std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>& M_pair,
     const std::array<Configuration, 2>& configs, const int sign) {
   Profiler profiler("accumulate", "tp-accumulation", __LINE__, thread_id_);
@@ -214,12 +214,14 @@ void TpAccumulator<Parameters, linalg::GPU>::accumulate(
     throw(std::logic_error("The accumulator was already finalized."));
 
   if (!(configs[0].size() + configs[0].size()))  // empty config
-    return;
+    return 0;
 
   sign_ = sign;
   computeM(M_pair, configs);
   computeG();
   updateG4();
+
+  return 0;
 }
 
 template <class Parameters>
