@@ -17,6 +17,8 @@
 #include <cassert>
 #include <complex>
 #include <cstring>
+#include <stdexcept>
+
 #include "dca/linalg/device_type.hpp"
 #include "dca/util/ignore.hpp"
 
@@ -84,7 +86,9 @@ struct Memory<GPU> {
 
     cudaError_t ret = cudaMalloc((void**)&ptr, size * sizeof(ScalarType));
     checkRCMsg(ret, "\t size requested : " + std::to_string(size));
-    checkErrorsCudaDebug();
+
+    if(ret != cudaSuccess)
+      throw(std::bad_alloc());
   }
 
   template <typename ScalarType>
