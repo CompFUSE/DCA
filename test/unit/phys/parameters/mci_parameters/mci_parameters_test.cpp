@@ -101,12 +101,13 @@ TEST(MciParametersTest, ReadTooLargeSeed) {
 
 TEST(MciParametersTest, ReadTooSmallSeed) {
   // Generate an input file that contains a number that is smaller than the minimum value of int.
-  const int min = std::numeric_limits<int>::min();
+  int min = std::numeric_limits<int>::min();
+  min -= 1;
   std::ofstream input;
   input.open("input_too_small_seed.json");
   input << "{\n"
         << "    \"Monte-Carlo-integration\": {\n"
-        << "        \"seed\": " << min << "0\n"  // Writes min * 10.
+        << "        \"seed\": " << min << "\n"  // Writes min - 1.
         << "    }\n"
         << "}\n";
   input.close();
