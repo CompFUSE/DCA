@@ -37,11 +37,9 @@ public:
   // static void sum(func::function<T, Domain>& f, func::function<T, Domain>& f_result,
   //                 pthread_mutex_t& mutex);
 
-  template <typename ReaderOrWriter>
-  void readWrite(ReaderOrWriter& reader_or_writer);
-  friend std::ostream& operator << (std::ostream&, const Pthreading&);
+  friend std::ostream& operator << (std::ostream& some_ostream, const Pthreading& this_concurrency);
 private:
-  constexpr static char concurrency_type_str[] = "POSIX Threading Concurrency";
+  constexpr static char concurrency_type_str_[] = "POSIX Threading Concurrency";
   void fork(int num_threads, void* (*start_routine)(void*), void* arg);
   void join();
 
@@ -69,27 +67,6 @@ private:
 
 //   pthread_mutex_unlock(&mutex);
 // }
-
-template <typename ReaderOrWriter>
-void Pthreading::readWrite(ReaderOrWriter& reader_or_writer) {
-  try {
-    reader_or_writer.open_group("concurrency");
-    try {
-      reader_or_writer.execute("type", concurrency_type_str);
-    }
-    catch (const std::exception& r_e) {
-    }
-    try {
-      reader_or_writer.execute("number_of_posix_threads", pthreads_.size());
-    }
-    catch (const std::exception& r_e) {
-    }
-    reader_or_writer.close_group();
-  }
-  catch (const std::exception& r_e) {
-  }  
-}
-
     
 }  // parallel
 }  // dca

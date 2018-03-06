@@ -55,40 +55,11 @@ public:
 
   template <typename ReaderOrWriter>
   void readWrite(ReaderOrWriter& reader_or_writer);
-  friend std::ostream& operator << (std::ostream &, const NoConcurrency&);
+  friend std::ostream& operator << (std::ostream & some_ostream, const NoConcurrency& this_concurrency);
 private:
-  constexpr static char concurrency_type_str[] = "No Concurrency";
+  constexpr static char concurrency_type_str_[] = "No Concurrency";
 };
 
-template <typename ReaderOrWriter>
-void NoConcurrency::readWrite(ReaderOrWriter& reader_or_writer) {
-  try {
-    reader_or_writer.open_group("concurrency");
-    try {
-      reader_or_writer.execute("type", concurrency_type_str);
-    }
-    catch (const std::exception& r_e) {
-    }
-    try {
-      reader_or_writer.execute("number_of_processors", number_of_processors());
-    }
-    catch (const std::exception& r_e) {
-    }
-    try {
-      reader_or_writer.execute("grouping.first", first());
-    }
-    catch (const std::exception& r_e) {
-    }
-    try {
-      reader_or_writer.execute("grouping.last", last());
-    }
-    catch (const std::exception& r_e) {
-    }    
-    reader_or_writer.close_group();
-  }
-  catch (const std::exception& r_e) {
-  }  
-}
   
 }  // parallel
 }  // dca

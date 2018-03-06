@@ -378,7 +378,6 @@ void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, 
     std::string RandomNumberGeneratorype_str = dca::util::Type<RandomNumberGenerator>::print();
     reader_or_writer.execute("random-number-generator", RandomNumberGeneratorype_str);
   }
-  //Concurrency::readWrite(reader_or_writer);
   AnalysisParameters::readWrite(reader_or_writer);
   DcaParameters::readWrite(reader_or_writer);
   DomainsParameters::readWrite(reader_or_writer);
