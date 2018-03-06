@@ -174,8 +174,14 @@ void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::pe
   const int nw = w_.size();
   const int order = indexed_config_[0].size();
   T_times_M_.resizeNoCopy(std::make_pair(nw / 2 * n_orbitals_, order));
+  cudaMemsetAsync(T_times_M_.ptr(), 0,
+                  T_times_M_.leadingDimension() * T_times_M_.nrCols() * sizeof(Complex),
+                  stream_);
   auto& T_times_M_times_T = M_out;
   T_times_M_times_T.resizeNoCopy(std::make_pair(nw / 2 * n_orbitals_, nw * n_orbitals_));
+  cudaMemsetAsync(T_times_M_times_T.ptr(), 0,
+                  T_times_M_times_T.leadingDimension() * T_times_M_times_T.nrCols() * sizeof(Complex),
+                  stream_);
 
   {
     // Performs T_l * M_t_t
@@ -186,7 +192,8 @@ void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::pe
     magma_plan1_.synchronizeCopy();
     for (int i = 0; i < n_orbitals_; ++i) {
       const int n_i = end_index_left_[i] - start_index_left_[i];
-
+      if(!n_i)
+        continue;
       magma_plan1_.addGemm(nw / 2, order, n_i, T_l_dev_.ptr(0, start_index_left_[i]), lda,
                            M_t_t.ptr(start_index_left_[i], 0), ldb, T_times_M_.ptr(i * nw / 2, 0),
                            ldc);
@@ -201,7 +208,8 @@ void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::pe
     magma_plan2_.synchronizeCopy();
     for (int j = 0; j < n_orbitals_; ++j) {
       const int n_j = end_index_right_[j] - start_index_right_[j];
-
+      if(!n_j)
+        continue;
       magma_plan2_.addGemm(T_times_M_.nrRows(), nw, n_j, T_times_M_.ptr(0, start_index_right_[j]),
                            lda, T_r_dev_.ptr(start_index_right_[j], 0), ldb,
                            T_times_M_times_T.ptr(0, nw * j), ldc);
