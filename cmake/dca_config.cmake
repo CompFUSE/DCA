@@ -15,10 +15,11 @@ if (DCA_WITH_MPI)
 
   set(DCA_CONCURRENCY_TYPE dca::parallel::MPIConcurrency)
   set(DCA_CONCURRENCY_INCLUDE "dca/parallel/mpi_concurrency/mpi_concurrency.hpp")
-
+  set(DCA_CONCURRENCY_LIB parallel_mpi_concurrency)
 else()
   set(DCA_CONCURRENCY_TYPE dca::parallel::NoConcurrency)
   set(DCA_CONCURRENCY_INCLUDE "dca/parallel/no_concurrency/no_concurrency.hpp")
+  set(DCA_CONCURRENCY_LIB parallel_no_concurrency)
 endif()
 
 configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/concurrency.hpp.in"
@@ -228,19 +229,19 @@ if (DCA_THREADING_LIBRARY STREQUAL POSIX)
   set(DCA_THREADING_TYPE dca::parallel::Pthreading)
   set(DCA_THREADING_INCLUDE "dca/parallel/pthreading/pthreading.hpp")
   set(DCA_THREADING_FLAGS "-pthread" CACHE INTERNAL "Flags needed for threading." FORCE)
-  set(DCA_THREADING_LIB pthreading pthread)
+  set(DCA_THREADING_LIB parallel_pthreading pthread)
 
 elseif (DCA_THREADING_LIBRARY STREQUAL STDTHREAD)
   set(DCA_THREADING_TYPE dca::parallel::stdthread)
   set(DCA_THREADING_INCLUDE "dca/parallel/stdthread/stdthread.hpp")
   set(DCA_THREADING_FLAGS "-pthread" CACHE INTERNAL "Flags needed for threading." FORCE)
-  set(DCA_THREADING_LIB "pthread")
+  set(DCA_THREADING_LIB "pthread" parallel_stdthread )
 
 elseif (DCA_THREADING_LIBRARY STREQUAL NONE)
   set(DCA_THREADING_TYPE dca::parallel::NoThreading)
   set(DCA_THREADING_INCLUDE "dca/parallel/no_threading/no_threading.hpp")
   set(DCA_THREADING_FLAGS "" CACHE INTERNAL "Flags needed for threading." FORCE)
-  set(DCA_THREADING_LIB "")
+  set(DCA_THREADING_LIB "" no_threading parallel_no_threading)
 
 else()
   message(FATAL_ERROR "Please set DCA_THREADING_LIBRARY to a valid option: POSIX | STDTHREAD | NONE.")

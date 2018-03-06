@@ -133,6 +133,7 @@ set(DCA_LIBS
   time_and_frequency_domains
   symmetrization
   coarsegraining
+  ${DCA_CONCURRENCY_LIB}
   ${DCA_EXTERNAL_LIBS})
 
 if (DCA_HAVE_CUDA)
