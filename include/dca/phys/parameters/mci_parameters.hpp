@@ -8,8 +8,6 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
 // This class reads, stores, and writes the Monte Carlo Integration (MCI) parameters.
-//
-// TODO: Remove "additional-steps" parameter.
 
 #ifndef DCA_PHYS_PARAMETERS_MCI_PARAMETERS_HPP
 #define DCA_PHYS_PARAMETERS_MCI_PARAMETERS_HPP
@@ -35,7 +33,6 @@ public:
         measurements_per_process_and_accumulator_(100),
         walkers_(1),
         accumulators_(1),
-        additional_steps_(0),
         adjust_self_energy_for_double_counting_(false) {}
 
   template <typename Concurrency>
@@ -70,9 +67,6 @@ public:
   int get_accumulators() const {
     return accumulators_;
   }
-  int get_additional_steps() const {
-    return additional_steps_;
-  }
   bool adjust_self_energy_for_double_counting() const {
     return adjust_self_energy_for_double_counting_;
   }
@@ -92,7 +86,6 @@ private:
   int measurements_per_process_and_accumulator_;
   int walkers_;
   int accumulators_;
-  int additional_steps_;
   bool adjust_self_energy_for_double_counting_;
 };
 
@@ -106,7 +99,6 @@ int MciParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(measurements_per_process_and_accumulator_);
   buffer_size += concurrency.get_buffer_size(walkers_);
   buffer_size += concurrency.get_buffer_size(accumulators_);
-  buffer_size += concurrency.get_buffer_size(additional_steps_);
   buffer_size += concurrency.get_buffer_size(adjust_self_energy_for_double_counting_);
 
   return buffer_size;
@@ -121,7 +113,6 @@ void MciParameters::pack(const Concurrency& concurrency, char* buffer, int buffe
   concurrency.pack(buffer, buffer_size, position, measurements_per_process_and_accumulator_);
   concurrency.pack(buffer, buffer_size, position, walkers_);
   concurrency.pack(buffer, buffer_size, position, accumulators_);
-  concurrency.pack(buffer, buffer_size, position, additional_steps_);
   concurrency.pack(buffer, buffer_size, position, adjust_self_energy_for_double_counting_);
 }
 
@@ -134,7 +125,6 @@ void MciParameters::unpack(const Concurrency& concurrency, char* buffer, int buf
   concurrency.unpack(buffer, buffer_size, position, measurements_per_process_and_accumulator_);
   concurrency.unpack(buffer, buffer_size, position, walkers_);
   concurrency.unpack(buffer, buffer_size, position, accumulators_);
-  concurrency.unpack(buffer, buffer_size, position, additional_steps_);
   concurrency.unpack(buffer, buffer_size, position, adjust_self_energy_for_double_counting_);
 }
 

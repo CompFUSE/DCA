@@ -32,7 +32,6 @@ TEST(MciParametersTest, DefaultValues) {
   EXPECT_EQ(100, pars.get_measurements_per_process_and_accumulator());
   EXPECT_EQ(1, pars.get_walkers());
   EXPECT_EQ(1, pars.get_accumulators());
-  EXPECT_EQ(0, pars.get_additional_steps());
   EXPECT_FALSE(pars.adjust_self_energy_for_double_counting());
 }
 
@@ -50,7 +49,6 @@ TEST(MciParametersTest, ReadAll) {
   EXPECT_EQ(200, pars.get_measurements_per_process_and_accumulator());
   EXPECT_EQ(3, pars.get_walkers());
   EXPECT_EQ(5, pars.get_accumulators());
-  EXPECT_EQ(1, pars.get_additional_steps());
 }
 
 TEST(MciParametersTest, ReadPositiveIntegerSeed) {
