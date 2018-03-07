@@ -156,7 +156,7 @@ bool MPIConcurrency::broadcast_object(object_type& object, int root_id) const {
 
   return true;
 }
-  
+
 }  // parallel
 }  // dca
 
