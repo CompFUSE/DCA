@@ -3,10 +3,10 @@
 namespace dca {
 namespace parallel {
 
-constexpr char NoThreading::concurrency_type_str_[];
+constexpr char NoThreading::parallel_type_str_[];
 
 std::ostream& operator<<(std::ostream& o, const NoThreading& c) {
-  o << '\n' << "concurrency type:" << c.concurrency_type_str_
+  o << '\n' << "parallel type:" << c.parallel_type_str_
     << '\n' << "number of threads:" << c.data_.num_threads;
   return o;
 }

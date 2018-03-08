@@ -57,7 +57,7 @@ public:
   void readWrite(ReaderOrWriter& reader_or_writer);
   friend std::ostream& operator << (std::ostream & some_ostream, const NoConcurrency& this_concurrency);
 private:
-  constexpr static char concurrency_type_str_[] = "No Concurrency";
+  constexpr static char parallel_type_str_[] = "NoConcurrency";
 };
 
   

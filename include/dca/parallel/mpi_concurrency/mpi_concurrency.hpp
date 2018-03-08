@@ -80,7 +80,7 @@ public:
 
   friend std::ostream& operator << (std::ostream& some_ostream, const MPIConcurrency& this_concurrency);
 private:
-  constexpr static char concurrency_type_str_[] = "MPI Concurrency";
+  constexpr static char parallel_type_str_[] = "MPIConcurrency";
   MPIProcessorGrouping grouping_;
 };
 

@@ -33,7 +33,7 @@ public:
 
   friend std::ostream& operator<<(std::ostream& some_ostream, const NoThreading& this_concurrency);
 private:
-  constexpr static char concurrency_type_str_[] = "No Threading Concurrency";
+  constexpr static char parallel_type_str_[] = "NoThreading";
   ThreadingData data_;
 };
 

@@ -241,7 +241,7 @@ elseif (DCA_THREADING_LIBRARY STREQUAL NONE)
   set(DCA_THREADING_TYPE dca::parallel::NoThreading)
   set(DCA_THREADING_INCLUDE "dca/parallel/no_threading/no_threading.hpp")
   set(DCA_THREADING_FLAGS "" CACHE INTERNAL "Flags needed for threading." FORCE)
-  set(DCA_THREADING_LIB "" no_threading parallel_no_threading)
+  set(DCA_THREADING_LIB parallel_no_threading)
 
 else()
   message(FATAL_ERROR "Please set DCA_THREADING_LIBRARY to a valid option: POSIX | STDTHREAD | NONE.")

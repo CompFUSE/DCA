@@ -39,7 +39,7 @@ public:
 
   friend std::ostream& operator << (std::ostream& some_ostream, const Pthreading& this_concurrency);
 private:
-  constexpr static char concurrency_type_str_[] = "POSIX Threading Concurrency";
+  constexpr static char parallel_type_str_[] = "PThreading";
   void fork(int num_threads, void* (*start_routine)(void*), void* arg);
   void join();
 

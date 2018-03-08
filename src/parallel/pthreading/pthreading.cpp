@@ -41,11 +41,11 @@ void Pthreading::join() {
   pthreads_.resize(0);
 }
 
-constexpr char Pthreading::concurrency_type_str_[];
+constexpr char Pthreading::parallel_type_str_[];
 
 std::ostream& operator<<(std::ostream& o, const Pthreading& c)
 {
-  o << '\n' << "concurrency type:" << c.concurrency_type_str_
+  o << '\n' << "parallel type:" << c.parallel_type_str_
     << '\n' << "number of posix threads:" << c.pthreads_.size();
   return o;
 }

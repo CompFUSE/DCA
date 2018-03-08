@@ -35,7 +35,7 @@ public:
 
   friend std::ostream& operator<< (std::ostream& some_ostream, const stdthread& this_concurrency);
 private:
-  static constexpr char concurrency_type_str_[] = "std::thread Concurrency";
+  static constexpr char parallel_type_str_[] = "stdthread";
   void fork(int num_threads, void* (*start_routine)(void*), void* arg) {
     threads_.clear();
     data_.resize(num_threads);
