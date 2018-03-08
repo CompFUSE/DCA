@@ -5,9 +5,8 @@
 set(TEST_INCLUDES ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR})
 set(TEST_LIBS     ${DCA_LIBS};statistical_testing)
 
-dca_add_gtest(ctaux_square_lattice_verification
+dca_add_gtest(ctaux_square_lattice_verification_stattest
     EXTENSIVE
-    STATISTICAL
     PTHREADS
     # Run with more ranks for better error detection.
     MPI MPI_NUMPROC 1
@@ -15,9 +14,8 @@ dca_add_gtest(ctaux_square_lattice_verification
     LIBS     ${TEST_LIBS}
     )
 
-dca_add_gtest(ctaux_square_lattice_validation
+dca_add_gtest(ctaux_square_lattice_validation_stattest
     VALIDATION
-    STATISTICAL
     # Run with more ranks for better error detection.
     MPI MPI_NUMPROC 32
     INCLUDE_DIRS ${TEST_INCLUDES}
