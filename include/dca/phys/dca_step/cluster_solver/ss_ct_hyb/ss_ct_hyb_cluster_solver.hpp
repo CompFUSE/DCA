@@ -44,10 +44,9 @@ namespace solver {
 // dca::phys::solver::
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-class SsCtHybClusterSolver
-    : public cthyb::ss_hybridization_solver_routines<parameters_type, Data> {
+class SsCtHybClusterSolver : public cthyb::ss_hybridization_solver_routines<parameters_type, Data> {
 public:
-  using DataType =  Data;
+  using DataType = Data;
   typedef parameters_type this_parameters_type;
 
   typedef typename parameters_type::random_number_generator rng_type;
@@ -55,8 +54,7 @@ public:
   typedef typename parameters_type::profiler_type profiler_type;
   typedef typename parameters_type::concurrency_type concurrency_type;
 
-  typedef cthyb::ss_hybridization_solver_routines<parameters_type, Data>
-      ss_hybridization_solver_routines_type;
+  typedef cthyb::ss_hybridization_solver_routines<parameters_type, Data> ss_hybridization_solver_routines_type;
 
   typedef cthyb::SsCtHybWalker<dca::linalg::CPU, parameters_type, Data> walker_type;
   typedef cthyb::SsCtHybAccumulator<dca::linalg::CPU, parameters_type, Data> accumulator_type;
@@ -116,8 +114,8 @@ protected:
   double compute_S_k_w_from_G_k_w();
 
   void compute_Sigma_new(
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, RClusterDmn w>>& G_r_w,
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, RClusterDmn w>>& GS_r_w);
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, RClusterDmn, w>>& G_r_w,
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, RClusterDmn, w>>& GS_r_w);
 
   int find_w_cutoff();
 
@@ -264,7 +262,8 @@ double SsCtHybClusterSolver<device_t, parameters_type, Data>::finalize(
   collect_measurements();
   symmetrize_measurements();
 
-  math::transform::FunctionTransform<RClusterDmn, KClusterDmn>::execute(accumulator.get_G_r_w(), data_.G_k_w);
+  math::transform::FunctionTransform<RClusterDmn, KClusterDmn>::execute(accumulator.get_G_r_w(),
+                                                                        data_.G_k_w);
 
   math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(data_.G_k_w, data_.G_r_w);
 
@@ -386,8 +385,10 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::compute_error_bars()
   const int nb_measurements = accumulator.get_number_of_measurements();
   double sign = accumulator.get_sign() / double(nb_measurements);
 
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, RClusterDmn w>> G_r_w("G_r_w_tmp");
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, RClusterDmn w>> GS_r_w("GS_r_w_tmp");
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, RClusterDmn, w>> G_r_w(
+      "G_r_w_tmp");
+  func::function<std::complex<double>, func::dmn_variadic<nu, nu, RClusterDmn, w>> GS_r_w(
+      "GS_r_w_tmp");
 
   for (int l = 0; l < G_r_w.size(); l++)
     G_r_w(l) = accumulator.get_G_r_w()(l) / double(nb_measurements * sign);
@@ -552,9 +553,8 @@ int SsCtHybClusterSolver<device_t, parameters_type, Data>::find_w_cutoff() {
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void SsCtHybClusterSolver<device_t, parameters_type, Data>::find_tail_of_Sigma(double& S0,
-                                                                                    double& S1, int b,
-                                                                                    int s, int k) {
+void SsCtHybClusterSolver<device_t, parameters_type, Data>::find_tail_of_Sigma(double& S0, double& S1,
+                                                                               int b, int s, int k) {
   int w_cutoff = find_w_cutoff();
   S0 = 0.0;
   S1 = 0.0;
@@ -570,7 +570,8 @@ auto SsCtHybClusterSolver<device_t, parameters_type, Data>::local_G_k_w() const 
     throw std::logic_error("The local data was already averaged.");
 
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, KClusterDmn, w>> G_k_w;
-  math::transform::FunctionTransform<RClusterDmn KClusterDmn>::execute(accumulator.get_G_r_w(), G_k_w);
+  math::transform::FunctionTransform<RClusterDmn, KClusterDmn>::execute(accumulator.get_G_r_w(),
+                                                                        G_k_w);
   G_k_w /= accumulator.get_sign();
 
   return G_k_w;
