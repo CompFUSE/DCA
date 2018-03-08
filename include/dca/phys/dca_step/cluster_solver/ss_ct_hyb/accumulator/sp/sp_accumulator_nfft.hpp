@@ -47,7 +47,6 @@
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 
-
 namespace dca {
 namespace phys {
 namespace solver {
@@ -149,7 +148,7 @@ void SpAccumulatorNfft<parameters_type, base_cluster_type>::finalize(
                 G_r_w(b1_ind, s1_ind, b2_ind, s2_ind, r_ind, w_ind) =
                     tmp(w_ind, b1_ind, s1_ind, b2_ind, s2_ind, r_ind);
 
-    double one_div_n_sites = 1. / double(-beta * r_DCA::dmn_size());
+    double one_div_n_sites = 1. / double(-beta * RClusterDmn::dmn_size());
     G_r_w *= one_div_n_sites;
   }
 
@@ -167,7 +166,7 @@ void SpAccumulatorNfft<parameters_type, base_cluster_type>::finalize(
                 GS_r_w(b1_ind, s1_ind, b2_ind, s2_ind, r_ind, w_ind) =
                     tmp(w_ind, b1_ind, s1_ind, b2_ind, s2_ind, r_ind);
 
-    double one_div_n_sites = 1. / double(-beta * r_DCA::dmn_size());
+    double one_div_n_sites = 1. / double(-beta * RClusterDmn::dmn_size());
     GS_r_w *= one_div_n_sites;
   }
 }
@@ -213,7 +212,7 @@ void SpAccumulatorNfft<parameters_type, base_cluster_type>::accumulate(
 
         cached_nfft_1D_G_obj.accumulate(coor_nfft, scaled_tau, M_ind(j, i) * current_sign);
         cached_nfft_1D_GS_obj.accumulate(coor_nfft, scaled_tau,
-                                            U_times_n * M_ind(j, i) * current_sign);
+                                         U_times_n * M_ind(j, i) * current_sign);
       }
     }
   }
