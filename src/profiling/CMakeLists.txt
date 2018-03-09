@@ -1,3 +1,3 @@
 # Profiling
 
-add_library(profiling STATIC events/time.cpp)
+dca_add_library(profiling STATIC events/time.cpp)

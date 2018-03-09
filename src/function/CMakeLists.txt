@@ -1,3 +1,3 @@
 # Function
 
-add_library(function STATIC domains/domain.cpp)
+dca_add_library(function STATIC domains/domain.cpp)
