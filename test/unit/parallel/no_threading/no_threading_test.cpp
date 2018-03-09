@@ -43,6 +43,6 @@ TEST(NoThreadingTest, opostream) {
   const int num_threads = 4;
   std::vector<int> vec{0, 10, 20, 30};
   threading.execute(num_threads, start_routine, static_cast<void*>(&vec));
-  std::string eout("\nconcurrency type:No Threading Concurrency\nnumber of threads:4");
+  std::string eout("\nparallel type:NoThreading\nnumber of threads:4");
   EXPECT_EQ(eout, ::testing::PrintToString(threading));
 }
