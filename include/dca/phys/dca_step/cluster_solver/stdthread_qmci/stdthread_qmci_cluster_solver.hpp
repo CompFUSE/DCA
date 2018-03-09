@@ -183,8 +183,7 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::integrate() {
   if (concurrency.id() == concurrency.first()) {
     std::cout << "Threaded on-node integration has ended: " << dca::util::print_time()
               << "\n\nTotal number of measurements: "
-              << concurrency.number_of_processors() *
-                     parameters.get_measurements_per_process_and_accumulator() * nr_accumulators
+              << concurrency.number_of_processors() * parameters.get_measurements_per_process()
               << std::endl;
   }
 }
@@ -319,7 +318,17 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::start_accumulator(int id)
 
   accumulator_obj.initialize(DCA_iteration);
 
-  for (int i = 0; i < parameters.get_measurements_per_process_and_accumulator(); ++i) {
+  auto get_workload = [](int tot_meas, int n_workers, int id) {
+    int work = tot_meas / n_workers;
+    if (id < tot_meas % n_workers)
+      ++work;
+    return work;
+  };
+
+  const int n_meas =
+      get_workload(parameters.get_measurements_per_process(), parameters.get_accumulators(),
+                   thread_task_handler_.IDToAccumIndex(id));
+  for (int i = 0; i < n_meas; ++i) {
     {
       std::lock_guard<std::mutex> lock(mutex_queue);
       accumulators_queue.push(&accumulator_obj);
@@ -335,7 +344,7 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::start_accumulator(int id)
       profiler_type profiler("stdthread-accumulator accumulating", "stdthread-MC-accumulator",
                              __LINE__, id);
       if (id == 1)
-        this->update_shell(i, parameters.get_measurements_per_process_and_accumulator(),
+        this->update_shell(i, parameters.get_measurements_per_process(),
                            accumulator_obj.get_configuration().size());
 
       accumulator_obj.measure(mutex_queue, accumulators_queue);

@@ -252,7 +252,7 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::integrate() {
     std::cout << "On-node integration has ended: " << dca::util::print_time()
               << "\n\nTotal number of measurements: "
               << concurrency.number_of_processors() *
-                     parameters.get_measurements_per_process_and_accumulator()
+                     parameters.get_measurements_per_process()
               << std::endl;
   }
 }
@@ -337,14 +337,14 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::measure(walker_type&
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t measuring has started \n" << std::endl;
 
-  for (int i = 0; i < parameters.get_measurements_per_process_and_accumulator(); i++) {
+  for (int i = 0; i < parameters.get_measurements_per_process(); i++) {
     walker.do_sweep();
 
     accumulator.update_from(walker);
 
     accumulator.measure();
 
-    update_shell(i, parameters.get_measurements_per_process_and_accumulator(),
+    update_shell(i, parameters.get_measurements_per_process(),
                  walker.get_configuration().size());
   }
 

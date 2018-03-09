@@ -55,6 +55,20 @@ public:
     return rng_index;
   }
 
+  // Maps the thread id to the id of the accumulator.
+  int IDToAccumIndex(const int thread_id) const {
+    assert(thread_id>= 0 && thread_id< thread_tasks_.size());
+    assert(thread_tasks_[thread_id] == "accumulator");
+
+    int rng_index = 0;
+
+    for (int i = 0; i < thread_id; ++i) {
+      if (thread_tasks_[i] == "accumulator")
+        ++rng_index;
+    }
+    return rng_index;
+  }
+
   const std::string& getTask(const int id) const {
     assert(id < thread_tasks_.size());
     return thread_tasks_[id];

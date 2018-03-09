@@ -32,7 +32,7 @@ public:
       : seed_(default_seed),
         warm_up_sweeps_(20),
         sweeps_per_measurement_(1),
-        measurements_per_process_and_accumulator_(100),
+        measurements_per_process_(100),
         walkers_(1),
         accumulators_(1),
         adjust_self_energy_for_double_counting_(false),
@@ -57,12 +57,12 @@ public:
   int get_sweeps_per_measurement() const {
     return sweeps_per_measurement_;
   }
-  int get_measurements_per_process_and_accumulator() const {
-    return measurements_per_process_and_accumulator_;
+  int get_measurements_per_process() const {
+    return measurements_per_process_;
   }
-  void set_measurements_per_process_and_accumulator(const int measurements) {
+  void set_measurements_per_process(const int measurements) {
     assert(measurements >= 0);
-    measurements_per_process_and_accumulator_ = measurements;
+    measurements_per_process_ = measurements;
   }
   int get_walkers() const {
     return walkers_;
@@ -90,7 +90,7 @@ private:
   int seed_;
   int warm_up_sweeps_;
   int sweeps_per_measurement_;
-  int measurements_per_process_and_accumulator_;
+  int measurements_per_process_;
   int walkers_;
   int accumulators_;
   bool adjust_self_energy_for_double_counting_;
@@ -104,7 +104,7 @@ int MciParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(seed_);
   buffer_size += concurrency.get_buffer_size(warm_up_sweeps_);
   buffer_size += concurrency.get_buffer_size(sweeps_per_measurement_);
-  buffer_size += concurrency.get_buffer_size(measurements_per_process_and_accumulator_);
+  buffer_size += concurrency.get_buffer_size(measurements_per_process_);
   buffer_size += concurrency.get_buffer_size(walkers_);
   buffer_size += concurrency.get_buffer_size(accumulators_);
   buffer_size += concurrency.get_buffer_size(adjust_self_energy_for_double_counting_);
@@ -119,7 +119,7 @@ void MciParameters::pack(const Concurrency& concurrency, char* buffer, int buffe
   concurrency.pack(buffer, buffer_size, position, seed_);
   concurrency.pack(buffer, buffer_size, position, warm_up_sweeps_);
   concurrency.pack(buffer, buffer_size, position, sweeps_per_measurement_);
-  concurrency.pack(buffer, buffer_size, position, measurements_per_process_and_accumulator_);
+  concurrency.pack(buffer, buffer_size, position, measurements_per_process_);
   concurrency.pack(buffer, buffer_size, position, walkers_);
   concurrency.pack(buffer, buffer_size, position, accumulators_);
   concurrency.pack(buffer, buffer_size, position, adjust_self_energy_for_double_counting_);
@@ -132,7 +132,7 @@ void MciParameters::unpack(const Concurrency& concurrency, char* buffer, int buf
   concurrency.unpack(buffer, buffer_size, position, seed_);
   concurrency.unpack(buffer, buffer_size, position, warm_up_sweeps_);
   concurrency.unpack(buffer, buffer_size, position, sweeps_per_measurement_);
-  concurrency.unpack(buffer, buffer_size, position, measurements_per_process_and_accumulator_);
+  concurrency.unpack(buffer, buffer_size, position, measurements_per_process_);
   concurrency.unpack(buffer, buffer_size, position, walkers_);
   concurrency.unpack(buffer, buffer_size, position, accumulators_);
   concurrency.unpack(buffer, buffer_size, position, adjust_self_energy_for_double_counting_);
@@ -158,67 +158,73 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
           seed_ = default_seed;
         }
       }
-      catch (const std::exception &r_e) {
+      catch (const std::exception& r_e) {
         try {
           // Read the seed as an integer.
           reader_or_writer.execute("seed", seed_);
         }
 
-        catch (const std::exception &r_e2) {
+        catch (const std::exception& r_e2) {
         }
       }
-    } else {
+    }
+
+    else {
       // Write the seed.
       try {
         reader_or_writer.execute("seed", seed_);
       }
-      catch (const std::exception &r_e) {
+      catch (const std::exception& r_e) {
       }
     }
 
     try {
       reader_or_writer.execute("warm-up-sweeps", warm_up_sweeps_);
     }
-    catch (const std::exception &r_e) {
+    catch (const std::exception& r_e) {
     }
     try {
       reader_or_writer.execute("sweeps-per-measurement", sweeps_per_measurement_);
     }
-    catch (const std::exception &r_e) {
+    catch (const std::exception& r_e) {
     }
-    try {
-      reader_or_writer.execute("measurements-per-process-and-accumulator",
-                               measurements_per_process_and_accumulator_);
-    }
-    catch (const std::exception &r_e) {
-    }
-
-    // Read the error computation type from a string.
-    try {
-      std::string error_type = "NONE";
-      reader_or_writer.execute("error-computation-type", error_type);
-      error_computation_type_ = static_cast<int>(readErrorComputationType(error_type));
-    }
-    catch (const std::exception &r_e) {
-    }
-
     try {
       reader_or_writer.open_group("threaded-solver");
 
       try {
         reader_or_writer.execute("walkers", walkers_);
       }
-      catch (const std::exception &r_e) {
+      catch (const std::exception& r_e) {
       }
       try {
         reader_or_writer.execute("accumulators", accumulators_);
       }
-      catch (const std::exception &r_e) {
+      catch (const std::exception& r_e) {
       }
+      std::string error_type = "NONE";
+      try {
+        reader_or_writer.execute("error-computation-type", error_type);
+      }
+      catch (const std::exception& r_e) {
+      }
+      error_computation_type_ = static_cast<int>(readErrorComputationType(error_type));
 
       reader_or_writer.close_group();
     }
-    catch (const std::exception &r_e) {
+    catch (const std::exception& r_e) {
+    }
+
+    try {
+      reader_or_writer.execute("measurements-per-process", measurements_per_process_);
+    }
+    catch (const std::exception& r_e) {
+      try {
+        reader_or_writer.execute("measurements-per-process-and-accumulator",
+                                 measurements_per_process_);
+        measurements_per_process_ *= accumulators_;
+      }
+      catch (const std::exception& r_e) {
+      }
     }
 
     // TODO: adjust_self_energy_for_double_counting has no effect at the moment. Use default value
@@ -229,8 +235,10 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     // }
     // catch (const std::exception& r_e) {
     // }
+
+    reader_or_writer.close_group();
   }
-  catch (const std::exception &r_e) {
+  catch (const std::exception& r_e) {
   }
 }
 

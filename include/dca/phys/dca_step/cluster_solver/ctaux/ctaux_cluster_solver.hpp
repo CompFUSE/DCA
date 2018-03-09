@@ -242,7 +242,7 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::integrate() {
     std::cout << "On-node integration has ended: " << dca::util::print_time()
               << "\n\nTotal number of measurements: "
               << concurrency.number_of_processors() *
-                     parameters.get_measurements_per_process_and_accumulator()
+                     parameters.get_measurements_per_process()
               << std::endl;
   }
 }
@@ -342,7 +342,7 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::measure(walker_type& w
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t measuring has started \n" << std::endl;
 
-  for (int i = 0; i < parameters.get_measurements_per_process_and_accumulator(); i++) {
+  for (int i = 0; i < parameters.get_measurements_per_process(); i++) {
     {
       profiler_type profiler("updating", "QMCI", __LINE__);
       walker.do_sweep();
@@ -357,7 +357,7 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::measure(walker_type& w
     int N_s = walker.get_configuration().size();
     int N_k = walker.get_configuration().get_number_of_interacting_HS_spins();
 
-    update_shell(i, parameters.get_measurements_per_process_and_accumulator(), N_k, N_s);
+    update_shell(i, parameters.get_measurements_per_process(), N_k, N_s);
   }
 
   accumulator.finalize();

@@ -56,7 +56,7 @@
   {
     "warm-up-sweeps"         : 100,
     "sweeps-per-measurement" : 1,
-    "measurements-per-process-and-accumulator"  : 300,
+    "measurements-per-process"  : 900,
 
     "threaded-solver" : {
       "walkers": 1,
