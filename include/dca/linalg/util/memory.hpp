@@ -39,7 +39,7 @@ struct Memory<CPU> {
   static void allocate(ScalarType*& ptr, size_t size) {
     assert(ptr == nullptr);
 
-#if defined(ENABLE_PINNED_MEMORY_ALLOCATION) and defined(DCA_HAVE_CUDA)
+#ifdef DCA_HAVE_CUDA
     cudaError_t ret = cudaHostAlloc((void**)&ptr, size * sizeof(ScalarType));
     checkRCMsg(ret, "\t size requested : " + std::to_string(size) + " * " +
                         std::to_string(sizeof(ScalarType)));
@@ -51,7 +51,7 @@ struct Memory<CPU> {
 
   template <typename ScalarType>
   static void deallocate(ScalarType*& ptr) {
-#if defined(ENABLE_PINNED_MEMORY_ALLOCATION) and defined(DCA_HAVE_CUDA)
+#ifdef DCA_HAVE_CUDA
     cudaError_t ret = cudaHostFree(ptr);
     checkRC(ret);
     checkErrorsCudaDebug();
