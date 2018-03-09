@@ -1,3 +1,3 @@
 # Symmetrization
 
-add_library(symmetrization STATIC symmetrize_single_particle_function.cpp)
+dca_add_library(symmetrization STATIC symmetrize_single_particle_function.cpp)

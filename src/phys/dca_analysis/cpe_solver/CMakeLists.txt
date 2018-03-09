@@ -1,6 +1,6 @@
 # CPE solver
 
-add_library(cpe_solver STATIC
+dca_add_library(cpe_solver STATIC
   basis_functions/delta_function.cpp
   basis_functions/piecewise_linear_function.cpp
   basis_functions/radial_function.cpp

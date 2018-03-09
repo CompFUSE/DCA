@@ -106,6 +106,7 @@ set(DCA_INCLUDE_DIRS
 
 ################################################################################
 # Libraries
+include(cmake/dca_add_library.cmake)
 add_subdirectory(src)
 
 set(DCA_LIBS
