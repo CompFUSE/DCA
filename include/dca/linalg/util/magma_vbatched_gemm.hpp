@@ -62,7 +62,7 @@ private:
 
   linalg::Vector<const ScalarType *, linalg::GPU> a_ptr_dev_, b_ptr_dev_;
   linalg::Vector<ScalarType*, linalg::GPU> c_ptr_dev_;
-  linalg::Vector<int, linalg::GPU> n_dev_, m_dev_, k_dev_, lda_dev_, ldc_dev_, ldb_dev_;
+  linalg::Vector<int, linalg::GPU> m_dev_, n_dev_, k_dev_, lda_dev_, ldc_dev_, ldb_dev_;
 };
 
 template <typename ScalarType>
@@ -83,11 +83,11 @@ void MagmaVBatchedGemm<ScalarType>::reserve(int size) {
 }
 
 template <typename ScalarType>
-void MagmaVBatchedGemm<ScalarType>::addGemm(const int n, const int m, const int k,
+void MagmaVBatchedGemm<ScalarType>::addGemm(const int m, const int n, const int k,
                                             const ScalarType* a, const int lda, const ScalarType* b,
                                             const int ldb, ScalarType* c, const int ldc) {
-  n_.push_back(n);
   m_.push_back(m);
+  n_.push_back(n);
   k_.push_back(k);
   lda_.push_back(lda);
   ldb_.push_back(ldb);
@@ -99,28 +99,28 @@ void MagmaVBatchedGemm<ScalarType>::addGemm(const int n, const int m, const int 
 
 template <typename ScalarType>
 void MagmaVBatchedGemm<ScalarType>::execute(const char transa, const char transb) {
-  n_.push_back(0);
   m_.push_back(0);
+  n_.push_back(0);
   k_.push_back(0);
   lda_.push_back(0);
   ldb_.push_back(0);
   ldc_.push_back(0);
 
-  // TODO: store in a buffer if the performance gain is neccessair.
+  // TODO: store in a buffer if the performance gain is necessary.
   a_ptr_dev_.setAsync(a_ptr_, stream_);
   b_ptr_dev_.setAsync(b_ptr_, stream_);
   c_ptr_dev_.setAsync(c_ptr_, stream_);
   lda_dev_.setAsync(lda_, stream_);
   ldb_dev_.setAsync(ldb_, stream_);
   ldc_dev_.setAsync(ldc_, stream_);
-  n_dev_.setAsync(n_, stream_);
+  m_dev_.setAsync(n_, stream_);
+  n_dev_.setAsync(m_, stream_);
   k_dev_.setAsync(k_, stream_);
-  m_dev_.setAsync(m_, stream_);
 
   copied_.record(stream_);
 
   const int n_batched = a_ptr_.size();
-  magma::magmablas_gemm_vbatched(transa, transb, n_dev_.ptr(), m_dev_.ptr(), k_dev_.ptr(),
+  magma::magmablas_gemm_vbatched(transa, transb, m_dev_.ptr(), n_dev_.ptr(), k_dev_.ptr(),
                                  ScalarType(1), a_ptr_dev_.ptr(), lda_dev_.ptr(), b_ptr_dev_.ptr(),
                                  ldb_dev_.ptr(), ScalarType(0), c_ptr_dev_.ptr(), ldc_dev_.ptr(),
                                  n_batched, queue_);
@@ -138,8 +138,8 @@ void MagmaVBatchedGemm<ScalarType>::synchronizeCopy() {
   lda_.resize(0);
   ldb_.resize(0);
   ldc_.resize(0);
-  n_.resize(0);
   m_.resize(0);
+  n_.resize(0);
   k_.resize(0);
 }
 
