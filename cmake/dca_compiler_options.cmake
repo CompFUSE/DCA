@@ -31,7 +31,7 @@ add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${DCA_STD_FLAG}>")
 if (DCA_HAVE_CUDA)
   list(APPEND CUDA_NVCC_FLAGS
     -arch=${CUDA_GPU_ARCH}
-    -std=c++11
+    -std=c++14
     -Xcompiler -Wall
     -Xcompiler -Wextra
     -Xcompiler -Wno-unused-parameter

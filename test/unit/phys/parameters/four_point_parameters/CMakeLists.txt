@@ -2,4 +2,4 @@
 
 dca_add_gtest(four_point_parameters_test
   GTEST_MAIN
-  LIBS json)
+  LIBS json ${DCA_CUDA_LIBS})
