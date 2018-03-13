@@ -30,9 +30,9 @@ TEST(FunctionUtilsTest, Difference) {
 
   dca::func::utils::Difference diff = dca::func::utils::difference(f1, f2);
 
-  EXPECT_NEAR(0.5, diff.l1, 1e-4);
-  EXPECT_NEAR(0.57879, diff.l2, 1e-4);
-  EXPECT_NEAR(1, diff.l_inf, 1e-4);
+  EXPECT_NEAR(0.5, diff.l1, 3e-7);
+  EXPECT_NEAR(0.5787918, diff.l2, 3e-7);
+  EXPECT_NEAR(1, diff.l_inf, 3e-7);
 
   Function<6> f3;
   f3 = 1.;
