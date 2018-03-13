@@ -16,6 +16,7 @@ if (DCA_WITH_MPI)
   set(DCA_CONCURRENCY_TYPE dca::parallel::MPIConcurrency)
   set(DCA_CONCURRENCY_INCLUDE "dca/parallel/mpi_concurrency/mpi_concurrency.hpp")
   set(DCA_CONCURRENCY_LIB parallel_mpi_concurrency)
+
 else()
   set(DCA_CONCURRENCY_TYPE dca::parallel::NoConcurrency)
   set(DCA_CONCURRENCY_INCLUDE "dca/parallel/no_concurrency/no_concurrency.hpp")
@@ -210,9 +211,6 @@ endif()
 
 ################################################################################
 # Select the threading library.
-# TODO: - Implement HPX part including DCA_HPX.cmake.
-#       - Implement STL support and make it default.
-#
 # Note the difference between the CMake variables
 # - DCA_THREADING_LIBRARY: CMake option for the user to choose the threading library,
 # - DCA_THREADING_LIB: the actual library to link against.
@@ -235,7 +233,7 @@ elseif (DCA_THREADING_LIBRARY STREQUAL STDTHREAD)
   set(DCA_THREADING_TYPE dca::parallel::stdthread)
   set(DCA_THREADING_INCLUDE "dca/parallel/stdthread/stdthread.hpp")
   set(DCA_THREADING_FLAGS "-pthread" CACHE INTERNAL "Flags needed for threading." FORCE)
-  set(DCA_THREADING_LIB "pthread" parallel_stdthread)
+  set(DCA_THREADING_LIB parallel_stdthread pthread)
 
 elseif (DCA_THREADING_LIBRARY STREQUAL NONE)
   set(DCA_THREADING_TYPE dca::parallel::NoThreading)

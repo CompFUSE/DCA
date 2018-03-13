@@ -12,9 +12,9 @@
 #ifndef DCA_PARALLEL_NO_THREADING_HPP
 #define DCA_PARALLEL_NO_THREADING_HPP
 
-#include "dca/parallel/util/threading_data.hpp"
 #include <iostream>
 #include <stdexcept>
+#include "dca/parallel/util/threading_data.hpp"
 
 namespace dca {
 namespace parallel {
@@ -32,6 +32,7 @@ public:
   }
 
   friend std::ostream& operator<<(std::ostream& some_ostream, const NoThreading& this_concurrency);
+
 private:
   constexpr static char parallel_type_str_[] = "NoThreading";
   ThreadingData data_;

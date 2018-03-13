@@ -77,7 +77,7 @@ TEST(MciParametersTest, ReadNegativeIntegerSeed) {
   EXPECT_EQ(-1, pars.get_seed());
 }
 
-// These appear to be nonsense considering the current implementation of the JSON reader.
+// Revise these tests when the JSON reader has been refactored.
 // TEST(MciParametersTest, ReadTooLargeSeed) {
 //   // Generate an input file that contains a number that is larger than the maximum value of int.
 //   const int max = std::numeric_limits<int>::max();

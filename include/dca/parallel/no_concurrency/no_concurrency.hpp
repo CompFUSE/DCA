@@ -55,12 +55,12 @@ public:
 
   template <typename ReaderOrWriter>
   void readWrite(ReaderOrWriter& reader_or_writer);
-  friend std::ostream& operator << (std::ostream & some_ostream, const NoConcurrency& this_concurrency);
+  friend std::ostream& operator<<(std::ostream& some_ostream, const NoConcurrency& this_concurrency);
+
 private:
   constexpr static char parallel_type_str_[] = "NoConcurrency";
 };
 
-  
 }  // parallel
 }  // dca
 

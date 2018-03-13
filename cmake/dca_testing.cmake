@@ -128,6 +128,7 @@ function(dca_add_gtest name)
     if (NOT DEFINED DCA_ADD_GTEST_MPI_NUMPROC)
       set(DCA_ADD_GTEST_MPI_NUMPROC 1)
     endif()
+
     add_test(NAME ${name}
              COMMAND ${TEST_RUNNER} ${MPIEXEC_NUMPROC_FLAG} ${DCA_ADD_GTEST_MPI_NUMPROC}
                      ${MPIEXEC_PREFLAGS} "$<TARGET_FILE:${name}>")
@@ -135,11 +136,11 @@ function(dca_add_gtest name)
   else()
     if (TEST_RUNNER)
       add_test(NAME ${name}
-        COMMAND ${TEST_RUNNER} ${MPIEXEC_NUMPROC_FLAG} 1
-	        ${MPIEXEC_PREFLAGS} "$<TARGET_FILE:${name}>")
+               COMMAND ${TEST_RUNNER} ${MPIEXEC_NUMPROC_FLAG} 1
+	               ${MPIEXEC_PREFLAGS} "$<TARGET_FILE:${name}>")
     else (TEST_RUNNER)
       add_test(NAME ${name}
-        COMMAND "$<TARGET_FILE:${name}>")
+               COMMAND "$<TARGET_FILE:${name}>")
     endif (TEST_RUNNER)
   endif()
 

@@ -11,8 +11,7 @@
 //
 // This file tests mpi_collective_sum.hpp.
 //
-// This test only passes for 8 mpi processes
-//
+// This test only passes for 8 MPI processes.
 
 #include "dca/parallel/mpi_concurrency/mpi_collective_sum.hpp"
 
@@ -34,7 +33,7 @@ protected:
 
   int size_;
   int rank_;
-  constexpr static double EPSILON_ = 1e-14;
+  constexpr static double epsilon_ = 1e-14;
 
   dca::parallel::MPIProcessorGrouping grouping_;
   dca::parallel::MPICollectiveSum sum_interface_;
@@ -111,8 +110,8 @@ TEST_F(MPICollectiveSumTest, JackknifeErrorReal) {
 
   auto err_trivial = sum_interface_.jackknifeError(f);
 
-  EXPECT_NEAR(0., err_trivial(0),EPSILON_);
-  EXPECT_NEAR(0., err_trivial(1),EPSILON_);
+  EXPECT_NEAR(0., err_trivial(0), epsilon_);
+  EXPECT_NEAR(0., err_trivial(1), epsilon_);
 
   // Non-trivial case
   const double d = 42.1;
@@ -158,10 +157,10 @@ TEST_F(MPICollectiveSumTest, JackknifeErrorComplex) {
   f(1) = std::complex<double>(2.72, 3.4);
 
   auto err_trivial = sum_interface_.jackknifeError(f);
-  EXPECT_NEAR(0., err_trivial(0).real(),EPSILON_);
-  EXPECT_NEAR(0., err_trivial(1).real(),EPSILON_);
-  EXPECT_NEAR(0., err_trivial(0).imag(),EPSILON_);
-  EXPECT_NEAR(0., err_trivial(1).imag(),EPSILON_);
+  EXPECT_NEAR(0., err_trivial(0).real(), epsilon_);
+  EXPECT_NEAR(0., err_trivial(1).real(), epsilon_);
+  EXPECT_NEAR(0., err_trivial(0).imag(), epsilon_);
+  EXPECT_NEAR(0., err_trivial(1).imag(), epsilon_);
 
   // Non-trivial case
   const double d = 42.1;
