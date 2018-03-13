@@ -130,7 +130,7 @@ int main(int argc, char** argv) {
       }
       catch (std::logic_error& err) {
         std::cerr << "Warning: " << err.what() << "\n";
-        if(test.get_dof() >= concurrency.number_of_processors())
+        if (test.get_dof() >= concurrency.number_of_processors())
           std::cerr << "Not enough ranks.\n";
         std::cerr << "Aborting statistical test.\n";
       }
@@ -155,7 +155,7 @@ int main(int argc, char** argv) {
 
     if (p_val != -1)
       std::cout << "\n***\nThe p-value is " << p_val << "\n***\n";
-    else
+    else if (perform_statistical_test)
       std::cout << "\n***\nStatistical test aborted.\n***\n";
   }
 
