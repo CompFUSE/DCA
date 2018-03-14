@@ -7,12 +7,13 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@gitp.phys.ethz.ch)
 //
-// Measure the runtime of the two particle accumulator.
+// Measure the runtime of the single particle accumulator.
 
+#include "dca/config/config_defines.hpp"
 #include "dca/config/haves_defines.hpp"
 
-#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator.hpp"
-#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator_gpu.hpp"
 
 #include <array>
 #include <vector>
@@ -77,7 +78,7 @@ int main(int argc, char** argv) {
   if (argc > 1)
     n = std::atoi(argv[1]);
 
-  const std::string inputs_directory = DCA_SOURCE_DIR "/test/performance/phys/tp_accumulation/";
+  const std::string inputs_directory = DCA_SOURCE_DIR "/test/performance/phys/accumulation/";
 
   Concurrency concurrency(argc, argv);
   Parameters parameters("", concurrency);
@@ -93,8 +94,8 @@ int main(int argc, char** argv) {
   Configuration config;
   prepareRandomConfig(config, M, n);
 
-  dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::CPU> accumulator(
-      data.G0_k_w_cluster_excluded, parameters);
+  dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::CPU> accumulator(parameters);
+  accumulator.initialize();
 
   // Allows memory to be assigned.
   const int sign = 1;
@@ -105,7 +106,7 @@ int main(int argc, char** argv) {
   dca::profiling::WallTime start_time;
   accumulator.accumulate(M, config, sign);
   dca::profiling::WallTime end_time;
-  Profiler::stop("tp_accumulation_profile.txt");
+  Profiler::stop("sp_accumulation_profile.txt");
 
   auto duration = [](dca::profiling::WallTime end, dca::profiling::WallTime start) {
     dca::profiling::Duration elapsed(end, start);
@@ -114,50 +115,48 @@ int main(int argc, char** argv) {
   const double time = duration(end_time, start_time);
 
   std::string precision("double");
-  if (std::is_same<float, dca::phys::solver::accumulator::TpAccumulator<Parameters>::Real>::value)
+  if (std::is_same<float, dca::phys::solver::accumulator::SpAccumulator<Parameters>::ScalarType>::value)
     precision = "single";
 
   std::cout << "\nExpansion order:\t" << n;
   std::cout << "\nPrecision:\t" << precision;
-  std::cout << "\nN positive frequencies:\t" << parameters.get_four_point_fermionic_frequencies();
+  std::cout << "\nN positive frequencies:\t" << parameters.get_sp_fermionic_frequencies();
   std::cout << "\nN bands:\t" << BDmn::dmn_size();
   std::cout << "\nN cluster sites:\t" << RDmn::dmn_size();
-  std::cout << "\nType:\t" << parameters.get_four_point_type();
-  std::cout << "\n\nTpAccumulation CPU time [sec]:\t " << time << "\n";
+  std::cout << "\n\nSpAccumulation CPU time [sec]:\t " << time << "\n";
 
 #ifdef DCA_HAVE_CUDA
   dca::linalg::util::initializeMagma();
   dca::linalg::util::CudaEvent start_event;
   dca::linalg::util::CudaEvent stop_event;
 
-  dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::GPU> gpu_accumulator(
-      data.G0_k_w_cluster_excluded, parameters);
-
-  //  Uncomment to compute only the single particle function on the device.
-  //  gpu_accumulator.accumulateOnHost();
+  dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::GPU> gpu_accumulator(
+      parameters);
 
   // Allows memory to be assigned.
+  gpu_accumulator.initialize();
   gpu_accumulator.accumulate(M, config, sign);
-  cudaStreamSynchronize(gpu_accumulator.get_stream());
+  cudaStreamSynchronize(gpu_accumulator.get_streams()[0]);
+  cudaStreamSynchronize(gpu_accumulator.get_streams()[1]);
   gpu_accumulator.initialize();
 
   Profiler::start();
 
   cudaProfilerStart();
-  start_event.record(gpu_accumulator.get_stream());
+  start_event.record(gpu_accumulator.get_streams()[0]);
   dca::profiling::WallTime host_start_time;
   gpu_accumulator.accumulate(M, config, sign);
   dca::profiling::WallTime host_end_time;
-  stop_event.record(gpu_accumulator.get_stream());
+  stop_event.record(gpu_accumulator.get_streams()[1]);
   cudaProfilerStop();
 
-  Profiler::stop("tp_gpu_accumulation_profile.txt");
+  Profiler::stop("sp_gpu_accumulation_profile.txt");
 
   const double host_time = duration(host_end_time, host_start_time);
   const double dev_time = dca::linalg::util::elapsedTime(stop_event, start_event);
 
-  std::cout << "\nTpAccumulation GPU: Host time [sec]:\t " << host_time;
-  std::cout << "\nTpAccumulation GPU: Device time [sec]:\t " << dev_time << "\n\n";
+  std::cout << "\nSpAccumulation GPU: Host time [sec]:\t " << host_time;
+  std::cout << "\nSpAccumulation GPU: Device time [sec]:\t " << dev_time << "\n\n";
 #endif  // DCA_HAVE_CUDA
 }
 
