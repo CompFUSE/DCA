@@ -19,6 +19,8 @@
 #include <stdexcept>
 #include <string>
 
+#include "dca/phys/error_computation_type.hpp"
+
 namespace dca {
 namespace phys {
 namespace params {
@@ -33,7 +35,8 @@ public:
         measurements_per_process_and_accumulator_(100),
         walkers_(1),
         accumulators_(1),
-        adjust_self_energy_for_double_counting_(false) {}
+        adjust_self_energy_for_double_counting_(false),
+        error_computation_type_(0) {}
 
   template <typename Concurrency>
   int getBufferSize(const Concurrency& concurrency) const;
@@ -71,6 +74,10 @@ public:
     return adjust_self_energy_for_double_counting_;
   }
 
+  ErrorComputationType get_error_computation_type() const {
+    return ErrorComputationType(error_computation_type_);
+  }
+
 private:
   void generateRandomSeed() {
     std::random_device rd;
@@ -87,6 +94,7 @@ private:
   int walkers_;
   int accumulators_;
   bool adjust_self_energy_for_double_counting_;
+  int error_computation_type_;
 };
 
 template <typename Concurrency>
@@ -100,6 +108,7 @@ int MciParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(walkers_);
   buffer_size += concurrency.get_buffer_size(accumulators_);
   buffer_size += concurrency.get_buffer_size(adjust_self_energy_for_double_counting_);
+  buffer_size += concurrency.get_buffer_size(error_computation_type_);
 
   return buffer_size;
 }
@@ -114,6 +123,7 @@ void MciParameters::pack(const Concurrency& concurrency, char* buffer, int buffe
   concurrency.pack(buffer, buffer_size, position, walkers_);
   concurrency.pack(buffer, buffer_size, position, accumulators_);
   concurrency.pack(buffer, buffer_size, position, adjust_self_energy_for_double_counting_);
+  concurrency.pack(buffer, buffer_size, position, error_computation_type_);
 }
 
 template <typename Concurrency>
@@ -126,6 +136,7 @@ void MciParameters::unpack(const Concurrency& concurrency, char* buffer, int buf
   concurrency.unpack(buffer, buffer_size, position, walkers_);
   concurrency.unpack(buffer, buffer_size, position, accumulators_);
   concurrency.unpack(buffer, buffer_size, position, adjust_self_energy_for_double_counting_);
+  concurrency.unpack(buffer, buffer_size, position, error_computation_type_);
 }
 
 template <typename ReaderOrWriter>
@@ -197,11 +208,13 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
       }
       catch (const std::exception& r_e) {
       }
+      std::string error_type = "NONE";
       try {
-        reader_or_writer.execute("additional-steps", additional_steps_);
+        reader_or_writer.execute("error-computation-type", error_type);
       }
       catch (const std::exception& r_e) {
       }
+      error_computation_type_ = static_cast<int>(readErrorComputationType(error_type));
 
       reader_or_writer.close_group();
     }

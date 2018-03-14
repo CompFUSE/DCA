@@ -4,6 +4,7 @@
         "warm-up-sweeps": 40,
         "sweeps-per-measurement": 4,
         "measurements-per-process-and-accumulator": 200,
+        "error-computation-type" : "JACK_KNIFE",
 
         "threaded-solver": {
             "walkers": 3,
