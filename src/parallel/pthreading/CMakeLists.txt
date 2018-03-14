@@ -1,5 +1,2 @@
-# Pthreading
-
-if (DCA_HAVE_PTHREADS)
-  dca_add_library(pthreading STATIC pthreading.cpp)
-endif()
+# parallel pthreading
+add_library(parallel_pthreading STATIC pthreading.cpp)
