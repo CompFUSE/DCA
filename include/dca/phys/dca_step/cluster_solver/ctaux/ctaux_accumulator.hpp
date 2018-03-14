@@ -24,7 +24,8 @@
 #include "dca/linalg/matrix.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctaux/accumulator/sp/sp_accumulator_nfft.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator_gpu.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/accumulator/tp/tp_equal_time_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/domains/feynman_expansion_order_domain.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/structs/ct_aux_hs_configuration.hpp"
@@ -125,24 +126,20 @@ public:
 
   // sp-measurements
   const auto& get_M_r_w() const {
-    return M_r_w;
+    return single_particle_accumulator_obj.get_sign_times_M_r_w();
   }
 
-  // TODO: Remove getter methods that return a non-const reference.
-  auto& get_M_r_w() {
-    return M_r_w;
-  }
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>>& get_M_r_w_squared() {
-    return M_r_w_squared;
-  }
-
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& get_M_k_w() {
-    return M_k_w;
+  const auto& get_M_r_w_squared() const {
+    return single_particle_accumulator_obj.get_sign_times_M_r_w_sqr();
   }
 
   // tp-measurements
   const auto& get_sign_times_G4() {
     return two_particle_accumulator_.get_sign_times_G4();
+  }
+
+  bool compute_std_deviation() const {
+    return compute_std_deviation_;
   }
 
 #ifdef MEASURE_ERROR_BARS
@@ -181,6 +178,8 @@ protected:
   using MC_accumulator_data::current_sign;
   using MC_accumulator_data::accumulated_sign;
 
+  const bool compute_std_deviation_;
+
   CV<parameters_type> CV_obj;
 
   dca::linalg::Vector<double, dca::linalg::CPU> exp_V_minus_one;
@@ -199,19 +198,15 @@ protected:
   func::function<double, func::dmn_variadic<b, r_dmn_t>> magnetic_cluster_moment;
   func::function<double, func::dmn_variadic<b, r_dmn_t>> dwave_pp_correlator;
 
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>> M_r_w;
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>> M_r_w_squared;
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>> M_r_w_stddev;
 
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> M_k_w;
-  func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> M_k_w_stddev;
-
-  ctaux::SpAccumulatorNfft<parameters_type, Data> single_particle_accumulator_obj;
+  accumulator::SpAccumulator<parameters_type, device_t> single_particle_accumulator_obj;
 
   ctaux::TpEqualTimeAccumulator<parameters_type, Data> MC_two_particle_equal_time_accumulator_obj;
 
-  // TODO make optional.
   accumulator::TpAccumulator<parameters_type, device_t> two_particle_accumulator_;
+
+  bool perform_tp_accumulation_ = false;
 };
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
@@ -224,6 +219,9 @@ CtauxAccumulator<device_t, parameters_type, Data>::CtauxAccumulator(parameters_t
       concurrency(parameters.get_concurrency()),
 
       thread_id(id),
+
+      compute_std_deviation_(parameters.get_error_computation_type() ==
+                             ErrorComputationType::STANDARD_DEVIATION),
 
       CV_obj(parameters),
 
@@ -239,14 +237,9 @@ CtauxAccumulator<device_t, parameters_type, Data>::CtauxAccumulator(parameters_t
       magnetic_cluster_moment("magnetic-cluster-moment"),
       dwave_pp_correlator("dwave-pp-correlator"),
 
-      M_r_w("M_r_w"),
-      M_r_w_squared("M_r_w_squared"),
       M_r_w_stddev("M_r_w_stddev"),
 
-      M_k_w("M_k_w"),
-      M_k_w_stddev("M_k_w_stddev"),
-
-      single_particle_accumulator_obj(parameters),
+      single_particle_accumulator_obj(parameters, compute_std_deviation_),
 
       MC_two_particle_equal_time_accumulator_obj(parameters, data_, id),
 
@@ -256,6 +249,9 @@ template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 void CtauxAccumulator<device_t, parameters_type, Data>::initialize(int dca_iteration) {
   profiler_type profiler(__FUNCTION__, "CT-AUX accumulator", __LINE__, thread_id);
 
+  if (DCA_iteration == parameters.get_dca_iterations() - 1 && parameters.get_four_point_type() != NONE)
+    perform_tp_accumulation_ = true;
+
   MC_accumulator_data::initialize(dca_iteration);
 
   CV_obj.initialize(data_);
@@ -264,11 +260,9 @@ void CtauxAccumulator<device_t, parameters_type, Data>::initialize(int dca_itera
     visited_expansion_order_k(i) = 0;
 
   single_particle_accumulator_obj.initialize();
-  M_r_w = 0.;
-  M_r_w_squared = 0.;
 
-  for (int i = 0; i < M_k_w.size(); i++)
-    M_k_w(i) = 0;
+  if (perform_tp_accumulation_)
+    two_particle_accumulator_.initialize();
 
   if (parameters.additional_time_measurements()) {
     G_r_t = 0.;
@@ -286,9 +280,11 @@ template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 void CtauxAccumulator<device_t, parameters_type, Data>::finalize() {
   profiler_type profiler(__FUNCTION__, "CT-AUX accumulator", __LINE__, thread_id);
 
-  single_particle_accumulator_obj.finalize(M_r_w, M_r_w_squared);
+  single_particle_accumulator_obj.finalize();
 
-  {
+  if (compute_std_deviation_) {
+    const auto& M_r_w = single_particle_accumulator_obj.get_sign_times_M_r_w();
+    const auto& M_r_w_squared = single_particle_accumulator_obj.get_sign_times_M_r_w_sqr();
     for (int l = 0; l < M_r_w_stddev.size(); l++)
       M_r_w_stddev(l) = std::sqrt(abs(M_r_w_squared(l)) - std::pow(abs(M_r_w(l)), 2));
 
@@ -312,7 +308,7 @@ void CtauxAccumulator<device_t, parameters_type, Data>::finalize() {
     dwave_pp_correlator = MC_two_particle_equal_time_accumulator_obj.get_dwave_pp_correlator();
   }
 
-  if (DCA_iteration == parameters.get_dca_iterations() - 1 && parameters.get_four_point_type() != NONE)
+  if (perform_tp_accumulation_)
     two_particle_accumulator_.finalize();
 }
 
@@ -390,7 +386,7 @@ void CtauxAccumulator<device_t, parameters_type, Data>::measure() {
   number_of_measurements += 1;
   accumulated_sign += current_sign;
 
-  if (DCA_iteration == parameters.get_dca_iterations() - 1 && parameters.get_four_point_type() != NONE)
+  if (perform_tp_accumulation_)
     accumulate_two_particle_quantities();
 
   accumulate_single_particle_quantities();
@@ -490,8 +486,7 @@ template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 void CtauxAccumulator<device_t, parameters_type, Data>::accumulate_single_particle_quantities() {
   profiler_type profiler("sp-accumulation", "CT-AUX accumulator", __LINE__, thread_id);
 
-  single_particle_accumulator_obj.accumulate_M_r_w(hs_configuration_[1], M_[1], current_sign, e_DN);
-  single_particle_accumulator_obj.accumulate_M_r_w(hs_configuration_[0], M_[0], current_sign, e_UP);
+  single_particle_accumulator_obj.accumulate(M_, hs_configuration_, current_sign);
 
   GFLOP += 2. * 8. * M_[1].size().first * M_[1].size().first * (1.e-9);
   GFLOP += 2. * 8. * M_[0].size().first * M_[0].size().first * (1.e-9);
@@ -528,17 +523,15 @@ void CtauxAccumulator<device_t, parameters_type, Data>::accumulate_equal_time_qu
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 void CtauxAccumulator<device_t, parameters_type, Data>::accumulate_two_particle_quantities() {
   profiler_type profiler("tp-accumulation", "CT-AUX accumulator", __LINE__, thread_id);
-  GFLOP += two_particle_accumulator_.accumulate(M_, hs_configuration_, current_sign);
+  /*GFLOP +=*/two_particle_accumulator_.accumulate(M_, hs_configuration_, current_sign);
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 void CtauxAccumulator<device_t, parameters_type, Data>::sum_to(this_type& other) {
-  finalize();
-
   other.get_Gflop() += get_Gflop();
 
-  other.get_sign() += get_sign();
-  other.get_number_of_measurements() += get_number_of_measurements();
+  other.accumulated_sign += accumulated_sign;
+  other.number_of_measurements += number_of_measurements;
 
   other.get_visited_expansion_order_k() += visited_expansion_order_k;
   other.get_error_distribution() += error;
@@ -551,11 +544,11 @@ void CtauxAccumulator<device_t, parameters_type, Data>::sum_to(this_type& other)
   other.get_dwave_pp_correlator() += dwave_pp_correlator;
 
   // sp-measurements
-  other.get_M_r_w() += M_r_w;
-  other.get_M_r_w_squared() += M_r_w_squared;
+  single_particle_accumulator_obj.sumTo(other.single_particle_accumulator_obj);
 
   // tp-measurements
-  two_particle_accumulator_.sumTo(other.two_particle_accumulator_);
+  if(perform_tp_accumulation_)
+    two_particle_accumulator_.sumTo(other.two_particle_accumulator_);
 }
 
 }  // ctaux
