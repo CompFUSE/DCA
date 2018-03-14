@@ -15,8 +15,9 @@
 #ifndef DCA_PARALLEL_PTHREADING_PTHREADING_HPP
 #define DCA_PARALLEL_PTHREADING_PTHREADING_HPP
 
-#include <vector>
 #include <pthread.h>
+#include <iostream>
+#include <vector>
 #include "dca/parallel/util/threading_data.hpp"
 
 namespace dca {
@@ -36,7 +37,10 @@ public:
   // static void sum(func::function<T, Domain>& f, func::function<T, Domain>& f_result,
   //                 pthread_mutex_t& mutex);
 
+  friend std::ostream& operator<<(std::ostream& some_ostream, const Pthreading& this_concurrency);
+
 private:
+  constexpr static char parallel_type_str_[] = "PThreading";
   void fork(int num_threads, void* (*start_routine)(void*), void* arg);
   void join();
 

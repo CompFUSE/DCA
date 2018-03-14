@@ -32,6 +32,7 @@
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain_left_oriented.hpp"
+#include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 
 namespace dca {
 namespace phys {
@@ -50,20 +51,18 @@ public:
   using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
-  using r_DCA =
-      func::dmn_0<domains::cluster_domain<double, parameters_t::lattice_type::DIMENSION, domains::CLUSTER,
-                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
-  using r_dmn_t = r_DCA;
+  typedef parameters_t parameters_type;
+  using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
+  using RClusterDmn = typename CDA::RClusterDmn;
 
-  using nu_nu_r_DCA_t = func::dmn_variadic<nu, nu, r_DCA, t>;
+  using nu_nu_r_DCA_t = func::dmn_variadic<nu, nu, RClusterDmn, t>;
 
   typedef func::dmn_0<domains::time_domain_left_oriented> shifted_t;
-  typedef func::dmn_variadic<nu, nu, r_dmn_t, shifted_t> nu_nu_r_dmn_t_shifted_t;
+  typedef func::dmn_variadic<nu, nu, RClusterDmn, shifted_t> nu_nu_r_dmn_t_shifted_t;
 
   typedef func::dmn_0<func::dmn<4, int>> akima_dmn_t;
-  typedef func::dmn_variadic<akima_dmn_t, nu, nu, r_dmn_t, shifted_t> akima_nu_nu_r_dmn_t_shifted_t;
+  typedef func::dmn_variadic<akima_dmn_t, nu, nu, RClusterDmn, shifted_t> akima_nu_nu_r_dmn_t_shifted_t;
 
-  typedef parameters_t parameters_type;
   typedef MOMS_t MOMS_type;
   typedef configuration_t configuration_type;
   typedef rng_t rng_type;
@@ -250,7 +249,7 @@ void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng
     x[t_ind] = t_ind;
 
   {
-    for (int r_ind = 0; r_ind < r_dmn_t::dmn_size(); r_ind++) {
+    for (int r_ind = 0; r_ind < RClusterDmn::dmn_size(); r_ind++) {
       for (int nu1_ind = 0; nu1_ind < nu::dmn_size(); nu1_ind++) {
         for (int nu0_ind = 0; nu0_ind < nu::dmn_size(); nu0_ind++) {
           for (int t_ind = 0; t_ind < t::dmn_size() / 2; t_ind++)
@@ -267,7 +266,7 @@ void ss_hybridization_walker_routines<parameters_t, MOMS_t, configuration_t, rng
   }
 
   {
-    for (int r_ind = 0; r_ind < r_dmn_t::dmn_size(); r_ind++) {
+    for (int r_ind = 0; r_ind < RClusterDmn::dmn_size(); r_ind++) {
       for (int nu1_ind = 0; nu1_ind < nu::dmn_size(); nu1_ind++) {
         for (int nu0_ind = 0; nu0_ind < nu::dmn_size(); nu0_ind++) {
           for (int t_ind = t::dmn_size() / 2; t_ind < t::dmn_size(); t_ind++)

@@ -33,7 +33,7 @@ namespace solver {
 
 template <class qmci_integrator_type>
 class PosixQmciClusterSolver : public qmci_integrator_type {
-  typedef typename qmci_integrator_type::this_MOMS_type MOMS_type;
+  using Data = typename qmci_integrator_type::DataType;
   typedef typename qmci_integrator_type::this_parameters_type parameters_type;
 
   typedef typename parameters_type::profiler_type profiler_type;
@@ -48,7 +48,7 @@ class PosixQmciClusterSolver : public qmci_integrator_type {
   typedef posixqmci::posix_qmci_accumulator<accumulator_type> posix_accumulator_type;
 
 public:
-  PosixQmciClusterSolver(parameters_type& parameters_ref, MOMS_type& MOMS_ref);
+  PosixQmciClusterSolver(parameters_type& parameters_ref, Data& data_ref);
 
   template <typename Writer>
   void write(Writer& reader);
@@ -75,7 +75,7 @@ private:
 
 private:
   using qmci_integrator_type::parameters;
-  using qmci_integrator_type::MOMS;
+  using qmci_integrator_type::data_;
   using qmci_integrator_type::concurrency;
 
   using qmci_integrator_type::total_time;
@@ -105,8 +105,8 @@ private:
 
 template <class qmci_integrator_type>
 PosixQmciClusterSolver<qmci_integrator_type>::PosixQmciClusterSolver(parameters_type& parameters_ref,
-                                                                     MOMS_type& MOMS_ref)
-    : qmci_integrator_type(parameters_ref, MOMS_ref),
+                                                                     Data& data_ref)
+    : qmci_integrator_type(parameters_ref, data_ref),
 
       nr_walkers(parameters.get_walkers()),
       nr_accumulators(parameters.get_accumulators()),
@@ -250,7 +250,7 @@ void PosixQmciClusterSolver<qmci_integrator_type>::start_walker(int id) {
   }
 
   const int rng_index = thread_task_handler_.walkerIDToRngIndex(id);
-  walker_type walker(parameters, MOMS, rng_vector[rng_index], id);
+  walker_type walker(parameters, data_, rng_vector[rng_index], id);
 
   walker.initialize();
 
@@ -337,7 +337,7 @@ void PosixQmciClusterSolver<qmci_integrator_type>::warm_up(walker_type& walker, 
 
 template <class qmci_integrator_type>
 void PosixQmciClusterSolver<qmci_integrator_type>::start_accumulator(int id) {
-  posix_accumulator_type accumulator_obj(parameters, MOMS, id);
+  posix_accumulator_type accumulator_obj(parameters, data_, id);
 
   accumulator_obj.initialize(DCA_iteration);
 
