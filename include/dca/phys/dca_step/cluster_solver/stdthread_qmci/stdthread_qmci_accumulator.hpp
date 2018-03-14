@@ -28,12 +28,12 @@ namespace stdthreadqmci {
 template <class qmci_accumulator_type>
 class stdthread_qmci_accumulator : protected qmci_accumulator_type {
   typedef typename qmci_accumulator_type::my_parameters_type parameters_type;
-  typedef typename qmci_accumulator_type::my_MOMS_type MOMS_type;
+  using Data = typename qmci_accumulator_type::DataType;
 
   typedef stdthread_qmci_accumulator<qmci_accumulator_type> this_type;
 
 public:
-  stdthread_qmci_accumulator(parameters_type& parameters_ref, MOMS_type& MOMS_ref, int id);
+  stdthread_qmci_accumulator(parameters_type& parameters_ref, Data& data_ref, int id);
 
   ~stdthread_qmci_accumulator();
 
@@ -62,7 +62,7 @@ protected:
   using qmci_accumulator_type::get_sign;
 
 private:
-  using qmci_accumulator_type::MOMS;
+  using qmci_accumulator_type::data_;
   using qmci_accumulator_type::parameters;
 
   int thread_id;
@@ -73,8 +73,8 @@ private:
 
 template <class qmci_accumulator_type>
 stdthread_qmci_accumulator<qmci_accumulator_type>::stdthread_qmci_accumulator(
-    parameters_type& parameters_ref, MOMS_type& MOMS_ref, int id)
-    : qmci_accumulator_type(parameters_ref, MOMS_ref, id), thread_id(id), measuring(false) {}
+    parameters_type& parameters_ref, Data& data_ref, int id)
+    : qmci_accumulator_type(parameters_ref, data_ref, id), thread_id(id), measuring(false) {}
 
 template <class qmci_accumulator_type>
 stdthread_qmci_accumulator<qmci_accumulator_type>::~stdthread_qmci_accumulator() {}

@@ -1,0 +1,60 @@
+{
+  "physics": {
+    "beta"                      :  1.,
+    "chemical-potential"        : 0.
+  },
+
+  "single-band-Hubbard-model":
+  {
+    "t"       : 1.,
+    "U"       : 4.
+  },
+
+  "domains": {
+    "real-space-grids": {
+      "cluster": [[2, 0],
+        [0, 2]]
+    },
+
+    "imaginary-time": {
+      "sp-time-intervals": 512
+    },
+
+    "imaginary-frequency": {
+      "sp-fermionic-frequencies": 512
+    }
+  },
+
+  "CT-AUX" : {
+    "expansion-parameter-K": 1.,
+    "initial-configuration-size": 10,
+    "max-submatrix-size": 16
+  },
+
+  "DCA": {
+    "iterations": 1,
+    "self-energy-mixing-factor": 0.,
+    "interacting-orbitals": [0]
+  },
+
+  "Monte-Carlo-integration" : {
+    "warm-up-sweeps": 1000,
+    "sweeps-per-measurement": 3,
+    "measurements-per-process-and-accumulator": 500000,
+    "seed": "random",
+    "threaded-solver": {
+      "walkers": 2,
+      "accumulators": 2
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+

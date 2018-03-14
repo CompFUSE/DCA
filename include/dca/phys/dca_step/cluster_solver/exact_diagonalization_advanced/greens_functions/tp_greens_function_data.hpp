@@ -28,8 +28,10 @@ class tp_Greens_function_data {
 public:
   typedef typename ed_options::b_dmn b_dmn;
   typedef typename ed_options::s_dmn s_dmn;
-  typedef typename ed_options::r_dmn r_dmn;
-  typedef typename ed_options::k_dmn k_dmn;
+
+  using CDA = ClusterDomainAliases<ed_options::DIMENSION>;
+  using RClusterDmn = typename CDA::RClusterDmn;
+  using KClusterDmn = typename CDA::KClusterDmn;
 
   typedef typename ed_options::profiler_t profiler_t;
   typedef typename ed_options::concurrency_type concurrency_type;
@@ -56,7 +58,7 @@ public:
   using w_VERTEX_EXTENDED = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
 
   typedef func::dmn_variadic<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED> wm_wn_dmn_type;
-  typedef func::dmn_variadic<nu_dmn, nu_dmn, nu_dmn, nu_dmn, r_dmn, r_dmn, r_dmn> nu_nu_nu_nu_r_r_r_dmn_type;
+  typedef func::dmn_variadic<nu_dmn, nu_dmn, nu_dmn, nu_dmn, RClusterDmn, RClusterDmn, RClusterDmn> nu_nu_nu_nu_r_r_r_dmn_type;
 
 public:
   tp_Greens_function_data();
@@ -91,8 +93,7 @@ public:
   int bsr_j;
 
   bs_dmn_type bs_dmn;
-  bsr_dmn_type bsr_dmn;
-
+  
   nu_r_dmn_type nu_r_dmn;
   nu_nu_r_dmn_type nu_nu_r_dmn;
 

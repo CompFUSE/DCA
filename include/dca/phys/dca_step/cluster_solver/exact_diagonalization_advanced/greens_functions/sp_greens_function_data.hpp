@@ -22,6 +22,7 @@
 #include "dca/phys/domains/time_and_frequency/frequency_domain_real_axis.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
+#include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 
 namespace dca {
 namespace phys {
@@ -34,8 +35,10 @@ class sp_Greens_function_data {
 public:
   typedef typename ed_options::b_dmn b_dmn;
   typedef typename ed_options::s_dmn s_dmn;
-  typedef typename ed_options::r_dmn r_dmn;
-  typedef typename ed_options::k_dmn k_dmn;
+
+  using CDA = ClusterDomainAliases<ed_options::DIMENSION>;
+  using RClusterDmn = typename CDA::RClusterDmn;
+  using KClusterDmn = typename CDA::KClusterDmn;
 
   typedef typename ed_options::profiler_t profiler_t;
   typedef typename ed_options::concurrency_type concurrency_type;
@@ -74,18 +77,18 @@ public:
 
   void set_indices(int l);
 
-  template <typename parameter_type>
-  void initialize(parameter_type& parameters);
+  template <typename parameters_type>
+  void initialize(parameters_type& parameters);
 
   void sum_to(
-      func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, w>>& G_r_w,
-      func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, w_REAL>>& G_r_w_real,
-      func::function<double, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, t>>& G_r_t);
+      func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, w>>& G_r_w,
+      func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, w_REAL>>& G_r_w_real,
+      func::function<double, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, t>>& G_r_t);
 
   void sum_to(
-      func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, r_dmn, w_VERTEX, w_VERTEX>>&
+      func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, RClusterDmn, w_VERTEX, w_VERTEX>>&
           G2_nonlocal_nu_nu_r_r_w_w,
-      func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>&
+      func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, KClusterDmn, KClusterDmn, w_VERTEX, w_VERTEX>>&
           G2_nonlocal_nu_nu_k_k_w_w);
 
 public:
@@ -128,15 +131,15 @@ public:
   func::function<complex_type, w> G_w_im;
   func::function<complex_type, w_REAL> G_w_re;
 
-  func::function<complex_type, func::dmn_variadic<w, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn>>>
+  func::function<complex_type, func::dmn_variadic<w, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn>>>
       G_w_im__nu_nu_r;
-  func::function<complex_type, func::dmn_variadic<w_REAL, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn>>>
+  func::function<complex_type, func::dmn_variadic<w_REAL, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn>>>
       G_w_re__nu_nu_r;
-  func::function<scalar_type, func::dmn_variadic<t, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn>>> G_tau__nu_nu_r;
+  func::function<scalar_type, func::dmn_variadic<t, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn>>> G_tau__nu_nu_r;
 
-  func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, r_dmn, w_VERTEX, w_VERTEX>>
+  func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, RClusterDmn, w_VERTEX, w_VERTEX>>
       G2_nonlocal_nu_nu_r_r_w_w;
-  func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>
+  func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, KClusterDmn, KClusterDmn, w_VERTEX, w_VERTEX>>
       G2_nonlocal_nu_nu_k_k_w_w;
 };
 
@@ -147,8 +150,8 @@ template <typename ed_options>
 sp_Greens_function_data<ed_options>::sp_Greens_function_data(const this_type& /*other*/) {}
 
 template <typename ed_options>
-template <typename parameter_type>
-void sp_Greens_function_data<ed_options>::initialize(parameter_type& parameters) {
+template <typename parameters_type>
+void sp_Greens_function_data<ed_options>::initialize(parameters_type& parameters) {
   //       std::cout << "\n\n\t" << __FUNCTION__ << "\n\n";
 
   complex_type I(0, 1);
@@ -191,7 +194,7 @@ void sp_Greens_function_data<ed_options>::set_indices(int l) {
   b_j = indices[2];
   s_j = indices[3];
 
-  r_i = r_dmn::parameter_type::origin_index();
+  r_i = RClusterDmn::parameter_type::origin_index();
   r_j = indices[4];
 
   delta_r = r_j;
@@ -205,9 +208,9 @@ void sp_Greens_function_data<ed_options>::set_indices(int l) {
 
 template <typename ed_options>
 void sp_Greens_function_data<ed_options>::sum_to(
-    func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, w>>& G_r_w_im,
-    func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, w_REAL>>& G_r_w_re,
-    func::function<double, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, t>>& G_r_t) {
+    func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, w>>& G_r_w_im,
+    func::function<std::complex<double>, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, w_REAL>>& G_r_w_re,
+    func::function<double, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, t>>& G_r_t) {
   for (int ind = 0; ind < nu_nu_r_dmn_type::dmn_size(); ind++) {
     set_indices(ind);
 
@@ -226,9 +229,9 @@ void sp_Greens_function_data<ed_options>::sum_to(
 
 template <typename ed_options>
 void sp_Greens_function_data<ed_options>::sum_to(
-    func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, r_dmn, r_dmn, w_VERTEX, w_VERTEX>>&
+    func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, RClusterDmn, w_VERTEX, w_VERTEX>>&
         G_nu_nu_r_r_w_w,
-    func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, k_dmn, k_dmn, w_VERTEX, w_VERTEX>>&
+    func::function<complex_type, func::dmn_variadic<nu_dmn, nu_dmn, KClusterDmn, KClusterDmn, w_VERTEX, w_VERTEX>>&
         G_nu_nu_k_k_w_w) {
   G_nu_nu_r_r_w_w += G2_nonlocal_nu_nu_r_r_w_w;
   G_nu_nu_k_k_w_w += G2_nonlocal_nu_nu_k_k_w_w;

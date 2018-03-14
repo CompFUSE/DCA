@@ -18,10 +18,9 @@ public:
   using shifted_t = func::dmn_0<domains::time_domain_left_oriented>;
   using b = func::dmn_0<domains::electron_band_domain>;
 
-  using r_DCA =
-      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
-                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
-  using r_dmn_t = r_DCA;
+  using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
+  using RClusterDmn = typename CDA::RClusterDmn;
+  using r_dmn_t = RClusterDmn;
 
   typedef typename parameters_type::concurrency_type concurrency_type;
   typedef typename parameters_type::profiler_type profiler_t;

@@ -26,6 +26,7 @@
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
+#include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 
 namespace dca {
 namespace phys {
@@ -43,12 +44,11 @@ public:
   using b = func::dmn_0<domains::electron_band_domain>;
   using s = func::dmn_0<domains::electron_spin_domain>;
 
-  using r_DCA =
-      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
-                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
+  using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
+  using RClusterDmn = typename CDA::RClusterDmn;
 
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
-  using p_dmn_t = func::dmn_variadic<nu, nu, r_DCA>;
+  using p_dmn_t = func::dmn_variadic<nu, nu, RClusterDmn>;
 
   typedef typename parameters_type::profiler_type profiler_type;
   typedef typename parameters_type::concurrency_type concurrency_type;
@@ -65,22 +65,17 @@ public:
   void finalize() {}
 
   void finalize(
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& M_r_w,
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& M_r_w_squared);
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, RClusterDmn, w>>& M_r_w,
+      func::function<std::complex<double>, func::dmn_variadic<nu, nu, RClusterDmn, w>>& M_r_w_squared);
 
   template <class configuration_type, class vertex_vertex_matrix_type>
   void accumulate_M_r_w(configuration_type& configuration_e_spin, vertex_vertex_matrix_type& M,
                         double sign, e_spin_states e_spin);
 
-  template <class configuration_type>
-  void accumulate_K_r_t(configuration_type& configuration,
-                        func::function<double, func::dmn_variadic<nu, nu, r_DCA, t>>& K_r_t,
-                        double sign);
-
   int find_first_non_interacting_spin(std::vector<vertex_singleton_type>& configuration_e_spin);
 
   // TODO: Deprecated since replaced by finalize(M_r_w, M_r_w_squared)?
-  void compute_M_r_w(func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& M_r_w);
+  void compute_M_r_w(func::function<std::complex<double>, func::dmn_variadic<nu, nu, RClusterDmn, w>>& M_r_w);
 
 private:
   parameters_type& parameters;
@@ -138,7 +133,7 @@ void SpAccumulatorNfft<parameters_type, MOMS_type>::accumulate_M_r_w(
       t_i = configuration_e_spin_i.get_tau();
 
       //            r_ind = r_cluster_type::subtract(r_j, r_i);
-      r_ind = r_DCA::parameter_type::subtract(r_j, r_i);
+      r_ind = RClusterDmn::parameter_type::subtract(r_j, r_i);
 
       delta_tau = t_i - t_j;
 
@@ -164,44 +159,6 @@ void SpAccumulatorNfft<parameters_type, MOMS_type>::accumulate_M_r_w(
 }
 
 template <class parameters_type, class MOMS_type>
-template <class configuration_type>
-void SpAccumulatorNfft<parameters_type, MOMS_type>::accumulate_K_r_t(
-    configuration_type& /*configuration*/,
-    func::function<double, func::dmn_variadic<nu, nu, r_DCA, t>>& /*K_r_t*/, double /*sign*/) {
-  // for next generation solver !!
-
-  /*
-    typedef vertex_singleton<base_cluster_type> vertex_singleton_type;
-
-    double delta_tau = 2.*parameters.get_beta()/(t::dmn_size()-2);
-
-    for(int j=0; j<configuration.size(); j++)
-    {
-    vertex_singleton_type& vertex = configuration[j];
-
-    //      int b_0   = vertex.get_band();
-    //      int s_0   = vertex.get_e_spin();
-
-    //      int b_1   = vertex.get_band();
-    //      int s_1   = vertex.get_e_spin();
-
-    int r_ind = vertex.get_r_site();
-    int t_ind = t::dmn_size()/2+(vertex.get_tau()/delta_tau);
-
-    if(t_ind<0 or t_ind>=t::dmn_size())
-    t_ind = 0;
-
-    double f_tau = 0.;
-    if(vertex.get_HS_spin() != HS_ZERO)
-    f_tau = 1.;
-
-    K_r_t(0, 0, 0, 0, r_ind, t_ind) += sign*f_tau;
-    K_r_t(0, 1, 0, 1, r_ind, t_ind) += sign*f_tau;
-    }
-  */
-}
-
-template <class parameters_type, class MOMS_type>
 int SpAccumulatorNfft<parameters_type, MOMS_type>::find_first_non_interacting_spin(
     std::vector<vertex_singleton_type>& configuration_e_spin) {
   int configuration_size = configuration_e_spin.size();
@@ -219,12 +176,12 @@ int SpAccumulatorNfft<parameters_type, MOMS_type>::find_first_non_interacting_sp
 
 template <class parameters_type, class MOMS_type>
 void SpAccumulatorNfft<parameters_type, MOMS_type>::compute_M_r_w(
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& M_r_w) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, RClusterDmn, w>>& M_r_w) {
   func::function<std::complex<double>, func::dmn_variadic<w, p_dmn_t>> tmp("tmp M_r_w");
   cached_nfft_1D_M_r_w_obj.finalize(tmp);
 
   for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++)
-    for (int r_ind = 0; r_ind < r_DCA::dmn_size(); r_ind++)
+    for (int r_ind = 0; r_ind < RClusterDmn::dmn_size(); r_ind++)
       for (int s2_ind = 0; s2_ind < s::dmn_size(); s2_ind++)
         for (int b2_ind = 0; b2_ind < b::dmn_size(); b2_ind++)
           for (int s1_ind = 0; s1_ind < s::dmn_size(); s1_ind++)
@@ -232,20 +189,20 @@ void SpAccumulatorNfft<parameters_type, MOMS_type>::compute_M_r_w(
               M_r_w(b1_ind, s1_ind, b2_ind, s2_ind, r_ind, w_ind) =
                   tmp(w_ind, b1_ind, s1_ind, b2_ind, s2_ind, r_ind);
 
-  double one_div_n_sites = 1. / double(r_DCA::dmn_size());
+  double one_div_n_sites = 1. / double(RClusterDmn::dmn_size());
   M_r_w *= one_div_n_sites;
 }
 
 template <class parameters_type, class MOMS_type>
 void SpAccumulatorNfft<parameters_type, MOMS_type>::finalize(
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& M_r_w,
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_DCA, w>>& M_r_w_squared) {
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, RClusterDmn, w>>& M_r_w,
+    func::function<std::complex<double>, func::dmn_variadic<nu, nu, RClusterDmn, w>>& M_r_w_squared) {
   {
     func::function<std::complex<double>, func::dmn_variadic<w, p_dmn_t>> tmp("tmp M_r_w");
     cached_nfft_1D_M_r_w_obj.finalize(tmp);
 
     for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++)
-      for (int r_ind = 0; r_ind < r_DCA::dmn_size(); r_ind++)
+      for (int r_ind = 0; r_ind < RClusterDmn::dmn_size(); r_ind++)
         for (int s2_ind = 0; s2_ind < s::dmn_size(); s2_ind++)
           for (int b2_ind = 0; b2_ind < b::dmn_size(); b2_ind++)
             for (int s1_ind = 0; s1_ind < s::dmn_size(); s1_ind++)
@@ -253,7 +210,7 @@ void SpAccumulatorNfft<parameters_type, MOMS_type>::finalize(
                 M_r_w(b1_ind, s1_ind, b2_ind, s2_ind, r_ind, w_ind) =
                     tmp(w_ind, b1_ind, s1_ind, b2_ind, s2_ind, r_ind);
 
-    double one_div_n_sites = 1. / double(r_DCA::dmn_size());
+    double one_div_n_sites = 1. / double(RClusterDmn::dmn_size());
     M_r_w *= one_div_n_sites;
   }
 
@@ -262,7 +219,7 @@ void SpAccumulatorNfft<parameters_type, MOMS_type>::finalize(
     cached_nfft_1D_M_r_w_squared_obj.finalize(tmp);
 
     for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++)
-      for (int r_ind = 0; r_ind < r_DCA::dmn_size(); r_ind++)
+      for (int r_ind = 0; r_ind < RClusterDmn::dmn_size(); r_ind++)
         for (int s2_ind = 0; s2_ind < s::dmn_size(); s2_ind++)
           for (int b2_ind = 0; b2_ind < b::dmn_size(); b2_ind++)
             for (int s1_ind = 0; s1_ind < s::dmn_size(); s1_ind++)
@@ -270,7 +227,7 @@ void SpAccumulatorNfft<parameters_type, MOMS_type>::finalize(
                 M_r_w_squared(b1_ind, s1_ind, b2_ind, s2_ind, r_ind, w_ind) =
                     tmp(w_ind, b1_ind, s1_ind, b2_ind, s2_ind, r_ind);
 
-    double one_div_n_sites = 1. / double(r_DCA::dmn_size());
+    double one_div_n_sites = 1. / double(RClusterDmn::dmn_size());
     M_r_w_squared *= one_div_n_sites;
   }
 }
