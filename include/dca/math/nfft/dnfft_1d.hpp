@@ -81,7 +81,7 @@ public:
     return WDmn::dmn_size() / 2;
   }
 
-private:
+protected:
   static constexpr int window_sampling_ = 32;
   static constexpr double window_function_sigma_ = 2.;
 
@@ -115,15 +115,16 @@ private:
   void transformFTauToFW(
       func::function<std::complex<OtherScalarType>, func::dmn_variadic<WDmn, PDmn>>& f_w) const;
 
-private:
+protected:
   func::function<ScalarType, PaddedTimePDmn> f_tau_;
+  static inline auto& get_cubic_convolution_matrices();
 
+private:
   static inline ScalarType tau(int idx);
   static inline ScalarType fineTau(int idx);
 
   static inline auto& get_convolution_time_values();
   static inline auto& get_linear_convolution_matrices();
-  static inline auto& get_cubic_convolution_matrices();
 
   static func::function<ScalarType, WDmn>& get_phi_wn();
 };
