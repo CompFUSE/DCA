@@ -30,7 +30,7 @@ public:
                     int window_sampling, ScalarType t0, ScalarType delta_t, ScalarType t0_window,
                     ScalarType delta_t_window, ScalarType beta);
 
-  __host__ __device__ NfftHelper(const NfftHelper& other) = default;
+  NfftHelper(const NfftHelper& other) = default;
 
   __host__ bool isInitialized() const {
     return parameters_int_ != nullptr;
@@ -51,7 +51,7 @@ public:
 
 protected:
   // This object can be constructed only through its derived class.
-  __host__ NfftHelper() = default;
+  NfftHelper() = default;
 
   int* sub_matrix_ = nullptr;
 
@@ -65,7 +65,7 @@ protected:
 template <typename ScalarType>
 class NfftHelperManager : public NfftHelper<ScalarType> {
 public:
-  __host__ NfftHelperManager() = default;
+  NfftHelperManager() = default;
 
   __host__ ~NfftHelperManager();
 
@@ -103,7 +103,7 @@ __host__ void NfftHelper<ScalarType>::set(const int nb, const int nr, const int*
              cudaMemcpyHostToDevice);
 
   ScalarType one(1);
-  const ScalarType tau_scale = ScalarType(0.5) /  beta;
+  const ScalarType tau_scale = ScalarType(0.5) / beta;
   const std::array<ScalarType, 7> parameters_real_host{
       t0, delta_t, t0_window, delta_t_window, one / delta_t, one / delta_t_window, tau_scale};
   cudaMalloc(&parameters_real_, sizeof(ScalarType) * parameters_real_host.size());

@@ -28,7 +28,7 @@ public:
   __host__ void set(int nb, int nk, int nw_pos, int delta_k, int delta_w, const int* add_k, int lda,
                     const int* sub_k, int lds);
 
-  __host__ __device__ G4Helper(const G4Helper& other) = default;
+  G4Helper(const G4Helper& other) = default;
 
   __host__ bool isInitialized() const {
     return parameters_ != nullptr;
@@ -46,7 +46,7 @@ public:
 
 protected:
   // This object can be constructed only through its derived class.
-  __host__ G4Helper() = default;
+  G4Helper() = default;
 
   int* add_matrix_ = nullptr;
   int* sub_matrix_ = nullptr;
@@ -58,14 +58,14 @@ protected:
 
 class G4HelperManager : public G4Helper {
 public:
-  __host__ G4HelperManager() = default;
+  G4HelperManager() = default;
   __host__ ~G4HelperManager();
   __host__ __device__ G4HelperManager(const G4HelperManager& other) = delete;
 };
 
 __host__ void G4Helper::set(int nb, int nk, int nw_pos, int delta_k, int delta_w, const int* add_k,
                             int lda, const int* sub_k, int lds) {
-  if(isInitialized())
+  if (isInitialized())
     throw(std::logic_error("already initialized."));
 
   cudaMalloc(&add_matrix_, sizeof(int) * lda * nk);
