@@ -18,6 +18,7 @@
 #include <cmath>
 #include <complex>
 #include <stdexcept>
+#include <type_traits>
 
 #include "dca/function/function.hpp"
 
@@ -31,8 +32,8 @@ struct Difference {
 };
 
 // Returns the l1, l2, and l_inf relative difference between f1 and f2.
-template <typename Scalartype, class Dmn1, class Dmn2>
-Difference difference(const function<Scalartype, Dmn1>& f1, const function<Scalartype, Dmn2>& f2) {
+template <typename Scalartype1, typename Scalartype2, class Dmn1, class Dmn2>
+Difference difference(const function<Scalartype1, Dmn1>& f1, const function<Scalartype2, Dmn2>& f2) {
   if (f1.size() != f2.size())
     throw(std::logic_error("Sizes are different."));
 
@@ -44,13 +45,16 @@ Difference difference(const function<Scalartype, Dmn1>& f1, const function<Scala
   double l2_error = 0.;
   double linf_error = 0.;
 
+  using DiffType = std::common_type_t<Scalartype1, Scalartype2>;
+
   for (int ind = 0; ind < f2.size(); ind++) {
     const double f_abs = std::abs(f1(ind));
     l1 += f_abs;
     l2 += f_abs * f_abs;
     linf = std::max(linf, f_abs);
 
-    const double err = std::abs(f1(ind) - f2(ind));
+    const auto diff = static_cast<DiffType>(f1(ind)) - static_cast<DiffType>(f2(ind));
+    const double err = std::abs(diff);
     l1_error += err;
     l2_error += err * err;
     linf_error = std::max(linf_error, err);
