@@ -12,6 +12,7 @@
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/kernels_interface.hpp"
 
 #include <array>
+#include <cassert>
 #include <cuda.h>
 #include <cuda_runtime.h>
 
@@ -28,6 +29,7 @@ using linalg::util::CudaComplex;
 using linalg::util::castCudaComplex;
 
 std::array<dim3, 2> getBlockSize(const int i, const int j) {
+  assert(i > 0 && j > 0);
   const int n_threads_i = std::min(32, i);
   const int n_threads_j = std::min(32, j);
   const int n_blocks_i = util::ceilDiv(i, n_threads_i);

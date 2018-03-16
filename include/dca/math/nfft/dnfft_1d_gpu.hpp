@@ -155,6 +155,9 @@ template <typename InpScalar, class Configuration>
 void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::accumulate(
     const linalg::Matrix<InpScalar, linalg::CPU>& M, const Configuration& config, const int sign) {
   assert(M.is_square());
+  if(config.size() == 0) // Contribution is zero.
+    return;
+
   const int n = M.nrCols();
 
   uploadMatrix(M);
