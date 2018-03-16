@@ -204,36 +204,14 @@ else()
   message(FATAL_ERROR "Please set DCA_CLUSTER_SOLVER to a valid option: CT-AUX | SS-CT-HYB.")
 endif()
 
-################################################################################
-# Select the threading library.
 # TODO: - Implement HPX part including DCA_HPX.cmake.
-#       - Implement STL support and make it default.
-#
-# Note the difference between the CMake variables
-# - DCA_THREADING_LIBRARY: CMake option for the user to choose the threading library,
-# - DCA_THREADING_LIB: the actual library to link against.
-set(DCA_THREADING_LIBRARY "STDTHREAD" CACHE STRING
-  "Threading library, options are: STDTHREAD | NONE")
-set_property(CACHE DCA_THREADING_LIBRARY PROPERTY STRINGS STDTHREAD NONE)
 
-if (DCA_THREADING_LIBRARY STREQUAL STDTHREAD)
-  set(DCA_THREADING_TYPE dca::parallel::stdthread)
-  set(DCA_THREADING_INCLUDE "dca/parallel/stdthread/stdthread.hpp")
-  set(DCA_THREADING_FLAGS "-pthread" CACHE INTERNAL "Flags needed for threading." FORCE)
-  set(DCA_THREADING_LIB "pthread")
-
-elseif (DCA_THREADING_LIBRARY STREQUAL NONE)
-  set(DCA_THREADING_TYPE dca::parallel::NoThreading)
-  set(DCA_THREADING_INCLUDE "dca/parallel/no_threading/no_threading.hpp")
-  set(DCA_THREADING_FLAGS "" CACHE INTERNAL "Flags needed for threading." FORCE)
-  set(DCA_THREADING_LIB "")
-
-else()
-  message(FATAL_ERROR "Please set DCA_THREADING_LIBRARY to a valid option: STDTHREAD | NONE.")
-endif()
-
-configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/threading.hpp.in"
-  "${CMAKE_BINARY_DIR}/include/dca/config/threading.hpp" @ONLY)
+################################################################################
+# Select the flags for the threading library.
+set(DCA_THREADING_TYPE dca::parallel::stdthread)
+set(DCA_THREADING_INCLUDE "dca/parallel/stdthread/stdthread.hpp")
+set(DCA_THREADING_FLAGS "-pthread" CACHE INTERNAL "Flags needed for threading." FORCE)
+set(DCA_THREADING_LIB "pthread")
 
 ################################################################################
 # Use threaded cluster solver.
@@ -241,15 +219,9 @@ option(DCA_WITH_THREADED_SOLVER "Use multiple walker and accumulator threads in 
 
 if (DCA_WITH_THREADED_SOLVER)
   dca_add_config_define(DCA_WITH_THREADED_SOLVER)
-
-  if (DCA_THREADING_LIBRARY STREQUAL STDTHREAD)
-    set(DCA_THREADED_SOLVER_TYPE dca::phys::solver::StdThreadQmciClusterSolver<ClusterSolverBaseType>)
-    set(DCA_THREADED_SOLVER_INCLUDE
+  set(DCA_THREADED_SOLVER_TYPE dca::phys::solver::StdThreadQmciClusterSolver<ClusterSolverBaseType>)
+  set(DCA_THREADED_SOLVER_INCLUDE
       "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_cluster_solver.hpp")
-
-  else()
-    message(FATAL_ERROR "Need a threading library to use a threaded cluster solver.")
-  endif()
 endif()
 
 ################################################################################

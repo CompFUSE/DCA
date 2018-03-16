@@ -9,8 +9,11 @@
 //
 // This file tests threading.hpp.
 
-#include "dca/config/threading.hpp"
+#include "dca/parallel/stdthread/stdthread.hpp"
+
 #include "gtest/gtest.h"
+
+using Threading = dca::parallel::stdthread;
 
 void* start_routine(void* arg) {
   dca::parallel::ThreadingData* data_ptr = static_cast<dca::parallel::ThreadingData*>(arg);

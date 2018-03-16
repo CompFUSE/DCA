@@ -14,7 +14,7 @@
 #include <string>
 #include <iostream>
 
-// Defines Concurrency, ParametersType, DcaData, DcaLoop, and Profiler.
+// Defines Concurrency, Threading, ParametersType, DcaData, DcaLoop, and Profiler.
 #include "dca/config/cmake_options.hpp"
 #include "dca/config/dca.hpp"
 #include "dca/io/json/json_reader.hpp"

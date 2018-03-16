@@ -24,16 +24,11 @@
 #include "dca/io/json/json_reader.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
-#include "dca/config/threading.hpp"
+#include "dca/parallel/stdthread/stdthread.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp"
-
-#if DCA_THREADING_LIBRARY == THREADING_STDTHREAD
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_cluster_solver.hpp"
-#else
-#error "This test is only for threaded solvers"
-#endif
 
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
@@ -61,15 +56,13 @@ TEST(dca_sp_DCAplus_thread, Self_energy) {
   using ModelType = dca::phys::models::TightBindingModel<LatticeType>;
   using Concurrency = dca::parallel::NoConcurrency;
   using ParametersType =
-      dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler, ModelType,
-                                    RngType, dca::phys::solver::CT_AUX>;
+      dca::phys::params::Parameters<Concurrency, dca::parallel::stdthread, dca::profiling::NullProfiler,
+                                    ModelType, RngType, dca::phys::solver::CT_AUX>;
   using DcaDataType = dca::phys::DcaData<ParametersType>;
   using ClusterSolverBaseType =
       dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, ParametersType, DcaDataType>;
 
-#if DCA_THREADING_LIBRARY == THREADING_STDTHREAD
   using ClusterSolverType = dca::phys::solver::StdThreadQmciClusterSolver<ClusterSolverBaseType>;
-#endif
 
   using DcaLoopType = dca::phys::DcaLoop<ParametersType, DcaDataType, ClusterSolverType>;
 
@@ -116,8 +109,7 @@ TEST(dca_sp_DCAplus_thread, Self_energy) {
   dca::func::function<std::complex<double>, dca::func::dmn_variadic<nu, nu, k_DCA, w>> Sigma_check(
       "Self_Energy");
   dca::io::HDF5Reader reader;
-  reader.open_file(DCA_SOURCE_DIR
-                   "/test/system-level/dca/check_data.dca_sp_DCA+_thread_test.hdf5");
+  reader.open_file(DCA_SOURCE_DIR "/test/system-level/dca/check_data.dca_sp_DCA+_thread_test.hdf5");
   reader.open_group("functions");
   reader.execute(Sigma_check);
   reader.close_file();
