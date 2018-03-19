@@ -126,6 +126,7 @@ set(DCA_LIBS
   dca_algorithms
   json
   dca_hdf5
+  phys
   profiling
   function
   convert_domains

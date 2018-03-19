@@ -50,7 +50,6 @@ const std::string input_dir =
     DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/";
 
 void prepareRandomConfig(Configuration& config, MatrixPair& M, std::array<int, 2> n);
-std::string toString(dca::phys::FourPointType);
 
 TEST_F(G0Setup, Accumulate) {
   const std::array<int, 2> n{18, 22};
@@ -105,27 +104,5 @@ void prepareRandomConfig(Configuration& config, MatrixPair& M, const std::array<
     for (int j = 0; j < n; ++j)
       for (int i = 0; i < n; ++i)
         M[s](i, j) = 2 * rng() - 1.;
-  }
-}
-
-std::string toString(dca::phys::FourPointType type) {
-  switch (type) {
-    case dca::phys::NONE:
-      return "none";
-
-    case dca::phys::PARTICLE_PARTICLE_UP_DOWN:
-      return "pp_up_down";
-
-    case dca::phys::PARTICLE_HOLE_TRANSVERSE:
-      return "ph_transverse";
-
-    case dca::phys::PARTICLE_HOLE_MAGNETIC:
-      return "ph_magnetic";
-
-    case dca::phys::PARTICLE_HOLE_CHARGE:
-      return "ph_charge";
-
-    default:
-      throw std::logic_error("type not valid.");
   }
 }

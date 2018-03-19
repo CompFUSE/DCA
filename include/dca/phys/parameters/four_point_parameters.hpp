@@ -85,8 +85,6 @@ public:
   }
 
 private:
-  void readFourPointMode(const std::string& name);
-
   int four_point_type_;
   std::vector<double> four_point_momentum_transfer_input_;
   int four_point_frequency_transfer_;
@@ -127,9 +125,12 @@ template <typename ReaderOrWriter>
 void FourPointParameters<lattice_dimension>::readWrite(ReaderOrWriter& reader_or_writer) {
   try {
     reader_or_writer.open_group("four-point");
-    std::string four_point_name;
+
+    // Read four point mode.
+    std::string four_point_name = toString(static_cast<FourPointType>(four_point_type_));
     try {
       reader_or_writer.execute("type", four_point_name);
+      four_point_type_ = readFourPointMode(four_point_name);
     }
     catch (const std::exception& r_e) {
     }
@@ -145,32 +146,12 @@ void FourPointParameters<lattice_dimension>::readWrite(ReaderOrWriter& reader_or
     }
 
     reader_or_writer.close_group();
-    readFourPointMode(four_point_name);
   }
   catch (const std::exception& r_e) {
   }
 }
 
-template <int lattice_dimension>
-void FourPointParameters<lattice_dimension>::readFourPointMode(const std::string& name)  {
-  if (name == "NONE")
-    four_point_type_ =  NONE;
 
-  else if (name == "PARTICLE_PARTICLE_UP_DOWN")
-    four_point_type_ =  PARTICLE_PARTICLE_UP_DOWN;
-
-  else if (name == "PARTICLE_HOLE_TRANSVERSE")
-    four_point_type_ =  PARTICLE_HOLE_TRANSVERSE;
-
-  else if (name == "PARTICLE_HOLE_MAGNETIC")
-    four_point_type_ =  PARTICLE_HOLE_MAGNETIC;
-
-  else if (name == "PARTICLE_HOLE_CHARGE")
-    four_point_type_ =  PARTICLE_HOLE_CHARGE;
-
-  else
-    throw std::logic_error("No valid option for parameter \"type\" in group \"four-point\".");
-}
 
 }  // params
 }  // phys
