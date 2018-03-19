@@ -26,7 +26,7 @@ ErrorComputationType readErrorComputationType(const std::string& str) {
     return ErrorComputationType::NONE;
   else if (str == "STANDARD_DEVIATION")
     return ErrorComputationType::STANDARD_DEVIATION;
-  else if (str == "JACL_KNIFE")
+  else if (str == "JACK_KNIFE")
     return ErrorComputationType::JACK_KNIFE;
   else
     throw(std::logic_error("Invalid error computation type."));

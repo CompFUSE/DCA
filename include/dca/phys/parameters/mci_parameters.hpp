@@ -158,41 +158,48 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
           seed_ = default_seed;
         }
       }
-      catch (const std::exception& r_e) {
+      catch (const std::exception &r_e) {
         try {
           // Read the seed as an integer.
           reader_or_writer.execute("seed", seed_);
         }
 
-        catch (const std::exception& r_e2) {
+        catch (const std::exception &r_e2) {
         }
       }
-    }
-
-    else {
+    } else {
       // Write the seed.
       try {
         reader_or_writer.execute("seed", seed_);
       }
-      catch (const std::exception& r_e) {
+      catch (const std::exception &r_e) {
       }
     }
 
     try {
       reader_or_writer.execute("warm-up-sweeps", warm_up_sweeps_);
     }
-    catch (const std::exception& r_e) {
+    catch (const std::exception &r_e) {
     }
     try {
       reader_or_writer.execute("sweeps-per-measurement", sweeps_per_measurement_);
     }
-    catch (const std::exception& r_e) {
+    catch (const std::exception &r_e) {
     }
     try {
       reader_or_writer.execute("measurements-per-process-and-accumulator",
                                measurements_per_process_and_accumulator_);
     }
-    catch (const std::exception& r_e) {
+    catch (const std::exception &r_e) {
+    }
+
+    // Read the error computation type from a string.
+    try {
+      std::string error_type = "NONE";
+      reader_or_writer.execute("error-computation-type", error_type);
+      error_computation_type_ = static_cast<int>(readErrorComputationType(error_type));
+    }
+    catch (const std::exception &r_e) {
     }
 
     try {
@@ -201,24 +208,17 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
       try {
         reader_or_writer.execute("walkers", walkers_);
       }
-      catch (const std::exception& r_e) {
+      catch (const std::exception &r_e) {
       }
       try {
         reader_or_writer.execute("accumulators", accumulators_);
       }
-      catch (const std::exception& r_e) {
+      catch (const std::exception &r_e) {
       }
-      std::string error_type = "NONE";
-      try {
-        reader_or_writer.execute("error-computation-type", error_type);
-      }
-      catch (const std::exception& r_e) {
-      }
-      error_computation_type_ = static_cast<int>(readErrorComputationType(error_type));
 
       reader_or_writer.close_group();
     }
-    catch (const std::exception& r_e) {
+    catch (const std::exception &r_e) {
     }
 
     // TODO: adjust_self_energy_for_double_counting has no effect at the moment. Use default value
@@ -229,10 +229,8 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     // }
     // catch (const std::exception& r_e) {
     // }
-
-    reader_or_writer.close_group();
   }
-  catch (const std::exception& r_e) {
+  catch (const std::exception &r_e) {
   }
 }
 
