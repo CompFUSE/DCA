@@ -55,8 +55,8 @@ struct Memory<CPU> {
   static void deallocate(ScalarType*& ptr) {
 #ifdef DCA_HAVE_CUDA
     cudaError_t ret = cudaFreeHost(ptr);
-    checkRC(ret);
-    checkErrorsCudaDebug();
+    if (ret != cudaSuccess)
+      printErrorMessage(ret, __FUNCTION__, __FILE__, __LINE__);
 #else
     free(ptr);
 #endif
@@ -87,14 +87,15 @@ struct Memory<GPU> {
     cudaError_t ret = cudaMalloc((void**)&ptr, size * sizeof(ScalarType));
     checkRCMsg(ret, "\t size requested : " + std::to_string(size));
 
-    if(ret != cudaSuccess)
+    if (ret != cudaSuccess)
       throw(std::bad_alloc());
   }
 
   template <typename ScalarType>
   static void deallocate(ScalarType*& ptr) {
     cudaError_t ret = cudaFree(ptr);
-    checkRC(ret);
+    if (ret != cudaSuccess)
+      printErrorMessage(ret, __FUNCTION__, __FILE__, __LINE__);
 
     ptr = nullptr;
   }
