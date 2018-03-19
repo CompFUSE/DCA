@@ -112,7 +112,6 @@ if(DCA_HAVE_MAGMA)
 endif(DCA_HAVE_MAGMA)
 ################################################################################
 # Libraries
-include(cmake/dca_add_library.cmake)
 add_subdirectory(src)
 
 set(DCA_LIBS
