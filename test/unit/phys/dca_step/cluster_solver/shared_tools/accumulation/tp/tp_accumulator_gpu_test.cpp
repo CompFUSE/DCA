@@ -61,7 +61,7 @@ TEST_F(G0Setup, Accumulate) {
 
   auto& parameters = G0Setup::parameters;
   auto& data = *G0Setup::data;
-  auto& G4 = data.get_G4_k_k_w_w();
+  auto& G4 = data.get_G4();
   auto G4_check(G4);
 
   for (const dca::phys::FourPointType type :

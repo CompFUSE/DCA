@@ -172,12 +172,12 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::load_G_II(
   int* coor_1 = new int[G_II.signature()];
   int* coor_2 = new int[G_II.signature()];
 
-  auto& G4 = data_.get_G4_k_k_w_w();
+  auto& G4 = data_.get_G4();
   for (int i = 0; i < G4.size(); i++) {
     G4.linind_2_subind(i, coor_2);
 
     // coordinate  0 1 2 3 4 5 6 7
-    // G4_k_k_w_w: b b b b k k w w
+    // G4: b b b b k k w w
     // G_II      : b b k w b b k w
 
     coor_1[0] = coor_2[0];

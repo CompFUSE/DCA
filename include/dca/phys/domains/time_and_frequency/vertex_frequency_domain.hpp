@@ -146,8 +146,11 @@ void vertex_frequency_domain<EXTENDED>::initialize(parameters_t& parameters) {
   get_basis()[0] = (2. * M_PI) / parameters.get_beta();
   get_inverse_basis()[0] = parameters.get_beta() / (2. * M_PI);
 
-  get_size() = 2 * (parameters.get_four_point_fermionic_frequencies() +
-                    abs(parameters.get_four_point_frequency_transfer()));
+  if (parameters.compute_all_transfers())
+    get_size() = 4 * parameters.get_four_point_fermionic_frequencies();
+  else
+    get_size() = 2 * (parameters.get_four_point_fermionic_frequencies() +
+                      abs(parameters.get_four_point_frequency_transfer()));
 
   get_elements().resize(get_size());
 
@@ -177,8 +180,11 @@ void vertex_frequency_domain<EXTENDED_POSITIVE>::initialize(parameters_t& parame
   get_basis()[0] = (2. * M_PI) / parameters.get_beta();
   get_inverse_basis()[0] = parameters.get_beta() / (2. * M_PI);
 
-  get_size() = parameters.get_four_point_fermionic_frequencies() +
-               abs(parameters.get_four_point_frequency_transfer());
+  if (parameters.compute_all_transfers())
+    get_size() = 2 * parameters.get_four_point_fermionic_frequencies();
+  else
+    get_size() = (parameters.get_four_point_fermionic_frequencies() +
+                  abs(parameters.get_four_point_frequency_transfer()));
 
   get_elements().resize(get_size());
 

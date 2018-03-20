@@ -159,12 +159,12 @@ namespace DCA
     int* coor_1 = new int[G_II.signature()];
     int* coor_2 = new int[G_II.signature()];
 
-    for(int i=0; i<MOMS.G4_k_k_w_w.size(); i++)
+    for(int i=0; i<MOMS.G4.size(); i++)
       {
-        MOMS.G4_k_k_w_w.linind_2_subind(i, coor_2);
+        MOMS.G4.linind_2_subind(i, coor_2);
 
 	// coordinate  0 1 2 3 4 5 6 7
-	// G4_k_k_w_w: b b b b k k w w
+	// G4: b b b b k k w w
 	// G_II      : b b k w b b k w
 
         coor_1[0] = coor_2[0];
@@ -177,7 +177,7 @@ namespace DCA
         coor_1[7] = coor_2[7];//w_2
 
         G_II(coor_1[0], coor_1[1], coor_1[2], coor_1[3], coor_1[4], coor_1[5], coor_1[6], coor_1[7])
-          = MOMS.G4_k_k_w_w(coor_2[0], coor_2[1], coor_2[2], coor_2[3], coor_2[4], coor_2[5], coor_2[6], coor_2[7]);
+          = MOMS.G4(coor_2[0], coor_2[1], coor_2[2], coor_2[3], coor_2[4], coor_2[5], coor_2[6], coor_2[7]);
       }
 
     delete [] coor_1;

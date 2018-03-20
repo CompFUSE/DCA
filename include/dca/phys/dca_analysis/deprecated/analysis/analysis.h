@@ -52,7 +52,7 @@ namespace dca {
 
     void apply_symmetries();
 
-    void apply_particle_particle_symmetry_on_G4_k_k_w_w();
+    void apply_particle_particle_symmetry_on_G4();
 
     void load_G4_b_k_w__b_k_w();
     void load_G4_0_b_k_w__b_k_w();
@@ -233,7 +233,7 @@ namespace dca {
 	      chi_0_function(l1,l2,k1,w1) = G4_0_b_k_w__b_k_w(l1,l2,k1,w1, l1,l2,k1,w1);
     }
 
-    make_G4_matrix<parameter_type, MOMS_type>::execute(MOMS.G4_k_k_w_w, G4_b_k_w__b_k_w);
+    make_G4_matrix<parameter_type, MOMS_type>::execute(MOMS.G4, G4_b_k_w__b_k_w);
 
     compute_Gamma_b_k_w__b_k_w();
 
@@ -286,11 +286,11 @@ namespace dca {
 
     symmetrize::execute(MOMS.G_k_w, MOMS.H_symmetry);
 
-//     cout << "symmetrize MOMS.G4_k_k_w_w" << endl;
-//     symmetrize::execute(MOMS.G4_k_k_w_w, MOMS.H_symmetry, parameters.get_q_vector(), false);
+//     cout << "symmetrize MOMS.G4" << endl;
+//     symmetrize::execute(MOMS.G4, MOMS.H_symmetry, parameters.get_q_vector(), false);
 
 //     if(parameters.get_vertex_measurement_type() == PARTICLE_PARTICLE_UP_DOWN)
-//       apply_particle_particle_symmetry_on_G4_k_k_w_w();
+//       apply_particle_particle_symmetry_on_G4();
   }
     
   template<class parameter_type, class MOMS_type, MC_integration_method_type Monte_Carlo_solver_t>

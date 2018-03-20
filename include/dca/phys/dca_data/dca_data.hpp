@@ -38,10 +38,12 @@
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/cluster/cluster_operations.hpp"
 #include "dca/phys/domains/cluster/interpolation/hspline_interpolation/hspline_interpolation.hpp"
+#include "dca/phys/domains/cluster/momentum_exchange_domain.hpp"
 #include "dca/phys/domains/quantum/brillouin_zone_cut_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/frequency_exchange_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
 #include "dca/phys/four_point_type.hpp"
@@ -67,6 +69,7 @@ private:
   using TDmn = func::dmn_0<domains::time_domain>;
   using WDmn = func::dmn_0<domains::frequency_domain>;
   using WVertexDmn = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
+  using WExchangeDmn = func::dmn_0<domains::FrequencyExchangeDomain>;
 
   using BDmn = func::dmn_0<domains::electron_band_domain>;
   using SDmn = func::dmn_0<domains::electron_spin_domain>;
@@ -79,18 +82,12 @@ private:
   using KClusterDmn = typename CDA::KClusterDmn;
   using RHostDmn = typename CDA::RSpHostDmn;
   using KHostDmn = typename CDA::KSpHostDmn;
+  using KExchangeDmn = func::dmn_0<domains::MomentumExchangeDomain>;
 
   using KCutDmn = func::dmn_0<domains::brillouin_zone_cut_domain<101>>;
 
   using NuKCutDmn = func::dmn_variadic<NuDmn, KCutDmn>;
   using NuNuKWDmn = func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>;
-
-public:
-  using SpGreensFunction =
-      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>>;
-  using TpGreensFunction = func::function<
-      std::complex<TpAccumulatorScalar>,
-      func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KClusterDmn, KClusterDmn, WVertexDmn, WVertexDmn>>;
 
 public:
   DcaData(Parameters& parameters_ref);
@@ -167,6 +164,17 @@ public:
   func::function<double, NuDmn> orbital_occupancy;
 
 public:  // Optional members getters.
+  using SpGreensFunction =
+      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>>;
+  using TpGreensFunction =
+      func::function<std::complex<TpAccumulatorScalar>,
+                     func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KClusterDmn, KClusterDmn,
+                                        KExchangeDmn, WVertexDmn, WVertexDmn, WExchangeDmn>>;
+  // The following typedef is for testing purposes
+  using ReducedTpGreensFunction = func::function<
+      std::complex<TpAccumulatorScalar>,
+      func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KClusterDmn, KClusterDmn, WVertexDmn, WVertexDmn>>;
+
   auto& get_G_k_w_error() {
     if (not G_k_w_err_)
       G_k_w_err_.reset(new SpGreensFunction("G_k_w-error"));
@@ -187,20 +195,20 @@ public:  // Optional members getters.
       Sigma_err_.reset(new SpGreensFunction("Self_Energy-error"));
     return *Sigma_err_;
   }
-  auto& get_G4_k_k_w_w() {
-    if (not G4_k_k_w_w_)
-      G4_k_k_w_w_.reset(new TpGreensFunction("G4_k_k_w_w"));
-    return *G4_k_k_w_w_;
+  auto& get_G4() {
+    if (not G4_)
+      G4_.reset(new TpGreensFunction("G4"));
+    return *G4_;
   }
-  auto& get_G4_k_k_w_w_error() {
-    if (not G4_k_k_w_w_err_)
-      G4_k_k_w_w_err_.reset(new TpGreensFunction("G4_k_k_w_w-error"));
-    return *G4_k_k_w_w_err_;
+  auto& get_G4_error() {
+    if (not G4_err_)
+      G4_err_.reset(new TpGreensFunction("G4-error"));
+    return *G4_err_;
   }
-  auto& get_G4_k_k_w_w_stdv() {
-    if (not G4_k_k_w_w_err_)
-      G4_k_k_w_w_err_.reset(new TpGreensFunction("G4_k_k_w_w-stddev"));
-    return *G4_k_k_w_w_err_;
+  auto& get_G4_stdv() {
+    if (not G4_err_)
+      G4_err_.reset(new TpGreensFunction("G4-stddev"));
+    return *G4_err_;
   }
   auto& get_non_density_interactions() {
     if (not non_density_interactions_)
@@ -216,8 +224,8 @@ public:  // Optional members getters.
 private:  // Optional members.
   std::unique_ptr<SpGreensFunction> G_k_w_err_;
   std::unique_ptr<SpGreensFunction> Sigma_err_;
-  std::unique_ptr<TpGreensFunction> G4_k_k_w_w_;
-  std::unique_ptr<TpGreensFunction> G4_k_k_w_w_err_;
+  std::unique_ptr<TpGreensFunction> G4_;
+  std::unique_ptr<TpGreensFunction> G4_err_;
   std::unique_ptr<func::function<double, func::dmn_variadic<NuDmn, NuDmn, NuDmn, NuDmn, RClusterDmn>>>
       non_density_interactions_;
 };
@@ -306,7 +314,7 @@ void DcaData<Parameters>::read(std::string filename) {
 
   if (parameters_.get_four_point_type() != NONE) {
     concurrency_.broadcast_object(G_k_w);
-    concurrency_.broadcast_object(get_G4_k_k_w_w());
+    concurrency_.broadcast_object(get_G4());
   }
 }
 
@@ -345,7 +353,7 @@ void DcaData<Parameters>::read(Reader& reader) {
     if (four_point_type != static_cast<const std::string>("NONE")) {
       reader.execute(G_k_w);
 
-      reader.execute(get_G4_k_k_w_w());
+      reader.execute(get_G4());
     }
 
     reader.close_group();
@@ -448,8 +456,8 @@ void DcaData<Parameters>::write(Writer& writer) {
       writer.execute(G_k_w_err_);
     }
 
-    writer.execute(G4_k_k_w_w_);
-    writer.execute(G4_k_k_w_w_err_);
+    writer.execute(G4_);
+    writer.execute(G4_err_);
   }
 
   writer.close_group();
