@@ -140,8 +140,14 @@ function(dca_add_gtest name)
                      ${MPIEXEC_PREFLAGS} "$<TARGET_FILE:${name}>")
 
   else()
-    add_test(NAME ${name}
-             COMMAND ${TEST_RUNNER} ${MPIEXEC_PREFLAGS} "$<TARGET_FILE:${name}>")
+    if (TEST_RUNNER)
+      add_test(NAME ${name}
+               COMMAND ${TEST_RUNNER} ${MPIEXEC_NUMPROC_FLAG} 1
+	               ${MPIEXEC_PREFLAGS} "$<TARGET_FILE:${name}>")
+    else (TEST_RUNNER)
+      add_test(NAME ${name}
+               COMMAND "$<TARGET_FILE:${name}>")
+    endif (TEST_RUNNER)
   endif()
 
 endfunction()

@@ -7,8 +7,9 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//         Peter Doak (doakpw@ornl.gov)
 //
-// This file implements pthreading.hpp
+// This file implements pthreading.hpp.
 
 #include "dca/parallel/pthreading/pthreading.hpp"
 
@@ -39,6 +40,15 @@ void Pthreading::join() {
     pthread_join(pthreads_[id], NULL);
 
   pthreads_.resize(0);
+}
+
+constexpr char Pthreading::parallel_type_str_[];
+
+std::ostream& operator<<(std::ostream& o, const Pthreading& c) {
+  o << '\n'
+    << "threading type:" << c.parallel_type_str_ << '\n'
+    << "number of posix threads:" << c.pthreads_.size();
+  return o;
 }
 
 }  // parallel

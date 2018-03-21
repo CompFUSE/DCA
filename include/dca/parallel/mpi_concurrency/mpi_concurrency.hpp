@@ -78,7 +78,10 @@ public:
     return util::getBounds(id(), number_of_processors(), dmn);
   }
 
+  friend std::ostream& operator<<(std::ostream& some_ostream, const MPIConcurrency& this_concurrency);
+
 private:
+  constexpr static char parallel_type_str_[] = "MPIConcurrency";
   MPIProcessorGrouping grouping_;
 };
 

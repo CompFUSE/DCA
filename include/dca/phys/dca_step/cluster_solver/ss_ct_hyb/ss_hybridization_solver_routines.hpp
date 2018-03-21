@@ -55,7 +55,7 @@ public:
   using KClusterDmn = typename CDA::KClusterDmn;
 
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
-  using nu_nu_r_DCA_t = func::dmn_variadic<nu, nu, RClusterDmn t>;
+  using nu_nu_r_DCA_t = func::dmn_variadic<nu, nu, RClusterDmn, t>;
   using nu_nu_k_DCA_t = func::dmn_variadic<nu, nu, KClusterDmn, t>;
   using nu_nu_k_DCA_w = func::dmn_variadic<nu, nu, KClusterDmn, w>;
 
