@@ -170,9 +170,10 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::load_G_II(
     std::cout << "\t" << __FUNCTION__ << "\n\n";
 
   int* coor_1 = new int[G_II.signature()];
-  int* coor_2 = new int[G_II.signature()];
 
   auto& G4 = data_.get_G4();
+  int* coor_2 = new int[G4.signature()];
+
   for (int i = 0; i < G4.size(); i++) {
     G4.linind_2_subind(i, coor_2);
 
@@ -183,14 +184,14 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::load_G_II(
     coor_1[0] = coor_2[0];
     coor_1[1] = coor_2[1];
     coor_1[2] = coor_2[4];  // k_1
-    coor_1[3] = coor_2[6];  // w_1
+    coor_1[3] = coor_2[7];  // w_1
     coor_1[4] = coor_2[2];
     coor_1[5] = coor_2[3];
     coor_1[6] = coor_2[5];  // k_2
-    coor_1[7] = coor_2[7];  // w_2
+    coor_1[7] = coor_2[8];  // w_2
 
     G_II(coor_1[0], coor_1[1], coor_1[2], coor_1[3], coor_1[4], coor_1[5], coor_1[6], coor_1[7]) =
-        G4(coor_2[0], coor_2[1], coor_2[2], coor_2[3], coor_2[4], coor_2[5], coor_2[6], coor_2[7]);
+        G4(coor_2[0], coor_2[1], coor_2[2], coor_2[3], coor_2[4], coor_2[5], 0, coor_2[7], coor_2[8], 0);
   }
 
   delete[] coor_1;
