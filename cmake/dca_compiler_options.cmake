@@ -29,12 +29,23 @@ add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${DCA_STD_FLAG}>")
 
 # Set NVCC flags.
 if (DCA_HAVE_CUDA)
-  list(APPEND CUDA_NVCC_FLAGS
-    -arch=${CUDA_GPU_ARCH}
-    -std=c++14
-    -Xcompiler -Wall
-    -Xcompiler -Wextra
-    -Xcompiler -Wno-unused-parameter
-    -Xcompiler -Wno-switch
-    -Xcompiler ${DCA_THREADING_FLAGS})
+  if (CUDA_VERSION VERSION_GREATER "8.0.0")
+    list(APPEND CUDA_NVCC_FLAGS
+      -arch=${CUDA_GPU_ARCH}
+      -std=c++14
+      -Xcompiler -Wall
+      -Xcompiler -Wextra
+      -Xcompiler -Wno-unused-parameter
+      -Xcompiler -Wno-switch
+      -Xcompiler ${DCA_THREADING_FLAGS})
+  else (CUDA_VERSION VERSION_GREATER "8.0.0")
+    list(APPEND CUDA_NVCC_FLAGS
+      -arch=${CUDA_GPU_ARCH}
+      -std=c++11
+      -Xcompiler -Wall
+      -Xcompiler -Wextra
+      -Xcompiler -Wno-unused-parameter
+      -Xcompiler -Wno-switch
+      -Xcompiler ${DCA_THREADING_FLAGS})
+  endif (CUDA_VERSION VERSION_GREATER "8.0.0")
 endif()
