@@ -344,24 +344,24 @@ void TpAccumulator<Parameters, linalg::GPU>::updateG4() {
 
   switch (mode_) {
     case PARTICLE_HOLE_MAGNETIC:
-      details::updateG4PHMagnetic(G4_dev_.ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-                                  G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(),
-                                  WTpPosDmn::dmn_size(), sign_, streams_[0]);
+      details::updateG4<Real, PARTICLE_HOLE_MAGNETIC>(
+          G4_dev_.ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(), G_[1].leadingDimension(),
+          n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), sign_, streams_[0]);
       break;
     case PARTICLE_HOLE_CHARGE:
-      details::updateG4PHCharge(G4_dev_.ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-                                G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(),
-                                WTpPosDmn::dmn_size(), sign_, streams_[0]);
+      details::updateG4<Real, PARTICLE_HOLE_CHARGE>(
+          G4_dev_.ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(), G_[1].leadingDimension(),
+          n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), sign_, streams_[0]);
       break;
     case PARTICLE_HOLE_TRANSVERSE:
-      details::updateG4PHTransv(G4_dev_.ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-                                G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(),
-                                WTpPosDmn::dmn_size(), sign_, streams_[0]);
+      details::updateG4<Real, PARTICLE_HOLE_TRANSVERSE>(
+          G4_dev_.ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(), G_[1].leadingDimension(),
+          n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), sign_, streams_[0]);
       break;
     case PARTICLE_PARTICLE_UP_DOWN:
-      details::updateG4PPUpDown(G4_dev_.ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-                                G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(),
-                                WTpPosDmn::dmn_size(), sign_, streams_[0]);
+      details::updateG4<Real, PARTICLE_PARTICLE_UP_DOWN>(
+          G4_dev_.ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(), G_[1].leadingDimension(),
+          n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), sign_, streams_[0]);
       break;
     default:
       throw(std::logic_error("Mode non supported."));
@@ -377,8 +377,7 @@ void TpAccumulator<Parameters, linalg::GPU>::finalize() {
     static std::mutex mutex;
     std::unique_lock<std::mutex> lock(mutex);
 
-    if(!is_finalized_static_) {
-
+    if (!is_finalized_static_) {
       if (!G4_)
         G4_.reset(new TpGreenFunction("G4"));
 
@@ -403,10 +402,10 @@ void TpAccumulator<Parameters, linalg::GPU>::synchronize() {
 
 template <class Parameters>
 void TpAccumulator<Parameters, linalg::GPU>::sumTo(this_type& other_one) {
-  if (accumulate_on_device_){  // Nothing to do: G4 on the device is shared.
+  if (accumulate_on_device_) {  // Nothing to do: G4 on the device is shared.
     synchronize();
     return;
-    }
+  }
   if (!finalized_)
     finalize();
   if (!other_one.finalized_)
