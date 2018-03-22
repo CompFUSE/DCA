@@ -13,7 +13,6 @@
 #define DCA_PHYS_ERROR_COMPUTATION_TYPE_HPP
 
 #include <string>
-#include <stdexcept>
 
 namespace dca {
 namespace phys {
@@ -21,29 +20,9 @@ namespace phys {
 
 enum class ErrorComputationType { NONE, STANDARD_DEVIATION, JACK_KNIFE };
 
-ErrorComputationType readErrorComputationType(const std::string& str) {
-  if (str == "NONE")
-    return ErrorComputationType::NONE;
-  else if (str == "STANDARD_DEVIATION")
-    return ErrorComputationType::STANDARD_DEVIATION;
-  else if (str == "JACK_KNIFE")
-    return ErrorComputationType::JACK_KNIFE;
-  else
-    throw(std::logic_error("Invalid error computation type."));
-}
+ErrorComputationType readErrorComputationType(const std::string& str);
 
-std::string toString(const ErrorComputationType type){
-  switch(type) {
-    case ErrorComputationType::NONE:
-      return "NONE";
-    case ErrorComputationType::STANDARD_DEVIATION:
-      return "STANDARD_DEVIATION";
-    case ErrorComputationType::JACK_KNIFE:
-      return "JACK_KNIFE";
-    default:
-      throw(std::logic_error("Invalid error computation type."));
-  }
-}
+std::string toString(ErrorComputationType type);
 
 }  // phys
 }  // dca

@@ -197,13 +197,13 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     }
 
     // Read error computation type.
-    std::string error_type = "NONE";
+    std::string error_type = toString(static_cast<ErrorComputationType>(error_computation_type_));
     try {
       reader_or_writer.execute("error-computation-type", error_type);
+      error_computation_type_ = static_cast<int>(readErrorComputationType(error_type));
     }
     catch (const std::exception& r_e) {
     }
-    error_computation_type_ = static_cast<int>(readErrorComputationType(error_type));
 
     // Read arguments for threaded solver.
     try {
