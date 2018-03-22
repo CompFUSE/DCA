@@ -9,7 +9,8 @@
 //         Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// A std::thread MC integrator that implements a threaded MC integration independent of the MC method.
+// A std::thread MC integrator that implements a threaded MC integration independent of the MC
+// method.
 
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_STDTHREAD_QMCI_STDTHREAD_QMCI_CLUSTER_SOLVER_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_STDTHREAD_QMCI_STDTHREAD_QMCI_CLUSTER_SOLVER_HPP
@@ -47,7 +48,7 @@ class StdThreadQmciClusterSolver : public qmci_integrator_type {
   typedef StdThreadQmciClusterSolver<qmci_integrator_type> this_type;
   typedef stdthreadqmci::stdthread_qmci_accumulator<accumulator_type> stdthread_accumulator_type;
 
-  typedef std::pair<this_type*, int> pair_type ;
+  typedef std::pair<this_type*, int> pair_type;
 
 public:
   StdThreadQmciClusterSolver(parameters_type& parameters_ref, MOMS_type& MOMS_ref);
@@ -105,8 +106,8 @@ private:
 };
 
 template <class qmci_integrator_type>
-StdThreadQmciClusterSolver<qmci_integrator_type>::StdThreadQmciClusterSolver(parameters_type& parameters_ref,
-                                                                     MOMS_type& MOMS_ref)
+StdThreadQmciClusterSolver<qmci_integrator_type>::StdThreadQmciClusterSolver(
+    parameters_type& parameters_ref, MOMS_type& MOMS_ref)
     : qmci_integrator_type(parameters_ref, MOMS_ref),
 
       nr_walkers(parameters.get_walkers()),
@@ -134,8 +135,7 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::write(Writer& writer) {
 }
 
 template <class qmci_integrator_type>
-void StdThreadQmciClusterSolver<qmci_integrator_type>::initialize(int dca_iteration)
-{
+void StdThreadQmciClusterSolver<qmci_integrator_type>::initialize(int dca_iteration) {
   profiler_type profiler(__FUNCTION__, "stdthread-MC-Integration", __LINE__);
 
   qmci_integrator_type::initialize(dca_iteration);
@@ -144,8 +144,7 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::initialize(int dca_iterat
 }
 
 template <class qmci_integrator_type>
-void StdThreadQmciClusterSolver<qmci_integrator_type>::integrate()
-{
+void StdThreadQmciClusterSolver<qmci_integrator_type>::integrate() {
   profiler_type profiler(__FUNCTION__, "stdthread-MC-Integration", __LINE__);
 
   if (concurrency.id() == concurrency.first()) {
@@ -166,9 +165,9 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::integrate()
       data.push_back(std::make_pair(this, i));
 
       if (thread_task_handler_.getTask(i) == "walker")
-        threads.push_back( std::thread(start_walker_static, data.back()));
+        threads.push_back(std::thread(start_walker_static, data.back()));
       else if (thread_task_handler_.getTask(i) == "accumulator")
-        threads.push_back( std::thread(start_accumulator_static, data.back()));
+        threads.push_back(std::thread(start_accumulator_static, data.back()));
       else
         throw std::logic_error("Thread is neither a walker nor an accumulator.");
     }
@@ -205,24 +204,22 @@ double StdThreadQmciClusterSolver<qmci_integrator_type>::finalize(dca_info_struc
 
 template <class qmci_integrator_type>
 void* StdThreadQmciClusterSolver<qmci_integrator_type>::start_walker_static(pair_type data) {
-
-  profiler_type::start_pthreading(data.second);
+  profiler_type::start_threading(data.second);
 
   data.first->start_walker(data.second);
 
-  profiler_type::stop_pthreading(data.second);
+  profiler_type::stop_threading(data.second);
 
   return NULL;
 }
 
 template <class qmci_integrator_type>
 void* StdThreadQmciClusterSolver<qmci_integrator_type>::start_accumulator_static(pair_type data) {
-
-  profiler_type::start_pthreading(data.second);
+  profiler_type::start_threading(data.second);
 
   data.first->start_accumulator(data.second);
 
-  profiler_type::stop_pthreading(data.second);
+  profiler_type::stop_threading(data.second);
 
   return NULL;
 }
@@ -285,9 +282,9 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::start_walker(int id) {
   }
 
 #ifdef DCA_WITH_QMC_BIT
-  pthread_mutex_lock(&mutex_numerical_error);
+  mutex_numerical_error.lock();
   // accumulator.get_error_distribution() += walker.get_error_distribution();
-  pthread_mutex_unlock(&mutex_numerical_error);
+  mutex_numerical_error.unlock();
 #endif  // DCA_WITH_QMC_BIT
 
   if (id == 0) {
@@ -324,20 +321,21 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::start_accumulator(int id)
 
   accumulator_obj.initialize(DCA_iteration);
 
-  for (int i = 0; i < parameters.get_measurements_per_process_and_accumulator(); ++i)
-  {
+  for (int i = 0; i < parameters.get_measurements_per_process_and_accumulator(); ++i) {
     {
       std::lock_guard<std::mutex> lock(mutex_queue);
       accumulators_queue.push(&accumulator_obj);
     }
 
     {
-      profiler_type profiler("stdthread-accumulator waiting", "stdthread-MC-accumulator", __LINE__, id);
+      profiler_type profiler("stdthread-accumulator waiting", "stdthread-MC-accumulator", __LINE__,
+                             id);
       accumulator_obj.wait_for_qmci_walker();
     }
 
     {
-      profiler_type profiler("stdthread-accumulator accumulating", "stdthread-MC-accumulator", __LINE__, id);
+      profiler_type profiler("stdthread-accumulator accumulating", "stdthread-MC-accumulator",
+                             __LINE__, id);
       if (id == 1)
         this->update_shell(i, parameters.get_measurements_per_process_and_accumulator(),
                            accumulator_obj.get_configuration().size());
