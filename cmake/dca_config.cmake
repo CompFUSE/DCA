@@ -207,13 +207,6 @@ endif()
 # TODO: - Implement HPX part including DCA_HPX.cmake.
 
 ################################################################################
-# Select the flags for the threading library.
-set(DCA_THREADING_TYPE dca::parallel::stdthread)
-set(DCA_THREADING_INCLUDE "dca/parallel/stdthread/stdthread.hpp")
-set(DCA_THREADING_FLAGS "-pthread" CACHE INTERNAL "Flags needed for threading." FORCE)
-set(DCA_THREADING_LIB "pthread")
-
-################################################################################
 # Use threaded cluster solver.
 option(DCA_WITH_THREADED_SOLVER "Use multiple walker and accumulator threads in the cluster solver." ON)
 
