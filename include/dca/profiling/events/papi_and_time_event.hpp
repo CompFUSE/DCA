@@ -8,17 +8,15 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
 // PAPI and time event.
-//
-// INTERNAL: Are Pthreads really required?
 
 #ifndef DCA_PROFILING_EVENTS_PAPI_AND_TIME_EVENT_HPP
 #define DCA_PROFILING_EVENTS_PAPI_AND_TIME_EVENT_HPP
 
-#include <string>
-#include <vector>
-
+#include <mutex>
 #include <papi.h>
-#include <pthread.h>
+#include <string>
+#include <thread>
+#include <vector>
 
 #include "dca/profiling/events/time_event.hpp"
 
@@ -49,9 +47,9 @@ public:
 
   static void stop();
 
-  static void start_pthreading(int id);
+  static void start_threading(int id);
 
-  static void stop_pthreading(int id);
+  static void stop_threading(int id);
 
   static std::vector<std::string> names();
 
@@ -59,7 +57,7 @@ private:
   static scalartype* get_static_counters(int id);
   static int& papi_event_set(int id);
 
-  static pthread_mutex_t& get_mutex();
+  static std::mutex& get_mutex();
 
   static std::vector<std::string> papi_event_names();
 
@@ -84,7 +82,7 @@ papi_and_time_event<scalartype>::papi_and_time_event(std::vector<scalartype>& co
       counter(counter_ref),
 
       thread_id(id) {
-  // pthread_mutex_lock(&get_mutex());
+  // get_mutex().lock();
 
   {
     if (PAPI_accum(papi_event_set(thread_id), get_static_counters(thread_id)) != PAPI_OK)
@@ -103,7 +101,7 @@ papi_and_time_event<scalartype>::papi_and_time_event(std::vector<scalartype>& co
         start_counters[i] = get_static_counters(thread_id)[i];
   }
 
-  // pthread_mutex_unlock(&get_mutex());
+  // get_mutex().unlock();
 }
 
 template <typename scalartype>
@@ -138,8 +136,8 @@ scalartype* papi_and_time_event<scalartype>::get_static_counters(int id) {
 }
 
 template <typename scalartype>
-pthread_mutex_t& papi_and_time_event<scalartype>::get_mutex() {
-  static pthread_mutex_t lock;
+std::mutex& papi_and_time_event<scalartype>::get_mutex() {
+  static std::mutex lock;
   return lock;
 }
 
@@ -166,8 +164,6 @@ void papi_and_time_event<scalartype>::start() {
   static bool has_started = false;
 
   if (not has_started) {
-    pthread_mutex_init(&get_mutex(), NULL);
-
     for (int j = 0; j < MAX_THREADS; ++j)
       for (int i = 0; i < NB_PAPI_COUNTERS; ++i)
         get_static_counters(j)[i] = 0;
@@ -188,8 +184,13 @@ void papi_and_time_event<scalartype>::start() {
     if (PAPI_is_initialized() != PAPI_LOW_LEVEL_INITED)
       throw std::logic_error("Info :: retval != PAPI_LOW_LEVEL_INITED .\n");
 
-    if (PAPI_thread_init(pthread_self) != PAPI_OK)
-      throw std::logic_error("papi does not recognize function 'pthread_self'\n");
+    auto get_id = []{
+      static std::hash<std::thread::id> hash;
+        return ulong(hash(std::this_thread::get_id()));
+    };
+
+    if (PAPI_thread_init(get_id) != PAPI_OK)
+      throw std::logic_error("papi does not recognize get_id\n");
 
     papi_event_set(0) = PAPI_NULL;
 
@@ -216,8 +217,6 @@ void papi_and_time_event<scalartype>::stop() {
   static bool has_stopped = false;
 
   if (not has_stopped) {
-    pthread_mutex_destroy(&get_mutex());
-
     scalartype dummy[NB_PAPI_COUNTERS];
 
     if (PAPI_stop(papi_event_set(0), dummy) != PAPI_OK)
@@ -236,8 +235,8 @@ void papi_and_time_event<scalartype>::stop() {
 }
 
 template <typename scalartype>
-void papi_and_time_event<scalartype>::start_pthreading(int id) {
-  pthread_mutex_lock(&get_mutex());
+void papi_and_time_event<scalartype>::start_threading(int id) {
+  get_mutex().lock();
 
   {
     PAPI_register_thread();
@@ -259,12 +258,12 @@ void papi_and_time_event<scalartype>::start_pthreading(int id) {
     CURRENT_THREADS += 1;
   }
 
-  pthread_mutex_unlock(&get_mutex());
+  get_mutex().unlock();
 }
 
 template <typename scalartype>
-void papi_and_time_event<scalartype>::stop_pthreading(int id) {
-  pthread_mutex_lock(&get_mutex());
+void papi_and_time_event<scalartype>::stop_threading(int id) {
+  get_mutex().lock();
 
   {
     scalartype dummy[NB_PAPI_COUNTERS];
@@ -283,7 +282,7 @@ void papi_and_time_event<scalartype>::stop_pthreading(int id) {
     CURRENT_THREADS -= 1;
   }
 
-  pthread_mutex_unlock(&get_mutex());
+  get_mutex().unlock();
 }
 
 template <typename scalartype>
