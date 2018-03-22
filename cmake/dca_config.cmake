@@ -15,10 +15,12 @@ if (DCA_WITH_MPI)
 
   set(DCA_CONCURRENCY_TYPE dca::parallel::MPIConcurrency)
   set(DCA_CONCURRENCY_INCLUDE "dca/parallel/mpi_concurrency/mpi_concurrency.hpp")
+  set(DCA_CONCURRENCY_LIB parallel_mpi_concurrency)
 
 else()
   set(DCA_CONCURRENCY_TYPE dca::parallel::NoConcurrency)
   set(DCA_CONCURRENCY_INCLUDE "dca/parallel/no_concurrency/no_concurrency.hpp")
+  set(DCA_CONCURRENCY_LIB parallel_no_concurrency)
 endif()
 
 configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/concurrency.hpp.in"

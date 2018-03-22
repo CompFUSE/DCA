@@ -25,6 +25,8 @@
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
+#include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
+
 
 namespace dca {
 namespace phys {
@@ -50,14 +52,12 @@ public:
   using b = func::dmn_0<domains::electron_band_domain>;
   using s = func::dmn_0<domains::electron_spin_domain>;
 
-  using r_DCA =
-      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
-                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
-  using k_DCA =
-      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
-                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
-  using r_dmn_t = r_DCA;
-  using k_dmn_t = k_DCA;
+  using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
+  using RClusterDmn = typename CDA::RClusterDmn;
+  using KClusterDmn = typename CDA::KClusterDmn;
+
+  using r_dmn_t = RClusterDmn;
+  using k_dmn_t = KClusterDmn;
 
   typedef func::dmn_variadic<b, b, r_dmn_t, r_dmn_t, w1_dmn_t, w2_dmn_t> b_b_r_r_w_w_dmn_t;
   typedef func::dmn_variadic<b, b, k_dmn_t, r_dmn_t, w1_dmn_t, w2_dmn_t> b_b_k_r_w_w_dmn_t;
@@ -246,7 +246,7 @@ void accumulator_nonlocal_G<parameters_type, MOMS_type>::FT_M_v_v_2_M_k_k_w_w(
     math::transform::FunctionTransform<r_dmn_t, k_dmn_t>::execute(M_k_r_w_w, M_k_k_w_w_e_spin);
 
     // scalar_type  Nc        = scalar_type(base_cluster_type::get_cluster_size());
-    scalar_type Nc = scalar_type(k_DCA::dmn_size());
+    scalar_type Nc = scalar_type(KClusterDmn::dmn_size());
     scalar_type one_div_Nc = 1. / Nc;  // scalar_type(base_cluster_type::get_cluster_size());
     M_k_k_w_w_e_spin *= one_div_Nc;
 
@@ -261,12 +261,12 @@ void accumulator_nonlocal_G<parameters_type, MOMS_type>::FT_M_v_v_2_M_k_k_w_w_te
   cout << __FUNCTION__ << endl;
 
   {
-    typedef func::dmn_variadic<b,b,r_DCA,r_DCA,w1_dmn_t,w2_dmn_t> b_b_r_DCA_r_DCA_w_w_dmn_t;
+    typedef func::dmn_variadic<b,b,RClusterDmn,RClusterDmnw1_dmn_t,w2_dmn_t> b_b_r_DCA_r_DCA_w_w_dmn_t;
     typedef func::dmn_variadic<b,b,r_PCM,r_PCM,w1_dmn_t,w2_dmn_t> b_b_r_PCM_r_PCM_w_w_dmn_t;
 
     typedef func::dmn_variadic<b,b,k_PCM,r_PCM,w1_dmn_t,w2_dmn_t> b_b_k_PCM_r_PCM_w_w_dmn_t;
 
-    typedef func::dmn_variadic<b,b,k_DCA,k_DCA,w1_dmn_t,w2_dmn_t> b_b_k_DCA_k_DCA_w_w_dmn_t;
+    typedef func::dmn_variadic<b,b,KClusterDmn,KClusterDmn,w1_dmn_t,w2_dmn_t> b_b_k_DCA_k_DCA_w_w_dmn_t;
     typedef func::dmn_variadic<b,b,k_PCM,k_PCM,w1_dmn_t,w2_dmn_t> b_b_k_PCM_k_PCM_w_w_dmn_t;
 
     func::function<std::complex<scalar_type>, b_b_r_DCA_r_DCA_w_w_dmn_t> tmp_RR_1("tmp_RR_1");

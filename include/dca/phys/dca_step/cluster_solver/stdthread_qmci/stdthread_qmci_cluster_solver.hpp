@@ -5,9 +5,7 @@
 // See LICENSE.txt for terms of usage.
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
-// Author: Peter Staar (taa@zurich.ibm.com)
-//         Raffaele Solca' (rasolca@itp.phys.ethz.ch)
-//         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+// Author: John Biddiscombe (john.biddiscombe@cscs.ch)
 //
 // A std::thread MC integrator that implements a threaded MC integration independent of the MC
 // method.
@@ -15,12 +13,12 @@
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_STDTHREAD_QMCI_STDTHREAD_QMCI_CLUSTER_SOLVER_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_STDTHREAD_QMCI_STDTHREAD_QMCI_CLUSTER_SOLVER_HPP
 
+#include <atomic>
 #include <iostream>
 #include <queue>
 #include <stdexcept>
-#include <vector>
 #include <thread>
-#include <atomic>
+#include <vector>
 
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/thread_task_handler.hpp"
@@ -34,7 +32,7 @@ namespace solver {
 
 template <class qmci_integrator_type>
 class StdThreadQmciClusterSolver : public qmci_integrator_type {
-  typedef typename qmci_integrator_type::this_MOMS_type MOMS_type;
+  using Data = typename qmci_integrator_type::DataType;
   typedef typename qmci_integrator_type::this_parameters_type parameters_type;
 
   typedef typename parameters_type::profiler_type profiler_type;
@@ -51,7 +49,7 @@ class StdThreadQmciClusterSolver : public qmci_integrator_type {
   typedef std::pair<this_type*, int> pair_type;
 
 public:
-  StdThreadQmciClusterSolver(parameters_type& parameters_ref, MOMS_type& MOMS_ref);
+  StdThreadQmciClusterSolver(parameters_type& parameters_ref, Data& data_ref);
 
   template <typename Writer>
   void write(Writer& reader);
@@ -78,7 +76,7 @@ private:
 
 private:
   using qmci_integrator_type::parameters;
-  using qmci_integrator_type::MOMS;
+  using qmci_integrator_type::data_;
   using qmci_integrator_type::concurrency;
 
   using qmci_integrator_type::total_time;
@@ -107,8 +105,8 @@ private:
 
 template <class qmci_integrator_type>
 StdThreadQmciClusterSolver<qmci_integrator_type>::StdThreadQmciClusterSolver(
-    parameters_type& parameters_ref, MOMS_type& MOMS_ref)
-    : qmci_integrator_type(parameters_ref, MOMS_ref),
+    parameters_type& parameters_ref, Data& data_ref)
+    : qmci_integrator_type(parameters_ref, data_ref),
 
       nr_walkers(parameters.get_walkers()),
       nr_accumulators(parameters.get_accumulators()),
@@ -232,7 +230,7 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::start_walker(int id) {
   }
 
   const int rng_index = thread_task_handler_.walkerIDToRngIndex(id);
-  walker_type walker(parameters, MOMS, rng_vector[rng_index], id);
+  walker_type walker(parameters, data_, rng_vector[rng_index], id);
 
   walker.initialize();
 
@@ -317,7 +315,7 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::warm_up(walker_type& walk
 
 template <class qmci_integrator_type>
 void StdThreadQmciClusterSolver<qmci_integrator_type>::start_accumulator(int id) {
-  stdthread_accumulator_type accumulator_obj(parameters, MOMS, id);
+  stdthread_accumulator_type accumulator_obj(parameters, data_, id);
 
   accumulator_obj.initialize(DCA_iteration);
 

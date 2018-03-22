@@ -29,6 +29,7 @@
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
 #include "dca/phys/dca_algorithms/compute_greens_function.hpp"
+#include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 #include "dca/util/print_time.hpp"
 
 namespace dca {
@@ -48,14 +49,9 @@ public:
   using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
-  using DCA_r_cluster_type =
-      domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
-                              domains::REAL_SPACE, domains::BRILLOUIN_ZONE>;
-  using r_DCA = func::dmn_0<DCA_r_cluster_type>;
-  using DCA_k_cluster_type =
-      domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
-                              domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>;
-  using k_DCA = func::dmn_0<DCA_k_cluster_type>;
+  using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
+  using RClusterDmn = typename CDA::RClusterDmn;
+  using KClusterDmn = typename CDA::KClusterDmn;
 
 public:
   update_chemical_potential(parameters_type& parameters_ref, MOMS_type& MOMS_ref,
@@ -74,9 +70,9 @@ private:
   void compute_density_correction(func::function<double, nu>& result);
 
   void compute_density_coefficients(
-      func::function<double, func::dmn_variadic<nu, k_DCA>>& A,
-      func::function<double, func::dmn_variadic<nu, k_DCA>>& B,
-      const func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& G);
+      func::function<double, func::dmn_variadic<nu, KClusterDmn>>& A,
+      func::function<double, func::dmn_variadic<nu, KClusterDmn>>& B,
+      const func::function<std::complex<double>, func::dmn_variadic<nu, nu, KClusterDmn, w>>& G);
 
   // Determines initial lower and upper bounds of the chemical potential.
   void search_bounds(double dens);
@@ -241,7 +237,7 @@ double update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type
 
   MOMS.G_k_t += MOMS.G0_k_t;
 
-  math::transform::FunctionTransform<k_DCA, r_DCA>::execute(MOMS.G_k_t, MOMS.G_r_t);
+  math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(MOMS.G_k_t, MOMS.G_r_t);
 
   MOMS.G_k_w += MOMS.G0_k_w;
 
@@ -250,7 +246,7 @@ double update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type
   compute_density_correction(result);
   double result_total = 0.0;
   for (int i = 0; i < nu::dmn_size(); i++) {
-    result(i) += 1. - MOMS.G_r_t(i, i, r_DCA::parameter_type::origin_index(), 0);
+    result(i) += 1. - MOMS.G_r_t(i, i, RClusterDmn::parameter_type::origin_index(), 0);
     MOMS.orbital_occupancy(i) = result(i);
     result_total += result(i);
   }
@@ -265,19 +261,19 @@ void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>:
     func::function<double, nu>& result) {
   std::complex<double> I(0, 1);
 
-  double N_k = k_DCA::dmn_size();
+  double N_k = KClusterDmn::dmn_size();
   double beta = parameters.get_beta();
 
-  func::function<double, func::dmn_variadic<nu, k_DCA>> A;
-  func::function<double, func::dmn_variadic<nu, k_DCA>> B;
+  func::function<double, func::dmn_variadic<nu, KClusterDmn>> A;
+  func::function<double, func::dmn_variadic<nu, KClusterDmn>> B;
 
-  func::function<double, func::dmn_variadic<nu, k_DCA>> A0;
-  func::function<double, func::dmn_variadic<nu, k_DCA>> B0;
+  func::function<double, func::dmn_variadic<nu, KClusterDmn>> A0;
+  func::function<double, func::dmn_variadic<nu, KClusterDmn>> B0;
 
   compute_density_coefficients(A, B, MOMS.G_k_w);
   compute_density_coefficients(A0, B0, MOMS.G0_k_w);
 
-  for (int k_i = 0; k_i < k_DCA::dmn_size(); k_i++) {
+  for (int k_i = 0; k_i < KClusterDmn::dmn_size(); k_i++) {
     for (int nu_i = 0; nu_i < nu::dmn_size(); nu_i++) {
       double tmp = 0.0;
       double sum = 1.e-16;
@@ -305,16 +301,16 @@ void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>:
 
 template <typename parameters_type, typename MOMS_type, typename coarsegraining_type>
 void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>::compute_density_coefficients(
-    func::function<double, func::dmn_variadic<nu, k_DCA>>& A,
-    func::function<double, func::dmn_variadic<nu, k_DCA>>& B,
-    const func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_DCA, w>>& G) {
+    func::function<double, func::dmn_variadic<nu, KClusterDmn>>& A,
+    func::function<double, func::dmn_variadic<nu, KClusterDmn>>& B,
+    const func::function<std::complex<double>, func::dmn_variadic<nu, nu, KClusterDmn, w>>& G) {
   A = 0;
   B = 0;
 
   const int nb_wm = parameters.get_tail_frequencies();
 
   if (nb_wm > 0) {
-    for (int k_i = 0; k_i < k_DCA::dmn_size(); k_i++) {
+    for (int k_i = 0; k_i < KClusterDmn::dmn_size(); k_i++) {
       for (int nu_i = 0; nu_i < nu::dmn_size(); nu_i++) {
         for (int w_i = w::dmn_size() - nb_wm; w_i < w::dmn_size(); w_i++) {
           double wm = w::get_elements()[w_i];
@@ -331,7 +327,7 @@ void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>:
     if (nb_wm == 1) {
       const std::complex<double> I(0, 1);
 
-      for (int k_i = 0; k_i < k_DCA::dmn_size(); k_i++) {
+      for (int k_i = 0; k_i < KClusterDmn::dmn_size(); k_i++) {
         for (int nu_i = 0; nu_i < nu::dmn_size(); nu_i++) {
           int w_i = w::dmn_size() - 1;
           double wm = w::get_elements()[w_i];

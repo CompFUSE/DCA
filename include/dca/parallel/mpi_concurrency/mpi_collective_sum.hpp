@@ -115,6 +115,15 @@ public:
                          const func::function<std::complex<Scalar>, Domain>& f_estimated,
                          func::function<Scalar, CovDomain>& cov) const;
 
+  // Returns the normalized momenta of the desired orders. The momenta is the averaged across the
+  // entries of f.
+  // The normalized momenta of order i is defined as \lambda_i = <(f - <f>)^i> / \sigma^i
+  // In: f, orders
+  // Returns: momenta
+  template <typename Scalar, class Domain>
+  std::vector<Scalar> avgNormalizedMomenta(const func::function<Scalar, Domain>& f,
+                                           const std::vector<int>& orders) const;
+
 private:
   const MPIProcessorGrouping& grouping_;
 };
@@ -435,6 +444,39 @@ void MPICollectiveSum::computeCovariance(const func::function<std::complex<Scala
           (f(i).imag() - f_estimated(i).imag()) * (f(j).real() - f_estimated(j).imag());
     }
   sum_and_average(cov, 1);
+}
+
+template <typename Scalar, class Domain>
+std::vector<Scalar> MPICollectiveSum::avgNormalizedMomenta(const func::function<Scalar, Domain>& f,
+                                                           const std::vector<int>& orders) const {
+  func::function<Scalar, Domain> avg(f);
+  sum_and_average(avg);
+  linalg::Matrix<Scalar, linalg::CPU> momenta(std::make_pair(orders.size(), f.size()));
+  std::vector<Scalar> var2(f.size());
+
+  for (std::size_t i = 0; i < f.size(); i++) {
+    const Scalar diff = f(i) - avg(i);
+    var2[i] = diff * diff;
+    for (std::size_t j = 0; j < orders.size(); j++)
+      momenta(j, i) = std::pow(diff, orders[j]);
+  }
+
+  sum(momenta);
+  sum(var2);
+
+  // Divide by n and normalize the momenta by sigma^order, then average.
+  std::vector<Scalar> momenta_avg(orders.size(), 0);
+  const int n = grouping_.get_Nr_threads();
+  for (std::size_t i = 0; i < f.size(); i++) {
+    const Scalar var = std::sqrt(var2[i] / n);
+    for (std::size_t j = 0; j < orders.size(); j++)
+      momenta_avg[j] += std::abs(momenta(j, i)) / (n * std::pow(var, orders[j]));
+  }
+
+  for (std::size_t j = 0; j < orders.size(); j++)
+    momenta_avg[j] /= f.size();
+
+  return momenta_avg;
 }
 
 }  // parallel

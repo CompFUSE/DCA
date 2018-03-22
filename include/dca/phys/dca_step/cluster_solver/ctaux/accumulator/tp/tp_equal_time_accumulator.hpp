@@ -30,6 +30,7 @@
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain_left_oriented.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_time_domain.hpp"
+#include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 #include "dca/util/plot.hpp"
 
 namespace dca {
@@ -54,14 +55,11 @@ public:
   using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
-  using r_DCA =
-      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
-                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
-  using k_DCA =
-      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
-                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
-  using r_dmn_t = r_DCA;
-  using k_dmn_t = k_DCA;
+  using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
+  using RClusterDmn = typename CDA::RClusterDmn;
+  using KClusterDmn = typename CDA::KClusterDmn;
+  using r_dmn_t = RClusterDmn;
+  using k_dmn_t = KClusterDmn;
 
   typedef func::dmn_variadic<b, r_dmn_t, t_VERTEX> b_r_t_VERTEX_dmn_t;
 
@@ -413,7 +411,7 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::initialize_G0_indices()
       r_i = fixed_configuration[i].r_ind;
       t_i = fixed_configuration[i].t_ind;
 
-      delta_r = r_DCA::parameter_type::subtract(r_j, r_i);
+      delta_r = RClusterDmn::parameter_type::subtract(r_j, r_i);
 
       delta_tau = t_i - t_j;
 
@@ -461,7 +459,7 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::initialize_G0_original(
       r_i = fixed_configuration[i].r_ind;
       t_i = fixed_configuration[i].t_val;
 
-      r_ind = r_DCA::parameter_type::subtract(r_j, r_i);
+      r_ind = RClusterDmn::parameter_type::subtract(r_j, r_i);
 
       delta_tau = t_i - t_j;
 
@@ -792,7 +790,7 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::compute_G0_matrix(
       r_i = fixed_configuration[i].r_ind;
       t_i = fixed_configuration[i].t_val;
 
-      r_ind = r_DCA::parameter_type::subtract(r_j, r_i);
+      r_ind = RClusterDmn::parameter_type::subtract(r_j, r_i);
 
       delta_tau = t_i - t_j;
 
@@ -824,7 +822,7 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::compute_G0_matrix_left(
       r_i = fixed_configuration[i].r_ind;
       t_i = fixed_configuration[i].t_val;
 
-      r_ind = r_DCA::parameter_type::subtract(r_j, r_i);
+      r_ind = RClusterDmn::parameter_type::subtract(r_j, r_i);
 
       delta_tau = t_i - t_j;
 
@@ -857,7 +855,7 @@ void TpEqualTimeAccumulator<parameters_type, MOMS_type>::compute_G0_matrix_right
       r_i = configuration_e_spin_i.get_r_site();
       t_i = configuration_e_spin_i.get_tau();
 
-      r_ind = r_DCA::parameter_type::subtract(r_j, r_i);
+      r_ind = RClusterDmn::parameter_type::subtract(r_j, r_i);
 
       delta_tau = t_i - t_j;
 

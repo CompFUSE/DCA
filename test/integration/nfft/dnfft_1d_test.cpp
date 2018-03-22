@@ -22,6 +22,7 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/function/function_utils.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
@@ -79,37 +80,11 @@ TEST(Dnfft1DTest, CubicInterpolation) {
   computeWithDnfft(t, f, dnfft_obj, f_w_dnfft);
 
   // Check errors.
-  double f_w_dft_l1 = 0.;
-  double f_w_dft_l2 = 0.;
-  double f_w_dft_linf = 0.;
+  const auto err = dca::func::utils::difference(f_w_dft, f_w_dnfft);
 
-  double l1_error = 0.;
-  double l2_error = 0.;
-  double linf_error = 0.;
-
-  for (int w_ind = 0; w_ind < FreqDmn::dmn_size(); w_ind++) {
-    const double f_w_dft_abs = std::abs(f_w_dft(w_ind));
-    f_w_dft_l1 += f_w_dft_abs;
-    f_w_dft_l2 += f_w_dft_abs * f_w_dft_abs;
-    f_w_dft_linf = std::max(f_w_dft_linf, f_w_dft_abs);
-
-    const double err = std::abs(f_w_dft(w_ind) - f_w_dnfft(w_ind, 0));
-    l1_error += err;
-    l2_error += err * err;
-    linf_error = std::max(linf_error, err);
-  }
-
-  l1_error /= f_w_dft_l1;
-  l2_error = std::sqrt(l2_error / f_w_dft_l2);
-  linf_error /= f_w_dft_linf;
-
-  // std::cout << "l1_error = " << l1_error << std::endl;
-  // std::cout << "l2_error = " << l2_error << std::endl;
-  // std::cout << "linf_error = " << linf_error << std::endl;
-
-  EXPECT_LT(l1_error, 1.e-9);
-  EXPECT_LT(l2_error, 1.e-9);
-  EXPECT_LT(linf_error, 1.e-9);
+  EXPECT_LT(err.l1, 1.e-9);
+  EXPECT_LT(err.l2, 1.e-9);
+  EXPECT_LT(err.l_inf, 1.e-9);
 }
 
 template <typename DnfftType>

@@ -48,7 +48,7 @@ public:
   using cluster_eigenvector_dmn_t = func::dmn_variadic<b, b, k_DCA, w_VERTEX>;
   using DCA_matrix_dmn_t = func::dmn_variadic<cluster_eigenvector_dmn_t, cluster_eigenvector_dmn_t>;
 
-  BseClusterSolver(ParametersType& parameters, DcaDataType& MOMS);
+  BseClusterSolver(ParametersType& parameters, DcaDataType& data);
 
   template <typename Writer>
   void write(Writer& writer);
@@ -75,7 +75,7 @@ private:
   ParametersType& parameters;
   concurrency_t& concurrency;
 
-  DcaDataType& MOMS;
+  DcaDataType& data_;
 
   cluster_eigenvector_dmn_t cluster_eigenvector_dmn;
 
@@ -87,10 +87,10 @@ private:
 
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
 BseClusterSolver<ParametersType, DcaDataType, ScalarType>::BseClusterSolver(
-    ParametersType& parameters_ref, DcaDataType& MOMS_ref)
+    ParametersType& parameters_ref, DcaDataType& data_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
-      MOMS(MOMS_ref),
+      data_(data_ref),
 
       cluster_eigenvector_dmn(),
 
@@ -129,9 +129,9 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::apply_symmetries
 
   profiler_t prof(__FUNCTION__, __FILE__, __LINE__);
 
-  symmetrize::execute(MOMS.Sigma, MOMS.H_symmetry);
+  symmetrize::execute(data_.Sigma, data_.H_symmetry);
 
-  symmetrize::execute(MOMS.G_k_w, MOMS.H_symmetry);
+  symmetrize::execute(data_.G_k_w, data_.H_symmetry);
 }
 
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
@@ -172,8 +172,9 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::load_G_II(
   int* coor_1 = new int[G_II.signature()];
   int* coor_2 = new int[G_II.signature()];
 
-  for (int i = 0; i < MOMS.G4_k_k_w_w.size(); i++) {
-    MOMS.G4_k_k_w_w.linind_2_subind(i, coor_2);
+  auto& G4 = data_.get_G4_k_k_w_w();
+  for (int i = 0; i < G4.size(); i++) {
+    G4.linind_2_subind(i, coor_2);
 
     // coordinate  0 1 2 3 4 5 6 7
     // G4_k_k_w_w: b b b b k k w w
@@ -189,8 +190,7 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::load_G_II(
     coor_1[7] = coor_2[7];  // w_2
 
     G_II(coor_1[0], coor_1[1], coor_1[2], coor_1[3], coor_1[4], coor_1[5], coor_1[6], coor_1[7]) =
-        MOMS.G4_k_k_w_w(coor_2[0], coor_2[1], coor_2[2], coor_2[3], coor_2[4], coor_2[5], coor_2[6],
-                        coor_2[7]);
+        G4(coor_2[0], coor_2[1], coor_2[2], coor_2[3], coor_2[4], coor_2[5], coor_2[6], coor_2[7]);
   }
 
   delete[] coor_1;
@@ -232,21 +232,21 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::load_G_II_0(
             switch (parameters.get_four_point_type()) {
               case PARTICLE_HOLE_TRANSVERSE: {
                 G_II_0(n1, n2, k, w_vertex, m1, m2, k, w_vertex) =
-                    -MOMS.G_k_w(n1, e_UP, m2, e_UP, k, w) *
-                    MOMS.G_k_w(n2, e_UP, m1, e_UP, k_plus_q, w + w_nu);
+                    -data_.G_k_w(n1, e_UP, m2, e_UP, k, w) *
+                    data_.G_k_w(n2, e_UP, m1, e_UP, k_plus_q, w + w_nu);
                 break;
               }
 
               case PARTICLE_HOLE_MAGNETIC: {
                 G_II_0(n1, n2, k, w_vertex, m1, m2, k, w_vertex) =
-                    -MOMS.G_k_w(n1, e_UP, m2, e_UP, k, w) *
-                    MOMS.G_k_w(n2, e_UP, m1, e_UP, k_plus_q, w + w_nu);
+                    -data_.G_k_w(n1, e_UP, m2, e_UP, k, w) *
+                    data_.G_k_w(n2, e_UP, m1, e_UP, k_plus_q, w + w_nu);
                 break;
               }
               case PARTICLE_HOLE_CHARGE: {
                 G_II_0(n1, n2, k, w_vertex, m1, m2, k, w_vertex) =
-                    -2. * MOMS.G_k_w(n1, e_UP, m1, e_UP, k, w) *
-                    MOMS.G_k_w(n2, e_UP, m2, e_UP, k_plus_q, w + w_nu);
+                    -2. * data_.G_k_w(n1, e_UP, m1, e_UP, k, w) *
+                    data_.G_k_w(n2, e_UP, m2, e_UP, k_plus_q, w + w_nu);
                 break;
               }
 
@@ -259,8 +259,8 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::load_G_II_0(
                   throw std::logic_error(__FUNCTION__);
 
                 G_II_0(n1, n2, k, w_vertex, m1, m2, k, w_vertex) =
-                    MOMS.G_k_w(n1, e_UP, m1, e_UP, k, w) *
-                    MOMS.G_k_w(n2, e_UP, m2, e_UP, q_minus_k, w_nu + (2 * W - 1 - w));
+                    data_.G_k_w(n1, e_UP, m1, e_UP, k, w) *
+                    data_.G_k_w(n2, e_UP, m2, e_UP, q_minus_k, w_nu + (2 * W - 1 - w));
                 break;
               }
 

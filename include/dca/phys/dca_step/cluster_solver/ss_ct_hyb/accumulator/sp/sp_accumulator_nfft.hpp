@@ -45,6 +45,7 @@
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
+#include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 
 namespace dca {
 namespace phys {
@@ -64,14 +65,12 @@ public:
   using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
-  using r_DCA =
-      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
-                                          domains::REAL_SPACE, domains::BRILLOUIN_ZONE>>;
-  using k_DCA =
-      func::dmn_0<domains::cluster_domain<double, parameters_type::lattice_type::DIMENSION, domains::CLUSTER,
-                                          domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
-  using r_dmn_t = r_DCA;
-  using k_dmn_t = k_DCA;
+  using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
+  using RClusterDmn = typename CDA::RClusterDmn;
+  using KClusterDmn = typename CDA::KClusterDmn;
+  // Does this _t notation carry some information?
+  using r_dmn_t = RClusterDmn;
+  using k_dmn_t = KClusterDmn;
 
   using p_dmn_t = func::dmn_variadic<nu, nu, r_dmn_t>;
 
@@ -149,7 +148,7 @@ void SpAccumulatorNfft<parameters_type, base_cluster_type>::finalize(
                 G_r_w(b1_ind, s1_ind, b2_ind, s2_ind, r_ind, w_ind) =
                     tmp(w_ind, b1_ind, s1_ind, b2_ind, s2_ind, r_ind);
 
-    double one_div_n_sites = 1. / double(-beta * r_DCA::dmn_size());
+    double one_div_n_sites = 1. / double(-beta * RClusterDmn::dmn_size());
     G_r_w *= one_div_n_sites;
   }
 
@@ -167,7 +166,7 @@ void SpAccumulatorNfft<parameters_type, base_cluster_type>::finalize(
                 GS_r_w(b1_ind, s1_ind, b2_ind, s2_ind, r_ind, w_ind) =
                     tmp(w_ind, b1_ind, s1_ind, b2_ind, s2_ind, r_ind);
 
-    double one_div_n_sites = 1. / double(-beta * r_DCA::dmn_size());
+    double one_div_n_sites = 1. / double(-beta * RClusterDmn::dmn_size());
     GS_r_w *= one_div_n_sites;
   }
 }
@@ -213,7 +212,7 @@ void SpAccumulatorNfft<parameters_type, base_cluster_type>::accumulate(
 
         cached_nfft_1D_G_obj.accumulate(coor_nfft, scaled_tau, M_ind(j, i) * current_sign);
         cached_nfft_1D_GS_obj.accumulate(coor_nfft, scaled_tau,
-                                            U_times_n * M_ind(j, i) * current_sign);
+                                         U_times_n * M_ind(j, i) * current_sign);
       }
     }
   }
