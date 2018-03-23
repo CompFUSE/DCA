@@ -254,7 +254,7 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::start_walker(int id) {
         acc_ptr = NULL;
 
         {  // checking for available accumulators
-          std::unique_lock<std::mutex>(mutex_queue);
+          std::unique_lock<std::mutex> lock(mutex_queue);
 
           if (!accumulators_queue.empty()) {
             acc_ptr = accumulators_queue.front();
@@ -342,9 +342,9 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::start_accumulator(int id)
     }
   }
 
+  ++acc_finished;
   {
     std::lock_guard<std::mutex> lock(mutex_merge);
-    acc_finished++;
     accumulator_obj.sum_to(accumulator);
   }
 }
