@@ -20,6 +20,8 @@
 
 #include "dca/profiling/events/time_event.hpp"
 
+// TODO: test this file.
+
 namespace dca {
 namespace profiling {
 // dca::profiling::
@@ -184,9 +186,11 @@ void papi_and_time_event<scalartype>::start() {
     if (PAPI_is_initialized() != PAPI_LOW_LEVEL_INITED)
       throw std::logic_error("Info :: retval != PAPI_LOW_LEVEL_INITED .\n");
 
-    auto get_id = []{
+    // PAPI_thread_init requires a function that returns an unique id for each thread.
+    auto get_id = [] {
       static std::hash<std::thread::id> hash;
-        return ulong(hash(std::this_thread::get_id()));
+      // Map an abstract object of type thread::id to an unique integer value.
+      return static_cast<unsigned long>(hash(std::this_thread::get_id()));
     };
 
     if (PAPI_thread_init(get_id) != PAPI_OK)

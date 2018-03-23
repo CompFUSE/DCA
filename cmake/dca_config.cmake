@@ -206,7 +206,6 @@ else()
   message(FATAL_ERROR "Please set DCA_CLUSTER_SOLVER to a valid option: CT-AUX | SS-CT-HYB.")
 endif()
 
-# TODO: - Implement HPX part including DCA_HPX.cmake.
 
 ################################################################################
 # Use threaded cluster solver.

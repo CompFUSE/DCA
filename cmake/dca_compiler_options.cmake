@@ -27,6 +27,9 @@ set(DCA_STD_FLAG -std=c++14)
 add_compile_options(${DCA_WARNINGS})
 add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${DCA_STD_FLAG}>")
 
+# Link against pthread.
+add_compile_options("-pthread")
+
 # Set NVCC flags.
 if (DCA_HAVE_CUDA)
   list(APPEND CUDA_NVCC_FLAGS

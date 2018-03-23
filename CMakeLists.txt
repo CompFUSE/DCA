@@ -120,6 +120,7 @@ set(DCA_LIBS
   nfft
   tetrahedron_mesh
   ${DCA_RNG_LIBRARY}
+  parallel_stdthread
   parallel_util
   dca_algorithms
   json
