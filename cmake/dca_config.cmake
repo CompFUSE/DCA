@@ -15,10 +15,12 @@ if (DCA_WITH_MPI)
 
   set(DCA_CONCURRENCY_TYPE dca::parallel::MPIConcurrency)
   set(DCA_CONCURRENCY_INCLUDE "dca/parallel/mpi_concurrency/mpi_concurrency.hpp")
+  set(DCA_CONCURRENCY_LIB parallel_mpi_concurrency)
 
 else()
   set(DCA_CONCURRENCY_TYPE dca::parallel::NoConcurrency)
   set(DCA_CONCURRENCY_INCLUDE "dca/parallel/no_concurrency/no_concurrency.hpp")
+  set(DCA_CONCURRENCY_LIB parallel_no_concurrency)
 endif()
 
 configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/concurrency.hpp.in"
@@ -115,9 +117,6 @@ if (DCA_PROFILER STREQUAL "Counting")
   set(DCA_PROFILER_INCLUDE "dca/profiling/counting_profiler.hpp")
 
 elseif (DCA_PROFILER STREQUAL "PAPI")
-  if (NOT DCA_HAVE_PTHREADS)
-    message(FATAL_ERROR "PAPI profiling requires Pthreads.")
-  endif()
   # TODO: Replace long long with std::size_t?
   set(DCA_PROFILING_EVENT_TYPE "dca::profiling::papi_and_time_event<long long>")  # Need quotes because of space in 'long long'.
   set(DCA_PROFILING_EVENT_INCLUDE "dca/profiling/events/papi_and_time_event.hpp")
@@ -200,47 +199,6 @@ else()
   message(FATAL_ERROR "Please set DCA_CLUSTER_SOLVER to a valid option: CT-AUX | SS-CT-HYB.")
 endif()
 
-################################################################################
-# Select the threading library.
-# TODO: - Implement HPX part including DCA_HPX.cmake.
-#       - Implement STL support and make it default.
-#
-# Note the difference between the CMake variables
-# - DCA_THREADING_LIBRARY: CMake option for the user to choose the threading library,
-# - DCA_THREADING_LIB: the actual library to link against.
-set(DCA_THREADING_LIBRARY "POSIX" CACHE STRING
-  "Threading library, options are: POSIX | STDTHREAD | NONE")
-set_property(CACHE DCA_THREADING_LIBRARY PROPERTY STRINGS POSIX STDTHREAD NONE)
-
-if (DCA_THREADING_LIBRARY STREQUAL POSIX)
-  include(dca_pthreads)
-  if (NOT DCA_HAVE_PTHREADS)
-    message(FATAL_ERROR "POSIX thread library (Pthreads) not found but requested.")
-  endif()
-
-  set(DCA_THREADING_TYPE dca::parallel::Pthreading)
-  set(DCA_THREADING_INCLUDE "dca/parallel/pthreading/pthreading.hpp")
-  set(DCA_THREADING_FLAGS "-pthread" CACHE INTERNAL "Flags needed for threading." FORCE)
-  set(DCA_THREADING_LIB pthreading pthread)
-
-elseif (DCA_THREADING_LIBRARY STREQUAL STDTHREAD)
-  set(DCA_THREADING_TYPE dca::parallel::stdthread)
-  set(DCA_THREADING_INCLUDE "dca/parallel/stdthread/stdthread.hpp")
-  set(DCA_THREADING_FLAGS "-pthread" CACHE INTERNAL "Flags needed for threading." FORCE)
-  set(DCA_THREADING_LIB "pthread")
-
-elseif (DCA_THREADING_LIBRARY STREQUAL NONE)
-  set(DCA_THREADING_TYPE dca::parallel::NoThreading)
-  set(DCA_THREADING_INCLUDE "dca/parallel/no_threading/no_threading.hpp")
-  set(DCA_THREADING_FLAGS "" CACHE INTERNAL "Flags needed for threading." FORCE)
-  set(DCA_THREADING_LIB "")
-
-else()
-  message(FATAL_ERROR "Please set DCA_THREADING_LIBRARY to a valid option: POSIX | STDTHREAD | NONE.")
-endif()
-
-configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/threading.hpp.in"
-  "${CMAKE_BINARY_DIR}/include/dca/config/threading.hpp" @ONLY)
 
 ################################################################################
 # Use threaded cluster solver.
@@ -248,20 +206,9 @@ option(DCA_WITH_THREADED_SOLVER "Use multiple walker and accumulator threads in 
 
 if (DCA_WITH_THREADED_SOLVER)
   dca_add_config_define(DCA_WITH_THREADED_SOLVER)
-
-  if (DCA_THREADING_LIBRARY STREQUAL POSIX)
-    set(DCA_THREADED_SOLVER_TYPE dca::phys::solver::PosixQmciClusterSolver<ClusterSolverBaseType>)
-    set(DCA_THREADED_SOLVER_INCLUDE
-      "dca/phys/dca_step/cluster_solver/posix_qmci/posix_qmci_cluster_solver.hpp")
-
-  elseif (DCA_THREADING_LIBRARY STREQUAL STDTHREAD)
-    set(DCA_THREADED_SOLVER_TYPE dca::phys::solver::StdThreadQmciClusterSolver<ClusterSolverBaseType>)
-    set(DCA_THREADED_SOLVER_INCLUDE
+  set(DCA_THREADED_SOLVER_TYPE dca::phys::solver::StdThreadQmciClusterSolver<ClusterSolverBaseType>)
+  set(DCA_THREADED_SOLVER_INCLUDE
       "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_cluster_solver.hpp")
-
-  else()
-    message(FATAL_ERROR "Need a threading library to use a threaded cluster solver.")
-  endif()
 endif()
 
 ################################################################################

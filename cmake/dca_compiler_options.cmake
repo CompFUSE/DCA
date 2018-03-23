@@ -24,8 +24,11 @@ set(DCA_WARNINGS -Wall -Wextra -Wpedantic -Wno-sign-compare)
 set(DCA_STD_FLAG -std=c++14)
 
 # Set C and CXX flags.
-add_compile_options(${DCA_WARNINGS} ${DCA_THREADING_FLAGS})
+add_compile_options(${DCA_WARNINGS})
 add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${DCA_STD_FLAG}>")
+
+# Link against pthread.
+add_compile_options("-pthread")
 
 # Set NVCC flags.
 if (DCA_HAVE_CUDA)
@@ -35,6 +38,5 @@ if (DCA_HAVE_CUDA)
     -Xcompiler -Wall
     -Xcompiler -Wextra
     -Xcompiler -Wno-unused-parameter
-    -Xcompiler -Wno-switch
-    -Xcompiler ${DCA_THREADING_FLAGS})
+    -Xcompiler -Wno-switch)
 endif()

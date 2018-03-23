@@ -17,6 +17,7 @@
 
 #include <cmath>
 #include <complex>
+#include <limits>
 #include <stdexcept>
 #include <type_traits>
 
@@ -73,20 +74,22 @@ function<std::complex<Scalartype>, Dmn> complex(const function<Scalartype, Dmn>&
   function<std::complex<Scalartype>, Dmn> f_cmplx;
 
   for (int i = 0; i < f_cmplx.size(); ++i)
-    f_cmplx(i) = std::complex<Scalartype>(f(i), 0);
+    f_cmplx(i) = std::complex<Scalartype>(f(i));
 
   return f_cmplx;
 }
 
-// Discard the imaginary part of f. If check_imaginary is true, and the arguments has a non zero
-// imaginary part, it throws.
+// Returns a real function whose elements are the real part of the elements of f.
+// Throws a std::logic_error if check_imaginary is true, and any of the arguments has a non zero,
+// up to rounding errors, imaginary part.
 template <typename Scalartype, class Dmn>
 function<Scalartype, Dmn> real(const function<std::complex<Scalartype>, Dmn>& f,
                                const bool check_imaginary = false) {
   function<Scalartype, Dmn> f_real;
 
+  const Scalartype epsilon = 10 * std::numeric_limits<Scalartype>::epsilon();
   for (int i = 0; i < f_real.size(); ++i) {
-    if (check_imaginary and std::abs(f(i).imag()) > 1e-10)
+    if (check_imaginary and std::abs(f(i).imag()) > epsilon)
       throw(std::logic_error("The function is not real."));
     f_real(i) = f(i).real();
   }

@@ -115,13 +115,13 @@ set(DCA_LIBS
   timer
   cmake_options
   ctaux
-  ${DCA_THREADING_LIB}
   ss_ct_hyb
   function_transform
   gaussian_quadrature
   nfft
   tetrahedron_mesh
   ${DCA_RNG_LIBRARY}
+  parallel_stdthread
   parallel_util
   dca_algorithms
   json
@@ -135,6 +135,7 @@ set(DCA_LIBS
   time_and_frequency_domains
   symmetrization
   coarsegraining
+  ${DCA_CONCURRENCY_LIB}
   ${DCA_EXTERNAL_LIBS})
 
 if (DCA_HAVE_CUDA)

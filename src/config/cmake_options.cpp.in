@@ -21,7 +21,6 @@ const std::string CMakeOptions::dca_with_pinned_host_memory = "@DCA_WITH_PINNED_
 const std::string CMakeOptions::cuda_gpu_arch = "@CUDA_GPU_ARCH@";
 const std::string CMakeOptions::dca_with_mpi = "@DCA_WITH_MPI@";
 const std::string CMakeOptions::dca_with_threaded_solver = "@DCA_WITH_THREADED_SOLVER@";
-const std::string CMakeOptions::dca_threading_library = "@DCA_THREADING_LIBRARY@";
 const std::string CMakeOptions::dca_cluster_solver = "@DCA_CLUSTER_SOLVER@";
 const std::string CMakeOptions::dca_lattice = "@DCA_LATTICE@";
 const std::string CMakeOptions::dca_point_group = "@DCA_POINT_GROUP@";
@@ -53,7 +52,6 @@ void CMakeOptions::print() {
   std::cout << "\n"
             << "DCA_WITH_MPI = " << CMakeOptions::dca_with_mpi << "\n"
             << "DCA_WITH_THREADED_SOLVER = " << CMakeOptions::dca_with_threaded_solver << "\n"
-            << "DCA_THREADING_LIBRARY = " << CMakeOptions::dca_threading_library << "\n"
             << "\n"
             << "DCA_CLUSTER_SOLVER = " << CMakeOptions::dca_cluster_solver << "\n"
             << "DCA_LATTICE = " << CMakeOptions::dca_lattice << "\n"

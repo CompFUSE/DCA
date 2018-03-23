@@ -4,132 +4,129 @@
 #define LIN_ALG_PERFORMANCE_INSPECTOR_CPU_H
 
 #include <sys/time.h>
+#include <thread>
+#include <vector>
 
-namespace LIN_ALG
-{
-  template<typename scalartype>
-  class PERFORMANCE_INSPECTOR<CPU, scalartype>
-  {
-  public:
+namespace LIN_ALG {
+template <typename scalartype>
+class PERFORMANCE_INSPECTOR<CPU, scalartype> {
+public:
+  static double execute(int M, int K, int N, scalartype a = 1., scalartype b = 0.);
 
-    static double execute(int M, int K, int N, scalartype a=1., scalartype b=0.);
+  static double execute_threadded(int N_th, int M, int K, int N, scalartype a = 1.,
+                                  scalartype b = 0.);
 
-    static double execute_pthreaded(int N_th, int M, int K, int N, scalartype a=1., scalartype b=0.);
+private:
+  struct matrix_data {
+    int thread_id;
 
-  private:
+    int M;
+    int K;
+    int N;
 
-    struct matrix_data
-    {
-      int thread_id;
+    scalartype a;
+    scalartype b;
 
-      int M;
-      int K;
-      int N;
-
-      scalartype a;
-      scalartype b;
-
-      double GFLOPS;
-    };
-
-    static void* execute_gemm(void* ptr);
+    double GFLOPS;
   };
 
-  template<typename scalartype>
-  double PERFORMANCE_INSPECTOR<CPU, scalartype>::execute(int M, int K, int N, scalartype a, scalartype b)
+  static void* execute_gemm(void* ptr);
+};
+
+template <typename scalartype>
+double PERFORMANCE_INSPECTOR<CPU, scalartype>::execute(int M, int K, int N, scalartype a,
+                                                       scalartype b) {
+  matrix_data data;
+
   {
-    matrix_data data;
+    data.thread_id = 0;
 
-    {
-      data.thread_id = 0;
+    data.M = M;
+    data.K = K;
+    data.N = N;
 
-      data.M = M;
-      data.K = K;
-      data.N = N;
+    data.a = a;
+    data.b = b;
 
-      data.a = a;
-      data.b = b;
+    data.GFLOPS = 0.;
 
-      data.GFLOPS = 0.;
-
-      execute_gemm(&data);
-    }
-
-    return data.GFLOPS;
+    execute_gemm(&data);
   }
 
-  template<typename scalartype>
-  double PERFORMANCE_INSPECTOR<CPU, scalartype>::execute_pthreaded(int N_th, int M, int K, int  N, scalartype a, scalartype b)
-  {
-    std::vector<pthread_t>   threads(N_th);
-    std::vector<matrix_data> data   (N_th);
+  return data.GFLOPS;
+}
 
-    for(int l=0; l<N_th; ++l)
-    {
-      data[l].thread_id = l;
+template <typename scalartype>
+double PERFORMANCE_INSPECTOR<CPU, scalartype>::execute_threadded(int N_th, int M, int K, int N,
+                                                                 scalartype a, scalartype b) {
+  std::vector<std::thread> threads;
+  std::vector<matrix_data> data(N_th);
 
-      data[l].M = M;
-      data[l].K = K;
-      data[l].N = N;
+  for (int l = 0; l < N_th; ++l) {
+    data[l].thread_id = l;
 
-      data[l].a = a;
-      data[l].b = b;
+    data[l].M = M;
+    data[l].K = K;
+    data[l].N = N;
 
-      data[l].GFLOPS = 0.;
+    data[l].a = a;
+    data[l].b = b;
 
-      pthread_create(&threads[l], NULL, execute_gemm, &data[l]);
-    }
+    data[l].GFLOPS = 0.;
 
-    for(int l=0; l<N_th; ++l)
-      pthread_join(threads[l], NULL);
-
-    double total = 0;
-    for(int l=0; l<N_th; ++l)
-      total += data[l].GFLOPS;
-
-    return total;
+    threads.push_back(execute_gemm, &data[l]);
   }
 
-  template<typename scalartype>
-  void* PERFORMANCE_INSPECTOR<CPU, scalartype>::execute_gemm(void* ptr)
-  {
-    double N_ITERATIONS = 10.;
+  for (int l = 0; l < N_th; ++l)
+    threads[l].join();
 
-    matrix_data* data_ptr = reinterpret_cast<matrix_data*>(ptr);
+  double total = 0;
+  for (int l = 0; l < N_th; ++l)
+    total += data[l].GFLOPS;
 
-    matrix<scalartype, CPU> A(std::pair<int, int>(data_ptr->M, data_ptr->K));
-    matrix<scalartype, CPU> B(std::pair<int, int>(data_ptr->K, data_ptr->N));
-    matrix<scalartype, CPU> C(std::pair<int, int>(data_ptr->M, data_ptr->N));
+  return total;
+}
 
-    for(int j=0; j<data_ptr->K; ++j)
-      for(int i=0; i<data_ptr->M; ++i)
-        A(i,j) = drand48();
+template <typename scalartype>
+void* PERFORMANCE_INSPECTOR<CPU, scalartype>::execute_gemm(void* ptr) {
+  double N_ITERATIONS = 10.;
 
-    for(int j=0; j<data_ptr->N; ++j)
-      for(int i=0; i<data_ptr->K; ++i)
-        B(i,j) = drand48();
+  matrix_data* data_ptr = reinterpret_cast<matrix_data*>(ptr);
 
-    timeval start;
-    gettimeofday(&start,NULL);
+  matrix<scalartype, CPU> A(std::pair<int, int>(data_ptr->M, data_ptr->K));
+  matrix<scalartype, CPU> B(std::pair<int, int>(data_ptr->K, data_ptr->N));
+  matrix<scalartype, CPU> C(std::pair<int, int>(data_ptr->M, data_ptr->N));
 
-    for(double i=0; i<N_ITERATIONS; ++i)
-      dca::linalg::matrixop::gemm(data_ptr->a, A, B, data_ptr->b, C, 0, 0);
+  for (int j = 0; j < data_ptr->K; ++j)
+    for (int i = 0; i < data_ptr->M; ++i)
+      A(i, j) = drand48();
 
-    timeval end;
-    gettimeofday(&end,NULL);
+  for (int j = 0; j < data_ptr->N; ++j)
+    for (int i = 0; i < data_ptr->K; ++i)
+      B(i, j) = drand48();
 
-    double time_start = double(start.tv_sec)+(1.e-6)*double(start.tv_usec);
-    double time_end   = double(end.tv_sec)  +(1.e-6)*double(end.tv_usec);
+  timeval start;
+  gettimeofday(&start, NULL);
 
-    double time = time_end-time_start;
+  for (double i = 0; i < N_ITERATIONS; ++i)
+    dca::linalg::matrixop::gemm(data_ptr->a, A, B, data_ptr->b, C, 0, 0);
 
-    data_ptr->GFLOPS = double(2*(data_ptr->M)*(data_ptr->K)*(data_ptr->N)*N_ITERATIONS)/time*(1.e-9);
+  timeval end;
+  gettimeofday(&end, NULL);
 
-    //cout << "\n\t" << data_ptr->thread_id << "\t" << 2*(data_ptr->M)*(data_ptr->K)*(data_ptr->N)*100 << "\t" << time << "\t" <<  data_ptr->GFLOPS;
+  double time_start = double(start.tv_sec) + (1.e-6) * double(start.tv_usec);
+  double time_end = double(end.tv_sec) + (1.e-6) * double(end.tv_usec);
 
-    return 0;
-  }
+  double time = time_end - time_start;
 
+  data_ptr->GFLOPS =
+      double(2 * (data_ptr->M) * (data_ptr->K) * (data_ptr->N) * N_ITERATIONS) / time * (1.e-9);
+
+  // cout << "\n\t" << data_ptr->thread_id << "\t" <<
+  // 2*(data_ptr->M)*(data_ptr->K)*(data_ptr->N)*100 << "\t" << time << "\t" <<  data_ptr->GFLOPS;
+
+  return 0;
+}
 }
 
 #endif

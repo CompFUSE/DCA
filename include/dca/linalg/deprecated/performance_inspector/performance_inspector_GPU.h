@@ -4,143 +4,140 @@
 #define LIN_ALG_PERFORMANCE_INSPECTOR_GPU_H
 
 #include <sys/time.h>
+#include <thread>
+#include <vector>
 
 #include "dca/linalg/util/handle_functions.hpp"
 #include "dca/linalg/util/stream_functions.hpp"
 
-namespace LIN_ALG
-{
-  template<typename scalartype>
-  class PERFORMANCE_INSPECTOR<GPU, scalartype>
-  {
-  public:
+namespace LIN_ALG {
+template <typename scalartype>
+class PERFORMANCE_INSPECTOR<GPU, scalartype> {
+public:
+  static double execute(size_t M, size_t K, size_t N, scalartype a = 1., scalartype b = 0.);
 
-    static double execute(size_t M, size_t K, size_t N, scalartype a=1., scalartype b=0.);
+  static double execute_threaded(int N_th, size_t M, size_t K, size_t N, scalartype a = 1.,
+                                 scalartype b = 0.);
 
-    static double execute_pthreaded(int N_th, size_t M, size_t K, size_t N, scalartype a=1., scalartype b=0.);
+private:
+  struct matrix_data {
+    int thread_id;
 
-  private:
+    int M;
+    int K;
+    int N;
 
-    struct matrix_data
-    {
-      int thread_id;
+    scalartype a;
+    scalartype b;
 
-      int M;
-      int K;
-      int N;
-
-      scalartype a;
-      scalartype b;
-
-      double GFLOPS;
-    };
-
-    static void* execute_gemm(void* ptr);
+    double GFLOPS;
   };
 
-  template<typename scalartype>
-  double PERFORMANCE_INSPECTOR<GPU, scalartype>::execute(size_t M, size_t K, size_t N, scalartype a, scalartype b)
+  static void* execute_gemm(void* ptr);
+};
+
+template <typename scalartype>
+double PERFORMANCE_INSPECTOR<GPU, scalartype>::execute(size_t M, size_t K, size_t N, scalartype a,
+                                                       scalartype b) {
+  matrix_data data;
+
   {
-    matrix_data data;
+    data.thread_id = 0;
 
-    {
-      data.thread_id = 0;
+    data.M = M;
+    data.K = K;
+    data.N = N;
 
-      data.M = M;
-      data.K = K;
-      data.N = N;
+    data.a = a;
+    data.b = b;
 
-      data.a = a;
-      data.b = b;
+    data.GFLOPS = 0.;
 
-      data.GFLOPS = 0.;
-
-      execute_gemm(&data);
-    }
-
-    return data.GFLOPS;
+    execute_gemm(&data);
   }
 
-  template<typename scalartype>
-  double PERFORMANCE_INSPECTOR<GPU, scalartype>::execute_pthreaded(int N_th, size_t M, size_t K, size_t N, scalartype a, scalartype b)
-  {
-    std::vector<pthread_t>   threads(N_th);
-    std::vector<matrix_data> data   (N_th);
+  return data.GFLOPS;
+}
 
-    for(int l=0; l<N_th; ++l)
-    {
-      data[l].thread_id = l;
+template <typename scalartype>
+double PERFORMANCE_INSPECTOR<GPU, scalartype>::execute_threaded(int N_th, size_t M, size_t K,
+                                                                size_t N, scalartype a, scalartype b) {
+  std::vector<std::thread> threads;
+  std::vector<matrix_data> data(N_th);
 
-      data[l].M = M;
-      data[l].K = K;
-      data[l].N = N;
+  for (int l = 0; l < N_th; ++l) {
+    data[l].thread_id = l;
 
-      data[l].a = a;
-      data[l].b = b;
+    data[l].M = M;
+    data[l].K = K;
+    data[l].N = N;
 
-      data[l].GFLOPS = 0.;
+    data[l].a = a;
+    data[l].b = b;
 
-      pthread_create(&threads[l], NULL, execute_gemm, &data[l]);
-    }
+    data[l].GFLOPS = 0.;
 
-    for(int l=0; l<N_th; ++l)
-      pthread_join(threads[l], NULL);
-
-    double total = 0;
-    for(int l=0; l<N_th; ++l)
-      total += data[l].GFLOPS;
-
-    return total;
+    threads.push_back(execute_gemm, &data[l]);
   }
 
-  template<typename scalartype>
-  void* PERFORMANCE_INSPECTOR<GPU, scalartype>::execute_gemm(void* ptr)
-  {
-    double N_ITERATIONS = 10.;
+  for (int l = 0; l < N_th; ++l)
+    threads[l].join();
 
-    matrix_data* data_ptr = reinterpret_cast<matrix_data*>(ptr);
+  double total = 0;
+  for (int l = 0; l < N_th; ++l)
+    total += data[l].GFLOPS;
 
-    int thread_id = data_ptr->thread_id;
-    int stream_id = 0;
+  return total;
+}
 
-    matrix<scalartype, CPU> AC(std::pair<int, int>(data_ptr->M, data_ptr->K));
-    matrix<scalartype, CPU> BC(std::pair<int, int>(data_ptr->K, data_ptr->N));
+template <typename scalartype>
+void* PERFORMANCE_INSPECTOR<GPU, scalartype>::execute_gemm(void* ptr) {
+  double N_ITERATIONS = 10.;
 
-    for(int j=0; j<data_ptr->K; ++j)
-      for(int i=0; i<data_ptr->M; ++i)
-        AC(i,j) = drand48();
+  matrix_data* data_ptr = reinterpret_cast<matrix_data*>(ptr);
 
-    for(int j=0; j<data_ptr->N; ++j)
-      for(int i=0; i<data_ptr->K; ++i)
-        BC(i,j) = drand48();
+  int thread_id = data_ptr->thread_id;
+  int stream_id = 0;
 
-    matrix<scalartype, GPU> A(AC);
-    matrix<scalartype, GPU> B(BC);
-    matrix<scalartype, GPU> C(std::pair<int, int>(data_ptr->M, data_ptr->N));
+  matrix<scalartype, CPU> AC(std::pair<int, int>(data_ptr->M, data_ptr->K));
+  matrix<scalartype, CPU> BC(std::pair<int, int>(data_ptr->K, data_ptr->N));
 
-    timeval start;
-    gettimeofday(&start,NULL);
+  for (int j = 0; j < data_ptr->K; ++j)
+    for (int i = 0; i < data_ptr->M; ++i)
+      AC(i, j) = drand48();
 
-    for(double i=0; i<N_ITERATIONS; ++i)
-      dca::linalg::matrixop::gemm(data_ptr->a, A, B, data_ptr->b, C, thread_id, stream_id);
+  for (int j = 0; j < data_ptr->N; ++j)
+    for (int i = 0; i < data_ptr->K; ++i)
+      BC(i, j) = drand48();
 
-    dca::linalg::util::syncStream(thread_id, stream_id);
+  matrix<scalartype, GPU> A(AC);
+  matrix<scalartype, GPU> B(BC);
+  matrix<scalartype, GPU> C(std::pair<int, int>(data_ptr->M, data_ptr->N));
 
-    timeval end;
-    gettimeofday(&end,NULL);
+  timeval start;
+  gettimeofday(&start, NULL);
 
-    double time_start = double(start.tv_sec)+(1.e-6)*double(start.tv_usec);
-    double time_end   = double(end.tv_sec)  +(1.e-6)*double(end.tv_usec);
+  for (double i = 0; i < N_ITERATIONS; ++i)
+    dca::linalg::matrixop::gemm(data_ptr->a, A, B, data_ptr->b, C, thread_id, stream_id);
 
-    double time = time_end-time_start;
+  dca::linalg::util::syncStream(thread_id, stream_id);
 
-    data_ptr->GFLOPS = double(2*(data_ptr->M)*(data_ptr->K)*(data_ptr->N)*N_ITERATIONS)/time*(1.e-9);
+  timeval end;
+  gettimeofday(&end, NULL);
 
-    //cout << "\n\t" << data_ptr->thread_id << "\t" << 2*(data_ptr->M)*(data_ptr->K)*(data_ptr->N)*100 << "\t" << time << "\t" <<  data_ptr->GFLOPS;
+  double time_start = double(start.tv_sec) + (1.e-6) * double(start.tv_usec);
+  double time_end = double(end.tv_sec) + (1.e-6) * double(end.tv_usec);
 
-    return 0;
-  }
+  double time = time_end - time_start;
 
+  data_ptr->GFLOPS =
+      double(2 * (data_ptr->M) * (data_ptr->K) * (data_ptr->N) * N_ITERATIONS) / time * (1.e-9);
+
+  // cout << "\n\t" << data_ptr->thread_id << "\t" <<
+  // 2*(data_ptr->M)*(data_ptr->K)*(data_ptr->N)*100 << "\t" << time << "\t" <<  data_ptr->GFLOPS;
+
+  return 0;
+}
 }
 
 #endif

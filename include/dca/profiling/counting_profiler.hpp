@@ -49,9 +49,9 @@ public:
 
   static void stop(std::string fileName);
 
-  static void start_pthreading(int id);
+  static void start_threading(int id);
 
-  static void stop_pthreading(int id);
+  static void stop_threading(int id);
 
   template <typename concurrency_type>
   static void stop(concurrency_type& parallelProcessing, std::string fileName);
@@ -180,13 +180,13 @@ std::vector<typename CountingProfiler<Event>::scalar_type>& CountingProfiler<Eve
 }
 
 template <typename Event>
-void CountingProfiler<Event>::start_pthreading(int id) {
-  Event::start_pthreading(id + 1);
+void CountingProfiler<Event>::start_threading(int id) {
+  Event::start_threading(id + 1);
 }
 
 template <typename Event>
-void CountingProfiler<Event>::stop_pthreading(int id) {
-  Event::stop_pthreading(id + 1);
+void CountingProfiler<Event>::stop_threading(int id) {
+  Event::stop_threading(id + 1);
 }
 
 template <typename Event>

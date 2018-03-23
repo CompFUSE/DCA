@@ -15,8 +15,10 @@
 #ifndef DCA_PARALLEL_STDTHREAD_STDTHREAD_HPP
 #define DCA_PARALLEL_STDTHREAD_STDTHREAD_HPP
 
-#include <vector>
+#include <iostream>
 #include <thread>
+#include <vector>
+
 #include "dca/parallel/util/threading_data.hpp"
 
 namespace dca {
@@ -31,7 +33,10 @@ public:
     join();
   }
 
+  friend std::ostream& operator<<(std::ostream& some_ostream, const stdthread& this_concurrency);
+
 private:
+  static constexpr char parallel_type_str_[] = "stdthread";
   void fork(int num_threads, void* (*start_routine)(void*), void* arg) {
     threads_.clear();
     data_.resize(num_threads);

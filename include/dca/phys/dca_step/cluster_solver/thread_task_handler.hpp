@@ -35,7 +35,7 @@ public:
   // Prints all thread ids and the corresponding tasks (walker|accumulator|walker and accumulator).
   void print() const {
     for (int i = 0; i < thread_tasks_.size(); ++i)
-      std::cout << "\t pthread-id : " << i << "  -->   (" << thread_tasks_[i] << ")\n";
+      std::cout << "\t thread-id : " << i << "  -->   (" << thread_tasks_[i] << ")\n";
   }
 
   // Maps the walker id to the index of the walker's rng.

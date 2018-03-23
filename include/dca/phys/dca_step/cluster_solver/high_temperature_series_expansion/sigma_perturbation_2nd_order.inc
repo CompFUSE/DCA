@@ -263,9 +263,9 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_on_cluste
   }
 
   {
-    Threading pthreads;
+    Threading threads;
 
-    pthreads.execute(nr_threads, threaded_execute_2B, (void*)&args);
+    threads.execute(nr_threads, threaded_execute_2B, (void*)&args);
   }
 
   {

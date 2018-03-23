@@ -38,8 +38,8 @@ public:
   static void start() {}
   static void stop() {}
 
-  static void start_pthreading(int /*id*/) {}
-  static void stop_pthreading(int /*id*/) {}
+  static void start_threading(int /*id*/) {}
+  static void stop_threading(int /*id*/) {}
 
   static std::vector<std::string> names();
 
