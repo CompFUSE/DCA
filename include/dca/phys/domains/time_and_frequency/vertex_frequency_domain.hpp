@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/frequency_exchange_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_name.hpp"
 
 namespace dca {
@@ -146,11 +147,11 @@ void vertex_frequency_domain<EXTENDED>::initialize(parameters_t& parameters) {
   get_basis()[0] = (2. * M_PI) / parameters.get_beta();
   get_inverse_basis()[0] = parameters.get_beta() / (2. * M_PI);
 
-  if (parameters.compute_all_transfers())
-    get_size() = 4 * parameters.get_four_point_fermionic_frequencies();
-  else
-    get_size() = 2 * (parameters.get_four_point_fermionic_frequencies() +
-                      abs(parameters.get_four_point_frequency_transfer()));
+  if(!FrequencyExchangeDomain::isInitialized())
+    FrequencyExchangeDomain::initialize(parameters);
+
+  get_size() = 2 * (parameters.get_four_point_fermionic_frequencies() +
+                    FrequencyExchangeDomain::extensionSize());
 
   get_elements().resize(get_size());
 
@@ -180,11 +181,11 @@ void vertex_frequency_domain<EXTENDED_POSITIVE>::initialize(parameters_t& parame
   get_basis()[0] = (2. * M_PI) / parameters.get_beta();
   get_inverse_basis()[0] = parameters.get_beta() / (2. * M_PI);
 
-  if (parameters.compute_all_transfers())
-    get_size() = 2 * parameters.get_four_point_fermionic_frequencies();
-  else
-    get_size() = (parameters.get_four_point_fermionic_frequencies() +
-                  abs(parameters.get_four_point_frequency_transfer()));
+  if(!FrequencyExchangeDomain::isInitialized())
+    FrequencyExchangeDomain::initialize(parameters);
+
+  get_size() =
+      parameters.get_four_point_fermionic_frequencies() + FrequencyExchangeDomain::extensionSize();
 
   get_elements().resize(get_size());
 

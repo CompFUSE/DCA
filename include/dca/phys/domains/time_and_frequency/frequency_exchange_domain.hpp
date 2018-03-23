@@ -47,6 +47,13 @@ public:
     return elements_;
   }
 
+  // Returns the number of additional frequencies to store in G1.
+  static int extensionSize();
+
+  static bool isInitialized() {
+    return initialized_;
+  }
+
   static const std::string& get_name() {
     const static std::string name = "Frequency exchange domain.";
     return name;
@@ -64,9 +71,12 @@ bool FrequencyExchangeDomain::initialized_ = false;
 
 template <class Parameters>
 void FrequencyExchangeDomain::initialize(const Parameters& pars) {
+  if (initialized_)
+    return;
+
   if (pars.compute_all_transfers()) {
-    elements_.resize(2 * pars.get_four_point_fermionic_frequencies() + 1);
-    int idx_value = -elements_.size() / 2;
+    elements_.resize(pars.get_four_point_fermionic_frequencies() + 1);
+    int idx_value = 0;
     for (int& elem : elements_)
       elem = idx_value++;
   }
@@ -76,6 +86,19 @@ void FrequencyExchangeDomain::initialize(const Parameters& pars) {
   }
 
   initialized_ = true;
+}
+
+int FrequencyExchangeDomain::extensionSize() {
+  auto compute_extension = [] {
+    if (!initialized_)
+      throw(std::logic_error("The frequency exchange domain was not initialized."));
+    int size = 0;
+    for (auto el : elements_)
+      size = std::max(size, std::abs(el));
+    return size;
+  };
+  static int extension_size = compute_extension();
+  return extension_size;
 }
 
 template <class Writer>
