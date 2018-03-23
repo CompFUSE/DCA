@@ -7,7 +7,7 @@
 //
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// This file tests threading.hpp.
+// This file tests stdthread.hpp.
 
 #include "dca/parallel/stdthread/stdthread.hpp"
 
