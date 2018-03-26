@@ -202,22 +202,22 @@ double StdThreadQmciClusterSolver<qmci_integrator_type>::finalize(dca_info_struc
 
 template <class qmci_integrator_type>
 void* StdThreadQmciClusterSolver<qmci_integrator_type>::start_walker_static(pair_type data) {
-  profiler_type::start_pthreading(data.second);
+  profiler_type::start_threading(data.second);
 
   data.first->start_walker(data.second);
 
-  profiler_type::stop_pthreading(data.second);
+  profiler_type::stop_threading(data.second);
 
   return NULL;
 }
 
 template <class qmci_integrator_type>
 void* StdThreadQmciClusterSolver<qmci_integrator_type>::start_accumulator_static(pair_type data) {
-  profiler_type::start_pthreading(data.second);
+  profiler_type::start_threading(data.second);
 
   data.first->start_accumulator(data.second);
 
-  profiler_type::stop_pthreading(data.second);
+  profiler_type::stop_threading(data.second);
 
   return NULL;
 }
@@ -254,7 +254,7 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::start_walker(int id) {
         acc_ptr = NULL;
 
         {  // checking for available accumulators
-          std::unique_lock<std::mutex>(mutex_queue);
+          std::unique_lock<std::mutex> lock(mutex_queue);
 
           if (!accumulators_queue.empty()) {
             acc_ptr = accumulators_queue.front();
@@ -280,9 +280,9 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::start_walker(int id) {
   }
 
 #ifdef DCA_WITH_QMC_BIT
-  pthread_mutex_lock(&mutex_numerical_error);
+  mutex_numerical_error.lock();
   // accumulator.get_error_distribution() += walker.get_error_distribution();
-  pthread_mutex_unlock(&mutex_numerical_error);
+  mutex_numerical_error.unlock();
 #endif  // DCA_WITH_QMC_BIT
 
   if (id == 0) {
@@ -342,9 +342,9 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::start_accumulator(int id)
     }
   }
 
+  ++acc_finished;
   {
     std::lock_guard<std::mutex> lock(mutex_merge);
-    acc_finished++;
     accumulator_obj.sum_to(accumulator);
   }
 }

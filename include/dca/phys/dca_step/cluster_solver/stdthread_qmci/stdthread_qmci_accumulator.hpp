@@ -66,7 +66,7 @@ private:
   using qmci_accumulator_type::parameters;
 
   int thread_id;
-  std::atomic<bool> measuring;
+  bool measuring;
   std::condition_variable start_measuring;
   std::mutex mutex_accumulator;
 };
@@ -85,7 +85,7 @@ void stdthread_qmci_accumulator<qmci_accumulator_type>::update_from(walker_type&
   {
     // take a lock and keep it until it goes out of scope
     {
-      std::lock_guard<std::mutex> lock(mutex_accumulator);
+      std::unique_lock<std::mutex> lock(mutex_accumulator);
       if (measuring)
         throw std::logic_error(__FUNCTION__);
 
