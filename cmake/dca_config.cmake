@@ -206,7 +206,6 @@ else()
   message(FATAL_ERROR "Please set DCA_CLUSTER_SOLVER to a valid option: CT-AUX | SS-CT-HYB.")
 endif()
 
-
 ################################################################################
 # Use threaded cluster solver.
 option(DCA_WITH_THREADED_SOLVER "Use multiple walker and accumulator threads in the cluster solver." ON)

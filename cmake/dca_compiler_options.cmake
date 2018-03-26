@@ -27,7 +27,7 @@ set(DCA_STD_FLAG -std=c++14)
 add_compile_options(${DCA_WARNINGS})
 add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:${DCA_STD_FLAG}>")
 
-# Link against pthread.
+# Add support for multithreading with the Pthread library.
 add_compile_options("-pthread")
 
 # Set NVCC flags.

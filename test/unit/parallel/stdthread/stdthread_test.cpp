@@ -29,7 +29,7 @@ void* start_routine(void* arg) {
   return 0;
 }
 
-TEST(ThreadingTest, Execute) {
+TEST(StdthreadTest, Execute) {
   Threading threading;
 
   const int num_threads = 4;
