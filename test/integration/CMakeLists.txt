@@ -1,4 +1,5 @@
 add_subdirectory(ctaux)
+add_subdirectory(ctint)
 add_subdirectory(exact_diagonalization_advanced)
 add_subdirectory(math/statistical_testing)
 add_subdirectory(nfft)

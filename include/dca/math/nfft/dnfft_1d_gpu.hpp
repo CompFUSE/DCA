@@ -54,6 +54,8 @@ public:
 public:
   Dnfft1DGpu(double beta, cudaStream_t stream, bool accumulate_m_sqr = false);
 
+  Dnfft1DGpu(ThisType&& other) = default;
+
   void initialize();
 
   template <typename InpScalar, class Configuration>

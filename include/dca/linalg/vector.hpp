@@ -48,6 +48,11 @@ public:
 
   Vector(const Vector<ScalarType, device_name>& rhs);
 
+  // Constructs a vector with size and capacity equal to rhs. The elements and the name of rhs are
+  // moved.
+  // Postcondition: rhs has size zero and its name is undefined.
+  Vector(Vector<ScalarType, device_name>&& rhs);
+
   template <DeviceType rhs_device_name>
   Vector(const Vector<ScalarType, rhs_device_name>& rhs);
 
@@ -194,6 +199,13 @@ Vector<ScalarType, device_name>::Vector(const Vector<ScalarType, rhs_device_name
   assert(capacity_ >= size_);
   util::Memory<device_name>::allocate(data_, capacity_);
   util::memoryCopy(data_, rhs.data_, size_);
+}
+
+template <typename ScalarType, DeviceType device_name>
+Vector<ScalarType, device_name>::Vector(Vector<ScalarType, device_name>&& rhs)
+    : name_(std::move(rhs.name_)), size_(rhs.size_), capacity_(rhs.capacity_), data_(rhs.data_) {
+  rhs.data_ = nullptr;
+  rhs.size_ = rhs.capacity_ = 0;
 }
 
 template <typename ScalarType, DeviceType device_name>

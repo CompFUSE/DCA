@@ -56,7 +56,7 @@ protected:
 
 public:
   using ScalarType = typename Parameters::MC_measurement_scalar_type;
-  using this_type = SpAccumulator<Parameters, linalg::CPU>;
+  using this_type= SpAccumulator<Parameters, linalg::CPU>;
 
   SpAccumulator(const Parameters& parameters_ref, bool accumulate_m_squared = false);
 

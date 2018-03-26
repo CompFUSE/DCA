@@ -32,16 +32,16 @@ TEST(CtauxSquareLatticeValidationTest, GreensFunction) {
     dca::util::Modules::print();
   }
 
-  ParametersType parameters(dca::util::GitVersion::string(), dca_test_env->concurrency);
+  ParametersType<CT_AUX> parameters(dca::util::GitVersion::string(), dca_test_env->concurrency);
   parameters.read_input_and_broadcast<dca::io::JSONReader>(dca_test_env->input_file_name);
   parameters.update_model();
   parameters.update_domains();
 
-  DcaData data(parameters);
+  DcaData<CT_AUX> data(parameters);
   data.initialize();
 
   // Do one QMC iteration
-  QuantumClusterSolver qmc_solver(parameters, data);
+  QuantumClusterSolver<CT_AUX> qmc_solver(parameters, data);
   qmc_solver.initialize(0);
   qmc_solver.integrate();
 

@@ -116,6 +116,7 @@ set(DCA_LIBS
   timer
   cmake_options
   ctaux
+  ctint
   ss_ct_hyb
   function_transform
   gaussian_quadrature
@@ -142,6 +143,7 @@ set(DCA_LIBS
 if (DCA_HAVE_CUDA)
   list(APPEND DCA_LIBS
     ctaux_walker_kernels
+    ctint_kernels
     dnfft_kernels
     mc_tools_kernels
     special_transform_kernels

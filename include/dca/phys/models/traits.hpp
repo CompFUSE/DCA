@@ -14,9 +14,8 @@
 #include <memory>
 #include <type_traits>
 
-// INTERNAL: include with CT-INT
-//#include "dca/phys/models/analytic_hamiltonians/hund_lattice.hpp"
-//#include "dca/phys/models/analytic_hamiltonians/fe_as_lattice.hpp"
+#include "dca/phys/models/analytic_hamiltonians/hund_lattice.hpp"
+#include "dca/phys/models/analytic_hamiltonians/fe_as_lattice.hpp"
 
 namespace dca {
 namespace phys {
@@ -28,16 +27,15 @@ struct has_non_density_interaction {
   constexpr static bool value = false;
 };
 
-// INTERNAL: include with CT-INT
-// template <class BaseLattice>
-// struct has_non_density_interaction<HundLattice<BaseLattice>> {
-//  constexpr static bool value = true;
-//};
-//
-// template <class BaseLattice>
-// struct has_non_density_interaction<FeAsLattice<BaseLattice>> {
-//  constexpr static bool value = true;
-//};
+template <class BaseLattice>
+struct has_non_density_interaction<HundLattice<BaseLattice>> {
+  constexpr static bool value = true;
+};
+
+template <class BaseLattice>
+struct has_non_density_interaction<FeAsLattice<BaseLattice>> {
+  constexpr static bool value = true;
+};
 
 template <class Lattice, class HType, class Parameters>
 std::enable_if_t<has_non_density_interaction<Lattice>::value, void> initializeNonDensityInteraction(

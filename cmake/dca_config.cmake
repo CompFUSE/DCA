@@ -68,8 +68,9 @@ else()
 endif()
 
 # Lattice type
-set(DCA_LATTICE "square" CACHE STRING "Lattice type, options are: bilayer | square | triangular.")
-set_property(CACHE DCA_LATTICE PROPERTY STRINGS bilayer square triangular)
+set(DCA_LATTICE "square" CACHE STRING "Lattice type, options are: bilayer | square | triangular |
+    hund | fe_as.")
+set_property(CACHE DCA_LATTICE PROPERTY STRINGS bilayer square triangular hund fe_as)
 
 if (DCA_LATTICE STREQUAL "bilayer")
   set(DCA_LATTICE_TYPE dca::phys::models::bilayer_lattice<PointGroup>)
@@ -85,9 +86,18 @@ elseif (DCA_LATTICE STREQUAL "triangular")
   set(DCA_LATTICE_TYPE dca::phys::models::triangular_lattice<PointGroup>)
   set(DCA_LATTICE_INCLUDE
     "dca/phys/models/analytic_hamiltonians/triangular_lattice.hpp")
+elseif (DCA_LATTICE STREQUAL "hund")
+  set(DCA_LATTICE_TYPE dca::phys::models::HundLattice<PointGroup>)
+  set(DCA_LATTICE_INCLUDE
+      "dca/phys/models/analytic_hamiltonians/hund_lattice.hpp")
+elseif (DCA_LATTICE STREQUAL "fe_as")
+  set(DCA_LATTICE_TYPE dca::phys::models::FeAsLattice<PointGroup>)
+  set(DCA_LATTICE_INCLUDE
+      "dca/phys/models/analytic_hamiltonians/fe_as_lattice.hpp")
 
 else()
-  message(FATAL_ERROR "Please set DCA_LATTICE to a valid option: bilayer | square | triangular.")
+  message(FATAL_ERROR "Please set DCA_LATTICE to a valid option: bilayer | square | triangular |
+          hund | fe_as.")
 endif()
 
 # Model type
@@ -175,20 +185,27 @@ configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/rng.hpp.in"
 ################################################################################
 # Select the cluster solver.
 set(DCA_CLUSTER_SOLVER "CT-AUX" CACHE STRING
-  "The cluster solver for the DCA(+) loop. Options are: CT-AUX | SS-CT-HYB.")
-set_property(CACHE DCA_CLUSTER_SOLVER PROPERTY STRINGS CT-AUX SS-CT-HYB)
+  "The cluster solver for the DCA(+) loop. Options are: CT-AUX | CT-INT | SS-CT-HYB.")
+set_property(CACHE DCA_CLUSTER_SOLVER PROPERTY STRINGS CT-AUX CT-INT SS-CT-HYB)
 
-if (DCA_CLUSTER_SOLVER STREQUAL "CT-AUX")
+if (DCA_CLUSTER_SOLVER STREQUAL "CT-INT")
+  set(DCA_CLUSTER_SOLVER_NAME dca::phys::solver::CT_INT)
+  set(DCA_CLUSTER_SOLVER_TYPE "dca::phys::solver::CtintClusterSolver<walker_device, ParametersType>")
+  set(DCA_CLUSTER_SOLVER_INCLUDE "dca/phys/dca_step/cluster_solver/ctint/ctint_cluster_solver.hpp")
+
+
+elseif (DCA_CLUSTER_SOLVER STREQUAL "CT-AUX")
   set(DCA_CLUSTER_SOLVER_NAME dca::phys::solver::CT_AUX)
   set(DCA_CLUSTER_SOLVER_TYPE "dca::phys::solver::CtauxClusterSolver<walker_device, ParametersType, DcaDataType>")
   set(DCA_CLUSTER_SOLVER_INCLUDE
-    "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp")
+      "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp")
+
 
 elseif (DCA_CLUSTER_SOLVER STREQUAL "SS-CT-HYB")
   set(DCA_CLUSTER_SOLVER_NAME dca::phys::solver::SS_CT_HYB)
   set(DCA_CLUSTER_SOLVER_TYPE "dca::phys::solver::SsCtHybClusterSolver<walker_device, ParametersType, DcaDataType>")
   set(DCA_CLUSTER_SOLVER_INCLUDE
-    "dca/phys/dca_step/cluster_solver/ss_ct_hyb/ss_ct_hyb_cluster_solver.hpp")
+        "dca/phys/dca_step/cluster_solver/ss_ct_hyb/ss_ct_hyb_cluster_solver.hpp")
 
 # elseif (DCA_CLUSTER_SOLVER STREQUAL "HTS")
 #   set(DCA_CLUSTER_SOLVER_NAME dca::phys::solver::HIGH_TEMPERATURE_SERIES)
@@ -196,7 +213,8 @@ elseif (DCA_CLUSTER_SOLVER STREQUAL "SS-CT-HYB")
 #     "dca/phys/dca_step/cluster_solver/high_temperature_series_expansion/high_temperature_series_expansion_solver.hpp")
 
 else()
-  message(FATAL_ERROR "Please set DCA_CLUSTER_SOLVER to a valid option: CT-AUX | SS-CT-HYB.")
+  message(FATAL_ERROR "Please set DCA_CLUSTER_SOLVER to a valid option: CT-AUX | CT_INT |
+          SS-CT-HYB.")
 endif()
 
 ################################################################################

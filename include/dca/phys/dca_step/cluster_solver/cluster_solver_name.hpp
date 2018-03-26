@@ -17,7 +17,7 @@ namespace phys {
 namespace solver {
 // dca::phys::solver::
 
-enum ClusterSolverName { CT_AUX, SS_CT_HYB, ED_ADVANCED, HIGH_TEMPERATURE_SERIES };
+enum ClusterSolverName { CT_AUX, SS_CT_HYB, CT_INT, ED_ADVANCED, HIGH_TEMPERATURE_SERIES };
 
 }  // solver
 }  // phys
