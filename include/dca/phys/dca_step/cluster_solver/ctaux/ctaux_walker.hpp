@@ -478,8 +478,10 @@ std::enable_if_t<dev_t == device_t && device_t != dca::linalg::CPU, void> CtauxW
   read_Gamma_matrices(e_UP);
   read_Gamma_matrices(e_DN);
 
-  Gamma_up_CPU.set(Gamma_up, thread_id, stream_id);
-  Gamma_dn_CPU.set(Gamma_dn, thread_id, stream_id);
+  Gamma_up_CPU.setAsync(Gamma_up, thread_id, stream_id);
+  Gamma_dn_CPU.setAsync(Gamma_dn, thread_id, stream_id);
+
+  linalg::util::syncStream(thread_id, stream_id);
 }
 
 // In case Gamma_up and Gamma_down reside in the CPU memory, avoid the copies using swap.
@@ -506,8 +508,8 @@ std::enable_if_t<dev_t == device_t && device_t != dca::linalg::CPU, void> CtauxW
     device_t, parameters_type, MOMS_type>::upload_to_device() {
   //  profiler_type profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
 
-  Gamma_up.set(Gamma_up_CPU, thread_id, stream_id);
-  Gamma_dn.set(Gamma_dn_CPU, thread_id, stream_id);
+  Gamma_up.setAsync(Gamma_up_CPU, thread_id, stream_id);
+  Gamma_dn.setAsync(Gamma_dn_CPU, thread_id, stream_id);
 }
 
 // In case Gamma_up and Gamma_down reside in the CPU memory, avoid the copies using swap.

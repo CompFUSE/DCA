@@ -92,7 +92,7 @@ int* N_MATRIX_TOOLS<dca::linalg::GPU, parameters_type>::get_permutation() {
 
 template <typename parameters_type>
 void N_MATRIX_TOOLS<dca::linalg::GPU, parameters_type>::set_permutation(std::vector<int>& p) {
-  permutation.set(p, thread_id, stream_id);
+  permutation.setAsync(p, linalg::util::getStream(thread_id, stream_id));
 }
 
 template <typename parameters_type>
@@ -133,7 +133,7 @@ void N_MATRIX_TOOLS<dca::linalg::GPU, parameters_type>::compute_G_cols(
     std::vector<double>& exp_V_CPU, dca::linalg::Matrix<double, dca::linalg::GPU>& N,
     dca::linalg::Matrix<double, dca::linalg::GPU>& G,
     dca::linalg::Matrix<double, dca::linalg::GPU>& G_cols) {
-  exp_V.set(exp_V_CPU, thread_id, stream_id);
+  exp_V.setAsync(exp_V_CPU, linalg::util::getStream(thread_id, stream_id));
 
   assert(N.nrRows() == G.nrRows());
   assert(N.nrRows() == G_cols.nrRows());
