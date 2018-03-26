@@ -8,19 +8,20 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //
 // PAPI and time event.
+//
+// TODO: Unit test this file.
 
 #ifndef DCA_PROFILING_EVENTS_PAPI_AND_TIME_EVENT_HPP
 #define DCA_PROFILING_EVENTS_PAPI_AND_TIME_EVENT_HPP
 
 #include <mutex>
-#include <papi.h>
 #include <string>
 #include <thread>
 #include <vector>
 
-#include "dca/profiling/events/time_event.hpp"
+#include <papi.h>
 
-// TODO: test this file.
+#include "dca/profiling/events/time_event.hpp"
 
 namespace dca {
 namespace profiling {
