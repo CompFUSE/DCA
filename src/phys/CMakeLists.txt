@@ -3,4 +3,4 @@ add_subdirectory(dca_analysis)
 add_subdirectory(dca_step)
 add_subdirectory(domains)
 
-add_library(phys STATIC four_point_type.cpp)
+add_library(enumerations STATIC four_point_type.cpp)
