@@ -138,6 +138,12 @@ TYPED_TEST(VectorOperationsRealTest, InnerProduct) {
               500 * this->epsilon);
 }
 
+TYPED_TEST(VectorOperationsRealTest, ScalarInnerProduct) {
+  using ScalarType = TypeParam;
+  ScalarType x(3.14), y(42);
+  EXPECT_EQ(x * y, dca::math::util::innerProduct(x, y));
+}
+
 TYPED_TEST(VectorOperationsComplexTest, InnerProduct) {
   using ComplexType = TypeParam;
   const ComplexType res = dca::math::util::innerProduct(this->v, this->w);
