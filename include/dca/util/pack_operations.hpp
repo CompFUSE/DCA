@@ -32,15 +32,13 @@ struct if_all<b> {
   constexpr static bool value = b;
 };
 
-template<typename T>
-constexpr T product(T first)
-{
+template <typename T>
+constexpr T product(T first) {
   return first;
 }
 
-template<typename T, class ... Args>
-constexpr T product(T first, Args... args)
-{
+template <typename T, class... Args>
+constexpr T product(T first, Args... args) {
   return first * product<Args...>(args...);
 }
 

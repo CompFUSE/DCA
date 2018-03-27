@@ -7,7 +7,9 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// No-change test for MC posix wrapper.
+// No-change test for the stdthread solver wrapper. The base solver is CT-AUX and the model is
+// a square lattice with nearest neighbours hopping. Two and single particles Green's function are
+// tested.
 
 #include <iostream>
 #include <string>
@@ -50,7 +52,7 @@ using Data = dca::phys::DcaData<Parameters>;
 using BaseSolver = dca::phys::solver::CtauxClusterSolver<dca::linalg::GPU, Parameters, Data>;
 using QmcSolver = dca::phys::solver::StdThreadQmciClusterSolver<BaseSolver>;
 
-TEST(PosixCtauxClusterSolverTest, G_k_w) {
+TEST(StdthreadCtauxClusterSolverTest, GreensFunctions) {
   dca::linalg::util::initializeMagma();
   Concurrency concurrency(0, nullptr);
   if (concurrency.id() == concurrency.first()) {
@@ -74,7 +76,7 @@ TEST(PosixCtauxClusterSolverTest, G_k_w) {
   dca::phys::DcaLoopData<Parameters> loop_data;
   qmc_solver.finalize(loop_data);
 
-  if (not UPDATE_RESULTS) {
+  if (!UPDATE_RESULTS) {
     // Read and confront with previous run.
     if (concurrency.id() == 0) {
       auto G_k_w_check = data.G_k_w;

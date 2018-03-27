@@ -126,7 +126,6 @@ void FourPointParameters<lattice_dimension>::readWrite(ReaderOrWriter& reader_or
   try {
     reader_or_writer.open_group("four-point");
 
-    // Read four point mode.
     std::string four_point_name = toString(static_cast<FourPointType>(four_point_type_));
     try {
       reader_or_writer.execute("type", four_point_name);

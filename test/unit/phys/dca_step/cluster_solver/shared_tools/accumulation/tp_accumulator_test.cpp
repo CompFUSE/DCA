@@ -67,7 +67,7 @@ TEST_F(G0Setup, Accumulate) {
   dca::io::HDF5Writer writer;
   dca::io::HDF5Reader reader;
 
-  if(UPDATE_RESULTS)
+  if (UPDATE_RESULTS)
     writer.open_file("G4_result.hdf5");
   else
     reader.open_file(input_dir + "G4_result.hdf5");
@@ -82,11 +82,11 @@ TEST_F(G0Setup, Accumulate) {
     const int sign = 1;
     nonlocal_chi_obj.execute(sign, nonlocal_G_obj);
 
-    if(UPDATE_RESULTS) {
+    if (UPDATE_RESULTS) {
       G4.set_name("G4_" + toString(type));
       writer.execute(G4);
     }
-    else{
+    else {
       G4_check.set_name("G4_" + toString(type));
       reader.execute(G4_check);
       const auto diff = dca::func::utils::difference(G4, G4_check);
@@ -94,7 +94,7 @@ TEST_F(G0Setup, Accumulate) {
     }
   }
 
-  if(UPDATE_RESULTS)
+  if (UPDATE_RESULTS)
     writer.close_file();
   else
     reader.close_file();

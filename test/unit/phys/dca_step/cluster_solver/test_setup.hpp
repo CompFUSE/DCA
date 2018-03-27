@@ -7,7 +7,7 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// This files provide a setup for parameters and data used by cluster solver tests.
+// This files provides an utils to the cluster solver tests for setting up Parameters and DcaData.
 
 #ifndef DCA_TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_TEST_SETUP_HPP
 #define DCA_TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_TEST_SETUP_HPP
@@ -58,7 +58,7 @@ struct G0Setup : public ::testing::Test {
   using NuDmn = func::dmn_variadic<BDmn, SDmn>;
   using WDmn = func::dmn_0<phys::domains::frequency_domain>;
 
-   Concurrency concurrency;
+  Concurrency concurrency;
   Parameters parameters;
   std::unique_ptr<Data> data;
   //  phys::solver::ctint::InteractionVertices interaction_vertices;

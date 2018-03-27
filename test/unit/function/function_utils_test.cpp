@@ -45,7 +45,7 @@ TEST(FunctionUtilsTest, Difference) {
   auto diff2 = dca::func::utils::difference(f2, f_float);
   EXPECT_NEAR(0., diff2.l2, 1e-7);
 
-  // Test with different complex types
+  // Test with different complex types.
   Function<4, std::complex<float>> f_c;
   Function<4, std::complex<double>> f_z;
   for (int i = 0; i < f_c.size(); ++i) {
