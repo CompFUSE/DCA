@@ -13,6 +13,7 @@
 
 #include <iostream>
 #include <string>
+#include <dca/parallel/stdthread/stdthread.hpp>
 
 #include "gtest/gtest.h"
 
@@ -22,6 +23,7 @@
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
+#include "dca/parallel/stdthread/stdthread.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp"
@@ -30,7 +32,6 @@
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
-#include "dca/parallel/pthreading/pthreading.hpp"
 #include "dca/phys/parameters/parameters.hpp"
 #include "dca/profiling/null_profiler.hpp"
 #include "dca/testing/minimalist_printer.hpp"
@@ -45,7 +46,7 @@ using Concurrency = dca::parallel::NoConcurrency;
 using RngType = dca::math::random::StdRandomWrapper<std::mt19937_64>;
 using Lattice = dca::phys::models::square_lattice<dca::phys::domains::D4>;
 using Model = dca::phys::models::TightBindingModel<Lattice>;
-using Threading = dca::parallel::Pthreading;
+using Threading = dca::parallel::stdthread;
 using Parameters = dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler,
                                                  Model, RngType, dca::phys::solver::CT_AUX>;
 using Data = dca::phys::DcaData<Parameters>;
@@ -65,7 +66,6 @@ TEST(StdthreadCtauxClusterSolverTest, GreensFunctions) {
   parameters.update_model();
   parameters.update_domains();
 
-  // Initialize data with G0 computation.
   Data data(parameters);
   data.initialize();
 
