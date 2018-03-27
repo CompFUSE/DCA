@@ -22,13 +22,10 @@ FourPointType readFourPointMode(const std::string& name) {
     return NONE;
   else if (name == "PARTICLE_PARTICLE_UP_DOWN")
     return PARTICLE_PARTICLE_UP_DOWN;
-
   else if (name == "PARTICLE_HOLE_TRANSVERSE")
     return PARTICLE_HOLE_TRANSVERSE;
-
   else if (name == "PARTICLE_HOLE_MAGNETIC")
     return PARTICLE_HOLE_MAGNETIC;
-
   else if (name == "PARTICLE_HOLE_CHARGE")
     return PARTICLE_HOLE_CHARGE;
   else
