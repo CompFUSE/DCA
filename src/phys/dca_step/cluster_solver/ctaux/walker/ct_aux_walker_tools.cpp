@@ -334,7 +334,7 @@ double CT_AUX_WALKER_TOOLS<dca::linalg::CPU>::solve_Gamma_blocked(
     double new_min = (Gamma_val < min) ? Gamma_val : min;
 
     // The Gamma matrix is too ill-conditioned, don't accept this move.
-    if ((new_max / new_min) > 1.e6) {
+    if (new_max > new_min * 1.e6) {
       // For interactions between the same spin type we might do another update with the same Gamma
       // matrix.
       // Since the current diagonal element should not be considered for max/min, we need to already
