@@ -18,4 +18,6 @@ if (DCA_HAVE_CUDA)
     walker/tools/g0_interpolation/g0_interpolation_kernels.cu
     walker/tools/g_matrix_tools/g_matrix_tools_kernels.cu
     walker/tools/n_matrix_tools/n_matrix_tools_kernels.cu)
+
+  target_compile_definitions(ctaux_walker_kernels PRIVATE -DDCA_HAVE_CUDA)
 endif()

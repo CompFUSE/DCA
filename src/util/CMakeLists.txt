@@ -9,6 +9,9 @@ add_custom_target(git_version_helper
 
 dca_add_library(git_version STATIC ${CMAKE_CURRENT_BINARY_DIR}/git_version.cpp)
 add_dependencies(git_version git_version_helper)
+if(DCA_HAVE_CUDA)
+  target_compile_definitions(git_version PRIVATE -DDCA_HAVE_CUDA)
+endif()
 
 # Modules
 add_custom_target(modules_helper
