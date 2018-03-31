@@ -32,11 +32,11 @@ class RichardsonLucyDeconvolution {
 public:
   RichardsonLucyDeconvolution(parameters_type& parameters_ref);
 
-  void execute(dca::linalg::Matrix<double, dca::linalg::CPU>& matrix,
+  void execute(const dca::linalg::Matrix<double, dca::linalg::CPU>& matrix,
                func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_source,
                func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_target);
 
-  void execute(dca::linalg::Matrix<double, dca::linalg::CPU>& A,
+  void execute(const dca::linalg::Matrix<double, dca::linalg::CPU>& A,
                func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_source,
                func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_approx,
                func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_target);
@@ -80,7 +80,7 @@ RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::RichardsonLucyDe
 
 template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
 void RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
-    dca::linalg::Matrix<double, dca::linalg::CPU>& A,
+    const dca::linalg::Matrix<double, dca::linalg::CPU>& A,
     func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_source,
     func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_target) {
   assert(A.size().first == k_dmn_t::dmn_size());
@@ -130,7 +130,7 @@ void RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
 
 template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
 void RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
-    dca::linalg::Matrix<double, dca::linalg::CPU>& A,
+    const dca::linalg::Matrix<double, dca::linalg::CPU>& A,
     func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_source,
     func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_approx,
     func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_target) {
