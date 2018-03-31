@@ -53,6 +53,13 @@ public:
     return T_symmetrized_;
   }
 
+  const auto& get_T_source() const {
+    return T_source_;
+  }
+  const auto& get_T_source_symmetrized() const {
+    return T_source_symmetrized_;
+  }
+
 private:
   void compute_phi_inv(double epsilon);
 
@@ -68,8 +75,12 @@ protected:
 
 private:
   func::function<double, target_r_dmn_t> phi_r_;
+
   dca::linalg::Matrix<double, dca::linalg::CPU> T_;
   dca::linalg::Matrix<double, dca::linalg::CPU> T_symmetrized_;
+
+  dca::linalg::Matrix<double, dca::linalg::CPU> T_source_;
+  dca::linalg::Matrix<double, dca::linalg::CPU> T_source_symmetrized_;
 };
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
@@ -82,7 +93,11 @@ deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::deconvo
 
       T_("T", std::make_pair(target_k_dmn_t::dmn_size(), target_k_dmn_t::dmn_size())),
       T_symmetrized_("T-symmetrized",
-                     std::make_pair(target_k_dmn_t::dmn_size(), target_k_dmn_t::dmn_size())) {
+                     std::make_pair(target_k_dmn_t::dmn_size(), target_k_dmn_t::dmn_size())),
+
+      T_source_("T-source", std::make_pair(source_k_dmn_t::dmn_size(), target_k_dmn_t::dmn_size())),
+      T_source_symmetrized_("T-source-symmetrized",
+                            std::make_pair(source_k_dmn_t::dmn_size(), target_k_dmn_t::dmn_size())) {
   clustermapping::coarsegraining_sp<parameters_type, source_k_dmn_t> coarsegrain_obj(parameters);
 
   coarsegrain_obj.compute_phi_r(phi_r_);
@@ -90,9 +105,13 @@ deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::deconvo
   func::function<double, target_r_dmn_t> phi_r_symmetrized(phi_r_, "phi_symmetrized(r)");
   symmetrize::execute(phi_r_symmetrized);
 
-  // Compute target domain to target domain projection operators.
+  // Compute target (lattice) k-domain to target k-domain projection operators.
   initializeProjectionOperator<target_k_dmn_t>(phi_r_, T_);
   initializeProjectionOperator<target_k_dmn_t>(phi_r_symmetrized, T_symmetrized_);
+
+  // Compute target (lattice) k-domain to source (cluster) k-domain projection operators.
+  initializeProjectionOperator<source_k_dmn_t>(phi_r_, T_source_);
+  initializeProjectionOperator<source_k_dmn_t>(phi_r_symmetrized, T_source_symmetrized_);
 }
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>

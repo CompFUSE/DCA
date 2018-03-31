@@ -54,6 +54,7 @@ TEST(DeconvolutionRoutinesTest, ProjectionOperator) {
   phys::latticemapping::deconvolution_routines<ParametersType, KSourceDmn, KTargetDmn> deconv_routines(
       parameters);
 
+  // Target (lattice) k-domain to target k-domain projection operators
   const auto& projection_op = deconv_routines.get_T();
   const auto& projection_op_symmetrized = deconv_routines.get_T_symmetrized();
 
@@ -70,4 +71,19 @@ TEST(DeconvolutionRoutinesTest, ProjectionOperator) {
   EXPECT_DOUBLE_EQ(0.14867881635766231, projection_op_symmetrized(0, 1));
   EXPECT_DOUBLE_EQ(0.14867881635766231, projection_op_symmetrized(0, 2));
   EXPECT_DOUBLE_EQ(0.033011297458547091, projection_op_symmetrized(0, 3));
+
+  // Target (lattice) k-domain to source (cluster) k-domain projection operators
+  const auto& projection_op_source = deconv_routines.get_T_source();
+  const auto& projection_op_source_symmetrized = deconv_routines.get_T_source_symmetrized();
+
+  // projection_op_source.print();
+  // projection_op_source_symmetrized.print();
+
+  // Source (cluster) k-domain and target (lattice) k-domain are identical in this example (see
+  // input file).
+  for (int j = 0; j < projection_op.size().second; j++)
+    for (int i = 0; i < projection_op.size().second; i++) {
+      EXPECT_DOUBLE_EQ(projection_op(i, j), projection_op_source(i, j));
+      EXPECT_DOUBLE_EQ(projection_op_symmetrized(i, j), projection_op_source_symmetrized(i, j));
+    }
 }
