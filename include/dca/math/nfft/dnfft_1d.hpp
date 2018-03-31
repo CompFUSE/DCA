@@ -18,6 +18,7 @@
 #ifndef DCA_MATH_NFFT_DNFFT_1D_HPP
 #define DCA_MATH_NFFT_DNFFT_1D_HPP
 
+#include <algorithm>
 #include <cassert>
 #include <complex>
 #include <mutex>
@@ -47,9 +48,7 @@ public:
   using ThisType = Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>;
   using ElementType = ScalarType;
 
-public:
   Dnfft1D();
-  Dnfft1D(ThisType&& other) = default;
 
   void initialize();
 
@@ -63,12 +62,11 @@ public:
   void accumulate(const int* subind, ScalarType t_val, ScalarType f_val);
 
   // Performs the final FFT on the accumulated function.
-  // Out: f_w
   template <typename OtherScalarType>
   void finalize(func::function<std::complex<OtherScalarType>, func::dmn_variadic<WDmn, PDmn>>& f_w);
 
-  // Sums the accumulated data in the time domain.
-  ThisType& operator+=(const ThisType& other_one);
+  // Sums the accumulated data (in the time domain) of other to this.
+  ThisType& operator+=(const ThisType& other);
 
   constexpr int get_oversampling() const {
     return oversampling;
@@ -102,7 +100,6 @@ private:
   using PaddedTimePDmn = func::dmn_variadic<PaddedTimeDmn, PDmn>;
   using LeftOrientedPDmn = func::dmn_variadic<LeftOrientedTimeDmn, PDmn>;
 
-private:
   static void initializeDomains(const ThisType& this_obj);
   static void initializeStaticFunctions();
 
@@ -111,21 +108,25 @@ private:
   void convoluteToFTauFineCubicInterpolation(int index, ScalarType t_val, ScalarType f_val);
 
   void foldTimeDomainBack();
+
   template <typename OtherScalarType>
   void transformFTauToFW(
       func::function<std::complex<OtherScalarType>, func::dmn_variadic<WDmn, PDmn>>& f_w) const;
 
-private:
   func::function<ScalarType, PaddedTimePDmn> f_tau_;
 
-  static inline ScalarType tau(int idx);
-  static inline ScalarType fineTau(int idx);
+  static inline ScalarType tau(int idx) {
+    return PaddedTimeDmn::get_elements()[idx];
+  }
+  static inline ScalarType fineTau(int idx) {
+    return WindowFunctionTimeDmn::get_elements()[idx];
+  }
 
   static inline auto& get_convolution_time_values();
   static inline auto& get_linear_convolution_matrices();
   static inline auto& get_cubic_convolution_matrices();
 
-  static func::function<ScalarType, WDmn>& get_phi_wn();
+  static inline auto& get_phi_wn();
 };
 
 template <typename ScalarType, typename WDmn, typename PDmn, int oversampling, NfftModeNames mode>
@@ -159,11 +160,12 @@ void Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>::initializeDomains(cons
   nfft_time_domain<WINDOW_FUNCTION, ThisType>::initialize(this_obj);
   nfft_time_domain<FOLDED_WINDOW_FUNCTION, ThisType>::initialize(this_obj);
 
-  if (mode == LINEAR or mode == CUBIC) {
+  if (mode == LINEAR || mode == CUBIC) {
     auto& convolution_times = get_convolution_time_values();
     convolution_times.reset();
-    for (int i = 0; i < OversamplingDmn::dmn_size(); i++)
-      for (int j = 0; j < WindowSamplingDmn::dmn_size(); j++)
+
+    for (int i = 0; i < OversamplingDmn::dmn_size(); ++i)
+      for (int j = 0; j < WindowSamplingDmn::dmn_size(); ++j)
         convolution_times(i, j) =
             nfft_time_domain<WINDOW_FUNCTION,
                              ThisType>::get_elements()[j + i * WindowSamplingDmn::dmn_size()];
@@ -182,12 +184,13 @@ void Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>::initializeStaticFuncti
   else if (mode == CUBIC)
     get_cubic_convolution_matrices().reset();
 
-  if (mode == LINEAR or mode == CUBIC) {
+  if (mode == LINEAR || mode == CUBIC) {
     int index = 0;
     auto& convolution_time_values = get_convolution_time_values();
     ScalarType delta = convolution_time_values(0, 1) - convolution_time_values(0, 0);
-    for (int i = 0; i < OversamplingDmn::dmn_size(); i++) {
-      for (int j = 0; j < WindowSamplingDmn::dmn_size(); j++) {
+
+    for (int i = 0; i < OversamplingDmn::dmn_size(); ++i) {
+      for (int j = 0; j < WindowSamplingDmn::dmn_size(); ++j) {
         assert(std::abs(convolution_time_values(i, j) - fineTau(index)) < 1.e-6);
 
         ScalarType tau = convolution_time_values(i, j);
@@ -220,8 +223,8 @@ void Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>::initializeStaticFuncti
   }
 
   auto& phi_wn = get_phi_wn();
-  const std::vector<int>& matsubara_freq_indices = WDmn::parameter_type::get_indices();
-  for (int l = 0; l < WDmn::dmn_size(); l++)
+  const auto& matsubara_freq_indices = WDmn::parameter_type::get_indices();
+  for (int l = 0; l < WDmn::dmn_size(); ++l)
     phi_wn(l) = WindowFunction::phi_wn(matsubara_freq_indices[l]);
 }
 
@@ -268,18 +271,6 @@ void Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>::finalize(
 }
 
 template <typename ScalarType, typename WDmn, typename PDmn, int oversampling, NfftModeNames mode>
-ScalarType Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>::tau(const int idx) {
-  // INTERNAL: consider recomputing rather than storing.
-  return PaddedTimeDmn::get_elements()[idx];
-}
-
-template <typename ScalarType, typename WDmn, typename PDmn, int oversampling, NfftModeNames mode>
-ScalarType Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>::fineTau(const int idx) {
-  // INTERNAL: consider recomputing rather than storing.
-  return WindowFunctionTimeDmn::get_elements()[idx];
-}
-
-template <typename ScalarType, typename WDmn, typename PDmn, int oversampling, NfftModeNames mode>
 void Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>::convoluteToFTauExact(
     const int index, const ScalarType t_val, const ScalarType f_val) {
   assert(t_val > -0.5 - 1.e-6 && t_val < 0.5 + 1.e-6);
@@ -289,7 +280,7 @@ void Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>::convoluteToFTauExact(
 
   int lambda_0 = (t_val - T_0) * one_div_Delta;
 
-  for (int l = -oversampling; l <= oversampling; l++)
+  for (int l = -oversampling; l <= oversampling; ++l)
     f_tau_(lambda_0 + l, index) += f_val * WindowFunction::phi_t(tau(lambda_0 + l) - t_val);
 }
 
@@ -389,7 +380,7 @@ void Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>::foldTimeDomainBack() {
   assert(n >= padding);
 
   for (int p_ind = 0; p_ind < PDmn::dmn_size(); ++p_ind) {
-    // Fold left side
+    // Fold left side.
     for (int t_ind = 0; t_ind < padding; ++t_ind)
       f_tau_(t_ind + n, p_ind) += f_tau_(t_ind, p_ind);
     // Fold right side.
@@ -420,17 +411,17 @@ void Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>::transformFTauToFW(
   fftw_mutex.unlock();
 
   func::function<std::complex<ScalarType>, LeftOrientedPDmn> f_omega;
-  for (int p_ind = 0; p_ind < PDmn::dmn_size(); p_ind++) {
+  for (int p_ind = 0; p_ind < PDmn::dmn_size(); ++p_ind) {
     std::copy_n(&f_tau_(padding, p_ind), n, f_in.data());
 
     fftw_execute(plan);
 
-    for (int t_ind = 0; t_ind < n / 2; t_ind++) {
+    for (int t_ind = 0; t_ind < n / 2; ++t_ind) {
       f_omega(t_ind, p_ind).real(-f_out[t_ind].real());
       f_omega(t_ind, p_ind).imag(f_out[t_ind].imag());
     }
 
-    for (int t_ind = n / 2; t_ind < n; t_ind++) {
+    for (int t_ind = n / 2; t_ind < n; ++t_ind) {
       f_omega(t_ind, p_ind).real(-f_out[n - t_ind].real());
       f_omega(t_ind, p_ind).imag(-f_out[n - t_ind].imag());
     }
@@ -439,27 +430,27 @@ void Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>::transformFTauToFW(
   fftw_destroy_plan(plan);
 
   std::vector<int> w_indices(0);
-  const std::vector<int>& matsubara_freq_indices = WDmn::parameter_type::get_indices();
-  for (int w_ind = 0; w_ind < WDmn::dmn_size(); w_ind++) {
-    for (int t_ind = 0; t_ind < n; t_ind++) {
-      if (matsubara_freq_indices[w_ind] == t_ind or matsubara_freq_indices[w_ind] + n == t_ind) {
+  const auto& matsubara_freq_indices = WDmn::parameter_type::get_indices();
+  for (int w_ind = 0; w_ind < WDmn::dmn_size(); ++w_ind) {
+    for (int t_ind = 0; t_ind < n; ++t_ind) {
+      if (matsubara_freq_indices[w_ind] == t_ind || matsubara_freq_indices[w_ind] + n == t_ind) {
         w_indices.push_back(t_ind);
         break;
       }
     }
   }
 
-  for (int p_ind = 0; p_ind < PDmn::dmn_size(); p_ind++)
-    for (int w_ind = 0; w_ind < WDmn::dmn_size(); w_ind++)
+  for (int p_ind = 0; p_ind < PDmn::dmn_size(); ++p_ind)
+    for (int w_ind = 0; w_ind < WDmn::dmn_size(); ++w_ind)
       f_w(w_ind, p_ind) = f_omega(w_indices[w_ind], p_ind) / get_phi_wn()(w_ind);
 
   f_w *= 1. / n;
 }
 
 template <typename ScalarType, typename WDmn, typename PDmn, int oversampling, NfftModeNames mode>
-Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>& Dnfft1D<
-    ScalarType, WDmn, PDmn, oversampling, mode>::operator+=(const ThisType& other_one) {
-  f_tau_ += other_one.f_tau_;
+Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>& Dnfft1D<ScalarType, WDmn, PDmn, oversampling,
+                                                             mode>::operator+=(const ThisType& other) {
+  f_tau_ += other.f_tau_;
   return *this;
 }
 
@@ -488,7 +479,7 @@ auto& Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>::get_cubic_convolution
 }
 
 template <typename ScalarType, typename WDmn, typename PDmn, int oversampling, NfftModeNames mode>
-func::function<ScalarType, WDmn>& Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>::get_phi_wn() {
+auto& Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>::get_phi_wn() {
   static func::function<ScalarType, WDmn> phi_wn("phi_wn");
   return phi_wn;
 }
