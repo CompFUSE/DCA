@@ -82,8 +82,7 @@ public:
 };
 
 template <NfftTimeDomainNames NAME, typename dnfft_type>
-typename nfft_time_domain<NAME, dnfft_type>::scalar_type& nfft_time_domain<
-    NAME, dnfft_type>::first_element() {
+typename nfft_time_domain<NAME, dnfft_type>::scalar_type& nfft_time_domain<NAME, dnfft_type>::first_element() {
   switch (NAME) {
     case LEFT_ORIENTED: {
       static scalar_type first;
@@ -147,13 +146,13 @@ void nfft_time_domain<NAME, dnfft_type>::initialize(const dnfft_type& dnfft_obj)
 
       case PADDED: {
         /*!
-         *   \tau \in [-0.5-2*OVER_SAMPLING, -0.5-2*OVER_SAMPLING+delta,
-         * -0.5-2*OVER_SAMPLING+2*\delta, ... , 0.5+2*OVER_SAMPLING-\delta]
+         *   \tau \in [-0.5-2*OVER_SAMPLING*delta, -0.5-2*OVER_SAMPLING*delta+delta,
+         *             -0.5-2*OVER_SAMPLING*delta+2*\delta, ... , 0.5+2*OVER_SAMPLING*delta-\delta]
          */
 
-        get_size() = OVER_SAMPLING * MAX_FREQUENCY + 2 * OVER_SAMPLING;
+        get_size() = OVER_SAMPLING * MAX_FREQUENCY + 4 * OVER_SAMPLING;
 
-        get_elements().resize(get_size(), -0.5 - OVER_SAMPLING * Delta);
+        get_elements().resize(get_size(), -0.5 - 2. * OVER_SAMPLING * Delta);
 
         for (int l = 0; l < get_size(); l++)
           get_elements()[l] += l * Delta;
