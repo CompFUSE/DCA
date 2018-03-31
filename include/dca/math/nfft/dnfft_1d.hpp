@@ -85,7 +85,7 @@ private:
   static constexpr int window_sampling_ = 32;
   static constexpr double window_function_sigma_ = 2.;
 
-  using WindowFunction = kaiser_bessel_function<ThisType>;
+  using WindowFunction = kaiser_bessel_function;
 
   using LinearCoefficientsDmn = func::dmn_0<nfft_linear_coefficients_domain>;
   using CubicCoefficientsDmn = func::dmn_0<nfft_cubic_coefficients_domain>;
