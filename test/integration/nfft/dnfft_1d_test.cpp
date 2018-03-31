@@ -22,7 +22,7 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
-#include "dca/function/function_utils.hpp"
+#include "dca/function/util/difference.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
@@ -80,7 +80,7 @@ TEST(Dnfft1DTest, CubicInterpolation) {
   computeWithDnfft(t, f, dnfft_obj, f_w_dnfft);
 
   // Check errors.
-  const auto err = dca::func::utils::difference(f_w_dft, f_w_dnfft);
+  const auto err = dca::func::util::difference(f_w_dft, f_w_dnfft);
 
   EXPECT_LT(err.l1, 1.e-9);
   EXPECT_LT(err.l2, 1.e-9);

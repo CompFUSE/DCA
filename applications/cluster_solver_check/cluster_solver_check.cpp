@@ -20,7 +20,7 @@
 #include "dca/config/cmake_options.hpp"
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
-#include "dca/function/function_utils.hpp"
+#include "dca/function/util/difference.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/math/statistical_testing/function_cut.hpp"
 #include "dca/math/statistical_testing/statistical_testing.hpp"
@@ -130,7 +130,7 @@ int main(int argc, char** argv) {
       }
       catch (std::logic_error& err) {
         std::cerr << "Warning: " << err.what() << "\n";
-        if(test.get_dof() >= concurrency.number_of_processors())
+        if (test.get_dof() >= concurrency.number_of_processors())
           std::cerr << "Not enough ranks.\n";
         std::cerr << "Aborting statistical test.\n";
       }
@@ -147,7 +147,7 @@ int main(int argc, char** argv) {
 
   // Print errors
   if (concurrency.id() == concurrency.first()) {
-    auto errors = dca::func::utils::difference(Sigma_ed, Sigma_qmc);
+    auto errors = dca::func::util::difference(Sigma_ed, Sigma_qmc);
 
     std::cout << "\n|(Sigma_ED - Sigma_QMC)|_1 = " << errors.l1
               << "\n|(Sigma_ED - Sigma_QMC)|_2 = " << errors.l2
