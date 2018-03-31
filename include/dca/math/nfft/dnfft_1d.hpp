@@ -401,18 +401,22 @@ void Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>::foldTimeDomainBack() {
 template <typename ScalarType, typename WDmn, typename PDmn, int oversampling, NfftModeNames mode>
 template <typename OtherScalarType>
 void Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>::transformFTauToFW(
-
     func::function<std::complex<OtherScalarType>, func::dmn_variadic<WDmn, PDmn>>& f_w) const {
   const int n_padded = nfft_time_domain<PADDED, ThisType>::get_size();
   const int n = nfft_time_domain<LEFT_ORIENTED, ThisType>::get_size();
   const int padding = (n_padded - n) / 2;
 
   std::vector<double> f_in(n);
-  std::vector<fftw_complex> f_out(n / 2 + 1);
+
+  // We need to use std::complex<double>, because fftw_complex is just a typedef for double[2] and
+  // as such does not meet the requirements of "Erasable" required by std::vector.
+  std::vector<std::complex<double>> f_out(n / 2 + 1);
 
   static std::mutex fftw_mutex;
   fftw_mutex.lock();
-  fftw_plan plan = fftw_plan_dft_r2c_1d(n, f_in.data(), f_out.data(), FFTW_ESTIMATE);
+  // See http://www.fftw.org/fftw3_doc/Complex-numbers.html for why the cast should be safe.
+  fftw_plan plan = fftw_plan_dft_r2c_1d(
+      n, f_in.data(), reinterpret_cast<fftw_complex*>(f_out.data()), FFTW_ESTIMATE);
   fftw_mutex.unlock();
 
   func::function<std::complex<ScalarType>, LeftOrientedPDmn> f_omega;
@@ -422,13 +426,13 @@ void Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>::transformFTauToFW(
     fftw_execute(plan);
 
     for (int t_ind = 0; t_ind < n / 2; t_ind++) {
-      f_omega(t_ind, p_ind).real(-f_out[t_ind][0]);
-      f_omega(t_ind, p_ind).imag(f_out[t_ind][1]);
+      f_omega(t_ind, p_ind).real(-f_out[t_ind].real());
+      f_omega(t_ind, p_ind).imag(f_out[t_ind].imag());
     }
 
     for (int t_ind = n / 2; t_ind < n; t_ind++) {
-      f_omega(t_ind, p_ind).real(-f_out[n - t_ind][0]);
-      f_omega(t_ind, p_ind).imag(-f_out[n - t_ind][1]);
+      f_omega(t_ind, p_ind).real(-f_out[n - t_ind].real());
+      f_omega(t_ind, p_ind).imag(-f_out[n - t_ind].imag());
     }
   }
 
