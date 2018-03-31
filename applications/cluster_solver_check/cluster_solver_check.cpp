@@ -97,9 +97,9 @@ int main(int argc, char** argv) {
   ed_solver.execute();
   ed_solver.finalize(dca_loop_data);
 
-  auto Sigma_ed(dca_data_imag.Sigma);
+  const auto Sigma_ed(dca_data_imag.Sigma);
   const int tested_frequencies = 10;
-  auto G_ed = dca::math::util::cutFrequency(dca_data_imag.G_k_w, tested_frequencies);
+  const auto G_ed(dca::math::util::cutFrequency(dca_data_imag.G_k_w, tested_frequencies));
 
   if (concurrency.id() == concurrency.first()) {
     ed_solver.write(data_file_ed);
@@ -113,26 +113,29 @@ int main(int argc, char** argv) {
   qmc_solver.integrate();
 
   // If enabled, perform statistical test.
-  double p_val = -1;
+  double p_val = -1.;
   if (perform_statistical_test) {
-    auto G_qmc = dca::math::util::cutFrequency(qmc_solver.local_G_k_w(), tested_frequencies);
+    const auto G_qmc(dca::math::util::cutFrequency(qmc_solver.local_G_k_w(), tested_frequencies));
+
     using KDmn = dca::func::dmn_0<dca::phys::domains::cluster_domain<
         double, Lattice::DIMENSION, dca::phys::domains::CLUSTER, dca::phys::domains::MOMENTUM_SPACE,
         dca::phys::domains::BRILLOUIN_ZONE>>;
+
     dca::func::function<double, dca::math::util::CovarianceDomain<KDmn>> covariance;
     concurrency.computeCovariance(G_qmc, G_ed, covariance);
 
     if (concurrency.id() == concurrency.first()) {
       dca::math::StatisticalTesting test(G_qmc, G_ed, covariance, false);
+
       try {
         p_val = test.computePValue(false, concurrency.number_of_processors());
         test.printInfo("statistical_test_info.txt", true);
       }
       catch (std::logic_error& err) {
-        std::cerr << "Warning: " << err.what() << "\n";
+        std::cerr << "Warning: " << err.what() << std::endl;
         if (test.get_dof() >= concurrency.number_of_processors())
-          std::cerr << "Not enough ranks.\n";
-        std::cerr << "Aborting statistical test.\n";
+          std::cerr << "Not enough ranks." << std::endl;
+        std::cerr << "Aborting statistical test." << std::endl;
       }
     }
   }
@@ -143,18 +146,17 @@ int main(int argc, char** argv) {
     dca_data_imag.write(data_file_qmc);
   }
 
-  auto Sigma_qmc(dca_data_imag.Sigma);
-
-  // Print errors
+  // Print errors.
   if (concurrency.id() == concurrency.first()) {
+    const auto& Sigma_qmc(dca_data_imag.Sigma);
     auto errors = dca::func::util::difference(Sigma_ed, Sigma_qmc);
 
     std::cout << "\n|(Sigma_ED - Sigma_QMC)|_1 = " << errors.l1
               << "\n|(Sigma_ED - Sigma_QMC)|_2 = " << errors.l2
               << "\n|(Sigma_ED - Sigma_QMC)|_inf = " << errors.l_inf << std::endl;
 
-    if (p_val != -1)
-      std::cout << "\n***\nThe p-value is " << p_val << "\n***\n";
+    if (p_val != -1.)
+      std::cout << "\n***\nThe p-value is " << p_val << ".\n***" << std::endl;
   }
 
   Profiler::stop(concurrency, parameters.get_filename_profiling());
