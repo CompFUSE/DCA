@@ -1,1 +1,2 @@
 add_subdirectory(cluster_solver)
+add_subdirectory(lattice_mapping/deconvolution)
