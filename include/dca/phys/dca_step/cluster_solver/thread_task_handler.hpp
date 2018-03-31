@@ -35,9 +35,9 @@ public:
   void print() const {
     for (int i = 0; i < thread_tasks_.size(); ++i) {
       if (thread_tasks_[i] == "walker")
-        std::cout << "\t pthread-id : " << i << "  -->   (walker)\n";
+        std::cout << "\t thread-id : " << i << "  -->   (walker)\n";
       else
-        std::cout << "\t pthread-id : " << i << "  -->   (accumulator)\n";
+        std::cout << "\t thread-id : " << i << "  -->   (accumulator)\n";
     }
   }
 

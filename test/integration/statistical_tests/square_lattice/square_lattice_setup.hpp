@@ -21,12 +21,12 @@
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_cluster_solver.hpp"
-#include "dca/phys/dca_step/cluster_solver/posix_qmci/posix_qmci_cluster_solver.hpp"
+#include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_cluster_solver.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 #include "dca/math/random/random.hpp"
 #include "dca/math/statistical_testing/function_cut.hpp"
 #include "dca/math/statistical_testing/statistical_testing.hpp"
-#include "dca/parallel/pthreading/pthreading.hpp"
+#include "dca/parallel/stdthread/stdthread.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
 #include "dca/phys/parameters/parameters.hpp"
@@ -50,12 +50,12 @@ using Model =
 using RandomNumberGenerator = dca::math::random::StdRandomWrapper<std::mt19937_64>;
 using ParametersType =
     dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType,
-                                  dca::parallel::Pthreading, dca::profiling::NullProfiler, Model,
+                                  dca::parallel::stdthread, dca::profiling::NullProfiler, Model,
                                   RandomNumberGenerator, dca::phys::solver::CT_AUX>;
 using DcaData = dca::phys::DcaData<ParametersType>;
 using QuantumClusterSolver =
     dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, ParametersType, DcaData>;
-using ThreadedSolver = dca::phys::solver::PosixQmciClusterSolver<QuantumClusterSolver>;
+using ThreadedSolver = dca::phys::solver::StdThreadQmciClusterSolver<QuantumClusterSolver>;
 
 using SigmaCutDomain = dca::math::util::SigmaCutDomain<dca::math::util::details::Kdmn>;
 using SigmaDomain = dca::math::util::SigmaDomain<dca::math::util::details::Kdmn>;
