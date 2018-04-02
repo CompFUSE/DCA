@@ -29,6 +29,8 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/domains/common_domains.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_cpu.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_gpu.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_cpu_submatrix.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_choice.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
@@ -81,6 +83,11 @@ public:
     return rng_;
   }
 
+private:
+  using WalkerBase = ctint::CtintWalkerBase<device_t, Parameters>;
+  using WalkerNoSubmatrix =  ctint::CtintWalker<device_t, Parameters>;
+  using WalkerSubmatrix = ctint::CtintWalkerSubmatrix<device_t, Parameters>;
+
 protected:  // thread jacket interface.
   using ParametersType = Parameters;
   using DataType = Data;
@@ -88,8 +95,8 @@ protected:  // thread jacket interface.
   using Profiler = typename Parameters::profiler_type;
   using Concurrency = typename Parameters::concurrency_type;
 
-  using Walker = ctint::CtintWalker<device_t, Parameters>;
-  using Accumulator = ctint::CtintAccumulator<Parameters, device_t>;
+  using Walker = ctint::CtintWalkerSubmatrix<device_t, Parameters>;
+  using Accumulator = ctint::CtintAccumulator<Parameters>;
   using Configuration = ctint::AccumulatorConfiguration;
 
   Walker instantiateWalker(Rng& rng_ref, int id);

@@ -5,7 +5,7 @@
 
 ################################################################################
 # Enable MPI.
-option(DCA_WITH_MPI "Enable MPI." ON)
+option(DCA_WITH_MPI "Enable MPI." OFF)
 
 if (DCA_WITH_MPI)
   include(dca_mpi)
@@ -184,7 +184,7 @@ configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/rng.hpp.in"
 
 ################################################################################
 # Select the cluster solver.
-set(DCA_CLUSTER_SOLVER "CT-AUX" CACHE STRING
+set(DCA_CLUSTER_SOLVER "CT-INT" CACHE STRING
   "The cluster solver for the DCA(+) loop. Options are: CT-AUX | CT-INT | SS-CT-HYB.")
 set_property(CACHE DCA_CLUSTER_SOLVER PROPERTY STRINGS CT-AUX CT-INT SS-CT-HYB)
 

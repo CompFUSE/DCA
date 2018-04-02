@@ -43,6 +43,9 @@ namespace ctint {
 template <dca::linalg::DeviceType device_t, class Parameters>
 class CtintWalker;
 
+template <dca::linalg::DeviceType device_t, class Parameters>
+class CtintWalkerSubmatrix;
+
 template <linalg::DeviceType device_t, class Parameters>
 class CtintWalkerBase {
 public:

@@ -245,6 +245,7 @@ void McSolverParameters<solver::SS_CT_HYB>::readWrite(ReaderOrWriter& reader_or_
   }
 }
 
+  
 // Specialization for CT-INT
 template <>
 class McSolverParameters<solver::CT_INT> {
@@ -282,6 +283,14 @@ public:
     return compute_error_;
   }
 
+  bool useSubmatrix() const {
+    return use_submatrix_;
+  }
+
+  int getMaxSubmatrixSize() const {
+    return max_submatrix_size_;
+  }
+
 private:
   int initial_configuration_size_ = 0;
   double alpha_dd_pos_ = 0.501;
@@ -290,6 +299,9 @@ private:
   double double_update_prob_= 0;
   bool double_counted_interaction_ = true;
   bool compute_error_ = false;
+
+  bool use_submatrix_ = false;
+  int max_submatrix_size_ = 100;
 };
 
 template <typename Concurrency>
@@ -351,6 +363,7 @@ void McSolverParameters<solver::CT_INT>::readWrite(ReaderOrWriter& reader_or_wri
     tryToRead("double-update-probability", double_update_prob_);
     tryToRead("double-counted-interaction", double_counted_interaction_);
     tryToRead("compute-error-bar", compute_error_);
+    tryToRead("use-submatrix", use_submatrix_);
     reader_or_writer.close_group();
   }
   catch (const std::exception& /*r_e*/) {

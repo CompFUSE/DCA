@@ -118,6 +118,12 @@
         "additional-time-measurements": false
     },
 
+    "CT-INT": {
+        "use-submatrix" : true,
+        "max-submatrix-size": 10.,
+	    "initial-configuration-size": 10
+    },
+
     "SS-CT-HYB": {
         "self-energy-tail-cutoff": 0,
         "steps-per-sweep": 0.5,
