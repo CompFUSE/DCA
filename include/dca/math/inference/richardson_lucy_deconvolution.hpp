@@ -48,11 +48,7 @@ public:
 private:
   void initializeMatrices(const func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& source);
 
-  void initialize_errors(func::function<bool, p_dmn_t>& is_finished,
-                         func::function<double, p_dmn_t>& error_function);
-
   bool update_f_target(func::function<bool, p_dmn_t>& is_finished,
-                       func::function<double, p_dmn_t>& error_function,
                        func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_target);
 
 private:
@@ -89,14 +85,13 @@ int RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
   assert(p.size().first == p.size().second);
 
   func::function<bool, p_dmn_t> is_finished("is_finished");
-  func::function<double, p_dmn_t> error_function("error_function");
+  for (int i = 0; i < p_dmn_t::dmn_size(); ++i)
+    is_finished(i) = false;
 
   initializeMatrices(f_source);
 
   // compute c
   linalg::matrixop::gemm(p, u_t, c);
-
-  initialize_errors(is_finished, error_function);
 
   int iters = 0;
   for (; iters < parameters.get_deconvolution_iterations(); ++iters) {
@@ -114,7 +109,7 @@ int RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
     // compute c
     linalg::matrixop::gemm(p, u_t, c);
 
-    bool finished = update_f_target(is_finished, error_function, f_target);
+    bool finished = update_f_target(is_finished, f_target);
 
     if (finished)
       break;
@@ -179,21 +174,8 @@ void RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::initializeM
 }
 
 template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
-void RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::initialize_errors(
-    func::function<bool, p_dmn_t>& is_finished, func::function<double, p_dmn_t>& error_function) {
-  for (int j = 0; j < p_dmn_t::dmn_size(); j++) {
-    double error = 0;
-    for (int i = 0; i < k_dmn_t::dmn_size(); i++)
-      error += std::pow(c(i, j) - d(i, j), 2);
-
-    is_finished(j) = false;
-    error_function(j) = sqrt(error) / k_dmn_t::dmn_size();
-  }
-}
-
-template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
 bool RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::update_f_target(
-    func::function<bool, p_dmn_t>& is_finished, func::function<double, p_dmn_t>& error_function,
+    func::function<bool, p_dmn_t>& is_finished,
     func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_target) {
   bool all_are_finished = true;
 
@@ -209,9 +191,9 @@ bool RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::update_f_ta
         tot += std::pow(d(i, j), 2);
       }
 
-      error_function(j) = std::sqrt(diff / tot);
+      const double error = std::sqrt(diff / tot);
 
-      if (error_function(j) < epsilon) {
+      if (error < epsilon) {
         for (int i = 0; i < k_dmn_t::dmn_size(); i++)
           f_target(i, j) = u_t(i, j);
 
