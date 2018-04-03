@@ -157,6 +157,8 @@ protected:
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>> GS_r_w;
 
   SpAccumulatorNfft<parameters_type, Data> single_particle_accumulator_obj;
+
+  bool finalized_;
 };
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
@@ -181,7 +183,8 @@ SsCtHybAccumulator<device_t, parameters_type, Data>::SsCtHybAccumulator(paramete
       G_r_w("G-r-w-measured"),
       GS_r_w("GS-r-w-measured"),
 
-      single_particle_accumulator_obj(parameters) {}
+      single_particle_accumulator_obj(parameters),
+      finalized_(false) {}
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 void SsCtHybAccumulator<device_t, parameters_type, Data>::initialize(int dca_iteration) {
@@ -193,13 +196,18 @@ void SsCtHybAccumulator<device_t, parameters_type, Data>::initialize(int dca_ite
 
   length = 0;
   overlap = 0;
+
+  finalized_ = false;
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 void SsCtHybAccumulator<device_t, parameters_type,
                         Data>::finalize()  // func::function<double, nu> mu_DC)
 {
+  if (finalized_)
+    return;
   single_particle_accumulator_obj.finalize(G_r_w, GS_r_w);
+  finalized_ = true;
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
@@ -281,16 +289,13 @@ void SsCtHybAccumulator<device_t, parameters_type, Data>::accumulate_overlap(wal
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 void SsCtHybAccumulator<device_t, parameters_type, Data>::sum_to(this_type& other) {
-  finalize();
-
-  other.get_sign() += get_sign();
-  other.get_number_of_measurements() += get_number_of_measurements();
+  other.accumulated_sign += accumulated_sign;
+  other.number_of_measurements += number_of_measurements;
 
   other.get_visited_expansion_order_k() += visited_expansion_order_k;
 
-  // sp-measurements
-  other.get_G_r_w() += G_r_w;
-  other.get_GS_r_w() += GS_r_w;
+
+  single_particle_accumulator_obj.sumTo(other.single_particle_accumulator_obj);
 }
 
 }  // cthyb

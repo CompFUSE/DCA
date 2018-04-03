@@ -355,7 +355,7 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::start_accumulator(int id)
       profiler_type profiler("stdthread-accumulator accumulating", "stdthread-MC-accumulator",
                              __LINE__, id);
       if (id == 1)
-        this->update_shell(i, parameters.get_measurements_per_process(),
+        this->update_shell(i, n_meas,
                            accumulator_obj.get_configuration().size());
 
       accumulator_obj.measure(mutex_queue, accumulators_queue);

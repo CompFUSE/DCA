@@ -583,7 +583,7 @@ auto SsCtHybClusterSolver<device_t, parameters_type, Data>::local_GS_r_w() const
     throw std::logic_error("The local data was already averaged.");
 
   auto GS_r_w = accumulator.get_GS_r_w();
-  GS_r_w /= accumulator.get_sign();
+  GS_r_w /= accumulator.get_accumulated_sign();
 
   return GS_r_w;
 }
