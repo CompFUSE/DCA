@@ -22,7 +22,6 @@
 #include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/matrixop.hpp"
-#include "dca/linalg/vector.hpp"
 
 namespace dca {
 namespace math {
@@ -157,12 +156,12 @@ void RichardsonLucyDeconvolution<k_dmn_t, p_dmn_t>::initializeMatrices(
   u_t.resizeNoCopy(std::make_pair(num_rows, num_cols));
   u_t_p_1.resizeNoCopy(std::make_pair(num_rows, num_cols));
 
-  // Initialize "observed image" d (source).
+  // Initialize d matrix ("observed image") with source function.
   for (int j = 0; j < num_cols; ++j)
     for (int i = 0; i < num_rows; ++i)
       d(i, j) = source(i, j);
 
-  // Initialize iterative solution u_t (target) with sign of column means of d.
+  // Initialize iterative solution u_t with signs of column means of d.
   for (int j = 0; j < num_cols; ++j) {
     double mean = 0.;
     for (int i = 0; i < num_rows; ++i)
