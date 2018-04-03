@@ -45,8 +45,6 @@ public:
   // Constructor:
   // In: G0: non interacting greens function.
   // In: pars: parameters object.
-  // In: accumulate_on_device: if false perform the last multiplication and accumulation step on the
-  //                           host.
   // In: thread_id: thread id, only used by the profiler.
   TpAccumulator(
       const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
@@ -138,7 +136,6 @@ private:
 
   bool finalized_ = false;
 
-  static bool accumulate_on_device_;
   static bool is_initialized_static_;
   static bool is_finalized_static_;
   using G0DevType = std::array<MatrixDev, 2>;
@@ -150,8 +147,6 @@ template <class Parameters>
 typename TpAccumulator<Parameters, linalg::GPU>::G0DevType TpAccumulator<Parameters, linalg::GPU>::G0_;
 template <class Parameters>
 typename TpAccumulator<Parameters, linalg::GPU>::G4DevType TpAccumulator<Parameters, linalg::GPU>::G4_dev_;
-template <class Parameters>
-bool TpAccumulator<Parameters, linalg::GPU>::accumulate_on_device_ = true;
 template <class Parameters>
 bool TpAccumulator<Parameters, linalg::GPU>::is_initialized_static_ = false;
 template <class Parameters>
@@ -177,8 +172,7 @@ void TpAccumulator<Parameters, linalg::GPU>::initialize() {
   {
     std::unique_lock<std::mutex> lock(mutex);
     if (!is_initialized_static_) {
-      if (accumulate_on_device_)
-        initializeG4();
+      initializeG4();
       initializeG0();
       synchronize();
       is_initialized_static_ = true;
@@ -220,7 +214,6 @@ void TpAccumulator<Parameters, linalg::GPU>::initializeG4() {
   catch (...) {
     std::cerr << "Failed to allocate G4 on device.\n";
     G4_dev_.clear();
-    accumulate_on_device_ = false;
   }
 }
 
@@ -286,31 +279,11 @@ void TpAccumulator<Parameters, linalg::GPU>::computeG() {
         computeGSingleband(s);
       else
         computeGMultiband(s);
-      if (!accumulate_on_device_)
-        G_matrix_host_[s].setAsync(G_[s], streams_[s]);
     }
   }
 
   event_.record(streams_[1]);
   event_.block(streams_[0]);
-
-  if (!accumulate_on_device_) {
-    {
-      Profiler prf("Wait on device", "tp-accumulation", __LINE__, thread_id_);
-      cudaStreamSynchronize(streams_[0]);
-    }
-    auto& G_func = BaseClass::G_;
-    func::dmn_variadic<BDmn, KDmn, WTpExtDmn> bkw_dmn;
-    for (int w2 = 0; w2 < WTpExtDmn::dmn_size(); ++w2)
-      for (int w1 = 0; w1 < WTpExtPosDmn::dmn_size(); ++w1)
-        for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
-          for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1)
-            for (int s = 0; s < 2; ++s)
-              for (int b2 = 0; b2 < n_bands_; ++b2)
-                for (int b1 = 0; b1 < n_bands_; ++b1)
-                  G_func(b1, b2, s, k1, k2, w1, w2) =
-                      G_matrix_host_[s](bkw_dmn(b1, k1, w1), bkw_dmn(b2, k2, w2));
-  }
 }
 
 template <class Parameters>
@@ -336,11 +309,6 @@ void TpAccumulator<Parameters, linalg::GPU>::updateG4() {
   //        |           |
   //        |           |
   // b2 ------------------------ b4
-
-  if (!accumulate_on_device_) {  // Accumulate on Host.
-    BaseClass::updateG4();
-    return;
-  }
 
   switch (mode_) {
     case PARTICLE_HOLE_MAGNETIC:
@@ -373,22 +341,21 @@ void TpAccumulator<Parameters, linalg::GPU>::finalize() {
   if (finalized_)
     return;
 
-  if (accumulate_on_device_) {
-    static std::mutex mutex;
-    std::unique_lock<std::mutex> lock(mutex);
+  static std::mutex mutex;
+  std::unique_lock<std::mutex> lock(mutex);
 
-    if (!is_finalized_static_) {
-      if (!G4_)
-        G4_.reset(new TpGreenFunction("G4"));
+  if (!is_finalized_static_) {
+    if (!G4_)
+      G4_.reset(new TpGreenFunction("G4"));
 
-      cudaMemcpyAsync(G4_->values(), G4_dev_.ptr(), G4_->size() * sizeof(Complex),
-                      cudaMemcpyDeviceToHost, streams_[0]);
-      // INTERNAL: release memory if needed by the rest of the DCA loop.
-      // cudaStreamsynchronize(streams_[0]);
-      // G4_dev_.clear();
-      is_finalized_static_ = true;
-    }
+    cudaMemcpyAsync(G4_->values(), G4_dev_.ptr(), G4_->size() * sizeof(Complex),
+                    cudaMemcpyDeviceToHost, streams_[0]);
+    // INTERNAL: release memory if needed by the rest of the DCA loop.
+    // cudaStreamsynchronize(streams_[0]);
+    // G4_dev_.clear();
+    is_finalized_static_ = true;
   }
+
   synchronize();
   finalized_ = true;
   is_initialized_static_ = false;
@@ -401,16 +368,10 @@ void TpAccumulator<Parameters, linalg::GPU>::synchronize() {
 }
 
 template <class Parameters>
-void TpAccumulator<Parameters, linalg::GPU>::sumTo(this_type& other_one) {
-  if (accumulate_on_device_) {  // Nothing to do: G4 on the device is shared.
-    synchronize();
-    return;
-  }
-  if (!finalized_)
-    finalize();
-  if (!other_one.finalized_)
-    other_one.finalize();
-  BaseClass::sumTo(other_one);
+void TpAccumulator<Parameters, linalg::GPU>::sumTo(this_type& /*other_one*/) {
+  // Nothing to do: G4 on the device is shared.
+  synchronize();
+  return;
 }
 
 }  // accumulator
