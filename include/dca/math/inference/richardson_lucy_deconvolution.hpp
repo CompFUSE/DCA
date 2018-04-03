@@ -57,7 +57,6 @@ private:
 
 private:
   parameters_type& parameters;
-  typename parameters_type::concurrency_type& concurrency;
 
   linalg::Matrix<double, linalg::CPU> c;
   linalg::Matrix<double, linalg::CPU> d;
@@ -72,7 +71,6 @@ template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
 RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::RichardsonLucyDeconvolution(
     parameters_type& parameters_ref)
     : parameters(parameters_ref),
-      concurrency(parameters.get_concurrency()),
 
       c("c (Richardson_Lucy_deconvolution)"),
       d("d (Richardson_Lucy_deconvolution)"),
