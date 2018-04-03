@@ -22,7 +22,7 @@
 #include "dca/phys/four_point_type.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
 
-constexpr bool UPDATE_RESULTS = false;
+constexpr bool update_baseline = false;
 
 struct ConfigElement {
   double get_tau() const {
@@ -67,10 +67,10 @@ TEST_F(G0Setup, Accumulate) {
   dca::io::HDF5Writer writer;
   dca::io::HDF5Reader reader;
 
-  if (UPDATE_RESULTS)
-    writer.open_file("G4_result.hdf5");
+  if (update_baseline)
+    writer.open_file("tp_accumulator_test_baseline.hdf5");
   else
-    reader.open_file(input_dir + "G4_result.hdf5");
+    reader.open_file(input_dir + "tp_accumulator_test_baseline.hdf5");
 
   for (const dca::phys::FourPointType type :
        {dca::phys::PARTICLE_HOLE_TRANSVERSE, dca::phys::PARTICLE_HOLE_MAGNETIC,
@@ -82,7 +82,7 @@ TEST_F(G0Setup, Accumulate) {
     const int sign = 1;
     nonlocal_chi_obj.execute(sign, nonlocal_G_obj);
 
-    if (UPDATE_RESULTS) {
+    if (update_baseline) {
       G4.set_name("G4_" + toString(type));
       writer.execute(G4);
     }
@@ -94,7 +94,7 @@ TEST_F(G0Setup, Accumulate) {
     }
   }
 
-  if (UPDATE_RESULTS)
+  if (update_baseline)
     writer.close_file();
   else
     reader.close_file();
