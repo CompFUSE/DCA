@@ -46,7 +46,7 @@ public:
               func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_target);
 
 private:
-  void initialize_matrices(const func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_source);
+  void initializeMatrices(const func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& source);
 
   void initialize_errors(func::function<bool, p_dmn_t>& is_finished,
                          func::function<double, p_dmn_t>& error_function);
@@ -91,7 +91,7 @@ int RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
   func::function<bool, p_dmn_t> is_finished("is_finished");
   func::function<double, p_dmn_t> error_function("error_function");
 
-  initialize_matrices(f_source);
+  initializeMatrices(f_source);
 
   // compute c
   linalg::matrixop::gemm(p, u_t, c);
@@ -150,31 +150,31 @@ int RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
 }
 
 template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
-void RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::initialize_matrices(
-    const func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_source) {
-  int nr_rows = k_dmn_t::dmn_size();
-  int nr_cols = p_dmn_t::dmn_size();
+void RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::initializeMatrices(
+    const func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& source) {
+  const int num_rows = k_dmn_t::dmn_size();
+  const int num_cols = p_dmn_t::dmn_size();
 
-  c.resizeNoCopy(std::pair<int, int>(nr_rows, nr_cols));
-  d.resizeNoCopy(std::pair<int, int>(nr_rows, nr_cols));
+  c.resizeNoCopy(std::make_pair(num_rows, num_cols));
+  d.resizeNoCopy(std::make_pair(num_rows, num_cols));
+  d_over_c.resizeNoCopy(std::make_pair(num_rows, num_cols));
+  u_t.resizeNoCopy(std::make_pair(num_rows, num_cols));
+  u_t_p_1.resizeNoCopy(std::make_pair(num_rows, num_cols));
 
-  d_over_c.resizeNoCopy(std::pair<int, int>(nr_rows, nr_cols));
+  // Initialize "observed image" d (source).
+  for (int j = 0; j < num_cols; ++j)
+    for (int i = 0; i < num_rows; ++i)
+      d(i, j) = source(i, j);
 
-  u_t.resizeNoCopy(std::pair<int, int>(nr_rows, nr_cols));
-  u_t_p_1.resizeNoCopy(std::pair<int, int>(nr_rows, nr_cols));
+  // Initialize iterative solution u_t (target) with sign of column means of d.
+  for (int j = 0; j < num_cols; ++j) {
+    double mean = 0.;
+    for (int i = 0; i < num_rows; ++i)
+      mean += d(i, j);
+    mean /= num_rows;
 
-  for (int j = 0; j < nr_cols; j++)
-    for (int i = 0; i < nr_rows; i++)
-      d(i, j) = f_source(i, j);
-
-  for (int j = 0; j < nr_cols; j++) {
-    double mean = 0;
-    for (int i = 0; i < nr_rows; i++)
-      mean += f_source(i, j);
-    mean /= nr_rows;
-
-    for (int i = 0; i < nr_rows; i++)
-      u_t(i, j) = mean / std::abs(mean);  // u_t(i,j) = mean;
+    for (int i = 0; i < num_rows; ++i)
+      u_t(i, j) = mean / std::abs(mean);  // Used to be: u_t(i,j) = mean.
   }
 }
 
