@@ -27,6 +27,7 @@
 #include "dca/linalg/linalg.hpp"
 #include "dca/math/function_transform/function_transform.hpp"
 #include "dca/math/statistics/util.hpp"
+#include "dca/parallel/util/get_workload.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/ctaux_walker.hpp"
 #include "dca/phys/dca_step/symmetrization/symmetrize.hpp"
@@ -240,9 +241,7 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::integrate() {
 
   if (concurrency.id() == concurrency.first()) {
     std::cout << "On-node integration has ended: " << dca::util::print_time()
-              << "\n\nTotal number of measurements: "
-              << concurrency.number_of_processors() * parameters.get_measurements_per_process()
-              << std::endl;
+              << "\n\nTotal number of measurements: " << parameters.get_measurements() << std::endl;
   }
 }
 
@@ -341,7 +340,9 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::measure(walker_type& w
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t measuring has started \n" << std::endl;
 
-  for (int i = 0; i < parameters.get_measurements_per_process(); i++) {
+  const int n_meas = parallel::util::getWorkload(parameters.get_measurements(), 1, 0, concurrency);
+
+  for (int i = 0; i < n_meas; i++) {
     {
       profiler_type profiler("updating", "QMCI", __LINE__);
       walker.do_sweep();
@@ -356,7 +357,7 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::measure(walker_type& w
     int N_s = walker.get_configuration().size();
     int N_k = walker.get_configuration().get_number_of_interacting_HS_spins();
 
-    update_shell(i, parameters.get_measurements_per_process(), N_k, N_s);
+    update_shell(i, n_meas, N_k, N_s);
   }
 
   accumulator.finalize();

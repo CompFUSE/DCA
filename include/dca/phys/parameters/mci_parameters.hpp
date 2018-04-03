@@ -32,7 +32,7 @@ public:
       : seed_(default_seed),
         warm_up_sweeps_(20),
         sweeps_per_measurement_(1),
-        measurements_per_process_(100),
+        measurements_(100),
         walkers_(1),
         accumulators_(1),
         shared_walk_and_accumulation_thread_(false),
@@ -58,12 +58,12 @@ public:
   int get_sweeps_per_measurement() const {
     return sweeps_per_measurement_;
   }
-  int get_measurements_per_process() const {
-    return measurements_per_process_;
+  int get_measurements() const {
+    return measurements_;
   }
-  void set_measurements_per_process(const int measurements) {
+  void set_measurements(const int measurements) {
     assert(measurements >= 0);
-    measurements_per_process_ = measurements;
+    measurements_ = measurements;
   }
   int get_walkers() const {
     return walkers_;
@@ -93,7 +93,7 @@ private:
   int seed_;
   int warm_up_sweeps_;
   int sweeps_per_measurement_;
-  int measurements_per_process_;
+  int measurements_;
   int walkers_;
   int accumulators_;
   bool shared_walk_and_accumulation_thread_;
@@ -108,7 +108,7 @@ int MciParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(seed_);
   buffer_size += concurrency.get_buffer_size(warm_up_sweeps_);
   buffer_size += concurrency.get_buffer_size(sweeps_per_measurement_);
-  buffer_size += concurrency.get_buffer_size(measurements_per_process_);
+  buffer_size += concurrency.get_buffer_size(measurements_);
   buffer_size += concurrency.get_buffer_size(walkers_);
   buffer_size += concurrency.get_buffer_size(accumulators_);
   buffer_size += concurrency.get_buffer_size(shared_walk_and_accumulation_thread_);
@@ -124,7 +124,7 @@ void MciParameters::pack(const Concurrency& concurrency, char* buffer, int buffe
   concurrency.pack(buffer, buffer_size, position, seed_);
   concurrency.pack(buffer, buffer_size, position, warm_up_sweeps_);
   concurrency.pack(buffer, buffer_size, position, sweeps_per_measurement_);
-  concurrency.pack(buffer, buffer_size, position, measurements_per_process_);
+  concurrency.pack(buffer, buffer_size, position, measurements_);
   concurrency.pack(buffer, buffer_size, position, walkers_);
   concurrency.pack(buffer, buffer_size, position, accumulators_);
   concurrency.pack(buffer, buffer_size, position, shared_walk_and_accumulation_thread_);
@@ -138,7 +138,7 @@ void MciParameters::unpack(const Concurrency& concurrency, char* buffer, int buf
   concurrency.unpack(buffer, buffer_size, position, seed_);
   concurrency.unpack(buffer, buffer_size, position, warm_up_sweeps_);
   concurrency.unpack(buffer, buffer_size, position, sweeps_per_measurement_);
-  concurrency.unpack(buffer, buffer_size, position, measurements_per_process_);
+  concurrency.unpack(buffer, buffer_size, position, measurements_);
   concurrency.unpack(buffer, buffer_size, position, walkers_);
   concurrency.unpack(buffer, buffer_size, position, accumulators_);
   concurrency.unpack(buffer, buffer_size, position, shared_walk_and_accumulation_thread_);
@@ -196,6 +196,12 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     catch (const std::exception& r_e) {
     }
 
+    try {
+      reader_or_writer.execute("measurements", measurements_);
+    }
+    catch (const std::exception& r_e) {
+    }
+
     // Read error computation type.
     std::string error_type = toString(static_cast<ErrorComputationType>(error_computation_type_));
     try {
@@ -227,20 +233,6 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
       reader_or_writer.close_group();
     }
     catch (const std::exception& r_e) {
-    }
-
-    // Read measurements-per-process or measurements-per-process-per-accumulator.
-    try {
-      reader_or_writer.execute("measurements-per-process", measurements_per_process_);
-    }
-    catch (const std::exception& r_e) {
-      try {
-        reader_or_writer.execute("measurements-per-process-and-accumulator",
-                                 measurements_per_process_);
-        measurements_per_process_ *= accumulators_;
-      }
-      catch (const std::exception& r_e) {
-      }
     }
 
     // TODO: adjust_self_energy_for_double_counting has no effect at the moment. Use default value

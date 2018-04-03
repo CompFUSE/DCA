@@ -58,7 +58,7 @@
   : {
     "warm-up-sweeps" : 10000,
     "sweeps-per-measurement" : 1,
-    "measurements-per-process" : 4000000,
+    "measurements" : 4000000,
 
     "adaptive-double-counting" : 0,
 

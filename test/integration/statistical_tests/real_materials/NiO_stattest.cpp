@@ -126,7 +126,7 @@ TEST(Ni0, GS) {
     reader.open_group("parameters");
     int reference_n_meas;
     reader.execute("measurements_per_node", reference_n_meas);
-    EXPECT_EQ(reference_n_meas, parameters.get_measurements_per_process());
+    EXPECT_EQ(reference_n_meas, parameters.get_measurements());
     reader.close_group();
     reader.close_file();
 
@@ -152,7 +152,7 @@ TEST(Ni0, GS) {
       writer.execute(cov);
       writer.close_group();
       writer.open_group("parameters");
-      writer.execute("measurements_per_node", parameters.get_measurements_per_process());
+      writer.execute("measurements_per_node", parameters.get_measurements());
       writer.execute("nodes", n_processes);
       writer.close_group();
       writer.close_file();

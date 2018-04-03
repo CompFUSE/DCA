@@ -24,6 +24,7 @@
 #include "dca/phys/dca_step/cluster_solver/thread_task_handler.hpp"
 #include "dca/profiling/events/time.hpp"
 #include "dca/util/print_time.hpp"
+#include "dca/parallel/util/get_workload.hpp"
 
 namespace dca {
 namespace phys {
@@ -71,7 +72,6 @@ private:
   void start_walker_and_accumulator(int id);
 
   void warm_up(walker_type& walker, int id);
-  int getWorkload(int tot_meas, int n_workers, int id) const;
 
   // TODO: Are the following using statements redundant and can therefore be removed?
   using qmci_integrator_type::compute_error_bars;
@@ -187,9 +187,7 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::integrate() {
 
   if (concurrency.id() == concurrency.first()) {
     std::cout << "Threaded on-node integration has ended: " << dca::util::print_time()
-              << "\n\nTotal number of measurements: "
-              << concurrency.number_of_processors() * parameters.get_measurements_per_process()
-              << std::endl;
+              << "\n\nTotal number of measurements: " << parameters.get_measurements() << std::endl;
   }
 
   qmci_integrator_type::accumulator.finalize();
@@ -324,23 +322,14 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::warm_up(walker_type& walk
 }
 
 template <class qmci_integrator_type>
-int StdThreadQmciClusterSolver<qmci_integrator_type>::getWorkload(int tot_meas, int n_workers,
-                                                                  int id) const {
-  int work = tot_meas / n_workers;
-  if (id < tot_meas % n_workers)
-    ++work;
-  return work;
-}
-
-template <class qmci_integrator_type>
 void StdThreadQmciClusterSolver<qmci_integrator_type>::start_accumulator(int id) {
   stdthread_accumulator_type accumulator_obj(parameters, data_, id);
 
   accumulator_obj.initialize(DCA_iteration);
 
-  const int n_meas =
-      getWorkload(parameters.get_measurements_per_process(), parameters.get_accumulators(),
-                  thread_task_handler_.IDToAccumIndex(id));
+  const int n_meas = parallel::util::getWorkload(parameters.get_measurements(), parameters.get_accumulators(),
+                                 thread_task_handler_.IDToAccumIndex(id), concurrency);
+
   for (int i = 0; i < n_meas; ++i) {
     {
       std::lock_guard<std::mutex> lock(mutex_queue);
@@ -385,7 +374,7 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::start_walker_and_accumula
   accumulator_obj.initialize(DCA_iteration);
 
   const int n_meas =
-      getWorkload(parameters.get_measurements_per_process(), parameters.get_accumulators(), id);
+      parallel::util::getWorkload(parameters.get_measurements(), parameters.get_accumulators(), id, concurrency);
 
   for (int i = 0; i < n_meas; ++i) {
     {

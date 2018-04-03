@@ -288,10 +288,7 @@ void CtauxAccumulator<device_t, parameters_type, Data>::finalize() {
     for (int l = 0; l < M_r_w_stddev.size(); l++)
       M_r_w_stddev(l) = std::sqrt(abs(M_r_w_squared(l)) - std::pow(abs(M_r_w(l)), 2));
 
-    double factor =
-        1. / std::sqrt(1 +
-                       concurrency.number_of_processors() * parameters.get_accumulators() *
-                           parameters.get_measurements_per_process());
+    double factor = 1. / std::sqrt(parameters.get_measurements() - 1);
 
     M_r_w_stddev *= factor;
   }
@@ -547,7 +544,7 @@ void CtauxAccumulator<device_t, parameters_type, Data>::sum_to(this_type& other)
   single_particle_accumulator_obj.sumTo(other.single_particle_accumulator_obj);
 
   // tp-measurements
-  if(perform_tp_accumulation_)
+  if (perform_tp_accumulation_)
     two_particle_accumulator_.sumTo(other.two_particle_accumulator_);
 }
 

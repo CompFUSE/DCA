@@ -44,7 +44,7 @@
         "seed": 985456376,
         "warm-up-sweeps": 10,
         "sweeps-per-measurement": 10,
-        "measurements-per-process-and-accumulator": 5000
+        "measurements": 5000
     },
 
     "CT-AUX": {

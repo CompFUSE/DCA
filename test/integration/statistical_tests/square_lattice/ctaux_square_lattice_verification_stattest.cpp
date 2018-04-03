@@ -60,7 +60,7 @@ TEST(CtauxSquareLatticeVerificationTest, GreensFunction) {
     reader.open_group("parameters");
     int reference_n_meas;
     reader.execute("measurements_per_node", reference_n_meas);
-    EXPECT_EQ(reference_n_meas, parameters.get_measurements_per_process());
+    EXPECT_EQ(reference_n_meas, parameters.get_measurements());
     reader.close_file();
 
     dca::math::StatisticalTesting test(G_k_w_measured, G_k_w_expected, G_k_w_covariance, 1);
@@ -85,9 +85,7 @@ TEST(CtauxSquareLatticeVerificationTest, GreensFunction) {
       writer.close_group();
       // store the number of used measurements
       writer.open_group("parameters");
-      writer.execute("measurements_per_node",
-                     parameters.get_measurements_per_process() *
-                         parameters.get_accumulators());
+      writer.execute("measurements_per_node", parameters.get_measurements());
       writer.execute("nodes", number_of_samples);
       writer.close_group();
       writer.close_file();
