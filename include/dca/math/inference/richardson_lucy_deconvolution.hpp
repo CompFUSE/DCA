@@ -36,8 +36,8 @@ public:
 
   // Returns the number of iterations executed.
   int execute(const linalg::Matrix<double, linalg::CPU>& p,
-              const func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_source,
-              func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_target);
+              const func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& source,
+              func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& target);
 
   // Returns the number of iterations executed.
   int execute(const linalg::Matrix<double, linalg::CPU>& p,
@@ -48,7 +48,7 @@ public:
 private:
   void initializeMatrices(const func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& source);
 
-  bool computeError();
+  bool finished();
 
 private:
   const double tolerance_;
@@ -84,48 +84,44 @@ RichardsonLucyDeconvolution<k_dmn_t, p_dmn_t>::RichardsonLucyDeconvolution(const
 template <typename k_dmn_t, typename p_dmn_t>
 int RichardsonLucyDeconvolution<k_dmn_t, p_dmn_t>::execute(
     const linalg::Matrix<double, linalg::CPU>& p,
-    const func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_source,
-    func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_target) {
+    const func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& source,
+    func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& target) {
   assert(p.size().first == k_dmn_t::dmn_size());
-  assert(p.size().first == p.size().second);
+  assert(p.is_square());
 
   // Reset is_finished_.
   for (int i = 0; i < p_dmn_t::dmn_size(); ++i)
     is_finished_(i) = false;
 
-  initializeMatrices(f_source);
+  // Initialize u_t and d.
+  initializeMatrices(source);
 
-  // compute c
-  linalg::matrixop::gemm(p, u_t, c);
-
-  int iters = 0;
-  for (; iters < max_iterations_; ++iters) {
-    for (int j = 0; j < p_dmn_t::dmn_size(); j++)
-      for (int i = 0; i < k_dmn_t::dmn_size(); i++)
-        d_over_c(i, j) = d(i, j) / c(i, j);
-
-    // compute u_t_plus_1
-    linalg::matrixop::gemm('T', 'N', p, d_over_c, u_t_p_1);
-
-    for (int j = 0; j < p_dmn_t::dmn_size(); j++)
-      for (int i = 0; i < k_dmn_t::dmn_size(); i++)
-        u_t(i, j) = u_t_p_1(i, j) * u_t(i, j);
-
-    // compute c
+  int iterations = 0;
+  while (!finished() && iterations < max_iterations_) {
+    // Compute c.
     linalg::matrixop::gemm(p, u_t, c);
 
-    bool finished = computeError();
+    // Compute d_over_c.
+    for (int j = 0; j < p_dmn_t::dmn_size(); ++j)
+      for (int i = 0; i < k_dmn_t::dmn_size(); ++i)
+        d_over_c(i, j) = d(i, j) / c(i, j);
 
-    if (finished)
-      break;
+    // Compute u_{t+1}.
+    linalg::matrixop::gemm('T', 'N', p, d_over_c, u_t_p_1);
+
+    for (int j = 0; j < p_dmn_t::dmn_size(); ++j)
+      for (int i = 0; i < k_dmn_t::dmn_size(); ++i)
+        u_t(i, j) = u_t_p_1(i, j) * u_t(i, j);
+
+    ++iterations;
   }
 
   // Copy iterative solution matrix into returned target function.
   for (int j = 0; j < p_dmn_t::dmn_size(); ++j)
     for (int i = 0; i < k_dmn_t::dmn_size(); ++i)
-      f_target(i, j) = u_t(i, j);
+      target(i, j) = u_t(i, j);
 
-  return iters;
+  return iterations;
 }
 
 template <typename k_dmn_t, typename p_dmn_t>
@@ -179,7 +175,7 @@ void RichardsonLucyDeconvolution<k_dmn_t, p_dmn_t>::initializeMatrices(
 }
 
 template <typename k_dmn_t, typename p_dmn_t>
-bool RichardsonLucyDeconvolution<k_dmn_t, p_dmn_t>::computeError() {
+bool RichardsonLucyDeconvolution<k_dmn_t, p_dmn_t>::finished() {
   bool all_finished = true;
 
   for (int j = 0; j < p_dmn_t::dmn_size(); ++j) {
