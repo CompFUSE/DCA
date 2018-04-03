@@ -48,11 +48,13 @@ public:
 private:
   void initializeMatrices(const func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& source);
 
-  bool computeError(func::function<bool, p_dmn_t>& is_finished);
+  bool computeError();
 
 private:
   const double tolerance_;
   const int max_iterations_;
+
+  func::function<bool, p_dmn_t> is_finished_;
 
   linalg::Matrix<double, linalg::CPU> c;
   linalg::Matrix<double, linalg::CPU> d;
@@ -68,6 +70,8 @@ RichardsonLucyDeconvolution<k_dmn_t, p_dmn_t>::RichardsonLucyDeconvolution(const
                                                                            const int max_iterations)
     : tolerance_(tolerance),
       max_iterations_(max_iterations),
+
+      is_finished_("is_finished"),
 
       c("c (Richardson_Lucy_deconvolution)"),
       d("d (Richardson_Lucy_deconvolution)"),
@@ -85,9 +89,9 @@ int RichardsonLucyDeconvolution<k_dmn_t, p_dmn_t>::execute(
   assert(p.size().first == k_dmn_t::dmn_size());
   assert(p.size().first == p.size().second);
 
-  func::function<bool, p_dmn_t> is_finished("is_finished");
+  // Reset is_finished_.
   for (int i = 0; i < p_dmn_t::dmn_size(); ++i)
-    is_finished(i) = false;
+    is_finished_(i) = false;
 
   initializeMatrices(f_source);
 
@@ -110,7 +114,7 @@ int RichardsonLucyDeconvolution<k_dmn_t, p_dmn_t>::execute(
     // compute c
     linalg::matrixop::gemm(p, u_t, c);
 
-    bool finished = computeError(is_finished);
+    bool finished = computeError();
 
     if (finished)
       break;
@@ -175,12 +179,11 @@ void RichardsonLucyDeconvolution<k_dmn_t, p_dmn_t>::initializeMatrices(
 }
 
 template <typename k_dmn_t, typename p_dmn_t>
-bool RichardsonLucyDeconvolution<k_dmn_t, p_dmn_t>::computeError(
-    func::function<bool, p_dmn_t>& is_finished) {
-  bool all_are_finished = true;
+bool RichardsonLucyDeconvolution<k_dmn_t, p_dmn_t>::computeError() {
+  bool all_finished = true;
 
   for (int j = 0; j < p_dmn_t::dmn_size(); ++j) {
-    if (!is_finished(j)) {
+    if (!is_finished_(j)) {
       double diff_squared = 0.;
       double norm_d_squared = 0.;
 
@@ -193,14 +196,14 @@ bool RichardsonLucyDeconvolution<k_dmn_t, p_dmn_t>::computeError(
       const double error = std::sqrt(diff_squared / norm_d_squared);
 
       if (error < tolerance_)
-        is_finished(j) = true;
+        is_finished_(j) = true;
 
       else
-        all_are_finished = false;
+        all_finished = false;
     }
   }
 
-  return all_are_finished;
+  return all_finished;
 }
 
 }  // inference
