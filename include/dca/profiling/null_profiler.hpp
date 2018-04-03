@@ -30,8 +30,8 @@ public:
   template <typename ParallelProcessingType>
   static void stop(const ParallelProcessingType& /*parallelProcessing*/, std::string /*fileName*/) {}
 
-  static void start_pthreading(int /*id*/) {}
-  static void stop_pthreading(int /*id*/) {}
+  static void start_threading(int /*id*/) {}
+  static void stop_threading(int /*id*/) {}
 };
 
 }  // profiling

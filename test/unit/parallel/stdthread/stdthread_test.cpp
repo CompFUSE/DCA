@@ -7,10 +7,13 @@
 //
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// This file tests pthreading.hpp.
+// This file tests stdthread.hpp.
 
-#include "dca/config/threading.hpp"
+#include "dca/parallel/stdthread/stdthread.hpp"
+
 #include "gtest/gtest.h"
+
+using Threading = dca::parallel::stdthread;
 
 void* start_routine(void* arg) {
   dca::parallel::ThreadingData* data_ptr = static_cast<dca::parallel::ThreadingData*>(arg);
@@ -26,7 +29,7 @@ void* start_routine(void* arg) {
   return 0;
 }
 
-TEST(PthreadingTest, Execute) {
+TEST(StdthreadTest, Execute) {
   Threading threading;
 
   const int num_threads = 4;

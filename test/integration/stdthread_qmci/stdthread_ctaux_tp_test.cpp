@@ -18,7 +18,7 @@
 #include "gtest/gtest.h"
 
 #include "dca/function/function.hpp"
-#include "dca/function/function_utils.hpp"
+#include "dca/function/util/difference.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_reader.hpp"
@@ -62,7 +62,8 @@ TEST(StdthreadCtauxTest, GreensFunctions) {
   }
 
   Parameters parameters(dca::util::GitVersion::string(), concurrency);
-  parameters.read_input_and_broadcast<dca::io::JSONReader>(input_dir + "input.json");
+  parameters.read_input_and_broadcast<dca::io::JSONReader>(input_dir +
+                                                           "stdthread_ctaux_tp_test_input.json");
   parameters.update_model();
   parameters.update_domains();
 
@@ -89,8 +90,8 @@ TEST(StdthreadCtauxTest, GreensFunctions) {
       reader.execute(G4_check);
       reader.close_file();
 
-      const auto err_g = dca::func::utils::difference(G_k_w_check, data.G_k_w);
-      const  auto err_g4 = dca::func::utils::difference(G4_check, data.get_G4_k_k_w_w());
+      const auto err_g = dca::func::util::difference(G_k_w_check, data.G_k_w);
+      const auto err_g4 = dca::func::util::difference(G4_check, data.get_G4_k_k_w_w());
 
       EXPECT_GE(5e-7, err_g.l_inf);
       EXPECT_GE(5e-7, err_g4.l_inf);

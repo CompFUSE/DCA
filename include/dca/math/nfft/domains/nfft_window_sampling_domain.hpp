@@ -42,7 +42,7 @@ public:
     return elements;
   }
 
-  static void initialize(dnfft_type& dnfft_obj) {
+  static void initialize(const dnfft_type& dnfft_obj) {
     get_size() = dnfft_obj.get_window_sampling();
   }
 };

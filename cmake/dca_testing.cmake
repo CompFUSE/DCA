@@ -12,7 +12,6 @@ include(CMakeParseArguments)
 #               [FAST | EXTENSIVE | VALIDATION | PERFORMANCE]
 #               [GTEST_MAIN]
 #               [MPI [MPI_NUMPROC procs]]
-#               [PTHREADS]
 #               [CUDA]
 #               [INCLUDE_DIRS dir1 [dir2 ...]]
 #               [SOURCES src1 [src2 ...]]
@@ -21,10 +20,10 @@ include(CMakeParseArguments)
 # Adds a test called 'name', the source is assumed to be 'name.cpp'.
 # The type of the test can be FAST, EXTENSIVE, VALIDATION or PERFORMANCE (mutually exclusive
 # options). If no option is specified, the default is FAST.
-# MPI, PTHREADS or CUDA may be given to indicate that the test requires these libraries. MPI_NUMPROC
-# is the number of MPI processes to use for an test with MPI, the default value is 1.
+# MPI or CUDA may be given to indicate that the test requires these libraries. MPI_NUMPROC is the
+# number of MPI processes to use for a test with MPI, the default value is 1.
 function(dca_add_gtest name)
-  set(options FAST EXTENSIVE VALIDATION PERFORMANCE GTEST_MAIN MPI PTHREADS STDTHREAD CUDA)
+  set(options FAST EXTENSIVE VALIDATION PERFORMANCE GTEST_MAIN MPI CUDA)
   set(oneValueArgs MPI_NUMPROC)
   set(multiValueArgs INCLUDE_DIRS SOURCES LIBS)
   cmake_parse_arguments(DCA_ADD_GTEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
@@ -41,8 +40,6 @@ function(dca_add_gtest name)
                                        [FAST | EXTENSIVE | VALIDATION | PERFORMANCE]\n
                                        [GTEST_MAIN]\n
                                        [MPI [MPI_NUMPROC procs]]\n
-                                       [PTHREADS]\n
-                                       [STDTHREAD]\n
                                        [CUDA]\n
                                        [INCLUDE_DIRS dir1 [dir2 ...]]\n
                                        [SOURCES src1 [src2 ...]]\n
@@ -80,19 +77,6 @@ function(dca_add_gtest name)
     return()
   endif()
 
-  # don't run tests unless the threading model matches the one intended
-  if(DCA_ADD_GTEST_PTHREADS OR DCA_ADD_GTEST_STDTHREAD)
-    set(test_valid_ 0)
-    if (DCA_ADD_GTEST_PTHREADS AND (DCA_THREADING_LIBRARY STREQUAL POSIX))
-      set(test_valid_ 1)
-    elseif (DCA_ADD_GTEST_STDTHREAD AND (DCA_THREADING_LIBRARY STREQUAL STDTHREAD))
-      set(test_valid_ 1)
-    endif()
-    if (NOT test_valid_)
-      return()
-    endif()
-  endif()
-
   if (DCA_ADD_GTEST_CUDA AND NOT DCA_HAVE_CUDA)
     return()
   endif()
@@ -109,10 +93,6 @@ function(dca_add_gtest name)
   else()
     # Test has its own main.
     target_link_libraries(${name} gtest ${DCA_ADD_GTEST_LIBS})
-  endif()
-
-  if (DCA_ADD_GTEST_PTHREADS)
-    target_compile_definitions(${name} PRIVATE DCA_HAVE_PTHREADS)
   endif()
 
   if (DCA_ADD_GTEST_CUDA)

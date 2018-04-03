@@ -29,8 +29,8 @@ class nfft_time_domain {
 public:
   const static int DIMENSION = 1;
 
-  typedef typename dnfft_type::scalar_type scalar_type;
-  typedef typename dnfft_type::scalar_type element_type;
+  using scalar_type = typename dnfft_type::ElementType;
+  using element_type = typename dnfft_type::ElementType;
 
   typedef transform::domain_specifications<scalar_type, element_type, transform::DISCRETE,
                                            transform::KRONECKER_DELTA, transform::PERIODIC,
@@ -78,11 +78,11 @@ public:
     return one_div_Delta;
   }
 
-  static void initialize(dnfft_type& dnfft_obj);
+  static void initialize(const dnfft_type& dnfft_obj);
 };
 
 template <NfftTimeDomainNames NAME, typename dnfft_type>
-typename dnfft_type::scalar_type& nfft_time_domain<NAME, dnfft_type>::first_element() {
+typename nfft_time_domain<NAME, dnfft_type>::scalar_type& nfft_time_domain<NAME, dnfft_type>::first_element() {
   switch (NAME) {
     case LEFT_ORIENTED: {
       static scalar_type first;
@@ -109,7 +109,7 @@ typename dnfft_type::scalar_type& nfft_time_domain<NAME, dnfft_type>::first_elem
  *   \delta = \frac{1}{OVER_SAMPLING*MAX_FREQUENCY}*\frac{1}{WINDOW_SAMPLING}
  */
 template <NfftTimeDomainNames NAME, typename dnfft_type>
-void nfft_time_domain<NAME, dnfft_type>::initialize(dnfft_type& dnfft_obj) {
+void nfft_time_domain<NAME, dnfft_type>::initialize(const dnfft_type& dnfft_obj) {
   if (not is_initialized()) {
     // cout << "\n\n\n\n\n\t\t " << __FUNCTION__ << " " << get_name() << "\n\n\n\n\n";
 
@@ -146,13 +146,13 @@ void nfft_time_domain<NAME, dnfft_type>::initialize(dnfft_type& dnfft_obj) {
 
       case PADDED: {
         /*!
-         *   \tau \in [-0.5-2*OVER_SAMPLING, -0.5-2*OVER_SAMPLING+delta,
-         * -0.5-2*OVER_SAMPLING+2*\delta, ... , 0.5+2*OVER_SAMPLING-\delta]
+         *   \tau \in [-0.5-OVER_SAMPLING*\delta, -0.5-OVER_SAMPLING*\delta+\delta,
+         *             -0.5-OVER_SAMPLING*\delta+2*\delta, ... , 0.5+OVER_SAMPLING*\delta-\delta]
          */
 
-        get_size() = OVER_SAMPLING * MAX_FREQUENCY + 4 * OVER_SAMPLING;
+        get_size() = OVER_SAMPLING * MAX_FREQUENCY + 2 * OVER_SAMPLING;
 
-        get_elements().resize(get_size(), -0.5 - 2. * OVER_SAMPLING * Delta);
+        get_elements().resize(get_size(), -0.5 - OVER_SAMPLING * Delta);
 
         for (int l = 0; l < get_size(); l++)
           get_elements()[l] += l * Delta;

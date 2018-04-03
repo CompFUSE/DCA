@@ -17,7 +17,7 @@
 #include <string>
 #include <vector>
 
-#include "dca/function/function_utils.hpp"
+#include "dca/function/util/difference.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/phys/four_point_type.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
@@ -89,7 +89,7 @@ TEST_F(G0Setup, Accumulate) {
     else {
       G4_check.set_name("G4_" + toString(type));
       reader.execute(G4_check);
-      const auto diff = dca::func::utils::difference(G4, G4_check);
+      const auto diff = dca::func::util::difference(G4, G4_check);
       EXPECT_GT(1e-8, diff.l_inf);
     }
   }

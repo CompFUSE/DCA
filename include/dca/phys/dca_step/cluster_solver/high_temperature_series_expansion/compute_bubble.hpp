@@ -151,14 +151,14 @@ void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded_
 
     args.concurrency_ptr = &concurrency;
 
-    Threading pthreads;
+    Threading threads;
     switch (channel_value) {
       case ph:
-        pthreads.execute(nr_threads, threaded_execute_on_cluster_ph, (void*)&args);
+        threads.execute(nr_threads, threaded_execute_on_cluster_ph, (void*)&args);
         break;
 
       case pp:
-        pthreads.execute(nr_threads, threaded_execute_on_cluster_pp, (void*)&args);
+        threads.execute(nr_threads, threaded_execute_on_cluster_pp, (void*)&args);
         break;
 
       default:
