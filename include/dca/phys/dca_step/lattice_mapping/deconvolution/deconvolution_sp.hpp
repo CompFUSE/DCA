@@ -80,8 +80,8 @@ void deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(
   typedef func::dmn_0<func::dmn<2, int>> z;
   typedef func::dmn_variadic<z, b, b, s, w> p_dmn_t;
 
-  math::inference::RichardsonLucyDeconvolution<parameters_type, target_k_dmn_t, p_dmn_t> RL_obj(
-      parameters);
+  math::inference::RichardsonLucyDeconvolution<target_k_dmn_t, p_dmn_t> RL_obj(
+      parameters.get_deconvolution_tolerance(), parameters.get_deconvolution_iterations());
 
   func::function<double, func::dmn_variadic<target_k_dmn_t, p_dmn_t>> S_source("S_source");
   func::function<double, func::dmn_variadic<target_k_dmn_t, p_dmn_t>> S_approx("S_approx");

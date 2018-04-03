@@ -29,10 +29,10 @@ namespace math {
 namespace inference {
 // dca::math::inference::
 
-template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
+template <typename k_dmn_t, typename p_dmn_t>
 class RichardsonLucyDeconvolution {
 public:
-  RichardsonLucyDeconvolution(parameters_type& parameters_ref);
+  RichardsonLucyDeconvolution(const double tolerance, const int max_iterations);
 
   // Returns the number of iterations executed.
   int execute(const linalg::Matrix<double, linalg::CPU>& p,
@@ -51,7 +51,8 @@ private:
   bool computeError(func::function<bool, p_dmn_t>& is_finished);
 
 private:
-  parameters_type& parameters;
+  const double tolerance_;
+  const int max_iterations_;
 
   linalg::Matrix<double, linalg::CPU> c;
   linalg::Matrix<double, linalg::CPU> d;
@@ -62,10 +63,11 @@ private:
   linalg::Matrix<double, linalg::CPU> u_t_p_1;
 };
 
-template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
-RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::RichardsonLucyDeconvolution(
-    parameters_type& parameters_ref)
-    : parameters(parameters_ref),
+template <typename k_dmn_t, typename p_dmn_t>
+RichardsonLucyDeconvolution<k_dmn_t, p_dmn_t>::RichardsonLucyDeconvolution(const double tolerance,
+                                                                           const int max_iterations)
+    : tolerance_(tolerance),
+      max_iterations_(max_iterations),
 
       c("c (Richardson_Lucy_deconvolution)"),
       d("d (Richardson_Lucy_deconvolution)"),
@@ -75,8 +77,8 @@ RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::RichardsonLucyDe
       u_t("u_t (Richardson_Lucy_deconvolution)"),
       u_t_p_1("u_{t+1} (Richardson_Lucy_deconvolution)") {}
 
-template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
-int RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
+template <typename k_dmn_t, typename p_dmn_t>
+int RichardsonLucyDeconvolution<k_dmn_t, p_dmn_t>::execute(
     const linalg::Matrix<double, linalg::CPU>& p,
     const func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_source,
     func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_target) {
@@ -93,7 +95,7 @@ int RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
   linalg::matrixop::gemm(p, u_t, c);
 
   int iters = 0;
-  for (; iters < parameters.get_deconvolution_iterations(); ++iters) {
+  for (; iters < max_iterations_; ++iters) {
     for (int j = 0; j < p_dmn_t::dmn_size(); j++)
       for (int i = 0; i < k_dmn_t::dmn_size(); i++)
         d_over_c(i, j) = d(i, j) / c(i, j);
@@ -122,8 +124,8 @@ int RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
   return iters;
 }
 
-template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
-int RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
+template <typename k_dmn_t, typename p_dmn_t>
+int RichardsonLucyDeconvolution<k_dmn_t, p_dmn_t>::execute(
     const linalg::Matrix<double, linalg::CPU>& p,
     const func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_source,
     func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_approx,
@@ -143,8 +145,8 @@ int RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
   return iterations;
 }
 
-template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
-void RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::initializeMatrices(
+template <typename k_dmn_t, typename p_dmn_t>
+void RichardsonLucyDeconvolution<k_dmn_t, p_dmn_t>::initializeMatrices(
     const func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& source) {
   const int num_rows = k_dmn_t::dmn_size();
   const int num_cols = p_dmn_t::dmn_size();
@@ -172,12 +174,10 @@ void RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::initializeM
   }
 }
 
-template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
-bool RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::computeError(
+template <typename k_dmn_t, typename p_dmn_t>
+bool RichardsonLucyDeconvolution<k_dmn_t, p_dmn_t>::computeError(
     func::function<bool, p_dmn_t>& is_finished) {
   bool all_are_finished = true;
-
-  const double epsilon = parameters.get_deconvolution_tolerance();
 
   for (int j = 0; j < p_dmn_t::dmn_size(); ++j) {
     if (!is_finished(j)) {
@@ -192,7 +192,7 @@ bool RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::computeErro
 
       const double error = std::sqrt(diff_squared / norm_d_squared);
 
-      if (error < epsilon)
+      if (error < tolerance_)
         is_finished(j) = true;
 
       else
