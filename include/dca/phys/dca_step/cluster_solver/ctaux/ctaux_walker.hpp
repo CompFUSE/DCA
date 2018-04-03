@@ -436,7 +436,8 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::do_sweep() {
                                               ? static_cast<int>(warm_up_expansion_order_.mean())
                                               : 1};
 
-  int single_spin_updates_todo{single_spin_updates_per_sweep * sweeps_per_measurement};
+  int single_spin_updates_todo{single_spin_updates_per_sweep *
+                               static_cast<int>(sweeps_per_measurement)};
 
   while (single_spin_updates_todo > 0) {
     do_step(single_spin_updates_todo);
