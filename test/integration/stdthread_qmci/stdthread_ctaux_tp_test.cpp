@@ -38,7 +38,7 @@
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 
-constexpr bool UPDATE_RESULTS = false;
+constexpr bool update_baseline = false;
 
 const std::string input_dir = DCA_SOURCE_DIR "/test/integration/stdthread_qmci/";
 
@@ -53,7 +53,7 @@ using Data = dca::phys::DcaData<Parameters>;
 using BaseSolver = dca::phys::solver::CtauxClusterSolver<dca::linalg::GPU, Parameters, Data>;
 using QmcSolver = dca::phys::solver::StdThreadQmciClusterSolver<BaseSolver>;
 
-TEST(StdthreadCtauxClusterSolverTest, GreensFunctions) {
+TEST(StdthreadCtauxTest, GreensFunctions) {
   dca::linalg::util::initializeMagma();
   Concurrency concurrency(0, nullptr);
   if (concurrency.id() == concurrency.first()) {
@@ -76,28 +76,28 @@ TEST(StdthreadCtauxClusterSolverTest, GreensFunctions) {
   dca::phys::DcaLoopData<Parameters> loop_data;
   qmc_solver.finalize(loop_data);
 
-  if (!UPDATE_RESULTS) {
-    // Read and confront with previous run.
+  if (!update_baseline) {
+    // Compare to baseline results.
     if (concurrency.id() == 0) {
       auto G_k_w_check = data.G_k_w;
       using DomainType = typename Data::TpGreensFunction::this_domain_type;
       dca::func::function<std::complex<double>, DomainType> G4_check(data.get_G4_k_k_w_w().get_name());
       G_k_w_check.set_name(data.G_k_w.get_name());
       dca::io::HDF5Reader reader;
-      reader.open_file(input_dir + "data.hdf5");
+      reader.open_file(input_dir + "stdthread_ctaux_tp_test_baseline.hdf5");
       reader.execute(G_k_w_check);
       reader.execute(G4_check);
       reader.close_file();
 
-      auto err_g = dca::func::utils::difference(G_k_w_check, data.G_k_w);
-      auto err_g4 = dca::func::utils::difference(G4_check, data.get_G4_k_k_w_w());
+      const auto err_g = dca::func::utils::difference(G_k_w_check, data.G_k_w);
+      const  auto err_g4 = dca::func::utils::difference(G4_check, data.get_G4_k_k_w_w());
 
       EXPECT_GE(5e-7, err_g.l_inf);
       EXPECT_GE(5e-7, err_g4.l_inf);
     }
   }
   else {
-    //  Write results
+    // Update baseline.
     if (concurrency.id() == concurrency.first()) {
       dca::io::HDF5Writer writer;
       writer.open_file("data.hdf5");
