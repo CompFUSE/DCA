@@ -48,8 +48,7 @@ public:
 private:
   void initializeMatrices(const func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& source);
 
-  bool update_f_target(func::function<bool, p_dmn_t>& is_finished,
-                       func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_target);
+  bool computeError(func::function<bool, p_dmn_t>& is_finished);
 
 private:
   parameters_type& parameters;
@@ -109,16 +108,16 @@ int RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
     // compute c
     linalg::matrixop::gemm(p, u_t, c);
 
-    bool finished = update_f_target(is_finished, f_target);
+    bool finished = computeError(is_finished);
 
     if (finished)
       break;
   }
 
-  for (int j = 0; j < p_dmn_t::dmn_size(); j++)
-    if (not is_finished(j))
-      for (int i = 0; i < k_dmn_t::dmn_size(); i++)
-        f_target(i, j) = u_t(i, j);
+  // Copy iterative solution matrix into returned target function.
+  for (int j = 0; j < p_dmn_t::dmn_size(); ++j)
+    for (int i = 0; i < k_dmn_t::dmn_size(); ++i)
+      f_target(i, j) = u_t(i, j);
 
   return iters;
 }
@@ -174,35 +173,30 @@ void RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::initializeM
 }
 
 template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
-bool RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::update_f_target(
-    func::function<bool, p_dmn_t>& is_finished,
-    func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_target) {
+bool RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::computeError(
+    func::function<bool, p_dmn_t>& is_finished) {
   bool all_are_finished = true;
 
-  double epsilon = parameters.get_deconvolution_tolerance();
+  const double epsilon = parameters.get_deconvolution_tolerance();
 
-  for (int j = 0; j < p_dmn_t::dmn_size(); j++) {
-    if (not is_finished(j)) {
-      double diff = 0;
-      double tot = 1.e-6;
+  for (int j = 0; j < p_dmn_t::dmn_size(); ++j) {
+    if (!is_finished(j)) {
+      double diff_squared = 0.;
+      double norm_d_squared = 0.;
 
-      for (int i = 0; i < k_dmn_t::dmn_size(); i++) {
-        diff += std::pow(c(i, j) - d(i, j), 2);
-        tot += std::pow(d(i, j), 2);
+      // TODO: Fix error computation.
+      for (int i = 0; i < k_dmn_t::dmn_size(); ++i) {
+        diff_squared += std::pow(c(i, j) - d(i, j), 2);
+        norm_d_squared += std::pow(d(i, j), 2);
       }
 
-      const double error = std::sqrt(diff / tot);
+      const double error = std::sqrt(diff_squared / norm_d_squared);
 
-      if (error < epsilon) {
-        for (int i = 0; i < k_dmn_t::dmn_size(); i++)
-          f_target(i, j) = u_t(i, j);
-
+      if (error < epsilon)
         is_finished(j) = true;
-      }
 
-      else {
+      else
         all_are_finished = false;
-      }
     }
   }
 
