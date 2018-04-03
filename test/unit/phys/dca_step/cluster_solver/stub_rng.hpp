@@ -6,10 +6,10 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// This file provides as a testing util a mock rng with predetermined values.
+// This file provides as a testing util a stub rng with predetermined values.
 
-#ifndef TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_MOCK_RNG_HPP
-#define TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_MOCK_RNG_HPP
+#ifndef TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_STUB_HPP
+#define TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_STUB_HPP
 
 #include <vector>
 #include <stdexcept>
@@ -18,13 +18,13 @@ namespace dca {
 namespace testing {
 // dca::testing::
 
-class MockRng {
+class StubRng {
 public:
-  MockRng(int /*a*/ = 0, int /*b*/ = 0, int /*c*/ = 0, int /*d*/ = 0) {
+  StubRng(int /*a*/ = 0, int /*b*/ = 0, int /*c*/ = 0, int /*d*/ = 0) {
     val_ = std::vector<double>(200, 0.5);
   }
 
-  MockRng(const std::vector<double>& values) : val_(values) {}
+  StubRng(const std::vector<double>& values) : val_(values) {}
 
   void setNewValues(const std::vector<double>& values) {
     val_ = values;
@@ -46,4 +46,4 @@ private:
 }  // testing
 }  // dca
 
-#endif  // TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_MOCK_RNG_HPP
+#endif  // TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_STUB_HPP

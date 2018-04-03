@@ -30,7 +30,7 @@
 #include "dca/parallel/no_threading/no_threading.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/profiling/null_profiler.hpp"
-#include "test/unit/phys/dca_step/cluster_solver/mock_rng.hpp"
+#include "test/unit/phys/dca_step/cluster_solver/stub_rng.hpp"
 
 namespace dca {
 namespace testing {
@@ -44,7 +44,7 @@ template <class Lattice = LatticeSquare, phys::solver::ClusterSolverName solver_
 struct G0Setup : public ::testing::Test {
   using LatticeType = Lattice;
   using Model = phys::models::TightBindingModel<Lattice>;
-  using RngType = testing::MockRng;
+  using RngType = testing::StubRng;
   using Concurrency = parallel::NoConcurrency;
   using Parameters = phys::params::Parameters<Concurrency, parallel::NoThreading,
                                               profiling::NullProfiler, Model, RngType, solver_name>;
