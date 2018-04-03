@@ -22,7 +22,7 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
-#include "dca/function/function_utils.hpp"
+#include "dca/function/util/difference.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
@@ -41,7 +41,7 @@ void computeWithDnfft(const std::vector<double>& t, const std::vector<double>& f
                       DnfftType& dnfft_obj,
                       function<std::complex<double>, dmn_variadic<FreqDmn, OtherDmn>>& f_w);
 void computeWithDft(const std::vector<double>& t, const std::vector<double>& f,
-                    function<std::complex<double>, FreqDmn>& f_w);
+                    function<std::complex<double>, dmn_variadic<FreqDmn, OtherDmn>>& f_w);
 
 TEST(Dnfft1DTest, CubicInterpolation) {
   // Initialize time and frequency domains.
@@ -69,7 +69,7 @@ TEST(Dnfft1DTest, CubicInterpolation) {
   }
 
   // Compute f(w) using the discrete Fourier transform (DFT).
-  function<std::complex<double>, FreqDmn> f_w_dft("f_w_dft");
+  function<std::complex<double>, dmn_variadic<FreqDmn, OtherDmn>> f_w_dft("f_w_dft");
   computeWithDft(t, f, f_w_dft);
 
   // Compute f(w) using the delayed-NFFT algorithm.
@@ -80,7 +80,7 @@ TEST(Dnfft1DTest, CubicInterpolation) {
   computeWithDnfft(t, f, dnfft_obj, f_w_dnfft);
 
   // Check errors.
-  const auto err = dca::func::utils::difference(f_w_dft, f_w_dnfft);
+  const auto err = dca::func::util::difference(f_w_dft, f_w_dnfft);
 
   EXPECT_LT(err.l1, 1.e-9);
   EXPECT_LT(err.l2, 1.e-9);
@@ -106,17 +106,19 @@ void computeWithDnfft(const std::vector<double>& t, const std::vector<double>& f
 }
 
 void computeWithDft(const std::vector<double>& t, const std::vector<double>& f,
-                    function<std::complex<double>, FreqDmn>& f_w) {
+                    function<std::complex<double>, dmn_variadic<FreqDmn, OtherDmn>>& f_w) {
   const std::complex<double> i(0, 1);
 
   f_w = 0.;
 
-  for (int t_ind = 0; t_ind < t.size(); ++t_ind) {
-    for (int w_ind = 0; w_ind < FreqDmn::dmn_size(); ++w_ind) {
-      const double t_val = t[t_ind];
-      const double w_val = FreqDmn::get_elements()[w_ind];
+  for (int o_ind = 0; o_ind < OtherDmn::dmn_size(); ++o_ind) {
+    for (int t_ind = 0; t_ind < t.size(); ++t_ind) {
+      for (int w_ind = 0; w_ind < FreqDmn::dmn_size(); ++w_ind) {
+        const double t_val = t[t_ind];
+        const double w_val = FreqDmn::get_elements()[w_ind];
 
-      f_w(w_ind) += f[t_ind] * std::exp(i * t_val * w_val);
+        f_w(w_ind, o_ind) += f[t_ind] * std::exp(i * t_val * w_val);
+      }
     }
   }
 }
