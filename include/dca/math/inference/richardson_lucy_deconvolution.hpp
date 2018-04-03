@@ -20,6 +20,7 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
+#include "dca/linalg/matrixop.hpp"
 #include "dca/linalg/vector.hpp"
 
 namespace dca {
