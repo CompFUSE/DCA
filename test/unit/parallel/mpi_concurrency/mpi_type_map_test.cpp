@@ -5,30 +5,38 @@
 // See LICENSE.txt for terms of usage.
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
-// Author: Urs R. Haehner    (haehneru@itp.phys.ethz.ch)
-//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+// Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // This file tests mpi_type_map.hpp.
 // It is run with 1 MPI process.
 
 #include "dca/parallel/mpi_concurrency/mpi_type_map.hpp"
-
 #include "gtest/gtest.h"
-#include <complex>
 
-enum Enum { A, B, C };
+using dca::parallel::MPITypeMap;
 
-using Types = ::testing::Types<Enum, bool, int, unsigned long int, char, float, double,
-                               std::complex<double>, std::complex<float>>;
+TEST(MPITypeMapTest, All) {
+  EXPECT_EQ(1, MPITypeMap<bool>::factor());
+  EXPECT_EQ(MPI_CXX_BOOL, MPITypeMap<bool>::value());
 
-template <typename T>
-class MPITypeMapTest : public ::testing::Test {};
+  EXPECT_EQ(1, MPITypeMap<char>::factor());
+  EXPECT_EQ(MPI_CHAR, MPITypeMap<char>::value());
 
-TYPED_TEST_CASE(MPITypeMapTest, Types);
+  EXPECT_EQ(1, MPITypeMap<int>::factor());
+  EXPECT_EQ(MPI_INT, MPITypeMap<int>::value());
 
-TYPED_TEST(MPITypeMapTest, Types) {
-  using ScalarType = TypeParam;
+  EXPECT_EQ(1, MPITypeMap<std::size_t>::factor());
+  EXPECT_EQ(MPI_UNSIGNED_LONG, MPITypeMap<std::size_t>::value());
 
-  EXPECT_EQ(sizeof(ScalarType), dca::parallel::MPITypeMap<ScalarType>::factor());
-  EXPECT_EQ(MPI_CHAR, dca::parallel::MPITypeMap<ScalarType>::value());
+  EXPECT_EQ(1, MPITypeMap<float>::factor());
+  EXPECT_EQ(MPI_FLOAT, MPITypeMap<float>::value());
+
+  EXPECT_EQ(1, MPITypeMap<double>::factor());
+  EXPECT_EQ(MPI_DOUBLE, MPITypeMap<double>::value());
+
+  EXPECT_EQ(2, MPITypeMap<std::complex<float>>::factor());
+  EXPECT_EQ(MPI_FLOAT, MPITypeMap<std::complex<float>>::value());
+
+  EXPECT_EQ(2, MPITypeMap<std::complex<double>>::factor());
+  EXPECT_EQ(MPI_DOUBLE, MPITypeMap<std::complex<double>>::value());
 }

@@ -52,7 +52,7 @@ public:
   void readWrite(ReaderOrWriter& reader_or_writer);
 
   FourPointType get_four_point_type() const {
-    return four_point_type_;
+    return static_cast<FourPointType>(four_point_type_);
   }
 
   void set_four_point_type(FourPointType type) {
@@ -85,7 +85,7 @@ public:
   }
 
 private:
-  FourPointType four_point_type_;
+  int four_point_type_;
   std::vector<double> four_point_momentum_transfer_input_;
   int four_point_frequency_transfer_;
 };
@@ -126,7 +126,7 @@ void FourPointParameters<lattice_dimension>::readWrite(ReaderOrWriter& reader_or
   try {
     reader_or_writer.open_group("four-point");
 
-    std::string four_point_name = toString(four_point_type_);
+    std::string four_point_name = toString(static_cast<FourPointType>(four_point_type_));
     try {
       reader_or_writer.execute("type", four_point_name);
       four_point_type_ = stringToFourPointMode(four_point_name);
