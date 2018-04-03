@@ -6,6 +6,7 @@
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
+//         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // This class implements the Richardson Lucy deconvolution algorithm.
 
@@ -33,14 +34,16 @@ class RichardsonLucyDeconvolution {
 public:
   RichardsonLucyDeconvolution(parameters_type& parameters_ref);
 
-  void execute(const linalg::Matrix<double, linalg::CPU>& p,
-               const func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_source,
-               func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_target);
+  // Returns the number of iterations executed.
+  int execute(const linalg::Matrix<double, linalg::CPU>& p,
+              const func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_source,
+              func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_target);
 
-  void execute(const linalg::Matrix<double, linalg::CPU>& p,
-               const func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_source,
-               func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_approx,
-               func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_target);
+  // Returns the number of iterations executed.
+  int execute(const linalg::Matrix<double, linalg::CPU>& p,
+              const func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_source,
+              func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_approx,
+              func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_target);
 
 private:
   void initialize_matrices(const func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_source);
@@ -80,7 +83,7 @@ RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::RichardsonLucyDe
       u_t_p_1("u_{t+1} (Richardson_Lucy_deconvolution)") {}
 
 template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
-void RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
+int RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
     const linalg::Matrix<double, linalg::CPU>& p,
     const func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_source,
     func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_target) {
@@ -97,8 +100,8 @@ void RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
 
   initialize_errors(is_finished, error_function);
 
-  int l = 0;
-  for (l = 0; l < parameters.get_deconvolution_iterations(); l++) {
+  int iters = 0;
+  for (; iters < parameters.get_deconvolution_iterations(); ++iters) {
     for (int j = 0; j < p_dmn_t::dmn_size(); j++)
       for (int i = 0; i < k_dmn_t::dmn_size(); i++)
         d_over_c(i, j) = d(i, j) / c(i, j);
@@ -124,18 +127,16 @@ void RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
       for (int i = 0; i < k_dmn_t::dmn_size(); i++)
         f_target(i, j) = u_t(i, j);
 
-  if (concurrency.id() == concurrency.first()) {
-    std::cout << "\n\n\t\t Richardson-Lucy deconvolution: " << l << " iterations" << std::endl;
-  }
+  return iters;
 }
 
 template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
-void RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
+int RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
     const linalg::Matrix<double, linalg::CPU>& p,
     const func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_source,
     func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_approx,
     func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_target) {
-  execute(p, f_source, f_target);
+  const int iterations = execute(p, f_source, f_target);
 
   for (int j = 0; j < p_dmn_t::dmn_size(); j++)
     for (int i = 0; i < k_dmn_t::dmn_size(); i++)
@@ -146,6 +147,8 @@ void RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
   for (int j = 0; j < p_dmn_t::dmn_size(); j++)
     for (int i = 0; i < k_dmn_t::dmn_size(); i++)
       f_approx(i, j) = c(i, j);
+
+  return iterations;
 }
 
 template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
