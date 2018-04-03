@@ -1,5 +1,5 @@
-set(TEST_INCLUDES ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR})
-set(TEST_LIBRARIES ${DCA_LIBS};statistical_testing)
+set(TEST_INCLUDES ${DCA_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR})
+set(TEST_LIBRARIES ${DCA_LIBS} ${DCA_CUDA_LIBS} statistical_testing)
 
 #  This application was used to build the reference data for the NiO test.
 #add_executable(NiO_fullDCA NiO_fullDCA.cpp)

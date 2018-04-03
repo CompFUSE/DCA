@@ -8,6 +8,10 @@ add_library(ctaux STATIC
   structs/vertex_singleton.cpp
   walker/ct_aux_walker_tools.cpp)
 
+set_property(TARGET ctaux
+  APPEND PROPERTY CXX_COMPILE_DEFINITIONS
+  DCA_HAVE_CUDA)
+
 if (DCA_HAVE_CUDA)
   CUDA_ADD_LIBRARY(ctaux_walker_kernels
     walker/ct_aux_walker_tools_kernels.cu

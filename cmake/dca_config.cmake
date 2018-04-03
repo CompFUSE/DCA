@@ -38,13 +38,6 @@ if (DCA_WITH_CUDA)
 
   dca_add_config_define(DCA_WITH_CUDA)
 
-  # Enable pinned host memory.
-  option(DCA_WITH_PINNED_HOST_MEMORY "Enable pinned host memory." OFF)
-  mark_as_advanced(DCA_WITH_PINNED_HOST_MEMORY)
-  if (DCA_WITH_PINNED_HOST_MEMORY)
-    dca_add_config_define(ENABLE_PINNED_MEMORY_ALLOCATION)
-  endif()
-
   # Copy walker device config file for GPU.
   configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/walker_device_gpu.hpp"
     "${CMAKE_BINARY_DIR}/include/dca/config/walker_device.hpp")
