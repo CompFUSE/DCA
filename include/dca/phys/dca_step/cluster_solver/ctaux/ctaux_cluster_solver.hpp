@@ -241,8 +241,7 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::integrate() {
   if (concurrency.id() == concurrency.first()) {
     std::cout << "On-node integration has ended: " << dca::util::print_time()
               << "\n\nTotal number of measurements: "
-              << concurrency.number_of_processors() *
-                     parameters.get_measurements_per_process()
+              << concurrency.number_of_processors() * parameters.get_measurements_per_process()
               << std::endl;
   }
 }

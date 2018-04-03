@@ -191,6 +191,8 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::integrate() {
               << concurrency.number_of_processors() * parameters.get_measurements_per_process()
               << std::endl;
   }
+
+  qmci_integrator_type::accumulator.finalize();
 }
 
 template <class qmci_integrator_type>
@@ -287,11 +289,11 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::start_walker(int id) {
     }
   }
 
-//  #ifdef DCA_WITH_QMC_BIT
-//  mutex_numerical_error.lock();
-//  accumulator.get_error_distribution() += walker.get_error_distribution();
-//  mutex_numerical_error.unlock();
-//  #endif  // DCA_WITH_QMC_BIT
+  //  #ifdef DCA_WITH_QMC_BIT
+  //  mutex_numerical_error.lock();
+  //  accumulator.get_error_distribution() += walker.get_error_distribution();
+  //  mutex_numerical_error.unlock();
+  //  #endif  // DCA_WITH_QMC_BIT
 
   if (id == 0) {
     if (concurrency.id() == concurrency.first())
@@ -399,8 +401,8 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::start_walker_and_accumula
       this->update_shell(i, n_meas, walker.get_configuration().size());
   }
 
+  ++acc_finished;
   std::lock_guard<std::mutex> lock(mutex_merge);
-  acc_finished++;
   accumulator_obj.sum_to(accumulator);
 }
 
