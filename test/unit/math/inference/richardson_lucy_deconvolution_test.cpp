@@ -14,51 +14,57 @@
 #include "gtest/gtest.h"
 
 #include "dca/function/domains.hpp"
+#include "dca/function/function.hpp"
+#include "dca/linalg/matrix.hpp"
 
 namespace testing {
 
 class DeconvolutionParameters {
-  struct Concurrency {
-    int get_id() {
-      return 0;
-    }
-    int first() {
-      return 0;
-    }
-  };
-
 public:
-  using concurrency_type = Concurrency;
+  DeconvolutionParameters(double tolerance = 1.e-3, int iterations = 16)
+      : tolerance_(tolerance), iterations_(iterations) {}
 
-  DeconvolutionParameters(int iterations = 16, double tolerance = 1.e-2)
-      : iterations_(iterations), tolerance_(tolerance) {}
-
-  int get_deconvolution_iterations() const {
-    return iterations_;
-  }
   double get_deconvolution_tolerance() const {
     return tolerance_;
   }
-  concurrency_type& get_concurrency() {
-    return concurrency_;
+  int get_deconvolution_iterations() const {
+    return iterations_;
   }
 
 private:
-  int iterations_;
-  double tolerance_;
-
-  concurrency_type concurrency_;
+  const double tolerance_;
+  const int iterations_;
 };
 
 }  // testing
 
-TEST(RichardsonLucyDeconvolutionTest, Constructor) {
+TEST(RichardsonLucyDeconvolutionTest, IdentityProjectionOperator) {
   using DeconvolutionDmn = dca::func::dmn_0<dca::func::dmn<4, int>>;
   using OtherDmn = dca::func::dmn_0<dca::func::dmn<1, int>>;
 
-  testing::DeconvolutionParameters params(1, 1.e-3);
+  testing::DeconvolutionParameters params(1.e-3, 3);
 
   dca::math::inference::RichardsonLucyDeconvolution<testing::DeconvolutionParameters,
                                                     DeconvolutionDmn, OtherDmn>
       deconvolution(params);
+
+  // Projection operator = identity matrix.
+  dca::linalg::Matrix<double, dca::linalg::CPU> p(4, "projection-operator");
+  p(0, 0) = p(1, 1) = p(2, 2) = p(3, 3) = 1.;
+
+  // Trivial function not crossing zero.
+  dca::func::function<double, dca::func::dmn_variadic<DeconvolutionDmn, OtherDmn>> source;
+  for (int i = 0; i < source.size(); ++i) {
+    source(i) = 1.;
+  }
+
+  dca::func::function<double, dca::func::dmn_variadic<DeconvolutionDmn, OtherDmn>> target;
+
+  const int iterations = deconvolution.execute(p, source, target);
+
+  EXPECT_EQ(1, iterations);
+
+  for (int i = 0; i < source.size(); ++i) {
+    EXPECT_DOUBLE_EQ(source(i), target(i));
+  }
 }
