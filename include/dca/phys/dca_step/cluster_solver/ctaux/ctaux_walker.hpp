@@ -428,7 +428,7 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::initialize() {
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void CtauxWalker<device_t, parameters_type, MOMS_type>::do_sweep() {
-  const int sweeps_per_measurement{thermalized ? parameters.get_sweeps_per_measurement() : 1};
+  const double sweeps_per_measurement{thermalized ? parameters.get_sweeps_per_measurement() : 1.};
 
   // Do at least one single spin update per sweep.
   const int single_spin_updates_per_sweep{warm_up_expansion_order_.count() > 0 &&
