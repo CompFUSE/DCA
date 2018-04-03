@@ -33,11 +33,11 @@ class RichardsonLucyDeconvolution {
 public:
   RichardsonLucyDeconvolution(parameters_type& parameters_ref);
 
-  void execute(const linalg::Matrix<double, linalg::CPU>& matrix,
+  void execute(const linalg::Matrix<double, linalg::CPU>& p,
                func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_source,
                func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_target);
 
-  void execute(const linalg::Matrix<double, linalg::CPU>& A,
+  void execute(const linalg::Matrix<double, linalg::CPU>& p,
                func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_source,
                func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_approx,
                func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_target);
@@ -81,11 +81,11 @@ RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::RichardsonLucyDe
 
 template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
 void RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
-    const linalg::Matrix<double, linalg::CPU>& A,
+    const linalg::Matrix<double, linalg::CPU>& p,
     func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_source,
     func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_target) {
-  assert(A.size().first == k_dmn_t::dmn_size());
-  assert(A.size().first == A.size().second);
+  assert(p.size().first == k_dmn_t::dmn_size());
+  assert(p.size().first == p.size().second);
 
   func::function<bool, p_dmn_t> is_finished("is_finished");
   func::function<double, p_dmn_t> error_function("error_function");
@@ -93,7 +93,7 @@ void RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
   initialize_matrices(f_source);
 
   // compute c
-  linalg::matrixop::gemm(A, u_t, c);
+  linalg::matrixop::gemm(p, u_t, c);
 
   initialize_errors(is_finished, error_function);
 
@@ -104,14 +104,14 @@ void RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
         d_over_c(i, j) = d(i, j) / c(i, j);
 
     // compute u_t_plus_1
-    linalg::matrixop::gemm('T', 'N', A, d_over_c, u_t_p_1);
+    linalg::matrixop::gemm('T', 'N', p, d_over_c, u_t_p_1);
 
     for (int j = 0; j < p_dmn_t::dmn_size(); j++)
       for (int i = 0; i < k_dmn_t::dmn_size(); i++)
         u_t(i, j) = u_t_p_1(i, j) * u_t(i, j);
 
     // compute c
-    linalg::matrixop::gemm(A, u_t, c);
+    linalg::matrixop::gemm(p, u_t, c);
 
     bool finished = update_f_target(is_finished, error_function, f_target);
 
@@ -131,17 +131,17 @@ void RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
 
 template <typename parameters_type, typename k_dmn_t, typename p_dmn_t>
 void RichardsonLucyDeconvolution<parameters_type, k_dmn_t, p_dmn_t>::execute(
-    const linalg::Matrix<double, linalg::CPU>& A,
+    const linalg::Matrix<double, linalg::CPU>& p,
     func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_source,
     func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_approx,
     func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_target) {
-  execute(A, f_source, f_target);
+  execute(p, f_source, f_target);
 
   for (int j = 0; j < p_dmn_t::dmn_size(); j++)
     for (int i = 0; i < k_dmn_t::dmn_size(); i++)
       u_t(i, j) = f_target(i, j);
 
-  linalg::matrixop::gemm(A, u_t, c);
+  linalg::matrixop::gemm(p, u_t, c);
 
   for (int j = 0; j < p_dmn_t::dmn_size(); j++)
     for (int i = 0; i < k_dmn_t::dmn_size(); i++)
