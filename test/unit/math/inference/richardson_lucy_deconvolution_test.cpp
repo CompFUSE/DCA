@@ -17,36 +17,15 @@
 #include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
 
-namespace testing {
-
-class DeconvolutionParameters {
-public:
-  DeconvolutionParameters(double tolerance = 1.e-3, int iterations = 16)
-      : tolerance_(tolerance), iterations_(iterations) {}
-
-  double get_deconvolution_tolerance() const {
-    return tolerance_;
-  }
-  int get_deconvolution_iterations() const {
-    return iterations_;
-  }
-
-private:
-  const double tolerance_;
-  const int iterations_;
-};
-
-}  // testing
-
 TEST(RichardsonLucyDeconvolutionTest, IdentityProjectionOperator) {
   using DeconvolutionDmn = dca::func::dmn_0<dca::func::dmn<4, int>>;
   using OtherDmn = dca::func::dmn_0<dca::func::dmn<1, int>>;
 
-  testing::DeconvolutionParameters params(1.e-3, 3);
+  const double tolerance = 1.e-3;
+  const int max_iterations = 3;
 
-  dca::math::inference::RichardsonLucyDeconvolution<testing::DeconvolutionParameters,
-                                                    DeconvolutionDmn, OtherDmn>
-      deconvolution(params);
+  dca::math::inference::RichardsonLucyDeconvolution<DeconvolutionDmn, OtherDmn> deconvolution(
+      tolerance, max_iterations);
 
   // Projection operator = identity matrix.
   dca::linalg::Matrix<double, dca::linalg::CPU> p(4, "projection-operator");
