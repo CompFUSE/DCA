@@ -102,10 +102,14 @@ std::complex<T> innerProduct(const std::vector<std::complex<T>>& x,
   return res;
 }
 
-// Computes the ordinary product of two scalars x and y.
+// Treats scalars as vectors of size 1.
 template <typename T>
 T innerProduct(const T x, const T y) {
   return x * y;
+}
+template <typename T>
+std::complex<T> innerProduct(const std::complex<T> x, const std::complex<T> y) {
+  return x * std::conj(y);
 }
 
 // Computes the square of the L^2 norm of the vector x.

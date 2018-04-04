@@ -152,6 +152,12 @@ TYPED_TEST(VectorOperationsComplexTest, InnerProduct) {
   EXPECT_NEAR(typename ComplexType::value_type(12.678), res.imag(), 500 * this->epsilon);
 }
 
+TYPED_TEST(VectorOperationsComplexTest, ScalarInnerProduct) {
+  using ComplexType = TypeParam;
+  ComplexType x(3.14, -1), y(42, 2.71);
+  EXPECT_EQ(x * std::conj(y), dca::math::util::innerProduct(x, y));
+}
+
 //
 // L^2 norm squared
 //
