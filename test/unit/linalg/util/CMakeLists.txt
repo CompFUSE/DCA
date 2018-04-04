@@ -3,7 +3,7 @@
 dca_add_gtest(check_RC_test
               GTEST_MAIN
               CUDA
-              LIBS ${DCA_LIBS})
+              LIBS ${DCA_LIBS} ${DCA_CUDA_LIBS})
 
 dca_add_gtest(magma_batched_gemm_test
               GTEST_MAIN
