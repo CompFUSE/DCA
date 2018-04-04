@@ -17,7 +17,6 @@ namespace config {
 // dca::config::
 
 const std::string CMakeOptions::dca_with_cuda = "@DCA_WITH_CUDA@";
-const std::string CMakeOptions::dca_with_pinned_host_memory = "@DCA_WITH_PINNED_HOST_MEMORY@";
 const std::string CMakeOptions::cuda_gpu_arch = "@CUDA_GPU_ARCH@";
 const std::string CMakeOptions::dca_with_mpi = "@DCA_WITH_MPI@";
 const std::string CMakeOptions::dca_with_threaded_solver = "@DCA_WITH_THREADED_SOLVER@";
@@ -46,8 +45,7 @@ void CMakeOptions::print() {
             << "DCA_WITH_CUDA = " << CMakeOptions::dca_with_cuda << std::endl;
 
   if (CMakeOptions::dca_with_cuda == "ON")
-    std::cout << "DCA_WITH_PINNED_HOST_MEMORY = " << CMakeOptions::dca_with_pinned_host_memory << "\n"
-              << "CUDA_GPU_ARCH = " << CMakeOptions::cuda_gpu_arch << std::endl;
+    std::cout << "CUDA_GPU_ARCH = " << CMakeOptions::cuda_gpu_arch << std::endl;
 
   std::cout << "\n"
             << "DCA_WITH_MPI = " << CMakeOptions::dca_with_mpi << "\n"
