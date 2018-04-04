@@ -38,7 +38,7 @@ if (MAGMA_LIBRARY AND MAGMA_INCLUDE_DIR)
   # I have built magma without openmp for
   # CI. But if you naively use a random systems
   # magma expect to have a link error.
-  list(APPEND DCA_CUDA_LIBS ${MAGMA_LIBRARY})
+  list(APPEND DCA_CUDA_LIBS ${MAGMA_LIBRARY} ${CUDA_cusparse_LIBRARY})
   CUDA_INCLUDE_DIRECTORIES(${MAGMA_INCLUDE_DIR})
 endif()
 

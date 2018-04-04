@@ -40,7 +40,7 @@ struct Memory<CPU> {
     assert(ptr == nullptr);
 
 #ifdef DCA_HAVE_CUDA
-    cudaError_t ret = cudaHostAlloc((void**)&ptr, size * sizeof(ScalarType), 0);
+    cudaError_t ret = cudaHostAlloc((void**)&ptr, size * sizeof(ScalarType), cudaHostAllocDefault);
     checkRCMsg(ret, "\t size requested : " + std::to_string(size) + " * " +
                         std::to_string(sizeof(ScalarType)));
     checkErrorsCudaDebug();
@@ -57,7 +57,7 @@ struct Memory<CPU> {
     checkErrorsCudaDebug();
 #else
     free(ptr);
-#endif // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_CUDA
     ptr = nullptr;
   }
 
