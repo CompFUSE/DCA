@@ -248,8 +248,6 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::integrate() {
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 template <typename dca_info_struct_t>
 double CtauxClusterSolver<device_t, parameters_type, Data>::finalize(dca_info_struct_t& dca_info_struct) {
-  accumulator.finalize();
-
   collect_measurements();
   symmetrize_measurements();
 
@@ -273,10 +271,6 @@ double CtauxClusterSolver<device_t, parameters_type, Data>::finalize(dca_info_st
           math::statistics::util::standard_deviation(x);
     }
   }
-
-  //     if(DCA_iteration == parameters.get_dca_iterations()-1 &&
-  //     parameters.additional_time_measurements())
-  //       data_.G_r_t =
 
   if (DCA_iteration == parameters.get_dca_iterations() - 1 && parameters.get_four_point_type() != NONE)
     data_.get_G4_k_k_w_w() /= parameters.get_beta() * parameters.get_beta();
