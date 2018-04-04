@@ -13,8 +13,6 @@
 // - if_all
 // - product
 
-#include <tuple>
-
 #ifndef DCA_UTIL_PACK_OPERATIONS_HPP
 #define DCA_UTIL_PACK_OPERATIONS_HPP
 

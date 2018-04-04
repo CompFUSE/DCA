@@ -7,7 +7,7 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// This files provides an utils to the cluster solver tests for setting up Parameters and DcaData.
+// This file provides a setup for Parameters and DcaData used by cluster solver tests.
 
 #ifndef DCA_TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_TEST_SETUP_HPP
 #define DCA_TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_TEST_SETUP_HPP

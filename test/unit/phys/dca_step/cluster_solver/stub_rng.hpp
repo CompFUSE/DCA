@@ -28,19 +28,19 @@ public:
 
   void setNewValues(const std::vector<double>& values) {
     val_ = values;
-    index = 0;
+    index_ = 0;
   }
 
   double operator()() {
-    if (index == val_.size()) {
+    if (index_ == val_.size()) {
       throw(std::out_of_range("No more values."));
     }
-    return val_[index++];
+    return val_[index_++];
   }
 
 private:
   std::vector<double> val_;
-  int index = 0;
+  int index_ = 0;
 };
 
 }  // testing

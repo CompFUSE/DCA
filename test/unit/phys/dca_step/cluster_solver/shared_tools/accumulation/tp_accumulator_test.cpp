@@ -13,9 +13,9 @@
 #include "dca/phys/dca_step/cluster_solver/ctaux/accumulator/tp/accumulator_nonlocal_g.hpp"
 
 #include <array>
-#include "gtest/gtest.h"
 #include <string>
 #include <vector>
+#include "gtest/gtest.h"
 
 #include "dca/function/util/difference.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"

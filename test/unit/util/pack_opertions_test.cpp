@@ -14,7 +14,6 @@
 
 #include "gtest/gtest.h"
 
-
 TEST(PackOperationsTest, IfAll) {
   constexpr bool b1 = dca::util::if_all<true, std::is_integral<int>::value, 1>::value;
   EXPECT_TRUE(b1);
@@ -23,8 +22,7 @@ TEST(PackOperationsTest, IfAll) {
   EXPECT_FALSE(b2);
 }
 
-
 TEST(PackOperationsTest, Product) {
-  const int result = dca::util::product(3,2,4);
-  EXPECT_EQ(3*2*4, result);
+  const int result = dca::util::product(3, 2, 4);
+  EXPECT_EQ(3 * 2 * 4, result);
 }
