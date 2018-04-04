@@ -57,7 +57,7 @@ struct Memory<CPU> {
     checkErrorsCudaDebug();
 #else
     free(ptr);
-#endif // DCA_HAVE_CUDA
+#endif  // DCA_HAVE_CUDA
     ptr = nullptr;
   }
 
