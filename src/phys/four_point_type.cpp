@@ -17,7 +17,7 @@ namespace dca {
 namespace phys {
 // dca::phys::
 
-FourPointType stringToFourPointMode(const std::string& name) {
+FourPointType stringToFourPointType(const std::string& name) {
   if (name == "NONE")
     return NONE;
   else if (name == "PARTICLE_PARTICLE_UP_DOWN")

@@ -26,7 +26,7 @@ enum FourPointType : int {
   PARTICLE_PARTICLE_UP_DOWN
 };
 
-FourPointType stringToFourPointMode(const std::string& name);
+FourPointType stringToFourPointType(const std::string& name);
 
 std::string toString(const FourPointType type);
 
