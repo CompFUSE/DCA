@@ -16,14 +16,13 @@
 
 class MPICollectiveMaxTest : public ::testing::Test {
 protected:
-  MPICollectiveMaxTest() : max_interface_(grouping_) {
-    grouping_.set();
-
-    rank_ = grouping_.get_id();
-    size_ = grouping_.get_Nr_threads();
+  MPICollectiveMaxTest()
+      : grouping_(new dca::parallel::MPIProcessorGrouping), max_interface_(grouping_) {
+    rank_ = grouping_->get_id();
+    size_ = grouping_->get_Nr_threads();
   }
 
-  dca::parallel::MPIProcessorGrouping grouping_;
+  std::unique_ptr<const dca::parallel::MPIProcessorGrouping> grouping_;
   dca::parallel::MPICollectiveMax max_interface_;
 
   int rank_;
