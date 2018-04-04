@@ -11,8 +11,31 @@
 
 #include "dca/parallel/mpi_concurrency/mpi_concurrency.hpp"
 
+#include <iostream>
+
 namespace dca {
 namespace parallel {
+
+MPIConcurrency::MPIConcurrency(int argc, char** argv)
+    : MPIPacking(grouping_),
+      MPICollectiveMax(grouping_),
+      MPICollectiveMin(grouping_),
+      MPICollectiveSum(grouping_) {
+  // INTERNAL: Consider moving MPI_Init inside the MPIProcessorGrouping class.
+  MPI_Init(&argc, &argv);
+  grouping_.reset(new MPIProcessorGrouping);
+
+  if (!grouping_->isValid()) {  // Exit only from this process.
+    std::cerr << "Process " << grouping_->get_world_id() << " is not valid.\nExiting" << std::endl;
+    MPI_Finalize();
+    exit(0);
+  }
+}
+
+MPIConcurrency::~MPIConcurrency() {
+  grouping_.release();
+  MPI_Finalize();
+}
 
 constexpr char MPIConcurrency::parallel_type_str_[];
 

@@ -19,7 +19,6 @@ int rank;
 
 TEST(MPIProcessorGroupingTest, All) {
   dca::parallel::MPIProcessorGrouping grouping;
-  grouping.set();
 
   EXPECT_EQ(rank, grouping.get_id());
   EXPECT_EQ(4, grouping.get_Nr_threads());
