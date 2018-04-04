@@ -85,6 +85,8 @@ public:
   }
 
 private:
+  // There is no utility to communicate enumerations over mpi, so four_point_type_ is stored
+  // as an int rather than a FourPointType.
   int four_point_type_;
   std::vector<double> four_point_momentum_transfer_input_;
   int four_point_frequency_transfer_;

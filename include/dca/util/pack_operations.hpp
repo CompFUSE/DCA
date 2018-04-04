@@ -32,6 +32,7 @@ struct if_all<b> {
   constexpr static bool value = b;
 };
 
+// product(T1 a1, T2 a2, ...) returns the product of all its arguments. Equivalent to a1 * a2 * ...
 template <typename T>
 constexpr T product(T first) {
   return first;
