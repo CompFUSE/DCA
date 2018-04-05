@@ -48,11 +48,11 @@ TEST(RichardsonLucyDeconvolutionTest, IdentityProjectionOperator) {
     EXPECT_DOUBLE_EQ(source(i), target(i));
   }
 
-  // Test execute(source, target_convoluted, target).
+  // Test execute(source, target, target_convoluted).
   target = 0.;
   dca::func::function<double, dca::func::dmn_variadic<DeconvolutionDmn, OtherDmn>> target_convoluted;
 
-  iterations = deconvolution.execute(p, source, target_convoluted, target);
+  iterations = deconvolution.execute(p, source, target, target_convoluted);
 
   EXPECT_EQ(1, iterations);
 

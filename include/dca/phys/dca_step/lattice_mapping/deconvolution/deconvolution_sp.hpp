@@ -104,7 +104,7 @@ void deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(
     }
   }
 
-  const int iterations = RL_obj.execute(this->get_T_symmetrized(), S_source, S_approx, S_target);
+  const int iterations = RL_obj.execute(this->get_T_symmetrized(), S_source, S_target, S_approx);
 
   if (concurrency.id() == concurrency.first()) {
     std::cout << "\n\n\t\t Richardson-Lucy deconvolution: " << iterations << " iterations"
