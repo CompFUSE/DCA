@@ -171,6 +171,11 @@ void RichardsonLucyDeconvolution<k_dmn_t, p_dmn_t>::initializeMatrices(
     for (int i = 0; i < num_rows; ++i)
       u_t(i, j) = mean / std::abs(mean);  // Used to be: u_t(i,j) = mean.
   }
+
+  // Initialize the other matrices with zero.
+  for (int j = 0; j < num_cols; ++j)
+    for (int i = 0; i < num_rows; ++i)
+      c(i, j) = d_over_c(i, j) = u_t_p_1(i, j) = 0.;
 }
 
 template <typename k_dmn_t, typename p_dmn_t>
