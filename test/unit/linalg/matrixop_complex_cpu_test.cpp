@@ -841,12 +841,14 @@ TYPED_TEST(MatrixopComplexCPUTest, SwapCol) {
   }
 }
 
-TEST(MatrixopComplexCPUTest, multiply) {
-  auto val_a = [](int i, int j) { return std::complex<double>(1 + i + j, 10 * j * i); };
-  auto val_b = [](int i, int j) { return std::complex<double>(i - j, j * j); };
+TYPED_TEST(MatrixopComplexCPUTest, Multiply) {
+  using ScalarType = typename TypeParam::value_type;
 
-  using RealMatrix = dca::linalg::Matrix<double, dca::linalg::CPU>;
-  using CmplMatrix = dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU>;
+  auto val_a = [](int i, int j) { return std::complex<ScalarType>(1 + i + j, 10 * j * i); };
+  auto val_b = [](int i, int j) { return std::complex<ScalarType>(i - j, j * j); };
+
+  using RealMatrix = dca::linalg::Matrix<ScalarType, dca::linalg::CPU>;
+  using CmplMatrix = dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::CPU>;
 
   CmplMatrix a(std::make_pair(5, 5));
   CmplMatrix b(std::make_pair(5, 5));
@@ -877,20 +879,23 @@ TEST(MatrixopComplexCPUTest, multiply) {
       // compute with 3M algorithm,
       dca::linalg::matrixop::multiply(transa, transb, a_split, b_split, c_split, work_space);
       // Confront.
+      const ScalarType tolerance = 100 * this->epsilon;
       for (int j = 0; j < c.nrCols(); ++j)
         for (int i = 0; i < c.nrRows(); ++i) {
-          EXPECT_DOUBLE_EQ(c(i, j).real(), c_split[0](i, j));
-          EXPECT_DOUBLE_EQ(c(i, j).imag(), c_split[1](i, j));
+          EXPECT_NEAR(c(i, j).real(), c_split[0](i, j), tolerance);
+          EXPECT_NEAR(c(i, j).imag(), c_split[1](i, j), tolerance);
         }
     }
 }
 
-TEST(MatrixopComplexCPUTest, multiplyRealArg) {
-  auto val_a = [](int i, int j) { return std::complex<double>(i + j * i, -0.6 * j); };
-  auto val_b = [](int i, int j) { return std::complex<double>(i - 2. * j, 0.); };
+TYPED_TEST(MatrixopComplexCPUTest, MultiplyRealArg) {
+  using ScalarType = typename TypeParam::value_type;
 
-  using RealMatrix = dca::linalg::Matrix<double, dca::linalg::CPU>;
-  using CmplMatrix = dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU>;
+  auto val_a = [](int i, int j) { return std::complex<ScalarType>(i + j * i, -0.6 * j); };
+  auto val_b = [](int i, int j) { return std::complex<ScalarType>(i - 2. * j, 0.); };
+
+  using RealMatrix = dca::linalg::Matrix<ScalarType, dca::linalg::CPU>;
+  using CmplMatrix = dca::linalg::Matrix<std::complex<ScalarType>, dca::linalg::CPU>;
 
   CmplMatrix a(std::make_pair(7, 7));
   CmplMatrix b(std::make_pair(7, 7));
@@ -919,10 +924,11 @@ TEST(MatrixopComplexCPUTest, multiplyRealArg) {
       // compute with 3M algorithm,
       dca::linalg::matrixop::multiply(transa, transb, a_split, b_re, c_split);
       // Confront.
+      const ScalarType tolerance = 100 * this->epsilon;
       for (int j = 0; j < c.nrCols(); ++j)
         for (int i = 0; i < c.nrRows(); ++i) {
-          EXPECT_DOUBLE_EQ(c(i, j).real(), c_split[0](i, j));
-          EXPECT_DOUBLE_EQ(c(i, j).imag(), c_split[1](i, j));
+          EXPECT_NEAR(c(i, j).real(), c_split[0](i, j), tolerance);
+          EXPECT_NEAR(c(i, j).imag(), c_split[1](i, j), tolerance);
         }
     }
 }
