@@ -18,6 +18,7 @@
 // - swapCol, swapRow, swapRowAndCol
 // - swapCols, swapRows (for GPU matrices only)
 // - gemm
+// - multiply
 // - trsm
 // - eigensolver (non-symmetric / symmetric / Hermitian)
 // - pseudoInverse
@@ -539,10 +540,11 @@ void gemv(char transa, const Matrix<ScalarType, CPU>& a, const Vector<ScalarType
 //                b.nrCols() == c.nrCols() if transb == 'N', b.nrRows() == c.nrCols() otherwise,
 //                ka == kb, where ka = a.nrCols() if transa == 'N', ka = a.nrRows() otherwise and
 //                          kb = b.nrRows() if transb == 'N', kb = b.nrCols() otherwise.
-template <typename ScalarType, DeviceType device_name>
-void gemm(char transa, char transb, ScalarType alpha, const Matrix<ScalarType, device_name>& a,
-          const Matrix<ScalarType, device_name>& b, ScalarType beta,
-          Matrix<ScalarType, device_name>& c, int thread_id = 0, int stream_id = 0) {
+template <typename ScalarType, DeviceType device_name, template <typename, DeviceType> class MatrixA,
+          template <typename, DeviceType> class MatrixB, template <typename, DeviceType> class MatrixC>
+void gemm(char transa, char transb, ScalarType alpha, const MatrixA<ScalarType, device_name>& a,
+          const MatrixB<ScalarType, device_name>& b, ScalarType beta,
+          MatrixC<ScalarType, device_name>& c, int thread_id = 0, int stream_id = 0) {
   int m = c.nrRows();
   int n = c.nrCols();
   int k;
@@ -576,19 +578,21 @@ void gemm(char transa, char transb, ScalarType alpha, const Matrix<ScalarType, d
 // Performs the matrix-matrix multiplication c <- a * b
 // Out: c
 // Preconditions: a.nrRows() == c.nrRows(), b.nrCols() == c.nrCols() and a.nrCols() == b.nrRows()
-template <typename ScalarType, DeviceType device_name>
-inline void gemm(const Matrix<ScalarType, device_name>& a, const Matrix<ScalarType, device_name>& b,
-                 Matrix<ScalarType, device_name>& c, int thread_id = 0, int stream_id = 0) {
+template <typename ScalarType, DeviceType device_name, template <typename, DeviceType> class MatrixA,
+          template <typename, DeviceType> class MatrixB, template <typename, DeviceType> class MatrixC>
+inline void gemm(const MatrixA<ScalarType, device_name>& a, const MatrixB<ScalarType, device_name>& b,
+                 MatrixC<ScalarType, device_name>& c, int thread_id = 0, int stream_id = 0) {
   gemm<ScalarType, device_name>('N', 'N', 1., a, b, 0., c, thread_id, stream_id);
 }
 
 // Performs the matrix-matrix multiplication c <- alpha * a * b + beta * c,
 // In/Out: c ('In' only if beta != 0)
 // Preconditions: a.nrRows() == c.nrRows(), b.nrCols() == c.nrCols() and a.nrCols() == b.nrRows()
-template <typename ScalarType, DeviceType device_name>
-inline void gemm(ScalarType alpha, const Matrix<ScalarType, device_name>& a,
-                 const Matrix<ScalarType, device_name>& b, ScalarType beta,
-                 Matrix<ScalarType, device_name>& c, int thread_id = 0, int stream_id = 0) {
+template <typename ScalarType, DeviceType device_name, template <typename, DeviceType> class MatrixA,
+          template <typename, DeviceType> class MatrixB, template <typename, DeviceType> class MatrixC>
+inline void gemm(ScalarType alpha, const MatrixA<ScalarType, device_name>& a,
+                 const MatrixB<ScalarType, device_name>& b, ScalarType beta,
+                 MatrixC<ScalarType, device_name>& c, int thread_id = 0, int stream_id = 0) {
   gemm<ScalarType, device_name>('N', 'N', alpha, a, b, beta, c, thread_id, stream_id);
 }
 
@@ -708,6 +712,130 @@ static void gemm(char transa, char transb, Matrix<std::complex<ScalarType>, CPU>
   for (int j = 0; j < c.nrCols(); ++j)
     for (int i = 0; i < c.nrRows(); ++i)
       c(i, j) = std::complex<ScalarType>(c_re(i, j), c_im(i, j));
+}
+
+// Performs the matrix-matrix multiplication c = op(a) * op(b), where each matrix is split in real
+// and imaginary part. This is implemented with 3 real matrix-matrix multiplications.
+// Out: c
+// Preconditions: transa and transb should be one of the following: 'N', 'T', 'C'.
+//                a[0].size == a[1].size()
+//                b[0].size == b[1].size()
+//                c[0].size == c[1].size()
+//                a[0].nrRows() == c[0].nrRows() if transa == 'N', a[0].nrCols() == c[0].nrRows()
+//                  otherwise,
+//                b[0].nrCols() == c[0].nrCols() if transb == 'N', b[0].nrRows() == c[0].nrCols()
+//                  otherwise,
+//                ka == kb, where ka = a[0].nrCols() if transa == 'N', ka = a[0].nrRows() otherwise
+//                and kb = b[0].nrRows() if transb == 'N', kb = b[0].nrCols() otherwise.
+template <typename ScalarType>
+void multiply(char transa, char transb, const std::array<Matrix<ScalarType, CPU>, 2>& a,
+              const std::array<Matrix<ScalarType, CPU>, 2>& b,
+              std::array<Matrix<ScalarType, CPU>, 2>& c,
+              std::array<Matrix<ScalarType, CPU>, 5>& work) {
+  assert(a[0].size() == a[1].size());
+  assert(b[0].size() == b[1].size());
+  assert(c[0].size() == c[1].size());
+
+  work[0].resizeNoCopy(c[0].size());
+  work[1].resizeNoCopy(c[0].size());
+  work[2].resizeNoCopy(c[0].size());
+  auto& a_sum = work[3];
+  auto& b_sum = work[4];
+  a_sum.resizeNoCopy(a[0].size());
+  b_sum.resizeNoCopy(b[0].size());
+
+  const ScalarType signa = transa == 'C' ? transa = 'T', -1 : 1;
+  const ScalarType signb = transb == 'C' ? transb = 'T', -1 : 1;
+
+  for (int j = 0; j < a[0].nrCols(); ++j)
+    for (int i = 0; i < a[0].nrRows(); ++i)
+      a_sum(i, j) = a[0](i, j) + signa * a[1](i, j);
+  for (int j = 0; j < b[0].nrCols(); ++j)
+    for (int i = 0; i < b[0].nrRows(); ++i)
+      b_sum(i, j) = b[0](i, j) + signb * b[1](i, j);
+
+  gemm(transa, transb, a[0], b[0], work[0]);
+  gemm(transa, transb, signa * signb, a[1], b[1], ScalarType(0), work[1]);
+  gemm(transa, transb, a_sum, b_sum, work[2]);
+
+  for (int j = 0; j < c[0].nrCols(); ++j)
+    for (int i = 0; i < c[0].nrRows(); ++i) {
+      c[0](i, j) = work[0](i, j) - work[1](i, j);
+      c[1](i, j) = work[2](i, j) - work[0](i, j) - work[1](i, j);
+    }
+}
+
+template <typename ScalarType>
+void multiply(const std::array<Matrix<ScalarType, CPU>, 2>& a,
+              const std::array<Matrix<ScalarType, CPU>, 2>& b,
+              std::array<Matrix<ScalarType, CPU>, 2>& c,  std::array<Matrix<ScalarType, CPU>, 5>& work) {
+  multiply('N', 'N', a, b, c, work);
+}
+
+// Performs the matrix-matrix multiplication c = op(a) * op(b), where a and c are split in real
+// and imaginary part, while b is real.
+// Out: c
+// Preconditions: transa and transb should be one of the following: 'N', 'T',
+//                a[0].size == a[1].size()
+//                c[0].size == c[1].size()
+//                a[0].nrRows() == c[0].nrRows() if transa == 'N', a.nrCols() == c.nrRows()
+//                  otherwise,
+//                b.nrCols() == c[0].nrCols() if transb == 'N', b.nrRows() == c.nrCols()
+//                  otherwise,
+//                ka == kb, where ka = a[0].nrCols() if transa == 'N', ka = a[0].nrRows() otherwise
+//                and kb = b.nrRows() if transb == 'N', kb = b.nrCols() otherwise.
+template <typename ScalarType, DeviceType device_name>
+void multiply(char transa, char transb, const std::array<Matrix<ScalarType, device_name>, 2>& a,
+              const Matrix<ScalarType, device_name>& b,
+              std::array<Matrix<ScalarType, device_name>, 2>& c) {
+  assert(transa == 'N' || transa == 'T' || transa == 'C');
+  assert(transb == 'N' || transb == 'T');
+  assert(a[0].size() == a[1].size());
+  assert(c[0].size() == c[1].size());
+
+  gemm(transa, transb, a[0], b, c[0]);
+  const ScalarType sign = transa == 'C' ? transa = 'T', -1 : 1;
+  gemm(transa, transb, sign, a[1], b, ScalarType(0), c[1]);
+}
+
+template <typename ScalarType, DeviceType device_name>
+void multiply(const std::array<Matrix<ScalarType, device_name>, 2>& a,
+              const Matrix<ScalarType, device_name>& b,
+              std::array<Matrix<ScalarType, device_name>, 2>& c) {
+  multiply('N', 'N', a, b, c);
+}
+
+// Performs the matrix-matrix multiplication c = op(a) * op(b), where b and c are split in real
+// and imaginary part, while a is real.
+// Out: c
+// Preconditions: transa and transb should be one of the following: 'N', 'T',
+//                b[0].size == b[1].size()
+//                c[0].size == c[1].size()
+//                a.nrRows() == c[0].nrRows() if transa == 'N', a.nrCols() == c.nrRows()
+//                  otherwise,
+//                b.[0]nrCols() == c[0].nrCols() if transb == 'N', b.[0]nrRows() == c.nrCols()
+//                  otherwise,
+//                ka == kb, where ka = a.nrCols() if transa == 'N', ka = a.nrRows() otherwise
+//                and kb = b.[0]nrRows() if transb == 'N', kb = b.[0]nrCols() otherwise.
+template <typename ScalarType, DeviceType device_name>
+void multiply(char transa, char transb, const Matrix<ScalarType, device_name>& a,
+              const std::array<Matrix<ScalarType, device_name>, 2>& b,
+              std::array<Matrix<ScalarType, device_name>, 2>& c) {
+  assert(transa == 'N' || transa == 'T');
+  assert(transb == 'N' || transb == 'T' || transb == 'C');
+  assert(b[0].size() == b[1].size());
+  assert(c[0].size() == c[1].size());
+
+  gemm(transa, transb, a, b[0], c[0]);
+  const ScalarType sign = transb == 'C' ? transb = 'T', -1 : 1;
+  gemm(transa, transb, sign, a, b[1], ScalarType(0), c[1]);
+}
+
+template <typename ScalarType, DeviceType device_name>
+void multiply(const Matrix<ScalarType, device_name>& a,
+              const std::array<Matrix<ScalarType, device_name>, 2>& b,
+              std::array<Matrix<ScalarType, device_name>, 2>& c) {
+  multiply('N', 'N', a, b, c);
 }
 
 // Performs the matrix-matrix multiplication b <- D * a,

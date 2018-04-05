@@ -123,16 +123,17 @@ public:
     return data_;
   }
 
-  // Returns the pointer to the (i,j)-th element.
-  // Preconditions: 0 <= i < size().first, 0 <= j < size().second.
+  // Returns the pointer to the (i,j)-th element i < size().first and 0 < j < size().second, or
+  // a pointer past the end of the range if i == size().first or j == size().second.
+  // Preconditions: 0 <= i <= size().first, 0 <= j <= size().second.
   ValueType* ptr(int i, int j) {
-    assert(i >= 0 && i < size_.first);
-    assert(j >= 0 && j < size_.second);
+    assert(i >= 0 && i <= size_.first);
+    assert(j >= 0 && j <= size_.second);
     return data_ + i + j * leadingDimension();
   }
   const ValueType* ptr(int i, int j) const {
-    assert(i >= 0 && i < size_.first);
-    assert(j >= 0 && j < size_.second);
+    assert(i >= 0 && i <= size_.first);
+    assert(j >= 0 && j <= size_.second);
     return data_ + i + j * leadingDimension();
   }
 
@@ -185,17 +186,26 @@ public:
   // if new_size.first <= capacity().first and new_size.second <= capacity().second.
   void resizeNoCopy(std::pair<int, int> new_size);
 
+  // Releases the memory allocated by *this and sets size and capacity to zero.
+  void clear();
+
   // Swaps the contents of the matrix except the name with those of rhs.
   void swap(Matrix<ScalarType, device_name>& rhs);
   // Swaps the contents of the matrix, included the name, with those of rhs.
   void swapWithName(Matrix<ScalarType, device_name>& rhs);
 
-  // Asynchronous assignement (copy with stream = getStream(thread_id, stream_id))
+  // Asynchronous assignment (copy with stream = getStream(thread_id, stream_id))
   // + synchronization of stream
   // Preconditions: 0 <= thread_id < DCA_MAX_THREADS,
   //                0 <= stream_id < DCA_STREAMS_PER_THREADS.
   template <DeviceType rhs_device_name>
   void set(const Matrix<ScalarType, rhs_device_name>& rhs, int thread_id, int stream_id);
+
+#ifdef DCA_HAVE_CUDA
+  // Asynchronous assignment.
+  template <DeviceType rhs_device_name>
+  void setAsync(const Matrix<ScalarType, rhs_device_name>& rhs, cudaStream_t stream);
+#endif  // DCA_HAVE_CUDA
 
   // Prints the values of the matrix elements.
   template <DeviceType dn = device_name>
@@ -389,6 +399,12 @@ void Matrix<ScalarType, device_name>::resizeNoCopy(std::pair<int, int> new_size)
 }
 
 template <typename ScalarType, DeviceType device_name>
+void Matrix<ScalarType, device_name>::clear() {
+  util::Memory<device_name>::deallocate(data_);
+  size_ = capacity_ = std::make_pair(0, 0);
+}
+
+template <typename ScalarType, DeviceType device_name>
 void Matrix<ScalarType, device_name>::swap(Matrix<ScalarType, device_name>& rhs) {
   std::swap(size_, rhs.size_);
   std::swap(capacity_, rhs.capacity_);
@@ -409,6 +425,16 @@ void Matrix<ScalarType, device_name>::set(const Matrix<ScalarType, rhs_device_na
   util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_, thread_id,
                    stream_id);
 }
+
+#ifdef DCA_HAVE_CUDA
+template <typename ScalarType, DeviceType device_name>
+template <DeviceType rhs_device_name>
+void Matrix<ScalarType, device_name>::setAsync(const Matrix<ScalarType, rhs_device_name>& rhs,
+                                               const cudaStream_t stream) {
+  resizeNoCopy(rhs.size_);
+  util::memoryCopyAsync(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_, stream);
+}
+#endif  // DCA_HAVE_CUDA
 
 template <typename ScalarType, DeviceType device_name>
 template <DeviceType dn>
@@ -433,7 +459,7 @@ template <typename ScalarType, DeviceType device_name>
 template <DeviceType dn>
 std::enable_if_t<device_name != CPU && dn == device_name, void> Matrix<ScalarType,
                                                                        device_name>::print() const {
-  Matrix<ScalarType, CPU> copy(*this);
+  Matrix<ScalarType, CPU> copy(*this, name_);
   copy.print();
 }
 
@@ -456,8 +482,12 @@ std::pair<int, int> Matrix<ScalarType, device_name>::capacityMultipleOfBlockSize
   assert(size.first >= 0);
   assert(size.second >= 0);
 
-  size.first = (size.first + block_size_ - 1) / block_size_ * block_size_;
-  size.second = (size.second + block_size_ - 1) / block_size_ * block_size_;
+  auto get_new_size = [=](const int size) {
+    return size <= 16 ? size : (size + block_size_ - 1) / block_size_ * block_size_;
+  };
+
+  size.first = get_new_size(size.first);
+  size.second = get_new_size(size.second);
 
   return size;
 }

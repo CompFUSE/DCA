@@ -54,6 +54,9 @@ public:
     obj *= 1. / measurements;
   }
 
+  template <typename T>
+  void sum_and_average(T& /*obj*/) const {}
+
   template <typename Scalar>
   void leaveOneOutAvg(Scalar&) const {}
   template <typename Scalar, class Domain>

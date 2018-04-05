@@ -37,7 +37,7 @@ public:
                               domains::BRILLOUIN_ZONE>;
 
   FourPointParameters()
-      : four_point_type_("NONE"),
+      : four_point_type_(NONE),
         four_point_momentum_transfer_input_(lattice_dimension, 0.),
         four_point_frequency_transfer_(0) {}
 
@@ -51,7 +51,13 @@ public:
   template <typename ReaderOrWriter>
   void readWrite(ReaderOrWriter& reader_or_writer);
 
-  FourPointType get_four_point_type() const;
+  FourPointType get_four_point_type() const {
+    return static_cast<FourPointType>(four_point_type_);
+  }
+
+  void set_four_point_type(FourPointType type) {
+    four_point_type_ = type;
+  }
 
   const std::vector<double>& get_four_point_momentum_transfer_input() const {
     return four_point_momentum_transfer_input_;
@@ -79,7 +85,9 @@ public:
   }
 
 private:
-  std::string four_point_type_;
+  // There is no utility to communicate enumerations over mpi, so four_point_type_ is stored
+  // as an int rather than a FourPointType.
+  int four_point_type_;
   std::vector<double> four_point_momentum_transfer_input_;
   int four_point_frequency_transfer_;
 };
@@ -120,8 +128,10 @@ void FourPointParameters<lattice_dimension>::readWrite(ReaderOrWriter& reader_or
   try {
     reader_or_writer.open_group("four-point");
 
+    std::string four_point_name = toString(static_cast<FourPointType>(four_point_type_));
     try {
-      reader_or_writer.execute("type", four_point_type_);
+      reader_or_writer.execute("type", four_point_name);
+      four_point_type_ = stringToFourPointType(four_point_name);
     }
     catch (const std::exception& r_e) {
     }
@@ -140,27 +150,6 @@ void FourPointParameters<lattice_dimension>::readWrite(ReaderOrWriter& reader_or
   }
   catch (const std::exception& r_e) {
   }
-}
-
-template <int lattice_dimension>
-FourPointType FourPointParameters<lattice_dimension>::get_four_point_type() const {
-  if (four_point_type_ == "NONE")
-    return NONE;
-
-  else if (four_point_type_ == "PARTICLE_PARTICLE_UP_DOWN")
-    return PARTICLE_PARTICLE_UP_DOWN;
-
-  else if (four_point_type_ == "PARTICLE_HOLE_TRANSVERSE")
-    return PARTICLE_HOLE_TRANSVERSE;
-
-  else if (four_point_type_ == "PARTICLE_HOLE_MAGNETIC")
-    return PARTICLE_HOLE_MAGNETIC;
-
-  else if (four_point_type_ == "PARTICLE_HOLE_CHARGE")
-    return PARTICLE_HOLE_CHARGE;
-
-  else
-    throw std::logic_error("No valid option for parameter \"type\" in group \"four-point\".");
 }
 
 }  // params

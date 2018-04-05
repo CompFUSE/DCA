@@ -520,8 +520,8 @@ TEST(MatrixCPUTest, ResizeValue) {
     EXPECT_EQ(old_ptr, mat.ptr());
 
     // Check the value of the elements.
-    for (int j = 0; j < size2.second; ++j)
-      for (int i = 0; i < size2.first; ++i) {
+    for (int j = 0; j < mat.nrCols(); ++j)
+      for (int i = 0; i < mat.nrRows(); ++i) {
         long el = el_value(i, j);
         EXPECT_EQ(el, mat(i, j));
       }
@@ -679,4 +679,13 @@ TEST(MatrixCPUTest, ResizeNoCopyValue) {
     EXPECT_LE(new_size, mat.capacity().first);
     EXPECT_LE(new_size, mat.capacity().second);
   }
+}
+
+TEST(MatrixCPUTest, Clear) {
+  dca::linalg::Matrix<float, dca::linalg::CPU> mat(42);
+
+  EXPECT_EQ(std::make_pair(42, 42), mat.size());
+  mat.clear();
+  EXPECT_EQ(std::make_pair(0, 0), mat.size());
+  EXPECT_EQ(std::make_pair(0, 0), mat.capacity());
 }

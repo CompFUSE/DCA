@@ -107,6 +107,11 @@ struct Memory<GPU> {
       std::complex<ScalarType>* ptr, size_t size) {
     cudaMemset(ptr, 0, size * sizeof(std::complex<ScalarType>));
   }
+
+  // Do nothing for non arithmetic types.
+  template <typename ScalarType>
+  static std::enable_if_t<std::is_arithmetic<ScalarType>::value == false, void> setToZero(
+      ScalarType /*ptr*/, size_t /*size*/) {}
 };
 #endif  // DCA_HAVE_CUDA
 

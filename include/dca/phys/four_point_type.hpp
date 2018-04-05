@@ -12,17 +12,23 @@
 #ifndef DCA_PHYS_FOUR_POINT_TYPE_HPP
 #define DCA_PHYS_FOUR_POINT_TYPE_HPP
 
+#include <string>
+
 namespace dca {
 namespace phys {
 // dca::phys::
 
-enum FourPointType {
+enum FourPointType : int {
   NONE,
   PARTICLE_HOLE_TRANSVERSE,
   PARTICLE_HOLE_MAGNETIC,
   PARTICLE_HOLE_CHARGE,
   PARTICLE_PARTICLE_UP_DOWN
 };
+
+FourPointType stringToFourPointType(const std::string& name);
+
+std::string toString(const FourPointType type);
 
 }  // phys
 }  // dca

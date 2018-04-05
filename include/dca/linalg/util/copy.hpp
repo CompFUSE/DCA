@@ -50,14 +50,30 @@ void memoryCopy(ScalarType* dest, int ld_dest, const ScalarType* src, int ld_src
   checkRC(ret);
 }
 
+// Asynchronous 1D memory copy.
+template <typename ScalarType>
+void memoryCopyAsync(ScalarType* dest, const ScalarType* src, size_t size, const cudaStream_t stream) {
+  cudaError_t ret = cudaMemcpyAsync(dest, src, size * sizeof(ScalarType), cudaMemcpyDefault, stream);
+  checkRC(ret);
+}
+
 // Asynchronous 1D memory copy (stream = getStream(thread_id, stream_id)).
 // Preconditions: 0 <= thread_id < DCA_MAX_THREADS,
 //                0 <= stream_id < DCA_STREAMS_PER_THREADS.
 template <typename ScalarType>
 void memoryCopyAsync(ScalarType* dest, const ScalarType* src, size_t size, int thread_id,
-                     int stream_id) {
-  cudaError_t ret = cudaMemcpyAsync(dest, src, size * sizeof(ScalarType), cudaMemcpyDefault,
-                                    getStream(thread_id, stream_id));
+                     int stream_id = 0) {
+  memoryCopyAsync(dest, src, size, getStream(thread_id, stream_id));
+}
+
+// Asynchronous 2D memory copy.
+// Preconditions: ld_dest >= size.first, ld_src >= size.firs.
+template <typename ScalarType>
+void memoryCopyAsync(ScalarType* dest, int ld_dest, const ScalarType* src, int ld_src,
+                     std::pair<int, int> size, const cudaStream_t stream) {
+  cudaError_t ret =
+      cudaMemcpy2DAsync(dest, ld_dest * sizeof(ScalarType), src, ld_src * sizeof(ScalarType),
+                        size.first * sizeof(ScalarType), size.second, cudaMemcpyDefault, stream);
   checkRC(ret);
 }
 
@@ -68,11 +84,7 @@ void memoryCopyAsync(ScalarType* dest, const ScalarType* src, size_t size, int t
 template <typename ScalarType>
 void memoryCopyAsync(ScalarType* dest, int ld_dest, const ScalarType* src, int ld_src,
                      std::pair<int, int> size, int thread_id, int stream_id) {
-  cudaError_t ret =
-      cudaMemcpy2DAsync(dest, ld_dest * sizeof(ScalarType), src, ld_src * sizeof(ScalarType),
-                        size.first * sizeof(ScalarType), size.second, cudaMemcpyDefault,
-                        getStream(thread_id, stream_id));
-  checkRC(ret);
+  memoryCopyAsync(dest, ld_dest, src, ld_src, size, getStream(thread_id, stream_id));
 }
 
 // Asynchronous 1D memory copy (stream = getStream(thread_id, stream_id))
