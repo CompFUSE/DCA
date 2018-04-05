@@ -23,6 +23,20 @@ template <int DIMENSION>
 class identity_group_operation : public group_action<DIMENSION> {};
 
 template <>
+class identity_group_operation<1> : public group_action<1> {
+public:
+  typedef group_action<1> base_type;
+  typedef identity_group_operation<1> this_type;
+
+  identity_group_operation(){};
+
+  const static double* matrix() {
+    const static double matrix[1] = {1.};
+    return matrix;
+  }
+};
+
+template <>
 class identity_group_operation<2> : public group_action<2> {
 public:
   typedef group_action<2> base_type;
