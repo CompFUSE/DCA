@@ -55,13 +55,11 @@ private:
 
   func::function<bool, p_dmn_t> is_finished_;
 
-  linalg::Matrix<double, linalg::CPU> c;
-  linalg::Matrix<double, linalg::CPU> d;
-
-  linalg::Matrix<double, linalg::CPU> d_over_c;
-
-  linalg::Matrix<double, linalg::CPU> u_t;
-  linalg::Matrix<double, linalg::CPU> u_t_p_1;
+  linalg::Matrix<double, linalg::CPU> c_;
+  linalg::Matrix<double, linalg::CPU> d_;
+  linalg::Matrix<double, linalg::CPU> d_over_c_;
+  linalg::Matrix<double, linalg::CPU> u_t_;
+  linalg::Matrix<double, linalg::CPU> u_t_plus_1_;
 };
 
 template <typename k_dmn_t, typename p_dmn_t>
@@ -72,13 +70,11 @@ RichardsonLucyDeconvolution<k_dmn_t, p_dmn_t>::RichardsonLucyDeconvolution(const
 
       is_finished_("is_finished"),
 
-      c("c (Richardson_Lucy_deconvolution)"),
-      d("d (Richardson_Lucy_deconvolution)"),
-
-      d_over_c("d/c (Richardson_Lucy_deconvolution)"),
-
-      u_t("u_t (Richardson_Lucy_deconvolution)"),
-      u_t_p_1("u_{t+1} (Richardson_Lucy_deconvolution)") {}
+      c_("c (Richardson-Lucy-deconvolution)"),
+      d_("d (Richardson-Lucy-deconvolution)"),
+      d_over_c_("d/c (Richardson-Lucy-deconvolution)"),
+      u_t_("u_t (Richardson-Lucy-deconvolution)"),
+      u_t_plus_1_("u_{t+1} (Richardson-Lucy-deconvolution)") {}
 
 template <typename k_dmn_t, typename p_dmn_t>
 int RichardsonLucyDeconvolution<k_dmn_t, p_dmn_t>::findTargetFunction(
@@ -88,29 +84,27 @@ int RichardsonLucyDeconvolution<k_dmn_t, p_dmn_t>::findTargetFunction(
   assert(p.size().first == k_dmn_t::dmn_size());
   assert(p.is_square());
 
-  // Reset is_finished_.
   for (int i = 0; i < p_dmn_t::dmn_size(); ++i)
     is_finished_(i) = false;
 
-  // Initialize u_t and d.
   initializeMatrices(source);
 
   int iterations = 0;
   while (!finished() && iterations < max_iterations_) {
     // Compute c.
-    linalg::matrixop::gemm(p, u_t, c);
+    linalg::matrixop::gemm(p, u_t_, c_);
 
     // Compute d_over_c.
     for (int j = 0; j < p_dmn_t::dmn_size(); ++j)
       for (int i = 0; i < k_dmn_t::dmn_size(); ++i)
-        d_over_c(i, j) = d(i, j) / c(i, j);
+        d_over_c_(i, j) = d_(i, j) / c_(i, j);
 
     // Compute u_{t+1}.
-    linalg::matrixop::gemm('T', 'N', p, d_over_c, u_t_p_1);
+    linalg::matrixop::gemm('T', 'N', p, d_over_c_, u_t_plus_1_);
 
     for (int j = 0; j < p_dmn_t::dmn_size(); ++j)
       for (int i = 0; i < k_dmn_t::dmn_size(); ++i)
-        u_t(i, j) = u_t_p_1(i, j) * u_t(i, j);
+        u_t_(i, j) = u_t_plus_1_(i, j) * u_t_(i, j);
 
     ++iterations;
   }
@@ -118,7 +112,7 @@ int RichardsonLucyDeconvolution<k_dmn_t, p_dmn_t>::findTargetFunction(
   // Copy iterative solution matrix into returned target function.
   for (int j = 0; j < p_dmn_t::dmn_size(); ++j)
     for (int i = 0; i < k_dmn_t::dmn_size(); ++i)
-      target(i, j) = u_t(i, j);
+      target(i, j) = u_t_(i, j);
 
   return iterations;
 }
@@ -132,11 +126,11 @@ int RichardsonLucyDeconvolution<k_dmn_t, p_dmn_t>::findTargetFunction(
   const int iterations = findTargetFunction(p, source, target);
 
   // Compute the convolution of the target function, which should resemble the source function.
-  linalg::matrixop::gemm(p, u_t, c);
+  linalg::matrixop::gemm(p, u_t_, c_);
 
   for (int j = 0; j < p_dmn_t::dmn_size(); j++)
     for (int i = 0; i < k_dmn_t::dmn_size(); i++)
-      target_convoluted(i, j) = c(i, j);
+      target_convoluted(i, j) = c_(i, j);
 
   return iterations;
 }
@@ -147,32 +141,32 @@ void RichardsonLucyDeconvolution<k_dmn_t, p_dmn_t>::initializeMatrices(
   const int num_rows = k_dmn_t::dmn_size();
   const int num_cols = p_dmn_t::dmn_size();
 
-  c.resizeNoCopy(std::make_pair(num_rows, num_cols));
-  d.resizeNoCopy(std::make_pair(num_rows, num_cols));
-  d_over_c.resizeNoCopy(std::make_pair(num_rows, num_cols));
-  u_t.resizeNoCopy(std::make_pair(num_rows, num_cols));
-  u_t_p_1.resizeNoCopy(std::make_pair(num_rows, num_cols));
+  c_.resizeNoCopy(std::make_pair(num_rows, num_cols));
+  d_.resizeNoCopy(std::make_pair(num_rows, num_cols));
+  d_over_c_.resizeNoCopy(std::make_pair(num_rows, num_cols));
+  u_t_.resizeNoCopy(std::make_pair(num_rows, num_cols));
+  u_t_plus_1_.resizeNoCopy(std::make_pair(num_rows, num_cols));
 
   // Initialize d matrix ("observed image") with source function.
   for (int j = 0; j < num_cols; ++j)
     for (int i = 0; i < num_rows; ++i)
-      d(i, j) = source(i, j);
+      d_(i, j) = source(i, j);
 
   // Initialize iterative solution u_t with signs of column means of d.
   for (int j = 0; j < num_cols; ++j) {
     double mean = 0.;
     for (int i = 0; i < num_rows; ++i)
-      mean += d(i, j);
+      mean += d_(i, j);
     mean /= num_rows;
 
     for (int i = 0; i < num_rows; ++i)
-      u_t(i, j) = mean / std::abs(mean);  // Used to be: u_t(i,j) = mean.
+      u_t_(i, j) = mean / std::abs(mean);  // Used to be: u_t_(i,j) = mean.
   }
 
   // Initialize the other matrices with zero.
   for (int j = 0; j < num_cols; ++j)
     for (int i = 0; i < num_rows; ++i)
-      c(i, j) = d_over_c(i, j) = u_t_p_1(i, j) = 0.;
+      c_(i, j) = d_over_c_(i, j) = u_t_plus_1_(i, j) = 0.;
 }
 
 template <typename k_dmn_t, typename p_dmn_t>
@@ -186,8 +180,8 @@ bool RichardsonLucyDeconvolution<k_dmn_t, p_dmn_t>::finished() {
 
       // TODO: Fix error computation.
       for (int i = 0; i < k_dmn_t::dmn_size(); ++i) {
-        diff_squared += std::pow(c(i, j) - d(i, j), 2);
-        norm_d_squared += std::pow(d(i, j), 2);
+        diff_squared += std::pow(c_(i, j) - d_(i, j), 2);
+        norm_d_squared += std::pow(d_(i, j), 2);
       }
 
       const double error = std::sqrt(diff_squared / norm_d_squared);
