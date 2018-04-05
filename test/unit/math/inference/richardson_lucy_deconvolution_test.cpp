@@ -21,15 +21,15 @@ TEST(RichardsonLucyDeconvolutionTest, IdentityProjectionOperator) {
   using DeconvolutionDmn = dca::func::dmn_0<dca::func::dmn<4, int>>;
   using OtherDmn = dca::func::dmn_0<dca::func::dmn<1, int>>;
 
+  // Projection operator = identity matrix.
+  dca::linalg::Matrix<double, dca::linalg::CPU> p(4, "projection-operator");
+  p(0, 0) = p(1, 1) = p(2, 2) = p(3, 3) = 1.;
+
   const double tolerance = 1.e-3;
   const int max_iterations = 3;
 
   dca::math::inference::RichardsonLucyDeconvolution<DeconvolutionDmn, OtherDmn> deconvolution(
-      tolerance, max_iterations);
-
-  // Projection operator = identity matrix.
-  dca::linalg::Matrix<double, dca::linalg::CPU> p(4, "projection-operator");
-  p(0, 0) = p(1, 1) = p(2, 2) = p(3, 3) = 1.;
+      p, tolerance, max_iterations);
 
   // Trivial function not crossing zero.
   dca::func::function<double, dca::func::dmn_variadic<DeconvolutionDmn, OtherDmn>> source;
@@ -40,7 +40,7 @@ TEST(RichardsonLucyDeconvolutionTest, IdentityProjectionOperator) {
   // Test findTargetFunction(source, target).
   dca::func::function<double, dca::func::dmn_variadic<DeconvolutionDmn, OtherDmn>> target;
 
-  int iterations = deconvolution.findTargetFunction(p, source, target);
+  int iterations = deconvolution.findTargetFunction(source, target);
 
   EXPECT_EQ(1, iterations);
 
@@ -52,7 +52,7 @@ TEST(RichardsonLucyDeconvolutionTest, IdentityProjectionOperator) {
   target = 0.;
   dca::func::function<double, dca::func::dmn_variadic<DeconvolutionDmn, OtherDmn>> target_convoluted;
 
-  iterations = deconvolution.findTargetFunction(p, source, target, target_convoluted);
+  iterations = deconvolution.findTargetFunction(source, target, target_convoluted);
 
   EXPECT_EQ(1, iterations);
 

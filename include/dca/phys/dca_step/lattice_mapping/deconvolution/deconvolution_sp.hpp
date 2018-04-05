@@ -81,7 +81,8 @@ void deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(
   typedef func::dmn_variadic<z, b, b, s, w> p_dmn_t;
 
   math::inference::RichardsonLucyDeconvolution<target_k_dmn_t, p_dmn_t> RL_obj(
-      parameters.get_deconvolution_tolerance(), parameters.get_deconvolution_iterations());
+      this->get_T_symmetrized(), parameters.get_deconvolution_tolerance(),
+      parameters.get_deconvolution_iterations());
 
   func::function<double, func::dmn_variadic<target_k_dmn_t, p_dmn_t>> S_source("S_source");
   func::function<double, func::dmn_variadic<target_k_dmn_t, p_dmn_t>> S_approx("S_approx");
@@ -104,8 +105,7 @@ void deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(
     }
   }
 
-  const int iterations =
-      RL_obj.findTargetFunction(this->get_T_symmetrized(), S_source, S_target, S_approx);
+  const int iterations = RL_obj.findTargetFunction(S_source, S_target, S_approx);
 
   if (concurrency.id() == concurrency.first()) {
     std::cout << "\n\n\t\t Richardson-Lucy deconvolution: " << iterations << " iterations"

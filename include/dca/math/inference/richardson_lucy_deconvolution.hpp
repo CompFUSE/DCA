@@ -31,17 +31,16 @@ namespace inference {
 template <typename DeconvolutionDmn, typename OtherDmn>
 class RichardsonLucyDeconvolution {
 public:
-  RichardsonLucyDeconvolution(const double tolerance, const int max_iterations);
+  RichardsonLucyDeconvolution(const linalg::Matrix<double, linalg::CPU>& p, const double tolerance,
+                              const int max_iterations);
 
   // Returns the number of iterations executed.
   int findTargetFunction(
-      const linalg::Matrix<double, linalg::CPU>& p,
       const func::function<double, func::dmn_variadic<DeconvolutionDmn, OtherDmn>>& source,
       func::function<double, func::dmn_variadic<DeconvolutionDmn, OtherDmn>>& target);
 
   // Returns the number of iterations executed.
   int findTargetFunction(
-      const linalg::Matrix<double, linalg::CPU>& p,
       const func::function<double, func::dmn_variadic<DeconvolutionDmn, OtherDmn>>& source,
       func::function<double, func::dmn_variadic<DeconvolutionDmn, OtherDmn>>& target,
       func::function<double, func::dmn_variadic<DeconvolutionDmn, OtherDmn>>& target_convoluted);
@@ -56,36 +55,39 @@ private:
   const double tolerance_;
   const int max_iterations_;
 
-  func::function<bool, OtherDmn> is_finished_;
+  const linalg::Matrix<double, linalg::CPU>& p_;
 
   linalg::Matrix<double, linalg::CPU> c_;
   linalg::Matrix<double, linalg::CPU> d_;
   linalg::Matrix<double, linalg::CPU> d_over_c_;
   linalg::Matrix<double, linalg::CPU> u_t_;
   linalg::Matrix<double, linalg::CPU> u_t_plus_1_;
+
+  func::function<bool, OtherDmn> is_finished_;
 };
 
 template <typename DeconvolutionDmn, typename OtherDmn>
 RichardsonLucyDeconvolution<DeconvolutionDmn, OtherDmn>::RichardsonLucyDeconvolution(
-    const double tolerance, const int max_iterations)
+    const linalg::Matrix<double, linalg::CPU>& p, const double tolerance, const int max_iterations)
     : tolerance_(tolerance),
       max_iterations_(max_iterations),
 
-      is_finished_("is_finished"),
+      p_(p),
 
       c_("c (Richardson-Lucy-deconvolution)"),
       d_("d (Richardson-Lucy-deconvolution)"),
       d_over_c_("d/c (Richardson-Lucy-deconvolution)"),
       u_t_("u_t (Richardson-Lucy-deconvolution)"),
-      u_t_plus_1_("u_{t+1} (Richardson-Lucy-deconvolution)") {}
+      u_t_plus_1_("u_{t+1} (Richardson-Lucy-deconvolution)"),
+
+      is_finished_("is_finished") {}
 
 template <typename DeconvolutionDmn, typename OtherDmn>
 int RichardsonLucyDeconvolution<DeconvolutionDmn, OtherDmn>::findTargetFunction(
-    const linalg::Matrix<double, linalg::CPU>& p,
     const func::function<double, func::dmn_variadic<DeconvolutionDmn, OtherDmn>>& source,
     func::function<double, func::dmn_variadic<DeconvolutionDmn, OtherDmn>>& target) {
-  assert(p.size().first == DeconvolutionDmn::dmn_size());
-  assert(p.is_square());
+  assert(p_.size().first == DeconvolutionDmn::dmn_size());
+  assert(p_.is_square());
 
   for (int i = 0; i < OtherDmn::dmn_size(); ++i)
     is_finished_(i) = false;
@@ -95,7 +97,7 @@ int RichardsonLucyDeconvolution<DeconvolutionDmn, OtherDmn>::findTargetFunction(
   int iterations = 0;
   while (!finished() && iterations < max_iterations_) {
     // Compute c.
-    linalg::matrixop::gemm(p, u_t_, c_);
+    linalg::matrixop::gemm(p_, u_t_, c_);
 
     // Compute d_over_c.
     for (int j = 0; j < OtherDmn::dmn_size(); ++j)
@@ -103,7 +105,7 @@ int RichardsonLucyDeconvolution<DeconvolutionDmn, OtherDmn>::findTargetFunction(
         d_over_c_(i, j) = d_(i, j) / c_(i, j);
 
     // Compute u_{t+1}.
-    linalg::matrixop::gemm('T', 'N', p, d_over_c_, u_t_plus_1_);
+    linalg::matrixop::gemm('T', 'N', p_, d_over_c_, u_t_plus_1_);
 
     for (int j = 0; j < OtherDmn::dmn_size(); ++j)
       for (int i = 0; i < DeconvolutionDmn::dmn_size(); ++i)
@@ -122,14 +124,13 @@ int RichardsonLucyDeconvolution<DeconvolutionDmn, OtherDmn>::findTargetFunction(
 
 template <typename DeconvolutionDmn, typename OtherDmn>
 int RichardsonLucyDeconvolution<DeconvolutionDmn, OtherDmn>::findTargetFunction(
-    const linalg::Matrix<double, linalg::CPU>& p,
     const func::function<double, func::dmn_variadic<DeconvolutionDmn, OtherDmn>>& source,
     func::function<double, func::dmn_variadic<DeconvolutionDmn, OtherDmn>>& target,
     func::function<double, func::dmn_variadic<DeconvolutionDmn, OtherDmn>>& target_convoluted) {
-  const int iterations = findTargetFunction(p, source, target);
+  const int iterations = findTargetFunction(source, target);
 
   // Compute the convolution of the target function, which should resemble the source function.
-  linalg::matrixop::gemm(p, u_t_, c_);
+  linalg::matrixop::gemm(p_, u_t_, c_);
 
   for (int j = 0; j < OtherDmn::dmn_size(); j++)
     for (int i = 0; i < DeconvolutionDmn::dmn_size(); i++)
