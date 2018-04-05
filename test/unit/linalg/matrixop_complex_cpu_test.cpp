@@ -879,7 +879,7 @@ TYPED_TEST(MatrixopComplexCPUTest, Multiply) {
       // compute with 3M algorithm,
       dca::linalg::matrixop::multiply(transa, transb, a_split, b_split, c_split, work_space);
       // Confront.
-      const ScalarType tolerance = 100 * this->epsilon;
+      const ScalarType tolerance = 500 * this->epsilon;
       for (int j = 0; j < c.nrCols(); ++j)
         for (int i = 0; i < c.nrRows(); ++i) {
           EXPECT_NEAR(c(i, j).real(), c_split[0](i, j), tolerance);
@@ -924,7 +924,7 @@ TYPED_TEST(MatrixopComplexCPUTest, MultiplyRealArg) {
       // compute with 3M algorithm,
       dca::linalg::matrixop::multiply(transa, transb, a_split, b_re, c_split);
       // Confront.
-      const ScalarType tolerance = 100 * this->epsilon;
+      const ScalarType tolerance = 500 * this->epsilon;
       for (int j = 0; j < c.nrCols(); ++j)
         for (int i = 0; i < c.nrRows(); ++i) {
           EXPECT_NEAR(c(i, j).real(), c_split[0](i, j), tolerance);
