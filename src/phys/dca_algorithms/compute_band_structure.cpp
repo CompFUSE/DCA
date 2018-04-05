@@ -210,6 +210,7 @@ void compute_band_structure::high_symmetry_line<1>(std::string& name,
 
   k_vecs.push_back(k0);
   k_vecs.push_back(k1);
+  // Should we add k0 again to close the path? (See 2D and 3D cases.)
 }
 
 template <>
