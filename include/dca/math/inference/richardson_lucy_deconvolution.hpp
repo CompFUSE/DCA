@@ -28,34 +28,40 @@ namespace math {
 namespace inference {
 // dca::math::inference::
 
-template <typename DeconvolutionDmn, typename OtherDmn>
+template <typename ClusterDmn, typename HostDmn, typename OtherDmn>
 class RichardsonLucyDeconvolution {
 public:
-  RichardsonLucyDeconvolution(const linalg::Matrix<double, linalg::CPU>& p, const double tolerance,
-                              const int max_iterations);
+  RichardsonLucyDeconvolution(const linalg::Matrix<double, linalg::CPU>& p_cluster,
+                              const linalg::Matrix<double, linalg::CPU>& p_host,
+                              const double tolerance, const int max_iterations);
 
   // Returns the number of iterations executed.
   int findTargetFunction(
-      const func::function<double, func::dmn_variadic<DeconvolutionDmn, OtherDmn>>& source,
-      func::function<double, func::dmn_variadic<DeconvolutionDmn, OtherDmn>>& target);
+      const func::function<double, func::dmn_variadic<ClusterDmn, OtherDmn>>& source,
+      const func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& source_interpolated,
+      func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& target);
 
   // Returns the number of iterations executed.
   int findTargetFunction(
-      const func::function<double, func::dmn_variadic<DeconvolutionDmn, OtherDmn>>& source,
-      func::function<double, func::dmn_variadic<DeconvolutionDmn, OtherDmn>>& target,
-      func::function<double, func::dmn_variadic<DeconvolutionDmn, OtherDmn>>& target_convoluted);
+      const func::function<double, func::dmn_variadic<ClusterDmn, OtherDmn>>& source,
+      const func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& source_interpolated,
+      func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& target,
+      func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& target_convoluted);
 
 private:
   void initializeMatrices(
-      const func::function<double, func::dmn_variadic<DeconvolutionDmn, OtherDmn>>& source);
+      const func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& source_interpolated);
 
-  bool finished();
+  bool finished(const func::function<double, func::dmn_variadic<ClusterDmn, OtherDmn>>& source);
 
 private:
   const double tolerance_;
   const int max_iterations_;
 
-  const linalg::Matrix<double, linalg::CPU>& p_;
+  const linalg::Matrix<double, linalg::CPU>& p_cluster_;
+  const linalg::Matrix<double, linalg::CPU>& p_host_;
+
+  linalg::Matrix<double, linalg::CPU> c_cluster_;
 
   linalg::Matrix<double, linalg::CPU> c_;
   linalg::Matrix<double, linalg::CPU> d_;
@@ -66,13 +72,18 @@ private:
   func::function<bool, OtherDmn> is_finished_;
 };
 
-template <typename DeconvolutionDmn, typename OtherDmn>
-RichardsonLucyDeconvolution<DeconvolutionDmn, OtherDmn>::RichardsonLucyDeconvolution(
-    const linalg::Matrix<double, linalg::CPU>& p, const double tolerance, const int max_iterations)
+template <typename ClusterDmn, typename HostDmn, typename OtherDmn>
+RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::RichardsonLucyDeconvolution(
+    const linalg::Matrix<double, linalg::CPU>& p_cluster,
+    const linalg::Matrix<double, linalg::CPU>& p_host, const double tolerance,
+    const int max_iterations)
     : tolerance_(tolerance),
       max_iterations_(max_iterations),
 
-      p_(p),
+      p_cluster_(p_cluster),
+      p_host_(p_host),
+
+      c_cluster_("c-cluster (Richardson-Lucy-deconvolution)"),
 
       c_("c (Richardson-Lucy-deconvolution)"),
       d_("d (Richardson-Lucy-deconvolution)"),
@@ -80,35 +91,38 @@ RichardsonLucyDeconvolution<DeconvolutionDmn, OtherDmn>::RichardsonLucyDeconvolu
       u_t_("u_t (Richardson-Lucy-deconvolution)"),
       u_t_plus_1_("u_{t+1} (Richardson-Lucy-deconvolution)"),
 
-      is_finished_("is_finished") {}
+      is_finished_("is_finished") {
+  if (p_host_.size().first != HostDmn::dmn_size() || p_host_.size().second != HostDmn::dmn_size() ||
+      p_cluster_.size().first != ClusterDmn::dmn_size() ||
+      p_cluster_.size().second != HostDmn::dmn_size())
+    std::logic_error("Projection operator dimensions do not match domain sizes.");
+}
 
-template <typename DeconvolutionDmn, typename OtherDmn>
-int RichardsonLucyDeconvolution<DeconvolutionDmn, OtherDmn>::findTargetFunction(
-    const func::function<double, func::dmn_variadic<DeconvolutionDmn, OtherDmn>>& source,
-    func::function<double, func::dmn_variadic<DeconvolutionDmn, OtherDmn>>& target) {
-  assert(p_.size().first == DeconvolutionDmn::dmn_size());
-  assert(p_.is_square());
-
+template <typename ClusterDmn, typename HostDmn, typename OtherDmn>
+int RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::findTargetFunction(
+    const func::function<double, func::dmn_variadic<ClusterDmn, OtherDmn>>& source,
+    const func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& source_interpolated,
+    func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& target) {
   for (int i = 0; i < OtherDmn::dmn_size(); ++i)
     is_finished_(i) = false;
 
-  initializeMatrices(source);
+  initializeMatrices(source_interpolated);
 
   int iterations = 0;
-  while (!finished() && iterations < max_iterations_) {
+  while (!finished(source) && iterations < max_iterations_) {
     // Compute c.
-    linalg::matrixop::gemm(p_, u_t_, c_);
+    linalg::matrixop::gemm(p_host_, u_t_, c_);
 
     // Compute d_over_c.
     for (int j = 0; j < OtherDmn::dmn_size(); ++j)
-      for (int i = 0; i < DeconvolutionDmn::dmn_size(); ++i)
+      for (int i = 0; i < HostDmn::dmn_size(); ++i)
         d_over_c_(i, j) = d_(i, j) / c_(i, j);
 
     // Compute u_{t+1}.
-    linalg::matrixop::gemm('T', 'N', p_, d_over_c_, u_t_plus_1_);
+    linalg::matrixop::gemm('T', 'N', p_host_, d_over_c_, u_t_plus_1_);
 
     for (int j = 0; j < OtherDmn::dmn_size(); ++j)
-      for (int i = 0; i < DeconvolutionDmn::dmn_size(); ++i)
+      for (int i = 0; i < HostDmn::dmn_size(); ++i)
         u_t_(i, j) = u_t_plus_1_(i, j) * u_t_(i, j);
 
     ++iterations;
@@ -116,79 +130,92 @@ int RichardsonLucyDeconvolution<DeconvolutionDmn, OtherDmn>::findTargetFunction(
 
   // Copy iterative solution matrix into returned target function.
   for (int j = 0; j < OtherDmn::dmn_size(); ++j)
-    for (int i = 0; i < DeconvolutionDmn::dmn_size(); ++i)
+    for (int i = 0; i < HostDmn::dmn_size(); ++i)
       target(i, j) = u_t_(i, j);
 
   return iterations;
 }
 
-template <typename DeconvolutionDmn, typename OtherDmn>
-int RichardsonLucyDeconvolution<DeconvolutionDmn, OtherDmn>::findTargetFunction(
-    const func::function<double, func::dmn_variadic<DeconvolutionDmn, OtherDmn>>& source,
-    func::function<double, func::dmn_variadic<DeconvolutionDmn, OtherDmn>>& target,
-    func::function<double, func::dmn_variadic<DeconvolutionDmn, OtherDmn>>& target_convoluted) {
-  const int iterations = findTargetFunction(source, target);
+template <typename ClusterDmn, typename HostDmn, typename OtherDmn>
+int RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::findTargetFunction(
+    const func::function<double, func::dmn_variadic<ClusterDmn, OtherDmn>>& source,
+    const func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& source_interpolated,
+    func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& target,
+    func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& target_convoluted) {
+  const int iterations = findTargetFunction(source, source_interpolated, target);
 
-  // Compute the convolution of the target function, which should resemble the source function.
-  linalg::matrixop::gemm(p_, u_t_, c_);
+  // Compute the convolution of the target function, which should resemble the interpolated source
+  // function.
+  linalg::matrixop::gemm(p_host_, u_t_, c_);
 
   for (int j = 0; j < OtherDmn::dmn_size(); j++)
-    for (int i = 0; i < DeconvolutionDmn::dmn_size(); i++)
+    for (int i = 0; i < HostDmn::dmn_size(); i++)
       target_convoluted(i, j) = c_(i, j);
 
   return iterations;
 }
 
-template <typename DeconvolutionDmn, typename OtherDmn>
-void RichardsonLucyDeconvolution<DeconvolutionDmn, OtherDmn>::initializeMatrices(
-    const func::function<double, func::dmn_variadic<DeconvolutionDmn, OtherDmn>>& source) {
-  const int num_rows = DeconvolutionDmn::dmn_size();
+template <typename ClusterDmn, typename HostDmn, typename OtherDmn>
+void RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::initializeMatrices(
+    const func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& source_interpolated) {
+  const int num_rows_host = HostDmn::dmn_size();
+  const int num_rows_cluster = ClusterDmn::dmn_size();
   const int num_cols = OtherDmn::dmn_size();
 
-  c_.resizeNoCopy(std::make_pair(num_rows, num_cols));
-  d_.resizeNoCopy(std::make_pair(num_rows, num_cols));
-  d_over_c_.resizeNoCopy(std::make_pair(num_rows, num_cols));
-  u_t_.resizeNoCopy(std::make_pair(num_rows, num_cols));
-  u_t_plus_1_.resizeNoCopy(std::make_pair(num_rows, num_cols));
+  c_cluster_.resizeNoCopy(std::make_pair(num_rows_cluster, num_cols));
 
-  // Initialize d matrix ("observed image") with source function.
+  c_.resizeNoCopy(std::make_pair(num_rows_host, num_cols));
+  d_.resizeNoCopy(std::make_pair(num_rows_host, num_cols));
+  d_over_c_.resizeNoCopy(std::make_pair(num_rows_host, num_cols));
+  u_t_.resizeNoCopy(std::make_pair(num_rows_host, num_cols));
+  u_t_plus_1_.resizeNoCopy(std::make_pair(num_rows_host, num_cols));
+
+  // Initialize d matrix ("observed image") with interpolated source function.
   for (int j = 0; j < num_cols; ++j)
-    for (int i = 0; i < num_rows; ++i)
-      d_(i, j) = source(i, j);
+    for (int i = 0; i < num_rows_host; ++i)
+      d_(i, j) = source_interpolated(i, j);
 
   // Initialize iterative solution u_t with signs of column means of d.
   for (int j = 0; j < num_cols; ++j) {
     double mean = 0.;
-    for (int i = 0; i < num_rows; ++i)
+    for (int i = 0; i < num_rows_host; ++i)
       mean += d_(i, j);
-    mean /= num_rows;
+    mean /= num_rows_host;
 
-    for (int i = 0; i < num_rows; ++i)
+    for (int i = 0; i < num_rows_host; ++i)
       u_t_(i, j) = mean / std::abs(mean);  // Used to be: u_t_(i,j) = mean.
   }
 
   // Initialize the other matrices with zero.
   for (int j = 0; j < num_cols; ++j)
-    for (int i = 0; i < num_rows; ++i)
+    for (int i = 0; i < num_rows_host; ++i)
       c_(i, j) = d_over_c_(i, j) = u_t_plus_1_(i, j) = 0.;
+
+  for (int j = 0; j < num_cols; ++j)
+    for (int i = 0; i < num_rows_cluster; ++i)
+      c_cluster_(i, j) = 0.;
 }
 
-template <typename DeconvolutionDmn, typename OtherDmn>
-bool RichardsonLucyDeconvolution<DeconvolutionDmn, OtherDmn>::finished() {
+template <typename ClusterDmn, typename HostDmn, typename OtherDmn>
+bool RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::finished(
+    const func::function<double, func::dmn_variadic<ClusterDmn, OtherDmn>>& source) {
   bool all_finished = true;
+
+  // Convolute iterative solution to cluster domain and compare with original source.
+  linalg::matrixop::gemm(p_cluster_, u_t_, c_cluster_);
 
   for (int j = 0; j < OtherDmn::dmn_size(); ++j) {
     if (!is_finished_(j)) {
+      // Compute relative L2 error.
       double diff_squared = 0.;
-      double norm_d_squared = 0.;
+      double norm_source_squared = 0.;
 
-      // TODO: Fix error computation.
-      for (int i = 0; i < DeconvolutionDmn::dmn_size(); ++i) {
-        diff_squared += std::pow(c_(i, j) - d_(i, j), 2);
-        norm_d_squared += std::pow(d_(i, j), 2);
+      for (int i = 0; i < ClusterDmn::dmn_size(); ++i) {
+        diff_squared += std::pow(c_cluster_(i, j) - source(i, j), 2);
+        norm_source_squared += std::pow(source(i, j), 2);
       }
 
-      const double error = std::sqrt(diff_squared / norm_d_squared);
+      const double error = std::sqrt(diff_squared / norm_source_squared);
 
       if (error < tolerance_)
         is_finished_(j) = true;
