@@ -37,13 +37,27 @@ TEST(RichardsonLucyDeconvolutionTest, IdentityProjectionOperator) {
     source(i) = 1.;
   }
 
+  // Test execute(source, target).
   dca::func::function<double, dca::func::dmn_variadic<DeconvolutionDmn, OtherDmn>> target;
 
-  const int iterations = deconvolution.execute(p, source, target);
+  int iterations = deconvolution.execute(p, source, target);
 
   EXPECT_EQ(1, iterations);
 
   for (int i = 0; i < source.size(); ++i) {
     EXPECT_DOUBLE_EQ(source(i), target(i));
+  }
+
+  // Test execute(source, target_convoluted, target).
+  target = 0.;
+  dca::func::function<double, dca::func::dmn_variadic<DeconvolutionDmn, OtherDmn>> target_convoluted;
+
+  iterations = deconvolution.execute(p, source, target_convoluted, target);
+
+  EXPECT_EQ(1, iterations);
+
+  for (int i = 0; i < source.size(); ++i) {
+    EXPECT_DOUBLE_EQ(source(i), target(i));
+    EXPECT_DOUBLE_EQ(source(i), target_convoluted(i));
   }
 }

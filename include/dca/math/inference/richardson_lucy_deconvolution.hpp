@@ -40,9 +40,9 @@ public:
 
   // Returns the number of iterations executed.
   int execute(const linalg::Matrix<double, linalg::CPU>& p,
-              const func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_source,
-              func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_approx,
-              func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_target);
+              const func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& source,
+              func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& target_convoluted,
+              func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& target);
 
 private:
   void initializeMatrices(const func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& source);
@@ -126,20 +126,17 @@ int RichardsonLucyDeconvolution<k_dmn_t, p_dmn_t>::execute(
 template <typename k_dmn_t, typename p_dmn_t>
 int RichardsonLucyDeconvolution<k_dmn_t, p_dmn_t>::execute(
     const linalg::Matrix<double, linalg::CPU>& p,
-    const func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_source,
-    func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_approx,
-    func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& f_target) {
-  const int iterations = execute(p, f_source, f_target);
+    const func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& source,
+    func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& target_convoluted,
+    func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& target) {
+  const int iterations = execute(p, source, target);
 
-  for (int j = 0; j < p_dmn_t::dmn_size(); j++)
-    for (int i = 0; i < k_dmn_t::dmn_size(); i++)
-      u_t(i, j) = f_target(i, j);
-
+  // Compute the convolution of the target function, which should resemble the source function.
   linalg::matrixop::gemm(p, u_t, c);
 
   for (int j = 0; j < p_dmn_t::dmn_size(); j++)
     for (int i = 0; i < k_dmn_t::dmn_size(); i++)
-      f_approx(i, j) = c(i, j);
+      target_convoluted(i, j) = c(i, j);
 
   return iterations;
 }
