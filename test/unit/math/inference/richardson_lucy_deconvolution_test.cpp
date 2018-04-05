@@ -37,10 +37,10 @@ TEST(RichardsonLucyDeconvolutionTest, IdentityProjectionOperator) {
     source(i) = 1.;
   }
 
-  // Test execute(source, target).
+  // Test findTargetFunction(source, target).
   dca::func::function<double, dca::func::dmn_variadic<DeconvolutionDmn, OtherDmn>> target;
 
-  int iterations = deconvolution.execute(p, source, target);
+  int iterations = deconvolution.findTargetFunction(p, source, target);
 
   EXPECT_EQ(1, iterations);
 
@@ -48,11 +48,11 @@ TEST(RichardsonLucyDeconvolutionTest, IdentityProjectionOperator) {
     EXPECT_DOUBLE_EQ(source(i), target(i));
   }
 
-  // Test execute(source, target, target_convoluted).
+  // Test findTargetFunction(source, target, target_convoluted).
   target = 0.;
   dca::func::function<double, dca::func::dmn_variadic<DeconvolutionDmn, OtherDmn>> target_convoluted;
 
-  iterations = deconvolution.execute(p, source, target, target_convoluted);
+  iterations = deconvolution.findTargetFunction(p, source, target, target_convoluted);
 
   EXPECT_EQ(1, iterations);
 

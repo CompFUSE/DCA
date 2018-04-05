@@ -34,15 +34,15 @@ public:
   RichardsonLucyDeconvolution(const double tolerance, const int max_iterations);
 
   // Returns the number of iterations executed.
-  int execute(const linalg::Matrix<double, linalg::CPU>& p,
-              const func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& source,
-              func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& target);
+  int findTargetFunction(const linalg::Matrix<double, linalg::CPU>& p,
+                         const func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& source,
+                         func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& target);
 
   // Returns the number of iterations executed.
-  int execute(const linalg::Matrix<double, linalg::CPU>& p,
-              const func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& source,
-              func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& target,
-              func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& target_convoluted);
+  int findTargetFunction(const linalg::Matrix<double, linalg::CPU>& p,
+                         const func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& source,
+                         func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& target,
+                         func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& target_convoluted);
 
 private:
   void initializeMatrices(const func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& source);
@@ -81,7 +81,7 @@ RichardsonLucyDeconvolution<k_dmn_t, p_dmn_t>::RichardsonLucyDeconvolution(const
       u_t_p_1("u_{t+1} (Richardson_Lucy_deconvolution)") {}
 
 template <typename k_dmn_t, typename p_dmn_t>
-int RichardsonLucyDeconvolution<k_dmn_t, p_dmn_t>::execute(
+int RichardsonLucyDeconvolution<k_dmn_t, p_dmn_t>::findTargetFunction(
     const linalg::Matrix<double, linalg::CPU>& p,
     const func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& source,
     func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& target) {
@@ -124,12 +124,12 @@ int RichardsonLucyDeconvolution<k_dmn_t, p_dmn_t>::execute(
 }
 
 template <typename k_dmn_t, typename p_dmn_t>
-int RichardsonLucyDeconvolution<k_dmn_t, p_dmn_t>::execute(
+int RichardsonLucyDeconvolution<k_dmn_t, p_dmn_t>::findTargetFunction(
     const linalg::Matrix<double, linalg::CPU>& p,
     const func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& source,
     func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& target,
     func::function<double, func::dmn_variadic<k_dmn_t, p_dmn_t>>& target_convoluted) {
-  const int iterations = execute(p, source, target);
+  const int iterations = findTargetFunction(p, source, target);
 
   // Compute the convolution of the target function, which should resemble the source function.
   linalg::matrixop::gemm(p, u_t, c);
