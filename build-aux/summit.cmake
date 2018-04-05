@@ -11,7 +11,7 @@ set(MPIEXEC_PREFLAGS "-g1" CACHE STRING
 option(DCA_WITH_CUDA "Enable GPU support." ON)
 set(CUDA_GPU_ARCH "sm_60" CACHE STRING "Name of the *real* architecture to build for.")
 
-set(MAGMA_DIR /ccs/proj/cph102/dca_summit/libs/magma-2.3.0 CACHE PATH
+set(MAGMA_DIR $ENV{OLCF_MAGMA_ROOT} CACHE PATH
   "Path to the MAGMA installation directory. Hint for CMake to find MAGMA.")
 
 set(FFTW_INCLUDE_DIR /ccs/proj/cph102/dca_summit/libs/fftw/include/ CACHE PATH "Path to fftw3.h.")
