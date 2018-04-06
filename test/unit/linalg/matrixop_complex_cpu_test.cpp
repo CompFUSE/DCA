@@ -10,12 +10,16 @@
 // This file tests the matrix operations with the Matrix<CPU> class with complex element type.
 
 #include "dca/linalg/matrixop.hpp"
+
+#include <array>
 #include <complex>
 #include <limits>
 #include <stdexcept>
 #include <string>
 #include <utility>
+
 #include "gtest/gtest.h"
+
 #include "dca/linalg/lapack/use_device.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/blas/blas3.hpp"
