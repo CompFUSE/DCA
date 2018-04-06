@@ -245,6 +245,7 @@ private:
 
   int sign;
 
+  int warm_up_sweeps_done_;
   util::Accumulator<std::size_t> warm_up_expansion_order_;
   util::Accumulator<std::size_t> num_delayed_spins_;
 };
@@ -299,6 +300,7 @@ CtauxWalker<device_t, parameters_type, MOMS_type>::CtauxWalker(parameters_type& 
       Bennett(false),
       sign(1),
 
+      warm_up_sweeps_done_(0),
       warm_up_expansion_order_(),
       num_delayed_spins_() {
   if (concurrency.id() == 0 and thread_id == 0) {
@@ -318,7 +320,7 @@ CtauxWalker<device_t, parameters_type, MOMS_type>::~CtauxWalker() {
     std::cout << "\n"
               << "Walker: process ID = 0, thread ID = 0\n"
               << "-------------------------------------------\n"
-              << "average expansion order of warm-up: " << warm_up_expansion_order_.mean() << "\n"
+              << "estimate for sweep size: " << warm_up_expansion_order_.mean() << "\n"
               << "average number of delayed spins: " << num_delayed_spins_.mean() << "\n"
               << "# creations / # annihilations: "
               << static_cast<double>(number_of_creations) /
@@ -389,7 +391,8 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::initialize() {
 
   is_thermalized() = false;
 
-  // TODO: Reset accumulators of warm-up expansion order and number of delayed spins?
+  // TODO: Reset accumulators of warm-up expansion order and number of delayed spins, and set
+  //       warm_up_sweeps_done_ to zero?
 
   {
     // std::cout << "\n\n\t G0-TOOLS \n\n";
@@ -436,6 +439,11 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::do_sweep() {
                                               ? static_cast<int>(warm_up_expansion_order_.mean())
                                               : 1};
 
+  // Reset the warm-up expansion order accumulator after half the warm-up sweeps to get a better
+  // estimate for the expansion order of the thermalized system.
+  if (warm_up_sweeps_done_ == parameters.get_warm_up_sweeps() / 2)
+    warm_up_expansion_order_.reset();
+
   int single_spin_updates_todo{single_spin_updates_per_sweep *
                                static_cast<int>(sweeps_per_measurement)};
 
@@ -444,6 +452,9 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::do_sweep() {
   }
 
   assert(single_spin_updates_todo == 0);
+
+  if (!thermalized)
+    ++warm_up_sweeps_done_;
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
@@ -625,7 +636,8 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::generate_delayed_spins(
   single_spin_updates_todo -= single_spin_updates_proposed;
   assert(single_spin_updates_todo >= 0);
 
-  num_delayed_spins_.addSample(delayed_spins.size());
+  if (thermalized)
+    num_delayed_spins_.addSample(delayed_spins.size());
 
   finalizeDelayedSpins();
 }
