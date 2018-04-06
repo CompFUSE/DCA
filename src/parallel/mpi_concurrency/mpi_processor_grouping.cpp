@@ -27,13 +27,13 @@ MPIProcessorGrouping::MPIProcessorGrouping() {
   MPI_Comm_rank(MPI_COMM_WORLD, &world_id_);
 
   // Check if the process has the desired qualities, or remove it from the communicator.
-  const bool is_valid_ = testValidity();
+  const bool is_valid = testValidity();
 
-  std::vector<int> validity_input(nr_threads_, false);
-  std::vector<int> validity_output(nr_threads_, false);
-  validity_input[world_id_] = is_valid_;
-  MPI_Allreduce(validity_input.data(), validity_output.data(), validity_input.size(), MPI_INT,
-                MPI_SUM, MPI_COMM_WORLD);
+  std::vector<char> validity_input(nr_threads_, 0);
+  std::vector<char> validity_output(nr_threads_, 0);
+  validity_input[world_id_] = is_valid;
+  MPI_Allreduce(validity_input.data(), validity_output.data(), validity_input.size(), MPI_CHAR,
+                MPI_MAX, MPI_COMM_WORLD);
 
   std::vector<int> valid_ids;
   for (int id = 0; id < validity_output.size(); ++id)
@@ -48,7 +48,7 @@ MPIProcessorGrouping::MPIProcessorGrouping() {
   MPI_Comm_create_group(MPI_COMM_WORLD, MPI_group_, 1, &MPI_communication_);
   MPI_Group_free(&world_group);
 
-  if (is_valid_) {
+  if (is_valid) {
     MPI_Comm_size(MPI_communication_, &nr_threads_);
     MPI_Comm_rank(MPI_communication_, &id_);
   }
