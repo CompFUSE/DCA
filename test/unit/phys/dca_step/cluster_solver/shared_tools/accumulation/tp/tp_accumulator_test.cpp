@@ -44,7 +44,7 @@ using MatrixPair = std::array<dca::linalg::Matrix<double, dca::linalg::CPU>, 2>;
 
 using G0Setup = typename dca::testing::G0Setup<dca::testing::LatticeBilayer>;
 const std::string input_dir =
-    DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/";
+    DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/";
 
 void prepareRandomConfig(Configuration& config, MatrixPair& M, std::array<int, 2> n);
 
