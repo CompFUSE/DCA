@@ -205,6 +205,9 @@ public:
   // Asynchronous assignment.
   template <DeviceType rhs_device_name>
   void setAsync(const Matrix<ScalarType, rhs_device_name>& rhs, cudaStream_t stream);
+
+  // Sets the elements of the matrix to zero asynchronously.
+  void setToZero(cudaStream_t stream);
 #endif  // DCA_HAVE_CUDA
 
   // Prints the values of the matrix elements.
@@ -433,6 +436,11 @@ void Matrix<ScalarType, device_name>::setAsync(const Matrix<ScalarType, rhs_devi
                                                const cudaStream_t stream) {
   resizeNoCopy(rhs.size_);
   util::memoryCopyAsync(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_, stream);
+}
+
+template <typename ScalarType, DeviceType device_name>
+void Matrix<ScalarType, device_name>::setToZero(cudaStream_t stream) {
+  cudaMemsetAsync(data_, 0, leadingDimension() * nrCols() * sizeof(ScalarType), stream);
 }
 #endif  // DCA_HAVE_CUDA
 
