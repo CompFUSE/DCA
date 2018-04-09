@@ -15,7 +15,10 @@
 #define DCA_PARALLEL_MPI_CONCURRENCY_MPI_PROCESSOR_GROUPING_HPP
 
 #include <cassert>
+#include <vector>
+
 #include <mpi.h>
+
 
 namespace dca {
 namespace parallel {
@@ -58,12 +61,15 @@ private:
 
   bool testValidity() const;
 
+  void printRemovedProcesses(const std::vector<int>& valid_ids) const;
+
 private:
   MPI_Group MPI_group_ = nullptr;
   MPI_Comm MPI_communication_ = nullptr;
   int world_id_ = -1;
   int id_ = -1;
   int nr_threads_ = -1;
+  int world_size_ = -1;
 };
 
 }  // parallel
