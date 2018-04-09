@@ -50,7 +50,8 @@ __global__ void sortMKernel(const int size, const InpScalar* M, const int ldm,
   const int inp_i = config1[id_i].idx;
   const int inp_j = config2[id_j].idx;
 
-  sorted_M[id_i + lds * id_j] = M[inp_i + ldm * inp_j];
+  sorted_M[id_i + lds * id_j].x = M[inp_i + ldm * inp_j];
+  sorted_M[id_i + lds * id_j].y = 0;
 }
 
 template <typename Real, typename InpScalar>
@@ -62,7 +63,7 @@ void sortM(const int size, const InpScalar* M, const int ldm, std::complex<Real>
 
   auto const blocks = getBlockSize(size, size);
 
-  sortMKernel<<<blocks[0], blocks[1], 0, stream>>>(size, castCudaComplex(M), ldm, castCudaComplex(sorted_M), lds,
+  sortMKernel<<<blocks[0], blocks[1], 0, stream>>>(size, M, ldm, castCudaComplex(sorted_M), lds,
                                                    config1, config2);
 }
 
@@ -89,10 +90,11 @@ void computeT(const int n, const int m, std::complex<Real>* T, int ldt, const Tr
               const Real* w, const bool transposed, const cudaStream_t stream) {
   auto const blocks = getBlockSize(n, m);
 
-  computeTKernel<<<blocks[0], blocks[1], 0, stream>>>(n, m, castCudaComplex(T), ldt, config, w, transposed);
+  computeTKernel<<<blocks[0], blocks[1], 0, stream>>>(n, m, castCudaComplex(T), ldt, config, w,
+                                                      transposed);
 }
 
-template<typename Real>
+template <typename Real>
 __global__ void rearrangeOutputKernel(const int nw, const int no, const int nb,
                                       const CudaComplex<Real>* in, const int ldi,
                                       CudaComplex<Real>* out, const int ldo) {
@@ -111,7 +113,7 @@ __global__ void rearrangeOutputKernel(const int nw, const int no, const int nb,
   };
   int w1, w2, b1, b2, r1, r2;
 
-  get_indices(id_i, nw/2, b1, r1, w1);
+  get_indices(id_i, nw / 2, b1, r1, w1);
   get_indices(id_j, nw, b2, r2, w2);
 
   const int nr = no / nb;
@@ -129,18 +131,15 @@ void rearrangeOutput(const int nw, const int no, const int nb, const std::comple
   const int n_cols = nw * no;
   auto const blocks = getBlockSize(n_rows, n_cols);
 
-  rearrangeOutputKernel<Real><<<blocks[0], blocks[1], 0, stream>>>(nw, no, nb, castCudaComplex(in), ldi,
-                                                             castCudaComplex(out), ldo);
+  rearrangeOutputKernel<Real><<<blocks[0], blocks[1], 0, stream>>>(nw, no, nb, castCudaComplex(in),
+                                                                   ldi, castCudaComplex(out), ldo);
 }
 
 // Explicit instantiation.
-template void sortM<double, std::complex<double>>(int, const std::complex<double>*, int,
-                                                  std::complex<double>*, const int,
-                                                  const Triple<double>*, const Triple<double>*,
-                                                  const cudaStream_t);
-template void sortM<float, std::complex<float>>(int, const std::complex<float>*, int,
-                                                std::complex<float>*, const int, const Triple<float>*,
-                                                const Triple<float>*, const cudaStream_t);
+template void sortM<double, double>(int, const double*, int, std::complex<double>*, const int,
+                                    const Triple<double>*, const Triple<double>*, const cudaStream_t);
+template void sortM<float, double>(int, const double*, int, std::complex<float>*, const int,
+                                   const Triple<float>*, const Triple<float>*, const cudaStream_t);
 template void computeT<double>(int, int, std::complex<double>*, int, const Triple<double>*,
                                const double*, bool, const cudaStream_t);
 template void computeT<float>(int, int, std::complex<float>*, int, const Triple<float>*,

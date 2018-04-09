@@ -49,8 +49,8 @@ public:
   // defined as M(w1, w2) = \sum_{t1, t2} exp(i (w1 t1 - w2 t2)) M(t1, t2).
   // In: M: input matrix provided by the walker.
   // Out: M_r_r_w_w: stores the result of the computation on the device.
-  template <class Configuration, typename ScalarInp>
-  void execute(const Configuration& configuration, const linalg::Matrix<ScalarInp, linalg::CPU>& M,
+  template <class Configuration>
+  void execute(const Configuration& configuration, const linalg::Matrix<double, linalg::CPU>& M,
                Matrix& M_r_r_w_w);
 
   cudaStream_t get_stream() const {
@@ -58,12 +58,8 @@ public:
   }
 
 private:
-  template <class Configuration, class OutDmn>
-  void executeImpl(const Configuration& configuration, const MatrixHost& M,
-                   func::function<std::complex<Real>, OutDmn>& M_r_r_w_w, const int spin);
-
   using BaseClass::sortConfiguration;
-  void sortM(const Matrix& M, Matrix& M_sorted);
+  void sortM(const linalg::Matrix<double, linalg::GPU>& M, Matrix& M_sorted) const;
   void computeT();
   void performFT(const Matrix& M_t_t, Matrix& M_w_w);
   void rearrangeOutput(const Matrix& M_w_w, Matrix& output);
@@ -90,7 +86,7 @@ private:
   linalg::util::CudaEvent copy_event_;
   std::array<linalg::Vector<details::Triple<Real>, linalg::GPU>, 2> config_dev_;
 
-  MatrixHost M_;
+  linalg::Matrix<double, dca::linalg::GPU> M_;
   Matrix workspace_;
   Matrix work1_;
   Matrix work2_;
@@ -115,10 +111,9 @@ CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::CachedN
 }
 
 template <typename Real, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
-template <class Configuration, typename ScalarInp>
+template <class Configuration>
 void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::execute(
-    const Configuration& configuration, const linalg::Matrix<ScalarInp, linalg::CPU>& M,
-    Matrix& M_out) {
+    const Configuration& configuration, const linalg::Matrix<double, linalg::CPU>& M, Matrix& M_out) {
   if (configuration.size() == 0) {  // The result is zero
     M_out.resizeNoCopy(std::make_pair(w_.size() / 2 * n_orbitals_, w_.size() * n_orbitals_));
     M_out.setToZero(stream_);
@@ -126,12 +121,7 @@ void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::ex
   }
 
   copy_event_.block();
-  M_.resizeNoCopy(M.size());
-  for (int j = 0; j < M.nrCols(); ++j)
-    for (int i = 0; i < M.nrRows(); ++i)
-      M_(i, j) = Complex(M(i, j));
-
-  M_out.setAsync(M_, stream_);
+  M_.setAsync(M, stream_);
 
   sortConfiguration(configuration);
   config_dev_[0].setAsync(config_left_, stream_);
@@ -140,15 +130,15 @@ void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::ex
 
   copy_event_.record(stream_);
 
-  sortM(M_out, work1_);
+  sortM(M_, work1_);
   computeT();
   performFT(work1_, work2_);
   rearrangeOutput(work2_, M_out);
 }
 
 template <typename Real, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
-void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::sortM(const Matrix& M,
-                                                                                    Matrix& M_sorted) {
+void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::sortM(
+    const linalg::Matrix<double, linalg::GPU>& M, Matrix& M_sorted) const {
   M_sorted.resizeNoCopy(M.size());
   details::sortM(M.nrCols(), M.ptr(), M.leadingDimension(), M_sorted.ptr(),
                  M_sorted.leadingDimension(), config_dev_[0].ptr(), config_dev_[1].ptr(), stream_);
