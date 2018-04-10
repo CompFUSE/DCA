@@ -20,6 +20,7 @@
 // - gemm
 // - multiply
 // - trsm
+// - determinant
 // - eigensolver (non-symmetric / symmetric / Hermitian)
 // - pseudoInverse
 
@@ -768,7 +769,8 @@ void multiply(char transa, char transb, const std::array<Matrix<ScalarType, CPU>
 template <typename ScalarType>
 void multiply(const std::array<Matrix<ScalarType, CPU>, 2>& a,
               const std::array<Matrix<ScalarType, CPU>, 2>& b,
-              std::array<Matrix<ScalarType, CPU>, 2>& c,  std::array<Matrix<ScalarType, CPU>, 5>& work) {
+              std::array<Matrix<ScalarType, CPU>, 2>& c,
+              std::array<Matrix<ScalarType, CPU>, 5>& work) {
   multiply('N', 'N', a, b, c, work);
 }
 
@@ -1110,6 +1112,57 @@ void pseudoInverse(const Matrix<ScalarType, CPU>& a, Matrix<ScalarType, CPU>& a_
     gemm('N', 'C', at_a, a, a_inv);
   }
 }
+
+// Computes (in place) the determinant of the matrix.
+// Returns: determinant.
+// Postcondition: M is its LU decomposition.
+template <typename ScalarType>
+double determinantIP(Matrix<ScalarType, CPU>& M) {
+  assert(M.nrCols() == M.nrRows());
+  const int n = M.nrCols();
+  std::vector<int> ipiv(n);
+
+  try {
+    lapack::getrf(n, n, M.ptr(), M.leadingDimension(), ipiv.data());
+  }
+  catch (lapack::util::LapackException& err) {
+    if (err.info() > 0)
+      return 0;
+    else
+      throw(std::logic_error("LU decomposition failed."));
+  }
+
+  double det = 1.;
+  for (int i = 0; i < n; i++) {
+    det *= M(i, i);
+    if (ipiv[i] != i + 1)
+      det *= -1;
+  }
+  return det;
+}
+
+// Copy and computes the determinant of the matrix.
+// Returns: determinant.
+template <typename ScalarType>
+double determinant(const Matrix<ScalarType, CPU>& M) {
+  Matrix<ScalarType, CPU> M_copy(M);
+  return determinantIP(M_copy);
+}
+
+template <typename ScalarType>
+bool areNear(const Matrix<ScalarType, CPU>& A, const Matrix<ScalarType, CPU>& B,
+             const double err = 1e-16) {
+  if (A.size() != B.size())
+    return false;
+
+  for (int j = 0; j < A.size().second; j++)
+    for (int i = 0; i < A.size().first; i++)
+      if (std::abs(A(i, j) - B(i, j)) > err)
+        return false;
+
+  return true;
+}
+
 }  // matrixop
 }  // linalg
 }  // dca
