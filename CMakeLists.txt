@@ -6,6 +6,7 @@
 
 cmake_minimum_required(VERSION 3.3)
 project(DCA++ C CXX)
+set(CMAKE_CXX_STANDARD 14)
 
 ################################################################################
 # Disable in-source builds.
