@@ -246,8 +246,8 @@ void insertRow(Matrix<ScalarType, CPU>& mat, int i) {
 // Out: ipiv, work
 // Preconditions: mat is a square matrix.
 // Postconditions: ipiv and work are resized to the needed dimension.
-template <typename ScalarType, DeviceType device_name>
-void inverse(Matrix<ScalarType, device_name>& mat, Vector<int, CPU>& ipiv,
+template <typename ScalarType, DeviceType device_name, template <typename, DeviceType> class MatrixType>
+void inverse(MatrixType<ScalarType, device_name>& mat, Vector<int, CPU>& ipiv,
              Vector<ScalarType, device_name>& work) {
   assert(mat.is_square());
 
@@ -255,15 +255,15 @@ void inverse(Matrix<ScalarType, device_name>& mat, Vector<int, CPU>& ipiv,
 
   lapack::UseDevice<device_name>::getrf(mat.nrRows(), mat.nrCols(), mat.ptr(),
                                         mat.leadingDimension(), ipiv.ptr());
-  // Get optimal worksize.
-  int lwork = util::getInverseWorkSize(mat);
+  // Get worksize.
+  const int lwork = mat.nrRows();
   work.resizeNoCopy(lwork);
 
   lapack::UseDevice<device_name>::getri(mat.nrRows(), mat.ptr(), mat.leadingDimension(), ipiv.ptr(),
                                         work.ptr(), lwork);
 }
-template <typename ScalarType, DeviceType device_name>
-void inverse(Matrix<ScalarType, device_name>& mat) {
+template <typename ScalarType, DeviceType device_name, template <typename, DeviceType> class MatrixType>
+void inverse(MatrixType<ScalarType, device_name>& mat) {
   Vector<int, CPU> ipiv;
   Vector<ScalarType, device_name> work;
   inverse(mat, ipiv, work);
