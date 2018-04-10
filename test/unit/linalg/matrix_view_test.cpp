@@ -10,6 +10,7 @@
 // This file tests the MatrixView<CPU> class.
 
 #include "dca/linalg/matrix_view.hpp"
+#include "dca/linalg/make_constant_view.hpp"
 
 #include <complex>
 
