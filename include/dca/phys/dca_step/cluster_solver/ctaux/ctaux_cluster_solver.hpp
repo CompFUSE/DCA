@@ -422,7 +422,8 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::compute_error_bars() {
   concurrency.average_and_compute_stddev(G_k_w_new, data_.get_G_k_w_stdv());
 
   // sum G4
-  if (parameters.get_four_point_type() != NONE) {
+  if (parameters.get_four_point_type() != NONE &&
+      DCA_iteration == parameters.get_dca_iterations() - 1) {
     if (concurrency.id() == concurrency.first())
       std::cout << "\n\t\t compute-error-bars on G4\t" << dca::util::print_time() << "\n\n";
 
@@ -497,7 +498,8 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::collect_measurements()
   }
 
   // sum G4
-  if (parameters.get_four_point_type() != NONE) {
+  if (parameters.get_four_point_type() != NONE &&
+      DCA_iteration == parameters.get_dca_iterations() - 1) {
     profiler_type profiler("QMC-two-particle-Greens-function", "QMC-collectives", __LINE__);
     auto& G4 = data_.get_G4_k_k_w_w();
     G4 = accumulator.get_sign_times_G4();
