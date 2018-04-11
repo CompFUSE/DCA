@@ -86,13 +86,13 @@ public:
   void initialize(int dca_iteration);
 
   template <typename walker_type>
-  void update_from(walker_type& walker);
+  void updateFrom(walker_type& walker);
 
   void measure();
 
   // Sums all accumulated objects of this accumulator to the equivalent objects of the 'other'
   // accumulator.
-  void sum_to(this_type& other);
+  void sumTo(this_type& other);
 
   void finalize();
 
@@ -353,7 +353,7 @@ void CtauxAccumulator<device_t, parameters_type, Data>::write(Writer& writer) {
  */
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 template <typename walker_type>
-void CtauxAccumulator<device_t, parameters_type, Data>::update_from(walker_type& walker) {
+void CtauxAccumulator<device_t, parameters_type, Data>::updateFrom(walker_type& walker) {
   profiler_type profiler("update from", "CT-AUX accumulator", __LINE__, thread_id);
 
   GFLOP += walker.get_Gflop();
@@ -524,7 +524,7 @@ void CtauxAccumulator<device_t, parameters_type, Data>::accumulate_two_particle_
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void CtauxAccumulator<device_t, parameters_type, Data>::sum_to(this_type& other) {
+void CtauxAccumulator<device_t, parameters_type, Data>::sumTo(this_type& other) {
   other.get_Gflop() += get_Gflop();
 
   other.accumulated_sign += accumulated_sign;

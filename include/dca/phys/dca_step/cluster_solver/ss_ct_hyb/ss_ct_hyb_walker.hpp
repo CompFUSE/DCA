@@ -101,7 +101,7 @@ public:
    *  The insertion and removal steps include the insertion or removal of a full line, a segment or
    * an anti-segment.
    */
-  void do_sweep();
+  void doSweep();
 
   /*!
    *  \brief Goes through an integration step. Do N insertion, removal, shift or swap steps.
@@ -136,6 +136,11 @@ public:
    */
   ss_hybridization_walker_routines_type& get_ss_hybridization_walker_routines() {
     return ss_hybridization_walker_routines_obj;
+  }
+
+  void markThermalized() {
+    assert(thermalized == false);
+    thermalized = true;
   }
 
 private:
@@ -313,7 +318,7 @@ void SsCtHybWalker<device_t, parameters_type, MOMS_type>::test_interpolation() {
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void SsCtHybWalker<device_t, parameters_type, MOMS_type>::do_sweep() {
+void SsCtHybWalker<device_t, parameters_type, MOMS_type>::doSweep() {
   int factor = 1;
   if (thermalized)
     factor = parameters.get_sweeps_per_measurement();

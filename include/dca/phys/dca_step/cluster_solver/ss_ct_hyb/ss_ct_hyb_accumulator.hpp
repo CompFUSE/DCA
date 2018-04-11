@@ -85,12 +85,12 @@ public:
 
   void finalize();  // func::function<double, nu> mu_DC);
 
-  void update_from(walker_type& walker);
+  void updateFrom(walker_type& walker);
   void measure();
 
   // Sums all accumulated objects of this accumulator to the equivalent objects of the 'other'
   // accumulator.
-  void sum_to(this_type& other);
+  void sumTo(this_type& other);
 
   configuration_type& get_configuration() {
     return configuration;
@@ -224,7 +224,7 @@ void SsCtHybAccumulator<device_t, parameters_type, Data>::write(Writer& writer) 
  *************************************************************/
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void SsCtHybAccumulator<device_t, parameters_type, Data>::update_from(walker_type& walker) {
+void SsCtHybAccumulator<device_t, parameters_type, Data>::updateFrom(walker_type& walker) {
   current_sign = walker.get_sign();
 
   configuration.copy_from(walker.get_configuration());
@@ -288,7 +288,7 @@ void SsCtHybAccumulator<device_t, parameters_type, Data>::accumulate_overlap(wal
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void SsCtHybAccumulator<device_t, parameters_type, Data>::sum_to(this_type& other) {
+void SsCtHybAccumulator<device_t, parameters_type, Data>::sumTo(this_type& other) {
   other.accumulated_sign += accumulated_sign;
   other.number_of_measurements += number_of_measurements;
 

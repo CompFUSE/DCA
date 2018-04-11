@@ -62,7 +62,7 @@ public:
 
   // Does one sweep, if the walker is not yet thermalized (warm-up).
   // Otherwise, does multiple sweeps according to the input parameter "sweeps-per-measurement".
-  void do_sweep();
+  void doSweep();
 
   // Does one submatrix step of at most single_spin_updates_todo single spin updates.
   // Precondition: single_spin_updates_todo > 0
@@ -81,6 +81,11 @@ public:
 
   template <class stream_type>
   void to_JSON(stream_type& /*ss*/) {}
+
+  void markThermalized() {
+    assert(thermalized == false);
+    thermalized = true;
+  }
 
 private:
   void add_non_interacting_spins_to_configuration();
@@ -427,8 +432,8 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::initialize() {
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void CtauxWalker<device_t, parameters_type, MOMS_type>::do_sweep() {
-  profiler_type profiler("do_sweep", "CT-AUX walker", __LINE__, thread_id);
+void CtauxWalker<device_t, parameters_type, MOMS_type>::doSweep() {
+  profiler_type profiler("doSweep", "CT-AUX walker", __LINE__, thread_id);
   const int sweeps_per_measurement{thermalized ? parameters.get_sweeps_per_measurement() : 1};
 
   // Do at least one single spin update per sweep.
