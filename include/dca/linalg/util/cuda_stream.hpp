@@ -29,6 +29,10 @@ public:
 
   CudaStream(const CudaStream& other) = delete;
 
+  CudaStream(CudaStream&& other){
+    std::swap(stream_, other.stream_);
+  }
+
   ~CudaStream() {
     cudaStreamDestroy(stream_);
   }

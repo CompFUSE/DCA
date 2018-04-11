@@ -27,6 +27,12 @@ public:
     magma_queue_create(&queue_);
   }
 
+  MagmaQueue(const MagmaQueue& other) = delete;
+
+  MagmaQueue(MagmaQueue&& other) {
+    std::swap(queue_, other.queue_);
+  }
+
   ~MagmaQueue() {
     magma_queue_destroy(queue_);
   }

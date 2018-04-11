@@ -26,6 +26,12 @@ public:
     cudaEventCreate(&event_);
   }
 
+  CudaEvent(const CudaEvent& other) = delete;
+
+  CudaEvent(CudaEvent&& other) {
+    std::swap(event_, other.event_);
+  }
+
   ~CudaEvent() {
     cudaEventDestroy(event_);
   }
