@@ -37,6 +37,7 @@ template <class Parameters>
 class SpAccumulator<Parameters, linalg::GPU> : public SpAccumulator<Parameters, linalg::CPU> {
 private:
   using BaseClass = SpAccumulator<Parameters, linalg::CPU>;
+  using this_type = SpAccumulator<Parameters, linalg::GPU>;
 
   using typename BaseClass::BDmn;
   using typename BaseClass::WDmn;
@@ -48,7 +49,9 @@ private:
   using typename BaseClass::ScalarType;
 
 public:
-  SpAccumulator(/*const*/ Parameters& parameters_ref, bool accumulate_m_squared = false);
+  SpAccumulator(const Parameters& parameters_ref, bool accumulate_m_squared = false);
+
+  SpAccumulator(this_type&& other) = default;
 
   void initialize();
 
@@ -80,7 +83,7 @@ private:
 };
 
 template <class Paramaters>
-SpAccumulator<Paramaters, linalg::GPU>::SpAccumulator(/*const*/ Paramaters& parameters_ref,
+SpAccumulator<Paramaters, linalg::GPU>::SpAccumulator(const Paramaters& parameters_ref,
                                                       const bool accumulate_m_sqr)
     : BaseClass(parameters_ref, accumulate_m_sqr),
       streams_(),

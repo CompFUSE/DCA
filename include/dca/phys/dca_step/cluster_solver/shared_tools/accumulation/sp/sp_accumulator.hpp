@@ -53,10 +53,14 @@ protected:
   using PDmn = func::dmn_variadic<BDmn, BDmn, RDmn>;
 
   using Profiler = typename Parameters::profiler_type;
+
 public:
   using ScalarType = typename Parameters::MC_measurement_scalar_type;
+  using this_type = SpAccumulator<Parameters, linalg::CPU>;
 
-  SpAccumulator(/*const*/ Parameters& parameters_ref, bool accumulate_m_squared = false);
+  SpAccumulator(const Parameters& parameters_ref, bool accumulate_m_squared = false);
+
+  SpAccumulator(this_type&& other) = default;
 
   void initialize();
 
@@ -74,7 +78,7 @@ public:
 
 protected:
   constexpr static int oversampling = 8;
-  /*const*/ Parameters& parameters_;
+  const Parameters& parameters_;
 
   bool initialized_ = false;
   bool finalized_ = false;
@@ -92,7 +96,7 @@ private:
 };
 
 template <class Paramaters>
-SpAccumulator<Paramaters, linalg::CPU>::SpAccumulator(/*const*/ Paramaters& parameters_ref,
+SpAccumulator<Paramaters, linalg::CPU>::SpAccumulator(const Paramaters& parameters_ref,
                                                       const bool accumulate_m_sqr)
     : parameters_(parameters_ref), accumulate_m_sqr_(accumulate_m_sqr) {}
 

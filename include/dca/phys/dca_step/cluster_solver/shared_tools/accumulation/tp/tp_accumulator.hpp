@@ -63,6 +63,9 @@ public:
       const func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KDmn, WDmn>>& G0,
       const Parameters& pars, int thread_id = 0);
 
+  // Move constructor:
+  TpAccumulator(this_type&& other) = default;
+
   // Resets the object between DCA iterations.
   void initialize();
 
