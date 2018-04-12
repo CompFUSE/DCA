@@ -17,7 +17,6 @@
 #include "gtest/gtest.h"
 
 #include "dca/function/function.hpp"
-#include "dca/function/util/difference.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_reader.hpp"
@@ -33,11 +32,10 @@
 #include "dca/profiling/null_profiler.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
-#include "test/unit/phys/dca_step/cluster_solver/stub_rng.hpp"
 
 const std::string input_dir = DCA_SOURCE_DIR "/test/integration/ctint/";
 
-using RngType = dca::testing::StubRng;
+using RngType = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
 using Lattice = dca::phys::models::square_lattice<dca::phys::domains::D4>;
 using Model = dca::phys::models::TightBindingModel<Lattice>;
 using Threading = dca::parallel::NoThreading;
@@ -56,20 +54,11 @@ TEST(SquareLatticeTest, GpuSolver) {
   parameters.update_model();
   parameters.update_domains();
 
-  // Initialize data with G0 computation.
   Data data_gpu(parameters);
   data_gpu.initialize();
 
-  std::vector<double> rnds(1000000);
-  dca::math::random::StdRandomWrapper<std::ranlux48_base> rng(0, 1, 0);
-  for(auto& x : rnds)
-    x = rng();
-
-  // Do one integration step.
-  dca::phys::solver::CtintClusterSolver<dca::linalg::GPU, Parameters> qmc_solver_gpu(parameters,
-                                                                                     data_gpu);
-  qmc_solver_gpu.get_rng().setNewValues(rnds);
-
+  dca::phys::solver::CtintClusterSolver<dca::linalg::GPU, Parameters, true> qmc_solver_gpu(
+      parameters, data_gpu);
   qmc_solver_gpu.initialize(0);
   cudaProfilerStart();
   qmc_solver_gpu.integrate();
@@ -80,9 +69,10 @@ TEST(SquareLatticeTest, GpuSolver) {
   // Confront with CPU run.
   Data data_cpu(parameters);
   data_cpu.initialize();
-  dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, Parameters> qmc_solver_cpu(parameters,
-                                                                                     data_cpu);
-  qmc_solver_cpu.get_rng().setNewValues(rnds);
+
+  RngType::resetCounter();  // Use the same random numbers.
+  dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, Parameters, true> qmc_solver_cpu(
+      parameters, data_cpu);
 
   qmc_solver_cpu.initialize();
   qmc_solver_cpu.integrate();

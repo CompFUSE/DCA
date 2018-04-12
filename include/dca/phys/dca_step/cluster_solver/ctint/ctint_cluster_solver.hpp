@@ -78,10 +78,6 @@ public:
   // For testing purposes.
   // Returns the function G(k,w) without averaging across MPI ranks.
   auto local_G_k_w() const;
-  // Returns a reference to the Rng to set its value during a test.
-  auto& get_rng() {
-    return rng_;
-  }
 
 protected:  // thread jacket interface.
   using ParametersType = Parameters;
@@ -145,9 +141,9 @@ private:
   const LabelDomain label_dmn_;
   std::unique_ptr<Walker> walker_;
   // Walker input.
-  ctint::G0Interpolation<device_t> g0_;
+  ctint::G0Interpolation<linalg::CPU> g0_;
   // Walker common tool
-  ctint::DMatrixBuilder<device_t> d_builder_;
+  ctint::DMatrixBuilder<linalg::CPU> d_builder_;
   Rng rng_;
   ctint::InteractionVertices interaction_vertices_;
 };

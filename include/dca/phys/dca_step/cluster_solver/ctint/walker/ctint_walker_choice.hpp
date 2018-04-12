@@ -12,21 +12,11 @@
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_CTINT_WALKER_CHOICE_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_CTINT_WALKER_CHOICE_HPP
 
-#include <cassert>
-#include <cmath>
-#include <stdexcept>
-#include <vector>
 
 #include "dca/linalg/linalg.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/walker_methods.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_cpu.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_cpu_submatrix.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_gpu.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/function_proxy.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp"
-#include "dca/util/integer_division.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_gpu_submatrix.hpp"
 
 namespace dca {
 namespace phys {
@@ -48,9 +38,10 @@ struct CtintWalkerChoicheSelector<linalg::CPU, Parameters, true> {
   using type = CtintWalkerSubmatrix<linalg::CPU, Parameters>;
 };
 
-template <class Parameters, bool use_submatrix>
-struct CtintWalkerChoicheSelector<linalg::GPU, Parameters, use_submatrix> {
-  using type = CtintWalker<linalg::GPU, Parameters>;
+// There is only a submatrix implementation of th GPU walker.
+template <class Parameters>
+struct CtintWalkerChoicheSelector<linalg::GPU, Parameters, true> {
+  using type = CtintWalkerSubmatrix<linalg::GPU, Parameters>;
 };
 }
 
