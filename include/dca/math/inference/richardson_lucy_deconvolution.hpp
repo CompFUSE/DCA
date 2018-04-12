@@ -52,7 +52,8 @@ private:
   void initializeMatrices(
       const func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& source_interpolated);
 
-  bool finished(const func::function<double, func::dmn_variadic<ClusterDmn, OtherDmn>>& source);
+  bool finished(const func::function<double, func::dmn_variadic<ClusterDmn, OtherDmn>>& source,
+                func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& target);
 
 private:
   const double tolerance_;
@@ -109,7 +110,7 @@ int RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::findTargetFuncti
   initializeMatrices(source_interpolated);
 
   int iterations = 0;
-  while (!finished(source) && iterations < max_iterations_) {
+  while (!finished(source, target) && iterations < max_iterations_) {
     // Compute c.
     linalg::matrixop::gemm(p_host_, u_t_, c_);
 
@@ -128,10 +129,12 @@ int RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::findTargetFuncti
     ++iterations;
   }
 
-  // Copy iterative solution matrix into returned target function.
+  // Copy iterative solution into returned target function for all OtherDmn indices that have not
+  // finished.
   for (int j = 0; j < OtherDmn::dmn_size(); ++j)
-    for (int i = 0; i < HostDmn::dmn_size(); ++i)
-      target(i, j) = u_t_(i, j);
+    if (!is_finished_(j))
+      for (int i = 0; i < HostDmn::dmn_size(); ++i)
+        target(i, j) = u_t_(i, j);
 
   return iterations;
 }
@@ -146,6 +149,10 @@ int RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::findTargetFuncti
 
   // Compute the convolution of the target function, which should resemble the interpolated source
   // function.
+  for (int j = 0; j < OtherDmn::dmn_size(); j++)
+    for (int i = 0; i < HostDmn::dmn_size(); i++)
+      u_t_(i, j) = target(i, j);
+
   linalg::matrixop::gemm(p_host_, u_t_, c_);
 
   for (int j = 0; j < OtherDmn::dmn_size(); j++)
@@ -198,7 +205,8 @@ void RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::initializeMatri
 
 template <typename ClusterDmn, typename HostDmn, typename OtherDmn>
 bool RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::finished(
-    const func::function<double, func::dmn_variadic<ClusterDmn, OtherDmn>>& source) {
+    const func::function<double, func::dmn_variadic<ClusterDmn, OtherDmn>>& source,
+    func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& target) {
   bool all_finished = true;
 
   // Convolute iterative solution to cluster domain and compare with original source.
@@ -217,8 +225,13 @@ bool RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::finished(
 
       const double error = std::sqrt(diff_squared / norm_source_squared);
 
-      if (error < tolerance_)
+      if (error < tolerance_) {
+        // Copy iterative solution into returned target function.
+        for (int i = 0; i < HostDmn::dmn_size(); ++i)
+          target(i, j) = u_t_(i, j);
+
         is_finished_(j) = true;
+      }
 
       else
         all_finished = false;
