@@ -28,7 +28,7 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/function_proxy.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp"
-#include "dca/util/numeric_util.hpp"
+#include "dca/util/integer_division.hpp"
 
 enum Move { INSERTION, REMOVAL, TRIVIAL };
 

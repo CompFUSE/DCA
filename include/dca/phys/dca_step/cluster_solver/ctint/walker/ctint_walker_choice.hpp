@@ -25,7 +25,7 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/function_proxy.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp"
-#include "dca/util/numeric_util.hpp"
+#include "dca/util/integer_division.hpp"
 
 namespace dca {
 namespace phys {
@@ -33,10 +33,21 @@ namespace solver {
 namespace ctint {
 // dca::phys::solver::ctint::
 
-//TODO: do sth nice.
-  
+namespace {
+template <linalg::DeviceType device, class Parameters>
+struct CtintWalkerChoicheSelector;
+template <class Parameters>
+struct CtintWalkerChoicheSelector<linalg::CPU, Parameters> {
+  using type = CtintWalkerSubmatrix<linalg::CPU, Parameters>;
+};
+template <class Parameters>
+struct CtintWalkerChoicheSelector<linalg::GPU, Parameters> {
+  using type = CtintWalker<linalg::GPU, Parameters>;
+};
+}
+
 template <linalg::DeviceType device_t, class Parameters>
-using CtintWalkerChoice = CtintWalkerSubmatrix<device_t, Parameters>;
+using CtintWalkerChoice = typename CtintWalkerChoicheSelector<device_t, Parameters>::type;
 
 }  // ctint
 }  // solver

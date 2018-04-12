@@ -83,11 +83,6 @@ public:
     return rng_;
   }
 
-private:
-  using WalkerBase = ctint::CtintWalkerBase<device_t, Parameters>;
-  using WalkerNoSubmatrix =  ctint::CtintWalker<device_t, Parameters>;
-  using WalkerSubmatrix = ctint::CtintWalkerSubmatrix<device_t, Parameters>;
-
 protected:  // thread jacket interface.
   using ParametersType = Parameters;
   using DataType = Data;
@@ -95,8 +90,8 @@ protected:  // thread jacket interface.
   using Profiler = typename Parameters::profiler_type;
   using Concurrency = typename Parameters::concurrency_type;
 
-  using Walker = ctint::CtintWalkerSubmatrix<device_t, Parameters>;
-  using Accumulator = ctint::CtintAccumulator<Parameters>;
+  using Walker = ctint::CtintWalkerChoice<device_t, Parameters>;
+  using Accumulator = ctint::CtintAccumulator<Parameters, device_t>;
   using Configuration = ctint::AccumulatorConfiguration;
 
   Walker instantiateWalker(Rng& rng_ref, int id);
