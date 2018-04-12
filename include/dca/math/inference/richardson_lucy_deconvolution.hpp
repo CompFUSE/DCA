@@ -16,6 +16,7 @@
 #include <cassert>
 #include <cmath>
 #include <iostream>
+#include <stdexcept>
 #include <utility>
 
 #include "dca/function/domains.hpp"
@@ -49,6 +50,10 @@ public:
       func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& target_convoluted);
 
 private:
+  void checkForZeros(
+      const func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& source_interpolated,
+      const double tol = 1.e-6);
+
   void initializeMatrices(
       const func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& source_interpolated);
 
@@ -107,6 +112,7 @@ int RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::findTargetFuncti
   for (int i = 0; i < OtherDmn::dmn_size(); ++i)
     is_finished_(i) = false;
 
+  checkForZeros(source_interpolated);
   initializeMatrices(source_interpolated);
 
   int iterations = 0;
@@ -160,6 +166,16 @@ int RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::findTargetFuncti
       target_convoluted(i, j) = c_(i, j);
 
   return iterations;
+}
+
+template <typename ClusterDmn, typename HostDmn, typename OtherDmn>
+void RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::checkForZeros(
+    const func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& source_interpolated,
+    const double tol) {
+  for (int i = 0; i < source_interpolated.size(); ++i) {
+    if (std::abs(source_interpolated(i)) < tol)
+      throw std::invalid_argument("Function to be deconvoluted is close to zero.");
+  }
 }
 
 template <typename ClusterDmn, typename HostDmn, typename OtherDmn>

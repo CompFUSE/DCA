@@ -44,16 +44,16 @@ public:
   deconvolution_sp(parameters_type& parameters_ref);
 
   void execute(
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, source_k_dmn_t, w>>& f_source,
-      func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>&
+      const func::function<std::complex<double>, func::dmn_variadic<nu, nu, source_k_dmn_t, w>>& f_source,
+      const func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>&
           f_source_interpolated,
       func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_target_convoluted,
       func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_target);
 
 private:
   void find_shift(func::function<std::complex<double>, func::dmn_variadic<b, b, w>>& shift,
-                  func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>&
-                      Sigma_interp);
+                  const func::function<std::complex<double>,
+                                       func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& Sigma_interp);
 
 private:
   parameters_type& parameters;
@@ -70,14 +70,11 @@ deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::deconvolution
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 void deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, source_k_dmn_t, w>>& f_source,
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_source_interpolated,
+    const func::function<std::complex<double>, func::dmn_variadic<nu, nu, source_k_dmn_t, w>>& f_source,
+    const func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>&
+        f_source_interpolated,
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_target_convoluted,
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& f_target) {
-  func::function<std::complex<double>, func::dmn_variadic<b, b, w>> shift;
-
-  find_shift(shift, f_source_interpolated);
-
   typedef func::dmn_0<func::dmn<2, int>> z;
   typedef func::dmn_variadic<z, b, b, s, w> p_dmn_t;
 
@@ -110,13 +107,13 @@ void deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(
       for (int j = 0; j < b::dmn_size(); j++) {
         for (int i = 0; i < b::dmn_size(); i++) {
           source_interpolated(k_ind, 0, i, j, 0, w_ind) =
-              real(f_source_interpolated(i, 0, j, 0, k_ind, w_ind)) - real(shift(i, j, w_ind));
+              real(f_source_interpolated(i, 0, j, 0, k_ind, w_ind));
           source_interpolated(k_ind, 1, i, j, 0, w_ind) =
-              imag(f_source_interpolated(i, 0, j, 0, k_ind, w_ind)) - imag(shift(i, j, w_ind));
+              imag(f_source_interpolated(i, 0, j, 0, k_ind, w_ind));
           source_interpolated(k_ind, 0, i, j, 1, w_ind) =
-              real(f_source_interpolated(i, 1, j, 1, k_ind, w_ind)) - real(shift(i, j, w_ind));
+              real(f_source_interpolated(i, 1, j, 1, k_ind, w_ind));
           source_interpolated(k_ind, 1, i, j, 1, w_ind) =
-              imag(f_source_interpolated(i, 1, j, 1, k_ind, w_ind)) - imag(shift(i, j, w_ind));
+              imag(f_source_interpolated(i, 1, j, 1, k_ind, w_ind));
         }
       }
     }
@@ -134,14 +131,10 @@ void deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(
     for (int k_ind = 0; k_ind < target_k_dmn_t::dmn_size(); k_ind++) {
       for (int j = 0; j < b::dmn_size(); j++) {
         for (int i = 0; i < b::dmn_size(); i++) {
-          f_target_convoluted(i, 0, j, 0, k_ind, w_ind)
-              .real(target_convoluted(k_ind, 0, i, j, 0, w_ind) + real(shift(i, j, w_ind)));
-          f_target_convoluted(i, 0, j, 0, k_ind, w_ind)
-              .imag(target_convoluted(k_ind, 1, i, j, 0, w_ind) + imag(shift(i, j, w_ind)));
-          f_target_convoluted(i, 1, j, 1, k_ind, w_ind)
-              .real(target_convoluted(k_ind, 0, i, j, 1, w_ind) + real(shift(i, j, w_ind)));
-          f_target_convoluted(i, 1, j, 1, k_ind, w_ind)
-              .imag(target_convoluted(k_ind, 1, i, j, 1, w_ind) + imag(shift(i, j, w_ind)));
+          f_target_convoluted(i, 0, j, 0, k_ind, w_ind).real(target_convoluted(k_ind, 0, i, j, 0, w_ind));
+          f_target_convoluted(i, 0, j, 0, k_ind, w_ind).imag(target_convoluted(k_ind, 1, i, j, 0, w_ind));
+          f_target_convoluted(i, 1, j, 1, k_ind, w_ind).real(target_convoluted(k_ind, 0, i, j, 1, w_ind));
+          f_target_convoluted(i, 1, j, 1, k_ind, w_ind).imag(target_convoluted(k_ind, 1, i, j, 1, w_ind));
         }
       }
     }
@@ -151,14 +144,10 @@ void deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(
     for (int k_ind = 0; k_ind < target_k_dmn_t::dmn_size(); k_ind++) {
       for (int j = 0; j < b::dmn_size(); j++) {
         for (int i = 0; i < b::dmn_size(); i++) {
-          f_target(i, 0, j, 0, k_ind, w_ind)
-              .real(target(k_ind, 0, i, j, 0, w_ind) + real(shift(i, j, w_ind)));
-          f_target(i, 0, j, 0, k_ind, w_ind)
-              .imag(target(k_ind, 1, i, j, 0, w_ind) + imag(shift(i, j, w_ind)));
-          f_target(i, 1, j, 1, k_ind, w_ind)
-              .real(target(k_ind, 0, i, j, 1, w_ind) + real(shift(i, j, w_ind)));
-          f_target(i, 1, j, 1, k_ind, w_ind)
-              .imag(target(k_ind, 1, i, j, 1, w_ind) + imag(shift(i, j, w_ind)));
+          f_target(i, 0, j, 0, k_ind, w_ind).real(target(k_ind, 0, i, j, 0, w_ind));
+          f_target(i, 0, j, 0, k_ind, w_ind).imag(target(k_ind, 1, i, j, 0, w_ind));
+          f_target(i, 1, j, 1, k_ind, w_ind).real(target(k_ind, 0, i, j, 1, w_ind));
+          f_target(i, 1, j, 1, k_ind, w_ind).imag(target(k_ind, 1, i, j, 1, w_ind));
         }
       }
     }
@@ -168,7 +157,8 @@ void deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::execute(
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 void deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::find_shift(
     func::function<std::complex<double>, func::dmn_variadic<b, b, w>>& shift,
-    func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>& Sigma_interp) {
+    const func::function<std::complex<double>, func::dmn_variadic<nu, nu, target_k_dmn_t, w>>&
+        Sigma_interp) {
   for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++) {
     for (int j = 0; j < b::dmn_size(); j++) {
       for (int i = 0; i < b::dmn_size(); i++) {
