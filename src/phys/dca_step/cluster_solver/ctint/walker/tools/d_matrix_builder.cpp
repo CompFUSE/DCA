@@ -103,47 +103,37 @@ DMatrixBuilder<linalg::GPU>::DMatrixBuilder(const G0Interpolation<GPU>& g0,
                                             const linalg::Matrix<int, linalg::CPU>& site_diff,
                                             const std::vector<int>& sbdm_step,
                                             const std::array<double, 3>& alpha)
-    : g0_ref_(g0), alpha_1_(alpha[0]), alpha_2_(alpha[1]), alpha_3_(alpha[2]), n_bands_(sbdm_step[1]) {
+    : BaseClass(g0.get_host_interpolation(), site_diff, sbdm_step, alpha), g0_ref_(g0) {
   assert(sbdm_step.size() == 3);
 
-  ctint::GlobalMemoryManager::initializeCluster(*linalg::makeConstantView(site_diff),
-                                                sbdm_step);
+  ctint::GlobalMemoryManager::initializeCluster(*linalg::makeConstantView(site_diff), sbdm_step);
 }
 
-void DMatrixBuilder<linalg::GPU>::buildSQR(MatrixPair<linalg::CPU>& S, MatrixPair<linalg::CPU>& Q,
-                                           MatrixPair<linalg::CPU>& R, DeviceWorkspace& devspace,
-                                           SolverConfiguration<linalg::GPU>& config, int thread_id,
-                                           int stream_id) const {
+void DMatrixBuilder<linalg::GPU>::buildSQR(MatrixPair<linalg::GPU>& S, MatrixPair<linalg::GPU>& Q,
+                                           MatrixPair<linalg::GPU>& R,
+                                           SolverConfiguration<linalg::GPU>& config,
+                                           int thread_id) const {
   std::array<int, 2> size_increase = config.sizeIncrease();
 
   for (int s = 0; s < 2; ++s) {
     const Sector& sector = config.getSector(s);
     const int delta = size_increase[s];
     const int n = sector.size() - delta;
-    const int spin_stream_id = 2 * stream_id + s;
-    const auto stream = linalg::util::getStream(thread_id, spin_stream_id);
+    const auto stream = linalg::util::getStream(thread_id, s);
 
-    config.upload(s, thread_id, spin_stream_id);
+    config.upload(s, thread_id);
     assert(cudaDeviceSynchronize() == cudaSuccess);
 
-    auto& Q_dev = devspace.Q[s];
-    auto& R_dev = devspace.R[s];
-    auto& S_dev = devspace.S[s];
-    Q_dev.resizeNoCopy(std::make_pair(n, delta));
-    R_dev.resizeNoCopy(std::make_pair(delta, n));
-    S_dev.resizeNoCopy(std::make_pair(delta, delta));
+    Q[s].resizeNoCopy(std::make_pair(n, delta));
+    R[s].resizeNoCopy(std::make_pair(delta, n));
+    S[s].resizeNoCopy(std::make_pair(delta, delta));
 
     using MatrixView = linalg::MatrixView<double, linalg::GPU>;
     assert(GlobalMemoryManager::isInitialized());
-    details::computeD(MatrixView(Q_dev), MatrixView(R_dev), MatrixView(S_dev), n, delta, alpha_1_,
+    details::computeD(MatrixView(Q[s]), MatrixView(R[s]), MatrixView(S[s]), n, delta, alpha_1_,
                       alpha_2_, alpha_3_, config.getDeviceData(s), g0_ref_, stream);
 
     assert(cudaDeviceSynchronize() == cudaSuccess);
-
-    // Download to host.
-    Q[s].setAsync(Q_dev, stream);
-    R[s].setAsync(R_dev, stream);
-    S[s].setAsync(S_dev, stream);
   }
 }
 

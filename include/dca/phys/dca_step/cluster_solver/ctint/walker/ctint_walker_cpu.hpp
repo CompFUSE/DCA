@@ -40,19 +40,33 @@ public:
   using BaseClass = CtintWalkerBase<linalg::CPU, Parameters>;
   using Rng = typename BaseClass::Rng;
 
+public:
   CtintWalker(Parameters& pars_ref, Rng& rng_ref, const InteractionVertices& vertices,
               const DMatrixBuilder<linalg::CPU>& builder_ref, int id = 0);
+
+  AccumulatorConfiguration getConfiguration() const;
+  AccumulatorConfiguration moveConfiguration();
+  void setConfiguration(AccumulatorConfiguration&& config);
 
 protected:
   bool tryVertexInsert(bool forced = false);
   bool tryVertexRemoval();
 
-  using BaseClass::det_ratio_;
+  // Test handle.
+  const auto& getM() const {
+    return M_;
+  }
 
 private:
-  using Matrix = typename BaseClass::Matrix;
-  using MatrixView = linalg::MatrixView<double, linalg::CPU>;
+  double insertionProbability(int delta_vertices);
 
+  using MatrixView = typename BaseClass::MatrixView;
+  using Matrix = typename BaseClass::Matrix;
+  virtual void smallInverse(const MatrixView& in, MatrixView& out, int s);
+  virtual void smallInverse(MatrixView& in_out, int s);
+  virtual double separateIndexDeterminant(Matrix& m, const std::vector<ushort>& indices, int s);
+
+private:
   using BaseClass::parameters_;
   using BaseClass::configuration_;
   using BaseClass::rng_;
@@ -60,13 +74,14 @@ private:
   using BaseClass::total_interaction_;
   using BaseClass::beta_;
   using BaseClass::sign_;
+
+protected:
   using BaseClass::M_;
+  using BaseClass::det_ratio_;
 
 private:
   MatrixPair<linalg::CPU> S_, Q_, R_;
   // work spaces
-  using BaseClass::ipiv_;
-  using BaseClass::v_work_;
   using BaseClass::M_Q_;
 };
 
@@ -81,6 +96,22 @@ CtintWalker<linalg::CPU, Parameters>::CtintWalker(Parameters& parameters_ref, Rn
 }
 
 template <class Parameters>
+AccumulatorConfiguration CtintWalker<linalg::CPU, Parameters>::getConfiguration() const {
+  return AccumulatorConfiguration{sign_, M_, configuration_};
+}
+template <class Parameters>
+AccumulatorConfiguration CtintWalker<linalg::CPU, Parameters>::moveConfiguration() {
+  return AccumulatorConfiguration{sign_, std::move(M_), std::move(configuration_)};
+}
+
+template <class Parameters>
+void CtintWalker<linalg::CPU, Parameters>::setConfiguration(AccumulatorConfiguration&& config) {
+  sign_ = config.sign;
+  M_ = std::move(config.M);
+  static_cast<MatrixConfiguration&>(configuration_) = std::move(config.matrix_configuration);
+}
+
+template <class Parameters>
 bool CtintWalker<linalg::CPU, Parameters>::tryVertexInsert(bool forced) {
   configuration_.insertRandom(rng_);
   const int delta_vertices = configuration_.lastInsertionSize();
@@ -88,7 +119,7 @@ bool CtintWalker<linalg::CPU, Parameters>::tryVertexInsert(bool forced) {
   // Compute the new pieces of the D(= M^-1) matrix.
   d_builder_.buildSQR(S_, Q_, R_, configuration_);
 
-  const double accept_prob = BaseClass::insertionProbability(S_, Q_, R_, delta_vertices);
+  const double accept_prob = insertionProbability(delta_vertices);
 
   const bool accept = std::abs(accept_prob) > rng_() or (forced and accept_prob != 0);
 
@@ -113,6 +144,56 @@ bool CtintWalker<linalg::CPU, Parameters>::tryVertexRemoval() {
     BaseClass::applyRemoval();
   }
   return accept;
+}
+
+template <class Parameters>
+double CtintWalker<linalg::CPU, Parameters>::insertionProbability(const int delta_vertices) {
+  const int old_size = configuration_.size() - delta_vertices;
+
+  for (int s = 0; s < 2; ++s) {
+    const auto& Q = Q_[s];
+    if (Q.nrCols() == 0) {
+      det_ratio_[s] = 1.;
+      continue;
+    }
+    const auto& R = R_[s];
+    auto& S = S_[s];
+    auto& M = M_[s];
+
+    if (M.nrRows()) {
+      auto& M_Q = M_Q_[s];
+      M_Q.resizeNoCopy(Q.size());
+      linalg::matrixop::gemm(M, Q, M_Q);
+      // S <- S_tilde^(-1) = S - R*M*Q
+      linalg::matrixop::gemm(-1., R, M_Q, 1., S);
+    }
+
+    det_ratio_[s] = details::smallDeterminant(S);
+  }
+
+  const int combinatorial_factor =
+      delta_vertices == 1 ? old_size + 1
+                          : (old_size + 2) * configuration_.occupationNumber(old_size + 1);
+
+  return details::computeAcceptanceProbability(
+      delta_vertices, det_ratio_[0] * det_ratio_[1], total_interaction_, beta_,
+      configuration_.getStrength(old_size), combinatorial_factor, details::VERTEX_INSERTION);
+}
+
+template <class Parameters>
+void CtintWalker<linalg::CPU, Parameters>::smallInverse(const MatrixView& in, MatrixView& out,
+                                                        const int s) {
+  details::smallInverse(in, out, det_ratio_[s], BaseClass::ipiv_, BaseClass::v_work_);
+}
+template <class Parameters>
+void CtintWalker<linalg::CPU, Parameters>::smallInverse(MatrixView& in_out, const int s) {
+  details::smallInverse(in_out, det_ratio_[s], BaseClass::ipiv_, BaseClass::v_work_);
+}
+
+template <class Parameters>
+double CtintWalker<linalg::CPU, Parameters>::separateIndexDeterminant(
+    Matrix& m, const std::vector<ushort>& indices, int /*s*/) {
+  return details::separateIndexDeterminant(m, indices);
 }
 
 }  // ctint

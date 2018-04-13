@@ -15,7 +15,9 @@
 
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_base.hpp"
 
+#include "dca/linalg/vector.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_configuration_gpu.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/walker/kernels_interface.hpp"
 
 namespace dca {
 namespace phys {
@@ -30,15 +32,34 @@ public:
   using BaseClass = CtintWalkerBase<linalg::GPU, Parameters>;
   using Rng = typename BaseClass::Rng;
 
+public:
   CtintWalker(Parameters& pars_ref, Rng& rng_ref, const InteractionVertices& vertices,
               const DMatrixBuilder<linalg::GPU>& builder_ref, int id = 0);
 
-private:
+  AccumulatorConfiguration getConfiguration();
+  AccumulatorConfiguration moveConfiguration();
+  void setConfiguration(AccumulatorConfiguration&& config);
+
+protected:
   bool tryVertexInsert(bool forced = false);
   bool tryVertexRemoval();
 
-  void pruneInsertionMatrices(int stram_idx, int spin);
-  void prepareInsertionMatrices(const int stream);
+  double insertionProbability(int delta_vertices);
+
+  using MatrixView = typename BaseClass::MatrixView;
+  using Matrix = typename BaseClass::Matrix;
+  virtual void smallInverse(const MatrixView& in, MatrixView& out, int s);
+  virtual void smallInverse(MatrixView& in_out, int s);
+  virtual double separateIndexDeterminant(Matrix& m, const std::vector<ushort>& indices, int s);
+
+  // Test handle.
+  const auto& getM() {
+    for (int s = 0; s < 2; ++s)
+      M_host_[s].setAsync(M_[s], streams_[s]);
+    for (int s = 0; s < 2; ++s)
+      cudaStreamSynchronize(streams_[s]);
+    return M_host_;
+  }
 
 private:  // Members.
   using BaseClass::parameters_;
@@ -50,17 +71,17 @@ private:  // Members.
   using BaseClass::sign_;
   using BaseClass::beta_;
   using BaseClass::M_;
+  using BaseClass::M_Q_;
+
+protected:
   using BaseClass::det_ratio_;
 
 private:  // Work spaces specific to the GPU implementation.
-  using Matrix = dca::linalg::Matrix<double, linalg::CPU>;
-  using MatrixView = dca::linalg::MatrixView<double, linalg::CPU>;
-
-  std::array<MatrixPair<linalg::CPU>, 2> Sa_, Qa_, Ra_;
-  DeviceWorkspace devspace;
-  std::array<std::vector<ushort>, 2> removed_indices_;
-  ushort stream_index_ = 0;
-  std::array<SolverConfiguration<linalg::GPU>, 2> configuration_copy_;
+  MatrixPair<linalg::GPU> S_, Q_, R_;
+  MatrixPair<linalg::CPU> S_host_, M_host_;
+  std::array<cudaStream_t, 2> streams_;
+  std::array<linalg::Vector<ushort, linalg::GPU>, 2> indices_;
+  std::array<linalg::Vector<double, linalg::GPU>, 2> dev_det_;
 };
 
 template <class Parameters>
@@ -69,78 +90,50 @@ CtintWalker<linalg::GPU, Parameters>::CtintWalker(Parameters& parameters_ref, Rn
                                                   const DMatrixBuilder<linalg::GPU>& builder_ref,
                                                   int id)
     : BaseClass(parameters_ref, rng_ref, vertices, builder_ref, id),
-      configuration_copy_{configuration_, configuration_} {
-  prepareInsertionMatrices(stream_index_);
+      streams_{linalg::util::getStream(thread_id_, 0), linalg::util::getStream(thread_id_, 1)} {
+  for (auto& det : dev_det_)
+    det.resize(1);
   while (parameters_.getInitialConfigurationSize() > configuration_.size())
     tryVertexInsert(true);
 }
 
 template <class Parameters>
-void CtintWalker<linalg::GPU, Parameters>::pruneInsertionMatrices(const int mat_idx, const int s) {
-  details::removeIndices(Qa_[mat_idx][s], Ra_[mat_idx][s], removed_indices_[s]);
-  removed_indices_[s].clear();
+AccumulatorConfiguration CtintWalker<linalg::GPU, Parameters>::getConfiguration() {
+  for (int s = 0; s < 2; ++s)
+    M_host_[s].setAsync(M_[s], streams_[s]);
+  for (int s = 0; s < 2; ++s)
+    cudaStreamSynchronize(streams_[s]);
+  return AccumulatorConfiguration{sign_, M_host_, configuration_};
 }
-
 template <class Parameters>
-void CtintWalker<linalg::GPU, Parameters>::prepareInsertionMatrices(const int stream) {
-  auto& candidate_config = configuration_copy_[stream];
-  auto& running_config = configuration_copy_[not stream];
-
-  candidate_config = configuration_;
-  // Reinsert the vertex whose insertion is pending.
-  if (running_config.size() > 0)
-    candidate_config.push_back(running_config.back());
-  candidate_config.insertRandom(rng_);
-
-  // Compute the new pieces of the D(= M^-1) matrix.
-  d_builder_.buildSQR(Sa_[stream], Qa_[stream], Ra_[stream], devspace, candidate_config, thread_id_,
-                      stream);
+AccumulatorConfiguration CtintWalker<linalg::GPU, Parameters>::moveConfiguration() {
+  throw(std::logic_error("Not implemented."));
+}
+template <class Parameters>
+void CtintWalker<linalg::GPU, Parameters>::setConfiguration(AccumulatorConfiguration&& /*config*/) {
+  throw(std::logic_error("Not implemented."));
 }
 
 template <class Parameters>
 bool CtintWalker<linalg::GPU, Parameters>::tryVertexInsert(bool forced) {
-  auto& candidate_config = configuration_copy_[stream_index_];
-  // Prepare the matrix for the next insertion.
-  prepareInsertionMatrices(not stream_index_);
+  configuration_.insertRandom(rng_);
+  const int delta_vertices = configuration_.lastInsertionSize();
 
-  const int delta = candidate_config.lastInsertionSize();
-  if (delta == 1)
-    configuration_.push_back(candidate_config.back());
-  else {
-    configuration_.push_back(candidate_config[candidate_config.size() - 2]);
-    configuration_.push_back(candidate_config.back());
-  }
+  // Compute the new pieces of the D(= M^-1) matrix.
+  d_builder_.buildSQR(S_, Q_, R_, configuration_, thread_id_);
 
-  const std::array<ushort, 2> last_removal_size = {(ushort)removed_indices_[0].size(),
-                                                   (ushort)removed_indices_[1].size()};
-  for (int s = 0; s < 2; ++s) {
-    linalg::util::syncStream(thread_id_, 2 * stream_index_ + 1);
-    pruneInsertionMatrices(stream_index_, s);
-  }
-
-  const double accept_prob = BaseClass::insertionProbability(Sa_[stream_index_], Qa_[stream_index_],
-                                                             Ra_[stream_index_], delta);
+  const double accept_prob = insertionProbability(delta_vertices);
   const bool accept = std::abs(accept_prob) > rng_() or (forced and accept_prob != 0);
 
   if (accept) {
     if (accept_prob < 0)
       sign_ *= -1;
-    BaseClass::applyInsertion(Sa_[stream_index_], Qa_[stream_index_], Ra_[stream_index_]);
+    BaseClass::applyInsertion(S_, Q_, R_);
   }
   else {
-    configuration_.pop(delta);
-
-    const std::array<int, 2> refusal_size = candidate_config.sizeIncrease();
-    for (int s = 0; s < 2; ++s) {
-      const int sector_size = candidate_config.getSector(s).size();
-      for (int idx = sector_size - refusal_size[s] - last_removal_size[s];
-           idx < sector_size - last_removal_size[s]; ++idx)
-        removed_indices_[s].push_back(idx);
-    }
+    configuration_.pop(delta_vertices);
   }
 
-  // Flip the stream_index for the next step.
-  stream_index_ = not stream_index_;
   return accept;
 }
 
@@ -153,13 +146,66 @@ bool CtintWalker<linalg::GPU, Parameters>::tryVertexRemoval() {
     if (accept_prob < 0)
       sign_ *= -1;
 
-    for (int s = 0; s < 2; ++s)
-      removed_indices_[s].insert(removed_indices_[s].end(),
-                                 BaseClass::removal_matrix_indices_[s].begin(),
-                                 BaseClass::removal_matrix_indices_[s].end());
     BaseClass::applyRemoval();
   }
   return accept;
+}
+
+template <class Parameters>
+double CtintWalker<linalg::GPU, Parameters>::insertionProbability(const int delta_vertices) {
+  const int old_size = configuration_.size() - delta_vertices;
+
+  for (int s = 0; s < 2; ++s) {
+    const auto& Q = Q_[s];
+    if (Q.nrCols() == 0) {
+      det_ratio_[s] = 1.;
+      continue;
+    }
+    const auto& R = R_[s];
+    auto& S = S_[s];
+    auto& M = M_[s];
+
+    if (M.nrRows()) {
+      auto& M_Q = M_Q_[s];
+      M_Q.resizeNoCopy(Q.size());
+      linalg::matrixop::gemm(M_[s], Q, M_Q, thread_id_, s);
+      // S <- S_tilde^(-1) = S - R*M*Q
+      linalg::matrixop::gemm(-1., R, M_Q, 1., S, thread_id_, s);
+    }
+
+    S_host_[s].setAsync(S, streams_[s]);
+  }
+  for (int s = 0; s < 2; ++s) {
+    cudaStreamSynchronize(streams_[s]);
+    det_ratio_[s] = details::smallDeterminant(S_host_[s]);
+  }
+
+  const int combinatorial_factor =
+      delta_vertices == 1 ? old_size + 1
+                          : (old_size + 2) * configuration_.occupationNumber(old_size + 1);
+
+  return details::computeAcceptanceProbability(
+      delta_vertices, det_ratio_[0] * det_ratio_[1], total_interaction_, beta_,
+      configuration_.getStrength(old_size), combinatorial_factor, details::VERTEX_INSERTION);
+}
+
+template <class Parameters>
+void CtintWalker<linalg::GPU, Parameters>::smallInverse(const MatrixView& in, MatrixView& out,
+                                                        const int s) {
+  details::smallInverse(in, out, streams_[s]);
+}
+
+template <class Parameters>
+void CtintWalker<linalg::GPU, Parameters>::smallInverse(MatrixView& in_out, const int s) {
+  details::smallInverse(in_out, streams_[s]);
+}
+
+template <class Parameters>
+double CtintWalker<linalg::GPU, Parameters>::separateIndexDeterminant(
+    Matrix& m, const std::vector<ushort>& indices, int s) {
+  indices_[s].setAsync(indices, streams_[s]);
+  return details::separateIndexDeterminant(MatrixView(m), indices_[s].ptr(), indices_[s].size(),
+                                           dev_det_[s].ptr(), streams_[s]);
 }
 
 }  // ctint

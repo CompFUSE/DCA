@@ -43,7 +43,7 @@ public:
     return address;
   }
 
-  void deallocate(Pointer p, SizeType /*n*/ = 0) {
+  void deallocate(Pointer& p, SizeType /*n*/ = 0) {
     cudaFreeHost(p);
     p = nullptr;
   }
@@ -67,7 +67,7 @@ public:
     return address;
   }
 
-  void deallocate(Pointer p, SizeType /*n*/ = 0) {
+  void deallocate(Pointer& p, SizeType /*n*/ = 0) {
     cudaFree(p);
     p = nullptr;
   }

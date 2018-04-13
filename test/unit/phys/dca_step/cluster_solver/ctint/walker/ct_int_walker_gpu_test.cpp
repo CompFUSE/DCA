@@ -20,8 +20,8 @@
 using G0Setup =
     typename dca::testing::G0Setup<dca::testing::LatticeSquare, dca::phys::solver::CT_INT>;
 using namespace dca::phys::solver;
-using Walker = testing::phys::solver::ctint::WalkerWrapper<G0Setup::Parameters>;
-using Matrix = Walker::Matrix;
+using Walker = testing::phys::solver::ctint::WalkerWrapper<G0Setup::Parameters, dca::linalg::GPU>;
+using Matrix = dca::linalg::Matrix<double, dca::linalg::CPU>;
 using MatrixPair = std::array<Matrix, 2>;
 
 double computeDetRatio(MatrixPair a, MatrixPair b);
@@ -36,10 +36,10 @@ TEST_F(G0Setup, RemoveAndInstertVertex) {
     x = double(std::rand()) / RAND_MAX;
   G0Setup::RngType rng(rng_values);
 
-  ctint::G0Interpolation<dca::linalg::CPU> g0(
+  ctint::G0Interpolation<dca::linalg::GPU> g0(
       dca::phys::solver::ctint::details::shrinkG0(data->G0_r_t));
   G0Setup::LabelDomain label_dmn;
-  ctint::DMatrixBuilder<dca::linalg::CPU> builder(g0, RDmn::parameter_type::get_subtract_matrix(),
+  ctint::DMatrixBuilder<dca::linalg::GPU> builder(g0, RDmn::parameter_type::get_subtract_matrix(),
                                                   label_dmn.get_branch_domain_steps(),
                                                   parameters.getAlphas());
   Walker walker(parameters, rng, G0Setup::interaction_vertices, builder);
@@ -63,6 +63,13 @@ TEST_F(G0Setup, RemoveAndInstertVertex) {
         EXPECT_NEAR(direct_M[s](i, j), new_M[s](i, j), 1e-7);
   // Compute directly the determinant ratio. Note: M = D^-1.
   double det_ratio = computeDetRatio(old_M, new_M);
+
+  //  std::cout << "old_M \n";
+  //  old_M.print();
+  //  std::cout << "old_M det " << dca::linalg::matrixop::determinant(old_M) << " \n";
+  //  std::cout << "new_M \n";
+  //  new_M.print();
+  //  std::cout << "new_M det " << dca::linalg::matrixop::determinant(new_M) << " \n";
 
   EXPECT_NEAR(det_ratio, walker.getRatio(), 1e-5);
 

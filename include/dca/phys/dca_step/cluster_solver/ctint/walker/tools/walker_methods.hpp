@@ -57,6 +57,9 @@ inline void smallInverse(const MatrixA& in, MatrixB& out, const double det,
                          linalg::Vector<double, linalg::CPU>& work) {
   assert(in.size() == out.size());
   switch (in.nrCols()) {
+    case 1:
+      out(0, 0) = 1. / in(0, 0);
+      break;
     case 2:
       out(0, 0) = in(1, 1) / det;
       out(0, 1) = -in(0, 1) / det;
@@ -67,7 +70,6 @@ inline void smallInverse(const MatrixA& in, MatrixB& out, const double det,
       // TODO improve
       out = in;
       linalg::matrixop::inverse(out, ipiv, work);
-
   }
 }
 
@@ -126,8 +128,9 @@ inline double smallDeterminant(const MatrixType& M) {
   }
 }
 
-template <class MatrixType>
-inline double separateIndexDeterminant(const MatrixType& M, const std::vector<ushort>& indices) {
+template <template <typename, linalg::DeviceType> class MatrixType>
+inline double separateIndexDeterminant(const MatrixType<double, linalg::CPU>& M,
+                                       const std::vector<ushort>& indices) {
   switch (indices.size()) {
     case 1:
       return M(indices[0], indices[0]);
@@ -173,6 +176,12 @@ inline double separateIndexDeterminant(const MatrixType& M, const std::vector<us
     default:
       throw(std::logic_error("General case not supported."));
   }
+}
+
+template <template <typename, linalg::DeviceType> class MatrixType>
+inline double separateIndexDeterminant(const MatrixType<double, linalg::GPU>& M,
+                                       const std::vector<ushort>& indices) {
+  throw(std::logic_error("not defined"));
 }
 
 template <typename Scalar>

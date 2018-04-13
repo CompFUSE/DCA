@@ -30,7 +30,6 @@ namespace solver {
 namespace ctint {
 // dca::phys::solver::ctint::
 
-struct DeviceWorkspace;
 template <linalg::DeviceType device_t>
 class DMatrixBuilder;
 template <linalg::DeviceType device_t>
@@ -55,7 +54,7 @@ public:
 private:
   int label(const int nu1, const int nu2, const int r) const;
 
-private:
+protected:
   const G0Interpolation<linalg::CPU>& g0_ref_;
   const double alpha_1_ = 0;
   const double alpha_2_ = 0;
@@ -67,38 +66,35 @@ private:
 
 #ifdef DCA_HAVE_CUDA
 template <>
-class DMatrixBuilder<linalg::GPU> {
+class DMatrixBuilder<linalg::GPU> : public DMatrixBuilder<linalg::CPU> {
 public:
   using Matrix = linalg::Matrix<double, linalg::CPU>;
+  using BaseClass =  DMatrixBuilder<linalg::CPU>;
 
   DMatrixBuilder(const G0Interpolation<linalg::GPU>& g0,
                  const linalg::Matrix<int, linalg::CPU>& site_diff,
                  const std::vector<int>& sbdm_step, const std::array<double, 3>& alphas);
 
-  void buildSQR(MatrixPair<linalg::CPU>& S, MatrixPair<linalg::CPU>& Q, MatrixPair<linalg::CPU>& R,
-                DeviceWorkspace& devspace, SolverConfiguration<linalg::GPU>& config,
-                int thread_id = 0, int stream_id = 0) const;
+  void buildSQR(MatrixPair<linalg::GPU>& S, MatrixPair<linalg::GPU>& Q, MatrixPair<linalg::GPU>& R,
+                SolverConfiguration<linalg::GPU>& config, int thread_id = 0) const;
 
   const G0Interpolation<linalg::GPU>& getG0() const {
     return g0_ref_;
   }
+
+  using BaseClass::computeD;
 
 private:
   double computeD(const int i, const int j, const SolverConfiguration<linalg::CPU>& config) const;
 
 private:
   const G0Interpolation<linalg::GPU>& g0_ref_;
-  const double alpha_1_ = 0;
-  const double alpha_2_ = 0;
-  const double alpha_3_ = 0;
-  const int n_bands_ = -1;
+  using BaseClass::alpha_1_;
+  using BaseClass::alpha_2_;
+  using BaseClass::alpha_3_;
+  using BaseClass::n_bands_;
 };
 
-struct DeviceWorkspace {
-  std::array<linalg::Matrix<double, linalg::GPU>, 2> Q;
-  std::array<linalg::Matrix<double, linalg::GPU>, 2> R;
-  std::array<linalg::Matrix<double, linalg::GPU>, 2> S;
-};
 #endif  // DCA_HAVE_CUDA
 
 }  // ctint

@@ -7,14 +7,8 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// No-change test for CT-INT.
-// Square lattice with single band and double occupancy repulsion U.
-
-#ifndef DCA_HAVE_CUDA
-#pragma error "CUDA must be enabled"
-#endif
-
-constexpr bool UPDATE_RESULTS = false;
+// Confront GPU and CPU runs with CT-INT, no submatrix algorithm is used.
+// Model: square lattice with single band and double occupancy repulsion U.
 
 #include <cuda_profiler_api.h>
 #include <iostream>
@@ -23,6 +17,7 @@ constexpr bool UPDATE_RESULTS = false;
 #include "gtest/gtest.h"
 
 #include "dca/function/function.hpp"
+#include "dca/function/function_utils.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_reader.hpp"
@@ -38,11 +33,11 @@ constexpr bool UPDATE_RESULTS = false;
 #include "dca/profiling/null_profiler.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
+#include "test/unit/phys/dca_step/cluster_solver/mock_rng.hpp"
 
-const std::string input_dir =
-    DCA_SOURCE_DIR "/test/integration/ctint/";
+const std::string input_dir = DCA_SOURCE_DIR "/test/integration/ctint/";
 
-using RngType = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
+using RngType = dca::testing::MockRng;
 using Lattice = dca::phys::models::square_lattice<dca::phys::domains::D4>;
 using Model = dca::phys::models::TightBindingModel<Lattice>;
 using Threading = dca::parallel::NoThreading;
@@ -50,7 +45,6 @@ using Concurrency = dca::parallel::NoConcurrency;
 using Parameters = dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler,
                                                  Model, RngType, dca::phys::solver::CT_INT>;
 using Data = dca::phys::DcaData<Parameters>;
-using QmcSolverType = dca::phys::solver::CtintClusterSolver<dca::linalg::GPU, Parameters>;
 
 TEST(SquareLatticeTest, GpuSolver) {
   dca::util::GitVersion::print();
@@ -63,39 +57,37 @@ TEST(SquareLatticeTest, GpuSolver) {
   parameters.update_domains();
 
   // Initialize data with G0 computation.
-  Data data(parameters);
-  data.initialize();
+  Data data_gpu(parameters);
+  data_gpu.initialize();
+
+  std::vector<double> rnds(1000000);
+  dca::math::random::StdRandomWrapper<std::ranlux48_base> rng(0, 1, 0);
+  for(auto& x : rnds)
+    x = rng();
 
   // Do one integration step.
-  QmcSolverType qmc_solver_gpu(parameters, data);
+  dca::phys::solver::CtintClusterSolver<dca::linalg::GPU, Parameters> qmc_solver_gpu(parameters,
+                                                                                     data_gpu);
+  qmc_solver_gpu.get_rng().setNewValues(rnds);
+
   qmc_solver_gpu.initialize(0);
   cudaProfilerStart();
   qmc_solver_gpu.integrate();
   cudaProfilerStop();
   qmc_solver_gpu.finalize();
-
   EXPECT_NEAR(1.0, qmc_solver_gpu.computeDensity(), 1e-5);
 
-  if (not UPDATE_RESULTS) {
-    // Read and confront with previous run
-    typeof(data.G_k_w) G_k_w_check(data.G_k_w.get_name());
-    dca::io::HDF5Reader reader;
-    reader.open_file(input_dir + "square_lattice_result_gpu.hdf5");
-    reader.open_group("functions");
-    reader.execute(G_k_w_check);
-    reader.close_group(), reader.close_file();
+  // Confront with CPU run.
+  Data data_cpu(parameters);
+  data_cpu.initialize();
+  dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, Parameters> qmc_solver_cpu(parameters,
+                                                                                     data_cpu);
+  qmc_solver_cpu.get_rng().setNewValues(rnds);
 
-    for (int i = 0; i < G_k_w_check.size(); i++) {
-      EXPECT_NEAR(G_k_w_check(i).real(), data.G_k_w(i).real(), 1e-7);
-      EXPECT_NEAR(G_k_w_check(i).imag(), data.G_k_w(i).imag(), 1e-7);
-    }
-  }
-  else {
-    //  Write results
-    dca::io::HDF5Writer writer;
-    writer.open_file("square_lattice_result_gpu.hdf5");
-    writer.open_group("functions");
-    writer.execute(data.G_k_w);
-    writer.close_group(), writer.close_file();
-  }
+  qmc_solver_cpu.initialize();
+  qmc_solver_cpu.integrate();
+  qmc_solver_cpu.finalize();
+
+  auto diff = dca::func::utils::difference(data_cpu.G_k_w, data_gpu.G_k_w);
+  EXPECT_GE(5e-7, diff.l_inf);
 }

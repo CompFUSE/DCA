@@ -41,7 +41,7 @@ public:
   void measure();
 
   template <class Walker>
-  void updateFrom(const Walker& walker);
+  void updateFrom(Walker& walker);
   template <class Walker>
   void accumulate(Walker& walker);
 
@@ -115,7 +115,7 @@ void CtintAccumulator<Parameters, device>::initialize(const int dca_iteration) {
 
 template <class Parameters, linalg::DeviceType device>
 template <class Walker>
-void CtintAccumulator<Parameters, device>::updateFrom(const Walker& walker) {
+void CtintAccumulator<Parameters, device>::updateFrom(Walker& walker) {
   config_ = walker.getConfiguration();
   ready_ = true;
 }
@@ -123,10 +123,17 @@ void CtintAccumulator<Parameters, device>::updateFrom(const Walker& walker) {
 template <class Parameters, linalg::DeviceType device>
 template <class Walker>
 void CtintAccumulator<Parameters, device>::accumulate(Walker& walker) {
-  config_ = std::move(walker.moveConfiguration());
-  ready_ = true;
-  measure();
-  walker.setConfiguration(std::move(config_));
+  if (device == linalg::CPU) {
+    config_ = std::move(walker.moveConfiguration());
+    ready_ = true;
+    measure();
+    walker.setConfiguration(std::move(config_));
+  }
+  else {
+    config_ = walker.getConfiguration();
+    ready_ = true;
+    measure();
+  }
 }
 
 template <class Parameters, linalg::DeviceType device>

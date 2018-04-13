@@ -60,6 +60,10 @@ public:
     return time_slices_ * COEFF_SIZE;
   }
 
+  const auto& get_host_interpolation() const {
+    return g0_cpu_;
+  }
+
   constexpr static int COEFF_SIZE = G0Interpolation<linalg::CPU>::COEFF_SIZE;
 
 private:
@@ -70,19 +74,21 @@ private:
   linalg::Vector<double, linalg::GPU> G0_coeff_;
   linalg::Vector<double, linalg::GPU> g0_minus_;
   int time_slices_ = -1;
+
+  G0Interpolation<linalg::CPU> g0_cpu_;
 };
 
 template <class InputDmn>
 void G0Interpolation<linalg::GPU>::initialize(const func::function<double, InputDmn>& G0_pars_t) {
-  G0Interpolation<linalg::CPU> g0_cpu(G0_pars_t);
-  assert(g0_cpu.beta_);
-  time_slices_ = g0_cpu.getTimeSlices();
-  BaseClass::beta_ = g0_cpu.beta_;
-  BaseClass::n_div_beta_ = g0_cpu.n_div_beta_;
+  g0_cpu_.initialize(G0_pars_t);
+  assert(g0_cpu_.beta_);
+  time_slices_ = g0_cpu_.getTimeSlices();
+  BaseClass::beta_ = g0_cpu_.beta_;
+  BaseClass::n_div_beta_ = g0_cpu_.n_div_beta_;
 
-  g0_minus_.set(g0_cpu.g0_zero_minus, 0, 0);
-  G0_coeff_.resizeNoCopy(g0_cpu.G0_coeff_.size());
-  cudaMemcpy(G0_coeff_.ptr(), g0_cpu.G0_coeff_.values(),
+  g0_minus_.set(g0_cpu_.g0_zero_minus, 0, 0);
+  G0_coeff_.resizeNoCopy(g0_cpu_.G0_coeff_.size());
+  cudaMemcpy(G0_coeff_.ptr(), g0_cpu_.G0_coeff_.values(),
              G0_coeff_.size() * sizeof(decltype(G0_coeff_.ptr())), cudaMemcpyHostToDevice);
   // Copy pointer to the data structure.
   BaseClass::values_ = G0_coeff_.ptr();

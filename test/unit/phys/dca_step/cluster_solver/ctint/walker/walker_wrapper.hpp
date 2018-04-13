@@ -13,6 +13,7 @@
 
 #include "dca/linalg/device_type.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_cpu.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_gpu.hpp"
 
 namespace testing {
 namespace phys {
@@ -28,7 +29,7 @@ struct WalkerWrapper : public CtintWalker<device_t, Parameters> {
 
 
   WalkerWrapper(Parameters& parameters_ref, Rng& rng_ref, const InteractionVertices& vertices,
-                const DMatrixBuilder<dca::linalg::CPU>& builder)
+                const DMatrixBuilder<device_t>& builder)
       : BaseClass(parameters_ref, rng_ref, vertices, builder, 0) {}
 
   using BaseClass::tryVertexInsert;

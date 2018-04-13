@@ -1116,8 +1116,8 @@ void pseudoInverse(const Matrix<ScalarType, CPU>& a, Matrix<ScalarType, CPU>& a_
 // Computes (in place) the determinant of the matrix.
 // Returns: determinant.
 // Postcondition: M is its LU decomposition.
-template <typename ScalarType>
-double determinantIP(Matrix<ScalarType, CPU>& M) {
+template <template <typename, DeviceType> class MatrixType, typename ScalarType, DeviceType device>
+double determinantIP(MatrixType<ScalarType, device>& M) {
   assert(M.nrCols() == M.nrRows());
   const int n = M.nrCols();
   std::vector<int> ipiv(n);

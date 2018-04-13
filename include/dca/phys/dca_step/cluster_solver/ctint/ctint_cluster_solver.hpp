@@ -76,6 +76,10 @@ public:
   // For testing purposes.
   // Returns the function G(k,w) without averaging across MPI ranks.
   auto local_G_k_w() const;
+  // Returns a reference to the Rng to set its value during a test.
+  auto& get_rng() {
+    return rng_;
+  }
 
 protected:  // thread jacket interface.
   using ParametersType = Parameters;
