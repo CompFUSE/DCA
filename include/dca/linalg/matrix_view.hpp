@@ -39,8 +39,10 @@ public:
   template <template <typename, DeviceType> class Matrix>
   MatrixView(Matrix<ScalarType, device_name>& mat, int offset_i, int offset_j, int ni, int nj);
 
-  template <class MatrixB>
-  MatrixView& operator=(const MatrixB& rhs);
+  template <template <typename, DeviceType> class Matrix>
+  MatrixView& operator=(const Matrix<ScalarType, device_name>& rhs);
+
+  MatrixView& operator=(const MatrixView<ScalarType, device_name>& rhs);
 
   void print(std::ostream& out = std::cout) const;
 
@@ -132,8 +134,19 @@ MatrixView<ScalarType, device_t>::MatrixView(Matrix<ScalarType, device_t>& mat, 
 }
 
 template <typename ScalarType, DeviceType device_t>
-template <class MatrixB>
-MatrixView<ScalarType, device_t>& MatrixView<ScalarType, device_t>::operator=(const MatrixB& rhs) {
+template <template <typename, DeviceType> class Matrix>
+MatrixView<ScalarType, device_t>& MatrixView<ScalarType, device_t>::operator=(
+    const Matrix<ScalarType, device_t>& rhs) {
+  assert(nrCols() == rhs.nrCols() and nrRows() == rhs.nrRows());
+  for (int j = 0; j < nrCols(); ++j)
+    for (int i = 0; i < nrRows(); ++i)
+      (*this)(i, j) = rhs(i, j);
+  return *this;
+}
+
+template <typename ScalarType, DeviceType device_t>
+MatrixView<ScalarType, device_t>& MatrixView<ScalarType, device_t>::operator=(
+    const MatrixView<ScalarType, device_t>& rhs) {
   assert(nrCols() == rhs.nrCols() and nrRows() == rhs.nrRows());
   for (int j = 0; j < nrCols(); ++j)
     for (int i = 0; i < nrRows(); ++i)
