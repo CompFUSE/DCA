@@ -112,7 +112,7 @@ int RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::findTargetFuncti
   for (int i = 0; i < OtherDmn::dmn_size(); ++i)
     is_finished_(i) = false;
 
-  checkForZeros(source_interpolated);
+  // checkForZeros(source_interpolated);
   initializeMatrices(source_interpolated);
 
   int iterations = 0;
