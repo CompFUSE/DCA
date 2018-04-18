@@ -32,6 +32,8 @@ namespace inference {
 template <typename ClusterDmn, typename HostDmn, typename OtherDmn>
 class RichardsonLucyDeconvolution {
 public:
+  static constexpr double min_distance_to_zero_ = 1.;
+
   RichardsonLucyDeconvolution(const linalg::Matrix<double, linalg::CPU>& p_cluster,
                               const linalg::Matrix<double, linalg::CPU>& p_host,
                               const double tolerance, const int max_iterations);
@@ -49,11 +51,10 @@ public:
       func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& target,
       func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& target_convoluted);
 
-private:
-  void checkForZeros(
-      const func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& source_interpolated,
-      const double tol = 1.e-6);
+  void findShift(const func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& source_interpolated,
+                 func::function<double, OtherDmn>& shift);
 
+private:
   void initializeMatrices(
       const func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& source_interpolated);
 
@@ -68,15 +69,19 @@ private:
   const linalg::Matrix<double, linalg::CPU>& p_host_;
 
   linalg::Matrix<double, linalg::CPU> c_cluster_;
-
   linalg::Matrix<double, linalg::CPU> c_;
   linalg::Matrix<double, linalg::CPU> d_;
   linalg::Matrix<double, linalg::CPU> d_over_c_;
   linalg::Matrix<double, linalg::CPU> u_t_;
+  linalg::Matrix<double, linalg::CPU> u_t_no_shift_;
   linalg::Matrix<double, linalg::CPU> u_t_plus_1_;
 
+  func::function<double, OtherDmn> shift_;
   func::function<bool, OtherDmn> is_finished_;
 };
+
+template <typename ClusterDmn, typename HostDmn, typename OtherDmn>
+constexpr double RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::min_distance_to_zero_;
 
 template <typename ClusterDmn, typename HostDmn, typename OtherDmn>
 RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::RichardsonLucyDeconvolution(
@@ -95,8 +100,10 @@ RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::RichardsonLucyDeconv
       d_("d (Richardson-Lucy-deconvolution)"),
       d_over_c_("d/c (Richardson-Lucy-deconvolution)"),
       u_t_("u_t (Richardson-Lucy-deconvolution)"),
+      u_t_no_shift_("u_{t, no-shift} (Richardson-Lucy-deconvolution)"),
       u_t_plus_1_("u_{t+1} (Richardson-Lucy-deconvolution)"),
 
+      shift_("shift"),
       is_finished_("is_finished") {
   if (p_host_.size().first != HostDmn::dmn_size() || p_host_.size().second != HostDmn::dmn_size() ||
       p_cluster_.size().first != ClusterDmn::dmn_size() ||
@@ -109,10 +116,11 @@ int RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::findTargetFuncti
     const func::function<double, func::dmn_variadic<ClusterDmn, OtherDmn>>& source,
     const func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& source_interpolated,
     func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& target) {
+  is_finished_.reset();
   for (int i = 0; i < OtherDmn::dmn_size(); ++i)
     is_finished_(i) = false;
 
-  // checkForZeros(source_interpolated);
+  findShift(source_interpolated, shift_);
   initializeMatrices(source_interpolated);
 
   int iterations = 0;
@@ -140,7 +148,7 @@ int RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::findTargetFuncti
   for (int j = 0; j < OtherDmn::dmn_size(); ++j)
     if (!is_finished_(j))
       for (int i = 0; i < HostDmn::dmn_size(); ++i)
-        target(i, j) = u_t_(i, j);
+        target(i, j) = u_t_(i, j) - shift_(j);
 
   return iterations;
 }
@@ -169,12 +177,40 @@ int RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::findTargetFuncti
 }
 
 template <typename ClusterDmn, typename HostDmn, typename OtherDmn>
-void RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::checkForZeros(
+void RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::findShift(
     const func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& source_interpolated,
-    const double tol) {
-  for (int i = 0; i < source_interpolated.size(); ++i) {
-    if (std::abs(source_interpolated(i)) < tol)
-      throw std::invalid_argument("Function to be deconvoluted is close to zero.");
+    func::function<double, OtherDmn>& shift) {
+  shift.reset();
+
+  for (int j = 0; j < OtherDmn::dmn_size(); ++j) {
+    // Find min and max.
+    double min = source_interpolated(0, j);
+    double max = source_interpolated(0, j);
+
+    for (int i = 1; i < HostDmn::dmn_size(); ++i) {
+      min = std::min(min, source_interpolated(i, j));
+      max = std::max(max, source_interpolated(i, j));
+    }
+
+    const double bandwidth = std::abs(max - min);
+    const double required_distance = std::max(bandwidth, min_distance_to_zero_);
+
+    // Function is only positive, shift up if necessary.
+    if (min >= 0. && min < required_distance)
+      shift(j) = required_distance - min;
+
+    // Function is only negative, shift down if necessary.
+    else if (max <= 0. && -max < required_distance)
+      shift(j) = -required_distance - max;
+
+    // Function changes sign, shift the 'smaller' part.
+    else if (min < 0. && max > 0.) {
+      if (std::abs(min) <= std::abs(max))
+        shift(j) = required_distance - min;
+
+      else
+        shift(j) = -required_distance - max;
+    }
   }
 }
 
@@ -185,18 +221,20 @@ void RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::initializeMatri
   const int num_rows_cluster = ClusterDmn::dmn_size();
   const int num_cols = OtherDmn::dmn_size();
 
+  // Need to resize the matrices here in case the domains have been initialized/resized after the
+  // object of this class was constructed.
   c_cluster_.resizeNoCopy(std::make_pair(num_rows_cluster, num_cols));
-
   c_.resizeNoCopy(std::make_pair(num_rows_host, num_cols));
   d_.resizeNoCopy(std::make_pair(num_rows_host, num_cols));
   d_over_c_.resizeNoCopy(std::make_pair(num_rows_host, num_cols));
   u_t_.resizeNoCopy(std::make_pair(num_rows_host, num_cols));
+  u_t_no_shift_.resizeNoCopy(std::make_pair(num_rows_host, num_cols));
   u_t_plus_1_.resizeNoCopy(std::make_pair(num_rows_host, num_cols));
 
   // Initialize d matrix ("observed image") with interpolated source function.
   for (int j = 0; j < num_cols; ++j)
     for (int i = 0; i < num_rows_host; ++i)
-      d_(i, j) = source_interpolated(i, j);
+      d_(i, j) = source_interpolated(i, j) + shift_(j);
 
   // Initialize iterative solution u_t with signs of column means of d.
   for (int j = 0; j < num_cols; ++j) {
@@ -225,8 +263,15 @@ bool RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::finished(
     func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& target) {
   bool all_finished = true;
 
-  // Convolute iterative solution to cluster domain and compare with original source.
-  linalg::matrixop::gemm(p_cluster_, u_t_, c_cluster_);
+  // Convolute iterative solution (without shift) to cluster domain and compare with original
+  // source.
+  for (int j = 0; j < OtherDmn::dmn_size(); ++j) {
+    for (int i = 0; i < HostDmn::dmn_size(); ++i) {
+      u_t_no_shift_(i, j) = u_t_(i, j) - shift_(j);
+    }
+  }
+
+  linalg::matrixop::gemm(p_cluster_, u_t_no_shift_, c_cluster_);
 
   for (int j = 0; j < OtherDmn::dmn_size(); ++j) {
     if (!is_finished_(j)) {
@@ -244,7 +289,7 @@ bool RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::finished(
       if (error < tolerance_) {
         // Copy iterative solution into returned target function.
         for (int i = 0; i < HostDmn::dmn_size(); ++i)
-          target(i, j) = u_t_(i, j);
+          target(i, j) = u_t_(i, j) - shift_(j);
 
         is_finished_(j) = true;
       }
