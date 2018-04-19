@@ -465,8 +465,8 @@ std::enable_if_t<device_name == CPU && dn == CPU, void> Matrix<ScalarType, devic
 
 template <typename ScalarType, DeviceType device_name>
 template <DeviceType dn>
-std::enable_if_t<device_name != CPU && dn == device_name, void> Matrix<ScalarType,
-                                                                       device_name>::print() const {
+std::enable_if_t<device_name != CPU && dn == device_name, void> Matrix<ScalarType, device_name>::print()
+    const {
   Matrix<ScalarType, CPU> copy(*this, name_);
   copy.print();
 }
