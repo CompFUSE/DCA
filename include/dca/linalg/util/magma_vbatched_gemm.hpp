@@ -113,8 +113,8 @@ void MagmaVBatchedGemm<ScalarType>::execute(const char transa, const char transb
   lda_dev_.setAsync(lda_, stream_);
   ldb_dev_.setAsync(ldb_, stream_);
   ldc_dev_.setAsync(ldc_, stream_);
-  n_dev_.setAsync(n_, stream_);
   m_dev_.setAsync(m_, stream_);
+  n_dev_.setAsync(n_, stream_);
   k_dev_.setAsync(k_, stream_);
 
   copied_.record(stream_);
