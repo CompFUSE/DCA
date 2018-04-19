@@ -23,6 +23,7 @@
 #include "dca/function/function.hpp"
 #include "dca/function/util/difference.hpp"
 #include "dca/linalg/matrix.hpp"
+#include "dca/linalg/util/util_cublas.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"

@@ -14,9 +14,12 @@
 
 #ifdef DCA_HAVE_CUDA
 
-#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_base.hpp"
+
+#include <complex>
 
 #include "dca/linalg/lapack/magma.hpp"
+#include "dca/linalg/matrix.hpp"
 #include "dca/linalg/vector.hpp"
 #include "dca/linalg/util/cuda_event.hpp"
 #include "dca/linalg/util/magma_vbatched_gemm.hpp"
@@ -30,19 +33,17 @@ namespace accumulator {
 
 template <typename Real, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
 class CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>
-    : private CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density> {
+    : private CachedNdftBase<Real, RDmn, WDmn, WPosDmn, non_density_density> {
 private:
-  using BDmn = func::dmn_0<domains::electron_band_domain>;
-  using SDmn = func::dmn_0<domains::electron_spin_domain>;
-  using ClusterDmn = typename RDmn::parameter_type;
-  using BRDmn = func::dmn_variadic<BDmn, RDmn>;
+  using BaseClass = CachedNdftBase<Real, RDmn, WDmn, WPosDmn, non_density_density>;
+
+  using typename BaseClass::BDmn;
+
   using Complex = std::complex<Real>;
   using Matrix = linalg::Matrix<Complex, dca::linalg::GPU>;
   using MatrixHost = linalg::Matrix<Complex, dca::linalg::CPU>;
 
 public:
-  using BaseClass = CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>;
-
   CachedNdft(magma_queue_t queue);
 
   // For each pair of orbitals, performs the non-uniform 2D Fourier Transform from time to frequency
@@ -58,7 +59,6 @@ public:
   }
 
 private:
-  using BaseClass::sortConfiguration;
   void sortM(const linalg::Matrix<double, linalg::GPU>& M, Matrix& M_sorted) const;
   void computeT();
   void performFT(const Matrix& M_t_t, Matrix& M_w_w);
@@ -66,13 +66,8 @@ private:
 
 private:
   using BaseClass::w_;
-  linalg::Vector<Real, linalg::GPU> w_dev_;
-
-  using BaseClass::indexed_config_;
-
   using BaseClass::start_index_;
   using BaseClass::end_index_;
-
   using BaseClass::n_orbitals_;
   using BaseClass::config_left_;
   using BaseClass::config_right_;
@@ -80,7 +75,9 @@ private:
   using BaseClass::start_index_right_;
   using BaseClass::end_index_left_;
   using BaseClass::end_index_right_;
+  using BaseClass::indexed_config_;
 
+  linalg::Vector<Real, linalg::GPU> w_dev_;
   magma_queue_t magma_queue_;
   cudaStream_t stream_;
   linalg::util::CudaEvent copy_event_;
@@ -123,7 +120,7 @@ void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::ex
   copy_event_.block();
   M_.setAsync(M, stream_);
 
-  sortConfiguration(configuration);
+  BaseClass::sortConfiguration(configuration);
   config_dev_[0].setAsync(config_left_, stream_);
   config_dev_[1].setAsync(config_right_, stream_);
   assert(cudaPeekAtLastError() == cudaSuccess);

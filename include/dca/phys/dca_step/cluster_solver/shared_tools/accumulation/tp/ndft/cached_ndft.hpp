@@ -8,18 +8,16 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// This file implements a 2D NDFT transform from time to frequency, applied independently to each
-// pair of orbitals.
+// This file implements a 2D NDFT from imaginary time to Matsubara frequency, applied independently
+// to each pair of orbitals.
 
 #ifndef DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_NDFT_CACHED_NDFT_HPP
 #define DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_NDFT_CACHED_NDFT_HPP
 
-#include <array>
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_base.hpp"
+
 #include <cassert>
 #include <complex>
-#include <type_traits>
-#include <utility>
-#include <vector>
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
@@ -36,43 +34,35 @@ namespace solver {
 namespace accumulator {
 // dca::phys::solver::accumulator::
 
-template <typename ScalarType, class RDmn, class WDmn, class WPosDmn, linalg::DeviceType device,
-          bool non_density_density = 0>
-class CachedNdft;
-
 template <typename ScalarType, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
-class CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density> {
+class CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>
+    : private CachedNdftBase<ScalarType, RDmn, WDmn, WPosDmn, non_density_density> {
 private:
-  using BDmn = func::dmn_0<domains::electron_band_domain>;
-  using SDmn = func::dmn_0<domains::electron_spin_domain>;
-  using ClusterDmn = typename RDmn::parameter_type;
-  using BRDmn = func::dmn_variadic<BDmn, RDmn>;
+  using BaseClass = CachedNdftBase<ScalarType, RDmn, WDmn, WPosDmn, non_density_density>;
+  using typename BaseClass::BDmn;
+  using typename BaseClass::SDmn;
   using Matrix = linalg::Matrix<ScalarType, dca::linalg::CPU>;
 
 public:
-  CachedNdft();
+  CachedNdft() {}
 
   // For each pair of orbitals, performs the non-uniform 2D Fourier Transform from time to frequency
   // defined as M(w1, w2) = \sum_{t1, t2} exp(i (w1 t1 - w2 t2)) M(t1, t2).
   // In: configuration: stores the time and orbitals of each entry of M.
   // In: M: input matrix provided by the walker.
   // Out: M_r_r_w_w: stores the result of the computation.
-  // In: spin: spin sector of M. If required it is used to sort the output.
+  // In: spin: spin sector of M. It is used to sort the output, in case OutDmn contains the spin
+  // domain as a subdomain.
   template <class Configuration, typename ScalarInp, class OutDmn>
   double execute(const Configuration& configuration, const linalg::Matrix<ScalarInp, linalg::CPU>& M,
                  func::function<std::complex<ScalarType>, OutDmn>& M_r_r_w_w, int spin = 0);
-
-protected:
-  template <class Configuration>
-  void sortConfiguration(const Configuration& configuration);
 
 private:
   template <class Configuration>
   void computeT(const Configuration& configuration);
 
-  template <class Configuration, typename ScalarInp>
-  void computeMMatrix(const Configuration& configuration,
-                      const linalg::Matrix<ScalarInp, linalg::CPU>& M, int orb_i, int orb_j);
+  template <typename ScalarInp>
+  void computeMMatrix(const linalg::Matrix<ScalarInp, linalg::CPU>& M, int orb_i, int orb_j);
 
   void computeTSubmatrices(int orb_i, int orb_j);
 
@@ -100,25 +90,16 @@ private:
 
   static void orbitalToBR(int orbital, int& b, int& r);
 
-protected:
-  using Triple = details::Triple<ScalarType>;
-  template <class T>
-  using HostVector = linalg::util::HostVector<T>;
-
-  HostVector<ScalarType> w_;
-
-  std::array<HostVector<Triple>, 2> indexed_config_;
-
-  std::array<std::vector<int>, 2> start_index_;
-  std::array<std::vector<int>, 2> end_index_;
-
-  const HostVector<Triple> &config_left_, &config_right_;
-  std::vector<int> &start_index_left_, &start_index_right_;
-  std::vector<int> &end_index_left_, &end_index_right_;
-
-  const int n_orbitals_;
-
 private:
+  using BaseClass::n_orbitals_;
+  using BaseClass::w_;
+  using BaseClass::config_left_;
+  using BaseClass::config_right_;
+  using BaseClass::start_index_left_;
+  using BaseClass::start_index_right_;
+  using BaseClass::end_index_left_;
+  using BaseClass::end_index_right_;
+
   using MatrixPair = std::array<Matrix, 2>;
   Matrix M_ij_;
   MatrixPair T_l_times_M_ij_times_T_r_;
@@ -128,25 +109,6 @@ private:
   MatrixPair T_l_times_M_ij_;
   std::array<Matrix, 5> work_;
 };
-
-template <typename ScalarType, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
-CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::CachedNdft()
-    : w_(),
-      config_left_(indexed_config_[0]),
-      config_right_(non_density_density ? indexed_config_[1] : indexed_config_[0]),
-      start_index_left_(start_index_[0]),
-      start_index_right_(non_density_density ? start_index_[1] : start_index_[0]),
-      end_index_left_(end_index_[0]),
-      end_index_right_(non_density_density ? end_index_[1] : end_index_[0]),
-      n_orbitals_(BDmn::dmn_size() * RDmn::dmn_size()) {
-  for (const auto elem : WDmn::parameter_type::get_elements())
-    w_.push_back(static_cast<ScalarType>(elem));
-
-  start_index_left_.resize(n_orbitals_);
-  start_index_right_.resize(n_orbitals_);
-  end_index_right_.resize(n_orbitals_);
-  end_index_right_.resize(n_orbitals_);
-}
 
 template <typename ScalarType, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
 template <class Configuration, typename ScalarInp, class OutDmn>
@@ -159,7 +121,7 @@ double CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_dens
   double flops = 0.;
   //  const int r0_index = ClusterDmn::origin_index();
 
-  sortConfiguration(configuration);
+  BaseClass::sortConfiguration(configuration);
 
   computeT(configuration);
 
@@ -172,7 +134,7 @@ double CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_dens
       const int n_i = end_index_left_[orb_i] - start_index_left_[orb_i];
 
       if (n_i > 0 && n_j > 0) {
-        computeMMatrix(configuration, M, orb_i, orb_j);
+        computeMMatrix(M, orb_i, orb_j);
 
         computeTSubmatrices(orb_i, orb_j);
 
@@ -186,48 +148,6 @@ double CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_dens
   }
 
   return (flops * (1.e-9));
-}
-
-template <typename ScalarType, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
-template <class Configuration>
-void CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::sortConfiguration(
-    const Configuration& configuration) {
-  const int n_b = BDmn::dmn_size();
-  const int n_v = configuration.size();
-  constexpr int n_sides = non_density_density ? 2 : 1;
-
-  auto orbital = [&](const int i, const int side) {
-    const auto& vertex = configuration[i];
-    if (side)  // Switch left and right band as M is an inverse matrix.
-      return vertex.get_left_band() + n_b * vertex.get_left_site();
-    else
-      return vertex.get_right_band() + n_b * vertex.get_right_site();
-  };
-
-  for (int side = 0; side < n_sides; ++side) {
-    auto& config_side = indexed_config_[side];
-    config_side.resize(n_v);
-
-    for (int l = 0; l < n_v; ++l) {
-      config_side[l].orbital = orbital(l, side);
-      config_side[l].tau = configuration[l].get_tau();
-      config_side[l].idx = l;
-    }
-
-    sort(config_side.begin(), config_side.end());
-
-    for (int orb = 0; orb < n_orbitals_; ++orb) {
-      details::Triple<ScalarType> trp{orb, 0, 0};
-
-      start_index_[side][orb] =
-          lower_bound(config_side.begin(), config_side.end(), trp) - config_side.begin();
-
-      trp.idx = n_v;
-
-      end_index_[side][orb] =
-          upper_bound(config_side.begin(), config_side.end(), trp) - config_side.begin();
-    }
-  }
 }
 
 template <typename ScalarType, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
@@ -251,10 +171,9 @@ void CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_densit
 }
 
 template <typename ScalarType, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
-template <class Configuration, typename ScalarInp>
+template <typename ScalarInp>
 void CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::computeMMatrix(
-    const Configuration& configuration, const linalg::Matrix<ScalarInp, linalg::CPU>& M,
-    const int orb_i, const int orb_j) {
+    const linalg::Matrix<ScalarInp, linalg::CPU>& M, const int orb_i, const int orb_j) {
   M_ij_.resizeNoCopy(std::pair<int, int>(end_index_left_[orb_i] - start_index_left_[orb_i],
                                          end_index_right_[orb_j] - start_index_right_[orb_j]));
 
