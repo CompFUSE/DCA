@@ -36,7 +36,7 @@ namespace accumulator {
 
 template <typename ScalarType, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
 class CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>
-    : private CachedNdftBase<ScalarType, RDmn, WDmn, WPosDmn, non_density_density> {
+    : public CachedNdftBase<ScalarType, RDmn, WDmn, WPosDmn, non_density_density> {
 private:
   using BaseClass = CachedNdftBase<ScalarType, RDmn, WDmn, WPosDmn, non_density_density>;
   using typename BaseClass::BDmn;

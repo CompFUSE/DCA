@@ -33,7 +33,7 @@ namespace accumulator {
 
 template <typename Real, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
 class CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>
-    : private CachedNdftBase<Real, RDmn, WDmn, WPosDmn, non_density_density> {
+    : public CachedNdftBase<Real, RDmn, WDmn, WPosDmn, non_density_density> {
 private:
   using BaseClass = CachedNdftBase<Real, RDmn, WDmn, WPosDmn, non_density_density>;
 
