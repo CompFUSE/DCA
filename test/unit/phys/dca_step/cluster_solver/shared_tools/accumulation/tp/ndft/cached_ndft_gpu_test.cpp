@@ -24,14 +24,14 @@
 constexpr int n_samples = 31;
 constexpr int n_bands = 3;
 constexpr int n_frqs = 7;
-using CachedNdftCpuTest = dca::testing::CachedNdftTest<n_samples, n_bands, n_frqs>;
+using CachedNdftGpuTest = dca::testing::CachedNdftTest<n_samples, n_bands, n_frqs>;
 
-double computeWithFastNDFT(const CachedNdftCpuTest::Configuration& config,
-                           const CachedNdftCpuTest::Matrix& M, CachedNdftCpuTest::F_w_w& f_w);
+double computeWithFastNDFT(const CachedNdftGpuTest::Configuration& config,
+                           const CachedNdftGpuTest::Matrix& M, CachedNdftGpuTest::F_w_w& f_w);
 
 // Compare the result provided by the GPU version of CachedNdft::execute with the definition of the
 // NDFT f(w1, w2) = \sum_{t1, t2} f(t1, t2) exp(i * t1 * w1 - t2 w2) stored in f_baseline_.
-TEST_F(CachedNdftCpuTest, ExecuteGpu) {
+TEST_F(CachedNdftGpuTest, Execute) {
   F_w_w f_w_fast("f_w_fast");
 
   // Compute the NDFT with the CachedNdft class and rearrange the result with the same order as
@@ -44,14 +44,14 @@ TEST_F(CachedNdftCpuTest, ExecuteGpu) {
   std::cout << "\nCached GPU ndft time [sec]:\t " << time << "\n";
 }
 
-double computeWithFastNDFT(const CachedNdftCpuTest::Configuration& config,
-                           const CachedNdftCpuTest::Matrix& M, CachedNdftCpuTest::F_w_w& f_w) {
+double computeWithFastNDFT(const CachedNdftGpuTest::Configuration& config,
+                           const CachedNdftGpuTest::Matrix& M, CachedNdftGpuTest::F_w_w& f_w) {
   dca::linalg::util::initializeMagma();
   magma_queue_t queue;
   magma_queue_create(&queue);
 
-  dca::phys::solver::accumulator::CachedNdft<double, CachedNdftCpuTest::RDmn, CachedNdftCpuTest::FreqDmn,
-                                             CachedNdftCpuTest::PosFreqDmn, dca::linalg::GPU>
+  dca::phys::solver::accumulator::CachedNdft<double, CachedNdftGpuTest::RDmn, CachedNdftGpuTest::FreqDmn,
+                                             CachedNdftGpuTest::PosFreqDmn, dca::linalg::GPU>
       nft_obj(queue);
   EXPECT_EQ(magma_queue_get_cuda_stream(queue), nft_obj.get_stream());
   dca::linalg::Matrix<std::complex<double>, dca::linalg::GPU> result_device(64);
@@ -66,15 +66,15 @@ double computeWithFastNDFT(const CachedNdftCpuTest::Configuration& config,
 
   // Rearrange the output from a function of (r1, b1, w1, r2, b2, w2) to a function of (b1, b2, r1,
   // r2, w1, w2).
-  const int nb = CachedNdftCpuTest::BDmn::dmn_size();
-  const int nr = CachedNdftCpuTest::RDmn::dmn_size();
-  const int n_w = CachedNdftCpuTest::PosFreqDmn::dmn_size();
+  const int nb = CachedNdftGpuTest::BDmn::dmn_size();
+  const int nr = CachedNdftGpuTest::RDmn::dmn_size();
+  const int n_w = CachedNdftGpuTest::PosFreqDmn::dmn_size();
   auto invert_w = [=](const int w) { return 2 * n_w - 1 - w; };
   for (int b2 = 0; b2 < nb; ++b2)
     for (int b1 = 0; b1 < nb; ++b1)
       for (int r2 = 0; r2 < nr; ++r2)
         for (int r1 = 0; r1 < nr; ++r1)
-          for (int w2 = 0; w2 < CachedNdftCpuTest::FreqDmn::dmn_size(); ++w2)
+          for (int w2 = 0; w2 < CachedNdftGpuTest::FreqDmn::dmn_size(); ++w2)
             for (int w1 = 0; w1 < n_w; ++w1) {
               const auto val = result_host(r1 + b1 * nr + w1 * nr * nb, r2 + b2 * nr + w2 * nr * nb);
               f_w(b1, b2, r1, r2, w1 + n_w, w2) = val;
