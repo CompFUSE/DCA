@@ -221,7 +221,7 @@ endif()
 
 ################################################################################
 # Single precision measurements
-# INTERNAL: change to ON by default after the change is validated.
+# TODO: change to ON by default after merging and testing the two particle accumulator.
 option(DCA_WITH_SINGLE_PRECISION_MEASUREMENTS "Measure in single precision." OFF)
 
 if (DCA_WITH_SINGLE_PRECISION_MEASUREMENTS)

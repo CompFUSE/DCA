@@ -31,9 +31,13 @@ double computeWithFastDNFT(const TestSetup::Configuration& config, const TestSet
 void computeWithDft(const TestSetup::Configuration& config, const TestSetup::Matrix& M,
                     TestSetup::F_w_w& f_w);
 
+// Compare the result provided by the CPU version of CachedNdft::execute with the definition of the
+// DNFT f(w1, w2) = \sum_{t1, t2} f(t1, t2) exp(i * t1 * w1 - t2 w2) stored in f_baseline_.
 TEST_F(TestSetup, Execute) {
   // Compute the DNFT with the CachedNdft class.
   F_w_w f_w_fast("f_w_fast");
+  // Compute the DNFT with the CachedNdft class and rearrange the result with the same order as
+  // f_baseline_.
   const double time = computeWithFastDNFT(configuration_, M_, f_w_fast);
 
   const auto err = dca::func::util::difference(f_baseline_, f_w_fast);

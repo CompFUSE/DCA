@@ -7,7 +7,7 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// Interface to the GPU kernels used by the 'cached_ndft_gpu.hpp'.
+// Interface to the GPU kernels used by cached_ndft_gpu.hpp.
 
 #ifndef DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_NDFT_KERNELS_INTERFACE_HPP
 #define DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_NDFT_KERNELS_INTERFACE_HPP

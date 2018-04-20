@@ -29,10 +29,13 @@ using TestSetup = dca::testing::DnftTest<n_samples, n_bands, n_frqs>;
 double computeWithFastDNFT(const TestSetup::Configuration& config, const TestSetup::Matrix& M,
                            TestSetup::F_w_w& f_w);
 
+// Compare the result provided by the GPU version of CachedNdft::execute with the definition of the
+// DNFT f(w1, w2) = \sum_{t1, t2} f(t1, t2) exp(i * t1 * w1 - t2 w2) stored in f_baseline_.
 TEST_F(TestSetup, ExecuteGpu) {
   F_w_w f_w_fast("f_w_fast");
 
-  // Compute the DNFT with the CachedNdft class.
+  // Compute the DNFT with the CachedNdft class and rearrange the result with the same order as
+  // f_baseline_.
   const double time = computeWithFastDNFT(configuration_, M_, f_w_fast);
 
   const auto err = dca::func::util::difference(f_baseline_, f_w_fast);
@@ -61,7 +64,8 @@ double computeWithFastDNFT(const TestSetup::Configuration& config, const TestSet
 
   result_host = result_device;
 
-  // Rearrange output.
+  // Rearrange the output from a function of (r1, b1, w1, r2, b2, w2) to a function of (b1, b2, r1,
+  // r2, w1, w2).
   const int nb = TestSetup::BDmn::dmn_size();
   const int nr = TestSetup::RDmn::dmn_size();
   const int n_w = TestSetup::FreqPosDmn::dmn_size();

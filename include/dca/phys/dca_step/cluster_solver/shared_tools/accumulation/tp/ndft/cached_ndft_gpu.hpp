@@ -48,6 +48,7 @@ public:
 
   // For each pair of orbitals, performs the non-uniform 2D Fourier Transform from time to frequency
   // defined as M(w1, w2) = \sum_{t1, t2} exp(i (w1 t1 - w2 t2)) M(t1, t2).
+  // In: Configuration: the walker's configuration.
   // In: M: input matrix provided by the walker.
   // Out: M_r_r_w_w: stores the result of the computation on the device.
   template <class Configuration>
