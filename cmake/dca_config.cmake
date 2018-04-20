@@ -225,7 +225,7 @@ endif()
 option(DCA_WITH_SINGLE_PRECISION_MEASUREMENTS "Measure in single precision." OFF)
 
 if (DCA_WITH_SINGLE_PRECISION_MEASUREMENTS)
-  dca_add_config_define("DCA_WITH_SINGLE_PRECISION_MEASUREMENTS")
+  dca_add_config_define(DCA_WITH_SINGLE_PRECISION_MEASUREMENTS)
 endif()
 
 ################################################################################
