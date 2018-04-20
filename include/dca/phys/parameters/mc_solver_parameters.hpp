@@ -301,7 +301,7 @@ private:
   bool compute_error_ = false;
 
   bool use_submatrix_ = false;
-  int max_submatrix_size_ = 100;
+  int max_submatrix_size_ = 1;
 };
 
 template <typename Concurrency>

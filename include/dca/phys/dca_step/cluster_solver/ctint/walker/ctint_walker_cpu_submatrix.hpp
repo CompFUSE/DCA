@@ -56,6 +56,7 @@ protected:
   bool tryVertexRemoval();
 
   void doStep();
+  void doStep(const int nbr_of_moves_to_delay);
   void generateDelayedMoves(int nbr_of_moves_to_delay);
   void doSubmatrixUpdate();
   void computeAcceptanceProbability();
@@ -162,6 +163,9 @@ private:
   bool do_nothing_;
   bool double_;
 
+  //For testing.
+
+  bool force_acceptance_ = false;
 };
 
 template <class Parameters>
@@ -170,6 +174,7 @@ CtintWalkerSubmatrix<linalg::CPU, Parameters>::CtintWalkerSubmatrix(Parameters& 
                                                   const DMatrixBuilder<linalg::CPU>& builder_ref,
                                                   int id)
     : BaseClass(parameters_ref, rng_ref, vertices, builder_ref, id) {
+  
   while (parameters_.getInitialConfigurationSize() > configuration_.size())
     configuration_.insertRandom(rng_);
   setMFromConfig();
@@ -242,6 +247,44 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doStep() {
   doSubmatrixUpdate();
 }
 
+//Do one step with arbitrary number of moves. For testing.
+  
+template <class Parameters>
+void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doStep(const int nbr_of_moves_to_delay) {
+
+  std::cout << "\nStarted doStep() function for testing." << std::endl;
+
+  force_acceptance_ = true;
+  
+  double f_i;
+  
+  for (int s = 0; s < 2; ++s) {
+    for (int i = 0; i < M_[s].size().first; ++i) {
+      f_i = f_[configuration_.getSector(s).getAuxFieldType(i)];
+      
+      for (int j = 0; j < M_[s].size().second; ++j) {
+	M_[s](i,j) /= - (f_i - 1);
+      }
+    }
+  }
+  
+  generateDelayedMoves(nbr_of_moves_to_delay);
+
+  std::cout << "\nGenerated " << nbr_of_moves_to_delay  << " moves for testing.\n" << std::endl;
+
+  doSubmatrixUpdate();
+  
+  for (int s = 0; s < 2; ++s) {
+    for (int i = 0; i < M_[s].size().first; ++i) {
+      f_i = f_[configuration_.getSector(s).getAuxFieldType(i)];
+      
+      for (int j = 0; j < M_[s].size().second; ++j) {
+  	M_[s](i,j) *= - (f_i - 1);
+      }
+    }
+  }
+}
+
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::CPU, Parameters>::generateDelayedMoves(int nbr_of_moves_to_delay) {
   assert(nbr_of_moves_to_delay > 0);
@@ -261,7 +304,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::generateDelayedMoves(int nbr
 
   // Generate delayed moves.
   
-  while (nbr_of_moves_ < nbr_of_moves_to_delay) {
+  while (nbr_of_moves_ < nbr_of_moves_to_delay) {   
     DelayedMoveType delayed_move;
     
     delayed_move.move_type_ = generateMoveType();
@@ -311,6 +354,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::generateDelayedMoves(int nbr
   }
 }
 
+  
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doSubmatrixUpdate() {
   computeMInit();
@@ -330,7 +374,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doSubmatrixUpdate() {
 
   Matrix result_matrix_1, result_matrix_2;
   
-  for (int delay_ind = 0; delay_ind < delayed_moves_.size(); ++delay_ind) { 
+  for (int delay_ind = 0; delay_ind < delayed_moves_.size(); ++delay_ind) {
     for (int s = 0; s < 2; ++s) {
       auto& gamma = gamma_[s];
       auto& sector = configuration_.getSector(s);
@@ -346,6 +390,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doSubmatrixUpdate() {
 	aux_spin_type = 0;
       }
       else if (move_type_ == REMOVAL) {
+	
 	//Do nothing if there is no vertex to remove.
 	
 	if (existing_indices_.size() == 0) {
@@ -387,7 +432,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doSubmatrixUpdate() {
 	  --Gamma_size_;
 	}
       }
-
+      
       if (Gamma_size_ > 0) {
 	s_[s].resize(std::make_pair(Gamma_size_, 1));
 	w_[s].resize(std::make_pair(1, Gamma_size_));
@@ -444,6 +489,9 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doSubmatrixUpdate() {
 
     accepted_ = rng_() < std::abs(acceptance_probability_);
 
+    if (force_acceptance_)
+      accepted_ = true;
+
     //Update GammaInv if necessary.
 
     updateGammaInv();
@@ -479,7 +527,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doSubmatrixUpdate() {
       }
     }
 
-    //If the move is rejected..
+    //If the move is rejected:
     
     else {
       if (!recently_added_) {
@@ -496,7 +544,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doSubmatrixUpdate() {
       }
     }
   }
-
+    
   updateM();
 }
   
@@ -512,46 +560,48 @@ Move CtintWalkerSubmatrix<linalg::CPU, Parameters>::generateMoveType() {
 // M is not computed again and should be up-to-date.
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeMInit() {
-  double f_j;
-
   const int delta = n_max_ - n_init_;
 
-  Matrix D(std::make_pair(delta, n_init_));
+  if (delta > 0) {
+    double f_j;
+    Matrix D(std::make_pair(delta, n_init_));
   
-  for (int s = 0; s < 2; ++s) {
-    d_builder_.computeG0(D, configuration_.getSector(s), n_init_, n_max_, 0);
+    for (int s = 0; s < 2; ++s) {
+      d_builder_.computeG0(D, configuration_.getSector(s), n_init_, n_max_, 0);
     
-    for (int j = 0; j < n_init_; ++j) {
-      f_j = f_[configuration_.getSector(s).getAuxFieldType(j)] - 1;
+      for (int j = 0; j < n_init_; ++j) {
+	f_j = f_[configuration_.getSector(s).getAuxFieldType(j)] - 1;
 	
-      for (int i = 0; i < delta; ++i) {
-	D(i,j) *= f_j;
+	for (int i = 0; i < delta; ++i) {
+	  D(i,j) *= f_j;
+	}
       }
-    }
 
-    M_[s].resize(n_max_);
+      M_[s].resize(n_max_);
     
-    MatrixView M(M_[s], 0, 0, n_init_, n_init_);
-    MatrixView D_M(M_[s], n_init_, 0, delta, n_init_);
+      MatrixView M(M_[s], 0, 0, n_init_, n_init_);
+      MatrixView D_M(M_[s], n_init_, 0, delta, n_init_);
 
-    linalg::matrixop::gemm(D, M, D_M);
+      linalg::matrixop::gemm(D, M, D_M);
 
-    for (int i = 0; i < n_max_; ++i) {
-      for (int j = n_init_; j < n_max_; ++j) {
-	M_[s](i,j) = 0;
+      for (int i = 0; i < n_max_; ++i) {
+	for (int j = n_init_; j < n_max_; ++j) {
+	  M_[s](i,j) = 0;
+	}
       }
-    }
 
-    for (int i = n_init_; i < n_max_; ++i)
-      M_[s](i,i) = 1;
+      for (int i = n_init_; i < n_max_; ++i)
+	M_[s](i,i) = 1;
+    }
   }
 }
 
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeGInit() {
-  double f;
+  const int delta = n_max_ - n_init_;
 
-  Matrix G0(std::make_pair(n_max_, n_max_ - n_init_));
+  double f;
+  Matrix G0(std::make_pair(n_max_, delta));
   
   for (int s = 0; s < 2; ++s) {
     G_[s].resizeNoCopy(n_max_);
@@ -564,11 +614,13 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeGInit() {
       }
     }
 
-    d_builder_.computeG0(G0, configuration_.getSector(s), n_init_, n_max_, 1);
+    if (delta > 0) {
+      d_builder_.computeG0(G0, configuration_.getSector(s), n_init_, n_max_, 1);
       
-    MatrixView G(G_[s], 0, n_init_, n_max_, n_max_ - n_init_);
+      MatrixView G(G_[s], 0, n_init_, n_max_, delta);
 
-    linalg::matrixop::gemm(M_[s], G0, G);
+      linalg::matrixop::gemm(M_[s], G0, G);
+    }
   }
 }
 
@@ -581,10 +633,8 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeG0Init() {
 
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeAcceptanceProbability() {
-  double interaction_strength = configuration_.getStrength(index_);
-
-  double K = interaction_strength * prob_const_[configuration_.getSector(0).getAuxFieldType(index_)];
-
+  double K = total_interaction_ * prob_const_[configuration_.getSector(0).getAuxFieldType(index_)];
+  
   acceptance_probability_ = 1;
   
   for (int s = 0; s < 2; ++s) {
@@ -632,7 +682,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::updateGammaInv() {
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::CPU, Parameters>::updateM() {
   //assert(Gamma_size_ == gamma_[0].size() && gamma_[0].size() == gamma_[1].size());
-
+  
   if (Gamma_size_ > 0) {
     int p;
 
