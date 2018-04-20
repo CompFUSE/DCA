@@ -7,12 +7,13 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// This file specializes 'cached_ndft.hpp' on the GPU.
-
-#ifndef DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_NDFT_CACHED_NDFT_GPU_HPP
-#define DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_NDFT_CACHED_NDFT_GPU_HPP
+// This file implements on the GPU a 2D NDFT from imaginary time to Matsubara frequency, applied
+// independently to each pair of orbitals, where an orbital is a combination of cluster site and
+// band.
 
 #ifdef DCA_HAVE_CUDA
+#ifndef DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_NDFT_CACHED_NDFT_GPU_HPP
+#define DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_NDFT_CACHED_NDFT_GPU_HPP
 
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_base.hpp"
 
@@ -48,9 +49,7 @@ public:
 
   // For each pair of orbitals, performs the non-uniform 2D Fourier Transform from time to frequency
   // defined as M(w1, w2) = \sum_{t1, t2} exp(i (w1 t1 - w2 t2)) M(t1, t2).
-  // In: Configuration: the walker's configuration.
-  // In: M: input matrix provided by the walker.
-  // Out: M_r_r_w_w: stores the result of the computation on the device.
+  // Out: M_r_r_w_w.
   template <class Configuration>
   void execute(const Configuration& configuration, const linalg::Matrix<double, linalg::CPU>& M,
                Matrix& M_r_r_w_w);
@@ -225,5 +224,5 @@ void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::re
 }  // phys
 }  // dca
 
-#endif  // DCA_HAVE_CUDA
 #endif  // DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_NDFT_CACHED_NDFT_GPU_HPP
+#endif  // DCA_HAVE_CUDA

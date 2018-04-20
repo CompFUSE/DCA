@@ -9,8 +9,8 @@
 //
 // This file provides a common setup to the CachedNdft tests.
 
-#ifndef TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_NDFT_DNFT_TEST_HPP
-#define TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_NDFT_DNFT_TEST_HPP
+#ifndef TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_NDFT_CACHED_NDFT_TEST_HPP
+#define TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_NDFT_CACHED_NDFT_TEST_HPP
 
 #include <cmath>
 #include <complex>
@@ -66,11 +66,11 @@ struct Vertex {
 };
 
 template <int n_samples, int n_bands, int n_frqs>
-class DnftTest : public ::testing::Test {
+class CachedNdftTest : public ::testing::Test {
 public:
   using RDmn = dca::func::dmn_0<dca::func::dmn<2, int>>;
   using FreqDmn = dca::func::dmn_0<dca::phys::domains::frequency_domain>;
-  using FreqPosDmn = dca::func::dmn_0<PositiveFrq>;
+  using PosFreqDmn = dca::func::dmn_0<PositiveFrq>;
   using BDmn = dca::func::dmn_0<dca::phys::domains::electron_band_domain>;
 
   using Configuration = std::vector<Vertex>;
@@ -151,4 +151,4 @@ protected:
 }  // testing
 }  // dca
 
-#endif  // TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_NDFT_DNFT_TEST_HPP
+#endif  // TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_NDFT_CACHED_NDFT_TEST_HPP

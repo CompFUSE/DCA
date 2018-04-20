@@ -8,7 +8,7 @@
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// This file provides a base class containing the shared methods bewteen the CPU and GPU
+// This file provides a base class containing the shared methods between the CPU and GPU
 // implementations of the class CachedNdft.
 
 #ifndef DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_NDFT_CACHED_NDFT_BASE_HPP

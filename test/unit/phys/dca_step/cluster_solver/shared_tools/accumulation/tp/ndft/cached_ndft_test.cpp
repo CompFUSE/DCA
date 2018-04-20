@@ -7,7 +7,7 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@gitp.phys.ethz.ch)
 //
-// Integration tests for the cached_ndft class.
+// Tests the 2D NDFT performed by the cached_ndft class.
 
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft.hpp"
 
@@ -19,25 +19,20 @@
 #include "dca/function/function.hpp"
 #include "dca/function/util/difference.hpp"
 #include "dca/profiling/events/time.hpp"
-#include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/dnft_test.hpp"
+#include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_test.hpp"
 
 constexpr int n_samples = 40;
 constexpr int n_bands = 2;
 constexpr int n_frqs = 2;
-using TestSetup = dca::testing::DnftTest<n_samples, n_bands, n_frqs>;
+using CachedNdftCpuTest = dca::testing::CachedNdftTest<n_samples, n_bands, n_frqs>;
 
-double computeWithFastDNFT(const TestSetup::Configuration& config, const TestSetup::Matrix& M,
-                           TestSetup::F_w_w& f_w);
-void computeWithDft(const TestSetup::Configuration& config, const TestSetup::Matrix& M,
-                    TestSetup::F_w_w& f_w);
+double computeWithFastDNFT(const CachedNdftCpuTest::Configuration& config,
+                           const CachedNdftCpuTest::Matrix& M, CachedNdftCpuTest::F_w_w& f_w);
 
 // Compare the result provided by the CPU version of CachedNdft::execute with the definition of the
 // DNFT f(w1, w2) = \sum_{t1, t2} f(t1, t2) exp(i * t1 * w1 - t2 w2) stored in f_baseline_.
-TEST_F(TestSetup, Execute) {
-  // Compute the DNFT with the CachedNdft class.
+TEST_F(CachedNdftCpuTest, Execute) {
   F_w_w f_w_fast("f_w_fast");
-  // Compute the DNFT with the CachedNdft class and rearrange the result with the same order as
-  // f_baseline_.
   const double time = computeWithFastDNFT(configuration_, M_, f_w_fast);
 
   const auto err = dca::func::util::difference(f_baseline_, f_w_fast);
@@ -46,14 +41,15 @@ TEST_F(TestSetup, Execute) {
   std::cout << "\nCached ndft time [sec]:\t " << time << "\n";
 }
 
-double computeWithFastDNFT(const TestSetup::Configuration& config, const TestSetup::Matrix& M,
-                           TestSetup::F_w_w& f_w) {
+double computeWithFastDNFT(const CachedNdftCpuTest::Configuration& config,
+                           const CachedNdftCpuTest::Matrix& M, CachedNdftCpuTest::F_w_w& f_w) {
   dca::func::function<std::complex<double>,
-                      dca::func::dmn_variadic<TestSetup::BDmn, TestSetup::BDmn, TestSetup::RDmn,
-                                              TestSetup::RDmn, TestSetup::FreqPosDmn, TestSetup::FreqDmn>>
+                      dca::func::dmn_variadic<CachedNdftCpuTest::BDmn, CachedNdftCpuTest::BDmn,
+                                              CachedNdftCpuTest::RDmn, CachedNdftCpuTest::RDmn,
+                                              CachedNdftCpuTest::PosFreqDmn, CachedNdftCpuTest::FreqDmn>>
       f_b_b_r_r_w_w;
-  dca::phys::solver::accumulator::CachedNdft<double, TestSetup::RDmn, TestSetup::FreqDmn,
-                                             TestSetup::FreqPosDmn, dca::linalg::CPU>
+  dca::phys::solver::accumulator::CachedNdft<double, CachedNdftCpuTest::RDmn, CachedNdftCpuTest::FreqDmn,
+                                             CachedNdftCpuTest::PosFreqDmn, dca::linalg::CPU>
       nft_obj;
 
   dca::profiling::WallTime start_time;
@@ -61,13 +57,13 @@ double computeWithFastDNFT(const TestSetup::Configuration& config, const TestSet
   dca::profiling::WallTime end_time;
 
   // Rearrange output.
-  const int n_w = TestSetup::FreqPosDmn::dmn_size();
+  const int n_w = CachedNdftCpuTest::PosFreqDmn::dmn_size();
   auto invert_w = [=](const int w) { return 2 * n_w - 1 - w; };
-  for (int b2 = 0; b2 < TestSetup::BDmn::dmn_size(); ++b2)
-    for (int b1 = 0; b1 < TestSetup::BDmn::dmn_size(); ++b1)
-      for (int r2 = 0; r2 < TestSetup::RDmn::dmn_size(); ++r2)
-        for (int r1 = 0; r1 < TestSetup::RDmn::dmn_size(); ++r1)
-          for (int w2 = 0; w2 < TestSetup::FreqDmn::dmn_size(); ++w2)
+  for (int b2 = 0; b2 < CachedNdftCpuTest::BDmn::dmn_size(); ++b2)
+    for (int b1 = 0; b1 < CachedNdftCpuTest::BDmn::dmn_size(); ++b1)
+      for (int r2 = 0; r2 < CachedNdftCpuTest::RDmn::dmn_size(); ++r2)
+        for (int r1 = 0; r1 < CachedNdftCpuTest::RDmn::dmn_size(); ++r1)
+          for (int w2 = 0; w2 < CachedNdftCpuTest::FreqDmn::dmn_size(); ++w2)
             for (int w1 = 0; w1 < n_w; ++w1) {
               f_w(b1, b2, r1, r2, w1 + n_w, w2) = f_b_b_r_r_w_w(b1, b2, r1, r2, w1, w2);
               f_w(b1, b2, r1, r2, invert_w(w1 + n_w), invert_w(w2)) =

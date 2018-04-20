@@ -9,7 +9,7 @@
 //         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // This file implements a 2D NDFT from imaginary time to Matsubara frequency, applied independently
-// to each pair of orbitals.
+// to each pair of orbitals, where an orbital is a combination of cluster site and band.
 
 #ifndef DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_NDFT_CACHED_NDFT_HPP
 #define DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_NDFT_CACHED_NDFT_HPP
@@ -44,15 +44,10 @@ private:
   using Matrix = linalg::Matrix<ScalarType, dca::linalg::CPU>;
 
 public:
-  CachedNdft() {}
-
   // For each pair of orbitals, performs the non-uniform 2D Fourier Transform from time to frequency
   // defined as M(w1, w2) = \sum_{t1, t2} exp(i (w1 t1 - w2 t2)) M(t1, t2).
-  // In: configuration: stores the time and orbitals of each entry of M.
-  // In: M: input matrix provided by the walker.
-  // Out: M_r_r_w_w: stores the result of the computation.
-  // In: spin: spin sector of M. It is used to sort the output, in case OutDmn contains the spin
-  // domain as a subdomain.
+  // In case OutDmn contains the spin domain as a subdomain, 'spin' is used to rearrange the output.
+  // Out: M_r_r_w_w.
   // Returns: the number of gigaflops performed by the method.
   // TODO: remove the gigaflops if they are not necessary.
   template <class Configuration, typename ScalarInp, class OutDmn>
