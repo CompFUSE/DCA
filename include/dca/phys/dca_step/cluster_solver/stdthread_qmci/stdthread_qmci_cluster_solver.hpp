@@ -302,7 +302,7 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::warm_up(walker_type& walk
     walker.do_sweep();
 
     if (id == 0)
-      this->update_shell(i, parameters.get_warm_up_sweeps(), walker.get_configuration().size());
+      walker.update_shell(i, parameters.get_warm_up_sweeps());
   }
 
   walker.is_thermalized() = true;
@@ -334,10 +334,6 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::start_accumulator(int id)
     {
       profiler_type profiler("stdthread-accumulator accumulating", "stdthread-MC-accumulator",
                              __LINE__, id);
-      if (id == 1)
-        this->update_shell(i, parameters.get_measurements_per_process_and_accumulator(),
-                           accumulator_obj.get_configuration().size());
-
       accumulator_obj.measure(mutex_queue, accumulators_queue);
     }
   }

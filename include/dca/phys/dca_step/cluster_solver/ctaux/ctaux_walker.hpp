@@ -16,6 +16,8 @@
 #include <cstdint>  // uint64_t
 #include <cstdlib>  // std::size_t
 #include <cmath>
+#include <iomanip>
+#include <iostream>
 #include <stdexcept>
 #include <vector>
 
@@ -31,6 +33,7 @@
 #include "dca/phys/dca_step/cluster_solver/ctaux/walker/tools/shrink_tools.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/walker/walker_bit.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/util/accumulator.hpp"
+#include "dca/util/print_time.hpp"
 
 namespace dca {
 namespace phys {
@@ -81,6 +84,12 @@ public:
 
   template <class stream_type>
   void to_JSON(stream_type& /*ss*/) {}
+
+  // Writes the current progress, the number of interacting spins and the total configuration size
+  // to stdout.
+  // TODO: Before this method can be made const, CT_AUX_HS_configuration and vertex_pair need to be
+  //       made const correct.
+  void update_shell(const int done, const int total) /*const*/;
 
 private:
   void add_non_interacting_spins_to_configuration();
@@ -1496,6 +1505,22 @@ bool CtauxWalker<device_t, parameters_type, MOMS_type>::assert_exp_delta_V_value
   };
 
   return true;
+}
+
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
+void CtauxWalker<device_t, parameters_type, MOMS_type>::update_shell(const int done, const int total) {
+  if (concurrency.id() == concurrency.first() && total > 10 && (done % (total / 10)) == 0) {
+    std::cout.unsetf(std::ios_base::floatfield);
+
+    std::cout << "\t\t\t" << std::setw(14)
+              << static_cast<double>(done) / static_cast<double>(total) * 100. << " % completed"
+              << "\t" << std::setw(11)
+              << "<k> = " << configuration.get_number_of_interacting_HS_spins() << "\t"
+              << std::setw(11) << "N = " << configuration.size() << "\t" << dca::util::print_time()
+              << std::endl;
+
+    std::cout << std::scientific;
+  }
 }
 
 }  // ctaux

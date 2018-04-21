@@ -102,8 +102,6 @@ protected:
 
   void measure(walker_type& walker);
 
-  void update_shell(int i, int N, int k);
-
   void symmetrize_measurements();
 
   void compute_error_bars();
@@ -321,8 +319,7 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::warm_up(walker_type&
 
   for (int i = 0; i < parameters.get_warm_up_sweeps(); i++) {
     walker.do_sweep();
-
-    update_shell(i, parameters.get_warm_up_sweeps(), walker.get_configuration().size());
+    walker.update_shell(i, parameters.get_warm_up_sweeps());
   }
 
   walker.is_thermalized() = true;
@@ -343,8 +340,7 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::measure(walker_type&
 
     accumulator.measure();
 
-    update_shell(i, parameters.get_measurements_per_process_and_accumulator(),
-                 walker.get_configuration().size());
+    walker.update_shell(i, parameters.get_measurements_per_process_and_accumulator());
   }
 
   // here we need to do a correction a la Andrey
@@ -362,19 +358,6 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::measure(walker_type&
 
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t measuring has ended \n" << std::endl;
-}
-
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void SsCtHybClusterSolver<device_t, parameters_type, Data>::update_shell(int i, int N, int k) {
-  if (concurrency.id() == concurrency.first() && N > 10 && (i % (N / 10)) == 0) {
-    std::cout << std::scientific;
-    std::cout.precision(6);
-
-    std::cout << "\t\t\t" << double(i) / double(N) * 100. << " % completed \t ";
-
-    std::cout << "\t <k> :" << k << " \t";
-    std::cout << dca::util::print_time() << "\n";
-  }
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
