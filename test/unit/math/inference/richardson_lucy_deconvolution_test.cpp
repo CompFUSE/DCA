@@ -59,9 +59,11 @@ TEST_F(RichardsonLucyDeconvolutionTest, IdentityProjectionOperator) {
   //
   // Test findTargetFunction(source, source_interpolated, target).
   //
-  int iterations = deconvolution.findTargetFunction(source_, source_interpolated_, target_);
+  auto iterations_max_error =
+      deconvolution.findTargetFunction(source_, source_interpolated_, target_, true);
 
-  EXPECT_EQ(1, iterations);
+  EXPECT_EQ(1, iterations_max_error.first);
+  EXPECT_EQ(0., iterations_max_error.second);
 
   for (int i = 0; i < source_interpolated_.size(); ++i) {
     EXPECT_DOUBLE_EQ(source_interpolated_(i), target_(i));
@@ -72,10 +74,11 @@ TEST_F(RichardsonLucyDeconvolutionTest, IdentityProjectionOperator) {
   //
   target_ = 0.;
 
-  iterations =
-      deconvolution.findTargetFunction(source_, source_interpolated_, target_, target_convoluted_);
+  iterations_max_error = deconvolution.findTargetFunction(source_, source_interpolated_, target_,
+                                                          target_convoluted_, true);
 
-  EXPECT_EQ(1, iterations);
+  EXPECT_EQ(1, iterations_max_error.first);
+  EXPECT_EQ(0., iterations_max_error.second);
 
   for (int i = 0; i < source_interpolated_.size(); ++i) {
     EXPECT_DOUBLE_EQ(source_interpolated_(i), target_(i));
@@ -99,10 +102,11 @@ TEST_F(RichardsonLucyDeconvolutionTest, IdentityProjectionOperatorWithShift) {
   source_interpolated_ = 2.;
   source_interpolated_(0) = -1.;
 
-  const int iterations =
-      deconvolution.findTargetFunction(source_, source_interpolated_, target_, target_convoluted_);
+  const auto iterations_max_error = deconvolution.findTargetFunction(
+      source_, source_interpolated_, target_, target_convoluted_, true);
 
-  EXPECT_EQ(1, iterations);
+  EXPECT_EQ(1, iterations_max_error.first);
+  EXPECT_EQ(0., iterations_max_error.second);
 
   for (int i = 0; i < source_interpolated_.size(); ++i) {
     EXPECT_DOUBLE_EQ(source_interpolated_(i), target_(i));

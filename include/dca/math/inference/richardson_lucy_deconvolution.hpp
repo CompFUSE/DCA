@@ -38,14 +38,14 @@ public:
                               const linalg::Matrix<double, linalg::CPU>& p_host,
                               const double tolerance, const int max_iterations);
 
-  // Returns the number of iterations executed.
-  int findTargetFunction(
+  // Returns the number of iterations executed (first) and the maximum L2 error (second).
+  std::pair<int, double> findTargetFunction(
       const func::function<double, func::dmn_variadic<ClusterDmn, OtherDmn>>& source,
       const func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& source_interpolated,
       func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& target, bool verbose = false);
 
-  // Returns the number of iterations executed.
-  int findTargetFunction(
+  // Returns the number of iterations executed (first) and the maximum L2 error (second).
+  std::pair<int, double> findTargetFunction(
       const func::function<double, func::dmn_variadic<ClusterDmn, OtherDmn>>& source,
       const func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& source_interpolated,
       func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& target,
@@ -79,6 +79,7 @@ private:
 
   func::function<double, OtherDmn> shift_;
   func::function<bool, OtherDmn> is_finished_;
+  func::function<double, OtherDmn> error_;
 };
 
 template <typename ClusterDmn, typename HostDmn, typename OtherDmn>
@@ -105,7 +106,8 @@ RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::RichardsonLucyDeconv
       u_t_plus_1_("u_{t+1} (Richardson-Lucy-deconvolution)"),
 
       shift_("shift"),
-      is_finished_("is_finished") {
+      is_finished_("is_finished"),
+      error_("error") {
   if (p_host_.size().first != HostDmn::dmn_size() || p_host_.size().second != HostDmn::dmn_size() ||
       p_cluster_.size().first != ClusterDmn::dmn_size() ||
       p_cluster_.size().second != HostDmn::dmn_size())
@@ -113,13 +115,12 @@ RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::RichardsonLucyDeconv
 }
 
 template <typename ClusterDmn, typename HostDmn, typename OtherDmn>
-int RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::findTargetFunction(
+std::pair<int, double> RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::findTargetFunction(
     const func::function<double, func::dmn_variadic<ClusterDmn, OtherDmn>>& source,
     const func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& source_interpolated,
     func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& target, bool verbose) {
   is_finished_.reset();
-  for (int i = 0; i < OtherDmn::dmn_size(); ++i)
-    is_finished_(i) = false;
+  error_.reset();
 
   findShift(source_interpolated, shift_);
   initializeMatrices(source_interpolated);
@@ -151,20 +152,27 @@ int RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::findTargetFuncti
       for (int i = 0; i < HostDmn::dmn_size(); ++i)
         target(i, j) = u_t_(i, j) - shift_(j);
 
-  if (verbose)
-    std::cout << "\n\n\t\t Richardson-Lucy deconvolution: " << iterations << " iterations"
-              << std::endl;
+  double max_error = error_(0);
+  for (int j = 1; j < OtherDmn::dmn_size(); ++j)
+    max_error = std::max(max_error, error_(j));
 
-  return iterations;
+  if (verbose)
+    std::cout << "\n\n"
+              << "\t\t Richardson-Lucy deconvolution: iterations   = " << iterations
+              << " (max iterations = " << max_iterations_ << ")\n"
+              << "\t\t                                max L2-error = " << max_error
+              << " (tolerance = " << tolerance_ << ")" << std::endl;
+
+  return std::make_pair(iterations, max_error);
 }
 
 template <typename ClusterDmn, typename HostDmn, typename OtherDmn>
-int RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::findTargetFunction(
+std::pair<int, double> RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::findTargetFunction(
     const func::function<double, func::dmn_variadic<ClusterDmn, OtherDmn>>& source,
     const func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& source_interpolated,
     func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& target,
     func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& target_convoluted, bool verbose) {
-  const int iterations = findTargetFunction(source, source_interpolated, target, verbose);
+  const auto iterations_max_error = findTargetFunction(source, source_interpolated, target, verbose);
 
   // Compute the convolution of the target function, which should resemble the interpolated source
   // function.
@@ -178,7 +186,7 @@ int RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::findTargetFuncti
     for (int i = 0; i < HostDmn::dmn_size(); i++)
       target_convoluted(i, j) = c_(i, j);
 
-  return iterations;
+  return iterations_max_error;
 }
 
 template <typename ClusterDmn, typename HostDmn, typename OtherDmn>
@@ -289,9 +297,9 @@ bool RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::finished(
         norm_source_squared += std::pow(source(i, j), 2);
       }
 
-      const double error = std::sqrt(diff_squared / norm_source_squared);
+      error_(j) = std::sqrt(diff_squared / norm_source_squared);
 
-      if (error < tolerance_) {
+      if (error_(j) < tolerance_) {
         // Copy iterative solution into returned target function.
         for (int i = 0; i < HostDmn::dmn_size(); ++i)
           target(i, j) = u_t_(i, j) - shift_(j);
