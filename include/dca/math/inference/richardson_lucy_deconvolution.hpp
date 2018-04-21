@@ -42,14 +42,15 @@ public:
   int findTargetFunction(
       const func::function<double, func::dmn_variadic<ClusterDmn, OtherDmn>>& source,
       const func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& source_interpolated,
-      func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& target);
+      func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& target, bool verbose = false);
 
   // Returns the number of iterations executed.
   int findTargetFunction(
       const func::function<double, func::dmn_variadic<ClusterDmn, OtherDmn>>& source,
       const func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& source_interpolated,
       func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& target,
-      func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& target_convoluted);
+      func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& target_convoluted,
+      bool verbose = false);
 
   void findShift(const func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& source_interpolated,
                  func::function<double, OtherDmn>& shift);
@@ -115,7 +116,7 @@ template <typename ClusterDmn, typename HostDmn, typename OtherDmn>
 int RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::findTargetFunction(
     const func::function<double, func::dmn_variadic<ClusterDmn, OtherDmn>>& source,
     const func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& source_interpolated,
-    func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& target) {
+    func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& target, bool verbose) {
   is_finished_.reset();
   for (int i = 0; i < OtherDmn::dmn_size(); ++i)
     is_finished_(i) = false;
@@ -150,6 +151,10 @@ int RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::findTargetFuncti
       for (int i = 0; i < HostDmn::dmn_size(); ++i)
         target(i, j) = u_t_(i, j) - shift_(j);
 
+  if (verbose)
+    std::cout << "\n\n\t\t Richardson-Lucy deconvolution: " << iterations << " iterations"
+              << std::endl;
+
   return iterations;
 }
 
@@ -158,8 +163,8 @@ int RichardsonLucyDeconvolution<ClusterDmn, HostDmn, OtherDmn>::findTargetFuncti
     const func::function<double, func::dmn_variadic<ClusterDmn, OtherDmn>>& source,
     const func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& source_interpolated,
     func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& target,
-    func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& target_convoluted) {
-  const int iterations = findTargetFunction(source, source_interpolated, target);
+    func::function<double, func::dmn_variadic<HostDmn, OtherDmn>>& target_convoluted, bool verbose) {
+  const int iterations = findTargetFunction(source, source_interpolated, target, verbose);
 
   // Compute the convolution of the target function, which should resemble the interpolated source
   // function.
