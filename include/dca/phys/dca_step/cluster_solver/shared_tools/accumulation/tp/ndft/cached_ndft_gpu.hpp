@@ -11,7 +11,10 @@
 // independently to each pair of orbitals, where an orbital is a combination of cluster site and
 // band.
 
-#ifdef DCA_HAVE_CUDA
+#ifndef DCA_HAVE_CUDA
+#pragma error "GPU algorithm requested but DCA_HAVE_CUDA is not defined."
+#endif  // DCA_HAVE_CUDA
+
 #ifndef DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_NDFT_CACHED_NDFT_GPU_HPP
 #define DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_NDFT_CACHED_NDFT_GPU_HPP
 
@@ -226,4 +229,3 @@ void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::re
 }  // dca
 
 #endif  // DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_NDFT_CACHED_NDFT_GPU_HPP
-#endif  // DCA_HAVE_CUDA
