@@ -9,7 +9,7 @@
 //
 // Tests the 2D NDFT performed by the cached_ndft class.
 
-#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_cpu.hpp"
 
 #include <complex>
 

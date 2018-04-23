@@ -31,10 +31,6 @@ namespace solver {
 namespace accumulator {
 // dca::phys::solver::accumulator::
 
-template <typename ScalarType, class RDmn, class WDmn, class WPosDmn, linalg::DeviceType device,
-          bool non_density_density = 0>
-class CachedNdft;
-
 template <typename ScalarType, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
 class CachedNdftBase {
 protected:

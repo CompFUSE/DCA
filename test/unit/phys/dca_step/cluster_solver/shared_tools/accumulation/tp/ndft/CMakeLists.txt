@@ -1,6 +1,6 @@
 # test/unit/phys/dca_step/cluster_solver/shared_tools/tp/ndft
 
-dca_add_gtest(cached_ndft_test
+dca_add_gtest(cached_ndft_cpu_test
   GTEST_MAIN
   FAST
   INCLUDE_DIRS ${DCA_INCLUDE_DIRS};${PROJECT_SOURCE_DIR}
