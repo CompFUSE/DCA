@@ -68,8 +68,8 @@ else()
 endif()
 
 # Lattice type
-set(DCA_LATTICE "square" CACHE STRING "Lattice type, options are: bilayer | square | triangular.")
-set_property(CACHE DCA_LATTICE PROPERTY STRINGS bilayer square triangular)
+set(DCA_LATTICE "square" CACHE STRING "Lattice type, options are: bilayer | square | triangular | twoband_chain | singleband_chain.")
+set_property(CACHE DCA_LATTICE PROPERTY STRINGS bilayer square triangular twoband_chain singleband_chain)
 
 if (DCA_LATTICE STREQUAL "bilayer")
   set(DCA_LATTICE_TYPE dca::phys::models::bilayer_lattice<PointGroup>)
@@ -86,6 +86,15 @@ elseif (DCA_LATTICE STREQUAL "triangular")
   set(DCA_LATTICE_INCLUDE
     "dca/phys/models/analytic_hamiltonians/triangular_lattice.hpp")
 
+elseif (DCA_LATTICE STREQUAL "twoband_chain")
+  set(DCA_LATTICE_TYPE dca::phys::models::twoband_chain<dca::phys::domains::no_symmetry<1>>)
+  set(DCA_LATTICE_INCLUDE
+      "dca/phys/models/analytic_hamiltonians/twoband_chain.hpp")
+
+elseif (DCA_LATTICE STREQUAL "singleband_chain")
+  set(DCA_LATTICE_TYPE dca::phys::models::singleband_chain<dca::phys::domains::no_symmetry<1>>)
+  set(DCA_LATTICE_INCLUDE
+      "dca/phys/models/analytic_hamiltonians/singleband_chain.hpp")
 else()
   message(FATAL_ERROR "Please set DCA_LATTICE to a valid option: bilayer | square | triangular.")
 endif()
