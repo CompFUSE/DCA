@@ -5,7 +5,7 @@
 
 ################################################################################
 # Enable MPI.
-option(DCA_WITH_MPI "Enable MPI." OFF)
+option(DCA_WITH_MPI "Enable MPI." ON)
 
 if (DCA_WITH_MPI)
   include(dca_mpi)
