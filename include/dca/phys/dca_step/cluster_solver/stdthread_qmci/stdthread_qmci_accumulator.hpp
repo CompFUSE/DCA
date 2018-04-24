@@ -94,12 +94,12 @@ void stdthread_qmci_accumulator<qmci_accumulator_type>::update_from(walker_type&
 
     qmci_accumulator_type::update_from(walker);
     measuring = true;
-  }
 
-  if (thread_id == 1)
-    walker.update_shell(
-        measurements_done_++,
-        qmci_accumulator_type::parameters.get_measurements_per_process_and_accumulator());
+    if (thread_id == 1)
+      walker.update_shell(
+          measurements_done_,
+          qmci_accumulator_type::parameters.get_measurements_per_process_and_accumulator());
+  }
 
   start_measuring.notify_one();
 }
@@ -116,6 +116,7 @@ void stdthread_qmci_accumulator<qmci_accumulator_type>::measure(
   std::unique_lock<std::mutex> lock(mutex_accumulator);
   qmci_accumulator_type::measure();
   measuring = false;
+  ++measurements_done_;
 }
 
 template <class qmci_accumulator_type>
