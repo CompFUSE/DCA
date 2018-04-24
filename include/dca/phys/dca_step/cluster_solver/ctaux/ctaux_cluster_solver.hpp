@@ -485,10 +485,10 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::compute_G_k_w_from_M_r
   int matrix_size = b::dmn_size() * s::dmn_size() * b::dmn_size() * s::dmn_size();
   int matrix_dim = b::dmn_size() * s::dmn_size();
 
-  std::complex<double>* G_matrix = new std::complex<double>[ matrix_size ];
-  std::complex<double>* G0_cluster_excluded_matrix = new std::complex<double>[ matrix_size ];
-  std::complex<double>* M_matrix = new std::complex<double>[ matrix_size ];
-  std::complex<double>* G0_times_M_matrix = new std::complex<double>[ matrix_size ];
+  std::complex<double>* G_matrix = new std::complex<double>[matrix_size];
+  std::complex<double>* G0_cluster_excluded_matrix = new std::complex<double>[matrix_size];
+  std::complex<double>* M_matrix = new std::complex<double>[matrix_size];
+  std::complex<double>* G0_times_M_matrix = new std::complex<double>[matrix_size];
 
   // G = G0 - G0*M*G0/beta
 
