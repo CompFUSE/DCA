@@ -1,0 +1,27 @@
+{
+    "DCA": {
+        "coarse-graining": {
+            "k-mesh-recursion": 3,
+            "periods": 2,
+            "quadrature-rule": 1
+        },
+
+        "DCA+": {
+            "deconvolution-iterations": 16,
+            "deconvolution-tolerance": 1.e-2
+        }
+    },
+
+    "domains": {
+        "real-space-grids": {
+            "cluster": [[2, 4],
+                        [4, -2]],
+            "sp-host": [[10, 10],
+                        [10,-10]]
+        },
+
+        "imaginary-frequency": {
+            "sp-fermionic-frequencies": 256
+        }
+    }
+}

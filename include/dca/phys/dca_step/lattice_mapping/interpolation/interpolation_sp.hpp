@@ -122,13 +122,6 @@ void interpolation_sp<parameters_type, source_k_dmn, target_k_dmn>::execute(
   math::transform::FunctionTransform<source_k_dmn, r_centered_dmn>::execute(
       cluster_function, cluster_centered_function);
 
-  for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++)
-    for (int r_ind = 0; r_ind < r_centered_dmn::dmn_size(); r_ind++)
-      for (int j = 0; j < nu::dmn_size(); j++)
-        for (int i = 0; i < nu::dmn_size(); i++)
-          cluster_centered_function(i, j, r_ind, w_ind) *=
-              r_centered_dmn::parameter_type::get_weights()[r_ind];
-
   math::transform::FunctionTransform<r_centered_dmn, target_k_dmn>::execute(
       cluster_centered_function, interp_function);
 }
@@ -144,12 +137,6 @@ void interpolation_sp<parameters_type, source_k_dmn, target_k_dmn>::execute(
 
   math::transform::FunctionTransform<source_k_dmn, r_centered_dmn>::execute(
       cluster_function, cluster_centered_function);
-
-  for (int r_ind = 0; r_ind < r_centered_dmn::dmn_size(); r_ind++)
-    for (int j = 0; j < nu::dmn_size(); j++)
-      for (int i = 0; i < nu::dmn_size(); i++)
-        cluster_centered_function(i, j, r_ind) *=
-            r_centered_dmn::parameter_type::get_weights()[r_ind];
 
   math::transform::FunctionTransform<r_centered_dmn, target_k_dmn>::execute(
       cluster_centered_function, interp_function);

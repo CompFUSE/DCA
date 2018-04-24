@@ -442,10 +442,6 @@ void data<parameters_type>::compute_vasp_band_structure() {
 
   math::transform::FunctionTransform<k_vasp, vasp_r_centered_dmn>::execute(band_e, tmp);
 
-  for (int j = 0; j < b_vasp::dmn_size(); j++)
-    for (int r_ind = 0; r_ind < vasp_r_centered_dmn::dmn_size(); r_ind++)
-      tmp(r_ind, j) *= vasp_r_centered_dmn::parameter_type::get_weights()[r_ind];
-
   math::transform::FunctionTransform<vasp_r_centered_dmn, bz_cut>::execute(tmp, E_0_vasp);
 
   //       if(true)
@@ -501,11 +497,6 @@ void data<parameters_type>::compute_dmft_band_structure() {
   func::function<double, func::dmn_variadic<vasp_r_centered_dmn, o_dmft, o_dmft>> tmp;
 
   math::transform::FunctionTransform<k_vasp, vasp_r_centered_dmn>::execute(H_0, tmp);
-
-  for (int j = 0; j < o_dmft::dmn_size(); j++)
-    for (int i = 0; i < o_dmft::dmn_size(); i++)
-      for (int r_ind = 0; r_ind < vasp_r_centered_dmn::dmn_size(); r_ind++)
-        tmp(r_ind, i, j) *= vasp_r_centered_dmn::parameter_type::get_weights()[r_ind];
 
   math::transform::FunctionTransform<vasp_r_centered_dmn, bz_cut>::execute(tmp, H_0_dmft);
 
