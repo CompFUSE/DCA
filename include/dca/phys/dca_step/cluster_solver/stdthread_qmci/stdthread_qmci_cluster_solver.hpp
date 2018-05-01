@@ -187,7 +187,8 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::integrate() {
 
   if (concurrency.id() == concurrency.first()) {
     std::cout << "Threaded on-node integration has ended: " << dca::util::print_time()
-              << "\n\nTotal number of measurements: " << parameters.get_measurements() << std::endl;
+              << "\n\nTotal number of measurements: " << parameters.get_measurements()
+              << "\nQMC-time\t" << total_time << std::endl;
   }
 
   qmci_integrator_type::accumulator.finalize();
@@ -327,8 +328,9 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::start_accumulator(int id)
 
   accumulator_obj.initialize(DCA_iteration);
 
-  const int n_meas = parallel::util::getWorkload(parameters.get_measurements(), parameters.get_accumulators(),
-                                 thread_task_handler_.IDToAccumIndex(id), concurrency);
+  const int n_meas =
+      parallel::util::getWorkload(parameters.get_measurements(), parameters.get_accumulators(),
+                                  thread_task_handler_.IDToAccumIndex(id), concurrency);
 
   for (int i = 0; i < n_meas; ++i) {
     {
@@ -346,8 +348,7 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::start_accumulator(int id)
       profiler_type profiler("stdthread-accumulator accumulating", "stdthread-MC-accumulator",
                              __LINE__, id);
       if (id == 1)
-        this->update_shell(i, n_meas,
-                           accumulator_obj.get_configuration().size());
+        this->update_shell(i, n_meas, accumulator_obj.get_configuration().size());
 
       accumulator_obj.measure(mutex_queue, accumulators_queue);
     }
@@ -373,8 +374,8 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::start_walker_and_accumula
   accumulator_type accumulator_obj(parameters, data_, id);
   accumulator_obj.initialize(DCA_iteration);
 
-  const int n_meas =
-      parallel::util::getWorkload(parameters.get_measurements(), parameters.get_accumulators(), id, concurrency);
+  const int n_meas = parallel::util::getWorkload(parameters.get_measurements(),
+                                                 parameters.get_accumulators(), id, concurrency);
 
   for (int i = 0; i < n_meas; ++i) {
     {
