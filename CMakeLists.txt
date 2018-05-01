@@ -141,7 +141,9 @@ set(DCA_LIBS
   symmetrization
   coarsegraining
   ${DCA_CONCURRENCY_LIB}
-  ${DCA_EXTERNAL_LIBS})
+  ${DCA_EXTERNAL_LIBS}
+  ${DCA_THREADING_LIBS}
+)
 
 if (DCA_HAVE_CUDA)
   list(APPEND DCA_CUDA_LIBS
