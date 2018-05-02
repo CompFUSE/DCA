@@ -19,6 +19,7 @@
 #include <stdexcept>
 #include <thread>
 #include <vector>
+#include <atomic>
 
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/thread_task_handler.hpp"
@@ -86,6 +87,7 @@ private:
   using qmci_integrator_type::accumulator;
 
   std::atomic<int> acc_finished;
+  std::atomic<int> sweeps_remaining;
 
   const int nr_walkers;
   const int nr_accumulators;
@@ -149,6 +151,9 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::integrate() {
     std::cout << "Threaded QMC integration has started: " << dca::util::print_time() << "\n"
               << std::endl;
   }
+
+  sweeps_remaining = concurrency.number_of_processors() *
+                       parameters.get_measurements_per_process_and_accumulator() * nr_accumulators;
 
   std::vector<std::thread> threads;
   std::vector<pair_type> data;
@@ -241,7 +246,7 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::start_walker(int id) {
 
   stdthread_accumulator_type* acc_ptr(NULL);
 
-  while (acc_finished < nr_accumulators) {
+  while (--sweeps_remaining >= 0) {
     {
       profiler_type profiler("stdthread-MC-walker updating", "stdthread-MC-walker", __LINE__, id);
       walker.do_sweep();
@@ -249,33 +254,17 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::start_walker(int id) {
 
     {
       profiler_type profiler("stdthread-MC-walker waiting", "stdthread-MC-walker", __LINE__, id);
+      acc_ptr = NULL;
 
-      while (acc_finished < nr_accumulators) {
-        acc_ptr = NULL;
-
-        {  // checking for available accumulators
-          std::unique_lock<std::mutex> lock(mutex_queue);
-
-          if (!accumulators_queue.empty()) {
-            acc_ptr = accumulators_queue.front();
-            accumulators_queue.pop();
-          }
+      while (acc_ptr == NULL) {  // checking for available accumulators
+        std::unique_lock<std::mutex> lock(mutex_queue);
+        if (!accumulators_queue.empty()) {
+          acc_ptr = accumulators_queue.front();
+          accumulators_queue.pop();
         }
-
-        if (acc_ptr != NULL) {
-          acc_ptr->update_from(walker);
-          acc_ptr = NULL;
-          break;
-        }
-
-        // INTERNAL: Additional steps violate the requirement of a fixed number of steps per
-        //           measurement.
-        // for (int i = 0; i < parameters.get_additional_steps(); ++i) {
-        //   // std::cout << "Walker " << id << " is doing some additional steps." << std::endl;
-        //   profiler_type profiler("additional steps", "stdthread-MC-walker", __LINE__, id);
-        //   walker.do_step();
-        // }
       }
+
+      acc_ptr->update_from(walker);
     }
   }
 
