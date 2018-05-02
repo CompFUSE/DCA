@@ -35,7 +35,7 @@ public:
     sub_matrix_.resizeNoCopy(n);
     for (int j = 0; j < n_sites_; ++j)
       for (int i = 0; i < n_sites_; ++i)
-        sub_matrix_(i, j) = (i - j + n_sites_) % n_sites_;
+        sub_matrix_(i, j) = (j - 1 + n_sites_) % n_sites_;
   }
   static const auto& get_subtract_matrix() {
     return sub_matrix_;

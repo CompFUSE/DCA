@@ -56,8 +56,8 @@ public:
 
   void initialize();
 
-  template <typename InpScalar, class Configuration>
-  void accumulate(const linalg::Matrix<InpScalar, linalg::CPU>& M, const Configuration& config,
+  template <class Configuration>
+  void accumulate(const linalg::Matrix<double, linalg::CPU>& M, const Configuration& config,
                   const int sign);
 
   template <typename OtherScalarType>
@@ -70,10 +70,6 @@ public:
 private:
   void initializeDeviceCoefficients();
 
-  void uploadMatrix(const linalg::Matrix<ScalarType, linalg::CPU>& M);
-  template <typename InpScalar>
-  void uploadMatrix(const linalg::Matrix<InpScalar, linalg::CPU>& M);
-
 private:
   using BaseClass::f_tau_;
   static linalg::Vector<ScalarType, linalg::GPU> cubic_coeff_dev_;
@@ -84,9 +80,7 @@ private:
   linalg::Matrix<ScalarType, linalg::GPU> accumulation_matrix_;
   linalg::Matrix<ScalarType, linalg::GPU> accumulation_matrix_sqr_;
 
-  linalg::Matrix<ScalarType, linalg::CPU> M_host_;
-  linalg::Matrix<ScalarType, linalg::GPU> M_;
-  linalg::Matrix<ScalarType, linalg::GPU> M_sqr_;
+  linalg::Matrix<double, linalg::GPU> M_;
   linalg::util::HostVector<details::ConfigElem> config_left_;
   linalg::util::HostVector<details::ConfigElem> config_right_;
   linalg::util::HostVector<ScalarType> times_;
@@ -151,18 +145,19 @@ void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::initializeDeviceCo
 }
 
 template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>
-template <typename InpScalar, class Configuration>
+template <class Configuration>
 void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::accumulate(
-    const linalg::Matrix<InpScalar, linalg::CPU>& M, const Configuration& config, const int sign) {
+    const linalg::Matrix<double, linalg::CPU>& M, const Configuration& config, const int sign) {
   assert(M.is_square());
-  if(config.size() == 0) // Contribution is zero.
+  if (config.size() == 0)  // Contribution is zero.
     return;
 
-  const int n = M.nrCols();
-
-  uploadMatrix(M);
+  M_.setAsync(M, stream_);
+  m_copied_event_.record(stream_);
 
   config_copied_event_.block();
+
+  const int n = M.nrCols();
   config_right_.resize(n);
   config_left_.resize(n);
   times_.resize(n);
@@ -179,31 +174,15 @@ void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::accumulate(
   config_right_dev_.setAsync(config_right_, stream_);
   config_left_dev_.setAsync(config_left_, stream_);
   times_dev_.setAsync(times_, stream_);
+
   config_copied_event_.record(stream_);
 
   details::accumulateOnDevice(M_.ptr(), M_.leadingDimension(), sign, accumulation_matrix_.ptr(),
                               accumulation_matrix_sqr_.ptr(), accumulation_matrix_.leadingDimension(),
                               config_left_dev_.ptr(), config_right_dev_.ptr(), times_dev_.ptr(),
                               cubic_coeff_dev_.ptr(), n, stream_);
-}
 
-template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>
-template <typename InpScalar>
-void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::uploadMatrix(
-    const linalg::Matrix<InpScalar, linalg::CPU>& M) {
   m_copied_event_.block();
-  M_host_.resizeNoCopy(M.size());
-  for (int j = 0; j < M.nrCols(); ++j)
-    for (int i = 0; i < M.nrRows(); ++i)
-      M_host_(i, j) = static_cast<ScalarType>(M(i, j));
-  M_.setAsync(M_host_, stream_);
-  m_copied_event_.record(stream_);
-}
-
-template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>
-void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::uploadMatrix(
-    const linalg::Matrix<ScalarType, linalg::CPU>& M) {
-  M_.setAsync(M, stream_);
 }
 
 template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>
