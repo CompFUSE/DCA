@@ -9,7 +9,7 @@ set(MPIEXEC_PREFLAGS "-g1" CACHE STRING
   "Flags to pass to TEST_RUNNER directly before the executable to run.")
 
 option(DCA_WITH_CUDA "Enable GPU support." ON)
-set(CUDA_GPU_ARCH "sm_60" CACHE STRING "Name of the *real* architecture to build for.")
+set(CUDA_GPU_ARCH "sm_70" CACHE STRING "Name of the *real* architecture to build for.")
 
 set(MAGMA_DIR $ENV{OLCF_MAGMA_ROOT} CACHE PATH
   "Path to the MAGMA installation directory. Hint for CMake to find MAGMA.")
