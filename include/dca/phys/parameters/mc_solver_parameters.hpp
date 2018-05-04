@@ -280,10 +280,6 @@ public:
     return double_counted_interaction_;
   }
 
-  bool useSubmatrix() const {
-    return use_submatrix_;
-  }
-
   int getMaxSubmatrixSize() const {
     return max_submatrix_size_;
   }
@@ -295,8 +291,6 @@ private:
   double alpha_ndd_ = 1e-4;
   double double_update_prob_= 0;
   bool double_counted_interaction_ = true;
-
-  bool use_submatrix_ = false;
   int max_submatrix_size_ = 1;
 };
 
@@ -356,7 +350,6 @@ void McSolverParameters<solver::CT_INT>::readWrite(ReaderOrWriter& reader_or_wri
     tryToRead("double-update-probability", double_update_prob_);
     tryToRead("double-counted-interaction", double_counted_interaction_);
     tryToRead("max-submatrix-size", max_submatrix_size_);
-    tryToRead("use-submatrix", use_submatrix_);
     reader_or_writer.close_group();
   }
   catch (const std::exception& /*r_e*/) {
