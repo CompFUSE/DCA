@@ -27,6 +27,7 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/walker_methods.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/move.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/walker/kernels_interface.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/function_proxy.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp"
 #include "dca/util/integer_division.hpp"
@@ -589,20 +590,10 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeMInit() {
 
       linalg::matrixop::gemm(D_dev_[s], M, D_M, thread_id_, s);
 
+      // TODO set n_init independently for each sector
+      details::setRightSectorToId(M_dev_[s].ptr(), M_dev_[s].leadingDimension(), n_init_, n_max_, stream_[s]);
+
       M_[s].setAsync(M_dev_[s], stream_[s]);
-    }
-
-    for (int s = 0; s < 2; ++s) {
-      cudaStreamSynchronize(stream_[s]);
-
-      for (int i = 0; i < n_max_; ++i) {
-        for (int j = n_init_; j < n_max_; ++j) {
-          M_[s](i, j) = 0;
-        }
-      }
-
-      for (int i = n_init_; i < n_max_; ++i)
-        M_[s](i, i) = 1;
     }
   }
 }
@@ -612,7 +603,6 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeGInit() {
   const int delta = n_max_ - n_init_;
 
   double f;
-  Matrix G0(std::make_pair(n_max_, delta));
 
   for (int s = 0; s < 2; ++s) {
     G_[s].resizeNoCopy(n_max_);
@@ -620,17 +610,19 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeGInit() {
     for (int j = 0; j < n_init_; ++j) {
       f = f_[configuration_.getSector(s).getAuxFieldType(j)];
 
+      cudaStreamSynchronize(stream_[s]);
       for (int i = 0; i < n_max_; ++i) {
         G_[s](i, j) = (M_[s](i, j) * f - double(i == j)) / (f - 1);
       }
     }
 
     if (delta > 0) {
-      d_builder_.computeG0(G0, configuration_.getSector(s), n_init_, n_max_, 1);
+      G0_[s].resizeNoCopy(std::make_pair(n_max_, delta));
+      d_builder_.computeG0(G0_[s], configuration_.getSector(s), n_init_, n_max_, 1);
 
       MatrixView<linalg::CPU> G(G_[s], 0, n_init_, n_max_, delta);
 
-      linalg::matrixop::gemm(M_[s], G0, G);
+      linalg::matrixop::gemm(M_[s], G0_[s], G);
     }
   }
 }
