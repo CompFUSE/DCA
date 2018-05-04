@@ -50,7 +50,8 @@ __global__ void sortMKernel(const int size, const InpScalar* M, const int ldm,
   const int inp_i = config1[id_i].idx;
   const int inp_j = config2[id_j].idx;
 
-  sorted_M[id_i + lds * id_j] = M[inp_i + ldm * inp_j];
+  sorted_M[id_i + lds * id_j].x = M[inp_i + ldm * inp_j];
+  sorted_M[id_i + lds * id_j].y = 0;
 }
 
 template <typename Real, typename InpScalar>
@@ -62,7 +63,7 @@ void sortM(const int size, const InpScalar* M, const int ldm, std::complex<Real>
 
   auto const blocks = getBlockSize(size, size);
 
-  sortMKernel<<<blocks[0], blocks[1], 0, stream>>>(size, castCudaComplex(M), ldm, castCudaComplex(sorted_M), lds,
+  sortMKernel<<<blocks[0], blocks[1], 0, stream>>>(size, M, ldm, castCudaComplex(sorted_M), lds,
                                                    config1, config2);
 }
 
@@ -134,13 +135,10 @@ void rearrangeOutput(const int nw, const int no, const int nb, const std::comple
 }
 
 // Explicit instantiation.
-template void sortM<double, std::complex<double>>(int, const std::complex<double>*, int,
-                                                  std::complex<double>*, const int,
-                                                  const Triple<double>*, const Triple<double>*,
-                                                  const cudaStream_t);
-template void sortM<float, std::complex<float>>(int, const std::complex<float>*, int,
-                                                std::complex<float>*, const int, const Triple<float>*,
-                                                const Triple<float>*, const cudaStream_t);
+template void sortM<double, double>(int, const double*, int, std::complex<double>*, const int,
+                                    const Triple<double>*, const Triple<double>*, const cudaStream_t);
+template void sortM<float, double>(int, const double*, int, std::complex<float>*, const int,
+                                   const Triple<float>*, const Triple<float>*, const cudaStream_t);
 template void computeT<double>(int, int, std::complex<double>*, int, const Triple<double>*,
                                const double*, bool, const cudaStream_t);
 template void computeT<float>(int, int, std::complex<float>*, int, const Triple<float>*,

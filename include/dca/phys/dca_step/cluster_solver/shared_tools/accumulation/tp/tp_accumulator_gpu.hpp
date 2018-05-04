@@ -72,6 +72,12 @@ public:
     return streams_[0];
   }
 
+  void synchronizeCopy(){
+    ndft_objs_[0].synchronizeCopy();
+    ndft_objs_[1].synchronizeCopy();
+  }
+
+
 private:
   using Profiler = typename Parameters::profiler_type;
 

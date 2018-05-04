@@ -67,6 +67,10 @@ public:
   // Sums the accumulated data in the time domain.
   ThisType& operator+=(ThisType& other);
 
+  void synchronizeCopy() {
+    m_copied_event_.block();
+  }
+
 private:
   void initializeDeviceCoefficients();
 
@@ -181,8 +185,7 @@ void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::accumulate(
                               accumulation_matrix_sqr_.ptr(), accumulation_matrix_.leadingDimension(),
                               config_left_dev_.ptr(), config_right_dev_.ptr(), times_dev_.ptr(),
                               cubic_coeff_dev_.ptr(), n, stream_);
-
-  m_copied_event_.block();
+  
 }
 
 template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>

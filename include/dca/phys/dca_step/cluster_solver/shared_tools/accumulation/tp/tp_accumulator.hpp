@@ -83,6 +83,9 @@ public:
   // Sums the accumulated Green's function to the accumulated Green's function of other_acc.
   void sumTo(this_type& other_acc);
 
+  void synchronizeCopy(){}
+
+
 protected:
   using Profiler = typename Parameters::profiler_type;
 
