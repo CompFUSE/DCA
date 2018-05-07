@@ -363,6 +363,7 @@ void McSolverParameters<solver::CT_INT>::readWrite(ReaderOrWriter& reader_or_wri
     tryToRead("double-update-probability", double_update_prob_);
     tryToRead("double-counted-interaction", double_counted_interaction_);
     tryToRead("compute-error-bar", compute_error_);
+    tryToRead("max-submatrix-size", max_submatrix_size_);
     tryToRead("use-submatrix", use_submatrix_);
     reader_or_writer.close_group();
   }
