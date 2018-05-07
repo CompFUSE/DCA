@@ -14,8 +14,7 @@
 #include <iostream>
 #include <unistd.h>
 
-#include "dca/linalg/device_type.hpp"
-#include "dca/linalg/util/memory.hpp"
+#include "dca/parallel/mpi_concurrency/kernel_test.hpp"
 
 namespace dca {
 namespace parallel {
@@ -68,21 +67,15 @@ MPIProcessorGrouping::~MPIProcessorGrouping() {
 
 bool MPIProcessorGrouping::testValidity() const {
 #ifdef DCA_HAVE_CUDA
-  constexpr linalg::DeviceType device = linalg::GPU;
-#else
-  constexpr linalg::DeviceType device = linalg::CPU;
-#endif  // DCA_HAVE_CUDA
-
   try {
-    double* ptr = nullptr;
-    linalg::util::Memory<device>::allocate(ptr, 32);
-    linalg::util::Memory<device>::deallocate(ptr);
-
-    return true;
+    return kernelTest();
   }
   catch (...) {
     return false;
   }
+#else
+  return true;
+#endif  // DCA_HAVE_CUDA
 }
 
 void MPIProcessorGrouping::printRemovedProcesses(const std::vector<int>& valid_ids) const {
