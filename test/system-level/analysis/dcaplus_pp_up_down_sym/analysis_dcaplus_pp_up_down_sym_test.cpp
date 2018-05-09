@@ -95,9 +95,9 @@ TEST(AnalysisDCAplusParticleParticleUpDownSymmetricTest, LeadingEigenvalues) {
   }
   for (int i = 0; i < leading_eigenvectors.size(); ++i) {
     EXPECT_NEAR(std::abs(leading_eigenvectors_check(i).real()),
-                std::abs(leading_eigenvectors(i).real()), 1.e-11);
+                std::abs(leading_eigenvectors(i).real()), 1.e-10);
     EXPECT_NEAR(std::abs(leading_eigenvectors_check(i).imag()),
-                std::abs(leading_eigenvectors(i).imag()), 1.e-11);
+                std::abs(leading_eigenvectors(i).imag()), 1.e-10);
   }
   for (int i = 0; i < leading_symmetry_decomposition.size(); ++i) {
     EXPECT_NEAR(std::abs(leading_symmetry_decomposition_check(i).real()),
