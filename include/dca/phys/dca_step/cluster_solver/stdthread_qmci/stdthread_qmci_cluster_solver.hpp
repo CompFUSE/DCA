@@ -19,7 +19,6 @@
 #include <stdexcept>
 #include <thread>
 #include <vector>
-#include <atomic>
 
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/thread_task_handler.hpp"
@@ -87,7 +86,7 @@ private:
   using qmci_integrator_type::accumulator;
 
   std::atomic<int> acc_finished;
-  std::atomic<int> sweeps_remaining;
+  std::atomic<int> measurements_remaining_;
 
   const int nr_walkers;
   const int nr_accumulators;
@@ -152,8 +151,9 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::integrate() {
               << std::endl;
   }
 
-  sweeps_remaining = concurrency.number_of_processors() *
-                       parameters.get_measurements_per_process_and_accumulator() * nr_accumulators;
+  measurements_remaining_ = concurrency.number_of_processors() *
+                            parameters.get_measurements_per_process_and_accumulator() *
+                            nr_accumulators;
 
   std::vector<std::thread> threads;
   std::vector<pair_type> data;
@@ -246,7 +246,7 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::start_walker(int id) {
 
   stdthread_accumulator_type* acc_ptr(NULL);
 
-  while (--sweeps_remaining >= 0) {
+  while (--measurements_remaining_ >= 0) {
     {
       profiler_type profiler("stdthread-MC-walker updating", "stdthread-MC-walker", __LINE__, id);
       walker.do_sweep();
