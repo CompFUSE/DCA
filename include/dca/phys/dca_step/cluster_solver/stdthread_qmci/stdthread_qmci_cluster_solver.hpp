@@ -151,9 +151,8 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::integrate() {
               << std::endl;
   }
 
-  measurements_remaining_ = concurrency.number_of_processors() *
-                            parameters.get_measurements_per_process_and_accumulator() *
-                            nr_accumulators;
+  measurements_remaining_ =
+      parameters.get_measurements_per_process_and_accumulator() * nr_accumulators;
 
   std::vector<std::thread> threads;
   std::vector<pair_type> data;
