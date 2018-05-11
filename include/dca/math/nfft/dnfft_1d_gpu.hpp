@@ -32,20 +32,16 @@ namespace nfft {
 template <typename ScalarType, typename WDmn, typename RDmn, int oversampling = 8, NfftModeNames mode = CUBIC>
 class Dnfft1DGpu;
 
-namespace details {
-// dca::math::nfft::details::
-using BDmn = func::dmn_0<phys::domains::electron_band_domain>;
-template <class RDmn>
-using PDmn = func::dmn_variadic<BDmn, BDmn, RDmn>;
-}
-
 // Only the CUBIC mode is implemented.
 template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>
 class Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>
-    : public Dnfft1D<ScalarType, WDmn, details::PDmn<RDmn>, oversampling, CUBIC> {
+    : public Dnfft1D<ScalarType, WDmn,
+                     func::dmn_variadic<func::dmn_0<phys::domains::electron_band_domain>,
+                                        func::dmn_0<phys::domains::electron_band_domain>, RDmn>,
+                     oversampling, CUBIC> {
 public:
-  using BDmn = details::BDmn;
-  using PDmn = details::PDmn<RDmn>;
+  using BDmn = func::dmn_0<phys::domains::electron_band_domain>;
+  using PDmn = func::dmn_variadic<BDmn, BDmn, RDmn>;
 
   using ThisType = Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling>;
   using ElementType = ScalarType;
@@ -185,7 +181,6 @@ void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::accumulate(
                               accumulation_matrix_sqr_.ptr(), accumulation_matrix_.leadingDimension(),
                               config_left_dev_.ptr(), config_right_dev_.ptr(), times_dev_.ptr(),
                               cubic_coeff_dev_.ptr(), n, stream_);
-  
 }
 
 template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>
