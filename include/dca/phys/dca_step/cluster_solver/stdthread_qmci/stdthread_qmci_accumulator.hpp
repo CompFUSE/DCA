@@ -66,6 +66,7 @@ private:
   using qmci_accumulator_type::parameters;
 
   int thread_id;
+  int measurements_done_;
   bool measuring;
   std::condition_variable start_measuring;
   std::mutex mutex_accumulator;
@@ -74,7 +75,10 @@ private:
 template <class qmci_accumulator_type>
 stdthread_qmci_accumulator<qmci_accumulator_type>::stdthread_qmci_accumulator(
     parameters_type& parameters_ref, Data& data_ref, int id)
-    : qmci_accumulator_type(parameters_ref, data_ref, id), thread_id(id), measuring(false) {}
+    : qmci_accumulator_type(parameters_ref, data_ref, id),
+      thread_id(id),
+      measurements_done_(0),
+      measuring(false) {}
 
 template <class qmci_accumulator_type>
 stdthread_qmci_accumulator<qmci_accumulator_type>::~stdthread_qmci_accumulator() {}
@@ -84,16 +88,20 @@ template <typename walker_type>
 void stdthread_qmci_accumulator<qmci_accumulator_type>::update_from(walker_type& walker) {
   {
     // take a lock and keep it until it goes out of scope
-    {
-      std::unique_lock<std::mutex> lock(mutex_accumulator);
-      if (measuring)
-        throw std::logic_error(__FUNCTION__);
+    std::unique_lock<std::mutex> lock(mutex_accumulator);
+    if (measuring)
+      throw std::logic_error(__FUNCTION__);
 
-      qmci_accumulator_type::update_from(walker);
-      measuring = true;
-    }
-    start_measuring.notify_one();
+    qmci_accumulator_type::update_from(walker);
+    measuring = true;
+
+    if (thread_id == 1)
+      walker.update_shell(
+          measurements_done_,
+          qmci_accumulator_type::parameters.get_measurements_per_process_and_accumulator());
   }
+
+  start_measuring.notify_one();
 }
 
 template <class qmci_accumulator_type>
@@ -108,6 +116,7 @@ void stdthread_qmci_accumulator<qmci_accumulator_type>::measure(
   std::unique_lock<std::mutex> lock(mutex_accumulator);
   qmci_accumulator_type::measure();
   measuring = false;
+  ++measurements_done_;
 }
 
 template <class qmci_accumulator_type>
