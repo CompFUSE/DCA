@@ -27,13 +27,12 @@ namespace stdthreadqmci {
 
 template <class qmci_accumulator_type>
 class stdthread_qmci_accumulator : protected qmci_accumulator_type {
-  typedef typename qmci_accumulator_type::my_parameters_type parameters_type;
+  using this_type = stdthread_qmci_accumulator<qmci_accumulator_type>;
+  using Parameters = typename qmci_accumulator_type::my_parameters_type;
   using Data = typename qmci_accumulator_type::DataType;
 
-  typedef stdthread_qmci_accumulator<qmci_accumulator_type> this_type;
-
 public:
-  stdthread_qmci_accumulator(parameters_type& parameters_ref, Data& data_ref, int id);
+  stdthread_qmci_accumulator(Parameters& parameters_ref, Data& data_ref, int meas_t_do, int id);
 
   ~stdthread_qmci_accumulator();
 
@@ -67,6 +66,7 @@ private:
 
   int thread_id;
   int measurements_done_;
+  int measurements_to_do_;
   bool measuring;
   std::condition_variable start_measuring;
   std::mutex mutex_accumulator;
@@ -74,10 +74,11 @@ private:
 
 template <class qmci_accumulator_type>
 stdthread_qmci_accumulator<qmci_accumulator_type>::stdthread_qmci_accumulator(
-    parameters_type& parameters_ref, Data& data_ref, int id)
+    Parameters& parameters_ref, Data& data_ref, const int meas_to_do, const int id)
     : qmci_accumulator_type(parameters_ref, data_ref, id),
       thread_id(id),
       measurements_done_(0),
+      measurements_to_do_(meas_to_do),
       measuring(false) {}
 
 template <class qmci_accumulator_type>
@@ -96,9 +97,7 @@ void stdthread_qmci_accumulator<qmci_accumulator_type>::update_from(walker_type&
     measuring = true;
 
     if (thread_id == 1)
-      walker.update_shell(
-          measurements_done_,
-          qmci_accumulator_type::parameters.get_measurements_per_process_and_accumulator());
+      walker.update_shell(measurements_done_, measurements_to_do_);
   }
 
   start_measuring.notify_one();
