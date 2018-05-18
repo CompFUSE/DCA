@@ -100,7 +100,7 @@
     "Monte-Carlo-integration": {
         "seed": 985456376,
         "warm-up-sweeps": 20,
-        "sweeps-per-measurement": 1,
+        "sweeps-per-measurement": 1.,
         "measurements-per-process-and-accumulator": 100,
 
         "threaded-solver": {

@@ -44,7 +44,7 @@ public:
 
   // Transfers the arguments to the device and performs the batched gemm of matrices of equal size.
   // See the documentation of the MAGMA library for a description of the arguments.
-  void execute(char transa, char transb, int n, int m, int k, ScalarType alpha, ScalarType beta,
+  void execute(char transa, char transb, int m, int n, int k, ScalarType alpha, ScalarType beta,
                int lda, int ldb, int ldc);
 
   // Synchronizes the copy of the arguments to the device and clears the arguments of the batched
@@ -95,8 +95,8 @@ void MagmaBatchedGemm<ScalarType>::addGemm(const ScalarType* a, const ScalarType
 }
 
 template <typename ScalarType>
-void MagmaBatchedGemm<ScalarType>::execute(const char transa, const char transb, const int n,
-                                           const int m, const int k, const ScalarType alpha,
+void MagmaBatchedGemm<ScalarType>::execute(const char transa, const char transb, const int m,
+                                           const int n, const int k, const ScalarType alpha,
                                            const ScalarType beta, const int lda, const int ldb,
                                            const int ldc) {
   a_ptr_dev_.setAsync(a_ptr_, stream_);
@@ -105,7 +105,7 @@ void MagmaBatchedGemm<ScalarType>::execute(const char transa, const char transb,
   copied_.record(stream_);
 
   const int n_batched = a_ptr_.size();
-  magma::magmablas_gemm_batched(transa, transb, n, m, k, alpha, a_ptr_dev_.ptr(), lda,
+  magma::magmablas_gemm_batched(transa, transb, m, n, k, alpha, a_ptr_dev_.ptr(), lda,
                                 b_ptr_dev_.ptr(), ldb, beta, c_ptr_dev_.ptr(), ldc, n_batched,
                                 queue_);
   assert(cudaPeekAtLastError() == cudaSuccess);

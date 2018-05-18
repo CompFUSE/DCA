@@ -21,12 +21,10 @@ namespace details {
 
 template <typename Real>
 struct Triple {
-public:
   bool operator<(const Triple& rhs) const {
     return orbital == rhs.orbital ? idx < rhs.idx : orbital < rhs.orbital;
   }
 
-public:
   int orbital;
   int idx;
   Real tau;

@@ -104,9 +104,14 @@ include_directories(${CMAKE_BINARY_DIR}/include)
 set(DCA_INCLUDE_DIRS
   ${DCA_EXTERNAL_INCLUDE_DIRS})
 
+if(DCA_HAVE_CUDA)
+  include_directories(${CUDA_TOOLKIT_INCLUDE})
+endif(DCA_HAVE_CUDA)
+if(DCA_HAVE_MAGMA)
+  include_directories(${MAGMA_INCLUDE_DIR})
+endif(DCA_HAVE_MAGMA)
 ################################################################################
 # Libraries
-include(cmake/dca_add_library.cmake)
 add_subdirectory(src)
 
 set(DCA_LIBS
@@ -126,7 +131,7 @@ set(DCA_LIBS
   dca_algorithms
   json
   dca_hdf5
-  phys
+  enumerations
   profiling
   function
   convert_domains
@@ -136,9 +141,13 @@ set(DCA_LIBS
   symmetrization
   coarsegraining
   ${DCA_CONCURRENCY_LIB}
-  ${DCA_EXTERNAL_LIBS})
+  ${DCA_EXTERNAL_LIBS}
+  ${DCA_THREADING_LIBS}
+)
 
 if (DCA_HAVE_CUDA)
+  list(APPEND DCA_CUDA_LIBS
+    cuda_utils)
   list(APPEND DCA_LIBS
     ctaux_walker_kernels
     dnfft_kernels
@@ -146,7 +155,6 @@ if (DCA_HAVE_CUDA)
     special_transform_kernels
     lapack_kernels
     blas_kernels
-    cuda_utils
     ${DCA_CUDA_LIBS})
 endif()
 

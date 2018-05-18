@@ -95,9 +95,6 @@ protected:
 
   void measure(walker_type& walker);
 
-  void update_shell(int i, int N, int N_k);
-  void update_shell(int i, int N, int N_k, int N_s);
-
   void symmetrize_measurements();
 
   void compute_error_bars();
@@ -316,11 +313,7 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::warm_up(walker_type& w
 
   for (int i = 0; i < parameters.get_warm_up_sweeps(); i++) {
     walker.do_sweep();
-
-    int N_s = walker.get_configuration().size();
-    int N_k = walker.get_configuration().get_number_of_interacting_HS_spins();
-
-    update_shell(i, parameters.get_warm_up_sweeps(), N_k, N_s);
+    walker.update_shell(i, parameters.get_warm_up_sweeps());
   }
 
   walker.is_thermalized() = true;
@@ -348,47 +341,13 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::measure(walker_type& w
       accumulator.measure();
     }
 
-    int N_s = walker.get_configuration().size();
-    int N_k = walker.get_configuration().get_number_of_interacting_HS_spins();
-
-    update_shell(i, n_meas, N_k, N_s);
+    walker.update_shell(i, n_meas);
   }
 
   accumulator.finalize();
 
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t measuring has ended \n" << std::endl;
-}
-
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void CtauxClusterSolver<device_t, parameters_type, Data>::update_shell(int i, int N, int N_k) {
-  int tmp = i;
-
-  if (concurrency.id() == concurrency.first() && N > 10 && (tmp % (N / 10)) == 0) {
-    std::cout << std::scientific;
-    std::cout.precision(6);
-
-    std::cout << "\t\t\t" << double(i) / double(N) * 100. << " % completed \t ";
-
-    std::cout << "\t <k> :" << N_k << "      ";
-    std::cout << dca::util::print_time() << "\n";
-  }
-}
-
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void CtauxClusterSolver<device_t, parameters_type, Data>::update_shell(int i, int N, int N_k,
-                                                                       int N_s) {
-  int tmp = i;
-
-  if (concurrency.id() == concurrency.first() && N > 10 && (tmp % (N / 10)) == 0) {
-    std::cout << std::scientific;
-    std::cout.precision(6);
-
-    std::cout << "\t\t\t" << double(i) / double(N) * 100. << " % completed \t ";
-
-    std::cout << "\t <k> :" << N_k << "    N : " << N_s << "      ";
-    std::cout << dca::util::print_time() << "\n";
-  }
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>

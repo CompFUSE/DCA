@@ -86,6 +86,13 @@ private:
   using NuNuKWDmn = func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>;
 
 public:
+  using SpGreensFunction =
+      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>>;
+  using TpGreensFunction = func::function<
+      std::complex<TpAccumulatorScalar>,
+      func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KClusterDmn, KClusterDmn, WVertexDmn, WVertexDmn>>;
+
+public:
   DcaData(Parameters& parameters_ref);
 
   void read(std::string filename);
@@ -160,12 +167,6 @@ public:
   func::function<double, NuDmn> orbital_occupancy;
 
 public:  // Optional members getters.
-  using SpGreensFunction =
-      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>>;
-  using TpGreensFunction = func::function<
-      std::complex<TpAccumulatorScalar>,
-      func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KClusterDmn, KClusterDmn, WVertexDmn, WVertexDmn>>;
-
   auto& get_G_k_w_error() {
     if (not G_k_w_err_)
       G_k_w_err_.reset(new SpGreensFunction("G_k_w-error"));

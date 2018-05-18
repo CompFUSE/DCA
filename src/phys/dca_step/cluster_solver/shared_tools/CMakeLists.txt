@@ -1,4 +1,4 @@
-#shared_tools
+# phys/dca_step/cluster_solver/shared_tools
 
 if (DCA_HAVE_CUDA)
   CUDA_ADD_LIBRARY(mc_tools_kernels

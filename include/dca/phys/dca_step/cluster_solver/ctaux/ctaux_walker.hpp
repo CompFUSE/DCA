@@ -16,6 +16,8 @@
 #include <cstdint>  // uint64_t
 #include <cstdlib>  // std::size_t
 #include <cmath>
+#include <iomanip>
+#include <iostream>
 #include <stdexcept>
 #include <vector>
 
@@ -31,6 +33,7 @@
 #include "dca/phys/dca_step/cluster_solver/ctaux/walker/tools/shrink_tools.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/walker/walker_bit.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/util/accumulator.hpp"
+#include "dca/util/print_time.hpp"
 
 namespace dca {
 namespace phys {
@@ -81,6 +84,12 @@ public:
 
   template <class stream_type>
   void to_JSON(stream_type& /*ss*/) {}
+
+  // Writes the current progress, the number of interacting spins and the total configuration size
+  // to stdout.
+  // TODO: Before this method can be made const, CT_AUX_HS_configuration and vertex_pair need to be
+  //       made const correct.
+  void update_shell(const int done, const int total) /*const*/;
 
 private:
   void add_non_interacting_spins_to_configuration();
@@ -245,6 +254,7 @@ private:
 
   int sign;
 
+  int warm_up_sweeps_done_;
   util::Accumulator<std::size_t> warm_up_expansion_order_;
   util::Accumulator<std::size_t> num_delayed_spins_;
 };
@@ -299,6 +309,7 @@ CtauxWalker<device_t, parameters_type, MOMS_type>::CtauxWalker(parameters_type& 
       Bennett(false),
       sign(1),
 
+      warm_up_sweeps_done_(0),
       warm_up_expansion_order_(),
       num_delayed_spins_() {
   if (concurrency.id() == 0 and thread_id == 0) {
@@ -318,7 +329,7 @@ CtauxWalker<device_t, parameters_type, MOMS_type>::~CtauxWalker() {
     std::cout << "\n"
               << "Walker: process ID = 0, thread ID = 0\n"
               << "-------------------------------------------\n"
-              << "average expansion order of warm-up: " << warm_up_expansion_order_.mean() << "\n"
+              << "estimate for sweep size: " << warm_up_expansion_order_.mean() << "\n"
               << "average number of delayed spins: " << num_delayed_spins_.mean() << "\n"
               << "# creations / # annihilations: "
               << static_cast<double>(number_of_creations) /
@@ -389,7 +400,8 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::initialize() {
 
   is_thermalized() = false;
 
-  // TODO: Reset accumulators of warm-up expansion order and number of delayed spins?
+  // TODO: Reset accumulators of warm-up expansion order and number of delayed spins, and set
+  //       warm_up_sweeps_done_ to zero?
 
   {
     // std::cout << "\n\n\t G0-TOOLS \n\n";
@@ -429,7 +441,7 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::initialize() {
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void CtauxWalker<device_t, parameters_type, MOMS_type>::do_sweep() {
   profiler_type profiler("do_sweep", "CT-AUX walker", __LINE__, thread_id);
-  const int sweeps_per_measurement{thermalized ? parameters.get_sweeps_per_measurement() : 1};
+  const double sweeps_per_measurement{thermalized ? parameters.get_sweeps_per_measurement() : 1.};
 
   // Do at least one single spin update per sweep.
   const int single_spin_updates_per_sweep{warm_up_expansion_order_.count() > 0 &&
@@ -437,13 +449,22 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::do_sweep() {
                                               ? static_cast<int>(warm_up_expansion_order_.mean())
                                               : 1};
 
-  int single_spin_updates_todo{single_spin_updates_per_sweep * sweeps_per_measurement};
+  // Reset the warm-up expansion order accumulator after half the warm-up sweeps to get a better
+  // estimate for the expansion order of the thermalized system.
+  if (warm_up_sweeps_done_ == parameters.get_warm_up_sweeps() / 2)
+    warm_up_expansion_order_.reset();
+
+  int single_spin_updates_todo{single_spin_updates_per_sweep *
+                               static_cast<int>(sweeps_per_measurement)};
 
   while (single_spin_updates_todo > 0) {
     do_step(single_spin_updates_todo);
   }
 
   assert(single_spin_updates_todo == 0);
+
+  if (!thermalized)
+    ++warm_up_sweeps_done_;
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
@@ -518,7 +539,7 @@ template <dca::linalg::DeviceType dev_t>
 std::enable_if_t<dev_t == device_t && device_t == dca::linalg::CPU, void> CtauxWalker<
     device_t, parameters_type, MOMS_type>::upload_to_device() {
   profiler_type profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
-  //
+
   assert(Gamma_up_CPU.capacity() == Gamma_up.capacity());
   assert(Gamma_dn_CPU.capacity() == Gamma_dn.capacity());
 
@@ -537,7 +558,7 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::add_non_interacting_spin
   configuration.shuffle_noninteracting_vertices();
 
   {  // update G0 for new shuffled vertices
-     //    profiler_type profiler("G0-matrix (update)", "CT-AUX walker", __LINE__, thread_id);
+     // profiler_type profiler("G0-matrix (update)", "CT-AUX walker", __LINE__, thread_id);
 
     G0_tools_obj.update_G0_matrix(configuration, G0_up, e_UP);
     G0_tools_obj.update_G0_matrix(configuration, G0_dn, e_DN);
@@ -559,7 +580,7 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::add_non_interacting_spin
   */
 
   {  // update N for new shuffled vertices
-     //    profiler_type profiler("N-matrix (update)", "CT-AUX walker", __LINE__, thread_id);
+     // profiler_type profiler("N-matrix (update)", "CT-AUX walker", __LINE__, thread_id);
 
     N_tools_obj.update_N_matrix(configuration, G0_up, N_up, e_UP);
     N_tools_obj.update_N_matrix(configuration, G0_dn, N_dn, e_DN);
@@ -581,7 +602,7 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::add_non_interacting_spin
   */
 
   {  // update N for new shuffled vertices
-     //    profiler_type profiler("G-matrix (update)", "CT-AUX walker", __LINE__, thread_id);
+     // profiler_type profiler("G-matrix (update)", "CT-AUX walker", __LINE__, thread_id);
 
     G_tools_obj.build_G_matrix(configuration, N_up, G0_up, G_up, e_UP);
     G_tools_obj.build_G_matrix(configuration, N_dn, G0_dn, G_dn, e_DN);
@@ -615,7 +636,7 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::add_non_interacting_spin
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void CtauxWalker<device_t, parameters_type, MOMS_type>::generate_delayed_spins(
     int& single_spin_updates_todo) {
-  //  profiler_type profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
+  // profiler_type profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
 
   assert(single_spin_updates_todo > 0);
 
@@ -627,7 +648,8 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::generate_delayed_spins(
   single_spin_updates_todo -= single_spin_updates_proposed;
   assert(single_spin_updates_todo >= 0);
 
-  num_delayed_spins_.addSample(delayed_spins.size());
+  if (thermalized)
+    num_delayed_spins_.addSample(delayed_spins.size());
 
   finalizeDelayedSpins();
 }
@@ -938,7 +960,7 @@ template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_ty
 void CtauxWalker<device_t, parameters_type, MOMS_type>::compute_Gamma_matrices() {
   // std::cout << __FUNCTION__ << "\n";
 
-  //  profiler_type profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
+  // profiler_type profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
 
   bennett_spins.resize(0);
 
@@ -1498,6 +1520,22 @@ bool CtauxWalker<device_t, parameters_type, MOMS_type>::assert_exp_delta_V_value
   };
 
   return true;
+}
+
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
+void CtauxWalker<device_t, parameters_type, MOMS_type>::update_shell(const int done, const int total) {
+  if (concurrency.id() == concurrency.first() && total > 10 && (done % (total / 10)) == 0) {
+    std::cout.unsetf(std::ios_base::floatfield);
+
+    std::cout << "\t\t\t" << std::setw(14)
+              << static_cast<double>(done) / static_cast<double>(total) * 100. << " % completed"
+              << "\t" << std::setw(11)
+              << "<k> = " << configuration.get_number_of_interacting_HS_spins() << "\t"
+              << std::setw(11) << "N = " << configuration.size() << "\t" << dca::util::print_time()
+              << std::endl;
+
+    std::cout << std::scientific;
+  }
 }
 
 }  // ctaux

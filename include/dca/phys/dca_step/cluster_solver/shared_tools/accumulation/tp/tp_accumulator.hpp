@@ -22,7 +22,7 @@
 #include "dca/linalg/matrix_view.hpp"
 #include "dca/linalg/matrixop.hpp"
 #include "dca/math/function_transform/special_transforms/space_transform_2D.hpp"
-#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_cpu.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"

@@ -97,7 +97,7 @@ function(dca_add_gtest name)
 
   if (DCA_ADD_GTEST_CUDA)
     target_include_directories(${name} PRIVATE ${CUDA_TOOLKIT_INCLUDE})
-    target_link_libraries(${name} ${LAPACK_LIBRARIES};${DCA_CUDA_LIBS})
+    target_link_libraries(${name} ${DCA_CUDA_LIBS})
     target_compile_definitions(${name} PRIVATE DCA_HAVE_CUDA)
     if(DCA_HAVE_MAGMA)
       target_include_directories(${name} PRIVATE ${MAGMA_INCLUDE_DIR})

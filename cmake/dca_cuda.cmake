@@ -17,9 +17,8 @@ find_package(CUDA REQUIRED)
 if (CUDA_FOUND)
   # set(DCA_HAVE_CUDA TRUE CACHE INTERNAL "")
   # dca_add_haves_define(DCA_HAVE_CUDA)
-
-  list(APPEND DCA_CUDA_LIBS ${CUDA_CUDA_LIBRARY} ${CUDA_cusparse_LIBRARY})
-  CUDA_INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src)
+  list(APPEND DCA_CUDA_LIBS ${CUDA_LIBRARIES} ${CUDA_cusparse_LIBRARY})
+  CUDA_INCLUDE_DIRECTORIES(${CUDA_INCLUDE_DIRS})
 endif()
 
 # Find MAGMA.
@@ -32,7 +31,14 @@ mark_as_advanced(MAGMA_LIBRARY MAGMA_INCLUDE_DIR)
 if (MAGMA_LIBRARY AND MAGMA_INCLUDE_DIR)
   set(DCA_HAVE_MAGMA TRUE CACHE INTERNAL "")
   dca_add_haves_define(DCA_HAVE_MAGMA)
-  list(APPEND DCA_CUDA_LIBS ${MAGMA_LIBRARY}  ${CUDA_cusparse_LIBRARY})
+  # magma as of 2.2.0 is setup to build with openmp
+  # if FindOpenMP.cmake finds it.
+  # This can lead to link problems for us since
+  # we don't otherwise have anything to do with openmp.
+  # I have built magma without openmp for
+  # CI. But if you naively use a random systems
+  # magma expect to have a link error.
+  list(APPEND DCA_CUDA_LIBS ${MAGMA_LIBRARY} ${CUDA_cusparse_LIBRARY})
   CUDA_INCLUDE_DIRECTORIES(${MAGMA_INCLUDE_DIR})
 endif()
 

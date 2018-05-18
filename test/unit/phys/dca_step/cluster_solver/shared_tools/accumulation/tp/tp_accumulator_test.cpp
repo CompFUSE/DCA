@@ -17,7 +17,7 @@
 #include <vector>
 
 #include "dca/io/hdf5/hdf5_reader.hpp"
-#include "dca/function/function_utils.hpp"
+#include "dca/function/util/difference.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
 
@@ -64,7 +64,7 @@ TEST_F(G0Setup, Accumulate) {
 
   dca::io::HDF5Reader reader;
 
-  reader.open_file(input_dir + "G4_result.hdf5");
+  reader.open_file(input_dir + "tp_accumulator_test_baseline.hdf5");
 
   for (const dca::phys::FourPointType type :
        {dca::phys::PARTICLE_HOLE_TRANSVERSE, dca::phys::PARTICLE_HOLE_MAGNETIC,
@@ -78,7 +78,7 @@ TEST_F(G0Setup, Accumulate) {
 
     G4_check.set_name("G4_" + toString(type));
     reader.execute(G4_check);
-    const auto diff = dca::func::utils::difference(accumulator.get_sign_times_G4(), G4_check);
+    const auto diff = dca::func::util::difference(accumulator.get_sign_times_G4(), G4_check);
     EXPECT_GT(5e-7, diff.l_inf);
   }
 
@@ -110,7 +110,7 @@ TEST_F(G0Setup, SumTo) {
   accumulator3.accumulate(M2, config2, sign);
 
   accumulator1.sumTo(accumulator2);
-  const auto diff = dca::func::utils::difference(accumulator3.get_sign_times_G4(),
+  const auto diff = dca::func::util::difference(accumulator3.get_sign_times_G4(),
                                                  accumulator2.get_sign_times_G4());
   EXPECT_GT(5e-7, diff.l_inf);
 }

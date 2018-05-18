@@ -17,7 +17,6 @@ namespace config {
 // dca::config::
 
 const std::string CMakeOptions::dca_with_cuda = "@DCA_WITH_CUDA@";
-const std::string CMakeOptions::dca_with_pinned_host_memory = "@DCA_WITH_PINNED_HOST_MEMORY@";
 const std::string CMakeOptions::cuda_gpu_arch = "@CUDA_GPU_ARCH@";
 const std::string CMakeOptions::dca_with_mpi = "@DCA_WITH_MPI@";
 const std::string CMakeOptions::dca_with_threaded_solver = "@DCA_WITH_THREADED_SOLVER@";
@@ -29,8 +28,6 @@ const std::string CMakeOptions::dca_rng = "@DCA_RNG@";
 const std::string CMakeOptions::dca_profiler = "@DCA_PROFILER@";
 const std::string CMakeOptions::dca_with_autotuning = "@DCA_WITH_AUTOTUNING@";
 const std::string CMakeOptions::dca_with_gnuplot = "@DCA_WITH_GNUPLOT@";
-const std::string CMakeOptions::dca_with_reduced_vertex_function =
-    "@DCA_WITH_REDUCED_VERTEX_FUNCTION@";
 const std::string CMakeOptions::dca_with_single_precision_measurements =
     "@DCA_WITH_SINGLE_PRECISION_MEASUREMENTS@";
 const std::string CMakeOptions::dca_with_single_precision_coarsegraining =
@@ -46,8 +43,7 @@ void CMakeOptions::print() {
             << "DCA_WITH_CUDA = " << CMakeOptions::dca_with_cuda << std::endl;
 
   if (CMakeOptions::dca_with_cuda == "ON")
-    std::cout << "DCA_WITH_PINNED_HOST_MEMORY = " << CMakeOptions::dca_with_pinned_host_memory << "\n"
-              << "CUDA_GPU_ARCH = " << CMakeOptions::cuda_gpu_arch << std::endl;
+    std::cout << "CUDA_GPU_ARCH = " << CMakeOptions::cuda_gpu_arch << std::endl;
 
   std::cout << "\n"
             << "DCA_WITH_MPI = " << CMakeOptions::dca_with_mpi << "\n"
@@ -61,8 +57,6 @@ void CMakeOptions::print() {
             << "DCA_PROFILER = " << CMakeOptions::dca_profiler << "\n"
             << "DCA_WITH_AUTOTUNING = " << CMakeOptions::dca_with_autotuning << "\n"
             << "DCA_WITH_GNUPLOT = " << CMakeOptions::dca_with_gnuplot << "\n"
-            << "DCA_WITH_REDUCED_VERTEX_FUNCTION = " << CMakeOptions::dca_with_reduced_vertex_function
-            << "\n"
             << "DCA_WITH_SINGLE_PRECISION_MEASUREMENTS = " << dca_with_single_precision_measurements
             << "\n"
             << "DCA_WITH_SINGLE_PRECISION_COARSEGRAINING = "

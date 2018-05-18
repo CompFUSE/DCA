@@ -18,7 +18,7 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
-#include "dca/function/function_utils.hpp"
+#include "dca/function/util/difference.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
@@ -126,7 +126,7 @@ TEST(Dnfft1DGpuTest, Accumulate) {
   cudaStreamDestroy(stream);
 
   // Check errors.
-  const auto err = dca::func::utils::difference(f_w_dnfft_cpu, f_w_dnfft_gpu);
+  const auto err = dca::func::util::difference(f_w_dnfft_cpu, f_w_dnfft_gpu);
   EXPECT_LT(err.l_inf, 1.e-9);
 }
 

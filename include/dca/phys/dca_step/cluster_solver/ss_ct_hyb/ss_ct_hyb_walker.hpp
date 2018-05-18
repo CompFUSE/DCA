@@ -15,6 +15,7 @@
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SS_CT_HYB_SS_CT_HYB_WALKER_HPP
 
 #include <cmath>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
@@ -38,6 +39,7 @@
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 #include "dca/util/plot.hpp"
+#include "dca/util/print_time.hpp"
 
 namespace dca {
 namespace phys {
@@ -137,6 +139,11 @@ public:
   ss_hybridization_walker_routines_type& get_ss_hybridization_walker_routines() {
     return ss_hybridization_walker_routines_obj;
   }
+
+  // Writes the current progress and the configuration size to stdout.
+  // TODO: Before this method can be made const, SS_CT_HYB_configuration needs to be made const
+  //       correct.
+  void update_shell(const int done, const int total) /*const*/;
 
 private:
   void test_interpolation();
@@ -314,7 +321,7 @@ void SsCtHybWalker<device_t, parameters_type, MOMS_type>::test_interpolation() {
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void SsCtHybWalker<device_t, parameters_type, MOMS_type>::do_sweep() {
-  int factor = 1;
+  double factor = 1.;
   if (thermalized)
     factor = parameters.get_sweeps_per_measurement();
 
@@ -441,6 +448,21 @@ void SsCtHybWalker<device_t, parameters_type, MOMS_type>::swap_random_orbitals()
 
   bool succes = swap_segment_tools_obj.swap_orbitals(i, j, mu, sign, M, F_r_t);
   nb_successfull_updates += succes ? 1 : 0;
+}
+
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
+void SsCtHybWalker<device_t, parameters_type, MOMS_type>::update_shell(const int done,
+                                                                       const int total) {
+  if (concurrency.id() == concurrency.first() && total > 10 && (done % (total / 10)) == 0) {
+    std::cout.unsetf(std::ios_base::floatfield);
+
+    std::cout << "\t\t\t" << std::setw(14)
+              << static_cast<double>(done) / static_cast<double>(total) * 100. << " % completed"
+              << "\t" << std::setw(11) << "<k> = " << configuration.size() << "\t"
+              << dca::util::print_time() << std::endl;
+
+    std::cout << std::scientific;
+  }
 }
 
 }  // cthyb

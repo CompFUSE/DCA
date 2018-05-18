@@ -1,0 +1,18 @@
+{
+    "DCA": {
+        "coarse-graining": {
+            "k-mesh-recursion": 0,
+            "periods": 0,
+            "quadrature-rule": 0
+        }
+    },
+
+    "domains": {
+        "real-space-grids": {
+            "cluster": [[2, 0],
+                        [0, 2]],
+            "sp-host": [[2, 0],
+                        [0, 2]]
+        }
+    }
+}

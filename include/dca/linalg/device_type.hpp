@@ -16,7 +16,7 @@ namespace dca {
 namespace linalg {
 // dca::linalg::
 
-enum DeviceType { CPU, GPU };
+enum DeviceType : int { CPU, GPU };
 
 }  // linalg
 }  // dca

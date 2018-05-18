@@ -15,7 +15,7 @@
 #include "gtest/gtest.h"
 
 #include "dca/function/function.hpp"
-#include "dca/function/function_utils.hpp"
+#include "dca/function/util/difference.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_reader.hpp"
@@ -87,8 +87,8 @@ TEST(PosixCtauxClusterSolverTest, G_k_w) {
       reader.execute(G4_check);
       reader.close_file();
 
-      auto err_g = dca::func::utils::difference(G_k_w_check, data.G_k_w);
-      auto err_g4 = dca::func::utils::difference(G4_check, data.get_G4_k_k_w_w());
+      auto err_g = dca::func::util::difference(G_k_w_check, data.G_k_w);
+      auto err_g4 = dca::func::util::difference(G4_check, data.get_G4_k_k_w_w());
 
       EXPECT_GE(5e-7, err_g.l_inf);
       EXPECT_GE(5e-7, err_g4.l_inf);

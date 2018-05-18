@@ -7,19 +7,27 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// This file implements a 2d NDFT while tracking the band indices of each measurement.
+// This file implements on the GPU a 2D NDFT from imaginary time to Matsubara frequency, applied
+// independently to each pair of orbitals, where an orbital is a combination of cluster site and
+// band.
+
+#ifndef DCA_HAVE_CUDA
+#pragma error "GPU algorithm requested but DCA_HAVE_CUDA is not defined."
+#endif  // DCA_HAVE_CUDA
 
 #ifndef DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_NDFT_CACHED_NDFT_GPU_HPP
 #define DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_NDFT_CACHED_NDFT_GPU_HPP
 
-#ifdef DCA_HAVE_CUDA
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_base.hpp"
 
-#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft.hpp"
+#include <complex>
 
 #include "dca/linalg/lapack/magma.hpp"
+#include "dca/linalg/matrix.hpp"
 #include "dca/linalg/vector.hpp"
 #include "dca/linalg/util/cuda_event.hpp"
 #include "dca/linalg/util/magma_vbatched_gemm.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_template.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/kernels_interface.hpp"
 
 namespace dca {
@@ -30,19 +38,17 @@ namespace accumulator {
 
 template <typename Real, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
 class CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>
-    : private CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density> {
+    : public CachedNdftBase<Real, RDmn, WDmn, WPosDmn, non_density_density> {
 private:
-  using BDmn = func::dmn_0<domains::electron_band_domain>;
-  using SDmn = func::dmn_0<domains::electron_spin_domain>;
-  using ClusterDmn = typename RDmn::parameter_type;
-  using BRDmn = func::dmn_variadic<BDmn, RDmn>;
+  using BaseClass = CachedNdftBase<Real, RDmn, WDmn, WPosDmn, non_density_density>;
+
+  using typename BaseClass::BDmn;
+
   using Complex = std::complex<Real>;
   using Matrix = linalg::Matrix<Complex, dca::linalg::GPU>;
   using MatrixHost = linalg::Matrix<Complex, dca::linalg::CPU>;
 
 public:
-  using BaseClass = CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>;
-
   CachedNdft(magma_queue_t queue);
 
   // For each pair of orbitals, performs the non-uniform 2D Fourier Transform from time to frequency
@@ -68,13 +74,8 @@ private:
 
 private:
   using BaseClass::w_;
-  linalg::Vector<Real, linalg::GPU> w_dev_;
-
-  using BaseClass::indexed_config_;
-
   using BaseClass::start_index_;
   using BaseClass::end_index_;
-
   using BaseClass::n_orbitals_;
   using BaseClass::config_left_;
   using BaseClass::config_right_;
@@ -82,7 +83,9 @@ private:
   using BaseClass::start_index_right_;
   using BaseClass::end_index_left_;
   using BaseClass::end_index_right_;
+  using BaseClass::indexed_config_;
 
+  linalg::Vector<Real, linalg::GPU> w_dev_;
   magma_queue_t magma_queue_;
   cudaStream_t stream_;
   linalg::util::CudaEvent copy_event_;
@@ -171,16 +174,12 @@ void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::pe
   const int nw = w_.size();
   const int order = indexed_config_[0].size();
   T_times_M_.resizeNoCopy(std::make_pair(nw / 2 * n_orbitals_, order));
-  cudaMemsetAsync(T_times_M_.ptr(), 0,
-                  T_times_M_.leadingDimension() * T_times_M_.nrCols() * sizeof(Complex), stream_);
+  T_times_M_.setToZero(stream_);
   auto& T_times_M_times_T = M_out;
   T_times_M_times_T.resizeNoCopy(std::make_pair(nw / 2 * n_orbitals_, nw * n_orbitals_));
-  cudaMemsetAsync(
-      T_times_M_times_T.ptr(), 0,
-      T_times_M_times_T.leadingDimension() * T_times_M_times_T.nrCols() * sizeof(Complex), stream_);
-
+  T_times_M_times_T.setToZero(stream_);
   {
-    // Performs T_l * M_t_t
+    // Performs T_times_M_ = T_l * M_t_t.
     const int lda = T_l_dev_.leadingDimension();
     const int ldb = M_t_t.leadingDimension();
     const int ldc = T_times_M_.leadingDimension();
@@ -233,5 +232,4 @@ void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::re
 }  // phys
 }  // dca
 
-#endif  // DCA_HAVE_CUDA
 #endif  // DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_NDFT_CACHED_NDFT_GPU_HPP
