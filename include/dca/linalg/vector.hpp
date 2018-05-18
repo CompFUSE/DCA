@@ -156,10 +156,10 @@ private:
 };
 
 template <typename ScalarType, DeviceType device_name>
-Vector<ScalarType, device_name>::Vector() : Vector("unnamed Vector", 0, 64) {}
+Vector<ScalarType, device_name>::Vector() : Vector("unnamed Vector", 0, 0) {}
 
 template <typename ScalarType, DeviceType device_name>
-Vector<ScalarType, device_name>::Vector(std::string name) : Vector(name, 0, 64) {}
+Vector<ScalarType, device_name>::Vector(std::string name) : Vector(name, 0, 0) {}
 
 template <typename ScalarType, DeviceType device_name>
 Vector<ScalarType, device_name>::Vector(size_t size) : Vector("unnamed Vector", size, size) {}
@@ -321,8 +321,8 @@ std::enable_if_t<device_name == CPU && dn == CPU, void> Vector<ScalarType, devic
 
 template <typename ScalarType, DeviceType device_name>
 template <DeviceType dn>
-std::enable_if_t<device_name != CPU && dn == device_name, void> Vector<ScalarType,
-                                                                       device_name>::print() const {
+std::enable_if_t<device_name != CPU && dn == device_name, void> Vector<ScalarType, device_name>::print()
+    const {
   Vector<ScalarType, CPU> copy(*this);
   copy.print();
 }
