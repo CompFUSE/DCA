@@ -32,27 +32,31 @@ public:
 
   static void initialize(const int n) {
     n_sites_ = n;
-    sub_matrix_.resizeNoCopy(n);
+    auto& sub_matrix = get_matrix();
+    sub_matrix.resizeNoCopy(n);
     for (int j = 0; j < n_sites_; ++j)
       for (int i = 0; i < n_sites_; ++i)
-        sub_matrix_(i, j) = (j - 1 + n_sites_) % n_sites_;
+        sub_matrix(i, j) = (j - i + n_sites_) % n_sites_;
   }
   static const auto& get_subtract_matrix() {
-    return sub_matrix_;
+    return get_matrix();
   }
   static int get_size() {
     return n_sites_;
   }
   static int subtract(const int i, const int j) {
-    return sub_matrix_(i, j);
+    return get_matrix()(i, j);
   }
 
 private:
   static int n_sites_;
-  static dca::linalg::Matrix<int, dca::linalg::CPU> sub_matrix_;
+
+  static inline dca::linalg::Matrix<int, dca::linalg::CPU>& get_matrix() {
+    static dca::linalg::Matrix<int, dca::linalg::CPU> sub_matrix;
+    return sub_matrix;
+  }
 };
 int MockRDmn::n_sites_ = -1;
-dca::linalg::Matrix<int, dca::linalg::CPU> MockRDmn::sub_matrix_;
 
 struct ConfigElement {
   double get_tau() const {
