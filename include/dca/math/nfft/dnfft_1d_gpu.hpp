@@ -72,7 +72,7 @@ private:
 
 private:
   using BaseClass::f_tau_;
-  static linalg::Vector<ScalarType, linalg::GPU> cubic_coeff_dev_;
+  static inline linalg::Vector<ScalarType, linalg::GPU>& get_device_cubic_coeff();
 
   const double beta_;
   cudaStream_t stream_;
@@ -91,9 +91,6 @@ private:
   linalg::util::CudaEvent config_copied_event_;
   linalg::util::CudaEvent m_copied_event_;
 };
-template <typename ScalarType, typename WDmn, typename PDmn, int oversampling>
-linalg::Vector<ScalarType, linalg::GPU>
-    Dnfft1DGpu<ScalarType, WDmn, PDmn, oversampling, CUBIC>::cubic_coeff_dev_;
 
 template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>
 Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::Dnfft1DGpu(const double beta,
@@ -128,8 +125,9 @@ void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::initializeDeviceCo
   if (initialized)
     return;
   const auto& host_coeff = BaseClass::get_cubic_convolution_matrices();
-  cubic_coeff_dev_.resizeNoCopy(host_coeff.size());
-  cudaMemcpy(cubic_coeff_dev_.ptr(), host_coeff.values(), host_coeff.size() * sizeof(ScalarType),
+  auto& dev_coeff = get_device_cubic_coeff();
+  dev_coeff.resizeNoCopy(host_coeff.size());
+  cudaMemcpy(dev_coeff.ptr(), host_coeff.values(), host_coeff.size() * sizeof(ScalarType),
              cudaMemcpyHostToDevice);
 
   const auto& sub_matrix = RDmn::parameter_type::get_subtract_matrix();
@@ -180,7 +178,7 @@ void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::accumulate(
   details::accumulateOnDevice(M_.ptr(), M_.leadingDimension(), sign, accumulation_matrix_.ptr(),
                               accumulation_matrix_sqr_.ptr(), accumulation_matrix_.leadingDimension(),
                               config_left_dev_.ptr(), config_right_dev_.ptr(), times_dev_.ptr(),
-                              cubic_coeff_dev_.ptr(), n, stream_);
+                              get_device_cubic_coeff().ptr(), n, stream_);
 }
 
 template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>
@@ -220,6 +218,13 @@ Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>& Dnfft1DGpu<
 
   cudaStreamSynchronize(stream_);
   return *this;
+}
+
+template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>
+linalg::Vector<ScalarType, linalg::GPU>& Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling,
+                                                    CUBIC>::get_device_cubic_coeff() {
+  static linalg::Vector<ScalarType, linalg::GPU> coefficients;
+  return coefficients;
 }
 
 }  // nfft
