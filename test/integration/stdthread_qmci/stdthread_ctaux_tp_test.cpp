@@ -17,6 +17,7 @@
 #include "gtest/gtest.h"
 
 #include "dca/function/function.hpp"
+#include "dca/function/util/difference.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_reader.hpp"
@@ -83,17 +84,21 @@ void performTest(const std::string& input, const std::string& baseline) {
     // Read and confront with previous run.
     if (concurrency.id() == 0) {
       auto G_k_w_check = data.G_k_w;
+      using DomainType = typename Data::TpGreensFunction::this_domain_type;
+      dca::func::function<std::complex<double>, DomainType> G4_check(data.get_G4_k_k_w_w().get_name());
       G_k_w_check.set_name(data.G_k_w.get_name());
       dca::io::HDF5Reader reader;
       reader.open_file(input_dir + baseline);
       reader.open_group("functions");
       reader.execute(G_k_w_check);
+      reader.execute(G4_check);
       reader.close_group(), reader.close_file();
 
-      for (int i = 0; i < G_k_w_check.size(); i++) {
-        EXPECT_NEAR(G_k_w_check(i).real(), data.G_k_w(i).real(), 1e-7);
-        EXPECT_NEAR(G_k_w_check(i).imag(), data.G_k_w(i).imag(), 1e-7);
-      }
+      const auto err_g = dca::func::util::difference(G_k_w_check, data.G_k_w);
+      const auto err_g4 = dca::func::util::difference(G4_check, data.get_G4_k_k_w_w());
+
+      EXPECT_GE(5e-7, err_g.l_inf);
+      EXPECT_GE(5e-7, err_g4.l_inf);
     }
   }
   else {
@@ -103,6 +108,7 @@ void performTest(const std::string& input, const std::string& baseline) {
       writer.open_file(baseline);
       writer.open_group("functions");
       writer.execute(data.G_k_w);
+      writer.execute(data.get_G4_k_k_w_w());
       writer.close_group(), writer.close_file();
     }
   }
