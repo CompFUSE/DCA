@@ -7,7 +7,9 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// No-change test for MC posix wrapper.
+// No-change test for the stdthread solver wrapper. The base solver is CT-AUX and the model is
+// a square lattice with nearest neighbours hopping. Two and single particles Green's function are
+// tested.
 
 #include <iostream>
 #include <string>
@@ -34,7 +36,7 @@
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 
-constexpr bool UPDATE_RESULTS = false;
+constexpr bool update_baseline = false;
 
 const std::string input_dir = DCA_SOURCE_DIR "/test/integration/stdthread_qmci/";
 
@@ -49,7 +51,7 @@ using Data = dca::phys::DcaData<Parameters>;
 using BaseSolver = dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, Parameters, Data>;
 using QmcSolver = dca::phys::solver::StdThreadQmciClusterSolver<BaseSolver>;
 
-void performTest(const std::string& input, const std::string& output) {
+void performTest(const std::string& input, const std::string& baseline) {
   static bool update_model = true;
 
   Concurrency concurrency(0, nullptr);
@@ -59,7 +61,7 @@ void performTest(const std::string& input, const std::string& output) {
   }
 
   Parameters parameters(dca::util::GitVersion::string(), concurrency);
-  parameters.read_input_and_broadcast<dca::io::JSONReader>(input_dir + input + ".json");
+  parameters.read_input_and_broadcast<dca::io::JSONReader>(input_dir + input);
   if (update_model) {
     parameters.update_model();
     parameters.update_domains();
@@ -77,13 +79,13 @@ void performTest(const std::string& input, const std::string& output) {
   dca::phys::DcaLoopData<Parameters> loop_data;
   qmc_solver.finalize(loop_data);
 
-  if (not UPDATE_RESULTS) {
+  if (not update_baseline) {
     // Read and confront with previous run.
     if (concurrency.id() == 0) {
       auto G_k_w_check = data.G_k_w;
       G_k_w_check.set_name(data.G_k_w.get_name());
       dca::io::HDF5Reader reader;
-      reader.open_file(input_dir + input + ".hdf5");
+      reader.open_file(input_dir + baseline);
       reader.open_group("functions");
       reader.execute(G_k_w_check);
       reader.close_group(), reader.close_file();
@@ -98,7 +100,7 @@ void performTest(const std::string& input, const std::string& output) {
     //  Write results
     if (concurrency.id() == concurrency.first()) {
       dca::io::HDF5Writer writer;
-      writer.open_file(output);
+      writer.open_file(baseline);
       writer.open_group("functions");
       writer.execute(data.G_k_w);
       writer.close_group(), writer.close_file();
@@ -106,10 +108,14 @@ void performTest(const std::string& input, const std::string& output) {
   }
 }
 
- TEST(PosixCtauxClusterSolverTest, NonShared) {
-  performTest("nonshared_input", "ctaux_nonshared_ouput_data.hdf5");
+// Test with walk and accumulation running on the same thread.
+TEST(StdhreadCtauxTest, Shared) {
+  performTest("stdthread_ctaux_tp_test_shared_input.json",
+              "stdthread_ctaux_tp_test_shared_baseline.hdf5");
 }
 
-TEST(PosixCtauxClusterSolverTest, Shared) {
-  performTest("shared_input", "ctaux_shared_ouput_data.hdf5");
+// Test with walk and accumulation running on different threads.
+TEST(StdhreadCtauxTest, NonShared) {
+  performTest("stdthread_ctaux_tp_test_nonshared_input.json",
+              "stdthread_ctaux_tp_test_nonshared_baseline.hdf5");
 }
