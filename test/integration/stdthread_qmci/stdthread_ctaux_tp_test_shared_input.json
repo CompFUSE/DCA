@@ -28,8 +28,15 @@
     },
 
     "imaginary-frequency": {
-      "sp-fermionic-frequencies": 512
+      "sp-fermionic-frequencies": 512,
+      "four-point-fermionic-frequencies": 8
     }
+  },
+
+  "four-point": {
+    "type": "PARTICLE_HOLE_CHARGE",
+    "momentum-transfer": [3.1415, 3.1415],
+    "frequency-transfer": 1
   },
 
   "CT-AUX" : {

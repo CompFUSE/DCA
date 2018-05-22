@@ -380,7 +380,8 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::start_walker_and_accumula
       accumulator_obj.update_from(walker);
       accumulator_obj.measure();
     }
-    walker.update_shell(i, n_meas);
+    if (id == 0)
+      walker.update_shell(i, n_meas);
   }
 
   ++acc_finished;

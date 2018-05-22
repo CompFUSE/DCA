@@ -7,7 +7,9 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// No-change test for MC posix wrapper.
+// Confront the MC integration performed on the CPU and GPU over a square lattice with
+// nearest-neighbour hopping and on site interaction. The results are expected to be the
+// same up to numerical error.
 
 #include <iostream>
 #include <string>
@@ -15,6 +17,7 @@
 #include "gtest/gtest.h"
 
 #include "dca/function/function.hpp"
+#include "dca/function/util/difference.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_reader.hpp"
@@ -34,9 +37,7 @@
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 
-constexpr bool UPDATE_RESULTS = false;
-
-const std::string input_dir = DCA_SOURCE_DIR "/test/integration/stdthread_qmci/";
+const std::string input_dir = DCA_SOURCE_DIR "/test/integration/stdthread_qmci/gpu/";
 
 using Concurrency = dca::parallel::NoConcurrency;
 using RngType = dca::math::random::StdRandomWrapper<std::mt19937_64>;
@@ -46,12 +47,15 @@ using Threading = dca::parallel::stdthread;
 using Parameters = dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler,
                                                  Model, RngType, dca::phys::solver::CT_AUX>;
 using Data = dca::phys::DcaData<Parameters>;
-using BaseSolver = dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, Parameters, Data>;
-using QmcSolver = dca::phys::solver::StdThreadQmciClusterSolver<BaseSolver>;
 
-void performTest(const std::string& input, const std::string& output) {
-  static bool update_model = true;
+using BaseSolverGpu = dca::phys::solver::CtauxClusterSolver<dca::linalg::GPU, Parameters, Data>;
+using QmcSolverGpu = dca::phys::solver::StdThreadQmciClusterSolver<BaseSolverGpu>;
 
+using BaseSolverCpu = dca::phys::solver::CtauxClusterSolver<dca::linalg::CPU, Parameters, Data>;
+using QmcSolverCpu = dca::phys::solver::StdThreadQmciClusterSolver<BaseSolverCpu>;
+
+TEST(PosixCtauxClusterSolverTest, G_k_w) {
+  dca::linalg::util::initializeMagma();
   Concurrency concurrency(0, nullptr);
   if (concurrency.id() == concurrency.first()) {
     dca::util::GitVersion::print();
@@ -59,57 +63,34 @@ void performTest(const std::string& input, const std::string& output) {
   }
 
   Parameters parameters(dca::util::GitVersion::string(), concurrency);
-  parameters.read_input_and_broadcast<dca::io::JSONReader>(input_dir + input + ".json");
-  if (update_model) {
-    parameters.update_model();
-    parameters.update_domains();
-  }
-  update_model = false;
+  parameters.read_input_and_broadcast<dca::io::JSONReader>(
+      input_dir + "stdthread_ctaux_gpu_tp_test_input.json");
+  parameters.update_model();
+  parameters.update_domains();
 
   // Initialize data with G0 computation.
-  Data data(parameters);
-  data.initialize();
+  Data data_cpu(parameters), data_gpu(parameters);
+  data_cpu.initialize();
+  data_gpu.initialize();
+
+  QmcSolverCpu qmc_solver_cpu(parameters, data_cpu);
+  RngType::resetCounter();  // Use the same seed for both solvers.
+  QmcSolverGpu qmc_solver_gpu(parameters, data_gpu);
 
   // Do one integration step.
-  QmcSolver qmc_solver(parameters, data);
-  qmc_solver.initialize(0);
-  qmc_solver.integrate();
-  dca::phys::DcaLoopData<Parameters> loop_data;
-  qmc_solver.finalize(loop_data);
+  auto perform_integration = [&](auto& solver) {
+    solver.initialize(0);
+    solver.integrate();
+    dca::phys::DcaLoopData<Parameters> loop_data;
+    solver.finalize(loop_data);
+  };
+  perform_integration(qmc_solver_cpu);
+  perform_integration(qmc_solver_gpu);
 
-  if (not UPDATE_RESULTS) {
-    // Read and confront with previous run.
-    if (concurrency.id() == 0) {
-      auto G_k_w_check = data.G_k_w;
-      G_k_w_check.set_name(data.G_k_w.get_name());
-      dca::io::HDF5Reader reader;
-      reader.open_file(input_dir + input + ".hdf5");
-      reader.open_group("functions");
-      reader.execute(G_k_w_check);
-      reader.close_group(), reader.close_file();
+  const auto err_g = dca::func::util::difference(data_cpu.G_k_w, data_gpu.G_k_w);
+  const auto err_g4 =
+      dca::func::util::difference(data_cpu.get_G4_k_k_w_w(), data_gpu.get_G4_k_k_w_w());
 
-      for (int i = 0; i < G_k_w_check.size(); i++) {
-        EXPECT_NEAR(G_k_w_check(i).real(), data.G_k_w(i).real(), 1e-7);
-        EXPECT_NEAR(G_k_w_check(i).imag(), data.G_k_w(i).imag(), 1e-7);
-      }
-    }
-  }
-  else {
-    //  Write results
-    if (concurrency.id() == concurrency.first()) {
-      dca::io::HDF5Writer writer;
-      writer.open_file(output);
-      writer.open_group("functions");
-      writer.execute(data.G_k_w);
-      writer.close_group(), writer.close_file();
-    }
-  }
-}
-
- TEST(PosixCtauxClusterSolverTest, NonShared) {
-  performTest("nonshared_input", "ctaux_nonshared_ouput_data.hdf5");
-}
-
-TEST(PosixCtauxClusterSolverTest, Shared) {
-  performTest("shared_input", "ctaux_shared_ouput_data.hdf5");
+  EXPECT_GE(5e-7, err_g.l_inf);
+  EXPECT_GE(5e-7, err_g4.l_inf);
 }
