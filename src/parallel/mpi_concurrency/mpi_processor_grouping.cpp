@@ -20,14 +20,16 @@ namespace dca {
 namespace parallel {
 // dca::parallel::
 
-MPIProcessorGrouping::MPIProcessorGrouping() {
+MPIProcessorGrouping::MPIProcessorGrouping() : MPIProcessorGrouping(defaultTest) {}
+
+MPIProcessorGrouping::MPIProcessorGrouping(bool (*test)()) {
   // Initialize grouping with MPI world.
   MPI_communication_ = MPI_COMM_WORLD;
   MPI_Comm_size(MPI_COMM_WORLD, &world_size_);
   MPI_Comm_rank(MPI_COMM_WORLD, &world_id_);
 
   // Check if the process has the desired qualities, or remove it from the communicator.
-  const bool is_valid = testValidity();
+  const bool is_valid = test();
 
   std::vector<char> validity_input(world_size_, 0);
   std::vector<char> validity_output(world_size_, 0);
@@ -61,11 +63,13 @@ MPIProcessorGrouping::MPIProcessorGrouping() {
 }
 
 MPIProcessorGrouping::~MPIProcessorGrouping() {
-  MPI_Comm_free(&MPI_communication_);
-  MPI_Group_free(&MPI_group_);
+  if(isValid()) {
+    MPI_Comm_free(&MPI_communication_);
+    MPI_Group_free(&MPI_group_);
+  }
 }
 
-bool MPIProcessorGrouping::testValidity() const {
+bool MPIProcessorGrouping::defaultTest() {
 #ifdef DCA_HAVE_CUDA
   try {
     return kernelTest();
@@ -114,7 +118,7 @@ void MPIProcessorGrouping::printRemovedProcesses(const std::vector<int>& valid_i
 
   // Print the information.
   if (world_id_ == removed_ids[0]) {
-    std::cout << " \n\n\n ********* Invalid processes location *********\n";
+    std::cout << " \n\n\n********* Invalid processes location *********\n";
     auto print_line = [&](const int idx) { std::cout << recv_buffer.data() + idx * len << "\n"; };
     if (!isValid())
       print_line(0);

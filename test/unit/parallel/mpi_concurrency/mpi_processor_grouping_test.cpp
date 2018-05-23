@@ -26,6 +26,25 @@ TEST(MPIProcessorGroupingTest, All) {
   EXPECT_EQ(3, grouping.last());
 }
 
+TEST(MPIProcessorGroupingTest, FaultyProcess) {
+  // Simulate a faulty driver at rank 3.
+  auto mock_test = []{ return rank != 3;};
+
+  dca::parallel::MPIProcessorGrouping grouping(mock_test);
+
+  if(rank == 3) {
+    EXPECT_FALSE(grouping.isValid());
+  }
+  else {
+    EXPECT_TRUE(grouping.isValid());
+    EXPECT_GT(3, grouping.get_id());
+
+    EXPECT_EQ(3, grouping.get_Nr_threads());
+    EXPECT_EQ(0, grouping.first());
+    EXPECT_EQ(2, grouping.last());
+  }
+}
+
 int main(int argc, char** argv) {
   int result = 0;
 
