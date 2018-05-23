@@ -49,7 +49,6 @@ public:
     if (provided < required)
       throw(std::logic_error("MPI does not provide adequate thread support."));
 
-    MPI_Init(&argc, &argv);
     grouping_.set();
   }
 
