@@ -43,6 +43,12 @@ public:
         MPICollectiveSum(grouping_) {
     // TODO: If there is only one grouping, the MPI_Init call can be moved to the constructor of the
     //       MPIProcessorGrouping class.
+    int provided = 0;
+    constexpr int required = MPI_THREAD_FUNNELED;
+    MPI_Init_thread(&argc, &argv, required, &provided);
+    if (provided < required)
+      throw(std::logic_error("MPI does not provide adequate thread support."));
+
     MPI_Init(&argc, &argv);
     grouping_.set();
   }
