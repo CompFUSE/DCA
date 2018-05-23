@@ -28,6 +28,8 @@ class MPIProcessorGrouping {
 public:
   MPIProcessorGrouping();
 
+  MPIProcessorGrouping(bool (*test)());
+
   ~MPIProcessorGrouping();
 
 
@@ -59,7 +61,7 @@ public:
 
 private:
 
-  bool testValidity() const;
+  static bool defaultTest();
 
   void printRemovedProcesses(const std::vector<int>& valid_ids) const;
 
