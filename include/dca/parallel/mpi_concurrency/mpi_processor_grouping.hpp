@@ -66,8 +66,8 @@ private:
   void printRemovedProcesses(const std::vector<int>& valid_ids) const;
 
 private:
-  MPI_Group MPI_group_ = nullptr;
-  MPI_Comm MPI_communication_ = nullptr;
+  MPI_Group MPI_group_ = 0;
+  MPI_Comm MPI_communication_ = 0;
   int world_id_ = -1;
   int id_ = -1;
   int nr_threads_ = -1;
