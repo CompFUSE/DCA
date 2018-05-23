@@ -44,5 +44,5 @@ TEST(DifferenceTest, Complex) {
     f_z(i) = std::complex<double>(i, i * i);
   }
   const auto diff = dca::func::util::difference(f_c, f_z);
-  EXPECT_NEAR(0., diff3.l2, 5e-7);
+  EXPECT_NEAR(0., diff.l2, 5e-7);
 }
