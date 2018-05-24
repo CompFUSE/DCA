@@ -21,10 +21,10 @@
 #include "dca/testing/minimalist_printer.hpp"
 
 TEST(MPIPackingTest, PackAndUnpackFunction) {
-  dca::parallel::MPIProcessorGrouping grouping;
-  grouping.set();
+  std::unique_ptr<const dca::parallel::MPIProcessorGrouping> grouping_ptr(
+      new dca::parallel::MPIProcessorGrouping);
 
-  dca::parallel::MPIPacking packing(grouping);
+  dca::parallel::MPIPacking packing(grouping_ptr);
 
   using TestDomain = dca::func::dmn_0<dca::func::dmn<4, int>>;
 
