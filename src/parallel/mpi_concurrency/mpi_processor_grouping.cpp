@@ -63,7 +63,7 @@ MPIProcessorGrouping::MPIProcessorGrouping(bool (*test)()) {
 }
 
 MPIProcessorGrouping::~MPIProcessorGrouping() {
-  if(isValid()) {
+  if (isValid()) {
     MPI_Comm_free(&MPI_communication_);
     MPI_Group_free(&MPI_group_);
   }
@@ -113,8 +113,7 @@ void MPIProcessorGrouping::printRemovedProcesses(const std::vector<int>& valid_i
 
   char hostname[len];
   gethostname(hostname, len);
-  MPI_Gather(hostname, len, MPI_CHAR, recv_buffer.data(), len, MPI_CHAR, removed_ids[0],
-             removed_comm);
+  MPI_Gather(hostname, len, MPI_CHAR, recv_buffer.data(), len, MPI_CHAR, 0, removed_comm);
 
   // Print the information.
   if (world_id_ == removed_ids[0]) {
