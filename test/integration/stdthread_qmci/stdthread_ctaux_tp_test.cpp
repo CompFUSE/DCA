@@ -114,7 +114,7 @@ void performTest(const std::string& input, const std::string& baseline) {
   }
 }
 
-// Test with walk and accumulation running on the same thread.
+//// Test with walk and accumulation running on the same thread.
 TEST(StdhreadCtauxTest, Shared) {
   performTest("stdthread_ctaux_tp_test_shared_input.json",
               "stdthread_ctaux_tp_test_shared_baseline.hdf5");
