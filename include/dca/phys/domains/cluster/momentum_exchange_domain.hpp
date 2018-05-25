@@ -61,8 +61,8 @@ std::vector<int> MomentumExchangeDomain::elements_;
 bool MomentumExchangeDomain::initialized_ = false;
 
 template <class Parameters>
-void MomentumExchangeDomain::initialize(const Parameters& pars) {
-  if (pars.compute_all_transfers()) {
+void MomentumExchangeDomain::initialize(const Parameters& parameters) {
+  if (parameters.compute_all_transfers()) {
     const int size = Parameters::KClusterDmn::dmn_size();
     elements_.resize(size);
     int idx_value = 0;
@@ -71,7 +71,7 @@ void MomentumExchangeDomain::initialize(const Parameters& pars) {
   }
 
   else {
-    elements_.resize(1, pars.get_four_point_momentum_transfer_index());
+    elements_ = std::vector<int>{parameters.get_four_point_momentum_transfer_index()};
   }
 
   initialized_ = true;

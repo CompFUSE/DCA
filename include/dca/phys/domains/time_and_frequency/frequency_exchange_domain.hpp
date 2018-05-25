@@ -70,19 +70,16 @@ std::vector<int> FrequencyExchangeDomain::elements_;
 bool FrequencyExchangeDomain::initialized_ = false;
 
 template <class Parameters>
-void FrequencyExchangeDomain::initialize(const Parameters& pars) {
-  if (initialized_)
-    return;
-
-  if (pars.compute_all_transfers()) {
-    elements_.resize(pars.get_four_point_fermionic_frequencies() + 1);
+void FrequencyExchangeDomain::initialize(const Parameters& parameters) {
+  if (parameters.compute_all_transfers()) {
+    elements_.resize(parameters.get_four_point_fermionic_frequencies() + 1);
     int idx_value = 0;
     for (int& elem : elements_)
       elem = idx_value++;
   }
 
   else {
-    elements_.resize(1, pars.get_four_point_frequency_transfer());
+    elements_ = std::vector<int>{parameters.get_four_point_frequency_transfer()};
   }
 
   initialized_ = true;

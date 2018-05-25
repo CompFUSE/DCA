@@ -67,6 +67,12 @@ void performTest(const std::string& input, const std::string& baseline) {
     parameters.update_model();
     parameters.update_domains();
   }
+  else {
+    // The computed frequency and momentum exchange is stored in these two domains, which would not
+    // be updated otherwise.
+    dca::phys::domains::FrequencyExchangeDomain::initialize(parameters);
+    dca::phys::domains::MomentumExchangeDomain::initialize(parameters);
+  }
   update_model = false;
 
   // Initialize data with G0 computation.
