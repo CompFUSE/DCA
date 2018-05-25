@@ -208,7 +208,7 @@ double TpAccumulator<Parameters, linalg::CPU>::accumulate(
     const std::array<Configuration, 2>& configs, const int sign) {
   Profiler profiler("accumulate", "tp-accumulation", __LINE__, thread_id_);
   double gflops(0.);
-  if (!(configs[0].size() + configs[0].size()))  // empty config
+  if (!(configs[0].size() + configs[1].size()))  // empty config
     return gflops;
 
   sign_ = sign;
