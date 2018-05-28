@@ -327,7 +327,7 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::measure(walker_type& w
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t measuring has started \n" << std::endl;
 
-  const int n_meas = parallel::util::getWorkload(parameters.get_measurements(), 1, 0, concurrency);
+  const int n_meas = parallel::util::getWorkload(parameters.get_measurements(), concurrency);
 
   for (int i = 0; i < n_meas; i++) {
     {
