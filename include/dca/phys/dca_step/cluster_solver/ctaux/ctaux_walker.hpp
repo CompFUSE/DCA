@@ -322,23 +322,27 @@ CtauxWalker<device_t, parameters_type, MOMS_type>::CtauxWalker(parameters_type& 
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 CtauxWalker<device_t, parameters_type, MOMS_type>::~CtauxWalker() {
-  if (concurrency.id() == 0 && thread_id == 0) {
-    // std::defaultfloat is only supported by GCC 5 or later.
-    std::cout.unsetf(std::ios_base::floatfield);
+  try {
+    if (concurrency.id() == 0 && thread_id == 0) {
+      // std::defaultfloat is only supported by GCC 5 or later.
+      std::cout.unsetf(std::ios_base::floatfield);
 
-    std::cout << "\n"
-              << "Walker: process ID = 0, thread ID = 0\n"
-              << "-------------------------------------------\n"
-              << "estimate for sweep size: " << warm_up_expansion_order_.mean() << "\n"
-              << "average number of delayed spins: " << num_delayed_spins_.mean() << "\n"
-              << "# creations / # annihilations: "
-              << static_cast<double>(number_of_creations) /
-                     static_cast<double>(number_of_annihilations)
-              << "\n"
-              << std::endl;
-
-    std::cout << std::scientific;
+      std::cout << "\n"
+                << "Walker: process ID = 0, thread ID = 0\n"
+                << "-------------------------------------------\n"
+                << "estimate for sweep size: " << warm_up_expansion_order_.mean() << "\n"
+                << "average number of delayed spins: " << num_delayed_spins_.mean() << "\n"
+                << "# creations / # annihilations: "
+                << static_cast<double>(number_of_creations) /
+                       static_cast<double>(number_of_annihilations)
+                << "\n"
+                << std::endl;
+    }
   }
+  // Ignore exceptions during destruction.
+  catch (...) {
+  }
+  std::cout << std::scientific;
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
