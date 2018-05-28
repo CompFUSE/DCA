@@ -20,7 +20,7 @@ namespace io {
 
 HDF5Reader::~HDF5Reader() {
   if (my_file != NULL)
-    throw std::logic_error(__FUNCTION__);
+    close_file();
 }
 
 void HDF5Reader::open_file(std::string file_name) {
