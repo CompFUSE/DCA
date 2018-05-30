@@ -17,7 +17,7 @@
 #include "gtest/gtest.h"
 
 #include "dca/function/function.hpp"
-#include "dca/function/function_utils.hpp"
+#include "dca/function/util/difference.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_reader.hpp"
@@ -33,11 +33,11 @@
 #include "dca/profiling/null_profiler.hpp"
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
-#include "test/unit/phys/dca_step/cluster_solver/mock_rng.hpp"
+#include "test/unit/phys/dca_step/cluster_solver/stub_rng.hpp"
 
 const std::string input_dir = DCA_SOURCE_DIR "/test/integration/ctint/";
 
-using RngType = dca::testing::MockRng;
+using RngType = dca::testing::StubRng;
 using Lattice = dca::phys::models::square_lattice<dca::phys::domains::D4>;
 using Model = dca::phys::models::TightBindingModel<Lattice>;
 using Threading = dca::parallel::NoThreading;
@@ -88,6 +88,6 @@ TEST(SquareLatticeTest, GpuSolver) {
   qmc_solver_cpu.integrate();
   qmc_solver_cpu.finalize();
 
-  auto diff = dca::func::utils::difference(data_cpu.G_k_w, data_gpu.G_k_w);
+  auto diff = dca::func::util::difference(data_cpu.G_k_w, data_gpu.G_k_w);
   EXPECT_GE(5e-7, diff.l_inf);
 }

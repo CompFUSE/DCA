@@ -21,13 +21,11 @@ namespace config {
 struct CMakeOptions {
   // CUDA
   static const std::string dca_with_cuda;
-  static const std::string dca_with_pinned_host_memory;
   static const std::string cuda_gpu_arch;
 
   // Parallelization
   static const std::string dca_with_mpi;
   static const std::string dca_with_threaded_solver;
-  static const std::string dca_threading_library;
 
   // Others
   static const std::string dca_cluster_solver;
@@ -41,7 +39,6 @@ struct CMakeOptions {
   static const std::string dca_profiler;
   static const std::string dca_with_autotuning;
   static const std::string dca_with_gnuplot;
-  static const std::string dca_with_reduced_vertex_function;
   static const std::string dca_with_single_precision_measurements;
   static const std::string dca_with_single_precision_coarsegraining;
   static const std::string dca_with_qmc_bit;

@@ -13,7 +13,7 @@
 
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_configuration.hpp"
 
-#include "test/unit/phys/dca_step/cluster_solver/mock_rng.hpp"
+#include "test/unit/phys/dca_step/cluster_solver/stub_rng.hpp"
 
 TEST(SolverConfigurationTest, InsertAndSwap) {
   dca::phys::solver::ctint::InteractionVertices interactions;
@@ -24,7 +24,7 @@ TEST(SolverConfigurationTest, InsertAndSwap) {
   dca::phys::solver::ctint::SolverConfiguration<dca::linalg::CPU> config(1, 2, interactions, 1);
   using Vector = std::vector<double>;
   // Select numbers for: first vertex(ndd), tau, aux_spin, double insertion, tau2, aux_spin2.
-  dca::testing::MockRng rng(Vector{0.9, 0.66, 0.2, 0, 0.66, 0.2});
+  dca::testing::StubRng rng(Vector{0.9, 0.66, 0.2, 0, 0.66, 0.2});
 
   config.insertRandom(rng);
   EXPECT_EQ(2, config.size());

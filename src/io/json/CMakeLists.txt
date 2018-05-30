@@ -1,6 +1,6 @@
 # JSON
 
-dca_add_library(json STATIC
+add_library(json STATIC
   json_parser/json_character_mapper.cpp
   json_parser/json_context.cpp
   json_parser/json_enumerations.cpp

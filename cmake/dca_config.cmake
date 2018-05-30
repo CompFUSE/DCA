@@ -218,6 +218,12 @@ else()
 endif()
 
 ################################################################################
+# Threading options/settings
+if (UNIX)
+  set(DCA_THREADING_LIBS "pthread")
+endif()
+
+################################################################################
 # Use threaded cluster solver.
 option(DCA_WITH_THREADED_SOLVER "Use multiple walker and accumulator threads in the cluster solver." ON)
 
@@ -239,11 +245,11 @@ endif()
 
 ################################################################################
 # Single precision measurements
-# INTERNAL: change to ON by default after the change is validated.
+# TODO: change to ON by default after merging and testing the two particle accumulator.
 option(DCA_WITH_SINGLE_PRECISION_MEASUREMENTS "Measure in single precision." OFF)
 
 if (DCA_WITH_SINGLE_PRECISION_MEASUREMENTS)
-  dca_add_config_define("DCA_WITH_SINGLE_PRECISION_MEASUREMENTS")
+  dca_add_config_define(DCA_WITH_SINGLE_PRECISION_MEASUREMENTS)
 endif()
 
 ################################################################################

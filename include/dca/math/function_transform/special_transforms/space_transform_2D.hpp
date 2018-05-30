@@ -15,10 +15,10 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
-#include "dca/math/function_transform/vector_operations.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/matrixop.hpp"
 #include "dca/linalg/matrix_view.hpp"
+#include "dca/math/util/vector_operations.hpp"
 
 namespace dca {
 namespace math {
@@ -104,7 +104,7 @@ const linalg::Matrix<std::complex<Real>, linalg::CPU>& SpaceTransform2D<RDmn, KD
       const auto& r = RDmn::parameter_type::get_elements()[j];
       for (int i = 0; i < KDmn::dmn_size(); ++i) {
         const auto& k = KDmn::parameter_type::get_elements()[i];
-        T(i, j) = std::exp(Complex(0, details::dot_prod(k, r)));
+        T(i, j) = std::exp(Complex(0, util::innerProduct(k, r)));
       }
     }
     return T;

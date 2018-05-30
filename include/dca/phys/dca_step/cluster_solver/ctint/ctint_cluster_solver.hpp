@@ -124,8 +124,6 @@ protected:  // Protected for testing purposes.
 
   double L2Difference() const;
 
-  void updateShell(int i, int to_do, int order, double avg_order = -1) const;
-
   void computeErrorBars() const {}
 
 protected:
@@ -312,7 +310,7 @@ void CtintClusterSolver<device_t, Parameters>::warmUp() {
   for (int i = 0; i < n_sweep; i++) {
     walker_->doSweep();
 
-    updateShell(i, n_sweep, walker_->order(), walker_->avgOrder());
+    walker_->update_shell(i, n_sweep);
   }
 
   walker_->markThermalized();
@@ -331,7 +329,7 @@ void CtintClusterSolver<device_t, Parameters>::measure() {
       Profiler profiler("measurements", "QMCI", __LINE__);
       accumulator_.accumulate(*walker_);
     }
-    updateShell(i, n_meas, walker_->order(), walker_->avgOrder());
+    walker_->update_shell(i, n_meas);
   }
 
   accumulator_.finalize();
@@ -436,18 +434,6 @@ double CtintClusterSolver<device_t, Parameters>::computeDensity() const {
     result += data_.G_r_t(i, i, Rdmn::parameter_type::origin_index(), t0_minus);
 
   return result;
-}
-
-template <dca::linalg::DeviceType device_t, class Parameters>
-void CtintClusterSolver<device_t, Parameters>::updateShell(int i, int N, int order,
-                                                           double avg_order) const {
-  if (concurrency_.id() == concurrency_.first() and i > 1 and (i % (N / 10)) == 0) {
-    std::cout << "\t\t\t" << int(double(i) / double(N) * 100) << " % completed \t ";
-    std::cout << "\t k :" << order;
-    if (avg_order != -1)
-      std::cout << "\t <k> :" << std::setprecision(1) << std::fixed << avg_order;
-    std::cout << "\t\t" << dca::util::print_time() << "\n";
-  }
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters>

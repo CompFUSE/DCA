@@ -7,136 +7,52 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@gitp.phys.ethz.ch)
 //
-// unit tests for the device version of the cached_ndft class.
+// Unit tests for the device version of the cached_ndft class.
 
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_gpu.hpp"
 
-#include <array>
-#include <cmath>
 #include <complex>
-#include <memory>
-#include <vector>
 
 #include "gtest/gtest.h"
 
-#include "dca/function/domains.hpp"
-#include "dca/function/function.hpp"
-#include "dca/function/function_utils.hpp"
+#include "dca/function/util/difference.hpp"
 #include "dca/linalg/matrix.hpp"
-#include "dca/math/random/std_random_wrapper.hpp"
-#include "dca/phys/domains/quantum/electron_band_domain.hpp"
-#include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
+#include "dca/linalg/util/util_cublas.hpp"
 #include "dca/profiling/events/time.hpp"
+#include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_test.hpp"
 
-using dca::func::function;
-using dca::func::dmn_variadic;
-class PositiveFrq {
-public:
-  using element_type = double;
-  static std::size_t get_size() {
-    return size_;
-  }
-  static void initialize(const int n_frq) {
-    size_ = n_frq;
-  }
+constexpr int n_samples = 31;
+constexpr int n_bands = 3;
+constexpr int n_frqs = 7;
+using CachedNdftGpuTest = dca::testing::CachedNdftTest<n_samples, n_bands, n_frqs>;
 
-private:
-  static int size_;
-};
-int PositiveFrq::size_ = -1;
+double computeWithFastNDFT(const CachedNdftGpuTest::Configuration& config,
+                           const CachedNdftGpuTest::Matrix& M, CachedNdftGpuTest::F_w_w& f_w);
 
-using RDmn = dca::func::dmn_0<dca::func::dmn<2, int>>;
+// Compare the result provided by the GPU version of CachedNdft::execute with the definition of the
+// NDFT f(w1, w2) = \sum_{t1, t2} f(t1, t2) exp(i * t1 * w1 - t2 w2) stored in f_baseline_.
+TEST_F(CachedNdftGpuTest, Execute) {
+  F_w_w f_w_fast("f_w_fast");
 
-using FreqDmn = dca::func::dmn_0<dca::phys::domains::frequency_domain>;
-using FreqDmnPos = dca::func::dmn_0<PositiveFrq>;
-using BDmn = dca::func::dmn_0<dca::phys::domains::electron_band_domain>;
+  // Compute the NDFT with the CachedNdft class and rearrange the result with the same order as
+  // f_baseline_.
+  const double time = computeWithFastNDFT(configuration_, M_, f_w_fast);
 
-struct Vertex {
-  double get_tau() const {
-    return tau_;
-  }
-  double get_left_band() const {
-    return b_;
-  }
-  double get_right_band() const {
-    return b_;
-  }
-  double get_left_site() const {
-    return r_;
-  }
-  double get_right_site() const {
-    return r_;
-  }
-
-  int b_;
-  int r_;
-  double tau_;
-};
-using Configuration = std::vector<Vertex>;
-using Matrix = dca::linalg::Matrix<double, dca::linalg::CPU>;
-
-template <class W2Dmn>
-double computeWithFastDNFT(
-    const Configuration& config, const Matrix& M,
-    function<std::complex<double>, dmn_variadic<BDmn, BDmn, RDmn, RDmn, FreqDmn, FreqDmn>>& f_w);
-void computeWithDft(
-    const Configuration& config, const Matrix& M,
-    function<std::complex<double>, dmn_variadic<BDmn, BDmn, RDmn, RDmn, FreqDmn, FreqDmn>>& f_w);
-void prepareConfiguration(Configuration& config, Matrix& M, int n);
-
-namespace global {
-// Global data, to be initialized once.
-Configuration configuration;
-Matrix M;
-// Stores f(w) computed with the direct definition of the discrete Fourier transform (DFT).
-std::unique_ptr<function<std::complex<double>, dmn_variadic<BDmn, BDmn, RDmn, RDmn, FreqDmn, FreqDmn>>> f_w_dft;
-}  // global
-
-TEST(CachedNdftTest, prepareConfigAndDomains) {
-  const int positive_frequencies = 8;
-  const int config_size = 31;
-
-  const int n_bands = 3;
-
-  // Initialize time and frequency domains.
-  dca::phys::domains::frequency_domain::initialize(0.5, positive_frequencies);
-  PositiveFrq::initialize(positive_frequencies);
-  int mock_parameter = 0;
-
-  BDmn::parameter_type::initialize(
-      mock_parameter, n_bands, std::vector<int>(),
-      std::vector<std::vector<double>>(n_bands, std::vector<double>(n_bands, 0)));
-
-  prepareConfiguration(global::configuration, global::M, config_size);
-  global::f_w_dft.reset(
-      new function<std::complex<double>, dmn_variadic<BDmn, BDmn, RDmn, RDmn, FreqDmn, FreqDmn>>(
-          "f_w_dft"));
-  computeWithDft(global::configuration, global::M, *global::f_w_dft);
-}
-
-TEST(CachedNdftTest, execute) {
-  function<std::complex<double>, dmn_variadic<BDmn, BDmn, RDmn, RDmn, FreqDmn, FreqDmn>> f_w_fast(
-      "f_w_fast");
-
-  const double time = computeWithFastDNFT<FreqDmnPos>(global::configuration, global::M, f_w_fast);
-
-  // Check errors.
-  const auto err = dca::func::utils::difference(*global::f_w_dft, f_w_fast);
+  const auto err = dca::func::util::difference(f_baseline_, f_w_fast);
   EXPECT_LT(err.l_inf, 1e-14);
 
-  std::cout << "\nTrimmed cached nft time [sec]:\t " << time << "\n";
+  std::cout << "\nCached GPU ndft time [sec]:\t " << time << "\n";
 }
 
-template <class W2Dmn>
-double computeWithFastDNFT(
-    const Configuration& config, const Matrix& M,
-    function<std::complex<double>, dmn_variadic<BDmn, BDmn, RDmn, RDmn, FreqDmn, FreqDmn>>& f_w) {
+double computeWithFastNDFT(const CachedNdftGpuTest::Configuration& config,
+                           const CachedNdftGpuTest::Matrix& M, CachedNdftGpuTest::F_w_w& f_w) {
   dca::linalg::util::initializeMagma();
   magma_queue_t queue;
   magma_queue_create(&queue);
 
-  function<std::complex<double>, dmn_variadic<BDmn, BDmn, RDmn, RDmn, W2Dmn, FreqDmn>> f_b_b_r_r_w_w;
-  dca::phys::solver::accumulator::CachedNdft<double, RDmn, FreqDmn, FreqDmnPos, dca::linalg::GPU> nft_obj(queue);
+  dca::phys::solver::accumulator::CachedNdft<double, CachedNdftGpuTest::RDmn, CachedNdftGpuTest::FreqDmn,
+                                             CachedNdftGpuTest::PosFreqDmn, dca::linalg::GPU>
+      nft_obj(queue);
   EXPECT_EQ(magma_queue_get_cuda_stream(queue), nft_obj.get_stream());
   dca::linalg::Matrix<std::complex<double>, dca::linalg::GPU> result_device(64);
   dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> result_host;
@@ -148,15 +64,17 @@ double computeWithFastDNFT(
 
   result_host = result_device;
 
-  const int nb = BDmn::dmn_size();
-  const int nr = RDmn::dmn_size();
-  const int n_w = PositiveFrq::get_size();
+  // Rearrange the output from a function of (r1, b1, w1, r2, b2, w2) to a function of (b1, b2, r1,
+  // r2, w1, w2).
+  const int nb = CachedNdftGpuTest::BDmn::dmn_size();
+  const int nr = CachedNdftGpuTest::RDmn::dmn_size();
+  const int n_w = CachedNdftGpuTest::PosFreqDmn::dmn_size();
   auto invert_w = [=](const int w) { return 2 * n_w - 1 - w; };
   for (int b2 = 0; b2 < nb; ++b2)
     for (int b1 = 0; b1 < nb; ++b1)
       for (int r2 = 0; r2 < nr; ++r2)
         for (int r1 = 0; r1 < nr; ++r1)
-          for (int w2 = 0; w2 < FreqDmn::dmn_size(); ++w2)
+          for (int w2 = 0; w2 < CachedNdftGpuTest::FreqDmn::dmn_size(); ++w2)
             for (int w1 = 0; w1 < n_w; ++w1) {
               const auto val = result_host(r1 + b1 * nr + w1 * nr * nb, r2 + b2 * nr + w2 * nr * nb);
               f_w(b1, b2, r1, r2, w1 + n_w, w2) = val;
@@ -167,51 +85,4 @@ double computeWithFastDNFT(
 
   dca::profiling::Duration duration(end_time, start_time);
   return duration.sec + 1.e-6 * duration.usec;
-}
-
-void computeWithDft(
-    const Configuration& config, const Matrix& M,
-    function<std::complex<double>, dmn_variadic<BDmn, BDmn, RDmn, RDmn, FreqDmn, FreqDmn>>& f_w) {
-  const std::complex<double> img(0, 1);
-
-  for (int w_ind2 = 0; w_ind2 < FreqDmn::dmn_size(); ++w_ind2) {
-    const double w_val2 = FreqDmn::get_elements()[w_ind2];
-    for (int w_ind1 = 0; w_ind1 < FreqDmn::dmn_size(); ++w_ind1) {
-      const double w_val1 = FreqDmn::get_elements()[w_ind1];
-      for (int j = 0; j < config.size(); ++j) {
-        const auto t_val2 = config[j].get_tau();
-        const int b2 = config[j].b_;
-        const int r2 = config[j].r_;
-        for (int i = 0; i < config.size(); ++i) {
-          const auto t_val1 = config[i].get_tau();
-          const int b1 = config[i].b_;
-          const int r1 = config[i].r_;
-
-          const auto f_t = M(i, j);
-          f_w(b1, b2, r1, r2, w_ind1, w_ind2) +=
-              f_t * std::exp(img * (t_val1 * w_val1 - t_val2 * w_val2));
-        }
-      }
-    }
-  }
-}
-
-void prepareConfiguration(Configuration& config, Matrix& M, const int n) {
-  config.resize(n);
-  M.resize(n);
-  dca::math::random::StdRandomWrapper<std::ranlux48_base> rng(0, 1, 0);
-
-  for (int i = 0; i < n; ++i) {
-    const double tau = rng() - 0.5;
-    const int b = rng() * BDmn::dmn_size();
-    const int r = rng() * RDmn::dmn_size();
-    config[i] = Vertex{b, r, tau};
-  }
-
-  for (int j = 0; j < n; ++j)
-    for (int i = 0; i < n; ++i) {
-      const double t1 = config[i].get_tau();
-      const double t2 = config[j].get_tau();
-      M(i, j) = std::sin(2 * M_PI * t1) * std::sin(6 * M_PI * t2);
-    }
 }

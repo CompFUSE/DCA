@@ -71,16 +71,43 @@ TEST(MatrixViewTest, MakeConstantView) {
   dca::linalg::Matrix<double, dca::linalg::CPU> mat(std::make_pair(4, 2));
   auto init_func = [](int i, int j) { return j + 10. * i; };
   testing::setMatrixElements(mat, init_func);
+  {
+    const dca::linalg::Matrix<double, dca::linalg::CPU> const_mat(mat);
+    auto const_view_ptr = dca::linalg::makeConstantView(const_mat);
+    const auto& const_view = *const_view_ptr;
+    EXPECT_EQ(const_mat.nrRows(), const_view.nrRows());
+    EXPECT_EQ(const_mat.nrCols(), const_view.nrCols());
+    EXPECT_EQ(const_mat.ptr(), const_view.ptr());
+    EXPECT_EQ(const_mat.leadingDimension(), const_view.leadingDimension());
 
-  const dca::linalg::Matrix<double, dca::linalg::CPU> const_mat(mat);
-  auto const_view_ptr = dca::linalg::makeConstantView(const_mat);
-  const auto& const_view = *const_view_ptr;
-  EXPECT_EQ(const_mat.nrRows(), const_view.nrRows());
-  EXPECT_EQ(const_mat.nrCols(), const_view.nrCols());
-  EXPECT_EQ(const_mat.ptr(), const_view.ptr());
-  EXPECT_EQ(const_mat.leadingDimension(), const_view.leadingDimension());
+    for (int j = 0; j < const_view.nrCols(); ++j)
+      for (int i = 0; i < const_view.nrCols(); ++i)
+        EXPECT_EQ(const_mat(i, j), const_view(i, j));
+  }
+  {
+    const dca::linalg::Matrix<double, dca::linalg::CPU> const_mat(mat);
+    auto const_view_ptr = dca::linalg::makeConstantView(const_mat, 1, 0);
+    const auto& const_view = *const_view_ptr;
+    EXPECT_EQ(const_mat.nrRows() - 1, const_view.nrRows());
+    EXPECT_EQ(const_mat.nrCols(), const_view.nrCols());
+    EXPECT_EQ(const_mat.ptr(1, 0), const_view.ptr());
+    EXPECT_EQ(const_mat.leadingDimension(), const_view.leadingDimension());
 
-  for (int j = 0; j < const_view.nrCols(); ++j)
-    for (int i = 0; i < const_view.nrCols(); ++i)
-      EXPECT_EQ(const_mat(i, j), const_view(i, j));
+    for (int j = 0; j < const_view.nrCols(); ++j)
+      for (int i = 0; i < const_view.nrCols(); ++i)
+        EXPECT_EQ(const_mat(i + 1, j), const_view(i, j));
+  }
+  {
+    const dca::linalg::Matrix<double, dca::linalg::CPU> const_mat(mat);
+    auto const_view_ptr = dca::linalg::makeConstantView(const_mat, 0, 1, 2, 1);
+    const auto& const_view = *const_view_ptr;
+    EXPECT_EQ(2, const_view.nrRows());
+    EXPECT_EQ(1, const_view.nrCols());
+    EXPECT_EQ(const_mat.ptr(0, 1), const_view.ptr());
+    EXPECT_EQ(const_mat.leadingDimension(), const_view.leadingDimension());
+
+    for (int j = 0; j < const_view.nrCols(); ++j)
+      for (int i = 0; i < const_view.nrCols(); ++i)
+        EXPECT_EQ(const_mat(i, j + 1), const_view(i, j));
+  }
 }

@@ -371,6 +371,9 @@ void CtauxAccumulator<device_t, parameters_type, Data>::updateFrom(walker_type& 
   walker.get_error_distribution() = 0;
 #endif  // DCA_WITH_QMC_BIT
 
+  single_particle_accumulator_obj.synchronizeCopy();
+  two_particle_accumulator_.synchronizeCopy();
+
   hs_configuration_[0] = full_configuration.get(e_UP);
   compute_M_v_v(hs_configuration_[0], walker.get_N(e_UP), M_[0], walker.get_thread_id(), 0);
 

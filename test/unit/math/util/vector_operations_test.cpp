@@ -138,12 +138,24 @@ TYPED_TEST(VectorOperationsRealTest, InnerProduct) {
               500 * this->epsilon);
 }
 
+TYPED_TEST(VectorOperationsRealTest, ScalarInnerProduct) {
+  using ScalarType = TypeParam;
+  ScalarType x(3.14), y(42);
+  EXPECT_EQ(x * y, dca::math::util::innerProduct(x, y));
+}
+
 TYPED_TEST(VectorOperationsComplexTest, InnerProduct) {
   using ComplexType = TypeParam;
   const ComplexType res = dca::math::util::innerProduct(this->v, this->w);
 
   EXPECT_NEAR(typename ComplexType::value_type(12.34), res.real(), 500 * this->epsilon);
   EXPECT_NEAR(typename ComplexType::value_type(12.678), res.imag(), 500 * this->epsilon);
+}
+
+TYPED_TEST(VectorOperationsComplexTest, ScalarInnerProduct) {
+  using ComplexType = TypeParam;
+  ComplexType x(3.14, -1), y(42, 2.71);
+  EXPECT_EQ(x * std::conj(y), dca::math::util::innerProduct(x, y));
 }
 
 //

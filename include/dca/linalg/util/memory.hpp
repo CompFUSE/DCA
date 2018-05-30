@@ -59,7 +59,7 @@ struct Memory<CPU> {
       printErrorMessage(ret, __FUNCTION__, __FILE__, __LINE__);
 #else
     free(ptr);
-#endif
+#endif  // DCA_HAVE_CUDA
     ptr = nullptr;
   }
 

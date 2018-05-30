@@ -1,6 +1,6 @@
 # CT-AUX
 
-dca_add_library(ctaux STATIC
+add_library(ctaux STATIC
   domains/feynman_expansion_order_domain.cpp
   domains/hs_field_sign_domain.cpp
   domains/hs_spin_domain.cpp
@@ -9,10 +9,11 @@ dca_add_library(ctaux STATIC
   walker/ct_aux_walker_tools.cpp)
 
 if (DCA_HAVE_CUDA)
-  target_compile_definitions(ctaux PUBLIC DCA_HAVE_CUDA)
-  target_include_directories(ctaux PUBLIC ${MAGMA_INCLUDE_DIR};${CUDA_TOOLKIT_INCLUDE})
+  set_property(TARGET ctaux
+               APPEND PROPERTY COMPILE_DEFINITIONS DCA_HAVE_CUDA)
+endif ()
 
-
+if (DCA_HAVE_CUDA)
   CUDA_ADD_LIBRARY(ctaux_walker_kernels
     walker/ct_aux_walker_tools_kernels.cu
     walker/tools/g0_interpolation/g0_interpolation_kernels.cu

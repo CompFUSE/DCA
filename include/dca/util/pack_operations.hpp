@@ -13,8 +13,6 @@
 // - if_all
 // - product
 
-#include <tuple>
-
 #ifndef DCA_UTIL_PACK_OPERATIONS_HPP
 #define DCA_UTIL_PACK_OPERATIONS_HPP
 
@@ -32,15 +30,14 @@ struct if_all<b> {
   constexpr static bool value = b;
 };
 
-template<typename T>
-constexpr T product(T first)
-{
+// product(T1 a1, T2 a2, ...) returns the product of all its arguments. Equivalent to a1 * a2 * ...
+template <typename T>
+constexpr T product(T first) {
   return first;
 }
 
-template<typename T, class ... Args>
-constexpr T product(T first, Args... args)
-{
+template <typename T, class... Args>
+constexpr T product(T first, Args... args) {
   return first * product<Args...>(args...);
 }
 

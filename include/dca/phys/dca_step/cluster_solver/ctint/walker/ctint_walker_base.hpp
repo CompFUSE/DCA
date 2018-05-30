@@ -14,6 +14,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <iomanip>
 #include <stdexcept>
 #include <vector>
 
@@ -31,6 +32,7 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/util/integer_division.hpp"
+#include "dca/util/print_time.hpp"
 
 namespace dca {
 namespace phys {
@@ -86,6 +88,10 @@ public:
   const auto& get_configuration() const {
     return configuration_;
   }
+
+  void update_shell(int meas_id, int meas_to_do) const;
+
+  void printSummary() const {}
 
 protected:  // typedefs
   using TPosDmn = func::dmn_0<ctint::PositiveTimeDomain>;
@@ -301,7 +307,7 @@ void CtintWalkerBase<device_t, Parameters>::applyInsertion(const MatrixPair<matr
       continue;
     }
 
-    auto& R_M = ws_dn_[device_t == linalg::GPU? s : 0];
+    auto& R_M = ws_dn_[device_t == linalg::GPU ? s : 0];
     R_M.resizeNoCopy(R.size());
     linalg::matrixop::gemm(R, M, R_M, thread_id_, s);
 
@@ -391,6 +397,18 @@ void CtintWalkerBase<device_t, Parameters>::applyRemoval() {
     MatrixView M_bulk(M, 0, 0, m_size, m_size);
     linalg::matrixop::gemm(-1., Q_S, R, 1., M_bulk, thread_id_, s);
     M.resize(m_size);
+  }
+}
+
+template <linalg::DeviceType device_t, class Parameters>
+void CtintWalkerBase<device_t, Parameters>::update_shell(int meas_id, int meas_to_do) const {
+  if (concurrency_.id() == concurrency_.first() && meas_id > 1 && (meas_id % (meas_to_do / 10)) == 0) {
+    std::cout << "\t\t\t" << int(double(meas_id) / double(meas_to_do) * 100) << " % completed \t ";
+    std::cout << "\t k :" << order();
+    const double avg_order = avgOrder();
+    if (avg_order != -1)
+      std::cout << "\t <k> :" << std::setprecision(1) << std::fixed << avg_order;
+    std::cout << "\t\t" << dca::util::print_time() << "\n";
   }
 }
 

@@ -72,6 +72,8 @@ public:
 
   void sumTo(SpAccumulator<Parameters, linalg::CPU>& other) const;
 
+  void synchronizeCopy(){}
+
   const auto& get_sign_times_M_r_w() const;
 
   const auto& get_sign_times_M_r_w_sqr() const;

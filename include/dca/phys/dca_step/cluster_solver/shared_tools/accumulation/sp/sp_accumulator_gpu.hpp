@@ -63,6 +63,11 @@ public:
 
   void sumTo(SpAccumulator<Parameters, linalg::GPU>& other);
 
+  void synchronizeCopy(){
+    cached_nfft_obj_[0].synchronizeCopy();
+    cached_nfft_obj_[1].synchronizeCopy();
+  }
+
   const auto& get_streams() const {
     return streams_;
   }

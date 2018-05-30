@@ -18,7 +18,7 @@ namespace dca {
 namespace phys {
 // dca::phys::
 
-enum FourPointType {
+enum FourPointType : int {
   NONE,
   PARTICLE_HOLE_TRANSVERSE,
   PARTICLE_HOLE_MAGNETIC,
@@ -26,7 +26,7 @@ enum FourPointType {
   PARTICLE_PARTICLE_UP_DOWN
 };
 
-FourPointType readFourPointMode(const std::string& name);
+FourPointType stringToFourPointType(const std::string& name);
 
 std::string toString(const FourPointType type);
 

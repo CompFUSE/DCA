@@ -101,8 +101,6 @@ protected:  // Interface to the thread jacket.
     return Walker(parameters_, data_, rng, id);
   }
 
-  void updateShell(int i, int N, int k);
-
 private:
   void warm_up(Walker& walker);
 
@@ -161,7 +159,7 @@ SsCtHybClusterSolver<device_t, parameters_type, Data>::SsCtHybClusterSolver(
       accumulator_(parameters_, data_),
       total_time_(0),
       dca_iteration_(-1),
-      
+
       rng(concurrency_.id(), concurrency_.number_of_processors(), parameters_.get_seed()),
 
       thermalization_time(0),
@@ -324,8 +322,7 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::warm_up(Walker& walk
 
   for (int i = 0; i < parameters_.get_warm_up_sweeps(); i++) {
     walker.doSweep();
-
-    updateShell(i, parameters_.get_warm_up_sweeps(), walker.get_configuration().size());
+    walker.update_shell(i, parameters_.get_warm_up_sweeps());
   }
 
   walker.is_thermalized() = true;
@@ -346,7 +343,7 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::measure(Walker& walk
 
     accumulator_.measure();
 
-    updateShell(i, parameters_.get_measurements_per_process(), walker.get_configuration().size());
+    walker.update_shell(i, parameters_.get_measurements_per_process());
   }
 
   // here we need to do a correction a la Andrey
@@ -364,19 +361,6 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::measure(Walker& walk
 
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t measuring has ended \n" << std::endl;
-}
-
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void SsCtHybClusterSolver<device_t, parameters_type, Data>::updateShell(int i, int N, int k) {
-  if (concurrency_.id() == concurrency_.first() && N > 10 && (i % (N / 10)) == 0) {
-    std::cout << std::scientific;
-    std::cout.precision(6);
-
-    std::cout << "\t\t\t" << double(i) / double(N) * 100. << " % completed \t ";
-
-    std::cout << "\t <k> :" << k << " \t";
-    std::cout << dca::util::print_time() << "\n";
-  }
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>

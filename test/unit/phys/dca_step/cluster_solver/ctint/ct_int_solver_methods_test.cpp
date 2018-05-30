@@ -3,7 +3,7 @@
 #include "gtest/gtest.h"
 
 #include "dca/phys/parameters/parameters.hpp"
-#include "test/unit/phys/dca_step/cluster_solver/mock_rng.hpp"
+#include "test/unit/phys/dca_step/cluster_solver/stub_rng.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
 #include "dca/phys/models/analytic_hamiltonians/square_lattice.hpp"
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
@@ -12,7 +12,7 @@
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/profiling/null_profiler.hpp"
 
-using RngType = dca::testing::MockRng;
+using RngType = dca::testing::StubRng;
 using LatticeType = dca::phys::models::square_lattice<dca::phys::domains::D4>;
 using ModelType = dca::phys::models::TightBindingModel<LatticeType>;
 using Concurrency = dca::parallel::NoConcurrency;

@@ -75,6 +75,11 @@ public:
     return streams_[0];
   }
 
+  void synchronizeCopy() {
+    ndft_objs_[0].synchronizeCopy();
+    ndft_objs_[1].synchronizeCopy();
+  }
+
 private:
   using Profiler = typename Parameters::profiler_type;
 
@@ -141,15 +146,12 @@ private:
 
   static bool is_initialized_static_;
   static bool is_finalized_static_;
+
   using G0DevType = std::array<MatrixDev, 2>;
-  static G0DevType G0_;
+  static inline G0DevType& get_G0();
   using G4DevType = linalg::Vector<Complex, linalg::GPU>;
-  static G4DevType G4_dev_;
+  static inline G4DevType& get_G4();
 };
-template <class Parameters>
-typename TpAccumulator<Parameters, linalg::GPU>::G0DevType TpAccumulator<Parameters, linalg::GPU>::G0_;
-template <class Parameters>
-typename TpAccumulator<Parameters, linalg::GPU>::G4DevType TpAccumulator<Parameters, linalg::GPU>::G4_dev_;
 template <class Parameters>
 bool TpAccumulator<Parameters, linalg::GPU>::is_initialized_static_ = false;
 template <class Parameters>
@@ -195,6 +197,8 @@ void TpAccumulator<Parameters, linalg::GPU>::initializeG0() {
   std::array<MatrixHost, 2> G0_host;
 
   for (int s = 0; s < 2; ++s) {
+    auto& G0 = get_G0();
+
     G0_host[s].resizeNoCopy(std::make_pair(bkw_dmn.get_size(), BDmn::dmn_size()));
     for (int w = 0; w < WTpExtDmn::dmn_size(); ++w)
       for (int k = 0; k < KDmn::dmn_size(); ++k)
@@ -202,21 +206,22 @@ void TpAccumulator<Parameters, linalg::GPU>::initializeG0() {
           for (int b1 = 0; b1 < n_bands_; ++b1)
             G0_host[s](bkw_dmn(b1, k, w), b2) = (*G0_ptr_)(b1, s, b2, s, k, w + sp_index_offset);
 
-    G0_[s].setAsync(G0_host[s], streams_[s]);
+    G0[s].setAsync(G0_host[s], streams_[s]);
   }
 }
 
 template <class Parameters>
 void TpAccumulator<Parameters, linalg::GPU>::initializeG4() {
   // Note: this method is not thread safe by itself.
+  auto& G4 = get_G4();
   try {
     typename BaseClass::TpDomain tp_dmn;
-    G4_dev_.resizeNoCopy(tp_dmn.get_size());
-    cudaMemsetAsync(G4_dev_.ptr(), 0, G4_dev_.size() * sizeof(Complex), streams_[0]);
+    G4.resizeNoCopy(tp_dmn.get_size());
+    cudaMemsetAsync(G4.ptr(), 0, G4.size() * sizeof(Complex), streams_[0]);
   }
   catch (...) {
     std::cerr << "Failed to allocate G4 on device.\n";
-    G4_dev_.clear();
+    G4.clear();
   }
 }
 
@@ -291,16 +296,16 @@ void TpAccumulator<Parameters, linalg::GPU>::computeG() {
 
 template <class Parameters>
 void TpAccumulator<Parameters, linalg::GPU>::computeGSingleband(const int s) {
-  details::computeGSingleband(G_[s].ptr(), G_[s].leadingDimension(), G0_[s].ptr(), KDmn::dmn_size(),
-                              n_pos_frqs_, beta_, streams_[s]);
+  details::computeGSingleband(G_[s].ptr(), G_[s].leadingDimension(), get_G0()[s].ptr(),
+                              KDmn::dmn_size(), n_pos_frqs_, beta_, streams_[s]);
   assert(cudaPeekAtLastError() == cudaSuccess);
 }
 
 template <class Parameters>
 void TpAccumulator<Parameters, linalg::GPU>::computeGMultiband(const int s) {
-  details::computeGMultiband(G_[s].ptr(), G_[s].leadingDimension(), G0_[s].ptr(),
-                             G0_[s].leadingDimension(), n_bands_, KDmn::dmn_size(), n_pos_frqs_,
-                             beta_, streams_[s]);
+  details::computeGMultiband(G_[s].ptr(), G_[s].leadingDimension(), get_G0()[s].ptr(),
+                             get_G0()[s].leadingDimension(), n_bands_, KDmn::dmn_size(),
+                             n_pos_frqs_, beta_, streams_[s]);
   assert(cudaPeekAtLastError() == cudaSuccess);
 }
 
@@ -316,23 +321,27 @@ void TpAccumulator<Parameters, linalg::GPU>::updateG4() {
   switch (mode_) {
     case PARTICLE_HOLE_MAGNETIC:
       details::updateG4<Real, PARTICLE_HOLE_MAGNETIC>(
-          G4_dev_.ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(), G_[1].leadingDimension(),
-          n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), sign_, streams_[0]);
+          get_G4().ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
+          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), sign_,
+          streams_[0]);
       break;
     case PARTICLE_HOLE_CHARGE:
       details::updateG4<Real, PARTICLE_HOLE_CHARGE>(
-          G4_dev_.ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(), G_[1].leadingDimension(),
-          n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), sign_, streams_[0]);
+          get_G4().ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
+          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), sign_,
+          streams_[0]);
       break;
     case PARTICLE_HOLE_TRANSVERSE:
       details::updateG4<Real, PARTICLE_HOLE_TRANSVERSE>(
-          G4_dev_.ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(), G_[1].leadingDimension(),
-          n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), sign_, streams_[0]);
+          get_G4().ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
+          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), sign_,
+          streams_[0]);
       break;
     case PARTICLE_PARTICLE_UP_DOWN:
       details::updateG4<Real, PARTICLE_PARTICLE_UP_DOWN>(
-          G4_dev_.ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(), G_[1].leadingDimension(),
-          n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), sign_, streams_[0]);
+          get_G4().ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
+          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), sign_,
+          streams_[0]);
       break;
     default:
       throw(std::logic_error("Mode non supported."));
@@ -351,11 +360,11 @@ void TpAccumulator<Parameters, linalg::GPU>::finalize() {
     if (!G4_)
       G4_.reset(new TpGreenFunction("G4"));
 
-    cudaMemcpyAsync(G4_->values(), G4_dev_.ptr(), G4_->size() * sizeof(Complex),
+    cudaMemcpyAsync(G4_->values(), get_G4().ptr(), G4_->size() * sizeof(Complex),
                     cudaMemcpyDeviceToHost, streams_[0]);
     // INTERNAL: release memory if needed by the rest of the DCA loop.
     // cudaStreamsynchronize(streams_[0]);
-    // G4_dev_.clear();
+    // get_G4().clear();
     is_finalized_static_ = true;
   }
 
@@ -375,6 +384,20 @@ void TpAccumulator<Parameters, linalg::GPU>::sumTo(this_type& /*other_one*/) {
   // Nothing to do: G4 on the device is shared.
   synchronize();
   return;
+}
+
+template <class Parameters>
+typename TpAccumulator<Parameters, linalg::GPU>::G0DevType& TpAccumulator<Parameters,
+                                                                          linalg::GPU>::get_G0() {
+  static G0DevType G0;
+  return G0;
+}
+
+template <class Parameters>
+typename TpAccumulator<Parameters, linalg::GPU>::G4DevType& TpAccumulator<Parameters,
+                                                                          linalg::GPU>::get_G4() {
+  static G4DevType G4;
+  return G4;
 }
 
 }  // accumulator

@@ -83,6 +83,10 @@ private:
 
   std::atomic<int> acc_finished_;
 
+
+  std::atomic<int> acc_finished;
+  std::atomic<int> measurements_remaining_;
+
   const int nr_walkers_;
   const int nr_accumulators_;
 
@@ -91,12 +95,9 @@ private:
   std::vector<Rng> rng_vector_;
 
   std::queue<StdThreadAccumulatorType*> accumulators_queue_;
-
-  std::mutex mutex_print__;
-  std::mutex mutex_merge__;
-  std::mutex mutex_queue__;
-  std::mutex mutex_acc_finished__;
-  std::mutex mutex_numerical_error__;
+  
+  std::mutex mutex_merge_;
+  std::mutex mutex_queue_;
 };
 
 template <class QmcSolver>
@@ -147,6 +148,9 @@ void StdThreadQmciClusterSolver<QmcSolver>::integrate() {
               << std::endl;
   }
 
+  measurements_remaining_ =
+      parallel::util::getWorkload(parameters_.get_measurements(), 1, 0, concurrency_);
+
   std::vector<std::thread> threads;
   std::vector<Pair> data;
 
@@ -180,7 +184,8 @@ void StdThreadQmciClusterSolver<QmcSolver>::integrate() {
 
   if (concurrency_.id() == concurrency_.first()) {
     std::cout << "Threaded on-node integration has ended: " << dca::util::print_time()
-              << "\n\nTotal number of measurements: " << parameters_.get_measurements() << std::endl;
+              << "\n\nTotal number of measurements: " << parameters_.get_measurements()
+              << "\nQMC-time\t" << total_time_ << std::endl;
   }
 
   accumulator_.finalize();
@@ -249,7 +254,7 @@ void StdThreadQmciClusterSolver<QmcSolver>::startWalker(int id) {
 
   StdThreadAccumulatorType* acc_ptr(nullptr);
 
-  while (acc_finished_ < nr_accumulators_) {
+  while (--measurements_remaining_ >= 0) {
     {
       Profiler profiler("stdthread-MC-walker updating", "stdthread-MC-walker", __LINE__, id);
       walker.doSweep();
@@ -257,32 +262,24 @@ void StdThreadQmciClusterSolver<QmcSolver>::startWalker(int id) {
 
     {
       Profiler profiler("stdthread-MC-walker waiting", "stdthread-MC-walker", __LINE__, id);
+      acc_ptr = nullptr;
 
-      while (acc_finished_ < nr_accumulators_) {
-        acc_ptr = NULL;
-
-        {  // checking for available accumulators
-          std::unique_lock<std::mutex> lock(mutex_queue__);
-
-          if (!accumulators_queue_.empty()) {
-            acc_ptr = accumulators_queue_.front();
-            accumulators_queue_.pop();
-          }
-        }
-
-        if (acc_ptr != nullptr) {
-          acc_ptr->updateFrom(walker);
-          acc_ptr = nullptr;
-          break;
+      while (acc_ptr == nullptr) {  // checking for available accumulators
+        std::unique_lock<std::mutex> lock(mutex_queue_);
+        if (!accumulators_queue_.empty()) {
+          acc_ptr = accumulators_queue_.front();
+          accumulators_queue_.pop();
         }
       }
+
+      acc_ptr->updateFrom(walker);
     }
   }
 
   //  #ifdef DCA_WITH_QMC_BIT
-  //  mutex_numerical_error__.lock();
+  //  mutex_numerical_error.lock();
   //  accumulator.get_error_distribution() += walker.get_error_distribution();
-  //  mutex_numerical_error__.unlock();
+  //  mutex_numerical_error.unlock();
   //  #endif  // DCA_WITH_QMC_BIT
 
   if (id == 0) {
@@ -302,7 +299,7 @@ void StdThreadQmciClusterSolver<QmcSolver>::warmUp(Walker& walker, int id) {
     walker.doSweep();
 
     if (id == 0)
-      this->updateShell(i, parameters_.get_warm_up_sweeps(), walker.get_configuration().size());
+      walker.update_shell(i, parameters_.get_warm_up_sweeps());
   }
 
   walker.markThermalized();
@@ -313,40 +310,38 @@ void StdThreadQmciClusterSolver<QmcSolver>::warmUp(Walker& walker, int id) {
   }
 }
 
-template <class QmcSolver>
-void StdThreadQmciClusterSolver<QmcSolver>::startAccumulator(int id) {
-  StdThreadAccumulatorType accumulator_obj(parameters_, data_, id);
-
-  accumulator_obj.initialize(dca_iteration_);
-
+template <class qmci_integrator_type>
+void StdThreadQmciClusterSolver<qmci_integrator_type>::startAccumulator(int id) {
   const int n_meas =
       parallel::util::getWorkload(parameters_.get_measurements(), parameters_.get_accumulators(),
                                   thread_task_handler_.IDToAccumIndex(id), concurrency_);
 
+  StdThreadAccumulatorType accumulator_obj(parameters_, data_, n_meas, id);
+
+  accumulator_obj.initialize(dca_iteration_);
+
   for (int i = 0; i < n_meas; ++i) {
     {
-      std::lock_guard<std::mutex> lock(mutex_queue__);
+      std::lock_guard<std::mutex> lock(mutex_queue_);
       accumulators_queue_.push(&accumulator_obj);
     }
 
     {
-      Profiler profiler("stdthread-accumulator waiting", "stdthread-MC-accumulator", __LINE__, id);
+      Profiler profiler("stdthread-accumulator waiting", "stdthread-MC-accumulator", __LINE__,
+                             id);
       accumulator_obj.waitForQmciWalker();
     }
 
     {
-      Profiler profiler("stdthread-accumulator accumulating", "stdthread-MC-accumulator", __LINE__,
-                        id);
-      if (id == 1)
-        this->updateShell(i, n_meas, accumulator_obj.get_configuration().size());
-
-      accumulator_obj.measure(mutex_queue__, accumulators_queue_);
+      Profiler profiler("stdthread-accumulator accumulating", "stdthread-MC-accumulator",
+                             __LINE__, id);
+      accumulator_obj.measure();
     }
   }
 
   ++acc_finished_;
   {
-    std::lock_guard<std::mutex> lock(mutex_merge__);
+    std::lock_guard<std::mutex> lock(mutex_merge_);
     accumulator_obj.sumTo(accumulator_);
   }
 }
@@ -364,8 +359,8 @@ void StdThreadQmciClusterSolver<QmcSolver>::startWalkerAndAccumulator(int id) {
   Accumulator accumulator_obj(parameters_, data_, id);
   accumulator_obj.initialize(dca_iteration_);
 
-  const int n_meas = parallel::util::getWorkload(parameters_.get_measurements(),
-                                                 parameters_.get_accumulators(), id, concurrency_);
+  const int n_meas =
+      parallel::util::getWorkload(parameters_.get_measurements(), parameters_.get_accumulators(), id, concurrency_);
 
   for (int i = 0; i < n_meas; ++i) {
     {
@@ -378,11 +373,11 @@ void StdThreadQmciClusterSolver<QmcSolver>::startWalkerAndAccumulator(int id) {
       accumulator_obj.measure();
     }
     if (id == 0)
-      this->updateShell(i, n_meas, walker.get_configuration().size());
+      walker.update_shell(i, n_meas);
   }
 
   ++acc_finished_;
-  std::lock_guard<std::mutex> lock(mutex_merge__);
+  std::lock_guard<std::mutex> lock(mutex_merge_);
   accumulator_obj.sumTo(accumulator_);
 }
 

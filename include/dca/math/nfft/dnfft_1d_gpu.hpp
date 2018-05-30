@@ -32,20 +32,16 @@ namespace nfft {
 template <typename ScalarType, typename WDmn, typename RDmn, int oversampling = 8, NfftModeNames mode = CUBIC>
 class Dnfft1DGpu;
 
-namespace details {
-// dca::math::nfft::details::
-using BDmn = func::dmn_0<phys::domains::electron_band_domain>;
-template <class RDmn>
-using PDmn = func::dmn_variadic<BDmn, BDmn, RDmn>;
-}
-
 // Only the CUBIC mode is implemented.
 template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>
 class Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>
-    : public Dnfft1D<ScalarType, WDmn, details::PDmn<RDmn>, oversampling, CUBIC> {
+    : public Dnfft1D<ScalarType, WDmn,
+                     func::dmn_variadic<func::dmn_0<phys::domains::electron_band_domain>,
+                                        func::dmn_0<phys::domains::electron_band_domain>, RDmn>,
+                     oversampling, CUBIC> {
 public:
-  using BDmn = details::BDmn;
-  using PDmn = details::PDmn<RDmn>;
+  using BDmn = func::dmn_0<phys::domains::electron_band_domain>;
+  using PDmn = func::dmn_variadic<BDmn, BDmn, RDmn>;
 
   using ThisType = Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling>;
   using ElementType = ScalarType;
@@ -58,8 +54,8 @@ public:
 
   void initialize();
 
-  template <typename InpScalar, class Configuration>
-  void accumulate(const linalg::Matrix<InpScalar, linalg::CPU>& M, const Configuration& config,
+  template <class Configuration>
+  void accumulate(const linalg::Matrix<double, linalg::CPU>& M, const Configuration& config,
                   const int sign);
 
   template <typename OtherScalarType>
@@ -69,16 +65,16 @@ public:
   // Sums the accumulated data in the time domain.
   ThisType& operator+=(ThisType& other);
 
+  void synchronizeCopy() {
+    m_copied_event_.block();
+  }
+
 private:
   void initializeDeviceCoefficients();
 
-  void uploadMatrix(const linalg::Matrix<ScalarType, linalg::CPU>& M);
-  template <typename InpScalar>
-  void uploadMatrix(const linalg::Matrix<InpScalar, linalg::CPU>& M);
-
 private:
   using BaseClass::f_tau_;
-  static linalg::Vector<ScalarType, linalg::GPU> cubic_coeff_dev_;
+  static inline linalg::Vector<ScalarType, linalg::GPU>& get_device_cubic_coeff();
 
   const double beta_;
   cudaStream_t stream_;
@@ -86,9 +82,7 @@ private:
   linalg::Matrix<ScalarType, linalg::GPU> accumulation_matrix_;
   linalg::Matrix<ScalarType, linalg::GPU> accumulation_matrix_sqr_;
 
-  linalg::Matrix<ScalarType, linalg::CPU> M_host_;
-  linalg::Matrix<ScalarType, linalg::GPU> M_;
-  linalg::Matrix<ScalarType, linalg::GPU> M_sqr_;
+  linalg::Matrix<double, linalg::GPU> M_;
   linalg::util::HostVector<details::ConfigElem> config_left_;
   linalg::util::HostVector<details::ConfigElem> config_right_;
   linalg::util::HostVector<ScalarType> times_;
@@ -99,9 +93,6 @@ private:
   linalg::util::CudaEvent config_copied_event_;
   linalg::util::CudaEvent m_copied_event_;
 };
-template <typename ScalarType, typename WDmn, typename PDmn, int oversampling>
-linalg::Vector<ScalarType, linalg::GPU>
-    Dnfft1DGpu<ScalarType, WDmn, PDmn, oversampling, CUBIC>::cubic_coeff_dev_;
 
 template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>
 Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::Dnfft1DGpu(const double beta,
@@ -136,8 +127,9 @@ void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::initializeDeviceCo
   if (initialized)
     return;
   const auto& host_coeff = BaseClass::get_cubic_convolution_matrices();
-  cubic_coeff_dev_.resizeNoCopy(host_coeff.size());
-  cudaMemcpy(cubic_coeff_dev_.ptr(), host_coeff.values(), host_coeff.size() * sizeof(ScalarType),
+  auto& dev_coeff = get_device_cubic_coeff();
+  dev_coeff.resizeNoCopy(host_coeff.size());
+  cudaMemcpy(dev_coeff.ptr(), host_coeff.values(), host_coeff.size() * sizeof(ScalarType),
              cudaMemcpyHostToDevice);
 
   const auto& sub_matrix = RDmn::parameter_type::get_subtract_matrix();
@@ -153,18 +145,19 @@ void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::initializeDeviceCo
 }
 
 template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>
-template <typename InpScalar, class Configuration>
+template <class Configuration>
 void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::accumulate(
-    const linalg::Matrix<InpScalar, linalg::CPU>& M, const Configuration& config, const int sign) {
+    const linalg::Matrix<double, linalg::CPU>& M, const Configuration& config, const int sign) {
   assert(M.is_square());
-  if(config.size() == 0) // Contribution is zero.
+  if (config.size() == 0)  // Contribution is zero.
     return;
 
-  const int n = M.nrCols();
-
-  uploadMatrix(M);
+  M_.setAsync(M, stream_);
+  m_copied_event_.record(stream_);
 
   config_copied_event_.block();
+
+  const int n = M.nrCols();
   config_right_.resize(n);
   config_left_.resize(n);
   times_.resize(n);
@@ -181,31 +174,13 @@ void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::accumulate(
   config_right_dev_.setAsync(config_right_, stream_);
   config_left_dev_.setAsync(config_left_, stream_);
   times_dev_.setAsync(times_, stream_);
+
   config_copied_event_.record(stream_);
 
   details::accumulateOnDevice(M_.ptr(), M_.leadingDimension(), sign, accumulation_matrix_.ptr(),
                               accumulation_matrix_sqr_.ptr(), accumulation_matrix_.leadingDimension(),
                               config_left_dev_.ptr(), config_right_dev_.ptr(), times_dev_.ptr(),
-                              cubic_coeff_dev_.ptr(), n, stream_);
-}
-
-template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>
-template <typename InpScalar>
-void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::uploadMatrix(
-    const linalg::Matrix<InpScalar, linalg::CPU>& M) {
-  m_copied_event_.block();
-  M_host_.resizeNoCopy(M.size());
-  for (int j = 0; j < M.nrCols(); ++j)
-    for (int i = 0; i < M.nrRows(); ++i)
-      M_host_(i, j) = static_cast<ScalarType>(M(i, j));
-  M_.setAsync(M_host_, stream_);
-  m_copied_event_.record(stream_);
-}
-
-template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>
-void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::uploadMatrix(
-    const linalg::Matrix<ScalarType, linalg::CPU>& M) {
-  M_.setAsync(M, stream_);
+                              get_device_cubic_coeff().ptr(), n, stream_);
 }
 
 template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>
@@ -245,6 +220,13 @@ Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>& Dnfft1DGpu<
 
   cudaStreamSynchronize(stream_);
   return *this;
+}
+
+template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>
+linalg::Vector<ScalarType, linalg::GPU>& Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling,
+                                                    CUBIC>::get_device_cubic_coeff() {
+  static linalg::Vector<ScalarType, linalg::GPU> coefficients;
+  return coefficients;
 }
 
 }  // nfft

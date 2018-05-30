@@ -7,7 +7,7 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// This files provide a setup for parameters and data used by cluster solver tests.
+// This file provides a setup for Parameters and DcaData used by cluster solver tests.
 
 #ifndef DCA_TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_TEST_SETUP_HPP
 #define DCA_TEST_UNIT_PHYS_DCA_STEP_CLUSTER_SOLVER_TEST_SETUP_HPP
@@ -29,7 +29,7 @@
 #include "dca/parallel/no_threading/no_threading.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/profiling/null_profiler.hpp"
-#include "test/unit/phys/dca_step/cluster_solver/mock_rng.hpp"
+#include "test/unit/phys/dca_step/cluster_solver/stub_rng.hpp"
 
 namespace dca {
 namespace testing {
@@ -43,7 +43,7 @@ template <class Lattice = LatticeSquare, phys::solver::ClusterSolverName solver_
 struct G0Setup : public ::testing::Test {
   using LatticeType = Lattice;
   using Model = phys::models::TightBindingModel<Lattice>;
-  using RngType = testing::MockRng;
+  using RngType = testing::StubRng;
   using Concurrency = parallel::NoConcurrency;
   using Parameters = phys::params::Parameters<Concurrency, parallel::NoThreading,
                                               profiling::NullProfiler, Model, RngType, solver_name>;
@@ -70,13 +70,12 @@ struct G0Setup : public ::testing::Test {
 
     parameters.template read_input_and_broadcast<io::JSONReader>(inputs_directory + "input.json");
 
-    static bool model_initialized = false;
-    if (!model_initialized) {
-      parameters.update_model();
+    parameters.update_model();
+    static bool domain_initialized = false;
+    if (!domain_initialized) {
       parameters.update_domains();
-      model_initialized = true;
+      domain_initialized = true;
     }
-
     data.reset(new Data(parameters));
     data->initialize();
     interaction_vertices.initializeFromHamiltonian(data->H_interactions);

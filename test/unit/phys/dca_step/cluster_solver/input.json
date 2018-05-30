@@ -55,7 +55,6 @@
     "frequency-transfer": 2
   },
 
-
   "Monte-Carlo-integration" :
   {
     "Sigma-file" : "zero",
@@ -66,20 +65,11 @@
     "seed" : 0
   },
 
-
   "CT-INT" :
   {
     "initial-configuration-size" :5,
-    "alpha-dd-pos" : 0.51
+    "alpha-dd-pos" : 0.51,
+    "compute-error-bar" : false,
+    "double-update-probability" : 0
   }
 }
-
-
-
-
-
-
-
-
-
-

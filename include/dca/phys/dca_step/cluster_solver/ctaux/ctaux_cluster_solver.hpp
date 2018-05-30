@@ -76,7 +76,7 @@ public:
   // Computes and returns the local value of the Green's function G(k, \omega), i.e. without
   // averaging it across processes.
   // For testing purposes.
-  // Precondition: The accumulator_ data has not been averaged, i.e. finalize has not been called.
+  // Precondition: The accumulator data has not been averaged, i.e. finalize has not been called.
   auto local_G_k_w() const;
 
 protected:
@@ -92,9 +92,6 @@ protected:
   Walker instantiateWalker(Rng& rng_ref, int id) {
     return Walker(parameters_, data_, rng_ref, id);
   }
-
-  void updateShell(int i, int N, int N_k);
-  void updateShell(int i, int N, int N_k, int N_s);
 
 private:
   void warm_up(Walker& walker);
@@ -123,7 +120,7 @@ private:
   void adjust_self_energy_for_double_counting();
 
   double mix_self_energy(double alpha);
-  
+
 protected:
   void computeErrorBars();
 
@@ -317,11 +314,7 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::warm_up(Walker& walker
 
   for (int i = 0; i < parameters_.get_warm_up_sweeps(); i++) {
     walker.doSweep();
-
-    int N_s = walker.get_configuration().size();
-    int N_k = walker.get_configuration().get_number_of_interacting_HS_spins();
-
-    updateShell(i, parameters_.get_warm_up_sweeps(), N_k, N_s);
+    walker.update_shell(i, parameters_.get_warm_up_sweeps());
   }
 
   walker.is_thermalized() = true;
@@ -349,47 +342,13 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::measure(Walker& walker
       accumulator_.measure();
     }
 
-    int N_s = walker.get_configuration().size();
-    int N_k = walker.get_configuration().get_number_of_interacting_HS_spins();
-
-    updateShell(i, n_meas, N_k, N_s);
+    walker.update_shell(i, n_meas);
   }
 
   accumulator_.finalize();
 
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t measuring has ended \n" << std::endl;
-}
-
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void CtauxClusterSolver<device_t, parameters_type, Data>::updateShell(int i, int N, int N_k) {
-  int tmp = i;
-
-  if (concurrency_.id() == concurrency_.first() && N > 10 && (tmp % (N / 10)) == 0) {
-    std::cout << std::scientific;
-    std::cout.precision(6);
-
-    std::cout << "\t\t\t" << double(i) / double(N) * 100. << " % completed \t ";
-
-    std::cout << "\t <k> :" << N_k << "      ";
-    std::cout << dca::util::print_time() << "\n";
-  }
-}
-
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void CtauxClusterSolver<device_t, parameters_type, Data>::updateShell(int i, int N, int N_k,
-                                                                       int N_s) {
-  int tmp = i;
-
-  if (concurrency_.id() == concurrency_.first() && N > 10 && (tmp % (N / 10)) == 0) {
-    std::cout << std::scientific;
-    std::cout.precision(6);
-
-    std::cout << "\t\t\t" << double(i) / double(N) * 100. << " % completed \t ";
-
-    std::cout << "\t <k> :" << N_k << "    N : " << N_s << "      ";
-    std::cout << dca::util::print_time() << "\n";
-  }
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>

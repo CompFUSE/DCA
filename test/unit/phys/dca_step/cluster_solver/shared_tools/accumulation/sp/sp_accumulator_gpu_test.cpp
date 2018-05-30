@@ -16,7 +16,7 @@
 #include <string>
 #include <vector>
 
-#include "dca/function/function_utils.hpp"
+#include "dca/function/util/difference.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
 
@@ -65,7 +65,7 @@ TEST_F(G0Setup, Accumulate) {
   accumulatorHost.accumulate(M, config, sign);
   accumulatorHost.finalize();
 
-  const auto diff = dca::func::utils::difference(accumulatorHost.get_sign_times_M_r_w(),
+  const auto diff = dca::func::util::difference(accumulatorHost.get_sign_times_M_r_w(),
                                                  accumulator.get_sign_times_M_r_w());
   EXPECT_GT(5e-7, diff.l_inf);
 }
@@ -96,7 +96,7 @@ TEST_F(G0Setup, SumTo) {
   accumulator3.accumulate(M2, config2, sign);
   accumulator3.finalize();
 
-  const auto diff = dca::func::utils::difference(accumulator3.get_sign_times_M_r_w(),
+  const auto diff = dca::func::util::difference(accumulator3.get_sign_times_M_r_w(),
                                                  accumulator_sum.get_sign_times_M_r_w());
   EXPECT_GT(5e-7, diff.l_inf);
 }

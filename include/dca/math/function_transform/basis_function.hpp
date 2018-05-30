@@ -18,9 +18,9 @@
 #include <vector>
 
 #include "dca/math/function_transform/basis_expansions.hpp"
-#include "dca/math/function_transform/vector_operations.hpp"
 #include "dca/math/function_transform/hermite_splines/hermite_cubic_spline.hpp"
 #include "dca/math/function_transform/hermite_splines/hermite_spline.hpp"
+#include "dca/math/util/vector_operations.hpp"
 
 namespace dca {
 namespace math {
@@ -203,7 +203,7 @@ typename basis_function<lhs_dmn_type, KRONECKER_DELTA, rhs_dmn_type, HARMONICS>:
                                                                      rhs_element_type& rh_elem) {
   const static f_scalar_type I(0, 1);
 
-  f_scalar_type phase = details::dot_prod(lh_elem, rh_elem);
+  f_scalar_type phase = util::innerProduct(lh_elem, rh_elem);
 
   return std::exp(I * phase);
 }
@@ -223,7 +223,7 @@ typename basis_function<lhs_dmn_type, HERMITE_CUBIC_SPLINE, rhs_dmn_type, HARMON
                                                                           rhs_element_type& rh_elem) {
   const static f_scalar_type I(0, 1);
 
-  f_scalar_type phase = details::dot_prod(lh_elem, rh_elem);
+  f_scalar_type phase = util::innerProduct(lh_elem, rh_elem);
 
   // return std::exp(I*phase)/lhs_dmn_type::get_volume();
   return std::exp(-I * phase) / lhs_dmn_type::get_volume();
