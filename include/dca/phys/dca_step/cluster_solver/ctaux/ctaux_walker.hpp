@@ -57,8 +57,6 @@ public:
 public:
   CtauxWalker(parameters_type& parameters_ref, MOMS_type& MOMS_ref, rng_type& rng_ref, int id);
 
-  ~CtauxWalker();
-
   void initialize();
 
   bool& is_thermalized();
@@ -90,6 +88,9 @@ public:
   // TODO: Before this method can be made const, CT_AUX_HS_configuration and vertex_pair need to be
   //       made const correct.
   void update_shell(const int done, const int total) /*const*/;
+
+  // Prints averaged information on the visited configurations.
+  void printSummary() const;
 
 private:
   void add_non_interacting_spins_to_configuration();
@@ -321,27 +322,23 @@ CtauxWalker<device_t, parameters_type, MOMS_type>::CtauxWalker(parameters_type& 
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-CtauxWalker<device_t, parameters_type, MOMS_type>::~CtauxWalker() {
-  try {
-    if (concurrency.id() == 0 && thread_id == 0) {
-      // std::defaultfloat is only supported by GCC 5 or later.
-      std::cout.unsetf(std::ios_base::floatfield);
+void CtauxWalker<device_t, parameters_type, MOMS_type>::printSummary() const {
+  // std::defaultfloat is only supported by GCC 5 or later.
+  std::cout.unsetf(std::ios_base::floatfield);
+  std::cout << "\n"
+            << "Walker: process ID = " << concurrency.id() << ", thread ID = " << thread_id << "\n"
+            << "-------------------------------------------\n";
 
-      std::cout << "\n"
-                << "Walker: process ID = 0, thread ID = 0\n"
-                << "-------------------------------------------\n"
-                << "estimate for sweep size: " << warm_up_expansion_order_.mean() << "\n"
-                << "average number of delayed spins: " << num_delayed_spins_.mean() << "\n"
-                << "# creations / # annihilations: "
-                << static_cast<double>(number_of_creations) /
-                       static_cast<double>(number_of_annihilations)
-                << "\n"
-                << std::endl;
-    }
-  }
-  // Ignore exceptions during destruction.
-  catch (...) {
-  }
+  if (warm_up_expansion_order_.count())
+    std::cout << "estimate for sweep size: " << warm_up_expansion_order_.mean() << "\n";
+  if (num_delayed_spins_.count())
+    std::cout << "average number of delayed spins: " << num_delayed_spins_.mean() << "\n";
+
+  std::cout << "# creations / # annihilations: "
+            << static_cast<double>(number_of_creations) / static_cast<double>(number_of_annihilations)
+            << "\n"
+            << std::endl;
+
   std::cout << std::scientific;
 }
 
