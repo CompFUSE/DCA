@@ -314,7 +314,7 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::warm_up(Walker& walker
 
   for (int i = 0; i < parameters_.get_warm_up_sweeps(); i++) {
     walker.doSweep();
-    walker.update_shell(i, parameters_.get_warm_up_sweeps());
+    walker.updateShell(i, parameters_.get_warm_up_sweeps());
   }
 
   walker.is_thermalized() = true;
@@ -342,7 +342,7 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::measure(Walker& walker
       accumulator_.measure();
     }
 
-    walker.update_shell(i, n_meas);
+    walker.updateShell(i, n_meas);
   }
 
   accumulator_.finalize();

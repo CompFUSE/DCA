@@ -299,7 +299,7 @@ void StdThreadQmciClusterSolver<QmcSolver>::warmUp(Walker& walker, int id) {
     walker.doSweep();
 
     if (id == 0)
-      walker.update_shell(i, parameters_.get_warm_up_sweeps());
+      walker.updateShell(i, parameters_.get_warm_up_sweeps());
   }
 
   walker.markThermalized();
@@ -373,7 +373,7 @@ void StdThreadQmciClusterSolver<QmcSolver>::startWalkerAndAccumulator(int id) {
       accumulator_obj.measure();
     }
     if (id == 0)
-      walker.update_shell(i, n_meas);
+      walker.updateShell(i, n_meas);
   }
 
   ++acc_finished_;

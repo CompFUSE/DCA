@@ -78,7 +78,7 @@ void StdThreadQmciAccumulator<QmciAccumulatorType>::updateFrom(Walker& walker) {
     measuring_ = true;
 
     if (thread_id_ == 1)
-      walker.update_shell(measurements_done_, measurements_to_do_);
+      walker.updateShell(measurements_done_, measurements_to_do_);
   }
 
   start_measuring_.notify_one();

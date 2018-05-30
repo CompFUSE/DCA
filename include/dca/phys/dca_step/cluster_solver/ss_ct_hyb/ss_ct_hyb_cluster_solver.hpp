@@ -322,7 +322,7 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::warm_up(Walker& walk
 
   for (int i = 0; i < parameters_.get_warm_up_sweeps(); i++) {
     walker.doSweep();
-    walker.update_shell(i, parameters_.get_warm_up_sweeps());
+    walker.updateShell(i, parameters_.get_warm_up_sweeps());
   }
 
   walker.is_thermalized() = true;
@@ -343,7 +343,7 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::measure(Walker& walk
 
     accumulator_.measure();
 
-    walker.update_shell(i, parameters_.get_measurements_per_process());
+    walker.updateShell(i, parameters_.get_measurements_per_process());
   }
 
   // here we need to do a correction a la Andrey

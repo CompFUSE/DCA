@@ -136,7 +136,7 @@ public:
       func::function<other_scalar_type, func::dmn_variadic<nu, nu, K_dmn, t>>& G0_k_w);
 
 private:
-  void update_shell(int i, int N) const;
+  void updateShell(int i, int N) const;
 
   template <typename other_scalar_type, typename r_dmn>
   void plot_phi_r(const func::function<other_scalar_type, r_dmn>& phi_r) const;
@@ -197,7 +197,7 @@ coarsegraining_sp<parameters_type, K_dmn>::coarsegraining_sp(parameters_type& pa
 }
 
 template <typename parameters_type, typename K_dmn>
-void coarsegraining_sp<parameters_type, K_dmn>::update_shell(const int i, const int N) const {
+void coarsegraining_sp<parameters_type, K_dmn>::updateShell(const int i, const int N) const {
   int tmp = i;
 
   if (concurrency.id() == concurrency.first() && N > 10 && (tmp % (N / 10)) == 0) {

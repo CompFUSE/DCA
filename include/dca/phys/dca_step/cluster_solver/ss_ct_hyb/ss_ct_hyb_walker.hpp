@@ -148,7 +148,7 @@ public:
   // Writes the current progress and the configuration size to stdout.
   // TODO: Before this method can be made const, SS_CT_HYB_configuration needs to be made const
   //       correct.
-  void update_shell(const int done, const int total) /*const*/;
+  void updateShell(const int done, const int total) /*const*/;
 
 private:
   void test_interpolation();
@@ -456,7 +456,7 @@ void SsCtHybWalker<device_t, parameters_type, MOMS_type>::swap_random_orbitals()
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void SsCtHybWalker<device_t, parameters_type, MOMS_type>::update_shell(const int done,
+void SsCtHybWalker<device_t, parameters_type, MOMS_type>::updateShell(const int done,
                                                                        const int total) {
   if (concurrency.id() == concurrency.first() && total > 10 && (done % (total / 10)) == 0) {
     std::cout.unsetf(std::ios_base::floatfield);

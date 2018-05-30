@@ -310,7 +310,7 @@ void CtintClusterSolver<device_t, Parameters>::warmUp() {
   for (int i = 0; i < n_sweep; i++) {
     walker_->doSweep();
 
-    walker_->update_shell(i, n_sweep);
+    walker_->updateShell(i, n_sweep);
   }
 
   walker_->markThermalized();
@@ -329,7 +329,7 @@ void CtintClusterSolver<device_t, Parameters>::measure() {
       Profiler profiler("measurements", "QMCI", __LINE__);
       accumulator_.accumulate(*walker_);
     }
-    walker_->update_shell(i, n_meas);
+    walker_->updateShell(i, n_meas);
   }
 
   accumulator_.finalize();

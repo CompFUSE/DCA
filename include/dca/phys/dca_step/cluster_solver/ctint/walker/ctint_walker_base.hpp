@@ -89,7 +89,7 @@ public:
     return configuration_;
   }
 
-  void update_shell(int meas_id, int meas_to_do) const;
+  void updateShell(int meas_id, int meas_to_do) const;
 
   void printSummary() const {}
 
@@ -401,7 +401,7 @@ void CtintWalkerBase<device_t, Parameters>::applyRemoval() {
 }
 
 template <linalg::DeviceType device_t, class Parameters>
-void CtintWalkerBase<device_t, Parameters>::update_shell(int meas_id, int meas_to_do) const {
+void CtintWalkerBase<device_t, Parameters>::updateShell(int meas_id, int meas_to_do) const {
   if (concurrency_.id() == concurrency_.first() && meas_id > 1 && (meas_id % (meas_to_do / 10)) == 0) {
     std::cout << "\t\t\t" << int(double(meas_id) / double(meas_to_do) * 100) << " % completed \t ";
     std::cout << "\t k :" << order();

@@ -94,7 +94,7 @@ public:
   // to stdout.
   // TODO: Before this method can be made const, CT_AUX_HS_configuration and vertex_pair need to be
   //       made const correct.
-  void update_shell(const int done, const int total) /*const*/;
+  void updateShell(const int done, const int total) /*const*/;
 
 private:
   void add_non_interacting_spins_to_configuration();
@@ -1528,7 +1528,7 @@ bool CtauxWalker<device_t, parameters_type, MOMS_type>::assert_exp_delta_V_value
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void CtauxWalker<device_t, parameters_type, MOMS_type>::update_shell(const int done, const int total) {
+void CtauxWalker<device_t, parameters_type, MOMS_type>::updateShell(const int done, const int total) {
   if (concurrency.id() == concurrency.first() && total > 10 && (done % (total / 10)) == 0) {
     std::cout.unsetf(std::ios_base::floatfield);
 
