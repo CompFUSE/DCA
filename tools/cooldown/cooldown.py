@@ -174,5 +174,5 @@ file.write(text_analysis)
 file.close()
 
 # Make batch scripts executable.
-os.chmod(batch_name_dca, 0755)
-os.chmod(batch_name_analysis, 0755)
+os.chmod(batch_name_dca, 0o755)
+os.chmod(batch_name_analysis, 0o755)
