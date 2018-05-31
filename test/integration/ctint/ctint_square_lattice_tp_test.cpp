@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "dca/function/function.hpp"
+#include "dca/function/util/difference.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_reader.hpp"
@@ -36,7 +37,7 @@
 const std::string input_dir =
     DCA_SOURCE_DIR "/test/integration/ctint/";
 
-constexpr bool UPDATE_RESULTS = false;
+constexpr bool update_baseline = false;
 
 TEST(CtintSquareLatticeTpTest, Self_Energy) {
   using RngType = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
@@ -73,25 +74,22 @@ TEST(CtintSquareLatticeTpTest, Self_Energy) {
   dca::phys::DcaLoopData<Parameters> loop_data;
   qmc_solver.finalize(loop_data);
 
-  if (not UPDATE_RESULTS) {
+  if (not update_baseline) {
     // Read and confront with previous run
     typeof(data.get_G4_k_k_w_w()) G4_check(data.get_G4_k_k_w_w().get_name());
     dca::io::HDF5Reader reader;
-    reader.open_file(input_dir + "square_lattice_tp_result.hdf5");
+    reader.open_file(input_dir + "square_lattice_tp_baseline.hdf5");
     reader.open_group("functions");
     reader.execute(G4_check);
     reader.close_group(), reader.close_file();
 
-    const auto& G4_qmc = data.get_G4_k_k_w_w();\
-    for (int i = 0; i < G4_check.size(); i++) {
-      EXPECT_NEAR(G4_check(i).real(), G4_qmc(i).real(), 1e-6);
-      EXPECT_NEAR(G4_check(i).imag(), G4_qmc(i).imag(), 1e-6);
-    }
+    const auto diff = dca::func::util::difference(G4_check, data.get_G4_k_k_w_w());
+    EXPECT_GE(5e-7, diff.l_inf);
   }
   else {
     //  Write results
     dca::io::HDF5Writer writer;
-    writer.open_file("square_lattice_tp_result.hdf5");
+    writer.open_file("square_lattice_tp_baseline.hdf5");
     writer.open_group("functions");
     writer.execute(data.get_G4_k_k_w_w());
     writer.execute(data.G_k_w);

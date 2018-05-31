@@ -34,10 +34,9 @@
 #include "dca/util/modules.hpp"
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
-const std::string input_dir =
-    DCA_SOURCE_DIR "/test/integration/ctint/";
+const std::string input_dir = DCA_SOURCE_DIR "/test/integration/ctint/";
 
-constexpr bool UPDATE_RESULTS = false;
+constexpr bool update_baseline = false;
 
 TEST(squareLattice_Nc4_nn, Self_Energy) {
   using RngType = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
@@ -46,8 +45,7 @@ TEST(squareLattice_Nc4_nn, Self_Energy) {
   using Threading = dca::parallel::NoThreading;
   using Parameters =
       dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
-                                    dca::profiling::NullProfiler, Model, RngType,
-                                    dca::phys::solver::CT_INT>;
+                                    dca::profiling::NullProfiler, Model, RngType, dca::phys::solver::CT_INT>;
   using Data = dca::phys::DcaData<Parameters>;
   using QmcSolverType = dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, Parameters>;
 
@@ -73,19 +71,19 @@ TEST(squareLattice_Nc4_nn, Self_Energy) {
 
   EXPECT_NEAR(1.0, qmc_solver.computeDensity(), 1e-5);
 
-  if (not UPDATE_RESULTS) {
+  if (not update_baseline) {
     // Read and confront with previous run
     if (dca_test_env->concurrency.id() == 0) {
       typeof(data.G_k_w) G_k_w_check(data.G_k_w.get_name());
       dca::io::HDF5Reader reader;
-      reader.open_file(input_dir + "square_lattice_result.hdf5");
+      reader.open_file(input_dir + "square_lattice_baseline.hdf5");
       reader.open_group("functions");
       reader.execute(G_k_w_check);
       reader.close_group(), reader.close_file();
 
       for (int i = 0; i < G_k_w_check.size(); i++) {
-        EXPECT_NEAR(G_k_w_check(i).real(), data.G_k_w(i).real(), 1e-7);
-        EXPECT_NEAR(G_k_w_check(i).imag(), data.G_k_w(i).imag(), 1e-7);
+        EXPECT_NEAR(G_k_w_check(i).real(), data.G_k_w(i).real(), 5e-7);
+        EXPECT_NEAR(G_k_w_check(i).imag(), data.G_k_w(i).imag(), 5e-7);
       }
     }
   }
@@ -93,7 +91,7 @@ TEST(squareLattice_Nc4_nn, Self_Energy) {
     //  Write results
     if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
       dca::io::HDF5Writer writer;
-      writer.open_file("square_lattice_result.hdf5");
+      writer.open_file("square_lattice_baseline.hdf5");
       writer.open_group("functions");
       writer.execute(data.G_k_w);
       writer.close_group(), writer.close_file();

@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "dca/function/function.hpp"
+#include "dca/function/util/difference.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_reader.hpp"
@@ -33,7 +34,7 @@
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 
-constexpr bool UPDATE_RESULTS = false;
+constexpr bool update_baseline = false;
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 const std::string input_dir =
@@ -71,27 +72,25 @@ TEST(squareLattice_Nc4_nn, Self_Energy) {
   qmc_solver.integrate();
   qmc_solver.finalize();
 
-  if (not UPDATE_RESULTS) {
+  if (not update_baseline) {
     // Read and confront with previous run.
     if (dca_test_env->concurrency.id() == 0) {
       typeof(data.G_k_w) G_k_w_check = (data.G_k_w.get_name());
       dca::io::HDF5Reader reader;
-      reader.open_file(input_dir + "fe_as_result.hdf5");
+      reader.open_file(input_dir + "fe_as_lattice_baseline.hdf5");
       reader.open_group("functions");
       reader.execute(G_k_w_check);
       reader.close_group(), reader.close_file();
 
-      for (int i = 0; i < G_k_w_check.size(); i++) {
-        EXPECT_NEAR(G_k_w_check(i).real(), data.G_k_w(i).real(), 1e-7);
-        EXPECT_NEAR(G_k_w_check(i).imag(), data.G_k_w(i).imag(), 1e-7);
-      }
+      const auto diff = dca::func::util::difference(G_k_w_check, data.G_k_w);
+      EXPECT_GE(5e-7, diff.l_inf);
     }
   }
   else {
     //  Write results
     if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
       dca::io::HDF5Writer writer;
-      writer.open_file("fe_as_lattice_result.hdf5");
+      writer.open_file("fe_as_lattice_baseline.hdf5");
       writer.open_group("functions");
       writer.execute(data.G_k_w);
       writer.close_group(), writer.close_file();
