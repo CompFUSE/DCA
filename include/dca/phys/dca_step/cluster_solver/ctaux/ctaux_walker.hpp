@@ -89,7 +89,7 @@ public:
   //       made const correct.
   void update_shell(const int done, const int total) /*const*/;
 
-  // Prints averaged information on the visited configurations.
+  // Writes a summary of the walker's Markov chain updates and visited configurations to stdout.
   void printSummary() const;
 
 private:
