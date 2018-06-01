@@ -16,6 +16,9 @@
 
 #include "gtest/gtest.h"
 
+#include "dca/function/domains/dmn.hpp"
+#include "dca/function/domains/dmn_0.hpp"
+#include "dca/function/domains/dmn_variadic.hpp"
 #include "dca/testing/minimalist_printer.hpp"
 
 class MPICollectiveGatherTest : public ::testing::Test {
@@ -46,6 +49,25 @@ TEST_F(MPICollectiveGatherTest, GatherVector) {
 
   for (int i = 0; i < v.size(); ++i)
     EXPECT_EQ(some_work(i), v[i]);
+}
+
+TEST_F(MPICollectiveGatherTest, GatherFunction) {
+  auto some_work = [](const int id) { return id * id; };
+
+  dca::func::function<int, dca::func::dmn_variadic<dca::func::dmn_0<dca::func::dmn<4>>,
+                                                   dca::func::dmn_0<dca::func::dmn<7>>>>
+      f;
+
+  const auto bounds = dca::parallel::util::getBounds(rank_, size_, std::make_pair(0, f.size()));
+
+  for (int i = bounds.first; i < bounds.second; ++i)
+    f(i) = some_work(i);
+
+  dca::parallel::MPICollectiveGather gather_interface(grouping_);
+  gather_interface.gather(f);
+
+  for (int i = 0; i < f.size(); ++i)
+    EXPECT_EQ(some_work(i), f(i));
 }
 
 int main(int argc, char** argv) {

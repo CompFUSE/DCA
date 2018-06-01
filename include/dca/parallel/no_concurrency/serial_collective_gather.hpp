@@ -13,7 +13,6 @@
 #ifndef DCA_PARALLEL_NO_CONCURRENCY_SERIAL_COLLECTIVE_GATHER_HPP
 #define DCA_PARALLEL_NO_CONCURRENCY_SERIAL_COLLECTIVE_GATHER_HPP
 
-
 #include <vector>
 
 #include "dca/function/function.hpp"

@@ -13,6 +13,8 @@
 #ifndef DCA_PARALLEL_MPI_CONCURRENCY_MPI_COLLECTIVE_GATHER_HPP
 #define DCA_PARALLEL_MPI_CONCURRENCY_MPI_COLLECTIVE_GATHER_HPP
 
+#include <array>
+#include <map>
 #include <vector>
 
 #include <mpi.h>
@@ -31,49 +33,55 @@ public:
   MPICollectiveGather(const MPIProcessorGrouping& grouping) : grouping_(grouping) {}
 
   template <typename ScalarType, class Domain>
-  void gather(func::function<ScalarType, Domain>& f) const;
+  void gather(func::function<ScalarType, Domain>& f);
 
   template <typename ScalarType>
-  void gather(std::vector<ScalarType>& v) const;
+  void gather(std::vector<ScalarType>& v);
 
 private:
   template <typename ScalarType>
-  void gather(ScalarType* data_ptr, int size) const;
+  void gather(ScalarType* data_ptr, int size);
 
   const MPIProcessorGrouping& grouping_;
+  std::map<int, std::array<std::vector<int>, 2>> displacements_map_;
 };
 
 template <typename ScalarType, class Domain>
-void MPICollectiveGather::gather(func::function<ScalarType, Domain>& f) const {
+void MPICollectiveGather::gather(func::function<ScalarType, Domain>& f) {
   gather(f.values(), f.size());
 }
 
 template <typename ScalarType>
-void MPICollectiveGather::gather(std::vector<ScalarType>& v) const {
+void MPICollectiveGather::gather(std::vector<ScalarType>& v) {
   gather(v.data(), v.size());
 }
 
 template <typename ScalarType>
-void MPICollectiveGather::gather(ScalarType* data_ptr, const int size) const {
+void MPICollectiveGather::gather(ScalarType* data_ptr, const int size) {
   assert(size >= 0);
-
   const int n_threads = grouping_.get_Nr_threads();
-  std::vector<int> displs(n_threads);
-  std::vector<int> recvcount(n_threads);
 
-  std::pair<int, int> bounds;
-  for (int id = 0; id < n_threads; ++id) {
-    bounds = util::getBounds(id, n_threads, std::make_pair(0, size));
-    displs[id] = bounds.first * MPITypeMap<ScalarType>::factor();
-    recvcount[id] = (bounds.second - bounds.first) * MPITypeMap<ScalarType>::factor();
+  std::array<std::vector<int>, 2>& entry = displacements_map_[size];
+  auto& recv_count = entry[0];
+  auto& displacements = entry[1];
+
+  if (!recv_count.size()) {  // The displacements need to be computed.
+    std::pair<int, int> bounds;
+    recv_count.resize(n_threads);
+    displacements.resize(n_threads);
+    for (int id = 0; id < n_threads; ++id) {
+      bounds = util::getBounds(id, n_threads, std::make_pair(0, size));
+      recv_count[id] = (bounds.second - bounds.first) * MPITypeMap<ScalarType>::factor();
+      displacements[id] = bounds.first * MPITypeMap<ScalarType>::factor();
+    }
   }
 
-  bounds = util::getBounds(grouping_.get_id(), n_threads, std::make_pair(0, size));
+  const auto bounds = util::getBounds(grouping_.get_id(), n_threads, std::make_pair(0, size));
   std::vector<ScalarType> sendbuff(bounds.second - bounds.first);
   std::copy_n(data_ptr + bounds.first, sendbuff.size(), sendbuff.data());
 
   MPI_Allgatherv(sendbuff.data(), sendbuff.size() * MPITypeMap<ScalarType>::factor(),
-                 MPITypeMap<ScalarType>::value(), data_ptr, recvcount.data(), displs.data(),
+                 MPITypeMap<ScalarType>::value(), data_ptr, recv_count.data(), displacements.data(),
                  MPITypeMap<ScalarType>::value(), grouping_.get());
 }
 
