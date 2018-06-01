@@ -14,13 +14,14 @@
 #define DCA_PARALLEL_NO_CONCURRENCY_NO_CONCURRENCY_HPP
 
 #include <utility>
+#include "dca/parallel/no_concurrency/serial_collective_gather.hpp"
 #include "dca/parallel/no_concurrency/serial_collective_sum.hpp"
 
 namespace dca {
 namespace parallel {
 // dca::parallel::
 
-class NoConcurrency : public SerialCollectiveSum {
+class NoConcurrency : public SerialCollectiveSum, public SerialCollectiveGather {
 public:
   NoConcurrency(int /*argc*/, char** /*argv*/){};
 

@@ -42,8 +42,8 @@ public:
       : MPIPacking(grouping_),
         MPICollectiveMax(grouping_),
         MPICollectiveMin(grouping_),
-        MPICollectiveGather(grouping_),
-        MPICollectiveSum(grouping_) {
+        MPICollectiveSum(grouping_),
+        MPICollectiveGather(grouping_) {
     // TODO: If there is only one grouping, the MPI_Init call can be moved to the constructor of the
     //       MPIProcessorGrouping class.
     int provided = 0;
