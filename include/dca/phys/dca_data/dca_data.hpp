@@ -671,7 +671,7 @@ void DcaData<Parameters>::print_Sigma_QMC_versus_Sigma_cg() {
   }
 }
 
-}  // phys
-}  // dca
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_DATA_DCA_DATA_HPP
