@@ -65,6 +65,17 @@ public:
   constexpr static int DIMENSION = Lattice::DIMENSION;
   using TpAccumulatorScalar = typename Parameters::MC_measurement_scalar_type;
 
+  using SpGreensFunction =
+      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>>;
+  using TpGreensFunction =
+      func::function<std::complex<TpAccumulatorScalar>,
+                     func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KClusterDmn, KClusterDmn,
+                                        KExchangeDmn, WVertexDmn, WVertexDmn, WExchangeDmn>>;
+  // The following typedef is for testing purposes
+  using ReducedTpGreensFunction = func::function<
+      std::complex<TpAccumulatorScalar>,
+      func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KClusterDmn, KClusterDmn, WVertexDmn, WVertexDmn>>;
+
 private:
   using TDmn = func::dmn_0<domains::time_domain>;
   using WDmn = func::dmn_0<domains::frequency_domain>;
@@ -164,17 +175,6 @@ public:
   func::function<double, NuDmn> orbital_occupancy;
 
 public:  // Optional members getters.
-  using SpGreensFunction =
-      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>>;
-  using TpGreensFunction =
-      func::function<std::complex<TpAccumulatorScalar>,
-                     func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KClusterDmn, KClusterDmn,
-                                        KExchangeDmn, WVertexDmn, WVertexDmn, WExchangeDmn>>;
-  // The following typedef is for testing purposes
-  using ReducedTpGreensFunction = func::function<
-      std::complex<TpAccumulatorScalar>,
-      func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KClusterDmn, KClusterDmn, WVertexDmn, WVertexDmn>>;
-
   auto& get_G_k_w_error() {
     if (not G_k_w_err_)
       G_k_w_err_.reset(new SpGreensFunction("G_k_w-error"));
