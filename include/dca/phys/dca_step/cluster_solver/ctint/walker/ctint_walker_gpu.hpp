@@ -77,8 +77,8 @@ protected:
   using BaseClass::det_ratio_;
 
 private:  // Work spaces specific to the GPU implementation.
-  MatrixPair<linalg::GPU> S_, Q_, R_;
-  MatrixPair<linalg::CPU> S_host_, M_host_;
+  std::array<linalg::Matrix<double, linalg::GPU>, 2> S_, Q_, R_;
+  std::array<linalg::Matrix<double, linalg::CPU>, 2> S_host_, M_host_;
   std::array<cudaStream_t, 2> streams_;
   std::array<linalg::Vector<ushort, linalg::GPU>, 2> indices_;
   std::array<linalg::Vector<double, linalg::GPU>, 2> dev_det_;

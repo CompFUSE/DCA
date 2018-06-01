@@ -66,7 +66,7 @@ private:
   virtual void smallInverse(MatrixView& in_out, int s);
   virtual double separateIndexDeterminant(Matrix& m, const std::vector<ushort>& indices, int s);
 
-private:
+protected:
   using BaseClass::parameters_;
   using BaseClass::configuration_;
   using BaseClass::rng_;
@@ -80,7 +80,7 @@ protected:
   using BaseClass::det_ratio_;
 
 private:
-  MatrixPair<linalg::CPU> S_, Q_, R_;
+  std::array<linalg::Matrix<double, linalg::CPU>, 2> S_, Q_, R_;
   // work spaces
   using BaseClass::M_Q_;
 };

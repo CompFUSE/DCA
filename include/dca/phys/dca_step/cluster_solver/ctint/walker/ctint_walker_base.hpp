@@ -58,6 +58,8 @@ public:
 protected:
   using Matrix = linalg::Matrix<double, device_t>;
   using MatrixView = linalg::MatrixView<double, device_t>;
+  template <linalg::DeviceType matrix_device>
+  using MatrixPair = std::array<linalg::Matrix<double, matrix_device>, 2>;
 
 protected:  // The class is not instantiable.
   CtintWalkerBase(Parameters& pars_ref, Rng& rng_ref, const InteractionVertices& vertices,
