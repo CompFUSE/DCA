@@ -148,17 +148,17 @@ __device__ bool G4Helper::extendWIndices(int& w1, int& w2) const {
   }
 }
 
-__device__ int G4Helper::g4Index(int b1, int b2, int b3, int b4, int k1, int k2, int k3, int w1,
-                                 int w2, int w3) const {
+__device__ int G4Helper::g4Index(int b1, int b2, int b3, int b4, int k1, int k2, int kex, int w1,
+                                 int w2, int wex) const {
   return sbdm_steps_[0] * b1 + sbdm_steps_[1] * b2 + sbdm_steps_[2] * b3 + sbdm_steps_[3] * b4 +
-         sbdm_steps_[4] * k1 + sbdm_steps_[5] * k2 + sbdm_steps_[6] * k3 + sbdm_steps_[7] * w1 +
-         sbdm_steps_[8] * w2 + sbdm_steps_[9] * w3;
+         sbdm_steps_[4] * k1 + sbdm_steps_[5] * k2 + sbdm_steps_[6] * kex + sbdm_steps_[7] * w1 +
+         sbdm_steps_[8] * w2 + sbdm_steps_[9] * wex;
   ;
 }
 
-__device__ int G4Helper::g4Index(int k1, int k2, int k3, int w1, int w2, int w3) const {
-  return sbdm_steps_[4] * k1 + sbdm_steps_[5] * k2 + sbdm_steps_[6] * k3 + sbdm_steps_[7] * w1 +
-         sbdm_steps_[8] * w2 + sbdm_steps_[9] * w3;
+__device__ int G4Helper::g4Index(int k1, int k2, int kex, int w1, int w2, int wex) const {
+  return sbdm_steps_[4] * k1 + sbdm_steps_[5] * k2 + sbdm_steps_[6] * kex + sbdm_steps_[7] * w1 +
+         sbdm_steps_[8] * w2 + sbdm_steps_[9] * wex;
 }
 
 __host__ G4HelperManager::~G4HelperManager() {
