@@ -7,6 +7,9 @@ dca_add_gtest(mpi_collective_min_test
 dca_add_gtest(mpi_collective_sum_test
   MPI MPI_NUMPROC 8
   LIBS function ${DCA_CUDA_LIBS})
+dca_add_gtest(mpi_collective_gather_test
+    MPI MPI_NUMPROC 4
+    LIBS parallel_util)
 dca_add_gtest(mpi_packing_test
   MPI MPI_NUMPROC 1
   LIBS function)

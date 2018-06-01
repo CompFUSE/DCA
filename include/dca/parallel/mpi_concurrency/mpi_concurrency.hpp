@@ -20,6 +20,7 @@
 
 #include <mpi.h>
 
+#include "dca/parallel/mpi_concurrency/mpi_collective_gather.hpp"
 #include "dca/parallel/mpi_concurrency/mpi_collective_max.hpp"
 #include "dca/parallel/mpi_concurrency/mpi_collective_min.hpp"
 #include "dca/parallel/mpi_concurrency/mpi_collective_sum.hpp"
@@ -34,12 +35,14 @@ namespace parallel {
 class MPIConcurrency : public MPIPacking,
                        public MPICollectiveMax,
                        public MPICollectiveMin,
-                       public MPICollectiveSum {
+                       public MPICollectiveSum,
+                       public MPICollectiveGather {
 public:
   MPIConcurrency(int argc, char** argv)
       : MPIPacking(grouping_),
         MPICollectiveMax(grouping_),
         MPICollectiveMin(grouping_),
+        MPICollectiveGather(grouping_),
         MPICollectiveSum(grouping_) {
     // TODO: If there is only one grouping, the MPI_Init call can be moved to the constructor of the
     //       MPIProcessorGrouping class.
