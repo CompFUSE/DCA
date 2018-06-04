@@ -41,18 +41,18 @@ public:
 
   ~MPIConcurrency();
 
-  inline int id() const {
+  int id() const {
     assert(grouping_->get_id() > -1);
     return grouping_->get_id();
   }
-  inline int number_of_processors() const {
+  int number_of_processors() const {
     assert(grouping_->get_Nr_threads() > -1);
     return grouping_->get_Nr_threads();
   }
-  inline int first() const {
+  int first() const {
     return grouping_->first();
   }
-  inline int last() const {
+  int last() const {
     return grouping_->last();
   }
 
