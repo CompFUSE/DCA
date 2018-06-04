@@ -273,9 +273,9 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::start_walker(int id) {
   mutex_numerical_error.unlock();
 #endif  // DCA_WITH_QMC_BIT
 
-  if (id == 0) {
-    if (concurrency.id() == concurrency.first())
-      std::cout << "\n\t\t QMCI ends\n" << std::endl;
+  if (id == 0 && concurrency.id() == concurrency.first()) {
+    std::cout << "\n\t\t QMCI ends\n" << std::endl;
+    walker.printSummary();
   }
 }
 
