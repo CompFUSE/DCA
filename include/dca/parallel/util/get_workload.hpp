@@ -20,18 +20,25 @@ namespace parallel {
 namespace util {
 // dca::parallel::util::
 
+inline int getWorkload(const uint total_work, const uint n_workers, const uint id) {
+  int work = total_work / n_workers;
+  if (id < (total_work % n_workers))
+    ++work;
+  return work;
+}
+
+template <class Concurrency>
+int getWorkload(const uint total_work, const Concurrency& concurrency) {
+  return getWorkload(total_work, concurrency.number_of_processors(), concurrency.id());
+}
+
 template <class Concurrency>
 int getWorkload(const uint total_work, const uint n_local_workers, const uint local_id,
                 const Concurrency& concurrency) {
   assert(local_id < n_local_workers);
+  const int local_work = getWorkload(total_work, concurrency);
 
-  const int n_workers = n_local_workers * concurrency.number_of_processors();
-  const int id = local_id + n_local_workers * concurrency.id();
-
-  int work = total_work / n_workers;
-  if (id < total_work % n_workers)
-    ++work;
-  return work;
+  return getWorkload(local_work, n_local_workers, local_id);
 }
 
 }  // util

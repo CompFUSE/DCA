@@ -155,8 +155,7 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::integrate() {
               << std::endl;
   }
 
-  measurements_remaining_ =
-      parallel::util::getWorkload(parameters.get_measurements(), 1, 0, concurrency);
+  measurements_remaining_ = parallel::util::getWorkload(parameters.get_measurements(), concurrency);
 
   std::vector<std::thread> threads;
   std::vector<pair_type> data;
