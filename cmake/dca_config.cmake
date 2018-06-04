@@ -190,7 +190,9 @@ set_property(CACHE DCA_CLUSTER_SOLVER PROPERTY STRINGS CT-AUX CT-INT SS-CT-HYB)
 
 if (DCA_CLUSTER_SOLVER STREQUAL "CT-INT")
   set(DCA_CLUSTER_SOLVER_NAME dca::phys::solver::CT_INT)
-  set(DCA_CLUSTER_SOLVER_TYPE "dca::phys::solver::CtintClusterSolver<walker_device, ParametersType>")
+  # Use submatrix algorithm if available on the device.
+  set(DCA_CLUSTER_SOLVER_TYPE
+      "dca::phys::solver::CtintClusterSolver<walker_device, ParametersType, true>")
   set(DCA_CLUSTER_SOLVER_INCLUDE "dca/phys/dca_step/cluster_solver/ctint/ctint_cluster_solver.hpp")
 
 

@@ -21,7 +21,8 @@ using Parameters =
                                   ModelType, RngType, dca::phys::solver::CT_INT>;
 using Data = dca::phys::DcaData<Parameters>;
 
-struct SolverWrapper : public dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, Parameters> {
+struct SolverWrapper
+    : public dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, Parameters, false> {
   using BaseClass = dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, Parameters>;
 
   SolverWrapper(Parameters& parameters_ref, typename BaseClass::Data& data_ref)

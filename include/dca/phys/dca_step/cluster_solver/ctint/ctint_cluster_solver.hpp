@@ -45,7 +45,7 @@ namespace phys {
 namespace solver {
 // dca::phys::solver::
 
-template <dca::linalg::DeviceType device_t, class Parameters>
+template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix = false>
 class CtintClusterSolver {
 public:
   using Data = DcaData<Parameters>;
@@ -90,7 +90,7 @@ protected:  // thread jacket interface.
   using Profiler = typename Parameters::profiler_type;
   using Concurrency = typename Parameters::concurrency_type;
 
-  using Walker = ctint::CtintWalkerChoice<device_t, Parameters>;
+  using Walker = ctint::CtintWalkerChoice<device_t, Parameters, use_submatrix>;
   using Accumulator = ctint::CtintAccumulator<Parameters, device_t>;
   using Configuration = ctint::AccumulatorConfiguration;
 
@@ -152,9 +152,9 @@ private:
   ctint::InteractionVertices interaction_vertices_;
 };
 
-template <dca::linalg::DeviceType device_t, class Parameters>
-CtintClusterSolver<device_t, Parameters>::CtintClusterSolver(Parameters& parameters_ref,
-                                                             Data& data_ref)
+template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
+CtintClusterSolver<device_t, Parameters, use_submatrix>::CtintClusterSolver(Parameters& parameters_ref,
+                                                                            Data& data_ref)
     : parameters_(parameters_ref),
       data_(data_ref),
       concurrency_(parameters_.get_concurrency()),
@@ -173,26 +173,26 @@ CtintClusterSolver<device_t, Parameters>::CtintClusterSolver(Parameters& paramet
     std::cout << "\n\n\t CT-INT Integrator is born \n\n";
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters>
-CtintClusterSolver<device_t, Parameters>::~CtintClusterSolver() {
+template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
+CtintClusterSolver<device_t, Parameters, use_submatrix>::~CtintClusterSolver() {
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\n\t CT-INT Integrator has died \n\n";
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters>
-typename CtintClusterSolver<device_t, Parameters>::Walker CtintClusterSolver<
-    device_t, Parameters>::instantiateWalker(Rng& rng_ref, int id) {
+template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
+typename CtintClusterSolver<device_t, Parameters, use_submatrix>::Walker CtintClusterSolver<
+    device_t, Parameters, use_submatrix>::instantiateWalker(Rng& rng_ref, int id) {
   return Walker(parameters_, rng_ref, interaction_vertices_, d_builder_, id);
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters>
-typename CtintClusterSolver<device_t, Parameters>::Accumulator CtintClusterSolver<
-    device_t, Parameters>::instantiateAccumulator(const int /*id*/) {
+template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
+typename CtintClusterSolver<device_t, Parameters, use_submatrix>::Accumulator CtintClusterSolver<
+    device_t, Parameters, use_submatrix>::instantiateAccumulator(const int /*id*/) {
   return Accumulator(parameters_, data_, perform_tp_accumulation_);
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters>
-void CtintClusterSolver<device_t, Parameters>::initialize(int dca_iteration) {
+template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
+void CtintClusterSolver<device_t, Parameters, use_submatrix>::initialize(int dca_iteration) {
   dca_iteration_ = dca_iteration;
   g0_.initialize(ctint::details::shrinkG0(data_.G0_r_t_cluster_excluded));
   perform_tp_accumulation_ = parameters_.get_four_point_type() != NONE and
@@ -203,8 +203,8 @@ void CtintClusterSolver<device_t, Parameters>::initialize(int dca_iteration) {
   walker_.reset(new Walker(instantiateWalker(rng_, 0)));
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters>
-void CtintClusterSolver<device_t, Parameters>::integrate() {
+template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
+void CtintClusterSolver<device_t, Parameters, use_submatrix>::integrate() {
   if (interaction_vertices_.integratedInteraction() == 0)
     throw(std::logic_error("The interaction is zero."));
   dca::profiling::WallTime start_time;
@@ -231,8 +231,8 @@ void CtintClusterSolver<device_t, Parameters>::integrate() {
               << "\t\tAcceptance ratio: " << walker_->acceptanceRatio() << "\n\n";
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters>
-void CtintClusterSolver<device_t, Parameters>::finalize() {
+template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
+void CtintClusterSolver<device_t, Parameters, use_submatrix>::finalize() {
   const bool compute_error =
       dca_iteration_ == parameters_.get_dca_iterations() - 1 and parameters_.computeError();
   SpGreensFunction M;
@@ -272,8 +272,9 @@ void CtintClusterSolver<device_t, Parameters>::finalize() {
     std::cout << "\n\tDensity = " << computeDensity() << "\n";
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters>
-double CtintClusterSolver<device_t, Parameters>::finalize(DcaLoopData<Parameters>& loop_data) {
+template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
+double CtintClusterSolver<device_t, Parameters, use_submatrix>::finalize(
+    DcaLoopData<Parameters>& loop_data) {
   finalize();
   // Compute and save into loop_data Sigma_zero_mom and std deviation
   for (int nu = 0; nu < Nu::dmn_size(); nu++) {
@@ -306,8 +307,8 @@ double CtintClusterSolver<device_t, Parameters>::finalize(DcaLoopData<Parameters
   return loop_data.L2_Sigma_difference(dca_iteration_) = L2Difference();
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters>
-void CtintClusterSolver<device_t, Parameters>::warmUp() {
+template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
+void CtintClusterSolver<device_t, Parameters, use_submatrix>::warmUp() {
   const int n_sweep = parameters_.get_warm_up_sweeps();
   for (int i = 0; i < n_sweep; i++) {
     walker_->doSweep();
@@ -318,8 +319,8 @@ void CtintClusterSolver<device_t, Parameters>::warmUp() {
   walker_->markThermalized();
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters>
-void CtintClusterSolver<device_t, Parameters>::measure() {
+template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
+void CtintClusterSolver<device_t, Parameters, use_submatrix>::measure() {
   const int n_meas = parallel::util::getWorkload(parameters_.get_measurements(), 1, 0, concurrency_);
 
   for (int i = 0; i < n_meas; i++) {
@@ -337,10 +338,9 @@ void CtintClusterSolver<device_t, Parameters>::measure() {
   accumulator_.finalize();
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters>
-void CtintClusterSolver<device_t, Parameters>::computeG_k_w(const SpGreensFunction& G0,
-                                                            const SpGreensFunction& M_k_w,
-                                                            SpGreensFunction& G_k_w) const {
+template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
+void CtintClusterSolver<device_t, Parameters, use_submatrix>::computeG_k_w(
+    const SpGreensFunction& G0, const SpGreensFunction& M_k_w, SpGreensFunction& G_k_w) const {
   const int matrix_dim = Nu::dmn_size();
   dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> G0_M(matrix_dim, matrix_dim);
 
@@ -364,11 +364,10 @@ void CtintClusterSolver<device_t, Parameters>::computeG_k_w(const SpGreensFuncti
   }
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters>
-void CtintClusterSolver<device_t, Parameters>::computeSigma(const SpGreensFunction& G,
-                                                            const SpGreensFunction& G0,
-                                                            const SpGreensFunction& M,
-                                                            SpGreensFunction& Sigma) const {
+template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
+void CtintClusterSolver<device_t, Parameters, use_submatrix>::computeSigma(
+    const SpGreensFunction& G, const SpGreensFunction& G0, const SpGreensFunction& M,
+    SpGreensFunction& Sigma) const {
   const int matrix_dim = Nu::dmn_size();
 
   dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> Ginv(matrix_dim);
@@ -401,8 +400,8 @@ void CtintClusterSolver<device_t, Parameters>::computeSigma(const SpGreensFuncti
   //    adjust_self_energy_for_double_counting();
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters>
-double CtintClusterSolver<device_t, Parameters>::L2Difference() const {
+template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
+double CtintClusterSolver<device_t, Parameters, use_submatrix>::L2Difference() const {
   const double alpha = parameters_.get_self_energy_mixing_factor();
 
   for (int l = 0; l < data_.Sigma.size(); l++)
@@ -428,8 +427,8 @@ double CtintClusterSolver<device_t, Parameters>::L2Difference() const {
   return L2_error;
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters>
-double CtintClusterSolver<device_t, Parameters>::computeDensity() const {
+template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
+double CtintClusterSolver<device_t, Parameters, use_submatrix>::computeDensity() const {
   double result(0.);
   const int t0_minus = Tdmn::dmn_size() / 2 - 1;
   for (int i = 0; i < Nu::dmn_size(); i++)
@@ -438,9 +437,9 @@ double CtintClusterSolver<device_t, Parameters>::computeDensity() const {
   return result;
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters>
-void CtintClusterSolver<device_t, Parameters>::gatherMAndG4(SpGreensFunction& M,
-                                                            bool compute_error) const {
+template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
+void CtintClusterSolver<device_t, Parameters, use_submatrix>::gatherMAndG4(SpGreensFunction& M,
+                                                                           bool compute_error) const {
   const auto& M_r = accumulator_.get_sign_times_M_r_w();
   math::transform::FunctionTransform<Rdmn, Kdmn>::execute(M_r, M);
 
@@ -470,8 +469,8 @@ void CtintClusterSolver<device_t, Parameters>::gatherMAndG4(SpGreensFunction& M,
   }
 }
 
-template <dca::linalg::DeviceType device_t, class Parameters>
-auto CtintClusterSolver<device_t, Parameters>::local_G_k_w() const {
+template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
+auto CtintClusterSolver<device_t, Parameters, use_submatrix>::local_G_k_w() const {
   const auto& M_r = accumulator_.get_sign_times_M_r_w();
   SpGreensFunction M;
   math::transform::FunctionTransform<Rdmn, Kdmn>::execute(M_r, M);
