@@ -16,7 +16,7 @@ TEST(SerialProcessorGroupingTest, All) {
   dca::parallel::SerialProcessorGrouping grouping;
 
   EXPECT_EQ(0, grouping.get_id());
-  EXPECT_EQ(1, grouping.get_Nr_threads());
+  EXPECT_EQ(1, grouping.get_size());
   EXPECT_EQ(0, grouping.first());
   EXPECT_EQ(0, grouping.last());
 }

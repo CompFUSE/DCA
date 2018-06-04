@@ -27,7 +27,7 @@ class MPICollectiveSumTest : public ::testing::Test {
 protected:
   MPICollectiveSumTest()
       : grouping_(new dca::parallel::MPIProcessorGrouping), sum_interface_(grouping_) {
-    size_ = grouping_->get_Nr_threads();
+    size_ = grouping_->get_size();
     rank_ = grouping_->get_id();
   }
 

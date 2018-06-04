@@ -19,7 +19,7 @@ protected:
   MPICollectiveMaxTest()
       : grouping_(new dca::parallel::MPIProcessorGrouping), max_interface_(grouping_) {
     rank_ = grouping_->get_id();
-    size_ = grouping_->get_Nr_threads();
+    size_ = grouping_->get_size();
   }
 
   std::unique_ptr<const dca::parallel::MPIProcessorGrouping> grouping_;

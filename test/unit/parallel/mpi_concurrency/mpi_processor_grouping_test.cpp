@@ -21,7 +21,7 @@ TEST(MPIProcessorGroupingTest, All) {
   dca::parallel::MPIProcessorGrouping grouping;
 
   EXPECT_EQ(rank, grouping.get_id());
-  EXPECT_EQ(4, grouping.get_Nr_threads());
+  EXPECT_EQ(4, grouping.get_size());
   EXPECT_EQ(0, grouping.first());
   EXPECT_EQ(3, grouping.last());
 }
@@ -43,7 +43,7 @@ TEST(MPIProcessorGroupingTest, FaultyProcess) {
     else if (rank == 3)
       EXPECT_EQ(1, grouping.get_id());
 
-    EXPECT_EQ(2, grouping.get_Nr_threads());
+    EXPECT_EQ(2, grouping.get_size());
     EXPECT_EQ(0, grouping.first());
     EXPECT_EQ(1, grouping.last());
   }

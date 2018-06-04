@@ -250,7 +250,7 @@ template <typename some_type>
 void MPICollectiveSum::sum_and_average(some_type& obj, const int nr_meas_rank) const {
   sum(obj);
 
-  const double one_over_N = 1. / (nr_meas_rank * grouping_->get_Nr_threads());
+  const double one_over_N = 1. / (nr_meas_rank * grouping_->get_size());
 
   obj *= one_over_N;
 }
@@ -260,30 +260,30 @@ void MPICollectiveSum::sum_and_average(const some_type& in, some_type& out,
                                        const int nr_meas_rank) const {
   sum(in, out);
 
-  const double one_over_N = 1. / (nr_meas_rank * grouping_->get_Nr_threads());
+  const double one_over_N = 1. / (nr_meas_rank * grouping_->get_size());
 
   out *= one_over_N;
 }
 
 template <typename Scalar>
 void MPICollectiveSum::leaveOneOutAvg(Scalar& s) const {
-  if (grouping_->get_Nr_threads() == 1)
+  if (grouping_->get_size() == 1)
     return;
 
   const Scalar s_local(s);
   sum(s);
-  s = (s - s_local) / (grouping_->get_Nr_threads() - 1);
+  s = (s - s_local) / (grouping_->get_size() - 1);
 }
 
 template <typename Scalar, class Domain>
 void MPICollectiveSum::leaveOneOutAvg(func::function<Scalar, Domain>& f) const {
-  if (grouping_->get_Nr_threads() == 1)
+  if (grouping_->get_size() == 1)
     return;
 
   const func::function<Scalar, Domain> f_local(f);
   sum(f_local, f);
 
-  const double scale = 1. / (grouping_->get_Nr_threads() - 1);
+  const double scale = 1. / (grouping_->get_size() - 1);
   for (int i = 0; i < f.size(); ++i)
     f(i) = scale * (f(i) - f_local(i));
 }
@@ -293,7 +293,7 @@ func::function<Scalar, Domain> MPICollectiveSum::jackknifeError(func::function<S
                                                                 const bool overwrite) const {
   func::function<Scalar, Domain> err("jackknife-error");
 
-  const int n = grouping_->get_Nr_threads();
+  const int n = grouping_->get_size();
 
   if (n == 1)  // No jackknife procedure possible.
     return err;
@@ -321,7 +321,7 @@ func::function<std::complex<Scalar>, Domain> MPICollectiveSum::jackknifeError(
     func::function<std::complex<Scalar>, Domain>& f_i, const bool overwrite) const {
   func::function<std::complex<Scalar>, Domain> err("jackknife-error");
 
-  const int n = grouping_->get_Nr_threads();
+  const int n = grouping_->get_size();
 
   if (n == 1)  // No jackknife procedure possible.
     return err;
@@ -352,7 +352,7 @@ func::function<std::complex<Scalar>, Domain> MPICollectiveSum::jackknifeError(
 template <typename scalar_type, class domain>
 void MPICollectiveSum::average_and_compute_stddev(func::function<scalar_type, domain>& f_mean,
                                                   func::function<scalar_type, domain>& f_stddev) const {
-  scalar_type factor = 1. / grouping_->get_Nr_threads();
+  scalar_type factor = 1. / grouping_->get_size();
 
   func::function<scalar_type, domain> f_sum("f-sum");
   func::function<scalar_type, domain> f_diff("f-diff");
@@ -374,14 +374,14 @@ void MPICollectiveSum::average_and_compute_stddev(func::function<scalar_type, do
   for (int i = 0; i < f_sum.size(); i++)
     f_stddev(i) = std::sqrt(f_stddev(i));
 
-  f_stddev /= std::sqrt(grouping_->get_Nr_threads());
+  f_stddev /= std::sqrt(grouping_->get_size());
 }
 
 template <typename scalar_type, class domain>
 void MPICollectiveSum::average_and_compute_stddev(
     func::function<std::complex<scalar_type>, domain>& f_mean,
     func::function<std::complex<scalar_type>, domain>& f_stddev) const {
-  scalar_type factor = 1. / grouping_->get_Nr_threads();
+  scalar_type factor = 1. / grouping_->get_size();
 
   func::function<std::complex<scalar_type>, domain> f_sum("f-sum");
   func::function<std::complex<scalar_type>, domain> f_diff("f-diff");
@@ -407,7 +407,7 @@ void MPICollectiveSum::average_and_compute_stddev(
     f_stddev(i).imag(std::sqrt(imag(f_stddev(i))));
   }
 
-  f_stddev /= std::sqrt(grouping_->get_Nr_threads());
+  f_stddev /= std::sqrt(grouping_->get_size());
 }
 
 template <typename Scalar, class Domain>
@@ -468,7 +468,7 @@ std::vector<Scalar> MPICollectiveSum::avgNormalizedMomenta(const func::function<
 
   // Divide by n and normalize the momenta by sigma^order, then average.
   std::vector<Scalar> momenta_avg(orders.size(), 0);
-  const int n = grouping_->get_Nr_threads();
+  const int n = grouping_->get_size();
   for (std::size_t i = 0; i < f.size(); i++) {
     const Scalar var = std::sqrt(var2[i] / n);
     for (std::size_t j = 0; j < orders.size(); j++)

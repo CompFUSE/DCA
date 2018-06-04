@@ -44,7 +44,7 @@ public:
     assert(world_id_ > -1);
     return world_id_;
   }
-  inline int get_Nr_threads() const {
+  inline int get_size() const {
     assert(size_ > -1);
     return size_;
   }
