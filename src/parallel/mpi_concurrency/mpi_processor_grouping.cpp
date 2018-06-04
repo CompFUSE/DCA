@@ -51,14 +51,14 @@ MPIProcessorGrouping::MPIProcessorGrouping(bool (*test)()) {
   MPI_Group_free(&world_group);
 
   if (is_valid) {
-    MPI_Comm_size(MPI_communication_, &nr_threads_);
+    MPI_Comm_size(MPI_communication_, &size_);
     MPI_Comm_rank(MPI_communication_, &id_);
   }
   else {
-    id_ = nr_threads_ = -1;
+    id_ = size_ = -1;
   }
 
-  if (world_size_ > nr_threads_)
+  if (world_size_ > size_)
     printRemovedProcesses(valid_ids);
 }
 

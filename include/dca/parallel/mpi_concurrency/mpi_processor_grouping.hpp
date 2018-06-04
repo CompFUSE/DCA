@@ -45,15 +45,15 @@ public:
     return world_id_;
   }
   inline int get_Nr_threads() const {
-    assert(nr_threads_ > -1);
-    return nr_threads_;
+    assert(size_ > -1);
+    return size_;
   }
 
   inline int first() const {
     return 0;
   }
   inline int last() const {
-    return nr_threads_ - 1;
+    return size_ - 1;
   }
   inline bool isValid() const {
     return id_ >= 0;
@@ -67,10 +67,10 @@ private:
 
 private:
   MPI_Group MPI_group_ = 0;
-  MPI_Comm MPI_communication_ = 0;
+  MPI_Comm MPI_communication_ = MPI_COMM_NULL;
   int world_id_ = -1;
   int id_ = -1;
-  int nr_threads_ = -1;
+  int size_ = -1;
   int world_size_ = -1;
 };
 
