@@ -42,13 +42,15 @@ MPIProcessorGrouping::MPIProcessorGrouping(bool (*test)()) {
     if (validity_output[id])
       valid_ids.push_back(id);
   if (!valid_ids.size())
-    throw(std::logic_error("MPI grouping is empty.\n"));
+    throw(std::logic_error("MPI group is empty.\n"));
 
   MPI_Group world_group;
+  MPI_Group MPI_group;
   MPI_Comm_group(MPI_COMM_WORLD, &world_group);
-  MPI_Group_incl(world_group, valid_ids.size(), valid_ids.data(), &MPI_group_);
-  MPI_Comm_create_group(MPI_COMM_WORLD, MPI_group_, 1, &MPI_communication_);
+  MPI_Group_incl(world_group, valid_ids.size(), valid_ids.data(), &MPI_group);
+  MPI_Comm_create_group(MPI_COMM_WORLD, MPI_group, 1, &MPI_communication_);
   MPI_Group_free(&world_group);
+  MPI_Group_free(&MPI_group);
 
   if (is_valid) {
     MPI_Comm_size(MPI_communication_, &size_);
@@ -65,7 +67,6 @@ MPIProcessorGrouping::MPIProcessorGrouping(bool (*test)()) {
 MPIProcessorGrouping::~MPIProcessorGrouping() {
   if (isValid()) {
     MPI_Comm_free(&MPI_communication_);
-    MPI_Group_free(&MPI_group_);
   }
 }
 
@@ -105,7 +106,7 @@ void MPIProcessorGrouping::printRemovedProcesses(const std::vector<int>& valid_i
   MPI_Group_incl(world_group, removed_ids.size(), removed_ids.data(), &removed_group);
   MPI_Comm_create_group(MPI_COMM_WORLD, removed_group, 2, &removed_comm);
   MPI_Group_free(&world_group);
-
+  
   // Send hostname to root.
   std::vector<char> recv_buffer;
   if (world_id_ == removed_ids[0])

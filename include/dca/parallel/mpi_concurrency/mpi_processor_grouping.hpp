@@ -66,7 +66,6 @@ private:
   void printRemovedProcesses(const std::vector<int>& valid_ids) const;
 
 private:
-  MPI_Group MPI_group_ = 0;
   MPI_Comm MPI_communication_ = MPI_COMM_NULL;
   int world_id_ = -1;
   int id_ = -1;
@@ -78,3 +77,4 @@ private:
 }  // dca
 
 #endif  // DCA_PARALLEL_MPI_CONCURRENCY_MPI_PROCESSOR_GROUPING_HPP
+

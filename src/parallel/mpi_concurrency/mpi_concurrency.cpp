@@ -31,7 +31,16 @@ MPIConcurrency::MPIConcurrency(int argc, char** argv)
   grouping_.reset(new MPIProcessorGrouping);
 
   if (!grouping_->isValid()) {  // Exit only from this process.
-    std::cerr << "Process " << grouping_->get_world_id() << " is not valid.\nExiting" << std::endl;
+    char mpi_processor_name[MPI_MAX_PROCESSOR_NAME];
+    int name_len;
+    int ierr;
+    ierr = MPI_Get_processor_name(reinterpret_cast<char*>(&mpi_processor_name), &name_len);
+    if(ierr != MPI_SUCCESS) {
+      std::cerr << "MPI_Get_processor_name() failed with error " << ierr;
+    }
+    std::cerr << "Process " << grouping_->get_world_id() << " on node "
+	      << mpi_processor_name
+	      << " is exiting.\nIt cannot execute CUDA kernels." << std::endl;
     MPI_Finalize();
     exit(0);
   }
