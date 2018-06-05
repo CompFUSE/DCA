@@ -200,7 +200,7 @@ public:
   // Preconditions: 0 <= thread_id < DCA_MAX_THREADS,
   //                0 <= stream_id < DCA_STREAMS_PER_THREADS.
   template <DeviceType rhs_device_name>
-  void set(const Matrix<ScalarType, rhs_device_name>& rhs, int thread_id, int stream_id);
+  void set(const Matrix<ScalarType, rhs_device_name>& rhs, int thread_id = 0, int stream_id = 0);
 
 #ifdef DCA_HAVE_CUDA
   // Asynchronous assignment.
