@@ -92,7 +92,9 @@ CtintWalker<linalg::CPU, Parameters>::CtintWalker(Parameters& parameters_ref, Rn
                                                   int id)
     : BaseClass(parameters_ref, rng_ref, vertices, builder_ref, id) {
   while (parameters_.getInitialConfigurationSize() > configuration_.size())
-    tryVertexInsert(true);
+    configuration_.insertRandom(rng_);
+
+  BaseClass::setMFromConfig();
 }
 
 template <class Parameters>

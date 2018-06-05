@@ -83,7 +83,6 @@ private:
 
   std::atomic<int> acc_finished_;
 
-
   std::atomic<int> acc_finished;
   std::atomic<int> measurements_remaining_;
 
@@ -95,7 +94,7 @@ private:
   std::vector<Rng> rng_vector_;
 
   std::queue<StdThreadAccumulatorType*> accumulators_queue_;
-  
+
   std::mutex mutex_merge_;
   std::mutex mutex_queue_;
 };
@@ -327,14 +326,13 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::startAccumulator(int id) 
     }
 
     {
-      Profiler profiler("stdthread-accumulator waiting", "stdthread-MC-accumulator", __LINE__,
-                             id);
+      Profiler profiler("stdthread-accumulator waiting", "stdthread-MC-accumulator", __LINE__, id);
       accumulator_obj.waitForQmciWalker();
     }
 
     {
-      Profiler profiler("stdthread-accumulator accumulating", "stdthread-MC-accumulator",
-                             __LINE__, id);
+      Profiler profiler("stdthread-accumulator accumulating", "stdthread-MC-accumulator", __LINE__,
+                        id);
       accumulator_obj.measure();
     }
   }
@@ -359,8 +357,8 @@ void StdThreadQmciClusterSolver<QmcSolver>::startWalkerAndAccumulator(int id) {
   Accumulator accumulator_obj(parameters_, data_, id);
   accumulator_obj.initialize(dca_iteration_);
 
-  const int n_meas =
-      parallel::util::getWorkload(parameters_.get_measurements(), parameters_.get_accumulators(), id, concurrency_);
+  const int n_meas = parallel::util::getWorkload(parameters_.get_measurements(),
+                                                 parameters_.get_accumulators(), id, concurrency_);
 
   for (int i = 0; i < n_meas; ++i) {
     {
