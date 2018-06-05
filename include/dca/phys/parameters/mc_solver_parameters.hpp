@@ -279,9 +279,6 @@ public:
   bool doubleCountedInteraction() const {
     return double_counted_interaction_;
   }
-  bool computeError() const {
-    return compute_error_;
-  }
 
   bool useSubmatrix() const {
     return use_submatrix_;
@@ -298,7 +295,6 @@ private:
   double alpha_ndd_ = 1e-4;
   double double_update_prob_= 0;
   bool double_counted_interaction_ = true;
-  bool compute_error_ = false;
 
   bool use_submatrix_ = false;
   int max_submatrix_size_ = 1;
@@ -313,7 +309,6 @@ int McSolverParameters<solver::CT_INT>::getBufferSize(const Concurrency& concurr
   buffer_size += concurrency.get_buffer_size(alpha_ndd_);
   buffer_size += concurrency.get_buffer_size(double_update_prob_);
   buffer_size += concurrency.get_buffer_size(double_counted_interaction_);
-  buffer_size += concurrency.get_buffer_size(compute_error_);
 
   return buffer_size;
 }
@@ -327,7 +322,6 @@ void McSolverParameters<solver::CT_INT>::pack(const Concurrency& concurrency, ch
   concurrency.pack(buffer, buffer_size, position, alpha_ndd_);
   concurrency.pack(buffer, buffer_size, position, double_update_prob_);
   concurrency.pack(buffer, buffer_size, position, double_counted_interaction_);
-  concurrency.pack(buffer, buffer_size, position, compute_error_);
 }
 
 template <typename Concurrency>
@@ -339,7 +333,6 @@ void McSolverParameters<solver::CT_INT>::unpack(const Concurrency& concurrency, 
   concurrency.unpack(buffer, buffer_size, position, alpha_ndd_);
   concurrency.unpack(buffer, buffer_size, position, double_update_prob_);
   concurrency.unpack(buffer, buffer_size, position, double_counted_interaction_);
-  concurrency.unpack(buffer, buffer_size, position, compute_error_);
 }
 
 // TODO: None of the open_group methods seem to throw.
@@ -362,7 +355,6 @@ void McSolverParameters<solver::CT_INT>::readWrite(ReaderOrWriter& reader_or_wri
     tryToRead("alpha-ndd", alpha_ndd_);
     tryToRead("double-update-probability", double_update_prob_);
     tryToRead("double-counted-interaction", double_counted_interaction_);
-    tryToRead("compute-error-bar", compute_error_);
     tryToRead("max-submatrix-size", max_submatrix_size_);
     tryToRead("use-submatrix", use_submatrix_);
     reader_or_writer.close_group();

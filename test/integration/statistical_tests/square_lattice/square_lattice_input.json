@@ -36,8 +36,7 @@
     "use-submatrix" : true,
     "max-submatrix-size": 4,
     "initial-configuration-size": 5,
-    "alpha-dd-pos" : 0.501,
-    "compute-error-bar" : false
+    "alpha-dd-pos" : 0.501
   },
 
   "DCA": {

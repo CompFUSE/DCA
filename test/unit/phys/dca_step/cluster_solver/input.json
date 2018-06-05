@@ -69,7 +69,6 @@
   {
     "initial-configuration-size" :5,
     "alpha-dd-pos" : 0.51,
-    "compute-error-bar" : false,
     "double-update-probability" : 0
   }
 }

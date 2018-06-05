@@ -233,8 +233,18 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::integrate() {
 
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
 void CtintClusterSolver<device_t, Parameters, use_submatrix>::finalize() {
-  const bool compute_error =
-      dca_iteration_ == parameters_.get_dca_iterations() - 1 and parameters_.computeError();
+  bool compute_error = false;
+  if (dca_iteration_ == parameters_.get_dca_iterations() - 1) {
+    if (parameters_.get_error_computation_type() == ErrorComputationType::JACK_KNIFE) {
+      if (concurrency_.id() == concurrency_.first())
+        std::cout << "Computing jack knife error.\n\n";
+      compute_error = true;
+    }
+    else if (parameters_.get_error_computation_type() == ErrorComputationType::STANDARD_DEVIATION)
+      std::cout << "CT-INT does not support ErrorComputationType::STANDARD_DEVIATION.\n"
+                << "Error computation will be skipped.\n";
+  }
+
   SpGreensFunction M;
 
   // average M across ranks.

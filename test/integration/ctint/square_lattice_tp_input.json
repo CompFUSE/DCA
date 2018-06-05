@@ -37,8 +37,7 @@
   "CT-INT" :
   {
     "initial-matrix-size" :5,
-    "alpha-dd-pos" : 0.501,
-    "compute-error-bar" : false
+    "alpha-dd-pos" : 0.501
   },
 
   "four-point": {

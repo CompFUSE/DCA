@@ -60,6 +60,8 @@
     "sweeps-per-measurement": 1.,
     "measurements-per-process-and-accumulator": 2000,
 
+    "error-computation-type" : "JACK_KNIFE",
+
     "threaded-solver": {
       "walkers": 1,
       "accumulators": 3,
@@ -71,8 +73,7 @@
   "CT-INT" :
   {
     "initial-configuration-size" :10,
-    "alpha-dd-pos" : 0.501,
-    "compute-error-bar": true
+    "alpha-dd-pos" : 0.501
   }
 }
 
