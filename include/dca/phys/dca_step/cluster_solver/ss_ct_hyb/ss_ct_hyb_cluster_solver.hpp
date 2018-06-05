@@ -251,6 +251,8 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::integrate() {
               << concurrency.number_of_processors() *
                      parameters.get_measurements()
               << std::endl;
+
+    walker.printSummary();
   }
 }
 

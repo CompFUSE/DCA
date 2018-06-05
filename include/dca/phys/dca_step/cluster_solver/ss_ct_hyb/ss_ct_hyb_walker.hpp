@@ -83,8 +83,6 @@ public:
 public:
   SsCtHybWalker(parameters_type& parameters_ref, MOMS_type& MOMS_ref, rng_type& rng_ref, int id = 0);
 
-  ~SsCtHybWalker();
-
   /*!
    *  \brief Initializes the configuration and sets \f$\mu_i = \frac12 \sum_j
    * \frac{U_{ij}+U_{ji}}{2}\f$.
@@ -144,6 +142,9 @@ public:
   // TODO: Before this method can be made const, SS_CT_HYB_configuration needs to be made const
   //       correct.
   void update_shell(const int done, const int total) /*const*/;
+
+  // Writes a summary of the walker's Markov chain updates to stdout.
+  void printSummary() const;
 
 private:
   void test_interpolation();
@@ -232,13 +233,16 @@ SsCtHybWalker<device_t, parameters_type, MOMS_type>::SsCtHybWalker(parameters_ty
       sign(1) {}
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-SsCtHybWalker<device_t, parameters_type, MOMS_type>::~SsCtHybWalker() {
-  if (concurrency.id() == 0 and thread_id == 0) {
-    std::stringstream ss;
-    ss << "\n\n\t\t walker died --> nb_successfull_updates/nb_updates : "
-       << double(nb_successfull_updates) / double(nb_updates) << "\n\n";
-    std::cout << ss.str();
-  }
+void SsCtHybWalker<device_t, parameters_type, MOMS_type>::printSummary() const {
+  std::cout.unsetf(std::ios_base::floatfield);
+  std::cout << "\n"
+            << "Walker: process ID = " << concurrency.id() << ", thread ID = " << thread_id << "\n"
+            << "-------------------------------------------\n"
+            << "nb_successfull_updates/nb_updates : "
+            << static_cast<double>(nb_successfull_updates) / static_cast<double>(nb_updates) << "\n"
+            << std::endl;
+
+  std::cout << std::scientific;
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>

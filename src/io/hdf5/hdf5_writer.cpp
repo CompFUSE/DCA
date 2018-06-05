@@ -19,8 +19,10 @@ namespace io {
 // dca::io::
 
 HDF5Writer::~HDF5Writer() {
-  if (my_file != NULL or my_group.size() != 0)
-    throw std::logic_error(__FUNCTION__);
+  while (my_group.size())
+    close_group();
+  if (my_file != NULL)
+    close_file();
 }
 
 bool HDF5Writer::fexists(const char* filename) {
