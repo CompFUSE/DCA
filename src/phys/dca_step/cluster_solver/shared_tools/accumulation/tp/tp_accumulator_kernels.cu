@@ -218,11 +218,11 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       const int i_a = b1 + nb * k1 + no * w1_a;
       const int j_a = b4 + nb * k2 + no * w2_a;
 
-      int w1_b(helper.addW(w2, wex));
-      int w2_b(helper.addW(w1, wex));
+      int w1_b(helper.addWex(w2, wex));
+      int w2_b(helper.addWex(w1, wex));
       const bool conj_b = helper.extendWIndices(w1_b, w2_b);
-      const int i_b = b2 + nb * helper.addQ(k2, k3) + no * w1_b;
-      const int j_b = b3 + nb * helper.addQ(k1, k3) + no * w2_b;
+      const int i_b = b2 + nb * helper.addKex(k2, k3) + no * w1_b;
+      const int j_b = b3 + nb * helper.addKex(k1, k3) + no * w2_b;
 
       const CudaComplex<Real> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
       const CudaComplex<Real> Gb_1 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
@@ -239,11 +239,11 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       const int i_a = b1 + nb * k1 + no * w1_a;
       const int j_a = b4 + nb * k2 + no * w2_a;
 
-      int w1_b(helper.addW(w2, wex));
-      int w2_b(helper.addW(w1, wex));
+      int w1_b(helper.addWex(w2, wex));
+      int w2_b(helper.addWex(w1, wex));
       const bool conj_b = helper.extendWIndices(w1_b, w2_b);
-      const int i_b = b2 + nb * helper.addQ(k2, k3) + no * w1_b;
-      const int j_b = b3 + nb * helper.addQ(k1, k3) + no * w2_b;
+      const int i_b = b2 + nb * helper.addKex(k2, k3) + no * w1_b;
+      const int j_b = b3 + nb * helper.addKex(k1, k3) + no * w2_b;
 
       const CudaComplex<Real> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
       const CudaComplex<Real> Gb_1 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
@@ -255,15 +255,15 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
     }
       {
         int w1_a(w1);
-        int w2_a(helper.addW(w1, wex));
+        int w2_a(helper.addWex(w1, wex));
         const bool conj_a = helper.extendWIndices(w1_a, w2_a);
         const int i_a = b1 + nb * k1 + no * w1_a;
-        const int j_a = b3 + nb * helper.addQ(k1, k3) + no * w2_a;
+        const int j_a = b3 + nb * helper.addKex(k1, k3) + no * w2_a;
 
-        int w1_b(helper.addW(w2, wex));
+        int w1_b(helper.addWex(w2, wex));
         int w2_b(w2);
         const bool conj_b = helper.extendWIndices(w1_b, w2_b);
-        const int i_b = b2 + nb * helper.addQ(k2, k3) + no * w1_b;
+        const int i_b = b2 + nb * helper.addKex(k2, k3) + no * w1_b;
         const int j_b = b4 + nb * k2 + no * w2_b;
 
         const CudaComplex<Real> Ga =
@@ -281,11 +281,11 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       const int i_a = b1 + nb * k1 + no * w1_a;
       const int j_a = b4 + nb * k2 + no * w2_a;
 
-      int w1_b(helper.addW(w2, wex));
-      int w2_b(helper.addW(w1, wex));
+      int w1_b(helper.addWex(w2, wex));
+      int w2_b(helper.addWex(w1, wex));
       const bool conj_b = helper.extendWIndices(w1_b, w2_b);
-      const int i_b = b2 + nb * helper.addQ(k2, k3) + no * w1_b;
-      const int j_b = b3 + nb * helper.addQ(k1, k3) + no * w2_b;
+      const int i_b = b2 + nb * helper.addKex(k2, k3) + no * w1_b;
+      const int j_b = b3 + nb * helper.addKex(k1, k3) + no * w2_b;
 
       const CudaComplex<Real> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
       const CudaComplex<Real> Gb_1 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
@@ -297,15 +297,15 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
     }
       {
         int w1_a(w1);
-        int w2_a(helper.addW(w1, wex));
+        int w2_a(helper.addWex(w1, wex));
         const bool conj_a = helper.extendWIndices(w1_a, w2_a);
         const int i_a = b1 + nb * k1 + no * w1_a;
-        const int j_a = b3 + nb * helper.addQ(k1, k3) + no * w2_a;
+        const int j_a = b3 + nb * helper.addKex(k1, k3) + no * w2_a;
 
-        int w1_b(helper.addW(w2, wex));
+        int w1_b(helper.addWex(w2, wex));
         int w2_b(w2);
         const bool conj_b = helper.extendWIndices(w1_b, w2_b);
-        const int i_b = b2 + nb * helper.addQ(k2, k3) + no * w1_b;
+        const int i_b = b2 + nb * helper.addKex(k2, k3) + no * w1_b;
         const int j_b = b4 + nb * k2 + no * w2_b;
 
         const CudaComplex<Real> Ga =
@@ -323,11 +323,11 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       const int i_a = b1 + nb * k1 + no * w1_a;
       const int j_a = b3 + nb * k2 + no * w2_a;
 
-      int w1_b(helper.wMinus(w1, wex));
-      int w2_b(helper.wMinus(w2, wex));
+      int w1_b(helper.wexMinus(w1, wex));
+      int w2_b(helper.wexMinus(w2, wex));
       const bool conj_b = helper.extendWIndices(w1_b, w2_b);
-      const int i_b = b2 + nb * helper.qMinus(k1, k3) + no * w1_b;
-      const int j_b = b4 + nb * helper.qMinus(k2, k3) + no * w2_b;
+      const int i_b = b2 + nb * helper.kexMinus(k1, k3) + no * w1_b;
+      const int j_b = b4 + nb * helper.kexMinus(k2, k3) + no * w2_b;
 
       const CudaComplex<Real> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
       const CudaComplex<Real> Gb_1 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);

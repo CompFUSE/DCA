@@ -26,26 +26,37 @@ namespace details {
 
 class G4Helper {
 public:
-  __host__ void set(int nb, int nk, int nw_pos, const std::vector<int>& q_indices,
-                    const std::vector<int>& dw_indices, const int* add_k, int lda, const int* sub_k,
-                    int lds);
+  __host__ void set(int nb, int nk, int nw_pos, const std::vector<int>& kex_indices,
+                    const std::vector<int>& wex_indices, const int* add_k, int lda,
+                    const int* sub_k, int lds);
 
   G4Helper(const G4Helper& other) = default;
 
   __host__ bool isInitialized() const {
-    return parameters_ != nullptr;
+    return device_members_ != nullptr;
   }
 
-  __device__ inline int addQ(int k_idx, int q_idx) const;
-  __device__ inline int qMinus(int k_idx, int q_idx) const;
-  __device__ inline int addW(int w_idx, int dw_idx) const;
-  __device__ inline int wMinus(int w_idx, int dw_idx) const;
+  // Returns the index of k + kex.
+  __device__ inline int addKex(int k_idx, int kex_idx) const;
+  // Returns the index of kex - k.
+  __device__ inline int kexMinus(int k_idx, int kex_idx) const;
+  // Returns the index of w + wex.
+  __device__ inline int addWex(int w_idx, int wex_idx) const;
+  // Returns the index of wex - w.
+  __device__ inline int wexMinus(int w_idx, int wex_idx) const;
 
+  // Maps the indices w1 w2 from the compact frequency domain of G4,
+  // to the extended (positive for w1) domain used by G.
+  // In/Out: w1, w2.
+  // Returns: true if G(w1, w2) is stored as a complex conjugate.
   __device__ inline bool extendWIndices(int& w1, int& w2) const;
 
-  __device__ inline int g4Index(int b1, int b2, int b3, int b4, int k1, int k2, int k3, int w1,
-                                int w2, int w3) const;
-  __device__ inline int g4Index(int k1, int k2, int k3, int w1, int w2, int w3) const;
+  // Returns the linear index of G4 as a function of
+  // band, band, band, band, k1, k2, kex, w1, w2, wex.
+  __device__ inline int g4Index(int b1, int b2, int b3, int b4, int k1, int k2, int kex, int w1,
+                                int w2, int wex) const;
+  // Single band version of the above method.
+  __device__ inline int g4Index(int k1, int k2, int kex, int w1, int w2, int wex) const;
 
 protected:
   // This object can be constructed only through its derived class.
@@ -54,11 +65,18 @@ protected:
   int* add_matrix_ = nullptr;
   int* sub_matrix_ = nullptr;
 
-  // Stores in this order { lda, lds, nw_pos, ext_size}
-  int* parameters_ = nullptr;
+  // device_members_ points to an array of private members stored in a single GPU allocation.
+  // The order is:
+  // lda: leading dimension of add_matrix_.
+  // lds: leading dimension of sub_matrix_.
+  // nw_pos: number of positive frequencies stored in G4.
+  // ext_size: difference between the number of positive frequencies stored in G and G4.
+  int* device_members_ = nullptr;
 
-  int* dw_indices_ = nullptr;
-  int* q_indices_ = nullptr;
+  int* wex_indices_ = nullptr;
+  int* kex_indices_ = nullptr;
+
+  // Stores the steps between each subdomain used by g4Index.
   int* sbdm_steps_ = nullptr;
 };
 
@@ -84,15 +102,15 @@ __host__ void G4Helper::set(int nb, int nk, int nw_pos, const std::vector<int>& 
   for (const int idx : delta_w)
     ext_size = std::max(ext_size, std::abs(idx));
 
-  const std::array<int, 4> parameters_host{lda, lds, nw_pos, ext_size};
-  cudaMalloc(&parameters_, sizeof(int) * parameters_host.size());
-  cudaMemcpy(parameters_, parameters_host.data(), sizeof(int) * parameters_host.size(),
+  const std::array<int, 4> device_members_host{lda, lds, nw_pos, ext_size};
+  cudaMalloc(&device_members_, sizeof(int) * device_members_host.size());
+  cudaMemcpy(device_members_, device_members_host.data(), sizeof(int) * device_members_host.size(),
              cudaMemcpyHostToDevice);
 
-  cudaMalloc(&dw_indices_, sizeof(int) * delta_w.size());
-  cudaMemcpy(dw_indices_, delta_w.data(), sizeof(int) * delta_w.size(), cudaMemcpyHostToDevice);
-  cudaMalloc(&q_indices_, sizeof(int) * delta_k.size());
-  cudaMemcpy(q_indices_, delta_k.data(), sizeof(int) * delta_k.size(), cudaMemcpyHostToDevice);
+  cudaMalloc(&wex_indices_, sizeof(int) * delta_w.size());
+  cudaMemcpy(wex_indices_, delta_w.data(), sizeof(int) * delta_w.size(), cudaMemcpyHostToDevice);
+  cudaMalloc(&kex_indices_, sizeof(int) * delta_k.size());
+  cudaMemcpy(kex_indices_, delta_k.data(), sizeof(int) * delta_k.size(), cudaMemcpyHostToDevice);
 
   const int nb4 = nb * nb * nb * nb;
   const int nk3 = nk * nk * delta_k.size();
@@ -111,30 +129,30 @@ __host__ void G4Helper::set(int nb, int nk, int nw_pos, const std::vector<int>& 
   cudaMemcpy(sbdm_steps_, steps_host.data(), sizeof(int) * steps_host.size(), cudaMemcpyHostToDevice);
 }
 
-__device__ int G4Helper::addW(const int w_idx, const int dw_idx) const {
-  return w_idx + dw_indices_[dw_idx];
+__device__ int G4Helper::addWex(const int w_idx, const int wex_idx) const {
+  return w_idx + wex_indices_[wex_idx];
 }
 
-__device__ int G4Helper::wMinus(const int w_idx, const int dw_idx) const {
-  const int nw = 2 * parameters_[2];
-  return dw_indices_[dw_idx] + nw - 1 - w_idx;
+__device__ int G4Helper::wexMinus(const int w_idx, const int wex_idx) const {
+  const int nw = 2 * device_members_[2];
+  return wex_indices_[wex_idx] + nw - 1 - w_idx;
 }
 
-__device__ int G4Helper::addQ(const int k_idx, const int q_idx) const {
-  const int ld = parameters_[0];
-  const int q = q_indices_[q_idx];
+__device__ int G4Helper::addKex(const int k_idx, const int q_idx) const {
+  const int ld = device_members_[0];
+  const int q = kex_indices_[q_idx];
   return add_matrix_[k_idx + ld * q];
 }
 
-__device__ int G4Helper::qMinus(const int k_idx, const int q_idx) const {
-  const int ld = parameters_[1];
-  const int q = q_indices_[q_idx];
+__device__ int G4Helper::kexMinus(const int k_idx, const int q_idx) const {
+  const int ld = device_members_[1];
+  const int q = kex_indices_[q_idx];
   return sub_matrix_[q + ld * k_idx];
 }
 
 __device__ bool G4Helper::extendWIndices(int& w1, int& w2) const {
-  const int extension = parameters_[3];
-  const int n_w_ext_pos = extension + parameters_[2];
+  const int extension = device_members_[3];
+  const int n_w_ext_pos = extension + device_members_[2];
   w1 += extension;
   w2 += extension;
   if (w1 >= n_w_ext_pos) {
@@ -164,10 +182,10 @@ __device__ int G4Helper::g4Index(int k1, int k2, int kex, int w1, int w2, int we
 __host__ G4HelperManager::~G4HelperManager() {
   cudaFree(G4Helper::add_matrix_);
   cudaFree(G4Helper::sub_matrix_);
-  cudaFree(G4Helper::parameters_);
+  cudaFree(G4Helper::device_members_);
   cudaFree(G4Helper::sbdm_steps_);
-  cudaFree(G4Helper::dw_indices_);
-  cudaFree(G4Helper::q_indices_);
+  cudaFree(G4Helper::wex_indices_);
+  cudaFree(G4Helper::kex_indices_);
 }
 
 }  // details
