@@ -177,13 +177,16 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
                                const int nb, const int nk, const int nw, const int nw_exchange,
                                const int nk_exchange, const int sign, const G4Helper helper) {
   const int size = nk * nw * nb * nb;
+  // id_i is a linearized index of b1, b2, k1, k2.
   const int id_i = blockIdx.x * blockDim.x + threadIdx.x;
+  // id_j is a linearized index of b3, b4, k2, k3.
   const int id_j = blockIdx.y * blockDim.y + threadIdx.y;
+  // id_z is a linearized index of kex, wex.
   const int id_z = blockIdx.z * blockDim.z + threadIdx.z;
   if (id_i >= size || id_j >= size || id_z >= nw_exchange * nk_exchange)
     return;
 
-  // Compute indices for w,k 1,2
+  // Unroll id_i and id_j.
   const int step2 = nb * nb;
   const int step1 = step2 * nk;
   auto get_indices = [=](int id, int& b1, int& b2, int& k, int& w) {
@@ -198,8 +201,8 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
   get_indices(id_i, b1, b2, k1, w1);
   get_indices(id_j, b3, b4, k2, w2);
 
-  // compute exchange indices.
-  const int wex = id_z / nw_exchange; // ?was mk_exchange but that seems wrong?
+  // Unroll the exchange index id_z = kex + nk_exchange * wex.
+  const int wex = id_z / nk_exchange;
   const int k3 = id_z - wex * nk_exchange;
 
   CudaComplex<Real> contribution;
@@ -242,8 +245,8 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       const int i_b = b2 + nb * helper.addQ(k2, k3) + no * w1_b;
       const int j_b = b3 + nb * helper.addQ(k1, k3) + no * w2_b;
 
-      const CudaComplex<Real> Ga_1 = cond_conj(G_up[i_a + ldgd * j_a], conj_a);
-      const CudaComplex<Real> Gb_1 = cond_conj(G_up[i_b + ldgd * j_b], conj_b);
+      const CudaComplex<Real> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
+      const CudaComplex<Real> Gb_1 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
 
       const CudaComplex<Real> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
       const CudaComplex<Real> Gb_2 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
@@ -264,9 +267,9 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
         const int j_b = b4 + nb * k2 + no * w2_b;
 
         const CudaComplex<Real> Ga =
-            cond_conj(G_up[i_a + ldgd * j_a] - G_down[i_a + ldgd * j_a], conj_a);
+            cond_conj(G_up[i_a + ldgu * j_a] - G_down[i_a + ldgd * j_a], conj_a);
         const CudaComplex<Real> Gb =
-            cond_conj(G_up[i_b + ldgd * j_b] - G_down[i_b + ldgd * j_b], conj_b);
+            cond_conj(G_up[i_b + ldgu * j_b] - G_down[i_b + ldgd * j_b], conj_b);
 
         contribution += (Ga * Gb) * factor;
       }
@@ -284,8 +287,8 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       const int i_b = b2 + nb * helper.addQ(k2, k3) + no * w1_b;
       const int j_b = b3 + nb * helper.addQ(k1, k3) + no * w2_b;
 
-      const CudaComplex<Real> Ga_1 = cond_conj(G_up[i_a + ldgd * j_a], conj_a);
-      const CudaComplex<Real> Gb_1 = cond_conj(G_up[i_b + ldgd * j_b], conj_b);
+      const CudaComplex<Real> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
+      const CudaComplex<Real> Gb_1 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
 
       const CudaComplex<Real> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
       const CudaComplex<Real> Gb_2 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
