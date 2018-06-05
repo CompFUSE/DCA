@@ -29,19 +29,21 @@ template <linalg::DeviceType device, class Parameters, bool use_submatrix>
 struct CtintWalkerChoicheSelector;
 
 template <class Parameters>
+struct CtintWalkerChoicheSelector<linalg::CPU, Parameters, true> {
+  using type = CtintWalkerSubmatrix<linalg::CPU, Parameters>;
+};
+template <class Parameters>
 struct CtintWalkerChoicheSelector<linalg::CPU, Parameters, false> {
   using type = CtintWalker<linalg::CPU, Parameters>;
 };
 
 template <class Parameters>
-struct CtintWalkerChoicheSelector<linalg::CPU, Parameters, true> {
-  using type = CtintWalkerSubmatrix<linalg::CPU, Parameters>;
-};
-
-// There is only a submatrix implementation of th GPU walker.
-template <class Parameters>
 struct CtintWalkerChoicheSelector<linalg::GPU, Parameters, true> {
   using type = CtintWalkerSubmatrix<linalg::GPU, Parameters>;
+};
+template <class Parameters>
+struct CtintWalkerChoicheSelector<linalg::GPU, Parameters, false> {
+  // There is only a submatrix implementation of th GPU walker.
 };
 }
 

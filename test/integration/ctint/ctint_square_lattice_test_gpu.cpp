@@ -17,6 +17,7 @@
 #include "gtest/gtest.h"
 
 #include "dca/function/function.hpp"
+#include "dca/function/util/difference.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_reader.hpp"

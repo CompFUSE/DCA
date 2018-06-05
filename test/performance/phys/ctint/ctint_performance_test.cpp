@@ -44,7 +44,7 @@ using Parameters = dca::phys::params::Parameters<Concurrency, Threading, dca::pr
                                                  Model, RngType, dca::phys::solver::CT_INT>;
 using Data = dca::phys::DcaData<Parameters>;
 template <dca::linalg::DeviceType device_t>
-using QmcSolverType = dca::phys::solver::CtintClusterSolver<device_t, Parameters>;
+using QmcSolverType = dca::phys::solver::CtintClusterSolver<device_t, Parameters, true>;
 
 int main(int argc, char** argv) {
   bool test_cpu(true), test_gpu(true);

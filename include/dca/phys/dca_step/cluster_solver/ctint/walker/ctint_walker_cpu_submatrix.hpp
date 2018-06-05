@@ -38,10 +38,10 @@ namespace ctint {
 
 template <class Parameters>
 class CtintWalkerSubmatrix<linalg::CPU, Parameters>
-    : public CtintWalker<linalg::CPU, Parameters> {
+    : public CtintWalkerBase<linalg::CPU, Parameters> {
 public:
   using this_type = CtintWalkerSubmatrix<linalg::CPU, Parameters>;
-  using BaseClass = CtintWalker<linalg::CPU, Parameters>;
+  using BaseClass = CtintWalkerBase<linalg::CPU, Parameters>;
   using Rng = typename BaseClass::Rng;
 
   CtintWalkerSubmatrix(Parameters& pars_ref, Rng& rng_ref, const InteractionVertices& vertices,
@@ -172,10 +172,6 @@ CtintWalkerSubmatrix<linalg::CPU, Parameters>::CtintWalkerSubmatrix(
     Parameters& parameters_ref, Rng& rng_ref, const InteractionVertices& vertices,
     const DMatrixBuilder<linalg::CPU>& builder_ref, int id)
     : BaseClass(parameters_ref, rng_ref, vertices, builder_ref, id) {
-  while (parameters_.getInitialConfigurationSize() > configuration_.size())
-    configuration_.insertRandom(rng_);
-  setMFromConfig();
-
   for (int i = 1; i <= 3; ++i) {
     f_[i] = d_builder_.computeF(i);
     f_[-i] = d_builder_.computeF(-i);

@@ -39,10 +39,10 @@ namespace ctint {
 
 template <class Parameters>
 class CtintWalkerSubmatrix<linalg::GPU, Parameters>
-    : public CtintWalkerBase<linalg::CPU, Parameters> {
+    : public CtintWalkerBase<linalg::GPU, Parameters> {
 public:
   using this_type = CtintWalkerSubmatrix<linalg::GPU, Parameters>;
-  using BaseClass = CtintWalkerBase<linalg::CPU, Parameters>;
+  using BaseClass = CtintWalkerBase<linalg::GPU, Parameters>;
   using Rng = typename BaseClass::Rng;
 
   CtintWalkerSubmatrix(Parameters& pars_ref, Rng& rng_ref, const InteractionVertices& vertices,
@@ -112,13 +112,10 @@ private:
   };
 
 private:
-  //   MatrixPair<linalg::CPU> S_, Q_, R_;
-  //   // work spaces
-  //   using BaseClass::ipiv_;
-  //   using BaseClass::v_work_;
-  //   using BaseClass::M_Q_;
-
   std::vector<DelayedMoveType> delayed_moves_;
+
+  template<linalg::DeviceType device_t>
+  using MatrixPair = std::array<linalg::Matrix<double, device_t>, 2>;
 
   MatrixPair<linalg::CPU> G_;
   MatrixPair<linalg::CPU> G0_;
@@ -184,10 +181,6 @@ CtintWalkerSubmatrix<linalg::GPU, Parameters>::CtintWalkerSubmatrix(
     : BaseClass(parameters_ref, rng_ref, vertices, builder_ref, id) {
   for (int s = 0; s < 2; ++s)
     stream_[s] = linalg::util::getStream(thread_id_, s);
-
-  while (parameters_.getInitialConfigurationSize() > configuration_.size())
-    configuration_.insertRandom(rng_);
-  setMFromConfig();
 
   for (int i = 1; i <= 3; ++i) {
     f_[i] = d_builder_.computeF(i);

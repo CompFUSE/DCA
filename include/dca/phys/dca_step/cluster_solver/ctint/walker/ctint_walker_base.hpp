@@ -40,10 +40,10 @@ namespace solver {
 namespace ctint {
 // dca::phys::solver::ctint::
 
-template <dca::linalg::DeviceType device_t, class Parameters>
+template <linalg::DeviceType device_t, class Parameters>
 class CtintWalker;
 
-template <dca::linalg::DeviceType device_t, class Parameters>
+template <linalg::DeviceType device_t, class Parameters>
 class CtintWalkerSubmatrix;
 
 template <linalg::DeviceType device_t, class Parameters>
@@ -55,17 +55,16 @@ public:
   using Profiler = typename Parameters::profiler_type;
   using Concurrency = typename Parameters::concurrency_type;
 
-protected:
-  using Matrix = linalg::Matrix<double, device_t>;
-  using MatrixView = linalg::MatrixView<double, device_t>;
-  template <linalg::DeviceType matrix_device>
-  using MatrixPair = std::array<linalg::Matrix<double, matrix_device>, 2>;
-
 protected:  // The class is not instantiable.
   CtintWalkerBase(Parameters& pars_ref, Rng& rng_ref, const InteractionVertices& vertices,
-                  const DMatrixBuilder<device_t>& builder_ref, int id = 0);
+                  const DMatrixBuilder<linalg::CPU>& builder_ref, int id = 0);
 
 public:
+
+  AccumulatorConfiguration getConfiguration() const;
+  AccumulatorConfiguration moveConfiguration();
+  void setConfiguration(AccumulatorConfiguration&& config);
+
   void markThermalized();
 
   bool is_thermalized() const {
@@ -99,29 +98,18 @@ public:
   void printSummary() const {}
 
 protected:  // typedefs
+  using Matrix = linalg::Matrix<double, linalg::CPU>;
+  using MatrixPair = std::array<linalg::Matrix<double, linalg::CPU>, 2>;
+
   using TPosDmn = func::dmn_0<ctint::PositiveTimeDomain>;
 
 protected:  // Auxiliary methods.
-  virtual bool tryVertexInsert(bool forced = false) = 0;
-  virtual bool tryVertexRemoval() = 0;
-
-  template <linalg::DeviceType matrix_device>
-  void applyInsertion(const MatrixPair<matrix_device>& S, const MatrixPair<matrix_device>& Q,
-                      const MatrixPair<matrix_device>& R);
-  double removalProbability();
-  template <linalg::DeviceType matrix_device = linalg::CPU>
-  void applyRemoval();
 
   void pushToEnd(const std::array<std::vector<ushort>, 2>& matrix_indices,
                  const std::pair<short, short>& vertex_indices);
 
-  // For testing purposes
   void setMFromConfig();
-
-  virtual void smallInverse(const MatrixView& in, MatrixView& out, int s) = 0;
-  virtual void smallInverse(MatrixView& in_out, int s) = 0;
-  virtual double separateIndexDeterminant(Matrix& m, const std::vector<ushort>& indices, int s) = 0;
-
+  
 protected:  // Members.
   Parameters& parameters_;
   Concurrency& concurrency_;
@@ -131,11 +119,11 @@ protected:  // Members.
   Rng& rng_;
   SolverConfiguration<device_t> configuration_;
 
-  MatrixPair<device_t> M_;
-  MatrixPair<linalg::CPU> M_host_;
+  MatrixPair M_;
 
   const double beta_;
-  const DMatrixBuilder<device_t>& d_builder_;
+  // TODO: use GPU if avail.
+  const DMatrixBuilder<linalg::CPU>& d_builder_;
 
   const double total_interaction_;  // Space integrated interaction Hamiltonian.
 
@@ -155,21 +143,15 @@ protected:  // Members.
   // Store for testing purposes:
   std::array<double, 2> det_ratio_;
 
-protected:
-  // work sapces
-
-  MatrixPair<device_t> M_Q_;
-  MatrixPair<device_t> ws_dn_;
   std::array<std::vector<ushort>, 2> removal_matrix_indices_;
   std::pair<short, short> removal_candidates_;
-  linalg::Vector<double, linalg::CPU> v_work_;
-  linalg::Vector<int, linalg::CPU> ipiv_;
 };
 
+// TODO: use device matrix builder.
 template <linalg::DeviceType device_t, class Parameters>
 CtintWalkerBase<device_t, Parameters>::CtintWalkerBase(Parameters& parameters_ref, Rng& rng_ref,
                                                        const InteractionVertices& vertices,
-                                                       const DMatrixBuilder<device_t>& builder_ref,
+                                                       const DMatrixBuilder<linalg::CPU>& builder_ref,
                                                        int id)
     : parameters_(parameters_ref),
       concurrency_(parameters_.get_concurrency()),
@@ -184,7 +166,12 @@ CtintWalkerBase<device_t, Parameters>::CtintWalkerBase(Parameters& parameters_re
       beta_(parameters_.get_beta()),
       d_builder_(builder_ref),
       total_interaction_(vertices.integratedInteraction()),
-      det_ratio_{1, 1} {}
+      det_ratio_{1, 1} {
+  while (parameters_.getInitialConfigurationSize() > configuration_.size())
+    configuration_.insertRandom(rng_);
+
+  setMFromConfig();
+}
 
 template <linalg::DeviceType device_t, class Parameters>
 void CtintWalkerBase<device_t, Parameters>::setMFromConfig() {
@@ -192,9 +179,11 @@ void CtintWalkerBase<device_t, Parameters>::setMFromConfig() {
   sign_ = 1;
   for (int s = 0; s < 2; ++s) {
     const auto& sector = configuration_.getSector(s);
-    auto& M = M_host_[s];
+    auto& M = M_[s];
     const int n = sector.size();
     M.resize(n);
+    if(!n)
+      continue;
     for (int i = 0; i < n; ++i)
       for (int j = 0; j < n; ++j)
         M(i, j) = d_builder_.computeD(i, j, sector);
@@ -203,39 +192,26 @@ void CtintWalkerBase<device_t, Parameters>::setMFromConfig() {
     const double det = linalg::matrixop::determinant(M);
     if (det < 0)
       sign_ *= -1;
-    if (device_t == linalg::GPU)
-      M_[s].setAsync(M_host_[s], thread_id_, s);
   }
-
-  if (device_t == linalg::CPU)
-    for (int s = 0; s < 2; ++s)
-      M_[s] = std::move(M_host_[s]);
-  else
-    for (int s = 0; s < 2; ++s)
-      linalg::util::syncStream(thread_id_, s);
 }
 
 template <linalg::DeviceType device_t, class Parameters>
-void CtintWalkerBase<device_t, Parameters>::doSweep() {
-  int nb_of_steps;
-  if (not thermalized_)
-    nb_of_steps = avgOrder() + 1;
-  else
-    nb_of_steps = nb_steps_per_sweep_ * parameters_.get_sweeps_per_measurement();
-
-  for (int i = 0; i < nb_of_steps; i++) {
-    do_step();
-    ++total_steps_;
-    order_sum_ += order();
-  }
-  ++total_sweeps_;
-
-  // Keep tha average after half tantalization for deciding the order.
-  if ((not thermalized_) and (total_sweeps_ == parameters_.get_warm_up_sweeps() / 2)) {
-    partial_order_sum_ = order_sum_;
-    partial_num_steps_ = total_steps_;
-  }
+AccumulatorConfiguration CtintWalkerBase<device_t, Parameters>::getConfiguration() const {
+  return AccumulatorConfiguration{sign_, M_, configuration_};
 }
+
+template <linalg::DeviceType device_t, class Parameters>
+AccumulatorConfiguration CtintWalkerBase<device_t, Parameters>::moveConfiguration() {
+  return AccumulatorConfiguration{sign_, std::move(M_), std::move(configuration_)};
+}
+
+template <linalg::DeviceType device_t, class Parameters>
+void CtintWalkerBase<device_t, Parameters>::setConfiguration(AccumulatorConfiguration&& config) {
+  sign_ = config.sign;
+  M_ = std::move(config.M);
+  static_cast<MatrixConfiguration&>(configuration_) = std::move(config.matrix_configuration);
+}
+
 
 template <linalg::DeviceType device_t, class Parameters>
 void CtintWalkerBase<device_t, Parameters>::markThermalized() {
@@ -248,17 +224,6 @@ void CtintWalkerBase<device_t, Parameters>::markThermalized() {
   total_sweeps_ = 0;
   number_of_creations_ = 0;
   number_of_annihilations_ = 0;
-}
-
-template <linalg::DeviceType device_t, class Parameters>
-void CtintWalkerBase<device_t, Parameters>::do_step() {
-  if (int(rng_() * 2)) {
-    number_of_creations_ += tryVertexInsert();
-  }
-  else {
-    if (configuration_.size())
-      number_of_annihilations_ += tryVertexRemoval();
-  }
 }
 
 template <linalg::DeviceType device_t, class Parameters>
@@ -286,122 +251,6 @@ void CtintWalkerBase<device_t, Parameters>::pushToEnd(
     const ushort b = std::max(vertex_indices.first, vertex_indices.second);
     configuration_.swapVertices(b, configuration_.size() - 1);
     configuration_.swapVertices(a, configuration_.size() - 2);
-  }
-}
-
-template <linalg::DeviceType device_t, class Parameters>
-template <linalg::DeviceType matrix_device>
-void CtintWalkerBase<device_t, Parameters>::applyInsertion(const MatrixPair<matrix_device>& Sp,
-                                                           const MatrixPair<matrix_device>& Qp,
-                                                           const MatrixPair<matrix_device>& Rp) {
-  for (int s = 0; s < 2; ++s) {
-    const int delta = Qp[s].nrCols();
-    if (not delta)
-      continue;
-    // update M matrix.
-    const auto& R = Rp[s];
-    const auto S = linalg::makeConstantView(Sp[s]);
-    auto& M = M_[s];
-    const auto& M_Q = M_Q_[s];
-    const int m_size = M.nrCols();
-
-    if (not m_size) {
-      M.resizeNoCopy(delta);
-      auto M_view = MatrixView(M);
-      smallInverse(*S, M_view, s);
-      continue;
-    }
-
-    auto& R_M = ws_dn_[device_t == linalg::GPU ? s : 0];
-    R_M.resizeNoCopy(R.size());
-    linalg::matrixop::gemm(R, M, R_M, thread_id_, s);
-
-    M.resize(m_size + delta);
-    using MatrixView = linalg::MatrixView<double, device_t>;
-    //  S_tilde = S^-1.
-    MatrixView S_tilde(M, m_size, m_size, delta, delta);
-    smallInverse(*S, S_tilde, s);
-
-    // R_tilde = - S * R * M
-    MatrixView R_tilde(M, m_size, 0, delta, m_size);
-    linalg::matrixop::gemm(-1., S_tilde, R_M, double(0.), R_tilde, thread_id_, s);
-
-    // Q_tilde = -M * Q * S
-    MatrixView Q_tilde(M, 0, m_size, m_size, delta);
-    linalg::matrixop::gemm(-1., M_Q, S_tilde, 0., Q_tilde, thread_id_, s);
-
-    // update bulk: M += M*Q*S*R*M
-    MatrixView M_bulk(M, 0, 0, m_size, m_size);
-    linalg::matrixop::gemm(-1., Q_tilde, R_M, 1., M_bulk, thread_id_, s);
-  }
-}
-
-template <linalg::DeviceType device_t, class Parameters>
-double CtintWalkerBase<device_t, Parameters>::removalProbability() {
-  removal_candidates_ = configuration_.randomRemovalCandidate(rng_);
-
-  const int n = configuration_.size();
-  const int n_removed = removal_candidates_.second == -1 ? 1 : 2;
-
-  for (int s = 0; s < 2; ++s) {
-    removal_matrix_indices_[s].clear();
-    for (int i = 0; i < n_removed; ++i) {
-      const int index = i ? removal_candidates_.second : removal_candidates_.first;
-      const std::vector<ushort> vertex_indices = configuration_.findIndices(index, s);
-      removal_matrix_indices_[s].insert(removal_matrix_indices_[s].end(), vertex_indices.begin(),
-                                        vertex_indices.end());
-    }
-    if (removal_matrix_indices_[s].size() == 0) {
-      det_ratio_[s] = 1.;
-      continue;
-    }
-    std::sort(removal_matrix_indices_[s].begin(), removal_matrix_indices_[s].end());
-    det_ratio_[s] = separateIndexDeterminant(M_[s], removal_matrix_indices_[s], s);
-  }
-  assert((removal_matrix_indices_[0].size() + removal_matrix_indices_[1].size()) % 2 == 0);
-
-  const int combinatorial_factor =
-      n_removed == 1 ? n : n * configuration_.occupationNumber(removal_candidates_.second);
-
-  return details::computeAcceptanceProbability(n_removed, det_ratio_[0] * det_ratio_[1],
-                                               total_interaction_, beta_,
-                                               configuration_.getStrength(removal_candidates_.first),
-                                               combinatorial_factor, details::VERTEX_REMOVAL);
-}
-
-template <linalg::DeviceType device_t, class Parameters>
-template <linalg::DeviceType matrix_device>
-void CtintWalkerBase<device_t, Parameters>::applyRemoval() {
-  const int n_removed = removal_candidates_.second == -1 ? 1 : 2;
-  // TODO maybe: don't copy values to be popped.
-  pushToEnd(removal_matrix_indices_, removal_candidates_);
-  configuration_.pop(n_removed);
-
-  for (int s = 0; s < 2; ++s) {
-    auto& M = M_[s];
-    const int delta = removal_matrix_indices_[s].size();
-    if (delta == 0)  // Nothing to update.
-      continue;
-    const int m_size = M.nrCols() - delta;
-    if (m_size == 0) {  // removing last vertex
-      M.resize(0);
-      continue;
-    }
-
-    MatrixView Q(M, 0, m_size, m_size, delta);
-    MatrixView R(M, m_size, 0, delta, m_size);
-
-    MatrixView S(M, m_size, m_size, delta, delta);
-    smallInverse(S, s);
-
-    auto& Q_S = M_Q_[s];
-    Q_S.resizeNoCopy(Q.size());
-    linalg::matrixop::gemm(Q, S, Q_S, thread_id_, s);
-
-    // M -= Q*S^-1*R
-    MatrixView M_bulk(M, 0, 0, m_size, m_size);
-    linalg::matrixop::gemm(-1., Q_S, R, 1., M_bulk, thread_id_, s);
-    M.resize(m_size);
   }
 }
 
