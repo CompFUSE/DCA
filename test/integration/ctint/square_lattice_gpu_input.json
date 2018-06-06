@@ -55,7 +55,7 @@
     "sweeps-per-measurement" : 1,
     "measurements"           : 1000,
 
-    "seed" : 0
+    "seed" : "random"
   }
 }
 
