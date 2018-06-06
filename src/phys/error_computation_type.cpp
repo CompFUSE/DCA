@@ -17,7 +17,7 @@ namespace dca {
 namespace phys {
 // dca::phys::
 
-ErrorComputationType readErrorComputationType(const std::string& str) {
+ErrorComputationType stringToErrorComputationType(const std::string& str) {
   if (str == "NONE")
     return ErrorComputationType::NONE;
   else if (str == "STANDARD_DEVIATION")

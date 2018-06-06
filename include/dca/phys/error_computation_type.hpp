@@ -20,7 +20,7 @@ namespace phys {
 
 enum class ErrorComputationType { NONE, STANDARD_DEVIATION, JACK_KNIFE };
 
-ErrorComputationType readErrorComputationType(const std::string& str);
+ErrorComputationType stringToErrorComputationType(const std::string& str);
 
 std::string toString(ErrorComputationType type);
 
