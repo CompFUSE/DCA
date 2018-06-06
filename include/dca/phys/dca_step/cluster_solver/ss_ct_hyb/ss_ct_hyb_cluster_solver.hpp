@@ -78,13 +78,13 @@ public:
   // Computes and returns the local value of the Green's function G(k, \omega), i.e. without
   // averaging it across processes.
   // For testing purposes.
-  // Precondition: The accumulator_ data has not been averaged, i.e. finalize has not been called.
+  // Precondition: The accumulator data has not been averaged, i.e. finalize has not been called.
   auto local_G_k_w() const;
 
   // Computes and returns the local value of the product of the Green's function G(r, \omega) and
   // the self-energy \Sigma(r, \omega), i.e. without averaging it across processes.
   // For testing purposes.
-  // Precondition: The accumulator_ data has not been averaged, i.e. finalize has not been called.
+  // Precondition: The accumulator data has not been averaged, i.e. finalize has not been called.
   auto local_GS_r_w() const;
 
 protected:  // Interface to the thread jacket.
