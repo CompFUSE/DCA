@@ -248,8 +248,7 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::integrate() {
   if (concurrency.id() == concurrency.first()) {
     std::cout << "On-node integration has ended: " << dca::util::print_time()
               << "\n\nTotal number of measurements: "
-              << concurrency.number_of_processors() *
-                     parameters.get_measurements()
+              << parameters.get_measurements()
               << std::endl;
 
     walker.printSummary();
