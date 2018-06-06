@@ -147,8 +147,7 @@ void StdThreadQmciClusterSolver<QmcSolver>::integrate() {
               << std::endl;
   }
 
-  measurements_remaining_ =
-      parallel::util::getWorkload(parameters_.get_measurements(), 1, 0, concurrency_);
+  measurements_remaining_ = parallel::util::getWorkload(parameters_.get_measurements(), concurrency_);
 
   std::vector<std::thread> threads;
   std::vector<Pair> data;
@@ -281,9 +280,9 @@ void StdThreadQmciClusterSolver<QmcSolver>::startWalker(int id) {
   //  mutex_numerical_error.unlock();
   //  #endif  // DCA_WITH_QMC_BIT
 
-  if (id == 0) {
-    if (concurrency_.id() == concurrency_.first())
-      std::cout << "\n\t\t QMCI ends\n" << std::endl;
+  if (id == 0 && concurrency_.id() == concurrency_.first()) {
+    std::cout << "\n\t\t QMCI ends\n" << std::endl;
+    walker.printSummary();
   }
 }
 

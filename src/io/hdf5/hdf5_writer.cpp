@@ -19,7 +19,7 @@ namespace io {
 // dca::io::
 
 HDF5Writer::~HDF5Writer() {
-  while (my_group.size() != 0)
+  while (my_group.size())
     close_group();
   if (my_file != NULL)
     close_file();

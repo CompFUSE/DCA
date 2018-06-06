@@ -206,7 +206,7 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     std::string error_type = toString(static_cast<ErrorComputationType>(error_computation_type_));
     try {
       reader_or_writer.execute("error-computation-type", error_type);
-      error_computation_type_ = static_cast<int>(readErrorComputationType(error_type));
+      error_computation_type_ = static_cast<int>(stringToErrorComputationType(error_type));
     }
     catch (const std::exception& r_e) {
     }

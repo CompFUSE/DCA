@@ -240,6 +240,8 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::integrate() {
   if (concurrency_.id() == concurrency_.first()) {
     std::cout << "On-node integration has ended: " << dca::util::print_time()
               << "\n\nTotal number of measurements: " << parameters_.get_measurements() << std::endl;
+
+    walker.printSummary();
   }
 }
 
@@ -328,7 +330,7 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::measure(Walker& walker
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t measuring has started \n" << std::endl;
 
-  const int n_meas = parallel::util::getWorkload(parameters_.get_measurements(), 1, 0, concurrency_);
+  const int n_meas = parallel::util::getWorkload(parameters_.get_measurements(), concurrency_);
 
   for (int i = 0; i < n_meas; i++) {
     {
