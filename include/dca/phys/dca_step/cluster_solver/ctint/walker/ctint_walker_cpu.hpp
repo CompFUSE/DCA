@@ -84,14 +84,8 @@ protected:
   using BaseClass::thread_id_;
 
   using BaseClass::thermalized_;
-  using BaseClass::total_steps_;
-  using BaseClass::total_sweeps_;
   using BaseClass::nb_steps_per_sweep_;
-  using BaseClass::order_sum_;
-  using BaseClass::partial_order_sum_;
-  using BaseClass::partial_num_steps_;
-  using BaseClass::number_of_annihilations_;
-  using BaseClass::number_of_creations_;
+  using BaseClass::n_accepted_;
   using BaseClass::removal_candidates_;
   using BaseClass::removal_matrix_indices_;
 
@@ -114,7 +108,7 @@ CtintWalker<linalg::CPU, Parameters>::CtintWalker(Parameters& parameters_ref, Rn
                                                   int id)
     : BaseClass(parameters_ref, rng_ref, vertices, builder_ref, id) {}
 
-template < class Parameters>
+template <class Parameters>
 void CtintWalker<linalg::CPU, Parameters>::doSweep() {
   int nb_of_steps;
   if (not thermalized_)
@@ -124,26 +118,20 @@ void CtintWalker<linalg::CPU, Parameters>::doSweep() {
 
   for (int i = 0; i < nb_of_steps; i++) {
     doStep();
-    ++total_steps_;
-    order_sum_ += BaseClass::order();
   }
-  ++total_sweeps_;
 
-  // Keep tha average after half tantalization for deciding the order.
-  if ((not thermalized_) and (total_sweeps_ == parameters_.get_warm_up_sweeps() / 2)) {
-    partial_order_sum_ = order_sum_;
-    partial_num_steps_ = total_steps_;
-  }
+  BaseClass::n_steps_ += nb_of_steps;
+  BaseClass::updateSweepAverages();
 }
 
 template <class Parameters>
 void CtintWalker<linalg::CPU, Parameters>::doStep() {
   if (int(rng_() * 2)) {
-    number_of_creations_ += tryVertexInsert();
+    n_accepted_ += tryVertexInsert();
   }
   else {
     if (configuration_.size())
-      number_of_annihilations_ += tryVertexRemoval();
+      n_accepted_ += tryVertexRemoval();
   }
 }
 
@@ -217,8 +205,7 @@ double CtintWalker<linalg::CPU, Parameters>::insertionProbability(const int delt
 }
 
 template <class Parameters>
-void CtintWalker<linalg::CPU, Parameters>::applyInsertion(const MatrixPair& Sp,
-                                                          const MatrixPair& Qp,
+void CtintWalker<linalg::CPU, Parameters>::applyInsertion(const MatrixPair& Sp, const MatrixPair& Qp,
                                                           const MatrixPair& Rp) {
   for (int s = 0; s < 2; ++s) {
     const int delta = Qp[s].nrCols();

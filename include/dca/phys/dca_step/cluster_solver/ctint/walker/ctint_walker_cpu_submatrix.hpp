@@ -87,13 +87,6 @@ private:
   double max_tau_ = BaseClass::beta_;
 
   using BaseClass::thermalized_;
-  using BaseClass::total_steps_;
-  using BaseClass::order_sum_;
-  using BaseClass::total_sweeps_;
-  using BaseClass::partial_order_sum_;
-  using BaseClass::partial_num_steps_;
-
-  using BaseClass::nb_steps_per_sweep_;
 
 private:
   int max_submatrix_size_;
@@ -127,6 +120,7 @@ private:
   std::map<int, double> prob_const_;
   std::map<std::pair<int, int>, double> gamma_values_;
 
+  using BaseClass::nb_steps_per_sweep_;
   int nbr_of_steps_;
   int nbr_of_submatrix_steps_;
   int nbr_of_moves_to_delay_;
@@ -216,15 +210,13 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doSweep() {
     }
   }
 
+  BaseClass::n_steps_ += nbr_of_steps_;
   while (nbr_of_steps_ > 0) {
     nbr_of_moves_to_delay_ = std::min(nbr_of_steps_, max_nbr_of_moves_);
     nbr_of_steps_ -= nbr_of_moves_to_delay_;
 
     doStep();
-    ++total_steps_;
-    order_sum_ += order();
   }
-  ++total_sweeps_;
 
   for (int s = 0; s < 2; ++s) {
     for (int i = 0; i < M_[s].size().first; ++i) {
@@ -236,11 +228,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doSweep() {
     }
   }
 
-  // Keep tha average after half tantalization for deciding the order.
-  if ((not thermalized_) and (total_sweeps_ == parameters_.get_warm_up_sweeps() / 2)) {
-    partial_order_sum_ = order_sum_;
-    partial_num_steps_ = total_steps_;
-  }
+  BaseClass::updateSweepAverages();
 }
 
 template <class Parameters>
@@ -497,6 +485,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doSubmatrixUpdate() {
     // Update other objects.
 
     if (accepted_) {
+      ++BaseClass::n_accepted_;
       if (acceptance_probability_ < 0)
         sign_ *= -1;
 

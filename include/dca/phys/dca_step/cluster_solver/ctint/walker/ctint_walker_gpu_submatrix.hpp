@@ -32,7 +32,6 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp"
 #include "dca/util/integer_division.hpp"
 
-
 namespace dca {
 namespace phys {
 namespace solver {
@@ -92,11 +91,6 @@ private:
   double max_tau_ = BaseClass::beta_;
 
   using BaseClass::thermalized_;
-  using BaseClass::total_steps_;
-  using BaseClass::order_sum_;
-  using BaseClass::total_sweeps_;
-  using BaseClass::partial_order_sum_;
-  using BaseClass::partial_num_steps_;
 
 private:
   int max_submatrix_size_;
@@ -115,7 +109,7 @@ private:
 private:
   std::vector<DelayedMoveType> delayed_moves_;
 
-  template<linalg::DeviceType device_t>
+  template <linalg::DeviceType device_t>
   using MatrixPair = std::array<linalg::Matrix<double, device_t>, 2>;
 
   MatrixPair<linalg::CPU> G_;
@@ -134,8 +128,11 @@ private:
   std::map<int, double> prob_const_;
   std::map<std::pair<int, int>, double> gamma_values_;
 
+  using BaseClass::nb_steps_per_sweep_;
   int nbr_of_steps_;
+  int nbr_of_submatrix_steps_;
   int nbr_of_moves_to_delay_;
+  int max_nbr_of_moves_;
 
   int nbr_of_moves_;
   int Gamma_size_;
@@ -202,13 +199,20 @@ CtintWalkerSubmatrix<linalg::GPU, Parameters>::CtintWalkerSubmatrix(
 
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::GPU, Parameters>::doSweep() {
-  nbr_of_moves_to_delay_ = parameters_.getMaxSubmatrixSize();
+  // Here nbr_of_steps is the number of single steps/moves during the current sweep,
+  // while nbr_of_submatrix_steps is the number of times the entire submatrix algorithm  is run.
 
   if (not thermalized_)
-    nbr_of_steps_ = avgOrder() / nbr_of_moves_to_delay_ + 1;
+    nbr_of_steps_ = BaseClass::avgOrder() + 1;
   else
-    nbr_of_steps_ = BaseClass::nb_steps_per_sweep_ * parameters_.get_sweeps_per_measurement() /
-                    nbr_of_moves_to_delay_;
+    nbr_of_steps_ = nb_steps_per_sweep_ * parameters_.get_sweeps_per_measurement();
+
+  // Get the maximum of Monte Carlo steps/moves that can be performed during one submatrix step.
+
+  max_nbr_of_moves_ = parameters_.getMaxSubmatrixSize();
+
+  //!!!!!!!
+  nbr_of_moves_ = max_nbr_of_moves_;
 
   double f_i;
 
@@ -222,12 +226,13 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::doSweep() {
     }
   }
 
-  for (int i = 0; i < nbr_of_steps_; i++) {
+  BaseClass::n_steps_ += nbr_of_steps_;
+  while (nbr_of_steps_ > 0) {
+    nbr_of_moves_to_delay_ = std::min(nbr_of_steps_, max_nbr_of_moves_);
+    nbr_of_steps_ -= nbr_of_moves_to_delay_;
+
     doStep();
-    ++total_steps_;
-    order_sum_ += order();
   }
-  ++total_sweeps_;
 
   for (int s = 0; s < 2; ++s) {
     for (int i = 0; i < M_[s].size().first; ++i) {
@@ -239,11 +244,7 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::doSweep() {
     }
   }
 
-  // Keep tha average after half thermalization for deciding the order.
-  if ((not thermalized_) and (total_sweeps_ == parameters_.get_warm_up_sweeps() / 2)) {
-    partial_order_sum_ = order_sum_;
-    partial_num_steps_ = total_steps_;
-  }
+  BaseClass::updateSweepAverages();
 }
 
 template <class Parameters>
@@ -501,6 +502,7 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::doSubmatrixUpdate() {
     // Update other objects.
 
     if (accepted_) {
+      ++BaseClass::n_accepted_;
       if (acceptance_probability_ < 0)
         sign_ *= -1;
 
@@ -591,7 +593,8 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeMInit() {
       linalg::matrixop::gemm(D_dev_[s], M, D_M, thread_id_, s);
 
       // TODO set n_init independently for each sector
-      details::setRightSectorToId(M_dev_[s].ptr(), M_dev_[s].leadingDimension(), n_init_, n_max_, stream_[s]);
+      details::setRightSectorToId(M_dev_[s].ptr(), M_dev_[s].leadingDimension(), n_init_, n_max_,
+                                  stream_[s]);
 
       M_[s].setAsync(M_dev_[s], stream_[s]);
     }

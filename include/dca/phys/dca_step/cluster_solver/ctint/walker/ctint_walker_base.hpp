@@ -30,6 +30,7 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_configuration_gpu.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/function_proxy.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/util/accumulator.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/util/integer_division.hpp"
 #include "dca/util/print_time.hpp"
@@ -60,7 +61,6 @@ protected:  // The class is not instantiable.
                   const DMatrixBuilder<linalg::CPU>& builder_ref, int id = 0);
 
 public:
-
   AccumulatorConfiguration getConfiguration() const;
   AccumulatorConfiguration moveConfiguration();
   void setConfiguration(AccumulatorConfiguration&& config);
@@ -70,21 +70,19 @@ public:
   bool is_thermalized() const {
     return thermalized_;
   }
-  void doSweep();
-  void do_step();
 
   int order() const {
     return configuration_.size();
   }
   double avgOrder() const {
-    return total_steps_ ? double(order_sum_) / double(total_steps_) : order();
+    return order_avg_.count() ? order_avg_.mean() : order();
   }
   int sign() const {
     return sign_;
   }
 
   double acceptanceRatio() {
-    return double(number_of_annihilations_ + number_of_creations_) / double(total_steps_);
+    return double(n_accepted_) / double(n_steps_);
   }
 
   void initialize() {}
@@ -104,12 +102,13 @@ protected:  // typedefs
   using TPosDmn = func::dmn_0<ctint::PositiveTimeDomain>;
 
 protected:  // Auxiliary methods.
+  void updateSweepAverages();
 
   void pushToEnd(const std::array<std::vector<ushort>, 2>& matrix_indices,
                  const std::pair<short, short>& vertex_indices);
 
   void setMFromConfig();
-  
+
 protected:  // Members.
   Parameters& parameters_;
   Concurrency& concurrency_;
@@ -127,13 +126,10 @@ protected:  // Members.
 
   const double total_interaction_;  // Space integrated interaction Hamiltonian.
 
-  ulong order_sum_ = 0;
-  ulong total_steps_ = 0;
-  ulong total_sweeps_ = 0;
-  ulong partial_order_sum_ = 0;
-  ulong partial_num_steps_ = 0;
-  ulong number_of_creations_ = 0;
-  ulong number_of_annihilations_ = 0;
+  util::Accumulator<uint> partial_order_avg_;
+  util::Accumulator<uint> order_avg_;
+  ulong n_steps_ = 0;
+  ulong n_accepted_ = 0;
   int nb_steps_per_sweep_ = -1;
 
   bool thermalized_ = false;
@@ -212,18 +208,22 @@ void CtintWalkerBase<device_t, Parameters>::setConfiguration(AccumulatorConfigur
   static_cast<MatrixConfiguration&>(configuration_) = std::move(config.matrix_configuration);
 }
 
+template <linalg::DeviceType device_t, class Parameters>
+void CtintWalkerBase<device_t, Parameters>::updateSweepAverages() {
+  order_avg_.addSample(order());
+  // Track avg order for the final number of steps / sweep.
+  if (order_avg_.count() >= parameters_.get_warm_up_sweeps() / 2)
+    partial_order_avg_.addSample(order());
+}
 
 template <linalg::DeviceType device_t, class Parameters>
 void CtintWalkerBase<device_t, Parameters>::markThermalized() {
   thermalized_ = true;
-  nb_steps_per_sweep_ =
-      dca::util::ceilDiv(order_sum_ - partial_order_sum_, total_steps_ - partial_num_steps_);
+  nb_steps_per_sweep_ = std::ceil(partial_order_avg_.mean());
 
-  order_sum_ = 0;
-  total_steps_ = 0;
-  total_sweeps_ = 0;
-  number_of_creations_ = 0;
-  number_of_annihilations_ = 0;
+  order_avg_.reset();
+  n_accepted_ = 0;
+  n_steps_= 0;
 }
 
 template <linalg::DeviceType device_t, class Parameters>
