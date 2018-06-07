@@ -51,7 +51,8 @@ TEST(SquareLatticeTest, GpuSolver) {
 
   Concurrency concurrency(1, NULL);
   Parameters parameters(dca::util::GitVersion::string(), concurrency);
-  parameters.read_input_and_broadcast<dca::io::JSONReader>(input_dir + "square_lattice_input.json");
+  parameters.read_input_and_broadcast<dca::io::JSONReader>(input_dir +
+                                                           "square_lattice_gpu_input.json");
   parameters.update_model();
   parameters.update_domains();
 
