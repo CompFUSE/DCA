@@ -178,7 +178,7 @@ void BseClusterSolver<ParametersType, DcaDataType, ScalarType>::load_G_II(
     G4.linind_2_subind(i, coor_2);
 
     // coordinate  0 1 2 3 4 5 6   7 8 9
-    // G4        : b b b b k k kex w w wex
+    // G4        : b b b b k k k_ex w w w_ex
     // G_II      : b b k w b b k   w
 
     coor_1[0] = coor_2[0];
