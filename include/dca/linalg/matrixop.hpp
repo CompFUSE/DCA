@@ -255,8 +255,8 @@ void inverse(MatrixType<ScalarType, device_name>& mat, Vector<int, CPU>& ipiv,
 
   lapack::UseDevice<device_name>::getrf(mat.nrRows(), mat.nrCols(), mat.ptr(),
                                         mat.leadingDimension(), ipiv.ptr());
-  // Get worksize.
-  const int lwork = mat.nrRows();
+  // Get optimal worksize.
+  int lwork = util::getInverseWorkSize(mat);
   work.resizeNoCopy(lwork);
 
   lapack::UseDevice<device_name>::getri(mat.nrRows(), mat.ptr(), mat.leadingDimension(), ipiv.ptr(),
