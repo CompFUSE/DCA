@@ -141,6 +141,10 @@ protected:  // Members.
 
   std::array<std::vector<ushort>, 2> removal_matrix_indices_;
   std::pair<short, short> removal_candidates_;
+
+  private:
+  linalg::Vector<int, linalg::CPU> ipiv_;
+  linalg::Vector<double, linalg::CPU> work_;
 };
 
 // TODO: use device matrix builder.
@@ -183,9 +187,10 @@ void CtintWalkerBase<device_t, Parameters>::setMFromConfig() {
     for (int i = 0; i < n; ++i)
       for (int j = 0; j < n; ++j)
         M(i, j) = d_builder_.computeD(i, j, sector);
-    linalg::matrixop::inverse(M);
+
+    const double det = linalg::matrixop::inverseAndDeterminant(M);
+
     // Set the initial sign
-    const double det = linalg::matrixop::determinant(M);
     if (det < 0)
       sign_ *= -1;
   }

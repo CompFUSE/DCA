@@ -13,6 +13,7 @@
 // - difference
 // - insertCol, insertRow (for CPU matrices only)
 // - inverse
+// - inverseAndDeterminant
 // - removeCol, removeCols, removeRow, removeRows, removeRowAndCol, removeRowAndCols
 // - scaleCol, scaleRow, scaleRows
 // - swapCol, swapRow, swapRowAndCol
@@ -267,6 +268,33 @@ void inverse(MatrixType<ScalarType, device_name>& mat) {
   Vector<int, CPU> ipiv;
   Vector<ScalarType, device_name> work;
   inverse(mat, ipiv, work);
+}
+
+// Computes in place the inverse of mat and the determinant of the inverse.
+// In/Out: mat
+// Returns: the determinant of mat^-1
+// Precondition: mat is a non-singular real matrix.
+template <typename ScalarType, template <typename, DeviceType> class MatrixType>
+ScalarType inverseAndDeterminant(MatrixType<ScalarType, CPU>& mat) {
+  assert(mat.is_square());
+  std::vector<int> ipiv(mat.nrRows());
+
+  lapack::UseDevice<CPU>::getrf(mat.nrRows(), mat.nrCols(), mat.ptr(), mat.leadingDimension(),
+                                ipiv.data());
+
+  ScalarType det = 1;
+  for (int i = 0; i < mat.nrCols(); ++i) {
+    det *= mat(i, i);
+    if (ipiv[i] != i + 1)
+      det *= -1;
+  }
+
+  const int lwork = util::getInverseWorkSize(mat);
+  std::vector<ScalarType> work(lwork);
+  lapack::UseDevice<CPU>::getri(mat.nrRows(), mat.ptr(), mat.leadingDimension(), ipiv.data(),
+                                work.data(), lwork);
+
+  return 1. / det;
 }
 
 // Remove the j-th column. The data is moved accordingly.

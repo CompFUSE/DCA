@@ -19,6 +19,7 @@
 #include "dca/linalg/lapack/use_device.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/blas/blas3.hpp"
+#include "dca/math/random/random.hpp"
 #include "cpu_test_util.hpp"
 #include "matrixop_reference.hpp"
 
@@ -1032,4 +1033,23 @@ TYPED_TEST(MatrixopMixedCPUTest, Gemm) {
       }
     }
   }
+}
+
+TYPED_TEST(MatrixopRealCPUTest, InverseAndDeterminant) {
+  using ScalarType = TypeParam;
+  dca::math::random::StdRandomWrapper<std::ranlux48_base> rng(0, 1, 42);
+  auto values = [&rng](int, int) { return rng(); };
+
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> mat(7);
+  testing::setMatrixElements(mat, values);
+  dca::linalg::Matrix<ScalarType, dca::linalg::CPU> mat_copy(mat);
+
+  dca::linalg::Vector<int, dca::linalg::CPU> ipiv;
+  dca::linalg::Vector<ScalarType, dca::linalg::CPU> work;
+
+  const ScalarType det = dca::linalg::matrixop::inverseAndDeterminant(mat);
+
+  dca::linalg::matrixop::inverse(mat_copy);
+  EXPECT_NEAR(dca::linalg::matrixop::determinant(mat_copy), det, 500 * this->epsilon);
+  EXPECT_TRUE(dca::linalg::matrixop::areNear(mat_copy, mat, 500 * this->epsilon));
 }
