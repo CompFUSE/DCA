@@ -180,7 +180,7 @@ void EDClusterSolver<device_t, parameters_type, MOMS_type>::execute() {
       if (concurrency.id() == concurrency.first()) {
         std::cout << "\n" << dca::util::print_time() << "\n" << std::endl;
       }
-      tp_Greens_function_obj.compute_particle_particle_superconducting_A(MOMS_imag.get_G4_k_k_w_w());
+      tp_Greens_function_obj.compute_particle_particle_superconducting_A(MOMS_imag.get_G4());
     }
   }
 
@@ -210,7 +210,7 @@ void EDClusterSolver<device_t, parameters_type, MOMS_type>::execute() {
     if (concurrency.id() == concurrency.first()) {
       std::cout << "\n" << dca::util::print_time() << "\n" << std::endl;
     }
-    tp_Greens_function_obj.compute_particle_particle_superconducting_A(MOMS_imag.get_G4_k_k_w_w());
+    tp_Greens_function_obj.compute_particle_particle_superconducting_A(MOMS_imag.get_G4());
   }
 
   MOMS_real.A_w = 0;

@@ -116,8 +116,6 @@ private:
   using BaseClass::beta_;
   using BaseClass::G0_ptr_;
   using BaseClass::G4_;
-  using BaseClass::q_idx_;
-  using BaseClass::w_idx_;
   using BaseClass::mode_;
   using BaseClass::non_density_density_;
   using BaseClass::sign_;
@@ -232,8 +230,10 @@ void TpAccumulator<Parameters, linalg::GPU>::initializeG4Helpers() const {
     return;
   const auto& add_mat = KDmn::parameter_type::get_add_matrix();
   const auto& sub_mat = KDmn::parameter_type::get_subtract_matrix();
-  details::initializeG4Helpers(n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), q_idx_, w_idx_,
-                               add_mat.ptr(), add_mat.leadingDimension(), sub_mat.ptr(),
+  const auto& w_indices = domains::FrequencyExchangeDomain::get_elements();
+  const auto& q_indices = domains::MomentumExchangeDomain::get_elements();
+  details::initializeG4Helpers(n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), q_indices,
+                               w_indices, add_mat.ptr(), add_mat.leadingDimension(), sub_mat.ptr(),
                                sub_mat.leadingDimension());
   assert(cudaPeekAtLastError() == cudaSuccess);
   initialized = true;
@@ -315,30 +315,33 @@ void TpAccumulator<Parameters, linalg::GPU>::updateG4() {
   //        |           |
   // b2 ------------------------ b4
 
+  const int nw_exchange = domains::FrequencyExchangeDomain::get_size();
+  const int nk_exchange = domains::MomentumExchangeDomain::get_size();
+
   switch (mode_) {
     case PARTICLE_HOLE_MAGNETIC:
       details::updateG4<Real, PARTICLE_HOLE_MAGNETIC>(
           get_G4().ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), sign_,
-          streams_[0]);
+          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
+          nk_exchange, sign_, streams_[0]);
       break;
     case PARTICLE_HOLE_CHARGE:
       details::updateG4<Real, PARTICLE_HOLE_CHARGE>(
           get_G4().ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), sign_,
-          streams_[0]);
+          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
+          nk_exchange, sign_, streams_[0]);
       break;
     case PARTICLE_HOLE_TRANSVERSE:
       details::updateG4<Real, PARTICLE_HOLE_TRANSVERSE>(
           get_G4().ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), sign_,
-          streams_[0]);
+          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
+          nk_exchange, sign_, streams_[0]);
       break;
     case PARTICLE_PARTICLE_UP_DOWN:
       details::updateG4<Real, PARTICLE_PARTICLE_UP_DOWN>(
           get_G4().ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
-          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), sign_,
-          streams_[0]);
+          G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
+          nk_exchange, sign_, streams_[0]);
       break;
     default:
       throw(std::logic_error("Mode non supported."));

@@ -17,7 +17,7 @@
 #include <vector>
 
 #include "dca/io/hdf5/hdf5_reader.hpp"
-#include "dca/function/function_utils.hpp"
+#include "dca/function/util/difference.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
 
@@ -80,7 +80,7 @@ TEST_F(G0Setup, Accumulate) {
 
     G4_check.set_name("G4_singleband_" + toString(type));
     reader.execute(G4_check);
-    const auto diff = dca::func::utils::difference(accumulator.get_sign_times_G4(), G4_check);
+    const auto diff = dca::func::util::difference(accumulator.get_sign_times_G4(), G4_check);
     EXPECT_GT(5e-7, diff.l_inf);
   }
 

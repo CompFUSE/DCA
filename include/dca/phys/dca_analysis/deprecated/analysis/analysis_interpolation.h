@@ -510,7 +510,7 @@ namespace dca {
     if(concurrency.id()==concurrency.last())
       cout << "\t" << __FUNCTION__ << endl << endl;
     
-    make_G4_matrix  <parameter_type, MOMS_type>::execute(MOMS.G4_k_k_w_w, G4);
+    make_G4_matrix  <parameter_type, MOMS_type>::execute(MOMS.G4, G4);
     
     make_G4_0_matrix<parameter_type, MOMS_type>::execute(parameters, MOMS.G_k_w, G4_0);
     

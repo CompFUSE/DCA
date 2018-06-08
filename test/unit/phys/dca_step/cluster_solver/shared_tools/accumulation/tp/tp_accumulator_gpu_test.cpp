@@ -16,7 +16,7 @@
 #include <string>
 #include <vector>
 
-#include "dca/function/function_utils.hpp"
+#include "dca/function/util/difference.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
 
@@ -49,7 +49,6 @@ const std::string input_dir =
     DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/";
 
 void prepareRandomConfig(Configuration& config, MatrixPair& M, std::array<int, 2> n);
-std::string toString(dca::phys::FourPointType);
 
 TEST_F(G0Setup, Accumulate) {
   dca::linalg::util::initializeMagma();
@@ -61,7 +60,7 @@ TEST_F(G0Setup, Accumulate) {
 
   auto& parameters = G0Setup::parameters;
   auto& data = *G0Setup::data;
-  auto& G4 = data.get_G4_k_k_w_w();
+  auto& G4 = data.get_G4();
   auto G4_check(G4);
 
   for (const dca::phys::FourPointType type :
@@ -78,7 +77,7 @@ TEST_F(G0Setup, Accumulate) {
     accumulator.finalize();
     accumulatorHost.accumulate(M, config, sign);
 
-    const auto diff = dca::func::utils::difference(accumulatorHost.get_sign_times_G4(),
+    const auto diff = dca::func::util::difference(accumulatorHost.get_sign_times_G4(),
                                                    accumulator.get_sign_times_G4());
     EXPECT_GT(5e-7, diff.l_inf);
   }
@@ -117,7 +116,7 @@ TEST_F(G0Setup, SumToAndFinalize) {
   accumulator3.accumulate(M2, config2, sign);
   accumulator3.finalize();
 
-  const auto diff = dca::func::utils::difference(accumulator3.get_sign_times_G4(),
+  const auto diff = dca::func::util::difference(accumulator3.get_sign_times_G4(),
                                                  accumulator_sum.get_sign_times_G4());
   EXPECT_GT(5e-7, diff.l_inf);
 }
@@ -139,27 +138,5 @@ void prepareRandomConfig(Configuration& config, MatrixPair& M, const std::array<
     for (int j = 0; j < n; ++j)
       for (int i = 0; i < n; ++i)
         M[s](i, j) = 2 * rng() - 1.;
-  }
-}
-
-std::string toString(dca::phys::FourPointType type) {
-  switch (type) {
-    case dca::phys::NONE:
-      return "none";
-
-    case dca::phys::PARTICLE_PARTICLE_UP_DOWN:
-      return "pp_up_down";
-
-    case dca::phys::PARTICLE_HOLE_TRANSVERSE:
-      return "ph_transverse";
-
-    case dca::phys::PARTICLE_HOLE_MAGNETIC:
-      return "ph_magnetic";
-
-    case dca::phys::PARTICLE_HOLE_CHARGE:
-      return "ph_charge";
-
-    default:
-      throw std::logic_error("type not valid.");
   }
 }
