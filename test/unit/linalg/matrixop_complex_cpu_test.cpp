@@ -407,7 +407,7 @@ TYPED_TEST(MatrixopComplexCPUTest, InsertRowCol) {
 TYPED_TEST(MatrixopComplexCPUTest, Inverse) {
   using ScalarType = TypeParam;
   int size = 6;
-  auto val = [](int i, int j) { return ScalarType(10 * i + j * j / (i + 1), 1 + i + j); };
+  auto val = [](int i, int j) { return ScalarType(10 * (i == j) + j * j / (i + 1), i + j - 1); };
   dca::linalg::Matrix<ScalarType, dca::linalg::CPU> mat(size);
   testing::setMatrixElements(mat, val);
 
