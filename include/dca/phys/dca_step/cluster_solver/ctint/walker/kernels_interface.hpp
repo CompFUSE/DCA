@@ -7,11 +7,12 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 
-
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_CTINT_KERNELS_INTERFACE_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_CTINT_KERNELS_INTERFACE_HPP
 
 #include <cuda.h>
+
+#include "dca/linalg/matrix_view.hpp"
 
 namespace dca {
 namespace phys {
@@ -20,6 +21,14 @@ namespace ctint {
 namespace details {
 
 void setRightSectorToId(double* m, int ldm, int n0, int n_max, cudaStream_t stream);
+
+using MatrixView = linalg::MatrixView<double, linalg::GPU>;
+
+void computeGLeft(MatrixView& G, const MatrixView& M, const double* f, int n_init,
+                  cudaStream_t stream);
+
+void multiplyByFFactor(MatrixView& M, const double* f_vals,
+                       bool inverse_factor, bool row_factor, cudaStream_t stream);
 
 }  // details
 }  // ctint

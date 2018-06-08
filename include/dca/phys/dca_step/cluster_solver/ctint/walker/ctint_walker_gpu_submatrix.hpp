@@ -5,7 +5,7 @@
 // See LICENSE.txt for terms of usage.
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
-// Author: Jérémie Bouquet (bouquetj@gmail.com).
+// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch).
 
 // This class organizes the MC walker in the CT-INT QMC purely on the CPU.
 
@@ -20,9 +20,10 @@
 #include <stdexcept>
 #include <vector>
 
-#include <ctime>
-
-#include "dca/linalg/linalg.hpp"
+#include "dca/linalg/matrix.hpp"
+#include "dca/linalg/matrix_view.hpp"
+#include "dca/linalg/matrixop.hpp"
+#include "dca/linalg/util/cuda_event.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/walker_methods.hpp"
@@ -46,18 +47,17 @@ public:
   using Rng = typename BaseClass::Rng;
 
   CtintWalkerSubmatrix(Parameters& pars_ref, Rng& rng_ref, const InteractionVertices& vertices,
-                       const DMatrixBuilder<linalg::CPU>& builder_ref, int id = 0);
+                       const DMatrixBuilder<linalg::GPU>& builder_ref, int id = 0);
 
 public:
   void doSweep();
 
+  void synchronize() const;
+
   using BaseClass::order;
   using BaseClass::avgOrder;
 
-protected:
-  bool tryVertexInsert(bool forced = false);
-  bool tryVertexRemoval();
-
+private:
   void doStep();
   void doStep(const int nbr_of_moves_to_delay);
   void generateDelayedMoves(int nbr_of_moves_to_delay);
@@ -73,13 +73,14 @@ protected:
   void setMFromConfig();
   Move generateMoveType();
 
-  using BaseClass::det_ratio_;
+  void uploadConfiguration();
 
 private:
-  template <linalg::DeviceType dev>
+  template <linalg::DeviceType dev = linalg::GPU>
   using MatrixView = linalg::MatrixView<double, dev>;
-  using Matrix = typename BaseClass::Matrix;
+  using Matrix = linalg::Matrix<double, linalg::CPU>;
 
+  using BaseClass::det_ratio_;
   using BaseClass::parameters_;
   using BaseClass::configuration_;
   using BaseClass::rng_;
@@ -92,7 +93,6 @@ private:
 
   using BaseClass::thermalized_;
 
-private:
   int max_submatrix_size_;
 
   struct DelayedMoveType {
@@ -114,10 +114,14 @@ private:
 
   MatrixPair<linalg::CPU> G_;
   MatrixPair<linalg::CPU> G0_;
-  MatrixPair<linalg::CPU> D_;
   MatrixPair<linalg::GPU> M_dev_;
   MatrixPair<linalg::GPU> D_dev_;
+  MatrixPair<linalg::GPU> G_dev_;
+  MatrixPair<linalg::GPU> G0_dev_;
   MatrixPair<linalg::CPU> Gamma_inv_;
+  std::array<linalg::Vector<double, linalg::GPU>, 2> f_dev_;
+  std::array<linalg::Vector<double, linalg::CPU>, 2> f_values_;
+  std::array<linalg::util::CudaEvent, 2> config_copied_;
   MatrixPair<linalg::CPU> s_;
   MatrixPair<linalg::CPU> w_;
   std::array<double, 2> d_;
@@ -145,7 +149,6 @@ private:
   std::array<cudaStream_t, 2> stream_;
 
   // Initial and current sector sizes.
-
   int n_init_;
   int n_;
 
@@ -166,19 +169,17 @@ private:
   double acceptance_probability_;
   bool do_nothing_;
   bool double_;
-
-  // For testing.
-
-  bool force_acceptance_ = false;
 };
 
 template <class Parameters>
 CtintWalkerSubmatrix<linalg::GPU, Parameters>::CtintWalkerSubmatrix(
     Parameters& parameters_ref, Rng& rng_ref, const InteractionVertices& vertices,
-    const DMatrixBuilder<linalg::CPU>& builder_ref, int id)
+    const DMatrixBuilder<linalg::GPU>& builder_ref, int id)
     : BaseClass(parameters_ref, rng_ref, vertices, builder_ref, id) {
-  for (int s = 0; s < 2; ++s)
+  for (int s = 0; s < 2; ++s) {
     stream_[s] = linalg::util::getStream(thread_id_, s);
+    M_dev_[s].setAsync(M_[s], stream_[s]);
+  }
 
   for (int i = 1; i <= 3; ++i) {
     f_[i] = d_builder_.computeF(i);
@@ -191,10 +192,17 @@ CtintWalkerSubmatrix<linalg::GPU, Parameters>::CtintWalkerSubmatrix(
 
     prob_const_[i] = prob_const_[-i] = -max_tau_ / (f_[i] - 1) / (f_[-i] - 1);
   }
-  f_[0] = 1;
+
+  uploadConfiguration();
 
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\nCT-INT GPU submatrix walker created." << std::endl;
+}
+
+template <class Parameters>
+void CtintWalkerSubmatrix<linalg::GPU, Parameters>::synchronize() const {
+  cudaStreamSynchronize(stream_[0]);
+  cudaStreamSynchronize(stream_[1]);
 }
 
 template <class Parameters>
@@ -211,19 +219,11 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::doSweep() {
 
   max_nbr_of_moves_ = parameters_.getMaxSubmatrixSize();
 
-  //!!!!!!!
   nbr_of_moves_ = max_nbr_of_moves_;
 
-  double f_i;
-
   for (int s = 0; s < 2; ++s) {
-    for (int i = 0; i < M_[s].size().first; ++i) {
-      f_i = f_[configuration_.getSector(s).getAuxFieldType(i)];
-
-      for (int j = 0; j < M_[s].size().second; ++j) {
-        M_[s](i, j) /= -(f_i - 1);
-      }
-    }
+    MatrixView<linalg::GPU> M(M_dev_[s]);
+    details::multiplyByFFactor(M, f_dev_[s].ptr(), true, true, stream_[s]);
   }
 
   BaseClass::n_steps_ += nbr_of_steps_;
@@ -235,16 +235,15 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::doSweep() {
   }
 
   for (int s = 0; s < 2; ++s) {
-    for (int i = 0; i < M_[s].size().first; ++i) {
-      f_i = f_[configuration_.getSector(s).getAuxFieldType(i)];
-
-      for (int j = 0; j < M_[s].size().second; ++j) {
-        M_[s](i, j) *= -(f_i - 1);
-      }
-    }
+    MatrixView<linalg::GPU> M(M_dev_[s]);
+    details::multiplyByFFactor(M, f_dev_[s].ptr(), false, true, stream_[s]);
+    M_[s].setAsync(M_dev_[s], stream_[s]);
   }
 
   BaseClass::updateSweepAverages();
+
+  // TODO: synchronize at updateFrom step.
+  synchronize();
 }
 
 template <class Parameters>
@@ -253,45 +252,9 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::doStep() {
   doSubmatrixUpdate();
 }
 
-// Do one step with arbitrary number of moves. For testing.
-
-template <class Parameters>
-void CtintWalkerSubmatrix<linalg::GPU, Parameters>::doStep(const int nbr_of_moves_to_delay) {
-  std::cout << "\nStarted doStep() function for testing." << std::endl;
-
-  force_acceptance_ = true;
-
-  double f_i;
-
-  for (int s = 0; s < 2; ++s) {
-    for (int i = 0; i < M_[s].size().first; ++i) {
-      f_i = f_[configuration_.getSector(s).getAuxFieldType(i)];
-
-      for (int j = 0; j < M_[s].size().second; ++j) {
-        M_[s](i, j) /= -(f_i - 1);
-      }
-    }
-  }
-
-  generateDelayedMoves(nbr_of_moves_to_delay);
-
-  std::cout << "\nGenerated " << nbr_of_moves_to_delay << " moves for testing.\n" << std::endl;
-
-  doSubmatrixUpdate();
-
-  for (int s = 0; s < 2; ++s) {
-    for (int i = 0; i < M_[s].size().first; ++i) {
-      f_i = f_[configuration_.getSector(s).getAuxFieldType(i)];
-
-      for (int j = 0; j < M_[s].size().second; ++j) {
-        M_[s](i, j) *= -(f_i - 1);
-      }
-    }
-  }
-}
-
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::GPU, Parameters>::generateDelayedMoves(int nbr_of_moves_to_delay) {
+  // TODO delegate first part to base class.
   assert(nbr_of_moves_to_delay > 0);
 
   const int max_nbr_of_moves = parameters_.getMaxSubmatrixSize();
@@ -356,6 +319,28 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::generateDelayedMoves(int nbr
   for (int i = n_init_; i < n_max_; ++i) {
     removal_list_.push_back(i);
   }
+
+  uploadConfiguration();
+}
+
+template <class Parameters>
+void CtintWalkerSubmatrix<linalg::GPU, Parameters>::uploadConfiguration() {
+  for (int s = 0; s < 2; ++s)
+    config_copied_[s].block();
+
+  // Upload configuration and f values.
+  configuration_.upload(thread_id_);
+  for (int s = 0; s < 2; ++s) {
+    auto& values = f_values_[s];
+    const auto& sector = configuration_.getSector(s);
+    values.resizeNoCopy(sector.size());
+    for (int i = 0; i < sector.size(); ++i)
+      values[i] = f_[sector.getAuxFieldType(i)];
+    f_dev_[s].setAsync(values, stream_[s]);
+  }
+
+  for (int s = 0; s < 2; ++s)
+    config_copied_[s].record(stream_[s]);
 }
 
 template <class Parameters>
@@ -376,6 +361,8 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::doSubmatrixUpdate() {
   int aux_spin_type, new_aux_spin_type;
 
   Matrix result_matrix_1, result_matrix_2;
+
+  synchronize();
 
   for (int delay_ind = 0; delay_ind < delayed_moves_.size(); ++delay_ind) {
     for (int s = 0; s < 2; ++s) {
@@ -492,11 +479,7 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::doSubmatrixUpdate() {
 
     accepted_ = rng_() < std::abs(acceptance_probability_);
 
-    if (force_acceptance_)
-      accepted_ = true;
-
     // Update GammaInv if necessary.
-
     updateGammaInv();
 
     // Update other objects.
@@ -566,26 +549,16 @@ Move CtintWalkerSubmatrix<linalg::GPU, Parameters>::generateMoveType() {
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeMInit() {
   const int delta = n_max_ - n_init_;
+  for (int s = 0; s < 2; ++s)
+    M_dev_[s].resize(n_max_);
 
-  if (delta > 0) {
-    double f_j;
+  for (int s = 0; s < 2; ++s) {
+    if (delta > 0) {
+      D_dev_[s].resizeNoCopy(std::make_pair(delta, n_init_));
+      d_builder_.computeG0(D_dev_[s], configuration_.getDeviceData(s), n_init_, false, stream_[s]);
 
-    for (int s = 0; s < 2; ++s) {
-      auto& D = D_[s];
-      D.resizeNoCopy(std::make_pair(delta, n_init_));
-      d_builder_.computeG0(D, configuration_.getSector(s), n_init_, n_max_, 0);
-
-      for (int j = 0; j < n_init_; ++j) {
-        f_j = f_[configuration_.getSector(s).getAuxFieldType(j)] - 1;
-
-        for (int i = 0; i < delta; ++i) {
-          D(i, j) *= f_j;
-        }
-      }
-      D_dev_[s].setAsync(D, stream_[s]);
-
-      M_[s].resize(n_max_);
-      M_dev_[s].setAsync(M_[s], stream_[s]);
+      MatrixView<linalg::GPU> D_view(D_dev_[s]);
+      details::multiplyByFFactor(D_view, f_dev_[s].ptr(), false, false, stream_[s]);
 
       MatrixView<linalg::GPU> M(M_dev_[s], 0, 0, n_init_, n_init_);
       MatrixView<linalg::GPU> D_M(M_dev_[s], n_init_, 0, delta, n_init_);
@@ -595,45 +568,34 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeMInit() {
       // TODO set n_init independently for each sector
       details::setRightSectorToId(M_dev_[s].ptr(), M_dev_[s].leadingDimension(), n_init_, n_max_,
                                   stream_[s]);
-
-      M_[s].setAsync(M_dev_[s], stream_[s]);
     }
+    M_[s].setAsync(M_dev_[s], stream_[s]);
   }
 }
 
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeGInit() {
   const int delta = n_max_ - n_init_;
-
-  double f;
-
   for (int s = 0; s < 2; ++s) {
-    G_[s].resizeNoCopy(n_max_);
+    auto& f_dev = f_dev_[s];
 
-    for (int j = 0; j < n_init_; ++j) {
-      f = f_[configuration_.getSector(s).getAuxFieldType(j)];
+    G_dev_[s].resizeNoCopy(n_max_);
 
-      cudaStreamSynchronize(stream_[s]);
-      for (int i = 0; i < n_max_; ++i) {
-        G_[s](i, j) = (M_[s](i, j) * f - double(i == j)) / (f - 1);
-      }
-    }
-
-    if (delta > 0) {
-      G0_[s].resizeNoCopy(std::make_pair(n_max_, delta));
-      d_builder_.computeG0(G0_[s], configuration_.getSector(s), n_init_, n_max_, 1);
-
-      MatrixView<linalg::CPU> G(G_[s], 0, n_init_, n_max_, delta);
-
-      linalg::matrixop::gemm(M_[s], G0_[s], G);
-    }
+    MatrixView<> G(G_dev_[s]);
+    const MatrixView<> M(M_dev_[s]);
+    details::computeGLeft(G, M, f_dev.ptr(), n_init_, stream_[s]);
   }
-}
 
-template <class Parameters>
-void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeG0Init() {
   for (int s = 0; s < 2; ++s) {
-    d_builder_.computeG0Init(G0_[s], configuration_.getSector(s), n_init_, n_max_);
+    if (delta > 0) {
+      G0_dev_[s].resizeNoCopy(std::make_pair(n_max_, delta));
+      d_builder_.computeG0(G0_dev_[s], configuration_.getDeviceData(s), n_init_, true, stream_[s]);
+
+      MatrixView<linalg::GPU> G(G_dev_[s], 0, n_init_, n_max_, delta);
+      // compute G right.
+      linalg::matrixop::gemm(M_dev_[s], G0_dev_[s], G, thread_id_, s);
+    }
+    G_[s].setAsync(G_dev_[s], stream_[s]);
   }
 }
 
@@ -649,7 +611,6 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeAcceptanceProbability
 
   if (recently_added_)
     acceptance_probability_ = 1 / acceptance_probability_;
-
   if (move_type_ == INSERTION)
     acceptance_probability_ *= K / (n_ + 1);
   else if (move_type_ == REMOVAL)
@@ -688,7 +649,6 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::updateGammaInv() {
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::GPU, Parameters>::updateM() {
   // assert(Gamma_size_ == gamma_[0].size() && gamma_[0].size() == gamma_[1].size());
-
   if (Gamma_size_ > 0) {
     int p;
 
@@ -707,6 +667,7 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::updateM() {
       }
 
       linalg::matrixop::gemm(Gamma_inv_[s], old_M, result_matrix);
+      // TODO: do on the GPU
       linalg::matrixop::gemm(-1., old_G, result_matrix, 1., M_[s]);
 
       p = 0;
@@ -722,13 +683,12 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::updateM() {
   // Remove "non-interacting" rows and columns.
 
   pushToEnd();
-
   for (int i = 0; i < removal_list_.size(); ++i)
     configuration_.pop();
 
   for (int s = 0; s < 2; ++s) {
     M_[s].resize(n_max_ - removal_list_.size());
-
+    M_dev_[s].setAsync(M_[s], stream_[s]);
     // G0_[s].resize(n_max_ - removal_list_.size());
   }
 }
@@ -785,7 +745,6 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::removeRowAndColOfGammaInv(co
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::GPU, Parameters>::pushToEnd() {
   // Sort in reverse order.
-
   std::sort(removal_list_.rbegin(), removal_list_.rend());
 
   for (int s = 0; s < 2; ++s) {
@@ -808,38 +767,8 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::pushToEnd() {
       --destination;
     }
   }
-}
 
-template <class Parameters>
-void CtintWalkerSubmatrix<linalg::GPU, Parameters>::setMFromConfig() {
-  sign_ = 1;
-  for (int s = 0; s < 2; ++s) {
-    const auto& sector = configuration_.getSector(s);
-    auto& M = M_[s];
-    const int n = sector.size();
-    M.resize(n);
-    for (int i = 0; i < n; ++i) {
-      for (int j = 0; j < n; ++j) {
-        M(i, j) = d_builder_.computeD(i, j, sector);
-      }
-    }
-    linalg::matrixop::inverse(M);
-
-    if (linalg::matrixop::determinant(M) < 0)
-      sign_ *= -1;
-  }
-}
-
-// Useless.
-
-template <class Parameters>
-bool CtintWalkerSubmatrix<linalg::GPU, Parameters>::tryVertexInsert(bool forced) {
-  return forced;
-}
-
-template <class Parameters>
-bool CtintWalkerSubmatrix<linalg::GPU, Parameters>::tryVertexRemoval() {
-  return 0;
+  uploadConfiguration();
 }
 
 }  // ctint

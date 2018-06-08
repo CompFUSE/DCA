@@ -26,12 +26,12 @@ namespace ctint {
 namespace details {
 // dca::phys::solver::ctint::details::
 
+using Configuration = DeviceConfiguration;
+using Interpolation = details::DeviceInterpolationData;
 using MatrixView = linalg::MatrixView<double, linalg::GPU>;
 
-void computeD(linalg::MatrixView<double, linalg::GPU> Q, linalg::MatrixView<double, linalg::GPU> R,
-              linalg::MatrixView<double, linalg::GPU> S, int n, int delta, double alpha_1,
-              double alpha_2, double alpha_3, DeviceConfiguration config,
-              DeviceInterpolationData data, cudaStream_t stream);
+void buildG0Matrix(MatrixView G0, int n_init, bool right_section, Configuration config,
+                   Interpolation g0_interp, cudaStream_t stream);
 
 double deviceInterpolationTest(DeviceInterpolationData data, double tau, int linindex);
 

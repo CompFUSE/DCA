@@ -12,10 +12,8 @@
 
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder.hpp"
 
-#include "dca/linalg/make_constant_view.hpp"
-#include "dca/linalg/matrix_view.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/kernels_interface.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/device_memory/global_memory_manager.hpp"
+//#include "dca/linalg/make_constant_view.hpp"
+//#include "dca/linalg/matrix_view.hpp"
 
 namespace dca {
 namespace phys {
@@ -222,7 +220,7 @@ void DMatrixBuilder<CPU>::computeG0Init(Matrix& G0, const Sector& configuration,
 }
 
 //Compute only the parts of G0 required at a given moment. (Re)Computing every element is not needed in most situations.
-  
+
 void DMatrixBuilder<CPU>::computeG0(Matrix& G0, const Sector& configuration, const int n_init, const int n_max, const int which_section) const {
   int b_i, b_j, r_i, r_j;
   double tau_i, tau_j;
@@ -263,48 +261,6 @@ void DMatrixBuilder<CPU>::computeG0(Matrix& G0, const Sector& configuration, con
     }
   }
 }
-
-#ifdef DCA_HAVE_CUDA
-
-DMatrixBuilder<linalg::GPU>::DMatrixBuilder(const G0Interpolation<GPU>& g0,
-                                            const linalg::Matrix<int, linalg::CPU>& site_diff,
-                                            const std::vector<int>& sbdm_step,
-                                            const std::array<double, 3>& alpha)
-    : BaseClass(g0.get_host_interpolation(), site_diff, sbdm_step, alpha), g0_ref_(g0) {
-  assert(sbdm_step.size() == 3);
-
-  ctint::GlobalMemoryManager::initializeCluster(*linalg::makeConstantView(site_diff), sbdm_step);
-}
-
-void DMatrixBuilder<linalg::GPU>::buildSQR(MatrixPair<linalg::GPU>& S, MatrixPair<linalg::GPU>& Q,
-                                           MatrixPair<linalg::GPU>& R,
-                                           SolverConfiguration<linalg::GPU>& config,
-                                           int thread_id) const {
-  std::array<int, 2> size_increase = config.sizeIncrease();
-
-  for (int s = 0; s < 2; ++s) {
-    const Sector& sector = config.getSector(s);
-    const int delta = size_increase[s];
-    const int n = sector.size() - delta;
-    const auto stream = linalg::util::getStream(thread_id, s);
-
-    config.upload(s, thread_id);
-    assert(cudaDeviceSynchronize() == cudaSuccess);
-
-    Q[s].resizeNoCopy(std::make_pair(n, delta));
-    R[s].resizeNoCopy(std::make_pair(delta, n));
-    S[s].resizeNoCopy(std::make_pair(delta, delta));
-
-    using MatrixView = linalg::MatrixView<double, linalg::GPU>;
-    assert(GlobalMemoryManager::isInitialized());
-    details::computeD(MatrixView(Q[s]), MatrixView(R[s]), MatrixView(S[s]), n, delta, alpha_1_,
-                      alpha_2_, alpha_3_, config.getDeviceData(s), g0_ref_, stream);
-
-    assert(cudaDeviceSynchronize() == cudaSuccess);
-  }
-}
-
-#endif  // DCA_HAVE_CUDA
 
 }  // ctint
 }  // solver

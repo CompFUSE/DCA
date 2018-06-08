@@ -23,23 +23,21 @@ namespace ctint {
 namespace details {
 // dca::phys::solver::ctint::details::
 
-  struct DeviceConfiguration {
-    const SectorEntry *data;
+struct DeviceConfiguration {
+  const SectorEntry* data;
 
-    __DEVICE__ inline ushort getLeftB(const int matrix_index) const;
+  __DEVICE__ inline ushort getLeftB(const int matrix_index) const;
 
-    __DEVICE__ inline ushort getRightB(const int matrix_index) const;
+  __DEVICE__ inline ushort getRightB(const int matrix_index) const;
 
-    __DEVICE__ inline ushort getLeftR(const int matrix_index) const;
+  __DEVICE__ inline ushort getLeftR(const int matrix_index) const;
 
-    __DEVICE__ inline ushort getRightR(const int matrix_index) const;
+  __DEVICE__ inline ushort getRightR(const int matrix_index) const;
 
-    __DEVICE__ inline double getTau(const int matrix_index) const;
+  __DEVICE__ inline double getTau(const int matrix_index) const;
 
-    __DEVICE__ inline short getAuxFieldType(int matrix_index) const;
+  __DEVICE__ inline short getAuxFieldType(int matrix_index) const;
 };
-
-
 
 __DEVICE__
 ushort DeviceConfiguration::getLeftB(const int matrix_index) const {

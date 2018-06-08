@@ -38,9 +38,11 @@ struct SolverConfiguration<linalg::GPU> : public SolverConfiguration<linalg::CPU
 
   inline SolverConfiguration(const SolverConfiguration<linalg::GPU>& other) = default;
 
-//  inline SolverConfiguration<linalg::GPU>& operator=(const SolverConfiguration<linalg::GPU>& rhs);
+  //  inline SolverConfiguration<linalg::GPU>& operator=(const SolverConfiguration<linalg::GPU>&
+  //  rhs);
 
-  inline void upload(int spin, int thread_id = 0);
+  inline void upload(int spin, int thread_id);
+  inline void upload(int thread_id);
 
   using BaseClass::pop;
   using BaseClass::push_back;
@@ -61,6 +63,11 @@ void SolverConfiguration<linalg::GPU>::upload(int spin, int thread_id) {
   const auto& entries = BaseClass::BaseClass::getEntries(spin);
   device_entries_[spin].setAsync(entries, linalg::util::getStream(thread_id, spin));
   device_pointers_[spin].data = device_entries_[spin].ptr();
+}
+
+void SolverConfiguration<linalg::GPU>::upload(int thread_id){
+    upload(0, thread_id);
+    upload(1, thread_id);
 }
 
 }  // ctint

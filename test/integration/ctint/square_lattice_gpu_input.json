@@ -7,7 +7,7 @@
   },
 
   "physics": {
-    "beta"                      :  10,
+    "beta"                      :  8,
     "chemical-potential"        : 0
   },
 
@@ -34,7 +34,7 @@
 
   "CT-INT" :
   {
-    "initial-configuration-size" :20,
+    "initial-configuration-size" :64,
     "alpha-dd-pos" : 0.501,
     "max-submatrix-size" : 16
   },
@@ -53,9 +53,9 @@
   {
     "warm-up-sweeps"         : 20,
     "sweeps-per-measurement" : 1,
-    "measurements"           : 1000,
+    "measurements"           : 500,
 
-    "seed" : "random"
+    "seed" : 0
   }
 }
 

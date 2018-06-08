@@ -21,9 +21,7 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/device_memory/global_memory_manager.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_configuration_gpu.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_matrix_configuration.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation_gpu.hpp"
 
 namespace dca {
 namespace phys {
@@ -31,7 +29,6 @@ namespace solver {
 namespace ctint {
 // dca::phys::solver::ctint::
 
-struct DeviceWorkspace;
 template <linalg::DeviceType device_t>
 class DMatrixBuilder;
 
@@ -67,8 +64,8 @@ public:
   double computeG0(const int i, const int j, const Sector& configuration) const;
   double computeGamma(const int aux_spin_type, const int new_aux_spin_type) const;
   void computeG0Init(Matrix& G0, const Sector& configuration, const int n_init, const int n_max) const;
-  void computeG0(Matrix& G0, const Sector& configuration, const int n_init, const int n_max,
-                 const int which_section) const;
+  void computeG0(linalg::Matrix<double, linalg::CPU>& G0, const Sector& configuration,
+                 const int n_init, const int n_max, const int which_section) const;
 
 private:
   int label(const int nu1, const int nu2, const int r) const;
@@ -82,43 +79,6 @@ protected:
   const std::vector<int>& sbdm_step_;
   const linalg::Matrix<int, linalg::CPU>& site_diff_;
 };
-
-#ifdef DCA_HAVE_CUDA
-template <>
-class DMatrixBuilder<linalg::GPU> : public DMatrixBuilder<linalg::CPU> {
-private:
-  template <linalg::DeviceType device_t>
-  using MatrixPair = std::array<linalg::Matrix<double, device_t>, 2>;
-
-public:
-  using Matrix = linalg::Matrix<double, linalg::CPU>;
-  using BaseClass = DMatrixBuilder<linalg::CPU>;
-
-  DMatrixBuilder(const G0Interpolation<linalg::GPU>& g0,
-                 const linalg::Matrix<int, linalg::CPU>& site_diff,
-                 const std::vector<int>& sbdm_step, const std::array<double, 3>& alphas);
-
-  void buildSQR(MatrixPair<linalg::GPU>& S, MatrixPair<linalg::GPU>& Q, MatrixPair<linalg::GPU>& R,
-                SolverConfiguration<linalg::GPU>& config, int thread_id = 0) const;
-
-  const G0Interpolation<linalg::GPU>& getG0() const {
-    return g0_ref_;
-  }
-
-  using BaseClass::computeD;
-
-private:
-  double computeD(const int i, const int j, const SolverConfiguration<linalg::CPU>& config) const;
-
-private:
-  const G0Interpolation<linalg::GPU>& g0_ref_;
-  using BaseClass::alpha_1_;
-  using BaseClass::alpha_2_;
-  using BaseClass::alpha_3_;
-  using BaseClass::n_bands_;
-};
-
-#endif  // DCA_HAVE_CUDA
 
 }  // ctint
 }  // solver

@@ -35,6 +35,10 @@
 #include "dca/util/integer_division.hpp"
 #include "dca/util/print_time.hpp"
 
+#ifdef DCA_HAVE_CUDA
+#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder_gpu.hpp"
+#endif
+
 namespace dca {
 namespace phys {
 namespace solver {
@@ -58,7 +62,7 @@ public:
 
 protected:  // The class is not instantiable.
   CtintWalkerBase(Parameters& pars_ref, Rng& rng_ref, const InteractionVertices& vertices,
-                  const DMatrixBuilder<linalg::CPU>& builder_ref, int id = 0);
+                  const DMatrixBuilder<device_t>& builder_ref, int id = 0);
 
 public:
   AccumulatorConfiguration getConfiguration() const;
@@ -121,8 +125,8 @@ protected:  // Members.
   MatrixPair M_;
 
   const double beta_;
-  // TODO: use GPU if avail.
-  const DMatrixBuilder<linalg::CPU>& d_builder_;
+
+  const DMatrixBuilder<device_t>& d_builder_;
 
   const double total_interaction_;  // Space integrated interaction Hamiltonian.
 
@@ -142,7 +146,7 @@ protected:  // Members.
   std::array<std::vector<ushort>, 2> removal_matrix_indices_;
   std::pair<short, short> removal_candidates_;
 
-  private:
+private:
   linalg::Vector<int, linalg::CPU> ipiv_;
   linalg::Vector<double, linalg::CPU> work_;
 };
@@ -151,7 +155,7 @@ protected:  // Members.
 template <linalg::DeviceType device_t, class Parameters>
 CtintWalkerBase<device_t, Parameters>::CtintWalkerBase(Parameters& parameters_ref, Rng& rng_ref,
                                                        const InteractionVertices& vertices,
-                                                       const DMatrixBuilder<linalg::CPU>& builder_ref,
+                                                       const DMatrixBuilder<device_t>& builder_ref,
                                                        int id)
     : parameters_(parameters_ref),
       concurrency_(parameters_.get_concurrency()),
@@ -182,7 +186,7 @@ void CtintWalkerBase<device_t, Parameters>::setMFromConfig() {
     auto& M = M_[s];
     const int n = sector.size();
     M.resize(n);
-    if(!n)
+    if (!n)
       continue;
     for (int i = 0; i < n; ++i)
       for (int j = 0; j < n; ++j)
@@ -198,7 +202,7 @@ void CtintWalkerBase<device_t, Parameters>::setMFromConfig() {
 
 template <linalg::DeviceType device_t, class Parameters>
 AccumulatorConfiguration CtintWalkerBase<device_t, Parameters>::getConfiguration() const {
-  return AccumulatorConfiguration{sign_, M_, configuration_};
+    return AccumulatorConfiguration{sign_, M_, configuration_};
 }
 
 template <linalg::DeviceType device_t, class Parameters>
@@ -215,7 +219,8 @@ void CtintWalkerBase<device_t, Parameters>::setConfiguration(AccumulatorConfigur
 
 template <linalg::DeviceType device_t, class Parameters>
 void CtintWalkerBase<device_t, Parameters>::updateSweepAverages() {
-  order_avg_.addSample(order());
+    cudaDeviceSynchronize();
+    order_avg_.addSample(order());
   // Track avg order for the final number of steps / sweep.
   if (order_avg_.count() >= parameters_.get_warm_up_sweeps() / 2)
     partial_order_avg_.addSample(order());
@@ -228,7 +233,7 @@ void CtintWalkerBase<device_t, Parameters>::markThermalized() {
 
   order_avg_.reset();
   n_accepted_ = 0;
-  n_steps_= 0;
+  n_steps_ = 0;
 }
 
 template <linalg::DeviceType device_t, class Parameters>
@@ -261,7 +266,7 @@ void CtintWalkerBase<device_t, Parameters>::pushToEnd(
 
 template <linalg::DeviceType device_t, class Parameters>
 void CtintWalkerBase<device_t, Parameters>::updateShell(int meas_id, int meas_to_do) const {
-  if (concurrency_.id() == concurrency_.first() && meas_id > 1 && (meas_id % (meas_to_do / 10)) == 0) {
+  if (concurrency_.id() == concurrency_.first() && meas_id > 1 && (meas_id % dca::util::ceilDiv(meas_to_do, 10)) == 0) {
     std::cout << "\t\t\t" << int(double(meas_id) / double(meas_to_do) * 100) << " % completed \t ";
     std::cout << "\t k :" << order();
     const double avg_order = avgOrder();

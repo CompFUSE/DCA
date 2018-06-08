@@ -1,10 +1,15 @@
-# CT-AUX
+# CT-INT
+
+if (DCA_HAVE_CUDA)
+  set(CTINT_CUDA_CPP_FILES walker/tools/d_matrix_builder_gpu.cpp)
+endif ()
 
 add_library(ctint
     domains/ct_int_domains.cpp
     structs/interaction_vertices.cpp
     walker/tools/g0_interpolation.cpp
     walker/tools/d_matrix_builder.cpp
+    ${CTINT_CUDA_CPP_FILES}
     )
 
 # INTERNAL: consider using --relocatable-device-code true and splitting the .cu files.

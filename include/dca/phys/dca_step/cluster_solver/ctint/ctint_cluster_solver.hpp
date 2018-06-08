@@ -20,7 +20,8 @@
 #include <vector>
 
 #include "dca/function/function.hpp"
-#include "dca/linalg/linalg.hpp"
+#include "dca/linalg/matrix.hpp"
+#include "dca/linalg/matrixop.hpp"
 #include "dca/math/function_transform/function_transform.hpp"
 #include "dca/math/statistics/util.hpp"
 #include "dca/parallel/util/get_workload.hpp"
@@ -138,9 +139,9 @@ private:
   const LabelDomain label_dmn_;
   std::unique_ptr<Walker> walker_;
   // Walker input.
-  ctint::G0Interpolation<linalg::CPU> g0_;
+  ctint::G0Interpolation<device_t> g0_;
   // Walker common tool
-  ctint::DMatrixBuilder<linalg::CPU> d_builder_;
+  ctint::DMatrixBuilder<device_t> d_builder_;
   Rng rng_;
   ctint::InteractionVertices interaction_vertices_;
 };

@@ -39,6 +39,7 @@ private:
 
 public:
   G0Interpolation() = default;
+  G0Interpolation(const G0Interpolation<linalg::GPU>& other) = delete;
 
   // See this->initialize(G0_pars_t).
   template <class InputDmn>

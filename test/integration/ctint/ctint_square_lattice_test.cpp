@@ -47,7 +47,7 @@ TEST(squareLattice_Nc4_nn, Self_Energy) {
       dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
                                     dca::profiling::NullProfiler, Model, RngType, dca::phys::solver::CT_INT>;
   using Data = dca::phys::DcaData<Parameters>;
-  using QmcSolverType = dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, Parameters>;
+  using QmcSolverType = dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, Parameters, true>;
 
   if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
     dca::util::GitVersion::print();

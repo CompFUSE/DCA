@@ -16,9 +16,8 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-#include "dca/linalg/device_type.hpp"
+#include "dca/linalg/util/error_cuda.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/device_memory/global_memory_manager.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/structs/device_configuration.hpp"
 #include "dca/util/integer_division.hpp"
 
 namespace dca {
@@ -38,92 +37,54 @@ namespace details {
 // dca::phys::solver::ctint::details::
 
 // ********** D Matrix Builder *********
-using linalg::GPU;
-using linalg::CPU;
-using Configuration = DeviceConfiguration;
-using Interpolation = details::DeviceInterpolationData;
-using MatrixView = linalg::MatrixView<double, linalg::GPU>;
+std::array<dim3, 2> getBlockSize(const uint i, const uint j, const uint block_size = 32) {
+  assert(i > 0 && j > 0);
+  const uint n_threads_i = std::min(block_size, i);
+  const uint n_threads_j = std::min(block_size, j);
+  if (n_threads_i * n_threads_j > 32 * 32)
+    throw(std::logic_error("Block size is too big"));
 
-__global__ void computeDKernel(MatrixView Q, MatrixView R, MatrixView S, const int delta,
-                               const double alpha1, const double alpha2, const double alpha3,
-                               const Configuration config, const Interpolation g0) {
-  const int id_i = blockIdx.x * blockDim.x + threadIdx.x;
-  const int id_j = blockIdx.y * blockDim.y + threadIdx.y;
+  const uint n_blocks_i = dca::util::ceilDiv(i, n_threads_i);
+  const uint n_blocks_j = dca::util::ceilDiv(j, n_threads_j);
 
-  const int n = Q.nrRows();
-  // Check boundaries.
-  if ((id_i >= n + delta) or (id_j >= 2 * delta))
-    return;
-
-  // Determine matrix indices and write location.
-  int i, j;
-  double* write_location;
-  if (id_j >= delta) {
-    if (id_i >= n)
-      return;
-    else {  // Write to R
-      i = id_j - delta + n;
-      j = id_i;
-      write_location = R.ptr(id_j - delta, id_i);
-    }
-  }
-  else {
-    if (id_i < n) {  // Write to Q.
-      i = id_i;
-      j = id_j + n;
-      write_location = Q.ptr(id_i, id_j);
-    }
-    else {  // Write to S
-      i = id_i;
-      j = id_j + n;
-      write_location = S.ptr(id_i - n, id_j);
-    }
-  }
-
-  auto alphaField = [&](const int type) {
-    switch (std::abs(type)) {
-      case 1:
-        return type < 0 ? (0.5 + alpha1) : (0.5 - alpha1);
-      case 2:
-        return type < 0 ? (0.5 + alpha2) : (0.5 - alpha2);
-      case 3:
-        return type < 0 ? alpha3 : -alpha3;
-    }
-    return 0.;
-  };
-
-  const ushort b1 = config.getLeftB(i);
-  const ushort b2 = config.getRightB(j);
-
-  using global::sbdm_step;
-  const ushort delta_r =
-      global::cluster_site_diff[config.getLeftR(i) + config.getRightR(j) * global::cluster_size];
-  const ushort p_index = b1 + b2 * sbdm_step[1] + delta_r * sbdm_step[2];
-  const double delta_tau = config.getTau(i) - config.getTau(j);
-  *write_location = g0(delta_tau, p_index);
-  if (i == j)
-    *write_location -= alphaField(config.getAuxFieldType(i));
+  return std::array<dim3, 2>{dim3(n_blocks_i, n_blocks_j), dim3(n_threads_i, n_threads_j)};
 }
 
-void computeD(linalg::MatrixView<double, linalg::GPU> Q, linalg::MatrixView<double, linalg::GPU> R,
-              linalg::MatrixView<double, linalg::GPU> S, int n, int delta, double alpha_1,
-              double alpha_2, double alpha_3, Configuration config, DeviceInterpolationData g0_data,
-              cudaStream_t stream) {
-  const int number_of_threads = std::min(128, n);  // maximum number of thread rows.
-  dim3 threads, blocks;
-  if (n) {
-    threads = dim3(number_of_threads, delta);
-    blocks = dim3(util::ceilDiv(n + delta, number_of_threads), 2);
-  }
-  else {
-    threads = dim3(delta, delta);
-    blocks = dim3(1, 1);
-  }
+__global__ void buildG0MatrixKernel(MatrixView G0, const int n_init, const bool right_section,
+                                    Configuration config, Interpolation g0_interp) {
+  const int id_i = blockIdx.x * blockDim.x + threadIdx.x;
+  const int id_j = blockIdx.y * blockDim.y + threadIdx.y;
+  if (id_i >= G0.nrRows() || id_j >= G0.nrCols())
+    return;
+  int i(id_i);
+  int j(id_j);
 
+  if (right_section)
+    j += n_init;
+  else
+    i += n_init;
+
+  const int b_i = config.getLeftB(i);
+  const double tau_i = config.getTau(i);
+
+  const int b_j = config.getRightB(j);
+  const double tau_j = config.getTau(j);
+
+  const int delta_r =
+      global::cluster_site_diff[config.getLeftR(i) + config.getRightR(j) * global::cluster_size];
+  const int label = b_i + b_j * global::sbdm_step[1] + delta_r * global::sbdm_step[2];
+
+  G0(id_i, id_j) = g0_interp(tau_i - tau_j, label);
+}
+
+void buildG0Matrix(MatrixView G0, const int n_init, const bool right_section, Configuration config,
+                   Interpolation g0_interp, cudaStream_t stream) {
   assert(GlobalMemoryManager::isInitialized());
-  computeDKernel<<<blocks, threads, 0, stream>>>(Q, R, S, delta, alpha_1, alpha_2, alpha_3, config,
-                                                 g0_data);
-  assert(cudaDeviceSynchronize() == cudaSuccess);
+  const auto blocks = getBlockSize(G0.nrRows(), G0.nrCols());
+
+  buildG0MatrixKernel<<<blocks[0], blocks[1], 0, stream>>>(G0, n_init, right_section, config,
+                                                           g0_interp);
+  checkErrorsCudaDebug();
 }
 
 // ************  G0 Interpolation.  **************
