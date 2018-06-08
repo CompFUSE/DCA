@@ -86,8 +86,7 @@ public:
   // Sums the accumulated Green's function to the accumulated Green's function of other_acc.
   void sumTo(this_type& other_acc);
 
-  void synchronizeCopy(){}
-
+  void synchronizeCopy() {}
 
 protected:
   using Profiler = typename Parameters::profiler_type;
@@ -355,11 +354,12 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4() {
     G4_.reset(new TpGreenFunction("G4"));
   double flops(0);
 
-  auto q_plus_k = [](const int k, const int q) { return KDmn::parameter_type::add(k, q); };
-  auto q_minus_k = [](const int k, const int q) { return KDmn::parameter_type::subtract(q, k); };
-  auto w_plus_dw = [](const int w, const int dw) { return w + dw; };
-  // Returns the index of the exchange frequency dw, minus the Matsubara frequency with index w.
-  auto dw_minus_w = [](const int w, const int dw) { return dw + WTpDmn::dmn_size() - 1 - w; };
+  auto momentum_sum = [](const int k, const int q) { return KDmn::parameter_type::add(k, q); };
+  auto momentum_diff = [](const int k, const int q) { return KDmn::parameter_type::subtract(q, k); };
+  // Returns the index of the exchange frequency w_ex plus the Matsubara frequency with index w.
+  auto w_plus_w_ex = [](const int w, const int w_ex) { return w + w_ex; };
+  // Returns the index of the exchange frequency w_ex minus the Matsubara frequency with index w.
+  auto w_ex_minus_w = [](const int w, const int w_ex) { return w_ex + WTpDmn::dmn_size() - 1 - w; };
 
   const Real sign_over_2 = 0.5 * sign_;
 
@@ -372,51 +372,52 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4() {
 
   switch (mode_) {
     case PARTICLE_HOLE_MAGNETIC:
-      //       G4(k1, k2, q) = 1/2  (s1 * s2) <c^+(k1+q, s1) c(k1, s1)
-      //                       c^+(k2, s2) c(k2+q, s2)>
-      //                     = 1/2 (s1 * s2) <G(k1, k1+q,s1) G(k2+q, k2, s2) - (s1 ==s2)
-      //                       G(k2+q, k1+q, s1) G(k1, k2, s1)>
-      for (int w3 = 0; w3 < exchange_frq.size(); ++w3) {
-        const int dw = exchange_frq[w3];
+      //       G4(k1, k2, k_ex) = 1/2  (s1 * s2) <c^+(k1 + k_ex, s1) c(k1, s1)
+      //                       c^+(k2, s2) c(k2 + k_ex, s2)>
+      //                     = 1/2 (s1 * s2) <G(k1, k1 + k_ex, s1) G(k2 + k_ex, k2, s2) - (s1 ==s2)
+      //                       G(k2 + k_ex, k1 + k_ex, s1) G(k1, k2, s1)>
+      for (int w_ex_idx = 0; w_ex_idx < exchange_frq.size(); ++w_ex_idx) {
+        const int w_ex = exchange_frq[w_ex_idx];
         for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
           for (int w1 = 0; w1 < WTpDmn::dmn_size(); ++w1)
-            for (int k3 = 0; k3 < exchange_mom.size(); ++k3) {
-              const int q = exchange_mom[k3];
+            for (int k_ex_idx = 0; k_ex_idx < exchange_mom.size(); ++k_ex_idx) {
+              const int k_ex = exchange_mom[k_ex_idx];
               for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
                 for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
-                  Complex* const G4_ptr = &(*G4_)(0, 0, 0, 0, k1, k2, k3, w1, w2, w3);
-                  updateG4SpinDifference(G4_ptr, -1, k1, q_plus_k(k1, q), w1, w_plus_dw(w1, dw),
-                                         q_plus_k(k2, q), k2, w_plus_dw(w2, dw), w2, sign_over_2,
-                                         false);
+                  Complex* const G4_ptr = &(*G4_)(0, 0, 0, 0, k1, k2, k_ex_idx, w1, w2, w_ex_idx);
+                  updateG4SpinDifference(G4_ptr, -1, k1, momentum_sum(k1, k_ex), w1,
+                                         w_plus_w_ex(w1, w_ex), momentum_sum(k2, k_ex), k2,
+                                         w_plus_w_ex(w2, w_ex), w2, sign_over_2, false);
                   for (int s = 0; s < 2; ++s)
-                    updateG4Atomic(G4_ptr, s, k1, k2, w1, w2, s, q_plus_k(k2, q), q_plus_k(k1, q),
-                                   w_plus_dw(w2, dw), w_plus_dw(w1, dw), -sign_over_2, true);
+                    updateG4Atomic(G4_ptr, s, k1, k2, w1, w2, s, momentum_sum(k2, k_ex),
+                                   momentum_sum(k1, k_ex), w_plus_w_ex(w2, w_ex),
+                                   w_plus_w_ex(w1, w_ex), -sign_over_2, true);
                 }
             }
       }
-
       flops += n_loops * (flops_update_spin_diff + 2 * flops_update_atomic);
       break;
 
     case PARTICLE_HOLE_CHARGE:
-      // G4(k1, k2, q) += 1/2  <c^+(k1+q, s1) c(k1, s1) c^+(k2, s2) c(k2+q, s2)> =
-      //                = 1/2 <G(k1, k1+q,s1) G(k2+q, k2, s2) -
-      //                  (s1 ==s2) G(k2+q, k1+q, s1) G(k1, k2, s1)>
-      for (int w3 = 0; w3 < exchange_frq.size(); ++w3) {
-        const int dw = exchange_frq[w3];
+      // G4(k1, k2, k_ex) += 1/2  <c^+(k1 + k_ex, s1) c(k1, s1) c^+(k2, s2) c(k2 + k_ex, s2)> =
+      //                = 1/2 <G(k1, k1 + k_ex, s1) G(k2 + k_ex, k2, s2) -
+      //                  (s1 ==s2) G(k2 + k_ex, k1 + k_ex, s1) G(k1, k2, s1)>
+      for (int w_ex_idx = 0; w_ex_idx < exchange_frq.size(); ++w_ex_idx) {
+        const int w_ex = exchange_frq[w_ex_idx];
         for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
           for (int w1 = 0; w1 < WTpDmn::dmn_size(); ++w1)
-            for (int k3 = 0; k3 < exchange_mom.size(); ++k3) {
-              const int q = exchange_mom[k3];
+            for (int k_ex_idx = 0; k_ex_idx < exchange_mom.size(); ++k_ex_idx) {
+              const int k_ex = exchange_mom[k_ex_idx];
               for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
                 for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
-                  Complex* const G4_ptr = &(*G4_)(0, 0, 0, 0, k1, k2, k3, w1, w2, w3);
-                  updateG4SpinDifference(G4_ptr, 1, k1, q_plus_k(k1, q), w1, w_plus_dw(w1, dw),
-                                         q_plus_k(k2, q), k2, w_plus_dw(w2, dw), w2, sign_over_2,
-                                         false);
+                  Complex* const G4_ptr = &(*G4_)(0, 0, 0, 0, k1, k2, k_ex_idx, w1, w2, w_ex_idx);
+                  updateG4SpinDifference(G4_ptr, 1, k1, momentum_sum(k1, k_ex), w1,
+                                         w_plus_w_ex(w1, w_ex), momentum_sum(k2, k_ex), k2,
+                                         w_plus_w_ex(w2, w_ex), w2, sign_over_2, false);
                   for (int s = 0; s < 2; ++s)
-                    updateG4Atomic(G4_ptr, s, k1, k2, w1, w2, s, q_plus_k(k2, q), q_plus_k(k1, q),
-                                   w_plus_dw(w2, dw), w_plus_dw(w1, dw), -sign_over_2, true);
+                    updateG4Atomic(G4_ptr, s, k1, k2, w1, w2, s, momentum_sum(k2, k_ex),
+                                   momentum_sum(k1, k_ex), w_plus_w_ex(w2, w_ex),
+                                   w_plus_w_ex(w1, w_ex), -sign_over_2, true);
                 }
             }
       }
@@ -425,20 +426,21 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4() {
       break;
 
     case PARTICLE_HOLE_TRANSVERSE:
-      // G4 = 1/2 \sum_s <c^+(k1 + q, s) c(k1, -s) c^+(k2, -s) c(k2 + q, s)>
-      //    = -1/2 \sum_s G( k2 + q, k1 + q, s) G4(k1, k2, -s)
-      for (int w3 = 0; w3 < exchange_frq.size(); ++w3) {
-        const int dw = exchange_frq[w3];
+      // G4 = 1/2 \sum_s <c^+(k1 + k_ex, s) c(k1, -s) c^+(k2, -s) c(k2 + k_ex, s)>
+      //    = -1/2 \sum_s G( k2 + k_ex, k1 + k_ex, s) G4(k1, k2, -s)
+      for (int w_ex_idx = 0; w_ex_idx < exchange_frq.size(); ++w_ex_idx) {
+        const int w_ex = exchange_frq[w_ex_idx];
         for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
           for (int w1 = 0; w1 < WTpDmn::dmn_size(); ++w1)
-            for (int k3 = 0; k3 < exchange_mom.size(); ++k3) {
-              const int q = exchange_mom[k3];
+            for (int k_ex_idx = 0; k_ex_idx < exchange_mom.size(); ++k_ex_idx) {
+              const int k_ex = exchange_mom[k_ex_idx];
               for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
                 for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
-                  Complex* const G4_ptr = &(*G4_)(0, 0, 0, 0, k1, k2, k3, w1, w2, w3);
+                  Complex* const G4_ptr = &(*G4_)(0, 0, 0, 0, k1, k2, k_ex_idx, w1, w2, w_ex_idx);
                   for (int s = 0; s < 2; ++s)
-                    updateG4Atomic(G4_ptr, s, k1, k2, w1, w2, not s, q_plus_k(k2, q), q_plus_k(k1, q),
-                                   w_plus_dw(w2, dw), w_plus_dw(w1, dw), -sign_over_2, true);
+                    updateG4Atomic(G4_ptr, s, k1, k2, w1, w2, not s, momentum_sum(k2, k_ex),
+                                   momentum_sum(k1, k_ex), w_plus_w_ex(w2, w_ex),
+                                   w_plus_w_ex(w1, w_ex), -sign_over_2, true);
                 }
             }
       }
@@ -447,20 +449,21 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4() {
       break;
 
     case PARTICLE_PARTICLE_UP_DOWN:
-      // G4 = 1/2 \sum_s <c^+(q-k1, s) c^+(k1, -s) c(k2, -s) c(q-k2, s)>
-      //    = 1/2 \sum_s G(q-k2, q-k1, s) G4(k2, k1, -s)
-      for (int w3 = 0; w3 < exchange_frq.size(); ++w3) {
-        const int dw = exchange_frq[w3];
+      // G4 = 1/2 \sum_s <c^+(k_ex-k1, s) c^+(k1, -s) c(k2, -s) c(k_ex-k2, s)>
+      //    = 1/2 \sum_s G(k_ex-k2, k_ex-k1, s) G4(k2, k1, -s)
+      for (int w_ex_idx = 0; w_ex_idx < exchange_frq.size(); ++w_ex_idx) {
+        const int w_ex = exchange_frq[w_ex_idx];
         for (int w2 = 0; w2 < WTpDmn::dmn_size(); ++w2)
           for (int w1 = 0; w1 < WTpDmn::dmn_size(); ++w1)
-            for (int k3 = 0; k3 < exchange_mom.size(); ++k3) {
-              const int q = exchange_mom[k3];
+            for (int k_ex_idx = 0; k_ex_idx < exchange_mom.size(); ++k_ex_idx) {
+              const int k_ex = exchange_mom[k_ex_idx];
               for (int k2 = 0; k2 < KDmn::dmn_size(); ++k2)
                 for (int k1 = 0; k1 < KDmn::dmn_size(); ++k1) {
-                  Complex* const G4_ptr = &(*G4_)(0, 0, 0, 0, k1, k2, k3, w1, w2, w3);
+                  Complex* const G4_ptr = &(*G4_)(0, 0, 0, 0, k1, k2, k_ex_idx, w1, w2, w_ex_idx);
                   for (int s = 0; s < 2; ++s)
-                    updateG4Atomic(G4_ptr, s, k1, k2, w1, w2, !s, q_minus_k(k1, q), q_minus_k(k2, q),
-                                   dw_minus_w(w1, dw), dw_minus_w(w2, dw), sign_over_2, false);
+                    updateG4Atomic(G4_ptr, s, k1, k2, w1, w2, !s, momentum_diff(k1, k_ex),
+                                   momentum_diff(k2, k_ex), w_ex_minus_w(w1, w_ex),
+                                   w_ex_minus_w(w2, w_ex), sign_over_2, false);
                 }
             }
       }
