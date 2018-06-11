@@ -68,7 +68,7 @@ else()
 endif()
 
 # Lattice type
-set(DCA_LATTICE "square" CACHE STRING "Lattice type, options are: bilayer | square | triangular |
+set(DCA_LATTICE "bilayer" CACHE STRING "Lattice type, options are: bilayer | square | triangular |
     hund | fe_as.")
 set_property(CACHE DCA_LATTICE PROPERTY STRINGS bilayer square triangular hund fe_as)
 
@@ -117,7 +117,7 @@ configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/lattice_model.hpp.in"
 
 ################################################################################
 # Select the profiler type and enable auto-tuning.
-set(DCA_PROFILER "None" CACHE STRING "Profiler type, options are: None | Counting | PAPI.")
+set(DCA_PROFILER "Counting" CACHE STRING "Profiler type, options are: None | Counting | PAPI.")
 set_property(CACHE DCA_PROFILER PROPERTY STRINGS None Counting PAPI)
 
 if (DCA_PROFILER STREQUAL "Counting")
@@ -265,7 +265,7 @@ endif()
 
 ################################################################################
 # Gnuplot
-option(DCA_WITH_GNUPLOT "Enable Gnuplot." OFF)
+option(DCA_WITH_GNUPLOT "Enable Gnuplot." ON)
 
 if (DCA_WITH_GNUPLOT)
   include(dca_gnuplot)

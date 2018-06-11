@@ -326,7 +326,7 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::warmUp() {
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
 void CtintClusterSolver<device_t, Parameters, use_submatrix>::measure() {
   const int n_meas = parallel::util::getWorkload(parameters_.get_measurements(), 1, 0, concurrency_);
-
+  
   for (int i = 0; i < n_meas; i++) {
     {
       Profiler profiler("updating", "QMCI", __LINE__);
@@ -385,6 +385,7 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::computeSigma(
     for (int w_ind = 0; w_ind < Wdmn::dmn_size(); w_ind++) {
       dca::linalg::matrixop::copyArrayToMatrix(matrix_dim, matrix_dim, &G(0, 0, k_ind, w_ind),
                                                matrix_dim, Ginv);
+      
       dca::linalg::matrixop::inverse(Ginv, ipiv, work);
 
       // Ginv_M <- 1/G * M

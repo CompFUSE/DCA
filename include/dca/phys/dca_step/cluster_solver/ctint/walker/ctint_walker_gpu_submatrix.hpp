@@ -183,26 +183,26 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::uploadConfiguration() {
 
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeMInit() {
-  const int delta = n_max_ - n_init_;
   for (int s = 0; s < 2; ++s)
-    M_dev_[s].resize(n_max_);
+    M_dev_[s].resize(n_max_[s]);
 
   for (int s = 0; s < 2; ++s) {
+    const int delta = n_max_[s] - n_init_[s];
     if (delta > 0) {
-      D_dev_[s].resizeNoCopy(std::make_pair(delta, n_init_));
-      d_builder_.computeG0(D_dev_[s], device_config_.getDeviceData(s), n_init_, false, stream_[s]);
+      D_dev_[s].resizeNoCopy(std::make_pair(delta, n_init_[s]));
+      d_builder_.computeG0(D_dev_[s], device_config_.getDeviceData(s), n_init_[s], false, stream_[s]);
 
       MatrixView<linalg::GPU> D_view(D_dev_[s]);
       details::multiplyByFFactor(D_view, f_dev_[s].ptr(), false, false, stream_[s]);
 
-      MatrixView<linalg::GPU> M(M_dev_[s], 0, 0, n_init_, n_init_);
-      MatrixView<linalg::GPU> D_M(M_dev_[s], n_init_, 0, delta, n_init_);
+      MatrixView<linalg::GPU> M(M_dev_[s], 0, 0, n_init_[s], n_init_[s]);
+      MatrixView<linalg::GPU> D_M(M_dev_[s], n_init_[s], 0, delta, n_init_[s]);
 
       linalg::matrixop::gemm(D_dev_[s], M, D_M, thread_id_, s);
 
       // TODO set n_init independently for each sector
-      details::setRightSectorToId(M_dev_[s].ptr(), M_dev_[s].leadingDimension(), n_init_, n_max_,
-                                  stream_[s]);
+      details::setRightSectorToId(M_dev_[s].ptr(), M_dev_[s].leadingDimension(), n_init_[s],
+                                  n_max_[s], stream_[s]);
     }
     M_[s].setAsync(M_dev_[s], stream_[s]);
   }
@@ -210,23 +210,21 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeMInit() {
 
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeGInit() {
-  const int delta = n_max_ - n_init_;
   for (int s = 0; s < 2; ++s) {
+    const int delta = n_max_[s] - n_init_[s];
     auto& f_dev = f_dev_[s];
 
-    G_dev_[s].resizeNoCopy(n_max_);
+    G_dev_[s].resizeNoCopy(n_max_[s]);
 
     MatrixView<> G(G_dev_[s]);
     const MatrixView<> M(M_dev_[s]);
-    details::computeGLeft(G, M, f_dev.ptr(), n_init_, stream_[s]);
-  }
+    details::computeGLeft(G, M, f_dev.ptr(), n_init_[s], stream_[s]);
 
-  for (int s = 0; s < 2; ++s) {
     if (delta > 0) {
-      G0_dev_[s].resizeNoCopy(std::make_pair(n_max_, delta));
-      d_builder_.computeG0(G0_dev_[s], device_config_.getDeviceData(s), n_init_, true, stream_[s]);
+      G0_dev_[s].resizeNoCopy(std::make_pair(n_max_[s], delta));
+      d_builder_.computeG0(G0_dev_[s], device_config_.getDeviceData(s), n_init_[s], true, stream_[s]);
 
-      MatrixView<linalg::GPU> G(G_dev_[s], 0, n_init_, n_max_, delta);
+      MatrixView<linalg::GPU> G(G_dev_[s], 0, n_init_[s], n_max_[s], delta);
       // compute G right.
       linalg::matrixop::gemm(M_dev_[s], G0_dev_[s], G, thread_id_, s);
     }

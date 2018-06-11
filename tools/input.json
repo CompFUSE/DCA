@@ -4,7 +4,7 @@
   },
 
   "physics": {
-    "beta"                      :  10.,
+    "beta"                      :  3,
     "chemical-potential"        : 0.
   },
 
@@ -12,6 +12,16 @@
   {
     "t"       : 1.,
     "U"       : 4.
+  },
+
+  "bilayer-Hubbard-model":
+  {
+    "t"       : 1.,
+    "U"       : 4.,
+    "t-prime" : 1.,
+    "t-perp"  : 1.,
+    "V"       : 1.,
+    "V-prime" : 1
   },
 
   "domains": {
@@ -38,8 +48,8 @@
   "CT-INT" :
   {
     "use-submatrix" : true,
-    "max-submatrix-size": 100,
-    "initial-configuration-size": 16,
+    "max-submatrix-size": 75,
+    "initial-configuration-size": 20,
     "alpha-dd-pos" : 0.501,
     "compute-error-bar" : true
   },
@@ -53,12 +63,12 @@
   "Monte-Carlo-integration" : {
     "warm-up-sweeps": 250,
     "sweeps-per-measurement": 1,
-      "measurements": 12000,
+      "measurements": 1000,
       "measurements-per-process-and-accumulator": 12000,
     "seed": "random",
     "threaded-solver": {
-      "walkers": 2,
-      "accumulators": 2
+      "walkers": 1,
+      "accumulators": 1
     }
   }
 }
