@@ -43,7 +43,7 @@ struct CtintWalkerChoicheSelector<linalg::GPU, Parameters, true> {
 };
 template <class Parameters>
 struct CtintWalkerChoicheSelector<linalg::GPU, Parameters, false> {
-  // There is only a submatrix implementation of th GPU walker.
+  // There is only a submatrix implementation of the GPU walker.
 };
 }
 

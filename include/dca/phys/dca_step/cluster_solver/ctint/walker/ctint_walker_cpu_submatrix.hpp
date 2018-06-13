@@ -36,8 +36,7 @@ namespace solver {
 namespace ctint {
 
 template <class Parameters>
-class CtintWalkerSubmatrix<linalg::CPU, Parameters>
-    : public CtintWalkerBase<Parameters> {
+class CtintWalkerSubmatrix<linalg::CPU, Parameters> : public CtintWalkerBase<Parameters> {
 public:
   using this_type = CtintWalkerSubmatrix<linalg::CPU, Parameters>;
   using BaseClass = CtintWalkerBase<Parameters>;
@@ -52,16 +51,16 @@ public:
   using BaseClass::order;
 
 protected:
-  bool tryVertexInsert(bool forced = false);
-  bool tryVertexRemoval();
-
-  void doStep();
+    void doSteps();
+    void generateDelayedMoves(int nbr_of_moves_to_delay);
+    void computeAcceptance();
+    void updateM();
+private:
+  virtual void doStep();
   void doStep(const int nbr_of_moves_to_delay);
-  void generateDelayedMoves(int nbr_of_moves_to_delay);
   void doSubmatrixUpdate();
   void computeAcceptanceProbability();
   void updateGammaInv();
-  void updateM();
   void removeRowAndColOfGammaInv(const int s);
   void pushToEnd();
   void computeMInit();
@@ -72,7 +71,7 @@ protected:
 
   using BaseClass::det_ratio_;
 
-private:
+protected:
   using MatrixView = linalg::MatrixView<double, linalg::CPU>;
   using Matrix = linalg::Matrix<double, linalg::CPU>;
 
@@ -88,7 +87,7 @@ private:
 
   using BaseClass::thermalized_;
 
-private:
+protected:
   int max_submatrix_size_;
 
   struct DelayedMoveType {
@@ -102,7 +101,7 @@ private:
     bool double_move_ = false;
   };
 
-private:
+protected:
   std::vector<DelayedMoveType> delayed_moves_;
 
   template <linalg::DeviceType matrix_device>
@@ -126,7 +125,6 @@ private:
   int nbr_of_moves_to_delay_;
   int max_nbr_of_moves_;
 
-  int nbr_of_moves_;
   int Gamma_size_;
   int Gamma_index_;
   int index_;
@@ -183,21 +181,6 @@ CtintWalkerSubmatrix<linalg::CPU, Parameters>::CtintWalkerSubmatrix(
 
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doSweep() {
-  // Here nbr_of_steps is the number of single steps/moves during the current sweep,
-  // while nbr_of_submatrix_steps is the number of times the entire submatrix algorithm  is run.
-
-  if (not thermalized_)
-    nbr_of_steps_ = BaseClass::avgOrder() + 1;
-  else
-    nbr_of_steps_ = nb_steps_per_sweep_ * parameters_.get_sweeps_per_measurement();
-
-  // Get the maximum of Monte Carlo steps/moves that can be performed during one submatrix step.
-
-  max_nbr_of_moves_ = parameters_.getMaxSubmatrixSize();
-
-  //!!!!!!!
-  nbr_of_moves_ = max_nbr_of_moves_;
-
   double f_i;
 
   for (int s = 0; s < 2; ++s) {
@@ -210,13 +193,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doSweep() {
     }
   }
 
-  BaseClass::n_steps_ += nbr_of_steps_;
-  while (nbr_of_steps_ > 0) {
-    nbr_of_moves_to_delay_ = std::min(nbr_of_steps_, max_nbr_of_moves_);
-    nbr_of_steps_ -= nbr_of_moves_to_delay_;
-
-    doStep();
-  }
+  doSteps();
 
   for (int s = 0; s < 2; ++s) {
     for (int i = 0; i < M_[s].size().first; ++i) {
@@ -227,6 +204,28 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doSweep() {
       }
     }
   }
+}
+
+template <class Parameters>
+void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doSteps() {
+  // Here nbr_of_steps is the number of single steps/moves during the current sweep,
+  // while nbr_of_submatrix_steps is the number of times the entire submatrix algorithm  is run.
+
+  if (not thermalized_)
+    nbr_of_steps_ = BaseClass::avgOrder() + 1;
+  else
+    nbr_of_steps_ = nb_steps_per_sweep_ * parameters_.get_sweeps_per_measurement();
+
+  // Get the maximum of Monte Carlo steps/moves that can be performed during one submatrix step.
+  max_nbr_of_moves_ = parameters_.getMaxSubmatrixSize();
+
+  BaseClass::n_steps_ += nbr_of_steps_;
+  while (nbr_of_steps_ > 0) {
+    nbr_of_moves_to_delay_ = std::min(nbr_of_steps_, max_nbr_of_moves_);
+    nbr_of_steps_ -= nbr_of_moves_to_delay_;
+
+    doStep();
+  }
 
   BaseClass::updateSweepAverages();
 }
@@ -234,7 +233,6 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doSweep() {
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doStep() {
   generateDelayedMoves(nbr_of_moves_to_delay_);
-
   doSubmatrixUpdate();
 }
 
@@ -283,7 +281,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::generateDelayedMoves(int nbr
 
   delayed_moves_.clear();
 
-  nbr_of_moves_ = 0;
+  int nbr_of_moves_ = 0;
 
   n_init_ = configuration_.size();
   n_ = n_init_;
@@ -345,7 +343,12 @@ template <class Parameters>
 void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doSubmatrixUpdate() {
   computeMInit();
   computeGInit();
+  computeAcceptance();
+  updateM();
+}
 
+template <class Parameters>
+void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeAcceptance() {
   Gamma_size_ = 0;
   for (int s = 0; s < 2; ++s) {
     Gamma_inv_[s].resizeNoCopy(0);
@@ -532,8 +535,6 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doSubmatrixUpdate() {
       }
     }
   }
-
-  updateM();
 }
 
 template <class Parameters>
@@ -810,18 +811,6 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::setMFromConfig() {
     if (linalg::matrixop::determinant(M) < 0)
       sign_ *= -1;
   }
-}
-
-// Useless.
-
-template <class Parameters>
-bool CtintWalkerSubmatrix<linalg::CPU, Parameters>::tryVertexInsert(bool forced) {
-  return forced;
-}
-
-template <class Parameters>
-bool CtintWalkerSubmatrix<linalg::CPU, Parameters>::tryVertexRemoval() {
-  return 0;
 }
 
 }  // ctint

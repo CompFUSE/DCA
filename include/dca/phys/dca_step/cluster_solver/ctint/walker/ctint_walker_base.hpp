@@ -98,6 +98,8 @@ public:
 
   void printSummary() const {}
 
+  virtual void synchronize() const {}
+
 protected:  // typedefs
   using Matrix = linalg::Matrix<double, linalg::CPU>;
   using MatrixPair = std::array<linalg::Matrix<double, linalg::CPU>, 2>;
