@@ -202,7 +202,8 @@ void CtintWalkerBase<Parameters>::setMFromConfig() {
 
 template <class Parameters>
 AccumulatorConfiguration CtintWalkerBase<Parameters>::getConfiguration() const {
-    return AccumulatorConfiguration{sign_, M_, configuration_};
+  synchronize();
+  return AccumulatorConfiguration{sign_, M_, configuration_};
 }
 
 template <class Parameters>

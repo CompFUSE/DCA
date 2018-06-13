@@ -144,9 +144,6 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::doSweep() {
     details::multiplyByFFactor(M, f_dev_[s].ptr(), false, true, stream_[s]);
     M_[s].setAsync(M_dev_[s], stream_[s]);
   }
-
-  // TODO: synchronize at updateFrom step.
-  synchronize();
 }
 
 template <class Parameters>
