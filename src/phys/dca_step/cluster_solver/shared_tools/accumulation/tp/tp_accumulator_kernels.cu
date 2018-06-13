@@ -16,11 +16,11 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-#include "dca/util/integer_division.hpp"
 #include "dca/linalg/util/cast_cuda.hpp"
 #include "dca/linalg/util/atomic_add_cuda.cu.hpp"
 #include "dca/linalg/util/complex_operators_cuda.cu.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/g4_helper.cuh"
+#include "dca/util/cuda_blocks.hpp"
 
 namespace dca {
 namespace phys {
@@ -36,18 +36,6 @@ G4HelperManager helper;
 using namespace linalg;
 using linalg::util::CudaComplex;
 using linalg::util::castCudaComplex;
-
-std::array<dim3, 2> getBlockSize(const uint i, const uint j, const uint block_size = 32) {
-  const uint n_threads_i = std::min(block_size, i);
-  const uint n_threads_j = std::min(block_size, j);
-  if (n_threads_i * n_threads_j > 32 * 32)
-    throw(std::logic_error("Block size is too big"));
-
-  const uint n_blocks_i = dca::util::ceilDiv(i, n_threads_i);
-  const uint n_blocks_j = dca::util::ceilDiv(j, n_threads_j);
-
-  return std::array<dim3, 2>{dim3(n_blocks_i, n_blocks_j), dim3(n_threads_i, n_threads_j)};
-}
 
 template <typename Real>
 __global__ void computeGSinglebandKernel(CudaComplex<Real>* __restrict__ G, int ldg,
@@ -81,7 +69,7 @@ template <typename Real>
 void computeGSingleband(std::complex<Real>* G, int ldg, const std::complex<Real>* G0, int nk,
                         int nw_pos, const Real beta, cudaStream_t stream) {
   const int n_rows = nk * nw_pos;
-  auto blocks = getBlockSize(n_rows, n_rows * 2);
+  auto blocks = dca::util::getBlockSize(n_rows, n_rows * 2);
 
   computeGSinglebandKernel<<<blocks[0], blocks[1], 0, stream>>>(
       castCudaComplex(G), ldg, castCudaComplex(G0), nk, nw_pos, beta);
@@ -150,7 +138,7 @@ void computeGMultiband(std::complex<Real>* G, int ldg, const std::complex<Real>*
   };
   const static int width = get_block_width();
 
-  const static auto blocks = getBlockSize(n_rows, n_rows * 2, width);
+  const static auto blocks = dca::util::getBlockSize(n_rows, n_rows * 2, width);
 
   computeGMultibandKernel<<<blocks[0], blocks[1], width * width * sizeof(std::complex<Real>), stream>>>(
       castCudaComplex(G), ldg, castCudaComplex(G0), ldg0, nb, nk, nw_pos, beta);
@@ -328,7 +316,7 @@ void updateG4(std::complex<Real>* G4, const std::complex<Real>* G_up, const int 
               const int nw_pos, const int sign, cudaStream_t stream) {
   const int nw = 2 * nw_pos;
   const int size = nw * nk * nb * nb;
-  const static auto blocks = getBlockSize(size, size, 16);
+  const static auto blocks = dca::util::getBlockSize(size, size, 16);
 
   updateG4Kernel<Real, type><<<blocks[0], blocks[1], 0, stream>>>(
       castCudaComplex(G4), castCudaComplex(G_up), ldgu, castCudaComplex(G_down), ldgd, nb, nk, nw,

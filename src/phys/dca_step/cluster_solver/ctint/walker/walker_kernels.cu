@@ -16,23 +16,13 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-#include "dca/util/integer_division.hpp"
+#include "dca/util/cuda_blocks.hpp"
 
 namespace dca {
 namespace phys {
 namespace solver {
 namespace ctint {
 namespace details {
-
-std::array<dim3, 2> getBlockSize(const int i, const int j) {
-  assert(i > 0 && j > 0);
-  const int n_threads_i = std::min(32, i);
-  const int n_threads_j = std::min(32, j);
-  const int n_blocks_i = util::ceilDiv(i, n_threads_i);
-  const int n_blocks_j = util::ceilDiv(j, n_threads_j);
-
-  return std::array<dim3, 2>{dim3(n_blocks_i, n_blocks_j), dim3(n_threads_i, n_threads_j)};
-}
 
 __global__ void setRightSectorToIdKernel(double* m, const int ldm, const int n0, const int n_max) {
   const int i = threadIdx.x + blockDim.x * blockIdx.x;
@@ -45,7 +35,7 @@ __global__ void setRightSectorToIdKernel(double* m, const int ldm, const int n0,
 }
 
 void setRightSectorToId(double* m, const int ldm, const int n0, const int n_max, cudaStream_t stream) {
-  auto blocks = getBlockSize(n_max, n_max - n0);
+  auto blocks = dca::util::getBlockSize(n_max, n_max - n0);
 
   setRightSectorToIdKernel<<<blocks[0], blocks[1], 0, stream>>>(m, ldm, n0, n_max);
 }
@@ -64,7 +54,7 @@ void computeGLeft(MatrixView& G, const MatrixView& M, const double* f, int n_ini
   if (n_init == 0)
     return;
   const int n = G.nrRows();
-  const auto blocks = getBlockSize(n, n_init);
+  const auto blocks = dca::util::getBlockSize(n, n_init);
 
   computeGLeftKernel<<<blocks[0], blocks[1], 0, stream>>>(G, M, f, n_init);
 }
@@ -92,7 +82,7 @@ void multiplyByFFactor(MatrixView& M, const double* f_vals, bool inverse_factor,
                        cudaStream_t stream) {
   if (M.nrCols() == 0 || M.nrRows() == 0)
     return;
-  const auto blocks = getBlockSize(M.nrRows(), M.nrCols());
+  const auto blocks = dca::util::getBlockSize(M.nrRows(), M.nrCols());
 
   multiplyByFFactorKernel<<<blocks[0], blocks[1], 0, stream>>>(M, f_vals, inverse_factor, row_factor);
 }

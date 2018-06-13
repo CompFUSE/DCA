@@ -16,31 +16,13 @@
 
 #include "dca/math/nfft/nfft_helper.cuh"
 #include "dca/linalg/util/atomic_add_cuda.cu.hpp"
-#include "dca/util/integer_division.hpp"
+#include "dca/util/cuda_blocks.hpp"
 
 namespace dca {
 namespace math {
 namespace nfft {
 namespace details {
 // dca::math::nfft::details::
-
-std::array<int, 2> getBlockSize(const int ni, const int block_size) {
-  const int n_threads = std::min(block_size, ni);
-  const int n_blocks = util::ceilDiv(ni, n_threads);
-  return std::array<int, 2>{n_blocks, n_threads};
-}
-
-std::array<dim3, 2> getBlockSize(const uint i, const uint j, const uint block_size = 32) {
-  const uint n_threads_i = std::min(block_size, i);
-  const uint n_threads_j = std::min(block_size, j);
-  if (n_threads_i * n_threads_j > 32 * 32)
-    throw(std::logic_error("Block size is too big"));
-
-  const uint n_blocks_i = dca::util::ceilDiv(i, n_threads_i);
-  const uint n_blocks_j = dca::util::ceilDiv(j, n_threads_j);
-
-  return std::array<dim3, 2>{dim3(n_blocks_i, n_blocks_j), dim3(n_threads_i, n_threads_j)};
-}
 
 template <typename ScalarType>
 struct HelperSelector {
@@ -101,7 +83,7 @@ void accumulateOnDevice(const double* M, const int ldm, const int sign, ScalarTy
                         const ScalarType* coeff, const int size, cudaStream_t stream_) {
   const auto& helper = HelperSelector<ScalarType>::value;
   const static int convolution_size = 2 * helper.get_oversampling() + 1;
-  const auto blocks = getBlockSize(size * size * convolution_size, 128);
+  const auto blocks = util::get1DBlockSize(size * size * convolution_size, 128);
 
   accumulateOnDeviceKernel<ScalarType><<<blocks[0], blocks[1], 0, stream_>>>(
       M, ldm, sign, out, out_sqr, ldo, config_left, config_right, tau, coeff, size, helper);
@@ -119,7 +101,7 @@ __global__ void sumKernel(const ScalarType* in, const int ldi, ScalarType* out, 
 template <typename ScalarType>
 void sum(const ScalarType* in, const int ldi, ScalarType* out, const int ldo, const int n,
          const int m, cudaStream_t stream) {
-  auto blocks = getBlockSize(n, m, 16);
+  auto blocks = util::getBlockSize(n, m, 16);
   sumKernel<<<blocks[0], blocks[1], 0, stream>>>(in, ldi, out, ldo, n, m);
 }
 

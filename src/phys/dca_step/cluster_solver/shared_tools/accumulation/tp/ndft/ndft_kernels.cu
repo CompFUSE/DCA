@@ -16,8 +16,8 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-#include "dca/util/integer_division.hpp"
 #include "dca/linalg/util/cast_cuda.hpp"
+#include "dca/util/cuda_blocks.hpp"
 
 namespace dca {
 namespace phys {
@@ -27,16 +27,6 @@ namespace details {
 
 using linalg::util::CudaComplex;
 using linalg::util::castCudaComplex;
-
-std::array<dim3, 2> getBlockSize(const int i, const int j) {
-  assert(i > 0 && j > 0);
-  const int n_threads_i = std::min(32, i);
-  const int n_threads_j = std::min(32, j);
-  const int n_blocks_i = util::ceilDiv(i, n_threads_i);
-  const int n_blocks_j = util::ceilDiv(j, n_threads_j);
-
-  return std::array<dim3, 2>{dim3(n_blocks_i, n_blocks_j), dim3(n_threads_i, n_threads_j)};
-}
 
 template <typename Real, typename InpScalar>
 __global__ void sortMKernel(const int size, const InpScalar* M, const int ldm,
@@ -61,7 +51,7 @@ void sortM(const int size, const InpScalar* M, const int ldm, std::complex<Real>
   if (!size)
     return;
 
-  auto const blocks = getBlockSize(size, size);
+  auto const blocks = dca::util::getBlockSize(size, size);
 
   sortMKernel<<<blocks[0], blocks[1], 0, stream>>>(size, M, ldm, castCudaComplex(sorted_M), lds,
                                                    config1, config2);
@@ -88,7 +78,7 @@ __global__ void computeTKernel(const int n, const int m, CudaComplex<Real>* T, i
 template <typename Real>
 void computeT(const int n, const int m, std::complex<Real>* T, int ldt, const Triple<Real>* config,
               const Real* w, const bool transposed, const cudaStream_t stream) {
-  auto const blocks = getBlockSize(n, m);
+  auto const blocks = dca::util::getBlockSize(n, m);
 
   computeTKernel<<<blocks[0], blocks[1], 0, stream>>>(n, m, castCudaComplex(T), ldt, config, w,
                                                       transposed);
@@ -129,7 +119,7 @@ void rearrangeOutput(const int nw, const int no, const int nb, const std::comple
                      const cudaStream_t stream) {
   const int n_rows = nw / 2 * no;
   const int n_cols = nw * no;
-  auto const blocks = getBlockSize(n_rows, n_cols);
+  auto const blocks = dca::util::getBlockSize(n_rows, n_cols);
 
   rearrangeOutputKernel<Real><<<blocks[0], blocks[1], 0, stream>>>(nw, no, nb, castCudaComplex(in),
                                                                    ldi, castCudaComplex(out), ldo);

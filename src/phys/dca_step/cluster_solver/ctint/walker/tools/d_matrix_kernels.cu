@@ -18,7 +18,7 @@
 
 #include "dca/linalg/util/error_cuda.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/device_memory/global_memory_manager.hpp"
-#include "dca/util/integer_division.hpp"
+#include "dca/util/cuda_blocks.hpp"
 
 namespace dca {
 namespace phys {
@@ -37,19 +37,6 @@ namespace details {
 // dca::phys::solver::ctint::details::
 
 // ********** D Matrix Builder *********
-std::array<dim3, 2> getBlockSize(const uint i, const uint j, const uint block_size = 32) {
-  assert(i > 0 && j > 0);
-  const uint n_threads_i = std::min(block_size, i);
-  const uint n_threads_j = std::min(block_size, j);
-  if (n_threads_i * n_threads_j > 32 * 32)
-    throw(std::logic_error("Block size is too big"));
-
-  const uint n_blocks_i = dca::util::ceilDiv(i, n_threads_i);
-  const uint n_blocks_j = dca::util::ceilDiv(j, n_threads_j);
-
-  return std::array<dim3, 2>{dim3(n_blocks_i, n_blocks_j), dim3(n_threads_i, n_threads_j)};
-}
-
 __global__ void buildG0MatrixKernel(MatrixView G0, const int n_init, const bool right_section,
                                     Configuration config, Interpolation g0_interp) {
   const int id_i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -80,7 +67,7 @@ __global__ void buildG0MatrixKernel(MatrixView G0, const int n_init, const bool 
 void buildG0Matrix(MatrixView G0, const int n_init, const bool right_section, Configuration config,
                    Interpolation g0_interp, cudaStream_t stream) {
   assert(GlobalMemoryManager::isInitialized());
-  const auto blocks = getBlockSize(G0.nrRows(), G0.nrCols());
+  const auto blocks = dca::util::getBlockSize(G0.nrRows(), G0.nrCols());
 
   buildG0MatrixKernel<<<blocks[0], blocks[1], 0, stream>>>(G0, n_init, right_section, config,
                                                            g0_interp);
