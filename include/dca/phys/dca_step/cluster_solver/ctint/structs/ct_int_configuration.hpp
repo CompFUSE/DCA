@@ -26,22 +26,17 @@ namespace solver {
 namespace ctint {
 // dca::phys::solver::ctint::
 
-// Empty template.
-template <dca::linalg::DeviceType device_t>
-class SolverConfiguration;
-
-template <>
-class SolverConfiguration<dca::linalg::CPU> : public MatrixConfiguration {
+class SolverConfiguration : public MatrixConfiguration {
 public:
   using BaseClass = MatrixConfiguration;
 
   inline SolverConfiguration() {}
-  inline SolverConfiguration(const SolverConfiguration<linalg::CPU>& other) = default;
+  inline SolverConfiguration(const SolverConfiguration& other) = default;
   inline SolverConfiguration(double beta, int n_bands, const InteractionVertices& H_int,
                              double double_move_prob = 0);
 
-  inline SolverConfiguration& operator=(const SolverConfiguration<linalg::CPU>& other);
-  inline SolverConfiguration& operator=(SolverConfiguration<linalg::CPU>&& other);
+  inline SolverConfiguration& operator=(const SolverConfiguration& other);
+  inline SolverConfiguration& operator=(SolverConfiguration&& other);
 
   template <class RngType>
   void insertRandom(RngType& rng);
@@ -84,8 +79,6 @@ public:
 
   inline std::vector<ushort> findIndices(int index, const int s) const;
 
-  //  using BaseClass::getSector;
-
   inline ushort getLeftNu(const int matrix_index) const;
   inline ushort getRightNu(const int matrix_index) const;
   inline ushort getLeftR(const int matrix_index) const;
@@ -118,8 +111,8 @@ protected:
   const int n_bands_ = 0;
 };
 
-SolverConfiguration<dca::linalg::CPU>& SolverConfiguration<dca::linalg::CPU>::operator=(
-    const SolverConfiguration<linalg::CPU>& other) {
+SolverConfiguration& SolverConfiguration::operator=(
+    const SolverConfiguration& other) {
   BaseClass::operator=(other);
   H_int_ = other.H_int_;
   vertices_ = other.vertices_;
@@ -127,15 +120,15 @@ SolverConfiguration<dca::linalg::CPU>& SolverConfiguration<dca::linalg::CPU>::op
   return *this;
 }
 
-SolverConfiguration<linalg::CPU>& SolverConfiguration<linalg::CPU>::operator=(
-    SolverConfiguration<linalg::CPU>&& other) {
+SolverConfiguration& SolverConfiguration::operator=(
+    SolverConfiguration&& other) {
   H_int_ = other.H_int_;
   BaseClass::operator=(other);
   vertices_ = std::move(other.vertices_);
   return *this;
 }
 
-SolverConfiguration<dca::linalg::CPU>::SolverConfiguration(const double beta, const int n_bands,
+SolverConfiguration::SolverConfiguration(const double beta, const int n_bands,
                                                            const InteractionVertices& H_int,
                                                            const double double_insertion)
     : MatrixConfiguration(&H_int, n_bands),
@@ -147,7 +140,7 @@ SolverConfiguration<dca::linalg::CPU>::SolverConfiguration(const double beta, co
       n_bands_(n_bands) {}
 
 template <class RngType>
-void SolverConfiguration<dca::linalg::CPU>::insertRandom(RngType& rng) {
+void SolverConfiguration::insertRandom(RngType& rng) {
   const std::pair<short, short> indices = H_int_->getInsertionIndices(rng());
   const double tau = rng() * max_tau_;
   const bool aux_spin = rng() > 0.5;
@@ -170,7 +163,7 @@ void SolverConfiguration<dca::linalg::CPU>::insertRandom(RngType& rng) {
 }
 
 template <class RngType>
-std::pair<short, short> SolverConfiguration<dca::linalg::CPU>::randomRemovalCandidate(RngType& rng) const {
+std::pair<short, short> SolverConfiguration::randomRemovalCandidate(RngType& rng) const {
   std::pair<short, short> candidates(rng() * size(), -1);
   if (double_insertion_prob_) {
     const int partner_id = (*H_int_)[vertices_[candidates.first].interaction_id].partner_id;
@@ -184,7 +177,7 @@ std::pair<short, short> SolverConfiguration<dca::linalg::CPU>::randomRemovalCand
   return candidates;
 }
 
-void SolverConfiguration<dca::linalg::CPU>::swapVertices(const short i, const short j) {
+void SolverConfiguration::swapVertices(const short i, const short j) {
   // Swap occupation list entries.
   if (double_insertion_prob_) {
     auto& list1 = existing_[vertices_[i].interaction_id];
@@ -201,7 +194,7 @@ void SolverConfiguration<dca::linalg::CPU>::swapVertices(const short i, const sh
   std::swap(vertices_[i], vertices_[j]);
 }
 
-void SolverConfiguration<dca::linalg::CPU>::push_back(const Vertex& v) {
+void SolverConfiguration::push_back(const Vertex& v) {
   vertices_.push_back(v);
   BaseClass::addVertex(v);
 
@@ -209,7 +202,7 @@ void SolverConfiguration<dca::linalg::CPU>::push_back(const Vertex& v) {
     existing_[v.interaction_id].push_back(size() - 1);
 }
 
-void SolverConfiguration<dca::linalg::CPU>::pop(const int n) {
+void SolverConfiguration::pop(const int n) {
   assert(n <= (int)size());
   assert(n == 1 or
          (*H_int_)[vertices_[size() - 2].interaction_id].partner_id ==
@@ -231,7 +224,7 @@ void SolverConfiguration<dca::linalg::CPU>::pop(const int n) {
   BaseClass::pop(removal_size[0], removal_size[1]);
 }
 
-std::array<int, 2> SolverConfiguration<dca::linalg::CPU>::sizeIncrease() const {
+std::array<int, 2> SolverConfiguration::sizeIncrease() const {
   assert(last_insertion_size_ > 0);
   std::array<int, 2> result{0, 0};
   for (std::size_t i = size() - last_insertion_size_; i < size(); ++i)
@@ -240,32 +233,32 @@ std::array<int, 2> SolverConfiguration<dca::linalg::CPU>::sizeIncrease() const {
   return result;
 }
 
-void SolverConfiguration<dca::linalg::CPU>::addSectorSizes(int idx, std::array<int, 2>& sizes) const {
+void SolverConfiguration::addSectorSizes(int idx, std::array<int, 2>& sizes) const {
   auto spin = [=](ushort nu) { return nu >= n_bands_; };
   const auto& nu = coordinates(idx).nu;
   ++sizes[spin(nu[0])];
   ++sizes[spin(nu[2])];
 }
 
-std::vector<ushort> SolverConfiguration<dca::linalg::CPU>::findIndices(const int index,
+std::vector<ushort> SolverConfiguration::findIndices(const int index,
                                                                        const int s) const {
   const double tau = vertices_[index].tau;
   return BaseClass::findIndices(tau, s);
 }
 
-short SolverConfiguration<dca::linalg::CPU>::getSign(const int vertex_index) const {
+short SolverConfiguration::getSign(const int vertex_index) const {
   return (*H_int_)[vertices_[vertex_index].interaction_id].w >= 0 ? 1 : -1;
 }
 
-double SolverConfiguration<dca::linalg::CPU>::getStrength(int vertex_index) const {
+double SolverConfiguration::getStrength(int vertex_index) const {
   assert(vertex_index >= 0 && vertex_index < (int)size());
   return (*H_int_)[vertices_[vertex_index].interaction_id].w;
 }
 
-int SolverConfiguration<dca::linalg::CPU>::occupationNumber(int vertex_index) const {
+int SolverConfiguration::occupationNumber(int vertex_index) const {
   return existing_[vertices_[vertex_index].interaction_id].size();
 }
-int SolverConfiguration<dca::linalg::CPU>::occupationNumber(const Vertex& vertex) const {
+int SolverConfiguration::occupationNumber(const Vertex& vertex) const {
   return existing_[vertex.interaction_id].size();
 }
 

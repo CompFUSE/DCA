@@ -32,6 +32,7 @@ public:
   Sector() : entries_(){};
 
   friend class MatrixConfiguration;
+  friend class DeviceConfigurationManager;
 
   ushort size() const {
     return entries_.size();

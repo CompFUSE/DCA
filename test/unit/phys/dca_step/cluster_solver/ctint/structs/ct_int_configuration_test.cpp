@@ -21,7 +21,7 @@ TEST(SolverConfigurationTest, InsertAndSwap) {
   interactions.insertElement({{0, 0, 0, 0}, {0, 0, 2, 2}, 1});
   interactions.insertElement({{0, 0, 0, 0}, {1, 0, 3, 2}, 1});
 
-  dca::phys::solver::ctint::SolverConfiguration<dca::linalg::CPU> config(1, 2, interactions, 1);
+  dca::phys::solver::ctint::SolverConfiguration config(1, 2, interactions, 1);
   using Vector = std::vector<double>;
   // Select numbers for: first vertex(ndd), tau, aux_spin, double insertion, tau2, aux_spin2.
   dca::testing::StubRng rng(Vector{0.9, 0.66, 0.2, 0, 0.66, 0.2});
@@ -53,7 +53,7 @@ TEST(SolverConfigurationTest, MatrixConfigurationUpdate){
   interactions.insertElement({{0, 0, 0, 0}, {0, 0, 3, 3}, 1}); // up-down
   interactions.insertElement({{0, 0, 0, 0}, {2, 2, 1, 1}, 1}); // down-up
 
-  dca::phys::solver::ctint::SolverConfiguration<dca::linalg::CPU> config(1, 2, interactions);
+  dca::phys::solver::ctint::SolverConfiguration config(1, 2, interactions);
   using dca::phys::solver::ctint::Vertex;
   config.push_back(Vertex{0, 2, 0}); // up-down
   config.push_back(Vertex{0, 3, 0}); // down-up

@@ -34,10 +34,10 @@ namespace ctint {
 // dca::phys::solver::ctint::
 
 template <class Parameters>
-class CtintWalker<linalg::CPU, Parameters> : public CtintWalkerBase<linalg::CPU, Parameters> {
+class CtintWalker<linalg::CPU, Parameters> : public CtintWalkerBase<Parameters> {
 public:
   using this_type = CtintWalker<linalg::CPU, Parameters>;
-  using BaseClass = CtintWalkerBase<linalg::CPU, Parameters>;
+  using BaseClass = CtintWalkerBase<Parameters>;
   using Rng = typename BaseClass::Rng;
 
 public:

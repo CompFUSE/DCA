@@ -37,10 +37,10 @@ namespace ctint {
 
 template <class Parameters>
 class CtintWalkerSubmatrix<linalg::CPU, Parameters>
-    : public CtintWalkerBase<linalg::CPU, Parameters> {
+    : public CtintWalkerBase<Parameters> {
 public:
   using this_type = CtintWalkerSubmatrix<linalg::CPU, Parameters>;
-  using BaseClass = CtintWalkerBase<linalg::CPU, Parameters>;
+  using BaseClass = CtintWalkerBase<Parameters>;
   using Rng = typename BaseClass::Rng;
 
   CtintWalkerSubmatrix(Parameters& pars_ref, Rng& rng_ref, const InteractionVertices& vertices,

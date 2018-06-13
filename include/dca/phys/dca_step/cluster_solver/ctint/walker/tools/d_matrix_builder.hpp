@@ -47,7 +47,7 @@ public:
                  const std::vector<int>& sbdm_step, const std::array<double, 3>& alphas);
 
   void buildSQR(MatrixPair& S, MatrixPair& Q, MatrixPair& R,
-                const SolverConfiguration<linalg::CPU>& config) const;
+                const SolverConfiguration& config) const;
 
   const G0Interpolation<linalg::CPU>& getG0() const {
     return g0_ref_;

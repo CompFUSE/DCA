@@ -25,6 +25,7 @@
 #include "dca/linalg/matrixop.hpp"
 #include "dca/linalg/util/cuda_event.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_configuration.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/structs/device_configuration_manager.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/walker_methods.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/move.hpp"
@@ -39,11 +40,10 @@ namespace solver {
 namespace ctint {
 
 template <class Parameters>
-class CtintWalkerSubmatrix<linalg::GPU, Parameters>
-    : public CtintWalkerBase<linalg::GPU, Parameters> {
+class CtintWalkerSubmatrix<linalg::GPU, Parameters> : public CtintWalkerBase<Parameters> {
 public:
   using this_type = CtintWalkerSubmatrix<linalg::GPU, Parameters>;
-  using BaseClass = CtintWalkerBase<linalg::GPU, Parameters>;
+  using BaseClass = CtintWalkerBase<Parameters>;
   using Rng = typename BaseClass::Rng;
 
   CtintWalkerSubmatrix(Parameters& pars_ref, Rng& rng_ref, const InteractionVertices& vertices,
@@ -80,11 +80,14 @@ private:
   using MatrixView = linalg::MatrixView<double, dev>;
   using Matrix = linalg::Matrix<double, linalg::CPU>;
 
+  SolverConfiguration configuration_;
+  DeviceConfigurationManager device_config_;
+
+  const DMatrixBuilder<linalg::GPU>& d_builder_;
+
   using BaseClass::det_ratio_;
   using BaseClass::parameters_;
-  using BaseClass::configuration_;
   using BaseClass::rng_;
-  using BaseClass::d_builder_;
   using BaseClass::total_interaction_;
   using BaseClass::sign_;
   using BaseClass::M_;
@@ -175,7 +178,7 @@ template <class Parameters>
 CtintWalkerSubmatrix<linalg::GPU, Parameters>::CtintWalkerSubmatrix(
     Parameters& parameters_ref, Rng& rng_ref, const InteractionVertices& vertices,
     const DMatrixBuilder<linalg::GPU>& builder_ref, int id)
-    : BaseClass(parameters_ref, rng_ref, vertices, builder_ref, id) {
+    : BaseClass(parameters_ref, rng_ref, vertices, builder_ref, id), d_builder_(builder_ref) {
   for (int s = 0; s < 2; ++s) {
     stream_[s] = linalg::util::getStream(thread_id_, s);
     M_dev_[s].setAsync(M_[s], stream_[s]);
@@ -329,7 +332,7 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::uploadConfiguration() {
     config_copied_[s].block();
 
   // Upload configuration and f values.
-  configuration_.upload(thread_id_);
+  device_config_.upload(configuration_, thread_id_);
   for (int s = 0; s < 2; ++s) {
     auto& values = f_values_[s];
     const auto& sector = configuration_.getSector(s);
@@ -555,7 +558,7 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeMInit() {
   for (int s = 0; s < 2; ++s) {
     if (delta > 0) {
       D_dev_[s].resizeNoCopy(std::make_pair(delta, n_init_));
-      d_builder_.computeG0(D_dev_[s], configuration_.getDeviceData(s), n_init_, false, stream_[s]);
+      d_builder_.computeG0(D_dev_[s], device_config_.getDeviceData(s), n_init_, false, stream_[s]);
 
       MatrixView<linalg::GPU> D_view(D_dev_[s]);
       details::multiplyByFFactor(D_view, f_dev_[s].ptr(), false, false, stream_[s]);
@@ -589,7 +592,7 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeGInit() {
   for (int s = 0; s < 2; ++s) {
     if (delta > 0) {
       G0_dev_[s].resizeNoCopy(std::make_pair(n_max_, delta));
-      d_builder_.computeG0(G0_dev_[s], configuration_.getDeviceData(s), n_init_, true, stream_[s]);
+      d_builder_.computeG0(G0_dev_[s], device_config_.getDeviceData(s), n_init_, true, stream_[s]);
 
       MatrixView<linalg::GPU> G(G_dev_[s], 0, n_init_, n_max_, delta);
       // compute G right.

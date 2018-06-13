@@ -27,7 +27,6 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/walker_methods.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/domains/common_domains.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_configuration.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_configuration_gpu.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/function_proxy.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/util/accumulator.hpp"
@@ -45,13 +44,13 @@ namespace solver {
 namespace ctint {
 // dca::phys::solver::ctint::
 
-template <linalg::DeviceType device_t, class Parameters>
+template <linalg::DeviceType device_type, class Parameters>
 class CtintWalker;
 
-template <linalg::DeviceType device_t, class Parameters>
+template <linalg::DeviceType device_type, class Parameters>
 class CtintWalkerSubmatrix;
 
-template <linalg::DeviceType device_t, class Parameters>
+template <class Parameters>
 class CtintWalkerBase {
 public:
   using parameters_type = Parameters;
@@ -62,7 +61,7 @@ public:
 
 protected:  // The class is not instantiable.
   CtintWalkerBase(Parameters& pars_ref, Rng& rng_ref, const InteractionVertices& vertices,
-                  const DMatrixBuilder<device_t>& builder_ref, int id = 0);
+                  const DMatrixBuilder<linalg::CPU>& builder_ref, int id = 0);
 
 public:
   AccumulatorConfiguration getConfiguration() const;
@@ -120,13 +119,13 @@ protected:  // Members.
   const int thread_id_;
 
   Rng& rng_;
-  SolverConfiguration<device_t> configuration_;
+  SolverConfiguration configuration_;
 
   MatrixPair M_;
 
   const double beta_;
 
-  const DMatrixBuilder<device_t>& d_builder_;
+  const DMatrixBuilder<linalg::CPU>& d_builder_;
 
   const double total_interaction_;  // Space integrated interaction Hamiltonian.
 
@@ -151,11 +150,10 @@ private:
   linalg::Vector<double, linalg::CPU> work_;
 };
 
-// TODO: use device matrix builder.
-template <linalg::DeviceType device_t, class Parameters>
-CtintWalkerBase<device_t, Parameters>::CtintWalkerBase(Parameters& parameters_ref, Rng& rng_ref,
+template <class Parameters>
+CtintWalkerBase<Parameters>::CtintWalkerBase(Parameters& parameters_ref, Rng& rng_ref,
                                                        const InteractionVertices& vertices,
-                                                       const DMatrixBuilder<device_t>& builder_ref,
+                                                       const DMatrixBuilder<linalg::CPU>& builder_ref,
                                                        int id)
     : parameters_(parameters_ref),
       concurrency_(parameters_.get_concurrency()),
@@ -177,8 +175,8 @@ CtintWalkerBase<device_t, Parameters>::CtintWalkerBase(Parameters& parameters_re
   setMFromConfig();
 }
 
-template <linalg::DeviceType device_t, class Parameters>
-void CtintWalkerBase<device_t, Parameters>::setMFromConfig() {
+template <class Parameters>
+void CtintWalkerBase<Parameters>::setMFromConfig() {
   // compute Mij = g0(t_i,t_j) - I* alpha(s_i)
   sign_ = 1;
   for (int s = 0; s < 2; ++s) {
@@ -200,25 +198,25 @@ void CtintWalkerBase<device_t, Parameters>::setMFromConfig() {
   }
 }
 
-template <linalg::DeviceType device_t, class Parameters>
-AccumulatorConfiguration CtintWalkerBase<device_t, Parameters>::getConfiguration() const {
+template <class Parameters>
+AccumulatorConfiguration CtintWalkerBase<Parameters>::getConfiguration() const {
     return AccumulatorConfiguration{sign_, M_, configuration_};
 }
 
-template <linalg::DeviceType device_t, class Parameters>
-AccumulatorConfiguration CtintWalkerBase<device_t, Parameters>::moveConfiguration() {
+template <class Parameters>
+AccumulatorConfiguration CtintWalkerBase<Parameters>::moveConfiguration() {
   return AccumulatorConfiguration{sign_, std::move(M_), std::move(configuration_)};
 }
 
-template <linalg::DeviceType device_t, class Parameters>
-void CtintWalkerBase<device_t, Parameters>::setConfiguration(AccumulatorConfiguration&& config) {
+template <class Parameters>
+void CtintWalkerBase<Parameters>::setConfiguration(AccumulatorConfiguration&& config) {
   sign_ = config.sign;
   M_ = std::move(config.M);
   static_cast<MatrixConfiguration&>(configuration_) = std::move(config.matrix_configuration);
 }
 
-template <linalg::DeviceType device_t, class Parameters>
-void CtintWalkerBase<device_t, Parameters>::updateSweepAverages() {
+template <class Parameters>
+void CtintWalkerBase<Parameters>::updateSweepAverages() {
     cudaDeviceSynchronize();
     order_avg_.addSample(order());
   // Track avg order for the final number of steps / sweep.
@@ -226,8 +224,8 @@ void CtintWalkerBase<device_t, Parameters>::updateSweepAverages() {
     partial_order_avg_.addSample(order());
 }
 
-template <linalg::DeviceType device_t, class Parameters>
-void CtintWalkerBase<device_t, Parameters>::markThermalized() {
+template <class Parameters>
+void CtintWalkerBase<Parameters>::markThermalized() {
   thermalized_ = true;
   nb_steps_per_sweep_ = std::ceil(partial_order_avg_.mean());
 
@@ -236,8 +234,8 @@ void CtintWalkerBase<device_t, Parameters>::markThermalized() {
   n_steps_ = 0;
 }
 
-template <linalg::DeviceType device_t, class Parameters>
-void CtintWalkerBase<device_t, Parameters>::pushToEnd(
+template <class Parameters>
+void CtintWalkerBase<Parameters>::pushToEnd(
     const std::array<std::vector<ushort>, 2>& matrix_indices,
     const std::pair<short, short>& vertex_indices) {
   for (int s = 0; s < 2; ++s) {
@@ -264,8 +262,8 @@ void CtintWalkerBase<device_t, Parameters>::pushToEnd(
   }
 }
 
-template <linalg::DeviceType device_t, class Parameters>
-void CtintWalkerBase<device_t, Parameters>::updateShell(int meas_id, int meas_to_do) const {
+template <class Parameters>
+void CtintWalkerBase<Parameters>::updateShell(int meas_id, int meas_to_do) const {
   if (concurrency_.id() == concurrency_.first() && meas_id > 1 && (meas_id % dca::util::ceilDiv(meas_to_do, 10)) == 0) {
     std::cout << "\t\t\t" << int(double(meas_id) / double(meas_to_do) * 100) << " % completed \t ";
     std::cout << "\t k :" << order();

@@ -40,7 +40,7 @@ DMatrixBuilder<CPU>::DMatrixBuilder(const G0Interpolation<CPU>& g0,
 
 void DMatrixBuilder<CPU>::buildSQR(MatrixPair& S, MatrixPair& Q,
                                    MatrixPair& R,
-                                   const SolverConfiguration<linalg::CPU>& config) const {
+                                   const SolverConfiguration& config) const {
   std::array<int, 2> size_increase = config.sizeIncrease();
 
   for (int s = 0; s < 2; ++s) {

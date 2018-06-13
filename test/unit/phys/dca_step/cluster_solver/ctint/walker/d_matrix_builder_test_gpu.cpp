@@ -1,3 +1,4 @@
+#include <dca/phys/dca_step/cluster_solver/ctint/structs/device_configuration_manager.hpp>
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder_gpu.hpp"
 
 #include "gtest/gtest.h"
@@ -5,12 +6,10 @@
 #include "dca/linalg/matrixop.hpp"
 #include "dca/linalg/util/cuda_stream.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/details/solver_methods.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_configuration_gpu.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
 
 using G0Setup = dca::testing::G0Setup<dca::testing::LatticeSquare, dca::phys::solver::CT_INT>;
 using namespace dca::phys::solver;
-using Config = ctint::SolverConfiguration<dca::linalg::GPU>;
 using HostMatrix = dca::linalg::Matrix<double, dca::linalg::CPU>;
 using DeviceMatrix = dca::linalg::Matrix<double, dca::linalg::GPU>;
 
@@ -47,10 +46,11 @@ TEST_F(G0Setup, RemoveAndInstertVertex) {
     right_sector = !right_sector;
 
     // Setup the configuration.
-    Config configuration(parameters.get_beta(), BDmn::dmn_size(), G0Setup::interaction_vertices);
+    ctint::SolverConfiguration configuration(parameters.get_beta(), BDmn::dmn_size(), G0Setup::interaction_vertices);
+    ctint::DeviceConfigurationManager device_config;
     for (int i = 0; i < size; i++)
       configuration.insertRandom(rng);
-    configuration.upload(0);
+    device_config.upload(configuration, 0);
 
     for (int delta : deltas) {
       s = !s;
@@ -64,7 +64,7 @@ TEST_F(G0Setup, RemoveAndInstertVertex) {
       G0_dev.resizeNoCopy(matrix_size);
 
       builder_cpu.computeG0(G0, configuration.getSector(s), n_init, size, right_sector);
-      builder.computeG0(G0_dev, configuration.getDeviceData(s), n_init, right_sector, stream);
+      builder.computeG0(G0_dev, device_config.getDeviceData(s), n_init, right_sector, stream);
       cudaStreamSynchronize(stream);
 
       HostMatrix G0_dev_copy(G0_dev);
