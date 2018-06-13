@@ -13,6 +13,7 @@
 #define DCA_INCLUDE_DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_KERNELS_INTERFACE_HPP
 
 #include <complex>
+#include <vector>
 
 #include "dca/phys/four_point_type.hpp"
 
@@ -33,11 +34,12 @@ void computeGMultiband(std::complex<Real>* G, int ldg, const std::complex<Real>*
 
 template <typename Real, FourPointType type>
 void updateG4(std::complex<Real>* G4, const std::complex<Real>* G_up, int lggu,
-                      const std::complex<Real>* G_down, int ldgd, int nb, int nk, int nw_pos,
-                      int sign, cudaStream_t stream);
+              const std::complex<Real>* G_down, int ldgd, int nb, int nk, int nw_pos,
+              int nw_exchange, int nk_exchange, int sign, cudaStream_t stream);
 
-void initializeG4Helpers(int nb, int nk, int nw_pos, int delta_k, int delta_w, const int* add_k,
-                         int lda, const int* sub_k, int lds);
+void initializeG4Helpers(int nb, int nk, int nw_pos, const std::vector<int>& delta_k_indices,
+                         const std::vector<int>& delta_w_indices, const int* add_k, int lda,
+                         const int* sub_k, int lds);
 
 }  // details
 }  // accumulator

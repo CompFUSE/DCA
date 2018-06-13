@@ -12,6 +12,7 @@
 #ifndef DCA_FUNCTION_UTIL_DIFFERENCE_HPP
 #define DCA_FUNCTION_UTIL_DIFFERENCE_HPP
 
+#include <cassert>
 #include <cmath>
 #include <type_traits>
 
@@ -27,8 +28,11 @@ struct Difference {
 };
 
 // Returns the l1, l2, and l_inf relative (w.r.t. f1) differences of f1 and f2.
-template <typename Scalartype1, typename Scalartype2, class Dmn>
-Difference difference(const function<Scalartype1, Dmn>& f1, const function<Scalartype2, Dmn>& f2) {
+template <typename Scalartype1, typename Scalartype2, class Dmn1, class Dmn2>
+Difference difference(const function<Scalartype1, Dmn1>& f1, const function<Scalartype2, Dmn2>& f2) {
+  if (f1.size() != f2.size())
+    throw(std::logic_error("The two functions have different size."));
+
   double l1 = 0.;
   double l2 = 0.;
   double linf = 0.;

@@ -316,7 +316,7 @@ TYPED_TEST(MatrixopComplexGPUTest, Inverse) {
 
   using ScalarType = TypeParam;
   int size = 6;
-  auto val = [](int i, int j) { return ScalarType(10 * i + j * j / (i + 1), 1 + i + j); };
+  auto val = [](int i, int j) { return ScalarType(10 * (i == j) + j * j / (i + 1), -1 + i + j); };
   dca::linalg::Matrix<ScalarType, dca::linalg::CPU> mat(size);
   testing::setMatrixElements(mat, val);
 

@@ -59,8 +59,8 @@ TEST_F(G0Setup, Accumulate) {
 
   auto& parameters = G0Setup::parameters;
   auto& data = *G0Setup::data;
-  using TpDomain = typename Data::TpGreensFunction::this_domain_type;
-  dca::func::function<std::complex<double>, TpDomain> G4_check;
+  using TpCheckDomain = typename Data::ReducedTpGreensFunction::this_domain_type;
+  dca::func::function<std::complex<double>, TpCheckDomain> G4_check;
 
   dca::io::HDF5Reader reader;
 

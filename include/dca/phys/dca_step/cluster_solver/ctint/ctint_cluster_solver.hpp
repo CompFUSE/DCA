@@ -261,7 +261,7 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::finalize() {
     data_.get_Sigma_error() = concurrency_.jackknifeError(data_.Sigma);
     data_.get_G_k_w_error() = concurrency_.jackknifeError(data_.G_k_w);
     if (perform_tp_accumulation_)
-      data_.get_G4_k_k_w_w_error() = concurrency_.jackknifeError(data_.get_G4_k_k_w_w());
+      data_.get_G4_error() = concurrency_.jackknifeError(data_.get_G4());
   }
 
   // Fourier transform the Green's function.
@@ -462,7 +462,7 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::gatherMAndG4(SpGre
   M /= std::complex<double>(sign, 0.);
 
   if (perform_tp_accumulation_) {
-    auto& G4 = data_.get_G4_k_k_w_w();
+    auto& G4 = data_.get_G4();
     G4 = accumulator_.get_sign_times_G4();
     if (compute_error)
       concurrency_.leaveOneOutAvg(G4);

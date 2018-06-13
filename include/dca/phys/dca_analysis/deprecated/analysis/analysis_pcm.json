@@ -214,8 +214,8 @@ namespace dca {
   {
     cout << __FUNCTION__ << endl;
 
-    cout << "symmetrize MOMS.G4_k_k_w_w" << endl;
-    symmetrize::execute(MOMS.G4_k_k_w_w, MOMS.H_symmetry, false);
+    cout << "symmetrize MOMS.G4" << endl;
+    symmetrize::execute(MOMS.G4, MOMS.H_symmetry, false);
   }
     
   template<class parameter_type, class MOMS_type>
@@ -224,11 +224,11 @@ namespace dca {
     assert(w_VERTEX::dmn_size() == w_VERTEX::dmn_size());
 
     int* coor_1 = new int[Gamma_b_k_w__b_k_w.signature()];
-    int* coor_2 = new int[MOMS.G4_k_k_w_w   .signature()];
+    int* coor_2 = new int[MOMS.G4   .signature()];
     
-    for(int i=0; i<MOMS.G4_k_k_w_w.size(); i++)
+    for(int i=0; i<MOMS.G4.size(); i++)
       {
-	MOMS.G4_k_k_w_w.linind_2_subind(i, coor_2);
+	MOMS.G4.linind_2_subind(i, coor_2);
 	
 	coor_1[0] = coor_2[0];
 	coor_1[1] = coor_2[1];
@@ -240,7 +240,7 @@ namespace dca {
 	coor_1[7] = coor_2[7];//w_2
 	
 	Gamma_b_k_w__b_k_w(coor_1[0], coor_1[1], coor_1[2], coor_1[3], coor_1[4], coor_1[5], coor_1[6], coor_1[7])
-	  = MOMS.G4_k_k_w_w(coor_2[0], coor_2[1], coor_2[2], coor_2[3], coor_2[4], coor_2[5], coor_2[6], coor_2[7]);
+	  = MOMS.G4(coor_2[0], coor_2[1], coor_2[2], coor_2[3], coor_2[4], coor_2[5], coor_2[6], coor_2[7]);
       }
 
     delete [] coor_1;

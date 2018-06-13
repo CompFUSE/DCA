@@ -273,7 +273,7 @@ double CtauxClusterSolver<device_t, parameters_type, Data>::finalize(dca_info_st
   }
 
   if (dca_iteration_ == parameters_.get_dca_iterations() - 1 && parameters_.get_four_point_type() != NONE)
-    data_.get_G4_k_k_w_w() /= parameters_.get_beta() * parameters_.get_beta();
+    data_.get_G4() /= parameters_.get_beta() * parameters_.get_beta();
 
   double total = 1.e-6, integral = 0;
 
@@ -392,7 +392,7 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::computeErrorBars() {
     auto G4 = accumulator_.get_sign_times_G4();
     G4 /= parameters_.get_beta() * parameters_.get_beta() * nb_measurements * sign;
 
-    concurrency_.average_and_compute_stddev(G4, data_.get_G4_k_k_w_w_stdv());
+    concurrency_.average_and_compute_stddev(G4, data_.get_G4_stdv());
   }
 }
 
@@ -463,7 +463,7 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::collect_measurements()
   if (parameters_.get_four_point_type() != NONE &&
       dca_iteration_ == parameters_.get_dca_iterations() - 1) {
     Profiler profiler("QMC-two-particle-Greens-function", "QMC-collectives", __LINE__);
-    auto& G4 = data_.get_G4_k_k_w_w();
+    auto& G4 = data_.get_G4();
     G4 = accumulator_.get_sign_times_G4();
     G4 /= accumualted_sign_;
     concurrency_.sum_and_average(G4);
