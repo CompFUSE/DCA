@@ -1,5 +1,5 @@
-// Copyright (C)-2016 ETH Zurich
-// Copyright (C)?-2016 Center for Nanophase Materials Sciences, ORNL
+// Copyright (C) 2018 ETH Zurich
+// Copyright (C) 2018 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE for terms of usage.
