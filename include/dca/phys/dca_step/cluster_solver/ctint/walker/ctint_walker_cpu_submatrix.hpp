@@ -12,7 +12,7 @@
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_CTINT_WALKER_CPU_SUBMATRIX_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_CTINT_WALKER_CTINT_WALKER_CPU_SUBMATRIX_HPP
 
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_cpu.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_base.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -41,6 +41,7 @@ public:
   using this_type = CtintWalkerSubmatrix<linalg::CPU, Parameters>;
   using BaseClass = CtintWalkerBase<Parameters>;
   using Rng = typename BaseClass::Rng;
+  using Profiler = typename Parameters::profiler_type;
 
   CtintWalkerSubmatrix(Parameters& pars_ref, Rng& rng_ref, const InteractionVertices& vertices,
                        const DMatrixBuilder<linalg::CPU>& builder_ref, int id = 0);
@@ -53,13 +54,12 @@ public:
 protected:
   void doSteps();
   void generateDelayedMoves(int nbr_of_moves_to_delay);
-  void computeAcceptance();
+  void mainSubmatrixProcess();
   void updateM();
-  // For testing purposes.
-  void doStep(const int nbr_of_moves_to_delay);
 
 private:
   virtual void doStep();
+  void doStep(const int nbr_of_moves_to_delay);
   void doSubmatrixUpdate();
   void computeAcceptanceProbability();
   void updateGammaInv();
@@ -71,6 +71,9 @@ private:
   void setMFromConfig();
   Move generateMoveType();
 
+  void findSectorIndices(const int s);
+  void recomputeGammaInv();
+
 protected:
   using MatrixView = linalg::MatrixView<double, linalg::CPU>;
   using Matrix = linalg::Matrix<double, linalg::CPU>;
@@ -78,10 +81,12 @@ protected:
   using BaseClass::parameters_;
   using BaseClass::configuration_;
   using BaseClass::rng_;
+  using BaseClass::thread_id_;
   using BaseClass::d_builder_;
   using BaseClass::total_interaction_;
   using BaseClass::sign_;
   using BaseClass::M_;
+  using BaseClass::det_ratio_;
 
   double max_tau_ = BaseClass::beta_;
 
@@ -97,6 +102,8 @@ protected:
 
     int index_;
     int partner_index_;
+    std::array<std::vector<int>, 2> sector_indices_;
+    std::array<std::vector<int>, 2> partner_sector_indices_;
 
     bool double_move_ = false;
   };
@@ -111,8 +118,14 @@ protected:
   MatrixPair<linalg::CPU> Gamma_inv_;
   MatrixPair<linalg::CPU> s_;
   MatrixPair<linalg::CPU> w_;
+  MatrixPair<linalg::CPU> s_2_;
+  MatrixPair<linalg::CPU> w_2_;
   std::array<double, 2> d_;
+  std::array<double, 2> d_1_2_;
+  std::array<double, 2> d_2_1_;
+  std::array<double, 2> d_2_2_;
   std::array<double, 2> beta_;
+  std::array<double, 2> beta_2_;
   std::array<std::vector<double>, 2> gamma_;
 
   std::map<int, double> f_;
@@ -125,33 +138,45 @@ protected:
   int nbr_of_moves_to_delay_;
   int max_nbr_of_moves_;
 
-  int Gamma_size_;
-  int Gamma_index_;
-  int index_;
+  std::array<int, 2> Gamma_size_;
+  std::array<std::vector<int>, 2> Gamma_indices_;
+  std::array<std::vector<int>, 2> sector_indices_;
   Move move_type_;
+
+  std::array<int, 2> nbr_of_indices_;
+  std::array<bool, 2> found_sector_index_;
+
+  int index_;
+  double tau_;
 
   // Initial and current sector sizes.
 
-  int n_init_;
-  int n_;
+  std::array<int, 2> n_init_;
+  std::array<int, 2> n_;
 
   // Maximal sector size after submatrix update.
 
-  int n_max_;
+  std::array<int, 2> n_max_;
 
-  std::vector<int> move_indices_;
+  std::array<std::vector<int>, 2> move_indices_;
   std::vector<int> existing_indices_;
-  std::vector<int> removal_list_;
-  std::vector<int> insertion_list_;
-  std::vector<int> insertion_Gamma_indices_;
+  std::array<std::vector<int>, 2> removal_list_;
+  std::array<std::vector<int>, 2> insertion_list_;
+  std::array<std::vector<int>, 2> insertion_Gamma_indices_;
+
+  std::vector<int> conf_removal_list_;
 
   std::vector<int>::iterator insertion_list_it_;
   bool recently_added_;
   bool accepted_;
 
-  using BaseClass::acceptance_prob_;
+  double acceptance_probability_;
   bool do_nothing_;
   bool double_;
+
+  Matrix result_matrix_1_, result_matrix_2_, result_matrix_3_, result_matrix_4_, result_matrix_5_;
+  Matrix result_matrix_6_, result_matrix_7_, result_matrix_8_, result_matrix_9_, result_matrix_10_;
+  Matrix D_;
 
   // For testing.
 
@@ -176,7 +201,8 @@ CtintWalkerSubmatrix<linalg::CPU, Parameters>::CtintWalkerSubmatrix(
   }
   f_[0] = 1;
 
-  std::cout << "\nCT-INT submatrix walker created." << std::endl;
+  if (BaseClass::concurrency_.id() == BaseClass::concurrency_.first() && thread_id_ == 0)
+    std::cout << "\nCT-INT submatrix walker created." << std::endl;
 }
 
 template <class Parameters>
@@ -237,7 +263,6 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doStep() {
 }
 
 // Do one step with arbitrary number of moves. For testing.
-
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doStep(const int nbr_of_moves_to_delay) {
   std::cout << "\nStarted doStep() function for testing." << std::endl;
@@ -277,16 +302,14 @@ template <class Parameters>
 void CtintWalkerSubmatrix<linalg::CPU, Parameters>::generateDelayedMoves(int nbr_of_moves_to_delay) {
   assert(nbr_of_moves_to_delay > 0);
 
-  nbr_of_moves_to_delay = std::min(nbr_of_moves_to_delay, max_nbr_of_moves_);
-
   delayed_moves_.clear();
 
   int nbr_of_moves_ = 0;
 
-  n_init_ = configuration_.size();
-  n_ = n_init_;
-
-  // assert(std::make_pair(n_init_, n_init_) == M_[0].size() && M_[0].size() == M_[1].size());
+  for (int s = 0; s < 2; ++s) {
+    n_init_[s] = configuration_.getSector(s).size();
+    n_[s] = n_init_[s];
+  }
 
   // Generate delayed moves.
 
@@ -305,12 +328,15 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::generateDelayedMoves(int nbr
 
       delayed_move.index_ = configuration_.size() - 1;
 
+      for (int s = 0; s < 2; ++s) {
+        delayed_move.sector_indices_[s].push_back(configuration_.getSector(s).size() - 1);
+      }
+
       // Depending on the parameters, insertRandom() may sometimes insert two vertices at once.
 
       if (delta > 1) {
         std::cout << "\nWARNING Double insertion.\n" << std::endl;
-        delayed_move.double_move_ = true;
-        delayed_move.partner_index_ = configuration_.size() - 2;
+        // ....
       }
     }
 
@@ -324,18 +350,26 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::generateDelayedMoves(int nbr
     ++nbr_of_moves_;
   }
 
-  n_max_ = configuration_.size();
-
   existing_indices_.clear();
 
-  for (int i = 0; i < n_init_; ++i) {
+  for (int i = 0; i < (n_init_[0] + n_init_[1]) / 2; ++i) {
     existing_indices_.push_back(i);
   }
 
-  removal_list_.clear();
+  for (int s = 0; s < 2; ++s) {
+    n_max_[s] = configuration_.getSector(s).size();
 
-  for (int i = n_init_; i < n_max_; ++i) {
-    removal_list_.push_back(i);
+    removal_list_[s].clear();
+
+    for (int i = n_init_[s]; i < n_max_[s]; ++i) {
+      removal_list_[s].push_back(i);
+    }
+  }
+
+  conf_removal_list_.clear();
+
+  for (int i = (n_init_[0] + n_init_[1]) / 2; i < (n_max_[0] + n_max_[1]) / 2; ++i) {
+    conf_removal_list_.push_back(i);
   }
 }
 
@@ -343,30 +377,30 @@ template <class Parameters>
 void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doSubmatrixUpdate() {
   computeMInit();
   computeGInit();
-  computeAcceptance();
+  mainSubmatrixProcess();
   updateM();
 }
 
 template <class Parameters>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeAcceptance() {
-  Gamma_size_ = 0;
+void CtintWalkerSubmatrix<linalg::CPU, Parameters>::mainSubmatrixProcess() {
+  Profiler profiler(__FUNCTION__, "CT-INT walker", __LINE__, thread_id_);
+
   for (int s = 0; s < 2; ++s) {
+    Gamma_size_[s] = 0;
     Gamma_inv_[s].resizeNoCopy(0);
     gamma_[s].clear();
+
+    move_indices_[s].clear();
+    insertion_list_[s].clear();
+    insertion_Gamma_indices_[s].clear();
   }
 
-  move_indices_.clear();
-  insertion_list_.clear();
-  insertion_Gamma_indices_.clear();
-
-  int aux_spin_type, new_aux_spin_type;
-
-  Matrix result_matrix_1, result_matrix_2;
+  std::vector<int> aux_spin_type, new_aux_spin_type;
 
   for (int delay_ind = 0; delay_ind < delayed_moves_.size(); ++delay_ind) {
     for (int s = 0; s < 2; ++s) {
-      auto& gamma = gamma_[s];
-      auto& sector = configuration_.getSector(s);
+      assert(Gamma_size_[s] == Gamma_inv_[s].size().first);
+
       move_type_ = delayed_moves_[delay_ind].move_type_;
       do_nothing_ = false;
       recently_added_ = false;
@@ -374,10 +408,26 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeAcceptance() {
 
       if (move_type_ == INSERTION) {
         index_ = delayed_moves_[delay_ind].index_;
-        new_aux_spin_type = sector.getAuxFieldType(index_);
 
-        aux_spin_type = 0;
-      }
+        // Index in configuration may differ from index in each sector,
+        // therefore look for corresponding indices.
+
+        findSectorIndices(s);
+
+        // Continue to next sector/move if there is nothing to change in current sector.
+
+        if (!found_sector_index_[s])
+          continue;
+
+        new_aux_spin_type.clear();
+        aux_spin_type.clear();
+        for (int ind = 0; ind < nbr_of_indices_[s]; ++ind) {
+          new_aux_spin_type.push_back(
+              configuration_.getSector(s).getAuxFieldType(sector_indices_[s][ind]));
+          aux_spin_type.push_back(0);
+        }
+      }  // if(insertion)
+
       else if (move_type_ == REMOVAL) {
         // Do nothing if there is no vertex to remove.
 
@@ -388,127 +438,245 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeAcceptance() {
         else {
           index_ =
               existing_indices_[int(delayed_moves_[delay_ind].removal_rng_ * existing_indices_.size())];
-          new_aux_spin_type = 0;
-          aux_spin_type = sector.getAuxFieldType(index_);
+
+          // Index in configuration may differ from index in each sector,
+          // therefore look for corresponding indices.
+
+          findSectorIndices(s);
+
+          // Continue to next sector/move if there is nothing to change in current sector.
+
+          if (!found_sector_index_[s])
+            continue;
+
+          new_aux_spin_type.clear();
+          aux_spin_type.clear();
+          for (int ind = 0; ind < nbr_of_indices_[s]; ++ind) {
+            new_aux_spin_type.push_back(0);
+            aux_spin_type.push_back(
+                configuration_.getSector(s).getAuxFieldType(sector_indices_[s][ind]));
+          }
 
           // Check if the vertex to remove was inserted during the current submatrix update.
 
-          if (index_ >= n_init_) {
-            insertion_list_it_ = std::find(insertion_list_.begin(), insertion_list_.end(), index_);
-
+          if (sector_indices_[s][0] >= n_init_[s]) {
             recently_added_ = true;
-            Gamma_index_ =
-                insertion_Gamma_indices_[std::distance(insertion_list_.begin(), insertion_list_it_)];
+
+            Gamma_indices_[s].clear();
+            for (int ind = 0; ind < nbr_of_indices_[s]; ++ind) {
+              insertion_list_it_ = std::find(insertion_list_[s].begin(), insertion_list_[s].end(),
+                                             sector_indices_[s][ind]);
+              Gamma_indices_[s].push_back(insertion_Gamma_indices_[s][std::distance(
+                  insertion_list_[s].begin(), insertion_list_it_)]);
+            }
+          }
+        }
+      }  // else if(removal).
+
+      //(What follows is executed for both insertions or removals).
+
+      for (int ind = 0; ind < nbr_of_indices_[s]; ++ind) {
+        if (!recently_added_)
+          gamma_[s].push_back(
+              gamma_values_[std::make_pair(aux_spin_type[ind], new_aux_spin_type[ind])]);
+        else {
+          gamma_[s].push_back(
+              gamma_values_[std::make_pair(new_aux_spin_type[ind], aux_spin_type[ind])]);
+
+          move_indices_[s].erase(
+              std::remove(move_indices_[s].begin(), move_indices_[s].end(), sector_indices_[s][ind]),
+              move_indices_[s].end());
+
+          --Gamma_size_[s];
+        }
+      }
+
+      if (Gamma_size_[s] > 0) {
+        if (nbr_of_indices_[s] == 1 || nbr_of_indices_[s] == 2) {
+          s_[s].resize(std::make_pair(Gamma_size_[s], 1));
+          w_[s].resize(std::make_pair(1, Gamma_size_[s]));
+
+          for (int i = 0; i < Gamma_size_[s]; ++i) {
+            s_[s](i, 0) = G_[s](move_indices_[s][i], sector_indices_[s][0]);
+            w_[s](0, i) = G_[s](sector_indices_[s][0], move_indices_[s][i]);
+          }
+
+          d_[s] = G_[s](sector_indices_[s][0], sector_indices_[s][0]) -
+                  (1 + gamma_[s].end()[-nbr_of_indices_[s]]) / gamma_[s].end()[-nbr_of_indices_[s]];
+
+          if (recently_added_)
+            removeRowAndColOfGammaInv(s);
+
+          result_matrix_1_.resizeNoCopy(s_[s].size());
+          linalg::matrixop::gemm(Gamma_inv_[s], s_[s], result_matrix_1_);
+          result_matrix_2_.resizeNoCopy(std::make_pair(1, 1));
+          linalg::matrixop::gemm(w_[s], result_matrix_1_, result_matrix_2_);
+
+          beta_[s] = d_[s] - result_matrix_2_(0, 0);
+        }
+        else {
+          beta_[s] = 1;
+        }
+
+        // In case of a two-indices update a given sector, obtain "beta" from direct formula
+        // to avoid having to compute an intermediate state of GammaInv.
+
+        // TODO: add code for update of more than 2 indices per sector, if this is supposed to occur
+        // (?).
+
+        if (nbr_of_indices_[s] == 2) {
+          s_2_[s].resize(std::make_pair(Gamma_size_[s], 1));
+          w_2_[s].resize(std::make_pair(1, Gamma_size_[s]));
+
+          for (int i = 0; i < Gamma_size_[s]; ++i) {
+            s_2_[s](i, 0) = G_[s](move_indices_[s][i], sector_indices_[s][1]);
+            w_2_[s](0, i) = G_[s](sector_indices_[s][1], move_indices_[s][i]);
+          }
+
+          d_2_2_[s] = G_[s](sector_indices_[s][1], sector_indices_[s][1]) -
+                      (1 + gamma_[s].back()) / gamma_[s].back();
+          d_1_2_[s] = G_[s](sector_indices_[s][0], sector_indices_[s][1]);
+          d_2_1_[s] = G_[s](sector_indices_[s][1], sector_indices_[s][1]);
+
+          linalg::matrixop::gemm(Gamma_inv_[s], s_2_[s], result_matrix_1_);
+          result_matrix_3_.resizeNoCopy(std::make_pair(1, 1));
+          linalg::matrixop::gemm(w_[s], result_matrix_1_, result_matrix_3_);
+
+          result_matrix_5_.resizeNoCopy(std::make_pair(1, 1));
+          linalg::matrixop::gemm(w_2_[s], result_matrix_1_, result_matrix_5_);
+
+          linalg::matrixop::gemm(Gamma_inv_[s], s_[s], result_matrix_1_);
+          result_matrix_4_.resizeNoCopy(std::make_pair(1, 1));
+          linalg::matrixop::gemm(w_2_[s], result_matrix_1_, result_matrix_4_);
+
+          beta_2_[s] = (d_2_2_[s] - result_matrix_5_(0, 0));
+          beta_2_[s] -=
+              (d_1_2_[s] - result_matrix_3_(0, 0)) * (d_2_1_[s] - result_matrix_4_(0, 0)) / beta_[s];
+        }
+        else
+          beta_2_[s] = 1;
+      }
+      else {
+        if (nbr_of_indices_[s] == 1 || nbr_of_indices_[s] == 2) {
+          Gamma_inv_[s].resize(0);
+
+          d_[s] = beta_[s] =
+              G_[s](sector_indices_[s][0], sector_indices_[s][0]) -
+              (1 + gamma_[s].end()[-nbr_of_indices_[s]]) / gamma_[s].end()[-nbr_of_indices_[s]];
+        }
+        else {
+          beta_[s] = 1;
+        }
+
+        // Case of a two-indices update.
+
+        if (nbr_of_indices_[s] == 2) {
+          s_2_[s].resize(std::make_pair(1, 1));
+          w_2_[s].resize(std::make_pair(1, 1));
+
+          s_2_[s](0, 0) = G_[s](sector_indices_[s][0], sector_indices_[s][1]);
+          w_2_[s](0, 0) = G_[s](sector_indices_[s][1], sector_indices_[s][0]);
+
+          d_2_2_[s] = G_[s](sector_indices_[s][1], sector_indices_[s][1]) -
+                      (1 + gamma_[s].back()) / gamma_[s].back();
+
+          beta_2_[s] = d_2_2_[s] - w_2_[s](0, 0) * s_2_[s](0, 0) / beta_[s];
+        }
+        else
+          beta_2_[s] = 1;
+      }
+
+      if (recently_added_) {
+        for (int ind = 0; ind < nbr_of_indices_[s]; ++ind) {
+          insertion_list_[s].erase(std::remove(insertion_list_[s].begin(), insertion_list_[s].end(),
+                                               sector_indices_[s][ind]),
+                                   insertion_list_[s].end());
+
+          insertion_Gamma_indices_[s].erase(std::remove(insertion_Gamma_indices_[s].begin(),
+                                                        insertion_Gamma_indices_[s].end(),
+                                                        Gamma_indices_[s][ind]),
+                                            insertion_Gamma_indices_[s].end());
+
+          gamma_[s].erase(gamma_[s].begin() + Gamma_indices_[s][ind]);
+
+          for (int i = 0; i < insertion_Gamma_indices_[s].size(); ++i) {
+            if (insertion_Gamma_indices_[s][i] > Gamma_indices_[s][ind])
+              --insertion_Gamma_indices_[s][i];
           }
         }
       }
-
-      // if (!recently_added_)
-      // 	gamma.push_back(d_builder_.computeGamma(aux_spin_type, new_aux_spin_type));
-      // else {
-      // 	gamma.push_back(d_builder_.computeGamma(new_aux_spin_type, aux_spin_type));
-
-      if (!recently_added_)
-        gamma.push_back(gamma_values_[std::make_pair(aux_spin_type, new_aux_spin_type)]);
-      else {
-        gamma.push_back(gamma_values_[std::make_pair(new_aux_spin_type, aux_spin_type)]);
-
-        if (s == 0) {
-          move_indices_.erase(std::remove(move_indices_.begin(), move_indices_.end(), index_),
-                              move_indices_.end());
-
-          --Gamma_size_;
-        }
-      }
-
-      if (Gamma_size_ > 0) {
-        s_[s].resize(std::make_pair(Gamma_size_, 1));
-        w_[s].resize(std::make_pair(1, Gamma_size_));
-
-        for (int i = 0; i < Gamma_size_; ++i) {
-          s_[s](i, 0) = G_[s](move_indices_[i], index_);
-          w_[s](0, i) = G_[s](index_, move_indices_[i]);
-        }
-
-        d_[s] = G_[s](index_, index_) - (1 + gamma.back()) / gamma.back();
-
-        if (recently_added_)
-          removeRowAndColOfGammaInv(s);
-
-        result_matrix_1.resizeNoCopy(s_[s].size());
-        linalg::matrixop::gemm(Gamma_inv_[s], s_[s], result_matrix_1);
-        result_matrix_2.resizeNoCopy(std::make_pair(1, 1));
-        linalg::matrixop::gemm(w_[s], result_matrix_1, result_matrix_2);
-
-        beta_[s] = d_[s] - result_matrix_2(0, 0);
-      }
-      else {
-        Gamma_inv_[s].resize(0);
-
-        beta_[s] = G_[s](index_, index_) - (1 + gamma.back()) / gamma.back();
-      }
-    }
+    }  // s loop.
 
     // Directly go to next move if do_nothing_ is true.
 
     if (do_nothing_)
       continue;
 
-    if (recently_added_) {
-      insertion_list_.erase(std::remove(insertion_list_.begin(), insertion_list_.end(), index_),
-                            insertion_list_.end());
-
-      insertion_Gamma_indices_.erase(std::remove(insertion_Gamma_indices_.begin(),
-                                                 insertion_Gamma_indices_.end(), Gamma_index_),
-                                     insertion_Gamma_indices_.end());
-
-      for (int s = 0; s < 2; ++s) {
-        gamma_[s].erase(gamma_[s].begin() + Gamma_index_);
-      }
-
-      for (int i = 0; i < insertion_Gamma_indices_.size(); ++i) {
-        if (insertion_Gamma_indices_[i] > Gamma_index_)
-          --insertion_Gamma_indices_[i];
-      }
-    }
-
     // Compute acceptance probability.
 
     computeAcceptanceProbability();
 
-    accepted_ = force_acceptance_ ? true : rng_() < std::abs(acceptance_prob_);
+    accepted_ = rng_() < std::abs(acceptance_probability_);
+
+    // Acceptance can be forced (for testing).
+
+    if (force_acceptance_)
+      accepted_ = true;
 
     // Update GammaInv if necessary.
 
     updateGammaInv();
 
+    // NB: recomputeGammaInv is just a inefficient alternative to updateGammaInv. Only for testing
+    // or debbuging.
+    //
+    // recomputeGammaInv();
+
     // Update other objects.
 
     if (accepted_) {
-      ++BaseClass::n_accepted_;
-      if (acceptance_prob_ < 0)
+      if (acceptance_probability_ < 0)
         sign_ *= -1;
 
       if (!recently_added_)
-        move_indices_.push_back(index_);
+        for (int s = 0; s < 2; ++s)
+          for (int ind = 0; ind < nbr_of_indices_[s]; ++ind)
+            move_indices_[s].push_back(sector_indices_[s][ind]);
       else {
         for (int s = 0; s < 2; ++s)
-          gamma_[s].pop_back();
+          for (int ind = 0; ind < nbr_of_indices_[s]; ++ind)
+            gamma_[s].pop_back();
       }
 
       if (move_type_ == INSERTION) {
-        ++n_;
-        insertion_list_.push_back(index_);
-        insertion_Gamma_indices_.push_back(Gamma_size_ - 1);
+        for (int s = 0; s < 2; ++s) {
+          for (int ind = 0; ind < nbr_of_indices_[s]; ++ind) {
+            ++n_[s];
+            insertion_list_[s].push_back(sector_indices_[s][ind]);
+            insertion_Gamma_indices_[s].push_back(Gamma_size_[s] - nbr_of_indices_[s] + ind);
+
+            removal_list_[s].erase(std::remove(removal_list_[s].begin(), removal_list_[s].end(),
+                                               sector_indices_[s][ind]),
+                                   removal_list_[s].end());
+          }
+        }
+
+        conf_removal_list_.erase(
+            std::remove(conf_removal_list_.begin(), conf_removal_list_.end(), index_),
+            conf_removal_list_.end());
 
         existing_indices_.push_back(index_);
-
-        removal_list_.erase(std::remove(removal_list_.begin(), removal_list_.end(), index_),
-                            removal_list_.end());
       }
       else if (move_type_ == REMOVAL) {
-        --n_;
-        removal_list_.push_back(index_);
+        for (int s = 0; s < 2; ++s) {
+          for (int ind = 0; ind < nbr_of_indices_[s]; ++ind) {
+            --n_[s];
+            removal_list_[s].push_back(sector_indices_[s][ind]);
+          }
+        }
+
+        conf_removal_list_.push_back(index_);
+
         existing_indices_.erase(
             std::remove(existing_indices_.begin(), existing_indices_.end(), index_),
             existing_indices_.end());
@@ -520,14 +688,19 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeAcceptance() {
     else {
       if (!recently_added_) {
         for (int s = 0; s < 2; ++s) {
-          gamma_[s].pop_back();
+          for (int ind = 0; ind < nbr_of_indices_[s]; ++ind)
+            gamma_[s].pop_back();
         }
       }
       else {
-        insertion_list_.push_back(index_);
-        insertion_Gamma_indices_.push_back(Gamma_size_ - 1);
+        for (int s = 0; s < 2; ++s) {
+          for (int ind = 0; ind < nbr_of_indices_[s]; ++ind) {
+            insertion_list_[s].push_back(sector_indices_[s][ind]);
+            insertion_Gamma_indices_[s].push_back(Gamma_size_[s] - nbr_of_indices_[s] + ind);
 
-        move_indices_.push_back(index_);
+            move_indices_[s].push_back(sector_indices_[s][ind]);
+          }
+        }
         existing_indices_.push_back(index_);
       }
     }
@@ -546,37 +719,39 @@ Move CtintWalkerSubmatrix<linalg::CPU, Parameters>::generateMoveType() {
 // M is not computed again and should be up-to-date.
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeMInit() {
-  const int delta = n_max_ - n_init_;
+  Profiler profiler(__FUNCTION__, "CT-INT walker", __LINE__, thread_id_);
 
-  if (delta > 0) {
-    double f_j;
-    Matrix D(std::make_pair(delta, n_init_));
+  for (int s = 0; s < 2; ++s) {
+    const int delta = n_max_[s] - n_init_[s];
 
-    for (int s = 0; s < 2; ++s) {
-      d_builder_.computeG0(D, configuration_.getSector(s), n_init_, n_max_, 0);
+    if (delta > 0) {
+      double f_j;
+      D_.resize(std::make_pair(delta, n_init_[s]));
 
-      for (int j = 0; j < n_init_; ++j) {
+      d_builder_.computeG0(D_, configuration_.getSector(s), n_init_[s], n_max_[s], 0);
+
+      for (int j = 0; j < n_init_[s]; ++j) {
         f_j = f_[configuration_.getSector(s).getAuxFieldType(j)] - 1;
 
         for (int i = 0; i < delta; ++i) {
-          D(i, j) *= f_j;
+          D_(i, j) *= f_j;
         }
       }
 
-      M_[s].resize(n_max_);
+      M_[s].resize(n_max_[s]);
 
-      MatrixView M(M_[s], 0, 0, n_init_, n_init_);
-      MatrixView D_M(M_[s], n_init_, 0, delta, n_init_);
+      MatrixView M(M_[s], 0, 0, n_init_[s], n_init_[s]);
+      MatrixView D_M(M_[s], n_init_[s], 0, delta, n_init_[s]);
 
-      linalg::matrixop::gemm(D, M, D_M);
+      linalg::matrixop::gemm(D_, M, D_M);
 
-      for (int i = 0; i < n_max_; ++i) {
-        for (int j = n_init_; j < n_max_; ++j) {
+      for (int i = 0; i < n_max_[s]; ++i) {
+        for (int j = n_init_[s]; j < n_max_[s]; ++j) {
           M_[s](i, j) = 0;
         }
       }
 
-      for (int i = n_init_; i < n_max_; ++i)
+      for (int i = n_init_[s]; i < n_max_[s]; ++i)
         M_[s](i, i) = 1;
     }
   }
@@ -584,26 +759,28 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeMInit() {
 
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeGInit() {
-  const int delta = n_max_ - n_init_;
-
-  double f;
-  Matrix G0(std::make_pair(n_max_, delta));
+  Profiler profiler(__FUNCTION__, "CT-INT walker", __LINE__, thread_id_);
 
   for (int s = 0; s < 2; ++s) {
-    G_[s].resizeNoCopy(n_max_);
+    const int delta = n_max_[s] - n_init_[s];
 
-    for (int j = 0; j < n_init_; ++j) {
+    double f;
+    Matrix G0(std::make_pair(n_max_[s], delta));
+
+    G_[s].resizeNoCopy(n_max_[s]);
+
+    for (int j = 0; j < n_init_[s]; ++j) {
       f = f_[configuration_.getSector(s).getAuxFieldType(j)];
 
-      for (int i = 0; i < n_max_; ++i) {
+      for (int i = 0; i < n_max_[s]; ++i) {
         G_[s](i, j) = (M_[s](i, j) * f - double(i == j)) / (f - 1);
       }
     }
 
     if (delta > 0) {
-      d_builder_.computeG0(G0, configuration_.getSector(s), n_init_, n_max_, 1);
+      d_builder_.computeG0(G0, configuration_.getSector(s), n_init_[s], n_max_[s], 1);
 
-      MatrixView G(G_[s], 0, n_init_, n_max_, delta);
+      MatrixView G(G_[s], 0, n_init_[s], n_max_[s], delta);
 
       linalg::matrixop::gemm(M_[s], G0, G);
     }
@@ -613,74 +790,123 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeGInit() {
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeG0Init() {
   for (int s = 0; s < 2; ++s) {
-    d_builder_.computeG0Init(G0_[s], configuration_.getSector(s), n_init_, n_max_);
+    d_builder_.computeG0Init(G0_[s], configuration_.getSector(s), n_init_[s], n_max_[s]);
   }
 }
 
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeAcceptanceProbability() {
-  double K = total_interaction_ * prob_const_[configuration_.getSector(0).getAuxFieldType(index_)];
-
-  acceptance_prob_ = 1;
+  acceptance_probability_ = 1;
 
   for (int s = 0; s < 2; ++s) {
-    acceptance_prob_ *= beta_[s] * gamma_[s].back();
+    acceptance_probability_ *= beta_[s] * beta_2_[s];
+    for (int ind = 0; ind < nbr_of_indices_[s]; ++ind)
+      acceptance_probability_ *= gamma_[s].end()[-nbr_of_indices_[s] + ind];
   }
 
+  double K;
+
   if (recently_added_)
-    acceptance_prob_ = 1 / acceptance_prob_;
+    acceptance_probability_ = 1 / acceptance_probability_;
+
+  if (sector_indices_[0].size() != 0)
+    K = total_interaction_ *
+        prob_const_[configuration_.getSector(0).getAuxFieldType(sector_indices_[0][0])];
+  else
+    K = total_interaction_ *
+        prob_const_[configuration_.getSector(1).getAuxFieldType(sector_indices_[1][0])];
+
+  int n = (n_[0] + n_[1]) / 2;
 
   if (move_type_ == INSERTION)
-    acceptance_prob_ *= K / (n_ + 1);
+    acceptance_probability_ *= K / (n + 1);
   else if (move_type_ == REMOVAL)
-    acceptance_prob_ *= n_ / K;
+    acceptance_probability_ *= n / K;
 }
 
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::CPU, Parameters>::updateGammaInv() {
   if ((!recently_added_ && accepted_) || (recently_added_ && !accepted_)) {
-    if (Gamma_size_ > 0) {
-      for (int s = 0; s < 2; ++s) {
-        Gamma_inv_[s].resize(Gamma_size_ + 1);
+    for (int s = 0; s < 2; ++s) {
+      if (Gamma_size_[s] > 0) {
+        if (nbr_of_indices_[s] == 1 || nbr_of_indices_[s] == 2) {
+          Gamma_inv_[s].resize(Gamma_size_[s] + 1);
 
-        MatrixView bulk(Gamma_inv_[s], 0, 0, Gamma_size_, Gamma_size_);
-        MatrixView s_inv(Gamma_inv_[s], 0, Gamma_size_, Gamma_size_, 1);
-        MatrixView w_inv(Gamma_inv_[s], Gamma_size_, 0, 1, Gamma_size_);
+          MatrixView bulk(Gamma_inv_[s], 0, 0, Gamma_size_[s], Gamma_size_[s]);
+          MatrixView s_inv(Gamma_inv_[s], 0, Gamma_size_[s], Gamma_size_[s], 1);
+          MatrixView w_inv(Gamma_inv_[s], Gamma_size_[s], 0, 1, Gamma_size_[s]);
 
-        linalg::matrixop::gemm(-1 / beta_[s], bulk, s_[s], 0., s_inv);
-        linalg::matrixop::gemm(-1 / beta_[s], w_[s], bulk, 0., w_inv);
-        linalg::matrixop::gemm(beta_[s], s_inv, w_inv, 1., bulk);
+          linalg::matrixop::gemm(-1 / beta_[s], bulk, s_[s], 0., s_inv);
+          linalg::matrixop::gemm(-1 / beta_[s], w_[s], bulk, 0., w_inv);
+          linalg::matrixop::gemm(beta_[s], s_inv, w_inv, 1., bulk);
 
-        Gamma_inv_[s](Gamma_size_, Gamma_size_) = 1 / beta_[s];
+          Gamma_inv_[s](Gamma_size_[s], Gamma_size_[s]) = 1 / beta_[s];
+
+          if (nbr_of_indices_[s] == 2) {
+            Gamma_inv_[s].resize(Gamma_size_[s] + 2);
+
+            MatrixView bulk(Gamma_inv_[s], 0, 0, Gamma_size_[s] + 1, Gamma_size_[s] + 1);
+            MatrixView s_inv(Gamma_inv_[s], 0, Gamma_size_[s] + 1, Gamma_size_[s] + 1, 1);
+            MatrixView w_inv(Gamma_inv_[s], Gamma_size_[s] + 1, 0, 1, Gamma_size_[s] + 1);
+
+            s_2_[s].resize(std::make_pair(Gamma_size_[s] + 1, 1));
+            s_2_[s](Gamma_size_[s], 0) = d_1_2_[s];
+            w_2_[s].resize(std::make_pair(1, Gamma_size_[s] + 1));
+            w_2_[s](0, Gamma_size_[s]) = d_2_1_[s];
+
+            linalg::matrixop::gemm(-1 / beta_2_[s], bulk, s_2_[s], 0., s_inv);
+            linalg::matrixop::gemm(-1 / beta_2_[s], w_2_[s], bulk, 0., w_inv);
+            linalg::matrixop::gemm(beta_2_[s], s_inv, w_inv, 1., bulk);
+
+            Gamma_inv_[s](Gamma_size_[s] + 1, Gamma_size_[s] + 1) = 1 / beta_2_[s];
+          }
+        }
+        else if (nbr_of_indices_[s] > 0) {
+          // TODO: Add code of update of more than 2 indices if needed...
+          std::cout << "\n\t\t\tERROR nbr_of_indices_[" << s << "] > 2 (" << nbr_of_indices_[s]
+                    << ")." << std::endl;
+        }
       }
-    }
-    else {
-      for (int s = 0; s < 2; ++s) {
-        Gamma_inv_[s].resizeNoCopy(1);
-        Gamma_inv_[s](0, 0) = 1 / beta_[s];
-      }
-    }
+      else {
+        if (nbr_of_indices_[s] == 1 || nbr_of_indices_[s] == 2) {
+          Gamma_inv_[s].resizeNoCopy(nbr_of_indices_[s]);
+          Gamma_inv_[s](0, 0) = 1 / beta_[s];
 
-    ++Gamma_size_;
+          if (nbr_of_indices_[s] == 2) {
+            Gamma_inv_[s](0, 0) += s_2_[s](0, 0) * w_2_[s](0, 0) / pow(beta_[s], 2) / beta_2_[s];
+            Gamma_inv_[s](0, 1) = -s_2_[s](0, 0) / beta_[s] / beta_2_[s];
+            Gamma_inv_[s](1, 0) = -w_2_[s](0, 0) / beta_[s] / beta_2_[s];
+            Gamma_inv_[s](1, 1) = 1 / beta_2_[s];
+          }
+        }
+        else if (nbr_of_indices_[s] > 0) {
+          // TODO: Add code of update of more than 2 indices if needed...
+          std::cout << "\n\t\t\tERROR nbr_of_indices_[" << s << "] > 2 (" << nbr_of_indices_[s]
+                    << ")." << std::endl;
+        }
+      }
+
+      Gamma_size_[s] += nbr_of_indices_[s];
+    }
   }
 }
 
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::CPU, Parameters>::updateM() {
-  // assert(Gamma_size_ == gamma_[0].size() && gamma_[0].size() == gamma_[1].size());
+  Profiler profiler(__FUNCTION__, "CT-INT walker", __LINE__, thread_id_);
 
-  if (Gamma_size_ > 0) {
-    int p;
+  for (int s = 0; s < 2; ++s) {
+    if (Gamma_size_[s] > 0) {
+      int p;
 
-    Matrix old_G(std::make_pair(n_max_, Gamma_size_));
-    Matrix old_M(std::make_pair(Gamma_size_, n_max_));
-    Matrix result_matrix(std::make_pair(Gamma_size_, n_max_));
+      Matrix old_G(std::make_pair(n_max_[s], Gamma_size_[s]));
+      Matrix old_M(std::make_pair(Gamma_size_[s], n_max_[s]));
+      Matrix result_matrix(std::make_pair(Gamma_size_[s], n_max_[s]));
 
-    for (int s = 0; s < 2; ++s) {
-      for (int j = 0; j < Gamma_size_; ++j) {
-        p = move_indices_[j];
+      for (int j = 0; j < Gamma_size_[s]; ++j) {
+        p = move_indices_[s][j];
 
-        for (int i = 0; i < n_max_; ++i) {
+        for (int i = 0; i < n_max_[s]; ++i) {
           old_G(i, j) = G_[s](i, p);
           old_M(j, i) = M_[s](p, i);
         }
@@ -690,8 +916,8 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::updateM() {
       linalg::matrixop::gemm(-1., old_G, result_matrix, 1., M_[s]);
 
       p = 0;
-      for (auto& i : move_indices_) {
-        for (int j = 0; j < n_max_; ++j) {
+      for (auto& i : move_indices_[s]) {
+        for (int j = 0; j < n_max_[s]; ++j) {
           M_[s](i, j) /= 1 + gamma_[s][p];
         }
         ++p;
@@ -703,13 +929,45 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::updateM() {
 
   pushToEnd();
 
-  for (int i = 0; i < removal_list_.size(); ++i)
-    configuration_.pop();
-
   for (int s = 0; s < 2; ++s) {
-    M_[s].resize(n_max_ - removal_list_.size());
+    M_[s].resize(n_max_[s] - removal_list_[s].size());
+  }
 
-    // G0_[s].resize(n_max_ - removal_list_.size());
+  while (configuration_.size() > (M_[0].size().first + M_[1].size().first) / 2)
+    configuration_.pop();
+}
+
+template <class Parameters>
+void CtintWalkerSubmatrix<linalg::CPU, Parameters>::findSectorIndices(const int s) {
+  tau_ = configuration_[index_].tau;
+
+  found_sector_index_[s] = false;
+  sector_indices_[s].clear();
+
+  // NB: In multiband case, two sector indices may correspond to same tau (?).
+  // Then the corresponding sector must be extended/shrunk by 2 rows and columns.
+
+  for (int i = 0; i < configuration_.getSector(s).size(); ++i) {
+    if (configuration_.getSector(s).getTau(i) == tau_) {
+      if (!found_sector_index_[s]) {
+        sector_indices_[s].push_back(i);
+        found_sector_index_[s] = true;
+      }
+      else {
+        sector_indices_[s].push_back(i);
+        // break;
+      }
+    }
+  }
+
+  nbr_of_indices_[s] = sector_indices_[s].size();
+
+  if (nbr_of_indices_[s] > 2) {
+    std::cout << "\n\n\t\t\t**********ERROR**********\n\n" << std::endl;
+    std::cout << "Nbr of indices = " << nbr_of_indices_[s] << std::endl;
+    std::cout << "s              = " << s << std::endl;
+    for (int i = 0; i < nbr_of_indices_[s]; ++i)
+      std::cout << sector_indices_[s][i] << std::endl;
   }
 }
 
@@ -719,94 +977,174 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::updateM() {
 
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::CPU, Parameters>::removeRowAndColOfGammaInv(const int s) {
-  Matrix U(std::make_pair(Gamma_size_ + 1, 2));
-  Matrix V(std::make_pair(2, Gamma_size_ + 1));
+  Matrix U(std::make_pair(Gamma_size_[s] + nbr_of_indices_[s], 2 * nbr_of_indices_[s]));
+  Matrix V(std::make_pair(2 * nbr_of_indices_[s], Gamma_size_[s] + nbr_of_indices_[s]));
 
-  Matrix matrix_1(std::make_pair(Gamma_size_ + 1, 2));
-  Matrix matrix_2(std::make_pair(2, Gamma_size_ + 1));
-  Matrix matrix_3(std::make_pair(2, 2));
+  result_matrix_1_.resize(std::make_pair(Gamma_size_[s] + nbr_of_indices_[s], 2 * nbr_of_indices_[s]));
+  result_matrix_2_.resize(std::make_pair(2 * nbr_of_indices_[s], Gamma_size_[s] + nbr_of_indices_[s]));
+  result_matrix_3_.resize(std::make_pair(2 * nbr_of_indices_[s], 2 * nbr_of_indices_[s]));
 
-  for (int i = 0; i < Gamma_index_; ++i) {
-    U(i, 0) = 0;
-    U(i, 1) = s_[s](i, 0);
-    V(0, i) = w_[s](0, i);
-    V(1, i) = 0;
+  if (nbr_of_indices_[s] == 1) {
+    for (int i = 0; i < Gamma_indices_[s][0]; ++i) {
+      U(i, 0) = 0;
+      U(i, 1) = s_[s](i, 0);
+      V(0, i) = w_[s](0, i);
+      V(1, i) = 0;
+    }
+
+    for (int i = Gamma_indices_[s][0] + 1; i < Gamma_size_[s] + 1; ++i) {
+      U(i, 0) = 0;
+      U(i, 1) = s_[s](i - 1, 0);
+      V(0, i) = w_[s](0, i - 1);
+      V(1, i) = 0;
+    }
+
+    U(Gamma_indices_[s][0], 0) = 1;
+    U(Gamma_indices_[s][0], 1) = -1;
+    V(0, Gamma_indices_[s][0]) = d_[s];
+    V(1, Gamma_indices_[s][0]) = 1;
+
+    linalg::matrixop::gemm(Gamma_inv_[s], U, result_matrix_1_);
+    linalg::matrixop::gemm(V, Gamma_inv_[s], result_matrix_2_);
+    linalg::matrixop::gemm(V, result_matrix_1_, result_matrix_3_);
+
+    result_matrix_3_(0, 0) = 1 - result_matrix_3_(0, 0);
+    result_matrix_3_(1, 1) = 1 - result_matrix_3_(1, 1);
+    result_matrix_3_(0, 1) *= -1;
+    result_matrix_3_(1, 0) *= -1;
+
+    linalg::matrixop::inverse(result_matrix_3_);
+
+    linalg::matrixop::gemm(result_matrix_1_, result_matrix_3_, U);
+    linalg::matrixop::gemm(1., U, result_matrix_2_, 1., Gamma_inv_[s]);
+
+    linalg::matrixop::removeRowAndCol(Gamma_inv_[s], Gamma_indices_[s][0]);
   }
 
-  for (int i = Gamma_index_ + 1; i < Gamma_size_ + 1; ++i) {
-    U(i, 0) = 0;
-    U(i, 1) = s_[s](i - 1, 0);
-    V(0, i) = w_[s](0, i - 1);
-    V(1, i) = 0;
+  // Code for any nbr_of_indices_[s] > 0.
+
+  else {
+    int i_max;
+    for (int ind = 0; ind < nbr_of_indices_[s]; ++ind) {
+      for (int i = 0; i < Gamma_indices_[s][ind]; ++i) {
+        U(i, ind) = 0;
+        U(i, nbr_of_indices_[s] + ind) = G_[s](move_indices_[s][i], sector_indices_[s][ind]);
+        V(ind, i) = G_[s](sector_indices_[s][ind], move_indices_[s][i]);
+        V(nbr_of_indices_[s] + ind, i) = 0;
+      }
+
+      if (ind < nbr_of_indices_[s] - 1)
+        i_max = Gamma_indices_[s][ind + 1];
+      else
+        i_max = Gamma_size_[s] + nbr_of_indices_[s];
+
+      for (int i = Gamma_indices_[s][ind] + 1; i < i_max; ++i) {
+        U(i, ind) = 0;
+        U(i, nbr_of_indices_[s] + ind) =
+            G_[s](move_indices_[s][i - 1 - ind], sector_indices_[s][ind]);
+        V(ind, i) = G_[s](sector_indices_[s][ind], move_indices_[s][i - 1 - ind]);
+        V(nbr_of_indices_[s] + ind, i) = 0;
+      }
+
+      U(Gamma_indices_[s][ind], ind) = 1;
+      U(Gamma_indices_[s][ind], nbr_of_indices_[s] + ind) = -1;
+      V(ind, Gamma_indices_[s][ind]) = G_[s](sector_indices_[s][ind], sector_indices_[s][ind]) -
+                                       (1 + gamma_[s].end()[-nbr_of_indices_[s] + ind]) /
+                                           gamma_[s].end()[-nbr_of_indices_[s] + ind];
+      V(nbr_of_indices_[s] + ind, Gamma_indices_[s][ind]) = 1;
+    }
+
+    linalg::matrixop::gemm(Gamma_inv_[s], U, result_matrix_1_);
+    linalg::matrixop::gemm(V, Gamma_inv_[s], result_matrix_2_);
+    linalg::matrixop::gemm(V, result_matrix_1_, result_matrix_3_);
+
+    for (int i = 0; i < result_matrix_3_.size().first; ++i) {
+      for (int j = 0; j < result_matrix_3_.size().second; ++j) {
+        result_matrix_3_(i, j) *= -1;
+      }
+      result_matrix_3_(i, i) += 1;
+    }
+
+    linalg::matrixop::inverse(result_matrix_3_);
+
+    linalg::matrixop::gemm(result_matrix_1_, result_matrix_3_, U);
+    linalg::matrixop::gemm(1., U, result_matrix_2_, 1., Gamma_inv_[s]);
+
+    for (int ind = nbr_of_indices_[s] - 1; ind >= 0; --ind) {
+      linalg::matrixop::removeRowAndCol(Gamma_inv_[s], Gamma_indices_[s][ind]);
+    }
   }
-
-  U(Gamma_index_, 0) = 1;
-  U(Gamma_index_, 1) = -1;
-  V(0, Gamma_index_) = d_[s];
-  V(1, Gamma_index_) = 1;
-
-  linalg::matrixop::gemm(Gamma_inv_[s], U, matrix_1);
-  linalg::matrixop::gemm(V, Gamma_inv_[s], matrix_2);
-  linalg::matrixop::gemm(V, matrix_1, matrix_3);
-
-  matrix_3(0, 0) = 1 - matrix_3(0, 0);
-  matrix_3(1, 1) = 1 - matrix_3(1, 1);
-  matrix_3(0, 1) *= -1;
-  matrix_3(1, 0) *= -1;
-
-  linalg::matrixop::inverse(matrix_3);
-
-  linalg::matrixop::gemm(matrix_1, matrix_3, U);
-  linalg::matrixop::gemm(1., U, matrix_2, 1., Gamma_inv_[s]);
-
-  linalg::matrixop::removeRowAndCol(Gamma_inv_[s], Gamma_index_);
 }
 
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::CPU, Parameters>::pushToEnd() {
-  // Sort in reverse order.
-
-  std::sort(removal_list_.rbegin(), removal_list_.rend());
+  int source;
+  int destination;
 
   for (int s = 0; s < 2; ++s) {
-    int source;
-    int destination = n_max_ - 1;
+    // Sort in reverse order.
+    std::sort(removal_list_[s].rbegin(), removal_list_[s].rend());
 
-    for (int i = 0; i < removal_list_.size(); ++i) {
-      source = removal_list_[i];
+    destination = n_max_[s] - 1;
 
-      if (s == 1)
-        removal_list_[i] = destination;
+    for (int i = 0; i < removal_list_[s].size(); ++i) {
+      source = removal_list_[s][i];
+
+      removal_list_[s][i] = destination;
 
       linalg::matrixop::swapRowAndCol(M_[s], source, destination);
-      // linalg::matrixop::swapRowAndCol(G0_[s], source, destination);
-
       configuration_.swapSectorLabels(source, destination, s);
-
-      configuration_.swapVertices(source, destination);
 
       --destination;
     }
   }
+
+  std::sort(conf_removal_list_.rbegin(), conf_removal_list_.rend());
+
+  destination = configuration_.size() - 1;
+
+  for (int i = 0; i < conf_removal_list_.size(); ++i) {
+    source = conf_removal_list_[i];
+
+    conf_removal_list_[i] = destination;
+
+    configuration_.swapVertices(source, destination);
+
+    --destination;
+  }
 }
 
 template <class Parameters>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters>::setMFromConfig() {
-  sign_ = 1;
-  for (int s = 0; s < 2; ++s) {
-    const auto& sector = configuration_.getSector(s);
-    auto& M = M_[s];
-    const int n = sector.size();
-    M.resize(n);
-    for (int i = 0; i < n; ++i) {
-      for (int j = 0; j < n; ++j) {
-        M(i, j) = d_builder_.computeD(i, j, sector);
-      }
-    }
-    linalg::matrixop::inverse(M);
+void CtintWalkerSubmatrix<linalg::CPU, Parameters>::recomputeGammaInv() {
+  if ((!recently_added_ && accepted_) || (recently_added_ && !accepted_)) {
+    for (int s = 0; s < 2; ++s) {
+      if (Gamma_size_[s] > 0)
+        linalg::matrixop::inverse(Gamma_inv_[s]);
 
-    if (linalg::matrixop::determinant(M) < 0)
-      sign_ *= -1;
+      Gamma_inv_[s].resize(Gamma_size_[s] + nbr_of_indices_[s]);
+
+      for (int ind = 0; ind < nbr_of_indices_[s]; ++ind) {
+        for (int i = 0; i < Gamma_size_[s]; ++i) {
+          Gamma_inv_[s](Gamma_size_[s] + ind, i) =
+              G_[s](sector_indices_[s][ind], move_indices_[s][i]);
+          Gamma_inv_[s](i, Gamma_size_[s] + ind) =
+              G_[s](move_indices_[s][i], sector_indices_[s][ind]);
+        }
+
+        for (int ind_2 = 0; ind_2 < nbr_of_indices_[s]; ++ind_2) {
+          Gamma_inv_[s](Gamma_size_[s] + ind, Gamma_size_[s] + ind_2) =
+              G_[s](sector_indices_[s][ind], sector_indices_[s][ind_2]);
+        }
+        Gamma_inv_[s](Gamma_size_[s] + ind, Gamma_size_[s] + ind) -=
+            (1 + gamma_[s].end()[-nbr_of_indices_[s] + ind]) /
+            gamma_[s].end()[-nbr_of_indices_[s] + ind];
+      }
+
+      Gamma_size_[s] += nbr_of_indices_[s];
+
+      if (Gamma_size_[s] > 0)
+        linalg::matrixop::inverse(Gamma_inv_[s]);
+    }
   }
 }
 
