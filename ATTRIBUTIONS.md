@@ -1,4 +1,4 @@
-DCA++ is built on top of the following open source libraries:
+DCA++ includes the following open source libraries:
 
 ## gnuplot_i
 
