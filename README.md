@@ -15,7 +15,7 @@ Information about prerequisites and the CMake-based building procedure can be fo
 Questions, bug reports and feature requests can be submitted via the
 [issue tracking system](https://github.com/eth-cscs/DCA/issues).
 
-Please read [contribution guidelines](https://github.com/eth-cscs/DCA/blob/master/CITATION.md) for details on how to contribute code.
+Please read [contribution guidelines](https://github.com/eth-cscs/DCA/blob/master/CONTRIBUTING.md) for details on how to contribute code.
 
 
 ## Citation Guidelines
