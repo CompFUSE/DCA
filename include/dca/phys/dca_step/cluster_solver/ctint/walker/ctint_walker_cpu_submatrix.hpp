@@ -57,9 +57,11 @@ protected:
   void mainSubmatrixProcess();
   void updateM();
 
+  // For testing purposes.
+  void doStep(const int nbr_of_moves_to_delay);
+
 private:
   virtual void doStep();
-  void doStep(const int nbr_of_moves_to_delay);
   void doSubmatrixUpdate();
   void computeAcceptanceProbability();
   void updateGammaInv();
