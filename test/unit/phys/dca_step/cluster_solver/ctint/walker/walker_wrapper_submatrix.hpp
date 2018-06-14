@@ -25,6 +25,7 @@ using namespace dca::phys::solver::ctint;
   template <class Parameters, dca::linalg::DeviceType device_t = dca::linalg::CPU>
   struct WalkerWrapperSubmatrix : public CtintWalkerSubmatrix<device_t, Parameters> {
     using BaseClass = CtintWalkerSubmatrix<device_t, Parameters>;
+    using RootClass = CtintWalkerBase<Parameters>;
     using Rng = typename BaseClass::Rng;
 
 
@@ -32,16 +33,17 @@ using namespace dca::phys::solver::ctint;
 			   const DMatrixBuilder<dca::linalg::CPU>& builder)
       : BaseClass(parameters_ref, rng_ref, vertices, builder, 0) {}
 
-    using BaseClass::tryVertexInsert;
-    using BaseClass::tryVertexRemoval;
-    using BaseClass::setMFromConfig;
-    using BaseClass::getM;
-    using BaseClass::doStep;
+    using RootClass::setMFromConfig;
+
+    void doStep(const int n_steps_to_delay){
+        BaseClass::doStep(n_steps_to_delay);
+    }
 
     using Matrix = dca::linalg::Matrix<double, dca::linalg::CPU>;
+    using MatrixPair = std::array<Matrix, 2>;
 
-    void setM(const Matrix& m) {
-      BaseClass::getM() = m;
+    const MatrixPair& getM() {
+      return RootClass::M_;
     };
 };
 

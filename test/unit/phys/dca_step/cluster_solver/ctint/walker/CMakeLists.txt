@@ -30,6 +30,13 @@ dca_add_gtest(ct_int_ndd_walker_test
     LIBS     ${TEST_LIBS}
     )
 
+dca_add_gtest(ct_int_walker_test_submatrix
+        FAST
+        GTEST_MAIN
+        INCLUDE_DIRS ${TEST_INCLUDES}
+        LIBS     ${TEST_LIBS}
+        )
+
 dca_add_gtest(d_matrix_builder_test_gpu
     FAST
     CUDA
