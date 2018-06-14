@@ -64,7 +64,7 @@ protected:
 private:
   virtual void doStep();
   void doSubmatrixUpdate();
-  void computeAcceptanceProbability();
+  double computeAcceptanceProbability() const;
   void updateGammaInv();
   void removeRowAndColOfGammaInv(const int s);
   void pushToEnd();
@@ -174,8 +174,6 @@ protected:
   bool recently_added_;
   bool accepted_;
 
-  double acceptance_probability_;
-  bool do_nothing_;
   bool double_;
 
   Matrix result_matrix_1_, result_matrix_2_, result_matrix_3_, result_matrix_4_, result_matrix_5_;
@@ -400,13 +398,14 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::mainSubmatrixProcess() {
   }
 
   std::vector<int> aux_spin_type, new_aux_spin_type;
+  bool do_nothing;
 
   for (int delay_ind = 0; delay_ind < delayed_moves_.size(); ++delay_ind) {
     for (int s = 0; s < 2; ++s) {
       assert(Gamma_size_[s] == Gamma_inv_[s].size().first);
 
       move_type_ = delayed_moves_[delay_ind].move_type_;
-      do_nothing_ = false;
+      do_nothing = false;
       recently_added_ = false;
       double_ = false;
 
@@ -436,7 +435,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::mainSubmatrixProcess() {
         // Do nothing if there is no vertex to remove.
 
         if (existing_indices_.size() == 0) {
-          do_nothing_ = true;
+          do_nothing = true;
           break;
         }
         else {
@@ -499,7 +498,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::mainSubmatrixProcess() {
         if (nbr_of_indices_[s] == 1 || nbr_of_indices_[s] == 2) {
           s_[s].resize(std::make_pair(Gamma_size_[s], 1));
           w_[s].resize(std::make_pair(1, Gamma_size_[s]));
-
+  // TODO: this looks fishy.
           for (int i = 0; i < Gamma_size_[s]; ++i) {
             s_[s](i, 0) = G_[s](move_indices_[s][i], sector_indices_[s][0]);
             w_[s](0, i) = G_[s](sector_indices_[s][0], move_indices_[s][i]);
@@ -611,16 +610,16 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::mainSubmatrixProcess() {
       }
     }  // s loop.
 
-    // Directly go to next move if do_nothing_ is true.
+    // Directly go to next move if do_nothing is true.
 
-    if (do_nothing_)
+    if (do_nothing)
       continue;
 
     // Compute acceptance probability.
 
-    computeAcceptanceProbability();
+    const double acceptance_probability = computeAcceptanceProbability();
 
-    accepted_ = rng_() < std::abs(acceptance_probability_);
+    accepted_ = rng_() < std::abs(acceptance_probability);
 
     // Acceptance can be forced (for testing).
 
@@ -639,7 +638,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::mainSubmatrixProcess() {
     // Update other objects.
 
     if (accepted_) {
-      if (acceptance_probability_ < 0)
+      if (acceptance_probability < 0)
         sign_ *= -1;
 
       if (!recently_added_)
@@ -799,33 +798,35 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeG0Init() {
 }
 
 template <class Parameters>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeAcceptanceProbability() {
-  acceptance_probability_ = 1;
+double CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeAcceptanceProbability() const {
+  double acceptance_probability = 1;
 
   for (int s = 0; s < 2; ++s) {
-    acceptance_probability_ *= beta_[s] * beta_2_[s];
+    acceptance_probability *= beta_[s] * beta_2_[s];
     for (int ind = 0; ind < nbr_of_indices_[s]; ++ind)
-      acceptance_probability_ *= gamma_[s].end()[-nbr_of_indices_[s] + ind];
+      acceptance_probability *= gamma_[s].end()[-nbr_of_indices_[s] + ind];
   }
 
   double K;
 
   if (recently_added_)
-    acceptance_probability_ = 1 / acceptance_probability_;
+    acceptance_probability = 1 / acceptance_probability;
 
   if (sector_indices_[0].size() != 0)
     K = total_interaction_ *
-        prob_const_[configuration_.getSector(0).getAuxFieldType(sector_indices_[0][0])];
+        prob_const_.at(configuration_.getSector(0).getAuxFieldType(sector_indices_[0][0]));
   else
     K = total_interaction_ *
-        prob_const_[configuration_.getSector(1).getAuxFieldType(sector_indices_[1][0])];
+        prob_const_.at(configuration_.getSector(1).getAuxFieldType(sector_indices_[1][0]));
 
   int n = (n_[0] + n_[1]) / 2;
 
   if (move_type_ == INSERTION)
-    acceptance_probability_ *= K / (n + 1);
+    acceptance_probability *= K / (n + 1);
   else if (move_type_ == REMOVAL)
-    acceptance_probability_ *= n / K;
+    acceptance_probability *= n / K;
+
+  return acceptance_probability;
 }
 
 template <class Parameters>
