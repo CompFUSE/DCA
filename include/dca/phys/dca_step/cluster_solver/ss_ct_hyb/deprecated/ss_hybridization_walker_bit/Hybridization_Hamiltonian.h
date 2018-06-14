@@ -1,11 +1,6 @@
-//-*-C++-*-
-
-/*! \file Hybridization_Hamiltonian.h  
- *
- * author Bart Ydens
- *
- * 
- */
+// Copyright (C) 2010 Philipp Werner
+//
+// Integrated into DCA++ by Peter Staar (taa@zurich.ibm.com) and Bart Ydens.
 
 #ifndef HYBRIDIZATION_HAMILTONIAN_H
 #define HYBRIDIZATION_HAMILTONIAN_H

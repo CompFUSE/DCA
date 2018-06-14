@@ -1,11 +1,6 @@
-//-*-C++-*-
-
-/*! \file Hybridization_Hilbert_space.h  
- *
- * author Bart Ydens
- *
- * 
- */
+// Copyright (C) 2010 Philipp Werner
+//
+// Integrated into DCA++ by Peter Staar (taa@zurich.ibm.com) and Bart Ydens.
 
 #ifndef HYBRIDIZATION_HILBERT_SPACE_H
 #define HYBRIDIZATION_HILBERT_SPACE_H

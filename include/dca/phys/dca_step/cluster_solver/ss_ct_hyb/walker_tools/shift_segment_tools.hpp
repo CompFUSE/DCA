@@ -1,12 +1,7 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
-// All rights reserved.
+// Copyright (C) 2010 Philipp Werner
 //
-// See LICENSE for terms of usage.
-// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
-//
-// Author: Bart Ydens
-//         Andrei Plamada (plamada@itp.phys.ethz.ch)
+// Integrated into DCA++ by Peter Staar (taa@zurich.ibm.com) and Bart Ydens.
+// Modified by Andrei Plamada (plamada@itp.phys.ethz.ch).
 //
 // This class implements the shifting of a \f$c^{\dagger}\f$.
 //

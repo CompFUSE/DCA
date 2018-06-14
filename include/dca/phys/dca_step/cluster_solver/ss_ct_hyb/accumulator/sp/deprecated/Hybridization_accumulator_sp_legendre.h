@@ -1,4 +1,6 @@
-//-*-C++-*-
+// Copyright (C) 2010 Philipp Werner
+//
+// Integrated into DCA++ by Peter Staar (taa@zurich.ibm.com) and Bart Ydens.
 
 #ifndef SS_CT_HYB_ACCUMULATOR_LEGENDRE_H
 #define SS_CT_HYB_ACCUMULATOR_LEGENDRE_H
@@ -7,8 +9,6 @@ namespace QMC {
 
 /*!
  *  \brief   This class organizes the measurements in the single-site hybridization QMC
- *  \author  Peter Staar
- *  \author  Bart Ydens
  *  \version 1.0
  *
  * The impurity self-energy can be expressed in the following form:

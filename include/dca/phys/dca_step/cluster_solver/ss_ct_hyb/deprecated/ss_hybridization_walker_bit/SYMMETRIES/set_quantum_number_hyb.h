@@ -1,8 +1,6 @@
-//-*-C++-*-
-
-/*
- *      Author: bartydens
- */
+// Copyright (C) 2010 Philipp Werner
+//
+// Integrated into DCA++ by Peter Staar (taa@zurich.ibm.com) and Bart Ydens.
 
 #ifndef HYBRIDIZATION_SYMMETRIES_ENUMERATED_H
 #define HYBRIDIZATION_SYMMETRIES_ENUMERATED_H
