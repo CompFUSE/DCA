@@ -6,6 +6,7 @@
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Jérémie Bouquet (bouquetj@gmail.com).
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.com).
 
 // This class organizes the MC walker in the CT-INT QMC purely on the CPU.
 
@@ -89,6 +90,7 @@ protected:
   using BaseClass::sign_;
   using BaseClass::M_;
   using BaseClass::det_ratio_;
+  using BaseClass::n_bands_;
 
   double max_tau_ = BaseClass::beta_;
 
@@ -951,26 +953,22 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::findSectorIndices(const int 
 
   for (int i = 0; i < configuration_.getSector(s).size(); ++i) {
     if (configuration_.getSector(s).getTau(i) == tau_) {
-      if (!found_sector_index_[s]) {
-        sector_indices_[s].push_back(i);
-        found_sector_index_[s] = true;
-      }
-      else {
-        sector_indices_[s].push_back(i);
-        // break;
-      }
+      found_sector_index_[s] = true;
+      sector_indices_[s].push_back(i);
+      if (sector_indices_[s].size() == 2)
+        break;
     }
   }
 
   nbr_of_indices_[s] = sector_indices_[s].size();
 
-  if (nbr_of_indices_[s] > 2) {
-    std::cout << "\n\n\t\t\t**********ERROR**********\n\n" << std::endl;
-    std::cout << "Nbr of indices = " << nbr_of_indices_[s] << std::endl;
-    std::cout << "s              = " << s << std::endl;
-    for (int i = 0; i < nbr_of_indices_[s]; ++i)
-      std::cout << sector_indices_[s][i] << std::endl;
-  }
+  //  if (nbr_of_indices_[s] > 2) {
+  //    std::cout << "\n\n\t\t\t**********ERROR**********\n\n" << std::endl;
+  //    std::cout << "Nbr of indices = " << nbr_of_indices_[s] << std::endl;
+  //    std::cout << "s              = " << s << std::endl;
+  //    for (int i = 0; i < nbr_of_indices_[s]; ++i)
+  //      std::cout << sector_indices_[s][i] << std::endl;
+  //  }
 }
 
 // Remove row and column of Gamma_inv with Woodbury's formula.
