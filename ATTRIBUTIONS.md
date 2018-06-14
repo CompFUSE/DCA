@@ -1,3 +1,5 @@
+# Third-Party Software
+
 DCA++ includes the following open source libraries:
 
 ## gnuplot_i
