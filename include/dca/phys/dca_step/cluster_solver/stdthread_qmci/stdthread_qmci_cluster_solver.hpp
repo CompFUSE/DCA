@@ -20,6 +20,7 @@
 #include <thread>
 #include <vector>
 
+#include "dca/linalg/util/handle_functions.hpp"
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/thread_task_handler.hpp"
 #include "dca/profiling/events/time.hpp"
@@ -128,6 +129,9 @@ StdThreadQmciClusterSolver<qmci_integrator_type>::StdThreadQmciClusterSolver(
     rng_vector.emplace_back(concurrency.id(), concurrency.number_of_processors(),
                             parameters.get_seed());
   }
+
+  // Create a sufficient amount of cublas handles and cuda streams.
+  linalg::util::initializeHandleContainer(thread_task_handler_.size());
 }
 
 template <class qmci_integrator_type>

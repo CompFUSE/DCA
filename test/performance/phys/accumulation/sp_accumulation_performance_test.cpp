@@ -126,7 +126,6 @@ int main(int argc, char** argv) {
   std::cout << "\n\nSpAccumulation CPU time [sec]:\t " << time << "\n";
 
 #ifdef DCA_HAVE_CUDA
-  dca::linalg::util::initializeMagma();
   dca::linalg::util::CudaEvent start_event;
   dca::linalg::util::CudaEvent stop_event;
 
