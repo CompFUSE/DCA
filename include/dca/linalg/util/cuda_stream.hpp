@@ -9,8 +9,8 @@
 //
 // RAII wrapper for cuda stream.
 
-#ifndef DCA_LINALG_UTIL_MAGMA_STREAM_HPP
-#define DCA_LINALG_UTIL_MAGMA_STREAM_HPP
+#ifndef DCA_LINALG_UTIL_CUDA_STREAM_HPP
+#define DCA_LINALG_UTIL_CUDA_STREAM_HPP
 #ifdef DCA_HAVE_CUDA
 
 #include <cuda.h>
@@ -29,6 +29,10 @@ public:
 
   CudaStream(const CudaStream& other) = delete;
 
+  CudaStream(CudaStream&& other) {
+    std::swap(stream_, other.stream_);
+  }
+
   ~CudaStream() {
     cudaStreamDestroy(stream_);
   }
@@ -46,4 +50,4 @@ private:
 }  // dca
 
 #endif  // DCA_HAVE_CUDA
-#endif  // DCA_LINALG_UTIL_MAGMA_STREAM_HPP
+#endif  // DCA_LINALG_UTIL_CUDA_STREAM_HPP
