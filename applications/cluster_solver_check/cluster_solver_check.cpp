@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
 
   Concurrency concurrency(argc, argv);
 
-  const bool perform_statistical_test = concurrency.number_of_processors() >= 8;
+  const bool perform_statistical_test = concurrency.number_of_processors() >= 16;
 
   Profiler::start();
 
