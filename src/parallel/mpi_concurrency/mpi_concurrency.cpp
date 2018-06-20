@@ -20,7 +20,8 @@ MPIConcurrency::MPIConcurrency(int argc, char** argv)
     : MPIPacking(grouping_),
       MPICollectiveMax(grouping_),
       MPICollectiveMin(grouping_),
-      MPICollectiveSum(grouping_) {
+      MPICollectiveSum(grouping_),
+      MPICollectiveGather(grouping_) {
   // INTERNAL: Consider moving MPI_Init inside the MPIProcessorGrouping class.
   int provided = 0;
   constexpr int required = MPI_THREAD_FUNNELED;
