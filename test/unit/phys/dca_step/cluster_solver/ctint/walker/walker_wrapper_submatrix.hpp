@@ -22,29 +22,37 @@ namespace ctint {
 // testing::phys::solver::ctint::
 
 using namespace dca::phys::solver::ctint;
-  template <class Parameters, dca::linalg::DeviceType device_t = dca::linalg::CPU>
-  struct WalkerWrapperSubmatrix : public CtintWalkerSubmatrix<device_t, Parameters> {
-    using BaseClass = CtintWalkerSubmatrix<device_t, Parameters>;
-    using RootClass = CtintWalkerBase<Parameters>;
-    using Rng = typename BaseClass::Rng;
+template <class Parameters, dca::linalg::DeviceType device_t = dca::linalg::CPU>
+struct WalkerWrapperSubmatrix : public CtintWalkerSubmatrix<device_t, Parameters> {
+  using BaseClass = CtintWalkerSubmatrix<device_t, Parameters>;
+  using RootClass = CtintWalkerBase<Parameters>;
+  using Rng = typename BaseClass::Rng;
 
-
-    WalkerWrapperSubmatrix(Parameters& parameters_ref, Rng& rng_ref, const InteractionVertices& vertices,
-			   const DMatrixBuilder<dca::linalg::CPU>& builder)
+  WalkerWrapperSubmatrix(Parameters& parameters_ref, Rng& rng_ref,
+                         const InteractionVertices& vertices,
+                         const DMatrixBuilder<dca::linalg::CPU>& builder)
       : BaseClass(parameters_ref, rng_ref, vertices, builder, 0) {}
 
-    using RootClass::setMFromConfig;
+  using RootClass::setMFromConfig;
 
-    void doStep(const int n_steps_to_delay){
-        BaseClass::doStep(n_steps_to_delay);
-    }
+  void forceAcceptance() {
+    BaseClass::force_acceptance_ = true;
+  }
 
-    using Matrix = dca::linalg::Matrix<double, dca::linalg::CPU>;
-    using MatrixPair = std::array<Matrix, 2>;
+  void doStep(const int n_steps_to_delay) {
+    BaseClass::doStep(n_steps_to_delay);
+  }
 
-    const MatrixPair& getM() {
-      return RootClass::M_;
-    };
+  using Matrix = dca::linalg::Matrix<double, dca::linalg::CPU>;
+  using MatrixPair = std::array<Matrix, 2>;
+
+  const MatrixPair& getM() {
+    return RootClass::M_;
+  }
+
+  double getAcceptanceProbability() const {
+    return BaseClass::acceptance_prob_;
+  }
 };
 
 }  // ctint

@@ -47,6 +47,7 @@ public:
   void doSweep();
 
 protected:
+  void doStep();
   bool tryVertexInsert();
   bool tryVertexRemoval();
 
@@ -56,8 +57,6 @@ protected:
   }
 
 private:
-  void doStep();
-
   double insertionProbability(int delta_vertices);
 
   using Matrix = typename BaseClass::Matrix;
@@ -90,7 +89,11 @@ protected:
   using BaseClass::removal_matrix_indices_;
 
   using BaseClass::M_;
-  using BaseClass::det_ratio_;
+
+  // For testing purposes.
+  using BaseClass::acceptance_prob_;
+  bool force_update_ = false;
+  std::array<double, 2> det_ratio_;
 
 private:
   std::array<linalg::Matrix<double, linalg::CPU>, 2> S_, Q_, R_;
@@ -106,7 +109,7 @@ CtintWalker<linalg::CPU, Parameters>::CtintWalker(Parameters& parameters_ref, Rn
                                                   const InteractionVertices& vertices,
                                                   const DMatrixBuilder<linalg::CPU>& builder_ref,
                                                   int id)
-    : BaseClass(parameters_ref, rng_ref, vertices, builder_ref, id) {}
+    : BaseClass(parameters_ref, rng_ref, vertices, builder_ref, id), det_ratio_{1, 1} {}
 
 template <class Parameters>
 void CtintWalker<linalg::CPU, Parameters>::doSweep() {
@@ -126,12 +129,15 @@ void CtintWalker<linalg::CPU, Parameters>::doSweep() {
 
 template <class Parameters>
 void CtintWalker<linalg::CPU, Parameters>::doStep() {
-  if (int(rng_() * 2)) {
+  if (rng_() <= 0.5) {
     n_accepted_ += tryVertexInsert();
   }
   else {
     if (configuration_.size())
       n_accepted_ += tryVertexRemoval();
+    else {
+      rng_();  // Burn a number for testing consistency.
+    }
   }
 }
 
@@ -143,14 +149,14 @@ bool CtintWalker<linalg::CPU, Parameters>::tryVertexInsert() {
   // Compute the new pieces of the D(= M^-1) matrix.
   d_builder_.buildSQR(S_, Q_, R_, configuration_);
 
-  const double accept_prob = insertionProbability(delta_vertices);
+  acceptance_prob_ = insertionProbability(delta_vertices);
 
-  const bool accept = std::abs(accept_prob) > rng_();
+  const bool accept = force_update_ ? true : std::abs(acceptance_prob_) > rng_();
 
   if (not accept)
     configuration_.pop(delta_vertices);
   else {
-    if (accept_prob < 0)
+    if (acceptance_prob_ < 0)
       sign_ *= -1;
     applyInsertion(S_, Q_, R_);
   }
@@ -159,11 +165,11 @@ bool CtintWalker<linalg::CPU, Parameters>::tryVertexInsert() {
 
 template <class Parameters>
 bool CtintWalker<linalg::CPU, Parameters>::tryVertexRemoval() {
-  const double accept_prob = removalProbability();
-  const bool accept = std::abs(accept_prob) > rng_();
+  acceptance_prob_ = removalProbability();
+  const bool accept = force_update_ ? true : std::abs(acceptance_prob_) > rng_();
 
   if (accept) {
-    if (accept_prob < 0)
+    if (acceptance_prob_ < 0)
       sign_ *= -1;
     applyRemoval();
   }
@@ -227,7 +233,7 @@ void CtintWalker<linalg::CPU, Parameters>::applyInsertion(const MatrixPair& Sp, 
 
     auto& R_M = ws_dn_;
     R_M.resizeNoCopy(R.size());
-    linalg::matrixop::gemm(R, M, R_M, thread_id_, s);
+    linalg::matrixop::gemm(R, M, R_M);
 
     M.resize(m_size + delta);
     //  S_tilde = S^-1.
@@ -236,15 +242,15 @@ void CtintWalker<linalg::CPU, Parameters>::applyInsertion(const MatrixPair& Sp, 
 
     // R_tilde = - S * R * M
     MatrixView R_tilde(M, m_size, 0, delta, m_size);
-    linalg::matrixop::gemm(-1., S_tilde, R_M, double(0.), R_tilde, thread_id_, s);
+    linalg::matrixop::gemm(-1., S_tilde, R_M, double(0.), R_tilde);
 
     // Q_tilde = -M * Q * S
     MatrixView Q_tilde(M, 0, m_size, m_size, delta);
-    linalg::matrixop::gemm(-1., M_Q, S_tilde, 0., Q_tilde, thread_id_, s);
+    linalg::matrixop::gemm(-1., M_Q, S_tilde, 0., Q_tilde);
 
     // update bulk: M += M*Q*S*R*M
     MatrixView M_bulk(M, 0, 0, m_size, m_size);
-    linalg::matrixop::gemm(-1., Q_tilde, R_M, 1., M_bulk, thread_id_, s);
+    linalg::matrixop::gemm(-1., Q_tilde, R_M, 1., M_bulk);
   }
 }
 
@@ -307,11 +313,11 @@ void CtintWalker<linalg::CPU, Parameters>::applyRemoval() {
 
     auto& Q_S = M_Q_[s];
     Q_S.resizeNoCopy(Q.size());
-    linalg::matrixop::gemm(Q, S, Q_S, thread_id_, s);
+    linalg::matrixop::gemm(Q, S, Q_S);
 
     // M -= Q*S^-1*R
     MatrixView M_bulk(M, 0, 0, m_size, m_size);
-    linalg::matrixop::gemm(-1., Q_S, R, 1., M_bulk, thread_id_, s);
+    linalg::matrixop::gemm(-1., Q_S, R, 1., M_bulk);
     M.resize(m_size);
   }
 }

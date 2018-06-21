@@ -26,11 +26,11 @@ struct WalkerWrapper : public CtintWalker<dca::linalg::CPU, Parameters> {
   using BaseClass = CtintWalker<dca::linalg::CPU, Parameters>;
   using Rng = typename BaseClass::Rng;
 
-
   WalkerWrapper(Parameters& parameters_ref, Rng& rng_ref, const InteractionVertices& vertices,
                 const DMatrixBuilder<dca::linalg::CPU>& builder)
       : BaseClass(parameters_ref, rng_ref, vertices, builder, 0) {}
 
+  using BaseClass::doStep;
   using BaseClass::tryVertexInsert;
   using BaseClass::tryVertexRemoval;
   using BaseClass::setMFromConfig;
@@ -44,6 +44,14 @@ struct WalkerWrapper : public CtintWalker<dca::linalg::CPU, Parameters> {
 
   double getRatio() const {
     return BaseClass::det_ratio_[0] * BaseClass::det_ratio_[1];
+  }
+
+  void forceAcceptance() {
+    BaseClass::force_update_ = true;
+  }
+
+  double getAcceptanceProbability() const {
+    return BaseClass::acceptance_prob_;
   }
 };
 

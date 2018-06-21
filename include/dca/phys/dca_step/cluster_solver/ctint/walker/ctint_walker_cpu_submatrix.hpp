@@ -51,12 +51,13 @@ public:
   using BaseClass::order;
 
 protected:
-    void doSteps();
-    void generateDelayedMoves(int nbr_of_moves_to_delay);
-    void computeAcceptance();
-    void updateM();
-    // For testing purposes.
-    void doStep(const int nbr_of_moves_to_delay);
+  void doSteps();
+  void generateDelayedMoves(int nbr_of_moves_to_delay);
+  void computeAcceptance();
+  void updateM();
+  // For testing purposes.
+  void doStep(const int nbr_of_moves_to_delay);
+
 private:
   virtual void doStep();
   void doSubmatrixUpdate();
@@ -69,8 +70,6 @@ private:
   void computeGInit();
   void setMFromConfig();
   Move generateMoveType();
-
-  using BaseClass::det_ratio_;
 
 protected:
   using MatrixView = linalg::MatrixView<double, linalg::CPU>;
@@ -150,7 +149,7 @@ protected:
   bool recently_added_;
   bool accepted_;
 
-  double acceptance_probability_;
+  using BaseClass::acceptance_prob_;
   bool do_nothing_;
   bool double_;
 
@@ -477,10 +476,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeAcceptance() {
 
     computeAcceptanceProbability();
 
-    accepted_ = rng_() < std::abs(acceptance_probability_);
-
-    if (force_acceptance_)
-      accepted_ = true;
+    accepted_ = force_acceptance_ ? true : rng_() < std::abs(acceptance_prob_);
 
     // Update GammaInv if necessary.
 
@@ -490,7 +486,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeAcceptance() {
 
     if (accepted_) {
       ++BaseClass::n_accepted_;
-      if (acceptance_probability_ < 0)
+      if (acceptance_prob_ < 0)
         sign_ *= -1;
 
       if (!recently_added_)
@@ -625,19 +621,19 @@ template <class Parameters>
 void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeAcceptanceProbability() {
   double K = total_interaction_ * prob_const_[configuration_.getSector(0).getAuxFieldType(index_)];
 
-  acceptance_probability_ = 1;
+  acceptance_prob_ = 1;
 
   for (int s = 0; s < 2; ++s) {
-    acceptance_probability_ *= beta_[s] * gamma_[s].back();
+    acceptance_prob_ *= beta_[s] * gamma_[s].back();
   }
 
   if (recently_added_)
-    acceptance_probability_ = 1 / acceptance_probability_;
+    acceptance_prob_ = 1 / acceptance_prob_;
 
   if (move_type_ == INSERTION)
-    acceptance_probability_ *= K / (n_ + 1);
+    acceptance_prob_ *= K / (n_ + 1);
   else if (move_type_ == REMOVAL)
-    acceptance_probability_ *= n_ / K;
+    acceptance_prob_ *= n_ / K;
 }
 
 template <class Parameters>

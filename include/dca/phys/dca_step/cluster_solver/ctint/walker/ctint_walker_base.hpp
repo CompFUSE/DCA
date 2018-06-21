@@ -126,6 +126,7 @@ protected:  // Members.
   MatrixPair M_;
 
   const double beta_;
+  static constexpr int n_bands_ = Parameters::bands;
 
   const DMatrixBuilder<linalg::CPU>& d_builder_;
 
@@ -142,7 +143,7 @@ protected:  // Members.
   int sign_ = 1;
 
   // Store for testing purposes:
-  std::array<double, 2> det_ratio_;
+  double acceptance_prob_;
 
   std::array<std::vector<ushort>, 2> removal_matrix_indices_;
   std::pair<short, short> removal_candidates_;
@@ -169,8 +170,8 @@ CtintWalkerBase<Parameters>::CtintWalkerBase(Parameters& parameters_ref, Rng& rn
 
       beta_(parameters_.get_beta()),
       d_builder_(builder_ref),
-      total_interaction_(vertices.integratedInteraction()),
-      det_ratio_{1, 1} {
+      total_interaction_(vertices.integratedInteraction())
+      {
   while (parameters_.getInitialConfigurationSize() > configuration_.size())
     configuration_.insertRandom(rng_);
 
@@ -220,7 +221,6 @@ void CtintWalkerBase<Parameters>::setConfiguration(AccumulatorConfiguration&& co
 
 template <class Parameters>
 void CtintWalkerBase<Parameters>::updateSweepAverages() {
-    cudaDeviceSynchronize();
     order_avg_.addSample(order());
   // Track avg order for the final number of steps / sweep.
   if (order_avg_.count() >= parameters_.get_warm_up_sweeps() / 2)
