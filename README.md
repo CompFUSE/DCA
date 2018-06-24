@@ -2,7 +2,7 @@
 
 With the DCA++ project, we aim to gain insight into the fascinating physics of strongly correlated electron systems by employing modern quantum cluster methods.
 The DCA++ code provides a state of the art implementation of the dynamical cluster approximation (DCA) and its DCA<sup>+</sup> extension.
-High scalability and portable performance allows to exploit today's leadership computing systems.
+High scalability and portable performance allow to exploit today's leadership computing systems.
 
 
 ## Getting Started
@@ -15,7 +15,7 @@ Information about prerequisites and the CMake-based building procedure can be fo
 Questions, bug reports and feature requests can be submitted via the
 [issue tracking system](https://github.com/eth-cscs/DCA/issues).
 
-Please read [contribution guidelines](https://github.com/eth-cscs/DCA/blob/master/CONTRIBUTING.md) for details on how to contribute code.
+Please read the [contribution guidelines](https://github.com/eth-cscs/DCA/blob/master/CONTRIBUTING.md) for details on how to contribute code.
 
 
 ## Citation Guidelines
