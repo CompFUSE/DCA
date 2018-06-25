@@ -16,7 +16,9 @@
 #include "dca/linalg/linalg.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_cpu.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_cpu_submatrix.hpp"
+#ifdef DCA_HAVE_CUDA
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_gpu_submatrix.hpp"
+#endif  // DCA_HAVE_CUDA
 
 namespace dca {
 namespace phys {
