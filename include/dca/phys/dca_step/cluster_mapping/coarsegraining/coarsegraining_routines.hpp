@@ -322,14 +322,8 @@ void coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_w(
 
   compute_S_q(K_ind, w_ind, S_K, S_q);
 
-  int nr_threads = parameters.get_coarsegraining_threads();
-
-  if (nr_threads == 1)
-    quadrature_integration<q_dmn_t, nu, typename parameters_type::ThreadingType>::quadrature_integration_G_q_w_st(
-        I_q, H_q, S_q, G_q);
-  else
-    quadrature_integration<q_dmn_t, nu, typename parameters_type::ThreadingType>::quadrature_integration_G_q_w_mt(
-        nr_threads, I_q, H_q, S_q, G_q);
+  quadrature_integration<scalar_type, q_dmn_t, nu>::quadrature_integration_G_q_w_mt(
+      parameters.get_coarsegraining_threads(), I_q, H_q, S_q, G_q);
 }
 
 template <typename parameters_type, typename K_dmn>
@@ -367,14 +361,8 @@ void coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_w(
 
   compute_S_q(K_ind, w_ind, S_K, S_q);
 
-  int nr_threads = parameters.get_coarsegraining_threads();
-
-  if (nr_threads == 1)
-    quadrature_integration<q_dmn_t, nu, typename parameters_type::ThreadingType>::quadrature_integration_G_q_w_st(
-        I_q, H_q, S_q, G_q);
-  else
-    quadrature_integration<q_dmn_t, nu, typename parameters_type::ThreadingType>::quadrature_integration_G_q_w_mt(
-        nr_threads, I_q, H_q, S_q, G_q);
+  quadrature_integration<scalar_type, q_dmn_t, nu>::quadrature_integration_G_q_w_mt(
+      parameters.get_coarsegraining_threads(), I_q, H_q, S_q, G_q);
 }
 
 /*!
@@ -403,14 +391,8 @@ void coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_t(
 
   G_q = 0.;
 
-  int nr_threads = parameters.get_coarsegraining_threads();
-
-  if (nr_threads == 1)
-    quadrature_integration<q_dmn_t, nu, typename parameters_type::ThreadingType>::quadrature_integration_G_q_t_st(
-        beta, f_val, t_val, I_q, H_q, G_q);
-  else
-    quadrature_integration<q_dmn_t, nu, typename parameters_type::ThreadingType>::quadrature_integration_G_q_t_mt(
-        nr_threads, beta, f_val, t_val, I_q, H_q, G_q);
+  quadrature_integration<scalar_type, q_dmn_t, nu>::quadrature_integration_G_q_t_mt(
+      parameters.get_coarsegraining_threads(), beta, f_val, t_val, I_q, H_q, G_q);
 }
 
 /*****************************************
@@ -457,14 +439,8 @@ void coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_w(
 
   compute_S_q_from_A_k(K_ind, w_ind, A_k, A_q, S_q);
 
-  int nr_threads = parameters.get_coarsegraining_threads();
-
-  if (nr_threads == 1)
-    quadrature_integration<q_dmn_t, nu, typename parameters_type::ThreadingType>::quadrature_integration_G_q_w_st(
-        I_q, H_q, S_q, G_q);
-  else
-    quadrature_integration<q_dmn_t, nu, typename parameters_type::ThreadingType>::quadrature_integration_G_q_w_mt(
-        nr_threads, I_q, H_q, S_q, G_q);
+  quadrature_integration<scalar_type, q_dmn_t, nu>::quadrature_integration_G_q_w_mt(
+      parameters.get_coarsegraining_threads(), I_q, H_q, S_q, G_q);
 }
 
 }  // clustermapping
