@@ -92,7 +92,6 @@ protected:
 
   // For testing purposes.
   using BaseClass::acceptance_prob_;
-  bool force_update_ = false;
   std::array<double, 2> det_ratio_;
 
 private:
@@ -136,7 +135,7 @@ void CtintWalker<linalg::CPU, Parameters>::doStep() {
     if (configuration_.size())
       n_accepted_ += tryVertexRemoval();
     else {
-      rng_();  // Burn a number for testing consistency.
+      rng_(), rng_();  // Burn random numbers for testing consistency.
     }
   }
 }
@@ -151,7 +150,7 @@ bool CtintWalker<linalg::CPU, Parameters>::tryVertexInsert() {
 
   acceptance_prob_ = insertionProbability(delta_vertices);
 
-  const bool accept = force_update_ ? true : std::abs(acceptance_prob_) > rng_();
+  const bool accept = rng_() < std::min(std::abs(acceptance_prob_), 1.);
 
   if (not accept)
     configuration_.pop(delta_vertices);
@@ -166,7 +165,7 @@ bool CtintWalker<linalg::CPU, Parameters>::tryVertexInsert() {
 template <class Parameters>
 bool CtintWalker<linalg::CPU, Parameters>::tryVertexRemoval() {
   acceptance_prob_ = removalProbability();
-  const bool accept = force_update_ ? true : std::abs(acceptance_prob_) > rng_();
+  const bool accept = rng_() < std::min(std::abs(acceptance_prob_), 1.);
 
   if (accept) {
     if (acceptance_prob_ < 0)

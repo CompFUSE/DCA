@@ -5,7 +5,8 @@
 // See LICENSE.txt for terms of usage.
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
-// Author: Jérémie Bouquet (bouquetj@gmail.com).
+// Author: Jérémie Bouquet   (bouquetj@gmail.com).
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch).
 //
 // This class tests the CPU walker used by the ctint cluster solver. The fast updated matrix
 // are compared with their direct computation.
@@ -30,9 +31,7 @@ using MatrixPair = std::array<Matrix, 2>;
 // Compare the submatrix update with a direct computation of the M matrix, and compare the acceptance probability to
 // the CTINT walker with no submatrix update.
 TEST_F(G0Setup, doSteps) {
-  std::vector<double> setup_rngs(200);
-  for (double& x : setup_rngs)
-    x = double(std::rand()) / RAND_MAX;
+  std::vector<double> setup_rngs{0., 0.247, 0.9};
   G0Setup::RngType rng(setup_rngs);
 
   ctint::G0Interpolation<dca::linalg::CPU> g0(
@@ -42,26 +41,29 @@ TEST_F(G0Setup, doSteps) {
                                                   label_dmn.get_branch_domain_steps(),
                                                   parameters.getAlphas());
 
-  // *******************************
-  // Test vertex insert/removal ****
-  // *******************************
+  // ************************************
+  // Test vertex insertion / removal ****
+  // ************************************
   // Set rng values.
   //
-  // Insertion, vertex_id, tau, aux_spin.
-  // Removal, vertex_id.
+  // Insertion, vertex_id, tau, aux_spin, acceptance_rng
+  // Removal, vertex_id, acceptance_rng
   // ...
   std::vector<double> new_vals{
-      0.3, 0.01, 0.454, 0.8,  // Insertion.
-      1, 0.,                  // Remove pre-existing.
-      1, 0.99,                // Remove recently inserted.
-      0.1, 0.45, 0.934, 0.2,  //
-      1, 0.5                  //
+          0, 0, 0.567, 0.8, -1,      // Insertion.
+          0, 0.99, 0.454, 0.8, -1,   // Insertion.
+          0, 0, 0.484, 0.8, 2,       // Insertion. Rejected.
+          1, 0, -1,                  // Remove pre-existing.
+          1, 0.99, -1,               // Remove recently inserted.
+          1, 0.99, 2,                // Remove recently inserted. Rejected
+          1, 0, 2,                   // Remove . Rejected
+          0, 0.99, 0.934, 0.2, -1,   // Insertion
   };
+  // Note: if acceptance_rng <= 0 the move is always accepted, if it is > 1 the move is always rejected.
 
-  for (int steps = 1; steps <= 5; ++steps) {
+  for (int steps = 8; steps <= 8; ++steps) {
     rng.setNewValues(setup_rngs);
     SubmatrixWalker walker(parameters, rng, G0Setup::interaction_vertices, builder);
-    walker.forceAcceptance();
 
     MatrixPair old_M(walker.getM());
     rng.setNewValues(new_vals);
@@ -78,7 +80,6 @@ TEST_F(G0Setup, doSteps) {
     // Compare with non submatrix walker.
     rng.setNewValues(setup_rngs);
     Walker walker_nosub(parameters, rng, G0Setup::interaction_vertices, builder);
-    walker_nosub.forceAcceptance();
 
     rng.setNewValues(new_vals);
     for (int i = 0; i < steps; ++i)

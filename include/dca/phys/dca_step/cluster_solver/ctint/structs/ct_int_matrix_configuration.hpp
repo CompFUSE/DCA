@@ -130,6 +130,7 @@ void MatrixConfiguration::pop(ushort n_up, ushort n_down) {
 
 std::vector<ushort> MatrixConfiguration::findIndices(const double tau, const int s) const {
   // TODO try writing tau as a separate array
+  // TODO return vector of correct size.
   const auto& entries = sectors_[s].entries_;
   auto search_func = [tau](const details::SectorEntry& e) { return e.tau_ == tau; };
 

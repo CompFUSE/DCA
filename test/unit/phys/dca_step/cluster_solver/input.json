@@ -16,9 +16,9 @@
   "bilayer-Hubbard-model":
   {
     "t"       : 0,
-    "U"       : 2,
+    "U"       : 0,
     "V"       : 0,
-    "V-prime" : 0
+    "V-prime" : 2
   },
 
   "Hund-model":
@@ -69,7 +69,7 @@
 
   "CT-INT" :
   {
-    "initial-configuration-size" :3,
+    "initial-configuration-size" : 5,
     "alpha-dd-pos" : 0.51,
     "double-update-probability" : 0
   }

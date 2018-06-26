@@ -46,10 +46,6 @@ struct WalkerWrapper : public CtintWalker<dca::linalg::CPU, Parameters> {
     return BaseClass::det_ratio_[0] * BaseClass::det_ratio_[1];
   }
 
-  void forceAcceptance() {
-    BaseClass::force_update_ = true;
-  }
-
   double getAcceptanceProbability() const {
     return BaseClass::acceptance_prob_;
   }

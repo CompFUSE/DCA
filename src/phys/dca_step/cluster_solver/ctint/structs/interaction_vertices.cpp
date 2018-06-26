@@ -24,6 +24,7 @@ std::pair<short, short> InteractionVertices::getInsertionIndices(double random) 
       std::upper_bound(cumulative_weigths_.rbegin(), cumulative_weigths_.rend(), random);
   const int index = cumulative_weigths_.rend() - it_to_vertex - 1;
 
+  assert(index >= 0 && index < size());
   return std::make_pair(index, elements_[index].partner_id);
 }
 

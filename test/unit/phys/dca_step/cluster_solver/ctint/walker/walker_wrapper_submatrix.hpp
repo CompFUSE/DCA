@@ -35,10 +35,6 @@ struct WalkerWrapperSubmatrix : public CtintWalkerSubmatrix<device_t, Parameters
 
   using RootClass::setMFromConfig;
 
-  void forceAcceptance() {
-    BaseClass::force_acceptance_ = true;
-  }
-
   void doStep(const int n_steps_to_delay) {
     BaseClass::doStep(n_steps_to_delay);
   }
