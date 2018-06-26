@@ -42,9 +42,9 @@ We assume the *current working directory* to be the directory containing this fi
         $ ./job.analysis_U=6_d=0.95_Nc=4.sh > out.analysis.txt
 
     `out.analysis_reference.txt` provides reference output.
-    Most of the numbers are again subject to the stochastic Monte Carlo error of the `main_dca` runs.
+    Most of the numbers again are subject to the stochastic Monte Carlo error of the `main_dca` runs.
 
-4. When the `main_analysis` runs are finished, you can determine the superconducting transition temperature Tc with the Python script `compute_tc.py` provided in the parent directory:
+4. When the `main_analysis` runs are finished, you can determine the superconducting transition temperature _T<sub>c</sub>_ with the Python script `compute_tc.py` provided in the parent directory:
 
         $ python ../compute_tc.py T=*
 
