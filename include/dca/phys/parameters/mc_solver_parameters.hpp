@@ -245,7 +245,7 @@ void McSolverParameters<solver::SS_CT_HYB>::readWrite(ReaderOrWriter& reader_or_
   }
 }
 
-  
+
 // Specialization for CT-INT
 template <>
 class McSolverParameters<solver::CT_INT> {
@@ -303,6 +303,7 @@ int McSolverParameters<solver::CT_INT>::getBufferSize(const Concurrency& concurr
   buffer_size += concurrency.get_buffer_size(alpha_ndd_);
   buffer_size += concurrency.get_buffer_size(double_update_prob_);
   buffer_size += concurrency.get_buffer_size(double_counted_interaction_);
+  buffer_size += concurrency.get_buffer_size(max_submatrix_size_);
 
   return buffer_size;
 }
@@ -316,6 +317,7 @@ void McSolverParameters<solver::CT_INT>::pack(const Concurrency& concurrency, ch
   concurrency.pack(buffer, buffer_size, position, alpha_ndd_);
   concurrency.pack(buffer, buffer_size, position, double_update_prob_);
   concurrency.pack(buffer, buffer_size, position, double_counted_interaction_);
+  concurrency.pack(buffer, buffer_size, position, max_submatrix_size_);
 }
 
 template <typename Concurrency>
@@ -327,6 +329,7 @@ void McSolverParameters<solver::CT_INT>::unpack(const Concurrency& concurrency, 
   concurrency.unpack(buffer, buffer_size, position, alpha_ndd_);
   concurrency.unpack(buffer, buffer_size, position, double_update_prob_);
   concurrency.unpack(buffer, buffer_size, position, double_counted_interaction_);
+  concurrency.unpack(buffer, buffer_size, position, max_submatrix_size_);
 }
 
 // TODO: None of the open_group methods seem to throw.
