@@ -25,13 +25,12 @@
 #include <cmath>  // std::exp, std::isnan
 #include <complex>
 #include <iostream>
-#include <functional>
-#include <future>
 #include <stdexcept>
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/linalg/linalg.hpp"
+#include "dca/parallel/stdthread/thread_pool/thread_pool.hpp"
 #include "dca/parallel/util/get_bounds.hpp"
 #include "dca/parallel/util/threading_data.hpp"
 
@@ -50,7 +49,7 @@ public:
   static void quadrature_integration_G_q_w_st(const Function& I_q, const Function& H_q,
                                               const Function& S_q, Function& G_q);
 
-  static void quadrature_integration_G_q_w_mt(int nr_threads, const Function& I_q,
+  static void quadrature_integration_G_q_w_mt(parallel::ThreadPool& pool, const Function& I_q,
                                               const Function& H_q, const Function& S_q,
                                               Function& G_q);
 
@@ -58,8 +57,8 @@ public:
                                               const Function& I_q, const Function& H_q,
                                               Function& G_q);
 
-  static void quadrature_integration_G_q_t_mt(int nr_threads, ScalarType beta, ScalarType f_val,
-                                              ScalarType t_val, const Function& I_q,
+  static void quadrature_integration_G_q_t_mt(parallel::ThreadPool& pool, ScalarType beta,
+                                              ScalarType f_val, ScalarType t_val, const Function& I_q,
                                               const Function& H_q, Function& G_q);
 
 private:
@@ -97,20 +96,17 @@ void quadrature_integration<ScalarType, IntegrationDmn, OtherDmn>::quadrature_in
 
 template <typename ScalarType, typename IntegrationDmn, typename OtherDmn>
 void quadrature_integration<ScalarType, IntegrationDmn, OtherDmn>::quadrature_integration_G_q_w_mt(
-    const int nr_threads, const Function& I_q, const Function& H_q, const Function& S_q,
+    parallel::ThreadPool& pool, const Function& I_q, const Function& H_q, const Function& S_q,
     Function& G_q) {
   G_q = 0.;
 
-  std::vector<std::future<void>> results;
-  auto task = std::bind(quadrature_integration_G_q_w_mt_impl, std::placeholders::_1, nr_threads,
-                        std::ref(I_q), std::ref(H_q), std::ref(S_q), std::ref(G_q));
-  const auto policy = nr_threads > 1 ? std::launch::async : std::launch::deferred;
+  std::vector<std::future<void>> tasks;
+  for (int id = 0; id < pool.size(); ++id)
+    tasks.push_back(pool.enqueue(quadrature_integration_G_q_w_mt_impl, id, int(pool.size()),
+                                 std::ref(I_q), std::ref(H_q), std::ref(S_q), std::ref(G_q)));
 
-  for (int id = 0; id < nr_threads; ++id)
-    results.emplace_back(std::async(policy, task, id));
-
-  for (auto& result : results)
-    result.wait();
+  for (auto& task : tasks)
+    task.wait();
 }
 
 template <typename ScalarType, typename IntegrationDmn, typename OtherDmn>
@@ -188,19 +184,16 @@ void quadrature_integration<ScalarType, IntegrationDmn, OtherDmn>::quadrature_in
 
 template <typename ScalarType, typename IntegrationDmn, typename OtherDmn>
 void quadrature_integration<ScalarType, IntegrationDmn, OtherDmn>::quadrature_integration_G_q_t_mt(
-    int nr_threads, const ScalarType beta, const ScalarType f_val, const ScalarType t_val,
-    const Function& I_q, const Function& H_q, Function& G_q) {
+    parallel::ThreadPool& pool, const ScalarType beta, const ScalarType f_val,
+    const ScalarType t_val, const Function& I_q, const Function& H_q, Function& G_q) {
   G_q = 0.;
 
-  std::vector<std::future<void>> results;
-  auto task = std::bind(quadrature_integration_G_q_t_mt_impl, std::placeholders::_1, nr_threads,
-                        beta, f_val, t_val, std::ref(I_q), std::ref(H_q), std::ref(G_q));
-  const auto policy = nr_threads > 1 ? std::launch::async : std::launch::deferred;
+  std::vector<std::future<void>> tasks;
+  for (int id = 0; id < pool.size(); ++id)
+    tasks.push_back(pool.enqueue(quadrature_integration_G_q_t_mt_impl, id, pool.size(), beta, f_val,
+                                 t_val, std::ref(I_q), std::ref(H_q), std::ref(G_q)));
 
-  for (int id = 0; id < nr_threads; ++id)
-    results.emplace_back(std::async(policy, task, id));
-
-  for (auto& result : results)
+  for (auto& task : tasks)
     task.wait();
 }
 
