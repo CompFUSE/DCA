@@ -192,15 +192,14 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::initialize(int dca
   perform_tp_accumulation_ = parameters_.get_four_point_type() != NONE and
                              dca_iteration == parameters_.get_dca_iterations() - 1;
   accumulator_.initialize(dca_iteration_);
-
-  // INTERNAL: consider not resetting if this is used as a base class.
-  walker_.reset(new Walker(instantiateWalker(rng_, 0)));
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
 void CtintClusterSolver<device_t, Parameters, use_submatrix>::integrate() {
   if (interaction_vertices_.integratedInteraction() == 0)
     throw(std::logic_error("The interaction is zero."));
+  walker_.reset(new Walker(instantiateWalker(rng_, 0)));
+
   dca::profiling::WallTime start_time;
   auto getTime = [&]() {
     dca::profiling::Duration split_time(dca::profiling::WallTime(), start_time);
@@ -326,7 +325,7 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::warmUp() {
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
 void CtintClusterSolver<device_t, Parameters, use_submatrix>::measure() {
   const int n_meas = parallel::util::getWorkload(parameters_.get_measurements(), 1, 0, concurrency_);
-  
+
   for (int i = 0; i < n_meas; i++) {
     {
       Profiler profiler("updating", "QMCI", __LINE__);
@@ -385,7 +384,7 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::computeSigma(
     for (int w_ind = 0; w_ind < Wdmn::dmn_size(); w_ind++) {
       dca::linalg::matrixop::copyArrayToMatrix(matrix_dim, matrix_dim, &G(0, 0, k_ind, w_ind),
                                                matrix_dim, Ginv);
-      
+
       dca::linalg::matrixop::inverse(Ginv, ipiv, work);
 
       // Ginv_M <- 1/G * M
