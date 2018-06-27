@@ -288,7 +288,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doStep(const int nbr_of_move
 }
 
 template <class Parameters>
-void CtintWalkerSubmatrix<linalg::CPU, Parameters>::generateDelayedMoves(int nbr_of_movesto_delay) {
+void CtintWalkerSubmatrix<linalg::CPU, Parameters>::generateDelayedMoves(const int nbr_of_movesto_delay) {
   assert(nbr_of_movesto_delay > 0);
 
   delayed_moves_.clear();

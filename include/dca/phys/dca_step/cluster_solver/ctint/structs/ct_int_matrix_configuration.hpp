@@ -31,6 +31,10 @@ struct Vertex {
   bool aux_spin;
   ushort interaction_id;
   double tau;
+
+  bool operator==(const Vertex& b) const{
+    return aux_spin == b.aux_spin && interaction_id == b.interaction_id && tau == b.tau;
+  }
 };
 
 class MatrixConfiguration {

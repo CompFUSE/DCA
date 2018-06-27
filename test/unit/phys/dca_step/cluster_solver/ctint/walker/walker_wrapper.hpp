@@ -49,6 +49,11 @@ struct WalkerWrapper : public CtintWalker<dca::linalg::CPU, Parameters> {
   double getAcceptanceProbability() const {
     return BaseClass::acceptance_prob_;
   }
+
+  const auto& getWalkerConfiguration() const {
+    return BaseClass::configuration_;
+  }
+
 };
 
 }  // ctint

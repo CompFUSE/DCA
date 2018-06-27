@@ -43,7 +43,11 @@ struct WalkerWrapperSubmatrix : public CtintWalkerSubmatrix<device_t, Parameters
   using MatrixPair = std::array<Matrix, 2>;
 
   const MatrixPair& getM() {
-    return RootClass::M_;
+    return BaseClass::M_;
+  }
+
+  const auto& getWalkerConfiguration() const {
+    return BaseClass::configuration_;
   }
 
   double getAcceptanceProbability() const {

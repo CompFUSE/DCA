@@ -28,10 +28,12 @@ using Walker = testing::phys::solver::ctint::WalkerWrapper<G0Setup::Parameters>;
 using Matrix = Walker::Matrix;
 using MatrixPair = std::array<Matrix, 2>;
 
-// Compare the submatrix update with a direct computation of the M matrix, and compare the acceptance probability to
+// Compare the submatrix update with a direct computation of the M matrix, and compare the
+// acceptance probability to
 // the CTINT walker with no submatrix update.
 TEST_F(G0Setup, doSteps) {
-  std::vector<double> setup_rngs{0., 0.247, 0.9};
+  std::vector<double> setup_rngs{0., 0.00, 0.9,  0.5, 0.01, 0,    0.75, 0.02,
+                                 0,  0.6,  0.03, 1,   0.99, 0.04, 0.99};
   G0Setup::RngType rng(setup_rngs);
 
   ctint::G0Interpolation<dca::linalg::CPU> g0(
@@ -49,26 +51,41 @@ TEST_F(G0Setup, doSteps) {
   // Insertion, vertex_id, tau, aux_spin, acceptance_rng
   // Removal, vertex_id, acceptance_rng
   // ...
-  std::vector<double> new_vals{
-          0, 0, 0.567, 0.8, -1,      // Insertion.
-          0, 0.99, 0.454, 0.8, -1,   // Insertion.
-          0, 0, 0.484, 0.8, 2,       // Insertion. Rejected.
-          1, 0, -1,                  // Remove pre-existing.
-          1, 0.99, -1,               // Remove recently inserted.
-          1, 0.99, 2,                // Remove recently inserted. Rejected
-          1, 0, 2,                   // Remove . Rejected
-          0, 0.99, 0.934, 0.2, -1,   // Insertion
+  // Note: if acceptance_rng <= 0 the move is always accepted, if it is > 1 the move is always
+  // rejected.
+  const std::vector<double> rng_vals{
+      0, 0,    0.1, 0.8, -1,  // Insertion.
+      0, 0.99, 0.2, 0.8, -1,  // Insertion.
+      0, 0,    0.3, 0.8, 2,   // Insertion. Rejected.
+      1, 0,    -1,            // Remove pre-existing.
+      1, 0.99, -1,            // Remove recently inserted.
+      1, 0.99, 2,             // Remove recently inserted. Rejected
+      1, 0,    2,             // Remove . Rejected
+      0, 0.99, 0.4, 0.2, -1,  // Insertion
   };
-  // Note: if acceptance_rng <= 0 the move is always accepted, if it is > 1 the move is always rejected.
 
-  for (int steps = 8; steps <= 8; ++steps) {
+  // NOTE: the non-submatrix walker reorders the configuration after each removal, therefore we need
+  // to change the vertex_id value for some removals, in order to obtain the same results.
+  const std::vector<double> rng_nosub_vals{
+      0, 0,    0.1, 0.8, -1,  // Insertion.
+      0, 0.99, 0.2, 0.8, -1,  // Insertion.
+      0, 0,    0.3, 0.8, 2,   // Insertion. Rejected.
+      1, 0,    -1,            // Remove tau = 0.00
+      1, 0.,   -1,            // Remove tau = 0.2
+      1, 0.99, 2,             // Remove tau = 0.1. Rejected
+      1, 0.2,  2,             // Remove tau = 0.01 . Rejected
+      0, 0.99, 0.4, 0.2, -1,  // Insertion
+  };
+
+  for (int steps = 1; steps <= 8; ++steps) {
     rng.setNewValues(setup_rngs);
     SubmatrixWalker walker(parameters, rng, G0Setup::interaction_vertices, builder);
 
     MatrixPair old_M(walker.getM());
-    rng.setNewValues(new_vals);
+    rng.setNewValues(rng_vals);
     walker.doStep(steps);
     MatrixPair new_M(walker.getM());
+    auto config = walker.getWalkerConfiguration();
 
     // Compute directly the new M.
     walker.setMFromConfig();
@@ -81,10 +98,23 @@ TEST_F(G0Setup, doSteps) {
     rng.setNewValues(setup_rngs);
     Walker walker_nosub(parameters, rng, G0Setup::interaction_vertices, builder);
 
-    rng.setNewValues(new_vals);
+    rng.setNewValues(rng_nosub_vals);
     for (int i = 0; i < steps; ++i)
       walker_nosub.doStep();
 
     EXPECT_NEAR(walker.getAcceptanceProbability(), walker_nosub.getAcceptanceProbability(), 1e-5);
+
+    auto config_nosubm = walker_nosub.getWalkerConfiguration();
+    ASSERT_EQ(config.size(), config_nosubm.size());
+    // The final configuration is the same up to a permutation.
+    for (int i = 0; i < config.size(); ++i) {
+      bool found = false;
+      for (int j = 0; j < config_nosubm.size(); ++j)
+        if (config[i] == config_nosubm[j]) {
+          found = true;
+          break;
+        }
+      EXPECT_TRUE(found);
+    }
   }
 }
