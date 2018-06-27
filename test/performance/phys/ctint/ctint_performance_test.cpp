@@ -7,7 +7,7 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// No-change test for CT-INT.
+// Performance test for CT-INT.
 // Bilayer lattice with two band and two sites.
 
 #include <iostream>
@@ -77,10 +77,11 @@ int main(int argc, char** argv) {
     // Do one integration step.
     QmcSolverType<dca::linalg::CPU> qmc_solver(parameters, data);
     qmc_solver.initialize(0);
-    // timed section.
+    // Timed section.
     dca::profiling::WallTime start_t;
     qmc_solver.integrate();
     dca::profiling::WallTime integration_t;
+
     //    qmc_solver.finalize();
     //    dca::profiling::WallTime finalize_t;
 
@@ -90,23 +91,20 @@ int main(int argc, char** argv) {
   }
 
 #ifdef DCA_HAVE_CUDA
-#pragma message("Building GPU performance test.")
-#ifdef ENABLE_PINNED_MEMORY_ALLOCATION
-#pragma message("Building with pinned host memory")
-#endif
   if (test_gpu) {
     std::cout << "\n\n  *********** GPU integration  ***************\n\n";
     std::cout.flush();
+    RngType::resetCounter();
     QmcSolverType<dca::linalg::GPU> solver_gpu(parameters, data);
     solver_gpu.initialize();
-    // timed section.
-    dca::profiling::WallTime start_t;
+
+    // Timed section.
     cudaProfilerStart();
+    dca::profiling::WallTime start_t;
     solver_gpu.integrate();
     dca::profiling::WallTime integration_t;
     cudaProfilerStop();
-    //    solver_gpu.finalize();
-    //    dca::profiling::WallTime finalize_t;
+
     std::cout << std::endl;
     printTime("Integration GPU", start_t, integration_t);
   }

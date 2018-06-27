@@ -7,7 +7,7 @@
   },
 
   "physics": {
-    "beta"                      :  1,
+    "beta"                      :  1.5,
     "chemical-potential"        : 0
   },
 
@@ -23,6 +23,7 @@
   "CT-INT" :
   {
     "initial-configuration-size" :500,
+    "max-submatrix-size" : 32,
     "alpha-dd-pos" : 0.501
   },
 
@@ -45,9 +46,9 @@
 
   "Monte-Carlo-integration" :
   {
-    "warm-up-sweeps"         : 100,
+    "warm-up-sweeps"         : 250,
     "sweeps-per-measurement" : 0,
-    "measurements-per-process-and-accumulator" : 0,
+    "measurements" : 0,
 
     "seed" : 0
   }
