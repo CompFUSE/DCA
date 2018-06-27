@@ -43,12 +43,44 @@ inline double computeAcceptanceProbability(const int order_change, const double 
                                   : det_ratio * combinatorial_factor / strength_factor;
 }
 
-inline void __inverse2x2(const double* in, const int lda, const double det, double* out,
-                         const int ldb) {
-  out[0] = in[lda + 1] / det;
-  out[1] = -in[1] / det;
-  out[ldb] = -in[lda] / det;
-  out[ldb + 1] = in[0] / det;
+template <class MatrixA>
+inline void smallInverse(MatrixA& m) {
+  assert(m.is_square());
+  switch (m.nrCols()) {
+    case 1:
+      m(0, 0) = 1. / m(0, 0);
+      break;
+    case 2: {
+      const double det = m(1, 1) * m(0, 0) - m(1, 0) * m(0, 1);
+      std::swap(m(0, 0), m(1, 1));
+      m(0, 0) /= det;
+      m(1, 0) /= -det;
+      m(0, 1) /= -det;
+      m(1, 1) /= det;
+    } break;
+    default:
+      linalg::matrixop::inverse(m);
+  }
+}
+
+template <class MatrixA, class MatrixB>
+inline void smallInverse(const MatrixA& in, MatrixB& out) {
+  assert(in.size() == out.size());
+  switch (in.nrCols()) {
+    case 1:
+      out(0, 0) = 1. / in(0, 0);
+      break;
+    case 2: {
+      const double det = in(1, 1) * in(0, 0) - in(1, 0) * in(0, 1);
+      out(0, 0) = in(1, 1) / det;
+      out(0, 1) = -in(0, 1) / det;
+      out(1, 0) = -in(1, 0) / det;
+      out(1, 1) = in(0, 0) / det;
+    } break;
+    default:
+      out = in;
+      linalg::matrixop::inverse(out);
+  }
 }
 
 template <class MatrixA, class MatrixB>
@@ -78,24 +110,21 @@ inline void smallInverse(MatrixType& m, const double det, linalg::Vector<int, li
                          linalg::Vector<double, linalg::CPU>& work) {
   assert(m.size() == m.size());
   switch (m.nrCols()) {
-    case 2: {
-      assert(det);
-      const double tmp = m(0, 0);
-      m(0, 0) = m(1, 1) / det;
-      m(1, 0) /= -det;
-      m(0, 1) /= -det;
-      m(1, 1) = tmp / det;
+    case 1:
+      m(0, 0) = 1. / m(0, 0);
       break;
-    }
-    //    case 4:
+    case 2:
+      assert(det);
+      {
+        const double tmp = m(0, 0);
+        m(0, 0) = m(1, 1) / det;
+        m(1, 0) /= -det;
+        m(0, 1) /= -det;
+        m(1, 1) = tmp / det;
+      }
+      break;
     default:
-      try {
-        linalg::matrixop::inverse(m, ipiv, work);
-      }
-      catch (linalg::lapack::util::LapackException err) {
-        std::cout << "Failed to invert matrix:\n";
-        m.print();
-      }
+      linalg::matrixop::inverse(m, ipiv, work);
   }
 }
 

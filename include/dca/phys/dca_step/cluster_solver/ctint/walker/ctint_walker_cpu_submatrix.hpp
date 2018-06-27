@@ -24,12 +24,12 @@
 #include <ctime>
 
 #include "dca/linalg/linalg.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/walker_methods.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/move.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_configuration.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/walker/move.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/function_proxy.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/g0_interpolation.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/walker_methods.hpp"
 #include "dca/util/integer_division.hpp"
 
 namespace dca {
@@ -714,8 +714,7 @@ double CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeAcceptanceProbabili
     if (!sector_indices_[s].size())
       continue;
 
-    // TODO: Use small determinant
-    acceptance_probability *= linalg::matrixop::determinant(s_[s]);
+    acceptance_probability *= details::smallDeterminant(s_[s]);
 
     for (int ind = 0; ind < nbr_of_indices_[s]; ++ind)
       gamma_factor *= gamma_[s].end()[-nbr_of_indices_[s] + ind];
@@ -911,8 +910,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::removeRowAndColOfGammaInv(co
     for (int ind = nbr_of_indices_[s] - 1; ind >= 0; --ind)
       linalg::matrixop::removeRowAndCol(Gamma_inv_[s], Gamma_indices_[s][ind]);
 
-    //  TODO: smallInverse;
-    dca::linalg::matrixop::inverse(s_[s]);
+    details::smallInverse(s_[s]);
 
     linalg::matrixop::gemm(q_[s], s_[s], q_s);
 
@@ -966,7 +964,6 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::pushToEnd() {
 
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::CPU, Parameters>::recomputeGammaInv() {
-  if ((!recently_added_ && accepted_) || (recently_added_ && !accepted_)) {
     for (int s = 0; s < 2; ++s) {
       if (Gamma_size_[s] > 0)
         linalg::matrixop::inverse(Gamma_inv_[s]);
@@ -993,9 +990,8 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::recomputeGammaInv() {
       Gamma_size_[s] = Gamma_inv_[s].nrRows();
 
       if (Gamma_size_[s] > 0)
-        linalg::matrixop::inverse(Gamma_inv_[s]);
+        details::smallInverse(Gamma_inv_[s]);
     }
-  }
 }
 
 }  // ctint
