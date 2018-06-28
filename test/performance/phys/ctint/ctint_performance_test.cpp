@@ -8,7 +8,7 @@
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // Performance test for CT-INT.
-// Bilayer lattice with two band and two sites.
+// Bilayer lattice with two bands and 36 sites.
 
 #include <iostream>
 #include <string>
@@ -48,16 +48,25 @@ using QmcSolverType = dca::phys::solver::CtintClusterSolver<device_t, Parameters
 
 int main(int argc, char** argv) {
   bool test_cpu(true), test_gpu(true);
+  int submatrix_size = -1;
   dca::util::ignoreUnused(test_gpu);
-  if (argc >= 2)
-    test_cpu = std::atoi(argv[1]);
-  if (argc >= 3)
-    test_gpu = std::atoi(argv[2]);
+  for (int i = 0; i < argc; ++i) {
+    const std::string arg(argv[i]);
+    if (arg == "--skip_cpu")
+      test_cpu = false;
+    else if (arg == "--skip_gpu")
+      test_gpu = false;
+    else if (arg == "--submatrix_size")
+      submatrix_size = std::atoi(argv[i + 1]);
+  }
 
   Concurrency concurrency(1, NULL);
   Parameters parameters("", concurrency);
   parameters.read_input_and_broadcast<dca::io::JSONReader>(input_dir +
                                                            "bilayer_lattice_input.json");
+  if (submatrix_size != -1)
+    parameters.setMaxSubmatrixSize(submatrix_size);
+
   parameters.update_model();
   parameters.update_domains();
 
@@ -69,6 +78,9 @@ int main(int argc, char** argv) {
     dca::profiling::Duration time(end, start);
     std::cout << str << ": time taken: " << time.sec + 1e-6 * time.usec << std::endl;
   };
+
+  std::cout << "Integrating with max-submatrix-size: " << parameters.getMaxSubmatrixSize()
+            << std::endl;
 
   if (test_cpu) {
     std::cout << "\n\n  *********** CPU integration  ***************\n\n";
@@ -86,7 +98,7 @@ int main(int argc, char** argv) {
     //    dca::profiling::WallTime finalize_t;
 
     std::cout << std::endl;
-    printTime("Integration", start_t, integration_t);
+    printTime("Integration CPU", start_t, integration_t);
     //    printTime("Finalization", integration_t, finalize_t);
   }
 

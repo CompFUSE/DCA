@@ -7,7 +7,7 @@
   },
 
   "physics": {
-    "beta"                      :  1.5,
+    "beta"                      :  4,
     "chemical-potential"        : 0
   },
 
@@ -15,14 +15,14 @@
   {
     "t"       : 1,
     "tz"      : 0,
-    "U" : 6,
-    "V" : 6,
-    "V-prime" : 6
+    "U" : 4,
+    "V" : 4,
+    "V-prime" : 4
   },
 
   "CT-INT" :
   {
-    "initial-configuration-size" :500,
+    "initial-configuration-size" :1000,
     "max-submatrix-size" : 32,
     "alpha-dd-pos" : 0.501
   },
@@ -46,7 +46,7 @@
 
   "Monte-Carlo-integration" :
   {
-    "warm-up-sweeps"         : 250,
+    "warm-up-sweeps"         : 100,
     "sweeps-per-measurement" : 0,
     "measurements" : 0,
 

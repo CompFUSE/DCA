@@ -245,7 +245,6 @@ void McSolverParameters<solver::SS_CT_HYB>::readWrite(ReaderOrWriter& reader_or_
   }
 }
 
-
 // Specialization for CT-INT
 template <>
 class McSolverParameters<solver::CT_INT> {
@@ -272,7 +271,7 @@ public:
     return double_update_prob_;
   }
 
-  void setDoubleUpdateProb(const double p){
+  void setDoubleUpdateProb(const double p) {
     double_update_prob_ = p;
   }
 
@@ -284,12 +283,16 @@ public:
     return max_submatrix_size_;
   }
 
+  void setMaxSubmatrixSize(const int size) {
+    max_submatrix_size_ = size;
+  }
+
 private:
   int initial_configuration_size_ = 0;
   double alpha_dd_pos_ = 0.501;
   double alpha_dd_neg_ = 0;
   double alpha_ndd_ = 1e-4;
-  double double_update_prob_= 0;
+  double double_update_prob_ = 0;
   bool double_counted_interaction_ = true;
   int max_submatrix_size_ = 1;
 };
@@ -360,7 +363,7 @@ void McSolverParameters<solver::CT_INT>::readWrite(ReaderOrWriter& reader_or_wri
     throw std::logic_error(__PRETTY_FUNCTION__);
   }
 
-  if(double_update_prob_ < 0 or double_update_prob_> 1.)
+  if (double_update_prob_ < 0 or double_update_prob_ > 1.)
     throw(std::out_of_range("double-update-probability must be in [0,1]."));
 }
 
