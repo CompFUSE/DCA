@@ -27,8 +27,11 @@ using MatrixView = linalg::MatrixView<double, linalg::GPU>;
 void computeGLeft(MatrixView& G, const MatrixView& M, const double* f, int n_init,
                   cudaStream_t stream);
 
-void multiplyByFFactor(MatrixView& M, const double* f_vals,
-                       bool inverse_factor, bool row_factor, cudaStream_t stream);
+void multiplyByFFactor(MatrixView& M, const double* f_vals, bool inverse_factor, bool row_factor,
+                       cudaStream_t stream);
+
+void divideByGammaFactor(MatrixView m, const std::pair<int, double>* gamma_indices, int n_indices,
+                         cudaStream_t stream);
 
 }  // details
 }  // ctint

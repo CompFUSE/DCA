@@ -217,11 +217,12 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::integrate() {
 
   total_time_ = getTime();
 
-  if (concurrency_.id() == concurrency_.first())
+  if (concurrency_.id() == concurrency_.first()) {
     std::cout << "\n\tMeasuring has ended. Done " << parameters_.get_measurements()
-              << " measurements.\n"
-              << "\t\tAverage sign: " << std::setprecision(5) << accumulator_.avgSign() << "\n"
-              << "\t\tAcceptance ratio: " << walker_->acceptanceRatio() << "\n\n";
+              << " measurements.\n";
+    walker_->printSummary();
+    std::cout << "Average sign: " << std::setprecision(5) << accumulator_.avgSign();
+  }
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>

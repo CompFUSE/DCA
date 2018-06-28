@@ -46,17 +46,19 @@ public:
                        const DMatrixBuilder<linalg::GPU>& builder_ref, int id = 0);
 
 public:
-  void doSweep();
+  void doSweep() override;
 
   void synchronize() const;
 
   using BaseClass::order;
 
 private:
-  virtual void doStep();
+  void doStep() override;
 
   void computeMInit();
   void computeGInit();
+  void updateM();
+  void pushToEnd();
 
   void uploadConfiguration();
 
@@ -67,6 +69,9 @@ private:
 
   using BaseClass::configuration_;
   DeviceConfigurationManager device_config_;
+
+  using BaseClass::removal_list_;
+  using BaseClass::conf_removal_list_;
 
   const DMatrixBuilder<linalg::GPU>& d_builder_;
 
@@ -80,13 +85,23 @@ private:
 
   using BaseClass::G_;
   MatrixPair<linalg::GPU> M_dev_;
+  MatrixPair<linalg::GPU> Gamma_inv_dev_;
   MatrixPair<linalg::GPU> D_dev_;
   MatrixPair<linalg::GPU> G_dev_;
   MatrixPair<linalg::GPU> G0_dev_;
-  MatrixPair<linalg::CPU> Gamma_inv_;
+  MatrixPair<linalg::GPU> tmp_dev_;
+
+  using BaseClass::Gamma_inv_;
   using BaseClass::f_;
+
   std::array<linalg::Vector<double, linalg::GPU>, 2> f_dev_;
   std::array<linalg::Vector<double, linalg::CPU>, 2> f_values_;
+
+  using BaseClass::gamma_;
+  using BaseClass::move_indices_;
+  std::array<linalg::util::HostVector<std::pair<int, double>>, 2> gamma_index_;
+  std::array<linalg::Vector<std::pair<int, double>, linalg::GPU>, 2> gamma_index_dev_;
+
   std::array<linalg::util::CudaEvent, 2> config_copied_;
 
   using BaseClass::concurrency_;
@@ -98,6 +113,9 @@ private:
 
   // Maximal sector size after submatrix update.
   using BaseClass::n_max_;
+
+  // If true the m matrix is multiplied by a f-factor.
+  bool m_transformed_ = false;
 };
 
 template <class Parameters>
@@ -136,7 +154,9 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::doSweep() {
   for (int s = 0; s < 2; ++s) {
     MatrixView<linalg::GPU> M(M_dev_[s]);
     details::multiplyByFFactor(M, f_dev_[s].ptr(), false, true, stream_[s]);
-    M_[s].setAsync(M_dev_[s], stream_[s]);
+
+    if (BaseClass::thermalized_)  // TODO: do not download if accumulator accepts GPU matrices.
+      M_[s].setAsync(M_dev_[s], stream_[s]);
   }
 }
 
@@ -149,10 +169,7 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::doStep() {
   computeGInit();
   synchronize();
   BaseClass::mainSubmatrixProcess();
-  BaseClass::updateM();
-
-  for (int s = 0; s < 2; ++s)
-    M_dev_[s].setAsync(M_[s], stream_[s]);
+  updateM();
 }
 
 template <class Parameters>
@@ -196,11 +213,9 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeMInit() {
 
       linalg::matrixop::gemm(D_dev_[s], M, D_M, thread_id_, s);
 
-      // TODO set n_init independently for each sector
       details::setRightSectorToId(M_dev_[s].ptr(), M_dev_[s].leadingDimension(), n_init_[s],
                                   n_max_[s], stream_[s]);
     }
-    M_[s].setAsync(M_dev_[s], stream_[s]);
   }
 }
 
@@ -227,6 +242,103 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeGInit() {
       linalg::matrixop::gemm(M_dev_[s], G0_dev_[s], G, thread_id_, s);
     }
     G_[s].setAsync(G_dev_[s], stream_[s]);
+  }
+}
+
+template <class Parameters>
+void CtintWalkerSubmatrix<linalg::GPU, Parameters>::updateM() {
+  for (int s = 0; s < 2; ++s)
+    Gamma_inv_dev_[s].setAsync(Gamma_inv_[s], stream_[s]);
+
+  // Copy gamma factors.
+  for (int s = 0; s < 2; ++s) {
+    auto& gamma_index = gamma_index_[s];
+    const int n = gamma_[s].size();
+    gamma_index.resize(n);
+    for (int i = 0; i < n; ++i)
+      gamma_index[i] = std::make_pair(move_indices_[s][i], gamma_[s][i]);
+    gamma_index_dev_[s].setAsync(gamma_index, stream_[s]);
+  }
+
+  for (int s = 0; s < 2; ++s) {
+    if (gamma_[s].size() == 0)
+      continue;
+
+    auto& tmp = tmp_dev_[s];
+    // Reuse previously allocated memory as workspace.
+    auto& old_M = D_dev_[s];
+    auto& old_G = G0_dev_[s];
+
+    const int gamma_size = gamma_[s].size();
+    tmp.resizeNoCopy(std::make_pair(gamma_size, n_max_[s]));
+    old_G.resizeNoCopy(std::make_pair(n_max_[s], gamma_size));
+    old_M.resizeNoCopy(std::make_pair(gamma_size, n_max_[s]));
+
+    // TODO: this can be done in a single kernel with the copied memory.
+    int p;
+    for (int j = 0; j < gamma_size; ++j) {
+      p = move_indices_[s][j];
+
+      linalg::matrixop::copyCol(G_dev_[s], p, old_G, j, thread_id_, s);
+      linalg::matrixop::copyRow(M_dev_[s], p, old_M, j, thread_id_, s);
+    }
+
+    linalg::matrixop::gemm(Gamma_inv_dev_[s], old_M, tmp, thread_id_, s);
+    linalg::matrixop::gemm(-1., old_G, tmp, 1., M_dev_[s], thread_id_, s);
+
+    details::divideByGammaFactor(MatrixView<linalg::GPU>(M_dev_[s]), gamma_index_dev_[s].ptr(),
+                                 gamma_size, stream_[s]);
+  }
+
+  // Remove "non-interacting" rows and columns.
+  pushToEnd();
+
+  for (int s = 0; s < 2; ++s)
+    M_dev_[s].resize(n_max_[s] - BaseClass::removal_list_[s].size());
+
+  const int n_new_vertices = (M_dev_[0].size().first + M_dev_[1].size().first) / 2;
+  while (configuration_.size() > n_new_vertices)
+    configuration_.pop();
+
+  assert(configuration_.getSector(0).size() == M_dev_[0].nrRows());
+  assert(configuration_.getSector(1).size() == M_dev_[1].nrRows());
+}
+
+template <class Parameters>
+void CtintWalkerSubmatrix<linalg::GPU, Parameters>::pushToEnd() {
+  int source;
+  int destination;
+
+  for (int s = 0; s < 2; ++s) {
+    // Sort in reverse order.
+    std::sort(removal_list_[s].rbegin(), removal_list_[s].rend());
+
+    destination = n_max_[s] - 1;
+
+    for (int i = 0; i < removal_list_[s].size(); ++i) {
+      source = removal_list_[s][i];
+
+      removal_list_[s][i] = destination;
+
+      linalg::matrixop::swapRowAndCol(M_dev_[s], source, destination);
+      configuration_.swapSectorLabels(source, destination, s);
+
+      --destination;
+    }
+  }
+
+  std::sort(conf_removal_list_.rbegin(), conf_removal_list_.rend());
+
+  destination = configuration_.size() - 1;
+
+  for (int i = 0; i < conf_removal_list_.size(); ++i) {
+    source = conf_removal_list_[i];
+
+    conf_removal_list_[i] = destination;
+
+    configuration_.swapVertices(source, destination);
+
+    --destination;
   }
 }
 

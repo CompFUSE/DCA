@@ -63,6 +63,8 @@ protected:  // The class is not instantiable.
   CtintWalkerBase(Parameters& pars_ref, Rng& rng_ref, const InteractionVertices& vertices,
                   const DMatrixBuilder<linalg::CPU>& builder_ref, int id = 0);
 
+  virtual ~CtintWalkerBase() = default;
+
 public:
   AccumulatorConfiguration getConfiguration() const;
   AccumulatorConfiguration moveConfiguration();
@@ -84,7 +86,7 @@ public:
     return sign_;
   }
 
-  double acceptanceRatio() {
+  double acceptanceRatio() const {
     return double(n_accepted_) / double(n_steps_);
   }
 
@@ -96,7 +98,7 @@ public:
 
   void updateShell(int meas_id, int meas_to_do) const;
 
-  void printSummary() const {}
+  void printSummary() const;
 
   virtual void synchronize() const {}
 
@@ -108,9 +110,6 @@ protected:  // typedefs
 
 protected:  // Auxiliary methods.
   void updateSweepAverages();
-
-  void pushToEnd(const std::array<std::vector<ushort>, 2>& matrix_indices,
-                 const std::pair<short, short>& vertex_indices);
 
   void setMFromConfig();
 
@@ -155,9 +154,8 @@ private:
 
 template <class Parameters>
 CtintWalkerBase<Parameters>::CtintWalkerBase(Parameters& parameters_ref, Rng& rng_ref,
-                                                       const InteractionVertices& vertices,
-                                                       const DMatrixBuilder<linalg::CPU>& builder_ref,
-                                                       int id)
+                                             const InteractionVertices& vertices,
+                                             const DMatrixBuilder<linalg::CPU>& builder_ref, int id)
     : parameters_(parameters_ref),
       concurrency_(parameters_.get_concurrency()),
 
@@ -170,8 +168,7 @@ CtintWalkerBase<Parameters>::CtintWalkerBase(Parameters& parameters_ref, Rng& rn
 
       beta_(parameters_.get_beta()),
       d_builder_(builder_ref),
-      total_interaction_(vertices.integratedInteraction())
-      {
+      total_interaction_(vertices.integratedInteraction()) {
   while (parameters_.getInitialConfigurationSize() > configuration_.size())
     configuration_.insertRandom(rng_);
 
@@ -221,7 +218,7 @@ void CtintWalkerBase<Parameters>::setConfiguration(AccumulatorConfiguration&& co
 
 template <class Parameters>
 void CtintWalkerBase<Parameters>::updateSweepAverages() {
-    order_avg_.addSample(order());
+  order_avg_.addSample(order());
   // Track avg order for the final number of steps / sweep.
   if (order_avg_.count() >= parameters_.get_warm_up_sweeps() / 2)
     partial_order_avg_.addSample(order());
@@ -238,36 +235,9 @@ void CtintWalkerBase<Parameters>::markThermalized() {
 }
 
 template <class Parameters>
-void CtintWalkerBase<Parameters>::pushToEnd(
-    const std::array<std::vector<ushort>, 2>& matrix_indices,
-    const std::pair<short, short>& vertex_indices) {
-  for (int s = 0; s < 2; ++s) {
-    auto& M = M_[s];
-    const auto indices = matrix_indices[s];
-    ushort destination = M.nrCols() - 1;
-    assert(M.nrCols() >= indices.size());
-    // TODO check
-    for (int idx = indices.size() - 1; idx >= 0; --idx) {
-      const ushort source = indices[idx];
-      linalg::matrixop::swapRowAndCol(M, source, destination, thread_id_, s);
-      configuration_.swapSectorLabels(source, destination, s);
-      --destination;
-    }
-  }
-
-  if (vertex_indices.second == -1)
-    configuration_.swapVertices(vertex_indices.first, configuration_.size() - 1);
-  else {
-    const ushort a = std::min(vertex_indices.first, vertex_indices.second);
-    const ushort b = std::max(vertex_indices.first, vertex_indices.second);
-    configuration_.swapVertices(b, configuration_.size() - 1);
-    configuration_.swapVertices(a, configuration_.size() - 2);
-  }
-}
-
-template <class Parameters>
 void CtintWalkerBase<Parameters>::updateShell(int meas_id, int meas_to_do) const {
-  if (concurrency_.id() == concurrency_.first() && meas_id > 1 && (meas_id % dca::util::ceilDiv(meas_to_do, 10)) == 0) {
+  if (concurrency_.id() == concurrency_.first() && meas_id > 1 &&
+      (meas_id % dca::util::ceilDiv(meas_to_do, 10)) == 0) {
     std::cout << "\t\t\t" << int(double(meas_id) / double(meas_to_do) * 100) << " % completed \t ";
     std::cout << "\t k :" << order();
     const double avg_order = avgOrder();
@@ -275,6 +245,24 @@ void CtintWalkerBase<Parameters>::updateShell(int meas_id, int meas_to_do) const
       std::cout << "\t <k> :" << std::setprecision(1) << std::fixed << avg_order;
     std::cout << "\t\t" << dca::util::print_time() << "\n";
   }
+}
+
+template <class Parameters>
+void CtintWalkerBase<Parameters>::printSummary() const {
+  std::cout.unsetf(std::ios_base::floatfield);
+  std::cout << "\n"
+            << "Walker: process ID = " << concurrency_.id() << ", thread ID = " << thread_id_ << "\n"
+            << "-------------------------------------------\n";
+
+  if (partial_order_avg_.count())
+    std::cout << "Estimate for sweep size: " << partial_order_avg_.mean() << "\n";
+  if (order_avg_.count())
+    std::cout << "Average expansion order: " << order_avg_.mean() << "\n";
+
+  std::cout << "Acceptance ratio: " << acceptanceRatio() << "\n";
+  std::cout << std::endl;
+
+  std::cout << std::scientific;
 }
 
 }  // ctint

@@ -87,6 +87,27 @@ void multiplyByFFactor(MatrixView& M, const double* f_vals, bool inverse_factor,
   multiplyByFFactorKernel<<<blocks[0], blocks[1], 0, stream>>>(M, f_vals, inverse_factor, row_factor);
 }
 
+__global__ void divideByGammaFactorKernel(MatrixView m, const std::pair<int, double>* gamma_indices,
+                                          const int n_indices) {
+  // TODO: loop over a number of j indices.
+  const int i = threadIdx.x + blockDim.x * blockIdx.x;
+  const int j = threadIdx.y + blockDim.y * blockIdx.y;
+  if(i >= n_indices || j >= m.nrCols())
+    return;
+
+  const int p = gamma_indices[i].first;
+  assert(p < m.nrRows());
+
+  m(p, j) /= 1. + gamma_indices[i].second;
+}
+
+void divideByGammaFactor(MatrixView m, const std::pair<int, double>* gamma_indices,
+                         const int n_indices, cudaStream_t stream) {
+  const auto blocks = dca::util::getBlockSize(n_indices, m.nrCols());
+
+  divideByGammaFactorKernel<<<blocks[0], blocks[1], 0, stream>>>(m, gamma_indices, n_indices);
+}
+
 }  // details
 }  // ctint
 }  // solver

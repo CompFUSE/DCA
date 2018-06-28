@@ -51,6 +51,9 @@ protected:
   bool tryVertexInsert();
   bool tryVertexRemoval();
 
+  void pushToEnd(const std::array<std::vector<ushort>, 2>& matrix_indices,
+                 const std::pair<short, short>& vertex_indices);
+
   // Test handle.
   const auto& getM() const {
     return M_;
@@ -290,7 +293,7 @@ template <class Parameters>
 void CtintWalker<linalg::CPU, Parameters>::applyRemoval() {
   const int n_removed = removal_candidates_.second == -1 ? 1 : 2;
   // TODO maybe: don't copy values to be popped.
-  BaseClass::pushToEnd(removal_matrix_indices_, removal_candidates_);
+  pushToEnd(removal_matrix_indices_, removal_candidates_);
   configuration_.pop(n_removed);
 
   for (int s = 0; s < 2; ++s) {
@@ -318,6 +321,34 @@ void CtintWalker<linalg::CPU, Parameters>::applyRemoval() {
     MatrixView M_bulk(M, 0, 0, m_size, m_size);
     linalg::matrixop::gemm(-1., Q_S, R, 1., M_bulk);
     M.resize(m_size);
+  }
+}
+
+template <class Parameters>
+void CtintWalker<linalg::CPU, Parameters>::pushToEnd(
+    const std::array<std::vector<ushort>, 2>& matrix_indices,
+    const std::pair<short, short>& vertex_indices) {
+  for (int s = 0; s < 2; ++s) {
+    auto& M = M_[s];
+    const auto indices = matrix_indices[s];
+    ushort destination = M.nrCols() - 1;
+    assert(M.nrCols() >= indices.size());
+    // TODO check
+    for (int idx = indices.size() - 1; idx >= 0; --idx) {
+      const ushort source = indices[idx];
+      linalg::matrixop::swapRowAndCol(M, source, destination, thread_id_, s);
+      configuration_.swapSectorLabels(source, destination, s);
+      --destination;
+    }
+  }
+
+  if (vertex_indices.second == -1)
+    configuration_.swapVertices(vertex_indices.first, configuration_.size() - 1);
+  else {
+    const ushort a = std::min(vertex_indices.first, vertex_indices.second);
+    const ushort b = std::max(vertex_indices.first, vertex_indices.second);
+    configuration_.swapVertices(b, configuration_.size() - 1);
+    configuration_.swapVertices(a, configuration_.size() - 2);
   }
 }
 
