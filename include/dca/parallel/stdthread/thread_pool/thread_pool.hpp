@@ -50,7 +50,7 @@ private:
   std::vector<std::mutex> queue_mutex_;
   std::vector<std::condition_variable> condition_;
   std::atomic<bool> stop_;
-  unsigned int active_id_;
+  std::atomic<unsigned int> active_id_;
 };
 
 // the constructor just launches some amount of workers_
@@ -85,7 +85,8 @@ template <class F, class... Args>
 auto ThreadPool::enqueue(F&& f, Args&&... args)
     -> std::future<typename std::result_of<F(Args...)>::type> {
   using return_type = typename std::result_of<F(Args...)>::type;
-  const int id = active_id_;
+  unsigned int id = active_id_++;
+  id = id % size();
 
   auto task =
       std::packaged_task<return_type()>(std::bind(std::forward<F>(f), std::forward<Args>(args)...));
@@ -101,8 +102,7 @@ auto ThreadPool::enqueue(F&& f, Args&&... args)
     tasks_[id].emplace(std::move(task));
   }
   condition_[id].notify_one();
-
-  active_id_ = (active_id_ + 1) % size();
+    
   return res;
 }
 
