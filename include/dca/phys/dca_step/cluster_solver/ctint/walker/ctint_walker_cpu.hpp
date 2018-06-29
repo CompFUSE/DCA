@@ -116,10 +116,10 @@ CtintWalker<linalg::CPU, Parameters>::CtintWalker(Parameters& parameters_ref, Rn
 template <class Parameters>
 void CtintWalker<linalg::CPU, Parameters>::doSweep() {
   int nb_of_steps;
-  if (not thermalized_)
+  if (nb_steps_per_sweep_ < 0) // Not thermalized or fixed.
     nb_of_steps = BaseClass::avgOrder() + 1;
   else
-    nb_of_steps = nb_steps_per_sweep_ * parameters_.get_sweeps_per_measurement();
+    nb_of_steps = nb_steps_per_sweep_;
 
   for (int i = 0; i < nb_of_steps; i++) {
     doStep();

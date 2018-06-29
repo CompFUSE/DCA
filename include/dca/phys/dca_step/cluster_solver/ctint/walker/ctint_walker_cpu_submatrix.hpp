@@ -229,10 +229,10 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doSteps() {
   // Here nbr_of_steps is the number of single steps/moves during the current sweep,
   // while nbr_of_submatrix_steps is the number of times the entire submatrix algorithm  is run.
 
-  if (not thermalized_)
+  if (nb_steps_per_sweep_ < 0) // Not thermalized or fixed.
     nbr_of_steps_ = BaseClass::avgOrder() + 1;
   else
-    nbr_of_steps_ = nb_steps_per_sweep_ * parameters_.get_sweeps_per_measurement();
+    nbr_of_steps_ = nb_steps_per_sweep_;
 
   // Get the maximum of Monte Carlo steps/moves that can be performed during one submatrix step.
   max_nbr_of_moves = parameters_.getMaxSubmatrixSize();

@@ -105,6 +105,13 @@ public:
 
   virtual void synchronize() const {}
 
+  // For testing purposes.
+  // Fixes the numbers of proposed steps per sweep.
+  void fixStepsPerSweep(const int nb_steps_per_sweep) {
+    assert(nb_steps_per_sweep > 0);
+    nb_steps_per_sweep_ = nb_steps_per_sweep;
+  }
+
 protected:  // typedefs
   using Matrix = linalg::Matrix<double, linalg::CPU>;
   using MatrixPair = std::array<linalg::Matrix<double, linalg::CPU>, 2>;
@@ -229,8 +236,12 @@ void CtintWalkerBase<Parameters>::updateSweepAverages() {
 
 template <class Parameters>
 void CtintWalkerBase<Parameters>::markThermalized() {
+  if (partial_order_avg_.mean() == 0)
+    throw(std::runtime_error("The average expansion order is 0."));
   thermalized_ = true;
-  nb_steps_per_sweep_ = std::ceil(partial_order_avg_.mean());
+
+  nb_steps_per_sweep_ =
+      std::ceil(parameters_.get_sweeps_per_measurement() * partial_order_avg_.mean());
 
   order_avg_.reset();
   sign_avg_.reset();
