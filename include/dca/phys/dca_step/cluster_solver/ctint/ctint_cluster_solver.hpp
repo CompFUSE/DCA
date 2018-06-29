@@ -221,7 +221,6 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::integrate() {
     std::cout << "\n\tMeasuring has ended. Done " << parameters_.get_measurements()
               << " measurements.\n";
     walker_->printSummary();
-    std::cout << "Average sign: " << std::setprecision(5) << accumulator_.avgSign();
   }
 }
 

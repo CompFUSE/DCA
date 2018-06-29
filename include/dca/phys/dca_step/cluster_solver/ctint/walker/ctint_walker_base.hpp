@@ -134,6 +134,7 @@ protected:  // Members.
 
   util::Accumulator<uint> partial_order_avg_;
   util::Accumulator<uint> order_avg_;
+  util::Accumulator<int> sign_avg_;
   ulong n_steps_ = 0;
   ulong n_accepted_ = 0;
   int nb_steps_per_sweep_ = -1;
@@ -220,8 +221,9 @@ void CtintWalkerBase<Parameters>::setConfiguration(AccumulatorConfiguration&& co
 template <class Parameters>
 void CtintWalkerBase<Parameters>::updateSweepAverages() {
   order_avg_.addSample(order());
+  sign_avg_.addSample(sign_);
   // Track avg order for the final number of steps / sweep.
-  if (order_avg_.count() >= parameters_.get_warm_up_sweeps() / 2)
+  if (!thermalized_ && order_avg_.count() >= parameters_.get_warm_up_sweeps() / 2)
     partial_order_avg_.addSample(order());
 }
 
@@ -231,6 +233,7 @@ void CtintWalkerBase<Parameters>::markThermalized() {
   nb_steps_per_sweep_ = std::ceil(partial_order_avg_.mean());
 
   order_avg_.reset();
+  sign_avg_.reset();
   n_accepted_ = 0;
   n_steps_ = 0;
 }
@@ -250,7 +253,6 @@ void CtintWalkerBase<Parameters>::updateShell(int meas_id, int meas_to_do) const
 
 template <class Parameters>
 void CtintWalkerBase<Parameters>::printSummary() const {
-  std::cout.unsetf(std::ios_base::floatfield);
   std::cout << "\n"
             << "Walker: process ID = " << concurrency_.id() << ", thread ID = " << thread_id_ << "\n"
             << "-------------------------------------------\n";
@@ -259,11 +261,11 @@ void CtintWalkerBase<Parameters>::printSummary() const {
     std::cout << "Estimate for sweep size: " << partial_order_avg_.mean() << "\n";
   if (order_avg_.count())
     std::cout << "Average expansion order: " << order_avg_.mean() << "\n";
+  if (sign_avg_.count())
+    std::cout << "Average sign: " << sign_avg_.mean() << "\n";
 
   std::cout << "Acceptance ratio: " << acceptanceRatio() << "\n";
   std::cout << std::endl;
-
-  std::cout << std::scientific;
 }
 
 }  // ctint
