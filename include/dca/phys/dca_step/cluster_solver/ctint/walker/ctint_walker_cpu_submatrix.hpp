@@ -229,7 +229,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doSteps() {
   // Here nbr_of_steps is the number of single steps/moves during the current sweep,
   // while nbr_of_submatrix_steps is the number of times the entire submatrix algorithm  is run.
 
-  if (nb_steps_per_sweep_ < 0) // Not thermalized or fixed.
+  if (nb_steps_per_sweep_ < 0)  // Not thermalized or fixed.
     nbr_of_steps_ = BaseClass::avgOrder() + 1;
   else
     nbr_of_steps_ = nb_steps_per_sweep_;
@@ -734,6 +734,7 @@ double CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeAcceptanceProbabili
 
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::CPU, Parameters>::updateGammaInv() {
+  Profiler profiler(__FUNCTION__, "CT-INT walker", __LINE__, thread_id_);
   for (int s = 0; s < 2; ++s) {
     const int delta = nbr_of_indices_[s];
     if (delta == 0)
@@ -853,6 +854,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::findSectorIndices(const int 
 
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::CPU, Parameters>::removeRowAndColOfGammaInv(const int s) {
+  Profiler profiler(__FUNCTION__, "CT-INT walker", __LINE__, thread_id_);
   // TODO: optimize.
   const int delta = Gamma_indices_[s].size();
   if (delta == 0)

@@ -46,11 +46,16 @@ using Parameters = dca::phys::params::Parameters<Concurrency, Threading, Profile
                                                  dca::phys::solver::CT_INT>;
 using Data = dca::phys::DcaData<Parameters>;
 template <dca::linalg::DeviceType device_t>
-using QmcSolverType = dca::phys::solver::CtintClusterSolver<device_t, Parameters, true>;
+using Walker = dca::phys::solver::ctint::CtintWalkerSubmatrix<device_t, Parameters>;
+
+using BDmn = dca::func::dmn_0<dca::phys::domains::electron_band_domain>;
+using RDmn = Parameters::RClusterDmn;
+using BBRDmn = dca::func::dmn_variadic<BDmn, BDmn, RDmn>;
 
 int main(int argc, char** argv) {
   bool test_cpu(true), test_gpu(true);
   int submatrix_size = -1;
+  int n_sweeps = -1;
   dca::util::ignoreUnused(test_gpu);
   for (int i = 0; i < argc; ++i) {
     const std::string arg(argv[i]);
@@ -60,6 +65,8 @@ int main(int argc, char** argv) {
       test_gpu = false;
     else if (arg == "--submatrix_size")
       submatrix_size = std::atoi(argv[i + 1]);
+    else if (arg == "--n_sweeps")
+      n_sweeps = std::atoi(argv[i + 1]);
   }
 
   Concurrency concurrency(1, NULL);
@@ -68,6 +75,8 @@ int main(int argc, char** argv) {
                                                            "bilayer_lattice_input.json");
   if (submatrix_size != -1)
     parameters.setMaxSubmatrixSize(submatrix_size);
+  if (n_sweeps == -1)
+    n_sweeps = parameters.get_warm_up_sweeps();
 
   parameters.update_model();
   parameters.update_domains();
@@ -76,36 +85,59 @@ int main(int argc, char** argv) {
   Data data(parameters);
   data.initialize();
 
+#ifdef DCA_HAVE_CUDA
+  constexpr dca::linalg::DeviceType device = dca::linalg::GPU;
+#else
+  constexpr dca::linalg::DeviceType device = dca::linalg::CPU;
+#endif  // DCA_HAVE_CUDA
+
+  dca::phys::solver::ctint::G0Interpolation<device> g0(
+      dca::phys::solver::ctint::details::shrinkG0(data.G0_r_t));
+  dca::phys::solver::ctint::InteractionVertices interaction_vertices;
+  interaction_vertices.initializeFromHamiltonian(data.H_interactions);
+  if (data.has_non_density_interactions())
+    interaction_vertices.initializeFromNonDensityHamiltonian(data.get_non_density_interactions());
+
+  BBRDmn bbr_dmn;
+  dca::phys::solver::ctint::DMatrixBuilder<device> builder(
+      g0, RDmn::parameter_type::get_subtract_matrix(), bbr_dmn.get_branch_domain_steps(),
+      parameters.getAlphas());
+
   auto printTime = [](const std::string& str, const auto& start, const auto& end) {
     dca::profiling::Duration time(end, start);
     std::cout << str << ": time taken: " << time.sec + 1e-6 * time.usec << std::endl;
+  };
+
+  auto do_sweeps = [n_sweeps, &parameters](auto& walker) {
+    walker.fixStepsPerSweep(parameters.getInitialConfigurationSize());
+    for (int i = 0; i < n_sweeps; ++i) {
+      walker.doSweep();
+      walker.updateShell(i, n_sweeps);
+    }
   };
 
   std::cout << "Integrating with max-submatrix-size: " << parameters.getMaxSubmatrixSize()
             << std::endl;
 
   if (test_cpu) {
-    std::cout << "\n\n  *********** CPU integration  ***************\n\n";
-    std::cout.flush();
+    std::cout << "\n\n  *********** CPU integration  ***************\n" << std::endl;
 
     // TODO: always start if the profiler supports the writing of multiple files.
     if (!test_gpu)
       Profiler::start();
 
     // Do one integration step.
-    QmcSolverType<dca::linalg::CPU> qmc_solver(parameters, data);
-    qmc_solver.initialize(0);
+    RngType rng(0, 1, 0);
+    Walker<dca::linalg::CPU> walker(parameters, rng, interaction_vertices, builder, 0);
+    walker.initialize();
+
     // Timed section.
     dca::profiling::WallTime start_t;
-    qmc_solver.integrate();
+    do_sweeps(walker);
     dca::profiling::WallTime integration_t;
-
-    //    qmc_solver.finalize();
-    //    dca::profiling::WallTime finalize_t;
 
     std::cout << std::endl;
     printTime("Integration CPU", start_t, integration_t);
-    //    printTime("Finalization", integration_t, finalize_t);
 
     if (!test_gpu)
       Profiler::stop(concurrency, "profile_cpu.txt");
@@ -119,13 +151,14 @@ int main(int argc, char** argv) {
     Profiler::start();
 
     RngType::resetCounter();
-    QmcSolverType<dca::linalg::GPU> solver_gpu(parameters, data);
-    solver_gpu.initialize();
+    RngType rng(0, 1, 0);
+    Walker<dca::linalg::GPU> walker_gpu(parameters, rng, interaction_vertices, builder, 0);
+    walker_gpu.initialize();
 
     // Timed section.
     cudaProfilerStart();
     dca::profiling::WallTime start_t;
-    solver_gpu.integrate();
+    do_sweeps(walker_gpu);
     dca::profiling::WallTime integration_t;
     cudaProfilerStop();
 

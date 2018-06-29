@@ -1,11 +1,4 @@
 {
-  "output" :
-  {
-    "output-format"         : "HDF5",
-    "output-ED"  : "ed_results.hdf5",
-    "output-QMC" : "ctint_results.hdf5"
-  },
-
   "physics": {
     "beta"                      :  4,
     "chemical-potential"        : 0
@@ -23,7 +16,7 @@
   "CT-INT" :
   {
     "initial-configuration-size" :1000,
-    "max-submatrix-size" : 32,
+    "max-submatrix-size" : 128,
     "alpha-dd-pos" : 0.501
   },
 
@@ -33,10 +26,10 @@
       [0, 6]]
   },
   "imaginary-time": {
-    "sp-time-intervals": 264
+    "sp-time-intervals": 512
   },
   "imaginary-frequency": {
-    "sp-fermionic-frequencies": 264
+    "sp-fermionic-frequencies": 512
   }
 },
 
@@ -46,10 +39,6 @@
 
   "Monte-Carlo-integration" :
   {
-    "warm-up-sweeps"         : 100,
-    "sweeps-per-measurement" : 0,
-    "measurements" : 0,
-
-    "seed" : 0
+    "warm-up-sweeps"         : 100
   }
 }
