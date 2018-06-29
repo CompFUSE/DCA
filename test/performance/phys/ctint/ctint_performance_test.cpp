@@ -30,7 +30,8 @@
 #include "dca/parallel/no_threading/no_threading.hpp"
 #include "dca/phys/parameters/parameters.hpp"
 #include "dca/profiling/events/time.hpp"
-#include "dca/profiling/null_profiler.hpp"
+#include "dca/profiling/counting_profiler.hpp"
+#include "dca/profiling/events/time_event.hpp"
 #include "dca/util/ignore.hpp"
 
 const std::string input_dir = DCA_SOURCE_DIR "/test/performance/phys/ctint/";
@@ -40,8 +41,9 @@ using Lattice = dca::phys::models::bilayer_lattice<dca::phys::domains::D4>;
 using Model = dca::phys::models::TightBindingModel<Lattice>;
 using Threading = dca::parallel::NoThreading;
 using Concurrency = dca::parallel::NoConcurrency;
-using Parameters = dca::phys::params::Parameters<Concurrency, Threading, dca::profiling::NullProfiler,
-                                                 Model, RngType, dca::phys::solver::CT_INT>;
+using Profiler = dca::profiling::CountingProfiler<dca::profiling::time_event<std::size_t>>;
+using Parameters = dca::phys::params::Parameters<Concurrency, Threading, Profiler, Model, RngType,
+                                                 dca::phys::solver::CT_INT>;
 using Data = dca::phys::DcaData<Parameters>;
 template <dca::linalg::DeviceType device_t>
 using QmcSolverType = dca::phys::solver::CtintClusterSolver<device_t, Parameters, true>;
@@ -86,6 +88,10 @@ int main(int argc, char** argv) {
     std::cout << "\n\n  *********** CPU integration  ***************\n\n";
     std::cout.flush();
 
+    // TODO: always start if the profiler supports the writing of multiple files.
+    if (!test_gpu)
+      Profiler::start();
+
     // Do one integration step.
     QmcSolverType<dca::linalg::CPU> qmc_solver(parameters, data);
     qmc_solver.initialize(0);
@@ -100,12 +106,18 @@ int main(int argc, char** argv) {
     std::cout << std::endl;
     printTime("Integration CPU", start_t, integration_t);
     //    printTime("Finalization", integration_t, finalize_t);
+
+    if (!test_gpu)
+      Profiler::stop(concurrency, "profile_cpu.txt");
   }
 
 #ifdef DCA_HAVE_CUDA
   if (test_gpu) {
     std::cout << "\n\n  *********** GPU integration  ***************\n\n";
     std::cout.flush();
+
+    Profiler::start();
+
     RngType::resetCounter();
     QmcSolverType<dca::linalg::GPU> solver_gpu(parameters, data);
     solver_gpu.initialize();
@@ -116,6 +128,8 @@ int main(int argc, char** argv) {
     solver_gpu.integrate();
     dca::profiling::WallTime integration_t;
     cudaProfilerStop();
+
+    Profiler::stop(concurrency, "profile_gpu.txt");
 
     std::cout << std::endl;
     printTime("Integration GPU", start_t, integration_t);

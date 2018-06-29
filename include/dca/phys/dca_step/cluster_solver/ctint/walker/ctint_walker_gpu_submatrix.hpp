@@ -148,6 +148,8 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::synchronize() const {
 
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::GPU, Parameters>::doSweep() {
+  Profiler profiler(__FUNCTION__, "CT-INT GPU walker", __LINE__, thread_id_);
+
   for (int s = 0; s < 2; ++s) {
     MatrixView<linalg::GPU> M(M_dev_[s]);
     details::multiplyByFFactor(M, f_dev_[s].ptr(), true, true, stream_[s]);
@@ -218,7 +220,7 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::uploadConfiguration() {
 
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeMInit() {
-  Profiler profiler(__FUNCTION__, "CT-INT GPU walker", __LINE__, thread_id_);
+  //  Profiler profiler(__FUNCTION__, "CT-INT GPU walker", __LINE__, thread_id_);
 
   for (int s = 0; s < 2; ++s)
     M_dev_[s].resize(n_max_[s]);
@@ -245,7 +247,7 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeMInit() {
 
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeGInit() {
-  Profiler profiler(__FUNCTION__, "CT-INT GPU walker", __LINE__, thread_id_);
+  //  Profiler profiler(__FUNCTION__, "CT-INT GPU walker", __LINE__, thread_id_);
 
   for (int s = 0; s < 2; ++s) {
     const int delta = n_max_[s] - n_init_[s];
@@ -271,6 +273,8 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::computeGInit() {
 
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::GPU, Parameters>::updateM() {
+  //  Profiler profiler(__FUNCTION__, "CT-INT GPU walker", __LINE__, thread_id_);
+
   for (int s = 0; s < 2; ++s)
     Gamma_inv_dev_[s].setAsync(Gamma_inv_[s], stream_[s]);
 

@@ -198,6 +198,7 @@ CtintWalkerSubmatrix<linalg::CPU, Parameters>::CtintWalkerSubmatrix(
 
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::CPU, Parameters>::doSweep() {
+  Profiler profiler(__FUNCTION__, "CT-INT walker", __LINE__, thread_id_);
   double f_i;
 
   for (int s = 0; s < 2; ++s) {
