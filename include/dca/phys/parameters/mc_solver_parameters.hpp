@@ -263,6 +263,10 @@ public:
     return initial_configuration_size_;
   }
 
+  void setInitialConfigurationSize(const int size) {
+    initial_configuration_size_ = size;
+  }
+
   std::array<double, 3> getAlphas() const {
     return std::array<double, 3>{alpha_dd_pos_, alpha_dd_neg_, alpha_ndd_};
   }

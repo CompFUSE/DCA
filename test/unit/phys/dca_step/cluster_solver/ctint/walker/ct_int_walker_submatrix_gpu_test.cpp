@@ -40,12 +40,10 @@ TEST_F(G0Setup, doSteps) {
                                  0,  0.6,  0.03, 1,   0.99, 0.04, 0.99};
   G0Setup::RngType rng(setup_rngs);
 
-  ctint::G0Interpolation<GPU> g0(
-      dca::phys::solver::ctint::details::shrinkG0(data->G0_r_t));
+  ctint::G0Interpolation<GPU> g0(dca::phys::solver::ctint::details::shrinkG0(data->G0_r_t));
   G0Setup::LabelDomain label_dmn;
   ctint::DMatrixBuilder<GPU> builder(g0, RDmn::parameter_type::get_subtract_matrix(),
-                                                  label_dmn.get_branch_domain_steps(),
-                                                  parameters.getAlphas());
+                                     label_dmn.get_branch_domain_steps(), parameters.getAlphas());
 
   // ************************************
   // Test vertex insertion / removal ****
@@ -68,26 +66,29 @@ TEST_F(G0Setup, doSteps) {
       0, 0.99, 0.4, 0.2, -1,  // Insertion
   };
 
-  for (int steps = 1; steps <= 8; ++steps) {
-    rng.setNewValues(setup_rngs);
-    SubmatrixWalker<CPU> walker_cpu(parameters, rng, G0Setup::interaction_vertices, builder);
-    rng.setNewValues(setup_rngs);
-    SubmatrixWalker<GPU> walker_gpu(parameters, rng, G0Setup::interaction_vertices, builder);
+  for (const int initial_size : std::array<int, 2>{0, 5}) {
+    parameters.setInitialConfigurationSize(initial_size);
 
-    rng.setNewValues(rng_vals);
-    walker_cpu.doStep(steps);
-    rng.setNewValues(rng_vals);
-    walker_gpu.doStep(steps);
+    for (int steps = 1; steps <= 8; ++steps) {
+      rng.setNewValues(setup_rngs);
+      SubmatrixWalker<CPU> walker_cpu(parameters, rng, G0Setup::interaction_vertices, builder);
+      rng.setNewValues(setup_rngs);
+      SubmatrixWalker<GPU> walker_gpu(parameters, rng, G0Setup::interaction_vertices, builder);
 
-    for (int s = 0; s < 2; ++s)
-      EXPECT_TRUE(dca::linalg::matrixop::areNear(walker_cpu.getM()[s], walker_gpu.getM()[s], 1e-7));
+      rng.setNewValues(rng_vals);
+      walker_cpu.doStep(steps);
+      rng.setNewValues(rng_vals);
+      walker_gpu.doStep(steps);
 
-    // The final configuration is the same.
-    const auto& config1 = walker_cpu.getWalkerConfiguration();
-    const auto& config2 = walker_gpu.getWalkerConfiguration();
-    ASSERT_EQ(config1.size(), config2.size());
-    for (int i = 0; i < config1.size(); ++i)
-      EXPECT_EQ(config1[i], config2[i]);
+      for (int s = 0; s < 2; ++s)
+        EXPECT_TRUE(dca::linalg::matrixop::areNear(walker_cpu.getM()[s], walker_gpu.getM()[s], 1e-7));
 
+      // The final configuration is the same.
+      const auto& config1 = walker_cpu.getWalkerConfiguration();
+      const auto& config2 = walker_gpu.getWalkerConfiguration();
+      ASSERT_EQ(config1.size(), config2.size());
+      for (int i = 0; i < config1.size(); ++i)
+        EXPECT_EQ(config1[i], config2[i]);
+    }
   }
 }

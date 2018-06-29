@@ -61,9 +61,10 @@ private:
   void pushToEnd();
 
   void uploadConfiguration();
+
 protected:
-    // For testing purposes:
-    void doStep(int n_moves_to_delay);
+  // For testing purposes:
+  void doStep(int n_moves_to_delay);
 
 protected:
   using BaseClass::configuration_;
@@ -164,24 +165,24 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::doSweep() {
   }
 }
 
-    template <class Parameters>
-    void CtintWalkerSubmatrix<linalg::GPU, Parameters>::doStep(const int n_moves_to_delay) {
-      for (int s = 0; s < 2; ++s) {
-        MatrixView<linalg::GPU> M(M_dev_[s]);
-        details::multiplyByFFactor(M, f_dev_[s].ptr(), true, true, stream_[s]);
-      }
+template <class Parameters>
+void CtintWalkerSubmatrix<linalg::GPU, Parameters>::doStep(const int n_moves_to_delay) {
+  for (int s = 0; s < 2; ++s) {
+    MatrixView<linalg::GPU> M(M_dev_[s]);
+    details::multiplyByFFactor(M, f_dev_[s].ptr(), true, true, stream_[s]);
+  }
 
-      BaseClass ::nbr_of_moves_to_delay_ = n_moves_to_delay;
-      doStep();
-      uploadConfiguration();
+  BaseClass::nbr_of_moves_to_delay_ = n_moves_to_delay;
+  doStep();
+  uploadConfiguration();
 
-      for (int s = 0; s < 2; ++s) {
-        MatrixView<linalg::GPU> M(M_dev_[s]);
-        details::multiplyByFFactor(M, f_dev_[s].ptr(), false, true, stream_[s]);
-          M_[s].setAsync(M_dev_[s], stream_[s]);
-      }
-      synchronize();
-    }
+  for (int s = 0; s < 2; ++s) {
+    MatrixView<linalg::GPU> M(M_dev_[s]);
+    details::multiplyByFFactor(M, f_dev_[s].ptr(), false, true, stream_[s]);
+    M_[s].setAsync(M_dev_[s], stream_[s]);
+  }
+  synchronize();
+}
 
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::GPU, Parameters>::doStep() {
@@ -288,12 +289,10 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::updateM() {
       continue;
 
     // Reuse previously allocated memory as workspace.
-    auto& tmp = G_dev_[s];
     auto& old_M = D_dev_[s];
     auto& old_G = G0_dev_[s];
 
     const int gamma_size = gamma_[s].size();
-    tmp.resizeNoCopy(std::make_pair(gamma_size, n_max_[s]));
     old_G.resizeNoCopy(std::make_pair(n_max_[s], gamma_size));
     old_M.resizeNoCopy(std::make_pair(gamma_size, n_max_[s]));
 
@@ -306,6 +305,9 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::updateM() {
       linalg::matrixop::copyRow(M_dev_[s], p, old_M, j, thread_id_, s);
     }
 
+    auto& tmp = G_dev_[s];
+    // Note: the following resize is safe as it does not deallocate.
+    tmp.resizeNoCopy(std::make_pair(gamma_size, n_max_[s]));
     linalg::matrixop::gemm(Gamma_inv_dev_[s], old_M, tmp, thread_id_, s);
     linalg::matrixop::gemm(-1., old_G, tmp, 1., M_dev_[s], thread_id_, s);
 
