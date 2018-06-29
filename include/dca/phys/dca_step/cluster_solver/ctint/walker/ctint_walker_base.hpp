@@ -72,6 +72,9 @@ public:
 
   void markThermalized();
 
+  // Recompute the matrix M from the configuration in O(expansion_order^3) time.
+  void setMFromConfig();
+
   bool is_thermalized() const {
     return thermalized_;
   }
@@ -110,8 +113,6 @@ protected:  // typedefs
 
 protected:  // Auxiliary methods.
   void updateSweepAverages();
-
-  void setMFromConfig();
 
 protected:  // Members.
   Parameters& parameters_;

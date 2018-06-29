@@ -78,8 +78,6 @@ private:
   void findSectorIndices(const int s);
   void recomputeGammaInv();
 
-  using BaseClass::setMFromConfig;
-
 protected:
   using MatrixView = linalg::MatrixView<double, linalg::CPU>;
   using Matrix = linalg::Matrix<double, linalg::CPU>;

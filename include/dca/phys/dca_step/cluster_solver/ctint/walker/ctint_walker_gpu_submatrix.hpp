@@ -61,13 +61,19 @@ private:
   void pushToEnd();
 
   void uploadConfiguration();
+protected:
+    // For testing purposes:
+    void doStep(int n_moves_to_delay);
+
+protected:
+  using BaseClass::configuration_;
+  using BaseClass::M_;
 
 private:
   template <linalg::DeviceType dev = linalg::GPU>
   using MatrixView = linalg::MatrixView<double, dev>;
   using Matrix = linalg::Matrix<double, linalg::CPU>;
 
-  using BaseClass::configuration_;
   DeviceConfigurationManager device_config_;
 
   using BaseClass::removal_list_;
@@ -77,7 +83,6 @@ private:
 
   using BaseClass::parameters_;
   using BaseClass::rng_;
-  using BaseClass::M_;
 
 private:
   template <linalg::DeviceType device_t>
@@ -89,7 +94,6 @@ private:
   MatrixPair<linalg::GPU> D_dev_;
   MatrixPair<linalg::GPU> G_dev_;
   MatrixPair<linalg::GPU> G0_dev_;
-  MatrixPair<linalg::GPU> tmp_dev_;
 
   using BaseClass::Gamma_inv_;
   using BaseClass::f_;
@@ -159,6 +163,25 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::doSweep() {
       M_[s].setAsync(M_dev_[s], stream_[s]);
   }
 }
+
+    template <class Parameters>
+    void CtintWalkerSubmatrix<linalg::GPU, Parameters>::doStep(const int n_moves_to_delay) {
+      for (int s = 0; s < 2; ++s) {
+        MatrixView<linalg::GPU> M(M_dev_[s]);
+        details::multiplyByFFactor(M, f_dev_[s].ptr(), true, true, stream_[s]);
+      }
+
+      BaseClass ::nbr_of_moves_to_delay_ = n_moves_to_delay;
+      doStep();
+      uploadConfiguration();
+
+      for (int s = 0; s < 2; ++s) {
+        MatrixView<linalg::GPU> M(M_dev_[s]);
+        details::multiplyByFFactor(M, f_dev_[s].ptr(), false, true, stream_[s]);
+          M_[s].setAsync(M_dev_[s], stream_[s]);
+      }
+      synchronize();
+    }
 
 template <class Parameters>
 void CtintWalkerSubmatrix<linalg::GPU, Parameters>::doStep() {
@@ -264,8 +287,8 @@ void CtintWalkerSubmatrix<linalg::GPU, Parameters>::updateM() {
     if (gamma_[s].size() == 0)
       continue;
 
-    auto& tmp = tmp_dev_[s];
     // Reuse previously allocated memory as workspace.
+    auto& tmp = G_dev_[s];
     auto& old_M = D_dev_[s];
     auto& old_G = G0_dev_[s];
 

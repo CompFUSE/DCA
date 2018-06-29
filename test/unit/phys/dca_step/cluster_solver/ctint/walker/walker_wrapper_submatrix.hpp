@@ -14,6 +14,10 @@
 
 #include "dca/linalg/device_type.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_cpu_submatrix.hpp"
+#ifdef DCA_HAVE_CUDA
+#include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_gpu_submatrix.hpp"
+#endif
+
 
 namespace testing {
 namespace phys {
@@ -30,10 +34,8 @@ struct WalkerWrapperSubmatrix : public CtintWalkerSubmatrix<device_t, Parameters
 
   WalkerWrapperSubmatrix(Parameters& parameters_ref, Rng& rng_ref,
                          const InteractionVertices& vertices,
-                         const DMatrixBuilder<dca::linalg::CPU>& builder)
+                         const DMatrixBuilder<device_t>& builder)
       : BaseClass(parameters_ref, rng_ref, vertices, builder, 0) {}
-
-  using RootClass::setMFromConfig;
 
   void doStep(const int n_steps_to_delay) {
     BaseClass::doStep(n_steps_to_delay);
