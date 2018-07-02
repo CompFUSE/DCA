@@ -22,6 +22,7 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/math/util/vector_operations.hpp"
+#include "dca/parallel/stdthread/thread_pool/thread_pool.hpp"
 #include "dca/parallel/util/get_bounds.hpp"
 #include "dca/phys/dca_step/cluster_mapping/coarsegraining/coarsegraining_domain.hpp"
 #include "dca/phys/dca_step/cluster_mapping/coarsegraining/tetrahedron_integration_data.hpp"
@@ -91,7 +92,6 @@ void tetrahedron_integration<parameters_type, K_dmn>::execute(
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu>>& G_int) const {
   const int nr_threads = parameters.get_coarsegraining_threads();
 
-  const auto policy = nr_threads > 1 ? std::launch::async : std::launch::deferred;
   std::function<void(int)> task;
 
   switch (DIMENSION) {
@@ -115,9 +115,10 @@ void tetrahedron_integration<parameters_type, K_dmn>::execute(
   }
 
   std::vector<std::future<func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu>>>> futures;
-  for (int id = 0; id < nr_threads; id++) {
-    futures.emplace_back(std::async(policy, task, id));
-  }
+  auto& pool = dca::parallel::ThreadPool::get_instance();
+
+  for (int id = 0; id < nr_threads; id++)
+    futures.emplace_back(pool.enqueue(task, id));
 
   G_int = 0;
   for (int l = 0; l < nr_threads; l++) {
