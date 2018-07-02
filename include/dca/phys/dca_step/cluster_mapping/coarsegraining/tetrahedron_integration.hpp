@@ -23,7 +23,6 @@
 #include "dca/function/function.hpp"
 #include "dca/math/util/vector_operations.hpp"
 #include "dca/parallel/util/get_bounds.hpp"
-#include "dca/parallel/util/threading_data.hpp"
 #include "dca/phys/dca_step/cluster_mapping/coarsegraining/coarsegraining_domain.hpp"
 #include "dca/phys/dca_step/cluster_mapping/coarsegraining/tetrahedron_integration_data.hpp"
 #include "dca/phys/dca_step/cluster_mapping/coarsegraining/tetrahedron_routines_inverse_matrix_function.hpp"

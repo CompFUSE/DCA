@@ -6,15 +6,15 @@
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// This class is the equivalent of Pthreading for serial execution.
+// This class is the equivalent of dca::parallel::stdthread for serial execution.
 
 #ifndef DCA_PARALLEL_NO_THREADING_HPP
 #define DCA_PARALLEL_NO_THREADING_HPP
 
 #include <iostream>
 #include <stdexcept>
-#include "dca/parallel/util/threading_data.hpp"
 
 namespace dca {
 namespace parallel {
@@ -22,20 +22,18 @@ namespace parallel {
 
 class NoThreading {
 public:
-  void execute(int num_threads, void* (*start_routine)(void*), void* arg) {
-    for (int id = 0; id < num_threads; id++) {
-      data_.id = id;
-      data_.num_threads = num_threads;
-      data_.arg = arg;
-      start_routine(static_cast<void*>(&data_));
-    }
+  // Execute the function f(id, num_tasks, args...) as num_tasks synchronous tasks with id in
+  // [0, num_tasks - 1].
+  template <class F, class... Args>
+  void execute(int num_tasks, F&& f, Args&&... args) {
+    for (int id = 0; id < num_tasks; ++id)
+      f(id, num_tasks, args...);
   }
 
   friend std::ostream& operator<<(std::ostream& some_ostream, const NoThreading& this_concurrency);
 
 private:
   constexpr static char parallel_type_str_[] = "NoThreading";
-  ThreadingData data_;
 };
 
 }  // parallel

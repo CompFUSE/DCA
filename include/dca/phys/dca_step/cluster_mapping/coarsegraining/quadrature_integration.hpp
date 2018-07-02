@@ -30,16 +30,14 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/linalg/linalg.hpp"
-#include "dca/parallel/stdthread/thread_pool/thread_pool.hpp"
 #include "dca/parallel/util/get_bounds.hpp"
-#include "dca/parallel/util/threading_data.hpp"
 
 namespace dca {
 namespace phys {
 namespace clustermapping {
 // dca::phys::clustermapping::
 
-template <typename ScalarType, typename IntegrationDmn, typename OtherDmn>
+template <typename ScalarType, typename IntegrationDmn, typename OtherDmn, typename Threading = void>
 class quadrature_integration {
 private:
   using Function =
@@ -49,7 +47,7 @@ public:
   static void quadrature_integration_G_q_w_st(const Function& I_q, const Function& H_q,
                                               const Function& S_q, Function& G_q);
 
-  static void quadrature_integration_G_q_w_mt(parallel::ThreadPool& pool, const Function& I_q,
+  static void quadrature_integration_G_q_w_mt(int nr_threads, const Function& I_q,
                                               const Function& H_q, const Function& S_q,
                                               Function& G_q);
 
@@ -57,8 +55,8 @@ public:
                                               const Function& I_q, const Function& H_q,
                                               Function& G_q);
 
-  static void quadrature_integration_G_q_t_mt(parallel::ThreadPool& pool, ScalarType beta,
-                                              ScalarType f_val, ScalarType t_val, const Function& I_q,
+  static void quadrature_integration_G_q_t_mt(int nr_threads, ScalarType beta, ScalarType f_val,
+                                              ScalarType t_val, const Function& I_q,
                                               const Function& H_q, Function& G_q);
 
 private:
@@ -72,8 +70,8 @@ private:
                                                    Function& G_q);
 };
 
-template <typename ScalarType, typename IntegrationDmn, typename OtherDmn>
-void quadrature_integration<ScalarType, IntegrationDmn, OtherDmn>::quadrature_integration_G_q_w_st(
+template <typename ScalarType, typename IntegrationDmn, typename OtherDmn, typename Threading>
+void quadrature_integration<ScalarType, IntegrationDmn, OtherDmn, Threading>::quadrature_integration_G_q_w_st(
     const Function& I_q, const Function& H_q, const Function& S_q, Function& G_q) {
   linalg::Matrix<std::complex<ScalarType>, linalg::CPU> G_inv("G_inv", OtherDmn::dmn_size());
 
@@ -94,25 +92,24 @@ void quadrature_integration<ScalarType, IntegrationDmn, OtherDmn>::quadrature_in
   }
 }
 
-template <typename ScalarType, typename IntegrationDmn, typename OtherDmn>
-void quadrature_integration<ScalarType, IntegrationDmn, OtherDmn>::quadrature_integration_G_q_w_mt(
-    parallel::ThreadPool& pool, const Function& I_q, const Function& H_q, const Function& S_q,
+template <typename ScalarType, typename IntegrationDmn, typename OtherDmn, typename Threading>
+void quadrature_integration<ScalarType, IntegrationDmn, OtherDmn, Threading>::quadrature_integration_G_q_w_mt(
+    const int nr_threads, const Function& I_q, const Function& H_q, const Function& S_q,
     Function& G_q) {
   G_q = 0.;
 
-  std::vector<std::future<void>> tasks;
-  for (int id = 0; id < pool.size(); ++id)
-    tasks.push_back(pool.enqueue(quadrature_integration_G_q_w_mt_impl, id, int(pool.size()),
-                                 std::ref(I_q), std::ref(H_q), std::ref(S_q), std::ref(G_q)));
-
-  for (auto& task : tasks)
-    task.wait();
+  Threading parallelization_obj;
+  parallelization_obj.execute(nr_threads, quadrature_integration_G_q_w_mt_impl, std::ref(I_q),
+                              std::ref(H_q), std::ref(S_q), std::ref(G_q));
 }
 
-template <typename ScalarType, typename IntegrationDmn, typename OtherDmn>
-void quadrature_integration<ScalarType, IntegrationDmn, OtherDmn>::quadrature_integration_G_q_w_mt_impl(
-    int id, int nr_threads, const Function& I_q, const Function& H_q, const Function& S_q,
-    Function& G_q) {
+template <typename ScalarType, typename IntegrationDmn, typename OtherDmn, typename Threading>
+void quadrature_integration<ScalarType, IntegrationDmn, OtherDmn,
+                            Threading>::quadrature_integration_G_q_w_mt_impl(int id, int nr_threads,
+                                                                             const Function& I_q,
+                                                                             const Function& H_q,
+                                                                             const Function& S_q,
+                                                                             Function& G_q) {
   const IntegrationDmn q_dmn;
   const std::pair<int, int> q_bounds = parallel::util::getBounds(id, nr_threads, q_dmn);
 
@@ -135,8 +132,8 @@ void quadrature_integration<ScalarType, IntegrationDmn, OtherDmn>::quadrature_in
   }
 }
 
-template <typename ScalarType, typename IntegrationDmn, typename OtherDmn>
-void quadrature_integration<ScalarType, IntegrationDmn, OtherDmn>::quadrature_integration_G_q_t_st(
+template <typename ScalarType, typename IntegrationDmn, typename OtherDmn, typename Threading>
+void quadrature_integration<ScalarType, IntegrationDmn, OtherDmn, Threading>::quadrature_integration_G_q_t_st(
     const ScalarType beta, const ScalarType f_val, const ScalarType t_val, const Function& I_q,
     const Function& H_q, Function& G_q) {
   G_q = 0.;
@@ -182,23 +179,19 @@ void quadrature_integration<ScalarType, IntegrationDmn, OtherDmn>::quadrature_in
   }
 }
 
-template <typename ScalarType, typename IntegrationDmn, typename OtherDmn>
-void quadrature_integration<ScalarType, IntegrationDmn, OtherDmn>::quadrature_integration_G_q_t_mt(
-    parallel::ThreadPool& pool, const ScalarType beta, const ScalarType f_val,
-    const ScalarType t_val, const Function& I_q, const Function& H_q, Function& G_q) {
+template <typename ScalarType, typename IntegrationDmn, typename OtherDmn, typename Threading>
+void quadrature_integration<ScalarType, IntegrationDmn, OtherDmn, Threading>::quadrature_integration_G_q_t_mt(
+    const int nr_threads, const ScalarType beta, const ScalarType f_val, const ScalarType t_val,
+    const Function& I_q, const Function& H_q, Function& G_q) {
   G_q = 0.;
 
-  std::vector<std::future<void>> tasks;
-  for (int id = 0; id < pool.size(); ++id)
-    tasks.push_back(pool.enqueue(quadrature_integration_G_q_t_mt_impl, id, pool.size(), beta, f_val,
-                                 t_val, std::ref(I_q), std::ref(H_q), std::ref(G_q)));
-
-  for (auto& task : tasks)
-    task.wait();
+  Threading parallelization_obj;
+  parallelization_obj.execute(nr_threads, quadrature_integration_G_q_t_mt_impl, beta, f_val, t_val,
+                              std::ref(I_q), std::ref(H_q), std::ref(G_q));
 }
 
-template <typename ScalarType, typename IntegrationDmn, typename OtherDmn>
-void quadrature_integration<ScalarType, IntegrationDmn, OtherDmn>::quadrature_integration_G_q_t_mt_impl(
+template <typename ScalarType, typename IntegrationDmn, typename OtherDmn, typename Threading>
+void quadrature_integration<ScalarType, IntegrationDmn, OtherDmn, Threading>::quadrature_integration_G_q_t_mt_impl(
     const int id, const int nr_threads, const ScalarType beta, const ScalarType f_val,
     const ScalarType t_val, const Function& I_q, const Function& H_q, Function& G_q) {
   const IntegrationDmn q_dmn;

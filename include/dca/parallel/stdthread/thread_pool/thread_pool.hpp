@@ -33,8 +33,11 @@ class ThreadPool {
 public:
   // Creates a pool with n_threads.
   ThreadPool(size_t n_threads);
-    // Creates a pool with as many threads as hardware threads.
-    ThreadPool();
+  // Creates a pool with as many threads as hardware threads.
+  ThreadPool();
+
+  ThreadPool(const ThreadPool& other) = delete;
+  ThreadPool(ThreadPool&& other) = default;
 
   // Call asynchronously the function f with arguments args. This method is thread safe.
   // Returns: a future to the result of f(args...).
