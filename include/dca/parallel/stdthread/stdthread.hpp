@@ -45,6 +45,27 @@ public:
       future.wait();
   }
 
+  // Returns \sum_{id = 0}^{num_threads -1} f(id, num_threads, args...).
+  // Precondition: the return type of f can be initialized with 0.
+  template <class F, class... Args>
+  auto sumReduction(int num_threads, F&& f, Args&&... args) {
+    using ReturnType = typename std::result_of<F(int, int, Args...)>::type;
+
+    std::vector<std::future<ReturnType>> futures;
+    auto& pool = ThreadPool::get_instance();
+
+    // Fork.
+    for (int id = 0; id < num_threads; ++id)
+      futures.emplace_back(
+              pool.enqueue(std::forward<F>(f), id, num_threads, std::forward<Args>(args)...));
+    // Reduce.
+    ReturnType result = 0;
+    for (auto& future : futures)
+      result += future.get();
+
+    return result;
+  }
+
   friend std::ostream& operator<<(std::ostream& some_ostream, const stdthread& this_concurrency);
 
 private:

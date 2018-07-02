@@ -15,14 +15,13 @@
 #include <functional>
 #include "gtest/gtest.h"
 
-int routine(const int id, const int num_threads, std::vector<int>& vec) {
-  EXPECT_EQ(4, num_threads);
-  vec[id] += id;
-  return 0;
-}
-
 TEST(NoThreadingTest, Execute) {
   dca::parallel::NoThreading threading;
+  auto routine = [](const int id, const int num_threads, std::vector<int>& vec) {
+    EXPECT_EQ(4, num_threads);
+    vec[id] += id;
+    return 0;
+  };
 
   const int num_threads = 4;
   std::vector<int> vec{0, 10, 20, 30};
@@ -31,6 +30,16 @@ TEST(NoThreadingTest, Execute) {
   threading.execute(num_threads, routine, std::ref(vec));
 
   EXPECT_EQ(vec_check, vec);
+}
+
+TEST(NoThreadingTest, SumReduction) {
+  auto routine = [](const int id, const int /*num_threads*/) { return id; };
+
+  dca::parallel::NoThreading threading;
+  const int n_threads = 4;
+  const int result = threading.sumReduction(n_threads, routine);
+
+  EXPECT_EQ(3 + 2 + 1, result);
 }
 
 TEST(NoThreadingTest, OstreamOperator) {

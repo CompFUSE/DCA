@@ -47,6 +47,8 @@ public:
   using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
+  using Threading = typename parameters_type::ThreadingType;
+
   const static int DIMENSION = K_dmn::parameter_type::DIMENSION;
 
 public:
@@ -101,29 +103,21 @@ void tetrahedron_integration<parameters_type, K_dmn>::execute(
     //         break;
 
     case 2:
-      task = std::bind(tetrahedron_integration_2D<scalar_type>, std::placeholders::_1, nr_threads,
-                       std::ref(w_tet), std::ref(G_tet));
+      task = std::bind(tetrahedron_integration_2D<scalar_type>, std::placeholders::_1,
+                       std::placeholders::_2, std::ref(w_tet), std::ref(G_tet));
       break;
 
     case 3:
-      task = std::bind(tetrahedron_integration_3D<scalar_type>, std::placeholders::_1, nr_threads,
-                       std::ref(w_tet), std::ref(G_tet));
+      task = std::bind(tetrahedron_integration_3D<scalar_type>, std::placeholders::_1,
+                       std::placeholders::_2, std::ref(w_tet), std::ref(G_tet));
       break;
 
     default:
       throw std::logic_error(__FUNCTION__);
   }
 
-  std::vector<std::future<func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu>>>> futures;
-  auto& pool = dca::parallel::ThreadPool::get_instance();
-
-  for (int id = 0; id < nr_threads; id++)
-    futures.emplace_back(pool.enqueue(task, id));
-
-  G_int = 0;
-  for (int l = 0; l < nr_threads; l++) {
-    G_int += futures[l].get();
-  }
+  Threading threads;
+  G_int = threads.sumReduction(nr_threads, task);
 }
 
 // template <typename parameters_type, typename K_dmn>

@@ -16,13 +16,12 @@
 
 using Threading = dca::parallel::stdthread;
 
-void routine(const int id, const int num_threads, std::vector<int>& vec) {
-  EXPECT_EQ(4, num_threads);
-
-  vec[id] += id;
-}
-
 TEST(StdthreadTest, Execute) {
+  auto routine = [](const int id, const int num_threads, std::vector<int>& vec) {
+    EXPECT_EQ(4, num_threads);
+
+    vec[id] += id;
+  };
   Threading threading;
 
   const int num_threads = 4;
@@ -32,4 +31,14 @@ TEST(StdthreadTest, Execute) {
   threading.execute(num_threads, routine, std::ref(vec));
 
   EXPECT_EQ(vec_check, vec);
+}
+
+TEST(NoThreadingTest, SumReduction) {
+  auto routine = [](const int id, const int /*num_threads*/) { return id * id; };
+
+  dca::parallel::stdthread threading;
+  const int n_threads = 3;
+  const int result = threading.sumReduction(n_threads, routine);
+
+  EXPECT_EQ(4 + 1, result);
 }

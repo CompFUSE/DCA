@@ -30,6 +30,19 @@ public:
       f(id, num_tasks, args...);
   }
 
+  // Returns \sum_{id = 0}^{num_threads -1} f(id, num_threads, args...).
+  // Precondition: the return type of f can be initialized with 0.
+  template <class F, class... Args>
+  auto sumReduction(int num_threads, F&& f, Args&&... args) {
+    using ReturnType = typename std::result_of<F(int, int, Args...)>::type;
+    ReturnType result = 0;
+
+    for (int id = 0; id < num_threads; ++id)
+      result += f(id, 1, args...);
+
+    return result;
+  }
+
   friend std::ostream& operator<<(std::ostream& some_ostream, const NoThreading& this_concurrency);
 
 private:
