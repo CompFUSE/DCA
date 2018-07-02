@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "dca/linalg/util/handle_functions.hpp"
+#include "dca/parallel/stdthread/thread_pool/thread_pool.hpp"
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/thread_task_handler.hpp"
 #include "dca/profiling/events/time.hpp"
@@ -166,14 +167,14 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::integrate() {
 
   dca::profiling::WallTime start_time;
 
+  auto& pool = dca::parallel::ThreadPool::get_instance();
   for (int i = 0; i < thread_task_handler_.size(); ++i) {
     if (thread_task_handler_.getTask(i) == "walker")
-      futures.emplace_back(std::async(std::launch::async, &ThisType::start_walker, this, i));
+      futures.emplace_back(pool.enqueue(&ThisType::start_walker, this, i));
     else if (thread_task_handler_.getTask(i) == "accumulator")
-      futures.emplace_back(std::async(std::launch::async, &ThisType::start_accumulator, this, i));
+      futures.emplace_back(pool.enqueue(&ThisType::start_accumulator, this, i));
     else if (thread_task_handler_.getTask(i) == "walker and accumulator")
-      futures.emplace_back(
-          std::async(std::launch::async, &ThisType::start_walker_and_accumulator, this, i));
+      futures.emplace_back(pool.enqueue(&ThisType::start_walker_and_accumulator, this, i));
     else
       throw std::logic_error("Thread task is undefined.");
   }
