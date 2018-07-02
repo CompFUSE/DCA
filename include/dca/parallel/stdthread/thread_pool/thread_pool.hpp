@@ -31,16 +31,33 @@ namespace parallel {
 
 class ThreadPool {
 public:
-  ThreadPool(size_t n_threds);
+  // Creates a pool with n_threads.
+  ThreadPool(size_t n_threads);
+    // Creates a pool with as many threads as hardware threads.
+    ThreadPool();
+
+  // Call asynchronously the function f with arguments args. This method is thread safe.
+  // Returns: a future to the result of f(args...).
   template <class F, class... Args>
   auto enqueue(F&& f, Args&&... args) -> std::future<typename std::result_of<F(Args...)>::type>;
+
+  // Conclude all the pending work and destroy the threds spawned by this class.
   ~ThreadPool();
 
+  // Returns the number of threads used by this class.
   std::size_t size() const {
     return workers_.size();
   }
 
+  // Returns a static instance.
+  static ThreadPool& get_instance() {
+    static ThreadPool global_pool;
+    return global_pool;
+  }
+
 private:
+  void workerLoop(int id);
+
   // need to keep track of threads so we can join them
   std::vector<std::thread> workers_;
   // the task queue
@@ -52,33 +69,6 @@ private:
   std::atomic<bool> stop_;
   std::atomic<unsigned int> active_id_;
 };
-
-// the constructor just launches some amount of workers_
-inline ThreadPool::ThreadPool(size_t n_threads)
-    : tasks_(n_threads), queue_mutex_(n_threads), condition_(n_threads), stop_(false), active_id_(0) {
-  for (size_t i = 0; i < n_threads; ++i)
-    // Start a loop on a different thread.
-    workers_.emplace_back(
-        [this](const int id) {
-          while (true) {
-            std::packaged_task<void()> task;
-
-            {  // Acquire new task.
-              std::unique_lock<std::mutex> lock(this->queue_mutex_[id]);
-              this->condition_[id].wait(
-                  lock, [this, id] { return this->stop_ || !this->tasks_[id].empty(); });
-              // If all the work is done and no more will be posted, return.
-              if (this->stop_ && this->tasks_[id].empty())
-                return;
-              task = std::move(this->tasks_[id].front());
-              this->tasks_[id].pop();
-            }
-            // Execute task.
-            task();
-          }
-        },
-        i);
-}
 
 // add new work item to the pool
 template <class F, class... Args>
@@ -102,17 +92,8 @@ auto ThreadPool::enqueue(F&& f, Args&&... args)
     tasks_[id].emplace(std::move(task));
   }
   condition_[id].notify_one();
-    
-  return res;
-}
 
-// the destructor joins all threads
-inline ThreadPool::~ThreadPool() {
-  stop_ = true;
-  for (auto& condition : condition_)
-    condition.notify_one();
-  for (std::thread& worker : workers_)
-    worker.join();
+  return res;
 }
 
 }  // parallel

@@ -15,7 +15,7 @@
 
 #include "gtest/gtest.h"
 
-TEST(ThreadPoolTest, enqueue) {
+TEST(ThreadPoolTest, Enqueue) {
   const int n_items = 9;
   const int n_threads = 4;
   std::vector<int> input(n_items);
@@ -47,4 +47,11 @@ TEST(ThreadPoolTest, enqueue) {
   // Check that the other tasks finished before the pool is destroyed.
   for (int id = n_immediate_checks; id < n_items; ++id)
     EXPECT_EQ(input[id] * input[id], output[id]);
+}
+
+TEST(ThreadPoolTest, DefualtConstructor) {
+  const std::size_t default_threads = std::thread::hardware_concurrency();
+  dca::parallel::ThreadPool pool;
+  EXPECT_EQ(default_threads, pool.size());
+  EXPECT_EQ(default_threads, dca::parallel::ThreadPool::get_instance().size());
 }
