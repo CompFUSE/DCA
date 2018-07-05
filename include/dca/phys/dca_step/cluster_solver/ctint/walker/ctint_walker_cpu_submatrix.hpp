@@ -170,7 +170,8 @@ protected:
   bool recently_added_;
   bool accepted_;
 
-  std::array<Matrix, 2> workspaces_;
+  std::array<Matrix, 2> Gamma_q_;
+  Matrix workspace_;
   Matrix D_;
 };
 
@@ -477,10 +478,10 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::mainSubmatrixProcess() {
               r_[s](j, i) = G_[s](sector_indices_[s][j], move_indices_[s][i]);
             }
 
-          auto& gamma_q = workspaces_[0];
-          gamma_q.resizeNoCopy(q_[s].size());
-          linalg::matrixop::gemm(Gamma_inv_[s], q_[s], gamma_q);
-          linalg::matrixop::gemm(-1., r_[s], gamma_q, 1., s_[s]);
+          auto& Gamma_q = Gamma_q_[s];
+          Gamma_q.resizeNoCopy(q_[s].size());
+          linalg::matrixop::gemm(Gamma_inv_[s], q_[s], Gamma_q);
+          linalg::matrixop::gemm(-1., r_[s], Gamma_q, 1., s_[s]);
         }
       }
       else {
@@ -747,18 +748,15 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::updateGammaInv() {
       MatrixView r_inv(Gamma_inv_[s], Gamma_size_[s], 0, delta, Gamma_size_[s]);
       MatrixView s_inv(Gamma_inv_[s], Gamma_size_[s], Gamma_size_[s], delta, delta);
 
-      // TODO: use small inverse.
-      workspaces_[0] = s_[s];
-      linalg::matrixop::inverse(workspaces_[0]);
-      s_inv = workspaces_[0];
+      details::smallInverse(s_[s], s_inv);
 
-      auto& Gamma_q = workspaces_[0];
+      auto& Gamma_q = Gamma_q_[s];
       Gamma_q.resizeNoCopy(q_[s].size());
       linalg::matrixop::gemm(bulk, q_[s], Gamma_q);
       linalg::matrixop::gemm(-1., Gamma_q, s_inv, 0., q_inv);
 
       // TODO: reuse previous result.
-      auto& r_Gamma = workspaces_[1];
+      auto& r_Gamma = workspace_;
       r_Gamma.resizeNoCopy(r_[s].size());
       linalg::matrixop::gemm(r_[s], bulk, r_Gamma);
       linalg::matrixop::gemm(-1., s_inv, r_Gamma, 0., r_inv);
@@ -768,9 +766,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::updateGammaInv() {
     }
     else {
       Gamma_inv_[s].resizeNoCopy(delta);
-      // TODO: use small inverse.
-      Gamma_inv_[s] = s_[s];
-      linalg::matrixop::inverse(Gamma_inv_[s]);
+      details::smallInverse(s_[s], Gamma_inv_[s]);
     }
   }
 
@@ -866,7 +862,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::removeRowAndColOfGammaInv(co
     // TODO: MAYBE do not resize Gamma but set sector to id.
     q_[s].resizeNoCopy(std::make_pair(n, delta));
     r_[s].resizeNoCopy(std::make_pair(delta, n));
-    auto& q_s = workspaces_[0];
+    auto& q_s = workspace_;
     q_s.resizeNoCopy(q_[s].size());
 
     //  TODO: check if gamma indices are ordered.
