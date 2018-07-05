@@ -23,8 +23,12 @@
 
 using dca::linalg::CPU;
 using dca::linalg::GPU;
+
+constexpr char input_name[] =
+    DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/ctint/walker/submatrix_input.json";
+
 using G0Setup =
-    typename dca::testing::G0Setup<dca::testing::LatticeBilayer, dca::phys::solver::CT_INT>;
+    typename dca::testing::G0Setup<dca::testing::LatticeBilayer, dca::phys::solver::CT_INT, input_name>;
 using namespace dca::phys::solver;
 template <dca::linalg::DeviceType device>
 using SubmatrixWalker =

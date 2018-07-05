@@ -35,11 +35,15 @@ namespace dca {
 namespace testing {
 // dca::testing::
 
+constexpr char default_input[] =
+    DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/input.json";
+
 using LatticeSquare = phys::models::square_lattice<phys::domains::D4>;
 using LatticeBilayer = phys::models::bilayer_lattice<phys::domains::D4>;
 using LatticeHund = phys::models::HundLattice<phys::domains::D4>;
 
-template <class Lattice = LatticeSquare, phys::solver::ClusterSolverName solver_name = phys::solver::CT_AUX>
+template <class Lattice = LatticeSquare, phys::solver::ClusterSolverName solver_name = phys::solver::CT_AUX,
+          const char* input_name = default_input>
 struct G0Setup : public ::testing::Test {
   using LatticeType = Lattice;
   using Model = phys::models::TightBindingModel<Lattice>;
@@ -66,9 +70,7 @@ struct G0Setup : public ::testing::Test {
   G0Setup() : concurrency(0, nullptr), parameters("", concurrency) {}
 
   virtual void SetUp() {
-    const std::string inputs_directory = DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/";
-
-    parameters.template read_input_and_broadcast<io::JSONReader>(inputs_directory + "input.json");
+    parameters.template read_input_and_broadcast<io::JSONReader>(input_name);
 
     parameters.update_model();
     static bool domain_initialized = false;
