@@ -1,9 +1,9 @@
-// Copyright (C) 2009-2016 ETH Zurich
-// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// Copyright (C) 2018 ETH Zurich
+// Copyright (C) 2018 UT-Battelle, LLC
 // All rights reserved.
 //
-// See LICENSE.txt for terms of usage.
-// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+// See LICENSE for terms of usage.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //
@@ -12,9 +12,11 @@
 #ifndef DCA_LINALG_UTIL_STREAM_CONTAINER_HPP
 #define DCA_LINALG_UTIL_STREAM_CONTAINER_HPP
 
-#include <array>
 #include <cassert>
 #include <cuda_runtime.h>
+#include <vector>
+
+#include "dca/linalg/util/cuda_stream.hpp"
 #include "dca/linalg/util/error_cuda.hpp"
 
 namespace dca {
@@ -22,45 +24,47 @@ namespace linalg {
 namespace util {
 // dca::linalg::util::
 
-template <size_t max_threads, size_t streams_per_thread>
 class StreamContainer {
 public:
-  StreamContainer() {
-    for (size_t i = 0; i < streams_.size(); ++i) {
-      cudaError_t ret = cudaStreamCreate(&(streams_[i]));
-      checkRC(ret);
-    }
-  }
-  ~StreamContainer() {
-    for (size_t i = 0; i < streams_.size(); ++i) {
-      cudaError_t ret = cudaStreamDestroy(streams_[i]);
-      checkRC(ret);
-    }
+  StreamContainer(int max_threads = 0) : streams_(max_threads * streams_per_thread_) {}
+
+  std::size_t get_max_threads() const {
+    return streams_.size() / streams_per_thread_;
   }
 
-  StreamContainer(const StreamContainer<max_threads, streams_per_thread>&) = delete;
-  StreamContainer& operator=(const StreamContainer<max_threads, streams_per_thread>&) = delete;
+  int get_streams_per_thread() const {
+    return streams_per_thread_;
+  }
+
+  void resize(const int max_threads) {
+    streams_.resize(max_threads * streams_per_thread_);
+  }
+
+  StreamContainer(const StreamContainer&) = delete;
+  StreamContainer& operator=(const StreamContainer&) = delete;
 
   // Returns the 'stream_id'-th stream associated with thread 'thread_id'.
-  // Preconditions: 0 <= thread_id < DCA_MAX_THREADS,
-  //                0 <= stream_id < DCA_STREAMS_PER_THREADS.
+  // Preconditions: 0 <= thread_id < get_max_threads(),
+  //                0 <= stream_id < streams_per_thread_.
   cudaStream_t operator()(int thread_id, int stream_id) {
-    assert(thread_id >= 0 && static_cast<size_t>(thread_id) < max_threads);
-    assert(stream_id >= 0 && static_cast<size_t>(stream_id) < streams_per_thread);
-    return streams_[stream_id + streams_per_thread * thread_id];
+    assert(thread_id >= 0 && thread_id < get_max_threads());
+    assert(stream_id >= 0 && stream_id < streams_.size());
+    return streams_[stream_id + streams_per_thread_ * thread_id];
   }
 
   // Synchronizes the 'stream_id'-th stream associated with thread 'thread_id'.
-  // Preconditions: 0 <= thread_id < DCA_MAX_THREADS,
-  //                0 <= stream_id < DCA_STREAMS_PER_THREADS.
+  // Preconditions: 0 <= thread_id < get_max_threads(),
+  //                0 <= stream_id < streams_per_thread_.
   void sync(int thread_id, int stream_id) {
     cudaError_t ret = cudaStreamSynchronize(operator()(thread_id, stream_id));
     checkRC(ret);
   }
 
 private:
-  std::array<cudaStream_t, max_threads * streams_per_thread> streams_;
+  constexpr static int streams_per_thread_ = 2;
+  std::vector<CudaStream> streams_;
 };
+
 }  // util
 }  // linalg
 }  // dca

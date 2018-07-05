@@ -1,9 +1,9 @@
-// Copyright (C) 2009-2016 ETH Zurich
-// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// Copyright (C) 2018 ETH Zurich
+// Copyright (C) 2018 UT-Battelle, LLC
 // All rights reserved.
 //
-// See LICENSE.txt for terms of usage.
-// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+// See LICENSE for terms of usage.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: John Biddiscombe (john.biddiscombe@cscs.ch)
 //
@@ -20,6 +20,7 @@
 #include <thread>
 #include <vector>
 
+#include "dca/linalg/util/handle_functions.hpp"
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/thread_task_handler.hpp"
 #include "dca/profiling/events/time.hpp"
@@ -120,6 +121,9 @@ StdThreadQmciClusterSolver<QmcSolver>::StdThreadQmciClusterSolver(Parameters& pa
     rng_vector_.emplace_back(concurrency_.id(), concurrency_.number_of_processors(),
                              parameters_.get_seed());
   }
+
+  // Create a sufficient amount of cublas handles and cuda streams.
+  linalg::util::initializeHandleContainer(thread_task_handler_.size());
 }
 
 template <class QmcSolver>

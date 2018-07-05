@@ -1,9 +1,9 @@
-// Copyright (C) 2009-2016 ETH Zurich
-// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// Copyright (C) 2018 ETH Zurich
+// Copyright (C) 2018 UT-Battelle, LLC
 // All rights reserved.
 //
-// See LICENSE.txt for terms of usage.
-// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+// See LICENSE for terms of usage.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
@@ -21,6 +21,7 @@
 
 #include <mpi.h>
 
+#include "dca/parallel/mpi_concurrency/mpi_collective_gather.hpp"
 #include "dca/parallel/mpi_concurrency/mpi_collective_max.hpp"
 #include "dca/parallel/mpi_concurrency/mpi_collective_min.hpp"
 #include "dca/parallel/mpi_concurrency/mpi_collective_sum.hpp"
@@ -35,7 +36,8 @@ namespace parallel {
 class MPIConcurrency : public MPIPacking,
                        public MPICollectiveMax,
                        public MPICollectiveMin,
-                       public MPICollectiveSum {
+                       public MPICollectiveSum,
+                       public MPICollectiveGather {
 public:
   MPIConcurrency(int argc, char** argv);
 

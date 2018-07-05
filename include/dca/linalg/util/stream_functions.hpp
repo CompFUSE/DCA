@@ -1,9 +1,9 @@
-// Copyright (C) 2009-2016 ETH Zurich
-// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// Copyright (C) 2018 ETH Zurich
+// Copyright (C) 2018 UT-Battelle, LLC
 // All rights reserved.
 //
-// See LICENSE.txt for terms of usage.
-// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+// See LICENSE for terms of usage.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //
@@ -14,7 +14,6 @@
 
 #ifdef DCA_HAVE_CUDA
 #include <cuda_runtime.h>
-#include "dca/linalg/util/def.hpp"
 #include "dca/linalg/util/stream_container.hpp"
 #endif  // DCA_HAVE_CUDA
 
@@ -25,27 +24,34 @@ namespace util {
 
 #ifdef DCA_HAVE_CUDA
 
-inline StreamContainer<DCA_MAX_THREADS, DCA_STREAMS_PER_THREAD>& getStreamContainer() {
-  static StreamContainer<DCA_MAX_THREADS, DCA_STREAMS_PER_THREAD> stream_container;
+// Singleton stream container.
+// If not initialized contains the streams for one thread.
+inline StreamContainer& getStreamContainer() {
+  static StreamContainer stream_container(1);
   return stream_container;
 }
 
-// Preconditions: 0 <= thread_id < DCA_MAX_THREADS,
-//                0 <= stream_id < DCA_STREAMS_PER_THREADS.
+inline void initializeStreamContainer(const int max_threads) {
+  getStreamContainer().resize(max_threads);
+}
+
+// Preconditions: 0 <= thread_id < max_threads,
+//                0 <= stream_id < StreamContainer::streams_per_thread_.
 inline cudaStream_t getStream(int thread_id, int stream_id) {
   return getStreamContainer()(thread_id, stream_id);
 }
 
-// Preconditions: 0 <= thread_id < DCA_MAX_THREADS,
-//                0 <= stream_id < DCA_STREAMS_PER_THREADS.
+// Preconditions: 0 <= thread_id < max_threads,
+//                0 <= stream_id < StreamContainer::streams_per_thread_.
 inline void syncStream(int thread_id, int stream_id) {
   getStreamContainer().sync(thread_id, stream_id);
 }
 
 #else
 
-// SFINAE version of syncStream.
+// Implement SFINAE.
 inline void syncStream(int /*thread_id*/, int /*stream_id*/) {}
+inline void initializeStreamContainer(int /*max_threads*/) {}
 
 #endif  // DCA_HAVE_CUDA
 

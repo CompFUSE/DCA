@@ -1,5 +1,5 @@
-// Copyright (C) 2009-2016 ETH Zurich
-// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// Copyright (C) 2018 ETH Zurich
+// Copyright (C) 2018 UT-Battelle, LLC
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
@@ -126,7 +126,6 @@ int main(int argc, char** argv) {
   std::cout << "\n\nSpAccumulation CPU time [sec]:\t " << time << "\n";
 
 #ifdef DCA_HAVE_CUDA
-  dca::linalg::util::initializeMagma();
   dca::linalg::util::CudaEvent start_event;
   dca::linalg::util::CudaEvent stop_event;
 

@@ -1,9 +1,9 @@
-// Copyright (C)-2016 ETH Zurich
-// Copyright (C) 2007?-2016 Center for Nanophase Materials Sciences, ORNL
+// Copyright (C) 2018 ETH Zurich
+// Copyright (C) 2018 UT-Battelle, LLC
 // All rights reserved.
 //
-// See LICENSE.txt for terms of usage.
-// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+// See LICENSE for terms of usage.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //
@@ -43,7 +43,6 @@
 
 // Utils
 #include "dca/linalg/util/copy.hpp"
-#include "dca/linalg/util/def.hpp"
 #include "dca/linalg/util/lapack_exception.hpp"
 #include "dca/linalg/util/memory.hpp"
 #include "dca/linalg/util/util_lapack.hpp"
@@ -52,7 +51,6 @@
 #include "dca/linalg/util/cast_cuda.hpp"
 #include "dca/linalg/util/error_cublas.hpp"
 #include "dca/linalg/util/error_cuda.hpp"
-#include "dca/linalg/util/handle_container.hpp"
 #include "dca/linalg/util/handle_functions.hpp"
 #include "dca/linalg/util/info_cuda.hpp"
 #include "dca/linalg/util/stream_container.hpp"
