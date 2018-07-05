@@ -66,7 +66,7 @@ TEST_F(G0Setup, Accumulate) {
 
   dca::io::HDF5Reader reader;
 
-  reader.open_file(input_dir + "G4_singleband_result.hdf5");
+  reader.open_file(input_dir + "tp_accumulator_singleband_test_baseline.hdf5");
 
   for (const dca::phys::FourPointType type :
        {dca::phys::PARTICLE_HOLE_TRANSVERSE, dca::phys::PARTICLE_HOLE_MAGNETIC,
