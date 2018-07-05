@@ -2,7 +2,7 @@
 // Copyright (C) 2018 UT-Battelle, LLC
 // All rights reserved.
 // See LICENSE.txt for terms of usage./
-// See CITATION.txt for citation guidelines if you use this code for scientific publications.
+//  See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
