@@ -38,6 +38,8 @@ namespace clustermapping {
 template <typename parameters_type, typename K_dmn>
 class tetrahedron_integration {
 public:
+  using ThisType = tetrahedron_integration<parameters_type, K_dmn>;
+
   using k_cluster_type = typename K_dmn::parameter_type;
 
   using tet_dmn_type = func::dmn_0<coarsegraining_domain<K_dmn, TETRAHEDRON_K>>;
@@ -103,13 +105,15 @@ void tetrahedron_integration<parameters_type, K_dmn>::execute(
     //         break;
 
     case 2:
-      task = std::bind(tetrahedron_integration_2D<scalar_type>, std::placeholders::_1,
-                       std::placeholders::_2, std::ref(w_tet), std::ref(G_tet));
+      task =
+          std::bind(&ThisType::tetrahedron_integration_2D<scalar_type>, this, std::placeholders::_1,
+                    std::placeholders::_2, std::ref(w_tet), std::ref(G_tet));
       break;
 
     case 3:
-      task = std::bind(tetrahedron_integration_3D<scalar_type>, std::placeholders::_1,
-                       std::placeholders::_2, std::ref(w_tet), std::ref(G_tet));
+      task =
+          std::bind(&ThisType::tetrahedron_integration_3D<scalar_type>, this, std::placeholders::_1,
+                    std::placeholders::_2, std::ref(w_tet), std::ref(G_tet));
       break;
 
     default:
