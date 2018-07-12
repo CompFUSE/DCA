@@ -184,17 +184,22 @@ configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/rng.hpp.in"
 
 ################################################################################
 # Select the cluster solver.
-set(DCA_CLUSTER_SOLVER "CT-INT" CACHE STRING
+set(DCA_CLUSTER_SOLVER "CT-AUX" CACHE STRING
   "The cluster solver for the DCA(+) loop. Options are: CT-AUX | CT-INT | SS-CT-HYB.")
 set_property(CACHE DCA_CLUSTER_SOLVER PROPERTY STRINGS CT-AUX CT-INT SS-CT-HYB)
 
 if (DCA_CLUSTER_SOLVER STREQUAL "CT-INT")
   set(DCA_CLUSTER_SOLVER_NAME dca::phys::solver::CT_INT)
-  # Use submatrix algorithm if available on the device.
-  set(DCA_CLUSTER_SOLVER_TYPE
-      "dca::phys::solver::CtintClusterSolver<walker_device, ParametersType, true>")
   set(DCA_CLUSTER_SOLVER_INCLUDE "dca/phys/dca_step/cluster_solver/ctint/ctint_cluster_solver.hpp")
 
+  set(DCA_USE_CTINT_SUBMATRIX OFF CACHE BOOL "Use submatrix updates if the CT-INT solver is selected.")
+  if(DCA_USE_CTINT_SUBMATRIX)
+    set(DCA_CLUSTER_SOLVER_TYPE
+            "dca::phys::solver::CtintClusterSolver<walker_device, ParametersType, true>")
+  else()
+    set(DCA_CLUSTER_SOLVER_TYPE
+            "dca::phys::solver::CtintClusterSolver<walker_device, ParametersType, false>")
+  endif()
 
 elseif (DCA_CLUSTER_SOLVER STREQUAL "CT-AUX")
   set(DCA_CLUSTER_SOLVER_NAME dca::phys::solver::CT_AUX)
