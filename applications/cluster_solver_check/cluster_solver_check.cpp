@@ -115,14 +115,14 @@ int main(int argc, char** argv) {
   // If enabled, perform statistical test.
   double p_val = -1.;
   if (perform_statistical_test) {
-    const auto G_qmc(dca::math::util::cutFrequency(qmc_solver.local_G_k_w(), tested_frequencies));
+    auto G_qmc(dca::math::util::cutFrequency(qmc_solver.local_G_k_w(), tested_frequencies));
 
     using KDmn = dca::func::dmn_0<dca::phys::domains::cluster_domain<
         double, Lattice::DIMENSION, dca::phys::domains::CLUSTER, dca::phys::domains::MOMENTUM_SPACE,
         dca::phys::domains::BRILLOUIN_ZONE>>;
 
     dca::func::function<double, dca::math::util::CovarianceDomain<KDmn>> covariance;
-    concurrency.computeCovariance(G_qmc, G_ed, covariance);
+    concurrency.computeCovarianceAndAvg(G_qmc, covariance);
 
     if (concurrency.id() == concurrency.first()) {
       dca::math::StatisticalTesting test(G_qmc, G_ed, covariance, false);
