@@ -125,24 +125,22 @@ void SeriesExpansionSigma<parameters_type, MOMS_type>::execute(bool /*do_not_adj
   Sigma += sigma_perturbation_1_obj.get_function();
   Sigma += sigma_perturbation_2_obj.get_function();
 
-  if (true) {
-    std::complex<double> I(0, 1);
-    for (int b_ind = 0; b_ind < 2 * b::dmn_size(); ++b_ind) {
-      for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind) {
-        int wc_ind = w::dmn_size() / 8;
+  std::complex<double> I(0, 1);
+  for (int b_ind = 0; b_ind < 2 * b::dmn_size(); ++b_ind) {
+    for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind) {
+      int wc_ind = w::dmn_size() / 8;
 
-        double wc = w::get_elements()[wc_ind];
+      double wc = w::get_elements()[wc_ind];
 
-        std::complex<double> Sigma_wc = Sigma(b_ind, b_ind, k_ind, wc_ind);
+      std::complex<double> Sigma_wc = Sigma(b_ind, b_ind, k_ind, wc_ind);
 
-        double alpha = real(Sigma_wc);
-        double beta = imag(Sigma_wc * wc);
+      double alpha = real(Sigma_wc);
+      double beta = imag(Sigma_wc * wc);
 
-        for (int w_ind = 0; w_ind < wc_ind; ++w_ind) {
-          Sigma(b_ind, b_ind, k_ind, w_ind) = alpha + beta * I / w::get_elements()[w_ind];
-          Sigma(b_ind, b_ind, k_ind, w::dmn_size() - 1 - w_ind) =
-              alpha - beta * I / w::get_elements()[w_ind];
-        }
+      for (int w_ind = 0; w_ind < wc_ind; ++w_ind) {
+        Sigma(b_ind, b_ind, k_ind, w_ind) = alpha + beta * I / w::get_elements()[w_ind];
+        Sigma(b_ind, b_ind, k_ind, w::dmn_size() - 1 - w_ind) =
+            alpha - beta * I / w::get_elements()[w_ind];
       }
     }
   }

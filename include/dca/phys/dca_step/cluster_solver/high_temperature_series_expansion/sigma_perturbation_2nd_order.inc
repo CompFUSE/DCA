@@ -15,6 +15,7 @@ class sigma_perturbation<2, parameters_type, k_dmn_t> {
 public:
   using concurrency_type = typename parameters_type::concurrency_type;
   using Threading = typename parameters_type::ThreadingType;
+  using ThisType = sigma_perturbation<2, parameters_type, k_dmn_t>;
 
   using w = func::dmn_0<domains::frequency_domain>;
   using w_VERTEX_BOSONIC = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED_BOSONIC>>;
@@ -58,7 +59,8 @@ private:
   void execute_2A(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
   void execute_2B(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& G);
 
-  static void* threaded_execute_2B(void* data);
+  void threaded_execute_2B(int id, int num_threads, sp_function_type& S, const sp_function_type& G,
+                           const chi_function_type& chi) const;
 
   int subtract_freq_bf(int, int);  // fermion-boson
 
@@ -249,24 +251,10 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_on_cluste
 
   int nr_threads = parameters.get_hts_threads();
 
-  sigma_perturbation_data args;
-  {
-    args.U_ptr = &U;
-
-    args.G_ptr = &G;
-    args.S_ptr = &Sigma_2B;
-
-    args.chi_ptr = &chi;
-    args.phi_ptr = &phi;
-
-    args.concurrency_ptr = &concurrency;
-  }
-
-  {
-    Threading threads;
-
-    threads.execute(nr_threads, threaded_execute_2B, (void*)&args);
-  }
+  Threading threads;
+  auto task = std::bind(&ThisType::threaded_execute_2B, this, std::placeholders::_1,
+                        std::placeholders::_2, std::ref(Sigma_2B), std::ref(G), std::ref(chi));
+  threads.execute(nr_threads, task);
 
   {
     double U_value = U(0, 0, 0, 1);
@@ -276,8 +264,7 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_on_cluste
     concurrency.sum(Sigma_2B);
   }
 
-  Sigma = 0.;
-  Sigma += Sigma_2B;
+  Sigma = Sigma_2B;
 
   if (true) {
     std::complex<double> I(0, 1);
@@ -303,23 +290,11 @@ void sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_on_cluste
 }
 
 template <class parameters_type, class k_dmn_t>
-void* sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_2B(void* void_ptr) {
-  dca::parallel::ThreadingData* data_ptr = static_cast<dca::parallel::ThreadingData*>(void_ptr);
-  sigma_perturbation_data* sigma_pert_ptr = static_cast<sigma_perturbation_data*>(data_ptr->arg);
-
-  // U_function_type&   U   = *(sigma_pert_ptr->U_ptr);
-
-  sp_function_type& G = *(sigma_pert_ptr->G_ptr);
-  sp_function_type& S = *(sigma_pert_ptr->S_ptr);
-  chi_function_type& chi = *(sigma_pert_ptr->chi_ptr);
-
-  concurrency_type& concurrency = *(sigma_pert_ptr->concurrency_ptr);
-
+void sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_2B(
+    const int id, const int nr_threads, sp_function_type& S, const sp_function_type& G,
+    const chi_function_type& chi) const {
   k_dmn_t q_dmn;
   std::pair<int, int> q_bounds = concurrency.get_bounds(q_dmn);
-
-  int id = data_ptr->id;
-  int nr_threads = data_ptr->num_threads;
 
   k_dmn_t k_dmn;
   std::pair<int, int> k_bounds = dca::parallel::util::getBounds(id, nr_threads, k_dmn);
@@ -355,8 +330,6 @@ void* sigma_perturbation<2, parameters_type, k_dmn_t>::threaded_execute_2B(void*
   // 	  S(0,1, 0,1, k_ind, w_ind) = S(0,0, 0,0, k_ind, w_ind);
 
   //       Sigma_2B *= factor;
-
-  return 0;
 }
 
 template <class parameters_type, class k_dmn_t>
