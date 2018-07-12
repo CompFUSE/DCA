@@ -71,7 +71,7 @@ TEST(CtintValidationTest, GreensFunction) {
 
   // compute covariance and average ctin result.
   function<double, CovarianceDomain> G_k_w_covariance("G_k_w_covariance");
-  dca_test_env->concurrency.computeCovariance(G_k_w_sample, G_k_w_avg, G_k_w_covariance);
+  dca_test_env->concurrency.computeCovariance(G_k_w_sample, G_k_w_covariance);
 
   //   compute p-value
   if (id == dca_test_env->concurrency.first()) {
