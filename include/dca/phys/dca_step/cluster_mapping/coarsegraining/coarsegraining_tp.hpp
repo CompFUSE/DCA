@@ -424,7 +424,7 @@ void coarsegraining_tp<parameters_type, K_dmn>::compute_tp(
     }
   }
 
-  concurrency.gather(chi);
+  concurrency.sum(chi);
 
   {
     scalar_type V_K = 0;
@@ -494,7 +494,7 @@ void coarsegraining_tp<parameters_type, K_dmn>::compute_tp(
     }
   }
 
-  concurrency.gather(chi);
+  concurrency.sum(chi);
 
   {
     scalar_type V_K = 0;
@@ -572,7 +572,7 @@ void coarsegraining_tp<parameters_type, K_dmn>::compute_phi(
     }
   }
 
-  concurrency.gather(phi);
+  concurrency.sum(phi);
 
   {
     scalar_type V_K = 0;
@@ -645,7 +645,7 @@ void coarsegraining_tp<parameters_type, K_dmn>::compute_phi(
     }
   }
 
-  concurrency.gather(phi);
+  concurrency.sum(phi);
 
   {
     scalar_type V_K = 0;
