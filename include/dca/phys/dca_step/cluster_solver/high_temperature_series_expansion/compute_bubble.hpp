@@ -161,7 +161,7 @@ void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded_
       throw std::logic_error(__FUNCTION__);
   }
 
-  concurrency.gather(chi);
+  concurrency.sum(chi);
 
   double factor = -1. / (parameters.get_beta() * k_dmn_t::dmn_size());
 
