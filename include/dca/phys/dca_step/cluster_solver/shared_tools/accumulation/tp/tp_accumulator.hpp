@@ -471,7 +471,7 @@ double TpAccumulator<Parameters, linalg::CPU>::updateG4() {
             }
       }
 
-      flops += flops += n_loops * 2 * flops_update_atomic;
+      flops += n_loops * 2 * flops_update_atomic;
       break;
     default:
       throw(std::logic_error("Non supported tp mode."));

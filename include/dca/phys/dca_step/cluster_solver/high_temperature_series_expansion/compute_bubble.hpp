@@ -15,13 +15,13 @@
 #include <cmath>
 #include <complex>
 #include <iostream>
+#include <functional>
 #include <stdexcept>
 #include <utility>
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/parallel/util/get_bounds.hpp"
-#include "dca/parallel/util/threading_data.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
@@ -42,6 +42,7 @@ class compute_bubble {
 public:
   using profiler_type = typename parameters_type::profiler_type;
   using concurrency_type = typename parameters_type::concurrency_type;
+  using ThisType = compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>;
   using Threading = typename parameters_type::ThreadingType;
 
   using w = func::dmn_0<domains::frequency_domain>;
@@ -74,12 +75,12 @@ private:
   void execute_on_lattice_ph(G_function_type& S);
   void execute_on_cluster_ph(G_function_type& G);
 
-  static void* threaded_execute_on_cluster_ph(void* data);
+  void threaded_execute_on_cluster_ph(int id, int nr_threads, const G_function_type& G);
 
   void execute_on_lattice_pp(G_function_type& S);
   void execute_on_cluster_pp(G_function_type& G);
 
-  static void* threaded_execute_on_cluster_pp(void* data);
+  void threaded_execute_on_cluster_pp(int id, int nr_threads, G_function_type& G);
 
 private:
   parameters_type& parameters;
@@ -141,38 +142,30 @@ void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded_
 
   profiler_type profiler("threaded_execute_on_cluster compute-bubble", "HTS", __LINE__);
 
-  {
-    int nr_threads = parameters.get_hts_threads();
+  const int nr_threads = parameters.get_hts_threads();
+  Threading threads;
 
-    bubble_data args;
+  switch (channel_value) {
+    case ph:
+      threads.execute(nr_threads,
+                      std::bind(&ThisType::threaded_execute_on_cluster_ph, this,
+                                std::placeholders::_1, std::placeholders::_2, std::ref(G)));
+      break;
+    case pp:
+      threads.execute(nr_threads,
+                      std::bind(&ThisType::threaded_execute_on_cluster_pp, this,
+                                std::placeholders::_1, std::placeholders::_2, std::ref(G)));
+      break;
 
-    args.G_ptr = &G;
-    args.chi_ptr = &chi;
-
-    args.concurrency_ptr = &concurrency;
-
-    Threading threads;
-    switch (channel_value) {
-      case ph:
-        threads.execute(nr_threads, threaded_execute_on_cluster_ph, (void*)&args);
-        break;
-
-      case pp:
-        threads.execute(nr_threads, threaded_execute_on_cluster_pp, (void*)&args);
-        break;
-
-      default:
-        throw std::logic_error(__FUNCTION__);
-    }
+    default:
+      throw std::logic_error(__FUNCTION__);
   }
 
   concurrency.sum(chi);
 
-  {
-    double factor = -1. / (parameters.get_beta() * k_dmn_t::dmn_size());
+  double factor = -1. / (parameters.get_beta() * k_dmn_t::dmn_size());
 
-    chi *= factor;
-  }
+  chi *= factor;
 }
 
 template <channel_type channel_value, class parameters_type, class k_dmn_t, class w_dmn_t>
@@ -214,21 +207,10 @@ void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::execute_o
 }
 
 template <channel_type channel_value, class parameters_type, class k_dmn_t, class w_dmn_t>
-void* compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded_execute_on_cluster_ph(
-    void* void_ptr) {
-  dca::parallel::ThreadingData* data_ptr = static_cast<dca::parallel::ThreadingData*>(void_ptr);
-  bubble_data* bubble_ptr = static_cast<bubble_data*>(data_ptr->arg);
-
-  G_function_type& G = *(bubble_ptr->G_ptr);
-  function_type& chi = *(bubble_ptr->chi_ptr);
-
-  concurrency_type& concurrency = *(bubble_ptr->concurrency_ptr);
-
+void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded_execute_on_cluster_ph(
+    const int id, const int nr_threads, const G_function_type& G) {
   k_dmn_t k_dmn;
   std::pair<int, int> k_bounds = concurrency.get_bounds(k_dmn);
-
-  int id = data_ptr->id;
-  int nr_threads = data_ptr->num_threads;
 
   k_dmn_t q_dmn;
   std::pair<int, int> q_bounds = dca::parallel::util::getBounds(id, nr_threads, q_dmn);
@@ -259,8 +241,6 @@ void* compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded
       }
     }
   }
-
-  return 0;
 }
 
 template <channel_type channel_value, class parameters_type, class k_dmn_t, class w_dmn_t>
@@ -302,21 +282,10 @@ void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::execute_o
 }
 
 template <channel_type channel_value, class parameters_type, class k_dmn_t, class w_dmn_t>
-void* compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded_execute_on_cluster_pp(
-    void* void_ptr) {
-  dca::parallel::ThreadingData* data_ptr = static_cast<dca::parallel::ThreadingData*>(void_ptr);
-  bubble_data* bubble_ptr = static_cast<bubble_data*>(data_ptr->arg);
-
-  G_function_type& G = *(bubble_ptr->G_ptr);
-  function_type& chi = *(bubble_ptr->chi_ptr);
-
-  concurrency_type& concurrency = *(bubble_ptr->concurrency_ptr);
-
+void compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded_execute_on_cluster_pp(
+    int id, const int nr_threads, G_function_type& G) {
   k_dmn_t k_dmn;
   std::pair<int, int> k_bounds = concurrency.get_bounds(k_dmn);
-
-  int id = data_ptr->id;
-  int nr_threads = data_ptr->num_threads;
 
   k_dmn_t q_dmn;
   std::pair<int, int> q_bounds = dca::parallel::util::getBounds(id, nr_threads, q_dmn);
@@ -347,8 +316,6 @@ void* compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::threaded
       }
     }
   }
-
-  return 0;
 }
 
 }  // htseries

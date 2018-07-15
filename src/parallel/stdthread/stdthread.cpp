@@ -19,7 +19,7 @@ constexpr char stdthread::parallel_type_str_[];
 std::ostream& operator<<(std::ostream& o, const stdthread& c) {
   o << '\n'
     << "threading type:" << c.parallel_type_str_ << '\n'
-    << "number of std::threads:" << c.threads_.size();
+    << "number of std::threads:" << ThreadPool::get_instance().size();
   return o;
 }
 

@@ -301,7 +301,7 @@ void coarsegraining_sp<parameters_type, K_dmn>::compute_phi_r(
                       r_vecs.size();
     }
 
-    concurrency.gather(phi_r);
+    concurrency.sum(phi_r);
 
     {
       scalar_type V_K = 0;
@@ -338,7 +338,7 @@ void coarsegraining_sp<parameters_type, K_dmn>::print_phi_r_to_shell(
           std::real(tetrahedron_routines_harmonic_function::execute(r_vec, tetrahedra[tet_ind]));
   }
 
-  concurrency.gather(phi_r);
+  concurrency.sum(phi_r);
 
   {
     scalar_type V_K = 0;
@@ -397,7 +397,7 @@ void coarsegraining_sp<parameters_type, K_dmn>::compute_G_K_w(
           G_K_w(i, j, coor[0], coor[1]) += G_q(i, j, q_ind) * w_q(q_ind);
   }
 
-  concurrency.gather(G_K_w);
+  concurrency.sum(G_K_w);
 
   {
     scalar_type V_K = 0;
@@ -436,7 +436,7 @@ void coarsegraining_sp<parameters_type, K_dmn>::compute_G_K_w_with_TIM(
     }
   }
 
-  concurrency.gather(G_K_w);
+  concurrency.sum(G_K_w);
 
   {
     scalar_type V_K = 0;
@@ -486,7 +486,7 @@ void coarsegraining_sp<parameters_type, K_dmn>::compute_S_K_w(
           S_K_w(i, j, coor[0], coor[1]) += S_q(i, j, q_ind) * w_q(q_ind);
   }
 
-  concurrency.gather(S_K_w);
+  concurrency.sum(S_K_w);
 
   {
     scalar_type V_K = 0;
@@ -531,7 +531,7 @@ void coarsegraining_sp<parameters_type, K_dmn>::compute_G_K_w(
           G_K_w(i, j, coor[0], coor[1]) += G_q(i, j, q_ind) * w_q(q_ind);
   }
 
-  concurrency.gather(G_K_w);
+  concurrency.sum(G_K_w);
 
   {
     scalar_type V_K = 0;
@@ -564,7 +564,7 @@ void coarsegraining_sp<parameters_type, K_dmn>::compute_G0_K_t(
           G_K_t(i, j, coor[0], coor[1]) += std::real(G_q(i, j, q_ind)) * w_q(q_ind);
   }
 
-  concurrency.gather(G_K_t);
+  concurrency.sum(G_K_t);
 
   {
     scalar_type V_K = 0;
