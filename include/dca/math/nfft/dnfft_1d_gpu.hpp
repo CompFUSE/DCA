@@ -9,9 +9,12 @@
 //
 // This class implements the 1D delayed-NFFT (d-NFFT) algorithm on the GPU.
 
+#ifndef DCA_HAVE_CUDA
+#error "This file requires CUDA."
+#endif
+
 #ifndef DCA_MATH_NFFT_DNFFT_1D_GPU_HPP
 #define DCA_MATH_NFFT_DNFFT_1D_GPU_HPP
-#ifdef DCA_HAVE_CUDA
 
 #include "dca/math/nfft/dnfft_1d.hpp"
 
@@ -231,5 +234,4 @@ linalg::Vector<ScalarType, linalg::GPU>& Dnfft1DGpu<ScalarType, WDmn, RDmn, over
 }  // math
 }  // dca
 
-#endif  // DCA_HAVE_CUDA
 #endif  // DCA_MATH_NFFT_DNFFT_1D_GPU_HPP

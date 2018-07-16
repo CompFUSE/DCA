@@ -11,9 +11,12 @@
 //
 // This class measures the single-particle functions with an NFFT scheme.
 
+#ifndef DCA_HAVE_CUDA
+#error "This file requires CUDA."
+#endif
+
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_SP_SP_ACCUMULATOR_GPU_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_SP_SP_ACCUMULATOR_GPU_HPP
-#ifdef DCA_HAVE_CUDA
 
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator.hpp"
 
@@ -158,5 +161,4 @@ void SpAccumulator<Paramaters, linalg::GPU>::sumTo(SpAccumulator<Paramaters, lin
 }  // phys
 }  // dca
 
-#endif  // DCA_HAVE_CUDA
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_SP_SP_ACCUMULATOR_GPU_HPP
