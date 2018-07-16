@@ -251,10 +251,10 @@ template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 void CtauxAccumulator<device_t, parameters_type, Data>::initialize(int dca_iteration) {
   profiler_type profiler(__FUNCTION__, "CT-AUX accumulator", __LINE__, thread_id);
 
-  if (DCA_iteration == parameters.get_dca_iterations() - 1 && parameters.get_four_point_type() != NONE)
-    perform_tp_accumulation_ = true;
-
   MC_accumulator_data::initialize(dca_iteration);
+
+  if (dca_iteration == parameters.get_dca_iterations() - 1 && parameters.get_four_point_type() != NONE)
+    perform_tp_accumulation_ = true;
 
   CV_obj.initialize(data_);
 
