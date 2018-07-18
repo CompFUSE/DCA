@@ -18,6 +18,7 @@
 
 #include "dca/function/function.hpp"
 #include "dca/function/domains.hpp"
+#include "dca/parallel/no_concurrency/no_concurrency.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_data/dca_data_real_freq.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
@@ -54,7 +55,7 @@ using F_k_t =
 // Typedefs for model, parameters and data
 using Lattice = phys::models::square_lattice<phys::domains::D4>;
 using Model = phys::models::TightBindingModel<Lattice>;
-using Parameters = phys::params::Parameters<parallel::NoConcurrency, void, void, Model, void,
+using Parameters = phys::params::Parameters<dca::parallel::NoConcurrency, void, void, Model, void,
                                             phys::solver::CT_AUX>;  // CT_AUX is a placeholder
 using Data = phys::DcaData<Parameters>;
 using DataRealFreq = phys::DcaDataRealFreq<Parameters>;

@@ -89,6 +89,17 @@ public:
   }
 };
 
+/*
+ *   value c+_i_up c_j_up c+_j_down c_i_down
+ */
+template <typename scalar_type>
+struct Jh_struct {
+  long long lhs1, lhs2;
+  long long rhs1, rhs2;
+
+  scalar_type value;
+};
+
 }  // detail
 // dca::phys::solver::ed::
 
@@ -97,6 +108,7 @@ class Hamiltonian {
 public:
   typedef typename ed_options::b_dmn b_dmn;
   typedef typename ed_options::s_dmn s_dmn;
+  using Nu = func::dmn_variadic<b_dmn, s_dmn>;
 
   using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
   using RClusterDmn = typename CDA::RClusterDmn;
@@ -131,27 +143,22 @@ public:
 public:
   Hamiltonian(parameters_type& parameters_ref);
 
-  void initialize(
-      /*const*/ func::function<std::complex<double>,
-                               func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
-                                                  func::dmn_variadic<b_dmn, s_dmn>, RClusterDmn>>& H_0,
-      /*const*/ func::function<double, func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
-                                                          func::dmn_variadic<b_dmn, s_dmn>, RClusterDmn>>& H_int);
+  void initialize(const func::function<double, func::dmn_variadic<Nu, Nu, RClusterDmn>>& H_0,
+                  const func::function<double, func::dmn_variadic<Nu, Nu, RClusterDmn>>& H_i);
+  void initialize(const func::function<double, func::dmn_variadic<Nu, Nu, RClusterDmn>>& H_0,
+                  const func::function<double, func::dmn_variadic<Nu, Nu, RClusterDmn>>& H_i,
+                  const func::function<double, func::dmn_variadic<Nu, Nu, Nu, Nu, RClusterDmn>>& H_nd);
 
   void construct_Hamiltonians(bool interacting);
   void diagonalize_Hamiltonians_st();
   // void diagonalize_Hamiltonians_mt();
 
-  void set_spectrum(func::function<double, w_REAL>& A_w);
+  void set_spectrum(func::function<double, w_REAL>& A_w) const;
   void print_spectrum();
 
   void print_Hamiltonian(const char* filename);
   void print_eigen_energies(const char* filename);
   void print_eigen_states(const char* filename);
-
-  const auto& get_Hamiltonian(int i) /*const*/ {
-    return Hamiltonians(i);
-  }
 
   func::function<vector_type, fermionic_Fock_dmn_type>& get_eigen_energies() {
     return eigen_energies;
@@ -162,23 +169,22 @@ public:
 
   double get_Z();
 
-private:
+  const auto& get_Hamiltonian(int i) const {
+    return Hamiltonians(i);
+  }
+
+protected:
   void initialize_t_ij_and_U_ij(
-      /*const*/ func::function<std::complex<double>,
-                               func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
-                                                  func::dmn_variadic<b_dmn, s_dmn>, RClusterDmn>>& H_0,
-      /*const*/ func::function<double, func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
-                                                          func::dmn_variadic<b_dmn, s_dmn>, RClusterDmn>>& H_int);
+      const func::function<double, func::dmn_variadic<Nu, Nu, RClusterDmn>>& H_0,
+      const func::function<double, func::dmn_variadic<Nu, Nu, RClusterDmn>>& H_i);
+  void initialize_Jh(const func::function<double, func::dmn_variadic<Nu, Nu, Nu, Nu, RClusterDmn>>& H_nd);
 
   void shift_the_energies();
 
   void add_V_to_Hamiltonian(int N, matrix_type& H, Hilbert_space_type& subspace);
   void add_T_to_Hamiltonian(int N, matrix_type& H, Hilbert_space_type& subspace);
   void add_U_to_Hamiltonian(int N, matrix_type& H, Hilbert_space_type& subspace);
-
-  // void add_V_to_Hamiltonian_old(int N, matrix_type& H, Hilbert_space_type& subspace);
-  // void add_T_to_Hamiltonian_old(int N, matrix_type& H, Hilbert_space_type& subspace);
-  // void add_U_to_Hamiltonian_old(int N, matrix_type& H, Hilbert_space_type& subspace);
+  void add_Jh_to_Hamiltonian(int N, matrix_type& H, Hilbert_space_type& subspace);
 
   bool check_block_structure(int N, matrix_type& H, Hilbert_space_type& subspace);
 
@@ -191,6 +197,7 @@ private:
   std::vector<detail::V_struct<scalar_type>> V_i;
   std::vector<detail::t_struct<complex_type>> t_ij;
   std::vector<detail::U_struct<complex_type>> U_ij;
+  std::vector<detail::Jh_struct<complex_type>> Jh_ij;
 
   func::function<matrix_type, fermionic_Fock_dmn_type> Hamiltonians;
 
@@ -230,21 +237,51 @@ double Hamiltonian<parameters_type, ed_options>::get_Z() {
 
 template <typename parameters_type, typename ed_options>
 void Hamiltonian<parameters_type, ed_options>::initialize(
-    /*const*/ func::function<std::complex<double>,
-                             func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
-                                                func::dmn_variadic<b_dmn, s_dmn>, RClusterDmn>>& H_0,
-    /*const*/ func::function<double, func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
-                                                        func::dmn_variadic<b_dmn, s_dmn>, RClusterDmn>>& H_int) {
-  initialize_t_ij_and_U_ij(H_0, H_int);
+    const func::function<double, func::dmn_variadic<Nu, Nu, RClusterDmn>>& H_0,
+    const func::function<double, func::dmn_variadic<Nu, Nu, RClusterDmn>>& H_i) {
+  initialize_t_ij_and_U_ij(H_0, H_i);
+}
+
+template <typename parameters_type, typename ed_options>
+void Hamiltonian<parameters_type, ed_options>::initialize(
+    const func::function<double, func::dmn_variadic<Nu, Nu, RClusterDmn>>& H_0,
+    const func::function<double, func::dmn_variadic<Nu, Nu, RClusterDmn>>& H_i,
+    const func::function<double, func::dmn_variadic<Nu, Nu, Nu, Nu, RClusterDmn>>& H_nd) {
+  initialize_t_ij_and_U_ij(H_0, H_i);
+  initialize_Jh(H_nd);
+}
+
+template <typename parameters_type, typename ed_options>
+void Hamiltonian<parameters_type, ed_options>::initialize_Jh(
+    const func::function<double, func::dmn_variadic<Nu, Nu, Nu, Nu, RClusterDmn>>& H_nd) {
+  func::dmn_variadic<Nu, RClusterDmn> nu_r_dmn;
+
+  for (int r_j = 0; r_j < RClusterDmn::dmn_size(); r_j++)
+    for (int r_i = 0; r_i < RClusterDmn::dmn_size(); r_i++) {
+      int delta_r = RClusterDmn::parameter_type::subtract(r_j, r_i);
+      for (int nu1 = 0; nu1 < Nu::dmn_size(); nu1++)
+        for (int nu2 = 0; nu2 < Nu::dmn_size(); nu2++)
+          for (int nu3 = 0; nu3 < Nu::dmn_size(); nu3++)
+            for (int nu4 = 0; nu4 < Nu::dmn_size(); nu4++)
+              if (std::abs(H_nd(nu1, nu2, nu3, nu4, delta_r)) > 1.e-3) {
+                detail::Jh_struct<complex_type> Jh_obj;
+
+                Jh_obj.lhs1 = nu_r_dmn(nu1, r_i);
+                Jh_obj.rhs1 = nu_r_dmn(nu2, r_i);
+
+                Jh_obj.lhs2 = nu_r_dmn(nu3, r_j);
+                Jh_obj.rhs2 = nu_r_dmn(nu4, r_j);
+
+                Jh_obj.value = H_nd(nu1, nu2, nu3, nu4, delta_r);
+                Jh_ij.push_back(Jh_obj);
+              }
+    }
 }
 
 template <typename parameters_type, typename ed_options>
 void Hamiltonian<parameters_type, ed_options>::initialize_t_ij_and_U_ij(
-    /*const*/ func::function<std::complex<double>,
-                             func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
-                                                func::dmn_variadic<b_dmn, s_dmn>, RClusterDmn>>& H_0,
-    /*const*/ func::function<double, func::dmn_variadic<func::dmn_variadic<b_dmn, s_dmn>,
-                                                        func::dmn_variadic<b_dmn, s_dmn>, RClusterDmn>>& H_int) {
+    const func::function<double, func::dmn_variadic<Nu, Nu, RClusterDmn>>& H_0,
+    const func::function<double, func::dmn_variadic<Nu, Nu, RClusterDmn>>& H_i) {
   {
     for (int r_j = 0; r_j < RClusterDmn::dmn_size(); r_j++) {
       for (int s_j = 0; s_j < s_dmn::dmn_size(); s_j++) {
@@ -282,13 +319,13 @@ void Hamiltonian<parameters_type, ed_options>::initialize_t_ij_and_U_ij(
                 t_ij.push_back(t_obj);
               }
 
-              if (std::abs(H_int(b_i, s_i, b_j, s_j, delta_r)) > 1.e-3) {
+              if (std::abs(H_i(b_i, s_i, b_j, s_j, delta_r)) > 1.e-3) {
                 detail::U_struct<complex_type> U_obj;
 
                 U_obj.lhs = b_i + b_dmn::dmn_size() * (s_i + s_dmn::dmn_size() * r_i);
                 U_obj.rhs = b_j + b_dmn::dmn_size() * (s_j + s_dmn::dmn_size() * r_j);
 
-                U_obj.value = H_int(b_i, s_i, b_j, s_j, delta_r) / 2.;
+                U_obj.value = H_i(b_i, s_i, b_j, s_j, delta_r) / 2.;
 
                 U_ij.push_back(U_obj);
               }
@@ -323,14 +360,16 @@ void Hamiltonian<parameters_type, ed_options>::construct_Hamiltonians(bool inter
     add_V_to_Hamiltonian(N, H, subspace);
     add_T_to_Hamiltonian(N, H, subspace);
 
-    if (interacting)
+    if (interacting) {
       add_U_to_Hamiltonian(N, H, subspace);
+      add_Jh_to_Hamiltonian(N, H, subspace);
+    }
   }
 }
 
 template <typename parameters_type, typename ed_options>
 void Hamiltonian<parameters_type, ed_options>::add_V_to_Hamiltonian(int /*N*/, matrix_type& H,
-                                                                   Hilbert_space_type& subspace) {
+                                                                    Hilbert_space_type& subspace) {
   Hilbert_space_phi_representation_type& rep = subspace.get_rep();
 
   for (int l = 0; l < V_i.size(); ++l) {
@@ -357,7 +396,7 @@ void Hamiltonian<parameters_type, ed_options>::add_V_to_Hamiltonian(int /*N*/, m
 
 template <typename parameters_type, typename ed_options>
 void Hamiltonian<parameters_type, ed_options>::add_T_to_Hamiltonian(int /*N*/, matrix_type& H,
-                                                                   Hilbert_space_type& subspace) {
+                                                                    Hilbert_space_type& subspace) {
   Hilbert_space_phi_representation_type& rep = subspace.get_rep();
 
   for (int l = 0; l < t_ij.size(); ++l) {
@@ -389,8 +428,41 @@ void Hamiltonian<parameters_type, ed_options>::add_T_to_Hamiltonian(int /*N*/, m
 }
 
 template <typename parameters_type, typename ed_options>
+void Hamiltonian<parameters_type, ed_options>::add_Jh_to_Hamiltonian(int /*N*/, matrix_type& H,
+                                                                     Hilbert_space_type& subspace) {
+  Hilbert_space_phi_representation_type& rep = subspace.get_rep();
+
+  for (auto& j_elem : Jh_ij) {
+    for (int j = 0; j < rep.size(); ++j) {
+      int sign = 1;  // no meaning, but annihilate_at and create_an need argument
+      phi_type phi = rep.get_phi(j);
+
+      if (fermionic_operators_type::create_at(j_elem.lhs1, phi, sign) &&
+          fermionic_operators_type::annihilate_at(j_elem.rhs1, phi, sign) &&
+          fermionic_operators_type::create_at(j_elem.lhs2, phi, sign) &&
+          fermionic_operators_type::annihilate_at(j_elem.rhs2, phi, sign)) {
+        const std::vector<int>& column_index = rep.get_indices(j);
+        const std::vector<complex_type>& column_alpha = rep.get_alphas(j);
+
+        int i = rep.find(phi);
+        if (i < rep.size()) {
+          const std::vector<int>& row_index = rep.get_indices(i);
+          const std::vector<complex_type>& row_alpha = rep.get_alphas(i);
+
+          for (int c = 0; c < column_index.size(); ++c) {
+            for (int r = 0; r < row_index.size(); ++r) {
+              H(row_index[r], column_index[c]) += conj(row_alpha[r]) * column_alpha[c] * j_elem.value;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+template <typename parameters_type, typename ed_options>
 void Hamiltonian<parameters_type, ed_options>::add_U_to_Hamiltonian(int N, matrix_type& H,
-                                                                   Hilbert_space_type& subspace) {
+                                                                    Hilbert_space_type& subspace) {
   Hilbert_space_phi_representation_type& rep = subspace.get_rep();
 
   for (int l = 0; l < U_ij.size(); ++l) {
@@ -484,109 +556,9 @@ void Hamiltonian<parameters_type, ed_options>::add_U_to_Hamiltonian(int N, matri
     H(state, state) += U_ij_sum;
 }
 
-// Simple reference implementations
-//
-// template <typename parameters_type, typename ed_options>
-// void Hamiltonian<parameters_type, ed_options>::add_V_to_Hamiltonian_old(int N, matrix_type& H,
-//                                                                        Hilbert_space_type&
-//                                                                        subspace) {
-//   for (int state_f = 0; state_f < N; ++state_f) {
-//     psi_state_type& Psi_f = subspace.get_element(state_f);
-//     for (int state_i = 0; state_i < N; ++state_i) {
-//       psi_state_type& Psi_i = subspace.get_element(state_i);
-
-//       for (int k_f = 0; k_f < Psi_f.size(); ++k_f) {
-//         for (int k_i = 0; k_i < Psi_i.size(); ++k_i) {
-//           if (Psi_f.phis[k_f] == Psi_i.phis[k_i]) {
-//             for (size_t l = 0; l < V_i.size(); ++l) {
-//               H(state_f, state_i) += V_i[l].value * conj(Psi_f.coefficients[k_f]) *
-//                                      Psi_i.coefficients[k_i] * (1. *
-//                                      Psi_i.phis[k_i][V_i[l].index]);
-//             }
-//           }
-//         }
-//       }
-//     }
-//   }
-// }
-//
-// template <typename parameters_type, typename ed_options>
-// void Hamiltonian<parameters_type, ed_options>::add_T_to_Hamiltonian_old(int N, matrix_type& H,
-//                                                                        Hilbert_space_type&
-//                                                                        subspace) {
-//   for (int state_f = 0; state_f < N; ++state_f) {
-//     psi_state_type& Psi_f = subspace.get_element(state_f);
-//     for (int state_i = 0; state_i < N; ++state_i) {
-//       psi_state_type& Psi_i = subspace.get_element(state_i);
-
-//       for (int k_f = 0; k_f < Psi_f.size(); ++k_f) {
-//         for (int k_i = 0; k_i < Psi_i.size(); ++k_i) {
-//           if (possible_hopping(Psi_i.phis[k_i], Psi_f.phis[k_f])) {
-//             for (size_t l = 0; l < t_ij.size(); l++) {
-//               if (Psi_i.phis[k_i][t_ij[l].rhs] == 1 and Psi_i.phis[k_i][t_ij[l].lhs] == 0 and
-//                   Psi_f.phis[k_f][t_ij[l].rhs] == 0 and Psi_f.phis[k_f][t_ij[l].lhs] == 1) {
-//                 scalar_type phase = 1.;
-//                 phi_type phi_new = Psi_i.phis[k_i];
-
-//                 {
-//                   for (int d = 0; d < t_ij[l].rhs; d++)
-//                     if (phi_new[d] == 1)
-//                       phase *= scalar_type(-1.);
-
-//                   phi_new[t_ij[l].rhs] = 0;
-//                 }
-
-//                 {
-//                   for (int d = 0; d < t_ij[l].lhs; d++)
-//                     if (phi_new[d] == 1)
-//                       phase *= scalar_type(-1.);
-
-//                   phi_new[t_ij[l].lhs] = 1;
-//                 }
-
-//                 H(state_f, state_i) +=
-//                     phase * conj(Psi_f.coefficients[k_f]) * Psi_i.coefficients[k_i] *
-//                     t_ij[l].value;
-//               }
-//             }
-//           }
-//         }
-//       }
-//     }
-//   }
-// }
-//
-// template <typename parameters_type, typename ed_options>
-// void Hamiltonian<parameters_type, ed_options>::add_U_to_Hamiltonian_old(int N, matrix_type& H,
-//                                                                        Hilbert_space_type&
-//                                                                        subspace) {
-//   for (int state = 0; state < N; ++state) {
-//     psi_state_type& Psi = subspace.get_element(state);
-
-//     for (int k = 0; k < Psi.size(); ++k) {
-//       for (int l = 0; l < U_ij.size(); ++l) {
-//         H(state, state) +=
-//             U_ij[l].value / scalar_type(4.) * conj(Psi.coefficients[k]) * Psi.coefficients[k];
-
-//         if (abs(Psi.phis[k][U_ij[l].lhs] - scalar_type(1.)) < 1.e-3)
-//           H(state, state) -=
-//               U_ij[l].value / scalar_type(2.) * conj(Psi.coefficients[k]) * Psi.coefficients[k];
-
-//         if (abs(Psi.phis[k][U_ij[l].rhs] - scalar_type(1.)) < 1.e-3)
-//           H(state, state) -=
-//               U_ij[l].value / scalar_type(2.) * conj(Psi.coefficients[k]) * Psi.coefficients[k];
-
-//         if (abs(Psi.phis[k][U_ij[l].lhs] - scalar_type(1.)) < 1.e-3 and
-//             abs(Psi.phis[k][U_ij[l].rhs] - scalar_type(1.)) < 1.e-3)
-//           H(state, state) += U_ij[l].value * conj(Psi.coefficients[k]) * Psi.coefficients[k];
-//       }
-//     }
-//   }
-// }
-
 template <typename parameters_type, typename ed_options>
 bool Hamiltonian<parameters_type, ed_options>::check_block_structure(int N, matrix_type& H,
-                                                                    Hilbert_space_type& subspace) {
+                                                                     Hilbert_space_type& subspace) {
   for (int state_f = 0; state_f < N; ++state_f) {
     psi_state_type& Psi_f = subspace.get_element(state_f);
     for (int state_i = 0; state_i < N; ++state_i) {
@@ -605,7 +577,7 @@ bool Hamiltonian<parameters_type, ed_options>::check_block_structure(int N, matr
 
 template <typename parameters_type, typename ed_options>
 void Hamiltonian<parameters_type, ed_options>::diagonalize_Hamiltonians_st() {
-  if (concurrency.id() == concurrency.first())
+  if (concurrency.id() == 0)
     std::cout << "\n\t" << __FUNCTION__ << "\n\n";
 
   int start = clock();
@@ -695,12 +667,12 @@ void Hamiltonian<parameters_type, ed_options>::print_spectrum() {
 }
 
 template <typename parameters_type, typename ed_options>
-void Hamiltonian<parameters_type, ed_options>::set_spectrum(func::function<double, w_REAL>& A_w) {
+void Hamiltonian<parameters_type, ed_options>::set_spectrum(func::function<double, w_REAL>& A_w) const {
   A_w = 0;
 
-  std::vector<double>& w_elem = w_REAL::get_elements();
+  const std::vector<double>& w_elem = w_REAL::get_elements();
 
-  std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
+  const std::vector<Hilbert_space_type>& Hilbert_spaces = fermionic_Fock_dmn_type::get_elements();
 
   for (int i = 0; i < fermionic_Fock_dmn_type::dmn_size(); ++i)
     for (int n = 0; n < Hilbert_spaces[i].size(); ++n)

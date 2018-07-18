@@ -20,6 +20,7 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/function/util/real_complex_conversion.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_writer.hpp"
 #include "dca/linalg/device_type.hpp"
@@ -34,6 +35,7 @@
 #include "dca/phys/domains/time_and_frequency/frequency_domain_real_axis.hpp"
 #include "dca/phys/four_point_type.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
+#include "dca/phys/models/traits.hpp"
 #include "dca/util/print_time.hpp"
 
 namespace dca {
@@ -46,6 +48,7 @@ class EDClusterSolver {
 public:
   using MOMS_w_imag_type = DcaData<parameters_type>;
   using MOMS_w_real_type = DcaDataRealFreq<parameters_type>;
+  using Lattice = typename MOMS_w_imag_type::Lattice;
 
   using ed_options_type = ed::Options<parameters_type>;
 
@@ -136,7 +139,13 @@ void EDClusterSolver<device_t, parameters_type, MOMS_type>::initialize(int /*dca
 
   math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(MOMS_imag.H_DCA, H_DCA);
 
-  Ham_obj.initialize(H_DCA, MOMS_imag.H_interactions);
+  if (models::has_non_density_interaction<Lattice>::value) {
+    func::function<double, func::dmn_variadic<nu, nu, nu, nu, RClusterDmn>> H_nd;
+    models::initializeNonDensityInteraction<Lattice>(H_nd, parameters);
+    Ham_obj.initialize(func::util::real(H_DCA, true), MOMS_imag.H_interactions, H_nd);
+  }
+  else
+    Ham_obj.initialize(func::util::real(H_DCA), MOMS_imag.H_interactions);
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
@@ -154,7 +163,7 @@ void EDClusterSolver<device_t, parameters_type, MOMS_type>::execute() {
   overlap_obj.construct_creation_set_nonzero_sparse();
   overlap_obj.construct_annihilation_set_nonzero_sparse();
 
-  {  // non-interacting Greensfunction
+  {  // non-interacting Greens function)
     if (concurrency.id() == concurrency.first()) {
       std::cout << "\n" << dca::util::print_time() << std::endl;
     }
