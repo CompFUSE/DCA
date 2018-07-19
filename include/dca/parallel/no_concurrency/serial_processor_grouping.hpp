@@ -19,25 +19,25 @@ namespace parallel {
 
 class SerialProcessorGrouping {
 public:
-  SerialProcessorGrouping() : id_(0), nr_threads_(1) {}
+  SerialProcessorGrouping() : id_(0), size_(1) {}
 
   int get_id() const {
     return id_;
   }
-  int get_Nr_threads() const {
-    return nr_threads_;
+  int get_size() const {
+    return size_;
   }
 
   int first() const {
     return 0;
   }
   int last() const {
-    return nr_threads_ - 1;
+    return size_ - 1;
   }
 
 private:
   const int id_;
-  const int nr_threads_;
+  const int size_;
 };
 
 }  // parallel

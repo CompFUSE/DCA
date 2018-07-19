@@ -11,8 +11,45 @@
 
 #include "dca/parallel/mpi_concurrency/mpi_concurrency.hpp"
 
+#include <iostream>
+
 namespace dca {
 namespace parallel {
+
+MPIConcurrency::MPIConcurrency(int argc, char** argv)
+    : MPIPacking(grouping_),
+      MPICollectiveMax(grouping_),
+      MPICollectiveMin(grouping_),
+      MPICollectiveSum(grouping_) {
+  // INTERNAL: Consider moving MPI_Init inside the MPIProcessorGrouping class.
+  int provided = 0;
+  constexpr int required = MPI_THREAD_FUNNELED;
+  MPI_Init_thread(&argc, &argv, required, &provided);
+  if (provided < required)
+    throw(std::logic_error("MPI does not provide adequate thread support."));
+
+  grouping_.reset(new MPIProcessorGrouping);
+
+  if (!grouping_->isValid()) {  // Exit only from this process.
+    char mpi_processor_name[MPI_MAX_PROCESSOR_NAME];
+    int name_len;
+    int ierr;
+    ierr = MPI_Get_processor_name(reinterpret_cast<char*>(&mpi_processor_name), &name_len);
+    if(ierr != MPI_SUCCESS) {
+      std::cerr << "MPI_Get_processor_name() failed with error " << ierr;
+    }
+    std::cerr << "Process " << grouping_->get_world_id() << " on node "
+	      << mpi_processor_name
+	      << " is exiting.\nIt cannot execute CUDA kernels." << std::endl;
+    MPI_Finalize();
+    exit(0);
+  }
+}
+
+MPIConcurrency::~MPIConcurrency() {
+  grouping_.release();
+  MPI_Finalize();
+}
 
 constexpr char MPIConcurrency::parallel_type_str_[];
 
