@@ -10,7 +10,7 @@ The following people have contributed to the DCA++ project:
 
 * Peter W. Doak
 
-* Urs R. Haehner
+* Urs R. H&auml;hner
 
 * Mi Jiang
 
@@ -20,7 +20,7 @@ The following people have contributed to the DCA++ project:
 
 * Thomas C. Schulthess
 
-* Raffaele Solca
+* Raffaele Solc&agrave;
 
 * Peter Staar
 
