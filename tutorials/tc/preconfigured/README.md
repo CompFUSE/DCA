@@ -1,6 +1,6 @@
 This directory contains ready-to-use input files and jobs scripts for the [T<sub>c</sub> tutorial](https://github.com/CompFUSE/DCA/wiki/Tutorial:-Tc).
 The files are preconfigured to run the example with a single process (no MPI) using the threaded Monte Carlo solver with 3 walkers and 5 accumulators.
-The total number of measurements is 100'000.
+The total number of measurements is 100 000.
 
 The temperature steps are given by
 
@@ -34,14 +34,14 @@ We assume the *current working directory* to be the directory containing this fi
         $ ./job.dca_U=6_d=0.95_Nc=4.sh > out.dca.txt
 
     Runtime on an Intel Core i7-4980HQ @ 2.8GHz (4 cores) is ~110 min.  
-    [`out.dca_reference.txt`](https://github.com/CompFUSE/DCA/blob/master/tutorials/tc/preconfigured/out.dca_reference.txt) provides reference output.
+    The file [`out.dca_reference.txt`](https://github.com/CompFUSE/DCA/blob/master/tutorials/tc/preconfigured/out.dca_reference.txt) provides reference output.
     Note that most of the numbers are subject to the stochastic Monte Carlo error.
 
 3. When all `main_dca` runs are finished, execute the [`analysis` job script](https://github.com/CompFUSE/DCA/blob/master/tutorials/tc/preconfigured/job.analysis_U=6_d=0.95_Nc=4.sh):
 
         $ ./job.analysis_U=6_d=0.95_Nc=4.sh > out.analysis.txt
 
-    [`out.analysis_reference.txt`](https://github.com/CompFUSE/DCA/blob/master/tutorials/tc/preconfigured/out.analysis_reference.txt) provides reference output.
+    The file [`out.analysis_reference.txt`](https://github.com/CompFUSE/DCA/blob/master/tutorials/tc/preconfigured/out.analysis_reference.txt) provides reference output.
     Most of the numbers again are subject to the stochastic Monte Carlo error of the `main_dca` runs.
 
 4. When the `main_analysis` runs are finished, you can determine the superconducting transition temperature _T<sub>c</sub>_ with the Python script [`compute_tc.py`](https://github.com/CompFUSE/DCA/blob/master/tutorials/tc/compute_tc.py) provided in the parent directory:
