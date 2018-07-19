@@ -36,4 +36,4 @@ Modified by David Stafford's Mixer parameters "Mix13".
 
 A C++ library that implements Grundmann-Moeller quadrature rules for the simplex in arbitrary dimensions.  
 John Burkhardt, GNU Lesser General Public License (LGPL) Version 3.  
-[https://people.sc.fsu.edu/~jburkardt/f_src/simplex_gm_rule/simplex_gm_rule.html](https://people.sc.fsu.edu/~jburkardt/f_src/simplex_gm_rule/simplex_gm_rule.html)
+[https://people.sc.fsu.edu/~jburkardt/cpp_src/simplex_gm_rule/simplex_gm_rule.html](https://people.sc.fsu.edu/~jburkardt/cpp_src/simplex_gm_rule/simplex_gm_rule.html)
