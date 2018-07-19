@@ -7,8 +7,8 @@
 # Usage: 1. Configure the EDIT block.
 #        2. Execute the script: python cooldown.py
 #
-# See https://github.com/eth-cscs/dca_ethz/wiki/Running for more details on how to use this script
-# and run a DCA(+) calculation.
+# See https://github.com/CompFUSE/DCA/wiki/Running for more details on how to use this script and
+# how to run a DCA(+) calculation.
 #
 # Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 

@@ -7,20 +7,20 @@ High scalability and portable performance allow to exploit today's leadership co
 
 ## Getting Started
 
-Information about prerequisites and the CMake-based building procedure can be found in the [Wiki](https://github.com/eth-cscs/DCA/wiki).
+Information about prerequisites and the CMake-based building procedure can be found in the [Wiki](https://github.com/CompFUSE/DCA/wiki).
 
 
 ## Contributing Back
 
 Questions, bug reports and feature requests can be submitted via the
-[issue tracking system](https://github.com/eth-cscs/DCA/issues).
+[issue tracking system](https://github.com/CompFUSE/DCA/issues).
 
-Please read the [contribution guidelines](https://github.com/eth-cscs/DCA/blob/master/CONTRIBUTING.md) for details on how to contribute code.
+Please read the [contribution guidelines](https://github.com/CompFUSE/DCA/blob/master/CONTRIBUTING.md) for details on how to contribute code.
 
 
 ## Citation Guidelines
 
-Please follow the [citation guidelines](https://github.com/eth-cscs/DCA/blob/master/CITATION.md), if you use the DCA++ code for scientific publications.
+Please follow the [citation guidelines](https://github.com/CompFUSE/DCA/blob/master/CITATION.md), if you use the DCA++ code for scientific publications.
 
 
 ## CDash Dashboard
