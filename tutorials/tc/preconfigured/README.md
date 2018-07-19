@@ -1,4 +1,4 @@
-This directory contains input files and jobs scripts for the Tc tutorial example (see https://github.com/CompFUSE/DCA/wiki/Tutorial:-Tc ).
+This directory contains input files and jobs scripts for the [T<sub>c</sub> tutorial](https://github.com/CompFUSE/DCA/wiki/Tutorial:-Tc).
 The files are preconfigured to run the example with a single process (no MPI) using the threaded Monte Carlo solver with 3 walkers and 5 accumulators.
 The total number of measurements is 100'000.
 
