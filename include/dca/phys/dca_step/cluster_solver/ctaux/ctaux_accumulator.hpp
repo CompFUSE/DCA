@@ -23,9 +23,7 @@
 #include "dca/function/function.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator.hpp"
-#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator.hpp"
-#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator_gpu.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/accumulator/tp/tp_equal_time_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/domains/feynman_expansion_order_domain.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/structs/ct_aux_hs_configuration.hpp"
@@ -40,6 +38,10 @@
 #include "dca/phys/domains/time_and_frequency/time_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 #include "dca/phys/four_point_type.hpp"
+#ifdef DCA_HAVE_CUDA
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator_gpu.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu.hpp"
+#endif  // DCA_HAVE_CUDA
 
 namespace dca {
 namespace phys {
@@ -249,10 +251,10 @@ template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 void CtauxAccumulator<device_t, parameters_type, Data>::initialize(int dca_iteration) {
   profiler_type profiler(__FUNCTION__, "CT-AUX accumulator", __LINE__, thread_id);
 
-  if (DCA_iteration == parameters.get_dca_iterations() - 1 && parameters.get_four_point_type() != NONE)
-    perform_tp_accumulation_ = true;
-
   MC_accumulator_data::initialize(dca_iteration);
+
+  if (dca_iteration == parameters.get_dca_iterations() - 1 && parameters.get_four_point_type() != NONE)
+    perform_tp_accumulation_ = true;
 
   CV_obj.initialize(data_);
 

@@ -8,9 +8,12 @@
 //
 // Implementation of the two particle Green's function computation on the GPU.
 
+#ifndef DCA_HAVE_CUDA
+#error "This file requires CUDA."
+#endif
+
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_TP_ACCUMULATOR_GPU_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_TP_ACCUMULATOR_GPU_HPP
-#ifdef DCA_HAVE_CUDA
 
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator.hpp"
 
@@ -360,12 +363,11 @@ void TpAccumulator<Parameters, linalg::GPU>::finalize() {
   std::unique_lock<std::mutex> lock(mutex);
 
   if (!is_finalized_static_) {
-    if (!G4_)
-      G4_.reset(new TpGreenFunction("G4"));
+    G4_.reset(new TpGreenFunction("G4"));
 
     cudaMemcpyAsync(G4_->values(), get_G4().ptr(), G4_->size() * sizeof(Complex),
                     cudaMemcpyDeviceToHost, streams_[0]);
-    // INTERNAL: release memory if needed by the rest of the DCA loop.
+    // TODO: release memory if needed by the rest of the DCA loop.
     // cudaStreamsynchronize(streams_[0]);
     // get_G4().clear();
     is_finalized_static_ = true;
@@ -408,5 +410,4 @@ typename TpAccumulator<Parameters, linalg::GPU>::G4DevType& TpAccumulator<Parame
 }  // phys
 }  // dca
 
-#endif  // DCA_HAVE_CUDA
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_TP_TP_ACCUMULATOR_GPU_HPP
