@@ -318,7 +318,7 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::computeChi0Latti
     MOMS.Sigma_lattice = 0.;
 
     if (parameters.hts_approximation()) {
-      clustermapping::coarsegraining_sp<ParametersType, k_DCA> coarsegraining_sp(parameters);
+      clustermapping::CoarsegrainingSp<ParametersType> CoarsegrainingSp(parameters);
 
       DcaDataType dca_data_hts(parameters);
       dca_data_hts.H_HOST = MOMS.H_HOST;
@@ -328,7 +328,7 @@ void BseLatticeSolver<ParametersType, DcaDataType, ScalarType>::computeChi0Latti
           parameters, dca_data_hts);
 
       lattice_map_sp.execute_with_HTS_approximation(
-          dca_data_hts, hts_solver, coarsegraining_sp, MOMS.Sigma, MOMS.Sigma_lattice_interpolated,
+          dca_data_hts, hts_solver, CoarsegrainingSp, MOMS.Sigma, MOMS.Sigma_lattice_interpolated,
           MOMS.Sigma_lattice_coarsegrained, MOMS.Sigma_lattice);
     }
     else {

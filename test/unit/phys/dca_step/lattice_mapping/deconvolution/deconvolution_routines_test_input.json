@@ -1,6 +1,7 @@
 {
     "DCA": {
         "coarse-graining": {
+            "do-simple-q-points-summation" : false,
             "k-mesh-recursion": 0,
             "periods": 0,
             "quadrature-rule": 0

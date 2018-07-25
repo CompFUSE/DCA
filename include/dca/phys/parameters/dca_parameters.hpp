@@ -34,6 +34,7 @@ public:
 
         do_finite_size_qmc_(false),
 
+        do_simple_q_points_summation_(true),
         k_mesh_recursion_(0),
         coarsegraining_periods_(0),
         quadrature_rule_(1),
@@ -78,6 +79,13 @@ public:
   bool do_finite_size_qmc() const {
     return do_finite_size_qmc_;
   }
+
+  // Compute the coarse grained G function as a simple average over the q points. This will be
+  // computationally faster and perform better on multiband systems.
+  // Currently not supported for DCA+.
+  bool do_simple_q_points_summation() const {
+    return do_simple_q_points_summation_;
+  }
   int get_k_mesh_recursion() const {
     return k_mesh_recursion_;
   }
@@ -119,6 +127,7 @@ private:
   bool do_finite_size_qmc_;
 
   // coarse-graining
+  bool do_simple_q_points_summation_;
   int k_mesh_recursion_;
   int coarsegraining_periods_;
   int quadrature_rule_;
@@ -143,6 +152,7 @@ int DcaParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(self_energy_mixing_factor_);
   buffer_size += concurrency.get_buffer_size(interacting_orbitals_);
   buffer_size += concurrency.get_buffer_size(do_finite_size_qmc_);
+  buffer_size += concurrency.get_buffer_size(do_simple_q_points_summation_);
   buffer_size += concurrency.get_buffer_size(k_mesh_recursion_);
   buffer_size += concurrency.get_buffer_size(coarsegraining_periods_);
   buffer_size += concurrency.get_buffer_size(quadrature_rule_);
@@ -166,6 +176,7 @@ void DcaParameters::pack(const Concurrency& concurrency, char* buffer, int buffe
   concurrency.pack(buffer, buffer_size, position, self_energy_mixing_factor_);
   concurrency.pack(buffer, buffer_size, position, interacting_orbitals_);
   concurrency.pack(buffer, buffer_size, position, do_finite_size_qmc_);
+  concurrency.pack(buffer, buffer_size, position, do_simple_q_points_summation_);
   concurrency.pack(buffer, buffer_size, position, k_mesh_recursion_);
   concurrency.pack(buffer, buffer_size, position, coarsegraining_periods_);
   concurrency.pack(buffer, buffer_size, position, quadrature_rule_);
@@ -187,6 +198,7 @@ void DcaParameters::unpack(const Concurrency& concurrency, char* buffer, int buf
   concurrency.unpack(buffer, buffer_size, position, self_energy_mixing_factor_);
   concurrency.unpack(buffer, buffer_size, position, interacting_orbitals_);
   concurrency.unpack(buffer, buffer_size, position, do_finite_size_qmc_);
+  concurrency.unpack(buffer, buffer_size, position, do_simple_q_points_summation_);
   concurrency.unpack(buffer, buffer_size, position, k_mesh_recursion_);
   concurrency.unpack(buffer, buffer_size, position, coarsegraining_periods_);
   concurrency.unpack(buffer, buffer_size, position, quadrature_rule_);
@@ -201,69 +213,34 @@ void DcaParameters::unpack(const Concurrency& concurrency, char* buffer, int buf
 
 template <typename ReaderOrWriter>
 void DcaParameters::readWrite(ReaderOrWriter& reader_or_writer) {
+  auto try_to_read = [&](const std::string& name, auto& var) {
+    try {
+      reader_or_writer.execute(name, var);
+    }
+    catch (const std::exception& r_e) {
+    }
+  };
+
   try {
     reader_or_writer.open_group("DCA");
 
-    try {
-      reader_or_writer.execute("initial-self-energy", initial_self_energy_);
-    }
-    catch (const std::exception& r_e) {
-    }
-    try {
-      reader_or_writer.execute("iterations", dca_iterations_);
-    }
-    catch (const std::exception& r_e) {
-    }
-    try {
-      reader_or_writer.execute("accuracy", dca_accuracy_);
-    }
-    catch (const std::exception& r_e) {
-    }
-    try {
-      reader_or_writer.execute("self-energy-mixing-factor", self_energy_mixing_factor_);
-    }
-    catch (const std::exception& r_e) {
-    }
-    try {
-      reader_or_writer.execute("interacting-orbitals", interacting_orbitals_);
-    }
-    catch (const std::exception& r_e) {
-    }
+    try_to_read("initial-self-energy", initial_self_energy_);
+    try_to_read("iterations", dca_iterations_);
+    try_to_read("accuracy", dca_accuracy_);
+    try_to_read("self-energy-mixing-factor", self_energy_mixing_factor_);
+    try_to_read("interacting-orbitals", interacting_orbitals_);
 
-    try {
-      reader_or_writer.execute("do-finite-size-QMC", do_finite_size_qmc_);
-    }
-    catch (const std::exception& r_e) {
-    }
+    try_to_read("do-finite-size-QMC", do_finite_size_qmc_);
 
     try {
       reader_or_writer.open_group("coarse-graining");
 
-      try {
-        reader_or_writer.execute("k-mesh-recursion", k_mesh_recursion_);
-      }
-      catch (const std::exception& r_e) {
-      }
-      try {
-        reader_or_writer.execute("periods", coarsegraining_periods_);
-      }
-      catch (const std::exception& r_e) {
-      }
-      try {
-        reader_or_writer.execute("quadrature-rule", quadrature_rule_);
-      }
-      catch (const std::exception& r_e) {
-      }
-      try {
-        reader_or_writer.execute("threads", coarsegraining_threads_);
-      }
-      catch (const std::exception& r_e) {
-      }
-      try {
-        reader_or_writer.execute("tail-frequencies", tail_frequencies_);
-      }
-      catch (const std::exception& r_e) {
-      }
+      try_to_read("do-simple-q-points-summation", do_simple_q_points_summation_);
+      try_to_read("k-mesh-recursion", k_mesh_recursion_);
+      try_to_read("periods", coarsegraining_periods_);
+      try_to_read("quadrature-rule", quadrature_rule_);
+      try_to_read("threads", coarsegraining_threads_);
+      try_to_read("tail-frequencies", tail_frequencies_);
 
       reader_or_writer.close_group();
     }
@@ -273,31 +250,11 @@ void DcaParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     try {
       reader_or_writer.open_group("DCA+");
 
-      try {
-        reader_or_writer.execute("do-DCA+", do_dca_plus_);
-      }
-      catch (const std::exception& r_e) {
-      }
-      try {
-        reader_or_writer.execute("deconvolution-iterations", deconvolution_iterations_);
-      }
-      catch (const std::exception& r_e) {
-      }
-      try {
-        reader_or_writer.execute("deconvolution-tolerance", deconvolution_tolerance_);
-      }
-      catch (const std::exception& r_e) {
-      }
-      try {
-        reader_or_writer.execute("HTS-approximation", hts_approximation_);
-      }
-      catch (const std::exception& r_e) {
-      }
-      try {
-        reader_or_writer.execute("HTS-threads", hts_threads_);
-      }
-      catch (const std::exception& r_e) {
-      }
+      try_to_read("do-DCA+", do_dca_plus_);
+      try_to_read("deconvolution-iterations", deconvolution_iterations_);
+      try_to_read("deconvolution-tolerance", deconvolution_tolerance_);
+      try_to_read("HTS-approximation", hts_approximation_);
+      try_to_read("HTS-threads", hts_threads_);
 
       reader_or_writer.close_group();
     }

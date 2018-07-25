@@ -52,6 +52,7 @@
         "do-finite-size-QMC": false,
 
         "coarse-graining": {
+            "do-simple-q-points-summation" : true,
             "k-mesh-recursion": 0,
             "periods": 0,
             "quadrature-rule": 1,

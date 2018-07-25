@@ -236,15 +236,6 @@ if (DCA_WITH_SINGLE_PRECISION_MEASUREMENTS)
 endif()
 
 ################################################################################
-# Single precision coarsegraining
-option(DCA_WITH_SINGLE_PRECISION_COARSEGRAINING "Coarsegrain in single precision." OFF)
-mark_as_advanced(DCA_WITH_SINGLE_PRECISION_COARSEGRAINING)
-
-if (DCA_WITH_SINGLE_PRECISION_COARSEGRAINING)
-  dca_add_config_define(DCA_WITH_SINGLE_PRECISION_COARSEGRAINING)
-endif()
-
-################################################################################
 # Gnuplot
 option(DCA_WITH_GNUPLOT "Enable Gnuplot." OFF)
 

@@ -57,7 +57,7 @@ public:
   using cluster_exclusion_type = clustermapping::cluster_exclusion<ParametersType, DcaDataType>;
   using double_counting_correction_type =
       clustermapping::double_counting_correction<ParametersType, DcaDataType>;
-  using coarsegraining_sp_type = clustermapping::coarsegraining_sp<ParametersType, k_DCA>;
+  using coarsegraining_sp_type = clustermapping::CoarsegrainingSp<ParametersType>;
   using lattice_map_sp_type = latticemapping::lattice_mapping_sp<ParametersType, k_DCA, k_HOST>;
   using update_chemical_potential_type =
       clustermapping::update_chemical_potential<ParametersType, DcaDataType, coarsegraining_sp_type>;

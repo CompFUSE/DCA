@@ -28,10 +28,11 @@
 
   "DCA": {
     "iterations": 1,
-	"self-energy-mixing-factor": 1.,
+    "self-energy-mixing-factor": 1.,
     "interacting-orbitals": [0],
 
     "coarse-graining": {
+      "do-simple-q-points-summation" : true,
       "k-mesh-recursion": 3,
       "periods": 2,
       "quadrature-rule": 1,
@@ -39,13 +40,3 @@
     }
   }
 }
-
-
-
-
-
-
-
-
-
-

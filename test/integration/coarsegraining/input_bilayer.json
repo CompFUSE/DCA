@@ -8,44 +8,35 @@
   {
     "tx"       : 1.,
     "ty"       : 0.,
-      "U"       : 4.
+    "U"       : 4.
   },
-    
+
   "domains": {
-      "real-space-grids": {
-	"cluster": [[1, 0], [0,1]],
-	"sp-host": [[20, 0], [0,20]]
+    "real-space-grids": {
+      "cluster": [[1, 0], [0,1]],
+      "sp-host": [[20, 0], [0,20]]
     },
-      
+
     "imaginary-time": {
-	"sp-time-intervals": 512
+      "sp-time-intervals": 512
     },
-      
-      "imaginary-frequency": {
-	"sp-fermionic-frequencies": 512
+
+    "imaginary-frequency": {
+      "sp-fermionic-frequencies": 512
     }
   },
 
   "DCA": {
-      "iterations": 1,
-      "self-energy-mixing-factor": 1.,
-      "interacting-orbitals": [0,1],
-      
-      "coarse-graining": {
-	  "k-mesh-recursion": 3,
-	  "periods": 2,
-	  "quadrature-rule": 1,
-	  "threads": 3
-      }
+    "iterations": 1,
+    "self-energy-mixing-factor": 1.,
+    "interacting-orbitals": [0,1],
+
+    "coarse-graining": {
+      "do-simple-q-points-summation" : true,
+      "k-mesh-recursion": 3,
+      "periods": 2,
+      "quadrature-rule": 1,
+      "threads": 3
+    }
   }
 }
-
-
-
-
-
-
-
-
-
-

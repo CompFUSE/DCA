@@ -23,6 +23,7 @@
 #include "dca/phys/dca_step/cluster_mapping/coarsegraining/interpolation_matrices.hpp"
 #include "dca/phys/dca_step/cluster_mapping/coarsegraining/quadrature_integration.hpp"
 #include "dca/phys/dca_step/lattice_mapping/interpolation/transform_to_alpha.hpp"
+#include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
@@ -35,9 +36,11 @@ namespace phys {
 namespace clustermapping {
 // dca::phys::clustermapping::
 
-template <typename parameters_type, typename K_dmn>
+template <typename parameters_type>
 class coarsegraining_routines {
 public:
+  using K_dmn = typename ClusterDomainAliases<parameters_type::lattice_dimension>::KClusterDmn;
+
   using concurrency_type = typename parameters_type::concurrency_type;
 
   using k_cluster_type = typename K_dmn::parameter_type;
@@ -63,6 +66,12 @@ public:
 
 public:
   coarsegraining_routines(parameters_type& parameters_ref);
+
+  template <typename scalar_type, typename k_dmn_t, typename q_dmn_t>
+  void wannierInterpolationWithAlphaTransform(
+      int K_ind, double alpha,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& f_k,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& f_q) const;
 
 protected:
   void compute_tetrahedron_mesh(int k_mesh_refinement, int number_of_periods) const;
@@ -162,12 +171,32 @@ protected:
   concurrency_type& concurrency;
 };
 
-template <typename parameters_type, typename K_dmn>
-coarsegraining_routines<parameters_type, K_dmn>::coarsegraining_routines(parameters_type& parameters_ref)
-    : parameters(parameters_ref), concurrency(parameters.get_concurrency()) {}
+template <typename parameters_type>
+coarsegraining_routines<parameters_type>::coarsegraining_routines(parameters_type& parameters_ref)
+    : parameters(parameters_ref), concurrency(parameters.get_concurrency()) {
+  static std::once_flag flag;
+  std::call_once(flag, [&]() {
+    compute_tetrahedron_mesh(parameters.get_k_mesh_recursion(),
+                             parameters.get_coarsegraining_periods());
 
-template <typename parameters_type, typename K_dmn>
-void coarsegraining_routines<parameters_type, K_dmn>::compute_tetrahedron_mesh(
+    compute_gaussian_mesh(parameters.get_k_mesh_recursion(), parameters.get_quadrature_rule(),
+                          parameters.get_coarsegraining_periods());
+  });
+}
+
+template <class Parameters>
+template <typename ScalarType, typename KDmn, typename QDmn>
+void coarsegraining_routines<Parameters>::wannierInterpolationWithAlphaTransform(
+    const int k_ind, const double alpha,
+    func::function<std::complex<ScalarType>, func::dmn_variadic<nu, nu, KDmn>>& f_k,
+    func::function<std::complex<ScalarType>, func::dmn_variadic<nu, nu, QDmn>>& f_q) const {
+  latticemapping::transform_to_alpha::forward(alpha, f_k);
+  wannier_interpolation(k_ind, f_k, f_q);
+  latticemapping::transform_to_alpha::backward(alpha, f_q);
+}
+
+template <typename parameters_type>
+void coarsegraining_routines<parameters_type>::compute_tetrahedron_mesh(
     const int k_mesh_refinement, const int number_of_periods) const {
   math::geometry::tetrahedron_mesh<typename K_dmn::parameter_type> mesh(k_mesh_refinement);
 
@@ -195,8 +224,8 @@ void coarsegraining_routines<parameters_type, K_dmn>::compute_tetrahedron_mesh(
   }
 }
 
-template <typename parameters_type, typename K_dmn>
-void coarsegraining_routines<parameters_type, K_dmn>::compute_gaussian_mesh(
+template <typename parameters_type>
+void coarsegraining_routines<parameters_type>::compute_gaussian_mesh(
     const int k_mesh_refinement, const int gaussian_quadrature_rule,
     const int number_of_periods) const {
   {
@@ -229,18 +258,19 @@ void coarsegraining_routines<parameters_type, K_dmn>::compute_gaussian_mesh(
   }
 }
 
-template <typename parameters_type, typename K_dmn>
+template <typename parameters_type>
 template <typename scalar_type, typename k_dmn_t, typename q_dmn_t>
-void coarsegraining_routines<parameters_type, K_dmn>::wannier_interpolation(
+void coarsegraining_routines<parameters_type>::wannier_interpolation(
     const int K_ind,
     const func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& f_k,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& f_q) const {
   typedef interpolation_matrices<scalar_type, k_dmn_t, q_dmn_t> interpolation_matrices_type;
 
-  if (not interpolation_matrices_type::is_initialized())
+  if (!interpolation_matrices_type::is_initialized())
     interpolation_matrices_type::initialize(concurrency);
 
-  dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& T = interpolation_matrices_type::get(K_ind);
+  const dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& T =
+      interpolation_matrices_type::get(K_ind);
 
   scalar_type alpha(1.);
   scalar_type beta(0.);
@@ -261,9 +291,9 @@ void coarsegraining_routines<parameters_type, K_dmn>::wannier_interpolation(
   dca::linalg::blas::gemm("N", "T", M, N, K, alpha, A_ptr, LDA, B_ptr, LDB, beta, C_ptr, LDC);
 }
 
-template <typename parameters_type, typename K_dmn>
+template <typename parameters_type>
 template <typename scalar_type, typename tmp_scalar_type, typename q_dmn_t>
-void coarsegraining_routines<parameters_type, K_dmn>::compute_I_q(
+void coarsegraining_routines<parameters_type>::compute_I_q(
     const tmp_scalar_type value,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& I_q) const {
   for (int q_ind = 0; q_ind < q_dmn_t::dmn_size(); q_ind++)
@@ -272,9 +302,9 @@ void coarsegraining_routines<parameters_type, K_dmn>::compute_I_q(
         I_q(i, j, q_ind) = i == j ? value : 0.;
 }
 
-template <typename parameters_type, typename K_dmn>
+template <typename parameters_type>
 template <typename scalar_type, typename k_dmn_t, typename q_dmn_t>
-void coarsegraining_routines<parameters_type, K_dmn>::compute_H_q(
+void coarsegraining_routines<parameters_type>::compute_H_q(
     const int K_ind,
     const func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& H_k,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& H_q) const {
@@ -287,9 +317,9 @@ void coarsegraining_routines<parameters_type, K_dmn>::compute_H_q(
  ***                                   ***
  *****************************************/
 
-template <typename parameters_type, typename K_dmn>
+template <typename parameters_type>
 template <typename scalar_type, typename q_dmn_t>
-void coarsegraining_routines<parameters_type, K_dmn>::compute_S_q(
+void coarsegraining_routines<parameters_type>::compute_S_q(
     const int K_ind, const int w_ind,
     const func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_DCA, w>>& S_K_w,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& S_q) const {
@@ -299,9 +329,9 @@ void coarsegraining_routines<parameters_type, K_dmn>::compute_S_q(
         S_q(i, j, q_ind) = S_K_w(i, j, K_ind, w_ind);
 }
 
-template <typename parameters_type, typename K_dmn>
+template <typename parameters_type>
 template <typename scalar_type, typename k_dmn_t, typename q_dmn_t>
-void coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_w(
+void coarsegraining_routines<parameters_type>::compute_G_q_w(
     const int K_ind, const int w_ind,
     const func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& H_k,
     const func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_DCA, w>>& S_K,
@@ -332,9 +362,9 @@ void coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_w(
         quadrature_integration_G_q_w_mt(nr_threads, I_q, H_q, S_q, G_q);
 }
 
-template <typename parameters_type, typename K_dmn>
+template <typename parameters_type>
 template <typename scalar_type, typename q_dmn_t>
-void coarsegraining_routines<parameters_type, K_dmn>::compute_S_q(
+void coarsegraining_routines<parameters_type>::compute_S_q(
     const int K_ind, const int w_ind,
     const func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_DCA, w_REAL>>& S_K_w,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& S_q) const {
@@ -344,9 +374,9 @@ void coarsegraining_routines<parameters_type, K_dmn>::compute_S_q(
         S_q(i, j, q_ind) = S_K_w(i, j, K_ind, w_ind);
 }
 
-template <typename parameters_type, typename K_dmn>
+template <typename parameters_type>
 template <typename scalar_type, typename k_dmn_t, typename q_dmn_t>
-void coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_w(
+void coarsegraining_routines<parameters_type>::compute_G_q_w(
     const int K_ind, const int w_ind,
     const func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& H_k,
     const func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_DCA, w_REAL>>& S_K,
@@ -382,9 +412,9 @@ void coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_w(
  * p 122 AGD
  *
  */
-template <typename parameters_type, typename K_dmn>
+template <typename parameters_type>
 template <typename scalar_type, typename k_dmn_t, typename q_dmn_t>
-void coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_t(
+void coarsegraining_routines<parameters_type>::compute_G_q_t(
     const int K_ind, const int t_ind,
     const func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& H_k,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& I_q,
@@ -419,9 +449,9 @@ void coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_t(
  ***                                   ***
  *****************************************/
 
-template <typename parameters_type, typename K_dmn>
+template <typename parameters_type>
 template <typename scalar_type, typename k_dmn_t, typename q_dmn_t>
-void coarsegraining_routines<parameters_type, K_dmn>::compute_S_q_from_A_k(
+void coarsegraining_routines<parameters_type>::compute_S_q_from_A_k(
     const int K_ind, const int w_ind,
     const func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& A_k,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& A_q,
@@ -433,9 +463,9 @@ void coarsegraining_routines<parameters_type, K_dmn>::compute_S_q_from_A_k(
   latticemapping::transform_to_alpha::backward(alpha, S_q, A_q);
 }
 
-template <typename parameters_type, typename K_dmn>
+template <typename parameters_type>
 template <typename scalar_type, typename k_dmn_t, typename q_dmn_t>
-void coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_w(
+void coarsegraining_routines<parameters_type>::compute_G_q_w(
     const int K_ind, const int w_ind,
     const func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& H_k,
     const func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& A_k,

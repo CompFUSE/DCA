@@ -39,7 +39,7 @@ namespace clustermapping {
 // dca::phys::clustermapping::
 
 template <typename parameters_type, typename K_dmn>
-class coarsegraining_tp : public coarsegraining_routines<parameters_type, K_dmn> {
+class coarsegraining_tp : public coarsegraining_routines<parameters_type> {
 public:
   using profiler_type = typename parameters_type::profiler_type;
   using concurrency_type = typename parameters_type::concurrency_type;
@@ -80,8 +80,6 @@ public:
 
 public:
   coarsegraining_tp(parameters_type& parameters_ref);
-
-  void initialize();
 
   // DCA coarsegraining
   template <typename w_dmn_t>
@@ -165,7 +163,7 @@ private:
 
 template <typename parameters_type, typename K_dmn>
 coarsegraining_tp<parameters_type, K_dmn>::coarsegraining_tp(parameters_type& parameters_ref)
-    : coarsegraining_routines<parameters_type, K_dmn>(parameters_ref),
+    : coarsegraining_routines<parameters_type>(parameters_ref),
 
       parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
@@ -191,42 +189,8 @@ coarsegraining_tp<parameters_type, K_dmn>::coarsegraining_tp(parameters_type& pa
       G_Q_min_q("G_Q_min_q"),
 
       bubble_q("bubble_q") {
-  initialize();
-}
-
-template <typename parameters_type, typename K_dmn>
-void coarsegraining_tp<parameters_type, K_dmn>::initialize() {
-  if (true)
-    coarsegraining_routines<parameters_type, K_dmn>::compute_gaussian_mesh(
-        parameters.get_k_mesh_recursion(), parameters.get_quadrature_rule(),
-        parameters.get_coarsegraining_periods());
-  else
-    coarsegraining_routines<parameters_type, K_dmn>::compute_gaussian_mesh(1, 0, 0);
-
-  w_q.reset();
-
   for (int l = 0; l < w_q.size(); l++)
     w_q(l) = quadrature_dmn::get_weights()[l];
-
-  I_q.reset();
-  H_q.reset();
-  S_q.reset();
-  A_q.reset();
-  G_q.reset();
-
-  I_q_plus_Q.reset();
-  H_q_plus_Q.reset();
-  S_q_plus_Q.reset();
-  A_q_plus_Q.reset();
-  G_q_plus_Q.reset();
-
-  I_Q_min_q.reset();
-  H_Q_min_q.reset();
-  S_Q_min_q.reset();
-  A_Q_min_q.reset();
-  G_Q_min_q.reset();
-
-  bubble_q.reset();
 }
 
 // DCA-coarsegraining
@@ -399,12 +363,12 @@ void coarsegraining_tp<parameters_type, K_dmn>::compute_tp(
       find_w1_and_w2(w_dmn_t::get_elements(), w_ind, w_1, w_2);
 
       {
-        coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_w(k_ind, w_1, H_k, S_K_w, I_q,
+        coarsegraining_routines<parameters_type>::compute_G_q_w(k_ind, w_1, H_k, S_K_w, I_q,
                                                                        H_q, S_q, G_q);
       }
 
       {
-        coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_w(
+        coarsegraining_routines<parameters_type>::compute_G_q_w(
             k_ind, w_2, H_k, S_K_plus_Q_w, I_q_plus_Q, H_q_plus_Q, S_q_plus_Q, G_q_plus_Q);
       }
 
@@ -464,7 +428,7 @@ void coarsegraining_tp<parameters_type, K_dmn>::compute_tp(
             for (int i = 0; i < nu::dmn_size(); i++)
               A_k(i, j, k) = A_k_w(i, j, k, w_1);
 
-        coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_w(k_ind, w_1, H_k, A_k, I_q,
+        coarsegraining_routines<parameters_type>::compute_G_q_w(k_ind, w_1, H_k, A_k, I_q,
                                                                        H_q, A_q, S_q, G_q);
       }
 
@@ -474,7 +438,7 @@ void coarsegraining_tp<parameters_type, K_dmn>::compute_tp(
             for (int i = 0; i < nu::dmn_size(); i++)
               A_k(i, j, k) = A_k_w(i, j, k, w_2);
 
-        coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_w(
+        coarsegraining_routines<parameters_type>::compute_G_q_w(
             k_ind, w_2, H_k, A_k, I_q_plus_Q, H_q_plus_Q, A_q_plus_Q, S_q_plus_Q, G_q_plus_Q);
       }
 
@@ -547,12 +511,12 @@ void coarsegraining_tp<parameters_type, K_dmn>::compute_phi(
       find_w1_and_w2(w_dmn_t::get_elements(), w_ind, w_1, w_2);
 
       {
-        coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_w(k_ind, w_1, H_k, S_K_w, I_q,
+        coarsegraining_routines<parameters_type>::compute_G_q_w(k_ind, w_1, H_k, S_K_w, I_q,
                                                                        H_q, S_q, G_q);
       }
 
       {
-        coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_w(
+        coarsegraining_routines<parameters_type>::compute_G_q_w(
             k_ind, w_2, H_k, S_Q_min_K_w, I_Q_min_q, H_Q_min_q, S_Q_min_q, G_Q_min_q);
       }
 
@@ -615,7 +579,7 @@ void coarsegraining_tp<parameters_type, K_dmn>::compute_phi(
             for (int i = 0; i < nu::dmn_size(); i++)
               A_k(i, j, k) = A_k_w(i, j, k, w_1);
 
-        coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_w(k_ind, w_1, H_k, A_k, I_q,
+        coarsegraining_routines<parameters_type>::compute_G_q_w(k_ind, w_1, H_k, A_k, I_q,
                                                                        H_q, A_q, S_q, G_q);
       }
 
@@ -625,7 +589,7 @@ void coarsegraining_tp<parameters_type, K_dmn>::compute_phi(
             for (int i = 0; i < nu::dmn_size(); i++)
               A_k(i, j, k) = A_k_w(i, j, k, w_2);
 
-        coarsegraining_routines<parameters_type, K_dmn>::compute_G_q_w(
+        coarsegraining_routines<parameters_type>::compute_G_q_w(
             k_ind, w_2, H_k, A_k, I_Q_min_q, H_Q_min_q, A_Q_min_q, S_Q_min_q, G_Q_min_q);
       }
 

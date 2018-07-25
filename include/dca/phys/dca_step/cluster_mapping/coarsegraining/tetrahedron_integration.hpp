@@ -27,6 +27,7 @@
 #include "dca/phys/dca_step/cluster_mapping/coarsegraining/coarsegraining_domain.hpp"
 #include "dca/phys/dca_step/cluster_mapping/coarsegraining/tetrahedron_integration_data.hpp"
 #include "dca/phys/dca_step/cluster_mapping/coarsegraining/tetrahedron_routines_inverse_matrix_function.hpp"
+#include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 
@@ -35,10 +36,11 @@ namespace phys {
 namespace clustermapping {
 // dca::phys::clustermapping::
 
-template <typename parameters_type, typename K_dmn>
+template <typename parameters_type>
 class tetrahedron_integration {
 public:
-  using ThisType = tetrahedron_integration<parameters_type, K_dmn>;
+  using ThisType = tetrahedron_integration<parameters_type>;
+  using K_dmn = typename ClusterDomainAliases<parameters_type::lattice_dimension>::KClusterDmn;
 
   using k_cluster_type = typename K_dmn::parameter_type;
 
@@ -84,13 +86,13 @@ private:
   parameters_type& parameters;
 };
 
-template <typename parameters_type, typename K_dmn>
-tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration(parameters_type& parameters_ref)
+template <typename parameters_type>
+tetrahedron_integration<parameters_type>::tetrahedron_integration(parameters_type& parameters_ref)
     : parameters(parameters_ref) {}
 
-template <typename parameters_type, typename K_dmn>
+template <typename parameters_type>
 template <typename scalar_type>
-void tetrahedron_integration<parameters_type, K_dmn>::execute(
+void tetrahedron_integration<parameters_type>::execute(
     func::function<scalar_type, tet_dmn_type>& w_tet,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, tet_dmn_type>>& G_tet,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu>>& G_int) const {
@@ -124,9 +126,9 @@ void tetrahedron_integration<parameters_type, K_dmn>::execute(
   G_int = threads.sumReduction(nr_threads, task);
 }
 
-// template <typename parameters_type, typename K_dmn>
+// template <typename parameters_type>
 // template <typename scalar_type>
-// void tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_1D(
+// void tetrahedron_integration<parameters_type>::tetrahedron_integration_1D(
 //    func::function<scalar_type, tet_dmn_type>& w_tet,
 //    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, tet_dmn_type>>& G_tet,
 //    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu>>& G_int) {
@@ -154,9 +156,9 @@ void tetrahedron_integration<parameters_type, K_dmn>::execute(
 //  }
 //}
 
-template <typename parameters_type, typename K_dmn>
+template <typename parameters_type>
 template <typename scalar_type>
-auto tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_2D(
+auto tetrahedron_integration<parameters_type>::tetrahedron_integration_2D(
     const int id, const int nr_threads, func::function<scalar_type, tet_dmn_type>& w_tet,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, tet_dmn_type>>& G_tet) const {
   tet_dmn_type tet_dmn;
@@ -186,9 +188,9 @@ auto tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_2D
   return G_int;
 }
 
-template <typename parameters_type, typename K_dmn>
+template <typename parameters_type>
 template <typename scalar_type>
-auto tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_3D(
+auto tetrahedron_integration<parameters_type>::tetrahedron_integration_3D(
     const int id, const int nr_threads, func::function<scalar_type, tet_dmn_type>& w_tet,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, tet_dmn_type>>& G_tet) const {
   func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu>> G_int;
