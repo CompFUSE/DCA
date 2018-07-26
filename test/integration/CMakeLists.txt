@@ -1,3 +1,4 @@
+add_subdirectory(coarsegraining)
 add_subdirectory(cluster_solver)
 add_subdirectory(exact_diagonalization_advanced)
 add_subdirectory(fourier_transform)

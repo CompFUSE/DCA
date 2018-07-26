@@ -1,0 +1,51 @@
+{
+  "physics": {
+    "beta"                      :  1.,
+    "chemical-potential"        : 0.
+  },
+
+  "singleband-chain-model":
+  {
+    "tx"       : 1.,
+    "ty"       : 0.,
+    "U"       : 4.
+  },
+
+  "domains": {
+    "real-space-grids": {
+      "cluster": [[2, 0], [0,1]],
+      "sp-host": [[40, 0], [0,20]]
+    },
+
+    "imaginary-time": {
+      "sp-time-intervals": 512
+    },
+
+    "imaginary-frequency": {
+      "sp-fermionic-frequencies": 512
+    }
+  },
+
+  "DCA": {
+    "iterations": 1,
+	"self-energy-mixing-factor": 1.,
+    "interacting-orbitals": [0],
+
+    "coarse-graining": {
+      "k-mesh-recursion": 3,
+      "periods": 2,
+      "quadrature-rule": 1,
+      "threads": 3
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+
