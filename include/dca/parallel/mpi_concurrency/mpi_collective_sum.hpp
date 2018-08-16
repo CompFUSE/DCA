@@ -115,7 +115,7 @@ public:
                          const func::function<std::complex<Scalar>, Domain>& f_estimated,
                          func::function<Scalar, CovDomain>& cov) const;
 
-  // Computes the covariance of f relatively to its sample average. Then moves the average into f.
+  // Computes the covariance of f with respect to its sample average. Then moves the average into f.
   // In/Out: f
   // Out: cov
   template <typename ScalarOrComplex, typename Scalar, class Domain, class CovDomain>
