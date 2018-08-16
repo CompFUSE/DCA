@@ -14,8 +14,7 @@ set(CUDA_GPU_ARCH "sm_70" CACHE STRING "Name of the *real* architecture to build
 option(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
 
 set(MAGMA_DIR $ENV{OLCF_MAGMA_ROOT} CACHE PATH
-  "Path to the MAGMA installation directory. Hint for CMake to find MAGMA.")
+    "Path to the MAGMA installation directory. Hint for CMake to find MAGMA.")
 
-set(FFTW_INCLUDE_DIR /ccs/proj/cph102/dca_summit/libs/fftw/include/ CACHE PATH "Path to fftw3.h.")
-set(FFTW_LIBRARY /ccs/proj/cph102/dca_summit/libs/fftw/lib/libfftw3.a CACHE FILEPATH
-  "The FFTW3(-compatible) library.")
+set(FFTW_DIR $ENV{OLCF_ROOT_FFTW} CACHE PATH
+    "Path to the FFTW3 installation directory. Hint for CMake to find FFTW3.")
