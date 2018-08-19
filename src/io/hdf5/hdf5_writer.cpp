@@ -115,7 +115,7 @@ void HDF5Writer::execute(std::string name,
 }
 
 void HDF5Writer::execute(std::string name,
-                         std::vector<std::string>& value)  //, H5File& file, std::string path)
+                         const std::vector<std::string>& value)  //, H5File& file, std::string path)
 {
   if (value.size() > 0) {
     H5::H5File& file = (*my_file);
