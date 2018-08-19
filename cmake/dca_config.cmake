@@ -227,6 +227,7 @@ endif()
 
 ################################################################################
 # Single precision measurements
+# TODO: change to ON by default after merging and testing the two particle accumulator.
 option(DCA_WITH_SINGLE_PRECISION_MEASUREMENTS "Measure in single precision." OFF)
 mark_as_advanced(DCA_WITH_SINGLE_PRECISION_MEASUREMENTS)
 
