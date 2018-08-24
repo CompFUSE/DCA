@@ -6,6 +6,7 @@
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // This file tests stdthread.hpp.
 
@@ -15,28 +16,29 @@
 
 using Threading = dca::parallel::stdthread;
 
-void* start_routine(void* arg) {
-  dca::parallel::ThreadingData* data_ptr = static_cast<dca::parallel::ThreadingData*>(arg);
-
-  const int id = static_cast<int>(data_ptr->id);
-  const int num_threads = static_cast<int>(data_ptr->num_threads);
-  std::vector<int>* vec_ptr = static_cast<std::vector<int>*>(data_ptr->arg);
-
-  EXPECT_EQ(4, num_threads);
-
-  vec_ptr->operator[](id) += id;
-
-  return 0;
-}
-
 TEST(StdthreadTest, Execute) {
+  auto routine = [](const int id, const int num_threads, std::vector<int>& vec) {
+    EXPECT_EQ(4, num_threads);
+
+    vec[id] += id;
+  };
   Threading threading;
 
   const int num_threads = 4;
   std::vector<int> vec{0, 10, 20, 30};
   std::vector<int> vec_check{0, 11, 22, 33};
 
-  threading.execute(num_threads, start_routine, static_cast<void*>(&vec));
+  threading.execute(num_threads, routine, std::ref(vec));
 
   EXPECT_EQ(vec_check, vec);
+}
+
+TEST(NoThreadingTest, SumReduction) {
+  auto routine = [](const int id, const int /*num_threads*/) { return id * id; };
+
+  dca::parallel::stdthread threading;
+  const int n_threads = 3;
+  const int result = threading.sumReduction(n_threads, routine);
+
+  EXPECT_EQ(4 + 1, result);
 }
