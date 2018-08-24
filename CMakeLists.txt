@@ -141,19 +141,21 @@ set(DCA_LIBS
   symmetrization
   coarsegraining
   ${DCA_CONCURRENCY_LIB}
-  ${DCA_EXTERNAL_LIBS}
   ${DCA_THREADING_LIBS}
 )
 
 if (DCA_HAVE_CUDA)
   list(APPEND DCA_CUDA_LIBS
-    cuda_utils) 
+    cuda_utils)
   list(APPEND DCA_LIBS
     ctaux_walker_kernels
     lapack_kernels
     blas_kernels
     ${DCA_CUDA_LIBS})
 endif()
+
+# The BLAS and LAPACK librearies in DCA_EXTERNAL_LIBS should be linked after MAGMA.
+list(APPEND DCA_LIBS ${DCA_EXTERNAL_LIBS})
 
 ################################################################################
 # Testing
