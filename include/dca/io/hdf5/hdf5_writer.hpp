@@ -54,29 +54,29 @@ public:
   std::string get_path();
 
   template <typename arbitrary_struct_t>
-  static void to_file(const arbitrary_struct_t& arbitrary_struct, std::string file_name);
+  static void to_file(const arbitrary_struct_t& arbitrary_struct, const std::string& file_name);
 
   template <typename scalar_type>
-  void execute(std::string name, scalar_type value);
+  void execute(const std::string& name, scalar_type value);
 
   template <typename scalar_type>
-  void execute(std::string name, const std::pair<scalar_type, scalar_type>& value);
+  void execute(const std::string& name, const std::pair<scalar_type, scalar_type>& value);
 
   template <typename scalar_type>
-  void execute(std::string name, const std::vector<scalar_type>& value);
+  void execute(const std::string& name, const std::vector<scalar_type>& value);
 
   template <typename scalar_type>
-  void execute(std::string name, const std::vector<std::complex<scalar_type>>& value);
+  void execute(const std::string& name, const std::vector<std::complex<scalar_type>>& value);
 
-  void execute(std::string name, std::string value);
+  void execute(const std::string& name, const std::string& value);
 
-  void execute(std::string name, const std::vector<std::string>& value);
+  void execute(const std::string& name, const std::vector<std::string>& value);
 
   template <typename scalar_type>
-  void execute(std::string name, const std::vector<std::vector<scalar_type>>& value);
+  void execute(const std::string& name, const std::vector<std::vector<scalar_type>>& value);
 
   template <typename domain_type>
-  void execute(std::string name, const func::dmn_0<domain_type>& dmn);
+  void execute(const std::string& name, const func::dmn_0<domain_type>& dmn);
 
   template <typename scalar_type, typename domain_type>
   void execute(const func::function<scalar_type, domain_type>& f);
@@ -85,23 +85,24 @@ public:
   void execute(const func::function<std::complex<scalar_type>, domain_type>& f);
 
   template <typename scalar_type, typename domain_type>
-  void execute(std::string name, const func::function<scalar_type, domain_type>& f);
+  void execute(const std::string& name, const func::function<scalar_type, domain_type>& f);
 
   template <typename scalar_type, typename domain_type>
-  void execute(std::string name, const func::function<std::complex<scalar_type>, domain_type>& f);
+  void execute(const std::string& name,
+               const func::function<std::complex<scalar_type>, domain_type>& f);
 
   template <typename scalar_type>
-  void execute(std::string name, const dca::linalg::Vector<scalar_type, dca::linalg::CPU>& A);
+  void execute(const std::string& name, const dca::linalg::Vector<scalar_type, dca::linalg::CPU>& A);
 
   template <typename scalar_type>
-  void execute(std::string name,
+  void execute(const std::string& name,
                const dca::linalg::Vector<std::complex<scalar_type>, dca::linalg::CPU>& A);
 
   template <typename scalar_type>
-  void execute(std::string name, const dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A);
+  void execute(const std::string& name, const dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A);
 
   template <typename scalar_type>
-  void execute(std::string name,
+  void execute(const std::string& name,
                const dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU>& A);
 
   template <class T>
@@ -122,7 +123,7 @@ private:
 };
 
 template <typename arbitrary_struct_t>
-void HDF5Writer::to_file(const arbitrary_struct_t& arbitrary_struct, std::string file_name) {
+void HDF5Writer::to_file(const arbitrary_struct_t& arbitrary_struct, const std::string& file_name) {
   HDF5Writer wr_obj;
   wr_obj.open_file(file_name);
   arbitrary_struct.read_write(wr_obj);
@@ -130,7 +131,7 @@ void HDF5Writer::to_file(const arbitrary_struct_t& arbitrary_struct, std::string
 }
 
 template <typename scalar_type>
-void HDF5Writer::execute(std::string name, scalar_type value) {
+void HDF5Writer::execute(const std::string& name, scalar_type value) {
   H5::H5File& file = (*my_file);
   std::string path = get_path();
 
@@ -156,7 +157,7 @@ void HDF5Writer::execute(std::string name, scalar_type value) {
 }
 
 template <typename scalar_type>
-void HDF5Writer::execute(std::string name, const std::pair<scalar_type, scalar_type>& value) {
+void HDF5Writer::execute(const std::string& name, const std::pair<scalar_type, scalar_type>& value) {
   H5::H5File& file = (*my_file);
   std::string path = get_path();
 
@@ -182,7 +183,7 @@ void HDF5Writer::execute(std::string name, const std::pair<scalar_type, scalar_t
 }
 
 template <typename scalar_type>
-void HDF5Writer::execute(std::string name,
+void HDF5Writer::execute(const std::string& name,
                          const std::vector<scalar_type>& value)  //, H5File& file, std::string path)
 {
   if (value.size() > 0) {
@@ -212,7 +213,8 @@ void HDF5Writer::execute(std::string name,
 }
 
 template <typename scalar_type>
-void HDF5Writer::execute(std::string name, const std::vector<std::complex<scalar_type>>& value) {
+void HDF5Writer::execute(const std::string& name,
+                         const std::vector<std::complex<scalar_type>>& value) {
   H5::H5File& file = (*my_file);
   std::string path = get_path();
 
@@ -239,7 +241,7 @@ void HDF5Writer::execute(std::string name, const std::vector<std::complex<scalar
 }
 
 template <typename scalar_type>
-void HDF5Writer::execute(std::string name, const std::vector<std::vector<scalar_type>>& value) {
+void HDF5Writer::execute(const std::string& name, const std::vector<std::vector<scalar_type>>& value) {
   if (value.size() > 0) {
     H5::H5File& file = (*my_file);
 
@@ -332,7 +334,7 @@ void HDF5Writer::execute(std::string name, const std::vector<std::vector<scalar_
 }
 
 template <typename domain_type>
-void HDF5Writer::execute(std::string name, const func::dmn_0<domain_type>& dmn) {
+void HDF5Writer::execute(const std::string& name, const func::dmn_0<domain_type>& dmn) {
   open_group(name);
 
   execute("name", dmn.get_name());
@@ -362,7 +364,7 @@ void HDF5Writer::execute(const func::function<std::complex<scalar_type>, domain_
 }
 
 template <typename scalar_type, typename domain_type>
-void HDF5Writer::execute(std::string name, const func::function<scalar_type, domain_type>& f) {
+void HDF5Writer::execute(const std::string& name, const func::function<scalar_type, domain_type>& f) {
   if (f.size() == 0)
     return;
 
@@ -419,7 +421,7 @@ void HDF5Writer::execute(std::string name, const func::function<scalar_type, dom
 }
 
 template <typename scalar_type, typename domain_type>
-void HDF5Writer::execute(std::string name,
+void HDF5Writer::execute(const std::string& name,
                          const func::function<std::complex<scalar_type>, domain_type>& f) {
   if (f.size() == 0)
     return;
@@ -473,7 +475,7 @@ void HDF5Writer::execute(std::string name,
 }
 
 template <typename scalar_type>
-void HDF5Writer::execute(std::string name,
+void HDF5Writer::execute(const std::string& name,
                          const dca::linalg::Vector<scalar_type, dca::linalg::CPU>& V) {
   H5::H5File& file = (*my_file);
 
@@ -507,7 +509,7 @@ void HDF5Writer::execute(std::string name,
 }
 
 template <typename scalar_type>
-void HDF5Writer::execute(std::string name,
+void HDF5Writer::execute(const std::string& name,
                          const dca::linalg::Vector<std::complex<scalar_type>, dca::linalg::CPU>& V) {
   H5::H5File& file = (*my_file);
 
@@ -542,7 +544,7 @@ void HDF5Writer::execute(std::string name,
 }
 
 template <typename scalar_type>
-void HDF5Writer::execute(std::string name,
+void HDF5Writer::execute(const std::string& name,
                          const dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A) {
   H5::H5File& file = (*my_file);
 
@@ -581,7 +583,7 @@ void HDF5Writer::execute(std::string name,
 }
 
 template <typename scalar_type>
-void HDF5Writer::execute(std::string name,
+void HDF5Writer::execute(const std::string& name,
                          const dca::linalg::Matrix<std::complex<scalar_type>, dca::linalg::CPU>& A) {
   H5::H5File& file = (*my_file);
 
