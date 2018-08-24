@@ -126,9 +126,9 @@ TEST(bilayerLattice_Nc1_interband, Self_Energy) {
         for (int nu_ind_2 = 0; nu_ind_2 < nu::dmn_size(); ++nu_ind_2) {
           for (int nu_ind_1 = 0; nu_ind_1 < nu::dmn_size(); ++nu_ind_1) {
             EXPECT_NEAR(Sigma_QMC_check(nu_ind_1, nu_ind_2, k_ind, w_ind).real(),
-                        Sigma_QMC(nu_ind_1, nu_ind_2, k_ind, w_ind).real(), 1.e-12);
+                        Sigma_QMC(nu_ind_1, nu_ind_2, k_ind, w_ind).real(), 1.e-11);
             EXPECT_NEAR(Sigma_QMC_check(nu_ind_1, nu_ind_2, k_ind, w_ind).imag(),
-                        Sigma_QMC(nu_ind_1, nu_ind_2, k_ind, w_ind).imag(), 1.e-12);
+                        Sigma_QMC(nu_ind_1, nu_ind_2, k_ind, w_ind).imag(), 1.e-11);
           }
         }
       }
