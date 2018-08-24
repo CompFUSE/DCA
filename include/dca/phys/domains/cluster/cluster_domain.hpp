@@ -35,6 +35,7 @@ template <typename scalar_type, int D, CLUSTER_NAMES N, CLUSTER_REPRESENTATION R
 class cluster_domain {
 public:
   const static int DIMENSION = D;
+  using Scalar = scalar_type;
 
   const static CLUSTER_NAMES NAME = N;
   const static CLUSTER_REPRESENTATION REPRESENTATION = R;
