@@ -154,7 +154,7 @@ if (DCA_HAVE_CUDA)
     ${DCA_CUDA_LIBS})
 endif()
 
-# The BLAS and LAPACK librearies in DCA_EXTERNAL_LIBS should be linked after MAGMA.
+# The BLAS and LAPACK libraries in DCA_EXTERNAL_LIBS should be linked after MAGMA.
 list(APPEND DCA_LIBS ${DCA_EXTERNAL_LIBS})
 
 ################################################################################
