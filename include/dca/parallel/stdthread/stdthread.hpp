@@ -9,7 +9,7 @@
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// This class provides an interface for parallelizing with Pthreads.
+// This class provides an interface for parallelizing using a pool of STL threads.
 //
 // TODO: Finish sum methods.
 
@@ -29,8 +29,7 @@ class stdthread {
 public:
   stdthread() = default;
 
-  // Execute the function f(id, num_threads, args...) as num_threads asynchronous tasks with id in
-  // [0, num_threads - 1]. Then wait for the completion of the tasks.
+  // Executes the function f(id, num_tasks, args...) for each integer value of id in [0, num_tasks).
   template <class F, class... Args>
   void execute(int num_threads, F&& f, Args&&... args) {
     std::vector<std::future<void>> futures;
@@ -46,7 +45,8 @@ public:
       future.wait();
   }
 
-  // Returns \sum_{id = 0}^{num_threads -1} f(id, num_threads, args...).
+  // Returns the sum of the return values of f(id, num_tasks, args...) for each integer value of id
+  // in [0, num_tasks).
   // Precondition: the return type of f can be initialized with 0.
   template <class F, class... Args>
   auto sumReduction(int num_threads, F&& f, Args&&... args) {
@@ -56,11 +56,11 @@ public:
     auto& pool = ThreadPool::get_instance();
     pool.enlarge(num_threads);
 
-    // Fork.
+    // Spawn num_threads tasks.
     for (int id = 0; id < num_threads; ++id)
       futures.emplace_back(
           pool.enqueue(std::forward<F>(f), id, num_threads, std::forward<Args>(args)...));
-    // Reduce.
+    // Sum the result of the tasks.
     ReturnType result = 0;
     for (auto& future : futures)
       result += future.get();

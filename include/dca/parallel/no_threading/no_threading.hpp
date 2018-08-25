@@ -22,15 +22,15 @@ namespace parallel {
 
 class NoThreading {
 public:
-  // Execute the function f(id, num_tasks, args...) as num_tasks synchronous tasks with id in
-  // [0, num_tasks - 1].
+  // Executes the function f(id, num_tasks, args...) for each integer value of id in [0, num_tasks).
   template <class F, class... Args>
   void execute(int num_tasks, F&& f, Args&&... args) {
     for (int id = 0; id < num_tasks; ++id)
       f(id, num_tasks, args...);
   }
 
-  // Returns \sum_{id = 0}^{num_threads -1} f(id, num_threads, args...).
+  // Returns the sum of the return values of f(id, num_tasks, args...) for each integer value of id
+  // in [0, num_tasks).
   // Precondition: the return type of f can be initialized with 0.
   template <class F, class... Args>
   auto sumReduction(int num_threads, F&& f, Args&&... args) {
