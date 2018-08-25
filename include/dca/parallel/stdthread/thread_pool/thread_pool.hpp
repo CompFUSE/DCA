@@ -41,8 +41,8 @@ public:
   // threads.
   void enlarge(std::size_t n_threads);
 
-  // Call asynchronously the function f with arguments args. This method is thread safe.
-  // Returns: a future to the result of f(args...).
+  // Adds to the queue of tasks the execution of f(args...). This method is thread safe.
+  // Returns: a future to the return value of f(args...).
   template <class F, class... Args>
   auto enqueue(F&& f, Args&&... args) -> std::future<typename std::result_of<F(Args...)>::type>;
 
