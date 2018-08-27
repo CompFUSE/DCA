@@ -17,9 +17,7 @@ namespace parallel {
 constexpr char NoThreading::parallel_type_str_[];
 
 std::ostream& operator<<(std::ostream& o, const NoThreading& c) {
-  o << '\n'
-    << "threading type:" << c.parallel_type_str_ << '\n'
-    << "number of threads:" << c.data_.num_threads;
+  o << '\n' << "threading type:" << c.parallel_type_str_ << '\n' << "number of threads:" << 1;
   return o;
 }
 

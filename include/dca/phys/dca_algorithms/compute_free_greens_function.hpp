@@ -71,7 +71,7 @@ void compute_G0_k_t(
 
     g = 0.;
 
-    clustermapping::quadrature_integration<KDmn, OrbitalSpinDmn>::quadrature_integration_G_q_t_st(
+    clustermapping::quadrature_integration<Scalar, KDmn, OrbitalSpinDmn>::quadrature_integration_G_q_t_st(
         beta, sign, tau, mu_function, H0_k, g);
 
     for (int k = 0; k < KDmn::dmn_size(); ++k) {
