@@ -28,9 +28,9 @@ TEST(MPIProcessorGroupingTest, All) {
 
 TEST(MPIProcessorGroupingTest, FaultyProcess) {
   // Simulate a faulty driver at ranks 2 and 0.
-  auto mock_test = [] { return rank != 2 && rank != 0; };
+  auto mock_check = [] { return rank != 2 && rank != 0; };
 
-  dca::parallel::MPIProcessorGrouping grouping(mock_test);
+  dca::parallel::MPIProcessorGrouping grouping(mock_check);
 
   if (rank == 2 || rank == 0) {
     EXPECT_FALSE(grouping.isValid());

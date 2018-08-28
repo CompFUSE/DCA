@@ -25,54 +25,55 @@ namespace parallel {
 
 class MPIProcessorGrouping {
 public:
-  MPIProcessorGrouping();
-
-  MPIProcessorGrouping(bool (*test)());
+  // Creates a processor grouping. Only the processor able to pass the required check will have a
+  // valid id.
+  MPIProcessorGrouping(bool (*check)() = defaultCheck);
 
   ~MPIProcessorGrouping();
 
-  inline MPI_Comm get() const {
+  MPI_Comm get() const {
     return MPI_communication_;
   }
-  inline int get_id() const {
+  int get_id() const {
     assert(id_ > -1);
     return id_;
   }
-  inline int get_size() const {
+  int get_size() const {
     assert(size_ > -1);
     return size_;
   }
-  inline int get_world_id() const {
+  int get_world_id() const {
     assert(world_id_ > -1);
     return world_id_;
   }
-  inline int get_world_size() const {
+  int get_world_size() const {
     assert(world_size_ > -1);
     return world_size_;
   }
 
-  inline int first() const {
+  int first() const {
     return 0;
   }
-  inline int last() const {
+  int last() const {
     return size_ - 1;
   }
-  inline bool isValid() const {
+
+  bool isValid() const {
     return id_ >= 0;
   }
 
 private:
-  static bool defaultTest();
+  // Checks if the processor is able to run a simple CUDA kernel.
+  static bool defaultCheck();
 
   void printRemovedProcesses() const;
 
 private:
-  MPI_Group MPI_group_ = 0;
-  MPI_Comm MPI_communication_ = 0;
-  int world_id_ = -1;
   int id_ = -1;
   int size_ = -1;
+  int world_id_ = -1;
   int world_size_ = -1;
+  MPI_Comm MPI_communication_ = MPI_COMM_NULL;
 };
 
 }  // parallel

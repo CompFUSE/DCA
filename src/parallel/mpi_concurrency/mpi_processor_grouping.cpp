@@ -20,16 +20,14 @@ namespace dca {
 namespace parallel {
 // dca::parallel::
 
-MPIProcessorGrouping::MPIProcessorGrouping() : MPIProcessorGrouping(defaultTest) {}
-
-MPIProcessorGrouping::MPIProcessorGrouping(bool (*test)()) {
+MPIProcessorGrouping::MPIProcessorGrouping(bool (*check)()) {
   // Initialize grouping with MPI world.
   MPI_communication_ = MPI_COMM_WORLD;
   MPI_Comm_size(MPI_COMM_WORLD, &world_size_);
   MPI_Comm_rank(MPI_COMM_WORLD, &world_id_);
 
   // Check if the process has the desired qualities, or remove it from the communicator.
-  const bool is_valid = test();
+  const bool is_valid = check();
 
   MPI_Comm_split(MPI_COMM_WORLD, static_cast<int>(is_valid), 0, &MPI_communication_);
 
@@ -50,7 +48,7 @@ MPIProcessorGrouping::~MPIProcessorGrouping() {
   MPI_Comm_free(&MPI_communication_);
 }
 
-bool MPIProcessorGrouping::defaultTest() {
+bool MPIProcessorGrouping::defaultCheck() {
 #ifdef DCA_HAVE_CUDA
   try {
     return kernelTest();
@@ -80,8 +78,7 @@ void MPIProcessorGrouping::printRemovedProcesses() const {
   // Get the hostname of the processors.
   char mpi_processor_name[MPI_MAX_PROCESSOR_NAME];
   int name_len;
-  int ierr;
-  ierr = MPI_Get_processor_name(mpi_processor_name, &name_len);
+  const int ierr = MPI_Get_processor_name(mpi_processor_name, &name_len);
   if (ierr != MPI_SUCCESS)
     std::cerr << "MPI_Get_processor_name() failed with error " << ierr << std::endl;
 
@@ -94,7 +91,7 @@ void MPIProcessorGrouping::printRemovedProcesses() const {
   if (comm_id == 0) {
     std::cout
         << "\n\n**************\n"
-           "\tThe following processors could not complete the required test\n"
+           "\tThe following processors could not complete the required check\n"
            "\t(Default: execute a CUDA kernel) and will be removed from the communicator.\n\n";
     auto print_line = [&](const int idx) {
       std::cout << recvbuf.data() + idx * MPI_MAX_PROCESSOR_NAME << "\n";

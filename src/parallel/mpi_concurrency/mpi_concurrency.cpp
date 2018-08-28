@@ -21,7 +21,7 @@ MPIConcurrency::MPIConcurrency(int argc, char** argv)
       MPICollectiveMax(grouping_),
       MPICollectiveMin(grouping_),
       MPICollectiveSum(grouping_) {
-  // INTERNAL: Consider moving MPI_Init inside the MPIProcessorGrouping class.
+  // TODO: Consider moving MPI_Init inside the MPIProcessorGrouping class.
   int provided = 0;
   constexpr int required = MPI_THREAD_FUNNELED;
   MPI_Init_thread(&argc, &argv, required, &provided);
