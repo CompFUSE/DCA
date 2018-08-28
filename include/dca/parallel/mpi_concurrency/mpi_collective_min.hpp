@@ -13,6 +13,7 @@
 #ifndef DCA_PARALLEL_MPI_CONCURRENCY_MPI_COLLECTIVE_MIN_HPP
 #define DCA_PARALLEL_MPI_CONCURRENCY_MPI_COLLECTIVE_MIN_HPP
 
+#include <memory>
 #include <mpi.h>
 #include "dca/parallel/mpi_concurrency/mpi_processor_grouping.hpp"
 #include "dca/parallel/mpi_concurrency/mpi_type_map.hpp"
@@ -23,20 +24,20 @@ namespace parallel {
 
 class MPICollectiveMin {
 public:
-  MPICollectiveMin(const MPIProcessorGrouping& grouping) : grouping_(grouping) {}
+  MPICollectiveMin(const std::unique_ptr<const MPIProcessorGrouping>& grouping) : grouping_(grouping) {}
 
   template <typename Scalar>
   void min(Scalar& value) const {
     Scalar result;
 
     MPI_Allreduce(&value, &result, MPITypeMap<Scalar>::factor(), MPITypeMap<Scalar>::value(),
-                  MPI_MIN, grouping_.get());
+                  MPI_MIN, grouping_->get());
 
     value = result;
   }
 
 private:
-  const MPIProcessorGrouping& grouping_;
+  const std::unique_ptr<const MPIProcessorGrouping>& grouping_;
 };
 
 }  // parallel

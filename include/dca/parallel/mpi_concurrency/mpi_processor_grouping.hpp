@@ -7,6 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // This class manages the processor grouping for MPI.
 
@@ -14,7 +15,10 @@
 #define DCA_PARALLEL_MPI_CONCURRENCY_MPI_PROCESSOR_GROUPING_HPP
 
 #include <cassert>
+#include <vector>
+
 #include <mpi.h>
+
 
 namespace dca {
 namespace parallel {
@@ -22,40 +26,52 @@ namespace parallel {
 
 class MPIProcessorGrouping {
 public:
-  MPIProcessorGrouping() : id_(-1), nr_threads_(0) {}
+  MPIProcessorGrouping();
 
-  // We need a set-method since in ParallelizationMPI the constructor of this class is called before
-  // MPI_Init.
-  void set() {
-    MPI_communication_ = MPI_COMM_WORLD;
+  MPIProcessorGrouping(bool (*test)());
 
-    MPI_Comm_size(MPI_COMM_WORLD, &nr_threads_);
-    MPI_Comm_rank(MPI_COMM_WORLD, &id_);
-  }
+  ~MPIProcessorGrouping();
 
-  MPI_Comm get() const {
+
+  inline MPI_Comm get() const {
     return MPI_communication_;
   }
-  int get_id() const {
+  inline int get_id() const {
     assert(id_ > -1);
     return id_;
   }
-  int get_Nr_threads() const {
-    assert(nr_threads_ > -1);
-    return nr_threads_;
+  inline int get_world_id() const {
+    assert(world_id_ > -1);
+    return world_id_;
+  }
+  inline int get_size() const {
+    assert(size_ > -1);
+    return size_;
   }
 
-  int first() const {
+  inline int first() const {
     return 0;
   }
-  int last() const {
-    return nr_threads_ - 1;
+  inline int last() const {
+    return size_ - 1;
+  }
+  inline bool isValid() const {
+    return id_ >= 0;
   }
 
 private:
-  MPI_Comm MPI_communication_;
-  int id_;
-  int nr_threads_;
+
+  static bool defaultTest();
+
+  void printRemovedProcesses(const std::vector<int>& valid_ids) const;
+
+private:
+  MPI_Group MPI_group_ = 0;
+  MPI_Comm MPI_communication_ = 0;
+  int world_id_ = -1;
+  int id_ = -1;
+  int size_ = -1;
+  int world_size_ = -1;
 };
 
 }  // parallel
