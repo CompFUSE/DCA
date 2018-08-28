@@ -6,6 +6,7 @@
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Peter Doak (doakpw@ornl.gov)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // This file implements mpi_concurrency.hpp.
 
@@ -16,36 +17,17 @@
 namespace dca {
 namespace parallel {
 
-MPIConcurrency::MPIConcurrency(int argc, char** argv)
-    : MPIPacking(grouping_),
-      MPICollectiveMax(grouping_),
-      MPICollectiveMin(grouping_),
-      MPICollectiveSum(grouping_) {
-  // TODO: Consider moving MPI_Init inside the MPIProcessorGrouping class.
-  int provided = 0;
-  constexpr int required = MPI_THREAD_FUNNELED;
-  MPI_Init_thread(&argc, &argv, required, &provided);
-  if (provided < required)
-    throw(std::logic_error("MPI does not provide adequate thread support."));
+MPIConcurrency::MPIConcurrency(int argc, char** argv) : MPIInitializer(argc, argv) {
+  if (!MPIProcessorGrouping::isValid()) {
+    std::string error_string;
+    if (MPIProcessorGrouping::get_size() == MPIProcessorGrouping::get_world_size())
+      error_string = "No process could execute a CUDA kernel.";
+    else
+      error_string = "Process " + std::to_string(MPIProcessorGrouping::get_world_id()) +
+                     "could not execute a CUDA kernel.";
 
-  grouping_.reset(new MPIProcessorGrouping);
-
-  if (!grouping_->isValid()) {
-    // Abort computation if there is no valid processor.
-    if (grouping_->get_size() == grouping_->get_world_size()) {
-      throw(std::logic_error("No processor could execute a CUDA kernel."));
-    }
-    else {  // Exit only from this process.
-      grouping_.release();
-      MPI_Finalize();
-      exit(0);
-    }
+    throw(std::logic_error(error_string));
   }
-}
-
-MPIConcurrency::~MPIConcurrency() {
-  grouping_.release();
-  MPI_Finalize();
 }
 
 constexpr char MPIConcurrency::parallel_type_str_[];

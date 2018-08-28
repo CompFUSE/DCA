@@ -25,17 +25,15 @@
 
 class MPICollectiveSumTest : public ::testing::Test {
 protected:
-  MPICollectiveSumTest()
-      : grouping_(new dca::parallel::MPIProcessorGrouping), sum_interface_(grouping_) {
-    size_ = grouping_->get_size();
-    rank_ = grouping_->get_id();
+  MPICollectiveSumTest() {
+    size_ = sum_interface_.get_size();
+    rank_ = sum_interface_.get_id();
   }
 
   int size_;
   int rank_;
   constexpr static double epsilon_ = 1e-14;
 
-  std::unique_ptr<const dca::parallel::MPIProcessorGrouping> grouping_;
   dca::parallel::MPICollectiveSum sum_interface_;
 };
 

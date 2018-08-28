@@ -24,6 +24,7 @@
 #include "dca/parallel/mpi_concurrency/mpi_collective_max.hpp"
 #include "dca/parallel/mpi_concurrency/mpi_collective_min.hpp"
 #include "dca/parallel/mpi_concurrency/mpi_collective_sum.hpp"
+#include "dca/parallel/mpi_concurrency/mpi_initializer.hpp"
 #include "dca/parallel/mpi_concurrency/mpi_packing.hpp"
 #include "dca/parallel/mpi_concurrency/mpi_processor_grouping.hpp"
 #include "dca/parallel/util/get_bounds.hpp"
@@ -32,28 +33,28 @@ namespace dca {
 namespace parallel {
 // dca::parallel::
 
-class MPIConcurrency : public MPIPacking,
-                       public MPICollectiveMax,
-                       public MPICollectiveMin,
-                       public MPICollectiveSum {
+class MPIConcurrency final : private virtual MPIInitializer,
+                             private virtual MPIProcessorGrouping,
+                             public MPIPacking,
+                             public MPICollectiveMax,
+                             public MPICollectiveMin,
+                             public MPICollectiveSum {
 public:
   MPIConcurrency(int argc, char** argv);
 
-  ~MPIConcurrency();
-
   inline int id() const {
-    assert(grouping_->get_id() > -1);
-    return grouping_->get_id();
+    assert(MPIProcessorGrouping::get_id() > -1);
+    return MPIProcessorGrouping::get_id();
   }
   int number_of_processors() const {
-    assert(grouping_->get_size() > -1);
-    return grouping_->get_size();
+    assert(MPIProcessorGrouping::get_size() > -1);
+    return MPIProcessorGrouping::get_size();
   }
   inline int first() const {
-    return grouping_->first();
+    return MPIProcessorGrouping::first();
   }
   inline int last() const {
-    return grouping_->last();
+    return MPIProcessorGrouping::last();
   }
 
   template <typename object_type>
@@ -62,9 +63,8 @@ public:
   template <typename object_type>
   bool broadcast_object(object_type& object, int root_id = 0) const;
 
-  // TODO: Add const to function parameter 'dmn'.
   template <typename domain_type>
-  std::pair<int, int> get_bounds(domain_type& dmn) const {
+  std::pair<int, int> get_bounds(const domain_type& dmn) const {
     return util::getBounds(id(), number_of_processors(), dmn);
   }
 
@@ -72,7 +72,6 @@ public:
 
 private:
   constexpr static char parallel_type_str_[] = "MPIConcurrency";
-  std::unique_ptr<const MPIProcessorGrouping> grouping_;
 };
 
 template <typename object_type>
@@ -84,25 +83,25 @@ bool MPIConcurrency::broadcast(object_type& object, int root_id) const {
   if (id() == root_id) {
     int bufferSize = this->get_buffer_size(object);
 
-    MPI_Bcast(&bufferSize, 1, MPI_INT, root_id, grouping_->get());
+    MPI_Bcast(&bufferSize, 1, MPI_INT, root_id, MPIProcessorGrouping::get());
 
     char* buffer = new char[bufferSize];
 
     this->pack(buffer, bufferSize, position, object);
 
-    MPI_Bcast(buffer, bufferSize, MPI_PACKED, root_id, grouping_->get());
+    MPI_Bcast(buffer, bufferSize, MPI_PACKED, root_id, MPIProcessorGrouping::get());
 
     delete[] buffer;
   }
   else {
     int bufferSize(0);
 
-    MPI_Bcast(&bufferSize, 1, MPI_INT, root_id, grouping_->get());
+    MPI_Bcast(&bufferSize, 1, MPI_INT, root_id, MPIProcessorGrouping::get());
 
     char* buffer = new char[bufferSize];
 
     // receive packed message
-    MPI_Bcast(buffer, bufferSize, MPI_PACKED, root_id, grouping_->get());
+    MPI_Bcast(buffer, bufferSize, MPI_PACKED, root_id, MPIProcessorGrouping::get());
 
     this->unpack(buffer, bufferSize, position, object);
 
@@ -121,23 +120,23 @@ bool MPIConcurrency::broadcast_object(object_type& object, int root_id) const {
   if (id() == root_id) {
     buffer_size = object.get_buffer_size(*this);
 
-    MPI_Bcast(&buffer_size, 1, MPI_INT, root_id, grouping_->get());
+    MPI_Bcast(&buffer_size, 1, MPI_INT, root_id, MPIProcessorGrouping::get());
 
     char* buffer = new char[buffer_size];
 
     int off_set = 0;
     object.pack(*this, buffer, buffer_size, off_set);
 
-    MPI_Bcast(buffer, buffer_size, MPI_PACKED, root_id, grouping_->get());
+    MPI_Bcast(buffer, buffer_size, MPI_PACKED, root_id, MPIProcessorGrouping::get());
 
     delete[] buffer;
   }
   else {
-    MPI_Bcast(&buffer_size, 1, MPI_INT, root_id, grouping_->get());
+    MPI_Bcast(&buffer_size, 1, MPI_INT, root_id, MPIProcessorGrouping::get());
 
     char* buffer = new char[buffer_size];
 
-    MPI_Bcast(buffer, buffer_size, MPI_PACKED, root_id, grouping_->get());
+    MPI_Bcast(buffer, buffer_size, MPI_PACKED, root_id, MPIProcessorGrouping::get());
 
     int off_set = 0;
     object.unpack(*this, buffer, buffer_size, off_set);
