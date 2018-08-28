@@ -204,31 +204,21 @@ TEST_F(MPICollectiveSumTest, ComputeCovarianceScalar) {
   using FunctionDomain = dca::func::dmn_0<dca::func::dmn<4, int>>;
   using CovarianceDomain = dca::func::dmn_variadic<FunctionDomain, FunctionDomain>;
 
-  // Stores the covariance computed with computeCovariance.
-  dca::func::function<double, CovarianceDomain> covariance("cov");
-  // Stores the covariance computed with computeCovarianceAndAvg.
-  dca::func::function<double, CovarianceDomain> covariance2("cov2");
-
-  dca::func::function<double, CovarianceDomain> covariance_expected("expected");
-
   dca::func::function<double, FunctionDomain> f("f");
   dca::func::function<double, FunctionDomain> f_mean("f_mean");
 
-  for (int i = 0; i < f.size(); i++) {
+  for (int i = 0; i < f.size(); ++i) {
     f(i) = i * rank_;
     f_mean(i) = f(i);
   }
   sum_interface_.sum(f_mean);
-  f_mean /= size_;  // f_mean contains the mean of f
+  f_mean /= size_;
 
-  sum_interface_.computeCovariance(f, f_mean, covariance);
-
-  sum_interface_.computeCovarianceAndAvg(f, covariance2);
-  for (int i = 0; i < f_mean.size(); ++i)
-    EXPECT_DOUBLE_EQ(f_mean(i), f(i));
-
-  covariance_expected(0, 0) = covariance_expected(0, 1) = covariance_expected(0, 2) =
-      covariance_expected(0, 3) = 0;
+  dca::func::function<double, CovarianceDomain> covariance_expected("expected");
+  covariance_expected(0, 0) = 0.;
+  covariance_expected(0, 1) = 0.;
+  covariance_expected(0, 2) = 0.;
+  covariance_expected(0, 3) = 0.;
   covariance_expected(1, 1) = 5.25;
   covariance_expected(1, 2) = 10.5;
   covariance_expected(1, 3) = 15.75;
@@ -236,13 +226,27 @@ TEST_F(MPICollectiveSumTest, ComputeCovarianceScalar) {
   covariance_expected(2, 3) = 31.5;
   covariance_expected(3, 3) = 47.25;
 
-  for (int i = 0; i < f.size(); i++)
-    for (int j = i + 1; j < f.size(); j++)
+  for (int i = 0; i < f.size(); ++i)
+    for (int j = i + 1; j < f.size(); ++j)
       covariance_expected(j, i) = covariance_expected(i, j);
 
-  for (int i = 0; i < covariance.size(); i++) {
-    EXPECT_DOUBLE_EQ(covariance_expected(i), covariance(i));
-    EXPECT_DOUBLE_EQ(covariance_expected(i), covariance2(i));
+  dca::func::function<double, CovarianceDomain> covariance_from_computeCovariance(
+      "computeCovariance");
+  dca::func::function<double, CovarianceDomain> covariance_from_computeCovarianceAndAvg(
+      "computeCovarianceAndAvg");
+
+  // Compute covariance matrix with respect to the *precomputed* mean of f.
+  sum_interface_.computeCovariance(f, f_mean, covariance_from_computeCovariance);
+  // Compute covariance matrix with respect to the mean of f.
+  sum_interface_.computeCovarianceAndAvg(f, covariance_from_computeCovarianceAndAvg);
+
+  for (int i = 0; i < f_mean.size(); ++i)
+    EXPECT_DOUBLE_EQ(f_mean(i), f(i));
+
+  // The covariance matrices are identical as both are computed with respect to the mean of f.
+  for (int i = 0; i < covariance_expected.size(); ++i) {
+    EXPECT_DOUBLE_EQ(covariance_expected(i), covariance_from_computeCovariance(i));
+    EXPECT_DOUBLE_EQ(covariance_expected(i), covariance_from_computeCovarianceAndAvg(i));
   }
 }
 
@@ -251,34 +255,21 @@ TEST_F(MPICollectiveSumTest, ComputeCovarianceComplex) {
   using CovarianceDomain = dca::func::dmn_variadic<dca::func::dmn_0<dca::func::dmn<4, int>>,
                                                    dca::func::dmn_0<dca::func::dmn<4, int>>>;
 
-  // Stores the covariance computed with computeCovariance.
-  dca::func::function<double, CovarianceDomain> covariance("cov");
-  // Stores the covariance computed with computeCovarianceAndAvg.
-  dca::func::function<double, CovarianceDomain> covariance2("cov2");
-
-  dca::func::function<double, CovarianceDomain> covariance_expected("expected");
-
   dca::func::function<std::complex<double>, FunctionDomain> f("f");
   dca::func::function<std::complex<double>, FunctionDomain> f_mean("f_mean");
 
-  for (int i = 0; i < f.size(); i++) {
+  for (int i = 0; i < f.size(); ++i) {
     f(i) = std::complex<double>(rank_ * i, rank_ * (i + f.size()));
     f_mean(i) = f(i);
   }
-
   sum_interface_.sum(f_mean);
-  f_mean /= size_;  // f_mean contains the mean of f
+  f_mean /= size_;
 
-  sum_interface_.computeCovariance(f, f_mean, covariance);
-  sum_interface_.computeCovarianceAndAvg(f, covariance2);
-
-  for (int i = 0; i < f_mean.size(); ++i) {
-    EXPECT_DOUBLE_EQ(f_mean(i).real(), f(i).real());
-    EXPECT_DOUBLE_EQ(f_mean(i).imag(), f(i).imag());
-  }
-
-  covariance_expected(0, 0) = covariance_expected(0, 1) = covariance_expected(0, 2) =
-      covariance_expected(0, 3) = 0;
+  dca::func::function<double, CovarianceDomain> covariance_expected("expected");
+  covariance_expected(0, 0) = 0.;
+  covariance_expected(0, 1) = 0.;
+  covariance_expected(0, 2) = 0.;
+  covariance_expected(0, 3) = 0.;
   covariance_expected(1, 1) = 5.25;
   covariance_expected(1, 2) = 10.5;
   covariance_expected(1, 3) = 15.75;
@@ -286,13 +277,29 @@ TEST_F(MPICollectiveSumTest, ComputeCovarianceComplex) {
   covariance_expected(2, 3) = 31.5;
   covariance_expected(3, 3) = 47.25;
 
-  for (int i = 0; i < 2 * f.size(); i++)
-    for (int j = i + 1; j < 2 * f.size(); j++)
+  for (int i = 0; i < 2 * f.size(); ++i)
+    for (int j = i + 1; j < 2 * f.size(); ++j)
       covariance_expected(j, i) = covariance_expected(i, j);
 
-  for (int i = 0; i < covariance.size(); i++) {
-    EXPECT_DOUBLE_EQ(covariance_expected(i), covariance(i));
-    EXPECT_DOUBLE_EQ(covariance_expected(i), covariance2(i));
+  dca::func::function<double, CovarianceDomain> covariance_from_computeCovariance(
+      "computeCovariance");
+  dca::func::function<double, CovarianceDomain> covariance_from_computeCovarianceAndAvg(
+      "computeCovarianceAndAvg");
+
+  // Compute covariance matrix with respect to the *precomputed* mean of f.
+  sum_interface_.computeCovariance(f, f_mean, covariance_from_computeCovariance);
+  // Compute covariance matrix with respect to the mean of f.
+  sum_interface_.computeCovarianceAndAvg(f, covariance_from_computeCovarianceAndAvg);
+
+  for (int i = 0; i < f_mean.size(); ++i) {
+    EXPECT_DOUBLE_EQ(f_mean(i).real(), f(i).real());
+    EXPECT_DOUBLE_EQ(f_mean(i).imag(), f(i).imag());
+  }
+
+  // The covariance matrices are identical as both are computed with respect to the mean of f.
+  for (int i = 0; i < covariance_expected.size(); ++i) {
+    EXPECT_DOUBLE_EQ(covariance_expected(i), covariance_from_computeCovariance(i));
+    EXPECT_DOUBLE_EQ(covariance_expected(i), covariance_from_computeCovarianceAndAvg(i));
   }
 }
 
