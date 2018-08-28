@@ -30,10 +30,16 @@ MPIConcurrency::MPIConcurrency(int argc, char** argv)
 
   grouping_.reset(new MPIProcessorGrouping);
 
-  if (!grouping_->isValid()) {  // Exit only from this process.
-    std::cerr << "Process " << grouping_->get_world_id() << " is not valid.\nExiting" << std::endl;
-    MPI_Finalize();
-    exit(0);
+  if (!grouping_->isValid()) {
+    // Abort computation if there is no valid processor.
+    if (grouping_->get_size() == grouping_->get_world_size()) {
+      throw(std::logic_error("No processor could execute a CUDA kernel."));
+    }
+    else {  // Exit only from this process.
+      grouping_.release();
+      MPI_Finalize();
+      exit(0);
+    }
   }
 }
 

@@ -19,7 +19,6 @@
 
 #include <mpi.h>
 
-
 namespace dca {
 namespace parallel {
 // dca::parallel::
@@ -32,7 +31,6 @@ public:
 
   ~MPIProcessorGrouping();
 
-
   inline MPI_Comm get() const {
     return MPI_communication_;
   }
@@ -40,13 +38,17 @@ public:
     assert(id_ > -1);
     return id_;
   }
+  inline int get_size() const {
+    assert(size_ > -1);
+    return size_;
+  }
   inline int get_world_id() const {
     assert(world_id_ > -1);
     return world_id_;
   }
-  inline int get_size() const {
-    assert(size_ > -1);
-    return size_;
+  inline int get_world_size() const {
+    assert(world_size_ > -1);
+    return world_size_;
   }
 
   inline int first() const {
@@ -60,10 +62,9 @@ public:
   }
 
 private:
-
   static bool defaultTest();
 
-  void printRemovedProcesses(const std::vector<int>& valid_ids) const;
+  void printRemovedProcesses() const;
 
 private:
   MPI_Group MPI_group_ = 0;
