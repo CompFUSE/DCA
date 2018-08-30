@@ -13,7 +13,6 @@
 #ifndef DCA_PARALLEL_MPI_CONCURRENCY_MPI_PACKING_HPP
 #define DCA_PARALLEL_MPI_CONCURRENCY_MPI_PACKING_HPP
 
-#include <memory>
 #include <string>
 #include <vector>
 #include <mpi.h>
