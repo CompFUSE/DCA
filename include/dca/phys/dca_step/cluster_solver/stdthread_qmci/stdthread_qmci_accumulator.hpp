@@ -32,7 +32,7 @@ class stdthread_qmci_accumulator : protected qmci_accumulator_type {
   using Data = typename qmci_accumulator_type::DataType;
 
 public:
-  stdthread_qmci_accumulator(Parameters& parameters_ref, Data& data_ref, int meas_t_do, int id);
+  stdthread_qmci_accumulator(Parameters& parameters_ref, Data& data_ref, int meas_to_do, int id);
 
   ~stdthread_qmci_accumulator();
 
