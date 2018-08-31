@@ -21,22 +21,19 @@ namespace dca {
 namespace parallel {
 // dca::parallel::
 
-class MPICollectiveMin {
+class MPICollectiveMin : public virtual MPIProcessorGrouping {
 public:
-  MPICollectiveMin(const MPIProcessorGrouping& grouping) : grouping_(grouping) {}
+  MPICollectiveMin() = default;
 
   template <typename Scalar>
   void min(Scalar& value) const {
     Scalar result;
 
     MPI_Allreduce(&value, &result, MPITypeMap<Scalar>::factor(), MPITypeMap<Scalar>::value(),
-                  MPI_MIN, grouping_.get());
+                  MPI_MIN, MPIProcessorGrouping::get());
 
     value = result;
   }
-
-private:
-  const MPIProcessorGrouping& grouping_;
 };
 
 }  // parallel

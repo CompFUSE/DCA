@@ -25,17 +25,15 @@
 
 class MPICollectiveSumTest : public ::testing::Test {
 protected:
-  MPICollectiveSumTest() : sum_interface_(grouping_) {
-    grouping_.set();
-    size_ = grouping_.get_Nr_threads();
-    rank_ = grouping_.get_id();
+  MPICollectiveSumTest() {
+    size_ = sum_interface_.get_size();
+    rank_ = sum_interface_.get_id();
   }
 
   int size_;
   int rank_;
   constexpr static double epsilon_ = 1e-14;
 
-  dca::parallel::MPIProcessorGrouping grouping_;
   dca::parallel::MPICollectiveSum sum_interface_;
 };
 

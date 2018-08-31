@@ -36,7 +36,7 @@ std::pair<int, int> getBounds(int id, int num_threads, const std::pair<int, int>
 //
 // TODO: Add const to function parameter 'dmn'.
 template <typename Domain>
-std::pair<int, int> getBounds(int id, int num_threads, Domain& dmn) {
+std::pair<int, int> getBounds(int id, int num_threads, const Domain& dmn) {
   const std::pair<int, int> current_bounds(0, dmn.get_size());
   return getBounds(id, num_threads, current_bounds);
 }
