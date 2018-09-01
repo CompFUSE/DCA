@@ -7,7 +7,7 @@
 //
 // Author: Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //
-// This file provides cuda related utilities to cudaStreams.
+// This file provides access to a global instance of StreamContainer.
 
 #ifndef DCA_LINALG_UTIL_STREAM_FUNCTIONS_HPP
 #define DCA_LINALG_UTIL_STREAM_FUNCTIONS_HPP
@@ -24,14 +24,14 @@ namespace util {
 
 #ifdef DCA_HAVE_CUDA
 
-// Singleton stream container.
-// If not initialized contains the streams for one thread.
+// Global stream container.
 inline StreamContainer& getStreamContainer() {
+  // Initialize resources for one thread.
   static StreamContainer stream_container(1);
   return stream_container;
 }
 
-inline void initializeStreamContainer(const int max_threads) {
+inline void resizeStreamContainer(const int max_threads) {
   getStreamContainer().resize(max_threads);
 }
 
@@ -51,7 +51,7 @@ inline void syncStream(int thread_id, int stream_id) {
 
 // Implement SFINAE.
 inline void syncStream(int /*thread_id*/, int /*stream_id*/) {}
-inline void initializeStreamContainer(int /*max_threads*/) {}
+inline void resizeStreamContainer(int /*max_threads*/) {}
 
 #endif  // DCA_HAVE_CUDA
 
