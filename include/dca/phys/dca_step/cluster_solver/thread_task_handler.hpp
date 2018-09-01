@@ -55,6 +55,10 @@ public:
     return rng_index;
   }
 
+  std::size_t size() const {
+    return thread_tasks_.size();
+  }
+
   const std::string& getTask(const int id) const {
     assert(id < thread_tasks_.size());
     return thread_tasks_[id];

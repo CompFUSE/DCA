@@ -124,6 +124,9 @@ StdThreadQmciClusterSolver<qmci_integrator_type>::StdThreadQmciClusterSolver(
     rng_vector.emplace_back(concurrency.id(), concurrency.number_of_processors(),
                             parameters.get_seed());
   }
+
+  // Create a sufficient amount of cublas handles and cuda streams.
+  linalg::util::initializeHandleContainer(thread_task_handler_.size());
 }
 
 template <class qmci_integrator_type>
