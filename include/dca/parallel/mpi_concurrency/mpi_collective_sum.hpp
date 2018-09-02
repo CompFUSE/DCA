@@ -115,6 +115,13 @@ public:
                          const func::function<std::complex<Scalar>, Domain>& f_estimated,
                          func::function<Scalar, CovDomain>& cov) const;
 
+  // Computes the covariance of f with respect to its sample average. Then moves the average into f.
+  // In/Out: f
+  // Out: cov
+  template <typename ScalarOrComplex, typename Scalar, class Domain, class CovDomain>
+  void computeCovarianceAndAvg(func::function<ScalarOrComplex, Domain>& f,
+                               func::function<Scalar, CovDomain>& cov) const;
+
   // Returns the normalized momenta of the desired orders. The momenta is the averaged across the
   // entries of f.
   // The normalized momenta of order i is defined as \lambda_i = <(f - <f>)^i> / \sigma^i
@@ -441,6 +448,15 @@ void MPICollectiveSum::computeCovariance(const func::function<std::complex<Scala
           (f(i).imag() - f_estimated(i).imag()) * (f(j).real() - f_estimated(j).imag());
     }
   sum_and_average(cov, 1);
+}
+
+template <typename ScalarOrComplex, typename Scalar, class Domain, class CovDomain>
+void MPICollectiveSum::computeCovarianceAndAvg(func::function<ScalarOrComplex, Domain>& f,
+                                               func::function<Scalar, CovDomain>& cov) const {
+  auto f_avg = f;
+  sum_and_average(f_avg);
+  computeCovariance(f, f_avg, cov);
+  f = std::move(f_avg);
 }
 
 template <typename Scalar, class Domain>
