@@ -15,7 +15,7 @@
 #include "gtest/gtest.h"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 
-TEST(HDF5ReaderTest, DestructorCleanUp) {
+TEST(HDF5ReaderTest, ReaderDestructorCleanUp) {
   std::string test_file_name = "hdf5_reader_test.hdf5";
   std::string group_name = "magic-numbers";
   std::string object_name = "forty-two";
@@ -44,6 +44,26 @@ TEST(HDF5ReaderTest, DestructorCleanUp) {
   // reader.close_file();
 }
 
+TEST(HDF5WriterTest, WriterDestructorCleanUp) {
+  std::string test_file_name = "hdf5_writer_test.hdf5";
+  std::string group_name_1 = "integers";
+  std::string group_name_2 = "magic-numbers";
+  std::string object_name = "forty-two";
+
+  dca::io::HDF5Writer writer;
+  const int i = 42;
+
+  writer.open_file(test_file_name);
+  writer.open_group(group_name_1);
+  writer.open_group(group_name_2);
+  writer.execute(object_name, i);
+
+  // Destructor closes groups and file.
+  // writer.close_group();
+  // writer.close_group();
+  // writer.close_file();
+}
+
 TEST(HDF5ReaderTest, VectorReadWrite) {
   const std::string object_name = "a_vector";
   const std::string file_name = "hdf5_reader_vector_test.hdf5";
@@ -56,7 +76,6 @@ TEST(HDF5ReaderTest, VectorReadWrite) {
   writer.execute(object_name, a_vector);
   writer.close_file();
 
-
   // Read test file.
   dca::io::HDF5Reader reader;
   std::vector<std::complex<double>> vector_read;
@@ -64,7 +83,7 @@ TEST(HDF5ReaderTest, VectorReadWrite) {
   reader.execute(object_name, vector_read);
 
   ASSERT_EQ(a_vector.size(), vector_read.size());
-  for(int i =0; i < a_vector.size(); ++i) {
+  for (int i = 0; i < a_vector.size(); ++i) {
     EXPECT_DOUBLE_EQ(std::real(a_vector[i]), std::real(vector_read[i]));
     EXPECT_DOUBLE_EQ(std::imag(a_vector[i]), std::imag(vector_read[i]));
   }
