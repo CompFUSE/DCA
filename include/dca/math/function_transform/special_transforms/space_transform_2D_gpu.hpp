@@ -12,7 +12,10 @@
 
 #ifndef DCA_MATH_FUNCTION_TRANSFORM_SPECIAL_TRANSFORMS_SPACE_TRANSFORM_2D_GPU
 #define DCA_MATH_FUNCTION_TRANSFORM_SPECIAL_TRANSFORMS_SPACE_TRANSFORM_2D_GPU
-#ifdef DCA_HAVE_CUDA
+
+#ifndef DCA_HAVE_CUDA
+#pragma error "This file requires CUDA support."
+#endif
 
 #include "dca/math/function_transform/special_transforms/space_transform_2D_gpu.hpp"
 
@@ -137,5 +140,4 @@ const linalg::Matrix<std::complex<Real>, linalg::GPU>& SpaceTransform2DGpu<RDmn,
 }  // math
 }  // dca
 
-#endif  // DCA_HAVE_CUDA
 #endif  // DCA_MATH_FUNCTION_TRANSFORM_SPECIAL_TRANSFORMS_SPACE_TRANSFORM_2D_GPU
