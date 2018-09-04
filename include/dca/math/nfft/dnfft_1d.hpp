@@ -48,7 +48,9 @@ public:
   using ThisType = Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>;
   using ElementType = ScalarType;
 
+public:
   Dnfft1D();
+  Dnfft1D(ThisType&& other) = default;
 
   void initialize();
 
@@ -62,11 +64,12 @@ public:
   void accumulate(const int* subind, ScalarType t_val, ScalarType f_val);
 
   // Performs the final FFT on the accumulated function.
+  // Out: f_w
   template <typename OtherScalarType>
   void finalize(func::function<std::complex<OtherScalarType>, func::dmn_variadic<WDmn, PDmn>>& f_w);
 
-  // Sums the accumulated data (in the time domain) of other to this.
-  ThisType& operator+=(const ThisType& other);
+  // Sums the accumulated data in the time domain.
+  ThisType& operator+=(const ThisType& other_one);
 
   constexpr int get_oversampling() const {
     return oversampling;
@@ -79,7 +82,7 @@ public:
     return WDmn::dmn_size() / 2;
   }
 
-private:
+protected:
   static constexpr int window_sampling_ = 32;
   static constexpr double window_function_sigma_ = 2.;
 
@@ -100,6 +103,13 @@ private:
   using PaddedTimePDmn = func::dmn_variadic<PaddedTimeDmn, PDmn>;
   using LeftOrientedPDmn = func::dmn_variadic<LeftOrientedTimeDmn, PDmn>;
 
+  static inline auto& get_convolution_time_values();
+  static inline auto& get_linear_convolution_matrices();
+  static inline auto& get_cubic_convolution_matrices();
+
+  func::function<ScalarType, PaddedTimePDmn> f_tau_;
+
+private:
   static void initializeDomains(const ThisType& this_obj);
   static void initializeStaticFunctions();
 
@@ -113,18 +123,12 @@ private:
   void transformFTauToFW(
       func::function<std::complex<OtherScalarType>, func::dmn_variadic<WDmn, PDmn>>& f_w) const;
 
-  func::function<ScalarType, PaddedTimePDmn> f_tau_;
-
   static inline ScalarType tau(int idx) {
     return PaddedTimeDmn::get_elements()[idx];
   }
   static inline ScalarType fineTau(int idx) {
     return WindowFunctionTimeDmn::get_elements()[idx];
   }
-
-  static inline auto& get_convolution_time_values();
-  static inline auto& get_linear_convolution_matrices();
-  static inline auto& get_cubic_convolution_matrices();
 
   static inline auto& get_phi_wn();
 };
