@@ -15,7 +15,7 @@
 #include "gtest/gtest.h"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 
-TEST(HDF5ReaderTest, ReaderDestructorCleanUp) {
+TEST(HDF5ReaderWriterTest, ReaderDestructorCleanUp) {
   std::string test_file_name = "hdf5_reader_test.hdf5";
   std::string group_name = "magic-numbers";
   std::string object_name = "forty-two";
@@ -44,7 +44,7 @@ TEST(HDF5ReaderTest, ReaderDestructorCleanUp) {
   // reader.close_file();
 }
 
-TEST(HDF5WriterTest, WriterDestructorCleanUp) {
+TEST(HDF5ReaderWriterTest, WriterDestructorCleanUp) {
   std::string test_file_name = "hdf5_writer_test.hdf5";
   std::string group_name_1 = "integers";
   std::string group_name_2 = "magic-numbers";
@@ -64,7 +64,7 @@ TEST(HDF5WriterTest, WriterDestructorCleanUp) {
   // writer.close_file();
 }
 
-TEST(HDF5ReaderTest, VectorReadWrite) {
+TEST(HDF5ReaderWriterTest, VectorReadWrite) {
   const std::string object_name = "a_vector";
   const std::string file_name = "hdf5_reader_vector_test.hdf5";
   const std::vector<std::complex<double>> a_vector{
