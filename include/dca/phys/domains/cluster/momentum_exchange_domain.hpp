@@ -59,27 +59,17 @@ public:
   static void write(Writer& writer);
 
 private:
+  static void initialize(bool compute_all_transfers, int transfer_index, int cluster_size);
+
+private:
   static std::vector<int> elements_;
   static bool initialized_;
 };
-std::vector<int> MomentumExchangeDomain::elements_;
-bool MomentumExchangeDomain::initialized_ = false;
 
 template <class Parameters>
 void MomentumExchangeDomain::initialize(const Parameters& parameters) {
-  if (parameters.compute_all_transfers()) {
-    const int size = Parameters::KClusterDmn::dmn_size();
-    elements_.resize(size);
-    int idx_value = 0;
-    for (int& elem : elements_)
-      elem = idx_value++;
-  }
-
-  else {
-    elements_ = std::vector<int>{parameters.get_four_point_momentum_transfer_index()};
-  }
-
-  initialized_ = true;
+  initialize(parameters.compute_all_transfers(), parameters.get_four_point_momentum_transfer_index(),
+             Parameters::KClusterDmn::dmn_size());
 }
 
 template <class Writer>

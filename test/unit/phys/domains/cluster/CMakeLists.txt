@@ -5,7 +5,8 @@ dca_add_gtest(cluster_operations_test
   LIBS ${LAPACK_LIBRARIES} ${DCA_CUDA_LIBS})
 
 dca_add_gtest(momentum_exchage_domain_test
-  GTEST_MAIN)
+  GTEST_MAIN
+  LIBS cluster_domains)
 
 # deprecated (requires NFFT)
 # add_subdirectory(interpolation/wannier_interpolation)

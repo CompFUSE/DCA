@@ -14,7 +14,6 @@
 #define DCA_PHYS_DOMAINS_TIME_AND_FREQUENCY_FREQUENCY_EXCHANGE_DOMAIN_HPP
 
 #include <cassert>
-#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -66,35 +65,17 @@ public:
   static void write(Writer& writer);
 
 private:
+  static void initialize(bool compute_all_transfers, int frequency_transfer);
+
+private:
   static std::vector<int> elements_;
   static int extension_size_;
   static bool initialized_;
 };
-std::vector<int> FrequencyExchangeDomain::elements_;
-bool FrequencyExchangeDomain::initialized_ = false;
-int FrequencyExchangeDomain::extension_size_ = -1;
 
 template <class Parameters>
 void FrequencyExchangeDomain::initialize(const Parameters& parameters) {
-  if (parameters.compute_all_transfers()) {
-    if (parameters.get_four_point_frequency_transfer() < 0)
-      throw(std::logic_error("get_four_point_frequency_transfer() must be non-negative."));
-    elements_.resize(parameters.get_four_point_frequency_transfer() + 1);
-    int idx_value = 0;
-    for (int& elem : elements_)
-      elem = idx_value++;
-  }
-
-  else {
-    elements_ = std::vector<int>{parameters.get_four_point_frequency_transfer()};
-  }
-
-  // Compute the extension size.
-  extension_size_ = 0;
-  for (auto el : elements_)
-    extension_size_ = std::max(extension_size_, std::abs(el));
-
-  initialized_ = true;
+  initialize(parameters.compute_all_transfers(),parameters.get_four_point_frequency_transfer());
 }
 
 template <class Writer>
