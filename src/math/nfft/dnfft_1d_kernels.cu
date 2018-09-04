@@ -103,6 +103,8 @@ void accumulateOnDevice(const double* M, const int ldm, const int sign, ScalarTy
   const static int convolution_size = 2 * helper.get_oversampling() + 1;
   const auto blocks = getBlockSize(size * size * convolution_size, 128);
 
+  // TODO: check if there is a performance gain in using a block size that is a multiple of
+  //       convolution_size.
   accumulateOnDeviceKernel<ScalarType><<<blocks[0], blocks[1], 0, stream_>>>(
       M, ldm, sign, out, out_sqr, ldo, config_left, config_right, tau, coeff, size, helper);
 }
@@ -113,7 +115,7 @@ __global__ void sumKernel(const ScalarType* in, const int ldi, ScalarType* out, 
   const int i = blockIdx.x * blockDim.x + threadIdx.x;
   const int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-  out[i + ldo * j] += in[i + ldo * j];
+  out[i + ldo * j] += in[i + ldi * j];
 }
 
 template <typename ScalarType>
@@ -123,16 +125,16 @@ void sum(const ScalarType* in, const int ldi, ScalarType* out, const int ldo, co
   sumKernel<<<blocks[0], blocks[1], 0, stream>>>(in, ldi, out, ldo, n, m);
 }
 
-template<typename ScalarType>
+template <typename ScalarType>
 void initializeNfftHelper(int nb, int nr, const int* sub_r, int lds, int oversampling,
-                          int window_sampling, ScalarType t0, ScalarType delta_t, ScalarType t0_window,
-                          ScalarType delta_t_window, ScalarType beta) {
+                          int window_sampling, ScalarType t0, ScalarType delta_t,
+                          ScalarType t0_window, ScalarType delta_t_window, ScalarType beta) {
   auto& helper = HelperSelector<ScalarType>::value;
   if (helper.isInitialized())
     return;
 
   helper.set(nb, nr, sub_r, lds, oversampling, window_sampling, t0, delta_t, t0_window,
-                     delta_t_window, beta);
+             delta_t_window, beta);
 }
 
 // Explicit instantiation.
@@ -149,12 +151,13 @@ template void sum<double>(const double* in, const int ldi, double* out, const in
                           const int m, cudaStream_t stream);
 template void sum<float>(const float* in, const int ldi, float* out, const int ldo, const int n,
                          const int m, cudaStream_t stream);
-template void initializeNfftHelper<double>(int nb, int nr, const int* sub_r, int lds, int oversampling,
-                          int window_sampling, double t0, double delta_t, double t0_window,
-                          double delta_t_window, double beta);
+template void initializeNfftHelper<double>(int nb, int nr, const int* sub_r, int lds,
+                                           int oversampling, int window_sampling, double t0,
+                                           double delta_t, double t0_window, double delta_t_window,
+                                           double beta);
 template void initializeNfftHelper<float>(int nb, int nr, const int* sub_r, int lds, int oversampling,
-                                               int window_sampling, float t0, float delta_t, float t0_window,
-                                               float delta_t_window, float beta);
+                                          int window_sampling, float t0, float delta_t,
+                                          float t0_window, float delta_t_window, float beta);
 
 }  // details
 }  // nfft
