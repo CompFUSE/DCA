@@ -34,9 +34,9 @@ namespace dca {
 namespace parallel {
 // dca::parallel::
 
-class MPICollectiveSum {
+class MPICollectiveSum : public virtual MPIProcessorGrouping {
 public:
-  MPICollectiveSum(const MPIProcessorGrouping& grouping) : grouping_(grouping) {}
+  MPICollectiveSum() = default;
 
   template <typename scalar_type>
   void sum(scalar_type& value) const;
@@ -115,6 +115,13 @@ public:
                          const func::function<std::complex<Scalar>, Domain>& f_estimated,
                          func::function<Scalar, CovDomain>& cov) const;
 
+  // Computes the covariance of f with respect to its sample average. Then moves the average into f.
+  // In/Out: f
+  // Out: cov
+  template <typename ScalarOrComplex, typename Scalar, class Domain, class CovDomain>
+  void computeCovarianceAndAvg(func::function<ScalarOrComplex, Domain>& f,
+                               func::function<Scalar, CovDomain>& cov) const;
+
   // Returns the normalized momenta of the desired orders. The momenta is the averaged across the
   // entries of f.
   // The normalized momenta of order i is defined as \lambda_i = <(f - <f>)^i> / \sigma^i
@@ -123,9 +130,6 @@ public:
   template <typename Scalar, class Domain>
   std::vector<Scalar> avgNormalizedMomenta(const func::function<Scalar, Domain>& f,
                                            const std::vector<int>& orders) const;
-
-private:
-  const MPIProcessorGrouping& grouping_;
 };
 
 template <typename scalar_type>
@@ -133,7 +137,7 @@ void MPICollectiveSum::sum(scalar_type& value) const {
   scalar_type result;
 
   MPI_Allreduce(&value, &result, MPITypeMap<scalar_type>::factor(),
-                MPITypeMap<scalar_type>::value(), MPI_SUM, grouping_.get());
+                MPITypeMap<scalar_type>::value(), MPI_SUM, MPIProcessorGrouping::get());
 
   value = result;
 }
@@ -143,7 +147,7 @@ void MPICollectiveSum::sum(std::vector<scalar_type>& m) const {
   std::vector<scalar_type> result(m.size(), scalar_type(0));
 
   MPI_Allreduce(&(m[0]), &(result[0]), MPITypeMap<scalar_type>::factor() * m.size(),
-                MPITypeMap<scalar_type>::value(), MPI_SUM, grouping_.get());
+                MPITypeMap<scalar_type>::value(), MPI_SUM, MPIProcessorGrouping::get());
 
   m = std::move(result);
 }
@@ -172,7 +176,7 @@ void MPICollectiveSum::sum(func::function<scalar_type, domain>& f) const {
   func::function<scalar_type, domain> f_sum;
 
   MPI_Allreduce(f.values(), f_sum.values(), MPITypeMap<scalar_type>::factor() * f.size(),
-                MPITypeMap<scalar_type>::value(), MPI_SUM, grouping_.get());
+                MPITypeMap<scalar_type>::value(), MPI_SUM, MPIProcessorGrouping::get());
 
   f = std::move(f_sum);
 
@@ -189,7 +193,7 @@ template <typename scalar_type, class domain>
 void MPICollectiveSum::sum(const func::function<scalar_type, domain>& f_in,
                            func::function<scalar_type, domain>& f_out) const {
   MPI_Allreduce(f_in.values(), f_out.values(), MPITypeMap<scalar_type>::factor() * f_in.size(),
-                MPITypeMap<scalar_type>::value(), MPI_SUM, grouping_.get());
+                MPITypeMap<scalar_type>::value(), MPI_SUM, MPIProcessorGrouping::get());
 }
 
 template <typename scalar_type, class domain>
@@ -215,7 +219,7 @@ void MPICollectiveSum::sum(linalg::Vector<scalar_type, linalg::CPU>& vec) const 
   linalg::Vector<scalar_type, linalg::CPU> vec_sum("vec_sum", vec.size());
 
   MPI_Allreduce(&vec[0], &vec_sum[0], MPITypeMap<scalar_type>::factor() * vec.size(),
-                MPITypeMap<scalar_type>::value(), MPI_SUM, grouping_.get());
+                MPITypeMap<scalar_type>::value(), MPI_SUM, MPIProcessorGrouping::get());
 
   vec = vec_sum;
 
@@ -237,7 +241,7 @@ void MPICollectiveSum::sum(linalg::Matrix<scalar_type, linalg::CPU>& f) const {
   int Nc = f.capacity().second;
 
   MPI_Allreduce(&f(0, 0), &F(0, 0), MPITypeMap<scalar_type>::factor() * Nr * Nc,
-                MPITypeMap<scalar_type>::value(), MPI_SUM, grouping_.get());
+                MPITypeMap<scalar_type>::value(), MPI_SUM, MPIProcessorGrouping::get());
 
   for (int j = 0; j < F.size().second; j++)
     for (int i = 0; i < F.size().first; i++)
@@ -248,7 +252,7 @@ template <typename some_type>
 void MPICollectiveSum::sum_and_average(some_type& obj, const int nr_meas_rank) const {
   sum(obj);
 
-  const double one_over_N = 1. / (nr_meas_rank * grouping_.get_Nr_threads());
+  const double one_over_N = 1. / (nr_meas_rank * MPIProcessorGrouping::get_size());
 
   obj *= one_over_N;
 }
@@ -258,30 +262,30 @@ void MPICollectiveSum::sum_and_average(const some_type& in, some_type& out,
                                        const int nr_meas_rank) const {
   sum(in, out);
 
-  const double one_over_N = 1. / (nr_meas_rank * grouping_.get_Nr_threads());
+  const double one_over_N = 1. / (nr_meas_rank * MPIProcessorGrouping::get_size());
 
   out *= one_over_N;
 }
 
 template <typename Scalar>
 void MPICollectiveSum::leaveOneOutAvg(Scalar& s) const {
-  if (grouping_.get_Nr_threads() == 1)
+  if (MPIProcessorGrouping::get_size() == 1)
     return;
 
   const Scalar s_local(s);
   sum(s);
-  s = (s - s_local) / (grouping_.get_Nr_threads() - 1);
+  s = (s - s_local) / (MPIProcessorGrouping::get_size() - 1);
 }
 
 template <typename Scalar, class Domain>
 void MPICollectiveSum::leaveOneOutAvg(func::function<Scalar, Domain>& f) const {
-  if (grouping_.get_Nr_threads() == 1)
+  if (MPIProcessorGrouping::get_size() == 1)
     return;
 
   const func::function<Scalar, Domain> f_local(f);
   sum(f_local, f);
 
-  const double scale = 1. / (grouping_.get_Nr_threads() - 1);
+  const double scale = 1. / (MPIProcessorGrouping::get_size() - 1);
   for (int i = 0; i < f.size(); ++i)
     f(i) = scale * (f(i) - f_local(i));
 }
@@ -291,7 +295,7 @@ func::function<Scalar, Domain> MPICollectiveSum::jackknifeError(func::function<S
                                                                 const bool overwrite) const {
   func::function<Scalar, Domain> err("jackknife-error");
 
-  const int n = grouping_.get_Nr_threads();
+  const int n = MPIProcessorGrouping::get_size();
 
   if (n == 1)  // No jackknife procedure possible.
     return err;
@@ -319,7 +323,7 @@ func::function<std::complex<Scalar>, Domain> MPICollectiveSum::jackknifeError(
     func::function<std::complex<Scalar>, Domain>& f_i, const bool overwrite) const {
   func::function<std::complex<Scalar>, Domain> err("jackknife-error");
 
-  const int n = grouping_.get_Nr_threads();
+  const int n = MPIProcessorGrouping::get_size();
 
   if (n == 1)  // No jackknife procedure possible.
     return err;
@@ -350,7 +354,7 @@ func::function<std::complex<Scalar>, Domain> MPICollectiveSum::jackknifeError(
 template <typename scalar_type, class domain>
 void MPICollectiveSum::average_and_compute_stddev(func::function<scalar_type, domain>& f_mean,
                                                   func::function<scalar_type, domain>& f_stddev) const {
-  scalar_type factor = 1. / grouping_.get_Nr_threads();
+  scalar_type factor = 1. / MPIProcessorGrouping::get_size();
 
   func::function<scalar_type, domain> f_sum("f-sum");
   func::function<scalar_type, domain> f_diff("f-diff");
@@ -372,14 +376,14 @@ void MPICollectiveSum::average_and_compute_stddev(func::function<scalar_type, do
   for (int i = 0; i < f_sum.size(); i++)
     f_stddev(i) = std::sqrt(f_stddev(i));
 
-  f_stddev /= std::sqrt(grouping_.get_Nr_threads());
+  f_stddev /= std::sqrt(MPIProcessorGrouping::get_size());
 }
 
 template <typename scalar_type, class domain>
 void MPICollectiveSum::average_and_compute_stddev(
     func::function<std::complex<scalar_type>, domain>& f_mean,
     func::function<std::complex<scalar_type>, domain>& f_stddev) const {
-  scalar_type factor = 1. / grouping_.get_Nr_threads();
+  scalar_type factor = 1. / MPIProcessorGrouping::get_size();
 
   func::function<std::complex<scalar_type>, domain> f_sum("f-sum");
   func::function<std::complex<scalar_type>, domain> f_diff("f-diff");
@@ -405,7 +409,7 @@ void MPICollectiveSum::average_and_compute_stddev(
     f_stddev(i).imag(std::sqrt(imag(f_stddev(i))));
   }
 
-  f_stddev /= std::sqrt(grouping_.get_Nr_threads());
+  f_stddev /= std::sqrt(MPIProcessorGrouping::get_size());
 }
 
 template <typename Scalar, class Domain>
@@ -446,6 +450,15 @@ void MPICollectiveSum::computeCovariance(const func::function<std::complex<Scala
   sum_and_average(cov, 1);
 }
 
+template <typename ScalarOrComplex, typename Scalar, class Domain, class CovDomain>
+void MPICollectiveSum::computeCovarianceAndAvg(func::function<ScalarOrComplex, Domain>& f,
+                                               func::function<Scalar, CovDomain>& cov) const {
+  auto f_avg = f;
+  sum_and_average(f_avg);
+  computeCovariance(f, f_avg, cov);
+  f = std::move(f_avg);
+}
+
 template <typename Scalar, class Domain>
 std::vector<Scalar> MPICollectiveSum::avgNormalizedMomenta(const func::function<Scalar, Domain>& f,
                                                            const std::vector<int>& orders) const {
@@ -466,7 +479,7 @@ std::vector<Scalar> MPICollectiveSum::avgNormalizedMomenta(const func::function<
 
   // Divide by n and normalize the momenta by sigma^order, then average.
   std::vector<Scalar> momenta_avg(orders.size(), 0);
-  const int n = grouping_.get_Nr_threads();
+  const int n = MPIProcessorGrouping::get_size();
   for (std::size_t i = 0; i < f.size(); i++) {
     const Scalar var = std::sqrt(var2[i] / n);
     for (std::size_t j = 0; j < orders.size(); j++)

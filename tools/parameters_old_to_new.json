@@ -101,14 +101,13 @@
         "Sigma-file": "initial-self-energy" ("DCA"),
         "warm-up-sweeps": ,
         "sweeps-per-measurement": ,
-        "measurements": "measurements-per-process-and-accumulator",
         "adaptive-double-counting": removed,
         "RNG-seed": "seed",
 
         "MC-posix-parameters": "threaded-solver" {
             "nr-walkers": "walkers",
             "nr-accumulators": "accumulators",
-            "additional-steps": DEPRECATED,
+            "additional-steps": removed,
             "HTS-threads": ("DCA"/"DCA+")
         }
     },

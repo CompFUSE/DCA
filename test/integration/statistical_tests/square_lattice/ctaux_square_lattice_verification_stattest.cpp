@@ -31,9 +31,9 @@ TEST(CtauxSquareLatticeVerificationTest, GreensFunction) {
   parameters.update_model();
   parameters.update_domains();
 
-  // Perform the same number of measurements as the validation test.
-  parameters.set_measurements_per_process_and_accumulator(
-      parameters.get_measurements_per_process_and_accumulator() / parameters.get_accumulators());
+  // Perform the same number of measurements per rank.
+  const int meas_per_process = parameters.get_measurements();
+  parameters.set_measurements(meas_per_process * dca_test_env->concurrency.number_of_processors());
 
   DcaData data(parameters);
   data.initialize();
@@ -64,8 +64,7 @@ TEST(CtauxSquareLatticeVerificationTest, GreensFunction) {
     reader.open_group("parameters");
     int reference_n_meas;
     reader.execute("measurements_per_node", reference_n_meas);
-    EXPECT_EQ(reference_n_meas, parameters.get_measurements_per_process_and_accumulator() *
-                                    parameters.get_accumulators());
+    EXPECT_EQ(reference_n_meas, meas_per_process);
     reader.close_file();
 
     dca::math::StatisticalTesting test(G_k_w_measured, G_k_w_expected, G_k_w_covariance, 1);
@@ -90,9 +89,7 @@ TEST(CtauxSquareLatticeVerificationTest, GreensFunction) {
       writer.close_group();
       // store the number of used measurements
       writer.open_group("parameters");
-      writer.execute("measurements_per_node",
-                     parameters.get_measurements_per_process_and_accumulator() *
-                         parameters.get_accumulators());
+      writer.execute("measurements_per_node", meas_per_process);
       writer.execute("nodes", number_of_samples);
       writer.close_group();
       writer.close_file();

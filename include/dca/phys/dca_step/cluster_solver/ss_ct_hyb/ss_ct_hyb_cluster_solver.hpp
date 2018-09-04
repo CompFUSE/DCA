@@ -19,6 +19,7 @@
 #include "dca/function/function.hpp"
 #include "dca/linalg/device_type.hpp"
 #include "dca/math/function_transform/function_transform.hpp"
+#include "dca/parallel/util/get_workload.hpp"
 #include "dca/phys/dca_step/cluster_solver/cluster_solver_name.hpp"
 #include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/ss_ct_hyb_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/ss_ct_hyb/ss_ct_hyb_walker.hpp"
@@ -240,10 +241,7 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::integrate() {
 
   if (concurrency.id() == concurrency.first()) {
     std::cout << "On-node integration has ended: " << dca::util::print_time()
-              << "\n\nTotal number of measurements: "
-              << concurrency.number_of_processors() *
-                     parameters.get_measurements_per_process_and_accumulator()
-              << std::endl;
+              << "\n\nTotal number of measurements: " << parameters.get_measurements() << std::endl;
 
     walker.printSummary();
   }
@@ -329,14 +327,16 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::measure(walker_type&
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t measuring has started \n" << std::endl;
 
-  for (int i = 0; i < parameters.get_measurements_per_process_and_accumulator(); i++) {
+  const int n_meas = dca::parallel::util::getWorkload(parameters.get_measurements(), concurrency);
+
+  for (int i = 0; i < n_meas; i++) {
     walker.do_sweep();
 
     accumulator.update_from(walker);
 
     accumulator.measure();
 
-    walker.update_shell(i, parameters.get_measurements_per_process_and_accumulator());
+    walker.update_shell(i, n_meas);
   }
 
   // here we need to do a correction a la Andrey
