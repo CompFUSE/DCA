@@ -20,6 +20,7 @@
 #include <thread>
 #include <vector>
 
+#include "dca/parallel/util/get_workload.hpp"
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/thread_task_handler.hpp"
 #include "dca/profiling/events/time.hpp"
@@ -151,8 +152,7 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::integrate() {
               << std::endl;
   }
 
-  measurements_remaining_ =
-      parameters.get_measurements_per_process_and_accumulator() * nr_accumulators;
+  measurements_remaining_ = parallel::util::getWorkload(parameters.get_measurements(), concurrency);
 
   std::vector<std::thread> threads;
   std::vector<pair_type> data;
@@ -186,10 +186,7 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::integrate() {
 
   if (concurrency.id() == concurrency.first()) {
     std::cout << "Threaded on-node integration has ended: " << dca::util::print_time()
-              << "\n\nTotal number of measurements: "
-              << concurrency.number_of_processors() *
-                     parameters.get_measurements_per_process_and_accumulator() * nr_accumulators
-              << std::endl;
+              << "\n\nTotal number of measurements: " << parameters.get_measurements() << std::endl;
   }
 }
 
@@ -267,11 +264,11 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::start_walker(int id) {
     }
   }
 
-#ifdef DCA_WITH_QMC_BIT
-  mutex_numerical_error.lock();
+  //#ifdef DCA_WITH_QMC_BIT
+  //  pthread_mutex_lock(&mutex_numerical_error);
   // accumulator.get_error_distribution() += walker.get_error_distribution();
-  mutex_numerical_error.unlock();
-#endif  // DCA_WITH_QMC_BIT
+  //  pthread_mutex_unlock(&mutex_numerical_error);
+  //#endif  // DCA_WITH_QMC_BIT
 
   if (id == 0 && concurrency.id() == concurrency.first()) {
     std::cout << "\n\t\t QMCI ends\n" << std::endl;
@@ -303,11 +300,14 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::warm_up(walker_type& walk
 
 template <class qmci_integrator_type>
 void StdThreadQmciClusterSolver<qmci_integrator_type>::start_accumulator(int id) {
-  stdthread_accumulator_type accumulator_obj(parameters, data_, id);
+  const int n_meas =
+      parallel::util::getWorkload(parameters.get_measurements(), parameters.get_accumulators(),
+                                  thread_task_handler_.idToAccumIndex(id), concurrency);
 
+  stdthread_accumulator_type accumulator_obj(parameters, data_, n_meas, id);
   accumulator_obj.initialize(DCA_iteration);
 
-  for (int i = 0; i < parameters.get_measurements_per_process_and_accumulator(); ++i) {
+  for (int i = 0; i < n_meas; ++i) {
     {
       std::lock_guard<std::mutex> lock(mutex_queue);
       accumulators_queue.push(&accumulator_obj);
@@ -322,7 +322,7 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::start_accumulator(int id)
     {
       profiler_type profiler("stdthread-accumulator accumulating", "stdthread-MC-accumulator",
                              __LINE__, id);
-      accumulator_obj.measure(mutex_queue, accumulators_queue);
+      accumulator_obj.measure();
     }
   }
 
