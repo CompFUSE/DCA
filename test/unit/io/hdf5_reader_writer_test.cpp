@@ -8,12 +8,16 @@
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// This file provides specific tests for the HDF5 reader.
+// This file provides specific tests for the HDF5 reader and writer.
 
 #include "dca/io/hdf5/hdf5_reader.hpp"
-#include <string>
-#include "gtest/gtest.h"
 #include "dca/io/hdf5/hdf5_writer.hpp"
+
+#include <complex>
+#include <string>
+#include <vector>
+
+#include "gtest/gtest.h"
 
 TEST(HDF5ReaderWriterTest, ReaderDestructorCleanUp) {
   std::string test_file_name = "hdf5_reader_test.hdf5";
