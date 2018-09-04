@@ -14,6 +14,7 @@
 #define DCA_PHYS_DOMAINS_TIME_AND_FREQUENCY_FREQUENCY_EXCHANGE_DOMAIN_HPP
 
 #include <cassert>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -47,7 +48,10 @@ public:
   }
 
   // Returns the number of additional frequencies to store in G1.
-  static int extensionSize();
+  static int get_extension_size() {
+    assert(isInitialized());
+    return extension_size_;
+  }
 
   static bool isInitialized() {
     return initialized_;
@@ -63,15 +67,18 @@ public:
 
 private:
   static std::vector<int> elements_;
+  static int extension_size_;
   static bool initialized_;
 };
 std::vector<int> FrequencyExchangeDomain::elements_;
 bool FrequencyExchangeDomain::initialized_ = false;
+int FrequencyExchangeDomain::extension_size_ = -1;
 
 template <class Parameters>
 void FrequencyExchangeDomain::initialize(const Parameters& parameters) {
   if (parameters.compute_all_transfers()) {
-    assert(parameters.get_four_point_frequency_transfer() > 0);
+    if (parameters.get_four_point_frequency_transfer() < 0)
+      throw(std::logic_error("get_four_point_frequency_transfer() must be non-negative."));
     elements_.resize(parameters.get_four_point_frequency_transfer() + 1);
     int idx_value = 0;
     for (int& elem : elements_)
@@ -82,20 +89,12 @@ void FrequencyExchangeDomain::initialize(const Parameters& parameters) {
     elements_ = std::vector<int>{parameters.get_four_point_frequency_transfer()};
   }
 
-  initialized_ = true;
-}
+  // Compute the extension size.
+  extension_size_ = 0;
+  for (auto el : elements_)
+    extension_size_ = std::max(extension_size_, std::abs(el));
 
-int FrequencyExchangeDomain::extensionSize() {
-  auto compute_extension = [] {
-    if (!initialized_)
-      throw(std::logic_error("The frequency exchange domain was not initialized."));
-    int size = 0;
-    for (auto el : elements_)
-      size = std::max(size, std::abs(el));
-    return size;
-  };
-  static int extension_size = compute_extension();
-  return extension_size;
+  initialized_ = true;
 }
 
 template <class Writer>

@@ -51,6 +51,10 @@ public:
     return name;
   }
 
+  static bool isInitialized() {
+    return initialized_;
+  }
+
   template <class Writer>
   static void write(Writer& writer);
 
