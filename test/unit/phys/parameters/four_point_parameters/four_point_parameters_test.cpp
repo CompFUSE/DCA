@@ -41,7 +41,7 @@ TEST(FourPointParametersTest, ReadAll) {
   EXPECT_EQ(dca::phys::PARTICLE_PARTICLE_UP_DOWN, pars.get_four_point_type());
   EXPECT_EQ(momentum_transfer_input_check, pars.get_four_point_momentum_transfer_input());
   EXPECT_EQ(1, pars.get_four_point_frequency_transfer());
-  EXPECT_EQ(1, pars.compute_all_transfers());
+  EXPECT_EQ(true, pars.compute_all_transfers());
 
   pars.set_four_point_type(dca::phys::PARTICLE_HOLE_MAGNETIC);
   EXPECT_EQ(dca::phys::PARTICLE_HOLE_MAGNETIC, pars.get_four_point_type());

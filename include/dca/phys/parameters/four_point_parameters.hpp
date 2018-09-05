@@ -64,8 +64,9 @@ public:
     return four_point_momentum_transfer_input_;
   }
 
-  // Returns the index of the bosonic exchange frequency if compute_all_transfers() == false, or the
-  // index of the maximum transfer if compute_all_transfers() == true.
+  // Returns the index of the bosonic exchange frequency. If compute_all_transfers() is true, all
+  // non-negative frequency transfers up to and included this index are computed. Otherwise only the
+  // transfer relative to this index is computed.
   int get_four_point_frequency_transfer() const {
     return four_point_frequency_transfer_;
   }
