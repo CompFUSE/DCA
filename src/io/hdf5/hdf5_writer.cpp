@@ -85,8 +85,8 @@ std::string HDF5Writer::get_path() {
   return path;
 }
 
-void HDF5Writer::execute(std::string name,
-                         std::string value)  //, H5File& file, std::string path)
+void HDF5Writer::execute(const std::string& name,
+                         const std::string& value)  //, H5File& file, std::string path)
 {
   if (value.size() > 0) {
     H5::H5File& file = (*my_file);
@@ -114,8 +114,8 @@ void HDF5Writer::execute(std::string name,
   }
 }
 
-void HDF5Writer::execute(std::string name,
-                         std::vector<std::string>& value)  //, H5File& file, std::string path)
+void HDF5Writer::execute(const std::string& name,
+                         const std::vector<std::string>& value)  //, H5File& file, std::string path)
 {
   if (value.size() > 0) {
     H5::H5File& file = (*my_file);
