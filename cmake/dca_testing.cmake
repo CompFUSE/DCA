@@ -23,7 +23,7 @@ include(CMakeParseArguments)
 # MPI or CUDA may be given to indicate that the test requires these libraries. MPI_NUMPROC is the
 # number of MPI processes to use for a test with MPI, the default value is 1.
 function(dca_add_gtest name)
-  set(options FAST EXTENSIVE VALIDATION PERFORMANCE GTEST_MAIN MPI CUDA)
+  set(options FAST EXTENSIVE UNSTABLE VALIDATION PERFORMANCE GTEST_MAIN MPI CUDA)
   set(oneValueArgs MPI_NUMPROC)
   set(multiValueArgs INCLUDE_DIRS SOURCES LIBS)
   cmake_parse_arguments(DCA_ADD_GTEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
@@ -37,7 +37,7 @@ function(dca_add_gtest name)
       (DCA_ADD_GTEST_VALIDATION AND DCA_ADD_GTEST_PERFORMANCE))
     message(FATAL_ERROR "Incorrect use of dca_add_gtest.\n
                          dca_add_gtest(name\n
-                                       [FAST | EXTENSIVE | VALIDATION | PERFORMANCE]\n
+                                       [FAST | EXTENSIVE | VALIDATION | PERFORMANCE | UNSTABLE]\n
                                        [GTEST_MAIN]\n
                                        [MPI [MPI_NUMPROC procs]]\n
                                        [CUDA]\n
@@ -66,6 +66,11 @@ function(dca_add_gtest name)
       return()
     endif()
 
+  elseif (DCA_ADD_GTEST_UNSTABLE)
+    if (NOT DCA_WITH_TESTS_UNSTABLE)
+      return()
+    endif()
+    
   else()  # Default is FAST.
     if (NOT DCA_WITH_TESTS_FAST)
       return()

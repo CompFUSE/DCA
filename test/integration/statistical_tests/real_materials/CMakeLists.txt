@@ -8,7 +8,7 @@ set(TEST_LIBRARIES ${DCA_LIBS} ${DCA_CUDA_LIBS} statistical_testing)
 #target_compile_definitions(NiO_fullDCA PRIVATE TEST_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}/")
 
 dca_add_gtest(NiO_stattest
-    EXTENSIVE
+    UNSTABLE
     PTHREADS
     # Run with more ranks for better error detection.
     MPI MPI_NUMPROC 1
