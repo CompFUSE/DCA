@@ -18,9 +18,17 @@ namespace parallel {
 
 class MPIInitializer {
 protected:
-    MPIInitializer(int argc, char **argv);
+  MPIInitializer(int argc, char** argv);
 
-    ~MPIInitializer();
+  ~MPIInitializer();
+
+public:
+  void continueOnException() {
+    exceptions_are_fatal_ = false;
+  }
+
+private:
+  bool exceptions_are_fatal_ = true;
 };
 
 }  // parallel
