@@ -34,6 +34,8 @@
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 const std::string test_directory =
     DCA_SOURCE_DIR "/test/integration/statistical_tests/real_materials/";
+const std::string file_coarsegraining =
+    DCA_SOURCE_DIR "/test/integration/cluster_solver/ss_ct_hyb/NiO_coarse_grained.hdf5";
 
 using dca::func::dmn_0;
 using dca::func::dmn_variadic;
@@ -87,7 +89,7 @@ TEST(Ni0, GS) {
   // Read and broadcast the rest of the initialization from full DCA results.
   if (id == 0) {
     dca::io::HDF5Reader reader;
-    reader.open_file("NiO_coarse_grained.hdf5");
+    reader.open_file(file_coarsegraining);
     reader.open_group("functions");
     reader.execute(data.G0_k_w);
     reader.execute(data.G0_r_t);
@@ -122,7 +124,7 @@ TEST(Ni0, GS) {
     function<double, CovarianceDomain> cov("Covariance");
     function<double, SigmaCutDomain> GS_expected("GS_r_w");
     dca::io::HDF5Reader reader;
-    reader.open_file("NiO_covariance_input.hdf5");
+    reader.open_file(test_directory + "NiO_covariance_input.hdf5");
     reader.open_group("functions");
     reader.execute(cov);
     reader.execute(GS_expected);

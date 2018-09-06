@@ -11,10 +11,7 @@ dca_add_gtest(NiO_stattest
     EXTENSIVE
     PTHREADS
     # Run with more ranks for better error detection.
-    MPI MPI_NUMPROC 1
+    MPI MPI_NUMPROC 2
     INCLUDE_DIRS "${TEST_INCLUDES}"
     LIBS     "${TEST_LIBRARIES}"
     )
-
-configure_file(NiO_coarse_grained.hdf5 ${CMAKE_CURRENT_BINARY_DIR}/NiO_coarse_grained.hdf5 COPYONLY)
-configure_file(NiO_covariance_input.hdf5 ${CMAKE_CURRENT_BINARY_DIR}/NiO_covariance_input.hdf5 COPYONLY)
