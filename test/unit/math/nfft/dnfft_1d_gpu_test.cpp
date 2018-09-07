@@ -22,16 +22,15 @@
 #include "dca/math/random/std_random_wrapper.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/frequency_domain.hpp"
-#include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/accumulation_test.hpp"
+#include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/single_sector_accumulation_test.hpp"
 
 using dca::func::function;
 using dca::func::dmn_variadic;
 
 constexpr int n_bands = 3;
 constexpr int n_sites = 5;
-constexpr int m_size = 128;
 constexpr int n_frequencies = 64;
-using Dnfft1DGpuTest = dca::testing::AccumulationTest<n_bands, n_sites, m_size, n_frequencies>;
+using Dnfft1DGpuTest = dca::testing::SingleSectorAccumulationTest<n_bands, n_sites, n_frequencies>;
 
 using FreqDmn = typename Dnfft1DGpuTest::FreqDmn;
 using BDmn = typename Dnfft1DGpuTest::BDmn;
@@ -45,8 +44,9 @@ void computeWithCpuDnfft(dca::linalg::Matrix<double, dca::linalg::CPU>& M, Confi
                          function<std::complex<double>, dmn_variadic<FreqDmn, LabelDmn>>& f_w);
 
 TEST_F(Dnfft1DGpuTest, Accumulate) {
-  constexpr int oversampling = 8;
+  prepareConfiguration(configuration_, M_, 128);
 
+  constexpr int oversampling = 8;
   // Compute f(w) using the delayed-NFFT algorithm on the CPU.
   dca::math::nfft::Dnfft1D<double, FreqDmn, LabelDmn, oversampling, dca::math::nfft::CUBIC> cpu_dnfft_obj;
   function<std::complex<double>, dmn_variadic<FreqDmn, LabelDmn>> f_w_dnfft_cpu("f_w_dnfft_cpu");
@@ -58,8 +58,11 @@ TEST_F(Dnfft1DGpuTest, Accumulate) {
   dca::math::nfft::Dnfft1DGpu<double, FreqDmn, RDmn, oversampling, dca::math::nfft::CUBIC> gpu_dnfft_obj(
       beta_, stream);
   function<std::complex<double>, dmn_variadic<FreqDmn, LabelDmn>> f_w_dnfft_gpu("f_w_dnfft_gpu");
+
+  gpu_dnfft_obj.resetAccumulation();
   gpu_dnfft_obj.accumulate(M_, configuration_, 1);
   gpu_dnfft_obj.finalize(f_w_dnfft_gpu);
+
   cudaStreamDestroy(stream);
 
   // Check errors.

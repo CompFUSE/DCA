@@ -18,45 +18,23 @@
 
 #include "dca/function/util/difference.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
-#include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
+#include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/accumulation_test.hpp"
 
-struct ConfigElement {
-  double get_tau() const {
-    return tau_;
-  }
-  double get_left_band() const {
-    return band_;
-  }
-  double get_right_band() const {
-    return band_;
-  }
-  double get_left_site() const {
-    return r_;
-  }
-  double get_right_site() const {
-    return r_;
-  }
+using SpAccumulatorGpuTest = dca::testing::AccumulationTest<float, 1, 3, 128>;
 
-  int band_;
-  int r_;
-  double tau_;
-};
-using Configuration = std::array<std::vector<ConfigElement>, 2>;
-using MatrixPair = std::array<dca::linalg::Matrix<double, dca::linalg::CPU>, 2>;
+using MatrixPair = SpAccumulatorGpuTest::Sample;
+using Configuration = SpAccumulatorGpuTest::Configuration;
+using Parameters = SpAccumulatorGpuTest::Parameters;
 
-using G0Setup = typename dca::testing::G0Setup<dca::testing::LatticeBilayer>;
-
-void prepareRandomConfig(Configuration& config, MatrixPair& M, std::array<int, 2> n);
-
-TEST_F(G0Setup, Accumulate) {
+TEST_F(SpAccumulatorGpuTest, Accumulate) {
   const std::array<int, 2> n{31, 28};
   MatrixPair M;
   Configuration config;
-  prepareRandomConfig(config, M, n);
+  prepareConfiguration(config, M, n);
 
   dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::CPU> accumulatorHost(
-      parameters);
-  dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::GPU> accumulator(parameters);
+      parameters_);
+  dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::GPU> accumulator(parameters_);
   accumulatorHost.initialize();
 
   const int sign = 1;
@@ -66,25 +44,23 @@ TEST_F(G0Setup, Accumulate) {
   accumulatorHost.finalize();
 
   const auto diff = dca::func::util::difference(accumulatorHost.get_sign_times_M_r_w(),
-                                                 accumulator.get_sign_times_M_r_w());
+                                                accumulator.get_sign_times_M_r_w());
   EXPECT_GT(5e-7, diff.l_inf);
 }
 
-TEST_F(G0Setup, SumTo) {
-  auto& parameters = G0Setup::parameters;
-
+TEST_F(SpAccumulatorGpuTest, SumTo) {
   using Accumulator = dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::GPU>;
-  Accumulator accumulator1(parameters);
-  Accumulator accumulator2(parameters);
-  Accumulator accumulator_sum(parameters);
-  Accumulator accumulator3(parameters);
+  Accumulator accumulator1(parameters_);
+  Accumulator accumulator2(parameters_);
+  Accumulator accumulator_sum(parameters_);
+  Accumulator accumulator3(parameters_);
 
   const std::array<int, 2> n{3, 4};
   const int sign = -1;
   MatrixPair M1, M2;
   Configuration config1, config2;
-  prepareRandomConfig(config1, M1, n);
-  prepareRandomConfig(config2, M2, n);
+  prepareConfiguration(config1, M1, n);
+  prepareConfiguration(config2, M2, n);
 
   accumulator1.accumulate(M1, config1, sign);
   accumulator2.accumulate(M2, config2, sign);
@@ -97,26 +73,6 @@ TEST_F(G0Setup, SumTo) {
   accumulator3.finalize();
 
   const auto diff = dca::func::util::difference(accumulator3.get_sign_times_M_r_w(),
-                                                 accumulator_sum.get_sign_times_M_r_w());
+                                                accumulator_sum.get_sign_times_M_r_w());
   EXPECT_GT(5e-7, diff.l_inf);
-}
-
-void prepareRandomConfig(Configuration& config, MatrixPair& M, const std::array<int, 2> ns) {
-  dca::math::random::StdRandomWrapper<std::ranlux48_base> rng(0, 1, 0);
-
-  for (int s = 0; s < 2; ++s) {
-    const int n = ns[s];
-    config[s].resize(n);
-    M[s].resize(n);
-    for (int i = 0; i < n; ++i) {
-      const double tau = rng() - 0.5;
-      const int r = rng() * G0Setup::RDmn::dmn_size();
-      const int b = rng() * G0Setup::BDmn::dmn_size();
-      config[s][i] = ConfigElement{b, r, tau};
-    }
-
-    for (int j = 0; j < n; ++j)
-      for (int i = 0; i < n; ++i)
-        M[s](i, j) = 2 * rng() - 1.;
-  }
 }

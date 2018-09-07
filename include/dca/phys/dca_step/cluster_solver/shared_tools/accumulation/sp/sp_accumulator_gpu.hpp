@@ -44,7 +44,6 @@ private:
   using typename BaseClass::BDmn;
   using typename BaseClass::WDmn;
   using typename BaseClass::RDmn;
-  using typename BaseClass::KDmn;
   using typename BaseClass::PDmn;
 
   using typename BaseClass::Profiler;

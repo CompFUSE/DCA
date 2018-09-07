@@ -47,7 +47,6 @@ protected:
   using BDmn = func::dmn_0<domains::electron_band_domain>;
   using SDmn = func::dmn_0<domains::electron_spin_domain>;
   using RDmn = typename Parameters::RClusterDmn;
-  using KDmn = typename Parameters::KClusterDmn;
 
   using NuDmn = func::dmn_variadic<BDmn, SDmn>;  // orbital-spin index
   using PDmn = func::dmn_variadic<BDmn, BDmn, RDmn>;
