@@ -102,10 +102,12 @@
         "warm-up-sweeps": 20,
         "sweeps-per-measurement": 1.,
         "measurements": 100,
+        "error-computation-type" : "NONE",
 
         "threaded-solver": {
             "walkers": 1,
-            "accumulators": 1
+            "accumulators": 1,
+            "shared-walk-and-accumulation-thread" : false
         }
     },
 

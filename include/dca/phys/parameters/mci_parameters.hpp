@@ -19,6 +19,8 @@
 #include <stdexcept>
 #include <string>
 
+#include "dca/phys/error_computation_type.hpp"
+
 namespace dca {
 namespace phys {
 namespace params {
@@ -33,7 +35,9 @@ public:
         measurements_(100),
         walkers_(1),
         accumulators_(1),
-        adjust_self_energy_for_double_counting_(false) {}
+        shared_walk_and_accumulation_thread_(false),
+        adjust_self_energy_for_double_counting_(false),
+        error_computation_type_(0) {}
 
   template <typename Concurrency>
   int getBufferSize(const Concurrency& concurrency) const;
@@ -67,8 +71,14 @@ public:
   int get_accumulators() const {
     return accumulators_;
   }
+  bool shared_walk_and_accumulation_thread() const {
+    return shared_walk_and_accumulation_thread_;
+  }
   bool adjust_self_energy_for_double_counting() const {
     return adjust_self_energy_for_double_counting_;
+  }
+  ErrorComputationType get_error_computation_type() const {
+    return ErrorComputationType(error_computation_type_);
   }
 
 private:
@@ -86,7 +96,9 @@ private:
   int measurements_;
   int walkers_;
   int accumulators_;
+  bool shared_walk_and_accumulation_thread_;
   bool adjust_self_energy_for_double_counting_;
+  int error_computation_type_;
 };
 
 template <typename Concurrency>
@@ -99,7 +111,9 @@ int MciParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(measurements_);
   buffer_size += concurrency.get_buffer_size(walkers_);
   buffer_size += concurrency.get_buffer_size(accumulators_);
+  buffer_size += concurrency.get_buffer_size(shared_walk_and_accumulation_thread_);
   buffer_size += concurrency.get_buffer_size(adjust_self_energy_for_double_counting_);
+  buffer_size += concurrency.get_buffer_size(error_computation_type_);
 
   return buffer_size;
 }
@@ -113,7 +127,9 @@ void MciParameters::pack(const Concurrency& concurrency, char* buffer, int buffe
   concurrency.pack(buffer, buffer_size, position, measurements_);
   concurrency.pack(buffer, buffer_size, position, walkers_);
   concurrency.pack(buffer, buffer_size, position, accumulators_);
+  concurrency.pack(buffer, buffer_size, position, shared_walk_and_accumulation_thread_);
   concurrency.pack(buffer, buffer_size, position, adjust_self_energy_for_double_counting_);
+  concurrency.pack(buffer, buffer_size, position, error_computation_type_);
 }
 
 template <typename Concurrency>
@@ -125,7 +141,9 @@ void MciParameters::unpack(const Concurrency& concurrency, char* buffer, int buf
   concurrency.unpack(buffer, buffer_size, position, measurements_);
   concurrency.unpack(buffer, buffer_size, position, walkers_);
   concurrency.unpack(buffer, buffer_size, position, accumulators_);
+  concurrency.unpack(buffer, buffer_size, position, shared_walk_and_accumulation_thread_);
   concurrency.unpack(buffer, buffer_size, position, adjust_self_energy_for_double_counting_);
+  concurrency.unpack(buffer, buffer_size, position, error_computation_type_);
 }
 
 template <typename ReaderOrWriter>
@@ -177,15 +195,25 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     }
     catch (const std::exception& r_e) {
     }
+
     try {
       reader_or_writer.execute("measurements", measurements_);
     }
     catch (const std::exception& r_e) {
     }
 
+    // Read error computation type.
+    std::string error_type = toString(static_cast<ErrorComputationType>(error_computation_type_));
+    try {
+      reader_or_writer.execute("error-computation-type", error_type);
+      error_computation_type_ = static_cast<int>(stringToErrorComputationType(error_type));
+    }
+    catch (const std::exception& r_e) {
+    }
+
+    // Read arguments for threaded solver.
     try {
       reader_or_writer.open_group("threaded-solver");
-
       try {
         reader_or_writer.execute("walkers", walkers_);
       }
@@ -196,7 +224,12 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
       }
       catch (const std::exception& r_e) {
       }
-
+      try {
+        reader_or_writer.execute("shared-walk-and-accumulation-thread",
+                                 shared_walk_and_accumulation_thread_);
+      }
+      catch (const std::exception& r_e) {
+      }
       reader_or_writer.close_group();
     }
     catch (const std::exception& r_e) {
