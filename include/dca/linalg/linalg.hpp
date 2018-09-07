@@ -43,7 +43,6 @@
 
 // Utils
 #include "dca/linalg/util/copy.hpp"
-#include "dca/linalg/util/def.hpp"
 #include "dca/linalg/util/lapack_exception.hpp"
 #include "dca/linalg/util/memory.hpp"
 #include "dca/linalg/util/util_lapack.hpp"
@@ -52,7 +51,6 @@
 #include "dca/linalg/util/cast_cuda.hpp"
 #include "dca/linalg/util/error_cublas.hpp"
 #include "dca/linalg/util/error_cuda.hpp"
-#include "dca/linalg/util/handle_container.hpp"
 #include "dca/linalg/util/handle_functions.hpp"
 #include "dca/linalg/util/info_cuda.hpp"
 #include "dca/linalg/util/stream_container.hpp"

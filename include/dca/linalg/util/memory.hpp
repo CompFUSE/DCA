@@ -17,6 +17,8 @@
 #include <cassert>
 #include <complex>
 #include <cstring>
+#include <stdexcept>
+
 #include "dca/linalg/device_type.hpp"
 #include "dca/util/ignore.hpp"
 
@@ -41,11 +43,16 @@ struct Memory<CPU> {
 
 #ifdef DCA_HAVE_CUDA
     cudaError_t ret = cudaHostAlloc((void**)&ptr, size * sizeof(ScalarType), cudaHostAllocDefault);
-    checkRCMsg(ret, "\t size requested : " + std::to_string(size) + " * " +
-                        std::to_string(sizeof(ScalarType)));
-    checkErrorsCudaDebug();
+    if (ret != cudaSuccess) {
+      checkRCMsg(ret,
+                 "\t HOST size requested : " + std::to_string(size) + " * " +
+                     std::to_string(sizeof(ScalarType)));
+      throw(std::bad_alloc());
+    }
 #else
-    dca::util::ignoreUnused(posix_memalign((void**)&ptr, 128, size * sizeof(ScalarType)));
+    int err = posix_memalign((void**)&ptr, 128, size * sizeof(ScalarType));
+    if (err)
+      throw(std::bad_alloc());
 #endif
   }
 
@@ -53,8 +60,10 @@ struct Memory<CPU> {
   static void deallocate(ScalarType*& ptr) {
 #ifdef DCA_HAVE_CUDA
     cudaError_t ret = cudaFreeHost(ptr);
-    checkRC(ret);
-    checkErrorsCudaDebug();
+    if (ret != cudaSuccess) {
+      printErrorMessage(ret, __FUNCTION__, __FILE__, __LINE__);
+      std::terminate();
+    }
 #else
     free(ptr);
 #endif  // DCA_HAVE_CUDA
@@ -83,14 +92,19 @@ struct Memory<GPU> {
     assert(ptr == nullptr);
 
     cudaError_t ret = cudaMalloc((void**)&ptr, size * sizeof(ScalarType));
-    checkRCMsg(ret, "\t size requested : " + std::to_string(size));
-    checkErrorsCudaDebug();
+    if (ret != cudaSuccess) {
+      checkRCMsg(ret, "\t DEVICE size requested : " + std::to_string(size));
+      throw(std::bad_alloc());
+    }
   }
 
   template <typename ScalarType>
   static void deallocate(ScalarType*& ptr) {
     cudaError_t ret = cudaFree(ptr);
-    checkRC(ret);
+    if (ret != cudaSuccess) {
+      printErrorMessage(ret, __FUNCTION__, __FILE__, __LINE__);
+      std::terminate();
+    }
 
     ptr = nullptr;
   }
