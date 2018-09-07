@@ -72,7 +72,9 @@ public:
                                 dca::linalg::Matrix<double, device_t>& G_precomputed,
                                 double* result_ptr, int incr);
 
-private:
+
+
+  private:
   double compute_G_vertex_to_old_vertex(int configuration_e_spin_index_i,
                                         int configuration_e_spin_index_j,
                                         dca::linalg::Matrix<double, device_t>& N,

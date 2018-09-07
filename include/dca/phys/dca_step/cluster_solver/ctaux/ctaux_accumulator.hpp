@@ -150,6 +150,15 @@ public:
   void update_sum_squares();
 #endif
 
+  std::size_t deviceFingerprint() const {
+    return single_particle_accumulator_obj.deviceFingerprint() +
+           two_particle_accumulator_.deviceFingerprint();
+  }
+
+  static std::size_t staticDeviceFingerprint() {
+    return accumulator::TpAccumulator<Parameters, device_t>::staticDeviceFingerprint();
+  }
+
 private:
   void compute_M_v_v(std::vector<vertex_singleton_type>& configuration_e_spin,
                      dca::linalg::Matrix<double, dca::linalg::CPU>& N,

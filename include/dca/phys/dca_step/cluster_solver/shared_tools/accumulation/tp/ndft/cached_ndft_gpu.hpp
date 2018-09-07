@@ -62,8 +62,13 @@ public:
     return stream_;
   }
 
-  void synchronizeCopy(){
+  void synchronizeCopy() {
     copy_event_.block();
+  }
+
+  std::size_t deviceFingerprint() const {
+    return M_.deviceFingerprint() + workspace_.deviceFingerprint() + work1_.deviceFingerprint() +
+           work2_.deviceFingerprint() + T_times_M_.deviceFingerprint();
   }
 
 private:

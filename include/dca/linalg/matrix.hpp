@@ -218,6 +218,8 @@ public:
   void print() const;
   // Prints the properties of *this.
   void printFingerprint() const;
+  // Returns the allocated device memory in bytes.
+  std::size_t deviceFingerprint() const;
 
 private:
   static std::pair<int, int> capacityMultipleOfBlockSize(std::pair<int, int> size);
@@ -505,6 +507,14 @@ std::pair<int, int> Matrix<ScalarType, device_name>::capacityMultipleOfBlockSize
   size.second = get_new_size(size.second);
 
   return size;
+}
+
+template <typename ScalarType, DeviceType device_name>
+std::size_t Matrix<ScalarType, device_name>::deviceFingerprint() const {
+  if (device_name == GPU)
+    return capacity_.first * capacity_.second * sizeof(ScalarType);
+  else
+    return 0;
 }
 
 }  // linalg

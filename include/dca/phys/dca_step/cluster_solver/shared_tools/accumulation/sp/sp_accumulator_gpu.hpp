@@ -70,6 +70,11 @@ public:
     return streams_;
   }
 
+  // Returns the allocated device memory in bytes.
+  int deviceFingerprint() const {
+    return cached_nfft_obj_[0].deviceFingerprint() + cached_nfft_obj_[1].deviceFingerprint();
+  }
+
 private:
   using BaseClass::accumulate_m_sqr_;
   using BaseClass::finalized_;

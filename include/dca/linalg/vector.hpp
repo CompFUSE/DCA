@@ -162,6 +162,8 @@ public:
   // Prints the properties of *this.
   void printFingerprint() const;
 
+  std::size_t deviceFingerprint() const;
+
 protected:
   Allocator allocator_;
 
@@ -395,6 +397,11 @@ void Vector<ScalarType, device_name, Allocator>::printFingerprint() const {
   ss << "    memory-size: " << capacity_ * sizeof(ScalarType) * 1.e-6 << "(Mbytes)\n";
 
   std::cout << ss.str() << std::endl;
+}
+
+template <typename ScalarType, DeviceType device_name, class Allocator>
+std::size_t Vector<ScalarType, device_name, Allocator>::deviceFingerprint() const {
+  return device_name == GPU ? capacity_ * sizeof(ScalarType) : 0;
 }
 
 }  // linalg

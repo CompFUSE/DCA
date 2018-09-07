@@ -96,6 +96,15 @@ public:
   // Writes a summary of the walker's Markov chain updates and visited configurations to stdout.
   void printSummary() const;
 
+  std::size_t deviceFingerprint() const {
+    if (device_t == linalg::GPU)
+      return G0_tools_obj.deviceFingerprint() + N_tools_obj.deviceFingerprint() +
+             SHRINK_tools_obj.deviceFingerprint() +
+             CtauxWalkerData<device_t, parameters_type>::deviceFingerprint();
+    else
+      return 0;
+  }
+
 private:
   void add_non_interacting_spins_to_configuration();
 

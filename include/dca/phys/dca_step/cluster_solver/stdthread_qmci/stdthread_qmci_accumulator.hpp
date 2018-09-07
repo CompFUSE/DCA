@@ -27,7 +27,7 @@ namespace stdthreadqmci {
 // dca::phys::solver::stdthreadqmci::
 
 template <class QmciAccumulator>
-class StdThreadQmciAccumulator : protected QmciAccumulator {
+class StdThreadQmciAccumulator : public QmciAccumulator {
   using ThisType = StdThreadQmciAccumulator<QmciAccumulator>;
   using Parameters = typename QmciAccumulator::ParametersType;
   using Data = typename QmciAccumulator::DataType;

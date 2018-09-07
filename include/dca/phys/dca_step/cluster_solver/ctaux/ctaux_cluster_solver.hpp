@@ -59,6 +59,8 @@ protected:
   using Walker = ctaux::CtauxWalker<device_t, Parameters, Data>;
   using Accumulator = ctaux::CtauxAccumulator<device_t, Parameters, Data>;
 
+  static constexpr linalg::DeviceType device = device_t;
+
 private:
   using w = func::dmn_0<domains::frequency_domain>;
   using b = func::dmn_0<domains::electron_band_domain>;

@@ -77,6 +77,12 @@ public:
     m_copied_event_.block();
   }
 
+  // Returns the allocated device memory in bytes.
+  int deviceFingerprint() const {
+    return M_.deviceFingerprint() + accumulation_matrix_.deviceFingerprint() +
+            accumulation_matrix_sqr_.deviceFingerprint();
+  }
+
 private:
   void initializeDeviceCoefficients();
 

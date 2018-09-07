@@ -82,6 +82,19 @@ public:
     ndft_objs_[1].synchronizeCopy();
   }
 
+  std::size_t deviceFingerprint() const {
+    std::size_t res(0);
+    for (int s = 0; s < 2; ++s)
+      res += ndft_objs_[s].deviceFingerprint() + G_[s].deviceFingerprint() +
+             space_trsf_objs_[s].deviceFingerprint();
+    return res;
+  }
+
+  static std::size_t staticDeviceFingerprint() {
+    return get_G4().deviceFingerprint() + get_G0()[0].deviceFingerprint() +
+           get_G0()[1].deviceFingerprint();
+  }
+
 private:
   using Profiler = typename Parameters::profiler_type;
 

@@ -59,6 +59,10 @@ public:
                                            stream_id);
   }
 
+  std::size_t deviceFingerprint() const {
+    return 0;
+  }
+
 private:
   int thread_id;
   int stream_id;

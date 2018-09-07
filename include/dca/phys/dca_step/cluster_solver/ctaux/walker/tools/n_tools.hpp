@@ -81,6 +81,11 @@ public:
                       dca::linalg::Matrix<double, device_t>& N,
                       dca::linalg::Matrix<double, device_t>& Gamma, e_spin_states_type e_spin);
 
+  int deviceFingerprint() const {
+    return G.deviceFingerprint() + N_new_spins.deviceFingerprint() +
+           G0_times_exp_V_minus_one.deviceFingerprint();
+  }
+
 private:
   void compute_d_vector(std::vector<int>& permutation, dca::linalg::Matrix<double, device_t>& N,
                         std::vector<HS_spin_states_type>& spin_values,
