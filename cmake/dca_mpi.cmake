@@ -21,4 +21,13 @@ check_cxx_source_compiles(
 if (CXX_SUPPORTS_MPI)
   set(DCA_HAVE_MPI TRUE CACHE INTERNAL "")
   dca_add_haves_define(DCA_HAVE_MPI)
+else()
+  # if MPICC is not the default compiler, try finding MPI
+  # using the usual CMake find_package mechanism
+  find_package(MPI QUIET)
+  if (MPI_FOUND)
+    set(DCA_HAVE_MPI TRUE CACHE INTERNAL "")
+    dca_add_haves_define(DCA_HAVE_MPI)
+    include_directories(${MPI_C_INCLUDE_PATH})
+  endif()
 endif()
