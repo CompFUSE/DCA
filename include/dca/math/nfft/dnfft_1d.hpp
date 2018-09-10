@@ -48,7 +48,6 @@ public:
   using ThisType = Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>;
   using ElementType = ScalarType;
 
-public:
   Dnfft1D();
   Dnfft1D(ThisType&& other) = default;
 

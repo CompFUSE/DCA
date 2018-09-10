@@ -51,7 +51,6 @@ public:
   using ElementType = ScalarType;
   using BaseClass = Dnfft1D<ScalarType, WDmn, PDmn, oversampling, CUBIC>;
 
-public:
   Dnfft1DGpu(double beta, cudaStream_t stream, bool accumulate_m_sqr = false);
 
   // Resets the accumulated quantities. To be called before each DCA iteration.
@@ -59,7 +58,7 @@ public:
 
   // Accumulates asynchronously on the device the entries of the M matrix at times and orbitals
   // described by the provided configuration.
-  // Postcondition: M and config shall not be modified untill 'synchronizeCopy' is called.
+  // Postcondition: M and config shall not be modified until 'synchronizeCopy' is called.
   template <class Configuration>
   void accumulate(const linalg::Matrix<double, linalg::CPU>& M, const Configuration& config,
                   const int sign);
@@ -81,7 +80,6 @@ public:
 private:
   void initializeDeviceCoefficients();
 
-private:
   using BaseClass::f_tau_;
   static inline linalg::Vector<ScalarType, linalg::GPU>& get_device_cubic_coeff();
 

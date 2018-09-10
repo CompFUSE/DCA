@@ -85,11 +85,11 @@ __global__ void accumulateOnDeviceKernel(const double* M, const int ldm, const i
                                          conv_coeff[2] * delta_t * delta_t +
                                          conv_coeff[3] * delta_t * delta_t * delta_t;
 
-  ScalarType* out_ptr = out + t_idx + conv_idx + ldo * linindex;
+  ScalarType* const out_ptr = out + t_idx + conv_idx + ldo * linindex;
   linalg::atomicAdd(out_ptr, sign * f_val * conv_function_value);
 
   if (out_sqr != nullptr) {
-    ScalarType* out_sqr_ptr = out_sqr + t_idx + conv_idx + ldo * linindex;
+    ScalarType* const out_sqr_ptr = out_sqr + (out_ptr - out);
     linalg::atomicAdd(out_sqr_ptr, sign * f_val * f_val * conv_function_value);
   }
 }
