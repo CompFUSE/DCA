@@ -101,7 +101,7 @@
         "seed": 985456376,
         "warm-up-sweeps": 20,
         "sweeps-per-measurement": 1.,
-        "measurements-per-process-and-accumulator": 100,
+        "measurements": 100,
 
         "threaded-solver": {
             "walkers": 1,

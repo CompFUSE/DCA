@@ -56,11 +56,11 @@ private:
   const cudaStream_t stream_;
   CudaEvent copied_;
 
-  linalg::util::HostVector<const ScalarType *> a_ptr_, b_ptr_;
+  linalg::util::HostVector<const ScalarType*> a_ptr_, b_ptr_;
   linalg::util::HostVector<ScalarType*> c_ptr_;
   linalg::util::HostVector<int> m_, n_, k_, lda_, ldb_, ldc_;
 
-  linalg::Vector<const ScalarType *, linalg::GPU> a_ptr_dev_, b_ptr_dev_;
+  linalg::Vector<const ScalarType*, linalg::GPU> a_ptr_dev_, b_ptr_dev_;
   linalg::Vector<ScalarType*, linalg::GPU> c_ptr_dev_;
   linalg::Vector<int, linalg::GPU> m_dev_, n_dev_, k_dev_, lda_dev_, ldc_dev_, ldb_dev_;
 };
@@ -113,8 +113,8 @@ void MagmaVBatchedGemm<ScalarType>::execute(const char transa, const char transb
   lda_dev_.setAsync(lda_, stream_);
   ldb_dev_.setAsync(ldb_, stream_);
   ldc_dev_.setAsync(ldc_, stream_);
-  n_dev_.setAsync(m_, stream_);
-  m_dev_.setAsync(n_, stream_);
+  m_dev_.setAsync(m_, stream_);
+  n_dev_.setAsync(n_, stream_);
   k_dev_.setAsync(k_, stream_);
 
   copied_.record(stream_);

@@ -151,6 +151,7 @@ if (DCA_HAVE_CUDA)
     ctaux_walker_kernels
     lapack_kernels
     blas_kernels
+    special_transform_kernels
     ${DCA_CUDA_LIBS})
 endif()
 

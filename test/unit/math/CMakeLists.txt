@@ -1,5 +1,6 @@
 add_subdirectory(geometry)
 add_subdirectory(inference)
+add_subdirectory(function_transform)
 add_subdirectory(nfft)
 add_subdirectory(random)
 add_subdirectory(statistical_testing)
