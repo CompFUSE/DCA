@@ -27,12 +27,12 @@ MPIInitializer::MPIInitializer(int argc, char** argv) {
 }
 
 MPIInitializer::~MPIInitializer() {
-  if (exceptions_are_fatal_ && std::uncaught_exception()) {
-    std::cout << "\nUnhandled exception reached the MPI initializer. Aborting execution.\n";
-    MPI_Abort(MPI_COMM_WORLD, 3);  // Internal error.
-  }
-
   MPI_Finalize();
+}
+
+void MPIInitializer::abort(int code) const {
+  std::cout << "\nAborting all processes.\n";
+  MPI_Abort(MPI_COMM_WORLD, code);
 }
 
 }  // parallel

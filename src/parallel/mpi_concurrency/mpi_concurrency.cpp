@@ -26,7 +26,6 @@ MPIConcurrency::MPIConcurrency(int argc, char** argv) : MPIInitializer(argc, arg
       error_string = "Process " + std::to_string(MPIProcessorGrouping::get_world_id()) +
                      "could not execute a CUDA kernel.";
 
-    MPIInitializer::continueOnException();
     throw(std::logic_error(error_string));
   }
 }

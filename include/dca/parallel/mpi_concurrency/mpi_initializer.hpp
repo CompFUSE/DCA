@@ -23,12 +23,8 @@ protected:
   ~MPIInitializer();
 
 public:
-  void continueOnException() {
-    exceptions_are_fatal_ = false;
-  }
-
-private:
-  bool exceptions_are_fatal_ = true;
+  // Aborts all processes. Error code 3 stands for internal error.
+  void abort(int code = 3) const;
 };
 
 }  // parallel
