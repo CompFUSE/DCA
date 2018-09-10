@@ -14,6 +14,12 @@ if(POLICY CMP0074)
 endif()
 
 ################################################################################
+# Always use <PackageName>_ROOT vars to search first
+if(POLICY CMP0074)
+   cmake_policy(SET CMP0074 NEW)
+endif()
+
+################################################################################
 # Disable in-source builds.
 if (${PROJECT_BINARY_DIR} STREQUAL ${PROJECT_SOURCE_DIR})
   message(FATAL_ERROR "In-source builds are not permitted. Make a separate folder for building:\n

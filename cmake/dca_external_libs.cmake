@@ -23,9 +23,6 @@ if (NOT DCA_HAVE_LAPACK)
   list(APPEND DCA_EXTERNAL_LIBS ${LAPACK_LIBRARIES})
 endif()
 
-mark_as_advanced(LAPACK_LIBRARIES)
-list(APPEND DCA_EXTERNAL_LIBS ${LAPACK_LIBRARIES})
-
 ################################################################################
 # HDF5
 # Find HDF5 by looking for a CMake configuration file (hdf5-1.10.x).
