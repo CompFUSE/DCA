@@ -59,7 +59,7 @@ __global__ void accumulateOnDeviceKernel(const double* M, const int ldm, const i
                                          ScalarType* out, ScalarType* out_sqr, int ldo,
                                          const ConfigElem* config_left,
                                          const ConfigElem* config_right, const ScalarType* times,
-                                         const ScalarType* coeff, const int size,
+                                         const ScalarType* cubic_coeff, const int size,
                                          const NfftHelper<ScalarType> helper) {
   const int conv_size = 2 * helper.get_oversampling() + 1;
   const int thread_idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -79,9 +79,9 @@ __global__ void accumulateOnDeviceKernel(const double* M, const int ldm, const i
 
   int t_idx, conv_coeff_idx;
   ScalarType delta_t;
-  helper.computeInterpolationIndices(tau, t_idx, conv_coeff_idx, delta_t);
+  helper.computeInterpolationIndices<CUBIC>(tau, t_idx, conv_coeff_idx, delta_t);
 
-  const ScalarType* conv_coeff = coeff + conv_coeff_idx + 4 * conv_idx;
+  const ScalarType* conv_coeff = cubic_coeff + conv_coeff_idx + 4 * conv_idx;
   const ScalarType conv_function_value = conv_coeff[0] + conv_coeff[1] * delta_t +
                                          conv_coeff[2] * delta_t * delta_t +
                                          conv_coeff[3] * delta_t * delta_t * delta_t;
@@ -99,7 +99,7 @@ template <typename ScalarType>
 void accumulateOnDevice(const double* M, const int ldm, const int sign, ScalarType* out,
                         ScalarType* out_sqr, const int ldo, const ConfigElem* config_left,
                         const ConfigElem* config_right, const ScalarType* tau,
-                        const ScalarType* coeff, const int size, cudaStream_t stream_) {
+                        const ScalarType* cubic_coeff, const int size, cudaStream_t stream_) {
   const auto& helper = HelperSelector<ScalarType>::value;
   const static int convolution_size = 2 * helper.get_oversampling() + 1;
   const auto blocks = getBlockSize(size * size * convolution_size, 128);
@@ -107,7 +107,7 @@ void accumulateOnDevice(const double* M, const int ldm, const int sign, ScalarTy
   // TODO: check if there is a performance gain in using a block size that is a multiple of
   //       convolution_size.
   accumulateOnDeviceKernel<ScalarType><<<blocks[0], blocks[1], 0, stream_>>>(
-      M, ldm, sign, out, out_sqr, ldo, config_left, config_right, tau, coeff, size, helper);
+      M, ldm, sign, out, out_sqr, ldo, config_left, config_right, tau, cubic_coeff, size, helper);
 }
 
 template <typename ScalarType>
@@ -143,11 +143,13 @@ template void accumulateOnDevice<double>(const double* M, const int ldm, const i
                                          double* out, double* out_sqr, const int ldo,
                                          const ConfigElem* config_left,
                                          const ConfigElem* config_right, const double* tau,
-                                         const double* coeff, const int size, cudaStream_t stream_);
+                                         const double* cubic_coeff, const int size,
+                                         cudaStream_t stream_);
 template void accumulateOnDevice<float>(const double* M, const int ldm, const int sign, float* out,
                                         float* out_sqr, const int ldo, const ConfigElem* config_left,
                                         const ConfigElem* config_right, const float* tau,
-                                        const float* coeff, const int size, cudaStream_t stream_);
+                                        const float* cubic_coeff, const int size,
+                                        cudaStream_t stream_);
 template void sum<double>(const double* in, const int ldi, double* out, const int ldo, const int n,
                           const int m, cudaStream_t stream);
 template void sum<float>(const float* in, const int ldi, float* out, const int ldo, const int n,

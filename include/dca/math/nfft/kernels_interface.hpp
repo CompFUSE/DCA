@@ -30,7 +30,7 @@ template <typename ScalarType>
 void accumulateOnDevice(const double* M, int ldm, int sign, ScalarType* out, ScalarType* out_sqr,
                         const int ldo, const ConfigElem* config_left,
                         const ConfigElem* config_right, const ScalarType* tau,
-                        const ScalarType* coeff, int size, cudaStream_t stream_);
+                        const ScalarType* cubic_coeff, int size, cudaStream_t stream_);
 
 template <typename ScalarType>
 void sum(const ScalarType* in, int ldi, ScalarType* out, int ldo, int n, int m, cudaStream_t stream);

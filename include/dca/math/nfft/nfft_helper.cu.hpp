@@ -17,6 +17,8 @@
 #include <cuda.h>
 #include <stdexcept>
 
+#include "dca/math/nfft/nfft_mode_names.hpp"
+
 namespace dca {
 namespace math {
 namespace nfft {
@@ -42,6 +44,7 @@ public:
 
   __device__ inline int deltaR(int r1, int r2) const;
 
+  template <NfftModeNames mode>
   __device__ inline void computeInterpolationIndices(ScalarType t, int& t_idx, int& conv_coeff_idx,
                                                      ScalarType& delta_t) const;
 
@@ -142,9 +145,12 @@ __device__ ScalarType NfftHelper<ScalarType>::computeTau(ScalarType t1, ScalarTy
 }
 
 template <typename ScalarType>
+template <NfftModeNames mode>
 __device__ void NfftHelper<ScalarType>::computeInterpolationIndices(ScalarType t, int& t_idx,
                                                                     int& conv_coeff_idx,
                                                                     ScalarType& delta_t) const {
+  static_assert(mode == CUBIC || mode == LINEAR);
+
   const ScalarType t0 = parameters_real_[0];
   const ScalarType delta_t_padded = parameters_real_[1];
   const ScalarType t0_window = parameters_real_[2];
@@ -165,7 +171,7 @@ __device__ void NfftHelper<ScalarType>::computeInterpolationIndices(ScalarType t
   const int j = delta_tau_index % window_sampling;
   const int i = (delta_tau_index - j) / window_sampling;
 
-  constexpr int interpolation_size = 4;  // Hard coded cubic case.
+  constexpr int interpolation_size = mode == CUBIC ? 4 : 2;
   conv_coeff_idx = interpolation_size * i + interpolation_size * 4 * oversampling * j;
 }
 
