@@ -72,7 +72,7 @@ void computeWithCpuDnfft(dca::linalg::Matrix<double, dca::linalg::CPU>& M, Confi
                          DnfftType& dnfft_obj,
                          function<std::complex<double>, dmn_variadic<FreqDmn, LabelDmn>>& f_w) {
   const double beta = Dnfft1DGpuTest::get_beta();
-  dnfft_obj.initialize();
+  dnfft_obj.resetAccumulation();
   const static LabelDmn bbr_dmn;
   const int n = config.size();
   const double scale = 1. / (2. * beta);

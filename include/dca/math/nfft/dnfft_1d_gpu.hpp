@@ -54,7 +54,7 @@ public:
   Dnfft1DGpu(double beta, cudaStream_t stream, bool accumulate_m_sqr = false);
 
   // Resets the accumulated quantities. To be called before each DCA iteration.
-  void initialize();
+  void resetAccumulation();
 
   // Accumulates asynchronously on the device the entries of the M matrix at times and orbitals
   // described by the provided configuration.
@@ -116,7 +116,7 @@ Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::Dnfft1DGpu(const double
 }
 
 template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>
-void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::initialize() {
+void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::resetAccumulation() {
   accumulation_matrix_.setToZero(stream_);
   if (accumulate_m_sqr_)
     accumulation_matrix_sqr_.setToZero(stream_);

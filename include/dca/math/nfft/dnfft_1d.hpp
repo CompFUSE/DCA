@@ -51,7 +51,7 @@ public:
   Dnfft1D();
   Dnfft1D(ThisType&& other) = default;
 
-  void initialize();
+  void resetAccumulation();
 
   // Adds the sample (t_val, f_val) to the accumulated function.
   // linind is the linear index of the sample w.r.t p_dmn (= all non-transformed (discrete)
@@ -149,7 +149,7 @@ Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>::Dnfft1D() : f_tau_("f_tau_"
 }
 
 template <typename ScalarType, typename WDmn, typename PDmn, int oversampling, NfftModeNames mode>
-void Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>::initialize() {
+void Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>::resetAccumulation() {
   f_tau_ = 0.;
 }
 
