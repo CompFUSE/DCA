@@ -22,7 +22,8 @@ namespace details {
 // dca::math::nfft::details::
 
 struct ConfigElem {
-  int b, r;
+  int band;
+  int site;
 };
 
 template <typename ScalarType>

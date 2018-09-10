@@ -50,7 +50,8 @@ template <typename ScalarType>
 NfftHelperManager<ScalarType> HelperSelector<ScalarType>::value;
 
 struct ConfigElem {
-  int b, r;
+  int band;
+  int site;
 };
 
 template <typename ScalarType>
@@ -70,8 +71,8 @@ __global__ void accumulateOnDeviceKernel(const double* M, const int ldm, const i
   const int id_j = m_idx / size;
   const int id_i = m_idx - size * id_j;
   const ScalarType f_val = M[id_i + ldm * id_j];
-  const int linindex = helper.computeLinearIndex(config_left[id_i].b, config_right[id_j].b,
-                                                 config_left[id_i].r, config_right[id_j].r);
+  const int linindex = helper.computeLinearIndex(config_left[id_i].band, config_right[id_j].band,
+                                                 config_left[id_i].site, config_right[id_j].site);
   const ScalarType tau = helper.computeTau(times[id_i], times[id_j]);
   // Compute index of the convolution output index relative to a single input value.
   const int conv_idx = thread_idx - conv_size * m_idx;

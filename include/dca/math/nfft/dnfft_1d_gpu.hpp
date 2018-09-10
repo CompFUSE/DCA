@@ -171,10 +171,10 @@ void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::accumulate(
 
   for (int i = 0; i < n; ++i) {
     // invert left and right as M is an inverse matrix.
-    config_right_[i].b = config[i].get_left_band();
-    config_right_[i].r = config[i].get_left_site();
-    config_left_[i].b = config[i].get_right_band();
-    config_left_[i].r = config[i].get_right_site();
+    config_right_[i].band = config[i].get_left_band();
+    config_right_[i].site = config[i].get_left_site();
+    config_left_[i].band = config[i].get_right_band();
+    config_left_[i].site = config[i].get_right_site();
     times_[i] = config[i].get_tau();
   }
 
