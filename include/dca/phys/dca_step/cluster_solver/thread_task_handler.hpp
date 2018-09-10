@@ -7,8 +7,8 @@
 //
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
-// This file implements the thread task handler, that assigns a task (walker|accumulator) to each
-// thread.
+// This file implements the thread task handler, that assigns a task (walker|accumulator|walker and
+// accumulator) to each thread.
 // For performance reasons walker and accumulator threads should be created alternately, i.e.
 // walker, accumulator, w, a, w, a, ... . If the number of walkers and accumulators differ, the
 // remaining threads are created at the end, e.g. for 4 walkers and 2 accumulators this means:
@@ -28,17 +28,14 @@ namespace solver {
 
 class ThreadTaskHandler {
 public:
-  ThreadTaskHandler(const int num_walkers, const int num_accumulators)
-      : thread_tasks_(generateThreadTasksVec(num_walkers, num_accumulators)) {}
+  ThreadTaskHandler(const int num_walkers, const int num_accumulators,
+                    const bool shared_thread = false)
+      : thread_tasks_(generateThreadTasksVec(num_walkers, num_accumulators, shared_thread)) {}
 
-  // Prints all thread ids and the corresponding tasks (walker|accumulator).
+  // Prints all thread ids and the corresponding tasks (walker|accumulator|walker and accumulator).
   void print() const {
-    for (int i = 0; i < thread_tasks_.size(); ++i) {
-      if (thread_tasks_[i] == "walker")
-        std::cout << "\t thread-id : " << i << "  -->   (walker)\n";
-      else
-        std::cout << "\t thread-id : " << i << "  -->   (accumulator)\n";
-    }
+    for (int i = 0; i < thread_tasks_.size(); ++i)
+      std::cout << "\t thread-id : " << i << "  -->   (" << thread_tasks_[i] << ")\n";
   }
 
   // Maps the walker id to the index of the walker's rng.
@@ -56,17 +53,17 @@ public:
   }
 
   // Maps the thread id to the id of the accumulator.
-  int idToAccumIndex(const int thread_id) const {
+  int IDToAccumIndex(const int thread_id) const {
     assert(thread_id >= 0 && thread_id < thread_tasks_.size());
     assert(thread_tasks_[thread_id] == "accumulator");
 
-    int accum_index = 0;
+    int rng_index = 0;
 
     for (int i = 0; i < thread_id; ++i) {
       if (thread_tasks_[i] == "accumulator")
-        ++accum_index;
+        ++rng_index;
     }
-    return accum_index;
+    return rng_index;
   }
 
   std::size_t size() const {
@@ -84,21 +81,36 @@ public:
 
 private:
   static std::vector<std::string> generateThreadTasksVec(const int num_walkers,
-                                                         const int num_accumulators) {
-    std::vector<std::string> thread_tasks(num_walkers + num_accumulators, "undefined");
-    const int min_num_walkers_num_accumulators = std::min(num_walkers, num_accumulators);
+                                                         const int num_accumulators,
+                                                         bool shared_thread) {
+    std::vector<std::string> thread_tasks;
 
-    for (int i = 0; i < 2 * min_num_walkers_num_accumulators; i += 2) {
-      thread_tasks[i] = "walker";
-      thread_tasks[i + 1] = "accumulator";
+    if (shared_thread && num_walkers != num_accumulators) {
+      std::cerr << "Shared walker and accumulator thread requested, but the number of accumulators "
+                   "and walkers differ.\nDiabling shared thread.\n";
+      shared_thread = false;
     }
 
-    for (int i = 2 * min_num_walkers_num_accumulators; i < num_walkers + num_accumulators; ++i) {
-      if (min_num_walkers_num_accumulators != num_walkers)
+    if (!shared_thread) {
+      thread_tasks = std::vector<std::string>(num_walkers + num_accumulators, "undefined");
+      const int min_num_walkers_num_accumulators = std::min(num_walkers, num_accumulators);
+
+      for (int i = 0; i < 2 * min_num_walkers_num_accumulators; i += 2) {
         thread_tasks[i] = "walker";
-      else
-        thread_tasks[i] = "accumulator";
+        thread_tasks[i + 1] = "accumulator";
+      }
+
+      for (int i = 2 * min_num_walkers_num_accumulators; i < num_walkers + num_accumulators; ++i) {
+        if (min_num_walkers_num_accumulators != num_walkers)
+          thread_tasks[i] = "walker";
+        else
+          thread_tasks[i] = "accumulator";
+      }
     }
+    else {
+      thread_tasks = std::vector<std::string>(num_walkers, "walker and accumulator");
+    }
+
     return thread_tasks;
   }
 
