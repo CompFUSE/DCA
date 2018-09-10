@@ -95,8 +95,8 @@ SpAccumulatorNfft<parameters_type, MOMS_type>::SpAccumulatorNfft(parameters_type
 
 template <class parameters_type, class MOMS_type>
 void SpAccumulatorNfft<parameters_type, MOMS_type>::initialize() {
-  cached_nfft_1D_M_r_w_obj.initialize();
-  cached_nfft_1D_M_r_w_squared_obj.initialize();
+  cached_nfft_1D_M_r_w_obj.resetAccumulation();
+  cached_nfft_1D_M_r_w_squared_obj.resetAccumulation();
 }
 
 template <class parameters_type, class MOMS_type>

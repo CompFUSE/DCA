@@ -49,8 +49,9 @@ public:
   using ElementType = ScalarType;
 
   Dnfft1D();
+  Dnfft1D(ThisType&& other) = default;
 
-  void initialize();
+  void resetAccumulation();
 
   // Adds the sample (t_val, f_val) to the accumulated function.
   // linind is the linear index of the sample w.r.t p_dmn (= all non-transformed (discrete)
@@ -62,11 +63,12 @@ public:
   void accumulate(const int* subind, ScalarType t_val, ScalarType f_val);
 
   // Performs the final FFT on the accumulated function.
+  // Out: f_w
   template <typename OtherScalarType>
   void finalize(func::function<std::complex<OtherScalarType>, func::dmn_variadic<WDmn, PDmn>>& f_w);
 
-  // Sums the accumulated data (in the time domain) of other to this.
-  ThisType& operator+=(const ThisType& other);
+  // Sums the accumulated data in the time domain.
+  ThisType& operator+=(const ThisType& other_one);
 
   constexpr int get_oversampling() const {
     return oversampling;
@@ -79,7 +81,7 @@ public:
     return WDmn::dmn_size() / 2;
   }
 
-private:
+protected:
   static constexpr int window_sampling_ = 32;
   static constexpr double window_function_sigma_ = 2.;
 
@@ -100,6 +102,13 @@ private:
   using PaddedTimePDmn = func::dmn_variadic<PaddedTimeDmn, PDmn>;
   using LeftOrientedPDmn = func::dmn_variadic<LeftOrientedTimeDmn, PDmn>;
 
+  static inline auto& get_convolution_time_values();
+  static inline auto& get_linear_convolution_matrices();
+  static inline auto& get_cubic_convolution_matrices();
+
+  func::function<ScalarType, PaddedTimePDmn> f_tau_;
+
+private:
   static void initializeDomains(const ThisType& this_obj);
   static void initializeStaticFunctions();
 
@@ -113,8 +122,6 @@ private:
   void transformFTauToFW(
       func::function<std::complex<OtherScalarType>, func::dmn_variadic<WDmn, PDmn>>& f_w) const;
 
-  func::function<ScalarType, PaddedTimePDmn> f_tau_;
-
   static inline ScalarType tau(int idx) {
     return PaddedTimeDmn::get_elements()[idx];
   }
@@ -122,31 +129,21 @@ private:
     return WindowFunctionTimeDmn::get_elements()[idx];
   }
 
-  static inline auto& get_convolution_time_values();
-  static inline auto& get_linear_convolution_matrices();
-  static inline auto& get_cubic_convolution_matrices();
-
   static inline auto& get_phi_wn();
 };
 
 template <typename ScalarType, typename WDmn, typename PDmn, int oversampling, NfftModeNames mode>
 Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>::Dnfft1D() : f_tau_("f_tau_") {
-  static bool static_initialization_done = false;
-  static std::mutex initialization_mutex;
-
-  if (!static_initialization_done) {
-    std::unique_lock<std::mutex> lock(initialization_mutex);
-    if (!static_initialization_done) {
-      initializeDomains(*this);
-      initializeStaticFunctions();
-      static_initialization_done = true;
-    }
-  }
+  static std::once_flag flag;
+  std::call_once(flag, [&]() {
+    initializeDomains(*this);
+    initializeStaticFunctions();
+  });
   f_tau_.reset();
 }
 
 template <typename ScalarType, typename WDmn, typename PDmn, int oversampling, NfftModeNames mode>
-void Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>::initialize() {
+void Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>::resetAccumulation() {
   f_tau_ = 0.;
 }
 

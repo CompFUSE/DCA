@@ -114,8 +114,8 @@ void SpAccumulatorNfft<parameters_type, base_cluster_type>::initialize(
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>>& G_r_w,
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, r_dmn_t, w>>& GS_r_w) {
   {
-    cached_nfft_1D_G_obj.initialize();
-    cached_nfft_1D_GS_obj.initialize();
+    cached_nfft_1D_G_obj.resetAccumulation();
+    cached_nfft_1D_GS_obj.resetAccumulation();
 
     G_r_w = 0;
     GS_r_w = 0;

@@ -91,7 +91,7 @@ template <typename DnfftType>
 void computeWithDnfft(const std::vector<double>& t, const std::vector<double>& f,
                       DnfftType& dnfft_obj,
                       function<std::complex<double>, dmn_variadic<FreqDmn, OtherDmn>>& f_w) {
-  dnfft_obj.initialize();
+  dnfft_obj.resetAccumulation();
 
   const double begin = TimeDmn::get_elements().front();
   const double delta = TimeDmn::get_elements().back() - TimeDmn::get_elements().front();
