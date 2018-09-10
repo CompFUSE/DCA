@@ -125,30 +125,26 @@ void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::resetAccumulation(
 
 template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>
 void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::initializeDeviceCoefficients() {
-  static bool initialized = false;
-  static std::mutex mutex;
-  if (initialized)
-    return;
+  static std::once_flag flag;
+  std::call_once(flag, [&]() {
 
-  std::unique_lock<std::mutex> lock(mutex);
-  if (initialized)
-    return;
-  const auto& host_coeff = BaseClass::get_cubic_convolution_matrices();
-  auto& dev_coeff = get_device_cubic_coeff();
-  dev_coeff.resizeNoCopy(host_coeff.size());
-  cudaMemcpy(dev_coeff.ptr(), host_coeff.values(), host_coeff.size() * sizeof(ScalarType),
-             cudaMemcpyHostToDevice);
+    const auto& host_coeff = BaseClass::get_cubic_convolution_matrices();
+    auto& dev_coeff = get_device_cubic_coeff();
+    dev_coeff.resizeNoCopy(host_coeff.size());
+    cudaMemcpy(dev_coeff.ptr(), host_coeff.values(), host_coeff.size() * sizeof(ScalarType),
+               cudaMemcpyHostToDevice);
 
-  const auto& sub_matrix = RDmn::parameter_type::get_subtract_matrix();
-  using PaddedTimeDmn = typename BaseClass::PaddedTimeDmn::parameter_type;
-  using WindowTimeDmn = typename BaseClass::WindowFunctionTimeDmn::parameter_type;
-  details::initializeNfftHelper<ScalarType>(
-      BDmn::dmn_size(), RDmn::dmn_size(), sub_matrix.ptr(), sub_matrix.leadingDimension(),
-      oversampling, BaseClass::get_window_sampling(), PaddedTimeDmn::first_element(),
-      PaddedTimeDmn::get_Delta(), WindowTimeDmn::first_element(), WindowTimeDmn::get_delta(), beta_);
+    const auto& sub_matrix = RDmn::parameter_type::get_subtract_matrix();
+    using PaddedTimeDmn = typename BaseClass::PaddedTimeDmn::parameter_type;
+    using WindowTimeDmn = typename BaseClass::WindowFunctionTimeDmn::parameter_type;
+    details::initializeNfftHelper<ScalarType>(
+        BDmn::dmn_size(), RDmn::dmn_size(), sub_matrix.ptr(), sub_matrix.leadingDimension(),
+        oversampling, BaseClass::get_window_sampling(), PaddedTimeDmn::first_element(),
+        PaddedTimeDmn::get_Delta(), WindowTimeDmn::first_element(), WindowTimeDmn::get_delta(),
+        beta_);
 
-  assert(cudaPeekAtLastError() == cudaSuccess);
-  initialized = true;
+    assert(cudaPeekAtLastError() == cudaSuccess);
+  });
 }
 
 template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>
