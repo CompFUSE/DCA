@@ -8,4 +8,5 @@ add_library(nfft STATIC
 if (DCA_HAVE_CUDA)
   CUDA_ADD_LIBRARY(dnfft_kernels
     dnfft_1d_kernels.cu)
+  target_compile_definitions(dnfft_kernels PUBLIC DCA_HAVE_CUDA)
 endif()

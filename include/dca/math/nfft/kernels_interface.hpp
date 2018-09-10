@@ -11,7 +11,10 @@
 
 #ifndef DCA_MATH_NFFT_KERNELS_INTERFACE_HPP
 #define DCA_MATH_NFFT_KERNELS_INTERFACE_HPP
-#ifdef DCA_HAVE_CUDA
+
+#ifndef DCA_HAVE_CUDA
+#pragma error "This file requires CUDA."
+#endif
 
 #include <cuda.h>
 
@@ -45,5 +48,4 @@ void initializeNfftHelper(int nb, int nr, const int* sub_r, int lds, int oversam
 }  // math
 }  // dca
 
-#endif  // DCA_HAVE_CUDA
 #endif  // DCA_MATH_NFFT_KERNELS_INTERFACE_HPP

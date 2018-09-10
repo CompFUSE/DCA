@@ -49,11 +49,6 @@ struct HelperSelector {
 template <typename ScalarType>
 NfftHelperManager<ScalarType> HelperSelector<ScalarType>::value;
 
-struct ConfigElem {
-  int band;
-  int site;
-};
-
 template <typename ScalarType>
 __global__ void accumulateOnDeviceKernel(const double* M, const int ldm, const int sign,
                                          ScalarType* out, ScalarType* out_sqr, int ldo,
