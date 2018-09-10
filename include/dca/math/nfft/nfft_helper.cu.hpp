@@ -149,7 +149,8 @@ template <NfftModeNames mode>
 __device__ void NfftHelper<ScalarType>::computeInterpolationIndices(ScalarType t, int& t_idx,
                                                                     int& conv_coeff_idx,
                                                                     ScalarType& delta_t) const {
-  static_assert(mode == CUBIC || mode == LINEAR);
+  static_assert(mode == CUBIC || mode == LINEAR,
+                "This method is defined only for linear or cubic interpolations.");
 
   const ScalarType t0 = parameters_real_[0];
   const ScalarType delta_t_padded = parameters_real_[1];
