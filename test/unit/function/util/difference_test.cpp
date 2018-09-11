@@ -34,3 +34,15 @@ TEST(DifferenceTest, Double) {
   EXPECT_NEAR(0.57879, diff.l2, 1e-4);
   EXPECT_NEAR(1, diff.l_inf, 1e-4);
 }
+
+TEST(DifferenceTest, Complex) {
+  // Test with different complex types.
+  Function<4, std::complex<float>> f_c;
+  Function<4, std::complex<double>> f_z;
+  for (int i = 0; i < f_c.size(); ++i) {
+    f_c(i) = std::complex<float>(i, i * i);
+    f_z(i) = std::complex<double>(i, i * i);
+  }
+  const auto diff = dca::func::util::difference(f_c, f_z);
+  EXPECT_NEAR(0., diff.l2, 5e-7);
+}
