@@ -21,7 +21,7 @@
   },
 
   "four-point": {
-    "type": "NONE",
+    "type": "PARTICLE_PARTICLE_UP_DOWN",
     "momentum-transfer": [0., 2.0943],
     "frequency-transfer": 2,
     "compute-all-transfers": false

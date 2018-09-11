@@ -9,13 +9,10 @@
 //
 // This file implements a no-change test for the two point accumulation of a mock configuration.
 
-#include "dca/phys/dca_step/cluster_solver/ctaux/accumulator/tp/accumulator_nonlocal_chi.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctaux/accumulator/tp/accumulator_nonlocal_g.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator.hpp"
 
 #include <array>
 #include <string>
-#include <vector>
-#include <dca/phys/dca_data/dca_data.hpp>
 #include "gtest/gtest.h"
 
 #include "dca/function/util/difference.hpp"
@@ -27,7 +24,7 @@
 constexpr bool update_baseline = false;
 
 #define INPUT_DIR \
-  DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/"
+  DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/"
 
 constexpr char input_file[] = INPUT_DIR "input_3x3.json";
 
@@ -46,13 +43,7 @@ TEST_F(TpAccumulatorTest, Accumulate) {
                                         TpAccumulatorTest::RDmn::dmn_size(), parameters_.get_beta(),
                                         n);
 
-  Data::TpGreensFunction G4("G4");
-  Data::TpGreensFunction G4_check(G4.get_name());
-
-  dca::phys::solver::ctaux::accumulator_nonlocal_G<Parameters, Data> nonlocal_G_obj(parameters_,
-                                                                                    *data_, 0);
-  dca::phys::solver::ctaux::accumulator_nonlocal_chi<Parameters, Data> nonlocal_chi_obj(
-      parameters_, *data_, 0, G4);
+  Data::TpGreensFunction G4_check("G4");
 
   dca::io::HDF5Writer writer;
   dca::io::HDF5Reader reader;
@@ -67,16 +58,19 @@ TEST_F(TpAccumulatorTest, Accumulate) {
   for (const dca::phys::FourPointType type :
        {dca::phys::PARTICLE_HOLE_TRANSVERSE, dca::phys::PARTICLE_HOLE_MAGNETIC,
         dca::phys::PARTICLE_HOLE_CHARGE, dca::phys::PARTICLE_PARTICLE_UP_DOWN}) {
-    G4 = 0;
     parameters_.set_four_point_type(type);
 
-    nonlocal_G_obj.execute(config[0], M[0], config[1], M[1]);
+    dca::phys::solver::accumulator::TpAccumulator<Parameters> accumulator(
+        data_->G0_k_w_cluster_excluded, parameters_);
+
     const int sign = 1;
-    nonlocal_chi_obj.execute(sign, nonlocal_G_obj);
+    accumulator.accumulate(M, config, sign);
+    accumulator.finalize();
+
+    const auto& G4 = accumulator.get_sign_times_G4();
 
     if (update_baseline) {
-      G4.set_name("G4_" + toString(type));
-      writer.execute(G4);
+      writer.execute("G4_" + toString(type), G4);
     }
     else {
       G4_check.set_name("G4_" + toString(type));
