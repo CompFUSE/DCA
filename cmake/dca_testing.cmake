@@ -9,7 +9,7 @@ include(CMakeParseArguments)
 # Adds a test written with Google Test.
 #
 # dca_add_gtest(name
-#               [FAST | EXTENSIVE | VALIDATION | PERFORMANCE]
+#               [FAST | EXTENSIVE | STOCHASTIC | PERFORMANCE]
 #               [GTEST_MAIN]
 #               [MPI [MPI_NUMPROC procs]]
 #               [CUDA]
@@ -18,12 +18,12 @@ include(CMakeParseArguments)
 #               [LIBS lib1 [lib2 ...]])
 #
 # Adds a test called 'name', the source is assumed to be 'name.cpp'.
-# The type of the test can be FAST, EXTENSIVE, VALIDATION or PERFORMANCE (mutually exclusive
+# The type of the test can be FAST, EXTENSIVE, STOCHASTIC or PERFORMANCE (mutually exclusive
 # options). If no option is specified, the default is FAST.
 # MPI or CUDA may be given to indicate that the test requires these libraries. MPI_NUMPROC is the
 # number of MPI processes to use for a test with MPI, the default value is 1.
 function(dca_add_gtest name)
-  set(options FAST EXTENSIVE VALIDATION PERFORMANCE GTEST_MAIN MPI CUDA)
+  set(options FAST EXTENSIVE STOCHASTIC PERFORMANCE GTEST_MAIN MPI CUDA)
   set(oneValueArgs MPI_NUMPROC)
   set(multiValueArgs INCLUDE_DIRS SOURCES LIBS)
   cmake_parse_arguments(DCA_ADD_GTEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
@@ -32,12 +32,12 @@ function(dca_add_gtest name)
   if ((DCA_ADD_GTEST_FAST AND DCA_ADD_GTEST_EXTENSIVE) OR
       (DCA_ADD_GTEST_FAST AND DCA_ADD_GTEST_PERFORMANCE) OR
       (DCA_ADD_GTEST_EXTENSIVE AND DCA_ADD_GTEST_PERFORMANCE) OR
-      (DCA_ADD_GTEST_VALIDATION AND DCA_ADD_GTEST_FAST) OR
-      (DCA_ADD_GTEST_VALIDATION AND DCA_ADD_GTEST_EXTENSIVE) OR
-      (DCA_ADD_GTEST_VALIDATION AND DCA_ADD_GTEST_PERFORMANCE))
+      (DCA_ADD_GTEST_STOCHASTIC AND DCA_ADD_GTEST_FAST) OR
+      (DCA_ADD_GTEST_STOCHASTIC AND DCA_ADD_GTEST_EXTENSIVE) OR
+      (DCA_ADD_GTEST_STOCHASTIC AND DCA_ADD_GTEST_PERFORMANCE))
     message(FATAL_ERROR "Incorrect use of dca_add_gtest.\n
                          dca_add_gtest(name\n
-                                       [FAST | EXTENSIVE | VALIDATION | PERFORMANCE]\n
+                                       [FAST | EXTENSIVE | STOCHASTIC | PERFORMANCE]\n
                                        [GTEST_MAIN]\n
                                        [MPI [MPI_NUMPROC procs]]\n
                                        [CUDA]\n
@@ -61,8 +61,8 @@ function(dca_add_gtest name)
       return()
     endif()
 
-  elseif (DCA_ADD_GTEST_VALIDATION)
-    if (NOT DCA_WITH_TESTS_VALIDATION)
+  elseif (DCA_ADD_GTEST_STOCHASTIC)
+    if (NOT DCA_WITH_TESTS_STOCHASTIC)
       return()
     endif()
 

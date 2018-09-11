@@ -377,7 +377,7 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::compute_error_bars()
 
   compute_Sigma_new(G_r_w, GS_r_w);
 
-  concurrency.average_and_compute_stddev(Sigma_new, data_.get_Sigma_stddev());
+  concurrency.average_and_compute_stddev(Sigma_new, data_.get_Sigma_stdv());
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>

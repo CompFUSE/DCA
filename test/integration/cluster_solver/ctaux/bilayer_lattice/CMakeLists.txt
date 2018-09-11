@@ -1,0 +1,3 @@
+add_subdirectory(Nc1_interband)
+add_subdirectory(Nc1_intra_plus_interband)
+add_subdirectory(Nc1_intraband)
