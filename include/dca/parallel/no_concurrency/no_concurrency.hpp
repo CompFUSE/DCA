@@ -24,7 +24,7 @@ class NoConcurrency : public SerialCollectiveSum {
 public:
   NoConcurrency(int /*argc*/, char** /*argv*/){};
 
-  void abort(int /*code*/ = 0) const;
+  void abort() const;
 
   int id() const {
     return 0;

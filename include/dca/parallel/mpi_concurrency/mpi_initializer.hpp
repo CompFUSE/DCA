@@ -23,8 +23,8 @@ protected:
   ~MPIInitializer();
 
 public:
-  // Aborts all processes. Error code 3 stands for internal error.
-  void abort(int code = 3) const;
+  // Aborts all processes.
+  void abort() const;
 };
 
 }  // parallel

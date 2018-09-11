@@ -17,7 +17,7 @@
 namespace dca {
 namespace parallel {
 
-void NoConcurrency::abort(int /*err*/) const {
+void NoConcurrency::abort() const {
   std::cout << "\nAborting process.\n";
   std::terminate();
 }
