@@ -109,6 +109,11 @@ public:
     return beta_;
   }
 
+  using F_w_w =
+      dca::func::function<std::complex<double>,
+                          dca::func::dmn_variadic<BDmn, BDmn, RDmn, RDmn, FreqDmn, FreqDmn>>;
+  auto compute2DFTBaseline() const -> F_w_w;
+
 protected:
   static void SetUpTestCase() {
     // Initialize time and frequency domains.
@@ -151,6 +156,35 @@ protected:
   Configuration configuration_;
   Matrix M_;
 };
+
+template <int n_bands, int n_sites, int n_samples, int n_frqs>
+auto AccumulationTest<n_bands, n_sites, n_samples, n_frqs>::compute2DFTBaseline() const -> F_w_w {
+  F_w_w f_w("2D frequency transform baseline.");
+  const std::complex<double> imag(0, 1);
+
+  for (int w_ind2 = 0; w_ind2 < FreqDmn::dmn_size(); ++w_ind2) {
+    const double w_val2 = FreqDmn::get_elements()[w_ind2];
+    for (int w_ind1 = 0; w_ind1 < FreqDmn::dmn_size(); ++w_ind1) {
+      const double w_val1 = FreqDmn::get_elements()[w_ind1];
+      for (int j = 0; j < configuration_.size(); ++j) {
+        const auto t_val2 = configuration_[j].get_tau();
+        const int b2 = configuration_[j].b_;
+        const int r2 = configuration_[j].r_;
+        for (int i = 0; i < configuration_.size(); ++i) {
+          const auto t_val1 = configuration_[i].get_tau();
+          const int b1 = configuration_[i].b_;
+          const int r1 = configuration_[i].r_;
+
+          const auto f_t = M_(i, j);
+          f_w(b1, b2, r1, r2, w_ind1, w_ind2) +=
+              f_t * std::exp(imag * (t_val1 * w_val1 - t_val2 * w_val2));
+        }
+      }
+    }
+  }
+
+  return f_w;
+}
 
 }  // testing
 }  // dca
