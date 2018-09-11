@@ -57,7 +57,7 @@ TEST_F(G0Setup, Accumulate) {
   auto& parameters = G0Setup::parameters;
   auto& data = *G0Setup::data;
 
-  Data::ReducedTpGreensFunction G4("G4");
+  Data::TpGreensFunction G4("G4");
   Data::ReducedTpGreensFunction G4_check(G4.get_name());
 
   dca::phys::solver::ctaux::accumulator_nonlocal_G<G0Setup::Parameters, G0Setup::Data> nonlocal_G_obj(
