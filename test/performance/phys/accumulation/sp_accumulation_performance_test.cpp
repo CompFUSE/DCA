@@ -7,7 +7,7 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@gitp.phys.ethz.ch)
 //
-// Measure the runtime of the single particle accumulator.
+// Measures the runtime of the single particle accumulator.
 
 #include "dca/config/config_defines.hpp"
 #include "dca/config/haves_defines.hpp"

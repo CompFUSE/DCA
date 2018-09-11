@@ -25,7 +25,6 @@ public:
   using MC_measurement_scalar_type = AccumType;
 
   using RClusterDmn = typename BaseTestSetup::RDmn;
-  //  using KClusterDmn = typename BaseTestSetup::RDmn;
 
   double get_beta() const {
     return beta_;

@@ -5,11 +5,10 @@
 // See LICENSE.txt for terms of usage.
 // See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
-// Author: Peter Staar (taa@zurich.ibm.com)
-//         Raffaele Solca' (rasolca@itp.phys.ethz.ch)
-//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// This class measures the single-particle functions with an NFFT scheme.
+// This class measures the single-particle functions with an NFFT scheme. The convolution is
+// performed on the GPU.
 
 #ifndef DCA_HAVE_CUDA
 #error "This file requires CUDA."
@@ -62,7 +61,7 @@ public:
 
   void sumTo(SpAccumulator<Parameters, linalg::GPU>& other);
 
-  void synchronizeCopy(){
+  void synchronizeCopy() {
     cached_nfft_obj_[0].synchronizeCopy();
     cached_nfft_obj_[1].synchronizeCopy();
   }

@@ -197,8 +197,6 @@ public:
 
   // Asynchronous assignment (copy with stream = getStream(thread_id, stream_id))
   // + synchronization of stream
-  // Preconditions: 0 <= thread_id < DCA_MAX_THREADS,
-  //                0 <= stream_id < DCA_STREAMS_PER_THREADS.
   template <DeviceType rhs_device_name>
   void set(const Matrix<ScalarType, rhs_device_name>& rhs, int thread_id, int stream_id);
 
@@ -208,8 +206,6 @@ public:
   void setAsync(const Matrix<ScalarType, rhs_device_name>& rhs, cudaStream_t stream);
 
   // Asynchronous assignment (copy with stream = getStream(thread_id, stream_id))
-  // Preconditions: 0 <= thread_id < DCA_MAX_THREADS,
-  //                0 <= stream_id < DCA_STREAMS_PER_THREADS.
   template <DeviceType rhs_device_name>
   void setAsync(const Matrix<ScalarType, rhs_device_name>& rhs, int thread_id, int stream_id);
 

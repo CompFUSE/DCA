@@ -120,10 +120,10 @@ public:
 
 protected:
   static void SetUpTestCase() {
-    // Initialize time and frequency domains.
+    // Initialize the frequency domains.
     dca::phys::domains::frequency_domain::initialize(beta_, n_frqs);
     PositiveFrq::initialize(n_frqs);
-    // Initialize banSINGLE_SECTOR_ACCUMULATION_TESTd domain.
+    // Initialize the band domain.
     int mock_parameter = 0;
     BDmn::parameter_type::initialize(
         mock_parameter, n_bands, std::vector<int>(),
