@@ -34,17 +34,20 @@ TEST_F(SpAccumulatorGpuTest, Accumulate) {
 
   dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::CPU> accumulatorHost(
       parameters_);
-  dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::GPU> accumulator(parameters_);
-  accumulatorHost.initialize();
+  dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::GPU> accumulatorDevice(
+      parameters_);
 
   const int sign = 1;
-  accumulator.accumulate(M, config, sign);
-  accumulator.finalize();
+  accumulatorDevice.resetAccumulation();
+  accumulatorDevice.accumulate(M, config, sign);
+  accumulatorDevice.finalize();
+
+  accumulatorHost.resetAccumulation();
   accumulatorHost.accumulate(M, config, sign);
   accumulatorHost.finalize();
 
   const auto diff = dca::func::util::difference(accumulatorHost.get_sign_times_M_r_w(),
-                                                accumulator.get_sign_times_M_r_w());
+                                                accumulatorDevice.get_sign_times_M_r_w());
   EXPECT_GT(5e-7, diff.l_inf);
 }
 

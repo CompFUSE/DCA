@@ -95,12 +95,12 @@ int main(int argc, char** argv) {
   prepareRandomConfig(config, M, n);
 
   dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::CPU> accumulator(parameters);
-  accumulator.initialize();
+  accumulator.resetAccumulation();
 
   // Allows memory to be assigned.
   const int sign = 1;
   accumulator.accumulate(M, config, sign);
-  accumulator.initialize();
+  accumulator.resetAccumulation();
 
   Profiler::start();
   dca::profiling::WallTime start_time;
@@ -133,11 +133,11 @@ int main(int argc, char** argv) {
       parameters);
 
   // Allows memory to be assigned.
-  gpu_accumulator.initialize();
+  gpu_accumulator.resetAccumulation();
   gpu_accumulator.accumulate(M, config, sign);
   cudaStreamSynchronize(gpu_accumulator.get_streams()[0]);
   cudaStreamSynchronize(gpu_accumulator.get_streams()[1]);
-  gpu_accumulator.initialize();
+  gpu_accumulator.resetAccumulation();
 
   Profiler::start();
 

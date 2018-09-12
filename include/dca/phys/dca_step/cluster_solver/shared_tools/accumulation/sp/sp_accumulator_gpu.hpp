@@ -51,7 +51,7 @@ private:
 public:
   SpAccumulator(/*const*/ Parameters& parameters_ref, bool accumulate_m_squared = false);
 
-  void initialize();
+  void resetAccumulation();
 
   template <class Configuration, typename InpScalar>
   void accumulate(const std::array<linalg::Matrix<InpScalar, linalg::CPU>, 2>& Ms,
@@ -92,11 +92,11 @@ SpAccumulator<Paramaters, linalg::GPU>::SpAccumulator(/*const*/ Paramaters& para
       streams_(),
       cached_nfft_obj_{NfftType(parameters_.get_beta(), streams_[0], accumulate_m_sqr),
                        NfftType(parameters_.get_beta(), streams_[1], accumulate_m_sqr)} {
-  initialize();
+  resetAccumulation();
 }
 
 template <class Paramaters>
-void SpAccumulator<Paramaters, linalg::GPU>::initialize() {
+void SpAccumulator<Paramaters, linalg::GPU>::resetAccumulation() {
   if (initialized_)
     return;
 
