@@ -268,7 +268,7 @@ double CtauxClusterSolver<device_t, parameters_type, Data>::finalize(dca_info_st
   //       data_.G_r_t =
 
   if (DCA_iteration == parameters.get_dca_iterations() - 1 && parameters.get_four_point_type() != NONE)
-    data_.get_G4_k_k_w_w() /= parameters.get_beta() * parameters.get_beta();
+    data_.get_G4() /= parameters.get_beta() * parameters.get_beta();
 
   double total = 1.e-6, integral = 0;
 
@@ -381,13 +381,13 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::compute_error_bars() {
 
     double sign = accumulator.get_sign() / double(nb_measurements);
 
-    auto& G4 = data_.get_G4_k_k_w_w();
+    auto& G4 = data_.get_G4();
     for (int l = 0; l < G4.size(); l++)
       G4(l) = accumulator.get_G4()(l) / double(nb_measurements * sign);
 
     G4 /= parameters.get_beta() * parameters.get_beta();
 
-    concurrency.average_and_compute_stddev(G4, data_.get_G4_k_k_w_w_stdv());
+    concurrency.average_and_compute_stddev(G4, data_.get_G4_stdv());
   }
 }
 
@@ -457,7 +457,7 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::collect_measurements()
       concurrency.sum_and_average(accumulator.get_G4(), nb_measurements);
     }
 
-    auto& G4 = data_.get_G4_k_k_w_w();
+    auto& G4 = data_.get_G4();
     for (int l = 0; l < G4.size(); l++)
       G4(l) = accumulator.get_G4()(l) / accumulator.get_sign();  // sign;
   }
