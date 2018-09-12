@@ -59,11 +59,11 @@ uint loop_counter = 0;
         data_->G0_k_w_cluster_excluded, parameters_);
     const int sign = 1;
 
-    accumulatorDevice.initialize(loop_counter);
+    accumulatorDevice.resetAccumulation(loop_counter);
     accumulatorDevice.accumulate(M, config, sign);
     accumulatorDevice.finalize();
 
-    accumulatorHost.initialize(loop_counter);
+    accumulatorHost.resetAccumulation(loop_counter);
     accumulatorHost.accumulate(M, config, sign);
     accumulatorHost.finalize();
 
@@ -99,7 +99,7 @@ TEST_F(TpAccumulatorGpuTest, SumToAndFinalize) {
   prepare_configuration(config1, M1, n);
   prepare_configuration(config2, M2, n);
 
-  accumulator_sum.initialize(loop_counter++);
+  accumulator_sum.resetAccumulation(loop_counter++);
 
   accumulator1.accumulate(M1, config1, sign);
   accumulator2.accumulate(M2, config2, sign);
@@ -108,7 +108,7 @@ TEST_F(TpAccumulatorGpuTest, SumToAndFinalize) {
   accumulator_sum.finalize();
 
   // Reset the G4 on the GPU to zero.
-  accumulator3.initialize(loop_counter++);
+  accumulator3.resetAccumulation(loop_counter++);
   accumulator3.accumulate(M1, config1, sign);
   accumulator3.accumulate(M2, config2, sign);
   accumulator3.finalize();

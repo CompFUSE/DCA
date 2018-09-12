@@ -59,11 +59,11 @@ TEST_F(TpAccumulatorGpuSinglebandTest, Accumulate) {
         data_->G0_k_w_cluster_excluded, parameters_);
     const int sign = 1;
 
-    accumulatorDevice.initialize(loop_id);
+    accumulatorDevice.resetAccumulation(loop_id);
     accumulatorDevice.accumulate(M, config, sign);
     accumulatorDevice.finalize();
 
-    accumulatorHost.initialize(loop_id);
+    accumulatorHost.resetAccumulation(loop_id);
     accumulatorHost.accumulate(M, config, sign);
     accumulatorHost.finalize();
 
