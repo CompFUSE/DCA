@@ -26,6 +26,7 @@
 #include "dca/math/function_transform/special_transforms/space_transform_2D_gpu.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/kernels_interface.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_gpu.hpp"
+#include "dca/util/call_once_per_loop.hpp"
 
 namespace dca {
 namespace phys {
@@ -54,7 +55,7 @@ public:
       const Parameters& pars, int thread_id = 0);
 
   // Resets the object between DCA iterations.
-  void initialize();
+  void initialize(uint dca_loop = 0);
 
   // Computes the two particles Greens function from the M matrix and accumulates it internally.
   // In: M_array: stores the M matrix for each spin sector.
@@ -96,7 +97,7 @@ private:
   using typename BaseClass::Complex;
 
   void initializeG0();
-  void initializeG4();
+  void resetG4();
   void initializeG4Helpers() const;
 
   void computeG();
@@ -141,19 +142,13 @@ private:
   std::array<MatrixHost, 2> G_matrix_host_;
 
   bool finalized_ = false;
-
-  static bool is_initialized_static_;
-  static bool is_finalized_static_;
+  bool initialized_ = false;
 
   using G0DevType = std::array<MatrixDev, 2>;
   static inline G0DevType& get_G0();
   using G4DevType = linalg::Vector<Complex, linalg::GPU>;
   static inline G4DevType& get_G4();
 };
-template <class Parameters>
-bool TpAccumulator<Parameters, linalg::GPU>::is_initialized_static_ = false;
-template <class Parameters>
-bool TpAccumulator<Parameters, linalg::GPU>::is_finalized_static_ = false;
 
 template <class Parameters>
 TpAccumulator<Parameters, linalg::GPU>::TpAccumulator(
@@ -169,21 +164,16 @@ TpAccumulator<Parameters, linalg::GPU>::TpAccumulator(
 }
 
 template <class Parameters>
-void TpAccumulator<Parameters, linalg::GPU>::initialize() {
-  static std::mutex mutex;
+void TpAccumulator<Parameters, linalg::GPU>::initialize(const uint dca_loop) {
+  static util::OncePerLoopFlag flag;
 
-  {
-    std::unique_lock<std::mutex> lock(mutex);
-    if (!is_initialized_static_) {
-      initializeG4();
-      initializeG0();
-      synchronize();
-      is_initialized_static_ = true;
-      is_finalized_static_ = false;
-    }
-  }
+  util::callOncePerLoop(flag, dca_loop, [&]() {
+    resetG4();
+    initializeG0();
+    synchronize();
+  });
 
-  assert(is_initialized_static_);
+  initialized_ = true;
   finalized_ = false;
 }
 
@@ -209,7 +199,7 @@ void TpAccumulator<Parameters, linalg::GPU>::initializeG0() {
 }
 
 template <class Parameters>
-void TpAccumulator<Parameters, linalg::GPU>::initializeG4() {
+void TpAccumulator<Parameters, linalg::GPU>::resetG4() {
   // Note: this method is not thread safe by itself.
   auto& G4 = get_G4();
   try {
@@ -217,29 +207,25 @@ void TpAccumulator<Parameters, linalg::GPU>::initializeG4() {
     G4.resizeNoCopy(tp_dmn.get_size());
     cudaMemsetAsync(G4.ptr(), 0, G4.size() * sizeof(Complex), streams_[0]);
   }
-  catch (...) {
+  catch (std::bad_alloc& err) {
     std::cerr << "Failed to allocate G4 on device.\n";
-    G4.clear();
+    throw(err);
   }
 }
 
 template <class Parameters>
 void TpAccumulator<Parameters, linalg::GPU>::initializeG4Helpers() const {
-  static bool initialized = false;
-  static std::mutex mutex;
-  std::unique_lock<std::mutex> lock(mutex);
-
-  if (initialized)
-    return;
-  const auto& add_mat = KDmn::parameter_type::get_add_matrix();
-  const auto& sub_mat = KDmn::parameter_type::get_subtract_matrix();
-  const auto& w_indices = domains::FrequencyExchangeDomain::get_elements();
-  const auto& q_indices = domains::MomentumExchangeDomain::get_elements();
-  details::initializeG4Helpers(n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), q_indices,
-                               w_indices, add_mat.ptr(), add_mat.leadingDimension(), sub_mat.ptr(),
-                               sub_mat.leadingDimension());
-  assert(cudaPeekAtLastError() == cudaSuccess);
-  initialized = true;
+  static std::once_flag flag;
+  std::call_once(flag, []() {
+    const auto& add_mat = KDmn::parameter_type::get_add_matrix();
+    const auto& sub_mat = KDmn::parameter_type::get_subtract_matrix();
+    const auto& w_indices = domains::FrequencyExchangeDomain::get_elements();
+    const auto& q_indices = domains::MomentumExchangeDomain::get_elements();
+    details::initializeG4Helpers(n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), q_indices,
+                                 w_indices, add_mat.ptr(), add_mat.leadingDimension(),
+                                 sub_mat.ptr(), sub_mat.leadingDimension());
+    assert(cudaPeekAtLastError() == cudaSuccess);
+  });
 }
 
 template <class Parameters>
@@ -249,8 +235,8 @@ void TpAccumulator<Parameters, linalg::GPU>::accumulate(
     const std::array<Configuration, 2>& configs, const int sign) {
   Profiler profiler("accumulate", "tp-accumulation", __LINE__, thread_id_);
 
-  if (finalized_)
-    throw(std::logic_error("The accumulator was already finalized."));
+  if (!initialized_)
+    throw(std::logic_error("The accumulator is not ready to measure."));
 
   if (!(configs[0].size() + configs[0].size()))  // empty config
     return;
@@ -356,23 +342,17 @@ void TpAccumulator<Parameters, linalg::GPU>::finalize() {
   if (finalized_)
     return;
 
-  static std::mutex mutex;
-  std::unique_lock<std::mutex> lock(mutex);
+  G4_ = std::make_unique<TpGreenFunction>("G4");
+  assert(G4_->size() == get_G4().size());
 
-  if (!is_finalized_static_) {
-    G4_.reset(new TpGreenFunction("G4"));
-
-    cudaMemcpyAsync(G4_->values(), get_G4().ptr(), G4_->size() * sizeof(Complex),
-                    cudaMemcpyDeviceToHost, streams_[0]);
-    // TODO: release memory if needed by the rest of the DCA loop.
-    // cudaStreamsynchronize(streams_[0]);
-    // get_G4().clear();
-    is_finalized_static_ = true;
-  }
-
+  cudaMemcpyAsync(G4_->values(), get_G4().ptr(), G4_->size() * sizeof(Complex),
+                  cudaMemcpyDeviceToHost, streams_[0]);
   synchronize();
+  // TODO: release memory if needed by the rest of the DCA loop.
+  // get_G4().clear();
+
   finalized_ = true;
-  is_initialized_static_ = false;
+  initialized_ = false;
 }
 
 template <class Parameters>

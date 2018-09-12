@@ -36,6 +36,8 @@ using Sample = ConfigGenerator::Sample;
 using TpAccumulatorGpuSinglebandTest =
     dca::testing::G0Setup<dca::testing::LatticeSquare, dca::phys::solver::CT_AUX, input_file>;
 
+uint loop_id = 0;
+
 TEST_F(TpAccumulatorGpuSinglebandTest, Accumulate) {
   dca::linalg::util::initializeMagma();
 
@@ -57,13 +59,17 @@ TEST_F(TpAccumulatorGpuSinglebandTest, Accumulate) {
         data_->G0_k_w_cluster_excluded, parameters_);
     const int sign = 1;
 
+    accumulatorDevice.initialize(loop_id);
     accumulatorDevice.accumulate(M, config, sign);
     accumulatorDevice.finalize();
 
+    accumulatorHost.initialize(loop_id);
     accumulatorHost.accumulate(M, config, sign);
+    accumulatorHost.finalize();
 
     const auto diff = dca::func::util::difference(accumulatorHost.get_sign_times_G4(),
                                                   accumulatorDevice.get_sign_times_G4());
     EXPECT_GT(5e-7, diff.l_inf);
+    ++loop_id;
   }
 }

@@ -20,6 +20,7 @@
 #include "dca/linalg/util/cast_cuda.hpp"
 #include "dca/linalg/util/atomic_add_cuda.cu.hpp"
 #include "dca/linalg/util/complex_operators_cuda.cu.hpp"
+#include "dca/linalg/util/error_cuda.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/g4_helper.cuh"
 
 namespace dca {
@@ -358,7 +359,13 @@ void updateG4(std::complex<Real>* G4, const std::complex<Real>* G_up, const int 
   updateG4Kernel<Real, type><<<blocks[0], blocks[1], 0, stream>>>(
       castCudaComplex(G4), castCudaComplex(G_up), ldgu, castCudaComplex(G_down), ldgd, nb, nk, nw,
       nw_exchange, nk_exchange, sign, global::helper);
-  assert(cudaPeekAtLastError() == cudaSuccess);
+
+  // Check for errors.
+  auto err = cudaPeekAtLastError();
+  if (err != cudaSuccess) {
+    linalg::util::printErrorMessage(err, __FUNCTION__, __FILE__, __LINE__);
+    throw(std::runtime_error("CUDA failed to launch the G4 kernel."));
+  }
 }
 
 void initializeG4Helpers(int nb, int nk, int nw_pos, const std::vector<int>& delta_k_indices,

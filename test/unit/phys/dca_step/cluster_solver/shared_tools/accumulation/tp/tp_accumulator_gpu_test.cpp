@@ -36,7 +36,9 @@ using Sample = ConfigGenerator::Sample;
 using TpAccumulatorGpuTest =
     dca::testing::G0Setup<dca::testing::LatticeBilayer, dca::phys::solver::CT_AUX, input_file>;
 
-TEST_F(TpAccumulatorGpuTest, Accumulate) {
+uint loop_counter = 0;
+
+ TEST_F(TpAccumulatorGpuTest, Accumulate) {
   dca::linalg::util::initializeMagma();
 
   const std::array<int, 2> n{27, 24};
@@ -57,14 +59,18 @@ TEST_F(TpAccumulatorGpuTest, Accumulate) {
         data_->G0_k_w_cluster_excluded, parameters_);
     const int sign = 1;
 
+    accumulatorDevice.initialize(loop_counter);
     accumulatorDevice.accumulate(M, config, sign);
     accumulatorDevice.finalize();
 
+    accumulatorHost.initialize(loop_counter);
     accumulatorHost.accumulate(M, config, sign);
+    accumulatorHost.finalize();
 
     const auto diff = dca::func::util::difference(accumulatorHost.get_sign_times_G4(),
                                                   accumulatorDevice.get_sign_times_G4());
     EXPECT_GT(5e-7, diff.l_inf);
+    ++loop_counter;
   }
 }
 
@@ -75,10 +81,10 @@ TEST_F(TpAccumulatorGpuTest, SumToAndFinalize) {
 
   using Accumulator =
       dca::phys::solver::accumulator::TpAccumulator<G0Setup::Parameters, dca::linalg::GPU>;
-  Accumulator accumulator1(data_->G0_k_w_cluster_excluded, parameters_);
-  Accumulator accumulator2(data_->G0_k_w_cluster_excluded, parameters_);
-  Accumulator accumulator_sum(data_->G0_k_w_cluster_excluded, parameters_, false);
-  Accumulator accumulator3(data_->G0_k_w_cluster_excluded, parameters_);
+  Accumulator accumulator_sum(data_->G0_k_w_cluster_excluded, parameters_, 0);
+  Accumulator accumulator1(data_->G0_k_w_cluster_excluded, parameters_, 1);
+  Accumulator accumulator2(data_->G0_k_w_cluster_excluded, parameters_, 2);
+  Accumulator accumulator3(data_->G0_k_w_cluster_excluded, parameters_, 3);
 
   auto prepare_configuration = [&](auto& M, auto& configuration, const auto& n) {
     ConfigGenerator::prepareConfiguration(M, configuration, TpAccumulatorGpuTest::BDmn::dmn_size(),
@@ -93,6 +99,8 @@ TEST_F(TpAccumulatorGpuTest, SumToAndFinalize) {
   prepare_configuration(config1, M1, n);
   prepare_configuration(config2, M2, n);
 
+  accumulator_sum.initialize(loop_counter++);
+
   accumulator1.accumulate(M1, config1, sign);
   accumulator2.accumulate(M2, config2, sign);
   accumulator1.sumTo(accumulator_sum);
@@ -100,7 +108,7 @@ TEST_F(TpAccumulatorGpuTest, SumToAndFinalize) {
   accumulator_sum.finalize();
 
   // Reset the G4 on the GPU to zero.
-  accumulator3.initialize();
+  accumulator3.initialize(loop_counter++);
   accumulator3.accumulate(M1, config1, sign);
   accumulator3.accumulate(M2, config2, sign);
   accumulator3.finalize();

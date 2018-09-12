@@ -38,7 +38,7 @@ void callOncePerLoop(OncePerLoopFlag& flag, const int loop_id, F&& f, Args&&... 
     throw(std::logic_error("Loop id called out of order."));
 
   std::unique_lock<std::mutex> lock(flag.mutex);
-  if (loop_id == flag.loop_done)
+  if (loop_id <= flag.loop_done)
     return;
 
   f(args...);
