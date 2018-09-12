@@ -7,7 +7,7 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// This class measures the single-particle functions with an NFFT scheme. The convolution is
+// This class measures the single-particle functions with delayed NFFT scheme. The convolution is
 // performed on the GPU.
 
 #ifndef DCA_HAVE_CUDA
@@ -81,8 +81,6 @@ private:
   std::array<linalg::util::CudaStream, 2> streams_;
   using NfftType = math::nfft::Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, math::nfft::CUBIC>;
   std::array<NfftType, 2> cached_nfft_obj_;
-
-  bool initialized_ = false;
 };
 
 template <class Paramaters>
@@ -91,18 +89,13 @@ SpAccumulator<Paramaters, linalg::GPU>::SpAccumulator(/*const*/ Paramaters& para
     : BaseClass(parameters_ref, accumulate_m_sqr),
       streams_(),
       cached_nfft_obj_{NfftType(parameters_.get_beta(), streams_[0], accumulate_m_sqr),
-                       NfftType(parameters_.get_beta(), streams_[1], accumulate_m_sqr)} {
-  resetAccumulation();
-}
+                       NfftType(parameters_.get_beta(), streams_[1], accumulate_m_sqr)} {}
 
 template <class Paramaters>
 void SpAccumulator<Paramaters, linalg::GPU>::resetAccumulation() {
-  if (initialized_)
-    return;
-
   for (int s = 0; s < 2; ++s)
     cached_nfft_obj_[s].resetAccumulation();
-  initialized_ = true;
+
   finalized_ = false;
 }
 
@@ -111,6 +104,9 @@ template <class Configuration, typename InpScalar>
 void SpAccumulator<Paramaters, linalg::GPU>::accumulate(
     const std::array<linalg::Matrix<InpScalar, linalg::CPU>, 2>& Ms,
     const std::array<Configuration, 2>& configs, const int sign) {
+  if (finalized_)
+    throw(std::logic_error("The accumulator is already finalized."));
+
   for (int s = 0; s < 2; ++s)
     cached_nfft_obj_[s].accumulate(Ms[s], configs[s], sign);
 }
@@ -145,7 +141,6 @@ void SpAccumulator<Paramaters, linalg::GPU>::finalize() {
   }
 
   finalized_ = true;
-  initialized_ = false;
 }
 
 template <class Paramaters>

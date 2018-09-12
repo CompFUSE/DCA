@@ -9,7 +9,7 @@
 //         Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// This class measures the single-particle functions with an NFFT scheme.
+// This class measures the single-particle functions with a delayed NFFT scheme.
 
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_SP_SP_ACCUMULATOR_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_SP_SP_ACCUMULATOR_HPP
@@ -52,6 +52,7 @@ protected:
   using PDmn = func::dmn_variadic<BDmn, BDmn, RDmn>;
 
   using Profiler = typename Parameters::profiler_type;
+
 public:
   using ScalarType = typename Parameters::MC_measurement_scalar_type;
 
@@ -67,7 +68,7 @@ public:
 
   void sumTo(SpAccumulator<Parameters, linalg::CPU>& other) const;
 
-  void synchronizeCopy(){}
+  void synchronizeCopy() {}
 
   const auto& get_sign_times_M_r_w() const;
 
@@ -99,8 +100,9 @@ SpAccumulator<Paramaters, linalg::CPU>::SpAccumulator(/*const*/ Paramaters& para
 
 template <class Paramaters>
 void SpAccumulator<Paramaters, linalg::CPU>::resetAccumulation() {
-  cached_nfft_obj_.reset(new std::array<NfftType, 2>);
-  cached_nfft_sqr_obj_.reset(new std::array<NfftType, 2>);
+  cached_nfft_obj_ = std::make_unique<std::array<NfftType, 2>>();
+  if (accumulate_m_sqr_)
+    cached_nfft_sqr_obj_ = std::make_unique<std::array<NfftType, 2>>();
 
   M_r_w_.release();
   M_r_w_sqr_.release();
@@ -113,7 +115,9 @@ template <class Configuration, typename InpScalar>
 void SpAccumulator<Paramaters, linalg::CPU>::accumulate(
     const std::array<linalg::Matrix<InpScalar, linalg::CPU>, 2>& Ms,
     const std::array<Configuration, 2>& configs, const int sign) {
-  assert(initialized_);
+  if (!initialized_)
+    throw(std::logic_error("The accumulator was not initialized."));
+
   const func::dmn_variadic<PDmn> bbr_dmn;
   const ScalarType one_div_two_beta = 1. / (2. * parameters_.get_beta());
   //  constexpr ScalarType epsilon = std::is_same<ScalarType, double>::value ? 1e-16 : 1e-7;
