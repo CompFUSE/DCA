@@ -33,10 +33,14 @@ namespace dca {
 namespace testing {
 // dca::testing::
 
+constexpr char default_input[] =
+    DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/input.json";
+
 using LatticeSquare = phys::models::square_lattice<phys::domains::D4>;
 using LatticeBilayer = phys::models::bilayer_lattice<phys::domains::D4>;
 
-template <class Lattice = LatticeSquare, phys::solver::ClusterSolverName solver_name = phys::solver::CT_AUX>
+template <class Lattice = LatticeSquare, phys::solver::ClusterSolverName solver_name = phys::solver::CT_AUX,
+          const char* input_name = default_input>
 struct G0Setup : public ::testing::Test {
   using LatticeType = Lattice;
   using Model = phys::models::TightBindingModel<Lattice>;
@@ -55,21 +59,22 @@ struct G0Setup : public ::testing::Test {
   using WDmn = func::dmn_0<phys::domains::frequency_domain>;
 
   Concurrency concurrency;
-  Parameters parameters;
-  std::unique_ptr<Data> data;
+  Parameters parameters_;
+  std::unique_ptr<Data> data_;
 
-  G0Setup() : concurrency(0, nullptr), parameters("", concurrency) {}
+  G0Setup() : concurrency(0, nullptr), parameters_("", concurrency) {}
 
   virtual void SetUp() {
-    const std::string inputs_directory = DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/";
+    parameters_.template read_input_and_broadcast<io::JSONReader>(input_name);
 
-    parameters.template read_input_and_broadcast<io::JSONReader>(inputs_directory + "input.json");
-
-    parameters.update_model();
-    parameters.update_domains();
-
-    data.reset(new Data(parameters));
-    data->initialize();
+    parameters_.update_model();
+    static bool domain_initialized = false;
+    if (!domain_initialized) {
+      parameters_.update_domains();
+      domain_initialized = true;
+    }
+    data_= std::make_unique<Data>(parameters_);
+    data_->initialize();
   }
 
   virtual void TearDown() {}

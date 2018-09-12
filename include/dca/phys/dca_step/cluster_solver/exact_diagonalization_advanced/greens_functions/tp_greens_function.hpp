@@ -28,6 +28,8 @@
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/greens_functions/tp_greens_function_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/hamiltonian.hpp"
 #include "dca/phys/dca_step/cluster_solver/exact_diagonalization_advanced/hilbert_spaces/hilbert_space.hpp"
+#include "dca/phys/domains/cluster/momentum_exchange_domain.hpp"
+#include "dca/phys/domains/time_and_frequency/frequency_exchange_domain.hpp"
 #include "dca/phys/domains/time_and_frequency/vertex_frequency_domain.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 #include "dca/util/print_time.hpp"
@@ -50,6 +52,9 @@ public:
   using RClusterDmn = typename CDA::RClusterDmn;
   using KClusterDmn = typename CDA::KClusterDmn;
 
+  using WExchangeDmn = func::dmn_0<domains::FrequencyExchangeDomain>;
+  using KExchangeDmn = func::dmn_0<domains::MomentumExchangeDomain>;
+
   typedef typename ed_options::profiler_t profiler_t;
   typedef typename ed_options::concurrency_type concurrency_type;
 
@@ -70,7 +75,8 @@ public:
 
   typedef typename ed_options::nu_nu_r_dmn_type nu_nu_r_dmn_type;
 
-  typedef func::dmn_variadic<nu_dmn, nu_dmn, nu_dmn, nu_dmn, RClusterDmn, RClusterDmn, RClusterDmn> nu_nu_nu_nu_r_r_r_dmn_type;
+  typedef func::dmn_variadic<nu_dmn, nu_dmn, nu_dmn, nu_dmn, RClusterDmn, RClusterDmn, RClusterDmn>
+      nu_nu_nu_nu_r_r_r_dmn_type;
 
   typedef Hamiltonian<parameters_type, ed_options> fermionic_Hamiltonian_type;
   typedef fermionic_overlap_matrices<parameters_type, ed_options> fermionic_overlap_type;
@@ -95,11 +101,13 @@ public:
   void compute_two_particle_Greens_function(bool interacting);
 
   void compute_particle_particle_superconducting_A(
-      func::function<complex_type, func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, KClusterDmn, KClusterDmn,
-                                                      w_VERTEX, w_VERTEX>>& G4);
+      func::function<complex_type,
+                     func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, KClusterDmn, KClusterDmn,
+                                        KExchangeDmn, w_VERTEX, w_VERTEX, WExchangeDmn>>& G4);
   void compute_particle_particle_superconducting_B(
-      func::function<complex_type, func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, KClusterDmn, KClusterDmn,
-                                                      w_VERTEX, w_VERTEX>>& G4);
+      func::function<complex_type,
+                     func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, KClusterDmn, KClusterDmn,
+                                        KExchangeDmn, w_VERTEX, w_VERTEX, WExchangeDmn>>& G4);
 
   void compute_two_particle_Greens_function(
       func::function<complex_type, func::dmn_variadic<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, w_VERTEX_EXTENDED,
@@ -211,11 +219,11 @@ private:
                  func::dmn_variadic<w_VERTEX_EXTENDED, w_VERTEX_EXTENDED, bsk_dmn_type, bsk_dmn_type>>
       G_int_w_w_k_k_nonlocal;
 
-  func::function<complex_type,
-                 func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, KClusterDmn, KClusterDmn, w_VERTEX, w_VERTEX>>
+  func::function<complex_type, func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, KClusterDmn,
+                                                  KClusterDmn, w_VERTEX, w_VERTEX>>
       G4_non;
-  func::function<complex_type,
-                 func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, KClusterDmn, KClusterDmn, w_VERTEX, w_VERTEX>>
+  func::function<complex_type, func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, KClusterDmn,
+                                                  KClusterDmn, w_VERTEX, w_VERTEX>>
       G4_int;
 };
 
@@ -319,44 +327,46 @@ void TpGreensFunction<parameters_type, ed_options>::write(Writer& writer) {
 template <typename parameters_type, typename ed_options>
 void TpGreensFunction<parameters_type, ed_options>::compute_particle_particle_superconducting_A(
     func::function<complex_type,
-                   func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, KClusterDmn, KClusterDmn, w_VERTEX, w_VERTEX>>& G4) {
+                   func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, KClusterDmn, KClusterDmn,
+                                      KExchangeDmn, w_VERTEX, w_VERTEX, WExchangeDmn>>& G4) {
   if (concurrency.id() == concurrency.first())
     std::cout << "\t" << __FUNCTION__ << std::endl;
 
   G4 = 0;
 
-  int w_nu = parameters.get_four_point_frequency_transfer();
+  for (int w_nu_idx = 0; w_nu_idx < WExchangeDmn::dmn_size(); ++w_nu_idx) {
+    const int w_nu = WExchangeDmn::parameter_type::get_elements()[w_nu_idx];
+    if (concurrency.id() == concurrency.first())
+      std::cout << "\tw_nu : " << w_nu << std::endl;
 
-  if (concurrency.id() == concurrency.first())
-    std::cout << "\tw_nu : " << w_nu << std::endl;
+    for (int b_0 = 0; b_0 < b_dmn::dmn_size(); b_0++) {
+      for (int b_1 = 0; b_1 < b_dmn::dmn_size(); b_1++) {
+        for (int b_2 = 0; b_2 < b_dmn::dmn_size(); b_2++) {
+          for (int b_3 = 0; b_3 < b_dmn::dmn_size(); b_3++) {
+            for (int r_0 = 0; r_0 < RClusterDmn::dmn_size(); r_0++) {
+              for (int r_1 = 0; r_1 < RClusterDmn::dmn_size(); r_1++) {
+                for (int r_2 = 0; r_2 < RClusterDmn::dmn_size(); r_2++) {
+                  for (int wn = 0; wn < w_VERTEX::dmn_size(); wn++) {
+                    int wn_ext = w_vertex_2_w_vertex_ext(wn);
+                    assert(std::abs(w_VERTEX::get_elements()[wn] -
+                                    w_VERTEX_EXTENDED::get_elements()[wn_ext]) < 1.e-6);
 
-  for (int b_0 = 0; b_0 < b_dmn::dmn_size(); b_0++) {
-    for (int b_1 = 0; b_1 < b_dmn::dmn_size(); b_1++) {
-      for (int b_2 = 0; b_2 < b_dmn::dmn_size(); b_2++) {
-        for (int b_3 = 0; b_3 < b_dmn::dmn_size(); b_3++) {
-          for (int r_0 = 0; r_0 < RClusterDmn::dmn_size(); r_0++) {
-            for (int r_1 = 0; r_1 < RClusterDmn::dmn_size(); r_1++) {
-              for (int r_2 = 0; r_2 < RClusterDmn::dmn_size(); r_2++) {
-                for (int wn = 0; wn < w_VERTEX::dmn_size(); wn++) {
-                  int wn_ext = w_vertex_2_w_vertex_ext(wn);
-                  assert(std::abs(w_VERTEX::get_elements()[wn] -
-                                  w_VERTEX_EXTENDED::get_elements()[wn_ext]) < 1.e-6);
+                    for (int wm = 0; wm < w_VERTEX::dmn_size(); wm++) {
+                      int wm_ext = w_vertex_2_w_vertex_ext(wm);
+                      assert(std::abs(w_VERTEX::get_elements()[wm] -
+                                      w_VERTEX_EXTENDED::get_elements()[wm_ext]) < 1.e-6);
 
-                  for (int wm = 0; wm < w_VERTEX::dmn_size(); wm++) {
-                    int wm_ext = w_vertex_2_w_vertex_ext(wm);
-                    assert(std::abs(w_VERTEX::get_elements()[wm] -
-                                    w_VERTEX_EXTENDED::get_elements()[wm_ext]) < 1.e-6);
+                      int w1 = w_nu + min_w_vertex_ext(wn_ext);
+                      int w2 = wn_ext;
+                      int w3 = min_w_vertex_ext(wm_ext);
 
-                    int w1 = w_nu + min_w_vertex_ext(wn_ext);
-                    int w2 = wn_ext;
-                    int w3 = min_w_vertex_ext(wm_ext);
+                      //                         int w1 = wn_ext+w_nu;
+                      //                         int w2 = min_w_vertex_ext(wn_ext);
+                      //                         int w3 = wm_ext;
 
-                    //                         int w1 = wn_ext+w_nu;
-                    //                         int w2 = min_w_vertex_ext(wn_ext);
-                    //                         int w3 = wm_ext;
-
-                    G4(b_0, b_1, b_2, b_3, 0, 0, wn, wm) +=
-                        G_tp_int(w1, w2, w3, b_0, 0, b_1, 1, b_2, 1, b_3, 0, 0, 0, 0);
+                      G4(b_0, b_1, b_2, b_3, 0, 0, 0, wn, wm, w_nu_idx) +=
+                          G_tp_int(w1, w2, w3, b_0, 0, b_1, 1, b_2, 1, b_3, 0, 0, 0, 0);
+                    }
                   }
                 }
               }
@@ -365,50 +375,49 @@ void TpGreensFunction<parameters_type, ed_options>::compute_particle_particle_su
         }
       }
     }
-  }
 
-  if (concurrency.id() == concurrency.first()) {
-    std::cout << "\n";
-    std::cout << 0.0 << "\t\t";
-    for (int wn = 0; wn < w_VERTEX::dmn_size(); wn++)
-      std::cout << w_VERTEX::get_elements()[wn] << "\t";
-    std::cout << "\n\n";
+    if (concurrency.id() == concurrency.first()) {
+      std::cout << "\n";
+      std::cout << 0.0 << "\t\t";
+      for (int wn = 0; wn < w_VERTEX::dmn_size(); wn++)
+        std::cout << w_VERTEX::get_elements()[wn] << "\t";
+      std::cout << "\n\n";
 
-    for (int wn = 0; wn < w_VERTEX::dmn_size(); wn++) {
-      std::cout << w_VERTEX::get_elements()[wn] << "\t\t";
-      for (int wm = 0; wm < w_VERTEX::dmn_size(); wm++)
-        if (std::abs(real(G4(0, 0, 0, 0, 0, 0, wn, wm))) < 1.e-10)
-          std::cout << 0.0 << "\t";
-        else
-          std::cout << real(G4(0, 0, 0, 0, 0, 0, wn, wm)) << "\t";
+      for (int wn = 0; wn < w_VERTEX::dmn_size(); wn++) {
+        std::cout << w_VERTEX::get_elements()[wn] << "\t\t";
+        for (int wm = 0; wm < w_VERTEX::dmn_size(); wm++)
+          if (std::abs(real(G4(0, 0, 0, 0, 0, 0, 0, wn, wm, w_nu_idx))) < 1.e-10)
+            std::cout << 0.0 << "\t";
+          else
+            std::cout << real(G4(0, 0, 0, 0, 0, 0, 0, wn, wm, w_nu_idx)) << "\t";
+        std::cout << "\n";
+      }
+      std::cout << "\n";
+
+      std::cout << "\n";
+      std::cout << 0.0 << "\t\t";
+      for (int wn = 0; wn < w_VERTEX::dmn_size(); wn++)
+        std::cout << w_VERTEX::get_elements()[wn] << "\t";
+      std::cout << "\n\n";
+
+      for (int wn = 0; wn < w_VERTEX::dmn_size(); wn++) {
+        std::cout << w_VERTEX::get_elements()[wn] << "\t\t";
+        for (int wm = 0; wm < w_VERTEX::dmn_size(); wm++)
+          if (std::abs(imag(G4(0, 0, 0, 0, 0, 0, 0, wn, wm, w_nu_idx))) < 1.e-10)
+            std::cout << 0.0 << "\t";
+          else
+            std::cout << imag(G4(0, 0, 0, 0, 0, 0, 0, wn, wm, w_nu_idx)) << "\t";
+        std::cout << "\n";
+      }
       std::cout << "\n";
     }
-    std::cout << "\n";
-
-    std::cout << "\n";
-    std::cout << 0.0 << "\t\t";
-    for (int wn = 0; wn < w_VERTEX::dmn_size(); wn++)
-      std::cout << w_VERTEX::get_elements()[wn] << "\t";
-    std::cout << "\n\n";
-
-    for (int wn = 0; wn < w_VERTEX::dmn_size(); wn++) {
-      std::cout << w_VERTEX::get_elements()[wn] << "\t\t";
-      for (int wm = 0; wm < w_VERTEX::dmn_size(); wm++)
-        if (std::abs(imag(G4(0, 0, 0, 0, 0, 0, wn, wm))) < 1.e-10)
-          std::cout << 0.0 << "\t";
-        else
-          std::cout << imag(G4(0, 0, 0, 0, 0, 0, wn, wm)) << "\t";
-      std::cout << "\n";
-    }
-    std::cout << "\n";
   }
-
   {
     {
       std::vector<double> x, y;
       for (int wn = 0; wn < w_VERTEX::dmn_size(); wn++) {
         x.push_back(w_VERTEX::get_elements()[wn]);
-        y.push_back(real(G4(0, 0, 0, 0, 0, 0, wn, wn)));
+        y.push_back(real(G4(0, 0, 0, 0, 0, 0, 0, wn, wn, 0)));
       }
 
       util::Plot::plotPoints(x, y);
@@ -418,7 +427,7 @@ void TpGreensFunction<parameters_type, ed_options>::compute_particle_particle_su
       std::vector<double> x, y;
       for (int wn = 0; wn < w_VERTEX::dmn_size(); wn++) {
         x.push_back(w_VERTEX::get_elements()[wn]);
-        y.push_back(real(G4(0, 0, 0, 0, 0, 0, wn, w_VERTEX::dmn_size() - 1 - wn)));
+        y.push_back(real(G4(0, 0, 0, 0, 0, 0, 0, wn, w_VERTEX::dmn_size() - 1 - wn, 0)));
       }
 
       util::Plot::plotPoints(x, y);
@@ -446,43 +455,47 @@ void TpGreensFunction<parameters_type, ed_options>::compute_particle_particle_su
 template <typename parameters_type, typename ed_options>
 void TpGreensFunction<parameters_type, ed_options>::compute_particle_particle_superconducting_B(
     func::function<complex_type,
-                   func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, KClusterDmn, KClusterDmn, w_VERTEX, w_VERTEX>>& G4) {
+                   func::dmn_variadic<b_dmn, b_dmn, b_dmn, b_dmn, KClusterDmn, KClusterDmn,
+                                      KExchangeDmn, w_VERTEX, w_VERTEX, WExchangeDmn>>& G4) {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t" << __FUNCTION__ << "\n\n";
 
   G4 = 0;
 
-  int w_nu = parameters.get_four_point_frequency_transfer();
+  for (int w_nu_idx = 0; w_nu_idx < WExchangeDmn::dmn_size(); ++w_nu_idx) {
+    const int w_nu = WExchangeDmn::get_elements()[w_nu_idx];
 
-  std::cout << "\n\n\t w_nu : " << w_nu << "\n";
+    std::cout << "\n\n\t w_nu : " << w_nu << "\n";
 
-  for (int b_0 = 0; b_0 < b_dmn::dmn_size(); b_0++) {
-    for (int b_1 = 0; b_1 < b_dmn::dmn_size(); b_1++) {
-      for (int b_2 = 0; b_2 < b_dmn::dmn_size(); b_2++) {
-        for (int b_3 = 0; b_3 < b_dmn::dmn_size(); b_3++) {
-          for (int r_0 = 0; r_0 < RClusterDmn::dmn_size(); r_0++) {
-            for (int r_1 = 0; r_1 < RClusterDmn::dmn_size(); r_1++) {
-              for (int r_2 = 0; r_2 < RClusterDmn::dmn_size(); r_2++) {
-                for (int wn = 0; wn < w_VERTEX::dmn_size(); wn++) {
-                  int wn_ext = w_vertex_2_w_vertex_ext(wn);
-                  assert(std::abs(w_VERTEX::get_elements()[wn] -
-                                  w_VERTEX_EXTENDED::get_elements()[wn_ext]) < 1.e-6);
+    for (int b_0 = 0; b_0 < b_dmn::dmn_size(); b_0++) {
+      for (int b_1 = 0; b_1 < b_dmn::dmn_size(); b_1++) {
+        for (int b_2 = 0; b_2 < b_dmn::dmn_size(); b_2++) {
+          for (int b_3 = 0; b_3 < b_dmn::dmn_size(); b_3++) {
+            for (int r_0 = 0; r_0 < RClusterDmn::dmn_size(); r_0++) {
+              for (int r_1 = 0; r_1 < RClusterDmn::dmn_size(); r_1++) {
+                for (int r_2 = 0; r_2 < RClusterDmn::dmn_size(); r_2++) {
+                  for (int wn = 0; wn < w_VERTEX::dmn_size(); wn++) {
+                    int wn_ext = w_vertex_2_w_vertex_ext(wn);
+                    assert(std::abs(w_VERTEX::get_elements()[wn] -
+                                    w_VERTEX_EXTENDED::get_elements()[wn_ext]) < 1.e-6);
 
-                  for (int wm = 0; wm < w_VERTEX::dmn_size(); wm++) {
-                    int wm_ext = w_vertex_2_w_vertex_ext(wm);
-                    assert(std::abs(w_VERTEX::get_elements()[wm] -
-                                    w_VERTEX_EXTENDED::get_elements()[wm_ext]) < 1.e-6);
+                    for (int wm = 0; wm < w_VERTEX::dmn_size(); wm++) {
+                      int wm_ext = w_vertex_2_w_vertex_ext(wm);
+                      assert(std::abs(w_VERTEX::get_elements()[wm] -
+                                      w_VERTEX_EXTENDED::get_elements()[wm_ext]) < 1.e-6);
 
-                    int w1 = wn_ext - w_nu;
-                    int w2 = min_w_vertex_ext(wn_ext);
-                    int w3 = wm_ext;
+                      int w1 = wn_ext - w_nu;
+                      int w2 = min_w_vertex_ext(wn_ext);
+                      int w3 = wm_ext;
 
-                    //                         int w1 = wn_ext+w_nu;
-                    //                         int w2 = min_w_vertex_ext(wn_ext);
-                    //                         int w3 = wm_ext;
+                      //                         int w1 = wn_ext+w_nu;
+                      //                         int w2 = min_w_vertex_ext(wn_ext);
+                      //                         int w3 = wm_ext;
 
-                    G4(b_0, b_1, b_2, b_3, 0, 0, wn, wm) +=
-                        G_tp_int(w1, w2, w3, b_0, 0, b_1, 1, b_2, 1, b_3, 0, 0, 0, 0);
+                      // TODO check if ignoring the momentum is correct.
+                      G4(b_0, b_1, b_2, b_3, 0, 0, 0, wn, wm, w_nu_idx) +=
+                          G_tp_int(w1, w2, w3, b_0, 0, b_1, 1, b_2, 1, b_3, 0, 0, 0, 0);
+                    }
                   }
                 }
               }
@@ -491,50 +504,48 @@ void TpGreensFunction<parameters_type, ed_options>::compute_particle_particle_su
         }
       }
     }
-  }
+    {
+      std::cout << "\n";
+      std::cout << 0.0 << "\t\t";
+      for (int wn = 0; wn < w_VERTEX::dmn_size(); wn++)
+        std::cout << w_VERTEX::get_elements()[wn] << "\t";
+      std::cout << "\n\n";
 
-  {
-    std::cout << "\n";
-    std::cout << 0.0 << "\t\t";
-    for (int wn = 0; wn < w_VERTEX::dmn_size(); wn++)
-      std::cout << w_VERTEX::get_elements()[wn] << "\t";
-    std::cout << "\n\n";
+      for (int wn = 0; wn < w_VERTEX::dmn_size(); wn++) {
+        std::cout << w_VERTEX::get_elements()[wn] << "\t\t";
+        for (int wm = 0; wm < w_VERTEX::dmn_size(); wm++)
+          if (abs(real(G4(0, 0, 0, 0, 0, 0, 0, wn, wm, w_nu_idx))) < 1.e-10)
+            std::cout << 0.0 << "\t";
+          else
+            std::cout << real(G4(0, 0, 0, 0, 0, 0, 0, wn, wm, w_nu_idx)) << "\t";
+        std::cout << "\n";
+      }
+      std::cout << "\n";
 
-    for (int wn = 0; wn < w_VERTEX::dmn_size(); wn++) {
-      std::cout << w_VERTEX::get_elements()[wn] << "\t\t";
-      for (int wm = 0; wm < w_VERTEX::dmn_size(); wm++)
-        if (abs(real(G4(0, 0, 0, 0, 0, 0, wn, wm))) < 1.e-10)
-          std::cout << 0.0 << "\t";
-        else
-          std::cout << real(G4(0, 0, 0, 0, 0, 0, wn, wm)) << "\t";
+      std::cout << "\n";
+      std::cout << 0.0 << "\t\t";
+      for (int wn = 0; wn < w_VERTEX::dmn_size(); wn++)
+        std::cout << w_VERTEX::get_elements()[wn] << "\t";
+      std::cout << "\n\n";
+
+      for (int wn = 0; wn < w_VERTEX::dmn_size(); wn++) {
+        std::cout << w_VERTEX::get_elements()[wn] << "\t\t";
+        for (int wm = 0; wm < w_VERTEX::dmn_size(); wm++)
+          if (abs(imag(G4(0, 0, 0, 0, 0, 0, 0, wn, wm, w_nu_idx))) < 1.e-10)
+            std::cout << 0.0 << "\t";
+          else
+            std::cout << imag(G4(0, 0, 0, 0, 0, 0, 0, wn, wm, w_nu_idx)) << "\t";
+        std::cout << "\n";
+      }
       std::cout << "\n";
     }
-    std::cout << "\n";
-
-    std::cout << "\n";
-    std::cout << 0.0 << "\t\t";
-    for (int wn = 0; wn < w_VERTEX::dmn_size(); wn++)
-      std::cout << w_VERTEX::get_elements()[wn] << "\t";
-    std::cout << "\n\n";
-
-    for (int wn = 0; wn < w_VERTEX::dmn_size(); wn++) {
-      std::cout << w_VERTEX::get_elements()[wn] << "\t\t";
-      for (int wm = 0; wm < w_VERTEX::dmn_size(); wm++)
-        if (abs(imag(G4(0, 0, 0, 0, 0, 0, wn, wm))) < 1.e-10)
-          std::cout << 0.0 << "\t";
-        else
-          std::cout << imag(G4(0, 0, 0, 0, 0, 0, wn, wm)) << "\t";
-      std::cout << "\n";
-    }
-    std::cout << "\n";
   }
-
   {
     {
       std::vector<double> x, y;
       for (int wn = 0; wn < w_VERTEX::dmn_size(); wn++) {
         x.push_back(w_VERTEX::get_elements()[wn]);
-        y.push_back(real(G4(0, 0, 0, 0, 0, 0, wn, wn)));
+        y.push_back(real(G4(0, 0, 0, 0, 0, 0, 0, wn, wn, 0)));
       }
 
       util::Plot::plotPoints(x, y);
@@ -633,7 +644,7 @@ value_type TpGreensFunction<parameters_type, ed_options>::Power(value_type x, in
 
 template <typename parameters_type, typename ed_options>
 int TpGreensFunction<parameters_type, ed_options>::has_nonzero_overlap(int HS_i, int HS_j,
-                                                                      bool is_creation, int bsr_ind) {
+                                                                       bool is_creation, int bsr_ind) {
   if (is_creation)
     return creation_set_all(HS_i, HS_j, bsr_ind);
   else
@@ -641,10 +652,8 @@ int TpGreensFunction<parameters_type, ed_options>::has_nonzero_overlap(int HS_i,
 }
 
 template <typename parameters_type, typename ed_options>
-void TpGreensFunction<parameters_type, ed_options>::get_nonzero_overlap(int HS_i, int HS_j,
-                                                                       bool is_creation, int bsr_ind,
-                                                                       matrix_type& matrix,
-                                                                       matrix_type& tmp) {
+void TpGreensFunction<parameters_type, ed_options>::get_nonzero_overlap(
+    int HS_i, int HS_j, bool is_creation, int bsr_ind, matrix_type& matrix, matrix_type& tmp) {
   if (is_creation)
     overlap.compute_creation_matrix_fast(HS_i, HS_j, bsr_ind, matrix, tmp);
   else
@@ -744,9 +753,9 @@ void TpGreensFunction<parameters_type, ed_options>::compute_tp_permutations_pp_c
  */
 template <typename parameters_type, typename ed_options>
 typename TpGreensFunction<parameters_type, ed_options>::complex_type TpGreensFunction<
-    parameters_type, ed_options>::compute_phi_slow(scalar_type E_i, scalar_type E_j, scalar_type E_k,
-                                                  scalar_type E_l, scalar_type w1, scalar_type w2,
-                                                  scalar_type w3) {
+    parameters_type, ed_options>::compute_phi_slow(scalar_type E_i, scalar_type E_j,
+                                                   scalar_type E_k, scalar_type E_l, scalar_type w1,
+                                                   scalar_type w2, scalar_type w3) {
   bool do_regular = true;
   bool do_special = true;
 
@@ -781,7 +790,8 @@ typename TpGreensFunction<parameters_type, ed_options>::complex_type TpGreensFun
     //               (std::exp(-beta*E_i)+std::exp(-beta*E_j))/(I*w1+E_i-E_j)
     //                                          -(std::exp(-beta*E_i)+std::exp(-beta*E_l))/(I*(w1+w2+w3)+E_i-E_l)
     //                                          )
-    //               -(1./(I*w2+E_j-E_k))*( (std::exp(-beta*E_i)+std::exp(-beta*E_j))/(I*w1+E_i-E_j)
+    //               -(1./(I*w2+E_j-E_k))*(
+    //               (std::exp(-beta*E_i)+std::exp(-beta*E_j))/(I*w1+E_i-E_j)
     //                                 -(std::exp(-beta*E_i)-std::exp(-beta*E_k))/(I*(w1+w2)+E_i-E_k)
     //                                     )
     //               );

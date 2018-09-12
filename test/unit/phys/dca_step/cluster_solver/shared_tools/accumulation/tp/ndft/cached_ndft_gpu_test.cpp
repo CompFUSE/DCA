@@ -19,13 +19,12 @@
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/util/util_cublas.hpp"
 #include "dca/profiling/events/time.hpp"
-#include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/accumulation_test.hpp"
+#include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/single_sector_accumulation_test.hpp"
 
 constexpr int n_bands = 2;
 constexpr int n_sites = 3;
-constexpr int n_samples = 31;
 constexpr int n_frqs = 7;
-using CachedNdftGpuTest = dca::testing::AccumulationTest<n_bands, n_sites, n_samples, n_frqs>;
+using CachedNdftGpuTest = dca::testing::SingleSectorAccumulationTest<n_bands, n_sites, n_frqs>;
 
 double computeWithFastNDFT(const CachedNdftGpuTest::Configuration& config,
                            const CachedNdftGpuTest::Matrix& M, CachedNdftGpuTest::F_w_w& f_w);
@@ -33,6 +32,9 @@ double computeWithFastNDFT(const CachedNdftGpuTest::Configuration& config,
 // Compare the result provided by the GPU version of CachedNdft::execute with the definition of the
 // NDFT f(w1, w2) = \sum_{t1, t2} f(t1, t2) exp(i * t1 * w1 - t2 w2) stored in f_baseline_.
 TEST_F(CachedNdftGpuTest, Execute) {
+  constexpr int n_samples = 31;
+  prepareConfiguration(configuration_, M_, n_samples);
+
   F_w_w f_w_fast("f_w_fast");
 
   // Compute the NDFT with the CachedNdft class and rearrange the result with the same order as
