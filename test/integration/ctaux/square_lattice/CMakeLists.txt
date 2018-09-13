@@ -1,2 +1,0 @@
-add_subdirectory(Nc4_nn)
-add_subdirectory(Nc4_onSite_plus_nn)

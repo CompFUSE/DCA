@@ -1,0 +1,62 @@
+{
+    "output": {
+        "directory": "./",
+        "output-format": "HDF5",
+        "filename-ed": "ed.hdf5",
+        "filename-qmc": "qmc.hdf5",
+        "dump-cluster-Greens-functions": true
+    },
+
+    "physics": {
+        "beta": 2.,
+        "density": 1.0,
+        "chemical-potential": 0.
+    },
+
+    "bilayer-Hubbard-model": {
+        "t": 1.,
+        "t-perp": 1.,
+        "U": 4.,
+        "V": 0.1,
+        "V-prime": 0.1
+    },
+
+    "DCA": {
+        "iterations": 1,
+        "self-energy-mixing-factor": 1.,
+        "interacting-orbitals": [0, 1]
+    },
+
+    "domains": {
+        "real-space-grids": {
+            "cluster": [[1, 0],
+                        [0, 1]]
+        },
+
+        "imaginary-time": {
+            "sp-time-intervals": 512
+        },
+
+        "imaginary-frequency": {
+            "sp-fermionic-frequencies": 512
+        }
+    },
+
+    "Monte-Carlo-integration": {
+        "seed": 985456376,
+        "warm-up-sweeps": 10,
+        "sweeps-per-measurement": 20,
+        "measurements": 40000
+    },
+
+    "CT-AUX": {
+        "expansion-parameter-K": 10.,
+        "initial-configuration-size": 10,
+        "initial-matrix-size": 64,
+        "max-submatrix-size": 1
+    },
+
+    "ED": {
+        "eigenvalue-cut-off": 1.e-6
+    }
+}

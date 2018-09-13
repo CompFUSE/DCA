@@ -1,2 +1,0 @@
-add_subdirectory(bilayer_lattice)
-add_subdirectory(square_lattice)

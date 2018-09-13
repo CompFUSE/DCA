@@ -4,11 +4,12 @@
         "warm-up-sweeps": 40,
         "sweeps-per-measurement": 4.,
         "measurements": 200,
+        "error-computation-type" : "JACK_KNIFE",
 
         "threaded-solver": {
             "walkers": 3,
             "accumulators": 5,
-            "additional-steps": 1
+            "shared-walk-and-accumulation-thread": true
         }
     }
 }
