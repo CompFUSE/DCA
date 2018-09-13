@@ -18,7 +18,7 @@
     },
 
     "DCA": {
-        "initial-self-energy": "zero",
+        "initial-self-energy": "initial_sigma.hdf5",
         "iterations": 3,
         "self-energy-mixing-factor": 0.75,
         "interacting-orbitals": [0],
