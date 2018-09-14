@@ -298,7 +298,7 @@ double SsCtHybClusterSolver<device_t, parameters_type, Data>::finalize(
 
   dca_info_struct.average_expansion_order(DCA_iteration) = integral / total;
 
-  dca_info_struct.sign(DCA_iteration) = accumulator.get_sign();
+  dca_info_struct.sign(DCA_iteration) = accumulator.get_average_sign();
 
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t SS CT-HYB Integrator has finalized \n" << std::endl;
@@ -362,7 +362,7 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::compute_error_bars()
     std::cout << "\n\t\t computing the error-bars" << std::endl;
 
   const int nb_measurements = accumulator.get_number_of_measurements();
-  double sign = accumulator.get_sign() / double(nb_measurements);
+  double sign = accumulator.get_accumulated_sign() / double(nb_measurements);
 
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, RClusterDmn, w>> G_r_w(
       "G_r_w_tmp");
@@ -388,15 +388,16 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::collect_measurements
   const int nb_measurements = accumulator.get_number_of_measurements();
 
   // sum the sign
-  concurrency.sum_and_average(accumulator.get_sign(), nb_measurements);
+  double accumulated_sign = accumulator.get_accumulated_sign();
+  concurrency.sum_and_average(accumulated_sign);
 
   // sum G_r_w
-  concurrency.sum_and_average(accumulator.get_G_r_w(), nb_measurements);
-  accumulator.get_G_r_w() /= accumulator.get_sign();
+  concurrency.sum_and_average(accumulator.get_G_r_w());
+  accumulator.get_G_r_w() /= accumulated_sign;
 
   // sum GS_r_w
-  concurrency.sum_and_average(accumulator.get_GS_r_w(), nb_measurements);
-  accumulator.get_GS_r_w() /= accumulator.get_sign();
+  concurrency.sum_and_average(accumulator.get_GS_r_w());
+  accumulator.get_GS_r_w() /= accumulated_sign;
 
   concurrency.sum(accumulator.get_visited_expansion_order_k());
   averaged_ = true;
@@ -562,7 +563,7 @@ auto SsCtHybClusterSolver<device_t, parameters_type, Data>::local_GS_r_w() const
     throw std::logic_error("The local data was already averaged.");
 
   auto GS_r_w = accumulator.get_GS_r_w();
-  GS_r_w /= accumulator.get_sign();
+  GS_r_w /= accumulator.get_accumulated_sign();
 
   return GS_r_w;
 }

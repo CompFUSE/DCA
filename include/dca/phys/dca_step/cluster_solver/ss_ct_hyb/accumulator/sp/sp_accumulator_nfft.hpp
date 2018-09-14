@@ -68,6 +68,8 @@ public:
 
   using p_dmn_t = func::dmn_variadic<nu, nu, r_dmn_t>;
 
+  void sumTo(SpAccumulatorNfft<parameters_type, base_cluster_type>& other) const;
+
 public:
   SpAccumulatorNfft(parameters_type& parameters_ref);
 
@@ -244,6 +246,13 @@ double SpAccumulatorNfft<parameters_type, base_cluster_type>::compute_U_times_n_
   }
 
   return U_times_n;
+}
+
+template <class parameters_type, class base_cluster_type>
+void SpAccumulatorNfft<parameters_type, base_cluster_type>::sumTo(
+    SpAccumulatorNfft<parameters_type, base_cluster_type>& other) const {
+  other.cached_nfft_1D_G_obj += cached_nfft_1D_G_obj;
+  other.cached_nfft_1D_GS_obj += cached_nfft_1D_GS_obj;
 }
 
 }  // cthyb

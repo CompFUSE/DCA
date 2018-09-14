@@ -23,18 +23,16 @@ public:
     return GFLOP;
   }
 
-  double get_sign() const {
-    return accumulated_sign;
-  }
-  double& get_sign() {
+  int get_accumulated_sign() const {
     return accumulated_sign;
   }
 
   double get_number_of_measurements() const {
     return number_of_measurements;
   }
-  double& get_number_of_measurements() {
-    return number_of_measurements;
+
+  double get_average_sign() const {
+    return static_cast<double>(accumulated_sign) / static_cast<double>(number_of_measurements);
   }
 
   void initialize(int dca_iteration) {
@@ -53,10 +51,10 @@ protected:
 
   double GFLOP;
 
-  double current_sign;
-  double accumulated_sign;
+  int current_sign;
+  int accumulated_sign;
 
-  double number_of_measurements;
+  int number_of_measurements;
 };
 
 }  // solver

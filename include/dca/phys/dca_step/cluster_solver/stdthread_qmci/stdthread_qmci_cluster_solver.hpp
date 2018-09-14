@@ -194,6 +194,8 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::integrate() {
               << "\n\nTotal number of measurements: " << parameters.get_measurements()
               << "\nQMC-time\t" << total_time << std::endl;
   }
+
+  qmci_integrator_type::accumulator.finalize();
 }
 
 template <class qmci_integrator_type>
