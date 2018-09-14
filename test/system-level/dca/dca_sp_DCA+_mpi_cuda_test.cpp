@@ -11,8 +11,6 @@
 // CT-AUX cluster solver.
 // The test simulates the tight-binding model on a 2D square lattice.
 
-#define DCA_WITH_REDUCED_VERTEX_FUNCTION
-
 #include <iostream>
 #include <string>
 

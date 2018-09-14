@@ -10,8 +10,6 @@
 // No-change test for CT-AUX.
 // Square lattice with only nearest-neighbor interaction.
 
-#define DCA_WITH_REDUCED_VERTEX_FUNCTION
-
 #include <complex>
 #include <iostream>
 #include <string>
