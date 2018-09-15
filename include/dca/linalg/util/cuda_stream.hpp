@@ -34,7 +34,8 @@ public:
   }
 
   ~CudaStream() {
-    cudaStreamDestroy(stream_);
+    if (stream_)
+      cudaStreamDestroy(stream_);
   }
 
   operator cudaStream_t() const {
