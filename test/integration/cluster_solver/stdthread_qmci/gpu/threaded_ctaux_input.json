@@ -24,24 +24,17 @@
     },
 
     "imaginary-time": {
-      "sp-time-intervals": 256
+      "sp-time-intervals": 512
     },
 
     "imaginary-frequency": {
-      "sp-fermionic-frequencies": 256,
-      "four-point-fermionic-frequencies": 8
+      "sp-fermionic-frequencies": 512
     }
-  },
-
-  "four-point": {
-    "type": "PARTICLE_PARTICLE_UP_DOWN",
-    "momentum-transfer": [3.1415, 3.1415],
-    "frequency-transfer": -1
   },
 
 
   "CT-AUX" : {
-    "expansion-parameter-K": 1.,
+    "expansion-parameter-K": 5.,
     "initial-configuration-size": 8,
     "max-submatrix-size": 4
   },
@@ -56,13 +49,24 @@
   {
     "warm-up-sweeps"         : 100,
     "sweeps-per-measurement" : 1,
-    "measurements"  : 900,
+    "measurements"  : 4000,
 
     "threaded-solver" : {
       "walkers": 1,
-      "accumulators": 3
+      "accumulators": 4,
+      "shared-walk-and-accumulation-thread": false
     },
 
     "seed" : 0
   }
 }
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,78 @@
+{
+  "output" :
+  {
+    "output-format"         : "HDF5",
+    "output-ED"  : "ed_results.hdf5",
+    "output-QMC" : "ctint_results.hdf5"
+  },
+
+  "physics": {
+    "beta"                      :  2,
+    "chemical-potential"        : 0
+  },
+
+  "single-band-Hubbard-model":
+  {
+    "t"       : 1,
+    "U"       : 5
+  },
+
+  "domains": {
+    "real-space-grids": {
+      "cluster": [[2, 0],
+        [0, 2]]
+    },
+
+    "imaginary-time": {
+      "sp-time-intervals": 512
+    },
+
+    "imaginary-frequency": {
+      "sp-fermionic-frequencies": 512,
+      "four-point-fermionic-frequencies": 8
+    }
+  },
+
+  "four-point": {
+    "type": "PARTICLE_PARTICLE_UP_DOWN",
+    "momentum-transfer": [0, 3.1415],
+    "frequency-transfer": -1
+  },
+
+  "CT-AUX" : {
+    "expansion-parameter-K": 5.,
+    "initial-configuration-size": 8,
+    "max-submatrix-size": 4
+  },
+
+  "DCA": {
+    "iterations": 1,
+    "self-energy-mixing-factor": 1.,
+    "interacting-orbitals": [0]
+  },
+
+  "Monte-Carlo-integration" :
+  {
+    "warm-up-sweeps"         : 100,
+    "sweeps-per-measurement" : 1,
+    "measurements"  : 400,
+
+    "threaded-solver" : {
+      "walkers": 1,
+      "accumulators": 3,
+      "shared-walk-and-accumulation-thread": false
+    },
+
+    "seed" : 0
+  }
+}
+
+
+
+
+
+
+
+
+
+
