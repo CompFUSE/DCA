@@ -51,13 +51,11 @@ TEST(VectorCPUGPUTest, Constructors) {
   }
 
   dca::linalg::Vector<float, dca::linalg::GPU> vec_copy(vec);
-  ASSERT_EQ(vec.get_name(), vec_copy.get_name());
   ASSERT_EQ(vec.size(), vec_copy.size());
   ASSERT_LE(vec.size(), vec_copy.capacity());
   ASSERT_TRUE(testing::isDevicePointer(vec_copy.ptr()));
 
   dca::linalg::Vector<float, dca::linalg::CPU> vec_copy_copy(vec_copy);
-  EXPECT_EQ(vec.get_name(), vec_copy_copy.get_name());
   EXPECT_EQ(vec.size(), vec_copy_copy.size());
   EXPECT_LE(vec.size(), vec_copy_copy.capacity());
   EXPECT_TRUE(testing::isHostPointer(vec_copy_copy.ptr()));

@@ -40,7 +40,6 @@
 #include "dca/linalg/lapack/multiply_diagonal_gpu.hpp"
 
 #include "dca/linalg/device_type.hpp"
-#include "dca/linalg/util/memory.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/walker/ct_aux_walker_tools_kernels.hpp"
 #endif
 

@@ -22,7 +22,7 @@
 #include <cuda_runtime.h>
 
 #include "dca/linalg/matrix.hpp"
-#include "dca/linalg/util/allocators.hpp"
+#include "dca/linalg/util/allocators/vectors_typedefs.hpp"
 #include "dca/linalg/util/cuda_event.hpp"
 #include "dca/linalg/vector.hpp"
 #include "dca/math/nfft/kernels_interface.hpp"

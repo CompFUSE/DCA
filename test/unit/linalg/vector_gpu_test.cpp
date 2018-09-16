@@ -89,7 +89,6 @@ TEST(VectorGPUTest, CopyConstructor) {
   }
 
   dca::linalg::Vector<float, dca::linalg::GPU> vec_copy(vec);
-  EXPECT_EQ(vec.get_name(), vec_copy.get_name());
   EXPECT_EQ(vec.size(), vec_copy.size());
   EXPECT_LE(vec.size(), vec_copy.capacity());
 
