@@ -96,10 +96,17 @@ public:
   template <class Container>
   void set(const Container& rhs, int thread_id, int stream_id);
 
+  // Synchronous copy. Container must define a data() and size() methods.
+  // Precondition: rhs has the same size as this Vector.
+  template <class Container>
+  void copyTo(Container& rhs) const;
+
 #ifdef DCA_HAVE_CUDA
   // Asynchronous assignment.
   template <class Container>
   void setAsync(const Container& rhs, cudaStream_t stream);
+
+  void setToZeroAsync(cudaStream_t stream);
 #endif  // DCA_HAVE_CUDA
   template <class Container>
   void setAsync(const Container& rhs, int thred_id, int stream_id = 0);
@@ -268,6 +275,14 @@ void Vector<ScalarType, device_name, Allocator>::set(const Container& rhs, int t
   util::memoryCopy(data_, rhs.data(), size_, thread_id, stream_id);
 }
 
+template <typename ScalarType, DeviceType device_name, class Allocator>
+template <class Container>
+void Vector<ScalarType, device_name, Allocator>::copyTo(Container& rhs) const {
+  if (rhs.size() != size())
+    throw(std::logic_error("The size of the destination container is different."));
+  util::memoryCopy(rhs.data(), data_, size_);
+}
+
 #ifdef DCA_HAVE_CUDA
 template <typename ScalarType, DeviceType device_name, class Allocator>
 template <class Container>
@@ -275,6 +290,11 @@ void Vector<ScalarType, device_name, Allocator>::setAsync(const Container& rhs,
                                                           const cudaStream_t stream) {
   resizeNoCopy(rhs.size());
   util::memoryCopyAsync(data_, rhs.data(), size_, stream);
+}
+
+template <typename ScalarType, DeviceType device_name, class Allocator>
+void Vector<ScalarType, device_name, Allocator>::setToZeroAsync(cudaStream_t stream) {
+  cudaMemsetAsync(data_, 0, size_ * sizeof(ScalarType), stream);
 }
 #endif  // DCA_HAVE_CUDA
 

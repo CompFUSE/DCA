@@ -113,6 +113,12 @@ public:
   const scalartype* values() const {
     return fnc_values;
   }
+  scalartype* data() {
+    return fnc_values;
+  }
+  const scalartype* data() const {
+    return fnc_values;
+  }
 
   //
   // Methods for index conversion
