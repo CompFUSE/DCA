@@ -59,8 +59,8 @@ public:
 
   ThisType& operator=(const ThisType& rhs);
 
-  template <class Container>
-  ThisType& operator=(const Container& rhs);
+  template <DeviceType device_name2, class Allocator2>
+  ThisType& operator=(const Vector<ScalarType, device_name2, Allocator2>& rhs);
 
   template <DeviceType device_name2, class Allocator2>
   ThisType& operator=(Vector<ScalarType, device_name2, Allocator2>&& rhs);
@@ -86,10 +86,6 @@ public:
   void set_name(const std::string& name) {
     name_ = name;
   }
-
-  // Synchronous assignment. Container must define a data() and size() methods.
-  template <class Container>
-  void set(const Container& rhs);
 
   // Asynchronous assignment (copy with stream = getStream(thread_id, stream_id))
   // + synchronization of stream.
@@ -237,21 +233,25 @@ Vector<ScalarType, device_name, Allocator>::~Vector() {
 template <typename ScalarType, DeviceType device_name, class Allocator>
 Vector<ScalarType, device_name, Allocator>& Vector<ScalarType, device_name, Allocator>::operator=(
     const ThisType& rhs) {
-  if (device_name == CPU) {
-    resizeNoCopy(rhs.size());
-    util::memoryCopyCpu(data_, rhs.data(), size_);
-  }
+  resizeNoCopy(rhs.size());
+  if (device_name == CPU)
+    util::memoryCopyCpu(data_, rhs.data_, size_);
   else
-    set(rhs);
+    util::memoryCopy(data_, rhs.data_, size_);
 
   return *this;
 }
 
 template <typename ScalarType, DeviceType device_name, class Allocator>
-template <class Container>
+template <DeviceType device_name2, class Allocator2>
 Vector<ScalarType, device_name, Allocator>& Vector<ScalarType, device_name, Allocator>::operator=(
-    const Container& rhs) {
-  set(rhs);
+    const Vector<ScalarType, device_name2, Allocator2>& rhs) {
+  resizeNoCopy(rhs.size());
+  if (device_name == CPU && device_name2 == CPU)
+    util::memoryCopyCpu(data_, rhs.data_, size_);
+  else
+    util::memoryCopy(data_, rhs.data_, size_);
+
   return *this;
 }
 
@@ -264,13 +264,6 @@ Vector<ScalarType, device_name, Allocator>& Vector<ScalarType, device_name, Allo
   std::swap(capacity_, rhs.capacity_);
 
   return *this;
-}
-
-template <typename ScalarType, DeviceType device_name, class Allocator>
-template <class Container>
-void Vector<ScalarType, device_name, Allocator>::set(const Container& rhs) {
-  resizeNoCopy(rhs.size());
-  util::memoryCopy(data_, rhs.data(), size_);
 }
 
 template <typename ScalarType, DeviceType device_name, class Allocator>
