@@ -237,7 +237,13 @@ Vector<ScalarType, device_name, Allocator>::~Vector() {
 template <typename ScalarType, DeviceType device_name, class Allocator>
 Vector<ScalarType, device_name, Allocator>& Vector<ScalarType, device_name, Allocator>::operator=(
     const ThisType& rhs) {
-  set(rhs);
+  if (device_name == CPU) {
+    resizeNoCopy(rhs.size());
+    util::memoryCopyCpu(data_, rhs.data(), size_);
+  }
+  else
+    set(rhs);
+
   return *this;
 }
 
