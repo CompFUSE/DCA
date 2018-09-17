@@ -6,6 +6,7 @@
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Raffaele Solca' (rasolca@itp.phys.ethz.ch)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // This file provides memory copy utilities.
 
@@ -20,6 +21,7 @@
 #ifdef DCA_HAVE_CUDA
 #include <cuda_runtime.h>
 #include "dca/linalg/util/error_cuda.hpp"
+#include "dca/linalg/util/pointer_location.hpp"
 #include "dca/linalg/util/stream_functions.hpp"
 #endif
 
@@ -34,8 +36,13 @@ namespace util {
 // The host continues the execution of the program when the copy is terminated.
 template <typename ScalarType>
 void memoryCopy(ScalarType* dest, const ScalarType* src, size_t size) {
-  cudaError_t ret = cudaMemcpy(dest, src, size * sizeof(ScalarType), cudaMemcpyDefault);
-  checkRC(ret);
+  if (pointerLocation(dest) == GPU || pointerLocation(src) == GPU) {
+    cudaError_t ret = cudaMemcpy(dest, src, size * sizeof(ScalarType), cudaMemcpyDefault);
+    checkRC(ret);
+  }
+  else {
+    std::memcpy(dest, src, size * sizeof(ScalarType));
+  }
 }
 
 // Fully synchronous 2D memory copy, i.e. all operations in the GPU queue are executed before the
@@ -45,9 +52,16 @@ void memoryCopy(ScalarType* dest, const ScalarType* src, size_t size) {
 template <typename ScalarType>
 void memoryCopy(ScalarType* dest, int ld_dest, const ScalarType* src, int ld_src,
                 std::pair<int, int> size) {
-  cudaError_t ret = cudaMemcpy2D(dest, ld_dest * sizeof(ScalarType), src, ld_src * sizeof(ScalarType),
-                                 size.first * sizeof(ScalarType), size.second, cudaMemcpyDefault);
-  checkRC(ret);
+  if (pointerLocation(dest) == GPU || pointerLocation(src) == GPU) {
+    cudaError_t ret =
+        cudaMemcpy2D(dest, ld_dest * sizeof(ScalarType), src, ld_src * sizeof(ScalarType),
+                     size.first * sizeof(ScalarType), size.second, cudaMemcpyDefault);
+    checkRC(ret);
+  }
+  else {
+    for (int j = 0; j < size.second; ++j)
+      std::memcpy(dest + j * ld_dest, src + j * ld_src, size.first * sizeof(ScalarType));
+  }
 }
 
 // Asynchronous 1D memory copy.
