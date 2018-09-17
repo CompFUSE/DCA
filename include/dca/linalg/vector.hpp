@@ -159,6 +159,9 @@ public:
   // Prints the properties of *this.
   void printFingerprint() const;
 
+protected:
+  Allocator allocator_;
+
 private:
   std::string name_;
 
@@ -166,8 +169,6 @@ private:
   size_t capacity_;
 
   ValueType* data_;
-
-  Allocator allocator_;
 
   template <typename ScalarType2, DeviceType device_name2, class Allocator2>
   friend class dca::linalg::Vector;

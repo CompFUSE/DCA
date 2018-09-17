@@ -27,6 +27,7 @@
 #include "dca/parallel/util/call_once_per_loop.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/kernels_interface.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_gpu.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/vector_managed_fallback.hpp"
 
 namespace dca {
 namespace phys {
@@ -146,7 +147,7 @@ private:
 
   using G0DevType = std::array<MatrixDev, 2>;
   static inline G0DevType& get_G0();
-  using G4DevType = linalg::Vector<Complex, linalg::GPU>;
+  using G4DevType = VectorManagedFallback<Complex>;
   static inline G4DevType& get_G4();
 };
 
@@ -305,6 +306,9 @@ void TpAccumulator<Parameters, linalg::GPU>::updateG4() {
 
   const int nw_exchange = domains::FrequencyExchangeDomain::get_size();
   const int nk_exchange = domains::MomentumExchangeDomain::get_size();
+
+  //  TODO: set stream only if this thread gets exclusive access to G4.
+  //  get_G4().setStream(streams_[0]);
 
   switch (mode_) {
     case PARTICLE_HOLE_MAGNETIC:
