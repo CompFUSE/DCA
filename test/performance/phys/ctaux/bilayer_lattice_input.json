@@ -1,0 +1,44 @@
+{
+  "physics": {
+    "beta"                      :  4,
+    "chemical-potential"        : 0
+  },
+
+  "bilayer-Hubbard-model" :
+  {
+    "t"       : 1,
+    "tz"      : 0,
+    "U" : 4,
+    "V" : 4,
+    "V-prime" : 4
+  },
+
+  "CT-AUX" :
+  {
+    "expansion-parameter-K": 1.,
+    "initial-configuration-size" :1000,
+    "max-submatrix-size" : 128
+  },
+
+"domains": {
+  "real-space-grids": {
+    "cluster": [[6, 0],
+      [0, 6]]
+  },
+  "imaginary-time": {
+    "sp-time-intervals": 512
+  },
+  "imaginary-frequency": {
+    "sp-fermionic-frequencies": 512
+  }
+},
+
+  "DCA" : {
+    "interacting-orbitals" : [0,1]
+  },
+
+  "Monte-Carlo-integration" :
+  {
+    "warm-up-sweeps"         : 100
+  }
+}
