@@ -441,6 +441,7 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::initialize() {
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void CtauxWalker<device_t, parameters_type, MOMS_type>::do_sweep() {
+  profiler_type profiler("do_sweep", "CT-AUX walker", __LINE__, thread_id);
   const double sweeps_per_measurement{thermalized ? parameters.get_sweeps_per_measurement() : 1.};
 
   // Do at least one single spin update per sweep.
@@ -494,13 +495,15 @@ template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_ty
 template <dca::linalg::DeviceType dev_t>
 std::enable_if_t<dev_t == device_t && device_t != dca::linalg::CPU, void> CtauxWalker<
     device_t, parameters_type, MOMS_type>::download_from_device() {
-  profiler_type profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
+  //  profiler_type profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
 
   read_Gamma_matrices(e_UP);
   read_Gamma_matrices(e_DN);
 
-  Gamma_up_CPU.set(Gamma_up, thread_id, stream_id);
-  Gamma_dn_CPU.set(Gamma_dn, thread_id, stream_id);
+  Gamma_up_CPU.setAsync(Gamma_up, thread_id, stream_id);
+  Gamma_dn_CPU.setAsync(Gamma_dn, thread_id, stream_id);
+
+  linalg::util::syncStream(thread_id, stream_id);
 }
 
 // In case Gamma_up and Gamma_down reside in the CPU memory, avoid the copies using swap.
@@ -508,7 +511,7 @@ template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_ty
 template <dca::linalg::DeviceType dev_t>
 std::enable_if_t<dev_t == device_t && device_t == dca::linalg::CPU, void> CtauxWalker<
     device_t, parameters_type, MOMS_type>::download_from_device() {
-  profiler_type profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
+  //  profiler_type profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
 
   assert(Gamma_up_CPU.capacity() == Gamma_up.capacity());
   assert(Gamma_dn_CPU.capacity() == Gamma_dn.capacity());
@@ -525,10 +528,10 @@ template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_ty
 template <dca::linalg::DeviceType dev_t>
 std::enable_if_t<dev_t == device_t && device_t != dca::linalg::CPU, void> CtauxWalker<
     device_t, parameters_type, MOMS_type>::upload_to_device() {
-  profiler_type profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
+  //  profiler_type profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
 
-  Gamma_up.set(Gamma_up_CPU, thread_id, stream_id);
-  Gamma_dn.set(Gamma_dn_CPU, thread_id, stream_id);
+  Gamma_up.setAsync(Gamma_up_CPU, thread_id, stream_id);
+  Gamma_dn.setAsync(Gamma_dn_CPU, thread_id, stream_id);
 }
 
 // In case Gamma_up and Gamma_down reside in the CPU memory, avoid the copies using swap.
@@ -556,7 +559,7 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::add_non_interacting_spin
   configuration.shuffle_noninteracting_vertices();
 
   {  // update G0 for new shuffled vertices
-    profiler_type profiler("G0-matrix (update)", "CT-AUX walker", __LINE__, thread_id);
+     // profiler_type profiler("G0-matrix (update)", "CT-AUX walker", __LINE__, thread_id);
 
     G0_tools_obj.update_G0_matrix(configuration, G0_up, e_UP);
     G0_tools_obj.update_G0_matrix(configuration, G0_dn, e_DN);
@@ -578,7 +581,7 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::add_non_interacting_spin
   */
 
   {  // update N for new shuffled vertices
-    profiler_type profiler("N-matrix (update)", "CT-AUX walker", __LINE__, thread_id);
+     // profiler_type profiler("N-matrix (update)", "CT-AUX walker", __LINE__, thread_id);
 
     N_tools_obj.update_N_matrix(configuration, G0_up, N_up, e_UP);
     N_tools_obj.update_N_matrix(configuration, G0_dn, N_dn, e_DN);
@@ -600,7 +603,7 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::add_non_interacting_spin
   */
 
   {  // update N for new shuffled vertices
-    profiler_type profiler("G-matrix (update)", "CT-AUX walker", __LINE__, thread_id);
+     // profiler_type profiler("G-matrix (update)", "CT-AUX walker", __LINE__, thread_id);
 
     G_tools_obj.build_G_matrix(configuration, N_up, G0_up, G_up, e_UP);
     G_tools_obj.build_G_matrix(configuration, N_dn, G0_dn, G_dn, e_DN);
@@ -634,7 +637,7 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::add_non_interacting_spin
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void CtauxWalker<device_t, parameters_type, MOMS_type>::generate_delayed_spins(
     int& single_spin_updates_todo) {
-  profiler_type profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
+  // profiler_type profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
 
   assert(single_spin_updates_todo > 0);
 
@@ -958,7 +961,7 @@ template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_ty
 void CtauxWalker<device_t, parameters_type, MOMS_type>::compute_Gamma_matrices() {
   // std::cout << __FUNCTION__ << "\n";
 
-  profiler_type profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
+  // profiler_type profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
 
   bennett_spins.resize(0);
 
@@ -1390,7 +1393,7 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::apply_bennett_on_Gamma_m
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void CtauxWalker<device_t, parameters_type, MOMS_type>::update_N_matrix_with_Gamma_matrix() {
-  profiler_type profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
+  //  profiler_type profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
 
   // kills Bennett-spins and puts the interacting vertices all in the left part of the configuration
   SHRINK_TOOLS<device_t>::shrink_Gamma(configuration, Gamma_up, Gamma_dn);
@@ -1403,7 +1406,7 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::update_N_matrix_with_Gam
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void CtauxWalker<device_t, parameters_type, MOMS_type>::clean_up_the_configuration() {
-  profiler_type profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
+  //  profiler_type profiler(__FUNCTION__, "CT-AUX walker", __LINE__, thread_id);
 
   SHRINK_tools_obj.reorganize_configuration_test(configuration, N_up, N_dn, G0_up, G0_dn);
 
