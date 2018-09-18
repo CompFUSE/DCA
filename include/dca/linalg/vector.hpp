@@ -92,6 +92,8 @@ public:
   void setAsync(const std::vector<ScalarType, Allocator>& rhs, cudaStream_t stream);
   template <DeviceType rhs_device>
   void setAsync(const Vector<ScalarType, rhs_device>& rhs, cudaStream_t stream);
+  template <class Container>
+  void setAsync(const Container& rhs, int thred_id, int stream_id = 0);
 #endif  // DCA_HAVE_CUDA
 
   // Returns the pointer to the 0-th element of the vector.
@@ -251,6 +253,13 @@ void Vector<ScalarType, device_name>::setAsync(const Vector<ScalarType, rhs_devi
                                                const cudaStream_t stream) {
   resizeNoCopy(rhs.size());
   util::memoryCopyAsync(data_, rhs.ptr(), size_, stream);
+}
+
+template <typename ScalarType, DeviceType device_name>
+template <class Container>
+void Vector<ScalarType, device_name>::setAsync(const Container& rhs, const int thread_id,
+                                               const int stream_id) {
+  setAsync(rhs, util::getStream(thread_id, stream_id));
 }
 #endif  // DCA_HAVE_CUDA
 

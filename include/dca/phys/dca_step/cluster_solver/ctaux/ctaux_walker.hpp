@@ -936,9 +936,9 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::read_Gamma_matrices(e_sp
       }
     }
 
-    vertex_indixes.set(vertex_indixes_CPU, thread_id, stream_id);
-    exp_V.set(exp_V_CPU, thread_id, stream_id);
-    exp_delta_V.set(exp_delta_V_CPU, thread_id, stream_id);
+    vertex_indixes.setAsync(vertex_indixes_CPU, thread_id, stream_id);
+    exp_V.setAsync(exp_V_CPU, thread_id, stream_id);
+    exp_delta_V.setAsync(exp_delta_V_CPU, thread_id, stream_id);
   }
 
   switch (e_spin) {

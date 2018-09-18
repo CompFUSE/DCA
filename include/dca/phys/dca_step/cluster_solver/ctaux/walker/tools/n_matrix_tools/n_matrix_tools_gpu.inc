@@ -92,13 +92,13 @@ int* N_MATRIX_TOOLS<dca::linalg::GPU, parameters_type>::get_permutation() {
 
 template <typename parameters_type>
 void N_MATRIX_TOOLS<dca::linalg::GPU, parameters_type>::set_permutation(std::vector<int>& p) {
-  permutation.setAsync(p, linalg::util::getStream(thread_id, stream_id));
+  permutation.setAsync(p, thread_id, stream_id);
 }
 
 template <typename parameters_type>
 void N_MATRIX_TOOLS<dca::linalg::GPU, parameters_type>::set_d_vector(
     dca::linalg::Vector<double, dca::linalg::CPU>& d_inv) {
-  d_vec.set(d_inv, thread_id, stream_id);
+  d_vec.setAsync(d_inv, thread_id, stream_id);
 }
 
 template <typename parameters_type>
@@ -112,7 +112,7 @@ void N_MATRIX_TOOLS<dca::linalg::GPU, parameters_type>::scale_rows(
 template <typename parameters_type>
 double* N_MATRIX_TOOLS<dca::linalg::GPU, parameters_type>::get_device_ptr(
     dca::linalg::Vector<double, dca::linalg::CPU>& v) {
-  tmp.set(v, thread_id, stream_id);
+  tmp.setAsync(v, thread_id, stream_id);
 
   return tmp.ptr();
 }
