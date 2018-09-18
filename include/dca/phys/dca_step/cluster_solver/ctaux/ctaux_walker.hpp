@@ -63,7 +63,7 @@ public:
 
   // Does one sweep, if the walker is not yet thermalized (warm-up).
   // Otherwise, does multiple sweeps according to the input parameter "sweeps-per-measurement".
-  void do_sweep();
+  void doSweep();
 
   // Does one submatrix step of at most single_spin_updates_todo single spin updates.
   // Precondition: single_spin_updates_todo > 0
@@ -87,7 +87,7 @@ public:
   // to stdout.
   // TODO: Before this method can be made const, CT_AUX_HS_configuration and vertex_pair need to be
   //       made const correct.
-  void update_shell(const int done, const int total) /*const*/;
+  void updateShell(const int done, const int total) /*const*/;
 
   // Writes a summary of the walker's Markov chain updates and visited configurations to stdout.
   void printSummary() const;
@@ -440,7 +440,7 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::initialize() {
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void CtauxWalker<device_t, parameters_type, MOMS_type>::do_sweep() {
+void CtauxWalker<device_t, parameters_type, MOMS_type>::doSweep() {
   profiler_type profiler("do_sweep", "CT-AUX walker", __LINE__, thread_id);
   const double sweeps_per_measurement{thermalized ? parameters.get_sweeps_per_measurement() : 1.};
 
@@ -1524,7 +1524,7 @@ bool CtauxWalker<device_t, parameters_type, MOMS_type>::assert_exp_delta_V_value
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-void CtauxWalker<device_t, parameters_type, MOMS_type>::update_shell(const int done, const int total) {
+void CtauxWalker<device_t, parameters_type, MOMS_type>::updateShell(const int done, const int total) {
   if (concurrency.id() == concurrency.first() && total > 10 && (done % (total / 10)) == 0) {
     std::cout.unsetf(std::ios_base::floatfield);
 

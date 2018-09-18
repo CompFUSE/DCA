@@ -33,31 +33,23 @@ namespace phys {
 namespace solver {
 // dca::phys::solver::
 
-template <class qmci_integrator_type>
-class StdThreadQmciClusterSolver : public qmci_integrator_type {
-  using ThisType = StdThreadQmciClusterSolver<qmci_integrator_type>;
+template <class QmciSolver>
+class StdThreadQmciClusterSolver : public QmciSolver {
+  using BaseClass = QmciSolver;
+  using ThisType = StdThreadQmciClusterSolver<BaseClass>;
 
-  using Data = typename qmci_integrator_type::DataType;
-  typedef typename qmci_integrator_type::this_parameters_type parameters_type;
+  using Data = typename BaseClass::DataType;
+  using Parameters = typename BaseClass::ParametersType;
+  using typename BaseClass::Concurrency;
+  using typename BaseClass::Profiler;
+  using typename BaseClass::Rng;
 
-  typedef typename parameters_type::profiler_type profiler_type;
-  typedef typename parameters_type::concurrency_type concurrency_type;
-
-  using random_number_generator = typename parameters_type::random_number_generator;
-
-  typedef typename qmci_integrator_type::walker_type walker_type;
-  typedef typename qmci_integrator_type::accumulator_type accumulator_type;
-
-  typedef StdThreadQmciClusterSolver<qmci_integrator_type> this_type;
-  typedef stdthreadqmci::stdthread_qmci_accumulator<accumulator_type> stdthread_accumulator_type;
-
-  typedef std::pair<this_type*, int> pair_type;
+  using typename BaseClass::Walker;
+  using typename BaseClass::Accumulator;
+  using StdThreadAccumulatorType = stdthreadqmci::StdThreadQmciAccumulator<Accumulator>;
 
 public:
-  StdThreadQmciClusterSolver(parameters_type& parameters_ref, Data& data_ref);
-
-  template <typename Writer>
-  void write(Writer& reader);
+  StdThreadQmciClusterSolver(Parameters& parameters_ref, Data& data_ref);
 
   void initialize(int dca_iteration);
 
@@ -67,67 +59,57 @@ public:
   double finalize(dca_info_struct_t& dca_info_struct);
 
 private:
-  void start_walker(int id);
-  void start_accumulator(int id);
-  void start_walker_and_accumulator(int id);
+  void startWalker(int id);
+  void startAccumulator(int id);
+  void startWalkerAndAccumulator(int id);
 
-  void warm_up(walker_type& walker, int id);
-
-  // TODO: Are the following using statements redundant and can therefore be removed?
-  using qmci_integrator_type::compute_error_bars;
-  using qmci_integrator_type::symmetrize_measurements;
+  void warmUp(Walker& walker, int id);
 
 private:
-  using qmci_integrator_type::parameters;
-  using qmci_integrator_type::data_;
-  using qmci_integrator_type::concurrency;
+  using BaseClass::parameters_;
+  using BaseClass::data_;
+  using BaseClass::concurrency_;
+  using BaseClass::total_time_;
+  using BaseClass::dca_iteration_;
+  using BaseClass::accumulator_;
 
-  using qmci_integrator_type::total_time;
-
-  using qmci_integrator_type::DCA_iteration;
-
-  using qmci_integrator_type::accumulator;
-
-  std::atomic<int> acc_finished;
+  std::atomic<int> acc_finished_;
   std::atomic<int> measurements_remaining_;
 
-  const int nr_walkers;
-  const int nr_accumulators;
+  const int nr_walkers_;
+  const int nr_accumulators_;
 
   ThreadTaskHandler thread_task_handler_;
 
-  std::vector<random_number_generator> rng_vector;
+  std::vector<Rng> rng_vector_;
 
-  std::queue<stdthread_accumulator_type*> accumulators_queue;
+  std::queue<StdThreadAccumulatorType*> accumulators_queue_;
 
-  std::mutex mutex_print;
-  std::mutex mutex_merge;
-  std::mutex mutex_queue;
-  std::mutex mutex_acc_finished;
-  std::mutex mutex_numerical_error;
+  std::mutex mutex_merge_;
+  std::mutex mutex_queue_;
   std::condition_variable queue_insertion_;
 };
 
-template <class qmci_integrator_type>
-StdThreadQmciClusterSolver<qmci_integrator_type>::StdThreadQmciClusterSolver(
-    parameters_type& parameters_ref, Data& data_ref)
-    : qmci_integrator_type(parameters_ref, data_ref),
+template <class QmciSolver>
+StdThreadQmciClusterSolver<QmciSolver>::StdThreadQmciClusterSolver(Parameters& parameters_ref,
+                                                                   Data& data_ref)
+    : BaseClass(parameters_ref, data_ref),
 
-      nr_walkers(parameters.get_walkers()),
-      nr_accumulators(parameters.get_accumulators()),
+      nr_walkers_(parameters_.get_walkers()),
+      nr_accumulators_(parameters_.get_accumulators()),
 
-      thread_task_handler_(nr_walkers, nr_accumulators,
-                           parameters.shared_walk_and_accumulation_thread()),
+      thread_task_handler_(nr_walkers_, nr_accumulators_,
+                           parameters_ref.shared_walk_and_accumulation_thread()),
 
-      accumulators_queue() {
-  if (nr_walkers < 1 || nr_accumulators < 1) {
+      accumulators_queue_() {
+  if (nr_walkers_ < 1 || nr_accumulators_ < 1) {
     throw std::logic_error(
         "Both the number of walkers and the number of accumulators must be at least 1.");
   }
 
-  for (int i = 0; i < nr_walkers; ++i) {
-    rng_vector.emplace_back(concurrency.id(), concurrency.number_of_processors(),
-                            parameters.get_seed());
+  for (int i = 0; i < nr_walkers_; ++i) {
+    rng_vector_.emplace_back(concurrency_.id(), concurrency_.number_of_processors(),
+                             parameters_.get_seed());
   }
 
   // Create a sufficient amount of cublas handles, cuda streams and threads.
@@ -135,34 +117,27 @@ StdThreadQmciClusterSolver<qmci_integrator_type>::StdThreadQmciClusterSolver(
   parallel::ThreadPool::get_instance().enlarge(thread_task_handler_.size());
 }
 
-template <class qmci_integrator_type>
-template <typename Writer>
-void StdThreadQmciClusterSolver<qmci_integrator_type>::write(Writer& writer) {
-  qmci_integrator_type::write(writer);
-  // accumulator.write(writer);
+template <class QmciSolver>
+void StdThreadQmciClusterSolver<QmciSolver>::initialize(int dca_iteration) {
+  Profiler profiler(__FUNCTION__, "stdthread-MC-Integration", __LINE__);
+
+  BaseClass::initialize(dca_iteration);
+
+  acc_finished_ = 0;
 }
 
-template <class qmci_integrator_type>
-void StdThreadQmciClusterSolver<qmci_integrator_type>::initialize(int dca_iteration) {
-  profiler_type profiler(__FUNCTION__, "stdthread-MC-Integration", __LINE__);
+template <class QmciSolver>
+void StdThreadQmciClusterSolver<QmciSolver>::integrate() {
+  Profiler profiler(__FUNCTION__, "stdthread-MC-Integration", __LINE__);
 
-  qmci_integrator_type::initialize(dca_iteration);
-
-  acc_finished = 0;
-}
-
-template <class qmci_integrator_type>
-void StdThreadQmciClusterSolver<qmci_integrator_type>::integrate() {
-  profiler_type profiler(__FUNCTION__, "stdthread-MC-Integration", __LINE__);
-
-  if (concurrency.id() == concurrency.first()) {
+  if (concurrency_.id() == concurrency_.first()) {
     std::cout << "Threaded QMC integration has started: " << dca::util::print_time() << "\n"
               << std::endl;
   }
 
-  measurements_remaining_ = parallel::util::getWorkload(parameters.get_measurements(), concurrency);
+  measurements_remaining_ = parallel::util::getWorkload(parameters_.get_measurements(), concurrency_);
 
-  if (concurrency.id() == concurrency.first())
+  if (concurrency_.id() == concurrency_.first())
     thread_task_handler_.print();
 
   std::vector<std::future<void>> futures;
@@ -172,11 +147,11 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::integrate() {
   auto& pool = dca::parallel::ThreadPool::get_instance();
   for (int i = 0; i < thread_task_handler_.size(); ++i) {
     if (thread_task_handler_.getTask(i) == "walker")
-      futures.emplace_back(pool.enqueue(&ThisType::start_walker, this, i));
+      futures.emplace_back(pool.enqueue(&ThisType::startWalker, this, i));
     else if (thread_task_handler_.getTask(i) == "accumulator")
-      futures.emplace_back(pool.enqueue(&ThisType::start_accumulator, this, i));
+      futures.emplace_back(pool.enqueue(&ThisType::startAccumulator, this, i));
     else if (thread_task_handler_.getTask(i) == "walker and accumulator")
-      futures.emplace_back(pool.enqueue(&ThisType::start_walker_and_accumulator, this, i));
+      futures.emplace_back(pool.enqueue(&ThisType::startWalkerAndAccumulator, this, i));
     else
       throw std::logic_error("Thread task is undefined.");
   }
@@ -187,184 +162,177 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::integrate() {
   dca::profiling::WallTime end_time;
 
   dca::profiling::Duration duration(end_time, start_time);
-  total_time = duration.sec + 1.e-6 * duration.usec;
+  total_time_ = duration.sec + 1.e-6 * duration.usec;
 
-  if (concurrency.id() == concurrency.first()) {
+  if (concurrency_.id() == concurrency_.first()) {
     std::cout << "Threaded on-node integration has ended: " << dca::util::print_time()
-              << "\n\nTotal number of measurements: " << parameters.get_measurements()
-              << "\nQMC-time\t" << total_time << std::endl;
+              << "\n\nTotal number of measurements: " << parameters_.get_measurements()
+              << "\nQMC-time\t" << total_time_ << std::endl;
   }
 
-  qmci_integrator_type::accumulator.finalize();
+  QmciSolver::accumulator_.finalize();
 }
 
-template <class qmci_integrator_type>
+template <class QmciSolver>
 template <typename dca_info_struct_t>
-double StdThreadQmciClusterSolver<qmci_integrator_type>::finalize(dca_info_struct_t& dca_info_struct) {
-  profiler_type profiler(__FUNCTION__, "stdthread-MC-Integration", __LINE__);
-  if (DCA_iteration == parameters.get_dca_iterations() - 1)
-    compute_error_bars();
+double StdThreadQmciClusterSolver<QmciSolver>::finalize(dca_info_struct_t& dca_info_struct) {
+  Profiler profiler(__FUNCTION__, "stdthread-MC-Integration", __LINE__);
+  if (dca_iteration_ == parameters_.get_dca_iterations() - 1)
+    BaseClass::computeErrorBars();
 
-  double L2_Sigma_difference = qmci_integrator_type::finalize(dca_info_struct);
+  double L2_Sigma_difference = QmciSolver::finalize(dca_info_struct);
   return L2_Sigma_difference;
 }
 
-template <class qmci_integrator_type>
-void StdThreadQmciClusterSolver<qmci_integrator_type>::start_walker(int id) {
-  profiler_type::start_threading(id);
+template <class QmciSolver>
+void StdThreadQmciClusterSolver<QmciSolver>::startWalker(int id) {
+  Profiler::start_threading(id);
   if (id == 0) {
-    if (concurrency.id() == concurrency.first())
+    if (concurrency_.id() == concurrency_.first())
       std::cout << "\n\t\t QMCI starts\n" << std::endl;
   }
 
   const int rng_index = thread_task_handler_.walkerIDToRngIndex(id);
-  walker_type walker(parameters, data_, rng_vector[rng_index], id);
+  Walker walker(parameters_, data_, rng_vector_[rng_index], id);
 
   walker.initialize();
 
   {
-    profiler_type profiler("thermalization", "stdthread-MC-walker", __LINE__, id);
-    warm_up(walker, id);
+    Profiler profiler("thermalization", "stdthread-MC-walker", __LINE__, id);
+    warmUp(walker, id);
   }
 
-  stdthread_accumulator_type* acc_ptr(NULL);
+  StdThreadAccumulatorType* acc_ptr = nullptr;
 
   while (--measurements_remaining_ >= 0) {
     {
-      profiler_type profiler("stdthread-MC-walker updating", "stdthread-MC-walker", __LINE__, id);
-      walker.do_sweep();
+      Profiler profiler("stdthread-MC-walker updating", "stdthread-MC-walker", __LINE__, id);
+      walker.doSweep();
     }
 
     {
-      profiler_type profiler("stdthread-MC-walker waiting", "stdthread-MC-walker", __LINE__, id);
+      Profiler profiler("stdthread-MC-walker waiting", "stdthread-MC-walker", __LINE__, id);
       acc_ptr = nullptr;
 
       // Wait for available accumulators.
       {
-        std::unique_lock<std::mutex> lock(mutex_queue);
-        queue_insertion_.wait(lock, [&]() { return !accumulators_queue.empty(); });
-        acc_ptr = accumulators_queue.front();
-        accumulators_queue.pop();
+        std::unique_lock<std::mutex> lock(mutex_queue_);
+        queue_insertion_.wait(lock, [&]() { return !accumulators_queue_.empty(); });
+        acc_ptr = accumulators_queue_.front();
+        accumulators_queue_.pop();
       }
 
-      acc_ptr->update_from(walker);
+      acc_ptr->updateFrom(walker);
     }
   }
 
-  //#ifdef DCA_WITH_QMC_BIT
-  //  pthread_mutex_lock(&mutex_numerical_error);
-  // accumulator.get_error_distribution() += walker.get_error_distribution();
-  //  pthread_mutex_unlock(&mutex_numerical_error);
-  //#endif  // DCA_WITH_QMC_BIT
-
-  if (id == 0 && concurrency.id() == concurrency.first()) {
+  if (id == 0 && concurrency_.id() == concurrency_.first()) {
     std::cout << "\n\t\t QMCI ends\n" << std::endl;
     walker.printSummary();
   }
 
-  profiler_type::stop_threading(id);
+  Profiler::stop_threading(id);
 }
 
-template <class qmci_integrator_type>
-void StdThreadQmciClusterSolver<qmci_integrator_type>::warm_up(walker_type& walker, int id) {
+template <class QmciSolver>
+void StdThreadQmciClusterSolver<QmciSolver>::warmUp(Walker& walker, int id) {
   if (id == 0) {
-    if (concurrency.id() == concurrency.first())
+    if (concurrency_.id() == concurrency_.first())
       std::cout << "\n\t\t warm-up starts\n" << std::endl;
   }
 
-  for (int i = 0; i < parameters.get_warm_up_sweeps(); i++) {
-    walker.do_sweep();
+  for (int i = 0; i < parameters_.get_warm_up_sweeps(); i++) {
+    walker.doSweep();
 
     if (id == 0)
-      walker.update_shell(i, parameters.get_warm_up_sweeps());
+      walker.updateShell(i, parameters_.get_warm_up_sweeps());
   }
 
   walker.is_thermalized() = true;
 
   if (id == 0) {
-    if (concurrency.id() == concurrency.first())
+    if (concurrency_.id() == concurrency_.first())
       std::cout << "\n\t\t warm-up ends\n" << std::endl;
   }
 }
 
-template <class qmci_integrator_type>
-void StdThreadQmciClusterSolver<qmci_integrator_type>::start_accumulator(int id) {
-  profiler_type::start_threading(id);
+template <class QmciSolver>
+void StdThreadQmciClusterSolver<QmciSolver>::startAccumulator(int id) {
+  Profiler::start_threading(id);
 
   const int n_meas =
-      parallel::util::getWorkload(parameters.get_measurements(), parameters.get_accumulators(),
-                                  thread_task_handler_.IDToAccumIndex(id), concurrency);
+      parallel::util::getWorkload(parameters_.get_measurements(), parameters_.get_accumulators(),
+                                  thread_task_handler_.IDToAccumIndex(id), concurrency_);
 
-  stdthread_accumulator_type accumulator_obj(parameters, data_, n_meas, id);
+  StdThreadAccumulatorType accumulator_obj(parameters_, data_, n_meas, id);
 
-  accumulator_obj.initialize(DCA_iteration);
+  accumulator_obj.initialize(dca_iteration_);
 
   for (int i = 0; i < n_meas; ++i) {
     {
-      std::lock_guard<std::mutex> lock(mutex_queue);
-      accumulators_queue.push(&accumulator_obj);
+      std::lock_guard<std::mutex> lock(mutex_queue_);
+      accumulators_queue_.push(&accumulator_obj);
     }
     queue_insertion_.notify_one();
 
     {
-      profiler_type profiler("stdthread-accumulator waiting", "stdthread-MC-accumulator", __LINE__,
-                             id);
-      accumulator_obj.wait_for_qmci_walker();
+      Profiler profiler("waiting", "stdthread-MC-accumulator", __LINE__, id);
+      accumulator_obj.waitForQmciWalker();
     }
 
     {
-      profiler_type profiler("stdthread-accumulator accumulating", "stdthread-MC-accumulator",
-                             __LINE__, id);
+      Profiler profiler("accumulating", "stdthread-MC-accumulator", __LINE__, id);
       accumulator_obj.measure();
     }
   }
 
-  ++acc_finished;
+  ++acc_finished_;
   {
-    std::lock_guard<std::mutex> lock(mutex_merge);
-    accumulator_obj.sum_to(accumulator);
+    std::lock_guard<std::mutex> lock(mutex_merge_);
+    accumulator_obj.sumTo(QmciSolver::accumulator_);
   }
 
-  profiler_type::stop_threading(id);
+  Profiler::stop_threading(id);
 }
 
-template <class qmci_integrator_type>
-void StdThreadQmciClusterSolver<qmci_integrator_type>::start_walker_and_accumulator(int id) {
-  profiler_type::start_threading(id);
+template <class QmciSolver>
+void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id) {
+  Profiler::start_threading(id);
 
   // Create and warm a walker.
-  walker_type walker(parameters, data_, rng_vector[id], id);
+  Walker walker(parameters_, data_, rng_vector_[id], id);
   walker.initialize();
   {
-    profiler_type profiler("thermalization", "stdthread-MC", __LINE__, id);
-    warm_up(walker, id);
+    Profiler profiler("thermalization", "stdthread-MC", __LINE__, id);
+    warmUp(walker, id);
   }
 
-  accumulator_type accumulator_obj(parameters, data_, id);
-  accumulator_obj.initialize(DCA_iteration);
+  Accumulator accumulator_obj(parameters_, data_, id);
+  accumulator_obj.initialize(dca_iteration_);
 
-  const int n_meas = parallel::util::getWorkload(parameters.get_measurements(),
-                                                 parameters.get_accumulators(), id, concurrency);
+  const int n_meas = parallel::util::getWorkload(parameters_.get_measurements(),
+                                                 parameters_.get_accumulators(), id, concurrency_);
 
   for (int i = 0; i < n_meas; ++i) {
     {
-      profiler_type profiler("Walker updating", "stdthread-MC", __LINE__, id);
-      walker.do_sweep();
+      Profiler profiler("Walker updating", "stdthread-MC", __LINE__, id);
+      walker.doSweep();
     }
     {
-      profiler_type profiler("Accumulator measuring", "stdthread-MC", __LINE__, id);
-      accumulator_obj.update_from(walker);
+      Profiler profiler("Accumulator measuring", "stdthread-MC", __LINE__, id);
+      accumulator_obj.updateFrom(walker);
       accumulator_obj.measure();
     }
     if (id == 0)
-      walker.update_shell(i, n_meas);
+      walker.updateShell(i, n_meas);
   }
 
-  ++acc_finished;
-  std::lock_guard<std::mutex> lock(mutex_merge);
-  accumulator_obj.sum_to(accumulator);
-
-  profiler_type::stop_threading(id);
+  ++acc_finished_;
+  {
+    std::lock_guard<std::mutex> lock(mutex_merge_);
+    accumulator_obj.sumTo(QmciSolver::accumulator_);
+  }
+  Profiler::stop_threading(id);
 }
 
 }  // solver

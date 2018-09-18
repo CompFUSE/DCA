@@ -35,7 +35,7 @@ class SsCtHybAccumulator : public MC_accumulator_data,
 public:
   using this_type = SsCtHybAccumulator<device_t, parameters_type, Data>;
 
-  typedef parameters_type my_parameters_type;
+  using ParametersType = parameters_type;
   using DataType = Data;
 
   typedef SsCtHybWalker<device_t, parameters_type, Data> walker_type;
@@ -80,12 +80,12 @@ public:
 
   void finalize();  // func::function<double, nu> mu_DC);
 
-  void update_from(walker_type& walker);
+  void updateFrom(walker_type& walker);
   void measure();
 
   // Sums all accumulated objects of this accumulator to the equivalent objects of the 'other'
   // accumulator.
-  void sum_to(this_type& other);
+  void sumTo(this_type& other);
 
   configuration_type& get_configuration() {
     return configuration;
@@ -134,7 +134,7 @@ protected:
   using MC_accumulator_data::current_sign;
   using MC_accumulator_data::accumulated_sign;
 
-  parameters_type& parameters;
+  parameters_type& parameters_;
   Data& data_;
   concurrency_type& concurrency;
 
@@ -161,9 +161,9 @@ SsCtHybAccumulator<device_t, parameters_type, Data>::SsCtHybAccumulator(paramete
                                                                         Data& data_ref, int id)
     : ss_hybridization_solver_routines<parameters_type, Data>(parameters_ref, data_ref),
 
-      parameters(parameters_ref),
+      parameters_(parameters_ref),
       data_(data_ref),
-      concurrency(parameters.get_concurrency()),
+      concurrency(parameters_.get_concurrency()),
 
       thread_id(id),
 
@@ -178,7 +178,7 @@ SsCtHybAccumulator<device_t, parameters_type, Data>::SsCtHybAccumulator(paramete
       G_r_w("G-r-w-measured"),
       GS_r_w("GS-r-w-measured"),
 
-      single_particle_accumulator_obj(parameters),
+      single_particle_accumulator_obj(parameters_),
       finalized_(false) {}
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
@@ -219,7 +219,7 @@ void SsCtHybAccumulator<device_t, parameters_type, Data>::write(Writer& writer) 
  *************************************************************/
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void SsCtHybAccumulator<device_t, parameters_type, Data>::update_from(walker_type& walker) {
+void SsCtHybAccumulator<device_t, parameters_type, Data>::updateFrom(walker_type& walker) {
   current_sign = walker.get_sign();
 
   configuration.copy_from(walker.get_configuration());
@@ -246,12 +246,12 @@ void SsCtHybAccumulator<device_t, parameters_type, Data>::accumulate_length(walk
   ss_hybridization_walker_routines_type& hybridization_routines =
       walker.get_ss_hybridization_walker_routines();
 
-  Hybridization_vertex full_segment(0, parameters.get_beta());
+  Hybridization_vertex full_segment(0, parameters_.get_beta());
 
   for (int ind = 0; ind < b::dmn_size() * s::dmn_size(); ind++) {
     length(ind) += hybridization_routines.compute_overlap(
         full_segment, walker.get_configuration().get_vertices(ind),
-        walker.get_configuration().get_full_line(ind), parameters.get_beta());
+        walker.get_configuration().get_full_line(ind), parameters_.get_beta());
   }
 }
 
@@ -260,14 +260,14 @@ void SsCtHybAccumulator<device_t, parameters_type, Data>::accumulate_overlap(wal
   ss_hybridization_walker_routines_type& hybridization_routines =
       walker.get_ss_hybridization_walker_routines();
 
-  Hybridization_vertex full_segment(0, parameters.get_beta());
+  Hybridization_vertex full_segment(0, parameters_.get_beta());
 
   for (int ind_1 = 0; ind_1 < b::dmn_size() * s::dmn_size(); ind_1++) {
     for (int ind_2 = 0; ind_2 < b::dmn_size() * s::dmn_size(); ind_2++) {
       if (walker.get_configuration().get_full_line(ind_1)) {
         overlap(ind_1, ind_2) += hybridization_routines.compute_overlap(
             full_segment, walker.get_configuration().get_vertices(ind_2),
-            walker.get_configuration().get_full_line(ind_2), parameters.get_beta());
+            walker.get_configuration().get_full_line(ind_2), parameters_.get_beta());
       }
       else {
         for (typename orbital_configuration_type::iterator it =
@@ -275,7 +275,7 @@ void SsCtHybAccumulator<device_t, parameters_type, Data>::accumulate_overlap(wal
              it != walker.get_configuration().get_vertices(ind_1).end(); it++) {
           overlap(ind_1, ind_2) += hybridization_routines.compute_overlap(
               *it, walker.get_configuration().get_vertices(ind_2),
-              walker.get_configuration().get_full_line(ind_2), parameters.get_beta());
+              walker.get_configuration().get_full_line(ind_2), parameters_.get_beta());
         }
       }
     }
@@ -283,7 +283,7 @@ void SsCtHybAccumulator<device_t, parameters_type, Data>::accumulate_overlap(wal
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void SsCtHybAccumulator<device_t, parameters_type, Data>::sum_to(this_type& other) {
+void SsCtHybAccumulator<device_t, parameters_type, Data>::sumTo(this_type& other) {
   other.accumulated_sign += accumulated_sign;
   other.number_of_measurements += number_of_measurements;
 
