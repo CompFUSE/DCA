@@ -93,13 +93,13 @@ private:
   std::unique_ptr<std::array<NfftType, 2>> cached_nfft_sqr_obj_;
 };
 
-template <class Paramaters>
-SpAccumulator<Paramaters, linalg::CPU>::SpAccumulator(/*const*/ Paramaters& parameters_ref,
+template <class Parameters>
+SpAccumulator<Parameters, linalg::CPU>::SpAccumulator(/*const*/ Parameters& parameters_ref,
                                                       const bool accumulate_m_sqr)
     : parameters_(parameters_ref), accumulate_m_sqr_(accumulate_m_sqr) {}
 
-template <class Paramaters>
-void SpAccumulator<Paramaters, linalg::CPU>::resetAccumulation() {
+template <class Parameters>
+void SpAccumulator<Parameters, linalg::CPU>::resetAccumulation() {
   cached_nfft_obj_ = std::make_unique<std::array<NfftType, 2>>();
   if (accumulate_m_sqr_)
     cached_nfft_sqr_obj_ = std::make_unique<std::array<NfftType, 2>>();
@@ -110,9 +110,9 @@ void SpAccumulator<Paramaters, linalg::CPU>::resetAccumulation() {
   initialized_ = true;
 }
 
-template <class Paramaters>
+template <class Parameters>
 template <class Configuration, typename InpScalar>
-void SpAccumulator<Paramaters, linalg::CPU>::accumulate(
+void SpAccumulator<Parameters, linalg::CPU>::accumulate(
     const std::array<linalg::Matrix<InpScalar, linalg::CPU>, 2>& Ms,
     const std::array<Configuration, 2>& configs, const int sign) {
   if (!initialized_)
@@ -146,8 +146,8 @@ void SpAccumulator<Paramaters, linalg::CPU>::accumulate(
   }
 }
 
-template <class Paramaters>
-void SpAccumulator<Paramaters, linalg::CPU>::finalize() {
+template <class Parameters>
+void SpAccumulator<Parameters, linalg::CPU>::finalize() {
   if (finalized_)
     return;
   func::function<std::complex<ScalarType>, func::dmn_variadic<WDmn, PDmn>> tmp("tmp");
@@ -177,8 +177,8 @@ void SpAccumulator<Paramaters, linalg::CPU>::finalize() {
   initialized_ = false;
 }
 
-template <class Paramaters>
-void SpAccumulator<Paramaters, linalg::CPU>::sumTo(SpAccumulator<Paramaters, linalg::CPU>& other) const {
+template <class Parameters>
+void SpAccumulator<Parameters, linalg::CPU>::sumTo(SpAccumulator<Parameters, linalg::CPU>& other) const {
   if (!other.cached_nfft_obj_)
     other.cached_nfft_obj_.reset(new std::array<NfftType, 2>);
   if (!other.cached_nfft_sqr_obj_ && accumulate_m_sqr_)
@@ -191,15 +191,15 @@ void SpAccumulator<Paramaters, linalg::CPU>::sumTo(SpAccumulator<Paramaters, lin
   }
 }
 
-template <class Paramaters>
-const auto& SpAccumulator<Paramaters, linalg::CPU>::get_sign_times_M_r_w() const {
+template <class Parameters>
+const auto& SpAccumulator<Parameters, linalg::CPU>::get_sign_times_M_r_w() const {
   if (!finalized_)
     throw(std::logic_error("The accumulator was not finalized."));
   return *M_r_w_;
 }
 
-template <class Paramaters>
-const auto& SpAccumulator<Paramaters, linalg::CPU>::get_sign_times_M_r_w_sqr() const {
+template <class Parameters>
+const auto& SpAccumulator<Parameters, linalg::CPU>::get_sign_times_M_r_w_sqr() const {
   if (!finalized_)
     throw(std::logic_error("The accumulator was not finalized."));
   if (!accumulate_m_sqr_)
