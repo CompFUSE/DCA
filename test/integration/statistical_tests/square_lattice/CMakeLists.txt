@@ -15,8 +15,8 @@ dca_add_gtest(ctaux_square_lattice_verification_stattest
 
 dca_add_gtest(ctaux_square_lattice_validation_stattest
     STOCHASTIC
-    # Run with more ranks for better error detection.
-    MPI MPI_NUMPROC 32
+    # Run with more than 32 ranks for reliable error detection. The more the better.
+    MPI MPI_NUMPROC 8
     INCLUDE_DIRS ${TEST_INCLUDES}
     LIBS     ${TEST_LIBS}
     )
