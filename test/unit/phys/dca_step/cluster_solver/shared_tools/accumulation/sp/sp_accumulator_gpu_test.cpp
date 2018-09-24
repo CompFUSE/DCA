@@ -12,9 +12,10 @@
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator_gpu.hpp"
 
 #include <array>
-#include "gtest/gtest.h"
+#include <limits>
 #include <string>
 #include <vector>
+#include "gtest/gtest.h"
 
 #include "dca/function/util/difference.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
@@ -48,7 +49,8 @@ TEST_F(SpAccumulatorGpuTest, Accumulate) {
 
   const auto diff = dca::func::util::difference(accumulatorHost.get_sign_times_M_r_w(),
                                                 accumulatorDevice.get_sign_times_M_r_w());
-  EXPECT_GT(5e-7, diff.l_inf);
+
+  EXPECT_GT(500 * std::numeric_limits<Parameters::MC_measurement_scalar_type>::epsilon(), diff.l_inf);
 }
 
 TEST_F(SpAccumulatorGpuTest, SumTo) {
