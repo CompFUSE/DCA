@@ -41,9 +41,9 @@ private:
   using BaseClass = SpAccumulator<Parameters, linalg::CPU>;
 
   using typename BaseClass::BDmn;
-  using typename BaseClass::WDmn;
-  using typename BaseClass::RDmn;
   using typename BaseClass::PDmn;
+  using typename BaseClass::RDmn;
+  using typename BaseClass::WDmn;
 
   using typename BaseClass::Profiler;
   using typename BaseClass::ScalarType;
@@ -71,12 +71,12 @@ public:
   }
 
 private:
-  using BaseClass::oversampling;
-  using BaseClass::parameters_;
   using BaseClass::accumulate_m_sqr_;
   using BaseClass::finalized_;
   using BaseClass::M_r_w_;
   using BaseClass::M_r_w_sqr_;
+  using BaseClass::oversampling;
+  using BaseClass::parameters_;
 
   std::array<linalg::util::CudaStream, 2> streams_;
   using NfftType = math::nfft::Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, math::nfft::CUBIC>;
@@ -149,9 +149,9 @@ void SpAccumulator<Parameters, linalg::GPU>::sumTo(SpAccumulator<Parameters, lin
     other.cached_nfft_obj_[s] += cached_nfft_obj_[s];
 }
 
-}  // accumulator
-}  // solver
-}  // phys
-}  // dca
+}  // namespace accumulator
+}  // namespace solver
+}  // namespace phys
+}  // namespace dca
 
 #endif  // DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_SP_SP_ACCUMULATOR_GPU_HPP
