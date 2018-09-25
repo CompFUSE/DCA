@@ -13,7 +13,6 @@
 
 #include "dca/math/nfft/dnfft_1d.hpp"
 
-#include <algorithm>  // std::max
 #include <cmath>
 #include <complex>
 #include <vector>
