@@ -28,7 +28,7 @@ __device__ void inline atomicAdd(float* address, const float val) {
   ::atomicAdd(address, val);
 }
 
-#if __CUDA_ARCH__ < 600
+#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ < 600
 // Older devices do not have an hardware atomicAdd for double.
 // See
 // https://stackoverflow.com/questions/12626096/why-has-atomicadd-not-been-implemented-for-doubles

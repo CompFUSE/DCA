@@ -10,14 +10,12 @@
 //         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // This class provides an interface for parallelizing using a pool of STL threads.
-//
-// TODO: Finish sum methods.
 
 #ifndef DCA_PARALLEL_STDTHREAD_STDTHREAD_HPP
 #define DCA_PARALLEL_STDTHREAD_STDTHREAD_HPP
 
+#include <cassert>
 #include <iostream>
-#include <thread>
 #include <vector>
 
 #include "dca/parallel/stdthread/thread_pool/thread_pool.hpp"
@@ -32,6 +30,8 @@ public:
   // Executes the function f(id, num_tasks, args...) for each integer value of id in [0, num_tasks).
   template <class F, class... Args>
   void execute(int num_threads, F&& f, Args&&... args) {
+    assert(num_threads > 0);
+
     std::vector<std::future<void>> futures;
     auto& pool = ThreadPool::get_instance();
     pool.enlarge(num_threads);
@@ -42,7 +42,7 @@ public:
           pool.enqueue(std::forward<F>(f), id, num_threads, std::forward<Args>(args)...));
     // Join.
     for (auto& future : futures)
-      future.wait();
+      future.get();
   }
 
   // Returns the sum of the return values of f(id, num_tasks, args...) for each integer value of id
@@ -50,6 +50,8 @@ public:
   // Precondition: the return type of f can be initialized with 0.
   template <class F, class... Args>
   auto sumReduction(int num_threads, F&& f, Args&&... args) {
+    assert(num_threads > 0);
+
     using ReturnType = typename std::result_of<F(int, int, Args...)>::type;
 
     std::vector<std::future<ReturnType>> futures;
