@@ -19,7 +19,6 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/parallel/util/get_bounds.hpp"
-#include "dca/parallel/util/threading_data.hpp"
 #include "dca/parallel/thread_manager_sum.hpp"
 #include "dca/phys/dca_step/cluster_solver/high_temperature_series_expansion/compute_bubble.hpp"
 #include "dca/phys/dca_step/cluster_solver/high_temperature_series_expansion/compute_interaction.hpp"
