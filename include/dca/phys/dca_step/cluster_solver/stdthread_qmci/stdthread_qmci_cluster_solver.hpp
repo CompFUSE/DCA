@@ -65,6 +65,8 @@ private:
 
   void warmUp(Walker& walker, int id);
 
+  void iterateOverLocalMeasurements(int walker_id, std::function<void(int, int, bool)>&& f);
+
 private:
   using BaseClass::parameters_;
   using BaseClass::data_;
@@ -74,7 +76,7 @@ private:
   using BaseClass::accumulator_;
 
   std::atomic<int> walk_finished_;
-  std::atomic<int> measurements_remaining_;
+  std::atomic<uint> measurements_done_;
 
   const int nr_walkers_;
   const int nr_accumulators_;
@@ -124,6 +126,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::initialize(int dca_iteration) {
   BaseClass::initialize(dca_iteration);
 
   walk_finished_ = 0;
+  measurements_done_ = 0;
 }
 
 template <class QmciSolver>
@@ -134,8 +137,6 @@ void StdThreadQmciClusterSolver<QmciSolver>::integrate() {
     std::cout << "Threaded QMC integration has started: " << dca::util::print_time() << "\n"
               << std::endl;
   }
-
-  measurements_remaining_ = parallel::util::getWorkload(parameters_.get_measurements(), concurrency_);
 
   if (concurrency_.id() == concurrency_.first())
     thread_task_handler_.print();
@@ -203,34 +204,31 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalker(int id) {
     warmUp(walker, id);
   }
 
-  StdThreadAccumulatorType* acc_ptr = nullptr;
+  iterateOverLocalMeasurements(
+      walker_index, [&](const int meas_id, const int tot_meas, const bool print) {
+        StdThreadAccumulatorType* acc_ptr = nullptr;
 
-  const int meas_to_do = parallel::util::getWorkload(
-      parameters_.get_measurements(), parameters_.get_walkers(), walker_index, concurrency_);
+        {
+          Profiler profiler("stdthread-MC-walker updating", "stdthread-MC-walker", __LINE__, id);
+          walker.doSweep();
+        }
+        if (print)
+          walker.updateShell(meas_id, tot_meas);
 
-  for (int meas_id = 0; meas_id < meas_to_do; ++meas_id) {
-    {
-      Profiler profiler("stdthread-MC-walker updating", "stdthread-MC-walker", __LINE__, id);
-      walker.doSweep();
-    }
-    if (id == 0)
-      walker.updateShell(meas_id, meas_to_do);
+        {
+          Profiler profiler("stdthread-MC-walker waiting", "stdthread-MC-walker", __LINE__, id);
+          acc_ptr = nullptr;
 
-    {
-      Profiler profiler("stdthread-MC-walker waiting", "stdthread-MC-walker", __LINE__, id);
-      acc_ptr = nullptr;
-
-      // Wait for available accumulators.
-      {
-        std::unique_lock<std::mutex> lock(mutex_queue_);
-        queue_insertion_.wait(lock, [&]() { return !accumulators_queue_.empty(); });
-        acc_ptr = accumulators_queue_.top();
-        accumulators_queue_.pop();
-      }
-
-      acc_ptr->updateFrom(walker);
-    }
-  }
+          // Wait for available accumulators.
+          {
+            std::unique_lock<std::mutex> lock(mutex_queue_);
+            queue_insertion_.wait(lock, [&]() { return !accumulators_queue_.empty(); });
+            acc_ptr = accumulators_queue_.top();
+            accumulators_queue_.pop();
+          }
+        }
+        acc_ptr->updateFrom(walker);
+      });
 
   // If this is the last walker signal to all the accumulators to exit the loop.
   if (++walk_finished_ == parameters_.get_walkers()) {
@@ -272,6 +270,29 @@ void StdThreadQmciClusterSolver<QmciSolver>::warmUp(Walker& walker, int id) {
 }
 
 template <class QmciSolver>
+void StdThreadQmciClusterSolver<QmciSolver>::iterateOverLocalMeasurements(
+    const int walker_id, std::function<void(int, int, bool)>&& f) {
+  const bool fix_thread_meas = parameters_.fix_meas_per_walker();
+  const int total_meas = parallel::util::getWorkload(parameters_.get_measurements(), concurrency_);
+
+  const int n_local_meas =
+      fix_thread_meas ? parallel::util::getWorkload(total_meas, parameters_.get_walkers(), walker_id)
+                      : total_meas;
+  const bool print = fix_thread_meas ? walker_id == 0 : true;
+
+  if (fix_thread_meas) {
+    // Perform a fixed amount of loops with a private counter.
+    for (int meas_id = 0; meas_id < n_local_meas; ++meas_id)
+      f(meas_id, n_local_meas, print);
+  }
+  else {
+    // Perform the total number of loop with a shared atomic counter.
+    for (int meas_id = measurements_done_; meas_id < n_local_meas; meas_id = ++measurements_done_)
+      f(meas_id, n_local_meas, print);
+  }
+}
+
+template <class QmciSolver>
 void StdThreadQmciClusterSolver<QmciSolver>::startAccumulator(int id) {
   Profiler::start_threading(id);
 
@@ -279,9 +300,11 @@ void StdThreadQmciClusterSolver<QmciSolver>::startAccumulator(int id) {
 
   accumulator_obj.initialize(dca_iteration_);
 
-  while (walk_finished_ < parameters_.get_walkers()) {
+  while (true) {
     {
       std::lock_guard<std::mutex> lock(mutex_queue_);
+      if (walk_finished_ == parameters_.get_walkers())
+        break;
       accumulators_queue_.push(&accumulator_obj);
     }
     queue_insertion_.notify_one();
@@ -320,10 +343,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id) {
   Accumulator accumulator_obj(parameters_, data_, id);
   accumulator_obj.initialize(dca_iteration_);
 
-  const int n_meas = parallel::util::getWorkload(parameters_.get_measurements(),
-                                                 parameters_.get_walkers(), id, concurrency_);
-
-  for (int i = 0; i < n_meas; ++i) {
+  iterateOverLocalMeasurements(id, [&](const int meas_id, const int n_meas, const bool print) {
     {
       Profiler profiler("Walker updating", "stdthread-MC", __LINE__, id);
       walker.doSweep();
@@ -333,12 +353,11 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id) {
       accumulator_obj.updateFrom(walker);
       accumulator_obj.measure();
     }
-    if (id == 0)
-      walker.updateShell(i, n_meas);
-  }
+    if (print)
+      walker.updateShell(meas_id, n_meas);
+  });
 
   ++walk_finished_;
-
   {
     std::lock_guard<std::mutex> lock(mutex_merge_);
     accumulator_obj.sumTo(QmciSolver::accumulator_);

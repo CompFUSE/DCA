@@ -54,6 +54,10 @@ public:
   // Signals that this object will not need to perform any more accumulation.
   void notifyDone();
 
+  bool done() const {
+    return done_;
+  }
+
 protected:
   using QmciAccumulator::get_Gflop;
   using QmciAccumulator::get_number_of_measurements;
