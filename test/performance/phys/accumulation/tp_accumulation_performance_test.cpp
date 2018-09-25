@@ -99,7 +99,7 @@ int main(int argc, char** argv) {
   // Allows memory to be assigned.
   const int sign = 1;
   accumulator.accumulate(M, config, sign);
-  accumulator.initialize();
+  accumulator.resetAccumulation();
 
   Profiler::start();
   dca::profiling::WallTime start_time;
@@ -139,7 +139,7 @@ int main(int argc, char** argv) {
   // Allows memory to be assigned.
   gpu_accumulator.accumulate(M, config, sign);
   cudaStreamSynchronize(gpu_accumulator.get_stream());
-  gpu_accumulator.initialize();
+  gpu_accumulator.resetAccumulation();
 
   Profiler::start();
 
