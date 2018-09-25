@@ -141,7 +141,7 @@ public:
   }
 
   // tp-measurements
-  func::function<std::complex<double>, func::dmn_variadic<b, b, b, b, k_dmn_t, k_dmn_t, w_VERTEX, w_VERTEX>>& get_G4() {
+  auto& get_G4() {
     return G4;
   }
 
@@ -212,7 +212,7 @@ protected:
 
   ctaux::TpEqualTimeAccumulator<parameters_type, Data> MC_two_particle_equal_time_accumulator_obj;
 
-  func::function<std::complex<double>, func::dmn_variadic<b, b, b, b, k_dmn_t, k_dmn_t, w_VERTEX, w_VERTEX>> G4;
+  typename Data::TpGreensFunction G4;
 
   accumulator_nonlocal_G<parameters_type, Data> accumulator_nonlocal_G_obj;
   accumulator_nonlocal_chi<parameters_type, Data> accumulator_nonlocal_chi_obj;

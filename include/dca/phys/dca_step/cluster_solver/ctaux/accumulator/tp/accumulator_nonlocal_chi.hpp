@@ -71,6 +71,8 @@ namespace ctaux {
 template <class parameters_type, class MOMS_type>
 class accumulator_nonlocal_chi {
 public:
+  using TpGreensFunction = typename MOMS_type::TpGreensFunction;
+
   using w_VERTEX = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
   using w_VERTEX_EXTENDED = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
   using w_VERTEX_EXTENDED_POS =
@@ -100,10 +102,8 @@ public:
   typedef func::dmn_variadic<b, b, k_dmn_t, k_dmn_t, w1_dmn_t, w2_dmn_t> b_b_k_k_w_w_dmn_t;
 
 public:
-  accumulator_nonlocal_chi(
-      parameters_type& parameters_ref, MOMS_type& MOMS_ref, int id,
-      func::function<std::complex<double>,
-                     func::dmn_variadic<b, b, b, b, k_dmn_t, k_dmn_t, w_VERTEX, w_VERTEX>>& G4_ref);
+  accumulator_nonlocal_chi(parameters_type& parameters_ref, MOMS_type& MOMS_ref, int id,
+                           TpGreensFunction& G4_ref);
 
   void initialize();
 
@@ -171,8 +171,7 @@ private:
 
   int thread_id;
 
-  func::function<std::complex<double>,
-                 func::dmn_variadic<b, b, b, b, k_dmn_t, k_dmn_t, w_VERTEX, w_VERTEX>>& G4;
+  TpGreensFunction& G4;
 
   int w_VERTEX_EXTENDED_POS_dmn_size;
 
@@ -193,9 +192,7 @@ private:
 
 template <class parameters_type, class MOMS_type>
 accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulator_nonlocal_chi(
-    parameters_type& parameters_ref, MOMS_type& MOMS_ref, int id,
-    func::function<std::complex<double>,
-                   func::dmn_variadic<b, b, b, b, k_dmn_t, k_dmn_t, w_VERTEX, w_VERTEX>>& G4_ref)
+    parameters_type& parameters_ref, MOMS_type& MOMS_ref, int id, TpGreensFunction& G4_ref)
     : parameters(parameters_ref),
       MOMS(MOMS_ref),
       concurrency(parameters.get_concurrency()),
@@ -259,7 +256,7 @@ accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulator_nonlocal_chi(
 
 template <class parameters_type, class MOMS_type>
 void accumulator_nonlocal_chi<parameters_type, MOMS_type>::initialize() {
-  MOMS.get_G4_k_k_w_w() = 0.;
+  MOMS.get_G4() = 0.;
 }
 
 template <class parameters_type, class MOMS_type>
@@ -438,7 +435,8 @@ void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_h
                     G2_k_k_w_w_e_DN(n2, m2, k2_plus_q, k2, w2+w_channel, w2));
                     */
 
-                  G4(n1, n2, m1, m2, k1, k2, w1, w2) += std::complex<double>(sign_div_2 * G4_val);
+                  G4(n1, n2, m1, m2, k1, k2, 0, w1, w2, 0) +=
+                      std::complex<double>(sign_div_2 * G4_val);
                   // MOMS.G4_k_k_w_w(n1, n2, m1, m2, k1, k2, w1, w2) +=
                   // std::complex<double>(sign_div_2 * G4);
                 }
@@ -508,7 +506,8 @@ void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_h
                   G4_val = -(G2_DN_n1_m2_k1_k2_w1_w2 * G2_UP_n2_m1_k2_plus_q_k1_plus_q_w2_w1 +
                              G2_UP_n1_m2_k1_k2_w1_w2 * G2_DN_n2_m1_k2_plus_q_k1_plus_q_w2_w1);
 
-                  G4(n1, n2, m1, m2, k1, k2, w1, w2) += std::complex<double>(sign_div_2 * G4_val);
+                  G4(n1, n2, m1, m2, k1, k2, 0, w1, w2, 0) +=
+                      std::complex<double>(sign_div_2 * G4_val);
                 }
               }
             }
@@ -655,7 +654,8 @@ void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_h
                     G2_k_k_w_w_e_DN(n2, m2, k2_plus_q, k2, w2+w_channel, w2));
                     */
 
-                  G4(n1, n2, m1, m2, k1, k2, w1, w2) += std::complex<double>(sign_div_2 * G4_val);
+                  G4(n1, n2, m1, m2, k1, k2, 0, w1, w2, 0) +=
+                      std::complex<double>(sign_div_2 * G4_val);
                   // MOMS.G4_k_k_w_w(n1, n2, m1, m2, k1, k2, w1, w2) +=
                   // std::complex<double>(sign_div_2 * G4);
                 }
@@ -708,7 +708,8 @@ void accumulator_nonlocal_chi<parameters_type, MOMS_type>::accumulate_particle_p
                   G4_val = (G2_UP_n1_m1_k1_k2_w1_w2 * G2_DN_n2_m2_q_min_k1_q_min_k2_min_w1_min_w2 +
                             G2_DN_n1_m1_k1_k2_w1_w2 * G2_UP_n2_m2_q_min_k1_q_min_k2_min_w1_min_w2);
 
-                  G4(n1, n2, m1, m2, k1, k2, w1, w2) += std::complex<double>(sign_div_2 * G4_val);
+                  G4(n1, n2, m1, m2, k1, k2, 0, w1, w2, 0) +=
+                      std::complex<double>(sign_div_2 * G4_val);
                 }
               }
             }
