@@ -10,7 +10,6 @@
 // Provides an utility to call a function only once per loop id.
 
 #include <atomic>
-#include <mutex>
 #include <stdexcept>
 
 #ifndef DCA_UTIL_CALL_ONCE_PER_LOOP_HPP
@@ -23,31 +22,32 @@ namespace util {
 struct OncePerLoopFlag {
   OncePerLoopFlag() : loop_done(-1) {}
 
+  bool increment_if_less_than(int val) {
+    int old_loop = loop_done.load();
+    do {
+      if (old_loop >= val) {
+        return false;
+      }
+      else if (old_loop < (val-1)) {
+        throw std::logic_error("Loop id called out of order.");
+      }
+      else if (val < 0)
+        throw(std::out_of_range("Negative loop index."));
+    } while(!loop_done.compare_exchange_weak(old_loop, val));
+    return true;
+  }
+
   std::atomic<int> loop_done;
-  std::mutex mutex;
 };
 
 template <class F, class... Args>
 void callOncePerLoop(OncePerLoopFlag& flag, const int loop_id, F&& f, Args&&... args) {
-  const int currently_done = flag.loop_done;
 
-  if (loop_id < 0)
-    throw(std::out_of_range("Negative loop index."));
-
-  if (loop_id <= currently_done)
+  if (!flag.increment_if_less_than(loop_id)) {
     return;
-  else if (loop_id > currently_done + 1 && currently_done != -1)
-    throw(std::logic_error("Loop id called out of order."));
-
-  std::unique_lock<std::mutex> lock(flag.mutex);
-  // Check if flag.loop_done changed before locking the mutex.
-  if (loop_id <= flag.loop_done)
-    return;
-
+  }
   // Run the task.
   f(args...);
-
-  flag.loop_done = loop_id;
 }
 
 }  // util
