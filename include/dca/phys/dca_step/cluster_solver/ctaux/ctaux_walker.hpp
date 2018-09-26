@@ -73,7 +73,7 @@ public:
   // In/Out: single_spin_updates_todo
   void do_step(int& single_spin_updates_todo);
 
-  dca::linalg::Matrix<double, device_t>& get_N(e_spin_states_type e_spin);
+  dca::linalg::Matrix<double, device_t>& get_M(int spin);
   configuration_type& get_configuration();
 
   int get_sign();
@@ -98,7 +98,8 @@ public:
 
   std::size_t deviceFingerprint() const {
     if (device_t == linalg::GPU)
-      return G0_tools_obj.deviceFingerprint() + N_tools_obj.deviceFingerprint() +
+      return M_[0].deviceFingerprint() + M_[1].deviceFingerprint() +
+             G0_tools_obj.deviceFingerprint() + N_tools_obj.deviceFingerprint() +
              SHRINK_tools_obj.deviceFingerprint() +
              CtauxWalkerData<device_t, parameters_type>::deviceFingerprint();
     else
@@ -159,6 +160,9 @@ private:
 
   bool assert_exp_delta_V_value(HS_field_sign HS_field, int random_vertex_ind,
                                 HS_spin_states_type new_HS_spin_value, double exp_delta_V);
+
+  // Computes M(N).
+  void compute_M();
 
 private:
   using WalkerBIT<parameters_type, MOMS_type>::check_G0_matrices;
@@ -272,6 +276,10 @@ private:
   util::Accumulator<std::size_t> warm_up_expansion_order_;
   util::Accumulator<std::size_t> num_delayed_spins_;
 
+  std::array<linalg::Matrix<double, device_t>, 2> M_;
+  std::array<linalg::Vector<double, linalg::CPU>, 2> exp_v_minus_one_;
+  std::array<linalg::Vector<double, device_t>, 2> exp_v_minus_one_dev_;
+
   bool config_initialized_;
 };
 
@@ -360,12 +368,9 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::printSummary() const {
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-dca::linalg::Matrix<double, device_t>& CtauxWalker<device_t, parameters_type, MOMS_type>::get_N(
-    e_spin_states_type e_spin) {
-  if (e_spin == e_DN)
-    return N_dn;
-  else
-    return N_up;
+dca::linalg::Matrix<double, device_t>& CtauxWalker<device_t, parameters_type, MOMS_type>::get_M(
+    const int spin) {
+  return M_[spin];
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
@@ -481,6 +486,9 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::doSweep() {
   }
 
   assert(single_spin_updates_todo == 0);
+
+  if (thermalized)
+    compute_M();
 
   if (!thermalized)
     ++warm_up_sweeps_done_;
@@ -1555,6 +1563,31 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::updateShell(const int do
 
     std::cout << std::scientific;
   }
+}
+
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
+void CtauxWalker<device_t, parameters_type, MOMS_type>::compute_M() {
+  for (int s = 0; s < 2; ++s) {
+    const auto& config = get_configuration().get(s == 0 ? e_UP : e_DN);
+    exp_v_minus_one_[s].resizeNoCopy(config.size());
+
+    for (int i = 0; i < config.size(); ++i)
+      exp_v_minus_one_[s][i] = CV_obj.exp_V(config[i]) - 1.;
+
+    const auto& N = s == 0 ? N_up : N_dn;
+    M_[s].resizeNoCopy(N.size());
+
+    if (device_t == linalg::GPU) {
+      exp_v_minus_one_dev_[s].setAsync(exp_v_minus_one_[s], thread_id, s);
+      dca::linalg::matrixop::multiplyDiagonalLeft(exp_v_minus_one_dev_[s], N, M_[s], thread_id, s);
+    }
+    else {
+      dca::linalg::matrixop::multiplyDiagonalLeft(exp_v_minus_one_[s], N, M_[s]);
+    }
+  }
+
+  linalg::util::syncStream(thread_id, 0);
+  linalg::util::syncStream(thread_id, 1);
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>

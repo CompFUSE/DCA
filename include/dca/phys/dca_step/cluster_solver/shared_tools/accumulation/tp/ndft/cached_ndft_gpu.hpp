@@ -55,7 +55,7 @@ public:
   // defined as M(w1, w2) = \sum_{t1, t2} exp(i (w1 t1 - w2 t2)) M(t1, t2).
   // Out: M_r_r_w_w.
   template <class Configuration>
-  void execute(const Configuration& configuration, const linalg::Matrix<double, linalg::CPU>& M,
+  void execute(const Configuration& configuration, const linalg::Matrix<double, linalg::GPU>& M,
                Matrix& M_r_r_w_w);
 
   cudaStream_t get_stream() const {
@@ -67,8 +67,7 @@ public:
   }
 
   std::size_t deviceFingerprint() const {
-    return M_.deviceFingerprint() + workspace_.deviceFingerprint() + work1_.deviceFingerprint() +
-           work2_.deviceFingerprint() + T_times_M_.deviceFingerprint();
+    return work1_.deviceFingerprint() + work2_.deviceFingerprint() + T_times_M_.deviceFingerprint();
   }
 
 private:
@@ -96,8 +95,6 @@ private:
   linalg::util::CudaEvent copy_event_;
   std::array<linalg::Vector<details::Triple<Real>, linalg::GPU>, 2> config_dev_;
 
-  linalg::Matrix<double, dca::linalg::GPU> M_;
-  Matrix workspace_;
   Matrix work1_;
   Matrix work2_;
   Matrix T_times_M_;
@@ -123,24 +120,21 @@ CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::CachedN
 template <typename Real, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
 template <class Configuration>
 void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::execute(
-    const Configuration& configuration, const linalg::Matrix<double, linalg::CPU>& M, Matrix& M_out) {
+    const Configuration& configuration, const linalg::Matrix<double, linalg::GPU>& M, Matrix& M_out) {
   if (configuration.size() == 0) {  // The result is zero
     M_out.resizeNoCopy(std::make_pair(w_.size() / 2 * n_orbitals_, w_.size() * n_orbitals_));
     M_out.setToZero(stream_);
     return;
   }
 
-  M_.setAsync(M, stream_);
-  copy_event_.record(stream_);
-
   BaseClass::sortConfiguration(configuration);
   config_dev_[0].setAsync(config_left_, stream_);
   config_dev_[1].setAsync(config_right_, stream_);
   assert(cudaPeekAtLastError() == cudaSuccess);
 
+  sortM(M, work1_);
   copy_event_.record(stream_);
 
-  sortM(M_, work1_);
   computeT();
   performFT(work1_, work2_);
   rearrangeOutput(work2_, M_out);

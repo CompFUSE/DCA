@@ -62,8 +62,13 @@ public:
   // In: M_array: stores the M matrix for each spin sector.
   // In: configs: stores the walker's configuration for each spin sector.
   // In: sign: sign of the configuration.
-  template <class Configuration, class Scalar>
-  void accumulate(const std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>& M_pair,
+  template <class Configuration>
+  void accumulate(const std::array<linalg::Matrix<double, linalg::GPU>, 2>& M,
+                  const std::array<Configuration, 2>& configs, int sign);
+
+  // CPU input. For testing purposes.
+  template <class Configuration>
+  void accumulate(const std::array<linalg::Matrix<double, linalg::CPU>, 2>& M,
                   const std::array<Configuration, 2>& configs, int sign);
 
   // Downloads the accumulation result to the host.
@@ -120,8 +125,8 @@ private:
 
   void computeGSingleband(int s);
 
-  template <class Configuration, typename Scalar>
-  void computeM(const std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>& M_pair,
+  template <class Configuration>
+  void computeM(const std::array<linalg::Matrix<double, linalg::GPU>, 2>& M_pair,
                 const std::array<Configuration, 2>& configs);
 
   void updateG4();
@@ -242,9 +247,9 @@ void TpAccumulator<Parameters, linalg::GPU>::initializeG4Helpers() const {
 }
 
 template <class Parameters>
-template <class Configuration, class Scalar>
+template <class Configuration>
 void TpAccumulator<Parameters, linalg::GPU>::accumulate(
-    const std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>& M_pair,
+    const std::array<linalg::Matrix<double, linalg::GPU>, 2>& M,
     const std::array<Configuration, 2>& configs, const int sign) {
   Profiler profiler("accumulate", "tp-accumulation", __LINE__, thread_id_);
 
@@ -255,15 +260,27 @@ void TpAccumulator<Parameters, linalg::GPU>::accumulate(
     return;
 
   sign_ = sign;
-  computeM(M_pair, configs);
+  computeM(M, configs);
   computeG();
   updateG4();
 }
 
 template <class Parameters>
-template <class Configuration, class Scalar>
+template <class Configuration>
+void TpAccumulator<Parameters, linalg::GPU>::accumulate(
+    const std::array<linalg::Matrix<double, linalg::CPU>, 2>& M,
+    const std::array<Configuration, 2>& configs, const int sign) {
+  std::array<linalg::Matrix<double, linalg::GPU>, 2> M_dev;
+  for (int s = 0; s < 2; ++s)
+    M_dev[s].setAsync(M[s], streams_[0]);
+
+  accumulate(M_dev, configs, sign);
+}
+
+template <class Parameters>
+template <class Configuration>
 void TpAccumulator<Parameters, linalg::GPU>::computeM(
-    const std::array<linalg::Matrix<Scalar, linalg::CPU>, 2>& M_pair,
+    const std::array<linalg::Matrix<double, linalg::GPU>, 2>& M_pair,
     const std::array<Configuration, 2>& configs) {
   {
     Profiler prf("Frequency FT: HOST", "tp-accumulation", __LINE__, thread_id_);
