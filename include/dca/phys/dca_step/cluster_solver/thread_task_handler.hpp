@@ -57,13 +57,13 @@ public:
     assert(thread_id >= 0 && thread_id < thread_tasks_.size());
     assert(thread_tasks_[thread_id] == "accumulator");
 
-    int rng_index = 0;
+    int accum_idx = 0;
 
     for (int i = 0; i < thread_id; ++i) {
       if (thread_tasks_[i] == "accumulator")
-        ++rng_index;
+        ++accum_idx;
     }
-    return rng_index;
+    return accum_idx;
   }
 
   std::size_t size() const {
