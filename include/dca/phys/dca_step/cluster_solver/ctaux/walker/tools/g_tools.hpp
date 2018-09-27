@@ -43,8 +43,8 @@ public:
 
   template <class configuration_type>
   void build_G_matrix(configuration_type& full_configuration,
-                      dca::linalg::Matrix<double, device_t>& N,
-                      dca::linalg::Matrix<double, device_t>& G0,
+                      const dca::linalg::Matrix<double, device_t>& N,
+                      const dca::linalg::Matrix<double, device_t>& G0,
                       dca::linalg::Matrix<double, device_t>& G, e_spin_states_type e_spin);
 
   double compute_G_matrix_element(int configuration_e_spin_index_i, int configuration_e_spin_index_j,
@@ -72,9 +72,7 @@ public:
                                 dca::linalg::Matrix<double, device_t>& G_precomputed,
                                 double* result_ptr, int incr);
 
-
-
-  private:
+private:
   double compute_G_vertex_to_old_vertex(int configuration_e_spin_index_i,
                                         int configuration_e_spin_index_j,
                                         dca::linalg::Matrix<double, device_t>& N,
@@ -124,11 +122,10 @@ double G_TOOLS<device_t, parameters_type>::get_Gflop() {
 
 template <dca::linalg::DeviceType device_t, typename parameters_type>
 template <class configuration_type>
-void G_TOOLS<device_t, parameters_type>::build_G_matrix(configuration_type& full_configuration,
-                                                        dca::linalg::Matrix<double, device_t>& N,
-                                                        dca::linalg::Matrix<double, device_t>& G0,
-                                                        dca::linalg::Matrix<double, device_t>& G,
-                                                        e_spin_states_type e_spin) {
+void G_TOOLS<device_t, parameters_type>::build_G_matrix(
+    configuration_type& full_configuration, const dca::linalg::Matrix<double, device_t>& N,
+    const dca::linalg::Matrix<double, device_t>& G0, dca::linalg::Matrix<double, device_t>& G,
+    e_spin_states_type e_spin) {
   // profiler_t profiler(concurrency, "build_G_matrix", "CT-AUX", __LINE__);
 
   assert(full_configuration.assert_block_form(e_spin));
