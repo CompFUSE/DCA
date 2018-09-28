@@ -18,9 +18,13 @@ namespace parallel {
 
 class MPIInitializer {
 protected:
-    MPIInitializer(int argc, char **argv);
+  MPIInitializer(int argc, char** argv);
 
-    ~MPIInitializer();
+  ~MPIInitializer();
+
+public:
+  // Aborts all processes.
+  void abort() const;
 };
 
 }  // parallel

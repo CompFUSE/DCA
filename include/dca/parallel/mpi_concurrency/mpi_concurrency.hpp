@@ -33,7 +33,7 @@ namespace dca {
 namespace parallel {
 // dca::parallel::
 
-class MPIConcurrency final : private virtual MPIInitializer,
+class MPIConcurrency final : public virtual MPIInitializer,
                              private virtual MPIProcessorGrouping,
                              public MPIPacking,
                              public MPICollectiveMax,

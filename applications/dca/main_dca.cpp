@@ -27,66 +27,72 @@ int main(int argc, char** argv) {
     return -1;
   }
 
-  std::string input_file(argv[1]);
-
   Concurrency concurrency(argc, argv);
 
-  Profiler::start();
+  try {
+    std::string input_file(argv[1]);
 
-  // Print some info.
-  if (concurrency.id() == concurrency.first()) {
-    dca::util::GitVersion::print();
-    dca::util::Modules::print();
-    dca::config::CMakeOptions::print();
+    Profiler::start();
 
-#ifdef DCA_WITH_CUDA
-    dca::linalg::util::printInfoDevices();
-#endif  // DCA_WITH_CUDA
-
-    std::cout
-        << "\n"
-        << "********************************************************************************\n"
-        << "**********                     DCA(+) Calculation                     **********\n"
-        << "********************************************************************************\n"
-        << "\n"
-        << "Start time : " << dca::util::print_time() << "\n"
-        << "\n"
-        << "MPI-world set up: " << concurrency.number_of_processors() << " processes."
-        << "\n"
-        << std::endl;
-  }
+    // Print some info.
+    if (concurrency.id() == concurrency.first()) {
+      dca::util::GitVersion::print();
+      dca::util::Modules::print();
+      dca::config::CMakeOptions::print();
 
 #ifdef DCA_WITH_CUDA
-  dca::linalg::util::initializeMagma();
+      dca::linalg::util::printInfoDevices();
 #endif  // DCA_WITH_CUDA
 
-  // Create the parameters object from the input file.
-  ParametersType parameters(dca::util::GitVersion::string(), concurrency);
-  parameters.read_input_and_broadcast<dca::io::JSONReader>(input_file);
-  parameters.update_model();
-  parameters.update_domains();
+      std::cout
+          << "\n"
+          << "********************************************************************************\n"
+          << "**********                     DCA(+) Calculation                     **********\n"
+          << "********************************************************************************\n"
+          << "\n"
+          << "Start time : " << dca::util::print_time() << "\n"
+          << "\n"
+          << "MPI-world set up: " << concurrency.number_of_processors() << " processes."
+          << "\n"
+          << std::endl;
+    }
 
-  // Create and initialize the DCA data object.
-  DcaDataType dca_data(parameters);
-  dca_data.initialize();
+#ifdef DCA_WITH_CUDA
+    dca::linalg::util::initializeMagma();
+#endif  // DCA_WITH_CUDA
 
-  DcaLoopType dca_loop(parameters, dca_data, concurrency);
+    // Create the parameters object from the input file.
+    ParametersType parameters(dca::util::GitVersion::string(), concurrency);
+    parameters.read_input_and_broadcast<dca::io::JSONReader>(input_file);
+    parameters.update_model();
+    parameters.update_domains();
 
-  {
-    Profiler profiler(__FUNCTION__, __FILE__, __LINE__);
+    // Create and initialize the DCA data object.
+    DcaDataType dca_data(parameters);
+    dca_data.initialize();
 
-    dca_loop.initialize();
-    dca_loop.execute();
-    dca_loop.finalize();
+    DcaLoopType dca_loop(parameters, dca_data, concurrency);
+
+    {
+      Profiler profiler(__FUNCTION__, __FILE__, __LINE__);
+
+      dca_loop.initialize();
+      dca_loop.execute();
+      dca_loop.finalize();
+    }
+
+    Profiler::stop(concurrency, parameters.get_filename_profiling());
+
+    if (concurrency.id() == concurrency.first()) {
+      std::cout << "\nProcessor " << concurrency.id() << " is writing data." << std::endl;
+      dca_loop.write();
+
+      std::cout << "\nFinish time: " << dca::util::print_time() << "\n" << std::endl;
+    }
   }
-
-  Profiler::stop(concurrency, parameters.get_filename_profiling());
-
-  if (concurrency.id() == concurrency.first()) {
-    std::cout << "\nProcessor " << concurrency.id() << " is writing data." << std::endl;
-    dca_loop.write();
-
-    std::cout << "\nFinish time: " << dca::util::print_time() << "\n" << std::endl;
+  catch (const std::exception& err) {
+    std::cout << "Unhandled exception in main function:\n\t" << err.what();
+    concurrency.abort();
   }
 
   return 0;

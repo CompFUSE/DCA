@@ -11,6 +11,7 @@
 
 #include "dca/parallel/mpi_concurrency/mpi_initializer.hpp"
 
+#include <iostream>
 #include <stdexcept>
 #include <mpi.h>
 
@@ -27,6 +28,11 @@ MPIInitializer::MPIInitializer(int argc, char** argv) {
 
 MPIInitializer::~MPIInitializer() {
   MPI_Finalize();
+}
+
+void MPIInitializer::abort() const {
+  std::cout << "\nAborting all processes.\n";
+  MPI_Abort(MPI_COMM_WORLD, 134); // Same error code as std::terminate().
 }
 
 }  // parallel

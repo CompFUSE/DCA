@@ -6,13 +6,21 @@
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Peter Doak (doakpw@ornl.gov)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // This file implements no_concurrency.hpp.
 
 #include "dca/parallel/no_concurrency/no_concurrency.hpp"
 
+#include <iostream>
+
 namespace dca {
 namespace parallel {
+
+void NoConcurrency::abort() const {
+  std::cout << "\nAborting process.\n";
+  std::terminate();
+}
 
 constexpr char NoConcurrency::parallel_type_str_[];
 
