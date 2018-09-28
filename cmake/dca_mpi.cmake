@@ -21,6 +21,8 @@ check_cxx_source_compiles(
 if (CXX_SUPPORTS_MPI)
   set(DCA_HAVE_MPI TRUE CACHE INTERNAL "")
   dca_add_haves_define(DCA_HAVE_MPI)
+  # even if the compiler supports MPI, call find_package to init vars we want
+  find_package(MPI QUIET)
 else()
   # if MPICC is not the default compiler, try finding MPI
   # using the usual CMake find_package mechanism

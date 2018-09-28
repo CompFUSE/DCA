@@ -13,10 +13,12 @@ dca_add_gtest(ctaux_square_lattice_verification_stattest
     LIBS     ${TEST_LIBS}
     )
 
+message("MPIEXEC_MAX_NUMPROCS is ${MPIEXEC_MAX_NUMPROCS}")
+
 dca_add_gtest(ctaux_square_lattice_validation_stattest
     STOCHASTIC
     # Run with more than 32 ranks for reliable error detection. The more the better.
-    MPI MPI_NUMPROC 8
+    MPI MPI_NUMPROC ${MPIEXEC_MAX_NUMPROCS}
     INCLUDE_DIRS ${TEST_INCLUDES}
     LIBS     ${TEST_LIBS}
     )
