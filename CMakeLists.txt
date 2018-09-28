@@ -8,6 +8,12 @@ cmake_minimum_required(VERSION 3.3)
 project(DCA++ C CXX)
 
 ################################################################################
+# Set any policies that might be needed
+if(POLICY CMP0074)
+  cmake_policy(SET CMP0074 NEW)
+endif()
+
+################################################################################
 # Disable in-source builds.
 if (${PROJECT_BINARY_DIR} STREQUAL ${PROJECT_SOURCE_DIR})
   message(FATAL_ERROR "In-source builds are not permitted. Make a separate folder for building:\n
