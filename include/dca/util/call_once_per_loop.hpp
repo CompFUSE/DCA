@@ -27,6 +27,10 @@ struct OncePerLoopFlag {
   std::mutex mutex;
 };
 
+// This routine ensures f(args...) is called by a single thread for each value of loop index. Other
+// threads calling this function with the same flag object and value of loop index wait on the
+// completion of f(args...).
+// Precondition: each call must use a non decreasing value of the loop index.
 template <class F, class... Args>
 void callOncePerLoop(OncePerLoopFlag& flag, const int loop_id, F&& f, Args&&... args) {
   const int currently_done = flag.loop_done;

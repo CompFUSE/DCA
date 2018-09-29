@@ -18,21 +18,26 @@
 
 void task(uint loop_id, std::vector<int>& data) {
   static dca::util::OncePerLoopFlag flag;
-
-  dca::util::callOncePerLoop(flag, loop_id, [&]() { ++data[loop_id]; });
+  
+  dca::util::callOncePerLoop(flag, loop_id, [&]() {
+    ++data[loop_id];
+    std::this_thread::sleep_for(std::chrono::microseconds(100));
+  });
 }
 
 TEST(CallOncePerLoopTest, All) {
-  const int n_loops(10);
+  const int n_loops(1000);
   std::vector<int> result(n_loops, 0);
 
   {
-    const int n_threads = 4;
+    const int n_threads = 8;
     dca::parallel::ThreadPool pool(n_threads);
 
-    for (uint loop_id = 0; loop_id < n_loops; ++loop_id)
-      for (int thread_id = 0; thread_id < n_loops; ++thread_id)
+    for (uint loop_id = 0; loop_id < n_loops; ++loop_id) {
+      for (int thread_id = 0; thread_id < n_threads; ++thread_id) {
         pool.enqueue(task, loop_id, std::ref(result));
+      }
+    }
   }
 
   for (int elem : result)
