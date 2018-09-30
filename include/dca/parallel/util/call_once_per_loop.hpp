@@ -13,8 +13,8 @@
 #include <mutex>
 #include <stdexcept>
 
-#ifndef DCA_UTIL_CALL_ONCE_PER_LOOP_HPP
-#define DCA_UTIL_CALL_ONCE_PER_LOOP_HPP
+#ifndef DCA_PARALLEL_UTIL_CALL_ONCE_PER_LOOP_HPP
+#define DCA_PARALLEL_UTIL_CALL_ONCE_PER_LOOP_HPP
 
 namespace dca {
 namespace util {
@@ -57,4 +57,4 @@ void callOncePerLoop(OncePerLoopFlag& flag, const int loop_id, F&& f, Args&&... 
 }  // util
 }  // dca
 
-#endif  // DCA_UTIL_CALL_ONCE_PER_LOOP_HPP
+#endif  // DCA_PARALLEL_UTIL_CALL_ONCE_PER_LOOP_HPP

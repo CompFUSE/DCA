@@ -9,7 +9,7 @@
 //
 // Tests call_once_per_loop.hpp
 
-#include "dca/util/call_once_per_loop.hpp"
+#include "dca/parallel/util/call_once_per_loop.hpp"
 
 #include <vector>
 #include <gtest/gtest.h>
@@ -18,7 +18,7 @@
 
 void task(uint loop_id, std::vector<int>& data) {
   static dca::util::OncePerLoopFlag flag;
-  
+
   dca::util::callOncePerLoop(flag, loop_id, [&]() {
     ++data[loop_id];
     std::this_thread::sleep_for(std::chrono::microseconds(100));

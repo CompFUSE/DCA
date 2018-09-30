@@ -24,9 +24,9 @@
 #include "dca/linalg/util/cuda_event.hpp"
 #include "dca/linalg/util/magma_queue.hpp"
 #include "dca/math/function_transform/special_transforms/space_transform_2D_gpu.hpp"
+#include "dca/parallel/util/call_once_per_loop.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/kernels_interface.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_gpu.hpp"
-#include "dca/util/call_once_per_loop.hpp"
 
 namespace dca {
 namespace phys {
@@ -112,7 +112,7 @@ private:
 
   void updateG4();
 
-  void synchronize();
+  void synchronizeStreams();
 
 private:
   using BaseClass::thread_id_;
@@ -170,7 +170,7 @@ void TpAccumulator<Parameters, linalg::GPU>::resetAccumulation(const uint dca_lo
   util::callOncePerLoop(flag, dca_loop, [&]() {
     resetG4();
     initializeG0();
-    synchronize();
+    synchronizeStreams();
   });
 
   initialized_ = true;
@@ -347,7 +347,7 @@ void TpAccumulator<Parameters, linalg::GPU>::finalize() {
 
   cudaMemcpyAsync(G4_->values(), get_G4().ptr(), G4_->size() * sizeof(Complex),
                   cudaMemcpyDeviceToHost, streams_[0]);
-  synchronize();
+  synchronizeStreams();
   // TODO: release memory if needed by the rest of the DCA loop.
   // get_G4().clear();
 
@@ -356,7 +356,7 @@ void TpAccumulator<Parameters, linalg::GPU>::finalize() {
 }
 
 template <class Parameters>
-void TpAccumulator<Parameters, linalg::GPU>::synchronize() {
+void TpAccumulator<Parameters, linalg::GPU>::synchronizeStreams() {
   for (auto stream : streams_)
     cudaStreamSynchronize(stream);
 }
@@ -364,7 +364,7 @@ void TpAccumulator<Parameters, linalg::GPU>::synchronize() {
 template <class Parameters>
 void TpAccumulator<Parameters, linalg::GPU>::sumTo(this_type& /*other_one*/) {
   // Nothing to do: G4 on the device is shared.
-  synchronize();
+  synchronizeStreams();
   return;
 }
 
