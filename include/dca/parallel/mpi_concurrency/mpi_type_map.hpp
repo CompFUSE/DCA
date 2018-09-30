@@ -7,6 +7,7 @@
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // This class maps C++ types to MPI types.
 //
@@ -17,16 +18,25 @@
 
 #include <complex>
 #include <cstdlib>
+#include <type_traits>
 #include <mpi.h>
 
 namespace dca {
 namespace parallel {
 // dca::parallel::
 
-// Empty class template that causes a compile error when a type without template specialization is
-// used.
-template <typename scalar_type>
-class MPITypeMap {};
+template <typename T>
+class MPITypeMap {
+public:
+  static constexpr std::size_t factor() {
+    return 1;
+  }
+
+  template <typename = std::enable_if_t<std::is_enum<T>::value>>
+  static MPI_Datatype value() {
+    return MPITypeMap<std::underlying_type_t<T>>::value();
+  }
+};
 
 template <>
 class MPITypeMap<bool> {
