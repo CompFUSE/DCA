@@ -77,7 +77,8 @@ public:
   // Computes M(N).
   // Out: Ms.
   // Returns: pointer to the event marking the end of the computation.
-  const linalg::util::CudaEvent* compute_M(std::array<linalg::Matrix<double, device_t>, 2>& Ms);
+  template <typename AccumType>
+  const linalg::util::CudaEvent* compute_M(std::array<linalg::Matrix<AccumType, device_t>, 2>& Ms);
 
   configuration_type& get_configuration();
 
@@ -1559,8 +1560,9 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::updateShell(const int do
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
+template <typename AccumType>
 const linalg::util::CudaEvent* CtauxWalker<device_t, parameters_type, MOMS_type>::compute_M(
-    std::array<linalg::Matrix<double, device_t>, 2>& Ms) {
+    std::array<linalg::Matrix<AccumType, device_t>, 2>& Ms) {
   for (int s = 0; s < 2; ++s) {
     const auto& config = get_configuration().get(s == 0 ? e_UP : e_DN);
     exp_v_minus_one_[s].resizeNoCopy(config.size());

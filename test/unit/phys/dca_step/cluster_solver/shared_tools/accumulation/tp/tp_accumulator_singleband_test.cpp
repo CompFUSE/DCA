@@ -29,14 +29,14 @@ constexpr bool update_baseline = false;
 
 constexpr char input_file[] = INPUT_DIR "input_3x3.json";
 
-using ConfigGenerator = dca::testing::AccumulationTest<double>;
-using Configuration = ConfigGenerator::Configuration;
-using Sample = ConfigGenerator::Sample;
-
 using TpAccumulatorSinglebandTest =
     dca::testing::G0Setup<dca::testing::LatticeSquare, dca::phys::solver::CT_AUX, input_file>;
 
 TEST_F(TpAccumulatorSinglebandTest, Accumulate) {
+  using ConfigGenerator = dca::testing::AccumulationTest<Parameters::MC_measurement_scalar_type>;
+  using Configuration = ConfigGenerator::Configuration;
+  using Sample = ConfigGenerator::Sample;
+
   const std::array<int, 2> n{17, 17};
   Sample M;
   Configuration config;

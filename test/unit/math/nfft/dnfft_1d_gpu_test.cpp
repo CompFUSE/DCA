@@ -30,7 +30,8 @@ using dca::func::dmn_variadic;
 constexpr int n_bands = 3;
 constexpr int n_sites = 5;
 constexpr int n_frequencies = 64;
-using Dnfft1DGpuTest = dca::testing::SingleSectorAccumulationTest<n_bands, n_sites, n_frequencies>;
+using Dnfft1DGpuTest =
+    dca::testing::SingleSectorAccumulationTest<double, n_bands, n_sites, n_frequencies>;
 
 using FreqDmn = typename Dnfft1DGpuTest::FreqDmn;
 using BDmn = typename Dnfft1DGpuTest::BDmn;
@@ -45,6 +46,7 @@ void computeWithCpuDnfft(dca::linalg::Matrix<double, dca::linalg::CPU>& M, Confi
 
 TEST_F(Dnfft1DGpuTest, Accumulate) {
   prepareConfiguration(configuration_, M_, 128);
+  dca::linalg::Matrix<double, dca::linalg::GPU> M_dev(M_);
 
   constexpr int oversampling = 8;
   // Compute f(w) using the delayed-NFFT algorithm on the CPU.
@@ -60,7 +62,7 @@ TEST_F(Dnfft1DGpuTest, Accumulate) {
   function<std::complex<double>, dmn_variadic<FreqDmn, LabelDmn>> f_w_dnfft_gpu("f_w_dnfft_gpu");
 
   gpu_dnfft_obj.resetAccumulation();
-  gpu_dnfft_obj.accumulate(M_, configuration_, 1);
+  gpu_dnfft_obj.accumulate(M_dev, configuration_, 1);
   gpu_dnfft_obj.finalize(f_w_dnfft_gpu);
 
   cudaStreamDestroy(stream);

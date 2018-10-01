@@ -60,8 +60,8 @@ public:
 
   void resetAccumulation();
 
-  template <class Configuration, typename InpScalar>
-  void accumulate(const std::array<linalg::Matrix<InpScalar, linalg::CPU>, 2>& Ms,
+  template <class Configuration>
+  void accumulate(const std::array<linalg::Matrix<ScalarType, linalg::CPU>, 2>& Ms,
                   const std::array<Configuration, 2>& configs, const int sign);
 
   void finalize();
@@ -119,9 +119,9 @@ void SpAccumulator<Parameters, linalg::CPU>::resetAccumulation() {
 }
 
 template <class Parameters>
-template <class Configuration, typename InpScalar>
+template <class Configuration>
 void SpAccumulator<Parameters, linalg::CPU>::accumulate(
-    const std::array<linalg::Matrix<InpScalar, linalg::CPU>, 2>& Ms,
+    const std::array<linalg::Matrix<ScalarType, linalg::CPU>, 2>& Ms,
     const std::array<Configuration, 2>& configs, const int sign) {
   if (!initialized_)
     throw(std::logic_error("The accumulator was not initialized."));

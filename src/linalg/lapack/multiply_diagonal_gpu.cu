@@ -27,9 +27,9 @@ namespace kernels {
 constexpr int multiply_diag_block_size_x = 128;
 constexpr int multiply_diag_block_size_y = 32;
 
-template <typename Type>
-__global__ void multiplyDiagonalLeft(int m, int n, const Type* d, int inc_d, const Type* a, int lda,
-                                     Type* b, int ldb) {
+template <typename ScalarIn, typename ScalarOut>
+__global__ void multiplyDiagonalLeft(int m, int n, const ScalarIn* d, int inc_d, const ScalarIn* a,
+                                     int lda, ScalarOut* b, int ldb) {
   // Work on a tile of size (blockDim.x x multiply_diag_block_size_y).
   int i = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -60,9 +60,9 @@ __global__ void multiplyDiagonalRight(int m, int n, const Type* a, int lda, cons
 }  // kernels
 // dca::linalg::lapack::
 
-template <typename Type>
-void multiplyDiagonalLeft_gpu(int m, int n, const Type* d, int inc_d, const Type* a, int lda,
-                              Type* b, int ldb, int thread_id, int stream_id) {
+template <typename ScalarIn, typename ScalarOut>
+void multiplyDiagonalLeft_gpu(int m, int n, const ScalarIn* d, int inc_d, const ScalarIn* a,
+                              int lda, ScalarOut* b, int ldb, int thread_id, int stream_id) {
   assert(lda >= m);
   assert(ldb >= m);
 
@@ -76,20 +76,28 @@ void multiplyDiagonalLeft_gpu(int m, int n, const Type* d, int inc_d, const Type
 
     cudaStream_t stream = dca::linalg::util::getStream(thread_id, stream_id);
 
-    kernels::multiplyDiagonalLeft<<<blocks, threads, 0, stream>>>(m, n, d, inc_d, a, lda, b, ldb);
+    kernels::multiplyDiagonalLeft<ScalarIn, ScalarOut>
+        <<<blocks, threads, 0, stream>>>(m, n, d, inc_d, a, lda, b, ldb);
     checkErrorsCudaDebug();
   }
 }
-template void multiplyDiagonalLeft_gpu(int m, int n, const float* d, int inc_d, const float* a,
-                                       int lda, float* b, int ldb, int thread_id, int stream_id);
-template void multiplyDiagonalLeft_gpu(int m, int n, const double* d, int inc_d, const double* a,
-                                       int lda, double* b, int ldb, int thread_id, int stream_id);
-template void multiplyDiagonalLeft_gpu(int m, int n, const cuComplex* d, int inc_d,
-                                       const cuComplex* a, int lda, cuComplex* b, int ldb,
-                                       int thread_id, int stream_id);
-template void multiplyDiagonalLeft_gpu(int m, int n, const cuDoubleComplex* d, int inc_d,
-                                       const cuDoubleComplex* a, int lda, cuDoubleComplex* b,
-                                       int ldb, int thread_id, int stream_id);
+
+template void multiplyDiagonalLeft_gpu<float, float>(int m, int n, const float* d, int inc_d,
+                                                     const float* a, int lda, float* b, int ldb,
+                                                     int thread_id, int stream_id);
+template void multiplyDiagonalLeft_gpu<double, double>(int m, int n, const double* d, int inc_d,
+                                                       const double* a, int lda, double* b, int ldb,
+                                                       int thread_id, int stream_id);
+template void multiplyDiagonalLeft_gpu<double, float>(int m, int n, const double* d, int inc_d,
+                                                      const double* a, int lda, float* b, int ldb,
+                                                      int thread_id, int stream_id);
+template void multiplyDiagonalLeft_gpu<cuComplex, cuComplex>(int m, int n, const cuComplex* d,
+                                                             int inc_d, const cuComplex* a, int lda,
+                                                             cuComplex* b, int ldb, int thread_id,
+                                                             int stream_id);
+template void multiplyDiagonalLeft_gpu<cuDoubleComplex, cuDoubleComplex>(
+    int m, int n, const cuDoubleComplex* d, int inc_d, const cuDoubleComplex* a, int lda,
+    cuDoubleComplex* b, int ldb, int thread_id, int stream_id);
 
 template <typename Type>
 void multiplyDiagonalRight_gpu(int m, int n, const Type* a, int lda, const Type* d, int inc_d,

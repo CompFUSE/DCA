@@ -99,7 +99,7 @@ struct Vertex {
   double tau_;
 };
 
-template <int n_bands = 2, int n_sites = 3, int n_frqs = 64>
+template <typename Real = double, int n_bands = 2, int n_sites = 3, int n_frqs = 64>
 class SingleSectorAccumulationTest : public ::testing::Test {
 public:
   using RDmn = dca::func::dmn_0<MockClusterDmn<n_sites>>;
@@ -108,7 +108,7 @@ public:
   using BDmn = dca::func::dmn_0<dca::phys::domains::electron_band_domain>;
 
   using Configuration = std::vector<Vertex>;
-  using Matrix = dca::linalg::Matrix<double, dca::linalg::CPU>;
+  using Matrix = dca::linalg::Matrix<Real, dca::linalg::CPU>;
 
   using F_w_w =
       dca::func::function<std::complex<double>,
@@ -147,8 +147,8 @@ protected:
   Matrix M_;
 };
 
-template <int n_bands, int n_sites, int n_frqs>
-void SingleSectorAccumulationTest<n_bands, n_sites, n_frqs>::prepareConfiguration(
+template <typename Real, int n_bands, int n_sites, int n_frqs>
+void SingleSectorAccumulationTest<Real, n_bands, n_sites, n_frqs>::prepareConfiguration(
     Configuration& config, Matrix& M, const int nb, const int nr, const double beta, const int n) {
   config.resize(n);
   M.resize(n);
@@ -169,8 +169,9 @@ void SingleSectorAccumulationTest<n_bands, n_sites, n_frqs>::prepareConfiguratio
     }
 }
 
-template <int n_bands, int n_sites, int n_frqs>
-auto SingleSectorAccumulationTest<n_bands, n_sites, n_frqs>::compute2DFTBaseline() const -> F_w_w {
+template <typename Real, int n_bands, int n_sites, int n_frqs>
+auto SingleSectorAccumulationTest<Real, n_bands, n_sites, n_frqs>::compute2DFTBaseline() const
+    -> F_w_w {
   F_w_w f_w("2D frequency transform baseline.");
   const std::complex<double> imag(0, 1);
 

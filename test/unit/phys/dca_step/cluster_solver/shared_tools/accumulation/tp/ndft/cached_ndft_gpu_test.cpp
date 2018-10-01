@@ -24,7 +24,8 @@
 constexpr int n_bands = 2;
 constexpr int n_sites = 3;
 constexpr int n_frqs = 7;
-using CachedNdftGpuTest = dca::testing::SingleSectorAccumulationTest<n_bands, n_sites, n_frqs>;
+using CachedNdftGpuTest =
+    dca::testing::SingleSectorAccumulationTest<double, n_bands, n_sites, n_frqs>;
 
 double computeWithFastNDFT(const CachedNdftGpuTest::Configuration& config,
                            const CachedNdftGpuTest::Matrix& M, CachedNdftGpuTest::F_w_w& f_w);

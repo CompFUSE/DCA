@@ -59,8 +59,8 @@ public:
   // Accumulates asynchronously on the device the entries of the M matrix at times and orbitals
   // described by the provided configuration.
   // Postcondition: M and config shall not be modified until 'synchronizeCopy' is called.
-  template <class Configuration>
-  void accumulate(const linalg::Matrix<double, linalg::GPU>& M, const Configuration& config,
+  template <class Configuration, typename RealInp>
+  void accumulate(const linalg::Matrix<RealInp, linalg::GPU>& M, const Configuration& config,
                   const int sign);
 
   // Transforms the accumulated data to the frequency domain and stores it in f_w.
@@ -155,9 +155,9 @@ void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::initializeDeviceCo
 }
 
 template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>
-template <class Configuration>
+template <class Configuration, typename RealInp>
 void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::accumulate(
-    const linalg::Matrix<double, linalg::GPU>& M, const Configuration& config, const int sign) {
+    const linalg::Matrix<RealInp, linalg::GPU>& M, const Configuration& config, const int sign) {
   assert(M.is_square());
   if (config.size() == 0)  // Contribution is zero.
     return;

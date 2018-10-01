@@ -60,11 +60,6 @@ struct ConfigElement {
 using dca::linalg::CPU;
 using dca::linalg::GPU;
 
-using Configuration = std::array<std::vector<ConfigElement>, 2>;
-template<dca::linalg::DeviceType device>
-using MatrixPair = std::array<dca::linalg::Matrix<double, device>, 2>;
-void prepareRandomConfig(Configuration& config, MatrixPair<CPU>& M, int n);
-
 using Model =
     dca::phys::models::TightBindingModel<dca::phys::models::bilayer_lattice<dca::phys::domains::D4>>;
 using Concurrency = dca::parallel::NoConcurrency;
@@ -72,6 +67,13 @@ using Profiler = dca::profiling::CountingProfiler<dca::profiling::time_event<std
 using Parameters = dca::phys::params::Parameters<Concurrency, dca::parallel::NoThreading, Profiler,
                                                  Model, void, dca::phys::solver::CT_AUX>;
 using Data = dca::phys::DcaData<Parameters>;
+
+using Real = Parameters::MC_measurement_scalar_type;
+template <dca::linalg::DeviceType device>
+using MatrixPair = std::array<dca::linalg::Matrix<Real, device>, 2>;
+using Configuration = std::array<std::vector<ConfigElement>, 2>;
+
+void prepareRandomConfig(Configuration& config, MatrixPair<CPU>& M, int n);
 
 using BDmn = dca::func::dmn_0<dca::phys::domains::electron_band_domain>;
 using RDmn = typename Parameters::RClusterDmn;

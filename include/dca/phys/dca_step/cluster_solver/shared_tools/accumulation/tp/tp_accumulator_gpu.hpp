@@ -47,6 +47,8 @@ private:
   using NuDmn = typename BaseClass::NuDmn;
   using WDmn = typename BaseClass::WDmn;
 
+  using typename BaseClass::Real;
+
 public:
   // Constructor:
   // In: G0: non interacting greens function.
@@ -64,12 +66,12 @@ public:
   // In: configs: stores the walker's configuration for each spin sector.
   // In: sign: sign of the configuration.
   template <class Configuration>
-  void accumulate(const std::array<linalg::Matrix<double, linalg::GPU>, 2>& M,
+  void accumulate(const std::array<linalg::Matrix<Real, linalg::GPU>, 2>& M,
                   const std::array<Configuration, 2>& configs, int sign);
 
   // CPU input. For testing purposes.
   template <class Configuration>
-  void accumulate(const std::array<linalg::Matrix<double, linalg::CPU>, 2>& M,
+  void accumulate(const std::array<linalg::Matrix<Real, linalg::CPU>, 2>& M,
                   const std::array<Configuration, 2>& configs, int sign);
 
   // Downloads the accumulation result to the host.
@@ -118,7 +120,6 @@ private:
   using typename BaseClass::SDmn;
 
   using typename BaseClass::TpGreenFunction;
-  using typename BaseClass::Real;
   using typename BaseClass::Complex;
 
   void initializeG0();
@@ -132,7 +133,7 @@ private:
   void computeGSingleband(int s);
 
   template <class Configuration>
-  void computeM(const std::array<linalg::Matrix<double, linalg::GPU>, 2>& M_pair,
+  void computeM(const std::array<linalg::Matrix<Real, linalg::GPU>, 2>& M_pair,
                 const std::array<Configuration, 2>& configs);
 
   void updateG4();
@@ -257,7 +258,7 @@ void TpAccumulator<Parameters, linalg::GPU>::initializeG4Helpers() const {
 template <class Parameters>
 template <class Configuration>
 void TpAccumulator<Parameters, linalg::GPU>::accumulate(
-    const std::array<linalg::Matrix<double, linalg::GPU>, 2>& M,
+    const std::array<linalg::Matrix<Real, linalg::GPU>, 2>& M,
     const std::array<Configuration, 2>& configs, const int sign) {
   Profiler profiler("accumulate", "tp-accumulation", __LINE__, thread_id_);
 
@@ -276,9 +277,9 @@ void TpAccumulator<Parameters, linalg::GPU>::accumulate(
 template <class Parameters>
 template <class Configuration>
 void TpAccumulator<Parameters, linalg::GPU>::accumulate(
-    const std::array<linalg::Matrix<double, linalg::CPU>, 2>& M,
+    const std::array<linalg::Matrix<Real, linalg::CPU>, 2>& M,
     const std::array<Configuration, 2>& configs, const int sign) {
-  std::array<linalg::Matrix<double, linalg::GPU>, 2> M_dev;
+  std::array<linalg::Matrix<Real, linalg::GPU>, 2> M_dev;
   for (int s = 0; s < 2; ++s)
     M_dev[s].setAsync(M[s], streams_[0]);
 
@@ -288,7 +289,7 @@ void TpAccumulator<Parameters, linalg::GPU>::accumulate(
 template <class Parameters>
 template <class Configuration>
 void TpAccumulator<Parameters, linalg::GPU>::computeM(
-    const std::array<linalg::Matrix<double, linalg::GPU>, 2>& M_pair,
+    const std::array<linalg::Matrix<Real, linalg::GPU>, 2>& M_pair,
     const std::array<Configuration, 2>& configs) {
   auto stream_id = [&](const int s) { return n_ndft_streams_ == 1 ? 0 : s; };
 

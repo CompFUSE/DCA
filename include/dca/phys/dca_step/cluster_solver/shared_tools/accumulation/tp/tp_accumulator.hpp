@@ -74,7 +74,7 @@ public:
   // In: configs: stores the walker's configuration for each spin sector.
   // In: sign: sign of the configuration.
   template <class Configuration>
-  double accumulate(const std::array<linalg::Matrix<double, linalg::CPU>, 2>& M_pair,
+  double accumulate(const std::array<linalg::Matrix<Real, linalg::CPU>, 2>& M_pair,
                     const std::array<Configuration, 2>& configs, int sign);
 
   // Empty method for compatibility with GPU version.
@@ -129,7 +129,7 @@ protected:
   Complex getGSingleband(int s, int k1, int k2, int w1, int w2) const;
 
   template <class Configuration>
-  double computeM(const std::array<linalg::Matrix<double, linalg::CPU>, 2>& M_pair,
+  double computeM(const std::array<linalg::Matrix<Real, linalg::CPU>, 2>& M_pair,
                   const std::array<Configuration, 2>& configs);
 
   double updateG4();
@@ -213,7 +213,7 @@ void TpAccumulator<Parameters, linalg::CPU>::initializeG0() {
 template <class Parameters>
 template <class Configuration>
 double TpAccumulator<Parameters, linalg::CPU>::accumulate(
-    const std::array<linalg::Matrix<double, linalg::CPU>, 2>& M_pair,
+    const std::array<linalg::Matrix<Real, linalg::CPU>, 2>& M_pair,
     const std::array<Configuration, 2>& configs, const int sign) {
   Profiler profiler("accumulate", "tp-accumulation", __LINE__, thread_id_);
   double gflops(0.);
@@ -230,7 +230,7 @@ double TpAccumulator<Parameters, linalg::CPU>::accumulate(
 template <class Parameters>
 template <class Configuration>
 double TpAccumulator<Parameters, linalg::CPU>::computeM(
-    const std::array<linalg::Matrix<double, linalg::CPU>, 2>& M_pair,
+    const std::array<linalg::Matrix<Real, linalg::CPU>, 2>& M_pair,
     const std::array<Configuration, 2>& configs) {
   double gflops(0.);
 
