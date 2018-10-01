@@ -1,0 +1,26 @@
+// Copyright (C) 2018 ETH Zurich
+// Copyright (C) 2018 UT-Battelle, LLC
+// All rights reserved.
+//
+// See LICENSE for terms of usage.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+//
+// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//
+// This class stores compile time options.
+
+#ifndef DCA_CONFIG_OPTIMIZATION_OPTIONS_HPP
+#define DCA_CONFIG_OPTIMIZATION_OPTIONS_HPP
+
+namespace dca {
+namespace config {
+// dca::config::
+
+struct OptimizationOptions {
+  static constexpr bool memory_savings = @MEMORY_SAVINGS@;
+};
+
+}  // config
+}  // dca
+
+#endif  // DCA_CONFIG_OPTIMIZATION_OPTIONS_HPP

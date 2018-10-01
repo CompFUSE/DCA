@@ -20,6 +20,7 @@
 #include <cuda.h>
 #include <mutex>
 
+#include "dca/config/optimization_options.hpp"
 #include "dca/linalg/lapack/magma.hpp"
 #include "dca/linalg/util/cuda_event.hpp"
 #include "dca/linalg/util/magma_queue.hpp"
@@ -134,7 +135,7 @@ private:
   void synchronizeStreams();
 
 private:
-  constexpr static int n_streams_ = 1;
+  constexpr static int n_ndft_streams_ = config::OptimizationOptions::memory_savings ? 1 : 2;
 
   using BaseClass::thread_id_;
   using BaseClass::n_bands_;
@@ -170,6 +171,7 @@ private:
   using G4DevType = VectorManagedFallback<Complex>;
   static inline G4DevType& get_G4();
 };
+
 
 template <class Parameters>
 TpAccumulator<Parameters, linalg::GPU>::TpAccumulator(
@@ -284,7 +286,7 @@ template <class Configuration>
 void TpAccumulator<Parameters, linalg::GPU>::computeM(
     const std::array<linalg::Matrix<double, linalg::GPU>, 2>& M_pair,
     const std::array<Configuration, 2>& configs) {
-  auto stream_id = [&](const int s) { return n_streams_ == 1 ? 0 : s; };
+  auto stream_id = [&](const int s) { return n_ndft_streams_ == 1 ? 0 : s; };
 
   {
     Profiler prf("Frequency FT: HOST", "tp-accumulation", __LINE__, thread_id_);
@@ -300,7 +302,7 @@ void TpAccumulator<Parameters, linalg::GPU>::computeM(
 
 template <class Parameters>
 void TpAccumulator<Parameters, linalg::GPU>::computeG() {
-  if (n_streams_ == 1) {
+  if (n_ndft_streams_ == 1) {
     event_.record(streams_[0]);
     event_.block(streams_[1]);
   }

@@ -33,6 +33,7 @@ const std::string CMakeOptions::dca_with_reduced_vertex_function =
 const std::string CMakeOptions::dca_with_single_precision_measurements =
     "@DCA_WITH_SINGLE_PRECISION_MEASUREMENTS@";
 const std::string CMakeOptions::dca_with_qmc_bit = "@DCA_WITH_QMC_BIT@";
+const std::string CMakeOptions::dca_with_memory_savings = "@DCA_WITH_MEMORY_SAVINGS@";
 
 void CMakeOptions::print() {
   std::cout << "\n"
@@ -60,6 +61,7 @@ void CMakeOptions::print() {
             << "DCA_WITH_REDUCED_VERTEX_FUNCTION = " << CMakeOptions::dca_with_reduced_vertex_function
             << "\n"
             << "DCA_WITH_SINGLE_PRECISION_MEASUREMENTS = " << dca_with_single_precision_measurements
+            << "DCA_WITH_QMC_BIT = " << CMakeOptions::dca_with_memory_savings << "\n"
             << "\n"
             << "DCA_WITH_QMC_BIT = " << CMakeOptions::dca_with_qmc_bit << "\n"
             << std::endl;
