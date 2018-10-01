@@ -88,8 +88,15 @@ public:
 
   void synchronizeCopy() {}
 
-  std::size_t deviceFingerprint() const {return 0;}
-  static std::size_t staticDeviceFingerprint() {return 0;}
+  template <class T>
+  void syncStreams(const T&) {}
+
+  std::size_t deviceFingerprint() const {
+    return 0;
+  }
+  static std::size_t staticDeviceFingerprint() {
+    return 0;
+  }
 
 protected:
   using Profiler = typename Parameters::profiler_type;

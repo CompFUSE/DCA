@@ -88,6 +88,11 @@ public:
     ndft_objs_[1].synchronizeCopy();
   }
 
+  void syncStreams(const linalg::util::CudaEvent& event) {
+    for (const auto& stream : streams_)
+      event.block(stream);
+  }
+
   std::size_t deviceFingerprint() const {
     std::size_t res(0);
     for (int s = 0; s < 2; ++s)
@@ -171,7 +176,6 @@ private:
   using G4DevType = VectorManagedFallback<Complex>;
   static inline G4DevType& get_G4();
 };
-
 
 template <class Parameters>
 TpAccumulator<Parameters, linalg::GPU>::TpAccumulator(

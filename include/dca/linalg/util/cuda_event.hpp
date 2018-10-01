@@ -11,15 +11,17 @@
 
 #ifndef DCA_LINALG_UTIL_CUDA_EVENT_HPP
 #define DCA_LINALG_UTIL_CUDA_EVENT_HPP
-#ifdef DCA_HAVE_CUDA
 
+#ifdef DCA_HAVE_CUDA
 #include <cuda.h>
+#endif  // DCA_HAVE_CUDA
 
 namespace dca {
 namespace linalg {
 namespace util {
 // dca::linalg::util::
 
+#ifdef DCA_HAVE_CUDA
 class CudaEvent {
 public:
   CudaEvent() {
@@ -38,15 +40,15 @@ public:
     cudaEventRecord(event_, stream);
   }
 
-  void block() {
+  void block() const {
     cudaEventSynchronize(event_);
   }
 
-  void block(cudaStream_t stream) {
+  void block(cudaStream_t stream) const {
     cudaStreamWaitEvent(stream, event_, 0);
   }
 
-  operator bool() {
+  operator bool() const {
     return cudaEventQuery(event_);
   }
 
@@ -62,9 +64,28 @@ float elapsedTime(cudaEvent_t stop, cudaEvent_t start) {
   return 1e-3 * msec;
 }
 
+#else
+
+// Define a trivial, non-blocking event in case CUDA is not available.
+class CudaEvent {
+public:
+  template <class T>
+  void record(const T& /*stream*/) {}
+
+  void block() const {}
+
+  template <class T>
+  void block(const T&) const {}
+
+  operator bool() const {
+    return true;
+  }
+};
+
+#endif  // DCA_HAVE_CUDA
+
 }  // util
 }  // linalg
 }  // dca
 
-#endif  // DCA_HAVE_CUDA
 #endif  // DCA_LINALG_UTIL_CUDA_EVENT_HPP

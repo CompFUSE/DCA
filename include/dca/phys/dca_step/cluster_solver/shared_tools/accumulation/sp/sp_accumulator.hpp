@@ -74,8 +74,13 @@ public:
 
   const auto& get_sign_times_M_r_w_sqr() const;
 
-    // Returns the allocated device memory in bytes.
-    int deviceFingerprint() const {return 0;}
+  template<class T>
+  void syncStreams(const T& ){}
+
+  // Returns the allocated device memory in bytes.
+  int deviceFingerprint() const {
+    return 0;
+  }
 
 protected:
   constexpr static int oversampling = 8;

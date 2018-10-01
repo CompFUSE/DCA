@@ -26,6 +26,7 @@
 #include <vector>
 
 #include "dca/linalg/util/cuda_stream.hpp"
+#include "dca/linalg/util/cuda_event.hpp"
 #include "dca/math/nfft/dnfft_1d_gpu.hpp"
 #include "dca/phys/error_computation_type.hpp"
 
@@ -69,6 +70,11 @@ public:
   void synchronizeCopy() {
     cached_nfft_obj_[0].synchronizeCopy();
     cached_nfft_obj_[1].synchronizeCopy();
+  }
+
+  void syncStreams(const linalg::util::CudaEvent& event) {
+    for(const auto& stream : streams_)
+      event.block(stream);
   }
 
   const auto& get_streams() const {
