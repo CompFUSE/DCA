@@ -134,6 +134,8 @@ private:
   void synchronizeStreams();
 
 private:
+  constexpr static int n_streams_ = 1;
+
   using BaseClass::thread_id_;
   using BaseClass::n_bands_;
   using BaseClass::beta_;
@@ -282,20 +284,26 @@ template <class Configuration>
 void TpAccumulator<Parameters, linalg::GPU>::computeM(
     const std::array<linalg::Matrix<double, linalg::GPU>, 2>& M_pair,
     const std::array<Configuration, 2>& configs) {
+  auto stream_id = [&](const int s) { return n_streams_ == 1 ? 0 : s; };
+
   {
     Profiler prf("Frequency FT: HOST", "tp-accumulation", __LINE__, thread_id_);
     for (int s = 0; s < 2; ++s)
-      ndft_objs_[s].execute(configs[s], M_pair[s], G_[s]);
+      ndft_objs_[stream_id(s)].execute(configs[s], M_pair[s], G_[s]);
   }
   {
     Profiler prf("Space FT: HOST", "tp-accumulation", __LINE__, thread_id_);
     for (int s = 0; s < 2; ++s)
-      space_trsf_objs_[s].execute(G_[s]);
+      space_trsf_objs_[stream_id(s)].execute(G_[s]);
   }
 }
 
 template <class Parameters>
 void TpAccumulator<Parameters, linalg::GPU>::computeG() {
+  if (n_streams_ == 1) {
+    event_.record(streams_[0]);
+    event_.block(streams_[1]);
+  }
   {
     Profiler prf("ComputeG: HOST", "tp-accumulation", __LINE__, thread_id_);
     for (int s = 0; s < 2; ++s) {
