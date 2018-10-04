@@ -68,6 +68,8 @@ template <typename Real>
 __global__ void computeGSinglebandKernel(CudaComplex<Real>* __restrict__ G, int ldg,
                                          const CudaComplex<Real>* __restrict__ G0, int nk,
                                          int nw_pos, const Real beta) {
+  // Computes G = -G0(w1) * M(w1, w2) * G(w2) + (w1 == w2) * beta * G0(w1).
+
   const int n_rows = nk * nw_pos;
   const int n_cols = n_rows * 2;
   const int id_i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -106,6 +108,9 @@ template <typename Real>
 __global__ void computeGMultibandKernel(CudaComplex<Real>* __restrict__ G, int ldg,
                                         const CudaComplex<Real>* __restrict__ G0, int ldg0, int nb,
                                         int nk, int nw_pos, Real beta) {
+  // Computes G = -G0(w1) * M(w1, w2) * G(w2) + (w1 == w2) * beta * G0(w1).
+  // The product is to be intended as matrix-matrix multiplication in band space.
+
   const int id_i = blockIdx.x * blockDim.x + threadIdx.x;
   const int id_j = blockIdx.y * blockDim.y + threadIdx.y;
 
@@ -177,6 +182,9 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
                                const CudaComplex<Real>* __restrict__ G_down, const int ldgd,
                                const int nb, const int nk, const int nw, const int nw_exchange,
                                const int nk_exchange, const int sign, const G4Helper helper) {
+  // TODO: reduce code duplication.
+  // TODO: decrease, if possible, register pressure. E.g. a single thread computes all bands.
+
   const int size = nk * nw * nb * nb;
   // id_i is a linearized index of b1, b2, k1, k2.
   const int id_i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -207,13 +215,16 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
   const int k_ex = id_z - w_ex * nk_exchange;
 
   CudaComplex<Real> contribution;
-  const Real factor = 0.5 * sign;
   const int no = nk * nb;
   auto cond_conj = [](const CudaComplex<Real> a, const bool cond) { return cond ? conj(a) : a; };
 
-  // Compute the contribution.
+  // Compute the contribution to G4. In all the products of Green's function of type Ga * Gb,
+  // the dependency on the bands is implied as Ga(b1, b2) * Gb(b2, b3). Sums and differences with
+  // the exchange momentum, implies the same operation is performed with the exchange frequency.
+  // See tp_accumulator.hpp for more details.
   switch (type) {
     case PARTICLE_HOLE_TRANSVERSE: {
+      // contribution <- -\sum_s G(k1, k2, s) * G(k2 + k_ex, k1 + k_ex, -s)
       int w1_a(w1), w2_a(w2);
       const bool conj_a = helper.extendWIndices(w1_a, w2_a);
       const int i_a = b1 + nb * k1 + no * w1_a;
@@ -231,10 +242,12 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       const CudaComplex<Real> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
       const CudaComplex<Real> Gb_2 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
 
-      contribution = (Ga_1 * Gb_1 + Ga_2 * Gb_2) * (-factor);
+      contribution = -(Ga_1 * Gb_1 + Ga_2 * Gb_2);
     } break;
 
+    // The PARTICLE_HOLE_MAGNETIC contribution is computed in two parts:
     case PARTICLE_HOLE_MAGNETIC: {
+      // contribution <- -\sum_s G(k1, k2, s) * G(k2 + k_ex, k1 + k_ex, s)
       int w1_a(w1), w2_a(w2);
       const bool conj_a = helper.extendWIndices(w1_a, w2_a);
       const int i_a = b1 + nb * k1 + no * w1_a;
@@ -252,9 +265,10 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       const CudaComplex<Real> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
       const CudaComplex<Real> Gb_2 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
 
-      contribution = (Ga_1 * Gb_1 + Ga_2 * Gb_2) * (-factor);
+      contribution = -(Ga_1 * Gb_1 + Ga_2 * Gb_2);
     }
       {
+        // contribution += (\sum_s s * G(k1, k1 + k_ex)) * (\sum_s s * G(k2 + k_ex, k2))
         int w1_a(w1);
         int w2_a(helper.addWex(w1, w_ex));
         const bool conj_a = helper.extendWIndices(w1_a, w2_a);
@@ -272,11 +286,13 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
         const CudaComplex<Real> Gb =
             cond_conj(G_up[i_b + ldgu * j_b] - G_down[i_b + ldgd * j_b], conj_b);
 
-        contribution += (Ga * Gb) * factor;
+        contribution += (Ga * Gb);
       }
       break;
 
+    // The PARTICLE_HOLE_CHARGE contribution is computed in two parts:
     case PARTICLE_HOLE_CHARGE: {
+      // contribution <- -\sum_s G(k1, k2, s) * G(k2 + k_ex, k1 + k_ex, s)
       int w1_a(w1), w2_a(w2);
       const bool conj_a = helper.extendWIndices(w1_a, w2_a);
       const int i_a = b1 + nb * k1 + no * w1_a;
@@ -294,9 +310,10 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       const CudaComplex<Real> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
       const CudaComplex<Real> Gb_2 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
 
-      contribution = (Ga_1 * Gb_1 + Ga_2 * Gb_2) * (-factor);
+      contribution = -(Ga_1 * Gb_1 + Ga_2 * Gb_2);
     }
       {
+        // contribution += (\sum_s G(k1, k1 + k_ex, s)) * (\sum_s G(k2 + k_ex, k2, s))
         int w1_a(w1);
         int w2_a(helper.addWex(w1, w_ex));
         const bool conj_a = helper.extendWIndices(w1_a, w2_a);
@@ -314,11 +331,12 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
         const CudaComplex<Real> Gb =
             cond_conj(G_up[i_b + ldgu * j_b] + G_down[i_b + ldgd * j_b], conj_b);
 
-        contribution += (Ga * Gb) * factor;
+        contribution += (Ga * Gb);
       }
       break;
 
     case PARTICLE_PARTICLE_UP_DOWN: {
+      // contribution <- -\sum_s G(k_ex - k2, k_ex - k1, s) * G(k2, k1, -s).
       int w1_a(w1), w2_a(w2);
       const bool conj_a = helper.extendWIndices(w1_a, w2_a);
       const int i_a = b1 + nb * k1 + no * w1_a;
@@ -336,14 +354,16 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       const CudaComplex<Real> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
       const CudaComplex<Real> Gb_2 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
 
-      contribution = (Ga_1 * Gb_1 + Ga_2 * Gb_2) * factor;
+      contribution = (Ga_1 * Gb_1 + Ga_2 * Gb_2);
     } break;
     default:  // abort
       asm("trap;");
   }
+
   CudaComplex<Real>* const result_ptr =
       G4 + helper.g4Index(b1, b2, b3, b4, k1, k2, k_ex, w1, w2, w_ex);
-  dca::linalg::atomicAdd(result_ptr, contribution);
+
+  dca::linalg::atomicAdd(result_ptr, contribution * 0.5 * sign);
 }
 
 template <typename Real, FourPointType type>
