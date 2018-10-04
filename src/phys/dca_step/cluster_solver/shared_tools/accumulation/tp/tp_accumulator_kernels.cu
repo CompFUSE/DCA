@@ -246,27 +246,30 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
     } break;
 
     // The PARTICLE_HOLE_MAGNETIC contribution is computed in two parts:
-    case PARTICLE_HOLE_MAGNETIC: {
-      // contribution <- -\sum_s G(k1, k2, s) * G(k2 + k_ex, k1 + k_ex, s)
-      int w1_a(w1), w2_a(w2);
-      const bool conj_a = helper.extendWIndices(w1_a, w2_a);
-      const int i_a = b1 + nb * k1 + no * w1_a;
-      const int j_a = b4 + nb * k2 + no * w2_a;
+    case PARTICLE_HOLE_MAGNETIC:
+      {
+        // contribution <- -\sum_s G(k1, k2, s) * G(k2 + k_ex, k1 + k_ex, s)
+        int w1_a(w1), w2_a(w2);
+	const bool conj_a = helper.extendWIndices(w1_a, w2_a);
+	const int i_a = b1 + nb * k1 + no * w1_a;
+	const int j_a = b4 + nb * k2 + no * w2_a;
 
-      int w1_b(helper.addWex(w2, w_ex));
-      int w2_b(helper.addWex(w1, w_ex));
-      const bool conj_b = helper.extendWIndices(w1_b, w2_b);
-      const int i_b = b2 + nb * helper.addKex(k2, k_ex) + no * w1_b;
-      const int j_b = b3 + nb * helper.addKex(k1, k_ex) + no * w2_b;
+	int w1_b(helper.addWex(w2, w_ex));
+	int w2_b(helper.addWex(w1, w_ex));
+	const bool conj_b = helper.extendWIndices(w1_b, w2_b);
+	const int i_b = b2 + nb * helper.addKex(k2, k_ex) + no * w1_b;
+	const int j_b = b3 + nb * helper.addKex(k1, k_ex) + no * w2_b;
+	
+	const CudaComplex<Real> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
+	const CudaComplex<Real> Gb_1 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
+	
+	const CudaComplex<Real> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
+	const CudaComplex<Real> Gb_2 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
 
-      const CudaComplex<Real> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
-      const CudaComplex<Real> Gb_1 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
-
-      const CudaComplex<Real> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
-      const CudaComplex<Real> Gb_2 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
-
-      contribution = -(Ga_1 * Gb_1 + Ga_2 * Gb_2);
-    }
+	contribution = -(Ga_1 * Gb_1 + Ga_2 * Gb_2);
+      }
+      // Spin Difference Contribution
+      // new scope to reuse local index variables
       {
         // contribution += (\sum_s s * G(k1, k1 + k_ex)) * (\sum_s s * G(k2 + k_ex, k2))
         int w1_a(w1);
@@ -291,30 +294,34 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
       break;
 
     // The PARTICLE_HOLE_CHARGE contribution is computed in two parts:
-    case PARTICLE_HOLE_CHARGE: {
-      // contribution <- -\sum_s G(k1, k2, s) * G(k2 + k_ex, k1 + k_ex, s)
-      int w1_a(w1), w2_a(w2);
-      const bool conj_a = helper.extendWIndices(w1_a, w2_a);
-      const int i_a = b1 + nb * k1 + no * w1_a;
-      const int j_a = b4 + nb * k2 + no * w2_a;
+    case PARTICLE_HOLE_CHARGE:
+      {
+        // contribution <- -\sum_s G(k1, k2, s) * G(k2 + k_ex, k1 + k_ex, s)
+	int w1_a(w1), w2_a(w2);
+	const bool conj_a = helper.extendWIndices(w1_a, w2_a);
+	const int i_a = b1 + nb * k1 + no * w1_a;
+	const int j_a = b4 + nb * k2 + no * w2_a;
 
-      int w1_b(helper.addWex(w2, w_ex));
-      int w2_b(helper.addWex(w1, w_ex));
-      const bool conj_b = helper.extendWIndices(w1_b, w2_b);
-      const int i_b = b2 + nb * helper.addKex(k2, k_ex) + no * w1_b;
-      const int j_b = b3 + nb * helper.addKex(k1, k_ex) + no * w2_b;
+	int w1_b(helper.addWex(w2, w_ex));
+	int w2_b(helper.addWex(w1, w_ex));
+	const bool conj_b = helper.extendWIndices(w1_b, w2_b);
+	const int i_b = b2 + nb * helper.addKex(k2, k_ex) + no * w1_b;
+	const int j_b = b3 + nb * helper.addKex(k1, k_ex) + no * w2_b;
+	
+	const CudaComplex<Real> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
+	const CudaComplex<Real> Gb_1 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
 
-      const CudaComplex<Real> Ga_1 = cond_conj(G_up[i_a + ldgu * j_a], conj_a);
-      const CudaComplex<Real> Gb_1 = cond_conj(G_up[i_b + ldgu * j_b], conj_b);
+	const CudaComplex<Real> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
+	const CudaComplex<Real> Gb_2 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
 
-      const CudaComplex<Real> Ga_2 = cond_conj(G_down[i_a + ldgd * j_a], conj_a);
-      const CudaComplex<Real> Gb_2 = cond_conj(G_down[i_b + ldgd * j_b], conj_b);
-
-      contribution = -(Ga_1 * Gb_1 + Ga_2 * Gb_2);
-    }
+	contribution = -(Ga_1 * Gb_1 + Ga_2 * Gb_2);
+      }
+      // Spin Difference Contribution
+      // new scope to reuse local index variables
       {
         // contribution += (\sum_s G(k1, k1 + k_ex, s)) * (\sum_s G(k2 + k_ex, k2, s))
-        int w1_a(w1);
+	// TODO: pull into function, index setting code is identical for Spin cases
+	int w1_a(w1);
         int w2_a(helper.addWex(w1, w_ex));
         const bool conj_a = helper.extendWIndices(w1_a, w2_a);
         const int i_a = b1 + nb * k1 + no * w1_a;
