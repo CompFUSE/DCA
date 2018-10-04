@@ -105,6 +105,7 @@ private:
   std::mutex mutex_queue;
   std::mutex mutex_acc_finished;
   std::mutex mutex_numerical_error;
+  std::condition_variable queue_insertion_;
 };
 
 template <class qmci_integrator_type>
@@ -234,14 +235,14 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::start_walker(int id) {
 
     {
       profiler_type profiler("stdthread-MC-walker waiting", "stdthread-MC-walker", __LINE__, id);
-      acc_ptr = NULL;
+      acc_ptr = nullptr;
 
-      while (acc_ptr == NULL) {  // checking for available accumulators
+      // Wait for available accumulators.
+      {
         std::unique_lock<std::mutex> lock(mutex_queue);
-        if (!accumulators_queue.empty()) {
-          acc_ptr = accumulators_queue.front();
-          accumulators_queue.pop();
-        }
+        queue_insertion_.wait(lock, [&]() { return !accumulators_queue.empty(); });
+        acc_ptr = accumulators_queue.front();
+        accumulators_queue.pop();
       }
 
       acc_ptr->update_from(walker);
@@ -301,6 +302,7 @@ void StdThreadQmciClusterSolver<qmci_integrator_type>::start_accumulator(int id)
       std::lock_guard<std::mutex> lock(mutex_queue);
       accumulators_queue.push(&accumulator_obj);
     }
+    queue_insertion_.notify_one();
 
     {
       profiler_type profiler("stdthread-accumulator waiting", "stdthread-MC-accumulator", __LINE__,
