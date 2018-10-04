@@ -53,9 +53,14 @@ public:
   inline uint64_t getInitialSeed() const {
     return initial_seed_;
   }
-  
+
   inline uint64_t getSeed() const {
     return seed_;
+  }
+
+  // Reset the static counter. For testing purposes.
+  static void resetCounter() {
+    counter_ = 0;
   }
 
   // Returns a uniformly distributied pseudo-random number in the interval [0, 1).
