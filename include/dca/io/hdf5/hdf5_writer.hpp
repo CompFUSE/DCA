@@ -21,6 +21,7 @@
 #include "H5Cpp.h"
 
 #include "dca/function/domains.hpp"
+#include "dca/io/buffer.hpp"
 #include "dca/function/function.hpp"
 #include "dca/io/hdf5/hdf5_types.hpp"
 #include "dca/linalg/matrix.hpp"
@@ -110,6 +111,10 @@ public:
 
   template <class T>
   void execute(const std::unique_ptr<T>& obj);
+
+  void execute(const std::string& name, const io::Buffer& buffer){
+      return execute(name, static_cast<io::Buffer::Container>(buffer));
+  }
 
 private:
   bool fexists(const char* filename);
