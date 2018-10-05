@@ -68,6 +68,7 @@ public:
   std::pair<int, int>& get_spin_orbitals();
 
   HS_spin_states_type& get_HS_spin();
+  HS_spin_states_type get_HS_spin() const;
   int& get_delta_r();
   double& get_tau();
 
@@ -266,6 +267,11 @@ std::pair<int, int>& vertex_pair<parameters_type>::get_r_sites() {
 
 template <class parameters_type>
 HS_spin_states_type& vertex_pair<parameters_type>::get_HS_spin() {
+  return HS_spin;
+}
+
+template <class parameters_type>
+HS_spin_states_type vertex_pair<parameters_type>::get_HS_spin() const {
   return HS_spin;
 }
 

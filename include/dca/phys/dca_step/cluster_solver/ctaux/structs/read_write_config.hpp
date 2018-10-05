@@ -38,9 +38,18 @@ io::Buffer& operator>>(io::Buffer& buff, vertex_pair<Parameters>& v) {
 
 template <class Parameters>
 io::Buffer& operator<<(io::Buffer& buff, const CT_AUX_HS_configuration<Parameters>& config) {
-  buff << config.configuration.size();
+  // Only write interacting spins.
+  std::size_t size = 0;
   for (const auto& vertex : config.configuration)
-    buff << vertex;
+    if (vertex.get_HS_spin() != HS_ZERO)
+      ++size;
+
+  buff << size;
+
+  for (const auto& vertex : config.configuration) {
+    if (vertex.get_HS_spin() != HS_ZERO)
+      buff << vertex;
+  }
   return buff;
 }
 
