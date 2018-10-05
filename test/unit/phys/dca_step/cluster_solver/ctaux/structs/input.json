@@ -1,0 +1,31 @@
+{
+
+    "physics": {
+        "beta": 2.
+    },
+
+    "bilayer-Hubbard-model": {
+        "t": 1.,
+        "t-perp": 1.,
+        "V": 4.,
+        "V-prime": 4.
+    },
+
+    "DCA": {
+        "interacting-orbitals": [0, 1]
+    },
+
+    "domains": {
+        "real-space-grids": {
+            "cluster": [[2, 0],
+                [0, 2]]
+        }
+    },
+
+
+    "CT-AUX": {
+        "initial-configuration-size": 13,
+        "initial-matrix-size": 64,
+        "max-submatrix-size": 16
+    }
+}

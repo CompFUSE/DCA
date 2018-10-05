@@ -20,6 +20,8 @@
 #include <stdexcept>
 #include <vector>
 
+#include "dca/io/buffer.hpp"
+#include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/linalg/util/handle_functions.hpp"
 #include "dca/parallel/stdthread/thread_pool/thread_pool.hpp"
 #include "dca/phys/dca_step/cluster_solver/stdthread_qmci/stdthread_qmci_accumulator.hpp"
@@ -63,7 +65,10 @@ private:
   void startAccumulator(int id);
   void startWalkerAndAccumulator(int id);
 
-  void warmUp(Walker& walker, int id);
+  void initializeAndWarmUp(Walker& walker, int id, int walker_id);
+
+  void readConfigurations();
+  void writeConfigurations() const;
 
 private:
   using BaseClass::parameters_;
@@ -88,6 +93,8 @@ private:
   std::mutex mutex_merge_;
   std::mutex mutex_queue_;
   std::condition_variable queue_insertion_;
+
+  std::vector<dca::io::Buffer> config_dump_;
 };
 
 template <class QmciSolver>
@@ -101,7 +108,9 @@ StdThreadQmciClusterSolver<QmciSolver>::StdThreadQmciClusterSolver(Parameters& p
       thread_task_handler_(nr_walkers_, nr_accumulators_,
                            parameters_ref.shared_walk_and_accumulation_thread()),
 
-      accumulators_queue_() {
+      accumulators_queue_(),
+
+      config_dump_(nr_walkers_) {
   if (nr_walkers_ < 1 || nr_accumulators_ < 1) {
     throw std::logic_error(
         "Both the number of walkers and the number of accumulators must be at least 1.");
@@ -111,6 +120,8 @@ StdThreadQmciClusterSolver<QmciSolver>::StdThreadQmciClusterSolver(Parameters& p
     rng_vector_.emplace_back(concurrency_.id(), concurrency_.number_of_processors(),
                              parameters_.get_seed());
   }
+
+  readConfigurations();
 
   // Create a sufficient amount of cublas handles, cuda streams and threads.
   linalg::util::resizeHandleContainer(thread_task_handler_.size());
@@ -181,6 +192,10 @@ double StdThreadQmciClusterSolver<QmciSolver>::finalize(dca_info_struct_t& dca_i
     BaseClass::computeErrorBars();
 
   double L2_Sigma_difference = QmciSolver::finalize(dca_info_struct);
+
+  if (dca_iteration_ == parameters_.get_dca_iterations() - 1)
+    writeConfigurations();
+
   return L2_Sigma_difference;
 }
 
@@ -192,15 +207,10 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalker(int id) {
       std::cout << "\n\t\t QMCI starts\n" << std::endl;
   }
 
-  const int rng_index = thread_task_handler_.walkerIDToRngIndex(id);
-  Walker walker(parameters_, data_, rng_vector_[rng_index], id);
+  const int walker_index = thread_task_handler_.walkerIDToRngIndex(id);
+  Walker walker(parameters_, data_, rng_vector_[walker_index], id);
 
-  walker.initialize();
-
-  {
-    Profiler profiler("thermalization", "stdthread-MC-walker", __LINE__, id);
-    warmUp(walker, id);
-  }
+  initializeAndWarmUp(walker, id, walker_index);
 
   StdThreadAccumulatorType* acc_ptr = nullptr;
 
@@ -231,15 +241,24 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalker(int id) {
     walker.printSummary();
   }
 
+  config_dump_[walker_index] = walker.dumpConfig();
+
   Profiler::stop_threading(id);
 }
 
 template <class QmciSolver>
-void StdThreadQmciClusterSolver<QmciSolver>::warmUp(Walker& walker, int id) {
-  if (id == 0) {
-    if (concurrency_.id() == concurrency_.first())
-      std::cout << "\n\t\t warm-up starts\n" << std::endl;
-  }
+void StdThreadQmciClusterSolver<QmciSolver>::initializeAndWarmUp(Walker& walker, int id,
+                                                                 int walker_id) {
+  Profiler profiler("thermalization", "stdthread-MC-walker", __LINE__, id);
+
+  // Read previous configuration.
+  if (config_dump_[walker_id].size())
+    walker.readConfig(config_dump_[walker_id]);
+
+  walker.initialize();
+
+  if (id == 0 && concurrency_.id() == concurrency_.first())
+    std::cout << "\n\t\t warm-up starts\n" << std::endl;
 
   for (int i = 0; i < parameters_.get_warm_up_sweeps(); i++) {
     walker.doSweep();
@@ -301,11 +320,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id) {
 
   // Create and warm a walker.
   Walker walker(parameters_, data_, rng_vector_[id], id);
-  walker.initialize();
-  {
-    Profiler profiler("thermalization", "stdthread-MC", __LINE__, id);
-    warmUp(walker, id);
-  }
+  initializeAndWarmUp(walker, id, id);
 
   Accumulator accumulator_obj(parameters_, data_, id);
   accumulator_obj.initialize(dca_iteration_);
@@ -332,7 +347,48 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id) {
     std::lock_guard<std::mutex> lock(mutex_merge_);
     accumulator_obj.sumTo(QmciSolver::accumulator_);
   }
+
+  config_dump_[id] = walker.dumpConfig();
+
   Profiler::stop_threading(id);
+}
+
+template <class QmciSolver>
+void StdThreadQmciClusterSolver<QmciSolver>::writeConfigurations() const {
+  if (parameters_.get_directory_config_write() == "")
+    return;
+
+  try {
+    const std::string out_name = parameters_.get_directory_config_write() + "/process_" +
+                                 std::to_string(concurrency_.id()) + ".hdf5";
+    io::HDF5Writer writer;
+    writer.open_file(out_name);
+    for (int id = 0; id < config_dump_.size(); ++id)
+      writer.execute("configuration_" + std::to_string(id), config_dump_[id]);
+  }
+  catch (std::exception& err) {
+    std::cerr << err.what() << "\nCould not write the configuration.\n";
+  }
+}
+
+template <class QmciSolver>
+void StdThreadQmciClusterSolver<QmciSolver>::readConfigurations() {
+  if (parameters_.get_directory_config_read() == "")
+    return;
+
+  try {
+    const std::string inp_name = parameters_.get_directory_config_read() + "/process_" +
+                                 std::to_string(concurrency_.id()) + ".hdf5";
+    io::HDF5Reader reader;
+    reader.open_file(inp_name);
+    for (int id = 0; id < config_dump_.size(); ++id)
+      reader.execute("configuration_" + std::to_string(id), config_dump_[id]);
+  }
+  catch (std::exception& err) {
+    std::cerr << err.what() << "\nCould not read the configuration.\n";
+    for (auto& config : config_dump_)
+      config.clear();
+  }
 }
 
 }  // solver

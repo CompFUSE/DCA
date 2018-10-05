@@ -40,9 +40,6 @@ public:
 
   this_type& operator=(const this_type& other_vertex_couple);
 
-  bool equals(
-      this_type other_vertex_couple);  // --> needed for consistency-check in HS-configuration !!
-
   template <class configuration_type>
   vertex_singleton& get_partner(configuration_type& configuration);
 
@@ -96,6 +93,8 @@ public:
   int get_right_site() const {
     return get_r_site();
   }
+
+  bool operator==(const vertex_singleton& rhs) const;
 
 private:
   int band;

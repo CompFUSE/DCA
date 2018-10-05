@@ -82,6 +82,13 @@ public:
   bool& is_Bennett();
   bool& is_successfully_flipped();
 
+  bool operator==(const vertex_pair<parameters_type>& rhs) const;
+
+  template <class Pars>
+  friend io::Buffer& operator<<(io::Buffer& buff, const vertex_pair<Pars>& config);
+  template <class Pars>
+  friend io::Buffer& operator>>(io::Buffer& buff, vertex_pair<Pars>& config);
+
 private:
   parameters_type& parameters;
   //     concurrency_type&   concurrency;
@@ -305,6 +312,21 @@ bool& vertex_pair<parameters_type>::is_Bennett() {
 template <class parameters_type>
 bool& vertex_pair<parameters_type>::is_shuffled() {
   return shuffled;
+}
+
+template <class parameters_type>
+bool vertex_pair<parameters_type>::operator==(
+    const dca::phys::solver::ctaux::vertex_pair<parameters_type>& rhs) const {
+  using math::util::operator==;
+
+  return id_ == rhs.id_ && interacting_bands == rhs.interacting_bands && BANDS == rhs.BANDS &&
+         bands == rhs.bands && e_spins == rhs.e_spins && spin_orbitals == rhs.spin_orbitals &&
+         HS_fields == rhs.HS_fields && r_sites == rhs.r_sites && HS_spin == rhs.HS_spin &&
+         delta_r == rhs.delta_r && tau == rhs.tau && configuration_index == rhs.configuration_index &&
+         configuration_e_spin_indices == rhs.configuration_e_spin_indices &&
+         creatable == rhs.creatable && annihilatable == rhs.annihilatable &&
+         successfully_flipped == rhs.successfully_flipped && Bennett == rhs.Bennett &&
+         shuffled == rhs.shuffled;
 }
 
 }  // ctaux
