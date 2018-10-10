@@ -7,6 +7,8 @@
         "filename-ed": "ed.hdf5",
         "filename-qmc": "qmc.hdf5",
         "filename-profiling": "profiling.json",
+        "directory-config-read" : "configuration",
+        "directory-config-write" : "configuration",
         "dump-lattice-self-energy": false,
         "dump-cluster-Greens-functions": false,
         "dump-Gamma-lattice": false,
