@@ -36,7 +36,7 @@ public:
   typedef H5::H5File file_type;
 
 public:
-  HDF5Writer() : my_file(NULL), my_group(0), my_paths(0) {}
+  HDF5Writer() : my_file(NULL), file_id(-1), my_group(0), my_paths(0) {}
   ~HDF5Writer();
 
   bool is_reader() {
