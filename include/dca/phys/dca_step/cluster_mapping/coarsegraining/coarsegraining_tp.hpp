@@ -39,8 +39,9 @@ namespace clustermapping {
 // dca::phys::clustermapping::
 
 template <typename parameters_type, typename K_dmn>
-class coarsegraining_tp : public coarsegraining_routines<parameters_type> {
+class coarsegraining_tp : public coarsegraining_routines<parameters_type, K_dmn> {
 public:
+  using BaseClass = coarsegraining_routines<parameters_type, K_dmn>;
   using profiler_type = typename parameters_type::profiler_type;
   using concurrency_type = typename parameters_type::concurrency_type;
 
@@ -163,7 +164,7 @@ private:
 
 template <typename parameters_type, typename K_dmn>
 coarsegraining_tp<parameters_type, K_dmn>::coarsegraining_tp(parameters_type& parameters_ref)
-    : coarsegraining_routines<parameters_type>(parameters_ref),
+    : BaseClass(parameters_ref),
 
       parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
@@ -362,14 +363,11 @@ void coarsegraining_tp<parameters_type, K_dmn>::compute_tp(
 
       find_w1_and_w2(w_dmn_t::get_elements(), w_ind, w_1, w_2);
 
-      {
-        coarsegraining_routines<parameters_type>::compute_G_q_w(k_ind, w_1, H_k, S_K_w, I_q,
-                                                                       H_q, S_q, G_q);
-      }
+      { BaseClass::compute_G_q_w(k_ind, w_1, H_k, S_K_w, I_q, H_q, S_q, G_q); }
 
       {
-        coarsegraining_routines<parameters_type>::compute_G_q_w(
-            k_ind, w_2, H_k, S_K_plus_Q_w, I_q_plus_Q, H_q_plus_Q, S_q_plus_Q, G_q_plus_Q);
+        BaseClass::compute_G_q_w(k_ind, w_2, H_k, S_K_plus_Q_w, I_q_plus_Q, H_q_plus_Q, S_q_plus_Q,
+                                 G_q_plus_Q);
       }
 
       compute_bubble(bubble_q);
@@ -428,8 +426,7 @@ void coarsegraining_tp<parameters_type, K_dmn>::compute_tp(
             for (int i = 0; i < nu::dmn_size(); i++)
               A_k(i, j, k) = A_k_w(i, j, k, w_1);
 
-        coarsegraining_routines<parameters_type>::compute_G_q_w(k_ind, w_1, H_k, A_k, I_q,
-                                                                       H_q, A_q, S_q, G_q);
+        BaseClass::compute_G_q_w(k_ind, w_1, H_k, A_k, I_q, H_q, A_q, S_q, G_q);
       }
 
       {
@@ -438,8 +435,8 @@ void coarsegraining_tp<parameters_type, K_dmn>::compute_tp(
             for (int i = 0; i < nu::dmn_size(); i++)
               A_k(i, j, k) = A_k_w(i, j, k, w_2);
 
-        coarsegraining_routines<parameters_type>::compute_G_q_w(
-            k_ind, w_2, H_k, A_k, I_q_plus_Q, H_q_plus_Q, A_q_plus_Q, S_q_plus_Q, G_q_plus_Q);
+        BaseClass::compute_G_q_w(k_ind, w_2, H_k, A_k, I_q_plus_Q, H_q_plus_Q, A_q_plus_Q,
+                                 S_q_plus_Q, G_q_plus_Q);
       }
 
       compute_bubble(bubble_q);
@@ -510,14 +507,11 @@ void coarsegraining_tp<parameters_type, K_dmn>::compute_phi(
 
       find_w1_and_w2(w_dmn_t::get_elements(), w_ind, w_1, w_2);
 
-      {
-        coarsegraining_routines<parameters_type>::compute_G_q_w(k_ind, w_1, H_k, S_K_w, I_q,
-                                                                       H_q, S_q, G_q);
-      }
+      { BaseClass::compute_G_q_w(k_ind, w_1, H_k, S_K_w, I_q, H_q, S_q, G_q); }
 
       {
-        coarsegraining_routines<parameters_type>::compute_G_q_w(
-            k_ind, w_2, H_k, S_Q_min_K_w, I_Q_min_q, H_Q_min_q, S_Q_min_q, G_Q_min_q);
+        BaseClass::compute_G_q_w(k_ind, w_2, H_k, S_Q_min_K_w, I_Q_min_q, H_Q_min_q, S_Q_min_q,
+                                 G_Q_min_q);
       }
 
       compute_bubble(bubble_q);
@@ -579,8 +573,7 @@ void coarsegraining_tp<parameters_type, K_dmn>::compute_phi(
             for (int i = 0; i < nu::dmn_size(); i++)
               A_k(i, j, k) = A_k_w(i, j, k, w_1);
 
-        coarsegraining_routines<parameters_type>::compute_G_q_w(k_ind, w_1, H_k, A_k, I_q,
-                                                                       H_q, A_q, S_q, G_q);
+        BaseClass::compute_G_q_w(k_ind, w_1, H_k, A_k, I_q, H_q, A_q, S_q, G_q);
       }
 
       {
@@ -589,8 +582,8 @@ void coarsegraining_tp<parameters_type, K_dmn>::compute_phi(
             for (int i = 0; i < nu::dmn_size(); i++)
               A_k(i, j, k) = A_k_w(i, j, k, w_2);
 
-        coarsegraining_routines<parameters_type>::compute_G_q_w(
-            k_ind, w_2, H_k, A_k, I_Q_min_q, H_Q_min_q, A_Q_min_q, S_Q_min_q, G_Q_min_q);
+        BaseClass::compute_G_q_w(k_ind, w_2, H_k, A_k, I_Q_min_q, H_Q_min_q, A_Q_min_q, S_Q_min_q,
+                                 G_Q_min_q);
       }
 
       compute_bubble(bubble_q);
