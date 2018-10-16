@@ -368,11 +368,9 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::compute_error_bars() {
       "M_k_w_new");
 
   accumulator.finalize();
-  const int nb_measurements = accumulator.get_number_of_measurements();
-  double sign = accumulator.get_accumulated_sign() / double(nb_measurements);
 
-  M_r_w_new = accumulator.get_M_r_w();
-  M_r_w_new /= double(nb_measurements * sign);
+  M_r_w_new = accumulator.get_sign_times_M_r_w();
+  M_r_w_new /= accumulator.get_accumulated_sign();
 
   math::transform::FunctionTransform<RClusterDmn, KClusterDmn>::execute(M_r_w_new, M_k_w_new);
 
@@ -389,7 +387,7 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::compute_error_bars() {
       std::cout << "\n\t\t compute-error-bars on G4\t" << dca::util::print_time() << "\n\n";
 
     auto G4 = accumulator.get_sign_times_G4();
-    G4 /= parameters.get_beta() * parameters.get_beta() * nb_measurements * sign;
+    G4 /= parameters.get_beta() * parameters.get_beta() * accumulator.get_accumulated_sign();
 
     concurrency.average_and_compute_stddev(G4, data_.get_G4_stdv());
   }
@@ -423,7 +421,7 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::collect_measurements()
   }
 
   // sum M_r_w
-  M_r_w_ = accumulator.get_M_r_w();
+  M_r_w_ = accumulator.get_sign_times_M_r_w();
   {
     profiler_type profiler("QMC-self-energy", "QMC-collectives", __LINE__);
     concurrency.sum_and_average(M_r_w_);
@@ -431,7 +429,7 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::collect_measurements()
   M_r_w_ /= accumulated_sign_;  // sign;
 
   if (accumulator.compute_std_deviation()) {
-    M_r_w_squared_ = accumulator.get_M_r_w_squared();
+    M_r_w_squared_ = accumulator.get_sign_times_M_r_w_sqr();
     {
       profiler_type profiler("QMC-self-energy", "QMC-collectives", __LINE__);
       concurrency.sum_and_average(M_r_w_squared_);
@@ -794,7 +792,7 @@ auto CtauxClusterSolver<device_t, parameters_type, Data>::local_G_k_w() const {
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, KClusterDmn, w>> M_k_w_new(
       "M_k_w_new");
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, RClusterDmn, w>> M_r_w_new(
-      accumulator.get_M_r_w(), "M_r_w_new");
+      accumulator.get_sign_times_M_r_w(), "M_r_w_new");
 
   M_r_w_new /= accumulator.get_accumulated_sign();
 

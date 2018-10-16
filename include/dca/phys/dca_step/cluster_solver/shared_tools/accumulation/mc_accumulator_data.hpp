@@ -27,7 +27,7 @@ public:
     return accumulated_sign;
   }
 
-  double get_number_of_measurements() const {
+  int get_number_of_measurements() const {
     return number_of_measurements;
   }
 

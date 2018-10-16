@@ -127,11 +127,11 @@ public:
   }
 
   // sp-measurements
-  const auto& get_M_r_w() const {
+  const auto& get_sign_times_M_r_w() const {
     return single_particle_accumulator_obj.get_sign_times_M_r_w();
   }
 
-  const auto& get_M_r_w_squared() const {
+  const auto& get_sign_times_M_r_w_sqr() const {
     return single_particle_accumulator_obj.get_sign_times_M_r_w_sqr();
   }
 
