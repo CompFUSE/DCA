@@ -137,7 +137,7 @@ protected:
   func::function<std::complex<double>, NuNuKClusterWDmn> Sigma_old;
   func::function<std::complex<double>, NuNuKClusterWDmn> Sigma_new;
 
-  double accumulated_sign_;
+  int accumulated_sign_;
   func::function<std::complex<double>, NuNuRClusterWDmn> M_r_w_;
   func::function<std::complex<double>, NuNuRClusterWDmn> M_r_w_squared_;
 

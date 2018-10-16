@@ -385,18 +385,16 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::collect_measurements
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\t\t Collect measurements" << std::endl;
 
-  const int nb_measurements = accumulator.get_number_of_measurements();
-
   // sum the sign
-  double accumulated_sign = accumulator.get_accumulated_sign();
-  concurrency.sum_and_average(accumulated_sign);
+  int accumulated_sign = accumulator.get_accumulated_sign();
+  concurrency.sum(accumulated_sign);
 
   // sum G_r_w
-  concurrency.sum_and_average(accumulator.get_G_r_w());
+  concurrency.sum(accumulator.get_G_r_w());
   accumulator.get_G_r_w() /= accumulated_sign;
 
   // sum GS_r_w
-  concurrency.sum_and_average(accumulator.get_GS_r_w());
+  concurrency.sum(accumulator.get_GS_r_w());
   accumulator.get_GS_r_w() /= accumulated_sign;
 
   concurrency.sum(accumulator.get_visited_expansion_order_k());
