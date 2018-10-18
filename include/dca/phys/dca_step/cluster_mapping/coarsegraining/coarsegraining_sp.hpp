@@ -191,7 +191,11 @@ void CoarsegrainingSp<Parameters>::compute_phi_r(func::function<ScalarType, RDmn
 
   concurrency_.sum(phi_r);
 
-  phi_r /= w_tot_;
+  double tot_weight = 0;
+  for (auto w : QDmn::parameter_type::get_weights())
+    tot_weight += w;
+
+  phi_r /= tot_weight;
 }
 
 template <typename Parameters>
