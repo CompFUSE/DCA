@@ -57,7 +57,7 @@ public:
 protected:
   using qmci_accumulator_type::get_Gflop;
   using qmci_accumulator_type::get_number_of_measurements;
-  using qmci_accumulator_type::get_sign;
+  using qmci_accumulator_type::get_accumulated_sign;
 
 private:
   using qmci_accumulator_type::data_;

@@ -83,6 +83,20 @@ public:
     return configuration_index;
   }
 
+  // Interface for accumulator.
+  int get_left_band() const {
+    return get_band();
+  }
+  int get_right_band() const {
+    return get_band();
+  }
+  int get_left_site() const {
+    return get_r_site();
+  }
+  int get_right_site() const {
+    return get_r_site();
+  }
+
 private:
   int band;
   e_spin_states_type e_spin;

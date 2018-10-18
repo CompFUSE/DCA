@@ -38,7 +38,7 @@ using TpAccumulatorGpuTest =
 
 uint loop_counter = 0;
 
- TEST_F(TpAccumulatorGpuTest, Accumulate) {
+TEST_F(TpAccumulatorGpuTest, Accumulate) {
   dca::linalg::util::initializeMagma();
 
   const std::array<int, 2> n{27, 24};
@@ -99,7 +99,10 @@ TEST_F(TpAccumulatorGpuTest, SumToAndFinalize) {
   prepare_configuration(config1, M1, n);
   prepare_configuration(config2, M2, n);
 
-  accumulator_sum.resetAccumulation(loop_counter++);
+  const int loop_id = loop_counter++;
+  accumulator1.resetAccumulation(loop_id);
+  accumulator2.resetAccumulation(loop_id);
+  accumulator_sum.resetAccumulation(loop_id);
 
   accumulator1.accumulate(M1, config1, sign);
   accumulator2.accumulate(M2, config2, sign);

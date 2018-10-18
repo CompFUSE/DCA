@@ -108,14 +108,6 @@ public:
   typedef double MC_measurement_scalar_type;
 #endif  // DCA_WITH_SINGLE_PRECISION_MEASUREMENTS
 
-#ifdef DCA_WITH_REDUCED_VERTEX_FUNCTION
-  typedef WTpExtPosDmn G4_w1_dmn_t;
-  typedef WTpExtDmn G4_w2_dmn_t;
-#else
-  typedef WTpExtDmn G4_w1_dmn_t;
-  typedef WTpExtDmn G4_w2_dmn_t;
-#endif  // DCA_WITH_REDUCED_VERTEX_FUNCTION
-
   Parameters(const std::string& version_stamp, concurrency_type& concurrency);
 
   template <typename Writer>

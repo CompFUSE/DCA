@@ -10,8 +10,6 @@
 // No-change test for a DCA+ calculation using the threaded CT-AUX cluster solver.
 // It runs a simulation of a tight-binding model on 2D square lattice.
 
-#define DCA_WITH_REDUCED_VERTEX_FUNCTION
-
 #include <iostream>
 #include <string>
 

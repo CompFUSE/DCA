@@ -245,15 +245,6 @@ if (DCA_WITH_SINGLE_PRECISION_COARSEGRAINING)
 endif()
 
 ################################################################################
-# Use reduced vertex function.
-option(DCA_WITH_REDUCED_VERTEX_FUNCTION "Use reduced vertex function." ON)
-mark_as_advanced(DCA_WITH_REDUCED_VERTEX_FUNCTION)
-
-if (DCA_WITH_REDUCED_VERTEX_FUNCTION)
-  dca_add_config_define(DCA_WITH_REDUCED_VERTEX_FUNCTION)
-endif()
-
-################################################################################
 # Gnuplot
 option(DCA_WITH_GNUPLOT "Enable Gnuplot." OFF)
 
