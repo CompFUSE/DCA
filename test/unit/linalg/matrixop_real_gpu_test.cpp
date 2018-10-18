@@ -315,7 +315,7 @@ TYPED_TEST(MatrixopRealGPUTest, Inverse) {
 
   using ScalarType = TypeParam;
   int size = 6;
-  auto val = [](int i, int j) { return 10 * i + j * j / (i + 1); };
+  auto val = [size](int i, int j) { return ScalarType(2. / ((4 + size + i - j) % size + 1)); };
   dca::linalg::Matrix<ScalarType, dca::linalg::CPU> mat(size);
   testing::setMatrixElements(mat, val);
 
@@ -329,9 +329,9 @@ TYPED_TEST(MatrixopRealGPUTest, Inverse) {
   for (int j = 0; j < mat.nrCols(); ++j) {
     for (int i = 0; i < mat.nrRows(); ++i) {
       if (i == j)
-        EXPECT_NEAR(1, res(i, j), 2000 * this->epsilon);
+        EXPECT_NEAR(1, res(i, j), 500 * this->epsilon);
       else
-        EXPECT_NEAR(0, res(i, j), 2000 * this->epsilon);
+        EXPECT_NEAR(0, res(i, j), 500 * this->epsilon);
     }
   }
 }
