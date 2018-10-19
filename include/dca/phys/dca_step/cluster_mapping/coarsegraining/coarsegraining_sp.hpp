@@ -112,11 +112,9 @@ private:
                                             ClusterFreqFunction& G_K_w);
 
   template <class SigmaType,
-            typename = std::enable_if_t<std::is_same<SigmaType, LatticeFreqFunction>::value>>
-  void updateSigmaInterpolated(const LatticeFreqFunction& Sigma);
-  template <class SigmaType,
             typename = std::enable_if_t<!std::is_same<SigmaType, LatticeFreqFunction>::value>>
-  void updateSigmaInterpolated(const SigmaType& /*Sigma*/) {}
+  void updateSigmaInterpolated(const SigmaType& /*Sigma*/) const {}
+  void updateSigmaInterpolated(const LatticeFreqFunction& Sigma);
 
 private:
   Parameters& parameters_;
@@ -181,7 +179,7 @@ template <typename SigmaType>
 void CoarsegrainingSp<Parameters>::compute_G_K_w_simple(const SigmaType& S_K_w,
                                                         ClusterFreqFunction& G_K_w) {
   // Computes G_K_w(k,w) = 1/N_q \sum_q 1/(i w + mu - H0(k+q,w) - Sigma(k+q,w)).
-  updateSigmaInterpolated<SigmaType>(S_K_w);
+  updateSigmaInterpolated(S_K_w);
   G_K_w = 0.;
 
   func::dmn_variadic<KClusterDmn, WDmn> K_wm_dmn;
@@ -240,7 +238,7 @@ template <typename Parameters>
 void CoarsegrainingSp<Parameters>::compute_S_K_w(const LatticeFreqFunction& S_k_w,
                                                  ClusterFreqFunction& S_K_w) {
   S_K_w = 0.;
-  updateSigmaInterpolated<LatticeFreqFunction>(S_k_w);
+  updateSigmaInterpolated(S_k_w);
 
   func::dmn_variadic<KClusterDmn, WDmn> K_wm_dmn;
   const std::pair<int, int> external_bounds = concurrency_.get_bounds(K_wm_dmn);
@@ -339,7 +337,6 @@ void CoarsegrainingSp<Parameters>::compute_G_K_w_quadrature_integration(
 }
 
 template <typename Parameters>
-template <class SigmaType, typename>
 void CoarsegrainingSp<Parameters>::updateSigmaInterpolated(const LatticeFreqFunction& Sigma) {
   if (!Sigma_interpolated_)
     Sigma_interpolated_ = std::make_unique<SigmaInterpolatedType>("Sigma interpolated.");
