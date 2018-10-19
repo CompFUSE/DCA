@@ -34,7 +34,7 @@ public:
 
         do_finite_size_qmc_(false),
 
-        do_simple_q_points_summation_(true),
+        use_gaussian_quadrature_(false),
         k_mesh_recursion_(0),
         coarsegraining_periods_(0),
         quadrature_rule_(1),
@@ -80,11 +80,11 @@ public:
     return do_finite_size_qmc_;
   }
 
-  // Compute the coarse grained G function as a simple average over the q points. This will be
-  // computationally faster and perform better on multiband systems.
-  // Currently not supported for DCA+.
-  bool do_simple_q_points_summation() const {
-    return do_simple_q_points_summation_;
+  // Use weighs computed with Gaussian quadrature during the integration of the G function.
+  // This mode is poorly optimized and does not produce the correct result for multiband models.
+  // If false the integral contributions are summed with uniform weights.
+  bool use_gaussian_quadrature() const {
+    return use_gaussian_quadrature_;
   }
   int get_k_mesh_recursion() const {
     return k_mesh_recursion_;
@@ -127,7 +127,7 @@ private:
   bool do_finite_size_qmc_;
 
   // coarse-graining
-  bool do_simple_q_points_summation_;
+  bool use_gaussian_quadrature_;
   int k_mesh_recursion_;
   int coarsegraining_periods_;
   int quadrature_rule_;
@@ -152,7 +152,7 @@ int DcaParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(self_energy_mixing_factor_);
   buffer_size += concurrency.get_buffer_size(interacting_orbitals_);
   buffer_size += concurrency.get_buffer_size(do_finite_size_qmc_);
-  buffer_size += concurrency.get_buffer_size(do_simple_q_points_summation_);
+  buffer_size += concurrency.get_buffer_size(use_gaussian_quadrature_);
   buffer_size += concurrency.get_buffer_size(k_mesh_recursion_);
   buffer_size += concurrency.get_buffer_size(coarsegraining_periods_);
   buffer_size += concurrency.get_buffer_size(quadrature_rule_);
@@ -176,7 +176,7 @@ void DcaParameters::pack(const Concurrency& concurrency, char* buffer, int buffe
   concurrency.pack(buffer, buffer_size, position, self_energy_mixing_factor_);
   concurrency.pack(buffer, buffer_size, position, interacting_orbitals_);
   concurrency.pack(buffer, buffer_size, position, do_finite_size_qmc_);
-  concurrency.pack(buffer, buffer_size, position, do_simple_q_points_summation_);
+  concurrency.pack(buffer, buffer_size, position, use_gaussian_quadrature_);
   concurrency.pack(buffer, buffer_size, position, k_mesh_recursion_);
   concurrency.pack(buffer, buffer_size, position, coarsegraining_periods_);
   concurrency.pack(buffer, buffer_size, position, quadrature_rule_);
@@ -198,7 +198,7 @@ void DcaParameters::unpack(const Concurrency& concurrency, char* buffer, int buf
   concurrency.unpack(buffer, buffer_size, position, self_energy_mixing_factor_);
   concurrency.unpack(buffer, buffer_size, position, interacting_orbitals_);
   concurrency.unpack(buffer, buffer_size, position, do_finite_size_qmc_);
-  concurrency.unpack(buffer, buffer_size, position, do_simple_q_points_summation_);
+  concurrency.unpack(buffer, buffer_size, position, use_gaussian_quadrature_);
   concurrency.unpack(buffer, buffer_size, position, k_mesh_recursion_);
   concurrency.unpack(buffer, buffer_size, position, coarsegraining_periods_);
   concurrency.unpack(buffer, buffer_size, position, quadrature_rule_);
@@ -235,7 +235,7 @@ void DcaParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     try {
       reader_or_writer.open_group("coarse-graining");
 
-      try_to_read("do-simple-q-points-summation", do_simple_q_points_summation_);
+      try_to_read("use-gaussian-quadrature", use_gaussian_quadrature_);
       try_to_read("k-mesh-recursion", k_mesh_recursion_);
       try_to_read("periods", coarsegraining_periods_);
       try_to_read("quadrature-rule", quadrature_rule_);

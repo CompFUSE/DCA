@@ -32,7 +32,7 @@
     "interacting-orbitals": [0],
 
     "coarse-graining": {
-      "do-simple-q-points-summation" : true,
+      "use-gaussian-quadrature" : false,
       "k-mesh-recursion": 3,
       "periods": 2,
       "quadrature-rule": 1,

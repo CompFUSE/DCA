@@ -143,20 +143,20 @@ CoarsegrainingSp<Parameters>::CoarsegrainingSp(Parameters& parameters_ref)
 
       w_q_("w_q_"),
       w_tot_(0.) {
-  if (parameters_.do_simple_q_points_summation()) {
+  if (parameters_.use_gaussian_quadrature()) {
+    interpolation_matrices<ScalarType, KClusterDmn, QDmn>::initialize(concurrency_);
+  }
+  else {
     // Compute H0(k+q) for each value of k and q.
     for (int k = 0; k < H0_q_.size(); ++k) {
       QDmn::parameter_type::set_elements(k);
       Parameters::model_type::initialize_H_0(parameters_, H0_q_[k]);
     }
   }
-  else {
-    interpolation_matrices<ScalarType, KClusterDmn, QDmn>::initialize(concurrency_);
-  }
 
   for (int l = 0; l < w_q_.size(); ++l)
     w_tot_ += w_q_(l) =
-        parameters_.do_simple_q_points_summation() ? 1 : QDmn::parameter_type::get_weights()[l];
+        parameters_.use_gaussian_quadrature() ? QDmn::parameter_type::get_weights()[l] : 1.;
 }
 
 template <typename Parameters>
@@ -206,10 +206,10 @@ void CoarsegrainingSp<Parameters>::compute_G_K_w(const LatticeFunction& H_0, con
                     std::is_same<SigmaType, LatticeFreqFunction>::value,
                 "The sigma function is not defined on the cluster nor on the lattice.");
 
-  if (parameters_.do_simple_q_points_summation())
-    compute_G_K_w_simple(S_K_w, G_K_w);
-  else
+  if (parameters_.use_gaussian_quadrature())
     compute_G_K_w_quadrature_integration(H_0, S_K_w, G_K_w);
+  else
+    compute_G_K_w_simple(S_K_w, G_K_w);
 }
 
 template <typename Parameters>
@@ -336,7 +336,7 @@ void CoarsegrainingSp<Parameters>::compute_G_K_w_quadrature_integration(
 template <typename Parameters>
 void CoarsegrainingSp<Parameters>::compute_G_K_w_quadrature_integration(
     const LatticeFunction& H_0, const LatticeFreqFunction& S_k_w, ClusterFreqFunction& G_K_w) {
-  assert(!parameters_.do_simple_q_points_summation());
+  assert(parameters_.use_gaussian_quadrature());
   G_K_w = 0.;
 
   func::function<std::complex<ScalarType>, NuNuDmn> A_q;
