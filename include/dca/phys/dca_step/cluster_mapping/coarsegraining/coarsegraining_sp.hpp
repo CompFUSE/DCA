@@ -81,17 +81,20 @@ private:
 public:
   CoarsegrainingSp(Parameters& parameters_ref);
 
-  template <typename RDmn>
-  void compute_phi_r(func::function<ScalarType, RDmn>& phi_r) const;
-
+  // Computes the coarse-grained G(K, w).
+  // Precondition: S_k_w is a function either on the cluster or on the lattice.
   template <class SigmaType>
   void compute_G_K_w(const LatticeFunction& H_0, const SigmaType& S_K_w, ClusterFreqFunction& G_K_w);
 
-  // Routine for DCA.
+  // DCA version of the Sigma coarse-graining. It simply copies S_k_w into S_K_w.
   void compute_S_K_w(const ClusterFreqFunction& S_k_w, ClusterFreqFunction& S_K_w) const;
 
-  // Routine for DCA+.
+  // Coarse-grains S_k_w into S_K_w. Used by the  DCA+ algorithm.
   void compute_S_K_w(const LatticeFreqFunction& S_k_w, ClusterFreqFunction& S_K_w);
+
+  // Used exclusively by the analysis application with the DCA+ algorithm.
+  template <typename RDmn>
+  void compute_phi_r(func::function<ScalarType, RDmn>& phi_r) const;
 
 private:
   template <typename SigmaType>
@@ -157,45 +160,6 @@ CoarsegrainingSp<Parameters>::CoarsegrainingSp(Parameters& parameters_ref)
   for (int l = 0; l < w_q_.size(); ++l)
     w_tot_ += w_q_(l) =
         parameters_.use_gaussian_quadrature() ? QDmn::parameter_type::get_weights()[l] : 1.;
-}
-
-template <typename Parameters>
-template <typename RDmn>
-void CoarsegrainingSp<Parameters>::compute_phi_r(func::function<ScalarType, RDmn>& phi_r) const {
-  using KCluster = typename KClusterDmn::parameter_type;
-  math::geometry::tetrahedron_mesh<KCluster> mesh(parameters_.get_k_mesh_recursion());
-
-  using tetrahedron_dmn = func::dmn_0<math::geometry::tetrahedron_mesh<KClusterDmn>>;
-  using quadrature_dmn = math::geometry::gaussian_quadrature_domain<tetrahedron_dmn>;
-  quadrature_dmn::translate_according_to_period(parameters_.get_coarsegraining_periods(), mesh);
-
-  std::vector<math::geometry::tetrahedron<dimension>>& tetrahedra = mesh.get_tetrahedra();
-
-  phi_r = 0.;
-
-  RDmn r_domain;
-  std::pair<int, int> bounds = concurrency_.get_bounds(r_domain);
-
-  std::vector<std::vector<double>> super_basis = RDmn::parameter_type::get_super_basis_vectors();
-
-  for (int l = bounds.first; l < bounds.second; l++) {
-    std::vector<double> r_vec = RDmn::get_elements()[l];
-    std::vector<std::vector<double>> r_vecs =
-        domains::cluster_operations::equivalent_vectors(r_vec, super_basis);
-    for (int r_ind = 0; r_ind < r_vecs.size(); r_ind++)
-      for (int tet_ind = 0; tet_ind < tetrahedra.size(); tet_ind++)
-        phi_r(l) += std::real(tetrahedron_routines_harmonic_function::execute(
-                        r_vecs[0], tetrahedra[tet_ind])) /
-                    r_vecs.size();
-  }
-
-  concurrency_.sum(phi_r);
-
-  double tot_weight = 0;
-  for (auto w : QDmn::parameter_type::get_weights())
-    tot_weight += w;
-
-  phi_r /= tot_weight;
 }
 
 template <typename Parameters>
@@ -411,6 +375,45 @@ void CoarsegrainingSp<Parameters>::updateSigmaInterpolated(const LatticeFreqFunc
   concurrency_.sum(*Sigma_interpolated_);
 
   Sigma_old_ = Sigma;
+}
+
+template <typename Parameters>
+template <typename RDmn>
+void CoarsegrainingSp<Parameters>::compute_phi_r(func::function<ScalarType, RDmn>& phi_r) const {
+  using KCluster = typename KClusterDmn::parameter_type;
+  math::geometry::tetrahedron_mesh<KCluster> mesh(parameters_.get_k_mesh_recursion());
+
+  using tetrahedron_dmn = func::dmn_0<math::geometry::tetrahedron_mesh<KClusterDmn>>;
+  using quadrature_dmn = math::geometry::gaussian_quadrature_domain<tetrahedron_dmn>;
+  quadrature_dmn::translate_according_to_period(parameters_.get_coarsegraining_periods(), mesh);
+
+  std::vector<math::geometry::tetrahedron<dimension>>& tetrahedra = mesh.get_tetrahedra();
+
+  phi_r = 0.;
+
+  RDmn r_domain;
+  std::pair<int, int> bounds = concurrency_.get_bounds(r_domain);
+
+  std::vector<std::vector<double>> super_basis = RDmn::parameter_type::get_super_basis_vectors();
+
+  for (int l = bounds.first; l < bounds.second; l++) {
+    std::vector<double> r_vec = RDmn::get_elements()[l];
+    std::vector<std::vector<double>> r_vecs =
+        domains::cluster_operations::equivalent_vectors(r_vec, super_basis);
+    for (int r_ind = 0; r_ind < r_vecs.size(); r_ind++)
+      for (int tet_ind = 0; tet_ind < tetrahedra.size(); tet_ind++)
+        phi_r(l) += std::real(tetrahedron_routines_harmonic_function::execute(
+                        r_vecs[0], tetrahedra[tet_ind])) /
+                    r_vecs.size();
+  }
+
+  concurrency_.sum(phi_r);
+
+  double tot_weight = 0;
+  for (auto w : QDmn::parameter_type::get_weights())
+    tot_weight += w;
+
+  phi_r /= tot_weight;
 }
 
 }  // clustermapping

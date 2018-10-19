@@ -66,6 +66,11 @@ public:
 public:
   coarsegraining_routines(parameters_type& parameters_ref);
 
+  // Transforms f_k into f_q by interpolating the shifted inverse as
+  // f_q = [interpolation((f_q - i*alpha)^-1)]^-1 + i*alpha.
+  // In:  f_k.
+  // Out: f_q.
+  // Postcondition: f_k is shifted and inverted.
   template <typename scalar_type, typename k_dmn_t, typename q_dmn_t>
   void wannierInterpolationWithAlphaTransform(
       int K_ind, double alpha,
