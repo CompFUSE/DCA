@@ -156,8 +156,7 @@ CoarsegrainingSp<Parameters>::CoarsegrainingSp(Parameters& parameters_ref)
   }
 
   for (int l = 0; l < w_q_.size(); ++l)
-    w_tot_ += w_q_(l) =
-        parameters_.use_gaussian_quadrature() ? QDmn::parameter_type::get_weights()[l] : 1.;
+    w_tot_ += w_q_(l) = QDmn::parameter_type::get_weights()[l];
 }
 
 template <typename Parameters>
@@ -218,14 +217,14 @@ void CoarsegrainingSp<Parameters>::compute_G_K_w_simple(const SigmaType& S_K_w,
         linalg::matrixop::inverse(G_inv, ipiv, work);
         for (int j = 0; j < n_spin_bands; ++j)
           for (int i = 0; i < n_spin_bands; ++i)
-            G_K_w(i, j, k, w) += G_inv(i, j);
+            G_K_w(i, j, k, w) += G_inv(i, j) * w_q_(q);
       }
     }
   });
 
   concurrency_.sum(G_K_w);
 
-  G_K_w /= QDmn::dmn_size();
+  G_K_w /= w_tot_;
 }
 
 template <typename Parameters>

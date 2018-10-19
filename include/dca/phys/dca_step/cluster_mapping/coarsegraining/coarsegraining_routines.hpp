@@ -279,10 +279,10 @@ void coarsegraining_routines<parameters_type, K_dmn>::wannier_interpolation(
   scalar_type alpha(1.);
   scalar_type beta(0.);
 
-  const scalar_type* A_ptr =
-      &(reinterpret_cast<const scalar_type(&)[2]>(f_k(0))[0]);  // &real(f_k(0));
+  // Interpolate real, imaginary part and spin bands independently.
+  const scalar_type* A_ptr = reinterpret_cast<const scalar_type*>(f_k.values());
   const scalar_type* B_ptr = &T(0, 0);
-  scalar_type* C_ptr = &(reinterpret_cast<scalar_type(&)[2]>(f_q(0))[0]);  // &real(f_q(0));
+  scalar_type* C_ptr = reinterpret_cast<scalar_type*>(f_q.values());
 
   int M = 2 * nu_nu::dmn_size();
   int K = k_dmn_t::dmn_size();
