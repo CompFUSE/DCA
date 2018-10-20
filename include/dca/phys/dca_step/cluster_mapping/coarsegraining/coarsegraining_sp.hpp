@@ -81,10 +81,11 @@ private:
 public:
   CoarsegrainingSp(Parameters& parameters_ref);
 
-  // Computes the coarse-grained G(K, w).
-  // Precondition: S_k_w is a function either on the cluster or on the lattice.
-  template <class SigmaType>
-  void compute_G_K_w(const LatticeFunction& H_0, const SigmaType& S_K_w, ClusterFreqFunction& G_K_w);
+  // Computes the coarse-grained G(K, w) using H_0 and chemichal potential stored in the parameters.
+  template <class SigmaType,
+            typename = std::enable_if_t<std::is_same<SigmaType, ClusterFreqFunction>::value ||
+                                        std::is_same<SigmaType, LatticeFreqFunction>::value>>
+  void compute_G_K_w(const SigmaType& S_K_w, ClusterFreqFunction& G_K_w);
 
   // DCA version of the Sigma coarse-graining. It simply copies S_k_w into S_K_w.
   void compute_S_K_w(const ClusterFreqFunction& S_k_w, ClusterFreqFunction& S_K_w) const;
@@ -97,20 +98,6 @@ public:
   void compute_phi_r(func::function<ScalarType, RDmn>& phi_r) const;
 
 private:
-  template <typename SigmaType>
-  void compute_G_K_w_simple(const SigmaType& S_k_w, ClusterFreqFunction& G_K_w);
-
-  // Implementations for DCA.
-
-  void compute_G_K_w_quadrature_integration(const LatticeFunction& H_0,
-                                            const ClusterFreqFunction& S_k_w,
-                                            ClusterFreqFunction& G_K_w);
-
-  // Implementations for DCA+.
-  void compute_G_K_w_quadrature_integration(const LatticeFunction& H_0,
-                                            const LatticeFreqFunction& S_k_w,
-                                            ClusterFreqFunction& G_K_w);
-
   template <class SigmaType,
             typename = std::enable_if_t<!std::is_same<SigmaType, LatticeFreqFunction>::value>>
   void updateSigmaInterpolated(const SigmaType& /*Sigma*/) const {}
@@ -160,23 +147,8 @@ CoarsegrainingSp<Parameters>::CoarsegrainingSp(Parameters& parameters_ref)
 }
 
 template <typename Parameters>
-template <class SigmaType>
-void CoarsegrainingSp<Parameters>::compute_G_K_w(const LatticeFunction& H_0, const SigmaType& S_K_w,
-                                                 ClusterFreqFunction& G_K_w) {
-  static_assert(std::is_same<SigmaType, ClusterFreqFunction>::value ||
-                    std::is_same<SigmaType, LatticeFreqFunction>::value,
-                "The sigma function is not defined on the cluster nor on the lattice.");
-
-  if (parameters_.use_gaussian_quadrature())
-    compute_G_K_w_quadrature_integration(H_0, S_K_w, G_K_w);
-  else
-    compute_G_K_w_simple(S_K_w, G_K_w);
-}
-
-template <typename Parameters>
-template <typename SigmaType>
-void CoarsegrainingSp<Parameters>::compute_G_K_w_simple(const SigmaType& S_K_w,
-                                                        ClusterFreqFunction& G_K_w) {
+template <class SigmaType, typename>
+void CoarsegrainingSp<Parameters>::compute_G_K_w(const SigmaType& S_K_w, ClusterFreqFunction& G_K_w) {
   // Computes G_K_w(k,w) = 1/N_q \sum_q 1/(i w + mu - H0(k+q,w) - Sigma(k+q,w)).
   updateSigmaInterpolated(S_K_w);
   G_K_w = 0.;
@@ -262,77 +234,6 @@ void CoarsegrainingSp<Parameters>::compute_S_K_w(const LatticeFreqFunction& S_k_
   concurrency_.sum(S_K_w);
 
   S_K_w /= w_tot_;
-}
-
-template <class Parameters>
-void CoarsegrainingSp<Parameters>::compute_G_K_w_quadrature_integration(
-    const LatticeFunction& H_0, const ClusterFreqFunction& S_K_w, ClusterFreqFunction& G_K_w) {
-  G_K_w = 0.;
-
-  func::dmn_variadic<KClusterDmn, WDmn> K_wm_dmn;
-  std::pair<int, int> bounds = concurrency_.get_bounds(K_wm_dmn);
-
-  func::function<std::complex<ScalarType>, NuNuDmn> I_q;
-  func::function<std::complex<ScalarType>, NuNuDmn> H_q;
-  func::function<std::complex<ScalarType>, NuNuDmn> S_q;
-  func::function<std::complex<ScalarType>, NuNuDmn> G_q;
-
-  int coor[2];
-  for (int l = bounds.first; l < bounds.second; l++) {
-    K_wm_dmn.linind_2_subind(l, coor);
-
-    this->compute_G_q_w(coor[0], coor[1], H_0, S_K_w, I_q, H_q, S_q, G_q);
-
-    for (int q_ind = 0; q_ind < QDmn::dmn_size(); q_ind++)
-      for (int j = 0; j < NuDmn::dmn_size(); j++)
-        for (int i = 0; i < NuDmn::dmn_size(); i++)
-          G_K_w(i, j, coor[0], coor[1]) += G_q(i, j, q_ind) * w_q_(q_ind);
-  }
-
-  concurrency_.sum(G_K_w);
-
-  G_K_w /= w_tot_;
-}
-
-template <typename Parameters>
-void CoarsegrainingSp<Parameters>::compute_G_K_w_quadrature_integration(
-    const LatticeFunction& H_0, const LatticeFreqFunction& S_k_w, ClusterFreqFunction& G_K_w) {
-  assert(parameters_.use_gaussian_quadrature());
-  G_K_w = 0.;
-
-  func::function<std::complex<ScalarType>, NuNuDmn> A_q;
-  func::function<std::complex<ScalarType>, NuNuDmn> G_q;
-  func::function<std::complex<ScalarType>, NuNuDmn> H_q;
-  func::function<std::complex<ScalarType>, NuNuDmn> I_q;
-  func::function<std::complex<ScalarType>, NuNuDmn> S_q;
-  LatticeFunction A_k("A_k");
-  LatticeFreqFunction A_k_w("A_k_w");
-
-  latticemapping::transform_to_alpha::forward(1., S_k_w, A_k_w);
-
-  func::dmn_variadic<KClusterDmn, WDmn> K_wm_dmn;
-  std::pair<int, int> bounds = concurrency_.get_bounds(K_wm_dmn);
-
-  int coor[2];
-  for (int l = bounds.first; l < bounds.second; l++) {
-    K_wm_dmn.linind_2_subind(l, coor);
-
-    for (int k_ind = 0; k_ind < KLatticeDmn::dmn_size(); k_ind++)
-      for (int j = 0; j < NuDmn::dmn_size(); j++)
-        for (int i = 0; i < NuDmn::dmn_size(); i++)
-          A_k(i, j, k_ind) = A_k_w(i, j, k_ind, coor[1]);
-
-    this->compute_G_q_w(coor[0], coor[1], H_0, A_k, I_q, H_q, A_q, S_q, G_q);
-
-    for (int q_ind = 0; q_ind < QDmn::dmn_size(); q_ind++)
-      for (int j = 0; j < NuDmn::dmn_size(); j++)
-        for (int i = 0; i < NuDmn::dmn_size(); i++)
-          G_K_w(i, j, coor[0], coor[1]) += G_q(i, j, q_ind) * w_q_(q_ind);
-  }
-
-  concurrency_.sum(G_K_w);
-
-  G_K_w /= w_tot_;
 }
 
 template <typename Parameters>

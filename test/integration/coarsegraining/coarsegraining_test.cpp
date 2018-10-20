@@ -85,11 +85,11 @@ void performTest(const bool test_dca_plus) {
 
   if (test_dca_plus) {
     computeMockSigma(data.Sigma_lattice);
-    cluster_mapping_obj.compute_G_K_w(data.H_HOST, data.Sigma_lattice, data.G_k_w);
+    cluster_mapping_obj.compute_G_K_w(data.Sigma_lattice, data.G_k_w);
   }
   else {
     computeMockSigma(data.Sigma);
-    cluster_mapping_obj.compute_G_K_w(data.H_HOST, data.Sigma, data.G_k_w);
+    cluster_mapping_obj.compute_G_K_w(data.Sigma, data.G_k_w);
   }
 
   if (concurrency.id() == 0) {

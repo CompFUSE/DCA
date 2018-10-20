@@ -227,9 +227,9 @@ double update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type
     compute_G_k_w(MOMS.H_DCA, MOMS.Sigma, parameters.get_chemical_potential(), concurrency,
                   MOMS.G_k_w);
   else if (parameters.do_dca_plus())
-    coarsegraining.compute_G_K_w(MOMS.H_HOST, MOMS.Sigma_lattice, MOMS.G_k_w);
+    coarsegraining.compute_G_K_w(MOMS.Sigma_lattice, MOMS.G_k_w);
   else
-    coarsegraining.compute_G_K_w(MOMS.H_HOST, MOMS.Sigma, MOMS.G_k_w);
+    coarsegraining.compute_G_K_w(MOMS.Sigma, MOMS.G_k_w);
 
   MOMS.G_k_w -= MOMS.G0_k_w;
 

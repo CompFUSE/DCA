@@ -1,7 +1,6 @@
 {
     "DCA": {
         "coarse-graining": {
-            "use-gaussian-quadrature" : true,
             "k-mesh-recursion": 0,
             "periods": 0,
             "quadrature-rule": 0

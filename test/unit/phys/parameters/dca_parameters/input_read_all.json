@@ -9,7 +9,6 @@
         "do-finite-size-QMC": false,
 
         "coarse-graining": {
-            "use-gaussian-quadrature" : true,
             "k-mesh-recursion": 3,
             "periods": 2,
             "quadrature-rule": 2,
