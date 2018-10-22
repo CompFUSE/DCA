@@ -101,8 +101,8 @@ private:
 
   CV<parameters_type>& CV_obj;
 
-  dca::linalg::Vector<double, dca::linalg::CPU> exp_gamma_s, one_min_exp_gamma_s, d_inv,
-      exp_V_minus_one_val;
+  dca::linalg::Vector<double, dca::linalg::CPU> exp_gamma_s, one_min_exp_gamma_s;
+  std::array<dca::linalg::Vector<double, dca::linalg::CPU>, 2> d_inv, exp_V_minus_one_val;
 
   dca::linalg::Matrix<double, device_t> G;
   dca::linalg::Matrix<double, device_t> N_new_spins;
@@ -130,9 +130,17 @@ N_TOOLS<device_t, parameters_type>::N_TOOLS(int id, parameters_type& parameters_
       one_min_exp_gamma_s("one_min_exp_gamma_s (N_TOOLS)",
                           MAX_VERTEX_SINGLETS * parameters.get_max_submatrix_size()),
 
-      d_inv("d_inv (N_TOOLS)", MAX_VERTEX_SINGLETS * parameters.get_max_submatrix_size()),
-      exp_V_minus_one_val("exp_V_minus_one_val (N_TOOLS)",
-                          MAX_VERTEX_SINGLETS * parameters.get_max_submatrix_size()),
+      d_inv{dca::linalg::Vector<double, dca::linalg::CPU>(
+                "d_inv UP (N_TOOLS)", MAX_VERTEX_SINGLETS * parameters.get_max_submatrix_size()),
+            dca::linalg::Vector<double, dca::linalg::CPU>(
+                "d_inv DN (N_TOOLS)", MAX_VERTEX_SINGLETS * parameters.get_max_submatrix_size())},
+
+      exp_V_minus_one_val{dca::linalg::Vector<double, dca::linalg::CPU>(
+                              "exp_V_minus_one_val UP (N_TOOLS)",
+                              MAX_VERTEX_SINGLETS * parameters.get_max_submatrix_size()),
+                          dca::linalg::Vector<double, dca::linalg::CPU>(
+                              "exp_V_minus_one_val DN (N_TOOLS)",
+                              MAX_VERTEX_SINGLETS * parameters.get_max_submatrix_size())},
 
       //     G                       ("G (N_TOOLS)"                       ,
       //     MAX_VERTEX_SINGLETS*parameters.get_max_submatrix_size()),
@@ -284,12 +292,15 @@ void N_TOOLS<device_t, parameters_type>::update_N_matrix(configuration_type& con
 
     G0_times_exp_V_minus_one.resizeNoCopy(size);
 
-    exp_V_minus_one_val.resize(first_non_interacting_vertex_index);
+    const uint spin_index = e_spin == e_UP ? 0 : 1;
+    auto& exp_V_minus_one = exp_V_minus_one_val[spin_index];
+
+    exp_V_minus_one.resize(first_non_interacting_vertex_index);
     for (int j = 0; j < first_non_interacting_vertex_index; ++j)
-      exp_V_minus_one_val[j] = CV_obj.exp_V(configuration_e_spin[j]) - 1.;
+      exp_V_minus_one[j] = CV_obj.exp_V(configuration_e_spin[j]) - 1.;
 
     double* diagonal_matrix_ptr =
-        N_MATRIX_TOOLS<device_t, parameters_type>::get_device_ptr(exp_V_minus_one_val);
+        N_MATRIX_TOOLS<device_t, parameters_type>::get_device_ptr(exp_V_minus_one);
 
     dca::linalg::lapack::UseDevice<device_t>::multiplyDiagonalRight(
         size.first, size.second, &G0.ptr()[first_shuffled_vertex_index], G0.leadingDimension(),
@@ -384,9 +395,10 @@ void N_TOOLS<device_t, parameters_type>::rebuild_N_matrix_via_Gamma_LU(
   }
 
   {  // do N*D_i --> N ( = final N !)
-    // profiler_t profiler(concurrency, "(e) rescale", __FUNCTION__, __LINE__, true);
+     // profiler_t profiler(concurrency, "(e) rescale", __FUNCTION__, __LINE__, true);
 
-    compute_d_vector(permutation, N, spin_values, configuration_e_spin, d_inv);
+    const uint spin_index = e_spin == e_UP ? 0 : 1;
+    compute_d_vector(permutation, N, spin_values, configuration_e_spin, d_inv[spin_index]);
 
     N_MATRIX_TOOLS<device_t, parameters_type>::scale_rows(N);
   }

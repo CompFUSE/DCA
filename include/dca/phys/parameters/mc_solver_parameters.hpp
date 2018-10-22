@@ -62,6 +62,9 @@ public:
   int get_max_submatrix_size() const {
     return max_submatrix_size_;
   }
+  void set_max_submatrix_size(int submatrix_size) {
+    max_submatrix_size_ = submatrix_size;
+  }
   bool neglect_bennett_updates() const {
     return neglect_bennett_updates_;
   }
