@@ -37,7 +37,7 @@ public:
         accumulators_(1),
         shared_walk_and_accumulation_thread_(false),
         adjust_self_energy_for_double_counting_(false),
-        error_computation_type_(0) {}
+        error_computation_type_(ErrorComputationType::NONE) {}
 
   template <typename Concurrency>
   int getBufferSize(const Concurrency& concurrency) const;
@@ -78,7 +78,7 @@ public:
     return adjust_self_energy_for_double_counting_;
   }
   ErrorComputationType get_error_computation_type() const {
-    return ErrorComputationType(error_computation_type_);
+    return error_computation_type_;
   }
 
 private:
@@ -98,7 +98,7 @@ private:
   int accumulators_;
   bool shared_walk_and_accumulation_thread_;
   bool adjust_self_energy_for_double_counting_;
-  int error_computation_type_;
+  ErrorComputationType error_computation_type_;
 };
 
 template <typename Concurrency>
@@ -203,10 +203,10 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
     }
 
     // Read error computation type.
-    std::string error_type = toString(static_cast<ErrorComputationType>(error_computation_type_));
+    std::string error_type = toString(error_computation_type_);
     try {
       reader_or_writer.execute("error-computation-type", error_type);
-      error_computation_type_ = static_cast<int>(stringToErrorComputationType(error_type));
+      error_computation_type_ = stringToErrorComputationType(error_type);
     }
     catch (const std::exception& r_e) {
     }
