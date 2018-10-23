@@ -62,6 +62,9 @@ public:
   template <DeviceType device_name2, class Allocator2>
   ThisType& operator=(const Vector<ScalarType, device_name2, Allocator2>& rhs);
 
+  template <class Container>
+  ThisType& operator=(const Container& rhs);
+
   template <DeviceType device_name2, class Allocator2>
   ThisType& operator=(Vector<ScalarType, device_name2, Allocator2>&& rhs);
 
@@ -252,6 +255,19 @@ Vector<ScalarType, device_name, Allocator>& Vector<ScalarType, device_name, Allo
     util::memoryCopyCpu(data_, rhs.data_, size_);
   else
     util::memoryCopy(data_, rhs.data_, size_);
+
+  return *this;
+}
+
+template <typename ScalarType, DeviceType device_name, class Allocator>
+template <class Container>
+Vector<ScalarType, device_name, Allocator>& Vector<ScalarType, device_name, Allocator>::operator=(
+    const Container& rhs) {
+  resizeNoCopy(rhs.size());
+  if (device_name == CPU)
+    util::memoryCopyCpu(data_, rhs.data(), size_);
+  else
+    util::memoryCopy(data_, rhs.data(), size_);
 
   return *this;
 }
