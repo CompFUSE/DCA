@@ -20,7 +20,7 @@
 #include <cuda.h>
 #include <mutex>
 
-#include "dca/config/optimization_options.hpp"
+#include "dca/config/accumulation_options.hpp"
 #include "dca/linalg/lapack/magma.hpp"
 #include "dca/linalg/util/cuda_event.hpp"
 #include "dca/linalg/util/magma_queue.hpp"
@@ -141,7 +141,7 @@ private:
   void synchronizeStreams();
 
 private:
-  constexpr static int n_ndft_streams_ = config::OptimizationOptions::memory_savings ? 1 : 2;
+  constexpr static int n_ndft_streams_ = config::AccumulationOptions::memory_savings ? 1 : 2;
 
   using BaseClass::thread_id_;
   using BaseClass::n_bands_;

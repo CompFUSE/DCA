@@ -7,20 +7,22 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// This class stores compile time options.
+// This class stores compile time options for the MC accumulation.
 
-#ifndef DCA_CONFIG_OPTIMIZATION_OPTIONS_HPP
-#define DCA_CONFIG_OPTIMIZATION_OPTIONS_HPP
+#ifndef DCA_CONFIG_ACCUMULATON_OPTIONS_HPP
+#define DCA_CONFIG_ACCUMULATON_OPTIONS_HPP
 
 namespace dca {
 namespace config {
 // dca::config::
 
-struct OptimizationOptions {
+struct AccumulationOptions {
+  using MCAccumulationScalar = @MC_ACCUMULATION_SCALAR@;
+
   static constexpr bool memory_savings = @MEMORY_SAVINGS@;
 };
 
 }  // config
 }  // dca
 
-#endif  // DCA_CONFIG_OPTIMIZATION_OPTIONS_HPP
+#endif  // DCA_CONFIG_ACCUMULATON_OPTIONS_HPP
