@@ -55,7 +55,7 @@ public:
       const Parameters& pars, int thread_id = 0);
 
   // Resets the object between DCA iterations.
-  void resetAccumulation(uint dca_loop);
+  void resetAccumulation(unsigned int dca_loop);
 
   // Computes the two particles Greens function from the M matrix and accumulates it internally.
   // In: M_array: stores the M matrix for each spin sector.
@@ -163,7 +163,7 @@ TpAccumulator<Parameters, linalg::GPU>::TpAccumulator(
 }
 
 template <class Parameters>
-void TpAccumulator<Parameters, linalg::GPU>::resetAccumulation(const uint dca_loop) {
+void TpAccumulator<Parameters, linalg::GPU>::resetAccumulation(const unsigned int dca_loop) {
   static util::OncePerLoopFlag flag;
 
   util::callOncePerLoop(flag, dca_loop, [&]() {
