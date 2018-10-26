@@ -18,7 +18,7 @@
 # unset(CMAKE_REQUIRED_FLAGS)
 
 # Warnings
-set(DCA_WARNINGS -Wall -Wextra -Wpedantic -Wno-sign-compare)
+set(DCA_WARNINGS -Wall -Wextra -Wpedantic -Wno-sign-compare -Wno-dangling-else)
 
 # Languange standard
 set(DCA_STD_FLAG -std=c++14)

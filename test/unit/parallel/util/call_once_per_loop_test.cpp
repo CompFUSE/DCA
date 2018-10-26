@@ -16,7 +16,7 @@
 
 #include "dca/parallel/stdthread/thread_pool/thread_pool.hpp"
 
-void task(uint loop_id, std::vector<int>& data) {
+void task(unsigned int loop_id, std::vector<int>& data) {
   static dca::util::OncePerLoopFlag flag;
 
   dca::util::callOncePerLoop(flag, loop_id, [&]() {
@@ -33,7 +33,7 @@ TEST(CallOncePerLoopTest, All) {
     const int n_threads = 8;
     dca::parallel::ThreadPool pool(n_threads);
 
-    for (uint loop_id = 0; loop_id < n_loops; ++loop_id) {
+    for (unsigned int loop_id = 0; loop_id < n_loops; ++loop_id) {
       for (int thread_id = 0; thread_id < n_threads; ++thread_id) {
         pool.enqueue(task, loop_id, std::ref(result));
       }

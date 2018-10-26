@@ -759,7 +759,6 @@ typename TpGreensFunction<parameters_type, ed_options>::complex_type TpGreensFun
   bool do_regular = true;
   bool do_special = true;
 
-  complex_type ONE(1, 0);
   complex_type I(0, 1);
 
   scalar_type beta = parameters.get_beta();

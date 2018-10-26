@@ -80,7 +80,7 @@ struct Memory<CPU> {
   template <typename ScalarType>
   static std::enable_if_t<std::is_arithmetic<ScalarType>::value == true, void> setToZero(
       std::complex<ScalarType>* ptr, size_t size) {
-    std::memset(ptr, 0, size * sizeof(std::complex<ScalarType>));
+    std::memset(static_cast<void*>(ptr), 0, size * sizeof(std::complex<ScalarType>));
   }
 };
 
