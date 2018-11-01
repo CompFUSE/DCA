@@ -160,7 +160,7 @@ void tetrahedron_mesh_initializer<2, k_cluster_type>::make_convex_hull() {
       try {
         linalg::lapack::solve(2, A, 2, B);  // overwrites A with its LU factorization.
       }
-      catch (linalg::lapack::util::LapackException e) {
+      catch (linalg::lapack::util::LapackException& e) {
         if (e.info() < 0)
           // Argument error: re-throw.
           throw;

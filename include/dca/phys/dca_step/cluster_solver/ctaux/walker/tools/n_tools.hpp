@@ -292,7 +292,7 @@ void N_TOOLS<device_t, parameters_type>::update_N_matrix(configuration_type& con
 
     G0_times_exp_V_minus_one.resizeNoCopy(size);
 
-    const uint spin_index = e_spin == e_UP ? 0 : 1;
+    const unsigned int spin_index = e_spin == e_UP ? 0 : 1;
     auto& exp_V_minus_one = exp_V_minus_one_val[spin_index];
 
     exp_V_minus_one.resize(first_non_interacting_vertex_index);
@@ -397,7 +397,7 @@ void N_TOOLS<device_t, parameters_type>::rebuild_N_matrix_via_Gamma_LU(
   {  // do N*D_i --> N ( = final N !)
      // profiler_t profiler(concurrency, "(e) rescale", __FUNCTION__, __LINE__, true);
 
-    const uint spin_index = e_spin == e_UP ? 0 : 1;
+    const unsigned int spin_index = e_spin == e_UP ? 0 : 1;
     compute_d_vector(permutation, N, spin_values, configuration_e_spin, d_inv[spin_index]);
 
     N_MATRIX_TOOLS<device_t, parameters_type>::scale_rows(N);

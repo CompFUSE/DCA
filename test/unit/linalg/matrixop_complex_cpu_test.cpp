@@ -46,7 +46,6 @@ TYPED_TEST(MatrixopComplexCPUTest, Gemv) {
 
   int m = 2;
   int n = 3;
-  std::pair<int, int> size_c(2, 3);
 
   char trans_opts[] = {'N', 'T', 'C'};
 

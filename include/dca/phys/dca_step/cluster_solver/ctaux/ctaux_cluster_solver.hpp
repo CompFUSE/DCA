@@ -494,8 +494,8 @@ void CtauxClusterSolver<device_t, Parameters, Data>::compute_G_k_w_from_M_r_w() 
 
   for (int k_ind = 0; k_ind < KClusterDmn::dmn_size(); k_ind++) {
     for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++) {
-      memset(G_matrix, 0, sizeof(std::complex<double>) * matrix_size);
-      memset(G0_times_M_matrix, 0, sizeof(std::complex<double>) * matrix_size);
+      memset(static_cast<void*>(G_matrix), 0, sizeof(std::complex<double>) * matrix_size);
+      memset(static_cast<void*>(G0_times_M_matrix), 0, sizeof(std::complex<double>) * matrix_size);
 
       memcpy(G0_cluster_excluded_matrix, &data_.G0_k_w_cluster_excluded(0, 0, 0, 0, k_ind, w_ind),
              sizeof(std::complex<double>) * matrix_size);

@@ -36,7 +36,7 @@ using Sample = ConfigGenerator::Sample;
 using TpAccumulatorGpuSinglebandTest =
     dca::testing::G0Setup<dca::testing::LatticeSquare, dca::phys::solver::CT_AUX, input_file>;
 
-uint loop_id = 0;
+unsigned int loop_id = 0;
 
 TEST_F(TpAccumulatorGpuSinglebandTest, Accumulate) {
   dca::linalg::util::initializeMagma();

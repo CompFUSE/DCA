@@ -10,6 +10,8 @@
 //
 // This file tests dmn_variadic.hpp.
 
+#include <array>
+
 #include "dca/function/domains/dmn_variadic.hpp"
 #include "gtest/gtest.h"
 #include "dca/function/domains/dmn.hpp"
@@ -50,7 +52,7 @@ TEST(DmnVariadicTest, OperatorParentheses) {
   using dca::func::dmn_0;
   using dca::func::dmn;
   using SubDmn1 = dmn_0<dmn<2, short>>;
-  using SubDmn2 = dmn_0<dmn<5, ulong>>;
+  using SubDmn2 = dmn_0<dmn<5, unsigned long>>;
   using SubDmn3 = dmn_0<dmn<7, float>>;
   using SubDmn4 = dmn_0<dmn<6, float>>;
 
