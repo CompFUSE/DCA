@@ -78,13 +78,6 @@ public:
   bool do_finite_size_qmc() const {
     return do_finite_size_qmc_;
   }
-
-  // Use weighs computed with Gaussian quadrature during the integration of the G function.
-  // This mode is poorly optimized and does not produce the correct result for multiband models.
-  // If false the integral contributions are summed with uniform weights.
-  bool use_gaussian_quadrature() const {
-    return use_gaussian_quadrature_;
-  }
   int get_k_mesh_recursion() const {
     return k_mesh_recursion_;
   }
@@ -126,7 +119,6 @@ private:
   bool do_finite_size_qmc_;
 
   // coarse-graining
-  bool use_gaussian_quadrature_;
   int k_mesh_recursion_;
   int coarsegraining_periods_;
   int quadrature_rule_;
