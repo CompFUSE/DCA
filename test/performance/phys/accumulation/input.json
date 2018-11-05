@@ -6,8 +6,8 @@
 
   "domains": {
     "real-space-grids": {
-      "cluster": [[3, 0],
-        [0, 2]]
+      "cluster": [[6, 0],
+        [0, 6]]
     },
     "imaginary-frequency": {
       "sp-fermionic-frequencies": 256,
