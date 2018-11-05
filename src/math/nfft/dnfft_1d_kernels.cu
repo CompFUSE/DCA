@@ -77,9 +77,8 @@ __global__ void accumulateOnDeviceKernel(const double* M, const int ldm, const i
   helper.computeInterpolationIndices<CUBIC>(tau, t_idx, conv_coeff_idx, delta_t);
 
   const ScalarType* conv_coeff = cubic_coeff + conv_coeff_idx + 4 * conv_idx;
-  const ScalarType conv_function_value = conv_coeff[0] + conv_coeff[1] * delta_t +
-                                         conv_coeff[2] * delta_t * delta_t +
-                                         conv_coeff[3] * delta_t * delta_t * delta_t;
+  const ScalarType conv_function_value =
+      ((conv_coeff[3] * delta_t + conv_coeff[2]) * delta_t + conv_coeff[1]) * delta_t + conv_coeff[0];
 
   ScalarType* const out_ptr = out + t_idx + conv_idx + ldo * linindex;
   linalg::atomicAdd(out_ptr, sign * f_val * conv_function_value);
