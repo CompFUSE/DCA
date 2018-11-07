@@ -162,6 +162,58 @@ inline void magmablas_gemm_vbatched(const char transa, const char transb, int* m
   checkErrorsCudaDebug();
 }
 
+inline void magmablas_gemm_vbatched_max_nocheck(const char transa, const char transb, int* m,
+                                                int* n, int* k, const float alpha,
+                                                const float* const* a, int* lda,
+                                                const float* const* b, int* ldb, const float beta,
+                                                float** c, int* ldc, const int batch_count,
+                                                const int m_max, const int n_max, const int k_max,
+                                                magma_queue_t& queue) {
+  magmablas_sgemm_vbatched_max_nocheck(toMagmaTrans(transa), toMagmaTrans(transb), m, n, k, alpha,
+                                       a, lda, b, ldb, beta, c, ldc, batch_count, m_max, n_max,
+                                       k_max, queue);
+  checkErrorsCudaDebug();
+}
+
+inline void magmablas_gemm_vbatched_max_nocheck(const char transa, const char transb, int* m,
+                                                int* n, int* k, const double alpha,
+                                                const double* const* a, int* lda,
+                                                const double* const* b, int* ldb, const double beta,
+                                                double** c, int* ldc, const int batch_count,
+                                                const int m_max, const int n_max, const int k_max,
+                                                magma_queue_t& queue) {
+  magmablas_dgemm_vbatched_max_nocheck(toMagmaTrans(transa), toMagmaTrans(transb), m, n, k, alpha,
+                                       a, lda, b, ldb, beta, c, ldc, batch_count, m_max, n_max,
+                                       k_max, queue);
+  checkErrorsCudaDebug();
+}
+
+inline void magmablas_gemm_vbatched_max_nocheck(
+    const char transa, const char transb, int* m, int* n, int* k, const std::complex<float> alpha,
+    const std::complex<float>* const* a, int* lda, const std::complex<float>* const* b, int* ldb,
+    const std::complex<float> beta, std::complex<float>** c, int* ldc, const int batch_count,
+    const int m_max, const int n_max, const int k_max, magma_queue_t& queue) {
+  using util::castCudaComplex;
+  magmablas_cgemm_vbatched_max_nocheck(
+      toMagmaTrans(transa), toMagmaTrans(transb), m, n, k, *castCudaComplex(alpha),
+      castCudaComplex(a), lda, castCudaComplex(b), ldb, *castCudaComplex(beta), castCudaComplex(c),
+      ldc, batch_count, m_max, n_max, k_max, queue);
+  checkErrorsCudaDebug();
+}
+
+inline void magmablas_gemm_vbatched_max_nocheck(
+    const char transa, const char transb, int* m, int* n, int* k, const std::complex<double> alpha,
+    const std::complex<double>* const* a, int* lda, const std::complex<double>* const* b, int* ldb,
+    const std::complex<double> beta, std::complex<double>** c, int* ldc, const int batch_count,
+    const int m_max, const int n_max, const int k_max, magma_queue_t& queue) {
+  using util::castCudaComplex;
+  magmablas_zgemm_vbatched_max_nocheck(
+      toMagmaTrans(transa), toMagmaTrans(transb), m, n, k, *castCudaComplex(alpha),
+      castCudaComplex(a), lda, castCudaComplex(b), ldb, *castCudaComplex(beta), castCudaComplex(c),
+      ldc, batch_count, m_max, n_max, k_max, queue);
+  checkErrorsCudaDebug();
+}
+
 inline void magmablas_gemm_batched(const char transa, const char transb, const int m, const int n,
                                    const int k, const float alpha, const float* const* a,
                                    const int lda, const float* const* b, const int ldb,

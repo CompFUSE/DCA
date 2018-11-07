@@ -152,6 +152,12 @@ int main(int argc, char** argv) {
   dca::profiling::WallTime host_end_time;
   stop_event.record(gpu_accumulator.get_stream());
 
+  const double host_time = duration(host_end_time, host_start_time);
+  const double dev_time = dca::linalg::util::elapsedTime(stop_event, start_event);
+
+  std::cout << "\nTpAccumulation GPU: Host time [sec]:\t " << host_time;
+  std::cout << "\nTpAccumulation GPU: Device time [sec]:\t " << dev_time << "\n\n";
+
   // Time a loop.
   cudaDeviceSynchronize();
   const dca::profiling::WallTime loop_start;
@@ -165,12 +171,6 @@ int main(int argc, char** argv) {
 
   cudaProfilerStop();
   Profiler::stop("tp_gpu_accumulation_profile.txt");
-
-  const double host_time = duration(host_end_time, host_start_time);
-  const double dev_time = dca::linalg::util::elapsedTime(stop_event, start_event);
-
-  std::cout << "\nTpAccumulation GPU: Host time [sec]:\t " << host_time;
-  std::cout << "\nTpAccumulation GPU: Device time [sec]:\t " << dev_time << "\n\n";
 #endif  // DCA_HAVE_CUDA
 }
 
