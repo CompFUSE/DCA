@@ -16,6 +16,7 @@
 #include <cmath>
 #include <complex>
 #include <iostream>
+#include <mutex>
 #include <utility>
 
 #include "dca/function/domains.hpp"
@@ -51,21 +52,18 @@ public:
 
 public:
   static func::function<matrix_type, K_dmn>& get() {
-    assert(is_initialized() == true);
     static func::function<matrix_type, K_dmn> k_to_q("k_to_q (" +
                                                      q_dmn::parameter_type::get_name() + ")");
     return k_to_q;
   }
 
   static matrix_type& get(int k_ind) {
-    assert(is_initialized() == true);
     static func::function<matrix_type, K_dmn>& k_to_q = get();
     return k_to_q(k_ind);
   }
 
-  static bool& is_initialized() {
-    static bool initialized = false;
-    return initialized;
+  static bool is_initialized() {
+    return initialized_;
   }
 
   template <typename concurrency_type>
@@ -86,7 +84,12 @@ private:
 
   template <typename scalar_type_1, typename scalar_type_2>
   inline static void cast(scalar_type_1& x, std::complex<scalar_type_2>& y);
+
+  static bool initialized_;
 };
+template <typename scalar_type, typename k_dmn, typename K_dmn, COARSEGRAIN_DOMAIN_NAMES NAME>
+bool interpolation_matrices<scalar_type, k_dmn, func::dmn_0<coarsegraining_domain<K_dmn, NAME>>>::initialized_ =
+    false;
 
 template <typename scalar_type, typename k_dmn, typename K_dmn, COARSEGRAIN_DOMAIN_NAMES NAME>
 template <typename concurrency_type>
@@ -94,8 +97,6 @@ void interpolation_matrices<scalar_type, k_dmn, func::dmn_0<coarsegraining_domai
     concurrency_type& concurrency) {
   if (concurrency.id() == concurrency.first())
     std::cout << "\n\n\t interpolation-matrices " << to_str(NAME) << " initialization started ... ";
-
-  is_initialized() = true;
 
   for (int K_ind = 0; K_ind < K_dmn::dmn_size(); K_ind++) {
     matrix_type& T_k_to_q = get(K_ind);
@@ -128,45 +129,47 @@ void interpolation_matrices<scalar_type, k_dmn, func::dmn_0<coarsegraining_domai
     concurrency_type& concurrency) {
   assert(NAME == K or NAME == TETRAHEDRON_K);
 
-  if (is_initialized())
-    return;
+  static std::once_flag flag;
 
-  resize_matrices(concurrency);
+  std::call_once(flag, [&]() {
+    resize_matrices(concurrency);
 
-  K_dmn K_dmn_obj;
-  std::pair<int, int> bounds = concurrency.get_bounds(K_dmn_obj);
+    K_dmn K_dmn_obj;
+    std::pair<int, int> bounds = concurrency.get_bounds(K_dmn_obj);
 
-  trafo_matrix_type trafo_k_to_q;
-  trafo_k_to_q.resizeNoCopy(std::pair<int, int>(q_dmn::dmn_size(), k_dmn::dmn_size()));
+    trafo_matrix_type trafo_k_to_q;
+    trafo_k_to_q.resizeNoCopy(std::pair<int, int>(q_dmn::dmn_size(), k_dmn::dmn_size()));
 
-  for (int K_ind = bounds.first; K_ind < bounds.second; K_ind++) {
-    {
-      q_dmn::parameter_type::set_elements(K_ind);
+    for (int K_ind = bounds.first; K_ind < bounds.second; K_ind++) {
+      {
+        q_dmn::parameter_type::set_elements(K_ind);
 
-      // trafo_k_to_r_type::is_initialized() = false;
-      trafo_r_to_q_type::is_initialized() = false;
+        // trafo_k_to_r_type::is_initialized() = false;
+        trafo_r_to_q_type::is_initialized() = false;
 
-      trafo_matrix_type& trafo_r_to_q = trafo_r_to_q_type::get_transformation_matrix();
-      trafo_matrix_type& trafo_k_to_r = trafo_k_to_r_type::get_transformation_matrix();
+        trafo_matrix_type& trafo_r_to_q = trafo_r_to_q_type::get_transformation_matrix();
+        trafo_matrix_type& trafo_k_to_r = trafo_k_to_r_type::get_transformation_matrix();
 
-      dca::linalg::matrixop::gemm(trafo_r_to_q, trafo_k_to_r, trafo_k_to_q);
+        dca::linalg::matrixop::gemm(trafo_r_to_q, trafo_k_to_r, trafo_k_to_q);
+      }
+
+      {
+        matrix_type& T_k_to_q = get(K_ind);
+
+        T_k_to_q.resize(std::pair<int, int>(q_dmn::dmn_size(), k_dmn::dmn_size()));
+
+        for (int j = 0; j < k_dmn::dmn_size(); j++)
+          for (int i = 0; i < q_dmn::dmn_size(); i++)
+            cast(T_k_to_q(i, j), trafo_k_to_q(i, j));
+      }
     }
 
-    {
-      matrix_type& T_k_to_q = get(K_ind);
+    for (int K_ind = 0; K_ind < K_dmn::dmn_size(); K_ind++)
+      concurrency.sum(get(K_ind));
 
-      T_k_to_q.resize(std::pair<int, int>(q_dmn::dmn_size(), k_dmn::dmn_size()));
-
-      for (int j = 0; j < k_dmn::dmn_size(); j++)
-        for (int i = 0; i < q_dmn::dmn_size(); i++)
-          cast(T_k_to_q(i, j), trafo_k_to_q(i, j));
-    }
-  }
-
-  for (int K_ind = 0; K_ind < K_dmn::dmn_size(); K_ind++)
-    concurrency.sum(get(K_ind));
-
-  print_memory_used(concurrency);
+    print_memory_used(concurrency);
+    initialized_ = true;
+  });
 }
 
 template <typename scalar_type, typename k_dmn, typename K_dmn, COARSEGRAIN_DOMAIN_NAMES NAME>
@@ -213,6 +216,7 @@ void interpolation_matrices<scalar_type, k_dmn, func::dmn_0<coarsegraining_domai
   for (int K_ind = 0; K_ind < K_dmn::dmn_size(); K_ind++)
     concurrency.sum(get(K_ind));
 
+  initialized_ = true;
   print_memory_used(concurrency);
 }
 

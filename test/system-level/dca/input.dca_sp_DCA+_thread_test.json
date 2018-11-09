@@ -27,7 +27,7 @@
             "k-mesh-recursion": 3,
             "periods": 2,
             "quadrature-rule": 1,
-            "threads": 1
+            "threads": 8
         },
 
         "DCA+": {

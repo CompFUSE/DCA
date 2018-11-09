@@ -25,6 +25,7 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/linalg/linalg.hpp"
+#include "dca/linalg/matrix_view.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 
@@ -72,6 +73,16 @@ public:
       func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>& f_k_w,
       const func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>>&
           alpha_k_w);
+
+  template <typename scalar_type, typename k_dmn_t>
+  static void forward(
+      scalar_type alpha,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& f_k_w);
+
+  template <typename scalar_type, typename k_dmn_t>
+  static void backward(
+      scalar_type alpha,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& f_k_w);
 };
 
 template <typename scalar_type, typename k_dmn_t>
@@ -228,6 +239,53 @@ void transform_to_alpha::backward(
         for (int i = 0; i < N; ++i)
           f_k_w(i, j, k_ind, w_ind) = f_matrix(i, j);
     }
+  }
+}
+
+template <typename scalar_type, typename k_dmn_t>
+void transform_to_alpha::forward(
+    const scalar_type alpha,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& f_k_w) {
+  std::complex<scalar_type> I(0., alpha);
+
+  const int n = nu::dmn_size();
+  const int stride = n * n;
+
+  // Allocate the work space for inverse only once.
+  linalg::Vector<int, linalg::CPU> ipiv;
+  linalg::Vector<std::complex<double>, linalg::CPU> work;
+
+  for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind) {
+    linalg::MatrixView<std::complex<scalar_type>, linalg::CPU> f_matrix(
+        f_k_w.values() + stride * k_ind, n);
+    for (int i = 0; i < n; ++i)
+      f_matrix(i, i) -= I;
+
+    linalg::matrixop::inverse(f_matrix, ipiv, work);
+  }
+}
+
+template <typename scalar_type, typename k_dmn_t>
+void transform_to_alpha::backward(
+    const scalar_type alpha,
+    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& f_k_w) {
+  std::complex<scalar_type> I(0., alpha);
+
+  int n = nu::dmn_size();
+  const int stride = n * n;
+
+  // Allocate the work space for inverse only once.
+  linalg::Vector<int, linalg::CPU> ipiv;
+  linalg::Vector<std::complex<scalar_type>, linalg::CPU> work;
+
+  for (int k_ind = 0; k_ind < k_dmn_t::dmn_size(); ++k_ind) {
+    linalg::MatrixView<std::complex<scalar_type>, linalg::CPU> f_matrix(
+        f_k_w.values() + stride * k_ind, n);
+
+    linalg::matrixop::inverse(f_matrix, ipiv, work);
+
+    for (int i = 0; i < n; i++)
+      f_matrix(i, i) += I;
   }
 }
 
