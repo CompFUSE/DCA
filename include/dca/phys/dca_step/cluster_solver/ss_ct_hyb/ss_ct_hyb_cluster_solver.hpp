@@ -41,18 +41,7 @@ namespace solver {
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 class SsCtHybClusterSolver : public cthyb::ss_hybridization_solver_routines<parameters_type, Data> {
 public:
-  using DataType = Data;
-  typedef parameters_type this_parameters_type;
-
-  typedef typename parameters_type::random_number_generator rng_type;
-
-  typedef typename parameters_type::profiler_type profiler_type;
-  typedef typename parameters_type::concurrency_type concurrency_type;
-
   typedef cthyb::ss_hybridization_solver_routines<parameters_type, Data> ss_hybridization_solver_routines_type;
-
-  typedef cthyb::SsCtHybWalker<dca::linalg::CPU, parameters_type, Data> walker_type;
-  typedef cthyb::SsCtHybAccumulator<dca::linalg::CPU, parameters_type, Data> accumulator_type;
 
   using w = func::dmn_0<domains::frequency_domain>;
   using b = func::dmn_0<domains::electron_band_domain>;
@@ -92,14 +81,23 @@ public:
   // Precondition: The accumulator data has not been averaged, i.e. finalize has not been called.
   auto local_GS_r_w() const;
 
-protected:
-  void warm_up(walker_type& walker);
+protected:  // Interface to the thread jacket.
+  using DataType = Data;
+  using ParametersType = parameters_type;
 
-  void measure(walker_type& walker);
+  using Rng = typename ParametersType::random_number_generator;
+  using Profiler = typename ParametersType::profiler_type;
+  using Concurrency = typename ParametersType::concurrency_type;
+
+  using Accumulator = cthyb::SsCtHybAccumulator<dca::linalg::CPU, parameters_type, Data>;
+  using Walker = cthyb::SsCtHybWalker<dca::linalg::CPU, parameters_type, Data>;
+
+private:
+  void warmUp(Walker& walker);
+
+  void measure(Walker& walker);
 
   void symmetrize_measurements();
-
-  void compute_error_bars();
 
   // Sums/averages the quantities measured by the individual MPI ranks.
   void collect_measurements();
@@ -115,26 +113,28 @@ protected:
   void find_tail_of_Sigma(double& S0, double& S1, int b, int s, int k);
 
 protected:
-  parameters_type& parameters;
+  void computeErrorBars();
+
+protected:  // Interface to the thread jacket.
+  ParametersType& parameters_;
   Data& data_;
-  concurrency_type& concurrency;
+  Concurrency& concurrency_;
+
+  Accumulator accumulator_;
+  double total_time_;
+  int dca_iteration_;
+
+private:
+  Rng rng;
 
   double thermalization_time;
   double MC_integration_time;
 
-  double total_time;
-
-  rng_type rng;
-  accumulator_type accumulator;
-
   func::function<std::complex<double>, nu_nu_k_DCA_w> Sigma_old;
   func::function<std::complex<double>, nu_nu_k_DCA_w> Sigma_new;
 
-  int DCA_iteration;
-
   func::function<double, nu> mu_DC;
 
-private:
   bool averaged_;
 };
 
@@ -143,24 +143,24 @@ SsCtHybClusterSolver<device_t, parameters_type, Data>::SsCtHybClusterSolver(
     parameters_type& parameters_ref, Data& data_ref)
     : cthyb::ss_hybridization_solver_routines<parameters_type, Data>(parameters_ref, data_ref),
 
-      parameters(parameters_ref),
+      parameters_(parameters_ref),
       data_(data_ref),
-      concurrency(parameters.get_concurrency()),
+      concurrency_(parameters_.get_concurrency()),
+
+      accumulator_(parameters_, data_),
+      total_time_(0),
+      dca_iteration_(-1),
+
+      rng(concurrency_.id(), concurrency_.number_of_processors(), parameters_.get_seed()),
 
       thermalization_time(0),
       MC_integration_time(0),
 
-      total_time(0),
-
-      rng(concurrency.id(), concurrency.number_of_processors(), parameters.get_seed()),
-      accumulator(parameters, data_),
-
       Sigma_old("Self-Energy-n-1-iteration"),
       Sigma_new("Self-Energy-n-0-iteration"),
 
-      DCA_iteration(-1),
       averaged_(false) {
-  if (concurrency.id() == concurrency.first())
+  if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\n\t SS CT-HYB Integrator is born \n" << std::endl;
 }
 
@@ -181,28 +181,28 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::write(Writer& writer
   writer.execute(Sigma_old);
   writer.execute(Sigma_new);
 
-  accumulator.write(writer);
+  accumulator_.write(writer);
 
   writer.close_group();
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 void SsCtHybClusterSolver<device_t, parameters_type, Data>::initialize(int dca_iteration) {
-  if (concurrency.id() == concurrency.first())
+  if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\n\t SS CT-HYB Integrator has started ( DCA-iteration : " << dca_iteration
               << ")\n\n";
 
-  DCA_iteration = dca_iteration;
+  dca_iteration_ = dca_iteration;
 
   Sigma_old = data_.Sigma_cluster;
 
   ss_hybridization_solver_routines_type::initialize_functions();
 
-  accumulator.initialize(dca_iteration);
+  accumulator_.initialize(dca_iteration);
 
   averaged_ = false;
 
-  if (concurrency.id() == concurrency.first()) {
+  if (concurrency_.id() == concurrency_.first()) {
     std::stringstream ss;
     ss.precision(6);
     ss << std::scientific;
@@ -227,21 +227,21 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::initialize(int dca_i
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 void SsCtHybClusterSolver<device_t, parameters_type, Data>::integrate() {
-  if (concurrency.id() == concurrency.first()) {
+  if (concurrency_.id() == concurrency_.first()) {
     std::cout << "QMC integration has started: " << dca::util::print_time() << std::endl;
   }
 
-  walker_type walker(parameters, data_, rng);
+  Walker walker(parameters_, data_, rng);
 
   walker.initialize();
 
-  warm_up(walker);
+  warmUp(walker);
 
   measure(walker);
 
-  if (concurrency.id() == concurrency.first()) {
+  if (concurrency_.id() == concurrency_.first()) {
     std::cout << "On-node integration has ended: " << dca::util::print_time()
-              << "\n\nTotal number of measurements: " << parameters.get_measurements() << std::endl;
+              << "\n\nTotal number of measurements: " << parameters_.get_measurements() << std::endl;
 
     walker.printSummary();
   }
@@ -254,19 +254,19 @@ double SsCtHybClusterSolver<device_t, parameters_type, Data>::finalize(
   collect_measurements();
   symmetrize_measurements();
 
-  math::transform::FunctionTransform<RClusterDmn, KClusterDmn>::execute(accumulator.get_G_r_w(),
+  math::transform::FunctionTransform<RClusterDmn, KClusterDmn>::execute(accumulator_.get_G_r_w(),
                                                                         data_.G_k_w);
 
   math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(data_.G_k_w, data_.G_r_w);
 
-  dca_info_struct.L2_Sigma_difference(DCA_iteration) = compute_S_k_w_from_G_k_w();
+  dca_info_struct.L2_Sigma_difference(dca_iteration_) = compute_S_k_w_from_G_k_w();
 
-  // util::Plot::plotBandsLines(accumulator.get_G_r_w());
-  // util::Plot::plotBandsLines(accumulator.get_GS_r_w());
+  // util::Plot::plotBandsLines(accumulator_.get_G_r_w());
+  // util::Plot::plotBandsLines(accumulator_.get_GS_r_w());
   // util::Plot::plotBandsLines(data_.G_k_w);
   // util::Plot::plotBandsLines(data_.Sigma);
 
-  if (concurrency.id() == concurrency.first()) {
+  if (concurrency_.id() == concurrency_.first()) {
     std::stringstream ss;
     ss.precision(6);
     ss << std::scientific;
@@ -288,55 +288,55 @@ double SsCtHybClusterSolver<device_t, parameters_type, Data>::finalize(
 
   for (int i = 0; i < b::dmn_size() * s::dmn_size(); i++)
     for (int j = 0; j < KClusterDmn::dmn_size(); j++)
-      dca_info_struct.Sigma_zero_moment(i, j, DCA_iteration) = real(data_.Sigma(i, i, j, 0));
+      dca_info_struct.Sigma_zero_moment(i, j, dca_iteration_) = real(data_.Sigma(i, i, j, 0));
 
   double total = 1.e-6, integral = 0;
-  for (int l = 0; l < accumulator.get_visited_expansion_order_k().size(); l++) {
-    total += accumulator.get_visited_expansion_order_k()(l);
-    integral += accumulator.get_visited_expansion_order_k()(l) * l;
+  for (int l = 0; l < accumulator_.get_visited_expansion_order_k().size(); l++) {
+    total += accumulator_.get_visited_expansion_order_k()(l);
+    integral += accumulator_.get_visited_expansion_order_k()(l) * l;
   }
 
-  dca_info_struct.average_expansion_order(DCA_iteration) = integral / total;
+  dca_info_struct.average_expansion_order(dca_iteration_) = integral / total;
 
-  dca_info_struct.sign(DCA_iteration) = accumulator.get_average_sign();
+  dca_info_struct.sign(dca_iteration_) = accumulator_.get_average_sign();
 
-  if (concurrency.id() == concurrency.first())
+  if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\n\t SS CT-HYB Integrator has finalized \n" << std::endl;
 
-  return dca_info_struct.L2_Sigma_difference(DCA_iteration);
+  return dca_info_struct.L2_Sigma_difference(dca_iteration_);
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void SsCtHybClusterSolver<device_t, parameters_type, Data>::warm_up(walker_type& walker) {
-  if (concurrency.id() == concurrency.first())
+void SsCtHybClusterSolver<device_t, parameters_type, Data>::warmUp(Walker& walker) {
+  if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t warm-up has started\n" << std::endl;
 
-  for (int i = 0; i < parameters.get_warm_up_sweeps(); i++) {
-    walker.do_sweep();
-    walker.update_shell(i, parameters.get_warm_up_sweeps());
+  for (int i = 0; i < parameters_.get_warm_up_sweeps(); i++) {
+    walker.doSweep();
+    walker.updateShell(i, parameters_.get_warm_up_sweeps());
   }
 
   walker.is_thermalized() = true;
 
-  if (concurrency.id() == concurrency.first())
+  if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t warm-up has ended\n" << std::endl;
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void SsCtHybClusterSolver<device_t, parameters_type, Data>::measure(walker_type& walker) {
-  if (concurrency.id() == concurrency.first())
+void SsCtHybClusterSolver<device_t, parameters_type, Data>::measure(Walker& walker) {
+  if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t measuring has started \n" << std::endl;
 
-  const int n_meas = dca::parallel::util::getWorkload(parameters.get_measurements(), concurrency);
+  const int n_meas = dca::parallel::util::getWorkload(parameters_.get_measurements(), concurrency_);
 
   for (int i = 0; i < n_meas; i++) {
-    walker.do_sweep();
+    walker.doSweep();
 
-    accumulator.update_from(walker);
+    accumulator_.updateFrom(walker);
 
-    accumulator.measure();
+    accumulator_.measure();
 
-    walker.update_shell(i, n_meas);
+    walker.updateShell(i, n_meas);
   }
 
   // here we need to do a correction a la Andrey
@@ -345,24 +345,24 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::measure(walker_type&
 
   // for(int s_ind=0; s_ind<s::dmn_size(); s_ind++)
   // for(int b_ind=0; b_ind<b::dmn_size(); b_ind++)
-  // correction_to_GS(b_ind,s_ind) = 0//parameters.get_chemical_potential_DC()
+  // correction_to_GS(b_ind,s_ind) = 0//parameters_.get_chemical_potential_DC()
   // + mu_DC(b_ind, s_ind)
   // + walker.mu_HALF(b_ind,s_ind)
   // + walker.a0(b_ind,s_ind);
 
-  accumulator.finalize();
+  accumulator_.finalize();
 
-  if (concurrency.id() == concurrency.first())
+  if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t measuring has ended \n" << std::endl;
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void SsCtHybClusterSolver<device_t, parameters_type, Data>::compute_error_bars() {
-  if (concurrency.id() == concurrency.first())
+void SsCtHybClusterSolver<device_t, parameters_type, Data>::computeErrorBars() {
+  if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t computing the error-bars" << std::endl;
 
-  const int nb_measurements = accumulator.get_number_of_measurements();
-  double sign = accumulator.get_accumulated_sign() / double(nb_measurements);
+  const int nb_measurements = accumulator_.get_number_of_measurements();
+  double sign = accumulator_.get_accumulated_sign() / double(nb_measurements);
 
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, RClusterDmn, w>> G_r_w(
       "G_r_w_tmp");
@@ -370,45 +370,45 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::compute_error_bars()
       "GS_r_w_tmp");
 
   for (int l = 0; l < G_r_w.size(); l++)
-    G_r_w(l) = accumulator.get_G_r_w()(l) / double(nb_measurements * sign);
+    G_r_w(l) = accumulator_.get_G_r_w()(l) / double(nb_measurements * sign);
 
   for (int l = 0; l < GS_r_w.size(); l++)
-    GS_r_w(l) = accumulator.get_GS_r_w()(l) / double(nb_measurements * sign);
+    GS_r_w(l) = accumulator_.get_GS_r_w()(l) / double(nb_measurements * sign);
 
   compute_Sigma_new(G_r_w, GS_r_w);
 
-  concurrency.average_and_compute_stddev(Sigma_new, data_.get_Sigma_stdv());
+  concurrency_.average_and_compute_stddev(Sigma_new, data_.get_Sigma_stdv());
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 void SsCtHybClusterSolver<device_t, parameters_type, Data>::collect_measurements() {
-  if (concurrency.id() == concurrency.first())
+  if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t Collect measurements" << std::endl;
 
   // sum the sign
-  int accumulated_sign = accumulator.get_accumulated_sign();
-  concurrency.sum(accumulated_sign);
+  int accumulated_sign = accumulator_.get_accumulated_sign();
+  concurrency_.sum(accumulated_sign);
 
   // sum G_r_w
-  concurrency.sum(accumulator.get_G_r_w());
-  accumulator.get_G_r_w() /= accumulated_sign;
+  concurrency_.sum(accumulator_.get_G_r_w());
+  accumulator_.get_G_r_w() /= accumulated_sign;
 
   // sum GS_r_w
-  concurrency.sum(accumulator.get_GS_r_w());
-  accumulator.get_GS_r_w() /= accumulated_sign;
+  concurrency_.sum(accumulator_.get_GS_r_w());
+  accumulator_.get_GS_r_w() /= accumulated_sign;
 
-  concurrency.sum(accumulator.get_visited_expansion_order_k());
+  concurrency_.sum(accumulator_.get_visited_expansion_order_k());
   averaged_ = true;
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 void SsCtHybClusterSolver<device_t, parameters_type, Data>::symmetrize_measurements() {
-  if (concurrency.id() == concurrency.first())
+  if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t symmetrize measurements has started" << std::endl;
 
-  symmetrize::execute(accumulator.get_G_r_w(), data_.H_symmetry);
+  symmetrize::execute(accumulator_.get_G_r_w(), data_.H_symmetry);
 
-  symmetrize::execute(accumulator.get_GS_r_w(), data_.H_symmetry);
+  symmetrize::execute(accumulator_.get_GS_r_w(), data_.H_symmetry);
 
   std::vector<int> flavors = parameters_type::model_type::get_flavors();
   assert(flavors.size() == b::dmn_size());
@@ -423,11 +423,11 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::symmetrize_measureme
 
       for (int b_ind = 0; b_ind < b::dmn_size(); b_ind++) {
         f_tot(flavors[b_ind]) += 1;
-        f_val(flavors[b_ind]) += accumulator.get_G_r_w()(b_ind, s_ind, b_ind, s_ind, 0, w_ind);
+        f_val(flavors[b_ind]) += accumulator_.get_G_r_w()(b_ind, s_ind, b_ind, s_ind, 0, w_ind);
       }
 
       for (int b_ind = 0; b_ind < b::dmn_size(); b_ind++)
-        accumulator.get_G_r_w()(b_ind, s_ind, b_ind, s_ind, 0, w_ind) =
+        accumulator_.get_G_r_w()(b_ind, s_ind, b_ind, s_ind, 0, w_ind) =
             f_val(flavors[b_ind]) / f_tot(flavors[b_ind]);
     }
   }
@@ -439,11 +439,11 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::symmetrize_measureme
 
       for (int b_ind = 0; b_ind < b::dmn_size(); b_ind++) {
         f_tot(flavors[b_ind]) += 1;
-        f_val(flavors[b_ind]) += accumulator.get_GS_r_w()(b_ind, s_ind, b_ind, s_ind, 0, w_ind);
+        f_val(flavors[b_ind]) += accumulator_.get_GS_r_w()(b_ind, s_ind, b_ind, s_ind, 0, w_ind);
       }
 
       for (int b_ind = 0; b_ind < b::dmn_size(); b_ind++)
-        accumulator.get_GS_r_w()(b_ind, s_ind, b_ind, s_ind, 0, w_ind) =
+        accumulator_.get_GS_r_w()(b_ind, s_ind, b_ind, s_ind, 0, w_ind) =
             f_val(flavors[b_ind]) / f_tot(flavors[b_ind]);
     }
   }
@@ -451,14 +451,14 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::symmetrize_measureme
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 double SsCtHybClusterSolver<device_t, parameters_type, Data>::compute_S_k_w_from_G_k_w() {
-  double alpha = DCA_iteration > 0 ? parameters.get_self_energy_mixing_factor() : 1;
+  double alpha = dca_iteration_ > 0 ? parameters_.get_self_energy_mixing_factor() : 1;
 
   double L2_difference_norm = 1.e-6;
   double L2_Sigma_norm = 1.e-6;
 
   int w_cutoff = find_w_cutoff();
 
-  compute_Sigma_new(accumulator.get_G_r_w(), accumulator.get_GS_r_w());
+  compute_Sigma_new(accumulator_.get_G_r_w(), accumulator_.get_GS_r_w());
 
   symmetrize::execute(Sigma_new, data_.H_symmetry);
 
@@ -493,7 +493,7 @@ double SsCtHybClusterSolver<device_t, parameters_type, Data>::compute_S_k_w_from
 
   symmetrize::execute(data_.Sigma, data_.H_symmetry);
 
-  if (concurrency.id() == concurrency.first())
+  if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t |Sigma_old-Sigma_new| : " << L2_difference_norm / L2_Sigma_norm << std::endl;
 
   return L2_difference_norm / L2_Sigma_norm;
@@ -526,7 +526,7 @@ template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 int SsCtHybClusterSolver<device_t, parameters_type, Data>::find_w_cutoff() {
   return std::max(
       1.0,
-      std::min(parameters.get_self_energy_tail_cutoff() * parameters.get_beta() / (2.0 * M_PI) - 0.5,
+      std::min(parameters_.get_self_energy_tail_cutoff() * parameters_.get_beta() / (2.0 * M_PI) - 0.5,
                1.0 * (w::dmn_size() / 2)));
 }
 
@@ -548,9 +548,9 @@ auto SsCtHybClusterSolver<device_t, parameters_type, Data>::local_G_k_w() const 
     throw std::logic_error("The local data was already averaged.");
 
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, KClusterDmn, w>> G_k_w;
-  math::transform::FunctionTransform<RClusterDmn, KClusterDmn>::execute(accumulator.get_G_r_w(),
+  math::transform::FunctionTransform<RClusterDmn, KClusterDmn>::execute(accumulator_.get_G_r_w(),
                                                                         G_k_w);
-  G_k_w /= accumulator.get_sign();
+  G_k_w /= accumulator_.get_sign();
 
   return G_k_w;
 }
@@ -560,8 +560,8 @@ auto SsCtHybClusterSolver<device_t, parameters_type, Data>::local_GS_r_w() const
   if (averaged_)
     throw std::logic_error("The local data was already averaged.");
 
-  auto GS_r_w = accumulator.get_GS_r_w();
-  GS_r_w /= accumulator.get_accumulated_sign();
+  auto GS_r_w = accumulator_.get_GS_r_w();
+  GS_r_w /= accumulator_.get_accumulated_sign();
 
   return GS_r_w;
 }
