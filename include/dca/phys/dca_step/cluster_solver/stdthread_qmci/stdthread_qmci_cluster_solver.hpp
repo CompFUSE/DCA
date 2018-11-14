@@ -16,7 +16,7 @@
 #include <atomic>
 #include <iostream>
 #include <future>
-#include <stack>
+#include <queue>
 #include <stdexcept>
 #include <vector>
 
@@ -85,7 +85,7 @@ private:
 
   std::vector<Rng> rng_vector_;
 
-  std::stack<StdThreadAccumulatorType*, std::vector<StdThreadAccumulatorType*>> accumulators_queue_;
+  std::queue<StdThreadAccumulatorType*> accumulators_queue_;
 
   std::mutex mutex_merge_;
   std::mutex mutex_queue_;
@@ -223,7 +223,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalker(int id) {
           {
             std::unique_lock<std::mutex> lock(mutex_queue_);
             queue_insertion_.wait(lock, [&]() { return !accumulators_queue_.empty(); });
-            acc_ptr = accumulators_queue_.top();
+            acc_ptr = accumulators_queue_.front();
             accumulators_queue_.pop();
           }
         }
@@ -233,8 +233,8 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalker(int id) {
   // If this is the last walker signal to all the accumulators to exit the loop.
   if (++walk_finished_ == parameters_.get_walkers()) {
     std::lock_guard<std::mutex> lock(mutex_queue_);
-    while (accumulators_queue_.size()) {
-      accumulators_queue_.top()->notifyDone();
+    while (!accumulators_queue_.empty()) {
+      accumulators_queue_.front()->notifyDone();
       accumulators_queue_.pop();
     }
   }
