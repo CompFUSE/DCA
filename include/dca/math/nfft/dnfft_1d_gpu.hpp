@@ -180,9 +180,10 @@ void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::accumulate(
 
   config_copied_event_.record(stream_);
 
-  details::accumulateOnDevice(M_.ptr(), M_.leadingDimension(), sign, accumulation_matrix_.ptr(),
-                              accumulation_matrix_sqr_.ptr(), accumulation_matrix_.leadingDimension(),
-                              config_left_dev_.ptr(), config_right_dev_.ptr(), times_dev_.ptr(),
+  details::accumulateOnDevice(M_.ptr(), M_.leadingDimension(), static_cast<ScalarType>(sign),
+                              accumulation_matrix_.ptr(), accumulation_matrix_sqr_.ptr(),
+                              accumulation_matrix_.leadingDimension(), config_left_dev_.ptr(),
+                              config_right_dev_.ptr(), times_dev_.ptr(),
                               get_device_cubic_coeff().ptr(), n, stream_);
 }
 
