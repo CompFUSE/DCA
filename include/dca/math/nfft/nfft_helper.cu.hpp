@@ -135,7 +135,7 @@ __device__ int inline NfftHelper<ScalarType>::computeLinearIndex(const int b1, c
                                                                  const int r1, const int r2) const {
   const int delta_r = deltaR(r2, r1);
   const int nb = parameters_int_[0];
-  return b1 + b2 * nb + delta_r * nb * nb;
+  return b1 + nb * (b2 + nb * delta_r);
 }
 
 template <typename ScalarType>

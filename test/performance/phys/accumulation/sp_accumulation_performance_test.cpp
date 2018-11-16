@@ -74,7 +74,7 @@ using BDmn = dca::func::dmn_0<dca::phys::domains::electron_band_domain>;
 using RDmn = typename Parameters::RClusterDmn;
 
 int main(int argc, char** argv) {
-  int n = 1000;
+  int n = 3000;
   if (argc > 1)
     n = std::atoi(argv[1]);
 
@@ -140,22 +140,33 @@ int main(int argc, char** argv) {
   gpu_accumulator.resetAccumulation();
 
   Profiler::start();
-
   cudaProfilerStart();
+
+  // Profile Single invocation.
   start_event.record(gpu_accumulator.get_streams()[0]);
   dca::profiling::WallTime host_start_time;
   gpu_accumulator.accumulate(M, config, sign);
   dca::profiling::WallTime host_end_time;
   stop_event.record(gpu_accumulator.get_streams()[1]);
-  cudaProfilerStop();
-
-  Profiler::stop("sp_gpu_accumulation_profile.txt");
 
   const double host_time = duration(host_end_time, host_start_time);
   const double dev_time = dca::linalg::util::elapsedTime(stop_event, start_event);
-
   std::cout << "\nSpAccumulation GPU: Host time [sec]:\t " << host_time;
   std::cout << "\nSpAccumulation GPU: Device time [sec]:\t " << dev_time << "\n\n";
+
+  // Profile loop.
+  cudaDeviceSynchronize();
+  const dca::profiling::WallTime loop_start;
+  constexpr int n_iters = 10;
+  for (int i = 0; i < n_iters; ++i) {
+    gpu_accumulator.accumulate(M, config, sign);
+  }
+  const dca::profiling::WallTime loop_end;
+  std::cout << "\nSpAccumulation GPU loop: time per iteration [sec]:\t "
+            << duration(loop_end, loop_start) / n_iters << "\n\n";
+
+  cudaProfilerStop();
+  Profiler::stop("sp_gpu_accumulation_profile.txt");
 #endif  // DCA_HAVE_CUDA
 }
 
