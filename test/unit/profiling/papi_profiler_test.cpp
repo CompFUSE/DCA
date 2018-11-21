@@ -1,3 +1,14 @@
+// Copyright (C) 2018 ETH Zurich
+// Copyright (C) 2018 UT-Battelle, LLC
+// All rights reserved.
+//
+// See LICENSE for terms of usage.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+//
+// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//
+// This file tests the CountingProfiler class using PAPI and time events.
+
 #include "dca/profiling/counting_profiler.hpp"
 #include "dca/profiling/events/papi_and_time_event.hpp"
 
@@ -8,7 +19,7 @@
 
 #include "dca/io/json/json_reader.hpp"
 
-using Profiler = dca::profiling::CountingProfiler<dca::profiling::papi_and_time_event<long long int>>;
+using Profiler = dca::profiling::CountingProfiler<dca::profiling::PapiAndTimeEvent>;
 
 TEST(MyPapiProfilerTest, Parallel) {
   Profiler::start();
