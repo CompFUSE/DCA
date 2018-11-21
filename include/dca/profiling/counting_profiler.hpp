@@ -13,6 +13,7 @@
 #define DCA_PROFILING_COUNTING_PROFILER_HPP
 
 #include <algorithm>
+#include <cassert>
 #include <fstream>
 #include <map>
 #include <ostream>
