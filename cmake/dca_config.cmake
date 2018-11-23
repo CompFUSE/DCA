@@ -117,7 +117,7 @@ if (DCA_PROFILER STREQUAL "Counting")
   set(DCA_PROFILER_INCLUDE "dca/profiling/counting_profiler.hpp")
 
 elseif (DCA_PROFILER STREQUAL "PAPI")
-  set(DCA_PROFILING_EVENT_TYPE "dca::profiling::papi_and_time_event")
+  set(DCA_PROFILING_EVENT_TYPE "dca::profiling::PapiAndTimeEvent")
   set(DCA_PROFILING_EVENT_INCLUDE "dca/profiling/events/papi_and_time_event.hpp")
   set(DCA_PROFILER_TYPE dca::profiling::CountingProfiler<Event>)
   set(DCA_PROFILER_INCLUDE "dca/profiling/counting_profiler.hpp")
