@@ -77,8 +77,9 @@ private:
 
 inline PapiAndTimeEvent::PapiAndTimeEvent(std::vector<scalar_type>& counter_ref, int id)
     : BaseTimeEvent(counter_ref, id), counter_ptr_(&counter_ref), thread_id_(id) {
-  if (PAPI_read(papiEventSet(thread_id_), start_counters_.data()) != PAPI_OK)
-    throw std::logic_error(__FUNCTION__);
+  int ret;
+  if ((ret = PAPI_read(papiEventSet(thread_id_), start_counters_.data())) != PAPI_OK)
+    throw std::logic_error("Error in PAPI_read: " + std::to_string(ret));
 }
 
 inline void PapiAndTimeEvent::end() {
@@ -86,8 +87,10 @@ inline void PapiAndTimeEvent::end() {
 
   std::array<scalar_type, nb_papi_counter_> end_counters;
 
-  if (PAPI_read(papiEventSet(thread_id_), end_counters.data()) != PAPI_OK)
-    throw std::logic_error(__FUNCTION__);
+  int ret;
+  if ((ret = PAPI_read(papiEventSet(thread_id_), end_counters.data())) != PAPI_OK) {
+      throw std::logic_error("stop: error in PAPI_read: " + std::to_string(ret));
+  }
 
   // Note: the time events stores its counters in positions [0, nb_time_counter_ - 1].
   for (int i = 0; i < nb_papi_counter_; ++i)
