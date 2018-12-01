@@ -7,13 +7,15 @@ High scalability and portable performance allow to exploit today's leadership co
 
 ## Getting Started
 
-Information about prerequisites and the CMake-based building procedure can be found in the [Wiki](https://github.com/CompFUSE/DCA/wiki).
+Information about prerequisites, details on the CMake-based building procedure, and a small tutorial can be found in the [Wiki](https://github.com/CompFUSE/DCA/wiki).  
+Questions about building or running DCA++ can be submitted via the
+[issue tracking system](https://github.com/CompFUSE/DCA/issues/new).
 
 
 ## Contributing Back
 
-Questions, bug reports and feature requests can be submitted via the
-[issue tracking system](https://github.com/CompFUSE/DCA/issues).
+Bug reports and feature requests can be submitted via the
+[issue tracking system](https://github.com/CompFUSE/DCA/issues/new).
 
 Please read the [contribution guidelines](https://github.com/CompFUSE/DCA/blob/master/CONTRIBUTING.md) for details on how to contribute code.
 
