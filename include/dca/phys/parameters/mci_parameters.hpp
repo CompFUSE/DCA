@@ -36,7 +36,8 @@ public:
         walkers_(1),
         accumulators_(1),
         shared_walk_and_accumulation_thread_(false),
-        fix_meas_per_walker_(true),
+        // TODO: consider setting default do true.
+        fix_meas_per_walker_(false),
         adjust_self_energy_for_double_counting_(false),
         error_computation_type_(ErrorComputationType::NONE) {}
 
@@ -75,6 +76,9 @@ public:
   bool shared_walk_and_accumulation_thread() const {
     return shared_walk_and_accumulation_thread_;
   }
+
+  // If true, the number of sweeps performed by each walker is fixed a priory. This avoids possible
+  // bias toward faster walkers, at the expanse of load balance.
   bool fix_meas_per_walker() const {
     return fix_meas_per_walker_;
   }

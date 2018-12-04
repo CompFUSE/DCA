@@ -102,6 +102,7 @@
         "warm-up-sweeps": 20,
         "sweeps-per-measurement": 1.,
         "measurements": 100,
+        "fix-meas-per-walker" : false,
         "error-computation-type" : "NONE",
 
         "threaded-solver": {
