@@ -10,13 +10,10 @@ module load gcc/6.4.0
 module load cuda
 module load hdf5
 module load fftw
-module load cmake 
+module load cmake
 module load magma
 module load netlib-lapack
 module load essl
 
 export CC=mpicc
 export CXX=mpicxx
-#export BLAS=$OLCF_ESSL_ROOT
-#export LD_LIBRARY_PATH=$BLAS/lib:$LD_LIBRARY_PATH
-

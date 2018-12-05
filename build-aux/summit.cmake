@@ -3,18 +3,24 @@
 # Usage: cmake -C /path/to/this/file /path/to/DCA/source -D<option>=<value> ...
 
 # Prevent CMake from searching for BLAS and LAPACK libraries.
-# IBM's ESSL (preferred) and LAPACK will be searched manually.
-set(DCA_HAVE_LAPACK TRUE CACHE INTERNAL "")
-set(LAPACK_LIBRARIES $ENV{OLCF_ESSL_ROOT}/lib64/libessl.so;$ENV{OLCF_NETLIB_LAPACK_ROOT}/lib64/liblapack.so CACHE FILEPATH " ")
-message("LAPACK_LIBRARIES link:" ${LAPACK_LIBRARIES})
+# Paths to IBM's ESSL (preferred) and NETLIB-LAPACK will be set manually.
+set(DCA_HAVE_LAPACK TRUE CACHE INTERNAL "If set to TRUE, prevents CMake from searching for LAPACK.")
+# To give ESSL precedence it needs to be specified before NETLIB.
+set(LAPACK_LIBRARIES $ENV{OLCF_ESSL_ROOT}/lib64/libessl.so;$ENV{OLCF_NETLIB_LAPACK_ROOT}/lib64/liblapack.so CACHE FILEPATH
+    "Libraries to link against to use LAPACK.")
 
 # Use jsrun for executing the tests.
-# The flag "--smpiargs=none" is needed to execute tests with no MPI functionalities.
 set(TEST_RUNNER "jsrun" CACHE STRING "Command for executing (MPI) programs.")
 set(MPIEXEC_NUMPROC_FLAG "-a" CACHE STRING
   "Flag used by TEST_RUNNER to specify the number of processes.")
-set(MPIEXEC_PREFLAGS "-n 1 -g 1 --smpiargs=none" CACHE STRING
+# Use 1 resource set with 1 GPU and 8 cores for executing the tests.
+set(MPIEXEC_PREFLAGS "-n 1 -g 1 -c 8" CACHE STRING
   "Flags to pass to TEST_RUNNER directly before the executable to run.")
+# The flag "--smpiargs=none" is needed to execute tests with no MPI functionalities.
+set(SMPIARGS_FLAG_NOMPI "--smpiargs=none" CACHE STRING
+    "Spectrum MPI argument list flag for serial tests.")
+# The flag "--smpiargs=-tcp" is needed to execute tests with MPI.
+set(SMPIARGS_FLAG_MPI "--smpiargs=-tcp" CACHE STRING "Spectrum MPI argument list flag for MPI tests.")
 
 # Enable the GPU support.
 option(DCA_WITH_CUDA "Enable GPU support." ON)
@@ -29,8 +35,6 @@ option(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
 set(MAGMA_DIR $ENV{OLCF_MAGMA_ROOT} CACHE PATH
   "Path to the MAGMA installation directory. Hint for CMake to find MAGMA.")
 
- # FFTW paths.
-set(FFTW_DIR $ENV{OLCF_FFTW_ROOT} CACHE PATH
-  "Path to the FFTW3 installation directory. Hint for CMake to find FFTW3.")
+# FFTW paths.
 set(FFTW_INCLUDE_DIR $ENV{OLCF_FFTW_ROOT}/include CACHE PATH "Path to fftw3.h.")
 set(FFTW_LIBRARY $ENV{OLCF_FFTW_ROOT}/lib/libfftw3.so CACHE FILEPATH "The FFTW3(-compatible) library.")
