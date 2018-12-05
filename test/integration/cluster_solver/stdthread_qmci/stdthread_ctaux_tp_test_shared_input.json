@@ -60,7 +60,8 @@
     "threaded-solver" : {
       "walkers": 4,
       "accumulators": 4,
-      "shared-walk-and-accumulation-thread": true
+      "shared-walk-and-accumulation-thread": true,
+      "fix-meas-per-walker" : true
     },
 
     "seed" : 0

@@ -36,6 +36,8 @@ public:
         walkers_(1),
         accumulators_(1),
         shared_walk_and_accumulation_thread_(false),
+        // TODO: consider setting default do true.
+        fix_meas_per_walker_(false),
         adjust_self_energy_for_double_counting_(false),
         error_computation_type_(ErrorComputationType::NONE) {}
 
@@ -74,6 +76,12 @@ public:
   bool shared_walk_and_accumulation_thread() const {
     return shared_walk_and_accumulation_thread_;
   }
+
+  // If true, the number of sweeps performed by each walker is fixed a priory. This avoids possible
+  // bias toward faster walkers, at the expanse of load balance.
+  bool fix_meas_per_walker() const {
+    return fix_meas_per_walker_;
+  }
   bool adjust_self_energy_for_double_counting() const {
     return adjust_self_energy_for_double_counting_;
   }
@@ -97,6 +105,7 @@ private:
   int walkers_;
   int accumulators_;
   bool shared_walk_and_accumulation_thread_;
+  bool fix_meas_per_walker_;
   bool adjust_self_energy_for_double_counting_;
   ErrorComputationType error_computation_type_;
 };
@@ -112,6 +121,7 @@ int MciParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(walkers_);
   buffer_size += concurrency.get_buffer_size(accumulators_);
   buffer_size += concurrency.get_buffer_size(shared_walk_and_accumulation_thread_);
+  buffer_size += concurrency.get_buffer_size(fix_meas_per_walker_);
   buffer_size += concurrency.get_buffer_size(adjust_self_energy_for_double_counting_);
   buffer_size += concurrency.get_buffer_size(error_computation_type_);
 
@@ -128,6 +138,7 @@ void MciParameters::pack(const Concurrency& concurrency, char* buffer, int buffe
   concurrency.pack(buffer, buffer_size, position, walkers_);
   concurrency.pack(buffer, buffer_size, position, accumulators_);
   concurrency.pack(buffer, buffer_size, position, shared_walk_and_accumulation_thread_);
+  concurrency.pack(buffer, buffer_size, position, fix_meas_per_walker_);
   concurrency.pack(buffer, buffer_size, position, adjust_self_energy_for_double_counting_);
   concurrency.pack(buffer, buffer_size, position, error_computation_type_);
 }
@@ -142,6 +153,7 @@ void MciParameters::unpack(const Concurrency& concurrency, char* buffer, int buf
   concurrency.unpack(buffer, buffer_size, position, walkers_);
   concurrency.unpack(buffer, buffer_size, position, accumulators_);
   concurrency.unpack(buffer, buffer_size, position, shared_walk_and_accumulation_thread_);
+  concurrency.unpack(buffer, buffer_size, position, fix_meas_per_walker_);
   concurrency.unpack(buffer, buffer_size, position, adjust_self_energy_for_double_counting_);
   concurrency.unpack(buffer, buffer_size, position, error_computation_type_);
 }
@@ -227,6 +239,11 @@ void MciParameters::readWrite(ReaderOrWriter& reader_or_writer) {
       try {
         reader_or_writer.execute("shared-walk-and-accumulation-thread",
                                  shared_walk_and_accumulation_thread_);
+      }
+      catch (const std::exception& r_e) {
+      }
+      try {
+        reader_or_writer.execute("fix-meas-per-walker", fix_meas_per_walker_);
       }
       catch (const std::exception& r_e) {
       }
