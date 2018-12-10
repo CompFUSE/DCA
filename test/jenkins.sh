@@ -12,5 +12,5 @@ if [ $# -eq 0 ]; then
     printf "No branch name or commit provided.\nUsage: ./jenkins.sh branch|commit\n"
 else
     printf "Triggering build of branch|commit %s.\n" "$1"
-    curl https://jenkins.cscs.ch/view/DCA++/job/DCA++-develop/buildWithParameters?token=giro21\&BRANCH=$1    
+    curl https://ci.cscs.ch:7000/job/s299/job/DCA++-develop/buildWithParameters?token=giro21\&BRANCH=$1
 fi
