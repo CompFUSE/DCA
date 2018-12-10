@@ -1,10 +1,10 @@
 #!/bin/bash
 #
 # Batch script to run DCA++'s test suite on ORNL's Summit supercomputer.
-# The script has to be submitted from the directory where the script is located (test) or the
+# The script has to be submitted from the directory where the script is located (DCA/test) or the
 # top-level source directory (DCA).
 # 
-# Usage: bsub summit_run_tests.lsf      [from test dir]
+# Usage: bsub summit_run_tests.lsf      [from DCA/test dir]
 #        bsub test/summit_run_tests.lsf [from DCA dir]
 #
 # TODO: Fix project ID and walltime.
