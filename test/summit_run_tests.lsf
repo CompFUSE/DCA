@@ -17,7 +17,7 @@
 #BSUB -o out.DCA++-tests.%J.txt
 #BSUB -e err.DCA++-tests.%J.txt
 
-# Check where the script has been submitted from.
+# Check where the script has been submitted from and change to the top-level source dir (DCA).
 if [ "${LS_SUBCWD: -4}" = "test" ]; then
     # Go up.
     cd ..
