@@ -1,10 +1,10 @@
 #!/bin/bash
 #
 # Batch script to run DCA++'s test suite on ORNL's Titan supercomputer.
-# The script has to be submitted from the directory where the script is located (test) or the
+# The script has to be submitted from the directory where the script is located (DCA/test) or the
 # top-level source directory (DCA).
 #
-# Usage: qsub titan_run_tests.lsf      [from test dir]
+# Usage: qsub titan_run_tests.lsf      [from DCA/test dir]
 #        qsub test/titan_run_tests.lsf [from DCA dir]
 
 #PBS -q debug
