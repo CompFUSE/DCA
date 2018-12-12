@@ -49,8 +49,10 @@ struct HelperSelector {
 template <typename ScalarType>
 NfftHelperManager<ScalarType> HelperSelector<ScalarType>::value;
 
+// TODO: consider constant or texture memory for the coefficients.
+
 template <typename ScalarType>
-__global__ void accumulateOnDeviceKernel(const double* M, const int ldm, const int sign,
+__global__ void accumulateOnDeviceKernel(const double* M, const int ldm, const ScalarType sign,
                                          ScalarType* out, ScalarType* out_sqr, int ldo,
                                          const ConfigElem* config_left,
                                          const ConfigElem* config_right, const ScalarType* times,
@@ -65,9 +67,6 @@ __global__ void accumulateOnDeviceKernel(const double* M, const int ldm, const i
   const int m_idx = thread_idx / conv_size;
   const int id_j = m_idx / size;
   const int id_i = m_idx - size * id_j;
-  const ScalarType f_val = M[id_i + ldm * id_j];
-  const int linindex = helper.computeLinearIndex(config_left[id_i].band, config_right[id_j].band,
-                                                 config_left[id_i].site, config_right[id_j].site);
   const ScalarType tau = helper.computeTau(times[id_i], times[id_j]);
   // Compute index of the convolution output index relative to a single input value.
   const int conv_idx = thread_idx - conv_size * m_idx;
@@ -77,21 +76,25 @@ __global__ void accumulateOnDeviceKernel(const double* M, const int ldm, const i
   helper.computeInterpolationIndices<CUBIC>(tau, t_idx, conv_coeff_idx, delta_t);
 
   const ScalarType* conv_coeff = cubic_coeff + conv_coeff_idx + 4 * conv_idx;
-  const ScalarType conv_function_value = conv_coeff[0] + conv_coeff[1] * delta_t +
-                                         conv_coeff[2] * delta_t * delta_t +
-                                         conv_coeff[3] * delta_t * delta_t * delta_t;
+  const ScalarType conv_function_value =
+      ((conv_coeff[3] * delta_t + conv_coeff[2]) * delta_t + conv_coeff[1]) * delta_t + conv_coeff[0];
 
+  const int linindex = helper.computeLinearIndex(config_left[id_i].band, config_right[id_j].band,
+                                                 config_left[id_i].site, config_right[id_j].site);
   ScalarType* const out_ptr = out + t_idx + conv_idx + ldo * linindex;
-  linalg::atomicAdd(out_ptr, sign * f_val * conv_function_value);
+
+  const ScalarType f_val = M[id_i + ldm * id_j];
+  const ScalarType contribution = sign * f_val * conv_function_value;
+  linalg::atomicAdd(out_ptr, contribution);
 
   if (out_sqr != nullptr) {
     ScalarType* const out_sqr_ptr = out_sqr + (out_ptr - out);
-    linalg::atomicAdd(out_sqr_ptr, sign * f_val * f_val * conv_function_value);
+    linalg::atomicAdd(out_sqr_ptr, contribution * f_val);
   }
 }
 
 template <typename ScalarType>
-void accumulateOnDevice(const double* M, const int ldm, const int sign, ScalarType* out,
+void accumulateOnDevice(const double* M, const int ldm, const ScalarType sign, ScalarType* out,
                         ScalarType* out_sqr, const int ldo, const ConfigElem* config_left,
                         const ConfigElem* config_right, const ScalarType* tau,
                         const ScalarType* cubic_coeff, const int size, cudaStream_t stream_) {
@@ -134,13 +137,13 @@ void initializeNfftHelper(int nb, int nr, const int* sub_r, int lds, int oversam
 }
 
 // Explicit instantiation.
-template void accumulateOnDevice<double>(const double* M, const int ldm, const int sign,
+template void accumulateOnDevice<double>(const double* M, const int ldm, const double sign,
                                          double* out, double* out_sqr, const int ldo,
                                          const ConfigElem* config_left,
                                          const ConfigElem* config_right, const double* tau,
                                          const double* cubic_coeff, const int size,
                                          cudaStream_t stream_);
-template void accumulateOnDevice<float>(const double* M, const int ldm, const int sign, float* out,
+template void accumulateOnDevice<float>(const double* M, const int ldm, const float sign, float* out,
                                         float* out_sqr, const int ldo, const ConfigElem* config_left,
                                         const ConfigElem* config_right, const float* tau,
                                         const float* cubic_coeff, const int size,

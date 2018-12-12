@@ -517,10 +517,37 @@ void DcaData<Parameters>::initialize_G0() {
 
 template <class Parameters>
 void DcaData<Parameters>::initialize_Sigma() {
-  profiler_type prof("initialize-Sigma", "input", __LINE__);
+  if (parameters_.get_initial_self_energy() == "zero")
+    return;
 
-  if (parameters_.get_initial_self_energy() != "zero")
-    this->read(parameters_.get_initial_self_energy());
+  auto initialize = [&](auto&& reader) {
+    reader.open_file(parameters_.get_initial_self_energy());
+
+    if (parameters_.adjust_chemical_potential()) {
+      reader.open_group("parameters");
+      reader.open_group("physics");
+      reader.execute("chemical-potential", parameters_.get_chemical_potential());
+      reader.close_group();
+      reader.close_group();
+    }
+
+    reader.open_group("functions");
+    reader.execute(Sigma);
+    reader.close_group();
+  };
+
+  if (concurrency_.id() == 0) {
+    const std::string& format = parameters_.get_output_format();
+    if (format == "HDF5")
+      initialize(io::HDF5Reader());
+    else if (format == "JSON")
+      initialize(io::JSONReader());
+    else
+      throw std::logic_error(__FUNCTION__);
+  }
+
+  concurrency_.broadcast(parameters_.get_chemical_potential());
+  concurrency_.broadcast(Sigma);
 }
 
 template <class Parameters>

@@ -1,0 +1,40 @@
+#!/bin/bash
+#
+# Batch script to run DCA++'s test suite on ORNL's Titan supercomputer.
+# The script has to be submitted from the top-level source directory.
+# 
+# Usage: qsub test/titan_run_tests.pbs
+
+#PBS -q debug
+#PBS -A cph102
+#PBS -N DCA++_test_suite
+#PBS -o out.DCA++-tests.$PBS_JOBID.txt
+#PBS -e err.DCA++-tests.$PBS_JOBID.txt
+#PBS -l walltime=01:00:00
+#PBS -l nodes=1
+#PBS -l gres=atlas1%atlas2
+
+# Required since some GPU tests run multiple MPI tasks per node.
+export CRAY_CUDA_MPS=1
+
+# Change to the directory from which the batch job was submitted, i.e the top-level source
+# directory.
+cd $PBS_O_WORKDIR
+
+# Load all required modules.
+source $MODULESHOME/init/bash
+source build-aux/titan_load_modules.sh
+
+# Create a clean build directory and change to it.
+rm -rf build && mkdir build && cd build
+
+# Run CMake to configure the build.
+cmake -C ../build-aux/titan.cmake -DDCA_WITH_TESTS_FAST=ON -DDCA_WITH_TESTS_EXTENSIVE=ON ../
+
+# Build the tests.
+make -j 8
+
+# Run the tests.
+date
+make test
+date
