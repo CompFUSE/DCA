@@ -87,6 +87,18 @@ public:
 };
 
 template <>
+class MPITypeMap<long long int> {
+public:
+  static std::size_t factor() {
+    return 1;
+  }
+
+  static MPI_Datatype value() {
+    return MPI_LONG_LONG_INT;
+  }
+};
+
+template <>
 class MPITypeMap<float> {
 public:
   static std::size_t factor() {
