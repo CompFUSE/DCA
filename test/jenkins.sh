@@ -2,15 +2,23 @@
 #
 # Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 #
-# Running this script remotely triggers a build on Jenkins (project name DCA++-develop).
-# The first input argument is the name of the branch or commit to build.
-# The script requires curl.
+# This script remotely triggers a build on Jenkins (project name DCA++-develop).
+# Running the script requires a Jenkins account and the script will ask for username and password.
+# Dependencies: curl.
 #
-# Usage: ./jenkins.sh branch|commit
+# Usage: ./jenkins.sh
 
-if [ $# -eq 0 ]; then
-    printf "No branch name or commit provided.\nUsage: ./jenkins.sh branch|commit\n"
-else
-    printf "Triggering build of branch|commit %s.\n" "$1"
-    curl https://ci.cscs.ch:7000/job/s299/job/DCA++-develop/buildWithParameters?token=giro21\&BRANCH=$1
-fi
+printf "Branch name or commit hash: "
+read BRANCH
+
+printf "Username: "
+read USERNAME
+
+stty -echo
+printf "Password: "
+read PASSWORD
+stty echo
+printf "\n"
+
+printf "Triggering build of branch|commit $BRANCH.\n"
+curl -u $USERNAME:$PASSWORD https://ci.cscs.ch:7000/job/s299/job/DCA++-develop/buildWithParameters?token=xjs2ks9m\&BRANCH=$BRANCH
