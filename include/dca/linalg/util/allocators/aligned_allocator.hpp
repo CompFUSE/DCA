@@ -13,9 +13,6 @@
 #define DCA_LINALG_UTIL_ALLOCATORS_ALIGNED_ALLOCATOR_HPP
 
 #include <vector>
-#include <cuda_runtime.h>
-
-#include "dca/linalg/util/error_cuda.hpp"
 
 namespace dca {
 namespace linalg {

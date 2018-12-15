@@ -36,9 +36,8 @@ public:
     T* ptr;
     cudaError_t ret = cudaMallocManaged((void**)&ptr, n * sizeof(T));
     if (ret != cudaSuccess) {
-      checkRCMsg(
-          ret,
-          "\t MANAGED size requested : " + std::to_string(n) + " * " + std::to_string(sizeof(T)));
+      printErrorMessage(ret, __FUNCTION__, __FILE__, __LINE__,
+                        "\t Managed size requested : " + std::to_string(n * sizeof(T)));
       throw(std::bad_alloc());
     }
     return ptr;

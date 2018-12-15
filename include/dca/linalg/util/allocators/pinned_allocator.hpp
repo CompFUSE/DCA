@@ -34,8 +34,8 @@ public:
     T* ptr;
     cudaError_t ret = cudaHostAlloc((void**)&ptr, n * sizeof(T), cudaHostAllocDefault);
     if (ret != cudaSuccess) {
-      checkRCMsg(
-          ret, "\t HOST size requested : " + std::to_string(n) + " * " + std::to_string(sizeof(T)));
+      printErrorMessage(ret, __FUNCTION__, __FILE__, __LINE__,
+                        "\t HOST size requested : " + std::to_string(n * sizeof(T)));
       throw(std::bad_alloc());
     }
     return ptr;

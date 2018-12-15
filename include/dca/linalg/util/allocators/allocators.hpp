@@ -45,10 +45,21 @@ struct DefaultAllocator<T, CPU> {
   using type = AlignedAllocator<T>;
 };
 
+template <typename T>
+struct DefaultAllocator<T, GPU> {
+  struct UnusedAllocator {
+    T* allocate(std::size_t) {
+      throw(std::logic_error("GPU not available."));
+    }
+    void deallocate(T*& ptr, std::size_t /*n*/ = 0) {}
+  };
+  using type = UnusedAllocator;
+};
+
 #endif  // DCA_HAVE_CUDA
 
 }  // selector
-   // dca::linalg::util:
+// dca::linalg::util:
 
 template <typename T, DeviceType device>
 using DefaultAllocator = typename selector::DefaultAllocator<T, device>::type;
