@@ -6,6 +6,7 @@
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: John Biddiscombe (john.biddiscombe@cscs.ch)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // A std::thread MC integrator that implements a threaded MC integration independent of the MC
 // method.

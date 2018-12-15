@@ -6,6 +6,7 @@
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: John Biddiscombe (john.biddiscombe@cscs.ch)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // A std::thread jacket that implements a MC accumulator independent of the MC method.
 
