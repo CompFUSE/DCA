@@ -97,6 +97,8 @@ public:
 
   std::size_t deviceFingerprint() const {
     std::size_t res(0);
+    for (const auto& work : workspaces_)
+      res += work->deviceFingerprint();
     for (int s = 0; s < 2; ++s)
       res += ndft_objs_[s].deviceFingerprint() + G_[s].deviceFingerprint() +
              space_trsf_objs_[s].deviceFingerprint();
@@ -121,6 +123,8 @@ private:
 
   using typename BaseClass::TpGreenFunction;
   using typename BaseClass::Complex;
+
+  using Matrix = linalg::Matrix<Complex, linalg::GPU>;
 
   void initializeG0();
   void resetG4();
@@ -161,6 +165,8 @@ private:
   std::array<cudaStream_t, 2> streams_;
   linalg::util::CudaEvent event_;
 
+  std::vector<std::shared_ptr<Matrix>> workspaces_;
+
   using NdftType = CachedNdft<Real, RDmn, WTpExtDmn, WTpExtPosDmn, linalg::GPU, non_density_density_>;
   std::array<NdftType, 2> ndft_objs_;
   using DftType = math::transform::SpaceTransform2DGpu<RDmn, KDmn, Real>;
@@ -188,6 +194,21 @@ TpAccumulator<Parameters, linalg::GPU>::TpAccumulator(
       ndft_objs_{NdftType(queues_[0]), NdftType(queues_[1])},
       space_trsf_objs_{DftType(n_pos_frqs_, queues_[0]), DftType(n_pos_frqs_, queues_[1])} {
   initializeG4Helpers();
+
+  // Create shared workspaces.
+  workspaces_.resize(n_ndft_streams_ * 3);
+  for (auto& work : workspaces_)
+    work = std::make_shared<Matrix>();
+
+  for (int i = 0; i < n_ndft_streams_; ++i) {
+    std::array<std::shared_ptr<Matrix>, 3> workspace{workspaces_[3 * i], workspaces_[3 * i + 1],
+                                                  workspaces_[3 * i + 2]};
+    ndft_objs_[i].setWorkspaces(workspace);
+
+    std::array<std::shared_ptr<Matrix>, 2> workspace_short{workspaces_[3 * i + 1],
+                                                        workspaces_[3 * i + 2]};
+    space_trsf_objs_[i].setWorkspaces(workspace_short);
+  }
 }
 
 template <class Parameters>
