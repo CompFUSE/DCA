@@ -69,6 +69,9 @@ public:
   void finalize(func::function<std::complex<OtherScalarType>, func::dmn_variadic<WDmn, PDmn>>& f_w,
                 bool get_square = false);
 
+  // Preallocates memory for the configuration to avoid a crash during the execution of accumulate.
+  void reserve(std::size_t size);
+
   // Sums the accumulated data in the time domain.
   ThisType& operator+=(ThisType& other);
 
@@ -152,6 +155,13 @@ void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::initializeDeviceCo
 
     assert(cudaPeekAtLastError() == cudaSuccess);
   });
+}
+
+template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>
+void Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::reserve(std::size_t size) {
+  config_right_.resize(size);
+  config_left_.resize(size);
+  times_.resize(size);
 }
 
 template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>

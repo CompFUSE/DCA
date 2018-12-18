@@ -387,10 +387,10 @@ void CtauxAccumulator<device_t, Parameters, Data>::measure() {
   number_of_measurements += 1;
   accumulated_sign += current_sign;
 
-  accumulate_single_particle_quantities();
-
   if (perform_tp_accumulation_)
     accumulate_two_particle_quantities();
+
+  accumulate_single_particle_quantities();
 
   if (DCA_iteration == parameters_.get_dca_iterations() - 1 &&
       parameters_.additional_time_measurements())

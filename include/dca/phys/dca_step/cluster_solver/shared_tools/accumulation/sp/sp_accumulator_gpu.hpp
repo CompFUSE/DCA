@@ -124,6 +124,8 @@ void SpAccumulator<Parameters, linalg::GPU>::accumulate(
     throw(std::logic_error("The accumulator is already finalized."));
 
   for (int s = 0; s < 2; ++s)
+    cached_nfft_obj_[s].reserve(configs[s].size());
+  for (int s = 0; s < 2; ++s)
     cached_nfft_obj_[s].accumulate(Ms[s], configs[s], sign);
 }
 

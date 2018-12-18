@@ -176,16 +176,27 @@ void StdThreadQmciClusterSolver<QmciSolver>::integrate() {
       throw std::logic_error("Thread task is undefined.");
   }
 
-  for (auto& future : futures)
-    future.get();
-  assert(walk_finished_ == parameters_.get_walkers());
+  auto print_metadata = [&]() {
+    assert(walk_finished_ == parameters_.get_walkers());
 
-  dca::profiling::WallTime end_time;
+    dca::profiling::WallTime end_time;
 
-  dca::profiling::Duration duration(end_time, start_time);
-  total_time_ = duration.sec + 1.e-6 * duration.usec;
+    dca::profiling::Duration duration(end_time, start_time);
+    total_time_ = duration.sec + 1.e-6 * duration.usec;
 
-  printIntegrationMetadata();
+    printIntegrationMetadata();
+  };
+
+  try {
+    for (auto& future : futures)
+      future.get();
+  }
+  catch (std::exception& err) {
+    print_metadata();
+    throw;
+  }
+
+  print_metadata();
 
   QmciSolver::accumulator_.finalize();
 }
@@ -216,33 +227,44 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalker(int id) {
   const int walker_index = thread_task_handler_.walkerIDToRngIndex(id);
   Walker walker(parameters_, data_, rng_vector_[walker_index], id);
 
-  initializeAndWarmUp(walker, id, walker_index);
+  std::unique_ptr<std::exception> exception_ptr;
 
-  iterateOverLocalMeasurements(
-      walker_index, [&](const int meas_id, const int tot_meas, const bool print) {
-        StdThreadAccumulatorType* acc_ptr = nullptr;
+  try {
+    initializeAndWarmUp(walker, id, walker_index);
 
-        {
-          Profiler profiler("stdthread-MC-walker updating", "stdthread-MC-walker", __LINE__, id);
-          walker.doSweep();
-        }
-        if (print)
-          walker.updateShell(meas_id, tot_meas);
+    iterateOverLocalMeasurements(
+        walker_index, [&](const int meas_id, const int tot_meas, const bool print) {
+          StdThreadAccumulatorType* acc_ptr = nullptr;
 
-        {
-          Profiler profiler("stdthread-MC-walker waiting", "stdthread-MC-walker", __LINE__, id);
-          acc_ptr = nullptr;
-
-          // Wait for available accumulators.
           {
-            std::unique_lock<std::mutex> lock(mutex_queue_);
-            queue_insertion_.wait(lock, [&]() { return !accumulators_queue_.empty(); });
-            acc_ptr = accumulators_queue_.front();
-            accumulators_queue_.pop();
+            Profiler profiler("stdthread-MC-walker updating", "stdthread-MC-walker", __LINE__, id);
+            walker.doSweep();
           }
-        }
-        acc_ptr->updateFrom(walker);
-      });
+          if (print)
+            walker.updateShell(meas_id, tot_meas);
+
+          {
+            Profiler profiler("stdthread-MC-walker waiting", "stdthread-MC-walker", __LINE__, id);
+            acc_ptr = nullptr;
+
+            // Wait for available accumulators.
+            {
+              std::unique_lock<std::mutex> lock(mutex_queue_);
+              queue_insertion_.wait(lock, [&]() { return !accumulators_queue_.empty(); });
+              acc_ptr = accumulators_queue_.front();
+              accumulators_queue_.pop();
+            }
+          }
+          acc_ptr->updateFrom(walker);
+        });
+  }
+  catch (std::bad_alloc& err) {
+    --measurements_done_;
+    std::cerr << "Walker " << id << " crashed." << std::endl;
+    // The exception is fatal if no other walker can take on the work of this one.
+    if (parameters_.fix_meas_per_walker() || walk_finished_ == parameters_.get_walkers() - 1)
+      exception_ptr = std::make_unique<std::bad_alloc>(err);
+  }
 
   // If this is the last walker signal to all the accumulators to exit the loop.
   if (++walk_finished_ == parameters_.get_walkers()) {
@@ -262,6 +284,9 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalker(int id) {
   walker_fingerprints_[walker_index] = walker.deviceFingerprint();
 
   Profiler::stop_threading(id);
+
+  if (exception_ptr)
+    throw(*exception_ptr);
 }
 
 template <class QmciSolver>
@@ -324,24 +349,34 @@ void StdThreadQmciClusterSolver<QmciSolver>::startAccumulator(int id) {
 
   accumulator_obj.initialize(dca_iteration_);
 
-  while (true) {
-    {
-      std::lock_guard<std::mutex> lock(mutex_queue_);
-      if (walk_finished_ == parameters_.get_walkers())
-        break;
-      accumulators_queue_.push(&accumulator_obj);
-    }
-    queue_insertion_.notify_one();
+  std::unique_ptr<std::exception> exception_ptr;
 
-    {
-      Profiler profiler("waiting", "stdthread-MC-accumulator", __LINE__, id);
-      accumulator_obj.waitForQmciWalker();
-    }
+  try {
+    while (true) {
+      {
+        std::lock_guard<std::mutex> lock(mutex_queue_);
+        if (walk_finished_ == parameters_.get_walkers())
+          break;
+        accumulators_queue_.push(&accumulator_obj);
+      }
+      queue_insertion_.notify_one();
 
-    {
-      Profiler profiler("accumulating", "stdthread-MC-accumulator", __LINE__, id);
-      accumulator_obj.measure();
+      {
+        Profiler profiler("waiting", "stdthread-MC-accumulator", __LINE__, id);
+        accumulator_obj.waitForQmciWalker();
+      }
+
+      {
+        Profiler profiler("accumulating", "stdthread-MC-accumulator", __LINE__, id);
+        accumulator_obj.measure();
+      }
     }
+  }
+  catch (std::bad_alloc& err) {
+    --measurements_done_;
+    std::cerr << "Accumulator " << id << " crashed." << std::endl;
+    if (parameters_.fix_meas_per_walker() || walk_finished_ == parameters_.get_walkers())
+      exception_ptr = std::make_unique<std::bad_alloc>(err);
   }
 
   {
@@ -351,6 +386,9 @@ void StdThreadQmciClusterSolver<QmciSolver>::startAccumulator(int id) {
 
   accum_fingerprints_[thread_task_handler_.IDToAccumIndex(id)] = accumulator_obj.deviceFingerprint();
   Profiler::stop_threading(id);
+
+  if (exception_ptr)
+    throw(*exception_ptr);
 }
 
 template <class QmciSolver>
@@ -364,31 +402,44 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id) {
   Accumulator accumulator_obj(parameters_, data_, id);
   accumulator_obj.initialize(dca_iteration_);
 
-  iterateOverLocalMeasurements(id, [&](const int meas_id, const int n_meas, const bool print) {
-    {
-      Profiler profiler("Walker updating", "stdthread-MC", __LINE__, id);
-      walker.doSweep();
-    }
-    {
-      Profiler profiler("Accumulator measuring", "stdthread-MC", __LINE__, id);
-      accumulator_obj.updateFrom(walker);
-      accumulator_obj.measure();
-    }
-    if (print)
-      walker.updateShell(meas_id, n_meas);
-  });
+  std::unique_ptr<std::exception> current_exception;
+
+  try {
+    iterateOverLocalMeasurements(id, [&](const int meas_id, const int n_meas, const bool print) {
+      {
+        Profiler profiler("Walker updating", "stdthread-MC", __LINE__, id);
+        walker.doSweep();
+      }
+      {
+        Profiler profiler("Accumulator measuring", "stdthread-MC", __LINE__, id);
+        accumulator_obj.updateFrom(walker);
+        accumulator_obj.measure();
+      }
+      if (print)
+        walker.updateShell(meas_id, n_meas);
+    });
+  }
+  catch (std::bad_alloc& err) {
+    --measurements_done_;
+    std::cerr << "Walker and accumulator " << id << " crashed." << std::endl;
+    // The exception is fatal if no other walker can take on the work of this one.
+    if (parameters_.fix_meas_per_walker() || walk_finished_ == parameters_.get_walkers() - 1)
+      current_exception = std::make_unique<std::bad_alloc>(err);
+  }
 
   ++walk_finished_;
   {
     std::lock_guard<std::mutex> lock(mutex_merge_);
     accumulator_obj.sumTo(QmciSolver::accumulator_);
   }
-
   config_dump_[id] = walker.dumpConfig();
   walker_fingerprints_[id] = walker.deviceFingerprint();
   accum_fingerprints_[id] = accumulator_obj.deviceFingerprint();
 
   Profiler::stop_threading(id);
+
+  if (current_exception)
+    throw(*current_exception);
 }
 
 template <class QmciSolver>
