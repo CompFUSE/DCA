@@ -260,7 +260,8 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalker(int id) {
   }
   catch (std::bad_alloc& err) {
     --measurements_done_;
-    std::cerr << "Walker " << id << " crashed." << std::endl;
+    std::cerr << "Walker " << id << " crashed."
+              << "Walker fingerprint: " << walker.deviceFingerprint() * 1e-6 << " MB." << std::endl;
     // The exception is fatal if no other walker can take on the work of this one.
     if (parameters_.fix_meas_per_walker() || walk_finished_ == parameters_.get_walkers() - 1)
       exception_ptr = std::make_unique<std::bad_alloc>(err);
@@ -374,7 +375,9 @@ void StdThreadQmciClusterSolver<QmciSolver>::startAccumulator(int id) {
   }
   catch (std::bad_alloc& err) {
     --measurements_done_;
-    std::cerr << "Accumulator " << id << " crashed." << std::endl;
+    std::cerr << "Accumulator " << id << " crashed.\n"
+              << "Accumulator fingerprint: " << accumulator_obj.deviceFingerprint() * 1e-6 << " MB."
+              << std::endl;
     if (parameters_.fix_meas_per_walker() || walk_finished_ == parameters_.get_walkers())
       exception_ptr = std::make_unique<std::bad_alloc>(err);
   }
@@ -421,7 +424,11 @@ void StdThreadQmciClusterSolver<QmciSolver>::startWalkerAndAccumulator(int id) {
   }
   catch (std::bad_alloc& err) {
     --measurements_done_;
-    std::cerr << "Walker and accumulator " << id << " crashed." << std::endl;
+    std::cerr << "Walker and accumulator " << id << " crashed.\n"
+              << "Walker fingerprint: " << walker.deviceFingerprint() * 1e-6 << " MB.\n"
+              << "Accumulator fingerprint: " << accumulator_obj.deviceFingerprint() * 1e-6 << " MB."
+              << std::endl;
+
     // The exception is fatal if no other walker can take on the work of this one.
     if (parameters_.fix_meas_per_walker() || walk_finished_ == parameters_.get_walkers() - 1)
       current_exception = std::make_unique<std::bad_alloc>(err);
