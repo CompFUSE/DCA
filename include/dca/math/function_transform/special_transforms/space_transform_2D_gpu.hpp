@@ -22,6 +22,7 @@
 #include <array>
 #include <memory>
 
+#include "dca/linalg/reshapable_matrix.hpp"
 #include "dca/linalg/util/magma_batched_gemm.hpp"
 #include "dca/math/function_transform/special_transforms/kernels_interface.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
@@ -36,6 +37,7 @@ class SpaceTransform2DGpu : private SpaceTransform2D<RDmn, KDmn, Real> {
 private:
   using Complex = std::complex<Real>;
   using MatrixDev = linalg::Matrix<Complex, linalg::GPU>;
+  using RMatrix = linalg::ReshapableMatrix<Complex, linalg::GPU>;
 
 public:
   // Constructor
@@ -47,9 +49,9 @@ public:
   // order of M's labels from (r, b, w) to (b, r, w).
   // The transform is equivalent to M(k1, k2) = \sum_{r1, r2} exp(i(k1 * r1 - k2 * r2)) M(r1, r2)
   // In/Out: M
-  void execute(MatrixDev& M);
+  void execute(RMatrix& M);
 
-  void setWorkspaces(const std::array<std::shared_ptr<MatrixDev>, 2>& workspaces) {
+  void setWorkspaces(const std::array<std::shared_ptr<RMatrix>, 2>& workspaces) {
     workspaces_ = workspaces;
   }
 
@@ -72,7 +74,7 @@ private:
   using BDmn = func::dmn_0<phys::domains::electron_band_domain>;
 
   static const MatrixDev& get_T_matrix();
-  void rearrangeResult(const MatrixDev& in, MatrixDev& out);
+  void rearrangeResult(const RMatrix& in, RMatrix& out);
 
   const int n_bands_;
   const int nw_;
@@ -81,7 +83,7 @@ private:
   magma_queue_t queue_;
   cudaStream_t stream_;
 
-  std::array<std::shared_ptr<MatrixDev>, 2> workspaces_;
+  std::array<std::shared_ptr<RMatrix>, 2> workspaces_;
 
   linalg::util::MagmaBatchedGemm<Complex> plan1_;
   linalg::util::MagmaBatchedGemm<Complex> plan2_;
@@ -97,11 +99,11 @@ SpaceTransform2DGpu<RDmn, KDmn, Real>::SpaceTransform2DGpu(const int nw_pos, mag
       plan1_(queue_),
       plan2_(queue_) {
   for (auto& work : workspaces_)
-    work = std::make_shared<MatrixDev>();
+    work = std::make_shared<RMatrix>();
 }
 
 template <class RDmn, class KDmn, typename Real>
-void SpaceTransform2DGpu<RDmn, KDmn, Real>::execute(MatrixDev& M) {
+void SpaceTransform2DGpu<RDmn, KDmn, Real>::execute(RMatrix& M) {
   auto& T_times_M = *(workspaces_[0]);
   auto& T_times_M_times_T = *(workspaces_[1]);
 
@@ -139,7 +141,7 @@ void SpaceTransform2DGpu<RDmn, KDmn, Real>::execute(MatrixDev& M) {
 }
 
 template <class RDmn, class KDmn, typename Real>
-void SpaceTransform2DGpu<RDmn, KDmn, Real>::rearrangeResult(const MatrixDev& in, MatrixDev& out) {
+void SpaceTransform2DGpu<RDmn, KDmn, Real>::rearrangeResult(const RMatrix& in, RMatrix& out) {
   out.resizeNoCopy(in.size());
   details::rearrangeResult(in.ptr(), in.leadingDimension(), out.ptr(), out.leadingDimension(),
                            n_bands_, nc_, nw_, stream_);

@@ -22,6 +22,7 @@
 
 #include "dca/config/accumulation_options.hpp"
 #include "dca/linalg/lapack/magma.hpp"
+#include "dca/linalg/reshapable_matrix.hpp"
 #include "dca/linalg/util/cuda_event.hpp"
 #include "dca/linalg/util/magma_queue.hpp"
 #include "dca/math/function_transform/special_transforms/space_transform_2D_gpu.hpp"
@@ -159,21 +160,21 @@ private:
   using BaseClass::n_pos_frqs_;
 
   using MatrixDev = linalg::Matrix<Complex, linalg::GPU>;
+  using RMatrix = linalg::ReshapableMatrix<Complex, linalg::GPU>;
   using MatrixHost = linalg::Matrix<Complex, linalg::CPU>;
 
   std::array<linalg::util::MagmaQueue, 2> queues_;
   std::array<cudaStream_t, 2> streams_;
   linalg::util::CudaEvent event_;
 
-  std::vector<std::shared_ptr<Matrix>> workspaces_;
+  std::vector<std::shared_ptr<RMatrix>> workspaces_;
 
   using NdftType = CachedNdft<Real, RDmn, WTpExtDmn, WTpExtPosDmn, linalg::GPU, non_density_density_>;
   std::array<NdftType, 2> ndft_objs_;
   using DftType = math::transform::SpaceTransform2DGpu<RDmn, KDmn, Real>;
   std::array<DftType, 2> space_trsf_objs_;
 
-  std::array<MatrixDev, 2> G_;
-  std::array<MatrixHost, 2> G_matrix_host_;
+  std::array<RMatrix, 2> G_;
 
   bool finalized_ = false;
   bool initialized_ = false;
@@ -196,18 +197,14 @@ TpAccumulator<Parameters, linalg::GPU>::TpAccumulator(
   initializeG4Helpers();
 
   // Create shared workspaces.
-  workspaces_.resize(n_ndft_streams_ * 3);
+  workspaces_.resize(n_ndft_streams_ * 2);
   for (auto& work : workspaces_)
-    work = std::make_shared<Matrix>();
+    work = std::make_shared<RMatrix>();
 
   for (int i = 0; i < n_ndft_streams_; ++i) {
-    std::array<std::shared_ptr<Matrix>, 3> workspace{workspaces_[3 * i], workspaces_[3 * i + 1],
-                                                  workspaces_[3 * i + 2]};
+    std::array<std::shared_ptr<RMatrix>, 2> workspace{workspaces_[2 * i], workspaces_[2 * i + 1]};
     ndft_objs_[i].setWorkspaces(workspace);
-
-    std::array<std::shared_ptr<Matrix>, 2> workspace_short{workspaces_[3 * i + 1],
-                                                        workspaces_[3 * i + 2]};
-    space_trsf_objs_[i].setWorkspaces(workspace_short);
+    space_trsf_objs_[i].setWorkspaces(workspace);
   }
 }
 

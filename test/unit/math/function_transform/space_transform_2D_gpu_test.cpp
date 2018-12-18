@@ -58,12 +58,14 @@ void initialize() {
   }
 }
 
+template <typename Scalar, dca::linalg::DeviceType device>
+using Matrix = dca::linalg::ReshapableMatrix<Scalar, device>;
+
 TEST(SpaceTransform2DGpuTest, Execute) {
   initialize();
 
   using dca::func::function;
   using dca::func::dmn_variadic;
-  using dca::linalg::Matrix;
   using Complex = std::complex<double>;
   function<Complex, dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, WPosDmn, WDmn>> f_in;
   Matrix<Complex, dca::linalg::CPU> M_in;
@@ -99,7 +101,7 @@ TEST(SpaceTransform2DGpuTest, Execute) {
   cudaStreamSynchronize(transform_obj.get_stream());
   magma_queue_destroy(queue);
 
-  Matrix<Complex, dca::linalg::CPU> M_out(M_dev, "M_out");
+  Matrix<Complex, dca::linalg::CPU> M_out(M_dev);
   for (int w2 = 0; w2 < 2 * nw; ++w2)
     for (int w1 = 0; w1 < nw; ++w1)
       for (int r2 = 0; r2 < nr; ++r2)

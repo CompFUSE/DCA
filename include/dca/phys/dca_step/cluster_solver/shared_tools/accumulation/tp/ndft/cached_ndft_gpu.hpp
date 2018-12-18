@@ -25,6 +25,7 @@
 
 #include "dca/linalg/lapack/magma.hpp"
 #include "dca/linalg/matrix.hpp"
+#include "dca/linalg/reshapable_matrix.hpp"
 #include "dca/linalg/vector.hpp"
 #include "dca/linalg/util/cuda_event.hpp"
 #include "dca/linalg/util/magma_vbatched_gemm.hpp"
@@ -47,6 +48,7 @@ private:
 
   using Complex = std::complex<Real>;
   using Matrix = linalg::Matrix<Complex, dca::linalg::GPU>;
+  using RMatrix = linalg::ReshapableMatrix<Complex, dca::linalg::GPU>;
   using MatrixHost = linalg::Matrix<Complex, dca::linalg::CPU>;
 
 public:
@@ -57,9 +59,9 @@ public:
   // Out: M_r_r_w_w.
   template <class Configuration>
   void execute(const Configuration& configuration, const linalg::Matrix<Real, linalg::GPU>& M,
-               Matrix& M_r_r_w_w);
+               RMatrix& M_r_r_w_w);
 
-  void setWorkspaces(std::array<std::shared_ptr<Matrix>, 3> workspaces) {
+  void setWorkspaces(std::array<std::shared_ptr<RMatrix>, 2> workspaces) {
     workspaces_ = workspaces;
   }
 
@@ -74,10 +76,10 @@ public:
   std::size_t deviceFingerprint() const;
 
 private:
-  void sortM(const linalg::Matrix<Real, linalg::GPU>& M, Matrix& M_sorted) const;
+  void sortM(const linalg::Matrix<Real, linalg::GPU>& M, RMatrix& M_sorted) const;
   void computeT();
-  void performFT(const Matrix& M_t_t, Matrix& M_w_w);
-  void rearrangeOutput(const Matrix& M_w_w, Matrix& output);
+  void performFT(const RMatrix& M_t_t, RMatrix& M_w_w, RMatrix& work);
+  void rearrangeOutput(const RMatrix& M_w_w, RMatrix& output);
 
 private:
   using BaseClass::w_;
@@ -98,10 +100,10 @@ private:
   linalg::util::CudaEvent copy_event_;
   std::array<linalg::Vector<details::Triple<Real>, linalg::GPU>, 2> config_dev_;
 
-  std::array<std::shared_ptr<Matrix>, 3> workspaces_;
+  std::array<std::shared_ptr<RMatrix>, 2> workspaces_;
 
-  Matrix T_l_dev_;
-  Matrix T_r_dev_;
+  RMatrix T_l_dev_;
+  RMatrix T_r_dev_;
 
   linalg::util::MagmaVBatchedGemm<Complex> magma_plan1_;
   linalg::util::MagmaVBatchedGemm<Complex> magma_plan2_;
@@ -116,14 +118,14 @@ CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::CachedN
       magma_plan1_(n_orbitals_, magma_queue_),
       magma_plan2_(n_orbitals_, magma_queue_) {
   for (auto& work : workspaces_)
-    work = std::make_shared<Matrix>();
+    work = std::make_shared<RMatrix>();
   w_dev_.setAsync(w_, stream_);
 }
 
 template <typename Real, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
 template <class Configuration>
 void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::execute(
-    const Configuration& configuration, const linalg::Matrix<Real, linalg::GPU>& M, Matrix& M_out) {
+    const Configuration& configuration, const linalg::Matrix<Real, linalg::GPU>& M, RMatrix& M_out) {
   if (configuration.size() == 0) {  // The result is zero
     M_out.resizeNoCopy(std::make_pair(w_.size() / 2 * n_orbitals_, w_.size() * n_orbitals_));
     M_out.setToZero(stream_);
@@ -135,17 +137,23 @@ void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::ex
   config_dev_[1].setAsync(config_right_, stream_);
   assert(cudaPeekAtLastError() == cudaSuccess);
 
+  // Allocate enough memory.
+  const int nw = w_.size();
+  const int order = std::max(config_dev_[0].size(), config_dev_[1].size());
+  const int g_first_size = nw / 2 * n_orbitals_;
+  M_out.reserveNoCopy(g_first_size * std::max(order, 2 * g_first_size));
+
   sortM(M, *workspaces_[0]);
   copy_event_.record(stream_);
 
   computeT();
-  performFT(*workspaces_[0], *workspaces_[1]);
+  performFT(*workspaces_[0], *workspaces_[1], M_out);
   rearrangeOutput(*workspaces_[1], M_out);
 }
 
 template <typename Real, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
 void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::sortM(
-    const linalg::Matrix<Real, linalg::GPU>& M, Matrix& M_sorted) const {
+    const linalg::Matrix<Real, linalg::GPU>& M, RMatrix& M_sorted) const {
   M_sorted.resizeNoCopy(M.size());
   details::sortM(M.nrCols(), M.ptr(), M.leadingDimension(), M_sorted.ptr(),
                  M_sorted.leadingDimension(), config_dev_[0].ptr(), config_dev_[1].ptr(), stream_);
@@ -171,16 +179,19 @@ void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::co
 
 template <typename Real, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
 void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::performFT(
-    const Matrix& M_in, Matrix& M_out) {
+    const RMatrix& M_in, RMatrix& M_out, RMatrix& work) {
   const auto& M_t_t = M_in;
   const int nw = w_.size();
   const int order = indexed_config_[0].size();
 
-  auto& T_times_M = *workspaces_[2];
-  T_times_M.resizeNoCopy(std::make_pair(nw / 2 * n_orbitals_, order));
+  auto& T_times_M = work;
+  const bool realloc = T_times_M.resizeNoCopy(std::make_pair(nw / 2 * n_orbitals_, order));
+  assert(!realloc);
   T_times_M.setToZero(stream_);
+
   auto& T_times_M_times_T = M_out;
   T_times_M_times_T.resizeNoCopy(std::make_pair(nw / 2 * n_orbitals_, nw * n_orbitals_));
+
   T_times_M_times_T.setToZero(stream_);
   {
     // Performs T_times_M = T_l * M_t_t.
@@ -219,7 +230,7 @@ void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::pe
 
 template <typename Real, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
 void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::rearrangeOutput(
-    const Matrix& M_w_w, Matrix& M_out) {
+    const RMatrix& M_w_w, RMatrix& M_out) {
   const int nw = w_.size();
   M_out.resizeNoCopy(M_w_w.size());
   const int n_bands = BDmn::dmn_size();
