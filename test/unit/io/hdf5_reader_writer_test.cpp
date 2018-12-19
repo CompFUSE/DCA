@@ -94,3 +94,11 @@ TEST(HDF5ReaderWriterTest, VectorReadWrite) {
 
   reader.close_file();
 }
+
+TEST(HDF5ReaderWriterTest, NonAccessibleFile) {
+  dca::io::HDF5Writer writer;
+  EXPECT_THROW(writer.open_file("not_existing_directory/file.txt"), std::runtime_error);
+
+  dca::io::HDF5Reader reader;
+  EXPECT_THROW(reader.open_file("not_existing_file.txt"), std::runtime_error);
+}

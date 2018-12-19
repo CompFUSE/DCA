@@ -28,8 +28,7 @@ void HDF5Reader::open_file(std::string file_name) {
     std::wifstream tmp(file_name.c_str());
 
     if (!tmp or !tmp.good() or tmp.bad()) {
-      std::cout << "\n\n\tcannot open file : " << file_name << "\n";
-      throw std::runtime_error(__FUNCTION__);
+      throw std::runtime_error("Cannot open file : " + file_name);
     }
     else {
       std::cout << "\n\n\topening file : " << file_name << "\n";

@@ -27,6 +27,8 @@ public:
       : directory_("./"),
         output_format_("HDF5"),
         filename_dca_("dca.hdf5"),
+        directory_config_read_(""),
+        directory_config_write_(""),
         filename_analysis_("analysis.hdf5"),
         filename_ed_("ed.hdf5"),
         filename_qmc_("qmc.hdf5"),
@@ -51,6 +53,12 @@ public:
   }
   const std::string& get_output_format() const {
     return output_format_;
+  }
+  const std::string& get_directory_config_read() const {
+    return directory_config_read_;
+  }
+  const std::string& get_directory_config_write() const {
+    return directory_config_write_;
   }
   const std::string& get_filename_dca() const {
     return filename_dca_;
@@ -84,6 +92,8 @@ private:
   std::string directory_;
   std::string output_format_;
   std::string filename_dca_;
+  std::string directory_config_read_;
+  std::string directory_config_write_;
   std::string filename_analysis_;
   std::string filename_ed_;
   std::string filename_qmc_;
@@ -101,6 +111,8 @@ int OutputParameters::getBufferSize(const Concurrency& concurrency) const {
   buffer_size += concurrency.get_buffer_size(directory_);
   buffer_size += concurrency.get_buffer_size(output_format_);
   buffer_size += concurrency.get_buffer_size(filename_dca_);
+  buffer_size += concurrency.get_buffer_size(directory_config_read_);
+  buffer_size += concurrency.get_buffer_size(directory_config_write_);
   buffer_size += concurrency.get_buffer_size(filename_analysis_);
   buffer_size += concurrency.get_buffer_size(filename_ed_);
   buffer_size += concurrency.get_buffer_size(filename_qmc_);
@@ -119,6 +131,8 @@ void OutputParameters::pack(const Concurrency& concurrency, char* buffer, int bu
   concurrency.pack(buffer, buffer_size, position, directory_);
   concurrency.pack(buffer, buffer_size, position, output_format_);
   concurrency.pack(buffer, buffer_size, position, filename_dca_);
+  concurrency.pack(buffer, buffer_size, position, directory_config_read_);
+  concurrency.pack(buffer, buffer_size, position, directory_config_write_);
   concurrency.pack(buffer, buffer_size, position, filename_analysis_);
   concurrency.pack(buffer, buffer_size, position, filename_ed_);
   concurrency.pack(buffer, buffer_size, position, filename_qmc_);
@@ -135,6 +149,8 @@ void OutputParameters::unpack(const Concurrency& concurrency, char* buffer, int 
   concurrency.unpack(buffer, buffer_size, position, directory_);
   concurrency.unpack(buffer, buffer_size, position, output_format_);
   concurrency.unpack(buffer, buffer_size, position, filename_dca_);
+  concurrency.unpack(buffer, buffer_size, position, directory_config_read_);
+  concurrency.unpack(buffer, buffer_size, position, directory_config_write_);
   concurrency.unpack(buffer, buffer_size, position, filename_analysis_);
   concurrency.unpack(buffer, buffer_size, position, filename_ed_);
   concurrency.unpack(buffer, buffer_size, position, filename_qmc_);
@@ -147,64 +163,30 @@ void OutputParameters::unpack(const Concurrency& concurrency, char* buffer, int 
 
 template <typename ReaderOrWriter>
 void OutputParameters::readWrite(ReaderOrWriter& reader_or_writer) {
+  auto try_to_read_or_write = [&](const std::string& name, auto& obj) {
+    try {
+      reader_or_writer.execute(name, obj);
+    }
+    catch (const std::exception& r_e) {
+    }
+  };
+
   try {
     reader_or_writer.open_group("output");
 
-    try {
-      reader_or_writer.execute("directory", directory_);
-    }
-    catch (const std::exception& r_e) {
-    }
-    try {
-      reader_or_writer.execute("output-format", output_format_);
-    }
-    catch (const std::exception& r_e) {
-    }
-    try {
-      reader_or_writer.execute("filename-dca", filename_dca_);
-    }
-    catch (const std::exception& r_e) {
-    }
-    try {
-      reader_or_writer.execute("filename-analysis", filename_analysis_);
-    }
-    catch (const std::exception& r_e) {
-    }
-    try {
-      reader_or_writer.execute("filename-ed", filename_ed_);
-    }
-    catch (const std::exception& r_e) {
-    }
-    try {
-      reader_or_writer.execute("filename-qmc", filename_qmc_);
-    }
-    catch (const std::exception& r_e) {
-    }
-    try {
-      reader_or_writer.execute("filename-profiling", filename_profiling_);
-    }
-    catch (const std::exception& r_e) {
-    }
-    try {
-      reader_or_writer.execute("dump-lattice-self-energy", dump_lattice_self_energy_);
-    }
-    catch (const std::exception& r_e) {
-    }
-    try {
-      reader_or_writer.execute("dump-cluster-Greens-functions", dump_cluster_Greens_functions_);
-    }
-    catch (const std::exception& r_e) {
-    }
-    try {
-      reader_or_writer.execute("dump-Gamma-lattice", dump_Gamma_lattice_);
-    }
-    catch (const std::exception& r_e) {
-    }
-    try {
-      reader_or_writer.execute("dump-chi-0-lattice", dump_chi_0_lattice_);
-    }
-    catch (const std::exception& r_e) {
-    }
+    try_to_read_or_write("directory", directory_);
+    try_to_read_or_write("output-format", output_format_);
+      try_to_read_or_write("filename-dca", filename_dca_);
+      try_to_read_or_write("directory-config-read", directory_config_read_);
+      try_to_read_or_write("directory-config-write", directory_config_write_);
+    try_to_read_or_write("filename-analysis", filename_analysis_);
+    try_to_read_or_write("filename-ed", filename_ed_);
+    try_to_read_or_write("filename-qmc", filename_qmc_);
+    try_to_read_or_write("filename-profiling", filename_profiling_);
+    try_to_read_or_write("dump-lattice-self-energy", dump_lattice_self_energy_);
+    try_to_read_or_write("dump-cluster-Greens-functions", dump_cluster_Greens_functions_);
+    try_to_read_or_write("dump-Gamma-lattice", dump_Gamma_lattice_);
+    try_to_read_or_write("dump-chi-0-lattice", dump_chi_0_lattice_);
 
     reader_or_writer.close_group();
   }

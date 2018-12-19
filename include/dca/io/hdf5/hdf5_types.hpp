@@ -166,6 +166,18 @@ public:
   }
 };
 
+template <>
+class HDF5_TYPE<unsigned char> {
+public:
+  static hid_t get() {
+    return H5T_NATIVE_UCHAR;
+  }
+
+  static H5::PredType get_PredType() {
+    return H5::PredType::NATIVE_UCHAR;
+  }
+};
+
 }  // io
 }  // dca
 

@@ -44,6 +44,9 @@ H5::H5File& HDF5Writer::open_file(std::string file_name, bool overwrite) {
       file_id = H5Fcreate(file_name.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, H5P_DEFAULT);
   }
 
+  if(file_id < 0)
+    throw std::runtime_error("Cannot open file : " + file_name);
+
   my_file = new H5::H5File(file_name.c_str(), H5F_ACC_RDWR);
 
   return (*my_file);

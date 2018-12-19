@@ -18,6 +18,7 @@
 
 #include "H5Cpp.h"
 
+#include "dca/io/buffer.hpp"
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/io/hdf5/hdf5_types.hpp"
@@ -88,6 +89,10 @@ public:
 
   template <typename scalar_type>
   void execute(std::string name, dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& A);
+
+  void execute(std::string name, io::Buffer& buff) {
+    return execute(name, static_cast<io::Buffer::Container&>(buff));
+  }
 
 private:
   bool fexists(const char* filename);

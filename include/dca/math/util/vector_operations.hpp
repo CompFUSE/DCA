@@ -245,6 +245,17 @@ std::enable_if_t<std::is_arithmetic<T>::value, bool> isSameVector(const std::vec
   return (distance2(x, y) < tol);
 }
 
+// Compare two vectors element-wise.
+template <typename T>
+bool operator==(const std::vector<T>& x, const std::vector<T>& y) {
+  if (x.size() != y.size())
+    return false;
+  for (int i = 0; i < x.size(); ++i)
+    if (!(x[i] == y[i]))
+      return false;
+  return true;
+}
+
 }  // util
 }  // math
 }  // dca

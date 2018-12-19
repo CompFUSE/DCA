@@ -100,10 +100,11 @@ for T_ind, T in enumerate(temps):
     print('T = ' + str(T))
 
     # Create directory.
-    cmd = 'mkdir T=' + str(T)
-    os.system(cmd)
-
     dir_str = './T=' + str(T)
+    cmd = 'mkdir -p ' + dir_str
+    os.system(cmd)
+    cmd = 'mkdir -p ' + dir_str + "/configuration"
+    os.system(cmd)
 
     input_sp = dir_str + '/input_sp.json'
     input_tp = dir_str + '/input_tp.json'

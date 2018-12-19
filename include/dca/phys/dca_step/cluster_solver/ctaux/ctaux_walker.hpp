@@ -25,6 +25,7 @@
 #include "dca/phys/dca_step/cluster_solver/ctaux/domains/hs_vertex_move_domain.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/structs/ct_aux_hs_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/structs/ctaux_walker_data.hpp"
+#include "dca/phys/dca_step/cluster_solver/ctaux/structs/read_write_config.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/structs/vertex_singleton.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/walker/ct_aux_walker_tools.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/walker/tools/g0_interpolation/g0_interpolation.hpp"
@@ -82,6 +83,9 @@ public:
 
   template <class stream_type>
   void to_JSON(stream_type& /*ss*/) {}
+
+  void readConfig(dca::io::Buffer& buff);
+  dca::io::Buffer dumpConfig() const;
 
   // Writes the current progress, the number of interacting spins and the total configuration size
   // to stdout.
@@ -258,6 +262,8 @@ private:
   int warm_up_sweeps_done_;
   util::Accumulator<std::size_t> warm_up_expansion_order_;
   util::Accumulator<std::size_t> num_delayed_spins_;
+
+  bool config_initialized_;
 };
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
@@ -312,7 +318,9 @@ CtauxWalker<device_t, parameters_type, MOMS_type>::CtauxWalker(parameters_type& 
 
       warm_up_sweeps_done_(0),
       warm_up_expansion_order_(),
-      num_delayed_spins_() {
+      num_delayed_spins_(),
+
+      config_initialized_(false) {
   if (concurrency.id() == 0 and thread_id == 0) {
     std::cout << "\n\n"
               << "\t\t"
@@ -396,7 +404,8 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::initialize() {
 
   CV_obj.initialize(MOMS);
 
-  configuration.initialize();
+  if (!config_initialized_)
+    configuration.initialize();
   // configuration.print();
 
   is_thermalized() = false;
@@ -1537,6 +1546,19 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::updateShell(const int do
 
     std::cout << std::scientific;
   }
+}
+
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
+void CtauxWalker<device_t, parameters_type, MOMS_type>::readConfig(dca::io::Buffer& buff) {
+  buff >> configuration;
+  config_initialized_ = true;
+}
+
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
+io::Buffer CtauxWalker<device_t, parameters_type, MOMS_type>::dumpConfig() const {
+  io::Buffer buff;
+  buff << configuration;
+  return buff;
 }
 
 }  // ctaux
