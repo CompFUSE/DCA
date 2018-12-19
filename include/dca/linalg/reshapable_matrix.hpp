@@ -7,7 +7,8 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// This file provides the ReshapableMatrix object for different device types.
+// This file provides a matrix with a more efficient reshaping between different rectangular shapes
+//  of similar total size.
 
 #pragma once
 
@@ -135,6 +136,8 @@ public:
   bool resizeNoCopy(std::pair<int, int> new_size);
 
   bool reserveNoCopy(std::size_t new_size);
+
+  void swap(ReshapableMatrix<ScalarType, device_name>& other);
 
   // Releases the memory allocated by *this and sets size and capacity to zero.
   void clear();
@@ -265,6 +268,14 @@ bool ReshapableMatrix<ScalarType, device_name>::reserveNoCopy(std::size_t new_si
     return true;
   }
   return false;
+}
+
+template <typename ScalarType, DeviceType device_name>
+void ReshapableMatrix<ScalarType, device_name>::swap(ReshapableMatrix<ScalarType, device_name>& other) {
+  std::swap(size_, other.size_);
+  std::swap(capacity_, other.capacity_);
+  std::swap(data_, other.data_);
+  std::swap(allocator_, other.allocator_);
 }
 
 template <typename ScalarType, DeviceType device_name>

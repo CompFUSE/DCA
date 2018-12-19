@@ -197,14 +197,14 @@ TpAccumulator<Parameters, linalg::GPU>::TpAccumulator(
   initializeG4Helpers();
 
   // Create shared workspaces.
-  workspaces_.resize(n_ndft_streams_ * 2);
+  workspaces_.resize(n_ndft_streams_);
   for (auto& work : workspaces_)
     work = std::make_shared<RMatrix>();
 
   for (int i = 0; i < n_ndft_streams_; ++i) {
-    std::array<std::shared_ptr<RMatrix>, 2> workspace{workspaces_[2 * i], workspaces_[2 * i + 1]};
-    ndft_objs_[i].setWorkspaces(workspace);
-    space_trsf_objs_[i].setWorkspaces(workspace);
+    auto& workspace = workspaces_[2 * i];
+    ndft_objs_[i].setWorkspace(workspace);
+    space_trsf_objs_[i].setWorkspace(workspace);
   }
 }
 
