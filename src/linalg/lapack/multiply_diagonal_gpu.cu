@@ -6,6 +6,7 @@
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Raffaele Solca' (rasolca@itp.phys.ethz.ch)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // This file implements laset_gpu.hpp.
 
@@ -24,35 +25,27 @@ namespace lapack {
 namespace kernels {
 // dca::linalg::lapack::kernels::
 
-constexpr int multiply_diag_block_size_x = 128;
+constexpr int multiply_diag_block_size_x = 32;
 constexpr int multiply_diag_block_size_y = 32;
 
 template <typename Type>
 __global__ void multiplyDiagonalLeft(int m, int n, const Type* d, int inc_d, const Type* a, int lda,
                                      Type* b, int ldb) {
-  // Work on a tile of size (blockDim.x x multiply_diag_block_size_y).
-  int i = threadIdx.x + blockIdx.x * blockDim.x;
+  const int i = threadIdx.x + blockIdx.x * blockDim.x;
+  const int j = threadIdx.y + blockIdx.y * blockDim.y;
 
-  if (i < m) {
-    int js = blockIdx.y * multiply_diag_block_size_y;
-    int je = min(n, (blockIdx.y + 1) * blockDim.x);
-
-    for (int j = js; j < je; ++j)
-      b[i + j * ldb] = d[i * inc_d] * a[i + j * lda];
+  if (i < m && j < n) {
+    b[i + j * ldb] = d[i * inc_d] * a[i + j * lda];
   }
 }
 
 template <typename Type>
 __global__ void multiplyDiagonalRight(int m, int n, const Type* a, int lda, const Type* d,
                                       int inc_d, Type* b, int ldb) {
-  // Work on a tile of size (blockDim.x x multiply_diag_block_size_y).
-  int i = threadIdx.x + blockIdx.x * blockDim.x;
+  const int i = threadIdx.x + blockIdx.x * blockDim.x;
+  const int j = threadIdx.y + blockIdx.y * blockDim.y;
 
-  if (i < m) {
-    int js = blockIdx.y * multiply_diag_block_size_y;
-    int je = min(n, (blockIdx.y + 1) * blockDim.x);
-
-    for (int j = js; j < je; ++j)
+  if (i < m && j < n) {
       b[i + j * ldb] = d[j * inc_d] * a[i + j * lda];
   }
 }
@@ -68,11 +61,11 @@ void multiplyDiagonalLeft_gpu(int m, int n, const Type* d, int inc_d, const Type
 
   if (m > 0 && n > 0) {
     checkErrorsCudaDebug();
-    int bl_x = dca::util::ceilDiv(m, kernels::multiply_diag_block_size_x);
-    int bl_y = dca::util::ceilDiv(n, kernels::multiply_diag_block_size_y);
+    const int bl_x = dca::util::ceilDiv(m, kernels::multiply_diag_block_size_x);
+    const int bl_y = dca::util::ceilDiv(n, kernels::multiply_diag_block_size_y);
 
-    dim3 threads(kernels::multiply_diag_block_size_x);
-    dim3 blocks(bl_x, bl_y);
+    const dim3 threads(kernels::multiply_diag_block_size_x, kernels::multiply_diag_block_size_y);
+    const dim3 blocks(bl_x, bl_y);
 
     cudaStream_t stream = dca::linalg::util::getStream(thread_id, stream_id);
 
@@ -99,11 +92,11 @@ void multiplyDiagonalRight_gpu(int m, int n, const Type* a, int lda, const Type*
 
   if (m > 0 && n > 0) {
     checkErrorsCudaDebug();
-    int bl_x = dca::util::ceilDiv(m, kernels::multiply_diag_block_size_x);
-    int bl_y = dca::util::ceilDiv(n, kernels::multiply_diag_block_size_y);
+    const int bl_x = dca::util::ceilDiv(m, kernels::multiply_diag_block_size_x);
+    const int bl_y = dca::util::ceilDiv(n, kernels::multiply_diag_block_size_y);
 
-    dim3 threads(kernels::multiply_diag_block_size_x);
-    dim3 blocks(bl_x, bl_y);
+    const dim3 threads(kernels::multiply_diag_block_size_x, kernels::multiply_diag_block_size_y);
+    const dim3 blocks(bl_x, bl_y);
 
     cudaStream_t stream = dca::linalg::util::getStream(thread_id, stream_id);
 
