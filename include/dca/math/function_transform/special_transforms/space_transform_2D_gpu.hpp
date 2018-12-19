@@ -51,8 +51,8 @@ public:
   // In/Out: M
   void execute(RMatrix& M);
 
-  void setWorkspaces(const std::array<std::shared_ptr<RMatrix>, 2>& workspaces) {
-    workspaces_ = workspaces;
+  void setWorkspace(const std::shared_ptr<RMatrix>& workspace) {
+    workspace_ = workspace;
   }
 
   // Returns: the stream associated with the magma queue.
@@ -62,10 +62,9 @@ public:
 
   std::size_t deviceFingerprint() const {
     std::size_t res(0);
-    for (const auto& work : workspaces_) {
-      if (work.unique())
-        res += work->deviceFingerprint();
-    }
+
+      if (workspace_.unique())
+        res += workspace_->deviceFingerprint();
     return res;
   }
 
@@ -83,7 +82,7 @@ private:
   magma_queue_t queue_;
   cudaStream_t stream_;
 
-  std::array<std::shared_ptr<RMatrix>, 2> workspaces_;
+  std::shared_ptr<RMatrix> workspace_;
 
   linalg::util::MagmaBatchedGemm<Complex> plan1_;
   linalg::util::MagmaBatchedGemm<Complex> plan2_;
@@ -98,14 +97,13 @@ SpaceTransform2DGpu<RDmn, KDmn, Real>::SpaceTransform2DGpu(const int nw_pos, mag
       stream_(magma_queue_get_cuda_stream(queue_)),
       plan1_(queue_),
       plan2_(queue_) {
-  for (auto& work : workspaces_)
-    work = std::make_shared<RMatrix>();
+  workspace_ = std::make_shared<RMatrix>();
 }
 
 template <class RDmn, class KDmn, typename Real>
 void SpaceTransform2DGpu<RDmn, KDmn, Real>::execute(RMatrix& M) {
-  auto& T_times_M = *(workspaces_[0]);
-  auto& T_times_M_times_T = *(workspaces_[1]);
+  auto& T_times_M = *(workspace_);
+  auto& T_times_M_times_T = M;
 
   T_times_M.resizeNoCopy(M.size());
   const auto& T = get_T_matrix();
@@ -123,7 +121,6 @@ void SpaceTransform2DGpu<RDmn, KDmn, Real>::execute(RMatrix& M) {
     plan1_.execute('N', 'N', nc_, M.nrCols(), nc_, Complex(1), Complex(0), lda, ldb, ldc);
   }
 
-  T_times_M_times_T.resizeNoCopy(M.size());
   {
     const int n_trafo = M.nrCols() / nc_;
     plan2_.synchronizeCopy();
@@ -137,7 +134,8 @@ void SpaceTransform2DGpu<RDmn, KDmn, Real>::execute(RMatrix& M) {
     plan2_.execute('N', 'C', M.nrRows(), nc_, nc_, norm, Complex(0), lda, ldb, ldc);
   }
 
-  rearrangeResult(T_times_M_times_T, M);
+  rearrangeResult(T_times_M_times_T, *workspace_);
+  M.swap(*workspace_);
 }
 
 template <class RDmn, class KDmn, typename Real>

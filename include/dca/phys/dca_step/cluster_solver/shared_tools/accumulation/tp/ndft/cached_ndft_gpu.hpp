@@ -61,8 +61,8 @@ public:
   void execute(const Configuration& configuration, const linalg::Matrix<Real, linalg::GPU>& M,
                RMatrix& M_r_r_w_w);
 
-  void setWorkspaces(std::array<std::shared_ptr<RMatrix>, 2> workspaces) {
-    workspaces_ = workspaces;
+  void setWorkspace(const std::shared_ptr<RMatrix>& workspace) {
+    workspace_ = workspace;
   }
 
   cudaStream_t get_stream() const {
@@ -78,8 +78,8 @@ public:
 private:
   void sortM(const linalg::Matrix<Real, linalg::GPU>& M, RMatrix& M_sorted) const;
   void computeT();
-  void performFT(const RMatrix& M_t_t, RMatrix& M_w_w, RMatrix& work);
-  void rearrangeOutput(const RMatrix& M_w_w, RMatrix& output);
+  void performFT(RMatrix& work);
+  void rearrangeOutput(RMatrix& output);
 
 private:
   using BaseClass::w_;
@@ -100,7 +100,7 @@ private:
   linalg::util::CudaEvent copy_event_;
   std::array<linalg::Vector<details::Triple<Real>, linalg::GPU>, 2> config_dev_;
 
-  std::array<std::shared_ptr<RMatrix>, 2> workspaces_;
+  std::shared_ptr<RMatrix> workspace_;
 
   RMatrix T_l_dev_;
   RMatrix T_r_dev_;
@@ -117,8 +117,7 @@ CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::CachedN
       stream_(magma_queue_get_cuda_stream(magma_queue_)),
       magma_plan1_(n_orbitals_, magma_queue_),
       magma_plan2_(n_orbitals_, magma_queue_) {
-  for (auto& work : workspaces_)
-    work = std::make_shared<RMatrix>();
+  workspace_ = std::make_shared<RMatrix>();
   w_dev_.setAsync(w_, stream_);
 }
 
@@ -142,13 +141,14 @@ void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::ex
   const int order = std::max(config_dev_[0].size(), config_dev_[1].size());
   const int g_first_size = nw / 2 * n_orbitals_;
   M_out.reserveNoCopy(g_first_size * std::max(order, 2 * g_first_size));
+  workspace_->reserveNoCopy(std::max(order * order, 2 * g_first_size * g_first_size));
 
-  sortM(M, *workspaces_[0]);
+  sortM(M, *workspace_);
   copy_event_.record(stream_);
 
   computeT();
-  performFT(*workspaces_[0], *workspaces_[1], M_out);
-  rearrangeOutput(*workspaces_[1], M_out);
+  performFT(M_out);
+  rearrangeOutput(M_out);
 }
 
 template <typename Real, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
@@ -178,21 +178,16 @@ void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::co
 }
 
 template <typename Real, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
-void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::performFT(
-    const RMatrix& M_in, RMatrix& M_out, RMatrix& work) {
-  const auto& M_t_t = M_in;
+void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::performFT(RMatrix& M_out) {
+  const auto& M_t_t = *workspace_;
   const int nw = w_.size();
   const int order = indexed_config_[0].size();
 
-  auto& T_times_M = work;
-  const bool realloc = T_times_M.resizeNoCopy(std::make_pair(nw / 2 * n_orbitals_, order));
+  auto& T_times_M = M_out;
+  bool realloc = T_times_M.resizeNoCopy(std::make_pair(nw / 2 * n_orbitals_, order));
   assert(!realloc);
   T_times_M.setToZero(stream_);
 
-  auto& T_times_M_times_T = M_out;
-  T_times_M_times_T.resizeNoCopy(std::make_pair(nw / 2 * n_orbitals_, nw * n_orbitals_));
-
-  T_times_M_times_T.setToZero(stream_);
   {
     // Performs T_times_M = T_l * M_t_t.
     const int lda = T_l_dev_.leadingDimension();
@@ -210,6 +205,12 @@ void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::pe
     }
     magma_plan1_.execute('N', 'N');
   }
+
+  auto& T_times_M_times_T = *workspace_;
+  realloc = T_times_M_times_T.resizeNoCopy(std::make_pair(nw / 2 * n_orbitals_, nw * n_orbitals_));
+  assert(!realloc);
+  T_times_M_times_T.setToZero(stream_);
+
   {
     // Performs T_times_M_times_T = T_times_M * T_r.
     const int lda = T_times_M.leadingDimension();
@@ -230,10 +231,13 @@ void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::pe
 
 template <typename Real, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
 void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::rearrangeOutput(
-    const RMatrix& M_w_w, RMatrix& M_out) {
+    RMatrix& M_out) {
+  const auto& M_w_w = *workspace_;
+
   const int nw = w_.size();
   M_out.resizeNoCopy(M_w_w.size());
   const int n_bands = BDmn::dmn_size();
+
   // Rearranges the index order, from fast to slow, from {frequency, band, site} to { site, band,
   // frequency}.
   details::rearrangeOutput(nw, n_orbitals_, n_bands, M_w_w.ptr(), M_w_w.leadingDimension(),
@@ -246,10 +250,8 @@ template <typename Real, class RDmn, class WDmn, class WPosDmn, bool non_density
 std::size_t CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::deviceFingerprint()
     const {
   std::size_t res(0);
-  for (const auto& work : workspaces_) {
-    if (work.unique())
-      res += work->deviceFingerprint();
-  }
+  if (workspace_.unique())
+    res += workspace_->deviceFingerprint();
   res += T_l_dev_.deviceFingerprint();
   res += T_r_dev_.deviceFingerprint();
   return res;
