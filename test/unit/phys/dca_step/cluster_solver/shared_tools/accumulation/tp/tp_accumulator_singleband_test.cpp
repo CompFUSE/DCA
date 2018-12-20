@@ -12,9 +12,11 @@
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator.hpp"
 
 #include <array>
-#include "gtest/gtest.h"
+#include <map>
 #include <string>
 #include <vector>
+
+#include "gtest/gtest.h"
 
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/function/util/difference.hpp"
@@ -27,7 +29,7 @@ constexpr bool update_baseline = false;
 #define INPUT_DIR \
   DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/"
 
-constexpr char input_file[] = INPUT_DIR "input_3x3.json";
+constexpr char input_file[] = INPUT_DIR "input_4x4.json";
 
 using ConfigGenerator = dca::testing::AccumulationTest<double>;
 using Configuration = ConfigGenerator::Configuration;
@@ -41,8 +43,8 @@ TEST_F(TpAccumulatorSinglebandTest, Accumulate) {
   Sample M;
   Configuration config;
   ConfigGenerator::prepareConfiguration(config, M, TpAccumulatorSinglebandTest::BDmn::dmn_size(),
-                                        TpAccumulatorSinglebandTest::RDmn::dmn_size(), parameters_.get_beta(),
-                                        n);
+                                        TpAccumulatorSinglebandTest::RDmn::dmn_size(),
+                                        parameters_.get_beta(), n);
 
   Data::TpGreensFunction G4_check("G4");
 
@@ -55,6 +57,12 @@ TEST_F(TpAccumulatorSinglebandTest, Accumulate) {
     writer.open_file(baseline);
   else
     reader.open_file(baseline);
+
+  std::map<dca::phys::FourPointType, std::string> func_names;
+  func_names[dca::phys::PARTICLE_HOLE_TRANSVERSE] = "G4_ph_transverse";
+  func_names[dca::phys::PARTICLE_HOLE_MAGNETIC] = "G4_ph_magnetic";
+  func_names[dca::phys::PARTICLE_HOLE_CHARGE] = "G4_ph_charge";
+  func_names[dca::phys::PARTICLE_PARTICLE_UP_DOWN] = "G4_pp_up_down";
 
   for (const dca::phys::FourPointType type :
        {dca::phys::PARTICLE_HOLE_TRANSVERSE, dca::phys::PARTICLE_HOLE_MAGNETIC,
@@ -71,10 +79,10 @@ TEST_F(TpAccumulatorSinglebandTest, Accumulate) {
     const auto& G4 = accumulator.get_sign_times_G4();
 
     if (update_baseline) {
-      writer.execute("G4_" + toString(type), G4);
+      writer.execute(func_names[type], G4);
     }
     else {
-      G4_check.set_name("G4_" + toString(type));
+      G4_check.set_name(func_names[type]);
       reader.execute(G4_check);
       const auto diff = dca::func::util::difference(G4, G4_check);
       EXPECT_GT(1e-8, diff.l_inf);
