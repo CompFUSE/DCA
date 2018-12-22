@@ -28,7 +28,7 @@ class G4Helper {
 public:
   __host__ void set(int nb, int nk, int nw_pos, const std::vector<int>& k_ex_indices,
                     const std::vector<int>& w_ex_indices, const int* add_k, int lda,
-                    const int* sub_k, int lds);
+                    const int* sub_k, int lds, int k0);
 
   G4Helper(const G4Helper& other) = default;
 
@@ -40,6 +40,8 @@ public:
   __device__ inline int addKex(int k_idx, int k_ex_idx) const;
   // Returns the index of k_ex - k.
   __device__ inline int kexMinus(int k_idx, int k_ex_idx) const;
+  // Returns the index of -k.
+  __device__ inline int kMinus(int k_idx) const;
   // Returns the index of w + w_ex.
   __device__ inline int addWex(int w_idx, int w_ex_idx) const;
   // Returns the index of w_ex - w.
@@ -49,7 +51,7 @@ public:
   // to the extended (positive for w1) domain used by G.
   // In/Out: w1, w2.
   // Returns: true if G(w1, w2) is stored as a complex conjugate.
-  __device__ inline bool extendWIndices(int& w1, int& w2) const;
+  __device__ inline bool extendGIndices(int& k1, int& k2, int& w1, int& w2) const;
 
   // Returns the linear index of G4 as a function of
   // band, band, band, band, k1, k2, k_ex, w1, w2, w_ex.
@@ -71,6 +73,7 @@ protected:
   // lds: leading dimension of sub_matrix_.
   // nw_pos: number of positive frequencies stored in G4.
   // ext_size: difference between the number of positive frequencies stored in G and G4.
+  // k0: index of the origin.
   int* device_members_ = nullptr;
 
   int* w_ex_indices_ = nullptr;
@@ -89,7 +92,7 @@ public:
 
 __host__ void G4Helper::set(int nb, int nk, int nw_pos, const std::vector<int>& delta_k,
                             const std::vector<int>& delta_w, const int* add_k, int lda,
-                            const int* sub_k, int lds) {
+                            const int* sub_k, int lds, int k0) {
   if (isInitialized())
     throw(std::logic_error("already initialized."));
 
@@ -102,7 +105,7 @@ __host__ void G4Helper::set(int nb, int nk, int nw_pos, const std::vector<int>& 
   for (const int idx : delta_w)
     ext_size = std::max(ext_size, std::abs(idx));
 
-  const std::array<int, 4> device_members_host{lda, lds, nw_pos, ext_size};
+  const std::array<int, 5> device_members_host{lda, lds, nw_pos, ext_size, k0};
   cudaMalloc(&device_members_, sizeof(int) * device_members_host.size());
   cudaMemcpy(device_members_, device_members_host.data(), sizeof(int) * device_members_host.size(),
              cudaMemcpyHostToDevice);
@@ -150,7 +153,13 @@ __device__ int G4Helper::kexMinus(const int k_idx, const int k_ex_idx) const {
   return sub_matrix_[k_idx + ld * k_ex];
 }
 
-__device__ bool G4Helper::extendWIndices(int& w1, int& w2) const {
+__device__ int G4Helper::kMinus(const int k_idx) const {
+  const int ld = device_members_[1];
+  const auto k0 = device_members_[4];
+  return sub_matrix_[k_idx + ld * k0];
+}
+
+__device__ bool G4Helper::extendGIndices(int& k1, int& k2, int& w1, int& w2) const {
   const int extension = device_members_[3];
   const int n_w_ext_pos = extension + device_members_[2];
   w1 += extension;
@@ -162,6 +171,8 @@ __device__ bool G4Helper::extendWIndices(int& w1, int& w2) const {
   else {
     w1 = n_w_ext_pos - 1 - w1;
     w2 = 2 * n_w_ext_pos - 1 - w2;
+    k1 = kMinus(k1);
+    k2 = kMinus(k2);
     return true;
   }
 }
