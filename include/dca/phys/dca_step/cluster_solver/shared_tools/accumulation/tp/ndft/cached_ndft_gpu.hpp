@@ -220,7 +220,7 @@ void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::re
   M_out.resizeNoCopy(M_w_w.size());
   const int n_bands = BDmn::dmn_size();
   // Rearranges the index order, from fast to slow, from {frequency, band, site} to { site, band,
-  // frequency}.
+  // frequency} and change the sign of the second site.
   details::rearrangeOutput(nw, n_orbitals_, n_bands, M_w_w.ptr(), M_w_w.leadingDimension(),
                            M_out.ptr(), M_out.leadingDimension(), stream_);
 
