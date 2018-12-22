@@ -218,11 +218,12 @@ void TpAccumulator<Parameters, linalg::GPU>::initializeG4Helpers() const {
   std::call_once(flag, []() {
     const auto& add_mat = KDmn::parameter_type::get_add_matrix();
     const auto& sub_mat = KDmn::parameter_type::get_subtract_matrix();
+    const int k0 = KDmn::parameter_type::origin_index();
     const auto& w_indices = domains::FrequencyExchangeDomain::get_elements();
     const auto& q_indices = domains::MomentumExchangeDomain::get_elements();
     details::initializeG4Helpers(n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), q_indices,
                                  w_indices, add_mat.ptr(), add_mat.leadingDimension(),
-                                 sub_mat.ptr(), sub_mat.leadingDimension());
+                                 sub_mat.ptr(), sub_mat.leadingDimension(), k0);
     assert(cudaPeekAtLastError() == cudaSuccess);
   });
 }
