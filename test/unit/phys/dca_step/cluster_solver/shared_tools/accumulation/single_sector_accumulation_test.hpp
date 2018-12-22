@@ -69,6 +69,10 @@ public:
     static const auto m_diff = initialize_subtract_matrix();
     return m_diff;
   }
+
+  static int origin_index() {
+    return 0;
+  }
 };
 
 struct Vertex {
@@ -172,6 +176,11 @@ auto SingleSectorAccumulationTest<n_bands, n_sites, n_frqs>::compute2DFTBaseline
   F_w_w f_w("2D frequency transform baseline.");
   const std::complex<double> imag(0, 1);
 
+  auto minus = [&](int r) {
+    const static int r0 = RDmn::parameter_type::origin_index();
+    return RDmn::parameter_type::subtract(r, r0);
+  };
+
   for (int w_ind2 = 0; w_ind2 < FreqDmn::dmn_size(); ++w_ind2) {
     const double w_val2 = FreqDmn::get_elements()[w_ind2];
     for (int w_ind1 = 0; w_ind1 < FreqDmn::dmn_size(); ++w_ind1) {
@@ -180,13 +189,14 @@ auto SingleSectorAccumulationTest<n_bands, n_sites, n_frqs>::compute2DFTBaseline
         const auto t_val2 = configuration_[j].get_tau();
         const int b2 = configuration_[j].b_;
         const int r2 = configuration_[j].r_;
+        const int minus_r2 = minus(r2);
         for (int i = 0; i < configuration_.size(); ++i) {
           const auto t_val1 = configuration_[i].get_tau();
           const int b1 = configuration_[i].b_;
           const int r1 = configuration_[i].r_;
 
           const auto f_t = M_(i, j);
-          f_w(b1, b2, r1, r2, w_ind1, w_ind2) +=
+          f_w(b1, b2, r1, minus_r2, w_ind1, w_ind2) +=
               f_t * std::exp(imag * (t_val1 * w_val1 - t_val2 * w_val2));
         }
       }

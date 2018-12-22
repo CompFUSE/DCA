@@ -18,11 +18,12 @@
 #include "dca/function/util/difference.hpp"
 #include "dca/linalg/matrix.hpp"
 #include "dca/linalg/util/util_cublas.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/g4_helper.cuh"
 #include "dca/profiling/events/time.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/single_sector_accumulation_test.hpp"
 
 constexpr int n_bands = 2;
-constexpr int n_sites = 3;
+constexpr int n_sites = 5;
 constexpr int n_frqs = 7;
 using CachedNdftGpuTest = dca::testing::SingleSectorAccumulationTest<n_bands, n_sites, n_frqs>;
 
@@ -34,6 +35,14 @@ double computeWithFastNDFT(const CachedNdftGpuTest::Configuration& config,
 TEST_F(CachedNdftGpuTest, Execute) {
   constexpr int n_samples = 31;
   prepareConfiguration(configuration_, M_, n_samples);
+
+  // Initialize the device helper class. This is normally done by the accumulator object.
+  const std::vector<int> empty{};
+  const auto& sub_matrix = RDmn::parameter_type::get_subtract_matrix();
+  const int r0 = RDmn::parameter_type::origin_index();
+  dca::phys::solver::accumulator::details::G4HelperManager::set_instance(
+      n_bands, n_sites, n_frqs, empty, empty, nullptr, 0, sub_matrix.ptr(),
+      sub_matrix.leadingDimension(), r0);
 
   F_w_w f_w_fast("f_w_fast");
 

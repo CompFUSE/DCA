@@ -37,9 +37,6 @@ void updateG4(std::complex<Real>* G4, const std::complex<Real>* G_up, int lggu,
               const std::complex<Real>* G_down, int ldgd, int nb, int nk, int nw_pos,
               int nw_exchange, int nk_exchange, int sign, cudaStream_t stream);
 
-void initializeG4Helpers(int nb, int nk, int nw_pos, const std::vector<int>& delta_k_indices,
-                         const std::vector<int>& delta_w_indices, const int* add_k, int lda,
-                         const int* sub_k, int lds, int k0);
 
 }  // details
 }  // accumulator

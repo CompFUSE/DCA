@@ -111,7 +111,7 @@ void SpaceTransform2DGpu<RDmn, KDmn, Real>::execute(MatrixDev& M) {
     const int ldb = T.leadingDimension();
     const int ldc = T_times_M_times_T_.leadingDimension();
     const Complex norm(1. / nc_);
-    plan2_.execute('N', 'C', M.nrRows(), nc_, nc_, norm, Complex(0), lda, ldb, ldc);
+    plan2_.execute('N', 'T', M.nrRows(), nc_, nc_, norm, Complex(0), lda, ldb, ldc);
   }
 
   rearrangeResult(T_times_M_times_T_, M);
