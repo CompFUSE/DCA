@@ -267,9 +267,9 @@ void TpAccumulator<Parameters, linalg::GPU>::initializeG4Helpers() const {
     const int k0 = KDmn::parameter_type::origin_index();
     const auto& w_indices = domains::FrequencyExchangeDomain::get_elements();
     const auto& q_indices = domains::MomentumExchangeDomain::get_elements();
-    details::G4HelperManager::set_instance(
-        n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), q_indices, w_indices, add_mat.ptr(),
-        add_mat.leadingDimension(), sub_mat.ptr(), sub_mat.leadingDimension(), k0);
+    details::G4Helper::set(n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), q_indices, w_indices,
+                           add_mat.ptr(), add_mat.leadingDimension(), sub_mat.ptr(),
+                           sub_mat.leadingDimension(), k0);
     assert(cudaPeekAtLastError() == cudaSuccess);
   });
 }
