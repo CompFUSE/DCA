@@ -61,7 +61,7 @@ public:
   void execute(const Configuration& configuration, const linalg::Matrix<Real, linalg::GPU>& M,
                RMatrix& M_r_r_w_w);
 
-  void setWorkspace(std::shared_ptr<RMatrix>& workspace) {
+  void setWorkspace(const std::shared_ptr<RMatrix>& workspace) {
     workspace_ = workspace;
   }
 

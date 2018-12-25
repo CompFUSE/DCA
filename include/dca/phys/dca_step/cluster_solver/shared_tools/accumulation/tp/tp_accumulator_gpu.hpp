@@ -202,9 +202,8 @@ TpAccumulator<Parameters, linalg::GPU>::TpAccumulator(
     work = std::make_shared<RMatrix>();
 
   for (int i = 0; i < n_ndft_streams_; ++i) {
-    auto& workspace = workspaces_[2 * i];
-    ndft_objs_[i].setWorkspace(workspace);
-    space_trsf_objs_[i].setWorkspace(workspace);
+    ndft_objs_[i].setWorkspace(workspaces_[i]);
+    space_trsf_objs_[i].setWorkspace(workspaces_[i]);
   }
 }
 
