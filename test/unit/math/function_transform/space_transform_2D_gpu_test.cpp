@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include <string>
 
+#include "dca/config/accumulation_options.hpp"
 #include "dca/io/json/json_reader.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/no_symmetry.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
@@ -68,7 +69,7 @@ TEST(SpaceTransform2DGpuTest, Execute) {
   using dca::func::dmn_variadic;
   using Complex = std::complex<double>;
   function<Complex, dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, WPosDmn, WDmn>> f_in;
-  Matrix<Complex, dca::linalg::CPU> M_in;
+  dca::linalg::ReshapableMatrix<Complex, dca::linalg::CPU> M_in;
 
   // Initialize the input function.
   const int nb = BDmn::dmn_size();
@@ -93,7 +94,9 @@ TEST(SpaceTransform2DGpuTest, Execute) {
   dca::math::transform::SpaceTransform2D<RDmn, KDmn, double>::execute(f_in, f_out);
 
   // Transform on the GPU.
-  Matrix<Complex, dca::linalg::GPU> M_dev(M_in);
+  dca::linalg::ReshapableMatrix<Complex, dca::linalg::GPU,
+                                dca::config::AccumulationOptions::TpAllocator<Complex>>
+      M_dev(M_in);
   magma_queue_t queue;
   magma_queue_create(&queue);
   dca::math::transform::SpaceTransform2DGpu<RDmn, KDmn, double> transform_obj(nw, queue);
