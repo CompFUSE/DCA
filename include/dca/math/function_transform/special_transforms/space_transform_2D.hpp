@@ -88,11 +88,11 @@ void SpaceTransform2D<RDmn, KDmn, Real>::execute(
             linalg::MatrixView<Complex, linalg::CPU> f_r_r(&f_input(0, 0, b1, b2, s, w1, w2), nc);
             // f(k1,k2) = \sum exp(i(k1 * r1 - k2 *r2)) f(r1, r2)
             linalg::matrixop::gemm(T, f_r_r, tmp);
-            linalg::matrixop::gemm('N', 'C', Complex(1), tmp, T, Complex(0), f_r_r);
+            linalg::matrixop::gemm('N', 'C', norm, tmp, T, Complex(0), f_r_r);
 
             for (int k2 = 0; k2 < nc; ++k2)
               for (int k1 = 0; k1 < nc; ++k1)
-                f_output(b1, b2, s, k1, k2, w1, w2) = f_r_r(k1, k2) * norm;
+                f_output(b1, b2, s, k1, k2, w1, w2) = f_r_r(k1, k2);
           }
 }
 

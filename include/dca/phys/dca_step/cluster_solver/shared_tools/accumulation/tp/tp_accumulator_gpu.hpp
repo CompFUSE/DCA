@@ -27,6 +27,7 @@
 #include "dca/linalg/util/magma_queue.hpp"
 #include "dca/math/function_transform/special_transforms/space_transform_2D_gpu.hpp"
 #include "dca/parallel/util/call_once_per_loop.hpp"
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/g4_helper.cuh"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/kernels_interface.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_gpu.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/vector_managed_fallback.hpp"
@@ -263,11 +264,12 @@ void TpAccumulator<Parameters, linalg::GPU>::initializeG4Helpers() const {
   std::call_once(flag, []() {
     const auto& add_mat = KDmn::parameter_type::get_add_matrix();
     const auto& sub_mat = KDmn::parameter_type::get_subtract_matrix();
+    const int k0 = KDmn::parameter_type::origin_index();
     const auto& w_indices = domains::FrequencyExchangeDomain::get_elements();
     const auto& q_indices = domains::MomentumExchangeDomain::get_elements();
-    details::initializeG4Helpers(n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), q_indices,
-                                 w_indices, add_mat.ptr(), add_mat.leadingDimension(),
-                                 sub_mat.ptr(), sub_mat.leadingDimension());
+    details::G4HelperManager::set_instance(
+        n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), q_indices, w_indices, add_mat.ptr(),
+        add_mat.leadingDimension(), sub_mat.ptr(), sub_mat.leadingDimension(), k0);
     assert(cudaPeekAtLastError() == cudaSuccess);
   });
 }
