@@ -88,8 +88,6 @@ private:
 
   static void orbitalToBR(int orbital, int& b, int& r);
 
-  static int minus(int r);
-
 private:
   using BaseClass::n_orbitals_;
   using BaseClass::w_;
@@ -212,7 +210,7 @@ void CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_densit
 
 template <typename ScalarType, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
 double CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::executeTrimmedFT() {
-  double flops = 0.;
+  double flop = 0.;
 
   assert(WPosDmn::dmn_size() == WDmn::dmn_size() / 2);
 
@@ -229,13 +227,13 @@ double CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_dens
   }
 
   dca::linalg::matrixop::multiply(T_l_, M_ij_, T_l_times_M_ij_);
-  flops += 4 * T_l_[0].size().first * T_l_[0].size().second * M_ij_.size().second;
+  flop += 4 * T_l_[0].size().first * T_l_[0].size().second * M_ij_.size().second;
 
   dca::linalg::matrixop::multiply('N', 'C', T_l_times_M_ij_, T_r_, T_l_times_M_ij_times_T_r_, work_);
-  flops += 6. * T_l_times_M_ij_[0].size().first * T_l_times_M_ij_[0].size().second *
-           T_l_times_M_ij_times_T_r_[0].size().second;
+  flop += 4. * T_l_times_M_ij_[0].size().first * T_l_times_M_ij_[0].size().second *
+          T_l_times_M_ij_times_T_r_[0].size().second;
 
-  return 1e-9 * flops;
+  return 1e-9 * flop;
 }
 
 template <typename ScalarType, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
@@ -245,13 +243,9 @@ void CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_densit
                    func::dmn_variadic<BDmn, BDmn, RDmn, RDmn, WPosDmn, WDmn>>& f_out) const {
   const int n_w1 = WPosDmn::dmn_size();
   const int n_w2 = WDmn::dmn_size();
-
   int b1, b2, r1, r2;
   orbitalToBR(orb1, b1, r1);
   orbitalToBR(orb2, b2, r2);
-
-  r2 = minus(r2);
-
   for (int w2 = 0; w2 < n_w2; ++w2)
     for (int w1 = 0; w1 < n_w1; ++w1) {
       f_out(b1, b2, r1, r2, w1, w2).real(T_l_times_M_ij_times_T_r_[0](w1, w2));
@@ -266,13 +260,9 @@ void CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_densit
                    func::dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, WPosDmn, WDmn>>& f_out) const {
   const int n_w1 = WPosDmn::dmn_size();
   const int n_w2 = WDmn::dmn_size();
-
   int b1, b2, r1, r2;
   orbitalToBR(orb1, b1, r1);
   orbitalToBR(orb2, b2, r2);
-
-  r2 = minus(r2);
-
   for (int w2 = 0; w2 < n_w2; ++w2)
     for (int w1 = 0; w1 < n_w1; ++w1) {
       f_out(r1, r2, b1, b2, spin, w1, w2).real(T_l_times_M_ij_times_T_r_[0](w1, w2));
@@ -287,13 +277,9 @@ void CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_densit
                    func::dmn_variadic<BDmn, BDmn, RDmn, RDmn, WPosDmn, WDmn>>& f_out) const {
   const int n_w1 = WPosDmn::dmn_size();
   const int n_w2 = WDmn::dmn_size();
-
   int b1, b2, r1, r2;
   orbitalToBR(orb1, b1, r1);
   orbitalToBR(orb2, b2, r2);
-
-  r2 = minus(r2);
-
   for (int w2 = 0; w2 < n_w2; ++w2)
     for (int w1 = 0; w1 < n_w1; ++w1)
       f_out(b1, b2, r1, r2, w1, w2) = 0;
@@ -306,13 +292,9 @@ void CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_densit
                    func::dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, WPosDmn, WDmn>>& f_out) const {
   const int n_w1 = WPosDmn::dmn_size();
   const int n_w2 = WDmn::dmn_size();
-
   int b1, b2, r1, r2;
   orbitalToBR(orb1, b1, r1);
   orbitalToBR(orb2, b2, r2);
-
-  r2 = minus(r2);
-
   for (int w2 = 0; w2 < n_w2; ++w2)
     for (int w1 = 0; w1 < n_w1; ++w1)
       f_out(r1, r2, b1, b2, spin, w1, w2) = 0;
@@ -324,12 +306,6 @@ void CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_densit
   const static int n_bands = BDmn::dmn_size();
   r = orbital / n_bands;
   b = orbital % n_bands;
-}
-
-template <typename ScalarType, class RDmn, class WDmn, class WPosDmn, bool non_density_density>
-int CachedNdft<ScalarType, RDmn, WDmn, WPosDmn, linalg::CPU, non_density_density>::minus(const int r) {
-  const static int r0 = RDmn::parameter_type::origin_index();
-  return RDmn::parameter_type::subtract(r, r0);
 }
 
 }  // accumulator

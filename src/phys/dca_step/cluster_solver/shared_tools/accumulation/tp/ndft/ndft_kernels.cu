@@ -16,9 +16,8 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-#include "dca/linalg/util/cast_cuda.hpp"
-#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/g4_helper.cuh"
 #include "dca/util/integer_division.hpp"
+#include "dca/linalg/util/cast_cuda.hpp"
 
 namespace dca {
 namespace phys {
@@ -98,7 +97,7 @@ void computeT(const int n, const int m, std::complex<Real>* T, int ldt, const Tr
 template <typename Real>
 __global__ void rearrangeOutputKernel(const int nw, const int no, const int nb,
                                       const CudaComplex<Real>* in, const int ldi,
-                                      CudaComplex<Real>* out, const int ldo, const G4Helper helper) {
+                                      CudaComplex<Real>* out, const int ldo) {
   const int id_i = blockIdx.x * blockDim.x + threadIdx.x;
   const int id_j = blockIdx.y * blockDim.y + threadIdx.y;
   const int n_rows = nw / 2 * no;
@@ -117,8 +116,6 @@ __global__ void rearrangeOutputKernel(const int nw, const int no, const int nb,
   get_indices(id_i, nw / 2, b1, r1, w1);
   get_indices(id_j, nw, b2, r2, w2);
 
-  r2 = helper.kMinus(r2);
-
   const int nr = no / nb;
   const int out_i = r1 + nr * b1 + no * w1;
   const int out_j = r2 + nr * b2 + no * w2;
@@ -134,11 +131,8 @@ void rearrangeOutput(const int nw, const int no, const int nb, const std::comple
   const int n_cols = nw * no;
   auto const blocks = getBlockSize(n_rows, n_cols);
 
-  auto& helper = G4HelperManager::get_instance();
-  assert(helper.isInitialized());
-
-  rearrangeOutputKernel<Real><<<blocks[0], blocks[1], 0, stream>>>(
-      nw, no, nb, castCudaComplex(in), ldi, castCudaComplex(out), ldo, helper);
+  rearrangeOutputKernel<Real><<<blocks[0], blocks[1], 0, stream>>>(nw, no, nb, castCudaComplex(in),
+                                                                   ldi, castCudaComplex(out), ldo);
 }
 
 // Explicit instantiation.
