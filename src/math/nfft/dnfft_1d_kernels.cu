@@ -114,7 +114,9 @@ __global__ void sumKernel(const ScalarType* in, const int ldi, ScalarType* out, 
   const int i = blockIdx.x * blockDim.x + threadIdx.x;
   const int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-  out[i + ldo * j] += in[i + ldi * j];
+  if (i < n && j < m) {
+    out[i + ldo * j] += in[i + ldi * j];
+  }
 }
 
 template <typename ScalarType>
