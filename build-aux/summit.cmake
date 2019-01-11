@@ -16,5 +16,5 @@ option(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
 set(MAGMA_DIR $ENV{OLCF_MAGMA_ROOT} CACHE PATH
   "Path to the MAGMA installation directory. Hint for CMake to find MAGMA.")
 
-set(FFTW_DIR $ENV{OLCF_ROOT_FFTW} CACHE PATH
+set(FFTW_DIR $ENV{OLCF_FFTW_ROOT} CACHE PATH
   "Path to the FFTW3 installation directory. Hint for CMake to find FFTW3.")

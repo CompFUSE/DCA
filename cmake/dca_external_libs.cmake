@@ -32,7 +32,11 @@ list(APPEND DCA_EXTERNAL_INCLUDE_DIRS ${HDF5_INCLUDE_DIRS})
 
 ################################################################################
 # FFTW
-set(FFTW_INCLUDE_DIR "" CACHE PATH "Path to fftw3.h.")
+find_library(FFTW_LIBRARY
+             NAMES fftw3
+             HINTS ${FFTW_DIR}/lib)
+
+set(FFTW_INCLUDE_DIR "${FFTW_DIR}/include" CACHE PATH "Path to fftw3.h.")
 set(FFTW_LIBRARY "" CACHE FILEPATH "The FFTW3(-compatible) library.")
 
 list(APPEND DCA_EXTERNAL_LIBS ${FFTW_LIBRARY})
