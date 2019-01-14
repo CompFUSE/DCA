@@ -117,13 +117,13 @@ function(dca_add_gtest name)
 
     add_test(NAME ${name}
              COMMAND ${TEST_RUNNER} ${MPIEXEC_NUMPROC_FLAG} ${DCA_ADD_GTEST_MPI_NUMPROC}
-                     ${MPIEXEC_PREFLAGS} "$<TARGET_FILE:${name}>")
+                     ${MPIEXEC_PREFLAGS} ${SMPIARGS_FLAG_MPI} "$<TARGET_FILE:${name}>")
                  target_link_libraries(${name} ${MPI_C_LIBRARIES})
   else()
     if (TEST_RUNNER)
       add_test(NAME ${name}
                COMMAND ${TEST_RUNNER} ${MPIEXEC_NUMPROC_FLAG} 1
-	               ${MPIEXEC_PREFLAGS} "$<TARGET_FILE:${name}>")
+	               ${MPIEXEC_PREFLAGS} ${SMPIARGS_FLAG_NOMPI} "$<TARGET_FILE:${name}>")
     else (TEST_RUNNER)
       add_test(NAME ${name}
                COMMAND "$<TARGET_FILE:${name}>")

@@ -123,6 +123,8 @@ Dnfft1DGpu<ScalarType, WDmn, RDmn, oversampling, CUBIC>::Dnfft1DGpu(const double
   accumulation_matrix_.resizeNoCopy(std::make_pair(n_times, bbr_dmn.get_size()));
   if (accumulate_m_sqr)
     accumulation_matrix_sqr_.resizeNoCopy(accumulation_matrix_.size());
+
+  resetAccumulation();
 }
 
 template <typename ScalarType, typename WDmn, typename RDmn, int oversampling>
