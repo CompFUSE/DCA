@@ -29,6 +29,9 @@ TEST(MPITypeMapTest, All) {
   EXPECT_EQ(1, MPITypeMap<std::size_t>::factor());
   EXPECT_EQ(MPI_UNSIGNED_LONG, MPITypeMap<std::size_t>::value());
 
+  EXPECT_EQ(1, MPITypeMap<long long int>::factor());
+  EXPECT_EQ(MPI_LONG_LONG_INT, MPITypeMap<long long int>::value());
+
   EXPECT_EQ(1, MPITypeMap<float>::factor());
   EXPECT_EQ(MPI_FLOAT, MPITypeMap<float>::value());
 

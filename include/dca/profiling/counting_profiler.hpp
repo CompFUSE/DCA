@@ -13,6 +13,7 @@
 #define DCA_PROFILING_COUNTING_PROFILER_HPP
 
 #include <algorithm>
+#include <cassert>
 #include <fstream>
 #include <map>
 #include <ostream>
@@ -90,7 +91,7 @@ private:
 
   bool finished;
 
-  Event startEvent;
+  Event start_event_;
 
   std::vector<std::string> categories;
 
@@ -110,7 +111,7 @@ CountingProfiler<Event>::CountingProfiler(const char* function_name, const char*
       lineNumber(line),
       thread_id(0),
       finished(false),
-      startEvent(start_running_counter(function_name, category_name, thread_id), thread_id),
+      start_event_(start_running_counter(function_name, category_name, thread_id), thread_id),
       categories(0) {
   assert(thread_id > -1 and thread_id < MAX_THREADS());
 }
@@ -122,7 +123,7 @@ CountingProfiler<Event>::CountingProfiler(const char* function_name, const char*
       lineNumber(line),
       thread_id(1 + id),
       finished(false),
-      startEvent(start_running_counter(function_name, category_name, thread_id), thread_id),
+      start_event_(start_running_counter(function_name, category_name, thread_id), thread_id),
       categories(0) {
   assert(thread_id > -1 and thread_id < MAX_THREADS());
 }
@@ -138,7 +139,7 @@ void CountingProfiler<Event>::finish() {
   if (finished == true)
     return;  // already finished
 
-  startEvent.end();
+  start_event_.end();
 
   finished = true;
 }
