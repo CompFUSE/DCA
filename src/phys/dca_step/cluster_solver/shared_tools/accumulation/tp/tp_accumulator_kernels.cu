@@ -221,8 +221,10 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
   switch (type) {
     case PARTICLE_HOLE_TRANSVERSE: {
       // contribution <- -\sum_s G(k1, k2, s) * G(k2 + k_ex, k1 + k_ex, -s)
-      int w1_a(w1), w2_a(w2);
-      int k1_a(k1), k2_a(k2);
+      int w1_a(w1);
+      int w2_a(w2);
+      int k1_a(k1);
+      int k2_a(k2);
       const bool conj_a = g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
       const int i_a = b1 + nb * k1_a + no * w1_a;
       const int j_a = b4 + nb * k2_a + no * w2_a;
@@ -247,8 +249,10 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
     // The PARTICLE_HOLE_MAGNETIC contribution is computed in two parts:
     case PARTICLE_HOLE_MAGNETIC: {
       // contribution <- -\sum_s G(k1, k2, s) * G(k2 + k_ex, k1 + k_ex, s)
-      int w1_a(w1), w2_a(w2);
-      int k1_a(k1), k2_a(k2);
+      int w1_a(w1);
+      int w2_a(w2);
+      int k1_a(k1);
+      int k2_a(k2);
       const bool conj_a = g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
       const int i_a = b1 + nb * k1_a + no * w1_a;
       const int j_a = b4 + nb * k2_a + no * w2_a;
@@ -300,8 +304,10 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
     // The PARTICLE_HOLE_CHARGE contribution is computed in two parts:
     case PARTICLE_HOLE_CHARGE: {
       // contribution <- -\sum_s G(k1, k2, s) * G(k2 + k_ex, k1 + k_ex, s)
-      int w1_a(w1), w2_a(w2);
-      int k1_a(k1), k2_a(k2);
+      int w1_a(w1);
+      int w2_a(w2);
+      int k1_a(k1);
+      int k2_a(k2);
       const bool conj_a = g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
       const int i_a = b1 + nb * k1_a + no * w1_a;
       const int j_a = b4 + nb * k2_a + no * w2_a;
@@ -355,8 +361,10 @@ __global__ void updateG4Kernel(CudaComplex<Real>* __restrict__ G4,
 
     case PARTICLE_PARTICLE_UP_DOWN: {
       // contribution <- -\sum_s G(k_ex - k2, k_ex - k1, s) * G(k2, k1, -s).
-      int w1_a(w1), w2_a(w2);
-      int k1_a(k1), k2_a(k2);
+      int w1_a(w1);
+      int w2_a(w2);
+      int k1_a(k1);
+      int k2_a(k2);
       const bool conj_a = g4_helper.extendGIndices(k1_a, k2_a, w1_a, w2_a);
       const int i_a = b1 + nb * k1_a + no * w1_a;
       const int j_a = b3 + nb * k2_a + no * w2_a;
@@ -402,7 +410,7 @@ void updateG4(std::complex<Real>* G4, const std::complex<Real>* G_up, const int 
       nw_exchange, nk_exchange, sign);
 
   // Check for errors.
-  auto err =  cudaPeekAtLastError();
+  auto err = cudaPeekAtLastError();
   if (err != cudaSuccess) {
     linalg::util::printErrorMessage(err, __FUNCTION__, __FILE__, __LINE__);
     throw(std::runtime_error("CUDA failed to launch the G4 kernel."));

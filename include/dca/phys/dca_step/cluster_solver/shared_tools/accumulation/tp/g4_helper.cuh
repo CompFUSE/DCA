@@ -25,10 +25,9 @@ namespace details {
 
 class G4Helper {
 public:
-  // Sets the constant device instance of G4Helper.
-  static void set(int nb, int nk, int nw_pos_, const std::vector<int>& k_ex_indices,
-                  const std::vector<int>& w_ex_indices, const int* add_k, int lda_,
-                  const int* sub_k, int lds_, int k0_);
+    static void set(int nb, int nk, int nw_pos, const std::vector<int>& k_ex_indices,
+                    const std::vector<int>& w_ex_indices, const int* add_k, int lda,
+                    const int* sub_k, int lds, int k0);
 
   // Returns the index of k + k_ex.
   __device__ inline int addKex(int k_idx, int k_ex_idx) const;

@@ -59,13 +59,14 @@ void SpaceTransform2D<RDmn, KDmn, Real>::execute(
   const int nc = RDmn::dmn_size();
   const int nc2 = nc * nc;
   linalg::Matrix<Complex, linalg::CPU> tmp(nc);
+  const Complex norm = Complex(1. / nc);
   const auto& T = get_T_matrix();
 
   for (int l = 0; l < other_size; ++l) {
     linalg::MatrixView<Complex, linalg::CPU> f_r_r(&f_input(l * nc2), nc);
     // f(k1,k2) = \sum exp(i(k1 * r1 - k2 *r2)) f(r1, r2)
     linalg::matrixop::gemm(T, f_r_r, tmp);
-    linalg::matrixop::gemm('N', 'C', Complex(1), tmp, T, Complex(0), f_r_r);
+    linalg::matrixop::gemm('N', 'C', norm, tmp, T, Complex(0), f_r_r);
   }
 }
 
