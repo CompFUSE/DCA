@@ -27,7 +27,7 @@ constexpr bool update_baseline = false;
 #define INPUT_DIR \
   DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/"
 
-constexpr char input_file[] = INPUT_DIR "input_3x3.json";
+constexpr char input_file[] = INPUT_DIR "input_4x4.json";
 
 using ConfigGenerator = dca::testing::AccumulationTest<double>;
 using Configuration = ConfigGenerator::Configuration;

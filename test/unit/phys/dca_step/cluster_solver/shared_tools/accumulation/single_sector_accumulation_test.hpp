@@ -152,20 +152,18 @@ void SingleSectorAccumulationTest<n_bands, n_sites, n_frqs>::prepareConfiguratio
     Configuration& config, Matrix& M, const int nb, const int nr, const double beta, const int n) {
   config.resize(n);
   M.resize(n);
-  dca::math::random::StdRandomWrapper<std::ranlux48_base> rng(0, 1, 0);
+  static dca::math::random::StdRandomWrapper<std::ranlux48_base> rng(0, 1, 0);
 
   for (int i = 0; i < n; ++i) {
     const double tau = rng() * beta;
-    const int b = rng() * nb;
     const int r = rng() * nr;
+    const int b = rng() * nb;
     config[i] = Vertex{b, r, tau};
   }
 
   for (int j = 0; j < n; ++j)
     for (int i = 0; i < n; ++i) {
-      const double t1 = config[i].get_tau();
-      const double t2 = config[j].get_tau();
-      M(i, j) = std::sin(2 * M_PI * t1) * std::sin(6 * M_PI * t2);
+      M(i, j) = 2 * rng() - 1.;
     }
 }
 
