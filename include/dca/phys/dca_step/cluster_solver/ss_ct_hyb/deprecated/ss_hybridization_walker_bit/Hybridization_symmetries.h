@@ -1,11 +1,6 @@
-//-*-C++-*-
-
-/*! \file Hybridization_symmetries.h  
- *
- * author Bart Ydens
- *
- * 
- */
+// Copyright (C) 2010 Philipp Werner
+//
+// Integrated into DCA++ by Peter Staar (taa@zurich.ibm.com) and Bart Ydens.
 
 #ifndef HYBRIDIZATION_SYMMETRIES_H
 #define HYBRIDIZATION_SYMMETRIES_H

@@ -123,7 +123,7 @@ protected:  // Protected for testing purposes.
   void computeErrorBars() const {}
 
 protected:
-  Parameters& parameters_;
+  const Parameters& parameters_;
   Data& data_;
   Concurrency& concurrency_;
 

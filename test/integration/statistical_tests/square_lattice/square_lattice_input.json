@@ -52,7 +52,9 @@
     "seed": "random",
     "threaded-solver": {
       "walkers": 2,
-      "accumulators": 2
+      "accumulators": 2,
+      "shared-walk-and-accumulation-thread" : false,
+      "fix-meas-per-walker" : true
     }
   }
 }

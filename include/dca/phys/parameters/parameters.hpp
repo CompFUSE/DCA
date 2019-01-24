@@ -20,6 +20,7 @@
 #include <string>
 #include <vector>
 
+#include "dca/config/accumulation_options.hpp"
 #include "dca/function/domains/dmn_0.hpp"
 #include "dca/phys/parameters/analysis_parameters.hpp"
 #include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
@@ -102,11 +103,7 @@ public:
 
   constexpr static int bands = Model::lattice_type::BANDS;
 
-#ifdef DCA_WITH_SINGLE_PRECISION_MEASUREMENTS
-  typedef float MC_measurement_scalar_type;
-#else
-  typedef double MC_measurement_scalar_type;
-#endif  // DCA_WITH_SINGLE_PRECISION_MEASUREMENTS
+  using MC_measurement_scalar_type = config::AccumulationOptions::MCAccumulationScalar;
 
   Parameters(const std::string& version_stamp, concurrency_type& concurrency);
 

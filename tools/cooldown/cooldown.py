@@ -7,8 +7,8 @@
 # Usage: 1. Configure the EDIT block.
 #        2. Execute the script: python cooldown.py
 #
-# See https://github.com/eth-cscs/dca_ethz/wiki/Running for more details on how to use this script
-# and run a DCA(+) calculation.
+# See https://github.com/CompFUSE/DCA/wiki/Running for more details on how to use this script and
+# how to run a DCA(+) calculation.
 #
 # Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 
@@ -100,10 +100,11 @@ for T_ind, T in enumerate(temps):
     print('T = ' + str(T))
 
     # Create directory.
-    cmd = 'mkdir T=' + str(T)
-    os.system(cmd)
-
     dir_str = './T=' + str(T)
+    cmd = 'mkdir -p ' + dir_str
+    os.system(cmd)
+    cmd = 'mkdir -p ' + dir_str + "/configuration"
+    os.system(cmd)
 
     input_sp = dir_str + '/input_sp.json'
     input_tp = dir_str + '/input_tp.json'

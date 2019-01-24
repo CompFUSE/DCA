@@ -1,0 +1,49 @@
+#!/bin/bash
+#
+# Batch script to run DCA++'s test suite on ORNL's Titan supercomputer.
+# The script has to be submitted from the directory where the script is located (DCA/test) or the
+# top-level source directory (DCA).
+#
+# Usage: qsub titan_run_tests.pbs      [from DCA/test dir]
+#        qsub test/titan_run_tests.pbs [from DCA dir]
+
+#PBS -q debug
+#PBS -A cph102
+#PBS -N DCA++_test_suite
+#PBS -o out.DCA++-tests.$PBS_JOBID.txt
+#PBS -e err.DCA++-tests.$PBS_JOBID.txt
+#PBS -l walltime=01:00:00
+#PBS -l nodes=1
+#PBS -l gres=atlas1%atlas2
+
+# Required since some GPU tests run multiple MPI tasks per node.
+export CRAY_CUDA_MPS=1
+
+# Check where the script has been submitted from and change to the top-level source dir (DCA).
+if [ "${PBS_O_WORKDIR: -4}" == "test" ]; then
+    cd $PBS_O_WORKDIR/..
+elif [ "${PBS_O_WORKDIR: -3}" == "DCA" ]; then
+    cd $PBS_O_WORKDIR
+else
+    1>&2 printf "Usage: qsub titan_run_tests.pbs      [from test dir]\n       qsub test/titan_run_tests.pbs [from DCA dir]\n"
+    exit
+fi
+
+# Load all required modules.
+source $MODULESHOME/init/bash
+source build-aux/titan_load_modules.sh
+
+# Create a clean build directory and change to it.
+BUILD_DIR="build_$PBS_JOBID"
+mkdir $BUILD_DIR && cd $BUILD_DIR
+
+# Run CMake to configure the build.
+cmake -C ../build-aux/titan.cmake -DDCA_WITH_TESTS_FAST=ON -DDCA_WITH_TESTS_EXTENSIVE=ON ../
+
+# Build the tests.
+make -j 8
+
+# Run the tests.
+date
+make test
+date

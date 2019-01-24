@@ -12,94 +12,64 @@
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator_gpu.hpp"
 
 #include <array>
-#include "gtest/gtest.h"
+#include <functional>
 #include <string>
-#include <vector>
+#include "gtest/gtest.h"
 
 #include "dca/function/util/difference.hpp"
 #include "dca/math/random/std_random_wrapper.hpp"
+#include "dca/phys/four_point_type.hpp"
+#include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/accumulation_test.hpp"
 #include "test/unit/phys/dca_step/cluster_solver/test_setup.hpp"
 
-struct ConfigElement {
-  double get_tau() const {
-    return tau_;
-  }
-  double get_left_band() const {
-    return band_;
-  }
-  double get_right_band() const {
-    return band_;
-  }
-  double get_left_site() const {
-    return r_;
-  }
-  double get_right_site() const {
-    return r_;
-  }
+constexpr bool update_baseline = false;
 
-  int band_;
-  int r_;
-  double tau_;
-};
-using Configuration = std::array<std::vector<ConfigElement>, 2>;
-using MatrixPair = std::array<dca::linalg::Matrix<double, dca::linalg::CPU>, 2>;
+#define INPUT_DIR \
+  DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/"
 
-using G0Setup = typename dca::testing::G0Setup<dca::testing::LatticeSquare>;
-const std::string input_dir =
-    DCA_SOURCE_DIR "/test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/";
+constexpr char input_file[] = INPUT_DIR "input_4x4.json";
 
-void prepareRandomConfig(Configuration& config, MatrixPair& M, std::array<int, 2> n);
+using ConfigGenerator = dca::testing::AccumulationTest<double>;
+using Configuration = ConfigGenerator::Configuration;
+using Sample = ConfigGenerator::Sample;
 
-TEST_F(G0Setup, Accumulate) {
+using TpAccumulatorGpuSinglebandTest =
+    dca::testing::G0Setup<dca::testing::LatticeSquare, dca::phys::solver::CT_AUX, input_file>;
+
+unsigned int loop_id = 0;
+
+TEST_F(TpAccumulatorGpuSinglebandTest, Accumulate) {
   dca::linalg::util::initializeMagma();
 
-  const std::array<int, 2> n{31, 28};
-  MatrixPair M;
+  const std::array<int, 2> n{27, 24};
+  Sample M;
   Configuration config;
-  prepareRandomConfig(config, M, n);
-
-  auto& parameters = G0Setup::parameters;
-  auto& data = *G0Setup::data;
-  auto& G4 = data.get_G4();
-  auto G4_check(G4);
+  ConfigGenerator::prepareConfiguration(config, M, TpAccumulatorGpuSinglebandTest::BDmn::dmn_size(),
+                                        TpAccumulatorGpuSinglebandTest::RDmn::dmn_size(),
+                                        parameters_.get_beta(), n);
 
   for (const dca::phys::FourPointType type :
        {dca::phys::PARTICLE_HOLE_TRANSVERSE, dca::phys::PARTICLE_HOLE_MAGNETIC,
         dca::phys::PARTICLE_HOLE_CHARGE, dca::phys::PARTICLE_PARTICLE_UP_DOWN}) {
-    parameters.set_four_point_type(type);
-    const int sign = 1;
+    parameters_.set_four_point_type(type);
 
     dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::CPU> accumulatorHost(
-        data.G0_k_w_cluster_excluded, parameters);
-    accumulatorHost.accumulate(M, config, sign);
+        data_->G0_k_w_cluster_excluded, parameters_);
+    dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::GPU> accumulatorDevice(
+        data_->G0_k_w_cluster_excluded, parameters_);
+    const int sign = 1;
 
-    dca::phys::solver::accumulator::TpAccumulator<Parameters, dca::linalg::GPU> accumulator(
-        data.G0_k_w_cluster_excluded, parameters);
-    accumulator.accumulate(M, config, sign);
-    accumulator.finalize();
+    accumulatorDevice.resetAccumulation(loop_id);
+    accumulatorDevice.accumulate(M, config, sign);
+    accumulatorDevice.finalize();
+
+    accumulatorHost.resetAccumulation(loop_id);
+    accumulatorHost.accumulate(M, config, sign);
+    accumulatorHost.finalize();
 
     const auto diff = dca::func::util::difference(accumulatorHost.get_sign_times_G4(),
-                                                   accumulator.get_sign_times_G4());
+                                                  accumulatorDevice.get_sign_times_G4());
     EXPECT_GT(5e-7, diff.l_inf);
-  }
-}
-
-void prepareRandomConfig(Configuration& config, MatrixPair& M, const std::array<int, 2> ns) {
-  dca::math::random::StdRandomWrapper<std::ranlux48_base> rng(0, 1, 0);
-
-  for (int s = 0; s < 2; ++s) {
-    const int n = ns[s];
-    config[s].resize(n);
-    M[s].resize(n);
-    for (int i = 0; i < n; ++i) {
-      const double tau = rng() - 0.5;
-      const int r = rng() * G0Setup::RDmn::dmn_size();
-      const int b = rng() * G0Setup::BDmn::dmn_size();
-      config[s][i] = ConfigElement{b, r, tau};
-    }
-
-    for (int j = 0; j < n; ++j)
-      for (int i = 0; i < n; ++i)
-        M[s](i, j) = 2 * rng() - 1.;
+    ++loop_id;
   }
 }

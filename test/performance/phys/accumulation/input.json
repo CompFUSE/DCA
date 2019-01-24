@@ -6,28 +6,18 @@
 
   "domains": {
     "real-space-grids": {
-      "cluster": [[3, 0],
-        [0, 2]]
+      "cluster": [[6, 0],
+        [0, 6]]
     },
     "imaginary-frequency": {
       "sp-fermionic-frequencies": 256,
-      "four-point-fermionic-frequencies" : 64
+      "four-point-fermionic-frequencies" : 32
     }
   },
 
   "four-point": {
     "type": "PARTICLE_PARTICLE_UP_DOWN",
     "momentum-transfer": [0., 0],
-    "frequency-transfer": 2
+    "frequency-transfer": 0
   }
 }
-
-
-
-
-
-
-
-
-
-

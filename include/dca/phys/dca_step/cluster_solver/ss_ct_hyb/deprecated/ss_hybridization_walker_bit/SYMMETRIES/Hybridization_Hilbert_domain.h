@@ -1,9 +1,6 @@
-//-*-C++-*-
-
-/*
- *      Author: bart ydens
- */
-
+// Copyright (C) 2010 Philipp Werner
+//
+// Integrated into DCA++ by Peter Staar (taa@zurich.ibm.com) and Bart Ydens.
 
 #ifndef HYBRIDIZATION_HILBERT_DOMAIN_H
 #define HYBRIDIZATION_HILBERT_DOMAIN_H

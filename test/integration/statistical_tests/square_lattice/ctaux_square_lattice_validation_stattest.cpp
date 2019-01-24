@@ -49,10 +49,7 @@ TEST(CtauxSquareLatticeValidationTest, GreensFunction) {
   using dca::func::function;
   function<double, SigmaCutDomain> G_k_w_sample =
       cutFrequency(qmc_solver.local_G_k_w(), n_frequencies);
-
-  auto G_k_w_avg(G_k_w_sample);
-  dca_test_env->concurrency.sum_and_average(G_k_w_avg);
-  G_k_w_avg.set_name("G_k_w");
+  G_k_w_sample.set_name("G_k_w");
 
   // read the expected result
   function<double, SigmaCutDomain> G_k_w_expected;
@@ -71,12 +68,12 @@ TEST(CtauxSquareLatticeValidationTest, GreensFunction) {
 
   // compute covariance and average ctin result.
   function<double, CovarianceDomain> G_k_w_covariance("G_k_w_covariance");
-  dca_test_env->concurrency.computeCovariance(G_k_w_sample, G_k_w_avg, G_k_w_covariance);
+  dca_test_env->concurrency.computeCovarianceAndAvg(G_k_w_sample, G_k_w_covariance);
 
   //   compute p-value
   if (id == dca_test_env->concurrency.first()) {
     // read the stored reference data
-    dca::math::StatisticalTesting test(G_k_w_avg, G_k_w_expected, G_k_w_covariance, 1);
+    dca::math::StatisticalTesting test(G_k_w_sample, G_k_w_expected, G_k_w_covariance, 1);
     double p_value = test.computePValue(false, number_of_samples);
     test.printInfo("ctaux_square_testinfo.out", true);
     double p_value_default = 0.05;

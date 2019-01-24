@@ -6,6 +6,7 @@
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Raffaele Solca' (rasolca@itp.phys.ethz.ch)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // This file provides a cuda stream container
 
@@ -48,7 +49,7 @@ public:
   //                0 <= stream_id < streams_per_thread_.
   cudaStream_t operator()(int thread_id, int stream_id) {
     assert(thread_id >= 0 && thread_id < get_max_threads());
-    assert(stream_id >= 0 && stream_id < streams_.size());
+    assert(stream_id >= 0 && stream_id < streams_per_thread_);
     return streams_[stream_id + streams_per_thread_ * thread_id];
   }
 

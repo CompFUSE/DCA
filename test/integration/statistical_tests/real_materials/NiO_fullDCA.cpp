@@ -52,6 +52,10 @@ int main(int argc, char** argv) {
   // override file input for file names
   parameters.set_t_ij_file_name(TEST_DIRECTORY "t_ij_NiO.txt");
   parameters.set_U_ij_file_name(TEST_DIRECTORY "U_ij_NiO_8_lit.txt");
+
+  const int meas_per_process = parameters.get_measurements();
+  parameters.set_measurements(meas_per_process * concurrency.number_of_processors());
+
   parameters.update_model();
   parameters.update_domains();
   Data dca_data(parameters);
@@ -90,8 +94,7 @@ int main(int argc, char** argv) {
     writer.execute(cov);
     writer.close_group();
     writer.open_group("parameters");
-    writer.execute("measurments_per_node", parameters.get_measurements_per_process() *
-                                               parameters.get_accumulators());
+    writer.execute("measurments_per_node", meas_per_process);
     writer.execute("nodes", concurrency.number_of_processors());
     writer.close_group();
     writer.close_file();

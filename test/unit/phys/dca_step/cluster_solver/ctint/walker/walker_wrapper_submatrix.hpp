@@ -32,7 +32,7 @@ struct WalkerWrapperSubmatrix : public CtintWalkerSubmatrix<device_t, Parameters
   using RootClass = CtintWalkerBase<Parameters>;
   using Rng = typename BaseClass::Rng;
 
-  WalkerWrapperSubmatrix(Parameters& parameters_ref, Rng& rng_ref,
+  WalkerWrapperSubmatrix(const Parameters& parameters_ref, Rng& rng_ref,
                          const InteractionVertices& vertices,
                          const DMatrixBuilder<device_t>& builder)
       : BaseClass(parameters_ref, rng_ref, vertices, builder, 0) {}

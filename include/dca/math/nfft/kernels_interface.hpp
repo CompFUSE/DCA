@@ -11,7 +11,10 @@
 
 #ifndef DCA_MATH_NFFT_KERNELS_INTERFACE_HPP
 #define DCA_MATH_NFFT_KERNELS_INTERFACE_HPP
-#ifdef DCA_HAVE_CUDA
+
+#ifndef DCA_HAVE_CUDA
+#pragma error "This file requires CUDA."
+#endif
 
 #include <cuda.h>
 
@@ -22,14 +25,15 @@ namespace details {
 // dca::math::nfft::details::
 
 struct ConfigElem {
-  int b, r;
+  int band;
+  int site;
 };
 
 template <typename ScalarType>
-void accumulateOnDevice(const double* M, int ldm, int sign, ScalarType* out,
+void accumulateOnDevice(const ScalarType* M, int ldm, ScalarType sign, ScalarType* out,
                         ScalarType* out_sqr, const int ldo, const ConfigElem* config_left,
                         const ConfigElem* config_right, const ScalarType* tau,
-                        const ScalarType* coeff, int size, cudaStream_t stream_);
+                        const ScalarType* cubic_coeff, int size, cudaStream_t stream_);
 
 template <typename ScalarType>
 void sum(const ScalarType* in, int ldi, ScalarType* out, int ldo, int n, int m, cudaStream_t stream);
@@ -44,5 +48,4 @@ void initializeNfftHelper(int nb, int nr, const int* sub_r, int lds, int oversam
 }  // math
 }  // dca
 
-#endif  // DCA_HAVE_CUDA
 #endif  // DCA_MATH_NFFT_KERNELS_INTERFACE_HPP

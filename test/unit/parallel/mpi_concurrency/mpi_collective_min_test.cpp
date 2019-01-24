@@ -16,14 +16,11 @@
 
 class MPICollectiveMinTest : public ::testing::Test {
 protected:
-  MPICollectiveMinTest()
-      : grouping_(new dca::parallel::MPIProcessorGrouping), min_interface_(grouping_) {
-    rank_ = grouping_->get_id();
+  MPICollectiveMinTest() {
+    rank_ = min_interface_.get_id();
   }
 
-  std::unique_ptr<const dca::parallel::MPIProcessorGrouping> grouping_;
   dca::parallel::MPICollectiveMin min_interface_;
-
   int rank_;
 };
 

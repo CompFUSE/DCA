@@ -3,7 +3,7 @@
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
-//  See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
@@ -13,7 +13,7 @@
 
 #include <array>
 
-#include "dca/util/cuda_blocks.hpp"
+#include "dca/util/integer_division.hpp"
 #include "dca/linalg/util/cast_cuda.hpp"
 
 namespace dca {
@@ -24,6 +24,15 @@ namespace details {
 
 using linalg::util::CudaComplex;
 using linalg::util::castCudaComplex;
+
+std::array<dim3, 2> getBlockSize(const int i, const int j) {
+  const int n_threads_i = std::min(32, i);
+  const int n_threads_j = std::min(32, j);
+  const int n_blocks_i = util::ceilDiv(i, n_threads_i);
+  const int n_blocks_j = util::ceilDiv(j, n_threads_j);
+
+  return std::array<dim3, 2>{dim3(n_blocks_i, n_blocks_j), dim3(n_threads_i, n_threads_j)};
+}
 
 template <typename Real>
 __global__ void rearrangeResultKernel(const CudaComplex<Real>* in, const int ldi,
@@ -60,7 +69,7 @@ void rearrangeResult(const std::complex<Real>* in, const int ldi, std::complex<R
                      const int ldo, const int nb, const int nk, const int nw,
                      const cudaStream_t stream) {
   const int size = nk * nb * nw;
-  auto const blocks = dca::util::getBlockSize(size / 2, size);
+  auto const blocks = getBlockSize(size / 2, size);
 
   rearrangeResultKernel<Real><<<blocks[0], blocks[1], 0, stream>>>(
       castCudaComplex(in), ldi, castCudaComplex(out), ldo, nb, nk, nw);

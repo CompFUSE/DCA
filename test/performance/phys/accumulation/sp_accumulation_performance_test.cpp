@@ -7,19 +7,19 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@gitp.phys.ethz.ch)
 //
-// Measure the runtime of the single particle accumulator.
+// Measures the runtime of the single particle accumulator.
 
 #include "dca/config/config_defines.hpp"
 #include "dca/config/haves_defines.hpp"
 
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator.hpp"
-#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator_gpu.hpp"
 
 #include <array>
 #include <vector>
 #include <iostream>
 #ifdef DCA_HAVE_CUDA
 #include <cuda_profiler_api.h>
+#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator_gpu.hpp"
 #endif  // DCA_HAVE_CUDA
 
 #include "dca/io/json/json_reader.hpp"
@@ -58,9 +58,10 @@ struct ConfigElement {
   double tau_;
 };
 
+using dca::linalg::CPU;
+using dca::linalg::GPU;
+
 using Configuration = std::array<std::vector<ConfigElement>, 2>;
-using MatrixPair = std::array<dca::linalg::Matrix<double, dca::linalg::CPU>, 2>;
-void prepareRandomConfig(Configuration& config, MatrixPair& M, int n);
 
 using Model =
     dca::phys::models::TightBindingModel<dca::phys::models::bilayer_lattice<dca::phys::domains::D4>>;
@@ -70,11 +71,17 @@ using Parameters = dca::phys::params::Parameters<Concurrency, dca::parallel::NoT
                                                  Model, void, dca::phys::solver::CT_AUX>;
 using Data = dca::phys::DcaData<Parameters>;
 
+using Real = Parameters::MC_measurement_scalar_type;
+template <dca::linalg::DeviceType device>
+using MatrixPair = std::array<dca::linalg::Matrix<Real, device>, 2>;
+
+void prepareRandomConfig(Configuration& config, MatrixPair<CPU>& M, int n);
+
 using BDmn = dca::func::dmn_0<dca::phys::domains::electron_band_domain>;
 using RDmn = typename Parameters::RClusterDmn;
 
 int main(int argc, char** argv) {
-  int n = 1000;
+  int n = 3000;
   if (argc > 1)
     n = std::atoi(argv[1]);
 
@@ -90,17 +97,17 @@ int main(int argc, char** argv) {
   Data data(parameters);
   data.initialize();
 
-  MatrixPair M;
+  MatrixPair<CPU> M;
   Configuration config;
   prepareRandomConfig(config, M, n);
 
   dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::CPU> accumulator(parameters);
-  accumulator.initialize();
+  accumulator.resetAccumulation();
 
   // Allows memory to be assigned.
   const int sign = 1;
   accumulator.accumulate(M, config, sign);
-  accumulator.initialize();
+  accumulator.resetAccumulation();
 
   Profiler::start();
   dca::profiling::WallTime start_time;
@@ -131,35 +138,47 @@ int main(int argc, char** argv) {
 
   dca::phys::solver::accumulator::SpAccumulator<Parameters, dca::linalg::GPU> gpu_accumulator(
       parameters);
+  MatrixPair<GPU> M_dev{M[0], M[1]};
 
   // Allows memory to be assigned.
-  gpu_accumulator.initialize();
-  gpu_accumulator.accumulate(M, config, sign);
+  gpu_accumulator.resetAccumulation();
+  gpu_accumulator.accumulate(M_dev, config, sign);
   cudaStreamSynchronize(gpu_accumulator.get_streams()[0]);
   cudaStreamSynchronize(gpu_accumulator.get_streams()[1]);
-  gpu_accumulator.initialize();
+  gpu_accumulator.resetAccumulation();
 
   Profiler::start();
-
   cudaProfilerStart();
+
+  // Profile Single invocation.
   start_event.record(gpu_accumulator.get_streams()[0]);
   dca::profiling::WallTime host_start_time;
-  gpu_accumulator.accumulate(M, config, sign);
+  gpu_accumulator.accumulate(M_dev, config, sign);
   dca::profiling::WallTime host_end_time;
   stop_event.record(gpu_accumulator.get_streams()[1]);
-  cudaProfilerStop();
-
-  Profiler::stop("sp_gpu_accumulation_profile.txt");
 
   const double host_time = duration(host_end_time, host_start_time);
   const double dev_time = dca::linalg::util::elapsedTime(stop_event, start_event);
-
   std::cout << "\nSpAccumulation GPU: Host time [sec]:\t " << host_time;
   std::cout << "\nSpAccumulation GPU: Device time [sec]:\t " << dev_time << "\n\n";
+
+  // Profile loop.
+  cudaDeviceSynchronize();
+  const dca::profiling::WallTime loop_start;
+  constexpr int n_iters = 10;
+  for (int i = 0; i < n_iters; ++i) {
+    gpu_accumulator.accumulate(M, config, sign);
+  }
+  const dca::profiling::WallTime loop_end;
+  std::cout << "\nSpAccumulation GPU loop: time per iteration [sec]:\t "
+            << duration(loop_end, loop_start) / n_iters << "\n\n";
+
+  cudaProfilerStop();
+  Profiler::stop("sp_gpu_accumulation_profile.txt");
 #endif  // DCA_HAVE_CUDA
 }
 
-void prepareRandomConfig(Configuration& config, MatrixPair& M, const int n) {
+void prepareRandomConfig(Configuration& config, MatrixPair<CPU>& M, const int n) {
   dca::math::random::StdRandomWrapper<std::ranlux48_base> rng(0, 1, 0);
 
   for (int s = 0; s < 2; ++s) {

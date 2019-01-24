@@ -40,7 +40,8 @@ struct CMakeOptions {
   static const std::string dca_with_autotuning;
   static const std::string dca_with_gnuplot;
   static const std::string dca_with_single_precision_measurements;
-  static const std::string dca_with_single_precision_coarsegraining;
+  static const std::string dca_with_memory_savings;
+
   static const std::string dca_with_qmc_bit;
 
   static void print();

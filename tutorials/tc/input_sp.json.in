@@ -59,14 +59,11 @@
         "seed": 985456376,
         "warm-up-sweeps": 100,
         "sweeps-per-measurement": 1.,
-        "measurements": 1000000,
-
-        "error-computation-type" : "NONE",
+        "measurements": 100000,
 
         "threaded-solver": {
             "walkers": 3,
-            "accumulators": 5,
-            "shared-walk-and-accumulation-thread" : false
+            "accumulators": 5
         }
     },
 

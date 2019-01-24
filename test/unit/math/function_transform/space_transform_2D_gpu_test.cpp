@@ -7,7 +7,8 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// This file tests the FunctionTransform class for the real to momentum space tranformations
+// This test confronts a 2D space to momentum function transform executed on the GPU, with the same
+// transform executed on the CPU.
 
 #include "dca/math/function_transform/special_transforms/space_transform_2D.hpp"
 #include "dca/math/function_transform/special_transforms/space_transform_2D_gpu.hpp"
@@ -57,12 +58,14 @@ void initialize() {
   }
 }
 
+template <typename Scalar, dca::linalg::DeviceType device>
+using Matrix = dca::linalg::ReshapableMatrix<Scalar, device>;
+
 TEST(SpaceTransform2DGpuTest, Execute) {
   initialize();
 
   using dca::func::function;
   using dca::func::dmn_variadic;
-  using dca::linalg::Matrix;
   using Complex = std::complex<double>;
   function<Complex, dmn_variadic<RDmn, RDmn, BDmn, BDmn, SDmn, WPosDmn, WDmn>> f_in;
   Matrix<Complex, dca::linalg::CPU> M_in;
@@ -78,16 +81,18 @@ TEST(SpaceTransform2DGpuTest, Execute) {
         for (int r1 = 0; r1 < nr; ++r1)
           for (int b2 = 0; b2 < nb; ++b2)
             for (int b1 = 0; b1 < nb; ++b1) {
+              // Initialize the input with some arbitrary function of the indices.
               const Complex val(r1 * r1 + b1 - 0.5 * w1, r2 * r2 + b2 - 0.5 * w2);
+
               auto index = [=](int r, int b, int w) { return r + nr * b + nb * nr * w; };
               f_in(r1, r2, b1, b2, 0, w1, w2) = M_in(index(r1, b1, w1), index(r2, b2, w2)) = val;
             }
 
-  // Transform on the CPU
+  // Transform on the CPU.
   function<Complex, dmn_variadic<BDmn, BDmn, SDmn, KDmn, KDmn, WPosDmn, WDmn>> f_out;
   dca::math::transform::SpaceTransform2D<RDmn, KDmn, double>::execute(f_in, f_out);
 
-  // Transform on the GPU
+  // Transform on the GPU.
   Matrix<Complex, dca::linalg::GPU> M_dev(M_in);
   magma_queue_t queue;
   magma_queue_create(&queue);
@@ -96,7 +101,7 @@ TEST(SpaceTransform2DGpuTest, Execute) {
   cudaStreamSynchronize(transform_obj.get_stream());
   magma_queue_destroy(queue);
 
-  Matrix<Complex, dca::linalg::CPU> M_out(M_dev, "M_out");
+  Matrix<Complex, dca::linalg::CPU> M_out(M_dev);
   for (int w2 = 0; w2 < 2 * nw; ++w2)
     for (int w1 = 0; w1 < nw; ++w1)
       for (int r2 = 0; r2 < nr; ++r2)

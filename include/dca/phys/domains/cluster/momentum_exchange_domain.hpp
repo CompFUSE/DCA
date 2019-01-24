@@ -7,7 +7,7 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// This domain contained in this file describes the momentum exchange inside a two particle Green's
+// The domain contained in this file describes the momentum exchange inside a two particle Green's
 // Function.
 
 #ifndef DCA_PHYS_DOMAINS_CLUSTER_CLUSTER_CLUSTER_DOMAIN_HPP
@@ -31,7 +31,8 @@ public:
   template <class Parameters>
   static void initialize(const Parameters& parameters);
 
-  // Returns 1 if Parameters::compute_all_transfers() == true, otherwise the cluster size
+  // Returns the number of computed momentum exchanges.
+  // Precondition: the domain is initialized.
   static int get_size() {
     assert(initialized_);
     return elements_.size();
@@ -50,31 +51,25 @@ public:
     return name;
   }
 
+  static bool isInitialized() {
+    return initialized_;
+  }
+
   template <class Writer>
   static void write(Writer& writer);
+
+private:
+  static void initialize(bool compute_all_transfers, int transfer_index, int cluster_size);
 
 private:
   static std::vector<int> elements_;
   static bool initialized_;
 };
-std::vector<int> MomentumExchangeDomain::elements_;
-bool MomentumExchangeDomain::initialized_ = false;
 
 template <class Parameters>
 void MomentumExchangeDomain::initialize(const Parameters& parameters) {
-  if (parameters.compute_all_transfers()) {
-    const int size = Parameters::KClusterDmn::dmn_size();
-    elements_.resize(size);
-    int idx_value = 0;
-    for (int& elem : elements_)
-      elem = idx_value++;
-  }
-
-  else {
-    elements_ = std::vector<int>{parameters.get_four_point_momentum_transfer_index()};
-  }
-
-  initialized_ = true;
+  initialize(parameters.compute_all_transfers(), parameters.get_four_point_momentum_transfer_index(),
+             Parameters::KClusterDmn::dmn_size());
 }
 
 template <class Writer>

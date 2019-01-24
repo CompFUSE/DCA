@@ -29,7 +29,7 @@ int getCublasVersion() {
 
 void initializeMagma() {
   static bool initialized = false;
-  if(!initialized) {
+  if (!initialized) {
     magma_init();
     initialized = true;
   }

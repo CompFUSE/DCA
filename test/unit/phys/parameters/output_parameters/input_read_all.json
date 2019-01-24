@@ -2,6 +2,8 @@
     "output": {
         "directory": "./T=0.5",
         "output-format": "JSON",
+        "directory-config-read" : "configuration",
+        "directory-config-write" : "configuration",
         "filename-dca": "dca.json",
         "filename-analysis": "analysis.json",
         "filename-ed": "ed.json",

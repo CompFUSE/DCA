@@ -1,13 +1,7 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
-// All rights reserved.
+// Copyright (C) 2010 Philipp Werner
 //
-// See LICENSE for terms of usage.
-// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
-//
-// Author: Bart Ydens
-//         Peter Staar (taa@zurich.ibm.com)
-//         Andrei Plamada (plamada@itp.phys.ethz.ch)
+// Integrated into DCA++ by Peter Staar (taa@zurich.ibm.com) and Bart Ydens.
+// Modified by Andrei Plamada (plamada@itp.phys.ethz.ch).
 //
 // This class organizes the MC walker in the SS CT-HYB QMC.
 
@@ -22,6 +16,7 @@
 #include <utility>
 #include <vector>
 
+#include "dca/io/buffer.hpp"
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/linalg/device_type.hpp"
@@ -138,11 +133,6 @@ public:
     return ss_hybridization_walker_routines_obj;
   }
 
-  void markThermalized() {
-    assert(thermalized == false);
-    thermalized = true;
-  }
-
   // Writes the current progress and the configuration size to stdout.
   // TODO: Before this method can be made const, SS_CT_HYB_configuration needs to be made const
   //       correct.
@@ -150,6 +140,15 @@ public:
 
   // Writes a summary of the walker's Markov chain updates to stdout.
   void printSummary() const;
+
+  // TODO: implement.
+  io::Buffer dumpConfig() const {
+    return io::Buffer();
+  }
+  void readConfig(io::Buffer& /*buffer*/) {}
+  std::size_t deviceFingerprint() const {
+    return 0;
+  }
 
 private:
   void test_interpolation();
@@ -461,7 +460,7 @@ void SsCtHybWalker<device_t, parameters_type, MOMS_type>::swap_random_orbitals()
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 void SsCtHybWalker<device_t, parameters_type, MOMS_type>::updateShell(const int done,
-                                                                       const int total) {
+                                                                      const int total) {
   if (concurrency.id() == concurrency.first() && total > 10 && (done % (total / 10)) == 0) {
     std::cout.unsetf(std::ios_base::floatfield);
 

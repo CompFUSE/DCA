@@ -127,8 +127,7 @@ if (DCA_PROFILER STREQUAL "Counting")
   set(DCA_PROFILER_INCLUDE "dca/profiling/counting_profiler.hpp")
 
 elseif (DCA_PROFILER STREQUAL "PAPI")
-  # TODO: Replace long long with std::size_t?
-  set(DCA_PROFILING_EVENT_TYPE "dca::profiling::papi_and_time_event<long long>")  # Need quotes because of space in 'long long'.
+  set(DCA_PROFILING_EVENT_TYPE "dca::profiling::PapiAndTimeEvent")
   set(DCA_PROFILING_EVENT_INCLUDE "dca/profiling/events/papi_and_time_event.hpp")
   set(DCA_PROFILER_TYPE dca::profiling::CountingProfiler<Event>)
   set(DCA_PROFILER_INCLUDE "dca/profiling/counting_profiler.hpp")
@@ -260,15 +259,6 @@ if (DCA_WITH_SINGLE_PRECISION_MEASUREMENTS)
 endif()
 
 ################################################################################
-# Single precision coarsegraining
-option(DCA_WITH_SINGLE_PRECISION_COARSEGRAINING "Coarsegrain in single precision." OFF)
-mark_as_advanced(DCA_WITH_SINGLE_PRECISION_COARSEGRAINING)
-
-if (DCA_WITH_SINGLE_PRECISION_COARSEGRAINING)
-  dca_add_config_define(DCA_WITH_SINGLE_PRECISION_COARSEGRAINING)
-endif()
-
-################################################################################
 # Gnuplot
 option(DCA_WITH_GNUPLOT "Enable Gnuplot." ON)
 
@@ -288,6 +278,26 @@ else()
   set(GNUPLOT_INTERFACE_INCLUDE_DIR "" CACHE INTERNAL "" FORCE)
   set(GNUPLOT_INTERFACE_LIBRARY "" CACHE INTERNAL "" FORCE)
 endif()
+
+################################################################################
+# Accumulation options.
+option(DCA_WITH_MEMORY_SAVINGS "Save memory in the two particle accumulation at a slight performance
+       cost." OFF)
+if (DCA_WITH_MEMORY_SAVINGS)
+  set(MEMORY_SAVINGS true)
+else()
+  set(MEMORY_SAVINGS false)
+endif()
+
+if (DCA_WITH_SINGLE_PRECISION_MEASUREMENTS)
+  set(MC_ACCUMULATION_SCALAR float)
+else()
+  set(MC_ACCUMULATION_SCALAR double)
+endif()
+
+configure_file("${PROJECT_SOURCE_DIR}/include/dca/config/accumulation_options.hpp.in"
+        "${CMAKE_BINARY_DIR}/include/dca/config/accumulation_options.hpp" @ONLY)
+
 
 ################################################################################
 # Generate applications' config files.

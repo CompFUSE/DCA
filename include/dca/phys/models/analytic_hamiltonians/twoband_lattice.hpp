@@ -30,11 +30,11 @@ namespace phys {
 namespace models {
 // dca::phys::models::
 
-template <typename point_group_type>
+template <typename /*point_group_type*/>
 class twoband_lattice {
 public:
   typedef domains::no_symmetry<2> LDA_point_group;
-  typedef point_group_type DCA_point_group;
+  typedef domains::no_symmetry<2> DCA_point_group;
 
   const static ClusterShapeType DCA_cluster_shape = BETT_CLUSTER;
   const static ClusterShapeType LDA_cluster_shape = PARALLELEPIPED;

@@ -1,11 +1,6 @@
-//-*-C++-*-
-
-/*! \file Hybridization_quantum_state.h  
- *
- * author Bart Ydens
- *
- * 
- */
+// Copyright (C) 2010 Philipp Werner
+//
+// Integrated into DCA++ by Peter Staar (taa@zurich.ibm.com) and Bart Ydens.
 
 #ifndef HYBRIDIZATION_QUANTUM_STATE_H
 #define HYBRIDIZATION_QUANTUM_STATE_H

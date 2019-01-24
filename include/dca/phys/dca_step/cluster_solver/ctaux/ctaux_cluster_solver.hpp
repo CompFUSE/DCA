@@ -45,15 +45,29 @@ namespace phys {
 namespace solver {
 // dca::phys::solver::
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+template <dca::linalg::DeviceType device_t, class Parameters, class Data>
 class CtauxClusterSolver {
-public:
+protected:
+  using DataType = Data;
+  using ParametersType = Parameters;
+
+  using Rng = typename Parameters::random_number_generator;
+
+  using Profiler = typename Parameters::profiler_type;
+  using Concurrency = typename Parameters::concurrency_type;
+
+  using Walker = ctaux::CtauxWalker<device_t, Parameters, Data>;
+  using Accumulator = ctaux::CtauxAccumulator<device_t, Parameters, Data>;
+
+  static constexpr linalg::DeviceType device = device_t;
+
+private:
   using w = func::dmn_0<domains::frequency_domain>;
   using b = func::dmn_0<domains::electron_band_domain>;
   using s = func::dmn_0<domains::electron_spin_domain>;
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
-  using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
+  using CDA = ClusterDomainAliases<Parameters::lattice_type::DIMENSION>;
   using RClusterDmn = typename CDA::RClusterDmn;
   using KClusterDmn = typename CDA::KClusterDmn;
 
@@ -61,10 +75,10 @@ public:
   using NuNuRClusterWDmn = func::dmn_variadic<nu, nu, RClusterDmn, w>;
 
 public:
-  CtauxClusterSolver(parameters_type& parameters_ref, Data& MOMS_ref);
+  CtauxClusterSolver(Parameters& parameters_ref, Data& MOMS_ref);
 
   template <typename Writer>
-  void write(Writer& reader);
+  void write(Writer& writer);
 
   void initialize(int dca_iteration);
 
@@ -76,28 +90,17 @@ public:
   // Computes and returns the local value of the Green's function G(k, \omega), i.e. without
   // averaging it across processes.
   // For testing purposes.
-  // Precondition: The accumulator data has not been averaged, i.e. finalize has not been called.
+  // Precondition: The accumulator_ data has not been averaged, i.e. finalize has not been called.
   auto local_G_k_w() const;
 
 protected:
-  using ParametersType = parameters_type;
-  using DataType = Data;
-  using Rng = typename ParametersType::random_number_generator;
-  using Profiler = typename ParametersType::profiler_type;
-  using Concurrency = typename ParametersType::concurrency_type;
-
-  using Walker = ctaux::CtauxWalker<device_t, parameters_type, Data>;
-  using Accumulator = ctaux::CtauxAccumulator<device_t, parameters_type, Data>;
-
-  Walker instantiateWalker(Rng& rng_ref, int id) {
-    return Walker(parameters_, data_, rng_ref, id);
-  }
-
-private:
-  void warm_up(Walker& walker);
+  void warmUp(Walker& walker);
 
   void measure(Walker& walker);
 
+  void computeErrorBars();
+
+private:
   void symmetrize_measurements();
 
   // Sums/averages the quantities measured by the individual MPI ranks.
@@ -122,52 +125,53 @@ private:
   double mix_self_energy(double alpha);
 
 protected:
-  void computeErrorBars();
-
-protected:
-  parameters_type& parameters_;
+  Parameters& parameters_;
   Data& data_;
   Concurrency& concurrency_;
-  Accumulator accumulator_;
 
   double total_time_;
+
+  Accumulator accumulator_;
+
   int dca_iteration_;
 
 private:
-  Rng rng;
-  double thermalization_time;
-  double MC_integration_time;
+  Rng rng_;
 
-  func::function<std::complex<double>, NuNuKClusterWDmn> Sigma_old;
-  func::function<std::complex<double>, NuNuKClusterWDmn> Sigma_new;
+  double thermalization_time_;
+  double mc_integration_time_;
 
-  double accumualted_sign_;
+  func::function<std::complex<double>, NuNuKClusterWDmn> Sigma_old_;
+  func::function<std::complex<double>, NuNuKClusterWDmn> Sigma_new_;
+
+  int accumulated_sign_;
   func::function<std::complex<double>, NuNuRClusterWDmn> M_r_w_;
   func::function<std::complex<double>, NuNuRClusterWDmn> M_r_w_squared_;
 
+private:
   bool averaged_;
-  bool compute_jack_knife_;
 };
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-CtauxClusterSolver<device_t, parameters_type, Data>::CtauxClusterSolver(parameters_type& parameters_ref,
-                                                                        Data& data_ref)
+template <dca::linalg::DeviceType device_t, class Parameters, class Data>
+CtauxClusterSolver<device_t, Parameters, Data>::CtauxClusterSolver(Parameters& parameters_ref,
+                                                                   Data& data_ref)
     : parameters_(parameters_ref),
       data_(data_ref),
       concurrency_(parameters_.get_concurrency()),
 
+      total_time_(0),
+
       accumulator_(parameters_, data_, 0),
 
-      total_time_(0),
       dca_iteration_(-1),
 
-      rng(concurrency_.id(), concurrency_.number_of_processors(), parameters_.get_seed()),
+      rng_(concurrency_.id(), concurrency_.number_of_processors(), parameters_.get_seed()),
 
-      thermalization_time(0),
-      MC_integration_time(0),
+      thermalization_time_(0),
+      mc_integration_time_(0),
 
-      Sigma_old("Self-Energy-n-1-iteration"),
-      Sigma_new("Self-Energy-n-0-iteration"),
+      Sigma_old_("Self-Energy-n-1-iteration"),
+      Sigma_new_("Self-Energy-n-0-iteration"),
 
       M_r_w_("M_r_w"),
       M_r_w_squared_("M_r_w_squared"),
@@ -177,50 +181,48 @@ CtauxClusterSolver<device_t, parameters_type, Data>::CtauxClusterSolver(paramete
     std::cout << "\n\n\t CT-AUX Integrator is born \n" << std::endl;
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+template <dca::linalg::DeviceType device_t, class Parameters, class Data>
 template <typename Writer>
-void CtauxClusterSolver<device_t, parameters_type, Data>::write(Writer& writer) {
+void CtauxClusterSolver<device_t, Parameters, Data>::write(Writer& writer) {
   writer.open_group("CT-AUX-SOLVER-functions");
 
-  writer.execute(Sigma_old);
-  writer.execute(Sigma_new);
+  writer.execute(Sigma_old_);
+  writer.execute(Sigma_new_);
 
   accumulator_.write(writer);
 
   writer.close_group();
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void CtauxClusterSolver<device_t, parameters_type, Data>::initialize(int dca_iteration) {
+template <dca::linalg::DeviceType device_t, class Parameters, class Data>
+void CtauxClusterSolver<device_t, Parameters, Data>::initialize(int dca_iteration) {
   dca_iteration_ = dca_iteration;
 
-  Sigma_old = data_.Sigma;
+  Sigma_old_ = data_.Sigma;
 
   accumulator_.initialize(dca_iteration_);
 
   averaged_ = false;
-  compute_jack_knife_ = parameters_.get_error_computation_type() == ErrorComputationType::JACK_KNIFE &&
-                        dca_iteration_ == parameters_.get_dca_iterations() - 1;
 
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\n\t CT-AUX Integrator has initialized (DCA-iteration : " << dca_iteration
               << ")\n\n";
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void CtauxClusterSolver<device_t, parameters_type, Data>::integrate() {
+template <dca::linalg::DeviceType device_t, class Parameters, class Data>
+void CtauxClusterSolver<device_t, Parameters, Data>::integrate() {
   if (concurrency_.id() == concurrency_.first()) {
     std::cout << "QMC integration has started: " << dca::util::print_time() << std::endl;
   }
 
-  Walker walker(parameters_, data_, rng, 0);
+  Walker walker(parameters_, data_, rng_, 0);
 
   walker.initialize();
 
   {
     dca::profiling::WallTime start_time;
 
-    warm_up(walker);
+    warmUp(walker);
 
     dca::profiling::WallTime mid_time;
 
@@ -233,8 +235,8 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::integrate() {
 
     dca::profiling::Duration tot_time(end_time, start_time);
 
-    thermalization_time = ther_time.sec + 1.e-6 * ther_time.usec;
-    MC_integration_time = meas_time.sec + 1.e-6 * meas_time.usec;
+    thermalization_time_ = ther_time.sec + 1.e-6 * ther_time.usec;
+    mc_integration_time_ = meas_time.sec + 1.e-6 * meas_time.usec;
     total_time_ = tot_time.sec + 1.e-6 * tot_time.usec;
   }
 
@@ -248,17 +250,14 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::integrate() {
   }
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
+template <dca::linalg::DeviceType device_t, class Parameters, class Data>
 template <typename dca_info_struct_t>
-double CtauxClusterSolver<device_t, parameters_type, Data>::finalize(dca_info_struct_t& dca_info_struct) {
+double CtauxClusterSolver<device_t, Parameters, Data>::finalize(dca_info_struct_t& dca_info_struct) {
   collect_measurements();
   symmetrize_measurements();
 
   // Compute new Sigma.
   compute_G_k_w_from_M_r_w();
-
-  if (compute_jack_knife_)
-    data_.get_G_k_w_error() = concurrency_.jackknifeError(data_.G_k_w);
 
   // FT<k_DCA,r_DCA>::execute(data_.G_k_w, data_.G_r_w);
   math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(data_.G_k_w, data_.G_r_w);
@@ -295,9 +294,9 @@ double CtauxClusterSolver<device_t, parameters_type, Data>::finalize(dca_info_st
       double(accumulator_.get_accumulated_sign()) / accumulator_.get_number_of_measurements();
 
   dca_info_struct.thermalization_per_mpi_task(dca_iteration_) =
-      thermalization_time / double(concurrency_.number_of_processors());
+      thermalization_time_ / double(concurrency_.number_of_processors());
   dca_info_struct.MC_integration_per_mpi_task(dca_iteration_) =
-      MC_integration_time / double(concurrency_.number_of_processors());
+      mc_integration_time_ / double(concurrency_.number_of_processors());
 
   dca_info_struct.times_per_mpi_task(dca_iteration_) =
       total_time_ / double(concurrency_.number_of_processors());
@@ -314,8 +313,8 @@ double CtauxClusterSolver<device_t, parameters_type, Data>::finalize(dca_info_st
   return dca_info_struct.L2_Sigma_difference(dca_iteration_);
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void CtauxClusterSolver<device_t, parameters_type, Data>::warm_up(Walker& walker) {
+template <dca::linalg::DeviceType device_t, class Parameters, class Data>
+void CtauxClusterSolver<device_t, Parameters, Data>::warmUp(Walker& walker) {
   Profiler profiler("thermalization", "QMCI", __LINE__);
 
   if (concurrency_.id() == concurrency_.first())
@@ -332,8 +331,8 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::warm_up(Walker& walker
     std::cout << "\n\t\t warm-up has ended\n" << std::endl;
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void CtauxClusterSolver<device_t, parameters_type, Data>::measure(Walker& walker) {
+template <dca::linalg::DeviceType device_t, class Parameters, class Data>
+void CtauxClusterSolver<device_t, Parameters, Data>::measure(Walker& walker) {
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t measuring has started \n" << std::endl;
 
@@ -360,8 +359,8 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::measure(Walker& walker
     std::cout << "\n\t\t measuring has ended \n" << std::endl;
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void CtauxClusterSolver<device_t, parameters_type, Data>::computeErrorBars() {
+template <dca::linalg::DeviceType device_t, class Parameters, class Data>
+void CtauxClusterSolver<device_t, Parameters, Data>::computeErrorBars() {
   if (!accumulator_.compute_std_deviation())
     return;
   if (concurrency_.id() == concurrency_.first())
@@ -376,18 +375,16 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::computeErrorBars() {
       "M_k_w_new");
 
   accumulator_.finalize();
-  const int nb_measurements = accumulator_.get_number_of_measurements();
-  double sign = accumulator_.get_accumulated_sign() / double(nb_measurements);
 
-  M_r_w_new = accumulator_.get_M_r_w();
-  M_r_w_new /= double(nb_measurements * sign);
+  M_r_w_new = accumulator_.get_sign_times_M_r_w();
+  M_r_w_new /= accumulator_.get_accumulated_sign();
 
   math::transform::FunctionTransform<RClusterDmn, KClusterDmn>::execute(M_r_w_new, M_k_w_new);
 
   compute_G_k_w_new(M_k_w_new, G_k_w_new);
-  compute_S_k_w_new(G_k_w_new, Sigma_new);
+  compute_S_k_w_new(G_k_w_new, Sigma_new_);
 
-  concurrency_.average_and_compute_stddev(Sigma_new, data_.get_Sigma_stdv());
+  concurrency_.average_and_compute_stddev(Sigma_new_, data_.get_Sigma_stdv());
   concurrency_.average_and_compute_stddev(G_k_w_new, data_.get_G_k_w_stdv());
 
   // sum G4
@@ -397,78 +394,61 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::computeErrorBars() {
       std::cout << "\n\t\t compute-error-bars on G4\t" << dca::util::print_time() << "\n\n";
 
     auto G4 = accumulator_.get_sign_times_G4();
-    G4 /= parameters_.get_beta() * parameters_.get_beta() * nb_measurements * sign;
+    G4 /= parameters_.get_beta() * parameters_.get_beta() * accumulator_.get_accumulated_sign();
 
     concurrency_.average_and_compute_stddev(G4, data_.get_G4_stdv());
   }
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void CtauxClusterSolver<device_t, parameters_type, Data>::collect_measurements() {
-  const int nb_measurements = accumulator_.get_number_of_measurements();
+template <dca::linalg::DeviceType device_t, class Parameters, class Data>
+void CtauxClusterSolver<device_t, Parameters, Data>::collect_measurements() {
+  {
+    Profiler profiler("Scalars", "QMC-collectives", __LINE__);
+    concurrency_.sum(total_time_);
+    concurrency_.sum(accumulator_.get_Gflop());
+    accumulated_sign_ = accumulator_.get_accumulated_sign();
+    concurrency_.sum(accumulated_sign_);
+  }
 
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t Collect measurements \t" << dca::util::print_time() << "\n"
               << "\n\t\t\t QMC-time : " << total_time_ << " [sec]"
               << "\n\t\t\t Gflops   : " << accumulator_.get_Gflop() / total_time_ << " [Gf]"
-              << "\n\t\t\t sign     : "
-              << accumulator_.get_accumulated_sign() / double(nb_measurements) << " \n";
-
-  {
-    Profiler profiler("MC-time", "QMC-collectives", __LINE__);
-    concurrency_.sum(total_time_);
-  }
-
-  {  // sum the flops
-    Profiler profiler("MC-flops", "QMC-collectives", __LINE__);
-    concurrency_.sum(accumulator_.get_Gflop());
-  }
-
-  auto average = [&](auto& obj) {
-    if (compute_jack_knife_)
-      concurrency_.leaveOneOutAvg(obj);
-    else
-      concurrency_.sum_and_average(obj);
-  };
-
-  {  // sum the sign
-    accumualted_sign_ = accumulator_.get_accumulated_sign();
-    Profiler profiler("QMC-sign", "QMC-collectives", __LINE__);
-    average(accumualted_sign_);
-  }
+              << "\n\t\t\t sign     : " << accumulated_sign_ / parameters_.get_measurements()
+              << " \n";
 
   // sum M_r_w
-  M_r_w_ = accumulator_.get_M_r_w();
+  M_r_w_ = accumulator_.get_sign_times_M_r_w();
   {
     Profiler profiler("QMC-self-energy", "QMC-collectives", __LINE__);
-    average(M_r_w_);
+    concurrency_.sum(M_r_w_);
   }
-  M_r_w_ /= accumualted_sign_;  // sign;
+  M_r_w_ /= accumulated_sign_;
 
   if (accumulator_.compute_std_deviation()) {
-    M_r_w_squared_ = accumulator_.get_M_r_w_squared();
+    M_r_w_squared_ = accumulator_.get_sign_times_M_r_w_sqr();
     {
       Profiler profiler("QMC-self-energy", "QMC-collectives", __LINE__);
-      average(M_r_w_squared_);
+      concurrency_.sum(M_r_w_squared_);
     }
-    M_r_w_squared_ /= accumualted_sign_;  // sign;
+    M_r_w_squared_ /= accumulated_sign_;
   }
 
   if (parameters_.additional_time_measurements()) {
-    Profiler profiler("QMC-two-particle-Greens-function", "QMC-collectives", __LINE__);
-    concurrency_.sum_and_average(accumulator_.get_G_r_t(), nb_measurements);
-    concurrency_.sum_and_average(accumulator_.get_G_r_t_stddev(), nb_measurements);
+    Profiler profiler("Additional time measurements.", "QMC-collectives", __LINE__);
+    concurrency_.sum(accumulator_.get_G_r_t());
+    concurrency_.sum(accumulator_.get_G_r_t_stddev());
 
-    accumulator_.get_G_r_t() /= accumualted_sign_;
-    accumulator_.get_G_r_t_stddev() /= accumualted_sign_ * std::sqrt(nb_measurements);
+    accumulator_.get_G_r_t() /= accumulated_sign_;
+    accumulator_.get_G_r_t_stddev() /= accumulated_sign_ * std::sqrt(parameters_.get_measurements());
 
-    concurrency_.sum_and_average(accumulator_.get_charge_cluster_moment(), nb_measurements);
-    concurrency_.sum_and_average(accumulator_.get_magnetic_cluster_moment(), nb_measurements);
-    concurrency_.sum_and_average(accumulator_.get_dwave_pp_correlator(), nb_measurements);
+    concurrency_.sum(accumulator_.get_charge_cluster_moment());
+    concurrency_.sum(accumulator_.get_magnetic_cluster_moment());
+    concurrency_.sum(accumulator_.get_dwave_pp_correlator());
 
-    accumulator_.get_charge_cluster_moment() /= accumualted_sign_;
-    accumulator_.get_magnetic_cluster_moment() /= accumualted_sign_;
-    accumulator_.get_dwave_pp_correlator() /= accumualted_sign_;
+    accumulator_.get_charge_cluster_moment() /= accumulated_sign_;
+    accumulator_.get_magnetic_cluster_moment() /= accumulated_sign_;
+    accumulator_.get_dwave_pp_correlator() /= accumulated_sign_;
 
     data_.G_r_t = accumulator_.get_G_r_t();
   }
@@ -479,10 +459,8 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::collect_measurements()
     Profiler profiler("QMC-two-particle-Greens-function", "QMC-collectives", __LINE__);
     auto& G4 = data_.get_G4();
     G4 = accumulator_.get_sign_times_G4();
-    average(G4);
-    G4 /= accumualted_sign_;
-    if (compute_jack_knife_)
-      data_.get_G4_error() = concurrency_.jackknifeError(G4);
+    concurrency_.sum(G4);
+    G4 /= accumulated_sign_;
   }
 
   concurrency_.sum(accumulator_.get_visited_expansion_order_k());
@@ -492,8 +470,8 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::collect_measurements()
   averaged_ = true;
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void CtauxClusterSolver<device_t, parameters_type, Data>::symmetrize_measurements() {
+template <dca::linalg::DeviceType device_t, class Parameters, class Data>
+void CtauxClusterSolver<device_t, Parameters, Data>::symmetrize_measurements() {
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t symmetrize measurements has started \t" << dca::util::print_time() << "\n";
 
@@ -501,8 +479,8 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::symmetrize_measurement
   symmetrize::execute(M_r_w_squared_, data_.H_symmetry);
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void CtauxClusterSolver<device_t, parameters_type, Data>::compute_G_k_w_from_M_r_w() {
+template <dca::linalg::DeviceType device_t, class Parameters, class Data>
+void CtauxClusterSolver<device_t, Parameters, Data>::compute_G_k_w_from_M_r_w() {
   func::function<std::complex<double>, NuNuKClusterWDmn> M_k_w;
   math::transform::FunctionTransform<RClusterDmn, KClusterDmn>::execute(M_r_w_, M_k_w);
 
@@ -518,8 +496,8 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::compute_G_k_w_from_M_r
 
   for (int k_ind = 0; k_ind < KClusterDmn::dmn_size(); k_ind++) {
     for (int w_ind = 0; w_ind < w::dmn_size(); w_ind++) {
-      memset(G_matrix, 0, sizeof(std::complex<double>) * matrix_size);
-      memset(G0_times_M_matrix, 0, sizeof(std::complex<double>) * matrix_size);
+      memset(static_cast<void*>(G_matrix), 0, sizeof(std::complex<double>) * matrix_size);
+      memset(static_cast<void*>(G0_times_M_matrix), 0, sizeof(std::complex<double>) * matrix_size);
 
       memcpy(G0_cluster_excluded_matrix, &data_.G0_k_w_cluster_excluded(0, 0, 0, 0, k_ind, w_ind),
              sizeof(std::complex<double>) * matrix_size);
@@ -552,8 +530,8 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::compute_G_k_w_from_M_r
   delete[] G0_times_M_matrix;
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-double CtauxClusterSolver<device_t, parameters_type, Data>::compute_S_k_w_from_G_k_w() {
+template <dca::linalg::DeviceType device_t, class Parameters, class Data>
+double CtauxClusterSolver<device_t, Parameters, Data>::compute_S_k_w_from_G_k_w() {
   static double alpha = parameters_.get_self_energy_mixing_factor();
   //     double L2_difference_norm = 0;
   //     double L2_Sigma_norm      = 0;
@@ -603,8 +581,8 @@ double CtauxClusterSolver<device_t, parameters_type, Data>::compute_S_k_w_from_G
   return L2_norm;
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void CtauxClusterSolver<device_t, parameters_type, Data>::compute_G_k_w_new(
+template <dca::linalg::DeviceType device_t, class Parameters, class Data>
+void CtauxClusterSolver<device_t, Parameters, Data>::compute_G_k_w_new(
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, KClusterDmn, w>>& M_k_w_new,
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, KClusterDmn, w>>& G_k_w_new) const {
   //     if(concurrency_.id()==0)
@@ -637,8 +615,8 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::compute_G_k_w_new(
   symmetrize::execute(G_k_w_new, data_.H_symmetry);
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void CtauxClusterSolver<device_t, parameters_type, Data>::compute_S_k_w_new(
+template <dca::linalg::DeviceType device_t, class Parameters, class Data>
+void CtauxClusterSolver<device_t, Parameters, Data>::compute_S_k_w_new(
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, KClusterDmn, w>>& G_k_w_new,
     func::function<std::complex<double>, func::dmn_variadic<nu, nu, KClusterDmn, w>>& S_k_w_new) {
   //     if(concurrency_.id()==0)
@@ -677,8 +655,8 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::compute_S_k_w_new(
   symmetrize::execute(S_k_w_new, data_.H_symmetry);
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void CtauxClusterSolver<device_t, parameters_type, Data>::set_non_interacting_bands_to_zero() {
+template <dca::linalg::DeviceType device_t, class Parameters, class Data>
+void CtauxClusterSolver<device_t, Parameters, Data>::set_non_interacting_bands_to_zero() {
   //  for(int w_ind=0; w_ind<w::dmn_size(); w_ind++){
   //    for(int k_ind=0; k_ind<KClusterDmn::dmn_size(); k_ind++){
   //      for(int l2=0; l2<b::dmn_size(); l2++){
@@ -703,8 +681,8 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::set_non_interacting_ba
   //            data_.Sigma(l1,l2,k_ind, w_ind) = 0.;
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void CtauxClusterSolver<device_t, parameters_type, Data>::adjust_self_energy_for_double_counting() {
+template <dca::linalg::DeviceType device_t, class Parameters, class Data>
+void CtauxClusterSolver<device_t, Parameters, Data>::adjust_self_energy_for_double_counting() {
   set_non_interacting_bands_to_zero();
 
   //  func::function<double, nu> d_0;
@@ -759,8 +737,8 @@ void CtauxClusterSolver<device_t, parameters_type, Data>::adjust_self_energy_for
   symmetrize::execute(data_.Sigma, data_.H_symmetry);
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-double CtauxClusterSolver<device_t, parameters_type, Data>::mix_self_energy(double alpha) {
+template <dca::linalg::DeviceType device_t, class Parameters, class Data>
+double CtauxClusterSolver<device_t, Parameters, Data>::mix_self_energy(double alpha) {
   symmetrize::execute(data_.Sigma, data_.H_symmetry);
   symmetrize::execute(data_.Sigma_cluster, data_.H_symmetry);
 
@@ -801,8 +779,8 @@ double CtauxClusterSolver<device_t, parameters_type, Data>::mix_self_energy(doub
   return L2_error;
 }
 
-template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-auto CtauxClusterSolver<device_t, parameters_type, Data>::local_G_k_w() const {
+template <dca::linalg::DeviceType device_t, class Parameters, class Data>
+auto CtauxClusterSolver<device_t, Parameters, Data>::local_G_k_w() const {
   if (averaged_)
     throw std::logic_error("The local data was already averaged.");
 
@@ -811,7 +789,7 @@ auto CtauxClusterSolver<device_t, parameters_type, Data>::local_G_k_w() const {
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, KClusterDmn, w>> M_k_w_new(
       "M_k_w_new");
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, RClusterDmn, w>> M_r_w_new(
-      accumulator_.get_M_r_w(), "M_r_w_new");
+      accumulator_.get_sign_times_M_r_w(), "M_r_w_new");
 
   M_r_w_new /= accumulator_.get_accumulated_sign();
 

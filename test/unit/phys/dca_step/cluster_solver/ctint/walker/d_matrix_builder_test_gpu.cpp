@@ -25,14 +25,14 @@ TEST_F(G0Setup, RemoveAndInstertVertex) {
 
   // Setup interpolation and matrix builder class.
   ctint::G0Interpolation<dca::linalg::GPU> g0(
-      dca::phys::solver::ctint::details::shrinkG0(data->G0_r_t));
+      dca::phys::solver::ctint::details::shrinkG0(data_->G0_r_t));
 
   ctint::DMatrixBuilder<dca::linalg::GPU> builder(g0, RDmn::parameter_type::get_subtract_matrix(),
                                                   label_dmn.get_branch_domain_steps(),
-                                                  parameters.getAlphas());
+                                                  parameters_.getAlphas());
   ctint::DMatrixBuilder<dca::linalg::CPU> builder_cpu(
       g0.get_host_interpolation(), RDmn::parameter_type::get_subtract_matrix(),
-      label_dmn.get_branch_domain_steps(), parameters.getAlphas());
+      label_dmn.get_branch_domain_steps(), parameters_.getAlphas());
 
   HostMatrix G0;
   DeviceMatrix G0_dev;
@@ -46,7 +46,7 @@ TEST_F(G0Setup, RemoveAndInstertVertex) {
     right_sector = !right_sector;
 
     // Setup the configuration.
-    ctint::SolverConfiguration configuration(parameters.get_beta(), BDmn::dmn_size(), G0Setup::interaction_vertices);
+    ctint::SolverConfiguration configuration(parameters_.get_beta(), BDmn::dmn_size(), G0Setup::interaction_vertices_);
     ctint::DeviceConfigurationManager device_config;
     for (int i = 0; i < size; i++)
       configuration.insertRandom(rng);

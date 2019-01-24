@@ -24,7 +24,7 @@ public:
   using nu = func::dmn_variadic<b, s>;  // orbital-spin index
 
   using ph_bubble_t = compute_bubble<ph, parameters_type, k_dmn_t, w>;
-  // INTERNAL: Shouldn't the template argument be pp instead of pp?
+  // INTERNAL: Shouldn't the template argument be pp instead of ph?
   using pp_bubble_t = compute_bubble<ph, parameters_type, k_dmn_t, w>;
 
   using chi_function_type = typename ph_bubble_t::function_type;

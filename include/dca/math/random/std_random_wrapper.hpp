@@ -53,7 +53,7 @@ public:
   inline uint64_t getInitialSeed() const {
     return initial_seed_;
   }
-  
+
   inline uint64_t getSeed() const {
     return seed_;
   }

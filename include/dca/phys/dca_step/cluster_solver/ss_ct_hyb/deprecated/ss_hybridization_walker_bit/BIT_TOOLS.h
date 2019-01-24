@@ -1,4 +1,6 @@
-//-*-C++-*-
+// Copyright (C) 2010 Philipp Werner
+//
+// Integrated into DCA++ by Peter Staar (taa@zurich.ibm.com) and Bart Ydens.
 
 #ifndef SS_CT_HYBRIDIZATION_BIT_TOOLS_H
 #define SS_CT_HYBRIDIZATION_BIT_TOOLS_H
@@ -7,10 +9,6 @@ namespace DCA
 {
   namespace QMCI
   {
-    /*! \file BIT_TOOLS.h
-     *
-     *  author Peter Staar
-     */
     struct ss_ct_hybridization_walker_bit
     {
 #include "type_definitions.h"

@@ -27,6 +27,7 @@
 #include "dca/phys/dca_step/cluster_mapping/coarsegraining/coarsegraining_domain.hpp"
 #include "dca/phys/dca_step/cluster_mapping/coarsegraining/tetrahedron_integration_data.hpp"
 #include "dca/phys/dca_step/cluster_mapping/coarsegraining/tetrahedron_routines_inverse_matrix_function.hpp"
+#include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
 
@@ -35,10 +36,11 @@ namespace phys {
 namespace clustermapping {
 // dca::phys::clustermapping::
 
-template <typename parameters_type, typename K_dmn>
+template <typename parameters_type>
 class tetrahedron_integration {
 public:
-  using ThisType = tetrahedron_integration<parameters_type, K_dmn>;
+  using ThisType = tetrahedron_integration<parameters_type>;
+  using K_dmn = typename ClusterDomainAliases<parameters_type::lattice_dimension>::KClusterDmn;
 
   using k_cluster_type = typename K_dmn::parameter_type;
 
@@ -84,13 +86,13 @@ private:
   parameters_type& parameters;
 };
 
-template <typename parameters_type, typename K_dmn>
-tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration(parameters_type& parameters_ref)
+template <typename parameters_type>
+tetrahedron_integration<parameters_type>::tetrahedron_integration(parameters_type& parameters_ref)
     : parameters(parameters_ref) {}
 
-template <typename parameters_type, typename K_dmn>
+template <typename parameters_type>
 template <typename scalar_type>
-void tetrahedron_integration<parameters_type, K_dmn>::execute(
+void tetrahedron_integration<parameters_type>::execute(
     func::function<scalar_type, tet_dmn_type>& w_tet,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, tet_dmn_type>>& G_tet,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu>>& G_int) const {
@@ -124,9 +126,9 @@ void tetrahedron_integration<parameters_type, K_dmn>::execute(
   G_int = threads.sumReduction(nr_threads, task);
 }
 
-// template <typename parameters_type, typename K_dmn>
+// template <typename parameters_type>
 // template <typename scalar_type>
-// void tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_1D(
+// void tetrahedron_integration<parameters_type>::tetrahedron_integration_1D(
 //    func::function<scalar_type, tet_dmn_type>& w_tet,
 //    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, tet_dmn_type>>& G_tet,
 //    func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu>>& G_int) {
@@ -154,9 +156,9 @@ void tetrahedron_integration<parameters_type, K_dmn>::execute(
 //  }
 //}
 
-template <typename parameters_type, typename K_dmn>
+template <typename parameters_type>
 template <typename scalar_type>
-auto tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_2D(
+auto tetrahedron_integration<parameters_type>::tetrahedron_integration_2D(
     const int id, const int nr_threads, func::function<scalar_type, tet_dmn_type>& w_tet,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, tet_dmn_type>>& G_tet) const {
   tet_dmn_type tet_dmn;
@@ -186,9 +188,9 @@ auto tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_2D
   return G_int;
 }
 
-template <typename parameters_type, typename K_dmn>
+template <typename parameters_type>
 template <typename scalar_type>
-auto tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_3D(
+auto tetrahedron_integration<parameters_type>::tetrahedron_integration_3D(
     const int id, const int nr_threads, func::function<scalar_type, tet_dmn_type>& w_tet,
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, tet_dmn_type>>& G_tet) const {
   func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu>> G_int;
@@ -203,46 +205,6 @@ auto tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_3D
     scalar_type volume =
         w_tet(tet_ind) + w_tet(tet_ind + 1) + w_tet(tet_ind + 2) + w_tet(tet_ind + 3);
 
-    /*
-    {
-      std::vector<double> x(3);
-      std::vector<double> y(3);
-      std::vector<double> z(3);
-
-      for(int d=0; d<3; d++){
-        x[d] =
-    tet_dmn_type::get_elements()[tet_ind+1][d]-tet_dmn_type::get_elements()[tet_ind+0][d];
-        y[d] =
-    tet_dmn_type::get_elements()[tet_ind+2][d]-tet_dmn_type::get_elements()[tet_ind+0][d];
-        z[d] =
-    tet_dmn_type::get_elements()[tet_ind+3][d]-tet_dmn_type::get_elements()[tet_ind+0][d];
-      }
-
-      if(abs(volume-math::util::volume(x,y,z)/6)>1.e-6)
-        {
-          std::cout << tet_ind << "\t" << volume << "\t" << math::util::volume(x,y,z) <<
-    "\n";
-
-          math::util::print(x); std::cout << "\n";
-          math::util::print(y); std::cout << "\n";
-          math::util::print(z); std::cout << "\n";
-          std::cout << "\n\n";
-
-          math::util::print(tet_dmn_type::get_elements()[tet_ind+0]); std::cout << "\t" <<
-    G_tet(0,0,tet_ind+0) << "\n";
-          math::util::print(tet_dmn_type::get_elements()[tet_ind+1]); std::cout << "\t" <<
-    G_tet(0,0,tet_ind+1) << "\n";
-          math::util::print(tet_dmn_type::get_elements()[tet_ind+2]); std::cout << "\t" <<
-    G_tet(0,0,tet_ind+2) << "\n";
-          math::util::print(tet_dmn_type::get_elements()[tet_ind+3]); std::cout << "\t" <<
-    G_tet(0,0,tet_ind+3) << "\n";
-          std::cout << "\n\n";
-
-          assert(false);
-        }
-    }
-    */
-
     std::complex<scalar_type>* G_0 = &G_tet(0, 0, tet_ind + 0);
     std::complex<scalar_type>* G_1 = &G_tet(0, 0, tet_ind + 1);
     std::complex<scalar_type>* G_2 = &G_tet(0, 0, tet_ind + 2);
@@ -250,13 +212,6 @@ auto tetrahedron_integration<parameters_type, K_dmn>::tetrahedron_integration_3D
 
     tetrahedron_routines_inverse_matrix_function::execute(nu::dmn_size(), volume, G_0, G_1, G_2,
                                                           G_3, &G_tmp(0, 0), data_obj);
-
-    //         for(int j=0; j<nu::dmn_size(); j++)
-    //           for(int i=0; i<nu::dmn_size(); i++)
-    // 	    G_tmp(i,j) = (G_tet(i,j,tet_ind+0)
-    // 			  +G_tet(i,j,tet_ind+1)
-    // 			  +G_tet(i,j,tet_ind+2)
-    // 			  +G_tet(i,j,tet_ind+3))*volume/4.;
 
     for (int j = 0; j < nu::dmn_size(); j++)
       for (int i = 0; i < nu::dmn_size(); i++)

@@ -8,7 +8,7 @@
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
 //
 // This is a CMake generated header file.
-// It configures the DCA(+) analysis by selecting type defintions.
+// It configures the DCA(+) analysis by selecting type definitions.
 
 #ifndef DCA_CONFIG_ANALYSIS_HPP
 #define DCA_CONFIG_ANALYSIS_HPP

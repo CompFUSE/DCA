@@ -54,6 +54,10 @@ public:
                                      dca::linalg::Matrix<double, device_t>& G0_up,
                                      dca::linalg::Matrix<double, device_t>& G0_dn);
 
+  int deviceFingerprint() const {
+    return SHRINK_TOOLS_ALGORITHMS_obj.deviceFingerprint();
+  }
+
 private:
   template <class configuration_type, class vertex_vertex_matrix_type>
   static void shrink_Gamma_matrix(configuration_type& full_configuration,

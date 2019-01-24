@@ -6,7 +6,6 @@
 
 cmake_minimum_required(VERSION 3.3)
 project(DCA++ C CXX)
-set(CMAKE_CXX_STANDARD 14)
 
 ################################################################################
 # Disable in-source builds.
@@ -143,7 +142,6 @@ set(DCA_LIBS
   symmetrization
   coarsegraining
   ${DCA_CONCURRENCY_LIB}
-  ${DCA_EXTERNAL_LIBS}
   ${DCA_THREADING_LIBS}
 )
 
@@ -151,22 +149,25 @@ if (DCA_HAVE_CUDA)
   list(APPEND DCA_CUDA_LIBS
     cuda_utils)
   list(APPEND DCA_LIBS
+    blas_kernels
     ctaux_walker_kernels
     ctint_kernels
     dnfft_kernels
+    lapack_kernels
     mc_tools_kernels
     special_transform_kernels
-    lapack_kernels
-    blas_kernels
     ${DCA_CUDA_LIBS})
 endif()
+
+# The BLAS and LAPACK libraries in DCA_EXTERNAL_LIBS should be linked after MAGMA.
+list(APPEND DCA_LIBS ${DCA_EXTERNAL_LIBS})
 
 ################################################################################
 # Testing
 option(DCA_WITH_TESTS_FAST "Build DCA++'s fast tests." OFF)
 option(DCA_WITH_TESTS_EXTENSIVE "Build DCA++'s extensive tests." OFF)
 option(DCA_WITH_TESTS_PERFORMANCE "Build DCA++'s performance tests. (Only in Release mode.)" OFF)
-option(DCA_WITH_TESTS_VALIDATION  "Build DCA++'s validation tests." OFF)
+option(DCA_WITH_TESTS_STOCHASTIC  "Build DCA++'s stochastic tests." OFF)
 
 set(TEST_RUNNER "" CACHE STRING "Command for executing (MPI) programs.")
 set(MPIEXEC_NUMPROC_FLAG "-n" CACHE STRING "Flag used by TEST_RUNNER to specify the number of processes.")
@@ -176,7 +177,8 @@ separate_arguments(MPIEXEC_PREFLAGS UNIX_COMMAND ${MPIEXEC_PREFLAGS})
 set(gtest_dir "${PROJECT_SOURCE_DIR}/libs/googletest-1.8.0" CACHE PATH "Path to Google Test.")
 mark_as_advanced(gtest_dir)
 
-if (DCA_WITH_TESTS_FAST OR DCA_WITH_TESTS_EXTENSIVE OR DCA_WITH_TESTS_PERFORMANCE)
+if (DCA_WITH_TESTS_FAST OR DCA_WITH_TESTS_EXTENSIVE OR  DCA_WITH_TESTS_STOCHASTIC OR
+    DCA_WITH_TESTS_PERFORMANCE)
   include(dca_testing)
 
   if (((CMAKE_BUILD_TYPE STREQUAL "Release") OR

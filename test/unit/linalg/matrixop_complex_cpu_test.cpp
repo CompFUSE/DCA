@@ -46,7 +46,6 @@ TYPED_TEST(MatrixopComplexCPUTest, Gemv) {
 
   int m = 2;
   int n = 3;
-  std::pair<int, int> size_c(2, 3);
 
   char trans_opts[] = {'N', 'T', 'C'};
 
@@ -407,7 +406,9 @@ TYPED_TEST(MatrixopComplexCPUTest, InsertRowCol) {
 TYPED_TEST(MatrixopComplexCPUTest, Inverse) {
   using ScalarType = TypeParam;
   int size = 6;
-  auto val = [](int i, int j) { return ScalarType(10 * (i == j) + j * j / (i + 1), i + j - 1); };
+  auto val = [size](int i, int j) {
+    return std::polar<typename ScalarType::value_type>(2. / ((4 + size + i - j) % size + 1), i + j);
+  };
   dca::linalg::Matrix<ScalarType, dca::linalg::CPU> mat(size);
   testing::setMatrixElements(mat, val);
 
@@ -420,16 +421,18 @@ TYPED_TEST(MatrixopComplexCPUTest, Inverse) {
   for (int j = 0; j < mat.nrCols(); ++j) {
     for (int i = 0; i < mat.nrRows(); ++i) {
       if (i == j)
-        EXPECT_GE(2000 * this->epsilon, std::abs(ScalarType(1) - res(i, j)));
+        EXPECT_GE(500 * this->epsilon, std::abs(ScalarType(1) - res(i, j)));
       else
-        EXPECT_GE(2000 * this->epsilon, std::abs(res(i, j)));
+        EXPECT_GE(500 * this->epsilon, std::abs(res(i, j)));
     }
   }
 }
 
 TYPED_TEST(MatrixopComplexCPUTest, PseudoInverse) {
   using ScalarType = TypeParam;
-  auto val = [](int i, int j) { return ScalarType(10 * i + j * j / (i + 1), 1 + i + j); };
+  auto val = [](int i, int j) {
+    return std::polar<typename ScalarType::value_type>(2. / ((5 + i - j) % 3 + 1), i + j);
+  };
   auto val0 = [](int, int) { return 0; };
   {
     std::pair<int, int> size(2, 3);
@@ -447,9 +450,9 @@ TYPED_TEST(MatrixopComplexCPUTest, PseudoInverse) {
     for (int j = 0; j < res.nrCols(); ++j) {
       for (int i = 0; i < res.nrRows(); ++i) {
         if (i == j)
-          EXPECT_GE(2000 * this->epsilon, std::abs(ScalarType(1) - res(i, j)));
+          EXPECT_GE(500 * this->epsilon, std::abs(ScalarType(1) - res(i, j)));
         else
-          EXPECT_GE(2000 * this->epsilon, std::abs(res(i, j)));
+          EXPECT_GE(500 * this->epsilon, std::abs(res(i, j)));
       }
     }
 

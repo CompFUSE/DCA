@@ -27,8 +27,12 @@ public:
     return accumulated_sign;
   }
 
-  double get_number_of_measurements() const {
+  int get_number_of_measurements() const {
     return number_of_measurements;
+  }
+
+  double get_average_sign() const {
+    return static_cast<double>(accumulated_sign) / static_cast<double>(number_of_measurements);
   }
 
   void initialize(int dca_iteration) {

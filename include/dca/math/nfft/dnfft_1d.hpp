@@ -52,7 +52,7 @@ public:
   Dnfft1D();
   Dnfft1D(ThisType&& other) = default;
 
-  void initialize();
+  void resetAccumulation();
 
   // Adds the sample (t_val, f_val) to the accumulated function.
   // linind is the linear index of the sample w.r.t p_dmn (= all non-transformed (discrete)
@@ -135,22 +135,16 @@ private:
 
 template <typename ScalarType, typename WDmn, typename PDmn, int oversampling, NfftModeNames mode>
 Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>::Dnfft1D() : f_tau_("f_tau_") {
-  static bool static_initialization_done = false;
-  static std::mutex initialization_mutex;
-
-  if (!static_initialization_done) {
-    std::unique_lock<std::mutex> lock(initialization_mutex);
-    if (!static_initialization_done) {
-      initializeDomains(*this);
-      initializeStaticFunctions();
-      static_initialization_done = true;
-    }
-  }
+  static std::once_flag flag;
+  std::call_once(flag, [&]() {
+    initializeDomains(*this);
+    initializeStaticFunctions();
+  });
   f_tau_.reset();
 }
 
 template <typename ScalarType, typename WDmn, typename PDmn, int oversampling, NfftModeNames mode>
-void Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>::initialize() {
+void Dnfft1D<ScalarType, WDmn, PDmn, oversampling, mode>::resetAccumulation() {
   f_tau_ = 0.;
 }
 

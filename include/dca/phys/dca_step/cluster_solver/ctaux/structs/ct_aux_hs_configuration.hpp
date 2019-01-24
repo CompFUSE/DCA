@@ -19,6 +19,7 @@
 #include <stdexcept>
 #include <vector>
 
+#include "dca/io/buffer.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/domains/hs_field_sign_domain.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/domains/hs_spin_domain.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctaux/structs/vertex_pair.hpp"
@@ -103,6 +104,13 @@ public:
   // Returns the position of the vertex with ID vertex_id or the size of the configuration if no
   // such vertex is found.
   std::size_t find(uint64_t vertex_id) const;
+
+  bool operator==(const CT_AUX_HS_configuration<parameters_type>& rhs) const;
+
+  template <class Pars>
+  friend io::Buffer& operator<<(io::Buffer& buff, const CT_AUX_HS_configuration<Pars>& config);
+  template <class Pars>
+  friend io::Buffer& operator>>(io::Buffer& buff, CT_AUX_HS_configuration<Pars>& config);
 
 private:
   parameters_type& parameters;
@@ -854,6 +862,17 @@ std::size_t CT_AUX_HS_configuration<parameters_type>::find(const uint64_t vertex
       [vertex_id](const vertex_pair_type& vertex) -> bool { return vertex.get_id() == vertex_id; });
 
   return it - configuration.begin();
+}
+
+template <class parameters_type>
+bool CT_AUX_HS_configuration<parameters_type>::operator==(
+    const CT_AUX_HS_configuration<parameters_type>& rhs) const {
+  using math::util::operator==;
+
+  return configuration == rhs.configuration && configuration_e_UP == rhs.configuration_e_UP &&
+         configuration_e_DN == rhs.configuration_e_DN &&
+         current_Nb_of_annihilatable_spins == rhs.current_Nb_of_annihilatable_spins &&
+         current_Nb_of_creatable_spins == rhs.current_Nb_of_creatable_spins;
 }
 
 }  // ctaux

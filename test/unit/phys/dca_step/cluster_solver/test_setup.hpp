@@ -62,27 +62,28 @@ struct G0Setup : public ::testing::Test {
   using WDmn = func::dmn_0<phys::domains::frequency_domain>;
   using LabelDomain = func::dmn_variadic<BDmn, BDmn, RDmn>;
 
-  Concurrency concurrency;
-  Parameters parameters;
-  std::unique_ptr<Data> data;
-  phys::solver::ctint::InteractionVertices interaction_vertices;
+  Concurrency concurrency_;
+  Parameters parameters_;
+  std::unique_ptr<Data> data_;
+  phys::solver::ctint::InteractionVertices interaction_vertices_;
 
-  G0Setup() : concurrency(0, nullptr), parameters("", concurrency) {}
+  G0Setup() : concurrency_(0, nullptr), parameters_("", concurrency_) {}
 
   virtual void SetUp() {
-    parameters.template read_input_and_broadcast<io::JSONReader>(input_name);
+    parameters_.template read_input_and_broadcast<io::JSONReader>(input_name);
 
-    parameters.update_model();
+    parameters_.update_model();
     static bool domain_initialized = false;
     if (!domain_initialized) {
-      parameters.update_domains();
+      parameters_.update_domains();
       domain_initialized = true;
     }
-    data.reset(new Data(parameters));
-    data->initialize();
-    interaction_vertices.initializeFromHamiltonian(data->H_interactions);
-    if (data->has_non_density_interactions())
-      interaction_vertices.initializeFromNonDensityHamiltonian(data->get_non_density_interactions());
+    data_ = std::make_unique<Data>(parameters_);
+    data_->initialize();
+
+    interaction_vertices_.initializeFromHamiltonian(data_->H_interactions);
+    if (data_->has_non_density_interactions())
+      interaction_vertices_.initializeFromNonDensityHamiltonian(data_->get_non_density_interactions());
   }
 
   virtual void TearDown() {}

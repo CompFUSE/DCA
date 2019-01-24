@@ -27,19 +27,19 @@ double computeDetRatio(MatrixPair a, MatrixPair b);
 
 TEST_F(G0Setup, RemoveAndInstertNddVertex) {
   // Setup
-  parameters.setDoubleUpdateProb(1);
+  parameters_.setDoubleUpdateProb(1);
   std::vector<double> rng_values(1000);
   for (double& x : rng_values)
     x = double(std::rand()) / RAND_MAX;
   G0Setup::RngType rng(rng_values);
 
   ctint::G0Interpolation<dca::linalg::CPU> g0(
-      dca::phys::solver::ctint::details::shrinkG0(data->G0_r_t));
+      dca::phys::solver::ctint::details::shrinkG0(data_->G0_r_t));
   G0Setup::LabelDomain label_dmn;
   ctint::DMatrixBuilder<dca::linalg::CPU> builder(g0, RDmn::parameter_type::get_subtract_matrix(),
                                                   label_dmn.get_branch_domain_steps(),
-                                                  parameters.getAlphas());
-  Walker walker(parameters, rng, G0Setup::interaction_vertices, builder);
+                                                  parameters_.getAlphas());
+  Walker walker(parameters_, rng, G0Setup::interaction_vertices_, builder);
 
   // *******************************
   // Test vertex insertion *********

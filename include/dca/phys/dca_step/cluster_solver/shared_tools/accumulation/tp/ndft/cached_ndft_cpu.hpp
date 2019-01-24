@@ -22,7 +22,7 @@
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
 #include "dca/linalg/linalg.hpp"
-#include "dca/linalg/util/allocators.hpp"
+#include "dca/linalg/util/allocators/vectors_typedefs.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_template.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/triple.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"

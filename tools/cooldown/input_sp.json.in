@@ -3,7 +3,9 @@
         "directory": "./T=CURRENT_TEMP/",
         "output-format": "HDF5",
         "filename-dca": "dca_sp.hdf5",
-        "filename-profiling": "profiling.json",
+        "filename-profiling": "profiling_sp.json",
+        "directory-config-read" : "./T=PREVIOUS_TEMP/configuration",
+        "directory-config-write" : "./T=CURRENT_TEMP/configuration",
         "dump-lattice-self-energy": false,
         "dump-cluster-Greens-functions": false,
         "dump-Gamma-lattice": false,
@@ -73,7 +75,7 @@
         "seed": 985456376,
         "warm-up-sweeps": 100,
         "sweeps-per-measurement": 1.,
-        "measurements-per-process-and-accumulator": 1000,
+        "measurements": 500000,
 
         "threaded-solver": {
             "walkers": 3,

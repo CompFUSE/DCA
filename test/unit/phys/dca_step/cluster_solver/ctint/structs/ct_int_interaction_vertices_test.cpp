@@ -78,7 +78,7 @@ TEST_F(G0Setup, InitializeFromHamiltonians) {
   //  **  Density-density test  **
   //  ****************************
   {
-    auto& H_int = G0Setup::data->H_interactions;
+    auto& H_int = G0Setup::data_->H_interactions;
     const double U = 1;
     H_int = 0.;
     H_int(0, 0, 0, 1, 0) = U;
@@ -104,12 +104,12 @@ TEST_F(G0Setup, InitializeFromHamiltonians) {
     using Lattice = G0Setup::LatticeType;
 
     dca::func::function<double, dca::func::dmn_variadic<Nu, Nu, Nu, Nu, Rdmn>> H_nd;
-    Lattice::initializeNonDensityInteraction(H_nd, G0Setup::parameters);
+    Lattice::initializeNonDensityInteraction(H_nd, G0Setup::parameters_);
 
     dca::phys::solver::ctint::InteractionVertices vertices;
     vertices.initializeFromNonDensityHamiltonian(H_nd);
 
-    const double Jh = G0Setup::parameters.get_Jh();
+    const double Jh = G0Setup::parameters_.get_Jh();
     // Double insertion is proposed with w**2 probability.
     EXPECT_EQ(Jh, vertices[0].w);
     EXPECT_NEAR(Jh * 16, vertices.integratedInteraction(), 1e-10);

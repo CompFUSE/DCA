@@ -1,12 +1,6 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
-// All rights reserved.
+// Copyright (C) 2010 Philipp Werner
 //
-// See LICENSE for terms of usage.
-// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
-//
-// Author: Bart Ydens
-//         Peter Staar (taa@zurich.ibm.com)
+// Integrated into DCA++ by Peter Staar (taa@zurich.ibm.com) and Bart Ydens.
 //
 // Single-site Monte Carlo integrator based on a hybridization expansion.
 
@@ -62,6 +56,8 @@ public:
 
   const static int MC_TYPE = SS_CT_HYB;
 
+  static constexpr linalg::DeviceType device = device_t;
+
 public:
   SsCtHybClusterSolver(parameters_type& parameters_ref, Data& MOMS_ref);
 
@@ -98,12 +94,8 @@ protected:  // Interface to the thread jacket.
   using Accumulator = cthyb::SsCtHybAccumulator<dca::linalg::CPU, parameters_type, Data>;
   using Walker = cthyb::SsCtHybWalker<dca::linalg::CPU, parameters_type, Data>;
 
-  Walker instantiateWalker(Rng& rng, int id) const {
-    return Walker(parameters_, data_, rng, id);
-  }
-
 private:
-  void warm_up(Walker& walker);
+  void warmUp(Walker& walker);
 
   void measure(Walker& walker);
 
@@ -245,15 +237,13 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::integrate() {
 
   walker.initialize();
 
-  warm_up(walker);
+  warmUp(walker);
 
   measure(walker);
 
   if (concurrency_.id() == concurrency_.first()) {
     std::cout << "On-node integration has ended: " << dca::util::print_time()
-              << "\n\nTotal number of measurements: "
-              <<  parameters_.get_measurements()
-              << std::endl;
+              << "\n\nTotal number of measurements: " << parameters_.get_measurements() << std::endl;
 
     walker.printSummary();
   }
@@ -310,7 +300,7 @@ double SsCtHybClusterSolver<device_t, parameters_type, Data>::finalize(
 
   dca_info_struct.average_expansion_order(dca_iteration_) = integral / total;
 
-  dca_info_struct.sign(dca_iteration_) = accumulator_.get_sign();
+  dca_info_struct.sign(dca_iteration_) = accumulator_.get_average_sign();
 
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\n\t SS CT-HYB Integrator has finalized \n" << std::endl;
@@ -319,7 +309,7 @@ double SsCtHybClusterSolver<device_t, parameters_type, Data>::finalize(
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
-void SsCtHybClusterSolver<device_t, parameters_type, Data>::warm_up(Walker& walker) {
+void SsCtHybClusterSolver<device_t, parameters_type, Data>::warmUp(Walker& walker) {
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t warm-up has started\n" << std::endl;
 
@@ -374,7 +364,7 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::computeErrorBars() {
     std::cout << "\n\t\t computing the error-bars" << std::endl;
 
   const int nb_measurements = accumulator_.get_number_of_measurements();
-  double sign = accumulator_.get_sign() / double(nb_measurements);
+  double sign = accumulator_.get_accumulated_sign() / double(nb_measurements);
 
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, RClusterDmn, w>> G_r_w(
       "G_r_w_tmp");
@@ -389,7 +379,7 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::computeErrorBars() {
 
   compute_Sigma_new(G_r_w, GS_r_w);
 
-  concurrency_.average_and_compute_stddev(Sigma_new, data_.get_Sigma_stddev());
+  concurrency_.average_and_compute_stddev(Sigma_new, data_.get_Sigma_stdv());
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
@@ -397,18 +387,17 @@ void SsCtHybClusterSolver<device_t, parameters_type, Data>::collect_measurements
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t Collect measurements" << std::endl;
 
-  const int nb_measurements = accumulator_.get_number_of_measurements();
-
   // sum the sign
-  concurrency_.sum_and_average(accumulator_.get_sign(), nb_measurements);
+  int accumulated_sign = accumulator_.get_accumulated_sign();
+  concurrency_.sum(accumulated_sign);
 
   // sum G_r_w
-  concurrency_.sum_and_average(accumulator_.get_G_r_w(), nb_measurements);
-  accumulator_.get_G_r_w() /= accumulator_.get_sign();
+  concurrency_.sum(accumulator_.get_G_r_w());
+  accumulator_.get_G_r_w() /= accumulated_sign;
 
   // sum GS_r_w
-  concurrency_.sum_and_average(accumulator_.get_GS_r_w(), nb_measurements);
-  accumulator_.get_GS_r_w() /= accumulator_.get_sign();
+  concurrency_.sum(accumulator_.get_GS_r_w());
+  accumulator_.get_GS_r_w() /= accumulated_sign;
 
   concurrency_.sum(accumulator_.get_visited_expansion_order_k());
   averaged_ = true;

@@ -1,11 +1,6 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
-// All rights reserved.
+// Copyright (C) 2010 Philipp Werner
 //
-// See LICENSE for terms of usage.
-// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
-//
-// Author: Bart Ydens
+// Integrated into DCA++ by Peter Staar (taa@zurich.ibm.com) and Bart Ydens.
 //
 // This class organizes the measurements in the SS CT-HYB QMC.
 
@@ -40,7 +35,7 @@ class SsCtHybAccumulator : public MC_accumulator_data,
 public:
   using this_type = SsCtHybAccumulator<device_t, parameters_type, Data>;
 
-  typedef parameters_type my_parameters_type;
+  using ParametersType = parameters_type;
   using DataType = Data;
 
   typedef SsCtHybWalker<device_t, parameters_type, Data> walker_type;
@@ -132,6 +127,14 @@ public:
   template <typename Writer>
   void write(Writer& writer);
 
+  //  TODO: implement.
+  std::size_t deviceFingerprint() const {
+    return 0;
+  }
+  static std::size_t staticDeviceFingerprint() {
+    return 0;
+  }
+
 protected:
   using MC_accumulator_data::DCA_iteration;
   using MC_accumulator_data::number_of_measurements;
@@ -139,7 +142,7 @@ protected:
   using MC_accumulator_data::current_sign;
   using MC_accumulator_data::accumulated_sign;
 
-  parameters_type& parameters;
+  parameters_type& parameters_;
   Data& data_;
   concurrency_type& concurrency;
 
@@ -166,9 +169,9 @@ SsCtHybAccumulator<device_t, parameters_type, Data>::SsCtHybAccumulator(paramete
                                                                         Data& data_ref, int id)
     : ss_hybridization_solver_routines<parameters_type, Data>(parameters_ref, data_ref),
 
-      parameters(parameters_ref),
+      parameters_(parameters_ref),
       data_(data_ref),
-      concurrency(parameters.get_concurrency()),
+      concurrency(parameters_.get_concurrency()),
 
       thread_id(id),
 
@@ -183,7 +186,7 @@ SsCtHybAccumulator<device_t, parameters_type, Data>::SsCtHybAccumulator(paramete
       G_r_w("G-r-w-measured"),
       GS_r_w("GS-r-w-measured"),
 
-      single_particle_accumulator_obj(parameters),
+      single_particle_accumulator_obj(parameters_),
       finalized_(false) {}
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
@@ -251,12 +254,12 @@ void SsCtHybAccumulator<device_t, parameters_type, Data>::accumulate_length(walk
   ss_hybridization_walker_routines_type& hybridization_routines =
       walker.get_ss_hybridization_walker_routines();
 
-  Hybridization_vertex full_segment(0, parameters.get_beta());
+  Hybridization_vertex full_segment(0, parameters_.get_beta());
 
   for (int ind = 0; ind < b::dmn_size() * s::dmn_size(); ind++) {
     length(ind) += hybridization_routines.compute_overlap(
         full_segment, walker.get_configuration().get_vertices(ind),
-        walker.get_configuration().get_full_line(ind), parameters.get_beta());
+        walker.get_configuration().get_full_line(ind), parameters_.get_beta());
   }
 }
 
@@ -265,14 +268,14 @@ void SsCtHybAccumulator<device_t, parameters_type, Data>::accumulate_overlap(wal
   ss_hybridization_walker_routines_type& hybridization_routines =
       walker.get_ss_hybridization_walker_routines();
 
-  Hybridization_vertex full_segment(0, parameters.get_beta());
+  Hybridization_vertex full_segment(0, parameters_.get_beta());
 
   for (int ind_1 = 0; ind_1 < b::dmn_size() * s::dmn_size(); ind_1++) {
     for (int ind_2 = 0; ind_2 < b::dmn_size() * s::dmn_size(); ind_2++) {
       if (walker.get_configuration().get_full_line(ind_1)) {
         overlap(ind_1, ind_2) += hybridization_routines.compute_overlap(
             full_segment, walker.get_configuration().get_vertices(ind_2),
-            walker.get_configuration().get_full_line(ind_2), parameters.get_beta());
+            walker.get_configuration().get_full_line(ind_2), parameters_.get_beta());
       }
       else {
         for (typename orbital_configuration_type::iterator it =
@@ -280,7 +283,7 @@ void SsCtHybAccumulator<device_t, parameters_type, Data>::accumulate_overlap(wal
              it != walker.get_configuration().get_vertices(ind_1).end(); it++) {
           overlap(ind_1, ind_2) += hybridization_routines.compute_overlap(
               *it, walker.get_configuration().get_vertices(ind_2),
-              walker.get_configuration().get_full_line(ind_2), parameters.get_beta());
+              walker.get_configuration().get_full_line(ind_2), parameters_.get_beta());
         }
       }
     }
@@ -293,7 +296,6 @@ void SsCtHybAccumulator<device_t, parameters_type, Data>::sumTo(this_type& other
   other.number_of_measurements += number_of_measurements;
 
   other.get_visited_expansion_order_k() += visited_expansion_order_k;
-
 
   single_particle_accumulator_obj.sumTo(other.single_particle_accumulator_obj);
 }

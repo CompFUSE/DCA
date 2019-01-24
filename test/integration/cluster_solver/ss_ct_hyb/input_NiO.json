@@ -1,0 +1,71 @@
+{
+
+  "physics" :
+  {
+    "beta" : 5,
+
+    "adjust-chemical-potential" : false,
+    "density" : 14.0,
+    "chemical-potential" : 0.00
+  },
+
+  "material-model"
+  : {"t_ij-filename" : "hard_coded", "U_ij-filename" : "hard_coded"},
+
+  "double-counting"
+  : {
+    "method" : "constant-correction-with-U-correction",
+    "correction" : 59.0
+  },
+
+  "domains": {
+    "real-space-grids": {
+      "cluster" : [ [ 1, 0, 0 ], [ 0, 1, 0 ], [ 0, 0, 1 ] ],
+      "sp-host": [ [ 1, 0, 0 ], [ 0, 1, 0 ], [ 0, 0, 1 ] ]
+    },
+    "imaginary-time" : {
+      "sp-time-intervals": 512,
+      "time-intervals-for-time-measurements" : 32
+    },
+    "imaginary-frequency": {
+      "sp-fermionic-frequencies": 512,
+      "HTS-bosonic-frequencies": 32,
+      "four-point-fermionic-frequencies": 16
+    }
+  },
+
+  "DCA" : {
+    "accuracy" : 0,
+    "interacting-orbitals" : [ 0, 1, 2, 3, 4 ],
+    "self-energy-mixing-factor" : 0.75,
+
+
+    "DCA+": {
+      "do-DCA+": false
+    }
+  },
+
+  "Monte-Carlo-integration"
+  : {
+    "warm-up-sweeps" : 10000,
+    "sweeps-per-measurement" : 1,
+    "measurements" : 20000,
+
+    "adaptive-double-counting" : 0,
+
+    "seed" : 2803,
+
+    "threaded-solver": {
+      "walkers": 1,
+      "accumulators": 3
+    }
+  },
+
+
+  "SS-CT-HYB": {
+    "steps-per-sweep" : 1.0,
+    "shifts-per-sweep" : 1.0,
+    "swaps-per-sweep" : 0.0,
+    "self-energy-tail-cutoff" : 60
+  }
+}

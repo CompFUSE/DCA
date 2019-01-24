@@ -98,7 +98,7 @@ deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>::deconvo
       T_source_("T-source", std::make_pair(source_k_dmn_t::dmn_size(), target_k_dmn_t::dmn_size())),
       T_source_symmetrized_("T-source-symmetrized",
                             std::make_pair(source_k_dmn_t::dmn_size(), target_k_dmn_t::dmn_size())) {
-  clustermapping::coarsegraining_sp<parameters_type, source_k_dmn_t> coarsegrain_obj(parameters);
+  clustermapping::CoarsegrainingSp<parameters_type> coarsegrain_obj(parameters);
 
   coarsegrain_obj.compute_phi_r(phi_r_);
 

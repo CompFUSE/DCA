@@ -49,9 +49,32 @@ TEST(ThreadPoolTest, Enqueue) {
     EXPECT_EQ(input[id] * input[id], output[id]);
 }
 
-TEST(ThreadPoolTest, DefualtConstructor) {
-  const std::size_t default_threads = std::thread::hardware_concurrency();
-  dca::parallel::ThreadPool pool;
-  EXPECT_EQ(default_threads, pool.size());
-  EXPECT_EQ(default_threads, dca::parallel::ThreadPool::get_instance().size());
+TEST(ThreadPoolTest, Enlarge) {
+  dca::parallel::ThreadPool& pool = dca::parallel::ThreadPool::get_instance();
+  EXPECT_EQ(0, pool.size());
+
+  pool.enlarge(3);
+  EXPECT_EQ(3, pool.size());
+
+  pool.enlarge(1);
+  EXPECT_EQ(3, pool.size());
+
+  // Dispatch some work to test if queue enlarging breaks running tasks.
+  auto workload = [](int id) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    return id;
+  };
+  std::vector<std::future<int>> futures;
+
+  for (int i = 0; i < 5; ++i)
+    futures.emplace_back(pool.enqueue(workload, i));
+
+  pool.enlarge(5);
+  EXPECT_EQ(5, pool.size());
+
+  for (int i = 5; i < 12; ++i)
+    futures.emplace_back(pool.enqueue(workload, i));
+
+  for (int i = 0; i < 12; ++i)
+    EXPECT_EQ(i, futures[i].get());
 }

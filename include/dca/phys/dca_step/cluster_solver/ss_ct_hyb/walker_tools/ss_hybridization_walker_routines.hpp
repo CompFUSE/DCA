@@ -1,12 +1,6 @@
-// Copyright (C) 2018 ETH Zurich
-// Copyright (C) 2018 UT-Battelle, LLC
-// All rights reserved.
+// Copyright (C) 2010 Philipp Werner
 //
-// See LICENSE for terms of usage.
-// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
-//
-// Author: Peter Staar (taa@zurich.ibm.com)
-//         Bart Ydens
+// Integrated into DCA++ by Peter Staar (taa@zurich.ibm.com) and Bart Ydens.
 //
 // This class implements the helper functions for the insertion and removal of (anti-)segments. The
 // helper functions include the calculation of the determinant ratio and the computation of the new

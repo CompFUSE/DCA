@@ -3,13 +3,13 @@
 // All rights reserved.
 //
 // See LICENSE.txt for terms of usage.
-//  See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+// See CITATION.txt for citation guidelines if you use this code for scientific publications.
 //
 // Author: Peter Staar (taa@zurich.ibm.com)
 //         Raffaele Solca' (rasolca@itp.phys.ethz.ch)
 //         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// This class measures the single-particle functions with an NFFT scheme.
+// This class measures the single-particle functions with a delayed NFFT scheme.
 
 #ifndef DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_SP_SP_ACCUMULATOR_HPP
 #define DCA_PHYS_DCA_STEP_CLUSTER_SOLVER_SHARED_TOOLS_ACCUMULATION_SP_SP_ACCUMULATOR_HPP
@@ -47,7 +47,6 @@ protected:
   using BDmn = func::dmn_0<domains::electron_band_domain>;
   using SDmn = func::dmn_0<domains::electron_spin_domain>;
   using RDmn = typename Parameters::RClusterDmn;
-  using KDmn = typename Parameters::KClusterDmn;
 
   using NuDmn = func::dmn_variadic<BDmn, SDmn>;  // orbital-spin index
   using PDmn = func::dmn_variadic<BDmn, BDmn, RDmn>;
@@ -56,31 +55,36 @@ protected:
 
 public:
   using ScalarType = typename Parameters::MC_measurement_scalar_type;
-  using this_type= SpAccumulator<Parameters, linalg::CPU>;
 
-  SpAccumulator(const Parameters& parameters_ref, bool accumulate_m_squared = false);
+  SpAccumulator(/*const*/ Parameters& parameters_ref, bool accumulate_m_squared = false);
 
-  SpAccumulator(this_type&& other) = default;
+  void resetAccumulation();
 
-  void initialize();
-
-  template <class Configuration, typename InpScalar>
-  void accumulate(const std::array<linalg::Matrix<InpScalar, linalg::CPU>, 2>& Ms,
+  template <class Configuration>
+  void accumulate(const std::array<linalg::Matrix<ScalarType, linalg::CPU>, 2>& Ms,
                   const std::array<Configuration, 2>& configs, const int sign);
 
   void finalize();
 
   void sumTo(SpAccumulator<Parameters, linalg::CPU>& other) const;
 
-  void synchronizeCopy(){}
+  void synchronizeCopy() {}
 
   const auto& get_sign_times_M_r_w() const;
 
   const auto& get_sign_times_M_r_w_sqr() const;
 
+  template<class T>
+  void syncStreams(const T& ){}
+
+  // Returns the allocated device memory in bytes.
+  int deviceFingerprint() const {
+    return 0;
+  }
+
 protected:
   constexpr static int oversampling = 8;
-  const Parameters& parameters_;
+  /*const*/ Parameters& parameters_;
 
   bool initialized_ = false;
   bool finalized_ = false;
@@ -97,15 +101,16 @@ private:
   std::unique_ptr<std::array<NfftType, 2>> cached_nfft_sqr_obj_;
 };
 
-template <class Paramaters>
-SpAccumulator<Paramaters, linalg::CPU>::SpAccumulator(const Paramaters& parameters_ref,
+template <class Parameters>
+SpAccumulator<Parameters, linalg::CPU>::SpAccumulator(/*const*/ Parameters& parameters_ref,
                                                       const bool accumulate_m_sqr)
     : parameters_(parameters_ref), accumulate_m_sqr_(accumulate_m_sqr) {}
 
-template <class Paramaters>
-void SpAccumulator<Paramaters, linalg::CPU>::initialize() {
-  cached_nfft_obj_.reset(new std::array<NfftType, 2>);
-  cached_nfft_sqr_obj_.reset(new std::array<NfftType, 2>);
+template <class Parameters>
+void SpAccumulator<Parameters, linalg::CPU>::resetAccumulation() {
+  cached_nfft_obj_ = std::make_unique<std::array<NfftType, 2>>();
+  if (accumulate_m_sqr_)
+    cached_nfft_sqr_obj_ = std::make_unique<std::array<NfftType, 2>>();
 
   M_r_w_.release();
   M_r_w_sqr_.release();
@@ -113,12 +118,14 @@ void SpAccumulator<Paramaters, linalg::CPU>::initialize() {
   initialized_ = true;
 }
 
-template <class Paramaters>
-template <class Configuration, typename InpScalar>
-void SpAccumulator<Paramaters, linalg::CPU>::accumulate(
-    const std::array<linalg::Matrix<InpScalar, linalg::CPU>, 2>& Ms,
+template <class Parameters>
+template <class Configuration>
+void SpAccumulator<Parameters, linalg::CPU>::accumulate(
+    const std::array<linalg::Matrix<ScalarType, linalg::CPU>, 2>& Ms,
     const std::array<Configuration, 2>& configs, const int sign) {
-  assert(initialized_);
+  if (!initialized_)
+    throw(std::logic_error("The accumulator was not initialized."));
+
   const func::dmn_variadic<PDmn> bbr_dmn;
   const ScalarType one_div_two_beta = 1. / (2. * parameters_.get_beta());
   //  constexpr ScalarType epsilon = std::is_same<ScalarType, double>::value ? 1e-16 : 1e-7;
@@ -133,7 +140,6 @@ void SpAccumulator<Paramaters, linalg::CPU>::accumulate(
         const int b_i = config[i].get_right_band();
         const int r_i = config[i].get_right_site();
         const ScalarType t_i = config[i].get_tau();
-        // TODO: check if the sign is correct.
         const int delta_r = RDmn::parameter_type::subtract(r_j, r_i);
         const double scaled_tau = (t_i - t_j) * one_div_two_beta;  // + (i == j) * epsilon;
 
@@ -148,8 +154,8 @@ void SpAccumulator<Paramaters, linalg::CPU>::accumulate(
   }
 }
 
-template <class Paramaters>
-void SpAccumulator<Paramaters, linalg::CPU>::finalize() {
+template <class Parameters>
+void SpAccumulator<Parameters, linalg::CPU>::finalize() {
   if (finalized_)
     return;
   func::function<std::complex<ScalarType>, func::dmn_variadic<WDmn, PDmn>> tmp("tmp");
@@ -179,8 +185,8 @@ void SpAccumulator<Paramaters, linalg::CPU>::finalize() {
   initialized_ = false;
 }
 
-template <class Paramaters>
-void SpAccumulator<Paramaters, linalg::CPU>::sumTo(SpAccumulator<Paramaters, linalg::CPU>& other) const {
+template <class Parameters>
+void SpAccumulator<Parameters, linalg::CPU>::sumTo(SpAccumulator<Parameters, linalg::CPU>& other) const {
   if (!other.cached_nfft_obj_)
     other.cached_nfft_obj_.reset(new std::array<NfftType, 2>);
   if (!other.cached_nfft_sqr_obj_ && accumulate_m_sqr_)
@@ -193,15 +199,15 @@ void SpAccumulator<Paramaters, linalg::CPU>::sumTo(SpAccumulator<Paramaters, lin
   }
 }
 
-template <class Paramaters>
-const auto& SpAccumulator<Paramaters, linalg::CPU>::get_sign_times_M_r_w() const {
+template <class Parameters>
+const auto& SpAccumulator<Parameters, linalg::CPU>::get_sign_times_M_r_w() const {
   if (!finalized_)
     throw(std::logic_error("The accumulator was not finalized."));
   return *M_r_w_;
 }
 
-template <class Paramaters>
-const auto& SpAccumulator<Paramaters, linalg::CPU>::get_sign_times_M_r_w_sqr() const {
+template <class Parameters>
+const auto& SpAccumulator<Parameters, linalg::CPU>::get_sign_times_M_r_w_sqr() const {
   if (!finalized_)
     throw(std::logic_error("The accumulator was not finalized."));
   if (!accumulate_m_sqr_)

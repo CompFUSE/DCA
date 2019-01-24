@@ -34,12 +34,14 @@
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 const std::string test_directory =
     DCA_SOURCE_DIR "/test/integration/statistical_tests/real_materials/";
+const std::string file_coarsegraining =
+    DCA_SOURCE_DIR "/test/integration/cluster_solver/ss_ct_hyb/NiO_coarse_grained.hdf5";
 
 using dca::func::dmn_0;
 using dca::func::dmn_variadic;
-using RDmn = dmn_0<dca::phys::domains::cluster_domain<double, 3, dca::phys::domains::CLUSTER,
-                                                      dca::phys::domains::REAL_SPACE,
-                                                      dca::phys::domains::BRILLOUIN_ZONE>>;
+using RDmn =
+    dmn_0<dca::phys::domains::cluster_domain<double, 3, dca::phys::domains::CLUSTER, dca::phys::domains::REAL_SPACE,
+                                             dca::phys::domains::BRILLOUIN_ZONE>>;
 
 using SigmaDomain = dca::math::util::SigmaDomain<RDmn>;
 using SigmaCutDomain = dmn_variadic<dca::math::util::details::Bdmn, RDmn,
@@ -76,14 +78,18 @@ TEST(Ni0, GS) {
   parameters.update_model();
   parameters.update_domains();
 
+  // Perform the same number of measurements per rank.
+  const int meas_per_process = parameters.get_measurements();
+  parameters.set_measurements(meas_per_process * dca_test_env->concurrency.number_of_processors());
+
   Data data(parameters);
   // initialize H only. G0 is read from file afterwards.
   data.initialize_H_0_and_H_i();
 
-  // Read and broadcast the rest of the initialization from full DCA results
+  // Read and broadcast the rest of the initialization from full DCA results.
   if (id == 0) {
     dca::io::HDF5Reader reader;
-    reader.open_file("NiO_coarse_grained.hdf5");
+    reader.open_file(file_coarsegraining);
     reader.open_group("functions");
     reader.execute(data.G0_k_w);
     reader.execute(data.G0_r_t);
@@ -118,7 +124,7 @@ TEST(Ni0, GS) {
     function<double, CovarianceDomain> cov("Covariance");
     function<double, SigmaCutDomain> GS_expected("GS_r_w");
     dca::io::HDF5Reader reader;
-    reader.open_file("NiO_covariance_input.hdf5");
+    reader.open_file(test_directory + "NiO_covariance_input.hdf5");
     reader.open_group("functions");
     reader.execute(cov);
     reader.execute(GS_expected);
@@ -126,7 +132,7 @@ TEST(Ni0, GS) {
     reader.open_group("parameters");
     int reference_n_meas;
     reader.execute("measurements_per_node", reference_n_meas);
-    EXPECT_EQ(reference_n_meas, parameters.get_measurements());
+    EXPECT_EQ(reference_n_meas, meas_per_process);
     reader.close_group();
     reader.close_file();
 
@@ -152,7 +158,7 @@ TEST(Ni0, GS) {
       writer.execute(cov);
       writer.close_group();
       writer.open_group("parameters");
-      writer.execute("measurements_per_node", parameters.get_measurements());
+      writer.execute("measurements_per_node", meas_per_process);
       writer.execute("nodes", n_processes);
       writer.close_group();
       writer.close_file();

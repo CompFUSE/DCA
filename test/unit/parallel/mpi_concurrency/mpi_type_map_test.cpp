@@ -6,6 +6,7 @@
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Urs R. Haehner (haehneru@itp.phys.ethz.ch)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // This file tests mpi_type_map.hpp.
 // It is run with 1 MPI process.
@@ -28,6 +29,9 @@ TEST(MPITypeMapTest, All) {
   EXPECT_EQ(1, MPITypeMap<std::size_t>::factor());
   EXPECT_EQ(MPI_UNSIGNED_LONG, MPITypeMap<std::size_t>::value());
 
+  EXPECT_EQ(1, MPITypeMap<long long int>::factor());
+  EXPECT_EQ(MPI_LONG_LONG_INT, MPITypeMap<long long int>::value());
+
   EXPECT_EQ(1, MPITypeMap<float>::factor());
   EXPECT_EQ(MPI_FLOAT, MPITypeMap<float>::value());
 
@@ -39,4 +43,17 @@ TEST(MPITypeMapTest, All) {
 
   EXPECT_EQ(2, MPITypeMap<std::complex<double>>::factor());
   EXPECT_EQ(MPI_DOUBLE, MPITypeMap<std::complex<double>>::value());
+}
+
+TEST(MPITypeMapTest, Enums) {
+  {
+    enum TestEnum : int {};
+    EXPECT_EQ(1, MPITypeMap<TestEnum>::factor());
+    EXPECT_EQ(MPI_INT, MPITypeMap<TestEnum>::value());
+  }
+  {
+    enum TestEnum : long unsigned int {};
+    EXPECT_EQ(1, MPITypeMap<TestEnum>::factor());
+    EXPECT_EQ(MPI_UNSIGNED_LONG, MPITypeMap<TestEnum>::value());
+  }
 }

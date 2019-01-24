@@ -18,7 +18,6 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/ct_int_matrix_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/interaction_vertices.hpp"
 #include "dca/linalg/device_type.hpp"
-#include "dca/linalg/util/memory.hpp"
 
 namespace dca {
 namespace phys {

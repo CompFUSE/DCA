@@ -12,6 +12,7 @@
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_cpu.hpp"
 
 #include <complex>
+#include <test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/single_sector_accumulation_test.hpp>
 
 #include "gtest/gtest.h"
 
@@ -19,12 +20,13 @@
 #include "dca/function/function.hpp"
 #include "dca/function/util/difference.hpp"
 #include "dca/profiling/events/time.hpp"
-#include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_test.hpp"
+#include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/single_sector_accumulation_test.hpp"
 
-constexpr int n_samples = 40;
-constexpr int n_bands = 2;
-constexpr int n_frqs = 2;
-using CachedNdftCpuTest = dca::testing::CachedNdftTest<n_samples, n_bands, n_frqs>;
+constexpr int n_sites = 4;
+constexpr int n_bands = 3;
+constexpr int n_frqs = 16;
+using CachedNdftCpuTest =
+    dca::testing::SingleSectorAccumulationTest<double, n_bands, n_sites, n_frqs>;
 
 double computeWithFastDNFT(const CachedNdftCpuTest::Configuration& config,
                            const CachedNdftCpuTest::Matrix& M, CachedNdftCpuTest::F_w_w& f_w);
@@ -32,10 +34,14 @@ double computeWithFastDNFT(const CachedNdftCpuTest::Configuration& config,
 // Compare the result provided by the CPU version of CachedNdft::execute with the definition of the
 // DNFT f(w1, w2) = \sum_{t1, t2} f(t1, t2) exp(i * t1 * w1 - t2 w2) stored in f_baseline_.
 TEST_F(CachedNdftCpuTest, Execute) {
+  constexpr int n_samples = 40;
+  prepareConfiguration(configuration_, M_, n_samples);
+
   F_w_w f_w_fast("f_w_fast");
   const double time = computeWithFastDNFT(configuration_, M_, f_w_fast);
 
-  const auto err = dca::func::util::difference(f_baseline_, f_w_fast);
+  auto f_baseline = CachedNdftCpuTest::compute2DFTBaseline();
+  const auto err = dca::func::util::difference(f_baseline, f_w_fast);
   EXPECT_LT(err.l_inf, 1e-14);
 
   std::cout << "\nCached ndft time [sec]:\t " << time << "\n";

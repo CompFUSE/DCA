@@ -143,5 +143,6 @@ TEST_P(LatticeMappingSpTest, Execute) {
   }
 }
 
+// The last comma in the outer parentheses suppresses the gnu-zero-variadic-macro-arguments warning.
 INSTANTIATE_TEST_CASE_P(InputType, LatticeMappingSpTest,
-                        ::testing::Values("dcaplus-converging", "dca-not-terminating"));
+                        ::testing::Values("dcaplus-converging", "dca-not-terminating"), );

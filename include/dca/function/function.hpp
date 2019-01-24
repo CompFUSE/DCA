@@ -113,6 +113,12 @@ public:
   const scalartype* values() const {
     return fnc_values;
   }
+  scalartype* data() {
+    return fnc_values;
+  }
+  const scalartype* data() const {
+    return fnc_values;
+  }
 
   //
   // Methods for index conversion
@@ -185,16 +191,12 @@ public:
   void operator*=(const function<scalartype, domain>& other);
   void operator/=(const function<scalartype, domain>& other);
 
-  template <typename new_scalartype>
-  void operator=(new_scalartype c);
-  template <typename new_scalartype>
-  void operator+=(new_scalartype c);
-  template <typename new_scalartype>
-  void operator-=(new_scalartype c);
-  template <typename new_scalartype>
-  void operator*=(new_scalartype c);
-  template <typename new_scalartype>
-  void operator/=(new_scalartype c);
+
+  void operator=(scalartype c);
+  void operator+=(scalartype c);
+  void operator-=(scalartype c);
+  void operator*=(scalartype c);
+  void operator/=(scalartype c);
 
   // Equal-comparison opertor
   // Returns true if the function's elements (fnc_values) are equal to other's elements, false
@@ -436,48 +438,33 @@ void function<scalartype, domain>::operator/=(const function<scalartype, domain>
 }
 
 template <typename scalartype, class domain>
-template <typename new_scalartype>
-void function<scalartype, domain>::operator=(const new_scalartype c) {
-  scalartype c_new(c);
-
+void function<scalartype, domain>::operator=(const scalartype c) {
   for (int linind = 0; linind < Nb_elements; linind++)
-    fnc_values[linind] = c_new;
+    fnc_values[linind] = c;
 }
 
 template <typename scalartype, class domain>
-template <typename new_scalartype>
-void function<scalartype, domain>::operator+=(const new_scalartype c) {
-  scalartype c_new(c);
-
+void function<scalartype, domain>::operator+=(const scalartype c) {
   for (int linind = 0; linind < Nb_elements; linind++)
-    fnc_values[linind] += c_new;
+    fnc_values[linind] += c;
 }
 
 template <typename scalartype, class domain>
-template <typename new_scalartype>
-void function<scalartype, domain>::operator-=(const new_scalartype c) {
-  scalartype c_new(c);
-
+void function<scalartype, domain>::operator-=(const scalartype c) {
   for (int linind = 0; linind < Nb_elements; linind++)
-    fnc_values[linind] -= c_new;
+    fnc_values[linind] -= c;
 }
 
 template <typename scalartype, class domain>
-template <typename new_scalartype>
-void function<scalartype, domain>::operator*=(const new_scalartype c) {
-  scalartype c_new(c);
-
+void function<scalartype, domain>::operator*=(const scalartype c) {
   for (int linind = 0; linind < Nb_elements; linind++)
-    fnc_values[linind] *= c_new;
+    fnc_values[linind] *= c;
 }
 
 template <typename scalartype, class domain>
-template <typename new_scalartype>
-void function<scalartype, domain>::operator/=(const new_scalartype c) {
-  scalartype c_new(c);
-
-  for (int linind = 0; linind < Nb_elements; linind++)
-    fnc_values[linind] /= c_new;
+void function<scalartype, domain>::operator/=(const scalartype c) {
+    for (int linind = 0; linind < Nb_elements; linind++)
+    fnc_values[linind] /= c;
 }
 
 template <typename scalartype, class domain>

@@ -17,14 +17,16 @@
 
 #include "dca/function/util/difference.hpp"
 #include "dca/linalg/matrix.hpp"
+#include "dca/linalg/reshapable_matrix.hpp"
 #include "dca/linalg/util/util_cublas.hpp"
 #include "dca/profiling/events/time.hpp"
-#include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_test.hpp"
+#include "test/unit/phys/dca_step/cluster_solver/shared_tools/accumulation/single_sector_accumulation_test.hpp"
 
-constexpr int n_samples = 31;
-constexpr int n_bands = 3;
+constexpr int n_bands = 2;
+constexpr int n_sites = 3;
 constexpr int n_frqs = 7;
-using CachedNdftGpuTest = dca::testing::CachedNdftTest<n_samples, n_bands, n_frqs>;
+using CachedNdftGpuTest =
+    dca::testing::SingleSectorAccumulationTest<double, n_bands, n_sites, n_frqs>;
 
 double computeWithFastNDFT(const CachedNdftGpuTest::Configuration& config,
                            const CachedNdftGpuTest::Matrix& M, CachedNdftGpuTest::F_w_w& f_w);
@@ -32,13 +34,17 @@ double computeWithFastNDFT(const CachedNdftGpuTest::Configuration& config,
 // Compare the result provided by the GPU version of CachedNdft::execute with the definition of the
 // NDFT f(w1, w2) = \sum_{t1, t2} f(t1, t2) exp(i * t1 * w1 - t2 w2) stored in f_baseline_.
 TEST_F(CachedNdftGpuTest, Execute) {
+  constexpr int n_samples = 31;
+  prepareConfiguration(configuration_, M_, n_samples);
+
   F_w_w f_w_fast("f_w_fast");
 
   // Compute the NDFT with the CachedNdft class and rearrange the result with the same order as
   // f_baseline_.
   const double time = computeWithFastNDFT(configuration_, M_, f_w_fast);
 
-  const auto err = dca::func::util::difference(f_baseline_, f_w_fast);
+  auto f_baseline = CachedNdftGpuTest::compute2DFTBaseline();
+  const auto err = dca::func::util::difference(f_baseline, f_w_fast);
   EXPECT_LT(err.l_inf, 1e-14);
 
   std::cout << "\nCached GPU ndft time [sec]:\t " << time << "\n";
@@ -54,15 +60,15 @@ double computeWithFastNDFT(const CachedNdftGpuTest::Configuration& config,
                                              CachedNdftGpuTest::PosFreqDmn, dca::linalg::GPU>
       nft_obj(queue);
   EXPECT_EQ(magma_queue_get_cuda_stream(queue), nft_obj.get_stream());
-  dca::linalg::Matrix<std::complex<double>, dca::linalg::GPU> result_device(64);
-  dca::linalg::Matrix<std::complex<double>, dca::linalg::CPU> result_host;
+
+  dca::linalg::ReshapableMatrix<std::complex<double>, dca::linalg::GPU> result_device(64);
 
   dca::profiling::WallTime start_time;
   nft_obj.execute(config, M, result_device);
   cudaStreamSynchronize(nft_obj.get_stream());
   dca::profiling::WallTime end_time;
 
-  result_host = result_device;
+  dca::linalg::ReshapableMatrix<std::complex<double>, dca::linalg::CPU> result_host(result_device);
 
   // Rearrange the output from a function of (r1, b1, w1, r2, b2, w2) to a function of (b1, b2, r1,
   // r2, w1, w2).

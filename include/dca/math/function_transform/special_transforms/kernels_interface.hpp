@@ -7,7 +7,7 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// Interface to the kernels used by SpaceTransform2DGpu
+// Interface to the kernels used by SpaceTransform2DGpu.
 
 #ifndef DCA_MATH_FUNCTION_TRANSFORM_SPECIAL_TRANSFORMS_SPACE_KERNELS_INTERFACE
 #define DCA_MATH_FUNCTION_TRANSFORM_SPECIAL_TRANSFORMS_SPACE_KERNELS_INTERFACE
@@ -23,8 +23,8 @@ namespace details {
 // dca::math::transform::details::
 
 template <typename Real>
-void rearrangeResult(const std::complex<Real>* in, int ldi, std::complex<Real>* out, int ldo, int nb,
-                int nk, int nw, cudaStream_t stream);
+void rearrangeResult(const std::complex<Real>* in, int ldi, std::complex<Real>* out, int ldo,
+                     int nb, int nk, int nw, cudaStream_t stream);
 
 }  // details
 }  // transform

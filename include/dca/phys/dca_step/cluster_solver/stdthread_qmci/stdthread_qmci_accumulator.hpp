@@ -6,6 +6,7 @@
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: John Biddiscombe (john.biddiscombe@cscs.ch)
+//         Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // A std::thread jacket that implements a MC accumulator independent of the MC method.
 
@@ -25,16 +26,23 @@ namespace solver {
 namespace stdthreadqmci {
 // dca::phys::solver::stdthreadqmci::
 
-template <class QmciAccumulatorType>
-class StdThreadQmciAccumulator : public QmciAccumulatorType {
-  typedef StdThreadQmciAccumulator<QmciAccumulatorType> this_type;
+template <class QmciAccumulator>
+class StdThreadQmciAccumulator : public QmciAccumulator {
+  using ThisType = StdThreadQmciAccumulator<QmciAccumulator>;
+  using Parameters = typename QmciAccumulator::ParametersType;
+  using Data = typename QmciAccumulator::DataType;
 
 public:
-  template <class Parameters, class Data>
-  StdThreadQmciAccumulator(Parameters& parameters_ref, Data& data_ref, int meas_to_do, int id);
+  StdThreadQmciAccumulator(Parameters& parameters_ref, Data& data_ref, int id);
 
-  template <typename Walker>
-  void updateFrom(Walker& walker);
+  ~StdThreadQmciAccumulator();
+
+  using QmciAccumulator::finalize;
+  using QmciAccumulator::initialize;
+  using QmciAccumulator::get_configuration;
+
+  template <typename walker_type>
+  void updateFrom(walker_type& walker);
 
   void waitForQmciWalker();
 
@@ -42,66 +50,83 @@ public:
 
   // Sums all accumulated objects of this accumulator to the equivalent objects of the 'other'
   // accumulator.
-  void sumTo(QmciAccumulatorType& other);
+  void sumTo(QmciAccumulator& other);
+
+  // Signals that this object will not need to perform any more accumulation.
+  void notifyDone();
+
+  bool done() const {
+    return done_;
+  }
+
+protected:
+  using QmciAccumulator::get_Gflop;
+  using QmciAccumulator::get_number_of_measurements;
+  using QmciAccumulator::get_accumulated_sign;
 
 private:
+  using QmciAccumulator::data_;
+  using QmciAccumulator::parameters_;
+
   int thread_id_;
-  int measurements_done_;
-  int measurements_to_do_;
   bool measuring_;
+  std::atomic<bool> done_;
   std::condition_variable start_measuring_;
   std::mutex mutex_accumulator_;
 };
 
-template <class QmciAccumulatorType>
-template <class Parameters, class Data>
-StdThreadQmciAccumulator<QmciAccumulatorType>::StdThreadQmciAccumulator(Parameters& parameters_ref,
-                                                                        Data& data_ref,
-                                                                        const int meas_to_do,
-                                                                        const int id)
-    : QmciAccumulatorType(parameters_ref, data_ref, id),
-      thread_id_(id),
-      measurements_done_(0),
-      measurements_to_do_(meas_to_do),
-      measuring_(false) {}
+template <class QmciAccumulator>
+StdThreadQmciAccumulator<QmciAccumulator>::StdThreadQmciAccumulator(Parameters& parameters_ref,
+                                                                    Data& data_ref, const int id)
+    : QmciAccumulator(parameters_ref, data_ref, id), thread_id_(id), measuring_(false), done_(false) {}
 
-template <class QmciAccumulatorType>
-template <typename Walker>
-void StdThreadQmciAccumulator<QmciAccumulatorType>::updateFrom(Walker& walker) {
+template <class QmciAccumulator>
+StdThreadQmciAccumulator<QmciAccumulator>::~StdThreadQmciAccumulator() {}
+
+template <class QmciAccumulator>
+template <typename walker_type>
+void StdThreadQmciAccumulator<QmciAccumulator>::updateFrom(walker_type& walker) {
   {
     // take a lock and keep it until it goes out of scope
     std::unique_lock<std::mutex> lock(mutex_accumulator_);
     if (measuring_)
       throw std::logic_error(__FUNCTION__);
 
-    QmciAccumulatorType::updateFrom(walker);
+    QmciAccumulator::updateFrom(walker);
     measuring_ = true;
-
-    if (thread_id_ == 1)
-      walker.updateShell(measurements_done_, measurements_to_do_);
   }
 
   start_measuring_.notify_one();
 }
 
-template <class QmciAccumulatorType>
-void StdThreadQmciAccumulator<QmciAccumulatorType>::waitForQmciWalker() {
+template <class QmciAccumulator>
+void StdThreadQmciAccumulator<QmciAccumulator>::waitForQmciWalker() {
   std::unique_lock<std::mutex> lock(mutex_accumulator_);
-  start_measuring_.wait(lock, [this]() { return measuring_ == true; });
+  start_measuring_.wait(lock, [this]() { return measuring_ || done_; });
 }
 
-template <class QmciAccumulatorType>
-void StdThreadQmciAccumulator<QmciAccumulatorType>::measure() {
+template <class QmciAccumulator>
+void StdThreadQmciAccumulator<QmciAccumulator>::measure() {
   std::unique_lock<std::mutex> lock(mutex_accumulator_);
-  QmciAccumulatorType::measure();
+
+  if (done_)
+    return;
+  assert(measuring_);
+
+  QmciAccumulator::measure();
   measuring_ = false;
-  ++measurements_done_;
 }
 
-template <class QmciAccumulatorType>
-void StdThreadQmciAccumulator<QmciAccumulatorType>::sumTo(QmciAccumulatorType& other) {
+template <class QmciAccumulator>
+void StdThreadQmciAccumulator<QmciAccumulator>::sumTo(QmciAccumulator& other) {
   std::unique_lock<std::mutex> lock(mutex_accumulator_);
-  QmciAccumulatorType::sumTo(other);
+  QmciAccumulator::sumTo(other);
+}
+
+template <class QmciAccumulator>
+void StdThreadQmciAccumulator<QmciAccumulator>::notifyDone() {
+  done_ = true;
+  start_measuring_.notify_one();
 }
 
 }  // stdthreadqmci

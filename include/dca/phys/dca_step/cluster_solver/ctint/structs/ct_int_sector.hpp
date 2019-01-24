@@ -16,9 +16,9 @@
 #include <cassert>
 #include <vector>
 
+#include "dca/linalg/util/allocators/vectors_typedefs.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/interaction_vertices.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/structs/sector_entry.hpp"
-#include "dca/linalg/util/allocators.hpp"
 
 namespace dca {
 namespace phys {

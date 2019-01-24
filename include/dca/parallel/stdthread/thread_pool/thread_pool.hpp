@@ -31,20 +31,22 @@ namespace parallel {
 
 class ThreadPool {
 public:
-  // Creates a pool with n_threads.
-  ThreadPool(size_t n_threads);
-  // Creates a pool with as many threads as hardware threads.
-  ThreadPool();
+  // Creates a pool with the specified number of threads.
+  ThreadPool(size_t n_threads = 0);
 
   ThreadPool(const ThreadPool& other) = delete;
   ThreadPool(ThreadPool&& other) = default;
 
-  // Call asynchronously the function f with arguments args. This method is thread safe.
-  // Returns: a future to the result of f(args...).
+  // Enlarges the pool to the specified number of threads if it is larger than the current number of
+  // threads.
+  void enlarge(std::size_t n_threads);
+
+  // Adds to the queue of tasks the execution of f(args...). This method is thread safe.
+  // Returns: a future to the return value of f(args...).
   template <class F, class... Args>
   auto enqueue(F&& f, Args&&... args) -> std::future<typename std::result_of<F(Args...)>::type>;
 
-  // Conclude all the pending work and destroy the threds spawned by this class.
+  // The destructor concludes all the pending work gracefully before merging all spawned threads.
   ~ThreadPool();
 
   // Returns the number of threads used by this class.
@@ -52,7 +54,7 @@ public:
     return workers_.size();
   }
 
-  // Returns a static instance.
+  // Returns a global instance.
   static ThreadPool& get_instance() {
     static ThreadPool global_pool;
     return global_pool;
@@ -61,19 +63,15 @@ public:
 private:
   void workerLoop(int id);
 
-  // need to keep track of threads so we can join them
   std::vector<std::thread> workers_;
-  // the task queue
-  std::vector<std::queue<std::packaged_task<void()>>> tasks_;
+  std::vector<std::unique_ptr<std::queue<std::packaged_task<void()>>>> tasks_;
 
-  // synchronization
-  std::vector<std::mutex> queue_mutex_;
-  std::vector<std::condition_variable> condition_;
+  std::vector<std::unique_ptr<std::mutex>> queue_mutex_;
+  std::vector<std::unique_ptr<std::condition_variable>> condition_;
   std::atomic<bool> stop_;
   std::atomic<unsigned int> active_id_;
 };
 
-// add new work item to the pool
 template <class F, class... Args>
 auto ThreadPool::enqueue(F&& f, Args&&... args)
     -> std::future<typename std::result_of<F(Args...)>::type> {
@@ -81,20 +79,21 @@ auto ThreadPool::enqueue(F&& f, Args&&... args)
   unsigned int id = active_id_++;
   id = id % size();
 
+  // Enqueue a new task so that the function f with arguments args will be executed by the worker
+  // with index id.
   auto task =
       std::packaged_task<return_type()>(std::bind(std::forward<F>(f), std::forward<Args>(args)...));
 
   std::future<return_type> res = task.get_future();
   {
-    std::unique_lock<std::mutex> lock(queue_mutex_[id]);
+    std::unique_lock<std::mutex> lock(*queue_mutex_[id]);
 
-    // don't allow enqueueing after stopping the pool
     if (stop_)
       throw std::runtime_error("enqueue on stopped ThreadPool");
 
-    tasks_[id].emplace(std::move(task));
+    tasks_[id]->emplace(std::move(task));
   }
-  condition_[id].notify_one();
+  condition_[id]->notify_one();
 
   return res;
 }

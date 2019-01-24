@@ -34,10 +34,11 @@ public:
   }
 
   ~CudaStream() {
-    cudaStreamDestroy(stream_);
+    if (stream_)
+      cudaStreamDestroy(stream_);
   }
 
-  inline operator cudaStream_t() const {
+  operator cudaStream_t() const {
     return stream_;
   }
 

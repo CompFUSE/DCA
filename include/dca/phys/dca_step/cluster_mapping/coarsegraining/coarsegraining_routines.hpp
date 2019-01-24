@@ -23,6 +23,7 @@
 #include "dca/phys/dca_step/cluster_mapping/coarsegraining/interpolation_matrices.hpp"
 #include "dca/phys/dca_step/cluster_mapping/coarsegraining/quadrature_integration.hpp"
 #include "dca/phys/dca_step/lattice_mapping/interpolation/transform_to_alpha.hpp"
+#include "dca/phys/domains/cluster/cluster_domain_aliases.hpp"
 #include "dca/phys/domains/cluster/cluster_domain.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
@@ -35,7 +36,8 @@ namespace phys {
 namespace clustermapping {
 // dca::phys::clustermapping::
 
-template <typename parameters_type, typename K_dmn>
+template <typename parameters_type,
+          typename K_dmn = typename ClusterDomainAliases<parameters_type::lattice_dimension>::KClusterDmn>
 class coarsegraining_routines {
 public:
   using concurrency_type = typename parameters_type::concurrency_type;
@@ -63,6 +65,17 @@ public:
 
 public:
   coarsegraining_routines(parameters_type& parameters_ref);
+
+  // Transforms f_k into f_q by interpolating the shifted inverse as
+  // f_q = [interpolation((f_q - i*alpha)^-1)]^-1 + i*alpha.
+  // In:  f_k.
+  // Out: f_q.
+  // Postcondition: f_k is shifted and inverted.
+  template <typename scalar_type, typename k_dmn_t, typename q_dmn_t>
+  void wannierInterpolationWithAlphaTransform(
+      int K_ind, double alpha,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, k_dmn_t>>& f_k,
+      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& f_q) const;
 
 protected:
   void compute_tetrahedron_mesh(int k_mesh_refinement, int number_of_periods) const;
@@ -164,7 +177,27 @@ protected:
 
 template <typename parameters_type, typename K_dmn>
 coarsegraining_routines<parameters_type, K_dmn>::coarsegraining_routines(parameters_type& parameters_ref)
-    : parameters(parameters_ref), concurrency(parameters.get_concurrency()) {}
+    : parameters(parameters_ref), concurrency(parameters.get_concurrency()) {
+  static std::once_flag flag;
+  std::call_once(flag, [&]() {
+    compute_tetrahedron_mesh(parameters.get_k_mesh_recursion(),
+                             parameters.get_coarsegraining_periods());
+
+    compute_gaussian_mesh(parameters.get_k_mesh_recursion(), parameters.get_quadrature_rule(),
+                          parameters.get_coarsegraining_periods());
+  });
+}
+
+template <class Parameters, typename K_dmn>
+template <typename ScalarType, typename KDmn, typename QDmn>
+void coarsegraining_routines<Parameters, K_dmn>::wannierInterpolationWithAlphaTransform(
+    const int k_ind, const double alpha,
+    func::function<std::complex<ScalarType>, func::dmn_variadic<nu, nu, KDmn>>& f_k,
+    func::function<std::complex<ScalarType>, func::dmn_variadic<nu, nu, QDmn>>& f_q) const {
+  latticemapping::transform_to_alpha::forward(alpha, f_k);
+  wannier_interpolation(k_ind, f_k, f_q);
+  latticemapping::transform_to_alpha::backward(alpha, f_q);
+}
 
 template <typename parameters_type, typename K_dmn>
 void coarsegraining_routines<parameters_type, K_dmn>::compute_tetrahedron_mesh(
@@ -237,18 +270,19 @@ void coarsegraining_routines<parameters_type, K_dmn>::wannier_interpolation(
     func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu, q_dmn_t>>& f_q) const {
   typedef interpolation_matrices<scalar_type, k_dmn_t, q_dmn_t> interpolation_matrices_type;
 
-  if (not interpolation_matrices_type::is_initialized())
+  if (!interpolation_matrices_type::is_initialized())
     interpolation_matrices_type::initialize(concurrency);
 
-  dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& T = interpolation_matrices_type::get(K_ind);
+  const dca::linalg::Matrix<scalar_type, dca::linalg::CPU>& T =
+      interpolation_matrices_type::get(K_ind);
 
   scalar_type alpha(1.);
   scalar_type beta(0.);
 
-  const scalar_type* A_ptr =
-      &(reinterpret_cast<const scalar_type(&)[2]>(f_k(0))[0]);  // &real(f_k(0));
+  // Interpolate real, imaginary part and spin bands independently.
+  const scalar_type* A_ptr = reinterpret_cast<const scalar_type*>(f_k.values());
   const scalar_type* B_ptr = &T(0, 0);
-  scalar_type* C_ptr = &(reinterpret_cast<scalar_type(&)[2]>(f_q(0))[0]);  // &real(f_q(0));
+  scalar_type* C_ptr = reinterpret_cast<scalar_type*>(f_q.values());
 
   int M = 2 * nu_nu::dmn_size();
   int K = k_dmn_t::dmn_size();

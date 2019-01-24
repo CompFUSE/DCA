@@ -7,6 +7,8 @@
         "filename-ed": "ed.hdf5",
         "filename-qmc": "qmc.hdf5",
         "filename-profiling": "profiling.json",
+        "directory-config-read" : "configuration",
+        "directory-config-write" : "configuration",
         "dump-lattice-self-energy": false,
         "dump-cluster-Greens-functions": false,
         "dump-Gamma-lattice": false,
@@ -101,11 +103,14 @@
         "seed": 985456376,
         "warm-up-sweeps": 20,
         "sweeps-per-measurement": 1.,
-        "measurements-per-process-and-accumulator": 100,
+        "measurements": 100,
+        "error-computation-type" : "NONE",
 
         "threaded-solver": {
             "walkers": 1,
-            "accumulators": 1
+            "accumulators": 1,
+            "shared-walk-and-accumulation-thread" : false,
+            "fix-meas-per-walker" : false
         }
     },
 
@@ -133,7 +138,8 @@
     "four-point": {
         "type": "NONE",
         "momentum-transfer": [0., 0.],
-        "frequency-transfer": 0
+        "frequency-transfer": 0,
+        "compute-all-transfers" : false
     },
 
     "analysis": {
