@@ -136,7 +136,7 @@ class diagrammatic_symmetries {
 public:
   using b = func::dmn_0<domains::electron_band_domain>;
 
-  diagrammatic_symmetries(parameters_type& parameters);
+  diagrammatic_symmetries(const parameters_type &parameters);
 
   template <typename scalartype, typename k_dmn, typename w_dmn>
   void execute(
@@ -189,7 +189,7 @@ private:
       func::function<scalartype, func::dmn_variadic<func::dmn_variadic<b, b, k_dmn, w_dmn>,
                                                     func::dmn_variadic<b, b, k_dmn, w_dmn>, k_dmn>>& G);
 
-  parameters_type& parameters;
+  const parameters_type& parameters;
 
   int q_ind;
   std::vector<double> q_vec;
@@ -199,7 +199,8 @@ private:
 };
 
 template <class parameters_type>
-diagrammatic_symmetries<parameters_type>::diagrammatic_symmetries(parameters_type& parameters_ref)
+diagrammatic_symmetries<parameters_type>::diagrammatic_symmetries(
+        const parameters_type &parameters_ref)
     : parameters(parameters_ref),
 
       q_ind(parameters.get_four_point_momentum_transfer_index()),

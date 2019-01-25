@@ -79,7 +79,7 @@ private:
   using NuNuTetDmn = func::dmn_variadic<NuDmn, NuDmn, TetDmn>;
 
 public:
-  CoarsegrainingSp(Parameters& parameters_ref);
+  CoarsegrainingSp(const Parameters &parameters_ref);
 
   // Computes the coarse-grained G(K, w) using H_0 and chemichal potential stored in the parameters.
   template <class SigmaType,
@@ -104,8 +104,8 @@ private:
   void updateSigmaInterpolated(const LatticeFreqFunction& Sigma);
 
 private:
-  Parameters& parameters_;
-  Concurrency& concurrency_;
+  const Parameters& parameters_;
+  const Concurrency& concurrency_;
 
   std::vector<func::function<std::complex<ScalarType>, NuNuDmn>> H0_q_;
 
@@ -120,7 +120,7 @@ private:
 };
 
 template <typename Parameters>
-CoarsegrainingSp<Parameters>::CoarsegrainingSp(Parameters& parameters_ref)
+CoarsegrainingSp<Parameters>::CoarsegrainingSp(const Parameters &parameters_ref)
     : coarsegraining_routines<Parameters>(parameters_ref),
       tetrahedron_integration<Parameters>(parameters_ref),
 
@@ -131,7 +131,7 @@ CoarsegrainingSp<Parameters>::CoarsegrainingSp(Parameters& parameters_ref)
 
       w_q_("w_q_"),
       w_tot_(0.) {
-          
+
   interpolation_matrices<ScalarType, KClusterDmn, QDmn>::initialize(concurrency_);
 
   // Compute H0(k+q) for each value of k and q.

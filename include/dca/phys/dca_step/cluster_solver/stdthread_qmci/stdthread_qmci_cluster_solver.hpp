@@ -52,7 +52,7 @@ class StdThreadQmciClusterSolver : public QmciSolver {
   using StdThreadAccumulatorType = stdthreadqmci::StdThreadQmciAccumulator<Accumulator>;
 
 public:
-  StdThreadQmciClusterSolver(Parameters& parameters_ref, Data& data_ref);
+  StdThreadQmciClusterSolver(const Parameters& parameters_ref, Data& data_ref);
 
   void initialize(int dca_iteration);
 
@@ -105,7 +105,7 @@ private:
 };
 
 template <class QmciSolver>
-StdThreadQmciClusterSolver<QmciSolver>::StdThreadQmciClusterSolver(Parameters& parameters_ref,
+StdThreadQmciClusterSolver<QmciSolver>::StdThreadQmciClusterSolver(const Parameters& parameters_ref,
                                                                    Data& data_ref)
     : BaseClass(parameters_ref, data_ref),
 

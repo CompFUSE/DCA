@@ -120,8 +120,8 @@ public:
   void print_Sigma_QMC_versus_Sigma_cg();
 
 private:
-  Parameters& parameters_;
-  Concurrency& concurrency_;
+  /*const*/ Parameters& parameters_;
+  const Concurrency& concurrency_;
 
 public:
   func::function<int, NuNuDmn> H_symmetry;
@@ -229,7 +229,7 @@ private:  // Optional members.
 };
 
 template <class Parameters>
-DcaData<Parameters>::DcaData(Parameters& parameters_ref)
+DcaData<Parameters>::DcaData(/*const*/ Parameters& parameters_ref)
     : parameters_(parameters_ref),
       concurrency_(parameters_.get_concurrency()),
 
@@ -327,6 +327,7 @@ void DcaData<Parameters>::read(Reader& reader) {
     {
       reader.open_group("physics");
 
+      // TODO: do not use parameters for starage.
       reader.execute("chemical-potential", parameters_.get_chemical_potential());
 
       reader.close_group();

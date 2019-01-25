@@ -54,7 +54,7 @@ public:
   using KClusterDmn = typename CDA::KClusterDmn;
 
 public:
-  update_chemical_potential(parameters_type& parameters_ref, MOMS_type& MOMS_ref,
+  update_chemical_potential(/*const*/ parameters_type& parameters_ref, MOMS_type& MOMS_ref,
                             coarsegraining_type& coarsegraining_ref);
 
   // Executes the search for the new value of the chemical potential.
@@ -82,8 +82,8 @@ private:
   void print_bounds();
 
 private:
-  parameters_type& parameters;
-  concurrency_type& concurrency;
+  /*const*/ parameters_type& parameters;
+  const concurrency_type& concurrency;
 
   MOMS_type& MOMS;
   coarsegraining_type& coarsegraining;
@@ -94,7 +94,8 @@ private:
 
 template <typename parameters_type, typename MOMS_type, typename coarsegraining_type>
 update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>::update_chemical_potential(
-    parameters_type& parameters_ref, MOMS_type& MOMS_ref, coarsegraining_type& coarsegraining_ref)
+    /*const*/ parameters_type& parameters_ref, MOMS_type& MOMS_ref,
+    coarsegraining_type& coarsegraining_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
 
@@ -130,6 +131,7 @@ void update_chemical_potential<parameters_type, MOMS_type, coarsegraining_type>:
     double n_lb = lower_bound.second;
     double n_ub = upper_bound.second;
 
+    // TODO: do not write in parameters.
     parameters.get_chemical_potential() = get_new_chemical_potential(d_0, mu_lb, mu_ub, n_lb, n_ub);
 
     dens = compute_density();

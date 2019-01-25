@@ -51,7 +51,7 @@ public:
       func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>;
 
 public:
-  SeriesExpansionSigma(parameters_type& parameter_ref, MOMS_type& MOMS_ref);
+  SeriesExpansionSigma(const parameters_type& parameter_ref, MOMS_type& MOMS_ref);
 
   template <class stream_type>
   void to_JSON(stream_type& ss);
@@ -66,8 +66,8 @@ public:
   void write(Writer& writer);
 
 private:
-  parameters_type& parameters;
-  concurrency_type& concurrency;
+  const parameters_type& parameters;
+  const concurrency_type& concurrency;
   MOMS_type& MOMS;
 
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> Sigma;
@@ -84,8 +84,8 @@ private:
 };
 
 template <class parameters_type, class MOMS_type>
-SeriesExpansionSigma<parameters_type, MOMS_type>::SeriesExpansionSigma(parameters_type& parameters_ref,
-                                                                       MOMS_type& MOMS_ref)
+SeriesExpansionSigma<parameters_type, MOMS_type>::SeriesExpansionSigma(
+    const parameters_type& parameters_ref, MOMS_type& MOMS_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
       MOMS(MOMS_ref),

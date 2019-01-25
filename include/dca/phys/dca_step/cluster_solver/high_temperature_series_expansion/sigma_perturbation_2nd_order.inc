@@ -34,7 +34,7 @@ public:
   using U_function_type = typename compute_interaction::function_type;
 
 public:
-  sigma_perturbation(parameters_type& parameters_ref, compute_interaction& interaction_obj,
+  sigma_perturbation(const parameters_type& parameters_ref, compute_interaction& interaction_obj,
                      compute_bubble<ph, parameters_type, k_dmn_t, w>& chi_obj,
                      compute_bubble<pp, parameters_type, k_dmn_t, w>& phi_obj);
 
@@ -65,8 +65,8 @@ private:
   int subtract_freq_bf(int, int);  // fermion-boson
 
 protected:
-  parameters_type& parameters;
-  concurrency_type& concurrency;
+  const parameters_type& parameters;
+  const concurrency_type& concurrency;
 
   U_function_type& U;
 
@@ -96,7 +96,7 @@ private:
 
 template <class parameters_type, class k_dmn_t>
 sigma_perturbation<2, parameters_type, k_dmn_t>::sigma_perturbation(
-    parameters_type& parameters_ref, compute_interaction& interaction_obj,
+    const parameters_type& parameters_ref, compute_interaction& interaction_obj,
     compute_bubble<ph, parameters_type, k_dmn_t, w>& chi_obj,
     compute_bubble<pp, parameters_type, k_dmn_t, w>& phi_obj)
     : parameters(parameters_ref),

@@ -57,7 +57,7 @@ public:
   const static dca::linalg::DeviceType walker_device_type = device_t;
 
 public:
-  CtauxWalker(parameters_type& parameters_ref, MOMS_type& MOMS_ref, rng_type& rng_ref, int id);
+  CtauxWalker(const parameters_type& parameters_ref, MOMS_type& MOMS_ref, rng_type& rng_ref, int id);
 
   void initialize();
 
@@ -204,9 +204,9 @@ private:
   };
 
 private:
-  parameters_type& parameters;
+  const parameters_type& parameters;
   MOMS_type& MOMS;
-  concurrency_type& concurrency;
+  const concurrency_type& concurrency;
 
   int thread_id;
   int stream_id;
@@ -287,7 +287,7 @@ private:
 };
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-CtauxWalker<device_t, parameters_type, MOMS_type>::CtauxWalker(parameters_type& parameters_ref,
+CtauxWalker<device_t, parameters_type, MOMS_type>::CtauxWalker(const parameters_type& parameters_ref,
                                                                MOMS_type& MOMS_ref,
                                                                rng_type& rng_ref, int id)
     : WalkerBIT<parameters_type, MOMS_type>(parameters_ref, MOMS_ref, id),

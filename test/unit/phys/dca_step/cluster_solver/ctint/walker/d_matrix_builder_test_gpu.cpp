@@ -46,7 +46,8 @@ TEST_F(G0Setup, RemoveAndInstertVertex) {
     right_sector = !right_sector;
 
     // Setup the configuration.
-    ctint::SolverConfiguration configuration(parameters_.get_beta(), BDmn::dmn_size(), G0Setup::interaction_vertices_);
+    ctint::SolverConfiguration configuration(parameters_.get_beta(), BDmn::dmn_size(),
+                                             G0Setup::interaction_vertices_);
     ctint::DeviceConfigurationManager device_config;
     for (int i = 0; i < size; i++)
       configuration.insertRandom(rng);

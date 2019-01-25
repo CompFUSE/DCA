@@ -26,7 +26,7 @@ public:
   typedef typename parameters_type::profiler_type profiler_t;
 
 public:
-  G0_INTERPOLATION(int id, parameters_type& parameters);
+  G0_INTERPOLATION(int id, const parameters_type& parameters);
 
   template <class MOMS_type>
   void initialize(MOMS_type& MOMS);
@@ -83,8 +83,8 @@ private:
 };
 
 template <typename parameters_type>
-G0_INTERPOLATION<dca::linalg::GPU, parameters_type>::G0_INTERPOLATION(int id,
-                                                                      parameters_type& parameters_ref)
+G0_INTERPOLATION<dca::linalg::GPU, parameters_type>::G0_INTERPOLATION(
+    int id, const parameters_type& parameters_ref)
     : G0_INTERPOLATION_TEMPLATE<parameters_type>(id, parameters_ref),
 
       thread_id(id),

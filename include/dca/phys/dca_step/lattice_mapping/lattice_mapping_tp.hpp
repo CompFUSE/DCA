@@ -61,7 +61,7 @@ public:
   using target_vector_dmn_t = func::dmn_variadic<b, b, target_k_dmn_t, w_VERTEX>;
 
 public:
-  lattice_mapping_tp(parameters_type& parameters_ref);
+  lattice_mapping_tp(const parameters_type& parameters_ref);
 
   template <typename scalartype>
   void execute(func::function<std::complex<scalartype>,
@@ -74,8 +74,8 @@ private:
   void plot_function(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& f);
 
 private:
-  parameters_type& parameters;
-  concurrency_type& concurrency;
+  const parameters_type& parameters;
+  const concurrency_type& concurrency;
 
   interpolation_tp<parameters_type, source_k_dmn_t, target_k_dmn_t> interpolation_obj;
   deconvolution_tp<parameters_type, source_k_dmn_t, target_k_dmn_t> deconvolution_obj;
@@ -83,7 +83,7 @@ private:
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 lattice_mapping_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::lattice_mapping_tp(
-    parameters_type& parameters_ref)
+    const parameters_type& parameters_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
 

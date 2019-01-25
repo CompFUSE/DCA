@@ -34,6 +34,8 @@
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 
+#define typeof __typeof__
+
 constexpr bool UPDATE_RESULTS = false;
 
 const std::string input_dir = DCA_SOURCE_DIR "/test/integration/stdthread_qmci/";

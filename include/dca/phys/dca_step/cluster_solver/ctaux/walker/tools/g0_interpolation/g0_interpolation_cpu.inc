@@ -27,7 +27,7 @@ public:
   typedef typename parameters_type::profiler_type profiler_t;
 
 public:
-  G0_INTERPOLATION(int id, parameters_type& parameters);
+  G0_INTERPOLATION(int id, const parameters_type& parameters);
 
   using G0_INTERPOLATION_TEMPLATE<parameters_type>::initialize;
 
@@ -42,7 +42,9 @@ public:
   void update_G0_matrix(configuration_type& configuration,
                         dca::linalg::Matrix<double, dca::linalg::CPU>& G0, e_spin_states_type spin);
 
-  std::size_t deviceFingerprint() const {return 0;}
+  std::size_t deviceFingerprint() const {
+    return 0;
+  }
 
 private:
   double interpolate(int nu_0, int nu_1, int delta_r, double delta_time);
@@ -80,8 +82,8 @@ private:
 };
 
 template <typename parameters_type>
-G0_INTERPOLATION<dca::linalg::CPU, parameters_type>::G0_INTERPOLATION(int id,
-                                                                      parameters_type& parameters_ref)
+G0_INTERPOLATION<dca::linalg::CPU, parameters_type>::G0_INTERPOLATION(
+    int id, const parameters_type& parameters_ref)
     : G0_INTERPOLATION_TEMPLATE<parameters_type>(id, parameters_ref),
 
       thread_id(id) {}

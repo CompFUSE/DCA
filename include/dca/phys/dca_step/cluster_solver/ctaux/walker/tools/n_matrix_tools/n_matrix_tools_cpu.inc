@@ -18,7 +18,7 @@ class N_MATRIX_TOOLS<dca::linalg::CPU, parameters_type> {
   typedef typename parameters_type::profiler_type profiler_t;
 
 public:
-  N_MATRIX_TOOLS(int id, parameters_type& parameters_ref);
+  N_MATRIX_TOOLS(int id, const parameters_type& parameters_ref);
 
   double* get_device_ptr(dca::linalg::Vector<double, dca::linalg::CPU>& v);
 
@@ -40,8 +40,8 @@ private:
   int thread_id;
   int stream_id;
 
-  parameters_type& parameters;
-  concurrency_type& concurrency;
+  const parameters_type& parameters;
+  const concurrency_type& concurrency;
 
   dca::linalg::Vector<int, dca::linalg::CPU> identity;
   dca::linalg::Vector<int, dca::linalg::CPU> permutation;
@@ -54,7 +54,7 @@ private:
 
 template <typename parameters_type>
 N_MATRIX_TOOLS<dca::linalg::CPU, parameters_type>::N_MATRIX_TOOLS(int id,
-                                                                  parameters_type& parameters_ref)
+                                                                  const parameters_type& parameters_ref)
     : thread_id(id),
       stream_id(0),
 

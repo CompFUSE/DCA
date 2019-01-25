@@ -141,7 +141,7 @@ public:
   using w_REAL = func::dmn_0<domains::frequency_domain_real_axis>;
 
 public:
-  Hamiltonian(parameters_type& parameters_ref);
+  Hamiltonian(const parameters_type& parameters_ref);
 
   void initialize(const func::function<double, func::dmn_variadic<Nu, Nu, RClusterDmn>>& H_0,
                   const func::function<double, func::dmn_variadic<Nu, Nu, RClusterDmn>>& H_i);
@@ -189,8 +189,8 @@ protected:
   bool check_block_structure(int N, matrix_type& H, Hilbert_space_type& subspace);
 
 private:
-  parameters_type& parameters;
-  concurrency_type& concurrency;
+  const parameters_type& parameters;
+  const concurrency_type& concurrency;
 
   double CUT_OFF;
 
@@ -206,7 +206,7 @@ private:
 };
 
 template <typename parameters_type, typename ed_options>
-Hamiltonian<parameters_type, ed_options>::Hamiltonian(parameters_type& parameters_ref)
+Hamiltonian<parameters_type, ed_options>::Hamiltonian(const parameters_type& parameters_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
 

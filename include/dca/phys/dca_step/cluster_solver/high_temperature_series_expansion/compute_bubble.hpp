@@ -59,7 +59,7 @@ public:
       func::function<std::complex<double>, func::dmn_variadic<b_b, b_b, k_dmn_t, w_VERTEX_BOSONIC>>;
 
 public:
-  compute_bubble(parameters_type& parameters_ref);
+  compute_bubble(const parameters_type &parameters_ref);
 
   function_type& get_function();
 
@@ -83,8 +83,8 @@ private:
   void threaded_execute_on_cluster_pp(int id, int nr_threads, G_function_type& G);
 
 private:
-  parameters_type& parameters;
-  concurrency_type& concurrency;
+  const parameters_type& parameters;
+  const concurrency_type& concurrency;
 
 protected:
   func::function<std::complex<double>, func::dmn_variadic<b_b, b_b, k_dmn_t, w_VERTEX_BOSONIC>> chi;
@@ -100,7 +100,7 @@ private:
 
 template <channel_type channel_value, class parameters_type, class k_dmn_t, class w_dmn_t>
 compute_bubble<channel_value, parameters_type, k_dmn_t, w_dmn_t>::compute_bubble(
-    parameters_type& parameters_ref)
+        const parameters_type &parameters_ref)
     : parameters(parameters_ref), concurrency(parameters_ref.get_concurrency()) {}
 
 template <channel_type channel_value, class parameters_type, class k_dmn_t, class w_dmn_t>

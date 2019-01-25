@@ -42,7 +42,7 @@ public:
   using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
   using RClusterDmn = typename CDA::RClusterDmn;
   using KClusterDmn = typename CDA::KClusterDmn;
-    
+
   typedef typename ed_options::profiler_t profiler_t;
   typedef typename ed_options::concurrency_type concurrency_type;
 
@@ -71,8 +71,8 @@ public:
   typedef OverlapMatrixElement<parameters_type, ed_options> sparse_element_type;
 
 public:
-  fermionic_overlap_matrices(parameters_type& parameters_ref,
-                             fermionic_Hamiltonian_type& Hamiltonian_ref);
+  fermionic_overlap_matrices(const parameters_type &parameters_ref,
+                             fermionic_Hamiltonian_type &Hamiltonian_ref);
 
   void construct_creation_set_all();
   void construct_annihilation_set_all();
@@ -113,8 +113,8 @@ private:
   void merge(std::vector<sparse_element_type>& sparse_matrix);
 
 private:
-  parameters_type& parameters;
-  concurrency_type& concurrency;
+  const parameters_type& parameters;
+  const concurrency_type& concurrency;
 
   fermionic_Hamiltonian_type& hamiltonian;
 
@@ -143,7 +143,7 @@ private:
 
 template <typename parameters_type, typename ed_options>
 fermionic_overlap_matrices<parameters_type, ed_options>::fermionic_overlap_matrices(
-    parameters_type& parameters_ref, fermionic_Hamiltonian_type& Hamiltonian_ref)
+        const parameters_type &parameters_ref, fermionic_Hamiltonian_type &Hamiltonian_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
 

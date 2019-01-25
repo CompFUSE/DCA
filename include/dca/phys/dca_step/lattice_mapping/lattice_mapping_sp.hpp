@@ -49,7 +49,7 @@ public:
   using k_HOST = func::dmn_0<host_k_cluster_type>;
 
 public:
-  lattice_mapping_sp(parameters_type& parameters_ref);
+  lattice_mapping_sp(const parameters_type& parameters_ref);
 
   void execute(
       func::function<std::complex<double>, func::dmn_variadic<nu, nu, source_k_dmn_t, w>>& f_source,
@@ -70,8 +70,8 @@ private:
   void plot_function(func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>>& f);
 
 private:
-  parameters_type& parameters;
-  concurrency_type& concurrency;
+  const parameters_type& parameters;
+  const concurrency_type& concurrency;
 
   interpolation_sp<parameters_type, source_k_dmn_t, target_k_dmn_t> interpolation_obj;
   deconvolution_sp<parameters_type, source_k_dmn_t, target_k_dmn_t> deconvolution_obj;
@@ -84,7 +84,7 @@ private:
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 lattice_mapping_sp<parameters_type, source_k_dmn_t, target_k_dmn_t>::lattice_mapping_sp(
-    parameters_type& parameters_ref)
+    const parameters_type& parameters_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
 

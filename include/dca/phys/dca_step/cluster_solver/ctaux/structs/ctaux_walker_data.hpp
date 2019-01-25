@@ -28,7 +28,7 @@ protected:
   const static int MAX_VERTEX_SINGLETS = 2;
 
 public:
-  CtauxWalkerData(parameters_type& parameters, int id);
+  CtauxWalkerData(const parameters_type& parameters, int id);
 
   std::size_t deviceFingerprint() const {
     return N_up.deviceFingerprint() + N_dn.deviceFingerprint() + G0_up.deviceFingerprint() +
@@ -56,7 +56,7 @@ public:
 };
 
 template <dca::linalg::DeviceType device_t, typename parameters_type>
-CtauxWalkerData<device_t, parameters_type>::CtauxWalkerData(parameters_type& parameters, int id)
+CtauxWalkerData<device_t, parameters_type>::CtauxWalkerData(const parameters_type& parameters, int id)
     : thread_id(id),
 
       N_up("N_up", 0, parameters.get_initial_matrix_size()),

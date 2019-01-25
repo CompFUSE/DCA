@@ -16,7 +16,7 @@ class G_MATRIX_TOOLS<dca::linalg::CPU, parameters_type> {
   typedef typename parameters_type::profiler_type profiler_t;
 
 public:
-  G_MATRIX_TOOLS(int id, parameters_type& parameters_ref)
+  G_MATRIX_TOOLS(int id, const parameters_type& parameters_ref)
       : thread_id(id),
 
         parameters(parameters_ref),
@@ -111,6 +111,6 @@ public:
 private:
   int thread_id;
 
-  parameters_type& parameters;
-  concurrency_type& concurrency;
+  const parameters_type& parameters;
+  const concurrency_type& concurrency;
 };

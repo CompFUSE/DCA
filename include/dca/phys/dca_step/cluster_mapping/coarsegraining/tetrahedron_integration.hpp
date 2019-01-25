@@ -56,7 +56,7 @@ public:
   const static int DIMENSION = K_dmn::parameter_type::DIMENSION;
 
 public:
-  tetrahedron_integration(parameters_type& parameters_ref);
+  tetrahedron_integration(const parameters_type &parameters_ref);
 
   template <typename scalar_type>
   void execute(func::function<scalar_type, tet_dmn_type>& w_tet,
@@ -83,11 +83,12 @@ protected:
   //      func::function<std::complex<scalar_type>, func::dmn_variadic<nu, nu>>& G_int) const;
 
 private:
-  parameters_type& parameters;
+  const parameters_type& parameters;
 };
 
 template <typename parameters_type>
-tetrahedron_integration<parameters_type>::tetrahedron_integration(parameters_type& parameters_ref)
+tetrahedron_integration<parameters_type>::tetrahedron_integration(
+        const parameters_type &parameters_ref)
     : parameters(parameters_ref) {}
 
 template <typename parameters_type>

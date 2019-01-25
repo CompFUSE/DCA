@@ -42,7 +42,7 @@ public:
   using typename BaseClass::Profiler;
   using typename BaseClass::Rng;
 
-  CtintWalkerSubmatrix(Parameters& pars_ref, Rng& rng_ref, const InteractionVertices& vertices,
+  CtintWalkerSubmatrix(const Parameters& pars_ref, Rng& rng_ref, const InteractionVertices& vertices,
                        const DMatrixBuilder<linalg::GPU>& builder_ref, int id = 0);
 
 public:
@@ -125,7 +125,7 @@ private:
 
 template <class Parameters>
 CtintWalkerSubmatrix<linalg::GPU, Parameters>::CtintWalkerSubmatrix(
-    Parameters& parameters_ref, Rng& rng_ref, const InteractionVertices& vertices,
+    const Parameters& parameters_ref, Rng& rng_ref, const InteractionVertices& vertices,
     const DMatrixBuilder<linalg::GPU>& builder_ref, int id)
     : BaseClass(parameters_ref, rng_ref, vertices, builder_ref, id), d_builder_(builder_ref) {
   for (int s = 0; s < 2; ++s) {

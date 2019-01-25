@@ -57,7 +57,7 @@ public:
   using k_HOST_VERTEX = func::dmn_0<host_vertex_k_cluster_type>;
 
 public:
-  interpolation_tp(parameters_type& parameters_ref);
+  interpolation_tp(const parameters_type& parameters_ref);
 
   template <typename scalartype>
   void initialize_T_K_to_k(dca::linalg::Matrix<std::complex<scalartype>, dca::linalg::CPU>& T_K_to_k);
@@ -72,13 +72,13 @@ public:
                                         func::dmn_variadic<b, b, k_HOST_VERTEX, w_VERTEX>>>& Gamma_lattice);
 
 private:
-  parameters_type& parameters;
-  concurrency_type& concurrency;
+  const parameters_type& parameters;
+  const concurrency_type& concurrency;
 };
 
 template <typename parameters_type, typename source_k_dmn, typename target_k_dmn>
 interpolation_tp<parameters_type, source_k_dmn, target_k_dmn>::interpolation_tp(
-    parameters_type& parameters_ref)
+    const parameters_type& parameters_ref)
     : interpolation_routines<parameters_type, source_k_dmn, target_k_dmn>(parameters_ref),
 
       parameters(parameters_ref),

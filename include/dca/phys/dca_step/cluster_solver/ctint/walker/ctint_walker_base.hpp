@@ -60,7 +60,7 @@ public:
   using Concurrency = typename Parameters::concurrency_type;
 
 protected:  // The class is not instantiable.
-  CtintWalkerBase(Parameters& pars_ref, Rng& rng_ref, const InteractionVertices& vertices,
+  CtintWalkerBase(const Parameters& pars_ref, Rng& rng_ref, const InteractionVertices& vertices,
                   const DMatrixBuilder<linalg::CPU>& builder_ref, int id = 0);
 
   virtual ~CtintWalkerBase() = default;
@@ -122,8 +122,8 @@ protected:  // Auxiliary methods.
   void updateSweepAverages();
 
 protected:  // Members.
-  Parameters& parameters_;
-  Concurrency& concurrency_;
+  const Parameters& parameters_;
+  const Concurrency& concurrency_;
 
   const int thread_id_;
 
@@ -162,7 +162,7 @@ private:
 };
 
 template <class Parameters>
-CtintWalkerBase<Parameters>::CtintWalkerBase(Parameters& parameters_ref, Rng& rng_ref,
+CtintWalkerBase<Parameters>::CtintWalkerBase(const Parameters& parameters_ref, Rng& rng_ref,
                                              const InteractionVertices& vertices,
                                              const DMatrixBuilder<linalg::CPU>& builder_ref, int id)
     : parameters_(parameters_ref),

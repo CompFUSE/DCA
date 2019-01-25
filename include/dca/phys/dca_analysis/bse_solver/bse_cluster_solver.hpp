@@ -48,7 +48,7 @@ public:
   using cluster_eigenvector_dmn_t = func::dmn_variadic<b, b, k_DCA, w_VERTEX>;
   using DCA_matrix_dmn_t = func::dmn_variadic<cluster_eigenvector_dmn_t, cluster_eigenvector_dmn_t>;
 
-  BseClusterSolver(ParametersType& parameters, DcaDataType& data);
+  BseClusterSolver(const ParametersType& parameters, DcaDataType& data);
 
   template <typename Writer>
   void write(Writer& writer);
@@ -72,8 +72,8 @@ private:
   void solve_BSE_on_cluster(func::function<std::complex<ScalarType>, DCA_matrix_dmn_t>& G_II,
                             func::function<std::complex<ScalarType>, DCA_matrix_dmn_t>& G_II_0);
 
-  ParametersType& parameters;
-  concurrency_t& concurrency;
+  const ParametersType& parameters;
+  const concurrency_t& concurrency;
 
   DcaDataType& data_;
 
@@ -87,7 +87,7 @@ private:
 
 template <typename ParametersType, typename DcaDataType, typename ScalarType>
 BseClusterSolver<ParametersType, DcaDataType, ScalarType>::BseClusterSolver(
-    ParametersType& parameters_ref, DcaDataType& data_ref)
+    const ParametersType& parameters_ref, DcaDataType& data_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
       data_(data_ref),

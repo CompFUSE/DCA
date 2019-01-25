@@ -92,8 +92,9 @@ public:
   using w_VERTEX_EXTENDED = func::dmn_0<domains::vertex_frequency_domain<domains::EXTENDED>>;
 
 public:
-  TpGreensFunction(parameters_type& parameters_ref, fermionic_Hamiltonian_type& Hamiltonian_ref,
-                   fermionic_overlap_type& overlap_ref);
+  TpGreensFunction(const parameters_type &parameters_ref,
+                   fermionic_Hamiltonian_type &Hamiltonian_ref,
+                   fermionic_overlap_type &overlap_ref);
 
   template <typename Writer>
   void write(Writer& writer);
@@ -171,8 +172,8 @@ private:
   //                                                      >&                            G4);
 
 private:
-  parameters_type& parameters;
-  concurrency_type& concurrency;
+  const parameters_type& parameters;
+  const concurrency_type& concurrency;
 
   double CUT_OFF;
 
@@ -229,8 +230,8 @@ private:
 
 template <typename parameters_type, typename ed_options>
 TpGreensFunction<parameters_type, ed_options>::TpGreensFunction(
-    parameters_type& parameters_ref, fermionic_Hamiltonian_type& Hamiltonian_ref,
-    fermionic_overlap_type& overlap_ref)
+        const parameters_type &parameters_ref, fermionic_Hamiltonian_type &Hamiltonian_ref,
+        fermionic_overlap_type &overlap_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
 

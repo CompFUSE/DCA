@@ -45,7 +45,7 @@ public:
   using Rng = typename BaseClass::Rng;
   using Profiler = typename Parameters::profiler_type;
 
-  CtintWalkerSubmatrix(Parameters& pars_ref, Rng& rng_ref, const InteractionVertices& vertices,
+  CtintWalkerSubmatrix(const Parameters& pars_ref, Rng& rng_ref, const InteractionVertices& vertices,
                        const DMatrixBuilder<linalg::CPU>& builder_ref, int id = 0);
 
   virtual ~CtintWalkerSubmatrix() = default;
@@ -177,7 +177,7 @@ protected:
 
 template <class Parameters>
 CtintWalkerSubmatrix<linalg::CPU, Parameters>::CtintWalkerSubmatrix(
-    Parameters& parameters_ref, Rng& rng_ref, const InteractionVertices& vertices,
+    const Parameters& parameters_ref, Rng& rng_ref, const InteractionVertices& vertices,
     const DMatrixBuilder<linalg::CPU>& builder_ref, int id)
     : BaseClass(parameters_ref, rng_ref, vertices, builder_ref, id) {
   for (int i = 1; i <= 3; ++i) {

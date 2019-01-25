@@ -56,7 +56,7 @@ class N_TOOLS : public N_MATRIX_TOOLS<device_t, parameters_type> {
   typedef typename parameters_type::profiler_type profiler_t;
 
 public:
-  N_TOOLS(int id, parameters_type& parameters, CV<parameters_type>& CV_obj_ref);
+  N_TOOLS(int id, const parameters_type& parameters, CV<parameters_type>& CV_obj_ref);
 
   double get_Gflop();
 
@@ -101,8 +101,8 @@ private:
 
   double GFLOP;
 
-  parameters_type& parameters;
-  concurrency_type& concurrency;
+  const parameters_type& parameters;
+  const concurrency_type& concurrency;
 
   CV<parameters_type>& CV_obj;
 
@@ -115,7 +115,7 @@ private:
 };
 
 template <dca::linalg::DeviceType device_t, typename parameters_type>
-N_TOOLS<device_t, parameters_type>::N_TOOLS(int id, parameters_type& parameters_ref,
+N_TOOLS<device_t, parameters_type>::N_TOOLS(int id, const parameters_type& parameters_ref,
                                             CV<parameters_type>& CV_obj_ref)
     :
 

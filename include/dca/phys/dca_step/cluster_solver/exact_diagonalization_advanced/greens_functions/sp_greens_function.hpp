@@ -47,7 +47,7 @@ public:
   using CDA = ClusterDomainAliases<parameters_type::lattice_type::DIMENSION>;
   using RClusterDmn = typename CDA::RClusterDmn;
   using KClusterDmn = typename CDA::KClusterDmn;
-    
+
   typedef typename ed_options::profiler_t profiler_t;
   typedef typename ed_options::concurrency_type concurrency_type;
 
@@ -82,7 +82,7 @@ public:
   using w_VERTEX = func::dmn_0<domains::vertex_frequency_domain<domains::COMPACT>>;
 
 public:
-  SpGreensFunction(parameters_type& parameters_ref, fermionic_Hamiltonian_type& Hamiltonian_ref,
+  SpGreensFunction(const parameters_type& parameters_ref, fermionic_Hamiltonian_type& Hamiltonian_ref,
                    fermionic_overlap_type& overlap_ref);
 
   template <typename MOMS_w_imag_type, typename MOMS_w_real_type>
@@ -181,8 +181,8 @@ private:
       func::function<double, func::dmn_variadic<nu_dmn, nu_dmn, RClusterDmn, t>>& G_r_t);
 
 private:
-  parameters_type& parameters;
-  concurrency_type& concurrency;
+  const parameters_type& parameters;
+  const concurrency_type& concurrency;
 
   double CUT_OFF;
 
@@ -212,7 +212,7 @@ private:
 
 template <typename parameters_type, typename ed_options>
 SpGreensFunction<parameters_type, ed_options>::SpGreensFunction(
-    parameters_type& parameters_ref, fermionic_Hamiltonian_type& Hamiltonian_ref,
+    const parameters_type& parameters_ref, fermionic_Hamiltonian_type& Hamiltonian_ref,
     fermionic_overlap_type& overlap_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),

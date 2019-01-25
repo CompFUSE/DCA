@@ -48,7 +48,7 @@ class CtintClusterSolver {
 public:
   using Data = DcaData<Parameters>;
 
-  CtintClusterSolver(Parameters& parameters_ref, Data& Data_ref);
+  CtintClusterSolver(const Parameters& parameters_ref, Data& Data_ref);
 
   ~CtintClusterSolver();
 
@@ -124,8 +124,8 @@ protected:  // Protected for testing purposes.
 
 protected:
   const Parameters& parameters_;
+  const Concurrency& concurrency_;
   Data& data_;
-  Concurrency& concurrency_;
 
   // Stores the integration result
   Accumulator accumulator_;
@@ -147,11 +147,11 @@ private:
 };
 
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
-CtintClusterSolver<device_t, Parameters, use_submatrix>::CtintClusterSolver(Parameters& parameters_ref,
+CtintClusterSolver<device_t, Parameters, use_submatrix>::CtintClusterSolver(const Parameters& parameters_ref,
                                                                             Data& data_ref)
     : parameters_(parameters_ref),
-      data_(data_ref),
       concurrency_(parameters_.get_concurrency()),
+      data_(data_ref),
 
       accumulator_(parameters_, data_),
 

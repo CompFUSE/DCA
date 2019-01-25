@@ -62,7 +62,7 @@ public:
   using w_REAL = func::dmn_0<domains::frequency_domain_real_axis>;
 
 public:
-  EDClusterSolver(parameters_type& parameters_ref, MOMS_type& MOMS_ref,
+  EDClusterSolver(const parameters_type& parameters_ref, MOMS_type& MOMS_ref,
                   MOMS_w_real_type& MOMS_real_ref);
 
   void initialize(int dca_iteration);
@@ -75,8 +75,8 @@ public:
   void write(std::string file_name);
 
 private:
-  parameters_type& parameters;
-  typename parameters_type::concurrency_type& concurrency;
+  const parameters_type& parameters;
+  const typename parameters_type::concurrency_type& concurrency;
   MOMS_type& MOMS_imag;
   MOMS_w_real_type& MOMS_real;
 
@@ -89,7 +89,7 @@ private:
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
 EDClusterSolver<device_t, parameters_type, MOMS_type>::EDClusterSolver(
-    parameters_type& parameters_ref, MOMS_type& MOMS_imag_ref, MOMS_w_real_type& MOMS_real_ref)
+    const parameters_type& parameters_ref, MOMS_type& MOMS_imag_ref, MOMS_w_real_type& MOMS_real_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
 

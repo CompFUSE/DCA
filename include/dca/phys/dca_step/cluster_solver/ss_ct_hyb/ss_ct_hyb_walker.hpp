@@ -76,7 +76,8 @@ public:
   typedef swap_segment_tools<ss_hybridization_walker_routines_type> swap_segment_tools_t;
 
 public:
-  SsCtHybWalker(parameters_type& parameters_ref, MOMS_type& MOMS_ref, rng_type& rng_ref, int id = 0);
+  SsCtHybWalker(const parameters_type& parameters_ref, MOMS_type& MOMS_ref, rng_type& rng_ref,
+                int id = 0);
 
   /*!
    *  \brief Initializes the configuration and sets \f$\mu_i = \frac12 \sum_j
@@ -163,9 +164,9 @@ private:
   void swap_random_orbitals();
 
 private:
-  parameters_type& parameters;
+  const parameters_type& parameters;
   MOMS_type& MOMS;
-  concurrency_type& concurrency;
+  const concurrency_type& concurrency;
 
   rng_type& rng;
 
@@ -205,9 +206,8 @@ private:
 };
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-SsCtHybWalker<device_t, parameters_type, MOMS_type>::SsCtHybWalker(parameters_type& parameters_ref,
-                                                                   MOMS_type& MOMS_ref,
-                                                                   rng_type& rng_ref, int id)
+SsCtHybWalker<device_t, parameters_type, MOMS_type>::SsCtHybWalker(
+    const parameters_type& parameters_ref, MOMS_type& MOMS_ref, rng_type& rng_ref, int id)
     : parameters(parameters_ref),
       MOMS(MOMS_ref),
       concurrency(parameters.get_concurrency()),

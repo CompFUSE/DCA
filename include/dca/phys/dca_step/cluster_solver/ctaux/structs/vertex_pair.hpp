@@ -46,7 +46,7 @@ public:
   typedef vertex_pair<parameters_type> this_type;
 
 public:
-  vertex_pair(parameters_type& parameters_ref, rng_type& rng_ref, int configuration_index_in,
+  vertex_pair(const parameters_type& parameters_ref, rng_type& rng_ref, int configuration_index_in,
               int configuration_e_DN_index_in, int configuration_e_UP_index_in, uint64_t id);
 
   this_type& operator=(const this_type& other_vertex_pair);
@@ -91,7 +91,7 @@ public:
   friend io::Buffer& operator>>(io::Buffer& buff, vertex_pair<Pars>& config);
 
 private:
-  parameters_type& parameters;
+  const parameters_type& parameters;
   //     concurrency_type&   concurrency;
   rng_type& rng;
 
@@ -123,7 +123,7 @@ private:
 };
 
 template <class parameters_type>
-vertex_pair<parameters_type>::vertex_pair(parameters_type& parameters_ref, rng_type& rng_ref,
+vertex_pair<parameters_type>::vertex_pair(const parameters_type& parameters_ref, rng_type& rng_ref,
                                           int configuration_index_in,
                                           int /*configuration_e_DN_index_in*/,
                                           int /*configuration_e_UP_index_in*/, uint64_t id)

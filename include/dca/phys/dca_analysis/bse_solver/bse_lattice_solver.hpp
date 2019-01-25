@@ -138,7 +138,7 @@ private:
   void printOnShell();
 
   ParametersType& parameters;
-  concurrency_type& concurrency;
+  const concurrency_type& concurrency;
 
   DcaDataType& MOMS;
 

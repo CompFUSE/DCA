@@ -55,7 +55,7 @@ public:
       func::dmn_0<domains::cluster_domain<double, ParametersType::lattice_type::DIMENSION, domains::LATTICE_TP,
                                           domains::MOMENTUM_SPACE, domains::BRILLOUIN_ZONE>>;
 
-  BseSolver(ParametersType& parameters, DcaDataType& dca_data);
+  BseSolver(/*const*/ ParametersType& parameters, DcaDataType& dca_data);
 
   void write();
   template <typename Writer>
@@ -77,8 +77,8 @@ private:
   // TODO: Cleanup.
   void initialize_wave_functions();
 
-  ParametersType& parameters_;
-  ConcurrencyType& concurrency_;
+  /*const*/ ParametersType& parameters_;
+  const ConcurrencyType& concurrency_;
 
   DcaDataType& dca_data_;
 
@@ -90,7 +90,7 @@ private:
 };
 
 template <typename ParametersType, typename DcaDataType>
-BseSolver<ParametersType, DcaDataType>::BseSolver(ParametersType& parameters, DcaDataType& dca_data)
+BseSolver<ParametersType, DcaDataType>::BseSolver(/*const*/ ParametersType& parameters, DcaDataType& dca_data)
     : parameters_(parameters),
       concurrency_(parameters.get_concurrency()),
 

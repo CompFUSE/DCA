@@ -59,7 +59,7 @@ public:
   static constexpr linalg::DeviceType device = device_t;
 
 public:
-  SsCtHybClusterSolver(parameters_type& parameters_ref, Data& MOMS_ref);
+  SsCtHybClusterSolver(const parameters_type& parameters_ref, Data& MOMS_ref);
 
   void initialize(int dca_iteration);
 
@@ -118,9 +118,9 @@ protected:
   void computeErrorBars();
 
 protected:  // Interface to the thread jacket.
-  ParametersType& parameters_;
+  const ParametersType& parameters_;
   Data& data_;
-  Concurrency& concurrency_;
+  const Concurrency& concurrency_;
 
   Accumulator accumulator_;
   double total_time_;
@@ -142,7 +142,7 @@ private:
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class Data>
 SsCtHybClusterSolver<device_t, parameters_type, Data>::SsCtHybClusterSolver(
-    parameters_type& parameters_ref, Data& data_ref)
+    const parameters_type& parameters_ref, Data& data_ref)
     : cthyb::ss_hybridization_solver_routines<parameters_type, Data>(parameters_ref, data_ref),
 
       parameters_(parameters_ref),

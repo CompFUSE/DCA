@@ -58,7 +58,7 @@ public:
   typedef func::dmn_variadic<nu, nu, HS_s, HS_s, HS_f, r_dmn_t> nu_nu_HS_s_HS_s_HS_f_r_dmn_t;
 
 public:
-  CV(parameters_type& parameters);
+  CV(const parameters_type& parameters);
 
   template <class stream_type>
   void to_JSON(stream_type& ss);
@@ -121,7 +121,7 @@ private:
   void initialize_exp_delta_V();
 
 private:
-  parameters_type& parameters;
+  const parameters_type& parameters;
 
   double BETA;
   double K_CT_AUX;
@@ -140,7 +140,7 @@ private:
 };
 
 template <typename parameters_type>
-CV<parameters_type>::CV(parameters_type& parameters_ref)
+CV<parameters_type>::CV(const parameters_type& parameters_ref)
     : parameters(parameters_ref),
 
       gamma_function("gamma_function"),
@@ -165,8 +165,7 @@ void CV<parameters_type>::to_JSON(stream_type& ss) {
 }
 
 template <typename parameters_type>
-func::function<double, typename CV<parameters_type>::nu_nu_r_dmn_t>& CV<
-    parameters_type>::get_H_interaction() {
+func::function<double, typename CV<parameters_type>::nu_nu_r_dmn_t>& CV<parameters_type>::get_H_interaction() {
   static func::function<double, nu_nu_r_dmn_t> H;
   return H;
 }

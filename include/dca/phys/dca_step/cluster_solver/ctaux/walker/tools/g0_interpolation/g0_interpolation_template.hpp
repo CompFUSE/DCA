@@ -53,7 +53,7 @@ public:
   typedef func::dmn_variadic<akima_dmn_t, nu, nu, r_dmn_t, shifted_t> akima_nu_nu_r_dmn_t_shifted_t;
 
 public:
-  G0_INTERPOLATION_TEMPLATE(int id, parameters_type& parameters);
+  G0_INTERPOLATION_TEMPLATE(int id, const parameters_type& parameters);
 
   template <class MOMS_type>
   void initialize(MOMS_type& MOMS);
@@ -68,8 +68,8 @@ protected:
 protected:
   int thread_id;
 
-  parameters_type& parameters;
-  concurrency_type& concurrency;
+  const parameters_type& parameters;
+  const concurrency_type& concurrency;
 
   nu_nu_r_dmn_t_shifted_t nu_nu_r_dmn_t_t_shifted_dmn;
 
@@ -85,8 +85,8 @@ protected:
 };
 
 template <typename parameters_type>
-G0_INTERPOLATION_TEMPLATE<parameters_type>::G0_INTERPOLATION_TEMPLATE(int id,
-                                                                      parameters_type& parameters_ref)
+G0_INTERPOLATION_TEMPLATE<parameters_type>::G0_INTERPOLATION_TEMPLATE(
+    int id, const parameters_type& parameters_ref)
     : thread_id(id),
 
       parameters(parameters_ref),

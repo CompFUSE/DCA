@@ -119,7 +119,7 @@ public:
   void pack(const concurrency_type& concurrency, char* buffer, int buffer_size, int& position) const;
   void unpack(const concurrency_type& concurrency, char* buffer, int buffer_size, int& position);
 
-  concurrency_type& get_concurrency() {
+  const concurrency_type& get_concurrency() const {
     return concurrency_;
   }
 

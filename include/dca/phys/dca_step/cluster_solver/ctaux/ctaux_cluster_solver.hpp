@@ -75,7 +75,7 @@ private:
   using NuNuRClusterWDmn = func::dmn_variadic<nu, nu, RClusterDmn, w>;
 
 public:
-  CtauxClusterSolver(Parameters& parameters_ref, Data& MOMS_ref);
+  CtauxClusterSolver(const Parameters& parameters_ref, Data& MOMS_ref);
 
   template <typename Writer>
   void write(Writer& writer);
@@ -125,9 +125,9 @@ private:
   double mix_self_energy(double alpha);
 
 protected:
-  Parameters& parameters_;
+  const Parameters& parameters_;
   Data& data_;
-  Concurrency& concurrency_;
+  const Concurrency& concurrency_;
 
   double total_time_;
 
@@ -153,7 +153,7 @@ private:
 };
 
 template <dca::linalg::DeviceType device_t, class Parameters, class Data>
-CtauxClusterSolver<device_t, Parameters, Data>::CtauxClusterSolver(Parameters& parameters_ref,
+CtauxClusterSolver<device_t, Parameters, Data>::CtauxClusterSolver(const Parameters& parameters_ref,
                                                                    Data& data_ref)
     : parameters_(parameters_ref),
       data_(data_ref),

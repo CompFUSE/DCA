@@ -56,7 +56,7 @@ protected:
 public:
   using ScalarType = typename Parameters::MC_measurement_scalar_type;
 
-  SpAccumulator(/*const*/ Parameters& parameters_ref, bool accumulate_m_squared = false);
+  SpAccumulator(const Parameters& parameters_ref, bool accumulate_m_squared = false);
 
   void resetAccumulation();
 
@@ -74,8 +74,8 @@ public:
 
   const auto& get_sign_times_M_r_w_sqr() const;
 
-  template<class T>
-  void syncStreams(const T& ){}
+  template <class T>
+  void syncStreams(const T&) {}
 
   // Returns the allocated device memory in bytes.
   int deviceFingerprint() const {
@@ -84,7 +84,7 @@ public:
 
 protected:
   constexpr static int oversampling = 8;
-  /*const*/ Parameters& parameters_;
+  const Parameters& parameters_;
 
   bool initialized_ = false;
   bool finalized_ = false;
@@ -102,8 +102,8 @@ private:
 };
 
 template <class Parameters>
-SpAccumulator<Parameters, linalg::CPU>::SpAccumulator(/*const*/ Parameters& parameters_ref,
-                                                      const bool accumulate_m_sqr)
+SpAccumulator<Parameters, linalg::CPU>::SpAccumulator(const Parameters& parameters_ref,
+                                                      bool accumulate_m_sqr)
     : parameters_(parameters_ref), accumulate_m_sqr_(accumulate_m_sqr) {}
 
 template <class Parameters>

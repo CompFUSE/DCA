@@ -22,7 +22,7 @@ public:
   typedef func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w>> function_type;
 
 public:
-  sigma_perturbation(parameter_type& parameters_ref, compute_interaction& interaction_obj);
+  sigma_perturbation(const parameter_type& parameters_ref, compute_interaction& interaction_obj);
 
   function_type& get_function() {
     return Sigma;
@@ -34,7 +34,7 @@ public:
   void write(Writer& /*writer*/) {}
 
 protected:
-  parameter_type& parameters;
+  const parameter_type& parameters;
 
   U_type& U;
 
@@ -43,8 +43,8 @@ protected:
 };
 
 template <class parameter_type, class k_dmn_t>
-sigma_perturbation<1, parameter_type, k_dmn_t>::sigma_perturbation(parameter_type& parameters_ref,
-                                                                   compute_interaction& interaction_obj)
+sigma_perturbation<1, parameter_type, k_dmn_t>::sigma_perturbation(
+    const parameter_type& parameters_ref, compute_interaction& interaction_obj)
     : parameters(parameters_ref),
 
       U(interaction_obj.get_function()),

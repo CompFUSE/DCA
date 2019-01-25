@@ -44,7 +44,7 @@ public:
   using function_type = func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_HOST, w>>;
 
 public:
-  compute_lattice_Greens_function(parameters_type& parameters_ref, MOMS_type& MOMS_ref);
+  compute_lattice_Greens_function(const parameters_type& parameters_ref, MOMS_type& MOMS_ref);
 
   function_type& get_G_k_w() {
     return G_k_w;
@@ -56,8 +56,8 @@ public:
   void execute();
 
 private:
-  parameters_type& parameters;
-  concurrency_type& concurrency;
+  const parameters_type& parameters;
+  const concurrency_type& concurrency;
   MOMS_type& MOMS;
 
   func::function<std::complex<double>, func::dmn_variadic<nu, nu, k_dmn_t, w_dmn_t>> G_k_w;
@@ -66,7 +66,7 @@ private:
 
 template <class parameters_type, class MOMS_type, class k_dmn_t, class w_dmn_t>
 compute_lattice_Greens_function<parameters_type, MOMS_type, k_dmn_t, w_dmn_t>::compute_lattice_Greens_function(
-    parameters_type& parameters_ref, MOMS_type& MOMS_ref)
+    const parameters_type& parameters_ref, MOMS_type& MOMS_ref)
     : parameters(parameters_ref),
       concurrency(parameters.get_concurrency()),
       MOMS(MOMS_ref),

@@ -80,7 +80,7 @@ public:
   const static int DIMENSION = K_dmn::parameter_type::DIMENSION;
 
 public:
-  coarsegraining_tp(parameters_type& parameters_ref);
+  coarsegraining_tp(const parameters_type &parameters_ref);
 
   // DCA coarsegraining
   template <typename w_dmn_t>
@@ -136,8 +136,8 @@ private:
   double get_integration_factor();
 
 private:
-  parameters_type& parameters;
-  concurrency_type& concurrency;
+  const parameters_type& parameters;
+  const concurrency_type& concurrency;
 
   func::function<scalar_type, q_dmn> w_q;
 
@@ -163,7 +163,7 @@ private:
 };
 
 template <typename parameters_type, typename K_dmn>
-coarsegraining_tp<parameters_type, K_dmn>::coarsegraining_tp(parameters_type& parameters_ref)
+coarsegraining_tp<parameters_type, K_dmn>::coarsegraining_tp(const parameters_type &parameters_ref)
     : BaseClass(parameters_ref),
 
       parameters(parameters_ref),

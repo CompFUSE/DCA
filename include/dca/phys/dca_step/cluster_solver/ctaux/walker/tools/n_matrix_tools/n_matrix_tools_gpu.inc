@@ -18,7 +18,7 @@ class N_MATRIX_TOOLS<dca::linalg::GPU, parameters_type> {
   typedef typename parameters_type::profiler_type profiler_t;
 
 public:
-  N_MATRIX_TOOLS(int id, parameters_type& parameters_ref);
+  N_MATRIX_TOOLS(int id, const parameters_type& parameters_ref);
 
   int* get_permutation();
   void set_permutation(std::vector<int>& p);
@@ -40,8 +40,8 @@ private:
   int thread_id;
   int stream_id;
 
-  parameters_type& parameters;
-  concurrency_type& concurrency;
+  const parameters_type& parameters;
+  const concurrency_type& concurrency;
 
   dca::linalg::Vector<int, dca::linalg::GPU> identity;
   dca::linalg::Vector<int, dca::linalg::GPU> permutation;
@@ -56,7 +56,7 @@ private:
 
 template <typename parameters_type>
 N_MATRIX_TOOLS<dca::linalg::GPU, parameters_type>::N_MATRIX_TOOLS(int id,
-                                                                  parameters_type& parameters_ref)
+                                                                  const parameters_type& parameters_ref)
     : thread_id(id),
       stream_id(0),
 

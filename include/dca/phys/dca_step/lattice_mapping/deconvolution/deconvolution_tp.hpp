@@ -41,7 +41,7 @@ class deconvolution_tp
   using k_HOST_VERTEX = func::dmn_0<host_vertex_k_cluster_type>;
 
 public:
-  deconvolution_tp(parameters_type& parameters_ref);
+  deconvolution_tp(const parameters_type& parameters_ref);
 
   template <typename k_dmn_t, typename scalartype>
   void execute(func::function<std::complex<scalartype>,
@@ -54,13 +54,13 @@ public:
                    Gamma_lattice_deconv);
 
 private:
-  parameters_type& parameters;
-  concurrency_type& concurrency;
+  const parameters_type& parameters;
+  const concurrency_type& concurrency;
 };
 
 template <typename parameters_type, typename source_k_dmn_t, typename target_k_dmn_t>
 deconvolution_tp<parameters_type, source_k_dmn_t, target_k_dmn_t>::deconvolution_tp(
-    parameters_type& parameters_ref)
+    const parameters_type& parameters_ref)
     : deconvolution_routines<parameters_type, source_k_dmn_t, target_k_dmn_t>(parameters_ref),
 
       parameters(parameters_ref),

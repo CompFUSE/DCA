@@ -30,7 +30,7 @@ public:
   using U_function_type = typename compute_interaction::function_type;
 
 public:
-  sigma_perturbation(parameters_type& parameters_ref, compute_interaction& interaction_obj,
+  sigma_perturbation(const parameters_type& parameters_ref, compute_interaction& interaction_obj,
                      compute_bubble<ph, parameters_type, k_dmn_t, w>& chi_obj,
                      compute_bubble<pp, parameters_type, k_dmn_t, w>& phi_obj);
 
@@ -51,7 +51,7 @@ private:
   int subtract_freq_fb(int, int);
 
 protected:
-  parameters_type& parameters;
+  const parameters_type& parameters;
 
   U_function_type& U;
 
@@ -65,7 +65,7 @@ protected:
 
 template <class parameters_type, class k_dmn_t>
 sigma_perturbation<3, parameters_type, k_dmn_t>::sigma_perturbation(
-    parameters_type& parameters_ref, compute_interaction& interaction_obj,
+    const parameters_type& parameters_ref, compute_interaction& interaction_obj,
     compute_bubble<ph, parameters_type, k_dmn_t, w>& chi_obj,
     compute_bubble<pp, parameters_type, k_dmn_t, w>& phi_obj)
     : parameters(parameters_ref),

@@ -59,8 +59,8 @@ public:
   void write(Writer& writer);
 
 private:
-  parameters_type& parameters;
-  concurrency_type& concurrency;
+  const parameters_type& parameters;
+  const concurrency_type& concurrency;
 
 public:
   func::function<double, w_REAL> A_w;
