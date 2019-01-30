@@ -337,7 +337,7 @@ void StdThreadQmciClusterSolver<QmciSolver>::iterateOverLocalMeasurements(
   }
   else {
     // Perform the total number of loop with a shared atomic counter.
-    for (int meas_id = measurements_done_; meas_id < n_local_meas; meas_id = ++measurements_done_)
+    for (int meas_id = measurements_done_++; meas_id < n_local_meas; meas_id = measurements_done_++)
       f(meas_id, n_local_meas, print);
   }
 }
