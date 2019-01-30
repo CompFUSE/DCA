@@ -31,6 +31,7 @@
 #include "dca/linalg/util/magma_vbatched_gemm.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_template.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/kernels_interface.hpp"
+#include "dca/util/ignore.hpp"
 
 namespace dca {
 namespace phys {
@@ -185,6 +186,7 @@ void CachedNdft<Real, RDmn, WDmn, WPosDmn, linalg::GPU, non_density_density>::pe
 
   auto& T_times_M = M_out;
   bool realloc = T_times_M.resizeNoCopy(std::make_pair(nw / 2 * n_orbitals_, order));
+  util::ignoreUnused(realloc);
   assert(!realloc);
   T_times_M.setToZero(stream_);
 
