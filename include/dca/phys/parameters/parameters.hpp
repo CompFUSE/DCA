@@ -108,7 +108,7 @@ public:
   Parameters(const std::string& version_stamp, concurrency_type& concurrency);
 
   template <typename Writer>
-  void write(Writer& writer);
+  void write(Writer& writer) const;
   template <typename Reader>
   void read_input_and_broadcast(const std::string& file_name);
 
@@ -174,9 +174,11 @@ template <typename Concurrency, typename Threading, typename Profiler, typename 
           typename RandomNumberGenerator, solver::ClusterSolverName solver_name>
 template <typename Writer>
 void Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name>::write(
-    Writer& writer) {
+    Writer& writer) const {
   writer.open_group("parameters");
-  this->readWrite(writer);
+  const_cast<Parameters<Concurrency, Threading, Profiler, Model, RandomNumberGenerator, solver_name>*>(
+      this)
+      ->readWrite(writer);
   writer.close_group();
 
   writer.open_group("domains");
