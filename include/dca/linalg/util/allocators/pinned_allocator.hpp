@@ -26,9 +26,16 @@ namespace util {
 // dca::linalg::util::
 
 template <typename T>
-class PinnedAllocator : public std::allocator<T> {
+class PinnedAllocator {
 public:
-  T* allocate(std::size_t n) {
+  PinnedAllocator() = default;
+
+  using size_type = std::size_t;
+  using pointer = T*;
+  using const_pointer = const T*;
+  using value_type = T;
+
+  T* allocate(std::size_t n, const void* /*hint*/ = nullptr) {
     if (n == 0)
       return nullptr;
     T* ptr;
@@ -48,6 +55,13 @@ public:
       std::terminate();
     }
     ptr = nullptr;
+  }
+
+  constexpr bool operator==(const PinnedAllocator<T>& /*other*/) {
+    return true;
+  }
+  constexpr bool operator!=(const PinnedAllocator<T>& /*other*/) {
+    return false;
   }
 };
 
