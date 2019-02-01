@@ -65,7 +65,6 @@ struct G0Setup : public ::testing::Test {
   Concurrency concurrency_;
   Parameters parameters_;
   std::unique_ptr<Data> data_;
-  phys::solver::ctint::InteractionVertices interaction_vertices_;
 
   G0Setup() : concurrency_(0, nullptr), parameters_("", concurrency_) {}
 
@@ -80,10 +79,6 @@ struct G0Setup : public ::testing::Test {
     }
     data_ = std::make_unique<Data>(parameters_);
     data_->initialize();
-
-    interaction_vertices_.initializeFromHamiltonian(data_->H_interactions);
-    if (data_->has_non_density_interactions())
-      interaction_vertices_.initializeFromNonDensityHamiltonian(data_->get_non_density_interactions());
   }
 
   virtual void TearDown() {}

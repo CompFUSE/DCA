@@ -39,6 +39,11 @@
     "max-submatrix-size": 4
   },
 
+  "CT-INT" : {
+    "initial-configuration-size" :5,
+    "alpha-dd-pos" : 0.501
+  },
+
   "DCA": {
     "iterations": 1,
     "self-energy-mixing-factor": 1.,
@@ -49,12 +54,13 @@
   {
     "warm-up-sweeps"         : 100,
     "sweeps-per-measurement" : 1,
-    "measurements"  : 4000,
+    "measurements"  : 1000,
 
     "threaded-solver" : {
-      "walkers": 1,
-      "accumulators": 4,
-      "shared-walk-and-accumulation-thread": false
+      "walkers": 2,
+      "accumulators": 2,
+      "shared-walk-and-accumulation-thread": false,
+      "fix-meas-per-walker" : true
     },
 
     "seed" : 0

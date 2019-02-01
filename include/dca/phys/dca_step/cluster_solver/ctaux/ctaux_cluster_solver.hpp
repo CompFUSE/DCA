@@ -325,7 +325,7 @@ void CtauxClusterSolver<device_t, Parameters, Data>::warmUp(Walker& walker) {
     walker.updateShell(i, parameters_.get_warm_up_sweeps());
   }
 
-  walker.is_thermalized() = true;
+  walker.markThermalized();
 
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\t\t warm-up has ended\n" << std::endl;

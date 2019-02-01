@@ -61,7 +61,8 @@ public:
 
   void initialize();
 
-  bool& is_thermalized();
+  bool is_thermalized() const;
+  void markThermalized();
 
   // Does one sweep, if the walker is not yet thermalized (warm-up).
   // Otherwise, does multiple sweeps according to the input parameter "sweeps-per-measurement".
@@ -397,8 +398,13 @@ double CtauxWalker<device_t, parameters_type, MOMS_type>::get_Gflop() {
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
-bool& CtauxWalker<device_t, parameters_type, MOMS_type>::is_thermalized() {
+bool CtauxWalker<device_t, parameters_type, MOMS_type>::is_thermalized() const {
   return thermalized;
+}
+
+template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
+void CtauxWalker<device_t, parameters_type, MOMS_type>::markThermalized() {
+  thermalized = true;
 }
 
 template <dca::linalg::DeviceType device_t, class parameters_type, class MOMS_type>
@@ -419,7 +425,7 @@ void CtauxWalker<device_t, parameters_type, MOMS_type>::initialize() {
     configuration.initialize();
   // configuration.print();
 
-  is_thermalized() = false;
+  thermalized = false;
 
   // TODO: Reset accumulators of warm-up expansion order and number of delayed spins, and set
   //       warm_up_sweeps_done_ to zero?

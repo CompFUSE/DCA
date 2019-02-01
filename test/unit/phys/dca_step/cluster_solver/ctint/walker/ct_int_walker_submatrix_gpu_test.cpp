@@ -46,8 +46,17 @@ TEST_F(G0Setup, doSteps) {
 
   ctint::G0Interpolation<GPU> g0(dca::phys::solver::ctint::details::shrinkG0(data_->G0_r_t));
   G0Setup::LabelDomain label_dmn;
-  ctint::DMatrixBuilder<GPU> builder(g0, RDmn::parameter_type::get_subtract_matrix(),
-                                     label_dmn.get_branch_domain_steps(), parameters_.getAlphas());
+
+  // TODO: improve API.
+  SubmatrixWalker<CPU>::setDMatrixBuilder(g0, RDmn::parameter_type::get_subtract_matrix(),
+                                          label_dmn.get_branch_domain_steps(),
+                                          parameters_.getAlphas());
+  SubmatrixWalker<GPU>::setDMatrixBuilder(g0, RDmn::parameter_type::get_subtract_matrix(),
+                                          label_dmn.get_branch_domain_steps(),
+                                          parameters_.getAlphas());
+  SubmatrixWalker<CPU>::setInteractionVertices(parameters_, *data_);
+  SubmatrixWalker<GPU>::setInteractionVertices(parameters_, *data_);
+
 
   // ************************************
   // Test vertex insertion / removal ****
@@ -75,9 +84,9 @@ TEST_F(G0Setup, doSteps) {
 
     for (int steps = 1; steps <= 8; ++steps) {
       rng.setNewValues(setup_rngs);
-      SubmatrixWalker<CPU> walker_cpu(parameters_, rng, G0Setup::interaction_vertices_, builder);
+      SubmatrixWalker<CPU> walker_cpu(parameters_, data_, rng);
       rng.setNewValues(setup_rngs);
-      SubmatrixWalker<GPU> walker_gpu(parameters_, rng, G0Setup::interaction_vertices_, builder);
+      SubmatrixWalker<GPU> walker_gpu(parameters_, data_, rng);
 
       rng.setNewValues(rng_vals);
       walker_cpu.doStep(steps);

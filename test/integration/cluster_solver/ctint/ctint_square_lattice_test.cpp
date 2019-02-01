@@ -34,7 +34,7 @@
 #include "dca/util/modules.hpp"
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
-const std::string input_dir = DCA_SOURCE_DIR "/test/integration/ctint/";
+const std::string input_dir = DCA_SOURCE_DIR "/test/integration/cluster_solver/ctint/";
 
 constexpr bool update_baseline = false;
 
@@ -74,7 +74,7 @@ TEST(squareLattice_Nc4_nn, Self_Energy) {
   if (not update_baseline) {
     // Read and confront with previous run
     if (dca_test_env->concurrency.id() == 0) {
-      typeof(data.G_k_w) G_k_w_check(data.G_k_w.get_name());
+      Data::SpGreensFunction G_k_w_check(data.G_k_w.get_name());
       dca::io::HDF5Reader reader;
       reader.open_file(input_dir + "square_lattice_baseline.hdf5");
       reader.open_group("functions");

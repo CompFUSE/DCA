@@ -59,14 +59,7 @@ public:
     return done_;
   }
 
-protected:
-  using QmciAccumulator::get_Gflop;
-  using QmciAccumulator::get_number_of_measurements;
-  using QmciAccumulator::get_accumulated_sign;
-
 private:
-  using QmciAccumulator::data_;
-  using QmciAccumulator::parameters_;
 
   int thread_id_;
   bool measuring_;

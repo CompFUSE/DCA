@@ -88,8 +88,11 @@ public:
   /*!
    *  \brief Returns if the configuration has gone through a warm-up sweep.
    */
-  bool& is_thermalized() {
+  bool is_thermalized() const {
     return thermalized;
+  }
+  void markThermalized(){
+    thermalized = true;
   }
 
   /*!
@@ -277,7 +280,7 @@ void SsCtHybWalker<device_t, parameters_type, MOMS_type>::initialize() {
   {
     configuration.initialize();
 
-    is_thermalized() = false;
+    thermalized = false;
 
     for (int i = 0; i < M.size(); i++) {
       M(i).resize(0);

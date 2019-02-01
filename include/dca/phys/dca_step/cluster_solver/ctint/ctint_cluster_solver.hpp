@@ -29,7 +29,6 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/details/solver_methods.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/domains/common_domains.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_choice.hpp"
-#include "dca/phys/dca_step/cluster_solver/ctint/walker/tools/d_matrix_builder.hpp"
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_loop/dca_loop_data.hpp"
 #include "dca/phys/dca_step/symmetrization/symmetrize.hpp"
@@ -43,10 +42,11 @@ namespace phys {
 namespace solver {
 // dca::phys::solver::
 
-template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix = false>
+template <linalg::DeviceType device_t, class Parameters, bool use_submatrix = false>
 class CtintClusterSolver {
 public:
   using Data = DcaData<Parameters>;
+  static constexpr linalg::DeviceType device = device_t;
 
   CtintClusterSolver(const Parameters& parameters_ref, Data& Data_ref);
 
@@ -88,8 +88,8 @@ protected:  // thread jacket interface.
   using Accumulator = ctint::CtintAccumulator<Parameters, device_t>;
   using Configuration = ctint::AccumulatorConfiguration;
 
-  Walker instantiateWalker(Rng& rng_ref, int id);
-  Accumulator instantiateAccumulator(int id);
+  //  Walker instantiateWalker(Rng& rng_ref, int id);
+  //  Accumulator instantiateAccumulator(int id);
 
 private:
   using Bdmn = func::dmn_0<domains::electron_band_domain>;
@@ -140,28 +140,23 @@ private:
   std::unique_ptr<Walker> walker_;
   // Walker input.
   ctint::G0Interpolation<device_t> g0_;
-  // Walker common tool
-  ctint::DMatrixBuilder<device_t> d_builder_;
   Rng rng_;
-  ctint::InteractionVertices interaction_vertices_;
 };
 
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
-CtintClusterSolver<device_t, Parameters, use_submatrix>::CtintClusterSolver(const Parameters& parameters_ref,
-                                                                            Data& data_ref)
+CtintClusterSolver<device_t, Parameters, use_submatrix>::CtintClusterSolver(
+    const Parameters& parameters_ref, Data& data_ref)
     : parameters_(parameters_ref),
       concurrency_(parameters_.get_concurrency()),
       data_(data_ref),
 
       accumulator_(parameters_, data_),
 
-      d_builder_(g0_, Rdmn::parameter_type::get_subtract_matrix(),
-                 label_dmn_.get_branch_domain_steps(), parameters_.getAlphas()),
       rng_(concurrency_.id(), concurrency_.number_of_processors(), parameters_.get_seed()) {
-  interaction_vertices_.initializeFromHamiltonian(data_.H_interactions,
-                                                  parameters_.doubleCountedInteraction());
-  if (data_.has_non_density_interactions())
-    interaction_vertices_.initializeFromNonDensityHamiltonian(data_.get_non_density_interactions());
+  Walker::setDMatrixBuilder(g0_, Rdmn::parameter_type::get_subtract_matrix(),
+                            label_dmn_.get_branch_domain_steps(), parameters_.getAlphas());
+
+  Walker::setInteractionVertices(parameters_, data_);
 
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\n\t CT-INT Integrator is born \n\n";
@@ -171,18 +166,6 @@ template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix
 CtintClusterSolver<device_t, Parameters, use_submatrix>::~CtintClusterSolver() {
   if (concurrency_.id() == concurrency_.first())
     std::cout << "\n\n\t CT-INT Integrator has died \n\n";
-}
-
-template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
-typename CtintClusterSolver<device_t, Parameters, use_submatrix>::Walker CtintClusterSolver<
-    device_t, Parameters, use_submatrix>::instantiateWalker(Rng& rng_ref, int id) {
-  return Walker(parameters_, rng_ref, interaction_vertices_, d_builder_, id);
-}
-
-template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
-typename CtintClusterSolver<device_t, Parameters, use_submatrix>::Accumulator CtintClusterSolver<
-    device_t, Parameters, use_submatrix>::instantiateAccumulator(const int /*id*/) {
-  return Accumulator(parameters_, data_, perform_tp_accumulation_);
 }
 
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
@@ -196,9 +179,7 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::initialize(int dca
 
 template <dca::linalg::DeviceType device_t, class Parameters, bool use_submatrix>
 void CtintClusterSolver<device_t, Parameters, use_submatrix>::integrate() {
-  if (interaction_vertices_.integratedInteraction() == 0)
-    throw(std::logic_error("The interaction is zero."));
-  walker_.reset(new Walker(instantiateWalker(rng_, 0)));
+  walker_ = std::make_unique<Walker>(parameters_, data_, rng_, 0);
 
   dca::profiling::WallTime start_time;
   auto getTime = [&]() {
@@ -298,7 +279,7 @@ double CtintClusterSolver<device_t, Parameters, use_submatrix>::finalize(
                                    accumulator_.avgOrder());
 
   loop_data.sign(dca_iteration_) =
-      static_cast<double>(accumulator_.get_total_sign()) / parameters_.get_measurements();
+      static_cast<double>(accumulator_.get_accumulated_sign()) / parameters_.get_measurements();
   concurrency_.sum_and_average(loop_data.sign(dca_iteration_));
 
   concurrency_.sum_and_average(loop_data.thermalization_per_mpi_task(dca_iteration_) = warm_up_time_);
@@ -447,7 +428,7 @@ void CtintClusterSolver<device_t, Parameters, use_submatrix>::gatherMAndG4(SpGre
   const auto& M_r = accumulator_.get_sign_times_M_r_w();
   math::transform::FunctionTransform<Rdmn, Kdmn>::execute(M_r, M);
 
-  double sign = accumulator_.get_total_sign();
+  double sign = accumulator_.get_accumulated_sign();
 
   symmetrize::execute(M, data_.H_symmetry);
 
@@ -479,7 +460,7 @@ auto CtintClusterSolver<device_t, Parameters, use_submatrix>::local_G_k_w() cons
   SpGreensFunction M;
   math::transform::FunctionTransform<Rdmn, Kdmn>::execute(M_r, M);
 
-  const double sign = accumulator_.get_total_sign();
+  const double sign = accumulator_.get_accumulated_sign();
 
   M /= sign;
   SpGreensFunction G_k_w("G_k_w");

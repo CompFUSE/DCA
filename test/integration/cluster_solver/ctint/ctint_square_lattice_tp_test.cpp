@@ -35,7 +35,7 @@
 #include "dca/util/modules.hpp"
 
 const std::string input_dir =
-    DCA_SOURCE_DIR "/test/integration/ctint/";
+    DCA_SOURCE_DIR "/test/integration/cluster_solver/ctint/";
 
 constexpr bool update_baseline = false;
 
@@ -76,7 +76,7 @@ TEST(CtintSquareLatticeTpTest, Self_Energy) {
 
   if (not update_baseline) {
     // Read and confront with previous run
-    typeof(data.get_G4()) G4_check(data.get_G4().get_name());
+    Data::SpGreensFunction G4_check(data.get_G4().get_name());
     dca::io::HDF5Reader reader;
     reader.open_file(input_dir + "square_lattice_tp_baseline.hdf5");
     reader.open_group("functions");

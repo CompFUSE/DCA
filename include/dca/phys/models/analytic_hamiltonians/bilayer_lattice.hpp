@@ -5,9 +5,10 @@
 // See LICENSE for terms of usage.
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
-// Author: Peter Staar (taa@zurich.ibm.com)
+// Author: Peizhi Mai peizhimai@gmail.com
+//         Giovanni Balduzzi gbalduzz@itp.phys.ethz.ch
 //
-// Bilayer lattice.
+// Threeband copper-oxide lattice.
 
 #ifndef DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_BILAYER_LATTICE_HPP
 #define DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_BILAYER_LATTICE_HPP

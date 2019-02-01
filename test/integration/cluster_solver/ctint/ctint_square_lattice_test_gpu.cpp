@@ -34,7 +34,7 @@
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 
-const std::string input_dir = DCA_SOURCE_DIR "/test/integration/ctint/";
+const std::string input_dir = DCA_SOURCE_DIR "/test/integration/cluster_solver/ctint/";
 
 using RngType = dca::math::random::StdRandomWrapper<std::ranlux48_base>;
 using Lattice = dca::phys::models::square_lattice<dca::phys::domains::D4>;

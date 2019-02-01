@@ -15,6 +15,7 @@
 #include "gtest/gtest.h"
 
 #include "dca/function/function.hpp"
+#include "dca/function/util/difference.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_reader.hpp"
@@ -34,11 +35,9 @@
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 
-#define typeof __typeof__
+constexpr bool update_results = false;
 
-constexpr bool UPDATE_RESULTS = false;
-
-const std::string input_dir = DCA_SOURCE_DIR "/test/integration/stdthread_qmci/";
+const std::string input_dir = DCA_SOURCE_DIR "/test/integration/cluster_solver/stdthread_qmci/";
 
 using Concurrency = dca::parallel::NoConcurrency;
 using RngType = dca::math::random::StdRandomWrapper<std::mt19937_64>;
@@ -51,7 +50,7 @@ using Data = dca::phys::DcaData<Parameters>;
 using BaseSolver = dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, Parameters>;
 using QmcSolver = dca::phys::solver::StdThreadQmciClusterSolver<BaseSolver>;
 
-void performTest(const std::string& input, const std::string& output) {
+void performTest(const std::string& input, const std::string& baseline) {
   static bool update_model = true;
 
   Concurrency concurrency(0, nullptr);
@@ -61,7 +60,7 @@ void performTest(const std::string& input, const std::string& output) {
   }
 
   Parameters parameters(dca::util::GitVersion::string(), concurrency);
-  parameters.read_input_and_broadcast<dca::io::JSONReader>(input_dir + input + ".json");
+  parameters.read_input_and_broadcast<dca::io::JSONReader>(input_dir + input);
   if (update_model) {
     parameters.update_model();
     parameters.update_domains();
@@ -82,27 +81,26 @@ void performTest(const std::string& input, const std::string& output) {
 
   EXPECT_NEAR(1., qmc_solver.computeDensity(), 1e-2);
 
-  if (not UPDATE_RESULTS) {
+  if (not update_results) {
     // Read and confront with previous run.
     if (concurrency.id() == 0) {
-      typeof(data.G_k_w) G_k_w_check(data.G_k_w.get_name());
+      Data::SpGreensFunction G_k_w_check(data.G_k_w.get_name());
       dca::io::HDF5Reader reader;
-      reader.open_file(input_dir + "ctint_" + input + ".hdf5");
+      reader.open_file(input_dir + baseline);
       reader.open_group("functions");
       reader.execute(G_k_w_check);
       reader.close_group(), reader.close_file();
 
-      for (int i = 0; i < G_k_w_check.size(); i++) {
-        EXPECT_NEAR(G_k_w_check(i).real(), data.G_k_w(i).real(), 1e-7);
-        EXPECT_NEAR(G_k_w_check(i).imag(), data.G_k_w(i).imag(), 1e-7);
-      }
+      const auto err_g = dca::func::util::difference(G_k_w_check, data.G_k_w);
+
+      EXPECT_GE(5e-7, err_g.l_inf);
     }
   }
   else {
     //  Write results
     if (concurrency.id() == concurrency.first()) {
       dca::io::HDF5Writer writer;
-      writer.open_file(output);
+      writer.open_file(input_dir + baseline);
       writer.open_group("functions");
       writer.execute(data.G_k_w);
       writer.close_group(), writer.close_file();
@@ -111,9 +109,11 @@ void performTest(const std::string& input, const std::string& output) {
 }
 
 TEST(PosixCtintClusterSolverTest, NonShared) {
-  performTest("nonshared_input", "ctint_nonshared_ouput_data.hdf5");
+  performTest("stdthread_ctint_test_nonshared_input.json",
+              "stdthread_ctint_test_nonshared_baseline.hdf5");
 }
 
 TEST(PosixCtintClusterSolverTest, Shared) {
-  performTest("shared_input", "ctint_shared_ouput_data.hdf5");
+  performTest("stdthread_ctint_test_shared_input.json",
+              "stdthread_ctint_test_shared_baseline.hdf5");
 }

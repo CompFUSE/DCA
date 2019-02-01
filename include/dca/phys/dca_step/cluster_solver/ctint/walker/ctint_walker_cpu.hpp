@@ -34,15 +34,15 @@ namespace ctint {
 // dca::phys::solver::ctint::
 
 template <class Parameters>
-class CtintWalker<linalg::CPU, Parameters> : public CtintWalkerBase<Parameters> {
+class CtintWalker<linalg::CPU, Parameters> : public CtintWalkerBase<Parameters, linalg::CPU> {
 public:
   using this_type = CtintWalker<linalg::CPU, Parameters>;
-  using BaseClass = CtintWalkerBase<Parameters>;
-  using Rng = typename BaseClass::Rng;
+  using BaseClass = CtintWalkerBase<Parameters, linalg::CPU>;
+  using typename BaseClass::Rng;
+  using typename BaseClass::Data;
 
 public:
-  CtintWalker(const Parameters& pars_ref, Rng& rng_ref, const InteractionVertices& vertices,
-              const DMatrixBuilder<linalg::CPU>& builder_ref, int id = 0);
+  CtintWalker(const Parameters& pars_ref, const Data& /*data*/, Rng& rng_ref, int id = 0);
 
   void doSweep();
 
@@ -79,7 +79,7 @@ protected:
   using BaseClass::parameters_;
   using BaseClass::configuration_;
   using BaseClass::rng_;
-  using BaseClass::d_builder_;
+  using BaseClass::d_builder_ptr_;
   using BaseClass::total_interaction_;
   using BaseClass::beta_;
   using BaseClass::sign_;
@@ -107,11 +107,9 @@ private:
 };
 
 template <class Parameters>
-CtintWalker<linalg::CPU, Parameters>::CtintWalker(const Parameters& parameters_ref, Rng& rng_ref,
-                                                  const InteractionVertices& vertices,
-                                                  const DMatrixBuilder<linalg::CPU>& builder_ref,
-                                                  int id)
-    : BaseClass(parameters_ref, rng_ref, vertices, builder_ref, id), det_ratio_{1, 1} {}
+CtintWalker<linalg::CPU, Parameters>::CtintWalker(const Parameters& parameters_ref,
+                                                  const Data& /*data*/, Rng& rng_ref, int id)
+    : BaseClass(parameters_ref, rng_ref, id), det_ratio_{1, 1} {}
 
 template <class Parameters>
 void CtintWalker<linalg::CPU, Parameters>::doSweep() {
@@ -149,7 +147,7 @@ bool CtintWalker<linalg::CPU, Parameters>::tryVertexInsert() {
   const int delta_vertices = configuration_.lastInsertionSize();
 
   // Compute the new pieces of the D(= M^-1) matrix.
-  d_builder_.buildSQR(S_, Q_, R_, configuration_);
+  d_builder_ptr_->buildSQR(S_, Q_, R_, configuration_);
 
   acceptance_prob_ = insertionProbability(delta_vertices);
 

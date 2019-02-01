@@ -18,7 +18,6 @@
 #include "dca/phys/dca_step/cluster_solver/ctint/walker/ctint_walker_gpu_submatrix.hpp"
 #endif
 
-
 namespace testing {
 namespace phys {
 namespace solver {
@@ -29,13 +28,15 @@ using namespace dca::phys::solver::ctint;
 template <class Parameters, dca::linalg::DeviceType device_t = dca::linalg::CPU>
 struct WalkerWrapperSubmatrix : public CtintWalkerSubmatrix<device_t, Parameters> {
   using BaseClass = CtintWalkerSubmatrix<device_t, Parameters>;
-  using RootClass = CtintWalkerBase<Parameters>;
+  using RootClass = CtintWalkerBase<Parameters, device_t>;
   using Rng = typename BaseClass::Rng;
+  using Data = typename BaseClass::Data;
 
-  WalkerWrapperSubmatrix(const Parameters& parameters_ref, Rng& rng_ref,
-                         const InteractionVertices& vertices,
-                         const DMatrixBuilder<device_t>& builder)
-      : BaseClass(parameters_ref, rng_ref, vertices, builder, 0) {}
+  WalkerWrapperSubmatrix(const Parameters& parameters_ref, const Data& data, Rng& rng_ref,
+                         const InteractionVertices& vertices)
+      : BaseClass(parameters_ref, rng_ref, 0) {
+    BaseClass::setInteractionVertices(data);
+  }
 
   void doStep(const int n_steps_to_delay) {
     BaseClass::doStep(n_steps_to_delay);

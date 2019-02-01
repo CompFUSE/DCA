@@ -37,7 +37,7 @@
 #include "dca/util/git_version.hpp"
 #include "dca/util/modules.hpp"
 
-const std::string input_dir = DCA_SOURCE_DIR "/test/integration/cluster_solver/stdthread_qmci/gpu/";
+const std::string input_dir = DCA_SOURCE_DIR "/test/integration/stdthread_qmci/gpu/";
 
 using Concurrency = dca::parallel::NoConcurrency;
 using RngType = dca::math::random::StdRandomWrapper<std::mt19937_64>;
@@ -64,7 +64,7 @@ TEST(PosixCtauxClusterSolverTest, G_k_w) {
 
   Parameters parameters(dca::util::GitVersion::string(), concurrency);
   parameters.read_input_and_broadcast<dca::io::JSONReader>(
-      input_dir + "stdthread_ctaux_gpu_tp_test_input.json");
+      input_dir + "threaded_input.json");
   parameters.update_model();
   parameters.update_domains();
 

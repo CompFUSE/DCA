@@ -2,12 +2,12 @@
 // Copyright (C) 2018 UT-Battelle, LLC
 // All rights reserved.
 //
-// See LICENSE.txt for terms of usage.
-//  See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
+// See LICENSE for terms of usage.
+// See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// Verification test of CT-AUX against a reference run
+// Verification test of CT-INT against a reference run
 
 #include <string>
 #include <iostream>
@@ -20,7 +20,7 @@
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
 
-TEST(CtintValidationTest, GreensFunction) {
+TEST(CtauxSquareLatticeValidationTest, GreensFunction) {
   using namespace dca::testing;
   const std::string ed_data_name = "data.ed.hdf5";
 
@@ -49,10 +49,7 @@ TEST(CtintValidationTest, GreensFunction) {
   using dca::func::function;
   function<double, SigmaCutDomain> G_k_w_sample =
       cutFrequency(qmc_solver.local_G_k_w(), n_frequencies);
-
-  auto G_k_w_avg(G_k_w_sample);
-  dca_test_env->concurrency.sum_and_average(G_k_w_avg);
-  G_k_w_avg.set_name("G_k_w");
+  G_k_w_sample.set_name("G_k_w");
 
   // read the expected result
   function<double, SigmaCutDomain> G_k_w_expected;
@@ -71,31 +68,31 @@ TEST(CtintValidationTest, GreensFunction) {
 
   // compute covariance and average ctin result.
   function<double, CovarianceDomain> G_k_w_covariance("G_k_w_covariance");
-  dca_test_env->concurrency.computeCovariance(G_k_w_sample, G_k_w_covariance);
+  dca_test_env->concurrency.computeCovarianceAndAvg(G_k_w_sample, G_k_w_covariance);
 
   //   compute p-value
   if (id == dca_test_env->concurrency.first()) {
     // read the stored reference data
-    dca::math::StatisticalTesting test(G_k_w_avg, G_k_w_expected, G_k_w_covariance, 1);
+    dca::math::StatisticalTesting test(G_k_w_sample, G_k_w_expected, G_k_w_covariance, 1);
     double p_value = test.computePValue(false, number_of_samples);
-    test.printInfo("ctint_validation_testinfo.out", true);
+    test.printInfo("ctint_square_testinfo.out", true);
     double p_value_default = 0.05;
     std::cout << "\n***\nThe p-value is " << p_value << "\n***\n";
     EXPECT_LT(p_value_default, p_value);
   }
 
-  // write  integrator output
-  // INTERNAL: do we need it?
-  //  qmc_solver.finalize();
-  //  if (id == 0) {
-  //    std::cout << "\nProcessor " << id << " is writing data " << std::endl;
-  //    dca::io::HDF5Writer writer;
-  //    writer.open_file("ctint_square_results.hdf5");
-  //    writer.open_group("functions");
-  //    writer.execute(data.G_k_w);
-  //    writer.close_group();
-  //    writer.close_file();
-  //  }
+  // Uncomment to write integrator output.
+  // dca::phys::DcaLoopData<ParametersType> loop_data;
+  // qmc_solver.finalize(loop_data);
+  // if (id == 0) {
+  //   std::cout << "\nProcessor " << id << " is writing data " << std::endl;
+  //   dca::io::HDF5Writer writer;
+  //   writer.open_file("ctint_square_results.hdf5");
+  //   writer.open_group("functions");
+  //   writer.execute(data.G_k_w);
+  //   writer.close_group();
+  //   writer.close_file();
+  // }
 }
 
 int main(int argc, char** argv) {

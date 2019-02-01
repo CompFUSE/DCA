@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "dca/function/function.hpp"
+#include "dca/function/util/difference.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_reader.hpp"
@@ -23,7 +24,7 @@
 #include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/ctint_cluster_solver.hpp"
 #include "dca/phys/domains/cluster/symmetries/point_groups/2d/2d_square.hpp"
-#include "dca/phys/models/analytic_hamiltonians/hund_lattice.hpp"
+#include "dca/phys/models/analytic_hamiltonians/fe_as_lattice.hpp"
 #include "dca/phys/models/tight_binding_model.hpp"
 #include "dca/parallel/no_threading/no_threading.hpp"
 #include "dca/phys/parameters/parameters.hpp"
@@ -36,16 +37,18 @@
 constexpr bool update_baseline = false;
 
 dca::testing::DcaMpiTestEnvironment* dca_test_env;
-const std::string input_dir = DCA_SOURCE_DIR "/test/integration/ctint/";
+const std::string input_dir =
+    DCA_SOURCE_DIR "/test/integration/cluster_solver/ctint/";
 
 TEST(squareLattice_Nc4_nn, Self_Energy) {
   using RngType = dca::math::random::StdRandomWrapper<std::mt19937_64>;
-  using Lattice = dca::phys::models::HundLattice<dca::phys::domains::D4>;
+  using Lattice = dca::phys::models::FeAsLattice<dca::phys::domains::D4>;
   using Model = dca::phys::models::TightBindingModel<Lattice>;
   using Threading = dca::parallel::NoThreading;
   using Parameters =
       dca::phys::params::Parameters<dca::testing::DcaMpiTestEnvironment::ConcurrencyType, Threading,
-                                    dca::profiling::NullProfiler, Model, RngType, dca::phys::solver::CT_INT>;
+                                    dca::profiling::NullProfiler, Model, RngType,
+                                    dca::phys::solver::CT_INT>;
   using Data = dca::phys::DcaData<Parameters>;
   using QmcSolverType = dca::phys::solver::CtintClusterSolver<dca::linalg::CPU, Parameters>;
 
@@ -69,29 +72,25 @@ TEST(squareLattice_Nc4_nn, Self_Energy) {
   qmc_solver.integrate();
   qmc_solver.finalize();
 
-  EXPECT_NEAR(2., qmc_solver.computeDensity(), 1e-2);
-
   if (not update_baseline) {
     // Read and confront with previous run.
     if (dca_test_env->concurrency.id() == 0) {
-      typeof(data.G_k_w) G_k_w_check(data.G_k_w.get_name());
+      Data::SpGreensFunction G_k_w_check = (data.G_k_w.get_name());
       dca::io::HDF5Reader reader;
-      reader.open_file(input_dir + "hund_lattice_baseline.hdf5");
+      reader.open_file(input_dir + "fe_as_lattice_baseline.hdf5");
       reader.open_group("functions");
       reader.execute(G_k_w_check);
       reader.close_group(), reader.close_file();
 
-      for (int i = 0; i < G_k_w_check.size(); i++) {
-        EXPECT_NEAR(G_k_w_check(i).real(), data.G_k_w(i).real(), 5e-7);
-        EXPECT_NEAR(G_k_w_check(i).imag(), data.G_k_w(i).imag(), 5e-7);
-      }
+      const auto diff = dca::func::util::difference(G_k_w_check, data.G_k_w);
+      EXPECT_GE(5e-7, diff.l_inf);
     }
   }
   else {
     //  Write results
     if (dca_test_env->concurrency.id() == dca_test_env->concurrency.first()) {
       dca::io::HDF5Writer writer;
-      writer.open_file("hund_lattice_baseline.hdf5");
+      writer.open_file("fe_as_lattice_baseline.hdf5");
       writer.open_group("functions");
       writer.execute(data.G_k_w);
       writer.close_group(), writer.close_file();
@@ -104,7 +103,7 @@ int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
   dca_test_env =
-      new dca::testing::DcaMpiTestEnvironment(argc, argv, input_dir + "hund_lattice_input.json");
+      new dca::testing::DcaMpiTestEnvironment(argc, argv, input_dir + "fe_as_lattice_input.json");
   ::testing::AddGlobalTestEnvironment(dca_test_env);
 
   ::testing::TestEventListeners& listeners = ::testing::UnitTest::GetInstance()->listeners();

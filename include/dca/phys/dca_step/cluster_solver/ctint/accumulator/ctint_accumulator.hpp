@@ -15,6 +15,7 @@
 #include <memory>
 #include <stdexcept>
 
+#include "dca/phys/dca_data/dca_data.hpp"
 #include "dca/phys/dca_step/cluster_solver/ctint/accumulator/ctint_accumulator_configuration.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/sp/sp_accumulator.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/tp_accumulator.hpp"
@@ -34,6 +35,8 @@ template <class Parameters, linalg::DeviceType device>
 class CtintAccumulator {
 public:
   using this_type = CtintAccumulator<Parameters, device>;
+  using ParametersType = Parameters;
+  using DataType = phys::DcaData<Parameters>;
 
   template <class Data>
   CtintAccumulator(const Parameters& pars, const Data& data, int id = 0);
@@ -60,7 +63,7 @@ public:
     return double(total_sign_) / double(total_meas_);
   }
 
-  int get_total_sign() const {
+  int get_accumulated_sign() const {
     return total_sign_;
   }
   int get_number_of_measurements() const {
@@ -76,6 +79,14 @@ public:
 
   const AccumulatorConfiguration& get_configuration() const {
     return config_;
+  }
+
+  std::size_t deviceFingerprint() const {
+    return sp_accumulator_.deviceFingerprint() + tp_accumulator_.deviceFingerprint();
+  }
+
+  static std::size_t staticDeviceFingerprint() {
+    return accumulator::TpAccumulator<Parameters, device>::staticDeviceFingerprint();
   }
 
 private:
@@ -109,9 +120,9 @@ void CtintAccumulator<Parameters, device>::initialize(const int dca_iteration) {
   perform_tp_accumulation_ = parameters_.get_four_point_type() != NONE &&
                              dca_iteration == parameters_.get_dca_iterations() - 1;
 
-  sp_accumulator_.initialize();
+  sp_accumulator_.resetAccumulation();
   if (perform_tp_accumulation_)
-    tp_accumulator_.initialize();
+    tp_accumulator_.resetAccumulation(dca_iteration);
 
   finalized_ = false;
 }

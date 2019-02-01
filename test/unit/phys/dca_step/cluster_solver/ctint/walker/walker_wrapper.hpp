@@ -26,9 +26,8 @@ struct WalkerWrapper : public CtintWalker<dca::linalg::CPU, Parameters> {
   using BaseClass = CtintWalker<dca::linalg::CPU, Parameters>;
   using Rng = typename BaseClass::Rng;
 
-  WalkerWrapper(Parameters& parameters_ref, Rng& rng_ref, const InteractionVertices& vertices,
-                const DMatrixBuilder<dca::linalg::CPU>& builder)
-      : BaseClass(parameters_ref, rng_ref, vertices, builder, 0) {}
+  WalkerWrapper(Parameters& parameters_ref, Rng& rng_ref)
+      : BaseClass(parameters_ref, rng_ref, 0) {}
 
   using BaseClass::doStep;
   using BaseClass::tryVertexInsert;

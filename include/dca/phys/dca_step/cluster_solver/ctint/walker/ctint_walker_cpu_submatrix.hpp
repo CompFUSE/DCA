@@ -38,15 +38,16 @@ namespace solver {
 namespace ctint {
 
 template <class Parameters>
-class CtintWalkerSubmatrix<linalg::CPU, Parameters> : public CtintWalkerBase<Parameters> {
+class CtintWalkerSubmatrix<linalg::CPU, Parameters>
+    : public CtintWalkerBase<Parameters, linalg::CPU> {
 public:
   using this_type = CtintWalkerSubmatrix<linalg::CPU, Parameters>;
-  using BaseClass = CtintWalkerBase<Parameters>;
-  using Rng = typename BaseClass::Rng;
-  using Profiler = typename Parameters::profiler_type;
+  using BaseClass = CtintWalkerBase<Parameters, linalg::CPU>;
+  using typename BaseClass::Rng;
+  using typename BaseClass::Data;
+  using typename BaseClass::Profiler;
 
-  CtintWalkerSubmatrix(const Parameters& pars_ref, Rng& rng_ref, const InteractionVertices& vertices,
-                       const DMatrixBuilder<linalg::CPU>& builder_ref, int id = 0);
+  CtintWalkerSubmatrix(const Parameters& pars_ref, const Data& /*data*/, Rng& rng_ref, int id = 0);
 
   virtual ~CtintWalkerSubmatrix() = default;
 
@@ -86,7 +87,7 @@ protected:
   using BaseClass::configuration_;
   using BaseClass::rng_;
   using BaseClass::thread_id_;
-  using BaseClass::d_builder_;
+  using BaseClass::d_builder_ptr_;
   using BaseClass::total_interaction_;
   using BaseClass::sign_;
   using BaseClass::M_;
@@ -176,18 +177,18 @@ protected:
 };
 
 template <class Parameters>
-CtintWalkerSubmatrix<linalg::CPU, Parameters>::CtintWalkerSubmatrix(
-    const Parameters& parameters_ref, Rng& rng_ref, const InteractionVertices& vertices,
-    const DMatrixBuilder<linalg::CPU>& builder_ref, int id)
-    : BaseClass(parameters_ref, rng_ref, vertices, builder_ref, id) {
+CtintWalkerSubmatrix<linalg::CPU, Parameters>::CtintWalkerSubmatrix(const Parameters& parameters_ref,
+                                                                    const Data& /*data*/,
+                                                                    Rng& rng_ref, int id)
+    : BaseClass(parameters_ref, rng_ref, id) {
   for (int i = 1; i <= 3; ++i) {
-    f_[i] = d_builder_.computeF(i);
-    f_[-i] = d_builder_.computeF(-i);
+    f_[i] = d_builder_ptr_->computeF(i);
+    f_[-i] = d_builder_ptr_->computeF(-i);
 
-    gamma_values_[std::make_pair(0, i)] = d_builder_.computeGamma(0, i);
-    gamma_values_[std::make_pair(0, -i)] = d_builder_.computeGamma(0, -i);
-    gamma_values_[std::make_pair(i, 0)] = d_builder_.computeGamma(i, 0);
-    gamma_values_[std::make_pair(-i, 0)] = d_builder_.computeGamma(-i, 0);
+    gamma_values_[std::make_pair(0, i)] = d_builder_ptr_->computeGamma(0, i);
+    gamma_values_[std::make_pair(0, -i)] = d_builder_ptr_->computeGamma(0, -i);
+    gamma_values_[std::make_pair(i, 0)] = d_builder_ptr_->computeGamma(i, 0);
+    gamma_values_[std::make_pair(-i, 0)] = d_builder_ptr_->computeGamma(-i, 0);
 
     prob_const_[i] = prob_const_[-i] = -max_tau_ / (f_[i] - 1) / (f_[-i] - 1);
   }
@@ -629,7 +630,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeMInit() {
       double f_j;
       D_.resize(std::make_pair(delta, n_init_[s]));
 
-      d_builder_.computeG0(D_, configuration_.getSector(s), n_init_[s], n_max_[s], 0);
+      d_builder_ptr_->computeG0(D_, configuration_.getSector(s), n_init_[s], n_max_[s], 0);
 
       for (int j = 0; j < n_init_[s]; ++j) {
         f_j = f_[configuration_.getSector(s).getAuxFieldType(j)] - 1;
@@ -679,7 +680,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeGInit() {
     }
 
     if (delta > 0) {
-      d_builder_.computeG0(G0, configuration_.getSector(s), n_init_[s], n_max_[s], 1);
+      d_builder_ptr_->computeG0(G0, configuration_.getSector(s), n_init_[s], n_max_[s], 1);
 
       MatrixView G(G_[s], 0, n_init_[s], n_max_[s], delta);
 
@@ -691,7 +692,7 @@ void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeGInit() {
 // template <class Parameters>
 // void CtintWalkerSubmatrix<linalg::CPU, Parameters>::computeG0Init() {
 //  for (int s = 0; s < 2; ++s) {
-//    d_builder_.computeG0Init(G0_[s], configuration_.getSector(s), n_init_[s], n_max_[s]);
+//    d_builder_ptr_->computeG0Init(G0_[s], configuration_.getSector(s), n_init_[s], n_max_[s]);
 //  }
 //}
 
