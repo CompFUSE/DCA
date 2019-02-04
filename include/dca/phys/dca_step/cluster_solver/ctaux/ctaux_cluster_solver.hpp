@@ -585,6 +585,7 @@ double CtauxClusterSolver<device_t, Parameters, Data>::compute_S_k_w_from_G_k_w(
   // Compute error on G and Self Energy.
   if (compute_jack_knife_) {
     data_.get_G_k_w_error() = concurrency_.jackknifeError(data_.G_k_w, true);
+    data_.get_G_r_w_error() = concurrency_.jackknifeError(data_.G_r_w, true);
     data_.get_Sigma_error() = concurrency_.jackknifeError(data_.Sigma, true);
   }
 
