@@ -31,7 +31,7 @@ constexpr int copy_block_size_y = 8;
 constexpr int move_block_size_x = 32;
 constexpr int move_block_size_y = 8;
 constexpr int scale_block_size_x = 32;
-constexpr int scale_block_size_y = 8;
+constexpr int scale_block_size_y = 32;
 constexpr int swap_block_size_x = 32;
 constexpr int swap_block_size_y = 32;
 
@@ -132,21 +132,11 @@ __global__ void moveUp(int m, int n, Type* a, int lda) {
 template <typename Type>
 __global__ void scaleRows(int row_size, int n_rows, const int* i, const Type* alpha, Type* a,
                           int lda) {
-  assert(blockDim.y == 1);
-  assert(blockDim.z == 1);
-  assert(blockIdx.z == 0);
+  const int ind_i = threadIdx.x + blockIdx.x * blockDim.x;
+  const int j = threadIdx.y + blockIdx.y * blockDim.y;
 
-  // Work on BlockDim.x rows and copyrows_block_size_y cols.
-  int ind_i = threadIdx.x + blockIdx.x * blockDim.x;
-
-  int js = blockIdx.y * scale_block_size_y;
-  int je = min(row_size, (blockIdx.y + 1) * scale_block_size_y);
-
-  if (ind_i < n_rows) {
-    int ia = i[ind_i];
-
-    for (int j = js; j < je; ++j)
-      a[ia + j * lda] = a[ia + j * lda] * alpha[ind_i];
+  if (ind_i < n_rows && j < row_size) {
+    a[i[ind_i] + j * lda] *= alpha[ind_i];
   }
 }
 
@@ -277,7 +267,7 @@ void scaleRows(int row_size, int n_rows, const int* i, const Type* alpha, Type* 
     int bl_x = dca::util::ceilDiv(n_rows, kernels::scale_block_size_x);
     int bl_y = dca::util::ceilDiv(row_size, kernels::scale_block_size_y);
 
-    dim3 threads(kernels::scale_block_size_x);
+    dim3 threads(kernels::scale_block_size_x, kernels::scale_block_size_y);
     dim3 blocks(bl_x, bl_y);
 
     cudaStream_t stream = dca::linalg::util::getStream(thread_id, stream_id);
