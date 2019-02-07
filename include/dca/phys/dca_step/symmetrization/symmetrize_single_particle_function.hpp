@@ -83,15 +83,18 @@ protected:
   static void execute(
       func::function<scalartype,
                      func::dmn_0<domains::cluster_domain<scalar_type, D, N, domains::REAL_SPACE, S>>>& f,
-      bool do_diff = false);
+      bool /*do_diff*/ = false) {
+    return executeCluster(f);
+  }
 
   template <typename scalartype, typename scalar_type, int D, domains::CLUSTER_NAMES N,
             domains::CLUSTER_SHAPE S>
   static void execute(
-      func::function<
-          scalartype,
-          func::dmn_0<domains::cluster_domain<scalar_type, D, N, domains::MOMENTUM_SPACE, S>>>& f,
-      bool do_diff = false);
+      func::function<scalartype,
+                     func::dmn_0<domains::cluster_domain<scalar_type, D, N, domains::MOMENTUM_SPACE, S>>>& f,
+      bool /*do_diff*/ = false) {
+    return executeCluster(f);
+  }
 
   template <typename scalartype, typename f_dmn_0, typename f_dmn_1>
   static void execute(func::function<scalartype, func::dmn_variadic<b, b, f_dmn_0, f_dmn_1>>& f,
@@ -122,19 +125,33 @@ private:
   static void symmetrize_over_electron_spin(
       func::function<scalartype, func::dmn_variadic<nu, nu, f_dmn_0, f_dmn_1>>& f, bool do_diff);
 
+  template <typename scalartype, typename scalar_type, int D, domains::CLUSTER_NAMES N,
+            domains::CLUSTER_SHAPE S>
+  static void executeCluster(
+      func::function<scalartype,
+                     func::dmn_0<domains::cluster_domain<scalar_type, D, N, domains::REAL_SPACE, S>>>& f,
+      bool do_diff = false);
+
+  template <typename scalartype, typename scalar_type, int D, domains::CLUSTER_NAMES N,
+            domains::CLUSTER_SHAPE S>
+  static void executeCluster(
+      func::function<scalartype,
+                     func::dmn_0<domains::cluster_domain<scalar_type, D, N, domains::MOMENTUM_SPACE, S>>>& f,
+      bool do_diff = false);
+
   template <typename scalartype>
   static void execute(func::function<scalartype, t>& f, bool do_diff = false);
 
-  template <typename scalartype>
-  static void execute(func::function<scalartype, func::dmn_variadic<b, b, t>>& f,
-                      bool do_diff = false);
+  template <typename scalartype, class ClusterDmn>
+  static void executeTimeOrFreq(func::function<scalartype, func::dmn_variadic<b, b, ClusterDmn, t>>& f,
+                                bool do_diff = false);
 
   template <typename scalartype>
   static void execute(func::function<scalartype, w>& f, bool do_diff = false);
 
-  template <typename scalartype>
-  static void execute(func::function<scalartype, func::dmn_variadic<b, b, w>>& f,
-                      bool do_diff = false);
+  template <typename scalartype, typename ClusterDmn>
+  static void executeTimeOrFreq(func::function<scalartype, func::dmn_variadic<b, b, ClusterDmn, w>>& f,
+                                bool do_diff = false);
 
   template <typename scalartype>
   static void execute(func::function<scalartype, w_REAL>& f, bool do_diff = false);
@@ -151,7 +168,7 @@ private:
 
   template <typename scalartype, typename scalar_type, int D, domains::CLUSTER_NAMES N,
             domains::CLUSTER_SHAPE S>
-  static void execute(
+  static void executeCluster(
       func::function<scalartype,
                      func::dmn_variadic<b, b, func::dmn_0<domains::cluster_domain<
                                                   scalar_type, D, N, domains::REAL_SPACE, S>>>>& f,
@@ -159,13 +176,16 @@ private:
 
   template <typename scalartype, typename scalar_type, int D, domains::CLUSTER_NAMES N,
             domains::CLUSTER_SHAPE S>
-  static void execute(
+  static void executeCluster(
       func::function<scalartype,
                      func::dmn_variadic<b, b, func::dmn_0<domains::cluster_domain<
                                                   scalar_type, D, N, domains::MOMENTUM_SPACE, S>>>>& f,
       bool do_diff = false);
 
-    static bool difference_detected_;
+  template <typename ClusterDmn>
+  static int oppositeSite(int idx);
+
+  static bool difference_detected_;
 };
 
 bool symmetrize_single_particle_function::difference_detected_ = false;
@@ -242,7 +262,7 @@ void symmetrize_single_particle_function::execute(
     func::function<scalartype, func::dmn_variadic<nu, nu, f_dmn_0, f_dmn_1>>& f, bool do_diff) {
   symmetrize_over_electron_spin(f, do_diff);
 
-  {
+  {  // Symmetrize over real space or momentum.
     func::function<scalartype, func::dmn_variadic<b, b, f_dmn_0>> f0(f.get_name());
 
     for (int ind_1 = 0; ind_1 < f_dmn_1::dmn_size(); ++ind_1) {
@@ -252,7 +272,7 @@ void symmetrize_single_particle_function::execute(
             for (int ind_0 = 0; ind_0 < f_dmn_0::dmn_size(); ++ind_0)
               f0(b_0, b_1, ind_0) = f(b_0, spin_ind, b_1, spin_ind, ind_0, ind_1);
 
-        symmetrize_single_particle_function::execute(f0, do_diff);
+        symmetrize_single_particle_function::executeCluster(f0, do_diff);
 
         for (int b_0 = 0; b_0 < b::dmn_size(); ++b_0)
           for (int b_1 = 0; b_1 < b::dmn_size(); ++b_1)
@@ -262,24 +282,24 @@ void symmetrize_single_particle_function::execute(
     }
   }
 
-  {
-    func::function<scalartype, func::dmn_variadic<b, b, f_dmn_1>> f1(f.get_name());
+  {  // Symmetrize over time or frequency.
+    func::function<scalartype, func::dmn_variadic<b, b, f_dmn_0, f_dmn_1>> f1(f.get_name());
 
-    for (int ind_0 = 0; ind_0 < f_dmn_0::dmn_size(); ++ind_0) {
-      for (int spin_ind = 0; spin_ind < s::dmn_size(); ++spin_ind) {
+    for (int ind_0 = 0; ind_0 < f_dmn_0::dmn_size(); ++ind_0)
+      for (int spin_ind = 0; spin_ind < s::dmn_size(); ++spin_ind)
         for (int ind_1 = 0; ind_1 < f_dmn_1::dmn_size(); ++ind_1)
           for (int b_1 = 0; b_1 < b::dmn_size(); ++b_1)
             for (int b_0 = 0; b_0 < b::dmn_size(); ++b_0)
-              f1(b_0, b_1, ind_1) = f(b_0, spin_ind, b_1, spin_ind, ind_0, ind_1);
+              f1(b_0, b_1, ind_0, ind_1) = f(b_0, spin_ind, b_1, spin_ind, ind_0, ind_1);
 
-        symmetrize_single_particle_function::execute(f1, do_diff);
+    symmetrize_single_particle_function::executeTimeOrFreq(f1, do_diff);
 
+    for (int ind_0 = 0; ind_0 < f_dmn_0::dmn_size(); ++ind_0)
+      for (int spin_ind = 0; spin_ind < s::dmn_size(); ++spin_ind)
         for (int ind_1 = 0; ind_1 < f_dmn_1::dmn_size(); ++ind_1)
           for (int b_1 = 0; b_1 < b::dmn_size(); ++b_1)
             for (int b_0 = 0; b_0 < b::dmn_size(); ++b_0)
-              f(b_0, spin_ind, b_1, spin_ind, ind_0, ind_1) = f1(b_0, b_1, ind_1);
-      }
-    }
+              f(b_0, spin_ind, b_1, spin_ind, ind_0, ind_1) = f1(b_0, b_1, ind_0, ind_1);
   }
 }
 
@@ -363,20 +383,23 @@ void symmetrize_single_particle_function::execute(func::function<scalartype, t>&
     difference(max, f.get_name(), "tau-domain of the function : " + f.get_name() + "\n");
 }
 
-template <typename scalartype>
-void symmetrize_single_particle_function::execute(
-    func::function<scalartype, func::dmn_variadic<b, b, t>>& f, bool do_diff) {
-  func::function<scalartype, func::dmn_variadic<b, b, t>> f_new;
+template <typename scalartype, typename ClusterDmn>
+void symmetrize_single_particle_function::executeTimeOrFreq(
+    func::function<scalartype, func::dmn_variadic<b, b, ClusterDmn, t>>& f, bool do_diff) {
+  func::function<scalartype, func::dmn_variadic<b, b, ClusterDmn, t>> f_new;
 
   int t_0 = t::dmn_size() / 2;
 
-  for (int t_ind = 0; t_ind < t::dmn_size() / 2; t_ind++) {
-    for (int b0 = 0; b0 < b::dmn_size(); ++b0) {
-      for (int b1 = 0; b1 < b::dmn_size(); ++b1) {
-        scalartype tmp = (f(b0, b1, t_ind) - f(b1, b0, t_ind + t_0)) / 2.;
+  for (int t_ind = 0; t_ind < t::dmn_size() / 2; ++t_ind) {
+    for (int c_ind = 0; c_ind < ClusterDmn::dmn_size(); ++c_ind) {
+      const int c_opposite_ind = oppositeSite<ClusterDmn>(c_ind);
+      for (int b0 = 0; b0 < b::dmn_size(); ++b0) {
+        for (int b1 = 0; b1 < b::dmn_size(); ++b1) {
+          scalartype tmp = (f(b0, b1, c_ind, t_ind) - f(b1, b0, c_opposite_ind, t_ind + t_0)) / 2.;
 
-        f_new(b0, b1, t_ind) = tmp;
-        f_new(b1, b0, t_ind + t_0) = -tmp;
+          f_new(b0, b1, c_ind, t_ind) = tmp;
+          f_new(b1, b0, c_opposite_ind, t_ind + t_0) = -tmp;
+        }
       }
     }
   }
@@ -384,9 +407,9 @@ void symmetrize_single_particle_function::execute(
   double max = 0;
   for (int ind = 0; ind < f.size(); ++ind) {
     max = std::max(max, std::abs(f(ind) - f_new(ind)));
-
-    f(ind) = f_new(ind);
   }
+
+  f = std::move(f_new);
 
   if (do_diff)
     difference(max, f.get_name(), "t-domain of the function : " + f.get_name() + "\n");
@@ -408,23 +431,27 @@ void symmetrize_single_particle_function::execute(func::function<scalartype, w>&
     difference(max, f.get_name(), "w-domain of the function : " + f.get_name() + "\n");
 }
 
-template <typename scalartype>
-void symmetrize_single_particle_function::execute(
-    func::function<scalartype, func::dmn_variadic<b, b, w>>& f, bool do_diff) {
-  func::function<scalartype, func::dmn_variadic<b, b, w>> f_new;
+template <typename scalartype, typename ClusterDomain>
+void symmetrize_single_particle_function::executeTimeOrFreq(
+    func::function<scalartype, func::dmn_variadic<b, b, ClusterDomain, w>>& f, bool do_diff) {
+  func::function<scalartype, func::dmn_variadic<b, b, ClusterDomain, w>> f_new;
 
   int w_0 = w::dmn_size() - 1;
 
   for (int w_ind = 0; w_ind < w::dmn_size() / 2; ++w_ind) {
-    for (int b0 = 0; b0 < b::dmn_size(); ++b0) {
-      for (int b1 = 0; b1 < b::dmn_size(); ++b1) {
-        scalartype tmp_0 = f(b0, b1, w_ind);
-        scalartype tmp_1 = f(b1, b0, w_0 - w_ind);
+    for (int c_ind = 0; c_ind < ClusterDomain::dmn_size(); ++c_ind) {
+      const int opposite_idx = oppositeSite<ClusterDomain>(c_ind);
 
-        scalartype tmp = (tmp_0 + std::conj(tmp_1)) / 2.;
+      for (int b0 = 0; b0 < b::dmn_size(); ++b0) {
+        for (int b1 = 0; b1 < b::dmn_size(); ++b1) {
+          scalartype tmp_0 = f(b0, b1, c_ind, w_ind);
+          scalartype tmp_1 = f(b1, b0, opposite_idx, w_0 - w_ind);
 
-        f_new(b0, b1, w_ind) = tmp;
-        f_new(b1, b0, w_0 - w_ind) = std::conj(tmp);
+          scalartype tmp = (tmp_0 + std::conj(tmp_1)) / 2.;
+
+          f_new(b0, b1, c_ind, w_ind) = tmp;
+          f_new(b1, b0, opposite_idx, w_0 - w_ind) = std::conj(tmp);
+        }
       }
     }
   }
@@ -432,9 +459,9 @@ void symmetrize_single_particle_function::execute(
   double max = 0;
   for (int ind = 0; ind < f.size(); ++ind) {
     max = std::max(max, abs(f(ind) - f_new(ind)));
-
-    f(ind) = f_new(ind);
   }
+
+  f = std::move(f_new);
 
   if (do_diff)
     difference(max, f.get_name(), "w-domain of the function : " + f.get_name() + "\n");
@@ -484,7 +511,7 @@ void symmetrize_single_particle_function::execute(func::function<scalartype, w_V
 
 template <typename scalartype, typename scalar_type, int D, domains::CLUSTER_NAMES N,
           domains::CLUSTER_SHAPE S>
-void symmetrize_single_particle_function::execute(
+void symmetrize_single_particle_function::executeCluster(
     func::function<scalartype,
                    func::dmn_0<domains::cluster_domain<scalar_type, D, N, domains::REAL_SPACE, S>>>& f,
     bool do_diff) {
@@ -528,10 +555,11 @@ void symmetrize_single_particle_function::execute(
 
 template <typename scalartype, typename scalar_type, int D, domains::CLUSTER_NAMES N,
           domains::CLUSTER_SHAPE S>
-void symmetrize_single_particle_function::execute(
-    func::function<scalartype,
-                   func::dmn_variadic<b, b, func::dmn_0<domains::cluster_domain<
-                                                scalar_type, D, N, domains::REAL_SPACE, S>>>>& f,
+void symmetrize_single_particle_function::executeCluster(
+    func::function<
+        scalartype,
+        func::dmn_variadic<
+            b, b, func::dmn_0<domains::cluster_domain<scalar_type, D, N, domains::REAL_SPACE, S>>>>& f,
     bool do_diff) {
   typedef domains::cluster_domain<scalar_type, D, N, domains::REAL_SPACE, S> r_cluster_type;
   typedef func::dmn_0<r_cluster_type> r_dmn_t;
@@ -580,7 +608,7 @@ void symmetrize_single_particle_function::execute(
 
 template <typename scalartype, typename scalar_type, int D, domains::CLUSTER_NAMES N,
           domains::CLUSTER_SHAPE S>
-void symmetrize_single_particle_function::execute(
+void symmetrize_single_particle_function::executeCluster(
     func::function<scalartype,
                    func::dmn_0<domains::cluster_domain<scalar_type, D, N, domains::MOMENTUM_SPACE, S>>>& f,
     bool do_diff) {
@@ -624,7 +652,7 @@ void symmetrize_single_particle_function::execute(
 
 template <typename scalartype, typename scalar_type, int D, domains::CLUSTER_NAMES N,
           domains::CLUSTER_SHAPE S>
-void symmetrize_single_particle_function::execute(
+void symmetrize_single_particle_function::executeCluster(
     func::function<scalartype,
                    func::dmn_variadic<b, b, func::dmn_0<domains::cluster_domain<
                                                 scalar_type, D, N, domains::MOMENTUM_SPACE, S>>>>& f,
@@ -669,6 +697,19 @@ void symmetrize_single_particle_function::execute(
 
   if (do_diff)
     difference(max, f.get_name(), "k-clusterdomain of the function : " + f.get_name() + "\n");
+}
+
+template <typename ClusterDmn>
+int symmetrize_single_particle_function::oppositeSite(const int idx) {
+  using Cluster = typename ClusterDmn::parameter_type;
+  const int origin = Cluster::origin_index();
+
+  if (Cluster::REPRESENTATION == domains::MOMENTUM_SPACE) {
+    return idx;
+  }
+  else if (Cluster::REPRESENTATION == domains::REAL_SPACE) {
+    return Cluster::subtract(idx, origin);
+  }
 }
 
 }  // phys
