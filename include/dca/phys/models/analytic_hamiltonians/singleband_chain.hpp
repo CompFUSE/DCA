@@ -107,7 +107,7 @@ std::vector<int> singleband_chain<point_group_type>::get_flavors() {
 
 template <typename point_group_type>
 std::vector<std::vector<double>> singleband_chain<point_group_type>::get_a_vectors() {
-  static std::vector<std::vector<double>> a_vecs{std::vector<double>{0,0}};
+  static std::vector<std::vector<double>> a_vecs{std::vector<double>{0, 0}};
 
   return a_vecs;
 }
@@ -171,12 +171,13 @@ void singleband_chain<point_group_type>::initialize_H_0(
   const auto& k_vecs = KDmn::get_elements();
 
   const auto t = parameters.get_t();
+  const int Nc = KDmn::dmn_size();
 
   H_0 = ScalarType(0);
 
   for (int k_ind = 0; k_ind < KDmn::dmn_size(); ++k_ind) {
     const auto k = k_vecs[k_ind];
-    const auto val = -2. * t[0] * std::cos(k[0]) - 2. * t[1] * std::cos(k[1]);
+    const auto val = -2. * Nc * t[0] * std::cos(k[0]) - 2. * t[1] * std::cos(k[1]);
 
     for (int s = 0; s < 2; ++s)
       H_0(0, s, 0, s, k_ind) = val;

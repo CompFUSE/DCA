@@ -25,6 +25,7 @@
 
 #include "dca/function/domains.hpp"
 #include "dca/function/function.hpp"
+#include "dca/function/util/real_complex_conversion.hpp"
 #include "dca/io/hdf5/hdf5_reader.hpp"
 #include "dca/io/hdf5/hdf5_writer.hpp"
 #include "dca/io/json/json_reader.hpp"
@@ -90,6 +91,8 @@ public:
 
   using SpGreensFunction =
       func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>>;
+  using SpRGreensFunction =
+      func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>>;
   using TpGreensFunction =
       func::function<std::complex<TpAccumulatorScalar>,
                      func::dmn_variadic<BDmn, BDmn, BDmn, BDmn, KClusterDmn, KClusterDmn,
@@ -154,18 +157,19 @@ public:
       Sigma_lattice_coarsegrained;
 
   func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>> G_k_w;
-  func::function<double, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, TDmn>> G_k_t;
+  func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, TDmn>> G_k_t;
   func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>> G_r_w;
   func::function<double, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>> G_r_t;
 
   func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>> G0_k_w;
-  func::function<double, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, TDmn>> G0_k_t;
+  func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, TDmn>> G0_k_t;
   func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>> G0_r_w;
   func::function<double, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>> G0_r_t;
 
   func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, WDmn>>
       G0_k_w_cluster_excluded;
-  func::function<double, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, TDmn>> G0_k_t_cluster_excluded;
+  func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, KClusterDmn, TDmn>>
+      G0_k_t_cluster_excluded;
   func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, WDmn>>
       G0_r_w_cluster_excluded;
   func::function<double, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>> G0_r_t_cluster_excluded;
@@ -504,7 +508,9 @@ void DcaData<Parameters>::initialize_G0() {
   symmetrize::execute(G0_r_w, H_symmetry, true);
 
   // Compute G0_r_t.
-  math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(G0_k_t, G0_r_t);
+  func::function<std::complex<double>, func::dmn_variadic<NuDmn, NuDmn, RClusterDmn, TDmn>> G0_r_t_cmplx;
+  math::transform::FunctionTransform<KClusterDmn, RClusterDmn>::execute(G0_k_t, G0_r_t_cmplx);
+  G0_r_t = func::util::real(G0_r_t_cmplx, true);
   symmetrize::execute(G0_r_t, H_symmetry, true);
 
   // Initialize the cluster excluded Green's functions with the corresponding free Green's
