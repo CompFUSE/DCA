@@ -5,7 +5,8 @@
 // See LICENSE for terms of usage.
 // See CITATION.md for citation guidelines, if DCA++ is used for scientific publications.
 //
-// Author: Peter Staar (taa@zurich.ibm.com)
+// Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
+//         Peter Staar (taa@zurich.ibm.com)
 //
 // This class symmetrizes single-particle Greens functions according to cluster symmetries,
 // matsubara frequencies and band-index symmetries.
@@ -104,6 +105,11 @@ protected:
   static void execute(func::function<scalartype, func::dmn_variadic<nu, nu, f_dmn_0, f_dmn_1>>& f,
                       bool do_diff = false);
 
+public:
+  static bool differenceDetected() {
+    return difference_detected_;
+  }
+
 private:
   template <typename scalartype>
   static void difference(scalartype val, std::string function_name, std::string dmn_name);
@@ -158,7 +164,11 @@ private:
                      func::dmn_variadic<b, b, func::dmn_0<domains::cluster_domain<
                                                   scalar_type, D, N, domains::MOMENTUM_SPACE, S>>>>& f,
       bool do_diff = false);
+
+    static bool difference_detected_;
 };
+
+bool symmetrize_single_particle_function::difference_detected_ = false;
 
 template <typename scalartype, typename nu_dmn_t, typename f_dmn_0, typename f_dmn_1>
 void symmetrize_single_particle_function::execute(
@@ -300,6 +310,8 @@ void symmetrize_single_particle_function::difference(scalartype val, std::string
   if (std::abs(val) > 1.e-6) {
     std::cout << "difference detected in : " << dmn_name << "\t" << function_name << "\t"
               << std::abs(val) << "\n\n";
+
+    difference_detected_ = true;
     // throw std::logic_error(__PRETTY_FUNCTION__);
   }
 }
@@ -310,6 +322,8 @@ void symmetrize_single_particle_function::difference(scalartype val0, scalartype
   if (abs(val0 - val1) > 1.e-6) {
     std::cout << "difference detected in : " << dmn_name << "\t" << function_name << "\t"
               << abs(val0 - val1) << "\n\n";
+
+    difference_detected_ = true;
     // throw std::logic_error(__PRETTY_FUNCTION__);
   }
 }

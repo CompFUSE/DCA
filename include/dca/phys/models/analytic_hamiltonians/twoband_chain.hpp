@@ -137,8 +137,6 @@ void twoband_chain<point_group_type>::initialize_H_interaction(
   const int origin = RDmn::parameter_type::origin_index();
 
   const double U = parameters.get_U();  // Same band, opposite spin.
-  //  const double V = parameters.get_V();              // Different band, opposite spin.
-  //  const double V_prime = parameters.get_V_prime();  // Different band, same spin.
 
   H_interaction = 0.;
 
@@ -148,11 +146,6 @@ void twoband_chain<point_group_type>::initialize_H_interaction(
         for (int s2 = 0; s2 < 2; s2++) {
           if (b1 == b2 && s1 != s2)
             H_interaction(b1, s1, b2, s2, origin) = U;
-          //          if (b1 != b2 && s1 != s2)
-          //            H_interaction(b1, s1, b2, s2, origin) = V;
-          //
-          //          if (b1 != b2 && s1 == s2)
-          //            H_interaction(b1, s1, b2, s2, origin) = V_prime;
         }
       }
     }
@@ -163,12 +156,6 @@ template <typename point_group_type>
 template <class domain>
 void twoband_chain<point_group_type>::initialize_H_symmetry(func::function<int, domain>& H_symmetries) {
   H_symmetries = -1;
-  //
-  //  H_symmetries(0, 0, 0, 0) = 0;
-  //  H_symmetries(0, 1, 0, 1) = 0;
-  //
-  //  H_symmetries(1, 0, 1, 0) = 1;
-  //  H_symmetries(1, 1, 1, 1) = 1;
 }
 
 template <typename point_group_type>
