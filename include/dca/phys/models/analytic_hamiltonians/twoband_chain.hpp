@@ -14,6 +14,7 @@
 #ifndef DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_TWOBAND_CHAIN_HPP
 #define DCA_PHYS_MODELS_ANALYTIC_HAMILTONIANS_TWOBAND_CHAIN_HPP
 
+#include <array>
 #include <cmath>
 #include <stdexcept>
 #include <utility>
