@@ -8,6 +8,10 @@
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
 // Specialization for momentum to space transforms with phase factors.
+// This class implements the transform of single particle functions equivalent to the transformation
+// of  fermionic operators
+// c(b, k) = \sum_e Exp[i k (r + a[b])] c(b, k) / sqrt[Nc],
+// where a[b] describes the position of the orbital b.
 
 #ifndef DCA_MATH_FUNCTION_TRANSFORM_SPECIAL_TRANSFORMS_SPACE_TO_MOMENTUM_HPP
 #define DCA_MATH_FUNCTION_TRANSFORM_SPECIAL_TRANSFORMS_SPACE_TO_MOMENTUM_HPP
@@ -83,9 +87,9 @@ public:
   static void execute(const func::function<ScalarInp, DomainInput>& f_input,
                       func::function<ScalarOut, DomainOutput>& output);
 
-private:
-  static bool has_phase_factor();
+  static bool hasPhaseFactor();
 
+private:
   using Matrix = linalg::Matrix<Complex, linalg::CPU>;
   using PhaseFactors = func::function<Complex, func::dmn_variadic<BDmn, BDmn, KDmn>>;
 
@@ -104,7 +108,7 @@ void SpaceToMomentumTransform<RDmn, KDmn>::execute(
                               func::dmn_variadic<NuDmn, NuDmn, KDmn, LastDmn>, typename RDmn::parameter_type,
                               typename KDmn::parameter_type>::execute_on_first(f_input, f_output);
 
-  if (has_phase_factor()) {
+  if (hasPhaseFactor()) {
     const int n_bands = BDmn::dmn_size();
     const int nc = KDmn::dmn_size();
 
@@ -129,7 +133,7 @@ void SpaceToMomentumTransform<RDmn, KDmn>::execute(const func::function<ScalarIn
 }
 
 template <class RDmn, class KDmn>
-bool SpaceToMomentumTransform<RDmn, KDmn>::has_phase_factor() {
+bool SpaceToMomentumTransform<RDmn, KDmn>::hasPhaseFactor() {
   auto check_a_vecs = [&]() {
     for (const auto& dmn_elem : BDmn::parameter_type::get_elements())
       for (const auto a : dmn_elem.a_vec)

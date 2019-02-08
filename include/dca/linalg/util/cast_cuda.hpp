@@ -64,20 +64,20 @@ inline const cuDoubleComplex* castCudaComplex(const std::complex<double>& el) {
 // Provides a templated typedef.
 namespace details {
 // dca::linalg::util::details::
-template<typename Real>
+template <typename Real>
 struct ComplexContainer;
-template<>
-struct ComplexContainer<double>{
+template <>
+struct ComplexContainer<double> {
   using type = cuDoubleComplex;
 };
-template<>
-struct ComplexContainer<float>{
+template <>
+struct ComplexContainer<float> {
   using type = cuFloatComplex;
 };
 }  // details
 // dca::linalg::util::
 
-template<typename Real>
+template <typename Real>
 using CudaComplex = typename details::ComplexContainer<Real>::type;
 
 }  // util
