@@ -7,7 +7,7 @@
 //
 // Author: Giovanni Balduzzi (gbalduzz@itp.phys.ethz.ch)
 //
-// Specialization for momentum to space transforms with phase factors.
+// Implements the inverse transformation described in space_to_momentum.hpp.
 
 #ifndef DCA_MATH_FUNCTION_TRANSFORM_SPECIAL_TRANSFORMS_MOMENTUM_TO_SPACE_HPP
 #define DCA_MATH_FUNCTION_TRANSFORM_SPECIAL_TRANSFORMS_MOMENTUM_TO_SPACE_HPP
@@ -40,6 +40,8 @@ private:
 
   using Real = typename RDmn::parameter_type::Scalar;
   using Complex = std::complex<Real>;
+
+  using Matrix = linalg::Matrix<Complex, linalg::CPU>;
 
 public:
   // Specialization for complex Sp Green's functions.
@@ -82,10 +84,7 @@ public:
   static void execute(const func::function<ScalarInp, DomainInput>& f_input,
                       func::function<ScalarOut, DomainOutput>& output);
 
-private:
-  static bool has_phase_factor();
-
-  using Matrix = linalg::Matrix<Complex, linalg::CPU>;
+  static bool hasPhaseFactor();
 };
 
 template <class KDmn, class RDmn>
@@ -95,7 +94,7 @@ void MomentumToSpaceTransform<KDmn, RDmn>::execute(
     func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, RDmn, LastDmn>>& f_output) {
   func::function<Complex, func::dmn_variadic<NuDmn, NuDmn, KDmn, LastDmn>> f_input_cpy(f_input);
 
-  if (has_phase_factor()) {
+  if (hasPhaseFactor()) {
     const int n_bands = BDmn::dmn_size();
     const int nc = KDmn::dmn_size();
 
@@ -140,8 +139,8 @@ void MomentumToSpaceTransform<KDmn, RDmn>::execute(const func::function<ScalarIn
 }
 
 template <class KDmn, class RDmn>
-bool MomentumToSpaceTransform<KDmn, RDmn>::has_phase_factor() {
-  return SpaceToMomentumTransform<RDmn, KDmn>::has_phase_factor();
+bool MomentumToSpaceTransform<KDmn, RDmn>::hasPhaseFactor() {
+  return SpaceToMomentumTransform<RDmn, KDmn>::hasPhaseFactor();
 }
 
 }  // transform
