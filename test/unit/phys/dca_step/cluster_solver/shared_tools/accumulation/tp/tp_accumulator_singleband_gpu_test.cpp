@@ -29,15 +29,14 @@ constexpr bool update_baseline = false;
 
 constexpr char input_file[] = INPUT_DIR "input_4x4.json";
 
-using TpAccumulatorGpuSinglebandTest =
-    dca::testing::G0Setup<dca::testing::LatticeSquare, dca::phys::solver::CT_AUX, input_file>;
-
-using ConfigGenerator =
-    dca::testing::AccumulationTest<TpAccumulatorGpuSinglebandTest::Parameters::MC_measurement_scalar_type>;
+using ConfigGenerator = dca::testing::AccumulationTest<double>;
 using Configuration = ConfigGenerator::Configuration;
 using Sample = ConfigGenerator::Sample;
 
-uint loop_id = 0;
+using TpAccumulatorGpuSinglebandTest =
+    dca::testing::G0Setup<dca::testing::LatticeSquare, dca::phys::solver::CT_AUX, input_file>;
+
+unsigned int loop_id = 0;
 
 TEST_F(TpAccumulatorGpuSinglebandTest, Accumulate) {
   dca::linalg::util::initializeMagma();

@@ -348,13 +348,13 @@ void DcaLoop<ParametersType, DcaDataType, MCIntegratorType>::update_DCA_loop_dat
 
   for (int l1 = 0; l1 < b::dmn_size() * s::dmn_size(); l1++)
     for (int k_ind = 0; k_ind < k_DCA::dmn_size(); k_ind++)
-      DCA_info_struct.n_k(l1, k_ind, i) = 1. - MOMS.G_k_t(l1, l1, k_ind, 0);
+      DCA_info_struct.n_k(l1, k_ind, i) = 1. - std::abs(MOMS.G_k_t(l1, l1, k_ind, 0));
 
   for (int l1 = 0; l1 < b::dmn_size() * s::dmn_size(); l1++)
     for (int k_ind = 0; k_ind < k_DCA::dmn_size(); k_ind++)
       // TODO: Use t::dmn_size() instead of parameters.get_sp_time_intervals().
       DCA_info_struct.A_k(l1, k_ind, i) =
-          MOMS.G_k_t(l1, l1, k_ind, parameters.get_sp_time_intervals() / 2) *
+          std::abs(MOMS.G_k_t(l1, l1, k_ind, parameters.get_sp_time_intervals() / 2)) *
           parameters.get_beta() / M_PI;
 }
 

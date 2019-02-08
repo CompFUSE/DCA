@@ -35,7 +35,7 @@
 
 int main(int argc, char** argv) {
   if (argc < 2) {
-    std::cerr << "Usage: " << argv[0] << " input_file.json" << std::endl;
+    std::cerr << "Usage: " << argv[0] << " input_file.json [skip ed]" << std::endl;
     return -1;
   }
 
@@ -43,8 +43,8 @@ int main(int argc, char** argv) {
 
   try {
     std::string input_file(argv[1]);
-
-    const bool perform_statistical_test = concurrency.number_of_processors() >= 8;
+    const bool skip_ed = argc > 2 ? std::atoi(argv[2]) : false;
+    const bool perform_statistical_test = concurrency.number_of_processors() >= 8 && !skip_ed;
 
     Profiler::start();
 
@@ -94,21 +94,26 @@ int main(int argc, char** argv) {
 
     // ED solver
     EdSolver ed_solver(parameters, dca_data_imag, dca_data_real);
-    ed_solver.initialize(0);
-    ed_solver.execute();
-    ed_solver.finalize(dca_loop_data);
+    if (!skip_ed) {
+      ed_solver.initialize(0);
+      ed_solver.execute();
+      ed_solver.finalize(dca_loop_data);
+
+      if (concurrency.id() == concurrency.first()) {
+        ed_solver.write(data_file_ed);
+      }
+    }
 
     const auto Sigma_ed(dca_data_imag.Sigma);
     const int tested_frequencies = 10;
     const auto G_ed(dca::math::util::cutFrequency(dca_data_imag.G_k_w, tested_frequencies));
 
-    if (concurrency.id() == concurrency.first()) {
-      ed_solver.write(data_file_ed);
-    }
-
     // QMC solver
     // The QMC solver uses the free Greens function G0 computed by the ED solver.
     // It is passed via the dca_data_imag object.
+    if (skip_ed)
+      dca_data_imag.initialize();
+
     ClusterSolver qmc_solver(parameters, dca_data_imag);
     qmc_solver.initialize(1);  // 1 = dummy iteration number
     qmc_solver.integrate();

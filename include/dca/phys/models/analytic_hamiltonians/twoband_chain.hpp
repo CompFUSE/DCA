@@ -137,8 +137,6 @@ void twoband_chain<point_group_type>::initialize_H_interaction(
   const int origin = RDmn::parameter_type::origin_index();
 
   const double U = parameters.get_U();  // Same band, opposite spin.
-  //  const double V = parameters.get_V();              // Different band, opposite spin.
-  //  const double V_prime = parameters.get_V_prime();  // Different band, same spin.
 
   H_interaction = 0.;
 
@@ -148,11 +146,6 @@ void twoband_chain<point_group_type>::initialize_H_interaction(
         for (int s2 = 0; s2 < 2; s2++) {
           if (b1 == b2 && s1 != s2)
             H_interaction(b1, s1, b2, s2, origin) = U;
-          //          if (b1 != b2 && s1 != s2)
-          //            H_interaction(b1, s1, b2, s2, origin) = V;
-          //
-          //          if (b1 != b2 && s1 == s2)
-          //            H_interaction(b1, s1, b2, s2, origin) = V_prime;
         }
       }
     }
@@ -163,12 +156,6 @@ template <typename point_group_type>
 template <class domain>
 void twoband_chain<point_group_type>::initialize_H_symmetry(func::function<int, domain>& H_symmetries) {
   H_symmetries = -1;
-  //
-  //  H_symmetries(0, 0, 0, 0) = 0;
-  //  H_symmetries(0, 1, 0, 1) = 0;
-  //
-  //  H_symmetries(1, 0, 1, 0) = 1;
-  //  H_symmetries(1, 1, 1, 1) = 1;
 }
 
 template <typename point_group_type>
@@ -189,10 +176,14 @@ void twoband_chain<point_group_type>::initialize_H_0(
 
   for (int k_ind = 0; k_ind < KDmn::dmn_size(); ++k_ind) {
     const auto& k = k_vecs[k_ind];
-    const double val = -2. * (t[0] * std::cos(k[0]) + t[1] * std::cos(k[1]));
+    ScalarType val(0);
+    for(int d = 0; d < DIMENSION; ++d)
+      val += -2*t[d] * std::cos(k[d]);
 
-    for (int s = 0; s < 2; ++s)
-      H_0(0, s, 1, s, k_ind) = H_0(1, s, 0, s, k_ind) = val;
+    for (int s = 0; s < 2; ++s) {
+      H_0(0, s, 1, s, k_ind) = val;
+      H_0(1, s, 0, s, k_ind) = val;
+    }
   }
 }
 

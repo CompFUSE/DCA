@@ -13,6 +13,7 @@
 #define DCA_MATH_FUNCTION_TRANSFORM_TRANSFORM_DOMAIN_PROCEDURE_HPP
 
 #include "dca/function/function.hpp"
+#include "dca/function/util/real_complex_conversion.hpp"
 #include "dca/linalg/linalg.hpp"
 
 namespace dca {
@@ -186,12 +187,9 @@ void TRANSFORM_DOMAIN_PROCEDURE<DMN_INDEX>::transform(
     const func::function<scalartype, domain_output>& f_input,
     func::function<std::complex<scalartype>, domain_input>& f_output,
     const linalg::Matrix<std::complex<scalartype>, linalg::CPU>& T) {
-  func::function<std::complex<scalartype>, domain_output> f_in("f_in");
+  const auto f_cmplx = func::util::complex(f_input);
 
-  for (int i = 0; i < f_input.size(); i++)
-    real(f_in(i)) = f_input(i);
-
-  transform(f_in, f_output, T);
+  transform(f_cmplx, f_output, T);
 }
 
 template <int DMN_INDEX>
