@@ -29,6 +29,7 @@
 #include "dca/linalg/matrixop.hpp"
 #include "dca/phys/domains/quantum/electron_band_domain.hpp"
 #include "dca/phys/domains/quantum/electron_spin_domain.hpp"
+#include "dca/util/type_list.hpp"
 
 namespace dca {
 namespace math {
@@ -75,8 +76,9 @@ public:
   }
 
   // A non specialized transform with an 'electron_band_domain' is forbidden.
-  template <typename ScalarA, typename ScalarB, class... PackIn, class OutDmn>
-  static void execute(const func::function<ScalarA, func::dmn_variadic<BDmn, PackIn...>>& /*f_in*/,
+  template <typename ScalarA, typename ScalarB, class InpDmn, class OutDmn,
+            typename = std::enable_if_t<dca::util::contained<BDmn, InpDmn>()>>
+  static void execute(const func::function<ScalarA, func::dmn_variadic<InpDmn>>& /*f_in*/,
                       func::function<ScalarB, OutDmn>& /*f_out*/) = delete;
   template <typename ScalarA, typename ScalarB, class... PackIn, class OutDmn>
   static void execute(const func::function<ScalarA, func::dmn_variadic<NuDmn, PackIn...>>& /*f_in*/,
