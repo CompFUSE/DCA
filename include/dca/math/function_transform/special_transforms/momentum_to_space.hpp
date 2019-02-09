@@ -71,16 +71,10 @@ public:
     f_output = std::move(func::util::real(f_out_cmplx, true));
   }
 
-  // A non specialized transform with an 'electron_band_domain' is forbidden.
-  template <typename ScalarA, typename ScalarB, class... PackIn, class OutDmn>
-  static void execute(const func::function<ScalarA, func::dmn_variadic<BDmn, PackIn...>>& /*f_in*/,
-                      func::function<ScalarB, OutDmn>& /*f_out*/) = delete;
-  template <typename ScalarA, typename ScalarB, class... PackIn, class OutDmn>
-  static void execute(const func::function<ScalarA, func::dmn_variadic<NuDmn, PackIn...>>& /*f_in*/,
-                      func::function<ScalarB, OutDmn>& /*f_out*/) = delete;
-
-  // Default to old implementation when no 'electron_band_domain' is present.
-  template <typename ScalarInp, typename ScalarOut, class DomainInput, class DomainOutput>
+  // Default to old implementation when no band is present.
+  // Precondition: DomainInput and DomainOutput don't contain an 'electron_band_domain'.
+  template <typename ScalarInp, typename ScalarOut, class DomainInput, class DomainOutput,
+            class = std::enable_if_t<!dca::util::contained<BDmn, DomainInput>()>>
   static void execute(const func::function<ScalarInp, DomainInput>& f_input,
                       func::function<ScalarOut, DomainOutput>& output);
 
@@ -131,7 +125,7 @@ void MomentumToSpaceTransform<KDmn, RDmn>::execute(
 }
 
 template <class KDmn, class RDmn>
-template <typename ScalarInp, typename ScalarOut, class DomainInput, class DomainOutput>
+template <typename ScalarInp, typename ScalarOut, class DomainInput, class DomainOutput, class>
 void MomentumToSpaceTransform<KDmn, RDmn>::execute(const func::function<ScalarInp, DomainInput>& f_input,
                                                    func::function<ScalarOut, DomainOutput>& f_output) {
   DomainwiseFunctionTransform<DomainInput, DomainOutput, typename KDmn::parameter_type,
