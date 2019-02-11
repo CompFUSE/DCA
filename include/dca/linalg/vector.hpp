@@ -66,8 +66,8 @@ public:
   template <class Container>
   ThisType& operator=(const Container& rhs);
 
-  template <DeviceType device_name2, class Allocator2>
-  ThisType& operator=(Vector<ScalarType, device_name2, Allocator2>&& rhs);
+  template <class Allocator2>
+  ThisType& operator=(Vector<ScalarType, device_name, Allocator2>&& rhs);
 
   // Returns the i-th element of the vector.
   // Preconditions: 0 <= i < size().first.
@@ -274,9 +274,11 @@ Vector<ScalarType, device_name, Allocator>& Vector<ScalarType, device_name, Allo
 }
 
 template <typename ScalarType, DeviceType device_name, class Allocator>
-template <DeviceType device_name2, class Allocator2>
+template <class Allocator2>
 Vector<ScalarType, device_name, Allocator>& Vector<ScalarType, device_name, Allocator>::operator=(
-    Vector<ScalarType, device_name2, Allocator2>&& rhs) {
+    Vector<ScalarType, device_name, Allocator2>&& rhs) {
+  static_cast<Allocator>(*this) = std::move(rhs);
+
   std::swap(data_, rhs.data_);
   std::swap(size_, rhs.size_);
   std::swap(capacity_, rhs.capacity_);
