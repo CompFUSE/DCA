@@ -150,6 +150,7 @@ private:
   constexpr static int n_ndft_streams_ = config::AccumulationOptions::memory_savings ? 1 : 2;
 
   using BaseClass::thread_id_;
+  using BaseClass::multiple_accumulators_;
   using BaseClass::n_bands_;
   using BaseClass::beta_;
   using BaseClass::G0_ptr_;
@@ -249,11 +250,17 @@ void TpAccumulator<Parameters, linalg::GPU>::resetG4() {
   auto& G4 = get_G4();
   try {
     typename BaseClass::TpDomain tp_dmn;
+    if (!multiple_accumulators_) {
+      G4.setStream(streams_[0]);
+    }
     G4.resizeNoCopy(tp_dmn.get_size());
     G4.setToZeroAsync(streams_[0]);
   }
   catch (std::bad_alloc& err) {
     std::cerr << "Failed to allocate G4 on device.\n";
+    if (!std::is_same<typename G4DevType::AllocatorType, linalg::util::ManagedAllocator<Complex>>::value) {
+      std::cerr << "Try setting DCA_WITH_MANAGED_MEMORY to ON.\n";
+    }
     throw(err);
   }
 }
@@ -379,25 +386,25 @@ void TpAccumulator<Parameters, linalg::GPU>::updateG4() {
       details::updateG4<Real, PARTICLE_HOLE_MAGNETIC>(
           get_G4().ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, streams_[0]);
+          nk_exchange, sign_, multiple_accumulators_, streams_[0]);
       break;
     case PARTICLE_HOLE_CHARGE:
       details::updateG4<Real, PARTICLE_HOLE_CHARGE>(
           get_G4().ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, streams_[0]);
+          nk_exchange, sign_, multiple_accumulators_, streams_[0]);
       break;
     case PARTICLE_HOLE_TRANSVERSE:
       details::updateG4<Real, PARTICLE_HOLE_TRANSVERSE>(
           get_G4().ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, streams_[0]);
+          nk_exchange, sign_, multiple_accumulators_, streams_[0]);
       break;
     case PARTICLE_PARTICLE_UP_DOWN:
       details::updateG4<Real, PARTICLE_PARTICLE_UP_DOWN>(
           get_G4().ptr(), G_[0].ptr(), G_[0].leadingDimension(), G_[1].ptr(),
           G_[1].leadingDimension(), n_bands_, KDmn::dmn_size(), WTpPosDmn::dmn_size(), nw_exchange,
-          nk_exchange, sign_, streams_[0]);
+          nk_exchange, sign_, multiple_accumulators_, streams_[0]);
       break;
     default:
       throw(std::logic_error("Mode non supported."));
