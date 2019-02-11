@@ -26,14 +26,13 @@
 #include "dca/linalg/device_type.hpp"
 #include "dca/linalg/util/copy.hpp"
 #include "dca/linalg/util/stream_functions.hpp"
-#include "dca/linalg/util/memory.hpp"
 
 namespace dca {
 namespace linalg {
 // dca::linalg::
 
 template <typename ScalarType, DeviceType device_name>
-class Matrix {
+class Matrix : public util::DefaultAllocator<ScalarType, device_name> {
 public:
   using ThisType = Matrix<ScalarType, device_name>;
   using ValueType = ScalarType;
@@ -237,8 +236,6 @@ private:
 
   ValueType* data_ = nullptr;
 
-  Allocator allocator_;
-
   template <class ScalarType2, DeviceType device_name2>
   friend class dca::linalg::Matrix;
 };
@@ -275,6 +272,15 @@ Matrix<ScalarType, device_name>::Matrix(std::pair<int, int> size, std::pair<int,
     : Matrix(default_name_, size, capacity) {}
 
 template <typename ScalarType, DeviceType device_name>
+template <DeviceType rhs_device_name>
+Matrix<ScalarType, device_name>::Matrix(const Matrix<ScalarType, rhs_device_name>& rhs,
+                                        const std::string& name)
+    : name_(name), size_(rhs.size_), capacity_(rhs.capacity_) {
+  data_ = Allocator::allocate(nrElements(capacity_));
+  util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
+}
+
+template <typename ScalarType, DeviceType device_name>
 Matrix<ScalarType, device_name>::Matrix(const std::string& name, std::pair<int, int> size,
                                         std::pair<int, int> capacity)
     : name_(name), size_(size), capacity_(capacityMultipleOfBlockSize(capacity)) {
@@ -283,8 +289,7 @@ Matrix<ScalarType, device_name>::Matrix(const std::string& name, std::pair<int, 
   assert(capacity.first >= size_.first && capacity.second >= size_.second);
   assert(capacity_.first >= capacity.first && capacity_.second >= capacity.second);
 
-  data_ = allocator_.allocate(nrElements(capacity_));
-  util::Memory<device_name>::setToZero(data_, nrElements(capacity_));
+  data_ = Allocator::allocate(nrElements(capacity_));
 }
 
 template <typename ScalarType, DeviceType device_name>
@@ -303,17 +308,8 @@ Matrix<ScalarType, device_name>::Matrix(Matrix<ScalarType, device_name>&& rhs, c
 }
 
 template <typename ScalarType, DeviceType device_name>
-template <DeviceType rhs_device_name>
-Matrix<ScalarType, device_name>::Matrix(const Matrix<ScalarType, rhs_device_name>& rhs,
-                                        const std::string& name)
-    : name_(name), size_(rhs.size_), capacity_(rhs.capacity_) {
-  data_ = allocator_.allocate(nrElements(capacity_));
-  util::memoryCopy(data_, leadingDimension(), rhs.data_, rhs.leadingDimension(), size_);
-}
-
-template <typename ScalarType, DeviceType device_name>
 Matrix<ScalarType, device_name>::~Matrix() {
-  allocator_.deallocate(data_);
+  Allocator::deallocate(data_);
 }
 
 template <typename ScalarType, DeviceType device_name>
@@ -323,11 +319,11 @@ void Matrix<ScalarType, device_name>::resize(std::pair<int, int> new_size) {
     std::pair<int, int> new_capacity = capacityMultipleOfBlockSize(new_size);
 
     ValueType* new_data = nullptr;
-    new_data = allocator_.allocate(nrElements(new_capacity));
+    new_data = Allocator::allocate(nrElements(new_capacity));
     const std::pair<int, int> copy_size(std::min(new_size.first, size_.first),
                                         std::min(new_size.second, size_.second));
     util::memoryCopy(new_data, new_capacity.first, data_, leadingDimension(), copy_size);
-    allocator_.deallocate(data_);
+    Allocator::deallocate(data_);
 
     data_ = new_data;
     capacity_ = new_capacity;
@@ -392,8 +388,8 @@ void Matrix<ScalarType, device_name>::resizeNoCopy(std::pair<int, int> new_size)
     size_ = new_size;
     capacity_ = capacityMultipleOfBlockSize(new_size);
 
-    allocator_.deallocate(data_);
-    data_ = allocator_.allocate(nrElements(capacity_));
+    Allocator::deallocate(data_);
+    data_ = Allocator::allocate(nrElements(capacity_));
   }
   else {
     size_ = new_size;
@@ -402,7 +398,7 @@ void Matrix<ScalarType, device_name>::resizeNoCopy(std::pair<int, int> new_size)
 
 template <typename ScalarType, DeviceType device_name>
 void Matrix<ScalarType, device_name>::clear() {
-  allocator_.deallocate(data_);
+  Allocator::deallocate(data_);
   size_ = capacity_ = std::make_pair(0, 0);
 }
 

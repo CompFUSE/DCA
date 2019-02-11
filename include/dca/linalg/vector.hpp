@@ -34,7 +34,7 @@ namespace linalg {
 
 template <typename ScalarType, DeviceType device_name,
           class Allocator = util::DefaultAllocator<ScalarType, device_name>>
-class Vector {
+class Vector : public Allocator {
 public:
   using ThisType = Vector<ScalarType, device_name, Allocator>;
   using ValueType = ScalarType;
@@ -165,9 +165,6 @@ public:
 
   std::size_t deviceFingerprint() const;
 
-protected:
-  Allocator allocator_;
-
 private:
   std::string name_;
 
@@ -207,7 +204,7 @@ Vector<ScalarType, device_name, Allocator>::Vector(const std::string& name, size
                                                    size_t capacity)
     : name_(name), size_(size), capacity_(capacity), data_(nullptr) {
   assert(capacity_ >= size_);
-  data_ = allocator_.allocate(capacity_);
+  data_ = Allocator::allocate(capacity_);
   util::Memory<device_name>::setToZero(data_, capacity_);
 }
 
@@ -235,7 +232,7 @@ Vector<ScalarType, device_name, Allocator>::Vector(Vector<ScalarType, device_nam
 
 template <typename ScalarType, DeviceType device_name, class Allocator>
 Vector<ScalarType, device_name, Allocator>::~Vector() {
-  allocator_.deallocate(data_);
+  Allocator::deallocate(data_);
 }
 
 template <typename ScalarType, DeviceType device_name, class Allocator>
@@ -334,9 +331,9 @@ void Vector<ScalarType, device_name, Allocator>::resize(size_t new_size) {
   if (new_size > capacity_) {
     int new_capacity = (new_size / 64 + 1) * 64;
 
-    ValueType* new_data = allocator_.allocate(new_capacity);
+    ValueType* new_data = Allocator::allocate(new_capacity);
     util::memoryCopy(new_data, data_, size_);
-    allocator_.deallocate(data_);
+    Allocator::deallocate(data_);
 
     data_ = new_data;
     capacity_ = new_capacity;
@@ -351,8 +348,8 @@ void Vector<ScalarType, device_name, Allocator>::resizeNoCopy(size_t new_size) {
   if (new_size > capacity_) {
     int new_capacity = (new_size / 64 + 1) * 64;
 
-    allocator_.deallocate(data_);
-    data_ = allocator_.allocate(new_capacity);
+    Allocator::deallocate(data_);
+    data_ = Allocator::allocate(new_capacity);
 
     capacity_ = new_capacity;
     size_ = new_size;
@@ -363,7 +360,7 @@ void Vector<ScalarType, device_name, Allocator>::resizeNoCopy(size_t new_size) {
 
 template <typename ScalarType, DeviceType device_name, class Allocator>
 void Vector<ScalarType, device_name, Allocator>::clear() {
-  allocator_.deallocate(data_);
+  Allocator::deallocate(data_);
   size_ = capacity_ = 0;
 }
 

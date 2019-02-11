@@ -12,16 +12,14 @@
 #ifndef DCA_LINALG_UTIL_ALLOCATORS_ALIGNED_ALLOCATOR_HPP
 #define DCA_LINALG_UTIL_ALLOCATORS_ALIGNED_ALLOCATOR_HPP
 
-#include <vector>
-
 namespace dca {
 namespace linalg {
 namespace util {
 // dca::linalg::util::
 
 template <typename T>
-class AlignedAllocator : public std::allocator<T> {
-public:
+class AlignedAllocator {
+protected:
   T* allocate(std::size_t n) {
     T* ptr;
     int err = posix_memalign((void**)&ptr, 128, n * sizeof(T));
