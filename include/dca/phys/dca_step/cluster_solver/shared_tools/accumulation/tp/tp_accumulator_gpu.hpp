@@ -30,7 +30,6 @@
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/g4_helper.cuh"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/kernels_interface.hpp"
 #include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/ndft/cached_ndft_gpu.hpp"
-#include "dca/phys/dca_step/cluster_solver/shared_tools/accumulation/tp/vector_managed_fallback.hpp"
 
 namespace dca {
 namespace phys {
@@ -182,7 +181,7 @@ private:
 
   using G0DevType = std::array<MatrixDev, 2>;
   static inline G0DevType& get_G0();
-  using G4DevType = VectorManagedFallback<Complex>;
+  using G4DevType = linalg::Vector<Complex, linalg::GPU, linalg::util::DeviceAllocator<Complex>>;
   static inline G4DevType& get_G4();
 };
 
