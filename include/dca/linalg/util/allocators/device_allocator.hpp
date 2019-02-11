@@ -52,7 +52,7 @@ protected:
 
 public:
   // SFINAE method for setting managed memory stream.
-  void setStream() const {}
+  void setStream(const cudaStream_t /*stream*/) const {}
 };
 
 }  // util
